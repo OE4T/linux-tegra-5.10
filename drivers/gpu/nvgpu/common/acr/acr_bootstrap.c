@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/soc.h>
 
 #include "acr_bootstrap.h"
 #include "acr_priv.h"
@@ -201,7 +202,14 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	}
 
 	/* wait for complete & halt */
-	err = acr_wait_for_completion(g, acr_desc, ACR_COMPLETION_TIMEOUT_MS);
+	if (nvgpu_platform_is_silicon(g)) {
+		err = acr_wait_for_completion(g, acr_desc,
+					ACR_COMPLETION_TIMEOUT_SILICON_MS);
+	} else {
+		err = acr_wait_for_completion(g, acr_desc,
+					ACR_COMPLETION_TIMEOUT_NON_SILICON_MS);
+	}
+
 	if (err != 0) {
 		nvgpu_err(g, "HS ucode completion err %d", err);
 		goto err_free_ucode;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -97,7 +97,8 @@ struct wpr_carveout_info;
 #define LSF_SEC2_UCODE_DESC_FUSA_BIN "sec2_ucode_fusa_desc.bin"
 #define LSF_SEC2_UCODE_SIG_FUSA_BIN "sec2_fusa_sig.bin"
 
-#define ACR_COMPLETION_TIMEOUT_MS 10000U /*in msec */
+#define ACR_COMPLETION_TIMEOUT_NON_SILICON_MS 10000U /*in msec */
+#define ACR_COMPLETION_TIMEOUT_SILICON_MS 100 /*in msec */
 
 struct acr_lsf_config {
 	u32 falcon_id;
