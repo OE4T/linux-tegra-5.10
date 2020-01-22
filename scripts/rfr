@@ -44,7 +44,8 @@ to_addr = 'sw-mobile-nvgpu-core <sw-mobile-nvgpu-core@exchange.nvidia.com>'
 
 # Gerrit commit URL formats. These are regular expressions to match the
 # incoming URLs against.
-gr_fmts = [ r'http://git-master/r/(\d+)',
+gr_fmts = [ r'(\d+)',
+            r'http://git-master/r/(\d+)',
             r'http://git-master/r/#/c/(\d+)/',
             r'http://git-master.nvidia.com/r/(\d+)',
             r'http://git-master.nvidia.com/r/#/c/(\d+)/',
