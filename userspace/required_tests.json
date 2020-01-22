@@ -2052,6 +2052,12 @@
         "test_level": 0
     },
     {
+        "test": "test_is_pmu_supported",
+        "case": "pmu_supported",
+        "unit": "nvgpu-pmu",
+        "test_level": 0
+    },
+    {
         "test": "test_nvgpu_alloc_destroy",
         "case": "alloc_destroy",
         "unit": "nvgpu_allocator",

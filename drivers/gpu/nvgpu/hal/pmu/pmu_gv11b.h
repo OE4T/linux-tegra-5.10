@@ -33,7 +33,6 @@ struct nvgpu_hw_err_inject_info_desc;
 bool gv11b_pmu_is_debug_mode_en(struct gk20a *g);
 void gv11b_pmu_flcn_setup_boot_config(struct gk20a *g);
 void gv11b_setup_apertures(struct gk20a *g);
-void gv11b_write_dmatrfbase(struct gk20a *g, u32 addr);
 bool gv11b_pmu_is_engine_in_reset(struct gk20a *g);
 void gv11b_pmu_engine_reset(struct gk20a *g, bool do_reset);
 u32 gv11b_pmu_falcon_base_addr(void);
@@ -46,6 +45,7 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
 int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 args_offset);
 void gv11b_pmu_setup_elpg(struct gk20a *g);
+void gv11b_write_dmatrfbase(struct gk20a *g, u32 addr);
 u32 gv11b_pmu_queue_head_r(u32 i);
 u32 gv11b_pmu_queue_head__size_1_v(void);
 u32 gv11b_pmu_queue_tail_r(u32 i);

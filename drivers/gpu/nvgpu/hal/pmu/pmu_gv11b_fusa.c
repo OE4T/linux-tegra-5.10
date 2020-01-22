@@ -252,14 +252,6 @@ void gv11b_setup_apertures(struct gk20a *g)
 		pwr_fbif_transcfg_target_noncoherent_sysmem_f());
 }
 
-void gv11b_write_dmatrfbase(struct gk20a *g, u32 addr)
-{
-	nvgpu_writel(g, pwr_falcon_dmatrfbase_r(),
-				addr);
-	nvgpu_writel(g, pwr_falcon_dmatrfbase1_r(),
-				0x0U);
-}
-
 bool gv11b_pmu_is_engine_in_reset(struct gk20a *g)
 {
 	u32 reg_reset;

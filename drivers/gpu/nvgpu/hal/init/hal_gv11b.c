@@ -1216,7 +1216,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.is_engine_in_reset = gv11b_pmu_is_engine_in_reset,
 		.is_debug_mode_enabled = gv11b_pmu_is_debug_mode_en,
 		.setup_apertures = gv11b_setup_apertures,
-		.write_dmatrfbase = gv11b_write_dmatrfbase,
 		.flcn_setup_boot_config = gv11b_pmu_flcn_setup_boot_config,
 		.pmu_clear_bar0_host_err_status =
 			gv11b_clear_pmu_bar0_host_err_status,
@@ -1264,6 +1263,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.pmu_ns_bootstrap = gv11b_pmu_bootstrap,
 		/* secured pmu start */
 		.secured_pmu_start = gv11b_secured_pmu_start,
+		.write_dmatrfbase = gv11b_write_dmatrfbase,
 #endif
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB

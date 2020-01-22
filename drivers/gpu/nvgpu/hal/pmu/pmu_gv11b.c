@@ -260,6 +260,11 @@ void gv11b_secured_pmu_start(struct gk20a *g)
 		pwr_falcon_cpuctl_startcpu_f(1));
 }
 
+void gv11b_write_dmatrfbase(struct gk20a *g, u32 addr)
+{
+	nvgpu_writel(g, pwr_falcon_dmatrfbase_r(), addr);
+	nvgpu_writel(g, pwr_falcon_dmatrfbase1_r(), 0x0U);
+}
 #endif
 
 #ifdef CONFIG_NVGPU_INJECT_HWERR

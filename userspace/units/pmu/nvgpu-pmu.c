@@ -33,6 +33,7 @@
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/posix/soc_fuse.h>
+#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/pmu/pmu_gk20a.h"
@@ -41,13 +42,13 @@
 #include "../gr/nvgpu-gr-gv11b.h"
 #include "../mock-iospace/include/gv11b_mock_regs.h"
 
-struct utf_falcon *pmu_flcn;
-
 #define NV_PMC_BOOT_0_ARCHITECTURE_GV110        (0x00000015 << \
 						NVGPU_GPU_ARCHITECTURE_SHIFT)
 #define NV_PMC_BOOT_0_IMPLEMENTATION_B          0xB
 
 #define NUM_REG_SPACES 10U
+
+struct utf_falcon *pmu_flcn;
 
 struct gr_test_reg_details {
 	int idx;
@@ -118,8 +119,11 @@ struct gr_test_reg_details gr_gv11b_reg_space[NUM_REG_SPACES] = {
 
 static bool stub_gv11b_is_pmu_supported(struct gk20a *g)
 {
-	/* set to false to disable LS PMU ucode support */
-	return false;
+	/*
+	 * return true to set g->ops.pmu.is_pmu_supported
+	 * true for branch coverage
+	 */
+	return true;
 }
 
 static struct utf_falcon *pmu_flcn_from_addr(struct gk20a *g, u32 addr)
@@ -402,7 +406,18 @@ static int test_pmu_early_init(struct unit_module *m,
 	nvgpu_pmu_remove_support(g, g->pmu);
 
 	/*
-	 * case 5: Adding branch coverage and fail
+	 * Case 5: branch coverage by setting
+	 * g->ecc.initialized = false
+	 */
+	g->ecc.initialized = false;
+	err =  nvgpu_pmu_early_init(g);
+
+	nvgpu_pmu_remove_support(g, g->pmu);
+
+	g->ecc.initialized = true;
+
+	/*
+	 * case 6: Adding branch coverage and fail
 	 * scenario by setting g->support_ls_pmu = false
 	 */
 	g->support_ls_pmu = false;
@@ -414,19 +429,23 @@ static int test_pmu_early_init(struct unit_module *m,
 	nvgpu_pmu_remove_support(g, g->pmu);
 
 	/*
-	 * case 6: Adding branch coverage and fail
-	 * scenario by setting g->ops.pmu.is_pmu_supported
-	 * to false
+	 * case 7: Adding branch coverage
+	 * By setting g->ops.pmu.is_pmu_supported
+	 * to true
 	 */
 	g->support_ls_pmu = true;
 	g->ops.pmu.is_pmu_supported = stub_gv11b_is_pmu_supported;
 	err = nvgpu_pmu_early_init(g);
 
-	if (g->support_ls_pmu != false || g->can_elpg != false ||
-		g->elpg_enabled != false || g->aelpg_enabled != false) {
+	nvgpu_pmu_remove_support(g, g->pmu);
+	/*
+	 * case 8: Adding branch coverage
+	 * By setting g->ops.pmu.ecc_init
+	 * to NULL
+	 */
 
-		unit_return_fail(m, "is_pmu_supported failed\n");
-	}
+	g->ops.pmu.ecc_init = NULL;
+	err =  nvgpu_pmu_early_init(g);
 
 	nvgpu_pmu_remove_support(g, g->pmu);
 
@@ -473,13 +492,40 @@ static int test_pmu_reset(struct unit_module *m,
 		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
 	}
 
-	/* case 1: reset passes */
+	/*
+	 * Case 1: reset passes
+	 */
 	err = nvgpu_falcon_reset(g->pmu->flcn);
 	if (err != 0 || (g->ops.pmu.is_engine_in_reset(g) != false)) {
 		unit_return_fail(m, "nvgpu_pmu_reset failed\n");
 	}
 
-	/* case 2: reset fails */
+	/*
+	 * Case 2: Set the falcon_falcon_idlestate_r register to 0x1
+	 * to make the falcon busy so that idle wait function fails
+	 * This case covers failig branch of the reset function
+	 */
+	nvgpu_posix_io_writel_reg_space(g, (pmu_flcn->flcn->flcn_base +
+					falcon_falcon_idlestate_r()), 0x1);
+	err = nvgpu_falcon_reset(g->pmu->flcn);
+	if (err == -ETIMEDOUT) {
+		unit_info(m, "nvgpu_pmu_reset failed as expected\n");
+	} else {
+		return UNIT_FAIL;
+	}
+
+	/*
+	 * Set the register back to default value
+	 */
+	nvgpu_posix_io_writel_reg_space(g, (pmu_flcn->flcn->flcn_base +
+					falcon_falcon_idlestate_r()), 0x0);
+
+
+	/*
+	 * Case 3: Fail scenario
+	 * Set the falcon dmactl register to 0x2 (IMEM_SCRUBBING_PENDING)
+	 * which results in -ETIMEDOUT error
+	 */
 	nvgpu_utf_falcon_set_dmactl(g, pmu_flcn, 0x2);
 	err = nvgpu_falcon_reset(g->pmu->flcn);
 
@@ -487,13 +533,56 @@ static int test_pmu_reset(struct unit_module *m,
 		unit_return_fail(m, "nvgpu_pmu_reset failed\n");
 	}
 
+	/*
+	 * Case 4: set pwr_falcon_engine_r true
+	 * to fail gv11b_pmu_is_engine_in_reset()
+	 *
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_engine_r(),
+					pwr_falcon_engine_reset_true_f());
+	err = nvgpu_falcon_reset(g->pmu->flcn);
+
+	if (err == -ETIMEDOUT) {
+		unit_info(m, "nvgpu_pmu_reset failed as expected\n");
+	} else {
+		return UNIT_FAIL;
+	}
+	/*
+	 * set back the register to default value
+	 */
+
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_engine_r(),
+					pwr_falcon_engine_reset_false_f());
+
+	err = nvgpu_falcon_reset(g->pmu->flcn);
+
+	/*
+	 * Case 5:
+	 * Set g->is_fusa_sku = true
+	 * to get branch coverage
+	 */
+	g->is_fusa_sku = true;
+	err = nvgpu_falcon_reset(g->pmu->flcn);
+	g->is_fusa_sku = false;
+
+	/*
+	 * Case 6:
+	 * g->ops.pmu.pmu_enable_irq to NULL
+	 * to achieve branch coverage
+	 *
+	 */
+	g->ops.pmu.pmu_enable_irq = NULL;
+	err = nvgpu_falcon_reset(g->pmu->flcn);
+
 	return UNIT_SUCCESS;
 }
 
 static int test_pmu_isr(struct unit_module *m,
 				struct gk20a *g, void *args)
 {	int err;
+	u32 ecc_value, ecc_intr_value;
 	struct nvgpu_pmu *pmu = g->pmu;
+
 	pmu->isr_enabled = true;
 
 	/*
@@ -501,6 +590,38 @@ static int test_pmu_isr(struct unit_module *m,
 	 */
 	if (init_pmu_falcon_test_env(m, g) != 0) {
 		unit_return_fail(m, "Module init failed\n");
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			pwr_pmu_ecc_intr_status_r(), 0x4) != 0) {
+		unit_err(m, "Add pwr_pmu_ecc_intr_status_r() reg space failed!\n");
+		return -ENOMEM;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			pwr_pmu_falcon_ecc_status_r(), 0x4) != 0) {
+		unit_err(m, "Add pwr_pmu_falcon_ecc_status_r() reg space failed!\n");
+		return -ENOMEM;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			pwr_pmu_falcon_ecc_address_r(), 0x4) != 0) {
+		unit_err(m, "Add pwr_pmu_falcon_ecc_address_r() reg space failed!\n");
+		return -ENOMEM;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			pwr_pmu_falcon_ecc_corrected_err_count_r(), 0x4) != 0) {
+		unit_err(m, "Add pwr_pmu_falcon_ecc_corrected_err_count_r() reg"
+							"space failed!\n");
+		return -ENOMEM;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			pwr_pmu_falcon_ecc_uncorrected_err_count_r(), 0x4) != 0) {
+		unit_err(m, "Add pwr_pmu_falcon_ecc_uncorrected_err_count_r()"
+							"reg space failed!\n");
+		return -ENOMEM;
 	}
 
 	err = g->ops.ecc.ecc_init_support(g);
@@ -527,10 +648,137 @@ static int test_pmu_isr(struct unit_module *m,
 
 	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqdest_r(),
 				pwr_falcon_irqstat_ext_ecc_parity_true_f());
+	g->ops.pmu.pmu_isr(g);
+
+	/*
+	 * case 2: more branch coverage
+	 */
+	ecc_value = pwr_pmu_falcon_ecc_status_corrected_err_imem_m() |
+			pwr_pmu_falcon_ecc_status_corrected_err_dmem_m() |
+			pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m() |
+			pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m() |
+			pwr_pmu_falcon_ecc_status_corrected_err_total_counter_overflow_m() |
+			pwr_pmu_falcon_ecc_status_uncorrected_err_total_counter_overflow_m();
+
+	/*
+	 * intr 1 = 0x3
+	 */
+	ecc_intr_value = pwr_pmu_ecc_intr_status_corrected_m() |
+				pwr_pmu_ecc_intr_status_uncorrected_m();
+
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_ecc_intr_status_r(),
+						ecc_intr_value);
+
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_falcon_ecc_status_r(),
+						ecc_value);
+
+	g->ops.pmu.pmu_isr(g);
+	/*
+	 * Set pwr_pmu_ecc_intr_status_r to
+	 * pwr_pmu_ecc_intr_status_uncorrected_m() to cover branches
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_falcon_ecc_status_r(),
+						ecc_value);
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_ecc_intr_status_r(),
+					pwr_pmu_ecc_intr_status_uncorrected_m());
+	g->ops.pmu.pmu_isr(g);
+
+	/*
+	 * Set pwr_pmu_ecc_intr_status_r to
+	 * pwr_pmu_ecc_intr_status_corrected_m() to cover branches
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_falcon_ecc_status_r(),
+						ecc_value);
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_ecc_intr_status_r(),
+					pwr_pmu_ecc_intr_status_corrected_m());
+	g->ops.pmu.pmu_isr(g);
+
+	/*
+	 * intr 1 = 0x1
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_ecc_intr_status_r(),
+					pwr_pmu_ecc_intr_status_corrected_m());
+	g->ops.pmu.pmu_isr(g);
+	/*
+	 * intr 1 = 0x2
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_ecc_intr_status_r(),
+					pwr_pmu_ecc_intr_status_uncorrected_m());
+	g->ops.pmu.pmu_isr(g);
+
+	/*
+	 * Case 3: Covering branches in the function
+	 * gv11b_pmu_handle_ext_irq()
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqstat_r(), 0x1);
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqmask_r(), 0x1);
+
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqdest_r(), 0x1);
 
 	g->ops.pmu.pmu_isr(g);
 
+	/*
+	 * case 4: Covering branch for intr = 0 in gk20a_pmu_isr
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqmask_r(),
+				pwr_falcon_irqstat_ext_ecc_parity_true_f());
+
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqdest_r(),
+				pwr_falcon_irqstat_ext_ecc_parity_true_f());
+
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqstat_r(), 0x0);
+	g->ops.pmu.pmu_isr(g);
+
+	/*
+	 * case 5: branch coverage for
+	 * g->ops.pmu.handle_ext_irq = NULL
+	 */
+	nvgpu_posix_io_writel_reg_space(g, pwr_falcon_irqstat_r(),
+				pwr_falcon_irqstat_ext_ecc_parity_true_f());
+
+	g->ops.pmu.handle_ext_irq = NULL;
+	g->ops.pmu.pmu_isr(g);
+
+	/*
+	 * case 6: pmu->isr_enabled = false
+	 */
+	pmu->isr_enabled = false;
+	g->ops.pmu.pmu_isr(g);
+
 	return UNIT_SUCCESS;
+}
+
+static int test_is_pmu_supported(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	bool status;
+	int err;
+	/*
+	 * initialize falcon
+	 */
+	if (init_pmu_falcon_test_env(m, g) != 0) {
+		unit_return_fail(m, "Module init failed\n");
+	}
+
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
+	/*
+	 * initialize PMU
+	 */
+	err =  nvgpu_pmu_early_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
+	}
+
+	status = g->ops.pmu.is_pmu_supported(g);
+	if (status != false) {
+		unit_err(m, "test_is_pmu_supported failed\n");
+	}
+	return UNIT_SUCCESS;
+
 }
 static int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 					void *__args)
@@ -549,6 +797,7 @@ static int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 
 struct unit_module_test nvgpu_pmu_tests[] = {
 	UNIT_TEST(pmu_early_init, test_pmu_early_init, NULL, 0),
+	UNIT_TEST(pmu_supported, test_is_pmu_supported, NULL, 0),
 	UNIT_TEST(pmu_remove_support, test_pmu_remove_support, NULL, 0),
 	UNIT_TEST(pmu_reset, test_pmu_reset, NULL, 0),
 	UNIT_TEST(pmu_isr, test_pmu_isr, NULL, 0),

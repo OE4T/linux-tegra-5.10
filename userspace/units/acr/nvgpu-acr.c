@@ -67,7 +67,7 @@
 #define NV_PBB_FBHUB_REGSPACE 0x100B00
 #define NUM_REG_SPACES 10U
 
-#define BAR0_ERRORS_NUM 6
+#define BAR0_ERRORS_NUM 11
 
 struct utf_falcon *pmu_flcn, *gpccs_flcn;
 static bool mailbox_error;
@@ -149,12 +149,6 @@ static bool stub_gv11b_validate_mem_integrity(struct gk20a *g)
 {
 	/* return error */
 	return false;
-}
-
-static bool stub_gv11b_is_debug_mode_en(struct gk20a *g)
-{
-	/* DEBUG mode enabbled */
-	return true;
 }
 
 static struct utf_falcon *get_flcn_from_addr(struct gk20a *g, u32 addr)
@@ -481,11 +475,25 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 	u64 pmu_bar0_error[BAR0_ERRORS_NUM] = {
 		pwr_pmu_bar0_error_status_timeout_host_m(),
+		(pwr_pmu_bar0_error_status_err_cmd_m() |
+			pwr_pmu_bar0_error_status_timeout_host_m()),
 		pwr_pmu_bar0_error_status_timeout_fecs_m(),
+		(pwr_pmu_bar0_error_status_err_cmd_m() |
+			pwr_pmu_bar0_error_status_timeout_fecs_m()),
 		pwr_pmu_bar0_error_status_cmd_hwerr_m(),
+		(pwr_pmu_bar0_error_status_err_cmd_m() |
+			pwr_pmu_bar0_error_status_cmd_hwerr_m()),
 		pwr_pmu_bar0_error_status_fecserr_m(),
+		(pwr_pmu_bar0_error_status_err_cmd_m() |
+			pwr_pmu_bar0_error_status_fecserr_m()),
 		pwr_pmu_bar0_error_status_hosterr_m(),
-		0xFF
+		(pwr_pmu_bar0_error_status_err_cmd_m() |
+			pwr_pmu_bar0_error_status_hosterr_m()),
+		/*
+		 * test invalid value condition for
+		 * PMU bar0 status
+		 */
+		0x08
 	};
 
 	/*
@@ -500,6 +508,12 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 			pwr_pmu_bar0_error_status_r(), 0x4) != 0) {
 		unit_err(m, "Add pwr_pmu_bar0_error_status reg space failed!\n");
 		return -ENOMEM;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			pwr_pmu_scpctl_stat_r(), 0x4) != 0) {
+	unit_err(m, "Add pwr_pmu_scpctl_stat_r() reg space failed!\n");
+	return -ENOMEM;
 	}
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
@@ -625,14 +639,16 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 		 */
 		nvgpu_posix_io_writel_reg_space(g,
 			pwr_pmu_bar0_error_status_r(), pmu_bar0_error[i]);
+		if(pmu_bar0_error[i] == (pwr_pmu_bar0_error_status_err_cmd_m() |
+				pwr_pmu_bar0_error_status_hosterr_m())) {
+			g->ops.pmu.pmu_clear_bar0_host_err_status = NULL;
+		}
 		err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
-
 		if (err != -EIO) {
 			unit_return_fail(m, "bar0_error_status error conditions"
 						"failed");
 		}
 	}
-
 	/*
 	 * Case 8: branch coverage
 	 */
@@ -665,7 +681,13 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	 * Case 11: branch coverage for debug mode
 	 */
 	g->acr->acr.acr_validate_mem_integrity = g->ops.pmu.validate_mem_integrity;
-	g->ops.pmu.is_debug_mode_enabled = stub_gv11b_is_debug_mode_en;
+	/*
+	 * Set the 20th bit of the register
+	 * to enable the debug mode
+	 */
+	err = pwr_pmu_scpctl_stat_debug_mode_m();
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_scpctl_stat_r(), err);
+
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 
 	/*
@@ -986,6 +1008,7 @@ int test_acr_init(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err;
+	u32 debug_mode_enable;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 
@@ -994,6 +1017,14 @@ int test_acr_init(struct unit_module *m,
 	 */
 	if (init_acr_falcon_test_env(m, g) != 0) {
 		unit_return_fail(m, "Module init failed\n");
+	}
+	/*
+	 * Initialize the space for debug mode register
+	 */
+	if (nvgpu_posix_io_add_reg_space(g,
+			pwr_pmu_scpctl_stat_r(), 0x4) != 0) {
+		unit_err(m, "Add pwr_pmu_scpctl_stat_r() reg space failed!\n");
+		return -ENOMEM;
 	}
 
 	err = g->ops.ecc.ecc_init_support(g);
@@ -1037,9 +1068,21 @@ int test_acr_init(struct unit_module *m,
 		unit_return_fail(m, "Version failure of chip for \
 				nvgpu_acr_init() didn't happen as expected\n");
 	}
+	/*
+	 * Case 3: enable debug mode for branch coverage
+	 */
+	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
+	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
+	g->acr = NULL;
+	debug_mode_enable = pwr_pmu_scpctl_stat_debug_mode_m();
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_scpctl_stat_r(),
+						debug_mode_enable);
+	err = nvgpu_acr_init(g);
 
 	/*
-	 * Case 3: nvgpu_acr_init() passes
+	 * Case 4: nvgpu_acr_init() passes
+	 * and debug mode is disabled by setting 0x0 to register
+	 * pwr_pmu_scpctl_stat_r()
 	 */
 
 	/*
@@ -1047,6 +1090,7 @@ int test_acr_init(struct unit_module *m,
 	 */
 	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
 	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
+	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_scpctl_stat_r(), 0x0);
 	g->acr = NULL;
 	err = nvgpu_acr_init(g);
 	if (err != 0) {

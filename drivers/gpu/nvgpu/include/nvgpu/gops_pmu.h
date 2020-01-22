@@ -183,15 +183,6 @@ struct gops_pmu {
 	void (*setup_apertures)(struct gk20a *g);
 
 	/**
-	 * @brief Setup DMA transfer base address.
-	 *
-	 * @param g   [in] The GPU driver struct.
-	 *
-	 * Setup DMA transfer base address as required for chip.
-	 */
-	void (*write_dmatrfbase)(struct gk20a *g, u32 addr);
-
-	/**
 	 * @brief Start PMU falcon CPU in secure mode.
 	 *
 	 * @param g   [in] The GPU driver struct.
@@ -358,6 +349,14 @@ struct gops_pmu {
 	void (*pmu_dump_elpg_stats)(struct nvgpu_pmu *pmu);
 	void (*pmu_dump_falcon_stats)(struct nvgpu_pmu *pmu);
 	void (*dump_secure_fuses)(struct gk20a *g);
+	/**
+	 * @brief Setup DMA transfer base address.
+	 *
+	 * @param g   [in] The GPU driver struct.
+	 *
+	 * Setup DMA transfer base address as required for chip.
+	 */
+	void (*write_dmatrfbase)(struct gk20a *g, u32 addr);
 #endif
 	/** @endcond */
 };
