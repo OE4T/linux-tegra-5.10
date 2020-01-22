@@ -62,7 +62,7 @@ queue:
              include/nvgpu/posix/queue.h ]
 
 sort:
-  safe: yes
+  safe: no
   owner: Ajesh K
   sources: [ include/nvgpu/posix/sort.h ]
   deps:
