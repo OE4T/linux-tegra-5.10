@@ -466,20 +466,8 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 /** Hamming weight of 64 bit input value. */
 #define hweight_long		nvgpu_posix_hweight64
 
-/*
- * Better suited under a compiler.h type header file, but for now these can live
- * here.
- */
-
-/** Compiler extension directive to ensure that a return value is checked. */
-#define __must_check		__attribute__((warn_unused_result))
-
-#ifndef __user
-/** Defined to match kernel macro names. */
-#define __user
-#else
-#error "__user already defined !!"
-#endif
+/** Dummy macro to match kernel names. */
+#define nvgpu_user
 
 /** Defined to match kernel macro names. */
 #define unlikely(x)	(x)

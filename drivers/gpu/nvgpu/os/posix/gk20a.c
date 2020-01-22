@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@ int nvgpu_init_gpu_characteristics(struct gk20a *g)
 	return -1;
 }
 
-struct gk20a * __must_check nvgpu_get(struct gk20a *g)
+struct gk20a *nvgpu_get(struct gk20a *g)
 {
 	BUG();
 

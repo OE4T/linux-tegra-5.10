@@ -831,7 +831,7 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	}
 }
 
-struct gk20a * __must_check nvgpu_get(struct gk20a *g)
+struct gk20a *nvgpu_get(struct gk20a *g)
 {
 	int success;
 

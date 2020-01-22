@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 #include <nvgpu/static_analysis.h>
 
 #ifdef __KERNEL__
-#include <linux/kernel.h>
+#include <nvgpu/linux/utils.h>
 #else
 #include <nvgpu/posix/utils.h>
 #endif

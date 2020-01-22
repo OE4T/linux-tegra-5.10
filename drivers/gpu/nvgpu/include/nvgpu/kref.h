@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -99,7 +99,7 @@ static inline int nvgpu_ref_put_return(struct nvgpu_ref *ref,
  * @ref: the nvgpu_ref object
  * Return non-zero if the increment succeeds, Otherwise return 0.
  */
-static inline int __must_check nvgpu_ref_get_unless_zero(struct nvgpu_ref *ref)
+static inline int nvgpu_ref_get_unless_zero(struct nvgpu_ref *ref)
 {
 	return nvgpu_atomic_add_unless(&ref->refcount, 1, 0);
 }

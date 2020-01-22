@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # Linux elements and units in nvgpu.
 #
@@ -232,6 +232,7 @@ headers:
              include/nvgpu/linux/sim_pci.h,
              include/nvgpu/linux/thread.h,
              include/nvgpu/linux/log.h,
+             include/nvgpu/linux/utils.h,
              include/nvgpu/linux/vm.h ]
 
 # An extra unit to lump all the unclassified Linux files.

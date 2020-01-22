@@ -234,7 +234,7 @@ struct railgate_stats {
 #define MAX_TPC_PG_CONFIGS      9
 
 struct nvgpu_gpfifo_userdata {
-	struct nvgpu_gpfifo_entry __user *entries;
+	struct nvgpu_gpfifo_entry nvgpu_user *entries;
 	struct _resmgr_context *context;
 };
 
