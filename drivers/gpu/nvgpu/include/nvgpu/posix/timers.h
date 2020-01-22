@@ -46,7 +46,7 @@
  */
 #define nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt, arg...)	\
 ({									\
-	struct nvgpu_timeout *t_ptr = (timeout);			\
+	const struct nvgpu_timeout *t_ptr = (timeout);			\
 	int ret_cpu = 0;						\
 	if (nvgpu_current_time_ns() > t_ptr->time) {			\
 		if ((t_ptr->flags & NVGPU_TIMER_SILENT_TIMEOUT) == 0U) { \
