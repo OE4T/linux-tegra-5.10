@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,7 @@ struct unit_module;
  *          gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id,
  *          gm20b_gr_falcon_get_gpccs_start_reg_offset,
  *          gm20b_gr_falcon_start_gpccs,
+ *          gm20b_gr_falcon_fecs_base_addr,
  *          gm20b_gr_falcon_gpccs_base_addr
  *
  * Input: #test_gr_init_setup_ready must have been executed successfully.
@@ -95,8 +96,8 @@ int test_gr_falcon_deinit(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: #nvgpu_gr_falcon_init_ctxsw,
- *          gm20b_gr_falcon_bind_instblk
+ * Targets: nvgpu_gr_falcon_init_ctxsw,
+ *          gm20b_gr_falcon_bind_instblk,
  *          nvgpu_gr_checksum_u32
  *
  * Input: #test_gr_falcon_init must have been executed successfully.
