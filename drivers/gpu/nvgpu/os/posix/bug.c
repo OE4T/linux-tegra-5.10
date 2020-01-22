@@ -119,12 +119,10 @@ void nvgpu_posix_bug(const char *fmt, ...)
 {
 	struct nvgpu_bug_cb *cb;
 
-	/*
-	 * If BUG was unexpected, raise a SIGSEGV signal, dump the stack and
-	 * kill the thread.
-	 */
 	nvgpu_err(NULL, "BUG detected!");
+#ifndef __NVGPU_UNIT_TEST__
 	dump_stack();
+#endif
 
 	if (!bug.in_use) {
 		goto done;
@@ -154,6 +152,9 @@ void nvgpu_posix_bug(const char *fmt, ...)
 	nvgpu_spinlock_release(&bug.lock);
 
 done:
+#ifdef __NVGPU_UNIT_TEST__
+	dump_stack();
+#endif
 	(void) raise(SIGSEGV);
 	pthread_exit(NULL);
 }
