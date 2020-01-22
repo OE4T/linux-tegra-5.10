@@ -26,6 +26,16 @@
 #include "osi_common.h"
 #include "mmc.h"
 
+/**
+ * @addtogroup PTP related information
+ *
+ * @brief PTP SSINC values
+ * @{
+ */
+#define OSI_PTP_SSINC_16	16U
+#define OSI_PTP_SSINC_4		4U
+/** @} */
+
 struct osi_core_priv_data;
 
 /**
@@ -250,7 +260,7 @@ struct osi_core_ops {
 	/** Called to configure the TimeStampControl register */
 	void (*config_tscr)(void *addr, const unsigned int ptp_filter);
 	/** Called to configure the sub second increment register */
-	void (*config_ssir)(void *addr, const unsigned int ptp_clock);
+	void (*config_ssir)(struct osi_core_priv_data *const osi_core);
 	/** Called to update MMC counter from HW register */
 	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to reset MMC HW counter structure */
