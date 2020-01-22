@@ -752,7 +752,8 @@ int osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 			  const unsigned int enable)
 {
 	int ret = 0;
-	unsigned long temp = 0, temp1 = 0;
+	unsigned long temp = 0, temp1 = 0, temp2 = 0;
+	unsigned long ssinc = 0;
 
 	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL) ||
 	    (osi_core->ops->config_tscr == OSI_NULL) ||
@@ -772,25 +773,35 @@ int osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 					   osi_core->ptp_config.ptp_filter);
 
 		/* Program Sub Second Increment Register */
-		osi_core->ops->config_ssir(osi_core->base,
-					   osi_core->ptp_config.ptp_clock);
+		osi_core->ops->config_ssir(osi_core);
 
 		/* formula for calculating addend value is
-		 * addend = 2^32/freq_div_ratio;
-		 * where, freq_div_ratio = ptp_ref_clk_rate/OSI_PTP_REQ_CLK_FREQ
+		 * TSAR = (2^32 * 1000) / (ptp_ref_clk_rate in MHz * SSINC)
 		 * 2^x * y == (y << x), hence
-		 * 2^32 * OSI_PTP_REQ_CLK_FREQ == (OSI_PTP_REQ_CLK_FREQ << 32)
-		 * so addend = (2^32 * OSI_PTP_REQ_CLK_FREQ)/ptp_ref_clk_rate;
-		 * which is (OSI_PTP_REQ_CLK_FREQ << 32)/ptp_ref_clk_rate;
+		 * 2^32 * 1000 == (1000 << 32)
+		 * so addend = (2^32 * 1000)/(ptp_ref_clk_rate in MHZ * SSINC);
 		 */
-		temp = ((unsigned long)OSI_PTP_REQ_CLK_FREQ << 32);
+
+		if (osi_core->mac_ver <= OSI_EQOS_MAC_4_10) {
+			ssinc = OSI_PTP_SSINC_16;
+		} else {
+			ssinc = OSI_PTP_SSINC_4;
+		}
+
+		temp = ((unsigned long)1000 << 32);
+		temp = (unsigned long)temp * 1000000U;
+
 		temp1 = div_u64(temp,
-				(unsigned long)osi_core->ptp_config.ptp_ref_clk_rate);
-		if (temp1 < UINT_MAX) {
-			osi_core->default_addend = (unsigned int) temp1;
+			(unsigned long)osi_core->ptp_config.ptp_ref_clk_rate);
+
+		temp2 = div_u64(temp1, (unsigned long)ssinc);
+
+		if (temp2 < UINT_MAX) {
+			osi_core->default_addend = (unsigned int)temp2;
 		} else {
 			/* do nothing here */
 		}
+
 		/* Program addend value */
 		ret = osi_core->ops->config_addend(osi_core->base,
 					osi_core->default_addend);
