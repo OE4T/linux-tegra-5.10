@@ -57,6 +57,7 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj sdl_nvguard_fi;
 	struct nvgpu_posix_fault_inj clock_gettime_fi;
 	struct nvgpu_posix_fault_inj chip_id;
+	struct nvgpu_posix_fault_inj chip_id_tegra14;
 	struct nvgpu_posix_fault_inj nvdt_node_compatible;
 	struct nvgpu_posix_fault_inj nvdt_read_prop_array_by_name_fi;
 	struct nvgpu_posix_fault_inj nvdt_read_prop_array_by_index_var;
