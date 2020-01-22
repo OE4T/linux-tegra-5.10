@@ -2265,7 +2265,7 @@ static int eqos_config_arp_offload(const unsigned int mac_ver, void *addr,
 		if (mac_ver == OSI_EQOS_MAC_4_10) {
 			osi_writel(val, (unsigned char *)addr +
 				   EQOS_4_10_MAC_ARPPA);
-		} else if (mac_ver == OSI_EQOS_MAC_5_00) {
+		} else if (mac_ver >= OSI_EQOS_MAC_5_00) {
 			osi_writel(val, (unsigned char *)addr +
 				   EQOS_5_00_MAC_ARPPA);
 		} else {
