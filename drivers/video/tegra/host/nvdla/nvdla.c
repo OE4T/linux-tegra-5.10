@@ -1,7 +1,7 @@
 /*
  * NVDLA driver for T194
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -737,7 +737,7 @@ static int nvdla_probe(struct platform_device *pdev)
 		goto err_no_ip;
 	}
 
-	dma_set_mask(dev, DMA_BIT_MASK(37));
+	dma_set_mask(dev, DMA_BIT_MASK(39));
 
 	nvdla_dev = devm_kzalloc(dev, sizeof(*nvdla_dev), GFP_KERNEL);
 	if (!nvdla_dev) {
