@@ -1,7 +1,7 @@
 /*
  * general perf structures & definitions
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -63,4 +63,7 @@ struct vfe_equ_scalar {
 	struct vfe_equ super;
 	u8 equ_idx_to_scale;
 };
+
+int perf_vfe_equ_sw_setup(struct gk20a *g);
+int perf_vfe_equ_pmu_setup(struct gk20a *g);
 #endif /* NVGPU_PERF_VFE_EQU_H */

@@ -1261,7 +1261,7 @@ static const struct gpu_ops tu104_ops = {
 				nvgpu_clk_mon_check_master_fault_status,
 		.clk_mon_check_status = nvgpu_clk_mon_check_status,
 		.clk_mon_init_domains = nvgpu_clk_mon_init_domains,
-		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
+		.perf_pmu_vfe_load = nvgpu_pmu_perf_load,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
@@ -1722,12 +1722,10 @@ int tu104_init_hal(struct gk20a *g)
 	/* for now */
 	gops->clk.support_pmgr_domain = false;
 	gops->clk.support_lpwr_pg = false;
-	gops->pmu_perf.support_changeseq = true;
-	gops->pmu_perf.support_vfe = true;
 	gops->clk.support_vf_point = true;
 	gops->clk.lut_num_entries = CTRL_CLK_LUT_NUM_ENTRIES_GV10x;
 #ifdef CONFIG_NVGPU_LS_PMU
-	gops->clk.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35;
+	gops->clk.perf_pmu_vfe_load = nvgpu_pmu_perf_load;
 #endif
 #ifdef CONFIG_NVGPU_DGPU
 	nvgpu_pramin_ops_init(g);

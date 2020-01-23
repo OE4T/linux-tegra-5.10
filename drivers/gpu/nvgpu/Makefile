@@ -147,8 +147,7 @@ nvgpu-y += \
 	common/pmu/lsfm/lsfm_sw_tu104.o \
 	common/pmu/perf/vfe_var.o \
 	common/pmu/perf/vfe_equ.o \
-	common/pmu/perf/pmu_perf.o \
-	common/pmu/perf/perf_ps35.o \
+	common/pmu/perf/perf.o \
 	common/pmu/perf/change_seq.o \
 	common/pmu/perf/pstate.o \
 	common/pmu/pmgr/pwrdev.o \
@@ -165,7 +164,6 @@ nvgpu-y += \
 	common/pmu/therm/thrmchannel.o \
 	common/pmu/therm/thrmpmu.o \
 	common/pmu/lpwr/rppg.o \
-	common/pmu/lpwr/lpwr.o \
 	common/pmu/pmu_pstate.o \
 	common/pmu/pmu_rtos_init.o \
 	common/pmu/clk/clk_vin.o \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,7 @@ static int get_s_param_info(void *data, u64 *val)
 	struct gk20a *g = (struct gk20a *)data;
 	int status = 0;
 
-	status = nvgpu_vfe_var_get_s_param(g, val);
+	status = nvgpu_pmu_perf_vfe_get_s_param(g, val);
 	if(status != 0) {
 		nvgpu_err(g, "Vfe_var get s_param failed");
 		return status;

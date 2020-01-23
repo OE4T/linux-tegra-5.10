@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * general perf structures & definitions
+ *
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,41 +22,36 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/bug.h>
-#include <nvgpu/pmu.h>
-#include <nvgpu/clk_arb.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/pmu/perf.h>
+#ifndef PMU_PERF_H_
+#define PMU_PERF_H_
 
-int nvgpu_perf_pmu_init_pmupstate(struct gk20a *g)
-{
-	/* If already allocated, do not re-allocate */
-	if (g->perf_pmu != NULL) {
-		return 0;
-	}
+/* PERF RPC ID Definitions */
+#define NV_PMU_RPC_ID_PERF_VFE_CALLBACK                          0x01U
+#define NV_PMU_RPC_ID_PERF_SEQ_COMPLETION                        0x02U
+#define NV_PMU_RPC_ID_PERF_PSTATES_INVALIDATE                    0x03U
 
-	g->perf_pmu = nvgpu_kzalloc(g, sizeof(*g->perf_pmu));
-	if (g->perf_pmu == NULL) {
-		return -ENOMEM;
-	}
+/*
+ * Defines the structure that holds data
+ * used to execute LOAD RPC.
+ */
+struct nv_pmu_rpc_struct_perf_load {
+	/* [IN/OUT] Must be first field in RPC structure */
+	struct nv_pmu_rpc_header hdr;
+	bool b_load;
+	u32 scratch[1];
+};
 
-	return 0;
-}
+/*
+ * Simply a union of all specific PERF messages. Forms the general packet
+ * exchanged between the Kernel and PMU when sending and receiving PERF messages
+ * (respectively).
+ */
 
-static void vfe_thread_stop_cb(void *data)
-{
-	struct nvgpu_cond *cond = (struct nvgpu_cond *)data;
+struct pmu_nvgpu_rpc_perf_event {
+	struct pmu_hdr msg_hdr;
+	struct pmu_nvgpu_rpc_header rpc_hdr;
+};
 
-	nvgpu_cond_signal(cond);
-}
+int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num);
 
-void nvgpu_perf_pmu_free_pmupstate(struct gk20a *g)
-{
-	if (nvgpu_thread_is_running(&g->perf_pmu->vfe_init.state_task)) {
-		nvgpu_thread_stop_graceful(&g->perf_pmu->vfe_init.state_task,
-				vfe_thread_stop_cb, &g->perf_pmu->vfe_init.wq);
-	}
-	nvgpu_cond_destroy(&g->perf_pmu->vfe_init.wq);
-	nvgpu_kfree(g, g->perf_pmu);
-	g->perf_pmu = NULL;
-}
+#endif /* PMU_PERF_H_ */

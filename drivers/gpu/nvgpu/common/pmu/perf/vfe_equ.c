@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,7 +98,7 @@ static int vfe_equ_build_depending_mask_super(struct gk20a *g,
 {
 	struct vfe_var *tmp_vfe_var;
 	struct boardobjgrp *pboardobjgrp =
-			&g->perf_pmu->vfe_varobjs.super.super;
+			&g->pmu->perf_pmu->vfe_varobjs.super.super;
 
 	tmp_vfe_var = (struct vfe_var *)(void *)BOARDOBJGRP_OBJ_GET_BY_IDX(
 			pboardobjgrp, pvfe_equ->var_idx);
@@ -845,7 +845,7 @@ done:
 	return status;
 }
 
-int nvgpu_vfe_equ_sw_setup(struct gk20a *g)
+int perf_vfe_equ_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -853,7 +853,7 @@ int nvgpu_vfe_equ_sw_setup(struct gk20a *g)
 	struct vfe_vars *pvfevarobjs;
 
 	status = nvgpu_boardobjgrp_construct_e255(g,
-			&g->perf_pmu->vfe_equobjs.super);
+			&g->pmu->perf_pmu->vfe_equobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for clk domain, "
@@ -861,9 +861,9 @@ int nvgpu_vfe_equ_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->perf_pmu->vfe_equobjs.super.super;
-	pvfeequobjs = &(g->perf_pmu->vfe_equobjs);
-	pvfevarobjs = &(g->perf_pmu->vfe_varobjs);
+	pboardobjgrp = &g->pmu->perf_pmu->vfe_equobjs.super.super;
+	pvfeequobjs = &(g->pmu->perf_pmu->vfe_equobjs);
+	pvfevarobjs = &(g->pmu->perf_pmu->vfe_varobjs);
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, VFE_EQU);
 
@@ -894,12 +894,12 @@ done:
 	return status;
 }
 
-int nvgpu_vfe_equ_pmu_setup(struct gk20a *g)
+int perf_vfe_equ_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
 
-	pboardobjgrp = &g->perf_pmu->vfe_equobjs.super.super;
+	pboardobjgrp = &g->pmu->perf_pmu->vfe_equobjs.super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -911,7 +911,7 @@ int nvgpu_vfe_equ_pmu_setup(struct gk20a *g)
 	return status;
 }
 
-int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv)
+int nvgpu_pmu_perf_vfe_get_volt_margin(struct gk20a *g, u32 *vmargin_uv)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_perf_vfe_eval rpc;
@@ -938,7 +938,7 @@ int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv)
 	return status;
 }
 
-int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz)
+int nvgpu_pmu_perf_vfe_get_freq_margin(struct gk20a *g, u32 *fmargin_mhz)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_perf_vfe_eval rpc;

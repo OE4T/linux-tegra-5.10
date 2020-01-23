@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1274,8 +1274,8 @@ static int vfe_var_boardobj_grp_get_status(struct gk20a *g)
 	int status;
 	u8 index;
 
-	pboardobjgrp = &g->perf_pmu->vfe_varobjs.super.super;
-	pboardobjgrpmask = &g->perf_pmu->vfe_varobjs.super.mask.super;
+	pboardobjgrp = &g->pmu->perf_pmu->vfe_varobjs.super.super;
+	pboardobjgrpmask = &g->pmu->perf_pmu->vfe_varobjs.super.mask.super;
 
 	status = pboardobjgrp->pmugetstatus(g, pboardobjgrp, pboardobjgrpmask);
 	if (status != 0) {
@@ -1314,14 +1314,14 @@ static int vfe_var_boardobj_grp_get_status(struct gk20a *g)
 	return 0;
 }
 
-int nvgpu_vfe_var_sw_setup(struct gk20a *g)
+int perf_vfe_var_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
 	struct vfe_vars *pvfevarobjs;
 
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->perf_pmu->vfe_varobjs.super);
+			&g->pmu->perf_pmu->vfe_varobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for clk domain, "
@@ -1329,8 +1329,8 @@ int nvgpu_vfe_var_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->perf_pmu->vfe_varobjs.super.super;
-	pvfevarobjs = &g->perf_pmu->vfe_varobjs;
+	pboardobjgrp = &g->pmu->perf_pmu->vfe_varobjs.super.super;
+	pvfevarobjs = &g->pmu->perf_pmu->vfe_varobjs;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, VFE_VAR);
 
@@ -1357,7 +1357,7 @@ int nvgpu_vfe_var_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-				&g->perf_pmu->vfe_varobjs.super.super,
+				&g->pmu->perf_pmu->vfe_varobjs.super.super,
 				perf, PERF, vfe_var, VFE_VAR);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -1371,12 +1371,12 @@ done:
 	return status;
 }
 
-int nvgpu_vfe_var_pmu_setup(struct gk20a *g)
+int perf_vfe_var_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
 
-	pboardobjgrp = &g->perf_pmu->vfe_varobjs.super.super;
+	pboardobjgrp = &g->pmu->perf_pmu->vfe_varobjs.super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -1388,7 +1388,7 @@ int nvgpu_vfe_var_pmu_setup(struct gk20a *g)
 	return status;
 }
 
-int nvgpu_vfe_var_get_s_param(struct gk20a *g, u64 *s_param)
+int nvgpu_pmu_perf_vfe_get_s_param(struct gk20a *g, u64 *s_param)
 {
 	struct boardobjgrp *pboardobjgrp;
 	struct boardobj *pboardobj = NULL;
@@ -1402,7 +1402,7 @@ int nvgpu_vfe_var_get_s_param(struct gk20a *g, u64 *s_param)
 		return status;
 	}
 
-	pboardobjgrp = &g->perf_pmu->vfe_varobjs.super.super;
+	pboardobjgrp = &g->pmu->perf_pmu->vfe_varobjs.super.super;
 
 	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
 		single_sensed_fuse = (struct vfe_var_single_sensed_fuse *)

@@ -1,7 +1,7 @@
 /*
  * general clock structures & definitions
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,5 +28,8 @@
 #define SEQ_SCRIPT_CURR		0x0U
 #define SEQ_SCRIPT_LAST		0x1U
 #define SEQ_SCRIPT_QUERY	0x2U
+
+int perf_change_seq_sw_setup(struct gk20a *g);
+int perf_change_seq_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_CHANGE_SEQ_H */

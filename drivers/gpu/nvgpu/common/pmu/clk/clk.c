@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,11 +65,6 @@ int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk)
 {
 	return g->pmu->clk_pmu->get_fll(g, setfllclk);
-}
-
-int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
-{
-	return g->pmu->clk_pmu->set_boot_fll(g);
 }
 #endif
 

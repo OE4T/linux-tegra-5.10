@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,7 @@
 #include <nvgpu/pmu/perf.h>
 
 #include "change_seq.h"
+#include "perf.h"
 
 static int perf_change_seq_sw_setup_super(struct gk20a *g,
 		struct change_seq *p_change_seq)
@@ -71,10 +72,10 @@ perf_change_seq_sw_setup_super_exit:
 	return status;
 }
 
-int nvgpu_perf_change_seq_sw_setup(struct gk20a *g)
+int perf_change_seq_sw_setup(struct gk20a *g)
 {
 	struct change_seq_pmu *perf_change_seq_pmu =
-		&(g->perf_pmu->changeseq_pmu);
+		&(g->pmu->perf_pmu->changeseq_pmu);
 	int status = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -105,7 +106,7 @@ static void build_change_seq_boot (struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct change_seq_pmu *perf_change_seq_pmu =
-		&(g->perf_pmu->changeseq_pmu);
+		&(g->pmu->perf_pmu->changeseq_pmu);
 	struct nvgpu_clk_domain *pdomain;
 	struct clk_set_info *p0_info;
 	struct change_seq_pmu_script *script_last =
@@ -167,13 +168,13 @@ static void build_change_seq_boot (struct gk20a *g)
 	return;
 }
 
-int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
+int perf_change_seq_pmu_setup(struct gk20a *g)
 {
 	struct nv_pmu_rpc_perf_change_seq_info_get info_get;
 	struct nv_pmu_rpc_perf_change_seq_info_set info_set;
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct change_seq_pmu *perf_change_seq_pmu =
-		&(g->perf_pmu->changeseq_pmu);
+		&(g->pmu->perf_pmu->changeseq_pmu);
 	int status;
 
 	/* Do this  till we enable performance table */
@@ -256,13 +257,13 @@ perf_change_seq_pmu_setup_exit:
 	return status;
 }
 
-int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
+int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 		struct nvgpu_clk_slave_freq *vf_point)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
 	struct ctrl_perf_change_seq_change_input change_input;
-	struct change_seq_pmu *change_seq_pmu = &g->perf_pmu->changeseq_pmu;
+	struct change_seq_pmu *change_seq_pmu = &g->pmu->perf_pmu->changeseq_pmu;
 	int status = 0;
 	u8 gpcclk_domain = 0U;
 	u32 gpcclk_voltuv = 0U, gpcclk_clkmhz = 0U;
@@ -280,7 +281,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	change_input.flags = (u32)CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
 	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
 
-	status = nvgpu_vfe_get_freq_margin_limit(g, &fmargin_mhz);
+	status = nvgpu_pmu_perf_vfe_get_freq_margin(g, &fmargin_mhz);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to fetch Fmargin status=0x%x", status);
 		return status;
@@ -290,7 +291,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
 	status = nvgpu_clk_domain_freq_to_volt(g, gpcclk_domain,
 	&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
 
-	status = nvgpu_vfe_get_volt_margin_limit(g, &vmargin_uv);
+	status = nvgpu_pmu_perf_vfe_get_volt_margin(g, &vmargin_uv);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to fetch Vmargin status=0x%x", status);
 		return status;

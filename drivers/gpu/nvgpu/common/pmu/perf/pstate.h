@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,5 +41,8 @@ struct pstate {
 	u8 nvlink_idx;
 	struct clk_set_info_list clklist;
 };
+
+int perf_pstate_sw_setup(struct gk20a *g);
+int perf_pstate_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_PERF_PSTATE_H */

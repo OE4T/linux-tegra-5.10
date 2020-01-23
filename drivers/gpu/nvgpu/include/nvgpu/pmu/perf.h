@@ -22,15 +22,10 @@
 #ifndef NVGPU_PMU_PERF_H
 #define NVGPU_PMU_PERF_H
 
-#include <nvgpu/types.h>
-#include <nvgpu/cond.h>
-#include <nvgpu/thread.h>
 #include <nvgpu/pmu/volt.h>
-#include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
-#include <nvgpu/pmu/pmuif/perf.h>
 
 /* Dependency of this include will be removed in further CL */
 #include "../../../common/pmu/perf/ucode_perf_change_seq_inf.h"
@@ -41,6 +36,34 @@ struct nvgpu_clk_slave_freq;
 #define CTRL_PERF_PSTATE_P5		5U
 #define CTRL_PERF_PSTATE_P8		8U
 #define CLK_SET_INFO_MAX_SIZE		(32U)
+
+#define NV_PMU_PERF_CMD_ID_RPC                                   (0x00000002U)
+#define NV_PMU_PERF_CMD_ID_BOARDOBJ_GRP_SET                      (0x00000003U)
+#define NV_PMU_PERF_CMD_ID_BOARDOBJ_GRP_GET_STATUS               (0x00000004U)
+
+/*!
+ * RPC calls serviced by PERF unit.
+ */
+#define NV_PMU_RPC_ID_PERF_BOARD_OBJ_GRP_CMD                     0x00U
+#define NV_PMU_RPC_ID_PERF_LOAD                                  0x01U
+#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_INFO_GET                   0x02U
+#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_INFO_SET                   0x03U
+#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_SET_CONTROL                0x04U
+#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_QUEUE_CHANGE               0x05U
+#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_LOCK                       0x06U
+#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_QUERY                      0x07U
+#define NV_PMU_RPC_ID_PERF_PERF_LIMITS_INVALIDATE                0x08U
+#define NV_PMU_RPC_ID_PERF_PERF_PSTATE_STATUS_UPDATE             0x09U
+#define NV_PMU_RPC_ID_PERF_VFE_EQU_EVAL                          0x0AU
+#define NV_PMU_RPC_ID_PERF_VFE_INVALIDATE                        0x0BU
+#define NV_PMU_RPC_ID_PERF_VFE_EQU_MONITOR_SET                   0x0CU
+#define NV_PMU_RPC_ID_PERF_VFE_EQU_MONITOR_GET                   0x0DU
+#define NV_PMU_RPC_ID_PERF__COUNT                                0x0EU
+
+/* PERF Message-type Definitions */
+#define NV_PMU_PERF_MSG_ID_RPC                                   (0x00000003U)
+#define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_SET                      (0x00000004U)
+#define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_GET_STATUS               (0x00000006U)
 
 struct nvgpu_vfe_invalidate {
 	bool state_change;
@@ -107,36 +130,27 @@ struct perf_pmupstate {
 	struct vfe_equs vfe_equobjs;
 	struct pstates pstatesobjs;
 	struct nvgpu_pmu_volt volt;
-	struct obj_lwpr lpwr;
 	struct nvgpu_vfe_invalidate vfe_init;
 	struct change_seq_pmu changeseq_pmu;
 };
 
-int nvgpu_perf_pmu_init_pmupstate(struct gk20a *g);
-void nvgpu_perf_pmu_free_pmupstate(struct gk20a *g);
-int nvgpu_perf_pmu_vfe_load_ps35(struct gk20a *g);
+int nvgpu_pmu_perf_init(struct gk20a *g);
+void nvgpu_pmu_perf_deinit(struct gk20a *g);
+int nvgpu_pmu_perf_sw_setup(struct gk20a *g);
+int nvgpu_pmu_perf_pmu_setup(struct gk20a *g);
 
-int nvgpu_vfe_equ_sw_setup(struct gk20a *g);
-int nvgpu_vfe_equ_pmu_setup(struct gk20a *g);
+int nvgpu_pmu_perf_load(struct gk20a *g);
 
-int nvgpu_vfe_var_sw_setup(struct gk20a *g);
-int nvgpu_vfe_var_pmu_setup(struct gk20a *g);
-int nvgpu_vfe_var_get_s_param(struct gk20a *g, u64 *s_param);
+int nvgpu_pmu_perf_vfe_get_s_param(struct gk20a *g, u64 *s_param);
 
-int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv);
-int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz);
+int nvgpu_pmu_perf_vfe_get_volt_margin(struct gk20a *g, u32 *vmargin_uv);
+int nvgpu_pmu_perf_vfe_get_freq_margin(struct gk20a *g, u32 *fmargin_mhz);
 
-int nvgpu_perf_change_seq_sw_setup(struct gk20a *g);
-int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g);
-int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
+int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 	struct nvgpu_clk_slave_freq *vf_point);
 
-int nvgpu_perf_pstate_get_lpwr_index(struct gk20a *g, u32 num, u8 *lpwr_idx);
-int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num);
 struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
 			u32 pstate_num,
 			u32 clkwhich);
-int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g);
-int nvgpu_pmu_perf_pstate_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_PMU_PERF_H */

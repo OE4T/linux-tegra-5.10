@@ -92,7 +92,6 @@ struct nvgpu_cpu_time_correlation_sample;
 struct nvgpu_clk_arb;
 #endif
 struct nvgpu_setup_bind_args;
-struct perf_pmupstate;
 struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
@@ -394,8 +393,6 @@ struct gpu_ops {
 #endif
 	struct {
 		int (*handle_pmu_perf_event)(struct gk20a *g, void *pmu_msg);
-		bool support_changeseq;
-		bool support_vfe;
 	} pmu_perf;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	struct {
@@ -738,7 +735,6 @@ struct gk20a {
 	struct nvgpu_pmu *pmu;
 	struct nvgpu_acr *acr;
 	struct nvgpu_ecc ecc;
-	struct perf_pmupstate *perf_pmu;
 	struct pmgr_pmupstate *pmgr_pmu;
 	struct nvgpu_sec2 sec2;
 

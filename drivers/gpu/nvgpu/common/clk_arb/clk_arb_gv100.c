@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -426,7 +426,7 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 		goto exit_arb;
 	}
 
-	status = nvgpu_clk_set_req_fll_clk_ps35(g, &vf_point);
+	status = nvgpu_pmu_perf_changeseq_set_clks(g, &vf_point);
 	if (status != 0) {
 		nvgpu_err(g, "Unable to program frequency");
 		goto exit_arb;

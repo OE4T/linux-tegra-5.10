@@ -572,7 +572,7 @@ unsigned long tu104_clk_maxrate(struct gk20a *g, u32 api_domain)
 
 void tu104_get_change_seq_time(struct gk20a *g, s64 *change_time)
 {
-	struct change_seq_pmu *change_seq_pmu = &g->perf_pmu->changeseq_pmu;
+	struct change_seq_pmu *change_seq_pmu = &g->pmu->perf_pmu->changeseq_pmu;
 	s64 diff = change_seq_pmu->stop_time - change_seq_pmu->start_time;
 
 	*change_time = diff;

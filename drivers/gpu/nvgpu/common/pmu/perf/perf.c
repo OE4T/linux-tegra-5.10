@@ -1,7 +1,6 @@
 /*
- * GV100 PERF
  *
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,10 +28,19 @@
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/cmd.h>
 
+#include "ucode_perf_change_seq_inf.h"
+#include "ucode_perf_pstate_inf.h"
+#include "ucode_perf_vfe_inf.h"
+#include "vfe_equ.h"
+#include "vfe_var.h"
+#include "change_seq.h"
+#include "pstate.h"
+#include "perf.h"
+
 static int pmu_set_boot_clk_runcb_fn(void *arg)
 {
 	struct gk20a *g = (struct gk20a *)arg;
-	struct perf_pmupstate *perf_pmu = g->perf_pmu;
+	struct perf_pmupstate *perf_pmu = g->pmu->perf_pmu;
 	struct nvgpu_vfe_invalidate *vfe_init = &perf_pmu->vfe_init;
 
 	nvgpu_log_fn(g, "thread start");
@@ -56,8 +64,8 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 {
 	struct pmu_nvgpu_rpc_perf_event *msg =
 			(struct pmu_nvgpu_rpc_perf_event *)pmumsg;
-	struct perf_pmupstate *perf_pmu = g->perf_pmu;
-	struct change_seq_pmu *change_pmu = &g->perf_pmu->changeseq_pmu;
+	struct perf_pmupstate *perf_pmu = g->pmu->perf_pmu;
+	struct change_seq_pmu *change_pmu = &g->pmu->perf_pmu->changeseq_pmu;
 
 	nvgpu_log_fn(g, " ");
 	switch (msg->rpc_hdr.function) {
@@ -81,7 +89,7 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 
 static int perf_pmu_init_vfe_perf_event(struct gk20a *g)
 {
-	struct perf_pmupstate *perf_pmu = g->perf_pmu;
+	struct perf_pmupstate *perf_pmu = g->pmu->perf_pmu;
 	char thread_name[64];
 	int err = 0;
 
@@ -102,7 +110,7 @@ static int perf_pmu_init_vfe_perf_event(struct gk20a *g)
 
 }
 
-int nvgpu_perf_pmu_vfe_load_ps35(struct gk20a *g)
+int nvgpu_pmu_perf_load(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_perf_load rpc;
@@ -122,8 +130,98 @@ int nvgpu_perf_pmu_vfe_load_ps35(struct gk20a *g)
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x",
 			status);
-		nvgpu_thread_stop(&g->perf_pmu->vfe_init.state_task);
+		nvgpu_thread_stop(&g->pmu->perf_pmu->vfe_init.state_task);
 	}
 
 	return status;
 }
+
+int nvgpu_pmu_perf_init(struct gk20a *g)
+{
+	/* If already allocated, do not re-allocate */
+	if (g->pmu->perf_pmu != NULL) {
+		return 0;
+	}
+
+	g->pmu->perf_pmu = nvgpu_kzalloc(g, sizeof(*g->pmu->perf_pmu));
+	if (g->pmu->perf_pmu == NULL) {
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+static void vfe_thread_stop_cb(void *data)
+{
+	struct nvgpu_cond *cond = (struct nvgpu_cond *)data;
+
+	nvgpu_cond_signal(cond);
+}
+
+void nvgpu_pmu_perf_deinit(struct gk20a *g)
+{
+	if (nvgpu_thread_is_running(&g->pmu->perf_pmu->vfe_init.state_task)) {
+		nvgpu_thread_stop_graceful(&g->pmu->perf_pmu->vfe_init.state_task,
+				vfe_thread_stop_cb, &g->pmu->perf_pmu->vfe_init.wq);
+	}
+	nvgpu_cond_destroy(&g->pmu->perf_pmu->vfe_init.wq);
+	nvgpu_kfree(g, g->pmu->perf_pmu);
+	g->pmu->perf_pmu = NULL;
+}
+
+int nvgpu_pmu_perf_sw_setup(struct gk20a *g)
+{
+	int err;
+	nvgpu_log_fn(g, " ");
+
+	err = perf_vfe_var_sw_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = perf_vfe_equ_sw_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = perf_pstate_sw_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = perf_change_seq_sw_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	return 0;
+}
+
+int nvgpu_pmu_perf_pmu_setup(struct gk20a *g)
+{
+	int err;
+	nvgpu_log_fn(g, " ");
+
+	err = perf_vfe_var_pmu_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = perf_vfe_equ_pmu_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = perf_pstate_pmu_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = perf_change_seq_pmu_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	return 0;
+}
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1471,99 +1471,6 @@ done:
 	return status;
 }
 
-static int clk_set_boot_fll_clks_per_clk_domain(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = g->pmu;
-	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
-	struct ctrl_perf_change_seq_change_input change_input;
-	struct clk_set_info *p0_clk_set_info;
-	struct nvgpu_clk_domain *pclk_domain;
-	int status = 0;
-	u8 i = 0, gpcclk_domain = 0;
-	u32 gpcclk_clkmhz = 0, gpcclk_voltuv = 0;
-	u32 vmin_uv = 0U, vmax_uv = 0U;
-
-	(void) memset(&change_input, 0,
-		sizeof(struct ctrl_perf_change_seq_change_input));
-
-	BOARDOBJGRP_FOR_EACH(&(g->pmu->clk_pmu->clk_domainobjs->super.super),
-		struct nvgpu_clk_domain *, pclk_domain, i) {
-
-		p0_clk_set_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P0, pclk_domain->domain);
-
-		switch (pclk_domain->api_domain) {
-		case CTRL_CLK_DOMAIN_GPCCLK:
-			gpcclk_domain = i;
-			gpcclk_clkmhz = p0_clk_set_info->max_mhz;
-			change_input.clk[i].clk_freq_khz =
-				(u32)p0_clk_set_info->max_mhz * 1000U;
-			change_input.clk_domains_mask.super.data[0] |=
-				(u32) BIT(i);
-			break;
-		case CTRL_CLK_DOMAIN_XBARCLK:
-		case CTRL_CLK_DOMAIN_SYSCLK:
-		case CTRL_CLK_DOMAIN_NVDCLK:
-		case CTRL_CLK_DOMAIN_HOSTCLK:
-			change_input.clk[i].clk_freq_khz =
-				(u32)p0_clk_set_info->max_mhz * 1000U;
-			change_input.clk_domains_mask.super.data[0] |=
-				(u32) BIT(i);
-			break;
-		default:
-			nvgpu_pmu_dbg(g, "Fixed clock domain");
-			break;
-		}
-	}
-
-	change_input.pstate_index =
-			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
-	change_input.flags = (u32)CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
-	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
-
-	status = nvgpu_clk_domain_freq_to_volt(g, gpcclk_domain,
-		&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
-
-	status = nvgpu_volt_get_vmin_vmax_ps35(g, &vmin_uv, &vmax_uv);
-	if (status != 0) {
-		nvgpu_pmu_dbg(g, "Get vmin,vmax failed, proceeding with "
-			"freq_to_volt value");
-	}
-	if ((status == 0) && (vmin_uv > gpcclk_voltuv)) {
-		gpcclk_voltuv = vmin_uv;
-		nvgpu_pmu_dbg(g, "Vmin is higher than evaluated Volt");
-	}
-
-	if (gpcclk_voltuv > vmax_uv) {
-		nvgpu_err(g, "Error: Requested voltage is more than chip max");
-		return -EINVAL;
-	}
-
-	change_input.volt[0].voltage_uv = gpcclk_voltuv;
-	change_input.volt[0].voltage_min_noise_unaware_uv = gpcclk_voltuv;
-	change_input.volt_rails_mask.super.data[0] = 1U;
-
-	/* RPC to PMU to queue to execute change sequence request*/
-	(void) memset(&rpc, 0, sizeof(
-			struct nv_pmu_rpc_perf_change_seq_queue_change));
-	rpc.change = change_input;
-	rpc.change.pstate_index =
-			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
-	PMU_RPC_EXECUTE_CPB(status, pmu, PERF,
-		CHANGE_SEQ_QUEUE_CHANGE, &rpc, 0);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to execute Change Seq RPC status=0x%x",
-			status);
-	}
-
-	/* Wait for sync change to complete. */
-	if ((rpc.change.flags & CTRL_PERF_CHANGE_SEQ_CHANGE_ASYNC) == 0U) {
-		nvgpu_msleep(20);
-	}
-
-	return status;
-}
-
 static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 		u32 *gpcclk_clkmhz,
 		struct nvgpu_clk_slave_freq *vf_point,
@@ -1729,8 +1636,6 @@ int nvgpu_clk_domain_init_pmupstate(struct gk20a *g)
 #ifdef CONFIG_NVGPU_CLK_ARB
 	g->pmu->clk_pmu->get_fll =
 			clk_get_fll_clks_per_clk_domain;
-	g->pmu->clk_pmu->set_boot_fll =
-			clk_set_boot_fll_clks_per_clk_domain;
 	g->pmu->clk_pmu->set_p0_clks =
 			clk_set_p0_clk_per_domain;
 #endif

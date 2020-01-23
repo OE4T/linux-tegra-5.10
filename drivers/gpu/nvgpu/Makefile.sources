@@ -446,17 +446,15 @@ srcs += \
 	common/pmu/ipc/pmu_msg.c \
 	common/pmu/ipc/pmu_queue.c \
 	common/pmu/ipc/pmu_seq.c \
-	common/pmu/lpwr/lpwr.c \
 	common/pmu/lpwr/rppg.c \
 	common/pmu/lsfm/lsfm.c \
 	common/pmu/lsfm/lsfm_sw_gm20b.c \
 	common/pmu/lsfm/lsfm_sw_gp10b.c \
 	common/pmu/lsfm/lsfm_sw_gv100.c \
 	common/pmu/lsfm/lsfm_sw_tu104.c \
-	common/pmu/perf/pmu_perf.c \
 	common/pmu/perf/vfe_equ.c \
 	common/pmu/perf/vfe_var.c \
-	common/pmu/perf/perf_ps35.c \
+	common/pmu/perf/perf.c \
 	common/pmu/perf/pstate.c \
 	common/pmu/perf/change_seq.c \
 	common/pmu/perfmon/pmu_perfmon.c \

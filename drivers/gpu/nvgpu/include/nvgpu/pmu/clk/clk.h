@@ -1,7 +1,7 @@
 /*
  * general clock structures & definitions
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,6 @@ struct nvgpu_clk_pmupstate {
 
 	/* clk_domain unit functions */
 	int (*get_fll)(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk);
-	int (*set_boot_fll)(struct gk20a *g);
 	void (*set_p0_clks)(struct gk20a *g, u8 *gpcclk_domain,
 		u32 *gpcclk_clkmhz, struct nvgpu_clk_slave_freq *vf_point,
 		struct ctrl_perf_change_seq_change_input *change_input);
@@ -98,7 +97,6 @@ struct nvgpu_clk_pmupstate {
 
 int nvgpu_clk_init_pmupstate(struct gk20a *g);
 void nvgpu_clk_free_pmupstate(struct gk20a *g);
-int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g);
 int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk);
 int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,

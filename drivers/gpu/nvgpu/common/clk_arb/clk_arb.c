@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -168,7 +168,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	/* GPC2CLK needs to be checked in two passes. The first determines the
 	 * relationships between GPC2CLK, SYS2CLK and XBAR2CLK, while the
 	 * second verifies that the clocks minimum is satisfied and sets
-	 * the voltages,the later part is done in nvgpu_clk_set_req_fll_clk_ps35
+	 * the voltages,the later part is done in nvgpu_pmu_perf_changeseq_set_clks
 	 */
 	j = 0; num_points = 0; clk_cur = 0;
 	for (i = 0; i < table->gpc2clk_num_points; i++) {

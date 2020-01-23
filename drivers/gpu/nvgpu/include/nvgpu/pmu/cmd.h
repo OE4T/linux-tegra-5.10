@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #include <nvgpu/pmu/pmuif/pg.h>
 #include <nvgpu/pmu/pmuif/acr.h>
 #include <nvgpu/pmu/pmuif/boardobj.h>
-#include <nvgpu/pmu/pmuif/perf.h>
 #include <nvgpu/pmu/pmuif/volt.h>
 #include <nvgpu/pmu/pmuif/clk.h>
 #include <nvgpu/pmu/pmuif/pmgr.h>

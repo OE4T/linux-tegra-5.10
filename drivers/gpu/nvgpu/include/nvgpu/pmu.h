@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -302,6 +302,7 @@ struct nvgpu_pmu {
 	struct nvgpu_pmu_perfmon *pmu_perfmon;
 	struct nvgpu_clk_pmupstate *clk_pmu;
 	struct therm_pmupstate *therm_pmu;
+	struct perf_pmupstate *perf_pmu;
 
 	void (*remove_support)(struct nvgpu_pmu *pmu);
 	void (*volt_rpc_handler)(struct gk20a *g,

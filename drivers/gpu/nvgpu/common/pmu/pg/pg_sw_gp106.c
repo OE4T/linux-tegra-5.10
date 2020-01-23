@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -144,20 +144,5 @@ u32 gp106_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id)
 
 bool gp106_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id)
 {
-	bool is_feature_supported = false;
-
-	switch (feature_id) {
-	case PMU_PG_LPWR_FEATURE_RPPG:
-		is_feature_supported = nvgpu_lpwr_is_rppg_supported(g,
-			nvgpu_clk_arb_get_current_pstate(g));
-		break;
-	case PMU_PG_LPWR_FEATURE_MSCG:
-		is_feature_supported = nvgpu_lpwr_is_mscg_supported(g,
-			nvgpu_clk_arb_get_current_pstate(g));
-		break;
-	default:
-		is_feature_supported = false;
-	}
-
-	return is_feature_supported;
+	return false;
 }

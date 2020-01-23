@@ -446,7 +446,7 @@ static int volt_device_state_init(struct gk20a *g,
 
 	/* Build VOLT_RAIL SW state from VOLT_DEVICE SW state. */
 	/* If VOLT_RAIL isn't supported, exit. */
-	if (VOLT_RAIL_VOLT_3X_SUPPORTED(&g->perf_pmu->volt)) {
+	if (VOLT_RAIL_VOLT_3X_SUPPORTED(&g->pmu->perf_pmu->volt)) {
 		rail_idx = nvgpu_volt_rail_volt_domain_convert_to_idx(g,
 				pvolt_dev->volt_domain);
 		if (rail_idx == CTRL_BOARDOBJ_IDX_INVALID) {
@@ -456,7 +456,7 @@ static int volt_device_state_init(struct gk20a *g,
 			goto done;
 		}
 
-		pRail = VOLT_GET_VOLT_RAIL(&g->perf_pmu->volt, rail_idx);
+		pRail = VOLT_GET_VOLT_RAIL(&g->pmu->perf_pmu->volt, rail_idx);
 		if (pRail == NULL) {
 			nvgpu_err(g,
 				"could not obtain ptr to rail object from rail index");
@@ -488,7 +488,7 @@ int volt_dev_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->perf_pmu->volt.volt_dev_metadata.volt_devices.super;
+	pboardobjgrp = &g->pmu->perf_pmu->volt.volt_dev_metadata.volt_devices.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -510,7 +510,7 @@ int volt_dev_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->perf_pmu->volt.volt_dev_metadata.volt_devices);
+			&g->pmu->perf_pmu->volt.volt_dev_metadata.volt_devices);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for volt rail, "
@@ -518,12 +518,12 @@ int volt_dev_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->perf_pmu->volt.volt_dev_metadata.volt_devices.super;
+	pboardobjgrp = &g->pmu->perf_pmu->volt.volt_dev_metadata.volt_devices.super;
 
 	pboardobjgrp->pmudatainstget  = _volt_device_devgrp_pmudata_instget;
 
 	/* Obtain Voltage Rail Table from VBIOS */
-	status = volt_get_volt_devices_table(g, &g->perf_pmu->volt.
+	status = volt_get_volt_devices_table(g, &g->pmu->perf_pmu->volt.
 			volt_dev_metadata);
 	if (status != 0) {
 		goto done;
@@ -542,7 +542,7 @@ int volt_dev_sw_setup(struct gk20a *g)
 	}
 
 	/* update calibration to fuse */
-	BOARDOBJGRP_FOR_EACH(&(g->perf_pmu->volt.volt_dev_metadata.volt_devices.
+	BOARDOBJGRP_FOR_EACH(&(g->pmu->perf_pmu->volt.volt_dev_metadata.volt_devices.
 			       super),
 			     struct voltage_device *, pvolt_device, i) {
 		status = volt_device_state_init(g, pvolt_device);

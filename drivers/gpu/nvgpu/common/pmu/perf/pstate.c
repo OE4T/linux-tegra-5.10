@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,10 +35,11 @@
 
 #include "ucode_perf_pstate_inf.h"
 #include "pstate.h"
+#include "perf.h"
 
 int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num)
 {
-	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
+	struct pstates *pstates = &(g->pmu->perf_pmu->pstatesobjs);
 	struct pstate *pstate;
 	u8 i;
 
@@ -169,7 +170,7 @@ static struct pstate *pstate_construct(struct gk20a *g, void *args)
 
 static int pstate_insert(struct gk20a *g, struct pstate *pstate, u8 index)
 {
-	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
+	struct pstates *pstates = &(g->pmu->perf_pmu->pstatesobjs);
 	int err;
 
 	err = boardobjgrp_objinsert(&pstates->super.super,
@@ -359,13 +360,13 @@ static int perf_pstate_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
+int perf_pstate_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
 
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->perf_pmu->pstatesobjs.super);
+			&g->pmu->perf_pmu->pstatesobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pstate, status - 0x%x",
@@ -373,7 +374,7 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->perf_pmu->pstatesobjs.super.super;
+	pboardobjgrp = &g->pmu->perf_pmu->pstatesobjs.super.super;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, PSTATE);
 
@@ -386,7 +387,7 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	g->perf_pmu->pstatesobjs.num_clk_domains =
+	g->pmu->perf_pmu->pstatesobjs.num_clk_domains =
 			VBIOS_PSTATE_CLOCK_ENTRY_6X_COUNT;
 
 	pboardobjgrp->pmudatainit = perf_pstate_pmudatainit;
@@ -402,12 +403,12 @@ done:
 	return status;
 }
 
-int nvgpu_pmu_perf_pstate_pmu_setup(struct gk20a *g)
+int perf_pstate_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
 
-	pboardobjgrp = &g->perf_pmu->pstatesobjs.super.super;
+	pboardobjgrp = &g->pmu->perf_pmu->pstatesobjs.super.super;
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
 	}
@@ -420,7 +421,7 @@ int nvgpu_pmu_perf_pstate_pmu_setup(struct gk20a *g)
 
 static struct pstate *perf_pstate_find(struct gk20a *g, u32 num)
 {
-	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
+	struct pstates *pstates = &(g->pmu->perf_pmu->pstatesobjs);
 	struct pstate *pstate;
 	u8 i;
 
@@ -452,17 +453,3 @@ struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
 	}
 	return NULL;
 }
-
-int nvgpu_perf_pstate_get_lpwr_index(struct gk20a *g, u32 num, u8 *lpwr_idx)
-{
-	struct pstate *pstate = perf_pstate_find(g, num);
-
-	if (pstate == NULL) {
-		return -EINVAL;
-	}
-
-	*lpwr_idx = pstate->lpwr_entry_idx;
-	return 0;
-}
-
-

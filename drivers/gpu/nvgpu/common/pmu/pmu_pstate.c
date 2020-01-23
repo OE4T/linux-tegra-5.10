@@ -46,8 +46,8 @@ void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 	pmgr_pmu_free_pmupstate(g);
 	nvgpu_therm_pmu_free_pmupstate(g, g->pmu);
 
-	if (g->perf_pmu != NULL) {
-		nvgpu_perf_pmu_free_pmupstate(g);
+	if (g->pmu->perf_pmu != NULL) {
+		nvgpu_pmu_perf_deinit(g);
 	}
 
 	if (g->pmu->clk_pmu != NULL) {
@@ -124,9 +124,9 @@ static int pmu_pstate_init(struct gk20a *g)
 		return err;
 	}
 
-	err = nvgpu_perf_pmu_init_pmupstate(g);
+	err = nvgpu_pmu_perf_init(g);
 	if (err != 0) {
-		nvgpu_perf_pmu_free_pmupstate(g);
+		nvgpu_pmu_perf_deinit(g);
 		return err;
 	}
 
@@ -162,8 +162,7 @@ static int pmu_pstate_clk_sw_setup(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.clk.support_vf_point &&
-		g->ops.pmu_perf.support_vfe) {
+	if (g->ops.clk.support_vf_point) {
 		err = nvgpu_clk_vf_point_sw_setup(g);
 		if (err != 0) {
 			nvgpu_clk_vf_point_free_pmupstate(g);
@@ -175,38 +174,6 @@ static int pmu_pstate_clk_sw_setup(struct gk20a *g)
 	if (err != 0) {
 		nvgpu_clk_prog_free_pmupstate(g);
 		return err;
-	}
-
-	return 0;
-}
-
-static int pmu_pstate_perf_sw_setup(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	if (g->ops.pmu_perf.support_vfe) {
-		err = nvgpu_vfe_var_sw_setup(g);
-		if (err != 0) {
-			return err;
-		}
-
-		err = nvgpu_vfe_equ_sw_setup(g);
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	err = nvgpu_pmu_perf_pstate_sw_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	if (g->ops.pmu_perf.support_changeseq) {
-		err = nvgpu_perf_change_seq_sw_setup(g);
-		if (err != 0) {
-			return err;
-		}
 	}
 
 	return 0;
@@ -247,7 +214,7 @@ int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
 		return err;
 	}
 
-	err = pmu_pstate_perf_sw_setup(g);
+	err = nvgpu_pmu_perf_sw_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Perf sw setup failed");
 		goto err_perf_pmu_init_pmupstate;
@@ -260,13 +227,6 @@ int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.clk.support_lpwr_pg) {
-		err = nvgpu_lpwr_pg_setup(g);
-		if (err != 0) {
-			goto err_pmgr_pmu_init_pmupstate;
-		}
-	}
-
 	return 0;
 
 err_pmgr_pmu_init_pmupstate:
@@ -274,7 +234,7 @@ err_pmgr_pmu_init_pmupstate:
 err_therm_pmu_init_pmupstate:
 	nvgpu_therm_pmu_free_pmupstate(g, g->pmu);
 err_perf_pmu_init_pmupstate:
-	nvgpu_perf_pmu_free_pmupstate(g);
+	nvgpu_pmu_perf_deinit(g);
 
 	return err;
 }
@@ -304,8 +264,7 @@ static int pmu_pstate_clk_pmu_setup(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.clk.support_vf_point &&
-		g->ops.pmu_perf.support_vfe) {
+	if (g->ops.clk.support_vf_point) {
 		err = nvgpu_clk_vf_point_pmu_setup(g);
 		if (err != 0) {
 			return err;
@@ -320,38 +279,6 @@ static int pmu_pstate_clk_pmu_setup(struct gk20a *g)
 	err = nvgpu_clk_pmu_clk_domains_load(g);
 	if (err != 0) {
 		return err;
-	}
-
-	return 0;
-}
-
-static int pmu_pstate_perf_pmu_setup(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	if (g->ops.pmu_perf.support_vfe) {
-		err = nvgpu_vfe_var_pmu_setup(g);
-		if (err != 0) {
-			return err;
-		}
-
-		err = nvgpu_vfe_equ_pmu_setup(g);
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	err = nvgpu_pmu_perf_pstate_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	if (g->ops.pmu_perf.support_changeseq) {
-		err = nvgpu_perf_change_seq_pmu_setup(g);
-		if (err != 0) {
-			return err;
-		}
 	}
 
 	return 0;
@@ -388,7 +315,7 @@ int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 		return err;
 	}
 
-	err = pmu_pstate_perf_pmu_setup(g);
+	err = nvgpu_pmu_perf_pmu_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to send Perf pmu setup");
 		return err;
@@ -398,12 +325,11 @@ int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 		err = pmgr_domain_pmu_setup(g);
 	}
 
-	if (g->ops.pmu_perf.support_vfe) {
-		err = g->ops.clk.perf_pmu_vfe_load(g);
-		if (err != 0) {
-			return err;
-		}
+	err = g->ops.clk.perf_pmu_vfe_load(g);
+	if (err != 0) {
+		return err;
 	}
+
 	return err;
 }
 
