@@ -666,6 +666,19 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		/* Program MAC_Timestamp_Control Register */
 		ops_p->config_tscr(osi_core, osi_core->ptp_config.ptp_filter);
 
+		if (osi_core->pre_si == OSI_ENABLE) {
+			if (osi_core->mac == OSI_MAC_HW_MGBE) {
+				/* FIXME: Pass it from OSD */
+				osi_core->ptp_config.ptp_clock = 78125000U;
+				osi_core->ptp_config.ptp_ref_clk_rate =
+								 78125000U;
+			} else {
+				/* FIXME: Pass it from OSD */
+				osi_core->ptp_config.ptp_clock = 312500000U;
+				osi_core->ptp_config.ptp_ref_clk_rate =
+								 312500000U;
+			}
+		}
 		/* Program Sub Second Increment Register */
 		ops_p->config_ssir(osi_core, osi_core->ptp_config.ptp_clock);
 
@@ -675,8 +688,9 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		 * 2^32 * 1000 == (1000 << 32)
 		 * so addend = (2^32 * 1000)/(ptp_ref_clk_rate in MHZ * SSINC);
 		 */
-
-		if (osi_core->mac_ver <= OSI_EQOS_MAC_4_10) {
+		if ((osi_core->pre_si == OSI_ENABLE) &&
+		    ((osi_core->mac == OSI_MAC_HW_MGBE) ||
+		    (osi_core->mac_ver <= OSI_EQOS_MAC_4_10))) {
 			ssinc = OSI_PTP_SSINC_16;
 		} else {
 			ssinc = OSI_PTP_SSINC_4;

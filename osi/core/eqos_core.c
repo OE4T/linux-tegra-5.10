@@ -3146,6 +3146,7 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
  * @brief eqos_config_ssir - Configure SSIR
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ptp_clock: PTP required clock frequency
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
@@ -3163,7 +3164,6 @@ static void eqos_config_ssir(struct osi_core_priv_data *const osi_core,
 	void *addr = osi_core->base;
 
 	mac_tcr = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_TCR);
-
 
 	if ((mac_tcr & EQOS_MAC_TCR_TSCFUPDT) == EQOS_MAC_TCR_TSCFUPDT) {
 		if (osi_core->mac_ver <= OSI_EQOS_MAC_4_10) {
