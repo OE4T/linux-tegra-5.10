@@ -37,7 +37,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/static_analysis.h>
 
-
+#ifdef CONFIG_NVGPU_TRACE
 #define nvgpu_gmmu_dbg(g, attrs, fmt, args...)				\
 	do {								\
 		if ((attrs)->debug) {					\
@@ -57,6 +57,7 @@ NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_4), "Bug 2623654") \
 		}							\
 NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_4), "Bug 2623654") \
 	} while (false)
+#endif
 
 static int pd_allocate(struct vm_gk20a *vm,
 		       struct nvgpu_gmmu_pd *pd,

@@ -35,7 +35,9 @@
 #include <signal.h>
 #endif
 
+#ifndef _QNX_SOURCE
 #define BACKTRACE_MAXSIZE 1024
+#endif
 
 struct nvgpu_bug_desc {
 	bool in_use;

@@ -28,7 +28,6 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/soc.h>
 
-#define MSEC_PER_SEC    1000
 #define USEC_PER_MSEC   1000
 #define NSEC_PER_USEC   1000
 #define NSEC_PER_MSEC   1000000
@@ -74,7 +73,7 @@ s64 nvgpu_current_time_us(void)
 		BUG();
 	}
 
-	time_now = nvgpu_safe_mult_s64((s64)now.tv_sec, (s64)1000000);
+	time_now = nvgpu_safe_mult_s64((s64)now.tv_sec, (s64)NSEC_PER_MSEC);
 	time_now = nvgpu_safe_add_s64(time_now, (s64)now.tv_usec);
 
 	return time_now;
@@ -87,7 +86,7 @@ static s64 get_time_ns(void)
 
 	(void) clock_gettime(CLOCK_MONOTONIC, &ts);
 
-	t_ns = nvgpu_safe_mult_s64(ts.tv_sec, 1000000000);
+	t_ns = nvgpu_safe_mult_s64(ts.tv_sec, NSEC_PER_SEC);
 	t_ns = nvgpu_safe_add_s64(t_ns, ts.tv_nsec);
 
 	return t_ns;
@@ -151,11 +150,11 @@ static void nvgpu_usleep(unsigned int usecs)
 
 	t_currentns = get_time_ns();
 	t_ns = (s64)usecs;
-	t_ns = nvgpu_safe_mult_s64(t_ns, 1000);
+	t_ns = nvgpu_safe_mult_s64(t_ns, NSEC_PER_USEC);
 	t_ns = nvgpu_safe_add_s64(t_ns, t_currentns);
 
-	rqtp.tv_sec = t_ns / 1000000000;
-	rqtp.tv_nsec = t_ns % 1000000000;
+	rqtp.tv_sec = t_ns / NSEC_PER_SEC;
+	rqtp.tv_nsec = t_ns % NSEC_PER_SEC;
 
 	(void) clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &rqtp, NULL);
 }
@@ -181,11 +180,12 @@ void nvgpu_msleep(unsigned int msecs)
 
 	t_currentns = get_time_ns();
 	t_ns = (s64)msecs;
-	t_ns = nvgpu_safe_mult_s64(t_ns, 1000000);
+	t_ns = nvgpu_safe_mult_s64(t_ns, NSEC_PER_MSEC);
+
 	t_ns = nvgpu_safe_add_s64(t_ns, t_currentns);
 
-	rqtp.tv_sec = t_ns / 1000000000;
-	rqtp.tv_nsec = t_ns % 1000000000;
+	rqtp.tv_sec = t_ns / NSEC_PER_SEC;
+	rqtp.tv_nsec = t_ns % NSEC_PER_SEC;
 
 	(void) clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &rqtp, NULL);
 }

@@ -25,7 +25,9 @@
 
 #include <nvgpu/types.h>
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 #define MAX_MC_INTR_REGS	2U
+#endif
 
 struct gk20a;
 enum nvgpu_unit;

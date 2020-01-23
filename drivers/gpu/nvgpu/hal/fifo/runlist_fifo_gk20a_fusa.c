@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,6 @@
 #include "runlist_fifo_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
-
-#define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
 u32 gk20a_runlist_length_max(struct gk20a *g)
 {
