@@ -146,7 +146,8 @@
 	typeof(a) val = (a);                            \
 	typeof(divisor) div = (divisor);                \
 	(((typeof(a))-1) > 0 ||                         \
-	((typeof(divisor))-1) > 0 || (val) > 0) ?       \
+	((typeof(divisor))-1) > 0 ||                    \
+	(((val) > 0) == ((div) > 0))) ?                 \
 		(((val) + ((div) / 2)) / (div)) :       \
 		(((val) - ((div) / 2)) / (div));        \
 }                                                       \
