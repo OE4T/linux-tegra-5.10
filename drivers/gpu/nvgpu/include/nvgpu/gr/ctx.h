@@ -61,6 +61,11 @@ struct zcull_ctx_desc;
 /** Get number of entries in patch buffer given the size of buffer. */
 #define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
 
+/** S/W defined value for preemption mode with no input. */
+#define NVGPU_PREEMPTION_MODE_NONE		0U
+/** S/W defined value for invalid preemption mode. */
+#define NVGPU_PREEMPTION_MODE_INVALID		BIT32(31)
+
 /** S/W defined value for WFI graphics preemption mode. */
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	BIT32(0)
 #ifdef CONFIG_NVGPU_GRAPHICS
