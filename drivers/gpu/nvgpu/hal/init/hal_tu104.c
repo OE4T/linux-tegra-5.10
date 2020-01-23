@@ -1246,13 +1246,12 @@ static const struct gpu_ops tu104_ops = {
 			gm20b_clear_pmu_bar0_host_err_status,
 	},
 	.clk = {
+#ifdef CONFIG_NVGPU_CLK_ARB
 		.init_clk_support = tu104_init_clk_support,
 		.get_crystal_clk_hz = tu104_crystal_clk_hz,
 		.get_rate_cntr = tu104_get_rate_cntr,
 		.measure_freq = tu104_clk_measure_freq,
 		.suspend_clk_support = tu104_suspend_clk_support,
-		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
-#ifdef CONFIG_NVGPU_CLK_ARB
 		.clk_domain_get_f_points = tu104_clk_domain_get_f_points,
 		.get_maxrate = tu104_clk_maxrate,
 		.get_change_seq_time = tu104_get_change_seq_time,
@@ -1262,6 +1261,7 @@ static const struct gpu_ops tu104_ops = {
 				nvgpu_clk_mon_check_master_fault_status,
 		.clk_mon_check_status = nvgpu_clk_mon_check_status,
 		.clk_mon_init_domains = nvgpu_clk_mon_init_domains,
+		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {

@@ -1,6 +1,6 @@
 # -*- mode: makefile -*-
 #
-# Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -433,6 +433,7 @@ srcs += \
 	common/pmu/boardobj/boardobjgrp_e255.c \
 	common/pmu/boardobj/boardobjgrp_e32.c \
 	common/pmu/clk/clk.c \
+	common/pmu/volt/volt.c \
 	common/pmu/clk/clk_domain.c \
 	common/pmu/clk/clk_fll.c \
 	common/pmu/clk/clk_prog.c \
@@ -478,7 +479,6 @@ srcs += \
 	common/pmu/therm/thrmdev.c \
 	common/pmu/therm/thrmpmu.c \
 	common/pmu/volt/volt_dev.c \
-	common/pmu/volt/volt_pmu.c \
 	common/pmu/volt/volt_policy.c \
 	common/pmu/volt/volt_rail.c \
 	common/pmu/pmu_allocator.c \

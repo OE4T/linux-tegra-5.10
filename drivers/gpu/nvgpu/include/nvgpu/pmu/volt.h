@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -61,53 +61,19 @@ struct voltage_policy_metadata {
 	struct boardobjgrp_e32 volt_policies;
 };
 
-struct obj_volt {
+struct nvgpu_pmu_volt {
 	struct voltage_rail_metadata volt_rail_metadata;
 	struct voltage_device_metadata volt_dev_metadata;
 	struct voltage_policy_metadata volt_policy_metadata;
 };
-struct voltage_rail {
-	struct boardobj super;
-	u32 boot_voltage_uv;
-	u8 rel_limit_vfe_equ_idx;
-	u8 alt_rel_limit_vfe_equ_idx;
-	u8 ov_limit_vfe_equ_idx;
-	u8 pwr_equ_idx;
-	u8 volt_scale_exp_pwr_equ_idx;
-	u8 volt_dev_idx_default;
-	u8 volt_dev_idx_ipc_vmin;
-	u8 boot_volt_vfe_equ_idx;
-	u8 vmin_limit_vfe_equ_idx;
-	u8 volt_margin_limit_vfe_equ_idx;
-	u32 volt_margin_limit_vfe_equ_mon_handle;
-	u32 rel_limit_vfe_equ_mon_handle;
-	u32 alt_rel_limit_vfe_equ_mon_handle;
-	u32 ov_limit_vfe_equ_mon_handle;
-	struct boardobjgrpmask_e32 volt_dev_mask;
-	s32  volt_delta_uv[CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES];
-	u32 vmin_limitu_v;
-	u32 max_limitu_v;
-	u32 current_volt_uv;
-};
 
-int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g);
-
-int nvgpu_volt_dev_sw_setup(struct gk20a *g);
-int nvgpu_volt_dev_pmu_setup(struct gk20a *g);
-
-int nvgpu_volt_policy_sw_setup(struct gk20a *g);
-int nvgpu_volt_policy_pmu_setup(struct gk20a *g);
-
-int nvgpu_volt_rail_sw_setup(struct gk20a *g);
-int nvgpu_volt_rail_pmu_setup(struct gk20a *g);
 u8 nvgpu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain);
 int nvgpu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_uv);
 u8 nvgpu_volt_get_vmargin_ps35(struct gk20a *g);
-int nvgpu_volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
-	*pvolt_rail, u8 volt_dev_idx, u8 operation_type);
 u8 nvgpu_volt_rail_vbios_volt_domain_convert_to_internal
 	(struct gk20a *g, u8 vbios_volt_domain);
-void nvgpu_pmu_volt_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc);
 int nvgpu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv);
+int nvgpu_pmu_volt_sw_setup(struct gk20a *g);
+int nvgpu_pmu_volt_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_PMU_VOLT_H */

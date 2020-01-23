@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
 #include <nvgpu/pmu/volt.h>
 
 #include "volt_dev.h"
+#include "volt_rail.h"
 
 static int volt_device_pmu_data_init_super(struct gk20a *g,
 	struct boardobj *pboard_obj, struct nv_pmu_boardobj *ppmudata)
@@ -463,7 +464,7 @@ static int volt_device_state_init(struct gk20a *g,
 			goto done;
 		}
 
-		status = nvgpu_volt_rail_volt_dev_register(g, pRail,
+		status = volt_rail_volt_dev_register(g, pRail,
 			BOARDOBJ_GET_IDX(pvolt_dev), pvolt_dev->operation_type);
 		if (status != 0) {
 			nvgpu_err(g,
@@ -480,7 +481,7 @@ done:
 	return status;
 }
 
-int nvgpu_volt_dev_pmu_setup(struct gk20a *g)
+int volt_dev_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -499,7 +500,7 @@ int nvgpu_volt_dev_pmu_setup(struct gk20a *g)
 	return status;
 }
 
-int nvgpu_volt_dev_sw_setup(struct gk20a *g)
+int volt_dev_sw_setup(struct gk20a *g)
 {
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,20 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/pmu.h>
-#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/boardobjgrp.h>
-#include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/pmu/pmuif/ctrlvolt.h>
-#include <nvgpu/string.h>
-#include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/volt.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/cmd.h>
 
-#include "volt_pmu.h"
+#include "volt_rail.h"
+#include "volt_dev.h"
+#include "volt_policy.h"
 
-int nvgpu_volt_send_load_cmd_to_pmu(struct gk20a *g)
+
+static int volt_send_load_cmd_to_pmu(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct nv_pmu_rpc_struct_volt_load rpc;
@@ -64,4 +60,58 @@ void nvgpu_pmu_volt_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc)
 		nvgpu_pmu_dbg(g, "invalid reply");
 		break;
 	}
+}
+
+int nvgpu_pmu_volt_sw_setup(struct gk20a *g)
+{
+	int err;
+	nvgpu_log_fn(g, " ");
+
+	err = volt_rail_sw_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = volt_dev_sw_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = volt_policy_sw_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	return 0;
+}
+
+int nvgpu_pmu_volt_pmu_setup(struct gk20a *g)
+{
+	int err;
+	nvgpu_log_fn(g, " ");
+
+	err = volt_rail_pmu_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = volt_dev_pmu_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = volt_policy_pmu_setup(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = volt_send_load_cmd_to_pmu(g);
+	if (err != 0) {
+		nvgpu_err(g,
+			"Failed to send VOLT LOAD CMD to PMU: status = 0x%08x.",
+			err);
+		return err;
+	}
+
+	return 0;
 }

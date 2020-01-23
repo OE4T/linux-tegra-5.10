@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -106,7 +106,7 @@ struct perf_pmupstate {
 	struct vfe_vars vfe_varobjs;
 	struct vfe_equs vfe_equobjs;
 	struct pstates pstatesobjs;
-	struct obj_volt volt;
+	struct nvgpu_pmu_volt volt;
 	struct obj_lwpr lpwr;
 	struct nvgpu_vfe_invalidate vfe_init;
 	struct change_seq_pmu changeseq_pmu;

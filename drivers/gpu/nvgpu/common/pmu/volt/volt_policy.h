@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,5 +46,8 @@ struct voltage_policy_single_rail_multi_step {
 	u32 ramp_up_step_size_uv;
 	u32 ramp_down_step_size_uv;
 };
+
+int volt_policy_sw_setup(struct gk20a *g);
+int volt_policy_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_VOLT_POLICY_H */

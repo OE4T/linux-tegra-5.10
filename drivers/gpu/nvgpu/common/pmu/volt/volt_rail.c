@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -375,7 +375,7 @@ static int nvgpu_volt_rail_boardobj_grp_get_status(struct gk20a *g)
 	return 0;
 }
 
-int nvgpu_volt_rail_sw_setup(struct gk20a *g)
+int volt_rail_sw_setup(struct gk20a *g)
 {
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -448,7 +448,7 @@ done:
 	return status;
 }
 
-int nvgpu_volt_rail_pmu_setup(struct gk20a *g)
+int volt_rail_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -490,7 +490,7 @@ u8 nvgpu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain)
 	}
 }
 
-int nvgpu_volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
+int volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
 	*pvolt_rail, u8 volt_dev_idx, u8 operation_type)
 {
 	int status = 0;

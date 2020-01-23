@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # Common elements and units in nvgpu.
 #
@@ -903,12 +903,11 @@ pmu:
       safe: yes
       gpu: dgpu
       owner: Mahantesh K
-      sources: [ common/pmu/volt/volt_dev.c,
-                 common/pmu/volt/volt_pmu.c,
+      sources: [ common/pmu/volt/volt.c,
+                 common/pmu/volt/volt_dev.c,
                  common/pmu/volt/volt_policy.c,
                  common/pmu/volt/volt_rail.c,
                  common/pmu/volt/volt_dev.h,
-                 common/pmu/volt/volt_pmu.h,
                  common/pmu/volt/volt_policy.h,
                  common/pmu/volt/volt_rail.h,
                  include/nvgpu/pmu/volt.h ]

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,5 +69,9 @@ struct voltage_device_pwm_entry {
 	u32 duty_cycle;
 };
 /* PWM end */
+
+int volt_dev_sw_setup(struct gk20a *g);
+int volt_dev_pmu_setup(struct gk20a *g);
+void nvgpu_pmu_volt_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc);
 
 #endif /* NVGPU_VOLT_DEV_H */

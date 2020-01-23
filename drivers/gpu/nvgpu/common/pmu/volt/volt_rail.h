@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,5 +29,33 @@
 
 #define CTRL_PMGR_PWR_EQUATION_INDEX_INVALID	0xFFU
 
+struct voltage_rail {
+	struct boardobj super;
+	u32 boot_voltage_uv;
+	u8 rel_limit_vfe_equ_idx;
+	u8 alt_rel_limit_vfe_equ_idx;
+	u8 ov_limit_vfe_equ_idx;
+	u8 pwr_equ_idx;
+	u8 volt_scale_exp_pwr_equ_idx;
+	u8 volt_dev_idx_default;
+	u8 volt_dev_idx_ipc_vmin;
+	u8 boot_volt_vfe_equ_idx;
+	u8 vmin_limit_vfe_equ_idx;
+	u8 volt_margin_limit_vfe_equ_idx;
+	u32 volt_margin_limit_vfe_equ_mon_handle;
+	u32 rel_limit_vfe_equ_mon_handle;
+	u32 alt_rel_limit_vfe_equ_mon_handle;
+	u32 ov_limit_vfe_equ_mon_handle;
+	struct boardobjgrpmask_e32 volt_dev_mask;
+	s32  volt_delta_uv[CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES];
+	u32 vmin_limitu_v;
+	u32 max_limitu_v;
+	u32 current_volt_uv;
+};
+
+int volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
+	*pvolt_rail, u8 volt_dev_idx, u8 operation_type);
+int volt_rail_sw_setup(struct gk20a *g);
+int volt_rail_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_VOLT_RAIL_H */

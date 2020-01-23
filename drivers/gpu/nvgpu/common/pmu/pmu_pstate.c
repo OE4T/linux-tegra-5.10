@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -139,29 +139,6 @@ static int pmu_pstate_init(struct gk20a *g)
 	return 0;
 }
 
-static int pmu_pstate_volt_sw_setup(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_volt_rail_sw_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_dev_sw_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_policy_sw_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
-}
-
 static int pmu_pstate_clk_sw_setup(struct gk20a *g)
 {
 	int err;
@@ -253,7 +230,7 @@ int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
 		return err;
 	}
 
-	err = pmu_pstate_volt_sw_setup(g);
+	err = nvgpu_pmu_volt_sw_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Volt sw setup failed");
 		return err;
@@ -300,37 +277,6 @@ err_perf_pmu_init_pmupstate:
 	nvgpu_perf_pmu_free_pmupstate(g);
 
 	return err;
-}
-
-static int pmu_pstate_volt_pmu_setup(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_volt_rail_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_dev_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_policy_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_volt_send_load_cmd_to_pmu(g);
-	if (err != 0) {
-		nvgpu_err(g,
-			"Failed to send VOLT LOAD CMD to PMU: status = 0x%08x.",
-			err);
-		return err;
-	}
-
-	return 0;
 }
 
 static int pmu_pstate_clk_pmu_setup(struct gk20a *g)
@@ -425,7 +371,7 @@ int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 		}
 	}
 
-	err = pmu_pstate_volt_pmu_setup(g);
+	err = nvgpu_pmu_volt_pmu_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to send VOLT pmu setup");
 		return err;

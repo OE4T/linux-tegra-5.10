@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -332,7 +332,7 @@ static int _volt_policy_grp_pmudatainit_super(struct gk20a *g,
 	struct nv_pmu_volt_volt_policy_boardobjgrp_set_header *pset =
 		(struct nv_pmu_volt_volt_policy_boardobjgrp_set_header *)
 		pboardobjgrppmu;
-	struct obj_volt *volt  = (struct obj_volt *)pboardobjgrp;
+	struct nvgpu_pmu_volt *volt  = (struct nvgpu_pmu_volt *)pboardobjgrp;
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
@@ -349,7 +349,7 @@ done:
 	return status;
 }
 
-int nvgpu_volt_policy_pmu_setup(struct gk20a *g)
+int volt_policy_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -369,7 +369,7 @@ int nvgpu_volt_policy_pmu_setup(struct gk20a *g)
 	return status;
 }
 
-int nvgpu_volt_policy_sw_setup(struct gk20a *g)
+int volt_policy_sw_setup(struct gk20a *g)
 {
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
