@@ -189,6 +189,16 @@ typedef my_lint_64		nvel64_t;
 #define OSI_RSS_MAX_TABLE_SIZE	128U
 /** @} */
 
+/**
+ * @addtogroup PTP related information
+ *
+ * @brief PTP SSINC values
+ * @{
+ */
+#define OSI_PTP_SSINC_16	16U
+#define OSI_PTP_SSINC_4		4U
+/** @} */
+
 struct osi_core_priv_data;
 
 /**

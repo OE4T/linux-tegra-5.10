@@ -3748,9 +3748,7 @@ static void mgbe_config_tscr(struct osi_core_priv_data *osi_core,
 /**
  * @brief mgbe_config_ssir - Configure SSIR
  *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
- * it compiled earlier 
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] ptp_clock: PTP required clock frequency
  *
  * @note MAC should be init and started. see osi_start_mac()
@@ -3769,9 +3767,13 @@ static void mgbe_config_ssir(struct osi_core_priv_data *const osi_core,
 	 * where, ptp_clock = OSI_PTP_REQ_CLK_FREQ if FINE correction
 	 * and ptp_clock = PTP reference clock if COARSE correction
 	 */
-
 	if ((mac_tcr & MGBE_MAC_TCR_TSCFUPDT) == MGBE_MAC_TCR_TSCFUPDT) {
-		val = ((1U * OSI_NSEC_PER_SEC) / OSI_PTP_REQ_CLK_FREQ);
+		if (osi_core->pre_si == OSI_ENABLE) {
+			val = OSI_PTP_SSINC_16;
+		} else {
+			/* For silicon */
+			val = OSI_PTP_SSINC_4;
+		}
 	} else {
 		val = ((1U * OSI_NSEC_PER_SEC) / ptp_clock);
 	}
@@ -3784,6 +3786,7 @@ static void mgbe_config_ssir(struct osi_core_priv_data *const osi_core,
 	}
 
 	val |= (val << MGBE_MAC_SSIR_SSINC_SHIFT);
+
 	/* update Sub-second Increment Value */
 	if (val < UINT_MAX) {
 		osi_writel((unsigned int)val,
