@@ -91,6 +91,8 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj nvhost1x_getid_fi;
 	struct nvgpu_posix_fault_inj nvhost1x_waiterallocate_fi;
 	struct nvgpu_posix_fault_inj nvhost1x_syncpointread_fi;
+	struct nvgpu_posix_fault_inj nvhost1x_creatememhandle_fi;
+	struct nvgpu_posix_fault_inj nvhost1x_createfullhandle_fi;
 	struct nvgpu_posix_fault_inj iofunc_devctl_default;
 	struct nvgpu_posix_fault_inj iofunc_devctl_verify;
 	struct nvgpu_posix_fault_inj iofunc_attr_lock;
