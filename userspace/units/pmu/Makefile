@@ -24,20 +24,15 @@ OBJS   = nvgpu-pmu.o
 MODULE = nvgpu-pmu
 
 LIB_PATHS += -lfalcon_utf \
-	     -lnvgpu-gr \
 	     -lmock-iospace
 
 include ../Makefile.units
 
 lib$(MODULE).so: falcon_utf \
-		 nvgpu-gr \
 		 mock-iospace
 
 falcon_utf:
 	$(MAKE) -C ../falcon
-
-nvgpu-gr:
-	$(MAKE) -C ../gr
 
 mock-iospace:
 	$(MAKE) -C ../mock-iospace
