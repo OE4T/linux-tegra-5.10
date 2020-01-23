@@ -111,6 +111,7 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj qnx_intattach_event_fi;
 	struct nvgpu_posix_fault_inj qnx_int_wait_fi;
 	struct nvgpu_posix_fault_inj guest_vm_id_fi;
+	struct nvgpu_posix_fault_inj nvgpu_readl_loop_fi;
 };
 
 /**
