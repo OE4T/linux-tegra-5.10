@@ -307,7 +307,8 @@ int test_poweroff(struct unit_module *m, struct gk20a *g, void *args);
  * Test Type: Feature
  *
  * Targets: nvgpu_sw_quiesce_init_support, nvgpu_sw_quiesce_remove_support,
- *          nvgpu_sw_quiesce_thread, nvgpu_sw_quiesce, nvgpu_sw_quiesce_bug_cb
+ *          nvgpu_sw_quiesce_thread, nvgpu_sw_quiesce, nvgpu_sw_quiesce_bug_cb,
+ *          nvgpu_bug_exit
  *
  * Input:
  * - test_setup_env() must be called before.

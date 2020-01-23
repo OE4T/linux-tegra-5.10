@@ -61,7 +61,9 @@ int test_gv11b_pbdma_setup_hw(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: gops_pbdma.intr_enable, gv11b_pbdma_intr_enable
+ * Targets: gops_pbdma.intr_enable, gv11b_pbdma_intr_enable,
+ *          gm20b_pbdma_disable_and_clear_all_intr,
+ *          gm20b_pbdma_clear_all_intr
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -167,7 +169,8 @@ int test_gv11b_pbdma_intr_descs(struct unit_module *m,
  * Test Type: Feature
  *
  * Targets: gops_pbdma.get_fc_pb_header, gv11b_pbdma_get_fc_pb_header,
- *          gops_pbdma.get_fc_target, gv11b_pbdma_get_fc_target
+ *          gops_pbdma.get_fc_target, gv11b_pbdma_get_fc_target,
+ *          gm20b_pbdma_get_fc_target
  *
  * Input: test_fifo_init_support() run for this GPU
  *

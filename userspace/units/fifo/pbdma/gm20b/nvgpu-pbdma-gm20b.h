@@ -99,7 +99,8 @@ int test_gm20b_pbdma_handle_intr(struct unit_module *m,
  * Test Type: Feature
  *
  * Targets: gops_pbdma.handle_intr_0, gm20b_pbdma_handle_intr_0,
- *          gops_pbdma.reset_header, gm20b_pbdma_reset_header
+ *          gops_pbdma.reset_header, gm20b_pbdma_reset_header,
+ *          gm20b_pbdma_reset_method
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -157,8 +158,8 @@ int test_gm20b_pbdma_read_data(struct unit_module *m,
  *
  * Targets: gops_pbdma.device_fatal_0_intr_descs,
  *          gm20b_pbdma_device_fatal_0_intr_descs,
- *          gops_pbdma.restartable_0_intr_descs
- *          gm20b_pbdma_restartable_0_intr_descs.
+ *          gops_pbdma.restartable_0_intr_descs,
+ *          gm20b_pbdma_restartable_0_intr_descs
  *
  * Input: test_fifo_init_support() run for this GPU
  *

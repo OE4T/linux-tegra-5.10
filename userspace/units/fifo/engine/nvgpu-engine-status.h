@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,13 +43,15 @@ struct gk20a;
  * Test Type: Feature based
  *
  * Targets: nvgpu_engine_status_is_ctxsw_switch,
- * 	nvgpu_engine_status_is_ctxsw_load,
- * 	nvgpu_engine_status_is_ctxsw_save,
- * 	nvgpu_engine_status_is_ctxsw,
- * 	nvgpu_engine_status_is_ctxsw_invalid,
- * 	nvgpu_engine_status_is_ctxsw_valid,
- * 	nvgpu_engine_status_is_ctx_type_tsg,
- * 	nvgpu_engine_status_is_next_ctx_type_tsg
+ *	nvgpu_engine_status_is_ctxsw_load,
+ *	nvgpu_engine_status_is_ctxsw_save,
+ *	nvgpu_engine_status_is_ctxsw,
+ *	nvgpu_engine_status_is_ctxsw_invalid,
+ *	nvgpu_engine_status_is_ctxsw_valid,
+ *	nvgpu_engine_status_is_ctx_type_tsg,
+ *	nvgpu_engine_status_is_next_ctx_type_tsg,
+ *	nvgpu_engine_status_get_ctx_id_type,
+ *	nvgpu_engine_status_get_next_ctx_id_type
  *
  * Input: None
  *

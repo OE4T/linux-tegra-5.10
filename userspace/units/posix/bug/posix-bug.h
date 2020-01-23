@@ -67,7 +67,8 @@ int test_expect_bug(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_bug_register_cb, nvgpu_bug_unregister_cb
+ * Targets: nvgpu_bug_register_cb, nvgpu_bug_unregister_cb,
+ *          nvgpu_bug_cb_from_node
  *
  * Inputs: None
  *
