@@ -210,8 +210,8 @@ struct nvgpu_mc {
 	struct nvgpu_cond sw_irq_stall_last_handled_cond;
 
 	/**
-	 * Stalling interrupt status counter - updated on handling of the
-	 * stalling interrupt.
+	 * Stalling interrupt status counter - Set to 1 on entering stalling
+	 * interrupt handler and reset to 0 on exit.
 	 */
 	nvgpu_atomic_t sw_irq_stall_pending;
 
@@ -223,8 +223,8 @@ struct nvgpu_mc {
 	struct nvgpu_cond sw_irq_nonstall_last_handled_cond;
 
 	/**
-	 * Non-stalling interrupt status counter - updated on handling of the
-	 * non-stalling interrupt.
+	 * Non-stalling interrupt status counter - Set to 1 on entering
+	 * non-stalling interrupt handler and reset to 0 on exit.
 	 */
 	nvgpu_atomic_t sw_irq_nonstall_pending;
 
