@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -174,9 +174,6 @@ u32 gv100_nvlink_minion_get_dlcmd_ordinal(struct gk20a *g,
 		break;
 	case NVGPU_NVLINK_MINION_DLCMD_INITPLL_1:
 		dlcmd_ordinal = minion_nvlink_dl_cmd_command_initpll_1_v();
-		break;
-	case NVGPU_NVLINK_MINION_DLCMD_INITPLL_7:
-		dlcmd_ordinal = minion_nvlink_dl_cmd_command_initpll_7_v();
 		break;
 	default:
 		dlcmd_ordinal = U32_MAX;

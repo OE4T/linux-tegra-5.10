@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -822,12 +822,6 @@ int gv100_nvlink_early_init(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	err = nvgpu_bios_get_lpwr_nvlink_table_hdr(g);
-	if (err != 0) {
-		nvgpu_err(g, "Failed to read LWPR_NVLINK_TABLE header\n");
-		goto exit;
-	}
-
 	err = nvgpu_bios_get_nvlink_config_data(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to read nvlink vbios data");
@@ -892,6 +886,7 @@ int gv100_nvlink_early_init(struct gk20a *g)
 		goto nvlink_init_exit;
 	}
 
+	g->nvlink.speed = nvgpu_nvlink_speed_20G;
 	err = gv100_nvlink_state_load_hal(g);
 	if (err != 0) {
 		nvgpu_err(g, " failed Nvlink state load");
@@ -911,14 +906,6 @@ nvlink_init_exit:
 	nvgpu_falcon_sw_free(g, FALCON_ID_MINION);
 exit:
 	return err;
-}
-
-int gv100_nvlink_speed_config(struct gk20a *g)
-{
-	g->nvlink.speed = nvgpu_nvlink_speed_20G;
-	g->nvlink.initpll_ordinal = INITPLL_1;
-	g->nvlink.initpll_cmd = NVGPU_NVLINK_MINION_DLCMD_INITPLL_1;
-	return 0;
 }
 
 #endif /* CONFIG_NVGPU_NVLINK */

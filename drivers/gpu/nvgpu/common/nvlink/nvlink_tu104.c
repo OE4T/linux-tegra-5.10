@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,6 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/nvlink_bios.h>
 #include <nvgpu/nvlink_minion.h>
 
 #include "nvlink_gv100.h"
@@ -91,35 +90,6 @@ int tu104_nvlink_rxdet(struct gk20a *g, u32 link_id)
 void tu104_nvlink_get_connected_link_mask(u32 *link_mask)
 {
 	*link_mask = TU104_CONNECTED_LINK_MASK;
-}
-
-int tu104_nvlink_speed_config(struct gk20a *g)
-{
-	int ret = 0;
-
-	ret = nvgpu_bios_get_lpwr_nvlink_table_hdr(g);
-	if (ret != 0) {
-		nvgpu_err(g, "Failed to read LWPR_NVLINK_TABLE header\n");
-		return ret;
-	}
-
-	switch (g->nvlink.initpll_ordinal) {
-	case INITPLL_1:
-		g->nvlink.speed = nvgpu_nvlink_speed_20G;
-		g->nvlink.initpll_cmd = NVGPU_NVLINK_MINION_DLCMD_INITPLL_1;
-		break;
-	case INITPLL_7:
-		g->nvlink.speed = nvgpu_nvlink_speed_16G;
-		g->nvlink.initpll_cmd = NVGPU_NVLINK_MINION_DLCMD_INITPLL_7;
-		break;
-	default:
-		nvgpu_err(g, "Nvlink initpll %d from VBIOS not supported.",
-					g->nvlink.initpll_ordinal);
-		ret = -EINVAL;
-		break;
-	}
-
-	return ret;
 }
 
 #endif /* CONFIG_NVGPU_NVLINK */

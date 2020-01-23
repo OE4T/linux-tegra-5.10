@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,5 +30,4 @@ struct gk20a;
 /* API */
 int tu104_nvlink_rxdet(struct gk20a *g, u32 link_id);
 void tu104_nvlink_get_connected_link_mask(u32 *link_mask);
-int tu104_nvlink_speed_config(struct gk20a *g);
 #endif

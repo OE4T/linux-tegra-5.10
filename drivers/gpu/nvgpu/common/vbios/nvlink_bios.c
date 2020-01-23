@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,36 +70,4 @@ int nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
 	}
 
 	return ret;
-}
-
-int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g)
-{
-	struct lpwr_nvlink_table_hdr_v1 hdr;
-	u8 *lpwr_nvlink_tbl_hdr_ptr = NULL;
-
-	lpwr_nvlink_tbl_hdr_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
-					nvgpu_bios_get_bit_token(g,
-						NVGPU_BIOS_PERF_TOKEN),
-					LPWR_NVLINK_TABLE);
-	if (lpwr_nvlink_tbl_hdr_ptr == NULL) {
-		nvgpu_err(g, "Invalid pointer to LPWR_NVLINK_TABLE\n");
-		return -EINVAL;
-	}
-
-	nvgpu_memcpy((u8 *)&hdr, lpwr_nvlink_tbl_hdr_ptr,
-			LPWR_NVLINK_TABLE_10_HDR_SIZE_06);
-
-	if (hdr.version != LWPR_NVLINK_TABLE_10_HDR_VER_10) {
-		nvgpu_err(g, "Unsupported LPWR_NVLINK_TABLE version: 0x%x",
-				hdr.version);
-		return -EINVAL;
-	}
-
-	g->nvlink.initpll_ordinal =
-		BIOS_GET_FIELD(u8, hdr.line_rate_initpll_ordinal,
-			VBIOS_LPWR_NVLINK_TABLE_HDR_INITPLL_ORDINAL);
-	nvgpu_log(g, gpu_dbg_nvlink, " Nvlink initpll_ordinal: 0x%x",
-				g->nvlink.initpll_ordinal);
-
-	return 0;
 }

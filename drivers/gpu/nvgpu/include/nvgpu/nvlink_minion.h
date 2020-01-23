@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,6 @@ enum nvgpu_nvlink_minion_dlcmd {
 	NVGPU_NVLINK_MINION_DLCMD_LANESHUTDOWN,
 	NVGPU_NVLINK_MINION_DLCMD_TXCLKSWITCH_PLL,
 	NVGPU_NVLINK_MINION_DLCMD_INITPLL_1,
-	NVGPU_NVLINK_MINION_DLCMD_INITPLL_7,
 	NVGPU_NVLINK_MINION_DLCMD_TURING_INITDLPL_TO_CHIPA,
 	NVGPU_NVLINK_MINION_DLCMD_TURING_RXDET,
 	NVGPU_NVLINK_MINION_DLCMD__LAST,

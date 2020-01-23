@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -75,23 +75,6 @@ int nvgpu_nvlink_read_dt_props(struct gk20a *g)
 fail:
 	nvgpu_info(g, "nvlink endpoint not found or invaling in DT");
 	return -ENODEV;
-}
-
-static int nvgpu_nvlink_ops_speed_config(struct nvlink_device *ndev)
-{
-	struct gk20a *g = (struct gk20a *) ndev->priv;
-	int err;
-
-	err = nvgpu_nvlink_speed_config(g);
-	if (err != 0) {
-		nvgpu_err(g, "Nvlink speed config failed.\n");
-	} else {
-		ndev->speed = g->nvlink.speed;
-		nvgpu_log(g, gpu_dbg_nvlink, "Nvlink default speed set to %d\n",
-					ndev->speed);
-	}
-
-	return err;
 }
 
 static int nvgpu_nvlink_ops_early_init(struct nvlink_device *ndev)
@@ -413,7 +396,6 @@ int nvgpu_nvlink_init_ops(struct gk20a *g)
 	ndev->dev_ops.dev_interface_disable =
 					nvgpu_nvlink_ops_interface_disable;
 	ndev->dev_ops.dev_shutdown = nvgpu_nvlink_ops_dev_shutdown;
-	ndev->dev_ops.dev_speed_config = nvgpu_nvlink_ops_speed_config;
 
 	/* Fill in the link struct */
 	ndev->link.device_id = ndev->device_id;

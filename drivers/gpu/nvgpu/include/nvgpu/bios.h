@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,6 @@ enum {
 	LOWPOWER_TABLE,
 	LOWPOWER_GR_TABLE = 32,
 	LOWPOWER_MS_TABLE = 33,
-	LPWR_NVLINK_TABLE = 39,
 };
 
 enum {

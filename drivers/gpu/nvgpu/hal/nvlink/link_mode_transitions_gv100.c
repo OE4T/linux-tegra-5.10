@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,12 +40,20 @@ static int gv100_nvlink_init_uphy(struct gk20a *g, unsigned long mask,
 					bool sync)
 {
 	int err = 0;
+	enum nvgpu_nvlink_minion_dlcmd init_pll_cmd;
 	u32 link_id, master_pll, slave_pll;
 	u32 master_state, slave_state;
 	u32 link_enable;
 	unsigned long bit;
 
 	link_enable = g->ops.nvlink.get_link_reset_mask(g);
+
+	if ((g->nvlink.speed) == nvgpu_nvlink_speed_20G) {
+		init_pll_cmd = NVGPU_NVLINK_MINION_DLCMD_INITPLL_1;
+	} else {
+		nvgpu_err(g, "Unsupported UPHY speed");
+		return -EINVAL;
+	}
 
 	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
@@ -77,7 +85,7 @@ static int gv100_nvlink_init_uphy(struct gk20a *g, unsigned long mask,
 		/* Check if INIT PLL is done on link */
 		if ((BIT(master_pll) & g->nvlink.init_pll_done) == 0U) {
 			err = g->ops.nvlink.minion.send_dlcmd(g, master_pll,
-						g->nvlink.initpll_cmd, sync);
+						init_pll_cmd, sync);
 			if (err != 0) {
 				nvgpu_err(g, " Error sending INITPLL to minion");
 				return err;

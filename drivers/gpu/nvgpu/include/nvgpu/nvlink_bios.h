@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,21 +42,8 @@ struct nvlink_config_data_hdr_v1 {
 	u32 ac_coupling_mask;
 } __attribute__((packed));
 
-#define LWPR_NVLINK_TABLE_10_HDR_VER_10         0x10U
-#define LPWR_NVLINK_TABLE_10_HDR_SIZE_06        6U
-
-struct lpwr_nvlink_table_hdr_v1 {
-	u8 version;
-	u8 hdr_size;
-	u8 entry_size;
-	u8 entry_count;
-	u8 default_entry_idx;
-	u8 line_rate_initpll_ordinal;
-} __attribute__((packed));
-
 struct gk20a;
 
 int nvgpu_bios_get_nvlink_config_data(struct gk20a *g);
-int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g);
 
 #endif

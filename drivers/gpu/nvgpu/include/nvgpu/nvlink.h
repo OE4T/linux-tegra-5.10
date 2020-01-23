@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,6 @@
 
 #define NV_NVLINK_REG_POLL_TIMEOUT_MS           3000
 #define NV_NVLINK_TIMEOUT_DELAY_US              5
-
-#define INITPLL_1				U8(1)
-#define INITPLL_7				U8(7)
 
 #define IOCTRL_REG_RD32(g, off) gk20a_readl(g, (g)->nvlink.ioctrl_base + (off))
 #define IOCTRL_REG_WR32(g, off, v) gk20a_writel(g, (g)->nvlink.ioctrl_base + (off), (v))
@@ -109,7 +106,6 @@ struct nvgpu_nvlink_link {
 
 
 enum nvgpu_nvlink_speed {
-	nvgpu_nvlink_speed_16G = 16,
 	nvgpu_nvlink_speed_20G = 20,
 	nvgpu_nvlink_speed__last,
 };
@@ -163,7 +159,6 @@ struct nvgpu_nvlink_dev {
 	u32 link_refclk_mask;
 	u8 train_at_boot;
 	u32 ac_coupling_mask;
-	u8 initpll_ordinal;
 
 	u32 connected_links;
 	u32 initialized_links;
@@ -171,7 +166,6 @@ struct nvgpu_nvlink_dev {
 	u32 init_pll_done;
 
 	enum nvgpu_nvlink_speed speed;
-	enum nvgpu_nvlink_minion_dlcmd initpll_cmd;
 
 	/* tlc cached errors */
 	u32 tlc_rx_err_status_0[NVLINK_MAX_LINKS_SW];
@@ -182,7 +176,6 @@ struct nvgpu_nvlink_dev {
 	void *priv;
 };
 
-int nvgpu_nvlink_speed_config(struct gk20a *g);
 int nvgpu_nvlink_early_init(struct gk20a *g);
 int nvgpu_nvlink_link_early_init(struct gk20a *g);
 int nvgpu_nvlink_interface_init(struct gk20a *g);

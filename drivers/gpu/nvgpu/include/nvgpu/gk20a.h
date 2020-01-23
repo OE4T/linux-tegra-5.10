@@ -547,7 +547,6 @@ struct gpu_ops {
 		int (*reg_init)(struct gk20a *g);
 		int (*shutdown)(struct gk20a *g);
 		int (*early_init)(struct gk20a *g);
-		int (*speed_config)(struct gk20a *g);
 		struct {
 			u32 (*base_addr)(struct gk20a *g);
 			bool (*is_running)(struct gk20a *g);
