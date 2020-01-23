@@ -39,7 +39,7 @@ ce:
   deps:
 
 ce_app:
-  safe: yes
+  safe: no
   gpu: dgpu
   owner: Thomas F
   sources: [ common/ce/ce_app.c,
