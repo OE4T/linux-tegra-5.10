@@ -28,21 +28,37 @@ struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_tsg;
 
-/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 enum nvgpu_event_id_type;
 #endif
 
 struct gops_tsg {
+
+	/**
+	* @brief Enable TSG
+	*
+	* @param tsg [in]	Pointer to the TSG struct.
+	*
+	* Configure H/W so that this TSG can be scheduled.
+	*/
+	void (*enable)(struct nvgpu_tsg *tsg);
+
+	/**
+	* @brief Disable TSG
+	*
+	* @param tsg [in]	Pointer to the TSG struct.
+	*
+	* Configure H/W so that it skips this TSG for scheduling.
+	*/
+	void (*disable)(struct nvgpu_tsg *tsg);
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	int (*open)(struct nvgpu_tsg *tsg);
 	void (*release)(struct nvgpu_tsg *tsg);
 	int (*init_eng_method_buffers)(struct gk20a *g,
 			struct nvgpu_tsg *tsg);
 	void (*deinit_eng_method_buffers)(struct gk20a *g,
 			struct nvgpu_tsg *tsg);
-	void (*enable)(struct nvgpu_tsg *tsg);
-	void (*disable)(struct nvgpu_tsg *tsg);
 	int (*bind_channel)(struct nvgpu_tsg *tsg,
 			struct nvgpu_channel *ch);
 	void (*bind_channel_eng_method_buffers)(struct nvgpu_tsg *tsg,
@@ -72,9 +88,9 @@ struct gops_tsg {
 	void (*post_event_id)(struct nvgpu_tsg *tsg,
 			      enum nvgpu_event_id_type event_id);
 #endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 };
 
-/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif
