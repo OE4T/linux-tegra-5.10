@@ -46,10 +46,10 @@ struct gk20a;
  *
  * Steps:
  * - Use stubs for gops_channel.enable and gops_usermode.ring_doorbell.
- * - Call gv11b for a standalone TSG:
+ * - Call gv11b_tsg_enable for a standalone TSG:
  *   - Check that gops_channel.enable is not called.
  *   - Check that gops_usermode.ring_doorbell is not called.
- * - Call gv11b for a TSG with one bound channel:
+ * - Call gv11b_tsg_enable for a TSG with one bound channel:
  *   - Check that gops_channel.enable is called for this channel.
  *   - Check that gops_usermode.ring_doorbell is called for this
  *     channel.
@@ -58,7 +58,6 @@ struct gk20a;
  */
 int test_gv11b_tsg_enable(struct unit_module *m,
 		struct gk20a *g, void *args);
-
 
 /**
  * Test specification for: test_gv11b_tsg_init_eng_method_buffers

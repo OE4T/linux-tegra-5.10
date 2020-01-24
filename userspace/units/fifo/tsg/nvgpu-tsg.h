@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -254,7 +254,8 @@ int test_tsg_unbind_channel_check_ctx_reload(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_tsg_enable, nvgpu_tsg_disable
+ * Targets: gops_tsg.enable, gops_tsg.disable,
+ *          nvgpu_tsg_disable
  *
  * Input: test_fifo_init_support() run for this GPU
  *
