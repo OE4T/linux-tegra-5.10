@@ -307,8 +307,6 @@ nvgpu_channel_cleanup_sw
 nvgpu_channel_close
 nvgpu_channel_commit_va
 nvgpu_channel_debug_dump_all
-nvgpu_channel_deterministic_idle
-nvgpu_channel_deterministic_unidle
 nvgpu_channel_disable_tsg
 nvgpu_channel_enable_tsg
 nvgpu_channel_free_inst

@@ -2148,12 +2148,6 @@
         "test_level": 0
     },
     {
-        "test": "test_channel_deterministic_idle_unidle",
-        "case": "idle_unidle",
-        "unit": "nvgpu_channel",
-        "test_level": 0
-    },
-    {
         "test": "test_fifo_init_support",
         "case": "init_support",
         "unit": "nvgpu_channel",

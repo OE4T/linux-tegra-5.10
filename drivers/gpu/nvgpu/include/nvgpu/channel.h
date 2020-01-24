@@ -183,8 +183,10 @@ struct nvgpu_channel_dump_info {
 	int pid;
 	/** Number of references to this channel. */
 	int refs;
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	/** Channel uses deterministic submit (kernel submit only). */
 	bool deterministic;
+#endif
 	/** Channel H/W state */
 	struct nvgpu_channel_hw_state hw_state;
 	/** Snaphsot of channel instance fields. */
@@ -560,6 +562,7 @@ struct nvgpu_channel {
 	bool referenceable;
 	/** True if VPR support was requested during setup bind */
 	bool vpr;
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	/**
 	 * Channel shall exhibit deterministic behavior in the submit path.
 	 * Submit latency shall be consistent (and low). Submits that may cause
@@ -567,6 +570,7 @@ struct nvgpu_channel {
 	 * sync fds or mapped buffer refcounting are not deterministic).
 	 */
 	bool deterministic;
+#endif
 	/** Deterministic, but explicitly idle and submits disallowed. */
 	bool deterministic_railgate_allowed;
 	/** Channel uses Color Decompression Engine. */

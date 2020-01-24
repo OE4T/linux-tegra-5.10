@@ -497,6 +497,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			ch->vm = NULL;
 		}
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		if (branches & F_CHANNEL_CLOSE_DETERMINISTIC) {
 			/* Compensate for atomic dec in gk20a_idle() */
 			nvgpu_atomic_set(&g->usage_count, 1);
@@ -507,6 +508,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			ch->deterministic = true;
 			ch->deterministic_railgate_allowed = true;
 		}
+#endif
 
 		g->ops.gr.setup.free_subctx =
 			branches & F_CHANNEL_CLOSE_FREE_SUBCTX ?
@@ -601,7 +603,9 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			ch->subctx = NULL;
 		}
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		ch->deterministic = false;
+#endif
 		ch->deterministic_railgate_allowed = false;
 		unit_assert(ch->usermode_submit_enabled == false, goto done);
 
@@ -819,6 +823,7 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 				stub_os_channel_alloc_usermode_buffers_ENOMEM;
 		}
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		if (branches &
 			F_CHANNEL_SETUP_BIND_USERMODE_SUPPORT_DETERMINISTIC) {
 			bind_args.flags |=
@@ -833,6 +838,7 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 			nvgpu_posix_enable_fault_injection(l_nvgpu_fi, true, 0);
 		}
 
+#endif
 		if (branches &
 			F_CHANNEL_SETUP_BIND_NON_USERMODE_DETERMINISTIC) {
 			bind_args.flags |=
@@ -895,7 +901,9 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 			nvgpu_dma_free(g, &ch->usermode_userd);
 			nvgpu_dma_free(g, &ch->usermode_gpfifo);
 			ch->userd_iova = 0U;
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 			ch->deterministic = false;
+#endif
 			nvgpu_atomic_set(&ch->bound, false);
 		}
 		bind_args.flags &=
@@ -1307,6 +1315,7 @@ done:
 #define F_CHANNEL_DETERMINISTIC_UNIDLE_GK20ABUSY_FAIL	BIT(2)
 #define F_CHANNEL_DETERMINISTIC_IDLE_LAST		BIT(3)
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 static const char *f_channel_deterministic_idle_unidle[] = {
 	"deterministic_channel",
 	"determinstic_railgate_allowed",
@@ -1440,6 +1449,7 @@ done:
 
 	return ret;
 }
+#endif
 
 #define F_CHANNEL_SUSPEND_RESUME_UNSERVICEABLE_CH		BIT(0)
 #define F_CHANNEL_SUSPEND_RESUME_INVALID_TSGID			BIT(1)
@@ -1748,9 +1758,11 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_semaphore_wakeup));
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		if (branches & F_CHANNEL_SEMAPHORRE_WAKEUP_DETERMINISTIC_CH) {
 			ch->deterministic = true;
 		}
+#endif
 
 		ch->semaphore_wq.initialized = branches &
 			F_CHANNEL_SEMAPHORRE_WAKEUP_COND_BROADCAST_FAIL ?
@@ -1765,7 +1777,9 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 		nvgpu_channel_semaphore_wakeup(g, false);
 		unit_assert(stub[0].count == (global_count - 1U), goto done);
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		ch->deterministic = false;
+#endif
 	}
 	ret = UNIT_SUCCESS;
 
@@ -1993,7 +2007,9 @@ struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(ch_abort, test_channel_abort, &unit_ctx, 0),
 	UNIT_TEST(mark_error, test_channel_mark_error, &unit_ctx, 0),
 	UNIT_TEST(sw_quiesce, test_channel_sw_quiesce, &unit_ctx, 0),
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	UNIT_TEST(idle_unidle, test_channel_deterministic_idle_unidle, &unit_ctx, 0),
+#endif
 	UNIT_TEST(suspend_resume, test_channel_suspend_resume_serviceable_chs, &unit_ctx, 0),
 	UNIT_TEST(debug_dump, test_channel_debug_dump, &unit_ctx, 0),
 	UNIT_TEST(semaphore_wakeup, test_channel_semaphore_wakeup, &unit_ctx, 0),

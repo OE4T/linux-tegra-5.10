@@ -674,6 +674,7 @@ out:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 static int channel_setup_kernelmode(struct nvgpu_channel *c,
 		struct nvgpu_setup_bind_args *args)
 {
@@ -783,6 +784,7 @@ clean_up:
 	return err;
 
 }
+#endif
 
 /* Update with this periodically to determine how the gpfifo is draining. */
 static inline u32 channel_update_gpfifo_get(struct gk20a *g,
@@ -1694,6 +1696,7 @@ static void channel_free_wait_for_refs(struct nvgpu_channel *ch,
 
 }
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 static void channel_free_put_deterministic_ref_from_init(
 		struct nvgpu_channel *ch)
 {
@@ -1711,6 +1714,7 @@ static void channel_free_put_deterministic_ref_from_init(
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
 	}
 }
+#endif
 
 /* call ONLY when no references to the channel exist: after the last put */
 static void channel_free(struct nvgpu_channel *ch, bool force)
@@ -1830,7 +1834,9 @@ unbind:
 	g->ops.channel.unbind(ch);
 	g->ops.channel.free_inst(g, ch);
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	channel_free_put_deterministic_ref_from_init(ch);
+#endif
 
 	ch->vpr = false;
 	ch->vm = NULL;
@@ -2270,6 +2276,7 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	c->vpr = false;
 #endif
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC) != 0U) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);
 		/*
@@ -2290,6 +2297,7 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 		c->deterministic = true;
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
 	}
+#endif
 
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) != 0U) {
 		err = nvgpu_channel_setup_usermode(c, args);
@@ -2314,12 +2322,14 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	return 0;
 
 clean_up_idle:
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	if (c->deterministic) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);
 		gk20a_idle(g);
 		c->deterministic = false;
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
 	}
+#endif
 fail:
 	nvgpu_err(g, "fail");
 	return err;
@@ -2400,6 +2410,7 @@ void nvgpu_channel_sw_quiesce(struct gk20a *g)
 }
 #endif
 
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 /*
  * Stop deterministic channel activity for do_idle() when power needs to go off
  * momentarily but deterministic channels keep power refs for potentially a
@@ -2482,6 +2493,7 @@ void nvgpu_channel_deterministic_unidle(struct gk20a *g)
 	/* Release submits, new deterministic channels and frees */
 	nvgpu_rwsem_up_write(&g->deterministic_busy);
 }
+#endif
 
 static void nvgpu_channel_destroy(struct nvgpu_channel *c)
 {
@@ -2869,7 +2881,9 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 		info->tsgid = ch->tsgid;
 		info->pid = ch->pid;
 		info->refs = nvgpu_atomic_read(&ch->ref_count);
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		info->deterministic = ch->deterministic;
+#endif
 
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
 		if (hw_sema != NULL) {
