@@ -82,7 +82,7 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 bool nvgpu_mem_is_word_aligned(struct gk20a *g, u8 *addr)
 {
 	if (((unsigned long)addr % 4UL) != 0UL) {
-		nvgpu_log_info(g, "addr (%p) not 4-byte aligned", addr);
+		nvgpu_log_info(g, "addr not 4-byte aligned");
 		return false;
 	}
 
