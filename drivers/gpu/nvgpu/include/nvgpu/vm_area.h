@@ -61,8 +61,10 @@ struct nvgpu_vm_area {
 	 */
 	u64 size;
 	/**
-	 * The GPU unmapping needed before using the vm_area.
-	 */
+	 * Mark the vm area as sparse.
+	 *
+	 * @sa NVGPU_VM_AREA_ALLOC_SPARSE
+ 	 */
 	bool sparse;
 };
 
@@ -80,7 +82,12 @@ nvgpu_vm_area_from_vm_area_list(struct nvgpu_list_node *node)
 #define NVGPU_VM_AREA_ALLOC_FIXED_OFFSET		BIT32(0)
 
 /**
- * Allocation of vm_area at random address.
+ * Mark the vmarea as sparse: this means that the vmarea's entire range of PTEs
+ * is mapped as sparse. Sparse mappings are mappings in which the valid bit is
+ * set to 0, but the volatile (cached) bit is set to 1.
+ *
+ * The purpose here is to allow an oversubscription of physical memory
+ * for a particular texture or other object.
  */
 #define NVGPU_VM_AREA_ALLOC_SPARSE			BIT32(1)
 
