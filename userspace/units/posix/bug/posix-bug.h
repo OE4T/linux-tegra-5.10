@@ -37,7 +37,8 @@
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_posix_bug, dump_stack
+ * Targets: nvgpu_posix_bug, dump_stack,
+ *          BUG, BUG_ON
  *
  * Inputs: None
  *
@@ -47,6 +48,7 @@
  *    which cannot be run in unit test framework will not be executed.
  * 3) EXPECT_BUG is also tested to make sure that BUG is not called where it is
  *    not expected.
+ * 4) Steps 1 and 2 are also executed to test the macro BUG_ON.
  *
  * Output:
  * The test returns PASS if BUG is called as expected based on the parameters

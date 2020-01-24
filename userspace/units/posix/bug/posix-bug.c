@@ -48,6 +48,13 @@ static void bug_caller(struct unit_module *m, bool call)
 }
 
 /*
+ * Simple wrapper function to call BUG_ON() with condition.
+ */
+static void bug_on_caller(struct unit_module *m, bool cond)
+{
+	BUG_ON(cond);
+}
+/*
  * Test to ensure the EXPECT_BUG construct works as intended by making sure it
  * behaves properly when BUG is called or not.
  * In the event that EXPECT_BUG is completely broken, the call to BUG() would
@@ -70,6 +77,20 @@ int test_expect_bug(struct unit_module *m,
 		unit_info(m, "BUG() was not called as expected.\n");
 	} else {
 		unit_err(m, "BUG() was called but it was not expected.\n");
+		return UNIT_FAIL;
+	}
+
+	if (!EXPECT_BUG(bug_on_caller(m, true))) {
+		unit_err(m, "BUG_ON expected to invoke BUG()\n");
+		return UNIT_FAIL;
+	} else {
+		unit_info(m, "BUG_ON invoked BUG() as expected\n");
+	}
+
+	if (!EXPECT_BUG(bug_on_caller(m, false))) {
+		unit_info(m, "BUG_ON() skipped BUG invocation as expected\n");
+	} else {
+		unit_err(m, "BUG_ON invoked BUG but it was not expected()\n");
 		return UNIT_FAIL;
 	}
 
