@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,11 @@ void gp10b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
 {
 	nvgpu_mem_wr(g, ctx_mem,
 		ctxsw_prog_main_image_compute_preemption_options_o(),
+#if defined(CONFIG_NVGPU_CTXSW_FW_ERROR_HEADER_TESTING)
+		ctxsw_prog_main_image_compute_preemption_options_control_cilp_f());
+#else
 		ctxsw_prog_main_image_compute_preemption_options_control_cta_f());
+#endif
 }
 
 void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
