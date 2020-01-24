@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1289,6 +1289,10 @@ static int tegra_camrtc_halt(struct device *dev)
 		tegra_camrtc_wait_for_idle(dev);
 
 	tegra_camrtc_poweroff(dev);
+
+	/* Ensure peer sync happens on system wakeup */
+	rtcpu->fw_active = false;
+	rtcpu->boot_sync_done = false;
 
 	return 0;
 }
