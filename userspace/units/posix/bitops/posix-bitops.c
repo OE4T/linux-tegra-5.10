@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -669,6 +669,67 @@ int test_bitmap_setclear(struct unit_module *m, struct gk20a *g, void *__args)
 	return UNIT_SUCCESS;
 }
 
+int test_bitops_misc(struct unit_module *m, struct gk20a *g, void *__args)
+{
+	uint32_t i, idx, bits, numlong;
+	uint32_t lo, hi, mask, result;
+	uint64_t bitset;
+
+	bits = BITS_PER_LONG - (BITS_PER_LONG/2);
+	for (i = 0; i <= (BITS_PER_LONG/2); i++) {
+		numlong = BITS_TO_LONGS(bits);
+		if (numlong != (BITS_PER_LONG/BITS_PER_LONG)) {
+			unit_return_fail(m,
+				 "BITS_TO_LONGS Failure %d\n", numlong);
+		}
+		bits++;
+	}
+
+	bits = BITS_PER_LONG + (BITS_PER_LONG/2);
+	for (i = 0; i <= (BITS_PER_LONG/2); i++) {
+		numlong = BITS_TO_LONGS(bits);
+		if (numlong != ((BITS_PER_LONG/BITS_PER_LONG) +1U)) {
+			unit_return_fail(m,
+				 "BITS_TO_LONGS Failure %d\n", numlong);
+		}
+		bits++;
+	}
+
+	lo = 0;
+	hi = 3;
+	for (i = 0; i < 8; i++) {
+		mask = GENMASK(hi, lo);
+		if (((mask >> lo) & 0xf) != 0xf) {
+			unit_return_fail(m,
+				 "GENMASK mask failure %x\n", mask);
+		}
+		if (~((uint32_t) (0xf << lo)) & mask) {
+			unit_return_fail(m,
+				 "GENMASK extra bits Failure %x\n", mask);
+		}
+		lo += 2;
+		hi += 2;
+	}
+
+	bitset = 0xabababab;
+	result = 0;
+	for_each_set_bit(idx, &bitset, 32U) {
+		result |= (uint32_t)(1U << idx);
+	}
+	if (result != bitset) {
+		unit_return_fail(m, "for_each_set_bit Failure %x\n", result);
+	}
+
+	for (i = 0; i < BITS_PER_LONG; i++) {
+		bitset = (uint64_t)1 << (uint64_t)i;
+		if (bitset != BIT(i)) {
+			unit_return_fail(m,
+				"BIT Failure %d\n", mask);
+		}
+	}
+
+	return UNIT_SUCCESS;
+}
 
 
 struct unit_module_test posix_bitops_tests[] = {
@@ -687,6 +748,7 @@ struct unit_module_test posix_bitops_tests[] = {
 	UNIT_TEST(test_and_clear_bit,  test_test_and_setclear_bit, &clear_args, 0),
 	UNIT_TEST(bitmap_set,          test_bitmap_setclear, &set_args, 0),
 	UNIT_TEST(bitmap_clear,        test_bitmap_setclear, &clear_args, 0),
+	UNIT_TEST(bitops_misc,         test_bitops_misc, NULL, 0),
 };
 
 UNIT_MODULE(posix_bitops, posix_bitops_tests, UNIT_PRIO_POSIX_TEST);

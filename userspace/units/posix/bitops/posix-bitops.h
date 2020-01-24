@@ -402,4 +402,31 @@ int test_test_and_setclear_bit(struct unit_module *m, struct gk20a *g,
  */
 int test_bitmap_setclear(struct unit_module *m, struct gk20a *g, void *__args);
 
+/**
+ * Test specification for: test_bitops_misc
+ *
+ * Description: Test the various macros implemented in bitops unit.
+ *
+ * Test Type: Feature
+ *
+ * Targets: BITS_TO_LONGS, BIT, GENMASK, for_each_set_bit
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Invoke BITS_TO_LONGS for various bit values and confirm the return value
+ *   is as expected.
+ * - Invoke GENMASK for various mask value settings. Confirm if the return
+ *   value has only the requested bits set.
+ * - Invoke for_each_set_bit for a particular bit pattern. Confirm if the loop
+ *   is executed only for set bit positions.
+ * - Invoke BIT macro for various bit positions in loop. Confirm if the bit
+ *   positions are as requested.
+ *
+ * Output: Returns SUCCESS if all the macro invocations returns result as
+ * expected. Otherwise, the test returns FAIL.
+ *
+ */
+int test_bitops_misc(struct unit_module *m, struct gk20a *g, void *__args);
+
 #endif /* UNIT_POSIX_BITOPS_H */
