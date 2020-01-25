@@ -1,7 +1,7 @@
 /*
  * GP10B master
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -287,7 +287,7 @@ void mc_gp10b_ltc_isr(struct gk20a *g)
 	u32 ltc;
 
 	mc_intr = nvgpu_readl(g, mc_intr_ltc_r());
-	nvgpu_err(g, "mc_ltc_intr: %08x", mc_intr);
+	nvgpu_log(g, gpu_dbg_intr, "mc_ltc_intr: %08x", mc_intr);
 	for (ltc = 0U; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
 		if ((mc_intr & BIT32(ltc)) == 0U) {
 			continue;
