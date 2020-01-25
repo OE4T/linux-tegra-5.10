@@ -51,7 +51,7 @@ void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 
        if (count != 0U) {
                nvgpu_writel(g, fifo_runlist_base_r(),
-                       fifo_runlist_base_ptr_f(u64_lo32(runlist_iova >> 12)) |
+                       fifo_runlist_base_ptr_f(u64_lo32(runlist_iova >> 12U)) |
                        nvgpu_aperture_mask(g, &runlist->mem[buffer_index],
                                fifo_runlist_base_target_sys_mem_ncoh_f(),
                                fifo_runlist_base_target_sys_mem_coh_f(),
@@ -87,7 +87,7 @@ int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 		}
 
 		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
+		delay = min_t(u32, delay << 1U, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {

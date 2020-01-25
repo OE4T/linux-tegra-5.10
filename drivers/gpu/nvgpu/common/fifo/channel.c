@@ -561,7 +561,7 @@ static int channel_prealloc_resources(struct nvgpu_channel *ch,
 	 * to make sure we don't hit an overflow condition
 	 */
 	size = sizeof(struct priv_cmd_entry);
-	if (num_jobs <= U32_MAX / (size << 1)) {
+	if (num_jobs <= U32_MAX / (size << 1U)) {
 		entries = nvgpu_vzalloc(ch->g,
 					((unsigned long)num_jobs << 1UL) *
 					(unsigned long)size);

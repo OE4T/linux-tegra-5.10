@@ -476,7 +476,7 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 
 			nvgpu_usleep_range(delay, delay * 2U);
 			delay = min_t(u32,
-					delay << 1, POLL_DELAY_MAX_US);
+					delay << 1U, POLL_DELAY_MAX_US);
 		} while (nvgpu_timeout_expired(&timeout) == 0);
 
 		if (ret != 0) {

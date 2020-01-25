@@ -222,7 +222,7 @@ int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid,
 		}
 
 		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
+		delay = min_t(u32, delay << 1U, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {
@@ -363,7 +363,7 @@ static int gv11b_fifo_preempt_poll_eng(struct gk20a *g, u32 id,
 		}
 
 		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
+		delay = min_t(u32, delay << 1U, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {
