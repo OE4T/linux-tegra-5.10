@@ -116,7 +116,7 @@ exit:
 /*
  * Patch signatures into ucode image
  */
-static int acr_ucode_patch_sig(struct gk20a *g,
+static void acr_ucode_patch_sig(struct gk20a *g,
 	unsigned int *p_img, unsigned int *p_prod_sig,
 	unsigned int *p_dbg_sig, unsigned int *p_patch_loc,
 	unsigned int *p_patch_ind, u32 sig_size)
@@ -140,8 +140,6 @@ static int acr_ucode_patch_sig(struct gk20a *g,
 				p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), j)];
 		}
 	}
-
-	return 0;
 }
 
 /*
@@ -184,16 +182,12 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	ucode = (u32 *)(void *)(acr_fw->data + hs_bin_hdr->data_offset);
 
 	/* Patch Ucode signatures */
-	if (acr_ucode_patch_sig(g, ucode,
+	acr_ucode_patch_sig(g, ucode,
 		(u32 *)(void *)(acr_fw->data + fw_hdr->sig_prod_offset),
 		(u32 *)(void *)(acr_fw->data + fw_hdr->sig_dbg_offset),
 		(u32 *)(void *)(acr_fw->data + fw_hdr->patch_loc),
 		(u32 *)(void *)(acr_fw->data + fw_hdr->patch_sig),
-		fw_hdr->sig_dbg_size) < 0) {
-		nvgpu_err(g, "HS ucode patch signatures fail");
-		err = -EPERM;
-		goto err_free_ucode;
-	}
+		fw_hdr->sig_dbg_size);
 
 	err = nvgpu_falcon_hs_ucode_load_bootstrap(acr_desc->acr_flcn,
 			ucode, ucode_header);

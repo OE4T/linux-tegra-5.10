@@ -30,9 +30,11 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/posix-fault-injection.h>
-#include <nvgpu/gr/gr.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/firmware.h>
+#include <nvgpu/gr/gr.h>
+
+#include <os/posix/os_posix.h>
 
 #include <common/acr/acr_wpr.h>
 #include <common/acr/acr_priv.h>
@@ -44,10 +46,15 @@
 #include <nvgpu/hw/gv11b/hw_flush_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_falcon_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
+#include <nvgpu/posix/soc_fuse.h>
+
+#include "hal/fuse/fuse_gm20b.h"
 
 #include "nvgpu-acr.h"
 #include "../falcon/falcon_utf.h"
 #include "../gr/nvgpu-gr-gv11b.h"
+#include "../mock-iospace/include/gv11b_mock_regs.h"
+
 
 #define NV_PMC_BOOT_0_ARCHITECTURE_GV110        (0x00000015 << \
 						NVGPU_GPU_ARCHITECTURE_SHIFT)
@@ -58,10 +65,78 @@
 #define NV_PMC_BOOT_0_IMPLEMENTATION_INVALID	0xD
 
 #define NV_PBB_FBHUB_REGSPACE 0x100B00
+#define NUM_REG_SPACES 10U
 
 #define BAR0_ERRORS_NUM 6
 
 struct utf_falcon *pmu_flcn, *gpccs_flcn;
+static bool mailbox_error;
+
+struct gr_test_reg_details {
+	int idx;
+	u32 base;
+	u32 size;
+	const u32 *data;
+};
+
+struct gr_test_reg_details gr_gv11b_reg_space[NUM_REG_SPACES] = {
+	[0] = {
+		.idx = gv11b_master_reg_idx,
+		.base = 0x00000000,
+		.size = 0x0,
+		.data = NULL,
+	},
+	[1] = {
+		.idx = gv11b_pri_reg_idx,
+		.base = 0x00120000,
+		.size = 0x0,
+		.data = NULL,
+	},
+	[2] = {
+		.idx = gv11b_fuse_reg_idx,
+		.base = 0x00021000,
+		.size = 0x0,
+		.data = NULL,
+	},
+	[3] = {
+		.idx = gv11b_top_reg_idx,
+		.base = 0x00022400,
+		.size = 0x0,
+		.data = NULL,
+	},
+	[4] = {
+		.idx = gv11b_gr_reg_idx,
+		.base = 0x00400000,
+		.size = 0x0,
+		.data = NULL,
+	},
+	[5] = {
+		.idx = gv11b_fifo_reg_idx,
+		.base = 0x2000,
+		.size = 0x0,
+		.data = NULL,
+	},
+	[6] = { /* NV_FBIO_REGSPACE */
+		.base = 0x100800,
+		.size = 0x7FF,
+		.data = NULL,
+	},
+	[7] = { /* NV_PLTCG_LTCS_REGSPACE */
+		.base = 0x17E200,
+		.size = 0x100,
+		.data = NULL,
+	},
+	[8] = { /* NV_PFB_HSHUB_ACTIVE_LTCS REGSPACE */
+		.base = 0x1FBC20,
+		.size = 0x4,
+		.data = NULL,
+	},
+	[9] = { /* NV_PCCSR_CHANNEL REGSPACE */
+		.base = 0x800004,
+		.size = 0x1F,
+		.data = NULL,
+	},
+};
 
 static int stub_gv11b_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 	u32 *etype)
@@ -129,11 +204,35 @@ static void readl_access_reg_fn(struct gk20a *g,
 	struct utf_falcon *flcn = NULL;
 
 	flcn = get_flcn_from_addr(g, access->addr);
-	if (flcn != NULL) {
-		nvgpu_utf_falcon_readl_access_reg_fn(g, flcn, access);
-	} else {
+	if (flcn == NULL) {
 		access->value = nvgpu_posix_io_readl_reg_space(g, access->addr);
+		return;
 	}
+	if (access->addr == (flcn->flcn->flcn_base +
+				falcon_falcon_mailbox0_r())) {
+		if (mailbox_error == true) {
+			/*
+			 * for the neagtive scenario
+			 */
+			access->value = 0xFF;
+		} else {
+			/*
+			 * In case of no error read the actual value
+			 */
+			nvgpu_utf_falcon_readl_access_reg_fn(g, flcn,
+								access);
+		}
+	} else {
+		nvgpu_utf_falcon_readl_access_reg_fn(g, flcn, access);
+	}
+}
+
+static int tegra_fuse_readl_access_reg_fn(unsigned long offset, u32 *value)
+{
+	if (offset == FUSE_GCPLEX_CONFIG_FUSE_0) {
+		*value = GCPLEX_CONFIG_WPR_ENABLED_MASK;
+	}
+	return 0;
 }
 
 static struct nvgpu_posix_io_callbacks utf_falcon_reg_callbacks = {
@@ -145,6 +244,7 @@ static struct nvgpu_posix_io_callbacks utf_falcon_reg_callbacks = {
 	.__readl         = readl_access_reg_fn,
 	.readl           = readl_access_reg_fn,
 	.bar1_readl      = readl_access_reg_fn,
+	.tegra_fuse_readl = tegra_fuse_readl_access_reg_fn,
 };
 
 static void utf_falcon_register_io(struct gk20a *g)
@@ -152,11 +252,86 @@ static void utf_falcon_register_io(struct gk20a *g)
 	nvgpu_posix_register_io(g, &utf_falcon_reg_callbacks);
 }
 
+static int gr_io_add_reg_space(struct unit_module *m, struct gk20a *g)
+{
+	int ret = UNIT_SUCCESS;
+	u32 i = 0, j = 0;
+	u32 base, size;
+	struct nvgpu_posix_io_reg_space *gr_io_reg;
+
+	for (i = 0; i < NUM_REG_SPACES; i++) {
+		base = gr_gv11b_reg_space[i].base;
+		size = gr_gv11b_reg_space[i].size;
+		if (size == 0) {
+			struct mock_iospace iospace = {0};
+			ret = gv11b_get_mock_iospace(gr_gv11b_reg_space[i].idx,
+				&iospace);
+			if (ret != 0) {
+				unit_err(m, "failed to get reg space for %08x\n",
+					base);
+				goto clean_init_reg_space;
+			}
+			gr_gv11b_reg_space[i].data = iospace.data;
+			gr_gv11b_reg_space[i].size = size = iospace.size;
+		}
+
+		if (nvgpu_posix_io_add_reg_space(g, base, size) != 0) {
+			unit_err(m, "failed to add reg space for %08x\n", base);
+			ret = UNIT_FAIL;
+			goto clean_init_reg_space;
+		}
+
+		gr_io_reg = nvgpu_posix_io_get_reg_space(g, base);
+		if (gr_io_reg == NULL) {
+			unit_err(m, "failed to get reg space for %08x\n", base);
+			ret = UNIT_FAIL;
+			goto clean_init_reg_space;
+		}
+
+		if (gr_gv11b_reg_space[i].data != NULL) {
+			memcpy(gr_io_reg->data, gr_gv11b_reg_space[i].data, size);
+		} else {
+			memset(gr_io_reg->data, 0, size);
+		}
+	}
+	return ret;
+
+clean_init_reg_space:
+	for (j = 0; j < i; j++) {
+		base = gr_gv11b_reg_space[j].base;
+		nvgpu_posix_io_delete_reg_space(g, base);
+	}
+	return ret;
+}
+
+static void gr_io_delete_reg_space(struct unit_module *m, struct gk20a *g)
+{
+	u32 i = 0;
+
+	for (i = 0; i < NUM_REG_SPACES; i++) {
+		u32 base = gr_gv11b_reg_space[i].base;
+		nvgpu_posix_io_delete_reg_space(g, base);
+	}
+}
+
+static void gr_cleanup_gv11b_reg_space(struct unit_module *m, struct gk20a *g)
+{
+	gr_io_delete_reg_space(m, g);
+}
+
 static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 {
 	int err = 0;
 
 	nvgpu_posix_io_init_reg_space(g);
+	/*
+	 * Initialise GR registers
+	 */
+	if (gr_io_add_reg_space(m, g) == UNIT_FAIL) {
+		unit_err(m, "failed to get initialized GR reg space\n");
+		return UNIT_FAIL;
+	}
+
 	utf_falcon_register_io(g);
 
 	/*
@@ -216,6 +391,13 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 		return -ENODEV;
 	}
 
+	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		unit_err(m, " Gr allocation failed!\n");
+		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -223,24 +405,11 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 {
 	int err;
 
-	err = test_gr_setup_gv11b_reg_space(m, g);
-	if (err != 0) {
-		goto fail;
-	}
-
 	/*
 	 * initialize falcon and set the required flags
 	 */
 	if (init_acr_falcon_test_env(m, g) != 0) {
 		unit_return_fail(m, "Module init failed\n");
-	}
-
-	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
-
-	err = nvgpu_gr_alloc(g);
-	if (err != 0) {
-		unit_err(m, " Gr allocation failed!\n");
-		return -ENOMEM;
 	}
 
 	/*
@@ -251,6 +420,7 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 		unit_return_fail(m, "nvgpu_pmu_early_init failed\n");
 	}
 
+	nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
 	/*
 	 * initialize ACR
 	 */
@@ -275,9 +445,6 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	}
 
 	return 0;
-fail:
-	return UNIT_FAIL;
-
 }
 
 static int prepare_gr_hw_sw(struct unit_module *m, struct gk20a *g)
@@ -311,6 +478,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	struct nvgpu_reg_access access;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 	u64 pmu_bar0_error[BAR0_ERRORS_NUM] = {
 		pwr_pmu_bar0_error_status_timeout_host_m(),
 		pwr_pmu_bar0_error_status_timeout_fecs_m(),
@@ -378,7 +546,23 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 2: Fail scenario
+	 * Case 2:
+	 * read failure for mailbox 0 register
+	 */
+	mailbox_error = true;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+	if (err != -EAGAIN) {
+		unit_return_fail(m, "test failed\n");
+	}
+
+	/*
+	 * set back to false to read the actual value of
+	 *  mailbox 0 register
+	 */
+	mailbox_error = false;
+
+	/*
+	 * Case 3: Fail scenario
 	 * Memory allocation failure
 	 */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
@@ -390,7 +574,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 3: Calling nvgpu_acr_bootstrap_hs_acr()
+	 * Case 4: Calling nvgpu_acr_bootstrap_hs_acr()
 	 * twice to cover recovery branch
 	 */
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
@@ -400,7 +584,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 4:
+	 * Case 5:
 	 * Covering branch for fail scenario
 	 * when "is_falcon_supported" is set to false
 	 */
@@ -412,14 +596,14 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 5: branch coverage
+	 * Case 6: branch coverage
 	 */
 	pmu_flcn->flcn->is_falcon_supported = true;
 	g->acr->acr.acr_engine_bus_err_status = NULL;
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 
 	/*
-	 * Case 6:
+	 * Case 7:
 	 * Covering branch when "acr_engine_bus_err_status" ops fails
 	 */
 	pmu_flcn->flcn->is_falcon_supported = true;
@@ -450,7 +634,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 7: branch coverage
+	 * Case 8: branch coverage
 	 */
 	nvgpu_posix_io_writel_reg_space(g,
 			pwr_pmu_bar0_error_status_r(), 0);
@@ -460,7 +644,7 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 
 	/*
-	 * Case 8:
+	 * Case 9:
 	 * Covering branch when "acr_validate_mem_integrity" ops fails
 	 */
 	pmu_flcn->flcn->is_falcon_supported = true;
@@ -471,20 +655,34 @@ int test_acr_bootstrap_hs_acr(struct unit_module *m,
 	}
 
 	/*
-	 * Case 9: branch coverage for debug mode
+	 * Case 10: branch coverage
+	 */
+	g->acr->acr.report_acr_engine_bus_err_status = NULL;
+	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
+
+
+	/*
+	 * Case 11: branch coverage for debug mode
 	 */
 	g->acr->acr.acr_validate_mem_integrity = g->ops.pmu.validate_mem_integrity;
 	g->ops.pmu.is_debug_mode_enabled = stub_gv11b_is_debug_mode_en;
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 
 	/*
-	 * Case 10: branch coverage
+	 * Case 12: covering the branch
+	 * where nvgpu_is_silicon() returns true
 	 */
-	g->acr->acr.report_acr_engine_bus_err_status = NULL;
+	p->is_silicon = true;
 	err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 
 	/*
-	 * Case 11: Fail scenario of nvgpu_acr_bootstrap_hs_acr()
+	 * set back to original
+	 * value
+	 */
+	p->is_silicon = false;
+
+	/*
+	 * Case 13: Fail scenario of nvgpu_acr_bootstrap_hs_acr()
 	 * by passing g->acr = NULL
 	 */
 	g->acr = NULL;
@@ -667,7 +865,7 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m,
 int test_acr_prepare_ucode_blob(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
-	int err;
+	int err, i;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 
@@ -699,10 +897,9 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
 
+	unit_info(m, "kmem counter 0\n");
 	err = g->acr->prepare_ucode_blob(g);
-	if (err == -ENOENT) {
-		unit_info(m, "test failed as expected\n");
-	} else {
+	if (err != -ENOENT) {
 		unit_return_fail(m, "test did not fail as expected\n");
 	}
 
@@ -710,15 +907,32 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 17);
 
+	unit_info(m, " kmem counter 17\n");
 	err = g->acr->prepare_ucode_blob(g);
 
-	if (err == -ENOENT) {
-		unit_info(m, "second mem test failed as expected\n");
-	} else {
-		unit_return_fail(m, "second mem test did not fail as expected\n");
+	if (err != -ENOENT) {
+		unit_return_fail(m, "kmem count 17 test did not fail as expected\n");
 	}
 
+	/*
+	 * the kmem counter is decreased after 17th count
+	 * because in the first attempt new memory is allocated and mapped for
+	 * page directories but after that since memory is already allocated it
+	 * is just mapped. Thus, number of kmallocs decrease.
+	 */
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
+	for (i = 9; i < 17; i++) {
+		unit_info(m, "kmem counter %d\n", i);
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, i);
+		err = g->acr->prepare_ucode_blob(g);
+		if (err == 0) {
+			unit_return_fail(m, "kmem count %d test did"
+						"not fail as expected\n", i);
+		}
+
+		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	}
 
 	/*
 	 * Case 2: Fail scenario
@@ -739,11 +953,25 @@ int test_acr_prepare_ucode_blob(struct unit_module *m,
 	}
 
 	/*
-	 * Case 3: pass scenario
+	 * set back the valid GPU version
 	 */
 	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
 	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
 
+	/*
+	 * Case 3: Covering branch when NVGPU_SEC_SECUREGPCCS
+	 * flag is set to false
+	 */
+	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
+	err = g->acr->prepare_ucode_blob(g);
+	if (err != -ENOENT) {
+		unit_return_fail(m, "test did not fail as expected\n");
+	}
+
+	/*
+	 * Case 4: pass scenario
+	 */
+	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 	err = g->acr->prepare_ucode_blob(g);
 	if (err != 0) {
 		unit_return_fail(m, "prepare_ucode_blob test failed\n");
@@ -848,6 +1076,7 @@ int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 	 */
 	nvgpu_utf_falcon_free(g, pmu_flcn);
 	nvgpu_utf_falcon_free(g, gpccs_flcn);
+	gr_cleanup_gv11b_reg_space(m, g);
 	return UNIT_SUCCESS;
 }
 
