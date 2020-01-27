@@ -183,6 +183,7 @@
 				<0 TEGRA194_IRQ_RCE_HSP_SHARED_3 0x4>,
 				<0 TEGRA194_IRQ_RCE_HSP_SHARED_4 0x4>;
 		nvidia,mbox-ie;
+		#mbox-cells = <2>;
 		interrupt-names = "shared1", "shared2", "shared3", "shared4";
 		status = "disabled";
 	};

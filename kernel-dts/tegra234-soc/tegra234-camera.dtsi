@@ -18,6 +18,8 @@
  *
  */
 
+#include <dt-bindings/soc/nvidia,tegra186-hsp.h>
+
 / {
 	aliases { /* RCE is the Camera RTCPU */
 		tegra-camera-rtcpu = &tegra_rce;
@@ -62,9 +64,48 @@
 
 		nvidia,autosuspend-delay-ms = <5000>;
 
+		hsp-vm1 {
+			compatible = "nvidia,tegra-camrtc-hsp-vm";
+			mboxes =
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(0)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(1)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SS 0>;
+			mbox-names = "vm-tx", "vm-rx", "vm-ss";
+		};
+
+		hsp-vm2 {
+			compatible = "nvidia,tegra-camrtc-hsp-vm";
+			mboxes =
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(2)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(3)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SS 1>;
+			mbox-names = "vm-tx", "vm-rx", "vm-ss";
+			status = "disabled";
+		};
+
+		hsp-vm3 {
+			compatible = "nvidia,tegra-camrtc-hsp-vm";
+			mboxes =
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(4)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(5)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SS 2>;
+			mbox-names = "vm-tx", "vm-rx", "vm-ss";
+			status = "disabled";
+		};
+
+		hsp-vm4 {
+			compatible = "nvidia,tegra-camrtc-hsp-vm";
+			mboxes =
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(6)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(7)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SS 3>;
+			mbox-names = "vm-tx", "vm-rx", "vm-ss";
+			status = "disabled";
+		};
+
 		hsp {
 			compatible = "nvidia,tegra186-hsp-mailbox";
-			nvidia,hsp-shared-mailbox = <&hsp_rce 1 &hsp_rce 6>;
+			nvidia,hsp-shared-mailbox = <&hsp_rce 1>, <&hsp_rce 6>;
 			nvidia,hsp-shared-mailbox-names = "ivc-pair", "cmd-pair";
 		};
 	};
