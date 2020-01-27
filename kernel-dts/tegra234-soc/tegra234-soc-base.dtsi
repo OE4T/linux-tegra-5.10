@@ -422,9 +422,8 @@
 			compatible = "nvidia,tegra234-vi";
 			reg = <0x0 0x15c00000 0x0 0x00300000>,
 				<0x0 0x15f00000 0x0 0x00100000>;
-			resets = <&bpmp_resets TEGRA234_RESET_VI>,
-				 <&bpmp_resets TEGRA234_RESET_TSCTNVI>;
-			reset-names = "vi", "tsctnvi";
+			resets = <&bpmp_resets TEGRA234_RESET_VI>;
+			reset-names = "vi";
 			clocks = <&bpmp_clks TEGRA234_CLK_VI>,
 				 <&bpmp_clks TEGRA234_CLK_VI_CONST>,
 				 <&bpmp_clks TEGRA234_CLK_NVCSI>,
@@ -441,9 +440,8 @@
 		vi1: vi1@14c00000 {
 			compatible = "nvidia,tegra234-vi";
 			reg = <0x0 0x14c00000 0x0 0x00300000>;
-			resets = <&bpmp_resets TEGRA234_RESET_VI>,
-				 <&bpmp_resets TEGRA234_RESET_TSCTNVI>;
-			reset-names = "vi", "tsctnvi";
+			resets = <&bpmp_resets TEGRA234_RESET_VI>;
+			reset-names = "vi";
 			clocks = <&bpmp_clks TEGRA234_CLK_VI>,
 				 <&bpmp_clks TEGRA234_CLK_VI_CONST>,
 				 <&bpmp_clks TEGRA234_CLK_NVCSI>,
