@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -137,7 +137,8 @@ int test_runlist_interleave_level_name(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_runlist_reload_ids, nvgpu_runlist_reload, nvgpu_runlist_update
+ * Targets: gops_runlist.reload, nvgpu_runlist_reload,
+ *          nvgpu_runlist_reload_ids, nvgpu_runlist_update
  *
  * Input: test_fifo_init_support
  *
