@@ -768,9 +768,13 @@ static void eqos_set_mode(void *base, const int mode)
 
 	mcr_val = osi_readl((unsigned char *)base + EQOS_MAC_MCR);
 	if (mode == OSI_FULL_DUPLEX) {
-		mcr_val |= (0x00002000U);
+		mcr_val |= EQOS_MCR_DM;
+		/* DO (disable receive own) bit is not applicable, don't care */
+		mcr_val &= ~EQOS_MCR_DO;
 	} else if (mode == OSI_HALF_DUPLEX) {
-		mcr_val &= ~(0x00002000U);
+		mcr_val &= ~EQOS_MCR_DM;
+		/* Set DO (disable receive own) bit */
+		mcr_val |= EQOS_MCR_DO;
 	} else {
 		/* Nothing here */
 	}

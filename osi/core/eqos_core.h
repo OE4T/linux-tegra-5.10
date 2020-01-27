@@ -194,6 +194,7 @@
 #define EQOS_MTL_RSF				OSI_BIT(5)
 #define EQOS_MCR_TE				OSI_BIT(0)
 #define EQOS_MCR_RE				OSI_BIT(1)
+#define EQOS_MCR_DO				OSI_BIT(10)
 #define EQOS_MCR_DM				OSI_BIT(13)
 #define EQOS_MCR_FES				OSI_BIT(14)
 #define EQOS_MCR_PS				OSI_BIT(15)
