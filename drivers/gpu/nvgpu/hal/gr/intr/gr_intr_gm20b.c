@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,8 +42,6 @@
 int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 					  u32 class_num, u32 offset, u32 data)
 {
-	int ret = 0;
-
 	nvgpu_log_fn(g, " ");
 
 #ifdef CONFIG_NVGPU_NON_FUSA
@@ -51,45 +49,35 @@ int gm20b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 		switch (offset << 2) {
 		case NVB1C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
-			break;
+			return 0;
 		case NVB1C0_SET_RD_COALESCE:
 			g->ops.gr.init.lg_coalesce(g, data);
-			break;
-		default:
-			ret = -EINVAL;
-			break;
+			return 0;
 		}
 	}
 #endif
 
-	if (ret != 0) {
-		goto fail;
-	}
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == MAXWELL_B) {
 		switch (offset << 2) {
 		case NVB197_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
-			break;
+			return 0;
 		case NVB197_SET_CIRCULAR_BUFFER_SIZE:
 			g->ops.gr.set_circular_buffer_size(g, data);
-			break;
+			return 0;
 		case NVB197_SET_ALPHA_CIRCULAR_BUFFER_SIZE:
 			g->ops.gr.set_alpha_circular_buffer_size(g, data);
-			break;
+			return 0;
 		case NVB197_SET_RD_COALESCE:
 			g->ops.gr.init.lg_coalesce(g, data);
-			break;
-		default:
-			ret = -EINVAL;
-			break;
+			return 0;
 		}
 	}
 #endif
 
-fail:
-	return ret;
+	return -EINVAL;
 }
 
 void gm20b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data)

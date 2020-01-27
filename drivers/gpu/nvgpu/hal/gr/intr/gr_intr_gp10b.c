@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,8 +40,6 @@
 int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data)
 {
-	int ret = 0;
-
 	nvgpu_log_fn(g, " ");
 
 #ifdef CONFIG_NVGPU_NON_FUSA
@@ -49,57 +47,47 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 		switch (offset << 2) {
 		case NVC0C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
-			break;
+			return 0;
 		case NVC0C0_SET_RD_COALESCE:
 			g->ops.gr.init.lg_coalesce(g, data);
-			break;
-		default:
-			ret = -EINVAL;
-			break;
+			return 0;
 		}
 	}
 #endif
 
-	if (ret != 0) {
-		goto fail;
-	}
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == PASCAL_A) {
 		switch (offset << 2) {
 		case NVC097_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
-			break;
+			return 0;
 		case NVC097_SET_CIRCULAR_BUFFER_SIZE:
 			g->ops.gr.set_circular_buffer_size(g, data);
-			break;
+			return 0;
 		case NVC097_SET_ALPHA_CIRCULAR_BUFFER_SIZE:
 			g->ops.gr.set_alpha_circular_buffer_size(g, data);
-			break;
+			return 0;
 		case NVC097_SET_GO_IDLE_TIMEOUT:
 			gp10b_gr_intr_set_go_idle_timeout(g, data);
-			break;
+			return 0;
 		case NVC097_SET_COALESCE_BUFFER_SIZE:
 			gp10b_gr_intr_set_coalesce_buffer_size(g, data);
-			break;
+			return 0;
 		case NVC097_SET_RD_COALESCE:
 			g->ops.gr.init.lg_coalesce(g, data);
-			break;
+			return 0;
 		case NVC097_SET_BES_CROP_DEBUG3:
 			g->ops.gr.set_bes_crop_debug3(g, data);
-			break;
+			return 0;
 		case NVC097_SET_BES_CROP_DEBUG4:
 			g->ops.gr.set_bes_crop_debug4(g, data);
-			break;
-		default:
-			ret = -EINVAL;
-			break;
+			return 0;
 		}
 	}
 #endif
 
-fail:
-	return ret;
+	return -EINVAL;
 }
 
 static void gr_gp10b_sm_lrf_ecc_overcount_war(bool single_err,

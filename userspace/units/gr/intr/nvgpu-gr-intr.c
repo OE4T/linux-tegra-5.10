@@ -554,8 +554,8 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
 
 	/* Fault injection - sw_method with invalid class */
 	err = g->ops.gr.intr.handle_sw_method(g, 0, 0, 0, 0);
-	if (err != 0) {
-		unit_return_fail(m, "sw_method failed for invalid class\n");
+	if (err == 0) {
+		unit_return_fail(m, "sw_method passed for invalid class\n");
 	}
 
 	/* Fault injection - sw_method with null data */
