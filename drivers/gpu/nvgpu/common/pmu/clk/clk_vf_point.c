@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,8 @@
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/cmd.h>
+
+#include "clk_vf_point.h"
 
 int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx)
@@ -122,7 +124,7 @@ static int _clk_vf_points_pmustatus_instget(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
+int clk_vf_point_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -170,7 +172,7 @@ done:
 	return status;
 }
 
-int nvgpu_clk_vf_point_pmu_setup(struct gk20a *g)
+int clk_vf_point_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -483,7 +485,7 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 }
 #endif
 
-int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g)
+int clk_vf_point_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
 	if (g->pmu->clk_pmu->clk_vf_pointobjs != NULL) {
@@ -501,7 +503,7 @@ int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
-void nvgpu_clk_vf_point_free_pmupstate(struct gk20a *g)
+void clk_vf_point_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->pmu->clk_pmu->clk_vf_pointobjs);
 	g->pmu->clk_pmu->clk_vf_pointobjs = NULL;

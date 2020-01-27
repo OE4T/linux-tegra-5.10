@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -155,7 +155,7 @@ static int _clk_vin_devgrp_pmustatus_instget(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_clk_vin_sw_setup(struct gk20a *g)
+int clk_vin_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -219,7 +219,7 @@ done:
 	return status;
 }
 
-int nvgpu_clk_vin_pmu_setup(struct gk20a *g)
+int clk_vin_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -479,7 +479,7 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 	return status;
 }
 
-int nvgpu_clk_pmu_vin_load(struct gk20a *g)
+int clk_pmu_vin_load(struct gk20a *g)
 {
 	int status;
 	struct nvgpu_pmu *pmu = g->pmu;
@@ -503,7 +503,7 @@ int nvgpu_clk_pmu_vin_load(struct gk20a *g)
 	return status;
 }
 
-int nvgpu_clk_vin_init_pmupstate(struct gk20a *g)
+int clk_vin_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
 	if (g->pmu->clk_pmu->avfs_vinobjs != NULL) {
@@ -521,7 +521,7 @@ int nvgpu_clk_vin_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
-void nvgpu_clk_vin_free_pmupstate(struct gk20a *g)
+void clk_vin_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->pmu->clk_pmu->avfs_vinobjs);
 	g->pmu->clk_pmu->avfs_vinobjs = NULL;

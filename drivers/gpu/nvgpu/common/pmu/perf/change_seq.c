@@ -288,7 +288,7 @@ int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 	}
 
 	gpcclk_clkmhz += fmargin_mhz;
-	status = nvgpu_clk_domain_freq_to_volt(g, gpcclk_domain,
+	status = nvgpu_pmu_clk_domain_freq_to_volt(g, gpcclk_domain,
 	&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
 
 	status = nvgpu_pmu_perf_vfe_get_volt_margin(g, &vmargin_uv);

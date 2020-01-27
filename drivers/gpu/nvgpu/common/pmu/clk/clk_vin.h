@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,4 +33,9 @@ struct vin_device_v20 {
 	struct ctrl_clk_vin_device_info_data_v20 data;
 };
 
+int clk_vin_init_pmupstate(struct gk20a *g);
+void clk_vin_free_pmupstate(struct gk20a *g);
+int clk_pmu_vin_load(struct gk20a *g);
+int clk_vin_sw_setup(struct gk20a *g);
+int clk_vin_pmu_setup(struct gk20a *g);
 #endif /* NVGPU_CLK_VIN_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk_vin.h>
 
+#include "clk_fll.h"
 
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP	0x10U
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK	0x1FU
@@ -136,7 +137,7 @@ static int _clk_fll_devgrp_pmustatus_instget(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_clk_fll_sw_setup(struct gk20a *g)
+int clk_fll_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -237,7 +238,7 @@ done:
 	return status;
 }
 
-int nvgpu_clk_fll_pmu_setup(struct gk20a *g)
+int clk_fll_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -596,7 +597,7 @@ static int get_regime_id(struct gk20a *g, u32 domain, u8 *regimeid)
 	return -EINVAL;
 }
 
-u8 nvgpu_clk_fll_get_fmargin_idx(struct gk20a *g)
+u8 nvgpu_pmu_clk_fll_get_fmargin_idx(struct gk20a *g)
 {
 	struct nvgpu_avfsfllobjs *pfllobjs =  g->pmu->clk_pmu->avfs_fllobjs;
 	u8 fmargin_idx;
@@ -608,7 +609,7 @@ u8 nvgpu_clk_fll_get_fmargin_idx(struct gk20a *g)
 	return fmargin_idx;
 }
 
-int nvgpu_clk_fll_init_pmupstate(struct gk20a *g)
+int clk_fll_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
 	if (g->pmu->clk_pmu->avfs_fllobjs != NULL) {
@@ -634,7 +635,7 @@ int nvgpu_clk_fll_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
-void nvgpu_clk_fll_free_pmupstate(struct gk20a *g)
+void clk_fll_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->pmu->clk_pmu->avfs_fllobjs);
 	g->pmu->clk_pmu->avfs_fllobjs = NULL;

@@ -945,7 +945,7 @@ int nvgpu_pmu_perf_vfe_get_freq_margin(struct gk20a *g, u32 *fmargin_mhz)
 	int status = 0;
 	u8 fmargin_idx;
 
-	fmargin_idx = nvgpu_clk_fll_get_fmargin_idx(g);
+	fmargin_idx = nvgpu_pmu_clk_fll_get_fmargin_idx(g);
 	if (fmargin_idx == 0U) {
 		return 0;
 	}

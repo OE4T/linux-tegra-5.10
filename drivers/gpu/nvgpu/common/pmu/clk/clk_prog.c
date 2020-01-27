@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -110,7 +110,7 @@ static int _clk_progs_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_clk_prog_sw_setup(struct gk20a *g)
+int clk_prog_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -161,7 +161,7 @@ done:
 	return status;
 }
 
-int nvgpu_clk_prog_pmu_setup(struct gk20a *g)
+int clk_prog_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -1372,7 +1372,7 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_clk_prog_init_pmupstate(struct gk20a *g)
+int clk_prog_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
 	if (g->pmu->clk_pmu->clk_progobjs != NULL) {
@@ -1388,7 +1388,7 @@ int nvgpu_clk_prog_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
-void nvgpu_clk_prog_free_pmupstate(struct gk20a *g)
+void clk_prog_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->pmu->clk_pmu->clk_progobjs);
 	g->pmu->clk_pmu->clk_progobjs = NULL;

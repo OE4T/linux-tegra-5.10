@@ -95,13 +95,17 @@ struct nvgpu_clk_pmupstate {
 	int (*nvgpu_clk_vf_point_cache)(struct gk20a *g);
 };
 
-int nvgpu_clk_init_pmupstate(struct gk20a *g);
-void nvgpu_clk_free_pmupstate(struct gk20a *g);
+int clk_init_pmupstate(struct gk20a *g);
+void clk_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk);
-int nvgpu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
+int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
 int nvgpu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index);
 u32 nvgpu_clk_mon_init_domains(struct gk20a *g);
+int nvgpu_pmu_clk_pmu_setup(struct gk20a *g);
+int nvgpu_pmu_clk_sw_setup(struct gk20a *g);
+int nvgpu_pmu_clk_init(struct gk20a *g);
+void nvgpu_pmu_clk_deinit(struct gk20a *g);
 
 #endif /* NVGPU_PMU_CLK_H */

@@ -50,62 +50,11 @@ void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 		nvgpu_pmu_perf_deinit(g);
 	}
 
-	if (g->pmu->clk_pmu != NULL) {
-		nvgpu_clk_domain_free_pmupstate(g);
-		nvgpu_clk_prog_free_pmupstate(g);
-		nvgpu_clk_vf_point_free_pmupstate(g);
-		nvgpu_clk_fll_free_pmupstate(g);
-		nvgpu_clk_vin_free_pmupstate(g);
-		nvgpu_clk_free_pmupstate(g);
-	}
+	nvgpu_pmu_clk_deinit(g);
 
 	if (g->ops.clk.mclk_deinit != NULL) {
 		g->ops.clk.mclk_deinit(g);
 	}
-}
-
-static int pmu_pstate_clk_init(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_clk_init_pmupstate(g);
-	if (err != 0) {
-		nvgpu_clk_free_pmupstate(g);
-		return err;
-	}
-
-	err = nvgpu_clk_domain_init_pmupstate(g);
-	if (err != 0) {
-		nvgpu_clk_domain_free_pmupstate(g);
-		return err;
-	}
-
-	err = nvgpu_clk_prog_init_pmupstate(g);
-	if (err != 0) {
-		nvgpu_clk_prog_free_pmupstate(g);
-		return err;
-	}
-
-	err = nvgpu_clk_vf_point_init_pmupstate(g);
-	if (err != 0) {
-		nvgpu_clk_vf_point_free_pmupstate(g);
-		return err;
-	}
-
-	err = nvgpu_clk_vin_init_pmupstate(g);
-	if (err != 0) {
-		nvgpu_clk_vin_free_pmupstate(g);
-		return err;
-	}
-
-	err = nvgpu_clk_fll_init_pmupstate(g);
-	if (err != 0) {
-		nvgpu_clk_fll_free_pmupstate(g);
-		return err;
-	}
-
-	return 0;
 }
 
 static int pmu_pstate_init(struct gk20a *g)
@@ -119,7 +68,7 @@ static int pmu_pstate_init(struct gk20a *g)
 		return err;
 	}
 
-	err = pmu_pstate_clk_init(g);
+	err = nvgpu_pmu_clk_init(g);
 	if (err != 0) {
 		return err;
 	}
@@ -133,46 +82,6 @@ static int pmu_pstate_init(struct gk20a *g)
 	err = pmgr_pmu_init_pmupstate(g);
 	if (err != 0) {
 		pmgr_pmu_free_pmupstate(g);
-		return err;
-	}
-
-	return 0;
-}
-
-static int pmu_pstate_clk_sw_setup(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_clk_vin_sw_setup(g);
-	if (err != 0) {
-		nvgpu_clk_vin_free_pmupstate(g);
-		return err;
-	}
-
-	err = nvgpu_clk_fll_sw_setup(g);
-	if (err != 0) {
-		nvgpu_clk_fll_free_pmupstate(g);
-		return err;
-	}
-
-	err = nvgpu_clk_domain_sw_setup(g);
-	if (err != 0) {
-		nvgpu_clk_domain_free_pmupstate(g);
-		return err;
-	}
-
-	if (g->ops.clk.support_vf_point) {
-		err = nvgpu_clk_vf_point_sw_setup(g);
-		if (err != 0) {
-			nvgpu_clk_vf_point_free_pmupstate(g);
-			return err;
-		}
-	}
-
-	err = nvgpu_clk_prog_sw_setup(g);
-	if (err != 0) {
-		nvgpu_clk_prog_free_pmupstate(g);
 		return err;
 	}
 
@@ -208,7 +117,7 @@ int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
 		goto err_therm_pmu_init_pmupstate;
 	}
 
-	err = pmu_pstate_clk_sw_setup(g);
+	err = nvgpu_pmu_clk_sw_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Clk sw setup failed");
 		return err;
@@ -239,51 +148,6 @@ err_perf_pmu_init_pmupstate:
 	return err;
 }
 
-static int pmu_pstate_clk_pmu_setup(struct gk20a *g)
-{
-	int err;
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_clk_domain_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_clk_prog_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_clk_vin_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_clk_fll_pmu_setup(g);
-	if (err != 0) {
-		return err;
-	}
-
-	if (g->ops.clk.support_vf_point) {
-		err = nvgpu_clk_vf_point_pmu_setup(g);
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	err = nvgpu_clk_pmu_vin_load(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_clk_pmu_clk_domains_load(g);
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
-}
-
 /*sw setup for pstate components*/
 int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 {
@@ -309,7 +173,7 @@ int nvgpu_pmu_pstate_pmu_setup(struct gk20a *g)
 		return err;
 	}
 
-	err = pmu_pstate_clk_pmu_setup(g);
+	err = nvgpu_pmu_clk_pmu_setup(g);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to send CLK pmu setup");
 		return err;

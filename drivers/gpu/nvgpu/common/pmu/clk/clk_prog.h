@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -127,4 +127,9 @@ struct clk_prog_35_master_table {
 	((struct clk_prog *)(void *)BOARDOBJGRP_OBJ_GET_BY_IDX(\
 		&pclk->clk_progobjs->super.super, (u8)(idx)))
 
+
+int clk_prog_init_pmupstate(struct gk20a *g);
+void clk_prog_free_pmupstate(struct gk20a *g);
+int clk_prog_sw_setup(struct gk20a *g);
+int clk_prog_pmu_setup(struct gk20a *g);
 #endif /* NVGPU_CLK_PROG_H */

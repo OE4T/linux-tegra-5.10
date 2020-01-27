@@ -1,7 +1,7 @@
 /*
  * general clock structures & definitions
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -67,12 +67,6 @@ struct fll_device {
 	struct boardobjgrpmask_e32 lut_prog_broadcast_slave_mask;
 	fll_lut_broadcast_slave_register *lut_broadcast_slave_register;
 };
-
-
-int nvgpu_clk_fll_init_pmupstate(struct gk20a *g);
-void nvgpu_clk_fll_free_pmupstate(struct gk20a *g);
-int nvgpu_clk_fll_sw_setup(struct gk20a *g);
-int nvgpu_clk_fll_pmu_setup(struct gk20a *g);
-u8 nvgpu_clk_fll_get_fmargin_idx(struct gk20a *g);
+u8 nvgpu_pmu_clk_fll_get_fmargin_idx(struct gk20a *g);
 
 #endif /* NVGPU_PMU_CLK_FLL_H */

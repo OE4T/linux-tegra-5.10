@@ -780,6 +780,7 @@ pmu:
           safe: yes
           gpu: dgpu
           sources: [ common/pmu/clk/clk_fll.c,
+                     common/pmu/clk/clk_fll.h,
                      include/nvgpu/pmu/clk/clk_fll.h ]
 
         prog:
@@ -793,6 +794,7 @@ pmu:
           safe: yes
           gpu: dgpu
           sources: [ common/pmu/clk/clk_vf_point.c,
+                     common/pmu/clk/clk_vf_point.h,
                      include/nvgpu/pmu/clk/clk_vf_point.h ]
         vin:
           safe: yes

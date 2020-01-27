@@ -213,7 +213,7 @@ static int _clk_domains_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_clk_domain_sw_setup(struct gk20a *g)
+int clk_domain_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -370,7 +370,7 @@ done:
 	return status;
 }
 
-int nvgpu_clk_domain_pmu_setup(struct gk20a *g)
+int clk_domain_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -1380,7 +1380,7 @@ done:
 	return status;
 }
 
-int nvgpu_clk_pmu_clk_domains_load(struct gk20a *g)
+int clk_pmu_clk_domains_load(struct gk20a *g)
 {
 	int status;
 	struct nvgpu_pmu *pmu = g->pmu;
@@ -1620,7 +1620,7 @@ static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 }
 #endif
 
-int nvgpu_clk_domain_init_pmupstate(struct gk20a *g)
+int clk_domain_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
 	if (g->pmu->clk_pmu->clk_domainobjs != NULL) {
@@ -1647,7 +1647,7 @@ int nvgpu_clk_domain_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
-void nvgpu_clk_domain_free_pmupstate(struct gk20a *g)
+void clk_domain_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->pmu->clk_pmu->clk_domainobjs);
 	g->pmu->clk_pmu->clk_domainobjs = NULL;

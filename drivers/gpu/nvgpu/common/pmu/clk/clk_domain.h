@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -103,5 +103,11 @@ struct clk_domain_35_slave {
 	struct clk_domain_35_prog super;
 	struct clk_domain_30_slave slave;
 };
+
+int clk_domain_init_pmupstate(struct gk20a *g);
+void clk_domain_free_pmupstate(struct gk20a *g);
+int clk_pmu_clk_domains_load(struct gk20a *g);
+int clk_domain_sw_setup(struct gk20a *g);
+int clk_domain_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_CLK_DOMAIN_H */

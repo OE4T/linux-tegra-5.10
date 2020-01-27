@@ -1,7 +1,7 @@
 /*
  * general clock structures & definitions
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,10 +37,5 @@ struct nvgpu_clk_progs {
 	u8 vf_entry_count;
 	u8 vf_sec_entry_count;
 };
-
-int nvgpu_clk_prog_init_pmupstate(struct gk20a *g);
-void nvgpu_clk_prog_free_pmupstate(struct gk20a *g);
-int nvgpu_clk_prog_sw_setup(struct gk20a *g);
-int nvgpu_clk_prog_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_PMU_CLK_PROG_H */

@@ -1,7 +1,7 @@
 /*
  * general clock structures & definitions
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -84,10 +84,6 @@ struct clk_vf_point_freq {
 #define clkvfpointvoltageuvget(pgpu, pvfpoint)                          \
 	CTRL_CLK_VF_PAIR_VOLTAGE_UV_GET(clkvfpointpairget(pvfpoint))    \
 
-int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g);
-void nvgpu_clk_vf_point_free_pmupstate(struct gk20a *g);
-int nvgpu_clk_vf_point_sw_setup(struct gk20a *g);
-int nvgpu_clk_vf_point_pmu_setup(struct gk20a *g);
 struct clk_vf_point *nvgpu_construct_clk_vf_point(struct gk20a *g,
 	void *pargs);
 int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
