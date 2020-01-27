@@ -83,6 +83,7 @@
  *   - @ref SWUTS-mc
  *   - @ref SWUTS-mm-allocators-bitmap-allocator
  *   - @ref SWUTS-mm-allocators-buddy-allocator
+ *   - @ref SWUTS-mm-allocators-nvgpu-allocator
  *   - @ref SWUTS-mm-as
  *   - @ref SWUTS-mm-dma
  *   - @ref SWUTS-mm-gmmu-page_table

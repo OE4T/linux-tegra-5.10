@@ -61,6 +61,7 @@ INPUT += ../../../userspace/units/ltc/nvgpu-ltc.h
 INPUT += ../../../userspace/units/mc/nvgpu-mc.h
 INPUT += ../../../userspace/units/mm/allocators/bitmap_allocator/bitmap_allocator.h
 INPUT += ../../../userspace/units/mm/allocators/buddy_allocator/buddy_allocator.h
+INPUT += ../../../userspace/units/mm/allocators/buddy_allocator/nvgpu_allocator.h
 INPUT += ../../../userspace/units/mm/as/as.h
 INPUT += ../../../userspace/units/mm/dma/dma.h
 INPUT += ../../../userspace/units/mm/gmmu/page_table/page_table.h
