@@ -189,7 +189,7 @@ void nvgpu_sw_quiesce(struct gk20a *g)
 	 */
 	g->sw_quiesce_pending = true;
 
-	nvgpu_cond_broadcast(&g->sw_quiesce_cond);
+	nvgpu_cond_signal(&g->sw_quiesce_cond);
 	gk20a_mask_interrupts(g);
 	nvgpu_fifo_sw_quiesce(g);
 #endif
