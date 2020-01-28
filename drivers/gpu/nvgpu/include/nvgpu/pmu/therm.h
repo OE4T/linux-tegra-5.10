@@ -1,7 +1,7 @@
 /*
  * general thermal pmu control structures & definitions
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,18 +26,11 @@
 
 struct gk20a;
 struct nvgpu_pmu;
-struct nv_pmu_rpc_header;
-struct pmu_msg;
 
-int nvgpu_therm_domain_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu);
-int nvgpu_therm_domain_pmu_setup(struct gk20a *g, struct nvgpu_pmu *pmu);
-int nvgpu_therm_pmu_init_pmupstate(struct gk20a *g, struct nvgpu_pmu *pmu);
-void nvgpu_therm_pmu_free_pmupstate(struct gk20a *g, struct nvgpu_pmu *pmu);
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
-int nvgpu_therm_configure_therm_alert(struct gk20a *g, struct nvgpu_pmu *pmu);
-#endif
-void nvgpu_pmu_therm_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
-				 struct nv_pmu_rpc_header *rpc);
-int nvgpu_therm_channel_get_curr_temp(struct gk20a *g, u32 *temp);
+int nvgpu_pmu_therm_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_therm_pmu_setup(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_therm_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+void nvgpu_pmu_therm_deinit(struct gk20a *g, struct nvgpu_pmu *pmu);
+int nvgpu_pmu_therm_channel_get_curr_temp(struct gk20a *g, u32 *temp);
 
 #endif /* NVGPU_PMU_THREM_H */

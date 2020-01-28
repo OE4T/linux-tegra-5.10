@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,6 @@
 #include "cmn.h"
 #include "init.h"
 #include "ap.h"
-#include "thermsensor.h"
 #include "seq.h"
 
 #define PMU_UNIT_REWIND			U8(0x00)

@@ -1,7 +1,7 @@
 /*
  * general thermal device structures & definitions
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,12 +24,10 @@
 #ifndef NVGPU_THERM_THRMDEV_H
 #define NVGPU_THERM_THRMDEV_H
 
-#include <nvgpu/types.h>
 #include <nvgpu/boardobj.h>
-#include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 
-struct gk20a;
+struct therm_pmupstate;
 
 struct therm_devices {
 	struct boardobjgrp_e32 super;
@@ -40,6 +38,7 @@ struct therm_device {
 };
 
 int therm_device_sw_setup(struct gk20a *g);
-bool nvgpu_therm_dev_idx_is_valid(struct therm_pmupstate *therm_pmu, u8 idx);
+int therm_device_pmu_setup(struct gk20a *g);
+bool therm_device_idx_is_valid(struct therm_pmupstate *therm_pmu, u8 idx);
 
 #endif /* NVGPU_THERM_THRMDEV_H */

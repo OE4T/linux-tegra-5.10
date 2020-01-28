@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,7 @@ static int therm_get_internal_sensor_curr_temp(void *data, u64 *val)
 	u32 readval;
 	int err;
 
-	err = nvgpu_therm_channel_get_curr_temp(g, &readval);
+	err = nvgpu_pmu_therm_channel_get_curr_temp(g, &readval);
 	if (!err)
 		*val = readval;
 

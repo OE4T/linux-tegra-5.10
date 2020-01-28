@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,8 @@
 
 #include <nvgpu/list.h>
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
+#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
+#include <nvgpu/pmu/pmuif/boardobj.h>
 
 struct boardobj;
 struct nvgpu_list_node;

@@ -1,7 +1,7 @@
 /*
- * Control thermal infrastructure
+ * general thermal device structures & definitions
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,13 +21,36 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_CTRLTHERM_H
-#define NVGPU_PMUIF_CTRLTHERM_H
+#ifndef NVGPU_THERM_THRMCHANNEL_H
+#define NVGPU_THERM_THRMCHANNEL_H
 
-#include "ctrlboardobj.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
-#define CTRL_THERMAL_THERM_DEVICE_CLASS_GPU                             0x01
+struct therm_channel {
+	struct boardobj super;
+	s16 scaling;
+	s16 offset;
+	s32 temp_min;
+	s32 temp_max;
+};
 
-#define CTRL_THERMAL_THERM_CHANNEL_CLASS_DEVICE                         0x01
+struct therm_channels {
+	struct boardobjgrp_e32 super;
+};
 
-#endif /* NVGPU_PMUIF_CTRLTHERM_H */
+struct therm_channel_device {
+	struct therm_channel super;
+	u8 therm_dev_idx;
+	u8 therm_dev_prov_idx;
+};
+
+struct therm_channel_get_status {
+	struct boardobj super;
+	u32 curr_temp;
+};
+
+int therm_channel_sw_setup(struct gk20a *g);
+int therm_channel_pmu_setup(struct gk20a *g);
+
+#endif /* NVGPU_THERM_THRMCHANNEL_H */

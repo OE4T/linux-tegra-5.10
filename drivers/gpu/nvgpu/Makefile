@@ -160,9 +160,8 @@ nvgpu-y += \
 	common/pmu/volt/volt_dev.o \
 	common/pmu/volt/volt_policy.o \
 	common/pmu/therm/thrm.o \
-	common/pmu/therm/thrmdev.o \
-	common/pmu/therm/thrmchannel.o \
-	common/pmu/therm/thrmpmu.o \
+	common/pmu/therm/therm_dev.o \
+	common/pmu/therm/therm_channel.o \
 	common/pmu/lpwr/rppg.o \
 	common/pmu/pmu_pstate.o \
 	common/pmu/pmu_rtos_init.o \

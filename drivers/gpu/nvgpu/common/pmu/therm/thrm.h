@@ -1,7 +1,7 @@
 /*
  * general thermal table structures & definitions
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,8 +24,8 @@
 #ifndef NVGPU_THERM_THRM_H
 #define NVGPU_THERM_THRM_H
 
-#include "thrmdev.h"
-#include "thrmchannel.h"
+#include "therm_channel.h"
+#include "therm_dev.h"
 
 struct therm_pmupstate {
 	struct therm_devices therm_deviceobjs;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1528,7 +1528,7 @@ static int nvgpu_gpu_get_temperature(struct gk20a *g,
 	if (err)
 		return err;
 
-	err = nvgpu_therm_channel_get_curr_temp(g, &temp_f24_8);
+	err = nvgpu_pmu_therm_channel_get_curr_temp(g, &temp_f24_8);
 	if (err) {
 		return err;
 	}

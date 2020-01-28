@@ -473,9 +473,8 @@ srcs += \
 	common/pmu/pmgr/pwrpolicy.c \
 	common/pmu/super_surface/super_surface.c \
 	common/pmu/therm/thrm.c \
-	common/pmu/therm/thrmchannel.c \
-	common/pmu/therm/thrmdev.c \
-	common/pmu/therm/thrmpmu.c \
+	common/pmu/therm/therm_channel.c \
+	common/pmu/therm/therm_dev.c \
 	common/pmu/volt/volt_dev.c \
 	common/pmu/volt/volt_policy.c \
 	common/pmu/volt/volt_rail.c \

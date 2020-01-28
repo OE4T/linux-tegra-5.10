@@ -641,7 +641,6 @@ pmu:
                  include/nvgpu/pmu/pmuif/ctrlclk.h,
                  include/nvgpu/pmu/pmuif/ctrlclkavfs.h,
                  include/nvgpu/pmu/pmuif/ctrlpmgr.h,
-                 include/nvgpu/pmu/pmuif/ctrltherm.h,
                  include/nvgpu/pmu/pmuif/ctrlvolt.h,
                  include/nvgpu/pmu/pmuif/acr.h,
                  include/nvgpu/pmu/pmuif/ap.h,
@@ -655,7 +654,6 @@ pmu:
                  include/nvgpu/pmu/pmuif/clk.h,
                  include/nvgpu/pmu/pmuif/pmgr.h,
                  include/nvgpu/pmu/pmuif/seq.h,
-                 include/nvgpu/pmu/pmuif/thermsensor.h,
                  include/nvgpu/pmu/pmuif/volt.h,
                  include/nvgpu/pmu/pmuif/rpc.h,
                  include/nvgpu/pmu/pmuif/nvgpu_cmdif.h ]
@@ -893,12 +891,11 @@ pmu:
       owner: Abdul S
       sources: [ common/pmu/therm/thrm.c,
                  common/pmu/therm/thrm.h,
-                 common/pmu/therm/thrmchannel.c,
-                 common/pmu/therm/thrmchannel.h,
-                 common/pmu/therm/thrmdev.c,
-                 common/pmu/therm/thrmdev.h,
-                 common/pmu/therm/thrmpmu.c,
-                 common/pmu/therm/thrmpmu.h,
+                 common/pmu/therm/therm_channel.c,
+                 common/pmu/therm/therm_channel.h,
+                 common/pmu/therm/therm_dev.c,
+                 common/pmu/therm/therm_dev.h,
+                 common/pmu/therm/ucode_therm_inf.h,
                  include/nvgpu/pmu/therm.h ]
 
     volt:

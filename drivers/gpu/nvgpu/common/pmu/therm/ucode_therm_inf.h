@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,16 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMUIF_THERMSENSOR_H
-#define NVGPU_PMUIF_THERMSENSOR_H
+#ifndef NVGPU_PMU_THERM_INF_H
+#define NVGPU_PMU_THERM_INF_H
 
-#include <nvgpu/flcnif_cmn.h>
-
-#include "ctrltherm.h"
-#include "boardobj.h"
+#define CTRL_THERMAL_THERM_DEVICE_CLASS_GPU                             0x01
+#define CTRL_THERMAL_THERM_CHANNEL_CLASS_DEVICE                         0x01
 
 #define NV_PMU_THERM_CMD_ID_BOARDOBJ_GRP_SET                         0x0000000B
-#define NV_PMU_THERM_MSG_ID_BOARDOBJ_GRP_SET                        0x00000008
+#define NV_PMU_THERM_MSG_ID_BOARDOBJ_GRP_SET                         0x00000008
 #define NV_PMU_THERM_CMD_ID_BOARDOBJ_GRP_GET_STATUS                  0x00000001U
 #define NV_PMU_THERM_MSG_ID_BOARDOBJ_GRP_GET_STATUS                  0x00000001U
 
@@ -122,4 +120,4 @@ union nv_pmu_therm_therm_channel_boardobj_get_status_union
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(therm, therm_channel);
 
-#endif /* NVGPU_PMUIF_THERMSENSOR_H */
+#endif /* NVGPU_PMU_THERM_INF_H */

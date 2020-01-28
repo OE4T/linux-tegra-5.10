@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,12 +27,12 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmu/pmuif/ctrltherm.h>
 
-#include "thrmdev.h"
+#include "therm_dev.h"
+#include "ucode_therm_inf.h"
 #include "thrm.h"
 
-bool nvgpu_therm_dev_idx_is_valid(struct therm_pmupstate *therm_pmu, u8 idx)
+bool therm_device_idx_is_valid(struct therm_pmupstate *therm_pmu, u8 idx)
 {
 	return boardobjgrp_idxisvalid(
 			&(therm_pmu->therm_deviceobjs.super.super), idx);
@@ -250,5 +250,25 @@ int therm_device_sw_setup(struct gk20a *g)
 
 done:
 	nvgpu_log_info(g, " done status %x", status);
+	return status;
+}
+
+int therm_device_pmu_setup(struct gk20a *g)
+{
+	int status = 0;
+	struct boardobjgrp *pboardobjgrp = NULL;
+
+	nvgpu_log_info(g, " ");
+
+	if (!BOARDOBJGRP_IS_EMPTY(
+			&g->pmu->therm_pmu->therm_deviceobjs.super.super)) {
+		pboardobjgrp = &g->pmu->therm_pmu->therm_deviceobjs.super.super;
+		status = pboardobjgrp->pmuinithandle(g, pboardobjgrp);
+		if (status != 0) {
+			goto exit;
+		}
+	}
+
+exit:
 	return status;
 }
