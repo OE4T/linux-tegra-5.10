@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -132,5 +132,56 @@ void osi_memset(void *s, unsigned int c, unsigned long count)
 			*xs++ = (unsigned char)c;
 		}
 		count--;
+	}
+}
+
+/*
+ * @brief Function to store a backup of MAC register space during SOC suspend.
+ *
+ * Algorithm: Read registers to be backed up as per struct core_backup and
+ * store the register values in memory.
+ *
+ * @param[in] config: Pointer to core_backup structure.
+ * @param[in] max_regs: Max num of registers to backup.
+ *
+ * @retval none
+ */
+void mac_save_registers(struct core_backup *const config)
+{
+	unsigned int i;
+
+	if (config == OSI_NULL) {
+		return;
+	}
+	for (i = 0; i < CORE_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			config->reg_val[i] = osi_readl(config->reg_addr[i]);
+		}
+	}
+
+}
+
+/**
+ * @brief Function to restore the backup of MAC registers during SOC resume.
+ *
+ * Algorithm: Restore the register values from the in memory backup taken using
+ * osi_save_registers().
+ *
+ * @param[in] config: Pointer to core_backup structure.
+ * @param[in] max_regs: Max num of registers to restore.
+ *
+ * @retval none
+ */
+void mac_restore_registers(struct core_backup *const config)
+{
+	unsigned int i;
+
+	if (config == OSI_NULL) {
+		return;
+	}
+	for (i = 0; i < CORE_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			osi_writel(config->reg_val[i], config->reg_addr[i]);
+		}
 	}
 }
