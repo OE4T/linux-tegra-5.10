@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -215,21 +215,21 @@ struct nvgpu_falcon {
 	u32 flcn_id;
 	/** Base address to access falcon registers */
 	u32 flcn_base;
-	/* Indicates if the falcon is supported and initialized for use. */
+	/** Indicates if the falcon is supported and initialized for use. */
 	bool is_falcon_supported;
-	/* Indicates if the falcon interrupts are enabled. */
+	/** Indicates if the falcon interrupts are enabled. */
 	bool is_interrupt_enabled;
-	/* Lock to access the falcon's IMEM. */
+	/** Lock to access the falcon's IMEM. */
 	struct nvgpu_mutex imem_lock;
-	/* Lock to access the falcon's DMEM. */
+	/** Lock to access the falcon's DMEM. */
 	struct nvgpu_mutex dmem_lock;
 #ifdef CONFIG_NVGPU_DGPU
-	/* Indicates if the falcon supports EMEM. */
+	/** Indicates if the falcon supports EMEM. */
 	bool emem_supported;
-	/* Lock to access the falcon's EMEM. */
+	/** Lock to access the falcon's EMEM. */
 	struct nvgpu_mutex emem_lock;
 #endif
-	/* Functions for engine specific reset and memory access. */
+	/** Functions for engine specific reset and memory access. */
 	struct nvgpu_falcon_engine_dependency_ops flcn_engine_dep_ops;
 };
 
@@ -289,8 +289,9 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout);
  * Steps:
  * - Validate that the passed in falcon struct is not NULL and is for supported
  *   falcon. If not valid, return -EINVAL.
- * - Initialize the timer using function #nvgpu_timeout_init with duration of
- *   2ms. Verify the timeout initialization and return error if failed.
+ * - Initialize the timer using function #nvgpu_timeout_init with the duration
+ *   of minimum of 200ms in the form of #NVGPU_TIMER_RETRY_TIMER. Verify the
+ *   timeout initialization and return error if failed.
  * - While the timeout is not expired, check the falcon units' idle status
  *   from idlestate register every 100-200us.
  * - Return value based on timeout expiry.
@@ -310,8 +311,9 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn);
  * Steps:
  * - Validate that the passed in falcon struct is not NULL and is for supported
  *   falcon. If not valid, return -EINVAL.
- * - Initialize the timer using function #nvgpu_timeout_init with duration of
- *   1ms. Verify the timeout initialization and return error if failed.
+ * - Initialize the timer using function #nvgpu_timeout_init with the duration
+ *   of minimum of 1ms in the form of #NVGPU_TIMER_RETRY_TIMER. Verify the
+ *   timeout initialization and return error if failed.
  * - While the timeout is not expired, check the falcon memory scrubbing status
  *   from dmactrl register every 10us.
  * - Return value based on timeout expiry.
@@ -349,7 +351,7 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn);
  * - Copy data \a src of \a size though \a port at offset \a dst of DMEM.
  *   - Set \a dst offset and AINCW (auto increment on write) bit in DMEMC
  *     (control) register corresponding to the port \a port.
- *   - Write the data words from \a src to DMEMD (data) register.
+ *   - Write the data words from \a src to DMEMD (data) register word-by-word.
  *   - Write the remaining bytes to DMEMD register zeroing non-data bytes.
  *   - Read the DMEMC register and verify the count of bytes written.
  * - Release DMEM copy lock.
@@ -390,7 +392,7 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
  *   - Set \a dst offset and AINCW (auto increment on write) bit in IMEMC
  *     (control) register corresponding to the port \a port. Set the secure
  *     bit based on \a sec.
- *   - Write the data words from \a src to IMEMD (data) register.
+ *   - Write the data words from \a src to IMEMD (data) register word-by-word.
  *   - Write \a tag every 256B (64 words). Increment the tag.
  *   - Zero the remaining bytes in the last 256B block (if total size is
  *     not multiple of 256B block) by writing zero to IMEMD register.

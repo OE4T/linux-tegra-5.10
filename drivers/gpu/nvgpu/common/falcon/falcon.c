@@ -33,13 +33,6 @@
 #include "nvgpu_next_gpuid.h"
 #endif
 
-/* Delay depends on memory size and pwr_clk
- * delay = (MAX {IMEM_SIZE, DMEM_SIZE} * 64 + 1) / pwr_clk
- * Timeout set is 1msec & status check at interval 10usec
- */
-#define MEM_SCRUBBING_TIMEOUT_MAX 1000
-#define MEM_SCRUBBING_TIMEOUT_DEFAULT 10
-
 static bool is_falcon_valid(struct nvgpu_falcon *flcn)
 {
 	if (flcn == NULL) {
@@ -148,6 +141,13 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_timeout timeout;
+	/**
+	 * Delay depends on memory size and pwr_clk
+	 * delay = (MAX {IMEM_SIZE, DMEM_SIZE} * 64 + 1) / pwr_clk
+	 * Timeout set is 1msec & status check at interval 10usec
+	 */
+	const u32 mem_scrubbing_max_timeout = 1000U;
+	const u32 mem_scrubbing_default_timeout = 10U;
 	struct gk20a *g;
 	int status;
 
@@ -159,8 +159,8 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 
 	/* check IMEM/DMEM scrubbing complete status */
 	status = nvgpu_timeout_init(g, &timeout,
-				    MEM_SCRUBBING_TIMEOUT_MAX /
-					MEM_SCRUBBING_TIMEOUT_DEFAULT,
+				    mem_scrubbing_max_timeout /
+					mem_scrubbing_default_timeout,
 				    NVGPU_TIMER_RETRY_TIMER);
 	if (status != 0) {
 		return status;
@@ -170,7 +170,7 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 		if (g->ops.falcon.is_falcon_scrubbing_done(flcn)) {
 			break;
 		}
-		nvgpu_udelay(MEM_SCRUBBING_TIMEOUT_DEFAULT);
+		nvgpu_udelay(mem_scrubbing_default_timeout);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (nvgpu_timeout_peek_expired(&timeout)) {
