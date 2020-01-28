@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -96,10 +96,21 @@ u32 nvgpu_nvhost_get_syncpt_host_managed(struct nvgpu_nvhost_dev *nvgpu_syncpt_d
 int nvgpu_nvhost_create_symlink(struct gk20a *g);
 void nvgpu_nvhost_remove_symlink(struct gk20a *g);
 
-const char *nvgpu_nvhost_syncpt_get_name(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	int id);
-
 #endif
+
+/**
+ * @brief Get the sync_pt name of given sync point id.
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param id [in]		Sync point id.
+ *
+ * - Read the sync_pt name of the given sync point by de-referring the
+ *   #nvgpu_syncpt_dev->syncpt_names.
+ *
+ * @return			sync_pt name of given sync point id.
+ */
+const char *nvgpu_nvhost_syncpt_get_name(
+	struct nvgpu_nvhost_dev *nvgpu_syncpt_dev, int id);
 
 /**
  * @brief Increment the value of given sync point to the maximum value.
