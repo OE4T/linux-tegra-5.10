@@ -1,7 +1,7 @@
 /*
  * PVA ISR code for T23X
  *
- * Copyright (c) 2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -94,6 +94,9 @@ irqreturn_t pva_ccq_isr(int irq, void *dev_id)
 				    aisr_status);
 			recover = true;
 		}
+		/* Acknowledge AISR by writing status 1 */
+		host1x_writel(pdev, cfg_ccq_status_r(pva->version, queue_id,
+			      PVA_CCQ_STATUS1_INDEX), 0x01U);
 	}
 	if (isr_status & PVA_INT_PENDING) {
 		pva_ccq_isr_handler(pva, queue_id);
