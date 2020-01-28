@@ -564,6 +564,12 @@
         "test_level": 0
     },
     {
+        "test": "test_falcon_get_id",
+        "case": "falcon_get_id",
+        "unit": "falcon",
+        "test_level": 0
+    },
+    {
         "test": "test_falcon_halt",
         "case": "falcon_halt",
         "unit": "falcon",

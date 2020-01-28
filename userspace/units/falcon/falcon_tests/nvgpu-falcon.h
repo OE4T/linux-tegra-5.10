@@ -68,6 +68,28 @@ int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
 			     void *__args);
 
 /**
+ * Test specification for: test_falcon_get_id
+ *
+ * Description: The falcon unit shall be able to return the falcon ID
+ * for the falcon.
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_falcon_get_id
+ *
+ * Input: None.
+ *
+ * Steps:
+ * - Invoke nvgpu_falcon_get_id with the gpccs falcon struct.
+ *   - Verify that return falcon ID is #FALCON_ID_GPCCS.
+ *
+ * Output: Returns PASS if the steps above were executed successfully. FAIL
+ * otherwise.
+ */
+int test_falcon_get_id(struct unit_module *m, struct gk20a *g,
+			     void *__args);
+
+/**
  * Test specification for: test_falcon_reset
  *
  * Description: The falcon unit shall be able to reset the falcon CPU or trigger

@@ -414,6 +414,16 @@ int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
+int test_falcon_get_id(struct unit_module *m, struct gk20a *g,
+			     void *__args)
+{
+	if (nvgpu_falcon_get_id(gpccs_flcn) == FALCON_ID_GPCCS) {
+		return UNIT_SUCCESS;
+	} else {
+		return UNIT_FAIL;
+	}
+}
+
 static void flcn_mem_scrub_pass(void *data)
 {
 	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
@@ -1383,6 +1393,7 @@ int test_falcon_irq(struct unit_module *m, struct gk20a *g, void *__args)
 
 struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_sw_init_free, test_falcon_sw_init_free, NULL, 0),
+	UNIT_TEST(falcon_get_id, test_falcon_get_id, NULL, 0),
 	UNIT_TEST(falcon_reset, test_falcon_reset, NULL, 0),
 	UNIT_TEST(falcon_mem_scrub, test_falcon_mem_scrub, NULL, 0),
 	UNIT_TEST(falcon_idle, test_falcon_idle, NULL, 0),
