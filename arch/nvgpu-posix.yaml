@@ -53,7 +53,8 @@ headers:
              include/nvgpu/posix/soc_fuse.h,
              include/nvgpu/posix/vm.h,
              include/nvgpu/posix/posix_vidmem.h,
-             include/nvgpu/posix/posix-nvhost.h ]
+             include/nvgpu/posix/posix-nvhost.h,
+             include/nvgpu/posix/trace_gk20a.h ]
 
 queue:
   safe: yes

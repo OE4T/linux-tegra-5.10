@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,11 +25,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
-
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
-
+#include <nvgpu/trace.h>
 #include "ltc_tu104.h"
 
 #include "ltc_gv11b.h"

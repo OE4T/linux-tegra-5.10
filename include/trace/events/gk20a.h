@@ -1,7 +1,7 @@
 /*
  * gk20a event logging to ftrace.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,8 +18,8 @@
 #undef TRACE_SYSTEM
 #define TRACE_SYSTEM gk20a
 
-#if !defined(_TRACE_GK20A_H) || defined(TRACE_HEADER_MULTI_READ)
-#define _TRACE_GK20A_H
+#if !defined(__NVGPU_TRACE_GK20A_H__) || defined(TRACE_HEADER_MULTI_READ)
+#define __NVGPU_TRACE_GK20A_H__
 
 #include <linux/ktime.h>
 #include <linux/tracepoint.h>
@@ -624,31 +624,5 @@ DEFINE_EVENT(gk20a_cde, gk20a_cde_finished_ctx_cb,
 
 /* This part must be outside protection */
 #include <trace/define_trace.h>
-
-#else /* Not __KERNEL__ */
-
-#define trace_gk20a_mmu_fault(arg...)			((void)(NULL))
-#define trace_gk20a_release_used_channel(arg...)	((void)(NULL))
-#define trace_gk20a_free_channel(arg...)		((void)(NULL))
-#define trace_nvgpu_channel_get(arg...)			((void)(NULL))
-#define trace_nvgpu_channel_put(arg...)			((void)(NULL))
-#define trace_nvgpu_channel_open_new(arg...)		((void)(NULL))
-#define trace_nvgpu_channel_update(arg...)		((void)(NULL))
-#define trace_gk20a_channel_reset(arg...)		((void)(NULL))
-
-#define trace_gk20a_mm_fb_flush(arg...)			((void)(NULL))
-#define trace_gk20a_mm_fb_flush_done(arg...)		((void)(NULL))
-#define trace_gk20a_mm_l2_invalidate(arg...)		((void)(NULL))
-#define trace_gk20a_mm_l2_invalidate_done(arg...)	((void)(NULL))
-#define trace_gk20a_mm_l2_flush(arg...)			((void)(NULL))
-#define trace_gk20a_mm_l2_flush_done(arg...)		((void)(NULL))
-#define trace_gk20a_mm_tlb_invalidate(arg...)		((void)(NULL))
-#define trace_gk20a_mm_tlb_invalidate_done(arg...)	((void)(NULL))
-#define trace_gk20a_ltc_cbc_ctrl_start(arg...)		((void)(NULL))
-#define trace_gk20a_ltc_cbc_ctrl_done(arg...)		((void)(NULL))
-
-#define trace_gk20a_channel_submit_gpfifo(arg...)	((void)(NULL))
-#define trace_gk20a_channel_submitted_gpfifo(arg...)	((void)(NULL))
-#define trace_gk20a_push_cmdbuf(arg...)			((void)(NULL))
 
 #endif

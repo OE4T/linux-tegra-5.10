@@ -1,7 +1,5 @@
 /*
- * Virtualized GPU USERD
- *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,18 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/trace.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/fifo/userd.h>
+#ifndef NVGPU_TRACE_H
+#define NVGPU_TRACE_H
 
-#include "userd_vgpu.h"
+#ifdef CONFIG_NVGPU_TRACE
+#ifdef __KERNEL__
+#include <trace/events/gk20a.h>
+#else
+#include <nvgpu/posix/trace_gk20a.h>
+#endif
+#endif
 
-int vgpu_userd_setup_sw(struct gk20a *g)
-{
-	return nvgpu_userd_init_slabs(g);
-}
-
-void vgpu_userd_cleanup_sw(struct gk20a *g)
-{
-	nvgpu_userd_free_slabs(g);
-}
+#endif /* NVGPU_TRACE_H */

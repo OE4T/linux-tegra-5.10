@@ -74,7 +74,8 @@ ecc:
 log:
   safe: no
   owner: Vedashree V
-  sources: [ common/log_common.c ]
+  sources: [ common/log_common.c,
+             include/nvgpu/trace.h ]
   deps:
 
 # Pretty sure this can be marked as not-safe since we plan to use

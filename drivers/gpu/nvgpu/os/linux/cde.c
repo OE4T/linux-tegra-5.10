@@ -20,11 +20,7 @@
 #include <linux/fs.h>
 #include <linux/dma-buf.h>
 #include <uapi/linux/nvgpu.h>
-
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
-
+#include <nvgpu/trace.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/timers.h>

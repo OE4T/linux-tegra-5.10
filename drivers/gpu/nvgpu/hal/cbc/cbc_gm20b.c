@@ -22,10 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
-
+#include <nvgpu/trace.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/bug.h>

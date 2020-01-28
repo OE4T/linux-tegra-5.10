@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -38,9 +38,7 @@
 
 #include <linux/uaccess.h>
 #include <linux/dma-buf.h>
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
+#include <nvgpu/trace.h>
 #include <uapi/linux/nvgpu.h>
 
 #include "sync_sema_android.h"

@@ -22,8 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <trace/events/gk20a.h>
-
+#include <nvgpu/trace.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/semaphore.h>
 #include <nvgpu/timers.h>
@@ -1953,9 +1952,11 @@ struct nvgpu_channel *nvgpu_channel_get__func(struct nvgpu_channel *ch,
 
 	nvgpu_spinlock_release(&ch->ref_obtain_lock);
 
+#ifdef CONFIG_NVGPU_TRACE
 	if (ret != NULL) {
 		trace_nvgpu_channel_get(ch->chid, caller);
 	}
+#endif
 
 	return ret;
 }
@@ -1965,7 +1966,9 @@ void nvgpu_channel_put__func(struct nvgpu_channel *ch, const char *caller)
 #if GK20A_CHANNEL_REFCOUNT_TRACKING
 	channel_save_ref_source(ch, channel_gk20a_ref_action_put);
 #endif
+#ifdef CONFIG_NVGPU_TRACE
 	trace_nvgpu_channel_put(ch->chid, caller);
+#endif
 	nvgpu_atomic_dec(&ch->ref_count);
 	if (nvgpu_cond_broadcast(&ch->ref_count_dec_wq) != 0) {
 		nvgpu_warn(ch->g, "failed to broadcast");

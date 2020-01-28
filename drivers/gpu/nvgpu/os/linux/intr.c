@@ -11,9 +11,7 @@
  * more details.
  */
 
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
+#include <nvgpu/trace.h>
 #include <linux/irqreturn.h>
 
 #include <nvgpu/gk20a.h>

@@ -16,9 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
+#include <nvgpu/trace.h>
 #include <linux/file.h>
 #include <linux/anon_inodes.h>
 #include <linux/dma-buf.h>

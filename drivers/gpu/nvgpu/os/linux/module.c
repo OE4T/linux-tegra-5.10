@@ -91,9 +91,7 @@
 #define GK20A_WAIT_FOR_IDLE_MS	2000
 
 #define CREATE_TRACE_POINTS
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
+#include <nvgpu/trace.h>
 
 static int nvgpu_wait_for_idle(struct gk20a *g)
 {

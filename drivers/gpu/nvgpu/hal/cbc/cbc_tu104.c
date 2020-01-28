@@ -29,11 +29,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
-
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
-
+#include <nvgpu/trace.h>
 #include <nvgpu/hw/tu104/hw_ltc_tu104.h>
 
 #include "cbc_tu104.h"

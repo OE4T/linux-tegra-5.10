@@ -18,9 +18,7 @@
 #include <linux/ktime.h>
 #include <linux/uaccess.h>
 #include <linux/poll.h>
-#ifdef CONFIG_NVGPU_TRACE
-#include <trace/events/gk20a.h>
-#endif
+#include <nvgpu/trace.h>
 #include <uapi/linux/nvgpu.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
