@@ -85,7 +85,6 @@ void dump_stack(void)
 
 static void nvgpu_bug_init(void)
 {
-	nvgpu_err(NULL, "doing init for bug cb");
 	nvgpu_spinlock_init(&bug.lock);
 	nvgpu_init_list_node(&bug.head);
 	bug.in_use = true;
