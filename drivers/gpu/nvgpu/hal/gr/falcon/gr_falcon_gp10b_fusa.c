@@ -80,7 +80,7 @@ int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_preemption_image_size_v();
 		op.mailbox.ret = ret_val;
-		ret = gm20b_gr_falcon_submit_fecs_method_op(g, op, false);
+		ret = gm20b_gr_falcon_submit_fecs_method_op(g, op, 0U);
 	break;
 
 	case NVGPU_GR_FALCON_METHOD_CONFIGURE_CTXSW_INTR:

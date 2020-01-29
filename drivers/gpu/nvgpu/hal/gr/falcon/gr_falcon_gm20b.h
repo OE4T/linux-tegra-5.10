@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,7 @@ void gm20b_gr_falcon_bind_instblk(struct gk20a *g,
 int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g);
 int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g);
 int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
-	struct nvgpu_fecs_method_op op, bool sleepduringwait);
+	struct nvgpu_fecs_method_op op, u32 flags);
 int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 						u32 data, u32 *ret_val);
 void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g);

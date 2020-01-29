@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,10 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gr/gr_falcon.h>
 
+#include "gr_falcon_gp10b.h"
+#include "gr_falcon_gm20b.h"
 #include "gr_falcon_gv11b.h"
+#include "common/gr/gr_falcon_priv.h"
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
@@ -115,6 +118,43 @@ void gv11b_gr_falcon_handle_fecs_ecc_error(struct gk20a *g,
 			"ecc error row address: 0x%x",
 			gr_fecs_falcon_ecc_address_row_address_v(ecc_addr));
 	}
+}
+
+int gv11b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
+		u32 data, u32 *ret_val)
+{
+	struct nvgpu_fecs_method_op op = {
+		.mailbox = { .id = 0U, .data = 0U, .ret = NULL,
+			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
+		.method.data = 0U,
+		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
+		.cond.fail = GR_IS_UCODE_OP_SKIP,
+	};
+	u32 flags = 0;
+	int ret;
+
+	nvgpu_log_info(g, "fecs method %d data 0x%x ret_val %p",
+				fecs_method, data, ret_val);
+
+	switch (fecs_method) {
+	case NVGPU_GR_FALCON_METHOD_SET_WATCHDOG_TIMEOUT:
+		op.method.addr =
+			gr_fecs_method_push_adr_set_watchdog_timeout_f();
+		op.method.data = data;
+		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_LOCKED;
+#ifdef CONFIG_NVGPU_SIM
+		op.cond.ok = GR_IS_UCODE_OP_SKIP;
+#endif
+
+		ret = gm20b_gr_falcon_submit_fecs_method_op(g, op, flags);
+		break;
+
+	default:
+		ret = gp10b_gr_falcon_ctrl_ctxsw(g, fecs_method,
+				data, ret_val);
+		break;
+	}
+	return ret;
 }
 
 void gv11b_gr_falcon_fecs_host_int_enable(struct gk20a *g)

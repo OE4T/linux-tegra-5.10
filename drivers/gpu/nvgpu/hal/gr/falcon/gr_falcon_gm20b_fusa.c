@@ -127,7 +127,7 @@ void gm20b_gr_falcon_bind_instblk(struct gk20a *g,
 			FECS_ARB_CMD_TIMEOUT_DEFAULT_US;
 	u32 inst_ptr_u32;
 
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), 0x0);
+	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), U32_MAX);
 
 	while (((nvgpu_readl(g, gr_fecs_ctxsw_status_1_r()) &
 			gr_fecs_ctxsw_status_1_arb_busy_m()) != 0U) &&
@@ -520,11 +520,12 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 	}
 #endif
 
-	nvgpu_log_info(g, "configuring ctxsw_ucode wdt = 0x%x", wdt_val);
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), U32_MAX);
-	nvgpu_writel(g, gr_fecs_method_data_r(), wdt_val);
-	nvgpu_writel(g, gr_fecs_method_push_r(),
-		     gr_fecs_method_push_adr_set_watchdog_timeout_f());
+	ret = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_SET_WATCHDOG_TIMEOUT, wdt_val, NULL);
+	if (ret != 0) {
+		nvgpu_err(g, "fail to set watchdog timeout");
+		return ret;
+	}
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -537,7 +538,7 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	ret = gm20b_gr_falcon_ctrl_ctxsw(g,
+	ret = g->ops.gr.falcon.ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE,
 		0, &sizes->golden_image_size);
 	if (ret != 0) {
@@ -548,7 +549,7 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 
 #if defined(CONFIG_NVGPU_DEBUGGER) || \
 defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
-	ret = gm20b_gr_falcon_ctrl_ctxsw(g,
+	ret = g->ops.gr.falcon.ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE,
 #ifndef CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING
 		0, &sizes->pm_ctxsw_image_size);
@@ -565,7 +566,7 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 #endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	ret = gm20b_gr_falcon_ctrl_ctxsw(g,
+	ret = g->ops.gr.falcon.ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
 		0, &sizes->zcull_image_size);
 	if (ret != 0) {
@@ -619,17 +620,21 @@ void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g)
 		gr_fecs_current_ctx_valid_false_f());
 }
 
-/* The following is a less brittle way to call gr_gk20a_submit_fecs_method(...)
+/*
+ * The following is a less brittle way to call gr_gk20a_submit_fecs_method(...)
  * We should replace most, if not all, fecs method calls to this instead.
  */
 int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
-				   struct nvgpu_fecs_method_op op,
-				   bool sleepduringwait)
+		struct nvgpu_fecs_method_op op, u32 flags)
 {
 	int ret;
 	struct nvgpu_gr_falcon *gr_falcon = nvgpu_gr_get_falcon_ptr(g);
+	bool sleepduringwait =
+			(flags & NVGPU_GR_FALCON_SUBMIT_METHOD_F_SLEEP) != 0U;
 
-	nvgpu_mutex_acquire(&gr_falcon->fecs_mutex);
+	if ((flags & NVGPU_GR_FALCON_SUBMIT_METHOD_F_LOCKED) == 0U) {
+		nvgpu_mutex_acquire(&gr_falcon->fecs_mutex);
+	}
 
 	if (op.mailbox.id != 0U) {
 		nvgpu_writel(g, gr_fecs_ctxsw_mailbox_r(op.mailbox.id),
@@ -659,7 +664,9 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 			op.method.data, op.method.addr);
 	}
 
-	nvgpu_mutex_release(&gr_falcon->fecs_mutex);
+	if ((flags & NVGPU_GR_FALCON_SUBMIT_METHOD_F_LOCKED) == 0U) {
+		nvgpu_mutex_release(&gr_falcon->fecs_mutex);
+	}
 
 	return ret;
 }
@@ -673,8 +680,8 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		.method.data = 0U,
 		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
 		.cond.fail = GR_IS_UCODE_OP_SKIP,
-		};
-	bool sleepduringwait = false;
+	};
+	u32 flags = 0U;
 
 	nvgpu_log_info(g, "fecs method %d data 0x%x ret_value %p",
 						fecs_method, data, ret_val);
@@ -689,7 +696,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
 		op.cond.fail = GR_IS_UCODE_OP_EQUAL;
-		sleepduringwait = true;
+		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_SLEEP;
 	break;
 
 	case NVGPU_GR_FALCON_METHOD_CTXSW_START:
@@ -700,7 +707,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
 		op.cond.fail = GR_IS_UCODE_OP_EQUAL;
-		sleepduringwait = true;
+		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_SLEEP;
 	break;
 #endif
 #ifdef CONFIG_NVGPU_ENGINE_RESET
@@ -733,7 +740,7 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_pm_image_size_v();
 		op.mailbox.ret = ret_val;
-		sleepduringwait = true;
+		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_SLEEP;
 		break;
 #endif
 #ifdef CONFIG_NVGPU_POWER_PG
@@ -770,7 +777,7 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 		op.mailbox.fail = 0x20U;
 		op.cond.ok = GR_IS_UCODE_OP_AND;
 		op.cond.fail = GR_IS_UCODE_OP_AND;
-		sleepduringwait = true;
+		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_SLEEP;
 		break;
 
 	case NVGPU_GR_FALCON_METHOD_GOLDEN_IMAGE_SAVE:
@@ -781,7 +788,7 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 		op.mailbox.fail = 0x2U;
 		op.cond.ok = GR_IS_UCODE_OP_AND;
 		op.cond.fail = GR_IS_UCODE_OP_AND;
-		sleepduringwait = true;
+		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_SLEEP;
 		break;
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	case NVGPU_GR_FALCON_METHOD_FECS_TRACE_FLUSH:
@@ -789,12 +796,20 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 			gr_fecs_method_push_adr_write_timestamp_record_v();
 		break;
 #endif
+	case NVGPU_GR_FALCON_METHOD_SET_WATCHDOG_TIMEOUT:
+		op.method.addr =
+			gr_fecs_method_push_adr_set_watchdog_timeout_f();
+		op.method.data = data;
+		op.cond.ok = GR_IS_UCODE_OP_SKIP;
+		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_LOCKED;
+		break;
 
 	default:
 		nvgpu_err(g, "unsupported fecs mode %d", fecs_method);
 		break;
 	}
-	return gm20b_gr_falcon_submit_fecs_method_op(g, op, sleepduringwait);
+
+	return gm20b_gr_falcon_submit_fecs_method_op(g, op, flags);
 }
 
 u32 gm20b_gr_falcon_get_current_ctx(struct gk20a *g)

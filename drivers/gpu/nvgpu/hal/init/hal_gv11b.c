@@ -766,7 +766,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 			.wait_mem_scrubbing =
 					gm20b_gr_falcon_wait_mem_scrubbing,
 			.wait_ctxsw_ready = gm20b_gr_falcon_wait_ctxsw_ready,
-			.ctrl_ctxsw = gp10b_gr_falcon_ctrl_ctxsw,
+			.ctrl_ctxsw = gv11b_gr_falcon_ctrl_ctxsw,
 			.get_current_ctx = gm20b_gr_falcon_get_current_ctx,
 			.get_ctx_ptr = gm20b_gr_falcon_get_ctx_ptr,
 			.get_fecs_current_ctx_data =

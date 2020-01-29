@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,5 +29,7 @@ struct nvgpu_fecs_ecc_status;
 void gv11b_gr_falcon_handle_fecs_ecc_error(struct gk20a *g,
 			struct nvgpu_fecs_ecc_status *fecs_ecc_status);
 void gv11b_gr_falcon_fecs_host_int_enable(struct gk20a *g);
+int gv11b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
+			u32 data, u32 *ret_val);
 
 #endif /* NVGPU_GR_FALCON_GV11B_H */

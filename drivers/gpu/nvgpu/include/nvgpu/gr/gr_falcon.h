@@ -73,6 +73,15 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 #define NVGPU_GR_FALCON_METHOD_CONFIGURE_CTXSW_INTR		13
 #endif
 
+/** Falcon method to set watchdog timeout. */
+#define NVGPU_GR_FALCON_METHOD_SET_WATCHDOG_TIMEOUT		14
+
+/** Sleep while waiting for Falcon ACK */
+#define NVGPU_GR_FALCON_SUBMIT_METHOD_F_SLEEP		BIT32(0)
+
+/** Falcon lock already held */
+#define NVGPU_GR_FALCON_SUBMIT_METHOD_F_LOCKED		BIT32(1)
+
 /** Falcon index of mailbox 0. */
 #define NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX0 0U
 /** Falcon index of mailbox 1. */
