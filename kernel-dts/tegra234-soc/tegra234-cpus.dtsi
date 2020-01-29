@@ -63,7 +63,6 @@
 
 		cl0_0: cpu@0 {
 			device_type = "cpu";
-			compatible = "nvidia,carmel", "arm,armv8";
 			reg = <0x0 0x10000>;
 			enable-method = "psci";
 			cpu-idle-states = <&C6 &C7>;
@@ -77,7 +76,6 @@
 		};
 		cl0_1: cpu@1 {
 			device_type = "cpu";
-			compatible = "nvidia,carmel", "arm,armv8";
 			reg = <0x0 0x10001>;
 			enable-method = "psci";
 			cpu-idle-states = <&C6 &C7>;
@@ -92,7 +90,6 @@
 		};
 		cl1_0: cpu@2 {
 			device_type = "cpu";
-			compatible = "nvidia,carmel", "arm,armv8";
 			reg = <0x0 0x100>;
 			enable-method = "psci";
 			cpu-idle-states = <&C6 &C7>;
@@ -107,7 +104,6 @@
 		};
 		cl1_1: cpu@3 {
 			device_type = "cpu";
-			compatible = "nvidia,carmel", "arm,armv8";
 			reg = <0x0 0x101>;
 			enable-method = "psci";
 			cpu-idle-states = <&C6 &C7>;
@@ -122,7 +118,6 @@
 		};
 		cl2_0: cpu@4 {
 			device_type = "cpu";
-			compatible = "nvidia,carmel", "arm,armv8";
 			reg = <0x0 0x200>;
 			enable-method = "psci";
 			cpu-idle-states = <&C6 &C7>;
@@ -137,7 +132,6 @@
 		};
 		cl2_1: cpu@5 {
 			device_type = "cpu";
-			compatible = "nvidia,carmel", "arm,armv8";
 			reg = <0x0 0x201>;
 			enable-method = "psci";
 			cpu-idle-states = <&C6 &C7>;
@@ -152,7 +146,6 @@
 		};
 		cl3_0: cpu@6 {
 			device_type = "cpu";
-			compatible = "nvidia,carmel", "arm,armv8";
 			reg = <0x0 0x10300>;
 			enable-method = "psci";
 			cpu-idle-states = <&C6 &C7>;
@@ -167,7 +160,6 @@
 		};
 		cl3_1: cpu@7 {
 			device_type = "cpu";
-			compatible = "nvidia,carmel", "arm,armv8";
 			reg = <0x0 0x10301>;
 			enable-method = "psci";
 			cpu-idle-states = <&C6 &C7>;
