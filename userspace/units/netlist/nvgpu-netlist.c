@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <unit/unit.h>
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/posix/posix-fault-injection.h>
 #include <nvgpu/posix/io.h>
 #include <nvgpu/hal_init.h>
 #include <nvgpu/enabled.h>
@@ -208,10 +209,29 @@ int test_netlist_query_tests(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static int test_netlist_alloc_failure(struct gk20a *g)
+{
+	int err, i;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+
+	for (i = 0; i < 12; i++) {
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, i);
+		err = nvgpu_netlist_init_ctx_vars(g);
+		if (err == 0) {
+			return UNIT_FAIL;
+		}
+		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	}
+
+	return UNIT_SUCCESS;
+}
+
 int test_netlist_negative_tests(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err = 0;
+	struct nvgpu_netlist_vars *netlist_vars = g->netlist_vars;
 
 	err = nvgpu_netlist_init_ctx_vars(g);
 	if (err != 0) {
@@ -219,7 +239,18 @@ int test_netlist_negative_tests(struct unit_module *m,
 	}
 
 	/* unload netlist info */
+	/* with NULL pointer */
+	g->netlist_vars = NULL;
 	nvgpu_netlist_deinit_ctx_vars(g);
+	/* restore valid pointer */
+	g->netlist_vars = netlist_vars;
+	nvgpu_netlist_deinit_ctx_vars(g);
+
+	err = test_netlist_alloc_failure(g);
+	if (err != 0) {
+		unit_return_fail(m, "nvgpu_netlist_init_ctx_vars_fw failed\n");
+	}
+
 	/* Set up HAL for invalid netlist checks */
 	g->ops.netlist.is_fw_defined = test_netlist_fw_not_defined;
 	g->ops.gr.falcon.get_fecs_ctx_state_store_major_rev_id =
@@ -228,6 +259,7 @@ int test_netlist_negative_tests(struct unit_module *m,
 	if (err == 0) {
 		unit_return_fail(m, "nvgpu_netlist_init_ctx_vars_fw failed\n");
 	}
+
 	/* Restore orginal HALs */
 	g->ops.netlist.is_fw_defined = gv11b_netlist_is_firmware_defined;
 	g->ops.gr.falcon.get_fecs_ctx_state_store_major_rev_id =
