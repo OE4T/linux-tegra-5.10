@@ -222,9 +222,8 @@ static bool nvgpu_netlist_handle_sw_bundles_region_id(struct gk20a *g,
 static bool nvgpu_netlist_handle_generic_region_id(struct gk20a *g,
 			u32 region_id, u8 *src, u32 size,
 			u32 *major_v, u32 *netlist_num,
-			struct nvgpu_netlist_vars *netlist_vars, int *err_code)
+			struct nvgpu_netlist_vars *netlist_vars)
 {
-	int err = 0;
 	bool handled = true;
 
 	switch (region_id) {
@@ -251,8 +250,6 @@ static bool nvgpu_netlist_handle_generic_region_id(struct gk20a *g,
 		handled = false;
 		break;
 	}
-
-	*err_code = err;
 
 	return handled;
 }
@@ -429,8 +426,8 @@ static int nvgpu_netlist_handle_region_id(struct gk20a *g,
 	}
 	handled = nvgpu_netlist_handle_generic_region_id(g, region_id,
 				src, size, major_v, netlist_num,
-				netlist_vars, &err);
-	if ((err != 0) || handled) {
+				netlist_vars);
+	if (handled) {
 		goto clean_up;
 	}
 #ifdef CONFIG_NVGPU_DEBUGGER
