@@ -110,6 +110,7 @@
  *   - @ref SWUTS-fuse
  *   - @ref SWUTS-posix-bitops
  *   - @ref SWUTS-posix-cond
+ *   - @ref SWUTS-posix-log2
  *   - @ref SWUTS-posix-fault-injection
  *   - @ref SWUTS-posix-sizes
  *   - @ref SWUTS-posix-thread

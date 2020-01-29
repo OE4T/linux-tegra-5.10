@@ -4293,6 +4293,30 @@
         "test_level": 0
     },
     {
+        "test": "test_ilog2",
+        "case": "integer_log2",
+        "unit": "posix_log2",
+        "test_level": 0
+    },
+    {
+        "test": "test_roundup_powoftwo",
+        "case": "roundup_pow2",
+        "unit": "posix_log2",
+        "test_level": 0
+    },
+    {
+        "test": "test_rounddown_powoftwo",
+        "case": "rounddown_pow2",
+        "unit": "posix_log2",
+        "test_level": 0
+    },
+    {
+        "test": "test_ispow2",
+        "case": "is_powof2",
+        "unit": "posix_log2",
+        "test_level": 0
+    },
+    {
         "test": "test_readl",
         "case": "bar1_readl",
         "unit": "posix_mockio",

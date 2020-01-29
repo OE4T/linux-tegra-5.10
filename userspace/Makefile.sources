@@ -49,6 +49,7 @@ UNITS :=				\
 	$(UNIT_SRC)/posix/fault-injection \
 	$(UNIT_SRC)/posix/bug		\
 	$(UNIT_SRC)/posix/os_sched	\
+	$(UNIT_SRC)/posix/log2		\
 	$(UNIT_SRC)/posix/sizes		\
 	$(UNIT_SRC)/posix/thread	\
 	$(UNIT_SRC)/posix/cond		\

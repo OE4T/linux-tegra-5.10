@@ -82,7 +82,7 @@
 					BUG();				\
 				} else {				\
 					ret = 1UL <<			\
-						nvgpu_(fls(x) - 1UL);	\
+						(nvgpu_fls((x)) - 1UL);	\
 				}					\
 				ret;					\
 			})

@@ -54,6 +54,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/posix/bug
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/os_sched
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/sizes
 NV_REPOSITORY_COMPONENTS += userspace/units/init
+NV_REPOSITORY_COMPONENTS += userspace/units/posix/log2
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/thread
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/cond
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/timers
