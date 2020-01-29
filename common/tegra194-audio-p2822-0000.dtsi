@@ -76,21 +76,21 @@
 					 <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>;
 
 		nvidia-audio-card,widgets =
-			"Headphone",	"x Headphone Jack",
-			"Microphone",	"x Mic Jack",
-			"Speaker",	"x Int Spk",
-			"Microphone",	"x Int Mic";
+			"Headphone",	"CVB-RT Headphone Jack",
+			"Microphone",	"CVB-RT Mic Jack",
+			"Speaker",	"CVB-RT Int Spk",
+			"Microphone",	"CVB-RT Int Mic";
 
 		nvidia-audio-card,routing =
-			"x Headphone Jack",     "x HPO L Playback",
-			"x Headphone Jack",     "x HPO R Playback",
-			"x IN1P",               "x Mic Jack",
-			"x IN2P",               "x Mic Jack",
-			"x Int Spk",            "x SPO Playback",
-			"x DMIC L1",            "x Int Mic",
-			"x DMIC L2",            "x Int Mic",
-			"x DMIC R1",            "x Int Mic",
-			"x DMIC R2",            "x Int Mic";
+			"CVB-RT Headphone Jack",     "CVB-RT HPO L Playback",
+			"CVB-RT Headphone Jack",     "CVB-RT HPO R Playback",
+			"CVB-RT IN1P",               "CVB-RT Mic Jack",
+			"CVB-RT IN2P",               "CVB-RT Mic Jack",
+			"CVB-RT Int Spk",            "CVB-RT SPO Playback",
+			"CVB-RT DMIC L1",            "CVB-RT Int Mic",
+			"CVB-RT DMIC L2",            "CVB-RT Int Mic",
+			"CVB-RT DMIC R1",            "CVB-RT Int Mic",
+			"CVB-RT DMIC R2",            "CVB-RT Int Mic";
 
 		nvidia-audio-card,mclk-fs = <256>;
 	};
@@ -109,7 +109,7 @@
 	link-name = "rt565x-playback";
 	codec {
 		sound-dai = <&rt5658 0>;
-		prefix = "x";
+		prefix = "CVB-RT";
 	};
 };
 
