@@ -364,7 +364,9 @@ static void nvgpu_mem_phys_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 	 */
 }
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 8_7), "Bug 2823817")
 static const struct nvgpu_sgt_ops nvgpu_mem_phys_ops = {
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	.sgl_next      = nvgpu_mem_phys_sgl_next,
 	.sgl_dma       = nvgpu_mem_phys_sgl_dma,
 	.sgl_phys      = nvgpu_mem_phys_sgl_phys,

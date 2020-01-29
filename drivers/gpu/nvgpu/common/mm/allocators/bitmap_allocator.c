@@ -381,7 +381,9 @@ static void nvgpu_bitmap_print_stats(struct nvgpu_allocator *na,
 }
 #endif
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 8_7), "Bug 2823817")
 static const struct nvgpu_allocator_ops bitmap_ops = {
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	.alloc		= nvgpu_bitmap_balloc,
 	.free_alloc	= nvgpu_bitmap_free,
 

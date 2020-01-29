@@ -225,7 +225,9 @@ static int gv11b_init_gpu_characteristics(struct gk20a *g)
 	return 0;
 }
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 8_7), "Bug 2823817")
 static const struct gpu_ops gv11b_ops = {
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	.acr = {
 		.acr_init = nvgpu_acr_init,
 		.acr_construct_execute = nvgpu_acr_construct_execute,

@@ -1326,7 +1326,9 @@ static void nvgpu_buddy_print_stats(struct nvgpu_allocator *na,
 }
 #endif
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 8_7), "Bug 2823817")
 static const struct nvgpu_allocator_ops buddy_ops = {
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	.alloc		= nvgpu_buddy_balloc,
 	.alloc_pte	= nvgpu_buddy_balloc_pte,
 	.free_alloc	= nvgpu_buddy_bfree,
