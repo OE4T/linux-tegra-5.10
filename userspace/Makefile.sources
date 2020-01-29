@@ -71,6 +71,7 @@ UNITS :=				\
 	$(UNIT_SRC)/interface/static_analysis	\
 	$(UNIT_SRC)/interface/string	\
 	$(UNIT_SRC)/interface/worker	\
+	$(UNIT_SRC)/interface/kref	\
 	$(UNIT_SRC)/mc			\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
 	$(UNIT_SRC)/mm/allocators/buddy_allocator	\

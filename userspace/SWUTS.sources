@@ -10,6 +10,7 @@ INPUT += ../../../userspace/units/interface/rbtree/rbtree.h
 INPUT += ../../../userspace/units/interface/static_analysis/static_analysis.h
 INPUT += ../../../userspace/units/interface/string/nvgpu-string.h
 INPUT += ../../../userspace/units/interface/worker/worker.h
+INPUT += ../../../userspace/units/interface/kref/kref.h
 INPUT += ../../../userspace/units/bus/nvgpu-bus.h
 INPUT += ../../../userspace/units/falcon/falcon_tests/nvgpu-falcon.h
 INPUT += ../../../userspace/units/netlist/nvgpu-netlist.h

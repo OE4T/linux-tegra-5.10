@@ -1230,6 +1230,36 @@
         "test_level": 0
     },
     {
+        "test": "test_kref_init",
+        "case": "kref_init",
+        "unit": "interface_kref",
+        "test_level": 0
+    },
+    {
+        "test": "test_kref_get",
+        "case": "kref_get",
+        "unit": "interface_kref",
+        "test_level": 0
+    },
+    {
+        "test": "test_kref_get_unless",
+        "case": "kref_get_unless",
+        "unit": "interface_kref",
+        "test_level": 0
+    },
+    {
+        "test": "test_kref_put",
+        "case": "kref_put",
+        "unit": "interface_kref",
+        "test_level": 0
+    },
+    {
+        "test": "test_kref_put_return",
+        "case": "kref_put_return",
+        "unit": "interface_kref",
+        "test_level": 0
+    },
+    {
         "test": "test_lock_acquire_release",
         "case": "mutex_acquire_release",
         "unit": "interface_lock",

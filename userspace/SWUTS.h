@@ -39,6 +39,7 @@
  *   - @ref SWUTS-interface-static_analysis
  *   - @ref SWUTS-interface-string
  *   - @ref SWUTS-interface-worker
+ *   - @ref SWUTS-interface-kref
  *   - @ref SWUTS-bus
  *   - @ref SWUTS-falcon
  *   - @ref SWUTS-netlist
