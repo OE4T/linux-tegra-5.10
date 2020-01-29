@@ -57,6 +57,7 @@ UNITS :=				\
 	$(UNIT_SRC)/posix/rwsem		\
 	$(UNIT_SRC)/posix/queue		\
 	$(UNIT_SRC)/posix/utils		\
+	$(UNIT_SRC)/posix/circ_buf	\
 	$(UNIT_SRC)/bus			\
 	$(UNIT_SRC)/pramin		\
 	$(UNIT_SRC)/ptimer		\

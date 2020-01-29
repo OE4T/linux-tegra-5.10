@@ -4143,6 +4143,18 @@
         "test_level": 0
     },
     {
+        "test": "test_circbufcnt",
+        "case": "circbufcnt",
+        "unit": "posix_circbuf",
+        "test_level": 0
+    },
+    {
+        "test": "test_circbufspace",
+        "case": "circbufspace",
+        "unit": "posix_circbuf",
+        "test_level": 0
+    },
+    {
         "test": "test_cond_init_destroy",
         "case": "init",
         "unit": "posix_cond",

@@ -61,6 +61,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/posix/kmem
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/rwsem
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/queue
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/utils
+NV_REPOSITORY_COMPONENTS += userspace/units/posix/circ_buf
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/bit-utils
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/bsearch
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/lock
