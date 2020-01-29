@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,31 @@
 
 #include <nvgpu/bug.h>
 
+/**
+ * @brief Return count in buffer.
+ *
+ * @param head [in]        Head of the buffer.
+ * @param tail [in]        Tail of the buffer.
+ * @param size [in]        Max number of elements in buffer.
+ *
+ * Calculates the number of elements present in the circular buffer and
+ * returns the value.
+ *
+ * @return Count of elements in the buffer.
+ */
 #define CIRC_CNT(head, tail, size) (((head) - (tail)) & ((size)-1U))
+
+/**
+ * @brief Return space in buffer.
+ *
+ * @param head [in]        Head of the buffer.
+ * @param tail [in]        Tail of the buffer.
+ * @param size [in]        Max number of elements in buffer.
+ *
+ * Calculates the space available in the circular buffer and returns the value.
+ *
+ * @return The space available in the buffer.
+ */
 #define CIRC_SPACE(head, tail, size) CIRC_CNT((tail), ((head)+1U), (size))
 
 #endif /* NVGPU_POSIX_CIRC_BUF_H */

@@ -25,6 +25,16 @@
 
 #include <nvgpu/bitops.h>
 
+/**
+ * @brief Integer logarithm for base 2.
+ *
+ * @param x [in]	The number to get the log for.
+ *
+ * Calculates the log to the base 2 of input value \a x and returns the
+ * integer value of the same.
+ *
+ * @return Integer value of log to the base 2 of input \a x.
+ */
 #define ilog2(x)	({						\
 				unsigned long fls_val =	nvgpu_fls(x);	\
 									\
@@ -33,6 +43,15 @@
 				fls_val;				\
 			})
 
+/**
+ * @brief Round up to the power of two.
+ *
+ * @param x [in]     Number to round up.
+ *
+ * Rounds up the input number \a x to power of two and returns.
+ *
+ * @return Input value \a x rounded up to the power of two.
+ */
 #define roundup_pow_of_two(x)						\
 			({						\
 				unsigned long ret;			\
@@ -46,6 +65,15 @@
 				ret;					\
 			})
 
+/**
+ * @brief Round down to the power of two.
+ *
+ * @param x [in]     Number to round down.
+ *
+ * Rounds down the input number \a x to power of two and returns.
+ *
+ * @return Input value \a x rounded down to the power of two.
+ */
 #define rounddown_pow_of_two(x)						\
 			({						\
 				unsigned long ret;			\
@@ -59,6 +87,15 @@
 				ret;					\
 			})
 
+/**
+ * @brief Check for power of 2.
+ *
+ * @param x [in]     Number to check.
+ *
+ * Checks if the input value \a x is a power of two or not.
+ *
+ * @return True if the input \a x is a power of two, else returns false.
+ */
 #define is_power_of_2(x)						\
 	(bool)({							\
 		typeof(x) __x__ = (x);					\
