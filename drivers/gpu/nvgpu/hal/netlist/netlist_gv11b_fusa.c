@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@ int gv11b_netlist_get_name(struct gk20a *g, int index, char *name)
 		(void) strcpy(name, GV11B_NETLIST_IMAGE_FW_NAME);
 		break;
 #endif
+#ifdef CONFIG_NVGPU_NON_FUSA
 #ifdef NVGPU_NETLIST_IMAGE_A
 	case NETLIST_SLOT_A:
 		(void) strcpy(name, NVGPU_NETLIST_IMAGE_A);
@@ -48,6 +49,7 @@ int gv11b_netlist_get_name(struct gk20a *g, int index, char *name)
 	case NETLIST_SLOT_C:
 		(void) strcpy(name, NVGPU_NETLIST_IMAGE_C);
 		break;
+#endif
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_D
 	case NETLIST_SLOT_D:
