@@ -237,6 +237,9 @@ struct nvhost_device_data {
 
 	struct kobject *power_kobj;	/* kobject to hold power sysfs entries */
 	struct nvhost_device_power_attr *power_attrib;	/* sysfs attributes */
+	/* kobject to hold clk_cap sysfs entries */
+	struct kobject clk_cap_kobj;
+	struct kobj_attribute *clk_cap_attrs;
 	struct dentry *debugfs;		/* debugfs directory */
 
 	u32 nvhost_timeout_default;
