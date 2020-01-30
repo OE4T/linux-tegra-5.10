@@ -25,14 +25,10 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/ltc.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/power_features/pg.h>
-#include <nvgpu/gops_mc.h>
 
 #include "mc_gp10b.h"
-
-#include <nvgpu/atomic.h>
 
 #include <nvgpu/hw/gp10b/hw_mc_gp10b.h>
 

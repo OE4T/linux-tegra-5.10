@@ -1,7 +1,7 @@
 /*
  * GM20B Master Control
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,16 +22,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/timers.h>
-#include <nvgpu/atomic.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/ltc.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/bug.h>
 #include <nvgpu/engines.h>
-#include <nvgpu/power_features/pg.h>
-#include <nvgpu/gops_mc.h>
 
 #include "mc_gm20b.h"
 

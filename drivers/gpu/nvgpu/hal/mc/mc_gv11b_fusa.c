@@ -28,7 +28,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
 
-#include "mc_gp10b.h"
 #include "mc_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_mc_gv11b.h>
