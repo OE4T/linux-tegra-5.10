@@ -195,6 +195,7 @@ nvgpu-y += \
 	hal/bus/bus_gv100.o \
 	hal/bus/bus_tu104.o \
 	hal/class/class_gm20b.o \
+	hal/class/class_gp10b.o \
 	hal/class/class_tu104.o \
 	hal/clk/clk_gm20b.o \
 	hal/clk/clk_tu104.o \
@@ -577,8 +578,6 @@ nvgpu-y += \
 	hal/bus/bus_gv11b_fusa.o \
 	hal/ce/ce_gp10b_fusa.o \
 	hal/ce/ce_gv11b_fusa.o \
-	hal/class/class_gm20b_fusa.o \
-	hal/class/class_gp10b_fusa.o \
 	hal/class/class_gv11b_fusa.o \
 	hal/falcon/falcon_gk20a_fusa.o \
 	hal/fb/fb_gm20b_fusa.o \

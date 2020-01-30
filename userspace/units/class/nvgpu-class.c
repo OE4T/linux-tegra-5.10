@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,12 +59,6 @@ u32 valid_classes[] = {
 	0xC3C0U, /* VOLTA_COMPUTE_A */
 	0xC3B5U, /* VOLTA_DMA_COPY_A */
 	0xC36FU, /* VOLTA_CHANNEL_GPFIFO_A */
-	0xC0B5U, /* PASCAL_DMA_COPY_A */
-	0xC06FU, /* PASCAL_CHANNEL_GPFIFO_A */
-	0xB06FU, /* MAXWELL_CHANNEL_GPFIFO_A */
-	0xB0B5U, /* MAXWELL_DMA_COPY_A */
-	0xA140U, /* KEPLER_INLINE_TO_MEMORY_B */
-	0xA0B5U, /* KEPLER_DMA_COPY_A */
 };
 
 u32 invalid_classes[] = {
@@ -75,6 +69,12 @@ u32 invalid_classes[] = {
 	0xB1C0U, /* MAXWELL_COMPUTE_B */
 	0xB197U, /* MAXWELL_B */
 	0x902DU, /* FERMI_TWOD_A */
+	0xC0B5U, /* PASCAL_DMA_COPY_A */
+	0xC06FU, /* PASCAL_CHANNEL_GPFIFO_A */
+	0xB06FU, /* MAXWELL_CHANNEL_GPFIFO_A */
+	0xB0B5U, /* MAXWELL_DMA_COPY_A */
+	0xA140U, /* KEPLER_INLINE_TO_MEMORY_B */
+	0xA0B5U, /* KEPLER_DMA_COPY_A */
 	0x76543210U, /* random value */
 	0x0000U, /* random value */
 	0xC000U, /* random value */

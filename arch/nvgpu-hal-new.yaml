@@ -738,9 +738,7 @@ pramin:
 class_fusa:
   safe: yes
   owner: Seshendra G
-  sources: [ hal/class/class_gm20b_fusa.c,
-             hal/class/class_gm20b.h,
-             hal/class/class_gp10b_fusa.c,
+  sources: [ hal/class/class_gm20b.h,
              hal/class/class_gp10b.h,
              hal/class/class_gv11b_fusa.c,
              hal/class/class_gv11b.h ]
@@ -749,6 +747,7 @@ class:
   safe: no
   owner: Seshendra G
   sources: [ hal/class/class_gm20b.c,
+             hal/class/class_gp10b.c,
              hal/class/class_tu104.c,
              hal/class/class_tu104.h ]
 

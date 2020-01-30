@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,4 +40,33 @@ bool gm20b_class_is_valid_compute(u32 class_num)
 	} else {
 		return false;
 	}
+}
+
+bool gm20b_class_is_valid(u32 class_num)
+{
+	bool valid;
+
+	switch (class_num) {
+	case KEPLER_DMA_COPY_A:
+	case KEPLER_INLINE_TO_MEMORY_B:
+	case MAXWELL_DMA_COPY_A:
+	case MAXWELL_CHANNEL_GPFIFO_A:
+		valid = true;
+		break;
+
+	case MAXWELL_COMPUTE_B:
+		valid = true;
+		break;
+#ifdef CONFIG_NVGPU_GRAPHICS
+	case MAXWELL_B:
+	case FERMI_TWOD_A:
+		valid = true;
+		break;
+#endif
+	default:
+		valid = false;
+		break;
+	}
+
+	return valid;
 }

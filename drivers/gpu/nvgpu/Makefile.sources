@@ -169,8 +169,6 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/bus/bus_gv11b_fusa.c \
 	hal/ce/ce_gp10b_fusa.c \
 	hal/ce/ce_gv11b_fusa.c \
-	hal/class/class_gm20b_fusa.c \
-	hal/class/class_gp10b_fusa.c \
 	hal/class/class_gv11b_fusa.c \
 	hal/falcon/falcon_gk20a_fusa.c \
 	hal/fb/fb_gm20b_fusa.c \
@@ -256,6 +254,7 @@ srcs += hal/init/hal_gp10b.c \
 	hal/mc/mc_gm20b.c  \
 	hal/bus/bus_gk20a.c \
 	hal/class/class_gm20b.c \
+	hal/class/class_gp10b.c \
 	hal/clk/clk_gm20b.c \
 	hal/falcon/falcon_gk20a.c \
 	hal/gr/config/gr_config_gm20b.c \

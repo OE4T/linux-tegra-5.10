@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,9 @@
 #include <nvgpu/class.h>
 #include <nvgpu/barrier.h>
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 #include "class_gp10b.h"
+#endif
 #include "class_gv11b.h"
 
 bool gv11b_class_is_valid(u32 class_num)
@@ -44,7 +46,11 @@ bool gv11b_class_is_valid(u32 class_num)
 		break;
 #endif
 	default:
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		valid = gp10b_class_is_valid(class_num);
+#else
+		valid = false;
+#endif
 		break;
 	}
 	return valid;

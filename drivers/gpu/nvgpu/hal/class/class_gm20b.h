@@ -26,10 +26,7 @@
 #include <nvgpu/types.h>
 
 bool gm20b_class_is_valid(u32 class_num);
-
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 bool gm20b_class_is_valid_gfx(u32 class_num);
 bool gm20b_class_is_valid_compute(u32 class_num);
-#endif
 
 #endif /* NVGPU_CLASS_GM20B */

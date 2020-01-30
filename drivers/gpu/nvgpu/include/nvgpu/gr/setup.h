@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -63,6 +63,9 @@ struct nvgpu_gr_ctx;
  * - Initializing various other fields in context image.
  * - Mapping global context buffers into context image.
  * - Committing the context image into channel instance block.
+ *
+ * Note that if requested class is a valid class but not a COMPUTE class, this
+ * function will return 0.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ENOMEM if memory allocation fails for any context image.

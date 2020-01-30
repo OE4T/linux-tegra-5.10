@@ -26,9 +26,7 @@
 #include <nvgpu/types.h>
 
 bool gp10b_class_is_valid(u32 class_num);
-#ifdef CONFIG_NVGPU_NON_FUSA
 bool gp10b_class_is_valid_compute(u32 class_num);
-#endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 bool gp10b_class_is_valid_gfx(u32 class_num);

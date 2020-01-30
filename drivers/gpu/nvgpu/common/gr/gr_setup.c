@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -153,6 +153,17 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 	}
 
 	c->obj_class = class_num;
+
+#ifndef CONFIG_NVGPU_HAL_NON_FUSA
+	/*
+	 * Only compute class is valid in safety build, Return success for valid
+	 * non compute classees. Invalid classes are indentified by above check
+	 * with nvgpu_gr_setup_validate_channel_and_class() function.
+	 */
+	if (!g->ops.gpu_class.is_valid_compute(class_num)) {
+		return 0;
+	}
+#endif
 
 	tsg = nvgpu_tsg_from_ch(c);
 	if (tsg == NULL) {

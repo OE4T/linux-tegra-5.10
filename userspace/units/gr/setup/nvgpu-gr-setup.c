@@ -660,6 +660,12 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 		unit_return_fail(m, "setup channel allocation failed\n");
 	}
 
+	/* DMA_COPY should pass, but it own't allocate obj ctx */
+	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_DMA_COPY_A, 0);
+	if (err != 0) {
+		unit_return_fail(m, "setup alloc obj_ctx failed\n");
+	}
+
 	err = g->ops.gr.setup.alloc_obj_ctx(gr_setup_ch, VOLTA_COMPUTE_A, 0);
 	if (err != 0) {
 		unit_return_fail(m, "setup alloc obj_ctx failed\n");
