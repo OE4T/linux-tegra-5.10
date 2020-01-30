@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -676,6 +676,30 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		return -EFAULT;
 	}
 
+	/* Enforce admin permission check */
+	switch (ifdata.ifcmd) {
+	case ETHER_AVB_ALGORITHM:
+	case EQOS_L3_L4_FILTER_CMD:
+	case EQOS_IPV4_FILTERING_CMD:
+	case EQOS_IPV6_FILTERING_CMD:
+	case EQOS_UDP_FILTERING_CMD:
+	case EQOS_TCP_FILTERING_CMD:
+	case EQOS_VLAN_FILTERING_CMD:
+	case EQOS_L2_DA_FILTERING_CMD:
+	case ETHER_CONFIG_ARP_OFFLOAD:
+	case ETHER_CONFIG_LOOPBACK_MODE:
+		if (!capable(CAP_NET_ADMIN)) {
+			ret = -EPERM;
+			dev_info(pdata->dev,
+				 "%s(): error: requires admin permission!\n",
+				 __func__);
+			goto err;
+		}
+		break;
+	default:
+		break;
+	}
+
 	switch (ifdata.ifcmd) {
 	case ETHER_AVB_ALGORITHM:
 		ret = ether_set_avb_algo(ndev, &ifdata);
@@ -729,7 +753,7 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	default:
 		break;
 	}
-
+err:
 	ifdata.command_error = ret;
 	if (copy_to_user(ifr->ifr_data, &ifdata, sizeof(ifdata)) != 0U) {
 		dev_err(pdata->dev, "%s: copy_to_user failed\n", __func__);
