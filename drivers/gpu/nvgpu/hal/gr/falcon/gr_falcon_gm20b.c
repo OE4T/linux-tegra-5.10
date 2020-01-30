@@ -198,8 +198,7 @@ void gm20b_gr_falcon_start_ucode(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0U),
-		gr_fecs_ctxsw_mailbox_clear_value_f(~U32(0U)));
+	g->ops.gr.falcon.fecs_ctxsw_clear_mailbox(g, 0U, (~U32(0U)));
 
 	nvgpu_writel(g, gr_gpccs_dmactl_r(), gr_gpccs_dmactl_require_ctx_f(0U));
 	nvgpu_writel(g, gr_fecs_dmactl_r(), gr_fecs_dmactl_require_ctx_f(0U));

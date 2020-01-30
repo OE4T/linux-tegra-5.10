@@ -30,6 +30,8 @@ struct nvgpu_fecs_method_op;
 struct nvgpu_fecs_host_intr_status;
 struct nvgpu_gr_falcon_query_sizes;
 
+void gm20b_gr_falcon_fecs_ctxsw_clear_mailbox(struct gk20a *g,
+					u32 reg_index, u32 clear_val);
 u32 gm20b_gr_falcon_read_fecs_ctxsw_mailbox(struct gk20a *g, u32 reg_index);
 void gm20b_gr_falcon_fecs_host_clear_intr(struct gk20a *g, u32 fecs_intr);
 u32 gm20b_gr_falcon_fecs_host_intr_status(struct gk20a *g,

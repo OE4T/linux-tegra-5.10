@@ -756,6 +756,8 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 			.dump_stats = gm20b_gr_falcon_fecs_dump_stats,
 			.fecs_ctxsw_mailbox_size =
 				gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
+			.fecs_ctxsw_clear_mailbox =
+				gm20b_gr_falcon_fecs_ctxsw_clear_mailbox,
 			.get_fecs_ctx_state_store_major_rev_id =
 				gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id,
 			.start_gpccs = gm20b_gr_falcon_start_gpccs,

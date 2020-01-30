@@ -51,6 +51,12 @@
 #define CTXSW_INTR0 BIT32(0)
 #define CTXSW_INTR1 BIT32(1)
 
+void gm20b_gr_falcon_fecs_ctxsw_clear_mailbox(struct gk20a *g,
+			u32 reg_index, u32 clear_val)
+{
+	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(reg_index),
+			gr_fecs_ctxsw_mailbox_clear_value_f(clear_val));
+}
 
 u32 gm20b_gr_falcon_get_gpccs_start_reg_offset(void)
 {
@@ -80,9 +86,9 @@ void gm20b_gr_falcon_start_gpccs(struct gk20a *g)
 
 void gm20b_gr_falcon_start_fecs(struct gk20a *g)
 {
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0U), ~U32(0U));
+	g->ops.gr.falcon.fecs_ctxsw_clear_mailbox(g, 0U, ~U32(0U));
 	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_r(1U), 1U);
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(6U), 0xffffffffU);
+	g->ops.gr.falcon.fecs_ctxsw_clear_mailbox(g, 6U, 0xffffffffU);
 	nvgpu_writel(g, gr_fecs_cpuctl_alias_r(),
 			gr_fecs_cpuctl_startcpu_f(1U));
 }
@@ -127,7 +133,7 @@ void gm20b_gr_falcon_bind_instblk(struct gk20a *g,
 			FECS_ARB_CMD_TIMEOUT_DEFAULT_US;
 	u32 inst_ptr_u32;
 
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), U32_MAX);
+	g->ops.gr.falcon.fecs_ctxsw_clear_mailbox(g, 0U, U32_MAX);
 
 	while (((nvgpu_readl(g, gr_fecs_ctxsw_status_1_r()) &
 			gr_fecs_ctxsw_status_1_arb_busy_m()) != 0U) &&
@@ -641,8 +647,7 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 			     op.mailbox.data);
 	}
 
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0),
-		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
+	g->ops.gr.falcon.fecs_ctxsw_clear_mailbox(g, 0U, op.mailbox.clr);
 
 	nvgpu_writel(g, gr_fecs_method_data_r(), op.method.data);
 	nvgpu_writel(g, gr_fecs_method_push_r(),
@@ -1038,8 +1043,8 @@ int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&gr_falcon->fecs_mutex);
 
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(op.mailbox.id),
-		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
+	g->ops.gr.falcon.fecs_ctxsw_clear_mailbox(g, op.mailbox.id,
+					op.mailbox.clr);
 
 	nvgpu_writel(g, gr_fecs_method_data_r(), op.method.data);
 	nvgpu_writel(g, gr_fecs_method_push_r(),

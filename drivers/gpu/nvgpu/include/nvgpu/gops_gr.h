@@ -254,6 +254,19 @@ struct gops_gr_falcon {
 				       u32 reg_index);
 
 	/**
+	 * @brief Clear context switch mailbox for bitmask speciifed.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param reg_index [in]	Register Index value.
+	 *        clear_val [in]	Bitmask of bits to be clear.
+	 *
+	 * This function clears specified bitmask of context switch mailbox
+	 * register value.
+	 */
+	void (*fecs_ctxsw_clear_mailbox)(struct gk20a *g,
+				u32 reg_index, u32  clear_val);
+
+	/**
 	 * @brief Dump context switch mailbox register values.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
