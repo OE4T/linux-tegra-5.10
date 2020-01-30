@@ -332,7 +332,7 @@ int test_reset_mask(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_wait_for_deferred_interrupts
  *
- * Description: Validate functionality of HAL to get reset mask for a unit.
+ * Description: Validate functionality of waiting for deferred interrupts.
  *
  * Test Type: Feature
  *
@@ -351,6 +351,7 @@ int test_reset_mask(struct unit_module *m, struct gk20a *g, void *args);
  * - Call the API.
  * - Set the irq count states in the gk20a struct to simulate pending non-stall
  *   interrupts.
+ * - Disable cond fault injection.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */

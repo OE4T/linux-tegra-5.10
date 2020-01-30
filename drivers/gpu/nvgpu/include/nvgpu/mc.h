@@ -120,9 +120,15 @@
 struct gk20a;
 
 /**
- * Enumeration of all units intended to be used by any HAL that requires
- * unit as parameter. Units are added to the enumeration as needed, so
- * it is not complete.
+ * @defgroup NVGPU_MC_UNIT_ENUMS
+ *
+ * Enumeration of all units intended to be used by enabling/disabling HAL
+ * that requires unit as parameter. Units are added to the enumeration as
+ * needed, so it is not complete.
+ */
+
+/**
+ * @ingroup NVGPU_MC_UNIT_ENUMS
  */
 enum nvgpu_unit {
 	/** FIFO Engine */
@@ -144,15 +150,39 @@ enum nvgpu_unit {
 /** Bit offset of the Architecture field in the HW version register */
 #define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
 
-/** Index for accessing registers corresponding to stalling interrupts */
+/**
+ * @defgroup NVGPU_MC_INTR_TYPE_DEFINES
+ *
+ * Defines of all MC unit interrupt types.
+ */
+
+/**
+ * @ingroup NVGPU_MC_INTR_TYPE_DEFINES
+ */
+/**
+ * Index for accessing registers corresponding to stalling interrupts.
+ */
 #define NVGPU_MC_INTR_STALLING		0U
-/** Index for accessing registers corresponding to non-stalling interrupts */
+/**
+ * Index for accessing registers corresponding to non-stalling
+ * interrupts.
+ */
 #define NVGPU_MC_INTR_NONSTALLING	1U
 
 /** Operations that will need to be executed on non stall workqueue. */
 #define NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
 #define NVGPU_NONSTALL_OPS_POST_EVENTS		BIT32(1)
 
+/**
+ * @defgroup NVGPU_MC_INTR_UNIT_DEFINES
+ *
+ * Defines of all units intended to be used by any interrupt related
+ * HAL that requires unit as parameter.
+ */
+
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ */
 /** MC interrupt for Bus unit. */
 #define MC_INTR_UNIT_BUS	0
 /** MC interrupt for PRIV_RING unit. */
@@ -174,9 +204,22 @@ enum nvgpu_unit {
 /** MC interrupt for FBPA unit. */
 #define MC_INTR_UNIT_FBPA	9
 
-/** Value to be passed to mc.intr_*_unit_config to enable the interrupt. */
+/**
+ * @defgroup NVGPU_MC_INTR_ENABLE_DEFINES
+ *
+ * Defines for MC unit interrupt enabling/disabling.
+ */
+
+/**
+ * @ingroup NVGPU_MC_INTR_ENABLE_DEFINES
+ * Value to be passed to mc.intr_*_unit_config to enable the interrupt.
+ */
 #define MC_INTR_ENABLE		true
-/** Value to be passed to mc.intr_*_unit_config to disable the interrupt. */
+
+/**
+ * @ingroup NVGPU_MC_INTR_ENABLE_DEFINES
+ * Value to be passed to mc.intr_*_unit_config to disable the interrupt.
+ */
 #define MC_INTR_DISABLE		false
 
 /**
@@ -184,6 +227,7 @@ enum nvgpu_unit {
  * interrupt handling of the units/engines.
  */
 struct nvgpu_mc {
+	/** Lock to access the MC interrupt registers */
 	struct nvgpu_spinlock intr_lock;
 
 	/** Lock to access the mc_enable_r */
@@ -265,7 +309,7 @@ void nvgpu_wait_for_deferred_interrupts(struct gk20a *g);
  *
  * @param g [in]	The GPU driver struct.
  *
- * This function is invoked before powering off or finishing
+ * This function is invoked before powering on, powering off or finishing
  * SW quiesce of nvgpu driver.
  *
  * Steps:

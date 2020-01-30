@@ -182,7 +182,7 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 	u32 engine_id = 0U;
 	enum nvgpu_fifo_engine engine_enum;
 
-	mc_intr_0 = nvgpu_readl(g, mc_intr_r(0));
+	mc_intr_0 = nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
 
 	nvgpu_log(g, gpu_dbg_intr, "stall intr 0x%08x", mc_intr_0);
 

@@ -784,6 +784,9 @@ int test_wait_for_deferred_interrupts(struct unit_module *m, struct gk20a *g,
 	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 1);
 	nvgpu_wait_for_deferred_interrupts(g);
 
+	/* disable the fault injection */
+	nvgpu_posix_enable_fault_injection(cond_fi, false, 0);
+
 	return UNIT_SUCCESS;
 }
 

@@ -25,14 +25,6 @@
 #include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
 
-/**
- * nvgpu_wait_for_deferred_interrupts - Wait for interrupts to complete
- *
- * @g - The GPU to wait on.
- *
- * Waits until all interrupt handlers that have been scheduled to run have
- * completed.
- */
 void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
 {
 	/* wait until all stalling irqs are handled */

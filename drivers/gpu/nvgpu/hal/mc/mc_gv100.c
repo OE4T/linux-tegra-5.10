@@ -1,7 +1,7 @@
 /*
  * GV100 master
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@ bool gv100_mc_is_intr_nvlink_pending(struct gk20a *g, u32 mc_intr_0)
 bool gv100_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 engine_id,
 			u32 *eng_intr_pending)
 {
-	u32 mc_intr_0 = nvgpu_readl(g, mc_intr_r(0));
+	u32 mc_intr_0 = nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
 	u32 stall_intr, eng_intr_mask;
 
 	eng_intr_mask = nvgpu_engine_act_interrupt_mask(g, engine_id);
