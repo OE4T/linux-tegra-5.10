@@ -3648,6 +3648,66 @@
         "test_level": 0
     },
     {
+        "test": "test_rc_init",
+        "case": "rc_init",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_fifo_recover",
+        "case": "rc_fifo_recover",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_ctxsw_timeout",
+        "case": "rc_ctxsw_timeout",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_pbdma_fault",
+        "case": "rc_pbdma_fault",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_preempt_timeout",
+        "case": "rc_preempt_timeout",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_gr_fault",
+        "case": "rc_gr_fault",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_sched_error_bad_tsg",
+        "case": "rc_sched_error_bad_tsg",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_tsg_and_related_engines",
+        "case": "rc_tsg_and_related_engines",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_mmu_fault",
+        "case": "rc_mmu_fault",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
+        "test": "test_rc_deinit",
+        "case": "rc_deinit",
+        "unit": "nvgpu-rc",
+        "test_level": 0
+    },
+    {
         "test": "test_gv11b_usermode",
         "case": "usermode",
         "unit": "nvgpu_usermode_gv11b",
