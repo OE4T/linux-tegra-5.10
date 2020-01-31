@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -6385,6 +6385,13 @@ static int tegra_dc_probe(struct platform_device *ndev)
 		dev_err(&ndev->dev, "can't add dc\n");
 		goto err_free;
 	}
+
+	/*
+	 * NvDisplay can issue 40bits of addresses but BIT(39) is reserved for
+	 * Block Linear surfaces. So set Display IOVA range to 0 - (BIT(39)-1).
+	 */
+	if (tegra_dc_is_t19x())
+		dma_set_mask(&ndev->dev, DMA_BIT_MASK(39));
 
 	dt_pdata = of_dc_parse_platform_data(ndev, dt_pdata);
 	if (IS_ERR_OR_NULL(dt_pdata)) {
