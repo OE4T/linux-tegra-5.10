@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MC_GP10B_H
-#define MC_GP10B_H
+#ifndef NVGPU_MC_GP10B_H
+#define NVGPU_MC_GP10B_H
 
 #include <nvgpu/types.h>
 
@@ -53,4 +53,4 @@ void mc_gp10b_intr_nonstall_resume(struct gk20a *g);
 void mc_gp10b_ltc_isr(struct gk20a *g);
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
-#endif
+#endif /* NVGPU_MC_GP10B_H */

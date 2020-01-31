@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MC_GV11B_H
-#define MC_GV11B_H
+#ifndef NVGPU_MC_GV11B_H
+#define NVGPU_MC_GV11B_H
 
 #include <nvgpu/types.h>
 
@@ -35,4 +35,4 @@ bool gv11b_mc_is_mmu_fault_pending(struct gk20a *g);
 bool gv11b_mc_is_intr_hub_pending(struct gk20a *g, u32 mc_intr_0);
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
-#endif
+#endif /* NVGPU_MC_GV11B_H */

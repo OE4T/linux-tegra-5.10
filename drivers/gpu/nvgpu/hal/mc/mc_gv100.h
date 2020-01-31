@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MC_GV100_H
-#define MC_GV100_H
+#ifndef NVGPU_MC_GV100_H
+#define NVGPU_MC_GV100_H
 
 #include <nvgpu/types.h>
 
@@ -32,4 +32,4 @@ bool gv100_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 engine_id,
 			u32 *eng_intr_pending);
 u32  gv100_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
 
-#endif
+#endif /* NVGPU_MC_GV100_H */
