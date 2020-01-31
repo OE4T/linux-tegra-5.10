@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FILE_OPS_H
-#define NVGPU_FILE_OPS_H
+#ifndef NVGPU_POSIX_FILE_OPS_H
+#define NVGPU_POSIX_FILE_OPS_H
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -74,5 +74,5 @@ ssize_t nvgpu_fread(int fildes, void* buf, size_t nbytes);
  * The function closes the file specified by the file descriptor \a fd.
  */
 void nvgpu_close(int fd);
-#endif /* NVGPU_FILE_OPS_H */
+#endif /* NVGPU_POSIX_FILE_OPS_H */
 
