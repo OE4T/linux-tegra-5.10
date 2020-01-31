@@ -1,0 +1,43 @@
+NVIDIA Tegra Boot and Power Management Processor (BPMP)
+
+The BPMP is a specific processor in Tegra chip, which is designed for
+booting process handling and offloading the power management, clock
+management, and reset control tasks from the CPU. The binding document
+defines the resources that would be used by the BPMP firmware driver,
+which can create the interprocessor communication (IPC) between the CPU
+and BPMP.
+
+Required properties:
+- name : Should be bpmp
+- compatible
+    Array of strings
+    One of:
+    - "nvidia,tegra186-bpmp"
+- dma-coherent: Must be present
+- #power-domain-cells : Should be 1.
+- #strap-cells: Should be 1
+- #nvidia,controller-id-cells: Should be 1
+- iommus: Phandle to the SMMU specifier
+- reg: Three { base-address, size } pairs where first pair contains the
+  bpmp register space, the second containing IPC TX shared memory and
+  the third containing IPC RX shared memory.
+
+
+Example:
+
+	bpmp: bpmp {
+		compatible = "nvidia,tegra186-bpmp";
+		iommus = <&smmu TEGRA_SID_BPMP>;
+		dma-coherent;
+		reg = <0x0 0x0d000000 0x0 0x00800000>,
+			<0x0 0x4004e000 0x0 0x00001000>,
+			<0x0 0x4004f000 0x0 0x00001000>;
+		status = "disabled";
+		#power-domain-cells = <1>;
+		#strap-cells = <1>;
+		#nvidia,controller-id-cells = <1>;
+
+		bpmpthermal {
+			...
+		};
+	};
