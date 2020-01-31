@@ -49,7 +49,10 @@ struct timespec;
  * - Initialize the number of synpoints according to the
  *   associated hardware.
  * - Allocate and initialize different fields associated with
- *   nvhost device.
+ *   nvhost device by calling #nvgpu_nvhost_set_aperture().
+ * - #nvgpu_nvhost_set_aperture() will do the following
+ *
+ *
  *
  * @return		0, if success.
  *			-ENOMEM, if it fails.
@@ -123,11 +126,13 @@ const char *nvgpu_nvhost_syncpt_get_name(
  * - Read the max value of the sync point set at allocation of the
  *   sync point.
  * - If the max value is less than current, increment the syncpoint
- *   by the difference(max - current) using #NvRmHost1xSyncpointIncrement().
+ *   by the difference(max - current) by calling
+ *   #nvgpu_nvhost_syncptshim_map_increment().
  *
  * @return			None.
  */
-void nvgpu_nvhost_syncpt_set_min_eq_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+void nvgpu_nvhost_syncpt_set_min_eq_max_ext(struct nvgpu_nvhost_dev
+	*nvgpu_syncpt_dev,
 	u32 id);
 
 /**
@@ -151,9 +156,10 @@ u32 nvgpu_nvhost_syncpt_read_maxval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
  * @param nvgpu_syncpt_dev [in]	Sync point device.
  * @param id [in]		Sync point id.
  *
- * - Read the current value of the sync point by #NvRmHost1xSyncpointRead().
- * - Increment the value by 256. This is just to make the sync point safe
- *   where all waiters of the sync point can be safely released.
+ * - Read the current value of the sync point by #nvgpu_nvhost_syncptshim_map_read.
+ * - Increment the value by calling #nvgpu_nvhost_syncptshim_map_increment.
+ *   This is just to make the sync point safe where all waiters of the sync point
+ *   can be safely released.
  *
  * @return			None.
  */
@@ -181,7 +187,12 @@ bool nvgpu_nvhost_syncpt_is_valid_pt_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_d
  * @param id [in]		Sync point id.
  *
  * - Check the validity of the given sync point.
- * - Free the fields allocated by #nvgpu_nvhost_get_syncpt_client_managed().
+ * - Call #NvRmHost1xWaiterFree() to free the waiter.
+ * - Call #nvgpu_nvrmmem_unmap() to unmap the sync point address space
+ *   from the process address space.
+ * - Free the mem handle by calling #nvgpu_nvrmmemhandle_free().
+ * - Free the sync point by calling #NvRmHost1xSyncpointFree().
+ * - Free the memory allocated by #nvgpu_nvhost_get_syncpt_client_managed().
  *
  * @return			None.
  */
@@ -198,12 +209,18 @@ void nvgpu_nvhost_syncpt_put_ref_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
  *   -- nvgpu_nvhost_allocate_syncpoint() will do the following
  *      - Call #NvRmHost1xSyncpointAllocate() to allocate sync point.
  *      - Call #NvRmHost1xSyncpointGetId() to get the ID.
- *      - Call #NvRmHost1xWaiterAllocate() to get waiter handle if needed.
- *      - Store the above datas in to the nvgpu nvhost device.
+ *	- Call #NvRmHost1xWaiterAllocate() to get waiter handle if needed.
+ *      - Call #NvRmHost1xSyncpointCreateMemHandle() to create a mem handle
+ *        to the sync point allocated.
+ *      - Call #nvgpu_nvrmmem_map() to map 4k to our process address space
+ *        using mem handle created.
+ *      - Store the above datas in to the nvgpu nvhost device for the
+ *        allocated id.
  *
  * @return			Sync point id allocated.
  */
-u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev
+	*nvgpu_syncpt_dev,
 	const char *syncpt_name);
 
 #ifdef CONFIG_SYNC
