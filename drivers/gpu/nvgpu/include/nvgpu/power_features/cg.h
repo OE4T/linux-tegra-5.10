@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@
  *   + bus - GR init.
  *   + Chiplet - GR init.
  *   + GR - GR init.
- *   + CTXSW firmware - GR init.
+ *   + THERM - THERM init.
  *   + PERF - GR init.
  *   + XBAR - GR init.
  *   + HSHUB - GR init.
@@ -65,7 +65,6 @@
  *   + CE - CE init.
  *   + GR - Golden context creation, GR init.
  *   + bus -  GR init.
- *   + CTXSW firmware - GR init.
  *   + XBAR - GR init.
  *   + HSHUB - GR init.
  *
@@ -107,6 +106,7 @@
  *   + nvgpu_cg_slcg_priring_load_enable()
  *   + nvgpu_cg_slcg_fifo_load_enable()
  *   + nvgpu_cg_slcg_pmu_load_enable()
+ *   + nvgpu_cg_slcg_therm_load_enable()
  *   + nvgpu_cg_slcg_ce2_load_enable()
  *
  */
@@ -115,34 +115,67 @@
 #include <nvgpu/bitops.h>
 
 /**
- * Parameters for init_elcg_mode/init_blcg_mode.
+ * @defgroup NVGPU_ELCG_MODE_DEFINES
+ *
+ * Parameters for init_elcg_mode.
  */
 
-/** Engine level clk always running, i.e. disable elcg. */
+/**
+ * @ingroup NVGPU_ELCG_MODE_DEFINES
+ * Engine level clk always running, i.e. disable elcg.
+ */
 #define ELCG_RUN	BIT32(0U)
-/** Engine level clk is stopped. */
+/**
+ * @ingroup NVGPU_ELCG_MODE_DEFINES
+ * Engine level clk is stopped.
+ */
 #define ELCG_STOP	BIT32(1U)
-/** Engine level clk will run when non-idle, i.e. standard elcg mode. */
+/**
+ * @ingroup NVGPU_ELCG_MODE_DEFINES
+ * Engine level clk will run when non-idle, i.e. standard elcg mode.
+ */
 #define ELCG_AUTO	BIT32(2U)
 
-/** Block level clk always running, i.e. disable blcg. */
+/**
+ * @defgroup NVGPU_BLCG_MODE_DEFINES
+ *
+ * Parameters for init_blcg_mode.
+ */
+
+/**
+ * @ingroup NVGPU_BLCG_MODE_DEFINES
+ * Block level clk always running, i.e. disable blcg.
+ */
 #define BLCG_RUN	BIT32(0U)
-/** Block level clk will run when non-idle, i.e. standard blcg mode. */
+/**
+ * @ingroup NVGPU_BLCG_MODE_DEFINES
+ * Block level clk will run when non-idle, i.e. standard blcg mode.
+ */
 #define BLCG_AUTO	BIT32(1U)
 
 /**
+ * @defgroup NVGPU_CG_MODE_DEFINES
+ *
  * Mode to be configured in engine gate ctrl registers.
  */
 
-/** Engine Level Clock Gating (ELCG) Mode. */
+/**
+ * @ingroup NVGPU_CG_MODE_DEFINES
+ * Engine Level Clock Gating (ELCG) Mode.
+ */
 #define ELCG_MODE	BIT32(0U)
-/** Block Level Clock Gating (BLCG) Mode. */
+/**
+ * @ingroup NVGPU_CG_MODE_DEFINES
+ * Block Level Clock Gating (BLCG) Mode.
+ */
 #define BLCG_MODE	BIT32(1U)
-/** Invalid Mode. */
+/**
+ * @ingroup NVGPU_CG_MODE_DEFINES
+ * Invalid Mode.
+ */
 #define INVALID_MODE	BIT32(2U)
 
 struct gk20a;
-struct nvgpu_fifo;
 
 /**
  * @brief Load register configuration for ELCG and BLCG for GR related units.
@@ -150,18 +183,15 @@ struct nvgpu_fifo;
  * @param g [in] The GPU driver struct.
  *
  * This function programs ELCG configuration for bus, chiplet, gr, perf,
- * ctxsw_firmware, xbar, hshub units and BLCG for bus, gr, ctxsw_firmware,
- * xbar and hshub. This is called in #nvgpu_gr_enable_hw after resetting GR
- * engine.
+ * xbar, hshub units and BLCG for bus, gr, xbar and hshub. This is
+ * called in #nvgpu_gr_enable_hw after resetting GR engine.
  *
  * Steps:
  * - Acquire the mutex #cg_pg_lock.
  * - Check if #slcg_enabled is set, else skip SLCG programming.
- * - Load SLCG prod settings for bus, chiplet, gr, ctxsw_firmware, perf,
- *   xbar, hshub.
+ * - Load SLCG prod settings for bus, chiplet, gr, perf, xbar, hshub.
  * - Check if #blcg_enabled is set, else skip BLCG programming.
- * - Load BLCG prod settings for bus, gr, ctxsw_firmware, xbar, hshub.
- * - Load GR pg prod settings.
+ * - Load BLCG prod settings for bus, gr, xbar, hshub.
  * - Release the mutex #cg_pg_lock.
  */
 void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g);

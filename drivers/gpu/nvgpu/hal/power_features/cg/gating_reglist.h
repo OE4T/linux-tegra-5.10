@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA Corporation. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef GATING_REGLIST_H
-#define GATING_REGLIST_H
+#ifndef NVGPU_CG_GATING_REGLIST_H
+#define NVGPU_CG_GATING_REGLIST_H
 
 #include <nvgpu/types.h>
 
@@ -33,4 +33,4 @@ struct gating_desc {
 	u32 disable;
 };
 
-#endif /* GATING_REGLIST_H */
+#endif /* NVGPU_CG_GATING_REGLIST_H */
