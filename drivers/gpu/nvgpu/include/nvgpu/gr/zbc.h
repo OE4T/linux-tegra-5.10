@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,6 @@
 
 /* index zero reserved to indicate "not ZBCd" */
 #define NVGPU_GR_ZBC_STARTOF_TABLE	1U
-/* match ltcs_ltss_dstg_zbc_index_address width (4) */
-#define NVGPU_GR_ZBC_SIZEOF_TABLE	16U
-#define NVGPU_GR_ZBC_TABLE_SIZE		(16U - 1U)
 
 #define NVGPU_GR_ZBC_TYPE_INVALID	0U
 #define NVGPU_GR_ZBC_TYPE_COLOR		1U

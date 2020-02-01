@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -103,6 +103,7 @@
 				((U32(v) & 0x1fU) << 16U)
 #define ltc_ltcs_ltss_dstg_zbc_index_r()                           (0x0017e338U)
 #define ltc_ltcs_ltss_dstg_zbc_index_address_f(v)        ((U32(v) & 0xfU) << 0U)
+#define ltc_ltcs_ltss_dstg_zbc_index_address_s()                            (4U)
 #define ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(i)\
 		(nvgpu_safe_add_u32(0x0017e33cU, nvgpu_safe_mult_u32((i), 4U)))
 #define ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v()       (0x00000004U)

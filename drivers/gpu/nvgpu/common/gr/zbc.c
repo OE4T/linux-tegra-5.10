@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,8 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 		}
 		/* add new table */
 		if (!added &&
-		    zbc->max_used_color_index < NVGPU_GR_ZBC_TABLE_SIZE) {
+			zbc->max_used_color_index <
+					g->ops.ltc.zbc_table_size(g)) {
 
 			c_tbl =
 			    &zbc->zbc_col_tbl[zbc->max_used_color_index];
@@ -102,7 +103,8 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 		}
 		/* add new table */
 		if (!added &&
-		    zbc->max_used_depth_index < NVGPU_GR_ZBC_TABLE_SIZE) {
+			zbc->max_used_depth_index <
+					g->ops.ltc.zbc_table_size(g)) {
 
 			d_tbl =
 			    &zbc->zbc_dep_tbl[zbc->max_used_depth_index];
@@ -154,8 +156,7 @@ int nvgpu_gr_zbc_add_depth(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			   struct nvgpu_gr_zbc_entry *depth_val, u32 index)
 {
 	/* update l2 table */
-	g->ops.ltc.set_zbc_depth_entry(g, depth_val->depth,
-					index + NVGPU_GR_ZBC_STARTOF_TABLE);
+	g->ops.ltc.set_zbc_depth_entry(g, depth_val->depth, index);
 
 	/* update local copy */
 	zbc->zbc_dep_tbl[index].depth = depth_val->depth;
@@ -174,8 +175,7 @@ int nvgpu_gr_zbc_add_color(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 	u32 i;
 
 	/* update l2 table */
-	g->ops.ltc.set_zbc_color_entry(g, color_val->color_l2,
-					index + NVGPU_GR_ZBC_STARTOF_TABLE);
+	g->ops.ltc.set_zbc_color_entry(g, color_val->color_l2, index);
 
 	/* update local copy */
 	for (i = 0; i < NVGPU_GR_ZBC_COLOR_VALUE_SIZE; i++) {
@@ -328,7 +328,7 @@ int nvgpu_gr_zbc_stencil_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 {
 	u32 index = query_params->index_size;
 
-	if (index >= NVGPU_GR_ZBC_TABLE_SIZE) {
+	if (index >= g->ops.ltc.zbc_table_size(g)) {
 		nvgpu_err(g, "invalid zbc stencil table index");
 		return -EINVAL;
 	}
@@ -384,8 +384,7 @@ static int gr_zbc_load_stencil_tbl(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 {
 	/* update l2 table */
 	if (g->ops.ltc.set_zbc_s_entry != NULL) {
-		g->ops.ltc.set_zbc_s_entry(g, stencil_val->depth,
-					index + NVGPU_GR_ZBC_STARTOF_TABLE);
+		g->ops.ltc.set_zbc_s_entry(g, stencil_val->depth, index);
 	}
 
 	/* update local copy */
@@ -444,7 +443,7 @@ bool nvgpu_gr_zbc_add_type_stencil(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 	}
 	/* add new table */
 	if (!added &&
-	    zbc->max_used_s_index < NVGPU_GR_ZBC_TABLE_SIZE) {
+		zbc->max_used_s_index < g->ops.ltc.zbc_table_size(g)) {
 
 		s_tbl = &zbc->zbc_s_tbl[zbc->max_used_s_index];
 		WARN_ON(s_tbl->ref_cnt != 0U);
@@ -479,10 +478,10 @@ int nvgpu_gr_zbc_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 	nvgpu_speculation_barrier();
 	switch (query_params->type) {
 	case NVGPU_GR_ZBC_TYPE_INVALID:
-		query_params->index_size = NVGPU_GR_ZBC_TABLE_SIZE;
+		query_params->index_size = g->ops.ltc.zbc_table_size(g);
 		break;
 	case NVGPU_GR_ZBC_TYPE_COLOR:
-		if (index >= NVGPU_GR_ZBC_TABLE_SIZE) {
+		if (index >= g->ops.ltc.zbc_table_size(g)) {
 			nvgpu_err(g,
 				"invalid zbc color table index");
 			return -EINVAL;
@@ -499,7 +498,7 @@ int nvgpu_gr_zbc_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 		query_params->ref_cnt = zbc->zbc_col_tbl[index].ref_cnt;
 		break;
 	case NVGPU_GR_ZBC_TYPE_DEPTH:
-		if (index >= NVGPU_GR_ZBC_TABLE_SIZE) {
+		if (index >= g->ops.ltc.zbc_table_size(g)) {
 			nvgpu_err(g,
 				"invalid zbc depth table index");
 			return -EINVAL;
@@ -532,20 +531,23 @@ int nvgpu_gr_zbc_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 static int gr_zbc_allocate_local_tbls(struct gk20a *g, struct nvgpu_gr_zbc *zbc)
 {
 	zbc->zbc_col_tbl = nvgpu_kzalloc(g,
-		 sizeof(struct zbc_color_table) * NVGPU_GR_ZBC_TABLE_SIZE);
+			sizeof(struct zbc_color_table) *
+			g->ops.ltc.zbc_table_size(g));
 	if (zbc->zbc_col_tbl == NULL) {
 		goto alloc_col_tbl_err;
 	}
 
 	zbc->zbc_dep_tbl = nvgpu_kzalloc(g,
-		 sizeof(struct zbc_depth_table) * NVGPU_GR_ZBC_TABLE_SIZE);
+			sizeof(struct zbc_depth_table) *
+			g->ops.ltc.zbc_table_size(g));
 
 	if (zbc->zbc_dep_tbl == NULL) {
 		goto alloc_dep_tbl_err;
 	}
 
 	zbc->zbc_s_tbl = nvgpu_kzalloc(g,
-		 sizeof(struct zbc_s_table) * NVGPU_GR_ZBC_TABLE_SIZE);
+			sizeof(struct zbc_s_table) *
+			g->ops.ltc.zbc_table_size(g));
 	if (zbc->zbc_s_tbl == NULL) {
 		goto alloc_s_tbl_err;
 	}

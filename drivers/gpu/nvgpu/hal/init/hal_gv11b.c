@@ -127,6 +127,7 @@
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #ifdef CONFIG_NVGPU_GRAPHICS
+#include "hal/gr/zbc/zbc_gm20b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
@@ -258,6 +259,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
+		.zbc_table_size = gm20b_ltc_zbc_table_size,
 #endif /* CONFIG_NVGPU_GRAPHICS */
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,

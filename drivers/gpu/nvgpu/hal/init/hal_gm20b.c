@@ -153,6 +153,7 @@ static const struct gpu_ops gm20b_ops = {
 #ifdef CONFIG_NVGPU_GRAPHICS
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
+		.zbc_table_size = gm20b_ltc_zbc_table_size,
 #endif /*CONFIG_NVGPU_GRAPHICS */
 #ifdef CONFIG_NVGPU_DEBUGGER
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,

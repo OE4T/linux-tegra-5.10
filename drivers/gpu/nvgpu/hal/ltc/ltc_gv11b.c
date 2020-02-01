@@ -1,7 +1,7 @@
 /*
  * GV11B LTC
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/gr/zbc.h>
 
 #include "ltc_gv11b.h"
 
@@ -42,7 +43,8 @@ void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 					  u32 index)
 {
 	nvgpu_writel_check(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
-		     ltc_ltcs_ltss_dstg_zbc_index_address_f(index));
+		ltc_ltcs_ltss_dstg_zbc_index_address_f(
+			nvgpu_safe_add_u32(index, NVGPU_GR_ZBC_STARTOF_TABLE)));
 
 	nvgpu_writel_check(g,
 			   ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_r(),
