@@ -2094,6 +2094,12 @@
         "test_level": 0
     },
     {
+        "test": "test_nvgpu_channel_commit_va",
+        "case": "channel_commit_va",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
         "test": "test_channel_from_invalid_id",
         "case": "channel_from_invalid_id",
         "unit": "nvgpu_channel",
@@ -2126,6 +2132,12 @@
     {
         "test": "test_channel_from_inst",
         "case": "from_inst",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_nvgpu_get_gpfifo_entry_size",
+        "case": "get_gpfifo_entry_size",
         "unit": "nvgpu_channel",
         "test_level": 0
     },
@@ -2192,6 +2204,12 @@
     {
         "test": "test_channel_sw_quiesce",
         "case": "sw_quiesce",
+        "unit": "nvgpu_channel",
+        "test_level": 0
+    },
+    {
+        "test": "test_trace_write_pushbuffers",
+        "case": "trace_write_pushbuffers",
         "unit": "nvgpu_channel",
         "test_level": 0
     },
@@ -3276,6 +3294,24 @@
         "test_level": 0
     },
     {
+        "test": "test_gp10b_ramfc_commit_userd",
+        "case": "commit_userd",
+        "unit": "nvgpu_ramfc_gp10b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_ramfc_capture_ram_dump",
+        "case": "capture_ram_dump",
+        "unit": "nvgpu_ramfc_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_ramfc_setup",
+        "case": "ramfc_setup",
+        "unit": "nvgpu_ramfc_gv11b",
+        "test_level": 0
+    },
+    {
         "test": "test_flat_gen",
         "case": "flat",
         "unit": "nvgpu_runlist",
@@ -3360,6 +3396,12 @@
         "test_level": 0
     },
     {
+        "test": "test_runlist_update_for_channel",
+        "case": "update_for_channel",
+        "unit": "nvgpu_runlist",
+        "test_level": 0
+    },
+    {
         "test": "test_gk20a_runlist_hw_submit",
         "case": "hw_submit",
         "unit": "nvgpu_runlist_gk20a",
@@ -3422,6 +3464,12 @@
     {
         "test": "test_fifo_remove_support",
         "case": "remove_support",
+        "unit": "nvgpu_runlist_gv11b",
+        "test_level": 0
+    },
+    {
+        "test": "test_gv11b_runlist_count_max",
+        "case": "runlist_count_max",
         "unit": "nvgpu_runlist_gv11b",
         "test_level": 0
     },

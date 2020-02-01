@@ -34,13 +34,13 @@ struct gk20a;
  */
 
 /**
- * Test specification for: test_gp10b_ramin_set_gr_ptr
+ * Test specification for: test_gp10b_ramin_init_pdb
  *
  * Description: Initialize instance block's PDB
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
- * Targets: gops_ramin.set_gr_ptr, gp10b_ramin_set_gr_ptr
+ * Targets: gops_ramin.init_pdb, gp10b_ramin_init_pdb
  *
  * Input: None
  *

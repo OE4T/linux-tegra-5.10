@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Test big page size set
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_ramin.set_big_page_size, gm20b_ramin_set_big_page_size
  *

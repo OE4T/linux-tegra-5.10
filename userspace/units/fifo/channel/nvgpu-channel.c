@@ -34,6 +34,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/debug.h>
+#include <nvgpu/thread.h>
 
 #include "common/sync/channel_sync_priv.h"
 
@@ -339,8 +340,9 @@ done:
 #define F_CHANNEL_CLOSE_NONZERO_DESTROY_THRESH_1	BIT(10)
 #define F_CHANNEL_CLOSE_DETERMINISTIC			BIT(11)
 #define F_CHANNEL_CLOSE_DETERMINISTIC_RAILGATE_ALLOWED	BIT(12)
-#define F_CHANNEL_CLOSE_AS_BOUND			BIT(13)
-#define F_CHANNEL_CLOSE_LAST				BIT(14)
+#define F_CHANNEL_WAIT_UNTIL_COUNTER			BIT(13)
+#define F_CHANNEL_CLOSE_AS_BOUND			BIT(14)
+#define F_CHANNEL_CLOSE_LAST				BIT(15)
 
 /* nvgpu_tsg_unbind_channel always return 0 */
 
@@ -352,13 +354,24 @@ static const char *f_channel_close[] = {
 	"tsg_unbind_fail",
 	"os_close",
 	"non_referenceable",
-	"as_bound",
 	"free_subctx",
 	"user_sync",
 	"destroy_thresh_64",
 	"destroy_thresh_1",
 	"deterministic",
+	"deterministic_railgate_allowed",
+	"as_bound",
 };
+
+static int thread_reset_function(void *arg)
+{
+	struct nvgpu_channel *ch = (struct nvgpu_channel *)arg;
+
+	sleep(1);
+	nvgpu_atomic_set(&ch->ref_count, 1);
+
+	return 0;
+}
 
 static void stub_os_channel_close(struct nvgpu_channel *ch, bool force)
 {
@@ -414,7 +427,8 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 	u32 fail = F_CHANNEL_CLOSE_ALREADY_FREED |
 		   F_CHANNEL_CLOSE_NON_REFERENCEABLE;
 	u32 prune = (u32)(F_CHANNEL_CLOSE_USER_SYNC) |
-			F_CHANNEL_CLOSE_DETERMINISTIC_RAILGATE_ALLOWED | fail;
+			F_CHANNEL_CLOSE_DETERMINISTIC_RAILGATE_ALLOWED |
+			F_CHANNEL_WAIT_UNTIL_COUNTER | fail;
 	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
 	void (*os_channel_close)(struct nvgpu_channel *ch, bool force) =
 		g->os_channel.close;
@@ -423,6 +437,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 	int err = 0;
 	struct mm_gk20a mm;
 	struct vm_gk20a vm;
+	struct nvgpu_thread thread_reset;
 
 	tsg = nvgpu_tsg_open(g, getpid());
 	unit_assert(tsg != NULL, goto done);
@@ -513,6 +528,13 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			ch->user_sync->destroy = stub_channel_sync_destroy;
 		}
 
+		if (branches & F_CHANNEL_WAIT_UNTIL_COUNTER) {
+			nvgpu_atomic_set(&ch->ref_count, 2);
+			err = nvgpu_thread_create(&thread_reset, (void *)ch,
+				&thread_reset_function, "reset_thread");
+			unit_assert(err == 0, goto done);
+		}
+
 		if (branches & F_CHANNEL_CLOSE_ALREADY_FREED) {
 			nvgpu_channel_close(ch);
 		}
@@ -521,6 +543,10 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			err = EXPECT_BUG(nvgpu_channel_kill(ch));
 		} else {
 			err = EXPECT_BUG(nvgpu_channel_close(ch));
+		}
+
+		if (branches & F_CHANNEL_WAIT_UNTIL_COUNTER) {
+			nvgpu_thread_join(&thread_reset);
 		}
 
 		if (branches & F_CHANNEL_CLOSE_ALREADY_FREED) {
@@ -803,7 +829,7 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 			F_CHANNEL_SETUP_BIND_USERMODE_POWER_REF_COUNT_FAIL) {
 			bind_args.flags |=
 				NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC;
-			ch->usermode_submit_enabled = true;
+			ch->usermode_submit_enabled = false;
 			nvgpu_posix_enable_fault_injection(l_nvgpu_fi, true, 0);
 		}
 
@@ -1899,6 +1925,61 @@ done:
 	return ret;
 }
 
+static void stub_mm_init_inst_block(struct nvgpu_mem *inst_block,
+			      struct vm_gk20a *vm, u32 big_page_size)
+{
+	stub[0].count = big_page_size;
+}
+
+int test_nvgpu_channel_commit_va(struct unit_module *m, struct gk20a *g,
+								void *vargs)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_channel ch;
+	struct vm_gk20a vm;
+	int ret = UNIT_FAIL;
+
+	memset(&vm, 0, sizeof(vm));
+	ch.g = g;
+	ch.vm = &vm;
+	g->ops.mm.init_inst_block = stub_mm_init_inst_block;
+	vm.gmmu_page_sizes[GMMU_PAGE_SIZE_BIG] =
+					nvgpu_safe_cast_u64_to_u32(SZ_1K);
+
+	nvgpu_channel_commit_va(&ch);
+	unit_assert(stub[0].count == SZ_1K, goto done);
+	vm.gmmu_page_sizes[GMMU_PAGE_SIZE_BIG] = 0;
+
+	ret = UNIT_SUCCESS;
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
+	g->ops = gops;
+	return ret;
+}
+
+int test_nvgpu_get_gpfifo_entry_size(struct unit_module *m, struct gk20a *g,
+								void *vargs)
+{
+	if (nvgpu_get_gpfifo_entry_size() != 8U) {
+		unit_return_fail(m, "posix gpfifo entry size is non-zero\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+int test_trace_write_pushbuffers(struct unit_module *m, struct gk20a *g,
+								void *vargs)
+{
+	struct nvgpu_channel ch;
+#ifndef CONFIG_DEBUG_FS
+	trace_write_pushbuffers(&ch, 1U);
+#endif
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(setup_sw, test_channel_setup_sw, &unit_ctx, 0),
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
@@ -1920,6 +2001,9 @@ struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(channel_put_warn, test_channel_put_warn, &unit_ctx, 0),
 	UNIT_TEST(referenceable_cleanup, test_ch_referenceable_cleanup, &unit_ctx, 0),
 	UNIT_TEST(abort_cleanup, test_channel_abort_cleanup, &unit_ctx, 0),
+	UNIT_TEST(channel_commit_va, test_nvgpu_channel_commit_va, &unit_ctx, 0),
+	UNIT_TEST(get_gpfifo_entry_size, test_nvgpu_get_gpfifo_entry_size, &unit_ctx, 0),
+	UNIT_TEST(trace_write_pushbuffers, test_trace_write_pushbuffers, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 

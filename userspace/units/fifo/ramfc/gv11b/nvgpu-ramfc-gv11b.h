@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Test ramfc setup for channel
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_ramfc.setup, gv11b_ramfc_setup
  *

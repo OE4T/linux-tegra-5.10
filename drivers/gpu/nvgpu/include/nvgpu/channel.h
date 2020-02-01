@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -273,13 +273,6 @@ struct nvgpu_channel_job {
 	struct priv_cmd_entry *wait_cmd;
 	struct priv_cmd_entry *incr_cmd;
 	struct nvgpu_list_node list;
-};
-
-static inline struct nvgpu_channel_job *
-channel_gk20a_job_from_list(struct nvgpu_list_node *node)
-{
-	return (struct nvgpu_channel_job *)
-	((uintptr_t)node - offsetof(struct nvgpu_channel_job, list));
 };
 
 struct nvgpu_channel_joblist {
@@ -606,6 +599,13 @@ struct nvgpu_channel {
 };
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+
+static inline struct nvgpu_channel_job *
+channel_gk20a_job_from_list(struct nvgpu_list_node *node)
+{
+	return (struct nvgpu_channel_job *)
+	((uintptr_t)node - offsetof(struct nvgpu_channel_job, list));
+};
 
 static inline struct nvgpu_channel *
 nvgpu_channel_from_worker_item(struct nvgpu_list_node *node)

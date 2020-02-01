@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Test gk20a base shift value
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_ramin.base_shift, gk20a_ramin_base_shift
  *
@@ -59,7 +59,7 @@ int test_gk20a_ramin_base_shift(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test gk20a alloc size
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_ramin.alloc_size, gk20a_ramin_alloc_size
  *

@@ -40,9 +40,10 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 
 #include "hal/fifo/runlist_ram_gv11b.h"
+#include "hal/fifo/runlist_fifo_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
-
+#include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 
 #include "../../nvgpu-fifo-common.h"
 #include "nvgpu-runlist-gv11b.h"
@@ -156,11 +157,22 @@ done:
 	return ret;
 }
 
+int test_gv11b_runlist_count_max(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	if (gv11b_runlist_count_max() != fifo_eng_runlist_base__size_1_v()) {
+		unit_return_fail(m, "runlist count max value incorrect\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test nvgpu_runlist_gv11b_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, NULL, 0),
 	UNIT_TEST(entry_size, test_gv11b_runlist_entry_size, NULL, 0),
 	UNIT_TEST(get_tsg_entry, test_gv11b_runlist_get_tsg_entry, NULL, 0),
 	UNIT_TEST(get_ch_entry, test_gv11b_runlist_get_ch_entry, NULL, 0),
+	UNIT_TEST(runlist_count_max, test_gv11b_runlist_count_max, NULL, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, NULL, 0),
 };
 

@@ -190,6 +190,7 @@ gv11b_ramfc_setup
 gv11b_ramin_init_subctx_pdb
 gv11b_ramin_set_eng_method_buffer
 gv11b_ramin_set_gr_ptr
+gv11b_runlist_count_max
 gv11b_runlist_entry_size
 gv11b_runlist_get_tsg_entry
 gv11b_runlist_get_ch_entry
@@ -303,6 +304,7 @@ nvgpu_channel_abort
 nvgpu_channel_alloc_inst
 nvgpu_channel_cleanup_sw
 nvgpu_channel_close
+nvgpu_channel_commit_va
 nvgpu_channel_debug_dump_all
 nvgpu_channel_deterministic_idle
 nvgpu_channel_deterministic_unidle
@@ -324,10 +326,11 @@ nvgpu_channel_suspend_all_serviceable_ch
 nvgpu_channel_sw_quiesce
 nvgpu_channel_sync_create
 nvgpu_channel_sync_destroy
+nvgpu_channel_sync_get_syncpt_address
+nvgpu_channel_sync_get_syncpt_id
+nvgpu_channel_sync_needs_os_fence_framework
 nvgpu_channel_sync_set_safe_state
 nvgpu_channel_sync_to_syncpt
-nvgpu_channel_sync_get_syncpt_id
-nvgpu_channel_sync_get_syncpt_address
 nvgpu_check_gpu_state
 nvgpu_cond_broadcast
 nvgpu_cond_broadcast_interruptible
@@ -419,6 +422,7 @@ nvgpu_free_enabled_flags
 nvgpu_free_fixed
 nvgpu_free_gr_ctx_struct
 nvgpu_get
+nvgpu_get_gpfifo_entry_size
 nvgpu_get_pte
 nvgpu_gmmu_init_page_table
 nvgpu_gmmu_map
@@ -515,6 +519,7 @@ nvgpu_gr_subctx_alloc
 nvgpu_gr_subctx_free
 nvgpu_gr_suspend
 nvgpu_gr_sw_ready
+nvgpu_has_syncpoints
 nvgpu_hr_timestamp
 nvgpu_init_enabled_flags
 nvgpu_init_hal
@@ -686,6 +691,7 @@ nvgpu_runlist_set_state
 nvgpu_runlist_setup_sw
 nvgpu_runlist_unlock_active_runlists
 nvgpu_runlist_unlock_runlists
+nvgpu_runlist_update_for_channel
 nvgpu_runlist_update_locked
 nvgpu_rwsem_init
 nvgpu_rwsem_down_read

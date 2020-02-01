@@ -1,7 +1,7 @@
 /*
  * GK20A Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -379,9 +379,12 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 	if (user_managed) {
 		(void)strncpy(syncpt_name, c->g->name, sizeof(syncpt_name));
 		syncpt_name[nvgpu_safe_sub_u64(sizeof(syncpt_name), 1UL)] = '\0';
-		(void)strcat(syncpt_name, "_");
+		(void)strncat(syncpt_name, "_",
+			nvgpu_safe_sub_u64(sizeof(syncpt_name),
+				nvgpu_safe_add_u64(strlen(syncpt_name), 1UL)));
 		err = nvgpu_strnadd_u32(syncpt_name, c->chid,
-					nvgpu_safe_sub_u64(sizeof(syncpt_name), strlen(syncpt_name)), 10);
+					nvgpu_safe_sub_u64(sizeof(syncpt_name),
+						strlen(syncpt_name)), 10);
 		if (err == 0) {
 			nvgpu_err(c->g, "strnadd failed!");
 			nvgpu_kfree(c->g, sp);

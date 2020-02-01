@@ -429,7 +429,7 @@ int test_tsg_set_ctx_mmu_error(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_tsg_reset_faulted_eng_pbdma
+ * Targets: nvgpu_tsg_reset_faulted_eng_pbdma, nvgpu_channel_from_ch_entry
  *
  * Input: None
  *

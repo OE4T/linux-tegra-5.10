@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Test GR address set in instance block
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_ramin.set_gr_ptr, gv11b_ramin_set_gr_ptr
  *
@@ -59,7 +59,7 @@ int test_gv11b_ramin_set_gr_ptr(struct unit_module *m, struct gk20a *g,
  * Description: Test page directory buffer configure for sub-contexts of
  *              instance block
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_ramin.init_subctx_pdb, gv11b_ramin_init_subctx_pdb,
  *          gv11b_subctx_commit_pdb, gv11b_subctx_commit_valid_mask
@@ -83,7 +83,7 @@ int test_gv11b_ramin_init_subctx_pdb(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test engine method buffer set
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_ramin.set_eng_method_buffer, gv11b_ramin_set_eng_method_buffer
  *

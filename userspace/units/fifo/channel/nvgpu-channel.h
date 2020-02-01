@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ struct gk20a;
  *
  * Description: Branch coverage for nvgpu_channel_setup/cleanup_sw.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
  * Targets: nvgpu_channel_setup_sw, nvgpu_channel_init_support,
  *          nvgpu_channel_destroy, nvgpu_channel_cleanup_sw
@@ -64,9 +64,9 @@ int test_channel_setup_sw(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_open_new.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
- * Targets: nvgpu_channel_open_new
+ * Targets: nvgpu_channel_open_new, nvgpu_channel_from_free_chs
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -111,7 +111,9 @@ int test_channel_open(struct unit_module *m,
  *          channel_free_invoke_deferred_engine_reset,
  *          channel_free_invoke_sync_destroy,
  *          channel_free_put_deterministic_ref_from_init,
- *          channel_free_unlink_debug_session
+ *          channel_free_unlink_debug_session, nvgpu_channel_as_bound,
+ *          nvgpu_channel_wait_until_counter_is_N,
+ *          nvgpu_channel_free_usermode_buffers
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -141,9 +143,10 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs);
  *
  * Description: Branch coverage for nvgpu_channel_setup_bind.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
- * Targets: nvgpu_channel_setup_bind, nvgpu_channel_setup_usermode
+ * Targets: nvgpu_channel_setup_bind, nvgpu_channel_setup_usermode,
+ *          nvgpu_channel_as_bound, nvgpu_channel_update_runlist
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -180,7 +183,7 @@ int test_channel_setup_bind(struct unit_module *m,
  *
  * Description: Branch coverage for nvgpu_channel_alloc_inst.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
  * Targets: nvgpu_channel_alloc_inst, nvgpu_channel_free_inst
  *
@@ -258,7 +261,7 @@ int test_channel_enable_disable_tsg(struct unit_module *m,
  *
  * Description: Test channel TSG abort
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_abort
  *
@@ -276,7 +279,7 @@ int test_channel_abort(struct unit_module *m, struct gk20a *g, void *vargs);
  *
  * Description: Mark channel as unserviceable
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_mark_error, nvgpu_channel_set_unserviceable,
  *          nvgpu_channel_ctxsw_timeout_debug_dump_state,
@@ -298,9 +301,10 @@ int test_channel_mark_error(struct unit_module *m,
  *
  * Description: Test emergency quiescing of channels
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
- * Targets: nvgpu_channel_sw_quiesce, nvgpu_channel_set_error_notifier
+ * Targets: nvgpu_channel_sw_quiesce, nvgpu_channel_set_error_notifier,
+ *          gops_channel.set_error_notifier
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -317,9 +321,10 @@ int test_channel_sw_quiesce(struct unit_module *m,
  *
  * Description: Stop and allow deterministic channel activity
  *
- * Test Type: Feature based
+ * Test Type: Feature, Error injection
  *
- * Targets: nvgpu_channel_deterministic_idle, nvgpu_channel_deterministic_unidle
+ * Targets: nvgpu_channel_deterministic_idle,
+ *          nvgpu_channel_deterministic_unidle, nvgpu_channel_from_id__func
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -337,10 +342,12 @@ int test_channel_deterministic_idle_unidle(struct unit_module *m,
  *
  * Description: Test suspend resume of all servicable channels
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_suspend_all_serviceable_ch,
+ *          gops_channel.suspend_all_serviceable_ch,
  *          nvgpu_channel_resume_all_serviceable_ch,
+ *          gops_channel.resume_all_serviceable_ch,
  *          nvgpu_channel_check_unserviceable
  *
  * Input: test_fifo_init_support() run for this GPU
@@ -358,7 +365,7 @@ int test_channel_suspend_resume_serviceable_chs(struct unit_module *m,
  *
  * Description: Dump channel debug information
  *
- * Test Type: Feature based
+ * Test Type: Feature, Error injection
  *
  * Targets: nvgpu_channel_debug_dump_all
  *
@@ -377,9 +384,9 @@ int test_channel_debug_dump(struct unit_module *m,
  *
  * Description: Wake up threads waiting for semaphore
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
- * Targets: nvgpu_channel_semaphore_wakeup
+ * Targets: nvgpu_channel_semaphore_wakeup, nvgpu_channel_get__func
  *
  * Input: test_fifo_init_support() run for this GPU
  *
@@ -396,7 +403,7 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
  *
  * Description: Test channel reference extracted using channel id
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_from_id
  *
@@ -415,7 +422,7 @@ int test_channel_from_invalid_id(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test channel dereference
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_put__func
  *
@@ -434,7 +441,7 @@ int test_channel_put_warn(struct unit_module *m, struct gk20a *g, void *vargs);
  *
  * Description: Test channel cleanup corner case
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_cleanup_sw
  *
@@ -453,7 +460,7 @@ int test_ch_referenceable_cleanup(struct unit_module *m,
  *
  * Description: Test channel abort cleanup with user_sync available
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_channel_abort_clean_up
  *
@@ -467,6 +474,65 @@ int test_ch_referenceable_cleanup(struct unit_module *m,
  */
 int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
 								void *vargs);
+
+/**
+ * Test specification for: test_nvgpu_channel_commit_va
+ *
+ * Description: Test channel address space commit
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_channel_commit_va
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Pass channel pointer to the function which executes init_inst_block stub.
+ * - Check that gmmu_page_size value copied as stub.count is correct.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_nvgpu_channel_commit_va(struct unit_module *m, struct gk20a *g,
+								void *vargs);
+
+/**
+ * Test specification for: test_nvgpu_get_gpfifo_entry_size
+ *
+ * Description: Verify gpfifo entry size
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_get_gpfifo_entry_size
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Get gpfifo entry size and verify that its set to zero.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_nvgpu_get_gpfifo_entry_size(struct unit_module *m, struct gk20a *g,
+								void *vargs);
+
+/**
+ * Test specification for: test_trace_write_pushbuffers
+ *
+ * Description: Test write to ftrace pushbuffers
+ *
+ * Test Type: Feature
+ *
+ * Targets: trace_write_pushbuffers
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Write to pushbuffer in ftrace, this function is no-op.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_trace_write_pushbuffers(struct unit_module *m, struct gk20a *g,
+								void *vargs);
+
 /**
  * @}
  */

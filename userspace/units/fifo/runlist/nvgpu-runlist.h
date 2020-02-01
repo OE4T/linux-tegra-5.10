@@ -37,7 +37,7 @@ struct gk20a;
  *
  * Description: Test runlist context initialization.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
  * Targets: nvgpu_runlist_setup_sw, nvgpu_init_active_runlist_mapping,
  *          nvgpu_init_runlist_enginfo, nvgpu_runlist_cleanup_sw
@@ -175,6 +175,25 @@ int test_runlist_reload_ids(struct unit_module *m, struct gk20a *g, void *args);
  */
 int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 								void *args);
+
+/**
+ * Test specification for: test_runlist_update_for_channel
+ *
+ * Description: Add/remove channel to/from runlist.
+ *
+ * Test Type: Feature
+ *
+ * Targets: nvgpu_runlist_update_for_channel
+ *
+ * Input: test_fifo_init_support
+ *
+ * Steps:
+ * - Check that this API can be used to remove channels from runlist.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_runlist_update_for_channel(struct unit_module *m, struct gk20a *g,
+			void *args);
 
 /**
  * Test specification for: test_tsg_format_gen

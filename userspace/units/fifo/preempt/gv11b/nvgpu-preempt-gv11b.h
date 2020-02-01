@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Test fifo preempt trigger
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_fifo_preempt_trigger
  *
@@ -59,9 +59,11 @@ int test_gv11b_fifo_preempt_trigger(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test runlist preempt
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
- * Targets: gv11b_fifo_preempt_runlists_for_rc, gv11b_fifo_issue_runlist_preempt
+ * Targets: gv11b_fifo_preempt_runlists_for_rc,
+ *          gops_fifo.preempt_runlists_for_rc,
+ *          gv11b_fifo_issue_runlist_preempt
  *
  * Input: test_fifo_init_support
  *
@@ -79,7 +81,7 @@ int test_gv11b_fifo_preempt_runlists_for_rc(struct unit_module *m,
  *
  * Description: Test preempt pbdma with tsg/ch poll
  *
- * Test Type: Feature based
+ * Test Type: Feature, Error injection
  *
  * Targets: gv11b_fifo_preempt_poll_pbdma, fifo_preempt_check_tsg_on_pbdma
  *
@@ -99,7 +101,7 @@ int test_gv11b_fifo_preempt_poll_pbdma(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test channel preempt
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gv11b_fifo_preempt_channel
  *
@@ -118,9 +120,10 @@ int test_gv11b_fifo_preempt_channel(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test TSG preempt
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
- * Targets: gv11b_fifo_preempt_tsg, gv11b_fifo_preempt_locked
+ * Targets: gv11b_fifo_preempt_tsg, gops_fifo.preempt_tsg,
+ *          gv11b_fifo_preempt_locked
  *
  * Input: test_fifo_init_support
  *
@@ -138,7 +141,7 @@ int test_gv11b_fifo_preempt_tsg(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test if preempt is pending
  *
- * Test Type: Feature based
+ * Test Type: Feature, Error injection
  *
  * Targets: gv11b_fifo_is_preempt_pending, gv11b_fifo_preempt_poll_eng,
  *          fifo_check_eng_intr_pending

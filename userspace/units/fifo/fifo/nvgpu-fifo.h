@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ struct gk20a;
  *
  * Description: Test fifo software context init.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_fifo.fifo_init_support, nvgpu_fifo_init_support,
  *          gops_fifo.setup_sw, nvgpu_fifo_setup_sw,
@@ -64,7 +64,7 @@ int test_init_support(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test decoding of PBDMA channel/engine status.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_fifo_decode_pbdma_ch_eng_status
  *
@@ -83,7 +83,7 @@ int test_decode_pbdma_ch_eng_status(struct unit_module *m, struct gk20a *g,
  *
  * Description: Test FIFO suspend
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_fifo.fifo_suspend, nvgpu_fifo_suspend
  *
@@ -101,7 +101,7 @@ int test_fifo_suspend(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test FIFO quiescing
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: nvgpu_fifo_sw_quiesce
  *

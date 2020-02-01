@@ -38,7 +38,7 @@ struct gk20a;
  *
  * Description: Test ctxsw timeout enable/disable.
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_fifo.ctxsw_timeout_enable, gv11b_fifo_ctxsw_timeout_enable
  *
@@ -59,7 +59,7 @@ int test_gv11b_fifo_ctxsw_timeout_enable(struct unit_module *m,
  *
  * Description: Test ctxsw
  *
- * Test Type: Feature based
+ * Test Type: Feature
  *
  * Targets: gops_fifo.handle_ctxsw_timeout, gv11b_fifo_handle_ctxsw_timeout,
  *          gops_fifo.ctxsw_timeout_info, gv11b_fifo_ctxsw_timeout_info

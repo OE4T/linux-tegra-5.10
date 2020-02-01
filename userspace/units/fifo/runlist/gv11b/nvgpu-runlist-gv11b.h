@@ -98,6 +98,26 @@ int test_gv11b_runlist_get_ch_entry(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_gv11b_runlist_count_max
+ *
+ * Description: Branch coverage for gv11b_runlist_count_max
+ *
+ * Test Type: Feature
+ *
+ * Targets: gops_runlist.count_max, gv11b_runlist_count_max
+ *
+ * Input: test_fifo_init_support() run for this GPU
+ *
+ * Steps:
+ * - Check engine runlist base size is equal to runlist base size defined by
+ *   hw manual.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_gv11b_runlist_count_max(struct unit_module *m,
+		struct gk20a *g, void *args);
+
+/**
  * @}
  */
 

@@ -1210,9 +1210,6 @@ int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 	num_runlist_entries_orig = g->fifo.num_runlist_entries;
 	g->ptimer_src_freq = 31250000;
 
-	err = nvgpu_runlist_setup_sw(g);
-	unit_assert(err == 0, goto done);
-
 	tsg = nvgpu_tsg_open(g, getpid());
 	unit_assert(tsg != NULL, goto done);
 
@@ -1321,7 +1318,54 @@ done:
 	if (tsg != NULL) {
 		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	}
-	nvgpu_runlist_cleanup_sw(g);
+	g->ptimer_src_freq = 0;
+	g->ops = gops;
+	return ret;
+}
+
+int test_runlist_update_for_channel(struct unit_module *m, struct gk20a *g,
+			void *args)
+{
+	struct gpu_ops gops = g->ops;
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg = NULL;
+	int ret = UNIT_FAIL;
+	int err = 0;
+
+	g->ops.runlist.hw_submit = stub_runlist_hw_submit;
+	g->ops.runlist.get_ch_entry = stub_runlist_get_ch_entry;
+	g->ptimer_src_freq = 31250000;
+
+	tsg = nvgpu_tsg_open(g, getpid());
+	unit_assert(tsg != NULL, goto done);
+
+	ch = nvgpu_channel_open_new(g, NVGPU_INVALID_RUNLIST_ID, false,
+			getpid(), getpid());
+	unit_assert(ch != NULL, goto done);
+
+	err = nvgpu_tsg_bind_channel(tsg, ch);
+	unit_assert(err == 0, goto done);
+
+	err = nvgpu_runlist_update_for_channel(g, 0U, ch, false, false);
+	unit_assert(err == 0, goto done);
+
+	ret = UNIT_SUCCESS;
+
+done:
+	if (ret != UNIT_SUCCESS) {
+		unit_err(m, "%s failed\n", __func__);
+	}
+
+	err = nvgpu_tsg_unbind_channel(tsg, ch);
+	if (err != 0) {
+		unit_err(m, "Cannot unbind channel\n");
+	}
+	if (ch != NULL) {
+		nvgpu_channel_close(ch);
+	}
+	if (tsg != NULL) {
+		nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
+	}
 	g->ptimer_src_freq = 0;
 	g->ops = gops;
 	return ret;
@@ -1337,6 +1381,7 @@ struct unit_module_test nvgpu_runlist_tests[] = {
 	UNIT_TEST(interleave_level_name, test_runlist_interleave_level_name, NULL, 0),
 	UNIT_TEST(reload_ids, test_runlist_reload_ids, NULL, 0),
 	UNIT_TEST(runlist_update, test_runlist_update_locked, NULL, 0),
+	UNIT_TEST(update_for_channel, test_runlist_update_for_channel, NULL, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 	UNIT_TEST(tsg_format_flat, test_tsg_format_gen, NULL, 0),
 	UNIT_TEST(flat, test_flat_gen, NULL, 0),
