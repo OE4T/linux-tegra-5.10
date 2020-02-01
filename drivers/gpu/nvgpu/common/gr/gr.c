@@ -264,8 +264,12 @@ static int gr_init_setup_hw(struct gk20a *g)
 	/*
 	 * Disable both surface and LG coalesce.
 	 */
-	g->ops.gr.init.su_coalesce(g, 0);
-	g->ops.gr.init.lg_coalesce(g, 0);
+	if (g->ops.gr.init.su_coalesce != NULL) {
+		g->ops.gr.init.su_coalesce(g, 0);
+	}
+	if (g->ops.gr.init.lg_coalesce != NULL) {
+		g->ops.gr.init.lg_coalesce(g, 0);
+	}
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (g->ops.gr.init.preemption_state != NULL) {
