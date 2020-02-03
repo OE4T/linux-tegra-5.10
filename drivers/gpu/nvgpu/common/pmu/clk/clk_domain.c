@@ -32,7 +32,6 @@
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/cmd.h>

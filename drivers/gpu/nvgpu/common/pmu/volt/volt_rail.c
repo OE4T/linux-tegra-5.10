@@ -26,10 +26,10 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/volt.h>
 
+#include "ucode_volt_inf.h"
 #include "volt_rail.h"
 
 #define NV_PMU_PERF_RPC_VFE_EQU_MONITOR_COUNT_MAX                            16U

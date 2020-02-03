@@ -29,7 +29,6 @@
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
-#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 

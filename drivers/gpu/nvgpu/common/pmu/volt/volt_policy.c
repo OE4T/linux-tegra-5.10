@@ -26,9 +26,9 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
 
+#include "ucode_volt_inf.h"
 #include "volt_policy.h"
 
 static int volt_policy_pmu_data_init_super(struct gk20a *g,

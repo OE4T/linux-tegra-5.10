@@ -25,7 +25,8 @@
 
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
-#include <nvgpu/pmu/pmuif/ctrlvolt.h>
+
+#include "ucode_volt_inf.h"
 
 #define VOLTAGE_TABLE_MAX_ENTRIES_ONE	1U
 #define VOLTAGE_TABLE_MAX_ENTRIES	256U

@@ -24,7 +24,6 @@
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
-#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/perf.h>

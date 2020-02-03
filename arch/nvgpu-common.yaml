@@ -646,7 +646,6 @@ pmu:
                  include/nvgpu/pmu/pmuif/ctrlclk.h,
                  include/nvgpu/pmu/pmuif/ctrlclkavfs.h,
                  include/nvgpu/pmu/pmuif/ctrlpmgr.h,
-                 include/nvgpu/pmu/pmuif/ctrlvolt.h,
                  include/nvgpu/pmu/pmuif/acr.h,
                  include/nvgpu/pmu/pmuif/ap.h,
                  include/nvgpu/pmu/pmuif/cmn.h,
@@ -659,7 +658,6 @@ pmu:
                  include/nvgpu/pmu/pmuif/clk.h,
                  include/nvgpu/pmu/pmuif/pmgr.h,
                  include/nvgpu/pmu/pmuif/seq.h,
-                 include/nvgpu/pmu/pmuif/volt.h,
                  include/nvgpu/pmu/pmuif/rpc.h,
                  include/nvgpu/pmu/pmuif/nvgpu_cmdif.h ]
     boardobj:
@@ -914,6 +912,7 @@ pmu:
                  common/pmu/volt/volt_dev.h,
                  common/pmu/volt/volt_policy.h,
                  common/pmu/volt/volt_rail.h,
+                 common/pmu/volt/ucode_volt_inf.h,
                  include/nvgpu/pmu/volt.h ]
 
 sec2:

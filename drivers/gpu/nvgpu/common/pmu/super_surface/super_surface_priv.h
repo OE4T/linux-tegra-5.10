@@ -25,7 +25,6 @@
 
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/pmu/pmuif/boardobj.h>
-#include <nvgpu/pmu/pmuif/volt.h>
 #include <nvgpu/pmu/pmuif/clk.h>
 #include <nvgpu/pmu/pmuif/cmn.h>
 #include <nvgpu/flcnif_cmn.h>
@@ -108,17 +107,6 @@ struct nv_pmu_super_surface {
 		 * member present above to know the offset of
 		 * required boardobj from super surface in nvgpu
 		 */
-		struct {
-			struct nv_pmu_volt_volt_device_boardobj_grp_set
-				volt_device_grp_set;
-			struct nv_pmu_volt_volt_policy_boardobj_grp_set
-				volt_policy_grp_set;
-			struct nv_pmu_volt_volt_rail_boardobj_grp_set
-				volt_rail_grp_set;
-
-			struct nv_pmu_volt_volt_rail_boardobj_grp_get_status
-				volt_rail_grp_get_status;
-		} volt;
 		struct  {
 			struct nv_pmu_clk_clk_vin_device_boardobj_grp_set
 				clk_vin_device_grp_set;

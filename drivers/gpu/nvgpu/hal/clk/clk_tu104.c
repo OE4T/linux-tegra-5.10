@@ -38,6 +38,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
+#include <nvgpu/pmu/volt.h>
 #include <nvgpu/hw/tu104/hw_trim_tu104.h>
 
 #include "clk_tu104.h"

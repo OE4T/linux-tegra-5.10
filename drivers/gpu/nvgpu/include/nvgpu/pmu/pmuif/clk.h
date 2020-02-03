@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,12 +24,11 @@
 #define NVGPU_PMUIF_CLK_H
 
 #include <nvgpu/flcnif_cmn.h>
+#include <nvgpu/pmu/volt.h>
 
 #include "ctrlboardobj.h"
-#include "ctrlvolt.h"
 #include "ctrlclk.h"
 #include "boardobj.h"
-#include "volt.h"
 
 /*
  *  Try to get gpc2clk, mclk, sys2clk, xbar2clk work for Pascal

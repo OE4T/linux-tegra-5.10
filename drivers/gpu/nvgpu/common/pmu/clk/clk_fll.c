@@ -28,7 +28,6 @@
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/pmuif/ctrlclk.h>
-#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk_vin.h>

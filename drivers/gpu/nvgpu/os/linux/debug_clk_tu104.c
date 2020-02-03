@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,6 +26,7 @@
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/volt.h>
 
 #include "hal/clk/clk_tu104.h"
 

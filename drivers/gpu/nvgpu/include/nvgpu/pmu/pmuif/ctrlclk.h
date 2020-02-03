@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,6 @@
 
 #include "ctrlboardobj.h"
 #include "ctrlclkavfs.h"
-#include "ctrlvolt.h"
 
 #define CTRL_CLK_CLK_DELTA_MAX_VOLT_RAILS 4U
 

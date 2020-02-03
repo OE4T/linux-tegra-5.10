@@ -28,6 +28,9 @@
 
 struct gk20a;
 #define CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES	0x04U
+#define CTRL_VOLT_DOMAIN_LOGIC			0x01U
+#define CLK_PROG_VFE_ENTRY_LOGIC		0x00U
+#define CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS	0x04U
 
 #define VOLT_GET_VOLT_RAIL(pvolt, rail_idx)	\
 	((struct voltage_rail *)BOARDOBJGRP_OBJ_GET_BY_IDX( \
@@ -65,6 +68,18 @@ struct nvgpu_pmu_volt {
 	struct voltage_rail_metadata volt_rail_metadata;
 	struct voltage_device_metadata volt_dev_metadata;
 	struct voltage_policy_metadata volt_policy_metadata;
+};
+struct ctrl_volt_volt_rail_list_item_v1 {
+	u8 rail_idx;
+	u32 voltage_uv;
+	u32 voltage_min_noise_unaware_uv;
+	u32 voltage_offset_uV[2];
+};
+
+struct ctrl_volt_volt_rail_list_v1 {
+	u8    num_rails;
+	struct ctrl_volt_volt_rail_list_item_v1
+		rails[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];
 };
 
 u8 nvgpu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain);

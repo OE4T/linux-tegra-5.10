@@ -31,7 +31,6 @@
 #include <nvgpu/pmu/pmuif/boardobj.h>
 #include <nvgpu/pmu/pmuif/clk.h>
 #include <nvgpu/pmu/pmuif/pmgr.h>
-#include <nvgpu/pmu/pmuif/volt.h>
 
 /* GPU ID */
 #define PMU_SHA1_GID_SIGNATURE		0xA7C66AD2U
