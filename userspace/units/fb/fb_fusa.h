@@ -38,7 +38,9 @@ struct unit_module;
  * Description: Tests the init HALs for GV11B.
  *
  * Targets: nvgpu_ecc_init_support, gv11b_fb_init_hw, gv11b_fb_init_fs_state,
- * gv11b_fb_ecc_init, gv11b_fb_ecc_free
+ * gv11b_fb_ecc_init, gv11b_fb_ecc_free, gops_fb.fb_ecc_free,
+ * gops_fb.fb_ecc_init, gops_ecc.ecc_init_support, gops_fb.init_hw,
+ * gops_fb.init_fs_state, gm20b_fb_init_hw
  *
  * Test Type: Feature, Other (setup), Error injection
  *
@@ -66,7 +68,7 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: .
  *
- * Targets: gm20b_fb_tlb_invalidate
+ * Targets: gm20b_fb_tlb_invalidate, gops_fb.tlb_invalidate
  *
  * Test Type: Feature, Error injection
  *
@@ -105,7 +107,10 @@ int fb_gm20b_tlb_invalidate_test(struct unit_module *m, struct gk20a *g,
  *
  * Targets: gm20b_fb_mmu_ctrl, gm20b_fb_mmu_debug_ctrl, gm20b_fb_mmu_debug_wr,
  * gm20b_fb_mmu_debug_rd, gm20b_fb_vpr_info_fetch, gm20b_fb_dump_vpr_info,
- * gm20b_fb_dump_wpr_info, gm20b_fb_read_wpr_info
+ * gm20b_fb_dump_wpr_info, gm20b_fb_read_wpr_info, gops_fb.mmu_ctrl,
+ * gops_fb.mmu_debug_wr, gops_fb.mmu_debug_ctrl, gops_fb.mmu_debug_rd,
+ * gops_fb.vpr_info_fetch, gops_fb.dump_wpr_info, gops_fb.dump_vpr_info,
+ * gops_fb.read_wpr_info
  *
  * Test Type: Feature, Error injection
  *
@@ -140,7 +145,9 @@ int fb_gm20b_mmu_ctrl_test(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Init test to setup HAL pointers for FB_MMU fault testing.
  *
- * Targets: None
+ * Targets: gv11b_fb_read_mmu_fault_buffer_size,
+ * gv11b_fb_read_mmu_fault_buffer_put, gv11b_fb_write_mmu_fault_status,
+ * gv11b_fb_read_mmu_fault_buffer_get
  *
  * Test Type: Init
  *
@@ -162,7 +169,11 @@ int fb_mmu_fault_gv11b_init_test(struct unit_module *m, struct gk20a *g,
  *
  * Targets: gv11b_fb_is_fault_buf_enabled, gv11b_fb_fault_buffer_get_ptr_update,
  * gv11b_fb_write_mmu_fault_buffer_size, gv11b_fb_fault_buf_set_state_hw,
- * gv11b_fb_read_mmu_fault_status, gv11b_fb_fault_buf_configure_hw
+ * gv11b_fb_read_mmu_fault_status, gv11b_fb_fault_buf_configure_hw,
+ * gv11b_fb_is_fault_buffer_empty, gv11b_fb_read_mmu_fault_addr_lo_hi,
+ * gops_fb.fault_buf_configure_hw, gops_fb.fault_buf_set_state_hw,
+ * gv11b_fb_fault_buffer_size_val, gv11b_fb_read_mmu_fault_inst_lo_hi,
+ * gv11b_fb_read_mmu_fault_info
  *
  * Test Type: Feature
  *
@@ -307,7 +318,9 @@ int fb_intr_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Description: Test ISR handling with all supported types of interrupts.
  *
- * Targets: gv11b_fb_intr_enable, gv11b_fb_intr_disable, gv11b_fb_intr_isr
+ * Targets: gv11b_fb_intr_enable, gv11b_fb_intr_disable, gv11b_fb_intr_isr,
+ * gv11b_fb_intr_is_mmu_fault_pending, gops_fb_intr.is_mmu_fault_pending,
+ * gops_fb_intr.enable, gops_fb_intr.disable, gops_fb_intr.isr
  *
  * Test Type: Feature
  *
