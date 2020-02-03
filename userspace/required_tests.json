@@ -1334,25 +1334,25 @@
     {
         "test": "test_list_add",
         "case": "list_all_head",
-        "unit": "list",
+        "unit": "interface_list",
         "test_level": 0
     },
     {
         "test": "test_list_add",
         "case": "list_all_tail",
-        "unit": "list",
+        "unit": "interface_list",
         "test_level": 0
     },
     {
         "test": "test_list_move",
         "case": "list_move",
-        "unit": "list",
+        "unit": "interface_list",
         "test_level": 0
     },
     {
         "test": "test_list_replace",
         "case": "list_replace",
-        "unit": "list",
+        "unit": "interface_list",
         "test_level": 0
     },
     {

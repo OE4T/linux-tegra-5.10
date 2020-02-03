@@ -23,4 +23,4 @@
 OBJS   = list.o
 MODULE = list
 
-include ../Makefile.units
+include ../../Makefile.units

@@ -40,6 +40,7 @@
  *   - @ref SWUTS-interface-string
  *   - @ref SWUTS-interface-worker
  *   - @ref SWUTS-interface-kref
+ *   - @ref SWUTS-interface-list
  *   - @ref SWUTS-bus
  *   - @ref SWUTS-falcon
  *   - @ref SWUTS-netlist

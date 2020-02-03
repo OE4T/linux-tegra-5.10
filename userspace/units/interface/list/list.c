@@ -26,6 +26,7 @@
 #include <unit/unit.h>
 
 #include <nvgpu/list.h>
+#include "list.h"
 
 #define ELEMENTS 10
 
@@ -126,13 +127,8 @@ static int init_list_elements(struct unit_module *m,
 
 	return 0;
 }
-/*
- * Test case to verify that elements get added and stay in the right order.
- * __args is a boolean to indicate if adding to the head (false) or to the tail
- * (true)
- */
-static int test_list_add(struct unit_module *m, struct gk20a *g,
-				void *__args)
+
+int test_list_add(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct integer_list *pos;
 	int i;
@@ -161,13 +157,7 @@ static int test_list_add(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test case to verify that elements get added and stay in the right order.
- * __args is a boolean to indicate if adding to the head (false) or to the tail
- * (true)
- */
-static int test_list_move(struct unit_module *m, struct gk20a *g,
-				void *__args)
+int test_list_move(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct integer_list *pos;
 	int i;
@@ -211,12 +201,7 @@ static int test_list_move(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
-/*
- * Test case to test the replace operation by replacing the last node by a new
- * one.
- */
-static int test_list_replace(struct unit_module *m, struct gk20a *g,
-				void *__args)
+int test_list_replace(struct unit_module *m, struct gk20a *g, void *__args)
 {
 	struct integer_list *pos, *new_elem;
 	struct nvgpu_list_node head;
@@ -256,4 +241,4 @@ struct unit_module_test list_tests[] = {
 	UNIT_TEST(list_replace, test_list_replace, NULL, 0),
 };
 
-UNIT_MODULE(list, list_tests, UNIT_PRIO_NVGPU_TEST);
+UNIT_MODULE(interface_list, list_tests, UNIT_PRIO_NVGPU_TEST);

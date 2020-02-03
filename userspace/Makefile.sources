@@ -74,6 +74,7 @@ UNITS :=				\
 	$(UNIT_SRC)/interface/string	\
 	$(UNIT_SRC)/interface/worker	\
 	$(UNIT_SRC)/interface/kref	\
+	$(UNIT_SRC)/interface/list	\
 	$(UNIT_SRC)/mc			\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
 	$(UNIT_SRC)/mm/allocators/buddy_allocator	\
@@ -134,7 +135,6 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/tsg/gv11b	\
 	$(UNIT_SRC)/fifo/userd/gk20a	\
 	$(UNIT_SRC)/fifo/usermode/gv11b	\
-	$(UNIT_SRC)/list		\
 	$(UNIT_SRC)/ltc			\
 	$(UNIT_SRC)/enabled		\
 	$(UNIT_SRC)/falcon		\
