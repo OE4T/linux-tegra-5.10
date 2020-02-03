@@ -38,7 +38,7 @@
  * Test Type: Feature
  *
  * Targets: nvgpu_posix_bug, dump_stack,
- *          BUG, BUG_ON
+ *          BUG, BUG_ON, nvgpu_assert
  *
  * Inputs: None
  *
