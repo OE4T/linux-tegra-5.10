@@ -40,7 +40,8 @@ struct gk20a;
  *
  * Test Type: Feature
  *
- * Targets: gops_ramin.set_gr_ptr, gv11b_ramin_set_gr_ptr
+ * Targets: gops_ramin.set_gr_ptr, gv11b_ramin_set_gr_ptr,
+ * nvgpu_free_inst_block
  *
  * Input: None
  *

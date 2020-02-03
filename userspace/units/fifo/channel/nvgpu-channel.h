@@ -213,7 +213,7 @@ int test_channel_alloc_inst(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_channel_refch_from_inst_ptr
+ * Targets: nvgpu_channel_refch_from_inst_ptr, nvgpu_inst_block_addr
  *
  * Input: test_fifo_init_support() run for this GPU
  *
