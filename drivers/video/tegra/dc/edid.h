@@ -147,6 +147,8 @@ enum {
 #define TEGRA_EDID_QUIRK_ONLY_CEA	(1 << 5)
 /* TVs supports EAC3 but not 192K, ignoring EAC3 */
 #define TEGRA_EDID_QUIRK_IGNORE_EAC3 (1 << 6)
+/* LG soundbar advertises DV 4k@60 but does not advertise non-DV 4k@60 */
+#define TEGRA_EDID_QUIRK_LG_SBAR (1 << 7)
 
 /* This number is defined in hda driver - enum cea_audio_coding_types */
 #define    AUDIO_CODING_TYPE_EAC3    10

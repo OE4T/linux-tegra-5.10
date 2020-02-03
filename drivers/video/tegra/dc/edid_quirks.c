@@ -46,6 +46,8 @@ static const struct hdmi_blacklist {
 	{ "SAM", 3387, "SAMSUNG",   TEGRA_EDID_QUIRK_HPD_BOUNCE },
 	/* WAR for bug 2408317 to skip non-CEA modes */
 	{ "KL@", 18508, "LCD HDTV", TEGRA_EDID_QUIRK_ONLY_CEA   },
+	/* WAR for bug 2818605 to add missing DV 4k@60 */
+	{ "LGE", 0,    "LG-SBAR",   TEGRA_EDID_QUIRK_LG_SBAR    },
 };
 
 u32 tegra_edid_lookup_quirks(const char *manufacturer, u32 model,

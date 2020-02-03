@@ -922,6 +922,39 @@ bool tegra_edid_support_yuv444(struct tegra_edid *edid)
 	return edid->data->support_yuv444;
 }
 
+/* Add VIC modes with id 96 and 97 */
+void tegra_edid_quirk_lg_sbar(struct tegra_edid_pvt *new_data,
+			      struct fb_monspecs *specs)
+{
+	struct fb_videomode *m;
+
+	/* Additional checks that we got the specific EDID */
+	if (new_data->max_tmds_char_rate_hf_mhz != 450 ||
+	    new_data->dv_caps.vsvdb_ver != TEGRA_DC_DV_VSVDB_V1_12B ||
+	    new_data->dv_caps.v1_12b.supports_2160p60hz == 0) {
+		return;
+	}
+
+	m = kzalloc((specs->modedb_len + 2) *
+		    sizeof(struct fb_videomode), GFP_KERNEL);
+	if (m) {
+		memcpy(m, specs->modedb,
+		       specs->modedb_len * sizeof(struct fb_videomode));
+
+		memcpy(m + specs->modedb_len, &cea_modes[96],
+		       sizeof(struct fb_videomode));
+		m[specs->modedb_len].vmode |= FB_VMODE_IS_CEA;
+		specs->modedb_len++;
+		memcpy(m + specs->modedb_len, &cea_modes[97],
+		       sizeof(struct fb_videomode));
+		m[specs->modedb_len].vmode |= FB_VMODE_IS_CEA;
+		specs->modedb_len++;
+
+		kfree(specs->modedb);
+		specs->modedb = m;
+	}
+}
+
 int tegra_edid_get_monspecs(struct tegra_edid *edid, struct fb_monspecs *specs)
 {
 	int i;
@@ -1021,6 +1054,9 @@ int tegra_edid_get_monspecs(struct tegra_edid *edid, struct fb_monspecs *specs)
 				data + i * EDID_BYTES_PER_BLOCK,
 				data[i * EDID_BYTES_PER_BLOCK + 2],
 				new_data);
+
+			if (new_data->quirks == TEGRA_EDID_QUIRK_LG_SBAR)
+				tegra_edid_quirk_lg_sbar(new_data, specs);
 
 			if (new_data->support_stereo) {
 				for (j = 0; j < specs->modedb_len; j++) {
