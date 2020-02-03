@@ -38,6 +38,8 @@ nvethernet-objs:= ether_linux.o \
 		  $(OSI_CORE)/xpcs.o \
 		  $(OSI_DMA)/mgbe_dma.o \
 		  $(OSI_CORE)/eqos_mmc.o \
-		  $(OSI_DMA)/eqos_dma.o
+		  $(OSI_DMA)/eqos_dma.o \
+		  $(OSI_DMA)/eqos_desc.o \
+		  $(OSI_DMA)/mgbe_desc.o
 
 nvethernet-$(CONFIG_NVETHERNET_SELFTESTS) += selftests.o
