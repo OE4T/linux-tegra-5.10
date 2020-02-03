@@ -153,7 +153,8 @@ int test_sync_usermanaged_syncpt_apis(struct unit_module *m, struct gk20a *g, vo
  *
  * Test Type: Feature
  *
- * Targets: gv11b_syncpt_get_sync_ro_map
+ * Targets: gv11b_syncpt_get_sync_ro_map,
+ * gops_sync.gops_sync_syncpt.get_sync_ro_map
  *
  * Input: test_sync_init run for this GPU
  *
