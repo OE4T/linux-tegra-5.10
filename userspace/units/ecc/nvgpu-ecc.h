@@ -40,7 +40,7 @@ struct unit_module;
  *
  * Test Type: Feature Based
  *
- * Targets: nvgpu_ecc_init_support
+ * Targets: nvgpu_ecc_init_support, gops_ecc.ecc_init_support
  *
  * Input: None
  *
@@ -66,7 +66,7 @@ int test_ecc_init_support(struct unit_module *m,
  *
  * Test Type: Feature Based
  *
- * Targets: nvgpu_ecc_finalize_support
+ * Targets: nvgpu_ecc_finalize_support, gops_ecc.ecc_finalize_support
  *
  * Input: None
  *
