@@ -1,7 +1,7 @@
 /*
  * GM20B Graphics
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -542,9 +542,13 @@ static const struct gpu_ops gm20b_ops = {
 			.load_ctxsw_ucode_boot =
 				gm20b_gr_falcon_load_ctxsw_ucode_boot,
 			.load_gpccs_dmem = gm20b_gr_falcon_load_gpccs_dmem,
+			.gpccs_dmemc_write = gm20b_gr_falcon_gpccs_dmemc_write,
 			.load_fecs_dmem = gm20b_gr_falcon_load_fecs_dmem,
+			.fecs_dmemc_write = gm20b_gr_falcon_fecs_dmemc_write,
 			.load_gpccs_imem = gm20b_gr_falcon_load_gpccs_imem,
+			.gpccs_imemc_write = gm20b_gr_falcon_gpccs_imemc_write,
 			.load_fecs_imem = gm20b_gr_falcon_load_fecs_imem,
+			.fecs_imemc_write = gm20b_gr_falcon_fecs_imemc_write,
 			.start_ucode = gm20b_gr_falcon_start_ucode,
 			.load_ctxsw_ucode =
 					nvgpu_gr_falcon_load_ctxsw_ucode,

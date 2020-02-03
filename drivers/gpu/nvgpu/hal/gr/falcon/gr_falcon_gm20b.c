@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,15 @@
 #define CTXSW_INTR1 BIT32(1)
 
 #ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
+void gm20b_gr_falcon_gpccs_dmemc_write(struct gk20a *g, u32 port, u32 offs,
+	u32 blk, u32 ainc)
+{
+	nvgpu_writel(g, gr_gpccs_dmemc_r(port),
+			gr_gpccs_dmemc_offs_f(offs) |
+			gr_gpccs_dmemc_blk_f(blk) |
+			gr_gpccs_dmemc_aincw_f(ainc));
+}
+
 void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size)
 {
@@ -55,9 +64,7 @@ void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 	u32 checksum = 0;
 
 	/* enable access for gpccs dmem */
-	nvgpu_writel(g, gr_gpccs_dmemc_r(0), (gr_gpccs_dmemc_offs_f(0) |
-					gr_gpccs_dmemc_blk_f(0)  |
-					gr_gpccs_dmemc_aincw_f(1)));
+	g->ops.gr.falcon.gpccs_dmemc_write(g, 0U, 0U, 0U, 1U);
 
 	for (i = 0; i < ucode_u32_size; i++) {
 		nvgpu_writel(g, gr_gpccs_dmemd_r(0), ucode_u32_data[i]);
@@ -73,15 +80,22 @@ void gm20b_gr_falcon_load_fecs_dmem(struct gk20a *g,
 	u32 checksum = 0;
 
 	/* set access for fecs dmem */
-	nvgpu_writel(g, gr_fecs_dmemc_r(0), (gr_fecs_dmemc_offs_f(0) |
-					gr_fecs_dmemc_blk_f(0)  |
-					gr_fecs_dmemc_aincw_f(1)));
+	g->ops.gr.falcon.fecs_dmemc_write(g, 0U, 0U, 0U, 0U, 1U);
 
 	for (i = 0; i < ucode_u32_size; i++) {
 		nvgpu_writel(g, gr_fecs_dmemd_r(0), ucode_u32_data[i]);
 		checksum = nvgpu_gr_checksum_u32(checksum, ucode_u32_data[i]);
 	}
 	nvgpu_log_info(g, "fecs dmem checksum: 0x%x", checksum);
+}
+
+void gm20b_gr_falcon_gpccs_imemc_write(struct gk20a *g, u32 port, u32 offs,
+	u32 blk, u32 ainc)
+{
+	nvgpu_writel(g, gr_gpccs_imemc_r(port),
+			gr_gpccs_imemc_offs_f(offs) |
+			gr_gpccs_imemc_blk_f(blk) |
+			gr_gpccs_imemc_aincw_f(ainc));
 }
 
 void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
@@ -92,9 +106,7 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 	u32 checksum = 0;
 
 	/* enable access for gpccs imem */
-	nvgpu_writel(g, gr_gpccs_imemc_r(0), (gr_gpccs_imemc_offs_f(0) |
-					gr_gpccs_imemc_blk_f(0) |
-					gr_gpccs_imemc_aincw_f(1)));
+	g->ops.gr.falcon.gpccs_imemc_write(g, 0U, 0U, 0U, 1U);
 
 	cfg = nvgpu_readl(g, gr_gpc0_cfg_r());
 	gpccs_imem_size = gr_gpc0_cfg_imem_sz_v(cfg);
@@ -130,6 +142,15 @@ void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 	nvgpu_log_info(g, "gpccs imem checksum: 0x%x", checksum);
 }
 
+void gm20b_gr_falcon_fecs_imemc_write(struct gk20a *g, u32 port, u32 offs,
+	u32 blk, u32 ainc)
+{
+	nvgpu_writel(g, gr_fecs_imemc_r(port),
+			gr_fecs_imemc_offs_f(offs) |
+			gr_fecs_imemc_blk_f(blk) |
+			gr_fecs_imemc_aincw_f(ainc));
+}
+
 void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size)
 {
@@ -138,9 +159,7 @@ void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 	u32 checksum = 0;
 
 	/* set access for fecs imem */
-	nvgpu_writel(g, gr_fecs_imemc_r(0), (gr_fecs_imemc_offs_f(0) |
-					gr_fecs_imemc_blk_f(0) |
-					gr_fecs_imemc_aincw_f(1)));
+	g->ops.gr.falcon.fecs_imemc_write(g, 0U, 0U, 0U, 1U);
 
 	cfg = nvgpu_readl(g, gr_fecs_cfg_r());
 	fecs_imem_size = gr_fecs_cfg_imem_sz_v(cfg);

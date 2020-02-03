@@ -332,12 +332,20 @@ struct gops_gr_falcon {
 				u32 addr_load32, u32 blocks, u32 dst);
 	void (*load_gpccs_dmem)(struct gk20a *g,
 				const u32 *ucode_u32_data, u32 size);
+	void (*gpccs_dmemc_write)(struct gk20a *g, u32 port, u32 offs,
+				u32 blk, u32 ainc);
 	void (*load_fecs_dmem)(struct gk20a *g,
 			       const u32 *ucode_u32_data, u32 size);
+	void (*fecs_dmemc_write)(struct gk20a *g, u32 reg_offset, u32 port,
+				u32 offs, u32 blk, u32 ainc);
 	void (*load_gpccs_imem)(struct gk20a *g,
 				const u32 *ucode_u32_data, u32 size);
+	void (*gpccs_imemc_write)(struct gk20a *g, u32 port, u32 offs,
+				u32 blk, u32 ainc);
 	void (*load_fecs_imem)(struct gk20a *g,
 			       const u32 *ucode_u32_data, u32 size);
+	void (*fecs_imemc_write)(struct gk20a *g, u32 port, u32 offs,
+				u32 blk, u32 ainc);
 	void (*start_ucode)(struct gk20a *g);
 #endif
 #ifdef CONFIG_NVGPU_SIM

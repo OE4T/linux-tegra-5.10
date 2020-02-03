@@ -784,9 +784,13 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 			.load_ctxsw_ucode_boot =
 				gm20b_gr_falcon_load_ctxsw_ucode_boot,
 			.load_gpccs_dmem = gm20b_gr_falcon_load_gpccs_dmem,
+			.gpccs_dmemc_write = gm20b_gr_falcon_gpccs_dmemc_write,
 			.load_fecs_dmem = gm20b_gr_falcon_load_fecs_dmem,
+			.fecs_dmemc_write = gm20b_gr_falcon_fecs_dmemc_write,
 			.load_gpccs_imem = gm20b_gr_falcon_load_gpccs_imem,
+			.gpccs_imemc_write = gm20b_gr_falcon_gpccs_imemc_write,
 			.load_fecs_imem = gm20b_gr_falcon_load_fecs_imem,
+			.fecs_imemc_write = gm20b_gr_falcon_fecs_imemc_write,
 			.start_ucode = gm20b_gr_falcon_start_ucode,
 			.load_ctxsw_ucode =
 					nvgpu_gr_falcon_load_ctxsw_ucode,

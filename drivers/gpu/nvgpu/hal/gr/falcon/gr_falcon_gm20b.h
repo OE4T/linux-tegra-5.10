@@ -72,12 +72,20 @@ void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g,
 	u32 dst);
 void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
+void gm20b_gr_falcon_gpccs_dmemc_write(struct gk20a *g, u32 port, u32 offs,
+	u32 blk, u32 ainc);
 void gm20b_gr_falcon_load_fecs_dmem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
+void gm20b_gr_falcon_fecs_dmemc_write(struct gk20a *g, u32 reg_offset, u32 port,
+	u32 offs, u32 blk, u32 ainc);
 void gm20b_gr_falcon_load_gpccs_imem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
+void gm20b_gr_falcon_gpccs_imemc_write(struct gk20a *g, u32 port, u32 offs,
+	u32 blk, u32 ainc);
 void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size);
+void gm20b_gr_falcon_fecs_imemc_write(struct gk20a *g, u32 port, u32 offs,
+	u32 blk, u32 ainc);
 void gm20b_gr_falcon_start_ucode(struct gk20a *g);
 void gm20b_gr_falcon_fecs_host_int_enable(struct gk20a *g);
 #endif

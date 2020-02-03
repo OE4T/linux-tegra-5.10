@@ -895,6 +895,15 @@ static void gm20b_gr_falcon_program_fecs_dmem_data(struct gk20a *g,
 	nvgpu_writel(g, offset, data_size);
 }
 
+void gm20b_gr_falcon_fecs_dmemc_write(struct gk20a *g, u32 reg_offset, u32 port,
+	u32 offs, u32 blk, u32 ainc)
+{
+	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemc_r(port)),
+			gr_fecs_dmemc_offs_f(offs) |
+			gr_fecs_dmemc_blk_f(blk) |
+			gr_fecs_dmemc_aincw_f(ainc));
+}
+
 void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 	u32 reg_offset, u32 boot_signature, u32 addr_code32,
 	u32 addr_data32, u32 code_size, u32 data_size)
@@ -909,10 +918,7 @@ void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 	 * Configure dmem port 0 for auto-incrementing writes starting at dmem
 	 * offset 0.
 	 */
-	nvgpu_writel(g, nvgpu_safe_add_u32(reg_offset, gr_fecs_dmemc_r(0)),
-			gr_fecs_dmemc_offs_f(0) |
-			gr_fecs_dmemc_blk_f(0) |
-			gr_fecs_dmemc_aincw_f(1));
+	g->ops.gr.falcon.fecs_dmemc_write(g, reg_offset, 0U, 0U, 0U, 1U);
 
 	/* Write out the actual data */
 	switch (boot_signature) {
