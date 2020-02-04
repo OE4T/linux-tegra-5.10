@@ -571,115 +571,67 @@
 			ape_as: ape {
 				iova-start = <0x0 0x40000000>;
 				iova-size = <0x0 0x20000000>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			camera_vm0_as: camera_vm0 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x0 0x20000000>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			camera_vm1_as: camera_vm1 {
 				iova-start = <0x0 0xA0000000>;
 				iova-size = <0x0 0x20000000>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			common_as: common {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x0 0x7FF00000>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			host1x_as: host1x {
 				iova-start = <0x0 0x1000>;
 				iova-size = <0x0 0xFFFFEFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			host1x_client_as: host1x_client {
 				iova-start = <0x0 0x1000>;
 				iova-size = <0x1F 0xFFFFF000>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			nvdisplay_as: nvdisplay {
 				iova-start = <0x0 0x1000>;
 				iova-size = <0x0 0xFFFFEFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			pcie0_as: pcie0 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x4 0x7FFFFFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			pcie1_as: pcie1 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x1F 0x7FFFFFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			pcie2_as: pcie2 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x0 0xFFFFFFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			pcie3_as: pcie3 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x0 0xFFFFFFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			pcie4_as: pcie4 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x4 0x7FFFFFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			pcie5_as: pcie5 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x4 0x7FFFFFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			pixel_as: pixel {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x4 0x3FFFFFFF>; /* 8 Gigs is enough for everyone */
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			/* Modify pva kernel code for any iova-start change*/
 			pva_as: pva0 {
 				iova-start = <0x0 0x80000000>;
 				iova-size = <0x0 0x7FFFFFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 			se_client_as: se {
 				iova-start = <0x0 0x1000>;
 				iova-size = <0x0 0xFFFFEFFF>;
-				alignment = <0xFFFFF>;
-				num-pf-page = <0>;
-				gap-page = <1>;
 			};
 		};
 	};
