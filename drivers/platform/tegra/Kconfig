@@ -1,0 +1,3 @@
+config TEGRA_DCE
+	bool "Tegra DCE driver"
+	depends on ARCH_TEGRA_23x_SOC
