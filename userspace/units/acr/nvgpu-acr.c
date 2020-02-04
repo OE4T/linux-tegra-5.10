@@ -1100,7 +1100,7 @@ int test_acr_init(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
+static int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 					void *__args)
 {
 	if (pmu_flcn == NULL) {

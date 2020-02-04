@@ -151,6 +151,6 @@
  *   - @ref SWUTS-gr-config
  *   - @ref SWUTS-ecc
  *   - @ref SWUTS-channel_devctl_qnx
- *
+ *   - @ref SWUTS-pmu
  */
 

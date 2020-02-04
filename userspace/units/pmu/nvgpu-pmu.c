@@ -41,6 +41,7 @@
 #include "../falcon/falcon_utf.h"
 #include "../gr/nvgpu-gr-gv11b.h"
 #include "../mock-iospace/include/gv11b_mock_regs.h"
+#include "nvgpu-pmu.h"
 
 #define NV_PMC_BOOT_0_ARCHITECTURE_GV110        (0x00000015 << \
 						NVGPU_GPU_ARCHITECTURE_SHIFT)
@@ -304,7 +305,7 @@ static int init_pmu_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	return 0;
 }
 
-static int test_pmu_early_init(struct unit_module *m,
+int test_pmu_early_init(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err;
@@ -452,7 +453,7 @@ static int test_pmu_early_init(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_pmu_remove_support(struct unit_module *m,
+int test_pmu_remove_support(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err;
@@ -471,7 +472,7 @@ static int test_pmu_remove_support(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_pmu_reset(struct unit_module *m,
+int test_pmu_reset(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err;
@@ -577,7 +578,7 @@ static int test_pmu_reset(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_pmu_isr(struct unit_module *m,
+int test_pmu_isr(struct unit_module *m,
 				struct gk20a *g, void *args)
 {	int err;
 	u32 ecc_value, ecc_intr_value;
@@ -748,7 +749,7 @@ static int test_pmu_isr(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-static int test_is_pmu_supported(struct unit_module *m,
+int test_is_pmu_supported(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	bool status;
