@@ -247,6 +247,79 @@ static int mgbe_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ * @brief mgbe_config_vlan_filter_reg - config vlan filter register
+ *
+ * Algorithm: This sequence is used to enable/disable VLAN filtering and
+ *	also selects VLAN filtering mode- perfect/hash
+ *
+ * @param[in] osi_core: Base address  from OSI core private data structure.
+ * @param[in] filter_enb_dis: vlan filter enable/disable
+ * @param[in] perfect_hash_filtering: perfect or hash filter
+ * @param[in] perfect_inverse_match: normal or inverse filter
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) osi_core->osd should be populated
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_vlan_filtering(struct osi_core_priv_data *osi_core,
+				      unsigned int filter_enb_dis,
+				      unsigned int perfect_hash_filtering,
+				      unsigned int perfect_inverse_match)
+{
+	unsigned int value;
+	unsigned char *base = osi_core->base;
+
+	/* validate perfect_inverse_match argument */
+	if (perfect_hash_filtering == OSI_HASH_FILTER_MODE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
+			"VLAN hash filter is not supported, VTHM not updated\n",
+			0ULL);
+		return -1;
+	}
+	if (perfect_hash_filtering != OSI_PERFECT_FILTER_MODE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid perfect_hash_filtering value\n",
+			perfect_hash_filtering);
+		return -1;
+	}
+
+	/* validate filter_enb_dis argument */
+	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid filter_enb_dis value\n",
+			filter_enb_dis);
+		return -1;
+	}
+
+	/* validate perfect_inverse_match argument */
+	if (perfect_inverse_match != OSI_ENABLE &&
+	    perfect_inverse_match != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid perfect_inverse_match value\n",
+			perfect_inverse_match);
+		return -1;
+	}
+
+	/* Read MAC PFR value set VTFE bit */
+	value = osi_readl(base + MGBE_MAC_PFR);
+	value &= ~(MGBE_MAC_PFR_VTFE);
+	value |= ((filter_enb_dis << MGBE_MAC_PFR_VTFE_SHIFT) &
+		  MGBE_MAC_PFR_VTFE);
+	osi_writel(value, base + MGBE_MAC_PFR);
+
+	/* Read MAC VLAN TR register value set VTIM bit */
+	value = osi_readl(base + MGBE_MAC_VLAN_TR);
+	value &= ~(MGBE_MAC_VLAN_TR_VTIM | MGBE_MAC_VLAN_TR_VTHM);
+	value |= ((perfect_inverse_match << MGBE_MAC_VLAN_TR_VTIM_SHIFT) &
+		  MGBE_MAC_VLAN_TR_VTIM);
+	osi_writel(value, base + MGBE_MAC_VLAN_TR);
+
+	return 0;
+}
+
+/**
  * @brief mgbe_flush_mtl_tx_queue - Flush MTL Tx queue
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -1170,7 +1243,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->update_ip6_addr = OSI_NULL;
 	ops->config_l4_filters = OSI_NULL;
 	ops->update_l4_port_no = OSI_NULL;
-	ops->config_vlan_filtering = OSI_NULL;
+	ops->config_vlan_filtering = mgbe_config_vlan_filtering,
 	ops->update_vlan_id = OSI_NULL;
 	ops->set_systime_to_mac = OSI_NULL;
 	ops->config_addend = OSI_NULL;
