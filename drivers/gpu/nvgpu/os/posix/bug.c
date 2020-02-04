@@ -79,8 +79,9 @@ static void nvgpu_posix_dump_stack(int skip_frames)
 
 void dump_stack(void)
 {
+	const int frames = 2;
 	/* Skip this function and nvgpu_posix_dump_stack() */
-	nvgpu_posix_dump_stack(2);
+	nvgpu_posix_dump_stack(frames);
 }
 
 static void nvgpu_bug_init(void)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
 unsigned long nvgpu_posix_ffs(unsigned long word)
 {
 	int ret = 0;
+	const int maxvalue = 64;
 
 	if ((word & (unsigned long) LONG_MAX) != 0UL) {
 		ret = __builtin_ffsl(
@@ -42,7 +43,7 @@ unsigned long nvgpu_posix_ffs(unsigned long word)
 	} else {
 NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_3), "Bug 2615925")
 		if (word > (unsigned long) LONG_MAX) {
-			ret = (int) 64;
+			ret = maxvalue;
 		}
 	}
 

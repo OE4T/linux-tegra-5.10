@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,11 +34,15 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 #endif
 
+#ifdef __NVGPU_UNIT_TEST__
+#define CACHE_NAME_LEN	128
+#endif
+
 struct nvgpu_kmem_cache {
 	struct gk20a *g;
 	size_t size;
 #ifdef __NVGPU_UNIT_TEST__
-	char name[128];
+	char name[CACHE_NAME_LEN];
 #endif
 };
 
@@ -147,6 +151,7 @@ void *nvgpu_kmalloc_impl(struct gk20a *g, size_t size, void *ip)
 void *nvgpu_kzalloc_impl(struct gk20a *g, size_t size, void *ip)
 {
 	void *ptr;
+	const size_t num = 1;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(
@@ -154,7 +159,7 @@ void *nvgpu_kzalloc_impl(struct gk20a *g, size_t size, void *ip)
 		return NULL;
 	}
 #endif
-	ptr = calloc(1, size);
+	ptr = calloc(num, size);
 
 	if (ptr == NULL) {
 		nvgpu_warn(NULL, "calloc returns NULL");
@@ -167,6 +172,7 @@ void *nvgpu_kzalloc_impl(struct gk20a *g, size_t size, void *ip)
 void *nvgpu_kcalloc_impl(struct gk20a *g, size_t n, size_t size, void *ip)
 {
 	void *ptr;
+	const size_t num = 1;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(
@@ -174,7 +180,7 @@ void *nvgpu_kcalloc_impl(struct gk20a *g, size_t n, size_t size, void *ip)
 		return NULL;
 	}
 #endif
-	ptr = calloc(1, (nvgpu_safe_mult_u64(n, size)));
+	ptr = calloc(num, (nvgpu_safe_mult_u64(n, size)));
 
 	if (ptr == NULL) {
 		nvgpu_warn(NULL, "calloc returns NULL");

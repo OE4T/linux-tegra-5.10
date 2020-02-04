@@ -388,12 +388,19 @@ static inline u32 be32_to_cpu(u32 x)
 static inline unsigned int nvgpu_posix_hweight8(uint8_t x)
 {
 	unsigned int ret;
-	uint8_t result = ((U8(x) >> U8(1)) & U8(0x55));
+	const u8 mask1 = 0x55;
+	const u8 mask2 = 0x33;
+	const u8 mask3 = 0x0f;
+	const u8 shift1 = 1;
+	const u8 shift2 = 2;
+	const u8 shift4 = 4;
+
+	uint8_t result = ((U8(x) >> shift1) & mask1);
 
 	result = nvgpu_safe_sub_u8(x, result);
 
-	result = (result & U8(0x33)) + ((result >> U8(2)) & U8(0x33));
-	result = (result + (result >> U8(4))) & U8(0x0f);
+	result = (result & mask2) + ((result >> shift2) & mask2);
+	result = (result + (result >> shift4)) & mask3;
 	ret = (unsigned int)result;
 
 	return ret;
@@ -411,9 +418,11 @@ static inline unsigned int nvgpu_posix_hweight8(uint8_t x)
 static inline unsigned int nvgpu_posix_hweight16(uint16_t x)
 {
 	unsigned int ret;
+	const u8 mask = 0xff;
+	const u8 shift8 = 8;
 
-	ret = nvgpu_posix_hweight8((uint8_t)(x & U8(0xff)));
-	ret += nvgpu_posix_hweight8((uint8_t)((x >> U8(8)) & U8(0xff)));
+	ret = nvgpu_posix_hweight8((uint8_t)(x & mask));
+	ret += nvgpu_posix_hweight8((uint8_t)((x >> shift8) & mask));
 
 	return ret;
 }
@@ -430,9 +439,11 @@ static inline unsigned int nvgpu_posix_hweight16(uint16_t x)
 static inline unsigned int nvgpu_posix_hweight32(uint32_t x)
 {
 	unsigned int ret;
+	const u16 mask = 0xffff;
+	const u16 shift16 = 16;
 
-	ret = nvgpu_posix_hweight16((uint16_t)(x & U16(0xffff)));
-	ret += nvgpu_posix_hweight16((uint16_t)((x >> U16(16)) & U16(0xffff)));
+	ret = nvgpu_posix_hweight16((uint16_t)(x & mask));
+	ret += nvgpu_posix_hweight16((uint16_t)((x >> shift16) & mask));
 
 	return ret;
 }
@@ -450,9 +461,11 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 {
 	unsigned int ret;
 	u32 lo, hi;
+	const u32 tmp0 = 0;
+	const u32 shift32 = 32;
 
-	lo = nvgpu_safe_cast_u64_to_u32(x & ~(u32)0);
-	hi = nvgpu_safe_cast_u64_to_u32(x >> 32) & ~(u32)0;
+	lo = nvgpu_safe_cast_u64_to_u32(x & ~tmp0);
+	hi = nvgpu_safe_cast_u64_to_u32(x >> shift32) & ~tmp0;
 
 	ret =  nvgpu_posix_hweight32(lo);
 	ret += nvgpu_posix_hweight32(hi);

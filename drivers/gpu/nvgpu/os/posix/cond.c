@@ -172,7 +172,11 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond)
 int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms)
 {
 	int ret;
+	const int err_ret = -1;
+	const unsigned int tmp0 = 0;
 	s64 t_start_ns, t_ns;
+	const s64 const_ns = 1000000000L;
+	const s64 const_ms = 1000000L;
 	struct timespec ts;
 
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
@@ -186,27 +190,27 @@ int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms)
 		return pthread_cond_wait(&c->cond, &c->mutex.lock.mutex);
 	}
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1) {
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) == err_ret) {
 		return -EFAULT;
 	}
 
-	t_start_ns = nvgpu_safe_mult_s64(ts.tv_sec, 1000000000);
+	t_start_ns = nvgpu_safe_mult_s64(ts.tv_sec, const_ns);
 	t_start_ns = nvgpu_safe_add_s64(t_start_ns, ts.tv_nsec);
 	t_ns = (s64)(*ms);
-	t_ns *= 1000000;
+	t_ns = nvgpu_safe_mult_s64(t_ns, const_ms);
 	t_ns =  nvgpu_safe_add_s64(t_ns, t_start_ns);
-	ts.tv_sec = t_ns / 1000000000;
-	ts.tv_nsec = t_ns % 1000000000;
+	ts.tv_sec = t_ns / const_ns;
+	ts.tv_nsec = t_ns % const_ns;
 
 	ret = pthread_cond_timedwait(&c->cond, &c->mutex.lock.mutex, &ts);
 	if (ret == 0) {
-		if (clock_gettime(CLOCK_MONOTONIC, &ts) != -1) {
-			t_ns = nvgpu_safe_mult_s64(ts.tv_sec, 1000000000);
+		if (clock_gettime(CLOCK_MONOTONIC, &ts) != err_ret) {
+			t_ns = nvgpu_safe_mult_s64(ts.tv_sec, const_ns);
 			t_ns = nvgpu_safe_add_s64(t_ns, ts.tv_nsec);
 			t_ns = nvgpu_safe_sub_s64(t_ns, t_start_ns);
-			t_ns /= 1000000;
+			t_ns /= const_ms;
 			if ((s64)*ms <= t_ns) {
-				*ms = 0;
+				*ms = tmp0;
 			} else {
 				*ms -= (unsigned int)t_ns;
 			}

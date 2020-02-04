@@ -161,7 +161,7 @@ static void nvgpu_usleep(unsigned int usecs)
 
 void nvgpu_udelay(unsigned int usecs)
 {
-	if (usecs >= (unsigned int) 1000) {
+	if (usecs >= (unsigned int) USEC_PER_MSEC) {
 		nvgpu_usleep(usecs);
 	} else {
 		nvgpu_delay_usecs(usecs);
