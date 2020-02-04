@@ -149,6 +149,8 @@ enum {
 #define TEGRA_EDID_QUIRK_IGNORE_EAC3 (1 << 6)
 /* LG soundbar advertises DV 4k@60 but does not advertise non-DV 4k@60 */
 #define TEGRA_EDID_QUIRK_LG_SBAR (1 << 7)
+/* Samsung soundbar HW-Q70R advertises incorrect Dolby Vision VSVDB length */
+#define TEGRA_EDID_QUIRK_VSVDB_LEN (1 << 8)
 
 /* This number is defined in hda driver - enum cea_audio_coding_types */
 #define    AUDIO_CODING_TYPE_EAC3    10

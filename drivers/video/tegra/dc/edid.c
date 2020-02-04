@@ -955,6 +955,25 @@ void tegra_edid_quirk_lg_sbar(struct tegra_edid_pvt *new_data,
 	}
 }
 
+/* Fix length of VSVDB */
+void tegra_edid_quirk_vsvdb_len(u8 *data)
+{
+	/* Fix only a specific length of Dolby Vision VSVDB */
+	if (data[EDID_BYTES_PER_BLOCK-23] != 0xef ||
+	    data[EDID_BYTES_PER_BLOCK-21] != ((IEEE_CEA861_DV_ID >> 0) & 0xff) ||
+	    data[EDID_BYTES_PER_BLOCK-20] != ((IEEE_CEA861_DV_ID >> 8) & 0xff) ||
+	    data[EDID_BYTES_PER_BLOCK-19] != ((IEEE_CEA861_DV_ID >> 16) & 0xff))
+		return;
+
+	/* Additional check of checksum that we got the specific EDID */
+	if (data[EDID_BYTES_PER_BLOCK-1] != 0x9c)
+		return;
+
+	/* Fix the length and adjust checksum */
+	data[EDID_BYTES_PER_BLOCK-23] -= 4;
+	data[EDID_BYTES_PER_BLOCK-1] += 4;
+}
+
 int tegra_edid_get_monspecs(struct tegra_edid *edid, struct fb_monspecs *specs)
 {
 	int i;
@@ -1044,6 +1063,10 @@ int tegra_edid_get_monspecs(struct tegra_edid *edid, struct fb_monspecs *specs)
 				data + i * EDID_BYTES_PER_BLOCK);
 			if (ret < 0)
 				goto fail;
+		}
+
+		if (new_data->quirks == TEGRA_EDID_QUIRK_VSVDB_LEN) {
+			tegra_edid_quirk_vsvdb_len(data + i * EDID_BYTES_PER_BLOCK);
 		}
 
 		if (data[i * EDID_BYTES_PER_BLOCK] == 0x2) {
