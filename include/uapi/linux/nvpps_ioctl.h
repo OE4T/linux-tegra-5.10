@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * include/uapi/linux/nvpps_ioctl.h
+ *
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -15,8 +17,8 @@
 #ifndef __UAPI_NVPPS_IOCTL_H__
 #define __UAPI_NVPPS_IOCTL_H__
 
-#include <uapi/linux/types.h>
-#include <uapi/linux/ioctl.h>
+#include <linux/types.h>
+#include <linux/ioctl.h>
 
 struct nvpps_version {
 	struct _version {

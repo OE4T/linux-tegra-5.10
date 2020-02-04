@@ -1,9 +1,9 @@
 /*
- * include/linux/nvhost_vi_ioctl.h
+ * include/uapi/linux/nvhost_vi_ioctl.h
  *
  * Tegra VI Driver
  *
- * Copyright (c) 2013-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,8 +22,8 @@
 #ifndef __UAPI_LINUX_NVHOST_VI_IOCTL_H
 #define __UAPI_LINUX_NVHOST_VI_IOCTL_H
 
-#include <uapi/linux/ioctl.h>
-#include <uapi/linux/types.h>
+#include <linux/ioctl.h>
+#include <linux/types.h>
 
 #if !defined(__KERNEL__)
 #define __user
