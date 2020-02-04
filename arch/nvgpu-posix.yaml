@@ -40,11 +40,9 @@ headers:
   safe: no
   owner: Alex W
   sources: [ include/nvgpu/posix/barrier.h,
-             include/nvgpu/posix/circ_buf.h,
              include/nvgpu/posix/dma.h,
              include/nvgpu/posix/io.h,
              include/nvgpu/posix/log.h,
-             include/nvgpu/posix/log2.h,
              include/nvgpu/posix/nvgpu_mem.h,
              include/nvgpu/posix/pci.h,
              include/nvgpu/posix/posix-fault-injection.h,
@@ -157,4 +155,16 @@ file_ops:
   owner: Prateek S
   sources: [ os/posix/file_ops.c,
              include/nvgpu/posix/file_ops.h ]
+  deps:
+
+log2:
+  safe: yes
+  owner: Ajesh K
+  sources: [ include/nvgpu/posix/log2.h ]
+  deps:
+
+circ_buf:
+  safe: yes
+  owner: Ajesh K
+  sources: [ include/nvgpu/posix/circ_buf.h ]
   deps:
