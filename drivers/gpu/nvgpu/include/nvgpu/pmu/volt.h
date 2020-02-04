@@ -57,8 +57,8 @@ struct voltage_device_metadata {
 };
 
 struct voltage_policy_metadata {
-	u8 perf_core_vf_seq_policy_idx;
 	struct boardobjgrp_e32 volt_policies;
+	u8 perf_core_vf_seq_policy_idx;
 };
 
 struct nvgpu_pmu_volt {

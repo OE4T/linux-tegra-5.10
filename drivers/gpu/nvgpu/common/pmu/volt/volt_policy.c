@@ -332,7 +332,8 @@ static int _volt_policy_grp_pmudatainit_super(struct gk20a *g,
 	struct nv_pmu_volt_volt_policy_boardobjgrp_set_header *pset =
 		(struct nv_pmu_volt_volt_policy_boardobjgrp_set_header *)
 		pboardobjgrppmu;
-	struct nvgpu_pmu_volt *volt  = (struct nvgpu_pmu_volt *)pboardobjgrp;
+	struct voltage_policy_metadata *volt  =
+			(struct voltage_policy_metadata *)pboardobjgrp;
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
@@ -343,7 +344,7 @@ static int _volt_policy_grp_pmudatainit_super(struct gk20a *g,
 		goto done;
 	}
 	pset->perf_core_vf_seq_policy_idx =
-		volt->volt_policy_metadata.perf_core_vf_seq_policy_idx;
+		volt->perf_core_vf_seq_policy_idx;
 
 done:
 	return status;
