@@ -122,6 +122,7 @@
  *   - @ref SWUTS-posix-rwsem
  *   - @ref SWUTS-posix-utils
  *   - @ref SWUTS-posix-circbuf
+ *   - @ref SWUTS-posix-kmem
  *   - @ref SWUTS-priv_ring
  *   - @ref SWUTS-ptimer
  *   - @ref SWUTS-sdl

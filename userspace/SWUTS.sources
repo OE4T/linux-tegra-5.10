@@ -101,6 +101,7 @@ INPUT += ../../../userspace/units/posix/os_sched/posix-ossched.h
 INPUT += ../../../userspace/units/posix/rwsem/posix-rwsem.h
 INPUT += ../../../userspace/units/posix/utils/posix-utils.h
 INPUT += ../../../userspace/units/posix/circ_buf/posix-circbuf.h
+INPUT += ../../../userspace/units/posix/kmem/posix-kmem.h
 INPUT += ../../../userspace/units/priv_ring/nvgpu-priv_ring.h
 INPUT += ../../../userspace/units/ptimer/nvgpu-ptimer.h
 INPUT += ../../../userspace/units/therm/nvgpu-therm.h
