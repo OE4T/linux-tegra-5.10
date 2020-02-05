@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -155,7 +155,8 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 	 * If we find the mapping here then that means we have mapped it already
 	 * and the prior pin and get must be undone.
 	 */
-	gk20a_mm_unpin(os_buf->dev, os_buf->dmabuf, os_buf->attachment,
+	gk20a_mm_unpin(os_buf->dev, os_buf->dmabuf,
+		       mapped_buffer->os_priv.attachment,
 		       mapped_buffer->os_priv.sgt);
 	dma_buf_put(os_buf->dmabuf);
 
