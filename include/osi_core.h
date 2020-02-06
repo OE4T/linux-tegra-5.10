@@ -92,6 +92,7 @@ typedef my_lint_64		nvel64_t;
 #define EQOS_MAX_MAC_ADDRESS_FILTER	128U
 #define EQOS_MAX_L3_L4_FILTER		8U
 #define EQOS_MAX_HTR_REGS		8U
+#define OSI_MGBE_MAX_MAC_ADDRESS_FILTER	32U
 #define OSI_DA_MATCH			0U
 #define OSI_INV_MATCH			1U
 #define OSI_AMASK_DISABLE		0U

@@ -146,8 +146,8 @@
 #define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 
 /* FIXME add logic based on HW version */
-#define OSI_EQOS_MAX_NUM_CHANS		4U
-#define OSI_EQOS_MAX_NUM_QUEUES		4U
+#define OSI_EQOS_MAX_NUM_CHANS		8U
+#define OSI_EQOS_MAX_NUM_QUEUES		8U
 #define OSI_MGBE_MAX_NUM_CHANS		10U
 #define OSI_MGBE_MAX_NUM_QUEUES		10U
 
