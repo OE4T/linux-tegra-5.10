@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -188,20 +188,24 @@ int nvgpu_bios_sw_init(struct gk20a *g)
 		nvgpu_tu104_bios_sw_init(g, g->bios);
 		break;
 	default:
-		nvgpu_kfree(g, g->bios);
-		err = 0;
-		break;
+		goto clean_bios;
 	}
 
 	if ((g->bios)->init != NULL) {
 		err = g->bios->init(g);
 		if (err != 0) {
 			nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
+			goto clean_bios;
 		}
-		goto done;
 	}
 done:
 	return err;
+
+clean_bios:
+	nvgpu_kfree(g, g->bios);
+	g->bios = NULL;
+	return err;
+
 }
 
 void nvgpu_bios_sw_deinit(struct gk20a *g, struct nvgpu_bios *bios)
