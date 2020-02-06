@@ -286,7 +286,7 @@ int test_nvgpu_vm_alloc_va(struct unit_module *m, struct gk20a *g,
  *
  * Description: This test targets the nvgpu_vm_bind_channel API.
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
  * Targets: gops_mm.vm_bind_channel, nvgpu_vm_bind_channel
  *
@@ -299,6 +299,8 @@ int test_nvgpu_vm_alloc_va(struct unit_module *m, struct gk20a *g,
  *   - Address space size = 128GB
  *   - Kernel reserved space size = 4GB
  * - Create an empty nvgpu_channel instance.
+ * - Call the nvgpu_vm_bind_channel with a NULL channel pointer and ensure it
+ *   failed.
  * - Call the nvgpu_vm_bind_channel API with the empty channel instance.
  * - Ensure that after the call, the VM pointer in the nvgpu_channel structure
  *   points to the VM in use in the test.

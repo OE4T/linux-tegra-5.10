@@ -148,6 +148,10 @@ int vm_aspace_id(struct vm_gk20a *vm)
 
 int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct nvgpu_channel *ch)
 {
+	if (ch == NULL) {
+		return -EINVAL;
+	}
+
 	nvgpu_log_fn(ch->g, " ");
 
 	nvgpu_vm_get(vm);

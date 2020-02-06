@@ -821,6 +821,15 @@ int test_vm_bind(struct unit_module *m, struct gk20a *g, void *__args)
 
 	vm = create_test_vm(m, g);
 
+	/* Error testing */
+	g->ops.mm.vm_bind_channel(vm, NULL);
+	if (channel->vm == vm) {
+		ret = UNIT_FAIL;
+		unit_err(m, "nvgpu_vm_bind_channel did not fail as expected.\n");
+		goto exit;
+	}
+
+	/* Succesfull call */
 	g->ops.mm.vm_bind_channel(vm, channel);
 
 	if (channel->vm != vm) {
@@ -831,6 +840,7 @@ int test_vm_bind(struct unit_module *m, struct gk20a *g, void *__args)
 
 	ret = UNIT_SUCCESS;
 exit:
+	g->fifo.channel = NULL;
 	free(channel);
 	nvgpu_vm_put(vm);
 	return ret;
