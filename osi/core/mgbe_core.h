@@ -29,6 +29,7 @@
  * @brief MGBE MAC register offsets
  * @{
  */
+#define MGBE_MAC_PFR			0x0008
 #define MGBE_MAC_RQC0R			0x00A0
 #define MGBE_MAC_MA0HR			0x0300
 #define MGBE_MAC_MA0LR			0x0304
@@ -120,6 +121,21 @@
 #define MGBE_DMA_CHX_STATUS_FBE			OSI_BIT(12)
 #define MGBE_DMA_CHX_STATUS_TI			OSI_BIT(0)
 #define MGBE_DMA_CHX_STATUS_RI			OSI_BIT(6)
+#define MGBE_MAC_PFR_PR				OSI_BIT(0)
+#define MGBE_MAC_PFR_HUC			OSI_BIT(1)
+#define MGBE_MAC_PFR_DAIF			OSI_BIT(3)
+#define MGBE_MAC_PFR_PM				OSI_BIT(4)
+#define MGBE_MAC_PFR_DBF			OSI_BIT(5)
+#define MGBE_MAC_PFR_PCF			(OSI_BIT(6) | OSI_BIT(7))
+#define MGBE_MAC_PFR_SAIF			OSI_BIT(8)
+#define MGBE_MAC_PFR_SAF			OSI_BIT(9)
+#define MGBE_MAC_PFR_HPF			OSI_BIT(10)
+#define MGBE_MAC_PFR_VTFE			OSI_BIT(16)
+#define MGBE_MAC_PFR_IPFE			OSI_BIT(20)
+#define MGBE_MAC_PFR_DNTU			OSI_BIT(21)
+#define MGBE_MAC_PFR_VUCC			OSI_BIT(22)
+#define MGBE_MAC_PFR_RA				OSI_BIT(31)
+
 /* DMA SBUS */
 #define MGBE_DMA_SBUS_BLEN8			OSI_BIT(2)
 #define MGBE_DMA_SBUS_BLEN16			OSI_BIT(3)

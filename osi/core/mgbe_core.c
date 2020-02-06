@@ -148,6 +148,105 @@ static nveu32_t mgbe_calculate_per_queue_fifo(nveu32_t fifo_size,
 }
 
 /**
+ * @brief mgbe_config_l2_da_perfect_inverse_match - configure register for
+ *	inverse or perfect match.
+ *
+ * Algorithm: This sequence is used to select perfect/inverse matching
+ *	for L2 DA
+ *
+ * @param[in] base: Base address  from OSI core private data structure.
+ * @param[in] perfect_inverse_match: 1 - inverse mode 0- perfect mode
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void mgbe_config_l2_da_perfect_inverse_match(
+					void *base,
+					unsigned int perfect_inverse_match)
+{
+	unsigned int value = 0U;
+
+	value = osi_readl((unsigned char *)base + MGBE_MAC_PFR);
+	value &= ~MGBE_MAC_PFR_DAIF;
+	if (perfect_inverse_match == OSI_INV_MATCH) {
+		/* Set DA Inverse Filtering */
+		value |= MGBE_MAC_PFR_DAIF;
+	}
+	osi_writel(value, (unsigned char *)base + MGBE_MAC_PFR);
+}
+
+/**
+ * @brief mgbe_config_mac_pkt_filter_reg - configure mac filter register.
+ *
+ * Algorithm: This sequence is used to configure MAC in differnet pkt
+ *	processing modes like promiscuous, multicast, unicast,
+ *	hash unicast/multicast.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter: OSI filter structure.
+ *
+ * @note 1) MAC should be initialized and started. see osi_start_mac()
+ *
+ * @retval 0 always
+ */
+static int mgbe_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
+					  const struct osi_filter *filter)
+{
+	unsigned int value = 0U;
+	int ret = 0;
+
+	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_PFR);
+
+	/* Retain all other values */
+	value &= (MGBE_MAC_PFR_DAIF | MGBE_MAC_PFR_DBF | MGBE_MAC_PFR_SAIF |
+		  MGBE_MAC_PFR_SAF | MGBE_MAC_PFR_PCF | MGBE_MAC_PFR_VTFE |
+		  MGBE_MAC_PFR_IPFE | MGBE_MAC_PFR_DNTU | MGBE_MAC_PFR_RA);
+
+	if ((filter->oper_mode & OSI_OPER_EN_PROMISC) != OSI_DISABLE) {
+		/* Set Promiscuous Mode Bit */
+		value |= MGBE_MAC_PFR_PR;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_PROMISC) != OSI_DISABLE) {
+		/* Reset Promiscuous Mode Bit */
+		value &= ~MGBE_MAC_PFR_PR;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_EN_ALLMULTI) != OSI_DISABLE) {
+		/* Set Pass All Multicast Bit */
+		value |= MGBE_MAC_PFR_PM;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_ALLMULTI) != OSI_DISABLE) {
+		/* Reset Pass All Multicast Bit */
+		value &= ~MGBE_MAC_PFR_PM;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_EN_PERFECT) != OSI_DISABLE) {
+		/* Set Hash or Perfect Filter Bit */
+		value |= MGBE_MAC_PFR_HPF;
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_PERFECT) != OSI_DISABLE) {
+		/* Reset Hash or Perfect Filter Bit */
+		value &= ~MGBE_MAC_PFR_HPF;
+	}
+
+	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_PFR);
+
+	if ((filter->oper_mode & OSI_OPER_EN_L2_DA_INV) != OSI_DISABLE) {
+		mgbe_config_l2_da_perfect_inverse_match(osi_core->base,
+							OSI_INV_MATCH);
+	}
+
+	if ((filter->oper_mode & OSI_OPER_DIS_L2_DA_INV) != OSI_DISABLE) {
+		mgbe_config_l2_da_perfect_inverse_match(osi_core->base,
+							OSI_PFT_MATCH);
+	}
+
+	return ret;
+}
+
+/**
  * @brief mgbe_flush_mtl_tx_queue - Flush MTL Tx queue
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -1063,7 +1162,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_flow_control = OSI_NULL;
 	ops->config_arp_offload = mgbe_config_arp_offload;
 	ops->config_rxcsum_offload = mgbe_config_rxcsum_offload;
-	ops->config_mac_pkt_filter_reg = OSI_NULL;
+	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;
 	ops->update_mac_addr_low_high_reg = OSI_NULL;
 	ops->config_l3_l4_filter_enable = OSI_NULL;
 	ops->config_l3_filters = OSI_NULL;
