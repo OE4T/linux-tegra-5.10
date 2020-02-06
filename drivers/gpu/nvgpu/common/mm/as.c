@@ -56,7 +56,7 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	struct gk20a *g = gk20a_from_as(as);
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm;
-	char name[32];
+	char name[NVGPU_VM_NAME_LEN];
 	char *p;
 	const bool userspace_managed =
 		(flags & NVGPU_AS_ALLOC_USERSPACE_MANAGED) != 0U;

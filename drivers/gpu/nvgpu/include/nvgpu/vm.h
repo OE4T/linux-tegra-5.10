@@ -97,6 +97,8 @@ struct nvgpu_os_buffer;
 #include <nvgpu_rmos/include/vm.h>
 #endif
 
+#define NVGPU_VM_NAME_LEN	20U
+
 /**
  * This structure describes the properties of batch mapping/unmapping.
  */
@@ -222,7 +224,7 @@ struct vm_gk20a {
 	 */
 	struct gk20a_as_share *as_share;
 	/** Name of the Virtual Memory context. */
-	char name[20];
+	char name[NVGPU_VM_NAME_LEN];
 
 	/** Start GPU address of the context. */
 	u64 va_start;

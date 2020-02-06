@@ -57,6 +57,8 @@ struct nvgpu_alloc_carveout;
 struct vm_gk20a;
 struct gk20a;
 
+#define NVGPU_ALLOC_NAME_LEN	32U
+
 /**
  * Structure containing operations for an allocator to implement.
  */
@@ -217,7 +219,7 @@ struct nvgpu_allocator {
 	/**
 	 * Name of allocator.
 	 */
-	char name[32];
+	char name[NVGPU_ALLOC_NAME_LEN];
 	/**
 	 * Synchronization mutex.
 	 */
