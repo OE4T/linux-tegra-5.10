@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,6 +86,9 @@ struct gops_runlist {
 	int (*reschedule)(struct nvgpu_channel *ch, bool preempt_next);
 	int (*reschedule_preempt_next_locked)(struct nvgpu_channel *ch,
 			bool wait_preempt);
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_runlist.h"
+#endif
 
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
