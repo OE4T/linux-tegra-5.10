@@ -3661,7 +3661,8 @@ static void init_filter_values(struct ether_priv_data *pdata)
 		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_128;
 	} else if (pdata->hw_feat.mac_addr32_sel == OSI_ENABLE) {
 		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_64;
-	} else if (pdata->hw_feat.mac_addr16_sel == OSI_ENABLE) {
+	} else if (pdata->hw_feat.mac_addr16_sel ==
+		   EQOS_MAC_HFR0_ADDMACADRSEL_MASK) {
 		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_32;
 	} else {
 		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_1;
