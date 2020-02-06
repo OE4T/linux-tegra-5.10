@@ -247,6 +247,145 @@ static int mgbe_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ * @brief mgbe_update_mac_addr_helper - Function to update DCS and MBC
+ *
+ * Algorithm: This helper routine is to update passed prameter value
+ *	based on DCS and MBC parameter. Validation of dma_chan as well as
+ *	dsc_en status performed before updating DCS bits.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[out] value: unsigned int pointer which has value read from register.
+ * @param[in] idx: filter index
+ * @param[in] dma_routing_enable: dma channel routing enable(1)
+ * @param[in] dma_chan: dma channel number
+ * @param[in] addr_mask: filter will not consider byte in comparison
+ *	      Bit 5: MAC_Address${i}_High[15:8]
+ *	      Bit 4: MAC_Address${i}_High[7:0]
+ *	      Bit 3: MAC_Address${i}_Low[31:24]
+ *	      ..
+ *	      Bit 0: MAC_Address${i}_Low[7:0]
+ *
+ * @note 1) MAC should be initialized and stated. see osi_start_mac()
+ *	 2) osi_core->osd should be populated.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int mgbe_update_mac_addr_helper(
+				struct osi_core_priv_data *osi_core,
+				unsigned int *value,
+				unsigned int idx,
+				unsigned int dma_routing_enable,
+				unsigned int dma_chan, unsigned int addr_mask)
+{
+	int ret = 0;
+	/* PDC bit of MAC_Ext_Configuration register is not set so binary
+	 * value representation.
+	 */
+	if (dma_routing_enable == OSI_ENABLE) {
+		if ((dma_chan < OSI_MGBE_MAX_NUM_CHANS) &&
+		    (osi_core->dcs_en == OSI_ENABLE)) {
+			*value = ((dma_chan << MGBE_MAC_ADDRH_DCS_SHIFT) &
+				  MGBE_MAC_ADDRH_DCS);
+		} else if (dma_chan > OSI_MGBE_MAX_NUM_CHANS - 0x1U) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+				"invalid dma channel\n",
+				(unsigned long long)dma_chan);
+			ret = -1;
+			goto err_dma_chan;
+		} else {
+			/* Do nothing */
+		}
+	}
+
+	/* Address mask validation */
+	if (addr_mask <= MGBE_MAB_ADDRH_MBC_MAX_MASK && addr_mask > OSI_NONE) {
+		*value = (*value |
+			  ((addr_mask << MGBE_MAC_ADDRH_MBC_SHIFT) &
+			   MGBE_MAC_ADDRH_MBC));
+	}
+
+err_dma_chan:
+	return ret;
+}
+
+
+/**
+ * @brief mgbe_update_mac_addr_low_high_reg- Update L2 address in filter
+ *	  register
+ *
+ * Algorithm: This routine update MAC address to register for filtering
+ *	based on dma_routing_enable, addr_mask and src_dest. Validation of
+ *	dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
+ *	performed before updating DCS bits.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter: OSI filter structure.
+ *
+ * @note 1) MAC should be initialized and stated. see osi_start_mac()
+ *	 2) osi_core->osd should be populated.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_update_mac_addr_low_high_reg(
+				struct osi_core_priv_data *const osi_core,
+				const struct osi_filter *filter)
+{
+	unsigned int idx = filter->index;
+	unsigned int dma_routing_enable = filter->dma_routing;
+	unsigned int dma_chan = filter->dma_chan;
+	unsigned int addr_mask = filter->addr_mask;
+	unsigned int src_dest = filter->src_dest;
+	const unsigned char *addr = filter->mac_address;
+	unsigned int value = 0x0U;
+	int ret = 0;
+
+	/* check for valid index (0 to 31) */
+	if (idx >= OSI_MGBE_MAX_MAC_ADDRESS_FILTER) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid MAC filter index\n",
+			idx);
+		return -1;
+	}
+
+	/* High address clean should happen for filter index >= 0 */
+	if (addr == OSI_NULL) {
+		osi_writel(OSI_DISABLE, (unsigned char *)osi_core->base +
+			   MGBE_MAC_ADDRH((idx)));
+		return 0;
+	}
+
+	ret = mgbe_update_mac_addr_helper(osi_core, &value, idx,
+					  dma_routing_enable, dma_chan,
+					  addr_mask);
+	if (ret == -1) {
+		/* return on helper error */
+		return ret;
+	}
+
+	/* Setting Source/Destination Address match valid for 1 to 31 index */
+	if ((src_dest == OSI_SA_MATCH || src_dest == OSI_DA_MATCH)) {
+		value = (value | ((src_dest << MGBE_MAC_ADDRH_SA_SHIFT) &
+			 MGBE_MAC_ADDRH_SA));
+	}
+
+	osi_writel(((unsigned int)addr[4] |
+		   ((unsigned int)addr[5] << 8) |
+		   MGBE_MAC_ADDRH_AE |
+		   value),
+		   (unsigned char *)osi_core->base + MGBE_MAC_ADDRH((idx)));
+
+	osi_writel(((unsigned int)addr[0] |
+		   ((unsigned int)addr[1] << 8) |
+		   ((unsigned int)addr[2] << 16) |
+		   ((unsigned int)addr[3] << 24)),
+		   (unsigned char *)osi_core->base +  MGBE_MAC_ADDRL((idx)));
+
+	return ret;
+}
+
+/**
  * @brief mgbe_config_vlan_filter_reg - config vlan filter register
  *
  * Algorithm: This sequence is used to enable/disable VLAN filtering and
@@ -630,7 +769,12 @@ static void mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	value |= MGBE_MAC_RMCR_ACS | MGBE_MAC_RMCR_CST | MGBE_MAC_RMCR_IPC;
 	osi_writel(value, (nveu8_t *)osi_core->base + MGBE_MAC_RMCR);
 
-	/* TODO: MCBC queue enable */
+	/* Enable Multicast and Broadcast Queue, default is Q1 */
+	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_RQC1R);
+	value |= MGBE_MAC_RQC1R_MCBCQEN;
+	/* Routing Multicast and Broadcast to Q1 */
+	value |= MGBE_MAC_RQC1R_MCBCQ1;
+	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_RQC1R);
 
 	/* Disable all MMC nve32_terrupts */
 	/* Disable all MMC Tx nve32_terrupts */
@@ -1236,7 +1380,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_arp_offload = mgbe_config_arp_offload;
 	ops->config_rxcsum_offload = mgbe_config_rxcsum_offload;
 	ops->config_mac_pkt_filter_reg = mgbe_config_mac_pkt_filter_reg;
-	ops->update_mac_addr_low_high_reg = OSI_NULL;
+	ops->update_mac_addr_low_high_reg = mgbe_update_mac_addr_low_high_reg;
 	ops->config_l3_l4_filter_enable = OSI_NULL;
 	ops->config_l3_filters = OSI_NULL;
 	ops->update_ip4_addr = OSI_NULL;
