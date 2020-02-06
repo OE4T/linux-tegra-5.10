@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,22 +19,22 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef UNIT_NVGPU_GR_FALCON_GK20A_H
-#define UNIT_NVGPU_GR_FALCON_GK20A_H
+#ifndef UNIT_NVGPU_GR_FALCON_GM20B_H
+#define UNIT_NVGPU_GR_FALCON_GM20B_H
 
 #include <nvgpu/types.h>
 
 struct unit_module;
 struct gk20a;
 
-/** @addtogroup SWUTS-gr-falcon-gk20a
+/** @addtogroup SWUTS-gr-falcon-gm20b
  *  @{
  *
  * Software Unit Test Specification for common.gr.falcon
  */
 
 /**
- * Test specification for: test_gr_falcon_gk20a_ctrl_ctxsw
+ * Test specification for: test_gr_falcon_gm20b_ctrl_ctxsw
  *
  * Description: Helps to verify various failure and conditional checking
  *              in falcon gm20b hal functions.
@@ -51,6 +51,7 @@ struct gk20a;
  *          gm20b_gr_falcon_ctrl_ctxsw
  *
  * Steps:
+ * -  Call gm20b_gr_falcon_ctrl_ctxsw with watchdog timeout Method.
  * -  Call g->ops.gr.falcon.ctrl_ctxsw with Invalid Method.
  * -  Enable timer init failure injection in various functions.
  *    -  g->ops.gr.falcon.wait_ctxsw_ready.
@@ -62,7 +63,7 @@ struct gk20a;
  *
  * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
  */
-int test_gr_falcon_gk20a_ctrl_ctxsw(struct unit_module *m,
+int test_gr_falcon_gm20b_ctrl_ctxsw(struct unit_module *m,
 		struct gk20a *g, void *args);
 /**
  * @}

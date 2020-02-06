@@ -46,7 +46,7 @@
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 
 #include "../nvgpu-gr.h"
-#include "nvgpu-gr-falcon-gk20a.h"
+#include "nvgpu-gr-falcon-gm20b.h"
 #include "nvgpu-gr-falcon.h"
 
 struct gr_gops_falcon_orgs {
@@ -372,8 +372,8 @@ struct unit_module_test nvgpu_gr_falcon_tests[] = {
 			test_gr_falcon_init_ctx_state, NULL, 0),
 	UNIT_TEST(gr_falcon_fail_ctxsw_ucode,
 			test_gr_falcon_fail_ctxsw_ucode, NULL, 0),
-	UNIT_TEST(gr_falcon_gk20a_ctrl_ctxsw,
-			test_gr_falcon_gk20a_ctrl_ctxsw, NULL, 0),
+	UNIT_TEST(gr_falcon_gm20b_ctrl_ctxsw,
+			test_gr_falcon_gm20b_ctrl_ctxsw, NULL, 0),
 	UNIT_TEST(gr_falcon_deinit, test_gr_falcon_deinit, NULL, 0),
 };
 

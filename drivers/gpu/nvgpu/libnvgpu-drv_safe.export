@@ -82,6 +82,7 @@ gm20b_priv_ring_enum_ltc
 gm20b_priv_ring_get_gpc_count
 gm20b_priv_ring_get_fbp_count
 gm20b_gr_falcon_submit_fecs_method_op
+gm20b_gr_falcon_ctrl_ctxsw
 gm20b_bus_bar1_bind
 gp10b_bus_bar2_bind
 gp10b_ce_nonstall_isr

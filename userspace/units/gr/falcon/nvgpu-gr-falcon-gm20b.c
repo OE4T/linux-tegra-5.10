@@ -43,9 +43,9 @@
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 
 #include "../nvgpu-gr.h"
-#include "nvgpu-gr-falcon-gk20a.h"
+#include "nvgpu-gr-falcon-gm20b.h"
 
-struct gr_falcon_gk20a_fecs_op {
+struct gr_falcon_gm20b_fecs_op {
 	u32 id;
 	u32 data;
 	u32 ok;
@@ -60,7 +60,13 @@ static void gr_falcon_fecs_dump_stats(struct gk20a *g)
 	/* Do Nothing */
 }
 
-static int gr_falcon_gk20a_submit_fecs_mthd_op(struct unit_module *m,
+static int gr_falcon_ctrl_ctxsw_stub(struct gk20a *g, u32 fecs_method,
+			u32 data, u32 *ret_val)
+{
+	return -EINVAL;
+}
+
+static int gr_falcon_gm20b_submit_fecs_mthd_op(struct unit_module *m,
 				struct gk20a *g)
 {
 	int err, i;
@@ -72,7 +78,7 @@ static int gr_falcon_gk20a_submit_fecs_mthd_op(struct unit_module *m,
 		.cond.fail = GR_IS_UCODE_OP_SKIP,
 		};
 
-	struct gr_falcon_gk20a_fecs_op fecs_op_stat[] = {
+	struct gr_falcon_gm20b_fecs_op fecs_op_stat[] = {
 		[0] = {
 			.id = 4U,
 			.data = 0U,
@@ -147,7 +153,7 @@ static int gr_falcon_gk20a_submit_fecs_mthd_op(struct unit_module *m,
 		      },
 	};
 	int arry_cnt = sizeof(fecs_op_stat)/
-			sizeof(struct gr_falcon_gk20a_fecs_op);
+			sizeof(struct gr_falcon_gm20b_fecs_op);
 
 	g->ops.gr.falcon.dump_stats = gr_falcon_fecs_dump_stats;
 	for (i = 0; i < arry_cnt; i++) {
@@ -177,6 +183,9 @@ static int gr_falcon_timer_init_error(struct unit_module *m,
 	struct nvgpu_gr_falcon_query_sizes sizes;
 	struct nvgpu_posix_fault_inj *timer_fi =
 		nvgpu_timers_get_fault_injection();
+	int (*gr_falcon_ctrl_ctxsw_local)(struct gk20a *g,
+			u32 fecs_method,
+			u32 data, u32 *ret_val);
 
 	nvgpu_posix_enable_fault_injection(timer_fi, true, 0);
 	err = g->ops.gr.falcon.wait_mem_scrubbing(g);
@@ -233,6 +242,15 @@ static int gr_falcon_timer_init_error(struct unit_module *m,
 	}
 
 	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
+	gr_falcon_ctrl_ctxsw_local = g->ops.gr.falcon.ctrl_ctxsw;
+	g->ops.gr.falcon.ctrl_ctxsw = gr_falcon_ctrl_ctxsw_stub;
+	err = g->ops.gr.falcon.wait_ctxsw_ready(g);
+	if (err == 0) {
+		unit_return_fail(m,
+			"gr_falcon_wait_ctxsw_ready failed\n");
+	}
+	g->ops.gr.falcon.ctrl_ctxsw = gr_falcon_ctrl_ctxsw_local;
+
 	err = g->ops.gr.falcon.wait_ctxsw_ready(g);
 	if (err != 0) {
 		unit_return_fail(m,
@@ -242,22 +260,29 @@ static int gr_falcon_timer_init_error(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-int test_gr_falcon_gk20a_ctrl_ctxsw(struct unit_module *m,
+int test_gr_falcon_gm20b_ctrl_ctxsw(struct unit_module *m,
 				struct gk20a *g, void *args)
 {
 	int err = 0;
 	u32 data = 0;
 
+	err = gm20b_gr_falcon_ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_SET_WATCHDOG_TIMEOUT, data, NULL);
+	if (err) {
+		unit_return_fail(m,
+			"falcon_gm20b_ctrl_ctxsw watchdog timeout failed\n");
+	}
+
 	err = g->ops.gr.falcon.ctrl_ctxsw(g,
 			NVGPU_GR_FALCON_METHOD_GOLDEN_IMAGE_SAVE, data, NULL);
 	if (err) {
-		unit_return_fail(m, "falcon_gk20a_ctrl_ctxsw failed\n");
+		unit_return_fail(m, "falcon_gm20b_ctrl_ctxsw failed\n");
 	}
 
 	/* Invalid Method */
 	err = g->ops.gr.falcon.ctrl_ctxsw(g, 0, data, NULL);
 	if (err) {
-		unit_return_fail(m, "falcon_gk20a_ctrl_ctxsw failed\n");
+		unit_return_fail(m, "falcon_gm20b_ctrl_ctxsw failed\n");
 	}
 
 	err = gr_falcon_timer_init_error(m, g);
@@ -265,9 +290,9 @@ int test_gr_falcon_gk20a_ctrl_ctxsw(struct unit_module *m,
 		unit_return_fail(m, "gr_falcon_timer_init_error failed\n");
 	}
 
-	err = gr_falcon_gk20a_submit_fecs_mthd_op(m, g);
+	err = gr_falcon_gm20b_submit_fecs_mthd_op(m, g);
 	if (err) {
-		unit_return_fail(m, "gr_falcon_gk20a_fecs_mthd_op failed\n");
+		unit_return_fail(m, "gr_falcon_gm20b_fecs_mthd_op failed\n");
 	}
 
 	return UNIT_SUCCESS;
