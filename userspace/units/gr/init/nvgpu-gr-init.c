@@ -417,6 +417,9 @@ static int test_gr_init_setup_hw_error(struct gk20a *g)
 		return UNIT_FAIL;
 	}
 	g->ops.gr.init.ecc_scrub_reg = gr_test_init_ecc_scrub_reg;
+	g->ops.gr.init.su_coalesce = NULL;
+	g->ops.gr.init.lg_coalesce = NULL;
+
 	err = nvgpu_gr_init_support(g);
 	if (err == 0) {
 		return UNIT_FAIL;
