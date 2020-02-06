@@ -51,13 +51,13 @@
 		target = <&tegra_sound>;
 		__overlay__ {
 			nvidia-audio-card,widgets =
-				"Headphone",	"x Headphone",
-				"Microphone",	"x Mic";
+				"Headphone",	"H40-SGTL Headphone",
+				"Microphone",	"H40-SGTL Mic";
 
 			nvidia-audio-card,routing =
-				"x Headphone",		"x HP_OUT",
-				"x MIC_IN",		"x Mic",
-				"x ADC",		"x Mic Bias";
+				"H40-SGTL Headphone",	"H40-SGTL HP_OUT",
+				"H40-SGTL MIC_IN",	"H40-SGTL Mic",
+				"H40-SGTL ADC",		"H40-SGTL Mic Bias";
 		};
 	};
 
@@ -70,6 +70,7 @@
 
 			codec {
 				sound-dai = <&sgtl5000>;
+				prefix = "H40-SGTL";
 			};
 		};
 	};
