@@ -467,6 +467,45 @@ static int nvgpu_init_mm_setup_vm(struct gk20a *g)
 	return err;
 }
 
+static int nvgpu_init_mm_components(struct gk20a *g)
+{
+	int err = 0;
+	struct mm_gk20a *mm = &g->mm;
+
+	err = nvgpu_alloc_sysmem_flush(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_init_mm_setup_bar(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_init_mm_setup_vm(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_init_mmu_debug(mm);
+	if (err != 0) {
+		return err;
+	}
+
+	/*
+	 * Some chips support replayable MMU faults. For such chips make sure
+	 * SW is initialized.
+	 */
+	if (g->ops.mm.mmu_fault.setup_sw != NULL) {
+		err = g->ops.mm.mmu_fault.setup_sw(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	return 0;
+}
+
 static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
@@ -512,35 +551,9 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	}
 #endif
 
-	err = nvgpu_alloc_sysmem_flush(g);
+	err = nvgpu_init_mm_components(g);
 	if (err != 0) {
 		return err;
-	}
-
-	err = nvgpu_init_mm_setup_bar(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_init_mm_setup_vm(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_init_mmu_debug(mm);
-	if (err != 0) {
-		return err;
-	}
-
-	/*
-	 * Some chips support replayable MMU faults. For such chips make sure
-	 * SW is initialized.
-	 */
-	if (g->ops.mm.mmu_fault.setup_sw != NULL) {
-		err = g->ops.mm.mmu_fault.setup_sw(g);
-		if (err != 0) {
-			return err;
-		}
 	}
 
 	if ((g->ops.fb.fb_ecc_init != NULL) && !g->ecc.initialized) {

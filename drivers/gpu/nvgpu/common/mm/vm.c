@@ -389,21 +389,12 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 }
 #endif
 
-static int nvgpu_vm_init_vma_allocators(struct gk20a *g, struct vm_gk20a *vm,
+static int nvgpu_vm_init_user_vma(struct gk20a *g, struct vm_gk20a *vm,
 			u64 user_vma_start, u64 user_vma_limit,
-			u64 user_lp_vma_start, u64 user_lp_vma_limit,
-			u64 kernel_vma_start, u64 kernel_vma_limit,
-			u64 kernel_vma_flags, const char *name)
+			const char *name)
 {
 	int err = 0;
 	char alloc_name[32];
-	size_t name_len;
-
-	name_len  = strlen("gk20a_") + strlen(name);
-	if (name_len >= 32U) {
-		nvgpu_err(g, "Invalid MAX_NAME_SIZE %lu %u", name_len, 32U);
-		return -EINVAL;
-	}
 
 	/*
 	 * User VMA.
@@ -432,6 +423,15 @@ static int nvgpu_vm_init_vma_allocators(struct gk20a *g, struct vm_gk20a *vm,
 		vm->vma[0] = &vm->kernel;
 		vm->vma[1] = &vm->kernel;
 	}
+	return 0;
+}
+
+static int nvgpu_vm_init_user_lp_vma(struct gk20a *g, struct vm_gk20a *vm,
+			u64 user_lp_vma_start, u64 user_lp_vma_limit,
+			const char *name)
+{
+	int err = 0;
+	char alloc_name[32];
 
 	/*
 	 * User VMA for large pages when a split address range is used.
@@ -450,9 +450,18 @@ static int nvgpu_vm_init_vma_allocators(struct gk20a *g, struct vm_gk20a *vm,
 						 GPU_ALLOC_GVA_SPACE,
 						 BUDDY_ALLOCATOR);
 		if (err != 0) {
-			goto clean_up_allocators;
+			return err;
 		}
 	}
+	return 0;
+}
+
+static int nvgpu_vm_init_kernel_vma(struct gk20a *g, struct vm_gk20a *vm,
+			u64 kernel_vma_start, u64 kernel_vma_limit,
+			u64 kernel_vma_flags, const char *name)
+{
+	int err = 0;
+	char alloc_name[32];
 
 	/*
 	 * Kernel VMA.
@@ -471,9 +480,45 @@ static int nvgpu_vm_init_vma_allocators(struct gk20a *g, struct vm_gk20a *vm,
 						 kernel_vma_flags,
 						 BUDDY_ALLOCATOR);
 		if (err != 0) {
-			goto clean_up_allocators;
+			return err;
 		}
 	}
+	return 0;
+}
+
+static int nvgpu_vm_init_vma_allocators(struct gk20a *g, struct vm_gk20a *vm,
+			u64 user_vma_start, u64 user_vma_limit,
+			u64 user_lp_vma_start, u64 user_lp_vma_limit,
+			u64 kernel_vma_start, u64 kernel_vma_limit,
+			u64 kernel_vma_flags, const char *name)
+{
+	int err = 0;
+	size_t name_len;
+
+	name_len  = strlen("gk20a_") + strlen(name);
+	if (name_len >= 32U) {
+		nvgpu_err(g, "Invalid MAX_NAME_SIZE %lu %u", name_len, 32U);
+		return -EINVAL;
+	}
+
+	err = nvgpu_vm_init_user_vma(g, vm,
+			user_vma_start, user_vma_limit, name);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_vm_init_user_lp_vma(g, vm,
+			user_lp_vma_start, user_lp_vma_limit, name);
+	if (err != 0) {
+		goto clean_up_allocators;
+	}
+
+	err = nvgpu_vm_init_kernel_vma(g, vm, kernel_vma_start,
+			kernel_vma_limit, kernel_vma_flags, name);
+	if (err != 0) {
+		goto clean_up_allocators;
+	}
+
 	return 0;
 
 clean_up_allocators:
