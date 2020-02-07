@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,12 @@
  */
 
 #include <nvgpu/types.h>
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_engines.h"
+#endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * Invalid engine id value.
@@ -94,6 +100,13 @@ struct nvgpu_engine_info {
 	u32 fault_id;
 	/** Engine enum type used for s/w purpose. */
 	enum nvgpu_fifo_engine engine_enum;
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	/* nvgpu next engine info additions */
+	struct nvgpu_next_engine_info nvgpu_next;
+#endif
+	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 /**
  * @brief Get s/w defined engine enum type for engine enum type defined by h/w.

@@ -31,6 +31,10 @@
 
 #include "engines_gp10b.h"
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "nvgpu_next_gpuid.h"
+#endif
+
 int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 {
 	struct gk20a *g = f->g;
@@ -105,6 +109,9 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 		info->inst_id  = dev_info.inst_id;
 		info->pri_base = dev_info.pri_base;
 		info->engine_id = dev_info.engine_id;
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		NVGPU_NEXT_INIT_GR_INFO(g, info, &dev_info);
+#endif
 
 		/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
 		f->active_engines_list[f->num_engines] =
