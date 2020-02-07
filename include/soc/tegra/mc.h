@@ -184,4 +184,6 @@ struct tegra_mc {
 int tegra_mc_write_emem_configuration(struct tegra_mc *mc, unsigned long rate);
 unsigned int tegra_mc_get_emem_device_count(struct tegra_mc *mc);
 
+extern struct platform_driver tegra_mc_driver;
+
 #endif /* __SOC_TEGRA_MC_H__ */
