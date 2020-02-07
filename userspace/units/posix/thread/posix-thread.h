@@ -39,6 +39,7 @@ struct test_thread_args {
         bool stop_graceful;
         bool use_name;
         bool stop_repeat;
+        bool ret_err;
 };
 
 static struct test_thread_args create_normal = {
@@ -46,7 +47,8 @@ static struct test_thread_args create_normal = {
         .check_stop = false,
         .stop_graceful = false,
 	.use_name = true,
-	.stop_repeat = false
+	.stop_repeat = false,
+	.ret_err = false
 };
 
 static struct test_thread_args create_normal_noname = {
@@ -54,7 +56,17 @@ static struct test_thread_args create_normal_noname = {
         .check_stop = false,
         .stop_graceful = false,
 	.use_name = false,
-	.stop_repeat = false
+	.stop_repeat = false,
+	.ret_err = false
+};
+
+static struct test_thread_args create_normal_errret = {
+        .use_priority = false,
+        .check_stop = false,
+        .stop_graceful = false,
+	.use_name = true,
+	.stop_repeat = false,
+	.ret_err = true
 };
 
 static struct test_thread_args create_priority = {
@@ -62,7 +74,8 @@ static struct test_thread_args create_priority = {
         .check_stop = false,
         .stop_graceful = false,
 	.use_name = true,
-	.stop_repeat = false
+	.stop_repeat = false,
+	.ret_err = false
 };
 
 static struct test_thread_args create_priority_noname = {
@@ -70,7 +83,8 @@ static struct test_thread_args create_priority_noname = {
         .check_stop = false,
         .stop_graceful = false,
 	.use_name = false,
-	.stop_repeat = false
+	.stop_repeat = false,
+	.ret_err = false
 };
 
 static struct test_thread_args check_stop = {
@@ -78,7 +92,8 @@ static struct test_thread_args check_stop = {
         .check_stop = true,
         .stop_graceful = false,
 	.use_name = true,
-	.stop_repeat = false
+	.stop_repeat = false,
+	.ret_err = false
 };
 
 static struct test_thread_args stop_graceful = {
@@ -86,7 +101,8 @@ static struct test_thread_args stop_graceful = {
         .check_stop = true,
         .stop_graceful = true,
 	.use_name = true,
-	.stop_repeat = false
+	.stop_repeat = false,
+	.ret_err = false
 };
 
 static struct test_thread_args stop_graceful_repeat = {
@@ -94,7 +110,8 @@ static struct test_thread_args stop_graceful_repeat = {
         .check_stop = true,
         .stop_graceful = true,
 	.use_name = true,
-	.stop_repeat = true
+	.stop_repeat = true,
+	.ret_err = false
 };
 
 struct unit_test_thread_data {
@@ -103,6 +120,7 @@ struct unit_test_thread_data {
         int thread_priority;
         int check_stop;
         int callback_invoked;
+        int use_return;
 };
 
 struct nvgpu_thread test_thread;

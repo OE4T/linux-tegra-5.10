@@ -50,6 +50,10 @@ static int test_thread_fn(void *args)
 		}
 	}
 
+	if (data->use_return) {
+		return (data->use_return);
+	}
+
 	return 0;
 }
 
@@ -76,6 +80,9 @@ int test_thread_cycle(struct unit_module *m, struct gk20a *g, void *args)
 
 	if (test_args->use_priority == false) {
 		if (test_args->use_name == true) {
+			if (test_args->ret_err == true) {
+				test_data.use_return = 1;
+			}
 			ret = nvgpu_thread_create(&test_thread, &test_data,
 					test_thread_fn,
 					"test_thread");
@@ -156,6 +163,7 @@ int test_thread_cycle(struct unit_module *m, struct gk20a *g, void *args)
 struct unit_module_test posix_thread_tests[] = {
 	UNIT_TEST(create,                   test_thread_cycle, &create_normal, 0),
 	UNIT_TEST(create_noname,            test_thread_cycle, &create_normal_noname, 0),
+	UNIT_TEST(create_noname_errret,     test_thread_cycle, &create_normal_errret, 0),
 	UNIT_TEST(create_priority,          test_thread_cycle, &create_priority, 0),
 	UNIT_TEST(create_priority_noname,   test_thread_cycle, &create_priority_noname, 0),
 	UNIT_TEST(cycle,                    test_thread_cycle, &check_stop, 0),
