@@ -151,6 +151,7 @@ struct host1x {
 
 	struct device_dma_parameters dma_parms;
 
+	struct host1x_bo_cache cache;
 	struct host1x_uapi uapi;
 };
 

@@ -192,7 +192,7 @@ int tegra_drm_ioctl_channel_map(struct drm_device *drm, void *data,
 	else
 		direction = DMA_TO_DEVICE;
 
-	mapping->map = host1x_bo_pin(ctx->client->base.dev, mapping->bo, direction);
+	mapping->map = host1x_bo_pin(ctx->client->base.dev, mapping->bo, direction, NULL);
 	if (IS_ERR(mapping->map)) {
 		err = PTR_ERR(mapping->map);
 		goto put_gem;
