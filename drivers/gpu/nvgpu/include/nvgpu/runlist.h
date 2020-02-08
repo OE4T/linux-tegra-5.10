@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,13 @@
  *
  * Runlist interface.
  */
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_runlist.h"
+#endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
+
 struct gk20a;
 struct nvgpu_tsg;
 struct nvgpu_fifo;
@@ -93,6 +100,13 @@ struct nvgpu_runlist_info {
 	u32  count;
 	/** Protect ch/tsg/runlist preempt & runlist update. */
 	struct nvgpu_mutex runlist_lock;
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	/* nvgpu next runlist info additions */
+	struct nvgpu_next_runlist_info nvgpu_next;
+#endif
+	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
 /**

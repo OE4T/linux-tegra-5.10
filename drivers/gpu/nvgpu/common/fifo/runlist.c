@@ -34,6 +34,10 @@
 #include <nvgpu/pmu/mutex.h>
 #endif
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "nvgpu_next_gpuid.h"
+#endif
+
 void nvgpu_runlist_lock_active_runlists(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -708,6 +712,10 @@ static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 
 			if (engine_info->runlist_id == runlist->runlist_id) {
 				runlist->eng_bitmask |= BIT32(engine_id);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+				NVGPU_NEXT_INIT_RUNLIST_ENGINFO(g, runlist,
+							engine_info);
+#endif
 			}
 		}
 		nvgpu_log(g, gpu_dbg_info, "runlist %d : act eng bitmask 0x%x",
