@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -261,7 +261,7 @@ static int nvgpu_fence_syncpt_wait(struct nvgpu_fence_type *f, u32 timeout)
 {
 	return nvgpu_nvhost_syncpt_wait_timeout_ext(
 			f->nvhost_dev, f->syncpt_id, f->syncpt_value,
-			timeout);
+			timeout, NVGPU_NVHOST_DEFAULT_WAITER);
 }
 
 static bool nvgpu_fence_syncpt_is_expired(struct nvgpu_fence_type *f)

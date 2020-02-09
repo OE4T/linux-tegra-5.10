@@ -72,6 +72,14 @@ int nvgpu_get_nvhost_dev(struct gk20a *g);
 void nvgpu_free_nvhost_dev(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+/**
+ * Available waiter index is used for sync point wait path.
+ * Maximum supported waiter count is 2U.
+ */
+#define NVGPU_NVHOST_DEFAULT_WAITER		0U
+#define NVGPU_NVHOST_WAITER_1			1U
+#define NVGPU_NVHOST_MAX_WAITER_COUNT		2U
+
 int nvgpu_nvhost_module_busy_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev);
 void nvgpu_nvhost_module_idle_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev);
 
@@ -84,7 +92,7 @@ int nvgpu_nvhost_intr_register_notifier(struct nvgpu_nvhost_dev *nvgpu_syncpt_de
 bool nvgpu_nvhost_syncpt_is_expired_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 thresh);
 int nvgpu_nvhost_syncpt_wait_timeout_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 id, u32 thresh, u32 timeout);
+	u32 id, u32 thresh, u32 timeout, u32 waiter_index);
 
 u32 nvgpu_nvhost_syncpt_incr_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 incrs);
