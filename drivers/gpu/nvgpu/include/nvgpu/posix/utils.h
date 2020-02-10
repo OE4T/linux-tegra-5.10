@@ -23,6 +23,8 @@
 #ifndef NVGPU_POSIX_UTILS_H
 #define NVGPU_POSIX_UTILS_H
 
+#include <stdlib.h>
+
 #include <nvgpu/static_analysis.h>
 
 /**
@@ -41,13 +43,7 @@
 		(t_a < t_b) ? t_a : t_b;	\
 	})
 
-#if defined(min)
-#undef min
-#endif
-#if defined(max)
-#undef max
-#endif
-
+#ifndef _QNX_SOURCE
 /**
  * @brief Minimum of two values.
  *
@@ -56,11 +52,12 @@
  *
  * @return Returns the minimum value from \a a and \a b.
  */
+#ifndef min
 #define min(a, b)				\
 	({					\
 		((a) < (b)) ? (a) : (b);	\
 	})
-
+#endif
 /**
  * @brief Maximum of two values.
  *
@@ -69,11 +66,13 @@
  *
  * @return Returns the maximum value from \a a and \a b.
  */
+#ifndef max
 #define max(a, b)				\
 	({					\
 		((a) > (b)) ? (a) : (b);	\
 	})
-
+#endif
+#endif
 /**
  * @brief Minimum of three values.
  *
