@@ -27,6 +27,129 @@
 #include <unit/unit.h>
 #include "posix-thread.h"
 
+#define UNIT_TEST_THREAD_PRIORITY 5
+
+struct test_thread_args {
+        bool use_priority;
+        bool check_stop;
+        bool stop_graceful;
+        bool use_name;
+        bool stop_repeat;
+        bool ret_err;
+        bool skip_callback;
+};
+
+struct unit_test_thread_data {
+        int thread_created;
+        int check_priority;
+        int thread_priority;
+        int check_stop;
+        int callback_invoked;
+        int use_return;
+};
+
+static struct test_thread_args create_normal = {
+        .use_priority = false,
+        .check_stop = false,
+        .stop_graceful = false,
+        .use_name = true,
+        .stop_repeat = false,
+        .ret_err = false,
+        .skip_callback = false
+};
+
+static struct test_thread_args create_normal_noname = {
+        .use_priority = false,
+        .check_stop = false,
+        .stop_graceful = false,
+        .use_name = false,
+        .stop_repeat = false,
+        .ret_err = false,
+        .skip_callback = false
+};
+
+static struct test_thread_args create_normal_errret = {
+        .use_priority = false,
+        .check_stop = false,
+        .stop_graceful = false,
+        .use_name = true,
+        .stop_repeat = false,
+        .ret_err = true,
+        .skip_callback = false
+};
+
+static struct test_thread_args create_priority = {
+        .use_priority = true,
+        .check_stop = false,
+        .stop_graceful = false,
+        .use_name = true,
+        .stop_repeat = false,
+        .ret_err = false,
+        .skip_callback = false
+};
+
+static struct test_thread_args create_priority_noname = {
+        .use_priority = true,
+        .check_stop = false,
+        .stop_graceful = false,
+        .use_name = false,
+        .stop_repeat = false,
+        .ret_err = false,
+        .skip_callback = false
+};
+
+static struct test_thread_args check_stop = {
+        .use_priority = false,
+        .check_stop = true,
+        .stop_graceful = false,
+        .use_name = true,
+        .stop_repeat = false,
+        .ret_err = false,
+        .skip_callback = false
+};
+static struct test_thread_args check_stop_repeat = {
+        .use_priority = false,
+        .check_stop = true,
+        .stop_graceful = false,
+        .use_name = true,
+        .stop_repeat = true,
+        .ret_err = false,
+        .skip_callback = false
+};
+
+static struct test_thread_args stop_graceful = {
+        .use_priority = false,
+        .check_stop = true,
+        .stop_graceful = true,
+        .use_name = true,
+        .stop_repeat = false,
+        .ret_err = false,
+        .skip_callback = false
+};
+
+static struct test_thread_args stop_graceful_repeat = {
+        .use_priority = false,
+        .check_stop = true,
+        .stop_graceful = true,
+        .use_name = true,
+        .stop_repeat = true,
+        .ret_err = false,
+        .skip_callback = false
+};
+
+static struct test_thread_args stop_graceful_skip_callback = {
+        .use_priority = false,
+        .check_stop = true,
+        .stop_graceful = true,
+        .use_name = true,
+        .stop_repeat = false,
+        .ret_err = false,
+        .skip_callback = true
+};
+
+static struct nvgpu_thread test_thread;
+static struct unit_test_thread_data test_data;
+
 static int test_thread_fn(void *args)
 {
 	int policy;
@@ -135,12 +258,22 @@ int test_thread_cycle(struct unit_module *m, struct gk20a *g, void *args)
 
 		if (test_args->stop_graceful == false) {
 			nvgpu_thread_stop(&test_thread);
+			if (test_args->stop_repeat == true) {
+				nvgpu_thread_stop(&test_thread);
+			}
 		} else {
-			nvgpu_thread_stop_graceful(&test_thread,
-				test_thread_stop_graceful_callback,
-				&test_data);
-			if (!test_data.callback_invoked) {
-				unit_return_fail(m, "Callback not invoked\n");
+			if (test_args->skip_callback == false) {
+				nvgpu_thread_stop_graceful(&test_thread,
+					test_thread_stop_graceful_callback,
+					&test_data);
+				if (!test_data.callback_invoked) {
+					unit_return_fail(m,
+						"Callback not invoked\n");
+				}
+			} else {
+				nvgpu_thread_stop_graceful(&test_thread,
+					NULL,
+					&test_data);
 			}
 
 			if (test_args->stop_repeat == true) {
@@ -167,8 +300,10 @@ struct unit_module_test posix_thread_tests[] = {
 	UNIT_TEST(create_priority,          test_thread_cycle, &create_priority, 0),
 	UNIT_TEST(create_priority_noname,   test_thread_cycle, &create_priority_noname, 0),
 	UNIT_TEST(cycle,                    test_thread_cycle, &check_stop, 0),
+	UNIT_TEST(stop_repeat,              test_thread_cycle, &check_stop_repeat, 0),
 	UNIT_TEST(stop_graceful,            test_thread_cycle, &stop_graceful, 0),
 	UNIT_TEST(stop_graceful_repeat,     test_thread_cycle, &stop_graceful_repeat, 0),
+	UNIT_TEST(stop_graceful_skipcb,     test_thread_cycle, &stop_graceful_skip_callback, 0),
 };
 
 UNIT_MODULE(posix_thread, posix_thread_tests, UNIT_PRIO_POSIX_TEST);

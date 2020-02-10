@@ -31,101 +31,6 @@
 
 #include <nvgpu/thread.h>
 
-#define UNIT_TEST_THREAD_PRIORITY 5
-
-struct test_thread_args {
-        bool use_priority;
-        bool check_stop;
-        bool stop_graceful;
-        bool use_name;
-        bool stop_repeat;
-        bool ret_err;
-};
-
-static struct test_thread_args create_normal = {
-        .use_priority = false,
-        .check_stop = false,
-        .stop_graceful = false,
-	.use_name = true,
-	.stop_repeat = false,
-	.ret_err = false
-};
-
-static struct test_thread_args create_normal_noname = {
-        .use_priority = false,
-        .check_stop = false,
-        .stop_graceful = false,
-	.use_name = false,
-	.stop_repeat = false,
-	.ret_err = false
-};
-
-static struct test_thread_args create_normal_errret = {
-        .use_priority = false,
-        .check_stop = false,
-        .stop_graceful = false,
-	.use_name = true,
-	.stop_repeat = false,
-	.ret_err = true
-};
-
-static struct test_thread_args create_priority = {
-        .use_priority = true,
-        .check_stop = false,
-        .stop_graceful = false,
-	.use_name = true,
-	.stop_repeat = false,
-	.ret_err = false
-};
-
-static struct test_thread_args create_priority_noname = {
-        .use_priority = true,
-        .check_stop = false,
-        .stop_graceful = false,
-	.use_name = false,
-	.stop_repeat = false,
-	.ret_err = false
-};
-
-static struct test_thread_args check_stop = {
-        .use_priority = false,
-        .check_stop = true,
-        .stop_graceful = false,
-	.use_name = true,
-	.stop_repeat = false,
-	.ret_err = false
-};
-
-static struct test_thread_args stop_graceful = {
-        .use_priority = false,
-        .check_stop = true,
-        .stop_graceful = true,
-	.use_name = true,
-	.stop_repeat = false,
-	.ret_err = false
-};
-
-static struct test_thread_args stop_graceful_repeat = {
-        .use_priority = false,
-        .check_stop = true,
-        .stop_graceful = true,
-	.use_name = true,
-	.stop_repeat = true,
-	.ret_err = false
-};
-
-struct unit_test_thread_data {
-        int thread_created;
-        int check_priority;
-        int thread_priority;
-        int check_stop;
-        int callback_invoked;
-        int use_return;
-};
-
-struct nvgpu_thread test_thread;
-struct unit_test_thread_data test_data;
-
 /**
  * Test specification for test_thread_cycle
  *
@@ -156,17 +61,17 @@ struct unit_test_thread_data test_data;
  * 3) Check the return value from nvgpu_thread_create for error.
  * 4) Wait for the thread to be created by polling for a shared variable.
  * 5) Return Success once the thread function is called and the shared
- * variable is set which indicates a succesful thread creation.
+ *    variable is set which indicates a successful thread creation.
  *
  * Thread creation with a priority value
  * 1) Reset all global and shared variables to 0.
  * 2) Create thread using nvgpu_thread_create_priority
  * 3) Check the return value from nvgpu_thread_create_priority for error.
  * 4) Wait for the thread to be created by polling for a shared variable.
- * 5) Upon succesful creation of the thread, confirm the priority of the
- * thread to be same as requested priority.
+ * 5) Upon successful creation of the thread, confirm the priority of the
+ *    thread to be same as requested priority.
  * 6) In some host machines, permission is not granted to create threads
- * with priority.  In that case skip the test by returning PASS.
+ *    with priority.  In that case skip the test by returning PASS.
  * 7) Return PASS if the thread is created with requested priority.
  *
  * Thread stop
@@ -174,28 +79,36 @@ struct unit_test_thread_data test_data;
  * 2) The created thread does not exit unconditionally in this case.
  * 3) It polls for the stop flag to be set.
  * 4) The main thread checks the status of the created thread and confirms
- * it to be running.
+ *    it to be running.
  * 5) Request the thread to stop by calling nvgpu_thread_stop.
  * 6) Created thread detects this inside the poll loop and exits.
- * 7) Main thread continues once the created thread exits and returns PASS.
+ * 7) Main thread continues once the created thread exits.
+ * 8) If stop_repeat flag is set, invoke nvgpu_thread_stop again. This is done
+ *    to increase branch coverage.
+ * 9) Return PASS.
  *
  * Stop thread gracefully
  * 1) Follow steps 1 -  4 of Thread stop scenario.
- * 2) Call the api nvgpu_thread_stop_graceful and pass the function to be
- * called for graceful exit.
+ * 2) Call the function nvgpu_thread_stop_graceful. Depending on the flag
+ *    skip_callback, either NULL or a function is passed as callback parameter
+ *    to be called for graceful exit.
  * 3) Created thread detects the stop request and exits.
- * 4) Main thread continues after the created thread exits and
- * confirms if the call back function was called by checking a shared variable.
- * 5) Main thread returns PASS is step 4 passes, else returns FAIL.
+ * 4) Main thread continues after the created thread exits.
+ * 5) If skip_callback flag is set to false, confirm if the call back function
+ *    was called by checking a shared variable value.
+ * 6) If stop_repeat flag is set, invoke nvgpu_thread_stop_graceful function
+ *    again. This invocation should not call the callback function as the
+ *    thread was already stopped in step 5.
+ * 7) Return PASS.
  *
  * Output:
  * The output for each test scenario is as follows,
  * 1) Thread creation
- * Return PASS if thread creation is succesful else return FAIL.
+ * Return PASS if thread creation is successful else return FAIL.
  *
  * 2) Thread creation with a priority value
- * Return PASS if thread creation with priority is succesful
- * else return FAIL.  ALso return PASS if permission is denied for creating
+ * Return PASS if thread creation with priority is successful
+ * else return FAIL.  Also return PASS if permission is denied for creating
  * a thread with priority.
  *
  * 3) Thread stop
