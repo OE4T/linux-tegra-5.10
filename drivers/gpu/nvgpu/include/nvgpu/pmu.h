@@ -35,6 +35,7 @@
 #include <nvgpu/pmu/queue.h>
 #include <nvgpu/pmu/msg.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/pmu/volt.h>
 
 struct pmu_sequences;
 struct pmu_mutexes;
@@ -303,6 +304,7 @@ struct nvgpu_pmu {
 	struct nvgpu_clk_pmupstate *clk_pmu;
 	struct therm_pmupstate *therm_pmu;
 	struct perf_pmupstate *perf_pmu;
+	struct nvgpu_pmu_volt *volt;
 
 	void (*remove_support)(struct nvgpu_pmu *pmu);
 	void (*volt_rpc_handler)(struct gk20a *g,

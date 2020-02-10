@@ -50,6 +50,10 @@ void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 		nvgpu_pmu_perf_deinit(g);
 	}
 
+	if (g->pmu->volt != NULL) {
+		nvgpu_pmu_volt_deinit(g);
+	}
+
 	nvgpu_pmu_clk_deinit(g);
 
 	if (g->ops.clk.mclk_deinit != NULL) {
@@ -76,6 +80,11 @@ static int pmu_pstate_init(struct gk20a *g)
 	err = nvgpu_pmu_perf_init(g);
 	if (err != 0) {
 		nvgpu_pmu_perf_deinit(g);
+		return err;
+	}
+
+	err = nvgpu_pmu_volt_init(g);
+	if (err != 0) {
 		return err;
 	}
 

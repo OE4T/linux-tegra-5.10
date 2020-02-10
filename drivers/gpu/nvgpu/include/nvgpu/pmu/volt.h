@@ -32,17 +32,6 @@ struct gk20a;
 #define CLK_PROG_VFE_ENTRY_LOGIC		0x00U
 #define CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS	0x04U
 
-#define VOLT_GET_VOLT_RAIL(pvolt, rail_idx)	\
-	((struct voltage_rail *)BOARDOBJGRP_OBJ_GET_BY_IDX( \
-		&((pvolt)->volt_rail_metadata.volt_rails.super), (rail_idx)))
-
-#define VOLT_RAIL_INDEX_IS_VALID(pvolt, rail_idx)	\
-	(boardobjgrp_idxisvalid( \
-		&((pvolt)->volt_rail_metadata.volt_rails.super), (rail_idx)))
-
-#define VOLT_RAIL_VOLT_3X_SUPPORTED(pvolt) \
-	(!BOARDOBJGRP_IS_EMPTY(&((pvolt)->volt_rail_metadata.volt_rails.super)))
-
 /*!
  * metadata of voltage rail functionality.
  */
@@ -90,5 +79,7 @@ u8 nvgpu_volt_rail_vbios_volt_domain_convert_to_internal
 int nvgpu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv);
 int nvgpu_pmu_volt_sw_setup(struct gk20a *g);
 int nvgpu_pmu_volt_pmu_setup(struct gk20a *g);
+void nvgpu_pmu_volt_deinit(struct gk20a *g);
+int nvgpu_pmu_volt_init(struct gk20a *g);
 
 #endif /* NVGPU_PMU_VOLT_H */

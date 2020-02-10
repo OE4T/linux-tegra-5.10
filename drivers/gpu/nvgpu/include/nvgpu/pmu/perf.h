@@ -22,7 +22,6 @@
 #ifndef NVGPU_PMU_PERF_H
 #define NVGPU_PMU_PERF_H
 
-#include <nvgpu/pmu/volt.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
@@ -129,7 +128,6 @@ struct perf_pmupstate {
 	struct vfe_vars vfe_varobjs;
 	struct vfe_equs vfe_equobjs;
 	struct pstates pstatesobjs;
-	struct nvgpu_pmu_volt volt;
 	struct nvgpu_vfe_invalidate vfe_init;
 	struct change_seq_pmu changeseq_pmu;
 };

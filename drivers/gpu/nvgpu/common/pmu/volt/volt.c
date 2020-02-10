@@ -85,6 +85,35 @@ int nvgpu_pmu_volt_sw_setup(struct gk20a *g)
 	return 0;
 }
 
+int nvgpu_pmu_volt_init(struct gk20a *g)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	/* If already allocated, do not re-allocate */
+	if (g->pmu->volt != NULL) {
+		return 0;
+	}
+
+	g->pmu->volt = (struct nvgpu_pmu_volt *) nvgpu_kzalloc(g,
+			sizeof(struct nvgpu_pmu_volt));
+	if (g->pmu->volt == NULL) {
+		err = -ENOMEM;
+		return err;
+	}
+
+	return err;
+}
+
+void nvgpu_pmu_volt_deinit(struct gk20a *g)
+{
+	if ((g->pmu != NULL) && (g->pmu->volt != NULL)) {
+		nvgpu_kfree(g, g->pmu->volt);
+		g->pmu->volt = NULL;
+	}
+}
+
 int nvgpu_pmu_volt_pmu_setup(struct gk20a *g)
 {
 	int err;
