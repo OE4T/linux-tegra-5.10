@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,11 @@
 
 #ifndef NVGPU_ENGINE_STATUS_H
 #define NVGPU_ENGINE_STATUS_H
+
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_engine_status.h"
+#endif
+
 /**
  * @file
  *
@@ -91,6 +96,12 @@ enum nvgpu_engine_status_ctx_status {
 struct nvgpu_engine_status_info {
 	/** Engine status h/w register's read value. */
 	u32 reg_data;
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	/* nvgpu next engine status additions */
+	struct nvgpu_next_engine_status_info nvgpu_next;
+#endif
+	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 	/** Channel or tsg id that is currently assigned to the engine. */
 	u32 ctx_id;
 	/** Ctx_status field of engine_status h/w register. */
