@@ -27,6 +27,7 @@
 #include "mgbe_core.h"
 #include "core_local.h"
 #include "xpcs.h"
+#include "mgbe_mmc.h"
 
 /**
  * @brief mgbe_poll_for_swr - Poll for software reset (SWR bit in DMA Mode)
@@ -1077,8 +1078,8 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->adjust_mactime = OSI_NULL,
 	ops->config_tscr = OSI_NULL;
 	ops->config_ssir = OSI_NULL;
-	ops->read_mmc = OSI_NULL;
-	ops->reset_mmc = OSI_NULL;
 	ops->write_phy_reg = mgbe_write_phy_reg;
 	ops->read_phy_reg = mgbe_read_phy_reg;
+	ops->read_mmc = mgbe_read_mmc;
+	ops->reset_mmc = mgbe_reset_mmc;
 };
