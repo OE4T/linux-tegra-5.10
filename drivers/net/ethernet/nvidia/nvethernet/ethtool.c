@@ -23,13 +23,13 @@
  * @{
  */
 #define OSI_ARRAY_SIZE(x)  ((int)sizeof((x)) / (int)sizeof((x)[0]))
-#define EQOS_MMC_STATS_LEN OSI_ARRAY_SIZE(eqos_mmc)
+#define ETHER_MMC_STATS_LEN OSI_ARRAY_SIZE(ether_mmc)
 /** @} */
 
 /**
- * @brief EQOS stats
+ * @brief Ethernet stats
  */
-struct eqos_stats {
+struct ether_stats {
 	/** Name of the stat */
 	char stat_string[ETH_GSTRING_LEN];
 	/** size of the stat */
@@ -41,210 +41,211 @@ struct eqos_stats {
 /**
  * @brief Name of extra DMA stat, with length of name not more than ETH_GSTRING_LEN
  */
-#define EQOS_DMA_EXTRA_STAT(a) \
+#define ETHER_DMA_EXTRA_STAT(a) \
 { (#a), FIELD_SIZEOF(struct osi_xtra_dma_stat_counters, a), \
 	offsetof(struct osi_dma_priv_data, dstats.a)}
 /**
- * @brief EQOS DMA extra statistics
+ * @brief Ethernet DMA extra statistics
  */
-static const struct eqos_stats eqos_dstrings_stats[] = {
-	EQOS_DMA_EXTRA_STAT(tx_clean_n[0]),
-	EQOS_DMA_EXTRA_STAT(tx_clean_n[1]),
-	EQOS_DMA_EXTRA_STAT(tx_clean_n[2]),
-	EQOS_DMA_EXTRA_STAT(tx_clean_n[3]),
+static const struct ether_stats ether_dstrings_stats[] = {
+	ETHER_DMA_EXTRA_STAT(tx_clean_n[0]),
+	ETHER_DMA_EXTRA_STAT(tx_clean_n[1]),
+	ETHER_DMA_EXTRA_STAT(tx_clean_n[2]),
+	ETHER_DMA_EXTRA_STAT(tx_clean_n[3]),
 
 	/* Tx/Rx frames */
-	EQOS_DMA_EXTRA_STAT(tx_pkt_n),
-	EQOS_DMA_EXTRA_STAT(rx_pkt_n),
-	EQOS_DMA_EXTRA_STAT(tx_vlan_pkt_n),
-	EQOS_DMA_EXTRA_STAT(rx_vlan_pkt_n),
-	EQOS_DMA_EXTRA_STAT(tx_tso_pkt_n),
+	ETHER_DMA_EXTRA_STAT(tx_pkt_n),
+	ETHER_DMA_EXTRA_STAT(rx_pkt_n),
+	ETHER_DMA_EXTRA_STAT(tx_vlan_pkt_n),
+	ETHER_DMA_EXTRA_STAT(rx_vlan_pkt_n),
+	ETHER_DMA_EXTRA_STAT(tx_tso_pkt_n),
 
 	/* Tx/Rx frames per channels/queues */
-	EQOS_DMA_EXTRA_STAT(q_tx_pkt_n[0]),
-	EQOS_DMA_EXTRA_STAT(q_tx_pkt_n[1]),
-	EQOS_DMA_EXTRA_STAT(q_tx_pkt_n[2]),
-	EQOS_DMA_EXTRA_STAT(q_tx_pkt_n[3]),
-	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[0]),
-	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[1]),
-	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[2]),
-	EQOS_DMA_EXTRA_STAT(q_rx_pkt_n[3]),
+	ETHER_DMA_EXTRA_STAT(q_tx_pkt_n[0]),
+	ETHER_DMA_EXTRA_STAT(q_tx_pkt_n[1]),
+	ETHER_DMA_EXTRA_STAT(q_tx_pkt_n[2]),
+	ETHER_DMA_EXTRA_STAT(q_tx_pkt_n[3]),
+	ETHER_DMA_EXTRA_STAT(q_rx_pkt_n[0]),
+	ETHER_DMA_EXTRA_STAT(q_rx_pkt_n[1]),
+	ETHER_DMA_EXTRA_STAT(q_rx_pkt_n[2]),
+	ETHER_DMA_EXTRA_STAT(q_rx_pkt_n[3]),
 };
 
 /**
- * @brief EQOS extra DMA statistics array length
+ * @brief Ethernet extra DMA statistics array length
  */
-#define EQOS_EXTRA_DMA_STAT_LEN OSI_ARRAY_SIZE(eqos_dstrings_stats)
+#define ETHER_EXTRA_DMA_STAT_LEN OSI_ARRAY_SIZE(ether_dstrings_stats)
 
 /**
- * @brief Name of extra EQOS stats, with length of name not more than ETH_GSTRING_LEN MAC
+ * @brief Name of extra Ethernet stats, with length of name not more than
+ * ETH_GSTRING_LEN MAC
  */
-#define EQOS_EXTRA_STAT(b) \
+#define ETHER_EXTRA_STAT(b) \
 { #b, FIELD_SIZEOF(struct osi_xtra_stat_counters, b), \
 	offsetof(struct osi_core_priv_data, xstats.b)}
 /**
- * @brief EQOS extra statistics
+ * @brief Ethernet extra statistics
  */
-static const struct eqos_stats eqos_gstrings_stats[] = {
-	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[0]),
-	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[1]),
-	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[2]),
-	EQOS_EXTRA_STAT(re_alloc_rxbuf_failed[3]),
+static const struct ether_stats ether_gstrings_stats[] = {
+	ETHER_EXTRA_STAT(re_alloc_rxbuf_failed[0]),
+	ETHER_EXTRA_STAT(re_alloc_rxbuf_failed[1]),
+	ETHER_EXTRA_STAT(re_alloc_rxbuf_failed[2]),
+	ETHER_EXTRA_STAT(re_alloc_rxbuf_failed[3]),
 
 	/* Tx/Rx IRQ error info */
-	EQOS_EXTRA_STAT(tx_proc_stopped_irq_n[0]),
-	EQOS_EXTRA_STAT(tx_proc_stopped_irq_n[1]),
-	EQOS_EXTRA_STAT(tx_proc_stopped_irq_n[2]),
-	EQOS_EXTRA_STAT(tx_proc_stopped_irq_n[3]),
-	EQOS_EXTRA_STAT(rx_proc_stopped_irq_n[0]),
-	EQOS_EXTRA_STAT(rx_proc_stopped_irq_n[1]),
-	EQOS_EXTRA_STAT(rx_proc_stopped_irq_n[2]),
-	EQOS_EXTRA_STAT(rx_proc_stopped_irq_n[3]),
-	EQOS_EXTRA_STAT(tx_buf_unavail_irq_n[0]),
-	EQOS_EXTRA_STAT(tx_buf_unavail_irq_n[1]),
-	EQOS_EXTRA_STAT(tx_buf_unavail_irq_n[2]),
-	EQOS_EXTRA_STAT(tx_buf_unavail_irq_n[3]),
-	EQOS_EXTRA_STAT(rx_buf_unavail_irq_n[0]),
-	EQOS_EXTRA_STAT(rx_buf_unavail_irq_n[1]),
-	EQOS_EXTRA_STAT(rx_buf_unavail_irq_n[2]),
-	EQOS_EXTRA_STAT(rx_buf_unavail_irq_n[3]),
-	EQOS_EXTRA_STAT(rx_watchdog_irq_n),
-	EQOS_EXTRA_STAT(fatal_bus_error_irq_n),
+	ETHER_EXTRA_STAT(tx_proc_stopped_irq_n[0]),
+	ETHER_EXTRA_STAT(tx_proc_stopped_irq_n[1]),
+	ETHER_EXTRA_STAT(tx_proc_stopped_irq_n[2]),
+	ETHER_EXTRA_STAT(tx_proc_stopped_irq_n[3]),
+	ETHER_EXTRA_STAT(rx_proc_stopped_irq_n[0]),
+	ETHER_EXTRA_STAT(rx_proc_stopped_irq_n[1]),
+	ETHER_EXTRA_STAT(rx_proc_stopped_irq_n[2]),
+	ETHER_EXTRA_STAT(rx_proc_stopped_irq_n[3]),
+	ETHER_EXTRA_STAT(tx_buf_unavail_irq_n[0]),
+	ETHER_EXTRA_STAT(tx_buf_unavail_irq_n[1]),
+	ETHER_EXTRA_STAT(tx_buf_unavail_irq_n[2]),
+	ETHER_EXTRA_STAT(tx_buf_unavail_irq_n[3]),
+	ETHER_EXTRA_STAT(rx_buf_unavail_irq_n[0]),
+	ETHER_EXTRA_STAT(rx_buf_unavail_irq_n[1]),
+	ETHER_EXTRA_STAT(rx_buf_unavail_irq_n[2]),
+	ETHER_EXTRA_STAT(rx_buf_unavail_irq_n[3]),
+	ETHER_EXTRA_STAT(rx_watchdog_irq_n),
+	ETHER_EXTRA_STAT(fatal_bus_error_irq_n),
 
 	/* Tx/Rx IRQ Events */
-	EQOS_EXTRA_STAT(tx_normal_irq_n[0]),
-	EQOS_EXTRA_STAT(tx_normal_irq_n[1]),
-	EQOS_EXTRA_STAT(tx_normal_irq_n[2]),
-	EQOS_EXTRA_STAT(tx_normal_irq_n[3]),
-	EQOS_EXTRA_STAT(tx_usecs_swtimer_n[0]),
-	EQOS_EXTRA_STAT(tx_usecs_swtimer_n[1]),
-	EQOS_EXTRA_STAT(tx_usecs_swtimer_n[2]),
-	EQOS_EXTRA_STAT(tx_usecs_swtimer_n[3]),
-	EQOS_EXTRA_STAT(rx_normal_irq_n[0]),
-	EQOS_EXTRA_STAT(rx_normal_irq_n[1]),
-	EQOS_EXTRA_STAT(rx_normal_irq_n[2]),
-	EQOS_EXTRA_STAT(rx_normal_irq_n[3]),
-	EQOS_EXTRA_STAT(link_disconnect_count),
-	EQOS_EXTRA_STAT(link_connect_count),
+	ETHER_EXTRA_STAT(tx_normal_irq_n[0]),
+	ETHER_EXTRA_STAT(tx_normal_irq_n[1]),
+	ETHER_EXTRA_STAT(tx_normal_irq_n[2]),
+	ETHER_EXTRA_STAT(tx_normal_irq_n[3]),
+	ETHER_EXTRA_STAT(tx_usecs_swtimer_n[0]),
+	ETHER_EXTRA_STAT(tx_usecs_swtimer_n[1]),
+	ETHER_EXTRA_STAT(tx_usecs_swtimer_n[2]),
+	ETHER_EXTRA_STAT(tx_usecs_swtimer_n[3]),
+	ETHER_EXTRA_STAT(rx_normal_irq_n[0]),
+	ETHER_EXTRA_STAT(rx_normal_irq_n[1]),
+	ETHER_EXTRA_STAT(rx_normal_irq_n[2]),
+	ETHER_EXTRA_STAT(rx_normal_irq_n[3]),
+	ETHER_EXTRA_STAT(link_disconnect_count),
+	ETHER_EXTRA_STAT(link_connect_count),
 };
 
 /**
- * @brief EQOS extra statistics array length
+ * @brief Ethernet extra statistics array length
  */
-#define EQOS_EXTRA_STAT_LEN OSI_ARRAY_SIZE(eqos_gstrings_stats)
+#define ETHER_EXTRA_STAT_LEN OSI_ARRAY_SIZE(ether_gstrings_stats)
 
 /**
  * @brief HW MAC Management counters
  * 	  Structure variable name MUST up to MAX length of ETH_GSTRING_LEN
  */
-#define EQOS_MMC_STAT(c) \
+#define ETHER_MMC_STAT(c) \
 { #c, FIELD_SIZEOF(struct osi_mmc_counters, c), \
 	offsetof(struct osi_core_priv_data, mmc.c)}
 
 /**
  * @brief MMC statistics
  */
-static const struct eqos_stats eqos_mmc[] = {
+static const struct ether_stats ether_mmc[] = {
 	/* MMC TX counters */
-	EQOS_MMC_STAT(mmc_tx_octetcount_gb),
-	EQOS_MMC_STAT(mmc_tx_framecount_gb),
-	EQOS_MMC_STAT(mmc_tx_broadcastframe_g),
-	EQOS_MMC_STAT(mmc_tx_multicastframe_g),
-	EQOS_MMC_STAT(mmc_tx_64_octets_gb),
-	EQOS_MMC_STAT(mmc_tx_65_to_127_octets_gb),
-	EQOS_MMC_STAT(mmc_tx_128_to_255_octets_gb),
-	EQOS_MMC_STAT(mmc_tx_256_to_511_octets_gb),
-	EQOS_MMC_STAT(mmc_tx_512_to_1023_octets_gb),
-	EQOS_MMC_STAT(mmc_tx_1024_to_max_octets_gb),
-	EQOS_MMC_STAT(mmc_tx_unicast_gb),
-	EQOS_MMC_STAT(mmc_tx_multicast_gb),
-	EQOS_MMC_STAT(mmc_tx_broadcast_gb),
-	EQOS_MMC_STAT(mmc_tx_underflow_error),
-	EQOS_MMC_STAT(mmc_tx_singlecol_g),
-	EQOS_MMC_STAT(mmc_tx_multicol_g),
-	EQOS_MMC_STAT(mmc_tx_deferred),
-	EQOS_MMC_STAT(mmc_tx_latecol),
-	EQOS_MMC_STAT(mmc_tx_exesscol),
-	EQOS_MMC_STAT(mmc_tx_carrier_error),
-	EQOS_MMC_STAT(mmc_tx_octetcount_g),
-	EQOS_MMC_STAT(mmc_tx_framecount_g),
-	EQOS_MMC_STAT(mmc_tx_excessdef),
-	EQOS_MMC_STAT(mmc_tx_pause_frame),
-	EQOS_MMC_STAT(mmc_tx_vlan_frame_g),
+	ETHER_MMC_STAT(mmc_tx_octetcount_gb),
+	ETHER_MMC_STAT(mmc_tx_framecount_gb),
+	ETHER_MMC_STAT(mmc_tx_broadcastframe_g),
+	ETHER_MMC_STAT(mmc_tx_multicastframe_g),
+	ETHER_MMC_STAT(mmc_tx_64_octets_gb),
+	ETHER_MMC_STAT(mmc_tx_65_to_127_octets_gb),
+	ETHER_MMC_STAT(mmc_tx_128_to_255_octets_gb),
+	ETHER_MMC_STAT(mmc_tx_256_to_511_octets_gb),
+	ETHER_MMC_STAT(mmc_tx_512_to_1023_octets_gb),
+	ETHER_MMC_STAT(mmc_tx_1024_to_max_octets_gb),
+	ETHER_MMC_STAT(mmc_tx_unicast_gb),
+	ETHER_MMC_STAT(mmc_tx_multicast_gb),
+	ETHER_MMC_STAT(mmc_tx_broadcast_gb),
+	ETHER_MMC_STAT(mmc_tx_underflow_error),
+	ETHER_MMC_STAT(mmc_tx_singlecol_g),
+	ETHER_MMC_STAT(mmc_tx_multicol_g),
+	ETHER_MMC_STAT(mmc_tx_deferred),
+	ETHER_MMC_STAT(mmc_tx_latecol),
+	ETHER_MMC_STAT(mmc_tx_exesscol),
+	ETHER_MMC_STAT(mmc_tx_carrier_error),
+	ETHER_MMC_STAT(mmc_tx_octetcount_g),
+	ETHER_MMC_STAT(mmc_tx_framecount_g),
+	ETHER_MMC_STAT(mmc_tx_excessdef),
+	ETHER_MMC_STAT(mmc_tx_pause_frame),
+	ETHER_MMC_STAT(mmc_tx_vlan_frame_g),
 
 	/* MMC RX counters */
-	EQOS_MMC_STAT(mmc_rx_framecount_gb),
-	EQOS_MMC_STAT(mmc_rx_octetcount_gb),
-	EQOS_MMC_STAT(mmc_rx_octetcount_g),
-	EQOS_MMC_STAT(mmc_rx_broadcastframe_g),
-	EQOS_MMC_STAT(mmc_rx_multicastframe_g),
-	EQOS_MMC_STAT(mmc_rx_crc_error),
-	EQOS_MMC_STAT(mmc_rx_align_error),
-	EQOS_MMC_STAT(mmc_rx_runt_error),
-	EQOS_MMC_STAT(mmc_rx_jabber_error),
-	EQOS_MMC_STAT(mmc_rx_undersize_g),
-	EQOS_MMC_STAT(mmc_rx_oversize_g),
-	EQOS_MMC_STAT(mmc_rx_64_octets_gb),
-	EQOS_MMC_STAT(mmc_rx_65_to_127_octets_gb),
-	EQOS_MMC_STAT(mmc_rx_128_to_255_octets_gb),
-	EQOS_MMC_STAT(mmc_rx_256_to_511_octets_gb),
-	EQOS_MMC_STAT(mmc_rx_512_to_1023_octets_gb),
-	EQOS_MMC_STAT(mmc_rx_1024_to_max_octets_gb),
-	EQOS_MMC_STAT(mmc_rx_unicast_g),
-	EQOS_MMC_STAT(mmc_rx_length_error),
-	EQOS_MMC_STAT(mmc_rx_outofrangetype),
-	EQOS_MMC_STAT(mmc_rx_pause_frames),
-	EQOS_MMC_STAT(mmc_rx_fifo_overflow),
-	EQOS_MMC_STAT(mmc_rx_vlan_frames_gb),
-	EQOS_MMC_STAT(mmc_rx_watchdog_error),
-	EQOS_MMC_STAT(mmc_rx_receive_error),
-	EQOS_MMC_STAT(mmc_rx_ctrl_frames_g),
+	ETHER_MMC_STAT(mmc_rx_framecount_gb),
+	ETHER_MMC_STAT(mmc_rx_octetcount_gb),
+	ETHER_MMC_STAT(mmc_rx_octetcount_g),
+	ETHER_MMC_STAT(mmc_rx_broadcastframe_g),
+	ETHER_MMC_STAT(mmc_rx_multicastframe_g),
+	ETHER_MMC_STAT(mmc_rx_crc_error),
+	ETHER_MMC_STAT(mmc_rx_align_error),
+	ETHER_MMC_STAT(mmc_rx_runt_error),
+	ETHER_MMC_STAT(mmc_rx_jabber_error),
+	ETHER_MMC_STAT(mmc_rx_undersize_g),
+	ETHER_MMC_STAT(mmc_rx_oversize_g),
+	ETHER_MMC_STAT(mmc_rx_64_octets_gb),
+	ETHER_MMC_STAT(mmc_rx_65_to_127_octets_gb),
+	ETHER_MMC_STAT(mmc_rx_128_to_255_octets_gb),
+	ETHER_MMC_STAT(mmc_rx_256_to_511_octets_gb),
+	ETHER_MMC_STAT(mmc_rx_512_to_1023_octets_gb),
+	ETHER_MMC_STAT(mmc_rx_1024_to_max_octets_gb),
+	ETHER_MMC_STAT(mmc_rx_unicast_g),
+	ETHER_MMC_STAT(mmc_rx_length_error),
+	ETHER_MMC_STAT(mmc_rx_outofrangetype),
+	ETHER_MMC_STAT(mmc_rx_pause_frames),
+	ETHER_MMC_STAT(mmc_rx_fifo_overflow),
+	ETHER_MMC_STAT(mmc_rx_vlan_frames_gb),
+	ETHER_MMC_STAT(mmc_rx_watchdog_error),
+	ETHER_MMC_STAT(mmc_rx_receive_error),
+	ETHER_MMC_STAT(mmc_rx_ctrl_frames_g),
 
 	/* LPI */
-	EQOS_MMC_STAT(mmc_tx_lpi_usec_cntr),
-	EQOS_MMC_STAT(mmc_tx_lpi_tran_cntr),
-	EQOS_MMC_STAT(mmc_rx_lpi_usec_cntr),
-	EQOS_MMC_STAT(mmc_rx_lpi_tran_cntr),
+	ETHER_MMC_STAT(mmc_tx_lpi_usec_cntr),
+	ETHER_MMC_STAT(mmc_tx_lpi_tran_cntr),
+	ETHER_MMC_STAT(mmc_rx_lpi_usec_cntr),
+	ETHER_MMC_STAT(mmc_rx_lpi_tran_cntr),
 
 	/* IPv4 */
-	EQOS_MMC_STAT(mmc_rx_ipv4_gd),
-	EQOS_MMC_STAT(mmc_rx_ipv4_hderr),
-	EQOS_MMC_STAT(mmc_rx_ipv4_nopay),
-	EQOS_MMC_STAT(mmc_rx_ipv4_frag),
-	EQOS_MMC_STAT(mmc_rx_ipv4_udsbl),
+	ETHER_MMC_STAT(mmc_rx_ipv4_gd),
+	ETHER_MMC_STAT(mmc_rx_ipv4_hderr),
+	ETHER_MMC_STAT(mmc_rx_ipv4_nopay),
+	ETHER_MMC_STAT(mmc_rx_ipv4_frag),
+	ETHER_MMC_STAT(mmc_rx_ipv4_udsbl),
 
 	/* IPV6 */
-	EQOS_MMC_STAT(mmc_rx_ipv6_gd_octets),
-	EQOS_MMC_STAT(mmc_rx_ipv6_hderr_octets),
-	EQOS_MMC_STAT(mmc_rx_ipv6_nopay_octets),
+	ETHER_MMC_STAT(mmc_rx_ipv6_gd_octets),
+	ETHER_MMC_STAT(mmc_rx_ipv6_hderr_octets),
+	ETHER_MMC_STAT(mmc_rx_ipv6_nopay_octets),
 
 	/* Protocols */
-	EQOS_MMC_STAT(mmc_rx_udp_gd),
-	EQOS_MMC_STAT(mmc_rx_udp_err),
-	EQOS_MMC_STAT(mmc_rx_tcp_gd),
-	EQOS_MMC_STAT(mmc_rx_tcp_err),
-	EQOS_MMC_STAT(mmc_rx_icmp_gd),
-	EQOS_MMC_STAT(mmc_rx_icmp_err),
+	ETHER_MMC_STAT(mmc_rx_udp_gd),
+	ETHER_MMC_STAT(mmc_rx_udp_err),
+	ETHER_MMC_STAT(mmc_rx_tcp_gd),
+	ETHER_MMC_STAT(mmc_rx_tcp_err),
+	ETHER_MMC_STAT(mmc_rx_icmp_gd),
+	ETHER_MMC_STAT(mmc_rx_icmp_err),
 
 	/* IPv4 */
-	EQOS_MMC_STAT(mmc_rx_ipv4_gd_octets),
-	EQOS_MMC_STAT(mmc_rx_ipv4_hderr_octets),
-	EQOS_MMC_STAT(mmc_rx_ipv4_nopay_octets),
-	EQOS_MMC_STAT(mmc_rx_ipv4_frag_octets),
-	EQOS_MMC_STAT(mmc_rx_ipv4_udsbl_octets),
+	ETHER_MMC_STAT(mmc_rx_ipv4_gd_octets),
+	ETHER_MMC_STAT(mmc_rx_ipv4_hderr_octets),
+	ETHER_MMC_STAT(mmc_rx_ipv4_nopay_octets),
+	ETHER_MMC_STAT(mmc_rx_ipv4_frag_octets),
+	ETHER_MMC_STAT(mmc_rx_ipv4_udsbl_octets),
 
 	/* IPV6 */
-	EQOS_MMC_STAT(mmc_rx_ipv6_gd),
-	EQOS_MMC_STAT(mmc_rx_ipv6_hderr),
-	EQOS_MMC_STAT(mmc_rx_ipv6_nopay),
+	ETHER_MMC_STAT(mmc_rx_ipv6_gd),
+	ETHER_MMC_STAT(mmc_rx_ipv6_hderr),
+	ETHER_MMC_STAT(mmc_rx_ipv6_nopay),
 
 	/* Protocols */
-	EQOS_MMC_STAT(mmc_rx_udp_gd_octets),
-	EQOS_MMC_STAT(mmc_rx_udp_err_octets),
-	EQOS_MMC_STAT(mmc_rx_tcp_gd_octets),
-	EQOS_MMC_STAT(mmc_rx_tcp_err_octets),
-	EQOS_MMC_STAT(mmc_rx_icmp_gd_octets),
-	EQOS_MMC_STAT(mmc_rx_icmp_err_octets),
+	ETHER_MMC_STAT(mmc_rx_udp_gd_octets),
+	ETHER_MMC_STAT(mmc_rx_udp_err_octets),
+	ETHER_MMC_STAT(mmc_rx_tcp_gd_octets),
+	ETHER_MMC_STAT(mmc_rx_tcp_err_octets),
+	ETHER_MMC_STAT(mmc_rx_icmp_gd_octets),
+	ETHER_MMC_STAT(mmc_rx_icmp_err_octets),
 };
 
 /**
@@ -281,27 +282,27 @@ static void ether_get_ethtool_stats(struct net_device *dev,
 			return;
 		}
 
-		for (i = 0; i < EQOS_MMC_STATS_LEN; i++) {
-			char *p = (char *)osi_core + eqos_mmc[i].stat_offset;
+		for (i = 0; i < ETHER_MMC_STATS_LEN; i++) {
+			char *p = (char *)osi_core + ether_mmc[i].stat_offset;
 
-			data[j++] = (eqos_mmc[i].sizeof_stat ==
+			data[j++] = (ether_mmc[i].sizeof_stat ==
 					sizeof(u64)) ? (*(u64 *)p) :
 				     (*(u32 *)p);
 		}
 
-		for (i = 0; i < EQOS_EXTRA_STAT_LEN; i++) {
+		for (i = 0; i < ETHER_EXTRA_STAT_LEN; i++) {
 			char *p = (char *)osi_core +
-				  eqos_gstrings_stats[i].stat_offset;
+				  ether_gstrings_stats[i].stat_offset;
 
-			data[j++] = (eqos_gstrings_stats[i].sizeof_stat ==
+			data[j++] = (ether_gstrings_stats[i].sizeof_stat ==
 				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
 		}
 
-		for (i = 0; i < EQOS_EXTRA_DMA_STAT_LEN; i++) {
+		for (i = 0; i < ETHER_EXTRA_DMA_STAT_LEN; i++) {
 			char *p = (char *)osi_dma +
-				  eqos_dstrings_stats[i].stat_offset;
+				  ether_dstrings_stats[i].stat_offset;
 
-			data[j++] = (eqos_dstrings_stats[i].sizeof_stat ==
+			data[j++] = (ether_dstrings_stats[i].sizeof_stat ==
 				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
 		}
 	}
@@ -326,21 +327,21 @@ static int ether_get_sset_count(struct net_device *dev, int sset)
 
 	if (sset == ETH_SS_STATS) {
 		if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
-			if (INT_MAX < EQOS_MMC_STATS_LEN) {
+			if (INT_MAX < ETHER_MMC_STATS_LEN) {
 				/* do nothing*/
 			} else {
-				len = EQOS_MMC_STATS_LEN;
+				len = ETHER_MMC_STATS_LEN;
 			}
 		}
-		if (INT_MAX - EQOS_EXTRA_STAT_LEN < len) {
+		if (INT_MAX - ETHER_EXTRA_STAT_LEN < len) {
 			/* do nothing */
 		} else {
-			len += EQOS_EXTRA_STAT_LEN;
+			len += ETHER_EXTRA_STAT_LEN;
 		}
-		if (INT_MAX - EQOS_EXTRA_DMA_STAT_LEN < len) {
+		if (INT_MAX - ETHER_EXTRA_DMA_STAT_LEN < len) {
 			/* do nothing */
 		} else {
-			len += EQOS_EXTRA_DMA_STAT_LEN;
+			len += ETHER_EXTRA_DMA_STAT_LEN;
 		}
 	} else {
 		len = -EOPNOTSUPP;
@@ -370,8 +371,8 @@ static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 
 	if (stringset == (u32)ETH_SS_STATS) {
 		if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
-			for (i = 0; i < EQOS_MMC_STATS_LEN; i++) {
-				str = (u8 *)eqos_mmc[i].stat_string;
+			for (i = 0; i < ETHER_MMC_STATS_LEN; i++) {
+				str = (u8 *)ether_mmc[i].stat_string;
 				if (memcpy(p, str, ETH_GSTRING_LEN) ==
 				    OSI_NULL) {
 					return;
@@ -379,16 +380,16 @@ static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 				p += ETH_GSTRING_LEN;
 			}
 
-			for (i = 0; i < EQOS_EXTRA_STAT_LEN; i++) {
-				str = (u8 *)eqos_gstrings_stats[i].stat_string;
+			for (i = 0; i < ETHER_EXTRA_STAT_LEN; i++) {
+				str = (u8 *)ether_gstrings_stats[i].stat_string;
 				if (memcpy(p, str, ETH_GSTRING_LEN) ==
 				    OSI_NULL) {
 					return;
 				}
 				p += ETH_GSTRING_LEN;
 			}
-			for (i = 0; i < EQOS_EXTRA_DMA_STAT_LEN; i++) {
-				str = (u8 *)eqos_dstrings_stats[i].stat_string;
+			for (i = 0; i < ETHER_EXTRA_DMA_STAT_LEN; i++) {
+				str = (u8 *)ether_dstrings_stats[i].stat_string;
 				if (memcpy(p, str, ETH_GSTRING_LEN) ==
 				    OSI_NULL) {
 					return;
