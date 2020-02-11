@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
 
 #include <nvgpu/nvlink_minion.h>
 #include <nvgpu/io.h>
+#include <nvgpu/gk20a.h>
 
 #include "minion_gv100.h"
 #include "minion_tu104.h"
@@ -65,7 +66,7 @@ bool tu104_nvlink_minion_is_debug_mode(struct gk20a *g)
 {
 	u32 reg_val;
 
-	reg_val = nvgpu_readl(g, minion_scp_ctl_stat_r());
+	reg_val = MINION_REG_RD32(g, minion_scp_ctl_stat_r());
 	return (minion_scp_ctl_stat_debug_mode_v(reg_val) != 0U);
 }
 
