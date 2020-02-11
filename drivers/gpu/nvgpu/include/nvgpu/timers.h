@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -242,7 +242,6 @@ s64 nvgpu_current_time_us(void);
  * microseconds.
  */
 u64 nvgpu_hr_timestamp_us(void);
-#endif
 
 /**
  * @brief Current high resolution time stamp.
@@ -250,6 +249,7 @@ u64 nvgpu_hr_timestamp_us(void);
  * @return High resolution time stamp value.
  */
 u64 nvgpu_hr_timestamp(void);
+#endif
 
 #ifdef __KERNEL__
 /**

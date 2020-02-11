@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -128,7 +128,6 @@ void nvgpu_delay_usecs(unsigned int usecs);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 u64 nvgpu_us_counter(void);
-#endif
 
 /**
  * @brief Get GPU cycles.
@@ -138,4 +137,5 @@ u64 nvgpu_us_counter(void);
  * @return 64 bit number which has GPU cycles.
  */
 u64 nvgpu_get_cycles(void);
+#endif
 #endif /* NVGPU_SOC_H */

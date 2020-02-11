@@ -348,6 +348,7 @@ int test_timer_msleep(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 int test_timer_hrtimestamp(struct unit_module *m,
 			      struct gk20a *g, void *args)
 {
@@ -372,6 +373,7 @@ int test_timer_hrtimestamp(struct unit_module *m,
 
 	return UNIT_SUCCESS;
 }
+#endif
 
 int test_timer_compare(struct unit_module *m,
 			      struct gk20a *g, void *args)
@@ -408,7 +410,9 @@ struct unit_module_test posix_timers_tests[] = {
 	UNIT_TEST(fault_injection,  test_timer_fault_injection, NULL, 0),
 	UNIT_TEST(delay,     test_timer_delay, NULL, 0),
 	UNIT_TEST(msleep,    test_timer_msleep, NULL, 0),
+#ifdef CONFIG_NVGPU_NON_FUSA
 	UNIT_TEST(hr_cycles, test_timer_hrtimestamp, NULL, 0),
+#endif
 	UNIT_TEST(compare,   test_timer_compare, NULL, 0),
 };
 

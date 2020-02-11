@@ -4581,12 +4581,6 @@
         "test_level": 0
     },
     {
-        "test": "test_timer_hrtimestamp",
-        "case": "hr_cycles",
-        "unit": "posix_timers",
-        "test_level": 0
-    },
-    {
         "test": "test_timer_init",
         "case": "init",
         "unit": "posix_timers",

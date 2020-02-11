@@ -200,12 +200,12 @@ s64 nvgpu_current_time_ns(void)
 	return get_time_ns();
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 u64 nvgpu_hr_timestamp(void)
 {
 	return nvgpu_get_cycles();
 }
 
-#ifdef CONFIG_NVGPU_NON_FUSA
 u64 nvgpu_hr_timestamp_us(void)
 {
 	return nvgpu_us_counter();
