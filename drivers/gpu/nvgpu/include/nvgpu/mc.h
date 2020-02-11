@@ -117,6 +117,10 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/lock.h>
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_mc.h"
+#endif
+
 struct gk20a;
 
 /**
@@ -283,6 +287,12 @@ struct nvgpu_mc {
 
 	/** Interrupt line for non-stalling interrupts. */
 	u32 irq_nonstall;
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	struct nvgpu_next_mc nvgpu_next;
+#endif
+	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
 /**
