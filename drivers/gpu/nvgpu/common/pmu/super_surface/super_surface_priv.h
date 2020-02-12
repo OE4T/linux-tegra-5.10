@@ -25,7 +25,6 @@
 
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/pmu/pmuif/boardobj.h>
-#include <nvgpu/pmu/pmuif/clk.h>
 #include <nvgpu/pmu/pmuif/cmn.h>
 #include <nvgpu/flcnif_cmn.h>
 
@@ -107,30 +106,6 @@ struct nv_pmu_super_surface {
 		 * member present above to know the offset of
 		 * required boardobj from super surface in nvgpu
 		 */
-		struct  {
-			struct nv_pmu_clk_clk_vin_device_boardobj_grp_set
-				clk_vin_device_grp_set;
-			struct nv_pmu_clk_clk_domain_boardobj_grp_set
-				clk_domain_grp_set;
-			struct nv_pmu_clk_clk_fll_device_boardobj_grp_set
-				clk_fll_device_grp_set;
-			struct nv_pmu_clk_clk_prog_boardobj_grp_set
-				clk_prog_grp_set;
-			struct nv_pmu_clk_clk_vf_point_boardobj_grp_set
-				clk_vf_point_grp_set;
-			struct nv_pmu_clk_clk_vin_device_boardobj_grp_get_status
-				clk_vin_device_grp_get_status;
-			struct nv_pmu_clk_clk_fll_device_boardobj_grp_get_status
-				clk_fll_device_grp_get_status;
-			struct nv_pmu_clk_clk_vf_point_boardobj_grp_get_status
-				clk_vf_point_grp_get_status;
-		} clk;
-		struct {
-			struct nv_pmu_clk_clk_vf_point_boardobj_grp_set
-				clk_vf_point_grp_set;
-			struct nv_pmu_clk_clk_vf_point_boardobj_grp_get_status
-				clk_vf_point_grp_get_status;
-		} clk_35;
 	};
 };
 

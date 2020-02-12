@@ -27,7 +27,6 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/boardobjgrpmask.h>
-#include <nvgpu/pmu/pmuif/clk.h>
 
 struct gk20a;
 struct fll_device;

@@ -28,10 +28,10 @@
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 
+#include "ucode_clk_inf.h"
 #include "clk_prog.h"
 
 static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs);

@@ -23,17 +23,17 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/perf.h>
-#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 
+#include "ucode_clk_inf.h"
 #include "clk_domain.h"
 #include "clk_prog.h"
 #include "clk_vin.h"

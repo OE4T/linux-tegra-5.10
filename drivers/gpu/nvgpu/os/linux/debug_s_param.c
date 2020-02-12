@@ -18,6 +18,7 @@
 #include "os_linux.h"
 #include "include/nvgpu/bios.h"
 
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
 
 static int get_s_param_info(void *data, u64 *val)

@@ -27,7 +27,6 @@
 #include <nvgpu/pmu/pmuif/pg.h>
 #include <nvgpu/pmu/pmuif/acr.h>
 #include <nvgpu/pmu/pmuif/boardobj.h>
-#include <nvgpu/pmu/pmuif/clk.h>
 #include <nvgpu/pmu/pmuif/pmgr.h>
 #include <nvgpu/pmu/pmuif/rpc.h>
 
@@ -49,7 +48,6 @@ struct pmu_cmd {
 		struct pmu_zbc_cmd zbc;
 		struct pmu_acr_cmd acr;
 		struct nv_pmu_boardobj_cmd boardobj;
-		struct nv_pmu_clk_cmd clk;
 		struct nv_pmu_pmgr_cmd pmgr;
 		struct nv_pmu_rpc_cmd rpc;
 	} cmd;

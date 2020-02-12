@@ -1,7 +1,7 @@
 /*
  * GM20B Clocks
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/therm.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include "clk_gm20b.h"
 

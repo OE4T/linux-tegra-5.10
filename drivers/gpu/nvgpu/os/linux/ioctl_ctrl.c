@@ -20,6 +20,7 @@
 #include <linux/anon_inodes.h>
 #include <linux/fs.h>
 #include <uapi/linux/nvgpu.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include <nvgpu/bitops.h>
 #include <nvgpu/kmem.h>

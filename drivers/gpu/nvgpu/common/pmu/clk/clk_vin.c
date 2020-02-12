@@ -33,6 +33,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/volt.h>
 
+#include "ucode_clk_inf.h"
 #include "clk_vin.h"
 
 static int devinit_get_vin_device_table(struct gk20a *g,

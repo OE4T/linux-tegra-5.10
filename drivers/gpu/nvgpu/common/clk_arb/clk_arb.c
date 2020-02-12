@@ -35,9 +35,9 @@
 #include <nvgpu/worker.h>
 #include <nvgpu/gk20a.h>
 #ifdef CONFIG_NVGPU_LS_PMU
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/volt.h>
-#include <nvgpu/pmu/clk/clk.h>
 #endif
 #include <nvgpu/boardobjgrp_e255.h>
 

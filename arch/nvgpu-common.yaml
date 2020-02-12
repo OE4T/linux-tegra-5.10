@@ -643,8 +643,6 @@ pmu:
       # Subset of each interfaces should be distributed to individual units.
       # TODO!
       sources: [ include/nvgpu/pmu/pmuif/ctrlboardobj.h,
-                 include/nvgpu/pmu/pmuif/ctrlclk.h,
-                 include/nvgpu/pmu/pmuif/ctrlclkavfs.h,
                  include/nvgpu/pmu/pmuif/ctrlpmgr.h,
                  include/nvgpu/pmu/pmuif/acr.h,
                  include/nvgpu/pmu/pmuif/ap.h,
@@ -655,7 +653,6 @@ pmu:
                  include/nvgpu/pmu/pmuif/init.h,
                  include/nvgpu/pmu/pmuif/bios.h,
                  include/nvgpu/pmu/pmuif/boardobj.h,
-                 include/nvgpu/pmu/pmuif/clk.h,
                  include/nvgpu/pmu/pmuif/pmgr.h,
                  include/nvgpu/pmu/pmuif/seq.h,
                  include/nvgpu/pmu/pmuif/rpc.h,
@@ -768,6 +765,7 @@ pmu:
           safe: yes
           gpu: dgpu
           sources: [ common/pmu/clk/clk.c,
+                     common/pmu/clk/ucode_clk_inf.h,
                      include/nvgpu/clk.h,
                      include/nvgpu/pmu/clk/clk.h ]
 

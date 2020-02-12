@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
  */
 #ifndef NVGPU_PMUIF_CTRLPERF_H
 #define NVGPU_PMUIF_CTRLPERF_H
+
 
 #define CTRL_PERF_CHANGE_SEQ_VERSION_35				0x04U
 

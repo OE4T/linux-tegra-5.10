@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include "clk_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"

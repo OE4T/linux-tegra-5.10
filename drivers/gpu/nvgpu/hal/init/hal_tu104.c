@@ -212,13 +212,13 @@
 #endif
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/nvgpu_init.h>
-#include <nvgpu/pmu/clk/clk.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 

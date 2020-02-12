@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/hal_init.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
+#include <nvgpu/pmu/clk/clk.h>
+
 #include "hal/fuse/fuse_gm20b.h"
 
 #include "nvgpu-fuse-priv.h"

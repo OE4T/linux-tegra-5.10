@@ -25,37 +25,215 @@
 
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/pmu/volt.h>
+#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
+#include <nvgpu/pmu/pmuif/boardobj.h>
 
-#include "ctrlboardobj.h"
-#include "ctrlclk.h"
-#include "boardobj.h"
-
-/*
- *  Try to get gpc2clk, mclk, sys2clk, xbar2clk work for Pascal
- *
- *  mclk is same for both
- *  gpc2clk is 17 for Pascal and 13 for Volta, making it 17
- *    as volta uses gpcclk
- *  sys2clk is 20 in Pascal and 15 in Volta.
- *    Changing for Pascal would break nvdclk of Volta
- *  xbar2clk is 19 in Pascal and 14 in Volta
- *    Changing for Pascal would break pwrclk of Volta
+/*!
+ * Various types of VIN calibration that the GPU can support
  */
-#define CLKWHICH_GPCCLK		1U
-#define CLKWHICH_XBARCLK	2U
-#define CLKWHICH_SYSCLK		3U
-#define CLKWHICH_HUBCLK		4U
-#define CLKWHICH_MCLK		5U
-#define CLKWHICH_HOSTCLK	6U
-#define CLKWHICH_DISPCLK	7U
-#define CLKWHICH_XCLK		12U
-#define CLKWHICH_XBAR2CLK	14U
-#define CLKWHICH_SYS2CLK	15U
-#define CLKWHICH_HUB2CLK	16U
-#define CLKWHICH_GPC2CLK	17U
-#define CLKWHICH_PWRCLK		19U
-#define CLKWHICH_NVDCLK		20U
-#define CLKWHICH_PCIEGENCLK	26U
+#define CTRL_CLK_VIN_CAL_TYPE_V20           (0x00000001U)
+
+#define CTRL_CLK_VIN_VFE_IDX_INVALID		(0xFFU)
+
+/*!
+ * Various Vin device table versions that are supported
+ */
+#define NV2080_CTRL_CLK_VIN_DEVICES_DISABLED        (0x00000000U)
+#define NV2080_CTRL_CLK_VIN_DEVICES_V10             (0x00000001U)
+#define NV2080_CTRL_CLK_VIN_DEVICES_V20             (0x00000002U)
+
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X                                  0x01U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED                            0x02U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG                             0x03U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER                           0x04U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE                            0x05U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_30_PROG                             0x06U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER                           0x07U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE                            0x08U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG                             0x09U
+
+#define CTRL_CLK_CLK_DOMAIN_3X_PROG_ORDERING_INDEX_INVALID     0xFFU
+#define CTRL_CLK_CLK_DOMAIN_INDEX_INVALID                      0xFF
+
+#define CTRL_CLK_CLK_PROG_TYPE_3X                              0x00U
+#define CTRL_CLK_CLK_PROG_TYPE_1X                              0x01U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER                       0x02U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO                 0x03U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE                 0x04U
+#define CTRL_CLK_CLK_PROG_TYPE_35                              0x05U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER                       0x06U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO                 0x07U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE                 0x08U
+#define CTRL_CLK_CLK_PROG_TYPE_UNKNOWN                         255U
+
+/*!
+ * Enumeration of CLK_PROG source types.
+ */
+#define CTRL_CLK_PROG_1X_SOURCE_PLL                            0x00U
+#define CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE                     0x01U
+#define CTRL_CLK_PROG_1X_SOURCE_FLL                            0x02U
+#define CTRL_CLK_PROG_1X_SOURCE_INVALID                        255U
+
+#define CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES 4U
+#define CTRL_CLK_CLK_PROG_35_MASTER_SEC_VF_ENTRY_VOLTRAIL_MAX	1U
+#define CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES 6U
+
+#define CTRL_CLK_CLK_VF_POINT_IDX_INVALID                      255U
+
+#define CTRL_CLK_CLK_VF_POINT_TYPE_FREQ                         0x01U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_VOLT                         0x02U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35                           0x03U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ                      0x04U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT                      0x05U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_SEC                  0x06U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_UNKNOWN                      255U
+
+
+
+struct ctrl_clk_domain_control_35_prog_clk_mon {
+	u32 flags;
+	u32 low_threshold_override;
+	u32 high_threshold_override;
+};
+
+struct ctrl_clk_domain_info_35_prog_clk_mon {
+	u8 low_threshold_vfe_idx;
+	u8 high_threshold_vfe_idx;
+};
+
+struct ctrl_clk_clk_prog_1x_master_source_fll {
+	u32 base_vfsmooth_volt_uv;
+	u32 max_vf_ramprate;
+	u32 max_freq_stepsize_mhz;
+};
+
+union ctrl_clk_clk_prog_1x_master_source_data {
+	struct ctrl_clk_clk_prog_1x_master_source_fll fll;
+};
+
+struct ctrl_clk_clk_vf_point_info_freq {
+	u16 freq_mhz;
+};
+
+struct ctrl_clk_clk_vf_point_info_volt {
+	u32  sourceVoltageuV;
+	u8  vfGainVfeEquIdx;
+	u8  clkDomainIdx;
+};
+
+struct ctrl_clk_clk_prog_1x_master_vf_entry {
+	u8 vfe_idx;
+	u8 gain_vfe_idx;
+	u8 vf_point_idx_first;
+	u8 vf_point_idx_last;
+};
+
+struct ctrl_clk_clk_prog_35_master_sec_vf_entry {
+	u8 vfe_idx;
+	u8 dvco_offset_vfe_idx;
+	u8 vf_point_idx_first;
+	u8 vf_point_idx_last;
+};
+
+struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail {
+	struct ctrl_clk_clk_prog_35_master_sec_vf_entry sec_vf_entries[
+			CTRL_CLK_CLK_PROG_35_MASTER_SEC_VF_ENTRY_VOLTRAIL_MAX];
+};
+
+struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry {
+	u8 clk_dom_idx;
+	u8 ratio;
+};
+
+struct ctrl_clk_clk_prog_1x_master_table_slave_entry {
+	u8 clk_dom_idx;
+	u16 freq_mhz;
+};
+
+struct ctrl_clk_clk_prog_1x_source_pll {
+	u8 pll_idx;
+	u8 freq_step_size_mhz;
+};
+
+struct ctrl_clk_vin_v10 {
+	u32 slope;
+	u32 intercept;
+};
+
+struct ctrl_clk_vin_v20 {
+	s8 offset;
+	s8 gain;
+	u8 coarse_control;
+	u8 offset_vfe_idx;
+};
+
+union ctrl_clk_vin_data_v20 {
+	struct ctrl_clk_vin_v10 cal_v10;
+	struct ctrl_clk_vin_v20 cal_v20;
+};
+
+struct ctrl_clk_vin_device_info_data_v10 {
+	struct ctrl_clk_vin_v10 vin_cal;
+};
+
+struct ctrl_clk_vin_device_info_data_v20 {
+	u8 cal_type;
+	union ctrl_clk_vin_data_v20 vin_cal;
+};
+
+union ctrl_clk_clk_prog_1x_source_data {
+	struct ctrl_clk_clk_prog_1x_source_pll source_pll;
+};
+
+#define CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE		0x5U
+
+struct ctrl_clk_vf_point_freq_tuple {
+	u16 freqMHz;
+};
+
+struct ctrl_clk_vf_point_base_vf_tuple {
+	struct ctrl_clk_vf_point_freq_tuple
+		freqTuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
+	u32 voltageuV;
+};
+
+#define CTRL_CLK_CLK_VF_POINT_DVCO_OFFSET_CODE_INVALID   0xFFU
+
+struct ctrl_clk_vf_point_base_vf_tuple_sec {
+	struct ctrl_clk_vf_point_base_vf_tuple  super;
+	u8 dvco_offset_code;
+};
+
+struct ctrl_clk_vf_point_vf_tuple {
+	u16 freqMHz;
+	u32 voltageuV;
+};
+
+struct ctrl_clk_vf_input {
+	u8 flags;
+	u32 value;
+};
+
+struct ctrl_clk_vf_output {
+	u32 input_best_match;
+	u32 value;
+};
+
+#define CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(pvfpair)                          \
+	((pvfpair)->freq_mhz)
+
+#define CTRL_CLK_VF_PAIR_VOLTAGE_UV_GET(pvfpair)                        \
+	((pvfpair)->voltage_uv)
+
+#define CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(pvfpair, _freqmhz)                \
+	(((pvfpair)->freq_mhz) = (_freqmhz))
+
+#define CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(pvfpair, _freqmhz)                \
+	(((pvfpair)->freq_mhz) = (_freqmhz))
+
+
+#define CTRL_CLK_VF_PAIR_VOLTAGE_UV_SET(pvfpair, _voltageuv)	        \
+	(((pvfpair)->voltage_uv) = (_voltageuv))
 
 #define NV_PMU_RPC_ID_CLK_CNTR_SAMPLE_DOMAIN                               0x01U
 #define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_VOLT_TO_FREQ                  0x02U
@@ -292,17 +470,6 @@ union nv_pmu_clk_clk_prog_boardobj_set_union {
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E255(clk, clk_prog);
 
-struct nv_pmu_clk_lut_device_desc {
-	u8 vselect_mode;
-	u16 hysteresis_threshold;
-};
-
-struct nv_pmu_clk_regime_desc {
-	u8 regime_id;
-	u8 target_regime_id_override;
-	u16 fixed_freq_regime_limit_mhz;
-};
-
 struct nv_pmu_clk_clk_fll_device_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32 super;
 	struct ctrl_boardobjgrp_mask_e32 lut_prog_master_mask;
@@ -464,29 +631,6 @@ union nv_pmu_clk_clk_vf_point_boardobj_get_status_union {
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E255(clk, clk_vf_point);
 
-#define NV_PMU_VF_INJECT_MAX_CLOCK_DOMAINS                                 (12U)
-
-struct nv_pmu_clk_clk_domain_list {
-	u8 num_domains;
-	struct ctrl_clk_clk_domain_list_item clk_domains[
-		NV_PMU_VF_INJECT_MAX_CLOCK_DOMAINS];
-};
-
-struct nv_pmu_clk_clk_domain_list_v1 {
-	u8 num_domains;
-	struct ctrl_clk_clk_domain_list_item_v1 clk_domains[
-		NV_PMU_VF_INJECT_MAX_CLOCK_DOMAINS];
-};
-
-struct nv_pmu_clk_vf_change_inject {
-	u8 flags;
-	struct nv_pmu_clk_clk_domain_list clk_list;
-};
-
-struct nv_pmu_clk_vf_change_inject_v1 {
-	u8 flags;
-	struct nv_pmu_clk_clk_domain_list_v1 clk_list;
-};
 
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES      (0x00000001U)
 

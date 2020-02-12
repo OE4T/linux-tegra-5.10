@@ -23,7 +23,6 @@
 #ifndef NVGPU_CLK_PROG_H
 #define NVGPU_CLK_PROG_H
 
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/boardobjgrp_e32.h>

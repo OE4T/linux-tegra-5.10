@@ -23,9 +23,9 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/clk/clk_fll.h>
-#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/volt.h>
 
 #include "hal/clk/clk_tu104.h"

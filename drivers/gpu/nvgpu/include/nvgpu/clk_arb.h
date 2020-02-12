@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,6 @@ struct gk20a;
 #include <nvgpu/cond.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/volt.h>
 
 #define MAX_F_POINTS 256

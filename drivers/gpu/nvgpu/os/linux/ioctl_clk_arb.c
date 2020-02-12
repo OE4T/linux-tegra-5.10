@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -40,6 +40,7 @@
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #ifdef CONFIG_DEBUG_FS
 #include "os_linux.h"

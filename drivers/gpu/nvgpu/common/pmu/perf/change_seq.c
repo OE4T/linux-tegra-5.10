@@ -24,7 +24,6 @@
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/clk/clk.h>

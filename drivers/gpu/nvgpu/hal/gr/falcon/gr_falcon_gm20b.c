@@ -28,7 +28,6 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/gr_utils.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 
 #include "gr_falcon_gm20b.h"
 #include "common/gr/gr_falcon_priv.h"

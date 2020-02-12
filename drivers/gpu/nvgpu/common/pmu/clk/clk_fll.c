@@ -27,11 +27,11 @@
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk_vin.h>
 
+#include "ucode_clk_inf.h"
 #include "clk_fll.h"
 
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP	0x10U

@@ -1,7 +1,7 @@
 /*
  * Linux clock support
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,6 +20,7 @@
 
 #include <soc/tegra/tegra-dvfs.h>
 #include <soc/tegra/tegra-bpmp-dvfs.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include "clk.h"
 #include "os_linux.h"

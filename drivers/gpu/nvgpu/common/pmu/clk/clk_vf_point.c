@@ -26,16 +26,15 @@
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/perf.h>
-#include <nvgpu/pmu/pmuif/clk.h>
-#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/cmd.h>
 
+#include "ucode_clk_inf.h"
 #include "clk_vf_point.h"
 
 int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
