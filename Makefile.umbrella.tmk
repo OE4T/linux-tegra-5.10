@@ -163,6 +163,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/rc
 NV_REPOSITORY_COMPONENTS += userspace/units/sync
 NV_REPOSITORY_COMPONENTS += userspace/units/mock-iospace
 NV_REPOSITORY_COMPONENTS += userspace/units/ecc
+NV_REPOSITORY_COMPONENTS += userspace/units/io
 endif
 endif
 

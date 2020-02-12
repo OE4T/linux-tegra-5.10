@@ -152,5 +152,7 @@
  *   - @ref SWUTS-ecc
  *   - @ref SWUTS-channel_devctl_qnx
  *   - @ref SWUTS-pmu
+ *   - @ref SWUTS-io
+ *
  */
 

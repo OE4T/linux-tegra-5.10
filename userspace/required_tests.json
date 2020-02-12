@@ -4969,5 +4969,11 @@
         "case": "sync_fail",
         "unit": "nvgpu-sync",
         "test_level": 0
+    },
+    {
+        "test": "test_writel_check",
+        "case": "writel_check",
+        "unit": "io",
+        "test_level": 0
     }
 ]

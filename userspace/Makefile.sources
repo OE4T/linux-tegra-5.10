@@ -159,4 +159,5 @@ UNITS :=				\
 	$(UNIT_SRC)/cg                  \
 	$(UNIT_SRC)/rc                  \
 	$(UNIT_SRC)/sync		\
-	$(UNIT_SRC)/ecc
+	$(UNIT_SRC)/ecc			\
+	$(UNIT_SRC)/io
