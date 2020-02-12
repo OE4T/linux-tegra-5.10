@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include <nvgpu/lock.h>
 
 #include <pthread.h>
-#include <semaphore.h>
+#include <unistd.h>
 
 #include "lock.h"
 
@@ -42,8 +42,43 @@ struct worker_parameters {
 	struct nvgpu_raw_spinlock *raw_lock;
 };
 
-sem_t worker_sem;
+int worker_sem = -1;
+/* Mutex for atomicity of operations on "worker_sem" */
+pthread_mutex_t nvgpu_sem_mutex = PTHREAD_MUTEX_INITIALIZER;
 bool test_shared_flag;
+
+static void nvgpu_sem_init(int *sem)
+{
+	(*sem) = -1;
+	pthread_mutex_init(&nvgpu_sem_mutex, NULL);
+
+	return;
+}
+
+static void nvgpu_sem_post(int *sem)
+{
+	pthread_mutex_lock(&nvgpu_sem_mutex);
+	(*sem) = (*sem) + 1;
+	pthread_mutex_unlock(&nvgpu_sem_mutex);
+
+	return;
+}
+
+static void nvgpu_sem_wait(int *sem)
+{
+	pthread_mutex_lock(&nvgpu_sem_mutex);
+	while ((*sem) == -1) {
+		pthread_mutex_unlock(&nvgpu_sem_mutex);
+		/* Wait for 1 msec */
+		usleep(1000);
+		pthread_mutex_lock(&nvgpu_sem_mutex);
+	}
+
+	(*sem) = (*sem) - 1;
+	pthread_mutex_unlock(&nvgpu_sem_mutex);
+
+	return;
+}
 
 int test_mutex_init(struct unit_module *m, struct gk20a *g, void *args)
 {
@@ -95,7 +130,7 @@ static void *lock_worker(void *args)
 	struct worker_parameters *params = (struct worker_parameters *) args;
 
 	/* Signal main testing function that the worker thread has started. */
-	sem_post(&worker_sem);
+	nvgpu_sem_post(&worker_sem);
 
 	/*
 	 * Lock should already be held by the main test function, so execution
@@ -120,7 +155,7 @@ static void *lock_worker(void *args)
 	 * succeeded and signal the main thread.
 	 */
 	test_shared_flag = true;
-	sem_post(&worker_sem);
+	nvgpu_sem_post(&worker_sem);
 
 	/* Cleanup */
 	switch (params->type) {
@@ -180,7 +215,7 @@ int test_lock_acquire_release(struct unit_module *m, struct gk20a *g,
 	 * current thread and the worker thread
 	 * (*_acquire_release_worker)
 	 */
-	sem_init(&worker_sem, 0, 0);
+	nvgpu_sem_init(&worker_sem);
 	test_shared_flag = false;
 
 	/*
@@ -205,7 +240,7 @@ int test_lock_acquire_release(struct unit_module *m, struct gk20a *g,
 	pthread_create(&worker_thread, NULL, lock_worker,
 		(void *) &worker_params);
 
-	sem_wait(&worker_sem);
+	nvgpu_sem_wait(&worker_sem);
 
 	/*
 	 * Worker thread is initialized and running. It should be waiting on the
@@ -234,7 +269,7 @@ int test_lock_acquire_release(struct unit_module *m, struct gk20a *g,
 		break;
 	}
 
-	sem_wait(&worker_sem);
+	nvgpu_sem_wait(&worker_sem);
 
 	if (!test_shared_flag) {
 		unit_err(m, "Lock did not get released in worker thread\n");
@@ -248,7 +283,6 @@ cleanup:
 	if (type == TYPE_MUTEX) {
 		nvgpu_mutex_destroy(&mutex);
 	}
-	sem_destroy(&worker_sem);
 	return result;
 }
 
