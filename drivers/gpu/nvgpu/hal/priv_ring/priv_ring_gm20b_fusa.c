@@ -1,7 +1,7 @@
 /*
  * GM20B priv ring
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,8 @@ int gm20b_priv_ring_enable(struct gk20a *g)
 #ifdef CONFIG_NVGPU_SIM
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		nvgpu_log_info(g, "priv ring is already enabled");
+		nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PRIV_RING,
+					 MC_INTR_ENABLE);
 		return 0;
 	}
 #endif
