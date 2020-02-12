@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -553,7 +553,7 @@ static ssize_t mscg_enable_store(struct device *dev,
 			g->mscg_enabled = true;
 			if (nvgpu_pmu_is_lpwr_feature_supported(g,
 					PMU_PG_LPWR_FEATURE_MSCG)) {
-				if (!ACCESS_ONCE(pmu->pg->mscg_stat)) {
+				if (!READ_ONCE(pmu->pg->mscg_stat)) {
 					WRITE_ONCE(pmu->pg->mscg_stat,
 						PMU_MSCG_ENABLED);
 					/* make status visible */

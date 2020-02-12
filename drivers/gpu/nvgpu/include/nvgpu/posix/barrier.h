@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,9 @@
 #ifndef NVGPU_POSIX_BARRIER_H
 #define NVGPU_POSIX_BARRIER_H
 
-#define ACCESS_ONCE(x)	(*(volatile __typeof__(x) *)&x)
+#include <nvgpu/posix/utils.h>
+
+#define READ_ONCE(x)	(*(volatile __typeof__(x) *)&x)
 
 /*
  * TODO: implement all these!
@@ -36,6 +38,7 @@
 #define nvgpu_smp_rmb_impl()
 #define nvgpu_smp_wmb_impl()
 
-#define NV_ACCESS(x)	ACCESS_ONCE(x)
+#define NV_READ_ONCE_IMPL(x)		READ_ONCE(x)
+#define NV_WRITE_ONCE_IMPL(x, y)	WRITE_ONCE(x, y)
 
 #endif /* NVGPU_POSIX_BARRIER_H */

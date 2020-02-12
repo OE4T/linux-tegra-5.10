@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,9 +68,9 @@ static u64 nvgpu_lockless_alloc(struct nvgpu_allocator *a, u64 len)
 		return 0;
 	}
 
-	head = NV_ACCESS_ONCE(pa->head);
+	head = NV_READ_ONCE(pa->head);
 	while (head >= 0) {
-		new_head = NV_ACCESS_ONCE(pa->next[head]);
+		new_head = NV_READ_ONCE(pa->next[head]);
 		ret = cmpxchg(&pa->head, head, new_head);
 		if (ret == head) {
 			addr = pa->base + U64(head) * pa->blk_size;
@@ -79,7 +79,7 @@ static u64 nvgpu_lockless_alloc(struct nvgpu_allocator *a, u64 len)
 				  addr);
 			break;
 		}
-		head = NV_ACCESS_ONCE(pa->head);
+		head = NV_READ_ONCE(pa->head);
 	}
 
 	if (addr != 0ULL) {
@@ -102,8 +102,8 @@ static void nvgpu_lockless_free(struct nvgpu_allocator *a, u64 addr)
 	alloc_dbg(a, "Free node # %llu @ addr 0x%llx", cur_idx, addr);
 
 	while (true) {
-		head = NV_ACCESS_ONCE(pa->head);
-		NV_ACCESS_ONCE(pa->next[cur_idx]) = head;
+		head = NV_READ_ONCE(pa->head);
+		NV_WRITE_ONCE(pa->next[cur_idx], head);
 		nvgpu_assert(cur_idx <= U64(INT_MAX));
 		ret = cmpxchg(&pa->head, head, (int)cur_idx);
 		if (ret == head) {

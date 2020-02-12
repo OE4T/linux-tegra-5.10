@@ -120,7 +120,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 
 	struct clk_set_info *p0_info;
 
-	table = NV_ACCESS_ONCE(arb->current_vf_table);
+	table = NV_READ_ONCE(arb->current_vf_table);
 	/* make flag visible when all data has resolved in the tables */
 	nvgpu_smp_rmb();
 	table = (table == &arb->vf_table_pool[0]) ? &arb->vf_table_pool[1] :
@@ -279,7 +279,7 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 
 			l_notification = &arb->notification_queue.
 				clk_q_notifications[((u64)index + 1ULL) % size];
-			alarm_detected = NV_ACCESS_ONCE(
+			alarm_detected = NV_READ_ONCE(
 					l_notification->clk_notification);
 
 			if ((enabled_mask & alarm_detected) == 0U) {
@@ -289,7 +289,7 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 			queue_index++;
 			dev->queue.clk_q_notifications[
 				queue_index % dev->queue.size].timestamp =
-				NV_ACCESS_ONCE(l_notification->timestamp);
+				NV_READ_ONCE(l_notification->timestamp);
 
 			dev->queue.clk_q_notifications[queue_index %
 				dev->queue.size].clk_notification =
@@ -628,7 +628,7 @@ void nvgpu_clk_arb_schedule_vf_table_update(struct gk20a *g)
  */
 u32 nvgpu_clk_arb_get_current_pstate(struct gk20a *g)
 {
-	return NV_ACCESS_ONCE(g->clk_arb->actual->pstate);
+	return NV_READ_ONCE(g->clk_arb->actual->pstate);
 }
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock)

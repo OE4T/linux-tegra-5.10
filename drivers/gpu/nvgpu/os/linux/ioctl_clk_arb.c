@@ -516,7 +516,7 @@ static int nvgpu_clk_arb_stats_show(struct seq_file *s, void *unused)
 	u64 num;
 	s64 tmp, avg, std, max, min;
 
-	debug = NV_ACCESS_ONCE(arb->debug);
+	debug = READ_ONCE(arb->debug);
 	/* Make copy of structure and ensure no reordering */
 	nvgpu_smp_rmb();
 	if (!debug)

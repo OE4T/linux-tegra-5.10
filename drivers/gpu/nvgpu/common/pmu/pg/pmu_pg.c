@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -165,7 +165,8 @@ static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
 				pmu->pg->initialized = true;
 				nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_STARTED,
 					true);
-				WRITE_ONCE(pmu->pg->mscg_stat, PMU_MSCG_DISABLED);
+				NV_WRITE_ONCE(pmu->pg->mscg_stat,
+					      PMU_MSCG_DISABLED);
 				/* make status visible */
 				nvgpu_smp_mb();
 			} else {

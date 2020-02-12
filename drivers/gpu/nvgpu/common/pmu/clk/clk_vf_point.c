@@ -399,7 +399,7 @@ int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
 	do {
 		gpc2clk_target = vf_point->gpc_mhz;
 
-		table = NV_ACCESS_ONCE(arb->current_vf_table);
+		table = NV_READ_ONCE(arb->current_vf_table);
 		/* pointer to table can be updated by callback */
 		nvgpu_smp_rmb();
 
@@ -436,7 +436,7 @@ int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
 			vf_point->gpc_mhz = gpc2clk_target;
 		}
 	} while ((table == NULL) ||
-		(NV_ACCESS_ONCE(arb->current_vf_table) != table));
+		(NV_READ_ONCE(arb->current_vf_table) != table));
 
 	return status;
 

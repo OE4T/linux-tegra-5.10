@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,7 +27,8 @@
 #define nvgpu_smp_rmb_impl()	smp_rmb()
 #define nvgpu_smp_wmb_impl()	smp_wmb()
 
-#define NV_ACCESS(x)	ACCESS_ONCE(x)
+#define NV_READ_ONCE_IMPL(x)		READ_ONCE(x)
+#define NV_WRITE_ONCE_IMPL(x, y)	WRITE_ONCE(x, y)
 
 #define nvgpu_speculation_barrier_impl() speculation_barrier()
 

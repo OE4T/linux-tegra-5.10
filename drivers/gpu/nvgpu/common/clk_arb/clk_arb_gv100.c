@@ -429,7 +429,7 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 		goto exit_arb;
 	}
 
-	actual = NV_ACCESS_ONCE(arb->actual) == &arb->actual_pool[0] ?
+	actual = NV_READ_ONCE(arb->actual) == &arb->actual_pool[0] ?
 			&arb->actual_pool[1] : &arb->actual_pool[0];
 
 	/* do not reorder this pointer */
