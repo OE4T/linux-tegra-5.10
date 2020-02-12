@@ -114,6 +114,15 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj qnx_int_wait_fi;
 	struct nvgpu_posix_fault_inj guest_vm_id_fi;
 	struct nvgpu_posix_fault_inj nvgpu_readl_loop_fi;
+	struct nvgpu_posix_fault_inj tegra_sys_init_fi;
+	struct nvgpu_posix_fault_inj waitfor_fi;
+	struct nvgpu_posix_fault_inj procmgr_daemon_fi;
+	struct nvgpu_posix_fault_inj procmgr_ability_fi;
+	struct nvgpu_posix_fault_inj sem_init_fi;
+	struct nvgpu_posix_fault_inj sem_post_fi;
+	struct nvgpu_posix_fault_inj pthread_sigmask_fi;
+	struct nvgpu_posix_fault_inj sigaction_fi;
+	struct nvgpu_posix_fault_inj sigaction_execute_handler_fi;
 };
 
 /**
