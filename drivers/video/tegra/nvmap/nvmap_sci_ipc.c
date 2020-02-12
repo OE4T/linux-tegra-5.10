@@ -229,8 +229,8 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
 	if ((entry == NULL) || (entry->handle == NULL) ||
 		(entry->peer_vuid != localu_vuid) || (entry->flags != flags)) {
 
-		pr_err("%d: No matching Sci_Ipc_Id %d entry->pr_vuid: %lluentry->flags: %u found\n",
-		__LINE__, sci_ipc_id, entry->peer_vuid, entry->flags);
+		pr_err("%d: No matching Sci_Ipc_Id %d found\n",
+		__LINE__, sci_ipc_id);
 
 		ret = -EINVAL;
 		goto unlock;
