@@ -26,7 +26,7 @@
 struct gk20a;
 struct unit_module;
 
-/** @addtogroup SWUTS-interface-static-analysis
+/** @addtogroup SWUTS-interface-static_analysis
  *  @{
  *
  * Software Unit Test Specification for static analysis unit
