@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,6 +22,7 @@
 #include <nvgpu/linux/vm.h>
 
 #include "dmabuf.h"
+#include "dmabuf_priv.h"
 
 void gk20a_get_comptags(struct nvgpu_os_buffer *buf,
 			struct gk20a_comptags *comptags)

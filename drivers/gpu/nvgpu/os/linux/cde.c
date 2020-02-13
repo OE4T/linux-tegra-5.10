@@ -45,6 +45,7 @@
 #include "cde.h"
 #include "os_linux.h"
 #include "dmabuf.h"
+#include "dmabuf_priv.h"
 #include "channel.h"
 #include "cde_gm20b.h"
 #include "cde_gp10b.h"

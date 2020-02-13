@@ -35,6 +35,7 @@
 #include "platform_gk20a.h"
 #include "os_linux.h"
 #include "dmabuf.h"
+#include "dmabuf_priv.h"
 #include "dmabuf_vidmem.h"
 
 #define dev_from_vm(vm) dev_from_gk20a(vm->mm->g)
@@ -314,11 +315,13 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_NVGPU_DMABUF_HAS_DRVDATA
 	err = gk20a_dmabuf_alloc_drvdata(dmabuf, dev_from_vm(vm));
 	if (err) {
 		dma_buf_put(dmabuf);
 		return err;
 	}
+#endif
 
 	err = nvgpu_vm_map_linux(vm, dmabuf, *map_addr,
 				 nvgpu_vm_translate_linux_flags(g, flags),

@@ -353,6 +353,8 @@ nvgpu-y += \
 	os/linux/dmabuf_vidmem.o \
 	os/linux/vpr.o
 
+nvgpu-$(CONFIG_NVGPU_DMABUF_HAS_DRVDATA) += os/linux/dmabuf_priv.o
+
 nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug.o \
 	os/linux/debug_gr.o \

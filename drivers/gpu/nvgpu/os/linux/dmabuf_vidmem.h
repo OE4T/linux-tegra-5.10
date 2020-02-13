@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NVGPU_LINUX_DMABUF_VIDMEM_H__
-#define __NVGPU_LINUX_DMABUF_VIDMEM_H__
+#ifndef NVGPU_DMABUF_VIDMEM_H
+#define NVGPU_DMABUF_VIDMEM_H
 
 #ifdef CONFIG_NVGPU_DGPU
 

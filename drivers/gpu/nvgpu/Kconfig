@@ -201,3 +201,10 @@ config NVGPU_GR_VIRTUALIZATION
 	default y
 	help
 	  Support NVGPU Virtualization
+
+config NVGPU_DMABUF_HAS_DRVDATA
+	bool "NVGPU DMABUF private driver data support"
+	depends on GK20A
+	default y
+	help
+	  Support NVGPU DMABUF private driver data needed for compression

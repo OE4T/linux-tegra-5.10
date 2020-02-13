@@ -33,6 +33,7 @@
 #include "ioctl_channel.h"
 #include "os_linux.h"
 #include "dmabuf.h"
+#include "dmabuf_priv.h"
 
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
 
@@ -399,10 +400,12 @@ int nvgpu_usermode_buf_from_dmabuf(struct gk20a *g, int dmabuf_fd,
 		goto put_dmabuf;
 	}
 
+#ifdef CONFIG_NVGPU_DMABUF_HAS_DRVDATA
 	err = gk20a_dmabuf_alloc_drvdata(dmabuf, dev);
 	if (err != 0) {
 		goto put_dmabuf;
 	}
+#endif
 
 	sgt = gk20a_mm_pin(dev, dmabuf, &attachment);
 	if (IS_ERR(sgt)) {
