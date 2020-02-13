@@ -175,7 +175,7 @@ int fb_mmu_fault_gv11b_init_test(struct unit_module *m, struct gk20a *g,
  * gv11b_fb_fault_buffer_size_val, gv11b_fb_read_mmu_fault_inst_lo_hi,
  * gv11b_fb_read_mmu_fault_info
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
  * Input: fb_mmu_fault_gv11b_init_test
  *
@@ -187,6 +187,8 @@ int fb_mmu_fault_gv11b_init_test(struct unit_module *m, struct gk20a *g,
  *   empty.
  * - Call the gv11b_fb_fault_buf_configure_hw HAL and enable fault buffer.
  * - Enable fault buffer again which shouldn't cause any crash.
+ * - While trying to disable the fault buffer, trigger a failure of
+ *   nvgpu_timeout_init.
  * - Disable the fault buffer.
  * - Enable fault buffer, set the busy bit in fb_mmu_fault_status_r register,
  *   disable the fault buffer which should cause an internal timeout. Ensure
@@ -273,7 +275,7 @@ int fb_mmu_fault_gv11b_handle_fault(struct unit_module *m, struct gk20a *g,
  * Targets: gv11b_fb_handle_bar2_fault, gv11b_fb_mmu_fault_info_dump,
  * gv11b_fb_fault_buf_set_state_hw
  *
- * Test Type: Feature
+ * Test Type: Feature, Error injection
  *
  * Input: fb_mmu_fault_gv11b_init_test
  *
@@ -286,6 +288,8 @@ int fb_mmu_fault_gv11b_handle_fault(struct unit_module *m, struct gk20a *g,
  *   and a pointer to the channel)
  * - Call the gv11b_fb_mmu_fault_info_dump and ensure it doesn't cause a crash.
  * - Set the fault_status to non-replayable and call gv11b_fb_handle_bar2_fault.
+ * - Set the g->ops.bus.bar2_bind HAL to report a failure and call
+ *   gv11b_fb_handle_bar2_fault again.
  * - Repeat with the fault buffer disabled.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL

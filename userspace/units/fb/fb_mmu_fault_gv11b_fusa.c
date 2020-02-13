@@ -59,6 +59,11 @@ static int hal_bar2_bind_nop(struct gk20a *g, struct nvgpu_mem *bar2_inst)
 	return 0;
 }
 
+static int hal_bar2_bind_fail(struct gk20a *g, struct nvgpu_mem *bar2_inst)
+{
+	return -1;
+}
+
 static u32 hal_fifo_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id)
 {
 	return INVAL_ID;
@@ -107,6 +112,8 @@ int fb_mmu_fault_gv11b_buffer_test(struct unit_module *m, struct gk20a *g,
 	u32 get_idx;
 	u32 val;
 	u32 lo, hi;
+	struct nvgpu_posix_fault_inj *timers_fi =
+		nvgpu_timers_get_fault_injection();
 
 	if (g->ops.fb.is_fault_buf_enabled(g, 0)) {
 		unit_return_fail(m, "fault buffer not disabled as expected\n");
@@ -133,6 +140,11 @@ int fb_mmu_fault_gv11b_buffer_test(struct unit_module *m, struct gk20a *g,
 
 	/* Enabling again shouldn't cause an issue */
 	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_ENABLED);
+
+	/* Make nvgpu_timeout_init fail during disable operation */
+	nvgpu_posix_enable_fault_injection(timers_fi, true, 0);
+	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_DISABLED);
+	nvgpu_posix_enable_fault_injection(timers_fi, false, 0);
 
 	/* Disable */
 	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_DISABLED);
@@ -247,7 +259,6 @@ int fb_mmu_fault_gv11b_handle_fault(struct unit_module *m, struct gk20a *g,
 	/* Same case but ensure fault status register is also set properly */
 	nvgpu_writel(g, fb_mmu_fault_status_r(),
 		fb_mmu_fault_status_non_replayable_overflow_m());
-	nvgpu_writel(g, fb_mmu_fault_status_r(), 0);
 	gv11b_fb_handle_mmu_fault(g, niso_intr);
 	if (!helper_is_intr_cleared(g)) {
 		unit_return_fail(m, "unhandled interrupt (5)\n");
@@ -257,7 +268,6 @@ int fb_mmu_fault_gv11b_handle_fault(struct unit_module *m, struct gk20a *g,
 	nvgpu_writel(g, fb_mmu_fault_status_r(),
 		fb_mmu_fault_status_non_replayable_overflow_m() |
 		fb_mmu_fault_status_non_replayable_getptr_corrupted_m());
-	nvgpu_writel(g, fb_mmu_fault_status_r(), 0);
 	gv11b_fb_handle_mmu_fault(g, niso_intr);
 	if (!helper_is_intr_cleared(g)) {
 		unit_return_fail(m, "unhandled interrupt (6)\n");
@@ -297,6 +307,12 @@ int fb_mmu_fault_gv11b_handle_bar2_fault(struct unit_module *m, struct gk20a *g,
 	fault_status = fb_mmu_fault_status_non_replayable_error_m();
 	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_ENABLED);
 	gv11b_fb_handle_bar2_fault(g, &mmufault, fault_status);
+
+	/* Case where g->ops.bus.bar2_bind fails */
+	g->ops.bus.bar2_bind = hal_bar2_bind_fail;
+	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_ENABLED);
+	gv11b_fb_handle_bar2_fault(g, &mmufault, fault_status);
+	g->ops.bus.bar2_bind = hal_bar2_bind_nop;
 
 	/* Case where fault buffer is not enabled */
 	g->ops.fb.fault_buf_set_state_hw(g, 0, NVGPU_MMU_FAULT_BUF_DISABLED);

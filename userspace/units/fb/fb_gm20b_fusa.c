@@ -169,6 +169,14 @@ int fb_gm20b_mmu_ctrl_test(struct unit_module *m, struct gk20a *g, void *args)
 			"vpr_info_fetch did not fail as expected (1)\n");
 	}
 
+	nvgpu_posix_enable_fault_injection(timer_fi, true, 1);
+	err = g->ops.fb.vpr_info_fetch(g);
+	nvgpu_posix_enable_fault_injection(timer_fi, false, 0);
+	if (err != -ETIMEDOUT) {
+		unit_return_fail(m,
+			"vpr_info_fetch did not fail as expected (2)\n");
+	}
+
 	/*
 	 * Trigger timeout in the gm20b_fb_vpr_info_fetch_wait function on
 	 * fb_mmu_vpr_info_fetch_v(val) == fb_mmu_vpr_info_fetch_false_v()
@@ -177,7 +185,7 @@ int fb_gm20b_mmu_ctrl_test(struct unit_module *m, struct gk20a *g, void *args)
 	err = g->ops.fb.vpr_info_fetch(g);
 	if (err != -ETIMEDOUT) {
 		unit_return_fail(m,
-			"vpr_info_fetch did not fail as expected (2)\n");
+			"vpr_info_fetch did not fail as expected (3)\n");
 	}
 
 	return UNIT_SUCCESS;
