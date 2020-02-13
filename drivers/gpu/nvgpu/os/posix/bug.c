@@ -93,6 +93,7 @@ static void nvgpu_bug_init(void)
 void nvgpu_bug_exit(int status)
 {
 #ifndef __NVGPU_UNIT_TEST__
+	nvgpu_err(NULL, "SW quiesce done. Exiting.");
 	exit(status);
 #endif
 }
