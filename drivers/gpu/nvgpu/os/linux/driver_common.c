@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -112,7 +112,11 @@ static void nvgpu_init_gr_vars(struct gk20a *g)
 {
 	nvgpu_gr_init(g);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+	nvgpu_log_info(g, "total ram pages : %lu", totalram_pages());
+#else
 	nvgpu_log_info(g, "total ram pages : %lu", totalram_pages);
+#endif
 	g->max_comptag_mem = totalram_size_in_mb;
 }
 

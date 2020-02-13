@@ -1633,8 +1633,13 @@ static int nvgpu_gpu_set_deterministic_opts(struct gk20a *g,
 	}
 
 	/* Trivial sanity check first */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+	if (!access_ok(user_channels,
+				args->num_channels * sizeof(int))) {
+#else
 	if (!access_ok(VERIFY_READ, user_channels,
 				args->num_channels * sizeof(int))) {
+#endif
 		err = -EFAULT;
 		goto out;
 	}
@@ -2095,8 +2100,13 @@ static void alter_usermode_mapping(struct gk20a *g,
 	 * b) !poweroff and vmap_mapped -> do nothing as already mapped
 	 */
 	if (poweroff && vma_mapped) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+		zap_vma_ptes(vma, vma->vm_start, vma->vm_end - vma->vm_start);
+		err = 0;
+#else
 		err = zap_vma_ptes(vma, vma->vm_start,
 				   vma->vm_end - vma->vm_start);
+#endif
 		if (err == 0) {
 			vma->vm_flags = VM_NONE;
 			priv->usermode_vma.vma_mapped = false;

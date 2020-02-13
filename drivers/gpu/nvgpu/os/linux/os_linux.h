@@ -21,6 +21,7 @@
 #include <linux/iommu.h>
 #include <linux/hashtable.h>
 #include <linux/notifier.h>
+#include <linux/version.h>
 
 #include <nvgpu/gk20a.h>
 
@@ -188,6 +189,10 @@ static inline struct device *dev_from_gk20a(struct gk20a *g)
 
 #define INTERFACE_NAME "nvhost%s-gpu"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+#define totalram_size_in_mb (totalram_pages() >> (10 - (PAGE_SHIFT - 10)))
+#else
 #define totalram_size_in_mb (totalram_pages >> (10 - (PAGE_SHIFT - 10)))
+#endif
 
 #endif

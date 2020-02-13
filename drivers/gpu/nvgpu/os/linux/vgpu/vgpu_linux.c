@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU for Linux
  *
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -470,7 +470,11 @@ int vgpu_probe(struct platform_device *pdev)
 	vgpu_create_sysfs(dev);
 	nvgpu_gr_init(gk20a);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+	nvgpu_log_info(gk20a, "total ram pages : %lu", totalram_pages());
+#else
 	nvgpu_log_info(gk20a, "total ram pages : %lu", totalram_pages);
+#endif
 	gk20a->max_comptag_mem = totalram_size_in_mb;
 
 	nvgpu_ref_init(&gk20a->refcount);
