@@ -158,6 +158,7 @@
 
 	mods_test: mods_test {
 		compatible = "nvidia,mods_test";
+		status = "disabled";
 	};
 
 	tegra_udrm: tegra_udrm {
