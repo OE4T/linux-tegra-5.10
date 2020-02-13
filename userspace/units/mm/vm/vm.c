@@ -157,6 +157,12 @@ static int hal_vm_as_alloc_share_error(struct gk20a *g, struct vm_gk20a *vm)
 	return -1;
 }
 
+/* Dummy HAL for vm_as_alloc_share that always succeeds */
+static int hal_vm_as_alloc_share_success(struct gk20a *g, struct vm_gk20a *vm)
+{
+	return 0;
+}
+
 /* Initialize test environment */
 static int init_test_env(struct unit_module *m, struct gk20a *g)
 {
@@ -583,6 +589,12 @@ static int map_buffer(struct unit_module *m,
 				ret = UNIT_FAIL;
 				goto free_vm_area;
 			}
+			/* For branch coverage */
+			if (nvgpu_vm_area_find(vm, 0) != NULL) {
+				unit_err(m, "nvgpu_vm_area_find did not fail as expected\n");
+				ret = UNIT_FAIL;
+				goto free_vm_area;
+			}
 		}
 	}
 
@@ -970,7 +982,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, kernel_reserved, aperture_size,
 				big_pages, true, true, __func__);
-	g->ops.mm.vm_as_alloc_share = NULL;
+	g->ops.mm.vm_as_alloc_share = hal_vm_as_alloc_share_success;
 	if (ret != -1) {
 		unit_err(m, "nvgpu_vm_do_init did not fail as expected (5).\n");
 		ret = UNIT_FAIL;
