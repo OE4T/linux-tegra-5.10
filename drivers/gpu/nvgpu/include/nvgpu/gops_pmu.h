@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -80,8 +80,6 @@ struct gops_pmu {
 	 */
 	void (*pmu_isr)(struct gk20a *g);
 
-	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-
 	/**
 	 * @brief PMU early initialization to allocate memory for PMU unit,
 	 *        set PMU Engine h/w properties and set supporting data structs.
@@ -100,6 +98,8 @@ struct gops_pmu {
 	 * @retval -ENOMEM if memory allocation fail for any unit.
 	 */
 	int (*pmu_early_init)(struct gk20a *g);
+
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
 #ifdef CONFIG_NVGPU_LS_PMU
 	int (*pmu_rtos_init)(struct gk20a *g);
