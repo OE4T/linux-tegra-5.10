@@ -661,6 +661,7 @@ nvgpu_queue_in
 nvgpu_queue_in_locked
 nvgpu_queue_out
 nvgpu_queue_out_locked
+nvgpu_queue_out_get_fault_injection
 nvgpu_preempt_channel
 nvgpu_preempt_get_timeout
 nvgpu_preempt_poll_tsg_on_pbdma

@@ -137,6 +137,10 @@ int test_nvgpu_queue_in(struct unit_module *m, struct gk20a *g, void *args);
  * - Update "in" and "out" indexes and dequeue message of length BUF_LEN such
  *   that we wrap around the Queue while dequeuing the message using
  *   nvgpu_queue_out() API. Check that the API returns "BUF_LEN".
+ * - Do fault injection so that immediate call to nvgpu_queue_out_locked() API
+ *   would return error.
+ * - Invoke nvgpu_queue_out_locked() API and check that API returns -1 error.
+ * - Remove the injected fault.
  * - Uninitialize the allocated resources.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL

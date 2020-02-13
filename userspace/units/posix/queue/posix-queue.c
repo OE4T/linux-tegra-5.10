@@ -185,6 +185,8 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 	struct nvgpu_queue q = {0};
 	struct nvgpu_mutex lock;
 	char buf[BUF_LEN];
+	struct nvgpu_posix_fault_inj *queue_out_fi =
+				nvgpu_queue_out_get_fault_injection();
 
 	nvgpu_mutex_init(&lock);
 
@@ -249,6 +251,20 @@ int test_nvgpu_queue_out(struct unit_module *m, struct gk20a *g, void *args)
 		unit_err(m, "%d. queue_out failed err=%d\n", __LINE__,  ret);
 		goto fail;
 	}
+
+	/*
+	 * Fault injection so that immediate call to nvgpu_queue_out_locked()
+	 * API would return error.
+	 */
+	nvgpu_posix_enable_fault_injection(queue_out_fi, true, 0);
+	ret = nvgpu_queue_out_locked(&q, buf, BUF_LEN, &lock);
+	if (ret != -1) {
+		err = UNIT_FAIL;
+		nvgpu_posix_enable_fault_injection(queue_out_fi, false, 0);
+		unit_err(m, "%d. queue_out failed err=%d\n", __LINE__,  ret);
+		goto fail;
+	}
+	nvgpu_posix_enable_fault_injection(queue_out_fi, false, 0);
 
 fail:
 	if (q.data != NULL)
