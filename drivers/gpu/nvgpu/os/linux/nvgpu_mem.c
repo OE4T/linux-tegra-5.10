@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -36,6 +36,10 @@
 #include "dmabuf_vidmem.h"
 
 #include "platform_gk20a.h"
+
+#ifndef DMA_ERROR_CODE
+#define DMA_ERROR_CODE DMA_MAPPING_ERROR
+#endif
 
 static u64 __nvgpu_sgl_ipa(struct gk20a *g, void *sgl)
 {

@@ -30,6 +30,12 @@
 #define NV_READ_ONCE_IMPL(x)		READ_ONCE(x)
 #define NV_WRITE_ONCE_IMPL(x, y)	WRITE_ONCE(x, y)
 
+#ifdef speculation_barrier
 #define nvgpu_speculation_barrier_impl() speculation_barrier()
+#else
+#define nvgpu_speculation_barrier_impl() ({		\
+	asm volatile("dsb sy\n"				\
+		      "isb\n" : : : "memory"); })
+#endif
 
 #endif /* __NVGPU_BARRIER_LINUX_H__ */
