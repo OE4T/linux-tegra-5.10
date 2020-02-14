@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,7 @@ struct nvgpu_cpu_time_correlation_sample {
  */
 static inline u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
 {
+	nvgpu_assert(ptimer_src_freq != 0U);
 	return nvgpu_safe_cast_u64_to_u32((U64(PTIMER_REF_FREQ_HZ) * U64(10))
 						/ U64(ptimer_src_freq));
 }
