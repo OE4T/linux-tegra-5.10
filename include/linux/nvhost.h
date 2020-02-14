@@ -712,6 +712,9 @@ int nvhost_module_busy_ext(struct platform_device *dev);
 /* This power OFF only host1x and doesn't power OFF module */
 void nvhost_module_idle_ext(struct platform_device *dev);
 
+/* public api to return platform_device ptr to the default host1x instance */
+struct platform_device *nvhost_get_default_device(void);
+
  /* Public PM nvhost APIs. */
 /* This power ON both host1x and module */
 int nvhost_module_busy(struct platform_device *dev);
@@ -841,6 +844,9 @@ int nvhost_sync_create_fence_fd(
 		s32 *fence_fd);
 struct sync_fence *nvhost_sync_fdget(int fd);
 int nvhost_sync_num_pts(struct sync_fence *fence);
+struct sync_pt *nvhost_sync_pt_from_fence_index(
+		struct sync_fence *fence,
+		u32 index);
 u32 nvhost_sync_pt_id(struct sync_pt *pt);
 u32 nvhost_sync_pt_thresh(struct sync_pt *pt);
 int nvhost_sync_fence_set_name(int fence_fd, const char *name);
@@ -866,6 +872,13 @@ static inline int nvhost_sync_create_fence_fd(
 }
 
 static inline struct sync_fence *nvhost_sync_fdget(int fd)
+{
+	return NULL;
+}
+
+struct sync_pt *nvhost_sync_pt_from_fence_index(
+		struct sync_fence *fence,
+		u32 index);
 {
 	return NULL;
 }

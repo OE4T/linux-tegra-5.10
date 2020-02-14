@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Driver Entrypoint
  *
- * Copyright (c) 2010-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -992,6 +992,19 @@ int nvhost_host1x_finalize_poweron(struct platform_device *dev)
 int nvhost_host1x_prepare_poweroff(struct platform_device *dev)
 {
 	return power_off_host(dev);
+}
+
+/*
+ * Simple function to return platform_device ptr to default HOST1X
+ * instance.
+ */
+struct platform_device *nvhost_get_default_device(void)
+{
+	if (!nvhost_get_prim_host()) {
+		return NULL;
+	} else {
+		return nvhost_get_prim_host()->dev;
+	}
 }
 
 static int of_nvhost_parse_platform_data(struct platform_device *dev,

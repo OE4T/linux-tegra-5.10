@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Syncpoint Integration to linux/sync Framework
  *
- * Copyright (c) 2013-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -338,7 +338,16 @@ int nvhost_sync_num_pts(struct sync_fence *fence)
 }
 EXPORT_SYMBOL(nvhost_sync_num_pts);
 
+struct sync_pt *nvhost_sync_pt_from_fence_index(struct sync_fence *fence,
+		u32 sync_pt_index)
+{
+	/* Not supported */
+	return NULL;
+}
+EXPORT_SYMBOL(nvhost_sync_pt_from_fence_index);
+
 #else /* LINUX_VERSION_CODE */
+
 struct sync_fence *nvhost_sync_fdget(int fd)
 {
 	struct sync_fence *fence = sync_fence_fdget(fd);
@@ -377,6 +386,23 @@ int nvhost_sync_num_pts(struct sync_fence *fence)
 	return fence->num_fences;
 }
 EXPORT_SYMBOL(nvhost_sync_num_pts);
+
+struct sync_pt *nvhost_sync_pt_from_fence_index(struct sync_fence *fence,
+		u32 sync_pt_index)
+{
+	if (sync_pt_index < fence->num_fences) {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 0)
+		struct dma_fence *pt = fence->cbs[sync_pt_index].sync_pt;
+#else
+		struct fence *pt = fence->cbs[sync_pt_index].sync_pt;
+#endif
+		return sync_pt_from_fence(pt);
+	} else {
+		return NULL;
+	}
+}
+EXPORT_SYMBOL(nvhost_sync_pt_from_fence_index);
+
 #endif /* end if LINUX_VERSION_CODE */
 
 u32 nvhost_sync_pt_id(struct sync_pt *__pt)
