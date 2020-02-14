@@ -871,6 +871,14 @@ static int __mmc_select_powerclass(struct mmc_card *card,
 	unsigned int pwrclass_val = 0;
 	int err = 0;
 
+	/* Power class selection is supported for versions >= 4.0 */
+	if (card->csd.mmca_vsn < CSD_SPEC_VER_4)
+		return 0;
+
+	/* Power class values are defined only for 4/8 bit bus */
+	if (bus_width == EXT_CSD_BUS_WIDTH_1)
+		return 0;
+
 	switch (1 << host->ios.vdd) {
 	case MMC_VDD_165_195:
 		if (host->ios.clock <= MMC_HIGH_26_MAX_DTR)
@@ -880,7 +888,9 @@ static int __mmc_select_powerclass(struct mmc_card *card,
 				ext_csd->raw_pwr_cl_52_195 :
 				ext_csd->raw_pwr_cl_ddr_52_195;
 		else if (host->ios.clock <= MMC_HS200_MAX_DTR)
-			pwrclass_val = ext_csd->raw_pwr_cl_200_195;
+			pwrclass_val = (bus_width == EXT_CSD_DDR_BUS_WIDTH_8) ?
+				ext_csd->raw_pwr_cl_ddr_200_360 :
+				ext_csd->raw_pwr_cl_200_195;
 		break;
 	case MMC_VDD_27_28:
 	case MMC_VDD_28_29:
@@ -941,7 +951,8 @@ static int mmc_select_powerclass(struct mmc_card *card)
 	if (bus_width == MMC_BUS_WIDTH_1)
 		return 0;
 
-	ddr = card->mmc_avail_type & EXT_CSD_CARD_TYPE_DDR_52;
+	ddr = card->mmc_avail_type & (EXT_CSD_CARD_TYPE_DDR_52 |
+			EXT_CSD_CARD_TYPE_HS400);
 	if (ddr)
 		ext_csd_bits = (bus_width == MMC_BUS_WIDTH_8) ?
 			EXT_CSD_DDR_BUS_WIDTH_8 : EXT_CSD_DDR_BUS_WIDTH_4;
@@ -1331,6 +1342,7 @@ static int mmc_select_hs400es(struct mmc_card *card)
 	struct mmc_host *host = card->host;
 	int err = -EINVAL;
 	u8 val;
+	bool use_busy_signal = host->caps & MMC_CAP_WAIT_WHILE_BUSY;
 
 	if (!(host->caps & MMC_CAP_8_BIT_DATA)) {
 		err = -ENOTSUPP;
@@ -1342,6 +1354,8 @@ static int mmc_select_hs400es(struct mmc_card *card)
 
 	if (err && card->mmc_avail_type & EXT_CSD_CARD_TYPE_HS400_1_8V)
 		err = mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180);
+
+	mmc_select_driver_type(card);
 
 	/* If fails try again during next card power cycle */
 	if (err)
@@ -1393,7 +1407,7 @@ static int mmc_select_hs400es(struct mmc_card *card)
 	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 			   EXT_CSD_HS_TIMING, val,
 			   card->ext_csd.generic_cmd6_time, 0,
-			   true, false, true);
+			   use_busy_signal, false, true);
 	if (err) {
 		pr_err("%s: switch to hs400es failed, err:%d\n",
 			mmc_hostname(host), err);
@@ -1408,9 +1422,11 @@ static int mmc_select_hs400es(struct mmc_card *card)
 	if (host->ops->hs400_enhanced_strobe)
 		host->ops->hs400_enhanced_strobe(host, &host->ios);
 
-	err = mmc_switch_status(card);
-	if (err)
-		goto out_err;
+	if (!use_busy_signal) {
+		err = mmc_switch_status(card);
+		if (err)
+			goto out_err;
+	}
 
 	return 0;
 
@@ -1774,6 +1790,10 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 				goto free_card;
 		}
 	}
+
+	/* Execute post init if exists */
+	if (host->ops->post_init)
+		host->ops->post_init(host);
 
 	/*
 	 * Choose the power class with selected bus interface

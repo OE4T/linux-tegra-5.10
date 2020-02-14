@@ -946,6 +946,12 @@ int mmc_execute_tuning(struct mmc_card *card)
 	if (host->cqe_on)
 		host->cqe_ops->cqe_off(host);
 
+	if ((host->caps2 & MMC_CAP2_HS400_ES) && card->ext_csd.strobe_support) {
+		pr_info("%s: Skipping tuning since strobe enabled\n",
+				mmc_hostname(host));
+		return 0;
+	}
+
 	if (mmc_card_mmc(card))
 		opcode = MMC_SEND_TUNING_BLOCK_HS200;
 	else
@@ -1169,9 +1175,10 @@ int mmc_set_signal_voltage(struct mmc_host *host, int signal_voltage)
 void mmc_set_initial_signal_voltage(struct mmc_host *host)
 {
 	/* Try to set signal voltage to 3.3V but fall back to 1.8v or 1.2v */
-	if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_330))
-		dev_dbg(mmc_dev(host), "Initial signal voltage of 3.3v\n");
-	else if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180))
+	if (!(host->caps2 & MMC_CAP2_ONLY_1V8_SIGNAL_VOLTAGE)) {
+		if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_330))
+			dev_dbg(mmc_dev(host), "Initial signal voltage of 3.3v\n");
+	} else if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180))
 		dev_dbg(mmc_dev(host), "Initial signal voltage of 1.8v\n");
 	else if (!mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_120))
 		dev_dbg(mmc_dev(host), "Initial signal voltage of 1.2v\n");

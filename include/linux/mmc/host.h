@@ -169,6 +169,7 @@ struct mmc_host_ops {
 	 */
 	int	(*multi_io_quirk)(struct mmc_card *card,
 				  unsigned int direction, int blk_size);
+	void	(*post_init)(struct mmc_host *host);
 };
 
 struct mmc_cqe_ops {
@@ -369,6 +370,7 @@ struct mmc_host {
 #define MMC_CAP2_CQE_DCMD	(1 << 24)	/* CQE can issue a direct command */
 #define MMC_CAP2_AVOID_3_3V	(1 << 25)	/* Host must negotiate down from 3.3V */
 #define MMC_CAP2_MERGE_CAPABLE	(1 << 26)	/* Host can merge a segment over the segment size */
+#define MMC_CAP2_ONLY_1V8_SIGNAL_VOLTAGE	(1 << 27)	/* Supports only 1V8 voltage */
 
 	int			fixed_drv_type;	/* fixed driver type for non-removable media */
 

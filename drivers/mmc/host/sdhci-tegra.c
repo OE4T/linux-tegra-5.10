@@ -161,6 +161,8 @@ struct sdhci_tegra_autocal_offsets {
 	u32 pull_down_hs400;
 };
 
+static void tegra_sdhci_set_dqs_trim(struct sdhci_host *host, u8 trim);
+
 struct sdhci_tegra {
 	const struct sdhci_tegra_soc_data *soc_data;
 	struct gpio_desc *power_gpio;
@@ -435,15 +437,14 @@ static void tegra_sdhci_set_tap(struct sdhci_host *host, unsigned int tap)
 	}
 }
 
-static void tegra_sdhci_hs400_enhanced_strobe(struct mmc_host *mmc,
-					      struct mmc_ios *ios)
+static void tegra_sdhci_hs400_enhanced_strobe(struct sdhci_host *host,
+					      bool enable)
 {
-	struct sdhci_host *host = mmc_priv(mmc);
 	u32 val;
 
 	val = sdhci_readl(host, SDHCI_TEGRA_VENDOR_SYS_SW_CTRL);
 
-	if (ios->enhanced_strobe)
+	if (enable)
 		val |= SDHCI_TEGRA_SYS_SW_CTRL_ENHANCED_STROBE;
 	else
 		val &= ~SDHCI_TEGRA_SYS_SW_CTRL_ENHANCED_STROBE;
@@ -1075,20 +1076,54 @@ static void tegra_sdhci_set_dqs_trim(struct sdhci_host *host, u8 trim)
 static void tegra_sdhci_hs400_dll_cal(struct sdhci_host *host)
 {
 	u32 reg;
-	int err;
+	int timeout=5;
 
 	reg = sdhci_readl(host, SDHCI_TEGRA_VENDOR_DLLCAL_CFG);
 	reg |= SDHCI_TEGRA_DLLCAL_CALIBRATE;
 	sdhci_writel(host, reg, SDHCI_TEGRA_VENDOR_DLLCAL_CFG);
 
+	mdelay(1);
+
+	/*
+	 * Wait for calibrate_en bit to clear before checking
+	 * calibration status
+	 */
+	while (sdhci_readl(host, SDHCI_TEGRA_VENDOR_DLLCAL_CFG) &
+			SDHCI_TEGRA_DLLCAL_CALIBRATE)
+		;
+
+	/* Wait until DLL calibration is done */
 	/* 1 ms sleep, 5 ms timeout */
-	err = readl_poll_timeout(host->ioaddr + SDHCI_TEGRA_VENDOR_DLLCAL_STA,
-				 reg, !(reg & SDHCI_TEGRA_DLLCAL_STA_ACTIVE),
-				 1000, 5000);
-	if (err)
+	do {
+		if (!(sdhci_readl(host, SDHCI_TEGRA_VENDOR_DLLCAL_STA) &
+			SDHCI_TEGRA_DLLCAL_STA_ACTIVE))
+			break;
+		mdelay(1);
+		timeout--;
+	} while (timeout);
+
+	if (!timeout)
 		dev_err(mmc_dev(host->mmc),
 			"HS400 delay line calibration timed out\n");
 }
+
+static void tegra_sdhci_post_init(struct sdhci_host *host)
+{
+	struct mmc_host *mmc = host->mmc;
+
+	if ((mmc->ios.timing == MMC_TIMING_MMC_DDR52) ||
+		(mmc->ios.timing == MMC_TIMING_UHS_DDR50)) {
+		/*
+		 * Tegra SDMMC controllers support DDR mode with only clock
+		 * divisor 1. Set the clock frequency here again to ensure
+		 * host and device clocks are correctly configured.
+		 */
+		tegra_sdhci_set_clock(host, host->max_clk);
+	} else if (mmc->ios.timing == MMC_TIMING_MMC_HS400) {
+		tegra_sdhci_hs400_dll_cal(host);
+	}
+}
+
 
 static int tegra_sdhci_execute_hw_tuning(struct mmc_host *mmc, u32 opcode)
 {
@@ -1160,9 +1195,6 @@ static void tegra_sdhci_set_uhs_signaling(struct sdhci_host *host,
 
 	if (set_dqs_trim)
 		tegra_sdhci_set_dqs_trim(host, tegra_host->dqs_trim);
-
-	if (do_hs400_dll_cal)
-		tegra_sdhci_hs400_dll_cal(host);
 }
 
 static int tegra_sdhci_execute_tuning(struct sdhci_host *host, u32 opcode)
@@ -1409,10 +1441,13 @@ static const struct sdhci_ops tegra_sdhci_ops = {
 	.set_dma_mask = tegra_sdhci_set_dma_mask,
 	.set_bus_width = sdhci_set_bus_width,
 	.reset      = tegra_sdhci_reset,
-	.platform_execute_tuning = tegra_sdhci_execute_tuning,
 	.set_uhs_signaling = tegra_sdhci_set_uhs_signaling,
 	.voltage_switch = tegra_sdhci_voltage_switch,
 	.get_max_clock = tegra_sdhci_get_max_clock,
+	.hs400_enhanced_strobe = tegra_sdhci_hs400_enhanced_strobe,
+	.post_init = tegra_sdhci_post_init,
+	.dump_vendor_regs = tegra_sdhci_dump_vendor_regs,
+	.irq = sdhci_tegra_cqhci_irq,
 };
 
 static const struct sdhci_pltfm_data sdhci_tegra20_pdata = {
@@ -1566,7 +1601,7 @@ static const struct sdhci_pltfm_data sdhci_tegra186_pdata = {
 		  SDHCI_QUIRK_BROKEN_ADMA_ZEROLEN_DESC |
 		  SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN,
 	.quirks2 = SDHCI_QUIRK2_PRESET_VALUE_BROKEN,
-	.ops  = &tegra186_sdhci_ops,
+	.ops  = &tegra_sdhci_ops,
 };
 
 static const struct sdhci_tegra_soc_data soc_data_tegra186 = {
@@ -1691,9 +1726,6 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	if (soc_data->nvquirks & NVQUIRK_HAS_PADCALIB)
 		host->mmc_host_ops.request = tegra_sdhci_request;
 
-	host->mmc_host_ops.hs400_enhanced_strobe =
-			tegra_sdhci_hs400_enhanced_strobe;
-
 	if (!host->ops->platform_execute_tuning)
 		host->mmc_host_ops.execute_tuning =
 				tegra_sdhci_execute_hw_tuning;
@@ -1701,6 +1733,8 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	rc = mmc_of_parse(host->mmc);
 	if (rc)
 		goto err_parse_dt;
+
+	host->mmc->caps |= MMC_CAP_WAIT_WHILE_BUSY;
 
 	if (tegra_host->soc_data->nvquirks & NVQUIRK_ENABLE_DDR50)
 		host->mmc->caps |= MMC_CAP_1_8V_DDR;

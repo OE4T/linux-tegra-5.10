@@ -1,10 +1,4 @@
 / {
-	sdhci@3460000 {
-		/delete-property/ mmc-ddr-1_8v;
-		/delete-property/ mmc-hs200-1_8v;
-		/delete-property/ mmc-hs400-1_8v;
-	};
-
 	mc_sid@2c00000 {
 		compatible = "nvidia,tegra186-mc";
 		reg = <0x0 0x02c00000 0x0 0x000b0000>;
