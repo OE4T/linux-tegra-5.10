@@ -120,13 +120,6 @@ config GK20A_TRACE_PRINTK
 	  Enable nvgpu debug facility to redirect debug spew to ftrace. This
 	  affects kernel memory use, so should not be enabled by default.
 
-config NVGPU_SUPPORT_CDE
-	bool "Support extraction of comptags for CDE"
-	depends on GK20A
-	default y
-	help
-	  Enable support for extraction of comptags for CDE.
-
 config NVGPU_USE_TEGRA_ALLOC_FD
 	bool "Use tegra_alloc_fd() for allocating dma_buf fds for vidmem"
 	depends on GK20A
@@ -158,13 +151,6 @@ config NVGPU_LS_PMU
 	default y
 	help
 	  Support for iGPU LS PMU enable/disable
-
-config NVGPU_COMPRESSION
-	bool "Compression support"
-	depends on GK20A
-	default y
-	help
-	  Support for compression
 
 config NVGPU_LOGGING
 	bool "NVGPU logging"
@@ -208,3 +194,34 @@ config NVGPU_DMABUF_HAS_DRVDATA
 	default y
 	help
 	  Support NVGPU DMABUF private driver data needed for compression
+
+config NVGPU_COMPRESSION
+	bool "Compression support"
+	depends on GK20A
+	depends on NVGPU_DMABUF_HAS_DRVDATA
+	default y
+	help
+	  Support for compression
+
+config NVGPU_SUPPORT_CDE
+	bool "Support extraction of comptags for CDE"
+	depends on GK20A
+	depends on NVGPU_COMPRESSION
+	default y
+	help
+	  Enable support for extraction of comptags for CDE.
+
+config NVGPU_DGPU
+	bool "NVGPU DGPU support"
+	depends on GK20A
+	depends on GK20A_PCI
+	default y
+	help
+	  Support for NVGPU DGPU
+
+config NVGPU_VPR
+	bool "NVGPU VPR support"
+	depends on GK20A
+	default y
+	help
+	  Support for NVGPU VPR

@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger/Profiler Driver
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1565,6 +1565,7 @@ nvgpu_dbg_gpu_ioctl_suspend_resume_contexts(struct dbg_session_gk20a *dbg_s,
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 static int nvgpu_dbg_gpu_ioctl_access_fb_memory(struct dbg_session_gk20a *dbg_s,
 		struct nvgpu_dbg_gpu_access_fb_memory_args *args)
 {
@@ -1643,6 +1644,7 @@ fail_dmabuf_put:
 
 	return err;
 }
+#endif
 
 static int nvgpu_ioctl_profiler_reserve(struct dbg_session_gk20a *dbg_s,
 			   struct nvgpu_dbg_gpu_profiler_reserve_args *args)
@@ -2123,10 +2125,12 @@ long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,
 		      (struct nvgpu_dbg_gpu_suspend_resume_contexts_args *)buf);
 		break;
 
+#ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_DBG_GPU_IOCTL_ACCESS_FB_MEMORY:
 		err = nvgpu_dbg_gpu_ioctl_access_fb_memory(dbg_s,
 			(struct nvgpu_dbg_gpu_access_fb_memory_args *)buf);
 		break;
+#endif
 
 	case NVGPU_DBG_GPU_IOCTL_PROFILER_ALLOCATE:
 		err = nvgpu_ioctl_allocate_profiler_object(dbg_s_linux,

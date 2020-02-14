@@ -25,6 +25,7 @@
 #include <nvgpu/vidmem.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/nvgpu_sgt_os.h>
 
 #include <nvgpu/linux/dma.h>
@@ -106,6 +107,7 @@ static u64 nvgpu_mem_get_addr_sysmem(struct gk20a *g, struct nvgpu_mem *mem)
  */
 u64 nvgpu_mem_get_addr(struct gk20a *g, struct nvgpu_mem *mem)
 {
+#ifdef CONFIG_NVGPU_DGPU
 	struct nvgpu_page_alloc *alloc;
 
 	if (mem->aperture == APERTURE_SYSMEM)
@@ -120,6 +122,12 @@ u64 nvgpu_mem_get_addr(struct gk20a *g, struct nvgpu_mem *mem)
 	WARN_ON(alloc->nr_chunks != 1);
 
 	return alloc->base;
+#else
+	if (mem->aperture == APERTURE_SYSMEM)
+		return nvgpu_mem_get_addr_sysmem(g, mem);
+
+	return 0;
+#endif
 }
 
 /*
@@ -274,6 +282,7 @@ static const struct nvgpu_sgt_ops nvgpu_linux_sgt_ops = {
 	.sgt_free      = nvgpu_mem_linux_sgl_free,
 };
 
+#ifdef CONFIG_NVGPU_DGPU
 static struct nvgpu_sgt *__nvgpu_mem_get_sgl_from_vidmem(
 	struct gk20a *g,
 	struct scatterlist *linux_sgl)
@@ -286,14 +295,17 @@ static struct nvgpu_sgt *__nvgpu_mem_get_sgl_from_vidmem(
 
 	return &vidmem_alloc->sgt;
 }
+#endif
 
 struct nvgpu_sgt *nvgpu_linux_sgt_create(struct gk20a *g, struct sg_table *sgt)
 {
 	struct nvgpu_sgt *nvgpu_sgt;
 	struct scatterlist *linux_sgl = sgt->sgl;
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_addr_is_vidmem_page_alloc(sg_dma_address(linux_sgl)))
 		return __nvgpu_mem_get_sgl_from_vidmem(g, linux_sgl);
+#endif
 
 	nvgpu_sgt = nvgpu_kzalloc(g, sizeof(*nvgpu_sgt));
 	if (!nvgpu_sgt)

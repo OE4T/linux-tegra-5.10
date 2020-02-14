@@ -29,8 +29,6 @@ ccflags-y += -DCONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
 ccflags-y += -DCONFIG_NVGPU_USERD
 ccflags-y += -DCONFIG_NVGPU_CHANNEL_WDT
 ccflags-y += -DCONFIG_NVGPU_LS_PMU
-ccflags-y += -DCONFIG_NVGPU_DGPU
-ccflags-y += -DCONFIG_NVGPU_VPR
 ccflags-y += -DCONFIG_NVGPU_CILP
 ccflags-y += -DCONFIG_NVGPU_REPLAYABLE_FAULT
 ccflags-y += -DCONFIG_NVGPU_GRAPHICS
@@ -38,7 +36,6 @@ ccflags-y += -DCONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 ccflags-y += -DCONFIG_NVGPU_CHANNEL_TSG_CONTROL
 ccflags-y += -DCONFIG_NVGPU_POWER_PG
 ccflags-y += -DCONFIG_NVGPU_KERNEL_MODE_SUBMIT
-ccflags-y += -DCONFIG_NVGPU_COMPRESSION
 ccflags-y += -DCONFIG_NVGPU_SIM
 ccflags-y += -DCONFIG_NVGPU_TRACE
 ccflags-y += -DCONFIG_NVGPU_SYSFS
@@ -73,6 +70,108 @@ obj-$(CONFIG_GK20A) := nvgpu.o
 
 # OS independent parts of nvgpu. The work to collect files here
 # is in progress.
+
+ifeq ($(CONFIG_NVGPU_DGPU),y)
+nvgpu-$(CONFIG_NVGPU_DGPU) += \
+	os/linux/dmabuf_vidmem.o \
+	os/linux/os_ops_gv100.o \
+	os/linux/os_ops_tu104.o \
+	common/sec2/sec2.o \
+	common/sec2/sec2_allocator.o \
+	common/sec2/sec2_lsfm.o \
+	common/sec2/ipc/sec2_cmd.o \
+	common/sec2/ipc/sec2_msg.o \
+	common/sec2/ipc/sec2_queue.o \
+	common/sec2/ipc/sec2_seq.o \
+	common/vbios/bios_sw_gv100.o \
+	common/vbios/bios_sw_tu104.o \
+	common/falcon/falcon_sw_tu104.o \
+	common/acr/acr_sw_tu104.o \
+	common/mm/allocators/page_allocator.o \
+	common/mm/vidmem.o \
+	common/pramin.o \
+	common/ce/ce_app.o \
+	common/clk_arb/clk_arb_gv100.o \
+	common/engine_queues/engine_emem_queue.o \
+	hal/mm/mm_gv100.o \
+	hal/mm/mm_tu104.o \
+	hal/mc/mc_gv100.o  \
+	hal/mc/mc_tu104.o  \
+	hal/bus/bus_gv100.o \
+	hal/bus/bus_tu104.o \
+	hal/class/class_tu104.o \
+	hal/clk/clk_tu104.o \
+	hal/gr/init/gr_init_gv100.o \
+	hal/gr/init/gr_init_tu104.o \
+	hal/gr/intr/gr_intr_tu104.o \
+	hal/fbpa/fbpa_tu104.o \
+	hal/init/hal_tu104.o \
+	hal/init/hal_tu104_litter.o \
+	hal/power_features/cg/tu104_gating_reglist.o \
+	hal/ltc/ltc_tu104.o \
+	hal/fb/fb_gv100.o \
+	hal/fb/fb_tu104.o \
+	hal/fb/fb_mmu_fault_tu104.o \
+	hal/fb/intr/fb_intr_gv100.o \
+	hal/fb/intr/fb_intr_tu104.o \
+	hal/func/func_tu104.o \
+	hal/fifo/fifo_tu104.o \
+	hal/fifo/usermode_tu104.o \
+	hal/fifo/pbdma_tu104.o \
+	hal/fifo/ramfc_tu104.o \
+	hal/fifo/ramin_tu104.o \
+	hal/fifo/channel_gv100.o \
+	hal/fifo/runlist_ram_tu104.o \
+	hal/fifo/runlist_fifo_gv100.o \
+	hal/fifo/runlist_fifo_tu104.o \
+	hal/fifo/fifo_intr_gv100.o \
+	hal/fuse/fuse_gp106.o \
+	hal/netlist/netlist_gv100.o \
+	hal/netlist/netlist_tu104.o \
+	hal/nvdec/nvdec_gp106.o \
+	hal/nvdec/nvdec_tu104.o \
+	hal/gsp/gsp_tu104.o \
+	hal/sec2/sec2_tu104.o \
+	hal/pramin/pramin_gp10b.o \
+	hal/pramin/pramin_gv100.o \
+	hal/pramin/pramin_init.o \
+	hal/pramin/pramin_tu104.o \
+	hal/bios/bios_tu104.o \
+	hal/top/top_gv100.o \
+	hal/xve/xve_gp106.o \
+	hal/xve/xve_tu104.o
+
+nvgpu-$(CONFIG_DEBUG_FS) += \
+	os/linux/debug_therm_tu104.o \
+	os/linux/debug_bios.o \
+	os/linux/debug_xve.o \
+	os/linux/debug_clk_tu104.o
+endif
+
+# nvlink sources are not conditionally compiled. nvlink probe and
+# public functions return -ENODEV when not supported.
+
+nvgpu-y += \
+	common/vbios/nvlink_bios.o \
+	common/nvlink/probe.o \
+	common/nvlink/init/device_reginit.o \
+	common/nvlink/init/device_reginit_gv100.o \
+	common/nvlink/intr_and_err_handling_gv100.o \
+	common/nvlink/minion.o \
+	common/nvlink/link_mode_transitions.o \
+	common/nvlink/nvlink_gv100.o \
+	common/nvlink/nvlink_tu104.o \
+	common/nvlink/nvlink.o \
+	os/linux/nvlink_probe.o \
+	os/linux/nvlink.o \
+	hal/nvlink/minion_gv100.o \
+	hal/nvlink/minion_tu104.o \
+	hal/nvlink/link_mode_transitions_gv100.o \
+	hal/nvlink/link_mode_transitions_tu104.o
+
+nvgpu-$(CONFIG_GK20A_PCI) += \
+	os/linux/pci.o \
+	os/linux/pci_power.o
 
 nvgpu-y += \
 	common/utils/enabled.o \
@@ -138,7 +237,6 @@ nvgpu-y += \
 	common/acr/acr_sw_gm20b.o \
 	common/acr/acr_sw_gp10b.o \
 	common/acr/acr_sw_gv11b.o \
-	common/acr/acr_sw_tu104.o \
 	common/sbr/sbr.o \
 	common/pmu/super_surface/super_surface.o \
 	common/pmu/lsfm/lsfm.o \
@@ -179,27 +277,11 @@ nvgpu-y += \
 	common/pmu/boardobj/boardobjgrp_e32.o \
 	common/clk_arb/clk_arb.o \
 	common/clk_arb/clk_arb_gp10b.o \
-	common/clk_arb/clk_arb_gv100.o \
-	common/nvlink/probe.o \
-	common/nvlink/init/device_reginit_gv100.o \
-	common/nvlink/init/device_reginit.o \
-	common/nvlink/intr_and_err_handling_gv100.o \
-	common/nvlink/minion.o \
-	common/nvlink/link_mode_transitions.o \
-	common/nvlink/nvlink.o \
-	common/nvlink/nvlink_gv100.o \
-	common/nvlink/nvlink_tu104.o \
 	common/rc/rc.o \
-	hal/mc/mc_gv100.o \
-	hal/mc/mc_tu104.o \
 	hal/bus/bus_gk20a.o \
-	hal/bus/bus_gv100.o \
-	hal/bus/bus_tu104.o \
 	hal/class/class_gm20b.o \
 	hal/class/class_gp10b.o \
-	hal/class/class_tu104.o \
 	hal/clk/clk_gm20b.o \
-	hal/clk/clk_tu104.o \
 	hal/gr/ecc/ecc_gp10b.o \
 	hal/gr/ecc/ecc_gv11b.o \
 	hal/gr/zcull/zcull_gm20b.o \
@@ -208,12 +290,9 @@ nvgpu-y += \
 	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.o \
 	hal/gr/init/gr_init_gm20b.o \
 	hal/gr/init/gr_init_gp10b.o \
-	hal/gr/init/gr_init_gv100.o \
 	hal/gr/init/gr_init_gv11b.o \
-	hal/gr/init/gr_init_tu104.o \
 	hal/gr/intr/gr_intr_gm20b.o \
 	hal/gr/intr/gr_intr_gp10b.o \
-	hal/gr/intr/gr_intr_tu104.o \
 	hal/gr/hwpm_map/hwpm_map_gv100.o \
 	hal/gr/zbc/zbc_gm20b.o \
 	hal/gr/zbc/zbc_gp10b.o \
@@ -224,14 +303,12 @@ nvgpu-y += \
 	hal/gr/gr/gr_gv100.o \
 	hal/gr/gr/gr_gv11b.o \
 	hal/gr/gr/gr_tu104.o \
-	hal/fbpa/fbpa_tu104.o \
 	hal/init/hal_gv11b.o \
 	hal/init/hal_gv11b_litter.o \
 	hal/init/hal_init.o \
 	hal/perf/perf_gv11b.o \
 	hal/power_features/cg/gp10b_gating_reglist.o \
 	hal/power_features/cg/gv11b_gating_reglist.o \
-	hal/power_features/cg/tu104_gating_reglist.o \
 	hal/regops/regops_gv11b.o \
 	hal/ce/ce2_gk20a.o \
 	hal/therm/therm_gp10b.o \
@@ -239,56 +316,28 @@ nvgpu-y += \
 	hal/gr/falcon/gr_falcon_gm20b.o \
 	hal/ltc/ltc_gp10b.o \
 	hal/ltc/ltc_gv11b.o  \
-	hal/ltc/ltc_tu104.o \
 	hal/ltc/intr/ltc_intr_gm20b.o \
 	hal/ltc/intr/ltc_intr_gp10b.o \
 	hal/fb/fb_gm20b.o \
 	hal/fb/fb_gp10b.o \
 	hal/fb/fb_gp106.o \
 	hal/fb/fb_gv11b.o \
-	hal/fb/fb_gv100.o \
-	hal/fb/fb_tu104.o \
-	hal/fb/fb_mmu_fault_tu104.o \
 	hal/fb/intr/fb_intr_ecc_gv11b.o \
-	hal/fb/intr/fb_intr_gv100.o \
-	hal/fb/intr/fb_intr_tu104.o \
 	hal/fuse/fuse_gm20b.o \
-	hal/fuse/fuse_gp106.o \
-	hal/func/func_tu104.o \
 	hal/fifo/fifo_gk20a.o \
-	hal/fifo/fifo_tu104.o \
 	hal/fifo/preempt_gk20a.o \
-	hal/fifo/usermode_tu104.o \
-	hal/fifo/pbdma_tu104.o \
 	hal/fifo/ramfc_gk20a.o \
 	hal/fifo/ramfc_gp10b.o \
-	hal/fifo/ramfc_tu104.o \
 	hal/fifo/ramin_gk20a.o \
-	hal/fifo/ramin_tu104.o \
-	hal/fifo/runlist_ram_tu104.o \
 	hal/fifo/runlist_fifo_gv11b.o \
-	hal/fifo/runlist_fifo_gv100.o \
-	hal/fifo/runlist_fifo_tu104.o \
 	hal/fifo/channel_gk20a.o \
 	hal/fifo/channel_gm20b.o \
-	hal/fifo/channel_gv100.o \
 	hal/fifo/tsg_gk20a.o \
 	hal/fifo/userd_gk20a.o \
 	hal/fifo/userd_gv11b.o \
 	hal/fifo/fifo_intr_gk20a.o \
-	hal/fifo/fifo_intr_gv100.o \
 	hal/fifo/ctxsw_timeout_gk20a.o \
 	hal/netlist/netlist_gp10b.o \
-	hal/netlist/netlist_gv100.o \
-	hal/netlist/netlist_tu104.o \
-	hal/nvdec/nvdec_gp106.o \
-	hal/nvdec/nvdec_tu104.o \
-	hal/nvlink/minion_gv100.o \
-	hal/nvlink/minion_tu104.o \
-	hal/nvlink/link_mode_transitions_gv100.o \
-	hal/nvlink/link_mode_transitions_tu104.o \
-	hal/gsp/gsp_tu104.o \
-	hal/sec2/sec2_tu104.o \
 	hal/sync/sema_cmdbuf_gk20a.o \
 	hal/sync/sema_cmdbuf_gv11b.o \
 	hal/pmu/pmu_gk20a.o \
@@ -296,25 +345,15 @@ nvgpu-y += \
 	hal/pmu/pmu_gp10b.o \
 	hal/pmu/pmu_gv11b.o \
 	hal/pmu/pmu_tu104.o \
-	hal/pramin/pramin_gp10b.o \
-	hal/pramin/pramin_gv100.o \
-	hal/pramin/pramin_init.o \
-	hal/pramin/pramin_tu104.o \
-	hal/bios/bios_tu104.o \
 	hal/top/top_gp106.o \
 	hal/top/top_gp10b.o \
-	hal/top/top_gv100.o \
-	hal/tpc/tpc_gv11b.o \
-	hal/xve/xve_gp106.o \
-	hal/xve/xve_tu104.o
-
+	hal/tpc/tpc_gv11b.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
 	os/linux/os_ops.o \
 	os/linux/os_ops_gm20b.o \
 	os/linux/os_ops_gp10b.o \
-	os/linux/os_ops_gv100.o \
 	os/linux/os_ops_gv11b.o \
 	os/linux/kmem.o \
 	os/linux/timers.o \
@@ -343,15 +382,12 @@ nvgpu-y += \
 	os/linux/sim.o \
 	os/linux/sim_pci.o \
 	os/linux/os_sched.o \
-	os/linux/nvlink_probe.o \
-	os/linux/nvlink.o \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
-	os/linux/os_ops_tu104.o \
 	os/linux/bsearch.o \
-	os/linux/sdl/sdl_stub.o \
-	os/linux/dmabuf_vidmem.o \
-	os/linux/vpr.o
+	os/linux/sdl/sdl_stub.o
+
+nvgpu-$(CONFIG_NVGPU_VPR) += os/linux/vpr.o
 
 nvgpu-$(CONFIG_NVGPU_DMABUF_HAS_DRVDATA) += os/linux/dmabuf_priv.o
 
@@ -366,11 +402,7 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_allocator.o \
 	os/linux/debug_hal.o \
 	os/linux/debug_clk_gm20b.o \
-	os/linux/debug_therm_tu104.o \
-	os/linux/debug_bios.o \
 	os/linux/debug_ltc.o \
-	os/linux/debug_xve.o \
-	os/linux/debug_clk_tu104.o \
 	os/linux/debug_volt.o \
 	os/linux/debug_s_param.o
 
@@ -413,10 +445,6 @@ nvgpu-$(CONFIG_SYNC) += \
 nvgpu-y += common/sync/channel_sync_syncpt.o
 endif
 
-nvgpu-$(CONFIG_GK20A_PCI) += \
-	os/linux/pci.o \
-	os/linux/pci_power.o
-
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/nvhost.o \
 	hal/sync/syncpt_cmdbuf_gk20a.o \
@@ -455,7 +483,6 @@ nvgpu-y += \
 	common/mm/allocators/nvgpu_allocator.o \
 	common/mm/allocators/bitmap_allocator.o \
 	common/mm/allocators/buddy_allocator.o \
-	common/mm/allocators/page_allocator.o \
 	common/mm/allocators/lockless_allocator.o \
 	common/mm/gmmu/page_table.o \
 	common/mm/gmmu/pd_cache.o \
@@ -466,26 +493,12 @@ nvgpu-y += \
 	common/mm/nvgpu_sgt.o \
 	common/mm/mm.o \
 	common/mm/dma.o \
-	common/mm/vidmem.o \
-	common/pramin.o \
 	common/vbios/bios.o \
-	common/vbios/nvlink_bios.o \
-	common/vbios/bios_sw_gv100.o \
-	common/vbios/bios_sw_tu104.o \
 	common/falcon/falcon.o \
 	common/falcon/falcon_sw_gk20a.o \
-	common/falcon/falcon_sw_tu104.o \
 	common/engine_queues/engine_mem_queue.o \
 	common/engine_queues/engine_dmem_queue.o \
-	common/engine_queues/engine_emem_queue.o \
 	common/engine_queues/engine_fb_queue.o \
-	common/sec2/sec2.o \
-	common/sec2/sec2_allocator.o \
-	common/sec2/sec2_lsfm.o \
-	common/sec2/ipc/sec2_cmd.o \
-	common/sec2/ipc/sec2_msg.o \
-	common/sec2/ipc/sec2_queue.o \
-	common/sec2/ipc/sec2_seq.o \
 	common/io/io.o \
 	common/power_features/power_features.o \
 	common/power_features/cg/cg.o \
@@ -508,7 +521,6 @@ nvgpu-y += \
 	common/ecc.o \
 	common/log_common.o \
 	common/ce/ce.o \
-	common/ce/ce_app.o \
 	common/debugger.o
 
 nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
@@ -659,8 +671,6 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/init/hal_gp10b_litter.o \
 	hal/init/hal_gm20b.o \
 	hal/init/hal_gm20b_litter.o \
-	hal/init/hal_tu104.o \
-	hal/init/hal_tu104_litter.o \
 	hal/fifo/engine_status_gm20b.o \
 	hal/fifo/engines_gm20b.o \
 	hal/fifo/pbdma_gm20b.o \
@@ -682,8 +692,6 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/mm/cache/flush_gk20a.o \
 	hal/mm/mm_gm20b.o \
 	hal/mm/mm_gk20a.o \
-	hal/mm/mm_gv100.o \
-	hal/mm/mm_tu104.o \
 	hal/mm/gmmu/gmmu_gk20a.o \
 	hal/mm/gmmu/gmmu_gm20b.o \
 	hal/falcon/falcon_gk20a.o \

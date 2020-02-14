@@ -23,6 +23,7 @@
 #include <nvgpu/rbtree.h>
 #include <nvgpu/vm_area.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/page_allocator.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/utils.h>

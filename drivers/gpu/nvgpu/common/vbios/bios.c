@@ -180,6 +180,7 @@ int nvgpu_bios_sw_init(struct gk20a *g)
 	}
 
 	switch (ver) {
+#ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_GV100:
 		nvgpu_gv100_bios_sw_init(g, g->bios);
 		break;
@@ -187,6 +188,7 @@ int nvgpu_bios_sw_init(struct gk20a *g)
 	case NVGPU_GPUID_TU104:
 		nvgpu_tu104_bios_sw_init(g, g->bios);
 		break;
+#endif
 	default:
 		goto clean_bios;
 	}

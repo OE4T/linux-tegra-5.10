@@ -34,6 +34,7 @@
 enum nvgpu_aperture gk20a_dmabuf_aperture(struct gk20a *g,
 					  struct dma_buf *dmabuf)
 {
+#ifdef CONFIG_NVGPU_DGPU
 	struct gk20a *buf_owner = nvgpu_vidmem_buf_owner(dmabuf);
 	bool unified_memory = nvgpu_is_enabled(g, NVGPU_MM_UNIFIED_MEMORY);
 
@@ -49,12 +50,12 @@ enum nvgpu_aperture gk20a_dmabuf_aperture(struct gk20a *g,
 	} else if (buf_owner != g) {
 		/* Someone else's vidmem */
 		return APERTURE_INVALID;
-	}
-#ifdef CONFIG_NVGPU_DGPU
-	else {
+	} else {
 		/* Yay, buf_owner == g */
 		return APERTURE_VIDMEM;
 	}
+#else
+	return APERTURE_SYSMEM;
 #endif
 }
 

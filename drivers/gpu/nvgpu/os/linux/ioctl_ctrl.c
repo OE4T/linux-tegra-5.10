@@ -322,7 +322,13 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	gpu.compression_page_size = g->ops.fb.compression_page_size(g);
+	gpu.gr_compbit_store_base_hw = g->cbc->compbit_store.base_hw;
+	gpu.gr_gobs_per_comptagline_per_slice =
+		g->cbc->gobs_per_comptagline_per_slice;
+	gpu.cbc_comptags_per_line = g->cbc->comptags_per_cacheline;
+#endif
 
 	gpu.flags = nvgpu_ctrl_ioctl_gpu_characteristics_flags(g);
 
@@ -377,20 +383,18 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.fbp_en_mask = nvgpu_fbp_get_fbp_en_mask(g->fbp);;
 	gpu.max_ltc_per_fbp =  g->ops.top.get_max_ltc_per_fbp(g);
 	gpu.max_lts_per_ltc = g->ops.top.get_max_lts_per_ltc(g);
-	gpu.gr_compbit_store_base_hw = g->cbc->compbit_store.base_hw;
-	gpu.gr_gobs_per_comptagline_per_slice =
-		g->cbc->gobs_per_comptagline_per_slice;
 	gpu.num_ltc = nvgpu_ltc_get_ltc_count(g);
 	gpu.lts_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
 	gpu.cbc_cache_line_size = nvgpu_ltc_get_cacheline_size(g);
-	gpu.cbc_comptags_per_line = g->cbc->comptags_per_cacheline;
 
 	if ((g->ops.clk.get_maxrate) && nvgpu_platform_is_silicon(g)) {
 		gpu.max_freq = g->ops.clk.get_maxrate(g,
 				CTRL_CLK_DOMAIN_GPCCLK);
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	gpu.local_video_memory_size = g->mm.vidmem.size;
+#endif
 
 	gpu.pci_vendor_id = g->pci_vendor_id;
 	gpu.pci_device_id = g->pci_device_id;
@@ -995,6 +999,7 @@ clean_up:
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 static int nvgpu_gpu_alloc_vidmem(struct gk20a *g,
 			struct nvgpu_gpu_alloc_vidmem_args *args)
 {
@@ -1059,6 +1064,7 @@ static int nvgpu_gpu_get_memory_state(struct gk20a *g,
 
 	return err;
 }
+#endif
 
 static u32 nvgpu_gpu_convert_clk_domain(u32 clk_domain)
 {
@@ -1936,6 +1942,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			(struct nvgpu_gpu_get_engine_info_args *)buf);
 		break;
 
+#ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPU_IOCTL_ALLOC_VIDMEM:
 		err = nvgpu_gpu_alloc_vidmem(g,
 			(struct nvgpu_gpu_alloc_vidmem_args *)buf);
@@ -1945,6 +1952,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		err = nvgpu_gpu_get_memory_state(g,
 			(struct nvgpu_gpu_get_memory_state_args *)buf);
 		break;
+#endif
 
 	case NVGPU_GPU_IOCTL_CLK_GET_RANGE:
 		err = nvgpu_gpu_clk_get_range(g, priv,

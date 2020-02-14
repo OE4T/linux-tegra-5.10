@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -430,10 +430,12 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 	nvgpu_kmem_debugfs_init(g);
 #endif
 	nvgpu_ltc_debugfs_init(g);
+#ifdef CONFIG_NVGPU_DGPU
 	if (g->pci_vendor_id) {
 		nvgpu_xve_debugfs_init(g);
 		nvgpu_bios_debugfs_init(g);
 	}
+#endif
 }
 
 void gk20a_debug_deinit(struct gk20a *g)

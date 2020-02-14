@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,15 +35,17 @@ int nvgpu_init_os_linux_ops(struct nvgpu_os_linux *l)
 	case NVGPU_GPUID_GP10B:
 		nvgpu_gp10b_init_os_ops(l);
 		break;
-	case NVGPU_GPUID_GV100:
-		nvgpu_gv100_init_os_ops(l);
-		break;
 	case NVGPU_GPUID_GV11B:
 		nvgpu_gv11b_init_os_ops(l);
+		break;
+#ifdef CONFIG_NVGPU_DGPU
+	case NVGPU_GPUID_GV100:
+		nvgpu_gv100_init_os_ops(l);
 		break;
 	case NVGPU_GPUID_TU104:
 		nvgpu_tu104_init_os_ops(l);
 		break;
+#endif
 	default:
 		break;
 	}
