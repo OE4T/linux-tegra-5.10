@@ -86,7 +86,12 @@ static void *nvgpu_posix_thread_wrapper(void *data)
 
 static void nvgpu_thread_cancel_sync(struct nvgpu_thread *thread)
 {
-	(void) pthread_cancel(thread->thread);
+	int err;
+
+	err = pthread_cancel(thread->thread);
+	if (err != 0) {
+		nvgpu_info(NULL, "Thread cancel error");
+	}
 }
 
 int nvgpu_thread_create(struct nvgpu_thread *thread,
@@ -132,7 +137,9 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 			     nvgpu_posix_thread_wrapper,
 			     &thread->nvgpu);
 	if (ret != 0) {
-		(void) pthread_attr_destroy(&attr);
+		if ((pthread_attr_destroy(&attr)) != 0) {
+			nvgpu_info(NULL, "Thread attr destroy error");
+		}
 		return ret;
 	}
 
@@ -142,7 +149,9 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 
 	ret = pthread_attr_destroy(&attr);
 	if (ret != 0) {
-		(void) pthread_cancel(thread->thread);
+		if ((pthread_cancel(thread->thread)) != 0) {
+			nvgpu_info(NULL, "Thread cancel error");
+		}
 		return ret;
 	}
 
@@ -159,7 +168,9 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 	 */
 	if (nvgpu_posix_fault_injection_handle_call(
 				nvgpu_thread_serial_get_fault_injection())) {
-		(void) pthread_join(thread->thread, NULL);
+		if ((pthread_join(thread->thread, NULL)) != 0) {
+			nvgpu_info(NULL, "Thread join error");
+		}
 	}
 #endif
 
@@ -210,27 +221,35 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 
 	ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
 	if (ret != 0) {
-		(void) pthread_attr_destroy(&attr);
+		if ((pthread_attr_destroy(&attr)) != 0) {
+			nvgpu_info(NULL, "Thread attr destroy error");
+		}
 		return ret;
 	}
 
 	ret = pthread_attr_setschedpolicy(&attr, SCHED_RR);
 	if (ret != 0) {
-		(void) pthread_attr_destroy(&attr);
+		if ((pthread_attr_destroy(&attr)) != 0) {
+			nvgpu_info(NULL, "Thread attr destroy error");
+		}
 		return ret;
 	}
 
 	param.sched_priority = priority;
 	ret = pthread_attr_setschedparam(&attr, &param);
 	if (ret != 0) {
-		(void) pthread_attr_destroy(&attr);
+		if ((pthread_attr_destroy(&attr)) != 0) {
+			nvgpu_info(NULL, "Thread attr destroy error");
+		}
 		return ret;
 	}
 
 	ret = pthread_create(&thread->thread, &attr,
 			nvgpu_posix_thread_wrapper, &thread->nvgpu);
 	if (ret != 0) {
-		(void) pthread_attr_destroy(&attr);
+		if ((pthread_attr_destroy(&attr)) != 0) {
+			nvgpu_info(NULL, "Thread attr destroy error");
+		}
 		return ret;
 	}
 
@@ -240,7 +259,9 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 
 	ret = pthread_attr_destroy(&attr);
 	if (ret != 0) {
-		(void) pthread_cancel(thread->thread);
+		if ((pthread_cancel(thread->thread)) != 0) {
+			nvgpu_info(NULL, "Thread cancel error");
+		}
 		return ret;
 	}
 
@@ -312,5 +333,10 @@ bool nvgpu_thread_is_running(struct nvgpu_thread *thread)
 
 void nvgpu_thread_join(struct nvgpu_thread *thread)
 {
-	(void) pthread_join(thread->thread, NULL);
+	int err;
+
+	err = pthread_join(thread->thread, NULL);
+	if(err != 0 && err != ESRCH) {
+		BUG();
+	}
 }

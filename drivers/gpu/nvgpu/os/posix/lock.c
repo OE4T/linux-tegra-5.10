@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/bug.h>
+#include <nvgpu/log.h>
 #include <nvgpu/lock.h>
 
 void nvgpu_mutex_init(struct nvgpu_mutex *mutex)
@@ -46,12 +47,24 @@ int nvgpu_mutex_tryacquire(struct nvgpu_mutex *mutex)
 
 void nvgpu_mutex_destroy(struct nvgpu_mutex *mutex)
 {
-	(void) pthread_mutex_destroy(&mutex->lock.mutex);
+	int err = pthread_mutex_destroy(&mutex->lock.mutex);
+	if (err != 0) {
+		nvgpu_info(NULL, "Mutex destroy error %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 void nvgpu_spinlock_init(struct nvgpu_spinlock *spinlock)
 {
-	(void) pthread_mutex_init(&spinlock->lock.mutex, NULL);
+	int err = pthread_mutex_init(&spinlock->lock.mutex, NULL);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_mutex_init error = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 void nvgpu_spinlock_acquire(struct nvgpu_spinlock *spinlock)
@@ -66,7 +79,13 @@ void nvgpu_spinlock_release(struct nvgpu_spinlock *spinlock)
 
 void nvgpu_raw_spinlock_init(struct nvgpu_raw_spinlock *spinlock)
 {
-	(void) pthread_mutex_init(&spinlock->lock.mutex, NULL);
+	int err = pthread_mutex_init(&spinlock->lock.mutex, NULL);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_mutex_init error = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 void nvgpu_raw_spinlock_acquire(struct nvgpu_raw_spinlock *spinlock)

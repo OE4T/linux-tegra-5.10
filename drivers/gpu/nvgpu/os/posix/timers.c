@@ -101,8 +101,12 @@ static s64 get_time_ns(void)
 {
 	struct timespec ts;
 	s64 t_ns;
+	int ret;
 
-	(void) clock_gettime(CLOCK_MONOTONIC, &ts);
+	ret = clock_gettime(CLOCK_MONOTONIC, &ts);
+	if (ret != 0) {
+		BUG();
+	}
 
 	t_ns = nvgpu_safe_mult_s64(ts.tv_sec, NSEC_PER_SEC);
 	t_ns = nvgpu_safe_add_s64(t_ns, ts.tv_nsec);
@@ -163,6 +167,7 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
 
 static void nvgpu_usleep(unsigned int usecs)
 {
+	int ret;
 	struct timespec rqtp;
 	s64 t_currentns, t_ns;
 
@@ -174,7 +179,10 @@ static void nvgpu_usleep(unsigned int usecs)
 	rqtp.tv_sec = t_ns / NSEC_PER_SEC;
 	rqtp.tv_nsec = t_ns % NSEC_PER_SEC;
 
-	(void) clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &rqtp, NULL);
+	ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &rqtp, NULL);
+	if (ret != 0) {
+		nvgpu_err(NULL, "Error %d return from clock_nanosleep", ret);
+	}
 }
 
 void nvgpu_udelay(unsigned int usecs)
@@ -193,6 +201,7 @@ void nvgpu_usleep_range(unsigned int min_us, unsigned int max_us)
 
 void nvgpu_msleep(unsigned int msecs)
 {
+	int ret;
 	struct timespec rqtp;
 	s64 t_currentns, t_ns;
 
@@ -205,7 +214,10 @@ void nvgpu_msleep(unsigned int msecs)
 	rqtp.tv_sec = t_ns / NSEC_PER_SEC;
 	rqtp.tv_nsec = t_ns % NSEC_PER_SEC;
 
-	(void) clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &rqtp, NULL);
+	ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &rqtp, NULL);
+	if (ret != 0) {
+		nvgpu_err(NULL, "Error %d return from clock_nanosleep", ret);
+	}
 }
 
 s64 nvgpu_current_time_ms(void)

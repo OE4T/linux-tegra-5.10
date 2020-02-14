@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/cond.h>
+#include <nvgpu/log.h>
 #include <nvgpu/static_analysis.h>
 #ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 #include <nvgpu/posix/posix-fault-injection.h>
@@ -61,7 +62,9 @@ int nvgpu_cond_init(struct nvgpu_cond *cond)
 	}
 	ret = pthread_condattr_setclock(&cond->attr, CLOCK_MONOTONIC);
 	if (ret != 0) {
-		(void) pthread_condattr_destroy(&cond->attr);
+		if ((pthread_condattr_destroy(&cond->attr)) != 0) {
+			nvgpu_info(NULL, "Cond attr destroy error");
+		}
 		return ret;
 	}
 
@@ -69,7 +72,9 @@ int nvgpu_cond_init(struct nvgpu_cond *cond)
 
 	ret = pthread_cond_init(&cond->cond, &cond->attr);
 	if (ret != 0) {
-		(void) pthread_condattr_destroy(&cond->attr);
+		if ((pthread_condattr_destroy(&cond->attr)) != 0) {
+			nvgpu_info(NULL, "Cond attr destroy error");
+		}
 		(void) nvgpu_mutex_destroy(&cond->mutex);
 		return ret;
 	}
@@ -80,22 +85,38 @@ int nvgpu_cond_init(struct nvgpu_cond *cond)
 
 void nvgpu_cond_signal(struct nvgpu_cond *cond)
 {
+	int err;
+
 	if ((cond == NULL) || !(cond->initialized)) {
 		BUG();
 	}
 	nvgpu_mutex_acquire(&cond->mutex);
-	(void) pthread_cond_signal(&cond->cond);
+	err = pthread_cond_signal(&cond->cond);
 	nvgpu_mutex_release(&cond->mutex);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_cond_signal error = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
 {
+	int err;
+
 	if ((cond == NULL) || !(cond->initialized)) {
 		BUG();
 	}
 	nvgpu_mutex_acquire(&cond->mutex);
-	(void) pthread_cond_signal(&cond->cond);
+	err = pthread_cond_signal(&cond->cond);
 	nvgpu_mutex_release(&cond->mutex);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_cond_signal error = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 int nvgpu_cond_broadcast(struct nvgpu_cond *cond)
@@ -133,21 +154,40 @@ int nvgpu_cond_broadcast_interruptible(struct nvgpu_cond *cond)
 
 void nvgpu_cond_destroy(struct nvgpu_cond *cond)
 {
+	int err;
+
 	if (cond == NULL) {
 		BUG();
 	}
-	(void) pthread_cond_destroy(&cond->cond);
+	err = pthread_cond_destroy(&cond->cond);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_cond_destroy error = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 	nvgpu_mutex_destroy(&cond->mutex);
-	(void) pthread_condattr_destroy(&cond->attr);
+	err = pthread_condattr_destroy(&cond->attr);
+	if (err != 0) {
+		nvgpu_info(NULL, "Cond attr destroy error");
+	}
 	cond->initialized = false;
 }
 
 void nvgpu_cond_signal_locked(struct nvgpu_cond *cond)
 {
+	int err;
+
 	if ((cond == NULL) || !(cond->initialized)) {
 		BUG();
 	}
-	(void) pthread_cond_signal(&cond->cond);
+	err = pthread_cond_signal(&cond->cond);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_cond_signal error = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 int nvgpu_cond_broadcast_locked(struct nvgpu_cond *cond)

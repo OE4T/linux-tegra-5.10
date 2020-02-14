@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,10 @@
 #include <stdlib.h>
 
 #include <pthread.h>
+#include <nvgpu/log.h>
+#ifndef CONFIG_NVGPU_NON_FUSA
+#include <nvgpu/bug.h>
+#endif
 
 /*
  * All locks for posix nvgpu are just pthread locks. There's not a lot of reason
@@ -49,7 +53,14 @@ struct __nvgpu_posix_lock {
  */
 static inline void nvgpu_posix_lock_acquire(struct __nvgpu_posix_lock *lock)
 {
-	(void) pthread_mutex_lock(&lock->mutex);
+	int err = pthread_mutex_lock(&lock->mutex);
+
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_mutex_lock error = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 /**
@@ -78,7 +89,11 @@ static inline int nvgpu_posix_lock_try_acquire(
  */
 static inline void nvgpu_posix_lock_release(struct __nvgpu_posix_lock *lock)
 {
-	(void) pthread_mutex_unlock(&lock->mutex);
+	int err = pthread_mutex_unlock(&lock->mutex);
+
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_mutex_unlock error = %d", err);
+	}
 }
 
 struct nvgpu_mutex {

@@ -177,7 +177,8 @@ typedef struct __nvgpu_posix_atomic64 {
 			NVGPU_MISRA(Rule, 17_7), "Bug 2793032")   	\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1,		\
 			NVGPU_MISRA(Rule, 10_3), "TID 374")		\
-		atomic_compare_exchange_strong(&((v)->v), &tmp, (new));	\
+		(void) atomic_compare_exchange_strong(&((v)->v),	\
+					&tmp, (new));			\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 17_7))	\

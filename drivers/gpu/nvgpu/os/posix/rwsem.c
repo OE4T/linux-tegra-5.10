@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,10 +22,20 @@
 
 #include <pthread.h>
 #include <nvgpu/rwsem.h>
+#include <nvgpu/log.h>
+#ifndef CONFIG_NVGPU_NON_FUSA
+#include <nvgpu/bug.h>
+#endif
 
 void nvgpu_rwsem_init(struct nvgpu_rwsem *rwsem)
 {
-	(void)pthread_rwlock_init(&rwsem->rw_sem, NULL);
+	int err = pthread_rwlock_init(&rwsem->rw_sem, NULL);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_rwlock_init error = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 /*
@@ -33,7 +43,13 @@ void nvgpu_rwsem_init(struct nvgpu_rwsem *rwsem)
  */
 void nvgpu_rwsem_down_read(struct nvgpu_rwsem *rwsem)
 {
-	(void)pthread_rwlock_rdlock(&rwsem->rw_sem);
+	int err = pthread_rwlock_rdlock(&rwsem->rw_sem);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_rwlock_rdlock err = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 /*
@@ -41,15 +57,33 @@ void nvgpu_rwsem_down_read(struct nvgpu_rwsem *rwsem)
  */
 void nvgpu_rwsem_up_read(struct nvgpu_rwsem *rwsem)
 {
-	(void)pthread_rwlock_unlock(&rwsem->rw_sem);
+	int err = pthread_rwlock_unlock(&rwsem->rw_sem);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_rwlock_unlock err = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 void nvgpu_rwsem_down_write(struct nvgpu_rwsem *rwsem)
 {
-	(void)pthread_rwlock_wrlock(&rwsem->rw_sem);
+	int err = pthread_rwlock_wrlock(&rwsem->rw_sem);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_rwlock_wrlock err = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }
 
 void nvgpu_rwsem_up_write(struct nvgpu_rwsem *rwsem)
 {
-	(void)pthread_rwlock_unlock(&rwsem->rw_sem);
+	int err = pthread_rwlock_unlock(&rwsem->rw_sem);
+	if (err != 0) {
+		nvgpu_err(NULL, "OS API pthread_rwlock_unlock err = %d", err);
+	}
+#ifndef CONFIG_NVGPU_NON_FUSA
+	nvgpu_assert(err == 0);
+#endif
 }

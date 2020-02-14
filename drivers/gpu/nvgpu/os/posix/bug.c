@@ -101,7 +101,11 @@ void nvgpu_bug_exit(int status)
 
 void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb)
 {
-	(void) pthread_once(&bug.once, nvgpu_bug_init);
+	int err;
+
+	err = pthread_once(&bug.once, nvgpu_bug_init);
+	nvgpu_assert(err == 0);
+
 	nvgpu_spinlock_acquire(&bug.lock);
 	nvgpu_list_add_tail(&cb->node, &bug.head);
 	nvgpu_spinlock_release(&bug.lock);
@@ -109,7 +113,11 @@ void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb)
 
 void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb)
 {
-	(void) pthread_once(&bug.once, nvgpu_bug_init);
+	int err;
+
+	err = pthread_once(&bug.once, nvgpu_bug_init);
+	nvgpu_assert(err == 0);
+
 	nvgpu_spinlock_acquire(&bug.lock);
 	nvgpu_list_del(&cb->node);
 	nvgpu_spinlock_release(&bug.lock);
@@ -120,6 +128,7 @@ void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb)
  */
 void nvgpu_posix_bug(const char *fmt, ...)
 {
+	int err;
 	struct nvgpu_bug_cb *cb;
 
 	nvgpu_err(NULL, "BUG detected!");
@@ -158,7 +167,12 @@ done:
 #ifdef __NVGPU_UNIT_TEST__
 	dump_stack();
 #endif
-	(void) raise(SIGSEGV);
+	while ((err = raise(SIGSEGV)) != 0) {
+		/*
+		 * Make sure the signal is raised.
+		 */
+	}
+
 	pthread_exit(NULL);
 }
 
