@@ -268,6 +268,20 @@ struct gops_top {
 	 */
 	u32 (*get_num_lce)(struct gk20a *g);
 
+	/**
+	 * @brief Gets the maximum number of LTS per LTC in a GPU as programmed
+	 * 	in HW.
+	 *
+	 * @param g [in]		GPU device struct pointer
+	 *
+	 * This HAL reads the NV_PTOP_SCAL_NUM_SLICES_PER_LTC HW register,
+	 * extracts the NV_PTOP_SCAL_NUM_SLICES_PER_LTC_VALUE field and
+	 * returns it.
+	 *
+	 * @return The number of LTS per LTC as read from the above mentioned
+	 *	HW register.
+	 */
+	u32 (*get_max_lts_per_ltc)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
@@ -279,7 +293,6 @@ struct gops_top {
 	u32 (*get_nvhsclk_ctrl_swap_clk_nvl)(struct gk20a *g);
 	void (*set_nvhsclk_ctrl_swap_clk_nvl)(struct gk20a *g, u32 val);
 	u32 (*get_max_fbpas_count)(struct gk20a *g);
-	u32 (*get_max_lts_per_ltc)(struct gk20a *g);
 	u32 (*read_top_scratch1_reg)(struct gk20a *g);
 	u32 (*top_scratch1_devinit_completed)(struct gk20a *g,
 					u32 value);
