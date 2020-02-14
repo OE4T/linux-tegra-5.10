@@ -34,6 +34,7 @@
 #include <linux/mmc/slot-gpio.h>
 #include <linux/gpio/consumer.h>
 #include <linux/ktime.h>
+#include <linux/tegra_prod.h>
 
 #include "sdhci-pltfm.h"
 #include "cqhci.h"
@@ -134,6 +135,30 @@
 
 #define MAX_TAP_VALUE		256
 
+/* uhs mask can be used to mask any of the UHS modes support */
+#define MMC_UHS_MASK_SDR12	0x1
+#define MMC_UHS_MASK_SDR25	0x2
+#define MMC_UHS_MASK_SDR50	0x4
+#define MMC_UHS_MASK_DDR50	0x8
+#define MMC_UHS_MASK_SDR104	0x10
+#define MMC_MASK_HS200		0x20
+#define MMC_MASK_HS400		0x40
+#define MMC_MASK_SD_HS		0x80
+
+static char prod_device_states[MMC_TIMING_COUNTER][20] = {
+	"prod_c_ds", /* MMC_TIMING_LEGACY */
+	"prod_c_hs", /* MMC_TIMING_MMC_HS */
+	"prod_c_hs", /* MMC_TIMING_SD_HS */
+	"prod_c_sdr12", /* MMC_TIMING_UHS_SDR12 */
+	"prod_c_sdr25", /* MMC_TIMING_UHS_SDR25 */
+	"prod_c_sdr50", /* MMC_TIMING_UHS_SDR50 */
+	"prod_c_sdr104", /* MMC_TIMING_UHS_SDR104 */
+	"prod_c_ddr52", /* MMC_TIMING_UHS_DDR50 */
+	"prod_c_ddr52", /* MMC_TIMING_MMC_DDR52 */
+	"prod_c_hs200", /* MMC_TIMING_MMC_HS200 */
+	"prod_c_hs400", /* MMC_TIMING_MMC_HS400 */
+};
+
 /* SDMMC CQE Base Address for Tegra Host Ver 4.1 and Higher */
 #define SDHCI_TEGRA_CQE_BASE_ADDR			0xF000
 
@@ -188,6 +213,7 @@ struct sdhci_tegra {
 	bool enable_hwcq;
 	unsigned long curr_clk_rate;
 	u8 tuned_tap_delay;
+	struct tegra_prod *prods;
 };
 
 static u16 tegra_sdhci_readw(struct sdhci_host *host, int reg)
@@ -651,13 +677,21 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
 	u32 misc_ctrl, clk_ctrl, pad_ctrl;
+	int err;
 
 	sdhci_reset(host, mask);
 
 	if (!(mask & SDHCI_RESET_ALL))
 		return;
 
+	err = tegra_prod_set_by_name(&host->ioaddr, "prod",
+		tegra_host->prods);
+	if (err)
+		dev_err(mmc_dev(host->mmc),
+			"Failed to set prod-reset settings %d\n", err);
+
 	tegra_sdhci_set_tap(host, tegra_host->default_tap);
+	tegra_sdhci_set_dqs_trim(host, tegra_host->dqs_trim);
 
 	misc_ctrl = sdhci_readl(host, SDHCI_TEGRA_VENDOR_MISC_CTRL);
 	clk_ctrl = sdhci_readl(host, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
@@ -1142,59 +1176,99 @@ static void tegra_sdhci_set_uhs_signaling(struct sdhci_host *host,
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
-	bool set_default_tap = false;
-	bool set_dqs_trim = false;
-	bool do_hs400_dll_cal = false;
-	u8 iter = TRIES_256;
-	u32 val;
+	int ret;
+	bool tuning_mode = false;
+	bool set_num_tun_iter = false;
+	bool set_trim_delay = false;
+	bool set_padpipe_clk_override = false;
+	bool set_sdmmc_spare_0 = false;
 
 	tegra_host->ddr_signaling = false;
-	switch (timing) {
-	case MMC_TIMING_UHS_SDR50:
-		break;
-	case MMC_TIMING_UHS_SDR104:
-	case MMC_TIMING_MMC_HS200:
-		/* Don't set default tap on tunable modes. */
-		iter = TRIES_128;
-		break;
-	case MMC_TIMING_MMC_HS400:
-		set_dqs_trim = true;
-		do_hs400_dll_cal = true;
-		iter = TRIES_128;
-		break;
-	case MMC_TIMING_MMC_DDR52:
-	case MMC_TIMING_UHS_DDR50:
-		tegra_host->ddr_signaling = true;
-		set_default_tap = true;
-		break;
-	default:
-		set_default_tap = true;
-		break;
-	}
-
-	val = sdhci_readl(host, SDHCI_VNDR_TUN_CTRL0_0);
-	val &= ~(SDHCI_VNDR_TUN_CTRL0_TUN_ITER_MASK |
-		 SDHCI_VNDR_TUN_CTRL0_START_TAP_VAL_MASK |
-		 SDHCI_VNDR_TUN_CTRL0_MUL_M_MASK);
-	val |= (iter << SDHCI_VNDR_TUN_CTRL0_TUN_ITER_SHIFT |
-		0 << SDHCI_VNDR_TUN_CTRL0_START_TAP_VAL_SHIFT |
-		1 << SDHCI_VNDR_TUN_CTRL0_MUL_M_SHIFT);
-	sdhci_writel(host, val, SDHCI_VNDR_TUN_CTRL0_0);
-	sdhci_writel(host, 0, SDHCI_TEGRA_VNDR_TUN_CTRL1_0);
-
-	host->tuning_loop_count = (iter == TRIES_128) ? 128 : 256;
 
 	sdhci_set_uhs_signaling(host, timing);
 
-	tegra_sdhci_pad_autocalib(host);
+	switch (timing) {
+	case MMC_TIMING_UHS_SDR50:
+	case MMC_TIMING_UHS_SDR104:
+		tuning_mode = true;
+		break;
+	case MMC_TIMING_MMC_DDR52:
+		set_sdmmc_spare_0 = true;
+		set_trim_delay = true;
+		tegra_host->ddr_signaling = true;
+		break;
+	case MMC_TIMING_UHS_DDR50:
+		tegra_host->ddr_signaling = true;
+		set_trim_delay = true;
+		break;
+	case MMC_TIMING_MMC_HS200:
+		set_trim_delay = true;
+		tuning_mode = true;
+		set_num_tun_iter = true;
+		set_padpipe_clk_override = true;
+		break;
+	case MMC_TIMING_MMC_HS400:
+		tuning_mode = true;
+		set_num_tun_iter = true;
+		set_padpipe_clk_override = true;
+		break;
+	default:
+		break;
+	}
 
-	if (tegra_host->tuned_tap_delay && !set_default_tap)
+	/* Set trim delay */
+	if (set_trim_delay) {
+		ret = tegra_prod_set_by_name_partially(&host->ioaddr,
+				prod_device_states[timing], tegra_host->prods,
+				0, SDHCI_TEGRA_VENDOR_CLOCK_CTRL,
+				SDHCI_CLOCK_CTRL_TRIM_MASK <<
+				SDHCI_CLOCK_CTRL_TRIM_SHIFT);
+		if (ret < 0)
+			dev_err(mmc_dev(host->mmc),
+				"Failed to set trim value for timing %d, %d\n",
+				timing, ret);
+	}
+
+	/* Set Tap delay */
+	if ((tegra_host->tuning_status == TUNING_STATUS_DONE) &&
+		tuning_mode)
 		tegra_sdhci_set_tap(host, tegra_host->tuned_tap_delay);
 	else
 		tegra_sdhci_set_tap(host, tegra_host->default_tap);
 
-	if (set_dqs_trim)
-		tegra_sdhci_set_dqs_trim(host, tegra_host->dqs_trim);
+	/*set padpipe_clk_override*/
+	if (set_padpipe_clk_override) {
+		ret = tegra_prod_set_by_name_partially(&host->ioaddr,
+				prod_device_states[timing], tegra_host->prods,
+				0, SDHCI_TEGRA_VENDOR_CLOCK_CTRL,
+				SDHCI_CLOCK_CTRL_PADPIPE_CLKEN_OVERRIDE);
+		if (ret < 0)
+			dev_err(mmc_dev(host->mmc),
+				"Failed to set padpipe clk override value for timing %d, %d\n",
+				timing, ret);
+	}
+	/* Set number of tuning iterations */
+	if (set_num_tun_iter) {
+		ret = tegra_prod_set_by_name_partially(&host->ioaddr,
+				prod_device_states[timing], tegra_host->prods,
+				0, SDHCI_VNDR_TUN_CTRL0_0,
+				SDHCI_VNDR_TUN_CTRL0_TUN_ITER_MASK);
+		if (ret < 0)
+			dev_err(mmc_dev(host->mmc),
+				"Failed to set number of iterations for timing %d, %d\n",
+				timing, ret);
+	}
+	/* Set SDMMC_SPARE_0*/
+	if (set_sdmmc_spare_0) {
+		ret = tegra_prod_set_by_name_partially(&host->ioaddr,
+				prod_device_states[timing], tegra_host->prods,
+				0, SDHCI_TEGRA_VENDOR_MISC_CTRL,
+				 SDHCI_MISC_CTRL_SDMMC_SPARE_0_MASK);
+		if (ret < 0)
+			dev_err(mmc_dev(host->mmc),
+				"Failed to set spare0 field for timing %d, %d\n",
+				timing, ret);
+	}
 }
 
 static int tegra_sdhci_execute_tuning(struct sdhci_host *host, u32 opcode)
@@ -1260,6 +1334,12 @@ static int sdhci_tegra_start_signal_voltage_switch(struct mmc_host *mmc,
 static int tegra_sdhci_init_pinctrl_info(struct device *dev,
 					 struct sdhci_tegra *tegra_host)
 {
+	tegra_host->prods = devm_tegra_prod_get(dev);
+	if (IS_ERR_OR_NULL(tegra_host->prods)) {
+		dev_err(dev, "Prod-setting not available\n");
+		tegra_host->prods = NULL;
+	}
+
 	tegra_host->pinctrl_sdmmc = devm_pinctrl_get(dev);
 	if (IS_ERR(tegra_host->pinctrl_sdmmc)) {
 		dev_dbg(dev, "No pinctrl info, err: %ld\n",

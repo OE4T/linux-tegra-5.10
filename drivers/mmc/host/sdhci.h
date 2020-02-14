@@ -646,6 +646,7 @@ struct sdhci_ops {
 				   dma_addr_t addr, int len, unsigned int cmd);
 	void	(*hs400_enhanced_strobe)(struct sdhci_host *host, bool enable);
 	void	(*post_init)(struct sdhci_host *host);
+	void	(*dump_vendor_regs)(struct sdhci_host *host);
 };
 
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
