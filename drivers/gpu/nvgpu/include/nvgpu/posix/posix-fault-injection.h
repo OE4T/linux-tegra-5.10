@@ -65,6 +65,7 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj tegra_platform_null_fi;
 	struct nvgpu_posix_fault_inj tegra_platform_fpga_fi;
 	struct nvgpu_posix_fault_inj nvgpu_platform_simulation_var;
+	struct nvgpu_posix_fault_inj nvdt_open_fi;
 	struct nvgpu_posix_fault_inj check_os_native_var;
 	struct nvgpu_posix_fault_inj get_chip_revision_var;
 	struct nvgpu_posix_fault_inj nvdt_reg_prop_fi;
