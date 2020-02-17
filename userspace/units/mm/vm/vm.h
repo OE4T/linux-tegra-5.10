@@ -38,7 +38,7 @@ struct unit_module;
  * Description: The VM unit shall be able to map a buffer of memory such that
  * the GPU may access that memory.
  *
- * Test Type: Feature
+ * Test Type: Feature, Boundary values
  *
  * Targets: nvgpu_vm_init, nvgpu_vm_get_buffers, nvgpu_big_pages_possible,
  * nvgpu_vm_area_alloc, nvgpu_vm_map, nvgpu_vm_find_mapped_buf_range,
@@ -87,7 +87,7 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args);
  * function the resulting GPU virtual address of the map does/does not match
  * the requested GPU virtual address.
  *
- * Test Type: Feature
+ * Test Type: Feature, Boundary values
  *
  * Targets: nvgpu_vm_init, nvgpu_vm_get_buffers, nvgpu_big_pages_possible,
  * nvgpu_vm_area_alloc, nvgpu_vm_map, nvgpu_vm_find_mapped_buf_range,
@@ -346,7 +346,7 @@ int test_vm_aspace_id(struct unit_module *m, struct gk20a *g, void *__args);
  * Description: This test targets the nvgpu_vm_area_validate_buffer and
  * nvgpu_vm_area_alloc APIs.
  *
- * Test Type: Feature, Error injection
+ * Test Type: Feature, Error injection, Boundary values
  *
  * Targets: nvgpu_vm_area_validate_buffer, nvgpu_vm_area_alloc,
  * nvgpu_vm_area_free

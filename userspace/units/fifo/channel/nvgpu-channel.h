@@ -143,7 +143,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs);
  *
  * Description: Branch coverage for nvgpu_channel_setup_bind.
  *
- * Test Type: Feature, Error injection
+ * Test Type: Feature, Error injection, Boundary values
  *
  * Targets: nvgpu_channel_setup_bind, nvgpu_channel_setup_usermode,
  *          nvgpu_channel_as_bound, nvgpu_channel_update_runlist
