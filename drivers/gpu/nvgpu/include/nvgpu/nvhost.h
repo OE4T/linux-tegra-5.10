@@ -257,7 +257,7 @@ struct sync_fence *nvgpu_nvhost_sync_create_fence(
  *
  * @return			Zero.
  */
-int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 		u64 *base, size_t *size);
 
@@ -275,7 +275,7 @@ u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id);
 int nvgpu_nvhost_syncpt_init(struct gk20a *g);
 #endif
 #else
-static inline int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+static inline int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 		u64 *base, size_t *size)
 {

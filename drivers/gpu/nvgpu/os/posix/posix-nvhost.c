@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@ int nvgpu_get_nvhost_dev(struct gk20a *g)
 	g->nvhost->host1x_sp_base = 0x60000000;
 	g->nvhost->host1x_sp_size = 0x4000;
 	g->nvhost->nb_hw_pts = 704U;
-	ret = nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+	ret = nvgpu_nvhost_get_syncpt_aperture(
 				g->nvhost, &g->syncpt_unit_base,
 				&g->syncpt_unit_size);
 	if (ret != 0) {
@@ -82,7 +82,7 @@ fail_nvgpu_get_nvhost_dev:
 	return ret;
 }
 
-int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 		u64 *base, size_t *size)
 {

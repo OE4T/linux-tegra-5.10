@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -58,7 +58,7 @@ static int gv11b_vgpu_probe(struct device *dev)
 		return ret;
 	}
 
-	ret = nvgpu_nvhost_syncpt_unit_interface_get_aperture(g->nvhost,
+	ret = nvgpu_nvhost_get_syncpt_aperture(g->nvhost,
 							&g->syncpt_unit_base,
 							&g->syncpt_unit_size);
 	if (ret) {

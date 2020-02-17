@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ void nvgpu_free_nvhost_dev(struct gk20a *g);
 
 int nvgpu_get_nvhost_dev(struct gk20a *g);
 
-int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 		u64 *base, size_t *size);
 

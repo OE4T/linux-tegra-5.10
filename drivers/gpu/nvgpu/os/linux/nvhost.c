@@ -247,7 +247,7 @@ struct sync_fence *nvgpu_nvhost_sync_create_fence(
 #endif /* CONFIG_SYNC */
 
 #ifdef CONFIG_TEGRA_T19X_GRHOST
-int nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvhost_dev,
 		u64 *base, size_t *size)
 {
@@ -274,7 +274,7 @@ int nvgpu_nvhost_syncpt_init(struct gk20a *g)
 		return -ENOSYS;
 	}
 
-	err = nvgpu_nvhost_syncpt_unit_interface_get_aperture(
+	err = nvgpu_nvhost_get_syncpt_aperture(
 			g->nvhost,
 			&g->syncpt_unit_base,
 			&g->syncpt_unit_size);
