@@ -214,6 +214,7 @@ struct sdhci_tegra {
 	unsigned long curr_clk_rate;
 	u8 tuned_tap_delay;
 	struct tegra_prod *prods;
+	u8 uhs_mask;
 };
 
 static u16 tegra_sdhci_readw(struct sdhci_host *host, int reg)
@@ -671,6 +672,40 @@ retain_hw_tun_tap:
 	tegra_sdhci_dump_vendor_regs(host);
 }
 
+static void tegra_sdhci_mask_host_caps(struct sdhci_host *host, u8 uhs_mask)
+{
+	/* Mask any bus speed modes if set in platform data */
+	if (uhs_mask & MMC_UHS_MASK_SDR12)
+		host->mmc->caps &= ~MMC_CAP_UHS_SDR12;
+
+	if (uhs_mask & MMC_UHS_MASK_SDR25)
+		host->mmc->caps &= ~MMC_CAP_UHS_SDR25;
+
+	if (uhs_mask & MMC_UHS_MASK_SDR50)
+		host->mmc->caps &= ~MMC_CAP_UHS_SDR50;
+
+	if (uhs_mask & MMC_UHS_MASK_SDR104)
+		host->mmc->caps &= ~MMC_CAP_UHS_SDR104;
+
+	if (uhs_mask & MMC_UHS_MASK_DDR50) {
+		host->mmc->caps &= ~MMC_CAP_UHS_DDR50;
+		host->mmc->caps &= ~MMC_CAP_1_8V_DDR;
+	}
+
+	if (uhs_mask & MMC_MASK_HS200) {
+		host->mmc->caps2 &= ~MMC_CAP2_HS200;
+		host->mmc->caps2 &= ~MMC_CAP2_HS400;
+		host->mmc->caps2 &= ~MMC_CAP2_HS400_ES;
+	}
+
+	if (uhs_mask & MMC_MASK_HS400) {
+		host->mmc->caps2 &= ~MMC_CAP2_HS400;
+		host->mmc->caps2 &= ~MMC_CAP2_HS400_ES;
+	}
+	if (uhs_mask & MMC_MASK_SD_HS)
+		host->mmc->caps &= ~MMC_CAP_SD_HIGHSPEED;
+}
+
 static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
@@ -711,7 +746,8 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 		/* Advertise UHS modes as supported by host */
 		if (soc_data->nvquirks & NVQUIRK_ENABLE_SDR50)
 			misc_ctrl |= SDHCI_MISC_CTRL_ENABLE_SDR50;
-		if (soc_data->nvquirks & NVQUIRK_ENABLE_DDR50)
+		if ((soc_data->nvquirks & NVQUIRK_ENABLE_DDR50) &&
+			!(tegra_host->uhs_mask & MMC_UHS_MASK_DDR50))
 			misc_ctrl |= SDHCI_MISC_CTRL_ENABLE_DDR50;
 		if (soc_data->nvquirks & NVQUIRK_ENABLE_SDR104)
 			misc_ctrl |= SDHCI_MISC_CTRL_ENABLE_SDR104;
@@ -734,6 +770,7 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 	}
 
 	tegra_host->ddr_signaling = false;
+	tegra_sdhci_mask_host_caps(host, tegra_host->uhs_mask);
 }
 
 static void tegra_sdhci_configure_cal_pad(struct sdhci_host *host, bool enable)
@@ -1051,6 +1088,9 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 
 	tegra_sdhci_parse_pad_autocal_dt(host);
 	tegra_sdhci_parse_tap_and_trim(host);
+
+	device_property_read_u32(host->mmc->parent, "uhs-mask",
+				(u32 *)&tegra_host->uhs_mask);
 }
 
 static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
