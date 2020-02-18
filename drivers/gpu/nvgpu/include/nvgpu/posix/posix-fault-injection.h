@@ -120,6 +120,7 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj procmgr_daemon_fi;
 	struct nvgpu_posix_fault_inj procmgr_ability_fi;
 	struct nvgpu_posix_fault_inj sem_init_fi;
+	struct nvgpu_posix_fault_inj sem_wait_fi;
 	struct nvgpu_posix_fault_inj sem_post_fi;
 	struct nvgpu_posix_fault_inj pthread_sigmask_fi;
 	struct nvgpu_posix_fault_inj sigaction_fi;
