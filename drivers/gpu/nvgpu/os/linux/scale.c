@@ -361,6 +361,7 @@ void gk20a_scale_init(struct device *dev)
 
 	if (platform->devfreq_governor) {
 		struct devfreq *devfreq;
+		int error = 0;
 
 		profile->devfreq_profile.initial_freq =
 			profile->devfreq_profile.freq_table[0];
@@ -378,6 +379,18 @@ void gk20a_scale_init(struct device *dev)
 			devfreq = NULL;
 
 		l->devfreq = devfreq;
+
+		/* create symlink /sys/devices/gpu.0/devfreq_dev */
+		if (devfreq != NULL) {
+			error = sysfs_create_link(&dev->kobj,
+				&devfreq->dev.kobj, "devfreq_dev");
+
+			if (error) {
+				nvgpu_err(g,
+					"Failed to create devfreq_dev: %d",
+					error);
+			}
+		}
 	}
 
 #ifdef CONFIG_GK20A_PM_QOS
@@ -416,6 +429,8 @@ void gk20a_scale_exit(struct device *dev)
 #endif
 
 	if (platform->devfreq_governor) {
+		sysfs_remove_link(&dev->kobj, "devfreq_dev");
+
 		err = devfreq_remove_device(l->devfreq);
 		l->devfreq = NULL;
 	}
