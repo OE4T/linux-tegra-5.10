@@ -49,6 +49,7 @@
  *          nvgpu_thread_is_running, nvgpu_thread_stop,
  *          nvgpu_thread_stop_graceful, nvgpu_thread_should_stop,
  *          nvgpu_thread_join
+ *
  * Inputs:
  * 1) Pointer to test_thread_args as function parameter
  * 2) Global instance of struct nvgpu_thread
