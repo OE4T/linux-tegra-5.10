@@ -18,7 +18,7 @@
 
 / {
 	tegra_pwm1: pwm@3280000 {
-		compatible = "nvidia,tegra194-pwm";
+		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0x3280000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x0>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PWM1>;
@@ -30,7 +30,7 @@
 	};
 
 	tegra_pwm2: pwm@3290000 {
-		compatible = "nvidia,tegra194-pwm";
+		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0x3290000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x1>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PWM2>;
@@ -42,7 +42,7 @@
 	};
 
 	tegra_pwm3: pwm@32a0000 {
-		compatible = "nvidia,tegra194-pwm";
+		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0x32a0000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x2>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PWM3>;
@@ -54,7 +54,7 @@
 	};
 
 	tegra_pwm4: pwm@c340000 {
-		compatible = "nvidia,tegra194-pwm";
+		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0xc340000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x3>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PWM4>;
@@ -66,7 +66,7 @@
 	};
 
 	tegra_pwm5: pwm@32c0000 {
-		compatible = "nvidia,tegra194-pwm";
+		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0x32c0000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x4>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PWM5>;
@@ -78,7 +78,7 @@
 	};
 
 	tegra_pwm6: pwm@32d0000 {
-		compatible = "nvidia,tegra194-pwm";
+		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0x32d0000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x5>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PWM6>;
@@ -90,7 +90,7 @@
 	};
 
 	tegra_pwm7: pwm@32e0000 {
-		compatible = "nvidia,tegra194-pwm";
+		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0x32e0000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x6>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PWM7>;
@@ -102,7 +102,7 @@
 	};
 
 	tegra_pwm8: pwm@32f0000 {
-		compatible = "nvidia,tegra194-pwm";
+		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0x32f0000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x7>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PWM8>;
