@@ -25,9 +25,6 @@
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/boardobjgrp_e255.h>
-#include <nvgpu/pmu/clk/clk_fll.h>
-#include <nvgpu/pmu/clk/clk_vf_point.h>
-#include <nvgpu/pmu/clk/clk_prog.h>
 #include <nvgpu/pmu/perf.h>
 
 #include "clk_arb_gv100.h"

@@ -36,7 +36,6 @@
 #include <nvgpu/clk.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/clk_arb.h>
-#include <nvgpu/pmu/clk/clk_domain.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/hw/tu104/hw_trim_tu104.h>
 
@@ -63,7 +62,7 @@
  * Mapping between the clk domain and the various clock monitor registers
  * The rows represent clock domains starting from index 0 and column represent
  * the various registers each domain has, non available domains are set to 0
- * for easy accessing, refer nvgpu_clk_mon_init_domains() for valid domains.
+ * for easy accessing, refer nvgpu_pmu_clk_mon_init_domains() for valid domains.
  */
 static  u32 clock_mon_map_tu104[CLK_CLOCK_MON_DOMAIN_COUNT]
 				[CLK_CLOCK_MON_REG_TYPE_COUNT] = {

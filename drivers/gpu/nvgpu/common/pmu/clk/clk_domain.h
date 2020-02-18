@@ -25,7 +25,6 @@
 
 #include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
-#include <nvgpu/pmu/clk/clk_domain.h>
 
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION 0x30
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION_35 0x35

@@ -27,68 +27,136 @@
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmu/pmuif/boardobj.h>
+#include <nvgpu/boardobjgrp_e255.h>
 
 /*!
  * Various types of VIN calibration that the GPU can support
  */
-#define CTRL_CLK_VIN_CAL_TYPE_V20           (0x00000001U)
-
-#define CTRL_CLK_VIN_VFE_IDX_INVALID		(0xFFU)
+#define CTRL_CLK_VIN_CAL_TYPE_V20				(0x00000001U)
+#define CTRL_CLK_VIN_VFE_IDX_INVALID				(0xFFU)
 
 /*!
  * Various Vin device table versions that are supported
  */
-#define NV2080_CTRL_CLK_VIN_DEVICES_DISABLED        (0x00000000U)
-#define NV2080_CTRL_CLK_VIN_DEVICES_V10             (0x00000001U)
-#define NV2080_CTRL_CLK_VIN_DEVICES_V20             (0x00000002U)
+#define NV2080_CTRL_CLK_VIN_DEVICES_DISABLED			(0x00000000U)
+#define NV2080_CTRL_CLK_VIN_DEVICES_V10				(0x00000001U)
+#define NV2080_CTRL_CLK_VIN_DEVICES_V20				(0x00000002U)
 
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X                                  0x01U
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED                            0x02U
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG                             0x03U
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER                           0x04U
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE                            0x05U
-#define CTRL_CLK_CLK_DOMAIN_TYPE_30_PROG                             0x06U
-#define CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER                           0x07U
-#define CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE                            0x08U
-#define CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG                             0x09U
+/*!
+ * Enumeration of CLK_DOMAIN types.
+ */
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X					0x01U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED				0x02U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG				0x03U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER				0x04U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE				0x05U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_30_PROG				0x06U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER				0x07U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE				0x08U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG				0x09U
+#define CTRL_CLK_CLK_DOMAIN_3X_PROG_ORDERING_INDEX_INVALID	 	0xFFU
+#define CTRL_CLK_CLK_DOMAIN_INDEX_INVALID				0xFFU
 
-#define CTRL_CLK_CLK_DOMAIN_3X_PROG_ORDERING_INDEX_INVALID     0xFFU
-#define CTRL_CLK_CLK_DOMAIN_INDEX_INVALID                      0xFF
-
-#define CTRL_CLK_CLK_PROG_TYPE_3X                              0x00U
-#define CTRL_CLK_CLK_PROG_TYPE_1X                              0x01U
-#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER                       0x02U
-#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO                 0x03U
-#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE                 0x04U
-#define CTRL_CLK_CLK_PROG_TYPE_35                              0x05U
-#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER                       0x06U
-#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO                 0x07U
-#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE                 0x08U
-#define CTRL_CLK_CLK_PROG_TYPE_UNKNOWN                         255U
-
+/*!
+ * Enumeration of CLK_PROG types.
+ */
+#define CTRL_CLK_CLK_PROG_TYPE_3X					0x00U
+#define CTRL_CLK_CLK_PROG_TYPE_1X					0x01U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER				0x02U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO				0x03U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE				0x04U
+#define CTRL_CLK_CLK_PROG_TYPE_35					0x05U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER				0x06U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO				0x07U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE				0x08U
+#define CTRL_CLK_CLK_PROG_TYPE_UNKNOWN					255U
+#define CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES		4U
+#define CTRL_CLK_CLK_PROG_35_MASTER_SEC_VF_ENTRY_VOLTRAIL_MAX		1U
+#define CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES			6U
 /*!
  * Enumeration of CLK_PROG source types.
  */
-#define CTRL_CLK_PROG_1X_SOURCE_PLL                            0x00U
-#define CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE                     0x01U
-#define CTRL_CLK_PROG_1X_SOURCE_FLL                            0x02U
-#define CTRL_CLK_PROG_1X_SOURCE_INVALID                        255U
+#define CTRL_CLK_PROG_1X_SOURCE_PLL					0x00U
+#define CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE			 	0x01U
+#define CTRL_CLK_PROG_1X_SOURCE_FLL					0x02U
+#define CTRL_CLK_PROG_1X_SOURCE_INVALID					0xFFU
 
-#define CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES 4U
-#define CTRL_CLK_CLK_PROG_35_MASTER_SEC_VF_ENTRY_VOLTRAIL_MAX	1U
-#define CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES 6U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_FREQ					0x01U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_VOLT					0x02U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35					0x03U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ				0x04U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT				0x05U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_SEC				0x06U
+#define CTRL_CLK_CLK_VF_POINT_IDX_INVALID				0xFFU
 
-#define CTRL_CLK_CLK_VF_POINT_IDX_INVALID                      255U
+#define NV_PMU_RPC_ID_CLK_CNTR_SAMPLE_DOMAIN				0x01U
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_VOLT_TO_FREQ		0x02U
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_TO_VOLT		0x03U
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_QUANTIZE		0x04U
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_CLIENT_FREQ_DELTA_ADJ	0x05U
+#define NV_PMU_RPC_ID_CLK_FREQ_EFFECTIVE_AVG				0x06U
+#define NV_PMU_RPC_ID_CLK_LOAD						0x07U
+#define NV_PMU_RPC_ID_CLK_VF_CHANGE_INJECT				0x08U
+#define NV_PMU_RPC_ID_CLK_MCLK_SWITCH					0x09U
+#define NV_PMU_RPC_ID_CLK__COUNT					0x0AU
 
-#define CTRL_CLK_CLK_VF_POINT_TYPE_FREQ                         0x01U
-#define CTRL_CLK_CLK_VF_POINT_TYPE_VOLT                         0x02U
-#define CTRL_CLK_CLK_VF_POINT_TYPE_35                           0x03U
-#define CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ                      0x04U
-#define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT                      0x05U
-#define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_SEC                  0x06U
-#define CTRL_CLK_CLK_VF_POINT_TYPE_UNKNOWN                      255U
+/*!
+ * Macros for the @ref feature parameter in the @ref NV_PMU_CLK_LOAD structure
+ */
+#define NV_NV_PMU_CLK_LOAD_FEATURE_INVALID			(0x00000000U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FLL				(0x00000001U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_VIN				(0x00000002U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER		(0x00000003U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_EFFECTIVE_AVG		(0x00000004U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_CLK_DOMAIN			(0x00000005U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_CLK_CONTROLLER		(0x00000006U)
+
+/* CLK CMD ID definitions.*/
+#define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_SET			(0x00000001U)
+#define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
+/* CLK MSG ID definitions */
+#define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_SET			(0x00000001U)
+#define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
+
+#define CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(pvfpair)                          \
+	((pvfpair)->freq_mhz)
+
+#define CTRL_CLK_VF_PAIR_VOLTAGE_UV_GET(pvfpair)                        \
+	((pvfpair)->voltage_uv)
+
+#define CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(pvfpair, _freqmhz)                \
+	(((pvfpair)->freq_mhz) = (_freqmhz))
+
+#define CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(pvfpair, _freqmhz)                \
+	(((pvfpair)->freq_mhz) = (_freqmhz))
 
 
+#define CTRL_CLK_VF_PAIR_VOLTAGE_UV_SET(pvfpair, _voltageuv)	        \
+	(((pvfpair)->voltage_uv) = (_voltageuv))
+
+#define CLK_CLK_VF_POINT_GET(pclk, idx)                                        \
+	((struct clk_vf_point *)BOARDOBJGRP_OBJ_GET_BY_IDX(                    \
+		&pclk->clk_vf_pointobjs->super.super, (u8)(idx)))
+
+#define clkvfpointpairget(pvfpoint)                                            \
+	(&((pvfpoint)->pair))
+
+#define clkvfpointfreqmhzget(pgpu, pvfpoint)                                   \
+	CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(clkvfpointpairget(pvfpoint))
+
+#define clkvfpointfreqdeltamhzGet(pgpu, pvfPoint)                              \
+	((BOARDOBJ_GET_TYPE(pvfpoint) == CTRL_CLK_CLK_VF_POINT_TYPE_VOLT) ?    \
+	(((struct clk_vf_point_volt *)(pvfpoint))->freq_delta_khz / 1000) : 0)
+
+#define clkvfpointfreqmhzset(pgpu, pvfpoint, _freqmhz)                         \
+	CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(clkvfpointpairget(pvfpoint), _freqmhz)
+
+#define clkvfpointvoltageuvset(pgpu, pvfpoint, _voltageuv)                     \
+	CTRL_CLK_VF_PAIR_VOLTAGE_UV_SET(clkvfpointpairget(pvfpoint),           \
+	_voltageuv)
+
+#define clkvfpointvoltageuvget(pgpu, pvfpoint)                          \
+	CTRL_CLK_VF_PAIR_VOLTAGE_UV_GET(clkvfpointpairget(pvfpoint))    \
 
 struct ctrl_clk_domain_control_35_prog_clk_mon {
 	u32 flags;
@@ -218,44 +286,6 @@ struct ctrl_clk_vf_output {
 	u32 input_best_match;
 	u32 value;
 };
-
-#define CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(pvfpair)                          \
-	((pvfpair)->freq_mhz)
-
-#define CTRL_CLK_VF_PAIR_VOLTAGE_UV_GET(pvfpair)                        \
-	((pvfpair)->voltage_uv)
-
-#define CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(pvfpair, _freqmhz)                \
-	(((pvfpair)->freq_mhz) = (_freqmhz))
-
-#define CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(pvfpair, _freqmhz)                \
-	(((pvfpair)->freq_mhz) = (_freqmhz))
-
-
-#define CTRL_CLK_VF_PAIR_VOLTAGE_UV_SET(pvfpair, _voltageuv)	        \
-	(((pvfpair)->voltage_uv) = (_voltageuv))
-
-#define NV_PMU_RPC_ID_CLK_CNTR_SAMPLE_DOMAIN                               0x01U
-#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_VOLT_TO_FREQ                  0x02U
-#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_TO_VOLT                  0x03U
-#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_QUANTIZE                 0x04U
-#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_CLIENT_FREQ_DELTA_ADJ         0x05U
-#define NV_PMU_RPC_ID_CLK_FREQ_EFFECTIVE_AVG                               0x06U
-#define NV_PMU_RPC_ID_CLK_LOAD                                             0x07U
-#define NV_PMU_RPC_ID_CLK_VF_CHANGE_INJECT                                 0x08U
-#define NV_PMU_RPC_ID_CLK_MCLK_SWITCH                                      0x09U
-#define NV_PMU_RPC_ID_CLK__COUNT                                           0x0AU
-
-/*!
- * Macros for the @ref feature parameter in the @ref NV_PMU_CLK_LOAD structure
- */
-#define NV_NV_PMU_CLK_LOAD_FEATURE_INVALID                         (0x00000000U)
-#define NV_NV_PMU_CLK_LOAD_FEATURE_FLL                             (0x00000001U)
-#define NV_NV_PMU_CLK_LOAD_FEATURE_VIN                             (0x00000002U)
-#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER                 (0x00000003U)
-#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_EFFECTIVE_AVG              (0x00000004U)
-#define NV_NV_PMU_CLK_LOAD_FEATURE_CLK_DOMAIN                      (0x00000005U)
-#define NV_NV_PMU_CLK_LOAD_FEATURE_CLK_CONTROLLER                  (0x00000006U)
 
 /*
  * CLK_DOMAIN BOARDOBJGRP Header structure.  Describes global state about the
@@ -644,16 +674,6 @@ struct nv_pmu_clk_freq_effective_avg {
 	u32 freqkHz[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
 };
 
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_NO \
-								   (0x00000000U)
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_YES \
-								   (0x00000004U)
-
-/* CLK CMD ID definitions.  */
-#define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_SET                         (0x00000001U)
-#define NV_PMU_CLK_CMD_ID_RPC                                      (0x00000000U)
-#define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_GET_STATUS                  (0x00000002U)
-
 struct nv_pmu_rpc_struct_clk_load {
 	struct nv_pmu_rpc_header hdr;
 	struct nv_pmu_clk_load clk_load;
@@ -672,9 +692,6 @@ struct nv_pmu_clk_cmd_generic {
 	u8 pad[2];
 };
 
-#define NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET                                        \
-	(offsetof(struct nv_pmu_clk_cmd_rpc, request))
-
 struct nv_pmu_clk_cmd {
 	union {
 		u8 cmd_type;
@@ -685,19 +702,11 @@ struct nv_pmu_clk_cmd {
 	};
 };
 
-/* CLK MSG ID definitions */
-#define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_SET                         (0x00000001U)
-#define NV_PMU_CLK_MSG_ID_RPC                                      (0x00000000U)
-#define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_GET_STATUS                  (0x00000002U)
-
 struct nv_pmu_clk_msg_rpc {
 	u8 msg_type;
 	u8 rsvd[3];
 	struct nv_pmu_allocation response;
 };
-
-#define NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET       \
-	((u32)offsetof(struct nv_pmu_clk_msg_rpc, response))
 
 struct nv_pmu_clk_msg {
 	union {
@@ -762,5 +771,30 @@ struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt {
 	struct ctrl_clk_vf_output output;
 	u32 scratch[1];
 };
+
+struct nvgpu_clk_vf_points {
+	struct boardobjgrp_e255 super;
+};
+
+struct clk_vf_point {
+	struct boardobj super;
+	u8  vfe_equ_idx;
+	u8  volt_rail_idx;
+	struct ctrl_clk_vf_pair pair;
+};
+
+struct clk_vf_point_volt {
+	struct clk_vf_point super;
+	u32 source_voltage_uv;
+	struct ctrl_clk_freq_delta freq_delta;
+};
+
+struct clk_vf_point_freq {
+	struct clk_vf_point super;
+	int volt_delta_uv;
+};
+
+struct clk_vf_point *nvgpu_construct_clk_vf_point(struct gk20a *g,
+	void *pargs);
 
 #endif /* NVGPU_PMUIF_CLK_H */

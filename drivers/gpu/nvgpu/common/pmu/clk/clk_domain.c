@@ -29,7 +29,6 @@
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/pmu/clk/clk.h>
-#include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/volt.h>
@@ -1652,7 +1651,7 @@ void clk_domain_free_pmupstate(struct gk20a *g)
 	g->pmu->clk_pmu->clk_domainobjs = NULL;
 }
 
-int nvgpu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index)
+int nvgpu_pmu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index)
 {
 	struct nvgpu_clk_domain *clk_domain;
 

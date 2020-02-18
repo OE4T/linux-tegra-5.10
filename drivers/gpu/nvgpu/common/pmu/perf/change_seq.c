@@ -27,7 +27,6 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/clk/clk.h>
-#include <nvgpu/pmu/clk/clk_domain.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/super_surface.h>

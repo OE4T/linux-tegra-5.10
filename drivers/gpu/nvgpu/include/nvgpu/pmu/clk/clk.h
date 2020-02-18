@@ -27,6 +27,8 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/pmu/pmuif/ctrlboardobj.h>
+#include <nvgpu/boardobjgrpmask.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
 /*!
  * Valid global VIN ID values
@@ -122,6 +124,8 @@
 #define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_MIN     (0x00000001U)
 #define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_SW_REQ  (0x00000003U)
 
+#define FREQ_STEP_SIZE_MHZ      15U
+
 struct gk20a;
 struct nvgpu_avfsfllobjs;
 struct nvgpu_clk_domains;
@@ -130,7 +134,9 @@ struct nvgpu_clk_vf_points;
 struct nvgpu_clk_mclk_state;
 struct nvgpu_clk_slave_freq;
 struct ctrl_perf_change_seq_change_input;
-
+struct nvgpu_vin_device;
+struct nvgpu_clk_domain;
+struct nvgpu_clk_arb;
 
 struct ctrl_clk_domain_clk_mon_item {
 	u32 clk_api_domain;
@@ -232,6 +238,16 @@ struct nvgpu_set_fll_clk {
 	u8 target_regime_id_host;
 };
 
+struct nvgpu_avfsfllobjs {
+	struct boardobjgrp_e32 super;
+	struct boardobjgrpmask_e32 lut_prog_master_mask;
+	u32 lut_step_size_uv;
+	u32 lut_min_voltage_uv;
+	u8 lut_num_entries;
+	u16 max_min_freq_mhz;
+	u8 freq_margin_vfe_idx;
+};
+
 struct nvgpu_clk_pmupstate {
 	struct nvgpu_avfsvinobjs *avfs_vinobjs;
 	struct nvgpu_avfsfllobjs *avfs_fllobjs;
@@ -265,17 +281,90 @@ struct nvgpu_clk_pmupstate {
 	int (*nvgpu_clk_vf_point_cache)(struct gk20a *g);
 };
 
-int clk_init_pmupstate(struct gk20a *g);
-void clk_free_pmupstate(struct gk20a *g);
+typedef u32 vin_device_state_load(struct gk20a *g,
+		struct nvgpu_clk_pmupstate *clk, struct nvgpu_vin_device *pdev);
+
+struct nvgpu_vin_device {
+	struct boardobj super;
+	u8 id;
+	u8 volt_domain;
+	u8 volt_domain_vbios;
+	u8 por_override_mode;
+	u8 override_mode;
+	u32 flls_shared_mask;
+
+	vin_device_state_load  *state_load;
+};
+
+typedef int nvgpu_clkproglink(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
+	struct nvgpu_clk_domain *pdomain);
+
+typedef int nvgpu_clkvfsearch(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
+	struct nvgpu_clk_domain *pdomain, u16 *clkmhz,
+	u32 *voltuv, u8 rail);
+
+typedef int nvgpu_clkgetfpoints(struct gk20a *g,
+	struct nvgpu_clk_pmupstate *pclk, struct nvgpu_clk_domain *pdomain,
+	u32 *pfpointscount, u16 *pfreqpointsinmhz, u8 rail);
+
+struct nvgpu_clk_domain {
+	struct boardobj super;
+	u32 api_domain;
+	u32 part_mask;
+	u32 domain;
+	u8 perf_domain_index;
+	u8 perf_domain_grp_idx;
+	u8 ratio_domain;
+	u8 usage;
+	nvgpu_clkproglink *clkdomainclkproglink;
+	nvgpu_clkvfsearch *clkdomainclkvfsearch;
+	nvgpu_clkgetfpoints *clkdomainclkgetfpoints;
+};
+
+struct nvgpu_clk_domains {
+	struct boardobjgrp_e32 super;
+	u8 n_num_entries;
+	u8 version;
+	bool b_enforce_vf_monotonicity;
+	bool b_enforce_vf_smoothening;
+	bool b_override_o_v_o_c;
+	bool b_debug_mode;
+	u32 vbios_domains;
+	u16 cntr_sampling_periodms;
+	u16 clkmon_refwin_usec;
+	struct boardobjgrpmask_e32 prog_domains_mask;
+	struct boardobjgrpmask_e32 master_domains_mask;
+	struct boardobjgrpmask_e32 clkmon_domains_mask;
+	struct ctrl_clk_clk_delta  deltas;
+
+	struct nvgpu_clk_domain
+		*ordered_noise_aware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
+
+	struct nvgpu_clk_domain
+		*ordered_noise_unaware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
+};
+struct nvgpu_clk_slave_freq{
+	u16 gpc_mhz;
+	u16 sys_mhz;
+	u16 xbar_mhz;
+	u16 host_mhz;
+	u16 nvd_mhz;
+};
+
 int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk);
 int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
-int nvgpu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index);
-u32 nvgpu_clk_mon_init_domains(struct gk20a *g);
+int nvgpu_pmu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index);
+u32 nvgpu_pmu_clk_mon_init_domains(struct gk20a *g);
 int nvgpu_pmu_clk_pmu_setup(struct gk20a *g);
 int nvgpu_pmu_clk_sw_setup(struct gk20a *g);
 int nvgpu_pmu_clk_init(struct gk20a *g);
 void nvgpu_pmu_clk_deinit(struct gk20a *g);
-
+u8 nvgpu_pmu_clk_fll_get_fmargin_idx(struct gk20a *g);
+int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
+	struct nvgpu_clk_slave_freq *vf_point);
+int nvgpu_clk_vf_point_cache(struct gk20a *g);
+int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
+	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
 #endif /* NVGPU_PMU_CLK_H */

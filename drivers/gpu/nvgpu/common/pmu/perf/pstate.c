@@ -213,7 +213,8 @@ static int parse_pstate_entry_6x(struct gk20a *g,
 		pclksetinfo = &pstate->clklist.clksetinfo[clkidx];
 		clk_entry = (struct vbios_pstate_entry_clock_6x *)p;
 
-		status = nvgpu_clk_domain_get_from_index(g, &domain, clkidx);
+		status = nvgpu_pmu_clk_domain_get_from_index(g, &domain,
+				clkidx);
 		if (status != 0) {
 			nvgpu_err(g, "Invalid clk_domain index");
 			return -EINVAL;

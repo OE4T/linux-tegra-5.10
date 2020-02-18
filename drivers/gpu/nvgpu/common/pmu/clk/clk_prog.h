@@ -29,7 +29,6 @@
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/pmu/clk/clk.h>
-#include <nvgpu/pmu/clk/clk_prog.h>
 
 struct clk_prog_1x_master;
 
@@ -120,6 +119,13 @@ struct clk_prog_35_master_ratio {
 struct clk_prog_35_master_table {
 	struct clk_prog_35_master super;
 	struct clk_prog_3x_master_table table;
+};
+
+struct nvgpu_clk_progs {
+	struct boardobjgrp_e255 super;
+	u8 slave_entry_count;
+	u8 vf_entry_count;
+	u8 vf_sec_entry_count;
 };
 
 #define CLK_CLK_PROG_GET(pclk, idx)\

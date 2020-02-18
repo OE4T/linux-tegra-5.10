@@ -31,7 +31,6 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/pmu/perf.h>
-#include <nvgpu/pmu/clk/clk_vf_point.h>
 
 #include "ucode_clk_inf.h"
 #include "clk_domain.h"
@@ -73,7 +72,7 @@ int nvgpu_clk_get_fll_clks(struct gk20a *g,
 }
 #endif
 
-int clk_init_pmupstate(struct gk20a *g)
+static int clk_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
 	if (g->pmu->clk_pmu != NULL) {
@@ -88,13 +87,13 @@ int clk_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
-void clk_free_pmupstate(struct gk20a *g)
+static void clk_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->pmu->clk_pmu);
 	g->pmu->clk_pmu = NULL;
 }
 
-u32 nvgpu_clk_mon_init_domains(struct gk20a *g)
+u32 nvgpu_pmu_clk_mon_init_domains(struct gk20a *g)
 {
 	u32 domain_mask;
 

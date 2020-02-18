@@ -30,11 +30,6 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/clk/clk.h>
-#include <nvgpu/pmu/clk/clk_fll.h>
-#include <nvgpu/pmu/clk/clk_vin.h>
-#include <nvgpu/pmu/clk/clk_domain.h>
-#include <nvgpu/pmu/clk/clk_prog.h>
-#include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/pmu/therm.h>
 #include <nvgpu/pmu/perf.h>

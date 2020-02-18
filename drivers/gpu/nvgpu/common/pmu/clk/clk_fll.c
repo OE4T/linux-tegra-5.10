@@ -28,8 +28,6 @@
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/clk/clk.h>
-#include <nvgpu/pmu/clk/clk_fll.h>
-#include <nvgpu/pmu/clk/clk_vin.h>
 
 #include "ucode_clk_inf.h"
 #include "clk_fll.h"

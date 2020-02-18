@@ -1268,7 +1268,7 @@ static const struct gpu_ops tu104_ops = {
 		.clk_mon_check_master_fault_status =
 				nvgpu_clk_mon_check_master_fault_status,
 		.clk_mon_check_status = nvgpu_clk_mon_check_status,
-		.clk_mon_init_domains = nvgpu_clk_mon_init_domains,
+		.clk_mon_init_domains = nvgpu_pmu_clk_mon_init_domains,
 		.perf_pmu_vfe_load = nvgpu_pmu_perf_load,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB

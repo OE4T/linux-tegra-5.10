@@ -30,7 +30,6 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
-#include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/cmd.h>
 
 #include "ucode_perf_vfe_inf.h"
