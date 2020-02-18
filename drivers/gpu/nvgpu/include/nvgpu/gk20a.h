@@ -268,6 +268,9 @@ struct gpu_ops {
 		int (*acr_init)(struct gk20a *g);
 		int (*acr_construct_execute)(struct gk20a *g);
 	} acr;
+	struct {
+		int (*sbr_pub_load_and_execute)(struct gk20a *g);
+	} sbr;
 
 	struct gops_ecc ecc;
 	struct gops_ltc ltc;

@@ -252,6 +252,14 @@ acr:
              common/acr/acr_sw_tu104.c,
              common/acr/acr_sw_tu104.h ]
 
+sbr:
+  safe: yes
+  owner: Ramesh M
+  gpu: dgpu
+  sources: [ common/sbr/sbr.c,
+             common/sbr/sbr.h,
+             include/nvgpu/sbr.h ]
+
 engine_queues:
   owner: Sagar K
   children:

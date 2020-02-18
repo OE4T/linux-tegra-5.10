@@ -139,6 +139,7 @@ nvgpu-y += \
 	common/acr/acr_sw_gp10b.o \
 	common/acr/acr_sw_gv11b.o \
 	common/acr/acr_sw_tu104.o \
+	common/sbr/sbr.o \
 	common/pmu/super_surface/super_surface.o \
 	common/pmu/lsfm/lsfm.o \
 	common/pmu/lsfm/lsfm_sw_gm20b.o \

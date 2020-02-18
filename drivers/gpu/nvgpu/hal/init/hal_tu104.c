@@ -219,6 +219,7 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/sbr.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 
@@ -250,6 +251,9 @@ static const struct gpu_ops tu104_ops = {
 	.acr = {
 		.acr_init = nvgpu_acr_init,
 		.acr_construct_execute = nvgpu_acr_construct_execute,
+	},
+	.sbr = {
+		.sbr_pub_load_and_execute = nvgpu_sbr_pub_load_and_execute,
 	},
 	.bios = {
 #ifdef CONFIG_NVGPU_DGPU
@@ -1580,6 +1584,7 @@ int tu104_init_hal(struct gk20a *g)
 
 	gops->bios = tu104_ops.bios;
 	gops->acr = tu104_ops.acr;
+	gops->sbr = tu104_ops.sbr;
 	gops->ecc = tu104_ops.ecc;
 	gops->fbp = tu104_ops.fbp;
 	gops->ltc = tu104_ops.ltc;

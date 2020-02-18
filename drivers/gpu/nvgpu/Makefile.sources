@@ -579,6 +579,7 @@ srcs += common/sec2/sec2.c \
 	common/mm/vidmem.c \
 	common/pramin.c \
 	common/ce/ce_app.c \
+	common/sbr/sbr.c \
 	hal/mm/mm_gv100.c \
 	hal/mm/mm_tu104.c \
 	hal/mc/mc_gv100.c  \
