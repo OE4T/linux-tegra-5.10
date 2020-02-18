@@ -3,7 +3,7 @@
  *
  * Tegra T23X HOST1X Register Definitions
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,7 +21,7 @@
 #ifndef __NVHOST_HARDWARE_T23X_H
 #define __NVHOST_HARDWARE_T23X_H
 
-#include "host1x/hw_host1x7_sync.h"
+#include "host1x/hw_host1x08_sync.h"
 #include "host1x/hw_host1x6_uclass.h"
 #include "host1x/hw_host1x7_channel.h"
 #include "host1x/hw_host1x5_actmon.h"

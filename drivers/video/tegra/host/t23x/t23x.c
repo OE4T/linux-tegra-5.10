@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T23X Architecture Chips
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -746,6 +746,26 @@ static void t23x_init_map_regs(struct platform_device *pdev)
 #include "host1x/host1x_actmon_t186.c"
 #endif
 
+static void host1x08_intr_resume(struct nvhost_intr *intr)
+{
+	struct nvhost_master *dev = intr_to_dev(intr);
+	const int nb_pts = nvhost_syncpt_nb_hw_pts(&dev->syncpt);
+	unsigned int i;
+
+	host1x_intr_ops.resume(intr);
+
+	/*
+	 * Configure Host1x to send syncpoint threshold interrupts to the
+	 * first interrupt line.
+	 */
+	for (i = 0; i < nb_pts; i++) {
+		const int reg = host1x_common_vm1_syncpt_intr_dest_vm_r() +
+				i * 4;
+
+		host1x_writel(dev->dev, reg, 0);
+	}
+}
+
 int nvhost_init_t23x_support(struct nvhost_master *host,
 			     struct nvhost_chip_support *op)
 {
@@ -765,6 +785,8 @@ int nvhost_init_t23x_support(struct nvhost_master *host,
 	host->sync_aperture = host->aperture;
 	op->syncpt = host1x_syncpt_ops;
 	op->intr = host1x_intr_ops;
+	op->intr.resume = host1x08_intr_resume;
+
 	op->vm = host1x_vm_ops;
 	op->vm.init_syncpt_interface = nvhost_syncpt_unit_interface_init;
 #if defined(CONFIG_TEGRA_GRHOST_SCALE)
