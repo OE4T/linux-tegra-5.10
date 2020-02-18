@@ -67,6 +67,11 @@ struct nvgpu_gr_ctx;
  * Note that if requested class is a valid class but not a COMPUTE class, this
  * function will return 0.
  *
+ * Only below classes are supported.
+ * 1. VOLTA_COMPUTE_A
+ * 2. VOLTA_DMA_COPY_A
+ * 3. VOLTA_CHANNEL_GPFIFO_A
+ *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ENOMEM if memory allocation fails for any context image.
  * @retval -EINVAL if invalid GPU class ID is provided.
