@@ -338,4 +338,10 @@ int nvgpu_gr_enable_ctxsw(struct gk20a *g);
 int nvgpu_gr_reset(struct gk20a *g);
 #endif
 
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/gr/nvgpu_next_gr.h"
+#endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
+
 #endif /* NVGPU_GR_H */

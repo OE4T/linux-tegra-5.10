@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -347,6 +347,10 @@ u32 *nvgpu_netlist_get_gpccs_inst_list(struct gk20a *g);
 u32 *nvgpu_netlist_get_gpccs_data_list(struct gk20a *g);
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu/nvgpu_next_netlist.h>
+#endif
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 struct netlist_aiv_list *nvgpu_netlist_get_sys_ctxsw_regs(struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_gpc_ctxsw_regs(struct gk20a *g);

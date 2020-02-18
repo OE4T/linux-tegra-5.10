@@ -31,6 +31,9 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/string.h>
 #include <nvgpu/static_analysis.h>
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "nvgpu/nvgpu_next_netlist.h"
+#endif
 
 #include "netlist_priv.h"
 #include "netlist_defs.h"
@@ -211,6 +214,10 @@ static bool nvgpu_netlist_handle_sw_bundles_region_id(struct gk20a *g,
 		break;
 	default:
 		handled = false;
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		handled = nvgpu_next_netlist_handle_sw_bundles_region_id(g,
+				region_id, src, size, netlist_vars, &err);
+#endif
 		break;
 	}
 
@@ -527,7 +534,9 @@ clean_up:
 		nvgpu_kfree(g, netlist_vars->sw_method_init.l);
 		nvgpu_kfree(g, netlist_vars->sw_ctx_load.l);
 		nvgpu_kfree(g, netlist_vars->sw_non_ctx_load.l);
-		nvgpu_kfree(g, netlist_vars->sw_veid_bundle_init.l);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		nvgpu_next_netlist_deinit_ctx_vars(g);
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.sys.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.gpc.l);
@@ -622,6 +631,9 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 	nvgpu_kfree(g, netlist_vars->sw_method_init.l);
 	nvgpu_kfree(g, netlist_vars->sw_ctx_load.l);
 	nvgpu_kfree(g, netlist_vars->sw_non_ctx_load.l);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	nvgpu_next_netlist_deinit_ctx_vars(g);
+#endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.sys.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.gpc.l);

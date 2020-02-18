@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,10 @@
 #define NVGPU_NETLIST_PRIV_H
 
 #include <nvgpu/types.h>
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "common/netlist/nvgpu_next_netlist_priv.h"
+#endif
 
 struct netlist_u32_list;
 struct netlist_av_list;
@@ -116,6 +120,9 @@ struct nvgpu_netlist_vars {
 	struct netlist_av_list  sw_method_init;
 	struct netlist_aiv_list sw_ctx_load;
 	struct netlist_av_list  sw_non_ctx_load;
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	struct nvgpu_next_netlist_vars nvgpu_next;
+#endif
 	struct netlist_av_list  sw_veid_bundle_init;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	struct {

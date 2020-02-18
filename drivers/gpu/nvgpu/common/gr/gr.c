@@ -44,6 +44,9 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/gops_mc.h>
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "nvgpu/gr/nvgpu_next_gr.h"
+#endif
 
 #include "gr_priv.h"
 
@@ -561,6 +564,11 @@ static int gr_init_reset_enable_hw(struct gk20a *g)
 		nvgpu_writel(g, sw_non_ctx_load->l[i].addr,
 			sw_non_ctx_load->l[i].value);
 	}
+
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	nvgpu_next_gr_init_reset_enable_hw_non_ctx_local(g);
+	nvgpu_next_gr_init_reset_enable_hw_non_ctx_global(g);
+#endif
 
 	err = g->ops.gr.falcon.wait_mem_scrubbing(g);
 	if (err != 0) {
