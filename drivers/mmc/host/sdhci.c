@@ -2285,6 +2285,18 @@ void sdhci_start_tuning(struct sdhci_host *host)
 {
 	u16 ctrl;
 
+	/*
+	 * Set data timeout counter to 0x5 as the timeout value would be more
+	 * than sufficient to allow tuning block transfer and reset the data
+	 * FSM before issuing CMD reset in case of Buffer read ready interrupt
+	 * timeout. This applies to all platforms ex. T210 where data timeout
+	 * counter should be set to 0xE.
+	 */
+	if (!(host->quirks2 & SDHCI_QUIRK2_NON_STD_TUN_CARD_CLOCK))
+		sdhci_writeb(host, 0x05, SDHCI_TIMEOUT_CONTROL);
+	else
+		sdhci_writeb(host, 0x0E, SDHCI_TIMEOUT_CONTROL);
+
 	ctrl = sdhci_readw(host, SDHCI_HOST_CONTROL2);
 	ctrl |= SDHCI_CTRL_EXEC_TUNING;
 	if (host->quirks2 & SDHCI_QUIRK2_TUNING_WORK_AROUND)
@@ -2327,9 +2339,14 @@ EXPORT_SYMBOL_GPL(sdhci_reset_tuning);
 void sdhci_abort_tuning(struct sdhci_host *host, u32 opcode)
 {
 	sdhci_reset_tuning(host);
-
-	sdhci_do_reset(host, SDHCI_RESET_CMD);
-	sdhci_do_reset(host, SDHCI_RESET_DATA);
+	if (host->quirks2 &
+		SDHCI_QUIRK2_ISSUE_CMD_DAT_RESET_TOGETHER) {
+		sdhci_do_reset(host, SDHCI_RESET_CMD |
+			SDHCI_RESET_DATA);
+	} else {
+		sdhci_do_reset(host, SDHCI_RESET_CMD);
+		sdhci_do_reset(host, SDHCI_RESET_DATA);
+	}
 
 	sdhci_end_tuning(host);
 
@@ -2351,6 +2368,7 @@ void sdhci_send_tuning(struct sdhci_host *host, u32 opcode)
 	struct mmc_request mrq = {};
 	unsigned long flags;
 	u32 b = host->sdma_boundary;
+	u16 clk;
 
 	spin_lock_irqsave(&host->lock, flags);
 
@@ -2359,6 +2377,12 @@ void sdhci_send_tuning(struct sdhci_host *host, u32 opcode)
 	cmd.mrq = &mrq;
 
 	mrq.cmd = &cmd;
+	if (host->quirks2 & SDHCI_QUIRK2_NON_STD_TUN_CARD_CLOCK) {
+		clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL);
+		clk &= ~SDHCI_CLOCK_CARD_EN;
+		sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
+	}
+
 	/*
 	 * In response to CMD19, the card sends 64 bytes of tuning
 	 * block to the Host Controller. So we set the block size
@@ -2388,9 +2412,17 @@ void sdhci_send_tuning(struct sdhci_host *host, u32 opcode)
 
 	spin_unlock_irqrestore(&host->lock, flags);
 
+	if (host->quirks2 & SDHCI_QUIRK2_NON_STD_TUN_CARD_CLOCK) {
+		udelay(1);
+		sdhci_reset(host, SDHCI_RESET_CMD | SDHCI_RESET_DATA);
+		clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL);
+		clk |= SDHCI_CLOCK_CARD_EN;
+		sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
+	}
+
 	/* Wait for Buffer Read Ready interrupt */
 	wait_event_timeout(host->buf_ready_int, (host->tuning_done == 1),
-			   msecs_to_jiffies(50));
+			   msecs_to_jiffies(800));
 
 }
 EXPORT_SYMBOL_GPL(sdhci_send_tuning);
@@ -2398,13 +2430,14 @@ EXPORT_SYMBOL_GPL(sdhci_send_tuning);
 static int __sdhci_execute_tuning(struct sdhci_host *host, u32 opcode)
 {
 	int i;
+	u16 ctrl;
+	int tuning_loop_counter = MAX_TUNING_LOOP;
 
-	/*
-	 * Issue opcode repeatedly till Execute Tuning is set to 0 or the number
-	 * of loops reaches tuning loop count.
-	 */
-	for (i = 0; i < host->tuning_loop_count; i++) {
-		u16 ctrl;
+	if (host->ops->get_max_tuning_loop_counter)
+		tuning_loop_counter =
+			host->ops->get_max_tuning_loop_counter(host);
+
+	for (i = 0; i < tuning_loop_counter; i++) {
 
 		sdhci_send_tuning(host, opcode);
 
@@ -2421,8 +2454,9 @@ static int __sdhci_execute_tuning(struct sdhci_host *host, u32 opcode)
 
 		ctrl = sdhci_readw(host, SDHCI_HOST_CONTROL2);
 		if (!(ctrl & SDHCI_CTRL_EXEC_TUNING)) {
-			if (ctrl & SDHCI_CTRL_TUNED_CLK)
+			if (ctrl & SDHCI_CTRL_TUNED_CLK) {
 				return 0; /* Success! */
+			}
 			break;
 		}
 
@@ -2440,6 +2474,10 @@ int sdhci_execute_tuning(struct mmc_host *mmc, u32 opcode)
 	int err = 0;
 	unsigned int tuning_count = 0;
 	bool hs400_tuning;
+
+	if (host->ops->skip_retuning)
+		if (host->ops->skip_retuning(host))
+			return 0;
 
 	hs400_tuning = host->flags & SDHCI_HS400_TUNING;
 
@@ -2473,7 +2511,8 @@ int sdhci_execute_tuning(struct mmc_host *mmc, u32 opcode)
 		break;
 
 	case MMC_TIMING_UHS_SDR50:
-		if (host->flags & SDHCI_SDR50_NEEDS_TUNING)
+		if (host->flags & SDHCI_SDR50_NEEDS_TUNING ||
+		    host->flags & SDHCI_SDR104_NEEDS_TUNING)
 			break;
 		/* FALLTHROUGH */
 

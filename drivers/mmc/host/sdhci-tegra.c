@@ -1345,6 +1345,24 @@ static int tegra_sdhci_execute_tuning(struct sdhci_host *host, u32 opcode)
 	return mmc_send_tuning(host->mmc, opcode, NULL);
 }
 
+static int tegra_sdhci_get_max_tuning_loop_counter(struct sdhci_host *host)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	int err = 0;
+
+	err = tegra_prod_set_by_name_partially(&host->ioaddr,
+			prod_device_states[host->mmc->ios.timing],
+			tegra_host->prods, 0, SDHCI_VNDR_TUN_CTRL0_0,
+			SDHCI_VNDR_TUN_CTRL0_TUN_ITER_MASK);
+	if (err)
+		dev_err(mmc_dev(host->mmc),
+			"%s: error %d in tuning iteration update\n",
+				__func__, err);
+
+	return 257;
+}
+
 static int sdhci_tegra_start_signal_voltage_switch(struct mmc_host *mmc,
 						   struct mmc_ios *ios)
 {
@@ -1369,6 +1387,22 @@ static int sdhci_tegra_start_signal_voltage_switch(struct mmc_host *mmc,
 		tegra_sdhci_pad_autocalib(host);
 
 	return ret;
+}
+
+static bool tegra_sdhci_skip_retuning(struct sdhci_host *host)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+
+	if (tegra_host->tuning_status == TUNING_STATUS_DONE) {
+		dev_info(mmc_dev(host->mmc),
+			"Tuning done, restoring the best tap value : %u\n",
+				tegra_host->tuned_tap_delay);
+		tegra_sdhci_set_tap(host, tegra_host->tuned_tap_delay);
+		return true;
+	}
+
+	return false;
 }
 
 static int tegra_sdhci_init_pinctrl_info(struct device *dev,
@@ -1564,6 +1598,8 @@ static const struct sdhci_ops tegra_sdhci_ops = {
 	.set_uhs_signaling = tegra_sdhci_set_uhs_signaling,
 	.voltage_switch = tegra_sdhci_voltage_switch,
 	.get_max_clock = tegra_sdhci_get_max_clock,
+	.get_max_tuning_loop_counter = tegra_sdhci_get_max_tuning_loop_counter,
+	.skip_retuning = tegra_sdhci_skip_retuning,
 	.hs400_enhanced_strobe = tegra_sdhci_hs400_enhanced_strobe,
 	.post_init = tegra_sdhci_post_init,
 	.dump_vendor_regs = tegra_sdhci_dump_vendor_regs,
