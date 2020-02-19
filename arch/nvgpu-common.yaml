@@ -766,37 +766,18 @@ pmu:
           gpu: dgpu
           sources: [ common/pmu/clk/clk.c,
                      common/pmu/clk/ucode_clk_inf.h,
+                     common/pmu/clk/clk_domain.c,
+                     common/pmu/clk/clk_domain.h,
+                     common/pmu/clk/clk_fll.c,
+                     common/pmu/clk/clk_fll.h,
+                     common/pmu/clk/clk_prog.c,
+                     common/pmu/clk/clk_prog.h,
+                     common/pmu/clk/clk_vf_point.c,
+                     common/pmu/clk/clk_vf_point.h,
+                     common/pmu/clk/clk_vin.c,
+                     common/pmu/clk/clk_vin.h,
                      include/nvgpu/clk.h,
-                     include/nvgpu/pmu/clk/clk.h ]
-
-        domain:
-          safe: yes
-          gpu: dgpu
-          sources: [ common/pmu/clk/clk_domain.c,
-                     common/pmu/clk/clk_domain.h ]
-
-        fll:
-          safe: yes
-          gpu: dgpu
-          sources: [ common/pmu/clk/clk_fll.c,
-                     common/pmu/clk/clk_fll.h ]
-
-        prog:
-          safe: yes
-          gpu: dgpu
-          sources: [ common/pmu/clk/clk_prog.c,
-                     common/pmu/clk/clk_prog.h ]
-
-        vf_point:
-          safe: yes
-          gpu: dgpu
-          sources: [ common/pmu/clk/clk_vf_point.c,
-                     common/pmu/clk/clk_vf_point.h ]
-        vin:
-          safe: yes
-          gpu: dgpu
-          sources: [ common/pmu/clk/clk_vin.c,
-                     common/pmu/clk/clk_vin.h ]
+                     include/nvgpu/pmu/clk/clk.h]
     ipc:
       safe: yes
       owner: Sagar K

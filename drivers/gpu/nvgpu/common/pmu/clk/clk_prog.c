@@ -936,6 +936,13 @@ exit:
 	return status;
 }
 
+static struct clk_vf_point *get_vf_point_by_idx(
+		struct nvgpu_clk_pmupstate *pclk, u32 idx)
+{
+	return (struct clk_vf_point *)BOARDOBJGRP_OBJ_GET_BY_IDX(
+			&pclk->clk_vf_pointobjs->super.super, (u8)(idx));
+}
+
 static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 {
 	struct boardobj *board_obj_ptr = NULL;
@@ -1036,10 +1043,10 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 			vf_point_data.board_obj.type =
 					CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ;
 			 do {
-				 clkvfpointfreqmhzset(g, &vf_point_data.vf_point,
+				 vf_point_data.vf_point.pair.freq_mhz =
 					p1xmaster->super.freq_max_mhz -
 					  U16(step_count) *
-					  U16(freq_step_size_mhz));
+					  U16(freq_step_size_mhz);
 
 				status = _clk_prog_1x_master_rail_construct_vf_point(g, pclk,
 					p1xmaster, p_vf_rail,
@@ -1160,46 +1167,46 @@ static int vflookup_prog_1x_master(struct gk20a *g,
 	if ((*pvoltuv == 0U) && (*pclkmhz == 0U)) {
 		for (j = pvfentry->vf_point_idx_first;
 			j <= pvfentry->vf_point_idx_last; j++) {
-			pvfpoint = CLK_CLK_VF_POINT_GET(pclk, j);
+			pvfpoint = get_vf_point_by_idx(pclk, j);
 			nvgpu_err(g, "v %x c %x",
-				clkvfpointvoltageuvget(g, pvfpoint),
-				clkvfpointfreqmhzget(g, pvfpoint));
+				pvfpoint->pair.voltage_uv,
+				pvfpoint->pair.freq_mhz);
 		}
 		return -EINVAL;
 	}
 	/* start looking up f for v for v for f */
 	/* looking for volt? */
 	if (*pvoltuv == 0U) {
-		pvfpoint = CLK_CLK_VF_POINT_GET(pclk,
+		pvfpoint = get_vf_point_by_idx(pclk,
 				pvfentry->vf_point_idx_last);
 		/* above range? */
-		if (clkmhz > clkvfpointfreqmhzget(g, pvfpoint)) {
+		if (clkmhz > pvfpoint->pair.freq_mhz) {
 			return -EINVAL;
 		}
 
 		for (j = pvfentry->vf_point_idx_last;
 			j >= pvfentry->vf_point_idx_first; j--) {
-			pvfpoint = CLK_CLK_VF_POINT_GET(pclk, j);
-			if (clkmhz <= clkvfpointfreqmhzget(g, pvfpoint)) {
-				voltuv = clkvfpointvoltageuvget(g, pvfpoint);
+			pvfpoint = get_vf_point_by_idx(pclk, j);
+			if (clkmhz <= pvfpoint->pair.freq_mhz) {
+				voltuv = pvfpoint->pair.voltage_uv;
 			} else {
 				break;
 			}
 		}
 	} else {	/* looking for clk? */
 
-		pvfpoint = CLK_CLK_VF_POINT_GET(pclk,
+		pvfpoint = get_vf_point_by_idx(pclk,
 				pvfentry->vf_point_idx_first);
 		/* below range? */
-		if (voltuv < clkvfpointvoltageuvget(g, pvfpoint)) {
+		if (voltuv < pvfpoint->pair.voltage_uv) {
 			return -EINVAL;
 		}
 
 		for (j = pvfentry->vf_point_idx_first;
 			j <= pvfentry->vf_point_idx_last; j++) {
-			pvfpoint = CLK_CLK_VF_POINT_GET(pclk, j);
-			if (voltuv >= clkvfpointvoltageuvget(g, pvfpoint)) {
-				clkmhz = clkvfpointfreqmhzget(g, pvfpoint);
+			pvfpoint = get_vf_point_by_idx(pclk, j);
+			if (voltuv >= pvfpoint->pair.voltage_uv) {
+				clkmhz = pvfpoint->pair.freq_mhz;
 			} else {
 				break;
 			}
@@ -1288,8 +1295,8 @@ static int getfpoints_prog_1x_master(struct gk20a *g,
 	}
 	for (j = pvfentry->vf_point_idx_first;
 		j <= pvfentry->vf_point_idx_last; j++) {
-		pvfpoint = CLK_CLK_VF_POINT_GET(pclk, j);
-		**ppfreqpointsinmhz = clkvfpointfreqmhzget(g, pvfpoint);
+		pvfpoint = get_vf_point_by_idx(pclk, j);
+		**ppfreqpointsinmhz = pvfpoint->pair.freq_mhz;
 		(*ppfreqpointsinmhz)++;
 	}
 done:

@@ -262,8 +262,7 @@ static int _clk_vf_point_pmudatainit_freq(struct gk20a *g,
 	pset = (struct nv_pmu_clk_clk_vf_point_freq_boardobj_set *)
 		ppmudata;
 
-	pset->freq_mhz =
-		clkvfpointfreqmhzget(g, &pclk_vf_point_freq->super);
+	pset->freq_mhz = pclk_vf_point_freq->super.pair.freq_mhz;
 
 	pset->volt_delta_uv = pclk_vf_point_freq->volt_delta_uv;
 
@@ -324,8 +323,7 @@ static int clk_vf_point_construct_freq_35(struct gk20a *g,
 	pclkvfpoint->super.super.pmudatainit =
 			_clk_vf_point_pmudatainit_freq;
 
-	clkvfpointfreqmhzset(g, &pclkvfpoint->super,
-		clkvfpointfreqmhzget(g, &ptmpvfpoint->super));
+	pclkvfpoint->super.pair.freq_mhz = ptmpvfpoint->super.pair.freq_mhz;
 
 	return status;
 }

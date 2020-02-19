@@ -69,10 +69,10 @@
 #define CTRL_CLK_CLK_PROG_TYPE_35_MASTER				0x06U
 #define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO				0x07U
 #define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE				0x08U
-#define CTRL_CLK_CLK_PROG_TYPE_UNKNOWN					255U
-#define CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES		4U
-#define CTRL_CLK_CLK_PROG_35_MASTER_SEC_VF_ENTRY_VOLTRAIL_MAX		1U
-#define CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES			6U
+#define CTRL_CLK_CLK_PROG_TYPE_UNKNOWN					0xFFU
+#define CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES		0x4U
+#define CTRL_CLK_CLK_PROG_35_MASTER_SEC_VF_ENTRY_VOLTRAIL_MAX		0x1U
+#define CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES			0x6U
 /*!
  * Enumeration of CLK_PROG source types.
  */
@@ -88,6 +88,7 @@
 #define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT				0x05U
 #define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_SEC				0x06U
 #define CTRL_CLK_CLK_VF_POINT_IDX_INVALID				0xFFU
+#define CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE			0x5U
 
 #define NV_PMU_RPC_ID_CLK_CNTR_SAMPLE_DOMAIN				0x01U
 #define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_VOLT_TO_FREQ		0x02U
@@ -117,46 +118,7 @@
 /* CLK MSG ID definitions */
 #define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_SET			(0x00000001U)
 #define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
-
-#define CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(pvfpair)                          \
-	((pvfpair)->freq_mhz)
-
-#define CTRL_CLK_VF_PAIR_VOLTAGE_UV_GET(pvfpair)                        \
-	((pvfpair)->voltage_uv)
-
-#define CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(pvfpair, _freqmhz)                \
-	(((pvfpair)->freq_mhz) = (_freqmhz))
-
-#define CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(pvfpair, _freqmhz)                \
-	(((pvfpair)->freq_mhz) = (_freqmhz))
-
-
-#define CTRL_CLK_VF_PAIR_VOLTAGE_UV_SET(pvfpair, _voltageuv)	        \
-	(((pvfpair)->voltage_uv) = (_voltageuv))
-
-#define CLK_CLK_VF_POINT_GET(pclk, idx)                                        \
-	((struct clk_vf_point *)BOARDOBJGRP_OBJ_GET_BY_IDX(                    \
-		&pclk->clk_vf_pointobjs->super.super, (u8)(idx)))
-
-#define clkvfpointpairget(pvfpoint)                                            \
-	(&((pvfpoint)->pair))
-
-#define clkvfpointfreqmhzget(pgpu, pvfpoint)                                   \
-	CTRL_CLK_VF_PAIR_FREQ_MHZ_GET(clkvfpointpairget(pvfpoint))
-
-#define clkvfpointfreqdeltamhzGet(pgpu, pvfPoint)                              \
-	((BOARDOBJ_GET_TYPE(pvfpoint) == CTRL_CLK_CLK_VF_POINT_TYPE_VOLT) ?    \
-	(((struct clk_vf_point_volt *)(pvfpoint))->freq_delta_khz / 1000) : 0)
-
-#define clkvfpointfreqmhzset(pgpu, pvfpoint, _freqmhz)                         \
-	CTRL_CLK_VF_PAIR_FREQ_MHZ_SET(clkvfpointpairget(pvfpoint), _freqmhz)
-
-#define clkvfpointvoltageuvset(pgpu, pvfpoint, _voltageuv)                     \
-	CTRL_CLK_VF_PAIR_VOLTAGE_UV_SET(clkvfpointpairget(pvfpoint),           \
-	_voltageuv)
-
-#define clkvfpointvoltageuvget(pgpu, pvfpoint)                          \
-	CTRL_CLK_VF_PAIR_VOLTAGE_UV_GET(clkvfpointpairget(pvfpoint))    \
+#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES	(0x00000001U)
 
 struct ctrl_clk_domain_control_35_prog_clk_mon {
 	u32 flags;
@@ -253,8 +215,6 @@ union ctrl_clk_clk_prog_1x_source_data {
 	struct ctrl_clk_clk_prog_1x_source_pll source_pll;
 };
 
-#define CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE		0x5U
-
 struct ctrl_clk_vf_point_freq_tuple {
 	u16 freqMHz;
 };
@@ -264,8 +224,6 @@ struct ctrl_clk_vf_point_base_vf_tuple {
 		freqTuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
 	u32 voltageuV;
 };
-
-#define CTRL_CLK_CLK_VF_POINT_DVCO_OFFSET_CODE_INVALID   0xFFU
 
 struct ctrl_clk_vf_point_base_vf_tuple_sec {
 	struct ctrl_clk_vf_point_base_vf_tuple  super;
@@ -660,9 +618,6 @@ union nv_pmu_clk_clk_vf_point_boardobj_get_status_union {
 };
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E255(clk, clk_vf_point);
-
-
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES      (0x00000001U)
 
 struct nv_pmu_clk_load {
 	u8 feature;
