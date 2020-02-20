@@ -33,10 +33,12 @@
 #include <nvgpu/pmu/cmd.h>
 #endif
 
-#include "pmu_gv11b.h"
-
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
+#include "pmu_gv11b.h"
+
+#define PWR_FALCON_MAILBOX1_DATA_INIT	(0U)
+#define PMU_BAR0_HOST_READ_ERROR	(0U)
 #define ALIGN_4KB     12
 
 /* error handler */
@@ -50,27 +52,32 @@ void gv11b_clear_pmu_bar0_host_err_status(struct gk20a *g)
 
 static u32 pmu_bar0_host_tout_etype(u32 val)
 {
-	return (val != 0U) ? PMU_BAR0_HOST_WRITE_TOUT : PMU_BAR0_HOST_READ_TOUT;
+	return (val != PMU_BAR0_HOST_READ_ERROR) ?
+			PMU_BAR0_HOST_WRITE_TOUT : PMU_BAR0_HOST_READ_TOUT;
 }
 
 static u32 pmu_bar0_fecs_tout_etype(u32 val)
 {
-	return (val != 0U) ? PMU_BAR0_FECS_WRITE_TOUT : PMU_BAR0_FECS_READ_TOUT;
+	return (val != PMU_BAR0_HOST_READ_ERROR) ?
+			PMU_BAR0_FECS_WRITE_TOUT : PMU_BAR0_FECS_READ_TOUT;
 }
 
 static u32 pmu_bar0_cmd_hwerr_etype(u32 val)
 {
-	return (val != 0U) ? PMU_BAR0_CMD_WRITE_HWERR : PMU_BAR0_CMD_READ_HWERR;
+	return (val != PMU_BAR0_HOST_READ_ERROR) ?
+			PMU_BAR0_CMD_WRITE_HWERR : PMU_BAR0_CMD_READ_HWERR;
 }
 
 static u32 pmu_bar0_fecserr_etype(u32 val)
 {
-	return (val != 0U) ? PMU_BAR0_WRITE_FECSERR : PMU_BAR0_READ_FECSERR;
+	return (val != PMU_BAR0_HOST_READ_ERROR) ?
+			PMU_BAR0_WRITE_FECSERR : PMU_BAR0_READ_FECSERR;
 }
 
 static u32 pmu_bar0_hosterr_etype(u32 val)
 {
-	return (val != 0U) ? PMU_BAR0_WRITE_HOSTERR : PMU_BAR0_READ_HOSTERR;
+	return (val != PMU_BAR0_HOST_READ_ERROR) ?
+			PMU_BAR0_WRITE_HOSTERR : PMU_BAR0_READ_HOSTERR;
 }
 
 int gv11b_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
@@ -200,7 +207,7 @@ void gv11b_pmu_flcn_setup_boot_config(struct gk20a *g)
 	}
 
 	/* Clearing mailbox register used to reflect capabilities */
-	nvgpu_writel(g, pwr_falcon_mailbox1_r(), 0);
+	nvgpu_writel(g, pwr_falcon_mailbox1_r(), PWR_FALCON_MAILBOX1_DATA_INIT);
 
 	/* enable the context interface */
 	nvgpu_writel(g, pwr_falcon_itfen_r(),
@@ -433,14 +440,14 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 void gv11b_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 {
 	struct gk20a *g = pmu->g;
-	u32 intr_mask;
-	u32 intr_dest;
+	u32 intr_mask = 0x0;
+	u32 intr_dest = 0x0;
 
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_PMU, MC_INTR_DISABLE);
 
-	nvgpu_falcon_set_irq(pmu->flcn, false, 0x0, 0x0);
+	nvgpu_falcon_set_irq(pmu->flcn, false, intr_mask, intr_dest);
 
 	if (enable) {
 		intr_dest = g->ops.pmu.get_irqdest(g);
