@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -659,5 +659,25 @@ void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
 		u32 err_id, struct mmu_fault_info *fault_info,
 		u32 status, u32 sub_err_type);
+
+/**
+ * @brief Wrapper function to report ctxsw error.
+ *
+ * @param g [in]		- The GPU driver struct.
+ * @param err_type [in]		- Error index.
+ *				  - Min: GPU_FECS_CTXSW_WATCHDOG_TIMEOUT
+ *				  - Max: GPU_FECS_CTXSW_INIT_ERROR
+ * @param chid [in]		- Channel ID.
+ * @param mailbox_value [in]	- Mailbox value.
+ *
+ * - Creates an instance of #ctxsw_err_info structure.
+ * - Fills the details related to current context, ctxsw status, mailbox value,
+ *   channel ID in #ctxsw_err_info strucutre.
+ * - Invokes #nvgpu_report_ctxsw_err() and passes #ctxsw_err_info.
+ *
+ * @return	None
+ */
+void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
+		u32 mailbox_value);
 
 #endif /* NVGPU_NVGPU_ERR_H */

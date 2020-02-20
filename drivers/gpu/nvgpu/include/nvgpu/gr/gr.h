@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -201,7 +201,8 @@ int nvgpu_gr_enable_hw(struct gk20a *g);
  *
  * This function initializes all the GR engine support and
  * functionality. This includes:
- * - Initializing context switch ucode.
+ * - Initializing context switch ucode. In case of failure, report
+ *   it to qnx.sdl using #gr_intr_report_ctxsw_error().
  * - Reading Golden context image size from FECS micro controller.
  * - Allocating memory for all internal data structures such as GR ctx desc
  *   and ECC.

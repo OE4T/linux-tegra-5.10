@@ -41,7 +41,7 @@
 
 #include "gr_intr_priv.h"
 
-static void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
+void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		u32 mailbox_value)
 {
 	struct ctxsw_err_info err_info;

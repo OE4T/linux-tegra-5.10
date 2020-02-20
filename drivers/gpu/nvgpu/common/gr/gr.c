@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_err.h>
 #include <nvgpu/io.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/errno.h>
@@ -734,6 +735,7 @@ int nvgpu_gr_init_support(struct gk20a *g)
 
 	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
+		gr_intr_report_ctxsw_error(g, GPU_FECS_CTXSW_INIT_ERROR, 0, 0);
 		return err;
 	}
 
