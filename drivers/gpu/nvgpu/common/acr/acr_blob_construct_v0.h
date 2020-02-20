@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@
 #define NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_FALSE       0U
 #define NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE        BIT32(2)
 #define NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE       BIT32(3)
-#define NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_FALSE      0U
+#define NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_FALSE      (0U)
 
 /*
  * Image Status Defines

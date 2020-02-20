@@ -263,7 +263,7 @@ struct lsf_ucode_desc {
 #define NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE        BIT32(2)
 /** Use priv loading method instead of bootloader/DMAs */
 #define NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE       BIT32(3)
-#define NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_FALSE      0U
+#define NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_FALSE      (0U)
 struct lsf_lsb_header {
 	/** Code/data signature details of each LS falcon */
 	struct lsf_ucode_desc signature;

@@ -33,6 +33,20 @@
 #include "acr_wpr.h"
 #include "acr_priv.h"
 
+#define APP_IMEM_OFFSET			(0)
+#define APP_IMEM_ENTRY			(0)
+#define APP_DMEM_OFFSET			(0)
+#define APP_RESIDENT_CODE_OFFSET	(0)
+#define MEMSET_VALUE			(0)
+#define LSB_HDR_DATA_SIZE		(0)
+#define BL_START_OFFSET			(0)
+
+#if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
+#define UCODE_PARAMS			(1)
+#else
+#define UCODE_PARAMS			(0)
+#endif
+
 #ifdef CONFIG_NVGPU_LS_PMU
 int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 {
@@ -85,7 +99,8 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 
 	switch (ver) {
 		case NVGPU_GPUID_GV11B:
-			fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG, 0);
+			fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG,
+				NVGPU_REQUEST_FIRMWARE_NO_WARN);
 			break;
 #ifdef CONFIG_NVGPU_DGPU
 		case NVGPU_GPUID_TU104:
@@ -119,21 +134,27 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	}
 
 	p_img->desc->bootloader_start_offset = fecs->boot.offset;
-	p_img->desc->bootloader_size = ALIGN(fecs->boot.size, 256U);
+	p_img->desc->bootloader_size = ALIGN(fecs->boot.size,
+						LSF_DATA_SIZE_ALIGNMENT);
 	p_img->desc->bootloader_imem_offset = fecs->boot_imem_offset;
 	p_img->desc->bootloader_entry_point = fecs->boot_entry;
 
-	tmp_size = nvgpu_safe_add_u32(ALIGN(fecs->boot.size, 256U),
-					ALIGN(fecs->code.size, 256U));
+	tmp_size = nvgpu_safe_add_u32(ALIGN(fecs->boot.size,
+						LSF_DATA_SIZE_ALIGNMENT),
+					ALIGN(fecs->code.size,
+						LSF_DATA_SIZE_ALIGNMENT));
 	p_img->desc->image_size = nvgpu_safe_add_u32(tmp_size,
-						ALIGN(fecs->data.size, 256U));
-	p_img->desc->app_size = nvgpu_safe_add_u32(ALIGN(fecs->code.size, 256U),
-						ALIGN(fecs->data.size, 256U));
+						ALIGN(fecs->data.size,
+						LSF_DATA_SIZE_ALIGNMENT));
+	p_img->desc->app_size = nvgpu_safe_add_u32(ALIGN(fecs->code.size,
+						LSF_DATA_SIZE_ALIGNMENT),
+						ALIGN(fecs->data.size,
+						LSF_DATA_SIZE_ALIGNMENT));
 	p_img->desc->app_start_offset = fecs->code.offset;
-	p_img->desc->app_imem_offset = 0;
-	p_img->desc->app_imem_entry = 0;
-	p_img->desc->app_dmem_offset = 0;
-	p_img->desc->app_resident_code_offset = 0;
+	p_img->desc->app_imem_offset = APP_IMEM_OFFSET;
+	p_img->desc->app_imem_entry = APP_IMEM_ENTRY;
+	p_img->desc->app_dmem_offset = APP_DMEM_OFFSET;
+	p_img->desc->app_resident_code_offset = APP_RESIDENT_CODE_OFFSET;
 	p_img->desc->app_resident_code_size = fecs->code.size;
 	p_img->desc->app_resident_data_offset =
 		nvgpu_safe_sub_u32(fecs->data.offset, fecs->code.offset);
@@ -168,13 +189,18 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 			nvgpu_gr_falcon_get_gpccs_ucode_segments(gr_falcon);
 	int err;
 
+	if ((gpccs == NULL) || (gr_falcon == NULL)) {
+		return -EINVAL;
+	}
+
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 		return -ENOENT;
 	}
 
 	switch (ver) {
 		case NVGPU_GPUID_GV11B:
-			gpccs_sig = nvgpu_request_firmware(g, T18x_GPCCS_UCODE_SIG, 0);
+			gpccs_sig = nvgpu_request_firmware(g, T18x_GPCCS_UCODE_SIG,
+					NVGPU_REQUEST_FIRMWARE_NO_WARN);
 			break;
 #ifdef CONFIG_NVGPU_DGPU
 		case NVGPU_GPUID_TU104:
@@ -206,33 +232,44 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 		goto free_lsf_desc;
 	}
 
-	p_img->desc->bootloader_start_offset = 0;
-	p_img->desc->bootloader_size = ALIGN(gpccs->boot.size, 256U);
+	p_img->desc->bootloader_start_offset = BL_START_OFFSET;
+	p_img->desc->bootloader_size = ALIGN(gpccs->boot.size,
+						LSF_DATA_SIZE_ALIGNMENT);
 	p_img->desc->bootloader_imem_offset = gpccs->boot_imem_offset;
 	p_img->desc->bootloader_entry_point = gpccs->boot_entry;
 
-	tmp_size = nvgpu_safe_add_u32(ALIGN(gpccs->boot.size, 256U),
-					ALIGN(gpccs->code.size, 256U));
+	tmp_size = nvgpu_safe_add_u32(ALIGN(gpccs->boot.size,
+						LSF_DATA_SIZE_ALIGNMENT),
+					ALIGN(gpccs->code.size,
+						LSF_DATA_SIZE_ALIGNMENT));
 
 	p_img->desc->image_size = nvgpu_safe_add_u32(tmp_size,
-						ALIGN(gpccs->data.size, 256U));
+						ALIGN(gpccs->data.size,
+						LSF_DATA_SIZE_ALIGNMENT));
 	p_img->desc->app_size =
-			nvgpu_safe_add_u32(ALIGN(gpccs->code.size, 256U),
-				ALIGN(gpccs->data.size, 256U));
+			nvgpu_safe_add_u32(ALIGN(gpccs->code.size,
+						LSF_DATA_SIZE_ALIGNMENT),
+				ALIGN(gpccs->data.size,
+						LSF_DATA_SIZE_ALIGNMENT));
 	p_img->desc->app_start_offset = p_img->desc->bootloader_size;
-	p_img->desc->app_imem_offset = 0;
-	p_img->desc->app_imem_entry = 0;
-	p_img->desc->app_dmem_offset = 0;
-	p_img->desc->app_resident_code_offset = 0;
-	p_img->desc->app_resident_code_size = ALIGN(gpccs->code.size, 256U);
+	p_img->desc->app_imem_offset = APP_IMEM_OFFSET;
+	p_img->desc->app_imem_entry = APP_IMEM_ENTRY;
+	p_img->desc->app_dmem_offset = APP_DMEM_OFFSET;
+	p_img->desc->app_resident_code_offset = APP_RESIDENT_CODE_OFFSET;
+	p_img->desc->app_resident_code_size = ALIGN(gpccs->code.size,
+						LSF_DATA_SIZE_ALIGNMENT);
 	p_img->desc->app_resident_data_offset =
-		nvgpu_safe_sub_u32(ALIGN(gpccs->data.offset, 256U),
-			ALIGN(gpccs->code.offset, 256U));
-	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size, 256U);
+		nvgpu_safe_sub_u32(ALIGN(gpccs->data.offset,
+						LSF_DATA_SIZE_ALIGNMENT),
+			ALIGN(gpccs->code.offset,
+					LSF_DATA_SIZE_ALIGNMENT));
+	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size,
+					LSF_DATA_SIZE_ALIGNMENT);
 	p_img->data = (u32 *)
 	(void *)((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon)
 				+ gpccs->boot.offset);
-	p_img->data_size = ALIGN(p_img->desc->image_size, 256U);
+	p_img->data_size = ALIGN(p_img->desc->image_size,
+					LSF_DATA_SIZE_ALIGNMENT);
 	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
 
 	nvgpu_acr_dbg(g, "gpccs fw loaded\n");
@@ -356,7 +393,7 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
 
 	/* Uses a loader. that is has a desc */
-	pnode->lsb_header.data_size = 0;
+	pnode->lsb_header.data_size = LSB_HDR_DATA_SIZE;
 
 	/*
 	 * The loader code size is already aligned (padded) such that
@@ -386,7 +423,7 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	pnode->lsb_header.bl_imem_off =
 	pnode->ucode_img.desc->bootloader_imem_offset;
 
-	pnode->lsb_header.flags = 0;
+	pnode->lsb_header.flags = NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_FALSE;
 
 	if (falcon_id == FALCON_ID_PMU) {
 		data = NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE;
@@ -451,7 +488,7 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 		if (nvgpu_test_bit(i, (void *)&acr->lsf_enable_mask) &&
 			(acr->lsf[i].get_lsf_ucode_details != NULL)) {
 
-			(void) memset(&ucode_img, 0, sizeof(ucode_img));
+			(void) memset(&ucode_img, MEMSET_VALUE, sizeof(ucode_img));
 			err = acr->lsf[i].get_lsf_ucode_details(g,
 				(void *)&ucode_img);
 			if (err != 0) {
@@ -697,7 +734,7 @@ static int lsfm_populate_flcn_bl_dmem_desc(struct gk20a *g,
 			addr_code, addr_data, desc->bootloader_start_offset);
 
 	/* Populate the LOADER_CONFIG state */
-	(void) memset((void *) ldr_cfg, 0,
+	(void) memset((void *) ldr_cfg, MEMSET_VALUE,
 		sizeof(struct flcn_bl_dmem_desc));
 
 	ldr_cfg->ctx_dma = g->acr->lsf[falconid].falcon_dma_idx;
@@ -708,13 +745,19 @@ static int lsfm_populate_flcn_bl_dmem_desc(struct gk20a *g,
 	ldr_cfg->data_size = desc->app_resident_data_size;
 	ldr_cfg->code_entry_point = desc->app_imem_entry;
 
+
+#if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
 	/* Update the argc/argv members*/
-	ldr_cfg->argc = 1;
+	ldr_cfg->argc = UCODE_PARAMS;
 	if (g->acr->lsf[falconid].get_cmd_line_args_offset != NULL) {
 		g->acr->lsf[falconid].get_cmd_line_args_offset(g,
 			&ldr_cfg->argv);
 	}
+#else
+	/* Update the argc/argv members*/
+	ldr_cfg->argc = UCODE_PARAMS;
 
+#endif
 	*p_bl_gen_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc);
 	return 0;
 }
@@ -775,7 +818,7 @@ static int lsfm_init_wpr_contents(struct gk20a *g,
 
 	/* The WPR array is at the base of the WPR */
 	pnode = plsfm->ucode_img_list;
-	(void) memset(&last_wpr_hdr, 0, sizeof(struct lsf_wpr_header));
+	(void) memset(&last_wpr_hdr, MEMSET_VALUE, sizeof(struct lsf_wpr_header));
 	i = 0;
 
 #ifdef CONFIG_NVGPU_DGPU
@@ -930,7 +973,7 @@ int nvgpu_acr_prepare_ucode_blob(struct gk20a *g)
 
 
 	plsfm = &lsfm_l;
-	(void) memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr));
+	(void) memset((void *)plsfm, MEMSET_VALUE, sizeof(struct ls_flcn_mgr));
 	err = nvgpu_gr_falcon_init_ctxsw_ucode(g, gr_falcon);
 	if (err != 0) {
 		nvgpu_err(g, "gr_falcon_init_ctxsw_ucode failed err=%d", err);

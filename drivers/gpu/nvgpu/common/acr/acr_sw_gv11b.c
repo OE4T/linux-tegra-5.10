@@ -35,6 +35,9 @@
 #include "acr_bootstrap.h"
 #include "acr_sw_gv11b.h"
 
+#define RECOVERY_UCODE_BLOB_SIZE         (0U)
+#define WPR_OFFSET              (0U)
+
 static int gv11b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	int err = 0;
@@ -60,10 +63,13 @@ static void gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	u32 *acr_ucode_data = NULL;
 
 	nvgpu_log_fn(g, " ");
-
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if (is_recovery) {
-		acr_desc->acr_dmem_desc->nonwpr_ucode_blob_size = 0U;
-	} else {
+		acr_desc->acr_dmem_desc->nonwpr_ucode_blob_size =
+						RECOVERY_UCODE_BLOB_SIZE;
+	} else
+#endif
+	{
 		acr_fw_bin_hdr = (struct bin_hdr *)(void *)acr_fw->data;
 		acr_fw_hdr = (struct acr_fw_header *)(void *)
 			(acr_fw->data + acr_fw_bin_hdr->header_offset);
@@ -85,7 +91,7 @@ static void gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		acr_dmem_desc->nonwpr_ucode_blob_size =
 			(u32)g->acr->ucode_blob.size;
 		acr_dmem_desc->regions.no_regions = 1U;
-		acr_dmem_desc->wpr_offset = 0U;
+		acr_dmem_desc->wpr_offset = WPR_OFFSET;
 	}
 }
 
