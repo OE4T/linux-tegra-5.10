@@ -97,7 +97,7 @@ int test_falcon_get_id(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_falcon_reset
+ * Targets: nvgpu_falcon_reset, gops_falcon.reset, gk20a_falcon_reset
  *
  * Input: None.
  *
@@ -123,7 +123,8 @@ int test_falcon_reset(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature, Error guessing, Error injection
  *
- * Targets: nvgpu_falcon_mem_scrub_wait
+ * Targets: nvgpu_falcon_mem_scrub_wait, gops_falcon.is_falcon_scrubbing_done,
+ *	    gk20a_is_falcon_scrubbing_done
  *
  * Input: None.
  *
@@ -154,7 +155,8 @@ int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Input: None.
  *
- * Targets: nvgpu_falcon_wait_idle
+ * Targets: nvgpu_falcon_wait_idle, gops_falcon.is_falcon_idle,
+ *	    gk20a_is_falcon_idle
  *
  * Steps:
  * - Invoke nvgpu_falcon_wait_idle with uninitialized falcon struct.
@@ -184,7 +186,8 @@ int test_falcon_idle(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature, Error guessing, Error injection
  *
- * Targets: nvgpu_falcon_wait_for_halt
+ * Targets: nvgpu_falcon_wait_for_halt, gops_falcon.is_falcon_cpu_halted,
+ *	    gk20a_is_falcon_cpu_halted
  *
  * Input: None.
  *
@@ -213,7 +216,9 @@ int test_falcon_halt(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem,
+ *	    gops_falcon.copy_to_imem, gops_falcon.copy_to_dmem,
+ *	    gk20a_falcon_copy_to_imem, gk20a_falcon_copy_to_dmem
  *
  * Input: None.
  *
@@ -243,7 +248,10 @@ int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Boundary values
  *
- * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem.
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem,
+ *	    gops_falcon.copy_to_imem, gops_falcon.copy_to_dmem,
+ *	    gops_falcon.get_mem_size, gk20a_falcon_copy_to_imem,
+ *	    gk20a_falcon_copy_to_dmem, gk20a_falcon_get_mem_size
  *
  * Input: None.
  *
@@ -270,7 +278,8 @@ int test_falcon_mem_rw_range(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Error injection
  *
- * Targets: nvgpu_falcon_copy_to_dmem
+ * Targets: nvgpu_falcon_copy_to_dmem, gops_falcon.copy_to_dmem,
+ *	    gk20a_falcon_copy_to_dmem
  *
  * Input: None.
  *
@@ -295,7 +304,9 @@ int test_falcon_mem_rw_fault(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem,
+ *	    gops_falcon.copy_to_imem, gops_falcon.copy_to_dmem,
+ *	    gk20a_falcon_copy_to_imem, gk20a_falcon_copy_to_dmem
  *
  * Input: None.
  *
@@ -323,7 +334,9 @@ int test_falcon_mem_rw_aligned(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Error guessing
  *
- * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem,
+ *	    gops_falcon.copy_to_imem, gops_falcon.copy_to_dmem,
+ *	    gk20a_falcon_copy_to_imem, gk20a_falcon_copy_to_dmem
  *
  * Input: None.
  *
@@ -346,7 +359,9 @@ int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_falcon_mailbox_read, nvgpu_falcon_mailbox_write
+ * Targets: nvgpu_falcon_mailbox_read, nvgpu_falcon_mailbox_write,
+ *	    gops_falcon.mailbox_read, gops_falcon.mailbox_write,
+ *	    gk20a_falcon_mailbox_read, gk20a_falcon_mailbox_write
  *
  * Input: None.
  *
@@ -372,7 +387,8 @@ int test_falcon_mailbox(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_falcon_hs_ucode_load_bootstrap
+ * Targets: nvgpu_falcon_hs_ucode_load_bootstrap, gops_falcon.bootstrap,
+ *	    gk20a_falcon_bootstrap
  *
  * Input: None.
  *
@@ -414,7 +430,9 @@ int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g, void *__args);
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem
+ * Targets: nvgpu_falcon_copy_to_imem, nvgpu_falcon_copy_to_dmem,
+ *	    gops_falcon.copy_to_imem, gops_falcon.copy_to_dmem,
+ *	    gk20a_falcon_copy_to_imem, gk20a_falcon_copy_to_dmem
  *
  * Input: None.
  *
@@ -442,7 +460,9 @@ int test_falcon_mem_rw_unaligned_cpu_buffer(struct unit_module *m,
  *
  * Test Type: Error guessing
  *
- * Targets: nvgpu_falcon_copy_to_imem
+ * Targets: nvgpu_falcon_copy_to_imem, gops_falcon.copy_to_imem,
+ *	    gops_falcon.get_ports_count, gk20a_falcon_copy_to_imem,
+ *	    gk20a_falcon_get_ports_count
  *
  * Input: None.
  *
@@ -465,7 +485,8 @@ int test_falcon_mem_rw_inval_port(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_falcon_set_irq
+ * Targets: nvgpu_falcon_set_irq, gops_falcon.set_irq,
+ *	    gk20a_falcon_set_irq
  *
  * Input: None.
  *
