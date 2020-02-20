@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,8 +20,6 @@
 #include <asm/smp_plat.h>
 #include <soc/tegra/chip-id.h>
 #include "tegra19x-mce.h"
-
-#include "dmce_perfmon.h"
 
 /* Issue a NVG request with data */
 static noinline notrace void nvg_send_req_data(uint64_t req, uint64_t data)

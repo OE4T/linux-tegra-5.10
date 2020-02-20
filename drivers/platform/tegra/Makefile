@@ -6,12 +6,11 @@ KBUILD_CFLAGS += -I$(srctree)/arch/arm/mach-tegra \
 		 -I$(srctree.nvidia)/drivers/video/tegra/dc/panel/
 
 ccflags-y += -Werror
-obj-$(CONFIG_TEGRA_MCE) += tegra-mce.o
+obj-$(CONFIG_TEGRA_MCE) += mce/
 obj-$(CONFIG_NV_TEGRA_MC) += mc/
 obj-$(CONFIG_TEGRA_CBB_NOC) += cbb/
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_speedo.o
 obj-$(CONFIG_TEGRA_DC) += panel-simulator.o
-obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18x-mce.o
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra-roc.o
 obj-$(CONFIG_TEGRA_PMC_AO_WAKE) += tegra186-aowake.o
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra186-system-config.o
@@ -61,7 +60,6 @@ obj-$(CONFIG_ARCH_TEGRA_21x_SOC) += cpu_emc.o
 endif
 
 ifdef CONFIG_ARCH_TEGRA_19x_SOC
-obj-y += tegra19x-mce.o
 obj-y += t19x_cache.o
 obj-y += cvnas.o
 obj-$(CONFIG_ARCH_TEGRA_210_SOC) += mselect.o
