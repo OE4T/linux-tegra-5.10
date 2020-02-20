@@ -84,6 +84,14 @@
 /* Min Tx LPI timer (in usecs) based on the timer value field length in HW
  * MAC_LPI_ENTRY_TIMER register */
 #define OSI_MIN_TX_LPI_TIMER		0x8U
+
+/* Time in 1 microseconds tic counter used as reference for all LPI timers.
+ * It is clock rate of CSR slave port (APB clock[eqos_pclk] in eqos) minus 1
+ * Current eqos_pclk is 204MHz
+ */
+#define OSI_LPI_1US_TIC_COUNTER_DEFAULT	0xCBU
+#define OSI_LPI_1US_TIC_COUNTER_MASK	0xFFFU
+
 /** @} */
 
 /**

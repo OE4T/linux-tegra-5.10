@@ -692,6 +692,12 @@ static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 {
 	unsigned long csr_clk_speed = csr_clk_rate / 1000000UL;
 
+	/* store csr clock speed used in programming
+	 * LPI 1us tick timer register
+	 */
+	if (csr_clk_speed <= UINT_MAX) {
+		osi_core->csr_clk_speed = (unsigned int)csr_clk_speed;
+	}
 	if (csr_clk_speed > 500UL) {
 		osi_core->mdc_cr = EQOS_CSR_500_800M;
 	} else if (csr_clk_speed > 300UL) {
@@ -3420,6 +3426,7 @@ static void eqos_configure_eee(
 	unsigned int lpi_csr = 0;
 	unsigned int lpi_timer_ctrl = 0;
 	unsigned int lpi_entry_timer = 0;
+	unsigned int lpi_1US_tic_counter = OSI_LPI_1US_TIC_COUNTER_DEFAULT;
 	unsigned char *addr =  (unsigned char *)osi_core->base;
 
 	if (tx_lpi_enabled != OSI_DISABLE) {
@@ -3445,6 +3452,15 @@ static void eqos_configure_eee(
 		lpi_entry_timer |= (tx_lpi_timer &
 				    OSI_LPI_ENTRY_TIMER_MASK);
 		osi_writel(lpi_entry_timer, addr + EQOS_MAC_LPI_EN_TIMER);
+		/* Program the MAC_1US_Tic_Counter as per the frequency of the
+		 * clock used for accessing the CSR slave
+		 */
+		/* fix cert error */
+		if (osi_core->csr_clk_speed > 1U) {
+			lpi_1US_tic_counter  = ((osi_core->csr_clk_speed - 1U) &
+						 OSI_LPI_1US_TIC_COUNTER_MASK);
+		}
+		osi_writel(lpi_1US_tic_counter, addr + EQOS_MAC_1US_TIC_CNTR);
 
 		/* Set LPI timer enable and LPI Tx automate, so that MAC
 		 * can enter/exit Tx LPI on its own using timers above.
