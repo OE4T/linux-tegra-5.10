@@ -37,7 +37,8 @@ struct unit_module;
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_pmu_early_init
+ * Targets: gops_pmu.pmu_early_init, nvgpu_pmu_early_init, gops_pmu.ecc_init,
+ * 	gv11b_pmu_ecc_init, gops_pmu.ecc_free, gv11b_pmu_ecc_free
  *
  * Input: None
  *
@@ -65,7 +66,7 @@ int test_pmu_early_init(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Error guessing
  *
- * Targets: g->ops.pmu.is_pmu_supported
+ * Targets: gops_pmu.is_pmu_supported, gv11b_is_pmu_supported
  *
  * Input: None
  * Steps:
@@ -110,7 +111,11 @@ int test_pmu_remove_support(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_pmu_reset
+ * Targets: nvgpu_pmu_enable_irq, nvgpu_pmu_reset, gops_pmu.pmu_enable_irq,
+ *		gv11b_pmu_enable_irq,
+ *		gops_pmu.get_irqdest, gv11b_pmu_get_irqdest,
+ *		gops_pmu.reset_engine, gv11b_pmu_engine_reset,
+ *		gops_pmu.is_engine_in_reset, gv11b_pmu_is_engine_in_reset
  *
  * Input: None
  *
@@ -142,7 +147,8 @@ int test_pmu_reset(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.pmu.pmu_isr
+ * Targets: gops_pmu.pmu_isr, gk20a_pmu_isr,
+		gops_pmu.handle_ext_irq, gv11b_pmu_handle_ext_irq
  *
  * Input: None
  *

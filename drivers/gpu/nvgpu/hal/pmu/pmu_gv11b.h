@@ -37,7 +37,6 @@ bool gv11b_pmu_is_engine_in_reset(struct gk20a *g);
 void gv11b_pmu_engine_reset(struct gk20a *g, bool do_reset);
 u32 gv11b_pmu_falcon_base_addr(void);
 bool gv11b_is_pmu_supported(struct gk20a *g);
-int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr);
 void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
 
 #ifdef CONFIG_NVGPU_LS_PMU

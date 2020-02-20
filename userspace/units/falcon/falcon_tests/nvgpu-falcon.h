@@ -38,7 +38,10 @@ struct unit_module;
  * Test Type: Feature, Error guessing
  *
  * Targets: nvgpu_falcon_get_instance, nvgpu_falcon_sw_init,
- *	    nvgpu_falcon_sw_free
+ *	    nvgpu_falcon_sw_free, gops_pmu.falcon_base_addr,
+ *	    gv11b_pmu_falcon_base_addr, gops_pmu.setup_apertures,
+ *	    gv11b_setup_apertures, gops_pmu.flcn_setup_boot_config,
+ *	    gv11b_pmu_flcn_setup_boot_config
  *
  * Input: None.
  *

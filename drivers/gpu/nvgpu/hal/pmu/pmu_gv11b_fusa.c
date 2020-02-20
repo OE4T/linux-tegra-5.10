@@ -134,7 +134,7 @@ int gv11b_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 	return (-EIO);
 }
 
-int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
+static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 {
 	int ret = 0;
 

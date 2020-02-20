@@ -119,7 +119,7 @@ int test_acr_is_lsf_lazy_bootstrap(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: g->ops.acr.acr_construct_execute
+ * Targets: nvgpu_acr_construct_execute
  *
  * Input: None
  *
@@ -149,7 +149,12 @@ int test_acr_construct_execute(struct unit_module *m,
  *
  * Test Type: Feature, Error guessing
  *
- * Targets: nvgpu_acr_bootstrap_hs_acr
+ * Targets: nvgpu_acr_bootstrap_hs_acr, nvgpu_pmu_report_bar0_pri_err_status,
+ *	gops_pmu.validate_mem_integrity, gv11b_pmu_validate_mem_integrity,
+ *	gops_pmu.is_debug_mode_enabled, gv11b_pmu_is_debug_mode_en,
+ *	gops_acr.pmu_clear_bar0_host_err_status,
+ *	gv11b_clear_pmu_bar0_host_err_status, gops_pmu.bar0_error_status,
+ *	gv11b_pmu_bar0_error_status
  *
  * Input: None
  *
