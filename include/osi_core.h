@@ -369,6 +369,10 @@ struct osi_core_priv_data {
 	/** L3L4 filter bit bask, set index corresponding bit for
 	 * filter if filter enabled */
 	unsigned int l3l4_filter_bitmask;
+	/** csr clock is to program LPI 1 us tick timer register.
+	 * Value stored in MHz
+	 */
+	unsigned int csr_clk_speed;
 };
 
 /**
