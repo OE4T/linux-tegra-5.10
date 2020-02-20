@@ -340,6 +340,10 @@
 		};
 	};
 
+	tegra_udrm: tegra_udrm {
+		compatible = "nvidia,tegra-udrm";
+		status = "okay";
+	};
 };
 
 &head0 {
