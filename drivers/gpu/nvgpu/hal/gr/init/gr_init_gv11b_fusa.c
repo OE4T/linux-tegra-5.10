@@ -792,7 +792,7 @@ static int gv11b_gr_init_write_bundle_veid_state(struct gk20a *g, u32 index,
 			sw_veid_bundle_init->l[index].addr |
 			gr_pipe_bundle_address_veid_f(j));
 
-		err = g->ops.gr.init.wait_idle(g);
+		err = g->ops.gr.init.wait_fe_idle(g);
 	}
 
 	return err;
