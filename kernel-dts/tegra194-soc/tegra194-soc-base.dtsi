@@ -163,6 +163,7 @@
 
 	tegra_udrm: tegra_udrm {
 		compatible = "nvidia,tegra-udrm";
+		status = "disabled";
 	};
 
 	intc: interrupt-controller@3881000 {
