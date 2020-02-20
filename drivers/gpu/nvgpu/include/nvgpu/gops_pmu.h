@@ -183,16 +183,6 @@ struct gops_pmu {
 	void (*setup_apertures)(struct gk20a *g);
 
 	/**
-	 * @brief Start PMU falcon CPU in secure mode.
-	 *
-	 * @param g   [in] The GPU driver struct.
-	 *
-	 * Start PMU falcon CPU in secure mode by writing true to
-	 * CPUCTL_ALIAS.
-	 */
-	void (*secured_pmu_start)(struct gk20a *g);
-
-	/**
 	 * @brief Clears the PMU BAR0 error status.
 	 *
 	 * @param g   [in] The GPU driver struct.
@@ -349,6 +339,15 @@ struct gops_pmu {
 	void (*pmu_dump_elpg_stats)(struct nvgpu_pmu *pmu);
 	void (*pmu_dump_falcon_stats)(struct nvgpu_pmu *pmu);
 	void (*dump_secure_fuses)(struct gk20a *g);
+	/**
+	 * @brief Start PMU falcon CPU in secure mode.
+	 *
+	 * @param g   [in] The GPU driver struct.
+	 *
+	 * Start PMU falcon CPU in secure mode by writing true to
+	 * CPUCTL_ALIAS.
+	 */
+	void (*secured_pmu_start)(struct gk20a *g);
 	/**
 	 * @brief Setup DMA transfer base address.
 	 *

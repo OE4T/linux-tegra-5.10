@@ -173,7 +173,7 @@ struct nvgpu_acr;
  * + Allocate memory for ACR unit private struct #nvgpu_acr, return -ENOMEM upon
  *   failure else continue to next step.
  * + Based on detected chip, init calls chip specific s/w init. For gv11b,
- *   nvgpu_gv11b_acr_sw_init is called to set. Static properties like
+ *   nvgpu_gv11b_acr_sw_init is called to set static properties like
  *   bootstrap_owner, supported LS Falcons & ops update.
  *   + Struct #nvgpu_acr member gets set as below for gv11b,
  *     + FALCON_ID_PMU for bootstrap_owner as ACR HS ucode runs on PMU engine

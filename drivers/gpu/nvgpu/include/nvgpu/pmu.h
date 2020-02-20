@@ -370,7 +370,7 @@ void nvgpu_pmu_enable_irq(struct gk20a *g, bool enable);
  *
  * @param g   [in] The GPU driver struct.
  *
- * Dose the PMU Engine reset to bring into good known state. The reset sequence
+ * Does the PMU Engine reset to bring into good known state. The reset sequence
  * also configures PMU Engine clock gating & interrupts if interrupt support is
  * enabled.
  *
