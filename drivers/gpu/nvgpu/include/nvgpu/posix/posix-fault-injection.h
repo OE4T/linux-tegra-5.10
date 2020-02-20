@@ -54,6 +54,7 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj falcon_memcpy_fi;
 
 	/* qnx */
+	struct nvgpu_posix_fault_inj usleep_fi;
 	struct nvgpu_posix_fault_inj sdl_nvguard_fi;
 	struct nvgpu_posix_fault_inj clock_gettime_fi;
 	struct nvgpu_posix_fault_inj chip_id;
