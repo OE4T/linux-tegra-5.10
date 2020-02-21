@@ -448,7 +448,8 @@ endif
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/nvhost.o \
 	hal/sync/syncpt_cmdbuf_gk20a.o \
-	hal/sync/syncpt_cmdbuf_gv11b.o
+	hal/sync/syncpt_cmdbuf_gv11b.o \
+	hal/sync/syncpt_cmdbuf_gv11b_fusa.o
 
 nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/platform_vgpu_tegra.o \
@@ -658,7 +659,6 @@ nvgpu-y += \
 	hal/priv_ring/priv_ring_gp10b_fusa.o \
 	hal/ptimer/ptimer_gk20a_fusa.o \
 	hal/ptimer/ptimer_gp10b.o \
-	hal/sync/syncpt_cmdbuf_gv11b_fusa.o \
 	hal/therm/therm_gv11b_fusa.o \
 	hal/top/top_gm20b_fusa.o \
 	hal/top/top_gp10b_fusa.o \
