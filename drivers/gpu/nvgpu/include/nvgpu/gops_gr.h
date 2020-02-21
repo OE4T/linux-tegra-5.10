@@ -750,6 +750,9 @@ struct gops_gr_init {
 	 */
 	void (*wait_initialized)(struct gk20a *g);
 #endif
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_gr_init.h"
+#endif
 	/** @endcond */
 };
 

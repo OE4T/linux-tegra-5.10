@@ -213,6 +213,12 @@ static int gr_init_setup_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.gr.init.eng_config != NULL) {
+		g->ops.gr.init.eng_config(g);
+	}
+#endif
+
 	g->ops.gr.init.gpc_mmu(g);
 
 	/* load gr floorsweeping registers */
