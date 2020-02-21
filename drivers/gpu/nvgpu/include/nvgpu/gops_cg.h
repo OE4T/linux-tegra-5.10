@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,9 @@ struct gops_cg {
 	void (*blcg_pmu_load_gating_prod)(struct gk20a *g, bool prod);
 	void (*blcg_xbar_load_gating_prod)(struct gk20a *g, bool prod);
 	void (*blcg_hshub_load_gating_prod)(struct gk20a *g, bool prod);
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_cg.h"
+#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -113,6 +113,11 @@ void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g)
 	if (g->ops.cg.blcg_fifo_load_gating_prod != NULL) {
 		g->ops.cg.blcg_fifo_load_gating_prod(g, true);
 	}
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.cg.blcg_runlist_load_gating_prod != NULL) {
+		g->ops.cg.blcg_runlist_load_gating_prod(g, true);
+	}
+#endif
 done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
@@ -206,6 +211,11 @@ void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g)
 	if (g->ops.cg.slcg_fifo_load_gating_prod != NULL) {
 		g->ops.cg.slcg_fifo_load_gating_prod(g, true);
 	}
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.cg.slcg_runlist_load_gating_prod != NULL) {
+		g->ops.cg.slcg_runlist_load_gating_prod(g, true);
+	}
+#endif
 done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
@@ -479,6 +489,11 @@ void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable)
 	if (g->ops.cg.blcg_gr_load_gating_prod != NULL) {
 		g->ops.cg.blcg_gr_load_gating_prod(g, enable);
 	}
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.cg.blcg_runlist_load_gating_prod != NULL) {
+		g->ops.cg.blcg_runlist_load_gating_prod(g, enable);
+	}
+#endif
 	if (g->ops.cg.blcg_ltc_load_gating_prod != NULL) {
 		g->ops.cg.blcg_ltc_load_gating_prod(g, enable);
 	}
@@ -535,6 +550,11 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 	if (g->ops.cg.slcg_fifo_load_gating_prod != NULL) {
 		g->ops.cg.slcg_fifo_load_gating_prod(g, enable);
 	}
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.cg.slcg_runlist_load_gating_prod != NULL) {
+		g->ops.cg.slcg_runlist_load_gating_prod(g, enable);
+	}
+#endif
 	if (g->ops.cg.slcg_gr_load_gating_prod != NULL) {
 		g->ops.cg.slcg_gr_load_gating_prod(g, enable);
 	}
