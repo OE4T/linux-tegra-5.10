@@ -118,7 +118,7 @@
 	};
 
 	miscreg@00100000 {
-		compatible = "nvidia,tegra186-miscreg";
+		compatible = "nvidia,tegra194-misc", "nvidia,tegra186-miscreg";
 		reg = <0x0 0x00100000 0x0 0xf000>, /* Chipid */
 		    <0x0 0x0010f000 0x0 0x1000>; /* Straps */
 		status = "disabled";
