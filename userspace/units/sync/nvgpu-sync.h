@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -131,8 +131,9 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_channel_sync_to_syncpt, nvgpu_channel_sync_get_syncpt_id
- *		nvgpu_channel_sync_get_syncpt_address
+ * Targets: nvgpu_channel_sync_to_syncpt,
+ *	    nvgpu_channel_sync_get_syncpt_id,
+ *	    nvgpu_channel_sync_get_syncpt_address
  *
  * Input: test_sync_init run for this GPU
  *
