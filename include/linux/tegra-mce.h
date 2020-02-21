@@ -125,4 +125,44 @@ int tegra_clean_dcache_all(void *__maybe_unused unused);
 int tegra_mce_read_l3_cache_ways(u64 *value);
 int tegra_mce_write_l3_cache_ways(u64 data, u64 *value);
 
+int tegra_mce_read_rt_safe_mask(u64 *);
+int tegra_mce_write_rt_safe_mask(u64);
+int tegra_mce_read_rt_window_us(u64 *);
+int tegra_mce_write_rt_window_us(u64);
+int tegra_mce_read_rt_fwd_progress_us(u64 *);
+int tegra_mce_write_rt_fwd_progress_us(u64);
+
+struct tegra_mce_ops {
+	int (*enter_cstate)(u32, u32);
+	int (*update_cstate_info)(u32, u32, u32, u8, u32, bool);
+	int (*update_crossover_time)(u32, u32);
+	int (*read_cstate_stats)(u32, u64 *);
+	int (*write_cstate_stats)(u32, u32);
+	int (*is_sc7_allowed)(u32, u32, u32 *);
+	int (*online_core)(int);
+	int (*cc3_ctrl)(u32, u32, u8);
+	int (*echo_data)(u32, int *);
+	int (*read_versions)(u32 *, u32 *);
+	int (*enum_features)(u64 *);
+	int (*read_uncore_mca)(mca_cmd_t, u64 *, u32 *);
+	int (*write_uncore_mca)(mca_cmd_t, u64, u32 *);
+	int (*read_uncore_perfmon)(u32, u32 *);
+	int (*write_uncore_perfmon)(u32, u32);
+	int (*enable_latic)(void);
+	int (*write_dda_ctrl)(u32 index, u64 value);
+	int (*read_dda_ctrl)(u32 index, u64 *value);
+	int (*read_l3_cache_ways)(u64 *value);
+	int (*write_l3_cache_ways)(u64 data, u64 *value);
+	int (*read_rt_safe_mask)(u64 *);
+	int (*write_rt_safe_mask)(u64);
+	int (*read_rt_window_us)(u64 *);
+	int (*write_rt_window_us)(u64);
+	int (*read_rt_fwd_progress_us)(u64 *);
+	int (*write_rt_fwd_progress_us)(u64);
+	int (*flush_cache_all)(void);
+	int (*flush_dcache_all)(void *__maybe_unused unused);
+	int (*clean_dcache_all)(void *__maybe_unused unused);
+};
+
+void tegra_mce_set_ops(struct tegra_mce_ops *);
 #endif /* _LINUX_TEGRA_MCE_H */

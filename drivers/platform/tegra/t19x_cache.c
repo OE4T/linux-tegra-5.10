@@ -27,6 +27,7 @@
 #include <uapi/linux/tegra_l3_cache.h>
 #include <soc/tegra/chip-id.h>
 #include <linux/delay.h>
+#include <linux/platform/tegra/tegra19x_cache.h>
 
 #define MASK GENMASK(15, 12)
 #define T19x_CACHE_STR	"l3_cache"
@@ -50,7 +51,7 @@ struct cache_drv_data {
 static struct cache_drv_data *cache_data;
 
 
-int t19x_flush_cache_all(void)
+int tegra19x_flush_cache_all(void)
 {
 	u64 id_afr0;
 	u64 ret;
@@ -136,7 +137,7 @@ static int __t19x_flush_dcache_all(void)
 }
 #endif
 
-int t19x_flush_dcache_all(void)
+int tegra19x_flush_dcache_all(void)
 {
 #if PROFILE_DCACHE_FLUSH
 	return __t19x_flush_dcache_all();
@@ -168,7 +169,7 @@ int t19x_flush_dcache_all(void)
 #endif
 }
 
-int t19x_clean_dcache_all(void)
+int tegra19x_clean_dcache_all(void)
 {
 	u64 id_afr0;
 	u64 ret;

@@ -19,7 +19,8 @@
 
 #include <asm/smp_plat.h>
 #include <soc/tegra/chip-id.h>
-#include "tegra19x-mce.h"
+#include <asm/cacheflush.h>
+#include <linux/platform/tegra/tegra19x_cache.h>
 
 /* Issue a NVG request with data */
 static noinline notrace void nvg_send_req_data(uint64_t req, uint64_t data)
@@ -46,13 +47,13 @@ static noinline notrace uint64_t nvg_get_response(void)
 	return ret;
 }
 
-int tegra19x_mce_enter_cstate(u32 state, u32 wake_time)
+static int tegra19x_mce_enter_cstate(u32 state, u32 wake_time)
 {
 	/* use PSCI interface instead */
 	return 0;
 }
 
-int tegra19x_mce_update_cstate_info(u32 cluster, u32 ccplex, u32 system,
+static int tegra19x_mce_update_cstate_info(u32 cluster, u32 ccplex, u32 system,
 				    u8 force, u32 wake_mask, bool valid)
 {
 	nvg_cstate_info_channel_t cstate_info = { 0 };
@@ -95,7 +96,7 @@ int tegra19x_mce_update_cstate_info(u32 cluster, u32 ccplex, u32 system,
 	return 0;
 }
 
-int tegra19x_mce_update_crossover_time(u32 type, u32 time)
+static int tegra19x_mce_update_crossover_time(u32 type, u32 time)
 {
 	if ((type != TEGRA_NVG_CHANNEL_CROSSOVER_C6_LOWER_BOUND) &&
 	    (type != TEGRA_NVG_CHANNEL_CROSSOVER_CC6_LOWER_BOUND) &&
@@ -115,7 +116,7 @@ int tegra19x_mce_update_crossover_time(u32 type, u32 time)
 	return 0;
 }
 
-int tegra19x_mce_read_cstate_stats(u32 state, u64 *stats)
+static int tegra19x_mce_read_cstate_stats(u32 state, u64 *stats)
 {
 	if (!stats)
 		return -EINVAL;
@@ -134,7 +135,7 @@ int tegra19x_mce_read_cstate_stats(u32 state, u64 *stats)
 	return 0;
 }
 
-int tegra19x_mce_cc3_ctrl(u32 ndiv, u32 vindex, u8 enable)
+static int tegra19x_mce_cc3_ctrl(u32 ndiv, u32 vindex, u8 enable)
 {
 	nvg_cc3_control_channel_t cc3_ctrl;
 
@@ -162,7 +163,7 @@ int tegra19x_mce_cc3_ctrl(u32 ndiv, u32 vindex, u8 enable)
 	return 0;
 }
 
-int tegra19x_mce_read_versions(u32 *major, u32 *minor)
+static int tegra19x_mce_read_versions(u32 *major, u32 *minor)
 {
 	uint64_t version;
 
@@ -193,7 +194,7 @@ static int tegra19x_check_dda_channel_id(u32 index) {
 	return 0;
 }
 
-int tegra19x_mce_write_dda_ctrl(u32 index, u64 value)
+static int tegra19x_mce_write_dda_ctrl(u32 index, u64 value)
 {
 	if (tegra19x_check_dda_channel_id(index))
 		return -EINVAL;
@@ -209,7 +210,7 @@ int tegra19x_mce_write_dda_ctrl(u32 index, u64 value)
 	return 0;
 }
 
-int tegra19x_mce_read_dda_ctrl(u32 index, u64* value)
+static int tegra19x_mce_read_dda_ctrl(u32 index, u64* value)
 {
 	if (tegra19x_check_dda_channel_id(index))
 		return -EINVAL;
@@ -229,7 +230,7 @@ int tegra19x_mce_read_dda_ctrl(u32 index, u64* value)
 	return 0;
 }
 
-int tegra19x_mce_read_l3_cache_ways(u64 *value)
+static int tegra19x_mce_read_l3_cache_ways(u64 *value)
 {
 	/* disable preemption */
 	preempt_disable();
@@ -243,7 +244,7 @@ int tegra19x_mce_read_l3_cache_ways(u64 *value)
 	return 0;
 }
 
-int tegra19x_mce_write_l3_cache_ways(u64 data, u64 *value)
+static int tegra19x_mce_write_l3_cache_ways(u64 data, u64 *value)
 {
 	/* disable preemption */
 	preempt_disable();
@@ -257,7 +258,7 @@ int tegra19x_mce_write_l3_cache_ways(u64 data, u64 *value)
 	return 0;
 }
 
-int tegra19x_mce_read_rt_safe_mask(u64 *rt_safe_mask)
+static int tegra19x_mce_read_rt_safe_mask(u64 *rt_safe_mask)
 {
 	if (!rt_safe_mask)
 		return -EINVAL;
@@ -274,7 +275,7 @@ int tegra19x_mce_read_rt_safe_mask(u64 *rt_safe_mask)
 	return 0;
 }
 
-int tegra19x_mce_write_rt_safe_mask(u64 rt_safe_mask)
+static int tegra19x_mce_write_rt_safe_mask(u64 rt_safe_mask)
 {
 	/* disable preemption */
 	preempt_disable();
@@ -287,7 +288,7 @@ int tegra19x_mce_write_rt_safe_mask(u64 rt_safe_mask)
 	return 0;
 }
 
-int tegra19x_mce_read_rt_window_us(u64 *rt_window_us)
+static int tegra19x_mce_read_rt_window_us(u64 *rt_window_us)
 {
 	if (!rt_window_us)
 		return -EINVAL;
@@ -304,7 +305,7 @@ int tegra19x_mce_read_rt_window_us(u64 *rt_window_us)
 	return 0;
 }
 
-int tegra19x_mce_write_rt_window_us(u64 rt_window_us)
+static int tegra19x_mce_write_rt_window_us(u64 rt_window_us)
 {
 	/* disable preemption */
 	preempt_disable();
@@ -318,7 +319,7 @@ int tegra19x_mce_write_rt_window_us(u64 rt_window_us)
 }
 
 
-int tegra19x_mce_read_rt_fwd_progress_us(u64 *rt_fwd_progress_us)
+static int tegra19x_mce_read_rt_fwd_progress_us(u64 *rt_fwd_progress_us)
 {
 	if (!rt_fwd_progress_us)
 		return -EINVAL;
@@ -335,7 +336,7 @@ int tegra19x_mce_read_rt_fwd_progress_us(u64 *rt_fwd_progress_us)
 	return 0;
 }
 
-int tegra19x_mce_write_rt_fwd_progress_us(u64 rt_fwd_progress_us)
+static int tegra19x_mce_write_rt_fwd_progress_us(u64 rt_fwd_progress_us)
 {
 	/* disable preemption */
 	preempt_disable();
@@ -349,14 +350,53 @@ int tegra19x_mce_write_rt_fwd_progress_us(u64 rt_fwd_progress_us)
 	return 0;
 }
 
+static int tegra_19x_flush_cache_all(void)
+{
+	int ret = 0;
+
+	ret = tegra19x_flush_cache_all();
+	/* Fallback to VA flush cache all if not support or failed */
+	if (ret)
+		flush_cache_all();
+
+	/* CRITICAL: failed to flush all cache */
+	WARN_ON(ret && ret != -ENOTSUPP);
+
+	return ret;
+}
+
+static int tegra_19x_flush_dcache_all(void *__maybe_unused unused)
+{
+	int ret = 0;
+
+	ret = tegra19x_flush_dcache_all();
+	/* Fallback to VA flush dcache if not support or failed */
+	if (ret)
+		__flush_dcache_all(unused);
+
+	/* CRITICAL: failed to flush dcache */
+	WARN_ON(ret && ret != -ENOTSUPP);
+
+	return ret;
+}
+
+static int tegra_19x_clean_dcache_all(void *__maybe_unused unused)
+{
+	int ret = 0;
+
+	ret = tegra19x_clean_dcache_all();
+	/* Fallback to VA clean if not support or failed */
+	if (ret)
+		__clean_dcache_all(unused);
+
+	/* CRITICAL: failed to clean dcache */
+	WARN_ON(ret && ret != -ENOTSUPP);
+
+	return ret;
+}
+
 
 #ifdef CONFIG_DEBUG_FS
-/* Dummy functions below */
-int tegra19x_mce_features_get(void *data, u64 *val) { return -ENOTSUPP; }
-int tegra19x_mce_enable_latic_set(void *data, u64 val) { return -ENOTSUPP; }
-int tegra19x_mce_coresight_cg_set(void *data, u64 val) { return -ENOTSUPP; }
-int tegra19x_mce_edbgreq_set(void *data, u64 val) { return -ENOTSUPP; }
-
 #define NVG_STAT_MAX_ENTRIES	10
 #define MCE_STAT_ID_SHIFT	16UL
 
@@ -390,7 +430,7 @@ static struct cstats_info cstats_table[] = {
 	{ "C6_RESIDENCY_SUM", CSTAT_ENTRY(C6_RESIDENCY_SUM), 8, UNITGROUP_CORE},
 };
 
-int tegra19x_mce_dbg_cstats_show(struct seq_file *s, void *data)
+static int tegra19x_mce_dbg_cstats_show(struct seq_file *s, void *data)
 {
 	int nr_cpus = num_present_cpus();
 	int st, unit;
@@ -433,4 +473,196 @@ int tegra19x_mce_dbg_cstats_show(struct seq_file *s, void *data)
 	}
 	return 0;
 }
+
+static struct dentry *mce_debugfs;
+
+static int tegra19x_mce_versions_get(void *data, u64 *val)
+{
+	u32 major, minor;
+	int ret;
+
+	ret = tegra_mce_read_versions(&major, &minor);
+	if (!ret)
+		*val = ((u64)major << 32) | minor;
+	return ret;
+}
+
+static int tegra19x_mce_rt_safe_mask_get(void *data, u64 *val)
+{
+	u64 rt_safe_mask;
+	int ret;
+
+	ret = tegra_mce_read_rt_safe_mask(&rt_safe_mask);
+	if (!ret)
+		*val = rt_safe_mask;
+	return ret;
+}
+
+static int tegra19x_mce_rt_safe_mask_set(void *data, u64 val)
+{
+	int ret;
+
+	ret = tegra_mce_write_rt_safe_mask(val);
+	return ret;
+}
+
+static int tegra19x_mce_rt_window_us_get(void *data, u64 *val)
+{
+	u64 rt_window_us;
+	int ret;
+
+	ret = tegra_mce_read_rt_window_us(&rt_window_us);
+	if (!ret)
+		*val = rt_window_us;
+	return ret;
+}
+
+static int tegra19x_mce_rt_window_us_set(void *data, u64 val)
+{
+	int ret;
+
+	ret = tegra_mce_write_rt_window_us(val);
+	return ret;
+}
+
+static int tegra19x_mce_rt_fwd_progress_us_get(void *data, u64 *val)
+{
+	u64 rt_fwd_progress_us;
+	int ret;
+
+	ret = tegra_mce_read_rt_fwd_progress_us(&rt_fwd_progress_us);
+	if (!ret)
+		*val = rt_fwd_progress_us;
+	return ret;
+}
+
+static int tegra19x_mce_rt_fwd_progress_us_set(void *data, u64 val)
+{
+	int ret;
+
+	ret = tegra_mce_write_rt_fwd_progress_us(val);
+	return ret;
+}
+
+static int tegra19x_mce_dbg_cstats_open(struct inode *inode, struct file *file)
+{
+	int (*f)(struct seq_file *, void *);
+
+	f = tegra19x_mce_dbg_cstats_show;
+	return single_open(file, f, inode->i_private);
+}
+
+static const struct file_operations tegra19x_mce_cstats_fops = {
+	.open = tegra19x_mce_dbg_cstats_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+DEFINE_SIMPLE_ATTRIBUTE(tegra19x_mce_versions_fops, tegra19x_mce_versions_get,
+			NULL, "%llu\n");
+DEFINE_SIMPLE_ATTRIBUTE(tegra19x_mce_rt_safe_mask_fops, tegra19x_mce_rt_safe_mask_get,
+			tegra19x_mce_rt_safe_mask_set, "%llu\n");
+DEFINE_SIMPLE_ATTRIBUTE(tegra19x_mce_rt_window_us_fops, tegra19x_mce_rt_window_us_get,
+			tegra19x_mce_rt_window_us_set, "%llu\n");
+DEFINE_SIMPLE_ATTRIBUTE(tegra19x_mce_rt_fwd_progress_us_fops,
+			tegra19x_mce_rt_fwd_progress_us_get,
+			tegra19x_mce_rt_fwd_progress_us_set, "%llu\n");
+
+struct debugfs_entry {
+	const char *name;
+	const struct file_operations *fops;
+	mode_t mode;
+};
+
+/* Make sure to put an NULL entry at the end of each group */
+static struct debugfs_entry tegra19x_mce_attrs[] = {
+	{ "versions", &tegra19x_mce_versions_fops, 0444 },
+	{ "cstats", &tegra19x_mce_cstats_fops, 0444 },
+	{ "rt_safe_mask", &tegra19x_mce_rt_safe_mask_fops, 0644 },
+	{ "rt_window_us", &tegra19x_mce_rt_window_us_fops, 0644 },
+	{ "rt_fwd_progress_us", &tegra19x_mce_rt_fwd_progress_us_fops, 0644 },
+	{ NULL, NULL, 0 }
+};
+
+static struct debugfs_entry *tegra_mce_attrs = tegra19x_mce_attrs;
+
+static __init int tegra19x_mce_init(void)
+{
+	struct debugfs_entry *fent;
+	struct dentry *dent;
+	int ret;
+
+	if (tegra_get_chip_id() != TEGRA194)
+		return 0;
+
+	mce_debugfs = debugfs_create_dir("tegra_mce", NULL);
+	if (!mce_debugfs)
+		return -ENOMEM;
+
+	for (fent = tegra_mce_attrs; fent->name; fent++) {
+		dent = debugfs_create_file(fent->name, fent->mode,
+					   mce_debugfs, NULL, fent->fops);
+		if (IS_ERR_OR_NULL(dent)) {
+			ret = dent ? PTR_ERR(dent) : -EINVAL;
+			pr_err("%s: failed to create debugfs (%s): %d\n",
+			       __func__, fent->name, ret);
+			goto err;
+		}
+	}
+
+	pr_debug("%s: init finished\n", __func__);
+
+	return 0;
+
+err:
+	debugfs_remove_recursive(mce_debugfs);
+
+	return ret;
+}
+
+static void __exit tegra19x_mce_exit(void)
+{
+	if (tegra_get_chip_id() == TEGRA194)
+		debugfs_remove_recursive(mce_debugfs);
+}
+module_init(tegra19x_mce_init);
+module_exit(tegra19x_mce_exit);
 #endif /* CONFIG_DEBUG_FS */
+
+static struct tegra_mce_ops t19x_mce_ops = {
+	.enter_cstate = tegra19x_mce_enter_cstate,
+	.update_cstate_info = tegra19x_mce_update_cstate_info,
+	.update_crossover_time = tegra19x_mce_update_crossover_time,
+	.read_cstate_stats = tegra19x_mce_read_cstate_stats,
+	.cc3_ctrl = tegra19x_mce_cc3_ctrl,
+	.read_versions = tegra19x_mce_read_versions,
+	.write_dda_ctrl = tegra19x_mce_write_dda_ctrl,
+	.read_dda_ctrl = tegra19x_mce_read_dda_ctrl,
+	.read_l3_cache_ways = tegra19x_mce_read_l3_cache_ways,
+	.write_l3_cache_ways = tegra19x_mce_write_l3_cache_ways,
+	.flush_cache_all = tegra_19x_flush_cache_all,
+	.flush_dcache_all = tegra_19x_flush_dcache_all,
+	.clean_dcache_all = tegra_19x_clean_dcache_all,
+	.read_rt_safe_mask = tegra19x_mce_read_rt_safe_mask,
+	.write_rt_safe_mask = tegra19x_mce_write_rt_safe_mask,
+	.read_rt_window_us = tegra19x_mce_read_rt_window_us,
+	.write_rt_window_us = tegra19x_mce_write_rt_window_us,
+	.read_rt_fwd_progress_us =
+				tegra19x_mce_read_rt_fwd_progress_us,
+	.write_rt_fwd_progress_us =
+				tegra19x_mce_write_rt_fwd_progress_us,
+};
+
+static int __init tegra19x_mce_early_init(void)
+{
+	if (tegra_get_chip_id() == TEGRA194)
+		tegra_mce_set_ops(&t19x_mce_ops);
+
+	return 0;
+}
+early_initcall(tegra19x_mce_early_init);
+
+MODULE_DESCRIPTION("NVIDIA Tegra19X MCE driver");
+MODULE_AUTHOR("NVIDIA Corporation");
+MODULE_LICENSE("GPL v2");
