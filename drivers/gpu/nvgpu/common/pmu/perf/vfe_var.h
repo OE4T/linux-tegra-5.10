@@ -23,6 +23,11 @@
 #ifndef NVGPU_PERF_VFE_VAR_H
 #define NVGPU_PERF_VFE_VAR_H
 
+struct vfe_vars {
+	struct boardobjgrp_e32 super;
+	u8 polling_periodms;
+};
+
 struct vfe_var {
 	struct boardobj super;
 	u32 out_range_min;

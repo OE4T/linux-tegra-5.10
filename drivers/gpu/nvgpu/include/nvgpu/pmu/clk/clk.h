@@ -133,7 +133,7 @@ struct nvgpu_clk_progs;
 struct nvgpu_clk_vf_points;
 struct nvgpu_clk_mclk_state;
 struct nvgpu_clk_slave_freq;
-struct ctrl_perf_change_seq_change_input;
+struct nvgpu_pmu_perf_change_input_clk_info;
 struct nvgpu_vin_device;
 struct nvgpu_clk_domain;
 struct nvgpu_clk_arb;
@@ -259,7 +259,7 @@ struct nvgpu_clk_pmupstate {
 	int (*get_fll)(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk);
 	void (*set_p0_clks)(struct gk20a *g, u8 *gpcclk_domain,
 		u32 *gpcclk_clkmhz, struct nvgpu_clk_slave_freq *vf_point,
-		struct ctrl_perf_change_seq_change_input *change_input);
+		struct nvgpu_pmu_perf_change_input_clk_info *change_input);
 	struct nvgpu_clk_domain *(*clk_get_clk_domain)
 			(struct nvgpu_clk_pmupstate *pclk, u8 idx);
 	int (*clk_domain_clk_prog_link)(struct gk20a *g,

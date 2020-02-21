@@ -37,7 +37,7 @@
 #include "pstate.h"
 #include "perf.h"
 
-int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num)
+int perf_pstate_get_table_entry_idx(struct gk20a *g, u32 num)
 {
 	struct pstates *pstates = &(g->pmu->perf_pmu->pstatesobjs);
 	struct pstate *pstate;
@@ -206,7 +206,7 @@ static int parse_pstate_entry_6x(struct gk20a *g,
 	pstate->pcie_idx = entry->pcie_idx;
 
 	for (clkidx = 0; clkidx < hdr->clock_entry_count; clkidx++) {
-		struct clk_set_info *pclksetinfo;
+		struct nvgpu_pmu_perf_pstate_clk_info *pclksetinfo;
 		struct vbios_pstate_entry_clock_6x *clk_entry;
 		domain = 0;
 
@@ -336,7 +336,7 @@ static int perf_pstate_pmudatainit(struct gk20a *g,
 
 	pset->numClkDomains = pprogs->num_clk_domains;
 	pset->boot_pstate_idx =
-			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
+			perf_pstate_get_table_entry_idx(g, CTRL_PERF_PSTATE_P0);
 
 done:
 	return status;
@@ -435,11 +435,11 @@ static struct pstate *perf_pstate_find(struct gk20a *g, u32 num)
 	return NULL;
 }
 
-struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
-		u32 pstate_num, u32 clkwhich)
+struct nvgpu_pmu_perf_pstate_clk_info *nvgpu_pmu_perf_pstate_get_clk_set_info(
+		struct gk20a *g, u32 pstate_num, u32 clkwhich)
 {
 	struct pstate *pstate = perf_pstate_find(g, pstate_num);
-	struct clk_set_info *info;
+	struct nvgpu_pmu_perf_pstate_clk_info *info;
 	u32 clkidx;
 
 	if (pstate == NULL) {

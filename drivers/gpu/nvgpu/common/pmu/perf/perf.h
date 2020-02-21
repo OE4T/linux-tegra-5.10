@@ -25,6 +25,11 @@
 #ifndef PMU_PERF_H_
 #define PMU_PERF_H_
 
+#include "vfe_equ.h"
+#include "vfe_var.h"
+#include "change_seq.h"
+#include "pstate.h"
+
 /* PERF RPC ID Definitions */
 #define NV_PMU_RPC_ID_PERF_VFE_CALLBACK                          0x01U
 #define NV_PMU_RPC_ID_PERF_SEQ_COMPLETION                        0x02U
@@ -52,6 +57,18 @@ struct pmu_nvgpu_rpc_perf_event {
 	struct pmu_nvgpu_rpc_header rpc_hdr;
 };
 
-int nvgpu_get_pstate_entry_idx(struct gk20a *g, u32 num);
+struct perf_vfe_invalidate {
+	bool state_change;
+	struct nvgpu_cond wq;
+	struct nvgpu_thread state_task;
+};
+
+struct nvgpu_pmu_perf {
+	struct vfe_vars vfe_varobjs;
+	struct vfe_equs vfe_equobjs;
+	struct pstates pstatesobjs;
+	struct perf_vfe_invalidate vfe_init;
+	struct change_seq_pmu changeseq_pmu;
+};
 
 #endif /* PMU_PERF_H_ */

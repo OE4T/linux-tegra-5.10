@@ -24,6 +24,12 @@
 #ifndef NVGPU_PERF_VFE_EQU_H
 #define NVGPU_PERF_VFE_EQU_H
 
+#include "ucode_perf_vfe_inf.h"
+
+struct vfe_equs {
+	struct boardobjgrp_e255 super;
+};
+
 struct vfe_equ {
 	struct boardobj super;
 	u8 var_idx;
@@ -56,7 +62,7 @@ struct vfe_equ_minmax {
 
 struct vfe_equ_quadratic {
 	struct vfe_equ super;
-	u32   coeffs[CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT];
+	u32 coeffs[CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT];
 };
 
 struct vfe_equ_scalar {

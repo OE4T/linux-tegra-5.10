@@ -80,9 +80,7 @@ struct ctrl_perf_change_seq_change_input {
 	u32 pstate_index;
 	u32 flags;
 	u32 vf_points_cache_counter;
-	struct ctrl_boardobjgrp_mask_e32 clk_domains_mask;
-	struct ctrl_perf_chage_seq_input_clk
-		clk[CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS];
+	struct nvgpu_pmu_perf_change_input_clk_info clk;
 	struct ctrl_boardobjgrp_mask_e32 volt_rails_mask;
 	struct ctrl_perf_chage_seq_input_volt
 		volt[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];

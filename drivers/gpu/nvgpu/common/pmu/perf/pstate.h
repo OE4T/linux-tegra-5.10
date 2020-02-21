@@ -27,9 +27,14 @@
 
 #define CTRL_PERF_PSTATE_TYPE_35	0x05U
 
-struct clk_set_info_list {
+struct pstate_clk_info_list {
 	u32 num_info;
-	struct clk_set_info clksetinfo[CLK_SET_INFO_MAX_SIZE];
+	struct nvgpu_pmu_perf_pstate_clk_info clksetinfo[CLK_SET_INFO_MAX_SIZE];
+};
+
+struct pstates {
+	struct boardobjgrp_e32 super;
+	u8 num_clk_domains;
 };
 
 struct pstate {
@@ -39,10 +44,11 @@ struct pstate {
 	u32 flags;
 	u8 pcie_idx;
 	u8 nvlink_idx;
-	struct clk_set_info_list clklist;
+	struct pstate_clk_info_list clklist;
 };
 
 int perf_pstate_sw_setup(struct gk20a *g);
 int perf_pstate_pmu_setup(struct gk20a *g);
+int perf_pstate_get_table_entry_idx(struct gk20a *g, u32 num);
 
 #endif /* NVGPU_PERF_PSTATE_H */

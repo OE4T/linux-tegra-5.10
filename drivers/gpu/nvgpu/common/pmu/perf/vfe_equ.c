@@ -35,6 +35,7 @@
 #include "ucode_perf_vfe_inf.h"
 #include "vfe_equ.h"
 #include "vfe_var.h"
+#include "perf.h"
 
 static int vfe_equ_node_depending_mask_combine(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp, u8 equ_idx,

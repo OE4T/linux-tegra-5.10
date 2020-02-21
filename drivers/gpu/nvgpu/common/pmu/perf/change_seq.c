@@ -106,7 +106,7 @@ static void build_change_seq_boot (struct gk20a *g)
 	struct change_seq_pmu *perf_change_seq_pmu =
 		&(g->pmu->perf_pmu->changeseq_pmu);
 	struct nvgpu_clk_domain *pdomain;
-	struct clk_set_info *p0_info;
+	struct nvgpu_pmu_perf_pstate_clk_info *p0_info;
 	struct change_seq_pmu_script *script_last =
 		&perf_change_seq_pmu->script_last;
 	u8 i = 0;
@@ -155,7 +155,7 @@ static void build_change_seq_boot (struct gk20a *g)
 
 	/* Assume everything is P0 - Need to find the index for P0  */
 	script_last->buf.change.data.pstate_index =
-			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
+			perf_pstate_get_table_entry_idx(g, CTRL_PERF_PSTATE_P0);
 
 	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
 		pmu, pmu->super_surface),
@@ -234,7 +234,7 @@ int perf_change_seq_pmu_setup(struct gk20a *g)
 
 	/* Assume everything is P0 - Need to find the index for P0  */
 	perf_change_seq_pmu->script_last.buf.change.data.pstate_index =
-			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);;
+			perf_pstate_get_table_entry_idx(g, CTRL_PERF_PSTATE_P0);;
 
 	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
 		pmu, pmu->super_surface),
@@ -272,10 +272,10 @@ int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 		sizeof(struct ctrl_perf_change_seq_change_input));
 
 	g->pmu->clk_pmu->set_p0_clks(g, &gpcclk_domain, &gpcclk_clkmhz,
-			vf_point, &change_input);
+			vf_point, &change_input.clk);
 
 	change_input.pstate_index =
-			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
+			perf_pstate_get_table_entry_idx(g, CTRL_PERF_PSTATE_P0);
 	change_input.flags = (u32)CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
 	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
 
@@ -320,7 +320,7 @@ int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 			sizeof(struct nv_pmu_rpc_perf_change_seq_queue_change));
 	rpc.change = change_input;
 	rpc.change.pstate_index =
-			nvgpu_get_pstate_entry_idx(g, CTRL_PERF_PSTATE_P0);
+			perf_pstate_get_table_entry_idx(g, CTRL_PERF_PSTATE_P0);
 	change_seq_pmu->change_state = 0U;
 	change_seq_pmu->start_time = nvgpu_current_time_us();
 	PMU_RPC_EXECUTE_CPB(status, pmu, PERF,
@@ -342,4 +342,13 @@ int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 	}
 	change_seq_pmu->stop_time = nvgpu_current_time_us();
 	return status;
+}
+
+void nvgpu_perf_change_seq_execute_time(struct gk20a *g, s64 *change_time)
+{
+	struct change_seq_pmu *change_seq_pmu =
+			&g->pmu->perf_pmu->changeseq_pmu;
+	s64 diff = change_seq_pmu->stop_time - change_seq_pmu->start_time;
+
+	*change_time = diff;
 }

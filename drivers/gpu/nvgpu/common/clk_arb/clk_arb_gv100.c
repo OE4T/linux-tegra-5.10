@@ -57,7 +57,7 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 		u16 *min_mhz, u16 *max_mhz)
 {
 	u32 clkwhich;
-	struct clk_set_info *p0_info;
+	struct nvgpu_pmu_perf_pstate_clk_info *p0_info;
 	struct nvgpu_avfsfllobjs *pfllobjs =  g->pmu->clk_pmu->avfs_fllobjs;
 	u16 limit_min_mhz;
 	u16 gpcclk_cap_mhz;
@@ -111,7 +111,7 @@ int gv100_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
 		u16 *default_mhz)
 {
 	u32 clkwhich;
-	struct clk_set_info *p0_info;
+	struct nvgpu_pmu_perf_pstate_clk_info *p0_info;
 	bool error_status = false;
 	u16 gpcclk_cap_mhz;
 

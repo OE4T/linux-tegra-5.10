@@ -1472,10 +1472,10 @@ done:
 static void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 		u32 *gpcclk_clkmhz,
 		struct nvgpu_clk_slave_freq *vf_point,
-		struct ctrl_perf_change_seq_change_input *change_input)
+		struct nvgpu_pmu_perf_change_input_clk_info *change_input)
 {
 	struct nvgpu_clk_domain *pclk_domain;
-	struct clk_set_info *p0_info;
+	struct nvgpu_pmu_perf_pstate_clk_info *p0_info;
 	u32 max_clkmhz;
 	u16 max_ratio;
 	u8 i = 0;

@@ -118,7 +118,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	u16 clk_cur;
 	u32 num_points;
 
-	struct clk_set_info *p0_info;
+	struct nvgpu_pmu_perf_pstate_clk_info *p0_info;
 
 	table = NV_READ_ONCE(arb->current_vf_table);
 	/* make flag visible when all data has resolved in the tables */

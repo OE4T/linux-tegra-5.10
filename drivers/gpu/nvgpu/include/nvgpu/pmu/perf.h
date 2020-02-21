@@ -25,9 +25,7 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
-
-/* Dependency of this include will be removed in further CL */
-#include "../../../common/pmu/perf/ucode_perf_change_seq_inf.h"
+#include <nvgpu/pmu/clk/clk.h>
 
 struct nvgpu_clk_slave_freq;
 
@@ -64,72 +62,21 @@ struct nvgpu_clk_slave_freq;
 #define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_SET                      (0x00000004U)
 #define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_GET_STATUS               (0x00000006U)
 
-struct nvgpu_vfe_invalidate {
-	bool state_change;
-	struct nvgpu_cond wq;
-	struct nvgpu_thread state_task;
-};
-
-struct vfe_vars {
-	struct boardobjgrp_e32 super;
-	u8 polling_periodms;
-};
-
-struct vfe_equs {
-	struct boardobjgrp_e255 super;
-};
-
-struct change_seq_pmu_script {
-	struct perf_change_seq_pmu_script buf;
-	u32 super_surface_offset;
-};
-
-struct clk_set_info {
+struct nvgpu_pmu_perf_pstate_clk_info {
 	u32 clkwhich;
 	u32 nominal_mhz;
 	u16 min_mhz;
 	u16 max_mhz;
 };
 
-struct pstates {
-	struct boardobjgrp_e32 super;
-	u8 num_clk_domains;
+struct perf_chage_seq_input_clk {
+	u32 clk_freq_khz;
 };
 
-struct change_seq {
-	u8 version;
-	bool b_enabled_pmu_support;
-	u32 thread_seq_id_last;
-	u64 thread_carry_over_timens;
-	struct ctrl_perf_change_seq_change last_pstate_values;
-	struct boardobjgrpmask_e32 clk_domains_exclusion_mask;
-	struct boardobjgrpmask_e32 clk_domains_inclusion_mask;
-	u32 client_lock_mask;
-};
-
-struct change_seq_pmu {
-	struct change_seq super;
-	bool b_lock;
-	bool b_vf_point_check_ignore;
-	u32 cpu_adverised_step_id_mask;
-	u32 cpu_step_id_mask;
-	u32 event_mask_pending;
-	u32 event_mask_received;
-	u32 last_completed_change_Seq_id;
-	struct change_seq_pmu_script script_curr;
-	struct change_seq_pmu_script script_last;
-	struct change_seq_pmu_script script_query;
-	u32 change_state;
-	s64 start_time;
-	s64 stop_time;
-};
-
-struct perf_pmupstate {
-	struct vfe_vars vfe_varobjs;
-	struct vfe_equs vfe_equobjs;
-	struct pstates pstatesobjs;
-	struct nvgpu_vfe_invalidate vfe_init;
-	struct change_seq_pmu changeseq_pmu;
+struct nvgpu_pmu_perf_change_input_clk_info {
+	struct ctrl_boardobjgrp_mask_e32 clk_domains_mask;
+	struct perf_chage_seq_input_clk
+		clk[CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS];
 };
 
 int nvgpu_pmu_perf_init(struct gk20a *g);
@@ -147,8 +94,9 @@ int nvgpu_pmu_perf_vfe_get_freq_margin(struct gk20a *g, u32 *fmargin_mhz);
 int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 	struct nvgpu_clk_slave_freq *vf_point);
 
-struct clk_set_info *nvgpu_pmu_perf_pstate_get_clk_set_info(struct gk20a *g,
-			u32 pstate_num,
-			u32 clkwhich);
+struct nvgpu_pmu_perf_pstate_clk_info *nvgpu_pmu_perf_pstate_get_clk_set_info(
+		struct gk20a *g, u32 pstate_num, u32 clkwhich);
+
+void nvgpu_perf_change_seq_execute_time(struct gk20a *g, s64 *change_time);
 
 #endif /* NVGPU_PMU_PERF_H */

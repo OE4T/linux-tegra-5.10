@@ -31,6 +31,7 @@
 
 #include "ucode_perf_vfe_inf.h"
 #include "vfe_var.h"
+#include "perf.h"
 
 static int vfe_vars_pmudatainit(struct gk20a *g,
 				 struct boardobjgrp *pboardobjgrp,
