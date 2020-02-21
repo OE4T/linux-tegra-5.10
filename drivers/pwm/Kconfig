@@ -1,0 +1,11 @@
+if PWM
+config PWM_TEGRA_TACHOMETER
+	tristate "NVIDIA Tegra Tachometer PWM driver "
+	depends on ARCH_TEGRA
+	help
+	  NVIDIA Tegra Tachometer reads the PWM signal and reports the PWM
+	  signal periods. This helps in measuign the fan speed where Fan
+	  output for speed is PWM signal.
+
+	  This driver support the Tachometer driver in PWM framework.
+endif
