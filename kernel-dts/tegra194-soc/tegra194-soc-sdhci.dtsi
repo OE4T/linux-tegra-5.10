@@ -55,6 +55,19 @@
 		nvidia,max-tap-delay = <139>;
 		nvidia,en-periodic-cflush;
 		nvidia,periodic-cflush-to = <10>;
+#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
+		nvidia,pad-autocal-pull-up-offset-hs400 = <0x00>;
+		nvidia,pad-autocal-pull-down-offset-hs400 = <0x00>;
+		nvidia,pad-autocal-pull-up-offset-1v8-timeout = <0x0a>;
+		nvidia,pad-autocal-pull-down-offset-1v8-timeout =
+								<0x0a>;
+		nvidia,pad-autocal-pull-up-offset-3v3-timeout = <0x0a>;
+		nvidia,pad-autocal-pull-down-offset-3v3-timeout =
+								<0x0a>;
+		nvidia,default-tap = <0x8>;
+		nvidia,default-trim = <0x14>;
+		nvidia,dqs-trim = <40>;
+#endif
 		resets = <&bpmp_resets TEGRA194_RESET_SDMMC4>;
 		reset-names = "sdhci";
 		pll_source = "pll_p", "pll_c4_out0_lj";
@@ -94,9 +107,27 @@
 		nvidia,max-tap-delay = <139>;
 		nvidia,vqmmc-always-on;
 		pwrdet-support;
+#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
+		nvidia,pad-autocal-pull-up-offset-1v8 = <0x00>;
+		nvidia,pad-autocal-pull-down-offset-1v8 = <0x7a>;
+		nvidia,pad-autocal-pull-up-offset-3v3-timeout = <0x07>;
+		nvidia,pad-autocal-pull-down-offset-3v3-timeout =
+								<0x07>;
+		nvidia,pad-autocal-pull-up-offset-1v8-timeout = <0x06>;
+		nvidia,pad-autocal-pull-down-offset-1v8-timeout =
+								<0x07>;
+		nvidia,pad-autocal-pull-up-offset-sdr104 = <0x00>;
+		nvidia,pad-autocal-pull-down-offset-sdr104 = <0x00>;
+		nvidia,default-tap = <0x9>;
+		nvidia,default-trim = <0x5>;
+		pinctrl-names = "sdmmc-3v3", "sdmmc-1v8";
+		pinctrl-0 = <&sdmmc3_3v3>;
+		pinctrl-1 = <&sdmmc3_1v8>;
+#else
 		pinctrl-names = "sdmmc_e_33v_enable", "sdmmc_e_33v_disable";
 		pinctrl-0 = <&sdmmc3_e_33V_enable>;
 		pinctrl-1 = <&sdmmc3_e_33V_disable>;
+#endif
 		ignore-pm-notify;
 		resets = <&bpmp_resets TEGRA194_RESET_SDMMC3>;
 		reset-names = "sdhci";
@@ -138,9 +169,27 @@
 		nvidia,min-tap-delay = <96>;
 		nvidia,max-tap-delay = <139>;
 		pwrdet-support;
+#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
+		nvidia,pad-autocal-pull-up-offset-3v3-timeout =
+								<0x07>;
+		nvidia,pad-autocal-pull-down-offset-3v3-timeout =
+								<0x07>;
+		nvidia,pad-autocal-pull-up-offset-1v8-timeout = <0x06>;
+		nvidia,pad-autocal-pull-down-offset-1v8-timeout =
+								<0x07>;
+		nvidia,pad-autocal-pull-up-offset-sdr104 = <0x00>;
+		nvidia,pad-autocal-pull-down-offset-sdr104 = <0x00>;
+		nvidia,default-tap = <0x9>;
+		nvidia,default-trim = <0x5>;
+		pinctrl-names = "sdmmc-3v3", "sdmmc-1v8";
+		pinctrl-0 = <&sdmmc1_3v3>;
+		pinctrl-1 = <&sdmmc1_1v8>;
+#else
+
 		pinctrl-names = "sdmmc_e_33v_enable", "sdmmc_e_33v_disable";
 		pinctrl-0 = <&sdmmc1_e_33V_enable>;
 		pinctrl-1 = <&sdmmc1_e_33V_disable>;
+#endif
 		ignore-pm-notify;
 		resets = <&bpmp_resets TEGRA194_RESET_SDMMC1>;
 		reset-names = "sdhci";
