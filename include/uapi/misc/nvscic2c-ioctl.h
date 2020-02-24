@@ -1,5 +1,6 @@
-/*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+/* include/uapi/misc/nvscic2c-ioctl.h
+ *
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This header is BSD licensed so anyone can use the definitions to implement
  * compatible drivers/servers.
@@ -29,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __NVSIC2C_IOCTL_H__
-#define __NVSIC2C_IOCTL_H__
+#ifndef __UAPI_NVSIC2C_IOCTL_H__
+#define __UAPI_NVSIC2C_IOCTL_H__
 
 #include <linux/ioctl.h>
 
@@ -147,4 +148,4 @@ struct nvscic2c_info {
 
 #define NVSCIC2C_IOCTL_NUMBER_MAX 1
 
-#endif /*__NVSIC2C_IOCTL_H__*/
+#endif /*__UAPI_NVSIC2C_IOCTL_H__*/

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019 - 2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,8 +16,8 @@
 
 #include <linux/mm.h>
 #include <linux/types.h>
-#include <linux/nvscic2c-ioctl.h>
 #include <linux/tegra-ivc.h>
+#include <uapi/misc/nvscic2c-ioctl.h>
 
 #define MODULE_NAME      "nvscic2c"
 
