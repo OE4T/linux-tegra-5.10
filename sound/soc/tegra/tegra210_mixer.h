@@ -1,5 +1,5 @@
 /*
- * tegra210_mixer_alt.h - Definitions for Tegra210 MIXER driver
+ * tegra210_mixer.h - Definitions for Tegra210 MIXER driver
  *
  * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *

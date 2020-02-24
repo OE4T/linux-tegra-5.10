@@ -28,6 +28,13 @@
 #define TEGRA186_XBAR_REG_MASK_3			0x3f0f00ff
 #define TEGRA186_XBAR_UPDATE_MAX_REG			4
 
+/* Fields in *AHUBRAMCTL_CTRL; used by different AHUB modules */
+#define TEGRA210_AHUBRAMCTL_CTRL_RW_READ		0
+#define TEGRA210_AHUBRAMCTL_CTRL_RW_WRITE		(1 << 14)
+#define TEGRA210_AHUBRAMCTL_CTRL_ADDR_INIT_EN		(1 << 13)
+#define TEGRA210_AHUBRAMCTL_CTRL_SEQ_ACCESS_EN		(1 << 12)
+#define TEGRA210_AHUBRAMCTL_CTRL_RAM_ADDR_MASK		0x1ff
+
 #define TEGRA_XBAR_UPDATE_MAX_REG (TEGRA186_XBAR_UPDATE_MAX_REG)
 
 #define TEGRA186_MAX_REGISTER_ADDR (TEGRA186_XBAR_PART3_RX +		\
@@ -124,5 +131,12 @@ struct tegra_ahub {
 	struct regmap *regmap;
 	struct clk *clk;
 };
+
+void tegra210_ahub_write_ram(struct regmap *regmap, unsigned int reg_ctrl,
+			     unsigned int reg_data, unsigned int ram_offset,
+			     unsigned int *data, size_t size);
+void tegra210_ahub_read_ram(struct regmap *regmap, unsigned int reg_ctrl,
+			    unsigned int reg_data, unsigned int ram_offset,
+			    unsigned int *data, size_t size);
 
 #endif

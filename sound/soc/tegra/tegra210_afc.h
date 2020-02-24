@@ -1,5 +1,5 @@
 /*
- * tegra210_afc_alt.h - Definitions for Tegra210 AFC driver
+ * tegra210_afc.h - Definitions for Tegra210 AFC driver
  *
  * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -86,7 +86,7 @@
 struct tegra210_afc_soc_data {
 	unsigned int num_i2s;
 	bool flag_module_select;
-	const struct snd_soc_codec_driver *afc_codec;
+	const struct snd_soc_component_driver *afc_cmpnt;
 };
 
 enum tegra210_afc_threshold_type {

@@ -1,5 +1,5 @@
 /*
- * tegra210_mvc_alt.h - Definitions for Tegra210 MVC driver
+ * tegra210_mvc.h - Definitions for Tegra210 MVC driver
  *
  * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *

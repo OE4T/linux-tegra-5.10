@@ -1,5 +1,5 @@
 /*
- * tegra210_mixer_alt.c - Tegra210 MIXER driver
+ * tegra210_mixer.c - Tegra210 MIXER driver
  *
  * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -30,8 +30,9 @@
 #include <sound/soc.h>
 #include <linux/of_device.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra210_mixer_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra210_mixer.h"
+#include "tegra_cif.h"
 
 #define DRV_NAME "tegra210_mixer"
 
@@ -129,8 +130,8 @@ static int tegra210_mixer_put_format(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mixer *mixer = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
 	int value = ucontrol->value.integer.value[0];
 
 	if (strstr(kcontrol->id.name, "Channels")) {
@@ -148,8 +149,8 @@ static int tegra210_mixer_get_format(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mixer *mixer = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
 
 	if (strstr(kcontrol->id.name, "Channels"))
 		ucontrol->value.integer.value[0] =
@@ -162,8 +163,8 @@ static int tegra210_mixer_get_gain(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mixer *mixer = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int reg = mc->reg;
 	unsigned int i;
 
@@ -179,12 +180,12 @@ static int tegra210_mixer_put_gain(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mixer *mixer = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int reg = mc->reg;
 	unsigned int ret, i;
 
-	pm_runtime_get_sync(codec->dev);
+	pm_runtime_get_sync(cmpnt->dev);
 	/* write default gain config poly coefficients */
 	for (i = 0; i < 10; i++)
 		tegra210_mixer_write_ram(mixer, reg + i, mixer->gain_coeff[i]);
@@ -204,7 +205,7 @@ static int tegra210_mixer_put_gain(struct snd_kcontrol *kcontrol,
 				ucontrol->value.integer.value[0]);
 	ret |= tegra210_mixer_write_ram(mixer, reg + 0x0f,
 				ucontrol->value.integer.value[0]);
-	pm_runtime_put(codec->dev);
+	pm_runtime_put(cmpnt->dev);
 
 	/* save gain */
 	i = (reg - TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_ADDR_0) /
@@ -220,9 +221,9 @@ static int tegra210_mixer_set_audio_cif(struct tegra210_mixer *mixer,
 				unsigned int id)
 {
 	int channels, audio_bits;
-	struct tegra210_xbar_cif_conf cif_conf;
+	struct tegra_cif_conf cif_conf;
 
-	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
+	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
 
 	channels = params_channels(params);
 
@@ -231,21 +232,21 @@ static int tegra210_mixer_set_audio_cif(struct tegra210_mixer *mixer,
 
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_16;
+		audio_bits = TEGRA_ACIF_BITS_16;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_32;
+		audio_bits = TEGRA_ACIF_BITS_32;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	cif_conf.audio_channels = channels;
-	cif_conf.client_channels = channels;
+	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
 	cif_conf.client_bits = audio_bits;
 
-	tegra210_xbar_set_cif(mixer->regmap, reg, &cif_conf);
+	tegra_set_cif(mixer->regmap, reg, &cif_conf);
 	return 0;
 }
 
@@ -517,16 +518,13 @@ static const struct snd_soc_dapm_route tegra210_mixer_routes[] = {
 	{ "TX5 Transmit",	NULL,	"TX5" },
 };
 
-static struct snd_soc_codec_driver tegra210_mixer_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.dapm_widgets = tegra210_mixer_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra210_mixer_widgets),
-		.dapm_routes = tegra210_mixer_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra210_mixer_routes),
-		.controls = tegra210_mixer_gain_ctls,
-		.num_controls = ARRAY_SIZE(tegra210_mixer_gain_ctls),
-	},
+static struct snd_soc_component_driver tegra210_mixer_cmpnt = {
+	.dapm_widgets = tegra210_mixer_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra210_mixer_widgets),
+	.dapm_routes = tegra210_mixer_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra210_mixer_routes),
+	.controls = tegra210_mixer_gain_ctls,
+	.num_controls = ARRAY_SIZE(tegra210_mixer_gain_ctls),
 };
 
 static bool tegra210_mixer_wr_reg(struct device *dev,
@@ -722,7 +720,7 @@ static int tegra210_mixer_platform_probe(struct platform_device *pdev)
 	regcache_cache_only(mixer->regmap, true);
 
 	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_codec(&pdev->dev, &tegra210_mixer_codec,
+	ret = snd_soc_register_component(&pdev->dev, &tegra210_mixer_cmpnt,
 				     tegra210_mixer_dais,
 				     ARRAY_SIZE(tegra210_mixer_dais));
 	if (ret != 0) {
@@ -736,7 +734,7 @@ static int tegra210_mixer_platform_probe(struct platform_device *pdev)
 
 static int tegra210_mixer_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

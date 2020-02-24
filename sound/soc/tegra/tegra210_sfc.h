@@ -1,5 +1,5 @@
 /*
- * tegra210_sfc_alt.h - Definitions for Tegra210 SFC driver
+ * tegra210_sfc.h - Definitions for Tegra210 SFC driver
  *
  * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * tegra210_mvc_alt.c - Tegra210 MVC driver
+ * tegra210_mvc.c - Tegra210 MVC driver
  *
  * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -29,8 +29,9 @@
 #include <sound/soc.h>
 #include <linux/of_device.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra210_mvc_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra210_mvc.h"
+#include "tegra_cif.h"
 
 #define DRV_NAME "tegra210-mvc"
 
@@ -104,8 +105,8 @@ static int tegra210_mvc_get_vol(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int reg = mc->reg;
 
 	if (reg == TEGRA210_MVC_TARGET_VOL) {
@@ -133,14 +134,14 @@ static int tegra210_mvc_put_vol(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int reg = mc->reg;
 	unsigned int value;
 	int ret = 0;
 	s32 val;
 
-	pm_runtime_get_sync(codec->dev);
+	pm_runtime_get_sync(cmpnt->dev);
 
 	/* check if VOLUME_SWITCH is triggered */
 	ret = regmap_read_poll_timeout(mvc->regmap, TEGRA210_MVC_SWITCH,
@@ -175,7 +176,7 @@ static int tegra210_mvc_put_vol(struct snd_kcontrol *kcontrol,
 			TEGRA210_MVC_VOLUME_SWITCH_TRIGGER);
 
 end:
-	pm_runtime_put(codec->dev);
+	pm_runtime_put(cmpnt->dev);
 
 	if (reg == TEGRA210_MVC_TARGET_VOL)
 		ret |= regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
@@ -187,8 +188,8 @@ end:
 static int tegra210_mvc_get_curve_type(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 
 	ucontrol->value.integer.value[0] = mvc->curve_type;
 
@@ -198,8 +199,8 @@ static int tegra210_mvc_get_curve_type(struct snd_kcontrol *kcontrol,
 static int tegra210_mvc_put_curve_type(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 
 	mvc->curve_type = ucontrol->value.integer.value[0];
 	/* change volume to default init for new curve type */
@@ -214,8 +215,8 @@ static int tegra210_mvc_put_curve_type(struct snd_kcontrol *kcontrol,
 static int tegra210_mvc_get_audio_bits(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 
 	if (mvc->audio_bits > 0)
 		ucontrol->value.integer.value[0] = (mvc->audio_bits + 1) * 4;
@@ -228,8 +229,8 @@ static int tegra210_mvc_get_audio_bits(struct snd_kcontrol *kcontrol,
 static int tegra210_mvc_put_audio_bits(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int val;
 
 	val = ucontrol->value.integer.value[0];
@@ -245,8 +246,8 @@ static int tegra210_mvc_put_audio_bits(struct snd_kcontrol *kcontrol,
 static int tegra210_mvc_get_format(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 
 	/* get the format control flag */
 	if (strstr(kcontrol->id.name, "input bit format"))
@@ -260,8 +261,8 @@ static int tegra210_mvc_get_format(struct snd_kcontrol *kcontrol,
 static int tegra210_mvc_put_format(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_mvc *mvc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int value = ucontrol->value.integer.value[0];
 
 	/* set the format control flag */
@@ -275,8 +276,8 @@ static int tegra210_mvc_put_format(struct snd_kcontrol *kcontrol,
 
 static const int tegra210_mvc_fmt_values[] = {
 	0,
-	TEGRA210_AUDIOCIF_BITS_16,
-	TEGRA210_AUDIOCIF_BITS_32,
+	TEGRA_ACIF_BITS_16,
+	TEGRA_ACIF_BITS_32,
 };
 
 static int tegra210_mvc_set_audio_cif(struct tegra210_mvc *mvc,
@@ -284,9 +285,9 @@ static int tegra210_mvc_set_audio_cif(struct tegra210_mvc *mvc,
 				unsigned int reg)
 {
 	int channels, audio_bits;
-	struct tegra210_xbar_cif_conf cif_conf;
+	struct tegra_cif_conf cif_conf;
 
-	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
+	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
 
 	channels = params_channels(params);
 	if (mvc->cif_channels > 0)
@@ -297,10 +298,10 @@ static int tegra210_mvc_set_audio_cif(struct tegra210_mvc *mvc,
 
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_16;
+		audio_bits = TEGRA_ACIF_BITS_16;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_32;
+		audio_bits = TEGRA_ACIF_BITS_32;
 		break;
 	default:
 		return -EINVAL;
@@ -309,8 +310,8 @@ static int tegra210_mvc_set_audio_cif(struct tegra210_mvc *mvc,
 	if (mvc->audio_bits > 0)
 		audio_bits = mvc->audio_bits;
 
-	cif_conf.audio_channels = channels;
-	cif_conf.client_channels = channels;
+	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
 	cif_conf.client_bits = audio_bits;
 
@@ -318,7 +319,7 @@ static int tegra210_mvc_set_audio_cif(struct tegra210_mvc *mvc,
 	if (mvc->format_in && (reg == TEGRA210_MVC_AXBAR_RX_CIF_CTRL))
 		cif_conf.audio_bits = tegra210_mvc_fmt_values[mvc->format_in];
 
-	tegra210_xbar_set_cif(mvc->regmap, reg, &cif_conf);
+	tegra_set_cif(mvc->regmap, reg, &cif_conf);
 
 	return 0;
 }
@@ -480,16 +481,13 @@ static const struct snd_soc_dapm_route tegra210_mvc_routes[] = {
 	{ "MVC Transmit", NULL, "MVC TX" },
 };
 
-static struct snd_soc_codec_driver tegra210_mvc_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.dapm_widgets = tegra210_mvc_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra210_mvc_widgets),
-		.dapm_routes = tegra210_mvc_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra210_mvc_routes),
-		.controls = tegra210_mvc_vol_ctrl,
-		.num_controls = ARRAY_SIZE(tegra210_mvc_vol_ctrl),
-	},
+static struct snd_soc_component_driver tegra210_mvc_cmpnt = {
+	.dapm_widgets = tegra210_mvc_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra210_mvc_widgets),
+	.dapm_routes = tegra210_mvc_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra210_mvc_routes),
+	.controls = tegra210_mvc_vol_ctrl,
+	.num_controls = ARRAY_SIZE(tegra210_mvc_vol_ctrl),
 };
 
 static bool tegra210_mvc_wr_rd_reg(struct device *dev, unsigned int reg)
@@ -628,7 +626,7 @@ static int tegra210_mvc_platform_probe(struct platform_device *pdev)
 	regcache_cache_only(mvc->regmap, true);
 
 	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_codec(&pdev->dev, &tegra210_mvc_codec,
+	ret = snd_soc_register_component(&pdev->dev, &tegra210_mvc_cmpnt,
 				     tegra210_mvc_dais,
 				     ARRAY_SIZE(tegra210_mvc_dais));
 	if (ret != 0) {
@@ -642,7 +640,7 @@ static int tegra210_mvc_platform_probe(struct platform_device *pdev)
 
 static int tegra210_mvc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

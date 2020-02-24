@@ -1,5 +1,5 @@
 /*
- * tegra210_ope_alt.c - Tegra210 OPE driver
+ * tegra210_ope.c - Tegra210 OPE driver
  *
  * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -30,8 +30,9 @@
 #include <sound/soc.h>
 #include <linux/of_device.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra210_ope_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra210_ope.h"
+#include "tegra_cif.h"
 
 #define DRV_NAME "tegra210-ope"
 
@@ -79,9 +80,9 @@ static int tegra210_ope_set_audio_cif(struct tegra210_ope *ope,
 				unsigned int reg)
 {
 	int channels, audio_bits;
-	struct tegra210_xbar_cif_conf cif_conf;
+	struct tegra_cif_conf cif_conf;
 
-	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
+	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
 
 	channels = params_channels(params);
 	if (channels < 2)
@@ -89,21 +90,21 @@ static int tegra210_ope_set_audio_cif(struct tegra210_ope *ope,
 
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_16;
+		audio_bits = TEGRA_ACIF_BITS_16;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_32;
+		audio_bits = TEGRA_ACIF_BITS_32;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	cif_conf.audio_channels = channels;
-	cif_conf.client_channels = channels;
+	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
 	cif_conf.client_bits = audio_bits;
 
-	tegra210_xbar_set_cif(ope->regmap, reg, &cif_conf);
+	tegra_set_cif(ope->regmap, reg, &cif_conf);
 
 	return 0;
 }
@@ -131,24 +132,17 @@ static int tegra210_ope_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	tegra210_mbdrc_hw_params(dai->codec);
+	tegra210_mbdrc_hw_params(dai->component);
 
 	return ret;
 }
 
-static int tegra210_ope_codec_probe(struct snd_soc_codec *codec)
+static int tegra210_ope_codec_probe(struct snd_soc_component *cmpnt)
 {
-	tegra210_peq_codec_init(codec);
-	tegra210_mbdrc_codec_init(codec);
+	tegra210_peq_codec_init(cmpnt);
+	tegra210_mbdrc_codec_init(cmpnt);
 
 	return 0;
-}
-
-static struct regmap *tegra210_ope_init_regmap(struct device *dev)
-{
-	struct tegra210_ope *ope = dev_get_drvdata(dev);
-
-	return ope->regmap;
 }
 
 static struct snd_soc_dai_ops tegra210_ope_dai_ops = {
@@ -201,18 +195,14 @@ static const struct snd_kcontrol_new tegra210_ope_controls[] = {
 				TEGRA210_OPE_DIRECTION_SHIFT, 1, 0),
 };
 
-static struct snd_soc_codec_driver tegra210_ope_codec = {
+static struct snd_soc_component_driver tegra210_ope_cmpnt = {
 	.probe = tegra210_ope_codec_probe,
-	.idle_bias_off = 1,
-	.get_regmap = tegra210_ope_init_regmap,
-	.component_driver = {
-		.dapm_widgets = tegra210_ope_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra210_ope_widgets),
-		.dapm_routes = tegra210_ope_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra210_ope_routes),
-		.controls = tegra210_ope_controls,
-		.num_controls = ARRAY_SIZE(tegra210_ope_controls),
-	},
+	.dapm_widgets = tegra210_ope_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra210_ope_widgets),
+	.dapm_routes = tegra210_ope_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra210_ope_routes),
+	.controls = tegra210_ope_controls,
+	.num_controls = ARRAY_SIZE(tegra210_ope_controls),
 };
 
 static bool tegra210_ope_wr_reg(struct device *dev, unsigned int reg)
@@ -354,7 +344,7 @@ static int tegra210_ope_platform_probe(struct platform_device *pdev)
 	regcache_cache_only(ope->mbdrc_regmap, true);
 
 	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_codec(&pdev->dev, &tegra210_ope_codec,
+	ret = snd_soc_register_component(&pdev->dev, &tegra210_ope_cmpnt,
 				     tegra210_ope_dais,
 				     ARRAY_SIZE(tegra210_ope_dais));
 	if (ret != 0) {
@@ -370,7 +360,7 @@ static int tegra210_ope_platform_probe(struct platform_device *pdev)
 
 static int tegra210_ope_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

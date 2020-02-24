@@ -1,5 +1,5 @@
 /*
- * tegra210_mbdrc_alt.h - Definitions for Tegra210 MBDRC driver
+ * tegra210_mbdrc.h - Definitions for Tegra210 MBDRC driver
  *
  * Copyright (c) 2014-2017 NVIDIA CORPORATION.  All rights reserved.
  *

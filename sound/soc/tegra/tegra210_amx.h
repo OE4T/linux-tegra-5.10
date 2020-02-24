@@ -1,5 +1,5 @@
 /*
- * tegra210_amx_alt.h - Definitions for Tegra210 AMX driver
+ * tegra210_amx.h - Definitions for Tegra210 AMX driver
  *
  * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -56,19 +56,19 @@
 #define TEGRA194_AMX_RX4_LAST_FRAME_PERIOD	0xdc
 
 /* Fields in TEGRA210_AMX_AXBAR_RX1_CIF_CTRL */
-/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_xbar_alt.h */
+/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_ahub.h */
 
 /* Fields in TEGRA210_AMX_AXBAR_RX2_CIF_CTRL */
-/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_xbar_alt.h */
+/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_ahub.h */
 
 /* Fields in TEGRA210_AMX_AXBAR_RX3_CIF_CTRL */
-/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_xbar_alt.h */
+/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_ahub.h */
 
 /* Fields in TEGRA210_AMX_AXBAR_RX4_CIF_CTRL */
-/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_xbar_alt.h */
+/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_ahub.h */
 
 /* Fields in TEGRA210_AMX_AXBAR_TX_CIF_CTRL */
-/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_xbar_alt.h */
+/* Uses field from TEGRA210_AUDIOCIF_CTRL_* in tegra210_ahub.h */
 
 /* Fields in TEGRA210_AMX_ENABLE */
 #define TEGRA210_AMX_ENABLE_SHIFT					0

@@ -13,6 +13,16 @@ snd-soc-tegra210-dmic-objs := tegra210_dmic.o
 snd-soc-tegra210-i2s-objs := tegra210_i2s.o
 snd-soc-tegra186-dspk-objs := tegra186_dspk.o
 snd-soc-tegra210-admaif-objs := tegra210_admaif.o
+snd-soc-tegra210-amx-objs := tegra210_amx.o
+snd-soc-tegra210-adx-objs := tegra210_adx.o
+snd-soc-tegra210-mixer-objs := tegra210_mixer.o
+snd-soc-tegra210-sfc-objs := tegra210_sfc.o
+snd-soc-tegra210-afc-objs := tegra210_afc.o
+snd-soc-tegra210-mvc-objs := tegra210_mvc.o
+snd-soc-tegra210-iqc-objs := tegra210_iqc.o
+snd-soc-tegra186-asrc-objs := tegra186_asrc.o
+snd-soc-tegra186-arad-objs := tegra186_arad.o
+snd-soc-tegra210-ope-objs := tegra210_ope.o tegra210_peq.o tegra210_mbdrc.o
 
 obj-$(CONFIG_SND_SOC_TEGRA) += snd-soc-tegra-pcm.o
 obj-$(CONFIG_SND_SOC_TEGRA) += snd-soc-tegra-utils.o
@@ -27,6 +37,16 @@ obj-$(CONFIG_SND_SOC_TEGRA210_AHUB) += snd-soc-tegra210-ahub.o
 obj-$(CONFIG_SND_SOC_TEGRA210_I2S) += snd-soc-tegra210-i2s.o
 obj-$(CONFIG_SND_SOC_TEGRA186_DSPK) += snd-soc-tegra186-dspk.o
 obj-$(CONFIG_SND_SOC_TEGRA210_ADMAIF) += snd-soc-tegra210-admaif.o
+obj-$(CONFIG_SND_SOC_TEGRA210_AMX) += snd-soc-tegra210-amx.o
+obj-$(CONFIG_SND_SOC_TEGRA210_ADX) += snd-soc-tegra210-adx.o
+obj-$(CONFIG_SND_SOC_TEGRA210_MIXER) += snd-soc-tegra210-mixer.o
+obj-$(CONFIG_SND_SOC_TEGRA210_SFC) += snd-soc-tegra210-sfc.o
+obj-$(CONFIG_SND_SOC_TEGRA210_AFC) += snd-soc-tegra210-afc.o
+obj-$(CONFIG_SND_SOC_TEGRA210_MVC) += snd-soc-tegra210-mvc.o
+obj-$(CONFIG_SND_SOC_TEGRA210_IQC) += snd-soc-tegra210-iqc.o
+obj-$(CONFIG_SND_SOC_TEGRA210_OPE) += snd-soc-tegra210-ope.o
+obj-$(CONFIG_SND_SOC_TEGRA186_ARAD) += snd-soc-tegra186-arad.o
+obj-$(CONFIG_SND_SOC_TEGRA186_ASRC) += snd-soc-tegra186-asrc.o
 
 # Tegra machine Support
 snd-soc-tegra-rt5640-objs := tegra_rt5640.o

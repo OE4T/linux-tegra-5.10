@@ -1,5 +1,5 @@
 /*
- * tegra210_peq_alt.c - Tegra210 PEQ driver
+ * tegra210_peq.c - Tegra210 PEQ driver
  *
  * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -30,9 +30,9 @@
 #include <sound/soc.h>
 #include <linux/of_device.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra210_ope_alt.h"
-#include "tegra210_peq_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra210_ope.h"
+#include "tegra210_peq.h"
 
 static const struct reg_default tegra210_peq_reg_defaults[] = {
 	{ TEGRA210_PEQ_CONFIG, 0x00000013},
@@ -73,8 +73,8 @@ static int tegra210_peq_get(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_ope *ope = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int mask = (1 << fls(mc->max)) - 1;
 	unsigned int val;
 
@@ -92,8 +92,8 @@ static int tegra210_peq_put(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_ope *ope = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int mask = (1 << fls(mc->max)) - 1;
 	unsigned int val;
 
@@ -110,16 +110,16 @@ static int tegra210_peq_ahub_ram_get(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct tegra_soc_bytes *params = (void *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_ope *ope = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
 	u32 i, reg_ctrl = params->soc.base;
-	u32 reg_data = reg_ctrl + codec->component.val_bytes;
+	u32 reg_data = reg_ctrl + cmpnt->val_bytes;
 	s32 *data = (s32 *)biquad_coeff_buffer;
 
-	pm_runtime_get_sync(codec->dev);
-	tegra210_xbar_read_ahubram(ope->peq_regmap, reg_ctrl, reg_data,
+	pm_runtime_get_sync(cmpnt->dev);
+	tegra210_ahub_read_ram(ope->peq_regmap, reg_ctrl, reg_data,
 				    params->shift, data, params->soc.num_regs);
-	pm_runtime_put_sync(codec->dev);
+	pm_runtime_put_sync(cmpnt->dev);
 
 	for (i = 0; i < params->soc.num_regs; i++)
 		ucontrol->value.integer.value[i] = (long)data[i];
@@ -131,19 +131,19 @@ static int tegra210_peq_ahub_ram_put(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct tegra_soc_bytes *params = (void *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_ope *ope = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
 	u32 i, reg_ctrl = params->soc.base;
-	u32 reg_data = reg_ctrl + codec->component.val_bytes;
+	u32 reg_data = reg_ctrl + cmpnt->val_bytes;
 	s32 *data = (s32 *)biquad_coeff_buffer;
 
 	for (i = 0; i < params->soc.num_regs; i++)
 		data[i] = (s32)ucontrol->value.integer.value[i];
 
-	pm_runtime_get_sync(codec->dev);
-	tegra210_xbar_write_ahubram(ope->peq_regmap, reg_ctrl, reg_data,
+	pm_runtime_get_sync(cmpnt->dev);
+	tegra210_ahub_write_ram(ope->peq_regmap, reg_ctrl, reg_data,
 				    params->shift, data, params->soc.num_regs);
-	pm_runtime_put_sync(codec->dev);
+	pm_runtime_put_sync(cmpnt->dev);
 
 	return 0;
 }
@@ -284,14 +284,14 @@ void tegra210_peq_restore(struct tegra210_ope *ope)
 	unsigned int i;
 
 	for (i = 0; i < TEGRA210_PEQ_MAX_CHANNELS; i++) {
-		tegra210_xbar_write_ahubram(ope->peq_regmap,
+		tegra210_ahub_write_ram(ope->peq_regmap,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_CTRL,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_DATA,
 			(i * TEGRA210_PEQ_GAIN_PARAM_SIZE_PER_CH),
 			(u32 *)&ope->peq_biquad_gains,
 			TEGRA210_PEQ_GAIN_PARAM_SIZE_PER_CH);
 
-		tegra210_xbar_write_ahubram(ope->peq_regmap,
+		tegra210_ahub_write_ram(ope->peq_regmap,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_SHIFT_CTRL,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_SHIFT_DATA,
 			(i * TEGRA210_PEQ_SHIFT_PARAM_SIZE_PER_CH),
@@ -307,14 +307,14 @@ void tegra210_peq_save(struct tegra210_ope *ope)
 	unsigned int i;
 
 	for (i = 0; i < TEGRA210_PEQ_MAX_CHANNELS; i++) {
-		tegra210_xbar_read_ahubram(ope->peq_regmap,
+		tegra210_ahub_read_ram(ope->peq_regmap,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_CTRL,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_DATA,
 			(i * TEGRA210_PEQ_GAIN_PARAM_SIZE_PER_CH),
 			(u32 *)&ope->peq_biquad_gains,
 			TEGRA210_PEQ_GAIN_PARAM_SIZE_PER_CH);
 
-		tegra210_xbar_read_ahubram(ope->peq_regmap,
+		tegra210_ahub_read_ram(ope->peq_regmap,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_SHIFT_CTRL,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_SHIFT_DATA,
 			(i * TEGRA210_PEQ_SHIFT_PARAM_SIZE_PER_CH),
@@ -325,12 +325,12 @@ void tegra210_peq_save(struct tegra210_ope *ope)
 }
 EXPORT_SYMBOL_GPL(tegra210_peq_save);
 
-int tegra210_peq_codec_init(struct snd_soc_codec *codec)
+int tegra210_peq_codec_init(struct snd_soc_component *cmpnt)
 {
-	struct tegra210_ope *ope = snd_soc_codec_get_drvdata(codec);
+	struct tegra210_ope *ope = snd_soc_component_get_drvdata(cmpnt);
 	int i = 0;
 
-	pm_runtime_get_sync(codec->dev);
+	pm_runtime_get_sync(cmpnt->dev);
 	regmap_update_bits(ope->peq_regmap, TEGRA210_PEQ_CONFIG,
 		TEGRA210_PEQ_CONFIG_MODE_MASK,
 		0 << TEGRA210_PEQ_CONFIG_MODE_SHIFT);
@@ -342,7 +342,7 @@ int tegra210_peq_codec_init(struct snd_soc_codec *codec)
 	/* Initialize PEQ AHUB RAM with default params */
 	for (i = 0; i < TEGRA210_PEQ_MAX_CHANNELS; i++) {
 		/* Set default gain params */
-		tegra210_xbar_write_ahubram(ope->peq_regmap,
+		tegra210_ahub_write_ram(ope->peq_regmap,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_CTRL,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_DATA,
 			(i * TEGRA210_PEQ_GAIN_PARAM_SIZE_PER_CH),
@@ -350,17 +350,18 @@ int tegra210_peq_codec_init(struct snd_soc_codec *codec)
 			TEGRA210_PEQ_GAIN_PARAM_SIZE_PER_CH);
 
 		/* Set default shift params */
-		tegra210_xbar_write_ahubram(ope->peq_regmap,
+		tegra210_ahub_write_ram(ope->peq_regmap,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_SHIFT_CTRL,
 			TEGRA210_PEQ_AHUBRAMCTL_CONFIG_RAM_SHIFT_DATA,
 			(i * TEGRA210_PEQ_SHIFT_PARAM_SIZE_PER_CH),
 			(u32 *)&biquad_init_shifts,
 			TEGRA210_PEQ_SHIFT_PARAM_SIZE_PER_CH);
 	}
-	pm_runtime_put_sync(codec->dev);
+	pm_runtime_put_sync(cmpnt->dev);
 
-	snd_soc_add_codec_controls(codec, tegra210_peq_controls,
+	snd_soc_add_component_controls(cmpnt, tegra210_peq_controls,
 		ARRAY_SIZE(tegra210_peq_controls));
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(tegra210_peq_codec_init);

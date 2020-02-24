@@ -96,6 +96,48 @@ static int tegra_ahub_put_value_enum(struct snd_kcontrol *kctl,
 	return 0;
 }
 
+void tegra210_ahub_write_ram(struct regmap *regmap, unsigned int reg_ctrl,
+			     unsigned int reg_data, unsigned int ram_offset,
+			     unsigned int *data, size_t size)
+{
+	unsigned int val = 0;
+	int i = 0;
+
+	val = ram_offset & TEGRA210_AHUBRAMCTL_CTRL_RAM_ADDR_MASK;
+	val |= TEGRA210_AHUBRAMCTL_CTRL_ADDR_INIT_EN;
+	val |= TEGRA210_AHUBRAMCTL_CTRL_SEQ_ACCESS_EN;
+	val |= TEGRA210_AHUBRAMCTL_CTRL_RW_WRITE;
+
+	regmap_write(regmap, reg_ctrl, val);
+	for (i = 0; i < size; i++)
+		regmap_write(regmap, reg_data, data[i]);
+
+	return;
+}
+EXPORT_SYMBOL_GPL(tegra210_ahub_write_ram);
+
+void tegra210_ahub_read_ram(struct regmap *regmap, unsigned int reg_ctrl,
+			    unsigned int reg_data, unsigned int ram_offset,
+			    unsigned int *data, size_t size)
+{
+	unsigned int val = 0;
+	int i = 0;
+
+	val = ram_offset & TEGRA210_AHUBRAMCTL_CTRL_RAM_ADDR_MASK;
+	val |= TEGRA210_AHUBRAMCTL_CTRL_ADDR_INIT_EN;
+	val |= TEGRA210_AHUBRAMCTL_CTRL_SEQ_ACCESS_EN;
+	val |= TEGRA210_AHUBRAMCTL_CTRL_RW_READ;
+
+	regmap_write(regmap, reg_ctrl, val);
+	/* Since all ahub non-io modules work under same ahub clock it is not
+	   necessary to check ahub read busy bit after every read */
+	for (i = 0; i < size; i++)
+		regmap_read(regmap, reg_data, &data[i]);
+
+	return;
+}
+EXPORT_SYMBOL_GPL(tegra210_ahub_read_ram);
+
 static struct snd_soc_dai_driver tegra210_ahub_dais[] = {
 	DAI(ADMAIF1),
 	DAI(ADMAIF2),

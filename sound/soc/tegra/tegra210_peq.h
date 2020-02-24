@@ -1,5 +1,5 @@
 /*
- * tegra210_peq_alt.h - Definitions for Tegra210 PEQ driver
+ * tegra210_peq.h - Definitions for Tegra210 PEQ driver
  *
  * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
  *

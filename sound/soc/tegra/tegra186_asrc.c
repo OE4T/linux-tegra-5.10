@@ -1,5 +1,5 @@
 /*
- * tegra186_asrc_alt.c - Tegra186 ASRC driver
+ * tegra186_asrc.c - Tegra186 ASRC driver
  *
  * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -31,9 +31,10 @@
 #include <linux/of_device.h>
 #include <linux/tegra186_ahc.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra186_asrc_alt.h"
-#include "tegra186_arad_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra186_asrc.h"
+#include "tegra186_arad.h"
+#include "tegra_cif.h"
 
 #define DRV_NAME "tegra186-asrc"
 #define ASRC_ARAM_START_ADDR 0x3F800000
@@ -226,28 +227,28 @@ static int tegra186_asrc_set_audio_cif(struct tegra186_asrc *asrc,
 				unsigned int reg)
 {
 	int channels, audio_bits;
-	struct tegra210_xbar_cif_conf cif_conf;
+	struct tegra_cif_conf cif_conf;
 
-	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
+	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
 
 	channels = params_channels(params);
 
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_16;
+		audio_bits = TEGRA_ACIF_BITS_16;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_32;
+		audio_bits = TEGRA_ACIF_BITS_32;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	cif_conf.audio_channels = channels;
-	cif_conf.client_channels = channels;
+	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
 	cif_conf.client_bits = audio_bits;
-	tegra210_xbar_set_cif(asrc->regmap, reg, &cif_conf);
+	tegra_set_cif(asrc->regmap, reg, &cif_conf);
 
 	return 0;
 }
@@ -342,8 +343,8 @@ static int tegra186_asrc_get_ratio_source(struct snd_kcontrol *kcontrol,
 {
 	struct soc_enum *asrc_private =
 		(struct soc_enum  *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	/* get the source of a lane in asrc */
@@ -357,8 +358,8 @@ static int tegra186_asrc_put_ratio_source(struct snd_kcontrol *kcontrol,
 {
 	struct soc_enum *asrc_private =
 		(struct soc_enum  *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	/* update the source of the lane */
@@ -375,8 +376,8 @@ static int tegra186_asrc_get_enable_stream(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int enable;
 
 	regmap_read(asrc->regmap, asrc_private->reg, &enable);
@@ -390,8 +391,8 @@ static int tegra186_asrc_put_enable_stream(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int enable = 0;
 
 	enable = ucontrol->value.integer.value[0];
@@ -405,8 +406,8 @@ static int tegra186_asrc_get_ratio_int(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	regmap_read(asrc->regmap,
@@ -422,8 +423,8 @@ static int tegra186_asrc_put_ratio_int(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	asrc->lane[id].int_part = ucontrol->value.integer.value[0];
@@ -440,8 +441,8 @@ static int tegra186_asrc_get_ratio_frac(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mreg_control *asrc_private =
 		(struct soc_mreg_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->regbase / TEGRA186_ASRC_STREAM_STRIDE;
 
 	regmap_read(asrc->regmap,
@@ -457,8 +458,8 @@ static int tegra186_asrc_put_ratio_frac(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mreg_control *asrc_private =
 		(struct soc_mreg_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->regbase / TEGRA186_ASRC_STREAM_STRIDE;
 
 	asrc->lane[id].frac_part = ucontrol->value.integer.value[0];
@@ -475,8 +476,8 @@ static int tegra186_asrc_get_hwcomp_disable(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	ucontrol->value.integer.value[0] = asrc->lane[id].hwcomp_disable;
@@ -489,8 +490,8 @@ static int tegra186_asrc_put_hwcomp_disable(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	asrc->lane[id].hwcomp_disable = ucontrol->value.integer.value[0];
@@ -503,8 +504,8 @@ static int tegra186_asrc_get_input_threshold(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	ucontrol->value.integer.value[0] = (asrc->lane[id].input_thresh & 0x3);
@@ -517,8 +518,8 @@ static int tegra186_asrc_put_input_threshold(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	asrc->lane[id].input_thresh = (asrc->lane[id].input_thresh & ~(0x3))
@@ -531,8 +532,8 @@ static int tegra186_asrc_get_output_threshold(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	ucontrol->value.integer.value[0] = (asrc->lane[id].output_thresh & 0x3);
@@ -545,8 +546,8 @@ static int tegra186_asrc_put_output_threshold(struct snd_kcontrol *kcontrol,
 {
 	struct soc_mixer_control *asrc_private =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra186_asrc *asrc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra186_asrc *asrc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int id = asrc_private->reg / TEGRA186_ASRC_STREAM_STRIDE;
 
 	asrc->lane[id].output_thresh = (asrc->lane[id].output_thresh & ~(0x3))
@@ -557,8 +558,8 @@ static int tegra186_asrc_put_output_threshold(struct snd_kcontrol *kcontrol,
 static int tegra186_asrc_req_arad_ratio(struct snd_soc_dapm_widget *w,
 				struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
-	struct device *dev = codec->dev;
+	struct snd_soc_component *cmpnt = snd_soc_dapm_to_component(w->dapm);
+	struct device *dev = cmpnt->dev;
 	struct tegra186_asrc *asrc = dev_get_drvdata(dev);
 	int ret = 0;
 	unsigned int lane_id = 0;
@@ -873,16 +874,13 @@ static const struct snd_kcontrol_new tegra186_asrc_controls[] = {
 		tegra186_asrc_get_output_threshold, tegra186_asrc_put_output_threshold),
 };
 
-static struct snd_soc_codec_driver tegra186_asrc_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.dapm_widgets = tegra186_asrc_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra186_asrc_widgets),
-		.dapm_routes = tegra186_asrc_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra186_asrc_routes),
-		.controls = tegra186_asrc_controls,
-		.num_controls = ARRAY_SIZE(tegra186_asrc_controls),
-	},
+static struct snd_soc_component_driver tegra186_asrc_cmpnt = {
+	.dapm_widgets = tegra186_asrc_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra186_asrc_widgets),
+	.dapm_routes = tegra186_asrc_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra186_asrc_routes),
+	.controls = tegra186_asrc_controls,
+	.num_controls = ARRAY_SIZE(tegra186_asrc_controls),
 };
 
 static bool tegra186_asrc_wr_reg(struct device *dev, unsigned int reg)
@@ -1132,7 +1130,7 @@ static int tegra186_asrc_platform_probe(struct platform_device *pdev)
 	}
 
 	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_codec(&pdev->dev, &tegra186_asrc_codec,
+	ret = snd_soc_register_component(&pdev->dev, &tegra186_asrc_cmpnt,
 				     tegra186_asrc_dais,
 				     ARRAY_SIZE(tegra186_asrc_dais));
 	if (ret != 0) {
@@ -1146,7 +1144,7 @@ static int tegra186_asrc_platform_probe(struct platform_device *pdev)
 
 static int tegra186_asrc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

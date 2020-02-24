@@ -28,10 +28,10 @@
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
 #include <linux/of_device.h>
-#include <linux/tegra-soc.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra210_iqc_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra210_iqc.h"
+#include "tegra_cif.h"
 
 #define DRV_NAME "tegra210-iqc"
 
@@ -80,7 +80,7 @@ static int tegra210_iqc_set_audio_cif(struct tegra210_iqc *iqc,
 				unsigned int reg)
 {
 	int channels, audio_bits;
-	struct tegra210_xbar_cif_conf cif_conf;
+	struct tegra_cif_conf cif_conf;
 
 	channels = params_channels(params);
 	if (channels < 2)
@@ -88,22 +88,22 @@ static int tegra210_iqc_set_audio_cif(struct tegra210_iqc *iqc,
 
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_16;
+		audio_bits = TEGRA_ACIF_BITS_16;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_32;
+		audio_bits = TEGRA_ACIF_BITS_32;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
-	cif_conf.audio_channels = channels;
-	cif_conf.client_channels = channels;
+	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
+	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
 	cif_conf.client_bits = audio_bits;
 
-	tegra210_xbar_set_cif(iqc->regmap, reg, &cif_conf);
+	tegra_set_cif(iqc->regmap, reg, &cif_conf);
 
 	return 0;
 }
@@ -201,16 +201,13 @@ static const struct snd_soc_dapm_route tegra210_iqc_routes[] = {
 	{ "CIF2 Transmit", NULL, "IQC TX2" },
 };
 
-static struct snd_soc_codec_driver tegra210_iqc_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.dapm_widgets = tegra210_iqc_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra210_iqc_widgets),
-		.dapm_routes = tegra210_iqc_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra210_iqc_routes),
-		.controls = tegra210_iqc_controls,
-		.num_controls = ARRAY_SIZE(tegra210_iqc_controls),
-	},
+static struct snd_soc_component_driver tegra210_iqc_cmpnt = {
+	.dapm_widgets = tegra210_iqc_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra210_iqc_widgets),
+	.dapm_routes = tegra210_iqc_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra210_iqc_routes),
+	.controls = tegra210_iqc_controls,
+	.num_controls = ARRAY_SIZE(tegra210_iqc_controls),
 };
 
 static bool tegra210_iqc_wr_reg(struct device *dev, unsigned int reg)
@@ -306,12 +303,10 @@ static int tegra210_iqc_platform_probe(struct platform_device *pdev)
 
 	dev_set_drvdata(&pdev->dev, iqc);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
-		iqc->clk_iqc = devm_clk_get(&pdev->dev, NULL);
-		if (IS_ERR(iqc->clk_iqc)) {
-			dev_err(&pdev->dev, "Can't retrieve iqc clock\n");
-			return PTR_ERR(iqc->clk_iqc);
-		}
+	iqc->clk_iqc = devm_clk_get(&pdev->dev, NULL);
+	if (IS_ERR(iqc->clk_iqc)) {
+		dev_err(&pdev->dev, "Can't retrieve iqc clock\n");
+		return PTR_ERR(iqc->clk_iqc);
 	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -343,7 +338,7 @@ static int tegra210_iqc_platform_probe(struct platform_device *pdev)
 	}
 
 	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_codec(&pdev->dev, &tegra210_iqc_codec,
+	ret = snd_soc_register_component(&pdev->dev, &tegra210_iqc_cmpnt,
 				     tegra210_iqc_dais,
 				     ARRAY_SIZE(tegra210_iqc_dais));
 	if (ret != 0) {
@@ -357,9 +352,7 @@ static int tegra210_iqc_platform_probe(struct platform_device *pdev)
 
 static int tegra210_iqc_platform_remove(struct platform_device *pdev)
 {
-	struct tegra210_iqc *iqc = dev_get_drvdata(&pdev->dev);
-
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

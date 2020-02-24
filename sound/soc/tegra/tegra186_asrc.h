@@ -1,5 +1,5 @@
 /*
- * tegra186_asrc_alt.h - Definitions for Tegra186 ASRC driver
+ * tegra186_asrc.h - Definitions for Tegra186 ASRC driver
  *
  * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -156,7 +156,7 @@ enum asrc_task_event {
 	STREAM_ENABLE,
 };
 
-struct tegra210_xbar_cif_conf;
+struct tegra_cif_conf;
 
 struct tegra186_asrc_lane {
 	unsigned int int_part;

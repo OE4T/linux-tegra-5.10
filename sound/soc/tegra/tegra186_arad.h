@@ -1,5 +1,5 @@
 /*
- * tegra186_arad_alt.h - Definitions for Tegra186 ARAD driver
+ * tegra186_arad.h - Definitions for Tegra186 ARAD driver
  *
  * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *

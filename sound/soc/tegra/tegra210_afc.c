@@ -1,5 +1,5 @@
 /*
- * tegra210_afc_alt.c - Tegra210 AFC driver
+ * tegra210_afc.c - Tegra210 AFC driver
  *
  * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -29,8 +29,9 @@
 #include <sound/soc.h>
 #include <linux/of_device.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra210_afc_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra210_afc.h"
+#include "tegra_cif.h"
 
 #define DRV_NAME "tegra210-afc"
 
@@ -86,8 +87,8 @@ static int tegra210_afc_runtime_resume(struct device *dev)
 static int tegra210_afc_controls_get(struct snd_kcontrol *kctl,
 	struct snd_ctl_elem_value *uctl)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kctl);
-	struct tegra210_afc *afc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kctl);
+	struct tegra210_afc *afc = snd_soc_component_get_drvdata(cmpnt);
 
 	if (strstr(kctl->id.name, "ppm diff"))
 		uctl->value.integer.value[0] = afc->ppm_diff;
@@ -106,8 +107,8 @@ static int tegra210_afc_controls_get(struct snd_kcontrol *kctl,
 static int tegra210_afc_controls_put(struct snd_kcontrol *kctl,
 	struct snd_ctl_elem_value *uctl)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kctl);
-	struct tegra210_afc *afc = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kctl);
+	struct tegra210_afc *afc = snd_soc_component_get_drvdata(cmpnt);
 	int value = uctl->value.integer.value[0];
 
 	if (strstr(kctl->id.name, "ppm diff")) {
@@ -296,9 +297,9 @@ static int tegra210_afc_set_audio_cif(struct tegra210_afc *afc,
 				unsigned int reg)
 {
 	int channels, audio_bits;
-	struct tegra210_xbar_cif_conf cif_conf;
+	struct tegra_cif_conf cif_conf;
 
-	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
+	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
 
 	channels = params_channels(params);
 	if (channels < 2)
@@ -306,21 +307,21 @@ static int tegra210_afc_set_audio_cif(struct tegra210_afc *afc,
 
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_16;
+		audio_bits = TEGRA_ACIF_BITS_16;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_32;
+		audio_bits = TEGRA_ACIF_BITS_32;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	cif_conf.audio_channels = channels;
-	cif_conf.client_channels = channels;
+	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
 	cif_conf.client_bits = audio_bits;
 
-	tegra210_xbar_set_cif(afc->regmap, reg, &cif_conf);
+	tegra_set_cif(afc->regmap, reg, &cif_conf);
 
 	return 0;
 }
@@ -400,26 +401,20 @@ static const struct snd_soc_dapm_route tegra210_afc_routes[] = {
 	{ "AFC Transmit", NULL, "AFC TX" },
 };
 
-static const struct snd_soc_codec_driver tegra210_afc_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.dapm_widgets = tegra210_afc_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra210_afc_widgets),
-		.dapm_routes = tegra210_afc_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra210_afc_routes),
-	},
+static const struct snd_soc_component_driver tegra210_afc_cmpnt = {
+	.dapm_widgets = tegra210_afc_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra210_afc_widgets),
+	.dapm_routes = tegra210_afc_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra210_afc_routes),
 };
 
-static const struct snd_soc_codec_driver tegra186_afc_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.dapm_widgets = tegra210_afc_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra210_afc_widgets),
-		.dapm_routes = tegra210_afc_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra210_afc_routes),
-		.controls = tegra186_afc_controls,
-		.num_controls = ARRAY_SIZE(tegra186_afc_controls),
-	},
+static const struct snd_soc_component_driver tegra186_afc_cmpnt = {
+	.dapm_widgets = tegra210_afc_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra210_afc_widgets),
+	.dapm_routes = tegra210_afc_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra210_afc_routes),
+	.controls = tegra186_afc_controls,
+	.num_controls = ARRAY_SIZE(tegra186_afc_controls),
 };
 
 static bool tegra210_afc_wr_rd_reg(struct device *dev, unsigned int reg)
@@ -486,13 +481,13 @@ static const struct regmap_config tegra210_afc_regmap_config = {
 };
 
 static const struct tegra210_afc_soc_data soc_data_tegra210 = {
-	.afc_codec = &tegra210_afc_codec,
+	.afc_cmpnt = &tegra210_afc_cmpnt,
 	.num_i2s = 5,
 	.flag_module_select = false,
 };
 
 static const struct tegra210_afc_soc_data soc_data_tegra186 = {
-	.afc_codec = &tegra186_afc_codec,
+	.afc_cmpnt = &tegra186_afc_cmpnt,
 	.num_i2s = 6,
 	.flag_module_select = true,
 };
@@ -544,7 +539,7 @@ static int tegra210_afc_platform_probe(struct platform_device *pdev)
 	regmap_write(afc->regmap, TEGRA210_AFC_CG, 0);
 
 	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_codec(&pdev->dev, afc->soc_data->afc_codec,
+	ret = snd_soc_register_component(&pdev->dev, afc->soc_data->afc_cmpnt,
 				     tegra210_afc_dais,
 				     ARRAY_SIZE(tegra210_afc_dais));
 	if (ret != 0) {
@@ -558,7 +553,7 @@ static int tegra210_afc_platform_probe(struct platform_device *pdev)
 
 static int tegra210_afc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

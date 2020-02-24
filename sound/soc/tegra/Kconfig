@@ -118,6 +118,46 @@ config SND_SOC_TEGRA210_ADMAIF
 	  channel. Buffer size is confiigurable for each ADMAIIF channel.
 	  Say Y or M if you want to add support for Tegra210 ADMAIF module.
 
+config SND_SOC_TEGRA186_ARAD
+	tristate "Tegra186 ARAD module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA186_ASRC
+	tristate "Tegra186 ASRC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_AMX
+	tristate "Tegra186 AMX module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_ADX
+	tristate "Tegra186 ADX module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_MIXER
+	tristate "Tegra186 MIXER module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_SFC
+	tristate "Tegra186 SFC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_MVC
+	tristate "Tegra186 MVC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_AFC
+	tristate "Tegra186 AFC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_IQC
+	tristate "Tegra186 IQC module"
+	depends on SND_SOC_TEGRA
+
+config SND_SOC_TEGRA210_OPE
+	tristate "Tegra186 OPE module"
+	depends on SND_SOC_TEGRA
+
 config SND_SOC_TEGRA_RT5640
 	tristate "SoC Audio support for Tegra boards using an RT5640 codec"
 	depends on SND_SOC_TEGRA && I2C && GPIOLIB

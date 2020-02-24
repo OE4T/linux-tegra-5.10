@@ -1,5 +1,5 @@
 /*
- * tegra210_spdif_alt.c - Tegra210 SPDIF driver
+ * tegra210_spdif.c - Tegra210 SPDIF driver
  *
  * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -24,7 +24,6 @@
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
-#include <soc/tegra/chip-id.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
@@ -32,8 +31,9 @@
 #include <linux/of_device.h>
 #include <linux/pinctrl/pinconf-tegra.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra210_spdif_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra210_spdif.h"
+#include "tegra_cif.h"
 
 #define DRV_NAME "tegra210-spdif"
 
@@ -62,10 +62,9 @@ static int tegra210_spdif_runtime_suspend(struct device *dev)
 
 	regcache_cache_only(spdif->regmap, true);
 	regcache_mark_dirty(spdif->regmap);
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
-		clk_disable_unprepare(spdif->clk_spdif_out);
-		clk_disable_unprepare(spdif->clk_spdif_in);
-	}
+
+	clk_disable_unprepare(spdif->clk_spdif_out);
+	clk_disable_unprepare(spdif->clk_spdif_in);
 
 	return 0;
 }
@@ -75,18 +74,16 @@ static int tegra210_spdif_runtime_resume(struct device *dev)
 	struct tegra210_spdif *spdif = dev_get_drvdata(dev);
 	int ret;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
-		ret = clk_prepare_enable(spdif->clk_spdif_out);
-		if (ret) {
-			dev_err(dev, "spdif_out_clk_enable failed: %d\n", ret);
-			return ret;
-		}
+	ret = clk_prepare_enable(spdif->clk_spdif_out);
+	if (ret) {
+		dev_err(dev, "spdif_out_clk_enable failed: %d\n", ret);
+		return ret;
+	}
 
-		ret = clk_prepare_enable(spdif->clk_spdif_in);
-		if (ret) {
-			dev_err(dev, "spdif_in_clk_enable failed: %d\n", ret);
-			return ret;
-		}
+	ret = clk_prepare_enable(spdif->clk_spdif_in);
+	if (ret) {
+		dev_err(dev, "spdif_in_clk_enable failed: %d\n", ret);
+		return ret;
 	}
 
 	regcache_cache_only(spdif->regmap, false);
@@ -136,25 +133,19 @@ static int tegra210_spdif_set_dai_sysclk(struct snd_soc_dai *dai,
 		return -EINVAL;
 	}
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
-		if (dir == SND_SOC_CLOCK_OUT) {
-			ret = clk_set_rate(spdif->clk_spdif_out,
-					   spdif_out_clock_rate);
-			if (ret) {
-				dev_err(dev,
-					"Can't set SPDIF Out clock rate: %d\n",
-					ret);
-				return ret;
-			}
-		} else {
-			ret = clk_set_rate(spdif->clk_spdif_in,
-					   spdif_in_clock_rate);
-			if (ret) {
-				dev_err(dev,
-					"Can't set SPDIF In clock rate: %d\n",
-					ret);
-				return ret;
-			}
+	if (dir == SND_SOC_CLOCK_OUT) {
+		ret = clk_set_rate(spdif->clk_spdif_out, spdif_out_clock_rate);
+		if (ret) {
+			dev_err(dev, "Can't set SPDIF Out clock rate: %d\n",
+				ret);
+			return ret;
+		}
+	} else {
+		ret = clk_set_rate(spdif->clk_spdif_in, spdif_in_clock_rate);
+		if (ret) {
+			dev_err(dev, "Can't set SPDIF In clock rate: %d\n",
+				ret);
+			return ret;
 		}
 	}
 
@@ -168,9 +159,9 @@ static int tegra210_spdif_hw_params(struct snd_pcm_substream *substream,
 	struct device *dev = dai->dev;
 	struct tegra210_spdif *spdif = snd_soc_dai_get_drvdata(dai);
 	int channels, audio_bits, bit_mode;
-	struct tegra210_xbar_cif_conf cif_conf;
+	struct tegra_cif_conf cif_conf;
 
-	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
+	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
 
 	channels = params_channels(params);
 
@@ -181,19 +172,19 @@ static int tegra210_spdif_hw_params(struct snd_pcm_substream *substream,
 
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_16;
+		audio_bits = TEGRA_ACIF_BITS_16;
 		bit_mode = TEGRA210_SPDIF_BIT_MODE16;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_32;
+		audio_bits = TEGRA_ACIF_BITS_32;
 		bit_mode = TEGRA210_SPDIF_BIT_MODERAW;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	cif_conf.audio_channels = channels;
-	cif_conf.client_channels = channels;
+	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
 	cif_conf.client_bits = audio_bits;
 
@@ -203,11 +194,11 @@ static int tegra210_spdif_hw_params(struct snd_pcm_substream *substream,
 
 	/* As a CODEC DAI, CAPTURE is transmit */
 	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
-		tegra210_xbar_set_cif(spdif->regmap,
+		tegra_set_cif(spdif->regmap,
 				      TEGRA210_SPDIF_CIF_TXD_CTRL,
 				      &cif_conf);
 	} else {
-		tegra210_xbar_set_cif(spdif->regmap,
+		tegra_set_cif(spdif->regmap,
 				      TEGRA210_SPDIF_CIF_RXD_CTRL,
 				      &cif_conf);
 	}
@@ -261,8 +252,8 @@ static struct snd_soc_dai_driver tegra210_spdif_dais[] = {
 static int tegra210_spdif_loopback_get(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_spdif *spdif = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_spdif *spdif = snd_soc_component_get_drvdata(cmpnt);
 
 	ucontrol->value.integer.value[0] = spdif->loopback;
 
@@ -272,16 +263,16 @@ static int tegra210_spdif_loopback_get(struct snd_kcontrol *kcontrol,
 static int tegra210_spdif_loopback_put(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_spdif *spdif = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_spdif *spdif = snd_soc_component_get_drvdata(cmpnt);
 
 	spdif->loopback = ucontrol->value.integer.value[0];
 
-	pm_runtime_get_sync(codec->dev);
+	pm_runtime_get_sync(cmpnt->dev);
 	regmap_update_bits(spdif->regmap, TEGRA210_SPDIF_CTRL,
 		TEGRA210_SPDIF_CTRL_LBK_EN_ENABLE_MASK,
 		spdif->loopback << TEGRA210_SPDIF_CTRL_LBK_EN_ENABLE_SHIFT);
-	pm_runtime_put(codec->dev);
+	pm_runtime_put(cmpnt->dev);
 
 	return 0;
 }
@@ -308,16 +299,13 @@ static const struct snd_soc_dapm_route tegra210_spdif_routes[] = {
 	{ "CIF Transmit", NULL, "CIF TX"},
 };
 
-static struct snd_soc_codec_driver tegra210_spdif_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.dapm_widgets = tegra210_spdif_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra210_spdif_widgets),
-		.dapm_routes = tegra210_spdif_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra210_spdif_routes),
-		.controls = tegra210_spdif_controls,
-		.num_controls = ARRAY_SIZE(tegra210_spdif_controls),
-	},
+static struct snd_soc_component_driver tegra210_spdif_cmpnt = {
+	.dapm_widgets = tegra210_spdif_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra210_spdif_widgets),
+	.dapm_routes = tegra210_spdif_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra210_spdif_routes),
+	.controls = tegra210_spdif_controls,
+	.num_controls = ARRAY_SIZE(tegra210_spdif_controls),
 };
 
 static bool tegra210_spdif_wr_rd_reg(struct device *dev, unsigned int reg)
@@ -401,18 +389,16 @@ static int tegra210_spdif_platform_probe(struct platform_device *pdev)
 
 	dev_set_drvdata(&pdev->dev, spdif);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
-		spdif->clk_spdif_out = devm_clk_get(&pdev->dev, "spdif_out");
-		if (IS_ERR(spdif->clk_spdif_out)) {
-			dev_err(&pdev->dev, "Can't retrieve spdif clock\n");
-			return PTR_ERR(spdif->clk_spdif_out);
-		}
+	spdif->clk_spdif_out = devm_clk_get(&pdev->dev, "spdif_out");
+	if (IS_ERR(spdif->clk_spdif_out)) {
+		dev_err(&pdev->dev, "Can't retrieve spdif clock\n");
+		return PTR_ERR(spdif->clk_spdif_out);
+	}
 
-		spdif->clk_spdif_in = devm_clk_get(&pdev->dev, "spdif_in");
-		if (IS_ERR(spdif->clk_spdif_in)) {
-			dev_err(&pdev->dev, "Can't retrieve spdif clock\n");
-			return PTR_ERR(spdif->clk_spdif_in);
-		}
+	spdif->clk_spdif_in = devm_clk_get(&pdev->dev, "spdif_in");
+	if (IS_ERR(spdif->clk_spdif_in)) {
+		dev_err(&pdev->dev, "Can't retrieve spdif clock\n");
+		return PTR_ERR(spdif->clk_spdif_in);
 	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -428,7 +414,7 @@ static int tegra210_spdif_platform_probe(struct platform_device *pdev)
 	regcache_cache_only(spdif->regmap, true);
 
 	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_codec(&pdev->dev, &tegra210_spdif_codec,
+	ret = snd_soc_register_component(&pdev->dev, &tegra210_spdif_cmpnt,
 				     tegra210_spdif_dais,
 				     ARRAY_SIZE(tegra210_spdif_dais));
 	if (ret != 0) {
@@ -449,7 +435,7 @@ static int tegra210_spdif_platform_probe(struct platform_device *pdev)
 
 static int tegra210_spdif_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

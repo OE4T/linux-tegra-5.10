@@ -1,5 +1,5 @@
 /*
- * tegra210_adx_alt.c - Tegra210 ADX driver
+ * tegra210_adx.c - Tegra210 ADX driver
  *
  * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -24,15 +24,15 @@
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
-#include <soc/tegra/chip-id.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
 #include <linux/of_device.h>
 
-#include "tegra210_xbar_alt.h"
-#include "tegra210_adx_alt.h"
+#include "tegra210_ahub.h"
+#include "tegra210_adx.h"
+#include "tegra_cif.h"
 
 #define DRV_NAME "tegra210-adx"
 
@@ -157,8 +157,8 @@ static void tegra210_adx_update_map_ram(struct tegra210_adx *adx)
 static int tegra210_adx_stop(struct snd_soc_dapm_widget *w,
 				struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
-	struct device *dev = codec->dev;
+	struct snd_soc_component *cmpnt = snd_soc_dapm_to_component(w->dapm);
+	struct device *dev = cmpnt->dev;
 	struct tegra210_adx *adx = dev_get_drvdata(dev);
 	unsigned int val;
 	int ret;
@@ -245,34 +245,34 @@ static int tegra210_adx_set_audio_cif(struct snd_soc_dai *dai,
 				      unsigned int reg)
 {
 	struct tegra210_adx *adx = snd_soc_dai_get_drvdata(dai);
-	struct tegra210_xbar_cif_conf cif_conf;
+	struct tegra_cif_conf cif_conf;
 	int audio_bits;
 
-	memset(&cif_conf, 0, sizeof(struct tegra210_xbar_cif_conf));
+	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
 
 	if (channels < 1 || channels > 16)
 		return -EINVAL;
 
 	switch (format) {
 	case SNDRV_PCM_FORMAT_S8:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_8;
+		audio_bits = TEGRA_ACIF_BITS_8;
 		break;
 	case SNDRV_PCM_FORMAT_S16_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_16;
+		audio_bits = TEGRA_ACIF_BITS_16;
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
-		audio_bits = TEGRA210_AUDIOCIF_BITS_32;
+		audio_bits = TEGRA_ACIF_BITS_32;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	cif_conf.audio_channels = channels;
-	cif_conf.client_channels = channels;
+	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
 	cif_conf.audio_bits = audio_bits;
 	cif_conf.client_bits = audio_bits;
 
-	tegra210_xbar_set_cif(adx->regmap, reg, &cif_conf);
+	tegra_set_cif(adx->regmap, reg, &cif_conf);
 
 	return 0;
 }
@@ -324,12 +324,6 @@ static int tegra210_adx_in_hw_params(struct snd_pcm_substream *substream,
 {
 	struct tegra210_adx *adx = snd_soc_dai_get_drvdata(dai);
 	int channels;
-
-	if (tegra_platform_is_unit_fpga() || tegra_platform_is_fpga()) {
-		/* update the map ram */
-		tegra210_adx_update_map_ram(adx);
-		tegra210_adx_set_in_byte_mask(adx);
-	}
 
 	if (adx->input_channels > 0)
 		channels = adx->input_channels;
@@ -390,8 +384,8 @@ static int tegra210_adx_set_channel_map(struct snd_soc_dai *dai,
 static int tegra210_adx_get_byte_map(struct snd_kcontrol *kcontrol,
 				     struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_adx *adx = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_adx *adx = snd_soc_component_get_drvdata(cmpnt);
 	struct soc_mixer_control *mc;
 	unsigned char *bytes_map = (unsigned char *)&adx->map;
 	int enabled;
@@ -410,8 +404,8 @@ static int tegra210_adx_get_byte_map(struct snd_kcontrol *kcontrol,
 static int tegra210_adx_put_byte_map(struct snd_kcontrol *kcontrol,
 					 struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_adx *adx = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_adx *adx = snd_soc_component_get_drvdata(cmpnt);
 	struct soc_mixer_control *mc;
 	unsigned char *bytes_map = (unsigned char *)&adx->map;
 	int value = ucontrol->value.integer.value[0];
@@ -434,8 +428,8 @@ static int tegra210_adx_put_byte_map(struct snd_kcontrol *kcontrol,
 static int tegra210_adx_get_in_channels(struct snd_kcontrol *kcontrol,
 					 struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_adx *adx = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_adx *adx = snd_soc_component_get_drvdata(cmpnt);
 
 	ucontrol->value.integer.value[0] = adx->input_channels;
 
@@ -445,8 +439,8 @@ static int tegra210_adx_get_in_channels(struct snd_kcontrol *kcontrol,
 static int tegra210_adx_put_in_channels(struct snd_kcontrol *kcontrol,
 					 struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_adx *adx = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_adx *adx = snd_soc_component_get_drvdata(cmpnt);
 	int value = ucontrol->value.integer.value[0];
 
 	if (value < 0 || value > 16)
@@ -460,8 +454,8 @@ static int tegra210_adx_put_in_channels(struct snd_kcontrol *kcontrol,
 static int tegra210_adx_get_out_channels(struct snd_kcontrol *kcontrol,
 					 struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_adx *adx = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_adx *adx = snd_soc_component_get_drvdata(cmpnt);
 	struct soc_mixer_control *mc;
 
 	mc = (struct soc_mixer_control *)kcontrol->private_value;
@@ -474,8 +468,8 @@ static int tegra210_adx_get_out_channels(struct snd_kcontrol *kcontrol,
 static int tegra210_adx_put_out_channels(struct snd_kcontrol *kcontrol,
 					 struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct tegra210_adx *adx = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
+	struct tegra210_adx *adx = snd_soc_component_get_drvdata(cmpnt);
 	struct soc_mixer_control *mc;
 	int value = ucontrol->value.integer.value[0];
 
@@ -643,16 +637,13 @@ static struct snd_kcontrol_new tegra210_adx_controls[] = {
 	TEGRA210_ADX_INPUT_CHANNELS_CTRL(1),
 };
 
-static struct snd_soc_codec_driver tegra210_adx_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.dapm_widgets = tegra210_adx_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra210_adx_widgets),
-		.dapm_routes = tegra210_adx_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra210_adx_routes),
-		.controls = tegra210_adx_controls,
-		.num_controls = ARRAY_SIZE(tegra210_adx_controls),
-	},
+static struct snd_soc_component_driver tegra210_adx_cmpnt = {
+	.dapm_widgets = tegra210_adx_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra210_adx_widgets),
+	.dapm_routes = tegra210_adx_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra210_adx_routes),
+	.controls = tegra210_adx_controls,
+	.num_controls = ARRAY_SIZE(tegra210_adx_controls),
 };
 
 static bool tegra210_adx_wr_reg(struct device *dev,
@@ -795,7 +786,7 @@ static int tegra210_adx_platform_probe(struct platform_device *pdev)
 	regcache_cache_only(adx->regmap, true);
 
 	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_codec(&pdev->dev, &tegra210_adx_codec,
+	ret = snd_soc_register_component(&pdev->dev, &tegra210_adx_cmpnt,
 				     tegra210_adx_dais,
 				     ARRAY_SIZE(tegra210_adx_dais));
 	if (ret != 0) {
@@ -809,7 +800,7 @@ static int tegra210_adx_platform_probe(struct platform_device *pdev)
 
 static int tegra210_adx_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

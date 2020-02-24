@@ -1,5 +1,5 @@
 /*
- * tegra210_ope_alt.h - Definitions for Tegra210 OPE driver
+ * tegra210_ope.h - Definitions for Tegra210 OPE driver
  *
  * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -19,7 +19,7 @@
 #ifndef __TEGRA210_OPE_ALT_H__
 #define __TEGRA210_OPE_ALT_H__
 
-#include "tegra210_peq_alt.h"
+#include "tegra210_peq.h"
 
 /* Register offsets from TEGRA210_OPE*_BASE */
 /*
@@ -79,10 +79,35 @@ struct tegra210_ope {
 };
 
 extern int tegra210_peq_init(struct platform_device *pdev, int id);
-extern int tegra210_peq_codec_init(struct snd_soc_codec *codec);
+extern int tegra210_peq_codec_init(struct snd_soc_component *cmpnt);
 extern void tegra210_peq_restore(struct tegra210_ope *ope);
 extern void tegra210_peq_save(struct tegra210_ope *ope);
 extern int tegra210_mbdrc_init(struct platform_device *pdev, int id);
-extern int tegra210_mbdrc_codec_init(struct snd_soc_codec *codec);
-extern int tegra210_mbdrc_hw_params(struct snd_soc_codec *codec);
+extern int tegra210_mbdrc_codec_init(struct snd_soc_component *cmpnt);
+extern int tegra210_mbdrc_hw_params(struct snd_soc_component *cmpnt);
+
+/* Extension of soc_bytes structure defined in sound/soc.h */
+struct tegra_soc_bytes {
+	struct soc_bytes soc;
+	u32 shift; /* Used as offset for ahub ram related programing */
+};
+
+/* Utility structures for using mixer control of type snd_soc_bytes */
+#define TEGRA_SOC_BYTES_EXT(xname, xbase, xregs, xshift, xmask,		\
+			    xhandler_get, xhandler_put, xinfo)		\
+{									\
+	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,				\
+	.name = xname,							\
+	.info = xinfo,							\
+	.get = xhandler_get,						\
+	.put = xhandler_put,						\
+	.private_value = ((unsigned long)&(struct tegra_soc_bytes)	\
+        {								\
+		.soc.base = xbase,					\
+		.soc.num_regs = xregs,					\
+		.soc.mask = xmask,					\
+		.shift = xshift						\
+	})								\
+}
+
 #endif
