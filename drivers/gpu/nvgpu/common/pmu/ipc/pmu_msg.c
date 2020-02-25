@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -558,8 +558,8 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		nvgpu_pmu_perfmon_rpc_handler(g, pmu, &rpc, rpc_payload);
 		break;
 	case PMU_UNIT_VOLT:
-		if (pmu->volt_rpc_handler != NULL) {
-			pmu->volt_rpc_handler(g, &rpc);
+		if (pmu->volt->volt_rpc_handler != NULL) {
+			pmu->volt->volt_rpc_handler(g, &rpc);
 		}
 		break;
 	case PMU_UNIT_CLK:

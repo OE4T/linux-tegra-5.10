@@ -917,7 +917,7 @@ int nvgpu_pmu_perf_vfe_get_volt_margin(struct gk20a *g, u32 *vmargin_uv)
 	int status = 0;
 	u8 vmargin_idx;
 
-	vmargin_idx = nvgpu_volt_get_vmargin_ps35(g);
+	vmargin_idx = nvgpu_pmu_volt_get_vmargin_ps35(g);
 	if (vmargin_idx == 0U) {
 		return 0;
 	}

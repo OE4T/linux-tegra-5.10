@@ -296,7 +296,7 @@ int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 	}
 
 	gpcclk_voltuv += vmargin_uv;
-	status = nvgpu_volt_get_vmin_vmax_ps35(g, &vmin_uv, &vmax_uv);
+	status = nvgpu_pmu_volt_get_vmin_vmax_ps35(g, &vmin_uv, &vmax_uv);
 	if (status != 0) {
 		nvgpu_pmu_dbg(g, "Get vmin,vmax failed, proceeding with "
 			"freq_to_volt value");

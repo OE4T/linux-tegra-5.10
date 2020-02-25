@@ -24,59 +24,25 @@
 #define NVGPU_PMU_VOLT_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/pmu/msg.h>
 
 struct gk20a;
-#define CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES	0x04U
+struct nvgpu_pmu_volt_metadata;
+
 #define CTRL_VOLT_DOMAIN_LOGIC			0x01U
 #define CLK_PROG_VFE_ENTRY_LOGIC		0x00U
 #define CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS	0x04U
 
-/*!
- * metadata of voltage rail functionality.
- */
-struct voltage_rail_metadata {
-	u8 volt_domain_hal;
-	u8 pct_delta;
-	u32 ext_rel_delta_uv[CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES];
-	u8 logic_rail_idx;
-	u8 sram_rail_idx;
-	struct boardobjgrp_e32 volt_rails;
-};
-
-struct voltage_device_metadata {
-	struct boardobjgrp_e32 volt_devices;
-};
-
-struct voltage_policy_metadata {
-	struct boardobjgrp_e32 volt_policies;
-	u8 perf_core_vf_seq_policy_idx;
-};
-
 struct nvgpu_pmu_volt {
-	struct voltage_rail_metadata volt_rail_metadata;
-	struct voltage_device_metadata volt_dev_metadata;
-	struct voltage_policy_metadata volt_policy_metadata;
-};
-struct ctrl_volt_volt_rail_list_item_v1 {
-	u8 rail_idx;
-	u32 voltage_uv;
-	u32 voltage_min_noise_unaware_uv;
-	u32 voltage_offset_uV[2];
+	struct nvgpu_pmu_volt_metadata *volt_metadata;
+	void (*volt_rpc_handler)(struct gk20a *g,
+			struct nv_pmu_rpc_header *rpc);
 };
 
-struct ctrl_volt_volt_rail_list_v1 {
-	u8    num_rails;
-	struct ctrl_volt_volt_rail_list_item_v1
-		rails[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];
-};
-
-u8 nvgpu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain);
-int nvgpu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_uv);
-u8 nvgpu_volt_get_vmargin_ps35(struct gk20a *g);
-u8 nvgpu_volt_rail_vbios_volt_domain_convert_to_internal
-	(struct gk20a *g, u8 vbios_volt_domain);
-int nvgpu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv);
+u8 nvgpu_pmu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain);
+int nvgpu_pmu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_uv);
+u8 nvgpu_pmu_volt_get_vmargin_ps35(struct gk20a *g);
+int nvgpu_pmu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv);
 int nvgpu_pmu_volt_sw_setup(struct gk20a *g);
 int nvgpu_pmu_volt_pmu_setup(struct gk20a *g);
 void nvgpu_pmu_volt_deinit(struct gk20a *g);

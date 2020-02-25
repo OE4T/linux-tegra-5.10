@@ -40,13 +40,26 @@
 #define CTRL_PERF_CHANGE_SEQ_SCRIPT_MAX_PROFILING_THREADS	8
 #define CTRL_PERF_CHANGE_SEQ_SCRIPT_VF_SWITCH_MAX_STEPS		13U
 
+struct ctrl_volt_volt_rail_list_item {
+	u8 rail_idx;
+	u32 voltage_uv;
+	u32 voltage_min_noise_unaware_uv;
+	u32 voltage_offset_uV[2];
+};
+
+struct ctrl_volt_volt_rail_list {
+	u8    num_rails;
+	struct ctrl_volt_volt_rail_list_item
+		rails[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];
+};
+
 struct ctrl_perf_chage_seq_change_pmu {
 	u32 seq_id;
 };
 
 struct ctrl_perf_change_seq_change {
 	struct ctrl_clk_clk_domain_list clk_list;
-	struct ctrl_volt_volt_rail_list_v1 volt_list;
+	struct ctrl_volt_volt_rail_list volt_list;
 	u32 pstate_index;
 	u32 flags;
 	u32 vf_points_cache_counter;
@@ -162,7 +175,7 @@ struct ctrl_perf_change_seq_pmu_script_step_clks {
 
 struct ctrl_perf_change_seq_pmu_script_step_volt {
 	struct ctrl_perf_change_seq_pmu_script_step_super super;
-	struct ctrl_volt_volt_rail_list_v1 volt_list;
+	struct ctrl_volt_volt_rail_list volt_list;
 	struct ctrl_clk_vin_sw_override_list vin_sw_override_list;
 };
 

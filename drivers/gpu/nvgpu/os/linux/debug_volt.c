@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,7 @@ static int get_curr_voltage(void *data, u64 *val)
 	u32 readval;
 	int err;
 
-	err = nvgpu_volt_get_curr_volt_ps35(g, &readval);
+	err = nvgpu_pmu_volt_get_curr_volt_ps35(g, &readval);
 	if (!err)
 		*val = readval;
 
@@ -39,7 +39,7 @@ static int get_min_voltage(void *data, u64 *val)
 	u32 minval, maxval;
 	int err;
 
-	err = nvgpu_volt_get_vmin_vmax_ps35(g, &minval, &maxval);
+	err = nvgpu_pmu_volt_get_vmin_vmax_ps35(g, &minval, &maxval);
 	if (!err)
 		*val = minval;
 
@@ -53,7 +53,7 @@ static int get_max_voltage(void *data, u64 *val)
 	u32 minval, maxval;
 	int err;
 
-	err = nvgpu_volt_get_vmin_vmax_ps35(g, &minval, &maxval);
+	err = nvgpu_pmu_volt_get_vmin_vmax_ps35(g, &minval, &maxval);
 	if (!err)
 		*val = maxval;
 

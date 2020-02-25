@@ -29,6 +29,7 @@
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
 
+#include "volt.h"
 #include "ucode_volt_inf.h"
 #include "volt_policy.h"
 
@@ -38,7 +39,7 @@ static int volt_policy_pmu_data_init_super(struct gk20a *g,
 	return nvgpu_boardobj_pmu_data_init_super(g, pboardobj, ppmudata);
 }
 
-static int construct_volt_policy(struct gk20a *g,
+static int volt_construct_volt_policy(struct gk20a *g,
 	struct boardobj  **ppboardobj, size_t size, void *pArgs)
 {
 	struct voltage_policy *pvolt_policy = NULL;
@@ -56,7 +57,7 @@ static int construct_volt_policy(struct gk20a *g,
 	return status;
 }
 
-static int construct_volt_policy_single_rail(struct gk20a *g,
+static int volt_construct_volt_policy_single_rail(struct gk20a *g,
 	struct boardobj **ppboardobj, size_t size, void *pArgs)
 {
 	struct voltage_policy_single_rail *ptmp_policy  =
@@ -64,7 +65,7 @@ static int construct_volt_policy_single_rail(struct gk20a *g,
 	struct voltage_policy_single_rail *pvolt_policy = NULL;
 	int status = 0;
 
-	status = construct_volt_policy(g, ppboardobj, size, pArgs);
+	status = volt_construct_volt_policy(g, ppboardobj, size, pArgs);
 	if (status != 0) {
 		return status;
 	}
@@ -97,13 +98,13 @@ done:
 	return status;
 }
 
-static int volt_construct_volt_policy_single_rail(struct gk20a *g,
+static int volt_construct_volt_policy_single(struct gk20a *g,
 	struct boardobj **ppboardobj, size_t size, void *pArgs)
 {
 	struct boardobj *pboardobj = NULL;
 	int status = 0;
 
-	status = construct_volt_policy_single_rail(g, ppboardobj, size, pArgs);
+	status = volt_construct_volt_policy_single_rail(g, ppboardobj, size, pArgs);
 	if (status != 0x0) {
 		return status;
 	}
@@ -147,7 +148,7 @@ static int volt_construct_volt_policy_single_rail_multi_step(struct gk20a *g,
 		(struct voltage_policy_single_rail_multi_step *)pargs;
 	int status = 0;
 
-	status = construct_volt_policy_single_rail(g, ppboardobj, size, pargs);
+	status = volt_construct_volt_policy_single_rail(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return status;
 	}
@@ -186,7 +187,7 @@ static struct voltage_policy *volt_volt_policy_construct(struct gk20a *g, void *
 		}
 		break;
 	case CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL:
-		status = volt_construct_volt_policy_single_rail(g,
+		status = volt_construct_volt_policy_single(g,
 			&pboard_obj,
 			sizeof(struct voltage_policy_single_rail),
 			pargs);
@@ -304,7 +305,7 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 done:
 	return status;
 }
-static int _volt_policy_devgrp_pmudata_instget(struct gk20a *g,
+static int volt_policy_devgrp_pmudata_instget(struct gk20a *g,
 	struct nv_pmu_boardobjgrp *pmuboardobjgrp,
 	struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
 {
@@ -326,7 +327,7 @@ static int _volt_policy_devgrp_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-static int _volt_policy_grp_pmudatainit_super(struct gk20a *g,
+static int volt_policy_grp_pmudatainit_super(struct gk20a *g,
 	struct boardobjgrp *pboardobjgrp,
 	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
 {
@@ -359,7 +360,7 @@ int volt_policy_pmu_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	pboardobjgrp =
-		&g->pmu->volt->volt_policy_metadata.volt_policies.super;
+		&g->pmu->volt->volt_metadata->volt_policy_metadata.volt_policies.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -379,7 +380,7 @@ int volt_policy_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = nvgpu_boardobjgrp_construct_e32(g,
-			&g->pmu->volt->volt_policy_metadata.volt_policies);
+			&g->pmu->volt->volt_metadata->volt_policy_metadata.volt_policies);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for volt rail, "
@@ -388,13 +389,13 @@ int volt_policy_sw_setup(struct gk20a *g)
 	}
 
 	pboardobjgrp =
-		&g->pmu->volt->volt_policy_metadata.volt_policies.super;
+		&g->pmu->volt->volt_metadata->volt_policy_metadata.volt_policies.super;
 
-	pboardobjgrp->pmudatainstget  = _volt_policy_devgrp_pmudata_instget;
-	pboardobjgrp->pmudatainit = _volt_policy_grp_pmudatainit_super;
+	pboardobjgrp->pmudatainstget  = volt_policy_devgrp_pmudata_instget;
+	pboardobjgrp->pmudatainit = volt_policy_grp_pmudatainit_super;
 
 	/* Obtain Voltage Rail Table from VBIOS */
-	status = volt_get_volt_policy_table(g, &g->pmu->volt->
+	status = volt_get_volt_policy_table(g, &g->pmu->volt->volt_metadata->
 			volt_policy_metadata);
 	if (status != 0) {
 		goto done;

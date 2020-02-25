@@ -468,7 +468,7 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 
 	perf_pmu_data->id = pvin_dev->id;
 	perf_pmu_data->volt_rail_idx =
-			nvgpu_volt_rail_volt_domain_convert_to_idx(
+			nvgpu_pmu_volt_rail_volt_domain_convert_to_idx(
 					g, pvin_dev->volt_domain);
 	perf_pmu_data->flls_shared_mask = pvin_dev->flls_shared_mask;
 	perf_pmu_data->por_override_mode = pvin_dev->por_override_mode;

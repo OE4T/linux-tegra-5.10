@@ -46,7 +46,7 @@ int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
 	(void)memset(&rpc, 0,
 		sizeof(struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt));
 	rpc.volt_rail_idx =
-		nvgpu_volt_rail_volt_domain_convert_to_idx(g, railidx);
+		nvgpu_pmu_volt_rail_volt_domain_convert_to_idx(g, railidx);
 	rpc.clk_domain_idx = clkdomain_idx;
 	rpc.voltage_type = CTRL_VOLT_DOMAIN_LOGIC;
 	rpc.input.value = *pvoltuv;

@@ -1447,7 +1447,7 @@ static int nvgpu_gpu_get_voltage(struct gk20a *g,
 
 	nvgpu_speculation_barrier();
 
-	err = nvgpu_volt_get_curr_volt_ps35(g, &args->voltage);
+	err = nvgpu_pmu_volt_get_curr_volt_ps35(g, &args->voltage);
 	if (err) {
 		return err;
 	}

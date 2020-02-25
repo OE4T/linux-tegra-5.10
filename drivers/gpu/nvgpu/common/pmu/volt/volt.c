@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/cmd.h>
 
+#include "volt.h"
 #include "volt_rail.h"
 #include "volt_dev.h"
 #include "volt_policy.h"
@@ -82,6 +83,8 @@ int nvgpu_pmu_volt_sw_setup(struct gk20a *g)
 		return err;
 	}
 
+	g->pmu->volt->volt_rpc_handler = nvgpu_pmu_volt_rpc_handler;
+
 	return 0;
 }
 
@@ -103,12 +106,23 @@ int nvgpu_pmu_volt_init(struct gk20a *g)
 		return err;
 	}
 
+	g->pmu->volt->volt_metadata = (struct nvgpu_pmu_volt_metadata *)
+				nvgpu_kzalloc(g, sizeof(struct nvgpu_pmu_volt_metadata));
+	if (g->pmu->volt->volt_metadata == NULL) {
+		err = -ENOMEM;
+		return err;
+	}
+
 	return err;
 }
 
 void nvgpu_pmu_volt_deinit(struct gk20a *g)
 {
-	if ((g->pmu != NULL) && (g->pmu->volt != NULL)) {
+	if (g->pmu == NULL) {
+		return;
+	}
+	if ((g->pmu->volt != NULL) && (g->pmu->volt->volt_metadata != NULL)) {
+		nvgpu_kfree(g, g->pmu->volt->volt_metadata);
 		nvgpu_kfree(g, g->pmu->volt);
 		g->pmu->volt = NULL;
 	}
