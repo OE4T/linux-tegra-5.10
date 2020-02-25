@@ -952,6 +952,8 @@ int mmc_execute_tuning(struct mmc_card *card)
 		return 0;
 	}
 
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, true);
 	if (mmc_card_mmc(card))
 		opcode = MMC_SEND_TUNING_BLOCK_HS200;
 	else
@@ -964,7 +966,8 @@ int mmc_execute_tuning(struct mmc_card *card)
 			mmc_hostname(host), err);
 	else
 		mmc_retune_enable(host);
-
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, false);
 	return err;
 }
 
@@ -1194,6 +1197,8 @@ int mmc_host_set_uhs_voltage(struct mmc_host *host)
 	 */
 	clock = host->ios.clock;
 	host->ios.clock = 0;
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, true);
 	mmc_set_ios(host);
 
 	if (mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180))
@@ -1249,11 +1254,15 @@ int mmc_set_uhs_voltage(struct mmc_host *host, u32 ocr)
 		 * sent CMD11, so a power cycle is required anyway
 		 */
 		err = -EAGAIN;
+		if (host->ops->skip_host_clkgate)
+			host->ops->skip_host_clkgate(host, false);
 		goto power_cycle;
 	}
 
 	/* Wait for at least 1 ms according to spec */
 	mmc_delay(1);
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, false);
 
 	/*
 	 * Failure to switch is indicated by the card holding

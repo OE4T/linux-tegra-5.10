@@ -45,6 +45,7 @@
 #define SDHCI_CLOCK_CTRL_TAP_SHIFT			16
 #define SDHCI_CLOCK_CTRL_TRIM_MASK			0x1f000000
 #define SDHCI_CLOCK_CTRL_TRIM_SHIFT			24
+#define SDHCI_CLOCK_CTRL_LEGACY_CLKEN_OVERRIDE		BIT(6)
 #define SDHCI_CLOCK_CTRL_SDR50_TUNING_OVERRIDE		BIT(5)
 #define SDHCI_CLOCK_CTRL_PADPIPE_CLKEN_OVERRIDE		BIT(3)
 #define SDHCI_CLOCK_CTRL_SPI_MODE_CLKEN_OVERRIDE	BIT(2)
@@ -131,6 +132,7 @@
 #define NVQUIRK_DIS_CARD_CLK_CONFIG_TAP			BIT(8)
 #define NVQUIRK_CQHCI_DCMD_R1B_CMD_TIMING		BIT(9)
 #define NVQUIRK_HW_TAP_CONFIG				BIT(10)
+#define NVQUIRK_SDMMC_CLK_OVERRIDE			BIT(11)
 
 
 #define MAX_TAP_VALUE		256
@@ -207,6 +209,7 @@ struct sdhci_tegra {
 	struct pinctrl_state *pinctrl_state_1v8;
 	struct pinctrl_state *pinctrl_state_3v3_drv;
 	struct pinctrl_state *pinctrl_state_1v8_drv;
+	bool slcg_status;
 	unsigned int tuning_status;
 	#define TUNING_STATUS_DONE	1
 	#define TUNING_STATUS_RETUNE	2
@@ -717,7 +720,7 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
-	u32 misc_ctrl, clk_ctrl, pad_ctrl;
+	u32 misc_ctrl, clk_ctrl, pad_ctrl, misc_ctrl_2;
 	int err;
 
 	sdhci_reset(host, mask);
@@ -763,6 +766,13 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 
 	clk_ctrl |= tegra_host->default_trim << SDHCI_CLOCK_CTRL_TRIM_SHIFT;
 
+	if (soc_data->nvquirks & NVQUIRK_SDMMC_CLK_OVERRIDE) {
+		misc_ctrl_2 = sdhci_readl(host, SDHCI_TEGRA_VENDOR_MISC_CTRL_2);
+		tegra_host->slcg_status = !(misc_ctrl_2 &
+						SDHCI_MISC_CTRL_2_CLK_OVR_ON);
+	} else
+		tegra_host->slcg_status = !(clk_ctrl &
+					SDHCI_CLOCK_CTRL_LEGACY_CLKEN_OVERRIDE);
 	sdhci_writel(host, misc_ctrl, SDHCI_TEGRA_VENDOR_MISC_CTRL);
 	sdhci_writel(host, clk_ctrl, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
 
@@ -1104,6 +1114,11 @@ static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 	unsigned long host_clk;
+
+	if (host->mmc->skip_host_clkgate) {
+		sdhci_set_card_clock(host, clock ? true : false);
+		return;
+	}
 
 	if (!clock)
 		return sdhci_set_clock(host, clock);
@@ -1593,6 +1608,50 @@ static u32 sdhci_tegra_cqhci_irq(struct sdhci_host *host, u32 intmask)
 
 	return 0;
 }
+/* Configure voltage switch specific requirements */
+static void tegra_sdhci_voltage_switch_req(struct sdhci_host *host, bool req)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
+	u32 clk_ctrl;
+
+	if (!req) {
+		/* Disable SLCG */
+		clk_ctrl = sdhci_readl(host, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
+		clk_ctrl = clk_ctrl | SDHCI_CLOCK_CTRL_LEGACY_CLKEN_OVERRIDE;
+		sdhci_writel(host, clk_ctrl, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
+
+		if (soc_data->nvquirks & NVQUIRK_SDMMC_CLK_OVERRIDE) {
+			clk_ctrl = sdhci_readl(host,
+						SDHCI_TEGRA_VENDOR_MISC_CTRL_2);
+			clk_ctrl = clk_ctrl | SDHCI_MISC_CTRL_2_CLK_OVR_ON;
+			sdhci_writel(host, clk_ctrl,
+						SDHCI_TEGRA_VENDOR_MISC_CTRL_2);
+		}
+	} else  {
+		/* Restore SLCG */
+		if (tegra_host->slcg_status) {
+			clk_ctrl = sdhci_readl(host,
+						SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
+			clk_ctrl = clk_ctrl &
+					~SDHCI_CLOCK_CTRL_LEGACY_CLKEN_OVERRIDE;
+			sdhci_writel(host, clk_ctrl,
+						SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
+			if (soc_data->nvquirks &
+					NVQUIRK_SDMMC_CLK_OVERRIDE) {
+				clk_ctrl = sdhci_readl(host,
+						SDHCI_TEGRA_VENDOR_MISC_CTRL_2);
+				clk_ctrl = clk_ctrl &
+						~SDHCI_MISC_CTRL_2_CLK_OVR_ON;
+				sdhci_writel(host, clk_ctrl,
+						SDHCI_TEGRA_VENDOR_MISC_CTRL_2);
+			}
+		}
+	}
+
+}
+
 
 static const struct cqhci_host_ops sdhci_tegra_cqhci_ops = {
 	.write_l    = tegra_cqhci_writel,
@@ -1615,6 +1674,14 @@ static int tegra_sdhci_set_dma_mask(struct sdhci_host *host)
 	return 0;
 }
 
+static void tegra_sdhci_skip_host_clkgate(struct sdhci_host *host, bool req)
+{
+	if (req)
+		host->mmc->skip_host_clkgate = true;
+	else
+		host->mmc->skip_host_clkgate = false;
+}
+
 static const struct sdhci_ops tegra_sdhci_ops = {
 	.get_ro     = tegra_sdhci_get_ro,
 	.read_w     = tegra_sdhci_readw,
@@ -1634,6 +1701,8 @@ static const struct sdhci_ops tegra_sdhci_ops = {
 	.dump_vendor_regs = tegra_sdhci_dump_vendor_regs,
 	.irq = sdhci_tegra_cqhci_irq,
 	.get_sw_timeout = tegra_sdhci_get_sw_timeout_value,
+	.voltage_switch_req	= tegra_sdhci_voltage_switch_req,
+	.skip_host_clkgate	= tegra_sdhci_skip_host_clkgate,
 };
 
 static const struct sdhci_pltfm_data sdhci_tegra20_pdata = {
@@ -1796,6 +1865,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra186 = {
 		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
 		    NVQUIRK_ENABLE_SDR50 |
 		    NVQUIRK_ENABLE_SDR104 |
+		    NVQUIRK_SDMMC_CLK_OVERRIDE |
 		    NVQUIRK_CQHCI_DCMD_R1B_CMD_TIMING,
 	.min_tap_delay = 84,
 	.max_tap_delay = 136,
@@ -1808,6 +1878,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra194 = {
 		    NVQUIRK_HAS_PADCALIB |
 		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
 		    NVQUIRK_ENABLE_SDR50 |
+		    NVQUIRK_SDMMC_CLK_OVERRIDE |
 		    NVQUIRK_ENABLE_SDR104,
 	.min_tap_delay = 96,
 	.max_tap_delay = 139,

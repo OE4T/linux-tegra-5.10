@@ -171,6 +171,8 @@ struct mmc_host_ops {
 	int	(*multi_io_quirk)(struct mmc_card *card,
 				  unsigned int direction, int blk_size);
 	void	(*post_init)(struct mmc_host *host);
+	void	(*voltage_switch_req)(struct mmc_host *host, bool req);
+	void	(*skip_host_clkgate)(struct mmc_host *host, bool req);
 };
 
 struct mmc_cqe_ops {
@@ -412,6 +414,7 @@ struct mmc_host {
 	struct timer_list	retune_timer;	/* for periodic re-tuning */
 
 	bool			trigger_card_event; /* card_event necessary */
+	bool			skip_host_clkgate; /* Skip host clock gating */
 
 	struct mmc_card		*card;		/* device attached to this host */
 

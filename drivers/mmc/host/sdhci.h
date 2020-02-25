@@ -657,6 +657,8 @@ struct sdhci_ops {
 	void	(*post_init)(struct sdhci_host *host);
 	void	(*dump_vendor_regs)(struct sdhci_host *host);
 	unsigned int	(*get_sw_timeout)(struct sdhci_host *host);
+	void	(*voltage_switch_req)(struct sdhci_host *sdhci, bool req);
+	void	(*skip_host_clkgate)(struct sdhci_host *host, bool req);
 };
 
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
@@ -768,6 +770,7 @@ static inline void sdhci_read_caps(struct sdhci_host *host)
 
 u16 sdhci_calc_clk(struct sdhci_host *host, unsigned int clock,
 		   unsigned int *actual_clock);
+void sdhci_set_card_clock(struct sdhci_host *host, bool enable);
 void sdhci_set_clock(struct sdhci_host *host, unsigned int clock);
 void sdhci_enable_clk(struct sdhci_host *host, u16 clk);
 void sdhci_set_power(struct sdhci_host *host, unsigned char mode,

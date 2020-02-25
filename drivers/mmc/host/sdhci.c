@@ -1703,6 +1703,19 @@ void sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 }
 EXPORT_SYMBOL_GPL(sdhci_set_clock);
 
+void sdhci_set_card_clock(struct sdhci_host *host, bool enable)
+{
+	u16 clk;
+
+	clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL);
+	if (enable)
+		clk |= SDHCI_CLOCK_CARD_EN;
+	else
+		clk &= ~SDHCI_CLOCK_CARD_EN;
+	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
+}
+EXPORT_SYMBOL_GPL(sdhci_set_card_clock);
+
 static void sdhci_set_power_reg(struct sdhci_host *host, unsigned char mode,
 				unsigned short vdd)
 {
@@ -1938,7 +1951,8 @@ void sdhci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 			host->mmc->max_busy_timeout /= host->timeout_clk;
 		}
 	}
-
+	if (mmc->skip_host_clkgate)
+		return;
 	if (host->ops->set_power)
 		host->ops->set_power(host, ios->power_mode, ios->vdd);
 	else
@@ -2665,6 +2679,22 @@ static void sdhci_post_init(struct mmc_host *mmc)
 		host->ops->post_init(host);
 
 }
+static void sdhci_voltage_switch_req(struct mmc_host *mmc, bool req)
+{
+	struct sdhci_host *host = mmc_priv(mmc);
+
+	if (host->ops->voltage_switch_req)
+		host->ops->voltage_switch_req(host, req);
+
+}
+
+static void sdhci_skip_host_clkgate(struct mmc_host *mmc, bool req)
+{
+	struct sdhci_host *host = mmc_priv(mmc);
+
+	if (host->ops->skip_host_clkgate)
+		host->ops->skip_host_clkgate(host, req);
+}
 
 static const struct mmc_host_ops sdhci_ops = {
 	.request	= sdhci_request,
@@ -2683,6 +2713,8 @@ static const struct mmc_host_ops sdhci_ops = {
 	.card_busy	= sdhci_card_busy,
 	.hs400_enhanced_strobe = sdhci_hs400_enhanced_strobe,
 	.post_init = sdhci_post_init,
+	.voltage_switch_req		= sdhci_voltage_switch_req,
+	.skip_host_clkgate		= sdhci_skip_host_clkgate,
 };
 
 /*****************************************************************************\
