@@ -11,26 +11,169 @@
  * more details.
  */
 
-#include <linux/debugfs.h>
+#include <linux/cpumask.h>
+#include <linux/delay.h>
+#include <linux/io.h>
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/tegra-mce.h>
-
-#include <asm/smp_plat.h>
 #include <linux/version.h>
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <soc/tegra/chip-id.h>
 #else
 #include <soc/tegra/fuse.h>
 #endif
-#include <asm/cacheflush.h>
+#include <linux/platform_device.h>
+#include <linux/t23x_ari.h>
+#include <linux/debugfs.h>
 #include <linux/platform/tegra/tegra19x_cache.h>
+#include <asm/cputype.h>
+#include <asm/smp_plat.h>
+#include <asm/cacheflush.h>
+
+#define MAX_CPUS			12U
+#define MAX_CORES_PER_CLUSTER		4U
+#define ARI_TIMEOUT_MAX			2000U /* msec */
+
+/* Register offsets for ARI request/results*/
+#define ARI_REQUEST			0x0U
+#define ARI_REQUEST_EVENT_MASK		0x8U
+#define ARI_STATUS			0x10U
+#define ARI_REQUEST_DATA_LO		0x18U
+#define ARI_REQUEST_DATA_HI		0x20U
+#define ARI_RESPONSE_DATA_LO		0x28U
+#define ARI_RESPONSE_DATA_HI		0x30U
+
+/* Status values for the current request */
+#define ARI_REQ_PENDING			1U
+#define ARI_REQ_ONGOING			3U
+#define ARI_REQUEST_VALID_BIT		(1U << 8U)
+#define ARI_REQUEST_NS_BIT		(1U << 31U)
+
+static void __iomem *ari_bar_array[MAX_CPUS];
+
+static inline void ari_mmio_write_32(void __iomem *ari_base,
+	u32 val, u32 reg)
+{
+	writel(val, ari_base + reg);
+}
+
+static inline u32 ari_mmio_read_32(void __iomem *ari_base, u32 reg)
+{
+	return readl(ari_base + reg);
+}
+
+static inline u32 ari_get_response_low(void __iomem *ari_base)
+{
+	return ari_mmio_read_32(ari_base, ARI_RESPONSE_DATA_LO);
+}
+
+static inline u32 ari_get_response_high(void __iomem *ari_base)
+{
+	return ari_mmio_read_32(ari_base, ARI_RESPONSE_DATA_HI);
+}
+
+static inline void ari_clobber_response(void __iomem *ari_base)
+{
+	ari_mmio_write_32(ari_base, 0, ARI_RESPONSE_DATA_LO);
+	ari_mmio_write_32(ari_base, 0, ARI_RESPONSE_DATA_HI);
+}
+
+static int32_t ari_send_request(void __iomem *ari_base, u32 evt_mask,
+	u32 req, u32 lo, u32 hi)
+{
+	uint32_t timeout = ARI_TIMEOUT_MAX;
+	uint32_t status;
+	int32_t ret = 0;
+
+	/* clobber response */
+	ari_mmio_write_32(ari_base, 0, ARI_RESPONSE_DATA_LO);
+	ari_mmio_write_32(ari_base, 0, ARI_RESPONSE_DATA_HI);
+
+	/* send request */
+	ari_mmio_write_32(ari_base, lo, ARI_REQUEST_DATA_LO);
+	ari_mmio_write_32(ari_base, hi, ARI_REQUEST_DATA_HI);
+	ari_mmio_write_32(ari_base, evt_mask, ARI_REQUEST_EVENT_MASK);
+	ari_mmio_write_32(ari_base,
+		req | ARI_REQUEST_VALID_BIT | ARI_REQUEST_NS_BIT, ARI_REQUEST);
+
+	while (timeout) {
+		status = ari_mmio_read_32(ari_base, ARI_STATUS);
+		if (!(status & (ARI_REQ_ONGOING | ARI_REQ_PENDING)))
+			break;
+		mdelay(1);
+		timeout--;
+	}
+
+	if (!timeout)
+		ret = -ETIMEDOUT;
+
+	return ret;
+}
+
+static int get_ari_address_index(void)
+{
+	uint64_t mpidr;
+	uint32_t core_id, cluster_id;
+
+	mpidr = read_cpuid_mpidr();
+	cluster_id = MPIDR_AFFINITY_LEVEL(mpidr, 2);
+	core_id = MPIDR_AFFINITY_LEVEL(mpidr, 1);
+
+	return ((cluster_id * MAX_CORES_PER_CLUSTER) + core_id);
+}
 
 static int tegra23x_mce_read_versions(u32 *major, u32 *minor)
 {
-	pr_info("Stub supported: tegra23x_mce_read_versions\n");
+	int cpu_idx;
+	int32_t ret = 0;
+
+	if (IS_ERR_OR_NULL(major) || IS_ERR_OR_NULL(minor))
+		return -EINVAL;
+
+	preempt_disable();
+	cpu_idx = get_ari_address_index();
+	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
+			(u32)TEGRA_ARI_VERSION, 0U, 0U);
+	if (ret)
+		return ret;
+	*major = ari_get_response_low(ari_bar_array[cpu_idx]);
+	*minor = ari_get_response_high(ari_bar_array[cpu_idx]);
+	preempt_enable();
 
 	return 0;
+}
+
+/*
+ * echo copies data from req_low to resp_low and
+ * data from req_high to resp_high.
+ */
+static int tegra23x_mce_echo_data(u64 data, u64 *matched)
+{
+	int cpu_idx;
+	u32 input1 = (u32)(data & 0xFFFFFFFF);
+	u32 input2 = (u32)(data >> 32);
+	u64 out1, out2;
+	int32_t ret = 0;
+
+	if (IS_ERR_OR_NULL(matched))
+		return -EINVAL;
+
+	preempt_disable();
+	cpu_idx = get_ari_address_index();
+	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
+			(u32)TEGRA_ARI_ECHO, input1, input2);
+	if (ret)
+		return ret;
+	out1 = (u64)ari_get_response_low(ari_bar_array[cpu_idx]);
+	out2 = (u64)ari_get_response_high(ari_bar_array[cpu_idx]);
+	*matched = ((out2 << 32) | out1);
+	preempt_enable();
+
+	if (data == *matched)
+		return 0;
+	else
+		return -ENOMSG;
 }
 
 static int tegra23x_mce_read_l4_cache_ways(u64 *value)
@@ -93,21 +236,40 @@ static int tegra_23x_clean_dcache_all(void *__maybe_unused unused)
 }
 
 #ifdef CONFIG_DEBUG_FS
+
 static struct dentry *mce_debugfs;
 
 static int tegra23x_mce_versions_get(void *data, u64 *val)
 {
-	u32 major, minor;
+	u32 major = 0;
+	u32 minor = 0;
+	u64 version = 0;
 	int ret;
 
+	*val = 0;
 	ret = tegra_mce_read_versions(&major, &minor);
-	if (!ret)
-		*val = ((u64)major << 32) | minor;
+	if (!ret) {
+		version = (u64)major;
+		*val = (version << 32) | minor;
+	}
 	return ret;
 }
 
+static int tegra23x_mce_echo_set(void *data, u64 val)
+{
+	u64 matched = 0;
+	int ret;
+
+	ret = tegra_mce_echo_data(val, &matched);
+	if (ret)
+		return ret;
+	return 0;
+}
+
 DEFINE_SIMPLE_ATTRIBUTE(tegra23x_mce_versions_fops, tegra23x_mce_versions_get,
-			NULL, "%llu\n");
+			NULL, "%llx\n");
+DEFINE_SIMPLE_ATTRIBUTE(tegra23x_mce_echo_fops, NULL,
+			tegra23x_mce_echo_set, "%llx\n");
 
 struct debugfs_entry {
 	const char *name;
@@ -115,8 +277,10 @@ struct debugfs_entry {
 	mode_t mode;
 };
 
+/* Make sure to put an NULL entry at the end of each group */
 static struct debugfs_entry tegra23x_mce_attrs[] = {
 	{ "versions", &tegra23x_mce_versions_fops, 0444 },
+	{ "echo", &tegra23x_mce_echo_fops, 0200 },
 	{ NULL, NULL, 0 }
 };
 
@@ -172,17 +336,60 @@ static struct tegra_mce_ops t23x_mce_ops = {
 	.flush_cache_all = tegra_23x_flush_cache_all,
 	.flush_dcache_all = tegra_23x_flush_dcache_all,
 	.clean_dcache_all = tegra_23x_clean_dcache_all,
+	.echo_data = tegra23x_mce_echo_data,
+};
+
+static int t23x_mce_probe(struct platform_device *pdev)
+{
+	int cpu;
+	struct resource *res;
+
+	/* this ARI NS mapping applies to Split, Lock-step and FS */
+	for_each_possible_cpu(cpu) {
+		res = platform_get_resource(pdev, IORESOURCE_MEM, cpu);
+		ari_bar_array[cpu] = devm_ioremap_resource(&pdev->dev, res);
+		if (IS_ERR(ari_bar_array[cpu])) {
+			dev_err(&pdev->dev, "mapping ARI failed for %d\n",
+						cpu);
+			return PTR_ERR(ari_bar_array[cpu]);
+		}
+	}
+
+	return 0;
+}
+
+static int t23x_mce_remove(struct platform_device *pdev)
+{
+	return 0;
+}
+
+static const struct of_device_id t23x_mce_of_match[] = {
+	{ .compatible = "nvidia,t23x-mce", .data = NULL },
+	{ },
+};
+MODULE_DEVICE_TABLE(of, t23x_mce_of_match);
+
+static struct platform_driver t23x_mce_driver = {
+	.probe = t23x_mce_probe,
+	.remove = t23x_mce_remove,
+	.driver = {
+		.owner  = THIS_MODULE,
+		.name = "t23x-mce",
+		.of_match_table = of_match_ptr(t23x_mce_of_match),
+	},
 };
 
 static int __init tegra23x_mce_early_init(void)
 {
-	if (tegra_get_chip_id() == TEGRA234)
+	if (tegra_get_chip_id() == TEGRA234) {
 		tegra_mce_set_ops(&t23x_mce_ops);
+		platform_driver_register(&t23x_mce_driver);
+	}
 
 	return 0;
 }
-early_initcall(tegra23x_mce_early_init);
+pure_initcall(tegra23x_mce_early_init);
 
 MODULE_DESCRIPTION("NVIDIA Tegra23x MCE driver");
-MODULE_AUTHOR("Sandipan Patra <spatra@nvidia.com>");
+MODULE_AUTHOR("NVIDIA Corporation");
 MODULE_LICENSE("GPL v2");
