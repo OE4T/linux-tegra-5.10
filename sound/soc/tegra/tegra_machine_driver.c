@@ -28,10 +28,10 @@
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
 #include <dt-bindings/sound/tas2552.h>
-#include "rt5659.h"
-#include "sgtl5000.h"
-#include "tegra_asoc_machine_alt.h"
-#include "tegra210_xbar_alt.h"
+#include "../codecs/rt5659.h"
+#include "../codecs/sgtl5000.h"
+#include "tegra210_ahub.h"
+#include "tegra_asoc_machine.h"
 
 #define DRV_NAME "tegra-asoc:"
 
@@ -146,16 +146,16 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 	format_k = (machine->fmt_via_kcontrol == 2) ?
 			(1ULL << SNDRV_PCM_FORMAT_S32_LE) : formats;
 
-	err = tegra_alt_asoc_utils_set_rate(&machine->audio_clock, srate, 0, 0);
+	err = tegra_asoc_utils_set_tegra210_rate(&machine->audio_clock, srate);
 	if (err < 0) {
 		dev_err(card->dev, "Can't configure clocks\n");
 		return err;
 	}
 
-	aud_mclk = machine->audio_clock.set_aud_mclk_rate;
+	aud_mclk = machine->audio_clock.set_mclk;
 
 	pr_debug("pll_a_out0 = %u Hz, aud_mclk = %u Hz, sample rate = %u Hz\n",
-		 machine->audio_clock.set_pll_out_rate, aud_mclk, srate);
+		 machine->audio_clock.set_pll_out, aud_mclk, srate);
 
 	list_for_each_entry(rtd, &card->rtd_list, list) {
 		if (!rtd->dai_link->params)
@@ -280,7 +280,7 @@ static int tegra_machine_pcm_startup(struct snd_pcm_substream *substream)
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct tegra_machine *machine = snd_soc_card_get_drvdata(rtd->card);
 
-	tegra_alt_asoc_utils_clk_enable(&machine->audio_clock);
+	tegra_asoc_utils_clk_enable(&machine->audio_clock);
 
 	return 0;
 }
@@ -290,7 +290,7 @@ static void tegra_machine_pcm_shutdown(struct snd_pcm_substream *substream)
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct tegra_machine *machine = snd_soc_card_get_drvdata(rtd->card);
 
-	tegra_alt_asoc_utils_clk_disable(&machine->audio_clock);
+	tegra_asoc_utils_clk_disable(&machine->audio_clock);
 }
 
 static int tegra_machine_suspend_pre(struct snd_soc_card *card)
@@ -312,7 +312,7 @@ static int tegra_machine_compr_startup(struct snd_compr_stream *cstream)
 	struct snd_soc_card *card = rtd->card;
 	struct tegra_machine *machine = snd_soc_card_get_drvdata(card);
 
-	tegra_alt_asoc_utils_clk_enable(&machine->audio_clock);
+	tegra_asoc_utils_clk_enable(&machine->audio_clock);
 
 	return 0;
 }
@@ -323,21 +323,18 @@ static void tegra_machine_compr_shutdown(struct snd_compr_stream *cstream)
 	struct snd_soc_card *card = rtd->card;
 	struct tegra_machine *machine = snd_soc_card_get_drvdata(card);
 
-	tegra_alt_asoc_utils_clk_disable(&machine->audio_clock);
+	tegra_asoc_utils_clk_disable(&machine->audio_clock);
 }
 
 static int tegra_machine_compr_set_params(struct snd_compr_stream *cstream)
 {
 	struct snd_soc_pcm_runtime *rtd = cstream->private_data;
 	struct snd_soc_card *card = rtd->card;
-	struct snd_soc_platform *platform = rtd->platform;
 	struct snd_codec codec_params;
 	int err;
 
-	if (platform->driver->compr_ops &&
-		platform->driver->compr_ops->get_params) {
-		err = platform->driver->compr_ops->get_params(cstream,
-			&codec_params);
+	if (cstream->ops && cstream->ops->get_params) {
+		err = cstream->ops->get_params(cstream, &codec_params);
 		if (err < 0) {
 			dev_err(card->dev, "Failed to get compr params\n");
 			return err;
@@ -396,7 +393,7 @@ static int tegra_machine_rt565x_init(struct snd_soc_pcm_runtime *rtd)
 		return err;
 	}
 
-	err = rt5659_set_jack_detect(rtd->codec, jack);
+	err = rt5659_set_jack_detect(rtd->codec_dai->component, jack);
 	if (err) {
 		dev_err(card->dev, "Failed to set jack for RT565x: %d\n", err);
 		return err;
@@ -510,9 +507,7 @@ static int tegra_machine_driver_probe(struct platform_device *pdev)
 	card->dapm.idle_bias_off = true;
 
 	memset(&machine->audio_clock, 0, sizeof(machine->audio_clock));
-	ret = tegra_alt_asoc_utils_init(&machine->audio_clock,
-					&pdev->dev,
-					card);
+	ret = tegra_asoc_utils_init(&machine->audio_clock, &pdev->dev);
 	if (ret < 0)
 		return ret;
 

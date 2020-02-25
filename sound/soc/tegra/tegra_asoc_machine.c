@@ -21,7 +21,7 @@
 #include <sound/simple_card_utils.h>
 #include <sound/jack.h>
 #include <sound/soc.h>
-#include "tegra_asoc_machine_alt.h"
+#include "tegra_asoc_machine.h"
 
 #define PREFIX "nvidia-audio-card,"
 #define CELL "#sound-dai-cells"
@@ -200,9 +200,28 @@ static void parse_mclk_fs(struct snd_soc_card *card)
 	struct platform_device *pdev = to_platform_device(card->dev);
 
 	if (of_property_read_u32(pdev->dev.of_node, PREFIX "mclk-fs",
-				 &machine->audio_clock.mclk_scale))
+				 &machine->audio_clock.mclk_fs))
 		dev_dbg(&pdev->dev, "'%smclk-fs' property is missing\n",
 			PREFIX);
+}
+
+static int parse_dai(struct device_node *node,
+		     struct snd_soc_dai_link_component *dlc)
+{
+	struct of_phandle_args args;
+	int ret;
+
+	ret = of_parse_phandle_with_args(node, DAI, CELL, 0, &args);
+	if (ret)
+		return ret;
+
+	ret = snd_soc_of_get_dai_name(node, &dlc->dai_name);
+	if (ret < 0)
+		return ret;
+
+	dlc->of_node = args.np;
+
+	return 0;
 }
 
 static int parse_dt_codec_confs(struct snd_soc_card *card)
@@ -302,6 +321,7 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
 				 GFP_KERNEL);
 	if (!dai_links)
 		return -ENOMEM;
+
 	machine->asoc->dai_links = dai_links;
 
 	link_node = of_get_child_by_name(top, PREFIX "dai-link");
@@ -345,14 +365,12 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
 			dai_link = &dai_links[link_count];
 
 			/* parse CPU DAI */
-			ret = asoc_simple_card_parse_cpu(cpu, dai_link, DAI,
-							 CELL, NULL);
+			ret = parse_dai(cpu, dai_link->cpus);
 			if (ret < 0)
 				goto cleanup;
 
 			/* parse CODEC DAI */
-			ret = asoc_simple_card_parse_codec(codec, dai_link,
-							   DAI, CELL);
+			ret = parse_dai(codec, dai_link->codecs);
 			if (ret < 0)
 				goto cleanup;
 
@@ -361,29 +379,27 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
 							  "link-name",
 							  codec_count,
 							  &dai_link->name)) {
-				ret = asoc_simple_card_set_dailink_name(
+				ret = asoc_simple_set_dailink_name(
 					&pdev->dev, dai_link, "%s-%d",
 					"tegra-dlink", link_count);
 				if (ret < 0)
 					goto cleanup;
 			}
 
-			asoc_simple_card_parse_daifmt(&pdev->dev, link_node,
+			asoc_simple_parse_daifmt(&pdev->dev, link_node,
 						      codec, NULL,
 						      &dai_link->dai_fmt);
+
+			asoc_simple_canonicalize_platform(dai_link);
 
 			of_property_read_u32(link_node, "link-type",
 					     &link_type);
 			switch (link_type) {
 			case PCM_LINK:
 				dai_link->ops = pcm_ops;
-				asoc_simple_card_canonicalize_dailink(dai_link);
-				dai_link->ignore_pmdown_time = 1;
 				break;
 			case COMPR_LINK:
 				dai_link->compr_ops = compr_ops;
-				asoc_simple_card_canonicalize_dailink(dai_link);
-				dai_link->ignore_pmdown_time = 1;
 				break;
 			case C2C_LINK:
 				dai_link->params = &link_params;
@@ -420,7 +436,7 @@ int parse_card_info(struct snd_soc_card *card, struct snd_soc_ops *pcm_ops,
 	struct device_node *node = card->dev->of_node;
 	int ret;
 
-	ret = asoc_simple_card_parse_card_name(card, PREFIX);
+	ret = asoc_simple_parse_card_name(card, PREFIX);
 	if (ret < 0)
 		return ret;
 
@@ -461,3 +477,296 @@ EXPORT_SYMBOL_GPL(parse_card_info);
 MODULE_DESCRIPTION("Tegra ASoC Machine driver DT parser code");
 MODULE_AUTHOR("Sameer Pujar <spujar@nvidia.com>");
 MODULE_LICENSE("GPL v2");
+struct tegra_machine_control_data {
+	struct snd_soc_pcm_runtime *rtd;
+	unsigned int frame_mode;
+	unsigned int master_mode;
+};
+
+static int tegra_machine_codec_set_dai_fmt(struct snd_soc_pcm_runtime *rtd,
+					   unsigned int frame_mode,
+					   unsigned int master_mode)
+{
+	unsigned int fmt = rtd->dai_link->dai_fmt;
+
+	if (frame_mode) {
+		fmt &= ~SND_SOC_DAIFMT_FORMAT_MASK;
+		fmt |= frame_mode;
+	}
+
+	if (master_mode) {
+		fmt &= ~SND_SOC_DAIFMT_MASTER_MASK;
+		master_mode <<= ffs(SND_SOC_DAIFMT_MASTER_MASK) - 1;
+
+		if (master_mode == SND_SOC_DAIFMT_CBM_CFM)
+			fmt |= SND_SOC_DAIFMT_CBM_CFM;
+		else
+			fmt |= SND_SOC_DAIFMT_CBS_CFS;
+	}
+
+	return snd_soc_runtime_set_dai_fmt(rtd, fmt);
+}
+
+/*
+ * The order of the below must not be changed as this
+ * aligns with the SND_SOC_DAIFMT_XXX definitions in
+ * include/sound/soc-dai.h.
+ */
+static const char * const tegra_machine_frame_mode_text[] = {
+	"None",
+	"i2s",
+	"right-j",
+	"left-j",
+	"dsp-a",
+	"dsp-b",
+};
+
+static int tegra_machine_codec_get_frame_mode(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct tegra_machine_control_data *data = kcontrol->private_data;
+
+	ucontrol->value.integer.value[0] = data->frame_mode;
+
+	return 0;
+}
+
+static int tegra_machine_codec_put_frame_mode(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct tegra_machine_control_data *data = kcontrol->private_data;
+	int err;
+
+	err = tegra_machine_codec_set_dai_fmt(data->rtd,
+					      ucontrol->value.integer.value[0],
+					      data->master_mode);
+	if (err)
+		return err;
+
+	data->frame_mode = ucontrol->value.integer.value[0];
+
+	return 0;
+}
+
+static const char * const tegra_machine_master_mode_text[] = {
+	"None",
+	"cbm-cfm",
+	"cbs-cfs",
+};
+
+static int tegra_machine_codec_get_master_mode(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct tegra_machine_control_data *data = kcontrol->private_data;
+
+	ucontrol->value.integer.value[0] = data->master_mode;
+
+	return 0;
+}
+
+static int tegra_machine_codec_put_master_mode(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct tegra_machine_control_data *data = kcontrol->private_data;
+	int err;
+
+	err = tegra_machine_codec_set_dai_fmt(data->rtd,
+					      data->frame_mode,
+					      ucontrol->value.integer.value[0]);
+	if (err)
+		return err;
+
+	data->master_mode = ucontrol->value.integer.value[0];
+
+	return 0;
+}
+
+static const struct soc_enum tegra_machine_codec_frame_mode =
+	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(tegra_machine_frame_mode_text),
+		tegra_machine_frame_mode_text);
+
+static const struct soc_enum tegra_machine_codec_master_mode =
+	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(tegra_machine_master_mode_text),
+		tegra_machine_master_mode_text);
+
+static int tegra_machine_add_ctl(struct snd_soc_card *card,
+				 struct snd_kcontrol_new *knew,
+				 void *private_data,
+				 const unsigned char *name)
+{
+	struct snd_kcontrol *kctl;
+	int ret;
+
+	kctl = snd_ctl_new1(knew, private_data);
+	if (!kctl)
+		return -ENOMEM;
+
+	ret = snd_ctl_add(card->snd_card, kctl);
+	if (ret < 0)
+		return ret;
+
+	return 0;
+}
+
+static int tegra_machine_add_frame_mode_ctl(struct snd_soc_card *card,
+	struct snd_soc_pcm_runtime *rtd, const unsigned char *name,
+	struct tegra_machine_control_data *data)
+{
+	struct snd_kcontrol_new knew = {
+		.iface		= SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name		= name,
+		.info		= snd_soc_info_enum_double,
+		.index		= 0,
+		.get		= tegra_machine_codec_get_frame_mode,
+		.put		= tegra_machine_codec_put_frame_mode,
+		.private_value	=
+				(unsigned long)&tegra_machine_codec_frame_mode,
+	};
+
+	return tegra_machine_add_ctl(card, &knew, data, name);
+}
+
+static int tegra_machine_add_master_mode_ctl(struct snd_soc_card *card,
+	struct snd_soc_pcm_runtime *rtd, const unsigned char *name,
+	struct tegra_machine_control_data *data)
+{
+	struct snd_kcontrol_new knew = {
+		.iface		= SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name		= name,
+		.info		= snd_soc_info_enum_double,
+		.index		= 0,
+		.get		= tegra_machine_codec_get_master_mode,
+		.put		= tegra_machine_codec_put_master_mode,
+		.private_value	=
+				(unsigned long)&tegra_machine_codec_master_mode,
+	};
+
+	return tegra_machine_add_ctl(card, &knew, data, name);
+}
+
+int tegra_machine_add_i2s_codec_controls(struct snd_soc_card *card)
+{
+	struct tegra_machine_control_data *data;
+	struct snd_soc_pcm_runtime *rtd;
+	struct device_node *np;
+	char name[SNDRV_CTL_ELEM_ID_NAME_MAXLEN];
+	unsigned int id;
+	int ret;
+
+	list_for_each_entry(rtd, &card->rtd_list, list) {
+		np = rtd->dai_link->cpus->of_node;
+
+		if (!np)
+			continue;
+
+		data = devm_kzalloc(card->dev, sizeof(*data), GFP_KERNEL);
+		if (!data)
+			return -ENOMEM;
+
+		data->rtd = rtd;
+		data->frame_mode = 0;
+		data->master_mode = 0;
+
+		if (of_property_read_u32(np, "nvidia,ahub-i2s-id", &id) < 0)
+			continue;
+
+		snprintf(name, sizeof(name), "I2S%d codec frame mode", id+1);
+
+		ret = tegra_machine_add_frame_mode_ctl(card, rtd, name, data);
+		if (ret)
+			dev_warn(card->dev, "Failed to add control: %s!\n",
+				 name);
+
+		snprintf(name, sizeof(name), "I2S%d codec master mode", id+1);
+
+		ret = tegra_machine_add_master_mode_ctl(card, rtd, name, data);
+		if (ret) {
+			dev_warn(card->dev, "Failed to add control: %s!\n",
+				 name);
+			return ret;
+		}
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_machine_add_i2s_codec_controls);
+
+/*
+ * The order of the following definitions should align with
+ * the 'snd_jack_types' enum as defined in include/sound/jack.h.
+ */
+static const char * const tegra_machine_jack_state_text[] = {
+	"None",
+	"HP",
+	"MIC",
+	"HS",
+};
+
+static const struct soc_enum tegra_machine_jack_state =
+	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(tegra_machine_jack_state_text),
+		tegra_machine_jack_state_text);
+
+static int tegra_machine_codec_get_jack_state(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_jack *jack = kcontrol->private_data;
+
+	ucontrol->value.integer.value[0] = jack->status;
+
+	return 0;
+}
+
+static int tegra_machine_codec_put_jack_state(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_jack *jack = kcontrol->private_data;
+
+	snd_soc_jack_report(jack, ucontrol->value.integer.value[0],
+			    SND_JACK_HEADSET);
+
+	return 0;
+}
+
+int tegra_machine_add_codec_jack_control(struct snd_soc_card *card,
+					 struct snd_soc_pcm_runtime *rtd,
+					 struct snd_soc_jack *jack)
+{
+	char name[SNDRV_CTL_ELEM_ID_NAME_MAXLEN];
+	struct snd_kcontrol_new knew = {
+		.iface		= SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name		= name,
+		.info		= snd_soc_info_enum_double,
+		.index		= 0,
+		.get		= tegra_machine_codec_get_jack_state,
+		.put		= tegra_machine_codec_put_jack_state,
+		.private_value	= (unsigned long)&tegra_machine_jack_state,
+	};
+
+	if (rtd->codec_dai->component->name_prefix)
+		snprintf(name, sizeof(name), "%s Jack-state",
+			 rtd->codec_dai->component->name_prefix);
+	else
+		snprintf(name, sizeof(name), "Jack-state");
+
+	return tegra_machine_add_ctl(card, &knew, jack, name);
+}
+EXPORT_SYMBOL_GPL(tegra_machine_add_codec_jack_control);
+
+void release_asoc_phandles(struct tegra_machine *machine)
+{
+	unsigned int i;
+
+	if (machine->asoc->dai_links) {
+		for (i = 0; i < machine->asoc->num_links; i++) {
+			of_node_put(machine->asoc->dai_links[i].cpus->of_node);
+			of_node_put(machine->asoc->dai_links[i].codecs->of_node);
+		}
+	}
+
+	if (machine->asoc->codec_confs) {
+		for (i = 0; i < machine->asoc->num_confs; i++)
+			of_node_put(machine->asoc->codec_confs[i].of_node);
+	}
+}
+EXPORT_SYMBOL_GPL(release_asoc_phandles);
+MODULE_LICENSE("GPL");

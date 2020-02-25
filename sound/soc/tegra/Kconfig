@@ -158,6 +158,16 @@ config SND_SOC_TEGRA210_OPE
 	tristate "Tegra186 OPE module"
 	depends on SND_SOC_TEGRA
 
+config SND_SOC_TEGRA210_AUDIO
+	tristate "SoC Audio support for Tegra210"
+	depends on I2C
+	depends on ARCH_TEGRA_210_SOC || ARCH_TEGRA_18x_SOC
+	select SND_SOC_RT5659
+	select SND_SOC_SGTL5000
+	help
+	  Say Y or M here if you want to enable support for ASoC machine driver
+	  on Tegra210 and successor platforms like Tegra186, Tegra194.
+
 config SND_SOC_TEGRA_RT5640
 	tristate "SoC Audio support for Tegra boards using an RT5640 codec"
 	depends on SND_SOC_TEGRA && I2C && GPIOLIB
