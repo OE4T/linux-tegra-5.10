@@ -215,12 +215,10 @@ int test_env_init_mm_mmu_fault_gv11b_fusa(struct unit_module *m,
 
 #define F_MMU_FAULT_SETUP_SW_FAULT_BUF_ALLOC_FAIL	0
 #define F_MMU_FAULT_SETUP_SW_DEFAULT			1
-#define F_MMU_FAULT_SETUP_SW_2				2
 
 static const char *f_mmu_fault_setup_sw[] = {
 	"mmu_fault_setup_sw_alloc_fail",
 	"mmu_fault_setup_sw_default",
-	"mmu_fault_setup_sw_twice",
 };
 
 int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g,
@@ -236,11 +234,6 @@ int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g,
 	nvgpu_posix_enable_fault_injection(l_dma_fi,
 		branch == F_MMU_FAULT_SETUP_SW_FAULT_BUF_ALLOC_FAIL ?
 			true : false, 0);
-
-	if (branch == F_MMU_FAULT_SETUP_SW_2) {
-		err = gv11b_mm_mmu_fault_setup_sw(g);
-		unit_assert(err == 0, goto done);
-	}
 
 	err = gv11b_mm_mmu_fault_setup_sw(g);
 	unit_assert(err == 0, goto done);
@@ -258,10 +251,6 @@ int test_gv11b_mm_mmu_fault_setup_sw(struct unit_module *m, struct gk20a *g,
 						!= 0ULL, goto done);
 	}
 	gv11b_mm_mmu_fault_info_mem_destroy(g);
-
-	if (branch == F_MMU_FAULT_SETUP_SW_2) {
-		gv11b_mm_mmu_fault_info_mem_destroy(g);
-	}
 
 	unit_assert(g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX].aperture
 						== APERTURE_INVALID, goto done);
@@ -794,7 +783,6 @@ struct unit_module_test mm_mmu_fault_gv11b_fusa_tests[] = {
 	UNIT_TEST(env_init, test_env_init_mm_mmu_fault_gv11b_fusa, NULL, 0),
 	UNIT_TEST(setup_sw_s0, test_gv11b_mm_mmu_fault_setup_sw, (void *)F_MMU_FAULT_SETUP_SW_FAULT_BUF_ALLOC_FAIL, 0),
 	UNIT_TEST(setup_sw_s1, test_gv11b_mm_mmu_fault_setup_sw, (void *)F_MMU_FAULT_SETUP_SW_DEFAULT, 0),
-	UNIT_TEST(setup_sw_s2, test_gv11b_mm_mmu_fault_setup_sw, (void *)F_MMU_FAULT_SETUP_SW_2, 0),
 	UNIT_TEST(setup_hw, test_gv11b_mm_mmu_fault_setup_hw, NULL, 0),
 	UNIT_TEST(disable_hw_s0, test_gv11b_mm_mmu_fault_disable_hw, (void *)F_MMU_FAULT_DISABLE_HW_FALSE, 0),
 	UNIT_TEST(disable_hw_s1, test_gv11b_mm_mmu_fault_disable_hw, (void *)F_MMU_FAULT_DISABLE_HW_TRUE, 0),

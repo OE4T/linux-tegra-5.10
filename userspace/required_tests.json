@@ -1836,12 +1836,6 @@
         "test_level": 0
     },
     {
-        "test": "test_gv11b_mm_mmu_fault_setup_sw",
-        "case": "setup_sw_s2",
-        "unit": "mmu_fault_gv11b_fusa",
-        "test_level": 0
-    },
-    {
         "test": "test_acr_bootstrap_hs_acr",
         "case": "acr_bootstrap_hs_acr",
         "unit": "nvgpu-acr",
