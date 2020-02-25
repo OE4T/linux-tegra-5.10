@@ -45,7 +45,8 @@
 		status = "disabled";
 
 		tegra_agic: agic-controller@2a41000 {
-			compatible = "nvidia,tegra186-agic";
+			compatible = "nvidia,tegra186-agic",
+				     "nvidia,tegra210-agic";
 			#interrupt-cells = <4>;
 			interrupt-controller;
 			reg = <0x0 0x02a41000 0x0 0x1000>,
@@ -138,7 +139,8 @@
 		};
 
 		adma: adma@2930000 {
-			compatible = "nvidia,tegra194-adma";
+			compatible = "nvidia,tegra194-adma",
+				     "nvidia,tegra186-adma";
 			interrupt-parent = <&tegra_agic>;
 			reg = <0x0 0x02930000 0x0 0x50000>,	/* ADMA Reg */
 			      <0x0 0x029f0000 0x0 0x10>;	/* HSP SS */
@@ -181,7 +183,8 @@
 		};
 
 		tegra_axbar: ahub {
-			compatible = "nvidia,tegra186-axbar";
+			compatible = "nvidia,tegra186-ahub",
+				     "nvidia,tegra186-axbar";
 			wakeup-disable;
 			reg = <0x0 0x02900800 0x0 0x800>;
 			clocks = <&bpmp_clks TEGRA194_CLK_AHUB>,
