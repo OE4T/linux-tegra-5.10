@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -338,9 +338,6 @@ int test_page_faults_clean(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mm.mmu_fault.info_mem_destroy(g);
 	nvgpu_vm_put(g->mm.pmu.vm);
 	nvgpu_vm_put(g->mm.bar2.vm);
-
-	/* Call again to test some branches */
-	g->ops.mm.mmu_fault.info_mem_destroy(g);
 
 	return UNIT_SUCCESS;
 }
