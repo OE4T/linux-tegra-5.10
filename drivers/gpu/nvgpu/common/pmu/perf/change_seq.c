@@ -332,9 +332,13 @@ int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 
 	/* Wait for sync change to complete. */
 	if ((rpc.change.flags & CTRL_PERF_CHANGE_SEQ_CHANGE_ASYNC) == 0U) {
-		pmu_wait_message_cond(g->pmu,
-			nvgpu_get_poll_timeout(g),
-			&change_seq_pmu->change_state, 1U);
+		/* wait till RPC execute in PMU & ACK */
+		if (nvgpu_pmu_wait_fw_ack_status(g, pmu,
+				nvgpu_get_poll_timeout(g),
+				&change_seq_pmu->change_state, 1U) != 0) {
+			nvgpu_err(g, "PMU wait timeout expired.");
+			status = -ETIMEDOUT;
+		}
 	}
 	change_seq_pmu->stop_time = nvgpu_current_time_us();
 	return status;

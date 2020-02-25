@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -723,8 +723,13 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	 */
 	if (is_copy_back) {
 		/* wait till RPC execute in PMU & ACK */
-		pmu_wait_message_cond(pmu, nvgpu_get_poll_timeout(g),
-			&rpc_payload->complete, 1);
+		if (nvgpu_pmu_wait_fw_ack_status(g, pmu,
+				nvgpu_get_poll_timeout(g),
+				&rpc_payload->complete, 1U) != 0) {
+			nvgpu_err(g, "PMU wait timeout expired.");
+			status = -ETIMEDOUT;
+			goto cleanup;
+		}
 		/* copy back data to caller */
 		nvgpu_memcpy((u8 *)rpc, (u8 *)rpc_buff, size_rpc);
 		/* free allocated memory */
