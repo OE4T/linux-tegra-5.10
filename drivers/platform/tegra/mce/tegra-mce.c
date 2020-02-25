@@ -180,7 +180,7 @@ EXPORT_SYMBOL_GPL(tegra_mce_cc3_ctrl);
  *
  * Returns 0 if success.
  */
-int tegra_mce_echo_data(u32 data, int *matched)
+int tegra_mce_echo_data(u64 data, u64 *matched)
 {
 	if (mce_ops && mce_ops->echo_data)
 		return mce_ops->echo_data(data, matched);

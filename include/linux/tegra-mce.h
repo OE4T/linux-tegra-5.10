@@ -106,7 +106,7 @@ int tegra_mce_write_cstate_stats(u32 state, u32 stats);
 int tegra_mce_is_sc7_allowed(u32 state, u32 wake, u32 *allowed);
 int tegra_mce_online_core(int cpu);
 int tegra_mce_cc3_ctrl(u32 ndiv, u32 vindex, u8 enable);
-int tegra_mce_echo_data(u32 data, int *matched);
+int tegra_mce_echo_data(u64 data, u64 *matched);
 int tegra_mce_read_versions(u32 *major, u32 *minor);
 int tegra_mce_enum_features(u64 *features);
 int tegra_mce_read_uncore_mca(mca_cmd_t cmd, u64 *data, u32 *error);
@@ -141,7 +141,7 @@ struct tegra_mce_ops {
 	int (*is_sc7_allowed)(u32, u32, u32 *);
 	int (*online_core)(int);
 	int (*cc3_ctrl)(u32, u32, u8);
-	int (*echo_data)(u32, int *);
+	int (*echo_data)(u64, u64*);
 	int (*read_versions)(u32 *, u32 *);
 	int (*enum_features)(u64 *);
 	int (*read_uncore_mca)(mca_cmd_t, u64 *, u32 *);

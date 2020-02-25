@@ -176,13 +176,13 @@ static int tegra18x_mce_cc3_ctrl(u32 ndiv, u32 vindex, u8 enable)
 	return send_smc(MCE_SMC_CC3_CTRL, &regs);
 }
 
-static int tegra18x_mce_echo_data(u32 data, int *matched)
+static int tegra18x_mce_echo_data(u64 data, u64 *matched)
 {
 	struct tegra_mce_regs regs;
 
-	regs.args[0] = data;
+	regs.args[0] = (u32)(data & 0xFFFFFFFF);
 	send_smc(MCE_SMC_ECHO_DATA, &regs);
-	*matched = (u32)regs.args[2];
+	*matched = regs.args[2];
 
 	return 0;
 }
@@ -378,10 +378,10 @@ static struct dentry *mce_debugfs;
 
 static int tegra18x_mce_echo_set(void *data, u64 val)
 {
-	u32 matched;
+	u64 matched;
 	int ret;
 
-	ret = tegra_mce_echo_data((u32)val, &matched);
+	ret = tegra_mce_echo_data(val, &matched);
 	if (ret && ret != -ENOTSUPP)
 		return -EINVAL;
 	return 0;
