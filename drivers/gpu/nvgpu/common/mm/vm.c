@@ -443,7 +443,15 @@ static int nvgpu_vm_init_user_lp_vma(struct gk20a *g, struct vm_gk20a *vm,
 			const char *name)
 {
 	int err = 0;
-	char alloc_name[32];
+	char alloc_name[NVGPU_VM_NAME_LEN];
+	size_t name_len;
+
+	name_len  = strlen("gk20a_") + strlen(name) + strlen("_lp");
+	if (name_len >= NVGPU_VM_NAME_LEN) {
+		nvgpu_err(g, "Invalid MAX_NAME_SIZE %lu %u", name_len,
+				  NVGPU_VM_NAME_LEN);
+		return -EINVAL;
+	}
 
 	/*
 	 * User VMA for large pages when a split address range is used.
@@ -473,7 +481,15 @@ static int nvgpu_vm_init_kernel_vma(struct gk20a *g, struct vm_gk20a *vm,
 			u64 kernel_vma_flags, const char *name)
 {
 	int err = 0;
-	char alloc_name[32];
+	char alloc_name[NVGPU_VM_NAME_LEN];
+	size_t name_len;
+
+	name_len  = strlen("gk20a_") + strlen(name) + strlen("-sys");
+	if (name_len >= NVGPU_VM_NAME_LEN) {
+		nvgpu_err(g, "Invalid MAX_NAME_SIZE %lu %u", name_len,
+				  NVGPU_VM_NAME_LEN);
+		return -EINVAL;
+	}
 
 	/*
 	 * Kernel VMA.
@@ -505,13 +521,6 @@ static int nvgpu_vm_init_vma_allocators(struct gk20a *g, struct vm_gk20a *vm,
 			u64 kernel_vma_flags, const char *name)
 {
 	int err = 0;
-	size_t name_len;
-
-	name_len  = strlen("gk20a_") + strlen(name);
-	if (name_len >= 32U) {
-		nvgpu_err(g, "Invalid MAX_NAME_SIZE %lu %u", name_len, 32U);
-		return -EINVAL;
-	}
 
 	err = nvgpu_vm_init_user_vma(g, vm,
 			user_vma_start, user_vma_limit, name);

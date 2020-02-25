@@ -97,7 +97,7 @@ struct nvgpu_os_buffer;
 #include <nvgpu_rmos/include/vm.h>
 #endif
 
-#define NVGPU_VM_NAME_LEN	20U
+#define NVGPU_VM_NAME_LEN	32U
 
 /**
  * This structure describes the properties of batch mapping/unmapping.
