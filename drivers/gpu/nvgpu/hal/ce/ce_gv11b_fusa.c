@@ -23,13 +23,13 @@
  */
 
 #include <nvgpu/io.h>
-#include "nvgpu/log.h"
-#include "nvgpu/bitops.h"
+#include <nvgpu/log.h>
+#include <nvgpu/bitops.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_err.h>
 
-#include "hal/ce/ce_gp10b.h"
-#include "hal/ce/ce_gv11b.h"
+#include "ce_gp10b.h"
+#include "ce_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_ce_gv11b.h>
 
