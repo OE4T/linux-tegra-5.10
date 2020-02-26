@@ -136,6 +136,12 @@ struct pci_driver mods_pci_driver = {
  * used to avoid globalization of variables    *
  ***********************************************/
 
+#ifdef CONFIG_ARCH_TEGRA
+#       define MODS_MULTI_INSTANCE_DEFAULT_VALUE 1
+#else
+#       define MODS_MULTI_INSTANCE_DEFAULT_VALUE 0
+#endif
+
 static int debug;
 static int multi_instance = MODS_MULTI_INSTANCE_DEFAULT_VALUE;
 static u32 access_token = MODS_ACCESS_TOKEN_NONE;
@@ -440,7 +446,8 @@ static int __init mods_init_module(void)
 		return -EBUSY;
 #endif
 
-#if defined(MODS_HAS_CLOCK)
+#if defined(CONFIG_COMMON_CLK) && defined(CONFIG_OF_RESOLVE) && \
+		defined(CONFIG_OF_DYNAMIC)
 	mods_init_clock_api();
 #endif
 
@@ -452,7 +459,7 @@ static int __init mods_init_module(void)
 	if (rc < 0)
 		return rc;
 
-#if defined(MODS_TEGRA)
+#if defined(CONFIG_ARCH_TEGRA)
 	/* tegra prod */
 	mods_tegra_prod_init(&mods_dev);
 #endif
@@ -485,7 +492,8 @@ static void __exit mods_exit_module(void)
 
 	misc_deregister(&mods_dev);
 
-#if defined(MODS_HAS_CLOCK)
+#if defined(CONFIG_COMMON_CLK) && defined(CONFIG_OF_RESOLVE) && \
+		defined(CONFIG_OF_DYNAMIC)
 	mods_shutdown_clock_api();
 #endif
 
@@ -1954,7 +1962,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 		err = -EINVAL;
 		break;
 
-#if defined(MODS_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
 	case MODS_ESC_MAP_INTERRUPT:
 		MODS_IOCTL(MODS_ESC_MAP_INTERRUPT,
 				esc_mods_map_irq, MODS_DT_INFO);
@@ -2073,7 +2081,8 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_get_kernel_version, MODS_GET_VERSION);
 		break;
 
-#if defined(MODS_HAS_CLOCK)
+#if defined(CONFIG_COMMON_CLK) && defined(CONFIG_OF_RESOLVE) && \
+		defined(CONFIG_OF_DYNAMIC)
 	case MODS_ESC_GET_CLOCK_HANDLE:
 		MODS_IOCTL(MODS_ESC_GET_CLOCK_HANDLE,
 			   esc_mods_get_clock_handle, MODS_GET_CLOCK_HANDLE);
@@ -2138,7 +2147,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 				    MODS_CLOCK_HANDLE);
 		break;
 #endif
-#if defined(MODS_TEGRA)
+#if defined(CONFIG_ARCH_TEGRA)
 	case MODS_ESC_FLUSH_CPU_CACHE_RANGE:
 		MODS_IOCTL_NORETVAL(MODS_ESC_FLUSH_CPU_CACHE_RANGE,
 				    esc_mods_flush_cpu_cache_range,
@@ -2198,7 +2207,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 				   MODS_TEGRA_DC_CONFIG_POSSIBLE);
 		break;
 #endif
-#ifdef MODS_HAS_NET
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_NET)
 	case MODS_ESC_NET_FORCE_LINK:
 		MODS_IOCTL(MODS_ESC_NET_FORCE_LINK,
 			   esc_mods_net_force_link, MODS_NET_DEVICE_NAME);
@@ -2210,7 +2219,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 				esc_mods_memory_barrier);
 		break;
 
-#ifdef MODS_TEGRA
+#ifdef CONFIG_ARCH_TEGRA
 	case MODS_ESC_DMABUF_GET_PHYSICAL_ADDRESS:
 		MODS_IOCTL(MODS_ESC_DMABUF_GET_PHYSICAL_ADDRESS,
 			   esc_mods_dmabuf_get_phys_addr,
@@ -2264,7 +2273,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_resume_console);
 		break;
 
-#if defined(MODS_TEGRA)
+#if defined(CONFIG_ARCH_TEGRA)
 	case MODS_ESC_TEGRA_PROD_IS_SUPPORTED:
 		MODS_IOCTL(MODS_ESC_TEGRA_PROD_IS_SUPPORTED,
 			   esc_mods_tegra_prod_is_supported,

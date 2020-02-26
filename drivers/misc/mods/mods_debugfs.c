@@ -2,7 +2,7 @@
 /*
  * mods_debugfs.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -33,7 +33,7 @@ static struct dentry *mods_debugfs_dir;
 #include "mods_ras.h"
 #endif
 
-#if defined(MODS_TEGRA) && defined(MODS_HAS_KFUSE)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_TEGRA_KFUSE)
 #include <soc/tegra/kfuse.h>
 #endif
 
@@ -423,7 +423,7 @@ static const struct file_operations mods_dc_crc_latched_fops = {
 };
 #endif /* CONFIG_TEGRA_DC */
 
-#if defined(MODS_TEGRA) && defined(MODS_HAS_KFUSE)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_TEGRA_KFUSE)
 static int mods_kfuse_show(struct seq_file *s, void *unused)
 {
 	unsigned int buf[KFUSE_DATA_SZ / 4];
@@ -453,7 +453,7 @@ static const struct file_operations mods_kfuse_fops = {
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
-#endif /* MODS_TEGRA */
+#endif /* CONFIG_ARCH_TEGRA */
 
 static int mods_debug_get(void *data, u64 *val)
 {
@@ -521,7 +521,6 @@ void mods_remove_debugfs(void)
 
 int mods_create_debugfs(struct miscdevice *modsdev)
 {
-#ifdef MODS_HAS_DEBUGFS
 #ifdef CONFIG_ARCH_TEGRA_19x_SOC
 	struct dentry *ras_debugfs_entry;
 #endif
@@ -618,7 +617,7 @@ int mods_create_debugfs(struct miscdevice *modsdev)
 		goto remove_out;
 	}
 
-#if defined(MODS_TEGRA) && defined(MODS_HAS_KFUSE)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_TEGRA_KFUSE)
 	retval = debugfs_create_file("kfuse_data", 0444,
 		mods_debugfs_dir, 0, &mods_kfuse_fops);
 	if (IS_ERR(retval)) {
@@ -764,8 +763,4 @@ remove_out:
 	dev_err(modsdev->this_device, "could not create debugfs\n");
 	mods_remove_debugfs();
 	return err;
-#else
-	return 0;
-#endif
 }
-

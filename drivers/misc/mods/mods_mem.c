@@ -381,7 +381,7 @@ static struct MODS_DMA_MAP *find_dma_map(struct MODS_MEM_INFO  *p_mem_info,
 	return NULL;
 }
 
-#if !defined(MODS_TEGRA) || defined(CONFIG_CPA)
+#if !defined(CONFIG_ARCH_TEGRA) || defined(CONFIG_CPA)
 static int mods_set_mem_type(u64 virt_addr, u64 pages, u8 type)
 {
 	if (type == MODS_ALLOC_UNCACHED)
@@ -2059,7 +2059,7 @@ int esc_mods_dma_unmap_memory(struct mods_client         *client,
 }
 #endif
 
-#ifdef MODS_TEGRA
+#ifdef CONFIG_ARCH_TEGRA
 
 static void clear_contiguous_cache(struct mods_client *client,
 				   u64                 virt_start,
@@ -2236,7 +2236,7 @@ static int mods_post_alloc(struct mods_client     *client,
 				cl_error("kmap failed\n");
 				return -EINVAL;
 			}
-#if defined(MODS_TEGRA) && !defined(CONFIG_CPA)
+#if defined(CONFIG_ARCH_TEGRA) && !defined(CONFIG_CPA)
 			clear_contiguous_cache(client,
 					       ptr,
 					       phys_addr + (i << PAGE_SHIFT),

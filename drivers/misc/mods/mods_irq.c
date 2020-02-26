@@ -24,7 +24,7 @@
 #include <linux/poll.h>
 #include <linux/interrupt.h>
 #include <linux/pci_regs.h>
-#if defined(MODS_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
 #include <linux/of.h>
 #include <linux/of_irq.h>
 #include <linux/io.h>
@@ -1484,7 +1484,7 @@ int esc_mods_irq_handled(struct mods_client       *client,
 	return esc_mods_irq_handled_2(client, &register_irq);
 }
 
-#if defined(MODS_TEGRA) && defined(CONFIG_OF_IRQ) && defined(CONFIG_OF)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_OF_IRQ) && defined(CONFIG_OF)
 int esc_mods_map_irq(struct mods_client  *client,
 		     struct MODS_DT_INFO *p)
 {

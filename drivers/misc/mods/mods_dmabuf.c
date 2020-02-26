@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * mods_dmabuf.c - This file is part of NVIDIA MODS kernel driver.
  *
@@ -16,11 +17,6 @@
  * along with NVIDIA MODS kernel driver.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include <linux/version.h>
-#include "mods_config.h"
-
-#ifdef MODS_HAS_DMABUF
 
 #include <linux/dma-buf.h>
 #include <linux/module.h>
@@ -162,5 +158,3 @@ void mods_exit_dmabuf(void)
 {
 	platform_driver_unregister(&mods_dummy_driver);
 }
-
-#endif
