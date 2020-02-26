@@ -107,6 +107,9 @@
 	SND_SOC_DAPM_AIF_IN(sname " RX", NULL, 0, SND_SOC_NOPM, 0, 0),	\
 	SND_SOC_DAPM_AIF_OUT(sname " TX", NULL, 0, SND_SOC_NOPM, 0, 0)
 
+#define IN_OUT_ROUTES(name)					\
+	{ name " RX",       NULL,	name " Receive" },	\
+	{ name " Transmit", NULL,       name " TX" },
 struct tegra_ahub_soc_data {
 	const struct regmap_config *regmap_config;
 	const struct snd_soc_component_driver *cmpnt_drv;

@@ -262,6 +262,33 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	    .ops = &tegra186_dspk_dai_ops,
 	    .symmetric_rates = 1,
 	},
+	/* The second DAI is used when the output of the DSPK is connected
+	 * to two mono codecs. When the output of the DSPK is connected to
+	 * a single stereo codec, then only the first DAI should be used.
+	 */
+	{
+	    .name = "CIF2",
+	    .playback = {
+		.stream_name = "CIF2 Receive",
+		.channels_min = 1,
+		.channels_max = 2,
+		.rates = SNDRV_PCM_RATE_8000_48000,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE |
+			   SNDRV_PCM_FMTBIT_S32_LE,
+	    },
+	},
+	{
+	    .name = "DAP2",
+	    .capture = {
+		.stream_name = "DAP2 Transmit",
+		.channels_min = 1,
+		.channels_max = 2,
+		.rates = SNDRV_PCM_RATE_8000_48000,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE |
+			   SNDRV_PCM_FMTBIT_S32_LE,
+	    },
+	    .symmetric_rates = 1,
+	},
 	{
 	    .name = "DUMMY_SINK",
 	    .playback = {
@@ -277,13 +304,16 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 
 static const struct snd_soc_dapm_widget tegra186_dspk_widgets[] = {
 	SND_SOC_DAPM_AIF_OUT("DAP TX", NULL, 0, TEGRA186_DSPK_ENABLE, 0, 0),
+	SND_SOC_DAPM_AIF_OUT("DAP2 TX", NULL, 0, 0, 0, 0),
 	SND_SOC_DAPM_SPK("Dummy Output", NULL),
 };
 
 static const struct snd_soc_dapm_route tegra186_dspk_routes[] = {
 	{ "DAP TX",	  NULL, "CIF Receive" },
 	{ "DAP Transmit", NULL, "DAP TX" },
-	{ "Dummy Output", NULL, "Dummy Playback" },
+	{ "DAP2 TX", NULL, "CIF2 Receive" },
+	{ "DAP2 Transmit", NULL, "DAP2 TX" },
+	{ "Dummy Output",  NULL, "Dummy Playback" },
 };
 
 static const char * const tegra186_dspk_format_text[] = {
