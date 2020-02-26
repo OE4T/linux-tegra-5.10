@@ -61,6 +61,7 @@
 					status = "disabled";
 				};
 			};
+#if LINUX_VERSION < 500
 			override@2 {
 				target = <&{/gpio@c2f0000/pex-refclk-sel-low}>;
 				_overlay_ {
@@ -73,6 +74,7 @@
 					status = "disabled";
 				};
 			};
+#endif
 		};
 
 		fragment-pcie-c5-ep {
@@ -90,6 +92,7 @@
 					status = "okay";
 				};
 			};
+#if LINUX_VERSION < 500
 			override@2 {
 				target = <&{/gpio@c2f0000/pex-refclk-sel-low}>;
 				_overlay_ {
@@ -102,6 +105,7 @@
 					status = "okay";
 				};
 			};
+#endif
 		};
 	};
 };

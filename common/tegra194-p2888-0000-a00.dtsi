@@ -61,6 +61,7 @@
 		nvidia,cmd-timeout = <2000>;
 	};
 
+#if LINUX_VERSION < 500
 	gpio@c2f0000 {
 		pex-refclk-sel-low {
 			gpio-hog;
@@ -78,6 +79,7 @@
 			status = "disabled";
 		};
 	};
+#endif
 
 	pcie@14180000 {
 		status = "okay";
@@ -172,6 +174,11 @@
 		nvidia,disable-aspm-states = <0xf>;
 
 #if LINUX_VERSION >= 500
+		reset-gpios = <&tegra_main_gpio TEGRA194_MAIN_GPIO(GG, 1) GPIO_ACTIVE_LOW>;
+
+		nvidia,refclk-select-gpios = <&tegra_aon_gpio TEGRA194_AON_GPIO(AA, 5)
+					      GPIO_ACTIVE_HIGH>;
+
 		phys = <&p2u_nvhs_0>, <&p2u_nvhs_1>, <&p2u_nvhs_2>,
 		       <&p2u_nvhs_3>, <&p2u_nvhs_4>, <&p2u_nvhs_5>,
 		       <&p2u_nvhs_6>, <&p2u_nvhs_7>;
@@ -184,9 +191,10 @@
 
 		phy-names = "pcie-p2u-0", "pcie-p2u-1", "pcie-p2u-2", "pcie-p2u-3",
 				"pcie-p2u-4", "pcie-p2u-5", "pcie-p2u-6", "pcie-p2u-7";
-#endif
+
 		nvidia,pex-rst-gpio = <&tegra_main_gpio TEGRA194_MAIN_GPIO(GG, 1)
 					GPIO_ACTIVE_LOW>;
+#endif
 	};
 
 	i2c@c240000 {
