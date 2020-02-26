@@ -393,11 +393,15 @@ static int tegra_machine_rt565x_init(struct snd_soc_pcm_runtime *rtd)
 		return err;
 	}
 
+
+/* FIXME */
+#if 0
 	err = rt5659_set_jack_detect(rtd->codec_dai->component, jack);
 	if (err) {
 		dev_err(card->dev, "Failed to set jack for RT565x: %d\n", err);
 		return err;
 	}
+#endif
 
 	/* single button supporting play/pause */
 	snd_jack_set_key(jack->jack, SND_JACK_BTN_0, KEY_MEDIA);
