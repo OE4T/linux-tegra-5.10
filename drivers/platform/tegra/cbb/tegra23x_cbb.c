@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -235,7 +235,7 @@ static void print_err_notifier(struct seq_file *file,
 			tegra234_cbb_errmon_errclr(errmon->addr_errmon);
 		}
 		err_notifier_status >>= 1;
-		errmon_no++;
+		errmon_no <<= 1;
 	}
 
 	print_cbb_err(file, "\t**************************************\n");
