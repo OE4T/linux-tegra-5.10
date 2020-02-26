@@ -121,57 +121,30 @@ static void mods_dma_unmap_page(struct mods_client *client,
 }
 
 /* Unmap and delete the specified DMA mapping */
-static int mods_dma_unmap_and_free(struct mods_client   *client,
-				   struct MODS_MEM_INFO *p_mem_info,
-				   struct MODS_DMA_MAP  *p_del_map)
+static void dma_unmap_and_free(struct mods_client   *client,
+			       struct MODS_MEM_INFO *p_mem_info,
+			       struct MODS_DMA_MAP  *p_del_map)
 
 {
-	int		  found = 0;
-	struct list_head *head  = &p_mem_info->dma_map_list;
-	struct list_head *iter;
+	u32 i;
 
-	list_for_each(iter, head) {
-		struct MODS_DMA_MAP *p_dma_map = list_entry(iter,
-							    struct MODS_DMA_MAP,
-							    list);
+	for (i = 0; i < p_mem_info->num_chunks; i++)
+		mods_dma_unmap_page(client,
+				    p_del_map->dev,
+				    p_del_map->dev_addr[i],
+				    p_mem_info->pages[i].order);
 
-		if (p_dma_map == p_del_map) {
-			list_del(iter);
-			found = 1;
-			break;
-		}
-	}
-
-	if (!found) {
-		cl_error("failed to unmap and free %p\n", p_del_map);
-		return -EINVAL;
-	}
-
-	/* Safeguard check, all mappings should have a
-	 * non-null device
-	 */
-	if (p_del_map->dev) {
-		int i;
-
-		for (i = 0; i < p_mem_info->num_chunks; i++)
-			mods_dma_unmap_page(client,
-					    p_del_map->dev,
-					    p_del_map->dev_addr[i],
-					    p_mem_info->pages[i].order);
-		pci_dev_put(p_del_map->dev);
-	}
+	pci_dev_put(p_del_map->dev);
 
 	kfree(p_del_map);
 	atomic_dec(&client->num_allocs);
-
-	return OK;
 }
 #endif
 
 /* Unmap and delete all DMA mappings on the specified allocation */
-int mods_dma_unmap_all(struct mods_client   *client,
-		       struct MODS_MEM_INFO *p_mem_info,
-		       struct pci_dev       *dev)
+static int dma_unmap_all(struct mods_client   *client,
+			 struct MODS_MEM_INFO *p_mem_info,
+			 struct pci_dev       *dev)
 {
 #ifdef CONFIG_PCI
 	int               err  = OK;
@@ -185,10 +158,10 @@ int mods_dma_unmap_all(struct mods_client   *client,
 		p_dma_map = list_entry(iter, struct MODS_DMA_MAP, list);
 
 		if (!dev || (p_dma_map->dev == dev)) {
-			err = mods_dma_unmap_and_free(client,
-						      p_mem_info,
-						      p_dma_map);
-			if (err || dev)
+			list_del(iter);
+
+			dma_unmap_and_free(client, p_mem_info, p_dma_map);
+			if (dev)
 				break;
 		}
 	}
@@ -200,6 +173,38 @@ int mods_dma_unmap_all(struct mods_client   *client,
 }
 
 #ifdef CONFIG_PCI
+static int pci_map_chunk(struct mods_client     *client,
+			 struct pci_dev         *dev,
+			 struct MODS_PHYS_CHUNK *chunk,
+			 u64                    *out_dev_addr)
+{
+	u64 dev_addr = pci_map_page(dev,
+				    chunk->p_page,
+				    0,
+				    PAGE_SIZE << chunk->order,
+				    DMA_BIDIRECTIONAL);
+
+	int err = pci_dma_mapping_error(dev, dev_addr);
+
+	if (err) {
+		cl_error(
+			"failed to map 2^%u pages at 0x%llx to dev %04x:%02x:%02x.%x with dma mask 0x%llx\n",
+			chunk->order,
+			(unsigned long long)chunk->dma_addr,
+			pci_domain_nr(dev->bus),
+			dev->bus->number,
+			PCI_SLOT(dev->devfn),
+			PCI_FUNC(dev->devfn),
+			(unsigned long long)dma_get_mask(&dev->dev));
+
+		return err;
+	}
+
+	*out_dev_addr = mods_compress_nvlink_addr(dev, dev_addr);
+
+	return OK;
+}
+
 /* DMA map all pages in an allocation */
 static int mods_dma_map_pages(struct mods_client   *client,
 			      struct MODS_MEM_INFO *p_mem_info,
@@ -210,35 +215,19 @@ static int mods_dma_map_pages(struct mods_client   *client,
 
 	for (i = 0; i < p_mem_info->num_chunks; i++) {
 		struct MODS_PHYS_CHUNK *chunk = &p_mem_info->pages[i];
-		u64 dev_addr;
+		u64                     dev_addr;
 
-		dev_addr = pci_map_page(dev,
-					chunk->p_page,
-					0,
-					PAGE_SIZE << chunk->order,
-					DMA_BIDIRECTIONAL);
+		int err = pci_map_chunk(client, dev, chunk, &dev_addr);
 
-		if (pci_dma_mapping_error(dev, dev_addr)) {
-			cl_error(
-				"failed to map 2^%u pages at 0x%llx to dev %04x:%02x:%02x.%x with dma mask 0x%llx\n",
-				chunk->order,
-				(unsigned long long)chunk->dma_addr,
-				pci_domain_nr(dev->bus),
-				dev->bus->number,
-				PCI_SLOT(dev->devfn),
-				PCI_FUNC(dev->devfn),
-				(unsigned long long)dma_get_mask(&dev->dev));
-
+		if (err) {
 			while (--i >= 0)
 				mods_dma_unmap_page(client,
 						    dev,
 						    p_dma_map->dev_addr[i],
 						    chunk->order);
 
-			return -EINVAL;
+			return err;
 		}
-
-		dev_addr = mods_compress_nvlink_addr(dev, dev_addr);
 
 		p_dma_map->dev_addr[i] = dev_addr;
 
@@ -293,26 +282,12 @@ static int mods_dma_map_default_page(struct mods_client     *client,
 				     struct MODS_PHYS_CHUNK *chunk,
 				     struct pci_dev         *dev)
 {
-	u64 dev_addr = pci_map_page(dev,
-				    chunk->p_page,
-				    0,
-				    PAGE_SIZE << chunk->order,
-				    DMA_BIDIRECTIONAL);
+	u64 dev_addr;
+	int err = pci_map_chunk(client, dev, chunk, &dev_addr);
 
-	if (pci_dma_mapping_error(dev, dev_addr)) {
-		cl_error(
-			"failed to map 2^%u pages at 0x%llx to dev %04x:%02x:%02x.%x with dma mask 0x%llx\n",
-			chunk->order,
-			(unsigned long long)chunk->dma_addr,
-			pci_domain_nr(dev->bus),
-			dev->bus->number,
-			PCI_SLOT(dev->devfn),
-			PCI_FUNC(dev->devfn),
-			(unsigned long long)dma_get_mask(&dev->dev));
-		return -EINVAL;
-	}
+	if (err)
+		return err;
 
-	dev_addr = mods_compress_nvlink_addr(dev, dev_addr);
 	chunk->dev_addr = dev_addr;
 	chunk->mapped   = 1;
 
@@ -881,7 +856,7 @@ static int mods_unregister_and_free(struct mods_client   *client,
 
 			mutex_unlock(&client->mtx);
 
-			mods_dma_unmap_all(client, p_mem_info, NULL);
+			dma_unmap_all(client, p_mem_info, NULL);
 			save_non_wb_chunks(client, p_mem_info);
 			mods_free_pages(client, p_mem_info);
 			pci_dev_put(p_mem_info->dev);
@@ -1959,16 +1934,14 @@ int esc_mods_phys_to_virtual(struct mods_client              *client,
 	return -EINVAL;
 }
 
+#if defined(CONFIG_ARM)
 int esc_mods_memory_barrier(struct mods_client *client)
 {
-#if defined(CONFIG_ARM)
 	/* Full memory barrier on ARMv7 */
 	wmb();
 	return OK;
-#else
-	return -EINVAL;
-#endif
 }
+#endif
 
 #ifdef CONFIG_PCI
 int esc_mods_dma_map_memory(struct mods_client         *client,
@@ -2051,7 +2024,7 @@ int esc_mods_dma_unmap_memory(struct mods_client         *client,
 				 p->pci_device.device,
 				 p->pci_device.function);
 	} else
-		err = mods_dma_unmap_all(client, p_mem_info, dev);
+		err = dma_unmap_all(client, p_mem_info, dev);
 
 	pci_dev_put(dev);
 	LOG_EXT();

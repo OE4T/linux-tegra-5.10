@@ -109,6 +109,9 @@ struct mods_client {
 	u32                  access_token;
 	atomic_t             num_allocs;
 	atomic_t             num_pages;
+#if defined(MODS_HAS_CONSOLE_LOCK)
+	atomic_t             console_is_locked;
+#endif
 	u8                   client_id;
 };
 
@@ -446,11 +449,14 @@ int esc_mods_virtual_to_phys(struct mods_client              *client,
 			     struct MODS_VIRTUAL_TO_PHYSICAL *p);
 int esc_mods_phys_to_virtual(struct mods_client              *client,
 			     struct MODS_PHYSICAL_TO_VIRTUAL *p);
-int esc_mods_memory_barrier(struct mods_client *client);
 int esc_mods_dma_map_memory(struct mods_client         *client,
 			    struct MODS_DMA_MAP_MEMORY *p);
 int esc_mods_dma_unmap_memory(struct mods_client         *client,
 			      struct MODS_DMA_MAP_MEMORY *p);
+
+#ifdef CONFIG_ARM
+int esc_mods_memory_barrier(struct mods_client *client);
+#endif
 
 #if defined(CONFIG_PPC64)
 /* ppc64 */

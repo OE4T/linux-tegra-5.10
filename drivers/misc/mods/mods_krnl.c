@@ -28,7 +28,6 @@
 #include <linux/poll.h>
 #include <linux/random.h>
 #include <linux/sched.h>
-#include <linux/screen_info.h>
 #include <linux/uaccess.h>
 #ifdef MODS_HAS_CONSOLE_LOCK
 #   include <linux/console.h>
@@ -38,6 +37,7 @@
 #   include <linux/vt_kern.h>
 #endif
 #ifdef CONFIG_X86
+#   include <linux/screen_info.h>
 #   include <asm/msr.h>
 #endif
 
@@ -50,7 +50,7 @@ static unsigned int mods_krnl_poll(struct file *, poll_table *);
 static int mods_krnl_mmap(struct file *, struct vm_area_struct *);
 static long mods_krnl_ioctl(struct file *, unsigned int, unsigned long);
 
-#ifdef MODS_HAS_SRIOV
+#if defined(CONFIG_PCI) && defined(MODS_HAS_SRIOV)
 static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs);
 #endif
 
@@ -146,7 +146,7 @@ static int debug;
 static int multi_instance = MODS_MULTI_INSTANCE_DEFAULT_VALUE;
 static u32 access_token = MODS_ACCESS_TOKEN_NONE;
 
-#ifdef MODS_HAS_SRIOV
+#if defined(CONFIG_PCI) && defined(MODS_HAS_SRIOV)
 static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs)
 {
 	int                  totalvfs;
@@ -557,7 +557,11 @@ static void mods_disable_all_devices(struct mods_client *client)
 #endif
 }
 
+#if defined(MODS_HAS_CONSOLE_LOCK)
 static int mods_resume_console(struct mods_client *client);
+#else
+static inline int mods_resume_console(struct mods_client *client) { return 0; }
+#endif
 
 /*********************
  * MAPPING FUNCTIONS *
@@ -1249,8 +1253,8 @@ static int mods_krnl_map_inner(struct mods_client    *client,
 	return OK;
 }
 
-#if !defined(CONFIG_ARM) && !defined(CONFIG_ARM64) && !defined(CONFIG_PPC64)
-static int mods_get_screen_info(struct MODS_SCREEN_INFO *p)
+#if defined(CONFIG_X86)
+static void mods_get_screen_info(struct MODS_SCREEN_INFO *p)
 {
 	p->orig_video_mode = screen_info.orig_video_mode;
 	p->orig_video_is_vga = screen_info.orig_video_isVGA;
@@ -1260,7 +1264,6 @@ static int mods_get_screen_info(struct MODS_SCREEN_INFO *p)
 	p->lfb_base = screen_info.lfb_base;
 	p->lfb_size = screen_info.lfb_size;
 	p->lfb_linelength = screen_info.lfb_linelength;
-	return OK;
 }
 #endif
 
@@ -1282,30 +1285,24 @@ static int esc_mods_get_kernel_version(struct mods_client      *client,
 	return OK;
 }
 
+#if defined(CONFIG_X86)
 static int esc_mods_get_screen_info(struct mods_client      *client,
 				    struct MODS_SCREEN_INFO *p)
 {
-#if defined(CONFIG_ARM) || defined(CONFIG_ARM64) || defined(CONFIG_PPC64)
-	return -EINVAL;
-#else
-	int rc = mods_get_screen_info(p);
+	mods_get_screen_info(p);
 
 #if defined(VIDEO_CAPABILITY_64BIT_BASE)
 	if (screen_info.ext_lfb_base)
 		return -EOVERFLOW;
 #endif
 
-	return rc;
-#endif
+	return OK;
 }
 
 static int esc_mods_get_screen_info_2(struct mods_client        *client,
 				      struct MODS_SCREEN_INFO_2 *p)
 {
-#if defined(CONFIG_ARM) || defined(CONFIG_ARM64) || defined(CONFIG_PPC64)
-	return -EINVAL;
-#else
-	int rc = mods_get_screen_info(&p->info);
+	mods_get_screen_info(&p->info);
 
 #if defined(VIDEO_CAPABILITY_64BIT_BASE)
 	p->ext_lfb_base = screen_info.ext_lfb_base;
@@ -1313,28 +1310,35 @@ static int esc_mods_get_screen_info_2(struct mods_client        *client,
 	p->ext_lfb_base = 0;
 #endif
 
-	return rc;
-#endif
+	return OK;
 }
+#endif
+
+#if defined(MODS_HAS_CONSOLE_LOCK)
+static atomic_t console_is_locked;
 
 static int esc_mods_lock_console(struct mods_client *client)
 {
-#if defined(MODS_HAS_CONSOLE_LOCK)
+	if (atomic_cmpxchg(&console_is_locked, 0, 1)) {
+		cl_error("console is already locked\n");
+		return -EINVAL;
+	}
+
+	atomic_set(&client->console_is_locked, 1);
 	console_lock();
 	return OK;
-#else
-	return -EINVAL;
-#endif
 }
 
 static int esc_mods_unlock_console(struct mods_client *client)
 {
-#if defined(MODS_HAS_CONSOLE_LOCK)
+	if (!atomic_cmpxchg(&client->console_is_locked, 1, 0)) {
+		cl_error("console is not locked by this client\n");
+		return -EINVAL;
+	}
+
 	console_unlock();
+	atomic_set(&console_is_locked, 0);
 	return OK;
-#else
-	return -EINVAL;
-#endif
 }
 
 static int esc_mods_suspend_console(struct mods_client *client)
@@ -1343,7 +1347,13 @@ static int esc_mods_suspend_console(struct mods_client *client)
 
 	LOG_ENT();
 
-#if defined(CONFIG_FB) && defined(MODS_HAS_CONSOLE_LOCK)
+	if (atomic_cmpxchg(&console_is_locked, 0, 1)) {
+		cl_error("cannot suspend console, console is locked\n");
+		LOG_EXT();
+		return -EINVAL;
+	}
+
+#if defined(CONFIG_FB)
 	if (num_registered_fb) {
 		/* tell the os to block fb accesses */
 		int i = 0;
@@ -1360,7 +1370,7 @@ static int esc_mods_suspend_console(struct mods_client *client)
 	}
 #endif
 
-#if defined(MODS_HAS_CONSOLE_BINDING) && defined(MODS_HAS_CONSOLE_LOCK)
+#if defined(MODS_HAS_CONSOLE_BINDING)
 	if (&vga_con == vc_cons[fg_console].d->vc_sw) {
 		/* if the current console is the vga console driver,
 		 * have the dummy driver take over.
@@ -1371,6 +1381,8 @@ static int esc_mods_suspend_console(struct mods_client *client)
 		err = OK;
 	}
 #endif
+
+	atomic_set(&console_is_locked, 0);
 
 	LOG_EXT();
 
@@ -1388,7 +1400,16 @@ static int mods_resume_console(struct mods_client *client)
 
 	LOG_ENT();
 
-#if defined(CONFIG_FB) && defined(MODS_HAS_CONSOLE_LOCK)
+	if (atomic_cmpxchg(&client->console_is_locked, 1, 0)) {
+		cl_warn("console was not properly unlocked\n");
+		console_unlock();
+	} else if (atomic_cmpxchg(&console_is_locked, 0, 1)) {
+		cl_error("cannot resume console, console is locked\n");
+		LOG_EXT();
+		return -EINVAL;
+	}
+
+#if defined(CONFIG_FB)
 	if (num_registered_fb) {
 		int i = 0;
 
@@ -1404,7 +1425,7 @@ static int mods_resume_console(struct mods_client *client)
 	}
 #endif
 
-#if defined(MODS_HAS_CONSOLE_BINDING) && defined(MODS_HAS_CONSOLE_LOCK)
+#if defined(MODS_HAS_CONSOLE_BINDING)
 	if (&dummy_con == vc_cons[fg_console].d->vc_sw) {
 		/* try to unbind the dummy driver,
 		 * the system driver should take over.
@@ -1415,11 +1436,13 @@ static int mods_resume_console(struct mods_client *client)
 		err = OK;
 	}
 #endif
+	atomic_set(&console_is_locked, 0);
 
 	LOG_EXT();
 
 	return err;
 }
+#endif
 
 static int esc_mods_acquire_access_token(struct mods_client       *client,
 					 struct MODS_ACCESS_TOKEN *ptoken)
@@ -1780,12 +1803,6 @@ static long mods_krnl_ioctl(struct file  *fp,
 				    MODS_PCI_BUS_ADD_DEVICES);
 		break;
 
-	case MODS_ESC_PCI_HOT_RESET:
-		MODS_IOCTL_NORETVAL(MODS_ESC_PCI_HOT_RESET,
-				    esc_mods_pci_hot_reset,
-				    MODS_PCI_HOT_RESET);
-		break;
-
 	case MODS_ESC_PCI_BUS_REMOVE_DEV:
 		MODS_IOCTL_NORETVAL(MODS_ESC_PCI_BUS_REMOVE_DEV,
 			   esc_mods_pci_bus_remove_dev,
@@ -1920,6 +1937,12 @@ static long mods_krnl_ioctl(struct file  *fp,
 		break;
 
 #if defined(CONFIG_PPC64)
+	case MODS_ESC_PCI_HOT_RESET:
+		MODS_IOCTL_NORETVAL(MODS_ESC_PCI_HOT_RESET,
+				    esc_mods_pci_hot_reset,
+				    MODS_PCI_HOT_RESET);
+		break;
+
 	case MODS_ESC_SET_PPC_TCE_BYPASS:
 		MODS_IOCTL(MODS_ESC_SET_PPC_TCE_BYPASS,
 			   esc_mods_set_ppc_tce_bypass,
@@ -1931,11 +1954,13 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_get_ats_address_range,
 			   MODS_GET_ATS_ADDRESS_RANGE);
 		break;
+
 	case MODS_ESC_SET_NVLINK_SYSMEM_TRAINED:
 		MODS_IOCTL(MODS_ESC_SET_NVLINK_SYSMEM_TRAINED,
 			   esc_mods_set_nvlink_sysmem_trained,
 			   MODS_SET_NVLINK_SYSMEM_TRAINED);
 		break;
+
 	case MODS_ESC_GET_NVLINK_LINE_RATE:
 		MODS_IOCTL(MODS_ESC_GET_NVLINK_LINE_RATE,
 			   esc_mods_get_nvlink_line_rate,
@@ -2214,11 +2239,12 @@ static long mods_krnl_ioctl(struct file  *fp,
 		break;
 #endif
 #endif
+#ifdef CONFIG_ARM
 	case MODS_ESC_MEMORY_BARRIER:
 		MODS_IOCTL_VOID(MODS_ESC_MEMORY_BARRIER,
 				esc_mods_memory_barrier);
 		break;
-
+#endif
 #ifdef CONFIG_ARCH_TEGRA
 	case MODS_ESC_DMABUF_GET_PHYSICAL_ADDRESS:
 		MODS_IOCTL(MODS_ESC_DMABUF_GET_PHYSICAL_ADDRESS,
@@ -2248,6 +2274,8 @@ static long mods_krnl_ioctl(struct file  *fp,
 				    MODS_ADSP_RUN_APP_INFO);
 		break;
 #endif
+
+#ifdef CONFIG_X86
 	case MODS_ESC_GET_SCREEN_INFO:
 		MODS_IOCTL(MODS_ESC_GET_SCREEN_INFO,
 			   esc_mods_get_screen_info, MODS_SCREEN_INFO);
@@ -2256,6 +2284,9 @@ static long mods_krnl_ioctl(struct file  *fp,
 		MODS_IOCTL(MODS_ESC_GET_SCREEN_INFO_2,
 			   esc_mods_get_screen_info_2, MODS_SCREEN_INFO_2);
 		break;
+#endif
+
+#if defined(MODS_HAS_CONSOLE_LOCK)
 	case MODS_ESC_LOCK_CONSOLE:
 		MODS_IOCTL_VOID(MODS_ESC_LOCK_CONSOLE,
 			   esc_mods_lock_console);
@@ -2272,6 +2303,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 		MODS_IOCTL_VOID(MODS_ESC_RESUME_CONSOLE,
 			   esc_mods_resume_console);
 		break;
+#endif
 
 #if defined(CONFIG_ARCH_TEGRA)
 	case MODS_ESC_TEGRA_PROD_IS_SUPPORTED:
@@ -2345,7 +2377,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_query_irq_3, MODS_QUERY_IRQ_3);
 		break;
 
-#ifdef MODS_HAS_SRIOV
+#if defined(CONFIG_PCI) && defined(MODS_HAS_SRIOV)
 	case MODS_ESC_SET_NUM_VF:
 		MODS_IOCTL_NORETVAL(MODS_ESC_SET_NUM_VF,
 			   esc_mods_set_num_vf, MODS_SET_NUM_VF);
