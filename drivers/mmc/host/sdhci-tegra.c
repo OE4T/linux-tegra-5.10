@@ -135,6 +135,11 @@
 
 #define MAX_TAP_VALUE		256
 
+/* Set min identification clock of 400 KHz */
+#define SDMMC_TEGRA_FALLBACK_CLK_HZ	400000
+#define SDMMC_TIMEOUT_CLK_FREQ_HZ	12000000
+#define SDMMC_TIMEOUT_CLK_FREQ_MHZ	12
+
 /* uhs mask can be used to mask any of the UHS modes support */
 #define MMC_UHS_MASK_SDR12	0x1
 #define MMC_UHS_MASK_SDR25	0x2
@@ -193,6 +198,7 @@ struct sdhci_tegra {
 	struct gpio_desc *power_gpio;
 	bool ddr_signaling;
 	bool pad_calib_required;
+	struct clk *tmclk;
 	bool pad_control_available;
 
 	struct reset_control *rst;
@@ -1311,6 +1317,28 @@ static void tegra_sdhci_set_uhs_signaling(struct sdhci_host *host,
 	}
 }
 
+static unsigned int tegra_sdhci_get_sw_timeout_value(struct sdhci_host *host)
+{
+	/*
+	 * With SDMMC timeout clock set to 12MHZ, host controller waits for
+	 * 11.18 seconds before triggering data timeout error interrupt.
+	 * Increase SW timer timeout value to 12 seconds to avoid SW timer
+	 * getting triggered before data timeout error interrupt.
+	 */
+	return 12 * HZ;
+}
+
+static unsigned int tegra_sdhci_get_timeout_clock(struct sdhci_host *host)
+{
+	/*
+	* Tegra SDMMC controller advertises 12MHz timeout clock. Controller
+	* models in simulator might not advertise the timeout clock frequency.
+	* To avoid errors, return 12MHz clock for supporting timeout clock
+	* on simulators.
+	*/
+	return SDMMC_TIMEOUT_CLK_FREQ_MHZ * 1000;
+}
+
 static int tegra_sdhci_execute_tuning(struct sdhci_host *host, u32 opcode)
 {
 	unsigned int min, max;
@@ -1598,12 +1626,14 @@ static const struct sdhci_ops tegra_sdhci_ops = {
 	.set_uhs_signaling = tegra_sdhci_set_uhs_signaling,
 	.voltage_switch = tegra_sdhci_voltage_switch,
 	.get_max_clock = tegra_sdhci_get_max_clock,
+	.get_timeout_clock = tegra_sdhci_get_timeout_clock,
 	.get_max_tuning_loop_counter = tegra_sdhci_get_max_tuning_loop_counter,
 	.skip_retuning = tegra_sdhci_skip_retuning,
 	.hs400_enhanced_strobe = tegra_sdhci_hs400_enhanced_strobe,
 	.post_init = tegra_sdhci_post_init,
 	.dump_vendor_regs = tegra_sdhci_dump_vendor_regs,
 	.irq = sdhci_tegra_cqhci_irq,
+	.get_sw_timeout = tegra_sdhci_get_sw_timeout_value,
 };
 
 static const struct sdhci_pltfm_data sdhci_tegra20_pdata = {
@@ -1714,7 +1744,6 @@ static const struct sdhci_ops tegra210_sdhci_ops = {
 
 static const struct sdhci_pltfm_data sdhci_tegra210_pdata = {
 	.quirks = SDHCI_QUIRK_BROKEN_TIMEOUT_VAL |
-		  SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
 		  SDHCI_QUIRK_SINGLE_POWER_WRITE |
 		  SDHCI_QUIRK_NO_HISPD_BIT |
 		  SDHCI_QUIRK_BROKEN_ADMA_ZEROLEN_DESC |
@@ -1751,7 +1780,6 @@ static const struct sdhci_ops tegra186_sdhci_ops = {
 
 static const struct sdhci_pltfm_data sdhci_tegra186_pdata = {
 	.quirks = SDHCI_QUIRK_BROKEN_TIMEOUT_VAL |
-		  SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
 		  SDHCI_QUIRK_SINGLE_POWER_WRITE |
 		  SDHCI_QUIRK_NO_HISPD_BIT |
 		  SDHCI_QUIRK_BROKEN_ADMA_ZEROLEN_DESC |
@@ -1916,6 +1944,18 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	clk_prepare_enable(clk);
 	pltfm_host->clk = clk;
 
+	tegra_host->tmclk = devm_clk_get(&pdev->dev, "sdmmc_legacy_tm");
+	if (IS_ERR(tegra_host->tmclk)) {
+		rc = PTR_ERR(tegra_host->tmclk);
+
+		if (rc != -EPROBE_DEFER)
+			dev_err(mmc_dev(host->mmc), "timeout clk error\n");
+
+		goto err_rst_get;
+	};
+	clk_prepare_enable(tegra_host->tmclk);
+	clk_set_rate(tegra_host->tmclk, SDMMC_TIMEOUT_CLK_FREQ_HZ);
+
 	tegra_host->rst = devm_reset_control_get_exclusive(&pdev->dev,
 							   "sdhci");
 	if (IS_ERR(tegra_host->rst)) {
@@ -1943,6 +1983,7 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	return 0;
 
 err_add_host:
+	clk_disable_unprepare(tegra_host->tmclk);
 	reset_control_assert(tegra_host->rst);
 err_rst_get:
 	clk_disable_unprepare(pltfm_host->clk);

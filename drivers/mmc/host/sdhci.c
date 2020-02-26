@@ -1423,8 +1423,14 @@ void sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 		timeout += nsecs_to_jiffies(host->data_timeout);
 	else if (!cmd->data && cmd->busy_timeout > 9000)
 		timeout += DIV_ROUND_UP(cmd->busy_timeout, 1000) * HZ + HZ;
-	else
-		timeout += 10 * HZ;
+	else {
+		if (!(host->quirks & SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK) &&
+			host->ops->get_sw_timeout)
+			timeout += host->ops->get_sw_timeout(host);
+		else
+			timeout += 10 * HZ;
+
+	}
 	sdhci_mod_timer(host, cmd->mrq, timeout);
 
 	sdhci_writew(host, SDHCI_MAKE_CMD(cmd->opcode, flags), SDHCI_COMMAND);
