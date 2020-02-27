@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,6 +86,7 @@
 #define EQOS_DMA_CHX_TX_CTRL_OSF		OSI_BIT(4)
 #define EQOS_DMA_CHX_TX_CTRL_TSE		OSI_BIT(12)
 #define EQOS_DMA_CHX_CTRL_PBLX8			OSI_BIT(16)
+#define EQOS_DMA_CHX_RBSZ_MASK			0x7FFEU
 #define EQOS_DMA_CHX_RBSZ_SHIFT			1U
 #define EQOS_DMA_CHX_TX_CTRL_TXPBL_RECOMMENDED	0x200000U
 #define EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED	0xC0000U

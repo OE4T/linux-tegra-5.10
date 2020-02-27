@@ -1307,6 +1307,7 @@ static void eqos_configure_rxq_priority(
 static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 {
 	unsigned int value;
+	unsigned int mac_ext;
 
 	/* Update MAC address 0 high */
 	value = (((unsigned int)osi_core->mac_addr[5] << 8U) |
@@ -1330,13 +1331,24 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	/* Enable Rx checksum offload engine by default */
 	value |= EQOS_MCR_ACS | EQOS_MCR_CST | EQOS_MCR_DM | EQOS_MCR_IPC;
 
-	if (osi_core->mtu > OSI_DFLT_MTU_SIZE) {
-		value |= EQOS_MCR_S2KP;
-	}
-
-	if (osi_core->mtu > OSI_MTU_SIZE_2K) {
+	if (osi_core->mtu > OSI_DFLT_MTU_SIZE &&
+	    osi_core->mtu <= OSI_MTU_SIZE_9000) {
+		/* if MTU less than or equal to 9K use JE */
 		value |= EQOS_MCR_JE;
 		value |= EQOS_MCR_JD;
+	} else {
+		/* if MTU greater 9K use GPSLCE */
+		value |= EQOS_MCR_JD | EQOS_MCR_WD;
+		value |= EQOS_MCR_GPSLCE;
+		/* Read MAC Extenstion Register */
+		mac_ext = osi_readl((unsigned char *)osi_core->base +
+				    EQOS_MAC_EXTR);
+		/* Configure GPSL */
+		mac_ext &= ~EQOS_MAC_EXTR_GPSL_MSK;
+		mac_ext |= OSI_MAX_MTU_SIZE & EQOS_MAC_EXTR_GPSL_MSK;
+		/* Write MAC Extenstion Register */
+		osi_writel(mac_ext, (unsigned char *)osi_core->base +
+			   EQOS_MAC_EXTR);
 	}
 
 	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +

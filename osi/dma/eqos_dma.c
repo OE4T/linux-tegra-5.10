@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -651,6 +651,9 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	value = osi_readl((unsigned char *)osi_dma->base +
 			  EQOS_DMA_CHX_RX_CTRL(chan));
 
+	/* clear previous Rx buffer size */
+	value &= ~EQOS_DMA_CHX_RBSZ_MASK;
+
 	value |= (osi_dma->rx_buf_len << EQOS_DMA_CHX_RBSZ_SHIFT);
 	/* RXPBL = 12 */
 	value |= EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED;
@@ -712,18 +715,12 @@ static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
  */
 static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
-	unsigned int rx_buf_len;
+	unsigned int rx_buf_len = 0U;
 
-	if (osi_dma->mtu >= OSI_MTU_SIZE_8K) {
-		rx_buf_len = OSI_MTU_SIZE_16K;
-	} else if (osi_dma->mtu >= OSI_MTU_SIZE_4K) {
-		rx_buf_len = OSI_MTU_SIZE_8K;
-	} else if (osi_dma->mtu >= OSI_MTU_SIZE_2K) {
-		rx_buf_len = OSI_MTU_SIZE_4K;
-	} else if (osi_dma->mtu > MAX_ETH_FRAME_LEN_DEFAULT) {
-		rx_buf_len = OSI_MTU_SIZE_2K;
-	} else {
-		rx_buf_len = MAX_ETH_FRAME_LEN_DEFAULT;
+	/* Add Ethernet header + VLAN header + NET IP align size to MTU */
+	if (osi_dma->mtu < UINT_MAX) {
+		rx_buf_len = osi_dma->mtu + OSI_ETH_HLEN + NV_VLAN_HLEN +
+			     OSI_NET_IP_ALIGN;
 	}
 
 	/* Buffer alignment */
