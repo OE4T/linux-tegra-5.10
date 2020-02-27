@@ -1006,6 +1006,7 @@ struct platform_device *nvhost_get_default_device(void)
 		return nvhost_get_prim_host()->dev;
 	}
 }
+EXPORT_SYMBOL(nvhost_get_default_device);
 
 static int of_nvhost_parse_platform_data(struct platform_device *dev,
 					struct nvhost_device_data *pdata)
