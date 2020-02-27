@@ -2259,6 +2259,13 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 		return -EBUSY;
 	}
 
+	if (new_mtu > OSI_MTU_SIZE_9000 && osi_dma->num_dma_chans != 1U) {
+		netdev_err(pdata->ndev,
+			   "MTU greater than %d is valid only in single channel configuration\n"
+			   , OSI_MTU_SIZE_9000);
+		return -EINVAL;
+	}
+
 	ndev->mtu = new_mtu;
 	osi_core->mtu = new_mtu;
 	osi_dma->mtu = new_mtu;
@@ -3383,14 +3390,14 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 				   &pdata->max_platform_mtu);
 	if (ret < 0) {
 		dev_info(dev, "max-platform-mtu DT entry missing, setting default %d\n",
-			 ETHER_DEFAULT_PLATFORM_MTU);
-		pdata->max_platform_mtu = ETHER_DEFAULT_PLATFORM_MTU;
+			 OSI_DFLT_MTU_SIZE);
+		pdata->max_platform_mtu = OSI_DFLT_MTU_SIZE;
 	} else {
-		if (pdata->max_platform_mtu > ETHER_MAX_HW_MTU ||
+		if (pdata->max_platform_mtu > OSI_MAX_MTU_SIZE ||
 		    pdata->max_platform_mtu < ETH_MIN_MTU) {
 			dev_info(dev, "Invalid max-platform-mtu, setting default %d\n",
-				 ETHER_DEFAULT_PLATFORM_MTU);
-			pdata->max_platform_mtu = ETHER_DEFAULT_PLATFORM_MTU;
+				 OSI_DFLT_MTU_SIZE);
+			pdata->max_platform_mtu = OSI_DFLT_MTU_SIZE;
 		}
 	}
 
