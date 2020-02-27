@@ -462,6 +462,7 @@ int vgpu_probe(struct platform_device *pdev)
 
 	dma_set_mask(dev, platform->dma_mask);
 	dma_set_coherent_mask(dev, platform->dma_mask);
+	dma_set_seg_boundary(dev, platform->dma_mask);
 
 	gk20a->poll_timeout_default = NVGPU_DEFAULT_POLL_TIMEOUT_MS;
 	gk20a->timeouts_disabled_by_user = false;

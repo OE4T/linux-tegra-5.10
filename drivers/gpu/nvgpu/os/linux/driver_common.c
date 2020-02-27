@@ -99,6 +99,7 @@ static void nvgpu_init_vars(struct gk20a *g)
 
 	dma_set_mask(dev, platform->dma_mask);
 	dma_set_coherent_mask(dev, platform->dma_mask);
+	dma_set_seg_boundary(dev, platform->dma_mask);
 
 	nvgpu_init_list_node(&g->profiler_objects);
 
