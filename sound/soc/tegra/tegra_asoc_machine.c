@@ -306,7 +306,7 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
 	struct device_node *top = pdev->dev.of_node;
 	struct device_node *link_node;
 	struct snd_soc_dai_link *dai_links;
-	unsigned int num_links, link_count = 0;
+	unsigned int num_links, link_count = 0, i;
 	int ret;
 
 	ret = get_num_dai_links(pdev, &machine->asoc->num_links);
@@ -321,6 +321,30 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
 				 GFP_KERNEL);
 	if (!dai_links)
 		return -ENOMEM;
+
+	for (i = 0; i < num_links; i++) {
+		dai_links[i].cpus = devm_kzalloc(&pdev->dev,
+						 sizeof(*dai_links[i].cpus),
+						 GFP_KERNEL);
+		if (!dai_links[i].cpus)
+			return -ENOMEM;
+
+		dai_links[i].codecs = devm_kzalloc(&pdev->dev,
+						   sizeof(*dai_links[i].codecs),
+						   GFP_KERNEL);
+		if (!dai_links[i].codecs)
+			return -ENOMEM;
+
+		dai_links[i].platforms = devm_kzalloc(&pdev->dev,
+						   sizeof(*dai_links[i].platforms),
+						   GFP_KERNEL);
+		if (!dai_links[i].platforms)
+			return -ENOMEM;
+
+		dai_links[i].num_cpus = 1;
+		dai_links[i].num_codecs = 1;
+		dai_links[i].num_platforms = 1;
+	}
 
 	machine->asoc->dai_links = dai_links;
 
