@@ -576,6 +576,9 @@ int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
 	g->ops.mm.remove_bar2_vm = gp10b_mm_remove_bar2_vm;
 	g->mm.remove_support(&g->mm);
 
+	/* Reset this to NULL to avoid trying to destroy the mutex again */
+	g->ops.mm.mmu_fault.info_mem_destroy = NULL;
+
 	/* Extra cases for branch coverage */
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, false);
