@@ -132,7 +132,8 @@
 		};
 
 		adma: adma@2930000 {
-			compatible = "nvidia,tegra194-adma";
+			compatible = "nvidia,tegra194-adma",
+				     "nvidia,tegra186-adma";
 			interrupt-parent = <&tegra_agic>;
 			reg = <0x0 0x02930000 0x0 0x50000>,	/* ADMA Reg */
 			      <0x0 0x029f0000 0x0 0x10>;	/* HSP SS */
@@ -160,7 +161,7 @@
 		};
 
 		tegra_axbar: ahub {
-			compatible = "nvidia,tegra186-axbar";
+			compatible = "nvidia,tegra186-ahub";
 			wakeup-disable;
 			reg = <0x0 0x02900800 0x0 0x800>;
 			clocks = <&bpmp_clks TEGRA234_CLK_AHUB>,
