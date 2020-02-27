@@ -948,6 +948,9 @@ struct gops_gr_zbc {
 		struct nvgpu_gr_zbc_entry *s_val, u32 index);
 	u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(struct gk20a *g);
 	u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(struct gk20a *g);
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_gr_zbc.h"
+#endif
 };
 struct gops_gr_zcull {
 	int (*init_zcull_hw)(struct gk20a *g,

@@ -177,6 +177,14 @@ int nvgpu_gr_zbc_add_color(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 	/* update l2 table */
 	g->ops.ltc.set_zbc_color_entry(g, color_val->color_l2, index);
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	/* update crop table */
+	if (g->ops.gr.zbc.set_crop_zbc_color_clear_value != NULL) {
+		g->ops.gr.zbc.set_crop_zbc_color_clear_value(g,
+			color_val->color_l2, index);
+	}
+#endif
+
 	/* update local copy */
 	for (i = 0; i < NVGPU_GR_ZBC_COLOR_VALUE_SIZE; i++) {
 		zbc->zbc_col_tbl[index].color_l2[i] = color_val->color_l2[i];
