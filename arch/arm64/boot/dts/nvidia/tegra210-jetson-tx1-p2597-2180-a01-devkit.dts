@@ -10,4 +10,7 @@
 			/delete-node/ pcie;
 		};
 	};
+	sdhci@700b0600 {
+		uhs-mask = <0x40>;
+	};
 };
