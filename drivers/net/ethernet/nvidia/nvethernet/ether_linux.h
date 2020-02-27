@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -110,15 +110,6 @@
 #define HW_HASH_TBL_SZ_1		1
 #define HW_HASH_TBL_SZ_0		0
 /** @} */
-
-/**
- * @brief Ethernet Maximum HW MTU
- */
-#define ETHER_MAX_HW_MTU			9000U
-/**
- * @brief Ethernet default platform supported MTU
- */
-#define ETHER_DEFAULT_PLATFORM_MTU		1500U
 
 /**
  * @brief Maximum buffer length per DMA descriptor (16KB).
