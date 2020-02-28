@@ -392,19 +392,24 @@ static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 {
 	int ret = -1;
+	struct osi_pkt_err_stats *pkt_err_stats;
 
 	if (osi_dma != OSI_NULL) {
+		pkt_err_stats = &osi_dma->pkt_err_stats;
 		/* Reset tx packet errors */
-		osi_dma->pkt_err_stats.ip_header_error = 0U;
-		osi_dma->pkt_err_stats.jabber_timeout_error = 0U;
-		osi_dma->pkt_err_stats.pkt_flush_error = 0U;
-		osi_dma->pkt_err_stats.payload_cs_error = 0U;
-		osi_dma->pkt_err_stats.loss_of_carrier_error = 0U;
-		osi_dma->pkt_err_stats.no_carrier_error = 0U;
-		osi_dma->pkt_err_stats.late_collision_error = 0U;
-		osi_dma->pkt_err_stats.excessive_collision_error = 0U;
-		osi_dma->pkt_err_stats.excessive_deferal_error = 0U;
-		osi_dma->pkt_err_stats.underflow_error = 0U;
+		pkt_err_stats->ip_header_error = 0U;
+		pkt_err_stats->jabber_timeout_error = 0U;
+		pkt_err_stats->pkt_flush_error = 0U;
+		pkt_err_stats->payload_cs_error = 0U;
+		pkt_err_stats->loss_of_carrier_error = 0U;
+		pkt_err_stats->no_carrier_error = 0U;
+		pkt_err_stats->late_collision_error = 0U;
+		pkt_err_stats->excessive_collision_error = 0U;
+		pkt_err_stats->excessive_deferal_error = 0U;
+		pkt_err_stats->underflow_error = 0U;
+		pkt_err_stats->clear_tx_err =
+			osi_update_stats_counter(pkt_err_stats->clear_tx_err,
+						 1UL);
 		ret = 0;
 	}
 
@@ -414,10 +419,15 @@ int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 {
 	int ret = -1;
+	struct osi_pkt_err_stats *pkt_err_stats;
 
 	if (osi_dma != OSI_NULL) {
+		pkt_err_stats = &osi_dma->pkt_err_stats;
 		/* Reset Rx packet errors */
-		osi_dma->pkt_err_stats.rx_crc_error = 0U;
+		pkt_err_stats->rx_crc_error = 0U;
+		pkt_err_stats->clear_tx_err =
+			osi_update_stats_counter(pkt_err_stats->clear_rx_err,
+						 1UL);
 		ret = 0;
 	}
 
