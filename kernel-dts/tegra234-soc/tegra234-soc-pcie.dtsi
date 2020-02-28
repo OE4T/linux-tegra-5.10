@@ -355,90 +355,6 @@
 		};
 	};
 
-	/* C0 X4 */
-	pcie_ep@14180000 {
-		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4B0>;
-		reg = <0x00 0x14180000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x38000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x38040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
-
-		status = "disabled";
-
-		num-lanes = <4>;
-		nvidia,controller-id = <&bpmp 0x0>;
-
-		#address-cells = <3>;
-		#size-cells = <2>;
-
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0>;
-		clock-names = "core_clk";
-
-		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_0_APB>,
-			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_0>;
-		reset-names = "core_apb_rst", "core_rst";
-
-		interrupts = <0 72 0x04>;	/* controller interrupt */
-		interrupt-names = "intr";
-
-		nvidia,bar0-size = <0x100000>;	/* 1 MB */
-
-		iommus = <&smmu TEGRA_SID_PCIE0>;
-		dma-coherent;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE0 0x1000>;
-		iommu-map-mask = <0x0>;
-
-		nvidia,cfg-link-cap-l1sub = <0x1b0>;
-		nvidia,cap-pl16g-status = <0x174>;
-		nvidia,cap-pl16g-cap-off = <0x188>;
-		nvidia,event-cntr-ctrl = <0x1c4>;
-		nvidia,event-cntr-data = <0x1c8>;
-		nvidia,dl-feature-cap = <0x2f8>;
-	};
-
-	/* C4 X4 */
-	pcie_ep@14160000 {
-		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4B1>;
-		reg = <0x00 0x14160000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x36000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x36040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
-
-		#address-cells = <3>;
-		#size-cells = <2>;
-
-		status = "disabled";
-
-		num-lanes = <4>;
-		nvidia,controller-id = <&bpmp 0x4>;
-
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4>;
-		clock-names = "core_clk";
-
-		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_4_APB>,
-			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_4>;
-		reset-names = "core_apb_rst", "core_rst";
-
-		interrupts = <0 51 0x04>;	/* controller interrupt */
-		interrupt-names = "intr";
-
-		nvidia,bar0-size = <0x100000>;	/* 1 MB */
-
-		iommus = <&smmu TEGRA_SID_PCIE4>;
-		dma-coherent;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE4 0x1000>;
-		iommu-map-mask = <0x0>;
-
-		nvidia,cfg-link-cap-l1sub = <0x1b0>;
-		nvidia,cap-pl16g-status = <0x174>;
-		nvidia,cap-pl16g-cap-off = <0x188>;
-		nvidia,event-cntr-ctrl = <0x1c4>;
-		nvidia,event-cntr-data = <0x1c8>;
-		nvidia,dl-feature-cap = <0x2f8>;
-	};
-
 	/* C5 X8 */
 	pcie_ep@141a0000 {
 		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
@@ -467,6 +383,7 @@
 		interrupt-names = "intr";
 
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
+		nvidia,device-id = /bits/ 16 <0x229B>;
 
 		iommus = <&smmu TEGRA_SID_PCIE5>;
 		dma-coherent;
@@ -512,6 +429,7 @@
 		interrupt-names = "intr";
 
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
+		nvidia,device-id = /bits/ 16 <0x229D>;
 
 		iommus = <&smmu TEGRA_SID_PCIE6>;
 		dma-coherent;
@@ -555,6 +473,7 @@
 		interrupt-names = "intr";
 
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
+		nvidia,device-id = /bits/ 16 <0x229B>;
 
 		iommus = <&smmu TEGRA_SID_PCIE7>;
 		dma-coherent;
@@ -567,92 +486,6 @@
 		nvidia,event-cntr-ctrl = <0x1d8>;
 		nvidia,event-cntr-data = <0x1dc>;
 		nvidia,dl-feature-cap = <0x30c>;
-	};
-
-	/* C8 X4 */
-	pcie_ep@140a0000 {
-		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4D>;
-		reg = <0x00 0x140a0000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x2a000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x2a040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
-
-		status = "disabled";
-
-		num-lanes = <4>;
-		nvidia,controller-id = <&bpmp 0x8>;
-
-		#address-cells = <3>;
-		#size-cells = <2>;
-#if 0
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_8>;
-		clock-names = "core_clk";
-
-		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_8_APB>,
-			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_8>;
-#endif
-		reset-names = "core_apb_rst", "core_rst";
-
-		interrupts = <0 356 0x04>;	/* controller interrupt */
-		interrupt-names = "intr";
-
-		nvidia,bar0-size = <0x100000>;	/* 1 MB */
-
-		iommus = <&smmu TEGRA_SID_PCIE8>;
-		dma-coherent;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE8 0x1000>;
-		iommu-map-mask = <0x0>;
-
-		nvidia,cfg-link-cap-l1sub = <0x1b0>;
-		nvidia,cap-pl16g-status = <0x174>;
-		nvidia,cap-pl16g-cap-off = <0x188>;
-		nvidia,event-cntr-ctrl = <0x1c4>;
-		nvidia,event-cntr-data = <0x1c8>;
-		nvidia,dl-feature-cap = <0x2f8>;
-	};
-
-	/* C9 X4 */
-	pcie_ep@140c0000 {
-		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4E>;
-		reg = <0x00 0x140c0000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x2c000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x2c040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
-
-		status = "disabled";
-
-		num-lanes = <4>;
-		nvidia,controller-id = <&bpmp 0x9>;
-
-		#address-cells = <3>;
-		#size-cells = <2>;
-#if 0
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_9>;
-		clock-names = "core_clk";
-
-		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_9_APB>,
-			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_9>;
-#endif
-		reset-names = "core_apb_rst", "core_rst";
-
-		interrupts = <0 358 0x04>;	/* controller interrupt */
-		interrupt-names = "intr";
-
-		nvidia,bar0-size = <0x100000>;	/* 1 MB */
-
-		iommus = <&smmu TEGRA_SID_PCIE9>;
-		dma-coherent;
-		iommu-map = <0x0 &smmu TEGRA_SID_PCIE9 0x1000>;
-		iommu-map-mask = <0x0>;
-
-		nvidia,cfg-link-cap-l1sub = <0x1b0>;
-		nvidia,cap-pl16g-status = <0x174>;
-		nvidia,cap-pl16g-cap-off = <0x188>;
-		nvidia,event-cntr-ctrl = <0x1c4>;
-		nvidia,event-cntr-data = <0x1c8>;
-		nvidia,dl-feature-cap = <0x2f8>;
 	};
 
 	/* C10 X4 */
@@ -684,6 +517,7 @@
 		interrupt-names = "intr";
 
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
+		nvidia,device-id = /bits/ 16 <0x229D>;
 
 		iommus = <&smmu TEGRA_SID_PCIE10>;
 		dma-coherent;
