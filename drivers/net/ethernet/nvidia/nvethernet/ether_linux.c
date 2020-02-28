@@ -955,10 +955,10 @@ static void ether_napi_enable(struct ether_priv_data *pdata)
 
 /**
  * @brief Free receive skbs
- * 
+ *
  * @param[in] rx_swcx: Rx pkt SW context
  * @param[in] dev: device instance associated with driver.
- * @param[in] rx_buf_len: Receive buffer length 
+ * @param[in] rx_buf_len: Receive buffer length
  */
 static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
 			       unsigned int rx_buf_len)
@@ -2559,7 +2559,7 @@ static int ether_set_mac_addr(struct net_device *ndev, void *addr)
  * Algorithm:
  * 1) Check and return if interface is up.
  * 2) Stores new MTU size set by user in OSI core data structure.
- *     
+ *
  * @param[in] ndev: Network device structure
  * @param[in] new_mtu: New MTU size to set.
  *
@@ -2683,7 +2683,7 @@ static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
 /**
  * @brief Removes VLAN ID. This function is invoked by
  * upper layer when a new VALN id is removed. This function updates the
- * HW filter. vlan id can be removed with vconfig - 
+ * HW filter. vlan id can be removed with vconfig -
  * vconfig rem interface_name vlan_id
  *
  * Algorithm:
@@ -2849,7 +2849,7 @@ static enum hrtimer_restart ether_tx_usecs_hrtimer(struct hrtimer *data)
  *
  * @note Number of channels and channel numbers needs to be
  * updated in OSI private data structure.
- * 
+ *
  * @retval 0 on success
  * @retval "negative value" on failure.
  */
@@ -3229,7 +3229,7 @@ static int ether_get_mac_address_dtb(const char *node_name,
 		goto err_out;
 	}
 
-	for (i = 0; i < 6; ++i)
+	for (i = 0; i < ETH_ALEN; ++i)
 		mac_temp[i] = (unsigned char)values[i];
 
 	if (!is_valid_ether_addr(mac_temp)) {
@@ -3237,7 +3237,7 @@ static int ether_get_mac_address_dtb(const char *node_name,
 		goto err_out;
 	}
 
-	memcpy(mac_addr, mac_temp, 6);
+	memcpy(mac_addr, mac_temp, ETH_ALEN);
 
 	of_node_put(np);
 	return ret;
@@ -3267,29 +3267,40 @@ err_out:
 static int ether_get_mac_address(struct ether_priv_data *pdata)
 {
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct device *dev = pdata->dev;
 	struct net_device *ndev = pdata->ndev;
-	unsigned char mac_addr[6] = {0};
-	int ret = 0, i;
+	struct device_node *np = dev->of_node;
+	const char *eth_mac_addr = NULL;
+	unsigned char mac_addr[ETH_ALEN] = {0};
+	int ret = 0;
 
 	if (!osi_core->pre_si) {
 		/* read MAC address */
-		ret = ether_get_mac_address_dtb("/chosen",
-						"nvidia,ether-mac",
-						mac_addr);
-		if (ret < 0)
-			return ret;
+		eth_mac_addr = of_get_mac_address(np);
+		if (!eth_mac_addr) {
+			ret = ether_get_mac_address_dtb("/chosen",
+							"nvidia,ether-mac",
+							mac_addr);
+			if (ret < 0)
+				return ret;
+			eth_mac_addr = mac_addr;
+		} else {
+			if (!(is_valid_ether_addr(eth_mac_addr))) {
+				dev_err(dev, "Bad mac address exiting\n");
+				return -EINVAL;
+			}
+		}
 	} else {
 		ndev->addr_assign_type = NET_ADDR_RANDOM;
 		eth_random_addr(mac_addr);
+		eth_mac_addr = mac_addr;
 	}
 
-	/* Set up MAC address */
-	for (i = 0; i < 6; i++) {
-		ndev->dev_addr[i] = mac_addr[i];
-		osi_core->mac_addr[i] = mac_addr[i];
-	}
+	/* Found a valid mac address */
+	memcpy(ndev->dev_addr, eth_mac_addr, ETH_ALEN);
+	memcpy(osi_core->mac_addr, eth_mac_addr, ETH_ALEN);
 
-	dev_info(pdata->dev, "Ethernet MAC address: %pM\n", ndev->dev_addr);
+	dev_info(dev, "Ethernet MAC address: %pM\n", ndev->dev_addr);
 
 	return ret;
 }
@@ -4103,7 +4114,7 @@ static int ether_set_dma_mask(struct ether_priv_data *pdata)
  * 2) Enable corresponding feature flag so that network subsystem of OS
  * is aware of device capabilities.
  * 3) Update current enable/disable state of features currently enabled
- * 
+ *
  * @param[in] ndev: Network device instance
  * @param[in] pdata: OS dependent private data structure.
  *
