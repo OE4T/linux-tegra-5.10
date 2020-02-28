@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -136,6 +136,10 @@ struct osi_pkt_err_stats {
 	unsigned long rx_crc_error;
 	/** Rx Frame Error */
 	unsigned long rx_frame_error;
+	/** clear_tx_pkt_err_stats() API invoked */
+	unsigned long clear_tx_err;
+	/** clear_rx_pkt_err_stats() API invoked */
+	unsigned long clear_rx_err;
 };
 
 /**
