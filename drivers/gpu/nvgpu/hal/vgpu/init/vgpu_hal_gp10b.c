@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -181,7 +181,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_circular_buffer_size = NULL,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 		.set_gpc_tpc_mask = NULL,
+#endif
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.dump_gr_regs = NULL,

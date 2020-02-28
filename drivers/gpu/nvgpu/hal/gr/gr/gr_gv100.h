@@ -1,7 +1,7 @@
 /*
  * GV100 GPU GR
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,9 @@
 
 struct gk20a;
 
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 void gr_gv100_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
+#endif
 void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 	u32 num_fbpas,
 	u32 *priv_addr_table, u32 *t);

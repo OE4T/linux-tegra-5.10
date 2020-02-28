@@ -22,7 +22,9 @@
 #include <linux/pm_runtime.h>
 #include <linux/pm_qos.h>
 #include <linux/platform_device.h>
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 #include <soc/tegra/chip-id.h>
+#endif
 
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
@@ -357,8 +359,10 @@ int vgpu_probe(struct platform_device *pdev)
 	}
 
 	l->dev = dev;
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 	if (tegra_platform_is_vdk())
 		nvgpu_set_enabled(gk20a, NVGPU_IS_FMODEL, true);
+#endif
 
 	gk20a->is_virtual = true;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,10 +30,14 @@
 struct gk20a;
 
 #include <nvgpu/types.h>
+#include <nvgpu/errno.h>
+
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g);
-#endif
+int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g, int *id);
+int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val);
+#endif /* CONFIG_NVGPU_NON_FUSA */
 
 /**
  * @brief -  Write Fuse bypass register which controls fuse bypass.
@@ -97,7 +101,50 @@ void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g, u32 val);
  */
 int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val);
 
+#else /* CONFIG_NVGPU_TEGRA_FUSE */
+
 #ifdef CONFIG_NVGPU_NON_FUSA
-int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val);
-#endif
+static inline int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g, int *id)
+{
+	return -EINVAL;
+}
+
+static inline int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g,
+						       u32 *val)
+{
+	return -EINVAL;
+}
+#endif /* CONFIG_NVGPU_NON_FUSA */
+
+static inline void nvgpu_tegra_fuse_write_bypass(struct gk20a *g, u32 val)
+{
+}
+
+static inline void nvgpu_tegra_fuse_write_access_sw(struct gk20a *g, u32 val)
+{
+}
+
+static inline void nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(struct gk20a *g,
+							       u32 val)
+{
+}
+
+static inline void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g,
+							       u32 val)
+{
+}
+
+static inline int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g,
+							   u32 *val)
+{
+	/*
+	 * Setting gcplex_config fuse to wpr_enabled/vpr_auto_fetch_disable
+	 * by default that is expected on the production chip.
+	 */
+	*val = 0x4;
+
+	return 0;
+}
+
+#endif /* CONFIG_NVGPU_TEGRA_FUSE */
 #endif /* NVGPU_FUSE_H */

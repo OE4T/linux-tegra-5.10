@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,9 +15,11 @@
 
 #include <nvgpu/fuse.h>
 
-int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g)
+int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g, int *id)
 {
-	return tegra_sku_info.gpu_speedo_id;
+	*id = tegra_sku_info.gpu_speedo_id;
+
+	return 0;
 }
 
 /*

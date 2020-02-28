@@ -225,3 +225,10 @@ config NVGPU_VPR
 	default y
 	help
 	  Support for NVGPU VPR
+
+config NVGPU_TEGRA_FUSE
+	bool "Tegra fuse Support"
+	depends on GK20A
+	default y
+	help
+	  Support Tegra fuse

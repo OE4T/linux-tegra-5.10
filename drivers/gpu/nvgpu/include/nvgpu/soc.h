@@ -26,6 +26,7 @@
 
 struct gk20a;
 
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 /**
  * @brief Check whether running on silicon or not.
  *
@@ -113,5 +114,43 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g);
  * @return Returns 0 on success or in case of failure, a suitable error code.
  */
 int nvgpu_init_soc_vars(struct gk20a *g);
+
+#else /* CONFIG_NVGPU_TEGRA_FUSE */
+
+static inline bool nvgpu_platform_is_silicon(struct gk20a *g)
+{
+	return true;
+}
+
+static inline bool nvgpu_platform_is_simulation(struct gk20a *g)
+{
+	return false;
+}
+
+static inline bool nvgpu_platform_is_fpga(struct gk20a *g)
+{
+	return false;
+}
+
+static inline bool nvgpu_is_hypervisor_mode(struct gk20a *g)
+{
+	return false;
+}
+
+static inline bool nvgpu_is_bpmp_running(struct gk20a *g)
+{
+	return false;
+}
+
+static inline bool nvgpu_is_soc_t194_a01(struct gk20a *g)
+{
+	return false;
+}
+
+static inline int nvgpu_init_soc_vars(struct gk20a *g)
+{
+	return 0;
+}
+#endif /* CONFIG_NVGPU_TEGRA_FUSE */
 
 #endif /* NVGPU_SOC_H */

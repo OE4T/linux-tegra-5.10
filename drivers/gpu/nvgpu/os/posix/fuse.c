@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 #include <nvgpu/posix/soc_fuse.h>
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g)
+int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g, int *id)
 {
 	return 0;
 }

@@ -1,7 +1,7 @@
 /*
  * GP10B GPU GR
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -365,6 +365,7 @@ int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 {
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);
@@ -379,6 +380,7 @@ void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x0);
 	}
 }
+#endif
 
 static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct nvgpu_channel *fault_ch)
 {

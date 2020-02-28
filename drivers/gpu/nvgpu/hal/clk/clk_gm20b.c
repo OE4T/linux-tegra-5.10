@@ -301,13 +301,6 @@ static int nvgpu_fuse_calib_gpcpll_get_adc(struct gk20a *g,
 	return 0;
 }
 
-#ifdef CONFIG_TEGRA_USE_NA_GPCPLL
-static bool nvgpu_fuse_can_use_na_gpcpll(struct gk20a *g)
-{
-	return nvgpu_tegra_get_gpu_speedo_id(g);
-}
-#endif
-
 /*
  * Read ADC characteristic parmeters from fuses.
  * Determine clibration settings.
@@ -1179,11 +1172,37 @@ struct pll_parms *gm20b_get_gpc_pll_parms(void)
 	return &gpc_pll_params;
 }
 
+#ifdef CONFIG_TEGRA_USE_NA_GPCPLL
+static int nvgpu_fuse_can_use_na_gpcpll(struct gk20a *g, int *id)
+{
+	return nvgpu_tegra_get_gpu_speedo_id(g, id);
+}
+
+static int nvgpu_clk_set_na_gpcpll(struct gk20a *g)
+{
+	struct clk_gk20a *clk = &g->clk;
+	int speedo_id;
+	int err;
+
+	err = nvgpu_fuse_can_use_na_gpcpll(g, &speedo_id);
+	if (err == 0) {
+		/* NA mode is supported only at max update rate 38.4 MHz */
+		if (speedo_id) {
+			WARN_ON(clk->gpc_pll.clk_in != gpc_pll_params.max_u);
+			clk->gpc_pll.mode = GPC_PLL_MODE_DVFS;
+			gpc_pll_params.min_u = gpc_pll_params.max_u;
+		}
+	}
+
+	return err;
+}
+#endif
+
 int gm20b_init_clk_setup_sw(struct gk20a *g)
 {
 	struct clk_gk20a *clk = &g->clk;
 	unsigned long safe_rate;
-	int err;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -1236,11 +1255,10 @@ int gm20b_init_clk_setup_sw(struct gk20a *g)
 	  */
 	clk_config_calibration_params(g);
 #ifdef CONFIG_TEGRA_USE_NA_GPCPLL
-	if (nvgpu_fuse_can_use_na_gpcpll(g)) {
-		/* NA mode is supported only at max update rate 38.4 MHz */
-		BUG_ON(clk->gpc_pll.clk_in != gpc_pll_params.max_u);
-		clk->gpc_pll.mode = GPC_PLL_MODE_DVFS;
-		gpc_pll_params.min_u = gpc_pll_params.max_u;
+	err = nvgpu_clk_set_na_gpcpll(g);
+	if (err != 0) {
+		nvgpu_err(g, "NA GPCPLL fuse info. not available");
+		goto fail;
 	}
 #endif
 

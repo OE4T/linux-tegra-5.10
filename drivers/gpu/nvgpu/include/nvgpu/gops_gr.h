@@ -1065,7 +1065,9 @@ struct gops_gr {
 	void (*get_ovr_perf_regs)(struct gk20a *g,
 				  u32 *num_ovr_perf_regs,
 				  u32 **ovr_perf_regsr);
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 	void (*set_gpc_tpc_mask)(struct gk20a *g, u32 gpc_index);
+#endif
 	int (*decode_egpc_addr)(struct gk20a *g,
 				u32 addr, enum ctxsw_addr_type *addr_type,
 				u32 *gpc_num, u32 *tpc_num,

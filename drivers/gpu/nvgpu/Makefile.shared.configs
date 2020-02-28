@@ -84,6 +84,9 @@ NVGPU_COMMON_CFLAGS             +=      \
 
 endif
 
+CONFIG_NVGPU_TEGRA_FUSE		:= 1
+NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_TEGRA_FUSE
+
 #
 # Flags enabled only for safety debug and regular build profile.
 #

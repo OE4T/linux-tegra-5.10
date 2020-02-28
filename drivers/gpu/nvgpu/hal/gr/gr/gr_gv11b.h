@@ -1,7 +1,7 @@
 /*
  * GV11B GPU GR
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,9 @@ void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 			   struct nvgpu_debug_context *o);
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 void gr_gv11b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
+#endif
 int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
 		bool sm_debugger_attached, struct nvgpu_channel *fault_ch,

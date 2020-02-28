@@ -1,7 +1,7 @@
 /*
  * GM20B GPC MMU
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -48,7 +48,9 @@ void gr_gm20b_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 					       u32 *num_sm_dsm_perf_ctrl_regs,
 					       u32 **sm_dsm_perf_ctrl_regs,
 					       u32 *ctrl_register_stride);
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
+#endif
 bool gr_gm20b_is_tpc_addr(struct gk20a *g, u32 addr);
 u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr);
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,

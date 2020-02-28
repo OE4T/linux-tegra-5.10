@@ -890,6 +890,7 @@ static DEVICE_ATTR(tpc_pg_mask, ROOTRW, tpc_pg_mask_read, tpc_pg_mask_store);
 static ssize_t tpc_fs_mask_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 	struct gk20a *g = get_gk20a(dev);
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image =
@@ -924,6 +925,9 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 	}
 
 	return count;
+#else
+	return -ENODEV;
+#endif
 }
 
 static ssize_t tpc_fs_mask_read(struct device *dev,

@@ -31,7 +31,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/firmware.c \
 	os/posix/soc.c \
 	os/posix/error_notifier.c \
-	os/posix/fuse.c \
 	os/posix/posix-channel.c \
 	os/posix/posix-tsg.c \
 	os/posix/stubs.c \
@@ -41,6 +40,10 @@ srcs +=	os/posix/nvgpu.c \
 
 ifdef CONFIG_NVGPU_VPR
 srcs += os/posix/posix-vpr.c
+endif
+
+ifdef CONFIG_NVGPU_TEGRA_FUSE
+srcs += os/posix/fuse.c
 endif
 
 ifdef CONFIG_NVGPU_FECS_TRACE

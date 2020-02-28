@@ -200,7 +200,9 @@ static const struct gpu_ops gm20b_ops = {
 		.set_circular_buffer_size = gr_gm20b_set_circular_buffer_size,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 		.set_gpc_tpc_mask = gr_gm20b_set_gpc_tpc_mask,
+#endif
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.dump_gr_regs = gr_gm20b_dump_gr_status_regs,

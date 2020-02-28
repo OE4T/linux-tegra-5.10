@@ -428,11 +428,14 @@ endif
 nvgpu-$(CONFIG_TEGRA_GK20A) += \
 	os/linux/module.o \
 	os/linux/module_usermode.o \
-	os/linux/soc.o \
-	os/linux/fuse.o \
 	os/linux/platform_gk20a_tegra.o \
 	os/linux/platform_gp10b_tegra.o \
 	os/linux/platform_gv11b_tegra.o
+
+ifeq ($(CONFIG_TEGRA_GK20A),y)
+nvgpu-$(CONFIG_NVGPU_TEGRA_FUSE) += os/linux/fuse.o \
+				    os/linux/soc.o
+endif
 
 nvgpu-$(CONFIG_SYNC) += \
 	os/linux/sync_sema_android.o \

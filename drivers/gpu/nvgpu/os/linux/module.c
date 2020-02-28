@@ -31,11 +31,13 @@
 #include <linux/of_gpio.h>
 
 #include <uapi/linux/nvgpu.h>
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 #include <dt-bindings/soc/gm20b-fuse.h>
 #include <dt-bindings/soc/gp10b-fuse.h>
 #include <dt-bindings/soc/gv11b-fuse.h>
 
 #include <soc/tegra/fuse.h>
+#endif /* CONFIG_NVGPU_TEGRA_FUSE */
 
 #include <nvgpu/hal_init.h>
 #include <nvgpu/dma.h>
@@ -1134,9 +1136,12 @@ static int gk20a_pm_railgate(struct device *dev)
 #ifdef CONFIG_DEBUG_FS
 	g->pstats.last_rail_gate_complete = jiffies;
 #endif
+
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 	ret = tegra_fuse_clock_disable();
 	if (ret)
 		nvgpu_err(g, "failed to disable tegra fuse clock, err=%d", ret);
+#endif
 
 	return ret;
 }
@@ -1151,11 +1156,14 @@ static int gk20a_pm_unrailgate(struct device *dev)
 	if (!platform->unrailgate)
 		return 0;
 
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 	ret = tegra_fuse_clock_enable();
 	if (ret) {
 		nvgpu_err(g, "failed to enable tegra fuse clock, err=%d", ret);
 		return ret;
 	}
+#endif
+
 #ifdef CONFIG_DEBUG_FS
 	g->pstats.last_rail_ungate_start = jiffies;
 	if (g->pstats.railgating_cycle_count >= 1)
@@ -1505,6 +1513,7 @@ static inline void set_gk20a(struct platform_device *pdev, struct gk20a *gk20a)
 
 static int nvgpu_read_fuse_overrides(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 	struct device_node *np = nvgpu_get_node(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev_from_gk20a(g));
 	u32 *fuses;
@@ -1545,7 +1554,7 @@ static int nvgpu_read_fuse_overrides(struct gk20a *g)
 	}
 
 	nvgpu_kfree(g, fuses);
-
+#endif
 	return 0;
 }
 

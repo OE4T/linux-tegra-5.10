@@ -36,7 +36,9 @@
 #endif
 
 #include <linux/platform/tegra/tegra_emc.h>
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 #include <soc/tegra/chip-id.h>
+#endif
 
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
@@ -830,8 +832,10 @@ static int gk20a_tegra_probe(struct device *dev)
 			dev_warn(dev, "board does not support scaling");
 		}
 		platform->g->clk.gpc_pll.id = GM20B_GPC_PLL_B1;
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 		if (tegra_chip_get_revision() > TEGRA210_REVISION_A04p)
 			platform->g->clk.gpc_pll.id = GM20B_GPC_PLL_C1;
+#endif
 	}
 
 	if (platform->platform_chip_id == TEGRA_132)

@@ -18,7 +18,6 @@
 
 #include <linux/devfreq.h>
 #include <linux/export.h>
-#include <soc/tegra/chip-id.h>
 #include <linux/pm_qos.h>
 
 #include <governor.h>
