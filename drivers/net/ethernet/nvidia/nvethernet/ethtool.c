@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -37,6 +37,27 @@ struct ether_stats {
 	/** stat offset */
 	size_t stat_offset;
 };
+
+/**
+ * @brief Name of pkt_err statistics, with length of name not more than
+ * ETH_GSTRING_LEN
+ */
+#define ETHER_PKT_ERR_STAT(y) \
+{ (#y), FIELD_SIZEOF(struct osi_pkt_err_stats, y), \
+	offsetof(struct osi_dma_priv_data, pkt_err_stats.y)}
+/**
+ * @brief ETHER clear pkt_err statistics
+ */
+static const struct ether_stats ether_cstrings_stats[] = {
+	/* Counter for pkt_err stats got cleared */
+	ETHER_PKT_ERR_STAT(clear_tx_err),
+	ETHER_PKT_ERR_STAT(clear_rx_err),
+};
+
+/**
+ * @brief clear pkt_err statistics array length
+ */
+#define ETHER_PKT_ERR_STAT_LEN OSI_ARRAY_SIZE(ether_cstrings_stats)
 
 /**
  * @brief Name of extra DMA stat, with length of name not more than ETH_GSTRING_LEN
@@ -305,6 +326,14 @@ static void ether_get_ethtool_stats(struct net_device *dev,
 			data[j++] = (ether_dstrings_stats[i].sizeof_stat ==
 				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
 		}
+
+		for (i = 0; i < ETHER_PKT_ERR_STAT_LEN; i++) {
+			char *p = (char *)osi_dma +
+				  ether_cstrings_stats[i].stat_offset;
+
+			data[j++] = (ether_cstrings_stats[i].sizeof_stat ==
+				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
+		}
 	}
 }
 
@@ -342,6 +371,11 @@ static int ether_get_sset_count(struct net_device *dev, int sset)
 			/* do nothing */
 		} else {
 			len += ETHER_EXTRA_DMA_STAT_LEN;
+		}
+		if (INT_MAX - ETHER_PKT_ERR_STAT_LEN < len) {
+			/* do nothing */
+		} else {
+			len += ETHER_PKT_ERR_STAT_LEN;
 		}
 	} else {
 		len = -EOPNOTSUPP;
@@ -390,6 +424,14 @@ static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 			}
 			for (i = 0; i < ETHER_EXTRA_DMA_STAT_LEN; i++) {
 				str = (u8 *)ether_dstrings_stats[i].stat_string;
+				if (memcpy(p, str, ETH_GSTRING_LEN) ==
+				    OSI_NULL) {
+					return;
+				}
+				p += ETH_GSTRING_LEN;
+			}
+			for (i = 0; i < ETHER_PKT_ERR_STAT_LEN; i++) {
+				str = (u8 *)ether_cstrings_stats[i].stat_string;
 				if (memcpy(p, str, ETH_GSTRING_LEN) ==
 				    OSI_NULL) {
 					return;
