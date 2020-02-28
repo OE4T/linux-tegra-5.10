@@ -3616,6 +3616,16 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	val |= APPL_INTR_EN_L1_0_0_RDLH_LINK_UP_INT_EN;
 	writel(val, pcie->appl_base + APPL_INTR_EN_L1_0_0);
 
+	/* 110us for both snoop and no-snoop */
+	val = 110 | (2 << PCI_LTR_SCALE_SHIFT) | LTR_MSG_REQ;
+	val |= (val << LTR_MST_NO_SNOOP_SHIFT);
+	writel(val, pcie->appl_base + APPL_LTR_MSG_1);
+
+	/* Send LTR upstream */
+	val = readl(pcie->appl_base + APPL_LTR_MSG_2);
+	val |= APPL_LTR_MSG_2_LTR_MSG_REQ_STATE;
+	writel(val, pcie->appl_base + APPL_LTR_MSG_2);
+
 	reset_control_deassert(pcie->core_rst);
 
 	/* FPGA specific PHY initialization */
@@ -3802,10 +3812,6 @@ static void pex_ep_event_bme_change(struct tegra_pcie_dw *pcie)
 	if (val & EP_CS_STATUS_COMMAND_BME) {
 		ktime_t timeout;
 
-		/* 110us for both snoop and no-snoop */
-		val = 110 | (2 << PCI_LTR_SCALE_SHIFT) | LTR_MSG_REQ;
-		val |= (val << LTR_MST_NO_SNOOP_SHIFT);
-		writel(val, pcie->appl_base + APPL_LTR_MSG_1);
 		/* Send LTR upstream */
 		val = readl(pcie->appl_base + APPL_LTR_MSG_2);
 		val |= APPL_LTR_MSG_2_LTR_MSG_REQ_STATE;
