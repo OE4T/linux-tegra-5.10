@@ -43,8 +43,8 @@
 #include <linux/version.h>
 #if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 #include <linux/tegra-ivc.h>
-#endif
 #include <soc/tegra/chip-id.h>
+#endif
 #include <osi_core.h>
 #include <osi_dma.h>
 #include <mmc.h>

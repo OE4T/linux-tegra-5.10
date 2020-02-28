@@ -467,8 +467,13 @@ static void ether_get_pauseparam(struct net_device *ndev,
 
 	/* return if pause frame is not supported */
 	if ((pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_DISABLE) ||
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
+	    (!linkmode_test_bit(SUPPORTED_Pause, phydev->supported) ||
+	    !linkmode_test_bit(SUPPORTED_Asym_Pause, phydev->supported))) {
+#else
 	    (!(phydev->supported & SUPPORTED_Pause) ||
 	    !(phydev->supported & SUPPORTED_Asym_Pause))) {
+#endif
 		dev_err(pdata->dev, "FLOW control not supported\n");
 		return;
 	}
@@ -517,8 +522,13 @@ static int ether_set_pauseparam(struct net_device *ndev,
 
 	/* return if pause frame is not supported */
 	if ((pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_DISABLE) ||
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
+	    (!linkmode_test_bit(SUPPORTED_Pause, phydev->supported) ||
+	    !linkmode_test_bit(SUPPORTED_Asym_Pause, phydev->supported))) {
+#else
 	    (!(phydev->supported & SUPPORTED_Pause) ||
 	    !(phydev->supported & SUPPORTED_Asym_Pause))) {
+#endif
 		dev_err(pdata->dev, "FLOW control not supported\n");
 		return -EOPNOTSUPP;
 	}

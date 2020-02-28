@@ -103,7 +103,7 @@ struct ifr_data_timestamp_struct {
 	/** Clock ID */
 	clockid_t clockid;
 	/** Store kernel time */
-	struct timespec kernel_ts;
+	struct timespec64 kernel_ts;
 	/** Store HW time */
 	struct timespec hw_ptp_ts;
 };
