@@ -379,7 +379,12 @@ static int ether_phy_init(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct phy_device *phydev = NULL;
-
+#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
+	const unsigned int long supported = (SUPPORTED_Pause |
+							SUPPORTED_Asym_Pause);
+	const unsigned int long not_supported = ~(SUPPORTED_Pause |
+							SUPPORTED_Asym_Pause);
+#endif
 	pdata->oldlink = 0;
 	pdata->speed = SPEED_UNKNOWN;
 	pdata->oldduplex = SPEED_UNKNOWN;
@@ -405,11 +410,27 @@ static int ether_phy_init(struct net_device *dev)
 	 * in PHY driver, handle this in eqos driver so that enabling/disabling
 	 * of the pause frame feature can be controlled based on the platform
 	 */
-	phydev->supported |= (SUPPORTED_Pause | SUPPORTED_Asym_Pause);
-	if (pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_DISABLE)
-		phydev->supported &= ~(SUPPORTED_Pause | SUPPORTED_Asym_Pause);
 
+#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
+	linkmode_or(phydev->supported, phydev->supported,
+		    &supported);
+#else
+	phydev->supported |= (SUPPORTED_Pause | SUPPORTED_Asym_Pause);
+#endif
+	if (pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_DISABLE)
+#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
+		linkmode_and(phydev->supported,
+			     phydev->supported,
+			     &not_supported);
+#else
+		phydev->supported &= ~(SUPPORTED_Pause | SUPPORTED_Asym_Pause);
+#endif
+#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
+	linkmode_copy(phydev->advertising,
+		      phydev->supported);
+#else
 	phydev->advertising = phydev->supported;
+#endif
 
 	pdata->phydev = phydev;
 
@@ -1027,10 +1048,10 @@ static int allocate_rx_dma_resource(struct osi_dma_priv_data *osi_dma,
 		dev_err(dev, "failed to allocate Rx ring\n");
 		return -ENOMEM;
 	}
-
-	osi_dma->rx_ring[chan]->rx_desc = dma_zalloc_coherent(dev, rx_desc_size,
+	osi_dma->rx_ring[chan]->rx_desc = dma_alloc_coherent(dev, rx_desc_size,
 			(dma_addr_t *)&osi_dma->rx_ring[chan]->rx_desc_phy_addr,
-			GFP_KERNEL);
+			GFP_KERNEL | __GFP_ZERO);
+
 	if (osi_dma->rx_ring[chan]->rx_desc == NULL) {
 		dev_err(dev, "failed to allocate receive descriptor\n");
 		ret = -ENOMEM;
@@ -1215,10 +1236,10 @@ static int allocate_tx_dma_resource(struct osi_dma_priv_data *osi_dma,
 		dev_err(dev, "failed to allocate Tx ring\n");
 		return -ENOMEM;
 	}
-
-	osi_dma->tx_ring[chan]->tx_desc = dma_zalloc_coherent(dev, tx_desc_size,
+	osi_dma->tx_ring[chan]->tx_desc = dma_alloc_coherent(dev, tx_desc_size,
 			(dma_addr_t *)&osi_dma->tx_ring[chan]->tx_desc_phy_addr,
-			GFP_KERNEL);
+			GFP_KERNEL | __GFP_ZERO);
+
 	if (osi_dma->tx_ring[chan]->tx_desc == NULL) {
 		dev_err(dev, "failed to allocate transmit descriptor\n");
 		ret = -ENOMEM;
@@ -1880,7 +1901,11 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	struct osi_tx_swcx *tx_swcx = NULL;
 	unsigned int len = 0, offset = 0, size = 0;
 	int cnt = 0, ret = 0, i, num_frags;
+#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
+	skb_frag_t *frag;
+#else
 	struct skb_frag_struct *frag;
+#endif
 	unsigned int page_idx, page_offset;
 	unsigned int max_data_len_per_txd = (unsigned int)
 					ETHER_TX_MAX_BUFF_SIZE;
@@ -2009,11 +2034,19 @@ static int ether_tx_swcx_alloc(struct device *dev,
 			}
 
 			size = min(len, max_data_len_per_txd);
-
+#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
+			page_idx = (frag->bv_offset + offset) >> PAGE_SHIFT;
+			page_offset = (frag->bv_offset + offset) & ~PAGE_MASK;
+#else
 			page_idx = (frag->page_offset + offset) >> PAGE_SHIFT;
 			page_offset = (frag->page_offset + offset) & ~PAGE_MASK;
+#endif
 			tx_swcx->buf_phy_addr = dma_map_page(dev,
+#if (KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE)
+						(frag->bv_page + page_idx),
+#else
 						(frag->page.p + page_idx),
+#endif
 						page_offset, size,
 						DMA_TO_DEVICE);
 			if (unlikely(dma_mapping_error(dev,
@@ -4130,11 +4163,12 @@ static void init_filter_values(struct ether_priv_data *pdata)
 static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core)
 {
 	/* VDK set true for both VDK/uFPGA */
-	if (tegra_platform_is_vdk()) {
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
+	if (tegra_platform_is_vdk())
 		osi_core->pre_si = 1;
-	} else {
+	else
+#endif
 		osi_core->pre_si = 0;
-	}
 }
 
 /**

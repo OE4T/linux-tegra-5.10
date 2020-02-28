@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -138,7 +138,7 @@ static int ether_adjust_freq(struct ptp_clock_info *ptp, s32 ppb)
  * @retval 0 on success
  * @retval "negative value" on failure.
  */
-static int ether_get_time(struct ptp_clock_info *ptp, struct timespec *ts)
+static int ether_get_time(struct ptp_clock_info *ptp, struct timespec64 *ts)
 {
 	struct ether_priv_data *pdata = container_of(ptp,
 						     struct ether_priv_data,
@@ -172,7 +172,7 @@ static int ether_get_time(struct ptp_clock_info *ptp, struct timespec *ts)
  * @retval "negative value" on failure.
  */
 static int ether_set_time(struct ptp_clock_info *ptp,
-		const struct timespec *ts)
+		const struct timespec64 *ts)
 {
 	struct ether_priv_data *pdata = container_of(ptp,
 						     struct ether_priv_data,
@@ -495,11 +495,11 @@ int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 	raw_spin_lock_irqsave(&ether_ts_lock, flags);
 	switch (req.clockid) {
 	case CLOCK_REALTIME:
-		ktime_get_real_ts(&req.kernel_ts);
+		ktime_get_real_ts64(&req.kernel_ts);
 		break;
 
 	case CLOCK_MONOTONIC:
-		ktime_get_ts(&req.kernel_ts);
+		ktime_get_ts64(&req.kernel_ts);
 		break;
 
 	default:
