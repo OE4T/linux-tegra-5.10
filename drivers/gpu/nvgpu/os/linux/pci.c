@@ -723,6 +723,10 @@ void nvgpu_pci_shutdown(struct pci_dev *pdev)
 	if (gk20a_gpu_is_virtual(dev))
 		return;
 
+	if (!nvgpu_is_powered_on(g)) {
+		return;
+	}
+
 	if (is_nvgpu_gpu_state_valid(g)) {
 		err = nvgpu_nvlink_deinit(g);
 		/* ENODEV is a legal error if there is no NVLINK */
