@@ -75,31 +75,6 @@
 		};
 	};
 
-	pcie@14100000 {
-		nvidia,bpmp = <&bpmp 1>;
-		resets = <&bpmp TEGRA194_RESET_PEX0_CORE_1_APB>,
-			<&bpmp TEGRA194_RESET_PEX0_CORE_1>;
-		reset-names = "apb", "core";
-	};
-	pcie@14140000 {
-		nvidia,bpmp = <&bpmp 3>;
-		resets = <&bpmp TEGRA194_RESET_PEX0_CORE_3_APB>,
-			<&bpmp TEGRA194_RESET_PEX0_CORE_3>;
-		reset-names = "apb", "core";
-	};
-	pcie@14180000 {
-		nvidia,bpmp = <&bpmp 0>;
-		resets = <&bpmp TEGRA194_RESET_PEX0_CORE_0_APB>,
-			<&bpmp TEGRA194_RESET_PEX0_CORE_0>;
-		reset-names = "apb", "core";
-	};
-	pcie@141a0000 {
-		nvidia,bpmp = <&bpmp 5>;
-		resets = <&bpmp TEGRA194_RESET_PEX1_CORE_5_APB>,
-			<&bpmp TEGRA194_RESET_PEX1_CORE_5>;
-		reset-names = "apb", "core";
-	};
-
 	serial@3100000 {
 		compatible = "nvidia,tegra194-hsuart";
 		reg = <0x03100000 0x40>;
