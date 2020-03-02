@@ -145,12 +145,28 @@ static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 	return 0;
 }
 
+#ifndef CONFIG_NVGPU_RECOVERY
+static void nvgpu_sw_quiesce_thread_stop_fn(void *data)
+{
+	struct gk20a *g = data;
+
+	/*
+	 * If the thread is still waiting on the cond,
+	 * nvgpu_thread_should_stop() will return true, and the thread will
+	 * exit.
+	 */
+	nvgpu_cond_signal(&g->sw_quiesce_cond);
+}
+#endif
+
 void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
 {
 #ifndef CONFIG_NVGPU_RECOVERY
 	if (g->sw_quiesce_init_done) {
 		nvgpu_bug_unregister_cb(&g->sw_quiesce_bug_cb);
-		nvgpu_thread_stop(&g->sw_quiesce_thread);
+		nvgpu_thread_stop_graceful(&g->sw_quiesce_thread,
+					   nvgpu_sw_quiesce_thread_stop_fn,
+					   g);
 		nvgpu_cond_destroy(&g->sw_quiesce_cond);
 		g->sw_quiesce_init_done = false;
 	}
