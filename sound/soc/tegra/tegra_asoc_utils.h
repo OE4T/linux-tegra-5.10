@@ -17,23 +17,32 @@ enum tegra_asoc_utils_soc {
 	TEGRA_ASOC_UTILS_SOC_TEGRA30,
 	TEGRA_ASOC_UTILS_SOC_TEGRA114,
 	TEGRA_ASOC_UTILS_SOC_TEGRA124,
+	TEGRA_ASOC_UTILS_SOC_TEGRA210,
+	TEGRA_ASOC_UTILS_SOC_TEGRA186,
+	TEGRA_ASOC_UTILS_SOC_TEGRA194,
 };
 
 struct tegra_asoc_utils_data {
 	struct device *dev;
 	enum tegra_asoc_utils_soc soc;
-	struct clk *clk_pll_a;
-	struct clk *clk_pll_a_out0;
-	struct clk *clk_cdev1;
+	struct clk *clk_pll;
+	struct clk *clk_pll_out;
+	struct clk *clk_aud_mclk;
 	int set_baseclock;
 	int set_mclk;
+	unsigned int set_pll_out;
+	unsigned int *pll_base_rate;
+	unsigned int mclk_fs;
 };
 
 int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 			      int mclk);
 int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data);
+int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
+				       unsigned int sample_rate);
+int tegra_asoc_utils_clk_enable(struct tegra_asoc_utils_data *data);
+void tegra_asoc_utils_clk_disable(struct tegra_asoc_utils_data *data);
 int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 			  struct device *dev);
-void tegra_asoc_utils_fini(struct tegra_asoc_utils_data *data);
 
 #endif

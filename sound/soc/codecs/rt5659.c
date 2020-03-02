@@ -3338,6 +3338,7 @@ static int rt5659_hw_params(struct snd_pcm_substream *substream,
 		val_len |= RT5659_I2S_DL_20;
 		break;
 	case 24:
+	case 32:
 		val_len |= RT5659_I2S_DL_24;
 		break;
 	case 8:
@@ -3732,7 +3733,7 @@ static int rt5659_resume(struct snd_soc_component *component)
 
 #define RT5659_STEREO_RATES SNDRV_PCM_RATE_8000_192000
 #define RT5659_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE | \
-		SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S8)
+		SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_S8)
 
 static const struct snd_soc_dai_ops rt5659_aif_dai_ops = {
 	.hw_params = rt5659_hw_params,
