@@ -18,8 +18,14 @@
 
 #include <linux/clk.h>
 
+#ifdef CONFIG_TEGRA_DVFS
 #include <soc/tegra/tegra-dvfs.h>
+#endif /* CONFIG_TEGRA_DVFS */
+
+#ifdef CONFIG_NV_TEGRA_BPMP
 #include <soc/tegra/tegra-bpmp-dvfs.h>
+#endif /* CONFIG_NV_TEGRA_BPMP */
+
 #include <nvgpu/pmu/clk/clk.h>
 
 #include "clk.h"
@@ -85,6 +91,7 @@ static unsigned long nvgpu_linux_get_fmax_at_vmin_safe(struct gk20a *g)
 {
 	struct gk20a_platform *platform = gk20a_get_platform(dev_from_gk20a(g));
 
+#ifdef CONFIG_TEGRA_DVFS
 	/*
 	 * On Tegra platforms with GPCPLL bus (gbus) GPU tegra_clk clock exposed
 	 * to frequency governor is a shared user on the gbus. The latter can be
@@ -93,10 +100,14 @@ static unsigned long nvgpu_linux_get_fmax_at_vmin_safe(struct gk20a *g)
 	if (g->clk.tegra_clk)
 		return tegra_dvfs_get_fmax_at_vmin_safe_t(
 			g->clk.tegra_clk_parent);
+#endif
 
-	if (platform->maxmin_clk_id)
+	if (platform->maxmin_clk_id) {
+#ifdef CONFIG_NV_TEGRA_BPMP
 		return tegra_bpmp_dvfs_get_fmax_at_vmin(
 			platform->maxmin_clk_id);
+#endif
+	}
 
 	return 0;
 }
@@ -117,8 +128,12 @@ static u32 nvgpu_linux_get_ref_clock_rate(struct gk20a *g)
 static int nvgpu_linux_predict_mv_at_hz_cur_tfloor(struct clk_gk20a *clk,
 	unsigned long rate)
 {
+#ifdef CONFIG_TEGRA_DVFS
 	return tegra_dvfs_predict_mv_at_hz_cur_tfloor(
 				clk->tegra_clk_parent, rate);
+#else
+	return -EINVAL;
+#endif
 }
 
 static unsigned long nvgpu_linux_get_maxrate(struct gk20a *g, u32 api_domain)
@@ -128,7 +143,11 @@ static unsigned long nvgpu_linux_get_maxrate(struct gk20a *g, u32 api_domain)
 
 	switch (api_domain) {
 	case CTRL_CLK_DOMAIN_GPCCLK:
+#ifdef CONFIG_TEGRA_DVFS
 		ret = tegra_dvfs_get_maxrate(g->clk.tegra_clk_parent);
+#else
+		ret = 0;
+#endif
 		/* If dvfs not supported */
 		if (ret == 0) {
 			int err = nvgpu_clk_arb_get_arbiter_clk_range(g,

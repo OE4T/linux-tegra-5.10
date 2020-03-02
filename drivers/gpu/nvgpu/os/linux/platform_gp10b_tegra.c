@@ -106,12 +106,14 @@ int gp10b_tegra_get_clocks(struct device *dev)
 	}
 	platform->num_clks = i;
 
+#ifdef CONFIG_NV_TEGRA_BPMP
 	if (platform->clk[0]) {
 		i = tegra_bpmp_dvfs_get_clk_id(dev->of_node,
 					       tegra_gp10b_clocks[0].name);
 		if (i > 0)
 			platform->maxmin_clk_id = i;
 	}
+#endif
 
 	return 0;
 }

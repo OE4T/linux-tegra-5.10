@@ -381,15 +381,20 @@ static void clk_config_dvfs_ndiv(int mv, u32 n_eff, struct na_dvfs *d)
 }
 
 /* Voltage dependent configuration */
-static void clk_config_dvfs(struct gk20a *g, struct pll *gpll)
+static int clk_config_dvfs(struct gk20a *g, struct pll *gpll)
 {
 	struct na_dvfs *d = &gpll->dvfs;
 
 	d->mv = g->ops.clk.predict_mv_at_hz_cur_tfloor(&g->clk,
 			rate_gpc2clk_to_gpu(gpll->freq));
+	if (d->mv < 0) {
+		return d->mv;
+	}
 
 	clk_config_dvfs_detection(d->mv, d);
 	clk_config_dvfs_ndiv(d->mv, gpll->N, d);
+
+	return 0;
 }
 
 /* Update DVFS detection settings in flight */
@@ -1047,7 +1052,10 @@ static int clk_program_na_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 	struct pll *gpll_old = &g->clk.gpc_pll_last;
 
 	BUG_ON(gpll_new->M != 1U);	/* the only MDIV in NA mode  */
-	clk_config_dvfs(g, gpll_new);
+	ret = clk_config_dvfs(g, gpll_new);
+	if (ret < 0) {
+		return ret;
+	}
 
 	/*
 	 * In cases below no intermediate steps in PLL DVFS configuration are

@@ -28,9 +28,11 @@
 #include <linux/platform/tegra/common.h>
 #include <linux/platform/tegra/mc.h>
 #include <linux/clk/tegra.h>
-#if defined(CONFIG_COMMON_CLK)
+
+#if defined(CONFIG_COMMON_CLK) && defined(CONFIG_TEGRA_DVFS)
 #include <soc/tegra/tegra-dvfs.h>
-#endif
+#endif /* CONFIG_COMMON_CLK && CONFIG_TEGRA_DVFS */
+
 #ifdef CONFIG_TEGRA_BWMGR
 #include <linux/platform/tegra/emc_bwmgr.h>
 #endif
@@ -173,8 +175,12 @@ static unsigned long gk20a_tegra_get_emc_rate(struct gk20a *g,
 	unsigned long emc_rate, emc_scale;
 
 	gpu_freq = clk_get_rate(g->clk.tegra_clk);
+#ifdef CONFIG_TEGRA_DVFS
 	gpu_fmax_at_vmin = tegra_dvfs_get_fmax_at_vmin_safe_t(
 		clk_get_parent(g->clk.tegra_clk));
+#else
+	gpu_fmax_at_vmin = 0;
+#endif
 
 	/* When scaling emc, account for the gpu load when the
 	 * gpu frequency is less than or equal to fmax@vmin. */
@@ -296,8 +302,10 @@ static bool gk20a_tegra_is_railgated(struct device *dev)
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	bool ret = false;
 
+#ifdef CONFIG_TEGRA_DVFS
 	if (!nvgpu_is_enabled(g, NVGPU_IS_FMODEL))
 		ret = !tegra_dvfs_is_rail_up(platform->gpu_rail);
+#endif
 
 	return ret;
 }
@@ -314,9 +322,11 @@ static int gm20b_tegra_railgate(struct device *dev)
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	int ret = 0;
 
+#ifdef CONFIG_TEGRA_DVFS
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL) ||
 	    !tegra_dvfs_is_rail_up(platform->gpu_rail))
 		return 0;
+#endif
 
 	tegra_mc_flush(MC_CLIENT_GPU);
 
@@ -346,12 +356,14 @@ static int gm20b_tegra_railgate(struct device *dev)
 
 	tegra_soctherm_gpu_tsens_invalidate(1);
 
+#ifdef CONFIG_TEGRA_DVFS
 	if (tegra_dvfs_is_rail_up(platform->gpu_rail)) {
 		ret = tegra_dvfs_rail_power_down(platform->gpu_rail);
 		if (ret)
 			goto err_power_off;
 	} else
 		pr_info("No GPU regulator?\n");
+#endif
 
 #ifdef CONFIG_TEGRA_BWMGR
 	gm20b_bwmgr_set_rate(platform, false);
@@ -453,7 +465,9 @@ static int gm20b_tegra_unrailgate(struct device *dev)
 	return 0;
 
 err_clk_on:
+#ifdef CONFIG_TEGRA_DVFS
 	tegra_dvfs_rail_power_down(platform->gpu_rail);
+#endif
 
 	return ret;
 }
@@ -783,7 +797,7 @@ static int gk20a_tegra_probe(struct device *dev)
 	int ret;
 	struct gk20a *g = platform->g;
 
-#ifdef CONFIG_COMMON_CLK
+#if defined(CONFIG_COMMON_CLK) && defined(CONFIG_TEGRA_DVFS)
 	/* DVFS is not guaranteed to be initialized at the time of probe on
 	 * kernels with Common Clock Framework enabled.
 	 */
@@ -901,8 +915,12 @@ static int gk20a_clk_get_freqs(struct device *dev,
 	if (!gk20a_clk_get(g))
 		return -ENOSYS;
 
+#ifdef CONFIG_TEGRA_DVFS
 	return tegra_dvfs_get_freqs(clk_get_parent(g->clk.tegra_clk),
 				freqs, num_freqs);
+#else
+	return -EINVAL;
+#endif
 }
 #endif
 
