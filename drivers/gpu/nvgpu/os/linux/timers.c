@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -252,6 +252,11 @@ s64 nvgpu_current_time_ms(void)
 s64 nvgpu_current_time_us(void)
 {
 	return ktime_to_us(ktime_get());
+}
+
+u64 nvgpu_us_counter(void)
+{
+	return (u64)nvgpu_current_time_us();
 }
 
 /**

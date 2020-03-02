@@ -79,6 +79,24 @@ s64 nvgpu_current_time_us(void)
 	return time_now;
 }
 
+#ifdef __NVGPU_POSIX__
+void nvgpu_delay_usecs(unsigned int usecs)
+{
+}
+
+#ifdef CONFIG_NVGPU_NON_FUSA
+u64 nvgpu_us_counter(void)
+{
+	return (u64)nvgpu_current_time_us();
+}
+
+u64 nvgpu_get_cycles(void)
+{
+	return (u64)nvgpu_current_time_us();
+}
+#endif
+#endif
+
 static s64 get_time_ns(void)
 {
 	struct timespec ts;

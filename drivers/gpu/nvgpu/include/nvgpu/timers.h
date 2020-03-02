@@ -234,6 +234,16 @@ s64 nvgpu_current_time_ns(void);
  */
 s64 nvgpu_current_time_us(void);
 #ifdef CONFIG_NVGPU_NON_FUSA
+u64 nvgpu_us_counter(void);
+
+/**
+ * @brief Get GPU cycles.
+ *
+ * @param None.
+ *
+ * @return 64 bit number which has GPU cycles.
+ */
+u64 nvgpu_get_cycles(void);
 
 /**
  * @brief Current high resolution time stamp in microseconds.
@@ -250,6 +260,18 @@ u64 nvgpu_hr_timestamp_us(void);
  */
 u64 nvgpu_hr_timestamp(void);
 #endif
+
+/**
+ * @brief OS specific implementation to provide precise microsecond delay
+ *
+ * @param usecs [in]		Delay in microseconds.
+ *
+ * - Wait using nanospin_ns until usecs expires. Log error if API returns non
+ *   zero value once wait time expires.
+ *
+ * @return None.
+ */
+void nvgpu_delay_usecs(unsigned int usecs);
 
 #ifdef __KERNEL__
 /**

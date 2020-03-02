@@ -135,8 +135,3 @@ int nvgpu_init_soc_vars(struct gk20a *g)
 #endif
 	return 0;
 }
-
-u64 nvgpu_us_counter(void)
-{
-	return (u64)nvgpu_current_time_us();
-}

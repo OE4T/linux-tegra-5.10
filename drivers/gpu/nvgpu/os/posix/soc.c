@@ -62,22 +62,6 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g)
 	return p->is_soc_t194_a01;
 }
 
-void nvgpu_delay_usecs(unsigned int usecs)
-{
-}
-
-#ifdef CONFIG_NVGPU_NON_FUSA
-u64 nvgpu_us_counter(void)
-{
-	return (u64)nvgpu_current_time_us();
-}
-
-u64 nvgpu_get_cycles(void)
-{
-	return (u64)nvgpu_current_time_us();
-}
-#endif
-
 int nvgpu_init_soc_vars(struct gk20a *g)
 {
 	return 0;

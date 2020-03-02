@@ -114,28 +114,4 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g);
  */
 int nvgpu_init_soc_vars(struct gk20a *g);
 
-/**
- * @brief OS specific implementation to provide precise microsecond delay
- *
- * @param usecs [in]		Delay in microseconds.
- *
- * - Wait using nanospin_ns until usecs expires. Log error if API returns non
- *   zero value once wait time expires.
- *
- * @return None.
- */
-void nvgpu_delay_usecs(unsigned int usecs);
-
-#ifdef CONFIG_NVGPU_NON_FUSA
-u64 nvgpu_us_counter(void);
-
-/**
- * @brief Get GPU cycles.
- *
- * @param None.
- *
- * @return 64 bit number which has GPU cycles.
- */
-u64 nvgpu_get_cycles(void);
-#endif
 #endif /* NVGPU_SOC_H */
