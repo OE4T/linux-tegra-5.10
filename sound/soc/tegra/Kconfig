@@ -158,6 +158,11 @@ config SND_SOC_TEGRA210_OPE
 	tristate "Tegra186 OPE module"
 	depends on SND_SOC_TEGRA
 
+config SND_SOC_TEGRA210_ADSP
+	tristate "Tegra210 ADSP Audio module"
+	depends on SND_SOC_TEGRA && TEGRA_NVADSP
+	select SND_SOC_COMPRESS
+
 config SND_SOC_TEGRA210_AUDIO
 	tristate "SoC Audio support for Tegra210"
 	depends on I2C

@@ -24,6 +24,7 @@ snd-soc-tegra210-iqc-objs := tegra210_iqc.o
 snd-soc-tegra186-asrc-objs := tegra186_asrc.o
 snd-soc-tegra186-arad-objs := tegra186_arad.o
 snd-soc-tegra210-ope-objs := tegra210_ope.o tegra210_peq.o tegra210_mbdrc.o
+snd-soc-tegra210-adsp-objs := tegra210_adsp.o
 
 obj-$(CONFIG_SND_SOC_TEGRA) += snd-soc-tegra-pcm.o
 obj-$(CONFIG_SND_SOC_TEGRA) += snd-soc-tegra-utils.o
@@ -48,6 +49,7 @@ obj-$(CONFIG_SND_SOC_TEGRA210_IQC) += snd-soc-tegra210-iqc.o
 obj-$(CONFIG_SND_SOC_TEGRA210_OPE) += snd-soc-tegra210-ope.o
 obj-$(CONFIG_SND_SOC_TEGRA186_ARAD) += snd-soc-tegra186-arad.o
 obj-$(CONFIG_SND_SOC_TEGRA186_ASRC) += snd-soc-tegra186-asrc.o
+obj-$(CONFIG_SND_SOC_TEGRA210_ADSP) += snd-soc-tegra210-adsp.o
 
 # Tegra machine Support
 snd-soc-tegra-rt5640-objs := tegra_rt5640.o

@@ -1,26 +1,18 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * tegra210_adsp_alt.h - Tegra210 ADSP header
+ * tegra210_adsp.h - Tegra210 ADSP header
  *
- * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020 NVIDIA CORPORATION. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TEGRA210_ADSP_ALT_H__
-#define __TEGRA210_ADSP_ALT_H__
+#ifndef __TEGRA210_ADSP_H__
+#define __TEGRA210_ADSP_H__
 
-/* This enum is linked with tegra210_adsp_mux_texts array. Any thing
-   changed in enum define should be also reflected in text array */
+/*
+ * This enum is linked with tegra210_adsp_mux_texts array. Any thing
+ * changed in enum define should be also reflected in text array
+ */
 enum tegra210_adsp_virt_regs {
 	TEGRA210_ADSP_NONE,
 
@@ -196,19 +188,19 @@ enum tegra210_adsp_virt_regs {
 #define PLUGIN_NUM			(PLUGIN_END - PLUGIN_START) + 1
 #define ADSP_MAX_NULL_SINK	(ADSP_ADMAIF_END - ADSP_NULL_SINK_START + 1)
 
-#define IS_NULL_SINK(reg)		((reg >= ADSP_NULL_SINK_START) && \
-						(reg <= ADSP_ADMAIF_END))
-#define IS_APM_IN(reg)			((reg >= APM_IN_START) && (reg <= APM_IN_END))
-#define IS_APM_OUT(reg) 		((reg >= APM_OUT_START) && (reg <= APM_OUT_END))
-#define IS_APM(reg)				(IS_APM_IN(reg) | IS_APM_OUT(reg))
-#define IS_PLUGIN(reg)			((reg >= PLUGIN_START) && (reg <= PLUGIN_END))
+#define IS_NULL_SINK(reg)	((reg >= ADSP_NULL_SINK_START) && \
+				 (reg <= ADSP_ADMAIF_END))
+#define IS_APM_IN(reg)		((reg >= APM_IN_START) && (reg <= APM_IN_END))
+#define IS_APM_OUT(reg) 	((reg >= APM_OUT_START) && (reg <= APM_OUT_END))
+#define IS_APM(reg)		(IS_APM_IN(reg) | IS_APM_OUT(reg))
+#define IS_PLUGIN(reg)		((reg >= PLUGIN_START) && (reg <= PLUGIN_END))
 #define IS_ADMA_RX(reg)		((reg >= ADMA_START) && (reg <= ADMA_END))
 #define IS_ADMA_TX(reg)		((reg >= ADMA_TX_START) && (reg <= ADMA_TX_END))
 #define IS_ADMA(reg)		(IS_ADMA_RX(reg) || IS_ADMA_TX(reg))
-#define IS_ADSP_APP(reg) 		(IS_APM(reg) | IS_PLUGIN(reg) | IS_ADMA(reg))
-#define IS_ADSP_FE(reg)			(((reg >= ADSP_FE_START) && (reg <= ADSP_FE_END)) || \
-									(reg == ADSP_EAVB_START))
-#define IS_ADSP_ADMAIF(reg) 	((reg >= ADSP_ADMAIF_START) && (reg <= ADSP_ADMAIF_END))
+#define IS_ADSP_APP(reg)	(IS_APM(reg) | IS_PLUGIN(reg) | IS_ADMA(reg))
+#define IS_ADSP_FE(reg)		(((reg >= ADSP_FE_START) && (reg <= ADSP_FE_END)) || \
+				 (reg == ADSP_EAVB_START))
+#define IS_ADSP_ADMAIF(reg)	((reg >= ADSP_ADMAIF_START) && (reg <= ADSP_ADMAIF_END))
 
 #define IS_VALID_INPUT(fe, mask)	((1 << (fe - 1)) & mask)
 /* ADSP_MSG_FLAGs */
