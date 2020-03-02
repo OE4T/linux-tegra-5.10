@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -42,10 +42,10 @@
 #define TEGRA_SID_ISP		0xC
 #define TEGRA_SID_MGBE		0xD
 #define TEGRA_SID_NVDEC		0xE
-#define TEGRA_SID_NVDEC1	0xF
+#define TEGRA_SID_NVDISPLAY_NISO	0xF
 #define TEGRA_SID_NVDISPLAY	0x10
 #define TEGRA_SID_NVENC		0x11
-#define TEGRA_SID_NVENC1	0x12
+#define TEGRA_SID_NVJPG1	0x12
 #define TEGRA_SID_NVJPG		0x13
 #define TEGRA_SID_OFA		0x14
 #define TEGRA_SID_PCIE0		0x15
@@ -61,7 +61,7 @@
 #define TEGRA_SID_PCIE10	0x1F
 #define TEGRA_SID_PSC		0x20
 #define TEGRA_SID_PVA0		0x21
-#define TEGRA_SID_PVA1		0x22
+#define TEGRA_SID_PMA		0x22
 #define TEGRA_SID_RCE		0x23
 #define TEGRA_SID_SCE		0x24
 #define TEGRA_SID_SDMMC1A	0x25
@@ -71,7 +71,6 @@
 #define TEGRA_SID_SE2		0x29
 #define TEGRA_SID_SEU1		0x2A
 #define TEGRA_SID_TSEC		0x2B
-#define TEGRA_SID_TSECB		0x2C
 #define TEGRA_SID_UFSHC		0x2D
 #define TEGRA_SID_VIC		0x2E
 #define TEGRA_SID_VI		0x2F
@@ -82,38 +81,40 @@
 #define TEGRA_SID_XSPI1		0x34
 #define TEGRA_SID_XUSB_HOST	0x35
 #define TEGRA_SID_XUSB_DEV	0x36
+#define TEGRA_SID_JESD204	0x37
+#define TEGRA_SID_LDPC		0x38
 
-#define TEGRA_SID_SMMU_TEST	0x37
+#define TEGRA_SID_SMMU_TEST	0x50
 
 /* Host1x virtualization clients. */
-#define TEGRA_SID_HOST1X_CTX0	0x38
-#define TEGRA_SID_HOST1X_CTX1	0x39
-#define TEGRA_SID_HOST1X_CTX2	0x3A
-#define TEGRA_SID_HOST1X_CTX3	0x3B
-#define TEGRA_SID_HOST1X_CTX4	0x3C
-#define TEGRA_SID_HOST1X_CTX5	0x3D
-#define TEGRA_SID_HOST1X_CTX6	0x3E
-#define TEGRA_SID_HOST1X_CTX7	0x3F
+#define TEGRA_SID_HOST1X_CTX0	0x51
+#define TEGRA_SID_HOST1X_CTX1	0x52
+#define TEGRA_SID_HOST1X_CTX2	0x53
+#define TEGRA_SID_HOST1X_CTX3	0x54
+#define TEGRA_SID_HOST1X_CTX4	0x55
+#define TEGRA_SID_HOST1X_CTX5	0x56
+#define TEGRA_SID_HOST1X_CTX6	0x57
+#define TEGRA_SID_HOST1X_CTX7	0x58
 
 /* Host1x command buffers */
-#define TEGRA_SID_HC_VM0	0x40
-#define TEGRA_SID_HC_VM1	0x41
-#define TEGRA_SID_HC_VM2	0x42
-#define TEGRA_SID_HC_VM3	0x43
-#define TEGRA_SID_HC_VM4	0x44
-#define TEGRA_SID_HC_VM5	0x45
-#define TEGRA_SID_HC_VM6	0x46
-#define TEGRA_SID_HC_VM7	0x47
+#define TEGRA_SID_HC_VM0	0x59
+#define TEGRA_SID_HC_VM1	0x5A
+#define TEGRA_SID_HC_VM2	0x5B
+#define TEGRA_SID_HC_VM3	0x5C
+#define TEGRA_SID_HC_VM4	0x5D
+#define TEGRA_SID_HC_VM5	0x5E
+#define TEGRA_SID_HC_VM6	0x5F
+#define TEGRA_SID_HC_VM7	0x60
 
-#define TEGRA_SID_XUSB_VF0	0x48
-#define TEGRA_SID_XUSB_VF1	0x49
-#define TEGRA_SID_XUSB_VF2	0x4A
-#define TEGRA_SID_XUSB_VF3	0x4B
+#define TEGRA_SID_XUSB_VF0	0x61
+#define TEGRA_SID_XUSB_VF1	0x62
+#define TEGRA_SID_XUSB_VF2	0x63
+#define TEGRA_SID_XUSB_VF3	0x64
 
 /* EQOS virtual functions */
-#define TEGRA_SID_EQOS_VF1     0x4C
-#define TEGRA_SID_EQOS_VF2     0x4D
-#define TEGRA_SID_EQOS_VF3     0x4E
-#define TEGRA_SID_EQOS_VF4     0x4F
+#define TEGRA_SID_EQOS_VF1     0x65
+#define TEGRA_SID_EQOS_VF2     0x66
+#define TEGRA_SID_EQOS_VF3     0x67
+#define TEGRA_SID_EQOS_VF4     0x68
 
 #endif /* _DT_BINDINGS_MEMORY_TEGRA234_SMMU_STREAMID_H */
