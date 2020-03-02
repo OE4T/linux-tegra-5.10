@@ -320,6 +320,7 @@ void gk20a_init_linux_characteristics(struct gk20a *g)
 	}
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 static void therm_alert_work_queue(struct work_struct *work)
 {
 
@@ -390,7 +391,7 @@ static int nvgpu_request_therm_irq(struct nvgpu_os_linux *l)
 
 	return ret;
 }
-
+#endif
 
 int gk20a_pm_finalize_poweron(struct device *dev)
 {
@@ -443,6 +444,7 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 			g->sim->sim_init_late(g);
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE) &&
 			nvgpu_platform_is_silicon(g)) {
 		g->ops.clk.change_host_clk_source(g);
@@ -462,6 +464,7 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 				"Thermal Alert feature will not be enabled");
 		}
 	}
+#endif
 
 	err = nvgpu_enable_irqs(g);
 	if (err) {
@@ -488,9 +491,10 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 
 #ifdef CONFIG_NVGPU_DGPU
 	nvgpu_init_mm_ce_context(g);
-#endif
 
 	nvgpu_vidmem_thread_unpause(&g->mm);
+#endif
+
 
 	/* Initialise scaling: it will initialize scaling drive only once */
 	if (IS_ENABLED(CONFIG_GK20A_DEVFREQ) &&
@@ -998,8 +1002,10 @@ void gk20a_remove_support(struct gk20a *g)
 
 	nvgpu_gr_remove_support(g);
 
+#ifdef CONFIG_NVGPU_DGPU
 	if (g->mm.remove_ce_support)
 		g->mm.remove_ce_support(&g->mm);
+#endif
 
 	if (g->fifo.remove_support)
 		g->fifo.remove_support(&g->fifo);
