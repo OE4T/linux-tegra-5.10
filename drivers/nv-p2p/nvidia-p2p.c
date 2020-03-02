@@ -15,7 +15,13 @@
  */
 
 #include <linux/slab.h>
+#include <linux/mmu_notifier.h>
+#include <linux/module.h>
 #include <linux/nv-p2p.h>
+
+MODULE_DESCRIPTION("Nvidia Tegra P2P Driver");
+MODULE_AUTHOR("Preetham Chandru pchandru@nvidia.com");
+MODULE_LICENSE("GPL");
 
 static void nvidia_p2p_mn_release(struct mmu_notifier *mn,
 	struct mm_struct *mm)
@@ -31,7 +37,7 @@ static void nvidia_p2p_mn_invl_range_start(struct mmu_notifier *mn,
 	struct mm_struct *mm, unsigned long start, unsigned long end)
 {
 	struct nvidia_p2p_page_table *page_table = container_of(mn,
-						struct nvidia_p2p_page_table,
+						struct  nvidia_p2p_page_table,
 						mn);
 	u64 vaddr = 0;
 	u64 size = 0;
