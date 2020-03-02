@@ -1,7 +1,7 @@
 /*
  * GP10B priv ring
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -210,13 +210,6 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 	u32 status0, status1;
 	u32 cmd;
 	s32 retry;
-
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		nvgpu_info(g, "unhandled priv ring intr");
-		return;
-	}
-#endif
 
 	status0 = nvgpu_readl(g, pri_ringmaster_intr_status0_r());
 	status1 = nvgpu_readl(g, pri_ringmaster_intr_status1_r());
