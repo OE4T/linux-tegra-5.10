@@ -26,7 +26,11 @@
 #include <linux/tegra_soctherm.h>
 #endif
 #include <linux/platform/tegra/common.h>
+
+#ifdef CONFIG_NV_TEGRA_MC
 #include <linux/platform/tegra/mc.h>
+#endif /* CONFIG_NV_TEGRA_MC */
+
 #include <linux/clk/tegra.h>
 
 #if defined(CONFIG_COMMON_CLK) && defined(CONFIG_TEGRA_DVFS)
@@ -322,6 +326,7 @@ static int gm20b_tegra_railgate(struct device *dev)
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	int ret = 0;
 
+#ifdef CONFIG_NV_TEGRA_MC
 #ifdef CONFIG_TEGRA_DVFS
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL) ||
 	    !tegra_dvfs_is_rail_up(platform->gpu_rail))
@@ -370,6 +375,10 @@ static int gm20b_tegra_railgate(struct device *dev)
 #endif
 
 	return 0;
+
+#else
+	ret = -ENOTSUP;
+#endif /* CONFIG_NV_TEGRA_MC */
 
 err_power_off:
 	nvgpu_err(platform->g, "Could not railgate GPU");
@@ -453,12 +462,14 @@ static int gm20b_tegra_unrailgate(struct device *dev)
 	platform->reset_deassert(dev);
 	clk_enable(platform->clk_reset);
 
+#ifdef CONFIG_NV_TEGRA_MC
 	/* Flush MC after boot/railgate/SC7 */
 	tegra_mc_flush(MC_CLIENT_GPU);
 
 	udelay(10);
 
 	tegra_mc_flush_done(MC_CLIENT_GPU);
+#endif
 
 	udelay(10);
 
