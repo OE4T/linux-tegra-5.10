@@ -1,7 +1,7 @@
 /*
  * GV11B Tegra Platform Interface
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -23,7 +23,9 @@
 #include <linux/reset.h>
 #include <linux/hashtable.h>
 #include <linux/clk.h>
+#ifdef CONFIG_TEGRA_BWMGR
 #include <linux/platform/tegra/emc_bwmgr.h>
+#endif
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvhost.h>
@@ -46,6 +48,7 @@
 
 void gv11b_tegra_scale_init(struct device *dev)
 {
+#ifdef CONFIG_TEGRA_BWMGR
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 
@@ -55,16 +58,19 @@ void gv11b_tegra_scale_init(struct device *dev)
 	platform->g->emc3d_ratio = EMC3D_GV11B_RATIO;
 
 	gp10b_tegra_scale_init(dev);
+#endif
 }
 
 static void gv11b_tegra_scale_exit(struct device *dev)
 {
+#ifdef CONFIG_TEGRA_BWMGR
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 
 	if (profile)
 		tegra_bwmgr_unregister(
 			(struct tegra_bwmgr_client *)profile->private_data);
+#endif
 }
 
 static int gv11b_tegra_probe(struct device *dev)

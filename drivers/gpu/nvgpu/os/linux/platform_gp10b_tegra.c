@@ -1,7 +1,7 @@
 /*
  * GP10B Tegra Platform Interface
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -13,12 +13,15 @@
  * more details.
  */
 
+#include <linux/clk.h>
 #include <linux/of_platform.h>
 #include <linux/debugfs.h>
 #include <linux/dma-buf.h>
 #include <linux/nvmap.h>
 #include <linux/reset.h>
+#ifdef CONFIG_TEGRA_BWMGR
 #include <linux/platform/tegra/emc_bwmgr.h>
+#endif
 #include <linux/hashtable.h>
 
 #include <uapi/linux/nvgpu.h>
@@ -111,6 +114,7 @@ int gp10b_tegra_get_clocks(struct device *dev)
 
 void gp10b_tegra_scale_init(struct device *dev)
 {
+#ifdef CONFIG_TEGRA_BWMGR
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 	struct tegra_bwmgr_client *bwmgr_handle;
@@ -126,16 +130,19 @@ void gp10b_tegra_scale_init(struct device *dev)
 		return;
 
 	profile->private_data = (void *)bwmgr_handle;
+#endif
 }
 
 static void gp10b_tegra_scale_exit(struct device *dev)
 {
+#ifdef CONFIG_TEGRA_BWMGR
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 
 	if (profile && profile->private_data)
 		tegra_bwmgr_unregister(
 			(struct tegra_bwmgr_client *)profile->private_data);
+#endif
 }
 
 static int gp10b_tegra_probe(struct device *dev)
@@ -300,6 +307,7 @@ void gp10b_tegra_prescale(struct device *dev)
 void gp10b_tegra_postscale(struct device *pdev,
 					unsigned long freq)
 {
+#ifdef CONFIG_TEGRA_BWMGR
 	struct gk20a_platform *platform = gk20a_get_platform(pdev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 	struct gk20a *g = get_gk20a(pdev);
@@ -325,6 +333,7 @@ void gp10b_tegra_postscale(struct device *pdev,
 			emc_rate, TEGRA_BWMGR_SET_EMC_FLOOR);
 	}
 	nvgpu_log_fn(g, "done");
+#endif
 }
 
 long gp10b_round_clk_rate(struct device *dev, unsigned long rate)

@@ -1,7 +1,7 @@
 /*
  * GK20A Tegra Platform Interface
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -13,6 +13,7 @@
  * more details.
  */
 
+#include <linux/clk.h>
 #include <linux/clkdev.h>
 #include <linux/of_platform.h>
 #include <linux/debugfs.h>
@@ -153,6 +154,7 @@ fail_sgt:
 	return err;
 }
 
+#ifdef CONFIG_TEGRA_BWMGR
 /*
  * gk20a_tegra_get_emc_rate()
  *
@@ -182,6 +184,7 @@ static unsigned long gk20a_tegra_get_emc_rate(struct gk20a *g,
 
 	return MHZ_TO_HZ(emc_rate);
 }
+#endif
 
 /*
  * gk20a_tegra_prescale(profile, freq)
@@ -539,7 +542,6 @@ static void gk20a_tegra_scale_init(struct device *dev)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 	struct gk20a_emc_params *emc_params;
-	struct gk20a *g = platform->g;
 
 	if (!profile)
 		return;
@@ -557,7 +559,8 @@ static void gk20a_tegra_scale_init(struct device *dev)
 #ifdef CONFIG_TEGRA_BWMGR
 	emc_params->bwmgr_cl = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_GPU);
 	if (!emc_params->bwmgr_cl) {
-		nvgpu_log_info(g, "%s Missing GPU BWMGR client\n", __func__);
+		nvgpu_log_info(platform->g,
+			       "%s Missing GPU BWMGR client\n", __func__);
 		return;
 	}
 #endif
