@@ -26,9 +26,11 @@
 
 #include <uapi/linux/nvgpu.h>
 
+#ifdef CONFIG_NV_TEGRA_BPMP
 #include <soc/tegra/tegra_bpmp.h>
 #include <soc/tegra/tegra_powergate.h>
 #include <soc/tegra/tegra-bpmp-dvfs.h>
+#endif /* CONFIG_NV_TEGRA_BPMP */
 
 #ifdef CONFIG_ARCH_TEGRA_18x_SOC
 #include <dt-bindings/memory/tegra-swgroup.h>
@@ -215,14 +217,17 @@ static bool gp10b_tegra_is_railgated(struct device *dev)
 {
 	bool ret = false;
 
+#ifdef TEGRA186_POWER_DOMAIN_GPU
 	if (tegra_bpmp_running())
 		ret = !tegra_powergate_is_powered(TEGRA186_POWER_DOMAIN_GPU);
+#endif
 
 	return ret;
 }
 
 static int gp10b_tegra_railgate(struct device *dev)
 {
+#ifdef TEGRA186_POWER_DOMAIN_GPU
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 
@@ -241,12 +246,14 @@ static int gp10b_tegra_railgate(struct device *dev)
 		}
 		tegra_powergate_partition(TEGRA186_POWER_DOMAIN_GPU);
 	}
+#endif
 	return 0;
 }
 
 static int gp10b_tegra_unrailgate(struct device *dev)
 {
 	int ret = 0;
+#ifdef TEGRA186_POWER_DOMAIN_GPU
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 
@@ -265,6 +272,7 @@ static int gp10b_tegra_unrailgate(struct device *dev)
 			(struct tegra_bwmgr_client *)profile->private_data,
 			tegra_bwmgr_get_max_emc_rate(),
 			TEGRA_BWMGR_SET_EMC_FLOOR);
+#endif
 	return ret;
 }
 

@@ -32,8 +32,10 @@
 
 #include <uapi/linux/nvgpu.h>
 
+#ifdef CONFIG_NV_TEGRA_BPMP
 #include <soc/tegra/tegra_bpmp.h>
 #include <soc/tegra/tegra_powergate.h>
+#endif /* CONFIG_NV_TEGRA_BPMP */
 
 #include "platform_gk20a.h"
 #include "clk.h"
