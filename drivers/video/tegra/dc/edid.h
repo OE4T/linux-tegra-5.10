@@ -187,9 +187,12 @@ struct tegra_edid_hdmi_eld {
 	u8	sad[ELD_MAX_SAD_BYTES];
 };
 
+#define IEEE_CEA861_HDR10P_ID 0x90848b
 #define IEEE_CEA861_DV_ID 0x00D046
+#define TEGRA_DC_DV_VSVDB_V0_SIZE 0x19
 #define TEGRA_DC_DV_VSVDB_V1_12B_SIZE 0x0B
 #define TEGRA_DC_DV_VSVDB_V1_15B_SIZE 0x0E
+#define TEGRA_DC_DV_VSVDB_V2_SIZE 0x0B
 
 struct tegra_edid *tegra_edid_create(struct tegra_dc *dc,
 	i2c_transfer_func_t func);

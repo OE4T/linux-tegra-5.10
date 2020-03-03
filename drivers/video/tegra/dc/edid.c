@@ -291,32 +291,34 @@ int tegra_edid_read_block(struct tegra_edid *edid, int block, u8 *data)
 }
 
 static void tegra_edid_parse_dv_caps(struct tegra_edid_pvt *edid,
-			const u8 *ptr)
+			const u8 *ptr, u32 vsvdb_size)
 {
-	u32 dv_ieee_id = ((ptr[2]) | (ptr[3] << 8) | (ptr[4] << 16));
-	u32 dv_vsvdb_ver, dv_vsvdb_size;
+	u32 dv_vsvdb_ver;
 	struct tegra_dc_ext_dv_caps_vsvdb_v0 *v0;
 	struct tegra_dc_ext_dv_caps_vsvdb_v1_15b *v1_15b;
 	struct tegra_dc_ext_dv_caps_vsvdb_v1_12b *v1_12b;
 	struct tegra_dc_ext_dv_caps_vsvdb_v2 *v2;
 
-	if (dv_ieee_id != IEEE_CEA861_DV_ID) {
-		/* not dv capable sink */
-		return;
-	}
-
 	if (edid->dv_caps.vsvdb_ver != TEGRA_DC_DV_VSVDB_NONE) {
-		/* earlier parsed VSVDB marked it as DV capable */
+		/* earlier parsed VSVDB marked the sink as DV capable */
 		return;
 	}
 
 	dv_vsvdb_ver = ((ptr[5] & 0xe0) >> 5);
-	dv_vsvdb_size = (ptr[0] & 0x1f);
 
-	/* Check version bits and populate dv caps accordingly.*/
+	/* Check version bits and populate dv caps accordingly.
+	 *
+	 * Note, that when certain AVR are connected to certain HDR10+ and Dolby
+	 * Vision capable sinks, HDR10+ and Dolby Vision VSVDB, in this order,
+	 * will be squashed in EDID. We try to WAR such malformed EDID, but as
+	 * a precaution, we also check if the length of VSVDB matches the length
+	 * according to Dolby Vision VSVDB version.
+	 */
 	switch (dv_vsvdb_ver) {
 	case 0:
 		/* version 0 */
+		if (vsvdb_size != TEGRA_DC_DV_VSVDB_V0_SIZE)
+			break;
 		edid->dv_caps.vsvdb_ver = TEGRA_DC_DV_VSVDB_V0;
 		v0 = &edid->dv_caps.v0;
 		v0->dm_version = ptr[21];
@@ -336,7 +338,7 @@ static void tegra_edid_parse_dv_caps(struct tegra_edid_pvt *edid,
 		break;
 	case 1:
 		/* version 1, check size for differentiating*/
-		if (dv_vsvdb_size == TEGRA_DC_DV_VSVDB_V1_15B_SIZE) {
+		if (vsvdb_size == TEGRA_DC_DV_VSVDB_V1_15B_SIZE) {
 			/* version 1, 15 byte */
 			edid->dv_caps.vsvdb_ver = TEGRA_DC_DV_VSVDB_V1_15B;
 			v1_15b = &edid->dv_caps.v1_15b;
@@ -353,7 +355,7 @@ static void tegra_edid_parse_dv_caps(struct tegra_edid_pvt *edid,
 			v1_15b->cc_green_y = ptr[12];
 			v1_15b->cc_blue_x = ptr[13];
 			v1_15b->cc_blue_y = ptr[14];
-		} else if (dv_vsvdb_size == TEGRA_DC_DV_VSVDB_V1_12B_SIZE) {
+		} else if (vsvdb_size == TEGRA_DC_DV_VSVDB_V1_12B_SIZE) {
 			/* version 1, 12 byte */
 			edid->dv_caps.vsvdb_ver = TEGRA_DC_DV_VSVDB_V1_12B;
 			v1_12b = &edid->dv_caps.v1_12b;
@@ -376,6 +378,8 @@ static void tegra_edid_parse_dv_caps(struct tegra_edid_pvt *edid,
 		break;
 	case 2:
 		/* version 2 */
+		if (vsvdb_size != TEGRA_DC_DV_VSVDB_V2_SIZE)
+			break;
 		edid->dv_caps.vsvdb_ver = TEGRA_DC_DV_VSVDB_V2;
 		v2 = &edid->dv_caps.v2;
 		v2->dm_version = ((ptr[5] & 0x1c) >> 2);
@@ -395,6 +399,36 @@ static void tegra_edid_parse_dv_caps(struct tegra_edid_pvt *edid,
 		v2->supports_10b_12b_444 =
 			((ptr[8] & 0x1 << 1) | (ptr[9] & 0x1));
 		break;
+	}
+}
+
+static void tegra_edid_parse_vsvdb(struct tegra_edid_pvt *edid, const u8 *ptr)
+{
+	u32 vsvdb_size = (ptr[0] & 0x1f);
+	u32 ieee_id = ((ptr[2]) | (ptr[3] << 8) | (ptr[4] << 16));
+
+	/* Quirk for bug 2875137: HDR10+ and DV VSVDB, in this order, may happen
+	 * to be squashed in EDID of certain sinks. Therefore we attempt to
+	 * recognise HDR10+ VSVDB first, and if there are bytes left in data
+	 * part, we try to interpret the rest as DV VSVDB
+	 */
+
+	if (ieee_id == IEEE_CEA861_HDR10P_ID) {
+		/* HDR10+ is not implemented, therefore just ignore it. And,
+		 * if HDR10+ was the only content, end here. Otherwise advance
+		 * to data portion of the following supposed to be VSVDB. Note,
+		 * HDR10+ VSVDB has fixed length of 5 bytes, unlike e.g. Dolby
+		 * Vision VSVDB.
+		 */
+		if (vsvdb_size == 5)
+			return;
+		ptr += 4;
+		vsvdb_size -= 4;
+		ieee_id = ((ptr[2]) | (ptr[3] << 8) | (ptr[4] << 16));
+	}
+
+	if (ieee_id == IEEE_CEA861_DV_ID) {
+		tegra_edid_parse_dv_caps(edid, ptr, vsvdb_size);
 	}
 }
 
@@ -617,7 +651,7 @@ static int tegra_edid_parse_ext_block(const u8 *raw, int idx,
 				}
 				break;
 			case CEA_DATA_BLOCK_EXT_VSVDB:
-				tegra_edid_parse_dv_caps(edid, ptr);
+			    tegra_edid_parse_vsvdb(edid, ptr);
 				break;
 			};
 
