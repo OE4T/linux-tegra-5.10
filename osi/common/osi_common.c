@@ -135,17 +135,6 @@ void osi_memset(void *s, unsigned int c, unsigned long count)
 	}
 }
 
-/*
- * @brief Function to store a backup of MAC register space during SOC suspend.
- *
- * Algorithm: Read registers to be backed up as per struct core_backup and
- * store the register values in memory.
- *
- * @param[in] config: Pointer to core_backup structure.
- * @param[in] max_regs: Max num of registers to backup.
- *
- * @retval none
- */
 void mac_save_registers(struct core_backup *const config)
 {
 	unsigned int i;
@@ -161,17 +150,6 @@ void mac_save_registers(struct core_backup *const config)
 
 }
 
-/**
- * @brief Function to restore the backup of MAC registers during SOC resume.
- *
- * Algorithm: Restore the register values from the in memory backup taken using
- * osi_save_registers().
- *
- * @param[in] config: Pointer to core_backup structure.
- * @param[in] max_regs: Max num of registers to restore.
- *
- * @retval none
- */
 void mac_restore_registers(struct core_backup *const config)
 {
 	unsigned int i;

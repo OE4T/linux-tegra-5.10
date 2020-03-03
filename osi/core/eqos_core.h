@@ -491,7 +491,7 @@ struct core_func_safety {
 };
 
 /**
- * @addtogroup EQOS-HW-BACKUP
+ * @addtogroup EQOS_HW EQOS HW BACKUP registers
  *
  * @brief Definitions related to taking backup of EQOS core registers.
  * @{
