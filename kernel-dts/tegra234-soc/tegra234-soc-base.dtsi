@@ -1034,9 +1034,10 @@
 		       0x0 0x18000000 0x0 0x1000000
 		       0x0 0x03b41000 0x0 0x00001000>;
 		interrupts = <0 70 0x04
-		              0 67 0x04>;
+		              0 67 0x04
+		              0 71 0x04>;
 		dma-noncontig;
-		interrupt-names = "stall", "nonstall";
+		interrupt-names = "stall", "nonstall", "host2soc_3";
 		nvidia,host1x = <&host1x>;
 		access-vpr-phys;
 		clocks = <&bpmp_clks TEGRA234_CLK_GPCCLK>,
