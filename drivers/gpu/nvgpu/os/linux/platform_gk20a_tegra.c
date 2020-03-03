@@ -71,7 +71,9 @@
 #define GPU_RAIL_NAME "vdd_gpu"
 #endif
 
+#ifdef CONFIG_NVGPU_VPR
 extern struct device tegra_vpr_dev;
+#endif
 
 #ifdef CONFIG_TEGRA_BWMGR
 struct gk20a_emc_params {
@@ -89,6 +91,7 @@ struct gk20a_emc_params {
 #define MHZ_TO_HZ(x) ((x) * 1000000)
 #define HZ_TO_MHZ(x) ((x) / 1000000)
 
+#ifdef CONFIG_NVGPU_VPR
 static void gk20a_tegra_secure_page_destroy(struct gk20a *g,
 				       struct secure_page_buffer *secure_buffer)
 {
@@ -153,6 +156,7 @@ fail_sgt:
 	nvgpu_kfree(platform->g, sgt);
 	return err;
 }
+#endif
 
 #ifdef CONFIG_TEGRA_BWMGR
 /*
@@ -621,6 +625,7 @@ void gk20a_tegra_idle(struct device *dev)
 
 int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 {
+#ifdef CONFIG_NVGPU_VPR
 	struct gk20a *g = platform->g;
 	struct secure_page_buffer *secure_buffer = &platform->secure_buffer;
 	dma_addr_t iova;
@@ -644,7 +649,7 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 
 	g->ops.secure_alloc = gk20a_tegra_secure_alloc;
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_VPR, true);
-
+#endif
 	return 0;
 }
 

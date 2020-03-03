@@ -854,6 +854,7 @@ fail_timeout:
 	return -EBUSY;
 }
 
+#ifdef CONFIG_NVGPU_VPR
 /**
  * gk20a_do_idle() - wrap up for gk20a_do_idle_impl() to be called
  * from outside of GPU driver
@@ -866,6 +867,7 @@ static int gk20a_do_idle(void *_g)
 
 	return gk20a_do_idle_impl(g, true);
 }
+#endif
 
 /**
  * gk20a_do_unidle_impl() - unblock all the tasks blocked by
@@ -905,6 +907,7 @@ int gk20a_do_unidle_impl(struct gk20a *g)
 	return 0;
 }
 
+#ifdef CONFIG_NVGPU_VPR
 /**
  * gk20a_do_unidle() - wrap up for gk20a_do_unidle_impl()
  */
@@ -914,6 +917,7 @@ static int gk20a_do_unidle(void *_g)
 
 	return gk20a_do_unidle_impl(g);
 }
+#endif
 #endif
 
 void __iomem *nvgpu_devm_ioremap_resource(struct platform_device *dev, int i,
@@ -970,7 +974,9 @@ void gk20a_remove_support(struct gk20a *g)
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct sim_nvgpu_linux *sim_linux;
 
+#ifdef CONFIG_NVGPU_VPR
 	tegra_unregister_idle_unidle(gk20a_do_idle);
+#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_kfree(g, g->dbg_regops_tmp_buf);
@@ -1023,7 +1029,9 @@ static int gk20a_init_support(struct platform_device *pdev)
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	int err = -ENOMEM;
 
+#ifdef CONFIG_NVGPU_VPR
 	tegra_register_idle_unidle(gk20a_do_idle, gk20a_do_unidle, g);
+#endif
 
 	l->regs = nvgpu_devm_ioremap_resource(pdev,
 					      GK20A_BAR0_IORESOURCE_MEM,
