@@ -84,7 +84,7 @@ void gm20b_gr_init_get_access_map(struct gk20a *g,
 	static u32 wl_addr_gm20b[] = {
 		/* this list must be sorted (low to high) */
 		0x404468, /* gr_pri_mme_max_instructions       */
-		0x418300, /* gr_pri_gpcs_rasterarb_line_class  */
+		0x418380, /* gr_pri_gpcs_rasterarb_line_class  */
 		0x418800, /* gr_pri_gpcs_setup_debug           */
 		0x418830, /* gr_pri_gpcs_setup_debug_z_gamut_offset */
 		0x4188fc, /* gr_pri_gpcs_zcull_ctx_debug       */
