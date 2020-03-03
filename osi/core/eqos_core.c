@@ -1296,9 +1296,10 @@ static void eqos_configure_rxq_priority(
  *	parameters for the MAC
  *	1) Programming the MAC address
  *	2) Enable required MAC control fields in MCR
- *	3) Enable Multicast and Broadcast Queue
- *	4) Disable MMC interrupts and Configure the MMC counters
- *	5) Enable required MAC interrupts
+ *	3) Enable JE/JD/WD/GPSLCE based on the MTU size
+ *	4) Enable Multicast and Broadcast Queue
+ *	5) Disable MMC interrupts and Configure the MMC counters
+ *	6) Enable required MAC interrupts
  *
  * @param[in] osi_core: OSI core private data structure.
  *
@@ -3504,6 +3505,29 @@ static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 	return 0;
 }
 
+/**
+ * @brief eqos_write_phy_reg - Write to a PHY register through MAC over MDIO bus
+ *
+ * Algorithm:
+ * 1) Before proceeding for reading for PHY register check whether any MII
+ *    operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ * 2) Program data into MAC MDIO data register.
+ * 3) Populate required parameters like phy address, phy register etc,,
+ *	in MAC MDIO Address register. write and GMII busy bits needs to be set
+ *	in this operation.
+ * 4) Write into MAC MDIO address register poll for GMII busy for MDIO
+ *	operation to complete.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be write to PHY.
+ * @param[in] phydata: Data to write to a PHY register.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
 static int eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 			      const unsigned int phyaddr,
 			      const unsigned int phyreg,
@@ -3562,6 +3586,28 @@ static int eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
+/**
+ * @brief eqos_read_phy_reg - Read from a PHY register through MAC over MDIO bus
+ *
+ * Algorithm:
+ *	1) Before proceeding for reading for PHY register check whether any MII
+ *	operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ *	2) Populate required parameters like phy address, phy register etc,,
+ *	in program it in MAC MDIO Address register. Read and GMII busy bits
+ *	needs to be set in this operation.
+ *	3) Write into MAC MDIO address register poll for GMII busy for MDIO
+ *	operation to complete. After this data will be available at MAC MDIO
+ *	data register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be read from PHY.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval data from PHY register on success
+ * @retval -1 on failure
+ */
 static int eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
 			     const unsigned int phyaddr,
 			     const unsigned int phyreg)

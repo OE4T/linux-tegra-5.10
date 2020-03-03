@@ -24,7 +24,9 @@
 #define OSI_COMMON_H
 
 /**
- * @addtogroup EQOS-Helper Helper MACROS
+ * @addtogroup Helper Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
  * @{
  */
 #define OSI_UNLOCKED		0x0U
@@ -43,6 +45,7 @@
 #define OSI_MAX_TX_COALESCE_USEC	1020U
 #define OSI_MIN_TX_COALESCE_USEC	32U
 #define OSI_MIN_TX_COALESCE_FRAMES	1U
+/** @} */
 
 /**
  * @addtogroup - LPI-Timers LPI configuration macros
@@ -83,6 +86,12 @@
 #define OSI_MIN_TX_LPI_TIMER		0x8U
 /** @} */
 
+/**
+ * @addtogroup Helper Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
+ * @{
+ */
 #define OSI_PAUSE_FRAMES_ENABLE		0U
 #define OSI_PAUSE_FRAMES_DISABLE	1U
 #define OSI_FLOW_CTRL_TX		OSI_BIT(0)
@@ -99,8 +108,14 @@
 #ifndef INT_MAX
 #define INT_MAX				(0x7FFFFFFF)
 #endif
+/** @} */
 
-/* MAC Time stamp contorl reg bit fields */
+/**
+ * @addtogroup EQOS_PTP PTP Helper MACROS
+ *
+ * @brief EQOS PTP MAC Time stamp contorl reg bit fields
+ * @{
+ */
 #define OSI_MAC_TCR_TSENA		OSI_BIT(0)
 #define OSI_MAC_TCR_TSCFUPDT		OSI_BIT(1)
 #define OSI_MAC_TCR_TSENALL		OSI_BIT(8)
@@ -115,7 +130,14 @@
 #define OSI_MAC_TCR_SNAPTYPSEL_2	OSI_BIT(17)
 #define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
 #define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
+/** @} */
 
+/**
+ * @addtogroup Helper Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
+ * @{
+ */
 #define OSI_ULLONG_MAX			(~0ULL)
 #define OSI_UCHAR_MAX			(0xFFU)
 
@@ -330,7 +352,7 @@
 /** @} */
 
 /**
- * @addtogroup MTL queue AVB algorithm mode
+ * @addtogroup EQOS_MTL MTL queue AVB algorithm mode
  *
  * @brief MTL AVB queue algorithm type
  * @{
@@ -680,14 +702,13 @@ void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
  */
 void osi_memset(void *s, unsigned int c, unsigned long count);
 
-/*
+/**
  * @brief Function to store a backup of MAC register space during SOC suspend.
  *
  * Algorithm: Read registers to be backed up as per struct core_backup and
  * store the register values in memory.
  *
  * @param[in] config: Pointer to core_backup structure.
- * @param[in] max_regs: Max num of registers to backup.
  *
  * @retval none
  */
@@ -700,7 +721,6 @@ void mac_save_registers(struct core_backup *const config);
  * osi_save_registers().
  *
  * @param[in] config: Pointer to core_backup structure.
- * @param[in] max_regs: Max num of registers to restore.
  *
  * @retval none
  */
