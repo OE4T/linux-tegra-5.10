@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include <nvgpu/gk20a.h>
 
 #define FW_MAX_PATH_SIZE 2048U
-#define NVGPU_UNITTEST_UCODE_PATH "/firmware/"
+#define NVGPU_UNITTEST_UCODE_PATH "/firmware/gv11b/"
 
 static int nvgpu_ucode_load(struct gk20a *g, const char *path,
 	struct nvgpu_firmware *ucode)
