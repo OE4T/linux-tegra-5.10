@@ -678,7 +678,7 @@
 	};
 
 	tegra_main_gpio: gpio@2200000 {
-		compatible = "nvidia,tegra194-gpio";
+		compatible = "nvidia,tegra234-gpio";
 		reg-names = "security", "gpio";
 		reg =
 			<0x0 0x2200000 0x0 0x10000>,
@@ -736,14 +736,11 @@
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
-		gpio-ranges =
-			<&tegra_pinctrl TEGRA194_MAIN_GPIO_BASE(A) TEGRA_PIN_BASE(A) TEGRA194_MAIN_GPIO_RANGE(A, Z) >,
-			<&tegra_pinctrl TEGRA194_MAIN_GPIO_BASE(FF) TEGRA_PIN_BASE(FF) TEGRA194_MAIN_GPIO_RANGE(FF, GG) >;
 		status = "disabled";
 	};
 
 	tegra_aon_gpio: gpio@c2f0000 {
-		compatible = "nvidia,tegra194-gpio-aon";
+		compatible = "nvidia,tegra234-gpio-aon";
 		reg-names = "security", "gpio";
 		reg = 	<0x0 0xc2f0000 0x0 0x1000>,
 			<0x0 0xc2f1000 0x0 0x1000>;
@@ -752,13 +749,11 @@
 			<0 TEGRA194_IRQ_AON_GPIO_1 IRQ_TYPE_LEVEL_HIGH>,
 			<0 TEGRA194_IRQ_AON_GPIO_2 IRQ_TYPE_LEVEL_HIGH>,
 			<0 TEGRA194_IRQ_AON_GPIO_3 IRQ_TYPE_LEVEL_HIGH>;
-		status = "disabled";
 		gpio-controller;
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
-		gpio-ranges =
-			<&tegra_pinctrl TEGRA194_AON_GPIO_BASE(AA) TEGRA_PIN_BASE(AA) TEGRA194_AON_GPIO_RANGE(AA, EE) >;
+		status = "disabled";
 	};
 
 	tegra_wdt:watchdog@30c0000 {
