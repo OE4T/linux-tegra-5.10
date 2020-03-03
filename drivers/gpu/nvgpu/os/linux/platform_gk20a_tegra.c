@@ -903,7 +903,9 @@ static int gk20a_clk_get_freqs(struct device *dev,
 #endif
 
 struct gk20a_platform gm20b_tegra_platform = {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	.has_syncpoints = true,
+#endif
 	.aggressive_sync_destroy_thresh = 64,
 
 	/* power management configuration */

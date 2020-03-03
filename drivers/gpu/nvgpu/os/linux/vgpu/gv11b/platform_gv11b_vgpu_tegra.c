@@ -35,7 +35,9 @@ static int gv11b_vgpu_probe(struct device *dev)
 	void __iomem *regs;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(platform->g);
 	struct gk20a *g = platform->g;
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	int ret;
+#endif
 
 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "usermode");
 	if (!r) {
@@ -75,7 +77,9 @@ static int gv11b_vgpu_probe(struct device *dev)
 }
 
 struct gk20a_platform gv11b_vgpu_tegra_platform = {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	.has_syncpoints = true,
+#endif
 
 	/* power management configuration */
 	.can_railgate_init	= false,

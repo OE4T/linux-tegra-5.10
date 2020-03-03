@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -149,7 +149,9 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.honors_aperture = true,
 		.dma_mask = DMA_BIT_MASK(40),
 		.hardcode_sw_threshold = false,
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.has_syncpoints = true,
+#endif
 	},
 
 	/* 0x1eb0 (RTX 5000 : TU104 based) */
@@ -186,7 +188,9 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.honors_aperture = true,
 		.dma_mask = DMA_BIT_MASK(40),
 		.hardcode_sw_threshold = false,
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.has_syncpoints = true,
+#endif
 	},
 };
 
@@ -608,6 +612,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
 		nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
 	} else {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 		err = nvgpu_nvhost_syncpt_init(g);
 		if (err) {
 			if (err != -ENOSYS) {
@@ -615,6 +620,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 				goto err_free_irq;
 			}
 		}
+#endif
 	}
 
 	err = nvgpu_get_dt_clock_limit(g, &g->dgpu_max_clk);

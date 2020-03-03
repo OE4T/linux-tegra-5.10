@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -78,6 +78,7 @@ static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa, u64 *pa_len)
 
 	err = hyp_read_ipa_pa_info(&info, platform->vmid, ipa);
 	if (err < 0) {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 		/* WAR for bug 2096877
 		 * hyp_read_ipa_pa_info only looks up RAM mappings.
 		 * assume one to one IPA:PA mapping for syncpt aperture
@@ -93,6 +94,10 @@ static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa, u64 *pa_len)
 			nvgpu_err(g, "ipa=%llx translation failed vmid=%u err=%d",
 				ipa, platform->vmid, err);
 		}
+#else
+		nvgpu_err(g, "ipa=%llx translation failed vmid=%u err=%d",
+			ipa, platform->vmid, err);
+#endif
 	} else {
 		pa = info.base + info.offset;
 		if (pa_len != NULL) {

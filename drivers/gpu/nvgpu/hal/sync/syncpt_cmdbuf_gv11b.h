@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 #define NVGPU_SYNC_SYNCPT_CMDBUF_GV11B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/errno.h>
 
 struct gk20a;
 struct priv_cmd_entry;

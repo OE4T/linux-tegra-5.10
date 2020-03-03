@@ -81,11 +81,13 @@ static int gv11b_tegra_probe(struct device *dev)
 	bool joint_xpu_rail = false;
 	struct gk20a *g = platform->g;
 
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	err = nvgpu_nvhost_syncpt_init(platform->g);
 	if (err) {
 		if (err != -ENOSYS)
 			return err;
 	}
+#endif
 
 	err = gk20a_tegra_init_secure_alloc(platform);
 	if (err)
@@ -255,7 +257,9 @@ static void gv11b_tegra_set_tpc_pg_mask(struct device *dev, u32 tpc_pg_mask)
 }
 
 struct gk20a_platform gv11b_tegra_platform = {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	.has_syncpoints = true,
+#endif
 
 	/* ptimer src frequency in hz*/
 	.ptimer_src_freq	= 31250000,

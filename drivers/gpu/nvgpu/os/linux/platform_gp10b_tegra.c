@@ -153,9 +153,9 @@ static int gp10b_tegra_probe(struct device *dev)
 	struct device_node *of_chosen;
 	bool joint_xpu_rail = false;
 	struct gk20a *g = platform->g;
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	int ret;
 
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	ret = nvgpu_get_nvhost_dev(platform->g);
 	if (ret)
 		return ret;
@@ -444,7 +444,9 @@ int gp10b_clk_get_freqs(struct device *dev,
 }
 
 struct gk20a_platform gp10b_tegra_platform = {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	.has_syncpoints = true,
+#endif
 
 	/* power management configuration */
 	.railgate_delay_init	= 500,
