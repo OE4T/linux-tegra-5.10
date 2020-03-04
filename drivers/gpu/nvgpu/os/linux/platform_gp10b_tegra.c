@@ -30,7 +30,9 @@
 #include <soc/tegra/tegra_powergate.h>
 #include <soc/tegra/tegra-bpmp-dvfs.h>
 
+#ifdef CONFIG_ARCH_TEGRA_18x_SOC
 #include <dt-bindings/memory/tegra-swgroup.h>
+#endif
 
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
@@ -510,7 +512,9 @@ struct gk20a_platform gp10b_tegra_platform = {
 	.unify_address_spaces = true,
 	.dma_mask = DMA_BIT_MASK(36),
 
+#ifdef CONFIG_ARCH_TEGRA_18x_SOC
 	.ltc_streamid = TEGRA_SID_GPUB,
+#endif
 
 	.secure_buffer_size = 401408,
 };
