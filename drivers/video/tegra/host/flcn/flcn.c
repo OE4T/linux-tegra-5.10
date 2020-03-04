@@ -53,6 +53,10 @@
 #ifdef CONFIG_TEGRA_T19X_GRHOST
 #include "t194/t194.h"
 #endif
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+#include "t23x/t23x.h"
+#endif
+
 
 static int nvhost_flcn_init_sw(struct platform_device *dev);
 static int nvhost_flcn_deinit_sw(struct platform_device *dev);
@@ -699,6 +703,10 @@ static struct of_device_id tegra_flcn_of_match[] = {
 		.data = (struct nvhost_device_data *)&t19_nvenc1_info,
 		.name = "nvenc1" },
 #endif
+#endif
+
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+#include "flcn/flcn_t23x.h"
 #endif
 	{ },
 };

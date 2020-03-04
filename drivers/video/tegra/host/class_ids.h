@@ -1,7 +1,7 @@
 /*
  * Tegra Host Module Class IDs
  *
- * Copyright (c) 2012-2014, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,6 +35,9 @@ enum {
 	NV_TSEC_CLASS_ID		= 0xE0,
 	NV_TSECB_CLASS_ID		= 0xE1,
 	NV_NVJPG_CLASS_ID		= 0xC0,
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	#include "class_ids_t23x.h"
+#endif
 	NV_NVDEC_CLASS_ID		= 0xF0,
 };
 

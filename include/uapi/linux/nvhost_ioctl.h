@@ -413,6 +413,9 @@ enum nvhost_module_id {
 	NVHOST_MODULE_VIC,
 	NVHOST_MODULE_NVDEC,
 	NVHOST_MODULE_NVJPG,
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	#include "../../../../nvidia-t23x/include/uapi/linux/nvhost_ioctl_t23x.h"
+#endif
 	NVHOST_MODULE_VII2C,
 	NVHOST_MODULE_NVENC1,
 	NVHOST_MODULE_NVDEC1,

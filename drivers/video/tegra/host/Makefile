@@ -5,6 +5,11 @@ ccflags-y += -Idrivers/video/tegra/host
 ccflags-y += -Idrivers/devfreq
 ccflags-y += -Wno-multichar
 
+ifeq ($(CONFIG_TEGRA_T23X_GRHOST),y)
+ccflags-y += -I$(srctree.nvidia-t23x)/include
+ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
+endif
+
 subdir-ccflags-y := -Werror -Wno-vla
 
 nvhost-objs = \

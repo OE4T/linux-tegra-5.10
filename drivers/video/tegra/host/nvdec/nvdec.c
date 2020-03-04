@@ -64,6 +64,9 @@
 #ifdef CONFIG_TEGRA_T19X_GRHOST
 #include "t194/t194.h"
 #endif
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+#include "t23x/t23x.h"
+#endif
 
 #define FW_NAME_SIZE			32
 
@@ -385,6 +388,11 @@ static struct of_device_id tegra_nvdec_of_match[] = {
 	{ .compatible = "nvidia,tegra194-nvdec",
 		.data = (struct nvhost_device_data *)&t19_nvdec1_info,
 		.name = "nvdec1" },
+#endif
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+	{ .compatible = "nvidia,tegra234-nvdec",
+		.data = (struct nvhost_device_data *)&t23x_nvdec_info,
+		.name = "nvdec" },
 #endif
 	{ },
 };
