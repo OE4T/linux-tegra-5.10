@@ -17,7 +17,6 @@
 #include <linux/clkdev.h>
 #include <linux/of_platform.h>
 #include <linux/debugfs.h>
-#include <linux/platform_data/tegra_edp.h>
 #include <linux/delay.h>
 #include <uapi/linux/nvgpu.h>
 #include <linux/dma-buf.h>
@@ -202,7 +201,6 @@ static void gk20a_tegra_prescale(struct device *dev)
 	u32 avg = 0;
 
 	nvgpu_pmu_load_norm(g, &avg);
-	tegra_edp_notify_gpu_load(avg, clk_get_rate(g->clk.tegra_clk));
 }
 
 /*
@@ -873,7 +871,6 @@ static int gk20a_tegra_remove(struct device *dev)
 
 static int gk20a_tegra_suspend(struct device *dev)
 {
-	tegra_edp_notify_gpu_load(0, 0);
 	return 0;
 }
 
