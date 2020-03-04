@@ -27,7 +27,7 @@
 #include "therm_channel.h"
 #include "therm_dev.h"
 
-struct therm_pmupstate {
+struct nvgpu_pmu_therm {
 	struct therm_devices therm_deviceobjs;
 	struct therm_channels therm_channelobjs;
 };

@@ -32,7 +32,7 @@
 #include "ucode_therm_inf.h"
 #include "thrm.h"
 
-bool therm_device_idx_is_valid(struct therm_pmupstate *therm_pmu, u8 idx)
+bool therm_device_idx_is_valid(struct nvgpu_pmu_therm *therm_pmu, u8 idx)
 {
 	return boardobjgrp_idxisvalid(
 			&(therm_pmu->therm_deviceobjs.super.super), idx);

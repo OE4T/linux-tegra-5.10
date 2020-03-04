@@ -27,7 +27,7 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 
-struct therm_pmupstate;
+struct nvgpu_pmu_therm;
 
 struct therm_devices {
 	struct boardobjgrp_e32 super;
@@ -39,6 +39,6 @@ struct therm_device {
 
 int therm_device_sw_setup(struct gk20a *g);
 int therm_device_pmu_setup(struct gk20a *g);
-bool therm_device_idx_is_valid(struct therm_pmupstate *therm_pmu, u8 idx);
+bool therm_device_idx_is_valid(struct nvgpu_pmu_therm *therm_pmu, u8 idx);
 
 #endif /* NVGPU_THERM_THRMDEV_H */

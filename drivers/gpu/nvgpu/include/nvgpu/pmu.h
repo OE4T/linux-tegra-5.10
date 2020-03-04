@@ -302,8 +302,8 @@ struct nvgpu_pmu {
 	struct nvgpu_pmu_pg *pg;
 	struct nvgpu_pmu_perfmon *pmu_perfmon;
 	struct nvgpu_clk_pmupstate *clk_pmu;
-	struct therm_pmupstate *therm_pmu;
 	struct nvgpu_pmu_perf *perf_pmu;
+	struct nvgpu_pmu_therm *therm_pmu;
 	struct nvgpu_pmu_volt *volt;
 
 	void (*remove_support)(struct nvgpu_pmu *pmu);
