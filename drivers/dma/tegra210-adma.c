@@ -409,15 +409,15 @@ static void tegra_adma_stop(struct tegra_adma_chan *tdc)
 	/* Disable ADMA */
 	tdma_ch_write(tdc, ADMA_CH_CMD, 0);
 
-	/* Clear interrupt status */
-	tegra_adma_irq_clear(tdc);
-
 	if (readx_poll_timeout_atomic(readl, tdc->chan_addr + ADMA_CH_STATUS,
 			status, !(status & ADMA_CH_STATUS_XFER_EN),
 			20, 10000)) {
 		dev_err(tdc2dev(tdc), "unable to stop DMA channel\n");
 		return;
 	}
+
+	/* Clear interrupt status */
+	tegra_adma_irq_clear(tdc);
 
 	kfree(tdc->desc);
 	tdc->desc = NULL;
