@@ -76,6 +76,7 @@ static void gv11b_tegra_scale_exit(struct device *dev)
 static int gv11b_tegra_probe(struct device *dev)
 {
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	struct device_node *of_chosen;
 	int err;
 	bool joint_xpu_rail = false;
 	struct gk20a *g = platform->g;
@@ -93,6 +94,10 @@ static int gv11b_tegra_probe(struct device *dev)
 	platform->disable_bigpage = !dev->archdata.iommu && (PAGE_SIZE < SZ_64K);
 
 #ifdef CONFIG_OF
+	of_chosen = of_find_node_by_path("/chosen");
+	if (!of_chosen)
+		return -ENODEV;
+
 	joint_xpu_rail = of_property_read_bool(of_chosen,
 				"nvidia,tegra-joint_xpu_rail");
 #endif

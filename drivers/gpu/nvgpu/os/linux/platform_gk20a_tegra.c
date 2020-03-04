@@ -778,6 +778,7 @@ static int gk20a_tegra_probe(struct device *dev)
 {
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	struct device_node *np = dev->of_node;
+	struct device_node *of_chosen;
 	bool joint_xpu_rail = false;
 	int ret;
 	struct gk20a *g = platform->g;
@@ -807,6 +808,10 @@ static int gk20a_tegra_probe(struct device *dev)
 #endif
 
 #ifdef CONFIG_OF
+	of_chosen = of_find_node_by_path("/chosen");
+	if (!of_chosen)
+		return -ENODEV;
+
 	joint_xpu_rail = of_property_read_bool(of_chosen,
 				"nvidia,tegra-joint_xpu_rail");
 #endif
