@@ -29,7 +29,6 @@
 #include "dev.h"
 #include "class_ids.h"
 #include "class_ids_t194.h"
-#include "class_ids_t23x.h"
 
 #include "nvhost_syncpt_unit_interface.h"
 #include "t23x.h"
@@ -287,43 +286,11 @@ struct nvhost_device_data t23x_msenc_info = {
 	.isolate_contexts	= true,
 	.enable_timestamps	= flcn_enable_timestamps,
 };
-
-struct nvhost_device_data t23x_nvenc1_info = {
-	.version		= NVHOST_ENCODE_FLCN_VER(7, 0),
-	.devfs_name		= "nvenc1",
-	.class			= NV_VIDEO_ENCODE_NVENC1_CLASS_ID,
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVENC1},
-	.autosuspend_delay      = 500,
-	.clocks			= {
-		{"nvenc", UINT_MAX},
-		{"emc", 0,
-		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
-	},
-	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
-	.moduleid		= NVHOST_MODULE_NVENC1,
-	.num_channels		= 1,
-	.firmware_name		= "nvhost_nvenc070.fw",
-	.serialize		= true,
-	.push_work_done		= true,
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.transcfg_addr		= 0x1844,
-	.transcfg_val		= 0x20,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_NVENC1,
-	.engine_cg_regs		= t23x_nvenc_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= true,
-	.isolate_contexts	= true,
-	.enable_timestamps	= flcn_enable_timestamps,
-};
 #endif
 
 #if defined(CONFIG_TEGRA_GRHOST_NVDEC)
 struct nvhost_device_data t23x_nvdec_info = {
-	.version		= NVHOST_ENCODE_NVDEC_VER(4, 0),
+	.version		= NVHOST_ENCODE_NVDEC_VER(5, 0),
 	.devfs_name		= "nvdec",
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVDEC},
 	.class			= NV_NVDEC_CLASS_ID,
@@ -346,44 +313,10 @@ struct nvhost_device_data t23x_nvdec_info = {
 	.push_work_done		= true,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.transcfg_addr		= 0x2c44,
+	.transcfg_addr		= 0x4e44,
 	.transcfg_val		= 0x20,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_NVDEC,
 	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.engine_cg_regs		= t23x_nvdec_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= true,
-	.isolate_contexts	= true,
-};
-
-struct nvhost_device_data t23x_nvdec1_info = {
-	.version		= NVHOST_ENCODE_NVDEC_VER(4, 0),
-	.devfs_name		= "nvdec1",
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVDEC1},
-	.class			= NV_NVDEC1_CLASS_ID,
-	.autosuspend_delay      = 500,
-	.clocks			= {
-		{"nvdec", UINT_MAX},
-		{"kfuse", 0, 0},
-		{"efuse", 0, 0},
-		{"emc", 0,
-		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
-	},
-	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_nvdec_finalize_poweron_t186,
-	.prepare_poweroff	= nvhost_nvdec_prepare_poweroff_t186,
-	.moduleid		= NVHOST_MODULE_NVDEC1,
-	.ctrl_ops		= &tegra_nvdec_ctrl_ops,
-	.num_channels		= 1,
-	.serialize		= true,
-	.push_work_done		= true,
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.transcfg_addr		= 0x2c44,
-	.transcfg_val		= 0x20,
-	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
-	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_NVDEC1,
 	.engine_cg_regs		= t23x_nvdec_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
@@ -393,7 +326,7 @@ struct nvhost_device_data t23x_nvdec1_info = {
 
 #if defined(CONFIG_TEGRA_GRHOST_NVJPG)
 struct nvhost_device_data t23x_nvjpg_info = {
-	.version		= NVHOST_ENCODE_FLCN_VER(1, 2),
+	.version		= NVHOST_ENCODE_FLCN_VER(1, 3),
 	.devfs_name		= "nvjpg",
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVJPG},
 	.class			= NV_NVJPG_CLASS_ID,
@@ -408,7 +341,7 @@ struct nvhost_device_data t23x_nvjpg_info = {
 	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.moduleid		= NVHOST_MODULE_NVJPG,
 	.num_channels		= 1,
-	.firmware_name		= "nvhost_nvjpg012.fw",
+	.firmware_name		= "nvhost_nvjpg013.fw",
 	.serialize		= true,
 	.push_work_done		= true,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
@@ -417,6 +350,67 @@ struct nvhost_device_data t23x_nvjpg_info = {
 	.transcfg_val		= 0x20,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_NVJPG,
 	.engine_cg_regs		= t23x_nvjpg_gating_registers,
+	.engine_can_cg		= true,
+	.can_powergate		= true,
+	.isolate_contexts	= true,
+};
+
+struct nvhost_device_data t23x_nvjpg1_info = {
+	.version		= NVHOST_ENCODE_FLCN_VER(1, 3),
+	.devfs_name		= "nvjpg1",
+	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVJPG1},
+	.class			= NV_NVJPG1_CLASS_ID,
+	.autosuspend_delay      = 500,
+	.clocks			= {
+		{"nvjpg", UINT_MAX},
+		{"emc", 0,
+		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
+		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
+	},
+	.poweron_reset		= true,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
+	.moduleid		= NVHOST_MODULE_NVJPG1,
+	.num_channels		= 1,
+	.firmware_name		= "nvhost_nvjpg013.fw",
+	.serialize		= true,
+	.push_work_done		= true,
+	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
+	.vm_regs		= {{0x30, true}, {0x34, false} },
+	.transcfg_addr		= 0x1444,
+	.transcfg_val		= 0x20,
+	.engine_cg_regs		= t23x_nvjpg_gating_registers,
+	.engine_can_cg		= true,
+	.can_powergate		= true,
+	.isolate_contexts	= true,
+};
+#endif
+
+#if defined(CONFIG_TEGRA_GRHOST_OFA)
+struct nvhost_device_data t23x_ofa_info = {
+	.version		= NVHOST_ENCODE_FLCN_VER(1, 2),
+	.devfs_name		= "ofa",
+	.modulemutexes		= {NV_HOST1X_MLOCK_ID_OFA},
+	.class			= NV_OFA_CLASS_ID,
+	.autosuspend_delay      = 500,
+	.clocks			= {
+		{"ofa", UINT_MAX},
+		{"emc", 0,
+		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
+		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
+	},
+	.poweron_reset		= true,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
+	.moduleid		= NVHOST_MODULE_OFA,
+	.num_channels		= 1,
+	.firmware_name		= "nvhost_ofa012.fw",
+	.serialize		= true,
+	.push_work_done		= true,
+	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
+	.vm_regs		= {{0x30, true}, {0x34, false} },
+	.transcfg_addr		= 0x1444,
+	.transcfg_val		= 0x20,
+	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
+	.engine_cg_regs		= t23x_ofa_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
@@ -448,35 +442,6 @@ struct nvhost_device_data t23x_tsec_info = {
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.vm_regs		= {{0x30, true}, {0x34, false} },
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_TSEC,
-	.engine_cg_regs		= t23x_tsec_gating_registers,
-	.engine_can_cg		= true,
-	.can_powergate		= true,
-};
-
-struct nvhost_device_data t23x_tsecb_info = {
-	.num_channels		= 1,
-	.devfs_name		= "tsecb",
-	.version		= NVHOST_ENCODE_TSEC_VER(1, 0),
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_TSECB},
-	.class			= NV_TSECB_CLASS_ID,
-	.clocks			= {
-		{"tsecb", UINT_MAX},
-		{"efuse", 0, 0},
-		{"emc", 0,
-		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
-	},
-	.autosuspend_delay      = 500,
-	.keepalive		= true,
-	.moduleid               = NVHOST_MODULE_TSECB,
-	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_tsec_finalize_poweron_t186,
-	.prepare_poweroff	= nvhost_tsec_prepare_poweroff,
-	.serialize		= true,
-	.push_work_done		= true,
-	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
-	.vm_regs		= {{0x30, true}, {0x34, false} },
-	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_TSECB,
 	.engine_cg_regs		= t23x_tsec_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,

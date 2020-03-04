@@ -1,0 +1,11 @@
+if ARCH_TEGRA
+
+config TEGRA_GRHOST_OFA
+        depends on TEGRA_GRHOST
+        tristate "Tegra OFA support"
+        default y
+        help
+          Driver for the Tegra OFA is an engine which
+          can be used for optical flow/stereo acceleration.
+
+endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,10 @@ static struct nvhost_streamid_mapping __attribute__((__unused__))
 	{ 0x00001698, 0x00000034, 0x00000034},
 	/* HOST1X_THOST_COMMON_NVJPG_STRMID_0_OFFSET_BASE_0 */
 	{ 0x000016a0, 0x00000034, 0x00000034},
+	/* HOST1X_THOST_COMMON_NVJPG1_STRMID_0_OFFSET_BASE_0 */
+	{ 0x000016b0, 0x00000034, 0x00000034},
+	/* HOST1X_THOST_COMMON_OFA_STRMID_0_OFFSET_BASE_0 */
+	{ 0x000016e8, 0x00000034, 0x00000034},
 	/* HOST1X_THOST_COMMON_TSEC_STRMID_0_OFFSET_BASE_0 */
 	{ 0x000016a8, 0x00000034, 0x00000034},
 	/* HOST1X_THOST_COMMON_VI_STRMID_0_OFFSET_BASE_0 */
@@ -74,6 +78,10 @@ static struct nvhost_streamid_mapping __attribute__((__unused__))
 	{ 0x000017d8, 0x00000030, 0x00000030 },
 	/* HOST1X_THOST_COMMON_NVJPG_CH_STRMID_0_OFFSET_BASE_0 */
 	{ 0x000017e0, 0x00000030, 0x00000030 },
+	/* HOST1X_THOST_COMMON_NVJPG1_CH_STRMID_0_OFFSET_BASE_0 */
+	{ 0x000017b8, 0x00000030, 0x00000030 },
+	/* HOST1X_THOST_COMMON_OFA_CH_STRMID_0_OFFSET_BASE_0 */
+	{ 0x00001778, 0x00000030, 0x00000030 },
 	/* HOST1X_THOST_COMMON_TSEC_CH_STRMID_0_OFFSET_BASE_0 */
 	{ 0x000017e8, 0x00000030, 0x00000030 },
 	/* HOST1X_THOST_COMMON_VI_CH_STRMID_0_OFFSET_BASE_0 */

@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Chip support for T23X
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -42,18 +42,19 @@ extern struct nvhost_device_data t23x_vic_info;
 #endif
 #if defined(CONFIG_TEGRA_GRHOST_NVDEC)
 extern struct nvhost_device_data t23x_nvdec_info;
-extern struct nvhost_device_data t23x_nvdec1_info;
 #endif
 #if defined(CONFIG_TEGRA_GRHOST_NVJPG)
 extern struct nvhost_device_data t23x_nvjpg_info;
+extern struct nvhost_device_data t23x_nvjpg1_info;
+#endif
+#if defined(CONFIG_TEGRA_GRHOST_OFA)
+extern struct nvhost_device_data t23x_ofa_info;
 #endif
 #if defined(CONFIG_TEGRA_GRHOST_NVENC)
 extern struct nvhost_device_data t23x_msenc_info;
-extern struct nvhost_device_data t23x_nvenc1_info;
 #endif
 #if defined(CONFIG_TEGRA_GRHOST_TSEC)
 extern struct nvhost_device_data t23x_tsec_info;
-extern struct nvhost_device_data t23x_tsecb_info;
 #endif
 #if defined(CONFIG_TEGRA_GRHOST_PVA)
 extern struct nvhost_device_data t23x_pva0_info;
