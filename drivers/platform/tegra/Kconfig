@@ -258,5 +258,12 @@ config TEGRA_PM_DEBUG
 	  Enable additional Tegra PM debug functionality (extra prints
 	  during suspend entry and some debugfs functionality).
 
+config TEGRA_CLOCKS_CONFIGURE
+	bool "Configure initial state of clocks"
+	default y if ARCH_TEGRA_18x_SOC || ARCH_TEGRA_19x_SOC
+	help
+	  Enable or disable clocks during kernel initialization.
+	  This helps in optimizing power by disabling some always on clocks.
+
 source "drivers/platform/tegra/nvadsp/Kconfig"
 source "drivers/platform/tegra/nvaudio_ivc/Kconfig"
