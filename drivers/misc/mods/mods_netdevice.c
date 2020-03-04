@@ -18,7 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mods.h"
 #include "mods_internal.h"
 #include <linux/netdevice.h>
 
