@@ -4,7 +4,7 @@
  *
  * Support for Tegra Virtual Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2019, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2019-2020, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -319,6 +319,7 @@ struct tegra_virtual_se_req_context {
 	/* Security Engine device */
 	struct tegra_virtual_se_dev *se_dev;
 	unsigned int digest_size;
+	unsigned int intermediate_digest_size;
 	u8 mode;			/* SHA operation mode */
 	u8 *sha_buf;			/* Buffer to store residual data */
 	dma_addr_t sha_buf_addr;	/* DMA address to residual data */
@@ -627,7 +628,7 @@ static int tegra_hv_vse_safety_sha_send_one(struct ahash_request *req,
 
 	ivc_tx->sha.op_hash.dst = (u64)req_ctx->hash_result_addr;
 	memcpy(ivc_tx->sha.op_hash.hash, req_ctx->hash_result,
-		req_ctx->digest_size);
+		req_ctx->intermediate_digest_size);
 
 	err = tegra_hv_vse_safety_send_sha_data(se_dev, req, ivc_req_msg,
 				nbytes, islast);
@@ -737,7 +738,8 @@ static int tegra_hv_vse_safety_sha_fast_path(struct ahash_request *req,
 			ivc_tx->sha.op_hash.dst
 				= (u64)req_ctx->hash_result_addr;
 			memcpy(ivc_tx->sha.op_hash.hash,
-				req_ctx->hash_result, req_ctx->digest_size);
+				req_ctx->hash_result,
+				req_ctx->intermediate_digest_size);
 
 			req_ctx->total_count += bytes_process_in_req;
 
@@ -1026,27 +1028,25 @@ static int tegra_hv_vse_safety_sha_init(struct ahash_request *req)
 
 	req_ctx->digest_size = crypto_ahash_digestsize(tfm);
 	switch (req_ctx->digest_size) {
-	case SHA1_DIGEST_SIZE:
-		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA1;
-		req_ctx->blk_size = TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT;
-		break;
-	case SHA224_DIGEST_SIZE:
-		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA224;
-		req_ctx->blk_size = TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT;
-		break;
 	case SHA256_DIGEST_SIZE:
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA256;
 		req_ctx->blk_size = TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT;
+		req_ctx->intermediate_digest_size = SHA256_DIGEST_SIZE;
 		break;
 	case SHA384_DIGEST_SIZE:
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA384;
 		req_ctx->blk_size =
 			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT;
+		/*
+		 * The intermediate digest size of SHA384 is same as SHA512
+		 */
+		req_ctx->intermediate_digest_size = SHA512_DIGEST_SIZE;
 		break;
 	case SHA512_DIGEST_SIZE:
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA512;
 		req_ctx->blk_size =
 			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT;
+		req_ctx->intermediate_digest_size = SHA512_DIGEST_SIZE;
 		break;
 	default:
 		return -EINVAL;
