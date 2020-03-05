@@ -9,7 +9,6 @@ ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
 BUILD_ENABLE=y
 endif
 
-dtb-$(BUILD_ENABLE) += tegra194-p3668-all-p3449-0000.dtb
 dtb-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000.dtb
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-hdr40.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-adafruit-sph0645lm4h.dtbo
