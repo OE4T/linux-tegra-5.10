@@ -55,6 +55,12 @@
 #define nvgpu_thread_cleanup_pop() pthread_cleanup_pop((bool)1)
 
 /**
+ * @brief Macro to not to invoke the thread cancellation cleanup handler.
+ */
+#define nvgpu_thread_cleanup_pop_do_not_invoke() \
+			pthread_cleanup_pop((bool)0)
+
+/**
  * Returns the PID of the calling process.
  */
 #define nvgpu_getpid getpid
