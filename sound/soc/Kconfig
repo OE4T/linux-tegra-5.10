@@ -1,4 +1,4 @@
-if SND_SOC
+if SND_SOC && ("$(VERSION)" < "5")
 
 source "sound/soc/tegra-alt/Kconfig"
 source "sound/soc/tegra-virt-alt/Kconfig"
