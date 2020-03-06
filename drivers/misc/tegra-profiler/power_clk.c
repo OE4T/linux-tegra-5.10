@@ -587,7 +587,7 @@ int quadd_power_clk_init(struct quadd_ctx *quadd_ctx)
 #endif
 	quadd_ctx->pclk_cpufreq = power_ctx.is_cpufreq;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
 	register_cpu_notifier(&s->nb[PCLK_NB_CPU_HOTPLUG]);
 #endif
 
@@ -606,7 +606,7 @@ void quadd_power_clk_deinit(void)
 					    CPUFREQ_TRANSITION_NOTIFIER);
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
 	unregister_cpu_notifier(&s->nb[PCLK_NB_CPU_HOTPLUG]);
 #endif
 }
