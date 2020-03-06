@@ -87,6 +87,7 @@
 
 #define I2S_BITS_8				1
 #define I2S_BITS_16				3
+#define I2S_BITS_24				5
 #define I2S_BITS_32				7
 #define I2S_CTRL_BIT_SIZE_MASK			0x7
 

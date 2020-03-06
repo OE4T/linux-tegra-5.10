@@ -37,6 +37,7 @@ enum dai_link_type {
 struct snd_soc_pcm_stream link_params = {
 	.formats = SNDRV_PCM_FMTBIT_S8	   |
 		   SNDRV_PCM_FMTBIT_S16_LE |
+		   SNDRV_PCM_FMTBIT_S24_LE |
 		   SNDRV_PCM_FMTBIT_S32_LE,
 	.rate_min = 8000,
 	.rate_max = 192000,
