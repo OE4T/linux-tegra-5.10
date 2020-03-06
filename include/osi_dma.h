@@ -104,7 +104,7 @@
  * @{
  */
 /* Rx swcx flags */
-#define OSI_RX_SWCX_PTP		OSI_BIT(0)
+#define OSI_RX_SWCX_REUSE	OSI_BIT(0)
 #define OSI_RX_SWCX_BUF_VALID	OSI_BIT(1)
 /** @} */
 
