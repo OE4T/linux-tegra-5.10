@@ -535,8 +535,12 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 		nvgpu_gr_intr_set_error_notifier(g, isr_data,
 			 NVGPU_ERR_NOTIFIER_FECS_ERR_UNIMP_FIRMWARE_METHOD);
 		nvgpu_err(g, "firmware method error: "
-				"mailxbox6 0x%08x, trapped_addr_reg 0x%08x",
-				mailbox_value, isr_data->addr);
+			"mailxbox6 0x%08x, trapped_addr_reg 0x%08x "
+			"set_falcon_method 0x%08x, class 0x%08x "
+			"non-whitelist reg: 0x%08x",
+			mailbox_value, isr_data->addr,
+			isr_data->offset << 2U, isr_data->class_num,
+			isr_data->data_lo);
 		ret = -1;
 	} else if (fecs_host_intr.watchdog_active) {
 		gr_intr_report_ctxsw_error(g,
