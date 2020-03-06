@@ -25,7 +25,7 @@
 #ifndef NVGPU_PERF_PSTATE_H
 #define NVGPU_PERF_PSTATE_H
 
-#define CTRL_PERF_PSTATE_TYPE_35	0x05U
+#define CTRL_PERF_PSTATE_TYPE_35	0x04U
 
 struct pstate_clk_info_list {
 	u32 num_info;

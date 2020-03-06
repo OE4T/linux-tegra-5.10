@@ -278,11 +278,12 @@ static int clk_vf_point_construct_volt_35(struct gk20a *g,
 			(struct clk_vf_point_volt *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT) {
+	if (BOARDOBJ_GET_TYPE(pargs) !=
+			CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_PRI) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask = (u32) BIT(CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT);
+	ptmpobj->type_mask = (u32) BIT(CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_PRI);
 	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -341,7 +342,7 @@ struct clk_vf_point *nvgpu_construct_clk_vf_point(struct gk20a *g, void *pargs)
 			sizeof(struct clk_vf_point_freq), pargs);
 		break;
 
-	case CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT:
+	case CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_PRI:
 		status = clk_vf_point_construct_volt_35(g, &board_obj_ptr,
 			sizeof(struct clk_vf_point_volt), pargs);
 		break;

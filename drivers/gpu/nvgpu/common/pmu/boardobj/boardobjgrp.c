@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@ static int check_boardobjgrp_param(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (pboardobjgrp->pmu.classid == BOARDOBJGRP_GRP_CLASS_ID_INVALID) {
+	if (pboardobjgrp->classid == BOARDOBJGRP_GRP_CLASS_ID_INVALID) {
 		return -EINVAL;
 	}
 
@@ -395,7 +395,7 @@ static int pmu_cmd_send_rpc(struct gk20a *g,
 	(void) memset(&rpc, 0,
 		sizeof(struct nv_pmu_rpc_struct_board_obj_grp_cmd));
 
-	rpc.class_id = pboardobjgrp->pmu.classid;
+	rpc.class_id = pboardobjgrp->classid;
 	rpc.command_id = copy_out ?
 		NV_PMU_BOARDOBJGRP_CMD_GET_STATUS :
 		NV_PMU_BOARDOBJGRP_CMD_SET;
@@ -570,9 +570,8 @@ int nvgpu_boardobjgrp_construct_super(struct gk20a *g,
 	pboardobjgrp->g = g;
 	pboardobjgrp->objmask = 0;
 
-	pboardobjgrp->classid = 0;
+	pboardobjgrp->classid = BOARDOBJGRP_GRP_CLASS_ID_INVALID;
 	pboardobjgrp->pmu.unitid = BOARDOBJGRP_UNIT_ID_INVALID;
-	pboardobjgrp->pmu.classid = BOARDOBJGRP_GRP_CLASS_ID_INVALID;
 	pboardobjgrp->pmu.bset = false;
 	pboardobjgrp->pmu.rpc_func_id = BOARDOBJGRP_GRP_RPC_FUNC_ID_INVALID;
 	pboardobjgrp->pmu.set.id = BOARDOBJGRP_GRP_CMD_ID_INVALID;

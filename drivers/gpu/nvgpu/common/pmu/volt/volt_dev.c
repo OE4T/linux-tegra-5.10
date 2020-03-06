@@ -236,6 +236,13 @@ static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
 		goto done;
 	}
 
+	/* Skip and return success as ucode doesn't support IPC VMIN type */
+	if (ptmp_dev->super.operation_type ==
+			CTRL_VOLT_VOLT_DEVICE_OPERATION_TYPE_IPC_VMIN) {
+		status = 0;
+		goto done;
+	}
+
 	ptmp_dev->super.voltage_min_uv = BIOS_GET_FIELD(u32,
 		p_bios_entry->param1,
 		NV_VBIOS_VDT_1X_ENTRY_PARAM1_PSV_VOLTAGE_MINIMUM);

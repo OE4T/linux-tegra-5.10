@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@
 #include <nvgpu/pmu/seq.h>
 
 /* PMU F/W version */
-#define APP_VERSION_TU10X	27397105U
+#define APP_VERSION_TU10X	28084434U
 #define APP_VERSION_GV11B	25005711U
 #define APP_VERSION_GV10X	25633490U
 #define APP_VERSION_GP10X	24076634U

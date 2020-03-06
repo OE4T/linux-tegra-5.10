@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -243,6 +243,7 @@ struct ctrl_perf_vfe_var_single_sensed_fuse_vfield_info {
 struct ctrl_perf_vfe_var_single_sensed_fuse_ver_vfield_info {
 	struct ctrl_perf_vfe_var_single_sensed_fuse_info fuse;
 	u8 ver_expected;
+	bool b_ver_expected_is_mask;
 	bool b_ver_check;
 	bool b_ver_check_ignore;
 	bool b_use_default_on_ver_check_fail;

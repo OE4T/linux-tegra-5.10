@@ -1067,7 +1067,7 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 
 			/* FLL sources use a voltage-based VF_POINT.*/
 			vf_point_data.board_obj.type =
-					CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT;
+					CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_PRI;
 			for (i = 0; i < step_count; i++) {
 				vf_point_data.volt.source_voltage_uv =
 					voltage_min_uv + i * voltage_step_size_uv;

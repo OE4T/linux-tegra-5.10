@@ -856,6 +856,8 @@ static int vfe_var_construct_single_sensed_fuse(struct gk20a *g,
 		ptmpvar->vfield_ver_info.v_field_id_ver;
 	pvfevar->vfield_ver_info.ver_expected =
 		ptmpvar->vfield_ver_info.ver_expected;
+	pvfevar->vfield_ver_info.b_ver_expected_is_mask =
+		ptmpvar->vfield_ver_info.b_ver_expected_is_mask;
 	pvfevar->vfield_ver_info.b_use_default_on_ver_check_fail =
 		ptmpvar->vfield_ver_info.b_use_default_on_ver_check_fail;
 	pvfevar->b_version_check_done = false;
@@ -864,7 +866,11 @@ static int vfe_var_construct_single_sensed_fuse(struct gk20a *g,
 	pvfevar->super.super.super.b_is_dynamic = false;
 	pvfevar->super.super.super.b_is_dynamic_valid = true;
 
-	dev_init_get_vfield_info(g, pvfevar);
+	status = dev_init_get_vfield_info(g, pvfevar);
+	if (status != 0) {
+		nvgpu_err(g, "Get vfield table failed");
+		goto exit;
+	}
 	/*check whether fuse segment got initialized*/
 	if (pvfevar->vfield_info.fuse.segment_count == 0U) {
 		nvgpu_err(g, "unable to get fuse reg info %x",
@@ -1174,6 +1180,9 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 			var_data.single_sensed_fuse.vfield_ver_info.ver_expected =
 				BIOS_GET_FIELD(u8, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_EXPECTED_VER);
+			var_data.single_sensed_fuse.vfield_ver_info.b_ver_expected_is_mask =
+				BIOS_GET_FIELD(u8, var.param0,
+					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_EXPECTED_VER_MODE);
 			var_data.single_sensed_fuse.vfield_ver_info.b_use_default_on_ver_check_fail =
 				(BIOS_GET_FIELD(bool, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_USE_DEFAULT_ON_VER_CHECK_FAIL) &&

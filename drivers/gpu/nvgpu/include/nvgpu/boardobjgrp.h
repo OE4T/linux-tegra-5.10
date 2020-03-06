@@ -89,7 +89,6 @@ struct boardobjgrp_pmu_cmd {
 */
 struct boardobjgrp_pmu {
 	u8   unitid;
-	u8   classid;
 	bool bset;
 	u8 rpc_func_id;
 	struct boardobjgrp_pmu_cmd set;
@@ -270,7 +269,7 @@ struct boardobjgrp {
 #define BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, _ENG, _CLASS)	              \
 do {                                                                          \
 	(pboardobjgrp)->pmu.unitid  = PMU_UNIT_##_ENG;                        \
-	(pboardobjgrp)->pmu.classid =                                         \
+	(pboardobjgrp)->classid =                                         \
 	NV_PMU_##_ENG##_BOARDOBJGRP_CLASS_ID_##_CLASS;                        \
 } while (false)
 
