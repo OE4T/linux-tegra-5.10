@@ -227,6 +227,7 @@
 #define OSI_MAC_HW_EQOS		0U
 #define OSI_ETH_ALEN		6U
 
+#define BOOLEAN_FALSE		(0U != 0U)
 #define OSI_NULL                ((void *)0)
 #define OSI_ENABLE		1U
 #define OSI_NONE		0U

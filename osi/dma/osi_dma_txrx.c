@@ -226,6 +226,24 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 
 		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
 
+		/* WHen JE is set, HW will accept any valid packet on Rx upto
+		 * 9K or 16K (depending on GPSCLE bit), irrespective of whether
+		 * MTU set is lower than these specific values. When Rx buf len
+		 * is allocated to be exactly same as MTU, HW will consume more
+		 * than 1 Rx desc. to place the larger packet and will set the
+		 * LD bit in RDES3 accordingly.
+		 * Restrict such Rx packets (which are longer than currently
+		 * set MTU on DUT), and drop them in driver since HW cannot
+		 * drop them. Also make use of swcx flags so that OSD can skip
+		 * DMA buffer allocation and DMA mapping for those descriptors.
+		 * If data is spread across multiple descriptors, drop packet
+		 */
+		if ((((rx_desc->rdes3 & RDES3_FD) == RDES3_FD) &&
+		    (rx_desc->rdes3 & RDES3_LD) == RDES3_LD) == BOOLEAN_FALSE) {
+			rx_swcx->flags |= OSI_RX_SWCX_REUSE;
+			continue;
+		}
+
 		/* get the length of the packet */
 		rx_pkt_cx->pkt_len = rx_desc->rdes3 & RDES3_PKT_LEN;
 
@@ -257,7 +275,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 				 * software context addresses directly since
 				 * those are valid.
 				 */
-				ptp_rx_swcx->flags |= OSI_RX_SWCX_PTP;
+				ptp_rx_swcx->flags |= OSI_RX_SWCX_REUSE;
 				/* Context descriptor was consumed. Its skb
 				 * and DMA mapping will be recycled
 				 */

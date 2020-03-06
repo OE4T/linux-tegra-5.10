@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,6 +65,7 @@
 #define RDES3_IOC		OSI_BIT(30)
 #define RDES3_B1V		OSI_BIT(24)
 #define RDES3_LD		OSI_BIT(28)
+#define RDES3_FD		OSI_BIT(29)
 #define RDES3_ERR_CRC		OSI_BIT(24)
 #define RDES3_ERR_GP		OSI_BIT(23)
 #define RDES3_ERR_WD		OSI_BIT(22)
