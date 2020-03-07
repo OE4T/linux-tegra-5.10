@@ -589,6 +589,16 @@ void gv11b_gr_init_fs_state(struct gk20a *g)
 	nvgpu_writel(g, gr_bes_crop_settings_r(),
 		     gr_bes_crop_settings_num_active_ltcs_f(
 			nvgpu_ltc_get_ltc_count(g)));
+	/*
+	 * Disable CTA_SUBPARTITION_SKEW to avoid
+	 * load imbalance across subpartitions.
+         * Refer nvbug 200593339.
+	 */
+	data = nvgpu_readl(g, gr_gpcs_tpcs_mpc_pix_debug_r());
+	data = set_field(data,
+		gr_gpcs_tpcs_mpc_pix_debug_cta_subpartition_skew_m(),
+		gr_gpcs_tpcs_mpc_pix_debug_cta_subpartition_skew_disable_f());
+	nvgpu_writel(g, gr_gpcs_tpcs_mpc_pix_debug_r(), data);
 }
 
 void gv11b_gr_init_commit_global_timeslice(struct gk20a *g)

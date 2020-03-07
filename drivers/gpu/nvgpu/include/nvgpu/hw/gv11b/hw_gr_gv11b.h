@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1265,6 +1265,9 @@
 #define gr_gpcs_tpcs_mpc_vtg_debug_r()                             (0x00419c00U)
 #define gr_gpcs_tpcs_mpc_vtg_debug_timeslice_mode_disabled_f()            (0x0U)
 #define gr_gpcs_tpcs_mpc_vtg_debug_timeslice_mode_enabled_f()             (0x8U)
+#define gr_gpcs_tpcs_mpc_pix_debug_r()                             (0x00419c04U)
+#define gr_gpcs_tpcs_mpc_pix_debug_cta_subpartition_skew_m()  (U32(0x1U) << 13U)
+#define gr_gpcs_tpcs_mpc_pix_debug_cta_subpartition_skew_disable_f()      (0x0U)
 #define gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r()               (0x00419c2cU)
 #define gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(v)\
 				((U32(v) & 0xfffffffU) << 0U)
