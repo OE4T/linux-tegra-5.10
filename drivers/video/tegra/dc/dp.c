@@ -1,7 +1,7 @@
 /*
  * dp.c: tegra dp driver.
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1711,7 +1711,6 @@ static inline struct tegra_dc_extcon_cable
 
 static void tegra_dp_wait_for_typec_connect(struct tegra_dc_dp_data *dp)
 {
-#if KERNEL_VERSION(4, 9, 0) <= LINUX_VERSION_CODE
 	struct tegra_dc_extcon_cable *typec_ecable;
 	struct tegra_dc *dc;
 	union extcon_property_value lane_count = {0};
@@ -1773,7 +1772,6 @@ static void tegra_dp_wait_for_typec_connect(struct tegra_dc_dp_data *dp)
 	return;
 typec_lane_count_err:
 	dp->typec_lane_count = 4;
-#endif
 }
 
 static int tegra_dp_typec_ecable_notifier(struct notifier_block *nb,
@@ -1802,11 +1800,8 @@ static int tegra_dp_register_typec_ecable(struct tegra_dc_dp_data *dp)
 {
 	struct tegra_dc_extcon_cable *typec_ecable;
 	int ret;
-
-#if KERNEL_VERSION(4, 9, 0) <= LINUX_VERSION_CODE
 	union extcon_property_value lane_count = {0};
 	int init_cable_state;
-#endif
 
 	if (!dp || !dp->dc) {
 		pr_err("%s: all arguments must be non-NULL!\n", __func__);
@@ -1838,7 +1833,6 @@ static int tegra_dp_register_typec_ecable(struct tegra_dc_dp_data *dp)
 		return ret;
 	}
 
-#if KERNEL_VERSION(4, 9, 0) <= LINUX_VERSION_CODE
 	/*
 	 * Query the initial Type-C cable state here in case ucsi_ccg updated it
 	 * before we were able to register the extcon notifier.
@@ -1863,7 +1857,6 @@ static int tegra_dp_register_typec_ecable(struct tegra_dc_dp_data *dp)
 	}
 
 	mutex_unlock(&typec_ecable->lock);
-#endif
 
 	return 0;
 }

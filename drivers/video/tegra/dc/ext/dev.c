@@ -1,7 +1,7 @@
 /*
  * dev.c: Device interface for tegradc ext.
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * Author: Robert Morell <rmorell@nvidia.com>
  * Some code based on fbdev extensions written by:
@@ -53,14 +53,6 @@
 
 #define TEGRA_DC_TS_MAX_DELAY_US 1000000
 #define TEGRA_DC_TS_SLACK_US 2000
-
-/* Compatibility for kthread refactoring */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-#define kthread_init_work init_kthread_work
-#define kthread_init_worker init_kthread_worker
-#define kthread_queue_work queue_kthread_work
-#define kthread_flush_worker flush_kthread_worker
-#endif
 
 #ifdef CONFIG_COMPAT
 /* compat versions that happen to be the same size as the uapi version. */

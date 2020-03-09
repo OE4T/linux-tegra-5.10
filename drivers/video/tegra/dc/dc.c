@@ -1594,11 +1594,7 @@ static int dbg_hotplug_show(struct seq_file *s, void *unused)
 		return -EINVAL;
 
 	rmb();
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	seq_put_decimal_ll(s, '\0', dc->out->hotplug_state);
-#else
 	seq_put_decimal_ll(s, "", dc->out->hotplug_state);
-#endif
 	seq_putc(s, '\n');
 	return 0;
 }
@@ -2688,11 +2684,7 @@ static int dbg_nvdisp_win_csc_force_user_csc_show(struct seq_file *m,
 	if (win == NULL)
 		return -EINVAL;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	seq_put_decimal_ll(m, '\0', win->force_user_csc);
-#else
 	seq_put_decimal_ll(m, "", win->force_user_csc);
-#endif
 	seq_putc(m, '\n');
 
 	return 0;
@@ -4986,23 +4978,6 @@ bool tegra_dc_does_vsync_separate(struct tegra_dc *dc, s64 new_ts, s64 old_ts)
 				dc->frametime_ns)));
 }
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0))
-inline u64 tegra_dc_get_tsc_time(void)
-{
-	struct timecounter *tc;
-	cycle_t value;
-	u64 frac = 0;
-
-	tc = arch_timer_get_timecounter();
-	if (tc) {
-		const struct cyclecounter *cc = tc->cc;
-
-		value = cc->read(cc);
-		return cyclecounter_cyc2ns(cc, value, 0, &frac);
-	}
-	return 0;
-}
-#else
 inline u64 tegra_dc_get_tsc_time(void)
 {
 	u64 frac = 0;
@@ -5020,7 +4995,6 @@ inline u64 tegra_dc_get_tsc_time(void)
 	value = cc->read(cc);
 	return cyclecounter_cyc2ns(cc, value, 0, &frac);
 }
-#endif
 
 static inline void tegra_dc_scanline_trace(struct tegra_dc *dc)
 {
