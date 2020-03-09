@@ -520,11 +520,21 @@ static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
 	if (err != 0) {
 		goto restore_fe_go_idle;
 	}
-
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.gr.init.auto_go_idle != NULL) {
+		g->ops.gr.init.auto_go_idle(g, false);
+	}
+#endif
 	err = nvgpu_gr_obj_ctx_alloc_sw_bundle(g);
 	if (err != 0) {
 		goto restore_fe_go_idle;
 	}
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.gr.init.auto_go_idle != NULL) {
+		g->ops.gr.init.auto_go_idle(g, true);
+	}
+#endif
 
 	/* restore fe_go_idle */
 	g->ops.gr.init.fe_go_idle_timeout(g, true);
@@ -550,6 +560,11 @@ static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
 restore_fe_go_idle:
 	/* restore fe_go_idle */
 	g->ops.gr.init.fe_go_idle_timeout(g, true);
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.gr.init.auto_go_idle != NULL) {
+		g->ops.gr.init.auto_go_idle(g, true);
+	}
+#endif
 
 clean_up:
 	return err;
