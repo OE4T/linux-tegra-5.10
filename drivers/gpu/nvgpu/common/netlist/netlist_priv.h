@@ -154,6 +154,9 @@ struct nvgpu_netlist_vars {
 		struct netlist_aiv_list perf_fbp_control;
 		struct netlist_aiv_list perf_gpc_control;
 		struct netlist_aiv_list perf_pma_control;
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		struct nvgpu_next_ctxsw_regs nvgpu_next;
+#endif
 	} ctxsw_regs;
 #endif /* CONFIG_NVGPU_DEBUGGER */
 };

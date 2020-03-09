@@ -404,6 +404,10 @@ static bool nvgpu_netlist_handle_debugger_region_id(struct gk20a *g,
 		break;
 	default:
 		handled = false;
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		handled = nvgpu_next_netlist_handle_debugger_region_id(g,
+				region_id, src, size, netlist_vars, &err);
+#endif
 		break;
 	}
 
@@ -561,6 +565,9 @@ clean_up:
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_rop.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ucgpc.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.etpc.l);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		nvgpu_next_netlist_deinit_ctxsw_regs(g);
+#endif
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_cau.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_sys_control.l);
 		nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_fbp_control.l);

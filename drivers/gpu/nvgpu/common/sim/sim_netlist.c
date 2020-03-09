@@ -204,6 +204,9 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 	if (nvgpu_netlist_alloc_aiv_list(g, etpc_ctxsw_regs) == NULL) {
 		goto fail;
 	}
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	nvgpu_next_init_sim_netlist_ctxsw_regs(g);
+#endif
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	nvgpu_next_init_sim_netlist_ctx_vars(g);
@@ -417,6 +420,9 @@ fail:
 	nvgpu_kfree(g, pm_gpc_ctxsw_regs->l);
 	nvgpu_kfree(g, pm_tpc_ctxsw_regs->l);
 	nvgpu_kfree(g, etpc_ctxsw_regs->l);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	nvgpu_next_init_sim_netlist_ctxsw_regs_free(g);
+#endif
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 	return err;
