@@ -710,12 +710,14 @@ struct gk20a {
 	/** Stored HW version info */
 	struct nvgpu_gpu_params params;
 
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	/**
 	 * Guards access to hardware when usual gk20a_{busy,idle} are skipped
 	 * for submits and held for channel lifetime but dropped for an ongoing
 	 * gk20a_do_idle().
 	 */
 	struct nvgpu_rwsem deterministic_busy;
+#endif
 
 	struct nvgpu_netlist_vars *netlist_vars;
 	bool netlist_valid;

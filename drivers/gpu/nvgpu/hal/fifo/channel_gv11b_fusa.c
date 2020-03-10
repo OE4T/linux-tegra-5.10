@@ -85,21 +85,13 @@ void gv11b_channel_debug_dump(struct gk20a *g,
 			     struct nvgpu_debug_context *o,
 			     struct nvgpu_channel_dump_info *info)
 {
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d%s: ",
-#else
-	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d: ",
-#endif
 			info->chid,
 			g->name,
 			info->tsgid,
 			info->pid,
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 			info->refs,
 			info->deterministic ? ", deterministic" : "");
-#else
-			info->refs);
-#endif
 	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
 			info->hw_state.enabled ? "" : "not",
 			info->hw_state.status_string,

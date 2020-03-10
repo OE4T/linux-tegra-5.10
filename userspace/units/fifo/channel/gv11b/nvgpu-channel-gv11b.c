@@ -284,9 +284,7 @@ int test_gv11b_channel_debug_dump(struct unit_module *m,
 		info->tsgid = ch->tsgid;
 		info->pid = ch->pid;
 		info->refs = nvgpu_atomic_read(&ch->ref_count);
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
 		info->deterministic = (branches & F_CHANNEL_DUMP_DETERMINISTIC) != 0;
-#endif
 		info->hw_state.enabled = (branches & F_CHANNEL_DUMP_ENABLED) != 0;
 		info->hw_state.busy = (branches & F_CHANNEL_DUMP_BUSY) != 0;
 		info->hw_state.status_string = "fake";

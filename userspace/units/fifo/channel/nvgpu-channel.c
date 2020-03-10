@@ -497,7 +497,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			ch->vm = NULL;
 		}
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 		if (branches & F_CHANNEL_CLOSE_DETERMINISTIC) {
 			/* Compensate for atomic dec in gk20a_idle() */
 			nvgpu_atomic_set(&g->usage_count, 1);
@@ -603,10 +603,10 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			ch->subctx = NULL;
 		}
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 		ch->deterministic = false;
-#endif
 		ch->deterministic_railgate_allowed = false;
+#endif
 		unit_assert(ch->usermode_submit_enabled == false, goto done);
 
 		/* we took an extra reference to avoid nvgpu_vm_remove_ref */
@@ -901,7 +901,7 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 			nvgpu_dma_free(g, &ch->usermode_userd);
 			nvgpu_dma_free(g, &ch->usermode_gpfifo);
 			ch->userd_iova = 0U;
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 			ch->deterministic = false;
 #endif
 			nvgpu_atomic_set(&ch->bound, false);
@@ -1315,7 +1315,7 @@ done:
 #define F_CHANNEL_DETERMINISTIC_UNIDLE_GK20ABUSY_FAIL	BIT(2)
 #define F_CHANNEL_DETERMINISTIC_IDLE_LAST		BIT(3)
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 static const char *f_channel_deterministic_idle_unidle[] = {
 	"deterministic_channel",
 	"determinstic_railgate_allowed",
@@ -1758,7 +1758,7 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, f_channel_semaphore_wakeup));
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 		if (branches & F_CHANNEL_SEMAPHORRE_WAKEUP_DETERMINISTIC_CH) {
 			ch->deterministic = true;
 		}
@@ -1777,7 +1777,7 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 		nvgpu_channel_semaphore_wakeup(g, false);
 		unit_assert(stub[0].count == (global_count - 1U), goto done);
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 		ch->deterministic = false;
 #endif
 	}
@@ -2007,7 +2007,7 @@ struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(ch_abort, test_channel_abort, &unit_ctx, 0),
 	UNIT_TEST(mark_error, test_channel_mark_error, &unit_ctx, 0),
 	UNIT_TEST(sw_quiesce, test_channel_sw_quiesce, &unit_ctx, 0),
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	UNIT_TEST(idle_unidle, test_channel_deterministic_idle_unidle, &unit_ctx, 0),
 #endif
 	UNIT_TEST(suspend_resume, test_channel_suspend_resume_serviceable_chs, &unit_ctx, 0),

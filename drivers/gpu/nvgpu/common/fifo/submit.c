@@ -83,7 +83,8 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	 * submission when user requested and the wait hasn't expired.
 	 */
 	if (flag_fence_wait) {
-		u32 max_wait_cmds = c->deterministic ? 1U : 0U;
+		u32 max_wait_cmds = nvgpu_channel_is_deterministic(c) ?
+			1U : 0U;
 
 		if (!pre_alloc_enabled) {
 			job->wait_cmd = nvgpu_kzalloc(g,
@@ -419,7 +420,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 			flag_fence_get ||
 			((nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) ||
 				nvgpu_is_vpr_resize_enabled()) &&
-				!c->deterministic) ||
+				!nvgpu_channel_is_deterministic(c)) ||
 			!skip_buffer_refcounting);
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
@@ -434,7 +435,8 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		 * job tracking is required, the channel must have
 		 * pre-allocated resources. Otherwise, we fail the submit here
 		 */
-		if (c->deterministic && !nvgpu_channel_is_prealloc_enabled(c)) {
+		if (nvgpu_channel_is_deterministic(c) &&
+				!nvgpu_channel_is_prealloc_enabled(c)) {
 			return -EINVAL;
 		}
 
@@ -456,7 +458,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		 * is not required, and we clean-up one job-tracking
 		 * resource in the submit path.
 		 */
-		need_deferred_cleanup = !c->deterministic ||
+		need_deferred_cleanup = !nvgpu_channel_is_deterministic(c) ||
 					need_sync_framework ||
 					!skip_buffer_refcounting;
 
@@ -468,11 +470,11 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		 * For deterministic channels, we don't allow deferred clean_up
 		 * processing to occur. In cases we hit this, we fail the submit
 		 */
-		if (c->deterministic && need_deferred_cleanup) {
+		if (nvgpu_channel_is_deterministic(c) && need_deferred_cleanup) {
 			return -EINVAL;
 		}
 
-		if (!c->deterministic) {
+		if (!nvgpu_channel_is_deterministic(c)) {
 			/*
 			 * Get a power ref unless this is a deterministic
 			 * channel that holds them during the channel lifetime.
@@ -495,6 +497,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	}
 
 
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	/* Grab access to HW to deal with do_idle */
 	if (c->deterministic) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);
@@ -510,6 +513,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		err = -EINVAL;
 		goto clean_up;
 	}
+#endif
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_submit_gpfifo(g->name,
@@ -592,10 +596,12 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 
 	g->ops.userd.gp_put(g, c);
 
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	/* No hw access beyond this point */
 	if (c->deterministic) {
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
 	}
+#endif
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_submitted_gpfifo(g->name,
@@ -619,12 +625,14 @@ clean_up_job:
 clean_up:
 	nvgpu_log_fn(g, "fail");
 	nvgpu_fence_put(post_fence);
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	if (c->deterministic) {
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
-	} else {
-		if (need_deferred_cleanup) {
-			gk20a_idle(g);
-		}
+		return err;
+	}
+#endif
+	if (need_deferred_cleanup) {
+		gk20a_idle(g);
 	}
 
 	return err;

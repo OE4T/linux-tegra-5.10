@@ -1617,6 +1617,7 @@ static int nvgpu_gpu_set_deterministic_ch_railgate(struct nvgpu_channel *ch,
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 static int nvgpu_gpu_set_deterministic_ch(struct nvgpu_channel *ch, u32 flags)
 {
 	if (!ch->deterministic)
@@ -1688,6 +1689,7 @@ out:
 	args->num_channels = i;
 	return err;
 }
+#endif
 
 long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {

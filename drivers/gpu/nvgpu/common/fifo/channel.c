@@ -521,15 +521,19 @@ bool nvgpu_channel_joblist_is_empty(struct nvgpu_channel *c)
 
 bool nvgpu_channel_is_prealloc_enabled(struct nvgpu_channel *c)
 {
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	bool pre_alloc_enabled = c->joblist.pre_alloc.enabled;
 
 	nvgpu_smp_rmb();
 	return pre_alloc_enabled;
+#else
+	return false;
+#endif
 }
 
-static int channel_prealloc_resources(struct nvgpu_channel *ch,
-	       u32 num_jobs)
+static int channel_prealloc_resources(struct nvgpu_channel *ch, u32 num_jobs)
 {
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	unsigned int i;
 	int err;
 	size_t size;
@@ -603,10 +607,14 @@ clean_up_joblist:
 clean_up:
 	(void) memset(&ch->joblist.pre_alloc, 0, sizeof(ch->joblist.pre_alloc));
 	return err;
+#else
+	return -ENOSYS;
+#endif
 }
 
 static void channel_free_prealloc_resources(struct nvgpu_channel *c)
 {
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	nvgpu_vfree(c->g, c->joblist.pre_alloc.jobs[0].wait_cmd);
 	nvgpu_vfree(c->g, c->joblist.pre_alloc.jobs);
 	nvgpu_fence_pool_free(c);
@@ -618,6 +626,7 @@ static void channel_free_prealloc_resources(struct nvgpu_channel *c)
 	 */
 	nvgpu_smp_wmb();
 	c->joblist.pre_alloc.enabled = false;
+#endif
 }
 
 int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch)
@@ -742,7 +751,8 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 		goto clean_up_sync;
 	}
 
-	if (c->deterministic && args->num_inflight_jobs != 0U) {
+	if (nvgpu_channel_is_deterministic(c) &&
+			args->num_inflight_jobs != 0U) {
 		err = channel_prealloc_resources(c,
 				args->num_inflight_jobs);
 		if (err != 0) {
@@ -765,7 +775,8 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 clean_up_priv_cmd:
 	channel_free_priv_cmd_q(c);
 clean_up_prealloc:
-	if (c->deterministic && args->num_inflight_jobs != 0U) {
+	if (nvgpu_channel_is_deterministic(c) &&
+			args->num_inflight_jobs != 0U) {
 		channel_free_prealloc_resources(c);
 	}
 clean_up_sync:
@@ -1433,7 +1444,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 		 * Deterministic channels have a channel-wide power reference;
 		 * for others, there's one per submit.
 		 */
-		if (!c->deterministic) {
+		if (!nvgpu_channel_is_deterministic(c)) {
 			gk20a_idle(g);
 		}
 
@@ -1696,7 +1707,7 @@ static void channel_free_wait_for_refs(struct nvgpu_channel *ch,
 
 }
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 static void channel_free_put_deterministic_ref_from_init(
 		struct nvgpu_channel *ch)
 {
@@ -1834,7 +1845,7 @@ unbind:
 	g->ops.channel.unbind(ch);
 	g->ops.channel.free_inst(g, ch);
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	channel_free_put_deterministic_ref_from_init(ch);
 #endif
 
@@ -2276,7 +2287,7 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	c->vpr = false;
 #endif
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC) != 0U) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);
 		/*
@@ -2322,8 +2333,8 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 	return 0;
 
 clean_up_idle:
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
-	if (c->deterministic) {
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
+	if (nvgpu_channel_is_deterministic(c)) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);
 		gk20a_idle(g);
 		c->deterministic = false;
@@ -2410,7 +2421,7 @@ void nvgpu_channel_sw_quiesce(struct gk20a *g)
 }
 #endif
 
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 /*
  * Stop deterministic channel activity for do_idle() when power needs to go off
  * momentarily but deterministic channels keep power refs for potentially a
@@ -2769,7 +2780,7 @@ void nvgpu_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 				 * user-space managed
 				 * semaphore.
 				 */
-				if (!c->deterministic) {
+				if (!nvgpu_channel_is_deterministic(c)) {
 					nvgpu_channel_update(c);
 				}
 #endif
@@ -2881,9 +2892,7 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 		info->tsgid = ch->tsgid;
 		info->pid = ch->pid;
 		info->refs = nvgpu_atomic_read(&ch->ref_count);
-#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
-		info->deterministic = ch->deterministic;
-#endif
+		info->deterministic = nvgpu_channel_is_deterministic(ch);
 
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
 		if (hw_sema != NULL) {
