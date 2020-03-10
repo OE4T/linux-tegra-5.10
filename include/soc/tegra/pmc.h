@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2010 Google, Inc
- * Copyright (c) 2014 NVIDIA Corporation
+ * Copyright (c) 2014-2020 NVIDIA Corporation
  *
  * Author:
  *	Colin Cross <ccross@google.com>
@@ -113,8 +113,9 @@ enum tegra_io_pad {
 	TEGRA_IO_PAD_PEX_CLK_BIAS,
 	TEGRA_IO_PAD_PEX_CLK1,
 	TEGRA_IO_PAD_PEX_CLK2,
-	TEGRA_IO_PAD_PEX_CLK2_BIAS,
 	TEGRA_IO_PAD_PEX_CLK3,
+	TEGRA_IO_PAD_PEX_CLK_2_BIAS,
+	TEGRA_IO_PAD_PEX_CLK_2,
 	TEGRA_IO_PAD_PEX_CNTRL,
 	TEGRA_IO_PAD_PEX_CTL2,
 	TEGRA_IO_PAD_PEX_L0_RST_N,
