@@ -321,7 +321,7 @@
 		};
 
 		vic@15340000 {
-			compatible = "nvidia,tegra194-vic";
+			compatible = "nvidia,tegra234-vic";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VIC>;
 			reg = <0x0 0x15340000 0x0 0x00040000>;
 			interrupts = <0 206 0x04>;
@@ -335,7 +335,7 @@
 		};
 
 		nvjpg@15380000 {
-			compatible = "nvidia,tegra194-nvjpg";
+			compatible = "nvidia,tegra234-nvjpg";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVJPG>;
 			reg = <0x0 0x15380000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA234_RESET_NVJPG>;
@@ -346,8 +346,20 @@
 			dma-coherent;
 		};
 
+		nvjpg1@15540000 {
+			compatible = "nvidia,tegra234-nvjpg";
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVJPGB>;
+			reg = <0x0 0x15540000 0x0 0x00040000>;
+			resets = <&bpmp_resets TEGRA234_RESET_NVJPG1>;
+			clocks = <&bpmp_clks TEGRA234_CLK_NVJPG1>;
+			clock-names = "nvjpg";
+
+			iommus = <&smmu TEGRA_SID_NVJPG1>;
+			dma-coherent;
+		};
+
 		tsec@15500000 {
-			compatible = "nvidia,tegra194-tsec";
+			compatible = "nvidia,tegra234-tsec";
 			reg = <0x0 0x15500000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA234_RESET_TSEC>;
 			clocks = <&bpmp_clks TEGRA234_CLK_TSEC>;
@@ -358,10 +370,10 @@
 		};
 
 		nvdec@15480000 {
-			compatible = "nvidia,tegra194-nvdec";
+			compatible = "nvidia,tegra234-nvdec";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVDECA>;
 			reg = <0x0 0x15480000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA194_RESET_NVDEC>;
+			resets = <&bpmp_resets TEGRA234_RESET_NVDEC>;
 			clocks = <&bpmp_clks TEGRA234_CLK_NVDEC>,
 				 <&bpmp_clks TEGRA234_CLK_KFUSE>,
 				 <&bpmp_clks TEGRA234_CLK_FUSE>;
@@ -372,7 +384,7 @@
 		};
 
 		nvenc@154c0000 {
-			compatible = "nvidia,tegra194-nvenc";
+			compatible = "nvidia,tegra234-nvenc";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVENCA>;
 			reg = <0x0 0x154c0000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA234_RESET_NVENC>;
@@ -380,6 +392,18 @@
 			clock-names = "nvenc";
 
 			iommus = <&smmu TEGRA_SID_NVENC>;
+			dma-coherent;
+		};
+
+		ofa@15a50000 {
+			compatible = "nvidia,tegra234-ofa";
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_OFA>;
+			reg = <0x0 0x15a50000 0x0 0x00004000>;
+			resets = <&bpmp_resets TEGRA234_RESET_OFA>;
+			clocks = <&bpmp_clks TEGRA234_CLK_OFA>;
+			clock-names = "ofa";
+
+			iommus = <&smmu TEGRA_SID_OFA>;
 			dma-coherent;
 		};
 
