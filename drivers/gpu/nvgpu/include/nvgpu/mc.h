@@ -289,6 +289,15 @@ struct nvgpu_mc {
 	u32 irq_nonstall;
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+
+	/** Total number of stall interrupt lines */
+	u32 irq_stall_count;
+	/**
+	 * Array to store irq_stall interrupt number for upto 4
+	 * stall irq lines.
+	 */
+	u32 irq_stall_lines[4];
+
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	struct nvgpu_next_mc nvgpu_next;
 #endif

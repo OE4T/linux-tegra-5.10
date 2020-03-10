@@ -560,6 +560,11 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		goto err_disable_msi;
 	}
 
+	/* Number of stall interrupt line = 1 (for dgpu <= tu10x) */
+	g->mc.irq_stall_count = 1;
+
+	g->mc.irq_stall_lines[0] = g->mc.irq_stall;
+
 	err = devm_request_threaded_irq(&pdev->dev,
 			g->mc.irq_stall,
 			nvgpu_pci_isr,
