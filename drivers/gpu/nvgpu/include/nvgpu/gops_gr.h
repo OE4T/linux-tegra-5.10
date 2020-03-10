@@ -1170,6 +1170,12 @@ struct gops_gr {
 					   u32 num_tpcs, u32 num_ppcs,
 					   u32 reg_list_ppc_count,
 					   u32 *__offset_in_segment);
+	int (*get_ctx_buffer_offsets)(struct gk20a *g,
+					u32 addr,
+					u32 max_offsets,
+					u32 *offsets, u32 *offset_addrs,
+					u32 *num_offsets,
+					bool is_quad, u32 quad);
 	void (*set_debug_mode)(struct gk20a *g, bool enable);
 	int (*set_mmu_debug_mode)(struct gk20a *g,
 				  struct nvgpu_channel *ch, bool enable);

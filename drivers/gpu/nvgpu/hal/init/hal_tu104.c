@@ -383,6 +383,7 @@ static const struct gpu_ops tu104_ops = {
 		.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
 		.get_offset_in_gpccs_segment =
 			gr_tu104_get_offset_in_gpccs_segment,
+		.get_ctx_buffer_offsets = gr_gk20a_get_ctx_buffer_offsets,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 #endif /* CONFIG_NVGPU_DEBUGGER */

@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1554,7 +1554,7 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 				continue;
 			}
 
-			err = gr_gk20a_get_ctx_buffer_offsets(g,
+			err = g->ops.gr.get_ctx_buffer_offsets(g,
 						ctx_ops[i].offset,
 						max_offsets,
 						offsets, offset_addrs,

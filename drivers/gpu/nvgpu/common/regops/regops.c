@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger Driver Register Ops
  *
- * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -352,7 +352,7 @@ static int validate_reg_op_offset(struct gk20a *g,
 	}
 
 	if (valid && (op->type != REGOP(TYPE_GLOBAL))) {
-		err = gr_gk20a_get_ctx_buffer_offsets(g,
+		err = g->ops.gr.get_ctx_buffer_offsets(g,
 						      op->offset,
 						      1,
 						      &buf_offset_lo,
