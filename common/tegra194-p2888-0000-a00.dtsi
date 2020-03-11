@@ -44,7 +44,11 @@
 
 	sdhci@3460000 {
 		uhs-mask = <0x0>;
+#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
+		supports-cqe;
+#else
 		nvidia,enable-hwcq;
+#endif
 		status = "okay";
 	};
 
