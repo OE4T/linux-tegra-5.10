@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0 */
+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
  * mods.h - This file is part of NVIDIA MODS kernel driver.
  *
@@ -831,7 +831,7 @@ struct MODS_DEVICE_NUMA_INFO_3 {
 	__u32  node_cpu_mask[MAX_CPU_MASKS_3];
 };
 
-#if defined(CONFIG_PPC64) || defined(PPC64LE)
+#if defined(__powerpc64__)
 #define MAX_CPU_MASKS 64  /* 32 masks of 32bits = 2048 CPUs max */
 #else
 #define MAX_CPU_MASKS 32  /* 32 masks of 32bits = 1024 CPUs max */

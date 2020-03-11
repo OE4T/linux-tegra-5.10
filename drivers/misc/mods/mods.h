@@ -19,7 +19,7 @@
  */
 
 /* Note: the original mods.h which contains ioctls is located in
- * include/uapi/misc/mods.
+ * include/uapi/misc/mods.h.
  */
 
 #include <uapi/misc/mods.h>
