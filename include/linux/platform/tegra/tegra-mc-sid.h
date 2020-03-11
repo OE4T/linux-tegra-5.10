@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-16, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -44,7 +44,7 @@ struct sid_override_reg {
 	int offs;
 };
 
-#define MAX_OIDS_IN_SID 8
+#define MAX_OIDS_IN_SID 13
 
 struct sid_to_oids {
 	int sid;			/* StreamID */
