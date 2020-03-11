@@ -1,11 +1,6 @@
 #include "../../../../../../../hardware/nvidia/platform/t19x/galen/kernel-dts/tegra194-p2888-0001-p2822-0000.dts"
 
 / {
-	sdhci@3460000 {
-		/delete-property/ dma-coherent;
-		/delete-property/ mmc-hs400-1_8v;
-	};
-
 	bpmp {
 		i2c {
 			spmic@3c {
