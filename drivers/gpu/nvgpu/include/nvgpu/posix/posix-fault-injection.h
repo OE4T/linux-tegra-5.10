@@ -126,6 +126,8 @@ struct nvgpu_posix_fault_inj_container {
 	struct nvgpu_posix_fault_inj pthread_sigmask_fi;
 	struct nvgpu_posix_fault_inj sigaction_fi;
 	struct nvgpu_posix_fault_inj sigaction_execute_handler_fi;
+	struct nvgpu_posix_fault_inj nvclock_get_device_clock_status_fi;
+	struct nvgpu_posix_fault_inj nvclk_get_device_clock_status_fi;
 };
 
 /**
