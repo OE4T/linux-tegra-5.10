@@ -711,7 +711,6 @@ static int tvnet_host_poll(struct napi_struct *napi, int budget)
 	int work_done;
 
 	work_done = tvnet_host_process_ep2h_msg(tvnet);
-	trace_printk("work_done: %d budget: %d\n", work_done, budget);
 	if (work_done < budget) {
 		napi_complete(napi);
 		enable_irq(pci_irq_vector(tvnet->pdev, 1));
