@@ -32,10 +32,11 @@
 struct CAPTURE_MSG_HEADER {
 	/** Message identifier. */
 	uint32_t msg_id;
+	/** @anon_union */
 	union {
-		/** Channel number. */
+		/** Channel number. @anon_union_member */
 		uint32_t channel_id;
-		/** Transaction id. */
+		/** Transaction id. @anon_union_member */
 		uint32_t transaction;
 	};
 } CAPTURE_IVC_ALIGN;
@@ -144,7 +145,7 @@ struct CAPTURE_CHANNEL_SETUP_RESP_MSG {
 	capture_result result;
 	/** Capture channel identifier for the new channel. */
 	uint32_t channel_id;
-	/** Allocated VI channel(s). */
+	/** Bitmask of allocated VI channel(s). LSB is VI channel 0. */
 	uint64_t vi_channel_mask;
 } CAPTURE_IVC_ALIGN;
 
@@ -164,7 +165,7 @@ struct CAPTURE_CHANNEL_SETUP_RESP_MSG {
  * values.
  */
 struct CAPTURE_CHANNEL_RESET_REQ_MSG {
-	/** @ref CapResetFlags "Reset flags" */
+	/** See @ref CapResetFlags "Reset flags" */
 	uint32_t reset_flags;
 	/** Reserved */
 	uint32_t __pad;
@@ -298,11 +299,16 @@ struct CAPTURE_SYNCGEN_ENABLE_RESP_MSG {
 struct CAPTURE_SYNCGEN_DISABLE_REQ_MSG {
 	/** Syncgen unit */
 	uint32_t unit;
-	/** Syncgen specific flags */
+	/** See SyncgenDisableFlags "Syncgen disable flags" */
 	uint32_t syncgen_disable_flags;
 
+/**
+ * @defgroup SyncgenDisableFlags Syncgen disable flags
+ * @{
+ */
 /** Disable SYNCGEN without waiting for frame end */
 #define CAPTURE_SYNCGEN_DISABLE_FLAG_IMMEDIATE	MK_U32(0x01)
+/** @} */
 
 } CAPTURE_IVC_ALIGN;
 
@@ -327,11 +333,11 @@ struct CAPTURE_SYNCGEN_DISABLE_RESP_MSG {
  * @brief Open an NVCSI stream request message
  */
 struct CAPTURE_PHY_STREAM_OPEN_REQ_MSG {
-	/** NVCSI stream Id */
+	/** See NvCsiStream "NVCSI stream id" */
 	uint32_t stream_id;
-	/** NVCSI port */
+	/** See NvCsiPort "NvCSI Port" */
 	uint32_t csi_port;
-	/** See @ref NvPhyType "Physical type" */
+	/** See @ref NvPhyType "NvCSI Physical stream type" */
 	uint32_t phy_type;
 	/** Reserved */
 	uint32_t __pad32;
@@ -355,7 +361,7 @@ struct CAPTURE_PHY_STREAM_CLOSE_REQ_MSG {
 	uint32_t stream_id;
 	/** NVCSI port */
 	uint32_t csi_port;
-	/** See @ref NvPhyType "Physical type" */
+	/** See @ref NvPhyType "NvCSI Physical stream type" */
 	uint32_t phy_type;
 	/** Reserved */
 	uint32_t __pad32;
@@ -379,7 +385,7 @@ struct CAPTURE_PHY_STREAM_RESET_REQ_MSG {
 	uint32_t stream_id;
 	/** NVCSI port */
 	uint32_t csi_port;
-	/** See @ref NvPhyType "Physical type" */
+	/** See @ref NvPhyType "NvCSI Physical stream type" */
 	uint32_t phy_type;
 	/** Reserved */
 	uint32_t __pad32;
@@ -422,7 +428,7 @@ struct CAPTURE_CSI_STREAM_SET_CONFIG_REQ_MSG {
 	uint32_t stream_id;
 	/** NVCSI port */
 	uint32_t csi_port;
-	/** @ref NvCsiConfigFlags "NVCSI Configuration Flags" */
+	/** @ref See NvCsiConfigFlags "NVCSI Configuration Flags" */
 	uint32_t config_flags;
 	/** Reserved */
 	uint32_t __pad32;
@@ -452,14 +458,15 @@ struct CAPTURE_CSI_STREAM_SET_PARAM_REQ_MSG {
 	uint32_t stream_id;
 	/** NVCSI stream virtual channel id */
 	uint32_t virtual_channel_id;
-	/** @ref NvCsiParamType "NVCSI Parameter Type" */
+	/** The parameter to set. See @ref NvCsiParamType "NVCSI Parameter Type" */
 	uint32_t param_type;
 	/** Reserved */
 	uint32_t __pad32;
+	/** @anon_union */
 	union {
-		/** Set DPCM config for an NVCSI stream */
+		/** Set DPCM config for an NVCSI stream @anon_union_member */
 		struct nvcsi_dpcm_config dpcm_config;
-		/** NVCSI watchdog timer config */
+		/** NVCSI watchdog timer config @anon_union_member */
 		struct nvcsi_watchdog_config watchdog_config;
 	};
 } CAPTURE_IVC_ALIGN;
@@ -526,9 +533,9 @@ struct CAPTURE_CSI_STREAM_TPG_START_RATE_REQ_MSG {
 	uint32_t stream_id;
 	/** NVCSI stream virtual channel id */
 	uint32_t virtual_channel_id;
-	/** TPG frame rate */
+	/** TPG frame rate in Hz */
 	uint32_t frame_rate;
-	/** CSI clock rate */
+	/** CSI clock rate in kHz */
 	uint32_t csi_clk_rate;
 } CAPTURE_IVC_ALIGN;
 
@@ -705,7 +712,7 @@ struct CAPTURE_CHANNEL_ISP_SETUP_REQ_MSG {
 struct CAPTURE_CHANNEL_ISP_SETUP_RESP_MSG {
 	/** ISP process channel setup request status. See @ref CapErrorCodes "Return values". */
 	capture_result result;
-	/** ISP process identifier */
+	/** ISP process channel identifier for the new channel. */
 	uint32_t channel_id;
 } CAPTURE_IVC_ALIGN;
 
@@ -723,71 +730,118 @@ typedef struct CAPTURE_CHANNEL_RELEASE_RESP_MSG
  */
 struct CAPTURE_CONTROL_MSG {
 	struct CAPTURE_MSG_HEADER header;
+	/** @anon_union */
 	union {
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_SETUP_REQ_MSG channel_setup_req;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_SETUP_RESP_MSG channel_setup_resp;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_RESET_REQ_MSG channel_reset_req;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_RESET_RESP_MSG channel_reset_resp;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_RELEASE_REQ_MSG channel_release_req;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_RELEASE_RESP_MSG channel_release_resp;
+		/** @anon_union_member */
 		struct CAPTURE_COMPAND_CONFIG_REQ_MSG compand_config_req;
+		/** @anon_union_member */
 		struct CAPTURE_COMPAND_CONFIG_RESP_MSG compand_config_resp;
+		/** @anon_union_member */
 		struct CAPTURE_PDAF_CONFIG_REQ_MSG pdaf_config_req;
+		/** @anon_union_member */
 		struct CAPTURE_PDAF_CONFIG_RESP_MSG pdaf_config_resp;
+		/** @anon_union_member */
 		struct CAPTURE_SYNCGEN_ENABLE_REQ_MSG syncgen_enable_req;
+		/** @anon_union_member */
 		struct CAPTURE_SYNCGEN_ENABLE_RESP_MSG syncgen_enable_resp;
+		/** @anon_union_member */
 		struct CAPTURE_SYNCGEN_DISABLE_REQ_MSG syncgen_disable_req;
+		/** @anon_union_member */
 		struct CAPTURE_SYNCGEN_DISABLE_RESP_MSG syncgen_disable_resp;
 
+		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_OPEN_REQ_MSG phy_stream_open_req;
+		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_OPEN_RESP_MSG phy_stream_open_resp;
+		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_CLOSE_REQ_MSG phy_stream_close_req;
+		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_CLOSE_RESP_MSG phy_stream_close_resp;
+		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_RESET_REQ_MSG phy_stream_reset_req;
+		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_RESET_RESP_MSG phy_stream_reset_resp;
+		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_DUMPREGS_REQ_MSG
 			phy_stream_dumpregs_req;
+		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_DUMPREGS_RESP_MSG
 			phy_stream_dumpregs_resp;
 
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_SET_CONFIG_REQ_MSG
 			csi_stream_set_config_req;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_SET_CONFIG_RESP_MSG
 			csi_stream_set_config_resp;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_SET_PARAM_REQ_MSG
 			csi_stream_set_param_req;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_SET_PARAM_RESP_MSG
 			csi_stream_set_param_resp;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ_MSG
 			csi_stream_tpg_set_config_req;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP_MSG
 			csi_stream_tpg_set_config_resp;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_START_REQ_MSG
 			csi_stream_tpg_start_req;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_START_RESP_MSG
 			csi_stream_tpg_start_resp;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_STOP_REQ_MSG
 			csi_stream_tpg_stop_req;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_STOP_RESP_MSG
 			csi_stream_tpg_stop_resp;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_START_RATE_REQ_MSG
 			csi_stream_tpg_start_rate_req;
+		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_START_RATE_RESP_MSG
 			csi_stream_tpg_start_rate_resp;
 
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_EI_REQ_MSG ei_req;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_EI_RESP_MSG ei_resp;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_EI_RESET_REQ_MSG ei_reset_req;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG ei_reset_resp;
 
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_ISP_SETUP_REQ_MSG channel_isp_setup_req;
+		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_ISP_SETUP_RESP_MSG channel_isp_setup_resp;
+		/** @anon_union_member */
 		CAPTURE_CHANNEL_ISP_RESET_REQ_MSG channel_isp_reset_req;
+		/** @anon_union_member */
 		CAPTURE_CHANNEL_ISP_RESET_RESP_MSG channel_isp_reset_resp;
+		/** @anon_union_member */
 		CAPTURE_CHANNEL_ISP_RELEASE_REQ_MSG channel_isp_release_req;
+		/** @anon_union_member */
 		CAPTURE_CHANNEL_ISP_RELEASE_RESP_MSG channel_isp_release_resp;
 
+		/** @anon_union_member */
 		struct CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ_MSG hsm_chansel_mask_req;
+		/** @anon_union_member */
 		struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG hsm_chansel_mask_resp;
 	};
 } CAPTURE_IVC_ALIGN;
@@ -1010,16 +1064,24 @@ typedef struct CAPTURE_STATUS_IND_MSG CAPTURE_ISP_PROGRAM_STATUS_IND_MSG;
  */
 struct CAPTURE_MSG {
 	struct CAPTURE_MSG_HEADER header;
+	/** @anon_union */
 	union {
+		/** @anon_union_member */
 		struct CAPTURE_REQUEST_REQ_MSG capture_request_req;
+		/** @anon_union_member */
 		struct CAPTURE_STATUS_IND_MSG capture_status_ind;
 
+		/** @anon_union_member */
 		CAPTURE_ISP_REQUEST_REQ_MSG capture_isp_request_req;
+		/** @anon_union_member */
 		CAPTURE_ISP_STATUS_IND_MSG capture_isp_status_ind;
+		/** @anon_union_member */
 		struct CAPTURE_ISP_EX_STATUS_IND_MSG capture_isp_ex_status_ind;
 
+		/** @anon_union_member */
 		CAPTURE_ISP_PROGRAM_REQUEST_REQ_MSG
 				capture_isp_program_request_req;
+		/** @anon_union_member */
 		CAPTURE_ISP_PROGRAM_STATUS_IND_MSG
 				capture_isp_program_status_ind;
 	};

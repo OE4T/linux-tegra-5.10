@@ -44,12 +44,19 @@ typedef uint64_t iova_t CAPTURE_IVC_ALIGN;
 #define STATUS_FENCE_SUPPORT
 
 typedef struct syncpoint_info {
+	/** Syncpoint ID */
 	uint32_t id;
-	uint32_t threshold;	/* When storing a fence */
+	/** Syncpoint threshold when storing a fence */
+	uint32_t threshold;
+	/** Grid of Semaphores (GOS) SMMU stream id */
 	uint8_t gos_sid;
+	/** GOS index */
 	uint8_t gos_index;
+	/** GOS offset */
 	uint16_t gos_offset;
+	/** Reserved */
 	uint32_t pad_;
+	/** IOVA address of the Host1x syncpoint register */
 	iova_t shim_addr;
 } syncpoint_info_t CAPTURE_IVC_ALIGN;
 
@@ -284,7 +291,7 @@ struct capture_channel_config {
 	/** rtcpu internal data field - Should be set to zero */
 	uint32_t channel_id;
 	/**
-	 * A bit mask indicating which VI channels to consider for allocation.
+	 * A bitmask indicating which VI channels to consider for allocation. LSB is VI channel 0.
 	 * This allows the client to enforce allocation of HW VI channel in particular range for its own
 	 * purpose.
 	 *
@@ -588,10 +595,10 @@ struct nvcsi_error_status {
 	 * affected virtual channels.
 	 */
 	uint32_t nvcsi_stream_bits;
+
 	/**
-	 * @name NvCsiStreamErrors
+	 * @defgroup NvCsiStreamErrors
 	 * NVCSI Stream error bits
- 	 * @defgroup NvCsiStreamErrors NVCSI Stream error bits
 	 */
 	/** @{ */
 #define NVCSI_STREAM_ERR_STAT_PH_BOTH_CRC_ERR			MK_BIT32(1)
@@ -603,10 +610,10 @@ struct nvcsi_error_status {
 	 * These errors are expected to be forwarded to VI and also reported by VI as CSIMUX Frame CSI_FAULT errors
 	 */
 	uint32_t nvcsi_virtual_channel_bits;
+
 	/**
-	 * @name NvCsiVirtualChannelErrors
+	 * @defgroup NvCsiVirtualChannelErrors
 	 * NVCSI Virtual Channel error bits
- 	 * @defgroup NvCsiVirtualChannelErrors NVCSI Virtual Channel error bits
 	 */
 	/** @{ */
 #define NVCSI_VC_ERR_INTR_STAT_PH_SINGLE_CRC_ERR_VC0		MK_BIT32(4)
@@ -623,10 +630,10 @@ struct nvcsi_error_status {
 	uint32_t cil_a_error_bits;
 	/** NVCSI CIL B  @ref NvCsiCilErrors "errors" */
 	uint32_t cil_b_error_bits;
+
 	/**
-	 * @name NvCsiCilErrors
+	 * @defgroup NvCsiCilErrors
 	 * NVCSI CIL error bits
- 	 * @defgroup NvCsiCilErrors NVCSI CIL error bits
 	 */
 	/** @{ */
 #define NVCSI_ERR_CIL_DATA_LANE_SOT_2LSB_ERR1		MK_BIT32(16)
@@ -649,7 +656,6 @@ struct nvcsi_error_status {
 	/** @} */
 };
 
-
 /**
  * @brief Frame capture status record
  */
@@ -660,68 +666,152 @@ struct capture_status {
 	uint8_t virtual_channel;
 	/** Frame sequence number */
 	uint16_t frame_id;
-	/** Capture status @ref CaptureStatusCodes "codes" */
+	/** Capture status. See @ref CaptureStatusCodes "codes". */
 	uint32_t status;
+
 /**
- * @name CaptureStatusCodes
- * Capture status codes.
- * @defgroup CaptureStatusCodes Capture status codes.
+ * @defgroup CaptureStatusCodes
+ * Capture status codes
  */
 /** @{ */
-/** Capture status unknown */
+/** Capture status unknown.
+ * Value of @ref err_data "err_data" is undefined.
+ */
 #define CAPTURE_STATUS_UNKNOWN			MK_U32(0)
-/** Capture status success */
+/** Capture status success.
+ * Value of @ref err_data "err_data" is undefined.
+ */
 #define CAPTURE_STATUS_SUCCESS			MK_U32(1)
-/** Csimux frame error */
+/** CSIMUX frame error.
+ *
+ * Maps to VI CSIMUX_FRAME event.
+ *
+ * See @ref err_data "err_data" with the VI event payload.
+ *
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_CSIMUX_FRAME		MK_U32(2)
-/** Csimux stream error */
+/** CSIMUX stream error.
+ *
+ * Maps to VI CSIMUX_STREAM event.
+ *
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_CSIMUX_STREAM		MK_U32(3)
-/** Data-specific fault in a channel */
+/** Data-specific fault in a channel.
+ * Maps to VI CHANSEL_FAULT event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_CHANSEL_FAULT		MK_U32(4)
-/** Data-specific fault in a channel. FE packet was force inserted.*/
+/** Data-specific fault in a channel.
+ * FE packet was force inserted. Maps to VI CHANSEL_FAULT_FE event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_CHANSEL_FAULT_FE		MK_U32(5)
-/** SOF matches a channel that is already in a frame */
+/** SOF matches a channel that is already in a frame.
+ * Maps to VI CHANSEL_COLLISION event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_CHANSEL_COLLISION	MK_U32(6)
-/** Frame End appears from NVCSI before the normal number of pixels has appeared */
+/** Frame End appears from NVCSI before the normal number of pixels.
+ * Maps to VI CHANSEL_SHORT_FRAME event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_CHANSEL_SHORT_FRAME	MK_U32(7)
-/** Single surface packer has overflowed */
+/** Single surface packer has overflowed.
+ * Maps to VI ATOMP_PACKER_OVERFLOW event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_ATOMP_PACKER_OVERFLOW	MK_U32(8)
-/** Frame interrupted mid-frame */
+/** Frame interrupted mid-frame.
+ * Maps to VI ATOMP_FRAME_TRUNCATED event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_ATOMP_FRAME_TRUNCATED	MK_U32(9)
-/** Frame interrupted without writing any data out */
+/** Frame interrupted without writing any data out.
+ * Maps to VI ATOMP_FRAME_TOSSED event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_ATOMP_FRAME_TOSSED	MK_U32(10)
-/** ISP buffer FIFO overflowed */
+/** ISP buffer FIFO overflowed.
+ * Maps to VI CSIMUX_FRAME event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_ISPBUF_FIFO_OVERFLOW	MK_U32(11)
-/** Capture status out of sync */
+/** Capture status out of sync.
+ * Value of @ref err_data "err_data" is undefined.
+ */
 #define CAPTURE_STATUS_SYNC_FAILURE		MK_U32(12)
-/** VI notified backend down */
+/** VI notifier backend down.
+ * Value of @ref err_data "err_data" is undefined.
+ */
 #define CAPTURE_STATUS_NOTIFIER_BACKEND_DOWN	MK_U32(13)
-/** Falcon error */
+/** Falcon error.
+ * Value of @ref err_data "err_data" is defined in
+ " VI Microcode IAS v0.5.13, section 2.3.3".
+ */
 #define CAPTURE_STATUS_FALCON_ERROR		MK_U32(14)
-/** Data does not match any active channel */
+/** Data does not match any active channel.
+ * Maps to VI CHANSEL_NOMATCH event.
+ * See @ref err_data "err_data" with the VI event payload.
+ * Please refer to T19x Video Input (“VI5”) Application Note:
+ * Programming NOTIFY v0.0.0" for details.
+ */
 #define CAPTURE_STATUS_CHANSEL_NOMATCH		MK_U32(15)
 /** @} */
-	/** Start of Frame (SOF) timestamp */
+
+	/** Start of Frame (SOF) timestamp (ns) */
 	uint64_t sof_timestamp;
-	/** End of Frame (EOF) timestamp */
+	/** End of Frame (EOF) timestamp (ns) */
 	uint64_t eof_timestamp;
-	/** Falcon error data */
+	/**
+	 * Extended error data. The content depends on the value in @ref status.
+	 * See @ref CaptureStatusCodes for references.
+	 */
 	uint32_t err_data;
 
+/**
+ * @defgroup CaptureStatusFlags Capture status flags
+ */
+/** @{ */
 	/** Channel encountered unrecoverable error and must be reset */
 #define CAPTURE_STATUS_FLAG_CHANNEL_IN_ERROR			MK_BIT32(1)
+/** @} */
+
+	/** See @ref CaptureStatusFlags "Capture status flags" */
 	uint32_t flags;
 
 	/**
-	 * VI error notifications logged in capture channel since previous capture
-	 * (for more information refer to T194_VI5_Notify define_change.xlsx)
+	 * VI error notifications logged in capture channel since previous capture.
+	 * See @ref ViNotifyErrorTag "VI notify error bitmask"
 	 *
-	 * Also see @ref ViNotifyErrorTag "VI notify error bitmask"
+	 * Please refer to "[1] VI Microcode IAS v0.5.13" and
+	 * "[2] T19x Video Input (“VI5”) Application Note: Programming NOTIFY v0.0.0"
+	 * for more information on the meaning of individual error bits.
 	 */
 	uint64_t notify_bits;
 
 	/**
-	 * @name ViNotifyErrorTag
+	 * @defgroup ViNotifyErrorTag
 	 * VI notify error bitmask
 	 */
 	/** @{ */
@@ -889,7 +979,7 @@ struct vi_compand_config {
 #define VI_AFM_NUM_TRANSFER_KNOTS	MK_SIZE(11)
 
 /**
- * @brief Focus Metrics lite (FMLite) unit configuration
+ * @brief Focus Metrics lite (FMLite) unit configuration (Non-Safety)
  */
 struct vi_fmlite_config {
 	/** Atomically load the FM configuration from shadow registers to active registers */
@@ -1062,7 +1152,7 @@ struct vi_pfsd_config {
 	uint32_t replace_value;
 
 	/**
-	 * Count of items in the @see expected array.
+	 * Count of items in the @ref expected array.
 	 * If zero, PFSD will not be performed for this frame
 	 */
 	uint32_t expected_count;
@@ -1076,7 +1166,7 @@ struct vi_pfsd_config {
 		uint32_t offset;
 		/** Number of bytes that need to be read from the output surface */
 		uint32_t len;
-		/** Expected value. The 4 byte pattern is repeated until @see len
+		/** Expected value. The 4 byte pattern is repeated until @ref len
 		 * bytes have been compared
 		 */
 		uint8_t value[4];
@@ -1085,7 +1175,8 @@ struct vi_pfsd_config {
 } CAPTURE_IVC_ALIGN;
 
 /**
- * @defgroup CaptureFrameFlags Captue frame specific flags
+ * @defgroup CaptureFrameFlags
+ * Capture frame specific flags
  */
 /** @{ */
 /** Enables capture status reporting for the channel */
@@ -1100,7 +1191,7 @@ struct vi_pfsd_config {
 struct capture_descriptor {
 	/** VI frame sequence number*/
 	uint32_t sequence;
-	/** VI capture frame specific flags. See @ref CaptureFrameFlags "Capture Frame Flags" */
+	/** See @ref CaptureFrameFlags "Capture frame specific flags" */
 	uint32_t capture_flags;
 	/** Task descriptor frame start timeout in milliseconds */
 	uint16_t frame_start_timeout;
@@ -1164,7 +1255,8 @@ struct vi_hsm_chansel_error_mask_config {
  * NvPhy attributes
  */
 /**
- * @defgroup NvPhyType NvCSI Physical stream type
+ * @defgroup NvPhyType
+ * NvCSI Physical stream type
  * @{
  */
 #define NVPHY_TYPE_CSI		MK_U32(0)
@@ -1309,7 +1401,7 @@ struct vi_hsm_chansel_error_mask_config {
 /** @} */
 
 /**
- * @defgroup NvCsiDPhyPolarity NVCSI D-phy polarity
+ * @defgroup NvCsiDPhyPolarity NVCSI D-phy Polarity
  * @{
  */
 #define NVCSI_DPHY_POLARITY_NOSWAP	MK_U32(0)
@@ -1317,7 +1409,7 @@ struct vi_hsm_chansel_error_mask_config {
 /** @} */
 
 /**
- * @defgroup NvCsiCPhyPolarity NVCSI C-phy polarity
+ * @defgroup NvCsiCPhyPolarity NVCSI C-phy Polarity
  * @{
  */
 /* 000 := A B C --> A B C */
@@ -1340,11 +1432,14 @@ struct vi_hsm_chansel_error_mask_config {
 struct nvcsi_brick_config {
 	/** Select PHY @ref NvCsiPhyType "mode" for both partitions */
 	uint32_t phy_mode;
-	/** @ref NvCsiLaneSwizzle "Lane swizzles" control for bricks. Valid for C-PHY and D-PHY modes */
+	/** See @ref NvCsiLaneSwizzle "NVCSI Lane swizzles" control
+	 * for bricks. Valid for C-PHY and D-PHY modes.
+	 */
 	uint32_t lane_swizzle;
 	/**
-	 * Lane polarity control. Value depends on PhyMode
-	 * See @ref NvCsiDPhyPolarity "D-Phy Polarity" @ref NvCsiCPhyPolarity "C_Phy Polarity"
+	 * Polarity control for each lane. Value depends on @a phy_mode.
+	 * See @ref NvCsiDPhyPolarity "NVCSI D-phy Polarity"
+	 * or @ref NvCsiCPhyPolarity "NVCSI C-phy Polarity"
 	 */
 	uint8_t lane_polarity[NVCSI_BRICK_NUM_LANES];
 	/** Reserved */
@@ -1359,9 +1454,9 @@ struct nvcsi_cil_config {
 	uint8_t num_lanes;
 	/** LP bypass mode (boolean) */
 	uint8_t lp_bypass_mode;
-	/** Set MIPI THS-SETTLE timing */
+	/** Set MIPI THS-SETTLE timing (204 MHz lp clock cycles) */
 	uint8_t t_hs_settle;
-	/** Set MIPI TCLK-SETTLE timing */
+	/** Set MIPI TCLK-SETTLE timing (204 MHz lp clock cycles) */
 	uint8_t t_clk_settle;
 	/** NVCSI CIL clock rate [kHz] */
 	uint32_t cil_clock_rate;
@@ -1747,7 +1842,7 @@ struct nvcsi_tpg_config_t186 {
 struct nvcsi_tpg_config_t194 {
 	/** NvCSI Virtual channel ID */
 	uint8_t virtual_channel_id;
-	/** NvCSI datatype * */
+	/** NvCSI datatype */
 	uint8_t datatype;
 	/** @ref NvCsiTpgFlag "NvCSI TPG flag" */
 	uint16_t flags;
@@ -1827,7 +1922,6 @@ struct nvcsi_tpg_rate_config {
 
 /**
  * @defgroup IspErrorMask ISP Channel error mask
- * @deprecated
  */
 /** @{ */
 #define CAPTURE_ISP_CHANNEL_ERROR_DMA_PBUF_ERR		MK_BIT32(0)
@@ -1856,7 +1950,7 @@ struct capture_channel_isp_config {
 	uint8_t channel_id;
 	/** Reserved */
 	uint8_t __pad_chan[3];
-	/** ISP channel specific @ref ISPProcessChannelFlags "flags" */
+	/** See ISP process channel specific @ref ISPProcessChannelFlags "flags" */
 	uint32_t channel_flags;
 	/**
 	 * Base address of ISP capture descriptor ring buffer.
@@ -1873,7 +1967,10 @@ struct capture_channel_isp_config {
 	 * The size of the buffer is program_queue_depth * program_size
 	 */
 	iova_t programs;
-	/** Number of ISP program requests in the ring buffer */
+	/**
+	 * Maximum number of ISP program requests in the program queue.
+	 * Determines the size of the ISP program ring buffer.
+	 */
 	uint32_t program_queue_depth;
 	/** Size of each ISP process request (@ref isp_program_descriptor) */
 	uint32_t program_size;
@@ -1881,11 +1978,6 @@ struct capture_channel_isp_config {
 	struct syncpoint_info progress_sp;
 	/** Statistics buffer syncpoint info */
 	struct syncpoint_info stats_progress_sp;
-
-	/** @deprecated */
-	uint32_t error_mask_correctable CAMRTC_DEPRECATED;
-	/** @deprecated */
-	uint32_t error_mask_uncorrectable CAMRTC_DEPRECATED;
 
 #define HAVE_ISP_GOS_TABLES
 	/** Number of active ISP GOS tables in isp_gos_tables[] */
@@ -1923,9 +2015,13 @@ struct capture_isp_status {
 	uint8_t __pad;
 	/** Frame sequence number */
 	uint16_t frame_id;
-	/** @ref IspProcessStatus "Process status" */
+	/** See @ref IspProcesStatus "ISP process status codes" */
 	uint32_t status;
-	/** Error bit mask. Zero in case of SUCCESS, non-zero value case of ERROR */
+	/**
+	 * Error status of ISP process request.
+	 * Zero in case of SUCCESS, non-zero value case of ERROR.
+	 * See @ref IspErrorMask "ISP Channel error mask".
+	 */
 	uint32_t error_mask;
 	/** Reserved */
 	uint32_t __pad2;
@@ -1951,13 +2047,21 @@ struct capture_isp_status {
 struct capture_isp_program_status {
 	/** ISP channel id */
 	uint8_t chan_id;
-	/** ISP program settings id */
+	/**
+	 * The settings_id uniquely identifies the ISP program.
+	 * The ID is assigned by application and copied here from
+	 * the @ref isp_program_descriptor structure.
+	 */
 	uint8_t settings_id;
 	/** Reserved */
 	uint16_t __pad_id;
 	/** @ref IspProgramStatus "Program status" */
 	uint32_t status;
-	/** Error bit mask. Zero in case of SUCCESS, non-zero value case of ERROR */
+	/**
+	 * Error status from last ISP process request using this ISP program.
+	 * Zero in case of SUCCESS, non-zero value case of ERROR.
+	 * See @ref IspErrorMask "ISP Channel error mask".
+	 */
 	uint32_t error_mask;
 	/** Reserved */
 	uint32_t __pad2;
@@ -2072,7 +2176,7 @@ struct stats_surface {
 struct isp_capture_descriptor {
 	/** Process request sequence number, frame id */
 	uint32_t sequence;
-	/** ISP frame specific flags. See @ref IspProcessFlag "ISP process flags" */
+	/** See @ref IspProcessFlag "ISP process frame specific flags." */
 	uint32_t capture_flags;
 
 	/** 1 MR port, max 3 input surfaces */
@@ -2169,23 +2273,14 @@ struct isp_capture_descriptor {
 	/** Frame processing timeout in microseconds */
 	uint32_t frame_timeout;
 
-	union {
-		/** DEPRECATED - Do not use */
-		uint32_t prefence_count CAMRTC_DEPRECATED;
-		/**
-		 * Number of inputfences for given capture request.
-		 * These fences are exclusively associated with ISP input ports and
-		 * they support subframe sychronization.
-		 */
-		uint32_t num_inputfences;
-	};
-
-	union {
-		/** DEPRECATED - Do not use */
-		struct syncpoint_info progress_prefence[ISP_MAX_INPUT_SURFACES] CAMRTC_DEPRECATED;
-		/** Progress syncpoint for each one of inputfences */
-		struct syncpoint_info inputfences[ISP_MAX_INPUT_SURFACES];
-	};
+	/**
+	 * Number of inputfences for given capture request.
+	 * These fences are exclusively associated with ISP input ports and
+	 * they support subframe sychronization.
+	 */
+	uint32_t num_inputfences;
+	/** Progress syncpoint for each one of inputfences */
+	struct syncpoint_info inputfences[ISP_MAX_INPUT_SURFACES];
 
 	/* GID-STKHLDREQPLCL123-3812735 */
 #define ISP_MAX_PREFENCES	MK_U32(14)
