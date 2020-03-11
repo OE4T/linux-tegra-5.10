@@ -263,10 +263,6 @@ done:
 						f_mmu_fault_setup_sw[branch]);
 	}
 	nvgpu_posix_enable_fault_injection(l_dma_fi, false, 0);
-	err = gv11b_mm_mmu_fault_setup_sw(g);
-	if (err != 0) {
-		unit_return_fail(m, "mmu_fault_setup_sw failed");
-	}
 	return ret;
 }
 
@@ -279,6 +275,7 @@ int test_gv11b_mm_mmu_fault_setup_hw(struct unit_module *m, struct gk20a *g,
 								void *args)
 {
 	int ret = UNIT_FAIL;
+	int err;
 	enum nvgpu_aperture fb_aperture_orig = APERTURE_INVALID;
 
 	global_count = 0U;
@@ -286,12 +283,17 @@ int test_gv11b_mm_mmu_fault_setup_hw(struct unit_module *m, struct gk20a *g,
 
 	g->ops.fb.fault_buf_configure_hw = stub_fb_fault_buf_configure_hw;
 
+	err = gv11b_mm_mmu_fault_setup_sw(g);
+	unit_assert(err == 0, goto done);
+
 	gv11b_mm_mmu_fault_setup_hw(g);
 	unit_assert(count == global_count, goto done);
 	global_count++;
 
-	fb_aperture_orig = g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX].aperture;
-	g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX].aperture = APERTURE_INVALID;
+	fb_aperture_orig =
+		g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX].aperture;
+	g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX].aperture =
+		APERTURE_INVALID;
 
 	gv11b_mm_mmu_fault_setup_hw(g);
 	unit_assert(count != global_count, goto done);
@@ -302,7 +304,9 @@ done:
 	if (ret != UNIT_SUCCESS) {
 		unit_err(m, "%s failed\n", __func__);
 	}
-	g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX].aperture = fb_aperture_orig;
+	g->mm.hw_fault_buf[NVGPU_MMU_FAULT_NONREPLAY_INDX].aperture =
+		fb_aperture_orig;
+	gv11b_mm_mmu_fault_info_mem_destroy(g);
 	return ret;
 }
 
@@ -318,23 +322,28 @@ static bool fault_buf_enabled;
 
 static bool stub_fb_is_fault_buf_enabled(struct gk20a *g, u32 index)
 {
-	count = global_count++;
+	count = global_count;
 	return fault_buf_enabled;
 }
 
 static void stub_fb_fault_buf_set_state_hw(struct gk20a *g, u32 index, u32 state)
 {
+	global_count += 2U;
 }
 
 int test_gv11b_mm_mmu_fault_disable_hw(struct unit_module *m, struct gk20a *g,
 								void *args)
 {
 	int ret = UNIT_FAIL;
+	int err = 0U;
 	u64 branch = (u64)args;
 	struct gpu_ops gops = g->ops;
 
-	global_count = 0U;
-	count = 1U;
+	global_count = 10U;
+	count = 0U;
+
+	err = gv11b_mm_mmu_fault_setup_sw(g);
+	unit_assert(err == 0, goto done);
 
 	g->ops.fb.is_fault_buf_enabled = stub_fb_is_fault_buf_enabled;
 	g->ops.fb.fault_buf_set_state_hw = stub_fb_fault_buf_set_state_hw;
@@ -342,7 +351,8 @@ int test_gv11b_mm_mmu_fault_disable_hw(struct unit_module *m, struct gk20a *g,
 				false : true;
 
 	gv11b_mm_mmu_fault_disable_hw(g);
-	unit_assert(count == global_count - 1U, goto done);
+	unit_assert(count == 10U, goto done);
+	unit_assert(global_count == (10U + (2U * fault_buf_enabled)), goto done);
 
 	ret = UNIT_SUCCESS;
 
@@ -351,6 +361,7 @@ done:
 		unit_err(m, "%s: %s failed\n", __func__,
 						f_mmu_fault_disable[branch]);
 	}
+	gv11b_mm_mmu_fault_info_mem_destroy(g);
 	g->ops = gops;
 	return ret;
 }
@@ -769,7 +780,7 @@ done:
 		unit_err(m, "%s: %s failed\n", __func__,
 						f_mmu_fault_nonreplay[branch]);
 	}
-
+	gv11b_mm_mmu_fault_info_mem_destroy(g);
 	g->ops = gops;
 	return ret;
 }
