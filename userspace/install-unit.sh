@@ -122,7 +122,7 @@ jcp $TOP/kernel/nvgpu/userspace/gcov.sh                  nvgpu_unit/gcov.sh
 jcp $TOP/kernel/nvgpu/userspace/testlist.py              nvgpu_unit/testlist.py
 jcp $TOP/kernel/nvgpu/userspace/required_tests.json      \
 	nvgpu_unit/required_tests.json
-jcp $TOP/kernel/nvgpu/userspace/firmware/ nvgpu_unit/firmware/gv11b/
+jcp $TOP/kernel/nvgpu/userspace/firmware/gv11b nvgpu_unit/firmware/gv11b/
 
 find $nvgpu_bins/userspace/units -name "*.so" -not -path "*unit.so" \
     -not -path "*drv.so" -exec du -b {} \; | sort -n | while read size unit_so ; do
