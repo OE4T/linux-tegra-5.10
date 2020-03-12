@@ -24,7 +24,7 @@
 #define INCLUDED_MGBE_DMA_H
 
 /**
- * @addtogroup MGBE-DMA-CH DMA Channel Register offsets
+ * @addtogroup MGBE_DMA DMA Channel Register offsets
  *
  * @brief MGBE DMA Channel register offsets
  * @{
@@ -48,7 +48,7 @@
 /** @} */
 
 /**
- * @addtogroup MGBE-INTR INT Channel Register offsets
+ * @addtogroup MGBE_INTR INT Channel Register offsets
  *
  * @brief MGBE Virtural Interrupt Channel register offsets
  * @{
@@ -59,7 +59,7 @@
 /** @} */
 
 /**
- * @addtogroup MGBE BIT fields for MGBE Rgisters
+ * @addtogroup MGBE_BIT BIT fields for MGBE channel registers
  *
  * @brief Values defined for the MGBE registers
  * @{

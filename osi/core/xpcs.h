@@ -69,10 +69,21 @@
 #define XPCS_REG_ADDR_SHIFT			10U
 #define XPCS_REG_ADDR_MASK			0x1FFFU
 #define XPCS_REG_VALUE_MASK			0xFFU
+/** @} */
 
 int xpcs_init(struct osi_core_priv_data *osi_core);
 int xpcs_start(struct osi_core_priv_data *osi_core);
 
+/**
+ * @brief xpcs_read - read from xpcs.
+ *
+ * Algorithm: This routine reads data from XPCS register.
+ *
+ * @param[in] xpcs_base: XPCS virtual base address
+ * @param[in] reg_addr: register address to be read
+ *
+ * @retval value read from xpcs register.
+ */
 static inline unsigned int xpcs_read(void *xpcs_base, unsigned int reg_addr)
 {
 	osi_writel(((reg_addr >> XPCS_REG_ADDR_SHIFT) & XPCS_REG_ADDR_MASK),
@@ -81,6 +92,15 @@ static inline unsigned int xpcs_read(void *xpcs_base, unsigned int reg_addr)
 			 ((reg_addr) & XPCS_REG_VALUE_MASK));
 }
 
+/**
+ * @brief xpcs_read - write to xpcs.
+ *
+ * Algorithm: This routine writes data to XPCS register.
+ *
+ * @param[in] xpcs_base: XPCS virtual base address
+ * @param[in] reg_addr: register address for writing
+ * @param[in] val: write value to register address
+ */
 static inline void xpcs_write(void *xpcs_base, unsigned int reg_addr,
 			      unsigned int val)
 {
@@ -89,4 +109,5 @@ static inline void xpcs_write(void *xpcs_base, unsigned int reg_addr,
 	osi_writel(val, (unsigned char *)xpcs_base +
 		   (((reg_addr) & XPCS_REG_VALUE_MASK)));
 }
+
 #endif

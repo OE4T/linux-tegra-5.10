@@ -445,16 +445,14 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 }
 
 /**
- * mgbe_dma_chan_to_vmirq_map - Map DMA channels to a specific VM IRQ.
+ * @brief mgbe_dma_chan_to_vmirq_map - Map DMA channels to a specific VM IRQ.
  *
  * Algorithm: Programs HW to map DMA channels to specific VM.
  *
- * Dependencies: OSD layer needs to update number of VM channels and
- * DMA channel list in osi_vm_irq_data.
+ * @param[in] osi_dma: OSI DMA private data structure.
  *
- * @param[in] osi_dma: OSI private data structure.
- *
- * Return: None.
+ * @note OSD layer needs to update number of VM channels and
+ *	DMA channel list in osi_vm_irq_data.
  */
 static void mgbe_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
 {
@@ -523,15 +521,11 @@ static void mgbe_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
- * mgbe_get_global_dma_status - Gets DMA status.
+ * @brief mgbe_get_global_dma_status - Gets DMA status.
  *
  * Algorithm: Returns global DMA Tx/Rx interrupt status
  *
  * @param[in] addr: MAC base address.
- *
- * Dependencies: None.
- * Protection: None.
- * Return: None.
  */
 static nveu32_t mgbe_get_global_dma_status(void *addr)
 {
@@ -539,16 +533,12 @@ static nveu32_t mgbe_get_global_dma_status(void *addr)
 }
 
 /**
- * mgbe_clear_vm_tx_intr - Clear VM Tx interrupt
+ * @brief mgbe_clear_vm_tx_intr - Clear VM Tx interrupt
  *
  * Algorithm: Clear Tx interrupt source at DMA and wrapper level.
  *
  * @param[in] addr: MAC base address.
  * @param[in] chan: DMA Tx channel number.
- *
- * Dependencies: None.
- * Protection: None.
- * Return: None.
  */
 static void mgbe_clear_vm_tx_intr(void *addr, nveu32_t chan)
 {
@@ -561,16 +551,12 @@ static void mgbe_clear_vm_tx_intr(void *addr, nveu32_t chan)
 }
 
 /**
- * mgbe_clear_vm_rx_intr - Clear VM Rx interrupt
- *
- * Algorithm: Clear Rx interrupt source at DMA and wrapper level.
+ * @brief mgbe_clear_vm_rx_intr - Clear VM Rx interrupt
  *
  * @param[in] addr: MAC base address.
- * @param[in] chan: DMA Rx channel number.
+ * @param[in] chan: DMA Tx channel number.
  *
- * Dependencies: None.
- * Protection: None.
- * Return: None.
+ * Algorithm: Clear Rx interrupt source at DMA and wrapper level.
  */
 static void mgbe_clear_vm_rx_intr(void *addr, nveu32_t chan)
 {
