@@ -21,8 +21,6 @@
 #include <soc/tegra/chip-id.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
 
-#include <linux/platform/tegra/mc.h>
-
 #include "dev.h"
 #include "class_ids.h"
 #include "class_ids_t186.h"
@@ -157,8 +155,8 @@ struct nvhost_device_data t18_vi_info = {
 	.moduleid		= NVHOST_MODULE_VI,
 	.clocks = {
 		{"vi", 408000000},
-		{"nvcsi", 204000000, 0, 0, 0, true},
-		{"nvcsilp", 204000000, 0, 0, 0, true},
+		{"nvcsi", 204000000, 0, 0, true},
+		{"nvcsilp", 204000000, 0, 0, true},
 	},
 	.num_channels		= 15,
 	.prepare_poweroff	= nvhost_vi4_prepare_poweroff,
@@ -192,10 +190,10 @@ struct nvhost_device_data t18_msenc_info = {
 	.can_powergate          = true,
 	.autosuspend_delay      = 500,
 	.clocks			= {
-		{"nvenc", UINT_MAX, 0, TEGRA_MC_CLIENT_MSENC},
+		{"nvenc", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
+		 TEGRA_BWMGR_SET_EMC_SHARED_BW}
 	},
 	.engine_cg_regs		= t18x_nvenc_gating_registers,
 	.engine_can_cg		= true,
@@ -225,10 +223,10 @@ struct nvhost_device_data t18_nvdec_info = {
 	.can_powergate          = true,
 	.autosuspend_delay      = 500,
 	.clocks			= {
-		{"nvdec", UINT_MAX, 0, TEGRA_MC_CLIENT_NVDEC},
+		{"nvdec", UINT_MAX, 0},
 		{"emc", HOST_NVDEC_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.engine_cg_regs		= t18x_nvdec_gating_registers,
 	.engine_can_cg		= true,
@@ -259,10 +257,10 @@ struct nvhost_device_data t18_nvjpg_info = {
 	.can_powergate          = true,
 	.autosuspend_delay      = 500,
 	.clocks			= {
-		{"nvjpg", UINT_MAX, 0, TEGRA_MC_CLIENT_NVJPG},
+		{"nvjpg", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
+		 TEGRA_BWMGR_SET_EMC_SHARED_BW}
 	},
 	.engine_cg_regs		= t18x_nvjpg_gating_registers,
 	.engine_can_cg		= true,
@@ -292,10 +290,10 @@ struct nvhost_device_data t18_tsec_info = {
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_TSEC},
 	.class			= NV_TSEC_CLASS_ID,
 	.clocks			= {
-		{"tsec", UINT_MAX, 0, TEGRA_MC_CLIENT_TSEC},
+		{"tsec", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.engine_cg_regs		= t18x_tsec_gating_registers,
 	.engine_can_cg		= true,
@@ -323,10 +321,10 @@ struct nvhost_device_data t18_tsecb_info = {
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_TSECB},
 	.class			= NV_TSECB_CLASS_ID,
 	.clocks			= {
-		{"tsecb", UINT_MAX, 0, TEGRA_MC_CLIENT_TSECB},
+		{"tsecb", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.engine_cg_regs		= t18x_tsec_gating_registers,
 	.engine_can_cg		= true,
@@ -356,7 +354,7 @@ struct nvhost_device_data t18_vic_info = {
 		{"vic", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW},
+		 TEGRA_BWMGR_SET_EMC_SHARED_BW},
 	},
 	.engine_cg_regs		= t18x_vic_gating_registers,
 	.engine_can_cg		= true,

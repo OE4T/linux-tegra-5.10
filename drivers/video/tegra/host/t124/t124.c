@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Init for T124 Architecture Chips
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,8 +19,6 @@
  */
 #include <linux/slab.h>
 #include <soc/tegra/fuse.h>
-
-#include <linux/platform/tegra/mc.h>
 
 #include <media/vi.h>
 
@@ -85,7 +83,7 @@ struct nvhost_device_data t124_isp_info = {
 	.can_powergate   = true,
 	.autosuspend_delay = ISP_AUTOSUSPEND_DELAY,
 	.clocks          = {
-		{"isp", UINT_MAX, 0, TEGRA_MC_CLIENT_ISP},
+		{"isp", UINT_MAX, 0},
 		{"emc", 0, NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER},
 		{"sclk", 80000000} },
 	.finalize_poweron = nvhost_isp_t124_finalize_poweron,
@@ -106,7 +104,7 @@ struct nvhost_device_data t124_ispb_info = {
 	.can_powergate   = true,
 	.autosuspend_delay = ISP_AUTOSUSPEND_DELAY,
 	.clocks          = {
-		{"isp", UINT_MAX, 0, TEGRA_MC_CLIENT_ISPB},
+		{"isp", UINT_MAX, 0},
 		{"emc", 0, NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER},
 		{"sclk", 80000000} },
 	.finalize_poweron = nvhost_isp_t124_finalize_poweron,
@@ -152,7 +150,7 @@ struct nvhost_device_data t124_msenc_info = {
 	.modulemutexes	= {NVMODMUTEX_MSENC},
 	.devfs_name	= "msenc",
 	.class		= NV_VIDEO_ENCODE_MSENC_CLASS_ID,
-	.clocks		= {{"msenc", UINT_MAX, 0, TEGRA_MC_CLIENT_MSENC},
+	.clocks		= {{"msenc", UINT_MAX, 0},
 			  {"emc", HOST_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER} },
 	.moduleid	= NVHOST_MODULE_MSENC,
@@ -178,7 +176,7 @@ struct nvhost_device_data t124_tsec_info = {
 	.modulemutexes = {NVMODMUTEX_TSECA},
 	.devfs_name    = "tsec",
 	.exclusive     = false,
-	.clocks	       = {{"tsec", UINT_MAX, 0, TEGRA_MC_CLIENT_TSEC},
+	.clocks	       = {{"tsec", UINT_MAX, 0},
 			 {"emc", HOST_EMC_FLOOR} },
 	.can_powergate   = true,
 	.poweron_reset   = true,
@@ -197,7 +195,7 @@ struct nvhost_device_data t124_vic_info = {
 	.num_channels	= 1,
 	.modulemutexes	= {NVMODMUTEX_VIC},
 	.devfs_name	= "vic",
-	.clocks		= {{"vic03", UINT_MAX, 0, TEGRA_MC_CLIENT_VIC},
+	.clocks		= {{"vic03", UINT_MAX, 0},
 			{"emc", UINT_MAX,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER},
 			{"vic_floor", 0,
@@ -242,7 +240,7 @@ static struct nvhost_device_data t132_msenc_info = {
 	.version	= NVHOST_ENCODE_FLCN_VER(3, 1),
 	.modulemutexes	= {NVMODMUTEX_MSENC},
 	.class		= NV_VIDEO_ENCODE_MSENC_CLASS_ID,
-	.clocks		= {{"msenc", UINT_MAX, 0, TEGRA_MC_CLIENT_MSENC},
+	.clocks		= {{"msenc", UINT_MAX, 0},
 			  {"emc", HOST_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER} },
 	.moduleid	= NVHOST_MODULE_MSENC,

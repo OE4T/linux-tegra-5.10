@@ -117,7 +117,6 @@ struct nvhost_clock {
 	char *name;
 	unsigned long default_rate;
 	u32 moduleid;
-	int reset;
 	int bwmgr_request_type;
 	bool disable_scaling;
 	unsigned long devfreq_rate;

@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T210 Architecture Chips
  *
- * Copyright (c) 2011-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,6 @@
 
 #include <soc/tegra/chip-id.h>
 
-#include <linux/platform/tegra/mc.h>
 #if defined(CONFIG_TEGRA_BWMGR)
 #include <linux/platform/tegra/emc_bwmgr.h>
 #endif
@@ -96,9 +95,9 @@ struct nvhost_device_data t21_isp_info = {
 	.can_powergate		= true,
 	.clocks			= {
 #ifdef CONFIG_COMMON_CLK
-		{ "ispa", UINT_MAX, 0, TEGRA_MC_CLIENT_ISP },
+		{ "ispa", UINT_MAX, 0 },
 #else
-		{ "isp", UINT_MAX, 0, TEGRA_MC_CLIENT_ISP },
+		{ "isp", UINT_MAX, 0 },
 #endif
 #if !defined(CONFIG_TEGRA_BWMGR)
 		{"emc", 0, NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER, }
@@ -124,9 +123,9 @@ struct nvhost_device_data t21_ispb_info = {
 	.can_powergate		= true,
 	.clocks			= {
 #ifdef CONFIG_COMMON_CLK
-		{ "ispb", UINT_MAX, 0, TEGRA_MC_CLIENT_ISPB },
+		{ "ispb", UINT_MAX, 0 },
 #else
-		{ "isp", UINT_MAX, 0, TEGRA_MC_CLIENT_ISPB },
+		{ "isp", UINT_MAX, 0 },
 #endif
 #if !defined(CONFIG_TEGRA_BWMGR)
 		{"emc", 0, NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER, }
@@ -189,11 +188,11 @@ struct nvhost_device_data t21_msenc_info = {
 	.devfs_name		= "msenc",
 	.autosuspend_delay	= 500,
 	.can_powergate		= true,
-	.clocks			= {{"msenc", UINT_MAX, 0, TEGRA_MC_CLIENT_MSENC},
+	.clocks			= {{"msenc", UINT_MAX, 0},
 				   {"emc", HOST_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
 #if defined(CONFIG_TEGRA_BWMGR)
-				0, TEGRA_BWMGR_SET_EMC_SHARED_BW} },
+				TEGRA_BWMGR_SET_EMC_SHARED_BW} },
 #else
 				} },
 #endif
@@ -229,7 +228,7 @@ struct nvhost_device_data t21_nvdec_info = {
 	.devfs_name		= "nvdec",
 	.autosuspend_delay	= 500,
 	.can_powergate		= true,
-	.clocks			= {{"nvdec", 0, 0, TEGRA_MC_CLIENT_NVDEC},
+	.clocks			= {{"nvdec", 0, 0},
 				   {"emc", HOST_NVDEC_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER} },
 	.engine_cg_regs		= t21x_nvdec_gating_registers,
@@ -264,7 +263,7 @@ struct nvhost_device_data t21_nvjpg_info = {
 	.devfs_name		= "nvjpg",
 	.autosuspend_delay	= 500,
 	.can_powergate		= true,
-	.clocks			= { {"nvjpg", UINT_MAX, 0, TEGRA_MC_CLIENT_NVJPG},
+	.clocks			= { {"nvjpg", UINT_MAX, 0},
 				    {"emc", HOST_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
 #if defined(CONFIG_TEGRA_BWMGR)
@@ -305,7 +304,7 @@ struct nvhost_device_data t21_tsec_info = {
 	.version		= NVHOST_ENCODE_TSEC_VER(1, 0),
 	.class			= NV_TSEC_CLASS_ID,
 	.exclusive		= false,
-	.clocks			= {{"tsec", UINT_MAX, 0, TEGRA_MC_CLIENT_TSEC},
+	.clocks			= {{"tsec", UINT_MAX, 0},
 				   {"emc", HOST_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER} },
 	.can_powergate		= true,
@@ -332,7 +331,7 @@ struct nvhost_device_data t21_tsecb_info = {
 	.version		= NVHOST_ENCODE_TSEC_VER(1, 0),
 	.class			= NV_TSECB_CLASS_ID,
 	.exclusive		= false,
-	.clocks			= {{"tsecb", UINT_MAX, 0, TEGRA_MC_CLIENT_TSECB},
+	.clocks			= {{"tsecb", UINT_MAX, 0},
 				   {"emc", HOST_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER} },
 	.can_powergate		= true,
@@ -358,8 +357,7 @@ struct nvhost_device_data t21_vic_info = {
 	.num_channels		= 1,
 	.modulemutexes		= {NVMODMUTEX_VIC},
 	.devfs_name		= "vic",
-	.clocks			= {{"vic03", 140800000, 0,
-				   TEGRA_MC_CLIENT_VIC},
+	.clocks			= {{"vic03", 140800000, 0},
 				   {"emc", HOST_EMC_FLOOR,
 				   NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER},
 				   {"vic_floor", 0,

@@ -183,7 +183,7 @@ struct nvhost_device_data t19_vi5_info = {
 		{"uart_fs_mipi_cal", UINT_MAX},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR, false, UINT_MAX}
+		 TEGRA_BWMGR_SET_EMC_FLOOR, false, UINT_MAX}
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
@@ -254,7 +254,7 @@ struct nvhost_device_data t19_msenc_info = {
 		{"nvenc", UINT_MAX},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
+		 TEGRA_BWMGR_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
 	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
@@ -288,7 +288,7 @@ struct nvhost_device_data t19_nvenc1_info = {
 		{"nvenc", UINT_MAX},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
+		 TEGRA_BWMGR_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
 	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
@@ -326,7 +326,7 @@ struct nvhost_device_data t19_nvdec_info = {
 		{"efuse", 0, 0},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.poweron_reset		= true,
 	.finalize_poweron	= nvhost_nvdec_finalize_poweron_t186,
@@ -362,7 +362,7 @@ struct nvhost_device_data t19_nvdec1_info = {
 		{"efuse", 0, 0},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.poweron_reset		= true,
 	.finalize_poweron	= nvhost_nvdec_finalize_poweron_t186,
@@ -398,7 +398,7 @@ struct nvhost_device_data t19_nvjpg_info = {
 		{"nvjpg", UINT_MAX},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
+		 TEGRA_BWMGR_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
 	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
@@ -431,7 +431,7 @@ struct nvhost_device_data t19_tsec_info = {
 		{"efuse", 0, 0},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.autosuspend_delay      = 500,
 	.keepalive		= true,
@@ -460,7 +460,7 @@ struct nvhost_device_data t19_tsecb_info = {
 		{"efuse", 0, 0},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.autosuspend_delay      = 500,
 	.keepalive		= true,
@@ -486,7 +486,7 @@ struct nvhost_device_data t19_vic_info = {
 	.clocks			= {
 		{"vic", UINT_MAX, 0},
 		{"emc", 0, NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW},
+		 TEGRA_BWMGR_SET_EMC_SHARED_BW},
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(4, 2),
 	.autosuspend_delay      = 500,
@@ -589,7 +589,7 @@ struct nvhost_device_data t19_nvdla0_info = {
 		{"nvdla0_flcn", UINT_MAX},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.finalize_poweron	= nvhost_nvdla_finalize_poweron,
@@ -622,7 +622,7 @@ struct nvhost_device_data t19_nvdla1_info = {
 		{"nvdla1_flcn", UINT_MAX},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.finalize_poweron	= nvhost_nvdla_finalize_poweron,
