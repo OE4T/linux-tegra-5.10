@@ -2210,6 +2210,13 @@ static int mgbe_set_speed(struct osi_core_priv_data *const osi_core, const int s
 	return xpcs_start(osi_core);
 }
 
+/**
+ * @brief mgbe_mdio_busy_wait - MDIO busy wait loop
+ *
+ * Algorithm: Wait for any previous MII read/write operation to complete
+ *
+ * @param[in] osi_core: OSI core data struture.
+ */
 static int mgbe_mdio_busy_wait(struct osi_core_priv_data *const osi_core)
 {
 	/* half second timeout */
