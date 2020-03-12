@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Channel
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,8 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <linux/iommu.h>
-
 #include "bus_client_t186.h"
 #include "nvhost_channel.h"
 #include "dev.h"
@@ -30,8 +28,6 @@
 #include <linux/slab.h>
 #include <linux/version.h>
 #include "nvhost_sync.h"
-
-#include <linux/platform/tegra/tegra-mc-sid.h>
 
 #include "nvhost_intr.h"
 #include "nvhost_vm.h"
@@ -194,20 +190,16 @@ static inline int get_streamid(struct nvhost_job *job)
 	struct platform_device *host_dev = nvhost_get_host(pdev)->dev;
 	int streamid;
 
-	/* set channel streamid */
-	if (job->ch->vm) {
-		/* if vm is defined, take vm specific */
-		streamid = nvhost_vm_get_id(job->ch->vm);
-	} else {
-		/* ..otherwise assume that the buffers are mapped to device
-		 * own address space */
-		streamid = iommu_get_hwid(pdev->dev.archdata.iommu,
-					  &pdev->dev,
-					  nvhost_host1x_get_vmid(host_dev));
-		if (streamid < 0)
-			streamid = tegra_mc_get_smmu_bypass_sid();
-	}
-	return streamid;
+	/* if vm is defined, take vm specific */
+	if (job->ch->vm)
+		return nvhost_vm_get_id(job->ch->vm);
+
+	/* attempt using the engine streamid */
+	streamid = nvhost_vm_get_hwid(pdev, nvhost_host1x_get_vmid(host_dev));
+	if (streamid >= 0)
+		return streamid;
+
+	return nvhost_vm_get_bypass_hwid();
 }
 
 static void submit_setstreamid(struct nvhost_job *job)
@@ -396,15 +388,9 @@ static int host1x_channel_submit(struct nvhost_job *job)
 	}
 
 	/* get host1x streamid */
-	if (host_dev->dev.archdata.iommu) {
-		streamid = iommu_get_hwid(host_dev->dev.archdata.iommu,
-					  &host_dev->dev,
-					  nvhost_host1x_get_vmid(host_dev));
-		if (streamid < 0)
-			streamid = tegra_mc_get_smmu_bypass_sid();
-	} else {
-		streamid = tegra_mc_get_smmu_bypass_sid();
-	}
+	streamid = nvhost_vm_get_hwid(host_dev, nvhost_host1x_get_vmid(host_dev));
+	if (streamid < 0)
+		streamid = nvhost_vm_get_bypass_hwid();
 
 	/* set channel streamid */
 	host1x_channel_writel(ch, host1x_channel_smmu_streamid_r(), streamid);

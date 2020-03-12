@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Virtual Memory
  *
- * Copyright (c) 2014-2015, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,6 +20,11 @@
 #define NVHOST_VM_H
 
 #include <linux/kref.h>
+#include <linux/iommu.h>
+
+#ifdef CONFIG_NV_TEGRA_MC
+#include <linux/platform/tegra/tegra-mc-sid.h>
+#endif
 
 struct platform_device;
 struct nvhost_vm_pin;
@@ -102,5 +107,29 @@ void nvhost_vm_get(struct nvhost_vm *vm);
  */
 struct nvhost_vm *nvhost_vm_allocate(struct platform_device *pdev,
 				     void *identifier);
+
+static inline int nvhost_vm_get_hwid(struct platform_device *pdev,
+				     unsigned int id)
+{
+	struct device *dev = &pdev->dev;
+	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+
+	if (!fwspec)
+		return -EINVAL;
+
+	if (id >= fwspec->num_ids)
+		return -EINVAL;
+
+	return fwspec->ids[id] & 0xffff;
+}
+
+static inline int nvhost_vm_get_bypass_hwid(void)
+{
+#ifdef CONFIG_NV_TEGRA_MC
+	return tegra_mc_get_smmu_bypass_sid();
+#else
+	return 0x7f;
+#endif
+}
 
 #endif
