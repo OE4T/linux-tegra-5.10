@@ -149,6 +149,9 @@ Required properties:
 				Minimum value is 1 and Maximum value is 4.
 - nvidia,mtl-queues:		Queues that need to be filled based on the
 				nvidia,mtl-queues. Valid numbers are 0,1,2,3
+- nvidia,ptp-rx-queue:		This field specifies the Rx queue on which the
+				untagged PTP packets sent over the Ethernet
+				payload (not over IPv4 or IPv6) are routed.
 - nvidia,tx-queue-prio: 	Each byte in this property indicates the
 				packet priorities 0 to 7. When this is set, it
 				means the packet with that priority will be

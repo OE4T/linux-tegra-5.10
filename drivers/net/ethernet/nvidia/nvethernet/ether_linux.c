@@ -3851,6 +3851,26 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 			goto exit;
 		}
 	}
+	/* Read PTP Rx queue index */
+	ret = of_property_read_u32(np, "nvidia,ptp-rx-queue",
+				   &osi_core->ptp_config.ptp_rx_queue);
+	if (ret != 0) {
+		dev_warn(dev, "Setting default PTP RX queue\n");
+		osi_core->ptp_config.ptp_rx_queue = osi_core->mtl_queues[0];
+	} else {
+		/* Validate PTP Rx queue index */
+		for (i = 0; i < osi_core->num_mtl_queues; i++) {
+			if (osi_core->mtl_queues[i] ==
+					osi_core->ptp_config.ptp_rx_queue)
+				break;
+		}
+		if (i == osi_core->num_mtl_queues) {
+			dev_err(dev, "Invalid PTP RX queue in DT:%d\n",
+				osi_core->ptp_config.ptp_rx_queue);
+			osi_core->ptp_config.ptp_rx_queue =
+				osi_core->mtl_queues[0];
+		}
+	}
 
 	ret = of_property_read_u32_array(np, "nvidia,dma-chans",
 					 osi_dma->dma_chans,
