@@ -24,6 +24,29 @@
 #include "hw_desc.h"
 
 /**
+ * @brief mgbe_get_rx_vlan - Get Rx VLAN from descriptor
+ *
+ * Algorithm:
+ *      1) Check if the descriptor has CVLAN set
+ *      2) If set, set a per packet context flag indicating packet is VLAN
+ *      tagged.
+ *      3) Extract VLAN tag ID from the descriptor
+ *
+ * @param[in] rx_desc: Rx descriptor
+ * @param[in] rx_pkt_cx: Per-Rx packet context structure
+ */
+static inline void mgbe_get_rx_vlan(struct osi_rx_desc *rx_desc,
+				    struct osi_rx_pkt_cx *rx_pkt_cx)
+{
+	unsigned int ellt = rx_desc->rdes3 & RDES3_ELLT;
+
+	if ((ellt & RDES3_ELLT_CVLAN) == RDES3_ELLT_CVLAN) {
+		rx_pkt_cx->flags |= OSI_PKT_CX_VLAN;
+		rx_pkt_cx->vlan_tag = rx_desc->rdes0 & RDES0_OVT;
+	}
+}
+
+/**
  * @brief mgbe_get_rx_err_stats - Detect Errors from Rx Descriptor
  *
  * Algorithm: This routine will be invoked by OSI layer itself which
@@ -77,4 +100,5 @@ void mgbe_init_desc_ops(struct desc_ops *d_ops)
 {
         d_ops->get_rx_csum = mgbe_get_rx_csum;
 	d_ops->update_rx_err_stats = mgbe_update_rx_err_stats;
+	d_ops->get_rx_vlan = mgbe_get_rx_vlan;
 }

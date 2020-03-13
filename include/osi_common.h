@@ -167,10 +167,6 @@
 #define OSI_ENABLE		1U
 #define OSI_NONE		0U
 #define OSI_DISABLE		0U
-#if 0
-#define OSI_AMASK_DISABLE	0U
-
-#endif
 
 #define OSI_BIT(nr)             ((nveu32_t)1 << (nr))
 

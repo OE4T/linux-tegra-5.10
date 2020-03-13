@@ -78,7 +78,7 @@ typedef enum ivc_cmd {
 	set_avb_algorithm,
 	get_avb_algorithm,
 	config_vlan_filtering,
-	update_vlan_id,
+	i_update_vlan_id,
 	reset_mmc,
 	configure_eee,
 	save_registers,

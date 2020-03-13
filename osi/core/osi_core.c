@@ -24,6 +24,7 @@
 #include <ivc_core.h>
 #include "core_local.h"
 #include "../osi/common/common.h"
+#include "vlan_filter.h"
 
 /**
  * @brief g_core - Static core local data variable
@@ -189,12 +190,33 @@ nve32_t osi_poll_for_mac_reset_complete(
 	return ops_p->poll_for_swr(osi_core);
 }
 
+/**
+ * @brief init_vlan_filters - Helper function to init all VLAN SW information.
+ *
+ * Algorithm: Initilize VLAN filtering information.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ */
+static inline void init_vlan_filters(struct osi_core_priv_data *const osi_core)
+{
+	unsigned int i = 0U;
+
+	for (i = 0; i < VLAN_NUM_VID; i++) {
+		osi_core->vid[i] = VLAN_ID_INVALID;
+	}
+
+	osi_core->vf_bitmap = 0U;
+	osi_core->vlan_filter_cnt = 0U;
+}
+
 nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 			 nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
 {
 	if (validate_args(osi_core) < 0) {
 		return -1;
 	}
+
+	init_vlan_filters(osi_core);
 
 	return ops_p->core_init(osi_core, tx_fifo_size, rx_fifo_size);
 }
@@ -805,13 +827,32 @@ nve32_t osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
 }
 
 nve32_t osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
-			   const nveu32_t vid)
+			    const nveu32_t vid)
 {
+	unsigned int action = vid & VLAN_ACTION_MASK;
+	unsigned short vlan_id = vid & VLAN_VID_MASK;
+
+
 	if (validate_args(osi_core) < 0) {
 		return -1;
 	}
 
-	return ops_p->update_vlan_id(osi_core, vid);
+	if ((osi_core->mac_ver == OSI_EQOS_MAC_4_10) ||
+	    (osi_core->mac_ver == OSI_EQOS_MAC_5_00)) {
+		/* No VLAN ID filtering */
+		return 0;
+	}
+
+	if (((action != OSI_VLAN_ACTION_ADD) &&
+	    (action != OSI_VLAN_ACTION_DEL)) ||
+	    (vlan_id >= VLAN_NUM_VID)) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "CORE: Invalid action/vlan_id\n", 0ULL);
+		/* Unsupported action */
+		return -1;
+	}
+
+	return update_vlan_id(osi_core, ops_p, vid);
 }
 
 nve32_t osi_reset_mmc(struct osi_core_priv_data *const osi_core)

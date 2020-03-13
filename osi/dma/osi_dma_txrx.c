@@ -29,41 +29,6 @@
 static struct desc_ops d_ops;
 
 /**
- * @brief get_rx_vlan_from_desc - Get Rx VLAN from descriptor
- *
- * @note
- * Algorithm:
- *  - Check if the descriptor has any type set.
- *  - If set, set a per packet context flag indicating packet is VLAN
- *    tagged.
- *  - Extract VLAN tag ID from the descriptor
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @param[in] rx_desc: Rx descriptor
- * @param[in, out] rx_pkt_cx: Per-Rx packet context structure
- */
-static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
-					 struct osi_rx_pkt_cx *rx_pkt_cx)
-{
-	nveu32_t lt;
-
-	/* Check for Receive Status rdes0 */
-	if ((rx_desc->rdes3 & RDES3_RS0V) == RDES3_RS0V) {
-		/* get length or type */
-		lt = rx_desc->rdes3 & RDES3_LT;
-		if ((lt == RDES3_LT_VT) || (lt == RDES3_LT_DVT)) {
-			rx_pkt_cx->flags |= OSI_PKT_CX_VLAN;
-			rx_pkt_cx->vlan_tag = rx_desc->rdes0 & RDES0_OVT;
-		}
-	}
-}
-
-/**
  * @brief get_rx_tstamp_status - Get Tx Time stamp status
  *
  * @note
@@ -366,7 +331,9 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 			/* Check if COE Rx checksum is valid */
 			d_ops.get_rx_csum(rx_desc, rx_pkt_cx);
 
-			get_rx_vlan_from_desc(rx_desc, rx_pkt_cx);
+			/* Get Rx VLAN from descriptor */
+			d_ops.get_rx_vlan(rx_desc, rx_pkt_cx);
+
 			context_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 			/* Get rx time stamp */
 			ret = get_rx_hwstamp(osi_dma, rx_desc, context_desc,

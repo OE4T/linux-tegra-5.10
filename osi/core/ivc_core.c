@@ -1289,7 +1289,7 @@ static inline nve32_t ivc_update_vlan_id(
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
-	msg_common.cmd = update_vlan_id;
+	msg_common.cmd = i_update_vlan_id;
 	msg_common.data.args.arguments[index++] = vid;
 	msg_common.data.args.count = index;
 
