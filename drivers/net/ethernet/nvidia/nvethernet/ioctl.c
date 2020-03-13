@@ -114,7 +114,7 @@ static bool ether_is_bc_addr(unsigned char *bc_addr)
  *
  * @note Ethernet interface need to be up.
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "nagative value" on Failure
  */
 static int ether_set_avb_algo(struct net_device *ndev,
@@ -166,7 +166,7 @@ static int ether_set_avb_algo(struct net_device *ndev,
  * @note Ethernet interface need to be up. Caller should check for return
  * value before using return value.
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  */
 static int ether_get_avb_algo(struct net_device *ndev,
@@ -220,7 +220,7 @@ static int ether_get_avb_algo(struct net_device *ndev,
  * 
  * @note Interface should be running (enforced by caller).
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  */
 static int ether_config_arp_offload(struct ether_priv_data *pdata,
@@ -270,7 +270,7 @@ static int ether_config_arp_offload(struct ether_priv_data *pdata,
  *
  * @note MAC and PHY need to be initialized.
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  *
  */
@@ -300,7 +300,7 @@ static int ether_config_l3_l4_filtering(struct net_device *dev,
  * 
  * @note MAC and PHY need to be initialized.
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  */
 static int ether_config_ip4_filters(struct net_device *dev,
@@ -356,7 +356,7 @@ static int ether_config_ip4_filters(struct net_device *dev,
  *
  * @note MAC and PHY need to be initialized.
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  */
 static int ether_config_ip6_filters(struct net_device *dev,
@@ -414,7 +414,7 @@ static int ether_config_ip6_filters(struct net_device *dev,
  * 
  * @note MAC and PHY need to be initialized.
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  */
 static int ether_config_tcp_udp_filters(struct net_device *dev,
@@ -470,7 +470,7 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
  *
  * @note MAC and PHY need to be initialized.
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  */
 static int ether_config_vlan_filter(struct net_device *dev,
@@ -524,7 +524,7 @@ static int ether_config_vlan_filter(struct net_device *dev,
  *
  * @note MAC and PHY need to be initialized.
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  */
 static int ether_config_l2_da_filter(struct net_device *dev,
@@ -687,6 +687,35 @@ static int ether_config_loopback_mode(struct net_device *ndev,
 }
 
 /**
+ * @brief This function is invoked by ioctl when user issues an ioctl command
+ * to change PTP RX Packets routing
+ *
+ * Algorithm:
+ * 1) OSI call to configure PTP RX queue in HW.
+ *
+ * @param[in] ndev: pointer to net device structure.
+ * @param[in] flags: flag to indicate PTP RX queue index.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_config_ptp_rxq(struct net_device *ndev,
+				unsigned int flags)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_rxq_route rxq_route;
+
+	/* Fill PTP RX queue route values and call osi_rxq_route */
+	rxq_route.route_type = OSI_RXQ_ROUTE_PTP;
+	rxq_route.enable = OSI_ENABLE;
+	rxq_route.idx = flags;
+	return osi_rxq_route(osi_core, &rxq_route);
+}
+
+/**
  * @brief ether_priv_ioctl - Handle private IOCTLs
  *
  * Algorithm:
@@ -699,7 +728,7 @@ static int ether_config_loopback_mode(struct net_device *ndev,
  *
  * @note Interface should be running (enforced by caller).
  *
- * @retval 0 on Sucess
+ * @retval 0 on Success
  * @retval "negative value" on Failure
  */
 int ether_handle_priv_ioctl(struct net_device *ndev,
@@ -768,6 +797,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case ETHER_CONFIG_ARP_OFFLOAD:
 		ret = ether_config_arp_offload(pdata, &ifdata);
+		break;
+	case ETHER_PTP_RXQUEUE:
+		ret = ether_config_ptp_rxq(ndev, ifdata.if_flags);
 		break;
 	case EQOS_L3_L4_FILTER_CMD:
 		/* flags should be 0x0 or 0x1, discard any other */
