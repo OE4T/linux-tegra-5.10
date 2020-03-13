@@ -177,6 +177,10 @@ typedef my_lint_64		nvel64_t;
 				  OSI_LOG_INFO, type, err, loga);	\
 }
 
+#define VLAN_NUM_VID		4096U
+#define OSI_VLAN_ACTION_ADD	OSI_BIT(31)
+#define OSI_VLAN_ACTION_DEL	0x0U
+
 struct osi_core_priv_data;
 
 /**
@@ -729,6 +733,11 @@ struct osi_core_priv_data {
 	nveu32_t pre_si;
 	/** Flag which decides virtualization is enabled(1) or disabled(0) */
 	nveu32_t use_virtualization;
+	unsigned long vf_bitmap;
+	/** Array to maintaion VLAN filters */
+	unsigned short vid[VLAN_NUM_VID];
+	/** Count of number of VLAN filters in vid array */
+	unsigned short vlan_filter_cnt;
 };
 
 /**
@@ -1963,8 +1972,8 @@ nve32_t osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-nve32_t  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
-			    const nveu32_t vid);
+nve32_t osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
+			   const nveu32_t vid);
 
 /**
  * @brief osi_reset_mmc - invoke function to reset MMC counter and data

@@ -95,6 +95,9 @@ struct desc_ops {
 	/** Called to get rx error stats */
 	void (*update_rx_err_stats)(struct osi_rx_desc *rx_desc,
 				    struct osi_pkt_err_stats pkt_err_stats);
+	/** Called to get rx VLAN from descriptor */
+	void (*get_rx_vlan)(struct osi_rx_desc *rx_desc,
+			    struct osi_rx_pkt_cx *rx_pkt_cx);
 };
 
 /**

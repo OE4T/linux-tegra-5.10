@@ -28,6 +28,7 @@
 #include "core_local.h"
 #include "xpcs.h"
 #include "mgbe_mmc.h"
+#include "vlan_filter.h"
 
 /**
  * @brief mgbe_config_fw_err_pkts - Configure forwarding of error packets
@@ -1251,6 +1252,21 @@ static int mgbe_config_vlan_filtering(struct osi_core_priv_data *osi_core,
 }
 
 /**
+ * @brief mgbe_update_vlan_id - update VLAN ID in Tag register
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] vid: VLAN ID to be programmed.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure
+ */
+static inline int mgbe_update_vlan_id(struct osi_core_priv_data *const osi_core,
+				      unsigned int vid)
+{
+	return 0;
+}
+
+/**
  * @brief mgbe_flush_mtl_tx_queue - Flush MTL Tx queue
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -1612,6 +1628,26 @@ static void mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	/* TODO: LPI need to be enabled during EEE implementation */
 	value |= MGBE_IMR_RGSMIIIE;
 	osi_writel(value, (nveu8_t *)osi_core->base + MGBE_MAC_IER);
+
+	/* Enable VLAN configuration */
+	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_VLAN_TR);
+	/* Enable VLAN Tag in RX Status
+	 * Disable double VLAN Tag processing on TX and RX
+	 * TODO: Need to check EQOS comments here
+	 */
+	if (osi_core->strip_vlan_tag == OSI_ENABLE) {
+		/* Enable VLAN Tag stripping always */
+		value |= MGBE_MAC_VLANTR_EVLS_ALWAYS_STRIP;
+	}
+	value |= MGBE_MAC_VLANTR_EVLRXS | MGBE_MAC_VLANTR_DOVLTC;
+	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_VLAN_TR);
+
+	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_VLANTIR);
+	/* Enable VLAN tagging through context descriptor */
+	value |= MGBE_MAC_VLANTIR_VLTI;
+	/* insert/replace C_VLAN in 13th & 14th bytes of transmitted frames */
+	value &= ~MGBE_MAC_VLANTIRR_CSVL;
+	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_VLANTIR);
 
 	/* TODO: USP (user Priority) to RxQ Mapping */
 }
@@ -2443,8 +2479,8 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->update_ip6_addr = mgbe_update_ip6_addr;
 	ops->config_l4_filters = mgbe_config_l4_filters;
 	ops->update_l4_port_no = mgbe_update_l4_port_no;
-	ops->config_vlan_filtering = mgbe_config_vlan_filtering,
-	ops->update_vlan_id = OSI_NULL;
+	ops->config_vlan_filtering = mgbe_config_vlan_filtering;
+	ops->update_vlan_id = mgbe_update_vlan_id;
 	ops->set_systime_to_mac = OSI_NULL;
 	ops->config_addend = OSI_NULL;
 	ops->adjust_mactime = OSI_NULL,

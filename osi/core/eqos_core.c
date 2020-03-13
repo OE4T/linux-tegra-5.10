@@ -25,6 +25,7 @@
 #include "eqos_core.h"
 #include "eqos_mmc.h"
 #include "core_local.h"
+#include "vlan_filter.h"
 
 /**
  * @brief eqos_core_safety_config - EQOS MAC core safety configuration
@@ -4050,10 +4051,6 @@ static inline nve32_t eqos_update_vlan_id(
 				struct osi_core_priv_data *const osi_core,
 				nveu32_t const vid)
 {
-	/* Don't add VLAN ID to TR register which is eventually set TR
-	 * to 0x0 and allow all tagged packets
-	 */
-
 	return 0;
 }
 

@@ -64,6 +64,7 @@
 #define RDES3_ELLT		0xF0000U
 #define RDES3_ELLT_IPHE		0x50000U
 #define RDES3_ELLT_CSUM_ERR	0x60000U
+#define RDES3_ELLT_CVLAN	0x90000U
 /** @} */
 
 /** Error Summary bits for Received packet */
