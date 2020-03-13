@@ -658,6 +658,10 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		/* disable hw time stamping */
 		/* Program MAC_Timestamp_Control Register */
 		ops_p->config_tscr(osi_core, OSI_DISABLE);
+		/* Disable PTP RX Queue routing */
+		ret = ops_p->config_ptp_rxq(osi_core,
+					    osi_core->ptp_config.ptp_rx_queue,
+					    OSI_DISABLE);
 	} else {
 		/* Program MAC_Timestamp_Control Register */
 		ops_p->config_tscr(osi_core, osi_core->ptp_config.ptp_filter);
@@ -702,10 +706,35 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 			ret = ops_p->set_systime_to_mac(osi_core,
 						     osi_core->ptp_config.sec,
 						     osi_core->ptp_config.nsec);
+			if (ret == 0) {
+				/* Enable PTP RX Queue routing */
+				ret = ops_p->config_ptp_rxq(osi_core,
+					osi_core->ptp_config.ptp_rx_queue,
+					OSI_ENABLE);
+			}
 		}
 	}
 
 	return ret;
+}
+
+int osi_rxq_route(struct osi_core_priv_data *const osi_core,
+		  const struct osi_rxq_route *rxq_route)
+{
+	if (validate_args(osi_core) < 0) {
+		return -1;
+	}
+
+	if (rxq_route->route_type != OSI_RXQ_ROUTE_PTP) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid route_type\n",
+			     rxq_route->route_type);
+		return -1;
+	}
+
+	return ops_p->config_ptp_rxq(osi_core,
+				     rxq_route->idx,
+				     rxq_route->enable);
 }
 
 nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core)
