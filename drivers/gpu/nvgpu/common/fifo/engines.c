@@ -630,7 +630,21 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 
 	if ((engine_enum == NVGPU_ENGINE_GRCE) ||
 		(engine_enum == NVGPU_ENGINE_ASYNC_CE)) {
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		int err = 0;
+
+		if (g->ops.mc.reset_engine != NULL) {
+			err = g->ops.mc.reset_engine(g,
+					engine_info->nvgpu_next.reset_id);
+			if (err != 0) {
+				nvgpu_err(g, "failed to reset ce engine");
+			}
+		} else {
+#endif
 			g->ops.mc.reset(g, engine_info->reset_mask);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		}
+#endif
 	}
 }
 #endif

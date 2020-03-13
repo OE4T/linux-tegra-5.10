@@ -45,7 +45,7 @@
 #include <nvgpu/mc.h>
 #include <nvgpu/gops_mc.h>
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-#include "nvgpu/gr/nvgpu_next_gr.h"
+#include <nvgpu/engines.h>
 #endif
 
 #include "gr_priv.h"
@@ -647,13 +647,34 @@ exit:
 	return err;
 }
 
-static void gr_init_prepare_hw(struct gk20a *g)
+static int gr_init_prepare_hw(struct gk20a *g)
 {
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	int err;
+
+	if (g->ops.mc.reset_engine != NULL) {
+		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
+
+		err = nvgpu_next_mc_reset_engine(g, NVGPU_ENGINE_GR);
+		if (err != 0) {
+			nvgpu_err(g, "NVGPU_ENGINE_GR reset failed");
+			return err;
+		}
+		err = nvgpu_next_mc_reset_engine(g, NVGPU_ENGINE_GRCE);
+		if (err != 0) {
+			nvgpu_err(g, "NVGPU_ENGINE_GRCE reset failed");
+			return err;
+		}
+	} else {
+#endif
 	/* reset gr engine */
 	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_GRAPH) |
 			g->ops.mc.reset_mask(g, NVGPU_UNIT_BLG) |
 			g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	}
+#endif
 	nvgpu_cg_init_gr_load_gating_prod(g);
 
 	/* Disable elcg until it gets enabled later in the init*/
@@ -661,6 +682,7 @@ static void gr_init_prepare_hw(struct gk20a *g)
 
 	/* enable fifo access */
 	g->ops.gr.init.fifo_access(g, true);
+	return 0;
 }
 
 int nvgpu_gr_enable_hw(struct gk20a *g)
@@ -669,7 +691,10 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	gr_init_prepare_hw(g);
+	err = gr_init_prepare_hw(g);
+	if (err != 0) {
+		return err;
+	}
 
 	err = gr_init_reset_enable_hw(g);
 	if (err != 0) {

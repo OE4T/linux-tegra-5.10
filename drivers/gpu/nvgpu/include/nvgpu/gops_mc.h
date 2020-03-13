@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,9 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/mc.h>
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu/engines.h>
+#endif
 
 /**
  * @file
@@ -325,6 +328,10 @@ struct gops_mc {
 	 *     - Invoke g->ops.ltc.intr.isr.
 	 */
 	void (*ltc_isr)(struct gk20a *g);
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_mc.h"
+#endif
 
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
