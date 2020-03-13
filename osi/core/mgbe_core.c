@@ -1505,10 +1505,10 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 		   MGBE_MTL_CHX_RX_OP_MODE(qinx));
 	/* Transmit Queue weight */
 	value = osi_readl((nveu8_t *)osi_core->base +
-			  MGBE_MTL_TXQ_QW(qinx));
-	value |= (MGBE_MTL_TXQ_QW_ISCQW + qinx);
+			  MGBE_MTL_TCQ_QW(qinx));
+	value |= (MGBE_MTL_TCQ_QW_ISCQW + qinx);
 	osi_writel(value, (nveu8_t *)osi_core->base +
-		   MGBE_MTL_TXQ_QW(qinx));
+		   MGBE_MTL_TCQ_QW(qinx));
 	/* Enable Rx Queue Control */
 	value = osi_readl((nveu8_t *)osi_core->base +
 			  MGBE_MAC_RQC0R);
@@ -1796,7 +1796,240 @@ static inline void mgbe_update_dma_sr_stats(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief mgbe_handle_common_intr - Handles common nve32_terrupt.
+ * @brief mgbe_set_avb_algorithm - Set TxQ/TC avb config
+ *
+ * Algorithm:
+ *	1) Check if queue index is valid
+ *	2) Update operation mode of TxQ/TC
+ *	 2a) Set TxQ operation mode
+ *	 2b) Set Algo and Credit contro
+ *	 2c) Set Send slope credit
+ *	 2d) Set Idle slope credit
+ *	 2e) Set Hi credit
+ *	 2f) Set low credit
+ *	3) Update register values
+ *
+ * @param[in] osi_core: osi core priv data structure
+ * @param[in] avb: structure having configuration for avb algorithm
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) osi_core->osd should be populated.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_set_avb_algorithm(
+				struct osi_core_priv_data *const osi_core,
+				const struct osi_core_avb_algorithm *const avb)
+{
+	unsigned int value;
+	int ret = -1;
+	unsigned int qinx = 0U;
+	unsigned int tcinx = 0U;
+
+	if (avb == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"avb structure is NULL\n",
+			0ULL);
+		return ret;
+	}
+
+	/* queue index in range */
+	if (avb->qindex >= OSI_MGBE_MAX_NUM_QUEUES) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue index\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
+	/* queue oper_mode in range check*/
+	if (avb->oper_mode >= OSI_MTL_QUEUE_MODEMAX) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue mode\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
+	/* Validate algo is valid  */
+	if (avb->algo > OSI_MTL_TXQ_AVALG_CBS) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Algo input\n",
+			(unsigned long long)avb->tcindex);
+		return ret;
+	}
+
+	/* can't set AVB mode for queue 0 */
+	if ((avb->qindex == 0U) && (avb->oper_mode == OSI_MTL_QUEUE_AVB)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
+			"Not allowed to set AVB for Q0\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
+	/* TC index range check */
+	if ((avb->tcindex == 0U) || (avb->tcindex >= OSI_MAX_TC_NUM)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue TC mapping\n",
+			(unsigned long long)avb->tcindex);
+		return ret;
+	}
+
+	qinx = avb->qindex;
+	tcinx = avb->tcindex;
+	value = osi_readl((unsigned char *)osi_core->base +
+			  MGBE_MTL_CHX_TX_OP_MODE(qinx));
+	value &= ~MGBE_MTL_TX_OP_MODE_TXQEN;
+	/* Set TXQEN mode as per input struct after masking 3 bit */
+	value |= ((avb->oper_mode << MGBE_MTL_TX_OP_MODE_TXQEN_SHIFT) &
+		  MGBE_MTL_TX_OP_MODE_TXQEN);
+	/* Set TC mapping */
+	value |= ((tcinx << MGBE_MTL_TX_OP_MODE_Q2TCMAP_SHIFT) &
+		  MGBE_MTL_TX_OP_MODE_Q2TCMAP);
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   MGBE_MTL_CHX_TX_OP_MODE(qinx));
+
+	/* Set Algo and Credit control */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  MGBE_MTL_TCQ_ETS_CR(tcinx));
+	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
+		value &= ~MGBE_MTL_TCQ_ETS_CR_CC;
+		value |= (avb->credit_control << MGBE_MTL_TCQ_ETS_CR_CC_SHIFT) &
+			 MGBE_MTL_TCQ_ETS_CR_CC;
+	}
+	value &= ~MGBE_MTL_TCQ_ETS_CR_AVALG;
+	value |= (avb->algo << MGBE_MTL_TCQ_ETS_CR_AVALG_SHIFT) &
+		  MGBE_MTL_TCQ_ETS_CR_AVALG;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   MGBE_MTL_TCQ_ETS_CR(tcinx));
+
+	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
+		/* Set Idle slope credit*/
+		value = osi_readl((unsigned char *)osi_core->base +
+				  MGBE_MTL_TCQ_QW(tcinx));
+		value &= ~MGBE_MTL_TCQ_ETS_QW_ISCQW_MASK;
+		value |= avb->idle_slope & MGBE_MTL_TCQ_ETS_QW_ISCQW_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   MGBE_MTL_TCQ_QW(tcinx));
+
+		/* Set Send slope credit */
+		value = osi_readl((unsigned char *)osi_core->base +
+				  MGBE_MTL_TCQ_ETS_SSCR(tcinx));
+		value &= ~MGBE_MTL_TCQ_ETS_SSCR_SSC_MASK;
+		value |= avb->send_slope & MGBE_MTL_TCQ_ETS_SSCR_SSC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   MGBE_MTL_TCQ_ETS_SSCR(tcinx));
+
+		/* Set Hi credit */
+		value = avb->hi_credit & MGBE_MTL_TCQ_ETS_HCR_HC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   MGBE_MTL_TCQ_ETS_HCR(tcinx));
+
+		/* low credit  is -ve number, osi_write need a unsigned int
+		 * take only 28:0 bits from avb->low_credit
+		 */
+		value = avb->low_credit & MGBE_MTL_TCQ_ETS_LCR_LC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   MGBE_MTL_TCQ_ETS_LCR(tcinx));
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_get_avb_algorithm - Get TxQ/TC avb config
+ *
+ * Algorithm:
+ *	1) Check if queue index is valid
+ *	2) read operation mode of TxQ/TC
+ *	 2a) read TxQ operation mode
+ *	 2b) read Algo and Credit contro
+ *	 2c) read Send slope credit
+ *	 2d) read Idle slope credit
+ *	 2e) read Hi credit
+ *	 2f) read low credit
+ *	3) updated pointer
+ *
+ * @param[in] osi_core: osi core priv data structure
+ * @param[out] avb: structure pointer having configuration for avb algorithm
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) osi_core->osd should be populated.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
+				  struct osi_core_avb_algorithm *const avb)
+{
+	unsigned int value;
+	int ret = -1;
+	unsigned int qinx = 0U;
+	unsigned int tcinx = 0U;
+
+	if (avb == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"avb structure is NULL\n",
+			0ULL);
+		return ret;
+	}
+
+	if (avb->qindex >= OSI_MGBE_MAX_NUM_QUEUES) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue index\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
+	qinx = avb->qindex;
+	value = osi_readl((unsigned char *)osi_core->base +
+			  MGBE_MTL_CHX_TX_OP_MODE(qinx));
+
+	/* Get TxQ/TC mode as per input struct after masking 3:2 bit */
+	avb->oper_mode = (value & MGBE_MTL_TX_OP_MODE_TXQEN) >>
+			  MGBE_MTL_TX_OP_MODE_TXQEN_SHIFT;
+
+	/* Get Queue Traffic Class Mapping */
+	avb->tcindex = ((value & MGBE_MTL_TX_OP_MODE_Q2TCMAP) >>
+		 MGBE_MTL_TX_OP_MODE_Q2TCMAP_SHIFT);
+	tcinx = avb->tcindex;
+
+	/* Get Algo and Credit control */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  MGBE_MTL_TCQ_ETS_CR(tcinx));
+	avb->credit_control = (value & MGBE_MTL_TCQ_ETS_CR_CC) >>
+			       MGBE_MTL_TCQ_ETS_CR_CC_SHIFT;
+	avb->algo = (value & MGBE_MTL_TCQ_ETS_CR_AVALG) >>
+		     MGBE_MTL_TCQ_ETS_CR_AVALG_SHIFT;
+
+	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
+		/* Get Idle slope credit*/
+		value = osi_readl((unsigned char *)osi_core->base +
+				  MGBE_MTL_TCQ_QW(tcinx));
+		avb->idle_slope = value & MGBE_MTL_TCQ_ETS_QW_ISCQW_MASK;
+
+		/* Get Send slope credit */
+		value = osi_readl((unsigned char *)osi_core->base +
+				  MGBE_MTL_TCQ_ETS_SSCR(tcinx));
+		avb->send_slope = value & MGBE_MTL_TCQ_ETS_SSCR_SSC_MASK;
+
+		/* Get Hi credit */
+		value = osi_readl((unsigned char *)osi_core->base +
+				  MGBE_MTL_TCQ_ETS_HCR(tcinx));
+		avb->hi_credit = value & MGBE_MTL_TCQ_ETS_HCR_HC_MASK;
+
+		/* Get Low credit for which bit 31:29 are unknown
+		 * return 28:0 valid bits to application
+		 */
+		value = osi_readl((unsigned char *)osi_core->base +
+				  MGBE_MTL_TCQ_ETS_LCR(tcinx));
+		avb->low_credit = value & MGBE_MTL_TCQ_ETS_LCR_LC_MASK;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_handle_common_intr - Handles common interrupt.
  *
  * Algorithm: Clear common nve32_terrupt source.
  *
@@ -2186,8 +2419,9 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->set_mdc_clk_rate = OSI_NULL;
 	ops->flush_mtl_tx_queue = mgbe_flush_mtl_tx_queue;
 	ops->config_mac_loopback = mgbe_config_mac_loopback;
-	ops->set_avb_algorithm = OSI_NULL;
 	ops->get_avb_algorithm = OSI_NULL;
+	ops->set_avb_algorithm = mgbe_set_avb_algorithm;
+	ops->get_avb_algorithm = mgbe_get_avb_algorithm,
 	ops->config_fw_err_pkts = mgbe_config_fw_err_pkts;
 	ops->config_tx_status = OSI_NULL;
 	ops->config_rx_crc_check = OSI_NULL;

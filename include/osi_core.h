@@ -97,6 +97,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_INV_MATCH			1U
 #define OSI_AMASK_DISABLE		0U
 #define OSI_CHAN_ANY			0xFFU
+#define OSI_MAX_TC_NUM			8U
 #define OSI_DFLT_MTU_SIZE		1500U
 #define OSI_MTU_SIZE_9000		9000U
 /* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
@@ -578,6 +579,8 @@ struct  osi_core_avb_algorithm {
 	 *
 	 * 10: enable */
 	nveu32_t oper_mode;
+	/** TC index */
+	unsigned int tcindex;
 };
 #endif /* !OSI_STRIPPED_LIB */
 
