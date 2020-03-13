@@ -210,6 +210,19 @@ struct osi_filter {
 };
 
 /**
+ * @brief OSI core structure for RXQ route
+ */
+struct osi_rxq_route {
+#define OSI_RXQ_ROUTE_PTP	0U
+	/** Indicates RX routing type OSI_RXQ_ROUTE_* */
+	unsigned int route_type;
+	/** RXQ routing enable(1) disable (0) */
+	unsigned int enable;
+	/** RX queue index */
+	unsigned int idx;
+};
+
+/**
  * @brief L3/L4 filter function dependent parameter
  */
 struct osi_l3_l4_filter {
@@ -633,6 +646,8 @@ struct osi_ptp_config {
 	nveu32_t one_nsec_accuracy;
 	/** PTP system clock which is 62500000Hz */
 	nveu32_t ptp_clock;
+	/** PTP Packets RX Queue.*/
+	nveu32_t ptp_rx_queue;
 };
 
 /**
@@ -1900,6 +1915,23 @@ nve32_t osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
 nve32_t osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t flags,
 			       const nveu8_t *ip_addr);
+/**
+ * @brief osi_ptp_rxq - Enable PTP RX packets routing
+ *
+ * Algorithm: Program PTP RX queue index
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] rx_route: Pointer to the osi_rxq_route structure, which
+ * contains RXQ routing parameters.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_rxq_route(struct osi_core_priv_data *const osi_core,
+		  const struct osi_rxq_route *rx_route);
+
 /**
  * @brief osi_config_vlan_filtering - OSI call for configuring VLAN filter
  *

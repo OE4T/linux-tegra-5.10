@@ -121,6 +121,10 @@ struct core_ops {
 			    const nveu32_t ptp_filter);
 	/** Called to configure the sub second increment register */
 	void (*config_ssir)(struct osi_core_priv_data *const osi_core);
+	/** Called to configure the PTP RX packets Queue */
+	nve32_t (*config_ptp_rxq)(struct osi_core_priv_data *const osi_core,
+				  const unsigned int rxq_idx,
+				  const unsigned int enable);
 	/** Called to update MMC counter from HW register */
 	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to write into a PHY reg over MDIO bus */

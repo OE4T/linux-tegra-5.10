@@ -4489,6 +4489,7 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->adjust_mactime = eqos_adjust_mactime;
 	ops->config_tscr = eqos_config_tscr;
 	ops->config_ssir = eqos_config_ssir;
+	ops->config_ptp_rxq = OSI_NULL;
 	ops->read_mmc = eqos_read_mmc;
 	ops->write_phy_reg = eqos_write_phy_reg;
 	ops->read_phy_reg = eqos_read_phy_reg;
