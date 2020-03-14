@@ -539,7 +539,17 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 		break;
 	case SNDRV_PCM_FORMAT_S24_LE:
 		val = I2S_BITS_24;
-		sample_size = 24;
+
+		/*
+		 * I2S bit clock is derived from PLLA_OUT0 and size of
+		 * 24 bits results in fractional value and the clock
+		 * is not accurate with this. To have integer clock
+		 * division below is used. It means there are additional
+		 * bit clocks (8 cycles) which are ignored. Codec picks
+		 * up data for other channel when LRCK signal toggles.
+		 */
+		sample_size = 32;
+
 		cif_conf.audio_bits = TEGRA_ACIF_BITS_24;
 		cif_conf.client_bits = TEGRA_ACIF_BITS_24;
 		break;
