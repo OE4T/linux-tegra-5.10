@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -189,6 +189,7 @@ struct gops_fifo {
 		unsigned int id_type);
 	void (*intr_set_recover_mask)(struct gk20a *g);
 	void (*intr_unset_recover_mask)(struct gk20a *g);
+	void (*intr_top_enable)(struct gk20a *g, bool enable);
 	void (*intr_0_enable)(struct gk20a *g, bool enable);
 	void (*intr_1_enable)(struct gk20a *g, bool enable);
 	bool (*handle_sched_error)(struct gk20a *g);

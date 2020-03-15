@@ -256,10 +256,14 @@ static void disable_fifo_interrupts(struct gk20a *g)
 	g->ops.fifo.intr_0_enable(g, false);
 	g->ops.fifo.intr_1_enable(g, false);
 
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_FIFO,
+	if (g->ops.fifo.intr_top_enable == NULL) {
+		nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_FIFO,
 					MC_INTR_DISABLE);
-	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_FIFO,
+		nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_FIFO,
 					   MC_INTR_DISABLE);
+	} else {
+		g->ops.fifo.intr_top_enable(g, MC_INTR_DISABLE);
+	}
 }
 
 int nvgpu_fifo_suspend(struct gk20a *g)
