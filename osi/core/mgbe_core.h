@@ -29,27 +29,52 @@
  * @brief MGBE MAC register offsets
  * @{
  */
-#define MGBE_MAC_PFR			0x0008
-#define MGBE_MAC_VLAN_TR		0x0050
-#define MGBE_MAC_VLANTIR		0x0060
-#define MGBE_MAC_RQC0R			0x00A0
-#define MGBE_MAC_RQC1R			0x00A4
-#define MGBE_MAC_MA0HR			0x0300
-#define MGBE_MAC_MA0LR			0x0304
 #define MGBE_MAC_TMCR			0x0000
 #define MGBE_MAC_RMCR			0x0004
+#define MGBE_MAC_PFR			0x0008
+#define MGBE_MAC_HTR_REG(x)		((0x0004U * (x)) + 0x0010U)
+#define MGBE_MAC_VLAN_TR		0x0050
+#define MGBE_MAC_VLANTIR		0x0060
+#define MGBE_MAC_QX_TX_FLW_CTRL(x)	((0x0004U * (x)) + 0x0070U)
+#define MGBE_MAC_RX_FLW_CTRL		0x0090
+#define MGBE_MAC_RQC0R			0x00A0
+#define MGBE_MAC_RQC1R			0x00A4
+#define MGBE_MAC_RQC2R			0x00A8
+#define MGBE_MAC_ISR			0x00B0
+#define MGBE_MAC_IER			0x00B4
+#define MGBE_MAC_PMTCSR			0x00C0
+#define MGBE_MAC_LPI_CSR		0x00D0
+#define MGBE_MAC_LPI_TIMER_CTRL		0x00D4
+#define MGBE_MAC_LPI_EN_TIMER		0x00D8
+#define MGBE_MDIO_SCCD			0x0204
+#define MGBE_MDIO_SCCA			0x0200
+#define MGBE_MAC_MA0HR			0x0300
+#define MGBE_MAC_ADDRH(x)		((0x0008U * (x)) + 0x0300U)
+#define MGBE_MAC_MA0LR			0x0304
+#define MGBE_MAC_ADDRL(x)		((0x0008U * (x)) + 0x0304U)
 #define MGBE_MMC_TX_INTR_EN		0x0810
 #define MGBE_MMC_RX_INTR_EN		0x080C
 #define MGBE_MMC_CNTRL			0x0800
-#define MGBE_MAC_IER			0x00B4
-#define MGBE_MAC_ISR			0x00B0
-#define MGBE_MDIO_SCCD			0x0204
-#define MGBE_MDIO_SCCA			0x0200
+#define MGBE_MAC_TCR			0x0D00
+#define MGBE_MAC_SSIR			0x0D04
+#define MGBE_MAC_STSR			0x0D08
+#define MGBE_MAC_STNSR			0x0D0C
+#define MGBE_MAC_STSUR			0x0D10
+#define MGBE_MAC_STNSUR			0x0D14
+#define MGBE_MAC_TAR			0x0D18
 #define MGBE_MAC_ARPPA			0x0c10
-#define MGBE_MAC_ADDRH(x)		((0x0008U * (x)) + 0x0300U)
-#define MGBE_MAC_ADDRL(x)		((0x0008U * (x)) + 0x0304U)
 #define MGBE_MAC_L3L4_ADDR_CTR		0x0C00
 #define MGBE_MAC_L3L4_DATA		0x0C04
+/** @} */
+
+/**
+ * @addtogroup MGBE MAC hash table defines
+ *
+ * @brief MGBE MAC hash table Control register
+ * filed type defines.
+ * @{
+ */
+#define MGBE_MAX_HTR_REGS		4U
 /** @} */
 
 /**
@@ -59,6 +84,7 @@
  * IDDR filter filed type defines
  * @{
  */
+#define MGBE_MAX_VLAN_FILTER		32U
 #define MGBE_MAC_XB_WAIT		10U
 #define MGBE_MAC_L3L4_CTR		0x0
 #define MGBE_MAC_L4_ADDR		0x1
@@ -143,6 +169,7 @@
  * @brief MGBE MTL register offsets
  * @{
  */
+#define MGBE_MTL_OP_MODE		0x1000
 #define MGBE_MTL_RXQ_DMA_MAP0		0x1030
 #define MGBE_MTL_RXQ_DMA_MAP1		0x1034
 #define MGBE_MTL_RXQ_DMA_MAP2		0x1038
@@ -306,5 +333,124 @@
  */
 #define FIFO_SIZE_B(x) (x)
 #define FIFO_SIZE_KB(x) ((x) * 1024U)
+/** @} */
+
+/**
+ * @addtogroup MGBE-HW-BACKUP
+ *
+ * @brief Definitions related to taking backup of MGBE core registers.
+ * @{
+ */
+
+/* Hardware Register offsets to be backed up during suspend.
+ *
+ * Do not change the order of these macros. To add new registers to be
+ * backed up, append to end of list before MGBE_MAX_MAC_BAK_IDX, and
+ * update MGBE_MAX_MAC_BAK_IDX based on new macro.
+ */
+#define MGBE_MAC_TMCR_BAK_IDX		0U
+#define MGBE_MAC_RMCR_BAK_IDX		((MGBE_MAC_TMCR_BAK_IDX + 1U))
+#define MGBE_MAC_PFR_BAK_IDX		((MGBE_MAC_RMCR_BAK_IDX + 1U))
+#define MGBE_MAC_VLAN_TAG_BAK_IDX	((MGBE_MAC_PFR_BAK_IDX + 1U))
+#define MGBE_MAC_VLANTIR_BAK_IDX	((MGBE_MAC_VLAN_TAG_BAK_IDX + 1U))
+#define MGBE_MAC_RX_FLW_CTRL_BAK_IDX	((MGBE_MAC_VLANTIR_BAK_IDX + 1U))
+#define MGBE_MAC_RQC0R_BAK_IDX		((MGBE_MAC_RX_FLW_CTRL_BAK_IDX + 1U))
+#define MGBE_MAC_RQC1R_BAK_IDX		((MGBE_MAC_RQC0R_BAK_IDX + 1U))
+#define MGBE_MAC_RQC2R_BAK_IDX		((MGBE_MAC_RQC1R_BAK_IDX + 1U))
+#define MGBE_MAC_ISR_BAK_IDX		((MGBE_MAC_RQC2R_BAK_IDX + 1U))
+#define MGBE_MAC_IER_BAK_IDX		((MGBE_MAC_ISR_BAK_IDX + 1U))
+#define MGBE_MAC_PMTCSR_BAK_IDX		((MGBE_MAC_IER_BAK_IDX + 1U))
+#define MGBE_MAC_LPI_CSR_BAK_IDX	((MGBE_MAC_PMTCSR_BAK_IDX + 1U))
+#define MGBE_MAC_LPI_TIMER_CTRL_BAK_IDX	((MGBE_MAC_LPI_CSR_BAK_IDX + 1U))
+#define MGBE_MAC_LPI_EN_TIMER_BAK_IDX	((MGBE_MAC_LPI_TIMER_CTRL_BAK_IDX + 1U))
+#define MGBE_MAC_TCR_BAK_IDX		((MGBE_MAC_LPI_EN_TIMER_BAK_IDX + 1U))
+#define MGBE_MAC_SSIR_BAK_IDX		((MGBE_MAC_TCR_BAK_IDX + 1U))
+#define MGBE_MAC_STSR_BAK_IDX		((MGBE_MAC_SSIR_BAK_IDX + 1U))
+#define MGBE_MAC_STNSR_BAK_IDX		((MGBE_MAC_STSR_BAK_IDX + 1U))
+#define MGBE_MAC_STSUR_BAK_IDX		((MGBE_MAC_STNSR_BAK_IDX + 1U))
+#define MGBE_MAC_STNSUR_BAK_IDX		((MGBE_MAC_STSUR_BAK_IDX + 1U))
+#define MGBE_MAC_TAR_BAK_IDX		((MGBE_MAC_STNSUR_BAK_IDX + 1U))
+#define MGBE_DMA_BMR_BAK_IDX		((MGBE_MAC_TAR_BAK_IDX + 1U))
+#define MGBE_DMA_SBUS_BAK_IDX		((MGBE_DMA_BMR_BAK_IDX + 1U))
+#define MGBE_DMA_ISR_BAK_IDX		((MGBE_DMA_SBUS_BAK_IDX + 1U))
+#define MGBE_MTL_OP_MODE_BAK_IDX	((MGBE_DMA_ISR_BAK_IDX + 1U))
+#define MGBE_MTL_RXQ_DMA_MAP0_BAK_IDX	((MGBE_MTL_OP_MODE_BAK_IDX + 1U))
+/* x varies from 0-3, 4 HTR registers total */
+#define MGBE_MAC_HTR_REG_BAK_IDX(x)	((MGBE_MTL_RXQ_DMA_MAP0_BAK_IDX + 1U + \
+					(x)))
+/* x varies from 0-9, 10 queues total */
+#define MGBE_MAC_QX_TX_FLW_CTRL_BAK_IDX(x)	((MGBE_MAC_HTR_REG_BAK_IDX(0U) \
+						+ MGBE_MAX_HTR_REGS + (x)))
+/* x varies from 0-31, 32 L2 DA/SA filters total */
+#define MGBE_MAC_ADDRH_BAK_IDX(x)	((MGBE_MAC_QX_TX_FLW_CTRL_BAK_IDX(0U) \
+					+ OSI_MGBE_MAX_NUM_QUEUES + (x)))
+#define MGBE_MAC_ADDRL_BAK_IDX(x)	((MGBE_MAC_ADDRH_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_MAC_ADDRESS_FILTER + (x)))
+/* MTL HW Register offsets
+ *
+ * Do not change the order of these macros. To add new registers to be
+ * backed up, append to end of list before MGBE_MAX_MTL_BAK_IDX, and
+ * update MGBE_MAX_MTL_BAK_IDX based on new macro.
+ */
+/* x varies from 0-9, 10 queues total */
+#define MGBE_MTL_CHX_TX_OP_MODE_BAK_IDX(x) ((MGBE_MAC_ADDRL_BAK_IDX(0U) + \
+					   OSI_MGBE_MAX_MAC_ADDRESS_FILTER + \
+					   (x)))
+#define MGBE_MTL_TXQ_ETS_CR_BAK_IDX(x)	((MGBE_MTL_CHX_TX_OP_MODE_BAK_IDX(0U) \
+					+ OSI_MGBE_MAX_NUM_QUEUES + (x)))
+#define MGBE_MTL_TXQ_QW_BAK_IDX(x)	((MGBE_MTL_TXQ_ETS_CR_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_NUM_QUEUES + (x)))
+#define MGBE_MTL_TXQ_ETS_SSCR_BAK_IDX(x)	((MGBE_MTL_TXQ_QW_BAK_IDX(0U) \
+						+ OSI_MGBE_MAX_NUM_QUEUES + \
+						(x)))
+#define MGBE_MTL_TXQ_ETS_HCR_BAK_IDX(x)	((MGBE_MTL_TXQ_ETS_SSCR_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_NUM_QUEUES + (x)))
+#define MGBE_MTL_TXQ_ETS_LCR_BAK_IDX(x)	((MGBE_MTL_TXQ_ETS_HCR_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_NUM_QUEUES + (x)))
+#define MGBE_MTL_CHX_RX_OP_MODE_BAK_IDX(x)	\
+					((MGBE_MTL_TXQ_ETS_LCR_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_NUM_QUEUES + (x)))
+
+/* MGBE Wrapper register offsets to be saved during suspend
+ *
+ * Do not change the order of these macros. To add new registers to be
+ * backed up, append to end of list before MGBE_MAX_WRAPPER_BAK_IDX,
+ * and update MGBE_MAX_WRAPPER_BAK_IDX based on new macro.
+ */
+#define MGBE_CLOCK_CTRL_0_BAK_IDX	((MGBE_MTL_CHX_RX_OP_MODE_BAK_IDX(0U) \
+					+ OSI_MGBE_MAX_NUM_QUEUES))
+#define MGBE_AXI_ASID_CTRL_BAK_IDX	((MGBE_CLOCK_CTRL_0_BAK_IDX + 1U))
+#define MGBE_PAD_CRTL_BAK_IDX		((MGBE_AXI_ASID_CTRL_BAK_IDX + 1U))
+#define MGBE_PAD_AUTO_CAL_CFG_BAK_IDX	((MGBE_PAD_CRTL_BAK_IDX + 1U))
+/* MGBE_PAD_AUTO_CAL_STAT is Read-only. Skip backup/restore */
+
+/* To add new direct access registers to backup during suspend,
+ * and restore during resume add it before this line, and increment
+ * MGBE_DIRECT_MAX_BAK_IDX accordingly.
+ */
+#define MGBE_DIRECT_MAX_BAK_IDX		((MGBE_PAD_AUTO_CAL_CFG_BAK_IDX + 1U))
+
+/**
+ * Start indirect addressing registers
+ **/
+/* x varies from 0-7, 8 L3/L4 filters total */
+#define MGBE_MAC_L3L4_CTR_BAK_IDX(x)	(MGBE_DIRECT_MAX_BAK_IDX + (x))
+#define MGBE_MAC_L4_ADR_BAK_IDX(x)	((MGBE_MAC_L3L4_CTR_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_L3_L4_FILTER + (x)))
+#define MGBE_MAC_L3_AD0R_BAK_IDX(x)	((MGBE_MAC_L4_ADR_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_L3_L4_FILTER + (x)))
+#define MGBE_MAC_L3_AD1R_BAK_IDX(x)	((MGBE_MAC_L3_AD0R_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_L3_L4_FILTER + (x)))
+#define MGBE_MAC_L3_AD2R_BAK_IDX(x)	((MGBE_MAC_L3_AD1R_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_L3_L4_FILTER + (x)))
+#define MGBE_MAC_L3_AD3R_BAK_IDX(x)	((MGBE_MAC_L3_AD2R_BAK_IDX(0U) + \
+					OSI_MGBE_MAX_L3_L4_FILTER + (x)))
+
+/* x varies from 0-31, 32 VLAN tag filters total */
+#define MGBE_MAC_VLAN_BAK_IDX(x)	((MGBE_MAC_L3_AD3R_BAK_IDX(0) + \
+					OSI_MGBE_MAX_L3_L4_FILTER + (x)))
+
+#define MGBE_MAX_BAK_IDX		((MGBE_MAC_VLAN_BAK_IDX(0) + \
+					MGBE_MAX_VLAN_FILTER + 1U))
 /** @} */
 #endif /* MGBE_CORE_H_ */

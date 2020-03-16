@@ -88,6 +88,7 @@ static int mgbe_config_fw_err_pkts(struct osi_core_priv_data *osi_core,
 
 	return 0;
 }
+
 /**
  * @brief mgbe_poll_for_swr - Poll for software reset (SWR bit in DMA Mode)
  *
@@ -499,11 +500,14 @@ static int mgbe_poll_for_l3l4crtl(struct osi_core_priv_data *osi_core)
  * @param[in] value: MGBE  L3_L4 filter register value
  *
  * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-static void mgbe_l3l4_filter_write(struct osi_core_priv_data *osi_core,
-				   unsigned int filter_no,
-				   unsigned int filter_type,
-				   unsigned int value)
+static int mgbe_l3l4_filter_write(struct osi_core_priv_data *osi_core,
+				  unsigned int filter_no,
+				  unsigned int filter_type,
+				  unsigned int value)
 {
 	void *base = osi_core->base;
 	unsigned int addr = 0;
@@ -538,7 +542,10 @@ static void mgbe_l3l4_filter_write(struct osi_core_priv_data *osi_core,
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 			     "Fail to write L3_L4_Address_Control\n",
 			     filter_type);
+		return -1;
 	}
+
+	return 0;
 }
 
 /**
@@ -552,11 +559,14 @@ static void mgbe_l3l4_filter_write(struct osi_core_priv_data *osi_core,
  * @param[in] *value: Pointer MGBE L3_L4 filter register value
  *
  * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-static void mgbe_l3l4_filter_read(struct osi_core_priv_data *osi_core,
-				  unsigned int filter_no,
-				  unsigned int filter_type,
-				  unsigned int *value)
+static int mgbe_l3l4_filter_read(struct osi_core_priv_data *osi_core,
+				 unsigned int filter_no,
+				 unsigned int filter_type,
+				 unsigned int *value)
 {
 	void *base = osi_core->base;
 	unsigned int addr = 0;
@@ -588,11 +598,12 @@ static void mgbe_l3l4_filter_read(struct osi_core_priv_data *osi_core,
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 			    "Fail to read L3L4 Address\n",
 			    filter_type);
-		return;
+		return -1;
 	}
 
 	/* Read the MGBE_MAC_L3L4_DATA for filter register data */
 	*value = osi_readl((unsigned char *)base + MGBE_MAC_L3L4_DATA);
+	return 0;
 }
 
 /**
@@ -618,6 +629,7 @@ static int mgbe_update_ip4_addr(struct osi_core_priv_data *osi_core,
 {
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
+	int ret = 0;
 
 	if (addr == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
@@ -650,18 +662,18 @@ static int mgbe_update_ip4_addr(struct osi_core_priv_data *osi_core,
 	temp = (unsigned int)addr[0] << 24;
 	value |= temp;
 	if (src_dst_addr_match == OSI_SOURCE_MATCH) {
-		mgbe_l3l4_filter_write(osi_core,
-				       filter_no,
-				       MGBE_MAC_L3_AD0R,
-				       value);
+		ret = mgbe_l3l4_filter_write(osi_core,
+					     filter_no,
+					     MGBE_MAC_L3_AD0R,
+					     value);
 	} else {
-		mgbe_l3l4_filter_write(osi_core,
-				       filter_no,
-				       MGBE_MAC_L3_AD1R,
-				       value);
+		ret = mgbe_l3l4_filter_write(osi_core,
+					     filter_no,
+					     MGBE_MAC_L3_AD1R,
+					     value);
 	}
 
-	return 0;
+	return ret;
 }
 
 /**
@@ -685,6 +697,7 @@ static int mgbe_update_ip6_addr(struct osi_core_priv_data *osi_core,
 {
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
+	int ret = 0;
 
 	if (addr == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
@@ -704,24 +717,39 @@ static int mgbe_update_ip6_addr(struct osi_core_priv_data *osi_core,
 	value = addr[7];
 	temp = (unsigned int)addr[6] << 16;
 	value |= temp;
-	mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD0R, value);
+
+	ret = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD0R, value);
+	if (ret < 0) {
+		/* Write MGBE_MAC_L3_AD0R fail return error */
+		return ret;
+	}
 	/* update Bits[63:32] of 128-bit IP addr */
 	value = addr[5];
 	temp = (unsigned int)addr[4] << 16;
 	value |= temp;
-	mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD1R, value);
+
+	ret = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD1R, value);
+	if (ret < 0) {
+		/* Write MGBE_MAC_L3_AD1R fail return error */
+		return ret;
+	}
 	/* update Bits[95:64] of 128-bit IP addr */
 	value = addr[3];
 	temp = (unsigned int)addr[2] << 16;
 	value |= temp;
-	mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD2R, value);
+
+	ret = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD2R, value);
+	if (ret < 0) {
+		/* Write MGBE_MAC_L3_AD2R fail return error */
+		return ret;
+	}
+
 	/* update Bits[127:96] of 128-bit IP addr */
 	value = addr[1];
 	temp = (unsigned int)addr[0] << 16;
 	value |= temp;
-	mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD3R, value);
 
-	return 0;
+	return mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3_AD3R, value);
 }
 
 /**
@@ -785,6 +813,7 @@ static int mgbe_update_l4_port_no(struct osi_core_priv_data *osi_core,
 {
 	unsigned int value = 0U;
 	unsigned int temp = 0U;
+	int ret = 0;
 
 	if (filter_no >= OSI_MGBE_MAX_L3_L4_FILTER) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
@@ -793,7 +822,12 @@ static int mgbe_update_l4_port_no(struct osi_core_priv_data *osi_core,
 		return -1;
 	}
 
-	mgbe_l3l4_filter_read(osi_core, filter_no, MGBE_MAC_L4_ADDR, &value);
+	ret = mgbe_l3l4_filter_read(osi_core, filter_no, MGBE_MAC_L4_ADDR, &value);
+	if (ret < 0) {
+		/* Read MGBE_MAC_L4_ADDR fail return error */
+		return ret;
+	}
+
 	if (src_dst_port_match == OSI_SOURCE_MATCH) {
 		value &= ~MGBE_MAC_L4_ADDR_SP_MASK;
 		value |= ((unsigned int)port_no  & MGBE_MAC_L4_ADDR_SP_MASK);
@@ -803,9 +837,8 @@ static int mgbe_update_l4_port_no(struct osi_core_priv_data *osi_core,
 		value |= ((temp << MGBE_MAC_L4_ADDR_DP_SHIFT) &
 			  MGBE_MAC_L4_ADDR_DP_MASK);
 	}
-	mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L4_ADDR, value);
 
-	return 0;
+	return mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L4_ADDR, value);
 }
 
 /**
@@ -912,6 +945,7 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 				  unsigned int dma_chan)
 {
 	unsigned int value = 0U;
+	int ret = 0;
 
 	if (filter_no >= OSI_MGBE_MAX_L3_L4_FILTER) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
@@ -958,7 +992,12 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 		return -1;
 	}
 
-	mgbe_l3l4_filter_read(osi_core, filter_no, MGBE_MAC_L3L4_CTR, &value);
+	ret = mgbe_l3l4_filter_read(osi_core, filter_no, MGBE_MAC_L3L4_CTR, &value);
+	if (ret < 0) {
+		/* MGBE_MAC_L3L4_CTR read fail return here */
+		return ret;
+	}
+
 	value &= ~MGBE_MAC_L3L4_CTR_L3PEN0;
 	value |= (ipv4_ipv6_match  & MGBE_MAC_L3L4_CTR_L3PEN0);
 
@@ -1043,13 +1082,18 @@ static int mgbe_config_l3_filters(struct osi_core_priv_data *osi_core,
 			}
 		}
 	}
-	mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3L4_CTR, value);
+
+	ret = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3L4_CTR, value);
+	if (ret < 0) {
+		/* Write MGBE_MAC_L3L4_CTR fail return error */
+		return ret;
+	}
 
 	/* Set bit corresponding to filter index if value is non-zero */
 	mgbe_helper_l3l4_bitmask(&osi_core->l3l4_filter_bitmask,
 				 filter_no, value);
 
-	return 0;
+	return ret;
 }
 
 /**
@@ -1083,6 +1127,7 @@ static int mgbe_config_l4_filters(struct osi_core_priv_data *osi_core,
 				  unsigned int dma_chan)
 {
 	unsigned int value = 0U;
+	int ret = 0;
 
 	if (filter_no >= OSI_MGBE_MAX_L3_L4_FILTER) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
@@ -1128,7 +1173,12 @@ static int mgbe_config_l4_filters(struct osi_core_priv_data *osi_core,
 		return -1;
 	}
 
-	mgbe_l3l4_filter_read(osi_core, filter_no, MGBE_MAC_L3L4_CTR, &value);
+	ret = mgbe_l3l4_filter_read(osi_core, filter_no, MGBE_MAC_L3L4_CTR, &value);
+	if (ret < 0) {
+		/* MGBE_MAC_L3L4_CTR read fail return here */
+		return ret;
+	}
+
 	value &= ~MGBE_MAC_L3L4_CTR_L4PEN0;
 	value |= ((tcp_udp_match << 16) & MGBE_MAC_L3L4_CTR_L4PEN0);
 
@@ -1169,13 +1219,18 @@ static int mgbe_config_l4_filters(struct osi_core_priv_data *osi_core,
 			value &= ~MGBE_MAC_L4_DP_CTRL_CLEAR;
 		}
 	}
-	mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3L4_CTR, value);
+
+	ret = mgbe_l3l4_filter_write(osi_core, filter_no, MGBE_MAC_L3L4_CTR, value);
+	if (ret < 0) {
+		/* Write MGBE_MAC_L3L4_CTR fail return error */
+		return ret;
+	}
 
 	/* Set bit corresponding to filter index if value is non-zero */
 	mgbe_helper_l3l4_bitmask(&osi_core->l3l4_filter_bitmask,
 				 filter_no, value);
 
-	return 0;
+	return ret;
 }
 
 /**
@@ -1684,6 +1739,92 @@ static void mgbe_configure_dma(void *base)
 }
 
 /**
+ * @brief Initialize the osi_core->backup_config.
+ *
+ * Algorithm: Populate the list of core registers to be saved during suspend.
+ *	Fill the address of each register in structure.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval none
+ */
+static void mgbe_core_backup_init(struct osi_core_priv_data *const osi_core)
+{
+	struct core_backup *config = &osi_core->backup_config;
+	unsigned char *base = (unsigned char *)osi_core->base;
+	unsigned int i;
+
+	/* MAC registers backup */
+	config->reg_addr[MGBE_MAC_TMCR_BAK_IDX] = base + MGBE_MAC_TMCR;
+	config->reg_addr[MGBE_MAC_RMCR_BAK_IDX] = base + MGBE_MAC_RMCR;
+	config->reg_addr[MGBE_MAC_PFR_BAK_IDX] = base + MGBE_MAC_PFR;
+	config->reg_addr[MGBE_MAC_VLAN_TAG_BAK_IDX] = base +
+						MGBE_MAC_VLAN_TR;
+	config->reg_addr[MGBE_MAC_VLANTIR_BAK_IDX] = base + MGBE_MAC_VLANTIR;
+	config->reg_addr[MGBE_MAC_RX_FLW_CTRL_BAK_IDX] = base +
+						MGBE_MAC_RX_FLW_CTRL;
+	config->reg_addr[MGBE_MAC_RQC0R_BAK_IDX] = base + MGBE_MAC_RQC0R;
+	config->reg_addr[MGBE_MAC_RQC1R_BAK_IDX] = base + MGBE_MAC_RQC1R;
+	config->reg_addr[MGBE_MAC_RQC2R_BAK_IDX] = base + MGBE_MAC_RQC2R;
+	config->reg_addr[MGBE_MAC_ISR_BAK_IDX] = base + MGBE_MAC_ISR;
+	config->reg_addr[MGBE_MAC_IER_BAK_IDX] = base + MGBE_MAC_IER;
+	config->reg_addr[MGBE_MAC_PMTCSR_BAK_IDX] = base + MGBE_MAC_PMTCSR;
+	config->reg_addr[MGBE_MAC_LPI_CSR_BAK_IDX] = base + MGBE_MAC_LPI_CSR;
+	config->reg_addr[MGBE_MAC_LPI_TIMER_CTRL_BAK_IDX] = base +
+						MGBE_MAC_LPI_TIMER_CTRL;
+	config->reg_addr[MGBE_MAC_LPI_EN_TIMER_BAK_IDX] = base +
+						MGBE_MAC_LPI_EN_TIMER;
+	config->reg_addr[MGBE_MAC_TCR_BAK_IDX] = base + MGBE_MAC_TCR;
+	config->reg_addr[MGBE_MAC_SSIR_BAK_IDX] = base + MGBE_MAC_SSIR;
+	config->reg_addr[MGBE_MAC_STSR_BAK_IDX] = base + MGBE_MAC_STSR;
+	config->reg_addr[MGBE_MAC_STNSR_BAK_IDX] = base + MGBE_MAC_STNSR;
+	config->reg_addr[MGBE_MAC_STSUR_BAK_IDX] = base + MGBE_MAC_STSUR;
+	config->reg_addr[MGBE_MAC_STNSUR_BAK_IDX] = base + MGBE_MAC_STNSUR;
+	config->reg_addr[MGBE_MAC_TAR_BAK_IDX] = base + MGBE_MAC_TAR;
+	config->reg_addr[MGBE_DMA_BMR_BAK_IDX] = base + MGBE_DMA_MODE;
+	config->reg_addr[MGBE_DMA_SBUS_BAK_IDX] = base + MGBE_DMA_SBUS;
+	config->reg_addr[MGBE_DMA_ISR_BAK_IDX] = base + MGBE_DMA_ISR;
+	config->reg_addr[MGBE_MTL_OP_MODE_BAK_IDX] = base + MGBE_MTL_OP_MODE;
+	config->reg_addr[MGBE_MTL_RXQ_DMA_MAP0_BAK_IDX] = base +
+						MGBE_MTL_RXQ_DMA_MAP0;
+
+	for (i = 0; i < MGBE_MAX_HTR_REGS; i++) {
+		config->reg_addr[MGBE_MAC_HTR_REG_BAK_IDX(i)] = base +
+						MGBE_MAC_HTR_REG(i);
+	}
+	for (i = 0; i < OSI_MGBE_MAX_NUM_QUEUES; i++) {
+		config->reg_addr[MGBE_MAC_QX_TX_FLW_CTRL_BAK_IDX(i)] = base +
+						MGBE_MAC_QX_TX_FLW_CTRL(i);
+	}
+	for (i = 0; i < OSI_MGBE_MAX_MAC_ADDRESS_FILTER; i++) {
+		config->reg_addr[MGBE_MAC_ADDRH_BAK_IDX(i)] = base +
+						MGBE_MAC_ADDRH(i);
+		config->reg_addr[MGBE_MAC_ADDRL_BAK_IDX(i)] = base +
+						MGBE_MAC_ADDRL(i);
+	}
+	for (i = 0; i < OSI_MGBE_MAX_NUM_QUEUES; i++) {
+		config->reg_addr[MGBE_MTL_CHX_TX_OP_MODE_BAK_IDX(i)] = base +
+						MGBE_MTL_CHX_TX_OP_MODE(i);
+		config->reg_addr[MGBE_MTL_CHX_RX_OP_MODE_BAK_IDX(i)] = base +
+						MGBE_MTL_CHX_RX_OP_MODE(i);
+	}
+	for (i = 0; i < OSI_MAX_TC_NUM; i++) {
+		config->reg_addr[MGBE_MTL_TXQ_ETS_CR_BAK_IDX(i)] = base +
+						MGBE_MTL_TCQ_ETS_CR(i);
+		config->reg_addr[MGBE_MTL_TXQ_QW_BAK_IDX(i)] = base +
+						MGBE_MTL_TCQ_QW(i);
+		config->reg_addr[MGBE_MTL_TXQ_ETS_SSCR_BAK_IDX(i)] = base +
+						MGBE_MTL_TCQ_ETS_SSCR(i);
+		config->reg_addr[MGBE_MTL_TXQ_ETS_HCR_BAK_IDX(i)] = base +
+						MGBE_MTL_TCQ_ETS_HCR(i);
+		config->reg_addr[MGBE_MTL_TXQ_ETS_LCR_BAK_IDX(i)] = base +
+						MGBE_MTL_TCQ_ETS_LCR(i);
+	}
+
+	/* TODO: Add wrapper register backup */
+}
+
+/**
  * @brief mgbe_core_init - MGBE MAC, MTL and common DMA Initialization
  *
  * Algorithm: This function will take care of initializing MAC, MTL and
@@ -1710,6 +1851,8 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	nveu32_t value = 0;
 	nveu32_t tx_fifo = 0;
 	nveu32_t rx_fifo = 0;
+
+	mgbe_core_backup_init(osi_core);
 
 	/* reset mmc counters */
 	osi_writel(MGBE_MMC_CNTRL_CNTRST, (nveu8_t *)osi_core->base +
@@ -2281,6 +2424,148 @@ static int mgbe_mdio_busy_wait(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
+/*
+ * @brief mgbe_save_registers Function to store a backup of
+ * MAC register space during SOC suspend.
+ *
+ * Algorithm: Read registers to be backed up as per struct core_backup and
+ * store the register values in memory.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int mgbe_save_registers(
+				struct osi_core_priv_data *const osi_core)
+{
+	void *base = osi_core->base;
+	unsigned int i = 0;
+	struct core_backup *config = &osi_core->backup_config;
+	int ret = 0;
+
+	/* Save direct access registers */
+	for (i = 0; i < MGBE_DIRECT_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			/* Read the register and store into reg_val */
+			config->reg_val[i] = osi_readl(config->reg_addr[i]);
+		}
+	}
+
+	/* Save L3 and L4 indirect addressing registers */
+	for (i = 0; i < OSI_MGBE_MAX_L3_L4_FILTER; i++) {
+		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3L4_CTR,
+				&config->reg_val[MGBE_MAC_L3L4_CTR_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3L4_CTR read fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L4_ADDR,
+				&config->reg_val[MGBE_MAC_L4_ADR_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L4_ADDR read fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3_AD0R,
+				&config->reg_val[MGBE_MAC_L3_AD0R_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3_AD0R read fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3_AD1R,
+				&config->reg_val[MGBE_MAC_L3_AD1R_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3_AD1R read fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3_AD2R,
+				&config->reg_val[MGBE_MAC_L3_AD2R_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3_AD2R read fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_read(base, i, MGBE_MAC_L3_AD3R,
+				&config->reg_val[MGBE_MAC_L3_AD3R_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3_AD3R read fail return here */
+			return ret;
+		}
+	}
+
+	return ret;
+}
+
+/**
+ * @brief mgbe_restore_registers Function to restore the backup of
+ * MAC registers during SOC resume.
+ *
+ * Algorithm: Restore the register values from the in memory backup taken using
+ * mgbe_save_registers().
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int mgbe_restore_registers(
+				struct osi_core_priv_data *const osi_core)
+{
+	void *base = osi_core->base;
+	unsigned int i = 0;
+	struct core_backup *config = &osi_core->backup_config;
+	int ret = 0;
+
+	/* Restore direct access registers */
+	for (i = 0; i < MGBE_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			/* Write back the saved register value */
+			osi_writel(config->reg_val[i], config->reg_addr[i]);
+		}
+	}
+
+	/* Restore L3 and L4 indirect addressing registers */
+	for (i = 0; i < OSI_MGBE_MAX_L3_L4_FILTER; i++) {
+		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3L4_CTR,
+				config->reg_val[MGBE_MAC_L3L4_CTR_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3L4_CTR write fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L4_ADDR,
+				config->reg_val[MGBE_MAC_L4_ADR_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L4_ADDR write fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3_AD0R,
+				config->reg_val[MGBE_MAC_L3_AD0R_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3_AD0R write fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3_AD1R,
+				config->reg_val[MGBE_MAC_L3_AD1R_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3_AD1R write fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3_AD2R,
+				config->reg_val[MGBE_MAC_L3_AD2R_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3_AD2R write fail return here */
+			return ret;
+		}
+		ret = mgbe_l3l4_filter_write(base, i, MGBE_MAC_L3_AD3R,
+				config->reg_val[MGBE_MAC_L3_AD3R_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_L3_AD3R write fail return here */
+			return ret;
+		}
+	}
+
+	return ret;
+}
+
 /**
  * @brief mgbe_write_phy_reg - Write to a PHY register over MDIO bus.
  *
@@ -2488,6 +2773,8 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_ssir = OSI_NULL;
 	ops->write_phy_reg = mgbe_write_phy_reg;
 	ops->read_phy_reg = mgbe_read_phy_reg;
+	ops->save_registers = mgbe_save_registers;
+	ops->restore_registers = mgbe_restore_registers;
 	ops->read_mmc = mgbe_read_mmc;
 	ops->reset_mmc = mgbe_reset_mmc;
 };
