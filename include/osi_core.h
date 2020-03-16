@@ -259,6 +259,10 @@ struct osi_core_ops {
 	void (*configure_eee)(struct osi_core_priv_data *const osi_core,
 			      const unsigned int tx_lpi_enabled,
 			      const unsigned int tx_lpi_timer);
+	/** Called to save MAC register space during SoC suspend */
+	void (*save_registers)(struct osi_core_priv_data *const osi_core);
+	/** Called to restore MAC control registers during SoC resume */
+	void (*restore_registers)(struct osi_core_priv_data *const osi_core);
 	/** Called to write into a PHY reg over MDIO bus */
 	int (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
 			     const unsigned int phyaddr,

@@ -845,8 +845,8 @@ int osi_configure_eee(struct osi_core_priv_data *const osi_core,
 int osi_save_registers(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->backup_config != OSI_NULL)) {
-		mac_save_registers(osi_core->backup_config);
+	    (osi_core->ops->save_registers != OSI_NULL)) {
+		osi_core->ops->save_registers(osi_core);
 		return 0;
 	}
 
@@ -856,8 +856,8 @@ int osi_save_registers(struct osi_core_priv_data *const osi_core)
 int osi_restore_registers(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->backup_config != OSI_NULL)) {
-		mac_restore_registers(osi_core->backup_config);
+	    (osi_core->ops->restore_registers != OSI_NULL)) {
+		osi_core->ops->restore_registers(osi_core);
 		return 0;
 	}
 
