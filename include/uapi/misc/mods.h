@@ -18,8 +18,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MODS_H_
-#define _MODS_H_
+#ifndef _UAPI_MODS_H_
+#define _UAPI_MODS_H_
 
 #include <linux/types.h>
 
@@ -1511,4 +1511,4 @@ struct MODS_IOMMU_DMA_MAP_MEMORY {
 		    _IOW(MODS_IOC_MAGIC, 130, \
 		    struct MODS_IOMMU_DMA_MAP_MEMORY)
 
-#endif /* _MODS_H_  */
+#endif /* _UAPI_MODS_H_  */
