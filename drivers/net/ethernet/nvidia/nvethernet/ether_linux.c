@@ -2729,13 +2729,14 @@ static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned int vlan_id = (vid | OSI_VLAN_ACTION_ADD);
 	int ret = -1;
 
 	if (pdata->vlan_hash_filtering == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev,
 			"HASH FILTERING for VLAN tag is not supported in SW\n");
 	} else {
-		ret = osi_update_vlan_id(osi_core, vid);
+		ret = osi_update_vlan_id(osi_core, vlan_id);
 	}
 
 	return ret;
@@ -2765,6 +2766,7 @@ static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned int vlan_id = (vid | OSI_VLAN_ACTION_DEL);
 	int ret = -1;
 
 	if (!netif_running(ndev)) {
@@ -2778,7 +2780,7 @@ static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 		/* By default, receive only VLAN pkt with VID = 1 because
 		 * writing 0 will pass all VLAN pkt
 		 */
-		ret = osi_update_vlan_id(osi_core, 0x1U);
+		ret = osi_update_vlan_id(osi_core, vlan_id);
 	}
 
 	return ret;
