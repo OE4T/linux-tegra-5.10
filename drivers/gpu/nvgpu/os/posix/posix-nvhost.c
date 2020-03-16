@@ -140,3 +140,48 @@ void nvgpu_nvhost_syncpt_set_safe_state(
 				SYNCPT_SAFE_STATE_INCR);
 	}
 }
+
+bool nvgpu_nvhost_syncpt_is_expired_ext(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh)
+{
+	return true;
+}
+
+bool nvgpu_nvhost_syncpt_is_valid_pt_ext(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
+{
+	return true;
+}
+
+u32 nvgpu_nvhost_syncpt_incr_max_ext(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 incrs)
+{
+	return 0;
+}
+
+int nvgpu_nvhost_intr_register_notifier(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh,
+	void (*callback)(void *, int), void *private_data)
+{
+	return -ENOSYS;
+}
+
+u32 nvgpu_nvhost_get_syncpt_host_managed(
+	struct nvgpu_nvhost_dev *nvhost_dev,
+	u32 param, const char *syncpt_name)
+{
+	return 0;
+}
+
+int nvgpu_nvhost_syncpt_read_ext_check(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 *val)
+{
+	return -ENOSYS;
+}
+
+int nvgpu_nvhost_syncpt_wait_timeout_ext(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id,
+	u32 thresh, u32 timeout, u32 waiter_index)
+{
+	return -ENOSYS;
+}
