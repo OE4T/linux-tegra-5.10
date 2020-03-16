@@ -34,6 +34,7 @@
 
 #include <hal/bus/bus_gk20a.h>
 #include <hal/mm/gmmu/gmmu_gp10b.h>
+#include <hal/pramin/pramin_init.h>
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
 
 #include "buddy_allocator.h"
@@ -79,7 +80,8 @@ static struct vm_gk20a *init_vm_env(struct unit_module *m, struct gk20a *g,
 #ifdef CONFIG_NVGPU_DGPU
 	/* Minimum HAL init for PRAMIN */
 	g->ops.bus.set_bar0_window = gk20a_bus_set_bar0_window;
-	g->ops.pramin.data032_r = pram_data032_r;
+	nvgpu_pramin_ops_init(g);
+	unit_assert(g->ops.pramin.data032_r != NULL, return NULL);
 #endif
 
 	/* vm should init with SYSMEM */

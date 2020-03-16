@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "hal/bus/bus_gk20a.h"
+#include "hal/pramin/pramin_init.h"
 
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_bus_gk20a.h>
@@ -65,7 +66,6 @@ static u32 *vidmem;
 
 /* Simple pattern for memset operations */
 #define MEMSET_PATTERN 0x12345678
-
 
 static bool is_PRAM_range(struct gk20a *g, u32 addr)
 {
@@ -192,7 +192,8 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 
 	/* Minimum HAL init for PRAMIN */
 	g->ops.bus.set_bar0_window = gk20a_bus_set_bar0_window;
-	g->ops.pramin.data032_r = pram_data032_r;
+	nvgpu_pramin_ops_init(g);
+	unit_assert(g->ops.pramin.data032_r != NULL, return -EINVAL);
 
 	/* Register space: BUS_BAR0 */
 	if (nvgpu_posix_io_add_reg_space(g, bus_bar0_window_r(), 0x100) != 0) {

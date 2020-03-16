@@ -50,6 +50,7 @@
 #include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
+#include "hal/pramin/pramin_init.h"
 
 #include <nvgpu/posix/posix-fault-injection.h>
 
@@ -240,7 +241,8 @@ int test_mm_dma_init(struct unit_module *m, struct gk20a *g, void *args)
 #ifdef CONFIG_NVGPU_DGPU
 	/* Minimum HAL init for PRAMIN */
 	g->ops.bus.set_bar0_window = gk20a_bus_set_bar0_window;
-	g->ops.pramin.data032_r = pram_data032_r;
+	nvgpu_pramin_ops_init(g);
+	unit_assert(g->ops.pramin.data032_r != NULL, return UNIT_FAIL);
 #endif
 
 	/* Register space: BUS_BAR0 */
