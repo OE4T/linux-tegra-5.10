@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,10 +42,11 @@ void gm20b_ctxsw_prog_set_priv_access_map_addr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
 void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) || defined(CONFIG_NVGPU_DGPU)
+/* FIXME: below function is used in dGPU safety build. */
 void gm20b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
-#endif /* CONFIG_NVGPU_HAL_NON_FUSA */
+#endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
 	u64 addr);

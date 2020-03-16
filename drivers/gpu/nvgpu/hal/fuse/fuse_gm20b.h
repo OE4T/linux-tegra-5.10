@@ -1,7 +1,7 @@
 /*
  * GM20B FUSE
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,8 @@
 
 struct gk20a;
 
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) || defined(CONFIG_NVGPU_DGPU)
+/* FIXME: below functions are needed for dGPU safety build. */
 int gm20b_fuse_check_priv_security(struct gk20a *g);
 u32 gm20b_fuse_status_opt_gpc(struct gk20a *g);
 #endif

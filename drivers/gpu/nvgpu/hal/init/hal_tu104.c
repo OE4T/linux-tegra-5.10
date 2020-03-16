@@ -112,8 +112,10 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
 #include "hal/gr/ecc/ecc_gv11b.h"
+#ifdef CONFIG_NVGPU_FECS_TRACE
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
+#endif
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
@@ -134,25 +136,33 @@
 #include "hal/gr/intr/gr_intr_gp10b.h"
 #include "hal/gr/intr/gr_intr_gv11b.h"
 #include "hal/gr/intr/gr_intr_tu104.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
+#endif
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/gr/gr/gr_gk20a.h"
 #include "hal/gr/gr/gr_gm20b.h"
 #include "hal/gr/gr/gr_gp10b.h"
 #include "hal/gr/gr/gr_gv11b.h"
 #include "hal/gr/gr/gr_gv100.h"
 #include "hal/gr/gr/gr_tu104.h"
+#endif
 #include "hal/pmu/pmu_gk20a.h"
+#ifdef CONFIG_NVGPU_LS_PMU
 #include "hal/pmu/pmu_gm20b.h"
+#endif
 #include "hal/pmu/pmu_gp10b.h"
 #include "hal/pmu/pmu_gv11b.h"
 #include "hal/pmu/pmu_tu104.h"
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/nvdec/nvdec_tu104.h"
 #include "hal/gsp/gsp_tu104.h"
+#ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/perf/perf_gv11b.h"
+#endif
 #ifdef CONFIG_NVGPU_DGPU
 #include "hal/sec2/sec2_tu104.h"
 #endif
@@ -180,7 +190,9 @@
 #include "hal/fifo/channel_gm20b.h"
 #include "hal/fifo/channel_gv11b.h"
 #include "hal/fifo/channel_gv100.h"
+#ifdef CONFIG_NVGPU_CLK_ARB
 #include "common/clk_arb/clk_arb_gv100.h"
+#endif
 
 #include "hal/clk/clk_tu104.h"
 #include "hal/clk/clk_mon_tu104.h"
@@ -593,7 +605,6 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_init_fe_pwr_mode_force_on,
 			.override_context_reset =
 				gm20b_gr_init_override_context_reset,
-			.preemption_state = gv11b_gr_init_preemption_state,
 			.fe_go_idle_timeout = gm20b_gr_init_fe_go_idle_timeout,
 			.load_method_init = gm20b_gr_init_load_method_init,
 			.commit_global_timeslice =
@@ -658,6 +669,7 @@ static const struct gpu_ops tu104_ops = {
 			.wait_initialized = nvgpu_gr_wait_initialized,
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS
+			.preemption_state = gv11b_gr_init_preemption_state,
 			.get_ctx_attrib_cb_size =
 				gp10b_gr_init_get_ctx_attrib_cb_size,
 			.commit_cbes_reserve =
@@ -993,7 +1005,9 @@ static const struct gpu_ops tu104_ops = {
 		.intr_enable = gv11b_pbdma_intr_enable,
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gp10b_pbdma_get_signature,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		.dump_status = gm20b_pbdma_dump_status,
+#endif
 		.handle_intr = gm20b_pbdma_handle_intr,
 		.handle_intr_0 = gv11b_pbdma_handle_intr_0,
 		.handle_intr_1 = gv11b_pbdma_handle_intr_1,
@@ -1206,7 +1220,9 @@ static const struct gpu_ops tu104_ops = {
 		.init_therm_support = nvgpu_init_therm_support,
 		/* PROD values match with H/W INIT values */
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
+#ifdef CONFIG_NVGPU_NON_FUSA
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
+#endif
 		.elcg_init_idle_filters = NULL,
 #ifdef CONFIG_NVGPU_LS_PMU
 		.get_internal_sensor_limits =
@@ -1317,7 +1333,9 @@ static const struct gpu_ops tu104_ops = {
 	.mc = {
 		.get_chip_details = gm20b_get_chip_details,
 		.intr_mask = intr_tu104_mask,
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		.intr_enable = NULL,
+#endif
 		.intr_stall_unit_config = intr_tu104_stall_unit_config,
 		.intr_nonstall_unit_config = intr_tu104_nonstall_unit_config,
 		.isr_stall = mc_gp10b_isr_stall,
@@ -1332,7 +1350,9 @@ static const struct gpu_ops tu104_ops = {
 		.disable = gm20b_mc_disable,
 		.reset = gm20b_mc_reset,
 		.is_intr1_pending = NULL,
+#ifdef CONFIG_NVGPU_NON_FUSA
 		.log_pending_intrs = intr_tu104_log_pending_intrs,
+#endif
 		.is_intr_hub_pending = intr_tu104_is_intr_hub_pending,
 		.is_intr_nvlink_pending = gv100_mc_is_intr_nvlink_pending,
 		.is_stall_and_eng_intr_pending =
@@ -1442,9 +1462,9 @@ static const struct gpu_ops tu104_ops = {
 #ifdef CONFIG_NVGPU_FALCON_DEBUG
 		.dump_falcon_stats = gk20a_falcon_dump_stats,
 #endif
-#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 		.clear_halt_interrupt_status =
 			gk20a_falcon_clear_halt_interrupt_status,
+#ifdef CONFIG_NVGPU_FALCON_NON_FUSA
 		.copy_from_dmem = gk20a_falcon_copy_from_dmem,
 		.copy_from_imem = gk20a_falcon_copy_from_imem,
 		.get_falcon_ctls = gk20a_falcon_get_ctls,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,21 +69,3 @@ u32 gm20b_gr_config_get_zcull_count_in_gpc(struct gk20a *g,
 	return gr_gpc0_fs_gpc_num_available_zculls_v(tmp);
 }
 #endif
-
-u32 gm20b_gr_config_get_gpc_mask(struct gk20a *g,
-	struct nvgpu_gr_config *config)
-{
-	u32 val;
-	u32 tpc_cnt = nvgpu_gr_config_get_max_gpc_count(config);
-
-	/*
-	 * For register NV_FUSE_STATUS_OPT_GPC a set bit with index i indicates
-	 * corresponding GPC is floorswept
-	 * But for s/w mask a set bit means GPC is enabled and it is disabled
-	 * otherwise
-	 * Hence toggle the bits of register value to get s/w mask
-	 */
-	val = g->ops.fuse.fuse_status_opt_gpc(g);
-
-	return (~val) & nvgpu_safe_sub_u32(BIT32(tpc_cnt), 1U);
-}

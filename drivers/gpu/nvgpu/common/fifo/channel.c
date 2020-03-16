@@ -1478,8 +1478,9 @@ void nvgpu_channel_update(struct nvgpu_channel *c)
 	if (nvgpu_is_powered_off(c->g)) { /* shutdown case */
 		return;
 	}
-
+#ifdef CONFIG_NVGPU_TRACE
 	trace_nvgpu_channel_update(c->chid);
+#endif
 	/* A queued channel is always checked for job cleanup. */
 	channel_worker_enqueue(c);
 }

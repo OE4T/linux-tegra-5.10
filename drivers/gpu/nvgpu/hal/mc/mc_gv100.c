@@ -79,9 +79,11 @@ u32 gv100_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
 	case NVGPU_UNIT_BLG:
 		mask = mc_enable_blg_enabled_f();
 		break;
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	case NVGPU_UNIT_PWR:
 		mask = mc_enable_pwr_enabled_f();
 		break;
+#endif
 	case NVGPU_UNIT_NVDEC:
 		mask = mc_enable_nvdec_enabled_f();
 		break;

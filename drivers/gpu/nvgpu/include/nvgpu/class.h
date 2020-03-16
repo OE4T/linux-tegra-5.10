@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -96,7 +96,8 @@
 #define	TURING_A			0xC597U
 #endif
 
-#ifdef CONFIG_NVGPU_NON_FUSA
+#if defined(CONFIG_NVGPU_NON_FUSA) || defined(CONFIG_NVGPU_DGPU)
+/* FIXME: below defines are used in dGPU safety build. */
 #define	MAXWELL_COMPUTE_B		0xB1C0U
 #define	PASCAL_COMPUTE_A		0xC0C0U
 #define	TURING_CHANNEL_GPFIFO_A		0xC46FU
