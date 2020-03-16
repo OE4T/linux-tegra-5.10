@@ -1,7 +1,7 @@
 /*
  * nvcamera_log.c - general tracing function for vi and isp API calls
  *
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -52,8 +52,15 @@ void nv_camera_log_submit(struct platform_device *pdev,
 	task_submit.syncpt_thresh = syncpt_thresh;
 	task_submit.channel_id = channel_id;
 	task_submit.class_id = pdata->class;
-	task_submit.pid = current->pid;
-	task_submit.tid = current->tgid;
+
+	/*
+	 * Eventlib events are meant to be matched with their userspace
+	 * analogues. Instead of the PID as (this) thread's ID use the
+	 * inherited thread group ID. For the reported TID use this thread's
+	 * ID (i.e. PID).
+	 */
+	task_submit.tid = current->pid;
+	task_submit.pid = current->tgid;
 
 	keventlib_write(pdata->eventlib_id,
 			&task_submit,
@@ -94,8 +101,15 @@ void nv_camera_log(struct platform_device *pdev,
 	 * Write task log event
 	 */
 	task_log.class_id = pdata->class;
-	task_log.pid = current->pid;
-	task_log.tid = current->tgid;
+
+	/*
+	 * Eventlib events are meant to be matched with their userspace
+	 * analogues. Instead of the PID as (this) thread's ID use the
+	 * inherited thread group ID. For the reported TID use this thread's
+	 * ID (i.e. PID).
+	 */
+	task_log.tid = current->pid;
+	task_log.pid = current->tgid;
 
 	keventlib_write(pdata->eventlib_id,
 			&task_log,
