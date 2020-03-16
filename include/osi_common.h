@@ -294,12 +294,6 @@
 /** @} */
 
 /**
- * @brief Max num of MAC core registers to backup. It should be max of or >=
- * (EQOS_MAX_BAK_IDX=380, MGBE_MAX_BAK_IDX, coreX,...etc) backup registers.
- */
-#define CORE_MAX_BAK_IDX	400U
-
-/**
  * @addtogroup EQOS-MAC EQOS MAC HW supported features
  *
  * @brief Helps in identifying the features that are set in MAC HW
@@ -541,16 +535,6 @@ struct osi_hw_features {
 };
 
 /**
- * @brief core_backup - Struct used to store backup of core HW registers.
- */
-struct core_backup {
-	/** Array of reg MMIO addresses (base of MAC core + offset of reg) */
-	void *reg_addr[CORE_MAX_BAK_IDX];
-	/** Array of value stored in each corresponding register */
-	unsigned int reg_val[CORE_MAX_BAK_IDX];
-};
-
-/**
  * @brief osi_lock_init - Initialize lock to unlocked state.
  *
  * Algorithm: Set lock to unlocked state.
@@ -710,28 +694,4 @@ void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
  *
  */
 void osi_memset(void *s, unsigned int c, unsigned long count);
-
-/**
- * @brief Function to store a backup of MAC register space during SOC suspend.
- *
- * Algorithm: Read registers to be backed up as per struct core_backup and
- * store the register values in memory.
- *
- * @param[in] config: Pointer to core_backup structure.
- *
- * @retval none
- */
-void mac_save_registers(struct core_backup *const config);
-
-/**
- * @brief Function to restore the backup of MAC registers during SOC resume.
- *
- * Algorithm: Restore the register values from the in memory backup taken using
- * osi_save_registers().
- *
- * @param[in] config: Pointer to core_backup structure.
- *
- * @retval none
- */
-void mac_restore_registers(struct core_backup *const config);
 #endif /* OSI_COMMON_H */

@@ -3478,6 +3478,52 @@ static void eqos_configure_eee(
 	}
 }
 
+/*
+ * @brief Function to store a backup of MAC register space during SOC suspend.
+ *
+ * Algorithm: Read registers to be backed up as per struct core_backup and
+ * store the register values in memory.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval none
+ */
+static inline void eqos_save_registers(
+				struct osi_core_priv_data *const osi_core)
+{
+	unsigned int i;
+	struct core_backup *config = osi_core->backup_config;
+
+	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			config->reg_val[i] = osi_readl(config->reg_addr[i]);
+		}
+	}
+}
+
+/**
+ * @brief Function to restore the backup of MAC registers during SOC resume.
+ *
+ * Algorithm: Restore the register values from the in memory backup taken using
+ * eqos_save_registers().
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval none
+ */
+static inline void eqos_restore_registers(
+				struct osi_core_priv_data *const osi_core)
+{
+	unsigned int i;
+	struct core_backup *config = osi_core->backup_config;
+
+	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			osi_writel(config->reg_val[i], config->reg_addr[i]);
+		}
+	}
+}
+
 /**
  * @brief poll_for_mii_idle Query the status of an ongoing DMA transfer
  *
@@ -3721,6 +3767,8 @@ static struct osi_core_ops eqos_core_ops = {
 	.read_mmc = eqos_read_mmc,
 	.reset_mmc = eqos_reset_mmc,
 	.configure_eee = eqos_configure_eee,
+	.save_registers = eqos_save_registers,
+	.restore_registers = eqos_restore_registers,
 	.write_phy_reg = eqos_write_phy_reg,
 	.read_phy_reg = eqos_read_phy_reg,
 };

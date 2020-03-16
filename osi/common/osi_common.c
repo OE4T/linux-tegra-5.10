@@ -134,32 +134,3 @@ void osi_memset(void *s, unsigned int c, unsigned long count)
 		count--;
 	}
 }
-
-void mac_save_registers(struct core_backup *const config)
-{
-	unsigned int i;
-
-	if (config == OSI_NULL) {
-		return;
-	}
-	for (i = 0; i < CORE_MAX_BAK_IDX; i++) {
-		if (config->reg_addr[i] != OSI_NULL) {
-			config->reg_val[i] = osi_readl(config->reg_addr[i]);
-		}
-	}
-
-}
-
-void mac_restore_registers(struct core_backup *const config)
-{
-	unsigned int i;
-
-	if (config == OSI_NULL) {
-		return;
-	}
-	for (i = 0; i < CORE_MAX_BAK_IDX; i++) {
-		if (config->reg_addr[i] != OSI_NULL) {
-			osi_writel(config->reg_val[i], config->reg_addr[i]);
-		}
-	}
-}
