@@ -1193,6 +1193,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		}
 	},
 	.therm = {
+		.therm_max_fpdiv_factor = gv11b_therm_max_fpdiv_factor,
 		.init_therm_support = nvgpu_init_therm_support,
 		.init_therm_setup_hw = gv11b_init_therm_setup_hw,
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,

@@ -1,7 +1,7 @@
 /*
  * GV11B Therm
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -66,13 +66,13 @@ int gv11b_init_therm_setup_hw(struct gk20a *g)
 		therm_grad_stepping_table_slowdown_factor0_f(
 		therm_grad_stepping_table_slowdown_factor0_fpdiv_by16_f()) |
 		therm_grad_stepping_table_slowdown_factor1_f(
-		therm_grad_stepping_table_slowdown_factor0_fpdiv_by32_f()) |
+			g->ops.therm.therm_max_fpdiv_factor()) |
 		therm_grad_stepping_table_slowdown_factor2_f(
-		therm_grad_stepping_table_slowdown_factor0_fpdiv_by32_f()) |
+			g->ops.therm.therm_max_fpdiv_factor()) |
 		therm_grad_stepping_table_slowdown_factor3_f(
-		therm_grad_stepping_table_slowdown_factor0_fpdiv_by32_f()) |
+			g->ops.therm.therm_max_fpdiv_factor()) |
 		therm_grad_stepping_table_slowdown_factor4_f(
-		therm_grad_stepping_table_slowdown_factor0_fpdiv_by32_f()));
+			g->ops.therm.therm_max_fpdiv_factor()));
 
 	v = nvgpu_readl(g, therm_clk_timing_r(0));
 	v |= therm_clk_timing_grad_slowdown_enabled_f();
@@ -183,4 +183,9 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 	nvgpu_writel(g, therm_hubmmu_idle_filter_r(), idle_filter);
 
 	return 0;
+}
+
+u32 gv11b_therm_max_fpdiv_factor(void)
+{
+	return therm_grad_stepping_table_slowdown_factor0_fpdiv_by32_f();
 }

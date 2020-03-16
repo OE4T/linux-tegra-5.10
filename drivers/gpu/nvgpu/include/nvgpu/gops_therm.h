@@ -129,6 +129,7 @@ struct gops_therm {
 #ifdef CONFIG_DEBUG_FS
 	void (*therm_debugfs_init)(struct gk20a *g);
 #endif
+	u32 (*therm_max_fpdiv_factor)(void);
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
