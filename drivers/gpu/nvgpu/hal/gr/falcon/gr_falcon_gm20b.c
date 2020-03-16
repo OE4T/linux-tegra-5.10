@@ -227,7 +227,7 @@ void gm20b_gr_falcon_configure_fmodel(struct gk20a *g)
  */
 
 /* Sideband mailbox writes are done a bit differently */
-
+#ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 void gm20b_gr_falcon_fecs_host_int_enable(struct gk20a *g)
 {
 	nvgpu_writel(g, gr_fecs_host_int_enable_r(),
@@ -237,3 +237,4 @@ void gm20b_gr_falcon_fecs_host_int_enable(struct gk20a *g)
 		     gr_fecs_host_int_enable_umimp_illegal_method_enable_f() |
 		     gr_fecs_host_int_enable_watchdog_enable_f());
 }
+#endif
