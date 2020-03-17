@@ -1,7 +1,7 @@
 /*
  * arch/arm/boot/dts/panel-c-wxga-14-0.dtsi
  *
- * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@
 #include <dt-bindings/display/tegra-dc.h>
 #include <dt-bindings/display/tegra-panel.h>
 
-/ {
-	host1x {
+	&host1x {
 		sor {
 			panel_c_wxga_14_0: panel-c-wxga-14-0 {
 				status = "disabled";
@@ -95,6 +94,8 @@
 			};
 		};
 	};
+
+/ {
 	backlight {
 		panel_c_wxga_14_0_bl: panel-c-wxga-14-0-bl {
 			status = "disabled";

@@ -1,7 +1,7 @@
 /*
  * arch/arm/boot/dts/panel-j-720p-5-0.dtsi
  *
- * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@
 #include <dt-bindings/display/tegra-dc.h>
 #include <dt-bindings/display/tegra-panel.h>
 
-/ {
-	host1x {
+	&host1x {
 		dsi {
 			panel_j_720p_5_0: panel-j-720p-5-0 {
 				status = "disabled";
@@ -233,6 +232,8 @@
 			};
 		};
 	};
+
+/ {
 	backlight {
 		panel_j_720p_5_0_bl: panel-j-720p-5-0-bl {
 			status = "disabled";

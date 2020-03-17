@@ -1,7 +1,7 @@
 /*
  * arch/arm/boot/dts/panel-s-wuxga-8-0-mods.dtsi
  *
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@
 #include <dt-bindings/display/tegra-dc.h>
 #include <dt-bindings/display/tegra-panel.h>
 
-/ {
-	host1x {
+	&host1x {
 		dsi {
 			panel_s_wuxga_8_0_mods: panel-s-wuxga-8-0-mods {
 				status = "disabled";
@@ -94,4 +93,3 @@
 			};
 		};
 	};
-};

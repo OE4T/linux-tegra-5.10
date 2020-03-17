@@ -1,7 +1,7 @@
 /*
  * arch/arm/boot/dts/panel-s-wuxga-7-0.dtsi
  *
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@
 #include <dt-bindings/display/tegra-dc.h>
 #include <dt-bindings/display/tegra-panel.h>
 
-/ {
-	host1x {
+	&host1x {
 		dsi {
 			panel_s_wuxga_7_0: panel-s-wuxga-7-0 {
 				status = "disabled";
@@ -254,6 +253,8 @@
 			};
 		};
 	};
+
+/ {
 	backlight {
 		panel_s_wuxga_7_0_bl: panel-s-wuxga-7-0-bl {
 			status = "disabled";
