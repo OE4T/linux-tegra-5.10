@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,25 +67,27 @@
 	/* ISO-clients cannot have stage-1 translation and hence
 	 * iommus node are deleted for ISO-Clients which are
 	 * nvdisplay, vi and vi-thi */
-	host1x {
-		nvdisplay@15200000 {
-			/delete-property/ iommus;
-			/delete-property/ iso-smmu;
-		};
+	host1x@13e00000 {
+		display-hub@15200000 {
+			display@15200000 {
+				/delete-property/ iommus;
+				/delete-property/ iso-smmu;
+			};
 
-		nvdisplay@15210000 {
-			/delete-property/ iommus;
-			/delete-property/ iso-smmu;
-		};
+			display@15210000 {
+				/delete-property/ iommus;
+				/delete-property/ iso-smmu;
+			};
 
-		nvdisplay@15220000 {
-			/delete-property/ iommus;
-			/delete-property/ iso-smmu;
-		};
+			display@15220000 {
+				/delete-property/ iommus;
+				/delete-property/ iso-smmu;
+			};
 
-		nvdisplay@15230000 {
-			/delete-property/ iommus;
-			/delete-property/ iso-smmu;
+			display@15230000 {
+				/delete-property/ iommus;
+				/delete-property/ iso-smmu;
+			};
 		};
 
 		vi: vi@15c10000 {
@@ -238,7 +240,7 @@
 		status = "disabled";
 	};
 
-	host1x {
+	host1x@13e00000 {
 		se@15810000 {
 			status="disabled";
 		};
