@@ -46,7 +46,7 @@
 		clock-frequency = <100000>;
 	};
 
-	nvdisplay@13800000 {
+	display@13800000 {
 		compatible = "nvidia,tegra234-display";
 		reg-names = "nvdisplay", "dpaux0", "dpaux1";
 		reg = <0x0 0x13800000 0x0 0xEFFFF  /* nvdisplay */
