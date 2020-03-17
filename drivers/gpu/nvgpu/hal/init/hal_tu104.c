@@ -182,6 +182,7 @@
 #include "common/clk_arb/clk_arb_gv100.h"
 
 #include "hal/clk/clk_tu104.h"
+#include "hal/clk/clk_mon_tu104.h"
 #include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
 #include "hal_tu104_litter.h"

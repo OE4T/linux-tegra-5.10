@@ -140,6 +140,13 @@ clk:
   sources: [ hal/clk/clk_tu104.c,
              hal/clk/clk_tu104.h ]
 
+clk_mon:
+  safe: yes
+  owner: Ramesh M
+  gpu: dgpu
+  sources: [ hal/clk/clk_mon_tu104.c,
+             hal/clk/clk_mon_tu104.h ]
+
 clk_igpu:
   safe: no
   owner: Ramesh M

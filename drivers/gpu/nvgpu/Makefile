@@ -101,6 +101,7 @@ nvgpu-$(CONFIG_NVGPU_DGPU) += \
 	hal/bus/bus_tu104.o \
 	hal/class/class_tu104.o \
 	hal/clk/clk_tu104.o \
+	hal/clk/clk_mon_tu104.o \
 	hal/gr/init/gr_init_gv100.o \
 	hal/gr/init/gr_init_tu104.o \
 	hal/gr/intr/gr_intr_tu104.o \

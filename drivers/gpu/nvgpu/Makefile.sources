@@ -595,6 +595,7 @@ srcs += common/sec2/sec2.c \
 	hal/ce/ce_tu104.c \
 	hal/class/class_tu104.c \
 	hal/clk/clk_tu104.c \
+	hal/clk/clk_mon_tu104.c \
 	hal/gr/init/gr_init_gv100.c \
 	hal/gr/init/gr_init_tu104.c \
 	hal/gr/intr/gr_intr_tu104.c \
