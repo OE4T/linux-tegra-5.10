@@ -17,7 +17,7 @@
 #include <dt-bindings/media/camera.h>
 
 / {
-	host1x {
+	host1x@13e00000 {
 		vi@15c10000  {
 			num-channels = <2>;
 			ports {

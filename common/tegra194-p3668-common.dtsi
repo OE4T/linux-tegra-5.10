@@ -1,7 +1,7 @@
 /*
  * Common include DTS file for CVM:P3668-0001 and CVB:P3449-0000 variants.
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -206,7 +206,7 @@
 		status = "disabled";
 	};
 
-	host1x {
+	host1x@13e00000 {
 		dpaux@155F0000 {
 			status = "okay";
 			compatible = "nvidia,tegra194-dpaux3-padctl";
@@ -377,7 +377,7 @@
 		pinctrl-0 = <&dpaux_default>;
 	};
 
-	host1x {
+	host1x@13e00000 {
 		dpaux@155F0000 {
 			status = "okay";
 			compatible = "nvidia,tegra194-dpaux3-padctl";
