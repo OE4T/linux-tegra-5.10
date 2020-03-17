@@ -1231,8 +1231,7 @@ static int ether_therm_init(struct ether_priv_data *pdata)
 static inline void ether_init_eee_params(struct ether_priv_data *pdata)
 {
 	if (pdata->hw_feat.eee_sel) {
-		/* default, keep it disabled */
-		pdata->eee_enabled = OSI_DISABLE;
+		pdata->eee_enabled = OSI_ENABLE;
 	} else {
 		pdata->eee_enabled = OSI_DISABLE;
 	}
