@@ -58,6 +58,9 @@
 #include "dt-bindings/soc/tegra-io-pads.h"
 
 / {
+	aliases {
+		host1x = &host1x;
+	};
 
 	timer@3010000 {
 		/* Do not enable this node (SOC Timer) as ARM Generic Timer
