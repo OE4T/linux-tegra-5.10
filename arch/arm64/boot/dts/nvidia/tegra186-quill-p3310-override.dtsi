@@ -109,13 +109,11 @@
 		};
 	};
 
-	host1x {
+	host1x@13e00000 {
 		reset-names = "host1x";
 		reg-names = "vm", "hypervisor";
 
-		/delete-node/ nvdisplay@15200000;
-		/delete-node/ nvdisplay@15210000;
-		/delete-node/ nvdisplay@15220000;
+		/delete-node/ display-hub@15200000;
 		/delete-node/ sor;
 		/delete-node/ sor1;
 	};
@@ -124,9 +122,7 @@
 		fragement@6 {
 			override@7 {
 				_overlay_ {
-					/delete-node/ nvdisplay@15200000;
-					/delete-node/ nvdisplay@15210000;
-					/delete-node/ nvdisplay@15220000;
+					/delete-node/ display-hub@15200000;
 					/delete-node/ sor;
 					/delete-node/ sor1;
 				};
@@ -136,7 +132,7 @@
 		fragment-e3320-a00@1 {
 			overrides@2 {
 				_overlay_ {
-					/delete-node/ nvdisplay@15200000;
+					/delete-node/ display-hub@15200000;
 				};
 			};
 		};
@@ -144,7 +140,7 @@
 		fragment-e3320-a01@1 {
 			overrides@3 {
 				_overlay_ {
-					/delete-node/ nvdisplay@15200000;
+					/delete-node/ display-hub@15200000;
 				};
 			};
 		};
@@ -152,7 +148,7 @@
 		fragment-e3320-a00@3 {
 			overrides@0 {
 				_overlay_ {
-					/delete-node/ nvdisplay@15200000;
+					/delete-node/ display-hub@15200000;
 				};
 			};
 		};
@@ -160,7 +156,7 @@
 		fragment-e3320-dp {
 			override@0 {
 				_overlay_ {
-					/delete-node/ nvdisplay@15220000;
+					/delete-node/ display-hub@15200000;
 					/delete-node/ sor;
 				};
 			};
@@ -169,7 +165,7 @@
 		fragment-e1824-a00@3 {
 			overrides@0 {
 				_overlay_ {
-					/delete-node/ nvdisplay@15200000;
+					/delete-node/ display-hub@15200000;
 					/delete-node/ sor;
 				};
 			};

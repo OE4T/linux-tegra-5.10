@@ -82,13 +82,11 @@
 		/delete-property/ dma-coherent;
 	};
 
-	host1x {
+	host1x@13e00000 {
 		reset-names = "host1x";
 		reg-names = "vm", "hypervisor";
 
-		/delete-node/ nvdisplay@15200000;
-		/delete-node/ nvdisplay@15210000;
-		/delete-node/ nvdisplay@15220000;
+		/delete-node/ display-hub@15200000;
 		/delete-node/ sor;
 		/delete-node/ sor0;
 		/delete-node/ sor1;
