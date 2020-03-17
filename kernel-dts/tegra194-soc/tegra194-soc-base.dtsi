@@ -66,6 +66,10 @@
 	dma-ranges = <0x0 0x0 0x0 0x0 0x7f 0xffff0000>;
 #endif
 
+	aliases {
+		host1x = &host1x;
+	};
+
 	tegra-cvnas {
 		compatible = "nvidia,tegra-cvnas";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_CV>;
