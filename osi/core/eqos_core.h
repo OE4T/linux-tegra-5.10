@@ -603,15 +603,5 @@ struct core_func_safety {
  */
 #define EQOS_MAX_BAK_IDX		((EQOS_PAD_AUTO_CAL_CFG_BAK_IDX + 1U))
 
-/**
- * @brief core_backup - Struct used to store backup of core HW registers.
- */
-struct core_backup {
-	/** Array of reg MMIO addresses (base of EQoS + offset of reg) */
-	void *reg_addr[EQOS_MAX_BAK_IDX];
-	/** Array of value stored in each corresponding register */
-	unsigned int reg_val[EQOS_MAX_BAK_IDX];
-};
-
 /** @} */
 #endif

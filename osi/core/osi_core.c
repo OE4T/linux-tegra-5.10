@@ -57,7 +57,6 @@ int osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 		 * like periodic read-verify.
 		 */
 		osi_core->safety_config = (void *)eqos_get_core_safety_config();
-		osi_core->backup_config = (void *)eqos_get_core_backup_config();
 		return 0;
 	}
 
@@ -846,8 +845,8 @@ int osi_save_registers(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->save_registers != OSI_NULL)) {
-		osi_core->ops->save_registers(osi_core);
-		return 0;
+		/* Call MAC save registers callback and return the value */
+		return osi_core->ops->save_registers(osi_core);
 	}
 
 	return -1;
@@ -857,8 +856,8 @@ int osi_restore_registers(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->restore_registers != OSI_NULL)) {
-		osi_core->ops->restore_registers(osi_core);
-		return 0;
+		/* Call MAC restore registers callback and return the value */
+		return osi_core->ops->restore_registers(osi_core);
 	}
 
 	return -1;
