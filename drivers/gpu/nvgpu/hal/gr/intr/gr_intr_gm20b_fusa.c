@@ -40,35 +40,6 @@
 
 #define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
 
-void gm20b_gr_intr_handle_class_error(struct gk20a *g, u32 chid,
-				       struct nvgpu_gr_isr_data *isr_data)
-{
-	u32 gr_class_error;
-
-	gr_class_error =
-		gr_class_error_code_v(nvgpu_readl(g, gr_class_error_r()));
-
-	nvgpu_err(g, "class error 0x%08x, offset 0x%08x,"
-		"sub channel 0x%08x mme generated %d,"
-		" mme pc 0x%08xdata high %d priv status %d"
-		" unhandled intr 0x%08x for channel %u",
-		isr_data->class_num, (isr_data->offset << 2),
-		gr_trapped_addr_subch_v(isr_data->addr),
-		gr_trapped_addr_mme_generated_v(isr_data->addr),
-		gr_trapped_data_mme_pc_v(
-			nvgpu_readl(g, gr_trapped_data_mme_r())),
-		gr_trapped_addr_datahigh_v(isr_data->addr),
-		gr_trapped_addr_priv_v(isr_data->addr),
-		gr_class_error, chid);
-
-	nvgpu_err(g, "trapped data low 0x%08x",
-		nvgpu_readl(g, gr_trapped_data_lo_r()));
-	if (gr_trapped_addr_datahigh_v(isr_data->addr) != 0U) {
-		nvgpu_err(g, "trapped data high 0x%08x",
-		nvgpu_readl(g, gr_trapped_data_hi_r()));
-	}
-}
-
 void gm20b_gr_intr_clear_pending_interrupts(struct gk20a *g, u32 gr_intr)
 {
 	nvgpu_writel(g, gr_intr_r(), gr_intr);

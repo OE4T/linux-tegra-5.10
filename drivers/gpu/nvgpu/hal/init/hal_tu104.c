@@ -131,6 +131,7 @@
 #include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/init/gr_init_tu104.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
+#include "hal/gr/intr/gr_intr_gp10b.h"
 #include "hal/gr/intr/gr_intr_gv11b.h"
 #include "hal/gr/intr/gr_intr_tu104.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
@@ -682,7 +683,7 @@ static const struct gpu_ops tu104_ops = {
 			.handle_fecs_error = gv11b_gr_intr_handle_fecs_error,
 			.handle_sw_method = tu104_gr_intr_handle_sw_method,
 			.handle_class_error =
-					gm20b_gr_intr_handle_class_error,
+					gp10b_gr_intr_handle_class_error,
 			.clear_pending_interrupts =
 					gm20b_gr_intr_clear_pending_interrupts,
 			.read_pending_interrupts =

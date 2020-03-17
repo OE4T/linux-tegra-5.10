@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,9 +33,43 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_utils.h>
 
+#include "common/gr/gr_intr_priv.h"
+
 #include "gr_intr_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
+
+void gp10b_gr_intr_handle_class_error(struct gk20a *g, u32 chid,
+				      struct nvgpu_gr_isr_data *isr_data)
+{
+	u32 gr_class_error;
+	u32 offset_bit_shift = 2U;
+	u32 data_hi_set = 0U;
+
+	gr_class_error =
+		gr_class_error_code_v(nvgpu_readl(g, gr_class_error_r()));
+
+	nvgpu_err(g, "class error 0x%08x, offset 0x%08x,"
+		"sub channel 0x%08x mme generated %d,"
+		" mme pc 0x%08xdata high %d priv status %d"
+		" unhandled intr 0x%08x for channel %u",
+		isr_data->class_num, (isr_data->offset << offset_bit_shift),
+		gr_trapped_addr_subch_v(isr_data->addr),
+		gr_trapped_addr_mme_generated_v(isr_data->addr),
+		gr_trapped_data_mme_pc_v(
+			nvgpu_readl(g, gr_trapped_data_mme_r())),
+		gr_trapped_addr_datahigh_v(isr_data->addr),
+		gr_trapped_addr_priv_v(isr_data->addr),
+		gr_class_error, chid);
+
+	nvgpu_err(g, "trapped data low 0x%08x",
+		nvgpu_readl(g, gr_trapped_data_lo_r()));
+	data_hi_set = gr_trapped_addr_datahigh_v(isr_data->addr);
+	if (data_hi_set != 0U) {
+		nvgpu_err(g, "trapped data high 0x%08x",
+		nvgpu_readl(g, gr_trapped_data_hi_r()));
+	}
+}
 
 #ifdef CONFIG_NVGPU_CILP
 static int gp10b_gr_intr_clear_cilp_preempt_pending(struct gk20a *g,

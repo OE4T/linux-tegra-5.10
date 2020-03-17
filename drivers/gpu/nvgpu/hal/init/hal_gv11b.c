@@ -137,6 +137,7 @@
 #include "hal/gr/init/gr_init_gp10b.h"
 #include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
+#include "hal/gr/intr/gr_intr_gp10b.h"
 #include "hal/gr/intr/gr_intr_gv11b.h"
 #ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
@@ -663,7 +664,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 			.handle_fecs_error = gv11b_gr_intr_handle_fecs_error,
 			.handle_sw_method = gv11b_gr_intr_handle_sw_method,
 			.handle_class_error =
-					gm20b_gr_intr_handle_class_error,
+					gp10b_gr_intr_handle_class_error,
 			.clear_pending_interrupts =
 					gm20b_gr_intr_clear_pending_interrupts,
 			.read_pending_interrupts =

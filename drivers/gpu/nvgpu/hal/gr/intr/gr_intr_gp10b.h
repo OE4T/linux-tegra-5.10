@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,8 @@ struct nvgpu_gr_isr_data;
 int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 			struct nvgpu_channel *ch_ptr,
 			struct nvgpu_gr_isr_data *isr_data);
+void gp10b_gr_intr_handle_class_error(struct gk20a *g, u32 chid,
+				      struct nvgpu_gr_isr_data *isr_data);
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 void gp10b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data);
 void gp10b_gr_intr_set_go_idle_timeout(struct gk20a *g, u32 data);
