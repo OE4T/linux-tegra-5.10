@@ -40,7 +40,7 @@
 struct pmu_sequences;
 struct pmu_mutexes;
 struct nvgpu_pmu_lsfm;
-struct pmu_super_surface;
+struct nvgpu_pmu_super_surface;
 struct nvgpu_pmu_pg;
 struct nvgpu_pmu_perfmon;
 struct nvgpu_clk_pmupstate;
@@ -298,7 +298,7 @@ struct nvgpu_pmu {
 	struct pmu_mutexes *mutexes;
 
 	struct nvgpu_pmu_lsfm *lsfm;
-	struct pmu_super_surface *super_surface;
+	struct nvgpu_pmu_super_surface *super_surface;
 	struct nvgpu_pmu_pg *pg;
 	struct nvgpu_pmu_perfmon *pmu_perfmon;
 	struct nvgpu_clk_pmupstate *clk_pmu;

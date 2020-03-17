@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 #include "super_surface_priv.h"
 
 int nvgpu_pmu_super_surface_buf_alloc(struct gk20a *g, struct nvgpu_pmu *pmu,
-		struct pmu_super_surface *ss)
+		struct nvgpu_pmu_super_surface *ss)
 {
 	struct vm_gk20a *vm = g->mm.pmu.vm;
 	int err = 0;
@@ -39,7 +39,7 @@ int nvgpu_pmu_super_surface_buf_alloc(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return 0;
 	}
 
-	err = nvgpu_dma_alloc_map(vm, sizeof(struct nv_pmu_super_surface),
+	err = nvgpu_dma_alloc_map(vm, sizeof(struct super_surface),
 		&ss->super_surface_buf);
 	if (err != 0) {
 		nvgpu_err(g, "failed to allocate pmu suffer surface\n");
@@ -49,7 +49,7 @@ int nvgpu_pmu_super_surface_buf_alloc(struct gk20a *g, struct nvgpu_pmu *pmu,
 }
 
 struct nvgpu_mem *nvgpu_pmu_super_surface_mem(struct gk20a *g,
-	struct nvgpu_pmu *pmu, struct pmu_super_surface *ss)
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_super_surface *ss)
 {
 	return &ss->super_surface_buf;
 }
@@ -62,11 +62,11 @@ struct nvgpu_mem *nvgpu_pmu_super_surface_mem(struct gk20a *g,
  * GET_STATUS ID_TYPE.
  */
 void nvgpu_pmu_ss_create_ssmd_lookup_table(struct gk20a *g,
-	struct nvgpu_pmu *pmu, struct pmu_super_surface *ss)
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_super_surface *ss)
 {
-	struct nv_pmu_super_surface_member_descriptor ssmd;
+	struct super_surface_member_descriptor ssmd;
 	u32 ssmd_size = (u32)
-		sizeof(struct nv_pmu_super_surface_member_descriptor);
+		sizeof(struct super_surface_member_descriptor);
 	u32 idx = 0U;
 
 	nvgpu_log_fn(g, " ");
@@ -140,28 +140,28 @@ u32 nvgpu_pmu_get_ss_member_get_status_size(struct gk20a *g,
 }
 
 u32 nvgpu_pmu_get_ss_cmd_fbq_offset(struct gk20a *g,
-	struct nvgpu_pmu *pmu, struct pmu_super_surface *ss, u32 id)
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_super_surface *ss, u32 id)
 {
-	return (u32)offsetof(struct nv_pmu_super_surface,
+	return (u32)offsetof(struct super_surface,
 			fbq.cmd_queues.queue[id]);
 }
 
 u32 nvgpu_pmu_get_ss_msg_fbq_offset(struct gk20a *g,
-	struct nvgpu_pmu *pmu, struct pmu_super_surface *ss)
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_super_surface *ss)
 {
-	return (u32)offsetof(struct nv_pmu_super_surface,
+	return (u32)offsetof(struct super_surface,
 			fbq.msg_queue);
 }
 
 u32 nvgpu_pmu_get_ss_msg_fbq_element_offset(struct gk20a *g,
-	struct nvgpu_pmu *pmu, struct pmu_super_surface *ss, u32 idx)
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_super_surface *ss, u32 idx)
 {
-	return (u32)offsetof(struct nv_pmu_super_surface,
+	return (u32)offsetof(struct super_surface,
 		fbq.msg_queue.element[idx]);
 }
 
 void nvgpu_pmu_super_surface_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
-	struct pmu_super_surface *ss)
+	struct nvgpu_pmu_super_surface *ss)
 {
 	nvgpu_log_fn(g, " ");
 
@@ -177,10 +177,10 @@ void nvgpu_pmu_super_surface_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
 }
 
 int nvgpu_pmu_super_surface_init(struct gk20a *g, struct nvgpu_pmu *pmu,
-	struct pmu_super_surface **super_surface)
+	struct nvgpu_pmu_super_surface **super_surface)
 {
-	*super_surface = (struct pmu_super_surface *) nvgpu_kzalloc(g,
-		sizeof(struct pmu_super_surface));
+	*super_surface = (struct nvgpu_pmu_super_surface *) nvgpu_kzalloc(g,
+		sizeof(struct nvgpu_pmu_super_surface));
 	if (*super_surface == NULL) {
 		return -ENOMEM;
 	}

@@ -56,7 +56,7 @@ struct nvgpu_mem;
 #define NV_RM_PMU_SUPER_SURFACE_MEMBER_ID_TYPE_GET_STATUS    BIT(17)
 #define NV_RM_PMU_SUPER_SURFACE_MEMBER_ID_RSVD               (0x00UL << 20U)
 
-struct nv_pmu_super_surface_member_descriptor {
+struct super_surface_member_descriptor {
 	/* The member ID (@see NV_PMU_SUPER_SURFACE_MEMBER_ID_<xyz>). */
 	u32   id;
 
@@ -71,21 +71,20 @@ struct nv_pmu_super_surface_member_descriptor {
 };
 
 /* PMU super surface */
-struct nv_pmu_super_surface_hdr {
+struct super_surface_hdr {
 	struct falc_u64 address;
 	u32 member_mask;
 	u16 dmem_buffer_size_max;
 };
 
-NV_PMU_MAKE_ALIGNED_STRUCT(nv_pmu_super_surface_hdr,
-		sizeof(struct nv_pmu_super_surface_hdr));
+NV_PMU_MAKE_ALIGNED_STRUCT(super_surface_hdr, sizeof(struct super_surface_hdr));
 
 /*
  * Global Super Surface structure for combined INIT data required by PMU.
  * NOTE: Any new substructures or entries must be aligned.
  */
-struct nv_pmu_super_surface {
-	struct nv_pmu_super_surface_member_descriptor
+struct super_surface {
+	struct super_surface_member_descriptor
 		ssmd[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
 
 	struct {
@@ -93,31 +92,20 @@ struct nv_pmu_super_surface {
 		struct nv_pmu_fbq_msg_queue msg_queue;
 	} fbq;
 
-	union nv_pmu_super_surface_hdr_aligned hdr;
+	union super_surface_hdr_aligned hdr;
 
-	union {
-		u8 ss_unmapped_members_rsvd[SS_UNMAPPED_MEMBERS_SIZE];
-
-		/*
-		 * Below members are only for reference to know
-		 * supported boardobjs from nvgpu, should not be
-		 * accessed any boardobj member from below list
-		 * in nvgpu using these members, instead use ssmd
-		 * member present above to know the offset of
-		 * required boardobj from super surface in nvgpu
-		 */
-	};
+	u8 ss_unmapped_members_rsvd[SS_UNMAPPED_MEMBERS_SIZE];
 };
 
 /* nvgpu super surface */
-struct pmu_super_surface {
+struct nvgpu_pmu_super_surface {
 	/* super surface members */
 	struct nvgpu_mem super_surface_buf;
 
-	struct nv_pmu_super_surface_member_descriptor
+	struct super_surface_member_descriptor
 		ssmd_set[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
 
-	struct nv_pmu_super_surface_member_descriptor
+	struct super_surface_member_descriptor
 		ssmd_get_status[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
 };
 
