@@ -260,9 +260,9 @@ struct osi_core_ops {
 			      const unsigned int tx_lpi_enabled,
 			      const unsigned int tx_lpi_timer);
 	/** Called to save MAC register space during SoC suspend */
-	void (*save_registers)(struct osi_core_priv_data *const osi_core);
+	int (*save_registers)(struct osi_core_priv_data *const osi_core);
 	/** Called to restore MAC control registers during SoC resume */
-	void (*restore_registers)(struct osi_core_priv_data *const osi_core);
+	int (*restore_registers)(struct osi_core_priv_data *const osi_core);
 	/** Called to write into a PHY reg over MDIO bus */
 	int (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
 			     const unsigned int phyaddr,
@@ -322,6 +322,22 @@ struct osi_ptp_config {
 };
 
 /**
+ * @brief Max num of MAC core registers to backup. It should be max of or >=
+ * (EQOS_MAX_BAK_IDX=380, MGBE_MAX_BAK_IDX, coreX,...etc) backup registers.
+ */
+#define CORE_MAX_BAK_IDX	700U
+
+/**
+ * @brief core_backup - Struct used to store backup of core HW registers.
+ */
+struct core_backup {
+	/** Array of reg MMIO addresses (base of MAC + offset of reg) */
+	void *reg_addr[CORE_MAX_BAK_IDX];
+	/** Array of value stored in each corresponding register */
+	unsigned int reg_val[CORE_MAX_BAK_IDX];
+};
+
+/**
  * @brief The OSI Core (MAC & MTL) private data structure.
  */
 struct osi_core_priv_data {
@@ -367,7 +383,7 @@ struct osi_core_priv_data {
 	 * certain safety critical registers */
 	void *safety_config;
 	/** Backup config to save/restore registers during suspend/resume */
-	void *backup_config;
+	struct core_backup backup_config;
 	/** VLAN tag stripping enable(1) or disable(0) */
 	unsigned int strip_vlan_tag;
 	/** L3L4 filter bit bask, set index corresponding bit for

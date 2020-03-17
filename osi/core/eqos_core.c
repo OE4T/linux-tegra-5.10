@@ -32,11 +32,6 @@
 static struct core_func_safety eqos_core_safety_config;
 
 /**
- * @brief eqos_core_backup_config - EQOS MAC core registers backup config
- */
-static struct core_backup eqos_core_backup_config;
-
-/**
  * @brief eqos_core_safety_writel - Write to safety critical register.
  *
  * Algorithm:
@@ -179,7 +174,7 @@ static void eqos_core_safety_init(struct osi_core_priv_data *const osi_core)
 
 
 /**
- * @brief Initialize the eqos_core_backup_config.
+ * @brief Initialize the OSI core private data backup config array
  *
  * Algorithm: Populate the list of core registers to be saved during suspend.
  *	Fill the address of each register in structure.
@@ -190,7 +185,7 @@ static void eqos_core_safety_init(struct osi_core_priv_data *const osi_core)
  */
 static void eqos_core_backup_init(struct osi_core_priv_data *const osi_core)
 {
-	struct core_backup *config = &eqos_core_backup_config;
+	struct core_backup *config = &osi_core->backup_config;
 	unsigned char *base = (unsigned char *)osi_core->base;
 	unsigned int i;
 
@@ -3486,19 +3481,21 @@ static void eqos_configure_eee(
  *
  * @param[in] osi_core: OSI core private data structure.
  *
- * @retval none
+ * @retval 0 on Success
  */
-static inline void eqos_save_registers(
+static inline int eqos_save_registers(
 				struct osi_core_priv_data *const osi_core)
 {
 	unsigned int i;
-	struct core_backup *config = osi_core->backup_config;
+	struct core_backup *config = &osi_core->backup_config;
 
 	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
 		if (config->reg_addr[i] != OSI_NULL) {
 			config->reg_val[i] = osi_readl(config->reg_addr[i]);
 		}
 	}
+
+	return 0;
 }
 
 /**
@@ -3509,19 +3506,21 @@ static inline void eqos_save_registers(
  *
  * @param[in] osi_core: OSI core private data structure.
  *
- * @retval none
+ * @retval 0 on Success
  */
-static inline void eqos_restore_registers(
+static inline int eqos_restore_registers(
 				struct osi_core_priv_data *const osi_core)
 {
 	unsigned int i;
-	struct core_backup *config = osi_core->backup_config;
+	struct core_backup *config = &osi_core->backup_config;
 
 	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
 		if (config->reg_addr[i] != OSI_NULL) {
 			osi_writel(config->reg_val[i], config->reg_addr[i]);
 		}
 	}
+
+	return 0;
 }
 
 /**
@@ -3772,14 +3771,6 @@ static struct osi_core_ops eqos_core_ops = {
 	.write_phy_reg = eqos_write_phy_reg,
 	.read_phy_reg = eqos_read_phy_reg,
 };
-
-/**
- * @brief eqos_get_core_backup_config - EQOS MAC backup configuration
- */
-void *eqos_get_core_backup_config(void)
-{
-	return &eqos_core_backup_config;
-}
 
 /**
  * @brief eqos_get_core_safety_config - EQOS MAC safety configuration
