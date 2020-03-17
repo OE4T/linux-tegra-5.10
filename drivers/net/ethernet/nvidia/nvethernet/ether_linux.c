@@ -3937,11 +3937,9 @@ static int ether_suspend_noirq(struct device *dev)
 	 * current configuration so that SW view of HW is maintained across
 	 * suspend/resume.
 	 */
-	if (osi_core->backup_config) {
-		if (osi_save_registers(osi_core)) {
-			dev_err(dev, "Failed to backup MAC core registers\n");
-			return -EBUSY;
-		}
+	if (osi_save_registers(osi_core)) {
+		dev_err(dev, "Failed to backup MAC core registers\n");
+		return -EBUSY;
 	}
 
 	/* Stop workqueue while DUT is going to suspend state */
@@ -4107,11 +4105,10 @@ static int ether_resume_noirq(struct device *dev)
 	 * Restore the backup of the MAC configuration to maintain consistency
 	 * between SW/HW state.
 	 */
-	if (osi_core->backup_config) {
-		if (osi_restore_registers(osi_core)) {
-			//TODO: Ideally, undo MAC init/resume & return.
-			dev_err(dev, "Failed to restore MAC core registers\n");
-		}
+	if (osi_restore_registers(osi_core)) {
+		//TODO: Ideally, undo MAC init/resume & return.
+		dev_err(dev, "Failed to restore MAC core registers\n");
+		return -EIO;
 	}
 
 	return 0;
