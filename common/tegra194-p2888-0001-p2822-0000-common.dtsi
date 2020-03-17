@@ -328,7 +328,7 @@
 		};
 	};
 
-	host1x {
+	host1x@13e00000 {
 		dpaux@155F0000 {
 			status = "okay";
 			compatible = "nvidia,tegra194-dpaux3-padctl";

@@ -55,7 +55,7 @@
 	};
 
 	/* all cameras are disabled by default */
-	host1x {
+	host1x@13e00000 {
 		vi_base: vi@15c10000 {
 			ports {
 				vi_port0: port@0 {
