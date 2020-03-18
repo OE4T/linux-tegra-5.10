@@ -181,7 +181,13 @@ static struct sync_pt *nvhost_sync_pt_dup_inst(struct sync_pt *sync_pt)
 static int nvhost_sync_pt_has_signaled(struct sync_pt *sync_pt)
 {
 	struct nvhost_sync_pt *pt = to_nvhost_sync_pt(sync_pt);
-	struct nvhost_sync_timeline *obj = pt->obj;
+	struct nvhost_sync_timeline *obj;
+
+	/* shared data may not be available yet */
+	if (!pt)
+		return 0;
+
+	obj = pt->obj;
 
 	if (obj->id != NVSYNCPT_INVALID)
 		/* No need to update min */
@@ -234,8 +240,10 @@ static void nvhost_sync_pt_value_str(struct sync_pt *sync_pt, char *str,
 	struct nvhost_sync_timeline *obj;
 
 	/* shared data may not be available yet */
-	if (!pt)
+	if (!pt) {
+		snprintf(str, size, "NA");
 		return;
+	}
 
 	obj = pt->obj;
 
@@ -252,8 +260,10 @@ static void nvhost_sync_get_pt_name(struct sync_pt *sync_pt, char *str,
 	struct nvhost_sync_timeline *obj;
 
 	/* shared data may not be available yet */
-	if (!pt)
+	if (!pt) {
+		snprintf(str, size, "NA");
 		return;
+	}
 
 	obj = pt->obj;
 
