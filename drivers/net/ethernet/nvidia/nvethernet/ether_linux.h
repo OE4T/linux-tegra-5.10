@@ -40,6 +40,7 @@
 #include <linux/of.h>
 #include <linux/ktime.h>
 #include <linux/hrtimer.h>
+#include <linux/tegra-ivc.h>
 
 #include <osi_core.h>
 #include <osi_dma.h>
@@ -120,6 +121,12 @@
  * @brief Maximum skb frame(GSO/TSO) size (64KB)
  */
 #define ETHER_TX_MAX_FRAME_SIZE	GSO_MAX_SIZE
+
+/**
+ * @brief Ethernet Maximum IVC BUF
+ */
+#define ETHER_MAX_IVC_BUF		128
+
 
 /**
  * @brief Check if Tx data buffer length is within bounds.
@@ -333,6 +340,12 @@ struct ether_priv_data {
 	unsigned int tx_lpi_enabled;
 	/** Time (usec) MAC waits to enter LPI after Tx complete */
 	unsigned int tx_lpi_timer;
+	/** ivc cookie */
+	struct tegra_hv_ivc_cookie *ivck;
+	/** Buffer to receive pad ivc message */
+	char ivc_rx[ETHER_MAX_IVC_BUF];
+	/** ivc work */
+	struct work_struct ivc_work;
 };
 
 /**

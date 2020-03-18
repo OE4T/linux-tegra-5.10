@@ -531,6 +531,12 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 		pdata->common_irq_alloc_mask = 0U;
 	}
 
+	if (pdata->ivck != NULL) {
+		cancel_work_sync(&pdata->ivc_work);
+		tegra_hv_ivc_unreserve(pdata->ivck);
+		devm_free_irq(pdata->dev, pdata->ivck->irq, pdata);
+	}
+
 	for (i = 0; i < pdata->osi_dma->num_dma_chans; i++) {
 		chan = pdata->osi_dma->dma_chans[i];
 
@@ -545,6 +551,134 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 			pdata->tx_irq_alloc_mask &= (~(1U << i));
 		}
 	}
+}
+
+/**
+ * @brief IVC ISR Routine
+ *
+ * Algorithm: IVC routine to handle common interrupt.
+ * 1) Verify if IVC channel is readable
+ * 2) Read IVC msg
+ * 3) Schedule ivc_work
+ *
+ * @param[in] irq: IRQ number.
+ * @param[in] data: Private data from ISR.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval IRQ_HANDLED on success
+ * @retval IRQ_NONE on failure.
+ */
+static irqreturn_t ether_ivc_irq(int irq, void *data)
+{
+	struct ether_priv_data *pdata = data;
+	int ret;
+
+	if (tegra_hv_ivc_channel_notified(pdata->ivck) != 0) {
+		dev_err(pdata->dev, "ivc channel not usable\n");
+		return IRQ_HANDLED;
+	}
+
+	if (tegra_hv_ivc_can_read(pdata->ivck)) {
+		dev_info(pdata->dev, "ivc read done\n");
+		/* Read the current message for the ethernet server to be
+		 * able to send further messages on next  interrupt
+		 */
+		ret = tegra_hv_ivc_read(pdata->ivck, pdata->ivc_rx,
+					ETHER_MAX_IVC_BUF);
+		if (ret < 0) {
+			dev_err(pdata->dev, "IVC read failed: %d\n", ret);
+		} else {
+			/* Schedule work to execute the common IRQ Function
+			 * which takes the appropriate action.
+			 */
+			schedule_work(&pdata->ivc_work);
+		}
+	} else {
+		dev_info(pdata->dev, "Can not read ivc channel: %d\n",
+			 pdata->ivck->irq);
+	}
+	return IRQ_HANDLED;
+}
+
+/**
+ * @brief IVC work
+ *
+ * Algorithm: Invoke OSI layer to handle common interrupt.
+ *
+ * @param[in] work: work structure.
+ *
+ *
+ * @retval void
+ */
+
+static void ether_ivc_work(struct work_struct *work)
+{
+	struct ether_priv_data *pdata =
+		container_of(work, struct ether_priv_data, ivc_work);
+	osi_common_isr(pdata->osi_core);
+}
+
+/**
+ * @Register IVC
+ *
+ * Algorithm: routine initializes IVC for common IRQ
+ *
+ * @param[in] pdata: OS dependent private data structure.
+ *
+ * @note IVC number need to be known.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_init_ivc(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+	struct device_node *np, *hv_np;
+	uint32_t id;
+	int ret;
+
+	np = dev->of_node;
+	if (!np) {
+		return -EINVAL;
+	}
+
+	hv_np = of_parse_phandle(np, "ivc", 0);
+	if (!hv_np) {
+		return -EINVAL;
+	}
+
+	ret = of_property_read_u32_index(np, "ivc", 1, &id);
+	if (ret) {
+		dev_err(dev, "ivc_init: Error in reading IVC DT\n");
+		of_node_put(hv_np);
+		return -EINVAL;
+	}
+
+	pdata->ivck = tegra_hv_ivc_reserve(hv_np, id, NULL);
+	of_node_put(hv_np);
+	if (IS_ERR_OR_NULL(pdata->ivck)) {
+		dev_err(dev, "Failed to reserve ivc channel:%u\n", id);
+		ret = PTR_ERR(pdata->ivck);
+		pdata->ivck = NULL;
+		return ret;
+	}
+
+	dev_info(dev, "Reserved IVC channel #%u - frame_size=%d irq %d\n",
+                 id, pdata->ivck->frame_size, pdata->ivck->irq);
+
+	tegra_hv_ivc_channel_reset(pdata->ivck);
+
+	INIT_WORK(&pdata->ivc_work, ether_ivc_work);
+
+	ret = devm_request_irq(dev, pdata->ivck->irq, ether_ivc_irq,
+			       0, dev_name(dev), pdata);
+	if (ret) {
+		dev_err(dev, "Unable to request irq(%d)\n", pdata->ivck->irq);
+		tegra_hv_ivc_unreserve(pdata->ivck);
+		return ret;
+	}
+	return 0;
 }
 
 /**
@@ -577,6 +711,8 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 			pdata->common_irq);
 		return ret;
 	}
+	/* TODO: Check return value and handle error */
+	ether_init_ivc(pdata);
 	pdata->common_irq_alloc_mask = 1;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
