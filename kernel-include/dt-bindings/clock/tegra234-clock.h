@@ -54,8 +54,6 @@
 #define TEGRA234_CLK_DMIC4			18U
 /** @brief output of gate CLK_ENB_DPAUX */
 #define TEGRA234_CLK_DPAUX			19U
-/** @brief output of gate CLK_ENB_DPAUX1 */
-#define TEGRA234_CLK_DPAUX1			20U
 /**
  * @brief output of mux controlled by CLK_RST_CONTROLLER_ACLK_BURST_POLICY
  * divided by the divider controlled by ACLK_CLK_DIVISOR in
@@ -398,10 +396,6 @@
 #define TEGRA234_CLK_SOR3_PAD_CLKOUT		183U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_NVDISPLAY_P3 switch divider output */
 #define TEGRA234_CLK_NVDISPLAY_P3		184U
-/** @brief output of gate CLK_ENB_DPAUX2 */
-#define TEGRA234_CLK_DPAUX2			185U
-/** @brief output of gate CLK_ENB_DPAUX3 */
-#define TEGRA234_CLK_DPAUX3			186U
 /** @brief output of gate CLK_ENB_PEX2_CORE_10 */
 #define TEGRA234_CLK_PEX2_CORE_10		187U
 
@@ -699,10 +693,6 @@
 #define TEGRA234_CLK_DCE_NIC			340U
 /** @brief NAFLL clock source for DCE */
 #define TEGRA234_CLK_NAFLL_DCE			341U
-/** @brief output of gate CLK_ENB_MPHY_L2_RX_ANA */
-#define TEGRA234_CLK_MPHY_L2_RX_ANA		342U
-/** @brief output of gate CLK_ENB_MPHY_L3_RX_ANA */
-#define TEGRA234_CLK_MPHY_L3_RX_ANA		343U
 /** @brief ungated version of TX symbol clock after fixed 1/2 divider */
 #define TEGRA234_CLK_MPHY_L0_TX_DIV2		344U
 /** @brief output of divider CLK_RST_CONTROLLER_CLK_SOURCE_MPHY_L0_TX_LS_SYMB */
@@ -710,41 +700,6 @@
 /** @brief output of gate CLK_ENB_MPHY_L0_TX_2X_SYMB */
 #define TEGRA234_CLK_MPHY_L0_TX_2X_SYMB		346U
 /** @brief output of gate CLK_ENB_MPHY_L2_RX_LS_BIT */
-#define TEGRA234_CLK_MPHY_L2_RX_LS_BIT		347U
-/** @brief output of divider-gate CLK_ENB_MPHY_L2_RX_SYMB */
-#define TEGRA234_CLK_MPHY_L2_RX_SYMB		348U
-/** @brief output of gate CLK_ENB_MPHY_L2_TX_LS_3XBIT */
-#define TEGRA234_CLK_MPHY_L2_TX_LS_3XBIT	349U
-/** @brief output of gate CLK_ENB_MPHY_L2_TX_SYMB */
-#define TEGRA234_CLK_MPHY_L2_TX_SYMB		350U
-/** @brief ungated version of TX symbol clock after fixed 1/2 divider */
-#define TEGRA234_CLK_MPHY_L2_TX_DIV2		351U
-/** @brief output of divider CLK_RST_CONTROLLER_CLK_SOURCE_MPHY_L2_TX_LS_SYMB */
-#define TEGRA234_CLK_MPHY_L2_TX_SYMB_SRC	352U
-/** @brief output of gate CLK_ENB_MPHY_L2_TX_2X_SYMB */
-#define TEGRA234_CLK_MPHY_L2_TX_2X_SYMB		353U
-/** @brief output of gate CLK_ENB_MPHY_L3_RX_LS_BIT */
-#define TEGRA234_CLK_MPHY_L3_RX_LS_BIT		354U
-/** @brief output of divider-gate CLK_ENB_MPHY_L3_RX_SYMB */
-#define TEGRA234_CLK_MPHY_L3_RX_SYMB		355U
-/** @brief output of gate CLK_ENB_MPHY_L3_TX_LS_3XBIT */
-#define TEGRA234_CLK_MPHY_L3_TX_LS_3XBIT	356U
-/** @brief output of divider-gate CLK_ENB_MPHY_L3_TX_SYMB */
-#define TEGRA234_CLK_MPHY_L3_TX_SYMB		357U
-/** @brief ungated version of TX symbol clock after fixed 1/2 divider */
-#define TEGRA234_CLK_MPHY_L3_TX_DIV2		358U
-/** @brief output of divider CLK_RST_CONTROLLER_CLK_SOURCE_MPHY_L3_TX_LS_SYMB */
-#define TEGRA234_CLK_MPHY_L3_TX_SYMB_SRC	359U
-/** @brief output of gate CLK_ENB_MPHY_L3_TX_2X_SYMB */
-#define TEGRA234_CLK_MPHY_L3_TX_2X_SYMB		360U
-/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_UFSDEV_C1_REF */
-#define TEGRA234_CLK_UFSDEV_C1_REF		361U
-/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_UFSHC_C1_CG_SYS */
-#define TEGRA234_CLK_UFSHC_C1			362U
-/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_UFSDEV_C2_REF */
-#define TEGRA234_CLK_UFSDEV_C2_REF		363U
-/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_UFSHC_C2_CG_SYS */
-#define TEGRA234_CLK_UFSHC_C2			364U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_TACH1 */
 #define TEGRA234_CLK_TACH1			365U
 
