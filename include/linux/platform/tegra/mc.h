@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2010-2012 Google, Inc.
- * Copyright (C) 2013-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2013-2020, NVIDIA Corporation.  All rights reserved.
  *
  * Author:
  *	Erik Gilling <konkers@google.com>
@@ -284,6 +284,8 @@ enum {
 
 int tegra_mc_flush(int id);
 int tegra_mc_flush_done(int id);
+
+void tegra_mc_utils_init(int channels);
 
 /*
  * Necessary bit fields for various MC registers. Add to these as

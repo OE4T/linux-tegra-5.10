@@ -2,7 +2,7 @@
  * arch/arm/mach-tegra/mc.c
  *
  * Copyright (C) 2010 Google, Inc.
- * Copyright (C) 2011-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2011-2020, NVIDIA Corporation.  All rights reserved.
  *
  * Author:
  *	Erik Gilling <konkers@google.com>
@@ -448,8 +448,14 @@ static int tegra_mc_probe(struct platform_device *pdev)
 #endif
 
 	tegra_mcerr_init(mc_debugfs_dir, pdev);
+	tegra_mc_utils_init(mc_channels);
 
 	return 0;
+}
+
+void __weak tegra_mc_utils_init(int channels)
+{
+	return;
 }
 
 u32 __weak tegra_get_dvfs_clk_change_latency_nsec(unsigned long emc_freq_khz)
