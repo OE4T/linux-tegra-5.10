@@ -271,10 +271,12 @@ static void ether_adjust_link(struct net_device *dev)
 	int new_state = 0, speed_changed = 0;
 	unsigned long val;
 	unsigned int eee_enable = OSI_DISABLE;
+	int ret = 0;
 
 	if (phydev == NULL) {
 		return;
 	}
+
 	if (phydev->link) {
 		if ((pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE)
 		    && (phydev->pause || phydev->asym_pause)) {
@@ -291,7 +293,12 @@ static void ether_adjust_link(struct net_device *dev)
 		if (phydev->speed != pdata->speed) {
 			new_state = 1;
 			speed_changed = 1;
-			osi_set_speed(pdata->osi_core, phydev->speed);
+			ret = osi_set_speed(pdata->osi_core, phydev->speed);
+			if (ret < 0) {
+				netdev_err(dev, "Failed to set speed\n");
+				return;
+			}
+
 			pdata->speed = phydev->speed;
 		}
 
