@@ -1660,7 +1660,11 @@
 
 
 	xusb_padctl: xusb_padctl@3520000 {
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+		compatible = "nvidia,tegra194-xusb-padctl";
+#else
 		compatible = "nvidia,tegra19x-xusb-padctl";
+#endif
 		reg = <0x0 0x03520000 0x0 0x1000>,
 			<0x0 0x03540000 0x0 0x1000>;
 		reg-names = "padctl", "ao";
@@ -1755,11 +1759,19 @@
 		compatible = "nvidia,tegra194-xudc";
 		reg = <0x0 0x03550000 0x0 0x8000>,
 			<0x0 0x03558000 0x0 0x1000>;
+		reg-names = "base", "fpci";
 		interrupts = <0 166 0x4>;
 		clocks = <&bpmp_clks TEGRA194_CLK_XUSB_CORE_DEV>,
 			<&bpmp_clks TEGRA194_CLK_XUSB_SS_SUPERSPEED>,
 			<&bpmp_clks TEGRA194_CLK_XUSB_SS>,
 			<&bpmp_clks TEGRA194_CLK_XUSB_FS>;
+		clock-names = "dev", "ss", "ss_src", "fs_src";
+
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+		power-domains =  <&bpmp TEGRA194_POWER_DOMAIN_XUSBB>,
+			<&bpmp TEGRA194_POWER_DOMAIN_XUSBA>;
+		power-domain-names = "dev", "ss";
+#endif
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
