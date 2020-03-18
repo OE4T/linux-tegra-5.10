@@ -1201,14 +1201,13 @@
 
 	nvdisplay@13800000 {
 		compatible = "nvidia,tegra234-display";
+		nvidia,num-dpaux-instance = <1>;
 		reg-names = "nvdisplay", "dpaux0", "dpaux1";
-		reg = <0x0 0x13800000 0x0 0xEFFFF  /* nvdisplay */
-		       0x0 0x155C0000 0x0 0xFFFF   /* dpaux0 */
-		       0x0 0x155D0000 0x0 0xFFFF>; /* dpaux1 */
-		interrupt-names = "nvdisplay", "dpaux0", "dpaux1";
+		reg = <0x0 0x13800000 0x0 0xEFFFF    /* nvdisplay */
+		       0x0 0x155C0000 0x0 0xFFFF>;   /* dpaux0 */
+		interrupt-names = "nvdisplay", "dpaux0";
 		interrupts = <0 416 4
-		              0 419 4
-		              0 420 4>;
+		              0 419 4>;
 		clocks = <&bpmp_clks TEGRA234_CLK_NVDISPLAYHUB>,
 				<&bpmp_clks TEGRA234_CLK_NVDISPLAY_DISP>,
 				<&bpmp_clks TEGRA234_CLK_NVDISPLAY_P0>,
