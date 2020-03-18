@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -50,6 +50,7 @@
 #define ETHER_CONFIG_ARP_OFFLOAD	36
 #define ETHER_CONFIG_LOOPBACK_MODE	40
 #define ETHER_GET_AVB_ALGORITHM		46
+#define ETHER_SAVE_RESTORE		47
 /** @} */
 
 /**
