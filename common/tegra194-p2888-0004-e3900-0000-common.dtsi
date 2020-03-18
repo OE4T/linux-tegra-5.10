@@ -32,6 +32,10 @@
 		board-has-eeprom;
 	};
 
+	psci {
+		nvidia,system-lp0-disable;
+	};
+
 #if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 
 	xusb_padctl: xusb_padctl@3520000 {
