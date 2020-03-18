@@ -2,7 +2,7 @@
  * tegra194-platforms-eqos.dtsi: Ethernet QOS DTSI file.  Common for all
  * t194 platforms boards.
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,8 +50,10 @@
 
 			phy: phy@0 {
 				reg = <0>;
+#if defined(LINUX_VERSION) && LINUX_VERSION < 419
 				interrupt-parent = <&tegra_main_gpio>;
 				interrupts = <TEGRA194_MAIN_GPIO(G, 4) IRQ_TYPE_LEVEL_LOW>;
+#endif
 				marvell,copper-mode;
 				/* Setup LED[2] as interrupt pin (active low) */
 				marvell,reg-init = <0x03 0x12 0x7fff 0x880>;
