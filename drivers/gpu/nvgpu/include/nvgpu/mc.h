@@ -501,4 +501,10 @@ void nvgpu_mc_intr_nonstall_pause(struct gk20a *g);
  */
 void nvgpu_mc_intr_nonstall_resume(struct gk20a *g);
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+void nvgpu_mc_intr_unit_vectorid_init(struct gk20a *g, u32 unit,
+		u32 *vectorid, u32 num_entries);
+bool nvgpu_mc_intr_is_unit_info_valid(struct gk20a *g, u32 unit);
+#endif
+
 #endif
