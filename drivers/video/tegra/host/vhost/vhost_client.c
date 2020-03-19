@@ -30,7 +30,6 @@
 #include "nvhost_acm.h"
 
 #include "vhost.h"
-#include "t210/t210.h"
 #if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #include "t186/t186.h"
 #endif
@@ -52,32 +51,6 @@ static int nvhost_vhost_client_prepare_poweroff(struct platform_device *pdev)
 }
 
 static struct of_device_id tegra_client_of_match[] = {
-#ifdef CONFIG_TEGRA_GRHOST_VIC
-	{ .compatible = "nvidia,tegra210-vhost-vic",
-		.data = (struct nvhost_device_data *)&t21_vic_info },
-#endif
-#if defined(CONFIG_VIDEO_TEGRA_VI) || defined(CONFIG_VIDEO_TEGRA_VI_MODULE)
-	{ .compatible = "nvidia,tegra210-vhost-vi",
-		.data = (struct nvhost_device_data *)&t21_vi_info },
-#endif
-#ifdef CONFIG_TEGRA_GRHOST_ISP
-	{ .compatible = "nvidia,tegra210-vhost-isp",
-		.data = (struct nvhost_device_data *)&t21_isp_info },
-#endif
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
-#endif
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
-	{ .compatible = "nvidia,tegra210-vhost-nvenc",
-		.data = (struct nvhost_device_data *)&t21_msenc_info },
-#endif
-#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
-	{ .compatible = "nvidia,tegra210-vhost-nvdec",
-		.data = (struct nvhost_device_data *)&t21_nvdec_info },
-#endif
-#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
-	{ .compatible = "nvidia,tegra210-vhost-nvjpg",
-		.data = (struct nvhost_device_data *)&t21_nvjpg_info },
-#endif
 #if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #ifdef CONFIG_TEGRA_GRHOST_VIC
 	{ .compatible = "nvidia,tegra186-vhost-vic",
@@ -163,24 +136,6 @@ static int vhost_client_probe(struct platform_device *dev)
 			return -ENODEV;
 
 		pdata = (struct nvhost_device_data *)match->data;
-
-#ifdef CONFIG_TEGRA_GRHOST_ISP
-		/* If ISP, need to differentiate ISP.0 from ISP.1 */
-		if (nvhost_is_210() || nvhost_is_124()) {
-			int dev_id = 0;
-			char engine[4];
-
-			if ((sscanf(dev->name, "%x.%3s", &dev_id, engine) == 2)
-				&& (strcmp(engine, "isp") == 0)) {
-				if (nvhost_is_210()) {
-					if (dev_id == TEGRA_ISP_BASE)
-						pdata = &t21_isp_info;
-					else if (dev_id == TEGRA_ISPB_BASE)
-						pdata = &t21_ispb_info;
-				}
-			}
-		}
-#endif
 	}
 
 	if (!pdata) {
