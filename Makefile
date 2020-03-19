@@ -6,11 +6,7 @@ EXTRAVERSION =
 NAME = Kleptomaniac Octopus
 
 ifeq ($(KERNEL_OVERLAYS),)
-KERNEL_OVERLAYS :=
-KERNEL_OVERLAYS += $(CURDIR)/../nvidia
-KERNEL_OVERLAYS += $(CURDIR)/../nvgpu
-KERNEL_OVERLAYS += $(CURDIR)/../nvidia-t23x
-KERNEL_OVERLAYS += $(CURDIR)/../display-t23x
+KERNEL_OVERLAYS := $(addprefix $(CURDIR)/../,$(shell cat kernel-overlays.txt))
 else
 override KERNEL_OVERLAYS := $(subst :, ,$(KERNEL_OVERLAYS))
 endif
