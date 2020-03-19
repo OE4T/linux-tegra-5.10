@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Chip support module
  *
- * Copyright (c) 2012-2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,7 +29,6 @@
 
 #include "host1x/host1x.h"
 #include "chip_support.h"
-#include "t124/t124.h"
 #include "t210/t210.h"
 
 static struct nvhost_chip_support *nvhost_chip_ops;

@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/dc/dc_common.c
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION, All rights reserved.
  * Author: Arun Swain <arswain@nvidia.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -32,7 +32,7 @@
 #include "dc_common.h"
 #include "nvhost_channel.h"
 #include "nvhost_job.h"
-#include "host1x/host1x03_hardware.h"
+#include "host1x/host1x04_hardware.h"
 #include <trace/events/display.h>
 
 #define CMDBUF_SIZE		128

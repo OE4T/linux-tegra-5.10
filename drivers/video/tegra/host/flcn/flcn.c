@@ -1,7 +1,7 @@
 /*
 * Tegra flcn common driver
 *
-* Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms and conditions of the GNU General Public License,
@@ -44,8 +44,7 @@
 #include "flcn.h"
 #include "hw_flcn.h"
 
-#include "t124/hardware_t124.h" /* for nvhost opcodes*/
-#include "t124/t124.h"
+#include "host1x/host1x04_hardware.h" /* for nvhost opcodes*/
 #include "t210/t210.h"
 
 #if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
@@ -656,14 +655,8 @@ int nvhost_vic_aggregate_constraints(struct platform_device *dev,
 
 static struct of_device_id tegra_flcn_of_match[] = {
 #ifdef CONFIG_TEGRA_GRHOST_VIC
-	{ .compatible = "nvidia,tegra124-vic",
-		.data = (struct nvhost_device_data *)&t124_vic_info },
 	{ .compatible = "nvidia,tegra210-vic",
 		.data = (struct nvhost_device_data *)&t21_vic_info },
-#endif
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
-	{ .compatible = "nvidia,tegra124-msenc",
-		.data = (struct nvhost_device_data *)&t124_msenc_info },
 #endif
 #ifdef TEGRA_21X_OR_HIGHER_CONFIG
 #if defined(CONFIG_TEGRA_GRHOST_NVENC)
@@ -800,13 +793,6 @@ static int __exit flcn_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_device_id flcn_id_table[] = {
-	{ .name = "vic03" },
-	{ .name = "msenc" },
-	{ .name = "msenc" },
-	{ .name = "nvjpg" },
-	{},
-};
 static struct platform_driver flcn_driver = {
 	.probe = flcn_probe,
 	.remove = __exit_p(flcn_remove),
@@ -821,22 +807,9 @@ static struct platform_driver flcn_driver = {
 #endif
 		.suppress_bind_attrs = true,
 	},
-	.id_table = flcn_id_table,
 };
 
 static struct of_device_id tegra_flcn_domain_match[] = {
-#ifdef CONFIG_TEGRA_GRHOST_VIC
-	{.compatible = "nvidia,tegra124-vic03-pd",
-	.data = (struct nvhost_device_data *)&t124_vic_info},
-	{.compatible = "nvidia,tegra132-vic03-pd",
-	.data = (struct nvhost_device_data *)&t124_vic_info},
-#endif
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
-	{.compatible = "nvidia,tegra124-msenc-pd",
-	.data = (struct nvhost_device_data *)&t124_msenc_info},
-	{.compatible = "nvidia,tegra132-msenc-pd",
-	.data = (struct nvhost_device_data *)&t124_msenc_info},
-#endif
 #ifdef CONFIG_TEGRA_GRHOST_VIC
 	{.compatible = "nvidia,tegra210-vic03-pd",
 	 .data = (struct nvhost_device_data *)&t21_vic_info},

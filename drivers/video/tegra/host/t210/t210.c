@@ -32,10 +32,8 @@
 #include "scale_emc.h"
 
 #include "t210.h"
-#include "t124/t124.h"
 #include "host1x/host1x.h"
-#include "t210_hardware.h"
-#include "syncpt_t124.h"
+#include "host1x/host1x04_hardware.h"
 #include "flcn/flcn.h"
 #include "nvdec/nvdec.h"
 #include "tsec/tsec.h"
@@ -57,9 +55,9 @@
 #define BIT64(nr) (1ULL << (nr))
 
 static struct host1x_device_info host1x04_info = {
-	.nb_channels	= T124_NVHOST_NUMCHANNELS,
+	.nb_channels	= T210_NVHOST_NUMCHANNELS,
 	.ch_base	= 0,
-	.ch_limit	= T124_NVHOST_NUMCHANNELS,
+	.ch_limit	= T210_NVHOST_NUMCHANNELS,
 	.nb_mlocks	= NV_HOST1X_NB_MLOCKS,
 	.initialize_chip_support = nvhost_init_t210_support,
 	.nb_hw_pts	= NV_HOST1X_SYNCPT_NB_PTS,
@@ -103,8 +101,8 @@ struct nvhost_device_data t21_isp_info = {
 		{"emc", 0, NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER, }
 #endif
 	 },
-	.finalize_poweron	= nvhost_isp_t210_finalize_poweron,
-	.prepare_poweroff	= nvhost_isp_t124_prepare_poweroff,
+	.finalize_poweron	= nvhost_isp_finalize_poweron,
+	.prepare_poweroff	= nvhost_isp_prepare_poweroff,
 	.hw_init		= nvhost_isp_register_isr_v1,
 	.ctrl_ops		= &tegra_isp_ctrl_ops,
 	.bond_out_id		= BOND_OUT_ISP,
@@ -131,8 +129,8 @@ struct nvhost_device_data t21_ispb_info = {
 		{"emc", 0, NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER, }
 #endif
 	 },
-	.finalize_poweron	= nvhost_isp_t210_finalize_poweron,
-	.prepare_poweroff	= nvhost_isp_t124_prepare_poweroff,
+	.finalize_poweron	= nvhost_isp_finalize_poweron,
+	.prepare_poweroff	= nvhost_isp_prepare_poweroff,
 	.hw_init		= nvhost_isp_register_isr_v1,
 	.ctrl_ops		= &tegra_isp_ctrl_ops,
 	.bond_out_id		= BOND_OUT_ISP,
@@ -426,16 +424,15 @@ static void t210_remove_support(struct nvhost_chip_support *op)
 #include "host1x/host1x_intr.c"
 #define NVHOST_T210_ACTMON
 #if defined(CONFIG_TEGRA_GRHOST_SCALE)
-#include "host1x/host1x_actmon_t124.c"
+#include "host1x/host1x04_actmon.c"
 #endif
 #include "host1x/host1x_debug.c"
 
 int nvhost_init_t210_support(struct nvhost_master *host,
        struct nvhost_chip_support *op)
 {
-	int err;
-	struct t124 *t210 = NULL;
 	struct nvhost_device_data *data = platform_get_drvdata(host->dev);
+	int err;
 
 	op->soc_name = "tegra21x";
 
@@ -459,22 +456,8 @@ int nvhost_init_t210_support(struct nvhost_master *host,
 		vhost_init_host1x_debug_ops(&op->debug);
 	}
 
-	t210 = kzalloc(sizeof(struct t124), GFP_KERNEL);
-	if (!t210) {
-		err = -ENOMEM;
-		goto err;
-	}
-
-	t210->host = host;
-	op->priv = t210;
 	op->remove_support = t210_remove_support;
 
 	return 0;
 
-err:
-	kfree(t210);
-
-	op->priv = NULL;
-	op->remove_support = NULL;
-	return err;
 }

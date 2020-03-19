@@ -61,7 +61,6 @@
 
 #include "nvhost_scale.h"
 #include "chip_support.h"
-#include "t124/t124.h"
 #include "t210/t210.h"
 
 #if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
@@ -944,10 +943,6 @@ static int nvhost_alloc_resources(struct nvhost_master *host)
 }
 
 static struct of_device_id tegra_host1x_of_match[] = {
-#ifdef TEGRA_12X_OR_HIGHER_CONFIG
-	{ .compatible = "nvidia,tegra124-host1x",
-		.data = (struct nvhost_device_data *)&t124_host1x_info },
-#endif
 #ifdef TEGRA_21X_OR_HIGHER_CONFIG
 	{ .compatible = "nvidia,tegra210-host1x",
 		.data = (struct nvhost_device_data *)&t21_host1x_info },
@@ -1421,10 +1416,6 @@ static struct platform_driver platform_driver = {
 };
 
 static struct of_device_id tegra_host1x_domain_match[] = {
-	{.compatible = "nvidia,tegra124-host1x-pd",
-	 .data = (struct nvhost_device_data *)&t124_host1x_info},
-	{.compatible = "nvidia,tegra132-host1x-pd",
-	 .data = (struct nvhost_device_data *)&t124_host1x_info},
 #ifdef TEGRA_21X_OR_HIGHER_CONFIG
 	{.compatible = "nvidia,tegra210-host1x-pd",
 	 .data = (struct nvhost_device_data *)&t21_host1x_info},

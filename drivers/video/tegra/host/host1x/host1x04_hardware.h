@@ -1,7 +1,9 @@
 /*
- * Tegra Graphics Host Register Offsets for T20/T30
+ * drivers/video/tegra/host/host1x/host1x04_hardware.h
  *
- * Copyright (c) 2010-2014, NVIDIA Corporation. All rights reserved.
+ * Tegra T210 HOST1X Register Definitions
+ *
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -12,39 +14,44 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __NVHOST_HOST1X02_HARDWARE_H
-#define __NVHOST_HOST1X02_HARDWARE_H
+#ifndef __HOST1X04_HARDWARE_H
+#define __HOST1X04_HARDWARE_H
 
-#include <linux/types.h>
-#include <linux/bitops.h>
-#include "hw_host1x02_channel.h"
-#include "hw_host1x02_sync.h"
-#include "hw_host1x02_uclass.h"
-
-/* channel registers */
-#define NV_HOST1X_CHANNEL_MAP_SIZE_BYTES 16384
-#define NV_HOST1X_SYNC_MLOCK_NUM 16
+#include "host1x/hw_host1x04_sync.h"
+#include "host1x/hw_host1x04_uclass.h"
+#include "host1x/hw_host1x04_channel.h"
+#include "host1x/hw_host1x04_actmon.h"
 
 /* sync registers */
-#define HOST1X_CHANNEL_SYNC_REG_BASE   0x3000
+#define NV_HOST1X_SYNCPT_NB_PTS 192
+#define NV_HOST1X_SYNCPT_NB_BASES 64
 #define NV_HOST1X_NB_MLOCKS 16
+#define HOST1X_CHANNEL_SYNC_REG_BASE 0x2100
+#define NV_HOST1X_CHANNEL_MAP_SIZE_BYTES 16384
 
+/* actmon regs */
+#define HOST1X_CHANNEL_ACTMON1_REG_BASE 8192
+#define HOST1X_CHANNEL_ACTMON2_REG_BASE 8256
+#define HOST1X_CHANNEL_ACTMON3_REG_BASE 8320
+#define HOST1X_CHANNEL_ACTMON4_REG_BASE 8384
+
+/* Generic support */
 static inline u32 nvhost_class_host_wait_syncpt(
 	unsigned indx, unsigned threshold)
 {
-	return host1x_uclass_wait_syncpt_indx_f(indx)
-		| host1x_uclass_wait_syncpt_thresh_f(threshold);
+	return (indx << 24) | (threshold & 0xffffff);
 }
 
 static inline u32 nvhost_class_host_load_syncpt_base(
 	unsigned indx, unsigned threshold)
 {
-	return host1x_uclass_load_syncpt_base_base_indx_f(indx)
-		| host1x_uclass_load_syncpt_base_value_f(threshold);
+	return host1x_uclass_wait_syncpt_indx_f(indx)
+		| host1x_uclass_wait_syncpt_thresh_f(threshold);
 }
 
 static inline u32 nvhost_class_host_wait_syncpt_base(
@@ -69,6 +76,18 @@ static inline u32 nvhost_class_host_incr_syncpt(
 		| host1x_uclass_incr_syncpt_indx_f(indx);
 }
 
+static inline void __iomem *host1x_channel_aperture(void __iomem *p, int ndx)
+{
+	p += ndx * NV_HOST1X_CHANNEL_MAP_SIZE_BYTES;
+	return p;
+}
+
+enum {
+	NV_HOST_MODULE_HOST1X = 0,
+	NV_HOST_MODULE_MPE = 1,
+	NV_HOST_MODULE_GR3D = 6
+};
+
 static inline u32 nvhost_class_host_indoff_reg_write(
 	unsigned mod_id, unsigned offset, bool auto_inc)
 {
@@ -90,7 +109,6 @@ static inline u32 nvhost_class_host_indoff_reg_read(
 		v |= host1x_uclass_indoff_autoinc_f(1);
 	return v;
 }
-
 
 /* cdma opcodes */
 static inline u32 nvhost_opcode_setclass(
@@ -135,6 +153,16 @@ static inline u32 nvhost_opcode_gather(unsigned count)
 	return (6 << 28) | count;
 }
 
+static inline u32 nvhost_opcode_gather_nonincr(unsigned offset,	unsigned count)
+{
+	return (6 << 28) | (offset << 16) | BIT(15) | count;
+}
+
+static inline u32 nvhost_opcode_gather_incr(unsigned offset, unsigned count)
+{
+	return (6 << 28) | (offset << 16) | BIT(15) | BIT(14) | count;
+}
+
 static inline u32 nvhost_opcode_gather_insert(unsigned offset, unsigned incr,
 		unsigned count)
 {
@@ -158,4 +186,4 @@ static inline u32 nvhost_mask2(unsigned x, unsigned y)
 	return 1 | (1 << (y - x));
 }
 
-#endif
+#endif /* __HOST1X04_HARDWARE_H */

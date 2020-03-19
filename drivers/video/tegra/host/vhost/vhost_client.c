@@ -1,7 +1,7 @@
 /*
 * Tegra Host1x Virtualization client common driver
 *
-* Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms and conditions of the GNU General Public License,
@@ -30,7 +30,6 @@
 #include "nvhost_acm.h"
 
 #include "vhost.h"
-#include "t124/t124.h"
 #include "t210/t210.h"
 #if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #include "t186/t186.h"
@@ -54,26 +53,18 @@ static int nvhost_vhost_client_prepare_poweroff(struct platform_device *pdev)
 
 static struct of_device_id tegra_client_of_match[] = {
 #ifdef CONFIG_TEGRA_GRHOST_VIC
-	{ .compatible = "nvidia,tegra124-vhost-vic",
-		.data = (struct nvhost_device_data *)&t124_vic_info },
 	{ .compatible = "nvidia,tegra210-vhost-vic",
 		.data = (struct nvhost_device_data *)&t21_vic_info },
 #endif
 #if defined(CONFIG_VIDEO_TEGRA_VI) || defined(CONFIG_VIDEO_TEGRA_VI_MODULE)
-	{ .compatible = "nvidia,tegra124-vhost-vi",
-		.data = (struct nvhost_device_data *)&t124_vi_info },
 	{ .compatible = "nvidia,tegra210-vhost-vi",
 		.data = (struct nvhost_device_data *)&t21_vi_info },
 #endif
 #ifdef CONFIG_TEGRA_GRHOST_ISP
-	{ .compatible = "nvidia,tegra124-vhost-isp",
-		.data = (struct nvhost_device_data *)&t124_isp_info },
 	{ .compatible = "nvidia,tegra210-vhost-isp",
 		.data = (struct nvhost_device_data *)&t21_isp_info },
 #endif
 #if defined(CONFIG_TEGRA_GRHOST_NVENC)
-	{ .compatible = "nvidia,tegra124-vhost-msenc",
-		.data = (struct nvhost_device_data *)&t124_msenc_info },
 #endif
 #if defined(CONFIG_TEGRA_GRHOST_NVENC)
 	{ .compatible = "nvidia,tegra210-vhost-nvenc",
@@ -181,12 +172,7 @@ static int vhost_client_probe(struct platform_device *dev)
 
 			if ((sscanf(dev->name, "%x.%3s", &dev_id, engine) == 2)
 				&& (strcmp(engine, "isp") == 0)) {
-				if (nvhost_is_124()) {
-					if (dev_id == TEGRA_ISP_BASE)
-						pdata = &t124_isp_info;
-					else if (dev_id == TEGRA_ISPB_BASE)
-						pdata = &t124_ispb_info;
-				} else if (nvhost_is_210()) {
+				if (nvhost_is_210()) {
 					if (dev_id == TEGRA_ISP_BASE)
 						pdata = &t21_isp_info;
 					else if (dev_id == TEGRA_ISPB_BASE)
@@ -277,13 +263,6 @@ static int __exit vhost_client_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_device_id client_id_table[] = {
-	{ .name = "vic03" },
-	{ .name = "vi" },
-	{ .name = "isp" },
-	{ .name = "msenc" },
-	{},
-};
 static struct platform_driver client_driver = {
 	.probe = vhost_client_probe,
 	.remove = __exit_p(vhost_client_remove),
@@ -298,7 +277,6 @@ static struct platform_driver client_driver = {
 #endif
 		.suppress_bind_attrs = true,
 	},
-	.id_table = client_id_table,
 };
 
 static int __init vhost_client_init(void)

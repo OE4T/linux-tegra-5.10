@@ -28,7 +28,6 @@ obj-$(CONFIG_TEGRA_GRHOST) += host1x/
 obj-$(CONFIG_TEGRA_GRHOST_TSEC) += tsec/
 obj-$(CONFIG_TEGRA_GRHOST_NVDEC) += nvdec/
 obj-$(CONFIG_TEGRA_GRHOST_ISP) += isp/
-obj-$(CONFIG_TEGRA_GRHOST) += t124/
 obj-$(CONFIG_TEGRA_GRHOST) += flcn/
 obj-$(CONFIG_TEGRA_GRHOST) += t210/
 obj-$(CONFIG_TEGRA_GRHOST_SCALE) += scale_emc.o nvhost_scale.o

@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Channel
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -385,8 +385,7 @@ error:
 	return err;
 }
 
-#ifdef _hw_host1x04_channel_h_
-static int t124_channel_init_gather_filter(struct platform_device *pdev,
+static int host1x_channel_init_gather_filter(struct platform_device *pdev,
 	struct nvhost_channel *ch)
 {
 
@@ -400,7 +399,6 @@ static int t124_channel_init_gather_filter(struct platform_device *pdev,
 
 	return 0;
 }
-#endif
 
 static int host1x_channel_init(struct nvhost_channel *ch,
 	struct nvhost_master *dev)
@@ -413,7 +411,5 @@ static int host1x_channel_init(struct nvhost_channel *ch,
 static const struct nvhost_channel_ops host1x_channel_ops = {
 	.init = host1x_channel_init,
 	.submit = host1x_channel_submit,
-#ifdef _hw_host1x04_channel_h_
-	.init_gather_filter = t124_channel_init_gather_filter,
-#endif
+	.init_gather_filter = host1x_channel_init_gather_filter,
 };

@@ -1,7 +1,7 @@
 /*
  * Tegra TSEC Module Support
  *
- * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -43,12 +43,11 @@
 #include "nvhost_acm.h"
 #include "chip_support.h"
 #include "nvhost_intr.h"
-#include "t124/t124.h"
 #include "t210/t210.h"
 #include "nvhost_job.h"
 #include "nvhost_channel.h"
 #include "nvhost_cdma.h"
-#include "host1x/host1x01_hardware.h"
+#include "host1x/host1x04_hardware.h"
 #include "class_ids.h"
 #include "tsec_methods.h"
 #include "tsec_drv.h"
@@ -743,10 +742,6 @@ int nvhost_tsec_prepare_poweroff(struct platform_device *dev)
 
 
 static struct of_device_id tegra_tsec_of_match[] = {
-#ifdef TEGRA_12X_OR_HIGHER_CONFIG
-	{ .compatible = "nvidia,tegra124-tsec",
-		.data = (struct nvhost_device_data *)&t124_tsec_info },
-#endif
 #ifdef TEGRA_21X_OR_HIGHER_CONFIG
 	{ .name = "tsec",
 		.compatible = "nvidia,tegra210-tsec",
@@ -890,10 +885,6 @@ static int __init tsec_key_setup(char *line)
 __setup("otf_key=", tsec_key_setup);
 
 static struct of_device_id tegra_tsec_domain_match[] = {
-	{.compatible = "nvidia,tegra124-tsec-pd",
-	 .data = (struct nvhost_device_data *)&t124_tsec_info},
-	{.compatible = "nvidia,tegra132-tsec-pd",
-	 .data = (struct nvhost_device_data *)&t124_tsec_info},
 #ifdef TEGRA_21X_OR_HIGHER_CONFIG
 	{.compatible = "nvidia,tegra210-tsec-pd",
 	 .data = (struct nvhost_device_data *)&t21_tsec_info},

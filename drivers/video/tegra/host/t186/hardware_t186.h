@@ -1,9 +1,9 @@
 /*
- * drivers/video/tegra/host/t186/hardware_t124.h
+ * drivers/video/tegra/host/t186/hardware_t186.h
  *
  * Tegra T186 HOST1X Register Definitions
  *
- * Copyright (c) 2014-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,

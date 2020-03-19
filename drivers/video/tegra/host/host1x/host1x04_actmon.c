@@ -1,7 +1,7 @@
 /*
- * Tegra Graphics Host Actmon support for T124 and T210
+ * Tegra Graphics Host Actmon support for T210
  *
- * Copyright (c) 2013-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -96,7 +96,6 @@ static void host1x_actmon_process_isr(u32 hintstat, void *priv)
  *
  */
 
-#ifdef NVHOST_T210_ACTMON
 static void actmon_update_sample_period_safe(struct host1x_actmon *actmon)
 {
 	long freq_mhz, clks_per_sample;
@@ -126,27 +125,6 @@ static void actmon_update_sample_period_safe(struct host1x_actmon *actmon)
 	/* AVG value depends on sample period => clear it */
 	actmon_writel(actmon, 0, actmon_init_avg_r());
 }
-#else
-static void actmon_update_sample_period_safe(struct host1x_actmon *actmon)
-{
-	long freq_mhz, clks_per_sample;
-	u32 val;
-
-	/* We use MHz and us instead of Hz and s due to numerical limitations */
-	freq_mhz = clk_get_rate(actmon->clk) / 1000000;
-	clks_per_sample = freq_mhz * actmon->usecs_per_sample;
-	actmon->clks_per_sample = clks_per_sample;
-	actmon->divider = 1;
-
-	val = actmon_readl(actmon, actmon_ctrl_r());
-	val &= ~actmon_ctrl_sample_period_m();
-	val |= actmon_ctrl_sample_period_f(clks_per_sample);
-	actmon_writel(actmon, val, actmon_ctrl_r());
-
-	/* AVG value depends on sample period => clear it */
-	actmon_writel(actmon, 0, actmon_init_avg_r());
-}
-#endif
 
 static  void __iomem *host1x_actmon_get_regs(struct host1x_actmon *actmon)
 {

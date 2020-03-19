@@ -1,7 +1,7 @@
 /*
  * hdmihdcp.c: hdmi hdcp functions.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -45,7 +45,7 @@
 #include "sor_regs.h"
 #include "hdmihdcp.h"
 #include "hdmi_reg.h"
-#include "host1x/host1x01_hardware.h"
+#include "host1x/host1x04_hardware.h"
 #include "tsec/tsec.h"
 #include "class_ids.h"
 #include "tsec_drv.h"

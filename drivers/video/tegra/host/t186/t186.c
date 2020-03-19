@@ -128,8 +128,8 @@ struct nvhost_device_data t18_isp_info = {
 	.clocks			= {
 		{"isp", 768000000},
 	},
-	.finalize_poweron	= nvhost_isp_t210_finalize_poweron,
-	.prepare_poweroff	= nvhost_isp_t124_prepare_poweroff,
+	.finalize_poweron	= nvhost_isp_finalize_poweron,
+	.prepare_poweroff	= nvhost_isp_prepare_poweroff,
 	.hw_init		= nvhost_isp_register_isr_v2,
 	.ctrl_ops		= &tegra_isp_ctrl_ops,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
