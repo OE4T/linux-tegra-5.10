@@ -59,6 +59,7 @@
 
 #define ADMA_GLOBAL_CMD					0x00
 #define ADMA_GLOBAL_SOFT_RESET				0x04
+#define ADMA_GLOBAL_CG					0x08
 
 #define TEGRA_ADMA_BURST_COMPLETE_TIME			20
 
@@ -70,9 +71,41 @@
 
 #define ADMA_CH_REG_FIELD_VAL(val, mask, shift)	(((val) & mask) << shift)
 
+#define ADMA_GLOBAL_CG_DISABLE			0x00
+#define ADMA_GLOBAL_CG_ENABLE			0x07
+
+/* T210 Shared Semaphore registers */
+#define AMISC_SHRD_SMP_STA			0x1c
+#define AMISC_SHRD_SMP_STA_SET			0x20
+#define AMISC_SHRD_SMP_STA_CLR			0x24
+#define T210_SHRD_SMP_STA			AMISC_SHRD_SMP_STA
+#define T210_SHRD_SMP_STA_SET			AMISC_SHRD_SMP_STA_SET
+#define T210_SHRD_SMP_STA_CLR			AMISC_SHRD_SMP_STA_CLR
+/* T186 HSP SS registers for ADMA WAR */
+#define HSP_SHRD_SEM_0_SHRD_SMP_STA		0x00
+#define HSP_SHRD_SEM_0_SHRD_SMP_STA_SET		0x04
+#define HSP_SHRD_SEM_0_SHRD_SMP_STA_CLR		0x08
+#define T186_SHRD_SMP_STA			HSP_SHRD_SEM_0_SHRD_SMP_STA
+#define T186_SHRD_SMP_STA_SET			HSP_SHRD_SEM_0_SHRD_SMP_STA_SET
+#define T186_SHRD_SMP_STA_CLR			HSP_SHRD_SEM_0_SHRD_SMP_STA_CLR
+
+/* Make sure ADSP using 2nd SMP bit */
+#define ADMA_SHRD_SMP_CPU			0x1
+#define ADMA_SHRD_SMP_ADSP			0x2
+#define ADMA_SHRD_SMP_BITS		(ADMA_SHRD_SMP_CPU | ADMA_SHRD_SMP_ADSP)
+#define ADMA_SHRD_SEM_WAIT_COUNT		50
 struct tegra_adma;
 static struct device *dma_device;
 
+/*
+ * struct tegra_adma_war - Tegra chip specific sw war data
+ */
+struct tegra_adma_war {
+	bool is_adma_war;
+	unsigned int smp_sta_reg;
+	unsigned int smp_sta_set_reg;
+	unsigned int smp_sta_clear_reg;
+};
 /*
  * struct tegra_adma_chip_data - Tegra chip specific data
  * @global_reg_offset: Register offset of DMA global register.
@@ -100,6 +133,7 @@ struct tegra_adma_chip_data {
 	unsigned int ch_reg_size;
 	unsigned int nr_channels;
 	bool has_outstanding_reqs;
+	struct tegra_adma_war adma_war;
 };
 
 /*
@@ -156,6 +190,8 @@ struct tegra_adma {
 	struct device			*dev;
 	void __iomem			*base_addr;
 	struct clk			*ahub_clk;
+	void __iomem			*shrd_sem_addr;
+	spinlock_t			global_lock;
 	unsigned int			nr_channels;
 	unsigned long			rx_requests_reserved;
 	unsigned long			tx_requests_reserved;
@@ -387,9 +423,40 @@ static void tegra_adma_stop(struct tegra_adma_chan *tdc)
 	tdc->desc = NULL;
 }
 
+static void adsp_shrd_sem_wait(struct tegra_adma_chan *tdc)
+{
+	int val, count = ADMA_SHRD_SEM_WAIT_COUNT;
+	const struct tegra_adma_war *adma_war = &tdc->tdma->cdata->adma_war;
+	int smp_sta_set_reg = adma_war->smp_sta_set_reg;
+	int smp_sta_reg = adma_war->smp_sta_reg;
+
+
+	/* Acquire Semaphore */
+	writel(ADMA_SHRD_SMP_CPU, tdc->tdma->shrd_sem_addr + smp_sta_set_reg);
+
+	do {
+		val = readl(tdc->tdma->shrd_sem_addr + smp_sta_reg);
+		val = val & ADMA_SHRD_SMP_BITS;
+		count--;
+	} while ((val != ADMA_SHRD_SMP_CPU) && count);
+
+	if (!count)
+		dev_warn(tdc2dev(tdc),
+			"ADSP Shared SMP waiting timeout, SMP = %x\n", val);
+}
+
+static void cpu_shrd_sem_release(struct tegra_adma_chan *tdc)
+{
+	const struct tegra_adma_war *adma_war = &tdc->tdma->cdata->adma_war;
+	int smp_sta_clear_reg = adma_war->smp_sta_clear_reg;
+
+	writel(ADMA_SHRD_SMP_CPU, tdc->tdma->shrd_sem_addr + smp_sta_clear_reg);
+}
+
 static void tegra_adma_start(struct tegra_adma_chan *tdc)
 {
 	struct virt_dma_desc *vd = vchan_next_desc(&tdc->vc);
+	const struct tegra_adma_war *adma_war = &tdc->tdma->cdata->adma_war;
 	struct tegra_adma_chan_regs *ch_regs;
 	struct tegra_adma_desc *desc;
 
@@ -416,8 +483,26 @@ static void tegra_adma_start(struct tegra_adma_chan *tdc)
 	tdma_ch_write(tdc, ADMA_CH_FIFO_CTRL, ch_regs->fifo_ctrl);
 	tdma_ch_write(tdc, ADMA_CH_CONFIG, ch_regs->config);
 
+	if (adma_war->is_adma_war) {
+		spin_lock(&tdc->tdma->global_lock);
+
+		/* Wait for the ADSP semaphore to be cleared */
+		adsp_shrd_sem_wait(tdc);
+
+		tdma_write(tdc->tdma, ADMA_GLOBAL_CG, ADMA_GLOBAL_CG_DISABLE);
+	}
+
 	/* Start ADMA */
 	tdma_ch_write(tdc, ADMA_CH_CMD, 1);
+
+	if (adma_war->is_adma_war) {
+		tdma_write(tdc->tdma, ADMA_GLOBAL_CG, ADMA_GLOBAL_CG_ENABLE);
+
+		/* Clear CPU Semaphore */
+		cpu_shrd_sem_release(tdc);
+
+		spin_unlock(&tdc->tdma->global_lock);
+	}
 
 	tdc->desc = desc;
 }
@@ -828,9 +913,36 @@ static const struct tegra_adma_chip_data tegra210_chip_data = {
 	.ch_req_max		= 10,
 	.ch_reg_size		= 0x80,
 	.nr_channels		= 22,
+	.adma_war = {
+		.smp_sta_reg		= T210_SHRD_SMP_STA,
+		.smp_sta_set_reg	= T210_SHRD_SMP_STA_SET,
+		.smp_sta_clear_reg	= T210_SHRD_SMP_STA_CLR,
+		.is_adma_war		= true,
+	},
 };
 
 static const struct tegra_adma_chip_data tegra186_chip_data = {
+	.adma_get_burst_config  = tegra186_adma_get_burst_config,
+	.global_reg_offset	= 0,
+	.global_int_clear	= 0x402c,
+	.ch_req_tx_shift	= 27,
+	.ch_req_rx_shift	= 22,
+	.ch_base_offset		= 0x10000,
+	.has_outstanding_reqs	= true,
+	.ch_fifo_ctrl		= TEGRA186_FIFO_CTRL_DEFAULT,
+	.ch_req_mask		= 0x1f,
+	.ch_req_max		= 20,
+	.ch_reg_size		= 0x100,
+	.nr_channels		= 32,
+	.adma_war = {
+		.smp_sta_reg		= T186_SHRD_SMP_STA,
+		.smp_sta_set_reg	= T186_SHRD_SMP_STA_SET,
+		.smp_sta_clear_reg	= T186_SHRD_SMP_STA_CLR,
+		.is_adma_war		= true,
+	},
+};
+
+static const struct tegra_adma_chip_data tegra194_chip_data = {
 	.adma_get_burst_config  = tegra186_adma_get_burst_config,
 	.global_reg_offset	= 0,
 	.global_int_clear	= 0x402c,
@@ -848,6 +960,7 @@ static const struct tegra_adma_chip_data tegra186_chip_data = {
 static const struct of_device_id tegra_adma_of_match[] = {
 	{ .compatible = "nvidia,tegra210-adma", .data = &tegra210_chip_data },
 	{ .compatible = "nvidia,tegra186-adma", .data = &tegra186_chip_data },
+	{ .compatible = "nvidia,tegra194-adma", .data = &tegra194_chip_data },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, tegra_adma_of_match);
@@ -881,6 +994,14 @@ static int tegra_adma_probe(struct platform_device *pdev)
 	if (IS_ERR(tdma->base_addr))
 		return PTR_ERR(tdma->base_addr);
 
+	if (cdata->adma_war.is_adma_war) {
+		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+		tdma->shrd_sem_addr = devm_ioremap_nocache(&pdev->dev,
+						res->start, resource_size(res));
+		if (IS_ERR(tdma->shrd_sem_addr))
+			return PTR_ERR(tdma->shrd_sem_addr);
+	}
+
 	tdma->ahub_clk = devm_clk_get(&pdev->dev, "d_audio");
 	if (IS_ERR(tdma->ahub_clk)) {
 		dev_err(&pdev->dev, "Error: Missing ahub controller clock\n");
@@ -904,6 +1025,8 @@ static int tegra_adma_probe(struct platform_device *pdev)
 		tdc->vc.desc_free = tegra_adma_desc_free;
 		tdc->tdma = tdma;
 	}
+
+	spin_lock_init(&tdma->global_lock);
 
 	pm_runtime_enable(&pdev->dev);
 
