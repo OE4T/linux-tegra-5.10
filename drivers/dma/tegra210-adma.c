@@ -2,7 +2,7 @@
 /*
  * ADMA driver for Nvidia's Tegra210 ADMA controller.
  *
- * Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -48,6 +48,7 @@
 #define TEGRA186_ADMA_CH_FIFO_CTRL_TXSIZE(val)		(((val) & 0x1f) << 8)
 #define TEGRA186_ADMA_CH_FIFO_CTRL_RXSIZE(val)		((val) & 0x1f)
 
+#define ADMA_CH_TC_STATUS				0x30
 #define ADMA_CH_LOWER_SRC_ADDR				0x34
 #define ADMA_CH_LOWER_TRG_ADDR				0x3c
 #define ADMA_CH_TC					0x44
@@ -70,6 +71,7 @@
 #define ADMA_CH_REG_FIELD_VAL(val, mask, shift)	(((val) & mask) << shift)
 
 struct tegra_adma;
+static struct device *dma_device;
 
 /*
  * struct tegra_adma_chip_data - Tegra chip specific data
@@ -243,6 +245,43 @@ static int tegra_adma_init(struct tegra_adma *tdma)
 
 	return 0;
 }
+
+/* Add function to dump the register status during device hang */
+void tegra_adma_dump_ch_reg(void)
+{
+	struct tegra_adma *tdma = dev_get_drvdata(dma_device);
+	int i;
+	void __iomem *ch_addr;
+
+	/* Enable clock before accessing registers */
+	pm_runtime_get_sync(tdma->dev);
+	pr_info("======= ADMA Register Dump ========\n");
+	for (i = 0; i < tdma->cdata->nr_channels; i++) {
+		ch_addr = tdma->base_addr + tdma->cdata->ch_base_offset +
+			  (tdma->cdata->ch_reg_size * i);
+
+		pr_info("ADMA_PAGE1_CH%d_CMD_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_CMD));
+		pr_info("ADMA_PAGE1_CH%d_STATUS_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_STATUS));
+		pr_info("ADMA_PAGE1_CH%d_CTRL_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_CTRL));
+		pr_info("ADMA_PAGE1_CH%d_CONFIG_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_CONFIG));
+		pr_info("ADMA_PAGE1_CH%d_AHUB_FIFO_CTRL_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_FIFO_CTRL));
+		pr_info("ADMA_PAGE1_CH%d_TC_STATUS_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_TC_STATUS));
+		pr_info("ADMA_PAGE1_CH%d_LOWER_SOURCE_ADDR_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_LOWER_SRC_ADDR));
+		pr_info("ADMA_PAGE1_CH%d_LOWER_TARGET_ADDR_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_LOWER_TRG_ADDR));
+		pr_info("ADMA_PAGE1_CH%d_TRANSFER_STATUS_0 = %x\n",
+			i, readl(ch_addr + ADMA_CH_XFER_STATUS));
+	}
+	pm_runtime_put_sync(tdma->dev);
+}
+EXPORT_SYMBOL_GPL(tegra_adma_dump_ch_reg);
 
 static int tegra_adma_request_alloc(struct tegra_adma_chan *tdc,
 				    enum dma_transfer_direction direction)
