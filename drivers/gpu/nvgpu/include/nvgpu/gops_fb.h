@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -363,6 +363,11 @@ struct gops_fb {
 	int (*mmu_invalidate_replay)(struct gk20a *g,
 						u32 invalidate_replay_val);
 #endif
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_fb.h"
+#endif
+
 #ifdef CONFIG_NVGPU_DGPU
 	/**
 	 * @brief Initialize FBPA unit ECC support.
