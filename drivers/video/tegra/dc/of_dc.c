@@ -1,7 +1,7 @@
 /*
  * of_dc.c: tegra dc of interface.
  *
- * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -2867,16 +2867,16 @@ struct tegra_dc_platform_data *of_dc_parse_platform_data(
 		case TEGRA_DC_OUT_DP:
 			if (dc->current_topology.conn_inst == 0) {
 				pdata->conn_np =
-					of_find_node_by_path("/host1x/sor");
+					of_find_node_by_path("host1x/sor");
 			} else {
-				snprintf(dc_or_conn_node, 13, "/host1x/sor%d",
+				snprintf(dc_or_conn_node, 12, "host1x/sor%d",
 					dc->current_topology.conn_inst);
 				pdata->conn_np =
 					of_find_node_by_path(dc_or_conn_node);
 			}
 		break;
 		case TEGRA_DC_OUT_DSI:
-			pdata->conn_np = of_find_node_by_path("/host1x/dsi");
+			pdata->conn_np = of_find_node_by_path("host1x/dsi");
 			break;
 		break;
 		}
