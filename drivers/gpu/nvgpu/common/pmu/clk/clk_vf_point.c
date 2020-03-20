@@ -494,7 +494,9 @@ int clk_vf_point_init_pmupstate(struct gk20a *g)
 		return -ENOMEM;
 	}
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 	g->pmu->clk_pmu->nvgpu_clk_vf_point_cache = nvgpu_clk_vf_point_cache;
+#endif
 
 	return 0;
 }

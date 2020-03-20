@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,16 +31,18 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmu.h>
 
-#include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/seq.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
-#include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/pmu/pmu_pstate.h>
+
+#ifdef CONFIG_NVGPU_POWER_PG
+#include <nvgpu/pmu/pmu_pg.h>
+#endif
 
 #ifdef CONFIG_NVGPU_DGPU
 #include <nvgpu/sec2/lsfm.h>
@@ -58,9 +60,11 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return 0;
 	}
 
+#ifdef CONFIG_NVGPU_POWER_PG
 	if (!pmu->pg->initialized) {
 		return -EINVAL;
 	}
+#endif
 
 	return nvgpu_pmu_mutex_acquire(g, pmu->mutexes, id, token);
 }
@@ -76,9 +80,11 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return 0;
 	}
 
+#ifdef CONFIG_PMU_POWER_PG
 	if (!pmu->pg->initialized) {
 		return -EINVAL;
 	}
+#endif
 
 	return nvgpu_pmu_mutex_release(g, pmu->mutexes, id, token);
 }
@@ -88,9 +94,11 @@ int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_POWER_PG
 	if (g->can_elpg) {
 		nvgpu_pmu_pg_destroy(g, pmu, pmu->pg);
 	}
+#endif
 
 	nvgpu_pmu_queues_free(g, &pmu->queues);
 
@@ -144,7 +152,9 @@ static void remove_pmu_support(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_debug_deinit(g, pmu);
 	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
+#ifdef CONFIG_PMU_POWER_PG
 	nvgpu_pmu_pg_deinit(g, pmu, pmu->pg);
+#endif
 	nvgpu_pmu_sequences_deinit(g, pmu, pmu->sequences);
 	nvgpu_pmu_mutexe_deinit(g, pmu, pmu->mutexes);
 	nvgpu_pmu_fw_deinit(g, pmu, pmu->fw);
@@ -163,12 +173,14 @@ static int pmu_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu )
 	/* set default value to sequences */
 	nvgpu_pmu_sequences_sw_setup(g, pmu, pmu->sequences);
 
+#ifdef CONFIG_NVGPU_POWER_PG
 	if (g->can_elpg) {
 		err = nvgpu_pmu_pg_sw_setup(g, pmu, pmu->pg);
 		if (err != 0){
 			goto exit;
 		}
 	}
+#endif
 
 	if (pmu->sw_ready) {
 		nvgpu_log_fn(g, "skip PMU-RTOS shared buffer realloc");
@@ -295,12 +307,14 @@ int nvgpu_pmu_rtos_early_init(struct gk20a *g, struct nvgpu_pmu *pmu)
 		goto init_failed;
 	}
 
+#ifdef CONFIG_NVGPU_POWER_PG
 	if (g->can_elpg) {
 		err = nvgpu_pmu_pg_init(g, pmu, &pmu->pg);
 		if (err != 0) {
 			goto init_failed;
 		}
 	}
+#endif
 
 	err = nvgpu_pmu_lsfm_init(g, &pmu->lsfm);
 	if (err != 0) {

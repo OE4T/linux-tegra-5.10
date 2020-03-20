@@ -164,3 +164,12 @@ u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
 
 	return mask;
 }
+
+#ifdef CONFIG_NVGPU_LS_PMU
+bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit)
+{
+	u32 mask = g->ops.mc.reset_mask(g, unit);
+
+	return (nvgpu_readl(g, mc_enable_r()) & mask) != 0U;
+}
+#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -688,6 +688,7 @@ int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	return err;
 }
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 bool gk20a_pmu_is_engine_in_reset(struct gk20a *g)
 {
 	bool status = false;
@@ -707,6 +708,7 @@ void gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset)
 		g->ops.mc.disable(g, reset_mask);
 	}
 }
+#endif
 
 void gk20a_write_dmatrfbase(struct gk20a *g, u32 addr)
 {

@@ -326,7 +326,8 @@ srcs += hal/gr/falcon/gr_falcon_gm20b.c \
 	hal/fb/fb_gp106.c \
 	hal/falcon/falcon_gk20a.c \
 	hal/bus/bus_gk20a.c \
-	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c
+	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
+	hal/pmu/pmu_gv11b.c
 endif
 endif
 
@@ -475,12 +476,6 @@ srcs += \
 	common/pmu/perfmon/pmu_perfmon.c \
 	common/pmu/perfmon/pmu_perfmon_sw_gm20b.c \
 	common/pmu/perfmon/pmu_perfmon_sw_gv11b.c \
-	common/pmu/pg/pg_sw_gm20b.c \
-	common/pmu/pg/pg_sw_gp10b.c \
-	common/pmu/pg/pg_sw_gp106.c \
-	common/pmu/pg/pg_sw_gv11b.c \
-	common/pmu/pg/pmu_pg.c \
-	common/pmu/pg/pmu_aelpg.c \
 	common/pmu/pmgr/pmgr.c \
 	common/pmu/pmgr/pmgrpmu.c \
 	common/pmu/pmgr/pwrdev.c \
@@ -503,6 +498,15 @@ srcs += \
 	hal/pmu/pmu_gm20b.c \
 	hal/pmu/pmu_gp10b.c \
 	hal/pmu/pmu_tu104.c
+
+ifeq ($(CONFIG_NVGPU_POWER_PG),1)
+srcs += common/pmu/pg/pg_sw_gm20b.c \
+	common/pmu/pg/pg_sw_gp10b.c \
+	common/pmu/pg/pg_sw_gp106.c \
+	common/pmu/pg/pg_sw_gv11b.c \
+	common/pmu/pg/pmu_pg.c \
+	common/pmu/pg/pmu_aelpg.c
+endif
 
 ifeq ($(CONFIG_NVGPU_CLK_ARB),1)
 srcs += common/clk_arb/clk_arb_gv100.c

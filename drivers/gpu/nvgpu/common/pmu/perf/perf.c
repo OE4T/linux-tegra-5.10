@@ -51,7 +51,9 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 		}
 		vfe_init->state_change = false;
 
+#ifdef CONFIG_NVGPU_CLK_ARB
 		nvgpu_clk_arb_schedule_vf_table_update(g);
+#endif
 	}
 
 	return 0;
