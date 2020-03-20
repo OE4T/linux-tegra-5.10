@@ -326,7 +326,6 @@ srcs += hal/gr/falcon/gr_falcon_gm20b.c \
 	hal/fb/fb_gp106.c \
 	hal/falcon/falcon_gk20a.c \
 	hal/bus/bus_gk20a.c \
-	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
 	hal/pmu/pmu_gv11b.c
 endif
 endif

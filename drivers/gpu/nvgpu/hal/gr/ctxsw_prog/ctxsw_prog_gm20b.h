@@ -42,8 +42,7 @@ void gm20b_ctxsw_prog_set_priv_access_map_addr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr);
 void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) || defined(CONFIG_NVGPU_DGPU)
-/* FIXME: below function is used in dGPU safety build. */
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA)
 void gm20b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
 #endif

@@ -417,7 +417,7 @@ static const struct gpu_ops tu104_ops = {
 			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
 			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
 			.set_compute_preemption_mode_cta =
-				gm20b_ctxsw_prog_set_compute_preemption_mode_cta,
+				gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
 			.set_priv_access_map_config_mode =
 				gm20b_ctxsw_prog_set_priv_access_map_config_mode,
 			.set_priv_access_map_addr =
