@@ -98,18 +98,21 @@ static void *gk20a_vidbuf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
 	return NULL;
 }
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 16, 0)
 static void *gk20a_vidbuf_kmap_atomic(struct dma_buf *dmabuf,
 				      unsigned long page_num)
 {
 	WARN_ON("Not supported");
 	return NULL;
 }
+#endif
 
 static int gk20a_vidbuf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 {
 	return -EINVAL;
 }
 
+#ifdef CONFIG_NVGPU_DMABUF_HAS_DRVDATA
 static int gk20a_vidbuf_set_private(struct dma_buf *dmabuf,
 		struct device *dev, void *priv, void (*delete)(void *priv))
 {
@@ -130,21 +133,26 @@ static void *gk20a_vidbuf_get_private(struct dma_buf *dmabuf,
 
 	return linux_buf->dmabuf_priv;
 }
+#endif
 
 static const struct dma_buf_ops gk20a_vidbuf_ops = {
 	.map_dma_buf      = gk20a_vidbuf_map_dma_buf,
 	.unmap_dma_buf    = gk20a_vidbuf_unmap_dma_buf,
 	.release          = gk20a_vidbuf_release,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 16, 0)
 	.map_atomic      = gk20a_vidbuf_kmap_atomic,
+#endif
 	.map             = gk20a_vidbuf_kmap,
 #else
 	.kmap_atomic      = gk20a_vidbuf_kmap_atomic,
 	.kmap             = gk20a_vidbuf_kmap,
 #endif
 	.mmap             = gk20a_vidbuf_mmap,
+#ifdef CONFIG_NVGPU_DMABUF_HAS_DRVDATA
 	.set_drvdata      = gk20a_vidbuf_set_private,
 	.get_drvdata      = gk20a_vidbuf_get_private,
+#endif
 };
 
 static struct dma_buf *gk20a_vidbuf_export(struct nvgpu_vidmem_buf *buf)

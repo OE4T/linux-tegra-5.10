@@ -123,6 +123,7 @@ config GK20A_TRACE_PRINTK
 config NVGPU_USE_TEGRA_ALLOC_FD
 	bool "Use tegra_alloc_fd() for allocating dma_buf fds for vidmem"
 	depends on GK20A
+	depends on NV_TEGRA_MC
 	default y
 	help
 	  Use tegra_alloc_fd() for allocating dma_buf fds. This allocates
