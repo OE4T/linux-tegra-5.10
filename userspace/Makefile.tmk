@@ -29,6 +29,7 @@ NVGPU_UNIT_COMMON_SRCS		:= \
                                 src/args.c \
                                 src/io.c \
                                 src/module.c \
+                                src/required_tests.c \
                                 src/results.c \
                                 src/exec.c
 NVGPU_UNIT_COMMON_INCLUDES	:= \
@@ -61,7 +62,7 @@ _NV_TOOLCHAIN_CFLAGS            += -rdynamic
 NV_UNIT_SH=unit.sh
 NV_SUBMIT_UNIT_SH=nvgpu_submit_unit.sh
 NV_TESTLIST_PY=testlist.py
-NV_REQ_TESTS_JSON=required_tests.json
+NV_REQ_TESTS_INI=required_tests.ini
 NV_NETD_IMG=NETD_img.bin
 NV_FECS_IMG=fecs.bin
 NV_FECS_SIG_IMG=fecs_sig.bin
@@ -75,7 +76,7 @@ NV_UNIT_REQ_FIRMWARE_DIR        := $(NV_COMPONENT_SYSTEMIMAGE_DIR)/firmware/gv11
 systemimage:: $(NV_COMPONENT_SYSTEMIMAGE_DIR) $(NV_COMPONENT_SYSTEMIMAGE_DIR)/$(NV_UNIT_SH) \
 	$(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/$(NV_SUBMIT_UNIT_SH) \
 	$(NV_COMPONENT_SYSTEMIMAGE_DIR)/$(NV_TESTLIST_PY) \
-	$(NV_COMPONENT_SYSTEMIMAGE_DIR)/$(NV_REQ_TESTS_JSON) \
+	$(NV_COMPONENT_SYSTEMIMAGE_DIR)/$(NV_REQ_TESTS_INI) \
 	$(NV_UNIT_REQ_FIRMWARE_DIR) $(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_NETD_IMG) \
 	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_FECS_IMG) \
 	$(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_FECS_SIG_IMG) \
@@ -99,7 +100,7 @@ $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/$(NV_SUBMIT_UNIT_SH) : $(NV_COMPONENT_DIR)
 	$(CP) $< $@
 $(NV_COMPONENT_SYSTEMIMAGE_DIR)/$(NV_TESTLIST_PY) : $(NV_COMPONENT_DIR)/$(NV_TESTLIST_PY) $(NV_COMPONENT_SYSTEMIMAGE_DIR)
 	$(CP) $< $@
-$(NV_COMPONENT_SYSTEMIMAGE_DIR)/$(NV_REQ_TESTS_JSON) : $(NV_COMPONENT_DIR)/$(NV_REQ_TESTS_JSON) $(NV_COMPONENT_SYSTEMIMAGE_DIR)
+$(NV_COMPONENT_SYSTEMIMAGE_DIR)/$(NV_REQ_TESTS_INI) : $(NV_COMPONENT_DIR)/$(NV_REQ_TESTS_INI) $(NV_COMPONENT_SYSTEMIMAGE_DIR)
 	$(CP) $< $@
 $(NV_UNIT_REQ_FIRMWARE_DIR)/$(NV_NETD_IMG) : $(NV_COMPONENT_DIR)/firmware/gv11b/$(NV_NETD_IMG) $(NV_UNIT_REQ_FIRMWARE_DIR)
 	$(CP) $< $@

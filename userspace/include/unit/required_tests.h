@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,48 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __UNIT_ARGS_H__
-#define __UNIT_ARGS_H__
+#ifndef __REQUIRED_TESTS_H__
+#define __REQUIRED_TESTS_H__
 
-#include <stdbool.h>
+#define MAX_LINE_SIZE	256
 
-/*
- * Allow defaults to be changed at compile time.
- */
-#define __stringify(x)			#x
-#define stringify(x)			__stringify(x)
-
-#ifndef __DEFAULT_ARG_UNIT_LOAD_PATH
-#define __DEFAULT_ARG_UNIT_LOAD_PATH	build/units
-#endif
-#define DEFAULT_ARG_UNIT_LOAD_PATH	stringify(__DEFAULT_ARG_UNIT_LOAD_PATH)
-#define TEST_PLAN_MAX 1
-
-struct unit_fw;
-
-struct unit_fw_args {
-	bool		 help;
-	int		 verbose_lvl;
-	bool		 no_color;
-	int		 thread_count;
-	bool		 nvtest;
-	bool		 is_qnx;
-	unsigned int	 test_lvl;
-	bool		 debug;
-	const char	*binary_name;
-
-	const char	*unit_name;
-	const char	*unit_load_path;
-	const char	*unit_to_run;
-	const char	*required_tests_file;
-};
-
-int core_parse_args(struct unit_fw *fw, int argc, char **argv);
-void core_print_help(struct unit_fw *fw);
-
-/*
- * Convenience for getting the args struct pointer.
- */
-#define args(fw)		((fw)->args)
+int parse_req_file(struct unit_fw *fw, const char *ini_file);
+int check_executed_tests(struct unit_fw *fw);
 
 #endif

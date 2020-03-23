@@ -40,10 +40,11 @@ static struct option core_opts[] = {
 	{ "num-threads",	1, NULL, 'j' },
 	{ "test-level",		1, NULL, 't' },
 	{ "debug",		0, NULL, 'd' },
+	{ "required",		0, NULL, 'r' },
 	{ NULL,			0, NULL,  0  }
 };
 
-static const char *core_opts_str = "hvqCnQL:j:t:d";
+static const char *core_opts_str = "hvqCnQL:j:t:dr:";
 
 void core_print_help(struct unit_fw *fw)
 {
@@ -74,6 +75,8 @@ void core_print_help(struct unit_fw *fw)
 "                         Test plan level. 0=L0, 1=L1. default: 1\n",
 "  -d, --debug            Disable signal handling to facilitate debug of",
 "                         crashes.\n",
+"  -r, --required <FILE>  Path to a file with a list of required tests to\n"
+"                         check if all were executed.\n",
 "\n",
 "Note: mandatory arguments to long arguments are mandatory for short\n",
 "arguments as well.\n",
@@ -92,6 +95,7 @@ static void set_arg_defaults(struct unit_fw_args *args)
 	args->unit_load_path = DEFAULT_ARG_UNIT_LOAD_PATH;
 	args->thread_count = 1;
 	args->test_lvl = TEST_PLAN_MAX;
+	args->required_tests_file = NULL;
 }
 
 /*
@@ -165,6 +169,9 @@ int core_parse_args(struct unit_fw *fw, int argc, char **argv)
 			break;
 		case 'd':
 			args->debug = true;
+			break;
+		case 'r':
+			args->required_tests_file = optarg;
 			break;
 		case '?':
 			args->help = true;

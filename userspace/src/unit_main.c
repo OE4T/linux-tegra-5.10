@@ -32,6 +32,7 @@
 #include <unit/args.h>
 #include <unit/module.h>
 #include <unit/results.h>
+#include <unit/required_tests.h>
 
 int main(int argc, char **argv)
 {
@@ -89,6 +90,23 @@ int main(int argc, char **argv)
 		 * a failure if only executed a subset of the units
 		 */
 		return -2;
+	}
+
+	if (fw->args->required_tests_file != NULL) {
+		ret = parse_req_file(fw, fw->args->required_tests_file);
+		if (ret != 0) {
+			core_err(fw,
+				"Failed to load the required tests file.\n");
+			return -1;
+		}
+
+		ret = check_executed_tests(fw);
+		if (ret != 0) {
+			core_err(fw,
+				"Found %d required tests that were not run!\n",
+				ret);
+			return -1;
+		}
 	}
 
 	return 0;

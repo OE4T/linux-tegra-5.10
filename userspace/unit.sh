@@ -46,7 +46,7 @@ else
         # running on host
         LD_LIBRARY_PATH="build:build/units"
         # On host, must run single-threaded to avoid high VAs
-        NVGPU_UNIT="./build/nvgpu_unit --num-threads 1"
+        NVGPU_UNIT="./build/nvgpu_unit --num-threads 1 -r required_tests.ini"
 fi
 export LD_LIBRARY_PATH
 
@@ -70,10 +70,6 @@ if [ $rc -eq "0" ]; then
                 esac
                 shift
         done
-        echo $testlevelparam
-	echo "Checking executed tests against list of required tests:"
-	./testlist.py --html $testlevelparam
-	rc=$?
 fi
 popd
 exit $rc

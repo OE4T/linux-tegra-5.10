@@ -35,6 +35,7 @@ CORE_OBJS :=	\
 	$(CORE_OUT)/args.o			\
 	$(CORE_OUT)/io.o			\
 	$(CORE_OUT)/module.o			\
+	$(CORE_OUT)/required_tests.o		\
 	$(CORE_OUT)/results.o			\
 	$(CORE_OUT)/exec.o
 
