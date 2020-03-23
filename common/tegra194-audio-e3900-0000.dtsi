@@ -12,7 +12,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
  */
-
+#include <audio/tegra186-audio-dai-links.dtsi>
 #include <audio/tegra-platforms-audio-dai-links.dtsi>
 #include <dt-bindings/gpio/tegra194-gpio.h>
 #include <dt-bindings/sound/rt5659.h>
