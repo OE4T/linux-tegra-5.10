@@ -162,6 +162,7 @@ gv11b_gpu_phys_addr
 gv11b_init_fifo_reset_enable_hw
 gv11b_init_fifo_setup_hw
 gv11b_init_hal
+gv11b_therm_max_fpdiv_factor
 gv11b_init_therm_setup_hw
 gv11b_is_fault_engine_subid_gpc
 gv11b_mc_is_mmu_fault_pending

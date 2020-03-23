@@ -87,6 +87,8 @@ int test_setup_env(struct unit_module *m,
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
 
 	/* setup HALs */
+
+	g->ops.therm.therm_max_fpdiv_factor = gv11b_therm_max_fpdiv_factor;
 	g->ops.therm.init_therm_support = nvgpu_init_therm_support;
 	g->ops.therm.init_therm_setup_hw = gv11b_init_therm_setup_hw;
 	g->ops.therm.init_elcg_mode = gv11b_therm_init_elcg_mode;
