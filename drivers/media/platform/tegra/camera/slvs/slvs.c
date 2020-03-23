@@ -1,7 +1,7 @@
 /*
  * NVIDIA Tegra SLVS(-EC) Subdevice for V4L2
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Pekka Pessi <ppessi@nvidia.com>
  *
@@ -1142,18 +1142,16 @@ static int tegra_slvs_parse_dt(struct tegra_mc_slvs *slvs)
 	(void)of_property_read_u32(node, "nvidia,syncgen-clock",
 				&slvs->syncgen_clock);
 
-	if (num_streams <= 0) {
-		dev_info(slvs->dev, "no streams defined");
-		return -ENODEV;
-	}
-
-	dev_info(slvs->dev, "slvs has %d available streams", num_streams);
-
-	slvs->num_streams = num_streams;
-	slvs->streams = devm_kzalloc(slvs->dev,
+	if (num_streams == 0) {
+		dev_info(slvs->dev, "No streams defined - setting to zero");
+	} else {
+		slvs->streams = devm_kzalloc(slvs->dev,
 				num_streams * sizeof(*stream), GFP_KERNEL);
-	if (slvs->streams == NULL)
-		return -ENOMEM;
+		if (slvs->streams == NULL)
+			return -ENOMEM;
+	}
+	slvs->num_streams = num_streams;
+	dev_info(slvs->dev, "slvs has %d available streams", num_streams);
 
 	for (i = 0; i < num_streams; i++) {
 
