@@ -1,7 +1,7 @@
 /*
  * GP10B Platform (SoC) Interface
  *
- * Copyright (c) 2014-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,6 +21,7 @@
 
 struct device;
 
+void gp10b_tegra_clks_control(struct device *dev, bool enable);
 int gp10b_tegra_get_clocks(struct device *dev);
 int gp10b_tegra_reset_assert(struct device *dev);
 int gp10b_tegra_reset_deassert(struct device *dev);

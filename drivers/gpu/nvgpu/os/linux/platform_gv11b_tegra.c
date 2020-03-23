@@ -165,7 +165,6 @@ static int gv11b_tegra_railgate(struct device *dev)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 	struct gk20a *g = get_gk20a(dev);
-	int i;
 
 	/* remove emc frequency floor */
 	if (profile)
@@ -179,16 +178,14 @@ static int gv11b_tegra_railgate(struct device *dev)
 			nvgpu_log(g, gpu_dbg_info, "powergate is not powered");
 			return 0;
 		}
-		nvgpu_log(g, gpu_dbg_info, "clk_disable_unprepare");
-		for (i = 0; i < platform->num_clks; i++) {
-			if (platform->clk[i])
-				clk_disable_unprepare(platform->clk[i]);
-		}
+		gp10b_tegra_clks_control(dev, false);
 		nvgpu_log(g, gpu_dbg_info, "powergate_partition");
 		tegra_powergate_partition(TEGRA194_POWER_DOMAIN_GPU);
 	} else {
 		nvgpu_log(g, gpu_dbg_info, "bpmp not running");
 	}
+#else
+	gp10b_tegra_clks_control(dev, false);
 #endif
 	return 0;
 }
@@ -200,7 +197,6 @@ static int gv11b_tegra_unrailgate(struct device *dev)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a *g = get_gk20a(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
-	int i;
 
 	if (tegra_bpmp_running()) {
 		nvgpu_log(g, gpu_dbg_info, "bpmp running");
@@ -210,11 +206,7 @@ static int gv11b_tegra_unrailgate(struct device *dev)
 				"unpowergate partition failed");
 			return ret;
 		}
-		nvgpu_log(g, gpu_dbg_info, "clk_prepare_enable");
-		for (i = 0; i < platform->num_clks; i++) {
-			if (platform->clk[i])
-				clk_prepare_enable(platform->clk[i]);
-		}
+		gp10b_tegra_clks_control(dev, true);
 	} else {
 		nvgpu_log(g, gpu_dbg_info, "bpmp not running");
 	}
@@ -225,6 +217,8 @@ static int gv11b_tegra_unrailgate(struct device *dev)
 			(struct tegra_bwmgr_client *)profile->private_data,
 			tegra_bwmgr_get_max_emc_rate(),
 			TEGRA_BWMGR_SET_EMC_FLOOR);
+#else
+	gp10b_tegra_clks_control(dev, true);
 #endif
 	return ret;
 }
