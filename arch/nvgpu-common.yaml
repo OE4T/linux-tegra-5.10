@@ -860,7 +860,7 @@ pmu:
       safe: yes
       owner: Sagar K
       gpu: dgpu
-      sources: [ common/pmu/pmu_allocator.c,
+      sources: [ common/pmu/allocator.c,
                  include/nvgpu/pmu/allocator.h ]
 
     mutex:

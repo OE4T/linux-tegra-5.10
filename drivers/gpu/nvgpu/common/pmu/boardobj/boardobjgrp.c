@@ -236,7 +236,7 @@ static int pmu_cmd_destroy_impl(struct gk20a *g,
 {
 	struct nvgpu_mem *mem = &cmd->surf.sysmem_desc;
 
-	nvgpu_pmu_surface_free(g, mem);
+	nvgpu_pmu_allocator_surface_free(g, mem);
 	return 0;
 }
 
@@ -327,7 +327,7 @@ static int pmu_cmd_pmu_init_handle_impl(struct gk20a *g,
 		goto pmu_cmd_pmu_init_handle_impl_exit;
 	}
 
-	status = nvgpu_pmu_sysmem_surface_alloc(g, sysmem_desc, pcmd->fbsize);
+	status = nvgpu_pmu_allocator_sysmem_surface_alloc(g, sysmem_desc, pcmd->fbsize);
 	if (status != 0) {
 		nvgpu_err(g, "failed to allocate memory\n");
 		return -ENOMEM;

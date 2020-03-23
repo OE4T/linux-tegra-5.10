@@ -466,7 +466,7 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 		goto exit;
 	}
 
-	nvgpu_pmu_dmem_allocator_init(g, pmu, &pmu->dmem, init);
+	nvgpu_pmu_allocator_dmem_init(g, pmu, &pmu->dmem, init);
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
 		nvgpu_pmu_ss_create_ssmd_lookup_table(g,

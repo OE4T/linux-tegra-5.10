@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,14 +32,14 @@ struct nvgpu_allocator;
 union pmu_init_msg_pmu;
 struct flcn_mem_desc_v0;
 
-void nvgpu_pmu_dmem_allocator_init(struct gk20a *g,
+void nvgpu_pmu_allocator_dmem_init(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_allocator *dmem,
 	union pmu_init_msg_pmu *init);
-void nvgpu_pmu_dmem_allocator_destroy(struct nvgpu_allocator *dmem);
+void nvgpu_pmu_allocator_dmem_destroy(struct nvgpu_allocator *dmem);
 
-void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem);
-void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
+void nvgpu_pmu_allocator_surface_free(struct gk20a *g, struct nvgpu_mem *mem);
+void nvgpu_pmu_allocator_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
 		struct flcn_mem_desc_v0 *fb);
-int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
-		u32 size);
+int nvgpu_pmu_allocator_sysmem_surface_alloc(struct gk20a *g,
+		struct nvgpu_mem *mem, u32 size);
 #endif /* NVGPU_PMU_ALLOCATOR_H */

@@ -211,7 +211,7 @@ nvgpu-y += \
 	common/netlist/netlist.o \
 	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
-	common/pmu/pmu_allocator.o \
+	common/pmu/allocator.o \
 	common/pmu/pmu_mutex.o \
 	common/pmu/fw/fw.o \
 	common/pmu/fw/fw_ver_ops.o \

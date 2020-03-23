@@ -141,7 +141,7 @@ static void pmu_set_cmd_line_args_trace_dma_base_v5(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
 
-	nvgpu_pmu_surface_describe(g, &pmu->trace_buf,
+	nvgpu_pmu_allocator_surface_describe(g, &pmu->trace_buf,
 		&pmu->fw->args_v5.trace_buf);
 }
 
@@ -150,7 +150,7 @@ static void config_cmd_line_args_super_surface_v6(struct nvgpu_pmu *pmu)
 	struct gk20a *g = pmu->g;
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
-		nvgpu_pmu_surface_describe(g,
+		nvgpu_pmu_allocator_surface_describe(g,
 			nvgpu_pmu_super_surface_mem(g, pmu, pmu->super_surface),
 			&pmu->fw->args_v6.super_surface);
 	}

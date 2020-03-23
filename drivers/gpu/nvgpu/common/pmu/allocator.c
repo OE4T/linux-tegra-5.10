@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/dma.h>
 
-void nvgpu_pmu_dmem_allocator_init(struct gk20a *g,
+void nvgpu_pmu_allocator_dmem_init(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_allocator *dmem,
 	union pmu_init_msg_pmu *init)
 {
@@ -49,21 +49,21 @@ void nvgpu_pmu_dmem_allocator_init(struct gk20a *g,
 	}
 }
 
-void nvgpu_pmu_dmem_allocator_destroy(struct nvgpu_allocator *dmem)
+void nvgpu_pmu_allocator_dmem_destroy(struct nvgpu_allocator *dmem)
 {
 	if (nvgpu_alloc_initialized(dmem)) {
 		nvgpu_alloc_destroy(dmem);
 	}
 }
 
-void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem)
+void nvgpu_pmu_allocator_surface_free(struct gk20a *g, struct nvgpu_mem *mem)
 {
 	if (nvgpu_mem_is_valid(mem)) {
 		nvgpu_dma_free(g, mem);
 	}
 }
 
-void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
+void nvgpu_pmu_allocator_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
 		struct flcn_mem_desc_v0 *fb)
 {
 	fb->address.lo = u64_lo32(mem->gpu_va);
@@ -72,8 +72,8 @@ void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
 	fb->params |= (GK20A_PMU_DMAIDX_VIRT << 24U);
 }
 
-int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
-		u32 size)
+int nvgpu_pmu_allocator_sysmem_surface_alloc(struct gk20a *g,
+		struct nvgpu_mem *mem, u32 size)
 {
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;

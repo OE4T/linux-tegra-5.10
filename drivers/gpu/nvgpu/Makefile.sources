@@ -493,7 +493,7 @@ srcs += \
 	common/pmu/volt/volt_dev.c \
 	common/pmu/volt/volt_policy.c \
 	common/pmu/volt/volt_rail.c \
-	common/pmu/pmu_allocator.c \
+	common/pmu/allocator.c \
 	common/pmu/pmu_debug.c \
 	common/pmu/pmu_mutex.c \
 	common/pmu/pmu_pstate.c \
