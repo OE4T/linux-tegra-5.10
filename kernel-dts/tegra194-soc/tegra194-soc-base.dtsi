@@ -1940,6 +1940,7 @@
 
 	tnvlink_controller: tegra_nvlink_controller {
 		compatible = "nvidia,t19x-nvlink-controller";
+		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_NVL>;
 		reg = <0x0 0x3b80000 0x0 0x1000 /* NVLW_TIOCTRL */
 		       0x0 0x3b84000 0x0 0x1000 /* NVLW_NVLIPT */
 		       0x0 0x3b86000 0x0 0x1000 /* NVLW_MINION */
