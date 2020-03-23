@@ -4,3 +4,10 @@ config ARCH_TEGRA_23x_SOC
 	default n
 	help
 	  NVIDIA Tegra Downstream options for 23x family of SoCs
+
+config TEGRA_5G_LDPC
+	tristate "NVIDIA Tegra Option for 5G-LDPC module"
+	depends on ARCH_TEGRA_23x_SOC
+	default n
+	help
+	  Enable NVIDIA Tegra Option for 5G-LDPC module
