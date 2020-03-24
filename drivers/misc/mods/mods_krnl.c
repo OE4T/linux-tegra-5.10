@@ -2422,7 +2422,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 
 	default:
 		cl_error(
-			"unrecognized ioctl (0x%x) dir(0x%x) type (0x%x) nr (0x%x) size (0x%x)\n",
+			"unrecognized ioctl 0x%x, dir %u, type 0x%x, nr %u, size 0x%x\n",
 			cmd,
 			_IOC_DIR(cmd),
 			_IOC_TYPE(cmd),

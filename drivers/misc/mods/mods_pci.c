@@ -556,62 +556,6 @@ int esc_mods_pci_bus_rescan(struct mods_client         *client,
 #endif
 }
 
-int esc_mods_pci_hot_reset(struct mods_client        *client,
-			   struct MODS_PCI_HOT_RESET *p)
-{
-#if defined(CONFIG_PPC64)
-	struct pci_dev *dev;
-	int err;
-
-	LOG_ENT();
-
-	cl_debug(DEBUG_PCI,
-		 "pci_hot_reset dev %04x:%02x:%02x.%x\n",
-		 p->pci_device.domain,
-		 p->pci_device.bus,
-		 p->pci_device.device,
-		 p->pci_device.function);
-
-	err = mods_find_pci_dev(client, &p->pci_device, &dev);
-	if (unlikely(err)) {
-		if (err == -ENODEV)
-			cl_error(
-				"pci_hot_reset cannot find dev %04x:%02x:%02x.%x\n",
-				p->pci_device.domain,
-				p->pci_device.bus,
-				p->pci_device.device,
-				p->pci_device.function);
-		LOG_EXT();
-		return err;
-	}
-
-	err = pci_set_pcie_reset_state(dev, pcie_hot_reset);
-	if (unlikely(err))
-		cl_error("pci_hot_reset failed on dev %04x:%02x:%02x.%x\n",
-			 p->pci_device.domain,
-			 p->pci_device.bus,
-			 p->pci_device.device,
-			 p->pci_device.function);
-	else {
-
-		err = pci_set_pcie_reset_state(dev, pcie_deassert_reset);
-		if (unlikely(err))
-			cl_error(
-				"pci_hot_reset deassert failed on dev %04x:%02x:%02x.%x\n",
-				p->pci_device.domain,
-				p->pci_device.bus,
-				p->pci_device.device,
-				p->pci_device.function);
-	}
-
-	pci_dev_put(dev);
-	LOG_EXT();
-	return err;
-#else
-	return -EINVAL;
-#endif
-}
-
 int esc_mods_pci_bus_remove_dev(struct mods_client             *client,
 				struct MODS_PCI_BUS_REMOVE_DEV *p)
 {
