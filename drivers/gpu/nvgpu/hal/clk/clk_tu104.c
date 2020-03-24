@@ -262,6 +262,7 @@ int tu104_init_clk_support(struct gk20a *g)
 }
 
 u32 tu104_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {
+#ifdef CONFIG_NVGPU_NON_FUSA
 	u32 cntr = 0;
 	u64 cntr_start = 0;
 	u64 cntr_stop = 0;
@@ -310,6 +311,7 @@ u32 tu104_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {
 	}
 
 	nvgpu_mutex_release(&clk->clk_mutex);
+#endif
 	/* too many iterations, bail out */
 	nvgpu_err(g, "failed to get clk rate");
 	return -EBUSY;

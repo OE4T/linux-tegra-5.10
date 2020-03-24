@@ -72,11 +72,14 @@ static void nvgpu_clk_arb_queue_notification(struct gk20a *g,
 				u32 alarm_mask) {
 
 	u32 queue_index;
-	u64 timestamp;
+	u64 timestamp = 0U;
 
 	queue_index = U32(nvgpu_atomic_inc_return(&queue->tail)) % queue->size;
+
+#ifdef CONFIG_NVGPU_NON_FUSA
 	/* get current timestamp */
 	timestamp = (u64) nvgpu_hr_timestamp();
+#endif
 
 	queue->clk_q_notifications[queue_index].timestamp = timestamp;
 	queue->clk_q_notifications[queue_index].clk_notification = alarm_mask;
