@@ -162,13 +162,16 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g,
 		IOCTRL_REG_WR32(g, ioctrl_reset_r(), reg);
 		nvgpu_udelay(delay);
 
+		/* Clear warm reset persistent state */
 		reg = IOCTRL_REG_RD32(g, ioctrl_debug_reset_r());
 
-		reg &= ~ioctrl_debug_reset_link_f(BIT32(link_id));
+		reg &= ~(ioctrl_debug_reset_link_f(1U) |
+				ioctrl_debug_reset_common_f(1U));
 		IOCTRL_REG_WR32(g, ioctrl_debug_reset_r(), reg);
 		nvgpu_udelay(delay);
 
-		reg |= ioctrl_debug_reset_link_f(BIT32(link_id));
+		reg |= (ioctrl_debug_reset_link_f(1U) |
+				ioctrl_debug_reset_common_f(1U));
 		IOCTRL_REG_WR32(g, ioctrl_debug_reset_r(), reg);
 		nvgpu_udelay(delay);
 
