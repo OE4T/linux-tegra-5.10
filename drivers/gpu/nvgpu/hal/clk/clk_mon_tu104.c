@@ -228,3 +228,52 @@ int nvgpu_clk_mon_check_status(struct gk20a *g,
 	}
 	return 0;
 }
+
+bool nvgpu_clk_mon_check_clk_good(struct gk20a *g)
+{
+	u32 clk_status = nvgpu_readl(g, trim_xtal4x_cfg5_r());
+
+	if (trim_xtal4x_cfg5_curr_state_v(clk_status) !=
+			trim_xtal4x_cfg5_curr_state_good_v()) {
+		return true;
+	}
+	return false;
+}
+
+bool nvgpu_clk_mon_check_pll_lock(struct gk20a *g)
+{
+	u32 clk_status = nvgpu_readl(g, trim_xtal4x_cfg_r());
+
+	/* check xtal4 */
+	if (trim_xtal4x_cfg_pll_lock_v(clk_status) !=
+			trim_xtal4x_cfg_pll_lock_true_v()) {
+		return true;
+	}
+
+	/* check mem pll */
+	clk_status = nvgpu_readl(g, trim_mem_pll_status_r());
+
+	if (trim_mem_pll_status_dram_curr_state_v(clk_status) !=
+			trim_mem_pll_status_dram_curr_state_good_v()) {
+		return true;
+	}
+	if (trim_mem_pll_status_refm_curr_state_v(clk_status) !=
+			trim_mem_pll_status_refm_curr_state_good_v()) {
+		return true;
+	}
+
+	/* check sppll0,1 */
+	clk_status = nvgpu_readl(g, trim_sppll0_cfg_r());
+
+	if (trim_sppll0_cfg_curr_state_v(clk_status) !=
+			trim_sppll0_cfg_curr_state_good_v()) {
+		return true;
+	}
+	clk_status = nvgpu_readl(g, trim_sppll1_cfg_r());
+
+	if (trim_sppll1_cfg_curr_state_v(clk_status) !=
+			trim_sppll1_cfg_curr_state_good_v()) {
+		return true;
+	}
+	return false;
+}

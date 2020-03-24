@@ -373,6 +373,10 @@ struct gpu_ops {
 			struct clk_domains_mon_status_params *clk_mon_status,
 			u32 domain_mask);
 		u32 (*clk_mon_init_domains)(struct gk20a *g);
+#ifdef CONFIG_NVGPU_DGPU
+		bool (*clk_mon_check_clk_good)(struct gk20a *g);
+		bool (*clk_mon_check_pll_lock)(struct gk20a *g);
+#endif
 	} clk;
 #ifdef CONFIG_NVGPU_CLK_ARB
 	struct {
@@ -468,6 +472,7 @@ struct gpu_ops {
 		void (*bios_sw_deinit)(struct gk20a *g,
 					struct nvgpu_bios *bios);
 		u32 (*get_aon_secure_scratch_reg)(struct gk20a *g, u32 i);
+		bool (*wait_for_bios_init_done)(struct gk20a *g);
 	} bios;
 
 #if defined(CONFIG_NVGPU_CYCLESTATS)

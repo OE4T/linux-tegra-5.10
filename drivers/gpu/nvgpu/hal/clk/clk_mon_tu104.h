@@ -36,5 +36,6 @@ bool nvgpu_clk_mon_check_master_fault_status(struct gk20a *g);
 int nvgpu_clk_mon_check_status(struct gk20a *g, struct
 		clk_domains_mon_status_params *clk_mon_status,
 		u32 domain_mask);
-
+bool nvgpu_clk_mon_check_clk_good(struct gk20a *g);
+bool nvgpu_clk_mon_check_pll_lock(struct gk20a *g);
 #endif /* CLK_MON_TU104_H */

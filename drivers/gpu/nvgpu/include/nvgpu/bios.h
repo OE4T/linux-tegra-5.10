@@ -1505,4 +1505,5 @@ u32  nvgpu_bios_get_vbios_version(struct gk20a *g);
 u8  nvgpu_bios_get_vbios_oem_version(struct gk20a *g);
 struct bit_token *nvgpu_bios_get_bit_token(struct gk20a *g,
 		u8 token_id);
+bool nvgpu_bios_wait_for_init_done(struct gk20a *g);
 #endif

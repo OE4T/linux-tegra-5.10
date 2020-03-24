@@ -26,6 +26,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/timers.h>
 
 #include "bios_sw_gv100.h"
 #include "bios_sw_tu104.h"
@@ -833,3 +834,31 @@ u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset)
 
 	return val;
 }
+
+#ifdef CONFIG_NVGPU_DGPU
+bool nvgpu_bios_wait_for_init_done(struct gk20a *g)
+{
+	struct nvgpu_timeout timeout;
+	int err;
+
+	err = nvgpu_timeout_init(g, &timeout,
+		NVGPU_BIOS_DEVINIT_VERIFY_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		return false;
+	}
+
+	/* Wait till vbios is completed */
+	do {
+		if (g->bios_is_init == true) {
+			return true;
+		}
+		nvgpu_msleep(NVGPU_BIOS_DEVINIT_VERIFY_COMPLETION_MS);
+	} while (nvgpu_timeout_expired(&timeout) == 0);
+
+	if (g->bios_is_init == true) {
+		return true;
+	} else {
+		return false;
+	}
+}
+#endif

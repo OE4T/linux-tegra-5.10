@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,10 @@
 
 #ifndef NVGPU_BIOS_SW_TU104_H
 #define NVGPU_BIOS_SW_TU104_H
+
+#define NVGPU_BIOS_DEVINIT_VERIFY_TIMEOUT_MS		1000U
+#define NVGPU_BIOS_DEVINIT_VERIFY_DELAY_US		10U
+#define NVGPU_BIOS_DEVINIT_VERIFY_COMPLETION_MS		1U
 
 struct gk20a;
 

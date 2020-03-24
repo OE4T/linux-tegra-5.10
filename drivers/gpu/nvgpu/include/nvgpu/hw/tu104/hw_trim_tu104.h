@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -210,4 +210,21 @@
 #define trim_fmon_master_status_r()                                (0x00137a00U)
 #define trim_fmon_master_status_fault_out_v(r)              (((r) >> 0U) & 0x1U)
 #define trim_fmon_master_status_fault_out_true_v()                 (0x00000001U)
+#define trim_xtal4x_cfg5_r()                                       (0x001370c0U)
+#define trim_xtal4x_cfg5_curr_state_v(r)                   (((r) >> 16U) & 0xfU)
+#define trim_xtal4x_cfg5_curr_state_good_v()                       (0x00000006U)
+#define trim_xtal4x_cfg_r()                                        (0x001370a0U)
+#define trim_xtal4x_cfg_pll_lock_v(r)                      (((r) >> 17U) & 0x1U)
+#define trim_xtal4x_cfg_pll_lock_true_v()                          (0x00000001U)
+#define trim_mem_pll_status_r()                                    (0x00137390U)
+#define trim_mem_pll_status_dram_curr_state_v(r)            (((r) >> 1U) & 0x1U)
+#define trim_mem_pll_status_dram_curr_state_good_v()               (0x00000001U)
+#define trim_mem_pll_status_refm_curr_state_v(r)           (((r) >> 17U) & 0x1U)
+#define trim_mem_pll_status_refm_curr_state_good_v()               (0x00000001U)
+#define trim_sppll0_cfg_r()                                        (0x0000e800U)
+#define trim_sppll0_cfg_curr_state_v(r)                    (((r) >> 17U) & 0x1U)
+#define trim_sppll0_cfg_curr_state_good_v()                        (0x00000001U)
+#define trim_sppll1_cfg_r()                                        (0x0000e820U)
+#define trim_sppll1_cfg_curr_state_v(r)                    (((r) >> 17U) & 0x1U)
+#define trim_sppll1_cfg_curr_state_good_v()                        (0x00000001U)
 #endif

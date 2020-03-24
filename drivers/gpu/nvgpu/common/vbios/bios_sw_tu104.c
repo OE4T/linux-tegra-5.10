@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,9 +27,6 @@
 
 #include "bios_sw_gv100.h"
 #include "bios_sw_tu104.h"
-
-#define NV_DEVINIT_VERIFY_TIMEOUT_MS		1000U
-#define NV_DEVINIT_VERIFY_TIMEOUT_DELAY_US	10U
 
 #define NV_PGC6_AON_SECURE_SCRATCH_GROUP_05_0_GFW_BOOT_PROGRESS_MASK \
 		0xFFU
@@ -123,8 +120,8 @@ int tu104_bios_verify_devinit(struct gk20a *g)
 	u32 aon_secure_scratch_reg;
 	int err;
 
-	err = nvgpu_timeout_init(g, &timeout, NV_DEVINIT_VERIFY_TIMEOUT_MS,
-				   NVGPU_TIMER_CPU_TIMER);
+	err = nvgpu_timeout_init(g, &timeout,
+		NVGPU_BIOS_DEVINIT_VERIFY_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		return err;
 	}
@@ -139,7 +136,7 @@ int tu104_bios_verify_devinit(struct gk20a *g)
 			return 0;
 		}
 
-		nvgpu_udelay(NV_DEVINIT_VERIFY_TIMEOUT_DELAY_US);
+		nvgpu_udelay(NVGPU_BIOS_DEVINIT_VERIFY_DELAY_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;

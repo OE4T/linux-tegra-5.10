@@ -273,6 +273,7 @@ static const struct gpu_ops tu104_ops = {
 #ifdef CONFIG_NVGPU_DGPU
 		.bios_sw_init = nvgpu_bios_sw_init,
 		.bios_sw_deinit = nvgpu_bios_sw_deinit,
+		.wait_for_bios_init_done = nvgpu_bios_wait_for_init_done,
 #endif /* CONFIG_NVGPU_DGPU */
 		.get_aon_secure_scratch_reg = tu104_get_aon_secure_scratch_reg,
 	},
@@ -1294,6 +1295,8 @@ static const struct gpu_ops tu104_ops = {
 				nvgpu_clk_mon_check_master_fault_status,
 		.clk_mon_check_status = nvgpu_clk_mon_check_status,
 		.clk_mon_init_domains = nvgpu_pmu_clk_mon_init_domains,
+		.clk_mon_check_clk_good = nvgpu_clk_mon_check_clk_good,
+		.clk_mon_check_pll_lock = nvgpu_clk_mon_check_pll_lock,
 		.perf_pmu_vfe_load = nvgpu_pmu_perf_load,
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
