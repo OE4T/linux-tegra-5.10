@@ -1,7 +1,7 @@
 /*
  * CBC
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,12 @@ void nvgpu_cbc_remove_support(struct gk20a *g)
 	g->cbc = NULL;
 }
 
+/*
+ * This function is triggered during finalize_poweron multiple times.
+ * This function should not return if cbc is not NULL.
+ * cbc.init(), which re-writes HW registers that are reset during suspend,
+ * should be allowed to execute each time.
+ */
 int nvgpu_cbc_init_support(struct gk20a *g)
 {
 	int err = 0;
@@ -64,8 +70,15 @@ int nvgpu_cbc_init_support(struct gk20a *g)
 			return -ENOMEM;
 		}
 		g->cbc = cbc;
+
 		if (g->ops.cbc.alloc_comptags != NULL) {
 			err = g->ops.cbc.alloc_comptags(g, g->cbc);
+			if (err != 0) {
+				nvgpu_err(g, "Failed to allocate comptags");
+				nvgpu_kfree(g, cbc);
+				g->cbc = NULL;
+				return err;
+			}
 		}
 	}
 
