@@ -743,7 +743,11 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 	case NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE:
 		op.method.addr =
+#if defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
+			0xFFFF;
+#else
 			gr_fecs_method_push_adr_discover_pm_image_size_v();
+#endif
 		op.mailbox.ret = ret_val;
 		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_SLEEP;
 		break;
