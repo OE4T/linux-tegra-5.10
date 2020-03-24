@@ -46,16 +46,9 @@ void osd_udelay(unsigned long usec);
  * @brief osd_receive_packet - Handover received packet to network stack.
  *
  * Algorithm:
- *	  1) Unmap the DMA buffer address.
- *	  2) Updates socket buffer with len and ether type and handover to
- *	  OS network stack.
- *	  3) Refill the Rx ring based on threshold.
- *	  4) Fills the rxpkt_cx->flags with the below bit fields accordingly
- *	  OSI_PKT_CX_VLAN
- *	  OSI_PKT_CX_VALID
- *	  OSI_PKT_CX_CSUM
- *	  OSI_PKT_CX_TSO
- *	  OSI_PKT_CX_PTP
+ *	  1) Unmap the DMA buffer address (not needed if buffers are allocated statically).
+ *	  2) Refill the Rx ring based on threshold.
+ *	  3) Consume the flag information and take decision to hand over the packet and related information to OS network stack.
  *
  * @param[in] priv: OSD private data structure.
  * @param[in] rxring: Pointer to DMA channel Rx ring.
@@ -74,9 +67,8 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  * @brief osd_transmit_complete - Transmit completion routine.
  *
  * Algorithm:
- *	  1) Updates stats for Linux network stack.
- *	  2) unmap and free the buffer DMA address and buffer.
- *	  3) Time stamp will be updated to stack if available.
+ *	  1) Unmap and free the buffer DMA address and buffer (not needed if buffers are allocated statically).
+ *	  2) Time stamp will be updated to stack if available.
  *
  * @param[in] priv: OSD private data structure.
  * @param[in] buffer: Buffer address to free.
