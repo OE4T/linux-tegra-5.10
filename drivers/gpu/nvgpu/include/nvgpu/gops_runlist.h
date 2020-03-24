@@ -23,6 +23,7 @@
 #define NVGPU_GOPS_RUNLIST_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/pbdma.h>
 
 /**
  * @file

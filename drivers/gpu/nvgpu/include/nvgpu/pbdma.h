@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,12 @@
  * generated methods itself, and sends the remainder of the methods to engines.
  */
 struct gk20a;
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_pbdma.h"
+#endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief Initialize PBDMA software context

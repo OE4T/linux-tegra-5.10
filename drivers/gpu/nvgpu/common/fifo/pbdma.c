@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,13 +68,17 @@ int nvgpu_pbdma_setup_sw(struct gk20a *g)
 	struct nvgpu_fifo *f = &g->fifo;
 
 	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
+	f->pbdma_map = NULL;
 
-	f->pbdma_map = nvgpu_kzalloc(g, f->num_pbdma * sizeof(*f->pbdma_map));
-	if (f->pbdma_map == NULL) {
-		return -ENOMEM;
+	if (g->ops.fifo.init_pbdma_map != NULL) {
+		f->pbdma_map = nvgpu_kzalloc(g,
+				f->num_pbdma * sizeof(*f->pbdma_map));
+		if (f->pbdma_map == NULL) {
+			return -ENOMEM;
+		}
+
+		g->ops.fifo.init_pbdma_map(g, f->pbdma_map, f->num_pbdma);
 	}
-
-	g->ops.fifo.init_pbdma_map(g, f->pbdma_map, f->num_pbdma);
 
 	nvgpu_pbdma_init_intr_descs(g);
 
@@ -85,6 +89,8 @@ void nvgpu_pbdma_cleanup_sw(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
 
-	nvgpu_kfree(g, f->pbdma_map);
-	f->pbdma_map = NULL;
+	if (f->pbdma_map != NULL) {
+		nvgpu_kfree(g, f->pbdma_map);
+		f->pbdma_map = NULL;
+	}
 }
