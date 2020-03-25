@@ -392,6 +392,11 @@ static void stub_channel_sync_destroy(struct nvgpu_channel_sync *s)
 	stub[0].chid = 1;
 }
 
+static const struct nvgpu_channel_sync_ops stub_channel_sync_ops = {
+	.set_safe_state		= stub_channel_sync_syncpt_set_safe_state,
+	.destroy		= stub_channel_sync_destroy,
+};
+
 
 static bool channel_close_pruned(u32 branches, u32 final)
 {
@@ -525,9 +530,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			nvgpu_ref_get(&vm.ref);
 
 			ch->user_sync = &user_sync;
-			ch->user_sync->set_safe_state =
-				stub_channel_sync_syncpt_set_safe_state;
-			ch->user_sync->destroy = stub_channel_sync_destroy;
+			ch->user_sync->ops = &stub_channel_sync_ops;
 		}
 
 		if (branches & F_CHANNEL_WAIT_UNTIL_COUNTER) {
@@ -1922,9 +1925,7 @@ int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
 
 	ch->user_sync = nvgpu_kzalloc(g,
 			sizeof(struct nvgpu_channel_sync));
-	ch->user_sync->set_safe_state =
-		stub_channel_sync_syncpt_set_safe_state;
-	ch->user_sync->destroy = stub_channel_sync_destroy;
+	ch->user_sync->ops = &stub_channel_sync_ops;
 
 	err = nvgpu_tsg_unbind_channel(tsg, ch);
 	unit_assert(err == 0, goto done);

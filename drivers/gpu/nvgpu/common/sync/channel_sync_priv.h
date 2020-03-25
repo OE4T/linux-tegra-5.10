@@ -31,6 +31,7 @@
 
 struct priv_cmd_entry;
 struct nvgpu_fence_type;
+struct nvgpu_channel_sync_ops;
 
 /*
  * This struct is private and should not be used directly. Users should
@@ -38,7 +39,14 @@ struct nvgpu_fence_type;
  */
 struct nvgpu_channel_sync {
 	nvgpu_atomic_t refcount;
+	const struct nvgpu_channel_sync_ops *ops;
+};
 
+/*
+ * This struct is private and should not be used directly. Users should
+ * instead use the public APIs starting with nvgpu_channel_sync_*
+ */
+struct nvgpu_channel_sync_ops {
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	int (*wait_fence_raw)(struct nvgpu_channel_sync *s, u32 id, u32 thresh,
 			   struct priv_cmd_entry *entry);

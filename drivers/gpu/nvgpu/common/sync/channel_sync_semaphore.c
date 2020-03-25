@@ -40,7 +40,7 @@
 #include "channel_sync_priv.h"
 
 struct nvgpu_channel_sync_semaphore {
-	struct nvgpu_channel_sync ops;
+	struct nvgpu_channel_sync base;
 	struct nvgpu_channel *c;
 
 	/* A semaphore pool owned by this channel. */
@@ -48,11 +48,11 @@ struct nvgpu_channel_sync_semaphore {
 };
 
 static struct nvgpu_channel_sync_semaphore *
-nvgpu_channel_sync_semaphore_from_ops(struct nvgpu_channel_sync *ops)
+nvgpu_channel_sync_semaphore_from_base(struct nvgpu_channel_sync *base)
 {
 	return (struct nvgpu_channel_sync_semaphore *)
-		((uintptr_t)ops -
-			offsetof(struct nvgpu_channel_sync_semaphore, ops));
+		((uintptr_t)base -
+			offsetof(struct nvgpu_channel_sync_semaphore, base));
 }
 
 static void add_sema_cmd(struct gk20a *g, struct nvgpu_channel *c,
@@ -123,7 +123,7 @@ static int channel_sync_semaphore_wait_fd(
 		struct priv_cmd_entry *entry, u32 max_wait_cmds)
 {
 	struct nvgpu_channel_sync_semaphore *sema =
-		nvgpu_channel_sync_semaphore_from_ops(s);
+		nvgpu_channel_sync_semaphore_from_base(s);
 	struct nvgpu_channel *c = sema->c;
 
 	struct nvgpu_os_fence os_fence = {0};
@@ -181,7 +181,7 @@ static int channel_sync_semaphore_incr_common(
 {
 	u32 incr_cmd_size;
 	struct nvgpu_channel_sync_semaphore *sp =
-		nvgpu_channel_sync_semaphore_from_ops(s);
+		nvgpu_channel_sync_semaphore_from_base(s);
 	struct nvgpu_channel *c = sp->c;
 	struct nvgpu_semaphore *semaphore;
 	int err = 0;
@@ -268,7 +268,7 @@ static int channel_sync_semaphore_incr_user(
 	return 0;
 #else
 	struct nvgpu_channel_sync_semaphore *sema =
-		nvgpu_channel_sync_semaphore_from_ops(s);
+		nvgpu_channel_sync_semaphore_from_base(s);
 	nvgpu_err(sema->c->g,
 		  "trying to use sync fds with CONFIG_SYNC disabled");
 	return -ENODEV;
@@ -278,7 +278,7 @@ static int channel_sync_semaphore_incr_user(
 static void channel_sync_semaphore_set_min_eq_max(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_semaphore *sp =
-		nvgpu_channel_sync_semaphore_from_ops(s);
+		nvgpu_channel_sync_semaphore_from_base(s);
 	struct nvgpu_channel *c = sp->c;
 	bool updated;
 
@@ -301,7 +301,7 @@ static void channel_sync_semaphore_set_safe_state(struct nvgpu_channel_sync *s)
 static void channel_sync_semaphore_destroy(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_semaphore *sema =
-		nvgpu_channel_sync_semaphore_from_ops(s);
+		nvgpu_channel_sync_semaphore_from_base(s);
 
 	struct nvgpu_channel *c = sema->c;
 	struct gk20a *g = c->g;
@@ -317,6 +317,15 @@ static void channel_sync_semaphore_destroy(struct nvgpu_channel_sync *s)
 	nvgpu_kfree(sema->c->g, sema);
 }
 
+static const struct nvgpu_channel_sync_ops channel_sync_semaphore_ops = {
+	.wait_fence_fd		= channel_sync_semaphore_wait_fd,
+	.incr			= channel_sync_semaphore_incr,
+	.incr_user		= channel_sync_semaphore_incr_user,
+	.set_min_eq_max		= channel_sync_semaphore_set_min_eq_max,
+	.set_safe_state		= channel_sync_semaphore_set_safe_state,
+	.destroy		= channel_sync_semaphore_destroy,
+};
+
 /* Converts a valid struct nvgpu_channel_sync ptr to
  * struct nvgpu_channel_sync_syncpt ptr else return NULL.
  */
@@ -324,8 +333,8 @@ struct nvgpu_channel_sync_semaphore *
 	nvgpu_channel_sync_to_semaphore(struct nvgpu_channel_sync *sync)
 {
 	struct nvgpu_channel_sync_semaphore *sema = NULL;
-	if (sync->wait_fence_fd == channel_sync_semaphore_wait_fd) {
-		sema = nvgpu_channel_sync_semaphore_from_ops(sync);
+	if (sync->ops == &channel_sync_semaphore_ops) {
+		sema = nvgpu_channel_sync_semaphore_from_base(sync);
 	}
 
 	return sema;
@@ -368,13 +377,8 @@ nvgpu_channel_sync_semaphore_create(
 		}
 	}
 
-	nvgpu_atomic_set(&sema->ops.refcount, 0);
-	sema->ops.wait_fence_fd	= channel_sync_semaphore_wait_fd;
-	sema->ops.incr		= channel_sync_semaphore_incr;
-	sema->ops.incr_user	= channel_sync_semaphore_incr_user;
-	sema->ops.set_min_eq_max = channel_sync_semaphore_set_min_eq_max;
-	sema->ops.set_safe_state = channel_sync_semaphore_set_safe_state;
-	sema->ops.destroy	= channel_sync_semaphore_destroy;
+	nvgpu_atomic_set(&sema->base.refcount, 0);
+	sema->base.ops = &channel_sync_semaphore_ops;
 
-	return &sema->ops;
+	return &sema->base;
 }

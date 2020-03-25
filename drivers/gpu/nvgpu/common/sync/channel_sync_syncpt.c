@@ -40,7 +40,7 @@
 #include "channel_sync_priv.h"
 
 struct nvgpu_channel_sync_syncpt {
-	struct nvgpu_channel_sync ops;
+	struct nvgpu_channel_sync base;
 	struct nvgpu_channel *c;
 	struct nvgpu_nvhost_dev *nvhost;
 	u32 id;
@@ -48,11 +48,11 @@ struct nvgpu_channel_sync_syncpt {
 };
 
 static struct nvgpu_channel_sync_syncpt *
-nvgpu_channel_sync_syncpt_from_ops(struct nvgpu_channel_sync *ops)
+nvgpu_channel_sync_syncpt_from_base(struct nvgpu_channel_sync *base)
 {
 	return (struct nvgpu_channel_sync_syncpt *)
-		((uintptr_t)ops -
-			offsetof(struct nvgpu_channel_sync_syncpt, ops));
+		((uintptr_t)base -
+			offsetof(struct nvgpu_channel_sync_syncpt, base));
 }
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
@@ -113,7 +113,7 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 	struct nvgpu_os_fence os_fence = {0};
 	struct nvgpu_os_fence_syncpt os_fence_syncpt = {0};
 	struct nvgpu_channel_sync_syncpt *sp =
-		nvgpu_channel_sync_syncpt_from_ops(s);
+		nvgpu_channel_sync_syncpt_from_base(s);
 	struct nvgpu_channel *c = sp->c;
 	int err = 0;
 	u32 i, num_fences, wait_cmd_size;
@@ -192,7 +192,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	u32 thresh;
 	int err;
 	struct nvgpu_channel_sync_syncpt *sp =
-		nvgpu_channel_sync_syncpt_from_ops(s);
+		nvgpu_channel_sync_syncpt_from_base(s);
 	struct nvgpu_channel *c = sp->c;
 	struct nvgpu_os_fence os_fence = {0};
 
@@ -303,7 +303,7 @@ int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
 static void channel_sync_syncpt_set_min_eq_max(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
-		nvgpu_channel_sync_syncpt_from_ops(s);
+		nvgpu_channel_sync_syncpt_from_base(s);
 	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost, sp->id);
 }
 
@@ -312,7 +312,7 @@ static void channel_sync_syncpt_set_min_eq_max(struct nvgpu_channel_sync *s)
 static void channel_sync_syncpt_set_safe_state(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
-		nvgpu_channel_sync_syncpt_from_ops(s);
+		nvgpu_channel_sync_syncpt_from_base(s);
 	nvgpu_nvhost_syncpt_set_safe_state(sp->nvhost, sp->id);
 }
 
@@ -329,7 +329,7 @@ static u64 channel_sync_syncpt_get_address(struct nvgpu_channel_sync_syncpt *sp)
 static void channel_sync_syncpt_destroy(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
-		nvgpu_channel_sync_syncpt_from_ops(s);
+		nvgpu_channel_sync_syncpt_from_base(s);
 
 
 	sp->c->g->ops.sync.syncpt.free_buf(sp->c, &sp->syncpt_buf);
@@ -349,13 +349,24 @@ u64 nvgpu_channel_sync_get_syncpt_address(struct nvgpu_channel_sync_syncpt *s)
 	return channel_sync_syncpt_get_address(s);
 }
 
+static const struct nvgpu_channel_sync_ops channel_sync_syncpt_ops = {
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+	.wait_fence_fd		= channel_sync_syncpt_wait_fd,
+	.incr			= channel_sync_syncpt_incr,
+	.incr_user		= channel_sync_syncpt_incr_user,
+	.set_min_eq_max		= channel_sync_syncpt_set_min_eq_max,
+#endif
+	.set_safe_state		= channel_sync_syncpt_set_safe_state,
+	.destroy		= channel_sync_syncpt_destroy,
+};
+
 struct nvgpu_channel_sync_syncpt *
 nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 {
 	struct nvgpu_channel_sync_syncpt *syncpt = NULL;
 
-	if (sync->set_safe_state == channel_sync_syncpt_set_safe_state) {
-		syncpt = nvgpu_channel_sync_syncpt_from_ops(sync);
+	if (sync->ops == &channel_sync_syncpt_ops) {
+		syncpt = nvgpu_channel_sync_syncpt_from_base(sync);
 	}
 
 	return syncpt;
@@ -422,17 +433,10 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
 
 	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost, sp->id);
 
-	nvgpu_atomic_set(&sp->ops.refcount, 0);
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-	sp->ops.wait_fence_fd		= channel_sync_syncpt_wait_fd;
-	sp->ops.incr			= channel_sync_syncpt_incr;
-	sp->ops.incr_user		= channel_sync_syncpt_incr_user;
-	sp->ops.set_min_eq_max		= channel_sync_syncpt_set_min_eq_max;
-#endif
-	sp->ops.set_safe_state		= channel_sync_syncpt_set_safe_state;
-	sp->ops.destroy			= channel_sync_syncpt_destroy;
+	nvgpu_atomic_set(&sp->base.refcount, 0);
+	sp->base.ops = &channel_sync_syncpt_ops;
 
-	return &sp->ops;
+	return &sp->base;
 }
 
 
