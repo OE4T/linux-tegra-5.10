@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA Corporation and its licensors retain all intellectual property and
  * proprietary rights in and to this software and related documentation.  Any
@@ -8,7 +8,7 @@
  * is strictly prohibited.
  */
 #ifndef NVGPU_GV11B_IOSPACE_H
-#define NVVGPU_GV11b_IOSPACE_H
+#define NVGPU_GV11B_IOSPACE_H
 
 struct mock_iospace {
 	const uint32_t *data;

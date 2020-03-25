@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
  */
 
 #ifndef UNIT_NVGPU_FIFO_GV11B_H
-#define UNIT_NVGPU_FIFO_GV11b_H
+#define UNIT_NVGPU_FIFO_GV11B_H
 
 int test_fifo_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g);
 void test_fifo_cleanup_gv11b_reg_space(struct unit_module *m, struct gk20a *g);
