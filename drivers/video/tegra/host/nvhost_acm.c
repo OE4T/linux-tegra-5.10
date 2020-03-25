@@ -1337,24 +1337,24 @@ static int nvhost_module_toggle_slcg(struct notifier_block *nb,
 /* public host1x power management APIs */
 bool nvhost_module_powered_ext(struct platform_device *dev)
 {
-	if (dev->dev.parent && dev->dev.parent != &platform_bus)
-		dev = to_platform_device(dev->dev.parent);
-	return nvhost_module_powered(dev);
+	struct nvhost_master *host = nvhost_get_host(dev);
+
+	return nvhost_module_powered(host->dev);
 }
 EXPORT_SYMBOL(nvhost_module_powered_ext);
 
 int nvhost_module_busy_ext(struct platform_device *dev)
 {
-	if (dev->dev.parent && dev->dev.parent != &platform_bus)
-		dev = to_platform_device(dev->dev.parent);
-	return nvhost_module_busy(dev);
+	struct nvhost_master *host = nvhost_get_host(dev);
+
+	return nvhost_module_busy(host->dev);
 }
 EXPORT_SYMBOL(nvhost_module_busy_ext);
 
 void nvhost_module_idle_ext(struct platform_device *dev)
 {
-	if (dev->dev.parent && dev->dev.parent != &platform_bus)
-		dev = to_platform_device(dev->dev.parent);
-	nvhost_module_idle(dev);
+	struct nvhost_master *host = nvhost_get_host(dev);
+
+	nvhost_module_idle(host->dev);
 }
 EXPORT_SYMBOL(nvhost_module_idle_ext);

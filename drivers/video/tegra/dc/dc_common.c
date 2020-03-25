@@ -116,7 +116,8 @@
 
 #ifdef CONFIG_OF
 static struct of_device_id tegra_display_common_of_match[] = {
-	{.compatible = "nvidia,tegra_dc_common", },
+	{.compatible = "nvidia,tegra186-display", },
+	{.compatible = "nvidia,tegra194-display", },
 	{ },
 };
 #endif
