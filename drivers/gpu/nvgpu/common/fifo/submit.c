@@ -33,6 +33,7 @@
 #include <nvgpu/profile.h>
 #include <nvgpu/vpr.h>
 #include <nvgpu/trace.h>
+#include <nvgpu/nvhost.h>
 
 /*
  * Handle the submit synchronization - pre-fences and post-fences.
@@ -441,8 +442,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 #endif
 
 	if (need_job_tracking) {
-		bool need_sync_framework = false;
-
 		/*
 		 * If the channel is to have deterministic latency and
 		 * job tracking is required, the channel must have
@@ -453,26 +452,26 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 			return -EINVAL;
 		}
 
-		need_sync_framework =
-			(nvgpu_channel_sync_needs_os_fence_framework(g) ||
-			 (flag_sync_fence && flag_fence_get));
-
 		/*
 		 * Deferred clean-up is necessary for any of the following
-		 * conditions:
-		 * - channel's deterministic flag is not set
-		 * - dependency on sync framework, which could make the
-		 *   behavior of the clean-up operation non-deterministic
-		 *   (should not be performed in the submit path)
-		 * - channel wdt
-		 * - buffer refcounting
+		 * conditions that could make clean-up behaviour
+		 * non-deterministic and as such not suitable for the submit
+		 * path:
+		 * - channel's deterministic flag is not set (job tracking is
+		 *   dynamically allocated)
+		 * - no syncpt support (struct nvgpu_semaphore is dynamically
+		 *   allocated, not pooled)
+		 * - dependency on sync framework for post fences
+		 * - buffer refcounting, which is O(n)
+		 * - channel wdt, which needs periodic async cleanup
 		 *
 		 * If none of the conditions are met, then deferred clean-up
 		 * is not required, and we clean-up one job-tracking
 		 * resource in the submit path.
 		 */
 		need_deferred_cleanup = !nvgpu_channel_is_deterministic(c) ||
-					need_sync_framework ||
+					!nvgpu_has_syncpoints(g) ||
+					(flag_sync_fence && flag_fence_get) ||
 					!skip_buffer_refcounting;
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT

@@ -795,6 +795,12 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	int fd = -1;
 	struct gk20a *g = ch->g;
 	struct nvgpu_gpfifo_userdata userdata;
+	bool flag_fence_wait = (args->flags &
+			NVGPU_SUBMIT_GPFIFO_FLAGS_FENCE_WAIT) != 0U;
+	bool flag_fence_get = (args->flags &
+			NVGPU_SUBMIT_GPFIFO_FLAGS_FENCE_GET) != 0U;
+	bool flag_sync_fence = (args->flags &
+			NVGPU_SUBMIT_GPFIFO_FLAGS_SYNC_FENCE) != 0U;
 
 	int ret = 0;
 	nvgpu_log_fn(g, " ");
@@ -806,21 +812,35 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 		return -ETIMEDOUT;
 	}
 
-	nvgpu_get_fence_args(&args->fence, &fence);
-	submit_flags =
-		nvgpu_submit_gpfifo_user_flags_to_common_flags(args->flags);
+#ifndef CONFIG_SYNC
+	if (flag_sync_fence) {
+		return -EINVAL;
+	}
+#endif
+
+	/*
+	 * In case we need the sync framework, require that the user requests
+	 * it too for any fences. That's advertised in the gpu characteristics.
+	 */
+	if (nvgpu_channel_sync_needs_os_fence_framework(g) &&
+		(flag_fence_wait || flag_fence_get) && !flag_sync_fence) {
+		return -EINVAL;
+	}
 
 	/* Try and allocate an fd here*/
-	if ((args->flags & NVGPU_SUBMIT_GPFIFO_FLAGS_FENCE_GET)
-		&& (args->flags & NVGPU_SUBMIT_GPFIFO_FLAGS_SYNC_FENCE)) {
-			fd = get_unused_fd_flags(O_RDWR);
-			if (fd < 0)
-				return fd;
+	if (flag_fence_get && flag_sync_fence) {
+		fd = get_unused_fd_flags(O_RDWR);
+		if (fd < 0)
+			return fd;
 	}
 
 	userdata.entries = (struct nvgpu_gpfifo_entry __user *)
 		(uintptr_t)args->gpfifo;
 	userdata.context = NULL;
+
+	nvgpu_get_fence_args(&args->fence, &fence);
+	submit_flags =
+		nvgpu_submit_gpfifo_user_flags_to_common_flags(args->flags);
 
 	ret = nvgpu_submit_channel_gpfifo_user(ch,
 			userdata, args->num_entries,
@@ -833,8 +853,8 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	}
 
 	/* Convert fence_out to something we can pass back to user space. */
-	if (args->flags & NVGPU_SUBMIT_GPFIFO_FLAGS_FENCE_GET) {
-		if (args->flags & NVGPU_SUBMIT_GPFIFO_FLAGS_SYNC_FENCE) {
+	if (flag_fence_get) {
+		if (flag_sync_fence) {
 			ret = nvgpu_fence_install_fd(fence_out, fd);
 			if (ret)
 				put_unused_fd(fd);
