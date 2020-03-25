@@ -327,7 +327,6 @@ int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args)
 			F_RUNLIST_FORMAT_CH1_TIMESLICE |
 			F_RUNLIST_FORMAT_CH3_INACTIVE2 |
 			fail;
-	(void)test_args->timeslice;
 
 	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs, 1, 5,
 			&runlists, rl_data, false);
