@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -66,6 +66,31 @@ struct gops_priv_ring {
 	 */
 
 	void (*isr)(struct gk20a *g);
+
+	/**
+	 * @brief Unit level interrupt handler for priv ring
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param status0 [in]		Value of interrupt status register
+	 *
+	 * This function handles interrupts associated with priv ring
+	 * status0 interrupt register.
+	 */
+
+	void (*isr_handle_0)(struct gk20a *g, u32 status0);
+
+	/**
+	 * @brief Unit level interrupt handler for priv ring
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param status1 [in]		Value of interrupt status register
+	 *
+	 * This function handles interrupts associated with priv ring
+	 * status1 interrupt register.
+	 */
+
+	void (*isr_handle_1)(struct gk20a *g, u32 status1);
+
 	/**
 	 * @brief Sets Priv ring timeout value in cycles.
 	 *

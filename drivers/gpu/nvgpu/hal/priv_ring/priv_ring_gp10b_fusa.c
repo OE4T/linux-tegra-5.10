@@ -107,7 +107,7 @@ void gp10b_priv_ring_decode_error_code(struct gk20a *g,
 	}
 }
 
-static void gp10b_priv_ring_isr_handle_status0(struct gk20a *g, u32 status0)
+void gp10b_priv_ring_isr_handle_0(struct gk20a *g, u32 status0)
 {
 	u32 error_info;
 	u32 error_code;
@@ -150,7 +150,7 @@ static void gp10b_priv_ring_isr_handle_status0(struct gk20a *g, u32 status0)
 	}
 }
 
-static void gp10b_priv_ring_isr_handle_status1(struct gk20a *g, u32 status1)
+void gp10b_priv_ring_isr_handle_1(struct gk20a *g, u32 status1)
 {
 	u32 error_info;
 	u32 error_code;
@@ -217,8 +217,8 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 	nvgpu_err(g, "ringmaster intr status0: 0x%08x, status1: 0x%08x",
 			status0, status1);
 
-	gp10b_priv_ring_isr_handle_status0(g, status0);
-	gp10b_priv_ring_isr_handle_status1(g, status1);
+	g->ops.priv_ring.isr_handle_0(g, status0);
+	g->ops.priv_ring.isr_handle_1(g, status1);
 
 	/* clear interrupt */
 	cmd = nvgpu_readl(g, pri_ringmaster_command_r());

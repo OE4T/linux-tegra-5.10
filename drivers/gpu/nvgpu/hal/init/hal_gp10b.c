@@ -1187,6 +1187,8 @@ static const struct gpu_ops gp10b_ops = {
 	.priv_ring = {
 		.enable_priv_ring = gm20b_priv_ring_enable,
 		.isr = gp10b_priv_ring_isr,
+		.isr_handle_0 = gp10b_priv_ring_isr_handle_0,
+		.isr_handle_1 = gp10b_priv_ring_isr_handle_1,
 		.decode_error_code = gp10b_priv_ring_decode_error_code,
 		.set_ppriv_timeout_settings =
 			gm20b_priv_set_timeout_settings,
