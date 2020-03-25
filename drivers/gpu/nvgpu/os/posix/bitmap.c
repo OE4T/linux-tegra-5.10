@@ -230,7 +230,8 @@ bool nvgpu_test_bit(unsigned int nr, const volatile unsigned long *addr)
 bool nvgpu_test_and_set_bit(unsigned int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
-	volatile unsigned long *p = addr + BIT_WORD(nr);
+	volatile unsigned _Atomic long *p =
+		(volatile unsigned _Atomic long *)addr + BIT_WORD(nr);
 
 	return (atomic_fetch_or(p, mask) & mask) != 0ULL;
 }
@@ -238,7 +239,8 @@ bool nvgpu_test_and_set_bit(unsigned int nr, volatile unsigned long *addr)
 bool nvgpu_test_and_clear_bit(unsigned int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
-	volatile unsigned long *p = addr + BIT_WORD(nr);
+	volatile unsigned _Atomic long *p =
+		(volatile unsigned _Atomic long *)addr + BIT_WORD(nr);
 
 	return (atomic_fetch_and(p, ~mask) & mask) != 0ULL;
 }
@@ -246,7 +248,8 @@ bool nvgpu_test_and_clear_bit(unsigned int nr, volatile unsigned long *addr)
 void nvgpu_set_bit(unsigned int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
-	volatile unsigned long *p = addr + BIT_WORD(nr);
+	volatile unsigned _Atomic long *p =
+		(unsigned volatile _Atomic long *)addr + BIT_WORD(nr);
 
 	(void)atomic_fetch_or(p, mask);
 }
@@ -254,7 +257,8 @@ void nvgpu_set_bit(unsigned int nr, volatile unsigned long *addr)
 void nvgpu_clear_bit(unsigned int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
-	volatile unsigned long *p = addr + BIT_WORD(nr);
+	volatile unsigned _Atomic long *p =
+		(volatile unsigned _Atomic long *)addr + BIT_WORD(nr);
 
 	(void)atomic_fetch_and(p, ~mask);
 }
