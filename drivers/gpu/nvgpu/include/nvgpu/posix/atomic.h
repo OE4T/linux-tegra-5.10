@@ -100,7 +100,7 @@ typedef struct __nvgpu_posix_atomic64 {
  */
 #define NVGPU_POSIX_ATOMIC_ADD_RETURN(v, i)				\
 	({								\
-		typeof((v)->v) tmp;					\
+		typeof(i) tmp;					\
 									\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
 			NVGPU_CERT(INT31_C), "Bug 200584380")		\
@@ -110,7 +110,7 @@ typedef struct __nvgpu_posix_atomic64 {
 			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1,		\
 			NVGPU_MISRA(Rule, 10_3), "TID 374")		\
-		tmp = (typeof((v)->v))atomic_fetch_add(&((v)->v), (i));	\
+		tmp = (typeof(i))atomic_fetch_add(&((v)->v), (i));	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(INT31_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
@@ -132,7 +132,7 @@ typedef struct __nvgpu_posix_atomic64 {
  */
 #define NVGPU_POSIX_ATOMIC_SUB_RETURN(v, i)				\
 	({								\
-		typeof((v)->v) tmp;					\
+		typeof(i) tmp;					\
 									\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
 			NVGPU_CERT(INT31_C), "Bug 200584380")		\
@@ -142,7 +142,7 @@ typedef struct __nvgpu_posix_atomic64 {
 			NVGPU_CERT(EXP37_C), "Bug 200584380")		\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1,		\
 			NVGPU_MISRA(Rule, 10_3), "TID 374")        	\
-		tmp = (typeof((v)->v))atomic_fetch_sub(&((v)->v), (i));	\
+		tmp = (typeof(i))atomic_fetch_sub(&((v)->v), (i));	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(INT31_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(DCL37_C))	\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(EXP37_C))	\
@@ -167,7 +167,7 @@ typedef struct __nvgpu_posix_atomic64 {
  */
 #define NVGPU_POSIX_ATOMIC_CMPXCHG(v, old, new)				\
 	({								\
-		typeof((v)->v) tmp = (old);				\
+		typeof(old) tmp = (old);				\
 									\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1,	\
 			NVGPU_CERT(DCL37_C), "Bug 200584380")		\
