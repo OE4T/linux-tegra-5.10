@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -775,7 +775,7 @@ int test_atomic_arithmetic_threaded(struct unit_module *m,
 		/* sanity test that the threads aren't all sequential */
 		bool sequential = true;
 		for (i = 0; i < (num_threads - 1); i++) {
-			if (abs(threads[i].final_val - threads[i+1].final_val)
+			if (labs(threads[i].final_val - threads[i+1].final_val)
 						!= (long)args->loop_count) {
 				sequential = false;
 				break;
