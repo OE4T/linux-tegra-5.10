@@ -111,7 +111,7 @@ static bool stub_mm_is_bar1_supported(struct gk20a *g)
 
 int test_fifo_suspend(struct unit_module *m, struct gk20a *g, void *args)
 {
-	struct gpu_ops gops;
+	struct gpu_ops gops = { {0} };
 	u32 reg0_val, reg1_val;
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
@@ -163,7 +163,7 @@ done:
 
 int test_fifo_sw_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 {
-	struct gpu_ops gops;
+	struct gpu_ops gops = { {0} };
 	u32 reg_val;
 	int ret = UNIT_FAIL;
 	int err;
@@ -246,7 +246,7 @@ static int stub_init_fifo_setup_hw_pass(struct gk20a *g)
 int test_init_support(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_posix_fault_inj *kmem_fi;
-	struct gpu_ops gops;
+	struct gpu_ops gops = { {0} };
 
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;

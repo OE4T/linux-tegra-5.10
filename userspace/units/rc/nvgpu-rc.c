@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -424,7 +424,7 @@ int test_rc_pbdma_fault(struct unit_module *m, struct gk20a *g, void *args)
 
 		for (id_type_branches = F_RC_ID_TYPE_TSG; id_type_branches <= F_RC_ID_TYPE_INVALID;
 				id_type_branches++) {
-			u32 id_type_ch_sub_branches;
+			u32 id_type_ch_sub_branches = 0U;
 			if (id_type_branches == F_RC_ID_TYPE_CH) {
 				for (id_type_ch_sub_branches = F_RC_ID_TYPE_CH_NULL_CHANNEL;
 					id_type_ch_sub_branches <= F_RC_ID_TYPE_CH_FULL; id_type_ch_sub_branches++) {

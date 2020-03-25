@@ -424,9 +424,9 @@ static bool channel_close_pruned(u32 branches, u32 final)
 int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 {
 	struct gpu_ops gops = g->ops;
-	struct nvgpu_channel *ch;
+	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_tsg *tsg;
-	struct nvgpu_channel_sync user_sync = {0};
+	struct nvgpu_channel_sync user_sync = { {0} };
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
 	u32 fail = F_CHANNEL_CLOSE_ALREADY_FREED |
