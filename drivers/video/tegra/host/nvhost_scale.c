@@ -422,6 +422,7 @@ void nvhost_scale_init(struct platform_device *pdev)
 	/* initialize devfreq if governor is set and actmon enabled */
 	if (pdata->actmon_enabled && pdata->devfreq_governor) {
 		struct devfreq *devfreq;
+		int error = 0;
 
 		profile->devfreq_profile.initial_freq =
 			profile->devfreq_profile.freq_table[0];
@@ -446,6 +447,18 @@ void nvhost_scale_init(struct platform_device *pdev)
 		if (nvhost_module_add_client(pdev, devfreq)) {
 			nvhost_err(&pdev->dev,
 				"failed to register devfreq as acm client");
+		}
+
+		/* create symlink 'devfreq_dev' in nvhost dev. */
+		if (devfreq != NULL) {
+			error = sysfs_create_link(&pdev->dev.kobj,
+				&devfreq->dev.kobj, "devfreq_dev");
+
+			if (error) {
+				nvhost_err(&pdev->dev,
+					"Failed to create devfreq_dev: %d",
+					error);
+			}
 		}
 	}
 
@@ -482,8 +495,10 @@ void nvhost_scale_deinit(struct platform_device *pdev)
 	/* Remove devfreq from acm client list */
 	nvhost_module_remove_client(pdev, pdata->power_manager);
 
-	if (pdata->power_manager)
+	if (pdata->power_manager) {
 		devfreq_remove_device(pdata->power_manager);
+		sysfs_remove_link(&pdev->dev.kobj, "devfreq_dev");
+	}
 
 	if (pdata->actmon_enabled)
 		device_remove_file(&pdev->dev, &dev_attr_load);
