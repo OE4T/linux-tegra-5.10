@@ -24,12 +24,6 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/posix/posix-nvhost.h>
 
-static inline u32 nvgpu_nvhost_syncpt_nb_hw_pts(
-		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev)
-{
-	return nvgpu_syncpt_dev->nb_hw_pts;
-}
-
 void nvgpu_free_nvhost_dev(struct gk20a *g) {
 
 	if (g->nvhost != NULL) {
