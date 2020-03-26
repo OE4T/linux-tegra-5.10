@@ -15,6 +15,7 @@
  */
 
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <linux/mmu_notifier.h>
 #include <linux/module.h>
 #include <linux/nv-p2p.h>
@@ -33,12 +34,13 @@ static void nvidia_p2p_mn_release(struct mmu_notifier *mn,
 	page_table->free_callback(page_table->data);
 }
 
-static void nvidia_p2p_mn_invl_range_start(struct mmu_notifier *mn,
+static void nvidia_p2p_mn_invl_range_start_legacy(struct mmu_notifier *mn,
 	struct mm_struct *mm, unsigned long start, unsigned long end)
 {
 	struct nvidia_p2p_page_table *page_table = container_of(mn,
 						struct  nvidia_p2p_page_table,
 						mn);
+
 	u64 vaddr = 0;
 	u64 size = 0;
 
@@ -46,14 +48,42 @@ static void nvidia_p2p_mn_invl_range_start(struct mmu_notifier *mn,
 	size = page_table->size;
 
 	if (vaddr >= start && vaddr <= end) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+		mmu_notifier_put(&page_table->mn);
+#else
 		mmu_notifier_unregister_no_release(&page_table->mn, page_table->mm);
+#endif
 		page_table->free_callback(page_table->data);
 	}
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 20, 0)
+static int nvidia_p2p_mn_invl_range_start(struct mmu_notifier *mn,
+	const struct mmu_notifier_range *range)
+{
+	nvidia_p2p_mn_invl_range_start_legacy(mn, NULL, range->start, range->end);
+
+	return 0;
+}
+#endif
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+static void nvidia_p2p_free_notifier(struct mmu_notifier *mn)
+{
+}
+#endif
+
 static struct mmu_notifier_ops nvidia_p2p_mmu_ops = {
 	.release		= nvidia_p2p_mn_release,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 20, 0)
 	.invalidate_range_start	= nvidia_p2p_mn_invl_range_start,
+#else
+	.invalidate_range_start	= nvidia_p2p_mn_invl_range_start_legacy,
+#endif
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	.free_notifier		= nvidia_p2p_free_notifier,
+#endif
 };
 
 int nvidia_p2p_get_pages(u64 vaddr, u64 size,
@@ -80,12 +110,20 @@ int nvidia_p2p_get_pages(u64 vaddr, u64 size,
 		ret = -ENOMEM;
 		goto free_page_table;
 	}
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0)
+	down_read(&current->mm->mmap_lock);
+#else
 	down_read(&current->mm->mmap_sem);
+#endif
 	locked = 1;
 	user_pages = get_user_pages_locked(vaddr & PAGE_MASK, nr_pages,
 			FOLL_WRITE | FOLL_FORCE,
 			pages, &locked);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0)
+	up_read(&current->mm->mmap_lock);
+#else
 	up_read(&current->mm->mmap_sem);
+#endif
 	if (user_pages != nr_pages) {
 		ret = user_pages < 0 ? user_pages : -ENOMEM;
 		goto free_pages;
