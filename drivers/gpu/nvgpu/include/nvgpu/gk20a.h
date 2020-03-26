@@ -800,9 +800,6 @@ struct gk20a {
 	unsigned int aggressive_sync_destroy_thresh;
 	bool aggressive_sync_destroy;
 
-	/** Debugfs knob for forcing syncpt support off in runtime. */
-	bool disable_syncpoints;
-
 	/** Is LS PMU supported? */
 	bool support_ls_pmu;
 
@@ -1085,8 +1082,6 @@ int gk20a_do_unidle_impl(struct gk20a *g);
 #define NVGPU_GPUID_GV100   0x00000140U
 /** tu104 HW version */
 #define NVGPU_GPUID_TU104   0x00000164U
-
-bool nvgpu_has_syncpoints(struct gk20a *g);
 
 /**
  * @}

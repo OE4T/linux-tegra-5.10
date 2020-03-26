@@ -37,9 +37,11 @@ struct nvgpu_nvhost_dev {
 	u32 syncpt_value;
 };
 
+int nvgpu_get_nvhost_dev(struct gk20a *g);
+
 void nvgpu_free_nvhost_dev(struct gk20a *g);
 
-int nvgpu_get_nvhost_dev(struct gk20a *g);
+bool nvgpu_has_syncpoints(struct gk20a *g);
 
 int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,

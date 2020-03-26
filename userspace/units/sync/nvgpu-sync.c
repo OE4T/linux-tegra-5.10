@@ -424,7 +424,6 @@ done:
 	return ret;
 }
 
-#define F_SYNC_GLOBAL_DISABLE_SYNCPT		0
 #define F_SYNC_SYNCPT_ALLOC_FAILED		1
 #define F_SYNC_USER_MANAGED			2
 #define F_SYNC_STRADD_FAIL			3
@@ -451,10 +450,6 @@ static void clear_test_params(struct gk20a *g,
 		bool *fault_injection_enabled, u32 branch,
 		struct nvgpu_posix_fault_inj *kmem_fi)
 {
-	if (g->disable_syncpoints) {
-		g->disable_syncpoints = false;
-	}
-
 	if (ch->vm->guest_managed) {
 		ch->vm->guest_managed = false;
 	}
@@ -491,9 +486,7 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 		 */
 		g->nvhost->syncpt_id = 0U;
 
-		if (branches == F_SYNC_GLOBAL_DISABLE_SYNCPT) {
-			g->disable_syncpoints = true;
-		} else if (branches == F_SYNC_SYNCPT_ALLOC_FAILED) {
+		if (branches == F_SYNC_SYNCPT_ALLOC_FAILED) {
 			/* fail first kzalloc call */
 			nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
 			fault_injection_enabled = true;

@@ -39,6 +39,7 @@
 #include <nvgpu/vgpu/vm_vgpu.h>
 #include <nvgpu/cbc.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/nvhost.h>
 
 struct nvgpu_ctag_buffer_info {
 	u64			size;

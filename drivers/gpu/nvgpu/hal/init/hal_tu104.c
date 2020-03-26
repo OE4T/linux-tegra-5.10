@@ -234,6 +234,7 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/sbr.h>
+#include <nvgpu/nvhost.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 

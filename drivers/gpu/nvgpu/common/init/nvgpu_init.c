@@ -37,6 +37,7 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/gops_mc.h>
 #include <nvgpu/trace.h>
+#include <nvgpu/nvhost.h>
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>

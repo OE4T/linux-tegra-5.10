@@ -58,16 +58,6 @@ bool nvgpu_channel_sync_needs_os_fence_framework(struct gk20a *g)
 	return !nvgpu_has_syncpoints(g);
 }
 
-bool nvgpu_has_syncpoints(struct gk20a *g)
-{
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
-	return nvgpu_is_enabled(g, NVGPU_HAS_SYNCPOINTS) &&
-		!g->disable_syncpoints;
-#else
-	return false;
-#endif
-}
-
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
 	struct priv_cmd_entry *entry, u32 max_wait_cmds)

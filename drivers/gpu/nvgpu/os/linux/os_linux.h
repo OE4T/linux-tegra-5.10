@@ -175,6 +175,9 @@ struct nvgpu_os_linux {
 	struct rw_semaphore busy_lock;
 
 	bool init_done;
+
+	/** Debugfs knob for forcing syncpt support off in runtime. */
+	bool disable_syncpoints;
 };
 
 static inline struct nvgpu_os_linux *nvgpu_os_linux_from_gk20a(struct gk20a *g)

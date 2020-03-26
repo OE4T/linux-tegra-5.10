@@ -23,12 +23,13 @@
 #ifndef NVGPU_NVHOST_H
 #define NVGPU_NVHOST_H
 
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
-
 #include <nvgpu/types.h>
 
-struct nvgpu_nvhost_dev;
 struct gk20a;
+
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
+
+struct nvgpu_nvhost_dev;
 struct sync_pt;
 struct sync_fence;
 struct timespec;
@@ -70,6 +71,15 @@ int nvgpu_get_nvhost_dev(struct gk20a *g);
  * @return		None.
  */
 void nvgpu_free_nvhost_dev(struct gk20a *g);
+
+/**
+ * @brief Check if the gpu has access to syncpoints.
+ *
+ * @param g [in]	The GPU super structure.
+ *
+ * @return		whether syncpt access is available
+ */
+bool nvgpu_has_syncpoints(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 /**
@@ -289,6 +299,19 @@ static inline int nvgpu_nvhost_syncpt_init(struct gk20a *g)
 {
 	return 0;
 }
-#endif
+#endif /* CONFIG_TEGRA_T19X_GRHOST */
+#else /* CONFIG_TEGRA_GK20A_NVHOST */
+/**
+ * @brief Check if the gpu has access to syncpoints.
+ *
+ * @param g [in]	The GPU super structure.
+ *
+ * @return		whether syncpt access is available
+ */
+static inline bool nvgpu_has_syncpoints(struct gk20a *g)
+{
+	return false;
+}
+
 #endif /* CONFIG_TEGRA_GK20A_NVHOST */
 #endif /* NVGPU_NVHOST_H */

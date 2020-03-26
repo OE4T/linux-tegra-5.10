@@ -32,6 +32,11 @@ void nvgpu_free_nvhost_dev(struct gk20a *g) {
 	}
 }
 
+bool nvgpu_has_syncpoints(struct gk20a *g)
+{
+	return nvgpu_is_enabled(g, NVGPU_HAS_SYNCPOINTS);
+}
+
 static void allocate_new_syncpt(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev)
 {
 	u32 syncpt_id, syncpt_val;

@@ -67,6 +67,14 @@ void nvgpu_free_nvhost_dev(struct gk20a *g)
 	nvgpu_kfree(g, g->nvhost);
 }
 
+bool nvgpu_has_syncpoints(struct gk20a *g)
+{
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+
+	return nvgpu_is_enabled(g, NVGPU_HAS_SYNCPOINTS) &&
+		!l->disable_syncpoints;
+}
+
 int nvgpu_nvhost_module_busy_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev)
 {

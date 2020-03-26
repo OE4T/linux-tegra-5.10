@@ -363,7 +363,7 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 		l->debugfs, &g->ch_wdt_init_limit_ms);
 
 	debugfs_create_bool("disable_syncpoints", S_IRUGO,
-		l->debugfs, &g->disable_syncpoints);
+		l->debugfs, &l->disable_syncpoints);
 
 	/* New debug logging API. */
 	debugfs_create_u64("log_mask", S_IRUGO|S_IWUSR,
