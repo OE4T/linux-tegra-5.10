@@ -73,7 +73,7 @@ def __rfr_load_ab(path, silent=False):
     except Exception as err:
         success = False
         if not silent:
-            print 'Error: %s' % err
+            print('Error: %s' % err)
 
     # It's not a very helpful error message I suppose. Eh. We will get more
     # detail from the __rfr_parse_addrbook() call itself.
@@ -151,7 +151,7 @@ def rfr_ab_lookup_single(addr):
     """
 
     # If there's no address book, just pass the addr through.
-    if len(__rfr_address_book.keys()) == 0:
+    if len(list(__rfr_address_book.keys())) == 0:
         return addr
 
     lc_addr = addr.lower()
@@ -159,7 +159,7 @@ def rfr_ab_lookup_single(addr):
     if lc_addr in __rfr_address_book:
         return __rfr_address_book[lc_addr]
 
-    if lc_addr in __rfr_address_book.values():
+    if lc_addr in list(__rfr_address_book.values()):
         # Return the orignal, un-lowercased.
         return addr
 
