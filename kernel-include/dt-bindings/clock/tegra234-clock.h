@@ -54,6 +54,8 @@
 #define TEGRA234_CLK_DMIC4			18U
 /** @brief output of gate CLK_ENB_DPAUX */
 #define TEGRA234_CLK_DPAUX			19U
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_NVJPG1 */
+#define TEGRA234_CLK_NVJPG1			20U
 /**
  * @brief output of mux controlled by CLK_RST_CONTROLLER_ACLK_BURST_POLICY
  * divided by the divider controlled by ACLK_CLK_DIVISOR in
@@ -336,6 +338,8 @@
 #define TEGRA234_CLK_TACH			152U
 /** output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_TSEC */
 #define TEGRA234_CLK_TSEC			153U
+/** @brief NAFLL clock source for NVJPG1 */
+#define TEGRA234_CLK_NAFLL_NVJPG1		154U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_UARTA */
 #define TEGRA234_CLK_UARTA			155U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_UARTB */
