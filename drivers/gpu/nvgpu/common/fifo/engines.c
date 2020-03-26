@@ -44,10 +44,6 @@
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/gops_mc.h>
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-#include "nvgpu_next_gpuid.h"
-#endif
-
 #define FECS_METHOD_WFI_RESTORE	0x80000U
 
 enum nvgpu_fifo_engine nvgpu_engine_enum_from_type(struct gk20a *g,
@@ -849,9 +845,6 @@ int nvgpu_engine_init_info(struct nvgpu_fifo *f)
 	info->pri_base = dev_info.pri_base;
 	info->engine_enum = engine_enum;
 	info->fault_id = dev_info.fault_id;
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-	NVGPU_NEXT_INIT_GR_INFO(g, info, &dev_info);
-#endif
 
 	/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
 	f->active_engines_list[f->num_engines] = dev_info.engine_id;
