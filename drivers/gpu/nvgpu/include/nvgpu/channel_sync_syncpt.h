@@ -87,15 +87,13 @@ nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync);
  * @brief Create syncpoint.
  *
  * @param c [in]		Pointer to channel.
- * @param user_managed [in]	True is syncpoint is managed by client.
  *
  * Constructs a struct nvgpu_channel_sync_syncpt.
  *
  * @return Pointer to nvgpu_channel_sync associated with created syncpoint.
  */
 struct nvgpu_channel_sync *
-nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c,
-	bool user_managed);
+nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c);
 
 #else
 
@@ -124,7 +122,7 @@ nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 }
 
 static inline struct nvgpu_channel_sync *
-nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c, bool user_managed)
+nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c)
 {
 	return NULL;
 }

@@ -134,9 +134,8 @@ srcs +=	common/utils/enabled.c \
 	common/acr/acr_bootstrap.c \
 	common/acr/acr_sw_gv11b.c \
 	common/ptimer/ptimer.c \
-	common/sync/channel_sync.c \
-	common/sync/channel_sync_syncpt.c \
 	common/power_features/cg/cg.c \
+	common/sync/channel_user_syncpt.c \
 	common/fifo/preempt.c \
 	common/fifo/channel.c \
 	common/fifo/fifo.c \
@@ -387,7 +386,9 @@ endif
 endif
 
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
-srcs += common/fifo/submit.c
+srcs += common/fifo/submit.c \
+	common/sync/channel_sync.c \
+	common/sync/channel_sync_syncpt.c
 endif
 
 ifeq ($(CONFIG_NVGPU_SW_SEMAPHORE),1)

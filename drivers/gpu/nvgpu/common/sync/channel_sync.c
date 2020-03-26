@@ -39,14 +39,13 @@
 
 #include "channel_sync_priv.h"
 
-struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c,
-	bool user_managed)
+struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c)
 {
 	if (nvgpu_has_syncpoints(c->g)) {
-		return nvgpu_channel_sync_syncpt_create(c, user_managed);
+		return nvgpu_channel_sync_syncpt_create(c);
 	} else {
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
-		return nvgpu_channel_sync_semaphore_create(c, user_managed);
+		return nvgpu_channel_sync_semaphore_create(c);
 #else
 		return NULL;
 #endif
@@ -58,7 +57,6 @@ bool nvgpu_channel_sync_needs_os_fence_framework(struct gk20a *g)
 	return !nvgpu_has_syncpoints(g);
 }
 
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
 	struct priv_cmd_entry *entry, u32 max_wait_cmds)
 {
@@ -95,8 +93,6 @@ bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s)
 {
 	return nvgpu_atomic_dec_and_test(&s->refcount);
 }
-
-#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 
 void nvgpu_channel_sync_set_safe_state(struct nvgpu_channel_sync *s)
 {

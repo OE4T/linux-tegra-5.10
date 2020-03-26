@@ -62,7 +62,7 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	if (g->aggressive_sync_destroy_thresh != 0U) {
 		nvgpu_mutex_acquire(&c->sync_lock);
 		if (c->sync == NULL) {
-			c->sync = nvgpu_channel_sync_create(c, false);
+			c->sync = nvgpu_channel_sync_create(c);
 			if (c->sync == NULL) {
 				err = -ENOMEM;
 				goto fail;

@@ -31,8 +31,7 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 #include <nvgpu/posix/posix-nvhost.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/channel_sync.h>
-#include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/channel_user_syncpt.h>
 
 #include "../fifo/nvgpu-fifo-common.h"
 #include "../fifo/nvgpu-fifo-gv11b.h"
@@ -167,56 +166,36 @@ int test_sync_init(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-#define F_SYNC_DESTROY_SET_SAFE                  0
-#define F_SYNC_DESTROY_LAST                      1
-
-static const char *f_sync_destroy_syncpt[] = {
-	"sync_destroy_set_safe",
-	"sync_destroy",
-};
-
 int test_sync_create_destroy_sync(struct unit_module *m, struct gk20a *g, void *args)
 {
-	struct nvgpu_channel_sync *sync = NULL;
-	u32 branches;
-	bool set_safe_state = true;
-
+	struct nvgpu_channel_user_syncpt *sync = NULL;
 	u32 syncpt_value = 0U;
 	int ret = UNIT_FAIL;
 
-	for (branches = 0U; branches <= F_SYNC_DESTROY_LAST; branches++) {
-
-		sync = nvgpu_channel_sync_create(ch, true);
-		if (sync == NULL) {
-			unit_return_fail(m, "unexpected failure in creating sync points");
-		}
-
-		syncpt_value = g->nvhost->syncpt_value;
-
-		unit_info(m, "Syncpt ID: %u, Syncpt Value: %u\n",
-			g->nvhost->syncpt_id, syncpt_value);
-
-		assert((g->nvhost->syncpt_id > 0U) &&
-			(g->nvhost->syncpt_id <= NUM_HW_PTS));
-
-		assert(syncpt_value < (UINT_MAX - SYNCPT_SAFE_STATE_INCR));
-
-		if (branches == F_SYNC_DESTROY_LAST) {
-			set_safe_state = false;
-		}
-
-		unit_info(m, "%s branch: %s\n", __func__, f_sync_destroy_syncpt[branches]);
-
-		nvgpu_channel_sync_destroy(sync, set_safe_state);
-
-		sync = NULL;
+	sync = nvgpu_channel_user_syncpt_create(ch);
+	if (sync == NULL) {
+		unit_return_fail(m, "unexpected failure in creating sync points");
 	}
+
+	syncpt_value = g->nvhost->syncpt_value;
+
+	unit_info(m, "Syncpt ID: %u, Syncpt Value: %u\n",
+		g->nvhost->syncpt_id, syncpt_value);
+
+	assert((g->nvhost->syncpt_id > 0U) &&
+		(g->nvhost->syncpt_id <= NUM_HW_PTS));
+
+	assert(syncpt_value < (UINT_MAX - SYNCPT_SAFE_STATE_INCR));
+
+	nvgpu_channel_user_syncpt_destroy(sync);
+
+	sync = NULL;
 
 	ret = UNIT_SUCCESS;
 
 done:
 	if (sync != NULL)
-		nvgpu_channel_sync_destroy(sync, set_safe_state);
+		nvgpu_channel_user_syncpt_destroy(sync);
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 			ch->vm->syncpt_ro_map_gpu_va != 0ULL) {
@@ -230,14 +209,14 @@ done:
 
 int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
 {
-	struct nvgpu_channel_sync *sync = NULL;
+	struct nvgpu_channel_user_syncpt *sync = NULL;
 
 	u32 syncpt_value, syncpt_id;
 	u32 syncpt_safe_state_val;
 
 	int ret = UNIT_FAIL;
 
-	sync = nvgpu_channel_sync_create(ch, true);
+	sync = nvgpu_channel_user_syncpt_create(ch);
 	if (sync == NULL) {
 		unit_return_fail(m, "unexpected failure in creating sync points");
 	}
@@ -252,7 +231,7 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
 
 	assert(syncpt_value < (UINT_MAX - SYNCPT_SAFE_STATE_INCR));
 
-	nvgpu_channel_sync_set_safe_state(sync);
+	nvgpu_channel_user_syncpt_set_safe_state(sync);
 
 	syncpt_safe_state_val = g->nvhost->syncpt_value;
 
@@ -260,7 +239,7 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
 		unit_return_fail(m, "unexpected increment value for safe state");
 	}
 
-	nvgpu_channel_sync_destroy(sync, false);
+	nvgpu_channel_user_syncpt_destroy(sync);
 
 	sync = NULL;
 
@@ -268,7 +247,7 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
 
 done:
 	if (sync != NULL)
-		nvgpu_channel_sync_destroy(sync, false);
+		nvgpu_channel_user_syncpt_destroy(sync);
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 			ch->vm->syncpt_ro_map_gpu_va != 0ULL) {
@@ -282,34 +261,28 @@ done:
 
 int test_sync_usermanaged_syncpt_apis(struct unit_module *m, struct gk20a *g, void *args)
 {
-	struct nvgpu_channel_sync *user_sync = NULL;
-	struct nvgpu_channel_sync_syncpt *user_sync_syncpt = NULL;
+	struct nvgpu_channel_user_syncpt *user_sync = NULL;
 
 	u32 syncpt_id = 0U;
 	u64 syncpt_buf_addr = 0ULL;
 
 	int ret = UNIT_FAIL;
 
-	user_sync = nvgpu_channel_sync_create(ch, true);
+	user_sync = nvgpu_channel_user_syncpt_create(ch);
 	if (user_sync == NULL) {
 		unit_return_fail(m, "unexpected failure in creating user sync points");
 	}
 
-	user_sync_syncpt = nvgpu_channel_sync_to_syncpt(user_sync);
-	if (user_sync_syncpt == NULL) {
-		unit_return_fail(m, "unexpected failure in creating user_sync_syncpt");
-	}
-
-	syncpt_id = nvgpu_channel_sync_get_syncpt_id(user_sync_syncpt);
+	syncpt_id = nvgpu_channel_user_syncpt_get_id(user_sync);
 	assert((syncpt_id > 0U) && (syncpt_id <= NUM_HW_PTS));
 
-	syncpt_buf_addr = nvgpu_channel_sync_get_syncpt_address(user_sync_syncpt);
+	syncpt_buf_addr = nvgpu_channel_user_syncpt_get_address(user_sync);
 	assert(syncpt_buf_addr > 0ULL);
 
 	unit_info(m, "Syncpt ID: %u, Syncpt Shim GPU VA: %llu\n",
 		syncpt_id, syncpt_buf_addr);
 
-	nvgpu_channel_sync_destroy(user_sync, false);
+	nvgpu_channel_user_syncpt_destroy(user_sync);
 
 	user_sync = NULL;
 
@@ -317,7 +290,7 @@ int test_sync_usermanaged_syncpt_apis(struct unit_module *m, struct gk20a *g, vo
 
 done:
 	if (user_sync != NULL)
-		nvgpu_channel_sync_destroy(user_sync, false);
+		nvgpu_channel_user_syncpt_destroy(user_sync);
 
 	if (nvgpu_mem_is_valid(&g->syncpt_mem) &&
 			ch->vm->syncpt_ro_map_gpu_va != 0ULL) {
@@ -425,7 +398,6 @@ done:
 }
 
 #define F_SYNC_SYNCPT_ALLOC_FAILED		1
-#define F_SYNC_USER_MANAGED			2
 #define F_SYNC_STRADD_FAIL			3
 #define F_SYNC_NVHOST_CLIENT_MANAGED_FAIL	4
 #define F_SYNC_RO_MAP_GPU_VA_MAP_FAIL		5
@@ -444,7 +416,12 @@ static const char *f_syncpt_open[] = {
 	"syncpt_buf_map_fail",
 };
 
-#define FAIL_G_NAME_STR	"GK20A_FAILSTR_ADD_U32_CNDITION"
+/*
+ * syncpt name is 32 chars big, including nul byte; the chid is 1 byte here
+ * ("0") and nvgpu_strnadd_u32 needs that plus nul byte. A "_" is added after
+ * g->name, so this would break just at the nul byte.
+ */
+#define FAIL_G_NAME_STR	"123456789012345678901234567890"
 
 static void clear_test_params(struct gk20a *g,
 		bool *fault_injection_enabled, u32 branch,
@@ -464,10 +441,9 @@ static void clear_test_params(struct gk20a *g,
 
 int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 {
-	struct nvgpu_channel_sync *sync = NULL;
+	struct nvgpu_channel_user_syncpt *sync = NULL;
 	struct nvgpu_posix_fault_inj *kmem_fi;
 	u32 branches;
-	bool user_managed = true;
 	bool fault_injection_enabled = false;
 	int ret = UNIT_FAIL;
 	const char *g_name = g->name;
@@ -490,8 +466,6 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 			/* fail first kzalloc call */
 			nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
 			fault_injection_enabled = true;
-		} else if (branches == F_SYNC_USER_MANAGED) {
-			user_managed = false;
 		} else if (branches == F_SYNC_STRADD_FAIL) {
 			/*
 			 * fill the entire buffer resulting in
@@ -526,11 +500,7 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 
 		unit_info(m, "%s branch: %s\n", __func__, f_syncpt_open[branches]);
 
-		sync = nvgpu_channel_sync_create(ch, user_managed);
-
-		if (branches == F_SYNC_USER_MANAGED) {
-			user_managed = true;
-		}
+		sync = nvgpu_channel_user_syncpt_create(ch);
 
 		if (branches == F_SYNC_NVHOST_CLIENT_MANAGED_FAIL) {
 			g->nvhost->syncpt_id = 0U;
@@ -540,7 +510,7 @@ int test_sync_create_fail(struct unit_module *m, struct gk20a *g, void *args)
 		g->name = g_name;
 
 		if (sync != NULL) {
-			nvgpu_channel_sync_destroy(sync, true);
+			nvgpu_channel_user_syncpt_destroy(sync);
 			unit_return_fail(m, "expected failure in creating sync points");
 		}
 

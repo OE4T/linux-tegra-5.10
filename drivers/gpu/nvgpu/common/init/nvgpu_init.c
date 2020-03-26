@@ -767,12 +767,18 @@ int nvgpu_init_gpu_characteristics(struct gk20a *g)
 			true);
 
 	/*
-	 * Sync framework requires deferred job cleanup, wrapping syncs in FDs,
-	 * and other heavy stuff, which prevents deterministic submits. This is
-	 * supported otherwise, provided that the user doesn't request anything
-	 * that depends on deferred cleanup.
+	 * Sync framework is needed when we don't have syncpoint support
+	 * because we don't have a means to expose raw gpu semas in a way
+	 * similar to raw syncpts. Use of the framework requires heavy stuff
+	 * like deferred job cleanup and wrapping syncs in FDs which prevents
+	 * deterministic submits. This is supported otherwise, provided that
+	 * the user doesn't request anything that depends on deferred cleanup.
+	 *
+	 * Note that userspace expects this to be set for usermode submits
+	 * (even if kernel-mode submits aren't enabled where full deterministic
+	 * features matter).
 	 */
-	if (!nvgpu_channel_sync_needs_os_fence_framework(g)) {
+	if (nvgpu_has_syncpoints(g)) {
 		nvgpu_set_enabled(g,
 				NVGPU_SUPPORT_DETERMINISTIC_SUBMIT_FULL,
 				true);

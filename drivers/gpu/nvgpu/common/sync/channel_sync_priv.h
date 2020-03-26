@@ -26,6 +26,13 @@
 #ifndef NVGPU_CHANNEL_SYNC_PRIV_H
 #define NVGPU_CHANNEL_SYNC_PRIV_H
 
+/*
+ * These APIs are used for job synchronization that we know about in the
+ * driver. If submits happen in userspace only, none of this will be needed and
+ * won't be included. This is here just to double check for now.
+ */
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+
 #include <nvgpu/atomic.h>
 #include <nvgpu/types.h>
 
@@ -47,7 +54,6 @@ struct nvgpu_channel_sync {
  * instead use the public APIs starting with nvgpu_channel_sync_*
  */
 struct nvgpu_channel_sync_ops {
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	int (*wait_fence_raw)(struct nvgpu_channel_sync *s, u32 id, u32 thresh,
 			   struct priv_cmd_entry *entry);
 
@@ -69,11 +75,12 @@ struct nvgpu_channel_sync_ops {
 			 bool register_irq);
 
 	void (*set_min_eq_max)(struct nvgpu_channel_sync *s);
-#endif
 
 	void (*set_safe_state)(struct nvgpu_channel_sync *s);
 
 	void (*destroy)(struct nvgpu_channel_sync *s);
 };
+
+#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 
 #endif /* NVGPU_CHANNEL_SYNC_PRIV_H */

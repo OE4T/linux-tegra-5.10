@@ -111,7 +111,6 @@ void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
  * @brief Create channel syncpoint/semaphore
  *
  * @param c [in]		Pointer to Channel.
- * @param user_managed [in]	True is syncpoint is user managed.
  *
  * Construct a channel_sync backed by either a syncpoint or a semaphore.
  * A channel_sync is by default constructed as backed by a syncpoint
@@ -121,8 +120,7 @@ void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
  * @return Pointer to nvgpu_channel_sync in case of success, or NULL
  * in case of failure.
  */
-struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c,
-	bool user_managed);
+struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct nvgpu_channel *c);
 
 /**
  * @brief Check if OS fence framwework is needed

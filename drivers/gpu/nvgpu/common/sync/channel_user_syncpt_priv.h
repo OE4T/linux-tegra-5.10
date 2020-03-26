@@ -1,8 +1,5 @@
 /*
- *
- * Nvgpu Channel Synchronization Abstraction (Semaphore)
- *
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,30 +20,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_CHANNEL_SYNC_SEMAPHORE_H
-#define NVGPU_CHANNEL_SYNC_SEMAPHORE_H
+
+#ifndef NVGPU_USER_SYNCPT_PRIV_H
+#define NVGPU_USER_SYNCPT_PRIV_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/channel_sync.h>
-
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+#include <nvgpu/nvgpu_mem.h>
 
 struct nvgpu_channel;
-struct nvgpu_channel_sync_semaphore;
-/*
- * Converts a valid struct nvgpu_channel_sync ptr to
- * struct nvgpu_channel_sync_semaphore ptr else return NULL.
- */
-struct nvgpu_channel_sync_semaphore *
-nvgpu_channel_sync_to_semaphore(struct nvgpu_channel_sync *sync);
+struct nvgpu_nvhost_dev;
 
-/*
- * Constructs an instance of struct nvgpu_channel_sync_semaphore and
- * returns a pointer to the struct nvgpu_channel_sync associated with it.
- */
-struct nvgpu_channel_sync *
-nvgpu_channel_sync_semaphore_create(struct nvgpu_channel *c);
+struct nvgpu_channel_user_syncpt {
+	struct nvgpu_channel *ch;
+	struct nvgpu_nvhost_dev *nvhost;
+	uint32_t syncpt_id;
+	struct nvgpu_mem syncpt_buf;
+};
 
-#endif
-
-#endif /* NVGPU_CHANNEL_SYNC_SEMAPHORE_H */
+#endif /* NVGPU_USER_SYNC_PRIV_H */

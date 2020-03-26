@@ -341,8 +341,7 @@ struct nvgpu_channel_sync_semaphore *
 }
 
 struct nvgpu_channel_sync *
-nvgpu_channel_sync_semaphore_create(
-	struct nvgpu_channel *c, bool user_managed)
+nvgpu_channel_sync_semaphore_create(struct nvgpu_channel *c)
 {
 	struct nvgpu_channel_sync_semaphore *sema;
 	struct gk20a *g = c->g;

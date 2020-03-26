@@ -35,10 +35,10 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/thread.h>
-
-#include "common/sync/channel_sync_priv.h"
+#include <nvgpu/channel_user_syncpt.h>
 
 #include <nvgpu/posix/posix-fault-injection.h>
+#include <nvgpu/posix/posix-nvhost.h>
 
 #include "../nvgpu-fifo-common.h"
 #include "nvgpu-channel.h"
@@ -382,22 +382,6 @@ static void stub_gr_intr_flush_channel_tlb(struct gk20a *g)
 {
 }
 
-static void stub_channel_sync_syncpt_set_safe_state(
-						struct nvgpu_channel_sync *s)
-{
-}
-
-static void stub_channel_sync_destroy(struct nvgpu_channel_sync *s)
-{
-	stub[0].chid = 1;
-}
-
-static const struct nvgpu_channel_sync_ops stub_channel_sync_ops = {
-	.set_safe_state		= stub_channel_sync_syncpt_set_safe_state,
-	.destroy		= stub_channel_sync_destroy,
-};
-
-
 static bool channel_close_pruned(u32 branches, u32 final)
 {
 	u32 branches_init = branches;
@@ -426,7 +410,6 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 	struct gpu_ops gops = g->ops;
 	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_tsg *tsg;
-	struct nvgpu_channel_sync user_sync = { {0} };
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
 	u32 fail = F_CHANNEL_CLOSE_ALREADY_FREED |
@@ -520,17 +503,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 			gops.gr.setup.free_subctx : NULL;
 
 		if (branches & F_CHANNEL_CLOSE_USER_SYNC) {
-			/* Channel requires to be as_bound */
-			memset(&mm, 0, sizeof(mm));
-			memset(&vm, 0, sizeof(vm));
-			mm.g = g;
-			vm.mm = &mm;
-			ch->vm = &vm;
-			nvgpu_ref_init(&vm.ref);
-			nvgpu_ref_get(&vm.ref);
-
-			ch->user_sync = &user_sync;
-			ch->user_sync->ops = &stub_channel_sync_ops;
+			/* TODO: stub ch->user_sync */
 		}
 
 		if (branches & F_CHANNEL_WAIT_UNTIL_COUNTER) {
@@ -561,8 +534,7 @@ int test_channel_close(struct unit_module *m, struct gk20a *g, void *vargs)
 		}
 
 		if ((branches & F_CHANNEL_CLOSE_USER_SYNC) != 0U) {
-			unit_assert(stub[0].chid == 1U, goto done);
-			ch->user_sync = NULL;
+			unit_assert(ch->user_sync == NULL, goto done);
 		}
 
 		if (branches & fail) {
@@ -1914,10 +1886,6 @@ int test_channel_abort_cleanup(struct unit_module *m, struct gk20a *g,
 
 	err = nvgpu_tsg_bind_channel(tsg, ch);
 	unit_assert(err == 0, goto done);
-
-	ch->user_sync = nvgpu_kzalloc(g,
-			sizeof(struct nvgpu_channel_sync));
-	ch->user_sync->ops = &stub_channel_sync_ops;
 
 	err = nvgpu_tsg_unbind_channel(tsg, ch);
 	unit_assert(err == 0, goto done);

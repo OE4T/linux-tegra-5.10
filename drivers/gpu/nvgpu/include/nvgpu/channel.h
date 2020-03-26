@@ -357,6 +357,8 @@ struct nvgpu_channel_ref_action {
 };
 #endif
 
+struct nvgpu_channel_user_syncpt;
+
 /** Channel context */
 struct nvgpu_channel {
 	/** Pointer to GPU context. Set only when channel is active. */
@@ -481,8 +483,10 @@ struct nvgpu_channel {
 
 	/** Syncpoint lock to allocate fences. */
 	struct nvgpu_mutex sync_lock;
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	/** Syncpoint for usermode submit case. */
-	struct nvgpu_channel_sync *user_sync;
+	struct nvgpu_channel_user_syncpt *user_sync;
+#endif
 
 #ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
 	/** Channel handle for vgpu case. */

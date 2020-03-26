@@ -51,6 +51,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/channel_user_syncpt.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/fence.h>
@@ -194,9 +195,12 @@ void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch)
 	if (ch->sync != NULL) {
 		nvgpu_channel_sync_set_min_eq_max(ch->sync);
 	}
+
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	if (ch->user_sync != NULL) {
-		nvgpu_channel_sync_set_safe_state(ch->user_sync);
+		nvgpu_channel_user_syncpt_set_safe_state(ch->user_sync);
 	}
+#endif
 	nvgpu_mutex_release(&ch->sync_lock);
 
 	nvgpu_mutex_release(&ch->joblist.cleanup_lock);
@@ -728,7 +732,7 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 
 	if (g->aggressive_sync_destroy_thresh == 0U) {
 		nvgpu_mutex_acquire(&c->sync_lock);
-		c->sync = nvgpu_channel_sync_create(c, false);
+		c->sync = nvgpu_channel_sync_create(c);
 		if (c->sync == NULL) {
 			err = -ENOMEM;
 			nvgpu_mutex_release(&c->sync_lock);
@@ -1502,7 +1506,7 @@ void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch)
 	/* ensure no fences are pending */
 	nvgpu_mutex_acquire(&ch->sync_lock);
 	if (ch->user_sync != NULL) {
-		nvgpu_channel_sync_set_safe_state(ch->user_sync);
+		nvgpu_channel_user_syncpt_set_safe_state(ch->user_sync);
 	}
 	nvgpu_mutex_release(&ch->sync_lock);
 }
@@ -1627,20 +1631,21 @@ static void channel_free_invoke_deferred_engine_reset(struct nvgpu_channel *ch)
 
 static void channel_free_invoke_sync_destroy(struct nvgpu_channel *ch)
 {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 	nvgpu_mutex_acquire(&ch->sync_lock);
 	if (ch->user_sync != NULL) {
 		/*
 		 * Set user managed syncpoint to safe state
 		 * But it's already done if channel is recovered
 		 */
-		if (nvgpu_channel_check_unserviceable(ch)) {
-			nvgpu_channel_sync_destroy(ch->user_sync, false);
-		} else {
-			nvgpu_channel_sync_destroy(ch->user_sync, true);
+		if (!nvgpu_channel_check_unserviceable(ch)) {
+			nvgpu_channel_user_syncpt_set_safe_state(ch->user_sync);
 		}
+		nvgpu_channel_user_syncpt_destroy(ch->user_sync);
 		ch->user_sync = NULL;
 	}
 	nvgpu_mutex_release(&ch->sync_lock);
+#endif
 }
 
 static void channel_free_unlink_debug_session(struct nvgpu_channel *ch)

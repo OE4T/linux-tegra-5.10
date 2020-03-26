@@ -955,6 +955,11 @@ sync:
       safe: no
       sources: [ common/sync/channel_sync_semaphore.c,
                  include/nvgpu/channel_sync_semaphore.h ]
+    user_syncpt:
+      safe: yes
+      sources: [ common/sync/channel_user_syncpt.c,
+                 common/sync/channel_user_syncpt_priv.h,
+                 include/nvgpu/channel_user_syncpt.h ]
 power_features:
   owner: Seema K
   children:
