@@ -1109,6 +1109,7 @@ static const struct gpu_ops tu104_ops = {
 		.hw_submit = tu104_runlist_hw_submit,
 		.wait_pending = tu104_runlist_wait_pending,
 		.write_state = gk20a_runlist_write_state,
+		.init_enginfo = nvgpu_runlist_init_enginfo,
 	},
 	.userd = {
 #ifdef CONFIG_NVGPU_USERD

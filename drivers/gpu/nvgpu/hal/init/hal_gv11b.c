@@ -1082,6 +1082,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.hw_submit = gk20a_runlist_hw_submit,
 		.wait_pending = gk20a_runlist_wait_pending,
 		.write_state = gk20a_runlist_write_state,
+		.init_enginfo = nvgpu_runlist_init_enginfo,
 	},
 	.userd = {
 #ifdef CONFIG_NVGPU_USERD

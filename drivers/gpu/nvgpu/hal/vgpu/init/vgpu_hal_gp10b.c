@@ -32,6 +32,7 @@
 #include <nvgpu/ce.h>
 #include <nvgpu/ce_app.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/runlist.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
@@ -581,6 +582,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_ch_entry = gk20a_runlist_get_ch_entry,
 		.hw_submit = NULL,
 		.wait_pending = NULL,
+		.init_enginfo = nvgpu_runlist_init_enginfo,
 	},
 	.userd = {
 #ifdef CONFIG_NVGPU_USERD

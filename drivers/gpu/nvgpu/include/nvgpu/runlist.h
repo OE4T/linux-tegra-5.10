@@ -354,4 +354,15 @@ void nvgpu_runlist_unlock_runlists(struct gk20a *g, u32 runlists_mask);
 u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 	unsigned int id_type, u32 act_eng_bitmask, u32 pbdma_bitmask);
 
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+/**
+ * @brief Initialize runlists with engine info
+ *
+ * @param g [in]		The GPU driver struct owning the runlists.
+ * @param f [in]		The FIFO context using this runlist.
+ *
+ * Walks through all active engines info, and initialize runlist info.
+ */
+void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f);
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 #endif /* NVGPU_RUNLIST_H */

@@ -34,10 +34,6 @@
 #include <nvgpu/pmu/mutex.h>
 #endif
 
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-#include "nvgpu_next_gpuid.h"
-#endif
-
 void nvgpu_runlist_lock_active_runlists(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -682,7 +678,7 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 	f->max_runlists = 0;
 }
 
-static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
+void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 {
 	struct nvgpu_runlist_info *runlist;
 	struct nvgpu_engine_info *engine_info;
@@ -712,10 +708,6 @@ static void nvgpu_init_runlist_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 
 			if (engine_info->runlist_id == runlist->runlist_id) {
 				runlist->eng_bitmask |= BIT32(engine_id);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-				NVGPU_NEXT_INIT_RUNLIST_ENGINFO(g, runlist,
-							engine_info);
-#endif
 			}
 		}
 		nvgpu_log(g, gpu_dbg_info, "runlist %d : act eng bitmask 0x%x",
@@ -841,7 +833,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 		goto clean_up_runlist;
 	}
 
-	nvgpu_init_runlist_enginfo(g, f);
+	g->ops.runlist.init_enginfo(g, f);
 
 	nvgpu_log_fn(g, "done");
 	return 0;

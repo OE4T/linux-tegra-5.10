@@ -87,6 +87,7 @@ struct gops_runlist {
 	int (*reschedule)(struct nvgpu_channel *ch, bool preempt_next);
 	int (*reschedule_preempt_next_locked)(struct nvgpu_channel *ch,
 			bool wait_preempt);
+	void (*init_enginfo)(struct gk20a *g, struct nvgpu_fifo *f);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_gops_runlist.h"
 #endif
