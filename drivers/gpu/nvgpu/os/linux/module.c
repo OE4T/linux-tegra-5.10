@@ -1137,12 +1137,6 @@ static int gk20a_pm_railgate(struct device *dev)
 	g->pstats.last_rail_gate_complete = jiffies;
 #endif
 
-#ifdef CONFIG_NVGPU_TEGRA_FUSE
-	ret = tegra_fuse_clock_disable();
-	if (ret)
-		nvgpu_err(g, "failed to disable tegra fuse clock, err=%d", ret);
-#endif
-
 	return ret;
 }
 
@@ -1155,14 +1149,6 @@ static int gk20a_pm_unrailgate(struct device *dev)
 	/* return early if platform didn't implement unrailgate */
 	if (!platform->unrailgate)
 		return 0;
-
-#ifdef CONFIG_NVGPU_TEGRA_FUSE
-	ret = tegra_fuse_clock_enable();
-	if (ret) {
-		nvgpu_err(g, "failed to enable tegra fuse clock, err=%d", ret);
-		return ret;
-	}
-#endif
 
 #ifdef CONFIG_DEBUG_FS
 	g->pstats.last_rail_ungate_start = jiffies;

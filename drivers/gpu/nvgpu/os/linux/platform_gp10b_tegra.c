@@ -13,6 +13,7 @@
  * more details.
  */
 
+#include <linux/string.h>
 #include <linux/clk.h>
 #include <linux/of_platform.h>
 #include <linux/debugfs.h>
@@ -51,6 +52,7 @@
 #include "platform_gk20a_tegra.h"
 #include "platform_gp10b.h"
 #include "scale.h"
+#include "module.h"
 
 /* Select every GP10B_FREQ_SELECT_STEP'th frequency from h/w table */
 #define GP10B_FREQ_SELECT_STEP	8
@@ -71,51 +73,80 @@ static int num_supported_freq;
 
 #define GPCCLK_INIT_RATE 1000000000
 
-static struct {
-	char *name;
-	unsigned long default_rate;
-} tegra_gp10b_clocks[] = {
+struct gk20a_platform_clk tegra_gp10b_clocks[] = {
 	{"gpu", GPCCLK_INIT_RATE},
-	{"gpu_sys", 204000000} };
+	{"gpu_sys", 204000000},
+	{"fuse", UINT_MAX}
+};
 
 /*
- * gp10b_tegra_get_clocks()
- *
  * This function finds clocks in tegra platform and populates
- * the clock information to gp10b platform data.
+ * the clock information to platform data.
  */
 
-int gp10b_tegra_get_clocks(struct device *dev)
+static int acquire_platform_clocks(struct device *dev,
+		struct gk20a_platform_clk *clk_entries,
+		unsigned int num_clk_entries)
 {
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
-	unsigned int i;
+	struct gk20a *g = platform->g;
+	struct device_node *np = nvgpu_get_node(g);
+	unsigned int i, num_clks_dt;
+	int err = 0;
+
+	num_clks_dt = of_clk_get_parent_count(np);
+	if (num_clks_dt > num_clk_entries) {
+		nvgpu_err(g, "maximum number of clocks supported is %d",
+			num_clk_entries);
+		return -EINVAL;
+	} else if (num_clks_dt == 0) {
+		nvgpu_err(g, "unable to read clocks from DT");
+		return -ENODEV;
+	}
 
 	platform->num_clks = 0;
-	for (i = 0; i < ARRAY_SIZE(tegra_gp10b_clocks); i++) {
-		long rate = tegra_gp10b_clocks[i].default_rate;
-		struct clk *c;
 
-		c = clk_get(dev, tegra_gp10b_clocks[i].name);
+	for (i = 0; i < num_clks_dt; i++) {
+		long rate;
+		struct clk *c = of_clk_get_by_name(np, clk_entries[i].name);
 		if (IS_ERR(c)) {
-			nvgpu_err(platform->g, "cannot get clock %s",
-					tegra_gp10b_clocks[i].name);
-		} else {
-			clk_set_rate(c, rate);
-			platform->clk[i] = c;
+			nvgpu_err(g, "cannot get clock %s",
+					clk_entries[i].name);
+			err = PTR_ERR(c);
+			goto err_get_clock;
 		}
+
+		rate = clk_entries[i].default_rate;
+		clk_set_rate(c, rate);
+		platform->clk[i] = c;
 	}
+
 	platform->num_clks = i;
 
 #ifdef CONFIG_NV_TEGRA_BPMP
 	if (platform->clk[0]) {
 		i = tegra_bpmp_dvfs_get_clk_id(dev->of_node,
-					       tegra_gp10b_clocks[0].name);
+					       clk_entries[0].name);
 		if (i > 0)
 			platform->maxmin_clk_id = i;
 	}
 #endif
 
 	return 0;
+
+err_get_clock:
+	while (i--) {
+		clk_put(platform->clk[i]);
+		platform->clk[i] = NULL;
+	}
+
+	return err;
+}
+
+int gp10b_tegra_get_clocks(struct device *dev)
+{
+	return acquire_platform_clocks(dev, tegra_gp10b_clocks,
+			ARRAY_SIZE(tegra_gp10b_clocks));
 }
 
 void gp10b_tegra_scale_init(struct device *dev)
@@ -186,7 +217,11 @@ static int gp10b_tegra_probe(struct device *dev)
 		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
 	}
 
-	gp10b_tegra_get_clocks(dev);
+	ret = gp10b_tegra_get_clocks(dev);
+	if (ret != 0) {
+		return ret;
+	}
+
 	nvgpu_linux_init_clk_support(platform->g);
 
 	nvgpu_mutex_init(&platform->clk_get_freq_lock);

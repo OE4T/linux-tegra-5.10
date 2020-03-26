@@ -20,6 +20,10 @@
 #define _GP10B_PLATFORM_H_
 
 struct device;
+struct gk20a_platform_clk {
+	char *name;
+	unsigned long default_rate;
+};
 
 void gp10b_tegra_clks_control(struct device *dev, bool enable);
 int gp10b_tegra_get_clocks(struct device *dev);

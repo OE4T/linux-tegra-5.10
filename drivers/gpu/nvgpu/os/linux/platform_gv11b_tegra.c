@@ -112,7 +112,10 @@ static int gv11b_tegra_probe(struct device *dev)
 		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
 	}
 
-	gp10b_tegra_get_clocks(dev);
+	err = gp10b_tegra_get_clocks(dev);
+	if (err != 0) {
+		return err;
+	}
 	nvgpu_linux_init_clk_support(platform->g);
 
 	nvgpu_mutex_init(&platform->clk_get_freq_lock);
