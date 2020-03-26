@@ -45,6 +45,10 @@
 #define OSI_MAX_TX_COALESCE_USEC	1020U
 #define OSI_MIN_TX_COALESCE_USEC	32U
 #define OSI_MIN_TX_COALESCE_FRAMES	1U
+
+/* Compiler hints for branch prediction */
+#define osi_likely(x)			__builtin_expect(!!(x), 1)
+#define osi_unlikely(x)			__builtin_expect(!!(x), 0)
 /** @} */
 
 /**
