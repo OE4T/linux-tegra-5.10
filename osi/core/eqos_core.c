@@ -3556,6 +3556,94 @@ static void eqos_config_tscr(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief eqos_config_ptp_rxq - To config PTP RX packets queue
+ *
+ * Algorithm: This function is used to program the PTP RX packets queue.
+ *
+ * @param[in] osi_core: OSI core private data.
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) osi_core->osd should be populated
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_ptp_rxq(struct osi_core_priv_data *osi_core,
+			       const unsigned int rxq_idx,
+			       const unsigned int enable)
+{
+	unsigned char *base = osi_core->base;
+	unsigned int value = OSI_NONE;
+	unsigned int i = 0U;
+
+	/* Validate the RX queue index argment */
+	if (rxq_idx >= OSI_EQOS_MAX_NUM_QUEUES) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid PTP RX queue index\n",
+			rxq_idx);
+		return -1;
+	}
+	/* Check MAC version */
+	if (osi_core->mac_ver <= OSI_EQOS_MAC_5_00) {
+		/* MAC 4_10 and 5 doesn't have PTP RX Queue route support */
+		return -1;
+	}
+
+	/* Validate enable argument */
+	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid enable input\n",
+			enable);
+		return -1;
+	}
+
+	/* Validate PTP RX queue enable */
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		if (osi_core->mtl_queues[i] == rxq_idx) {
+			/* Given PTP RX queue is enabled */
+			break;
+		}
+	}
+
+	if (i == osi_core->num_mtl_queues) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"PTP RX queue not enabled\n",
+			rxq_idx);
+		return -1;
+	}
+
+	/* Read MAC_RxQ_Ctrl1 */
+	value = osi_readl(base + EQOS_MAC_RQC1R);
+	if (enable == OSI_DISABLE) {
+		/** Reset OMCBCQ bit to disable over-riding the MCBC Queue
+		 * priority for the PTP RX queue.
+		 */
+		value &= ~EQOS_MAC_RQC1R_OMCBCQ;
+
+	} else {
+		/* Program PTPQ with ptp_rxq */
+		osi_core->ptp_config.ptp_rx_queue = rxq_idx;
+		value &= ~EQOS_MAC_RQC1R_PTPQ;
+		value |= (rxq_idx << EQOS_MAC_RQC1R_PTPQ_SHIFT);
+		/* Reset TPQC before setting TPQC0 */
+		value &= ~EQOS_MAC_RQC1R_TPQC;
+		/** Set TPQC to 0x1 for VLAN Tagged PTP over
+		 * ethernet packets are routed to Rx Queue specified
+		 * by PTPQ field
+		 **/
+		value |= EQOS_MAC_RQC1R_TPQC0;
+		/** Set OMCBCQ bit to enable over-riding the MCBC Queue
+		 * priority for the PTP RX queue.
+		 */
+		value |= EQOS_MAC_RQC1R_OMCBCQ;
+	}
+	/* Write MAC_RxQ_Ctrl1 */
+	osi_writel(value, base + EQOS_MAC_RQC1R);
+
+	return 0;
+}
+
+/**
  * @brief eqos_config_ssir - Configure SSIR
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -5260,4 +5348,5 @@ void eqos_init_core_ops(struct core_ops *ops)
 #endif /* !OSI_STRIPPED_LIB */
 	ops->hw_config_est = eqos_hw_config_est;
 	ops->hw_config_fpe = eqos_hw_config_fpe;
+	ops->config_ptp_rxq = eqos_config_ptp_rxq;
 }
