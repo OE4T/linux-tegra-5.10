@@ -2396,6 +2396,7 @@ static int ether_prepare_mc_list(struct net_device *dev,
 			filter->dma_chan = 0x0;
 			filter->addr_mask = OSI_AMASK_DISABLE;
 			filter->src_dest = OSI_DA_MATCH;
+			filter->dma_chansel = osi_core->mc_dmasel;
 			ret = osi_l2_filter(osi_core, filter);
 			if (ret < 0) {
 				dev_err(pdata->dev, "issue in creating mc list\n");
@@ -2513,7 +2514,7 @@ static int ether_prepare_uc_list(struct net_device *dev,
  *
  * @note MAC and PHY need to be initialized.
  */
-static void ether_set_rx_mode(struct net_device *dev)
+void ether_set_rx_mode(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -2576,6 +2577,7 @@ static void ether_set_rx_mode(struct net_device *dev)
 		filter.dma_chan = OSI_CHAN_ANY;
 		filter.addr_mask = OSI_AMASK_DISABLE;
 		filter.src_dest = OSI_DA_MATCH;
+		filter.dma_chansel = OSI_DISABLE;
 		ret = osi_l2_filter(osi_core, &filter);
 		if (ret < 0) {
 			dev_err(pdata->dev, "Invalidating expired L2 filter failed\n");
@@ -3898,7 +3900,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	unsigned int tmp_value[OSI_MGBE_MAX_NUM_QUEUES];
 	struct device_node *np = dev->of_node;
 	int ret = -EINVAL;
-	unsigned int i, mtlq, chan;
+	unsigned int i, mtlq, chan, bitmap;
 
 	/* read ptp clock */
 	ret = of_property_read_u32(np, "nvidia,ptp_ref_clock_speed",
@@ -4113,6 +4115,33 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	ret = of_property_read_u32(np, "nvidia,dcs-enable", &osi_core->dcs_en);
 	if (ret < 0 || osi_core->dcs_en != OSI_ENABLE) {
 		osi_core->dcs_en = OSI_DISABLE;
+	}
+
+	/* Read XDCS input for DMA channels route */
+	ret = of_property_read_u32(np, "nvidia,mc-dmasel",
+				   &osi_core->mc_dmasel);
+	if (ret < 0) {
+		/* Disable Multiple DMA selection on DT read failure */
+		osi_core->mc_dmasel = osi_dma->dma_chans[0];
+	} else {
+		/* Validate MC DMA channel selection flags */
+		bitmap = osi_core->mc_dmasel;
+		while (bitmap != 0U) {
+			chan = __builtin_ctz(bitmap);
+			for (i = 0; i < osi_dma->num_dma_chans; i++) {
+				if (osi_dma->dma_chans[i] == chan) {
+					/* channel is enabled */
+					break;
+				}
+			}
+			if (i == osi_dma->num_dma_chans) {
+				/* Invalid MC DMA selection */
+				dev_err(dev, "Invalid %d MC DMA selection\n", chan);
+				osi_core->mc_dmasel = osi_dma->dma_chans[0];
+				break;
+			}
+			bitmap &= ~OSI_BIT(chan);
+		}
 	}
 
 	/* Read MAX MTU size supported */

@@ -60,6 +60,7 @@
 #define ETHER_CONFIG_FPE		50
 /* FRP Command */
 #define ETHER_CONFIG_FRP_CMD		51
+#define ETHER_MC_DMA_ROUTE		52
 /** @} */
 
 /**

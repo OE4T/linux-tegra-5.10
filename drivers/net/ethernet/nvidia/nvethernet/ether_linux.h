@@ -516,7 +516,7 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 			  struct osi_dma_priv_data *osi_dma);
 
 /**
- * @brief osd_send_cmd - OSD ivc send cmd
+ * @brief osd_ivc_send_cmd - OSD ivc send cmd
  *
  * @param[in] priv: OSD private data
  * @param[in] func: data
@@ -528,4 +528,5 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
  * - De-initialization: Yes
  */
 int osd_ivc_send_cmd(void *priv, void *data, unsigned int len);
+void ether_set_rx_mode(struct net_device *dev);
 #endif /* ETHER_LINUX_H */
