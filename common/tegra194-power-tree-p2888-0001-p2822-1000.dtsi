@@ -91,8 +91,13 @@
 	};
 
 	pwm-fan {
+#if TEGRA_PWM_FAN_DT_VERSION == DT_VERSION_2
+		fan-supply = <&p2822_vdd_fan>;
+#else
 		vdd-fan-supply = <&p2822_vdd_fan>;
+#endif
 	};
+
 
 #if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
 	bpmp { i2c {
