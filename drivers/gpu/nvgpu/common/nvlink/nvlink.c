@@ -24,7 +24,7 @@
 #include <nvgpu/nvlink.h>
 #include <nvgpu/nvlink_probe.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/top.h>
+#include <nvgpu/device.h>
 #include <nvgpu/nvlink_bios.h>
 
 #ifdef CONFIG_NVGPU_NVLINK

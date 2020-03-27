@@ -26,6 +26,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/device.h>
 #include <nvgpu/nvlink_minion.h>
 #include <nvgpu/gops_mc.h>
 #include <nvgpu/mc.h>

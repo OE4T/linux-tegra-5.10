@@ -27,7 +27,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/hal_init.h>
-#include <nvgpu/top.h>
+#include <nvgpu/device.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/hw/gp10b/hw_mc_gp10b.h>

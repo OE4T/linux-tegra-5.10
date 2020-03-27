@@ -25,7 +25,7 @@
 #include <nvgpu/posix/io.h>
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/top.h>
+#include <nvgpu/device.h>
 #include <hal/top/top_gm20b.h>
 #include <hal/top/top_gp10b.h>
 #include <hal/top/top_gv11b.h>

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_TOP_H
-#define NVGPU_TOP_H
+#ifndef NVGPU_DEVICE_H
+#define NVGPU_DEVICE_H
 /**
  * @file
  *
@@ -118,4 +118,4 @@ struct nvgpu_device_info {
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
-#endif /* NVGPU_TOP_H */
+#endif /* NVGPU_DEVICE_H */

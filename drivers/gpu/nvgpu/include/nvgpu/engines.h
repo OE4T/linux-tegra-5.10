@@ -46,7 +46,7 @@ struct nvgpu_fifo;
 /**
  * Engine enum types used for s/w purpose. These enum values are
  * different as compared to engine enum types defined by h/w.
- * Refer top.h header file.
+ * Refer device.h header file.
  */
 enum nvgpu_fifo_engine {
 	/** GR engine enum */
@@ -110,7 +110,7 @@ struct nvgpu_engine_info {
 };
 /**
  * @brief Get s/w defined engine enum type for engine enum type defined by h/w.
- *        See top.h for engine enum types defined by h/w.
+ *        See device.h for engine enum types defined by h/w.
  *
  * @param g [in]		The GPU driver struct.
  * @param engine_type [in]	Engine enum type defined by h/w.

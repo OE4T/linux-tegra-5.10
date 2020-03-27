@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -151,7 +151,7 @@ struct nvgpu_tsg {
 	 * is one runlist per engine (graphics and grcopy share a runlist).
 	 * The runlist_id specifies the h/w runlist to which a runlist in
 	 * memory is being submitted. Each runlist serves a specific set of
-	 * engines. Refer top.h.
+	 * engines. Refer to device.h.
 	 */
 	u32 runlist_id;
 	/** tgid (OS specific) of the process that openend the TSG. */

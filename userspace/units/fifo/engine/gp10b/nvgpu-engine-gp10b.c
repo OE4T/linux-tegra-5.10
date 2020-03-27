@@ -29,7 +29,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
-#include <nvgpu/top.h>
+#include <nvgpu/device.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 

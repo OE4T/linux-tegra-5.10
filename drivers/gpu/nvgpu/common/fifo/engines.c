@@ -37,7 +37,7 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/top.h>
+#include <nvgpu/device.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/fifo.h>
