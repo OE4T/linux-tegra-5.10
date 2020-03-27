@@ -736,6 +736,7 @@ struct gk20a {
 #ifdef CONFIG_NVGPU_SIM
 	struct sim_nvgpu *sim;
 #endif
+	struct nvgpu_device_list *devs;
 	struct mm_gk20a mm;
 	struct nvgpu_pmu *pmu;
 	struct nvgpu_acr *acr;

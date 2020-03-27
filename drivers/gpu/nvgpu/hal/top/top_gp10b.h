@@ -28,13 +28,10 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_device_info;
+struct nvgpu_device;
 
 int gp10b_device_info_parse_data(struct gk20a *g, u32 table_entry, u32 *inst_id,
 					u32 *pri_base, u32 *fault_id);
-u32 gp10b_get_num_engine_type_entries(struct gk20a *g, u32 engine_type);
-int gp10b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
+int gp10b_get_device_info(struct gk20a *g, struct nvgpu_device *dev_info,
 					u32 engine_type, u32 inst_id);
-bool gp10b_is_engine_ce(struct gk20a *g, u32 engine_type);
-
 #endif

@@ -138,39 +138,10 @@ static void reset_ctx(void)
 	u.priv_ring_isr = false;
 }
 
-/*
- * Replacement functions that can be assigned to function pointers
- */
-static int mock_get_device_info(struct gk20a *g,
-				struct nvgpu_device_info *dev_info,
-				u32 engine_type, u32 inst_id)
-{
-	if (engine_type == NVGPU_ENGINE_GRAPHICS) {
-		dev_info->intr_id = ACTIVE_GR_ID;
-		dev_info->engine_id = 0;
-		dev_info->engine_type = 0;
-	} else if (engine_type == NVGPU_ENGINE_LCE) {
-		dev_info->intr_id = ACTIVE_CE_ID;
-		dev_info->engine_id = 1;
-		dev_info->engine_type = 0x13;
-		dev_info->reset_id = ffs(mc_enable_ce2_enabled_f()) - 1;
-	}
-
-	return 0;
-}
-
 static bool mock_pbdma_find_for_runlist(struct gk20a *g, u32 runlist_id,
 					u32 *pbdma_id)
 {
 	return true;
-}
-
-static u32 mock_get_num_engine_type_entries(struct gk20a *g, u32 engine_type)
-{
-	if (engine_type == NVGPU_ENGINE_LCE) {
-		return 1;
-	}
-	return 0;
 }
 
 static void mock_bus_isr(struct gk20a *g)
@@ -259,10 +230,7 @@ int test_setup_env(struct unit_module *m,
 	}
 
 	/* override HALs */
-	g->ops.top.get_device_info = mock_get_device_info;
 	g->ops.pbdma.find_for_runlist = mock_pbdma_find_for_runlist;
-	g->ops.top.get_num_engine_type_entries =
-					mock_get_num_engine_type_entries;
 	g->ops.bus.isr = mock_bus_isr;
 	g->ops.ce.isr_stall = mock_ce_stall_isr;
 	g->ops.ce.isr_nonstall = mock_ce_nonstall_isr;
@@ -448,17 +416,6 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
-static void switch_ce_engine_type(struct nvgpu_engine_info *info)
-{
-	if (info->engine_enum == NVGPU_ENGINE_ASYNC_CE) {
-		info->engine_enum = NVGPU_ENGINE_GRCE;
-	} else if (info->engine_enum == NVGPU_ENGINE_GRCE) {
-		info->engine_enum = NVGPU_ENGINE_ASYNC_CE;
-	} else {
-		BUG();
-	}
-}
-
 int test_intr_stall(struct unit_module *m, struct gk20a *g, void *args)
 {
 	u32 i, pend, val;
@@ -571,18 +528,6 @@ int test_isr_stall(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mc.isr_stall(g);
 	g->ops.ce.isr_stall = mock_ce_stall_isr;
 
-	/* for branch coverage set CE engine to other type */
-	switch_ce_engine_type(&g->fifo.engine_info[1]);
-	for (i = 0; i < NUM_MC_UNITS; i++) {
-		intrs_pending |= mc_units[i].bit;
-	}
-	nvgpu_posix_io_writel_reg_space(g, STALL_PENDING_REG, intrs_pending);
-	reset_ctx();
-	g->ops.mc.isr_stall(g);
-	if (!u.ce_isr) {
-		unit_return_fail(m, "ISR not called\n");
-	}
-
 	/*
 	 * for branch coverage set LTC intr in main intr reg, but not ltc
 	 * intr reg
@@ -668,18 +613,6 @@ int test_isr_nonstall(struct unit_module *m, struct gk20a *g, void *args)
 	reset_ctx();
 	g->ops.mc.isr_nonstall(g);
 	g->ops.ce.isr_nonstall = mock_ce_nonstall_isr;
-
-	/* for branch coverage set CE engine to the opposite type */
-	switch_ce_engine_type(&g->fifo.engine_info[1]);
-	for (i = 0; i < NUM_MC_UNITS; i++) {
-		intrs_pending |= mc_units[i].bit;
-	}
-	nvgpu_posix_io_writel_reg_space(g, NONSTALL_PENDING_REG, intrs_pending);
-	reset_ctx();
-	g->ops.mc.isr_nonstall(g);
-	if (!u.ce_isr) {
-		unit_return_fail(m, "ISR not called\n");
-	}
 
 	return UNIT_SUCCESS;
 }

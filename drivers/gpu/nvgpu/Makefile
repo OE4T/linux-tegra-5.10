@@ -177,6 +177,7 @@ nvgpu-$(CONFIG_GK20A_PCI) += \
 	os/linux/pci_power.o
 
 nvgpu-y += \
+	common/device.o \
 	common/utils/enabled.o \
 	common/utils/rbtree.o \
 	common/utils/string.o \
@@ -678,7 +679,6 @@ nvgpu-y += \
 	hal/ptimer/ptimer_gp10b.o \
 	hal/therm/therm_gv11b_fusa.o \
 	hal/top/top_gm20b_fusa.o \
-	hal/top/top_gp10b_fusa.o \
 	hal/top/top_gv11b_fusa.o
 
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \

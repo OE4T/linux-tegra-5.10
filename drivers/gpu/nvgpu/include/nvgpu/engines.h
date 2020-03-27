@@ -43,6 +43,8 @@
 
 struct gk20a;
 struct nvgpu_fifo;
+struct nvgpu_device;
+
 /**
  * Engine enum types used for s/w purpose. These enum values are
  * different as compared to engine enum types defined by h/w.
@@ -113,7 +115,7 @@ struct nvgpu_engine_info {
  *        See device.h for engine enum types defined by h/w.
  *
  * @param g [in]		The GPU driver struct.
- * @param engine_type [in]	Engine enum type defined by h/w.
+ * @param dev [in]		Device to check.
  *
  * This is used to map engine enum type defined by h/w to engine enum type
  * defined by s/w.
@@ -124,8 +126,8 @@ struct nvgpu_engine_info {
  *         types or if #engine_type does not match with h/w defined engine enum
  *         types for gr and/or ce engines.
  */
-enum nvgpu_fifo_engine nvgpu_engine_enum_from_type(struct gk20a *g,
-		u32 engine_type);
+enum nvgpu_fifo_engine nvgpu_engine_enum_from_dev(struct gk20a *g,
+						  struct nvgpu_device *dev);
 /**
  * @brief Get pointer to #nvgpu_engine_info for the h/w engine id.
  *
@@ -421,9 +423,9 @@ u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg);
  * @param f [in]	Pointer to #nvgpu_fifo struct.
  *
  * - Get device info related info for h/w engine enum type,
- *   #NVGPU_ENGINE_GRAPHICS.
+ *   #NVGPU_DEVTYPE_GRAPHICS.
  * - Get PBDMA id serving the runlist id of the h/w engine enum type,
- *   #NVGPU_ENGINE_GRAPHICS.
+ *   #NVGPU_DEVTYPE_GRAPHICS.
  * - Get s/w defined engine enum type for the h/w engine enum type read
  *   from device info registers.
  * - Initialize #nvgpu_fifo.engine_info and #nvgpu_fifo.active_engines_list
@@ -435,9 +437,9 @@ u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg);
  *
  * @return 0 upon success.
  * @retval -EINVAL if call to function to get device info related info for
- *         h/w engine enum type, #NVGPU_ENGINE_GRAPHICS returned failure.
+ *         h/w engine enum type, #NVGPU_DEVTYPE_GRAPHICS returned failure.
  * @retval -EINVAL if call to function to get pbdma id for runlist id of
- *         h/w engine enum type, #NVGPU_ENGINE_GRAPHICS returned failure.
+ *         h/w engine enum type, #NVGPU_DEVTYPE_GRAPHICS returned failure.
  * @retval Return value of function called to initialize CE engine info.
  */
 int nvgpu_engine_init_info(struct nvgpu_fifo *f);

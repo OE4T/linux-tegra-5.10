@@ -160,11 +160,8 @@ static int nvgpu_nvlink_discover_ioctrl(struct gk20a *g)
 	struct nvgpu_nvlink_ioctrl_list *ioctrl_table;
 	u32 ioctrl_num_entries = 0U;
 
-	if (g->ops.top.get_num_engine_type_entries != NULL) {
-		ioctrl_num_entries = g->ops.top.get_num_engine_type_entries(g,
-							NVGPU_ENGINE_IOCTRL);
-		nvgpu_log_info(g, "ioctrl_num_entries: %d", ioctrl_num_entries);
-	}
+	ioctrl_num_entries = nvgpu_device_count(g, NVGPU_DEVTYPE_IOCTRL);
+	nvgpu_log_info(g, "ioctrl_num_entries: %d", ioctrl_num_entries);
 
 	if (ioctrl_num_entries == 0U) {
 		nvgpu_err(g, "No NVLINK IOCTRL entry found in dev_info table");
@@ -179,14 +176,13 @@ static int nvgpu_nvlink_discover_ioctrl(struct gk20a *g)
 	}
 
 	for (i = 0U; i < ioctrl_num_entries; i++) {
-		struct nvgpu_device_info dev_info;
+		struct nvgpu_device dev_info;
 
-		ret = g->ops.top.get_device_info(g, &dev_info,
-						NVGPU_ENGINE_IOCTRL, i);
+		ret = nvgpu_device_get(g, &dev_info, NVGPU_DEVTYPE_IOCTRL, i);
 		if (ret != 0) {
 			nvgpu_err(g, "Failed to parse dev_info table"
 					"for engine %d",
-					NVGPU_ENGINE_IOCTRL);
+					NVGPU_DEVTYPE_IOCTRL);
 			nvgpu_kfree(g, ioctrl_table);
 			return -EINVAL;
 		}

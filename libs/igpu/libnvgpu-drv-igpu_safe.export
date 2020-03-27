@@ -49,7 +49,6 @@ gm20b_fb_read_wpr_info
 gm20b_fb_tlb_invalidate
 gm20b_fb_vpr_info_fetch
 gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id
-gm20b_is_engine_gr
 gm20b_mm_get_big_page_sizes
 gm20b_pbdma_acquire_val
 gm20b_pbdma_device_fatal_0_intr_descs
@@ -95,9 +94,6 @@ gp10b_pbdma_get_fc_runlist_timeslice
 gp10b_pbdma_get_signature
 gp10b_ramin_init_pdb
 gp10b_engine_init_ce_info
-gp10b_get_num_engine_type_entries
-gp10b_get_device_info
-gp10b_is_engine_ce
 gp10b_priv_ring_isr
 gp10b_priv_ring_decode_error_code
 gp10b_ramfc_commit_userd
@@ -348,6 +344,7 @@ nvgpu_current_time_ms
 nvgpu_current_time_ns
 nvgpu_current_time_us
 nvgpu_detect_chip
+nvgpu_device_init
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_alloc_flags_sys
@@ -362,7 +359,6 @@ nvgpu_ecc_init_support
 nvgpu_engine_act_interrupt_mask
 nvgpu_engine_check_valid_id
 nvgpu_engine_cleanup_sw
-nvgpu_engine_enum_from_type
 nvgpu_engine_find_busy_doing_ctxsw
 nvgpu_engine_get_active_eng_info
 nvgpu_engine_get_all_ce_reset_mask

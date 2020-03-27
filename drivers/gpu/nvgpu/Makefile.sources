@@ -90,7 +90,8 @@ srcs += os/posix/bug.c \
 	os/posix/file_ops.c \
 	os/posix/queue.c
 
-srcs +=	common/utils/enabled.c \
+srcs +=	common/device.c \
+	common/utils/enabled.c \
 	common/utils/rbtree.c \
 	common/utils/string.c \
 	common/utils/worker.c \
@@ -245,7 +246,6 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/sync/syncpt_cmdbuf_gv11b_fusa.c \
 	hal/therm/therm_gv11b_fusa.c \
 	hal/top/top_gm20b_fusa.c \
-	hal/top/top_gp10b_fusa.c \
 	hal/top/top_gv11b_fusa.c
 
 # Source files below are not guaranteed to be functionaly safe (FuSa) and are

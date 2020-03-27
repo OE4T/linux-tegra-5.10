@@ -24,6 +24,8 @@
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/kmem.h>
+
 #include "top_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_top_gm20b.h>
@@ -68,9 +70,102 @@ void gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
 
 }
 
-bool gm20b_is_engine_gr(struct gk20a *g, u32 engine_type)
+/*
+ * Parse the device starting at *i. This will return a valid device struct
+ * pointer if a device was detected and parsed, NULL otherwise.
+ */
+struct nvgpu_device *gm20b_top_parse_next_dev(struct gk20a *g, u32 *token)
 {
-	return (engine_type == top_device_info_type_enum_graphics_v());
+	int ret;
+	u32 table_entry;
+	u32 entry;
+	u32 entry_enum = 0;
+	u32 entry_engine = 0;
+	u32 entry_data = 0;
+	struct nvgpu_device *dev;
+
+	while (true) {
+
+		/*
+		 * The core code relies on us to manage the index - a.k.a the
+		 * token. If token crosses the device table size, then break and
+		 * return NULL to signify we've hit the end of the dev list.
+		 */
+		if (*token >= top_device_info__size_1_v()) {
+			return NULL;
+		}
+
+		/*
+		 * Once we have read a register we'll never have to read it
+		 * again so always increment before doing anything further.
+		 */
+		table_entry = nvgpu_readl(g, top_device_info_r(*token));
+		(*token)++;
+
+		entry = top_device_info_entry_v(table_entry);
+
+		if (entry == top_device_info_entry_not_valid_v()) {
+			/*
+			 * Empty section of the table. We'll skip these
+			 * internally so that the common device manager is
+			 * unaware of the holes in the device register array.
+			 */
+			continue;
+		} else if (entry == top_device_info_entry_enum_v()) {
+			entry_enum = table_entry;
+		} else if (entry == top_device_info_entry_data_v()) {
+			entry_data = table_entry;
+		} else if (entry == top_device_info_entry_engine_type_v()) {
+			entry_engine = table_entry;
+		} else {
+			nvgpu_err(g, "Invalid entry type in device_info table");
+			return NULL;
+		}
+
+		/*
+		 * If we need to chain then we need to read the register in the
+		 * table. Otherwise, if chain is false, then we have parsed all
+		 * the relevant registers for this table entry.
+		 */
+		if (top_device_info_chain_v(table_entry) ==
+		    top_device_info_chain_enable_v()) {
+			continue;
+		}
+
+		/*
+		 * If we get here we have sufficient data to parse a device. E.g
+		 * chain was set to 0.
+		 */
+		dev = nvgpu_kzalloc(g, sizeof(*dev));
+		if (dev == NULL) {
+			nvgpu_err(g, "TOP: OOM allocating nvgpu_device struct");
+			return NULL;
+		}
+
+		dev->type = top_device_info_type_enum_v(entry_engine);
+		g->ops.top.device_info_parse_enum(g,
+						  entry_enum,
+						  &dev->engine_id,
+						  &dev->runlist_id,
+						  &dev->intr_id,
+						  &dev->reset_id);
+		ret = g->ops.top.device_info_parse_data(g,
+							entry_data,
+							&dev->inst_id,
+							&dev->pri_base,
+							&dev->fault_id);
+		if (ret != 0) {
+			nvgpu_err(g,
+				  "TOP: error parsing Data Entry 0x%x",
+				  entry_data);
+			nvgpu_kfree(g, dev);
+			return NULL;
+		}
+
+		break;
+	}
+
+	return dev;
 }
 
 u32 gm20b_top_get_max_gpc_count(struct gk20a *g)

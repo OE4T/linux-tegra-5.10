@@ -76,11 +76,6 @@ int test_top_setup(struct unit_module *m, struct gk20a *g, void *args)
 	/* Init HAL */
 	g->ops.top.device_info_parse_enum = gm20b_device_info_parse_enum;
 	g->ops.top.device_info_parse_data = gv11b_device_info_parse_data;
-	g->ops.top.get_num_engine_type_entries =
-				gp10b_get_num_engine_type_entries;
-	g->ops.top.get_device_info = gp10b_get_device_info;
-	g->ops.top.is_engine_gr = gm20b_is_engine_gr;
-	g->ops.top.is_engine_ce = gp10b_is_engine_ce;
 	g->ops.top.get_max_gpc_count = gm20b_top_get_max_gpc_count;
 	g->ops.top.get_max_tpc_per_gpc_count =
 				gm20b_top_get_max_tpc_per_gpc_count;
@@ -229,28 +224,6 @@ int test_get_max_gpc_count(struct unit_module *m, struct gk20a *g,
 	val = g->ops.top.get_max_gpc_count(g);
 	if (val != 0x1D) {
 		unit_err(m, "max GPCs count parsing incorrect.\n");
-		ret = UNIT_FAIL;
-	}
-
-	return ret;
-}
-
-int test_is_engine_gr(struct unit_module *m, struct gk20a *g, void *args)
-{
-	int ret = UNIT_SUCCESS;
-	bool val;
-
-	/* Set engine_type = 0 = graphics_enum */
-	val = g->ops.top.is_engine_gr(g, 0U);
-	if (!val) {
-		unit_err(m, "API to check if engine is GR is incorrect.\n");
-		ret = UNIT_FAIL;
-	}
-
-	/* Set engine_type = 1 != graphics_enum */
-	val = g->ops.top.is_engine_gr(g, 1U);
-	if (val) {
-		unit_err(m, "API to check if engine is GR is incorrect.\n");
 		ret = UNIT_FAIL;
 	}
 
@@ -467,103 +440,6 @@ int test_device_info_parse_data(struct unit_module *m, struct gk20a *g,
 	return ret;
 }
 
-int test_get_num_engine_type_entries(struct unit_module *m, struct gk20a *g,
-								void *args)
-{
-	int ret = UNIT_SUCCESS;
-	int val = 0;
-	u32 engine_type = 19U;
-
-	/* The device_info table is setup during test_setup(). We directly call
-	 * get_num_engine_type_entries HAL to parse number of copy engine
-	 * related entries in the device_info table.
-	 */
-	val = g->ops.top.get_num_engine_type_entries(g, engine_type);
-
-	if (val != 2) {
-		unit_err(m, "top.get_num_engine_type_entries() failed.\n");
-		ret = UNIT_FAIL;
-	}
-
-	return ret;
-}
-
-int test_get_device_info(struct unit_module *m, struct gk20a *g, void *args)
-{
-	int ret = UNIT_SUCCESS;
-	int val = 0;
-	struct nvgpu_device_info dev_info_1;
-	struct nvgpu_device_info *dev_info_2 = NULL;
-	u32 engine_type = 19U;
-	u32 inst_id = 3U;
-
-	/* The device_info table is setup during test_setup(). We directly call
-	 * get_device_info HAL to parse copy engine related information from the
-	 * device_info table.
-	 */
-	val = g->ops.top.get_device_info(g, &dev_info_1, engine_type, inst_id);
-
-	if (val != 0) {
-		unit_err(m, "Call to top.get_device_info() failed.\n");
-		ret = UNIT_FAIL;
-	}
-
-	/* Call HAL again to cover the error paths due to incorrect entry */
-	inst_id = 2U;
-	val = g->ops.top.get_device_info(g, &dev_info_1, engine_type, inst_id);
-
-	/* Verify if the retval is as expected */
-	if (val != -EINVAL) {
-		unit_err(m,
-		"get_device_info() failed to handle incorrect entry.\n");
-		ret = UNIT_FAIL;
-	}
-
-	/* Call top.get_device_info with NULL pointer to cover error path */
-	val = g->ops.top.get_device_info(g, dev_info_2, engine_type, inst_id);
-
-	/* Verify if the retval is as expected */
-	if (val != -EINVAL) {
-		unit_err(m,
-			"get_device_info() failed to handle NULL pointer.\n");
-		ret = UNIT_FAIL;
-	}
-
-	/* Call top.get_device_info with NULL function pointers */
-	g->ops.top.device_info_parse_enum = NULL;
-	g->ops.top.device_info_parse_data = NULL;
-	val = g->ops.top.get_device_info(g, &dev_info_1, engine_type, inst_id);
-	if (val != -EINVAL) {
-		unit_err(m,
-		"get_device_info() failed to handle NULL function pointers.\n");
-		ret = UNIT_FAIL;
-	}
-
-	return ret;
-}
-
-int test_is_engine_ce(struct unit_module *m, struct gk20a *g, void *args)
-{
-	int ret = UNIT_SUCCESS;
-	bool val;
-
-	/* Set engine_type = 19 = copy engine enum */
-	val = g->ops.top.is_engine_ce(g, 19U);
-	if (!val) {
-		unit_err(m, "API to check if engine is CE is incorrect.\n");
-		ret = UNIT_FAIL;
-	}
-
-	/* Set engine_type = 0 != copy engine enum */
-	val = g->ops.top.is_engine_ce(g, 1U);
-	if (val) {
-		unit_err(m, "API to check if engine is CE is incorrect.\n");
-		ret = UNIT_FAIL;
-	}
-
-	return ret;
-}
-
 int test_get_num_lce(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
@@ -590,9 +466,6 @@ int test_get_num_lce(struct unit_module *m, struct gk20a *g, void *args)
 
 struct unit_module_test top_tests[] = {
 	UNIT_TEST(top_setup,	              test_top_setup,          NULL, 0),
-	UNIT_TEST(top_device_info_parse_enum,
-				test_device_info_parse_enum,           NULL, 0),
-	UNIT_TEST(top_is_engine_gr,	      test_is_engine_gr,       NULL, 0),
 	UNIT_TEST(top_get_max_gpc_count,      test_get_max_gpc_count,  NULL, 0),
 	UNIT_TEST(top_get_max_tpc_per_gpc_count,
 				test_get_max_tpc_per_gpc_count,        NULL, 0),
@@ -604,10 +477,6 @@ struct unit_module_test top_tests[] = {
 	UNIT_TEST(top_get_num_ltcs,           test_get_num_ltcs,       NULL, 0),
 	UNIT_TEST(top_device_info_parse_data,
 				test_device_info_parse_data,           NULL, 0),
-	UNIT_TEST(top_get_num_engine_type_entries,
-				test_get_num_engine_type_entries,      NULL, 0),
-	UNIT_TEST(top_get_device_info,        test_get_device_info,    NULL, 0),
-	UNIT_TEST(top_is_engine_ce,	      test_is_engine_ce,       NULL, 0),
 	UNIT_TEST(top_get_num_lce,            test_get_num_lce,        NULL, 0),
 	UNIT_TEST(top_free_reg_space,         test_top_free_reg_space, NULL, 0),
 };

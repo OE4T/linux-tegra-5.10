@@ -1484,13 +1484,9 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 			nvgpu_tegra_fuse_read_per_device_identifier,
 	},
 	.top = {
+		.parse_next_device = gm20b_top_parse_next_dev,
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
 		.device_info_parse_data = gv11b_device_info_parse_data,
-		.get_num_engine_type_entries =
-				gp10b_get_num_engine_type_entries,
-		.get_device_info = gp10b_get_device_info,
-		.is_engine_gr = gm20b_is_engine_gr,
-		.is_engine_ce = gp10b_is_engine_ce,
 		.get_ce_inst_id = NULL,
 		.get_max_gpc_count = gm20b_top_get_max_gpc_count,
 		.get_max_tpc_per_gpc_count =

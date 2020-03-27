@@ -162,6 +162,12 @@ pramin:
              include/nvgpu/pramin.h ]
   deps:
 
+device:
+  safe: yes
+  owner: Alex W
+  sources: [ common/device.c,
+             include/nvgpu/device.h ]
+
 ptimer:
   safe: yes
   owner: Terje B

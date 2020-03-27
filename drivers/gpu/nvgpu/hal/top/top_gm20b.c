@@ -68,80 +68,8 @@ int gm20b_device_info_parse_data(struct gk20a *g, u32 table_entry, u32 *inst_id,
 	return 0;
 }
 
-int gm20b_get_device_info(struct gk20a *g, struct nvgpu_device_info *dev_info,
-						u32 engine_type, u32 inst_id)
-{
-	int ret = 0;
-	u32 i = 0;
-	u32 table_entry;
-	u32 entry;
-	u32 entry_engine = 0;
-	u32 entry_enum = 0;
-	u32 entry_data = 0;
-	u32 max_info_entries = top_device_info__size_1_v();
-
-	if (dev_info == NULL) {
-		nvgpu_err(g, "Null device_info pointer passed.");
-		return -EINVAL;
-	}
-
-	for (i = 0; i < max_info_entries; i++) {
-		table_entry = nvgpu_readl(g, top_device_info_r(i));
-		entry = top_device_info_entry_v(table_entry);
-
-		if (entry == top_device_info_entry_not_valid_v()) {
-			continue;
-		} else if (entry == top_device_info_entry_enum_v()) {
-			entry_enum = table_entry;
-		} else if (entry == top_device_info_entry_data_v()) {
-			entry_data = table_entry;
-		} else if (entry == top_device_info_entry_engine_type_v()) {
-			entry_engine = table_entry;
-		} else {
-			nvgpu_err(g, "Invalid entry type in device_info table");
-			return -EINVAL;
-		}
-
-		if (top_device_info_chain_v(table_entry) ==
-					top_device_info_chain_enable_v()) {
-			continue;
-		}
-
-		if (top_device_info_type_enum_v(entry_engine) == engine_type) {
-			dev_info->engine_type = engine_type;
-			if (g->ops.top.device_info_parse_enum != NULL) {
-				g->ops.top.device_info_parse_enum(g,
-							entry_enum,
-							&dev_info->engine_id,
-							&dev_info->runlist_id,
-							&dev_info->intr_id,
-							&dev_info->reset_id);
-			}
-			if (g->ops.top.device_info_parse_data != NULL) {
-				ret = g->ops.top.device_info_parse_data(g,
-							entry_data,
-							&dev_info->inst_id,
-							&dev_info->pri_base,
-							&dev_info->fault_id);
-				if (ret != 0) {
-					nvgpu_err(g,
-						"Error parsing Data Entry 0x%x",
-						entry_data);
-					return ret;
-				}
-			}
-		}
-	}
-	return ret;
-}
-
-bool gm20b_is_engine_ce(struct gk20a *g, u32 engine_type)
-{
-	return ((engine_type >= top_device_info_type_enum_copy0_v()) &&
-			(engine_type <= top_device_info_type_enum_copy2_v()));
-}
 u32 gm20b_get_ce_inst_id(struct gk20a *g, u32 engine_type)
 {
 	/* inst_id starts from CE0 to CE2 */
-	return (engine_type - NVGPU_ENGINE_COPY0);
+	return (engine_type - NVGPU_DEVTYPE_COPY0);
 }

@@ -39,6 +39,7 @@
 #include <nvgpu/trace.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/fb.h>
+#include <nvgpu/device.h>
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -325,6 +326,8 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	}
 #endif
 
+	nvgpu_device_cleanup(g);
+
 	/* Disable GPCPLL */
 	if (g->ops.clk.suspend_clk_support != NULL) {
 		g->ops.clk.suspend_clk_support(g);
@@ -569,19 +572,26 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	 */
 	const struct nvgpu_init_table_t nvgpu_init_table[] = {
 		/*
-		 * Do this early so any early VMs that get made are capable of
-		 * mapping buffers.
-		 */
-		/**
 		 * ECC support initialization is split into generic init
 		 * followed by per unit initialization and ends with sysfs
 		 * support init. This is done to setup ECC data structures
 		 * prior to enabling interrupts for corresponding units.
 		 */
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ecc.ecc_init_support, NO_FLAG),
+		/*
+		 * Do this early so any early VMs that get made are capable of
+		 * mapping buffers.
+		 */
 		NVGPU_INIT_TABLE_ENTRY(g->ops.mm.pd_cache_init, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_falcons_sw_init, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_early_init, NO_FLAG),
+
+		/*
+		 * Initialize the GPU's device list. Needed before NVLINK
+		 * init since the NVLINK IOCTRL block is enumerated in the
+		 * device list.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_device_init, NO_FLAG),
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_setup_sw,
 				       NVGPU_SUPPORT_SEC2_RTOS),

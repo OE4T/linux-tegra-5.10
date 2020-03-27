@@ -177,13 +177,6 @@ done:
 #define F_ENGINE_INIT_INFO_INIT_CE_FAIL		BIT(3)
 #define F_ENGINE_INIT_INFO_LAST			BIT(4)
 
-static int stub_top_get_device_info_EINVAL(struct gk20a *g,
-		struct nvgpu_device_info *dev_info,
-		u32 engine_type, u32 inst_id)
-{
-	return -EINVAL;
-}
-
 static bool stub_pbdma_find_for_runlist_none(struct gk20a *g,
 			u32 runlist_id, u32 *pbdma_id)
 {
@@ -227,15 +220,6 @@ int test_engine_init_info(struct unit_module *m,
 		subtest_setup(branches);
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, labels));
-
-		if (branches & F_ENGINE_INIT_INFO_GET_DEV_INFO_NULL) {
-			g->ops.top.get_device_info = NULL;
-		} else {
-			g->ops.top.get_device_info =
-				branches & F_ENGINE_INIT_INFO_GET_DEV_INFO_FAIL ?
-					stub_top_get_device_info_EINVAL :
-					gops.top.get_device_info;
-		}
 
 		g->ops.pbdma.find_for_runlist =
 			branches & F_ENGINE_INIT_INFO_PBDMA_FIND_FAIL ?
@@ -442,41 +426,6 @@ int test_engine_get_active_eng_info(struct unit_module *m,
 	ret = UNIT_SUCCESS;
 done:
 	g->fifo = fifo;
-	return ret;
-}
-
-int test_engine_enum_from_type(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	int ret = UNIT_FAIL;
-	int engine_enum;
-	struct gpu_ops gops = g->ops;
-
-	engine_enum = nvgpu_engine_enum_from_type(g,
-		top_device_info_type_enum_graphics_v());
-	unit_assert(engine_enum == NVGPU_ENGINE_GR, goto done);
-
-	engine_enum = nvgpu_engine_enum_from_type(g,
-		top_device_info_type_enum_lce_v());
-	unit_assert(engine_enum == NVGPU_ENGINE_ASYNC_CE, goto done);
-
-	engine_enum = nvgpu_engine_enum_from_type(g, 0xff);
-	unit_assert(engine_enum == NVGPU_ENGINE_INVAL, goto done);
-
-	g->ops.top.is_engine_gr = NULL;
-	engine_enum = nvgpu_engine_enum_from_type(g,
-		top_device_info_type_enum_graphics_v());
-	unit_assert(engine_enum == NVGPU_ENGINE_INVAL, goto done);
-
-	g->ops = gops;
-	g->ops.top.is_engine_ce = NULL;
-	engine_enum = nvgpu_engine_enum_from_type(g,
-		top_device_info_type_enum_graphics_v());
-	unit_assert(engine_enum == NVGPU_ENGINE_INVAL, goto done);
-
-	ret = UNIT_SUCCESS;
-done:
-	g->ops = gops;
 	return ret;
 }
 
@@ -980,7 +929,6 @@ struct unit_module_test nvgpu_engine_tests[] = {
 	UNIT_TEST(init_info, test_engine_init_info, &u, 0),
 	UNIT_TEST(ids, test_engine_ids, &u, 0),
 	UNIT_TEST(get_active_eng_info, test_engine_get_active_eng_info, &u, 0),
-	UNIT_TEST(enum_from_type, test_engine_enum_from_type, &u, 0),
 	UNIT_TEST(interrupt_mask, test_engine_interrupt_mask, &u, 0),
 	UNIT_TEST(get_fast_ce_runlist_id,
 		test_engine_get_fast_ce_runlist_id, &u, 0),

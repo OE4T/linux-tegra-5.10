@@ -71,82 +71,15 @@ static inline void subtest_setup(struct unit_module *m, u32 branches)
 	u.branches = branches;
 }
 
-#define F_ENGINE_INIT_CE_INFO_GET_NUM_ENGINES_NULL	BIT(0)
-#define F_ENGINE_INIT_CE_INFO_NO_LCE			BIT(1)
-#define F_ENGINE_INIT_CE_INFO_GET_DEV_INFO_FAIL		BIT(2)
-#define F_ENGINE_INIT_CE_INFO_PBDMA_FIND_FAIL		BIT(3)
-#define F_ENGINE_INIT_CE_INFO_ASYNC_CE			BIT(4)
-#define F_ENGINE_INIT_CE_INFO_GRCE			BIT(5)
-#define F_ENGINE_INIT_CE_INFO_FAULT_ID_0		BIT(6)
-#define F_ENGINE_INIT_CE_INFO_GET_INST_NULL		BIT(7)
-#define F_ENGINE_INIT_CE_INFO_INVAL_ENUM		BIT(8)
-#define F_ENGINE_INIT_CE_INFO_LAST			BIT(9)
-
-static u32 wrap_top_get_num_engine_type_entries(struct gk20a *g,
-		u32 engine_type)
-{
-	u32 branches = u.branches;
-
-	if (engine_type != NVGPU_ENGINE_LCE)
-		goto done;
-
-	if (branches & F_ENGINE_INIT_CE_INFO_NO_LCE) {
-		return 0;
-	}
-
-	if ((branches & F_ENGINE_INIT_CE_INFO_GRCE) ||
-	    (branches & F_ENGINE_INIT_CE_INFO_ASYNC_CE)) {
-		return 1;
-	}
-
-done:
-	return u.gops.top.get_num_engine_type_entries(g, engine_type);
-}
-
-static int wrap_top_get_device_info(struct gk20a *g,
-		struct nvgpu_device_info *dev_info,
-		u32 engine_type, u32 inst_id)
-{
-	u32 branches = u.branches;
-
-	if (engine_type != NVGPU_ENGINE_LCE)
-		goto done;
-
-	if (branches & F_ENGINE_INIT_CE_INFO_GET_DEV_INFO_FAIL) {
-		return -EINVAL;
-	}
-
-	if (branches & F_ENGINE_INIT_CE_INFO_FAULT_ID_0) {
-		dev_info->fault_id = 0;
-	} else {
-		dev_info->fault_id = 1;
-	}
-
-	if (branches & F_ENGINE_INIT_CE_INFO_GRCE) {
-		dev_info->runlist_id = nvgpu_engine_get_gr_runlist_id(g);
-		dev_info->engine_id = 1;
-		dev_info->engine_type = top_device_info_type_enum_lce_v();
-		return 0;
-	}
-
-	if (branches & F_ENGINE_INIT_CE_INFO_ASYNC_CE) {
-		dev_info->runlist_id = 1;
-		dev_info->engine_id = 1;
-		dev_info->engine_type = top_device_info_type_enum_lce_v();
-		return 0;
-	}
-
-	if (branches & F_ENGINE_INIT_CE_INFO_INVAL_ENUM) {
-		dev_info->runlist_id = 1;
-		dev_info->engine_id = 1;
-		dev_info->engine_type = 5;
-		return 0;
-	}
-
-done:
-	return u.gops.top.get_device_info(g, dev_info, engine_type, inst_id);
-
-}
+#define F_ENGINE_INIT_CE_INFO_NO_LCE			BIT(0)
+#define F_ENGINE_INIT_CE_INFO_GET_DEV_INFO_FAIL		BIT(1)
+#define F_ENGINE_INIT_CE_INFO_PBDMA_FIND_FAIL		BIT(2)
+#define F_ENGINE_INIT_CE_INFO_ASYNC_CE			BIT(3)
+#define F_ENGINE_INIT_CE_INFO_GRCE			BIT(4)
+#define F_ENGINE_INIT_CE_INFO_FAULT_ID_0		BIT(5)
+#define F_ENGINE_INIT_CE_INFO_GET_INST_NULL		BIT(6)
+#define F_ENGINE_INIT_CE_INFO_INVAL_ENUM		BIT(7)
+#define F_ENGINE_INIT_CE_INFO_LAST			BIT(8)
 
 static bool wrap_pbdma_find_for_runlist(struct gk20a *g,
 			u32 runlist_id, u32 *pbdma_id)
@@ -176,7 +109,6 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 		F_ENGINE_INIT_CE_INFO_GET_DEV_INFO_FAIL |
 		F_ENGINE_INIT_CE_INFO_PBDMA_FIND_FAIL;
 	const char *labels[] = {
-		"get_num_engines_null",
 		"no_lce",
 		"get_dev_info_fail",
 		"pbdma_find_fail",
@@ -187,7 +119,6 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 		"inval_enum"
 	};
 	u32 prune =
-		F_ENGINE_INIT_CE_INFO_GET_NUM_ENGINES_NULL |
 		F_ENGINE_INIT_CE_INFO_NO_LCE |
 		F_ENGINE_INIT_CE_INFO_INVAL_ENUM | fail;
 	u32 branches = 0;
@@ -197,10 +128,9 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 	u.gops = g->ops;
 
 	unit_assert(f->num_engines > 0, goto done);
-	unit_assert(f->engine_info[0].engine_enum == NVGPU_ENGINE_GR,
+	unit_assert(f->engine_info[0].engine_enum == NVGPU_DEVTYPE_GRAPHICS,
 			goto done);
 
-	g->ops.top.get_device_info = wrap_top_get_device_info;
 	g->ops.pbdma.find_for_runlist = wrap_pbdma_find_for_runlist;
 
 	for (branches = 0U; branches < F_ENGINE_INIT_CE_INFO_LAST; branches++) {
@@ -214,10 +144,6 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, labels));
 
-		g->ops.top.get_num_engine_type_entries =
-			branches & F_ENGINE_INIT_CE_INFO_GET_NUM_ENGINES_NULL ?
-			NULL : wrap_top_get_num_engine_type_entries;
-
 		g->ops.top.get_ce_inst_id =
 			branches & F_ENGINE_INIT_CE_INFO_GET_INST_NULL ?
 			NULL : wrap_top_get_ce_inst_id;
@@ -227,12 +153,9 @@ int test_gp10b_engine_init_ce_info(struct unit_module *m,
 
 		err = gp10b_engine_init_ce_info(f);
 
-		if ((branches & F_ENGINE_INIT_CE_INFO_GET_NUM_ENGINES_NULL) ||
-		    (branches & F_ENGINE_INIT_CE_INFO_NO_LCE) ||
+		if ((branches & F_ENGINE_INIT_CE_INFO_NO_LCE) ||
 		    (branches & F_ENGINE_INIT_CE_INFO_INVAL_ENUM)) {
 			num_lce = 0;
-		} else {
-			num_lce = g->ops.top.get_num_engine_type_entries(g, NVGPU_ENGINE_LCE);
 		}
 
 		if (branches & fail) {

@@ -67,6 +67,7 @@ enum nvgpu_log_type {
 #define	gpu_dbg_event		BIT(27)	/* Events to User debugging. */
 #define	gpu_dbg_vsrv		BIT(28)	/* server debugging. */
 #define	gpu_dbg_mem		BIT(31)	/* memory accesses; very verbose. */
+#define gpu_dbg_device		BIT(32) /* Device initialization and
+                                           querying. */
 
 #endif
-

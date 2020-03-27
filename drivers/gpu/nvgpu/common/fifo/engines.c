@@ -46,26 +46,21 @@
 
 #define FECS_METHOD_WFI_RESTORE	0x80000U
 
-enum nvgpu_fifo_engine nvgpu_engine_enum_from_type(struct gk20a *g,
-					u32 engine_type)
+enum nvgpu_fifo_engine nvgpu_engine_enum_from_dev(struct gk20a *g,
+						  struct nvgpu_device *dev)
 {
 	enum nvgpu_fifo_engine ret = NVGPU_ENGINE_INVAL;
 
-	if ((g->ops.top.is_engine_gr != NULL) &&
-					(g->ops.top.is_engine_ce != NULL)) {
-		if (g->ops.top.is_engine_gr(g, engine_type)) {
-			ret = NVGPU_ENGINE_GR;
-		} else if (g->ops.top.is_engine_ce(g, engine_type)) {
-			/* Lets consider all the CE engine have separate
-			 * runlist at this point. We can identify the
-			 * NVGPU_ENGINE_GRCE type CE using runlist_id
-			 * comparsion logic with GR runlist_id in
-			 * init_info()
-			 */
-			ret = NVGPU_ENGINE_ASYNC_CE;
-		} else {
-			ret = NVGPU_ENGINE_INVAL;
-		}
+	if (nvgpu_device_is_graphics(g, dev)) {
+		ret = NVGPU_ENGINE_GR;
+	} else if (nvgpu_device_is_ce(g, dev)) {
+		/* For now, all CE engines have separate runlists. We can
+		 * identify the NVGPU_ENGINE_GRCE type CE using runlist_id
+		 * comparsion logic with GR runlist_id in init_info()
+		 */
+		ret = NVGPU_ENGINE_ASYNC_CE;
+	} else {
+		ret = NVGPU_ENGINE_INVAL;
 	}
 
 	return ret;
@@ -807,21 +802,16 @@ int nvgpu_engine_init_info(struct nvgpu_fifo *f)
 	enum nvgpu_fifo_engine engine_enum;
 	u32 pbdma_id = U32_MAX;
 	bool found_pbdma_for_runlist = false;
-	struct nvgpu_device_info dev_info;
+	struct nvgpu_device dev_info;
 	struct nvgpu_engine_info *info;
 
 	f->num_engines = 0;
-	if (g->ops.top.get_device_info == NULL) {
-		nvgpu_err(g, "unable to parse dev_info table");
-		return -EINVAL;
-	}
 
-	ret = g->ops.top.get_device_info(g, &dev_info,
-			NVGPU_ENGINE_GRAPHICS, 0);
+	ret = nvgpu_device_get(g, &dev_info, NVGPU_DEVTYPE_GRAPHICS, 0);
 	if (ret != 0) {
 		nvgpu_err(g,
 			"Failed to parse dev_info table for engine %d",
-			NVGPU_ENGINE_GRAPHICS);
+			NVGPU_DEVTYPE_GRAPHICS);
 		return -EINVAL;
 	}
 
@@ -833,7 +823,7 @@ int nvgpu_engine_init_info(struct nvgpu_fifo *f)
 		return -EINVAL;
 	}
 
-	engine_enum = nvgpu_engine_enum_from_type(g, dev_info.engine_type);
+	engine_enum = nvgpu_engine_enum_from_dev(g, &dev_info);
 
 	info = &g->fifo.engine_info[dev_info.engine_id];
 
@@ -856,7 +846,7 @@ int nvgpu_engine_init_info(struct nvgpu_fifo *f)
 		dev_info.runlist_id,
 		dev_info.intr_id,
 		dev_info.reset_id,
-		dev_info.engine_type,
+		dev_info.type,
 		engine_enum,
 		dev_info.inst_id);
 

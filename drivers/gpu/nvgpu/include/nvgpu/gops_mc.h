@@ -213,7 +213,7 @@ struct gops_mc {
 	 *			  - #NVGPU_UNIT_BLG
 	 *			  - Reset id of supported engines from the
 	 *                          device info. For e.g. GR engine has reset
-	 *                          id of 12. @see #nvgpu_device_info.
+	 *                          id of 12. @see #nvgpu_device.
 	 *
 	 * This function is invoked to reset the engines while initializing
 	 * FIFO, GR and other engines during #nvgpu_finalize_poweron.

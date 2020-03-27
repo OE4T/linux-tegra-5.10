@@ -735,8 +735,13 @@ static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
 		if (!nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
 			/* skip inactive runlist */
+			nvgpu_log(g, gpu_dbg_info, "Skipping invalid runlist: %d", runlist_id);
 			continue;
+
 		}
+
+		nvgpu_log(g, gpu_dbg_info, "Configuring runlist: %d", runlist_id);
+
 		runlist = &f->active_runlist_info[i];
 		runlist->runlist_id = runlist_id;
 		f->runlist_info[runlist_id] = runlist;
@@ -760,9 +765,8 @@ static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
 
 		runlist_size = (size_t)f->runlist_entry_size *
 				(size_t)f->num_runlist_entries;
-		nvgpu_log(g, gpu_dbg_info,
-				"runlist_entries %d runlist size %zu",
-				f->num_runlist_entries, runlist_size);
+		nvgpu_log(g, gpu_dbg_info, "  RL entries: %d", f->num_runlist_entries);
+		nvgpu_log(g, gpu_dbg_info, "  RL size %zu", runlist_size);
 
 		for (j = 0; j < MAX_RUNLIST_BUFFERS; j++) {
 			err = nvgpu_dma_alloc_flags_sys(g,
@@ -816,6 +820,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
 		if (nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
 			num_runlists = nvgpu_safe_add_u32(num_runlists, 1U);
+			nvgpu_log(g, gpu_dbg_info, "Valid runlist: %d", runlist_id);
 		}
 	}
 	f->num_runlists = num_runlists;
@@ -826,7 +831,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 		err = -ENOMEM;
 		goto clean_up_runlist;
 	}
-	nvgpu_log_info(g, "num_runlists=%u", num_runlists);
+	nvgpu_log(g, gpu_dbg_info, "num_runlists: %u", num_runlists);
 
 	err = nvgpu_init_active_runlist_mapping(g);
 	if (err != 0) {

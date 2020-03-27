@@ -1107,11 +1107,9 @@ static const struct gpu_ops gm20b_ops = {
 				nvgpu_tegra_fuse_read_gcplex_config_fuse,
 	},
 	.top = {
+		.parse_next_device = gm20b_top_parse_next_dev,
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
 		.device_info_parse_data = gm20b_device_info_parse_data,
-		.get_device_info = gm20b_get_device_info,
-		.is_engine_gr = gm20b_is_engine_gr,
-		.is_engine_ce = gm20b_is_engine_ce,
 		.get_ce_inst_id = gm20b_get_ce_inst_id,
 		.get_max_gpc_count = gm20b_top_get_max_gpc_count,
 		.get_max_tpc_per_gpc_count =

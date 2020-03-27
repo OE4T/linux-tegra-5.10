@@ -45,22 +45,18 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 	gr_runlist_id = nvgpu_engine_get_gr_runlist_id(g);
 	nvgpu_log_info(g, "gr_runlist_id: %d", gr_runlist_id);
 
-	if (g->ops.top.get_num_engine_type_entries != NULL) {
-		lce_num_entries = g->ops.top.get_num_engine_type_entries(g,
-							NVGPU_ENGINE_LCE);
-		nvgpu_log_info(g, "lce_num_entries: %d", lce_num_entries);
-	}
+	lce_num_entries = nvgpu_device_count(g, NVGPU_DEVTYPE_LCE);
+	nvgpu_log_info(g, "lce_num_entries: %d", lce_num_entries);
 
 	for (i = 0; i < lce_num_entries; i++) {
-		struct nvgpu_device_info dev_info;
+		struct nvgpu_device dev_info;
 		struct nvgpu_engine_info *info;
 
-		ret = g->ops.top.get_device_info(g, &dev_info,
-						NVGPU_ENGINE_LCE, i);
+		ret = nvgpu_device_get(g, &dev_info, NVGPU_DEVTYPE_LCE, i);
 		if (ret != 0) {
 			nvgpu_err(g,
 				"Failed to parse dev_info for engine%d",
-				NVGPU_ENGINE_LCE);
+				NVGPU_DEVTYPE_LCE);
 			return -EINVAL;
 		}
 
@@ -75,9 +71,7 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 
 		info = &g->fifo.engine_info[dev_info.engine_id];
 
-		engine_enum = nvgpu_engine_enum_from_type(
-					g,
-					dev_info.engine_type);
+		engine_enum = nvgpu_engine_enum_from_dev(g, &dev_info);
 		/* GR and GR_COPY shares same runlist_id */
 		if ((engine_enum == NVGPU_ENGINE_ASYNC_CE) &&
 				(gr_runlist_id ==
@@ -88,7 +82,7 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 
 		if (g->ops.top.get_ce_inst_id != NULL) {
 			dev_info.inst_id = g->ops.top.get_ce_inst_id(g,
-						dev_info.engine_type);
+						dev_info.type);
 		}
 
 		if ((dev_info.fault_id == 0U) &&
@@ -117,7 +111,7 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 			dev_info.runlist_id,
 			dev_info.intr_id,
 			dev_info.reset_id,
-			dev_info.engine_type,
+			dev_info.type,
 			engine_enum,
 			dev_info.inst_id);
 	}
