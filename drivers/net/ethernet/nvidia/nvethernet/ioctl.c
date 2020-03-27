@@ -555,6 +555,52 @@ static int ether_config_vlan_filter(struct net_device *dev,
 
 /**
  * @brief This function is invoked by ioctl function when user issues an ioctl
+ * command to configure multiple DMA routing for MC packets.
+ *
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] ifdata: Pointer to IOCTL specific structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_config_mc_dmasel(struct net_device *dev,
+				  unsigned int flags)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	unsigned int bitmap = 0U, i = 0U, chan = 0U;
+
+	/* Validate MC DMA channel selection flags */
+	bitmap = flags;
+	while (bitmap != 0U) {
+		chan = __builtin_ctz(bitmap);
+		for (i = 0; i < osi_dma->num_dma_chans; i++) {
+			if (osi_dma->dma_chans[i] == chan) {
+				/* channel is enabled */
+				break;
+			}
+		}
+		if (i == osi_dma->num_dma_chans) {
+			/* Invalid MC DMA selection */
+			dev_err(pdata->dev, "Invalid %d MC DMA selection\n", chan);
+			return -EINVAL;
+		}
+		bitmap &= ~OSI_BIT(chan);
+	}
+
+	/* Store flags into OSI core data */
+	osi_core->mc_dmasel = flags;
+	/* Set RX mode with latest flags */
+	ether_set_rx_mode(dev);
+
+	return 0;
+}
+
+/**
+ * @brief This function is invoked by ioctl function when user issues an ioctl
  * command to configure L2 destination addressing filtering mode.
  *
  * Algorithm:
@@ -974,6 +1020,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case EQOS_L2_DA_FILTERING_CMD:
 		ret = ether_config_l2_da_filter(ndev, &ifdata);
+		break;
+	case ETHER_MC_DMA_ROUTE:
+		ret = ether_config_mc_dmasel(ndev, ifdata.if_flags);
 		break;
 	case ETHER_CONFIG_LOOPBACK_MODE:
 		ret = ether_config_loopback_mode(ndev, ifdata.if_flags);

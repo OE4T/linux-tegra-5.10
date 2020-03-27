@@ -186,6 +186,11 @@ Required properties:
 				exclusive with rx-queue-prio i.e. if this is
 				enabled, then rx-queue-prio should not be
 				provided and vice versa.
+- nvidia,mc-dmasel:		This property enables us to route the MC MAC
+				RX packets to multiple DMA channels. Specify
+				hot bit encoded DMA receive channel selection.
+				(Example for DMA channels 1, 2 and 3 route
+				set value to 0xE)
 - nvidia,max-platform-mtu:	Maximum MTU size supported for a platform.
 				currently it is set to 9000 for embedded
 				platforms. if DT entry is not
