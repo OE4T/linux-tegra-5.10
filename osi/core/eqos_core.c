@@ -21,6 +21,7 @@
  */
 
 #include "../osi/common/common.h"
+#include <local_common.h>
 #include <osi_core.h>
 #include "eqos_core.h"
 #include "eqos_mmc.h"
@@ -1400,6 +1401,135 @@ static void eqos_configure_dma(struct osi_core_priv_data *const osi_core)
 }
 
 /**
+ * @brief eqos_enable_mtl_interrupts - Enable MTL interrupts
+ *
+ * Algorithm: enable MTL interrupts for EST
+ *
+ * @param[in] addr: MAC base IOVA address.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void eqos_enable_mtl_interrupts(void *addr)
+{
+	unsigned int  mtl_est_ir = OSI_DISABLE;
+
+	mtl_est_ir = osi_readl((unsigned char *)addr + EQOS_MTL_EST_ITRE);
+	/* enable only MTL interrupt realted to
+	 * Constant Gate Control Error
+	 * Head-Of-Line Blocking due to Scheduling
+	 * Head-Of-Line Blocking due to Frame Size
+	 * BTR Error
+	 * Switch to S/W owned list Complete
+	 */
+	mtl_est_ir |= (EQOS_MTL_EST_ITRE_CGCE | EQOS_MTL_EST_ITRE_IEHS |
+		       EQOS_MTL_EST_ITRE_IEHF | EQOS_MTL_EST_ITRE_IEBE |
+		       EQOS_MTL_EST_ITRE_IECC);
+	osi_writel(mtl_est_ir, (unsigned char *)addr + EQOS_MTL_EST_ITRE);
+}
+
+/**
+ * @brief eqos_enable_fpe_interrupts - Enable MTL interrupts
+ *
+ * Algorithm: enable FPE interrupts
+ *
+ * @param[in] addr: MAC base IOVA address.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void eqos_enable_fpe_interrupts(void *addr)
+{
+	unsigned int  value = OSI_DISABLE;
+
+	/* Read MAC IER Register and enable Frame Preemption Interrupt
+	 * Enable */
+	value = osi_readl((unsigned char *)addr + EQOS_MAC_IMR);
+	value |= EQOS_IMR_FPEIE;
+	osi_writel(value, (unsigned char *)addr + EQOS_MAC_IMR);
+}
+
+/**
+ * @brief eqos_tsn_init - initialize TSN feature
+ *
+ * Algorithm:
+ * 1) If hardware support EST,
+ *   a) Set default EST configuration
+ *   b) Set enable interrupts
+ * 2) If hardware supports FPE
+ *   a) Set default FPE configuration
+ *   b) enable interrupts
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est_sel: EST HW support present or not
+ * @param[in] fpe_sel: FPE HW support present or not
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
+			  unsigned int est_sel, unsigned int fpe_sel)
+{
+	unsigned int val = 0x0;
+	unsigned int temp = 0U;
+
+	if (est_sel == OSI_ENABLE) {
+		val = osi_readl((unsigned char *)osi_core->base +
+				EQOS_MTL_EST_CONTROL);
+
+		/*
+		 * PTOV PTP clock period * 6
+		 * dual-port RAM based asynchronous FIFO controllers or
+		 * Single-port RAM based synchronous FIFO controllers
+		 * CTOV 96 x Tx clock period
+		 * :
+		 * :
+		 * set other default value
+		 */
+		val &= ~EQOS_MTL_EST_CONTROL_PTOV;
+		if (osi_core->pre_si == OSI_ENABLE) {
+			/* 6*1/(78.6 MHz) in ns*/
+			temp = (6U * 13U);
+		} else {
+			/* 6*1/(312 MHz) in ns*/
+			temp = (6U * 3U);
+		}
+		temp = temp << EQOS_MTL_EST_CONTROL_PTOV_SHIFT;
+		val |= temp;
+
+		/* We have a bug on CTOV for Qbv that synopsys is yet to
+		 * fix[Case – 8001147927, Bug 200468714]. You can go ahead
+		 * with 128*8ns for now. TODO */
+		val &= ~EQOS_MTL_EST_CONTROL_CTOV;
+		temp = (128U * 8U);
+		temp = temp << EQOS_MTL_EST_CONTROL_CTOV_SHIFT;
+		val |= temp;
+
+		/*Loop Count to report Scheduling Error*/
+		val &= ~EQOS_MTL_EST_CONTROL_LCSE;
+		val |= EQOS_MTL_EST_CONTROL_LCSE_VAL;
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   EQOS_MTL_EST_CONTROL);
+
+		eqos_enable_mtl_interrupts(osi_core->base);
+	}
+
+	if (fpe_sel == OSI_ENABLE) {
+		val = osi_readl((unsigned char *)osi_core->base +
+				EQOS_MAC_RQC1R);
+		val &= ~EQOS_MAC_RQC1R_FPRQ;
+		temp = osi_core->residual_queue;
+		temp = temp << EQOS_MAC_RQC1R_FPRQ_SHIFT;
+		temp = (temp & EQOS_MAC_RQC1R_FPRQ);
+		val |= temp;
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   EQOS_MAC_RQC1R);
+
+		eqos_enable_fpe_interrupts(osi_core->base);
+	}
+
+	/* CBS setting for TC should be by  user application/IOCTL as
+	 * per requirement */
+}
+
+/**
  * @brief eqos_core_init - EQOS MAC, MTL and common DMA Initialization
  *
  * @note
@@ -1509,10 +1639,67 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	/* configure EQOS DMA */
 	eqos_configure_dma(osi_core);
 
+	/* tsn initialization */
+	if (osi_core->hw_feature != OSI_NULL) {
+		eqos_tsn_init(osi_core, osi_core->hw_feature->est_sel,
+			      osi_core->hw_feature->fpe_sel);
+	}
+
 	/* initialize L3L4 Filters variable */
 	osi_core->l3l4_filter_bitmask = OSI_NONE;
 
 	return ret;
+}
+
+/**
+ * @brief eqos_handle_mac_fpe_intrs
+ *
+ * Algorithm: This function takes care of handling the
+ *	MAC FPE interrupts.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC interrupts need to be enabled
+ */
+static void eqos_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
+{
+	unsigned int val = 0;
+
+	/* interrupt bit clear on read as CSR_SW is reset */
+	val = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
+
+	if ((val & EQOS_MAC_FPE_CTS_RVER) == EQOS_MAC_FPE_CTS_RVER) {
+		val &= ~EQOS_MAC_FPE_CTS_RVER;
+		val |= EQOS_MAC_FPE_CTS_SRSP;
+	}
+
+	if ((val & EQOS_MAC_FPE_CTS_RRSP) == EQOS_MAC_FPE_CTS_RRSP) {
+		/* received respose packet  Nothing to be done, it means other
+		 * IP also support FPE
+		 */
+		val &= ~EQOS_MAC_FPE_CTS_RRSP;
+		val &= ~EQOS_MAC_FPE_CTS_TVER;
+		osi_core->fpe_ready = OSI_ENABLE;
+		val |= EQOS_MAC_FPE_CTS_EFPE;
+	}
+
+	if ((val & EQOS_MAC_FPE_CTS_TRSP) == EQOS_MAC_FPE_CTS_TRSP) {
+		/* TX response packet sucessful */
+		osi_core->fpe_ready = OSI_ENABLE;
+		/* Enable frame preemption */
+		val &= ~EQOS_MAC_FPE_CTS_TRSP;
+		val &= ~EQOS_MAC_FPE_CTS_TVER;
+		val |= EQOS_MAC_FPE_CTS_EFPE;
+	}
+
+	if ((val & EQOS_MAC_FPE_CTS_TVER) == EQOS_MAC_FPE_CTS_TVER) {
+		/*Transmit verif packet sucessful*/
+		osi_core->fpe_ready = OSI_DISABLE;
+		val &= ~EQOS_MAC_FPE_CTS_TVER;
+		val &= ~EQOS_MAC_FPE_CTS_EFPE;
+	}
+
+	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
 }
 
 /**
@@ -1554,8 +1741,10 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	mac_imr = osi_readla(osi_core,
 			     (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
 	mac_isr = (mac_isr & mac_imr);
+
 	/* RGMII/SMII interrupt */
-	if ((mac_isr & EQOS_MAC_ISR_RGSMIIS) != EQOS_MAC_ISR_RGSMIIS) {
+	if (((mac_isr & EQOS_MAC_ISR_RGSMIIS) != EQOS_MAC_ISR_RGSMIIS) &&
+	    ((mac_isr & EQOS_MAC_IMR_FPEIS) != EQOS_MAC_IMR_FPEIS)) {
 		return;
 	}
 
@@ -1595,6 +1784,12 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	} else {
 		/* Nothing here */
 	}
+	if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
+	    ((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
+		eqos_handle_mac_fpe_intrs(osi_core);
+		mac_isr &= ~EQOS_MAC_IMR_FPEIS;
+	}
+	osi_writel(mac_isr, (unsigned char *)osi_core->base + EQOS_MAC_ISR);
 }
 
 /**
@@ -1653,6 +1848,111 @@ static inline void update_dma_sr_stats(
 }
 
 /**
+ * @brief eqos_handle_mtl_intrs - Handle MTL interrupts
+ *
+ * Algorithm: Code to handle interrupt for MTL EST error and status.
+ * There are possible 4 errors which can be part of common interrupt in case of
+ * MTL_EST_SCH_ERR (sheduling error)- HLBS
+ * MTL_EST_FRMS_ERR (Frame size error) - HLBF
+ * MTL_EST_FRMC_ERR (frame check error) - HLBF
+ * Constant Gate Control Error - when time interval in less
+ * than or equal to cycle time, llr = 1
+ * There is one status interrupt which says swich to SWOL complete.
+ *
+ * @param[in] osi_core: osi core priv data structure
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
+{
+	unsigned int val = 0;
+	unsigned int sch_err = 0;
+	unsigned int frm_err = 0;
+	unsigned int temp = 0U;
+	unsigned int i = 0;
+	unsigned long stat_val = 0;
+
+	val = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_EST_STATUS);
+	val &= (EQOS_MTL_EST_STATUS_CGCE | EQOS_MTL_EST_STATUS_HLBS |
+		EQOS_MTL_EST_STATUS_HLBF | EQOS_MTL_EST_STATUS_BTRE |
+		EQOS_MTL_EST_STATUS_SWLC);
+
+	/* return if interrupt is not related to EST */
+	if (val == OSI_DISABLE) {
+		return;
+	}
+
+
+	/* increase counter write 1 back will clear */
+	if ((val & EQOS_MTL_EST_STATUS_CGCE) == EQOS_MTL_EST_STATUS_CGCE) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.const_gate_ctr_err;
+		osi_core->tsn_stats.const_gate_ctr_err =
+				osi_update_stats_counter(stat_val, 1U);
+	}
+
+	if ((val & EQOS_MTL_EST_STATUS_HLBS) == EQOS_MTL_EST_STATUS_HLBS) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.head_of_line_blk_sch;
+		osi_core->tsn_stats.head_of_line_blk_sch =
+				osi_update_stats_counter(stat_val, 1U);
+		/* Need to read MTL_EST_Sch_Error register and cleared */
+		sch_err = osi_readl(osi_core->base + EQOS_MTL_EST_SCH_ERR);
+		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+			temp = OSI_ENABLE;
+			temp = temp << i;
+			if ((sch_err & temp) == temp) {
+				stat_val = osi_core->tsn_stats.hlbs_q[i];
+				osi_core->tsn_stats.hlbs_q[i] =
+					osi_update_stats_counter(stat_val, 1U);
+			}
+		}
+		sch_err &= 0xFFU; /* only 8 TC allowed so clearing all */
+		osi_writel(sch_err, osi_core->base + EQOS_MTL_EST_SCH_ERR);
+	}
+
+	if ((val & EQOS_MTL_EST_STATUS_HLBF) == EQOS_MTL_EST_STATUS_HLBF) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.head_of_line_blk_frm;
+		osi_core->tsn_stats.head_of_line_blk_frm =
+				osi_update_stats_counter(stat_val, 1U);
+		/* Need to read MTL_EST_Frm_Size_Error register and cleared */
+		frm_err = osi_readl(osi_core->base + EQOS_MTL_EST_FRMS_ERR);
+		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+			temp = OSI_ENABLE;
+			temp = temp << i;
+			if ((frm_err & temp) == temp) {
+				stat_val = osi_core->tsn_stats.hlbf_q[i];
+				osi_core->tsn_stats.hlbf_q[i] =
+					osi_update_stats_counter(stat_val, 1U);
+			}
+		}
+		frm_err &= 0xFFU; /* 8 TC allowed so clearing all */
+		osi_writel(frm_err, osi_core->base + EQOS_MTL_EST_FRMS_ERR);
+	}
+
+	if ((val & EQOS_MTL_EST_STATUS_SWLC) == EQOS_MTL_EST_STATUS_SWLC) {
+		if ((val & EQOS_MTL_EST_STATUS_BTRE) !=
+		    EQOS_MTL_EST_STATUS_BTRE) {
+			osi_core->est_ready = OSI_ENABLE;
+		}
+		stat_val = osi_core->tsn_stats.sw_own_list_complete;
+		osi_core->tsn_stats.sw_own_list_complete =
+				osi_update_stats_counter(stat_val, 1U);
+	}
+
+	if ((val & EQOS_MTL_EST_STATUS_BTRE) == EQOS_MTL_EST_STATUS_BTRE) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.base_time_reg_err;
+		osi_core->tsn_stats.base_time_reg_err =
+				osi_update_stats_counter(stat_val, 1U);
+		osi_core->est_ready = OSI_DISABLE;
+	}
+	/* clear EST status register as interrupt is handled */
+	osi_writel(val, osi_core->base + EQOS_MTL_EST_STATUS);
+}
+
+/**
  * @brief eqos_handle_common_intr - Handles common interrupt.
  *
  * @note
@@ -1677,6 +1977,7 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	nveu32_t i = 0;
 	nveu32_t dma_sr = 0;
 	nveu32_t dma_ier = 0;
+	unsigned int mtl_isr = 0;
 
 	dma_isr = osi_readla(osi_core, (nveu8_t *)base + EQOS_DMA_ISR);
 	if (dma_isr == 0U) {
@@ -1719,6 +2020,15 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	}
 
 	eqos_handle_mac_intrs(osi_core, dma_isr);
+	/* Handle MTL inerrupts */
+	mtl_isr = osi_readl((unsigned char *)base + EQOS_MTL_INTR_STATUS);
+	if (((mtl_isr & EQOS_MTL_IS_ESTIS) == EQOS_MTL_IS_ESTIS) &&
+	    ((dma_isr & EQOS_DMA_ISR_MTLIS) == EQOS_DMA_ISR_MTLIS)) {
+		eqos_handle_mtl_intrs(osi_core);
+		mtl_isr &= ~EQOS_MTL_IS_ESTIS;
+		osi_writel(mtl_isr, (unsigned char *)base +
+			   EQOS_MTL_INTR_STATUS);
+	}
 }
 
 /**
@@ -3219,6 +3529,335 @@ static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 }
 
 /**
+ * @brief eqos_hw_est_write - indirect write the GCL to Software own list
+ * (SWOL)
+ *
+ * @param[in] base: MAC base IOVA address.
+ * @param[in] addr_val: Address offset for indirect write.
+ * @param[in] data: Data to be written at offset.
+ * @param[in] gcla: Gate Control List Address, 0 for ETS register.
+ *	      1 for GCL memory.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_hw_est_write(struct osi_core_priv_data *osi_core,
+			     unsigned int addr_val,
+			     unsigned int data, unsigned int gcla)
+{
+	void *base = osi_core->base;
+	int retry = 1000;
+	unsigned int val = 0x0;
+
+	osi_writel(data, (unsigned char *)base + EQOS_MTL_EST_DATA);
+
+	val &= ~EQOS_MTL_EST_ADDR_MASK;
+	val |= (gcla == 1U) ? 0x0U : EQOS_MTL_EST_GCRR;
+	val |= EQOS_MTL_EST_SRWO;
+	val |= addr_val;
+	osi_writel(val, (unsigned char *)base + EQOS_MTL_EST_GCL_CONTROL);
+
+	while (--retry > 0) {
+		osi_core->osd_ops.udelay(OSI_DELAY_1US);
+		val = osi_readl((unsigned char *)base +
+				EQOS_MTL_EST_GCL_CONTROL);
+		if ((val & EQOS_MTL_EST_SRWO) == EQOS_MTL_EST_SRWO) {
+			continue;
+		}
+
+		break;
+	}
+
+	if (((val & EQOS_MTL_EST_ERR0) == EQOS_MTL_EST_ERR0) ||
+	    (retry <= 0)) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief eqos_gcl_validate - validate GCL from user
+ *
+ * Algorithm: validate GCL size and width of time interval value
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est: Configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int eqos_gcl_validate(struct osi_core_priv_data *osi_core,
+				    struct osi_est_config *est)
+{
+	unsigned int wid_val = 0x0U;
+	unsigned int dep = 0x0U;
+	unsigned int i;
+
+	if (osi_core->hw_feature == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"HW feature is NULL\n", 0ULL);
+		return -1;
+	}
+
+	if (osi_core->hw_feature->gcl_width == 0x1U) {
+		wid_val = OSI_MAX_24BITS;
+	} else if (osi_core->hw_feature->gcl_width == 0x2U) {
+		wid_val = OSI_MAX_28BITS;
+	} else if (osi_core->hw_feature->gcl_width == 0x3U) {
+		wid_val = OSI_MAX_32BITS;
+	} else {
+		/* Do Nothing */
+	}
+
+	if (osi_core->hw_feature->gcl_depth == 0x1U) {
+		dep = OSI_GCL_SIZE_64;
+	} else if (osi_core->hw_feature->gcl_depth == 0x2U) {
+		dep = OSI_GCL_SIZE_128;
+	} else if (osi_core->hw_feature->gcl_depth == 0x3U) {
+		dep = OSI_GCL_SIZE_256;
+	} else if (osi_core->hw_feature->gcl_depth == 0x4U) {
+		dep = OSI_GCL_SIZE_512;
+	} else if (osi_core->hw_feature->gcl_depth == 0x5U) {
+		dep = OSI_GCL_SIZE_1024;
+	} else {
+		/* Do Nothing */
+	}
+
+	if (est->llr > dep) {
+		return -1;
+	}
+
+	for (i = 0U; i < est->llr; i++) {
+		if (est->gcl[i] <= wid_val) {
+			continue;
+		}
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief eqos_hw_config_est - Read Setting for GCL from input and update
+ * registers.
+ *
+ * Algorithm:
+ * 1) Write  TER, LLR and EST control register
+ * 2) Update GCL to sw own GCL (MTL_EST_Status bit SWOL will tell which is
+ *    owned by SW) and store which GCL is in use currently in sw.
+ * 3) TODO set DBGB and DBGM for debugging
+ * 4) EST_data and GCRR to 1, update entry sno in ADDR and put data at
+ *    est_gcl_data enable GCL MTL_EST_SSWL and wait for self clear or use
+ *    SWLC in MTL_EST_Status. Please note new GCL will be pushed for each entry.
+ * 5) Configure btr. Update btr based on current time (current time
+ *    should be updated based on PTP by this time)
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est: EST configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
+			      struct osi_est_config *est)
+{
+	void *base = osi_core->base;
+	unsigned int btr[2] = {0};
+	unsigned int val = 0x0;
+	unsigned int addr = 0x0;
+	unsigned int i;
+	int ret = 0;
+
+	if ((osi_core->hw_feature != OSI_NULL) &&
+	    (osi_core->hw_feature->est_sel == OSI_DISABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "EST not supported in HW\n", 0ULL);
+		return -1;
+	}
+
+	if (est->en_dis == OSI_DISABLE) {
+		val = osi_readl((unsigned char *)base + EQOS_MTL_EST_CONTROL);
+		val &= ~EQOS_MTL_EST_EEST;
+		osi_writel(val, (unsigned char *)base + EQOS_MTL_EST_CONTROL);
+
+		return 0;
+	}
+
+	if (eqos_gcl_validate(osi_core, est) < 0) {
+		return -1;
+	}
+
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_CTR_LOW, est->ctr[0],
+				OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+	/* check for est->ctr[i]  not more than FF, TODO as per hw config
+	 * parameter we can have max 0x3 as this value in sec */
+	est->ctr[1] &= EQOS_MTL_EST_CTR_HIGH_MAX;
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_CTR_HIGH, est->ctr[1],
+				OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_TER, est->ter, OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_LLR, est->llr, OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	/* Write GCL table */
+	for (i = 0U; i < est->llr; i++) {
+		addr = i;
+		addr = addr << EQOS_MTL_EST_ADDR_SHIFT;
+		addr &= EQOS_MTL_EST_ADDR_MASK;
+		ret = eqos_hw_est_write(osi_core, addr, est->gcl[i], OSI_ENABLE);
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	if (est->btr[0] == 0U && est->btr[1] == 0U) {
+		common_get_systime_from_mac(osi_core->base, osi_core->mac,
+					    &btr[1], &btr[0]);
+	}
+
+	/* Write parameters */
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_BTR_LOW,
+				btr[0] + est->btr_offset[0], OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_BTR_HIGH,
+				btr[1] + est->btr_offset[1], OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	val = osi_readl((unsigned char *)base + EQOS_MTL_EST_CONTROL);
+	/* Store table */
+	val |= EQOS_MTL_EST_SSWL;
+	val |= EQOS_MTL_EST_EEST;
+	osi_writel(val, (unsigned char *)base + EQOS_MTL_EST_CONTROL);
+
+	return ret;
+}
+
+/**
+ * @brief eqos_hw_config_fep - Read Setting for preemption and express for TC
+ * and update registers.
+ *
+ * Algorithm:
+ * 1) Check for TC enable and TC has masked for setting to preemptable.
+ * 2) update FPE control status register
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] fpe: FPE configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
+			      struct osi_fpe_config *fpe)
+{
+	unsigned int i = 0U;
+	unsigned int val = 0U;
+	unsigned int temp = 0U, temp1 = 0U;
+	unsigned int temp_shift = 0U;
+
+	if ((osi_core->hw_feature != OSI_NULL) &&
+	    (osi_core->hw_feature->fpe_sel == OSI_DISABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "FPE not supported in HW\n", 0ULL);
+		return -1;
+	}
+
+	osi_core->fpe_ready = OSI_DISABLE;
+
+	val = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+
+	if (((fpe->tx_queue_preemption_enable << EQOS_MTL_FPE_CTS_PEC_SHIFT) &
+	     EQOS_MTL_FPE_CTS_PEC) == OSI_DISABLE) {
+		val &= ~EQOS_MAC_FPE_CTS_EFPE;
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   EQOS_MAC_FPE_CTS);
+
+		val = osi_readl((unsigned char *)osi_core->base +
+				EQOS_MAC_RQC1R);
+		val &= ~EQOS_MAC_RQC1R_FPRQ;
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   EQOS_MAC_RQC1R);
+
+		return 0;
+	}
+
+	val &= ~EQOS_MTL_FPE_CTS_PEC;
+	for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+	/* max 8 bit for this structure fot TC/TXQ. Set the TC for express or
+	 * preemption. Default is express for a TC. DWCXG_NUM_TC = 8 */
+		temp = OSI_BIT(i);
+		if ((fpe->tx_queue_preemption_enable & temp) == temp) {
+			temp_shift = i;
+			temp_shift += EQOS_MTL_FPE_CTS_PEC_SHIFT;
+			/* set queue for preemtable */
+			if (temp_shift < EQOS_MTL_FPE_CTS_PEC_MAX_SHIFT) {
+				temp1 = OSI_ENABLE;
+				temp1 = temp1 << temp_shift;
+				val |= temp1;
+			} else {
+				/* Do nothing */
+			}
+		}
+	}
+	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+
+	/* Setting RQ as RxQ 0 is not allowed */
+	if (fpe->rq == 0x0U || fpe->rq >= OSI_EQOS_MAX_NUM_CHANS) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "EST init failed due to wrong RQ\n", fpe->rq);
+		return -1;
+	}
+
+	val = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
+	val &= ~EQOS_MAC_RQC1R_FPRQ;
+	temp = fpe->rq;
+	temp = temp << EQOS_MAC_RQC1R_FPRQ_SHIFT;
+	temp = (temp & EQOS_MAC_RQC1R_FPRQ);
+	val |= temp;
+	/* update RQ in OSI CORE struct */
+	osi_core->residual_queue = fpe->rq;
+	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
+
+	/* initiate SVER for SMD-V and SMD-R */
+	val = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+	val |= EQOS_MAC_FPE_CTS_SVER;
+	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
+
+	val = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_FPE_ADV);
+	val &= ~EQOS_MTL_FPE_ADV_HADV_MASK;
+	/* (minimum_fragment_size +IPG/EIPG + Preamble) *.8 ~98ns for10G */
+	val |= EQOS_MTL_FPE_ADV_HADV_VAL;
+	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MTL_FPE_ADV);
+
+	return 0;
+}
+
+/**
  * @brief poll_for_mii_idle Query the status of an ongoing DMA transfer
  *
  * @param[in] osi_core: OSI Core private data structure.
@@ -4515,4 +5154,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->set_mdc_clk_rate = eqos_set_mdc_clk_rate;
 	ops->config_mac_loopback = eqos_config_mac_loopback;
 #endif /* !OSI_STRIPPED_LIB */
+	ops->hw_config_est = eqos_hw_config_est;
+	ops->hw_config_fpe = eqos_hw_config_fpe;
 }

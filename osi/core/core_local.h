@@ -204,6 +204,12 @@ struct core_ops {
 				   struct osi_hw_features *hw_feat);
 	/** Called to configure RSS for MAC */
 	nve32_t (*config_rss)(struct osi_core_priv_data *osi_core);
+	/** Called to update GCL config */
+	int (*hw_config_est)(struct osi_core_priv_data *const osi_core,
+			     struct osi_est_config *const est);
+	/** Called to update FPE config */
+	int (*hw_config_fpe)(struct osi_core_priv_data *const osi_core,
+			     struct osi_fpe_config *const fpe);
 };
 
 

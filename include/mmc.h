@@ -527,6 +527,27 @@ struct osi_mmc_counters {
 	 * segment that had checksum errors. This counter does not count
 	 * IP header bytes */
 	nveu64_t mmc_rx_icmp_err_octets_h;
+	/** This counter provides the number of additional mPackets
+	 * transmitted due to preemption */
+	unsigned long mmc_tx_fpe_frag_cnt;
+	/** This counter provides the count of number of times a hold
+	 *  request is given to MAC */
+	unsigned long mmc_tx_fpe_hold_req_cnt;
+	/** This counter provides the number of MAC frames with reassembly
+	 *  errors on the Receiver, due to mismatch in the fragment
+	 *  count value */
+	unsigned long mmc_rx_packet_reass_err_cnt;
+	/** This counter the number of received MAC frames rejected
+	 *  due to unknown SMD value and MAC frame fragments rejected due
+	 *  to arriving with an SMD-C when there was no preceding preempted
+	 *  frame */
+	unsigned long mmc_rx_packet_smd_err_cnt;
+	/** This counter provides the number of MAC frames that were
+	 * successfully reassembled and delivered to MAC */
+	unsigned long mmc_rx_packet_asm_ok_cnt;
+	/** This counter provides the number of additional mPackets received
+	 *   due to preemption */
+	unsigned long mmc_rx_fpe_fragment_cnt;
 };
 
 /**
