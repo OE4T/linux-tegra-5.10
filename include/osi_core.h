@@ -178,7 +178,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_VLAN_ACTION_DEL	0x0U
 #define OSI_RXQ_ROUTE_PTP	0U
 #define OSI_DELAY_1000US	1000U
-
+#define OSI_DELAY_1US		1U
 /**
  * @addtogroup RSS related information
  *
@@ -620,6 +620,62 @@ struct  osi_core_avb_algorithm {
 #endif /* !OSI_STRIPPED_LIB */
 
 /**
+ * @brief OSI Core EST structure
+ */
+struct osi_est_config {
+	/** enable/disable */
+	unsigned int en_dis;
+	/** 64 bit base time register
+	 * if both vlaues are 0, take ptp time to avoid BTRE
+	 * index 0 for nsec, index 1 for sec
+	 */
+	unsigned int btr[2];
+	/** 64 bit base time offset index 0 for nsec, index 1 for sec */
+	unsigned int btr_offset[2];
+	/** 40 bit cycle time register, index 0 for nsec, index 1 for sec */
+	unsigned int ctr[2];
+	/** Configured Time Interval width + 7 bit extension register */
+	unsigned int ter;
+	/** size of the gate control list */
+	unsigned int llr;
+	/** data array 8 bit gate op + 24 execution time
+	 * MGBE HW support GCL depth 256 */
+	unsigned int gcl[OSI_GCL_SIZE_256];
+};
+
+/**
+ * @brief OSI Core FPE structure
+ */
+struct osi_fpe_config {
+	/** Queue Mask 1 preemption 0- express bit representation */
+	unsigned int tx_queue_preemption_enable;
+	/** RQ for all preemptable packets  which are not filtered
+	 * based on user priority or SA-DA
+	 */
+	unsigned int rq;
+};
+
+/**
+ * @brief OSI Core TSN error stats structure
+ */
+struct osi_tsn_stats {
+	/** Constant Gate Control Error */
+	unsigned long const_gate_ctr_err;
+	/** Head-Of-Line Blocking due to Scheduling */
+	unsigned long head_of_line_blk_sch;
+	/** Per TC Schedule Error */
+	unsigned long hlbs_q[OSI_MAX_TC_NUM];
+	/** Head-Of-Line Blocking due to Frame Size */
+	unsigned long head_of_line_blk_frm;
+	/** Per TC Frame Size Error */
+	unsigned long hlbf_q[OSI_MAX_TC_NUM];
+	/** BTR Error */
+	unsigned long base_time_reg_err;
+	/** Switch to Software Owned List Complete */
+	unsigned long sw_own_list_complete;
+};
+
+/**
  * @brief PTP configuration structure
  */
 struct osi_ptp_config {
@@ -627,29 +683,29 @@ struct osi_ptp_config {
 	 * 
 	 * Enable Timestamp, Fine Timestamp, 1 nanosecond accuracy
 	 * are enabled by default.
-	 * 
+	 *
 	 * Need to set below bit fields accordingly as per the requirements.
-	 * 
+	 *
 	 * Enable Timestamp for All Packets			OSI_BIT(8)
-	 * 
+	 *
 	 * Enable PTP Packet Processing for Version 2 Format	OSI_BIT(10)
-	 * 
+	 *
 	 * Enable Processing of PTP over Ethernet Packets	OSI_BIT(11)
-	 * 
+	 *
 	 * Enable Processing of PTP Packets Sent over IPv6-UDP	OSI_BIT(12)
-	 * 
+	 *
 	 * Enable Processing of PTP Packets Sent over IPv4-UDP	OSI_BIT(13)
-	 * 
+	 *
 	 * Enable Timestamp Snapshot for Event Messages		OSI_BIT(14)
-	 * 
+	 *
 	 * Enable Snapshot for Messages Relevant to Master	OSI_BIT(15)
-	 * 
+	 *
 	 * Select PTP packets for Taking Snapshots		OSI_BIT(16)
-	 * 
+	 *
 	 * Select PTP packets for Taking Snapshots		OSI_BIT(17)
-	 * 
+	 *
 	 * Select PTP packets for Taking Snapshots (OSI_BIT(16) + OSI_BIT(17))
-	 * 
+	 *
 	 * AV 802.1AS Mode Enable				OSI_BIT(28)
 	 * 
 	 * if ptp_filter is set to Zero then Time stamping is disabled */
@@ -737,6 +793,10 @@ struct osi_core_priv_data {
 	nveu32_t rxq_ctrl[OSI_MGBE_MAX_NUM_CHANS];
 	/** Rx MTl Queue mapping based on User Priority field */
 	nveu32_t rxq_prio[OSI_MGBE_MAX_NUM_CHANS];
+	/** TQ:TC mapping */
+	unsigned int tc[OSI_MGBE_MAX_NUM_CHANS];
+	/** Residual queue valid with FPE support */
+	unsigned int residual_queue;
 	/** MAC HW type EQOS based on DT compatible */
 	nveu32_t mac;
 	/** MAC version */
@@ -786,6 +846,16 @@ struct osi_core_priv_data {
 	unsigned short vlan_filter_cnt;
 	/** RSS core structure */
 	struct osi_core_rss rss;
+	/** HW supported feature list */
+	struct osi_hw_features *hw_feature;
+	/** Switch to Software Owned List Complete.
+	  *  1 - Successful and User configured GCL in placed */
+	unsigned int est_ready;
+	/** FPE enabled, verify and respose done with peer device
+	  * 1- Sucessful and can be used between P2P device */
+	unsigned int fpe_ready;
+	/** TSN stats counters */
+	struct osi_tsn_stats tsn_stats;
 };
 
 /**
@@ -2237,4 +2307,49 @@ nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure.
  */
 nve32_t osi_config_rss(struct osi_core_priv_data *const osi_core);
+
+/**
+ * @brief osi_hw_config_est - Read Setting for GCL from input and update
+ * registers.
+ *
+ * Algorithm:
+ * 1) Write  TER, LLR and EST control register
+ * 2) Update GCL to sw own GCL (MTL_EST_Status bit SWOL will tell which is
+ *    owned by SW) and store which GCL is in use currently in sw.
+ * 3) TODO set DBGB and DBGM for debugging
+ * 4) EST_data and GCRR to 1, update entry sno in ADDR and put data at
+ *    est_gcl_data enable GCL MTL_EST_SSWL and wait for self clear or use
+ *    SWLC in MTL_EST_Status. Please note new GCL will be pushed for each entry.
+ * 5) Configure btr. Update btr based on current time (current time
+ *    should be updated based on PTP by this time)
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est: Configuration osi_est_config structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_hw_config_est(struct osi_core_priv_data *osi_core,
+		      struct osi_est_config *est);
+
+/**
+ * @brief osi_hw_config_fep - Read Setting for preemption and express for TC
+ * and update registers.
+ *
+ * Algorithm:
+ * 1) Check for TC enable and TC has masked for setting to preemptable.
+ * 2) update FPE control status register
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] fpe: Configuration osi_fpe_config structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_hw_config_fpe(struct osi_core_priv_data *osi_core,
+		      struct osi_fpe_config *fpe);
 #endif /* INCLUDED_OSI_CORE_H */

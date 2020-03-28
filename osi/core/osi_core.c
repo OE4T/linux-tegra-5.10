@@ -1005,6 +1005,30 @@ int osi_config_rss(struct osi_core_priv_data *const osi_core)
 	return ops_p->config_rss(osi_core);
 }
 
+int osi_hw_config_est(struct osi_core_priv_data *osi_core,
+		      struct osi_est_config *est)
+{
+	if (validate_args(osi_core) < 0) {
+		return -1;
+	}
+
+	if (est == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "EST data is NULL", 0ULL);
+		return -1;
+	}
+
+	if ((osi_core->flow_ctrl & OSI_FLOW_CTRL_TX) ==
+	     OSI_FLOW_CTRL_TX) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "TX Flow control enabled, please disable it",
+			      0ULL);
+		return -1;
+	}
+
+	return ops_p->hw_config_est(osi_core, est);
+}
+
 nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode)
 {
@@ -1021,6 +1045,22 @@ nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 
 	/* Configure MAC loopback */
 	return ops_p->config_mac_loopback(osi_core, lb_mode);
+}
+
+int osi_hw_config_fpe(struct osi_core_priv_data *osi_core,
+		      struct osi_fpe_config *fpe)
+{
+	if (validate_args(osi_core) < 0) {
+		return -1;
+	}
+
+	if (fpe == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "FPE data is NULL", 0ULL);
+		return -1;
+	}
+
+	return ops_p->hw_config_fpe(osi_core, fpe);
 }
 #endif /* !OSI_STRIPPED_LIB */
 

@@ -129,6 +129,14 @@
 #define OSI_PAUSE_FRAMES_ENABLE		0U
 #define OSI_PTP_REQ_CLK_FREQ		250000000U
 #define OSI_FLOW_CTRL_DISABLE		0U
+#define OSI_MAX_24BITS			0xFFFFFFU
+#define OSI_MAX_28BITS			0xFFFFFFFU
+#define OSI_MAX_32BITS			0xFFFFFFFFU
+#define OSI_GCL_SIZE_64			64U
+#define OSI_GCL_SIZE_128		128U
+#define OSI_GCL_SIZE_256		256U
+#define OSI_GCL_SIZE_512		512U
+#define OSI_GCL_SIZE_1024		1024U
 
 #define OSI_POLL_COUNT			1000U
 
@@ -271,10 +279,6 @@
 /**
  * @brief osi_update_stats_counter - update value by increment passed
  *	as parameter
- *
- * @note
- * Algorithm:
- *  - Check for boundary and return sum
  *
  * @param[in] last_value: last value of stat counter
  * @param[in] incr: increment value
