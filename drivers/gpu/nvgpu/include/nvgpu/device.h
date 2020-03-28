@@ -179,9 +179,8 @@ void nvgpu_device_cleanup(struct gk20a *g);
  * device pointer. The device copied is chosen based on the \a type and
  * \a inst_id fields provided.
  */
-int nvgpu_device_get(struct gk20a *g,
-		     struct nvgpu_device *dev_info,
-		     u32 type, u32 inst_id);
+const struct nvgpu_device *nvgpu_device_get(struct gk20a *g,
+					    u32 type, u32 inst_id);
 
 /**
  * @brief Return number of devices of type \a type.
@@ -200,7 +199,7 @@ u32 nvgpu_device_count(struct gk20a *g, u32 type);
  * Returns true if \a dev matches a copy engine device type. For pre-Pascal
  * chips this is COPY[0, 1, 2], for Pascal and onward this is LCE.
  */
-bool nvgpu_device_is_ce(struct gk20a *g, struct nvgpu_device *dev);
+bool nvgpu_device_is_ce(struct gk20a *g, const struct nvgpu_device *dev);
 
 /**
  * @brief Return true if dev is a graphics device.
@@ -210,6 +209,6 @@ bool nvgpu_device_is_ce(struct gk20a *g, struct nvgpu_device *dev);
  *
  * Returns true if \a dev matches the graphics device type.
  */
-bool nvgpu_device_is_graphics(struct gk20a *g, struct nvgpu_device *dev);
+bool nvgpu_device_is_graphics(struct gk20a *g, const struct nvgpu_device *dev);
 
 #endif /* NVGPU_DEVICE_H */

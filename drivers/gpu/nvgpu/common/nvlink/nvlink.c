@@ -155,7 +155,6 @@ fail:
  */
 static int nvgpu_nvlink_discover_ioctrl(struct gk20a *g)
 {
-	int ret = 0;
 	u32 i;
 	struct nvgpu_nvlink_ioctrl_list *ioctrl_table;
 	u32 ioctrl_num_entries = 0U;
@@ -176,21 +175,20 @@ static int nvgpu_nvlink_discover_ioctrl(struct gk20a *g)
 	}
 
 	for (i = 0U; i < ioctrl_num_entries; i++) {
-		struct nvgpu_device dev_info;
+		const struct nvgpu_device *dev;
 
-		ret = nvgpu_device_get(g, &dev_info, NVGPU_DEVTYPE_IOCTRL, i);
-		if (ret != 0) {
-			nvgpu_err(g, "Failed to parse dev_info table"
-					"for engine %d",
-					NVGPU_DEVTYPE_IOCTRL);
+		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_IOCTRL, i);
+		if (dev == NULL) {
+			nvgpu_err(g, "Failed to parse dev_info table IOCTRL dev (%d)",
+				  NVGPU_DEVTYPE_IOCTRL);
 			nvgpu_kfree(g, ioctrl_table);
 			return -EINVAL;
 		}
 
 		ioctrl_table[i].valid = true;
-		ioctrl_table[i].intr_enum = dev_info.intr_id;
-		ioctrl_table[i].reset_enum = dev_info.reset_id;
-		ioctrl_table[i].pri_base_addr = dev_info.pri_base;
+		ioctrl_table[i].intr_enum = dev->intr_id;
+		ioctrl_table[i].reset_enum = dev->reset_id;
+		ioctrl_table[i].pri_base_addr = dev->pri_base;
 		nvgpu_log(g, gpu_dbg_nvlink,
 			"Dev %d: Pri_Base = 0x%0x Intr = %d Reset = %d",
 			i, ioctrl_table[i].pri_base_addr,

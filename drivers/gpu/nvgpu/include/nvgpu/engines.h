@@ -127,7 +127,7 @@ struct nvgpu_engine_info {
  *         types for gr and/or ce engines.
  */
 enum nvgpu_fifo_engine nvgpu_engine_enum_from_dev(struct gk20a *g,
-						  struct nvgpu_device *dev);
+					const struct nvgpu_device *dev);
 /**
  * @brief Get pointer to #nvgpu_engine_info for the h/w engine id.
  *

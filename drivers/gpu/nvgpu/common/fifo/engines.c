@@ -47,7 +47,7 @@
 #define FECS_METHOD_WFI_RESTORE	0x80000U
 
 enum nvgpu_fifo_engine nvgpu_engine_enum_from_dev(struct gk20a *g,
-						  struct nvgpu_device *dev)
+			const struct nvgpu_device *dev)
 {
 	enum nvgpu_fifo_engine ret = NVGPU_ENGINE_INVAL;
 
@@ -802,53 +802,51 @@ int nvgpu_engine_init_info(struct nvgpu_fifo *f)
 	enum nvgpu_fifo_engine engine_enum;
 	u32 pbdma_id = U32_MAX;
 	bool found_pbdma_for_runlist = false;
-	struct nvgpu_device dev_info;
 	struct nvgpu_engine_info *info;
+	const struct nvgpu_device *dev;
 
 	f->num_engines = 0;
 
-	ret = nvgpu_device_get(g, &dev_info, NVGPU_DEVTYPE_GRAPHICS, 0);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"Failed to parse dev_info table for engine %d",
-			NVGPU_DEVTYPE_GRAPHICS);
+	dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
+	if (dev == NULL) {
+		nvgpu_err(g, "Failed to get graphics engine %d", 0);
 		return -EINVAL;
 	}
 
 	found_pbdma_for_runlist = g->ops.pbdma.find_for_runlist(g,
-						dev_info.runlist_id,
+						dev->runlist_id,
 						&pbdma_id);
 	if (!found_pbdma_for_runlist) {
 		nvgpu_err(g, "busted pbdma map");
 		return -EINVAL;
 	}
 
-	engine_enum = nvgpu_engine_enum_from_dev(g, &dev_info);
+	engine_enum = nvgpu_engine_enum_from_dev(g, dev);
 
-	info = &g->fifo.engine_info[dev_info.engine_id];
+	info = &g->fifo.engine_info[dev->engine_id];
 
-	info->intr_mask |= BIT32(dev_info.intr_id);
-	info->reset_mask |= BIT32(dev_info.reset_id);
-	info->runlist_id = dev_info.runlist_id;
+	info->intr_mask |= BIT32(dev->intr_id);
+	info->reset_mask |= BIT32(dev->reset_id);
+	info->runlist_id = dev->runlist_id;
 	info->pbdma_id = pbdma_id;
-	info->inst_id  = dev_info.inst_id;
-	info->pri_base = dev_info.pri_base;
+	info->inst_id  = dev->inst_id;
+	info->pri_base = dev->pri_base;
 	info->engine_enum = engine_enum;
-	info->fault_id = dev_info.fault_id;
+	info->fault_id = dev->fault_id;
 
 	/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
-	f->active_engines_list[f->num_engines] = dev_info.engine_id;
+	f->active_engines_list[f->num_engines] = dev->engine_id;
 	++f->num_engines;
 	nvgpu_log_info(g,
 		"gr info: engine_id %d runlist_id %d intr_id %d "
 		"reset_id %d engine_type %d engine_enum %d inst_id %d",
-		dev_info.engine_id,
-		dev_info.runlist_id,
-		dev_info.intr_id,
-		dev_info.reset_id,
-		dev_info.type,
+		dev->engine_id,
+		dev->runlist_id,
+		dev->intr_id,
+		dev->reset_id,
+		dev->type,
 		engine_enum,
-		dev_info.inst_id);
+		dev->inst_id);
 
 	ret = g->ops.engine.init_ce_info(f);
 

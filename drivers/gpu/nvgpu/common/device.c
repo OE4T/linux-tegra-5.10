@@ -151,7 +151,7 @@ void nvgpu_device_cleanup(struct gk20a *g)
  *
  * Return a pointer to the device or NULL of the inst ID is out of range.
  */
-static struct nvgpu_device *dev_instance_from_devlist(
+static const struct nvgpu_device *dev_instance_from_devlist(
 	struct nvgpu_list_node *devlist, u32 inst_id)
 {
 	u32 i = 0U;
@@ -167,32 +167,24 @@ static struct nvgpu_device *dev_instance_from_devlist(
 	return NULL;
 }
 
-int nvgpu_device_get(struct gk20a *g,
-		     struct nvgpu_device *dev,
+const struct nvgpu_device *nvgpu_device_get(struct gk20a *g,
 		     u32 type, u32 inst_id)
 {
-	struct nvgpu_device *target;
+	const struct nvgpu_device *dev;
 	struct nvgpu_list_node *device_list;
 
 	if (type >= NVGPU_MAX_DEVTYPE) {
-		return -EINVAL;
+		return NULL;
 	}
 
 	device_list = &g->devs->devlist_heads[type];
-	target = dev_instance_from_devlist(device_list, inst_id);
+	dev = dev_instance_from_devlist(device_list, inst_id);
 
-	if (target == NULL) {
-		return -ENODEV;
+	if (dev == NULL) {
+		return NULL;
 	}
 
-	nvgpu_memcpy((u8 *)dev, (const u8 *)target, sizeof(*dev));
-
-	/*
-	 * Don't let the calling code get access to the underlying device table!
-	 */
-	nvgpu_init_list_node(&dev->dev_list_node);
-
-	return 0;
+	return dev;
 }
 
 u32 nvgpu_device_count(struct gk20a *g, u32 type)
@@ -213,7 +205,7 @@ u32 nvgpu_device_count(struct gk20a *g, u32 type)
  * Once a per-chip translation table exists we can translate and then do a
  * comparison.
  */
-bool nvgpu_device_is_ce(struct gk20a *g, struct nvgpu_device *dev)
+bool nvgpu_device_is_ce(struct gk20a *g, const struct nvgpu_device *dev)
 {
 	if (dev->type == NVGPU_DEVTYPE_COPY0 ||
 	    dev->type == NVGPU_DEVTYPE_COPY1 ||
@@ -225,7 +217,7 @@ bool nvgpu_device_is_ce(struct gk20a *g, struct nvgpu_device *dev)
 	return false;
 }
 
-bool nvgpu_device_is_graphics(struct gk20a *g, struct nvgpu_device *dev)
+bool nvgpu_device_is_graphics(struct gk20a *g, const struct nvgpu_device *dev)
 {
 	return dev->type == NVGPU_DEVTYPE_GRAPHICS;
 }
