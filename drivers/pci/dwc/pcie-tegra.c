@@ -65,14 +65,15 @@
 #define APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE	BIT(5)
 #define APPL_PINMUX_PEX_RST_IN_OVERRIDE_EN	BIT(11)
 
-#define APPL_CTRL				(0X4)
-#define APPL_CTRL_HW_HOT_RST_MODE_MASK		(0X3)
-#define APPL_CTRL_HW_HOT_RST_MODE_SHIFT		22
-#define APPL_CTRL_HW_HOT_RST_MODE_DLY_RST	0x0
-#define APPL_CTRL_HW_HOT_RST_MODE_IMDT_RST	0x1
-#define APPL_CTRL_SYS_PRE_DET_STATE		BIT(6)
-#define APPL_CTRL_LTSSM_EN			BIT(7)
-#define APPL_CTRL_HW_HOT_RST_EN			BIT(20)
+#define APPL_CTRL					(0X4)
+#define APPL_CTRL_HW_HOT_RST_MODE_MASK			(0X3)
+#define APPL_CTRL_HW_HOT_RST_MODE_SHIFT			22
+#define APPL_CTRL_HW_HOT_RST_MODE_DLY_RST		0x0
+#define APPL_CTRL_HW_HOT_RST_MODE_IMDT_RST		0x1
+#define APPL_CTRL_HW_HOT_RST_MODE_IMDT_RST_LTSSM_EN	0x2
+#define APPL_CTRL_SYS_PRE_DET_STATE			BIT(6)
+#define APPL_CTRL_LTSSM_EN				BIT(7)
+#define APPL_CTRL_HW_HOT_RST_EN				BIT(20)
 
 #define APPL_INTR_EN_L0_0			0x8
 #define APPL_INTR_EN_L0_0_SYS_MSI_INTR_EN	BIT(31)
@@ -4695,6 +4696,17 @@ static int tegra_pcie_dw_runtime_resume(struct device *dev)
 		val |= APPL_PINMUX_CLKREQ_OVERRIDE_EN;
 		val &= ~APPL_PINMUX_CLKREQ_OVERRIDE;
 		writel(val, pcie->appl_base + APPL_PINMUX);
+	}
+
+        /* Enable HW_HOT_RST mode with IMDT_RST_LTSSM_EN */
+	if (!pcie->of_data->sbr_reset_fixup) {
+		val = readl(pcie->appl_base + APPL_CTRL);
+		val &= ~(APPL_CTRL_HW_HOT_RST_MODE_MASK <<
+				APPL_CTRL_HW_HOT_RST_MODE_SHIFT);
+		val |= (APPL_CTRL_HW_HOT_RST_MODE_IMDT_RST_LTSSM_EN <<
+				APPL_CTRL_HW_HOT_RST_MODE_SHIFT);
+		val |= APPL_CTRL_HW_HOT_RST_EN;
+		writel(val, pcie->appl_base + APPL_CTRL);
 	}
 
 	/* update iATU_DMA base address */
