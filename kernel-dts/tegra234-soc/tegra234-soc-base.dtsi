@@ -55,6 +55,7 @@
 #include "tegra234-soc/tegra234-aon.dtsi"
 #include "tegra234-soc/tegra234-cpus.dtsi"
 #include "tegra234-soc-thermal.dtsi"
+#include "tegra234-soc-ldpc.dtsi"
 #include "dt-bindings/soc/tegra-io-pads.h"
 
 / {

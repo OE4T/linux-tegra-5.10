@@ -120,4 +120,13 @@
 	nvdisplay@13800000 {
 		status = "okay";
 	};
+
+	ldpc-enc@15700000 {
+                status = "okay";
+        };
+
+        ldpc-dec@15780000 {
+                status = "okay";
+        };
+
 };
