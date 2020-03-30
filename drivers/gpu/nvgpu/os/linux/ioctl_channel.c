@@ -1028,7 +1028,6 @@ static int nvgpu_ioctl_channel_get_user_syncpoint(struct nvgpu_channel *ch,
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	struct gk20a *g = ch->g;
 	struct nvgpu_channel_sync_syncpt *user_sync_syncpt = NULL;
-	int err;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT)) {
 		nvgpu_err(g, "user syncpoints not supported");
@@ -1055,12 +1054,6 @@ static int nvgpu_ioctl_channel_get_user_syncpoint(struct nvgpu_channel *ch,
 			return -ENOMEM;
 		}
 		nvgpu_mutex_release(&ch->sync_lock);
-
-		if (g->ops.channel.set_syncpt) {
-			err = g->ops.channel.set_syncpt(ch);
-			if (err)
-				return err;
-		}
 	}
 	user_sync_syncpt = nvgpu_channel_sync_to_syncpt(ch->user_sync);
 	if (user_sync_syncpt == NULL) {
