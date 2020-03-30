@@ -105,6 +105,16 @@
 /** @} */
 
 /**
+ * @addtogroup MGBE-WRAPPER MGBE Wrapper register offsets
+ *
+ * @brief MGBE Wrapper register offsets
+ * @{
+ */
+#define MGBE_WRAP_COMMON_INTR_ENABLE	0x8704
+#define MGBE_WRAP_COMMON_INTR_STATUS	0x8708
+/** @} */
+
+/**
  * @addtogroup MGBE MAC hash table defines
  *
  * @brief MGBE MAC hash table Control register
@@ -582,6 +592,7 @@
 #define MGBE_MTL_EST_ITRE_IEHF			OSI_BIT(2)
 #define MGBE_MTL_EST_ITRE_IEBE			OSI_BIT(1)
 #define MGBE_MTL_EST_ITRE_IECC			OSI_BIT(0)
+#define MGBE_MAC_SBD_INTR			OSI_BIT(2)
 /** @} */
 
 /**
