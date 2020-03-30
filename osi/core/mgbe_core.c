@@ -2376,6 +2376,13 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	value |= MGBE_IMR_RGSMIIIE;
 	osi_writel(value, (nveu8_t *)osi_core->base + MGBE_MAC_IER);
 
+	/* Enable common interrupt at wrapper level */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  MGBE_WRAP_COMMON_INTR_ENABLE);
+	value |= MGBE_MAC_SBD_INTR;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   MGBE_WRAP_COMMON_INTR_ENABLE);
+
 	/* Enable VLAN configuration */
 	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_VLAN_TR);
 	/* Enable VLAN Tag in RX Status
@@ -3235,6 +3242,16 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 	unsigned int dma_sr = 0;
 	unsigned int dma_ier = 0;
 	unsigned int mtl_isr = 0;
+	unsigned int val = 0;
+
+	/* FIXME: Disabling common interrupt. Needs to be fixed once
+	 * RTL issue http://nvbugs/200517360 resolved.
+	 */
+	val = osi_readl((unsigned char *)osi_core->base +
+			MGBE_WRAP_COMMON_INTR_ENABLE);
+	val &= ~MGBE_MAC_SBD_INTR;
+	osi_writel(val, (unsigned char *)osi_core->base +
+		   MGBE_WRAP_COMMON_INTR_ENABLE);
 
 	dma_isr = osi_readl((nveu8_t *)base + MGBE_DMA_ISR);
 	if (dma_isr == OSI_NONE) {
@@ -3282,7 +3299,6 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 
 	/* Handle MTL inerrupts */
 	mtl_isr = osi_readl((unsigned char *)base + MGBE_MTL_INTR_STATUS);
-
 	if (((mtl_isr & MGBE_MTL_IS_ESTIS) == MGBE_MTL_IS_ESTIS) &&
 	    ((dma_isr & MGBE_DMA_ISR_MTLIS) == MGBE_DMA_ISR_MTLIS)) {
 		mgbe_handle_mtl_intrs(osi_core);
@@ -3290,6 +3306,15 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 		osi_writel(mtl_isr, (unsigned char *)base +
 			   MGBE_MTL_INTR_STATUS);
 	}
+
+	/* Clear common interrupt status in wrapper register */
+	osi_writel(MGBE_MAC_SBD_INTR,
+		   (unsigned char *)base + MGBE_WRAP_COMMON_INTR_STATUS);
+	val = osi_readl((unsigned char *)osi_core->base +
+			MGBE_WRAP_COMMON_INTR_ENABLE);
+	val |= MGBE_MAC_SBD_INTR;
+	osi_writel(val, (unsigned char *)osi_core->base +
+		   MGBE_WRAP_COMMON_INTR_ENABLE);
 }
 
 /**
