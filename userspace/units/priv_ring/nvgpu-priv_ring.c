@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -112,6 +112,8 @@ int test_priv_ring_setup(struct unit_module *m, struct gk20a *g, void *args)
 	/* Init HAL */
 	g->ops.priv_ring.enable_priv_ring = gm20b_priv_ring_enable;
 	g->ops.priv_ring.isr = gp10b_priv_ring_isr;
+	g->ops.priv_ring.isr_handle_0 = gp10b_priv_ring_isr_handle_0;
+	g->ops.priv_ring.isr_handle_1 = gp10b_priv_ring_isr_handle_1;
 	g->ops.priv_ring.decode_error_code = gp10b_priv_ring_decode_error_code;
 	g->ops.priv_ring.set_ppriv_timeout_settings =
 					gm20b_priv_set_timeout_settings;
