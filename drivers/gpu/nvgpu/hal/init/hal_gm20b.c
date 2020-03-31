@@ -692,6 +692,7 @@ static const struct gpu_ops gm20b_ops = {
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gm20b_pbdma_get_signature,
 		.dump_status = gm20b_pbdma_dump_status,
+		.syncpt_debug_dump = gm20b_pbdma_syncpoint_debug_dump,
 		.handle_intr_0 = gm20b_pbdma_handle_intr_0,
 		.handle_intr_1 = gm20b_pbdma_handle_intr_1,
 		.handle_intr = gm20b_pbdma_handle_intr,
@@ -812,7 +813,6 @@ static const struct gpu_ops gm20b_ops = {
 		.resume_all_serviceable_ch =
                         nvgpu_channel_resume_all_serviceable_ch,
 		.set_error_notifier = nvgpu_set_err_notifier,
-		.debug_dump = gk20a_channel_debug_dump,
 	},
 	.tsg = {
 		.enable = gk20a_tsg_enable,

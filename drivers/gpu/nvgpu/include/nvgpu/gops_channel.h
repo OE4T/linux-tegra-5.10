@@ -33,7 +33,6 @@ struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_channel_hw_state;
 struct nvgpu_debug_context;
-struct nvgpu_channel_dump_info;
 
 /**
  * Channel HAL operations.
@@ -142,9 +141,6 @@ struct gops_channel {
 	void (*abort_clean_up)(struct nvgpu_channel *ch);
 	void (*reset_faulted)(struct gk20a *g, struct nvgpu_channel *ch,
 			bool eng, bool pbdma);
-	void (*debug_dump)(struct gk20a *g,
-			struct nvgpu_debug_context *o,
-			struct nvgpu_channel_dump_info *info);
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	int (*set_syncpt)(struct nvgpu_channel *ch);

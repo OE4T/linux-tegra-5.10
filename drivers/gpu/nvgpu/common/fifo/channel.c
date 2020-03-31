@@ -2844,6 +2844,88 @@ void nvgpu_channel_free_inst(struct gk20a *g, struct nvgpu_channel *ch)
 	nvgpu_free_inst_block(g, &ch->inst_block);
 }
 
+static void nvgpu_channel_sync_debug_dump(struct gk20a *g,
+	struct nvgpu_debug_context *o, struct nvgpu_channel_dump_info *info)
+{
+#ifdef CONFIG_NVGPU_NON_FUSA
+	gk20a_debug_output(o,
+			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
+			"FETCH: %016llx"
+			"HEADER: %08x COUNT: %08x"
+			"SYNCPOINT: %08x %08x "
+			"SEMAPHORE: %08x %08x %08x %08x",
+			info->inst.pb_top_level_get,
+			info->inst.pb_put,
+			info->inst.pb_get,
+			info->inst.pb_fetch,
+			info->inst.pb_header,
+			info->inst.pb_count,
+			info->inst.syncpointa,
+			info->inst.syncpointb,
+			info->inst.semaphorea,
+			info->inst.semaphoreb,
+			info->inst.semaphorec,
+			info->inst.semaphored);
+
+	g->ops.pbdma.syncpt_debug_dump(g, o, info);
+#endif
+}
+
+static void nvgpu_channel_info_debug_dump(struct gk20a *g,
+			     struct nvgpu_debug_context *o,
+			     struct nvgpu_channel_dump_info *info)
+{
+	/**
+	 * Use gpu hw version to control the channel instance fields
+	 * dump in nvgpu_channel_dump_info struct.
+	 * For hw version before gv11b, dump syncpoint a/b, semaphore a/b/c/d.
+	 * For hw version after gv11b, dump sem addr/payload/execute.
+	 */
+	u32 ver = nvgpu_safe_add_u32(g->params.gpu_arch, g->params.gpu_impl);
+
+	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d%s: ",
+			info->chid,
+			g->name,
+			info->tsgid,
+			info->pid,
+			info->refs,
+			info->deterministic ? ", deterministic" : "");
+	gk20a_debug_output(o, "channel status: %s in use %s %s",
+			info->hw_state.enabled ? "" : "not",
+			info->hw_state.status_string,
+			info->hw_state.busy ? "busy" : "not busy");
+
+	if (ver < NVGPU_GPUID_GV11B) {
+		nvgpu_channel_sync_debug_dump(g, o, info);
+	} else {
+		gk20a_debug_output(o,
+			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
+			"FETCH: %016llx"
+			"HEADER: %08x COUNT: %08x"
+			"SEMAPHORE: addr %016llx"
+			"payload %016llx execute %08x",
+			info->inst.pb_top_level_get,
+			info->inst.pb_put,
+			info->inst.pb_get,
+			info->inst.pb_fetch,
+			info->inst.pb_header,
+			info->inst.pb_count,
+			info->inst.sem_addr,
+			info->inst.sem_payload,
+			info->inst.sem_execute);
+	}
+
+	if (info->sema.addr != 0ULL) {
+		gk20a_debug_output(o, "SEMA STATE: value: 0x%08x "
+				   "next_val: 0x%08x addr: 0x%010llx",
+				  info->sema.value,
+				  info->sema.next,
+				  info->sema.addr);
+	}
+
+	gk20a_debug_output(o, "\n");
+}
+
 void nvgpu_channel_debug_dump_all(struct gk20a *g,
 		 struct nvgpu_debug_context *o)
 {
@@ -2916,7 +2998,7 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 		struct nvgpu_channel_dump_info *info = infos[chid];
 
 		if (info != NULL) {
-			g->ops.channel.debug_dump(g, o, info);
+			nvgpu_channel_info_debug_dump(g, o, info);
 			nvgpu_kfree(g, info);
 		}
 	}

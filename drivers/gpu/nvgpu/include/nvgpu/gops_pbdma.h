@@ -32,6 +32,7 @@ struct nvgpu_pbdma_status_info;
 
 /** NON FUSA */
 struct nvgpu_debug_context;
+struct nvgpu_channel_dump_info;
 
 struct gops_pbdma_status {
 	void (*read_pbdma_status_info)(struct gk20a *g,
@@ -84,6 +85,9 @@ struct gops_pbdma {
 	u32 (*allowed_syncpoints_0_index_v)(u32 offset);
 
 	/** NON FUSA */
+	void (*syncpt_debug_dump)(struct gk20a *g,
+			struct nvgpu_debug_context *o,
+			struct nvgpu_channel_dump_info *info);
 	void (*dump_status)(struct gk20a *g,
 			struct nvgpu_debug_context *o);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)

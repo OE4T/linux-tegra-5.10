@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,6 @@ struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_channel_hw_state;
 struct nvgpu_debug_context;
-struct nvgpu_channel_dump_info;
 
 void gv11b_channel_unbind(struct nvgpu_channel *ch);
 u32 gv11b_channel_count(struct gk20a *g);
@@ -37,8 +36,4 @@ void gv11b_channel_read_state(struct gk20a *g, struct nvgpu_channel *ch,
 		struct nvgpu_channel_hw_state *state);
 void gv11b_channel_reset_faulted(struct gk20a *g, struct nvgpu_channel *ch,
 		bool eng, bool pbdma);
-
-void gv11b_channel_debug_dump(struct gk20a *g,
-	     struct nvgpu_debug_context *o,
-	     struct nvgpu_channel_dump_info *info);
 #endif /* FIFO_CHANNEL_GV11B_H */

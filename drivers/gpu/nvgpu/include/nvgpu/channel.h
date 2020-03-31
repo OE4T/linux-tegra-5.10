@@ -187,7 +187,7 @@ struct nvgpu_channel_dump_info {
 	bool deterministic;
 	/** Channel H/W state */
 	struct nvgpu_channel_hw_state hw_state;
-	/** Snaphsot of channel instance fields. */
+	/** Snapshot of channel instance fields. */
 	struct {
 		u64 pb_top_level_get;
 		u64 pb_put;

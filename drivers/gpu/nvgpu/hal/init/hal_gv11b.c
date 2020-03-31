@@ -983,6 +983,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gp10b_pbdma_get_signature,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
+		.syncpt_debug_dump = NULL,
 		.dump_status = gm20b_pbdma_dump_status,
 #endif
 		.handle_intr_0 = gv11b_pbdma_handle_intr_0,
@@ -1117,7 +1118,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
                         nvgpu_channel_resume_all_serviceable_ch,
 		.set_error_notifier = nvgpu_set_err_notifier_if_empty,
 		.reset_faulted = gv11b_channel_reset_faulted,
-		.debug_dump = gv11b_channel_debug_dump,
 	},
 	.tsg = {
 		.enable = gv11b_tsg_enable,
