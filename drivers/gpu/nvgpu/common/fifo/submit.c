@@ -335,6 +335,37 @@ static int nvgpu_submit_append_gpfifo(struct nvgpu_channel *c,
 	return 0;
 }
 
+static int check_submit_allowed(struct nvgpu_channel *c)
+{
+	struct gk20a *g = c->g;
+
+	if (nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
+		return -ENODEV;
+	}
+
+	if (nvgpu_channel_check_unserviceable(c)) {
+		return -ETIMEDOUT;
+	}
+
+	if (c->usermode_submit_enabled) {
+		return -EINVAL;
+	}
+
+	if (!nvgpu_mem_is_valid(&c->gpfifo.mem)) {
+		return -ENOMEM;
+	}
+
+	/* an address space needs to have been bound at this point. */
+	if (!nvgpu_channel_as_bound(c)) {
+		nvgpu_err(g,
+			    "not bound to an address space at time of gpfifo"
+			    " submission.");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 				struct nvgpu_gpfifo_entry *gpfifo,
 				struct nvgpu_gpfifo_userdata userdata,
@@ -360,20 +391,10 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	bool flag_fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
 	bool flag_fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
 	bool flag_sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
-	if (nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
-		return -ENODEV;
-	}
 
-	if (nvgpu_channel_check_unserviceable(c)) {
-		return -ETIMEDOUT;
-	}
-
-	if (c->usermode_submit_enabled) {
-		return -EINVAL;
-	}
-
-	if (!nvgpu_mem_is_valid(&c->gpfifo.mem)) {
-		return -ENOMEM;
+	err = check_submit_allowed(c);
+	if (err != 0) {
+		return err;
 	}
 
 	/* fifo not large enough for request. Return error immediately.
@@ -386,14 +407,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	}
 
 	if ((flag_fence_wait || flag_fence_get) && (fence == NULL)) {
-		return -EINVAL;
-	}
-
-	/* an address space needs to have been bound at this point. */
-	if (!nvgpu_channel_as_bound(c)) {
-		nvgpu_err(g,
-			    "not bound to an address space at time of gpfifo"
-			    " submission.");
 		return -EINVAL;
 	}
 
@@ -539,11 +552,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 			err = -EAGAIN;
 			goto clean_up;
 		}
-	}
-
-	if (nvgpu_channel_check_unserviceable(c)) {
-		err = -ETIMEDOUT;
-		goto clean_up;
 	}
 
 	if (need_job_tracking) {
