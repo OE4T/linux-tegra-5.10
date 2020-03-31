@@ -3,7 +3,7 @@
  *
  * crypto dev node for NVIDIA tegra aes hardware
  *
- * Copyright (c) 2010-2019, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2010-2020, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 #include <linux/scatterlist.h>
 #include <linux/uaccess.h>
 #include <linux/nospec.h>
-#include <soc/tegra/chip-id.h>
 #include <crypto/rng.h>
 #include <crypto/hash.h>
 #include <linux/platform/tegra/common.h>

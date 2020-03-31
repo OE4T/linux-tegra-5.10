@@ -4,7 +4,7 @@
  *
  * Support for Tegra Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -34,7 +34,6 @@
 #include <linux/errno.h>
 #include <linux/version.h>
 #include <soc/tegra/fuse.h>
-#include <soc/tegra/chip-id.h>
 #include <soc/tegra/ahb.h>
 #include <crypto/scatterwalk.h>
 #include <soc/tegra/pmc.h>

@@ -4,7 +4,7 @@
  *
  * Support for Tegra Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,7 +32,6 @@
 #include <linux/interrupt.h>
 #include <linux/types.h>
 #include <linux/errno.h>
-#include <soc/tegra/chip-id.h>
 #include <linux/nvhost.h>
 #include <crypto/scatterwalk.h>
 #include <crypto/algapi.h>
@@ -42,7 +41,6 @@
 #include <crypto/internal/hash.h>
 #include <crypto/internal/akcipher.h>
 #include <crypto/sha.h>
-#include <linux/tegra_pm_domains.h>
 #include <crypto/internal/kpp.h>
 #include <crypto/kpp.h>
 #include <crypto/dh.h>
