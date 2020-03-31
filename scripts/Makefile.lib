@@ -263,6 +263,30 @@ DTC_FLAGS += -Wno-unit_address_vs_reg \
 	-Wno-pci_device_reg
 endif
 
+ifeq ($(CONFIG_TEGRA_DTC_SUPPRESS_WARNINGS),y)
+DTC_FLAGS += \
+	-Wno-label_is_string \
+	-Wno-names_is_string_list \
+	-Wno-iommus_property \
+	-Wno-dmas_property \
+	-Wno-mboxes_property \
+	-Wno-power_domains_property \
+	-Wno-interrupts_property \
+	-Wno-reg_format \
+	-Wno-resets_property \
+	-Wno-graph_port \
+	-Wno-graph_endpoint\
+	-Wno-sound_dai_property \
+	-Wno-i2c_bus_reg \
+	-Wno-i2c_bus_bridge \
+	-Wno-spi_bus_reg \
+	-Wno-spi_bus_bridge \
+	-Wno-gpios_property \
+	-Wno-clocks_property \
+	-Wno-pci_bridge \
+	-Wno-pci_device_bus_num
+endif
+
 ifneq ($(findstring 2,$(KBUILD_EXTRA_WARN)),)
 DTC_FLAGS += -Wnode_name_chars_strict \
 	-Wproperty_name_chars_strict
