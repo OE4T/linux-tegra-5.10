@@ -441,10 +441,8 @@ int nvgpu_vidmem_get_space(struct gk20a *g, u64 *space)
 		return -ENOSYS;
 	}
 
-	nvgpu_mutex_acquire(&g->mm.vidmem.clear_list_mutex);
 	*space = nvgpu_alloc_space(allocator) +
 		U64(nvgpu_atomic64_read(&g->mm.vidmem.bytes_pending));
-	nvgpu_mutex_release(&g->mm.vidmem.clear_list_mutex);
 	return 0;
 }
 

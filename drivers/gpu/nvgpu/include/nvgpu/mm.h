@@ -377,7 +377,7 @@ struct mm_gk20a {
 	 */
 	u32 pramin_window;
 	/** Lock to serialize pramin access request. */
-	struct nvgpu_spinlock pramin_window_lock;
+	struct nvgpu_mutex pramin_window_lock;
 
 	/**
 	 * This structure describes the number of arguments used for VIDMEM

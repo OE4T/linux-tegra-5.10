@@ -77,7 +77,7 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 		BUG_ON(sgl == NULL);
 		sgl_len = nvgpu_sgt_get_length(sgt, sgl);
 
-		nvgpu_spinlock_acquire(&g->mm.pramin_window_lock);
+		nvgpu_mutex_acquire(&g->mm.pramin_window_lock);
 		byteoff = g->ops.bus.set_bar0_window(g, mem, sgt, sgl,
 					      offset / sizeof(u32));
 		start_reg = g->ops.pramin.data032_r(byteoff / sizeof(u32));
@@ -90,7 +90,7 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 		/* read back to synchronize accesses */
 		(void) gk20a_readl(g, start_reg);
 
-		nvgpu_spinlock_release(&g->mm.pramin_window_lock);
+		nvgpu_mutex_release(&g->mm.pramin_window_lock);
 
 		size -= n;
 
@@ -175,5 +175,5 @@ void nvgpu_pramin_memset(struct gk20a *g, struct nvgpu_mem *mem,
 void nvgpu_init_pramin(struct mm_gk20a *mm)
 {
 	mm->pramin_window = 0;
-	nvgpu_spinlock_init(&mm->pramin_window_lock);
+	nvgpu_mutex_init(&mm->pramin_window_lock);
 }
