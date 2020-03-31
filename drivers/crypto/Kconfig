@@ -26,7 +26,7 @@ config CRYPTO_DEV_TEGRA_ELLIPTIC_SE
 
 config CRYPTO_DEV_TEGRA_SE_USE_HOST1X_INTERFACE
 	tristate "Use Host1x Interface for Tegra SE crypto algorithms"
-	depends on ARCH_TEGRA_18x_SOC
+	depends on ARCH_TEGRA_18x_SOC || ARCH_TEGRA_186_SOC || ARCH_TEGRA_194_SOC
 	help
 	  This allows you to use Host1x Memory Interface for Tegra SE Driver
 	  Crypto algorithms.
