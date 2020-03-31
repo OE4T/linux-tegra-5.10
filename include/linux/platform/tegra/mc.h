@@ -285,7 +285,7 @@ enum {
 int tegra_mc_flush(int id);
 int tegra_mc_flush_done(int id);
 
-void tegra_mc_utils_init(int channels);
+void tegra_mc_utils_init(void);
 
 /*
  * Necessary bit fields for various MC registers. Add to these as

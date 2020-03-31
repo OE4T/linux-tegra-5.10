@@ -448,12 +448,14 @@ static int tegra_mc_probe(struct platform_device *pdev)
 #endif
 
 	tegra_mcerr_init(mc_debugfs_dir, pdev);
-	tegra_mc_utils_init(mc_channels);
+
+	if (tegra_get_chip_id() == TEGRA234)
+		tegra_mc_utils_init();
 
 	return 0;
 }
 
-void __weak tegra_mc_utils_init(int channels)
+void __weak tegra_mc_utils_init(void)
 {
 	return;
 }
