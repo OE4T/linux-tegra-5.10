@@ -117,6 +117,7 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 		}
 
 		if (job->wait_cmd->valid) {
+			/* not expired yet */
 			*wait_cmd = job->wait_cmd;
 		}
 	}
@@ -378,7 +379,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	struct gk20a *g = c->g;
 	struct priv_cmd_entry *wait_cmd = NULL;
 	struct priv_cmd_entry *incr_cmd = NULL;
-	struct nvgpu_fence_type *post_fence = NULL;
 	struct nvgpu_channel_job *job = NULL;
 	/* we might need two extra gpfifo entries - one for pre fence
 	 * and one for post fence. */
@@ -555,6 +555,8 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	}
 
 	if (need_job_tracking) {
+		struct nvgpu_fence_type *post_fence = NULL;
+
 		err = nvgpu_channel_alloc_job(c, &job);
 		if (err != 0) {
 			goto clean_up;
@@ -568,38 +570,48 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		if (err != 0) {
 			goto clean_up_job;
 		}
-	}
 
-	nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
+		nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
 
-	if (wait_cmd != NULL) {
-		nvgpu_submit_append_priv_cmdbuf(c, wait_cmd);
-	}
+		/*
+		 * wait_cmd can be unset even if flag_fence_wait exists. See
+		 * the expiration check in channel_sync_syncpt_gen_wait_cmd.
+		 */
+		if (wait_cmd != NULL) {
+			nvgpu_submit_append_priv_cmdbuf(c, wait_cmd);
+		}
 
-	err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata,
-			num_entries);
-	if (err != 0) {
-		goto clean_up_job;
-	}
-
-	/*
-	 * And here's where we add the incr_cmd we generated earlier. It should
-	 * always run!
-	 */
-	if (incr_cmd != NULL) {
-		nvgpu_submit_append_priv_cmdbuf(c, incr_cmd);
-	}
-
-	if (fence_out != NULL) {
-		*fence_out = nvgpu_fence_get(post_fence);
-	}
-
-	if (need_job_tracking) {
-		err = nvgpu_channel_add_job(c, job, skip_buffer_refcounting);
+		err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata,
+				num_entries);
 		if (err != 0) {
+			nvgpu_fence_put(post_fence);
 			goto clean_up_job;
 		}
+
+		nvgpu_submit_append_priv_cmdbuf(c, incr_cmd);
+
+		err = nvgpu_channel_add_job(c, job, skip_buffer_refcounting);
+		if (err != 0) {
+			nvgpu_fence_put(post_fence);
+			goto clean_up_job;
+		}
+
+		if (fence_out != NULL) {
+			*fence_out = nvgpu_fence_get(post_fence);
+		}
+	} else {
+		nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
+
+		err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata,
+				num_entries);
+		if (err != 0) {
+			goto clean_up;
+		}
+		if (fence_out != NULL) {
+			*fence_out = NULL;
+		}
 	}
+
 	nvgpu_profile_snapshot(profile, PROFILE_APPEND);
 
 	g->ops.userd.gp_put(g, c);
@@ -612,12 +624,16 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 #endif
 
 #ifdef CONFIG_NVGPU_TRACE
-	trace_gk20a_channel_submitted_gpfifo(g->name,
-				c->chid,
-				num_entries,
-				flags,
-				post_fence ? post_fence->syncpt_id : 0,
-				post_fence ? post_fence->syncpt_value : 0);
+	if (fence_out != NULL && *fence_out != NULL) {
+		trace_gk20a_channel_submitted_gpfifo(g->name,
+					c->chid, num_entries, flags,
+					(*fence_out)->syncpt_id,
+					(*fence_out)->syncpt_value);
+	} else {
+		trace_gk20a_channel_submitted_gpfifo(g->name,
+					c->chid, num_entries, flags,
+					0, 0);
+	}
 #endif
 
 	nvgpu_log_info(g, "post-submit put %d, get %d, size %d",
@@ -632,7 +648,6 @@ clean_up_job:
 	nvgpu_channel_free_job(c, job);
 clean_up:
 	nvgpu_log_fn(g, "fail");
-	nvgpu_fence_put(post_fence);
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	if (c->deterministic) {
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
