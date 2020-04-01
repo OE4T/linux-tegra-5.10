@@ -3906,7 +3906,9 @@ static struct crypto_alg aes_algs[] = {
 			.setkey = tegra_se_aes_setkey,
 			.encrypt = tegra_se_aes_ctr_encrypt,
 			.decrypt = tegra_se_aes_ctr_decrypt,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			.geniv = "eseqiv",
+#endif
 		}
 	}, {
 		.cra_name = "ofb(aes)",
@@ -3927,7 +3929,9 @@ static struct crypto_alg aes_algs[] = {
 			.setkey = tegra_se_aes_setkey,
 			.encrypt = tegra_se_aes_ofb_encrypt,
 			.decrypt = tegra_se_aes_ofb_decrypt,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			.geniv = "eseqiv",
+#endif
 		}
 	}
 };

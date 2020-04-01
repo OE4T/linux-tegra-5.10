@@ -829,8 +829,13 @@ static int tegra_map_sg(struct device *dev, struct scatterlist *sg,
 			return ret;
 		}
 		se_ll->addr = (u32)sg_dma_address(sg);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		se_ll->data_len = min(sg->length, (size_t)total_loop);
 		total_loop -= min(sg->length, (size_t)total_loop);
+#else
+		se_ll->data_len = min(sg->length, total_loop);
+		total_loop -= min(sg->length, total_loop);
+#endif
 		sg = sg_next(sg);
 		se_ll++;
 	}
@@ -853,7 +858,11 @@ static unsigned int tegra_se_count_sgs(struct scatterlist *sl, u32 nbytes)
 
 	while (sl) {
 		sg_nents++;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		nbytes -= min(sl->length, (size_t)nbytes);
+#else
+		nbytes -= min(sl->length, nbytes);
+#endif
 		if (!nbytes)
 			break;
 		sl = sg_next(sl);
@@ -2913,7 +2922,9 @@ static struct crypto_alg aes_algs[] = {
 			.setkey = tegra_se_aes_setkey,
 			.encrypt = tegra_se_aes_ctr_encrypt,
 			.decrypt = tegra_se_aes_ctr_decrypt,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			.geniv = "eseqiv",
+#endif
 		}
 	}, {
 		.cra_name = "ofb(aes)",
@@ -2934,7 +2945,9 @@ static struct crypto_alg aes_algs[] = {
 			.setkey = tegra_se_aes_setkey,
 			.encrypt = tegra_se_aes_ofb_encrypt,
 			.decrypt = tegra_se_aes_ofb_decrypt,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			.geniv = "eseqiv",
+#endif
 		}
 	},
 };
