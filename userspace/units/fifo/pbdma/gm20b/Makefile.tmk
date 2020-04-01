@@ -28,8 +28,7 @@ NVGPU_UNIT_NAME = nvgpu-pbdma-gm20b
 NVGPU_UNIT_SRCS = nvgpu-pbdma-gm20b.c nvgpu-pbdma-status-gm20b.c
 
 NVGPU_UNIT_INTERFACE_DIRS := \
-	$(NV_SOURCE)/kernel/nvgpu/userspace/units/fifo \
-	$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
+	$(NV_SOURCE)/kernel/nvgpu/userspace/units/fifo
 
 include $(NV_SOURCE)/kernel/nvgpu/userspace/units/Makefile.units.common.tmk
 

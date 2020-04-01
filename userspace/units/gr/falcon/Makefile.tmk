@@ -29,8 +29,7 @@ NVGPU_UNIT_SRCS = nvgpu-gr-falcon.c \
 		  nvgpu-gr-falcon-gm20b.c
 
 NVGPU_UNIT_INTERFACE_DIRS := \
-	$(NV_COMPONENT_DIR)/.. \
-	$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
+	$(NV_COMPONENT_DIR)/..
 
 include $(NV_COMPONENT_DIR)/../../Makefile.units.common.tmk
 
