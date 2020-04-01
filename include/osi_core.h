@@ -969,6 +969,8 @@ struct osi_vm_irq_data {
  *@brief OSD Core callbacks
  */
 struct osd_core_ops {
+	/** padctrl rx pin disable/enable callback */
+	int (*padctrl_mii_rx_pins)(void *priv, nveu32_t enable);
 	/** logging callback */
 	void (*ops_log)(void *priv, const nve8_t *func, nveu32_t line,
 			nveu32_t level, nveu32_t type, const nve8_t *err,
@@ -1105,6 +1107,28 @@ struct osi_ioctl {
 };
 
 /**
+ * @brief core_padctrl - Struct used to eqos padctrl details.
+ */
+struct core_padctrl {
+	/** Memory mapped base address of eqos padctrl registers */
+	void *padctrl_base;
+	/** EQOS_RD0_0 register offset */
+	unsigned int offset_rd0;
+	/** EQOS_RD1_0 register offset */
+	unsigned int offset_rd1;
+	/** EQOS_RD2_0 register offset */
+	unsigned int offset_rd2;
+	/** EQOS_RD3_0 register offset */
+	unsigned int offset_rd3;
+	/** RX_CTL_0 register offset */
+	unsigned int offset_rx_ctl;
+	/** is pad calibration in progress */
+	unsigned int is_pad_cal_in_progress;
+	/** This flag set/reset using priv ioctl and DT entry */
+	unsigned int pad_calibration_enable;
+};
+
+/**
  * @brief The OSI Core (MAC & MTL) private data structure.
  */
 struct osi_core_priv_data {
@@ -1219,6 +1243,8 @@ struct osi_core_priv_data {
 	nveu32_t num_vm_irqs;
 	/** PHY interface mode (0/1 for XFI 10/5G, 2/3 for USXGMII 10/5) */
 	nveu32_t phy_iface_mode;
+	/** eqos pad control structure */
+	struct core_padctrl padctrl;
 };
 
 /**
@@ -1515,8 +1541,6 @@ nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
  *
  * @pre
  *  - MAC should out of reset and clocks enabled.
- *  - RGMII and MDIO interface needs to be IDLE before performing PAD
- *    calibration.
  *
  * @note
  * Traceability Details:
@@ -1536,7 +1560,7 @@ nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
  * - De-initialization: No
  *
  * @retval 0 on success
- * @retval -1 on failure.
+ * @retval -1 value on failure or pad calibration is disabled
  */
 nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
 

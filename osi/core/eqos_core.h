@@ -97,6 +97,7 @@
 #endif /* !OSI_STRIPPED_LIB */
 #define EQOS_MAC_ANS			0x00E4
 #define EQOS_MAC_PCS			0x00F8
+#define EQOS_MAC_DEBUG			0x0114
 #define EQOS_MAC_MDIO_ADDRESS		0x0200
 #define EQOS_MAC_MDIO_DATA		0x0204
 #define EQOS_5_00_MAC_ARPPA		0x0210
@@ -159,12 +160,14 @@
 #define EQOS_MTL_RXP_IND_CS		0x0CB0
 #define EQOS_MTL_RXP_IND_DATA		0x0CB4
 #define EQOS_MTL_CHX_TX_OP_MODE(x)	((0x0040U * (x)) + 0x0D00U)
+#define EQOS_MTL_TXQ_DEBUG(x)		((0x0040U * (x)) + 0x0D08U)
 #define EQOS_MTL_TXQ_ETS_CR(x)		((0x0040U * (x)) + 0x0D10U)
 #define EQOS_MTL_TXQ_QW(x)		((0x0040U * (x)) + 0x0D18U)
 #define EQOS_MTL_TXQ_ETS_SSCR(x)	((0x0040U * (x)) + 0x0D1CU)
 #define EQOS_MTL_TXQ_ETS_HCR(x)		((0x0040U * (x)) + 0x0D20U)
 #define EQOS_MTL_TXQ_ETS_LCR(x)		((0x0040U * (x)) + 0x0D24U)
 #define EQOS_MTL_CHX_RX_OP_MODE(x)	((0x0040U * (x)) + 0x0D30U)
+#define EQOS_MTL_RXQ_DEBUG(x)		((0x0040U * (x)) + 0x0D38U)
 /** @} */
 
 /**
@@ -238,6 +241,8 @@
 #define EQOS_MAC_VLANTR_DOVLTC			OSI_BIT(20)
 #define EQOS_MAC_VLANTR_ERIVLT			OSI_BIT(27)
 #define EQOS_MAC_VLANTIRR_CSVL			OSI_BIT(19)
+#define EQOS_MAC_DEBUG_RPESTS			OSI_BIT(0)
+#define EQOS_MAC_DEBUG_TPESTS			OSI_BIT(16)
 #define EQOS_DMA_SBUS_BLEN8			OSI_BIT(2)
 #define EQOS_DMA_SBUS_BLEN16			OSI_BIT(3)
 #define EQOS_DMA_SBUS_EAME			OSI_BIT(11)
@@ -322,6 +327,10 @@
 #define EQOS_MTL_OP_MODE_FRPE			OSI_BIT(15)
 #define EQOS_MTL_OP_MODE_DTXSTS			OSI_BIT(1)
 #define EQOS_MAC_EXTR_PDC			OSI_BIT(19)
+#define EQOS_MTL_TXQ_DEBUG_TRCSTS		0x6U
+#define EQOS_MTL_TXQ_DEBUG_TXQSTS		OSI_BIT(4)
+#define EQOS_MTL_RXQ_DEBUG_PRXQ			0x3FFF0000U
+#define EQOS_MTL_RXQ_DEBUG_RXQSTS		0x30U
 #define EQOS_MAC_EXTR_DCRCC			OSI_BIT(16)
 #define EQOS_MAC_EXTR_EIPGEN			OSI_BIT(24)
 #define EQOS_MAC_EXTR_EIPG_MASK			0x3E000000
@@ -561,6 +570,9 @@
 #define EQOS_MTL_EST_ITRE_IEHF			OSI_BIT(2)
 #define EQOS_MTL_EST_ITRE_IEBE			OSI_BIT(1)
 #define EQOS_MTL_EST_ITRE_IECC			OSI_BIT(0)
+/* EQOS RGMII Rx padctrl registers E_INPUT bit */
+#define EQOS_PADCTL_EQOS_E_INPUT	OSI_BIT(6)
+
 /** @} */
 
 void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);

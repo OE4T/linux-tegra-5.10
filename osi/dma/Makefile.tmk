@@ -42,8 +42,7 @@ NV_COMPONENT_SOURCES           := \
 
 NV_COMPONENT_INCLUDES          := \
 	$(NV_SOURCE)/nvethernetrm/include \
-	$(NV_SOURCE)/nvethernetrm/osi/common/include \
-	$(NV_SOURCE)/core/include
+	$(NV_SOURCE)/nvethernetrm/osi/common/include
 
 include $(NV_BUILD_SHARED_LIBRARY)
 endif
