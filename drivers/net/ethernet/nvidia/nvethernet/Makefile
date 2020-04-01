@@ -18,7 +18,8 @@ OSI_DMA := nvethernetrm/osi/dma
 
 obj-$(CONFIG_NVETHERNET) += nvethernet.o
 
-ccflags-y += -DLINUX_IVC -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include \
+ccflags-y += -DLINUX_IVC -DUPDATED_PAD_CAL \
+	     -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include \
 	     -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/osi/common/include
 
 ccflags-y += -DMACSEC_SUPPORT -DNET30 -DMACSEC_DEBUG

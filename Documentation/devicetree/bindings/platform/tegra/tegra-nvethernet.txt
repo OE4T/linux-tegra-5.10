@@ -194,6 +194,11 @@ Required properties:
 				hot bit encoded DMA receive channel selection.
 				(Example for DMA channels 1, 2 and 3 route
 				set value to 0xE)
+- eqos_mii_rx_input_state_disable:	Disables eqos rx pad pins.
+- eqos_mii_rx_input_state_enable:	Enables eqos rx pad pins.
+- nvidia,pad_calibration:	Specifies if pad calibration should be allowed
+				or not. Set to 1 to allow or 0 to disallow
+				pad calibration mode. Default is 1 (allowed).
 - nvidia,max-platform-mtu:	Maximum MTU size supported for a platform.
 				currently it is set to 9000 for embedded
 				platforms. if DT entry is not

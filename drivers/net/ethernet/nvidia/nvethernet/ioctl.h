@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -70,6 +70,8 @@
 #define ETHER_MC_DMA_ROUTE		52
 #define ETHER_READ_REG			53
 #define ETHER_WRITE_REG			54
+#define ETHER_PAD_CALIBRATION		55
+
 /** @} */
 
 /**
