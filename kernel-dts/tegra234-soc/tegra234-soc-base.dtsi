@@ -1205,20 +1205,26 @@
 	nvdisplay@13800000 {
 		compatible = "nvidia,tegra234-display";
 		nvidia,num-dpaux-instance = <1>;
-		reg-names = "nvdisplay", "dpaux0", "dpaux1";
+		reg-names = "nvdisplay", "dpaux0";
 		reg = <0x0 0x13800000 0x0 0xEFFFF    /* nvdisplay */
 		       0x0 0x155C0000 0x0 0xFFFF>;   /* dpaux0 */
 		interrupt-names = "nvdisplay", "dpaux0";
 		interrupts = <0 416 4
 		              0 419 4>;
 		clocks = <&bpmp_clks TEGRA234_CLK_NVDISPLAYHUB>,
-				<&bpmp_clks TEGRA234_CLK_NVDISPLAY_DISP>,
-				<&bpmp_clks TEGRA234_CLK_NVDISPLAY_P0>,
-				<&bpmp_clks TEGRA234_CLK_NVDISPLAY_P1>;
+			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_DISP>,
+			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P0>,
+			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P1>,
+			 <&bpmp_clks TEGRA234_CLK_DPAUX>;
 		clock-names = "display_hub_clk",
-				"display_disp_clk",
-				"display_p_clk0",
-				"display_p_clk1";
+			      "display_disp_clk",
+			      "display_p_clk0",
+			      "display_p_clk1",
+			      "dpaux0_clk";
+		resets = <&bpmp_resets TEGRA234_RESET_NVDISPLAY>,
+			 <&bpmp_resets TEGRA234_RESET_DPAUX>;
+		reset-names = "nvdisplay_reset",
+			      "dpaux0_reset";
 		status = "disabled";
 		iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 		iso-smmu;
