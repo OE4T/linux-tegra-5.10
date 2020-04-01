@@ -23,7 +23,7 @@
 #
 # Execute the unit test. Args to this script are passed on to the unit test
 # core. This just serves to set the LD_LIBRARY_PATH environment variable such
-# that unit tests are found and nvgpu-drv is found.
+# that unit tests are found and nvgpu-drv-igpu is found.
 #
 
 this_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd )"

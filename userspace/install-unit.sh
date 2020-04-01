@@ -116,7 +116,7 @@ fi
 # And copy...
 jcp $nvgpu_bins/userspace-l4t_64/nvgpu_unit              nvgpu_unit/nvgpu_unit
 jcp $nvgpu_bins/userspace-l4t_64/libnvgpu_unit-lib.so    nvgpu_unit/libnvgpu-unit.so
-jcp $nvgpu_bins/drivers/gpu/nvgpu-l4t_64/libnvgpu-drv.so nvgpu_unit/libnvgpu-drv.so
+jcp $nvgpu_bins/drivers/gpu/nvgpu-l4t_64/libnvgpu-drv-igpu.so nvgpu_unit/libnvgpu-drv-igpu.so
 jcp $TOP/kernel/nvgpu/userspace/unit.sh                  nvgpu_unit/unit.sh
 jcp $TOP/kernel/nvgpu/userspace/gcov.sh                  nvgpu_unit/gcov.sh
 jcp $TOP/kernel/nvgpu/userspace/testlist.py              nvgpu_unit/testlist.py

@@ -42,7 +42,7 @@ if [ -d "./build" ]; then
 fi
 
 #Extract the root path of the source code
-NVGPU_SRC_ROOT=$(readelf -p .debug_line $LIB_FOLDER/libnvgpu-drv.so | \
+NVGPU_SRC_ROOT=$(readelf -p .debug_line $LIB_FOLDER/libnvgpu-drv-igpu.so | \
 	grep drivers/gpu/nvgpu/os/posix | sed  's/\s*\[.*\]\s*//g' | \
 	sed 's/drivers\/gpu\/nvgpu\/os\/posix//g' | head -n 1)
 NVGPU_SRC_ROOT=$(realpath $NVGPU_SRC_ROOT)

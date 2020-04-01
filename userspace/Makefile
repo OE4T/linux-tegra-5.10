@@ -104,7 +104,7 @@ all: $(OUT)/nvgpu_unit $(UNITS)
 
 # Convenience targets.
 .PHONY: libnvgpu core units
-libnvgpu: $(OUT)/libnvgpu-drv.so
+libnvgpu: $(OUT)/libnvgpu-drv-igpu.so
 core: $(OUT)/nvgpu_unit
 units: $(UNITS)
 
@@ -114,17 +114,17 @@ units: $(UNITS)
 # used for anything beyond that.
 #
 # Also it really should have its own rule...
-$(OUT)/nvgpu_unit: $(OUT)/libnvgpu-drv.so $(CORE_OBJS)
+$(OUT)/nvgpu_unit: $(OUT)/libnvgpu-drv-igpu.so $(CORE_OBJS)
 	$(CC) -shared -o $(OUT)/libnvgpu_unit.so	\
 		$(CORE_OBJS) $(LIB_PATHS) $(LIBS)
 	$(CC) --coverage	 			\
 		-o $(OUT)/nvgpu_unit $(CORE_OBJS) $(LIB_PATHS) $(LIBS)
 
-$(OUT)/libnvgpu-drv.so: $(OBJS)
-	$(CC) -shared -Wl,--no-undefined -o $(OUT)/libnvgpu-drv.so $(OBJS) -lgcov -rdynamic -lpthread
+$(OUT)/libnvgpu-drv-igpu.so: $(OBJS)
+	$(CC) -shared -Wl,--no-undefined -o $(OUT)/libnvgpu-drv-igpu.so $(OBJS) -lgcov -rdynamic -lpthread
 
 # Default build target for all the nvgpu driver object files we want to build in
-# userspace. These get bundled into libnvgpu-drv.so.
+# userspace. These get bundled into libnvgpu-drv-igpu.so.
 $(NVGPU_OUT)/%.o : $(NVGPU_SRC)/%.c $(HEADERS)
 	@if [ ! -d $(dir $@) ] ; then \
 		mkdir -p $(dir $@) ; \
@@ -132,14 +132,14 @@ $(NVGPU_OUT)/%.o : $(NVGPU_SRC)/%.c $(HEADERS)
 	$(CC) --coverage $(CFLAGS) -c -o $@ $<
 
 # Default build target for all the nvgpu-next driver object files we want to
-# build in userspace. These too get bundled into libnvgpu-drv.so.
+# build in userspace. These too get bundled into libnvgpu-drv-igpu.so.
 $(NVGPU_OUT)/%.o : $(NVGPU_NEXT_SRC)/%.c $(HEADERS) $(HEADERS_NEXT)
 	@if [ ! -d $(dir $@) ] ; then \
 		mkdir -p $(dir $@) ; \
 	fi
 	$(CC) --coverage $(CFLAGS) $(configs) -c -o $@ $<
 
-# Build target for unit test files. These are not part of the libnvgpu-drv.so.
+# Build target for unit test files. These are not part of the libnvgpu-drv-igpu.so.
 # These comprise the unit test framework.
 $(CORE_OUT)/%.o : $(CORE_SRC)/%.c $(CORE_HEADERS)
 	@if [ ! -d $(dir $@) ] ; then \
@@ -152,7 +152,7 @@ export TWD INCLUDES CONFIGS UNIT_SRC UNIT_OUT
 export CC CFLAGS LIB_PATHS LIBS
 
 .PHONY: $(UNITS)
-$(UNITS): $(OUT)/libnvgpu-drv.so
+$(UNITS): $(OUT)/libnvgpu-drv-igpu.so
 	@echo "Building unit module: $@"
 	@+$(MAKE) --no-print-directory -C $@
 

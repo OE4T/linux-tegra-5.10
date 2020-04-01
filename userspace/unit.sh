@@ -23,7 +23,7 @@
 #
 # Execute the unit test. Args to this script are passed on to the unit test
 # core. This just serves to set the LD_LIBRARY_PATH environment variable such
-# that unit tests are found and nvgpu-drv is found.
+# that unit tests are found and nvgpu-drv-igpu is found.
 #
 
 options=$(getopt -o t: --long test-level: -- "$@")
@@ -34,13 +34,13 @@ pushd $this_script_dir
 if [ -f nvgpu_unit ]; then
         # if the executable is in the current directory, we are running on
         # target, so use that dir structure
-        LD_LIBRARY_PATH=".:units"
+        LD_LIBRARY_PATH=".:units/igpu"
         cores=$(cat /proc/cpuinfo |grep processor |wc -l)
 
 	# Ignore number of cores for now; it seems that the parallel unit
 	# tests are just too buggy and that they really don't save much
 	# actual computing time.
-        NVGPU_UNIT="./nvgpu_unit --nvtest --unit-load-path units/ --no-color \
+        NVGPU_UNIT="./nvgpu_unit --nvtest --unit-load-path units/igpu --no-color \
                  --num-threads 1"
 else
         # running on host

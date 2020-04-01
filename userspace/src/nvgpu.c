@@ -31,7 +31,7 @@
  * resolving addresses into symbols easier in the future.
  *
  * Also, this makes people think carefully about what functions to call in
- * nvgpu-drv from the unit test FW. The interaction should really be limited
+ * nvgpu-drv-igpu from the unit test FW. The interaction should really be limited
  * and doing explicit name lookups is a good way to prevent too much coupling.
  */
 int core_load_nvgpu(struct unit_fw *fw)
@@ -43,14 +43,14 @@ int core_load_nvgpu(struct unit_fw *fw)
 	if (fw->args->is_qnx == 0) {
 		/*
 		 * Specify a GLOBAL binding so that subsequently loaded
-		 * unit tests see the nvgpu-drv library. They will of course
+		 * unit tests see the nvgpu-drv-igpu library. They will of course
 		 * need it (and will access it directly). I.e they will link
-		 * against nvgpu-drv and this should satisfy that linkage.
+		 * against nvgpu-drv-igpu and this should satisfy that linkage.
 		 */
 		flag |= RTLD_GLOBAL;
 	}
 
-	/* TODO: WAR: remove this dependency of libnvgpu-drv.so for qnx unit
+	/* TODO: WAR: remove this dependency of libnvgpu-drv-igpu.so for qnx unit
 	 * test, refer NVGPU-1935 for more detail */
 	fw->nvgpu_so = dlopen(load_path, flag);
 

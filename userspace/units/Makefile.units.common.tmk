@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -43,9 +43,12 @@ endif
 
 ifdef NVGPU_UNIT_INCLUDES
 NV_COMPONENT_INCLUDES 		:= \
-				$(NVGPU_UNIT_INCLUDES) \
-				$(NV_SOURCE)/kernel/nvgpu/userspace/units/mock-iospace/include
+				$(NVGPU_UNIT_INCLUDES)
 endif
+NV_COMPONENT_INCLUDES 		+= \
+				$(NV_SOURCE)/kernel/nvgpu/userspace/units/mock-iospace/include \
+				$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu/include \
+				$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
 
 ifdef NVGPU_CFLAGS
 NV_COMPONENT_CFLAGS		:= \
@@ -72,18 +75,22 @@ NV_COMPONENT_SYSTEM_SHARED_LIBRARIES += $(NVGPU_UNIT_SHARED_LIBRARIES)
 endif
 
 ifdef NVGPU_UNIT_INTERFACE_DIRS
-NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
-				$(NVGPU_UNIT_INTERFACE_DIRS) \
-				$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
+NV_COMPONENT_NEEDED_INTERFACE_DIRS += $(NVGPU_UNIT_INTERFACE_DIRS) 
+endif
+ifdef CONFIG_NVGPU_DGPU
+NV_COMPONENT_NEEDED_INTERFACE_DIRS += $(NV_SOURCE)/kernel/nvgpu/libs/dgpu
 else
-NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
-                                $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
+NV_COMPONENT_NEEDED_INTERFACE_DIRS += $(NV_SOURCE)/kernel/nvgpu/libs/igpu
 endif
 
 ifdef NVGPU_SYSTEMIMAGE_DIR
 NV_COMPONENT_SYSTEMIMAGE_DIR := $(NVGPU_SYSTEMIMAGE_DIR)
 else
-NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit/units
+ifdef CONFIG_NVGPU_DGPU
+NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit/units/dgpu
+else
+NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit/units/igpu
+endif
 endif
 
 systemimage:: $(NV_COMPONENT_SYSTEMIMAGE_DIR)

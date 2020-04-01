@@ -23,8 +23,6 @@
 #
 # tmake for SW Mobile component makefile
 #
-# libnvgpu-drv interface makefile fragment
-#
 ###############################################################################
 
 ifdef NV_INTERFACE_FLAG_SHARED_LIBRARY_SECTION

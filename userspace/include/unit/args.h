@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #define stringify(x)			__stringify(x)
 
 #ifndef __DEFAULT_ARG_DRIVER_LOAD_PATH
-#define __DEFAULT_ARG_DRIVER_LOAD_PATH	./libnvgpu-drv.so
+#define __DEFAULT_ARG_DRIVER_LOAD_PATH	./libnvgpu-drv-igpu.so
 #endif
 #define DEFAULT_ARG_DRIVER_LOAD_PATH	stringify(__DEFAULT_ARG_DRIVER_LOAD_PATH)
 

@@ -8,19 +8,11 @@
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 #
-# tmake for SW Mobile component makefile
-#
-# libnvgpu-drv interface makefile fragment
-#
 ###############################################################################
 
 ifdef NV_INTERFACE_FLAG_SHARED_LIBRARY_SECTION
-NV_INTERFACE_NAME             := nvgpu-drv
-ifeq ($(CONFIG_NVGPU_DGPU), 1)
-NV_INTERFACE_EXPORTS         := lib$(NV_INTERFACE_NAME)-dgpu_safe
-else
-NV_INTERFACE_EXPORTS         := lib$(NV_INTERFACE_NAME)_safe
-endif
+NV_INTERFACE_NAME             := nvgpu-drv-igpu
+NV_INTERFACE_EXPORTS          := lib$(NV_INTERFACE_NAME)_safe
 NV_INTERFACE_PUBLIC_INCLUDES  := . include
 endif
 

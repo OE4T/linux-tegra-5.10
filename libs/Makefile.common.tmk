@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2018-2020 NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2020, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -13,7 +13,7 @@
 ###############################################################################
 
 ifdef NV_COMPONENT_FLAG_SHARED_LIBRARY_SECTION
-include $(NV_BUILD_START_COMPONENT)
+NVGPU_SOURCE := $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
 
 # Architecture script. This validates our YAML architecture against the
 # source code we have.
@@ -32,20 +32,18 @@ ARCH_PY				:= $(NV_SOURCE)/core-private/tools/arch/arch.py
 #
 # NVGPU_NEXT_SOURCE needs to be set for the Makefile.sources file to
 # properly handle include paths.
-NVGPU_NEXT_SOURCE := \
-		$(NV_COMPONENT_DIR)/../../../../nvgpu-next/drivers/gpu/nvgpu
+NVGPU_NEXT_SOURCE := $(NV_SOURCE)/kernel/nvgpu-next/drivers/gpu/nvgpu
 
 NVGPU_POSIX			:= 1
-NVGPU_ARCH			:= $(NV_COMPONENT_DIR)/../../../arch
-NVGPU_NEXT_ARCH			:= $(NVGPU_NEXT_SOUCRE)/../../../arch
+NVGPU_ARCH			:= $(NVGPU_SOURCE)/../../../arch
+NVGPU_NEXT_ARCH			:= $(NVGPU_NEXT_SOURCE)/../../../arch
 NVGPU_ARCH_YAML                 := $(NVGPU_ARCH)/*.yaml $(NVGPU_NEXT_ARCH)/*.yaml
 
-NV_COMPONENT_NAME		:= nvgpu-drv
 NV_COMPONENT_OWN_INTERFACE_DIR	:= .
 NV_COMPONENT_INCLUDES		:=				\
-		.						\
-		include						\
-		../../../include				\
+		$(NVGPU_SOURCE)					\
+		$(NVGPU_SOURCE)/include				\
+		$(NVGPU_SOURCE)/../../../include		\
 		$(NVGPU_NEXT_SOURCE)				\
 		$(NVGPU_NEXT_SOURCE)/include			\
 		$(NVGPU_NEXT_SOURCE)/../../../include
@@ -59,7 +57,7 @@ NV_COMPONENT_CFLAGS		+=    \
 	-DCONFIG_NVGPU_SUPPORT_TURING \
 	-D__NVGPU_UNIT_TEST__
 
--include $(NV_COMPONENT_DIR)/Makefile.shared.configs
+-include $(NVGPU_SOURCE)/Makefile.shared.configs
 NV_COMPONENT_CFLAGS             += $(NVGPU_COMMON_CFLAGS)
 
 NVGPU_FAULT_INJECTION_ENABLEMENT := 1
@@ -67,11 +65,11 @@ NV_COMPONENT_CFLAGS              += -DNVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 
 _NV_TOOLCHAIN_CFLAGS            += -rdynamic -g
 
--include $(NV_COMPONENT_DIR)/Makefile.sources
+-include $(NVGPU_SOURCE)/Makefile.sources
 -include $(NVGPU_NEXT_SOURCE)/Makefile.sources
 
 NV_COMPONENT_SOURCES		:=				\
-		$(srcs)			   			\
+		$(addprefix $(NVGPU_SOURCE)/,$(srcs))	\
 		$(addprefix $(NVGPU_NEXT_SOURCE)/,$(srcs_next))
 
 # $(srcs_next) already has the NV_COMPONENT_DIR prefix so we already have the
@@ -79,7 +77,7 @@ NV_COMPONENT_SOURCES		:=				\
 # those with the absolute path.
 SRC_DEPS                        := srcs_next
 SRC_DEPS                        +=				\
-		$(addprefix $(NV_COMPONENT_DIR)/,$(srcs))
+		$(addprefix $(NVGPU_SOURCE)/,$(srcs))
 
 #
 # A little bit of magic to get tmake to execute the arch.py python script
@@ -97,7 +95,7 @@ $(NVGPU_ARCH_YAML): nvgpu-arch
 nvgpu-arch: $(ARCH_PY)
 	$(PYTHON2) $(ARCH_PY)				\
 		--arch-file $(NVGPU_ARCH)/nvgpu.yaml	\
-		--source    $(NV_COMPONENT_DIR)		\
+		--source    $(NVGPU_SOURCE)		\
 		sources --check
 
 .PHONY: nvgpu-arch
@@ -106,8 +104,7 @@ NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_u
 systemimage:: $(NV_COMPONENT_SYSTEMIMAGE_DIR)
 $(NV_COMPONENT_SYSTEMIMAGE_DIR) : $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)
 	$(MKDIR_P) $@
-NV_COMPONENT_SYSTEMIMAGE_NAME	:= libnvgpu-drv.so
-include $(NV_BUILD_SHARED_LIBRARY)
+NV_COMPONENT_SYSTEMIMAGE_NAME	:= lib$(NV_COMPONENT_NAME).so
 endif
 
 # Local Variables:

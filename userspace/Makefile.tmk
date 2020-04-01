@@ -37,7 +37,6 @@ NVGPU_UNIT_COMMON_INCLUDES	:= \
                                 ../drivers/gpu/nvgpu \
                                 ../drivers/gpu/nvgpu/include
 
-
 ifdef NV_COMPONENT_FLAG_NVTEST_EXECUTABLE_SECTION
 include $(NV_BUILD_START_COMPONENT)
 
@@ -49,7 +48,11 @@ NV_COMPONENT_SOURCES		:= \
 NV_COMPONENT_INCLUDES		:= \
 				$(NVGPU_UNIT_COMMON_INCLUDES)
 
-NV_COMPONENT_NEEDED_INTERFACE_DIRS := ../drivers/gpu/nvgpu
+ifndef NVGPU_UNIT_GPU
+NVGPU_UNIT_GPU			:= igpu
+endif
+
+NV_COMPONENT_NEEDED_INTERFACE_DIRS := ../libs/$(NVGPU_UNIT_GPU)
 
 ifneq ($(NV_BUILD_CONFIGURATION_OS_IS_QNX),1)
 NV_COMPONENT_SYSTEM_SHARED_LIBRARIES += pthread
