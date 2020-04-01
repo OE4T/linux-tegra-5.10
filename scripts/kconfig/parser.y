@@ -248,7 +248,7 @@ choice_entry: choice choice_option_list
 	$$ = menu_add_menu();
 };
 
-append_choice_entry: T_APPEND_CHOICE prompt T_EOL
+append_choice_entry: T_APPEND_CHOICE T_WORD_QUOTE T_EOL
 {
 	printd(DEBUG_PARSE, "%s:%d:append_choice\n", zconf_curname(), zconf_lineno());
 	$$ = menu_append_choice($2);
@@ -355,7 +355,7 @@ menu_entry: menu menu_option_list
 	$$ = menu_add_menu();
 };
 
-append_menu_entry: T_APPEND_MENU prompt T_EOL
+append_menu_entry: T_APPEND_MENU T_WORD_QUOTE T_EOL
 {
 	printd(DEBUG_PARSE, "%s:%d:append_menu\n", zconf_curname(), zconf_lineno());
 	$$ = menu_append_entry($2);
