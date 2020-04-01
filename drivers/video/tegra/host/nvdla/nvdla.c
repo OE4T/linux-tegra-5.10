@@ -37,7 +37,9 @@
 #include "nvhost_syncpt_unit_interface.h"
 
 #include "t194/t194.h"
-
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+#include "t23x/t23x.h"
+#endif
 
 #include "nvdla/nvdla.h"
 #include "nvdla/dla_queue.h"
@@ -695,6 +697,16 @@ static struct of_device_id tegra_nvdla_of_match[] = {
 		.name = "nvdla1",
 		.compatible = "nvidia,tegra194-nvdla",
 		.data = (struct nvhost_device_data *)&t19_nvdla1_info },
+#ifdef CONFIG_TEGRA_T23X_GRHOST
+	{
+		.name = "nvdla0",
+		.compatible = "nvidia,tegra234-nvdla",
+		.data = (struct nvhost_device_data *)&t23x_nvdla0_info },
+	{
+		.name = "nvdla1",
+		.compatible = "nvidia,tegra234-nvdla",
+		.data = (struct nvhost_device_data *)&t23x_nvdla1_info },
+#endif
 	{ },
 };
 

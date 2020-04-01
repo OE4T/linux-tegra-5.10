@@ -17,3 +17,9 @@ nvhost-nvdla-objs  = \
 obj-$(CONFIG_TEGRA_GRHOST_NVDLA) += nvhost-nvdla.o
 
 endif
+
+ifdef CONFIG_TEGRA_T23X_GRHOST
+
+ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
+
+endif
