@@ -573,8 +573,9 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
 
 		/*
-		 * wait_cmd can be unset even if flag_fence_wait exists. See
-		 * the expiration check in channel_sync_syncpt_gen_wait_cmd.
+		 * wait_cmd can be unset even if flag_fence_wait exists; the
+		 * android sync framework for example can provide entirely
+		 * empty fences that act like trivially expired waits.
 		 */
 		if (wait_cmd != NULL) {
 			nvgpu_submit_append_priv_cmdbuf(c, wait_cmd);

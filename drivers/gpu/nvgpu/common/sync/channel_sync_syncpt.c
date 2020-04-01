@@ -60,31 +60,21 @@ static int channel_sync_syncpt_gen_wait_cmd(struct nvgpu_channel *c,
 	u32 wait_cmd_size, u32 pos, bool preallocated)
 {
 	int err = 0;
-	bool is_expired = nvgpu_nvhost_syncpt_is_expired_ext(
-		c->g->nvhost, id, thresh);
 
-	if (is_expired) {
-		if (preallocated) {
-			nvgpu_memset(c->g, wait_cmd->mem,
-			(wait_cmd->off + pos * wait_cmd_size) * (u32)sizeof(u32),
-				0, wait_cmd_size * (u32)sizeof(u32));
+	if (!preallocated) {
+		err = nvgpu_channel_alloc_priv_cmdbuf(c,
+			c->g->ops.sync.syncpt.get_wait_cmd_size(),
+			wait_cmd);
+		if (err != 0) {
+			nvgpu_err(c->g, "not enough priv cmd buffer space");
+			return err;
 		}
-	} else {
-		if (!preallocated) {
-			err = nvgpu_channel_alloc_priv_cmdbuf(c,
-				c->g->ops.sync.syncpt.get_wait_cmd_size(),
-				wait_cmd);
-			if (err != 0) {
-				nvgpu_err(c->g, "not enough priv cmd buffer space");
-				return err;
-			}
-		}
-		nvgpu_log(c->g, gpu_dbg_info, "sp->id %d gpu va %llx",
-				id, c->vm->syncpt_ro_map_gpu_va);
-		c->g->ops.sync.syncpt.add_wait_cmd(c->g, wait_cmd,
-			pos * wait_cmd_size, id, thresh,
-			c->vm->syncpt_ro_map_gpu_va);
 	}
+	nvgpu_log(c->g, gpu_dbg_info, "sp->id %d gpu va %llx",
+			id, c->vm->syncpt_ro_map_gpu_va);
+	c->g->ops.sync.syncpt.add_wait_cmd(c->g, wait_cmd,
+		pos * wait_cmd_size, id, thresh,
+		c->vm->syncpt_ro_map_gpu_va);
 
 	return 0;
 }
