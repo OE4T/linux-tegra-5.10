@@ -171,11 +171,15 @@
 #define OSI_LOG_ARG_OUTOFBOUND          1U
 #define OSI_LOG_ARG_INVALID		2U
 #define OSI_LOG_ARG_HW_FAIL		4U
+#define OSI_LOG_WARN			2U
 #ifndef OSI_STRIPPED_LIB
 #define OSI_LOG_ARG_OPNOTSUPP		3U
 #endif /* !OSI_STRIPPED_LIB */
 /* Default maximum Giant Packet Size Limit is 16K */
 #define OSI_MAX_MTU_SIZE	16383U
+/* MAC Tx/Rx Idle retry and delay count */
+#define OSI_TXRX_IDLE_RETRY	5000U
+#define OSI_DELAY_COUNT		10U
 
 #define EQOS_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x1160U)
 #define MGBE_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x3160U)
