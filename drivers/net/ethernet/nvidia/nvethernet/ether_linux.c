@@ -296,6 +296,31 @@ static inline void ether_stats_work_queue_stop(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief do PAD calibration
+ *
+ * Algorithm: Takes care of  doing the pad calibration
+ *	      accordingly as per the MAC IP.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure or pad calibration already in progress.
+ */
+static int ether_pad_calibrate(struct ether_priv_data *pdata)
+{
+	int ret = -1;
+	struct osi_ioctl ioctl_data = {};
+
+	if (atomic_read(&pdata->padcal_in_progress) == 0) {
+		atomic_set(&pdata->padcal_in_progress, OSI_ENABLE);
+		ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+		atomic_set(&pdata->padcal_in_progress, OSI_DISABLE);
+	}
+	return ret;
+}
+
+/**
  * @brief Disable all MAC MGBE related clks
  *
  * Algorithm: Release the reference counter for the clks by using
@@ -932,9 +957,7 @@ static void ether_adjust_link(struct net_device *dev)
 			ether_set_eqos_tx_clk(pdata->tx_clk,
 					      phydev->speed);
 			if (phydev->speed != SPEED_10) {
-				ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
-				if (osi_handle_ioctl(pdata->osi_core,
-						     &ioctl_data) < 0) {
+				if (ether_pad_calibrate(pdata) < 0) {
 					dev_err(pdata->dev,
 						"failed to do pad caliberation\n");
 				}
@@ -2277,6 +2300,7 @@ static int ether_open(struct net_device *dev)
 		goto err_poll_swr;
 	}
 
+	atomic_set(&pdata->padcal_in_progress, OSI_DISABLE);
 	/* PHY reset and initialization */
 	ret = ether_phy_init(dev);
 	if (ret < 0) {
@@ -2344,6 +2368,12 @@ static int ether_open(struct net_device *dev)
 				__func__, chan);
 			goto err_hw_init;
 		}
+	}
+
+	ret = ether_pad_calibrate(pdata);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to do pad caliberation\n");
+		goto err_hw_init;
 	}
 
 	/* As all registers reset as part of ether_close(), reset private
@@ -4975,6 +5005,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	struct device_node *np = dev->of_node;
 	int ret = -EINVAL;
 	unsigned int i, mtlq, chan, bitmap;
+	unsigned int dt_pad_calibration_enable;
 
 	/* read ptp clock */
 	ret = of_property_read_u32(np, "nvidia,ptp_ref_clock_speed",
@@ -5366,6 +5397,43 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		goto exit;
 	}
 
+	if (osi_core->mac == OSI_MAC_HW_EQOS) {
+		/* Read pad calibration enable/disable input, default enable */
+		ret = of_property_read_u32(np, "nvidia,pad_calibration",
+					   &dt_pad_calibration_enable);
+		if (ret < 0) {
+			dev_info(dev, "missing nvidia,pad_calibration enabling by default\n");
+			osi_core->padctrl.pad_calibration_enable = OSI_ENABLE;
+		} else if ((dt_pad_calibration_enable != OSI_ENABLE) &&
+			   (dt_pad_calibration_enable != OSI_DISABLE)) {
+			dev_info(dev, "Wrong dt pad_calibration: %u, setting by default\n",
+				 dt_pad_calibration_enable);
+			osi_core->padctrl.pad_calibration_enable = OSI_ENABLE;
+		} else {
+			osi_core->padctrl.pad_calibration_enable = dt_pad_calibration_enable;
+		}
+
+		pdata->pin = devm_pinctrl_get(dev);
+		if (IS_ERR(pdata->pin)) {
+			dev_err(dev, "DT: missing eqos pinctrl device\n");
+			ret = PTR_ERR(pdata->pin);
+			goto exit;
+		}
+		pdata->mii_rx_enable_state = pinctrl_lookup_state(pdata->pin,
+							"mii_rx_enable");
+		if (IS_ERR(pdata->mii_rx_enable_state)) {
+			dev_err(dev, "DT: missing eqos rx pin enabled state\n");
+			ret = PTR_ERR(pdata->pin);
+			goto exit;
+		}
+		pdata->mii_rx_disable_state = pinctrl_lookup_state(pdata->pin,
+							"mii_rx_disable");
+		if (IS_ERR(pdata->mii_rx_disable_state)) {
+			dev_err(dev, "DT: missing eqos rx pin disabled state\n");
+			ret = PTR_ERR(pdata->pin);
+			goto exit;
+		}
+	}
 exit:
 	return ret;
 }
@@ -6024,8 +6092,7 @@ static int ether_resume(struct ether_priv_data *pdata)
 		}
 	}
 
-	ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	ret = ether_pad_calibrate(pdata);
 	if (ret < 0) {
 		dev_err(dev, "failed to do pad caliberation\n");
 		return ret;

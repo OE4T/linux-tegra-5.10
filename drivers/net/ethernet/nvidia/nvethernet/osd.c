@@ -504,6 +504,7 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 	osi_core->osd_ops.udelay = osd_udelay;
 	osi_core->osd_ops.usleep_range = osd_usleep_range;
 	osi_core->osd_ops.msleep = osd_msleep;
+	osi_core->osd_ops.padctrl_mii_rx_pins = ether_padctrl_mii_rx_pins;
 
 	osi_dma->osd_ops.transmit_complete = osd_transmit_complete;
 	osi_dma->osd_ops.receive_packet = osd_receive_packet;
@@ -585,6 +586,29 @@ fail:
 	mutex_unlock(&ictxt->ivck_lock);
 	if (is_atomic) {
 		preempt_disable();
+	}
+	return ret;
+}
+
+int ether_padctrl_mii_rx_pins(void *priv, unsigned int enable)
+{
+	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
+	int ret = 0;
+
+	if (enable == OSI_ENABLE) {
+		ret = pinctrl_select_state(pdata->pin,
+					   pdata->mii_rx_enable_state);
+		if (ret < 0) {
+			dev_err(pdata->dev, "pinctrl enable state failed %d\n",
+				ret);
+		}
+	} else if (enable == OSI_DISABLE) {
+		ret = pinctrl_select_state(pdata->pin,
+					   pdata->mii_rx_disable_state);
+		if (ret < 0) {
+			dev_err(pdata->dev, "pinctrl disable state failed %d\n",
+				ret);
+		}
 	}
 	return ret;
 }

@@ -508,6 +508,14 @@ struct ether_priv_data {
 	struct list_head tx_ts_skb_head;
 	/** pre allocated memory for ether_tx_ts_skb_list list */
 	struct ether_tx_ts_skb_list tx_ts_skb[ETHER_MAX_PENDING_SKB_CNT];
+	/** Atomic variable to hold the current pad calibration status */
+	atomic_t padcal_in_progress;
+	/** eqos dev pinctrl handle */
+	struct pinctrl		*pin;
+	/** eqos rgmii rx input pins enable state */
+	struct pinctrl_state	*mii_rx_enable_state;
+	/** eqos rgmii rx input pins disable state */
+	struct pinctrl_state	*mii_rx_disable_state;
 };
 
 /**
@@ -582,6 +590,17 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 			       struct ifreq *ifr);
 int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable);
+
+/**
+ * @brief ether_padctrl_mii_rx_pins - Enable/Disable RGMII Rx pins.
+ *
+ * @param[in] priv: OSD private data structure.
+ * @param[in] enable: Enable/Disable EQOS RGMII Rx pins
+ *
+ * @retval 0 on success
+ * @retval negative value on failure.
+ */
+int ether_padctrl_mii_rx_pins(void *priv, unsigned int enable);
 
 #if IS_ENABLED(CONFIG_NVETHERNET_SELFTESTS)
 void ether_selftest_run(struct net_device *dev,

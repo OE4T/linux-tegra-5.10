@@ -829,6 +829,40 @@ static int ether_reg_save_restore(struct net_device *ndev,
 
 /**
  * @brief This function is invoked by ioctl when user issues an ioctl command
+ * to enable/disable pad calibration at run time.
+ *
+ * Algorithm: set/reset the priv data structure flag to control involking pad
+ * pad calibration function
+ *
+ * @param[in] ndev: network device structure
+ * @param[in] flags: flags to indicate whether to disable/enable pad
+ *		     calirabration
+ *
+ * @note Ethernet interface need to be up.
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_pad_calibration(struct net_device *ndev,
+				 unsigned int flags)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	if (flags == OSI_ENABLE) {
+		osi_core->padctrl.pad_calibration_enable = OSI_ENABLE;
+	} else if (flags == OSI_DISABLE) {
+		osi_core->padctrl.pad_calibration_enable = OSI_DISABLE;
+	} else {
+		dev_err(pdata->dev, "Invalid flag values:%d\n", flags);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief This function is invoked by ioctl when user issues an ioctl command
  * to enable/disable MAC loopback mode.
  *
  * Algorithm:
@@ -1072,6 +1106,7 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	case EQOS_L2_DA_FILTERING_CMD:
 	case ETHER_CONFIG_ARP_OFFLOAD:
 	case ETHER_CONFIG_LOOPBACK_MODE:
+	case ETHER_PAD_CALIBRATION:
 		if (!capable(CAP_NET_ADMIN)) {
 			ret = -EPERM;
 			dev_info(pdata->dev,
@@ -1190,6 +1225,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		ioctl_data.arg2_u32 = ifdata.if_flags;
 		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 		ifdata.qinx = ret;
+		break;
+	case ETHER_PAD_CALIBRATION:
+		ret = ether_pad_calibration(ndev, ifdata.if_flags);
 		break;
 	default:
 		break;
