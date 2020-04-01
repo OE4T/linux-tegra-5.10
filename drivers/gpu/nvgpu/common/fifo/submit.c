@@ -460,6 +460,8 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		 *   allocated, not pooled)
 		 * - dependency on sync framework for post fences
 		 * - buffer refcounting, which is O(n)
+		 * - aggressive sync destroy is enabled (sync objects are not
+		 *   held during channel lifetime but refcounted for submits)
 		 * - channel wdt, which needs periodic async cleanup
 		 *
 		 * If none of the conditions are met, then deferred clean-up
@@ -469,7 +471,8 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		need_deferred_cleanup = !nvgpu_channel_is_deterministic(c) ||
 					!nvgpu_has_syncpoints(g) ||
 					(flag_sync_fence && flag_fence_get) ||
-					!skip_buffer_refcounting;
+					!skip_buffer_refcounting ||
+					g->aggressive_sync_destroy_thresh != 0U;
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
 		need_deferred_cleanup = need_deferred_cleanup || c->wdt.enabled;

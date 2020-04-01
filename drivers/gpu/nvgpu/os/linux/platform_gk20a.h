@@ -61,7 +61,7 @@ enum tegra_chip_id {
 	TEGRA_186,
 	TEGRA_194,
 	TEGRA_194_VGPU,
-	TEGRA_124_VGPU,
+	TEGRA_186_VGPU,
 	TEGRA_234,
 };
 

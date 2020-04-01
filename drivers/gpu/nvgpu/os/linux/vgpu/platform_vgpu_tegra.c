@@ -67,8 +67,6 @@ struct gk20a_platform vgpu_tegra_platform = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	.has_syncpoints = true,
 #endif
-	.aggressive_sync_destroy_thresh = 64,
-
 	/* power management configuration */
 	.can_railgate_init	= false,
 	.can_elpg_init          = false,
@@ -88,7 +86,7 @@ struct gk20a_platform vgpu_tegra_platform = {
 	.clk_round_rate = vgpu_plat_clk_round_rate,
 	.get_clk_freqs = vgpu_plat_clk_get_freqs,
 
-	.platform_chip_id = TEGRA_124_VGPU,
+	.platform_chip_id = TEGRA_186_VGPU,
 
 	/* frequency scaling configuration */
 	.devfreq_governor = "userspace",
