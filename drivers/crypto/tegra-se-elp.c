@@ -2855,7 +2855,7 @@ static int tegra_se_eddsa_gen_pub_key(struct crypto_akcipher *tfm,
 	u32 *secret_hash = NULL;
 	int i, j;
 	unsigned int nbytes = curve->nbytes, nwords = ctx->nwords;
-	u32 h0[nwords], h1[nwords];
+	u32 h0[SHA512_WORDS], h1[SHA512_WORDS];
 	struct tegra_se_ecc_point *pk = NULL;
 	int ret = 0;
 
@@ -4108,10 +4108,10 @@ static int tegra_se_ecdsa_sign(struct akcipher_request *req)
 	int nbytes = curve->nbytes;
 	int nwords = nbytes / WORD_SIZE_BYTES;
 	unsigned int ndigits = nwords / 2;
-	u64 z[ndigits], d[ndigits];
-	u64 k[ndigits], k_inv[ndigits];
-	u64 r[ndigits], s[ndigits];
-	u64 dr[ndigits], zdr[ndigits];
+	u64 z[ECC_MAX_DIGITS], d[ECC_MAX_DIGITS];
+	u64 k[ECC_MAX_DIGITS], k_inv[ECC_MAX_DIGITS];
+	u64 r[ECC_MAX_DIGITS], s[ECC_MAX_DIGITS];
+	u64 dr[ECC_MAX_DIGITS], zdr[ECC_MAX_DIGITS];
 	u8 *r_ptr, *s_ptr;
 	int ret = -ENOMEM;
 	int mod_op_mode;
@@ -4206,9 +4206,9 @@ static int tegra_se_ecdsa_verify(struct akcipher_request *req)
 	unsigned int nwords = nbytes / WORD_SIZE_BYTES;
 	unsigned int ndigits = nwords / 2;
 	u64 *ctx_qx, *ctx_qy;
-	u64 r[ndigits], s[ndigits], v[ndigits];
-	u64 z[ndigits], w[ndigits];
-	u64 u1[ndigits], u2[ndigits];
+	u64 r[ECC_MAX_DIGITS], s[ECC_MAX_DIGITS], v[ECC_MAX_DIGITS];
+	u64 z[ECC_MAX_DIGITS], w[ECC_MAX_DIGITS];
+	u64 u1[ECC_MAX_DIGITS], u2[ECC_MAX_DIGITS];
 	int mod_op_mode;
 	int ret = -ENOMEM;
 
