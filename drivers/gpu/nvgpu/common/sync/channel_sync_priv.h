@@ -76,8 +76,6 @@ struct nvgpu_channel_sync_ops {
 
 	void (*set_min_eq_max)(struct nvgpu_channel_sync *s);
 
-	void (*set_safe_state)(struct nvgpu_channel_sync *s);
-
 	void (*destroy)(struct nvgpu_channel_sync *s);
 };
 

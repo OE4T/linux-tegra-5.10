@@ -293,11 +293,6 @@ static void channel_sync_semaphore_set_min_eq_max(struct nvgpu_channel_sync *s)
 	}
 }
 
-static void channel_sync_semaphore_set_safe_state(struct nvgpu_channel_sync *s)
-{
-	/* Nothing to do. */
-}
-
 static void channel_sync_semaphore_destroy(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_semaphore *sema =
@@ -322,7 +317,6 @@ static const struct nvgpu_channel_sync_ops channel_sync_semaphore_ops = {
 	.incr			= channel_sync_semaphore_incr,
 	.incr_user		= channel_sync_semaphore_incr_user,
 	.set_min_eq_max		= channel_sync_semaphore_set_min_eq_max,
-	.set_safe_state		= channel_sync_semaphore_set_safe_state,
 	.destroy		= channel_sync_semaphore_destroy,
 };
 

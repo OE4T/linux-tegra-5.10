@@ -48,18 +48,6 @@ struct priv_cmd_entry;
  */
 u32 nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s);
 
-/**
- * @brief Get syncpoint address
- *
- * @param s [in]	Syncpoint pointer.
- *
- * Get syncpoint GPU VA. This address can be used in push buffer entries
- * for acquire/release operations.
- *
- * @return Syncpoint address (GPU VA) of syncpoint or 0 if not supported
- */
-u64 nvgpu_channel_sync_get_syncpt_address(struct nvgpu_channel_sync_syncpt *s);
-
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 /*
  * Generate a gpu wait cmdbuf from raw fence(can be syncpoints or semaphores).

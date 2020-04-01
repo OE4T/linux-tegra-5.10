@@ -94,16 +94,7 @@ bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s)
 	return nvgpu_atomic_dec_and_test(&s->refcount);
 }
 
-void nvgpu_channel_sync_set_safe_state(struct nvgpu_channel_sync *s)
+void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync)
 {
-	s->ops->set_safe_state(s);
-}
-
-void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
-	bool set_safe_state)
-{
-	if (set_safe_state) {
-		sync->ops->set_safe_state(sync);
-	}
 	sync->ops->destroy(sync);
 }

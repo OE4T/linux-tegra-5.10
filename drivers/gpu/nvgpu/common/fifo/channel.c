@@ -232,7 +232,7 @@ static void channel_kernelmode_deinit(struct nvgpu_channel *ch)
 	/* sync must be destroyed before releasing channel vm */
 	nvgpu_mutex_acquire(&ch->sync_lock);
 	if (ch->sync != NULL) {
-		nvgpu_channel_sync_destroy(ch->sync, false);
+		nvgpu_channel_sync_destroy(ch->sync);
 		ch->sync = NULL;
 	}
 	nvgpu_mutex_release(&ch->sync_lock);
@@ -785,7 +785,7 @@ clean_up_prealloc:
 	}
 clean_up_sync:
 	if (c->sync != NULL) {
-		nvgpu_channel_sync_destroy(c->sync, false);
+		nvgpu_channel_sync_destroy(c->sync);
 		c->sync = NULL;
 	}
 clean_up_unmap:
@@ -1382,8 +1382,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 				nvgpu_mutex_acquire(&c->sync_lock);
 				if (nvgpu_channel_sync_put_ref_and_check(c->sync)
 					&& g->aggressive_sync_destroy) {
-					nvgpu_channel_sync_destroy(c->sync,
-						false);
+					nvgpu_channel_sync_destroy(c->sync);
 					c->sync = NULL;
 				}
 				nvgpu_mutex_release(&c->sync_lock);

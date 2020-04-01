@@ -306,21 +306,9 @@ static void channel_sync_syncpt_set_min_eq_max(struct nvgpu_channel_sync *s)
 	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost, sp->id);
 }
 
-static void channel_sync_syncpt_set_safe_state(struct nvgpu_channel_sync *s)
-{
-	struct nvgpu_channel_sync_syncpt *sp =
-		nvgpu_channel_sync_syncpt_from_base(s);
-	nvgpu_nvhost_syncpt_set_safe_state(sp->nvhost, sp->id);
-}
-
 static u32 channel_sync_syncpt_get_id(struct nvgpu_channel_sync_syncpt *sp)
 {
 	return sp->id;
-}
-
-static u64 channel_sync_syncpt_get_address(struct nvgpu_channel_sync_syncpt *sp)
-{
-	return sp->syncpt_buf.gpu_va;
 }
 
 static void channel_sync_syncpt_destroy(struct nvgpu_channel_sync *s)
@@ -341,17 +329,11 @@ u32 nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s)
 	return channel_sync_syncpt_get_id(s);
 }
 
-u64 nvgpu_channel_sync_get_syncpt_address(struct nvgpu_channel_sync_syncpt *s)
-{
-	return channel_sync_syncpt_get_address(s);
-}
-
 static const struct nvgpu_channel_sync_ops channel_sync_syncpt_ops = {
 	.wait_fence_fd		= channel_sync_syncpt_wait_fd,
 	.incr			= channel_sync_syncpt_incr,
 	.incr_user		= channel_sync_syncpt_incr_user,
 	.set_min_eq_max		= channel_sync_syncpt_set_min_eq_max,
-	.set_safe_state		= channel_sync_syncpt_set_safe_state,
 	.destroy		= channel_sync_syncpt_destroy,
 };
 

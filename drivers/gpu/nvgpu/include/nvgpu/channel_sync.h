@@ -88,24 +88,13 @@ bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s);
 #endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 
 /**
- * @brief Set the channel syncpoint/semaphore to safe state
- *
- * @param sync [in]	Pointer to syncpoint/semaphore.
- *
- * This should be used to reset User managed syncpoint since we don't
- * track threshold values for those syncpoints
- */
-void nvgpu_channel_sync_set_safe_state(struct nvgpu_channel_sync *s);
-
-/**
  * @brief Free channel syncpoint/semaphore
  *
  * @param sync [in]	Pointer to syncpoint/semaphore.
  *
  * Free the resources allocated by nvgpu_channel_sync_create.
  */
-void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
-	bool set_safe_state);
+void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync);
 
 /**
  * @brief Create channel syncpoint/semaphore
