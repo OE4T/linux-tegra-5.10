@@ -678,6 +678,11 @@ static void tegra_uart_copy_rx_to_tty(struct tegra_uart_port *tup,
 	if (tup->uport.ignore_status_mask & UART_LSR_DR)
 		return;
 
+	if (!tup->rx_dma_buf_virt) {
+		dev_err(tup->uport.dev, "No rx dma buf virtual address\n");
+		return;
+	}
+
 	dma_sync_single_for_cpu(tup->uport.dev, tup->rx_dma_buf_phys,
 				TEGRA_UART_RX_DMA_BUFFER_SIZE, DMA_FROM_DEVICE);
 	copied = tty_insert_flip_string(tty,
@@ -745,6 +750,11 @@ done:
 static void tegra_uart_handle_rx_dma(struct tegra_uart_port *tup)
 {
 	struct dma_tx_state state;
+
+	if (!tup->rx_dma_chan) {
+		dev_err(tup->uport.dev, "No rx dma channel\n");
+		return;
+	}
 
 	/* Deactivate flow control to stop sender */
 	if (tup->rts_active && tup->is_hw_flow_enabled)
@@ -929,7 +939,9 @@ static void tegra_uart_hw_deinit(struct tegra_uart_port *tup)
 	unsigned long mcr;
 
 	/* Disable interrupts */
+	spin_lock_irqsave(&tup->uport.lock, flags);
 	tegra_uart_write(tup, 0, UART_IER);
+	spin_unlock_irqrestore(&tup->uport.lock, flags);
 
 	lsr = tegra_uart_read(tup, UART_LSR);
 	if ((lsr & UART_LSR_TEMT) != UART_LSR_TEMT) {
@@ -1246,8 +1258,8 @@ static void tegra_uart_shutdown(struct uart_port *u)
 {
 	struct tegra_uart_port *tup = to_tegra_uport(u);
 
-	tegra_uart_hw_deinit(tup);
 	free_irq(u->irq, tup);
+	tegra_uart_hw_deinit(tup);
 }
 
 static void tegra_uart_enable_ms(struct uart_port *u)
