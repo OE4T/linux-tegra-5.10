@@ -15,7 +15,7 @@
 
 #include "internal.h"
 
-static const char *const regulator_states[PM_SUSPEND_MAX + 1] = {
+static const char *const regulator_states[(__force int) PM_SUSPEND_MAX + 1] = {
 	[PM_SUSPEND_STANDBY]	= "regulator-state-standby",
 	[PM_SUSPEND_MEM]	= "regulator-state-mem",
 	[PM_SUSPEND_MAX]	= "regulator-state-disk",
@@ -195,7 +195,7 @@ static int of_get_regulation_constraints(struct device *dev,
 					"regulator-over-current-protection");
 
 	for (i = 0; i < ARRAY_SIZE(regulator_states); i++) {
-		switch (i) {
+		switch ((__force suspend_state_t) i) {
 		case PM_SUSPEND_MEM:
 			suspend_state = &constraints->state_mem;
 			break;
@@ -255,7 +255,7 @@ static int of_get_regulation_constraints(struct device *dev,
 					"regulator-changeable-in-suspend"))
 			suspend_state->changeable = true;
 
-		if (i == PM_SUSPEND_MEM)
+		if ((__force suspend_state_t) i == PM_SUSPEND_MEM)
 			constraints->initial_state = PM_SUSPEND_MEM;
 
 		of_node_put(suspend_np);
