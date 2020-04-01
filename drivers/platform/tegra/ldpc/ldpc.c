@@ -17,6 +17,8 @@
 #include <linux/io.h>
 #include <linux/uaccess.h>
 #include <linux/errno.h>
+#include <linux/debugfs.h>
+
 
 struct ldpc_devdata {
 	struct class *class;
@@ -24,6 +26,8 @@ struct ldpc_devdata {
 	struct device *dev;
 	dev_t dev_nr;
 	struct platform_device *pdev;
+	struct dentry *debugfs_dir;
+	struct dentry *fv;
 	int major;
 	int minor;
 };
@@ -55,6 +59,53 @@ static const struct of_device_id ldpc_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, ldpc_of_match);
 
+static int show_fw_version(struct seq_file *s, void *data)
+{
+	/*
+	* TODO: For now dummy FW version is added as 1.0
+	* This should be changed later on.
+	*/
+	seq_printf(s, "version=\"%s\"\n", "1.0");
+	return 0;
+}
+
+static int fw_version_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, show_fw_version, inode->i_private);
+}
+
+static const struct file_operations version_fops = {
+	.open = fw_version_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+/*
+* Description:
+* Create debugfs directory for the corresponding device (i.e. encoder/decoder)
+* and the required debugfs files inside it.
+*
+* @devname: device name i.e. ldpc-enc or ldpc-dec
+*/
+void create_debugfs(struct ldpc_devdata *ldpc_data, const char *devname)
+{
+
+	ldpc_data -> debugfs_dir = debugfs_create_dir(devname, NULL);
+	if (IS_ERR_OR_NULL(ldpc_data -> debugfs_dir)) {
+		pr_err("ldpc KO: Not able to create the debugfs directory %s\n",devname);
+		return;
+	}
+	/*
+	* Create debugfs file for the firmware version
+	*/
+	ldpc_data -> fv = debugfs_create_file("firmware_version", S_IRUSR, ldpc_data -> debugfs_dir,
+			NULL, &version_fops);
+	if (!(ldpc_data->fv)) {
+		pr_err("ldpc KO: Not able to create the firmware_version debugfs for %s\n",devname);
+		return;
+	}
+}
 static int ldpc_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
@@ -121,6 +172,7 @@ static int ldpc_probe(struct platform_device *pdev)
 		pr_err("ldpc KO: failed to create device node\n");
 		goto fail_device;
 	}
+	create_debugfs(ldpc_data, devname);
 	return ret;
 
 fail_device:
@@ -142,6 +194,7 @@ static int ldpc_remove(struct platform_device *pdev)
 
 	ldpc_data = platform_get_drvdata(pdev);
 	if (ldpc_data) {
+		debugfs_remove_recursive(ldpc_data->debugfs_dir);
 		device_destroy(ldpc_data->class, ldpc_data->dev_nr);
 		cdev_del(&ldpc_data->cdev);
 		unregister_chrdev_region(ldpc_data->dev_nr, 1);
