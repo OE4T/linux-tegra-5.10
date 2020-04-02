@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2015-2020, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -21,6 +21,7 @@
 #include "dev.h"
 #include "os.h"
 
+#if IS_ENABLED(CONFIG_TEGRA_HSP)
 static void nvadsp_dbell_handler(void *data)
 {
 	struct platform_device *pdev = data;
@@ -28,6 +29,7 @@ static void nvadsp_dbell_handler(void *data)
 
 	dev_info(dev, "APE DBELL handler\n");
 }
+#endif
 
 
 /* Function to return the ADMA page number (0 indexed) used by guest */
@@ -67,9 +69,8 @@ static int tegra_adma_query_dma_page(void)
 
 int nvadsp_os_t18x_init(struct platform_device *pdev)
 {
-	struct device *dev = &pdev->dev;
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
-	int ret, adma_ch_page, val = 0;
+	int ret = 0, adma_ch_page, val = 0;
 
 	if (is_tegra_hypervisor_mode()) {
 
@@ -93,12 +94,13 @@ int nvadsp_os_t18x_init(struct platform_device *pdev)
 		return 0;
 	}
 
+#if IS_ENABLED(CONFIG_TEGRA_HSP)
 	ret = tegra_hsp_db_add_handler(HSP_MASTER_APE,
 				       nvadsp_dbell_handler, pdev);
-	if (ret) {
-		dev_err(dev, "failed to add HSP_MASTER_APE DB handler\n");
-		goto end;
-	}
- end:
+	if (ret)
+		dev_err(&pdev->dev,
+			"failed to add HSP_MASTER_APE DB handler\n");
+#endif
+
 	return ret;
 }
