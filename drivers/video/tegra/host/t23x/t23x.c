@@ -585,10 +585,11 @@ struct nvhost_device_data t23x_nvdla0_info = {
 	.module_irq		= 1,
 	.engine_cg_regs		= t23x_nvdla_gating_registers,
 	.engine_can_cg		= true,
-	.can_powergate		= true,
+	.can_powergate		= false,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_DLA0,
 	.transcfg_addr		= 0x0444,
 	.transcfg_val		= 0x20,
+	.firmware_not_in_subdir = true,
 };
 
 struct nvhost_device_data t23x_nvdla1_info = {
@@ -617,10 +618,11 @@ struct nvhost_device_data t23x_nvdla1_info = {
 	.module_irq		= 1,
 	.engine_cg_regs		= t23x_nvdla_gating_registers,
 	.engine_can_cg		= true,
-	.can_powergate		= true,
+	.can_powergate		= false,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_DLA1,
 	.transcfg_addr		= 0x0444,
 	.transcfg_val		= 0x20,
+	.firmware_not_in_subdir = true,
 };
 #endif
 
