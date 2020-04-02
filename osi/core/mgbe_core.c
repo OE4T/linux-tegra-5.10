@@ -1322,6 +1322,89 @@ static inline int mgbe_update_vlan_id(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief mgbe_config_ptp_rxq - Config PTP RX packets queue route
+ *
+ * Algorithm: This function is used to program the PTP RX packets queue.
+ *
+ * @param[in] osi_core: OSI core private data.
+ * @param[in] rxq_idx: PTP RXQ index.
+ * @param[in] enable: PTP RXQ route enable(1) or disable(0).
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *	 2) osi_core->osd should be populated
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_ptp_rxq(struct osi_core_priv_data *const osi_core,
+			       const unsigned int rxq_idx,
+			       const unsigned int enable)
+{
+	unsigned char *base = osi_core->base;
+	unsigned int value = 0U;
+	unsigned int i = 0U;
+
+	/* Validate the RX queue index argument */
+	if (rxq_idx >= OSI_MGBE_MAX_NUM_QUEUES) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid PTP RX queue index\n",
+			rxq_idx);
+		return -1;
+	}
+
+	/* Validate enable argument */
+	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid enable input\n",
+			enable);
+		return -1;
+	}
+
+	/* Validate PTP RX queue enable */
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		if (osi_core->mtl_queues[i] == rxq_idx) {
+			/* Given PTP RX queue is enabled */
+			break;
+		}
+	}
+	if (i == osi_core->num_mtl_queues) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"PTP RX queue not enabled\n",
+			rxq_idx);
+		return -1;
+	}
+
+	/* Read MAC_RxQ_Ctrl1 */
+	value = osi_readl(base + MGBE_MAC_RQC1R);
+	/* Check for enable or disable */
+	if (enable == OSI_DISABLE) {
+		/** Reset OMCBCQ bit to disable over-riding the MCBC Queue
+		 * priority for the PTP RX queue.
+		 **/
+		value &= ~MGBE_MAC_RQC1R_OMCBCQ;
+	} else {
+		/* Store PTP RX queue into OSI private data */
+		osi_core->ptp_config.ptp_rx_queue = rxq_idx;
+		/* Program PTPQ with ptp_rxq */
+		value &= ~MGBE_MAC_RQC1R_PTPQ;
+		value |= (rxq_idx << MGBE_MAC_RQC1R_PTPQ_SHIFT);
+		/** Set TPQC to 0x1 for VLAN Tagged PTP over
+		 * ethernet packets are routed to Rx Queue specified
+		 * by PTPQ field
+		 **/
+		value |= MGBE_MAC_RQC1R_TPQC0;
+		/** Set OMCBCQ bit to enable over-riding the MCBC Queue
+		 * priority for the PTP RX queue.
+		 **/
+		value |= MGBE_MAC_RQC1R_OMCBCQ;
+	}
+	/* Write MAC_RxQ_Ctrl1 */
+	osi_writel(value, base + MGBE_MAC_RQC1R);
+
+	return 0;
+}
+
+/**
  * @brief mgbe_flush_mtl_tx_queue - Flush MTL Tx queue
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -3072,6 +3155,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->adjust_mactime = OSI_NULL,
 	ops->config_tscr = OSI_NULL;
 	ops->config_ssir = OSI_NULL;
+	ops->config_ptp_rxq = mgbe_config_ptp_rxq;
 	ops->write_phy_reg = mgbe_write_phy_reg;
 	ops->read_phy_reg = mgbe_read_phy_reg;
 	ops->save_registers = mgbe_save_registers;
