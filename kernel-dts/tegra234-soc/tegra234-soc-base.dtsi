@@ -384,7 +384,7 @@
 		};
 
 		nvdla0: nvdla0@15880000 {
-			compatible = "nvidia,tegra194-nvdla";
+			compatible = "nvidia,tegra234-nvdla";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_DLAA>;
 			reg = <0x0 0x15880000 0x0 0x00040000>;
 			interrupts = <0 236 0x04>;
@@ -394,12 +394,12 @@
 				 <&bpmp_clks TEGRA234_CLK_DLA0_FALCON>;
 			clock-names = "nvdla0", "nvdla0_flcn";
 
-			iommus = <&smmu TEGRA_SID_NVDLA0>;
+			//iommus = <&smmu TEGRA_SID_NVDLA0>;
 			dma-coherent;
 		};
 
 		nvdla1: nvdla1@158c0000 {
-			compatible = "nvidia,tegra194-nvdla";
+			compatible = "nvidia,tegra234-nvdla";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_DLAB>;
 			reg = <0x0 0x158c0000 0x0 0x00040000>;
 			interrupts = <0 237 0x04>;
@@ -409,7 +409,7 @@
 				 <&bpmp_clks TEGRA234_CLK_DLA1_FALCON>;
 			clock-names = "nvdla1", "nvdla1_flcn";
 
-			iommus = <&smmu TEGRA_SID_NVDLA1>;
+			//iommus = <&smmu TEGRA_SID_NVDLA1>;
 			dma-coherent;
 		};
 
