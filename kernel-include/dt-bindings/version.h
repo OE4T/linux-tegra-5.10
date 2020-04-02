@@ -26,6 +26,10 @@
 #define DT_VERSION_2		2
 
 /**
+ * TEGRA_PWM_FAN_DT_VERSION
+ * 		V1: Nv version of pwm-fan DT binding
+ * 		V2: Main line compatible DT binding
+ *
  * TEGRA_PMC_VERSION
  *		V1: Nv version of PMC DT binding
  * 		V2: Mainline compatible DT binding
@@ -115,6 +119,11 @@
 #define TEGRA_HSP_DT_VERSION			DT_VERSION_2
 #define TEGRA_BOOTARGUMENT_VERSION		DT_VERSION_2
 #define UART_CONSOLE_ON_TTYS0_ONLY		0
+#if LINUX_VERSION >= 500
+#define TEGRA_PWM_FAN_DT_VERSION		DT_VERSION_2
+#else
+#define TEGRA_PWM_FAN_DT_VERSION		DT_VERSION_1
+#endif
 #endif
 
 /* OS QNX */
