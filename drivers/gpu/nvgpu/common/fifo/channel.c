@@ -1250,12 +1250,6 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 		}
 	}
 
-	/*
-	 * Ref to hold the channel open during the job lifetime. This is
-	 * released by job cleanup launched via syncpt or sema interrupt.
-	 */
-	c = nvgpu_channel_get(c);
-
 	if (c != NULL) {
 		job->num_mapped_buffers = num_mapped_buffers;
 		job->mapped_buffers = mapped_buffers;
@@ -1313,13 +1307,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 	bool watchdog_on = false;
 #endif
 
-	c = nvgpu_channel_get(c);
-	if (c == NULL) {
-		return;
-	}
-
 	if (nvgpu_is_powered_off(c->g)) { /* shutdown case */
-		nvgpu_channel_put(c);
 		return;
 	}
 
@@ -1426,12 +1414,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			job->incr_cmd);
 
 		/*
-		 * another bookkeeping taken in add_job. caller must hold a ref
-		 * so this wouldn't get freed here.
-		 */
-		nvgpu_channel_put(c);
-
-		/*
 		 * ensure all pending writes complete before freeing up the job.
 		 * see corresponding nvgpu_smp_rmb in nvgpu_channel_alloc_job().
 		 */
@@ -1460,8 +1442,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			(g->os_channel.work_completion_signal != NULL)) {
 		g->os_channel.work_completion_signal(c);
 	}
-
-	nvgpu_channel_put(c);
 }
 
 /**
