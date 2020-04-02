@@ -34,7 +34,6 @@
 #include <soc/tegra/fuse.h>
 #endif
 #include <linux/pm_runtime.h>
-#include <linux/version.h>
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <linux/tegra_pm_domains.h>
 #endif
@@ -129,7 +128,11 @@ static const struct dev_pm_ops nvadsp_pm_ops = {
 
 uint64_t nvadsp_get_timestamp_counter(void)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	return arch_counter_get_cntvct();
+#else
+	return __arch_counter_get_cntvct_stable();
+#endif
 }
 EXPORT_SYMBOL(nvadsp_get_timestamp_counter);
 
