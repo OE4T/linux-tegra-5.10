@@ -18,7 +18,7 @@
 #include <linux/uaccess.h>
 #include <linux/errno.h>
 #include <linux/debugfs.h>
-
+#include "ldpc_ioctl.h"
 
 struct ldpc_devdata {
 	struct class *class;
@@ -42,10 +42,69 @@ int ldpc_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
+int ldpc_ioctl_get_kmd_version(void __user *arg)
+{
+	int ret = 0;
+	struct ldpc_kmd_buf op;
+
+	if (copy_from_user(&op, arg, sizeof(op))) {
+		pr_warn("ldpc KO: failed to copy data from user\n");
+		ret = -EFAULT;
+		goto fail;
+	}
+	//TODO: Later on change this to the actual KMD version
+	strcpy(op.kmd_version,"1.0");
+	if (copy_to_user(arg, &op, sizeof(op))) {
+		pr_warn("ldpc KO: failed to copy KMD version to user\n");
+		ret = -EFAULT;
+	}
+fail:
+	return ret;
+}
+
+static long ldpc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+	int ret = 0;
+
+	if (_IOC_TYPE(cmd) != LDPC_IOCTL_MAGIC) {
+		return -ENOTTY;
+	}
+
+	if (_IOC_NR(cmd) > LDPC_IOC_MAXNR) {
+		return -ENOTTY;
+	}
+
+	if (_IOC_DIR(cmd) & _IOC_READ) {
+		ret = !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
+	}
+	else if (_IOC_DIR(cmd) & _IOC_WRITE) {
+		ret  =  !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
+	}
+	if (ret) {
+		return -EFAULT;
+	}
+
+	switch (cmd) {
+	case LDPC_IOCTL_KMD_VER:
+		ret = ldpc_ioctl_get_kmd_version((void __user*)arg);
+		break;
+	default:
+		pr_warn("ldpc KO: Invalid IOCTL cmd\n");
+		ret = -EINVAL;
+		break;
+	}
+
+	return ret;
+}
+
 static const struct file_operations ldpc_fops = {
 	.owner = THIS_MODULE,
 	.open = ldpc_open,
 	.release = ldpc_release,
+        .unlocked_ioctl = ldpc_ioctl,
+#ifdef CONFIG_COMPAT
+        .compat_ioctl = ldpc_ioctl,
+#endif
 };
 
 static const struct of_device_id ldpc_of_match[] = {
