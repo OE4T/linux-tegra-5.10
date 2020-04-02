@@ -75,6 +75,8 @@
 
 #define DRIVER_NAME		"host1x"
 
+#define SP_TEST_VAL		0xdeadbeef
+
 static const char *num_syncpts_name = "num_pts";
 static const char *num_mutexes_name = "num_mlocks";
 static const char *gather_filter_enabled_name = "gather_filter_enabled";
@@ -1133,6 +1135,40 @@ fail:
 	return -ENXIO;
 }
 
+/* Verify that we can access syncpts at either end of range. If we fail,
+ * most likely PCT and DT have conflicting information.
+ */
+static int check_syncpt_range(struct platform_device *dev,
+		struct nvhost_syncpt *sp)
+{
+	struct nvhost_master *host = syncpt_to_dev(sp);
+	int err = 0;
+	u32 val;
+
+	nvhost_syncpt_set_minval(dev, host->info.pts_base, SP_TEST_VAL);
+	val = nvhost_syncpt_update_min(sp, host->info.pts_base);
+	if (val != SP_TEST_VAL) {
+		nvhost_err(&dev->dev, "syncpt %u: read 0x%x",
+				host->info.pts_base, val);
+		err = -EINVAL;
+		goto fail;
+	}
+	nvhost_syncpt_set_minval(dev, host->info.pts_base, 0);
+
+	nvhost_syncpt_set_minval(dev, host->info.pts_limit - 1, SP_TEST_VAL);
+	val = nvhost_syncpt_update_min(sp, host->info.pts_limit - 1);
+	if (val != SP_TEST_VAL) {
+		nvhost_err(&dev->dev, "syncpt %u: read 0x%x",
+				host->info.pts_limit - 1, val);
+		err = -EINVAL;
+		goto fail;
+	}
+	nvhost_syncpt_set_minval(dev, host->info.pts_limit - 1, 0);
+fail:
+	WARN_ON(err != 0);
+	return err;
+}
+
 static int nvhost_probe(struct platform_device *dev)
 {
 	struct nvhost_master *host;
@@ -1263,6 +1299,10 @@ static int nvhost_probe(struct platform_device *dev)
 		nvhost_module_idle(dev);
 		goto fail;
 	}
+
+	err = check_syncpt_range(dev, &host->syncpt);
+	if (err)
+		goto fail;
 
 	err = nvhost_intr_init(&host->intr, generic_irq, syncpt_irq);
 	if (err)
