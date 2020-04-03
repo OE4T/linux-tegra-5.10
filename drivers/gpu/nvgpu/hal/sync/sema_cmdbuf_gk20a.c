@@ -40,12 +40,10 @@ u32 gk20a_sema_get_incr_cmd_size(void)
 	return 10U;
 }
 
-void gk20a_sema_add_cmd(struct gk20a *g, struct nvgpu_semaphore *s,
-		u64 sema_va, struct priv_cmd_entry *cmd,
-		u32 off, bool acquire, bool wfi)
+static u32 gk20a_sema_add_header(struct gk20a *g,
+		struct priv_cmd_entry *cmd, u32 off,
+		u64 sema_va)
 {
-	nvgpu_log_fn(g, " ");
-
 	/* semaphore_a */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010004U);
 	/* offset_upper */
@@ -55,30 +53,53 @@ void gk20a_sema_add_cmd(struct gk20a *g, struct nvgpu_semaphore *s,
 	/* offset */
 	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)sema_va & 0xffffffff);
 
-	if (acquire) {
-		/* semaphore_c */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006U);
-		/* payload */
-		nvgpu_mem_wr32(g, cmd->mem, off++,
-			       nvgpu_semaphore_get_value(s));
-		/* semaphore_d */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007U);
-		/* operation: acq_geq, switch_en */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x4U | BIT32(12));
-	} else {
-		/* semaphore_c */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006U);
-		/* payload */
-		nvgpu_mem_wr32(g, cmd->mem, off++,
-			       nvgpu_semaphore_get_value(s));
-		/* semaphore_d */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007U);
-		/* operation: release, wfi */
-		nvgpu_mem_wr32(g, cmd->mem, off++,
-				0x2UL | ((wfi ? 0x0UL : 0x1UL) << 20));
-		/* non_stall_int */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008U);
-		/* ignored */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0U);
-	}
+	return off;
+}
+
+void gk20a_sema_add_wait_cmd(struct gk20a *g,
+		struct priv_cmd_entry *cmd, u32 off,
+		struct nvgpu_semaphore *s, u64 sema_va)
+{
+	nvgpu_log_fn(g, " ");
+
+	off = cmd->off + off;
+	off = gk20a_sema_add_header(g, cmd, off, sema_va);
+
+	/* semaphore_c */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006U);
+	/* payload */
+	nvgpu_mem_wr32(g, cmd->mem, off++,
+		       nvgpu_semaphore_get_value(s));
+	/* semaphore_d */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007U);
+	/* operation: acq_geq, switch_en */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x4U | BIT32(12));
+}
+
+void gk20a_sema_add_incr_cmd(struct gk20a *g,
+		struct priv_cmd_entry *cmd,
+		struct nvgpu_semaphore *s, u64 sema_va,
+		bool wfi)
+
+{
+	u32 off = cmd->off;
+
+	nvgpu_log_fn(g, " ");
+
+	off = gk20a_sema_add_header(g, cmd, off, sema_va);
+
+	/* semaphore_c */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006U);
+	/* payload */
+	nvgpu_mem_wr32(g, cmd->mem, off++,
+		       nvgpu_semaphore_get_value(s));
+	/* semaphore_d */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007U);
+	/* operation: release, wfi */
+	nvgpu_mem_wr32(g, cmd->mem, off++,
+			0x2UL | ((wfi ? 0x0UL : 0x1UL) << 20));
+	/* non_stall_int */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008U);
+	/* ignored */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0U);
 }

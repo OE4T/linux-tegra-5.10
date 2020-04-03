@@ -1067,9 +1067,10 @@ static const struct gpu_ops tu104_ops = {
 #if defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT) && \
 	defined(CONFIG_NVGPU_SW_SEMAPHORE)
 		.sema = {
+			.add_wait_cmd = gv11b_sema_add_wait_cmd,
 			.get_wait_cmd_size = gv11b_sema_get_wait_cmd_size,
+			.add_incr_cmd = gv11b_sema_add_incr_cmd,
 			.get_incr_cmd_size = gv11b_sema_get_incr_cmd_size,
-			.add_cmd = gv11b_sema_add_cmd,
 		},
 #endif
 	},

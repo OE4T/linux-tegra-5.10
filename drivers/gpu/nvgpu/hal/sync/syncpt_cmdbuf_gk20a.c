@@ -32,7 +32,7 @@
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void gk20a_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
-		u32 id, u32 thresh, u64 gpu_va)
+		u32 id, u32 thresh, u64 gpu_va_base)
 {
 	nvgpu_log_fn(g, " ");
 
@@ -58,13 +58,13 @@ u32 gk20a_syncpt_get_incr_per_release(void)
 }
 
 void gk20a_syncpt_add_incr_cmd(struct gk20a *g,
-		bool wfi_cmd, struct priv_cmd_entry *cmd,
-		u32 id, u64 gpu_va)
+		struct priv_cmd_entry *cmd,
+		u32 id, u64 gpu_va, bool wfi)
 {
 	u32 off = cmd->off;
 
 	nvgpu_log_fn(g, " ");
-	if (wfi_cmd) {
+	if (wfi) {
 		/* wfi */
 		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001EU);
 		/* handle, ignored */

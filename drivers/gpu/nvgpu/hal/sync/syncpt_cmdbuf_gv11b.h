@@ -40,8 +40,8 @@ void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
 u32 gv11b_syncpt_get_wait_cmd_size(void);
 u32 gv11b_syncpt_get_incr_per_release(void);
 void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
-		bool wfi_cmd, struct priv_cmd_entry *cmd,
-		u32 id, u64 gpu_va);
+		struct priv_cmd_entry *cmd,
+		u32 id, u64 gpu_va, bool wfi);
 u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd);
 #endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 
@@ -71,8 +71,8 @@ static inline u32 gv11b_syncpt_get_incr_per_release(void)
 	return 0U;
 }
 static inline void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
-		bool wfi_cmd, struct priv_cmd_entry *cmd,
-		u32 id, u64 gpu_va)
+		struct priv_cmd_entry *cmd,
+		u32 id, u64 gpu_va, bool wfi)
 {
 }
 static inline u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd)

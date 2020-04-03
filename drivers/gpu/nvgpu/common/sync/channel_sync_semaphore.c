@@ -61,10 +61,7 @@ static void add_sema_cmd(struct gk20a *g, struct nvgpu_channel *c,
 			 u32 offset, bool acquire, bool wfi)
 {
 	int ch = c->chid;
-	u32 ob, off = cmd->off + offset;
 	u64 va;
-
-	ob = off;
 
 	/*
 	 * RO for acquire (since we just need to read the mem) and RW for
@@ -81,21 +78,21 @@ static void add_sema_cmd(struct gk20a *g, struct nvgpu_channel *c,
 		nvgpu_semaphore_prepare(s, c->hw_sema);
 	}
 
-	g->ops.sync.sema.add_cmd(g, s, va, cmd, off, acquire, wfi);
-
 	if (acquire) {
+		g->ops.sync.sema.add_wait_cmd(g, cmd, offset, s, va);
 		gpu_sema_verbose_dbg(g, "(A) c=%d ACQ_GE %-4u pool=%-3llu"
 				     "va=0x%llx cmd_mem=0x%llx b=0x%llx off=%u",
 				     ch, nvgpu_semaphore_get_value(s),
 				     nvgpu_semaphore_get_hw_pool_page_idx(s),
-				     va, cmd->gva, cmd->mem->gpu_va, ob);
+				     va, cmd->gva, cmd->mem->gpu_va, offset);
 	} else {
+		g->ops.sync.sema.add_incr_cmd(g, cmd, s, va, wfi);
 		gpu_sema_verbose_dbg(g, "(R) c=%d INCR %u (%u) pool=%-3llu"
 				     "va=0x%llx cmd_mem=0x%llx b=0x%llx off=%u",
 				     ch, nvgpu_semaphore_get_value(s),
 				     nvgpu_semaphore_read(s),
 				     nvgpu_semaphore_get_hw_pool_page_idx(s),
-				     va, cmd->gva, cmd->mem->gpu_va, ob);
+				     va, cmd->gva, cmd->mem->gpu_va, offset);
 	}
 }
 

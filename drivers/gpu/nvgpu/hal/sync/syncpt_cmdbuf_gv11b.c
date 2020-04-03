@@ -81,8 +81,8 @@ u32 gv11b_syncpt_get_incr_per_release(void)
 }
 
 void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
-		bool wfi_cmd, struct priv_cmd_entry *cmd,
-		u32 id, u64 gpu_va)
+		struct priv_cmd_entry *cmd,
+		u32 id, u64 gpu_va, bool wfi)
 {
 	u32 off = cmd->off;
 
@@ -109,7 +109,7 @@ void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
 	/* sema_execute : release | wfi | 32bit */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
 	nvgpu_mem_wr32(g, cmd->mem, off, (0x1U |
-					((u32)(wfi_cmd ? 0x1U : 0x0U) << 20U)));
+					((u32)(wfi ? 0x1U : 0x0U) << 20U)));
 }
 
 u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd)

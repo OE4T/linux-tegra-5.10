@@ -77,12 +77,12 @@ struct gops_sync {
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		void (*add_wait_cmd)(struct gk20a *g,
 				struct priv_cmd_entry *cmd, u32 off,
-				u32 id, u32 thresh, u64 gpu_va);
+				u32 id, u32 thresh, u64 gpu_va_base);
 		u32 (*get_wait_cmd_size)(void);
 		void (*add_incr_cmd)(struct gk20a *g,
-				bool wfi_cmd,
 				struct priv_cmd_entry *cmd,
-				u32 id, u64 gpu_va);
+				u32 id, u64 gpu_va,
+				bool wfi);
 		u32 (*get_incr_cmd_size)(bool wfi_cmd);
 		u32 (*get_incr_per_release)(void);
 #endif
@@ -96,10 +96,13 @@ struct gops_sync {
 	struct gops_sync_sema {
 		u32 (*get_wait_cmd_size)(void);
 		u32 (*get_incr_cmd_size)(void);
-		void (*add_cmd)(struct gk20a *g,
-			struct nvgpu_semaphore *s, u64 sema_va,
+		void (*add_wait_cmd)(struct gk20a *g,
+			struct priv_cmd_entry *cmd, u32 off,
+			struct nvgpu_semaphore *s, u64 sema_va);
+		void (*add_incr_cmd)(struct gk20a *g,
 			struct priv_cmd_entry *cmd,
-			u32 off, bool acquire, bool wfi);
+			struct nvgpu_semaphore *s, u64 sema_va,
+			bool wfi);
 	} sema;
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 #endif

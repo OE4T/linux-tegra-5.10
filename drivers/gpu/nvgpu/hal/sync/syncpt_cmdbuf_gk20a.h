@@ -33,12 +33,12 @@ struct nvgpu_mem;
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void gk20a_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
-		u32 id, u32 thresh, u64 gpu_va);
+		u32 id, u32 thresh, u64 gpu_va_base);
 u32 gk20a_syncpt_get_wait_cmd_size(void);
 u32 gk20a_syncpt_get_incr_per_release(void);
 void gk20a_syncpt_add_incr_cmd(struct gk20a *g,
-		bool wfi_cmd, struct priv_cmd_entry *cmd,
-		u32 id, u64 gpu_va);
+		struct priv_cmd_entry *cmd,
+		u32 id, u64 gpu_va, bool wfi);
 u32 gk20a_syncpt_get_incr_cmd_size(bool wfi_cmd);
 #endif
 
@@ -53,7 +53,7 @@ int gk20a_syncpt_alloc_buf(struct nvgpu_channel *c,
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 static inline void gk20a_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
-		u32 id, u32 thresh, u64 gpu_va)
+		u32 id, u32 thresh, u64 gpu_va_base)
 {
 }
 static inline u32 gk20a_syncpt_get_wait_cmd_size(void)
@@ -65,8 +65,8 @@ static inline u32 gk20a_syncpt_get_incr_per_release(void)
 	return 0U;
 }
 static inline void gk20a_syncpt_add_incr_cmd(struct gk20a *g,
-		bool wfi_cmd, struct priv_cmd_entry *cmd,
-		u32 id, u64 gpu_va)
+		struct priv_cmd_entry *cmd,
+		u32 id, u64 gpu_va, bool wfi)
 {
 }
 static inline u32 gk20a_syncpt_get_incr_cmd_size(bool wfi_cmd)

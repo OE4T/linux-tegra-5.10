@@ -195,8 +195,8 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 
 	nvgpu_log(c->g, gpu_dbg_info, "sp->id %d gpu va %llx",
 				sp->id, sp->syncpt_buf.gpu_va);
-	c->g->ops.sync.syncpt.add_incr_cmd(c->g, wfi_cmd,
-			incr_cmd, sp->id, sp->syncpt_buf.gpu_va);
+	c->g->ops.sync.syncpt.add_incr_cmd(c->g, incr_cmd,
+			sp->id, sp->syncpt_buf.gpu_va, wfi_cmd);
 
 	thresh = nvgpu_nvhost_syncpt_incr_max_ext(sp->nvhost, sp->id,
 			c->g->ops.sync.syncpt.get_incr_per_release());

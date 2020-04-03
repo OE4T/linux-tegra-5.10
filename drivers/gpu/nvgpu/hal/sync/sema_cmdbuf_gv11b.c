@@ -40,13 +40,10 @@ u32 gv11b_sema_get_incr_cmd_size(void)
 	return 12U;
 }
 
-void gv11b_sema_add_cmd(struct gk20a *g,
-		struct nvgpu_semaphore *s, u64 sema_va,
-		struct priv_cmd_entry *cmd,
-		u32 off, bool acquire, bool wfi)
+static u32 gv11b_sema_add_header(struct gk20a *g,
+		struct priv_cmd_entry *cmd, u32 off,
+		struct nvgpu_semaphore *s, u64 sema_va)
 {
-	nvgpu_log_fn(g, " ");
-
 	/* sema_addr_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
 	nvgpu_mem_wr32(g, cmd->mem, off++, sema_va & 0xffffffffULL);
@@ -63,18 +60,40 @@ void gv11b_sema_add_cmd(struct gk20a *g,
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001a);
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0);
 
-	if (acquire) {
-		/* sema_execute : acq_strict_geq | switch_en | 32bit */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-		nvgpu_mem_wr32(g, cmd->mem, off++, U32(0x2) | BIT32(12));
-	} else {
-		/* sema_execute : release | wfi | 32bit */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-		nvgpu_mem_wr32(g, cmd->mem, off++,
-			U32(0x1) | ((wfi ? U32(0x1) : U32(0x0)) << 20U));
+	return off;
+}
 
-		/* non_stall_int : payload is ignored */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008);
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0);
-	}
+void gv11b_sema_add_wait_cmd(struct gk20a *g,
+		struct priv_cmd_entry *cmd, u32 off,
+		struct nvgpu_semaphore *s, u64 sema_va)
+{
+	nvgpu_log_fn(g, " ");
+
+	off = cmd->off + off;
+	off = gv11b_sema_add_header(g, cmd, off, s, sema_va);
+
+	/* sema_execute : acq_strict_geq | switch_en | 32bit */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
+	nvgpu_mem_wr32(g, cmd->mem, off++, U32(0x2) | BIT32(12));
+}
+
+void gv11b_sema_add_incr_cmd(struct gk20a *g,
+		struct priv_cmd_entry *cmd,
+		struct nvgpu_semaphore *s, u64 sema_va,
+		bool wfi)
+{
+	u32 off = cmd->off;
+
+	nvgpu_log_fn(g, " ");
+
+	off = gv11b_sema_add_header(g, cmd, off, s, sema_va);
+
+	/* sema_execute : release | wfi | 32bit */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
+	nvgpu_mem_wr32(g, cmd->mem, off++,
+		U32(0x1) | ((wfi ? U32(0x1) : U32(0x0)) << 20U));
+
+	/* non_stall_int : payload is ignored */
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0);
 }
