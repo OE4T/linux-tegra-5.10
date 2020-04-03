@@ -26,8 +26,10 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/profile.h>

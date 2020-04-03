@@ -34,6 +34,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/string.h>
 

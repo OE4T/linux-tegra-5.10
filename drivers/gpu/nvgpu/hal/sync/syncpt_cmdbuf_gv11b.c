@@ -29,6 +29,7 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/static_analysis.h>
 

@@ -46,6 +46,7 @@ struct nvgpu_gpfifo_userdata;
 struct nvgpu_gr_subctx;
 struct nvgpu_gr_ctx;
 struct nvgpu_debug_context;
+struct priv_cmd_entry;
 
 /**
  * S/W defined invalid channel identifier.
@@ -255,15 +256,6 @@ struct priv_cmd_queue {
 	u32 size;	/* num of entries in words */
 	u32 put;	/* put for priv cmd queue */
 	u32 get;	/* get for priv cmd queue */
-};
-
-struct priv_cmd_entry {
-	bool valid;
-	struct nvgpu_mem *mem;
-	u32 off;	/* offset in mem, in u32 entries */
-	u64 gva;
-	u32 get;	/* start of entry in queue */
-	u32 size;	/* in words */
 };
 
 struct nvgpu_channel_job {
@@ -619,10 +611,6 @@ nvgpu_channel_from_worker_item(struct nvgpu_list_node *node)
 	return (struct nvgpu_channel *)
 	   ((uintptr_t)node - offsetof(struct nvgpu_channel, worker_item));
 };
-int nvgpu_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
-			     struct priv_cmd_entry *e);
-void nvgpu_channel_update_priv_cmd_q_and_free_entry(
-	struct nvgpu_channel *ch, struct priv_cmd_entry *e);
 int nvgpu_channel_worker_init(struct gk20a *g);
 void nvgpu_channel_worker_deinit(struct gk20a *g);
 void nvgpu_channel_update(struct nvgpu_channel *c);
@@ -636,8 +624,6 @@ u32 nvgpu_channel_get_gpfifo_free_count(struct nvgpu_channel *ch);
 int nvgpu_channel_add_job(struct nvgpu_channel *c,
 				 struct nvgpu_channel_job *job,
 				 bool skip_buffer_refcounting);
-void nvgpu_channel_free_priv_cmd_entry(struct nvgpu_channel *c,
-			     struct priv_cmd_entry *e);
 void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 					bool clean_all);
 int nvgpu_submit_channel_gpfifo_user(struct nvgpu_channel *c,

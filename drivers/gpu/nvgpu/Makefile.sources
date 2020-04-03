@@ -387,6 +387,7 @@ endif
 
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
 srcs += common/fifo/submit.c \
+        common/fifo/priv_cmdbuf.c \
 	common/sync/channel_sync.c \
 	common/sync/channel_sync_syncpt.c
 endif

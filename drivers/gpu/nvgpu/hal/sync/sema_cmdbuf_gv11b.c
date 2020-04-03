@@ -26,6 +26,7 @@
 #include <nvgpu/semaphore.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/priv_cmdbuf.h>
 
 #include "sema_cmdbuf_gv11b.h"
 
