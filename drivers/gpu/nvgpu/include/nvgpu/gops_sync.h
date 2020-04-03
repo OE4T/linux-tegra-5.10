@@ -76,7 +76,7 @@ struct gops_sync {
 				struct nvgpu_mem *syncpt_buf);
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 		void (*add_wait_cmd)(struct gk20a *g,
-				struct priv_cmd_entry *cmd, u32 off,
+				struct priv_cmd_entry *cmd,
 				u32 id, u32 thresh, u64 gpu_va_base);
 		u32 (*get_wait_cmd_size)(void);
 		void (*add_incr_cmd)(struct gk20a *g,
@@ -97,7 +97,7 @@ struct gops_sync {
 		u32 (*get_wait_cmd_size)(void);
 		u32 (*get_incr_cmd_size)(void);
 		void (*add_wait_cmd)(struct gk20a *g,
-			struct priv_cmd_entry *cmd, u32 off,
+			struct priv_cmd_entry *cmd,
 			struct nvgpu_semaphore *s, u64 sema_va);
 		void (*add_incr_cmd)(struct gk20a *g,
 			struct priv_cmd_entry *cmd,

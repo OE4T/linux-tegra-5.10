@@ -35,7 +35,7 @@ struct vm_gk20a;
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
-		struct priv_cmd_entry *cmd, u32 off,
+		struct priv_cmd_entry *cmd,
 		u32 id, u32 thresh, u64 gpu_va_base);
 u32 gv11b_syncpt_get_wait_cmd_size(void);
 u32 gv11b_syncpt_get_incr_per_release(void);
@@ -58,7 +58,7 @@ int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 static inline void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
-		struct priv_cmd_entry *cmd, u32 off,
+		struct priv_cmd_entry *cmd,
 		u32 id, u32 thresh, u64 gpu_va_base)
 {
 }

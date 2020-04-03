@@ -58,7 +58,7 @@ nvgpu_channel_sync_syncpt_from_base(struct nvgpu_channel_sync *base)
 
 static int channel_sync_syncpt_gen_wait_cmd(struct nvgpu_channel *c,
 	u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd,
-	u32 wait_cmd_size, u32 pos, bool preallocated)
+	u32 wait_cmd_size, bool preallocated)
 {
 	int err = 0;
 
@@ -73,9 +73,8 @@ static int channel_sync_syncpt_gen_wait_cmd(struct nvgpu_channel *c,
 	}
 	nvgpu_log(c->g, gpu_dbg_info, "sp->id %d gpu va %llx",
 			id, c->vm->syncpt_ro_map_gpu_va);
-	c->g->ops.sync.syncpt.add_wait_cmd(c->g, wait_cmd,
-		pos * wait_cmd_size, id, thresh,
-		c->vm->syncpt_ro_map_gpu_va);
+	c->g->ops.sync.syncpt.add_wait_cmd(c->g, wait_cmd, id, thresh,
+			c->vm->syncpt_ro_map_gpu_va);
 
 	return 0;
 }
@@ -92,7 +91,7 @@ static int channel_sync_syncpt_wait_raw(struct nvgpu_channel_sync_syncpt *s,
 	}
 
 	err = channel_sync_syncpt_gen_wait_cmd(c, id, thresh,
-			wait_cmd, wait_cmd_size, 0, false);
+			wait_cmd, wait_cmd_size, false);
 
 	return err;
 }
@@ -154,7 +153,7 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 		nvgpu_os_fence_syncpt_extract_nth_syncpt(
 			&os_fence_syncpt, i, &syncpt_id, &syncpt_thresh);
 		err = channel_sync_syncpt_gen_wait_cmd(c, syncpt_id,
-			syncpt_thresh, wait_cmd, wait_cmd_size, i, true);
+			syncpt_thresh, wait_cmd, wait_cmd_size, true);
 	}
 
 cleanup:
@@ -384,5 +383,3 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c)
 
 	return &sp->base;
 }
-
-

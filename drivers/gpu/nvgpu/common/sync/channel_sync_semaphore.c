@@ -57,8 +57,7 @@ nvgpu_channel_sync_semaphore_from_base(struct nvgpu_channel_sync *base)
 }
 
 static void add_sema_wait_cmd(struct gk20a *g, struct nvgpu_channel *c,
-			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd,
-			 u32 offset)
+			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd)
 {
 	int ch = c->chid;
 	u64 va;
@@ -66,12 +65,12 @@ static void add_sema_wait_cmd(struct gk20a *g, struct nvgpu_channel *c,
 	/* acquire just needs to read the mem. */
 	va = nvgpu_semaphore_gpu_ro_va(s);
 
-	g->ops.sync.sema.add_wait_cmd(g, cmd, offset, s, va);
+	g->ops.sync.sema.add_wait_cmd(g, cmd, s, va);
 	gpu_sema_verbose_dbg(g, "(A) c=%d ACQ_GE %-4u pool=%-3llu"
-			     "va=0x%llx cmd_mem=0x%llx b=0x%llx off=%u",
+			     "va=0x%llx cmd_mem=0x%llx b=0x%llx",
 			     ch, nvgpu_semaphore_get_value(s),
 			     nvgpu_semaphore_get_hw_pool_page_idx(s),
-			     va, cmd->gva, cmd->mem->gpu_va, offset);
+			     va, cmd->gva, cmd->mem->gpu_va);
 }
 
 static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
@@ -98,20 +97,17 @@ static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
 
 static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,
 	struct nvgpu_semaphore *sema, struct priv_cmd_entry *wait_cmd,
-	u32 wait_cmd_size, u32 pos)
+	u32 wait_cmd_size)
 {
 	bool has_incremented;
 
 	if (sema == NULL) {
-		/* expired */
-		nvgpu_memset(c->g, wait_cmd->mem,
-			(wait_cmd->off + pos * wait_cmd_size) * (u32)sizeof(u32),
-			0, wait_cmd_size * (u32)sizeof(u32));
+		/* came from an expired sync fence */
+		nvgpu_priv_cmdbuf_append_zeros(c->g, wait_cmd, wait_cmd_size);
 	} else {
 		has_incremented = nvgpu_semaphore_can_wait(sema);
 		nvgpu_assert(has_incremented);
-		add_sema_wait_cmd(c->g, c, sema, wait_cmd,
-			pos * wait_cmd_size);
+		add_sema_wait_cmd(c->g, c, sema, wait_cmd);
 		nvgpu_semaphore_put(sema);
 	}
 }
@@ -163,7 +159,7 @@ static int channel_sync_semaphore_wait_fd(
 		nvgpu_os_fence_sema_extract_nth_semaphore(
 			&os_fence_sema, i, &semaphore);
 		channel_sync_semaphore_gen_wait_cmd(c, semaphore, entry,
-				wait_cmd_size, i);
+				wait_cmd_size);
 	}
 
 cleanup:

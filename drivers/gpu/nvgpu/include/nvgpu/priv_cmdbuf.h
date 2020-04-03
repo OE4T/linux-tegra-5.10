@@ -33,6 +33,7 @@ struct priv_cmd_entry {
 	bool valid;
 	struct nvgpu_mem *mem;
 	u32 off;	/* offset in mem, in u32 entries */
+	u32 fill_off;	/* write offset from off, in u32 entries */
 	u64 gva;
 	u32 get;	/* start of entry in queue */
 	u32 size;	/* in words */
@@ -47,5 +48,10 @@ void nvgpu_channel_free_priv_cmd_entry(struct nvgpu_channel *c,
 		struct priv_cmd_entry *e);
 void nvgpu_channel_update_priv_cmd_q_and_free_entry(struct nvgpu_channel *ch,
 		struct priv_cmd_entry *e);
+
+void nvgpu_priv_cmdbuf_append(struct gk20a *g, struct priv_cmd_entry *e,
+		u32 *data, u32 entries);
+void nvgpu_priv_cmdbuf_append_zeros(struct gk20a *g, struct priv_cmd_entry *e,
+		u32 entries);
 
 #endif

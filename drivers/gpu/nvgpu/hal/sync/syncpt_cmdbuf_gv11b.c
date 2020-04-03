@@ -21,53 +21,45 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <nvgpu/mm.h>
-#include <nvgpu/vm.h>
-#include <nvgpu/gmmu.h>
-#include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/dma.h>
-#include <nvgpu/lock.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/channel.h>
-#include <nvgpu/priv_cmdbuf.h>
+
+#include <nvgpu/log.h>
 #include <nvgpu/nvhost.h>
-#include <nvgpu/static_analysis.h>
+#include <nvgpu/priv_cmdbuf.h>
 
 #include "syncpt_cmdbuf_gv11b.h"
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
-		struct priv_cmd_entry *cmd, u32 off,
+		struct priv_cmd_entry *cmd,
 		u32 id, u32 thresh, u64 gpu_va_base)
 {
 	u64 gpu_va = gpu_va_base +
 		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(id);
+	u32 data[] = {
+		/* sema_addr_lo */
+		0x20010017,
+		nvgpu_safe_cast_u64_to_u32(gpu_va & 0xffffffffU),
+
+		/* sema_addr_hi */
+		0x20010018,
+		nvgpu_safe_cast_u64_to_u32((gpu_va >> 32U) & 0xffU),
+
+		/* payload_lo */
+		0x20010019,
+		thresh,
+
+		/* payload_hi : ignored */
+		0x2001001a,
+		0U,
+
+		/* sema_execute : acq_strict_geq | switch_en | 32bit */
+		0x2001001b,
+		0x2U | ((u32)1U << 12U),
+	};
 
 	nvgpu_log_fn(g, " ");
 
-	off = cmd->off + off;
-
-	/* sema_addr_lo */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
-	nvgpu_mem_wr32(g, cmd->mem, off++,
-			nvgpu_safe_cast_u64_to_u32(gpu_va & 0xffffffffU));
-
-	/* sema_addr_hi */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010018);
-	nvgpu_mem_wr32(g, cmd->mem, off++,
-			nvgpu_safe_cast_u64_to_u32((gpu_va >> 32U) & 0xffU));
-
-	/* payload_lo */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010019);
-	nvgpu_mem_wr32(g, cmd->mem, off++, thresh);
-
-	/* payload_hi : ignored */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001a);
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0U);
-
-	/* sema_execute : acq_strict_geq | switch_en | 32bit */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-	nvgpu_mem_wr32(g, cmd->mem, off, 0x2U | ((u32)1U << 12U));
+	nvgpu_priv_cmdbuf_append(g, cmd, data, ARRAY_SIZE(data));
 }
 
 u32 gv11b_syncpt_get_wait_cmd_size(void)
@@ -84,32 +76,31 @@ void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd,
 		u32 id, u64 gpu_va, bool wfi)
 {
-	u32 off = cmd->off;
+	u32 data[] = {
+		/* sema_addr_lo */
+		0x20010017,
+		nvgpu_safe_cast_u64_to_u32(gpu_va & 0xffffffffU),
+
+		/* sema_addr_hi */
+		0x20010018,
+		nvgpu_safe_cast_u64_to_u32((gpu_va >> 32U) & 0xffU),
+
+		/* payload_lo */
+		0x20010019,
+		0,
+
+		/* payload_hi : ignored */
+		0x2001001a,
+		0,
+
+		/* sema_execute : release | wfi | 32bit */
+		0x2001001b,
+		(0x1U | ((u32)(wfi ? 0x1U : 0x0U) << 20U)),
+	};
 
 	nvgpu_log_fn(g, " ");
 
-	/* sema_addr_lo */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
-	nvgpu_mem_wr32(g, cmd->mem, off++,
-			nvgpu_safe_cast_u64_to_u32(gpu_va & 0xffffffffU));
-
-	/* sema_addr_hi */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010018);
-	nvgpu_mem_wr32(g, cmd->mem, off++,
-			nvgpu_safe_cast_u64_to_u32((gpu_va >> 32U) & 0xffU));
-
-	/* payload_lo */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010019);
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0);
-
-	/* payload_hi : ignored */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001a);
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0);
-
-	/* sema_execute : release | wfi | 32bit */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-	nvgpu_mem_wr32(g, cmd->mem, off, (0x1U |
-					((u32)(wfi ? 0x1U : 0x0U) << 20U)));
+	nvgpu_priv_cmdbuf_append(g, cmd, data, ARRAY_SIZE(data));
 }
 
 u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd)

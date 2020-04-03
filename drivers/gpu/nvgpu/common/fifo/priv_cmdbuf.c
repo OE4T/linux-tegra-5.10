@@ -170,6 +170,7 @@ int nvgpu_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
 		return -EAGAIN;
 	}
 
+	e->fill_off = 0;
 	e->size = orig_size;
 	e->mem = &q->mem;
 
@@ -236,4 +237,22 @@ void nvgpu_channel_update_priv_cmd_q_and_free_entry(
 	}
 
 	nvgpu_channel_free_priv_cmd_entry(ch, e);
+}
+
+void nvgpu_priv_cmdbuf_append(struct gk20a *g, struct priv_cmd_entry *e,
+		u32 *data, u32 entries)
+{
+	nvgpu_assert(e->fill_off + entries <= e->size);
+	nvgpu_mem_wr_n(g, e->mem, (e->off + e->fill_off) * sizeof(u32),
+			data, entries * sizeof(u32));
+	e->fill_off += entries;
+}
+
+void nvgpu_priv_cmdbuf_append_zeros(struct gk20a *g, struct priv_cmd_entry *e,
+		u32 entries)
+{
+	nvgpu_assert(e->fill_off + entries <= e->size);
+	nvgpu_memset(g, e->mem, (e->off + e->fill_off) * sizeof(u32),
+			0, entries * sizeof(u32));
+	e->fill_off += entries;
 }
