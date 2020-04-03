@@ -56,44 +56,44 @@ nvgpu_channel_sync_semaphore_from_base(struct nvgpu_channel_sync *base)
 			offsetof(struct nvgpu_channel_sync_semaphore, base));
 }
 
-static void add_sema_cmd(struct gk20a *g, struct nvgpu_channel *c,
+static void add_sema_wait_cmd(struct gk20a *g, struct nvgpu_channel *c,
 			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd,
-			 u32 offset, bool acquire, bool wfi)
+			 u32 offset)
 {
 	int ch = c->chid;
 	u64 va;
 
-	/*
-	 * RO for acquire (since we just need to read the mem) and RW for
-	 * release since we will need to write back to the semaphore memory.
-	 */
-	va = acquire ? nvgpu_semaphore_gpu_ro_va(s) :
-		       nvgpu_semaphore_gpu_rw_va(s);
+	/* acquire just needs to read the mem. */
+	va = nvgpu_semaphore_gpu_ro_va(s);
 
-	/*
-	 * If the op is not an acquire (so therefor a release) we should
-	 * incr the underlying sema next_value.
-	 */
-	if (!acquire) {
-		nvgpu_semaphore_prepare(s, c->hw_sema);
-	}
+	g->ops.sync.sema.add_wait_cmd(g, cmd, offset, s, va);
+	gpu_sema_verbose_dbg(g, "(A) c=%d ACQ_GE %-4u pool=%-3llu"
+			     "va=0x%llx cmd_mem=0x%llx b=0x%llx off=%u",
+			     ch, nvgpu_semaphore_get_value(s),
+			     nvgpu_semaphore_get_hw_pool_page_idx(s),
+			     va, cmd->gva, cmd->mem->gpu_va, offset);
+}
 
-	if (acquire) {
-		g->ops.sync.sema.add_wait_cmd(g, cmd, offset, s, va);
-		gpu_sema_verbose_dbg(g, "(A) c=%d ACQ_GE %-4u pool=%-3llu"
-				     "va=0x%llx cmd_mem=0x%llx b=0x%llx off=%u",
-				     ch, nvgpu_semaphore_get_value(s),
-				     nvgpu_semaphore_get_hw_pool_page_idx(s),
-				     va, cmd->gva, cmd->mem->gpu_va, offset);
-	} else {
-		g->ops.sync.sema.add_incr_cmd(g, cmd, s, va, wfi);
-		gpu_sema_verbose_dbg(g, "(R) c=%d INCR %u (%u) pool=%-3llu"
-				     "va=0x%llx cmd_mem=0x%llx b=0x%llx off=%u",
-				     ch, nvgpu_semaphore_get_value(s),
-				     nvgpu_semaphore_read(s),
-				     nvgpu_semaphore_get_hw_pool_page_idx(s),
-				     va, cmd->gva, cmd->mem->gpu_va, offset);
-	}
+static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
+			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd,
+			 bool wfi)
+{
+	int ch = c->chid;
+	u64 va;
+
+	/* release will need to write back to the semaphore memory. */
+	va = nvgpu_semaphore_gpu_rw_va(s);
+
+	/* incr the underlying sema next_value (like syncpt's max). */
+	nvgpu_semaphore_prepare(s, c->hw_sema);
+
+	g->ops.sync.sema.add_incr_cmd(g, cmd, s, va, wfi);
+	gpu_sema_verbose_dbg(g, "(R) c=%d INCR %u (%u) pool=%-3llu"
+			     "va=0x%llx cmd_mem=0x%llx b=0x%llx",
+			     ch, nvgpu_semaphore_get_value(s),
+			     nvgpu_semaphore_read(s),
+			     nvgpu_semaphore_get_hw_pool_page_idx(s),
+			     va, cmd->gva, cmd->mem->gpu_va);
 }
 
 static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,
@@ -110,8 +110,8 @@ static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,
 	} else {
 		has_incremented = nvgpu_semaphore_can_wait(sema);
 		nvgpu_assert(has_incremented);
-		add_sema_cmd(c->g, c, sema, wait_cmd,
-			pos * wait_cmd_size, true, false);
+		add_sema_wait_cmd(c->g, c, sema, wait_cmd,
+			pos * wait_cmd_size);
 		nvgpu_semaphore_put(sema);
 	}
 }
@@ -201,7 +201,7 @@ static int channel_sync_semaphore_incr_common(
 	}
 
 	/* Release the completion semaphore. */
-	add_sema_cmd(c->g, c, semaphore, incr_cmd, 0, false, wfi_cmd);
+	add_sema_incr_cmd(c->g, c, semaphore, incr_cmd, wfi_cmd);
 
 	if (need_sync_fence) {
 		err = nvgpu_os_fence_sema_create(&os_fence, c,
