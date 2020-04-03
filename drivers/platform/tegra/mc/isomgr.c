@@ -68,6 +68,13 @@ do { \
 	} \
 } while (0)
 
+#define IS_ISOMGR_SUPPORTED(x, err)			\
+do {							\
+	if (x) {					\
+		pr_err("Isomgr API not supported");	\
+		return (err);				\
+	}						\
+} while (0)
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #define OBJ_REF_SET		refcount_set
@@ -81,6 +88,7 @@ do { \
 
 /* To allow test code take over control */
 static bool test_mode;
+static bool isomgr_disable = false;
 
 char *cname[] = {
 	"disp_0",
@@ -417,6 +425,8 @@ tegra_isomgr_handle tegra_isomgr_register(enum tegra_iso_client client,
 					  tegra_isomgr_renegotiate renegotiate,
 					  void *priv)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, ERR_PTR(-EINVAL));
+
 	if (test_mode)
 		return (tegra_isomgr_handle)1;
 	return __tegra_isomgr_register(client, udedi_bw, renegotiate, priv);
@@ -451,6 +461,11 @@ validation_fail:
  */
 void tegra_isomgr_unregister(tegra_isomgr_handle handle)
 {
+	if (isomgr_disable) {
+		pr_err("%s:isomgr API unavailable\n", __func__);
+		return;
+	}
+
 	if (test_mode)
 		return;
 	__tegra_isomgr_unregister(handle);
@@ -547,6 +562,8 @@ validation_fail:
 u32 tegra_isomgr_reserve(tegra_isomgr_handle handle,
 			 u32 ubw, u32 ult)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, 0);
+
 	if (test_mode)
 		return 1;
 	return __tegra_isomgr_reserve(handle, ubw, ult);
@@ -625,6 +642,8 @@ validation_fail:
  */
 u32 tegra_isomgr_realize(tegra_isomgr_handle handle)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, 0);
+
 	if (test_mode)
 		return 1;
 	return __tegra_isomgr_realize(handle);
@@ -719,6 +738,8 @@ validation_fail:
  */
 int tegra_isomgr_set_margin(enum tegra_iso_client client, u32 bw, bool wait)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, -ENOTSUPP);
+
 	if (test_mode)
 		return 0;
 	return __tegra_isomgr_set_margin(client, bw, wait);
@@ -754,6 +775,8 @@ static int __tegra_isomgr_get_imp_time(enum tegra_iso_client client, u32 bw)
  */
 int tegra_isomgr_get_imp_time(enum tegra_iso_client client, u32 bw)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, -ENOTSUPP);
+
 	if (test_mode)
 		return 0;
 	return __tegra_isomgr_get_imp_time(client, bw);
@@ -773,6 +796,8 @@ static u32 __tegra_isomgr_get_available_iso_bw(void)
  */
 u32 tegra_isomgr_get_available_iso_bw(void)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, 0);
+
 	if (test_mode)
 		return UINT_MAX;
 	return __tegra_isomgr_get_available_iso_bw();
@@ -799,6 +824,8 @@ static u32 __tegra_isomgr_get_total_iso_bw(enum tegra_iso_client client)
  */
 u32 tegra_isomgr_get_total_iso_bw(enum tegra_iso_client client)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, 0);
+
 	if (test_mode)
 		return UINT_MAX;
 	return __tegra_isomgr_get_total_iso_bw(client);
@@ -978,7 +1005,10 @@ int __init isomgr_init(void)
 
 	mutex_init(&isomgr.lock);
 
-	if (tegra_get_chip_id() == TEGRA194)
+	if (tegra_get_chip_id() == TEGRA234) {
+		isomgr_disable = true;
+		return 0;
+	} else if (tegra_get_chip_id() == TEGRA194)
 		isomgr.ops = t19x_isomgr_init();
 	else
 		isomgr.ops = pre_t19x_isomgr_init();
@@ -1048,6 +1078,8 @@ int tegra_isomgr_enable_test_mode(void)
 	int i;
 	struct isomgr_client *cp = NULL;
 
+	IS_ISOMGR_SUPPORTED(isomgr_disable, -ENOTSUPP);
+
 	if (!isomgr_lock()) {
 		pr_err("isomgr: enable_test_mode lock deadlock\n");
 		return -EINVAL;
@@ -1075,12 +1107,19 @@ tegra_isomgr_handle test_tegra_isomgr_register(enum tegra_iso_client client,
 					  tegra_isomgr_renegotiate renegotiate,
 					  void *priv)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, ERR_PTR(-EINVAL));
+
 	return __tegra_isomgr_register(client, dedicated_bw, renegotiate, priv);
 }
 EXPORT_SYMBOL(test_tegra_isomgr_register);
 
 void test_tegra_isomgr_unregister(tegra_isomgr_handle handle)
 {
+	if (isomgr_disable) {
+		pr_err("%s:isomgr API unavailable\n", __func__);
+		return;
+	}
+
 	return __tegra_isomgr_unregister(handle);
 }
 EXPORT_SYMBOL(test_tegra_isomgr_unregister);
@@ -1089,12 +1128,16 @@ EXPORT_SYMBOL(test_tegra_isomgr_unregister);
 u32 test_tegra_isomgr_reserve(tegra_isomgr_handle handle,
 			 u32 bw, u32 lt)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, 0);
+
 	return __tegra_isomgr_reserve(handle, bw, lt);
 }
 EXPORT_SYMBOL(test_tegra_isomgr_reserve);
 
 u32 test_tegra_isomgr_realize(tegra_isomgr_handle handle)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, 0);
+
 	return __tegra_isomgr_realize(handle);
 }
 EXPORT_SYMBOL(test_tegra_isomgr_realize);
@@ -1102,24 +1145,32 @@ EXPORT_SYMBOL(test_tegra_isomgr_realize);
 int test_tegra_isomgr_set_margin(enum tegra_iso_client client,
 				u32 bw, bool wait)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, -ENOTSUPP);
+
 	return __tegra_isomgr_set_margin(client, bw, wait);
 }
 EXPORT_SYMBOL(test_tegra_isomgr_set_margin);
 
 int test_tegra_isomgr_get_imp_time(enum tegra_iso_client client, u32 bw)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, -ENOTSUPP);
+
 	return __tegra_isomgr_get_imp_time(client, bw);
 }
 EXPORT_SYMBOL(test_tegra_isomgr_get_imp_time);
 
 u32 test_tegra_isomgr_get_available_iso_bw(void)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, 0);
+
 	return __tegra_isomgr_get_available_iso_bw();
 }
 EXPORT_SYMBOL(test_tegra_isomgr_get_available_iso_bw);
 
 u32 test_tegra_isomgr_get_total_iso_bw(enum tegra_iso_client client)
 {
+	IS_ISOMGR_SUPPORTED(isomgr_disable, 0);
+
 	return __tegra_isomgr_get_total_iso_bw(client);
 }
 EXPORT_SYMBOL(test_tegra_isomgr_get_total_iso_bw);

@@ -39,9 +39,18 @@ u32 *bwmgr_vi_bw_reqd_offset;
 int bwmgr_iso_bw_percentage;
 enum bwmgr_dram_types bwmgr_dram_type;
 int emc_to_dram_freq_factor;
+static bool bwmgr_disable = false;
 
 #define IS_HANDLE_VALID(x) ((x >= bwmgr.bwmgr_client) && \
 		(x < bwmgr.bwmgr_client + TEGRA_BWMGR_CLIENT_COUNT))
+
+#define IS_BWMGR_SUPPORTED(x, err)			\
+do {							\
+	if (x) {					\
+		pr_err("bwmgr API not supported");	\
+		return (err);				\
+	}						\
+} while (0)
 
 struct tegra_bwmgr_client {
 	unsigned long bw;
@@ -303,6 +312,8 @@ static int bwmgr_update_clk(void)
 struct tegra_bwmgr_client *tegra_bwmgr_register(
 		enum tegra_bwmgr_client_id client)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, ERR_PTR(-EINVAL));
+
 	if (!bwmgr_dram_config_supported) {
 		pr_err("bwmgr: ddr config not supported\n");
 		WARN_ON(true);
@@ -335,6 +346,11 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_register);
 
 void tegra_bwmgr_unregister(struct tegra_bwmgr_client *handle)
 {
+	if (bwmgr_disable) {
+		pr_err("bwmgr API not supported");
+		return;
+	}
+
 	if (!IS_HANDLE_VALID(handle)) {
 		WARN_ON(true);
 		return;
@@ -368,12 +384,16 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_unregister);
 
 u8 tegra_bwmgr_get_dram_num_channels(void)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	return bwmgr_dram_num_channels;
 }
 EXPORT_SYMBOL_GPL(tegra_bwmgr_get_dram_num_channels);
 
 unsigned long tegra_bwmgr_get_max_emc_rate(void)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	return bwmgr.emc_max_rate;
 }
 EXPORT_SYMBOL_GPL(tegra_bwmgr_get_max_emc_rate);
@@ -381,6 +401,8 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_get_max_emc_rate);
 /* Returns the ratio between dram and emc freq based on the type of dram */
 int bwmgr_get_emc_to_dram_freq_factor(void)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, -ENOTSUPP);
+
 	return emc_to_dram_freq_factor;
 }
 EXPORT_SYMBOL_GPL(bwmgr_get_emc_to_dram_freq_factor);
@@ -390,6 +412,8 @@ EXPORT_SYMBOL_GPL(bwmgr_get_emc_to_dram_freq_factor);
  */
 unsigned long tegra_bwmgr_get_core_emc_rate(void)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	return (unsigned long)(tegra_bwmgr_get_emc_rate() /
 		bwmgr_get_emc_to_dram_freq_factor());
 }
@@ -397,6 +421,8 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_get_core_emc_rate);
 
 unsigned long tegra_bwmgr_round_rate(unsigned long bw)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	if (bwmgr.emc_clk)
 		return clk_round_rate(bwmgr.emc_clk, bw);
 
@@ -409,6 +435,8 @@ int tegra_bwmgr_set_emc(struct tegra_bwmgr_client *handle, unsigned long val,
 {
 	int ret = 0;
 	bool update_clk = false;
+
+	IS_BWMGR_SUPPORTED(bwmgr_disable, -ENOTSUPP);
 
 	if (!bwmgr.emc_clk)
 		return 0;
@@ -520,6 +548,8 @@ int tegra_bwmgr_get_client_info(struct tegra_bwmgr_client *handle,
 		unsigned long *out_val,
 		enum tegra_bwmgr_request_type req)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, -ENOTSUPP);
+
 	if (!bwmgr.emc_clk)
 		return 0;
 
@@ -598,6 +628,8 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_get_client_info);
 
 int tegra_bwmgr_notifier_register(struct notifier_block *nb)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, -ENOTSUPP);
+
 	if (!nb)
 		return -EINVAL;
 
@@ -610,6 +642,8 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_notifier_register);
 
 int tegra_bwmgr_notifier_unregister(struct notifier_block *nb)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, -ENOTSUPP);
+
 	if (!nb)
 		return -EINVAL;
 
@@ -622,6 +656,8 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_notifier_unregister);
 
 unsigned long tegra_bwmgr_get_emc_rate(void)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	if (bwmgr.emc_clk)
 		return clk_get_rate(bwmgr.emc_clk);
 
@@ -639,6 +675,8 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_get_emc_rate);
 unsigned long bwmgr_get_lowest_iso_emc_freq(long iso_bw,
 				long iso_bw_nvdis, long iso_bw_vi)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	return bwmgr.ops->get_best_iso_freq(iso_bw, iso_bw_nvdis, iso_bw_vi);
 }
 EXPORT_SYMBOL_GPL(bwmgr_get_lowest_iso_emc_freq);
@@ -651,6 +689,8 @@ EXPORT_SYMBOL_GPL(bwmgr_get_lowest_iso_emc_freq);
  */
 u32 tegra_bwmgr_get_max_iso_bw(enum tegra_iso_client client)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	if (bwmgr.ops->get_max_iso_bw)
 		return bwmgr.ops->get_max_iso_bw(client);
 
@@ -660,24 +700,32 @@ EXPORT_SYMBOL_GPL(tegra_bwmgr_get_max_iso_bw);
 
 int bwmgr_iso_bw_percentage_max(void)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, -ENOTSUPP);
+
 	return bwmgr_iso_bw_percentage;
 }
 EXPORT_SYMBOL_GPL(bwmgr_iso_bw_percentage_max);
 
 unsigned long bwmgr_freq_to_bw(unsigned long freq)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	return bwmgr.ops->freq_to_bw(freq);
 }
 EXPORT_SYMBOL_GPL(bwmgr_freq_to_bw);
 
 unsigned long bwmgr_bw_to_freq(unsigned long bw)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	return bwmgr.ops->bw_to_freq(bw);
 }
 EXPORT_SYMBOL_GPL(bwmgr_bw_to_freq);
 
 u32 bwmgr_dvfs_latency(u32 ufreq)
 {
+	IS_BWMGR_SUPPORTED(bwmgr_disable, 0);
+
 	return bwmgr.ops->dvfs_latency(ufreq);
 }
 EXPORT_SYMBOL_GPL(bwmgr_dvfs_latency);
@@ -792,11 +840,12 @@ int __init bwmgr_init(void)
 		bwmgr.ops = bwmgr_eff_init_t18x();
 	else if (tegra_get_chip_id() == TEGRA194)
 		bwmgr.ops = bwmgr_eff_init_t19x();
-	else
-		/*
-		 * Fall back to t19x if we are running on a new chip.
-		 */
-		bwmgr.ops = bwmgr_eff_init_t19x();
+	else {
+		/* T234 and beyond use ICC */
+		bwmgr_disable = true;
+		mutex_destroy(&bwmgr.lock);
+		return 0;
+	}
 
 	dn = of_find_compatible_node(NULL, NULL, "nvidia,bwmgr");
 	if (dn == NULL) {
@@ -863,6 +912,9 @@ void __exit bwmgr_exit(void)
 {
 	int i;
 
+	if (bwmgr_disable)
+		return;
+
 	for (i = 0; i < TEGRA_BWMGR_CLIENT_COUNT; i++)
 		purge_client(bwmgr.bwmgr_client + i);
 
@@ -882,6 +934,9 @@ static int __init bwmgr_cooling_init(void)
 	char *cdev_type;
 	const char *str;
 	int ret = 0;
+
+	if (bwmgr_disable)
+		return 0;
 
 	galert_data = kzalloc(sizeof(struct dram_refresh_alrt),
 					GFP_KERNEL);
