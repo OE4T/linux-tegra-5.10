@@ -37,6 +37,27 @@
 
 
 / {
+	pinmux@2430000 {
+		eqos_mii_rx_input_state_disable: eqos_rx_disable {
+			eqos {
+				nvidia,pins = "eqos_rd0_pe6","eqos_rd1_pe7",
+						"eqos_rd2_pf0","eqos_rd3_pf1",
+						"eqos_rx_ctl_pf2";
+
+				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+			};
+		};
+		eqos_mii_rx_input_state_enable: eqos_rx_enable {
+			eqos {
+				nvidia,pins = "eqos_rd0_pe6","eqos_rd1_pe7",
+						"eqos_rd2_pf0","eqos_rd3_pf1",
+						"eqos_rx_ctl_pf2";
+
+				nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+			};
+		};
+	};
+
 	aliases {
 		ethernet = "/ethernet@2490000";
 	};
@@ -79,6 +100,7 @@
 		nvidia,mtl-queues = <0 1 2 3>;
 		nvidia,rx-queue-prio = <0x2 0x1 0x30 0x48>;
 		nvidia,dcs-enable = <0x1>;
+		nvidia,pad_calibration = <0x1>;
 		nvidia,tx-queue-prio = <0x0 0x7 0x2 0x3>;
 		iommus = <&smmu TEGRA_SID_EQOS>;
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
@@ -91,6 +113,9 @@
 		/* PTP_ref clock speed in Hz (312.5 MHz)*/
 		nvidia,ptp_ref_clock_speed = <312500000>;
 		status = "disabled";
+		pinctrl-names = "mii_rx_disable", "mii_rx_enable";
+		pinctrl-0 = <&eqos_mii_rx_input_state_disable>;
+		pinctrl-1 = <&eqos_mii_rx_input_state_enable>;
 		eqos_cool_dev: eqos-cool-dev {
 			cooling-min-state = <0>;
 			cooling-max-state = <5>;
