@@ -15,13 +15,13 @@
  */
 
 /*
- * Jetson Device-tree overlay for FE-PI Audio Z V2.
+ * Jetson Device-tree overlay for FE-PI Audio V1 and Z V2.
  */
 
 #include <dt-bindings/pinctrl/pinctrl-tegra.h>
 
 / {
-	overlay-name = "FE-PI Audio Z V2";
+	overlay-name = "FE-PI Audio V1 and Z V2";
 	compatible = JETSON_COMPATIBLE;
 
 	fragment@0 {
