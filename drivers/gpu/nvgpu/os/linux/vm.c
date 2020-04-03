@@ -153,20 +153,12 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 	if (mapped_buffer->flags != flags)
 		return NULL;
 
-	/*
-	 * If we find the mapping here then that means we have mapped it already
-	 * and the prior pin and get must be undone.
-	 */
-	gk20a_mm_unpin(os_buf->dev, os_buf->dmabuf,
-		       mapped_buffer->os_priv.attachment,
-		       mapped_buffer->os_priv.sgt);
-	dma_buf_put(os_buf->dmabuf);
-
 	nvgpu_log(g, gpu_dbg_map,
 		  "gv: 0x%04x_%08x + 0x%-7zu "
 		  "[dma: 0x%010llx, pa: 0x%010llx] "
 		  "pgsz=%-3dKb as=%-2d "
-		  "flags=0x%x apt=%s (reused)",
+		  "flags=0x%x apt=%s (already pinned, "
+		  "reused in case of dmabuf drvdata, unpinned otherwise)",
 		  u64_hi32(mapped_buffer->addr), u64_lo32(mapped_buffer->addr),
 		  os_buf->dmabuf->size,
 		  (u64)sg_dma_address(mapped_buffer->os_priv.sgt->sgl),
@@ -175,6 +167,15 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 		  vm_aspace_id(vm),
 		  mapped_buffer->flags,
 		  nvgpu_aperture_str(gk20a_dmabuf_aperture(g, os_buf->dmabuf)));
+
+	/*
+	 * If we find the mapping here then that means we have mapped it already
+	 * and the prior pin and get must be undone.
+	 */
+	gk20a_mm_unpin(os_buf->dev, os_buf->dmabuf,
+		       mapped_buffer->os_priv.attachment,
+		       mapped_buffer->os_priv.sgt);
+	dma_buf_put(os_buf->dmabuf);
 
 	return mapped_buffer;
 }
