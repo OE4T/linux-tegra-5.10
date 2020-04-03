@@ -125,31 +125,6 @@ int test_gv11b_channel_reset_faulted(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_gv11b_channel_debug_dump
- *
- * Description: Branch coverage for gv11b_channel_debug_dump
- *
- * Test Type: Feature
- *
- * Targets: gops_channel.debug_dump, gv11b_channel_debug_dump
- *
- * Input: test_fifo_init_support() run for this GPU
- *
- * Steps:
- * - Allocate channel.
- * - Build nvgpu_channel_dump_info structure.
- * - Call gv11b_channel_debug_output, with all combinations of
- *   channel deterministic, enabled, busy and sema.
- * - If gk20a_debug_output actually calls output function,
- *   check that length of output string does not exceed buffer
- *   capacity.
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_gv11b_channel_debug_dump(struct unit_module *m,
-		struct gk20a *g, void *args);
-
-/**
  * @}
  */
 

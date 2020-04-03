@@ -224,99 +224,12 @@ done:
 	return ret;
 }
 
-#define F_CHANNEL_DUMP_DETERMINISTIC				BIT(0)
-#define F_CHANNEL_DUMP_ENABLED					BIT(1)
-#define F_CHANNEL_DUMP_BUSY					BIT(2)
-#define F_CHANNEL_DUMP_SEMA					BIT(3)
-#define F_CHANNEL_DUMP_LAST					BIT(4)
-
-static const char *f_channel_dump[] = {
-	"deterministic",
-	"enabled",
-	"busy",
-	"sema",
-};
-
-static void test_debug_out(void *ctx, const char *str, size_t len)
-{
-	struct unit_ctx *unit_ctx = ctx;
-
-	unit_ctx->count++;
-	if (len >= unit_ctx->size || strlen(str) > len) {
-		unit_ctx->err++;
-		unit_err(unit_ctx->m, "** oversize string" );
-	} else {
-		unit_verbose(unit_ctx->m, "%s", str);
-	}
-}
-
-int test_gv11b_channel_debug_dump(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	bool privileged = false;
-	u32 runlist_id = NVGPU_INVALID_RUNLIST_ID;
-	struct nvgpu_channel *ch;
-	int ret = UNIT_FAIL;
-	u32 branches;
-	struct unit_ctx unit_ctx;
-	struct nvgpu_debug_context o;
-
-	o.fn = test_debug_out;
-	o.ctx = &unit_ctx;
-
-	unit_ctx.m = m;
-	unit_ctx.size = sizeof(o.buf);
-
-	ch = nvgpu_channel_open_new(g, runlist_id,
-		privileged, getpid(), getpid());
-	unit_assert(ch, goto done);
-
-	for (branches = 0U; branches < F_CHANNEL_DUMP_LAST; branches++) {
-
-		struct nvgpu_channel_dump_info _info, *info = &_info;
-
-		unit_verbose(m, "%s branches=%s\n",
-			__func__, branches_str(branches, f_channel_dump));
-
-		memset(info, 0, sizeof(*info));
-
-		info->chid = ch->chid;
-		info->tsgid = ch->tsgid;
-		info->pid = ch->pid;
-		info->refs = nvgpu_atomic_read(&ch->ref_count);
-		info->deterministic = (branches & F_CHANNEL_DUMP_DETERMINISTIC) != 0;
-		info->hw_state.enabled = (branches & F_CHANNEL_DUMP_ENABLED) != 0;
-		info->hw_state.busy = (branches & F_CHANNEL_DUMP_BUSY) != 0;
-		info->hw_state.status_string = "fake";
-		info->sema.addr = branches & F_CHANNEL_DUMP_SEMA ? 0x1000beef : 0;
-
-		unit_ctx.count = 0;
-		gv11b_channel_debug_dump(g, &o, info);
-
-#ifdef CONFIG_DEBUG_FS
-		unit_assert(unit_ctx.count > 4, goto done);
-		unit_assert(unit_ctx.err == 0, goto done);
-#endif
-	}
-
-
-	ret = UNIT_SUCCESS;
-done:
-	if (ch) {
-		nvgpu_channel_close(ch);
-	}
-
-	return ret;
-}
-
-
 struct unit_module_test nvgpu_channel_gv11b_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, NULL, 0),
 	UNIT_TEST(unbind, test_gv11b_channel_unbind, NULL, 0),
 	UNIT_TEST(count, test_gv11b_channel_count, NULL, 0),
 	UNIT_TEST(read_state, test_gv11b_channel_read_state, NULL, 0),
 	UNIT_TEST(reset_faulted, test_gv11b_channel_reset_faulted, NULL, 0),
-	UNIT_TEST(debug_dump, test_gv11b_channel_debug_dump, NULL, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, NULL, 0),
 };
 

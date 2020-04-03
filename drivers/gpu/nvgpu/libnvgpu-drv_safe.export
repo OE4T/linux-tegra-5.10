@@ -110,7 +110,6 @@ gv11b_ce_init_prod_values
 gv11b_ce_mthd_buffer_fault_in_bar2_fault
 gv11b_ce_stall_isr
 gv11b_channel_count
-gv11b_channel_debug_dump
 gv11b_channel_read_state
 gv11b_channel_reset_faulted
 gv11b_channel_unbind

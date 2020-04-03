@@ -1589,13 +1589,6 @@ static void stub_ramfc_capture_ram_dump(struct gk20a *g,
 	stub[1].chid = ch->chid;
 }
 
-static void stub_channel_debug_dump(struct gk20a *g,
-			     struct nvgpu_debug_context *o,
-			     struct nvgpu_channel_dump_info *info)
-{
-
-}
-
 int test_channel_debug_dump(struct unit_module *m, struct gk20a *g, void *vargs)
 {
 	struct nvgpu_channel *ch = NULL;
@@ -1629,7 +1622,6 @@ int test_channel_debug_dump(struct unit_module *m, struct gk20a *g, void *vargs)
 
 	g->ops.channel.read_state = stub_channel_read_state;
 	g->ops.ramfc.capture_ram_dump = stub_ramfc_capture_ram_dump;
-	g->ops.channel.debug_dump = stub_channel_debug_dump;
 
 	for (branches = 0U; branches < F_CHANNEL_DEBUG_DUMP_LAST;
 								branches++) {
