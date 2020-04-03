@@ -38,6 +38,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/nvhost.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_perfmon.h>
 #endif
@@ -220,8 +221,10 @@ static int gv11b_init_gpu_characteristics(struct gk20a *g)
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
 #endif
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
+	if (nvgpu_has_syncpoints(g)) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
+	}
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
 
 	return 0;

@@ -101,6 +101,7 @@
 #include <nvgpu/ce_app.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/nvhost.h>
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
 #endif
@@ -160,8 +161,10 @@ static int vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_IO_COHERENCE, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
+	if (nvgpu_has_syncpoints(g)) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
+	}
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
