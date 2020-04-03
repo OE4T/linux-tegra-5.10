@@ -644,22 +644,23 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.syncpt = {
+			.get_sync_ro_map = vgpu_gv11b_syncpt_get_sync_ro_map,
 			.alloc_buf = vgpu_gv11b_syncpt_alloc_buf,
 			.free_buf = vgpu_gv11b_syncpt_free_buf,
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			.add_wait_cmd = gv11b_syncpt_add_wait_cmd,
 			.get_wait_cmd_size =
 					gv11b_syncpt_get_wait_cmd_size,
-			.get_incr_per_release =
-					gv11b_syncpt_get_incr_per_release,
 			.add_incr_cmd = gv11b_syncpt_add_incr_cmd,
 			.get_incr_cmd_size =
 					gv11b_syncpt_get_incr_cmd_size,
+			.get_incr_per_release =
+					gv11b_syncpt_get_incr_per_release,
 #endif
-			.get_sync_ro_map = vgpu_gv11b_syncpt_get_sync_ro_map,
 		},
-#endif
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+#endif /* CONFIG_TEGRA_GK20A_NVHOST */
+#if defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT) && \
+	defined(CONFIG_NVGPU_SW_SEMAPHORE)
 		.sema = {
 			.add_wait_cmd = gv11b_sema_add_wait_cmd,
 			.get_wait_cmd_size = gv11b_sema_get_wait_cmd_size,

@@ -22,6 +22,9 @@
 #ifndef NVGPU_SYNC_SEMA_CMDBUF_GK20A_H
 #define NVGPU_SYNC_SEMA_CMDBUF_GK20A_H
 
+#if defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT) && \
+	defined(CONFIG_NVGPU_SW_SEMAPHORE)
+
 #include <nvgpu/types.h>
 
 struct gk20a;
@@ -37,5 +40,7 @@ void gk20a_sema_add_incr_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd,
 		struct nvgpu_semaphore *s, u64 sema_va,
 		bool wfi);
+
+#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT && CONFIG_NVGPU_SW_SEMAPHORE */
 
 #endif /* NVGPU_SYNC_SEMA_CMDBUF_GK20A_H */

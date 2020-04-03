@@ -43,7 +43,6 @@ struct nvgpu_semaphore;
  * @see gpu_ops
  */
 struct gops_sync {
-
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	struct gops_sync_syncpt {
 		/**
@@ -91,7 +90,8 @@ struct gops_sync {
 
 #endif /* CONFIG_TEGRA_GK20A_NVHOST */
 
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+#if defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT) && \
+	defined(CONFIG_NVGPU_SW_SEMAPHORE)
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct gops_sync_sema {
 		u32 (*get_wait_cmd_size)(void);

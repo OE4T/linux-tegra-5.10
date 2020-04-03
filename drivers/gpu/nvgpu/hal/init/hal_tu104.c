@@ -1049,6 +1049,7 @@ static const struct gpu_ops tu104_ops = {
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.syncpt = {
+			.get_sync_ro_map = gv11b_syncpt_get_sync_ro_map,
 			.alloc_buf = gv11b_syncpt_alloc_buf,
 			.free_buf = gv11b_syncpt_free_buf,
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
@@ -1061,7 +1062,6 @@ static const struct gpu_ops tu104_ops = {
 			.get_incr_per_release =
 					gv11b_syncpt_get_incr_per_release,
 #endif
-			.get_sync_ro_map = gv11b_syncpt_get_sync_ro_map,
 		},
 #endif /* CONFIG_TEGRA_GK20A_NVHOST */
 #if defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT) && \

@@ -56,31 +56,6 @@ int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
 
 #else
 
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-static inline void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
-		struct priv_cmd_entry *cmd,
-		u32 id, u32 thresh, u64 gpu_va_base)
-{
-}
-static inline u32 gv11b_syncpt_get_wait_cmd_size(void)
-{
-	return 0U;
-}
-static inline u32 gv11b_syncpt_get_incr_per_release(void)
-{
-	return 0U;
-}
-static inline void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
-		struct priv_cmd_entry *cmd,
-		u32 id, u64 gpu_va, bool wfi)
-{
-}
-static inline u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd)
-{
-	return 0U;
-}
-#endif
-
 static inline void gv11b_syncpt_free_buf(struct nvgpu_channel *c,
 		struct nvgpu_mem *syncpt_buf)
 {
@@ -98,6 +73,6 @@ static inline int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
 	return -EINVAL;
 }
 
-#endif
+#endif /* CONFIG_TEGRA_GK20A_NVHOST */
 
 #endif /* NVGPU_SYNC_SYNCPT_CMDBUF_GV11B_H */

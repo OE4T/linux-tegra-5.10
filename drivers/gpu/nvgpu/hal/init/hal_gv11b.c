@@ -1024,6 +1024,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.syncpt = {
+			.get_sync_ro_map = gv11b_syncpt_get_sync_ro_map,
 			.alloc_buf = gv11b_syncpt_alloc_buf,
 			.free_buf = gv11b_syncpt_free_buf,
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
@@ -1036,10 +1037,10 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 			.get_incr_per_release =
 					gv11b_syncpt_get_incr_per_release,
 #endif
-			.get_sync_ro_map = gv11b_syncpt_get_sync_ro_map,
 		},
 #endif /* CONFIG_TEGRA_GK20A_NVHOST */
-#ifdef CONFIG_NVGPU_SW_SEMAPHORE
+#if defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT) && \
+	defined(CONFIG_NVGPU_SW_SEMAPHORE)
 		.sema = {
 			.add_wait_cmd = gv11b_sema_add_wait_cmd,
 			.get_wait_cmd_size = gv11b_sema_get_wait_cmd_size,
