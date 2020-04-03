@@ -75,4 +75,14 @@ unsigned long emc_freq_to_bw(unsigned long freq);
 unsigned long emc_bw_to_freq(unsigned long bw);
 
 enum dram_types tegra_dram_types(void);
+
+/*
+ * Return Number of channels of dram.
+ *
+ * Return number of dram channels
+ *
+ * Return: dram channels.
+ */
+u8 get_dram_num_channels(void);
+
 #endif

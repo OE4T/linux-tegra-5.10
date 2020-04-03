@@ -92,6 +92,12 @@ unsigned long emc_bw_to_freq(unsigned long bw)
 }
 EXPORT_SYMBOL_GPL(emc_bw_to_freq);
 
+u8 get_dram_num_channels(void)
+{
+	return ch_num;
+}
+EXPORT_SYMBOL_GPL(get_dram_num_channels);
+
 enum dram_types tegra_dram_types(void)
 {
 	enum dram_types dram_type = DRAM_TYPE_NONE;
@@ -213,6 +219,7 @@ enum dram_types tegra_dram_types(void)
 
 	return dram_type;
 }
+EXPORT_SYMBOL_GPL(tegra_dram_types);
 
 void tegra_mc_utils_init(void)
 {
