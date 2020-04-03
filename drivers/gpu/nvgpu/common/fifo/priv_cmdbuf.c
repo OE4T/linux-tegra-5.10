@@ -29,6 +29,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/priv_cmdbuf.h>
+#include <nvgpu/gk20a.h>
 
 struct priv_cmd_queue {
 	struct nvgpu_mem mem;
@@ -47,23 +48,38 @@ int nvgpu_alloc_priv_cmdbuf_queue(struct nvgpu_channel *ch,
 	struct priv_cmd_queue *q;
 	u64 size, tmp_size;
 	int err = 0;
+	u32 wait_size, incr_size;
 	bool gpfifo_based = false;
 
+	/*
+	 * sema size is at least as much as syncpt size, but semas may not be
+	 * enabled in the build. If neither semas nor syncpts are enabled, priv
+	 * cmdbufs and as such kernel mode submits with job tracking won't be
+	 * supported.
+	 */
+#ifdef CONFIG_NVGPU_SW_SEMAPHORE
+	wait_size = g->ops.sync.sema.get_wait_cmd_size();
+	incr_size = g->ops.sync.sema.get_incr_cmd_size();
+#else
+	wait_size = g->ops.sync.syncpt.get_wait_cmd_size();
+	incr_size = g->ops.sync.syncpt.get_incr_cmd_size(true);
+#endif
 	if (num_in_flight == 0U) {
 		num_in_flight = ch->gpfifo.entry_num;
 		gpfifo_based = true;
 	}
 
 	/*
-	 * Compute the amount of priv_cmdbuf space we need. In general the worst
-	 * case is the kernel inserts both a semaphore pre-fence and post-fence.
-	 * Any sync-pt fences will take less memory so we can ignore them for
-	 * now.
+	 * Compute the amount of priv_cmdbuf space we need. In general the
+	 * worst case is the kernel inserts both a semaphore pre-fence and
+	 * post-fence. Any sync-pt fences will take less memory so we can
+	 * ignore them unless they're the only supported type.
 	 *
 	 * A semaphore ACQ (fence-wait) is 8 words: semaphore_a, semaphore_b,
-	 * semaphore_c, and semaphore_d. A semaphore INCR (fence-get) will be 10
-	 * words: all the same as an ACQ plus a non-stalling intr which is
-	 * another 2 words.
+	 * semaphore_c, and semaphore_d. A semaphore INCR (fence-get) will be
+	 * 10 words: all the same as an ACQ plus a non-stalling intr which is
+	 * another 2 words. In reality these numbers vary by chip but we'll use
+	 * 8 and 10 as examples.
 	 *
 	 * We have two cases to consider: the first is we base the size of the
 	 * priv_cmd_buf on the gpfifo count. Here we multiply by a factor of
@@ -73,12 +89,12 @@ int nvgpu_alloc_priv_cmdbuf_queue(struct nvgpu_channel *ch,
 	 *   nr_gpfifos * (2 / 3) * (8 + 10) * 4 bytes
 	 *
 	 * If instead num_in_flight is specified then we will use that to size
-	 * the priv_cmd_buf. The worst case is two sync commands (one ACQ and
+	 * the priv_cmd_buf. The worst case is both sync commands (one ACQ and
 	 * one INCR) per submit so we have a priv_cmd_buf size of:
 	 *
 	 *   num_in_flight * (8 + 10) * 4 bytes
 	 */
-	size = num_in_flight * 18UL * sizeof(u32);
+	size = num_in_flight * (wait_size + incr_size) * sizeof(u32);
 	if (gpfifo_based) {
 		size = 2U * size / 3U;
 	}
