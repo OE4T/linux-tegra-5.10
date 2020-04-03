@@ -74,9 +74,10 @@ static int ether_adjust_time(struct ptp_clock_info *ptp, s64 nsec_delta)
 						     struct ether_priv_data,
 						     ptp_clock_ops);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned long flags;
 	int ret = -1;
 
-	raw_spin_lock(&pdata->ptp_lock);
+	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
 	ret = osi_adjust_time(osi_core, nsec_delta);
 	if (ret < 0) {
@@ -85,7 +86,7 @@ static int ether_adjust_time(struct ptp_clock_info *ptp, s64 nsec_delta)
 			__func__, ret);
 	}
 
-	raw_spin_unlock(&pdata->ptp_lock);
+	raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
 
 	return ret;
 }
@@ -108,9 +109,10 @@ static int ether_adjust_freq(struct ptp_clock_info *ptp, s32 ppb)
 						     struct ether_priv_data,
 						     ptp_clock_ops);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned long flags;
 	int ret = -1;
 
-	raw_spin_lock(&pdata->ptp_lock);
+	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
 	ret = osi_adjust_freq(osi_core, ppb);
 	if (ret < 0) {
@@ -119,7 +121,7 @@ static int ether_adjust_freq(struct ptp_clock_info *ptp, s32 ppb)
 			__func__, ret);
 	}
 
-	raw_spin_unlock(&pdata->ptp_lock);
+	raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
 
 	return ret;
 }
@@ -143,12 +145,13 @@ static int ether_get_time(struct ptp_clock_info *ptp, struct timespec *ts)
 						     ptp_clock_ops);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int sec, nsec;
+	unsigned long flags;
 
-	raw_spin_lock(&pdata->ptp_lock);
+	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
 	osi_get_systime_from_mac(osi_core, &sec, &nsec);
 
-	raw_spin_unlock(&pdata->ptp_lock);
+	raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
 
 	ts->tv_sec = sec;
 	ts->tv_nsec = nsec;
@@ -175,9 +178,10 @@ static int ether_set_time(struct ptp_clock_info *ptp,
 						     struct ether_priv_data,
 						     ptp_clock_ops);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	unsigned long flags;
 	int ret = -1;
 
-	raw_spin_lock(&pdata->ptp_lock);
+	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
 	ret = osi_set_systime_to_mac(osi_core, ts->tv_sec, ts->tv_nsec);
 	if (ret < 0) {
@@ -186,7 +190,7 @@ static int ether_set_time(struct ptp_clock_info *ptp,
 			__func__, ret);
 	}
 
-	raw_spin_unlock(&pdata->ptp_lock);
+	raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
 
 	return ret;
 }
