@@ -49,7 +49,6 @@ int nvgpu_alloc_priv_cmdbuf_queue(struct nvgpu_channel *ch,
 	u64 size, tmp_size;
 	int err = 0;
 	u32 wait_size, incr_size;
-	bool gpfifo_based = false;
 
 	/*
 	 * sema size is at least as much as syncpt size, but semas may not be
@@ -64,10 +63,6 @@ int nvgpu_alloc_priv_cmdbuf_queue(struct nvgpu_channel *ch,
 	wait_size = g->ops.sync.syncpt.get_wait_cmd_size();
 	incr_size = g->ops.sync.syncpt.get_incr_cmd_size(true);
 #endif
-	if (num_in_flight == 0U) {
-		num_in_flight = ch->gpfifo.entry_num;
-		gpfifo_based = true;
-	}
 
 	/*
 	 * Compute the amount of priv_cmdbuf space we need. In general the
@@ -82,22 +77,27 @@ int nvgpu_alloc_priv_cmdbuf_queue(struct nvgpu_channel *ch,
 	 * 8 and 10 as examples.
 	 *
 	 * We have two cases to consider: the first is we base the size of the
-	 * priv_cmd_buf on the gpfifo count. Here we multiply by a factor of
-	 * 2/3rds because only at most 2/3rds of the GPFIFO can be used for
-	 * sync commands:
+	 * queue on the gpfifo count. Here we multiply by a factor of 1/3
+	 * because at most a third of the GPFIFO entries can be used for
+	 * user-submitted jobs; another third goes to wait entries, and the
+	 * final third to incr entries. There will be one pair of acq and incr
+	 * commands for each job.
 	 *
-	 *   nr_gpfifos * (2 / 3) * (8 + 10) * 4 bytes
+	 *   gpfifo entry num * (1 / 3) * (8 + 10) * 4 bytes
 	 *
 	 * If instead num_in_flight is specified then we will use that to size
-	 * the priv_cmd_buf. The worst case is both sync commands (one ACQ and
-	 * one INCR) per submit so we have a priv_cmd_buf size of:
+	 * the queue instead of a third of the gpfifo entry count. The worst
+	 * case is still both sync commands (one ACQ and one INCR) per submit so
+	 * we have a queue size of:
 	 *
 	 *   num_in_flight * (8 + 10) * 4 bytes
 	 */
-	size = num_in_flight * (wait_size + incr_size) * sizeof(u32);
-	if (gpfifo_based) {
-		size = 2U * size / 3U;
+	if (num_in_flight == 0U) {
+		/* round down to ensure space for all priv cmds */
+		num_in_flight = ch->gpfifo.entry_num / 3;
 	}
+
+	size = num_in_flight * (wait_size + incr_size) * sizeof(u32);
 
 	tmp_size = PAGE_ALIGN(roundup_pow_of_two(size));
 	nvgpu_assert(tmp_size <= U32_MAX);
