@@ -277,7 +277,12 @@ int nvgpu_init_sim_support(struct gk20a *g)
 	}
 
 	g->sim->sim_init_late = nvgpu_sim_init_late;
-	g->sim->remove_support = nvgpu_remove_sim_support;
+	/*
+	 * Found issues with removing sim support for igpu.
+	 * Remove sim->remove_support until JIRA NVGPU-5281 is fixed.
+	 * g->sim->remove_support = nvgpu_remove_sim_support;
+	 */
+	g->sim->remove_support = NULL;
 	g->sim->esc_readl = nvgpu_sim_esc_readl;
 	return 0;
 
