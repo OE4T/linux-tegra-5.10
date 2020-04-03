@@ -178,7 +178,8 @@ u32 nvgpu_nvhost_syncpt_read_maxval(
 void nvgpu_nvhost_syncpt_set_safe_state(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
 {
-	u32 val;
+	u32 val = 0;
+	int err;
 
 	/*
 	 * Add large number of increments to current value
@@ -187,11 +188,16 @@ void nvgpu_nvhost_syncpt_set_safe_state(
 	 * We don't expect any case where more than 0x10000 increments
 	 * are pending
 	 */
-	val = nvhost_syncpt_read_minval(nvhost_dev->host1x_pdev, id);
-	val += 0x10000;
-
-	nvhost_syncpt_set_minval(nvhost_dev->host1x_pdev, id, val);
-	nvhost_syncpt_set_maxval(nvhost_dev->host1x_pdev, id, val);
+	err = nvhost_syncpt_read_ext_check(nvhost_dev->host1x_pdev,
+			id, &val);
+	if (err != 0) {
+		pr_err("%s: syncpt id read failed, cannot reset for safe state",
+				__func__);
+	} else {
+		val += 0x10000;
+		nvhost_syncpt_set_minval(nvhost_dev->host1x_pdev, id, val);
+		nvhost_syncpt_set_maxval(nvhost_dev->host1x_pdev, id, val);
+	}
 }
 
 int nvgpu_nvhost_create_symlink(struct gk20a *g)
