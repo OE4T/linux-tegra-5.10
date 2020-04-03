@@ -26,18 +26,8 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_mem;
 struct nvgpu_channel;
-
-struct priv_cmd_entry {
-	bool valid;
-	struct nvgpu_mem *mem;
-	u32 off;	/* offset in mem, in u32 entries */
-	u32 fill_off;	/* write offset from off, in u32 entries */
-	u64 gva;
-	u32 size;	/* in words */
-	u32 alloc_size;
-};
+struct priv_cmd_entry;
 
 int nvgpu_priv_cmdbuf_queue_alloc(struct nvgpu_channel *ch, u32 num_in_flight);
 void nvgpu_priv_cmdbuf_queue_free(struct nvgpu_channel *ch);

@@ -67,10 +67,10 @@ static void add_sema_wait_cmd(struct gk20a *g, struct nvgpu_channel *c,
 
 	g->ops.sync.sema.add_wait_cmd(g, cmd, s, va);
 	gpu_sema_verbose_dbg(g, "(A) c=%d ACQ_GE %-4u pool=%-3llu"
-			     "va=0x%llx cmd_mem=0x%llx b=0x%llx",
+			     "va=0x%llx cmd=%p",
 			     ch, nvgpu_semaphore_get_value(s),
 			     nvgpu_semaphore_get_hw_pool_page_idx(s),
-			     va, cmd->gva, cmd->mem->gpu_va);
+			     va, cmd);
 }
 
 static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
@@ -88,11 +88,11 @@ static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
 
 	g->ops.sync.sema.add_incr_cmd(g, cmd, s, va, wfi);
 	gpu_sema_verbose_dbg(g, "(R) c=%d INCR %u (%u) pool=%-3llu"
-			     "va=0x%llx cmd_mem=0x%llx b=0x%llx",
+			     "va=0x%llx entry=%p",
 			     ch, nvgpu_semaphore_get_value(s),
 			     nvgpu_semaphore_read(s),
 			     nvgpu_semaphore_get_hw_pool_page_idx(s),
-			     va, cmd->gva, cmd->mem->gpu_va);
+			     va, cmd);
 }
 
 static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,

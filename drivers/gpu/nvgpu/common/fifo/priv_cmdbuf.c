@@ -33,6 +33,16 @@
 #include <nvgpu/trace.h>
 #include <nvgpu/circ_buf.h>
 
+struct priv_cmd_entry {
+	bool valid;
+	struct nvgpu_mem *mem;
+	u32 off;	/* offset in mem, in u32 entries */
+	u32 fill_off;	/* write offset from off, in u32 entries */
+	u64 gva;
+	u32 size;	/* in words */
+	u32 alloc_size;
+};
+
 struct priv_cmd_queue {
 	struct nvgpu_mem mem; /* pushbuf */
 	u32 size;	/* allocated length in words */
