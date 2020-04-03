@@ -33,6 +33,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/job.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>

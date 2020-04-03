@@ -252,15 +252,6 @@ struct notification {
 	u16 status;
 };
 
-struct nvgpu_channel_job {
-	struct nvgpu_mapped_buf **mapped_buffers;
-	u32 num_mapped_buffers;
-	struct nvgpu_fence_type *post_fence;
-	struct priv_cmd_entry *wait_cmd;
-	struct priv_cmd_entry *incr_cmd;
-	struct nvgpu_list_node list;
-};
-
 struct nvgpu_channel_joblist {
 	struct {
 		bool enabled;
@@ -592,13 +583,6 @@ struct nvgpu_channel {
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 
-static inline struct nvgpu_channel_job *
-channel_gk20a_job_from_list(struct nvgpu_list_node *node)
-{
-	return (struct nvgpu_channel_job *)
-	((uintptr_t)node - offsetof(struct nvgpu_channel_job, list));
-};
-
 static inline struct nvgpu_channel *
 nvgpu_channel_from_worker_item(struct nvgpu_list_node *node)
 {
@@ -608,10 +592,6 @@ nvgpu_channel_from_worker_item(struct nvgpu_list_node *node)
 int nvgpu_channel_worker_init(struct gk20a *g);
 void nvgpu_channel_worker_deinit(struct gk20a *g);
 void nvgpu_channel_update(struct nvgpu_channel *c);
-int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
-		struct nvgpu_channel_job **job_out);
-void nvgpu_channel_free_job(struct nvgpu_channel *c,
-		struct nvgpu_channel_job *job);
 u32 nvgpu_channel_update_gpfifo_get_and_get_free_count(
 		struct nvgpu_channel *ch);
 u32 nvgpu_channel_get_gpfifo_free_count(struct nvgpu_channel *ch);
@@ -635,9 +615,6 @@ int nvgpu_submit_channel_gpfifo_kernel(struct nvgpu_channel *c,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out);
 int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch);
-void nvgpu_channel_joblist_lock(struct nvgpu_channel *c);
-void nvgpu_channel_joblist_unlock(struct nvgpu_channel *c);
-bool nvgpu_channel_joblist_is_empty(struct nvgpu_channel *c);
 bool nvgpu_channel_is_prealloc_enabled(struct nvgpu_channel *c);
 
 bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,

@@ -349,7 +349,9 @@ fifo:
       safe: yes
       sources: [ common/fifo/submit.c,
                  common/fifo/priv_cmdbuf.c,
+                 common/fifo/job.c,
                  include/nvgpu/priv_cmdbuf.h,
+                 include/nvgpu/job.h,
                  include/nvgpu/profile.h ]
       deps: [ ]
     runlist:

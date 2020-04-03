@@ -29,6 +29,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/job.h>
 #include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/fence.h>
