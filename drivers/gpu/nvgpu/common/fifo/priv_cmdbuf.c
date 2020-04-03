@@ -30,6 +30,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/trace.h>
 
 struct priv_cmd_queue {
 	struct nvgpu_mem mem;
@@ -255,4 +256,25 @@ void nvgpu_priv_cmdbuf_append_zeros(struct gk20a *g, struct priv_cmd_entry *e,
 	nvgpu_memset(g, e->mem, (e->off + e->fill_off) * sizeof(u32),
 			0, entries * sizeof(u32));
 	e->fill_off += entries;
+}
+
+void nvgpu_priv_cmdbuf_finish(struct gk20a *g, struct priv_cmd_entry *e,
+		u64 *gva, u32 *size)
+{
+	/*
+	 * The size is written to the pushbuf entry, so make sure this buffer
+	 * is complete at this point. The responsibility of the channel sync is
+	 * to be consistent in allocation and usage, and the matching size and
+	 * add gops (e.g., get_wait_cmd_size, add_wait_cmd) help there.
+	 */
+	nvgpu_assert(e->fill_off == e->size);
+
+#ifdef CONFIG_NVGPU_TRACE
+	if (e->mem->aperture == APERTURE_SYSMEM) {
+		trace_gk20a_push_cmdbuf(g->name, 0, e->size, 0,
+				(u32 *)e->mem->cpu_va + e->off);
+	}
+#endif
+	*gva = e->gva;
+	*size = e->size;
 }

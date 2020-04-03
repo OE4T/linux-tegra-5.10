@@ -54,4 +54,7 @@ void nvgpu_priv_cmdbuf_append(struct gk20a *g, struct priv_cmd_entry *e,
 void nvgpu_priv_cmdbuf_append_zeros(struct gk20a *g, struct priv_cmd_entry *e,
 		u32 entries);
 
+void nvgpu_priv_cmdbuf_finish(struct gk20a *g, struct priv_cmd_entry *e,
+		u64 *gva, u32 *size);
+
 #endif

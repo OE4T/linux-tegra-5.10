@@ -199,20 +199,15 @@ static void nvgpu_submit_append_priv_cmdbuf(struct nvgpu_channel *c,
 	struct gk20a *g = c->g;
 	struct nvgpu_mem *gpfifo_mem = &c->gpfifo.mem;
 	struct nvgpu_gpfifo_entry gpfifo_entry;
+	u64 gva;
+	u32 size;
 
-	g->ops.pbdma.format_gpfifo_entry(g, &gpfifo_entry,
-			cmd->gva, cmd->size);
+	nvgpu_priv_cmdbuf_finish(g, cmd, &gva, &size);
+	g->ops.pbdma.format_gpfifo_entry(g, &gpfifo_entry, gva, size);
 
 	nvgpu_mem_wr_n(g, gpfifo_mem,
 			c->gpfifo.put * (u32)sizeof(gpfifo_entry),
 			&gpfifo_entry, (u32)sizeof(gpfifo_entry));
-
-#ifdef CONFIG_NVGPU_TRACE
-	if (cmd->mem->aperture == APERTURE_SYSMEM) {
-		trace_gk20a_push_cmdbuf(g->name, 0, cmd->size, 0,
-				(u32 *)cmd->mem->cpu_va + cmd->off);
-	}
-#endif
 
 	c->gpfifo.put = (c->gpfifo.put + 1U) & (c->gpfifo.entry_num - 1U);
 }
