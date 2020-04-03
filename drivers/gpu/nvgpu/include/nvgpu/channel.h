@@ -46,6 +46,7 @@ struct nvgpu_gpfifo_userdata;
 struct nvgpu_gr_subctx;
 struct nvgpu_gr_ctx;
 struct nvgpu_debug_context;
+struct priv_cmd_queue;
 struct priv_cmd_entry;
 
 /**
@@ -251,13 +252,6 @@ struct notification {
 	u16 status;
 };
 
-struct priv_cmd_queue {
-	struct nvgpu_mem mem;
-	u32 size;	/* num of entries in words */
-	u32 put;	/* put for priv cmd queue */
-	u32 get;	/* get for priv cmd queue */
-};
-
 struct nvgpu_channel_job {
 	struct nvgpu_mapped_buf **mapped_buffers;
 	u32 num_mapped_buffers;
@@ -411,7 +405,7 @@ struct nvgpu_channel {
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	struct nvgpu_channel_joblist joblist;
 	struct gpfifo_desc gpfifo;
-	struct priv_cmd_queue priv_cmd_q;
+	struct priv_cmd_queue *priv_cmd_q;
 	struct nvgpu_channel_sync *sync;
 	/* for job cleanup handling in the background worker */
 	struct nvgpu_list_node worker_item;

@@ -222,7 +222,7 @@ static void channel_kernelmode_deinit(struct nvgpu_channel *ch)
 #endif
 	(void) memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
 
-	channel_free_priv_cmd_q(ch);
+	nvgpu_free_priv_cmdbuf_queue(ch);
 
 	/* free pre-allocated resources, if applicable */
 	if (nvgpu_channel_is_prealloc_enabled(ch)) {
@@ -606,7 +606,7 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 		}
 	}
 
-	err = channel_alloc_priv_cmdbuf(c, args->num_inflight_jobs);
+	err = nvgpu_alloc_priv_cmdbuf_queue(c, args->num_inflight_jobs);
 	if (err != 0) {
 		goto clean_up_prealloc;
 	}
@@ -619,7 +619,7 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 	return 0;
 
 clean_up_priv_cmd:
-	channel_free_priv_cmd_q(c);
+	nvgpu_free_priv_cmdbuf_queue(c);
 clean_up_prealloc:
 	if (nvgpu_channel_is_deterministic(c) &&
 			args->num_inflight_jobs != 0U) {

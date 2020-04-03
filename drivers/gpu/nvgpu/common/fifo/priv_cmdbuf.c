@@ -30,14 +30,21 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/priv_cmdbuf.h>
 
-/* allocate private cmd buffer.
+struct priv_cmd_queue {
+	struct nvgpu_mem mem;
+	u32 size;	/* num of entries in words */
+	u32 put;	/* put for priv cmd queue */
+	u32 get;	/* get for priv cmd queue */
+};
+
+/* allocate private cmd buffer queue.
    used for inserting commands before/after user submitted buffers. */
-int channel_alloc_priv_cmdbuf(struct nvgpu_channel *ch,
+int nvgpu_alloc_priv_cmdbuf_queue(struct nvgpu_channel *ch,
 	u32 num_in_flight)
 {
 	struct gk20a *g = ch->g;
 	struct vm_gk20a *ch_vm = ch->vm;
-	struct priv_cmd_queue *q = &ch->priv_cmd_q;
+	struct priv_cmd_queue *q;
 	u64 size, tmp_size;
 	int err = 0;
 	bool gpfifo_based = false;
@@ -80,42 +87,46 @@ int channel_alloc_priv_cmdbuf(struct nvgpu_channel *ch,
 	nvgpu_assert(tmp_size <= U32_MAX);
 	size = (u32)tmp_size;
 
+	q = nvgpu_kzalloc(g, sizeof(*q));
+
 	err = nvgpu_dma_alloc_map_sys(ch_vm, size, &q->mem);
 	if (err != 0) {
 		nvgpu_err(g, "%s: memory allocation failed", __func__);
-		goto clean_up;
+		goto err_free_buf;
 	}
 
 	tmp_size = q->mem.size / sizeof(u32);
 	nvgpu_assert(tmp_size <= U32_MAX);
 	q->size = (u32)tmp_size;
 
-	return 0;
+	ch->priv_cmd_q = q;
 
-clean_up:
-	channel_free_priv_cmd_q(ch);
+	return 0;
+err_free_buf:
+	nvgpu_kfree(g, q);
 	return err;
 }
 
-void channel_free_priv_cmd_q(struct nvgpu_channel *ch)
+void nvgpu_free_priv_cmdbuf_queue(struct nvgpu_channel *ch)
 {
 	struct vm_gk20a *ch_vm = ch->vm;
-	struct priv_cmd_queue *q = &ch->priv_cmd_q;
+	struct priv_cmd_queue *q = ch->priv_cmd_q;
 
-	if (q->size == 0U) {
+	if (q == NULL) {
 		return;
 	}
 
 	nvgpu_dma_unmap_free(ch_vm, &q->mem);
+	nvgpu_kfree(ch->g, q);
 
-	(void) memset(q, 0, sizeof(struct priv_cmd_queue));
+	ch->priv_cmd_q = NULL;
 }
 
 /* allocate a cmd buffer with given size. size is number of u32 entries */
 int nvgpu_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
 			     struct priv_cmd_entry *e)
 {
-	struct priv_cmd_queue *q = &c->priv_cmd_q;
+	struct priv_cmd_queue *q = c->priv_cmd_q;
 	u32 free_count;
 	u32 size = orig_size;
 
@@ -191,7 +202,7 @@ void nvgpu_channel_free_priv_cmd_entry(struct nvgpu_channel *c,
 void nvgpu_channel_update_priv_cmd_q_and_free_entry(
 		struct nvgpu_channel *ch, struct priv_cmd_entry *e)
 {
-	struct priv_cmd_queue *q = &ch->priv_cmd_q;
+	struct priv_cmd_queue *q = ch->priv_cmd_q;
 	struct gk20a *g = ch->g;
 
 	if (e == NULL) {

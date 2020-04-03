@@ -38,8 +38,8 @@ struct priv_cmd_entry {
 	u32 size;	/* in words */
 };
 
-int channel_alloc_priv_cmdbuf(struct nvgpu_channel *ch, u32 num_in_flight);
-void channel_free_priv_cmd_q(struct nvgpu_channel *ch);
+int nvgpu_alloc_priv_cmdbuf_queue(struct nvgpu_channel *ch, u32 num_in_flight);
+void nvgpu_free_priv_cmdbuf_queue(struct nvgpu_channel *ch);
 
 int nvgpu_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
 		struct priv_cmd_entry *e);
