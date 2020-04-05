@@ -36,7 +36,7 @@ struct sim_nvgpu {
 	struct nvgpu_mem send_bfr;
 	struct nvgpu_mem recv_bfr;
 	struct nvgpu_mem msg_bfr;
-	void (*sim_init_late)(struct gk20a *g);
+	int (*sim_init_late)(struct gk20a *g);
 	void (*remove_support)(struct gk20a *g);
 	void (*esc_readl)(
 		struct gk20a *g, const char *path, u32 index, u32 *data);

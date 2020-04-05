@@ -443,7 +443,9 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 
 	if (g->sim) {
 		if (g->sim->sim_init_late)
-			g->sim->sim_init_late(g);
+			err = g->sim->sim_init_late(g);
+		if (err)
+			goto done;
 	}
 
 #ifdef CONFIG_NVGPU_DGPU
@@ -530,6 +532,7 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 done:
 	if (err != 0) {
 		nvgpu_disable_irqs(g);
+		nvgpu_remove_sim_support_linux(g);
 	}
 
 	nvgpu_mutex_release(&g->power_lock);
