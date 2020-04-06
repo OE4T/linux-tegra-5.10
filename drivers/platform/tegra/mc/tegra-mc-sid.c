@@ -100,18 +100,6 @@ static void __mc_override_sid(int sid, int oid, enum mc_overrides ord)
 		&& (val & SCEW_STREAMID_WRITE_ACCESS_DISABLED))
 		return;
 
-	/*
-	 * Only valid when kernel runs in secure mode.
-	 * Otherwise, no effect on MC_SID_STREAMID_SECURITY_CONFIG_*.
-	 */
-	if ((ord == OVERRIDE) ||
-	    (tegra_platform_is_sim() && ord == SIM_OVERRIDE))
-		val = SCEW_STREAMID_OVERRIDE | SCEW_NS;
-	else
-		val = SCEW_NS;
-
-	writel_relaxed(val, addr);
-
 	addr = mc_sid->sid_base + offs;
 	writel_relaxed(sid, addr);
 
