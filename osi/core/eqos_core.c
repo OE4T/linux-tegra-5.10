@@ -1338,7 +1338,7 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 		/* if MTU less than or equal to 9K use JE */
 		value |= EQOS_MCR_JE;
 		value |= EQOS_MCR_JD;
-	} else {
+	} else if (osi_core->mtu > OSI_MTU_SIZE_9000) {
 		/* if MTU greater 9K use GPSLCE */
 		value |= EQOS_MCR_JD | EQOS_MCR_WD;
 		value |= EQOS_MCR_GPSLCE;
@@ -1351,6 +1351,8 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 		/* Write MAC Extenstion Register */
 		osi_writel(mac_ext, (unsigned char *)osi_core->base +
 			   EQOS_MAC_EXTR);
+	} else {
+		/* do nothing for default mtu size */
 	}
 
 	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
