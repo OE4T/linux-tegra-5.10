@@ -74,6 +74,13 @@ unsigned long emc_freq_to_bw(unsigned long freq);
  */
 unsigned long emc_bw_to_freq(unsigned long bw);
 
+/*
+ * Return dram types or dram configuration.
+ *
+ * Return dram configuration based upon ecc/channel/Rank
+ *
+ * Return: dram type.
+ */
 enum dram_types tegra_dram_types(void);
 
 /*
@@ -85,4 +92,13 @@ enum dram_types tegra_dram_types(void);
  */
 u8 get_dram_num_channels(void);
 
+/*
+ * Return mc_clk from dram_clk.
+ *
+ * Return DRAM clock in MHZ to MC clk in MHz.
+ *
+ * dram_clk: dram clk in MHz
+ * Return: mc clk in MHz.
+ */
+unsigned long dram_clk_to_mc_clk(unsigned long dram_clk);
 #endif

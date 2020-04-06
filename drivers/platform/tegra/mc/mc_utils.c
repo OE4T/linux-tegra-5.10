@@ -45,6 +45,8 @@
 #define DRAM_LPDDR4 0
 #define DRAM_LPDDR5 1
 #define DRAM_DDR3 2
+#define BR4_MODE 4
+#define BR8_MODE 8
 
 struct emc_params {
 	u32 rank;
@@ -97,6 +99,22 @@ u8 get_dram_num_channels(void)
 	return ch_num;
 }
 EXPORT_SYMBOL_GPL(get_dram_num_channels);
+
+/* DRAM clock in MHz
+ *
+ * Return: MC clock in MHz
+*/
+unsigned long dram_clk_to_mc_clk(unsigned long dram_clk)
+{
+	unsigned long mc_clk;
+
+	if (dram_clk <= 1600)
+		mc_clk = (dram_clk + BR4_MODE - 1) / BR4_MODE;
+	else
+		mc_clk = (dram_clk + BR8_MODE - 1) / BR8_MODE;
+	return mc_clk;
+}
+EXPORT_SYMBOL_GPL(dram_clk_to_mc_clk);
 
 enum dram_types tegra_dram_types(void)
 {
