@@ -53,7 +53,7 @@ u32 nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s);
  * Returns a gpu cmdbuf that performs the wait when executed.
  */
 int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
-	u32 id, u32 thresh, struct priv_cmd_entry *entry);
+	u32 id, u32 thresh, struct priv_cmd_entry **entry);
 #endif
 
 /**
@@ -97,7 +97,7 @@ static inline u64 nvgpu_channel_sync_get_syncpt_address(
 
 static inline int nvgpu_channel_sync_wait_syncpt(
 	struct nvgpu_channel_sync_syncpt *s,
-	u32 id, u32 thresh, struct priv_cmd_entry *entry)
+	u32 id, u32 thresh, struct priv_cmd_entry **entry)
 {
 	return -EINVAL;
 }

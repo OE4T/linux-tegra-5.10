@@ -58,21 +58,21 @@ bool nvgpu_channel_sync_needs_os_fence_framework(struct gk20a *g)
 }
 
 int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
-	struct priv_cmd_entry *entry, u32 max_wait_cmds)
+	struct priv_cmd_entry **entry, u32 max_wait_cmds)
 {
 	return s->ops->wait_fence_fd(s, fd, entry, max_wait_cmds);
 }
 
 int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
-	struct priv_cmd_entry *entry, struct nvgpu_fence_type *fence,
+	struct priv_cmd_entry **entry, struct nvgpu_fence_type *fence,
 	bool need_sync_fence, bool register_irq)
 {
 	return s->ops->incr(s, entry, fence, need_sync_fence, register_irq);
 }
 
 int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
-	struct priv_cmd_entry *entry, struct nvgpu_fence_type *fence, bool wfi,
-	bool need_sync_fence, bool register_irq)
+	struct priv_cmd_entry **entry, struct nvgpu_fence_type *fence,
+	bool wfi, bool need_sync_fence, bool register_irq)
 {
 	return s->ops->incr_user(s, entry, fence, wfi, need_sync_fence,
 			register_irq);

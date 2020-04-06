@@ -114,7 +114,7 @@ static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,
 
 static int channel_sync_semaphore_wait_fd(
 		struct nvgpu_channel_sync *s, int fd,
-		struct priv_cmd_entry *entry, u32 max_wait_cmds)
+		struct priv_cmd_entry **entry, u32 max_wait_cmds)
 {
 	struct nvgpu_channel_sync_semaphore *sema =
 		nvgpu_channel_sync_semaphore_from_base(s);
@@ -148,17 +148,16 @@ static int channel_sync_semaphore_wait_fd(
 	}
 
 	wait_cmd_size = c->g->ops.sync.sema.get_wait_cmd_size();
-	err = nvgpu_channel_alloc_priv_cmdbuf(c,
+	err = nvgpu_priv_cmdbuf_alloc(c,
 		wait_cmd_size * num_fences, entry);
 	if (err != 0) {
-		nvgpu_err(c->g, "not enough priv cmd buffer space");
 		goto cleanup;
 	}
 
 	for (i = 0; i < num_fences; i++) {
 		nvgpu_os_fence_sema_extract_nth_semaphore(
 			&os_fence_sema, i, &semaphore);
-		channel_sync_semaphore_gen_wait_cmd(c, semaphore, entry,
+		channel_sync_semaphore_gen_wait_cmd(c, semaphore, *entry,
 				wait_cmd_size);
 	}
 
@@ -169,7 +168,7 @@ cleanup:
 
 static int channel_sync_semaphore_incr_common(
 		struct nvgpu_channel_sync *s, bool wfi_cmd,
-		struct priv_cmd_entry *incr_cmd,
+		struct priv_cmd_entry **incr_cmd,
 		struct nvgpu_fence_type *fence,
 		bool need_sync_fence)
 {
@@ -189,39 +188,37 @@ static int channel_sync_semaphore_incr_common(
 	}
 
 	incr_cmd_size = c->g->ops.sync.sema.get_incr_cmd_size();
-	err = nvgpu_channel_alloc_priv_cmdbuf(c, incr_cmd_size, incr_cmd);
+	err = nvgpu_priv_cmdbuf_alloc(c, incr_cmd_size, incr_cmd);
 	if (err != 0) {
-		nvgpu_err(c->g,
-				"not enough priv cmd buffer space");
 		goto clean_up_sema;
 	}
 
 	/* Release the completion semaphore. */
-	add_sema_incr_cmd(c->g, c, semaphore, incr_cmd, wfi_cmd);
+	add_sema_incr_cmd(c->g, c, semaphore, *incr_cmd, wfi_cmd);
 
 	if (need_sync_fence) {
-		err = nvgpu_os_fence_sema_create(&os_fence, c,
-			semaphore);
+		err = nvgpu_os_fence_sema_create(&os_fence, c, semaphore);
 
 		if (err != 0) {
-			goto clean_up_sema;
+			goto clean_up_cmdbuf;
 		}
 	}
 
-	err = nvgpu_fence_from_semaphore(fence,
-		semaphore,
-		&c->semaphore_wq,
-		os_fence);
+	err = nvgpu_fence_from_semaphore(fence, semaphore, &c->semaphore_wq,
+			os_fence);
 
 	if (err != 0) {
-		if (nvgpu_os_fence_is_initialized(&os_fence)) {
-			os_fence.ops->drop_ref(&os_fence);
-		}
-		goto clean_up_sema;
+		goto clean_up_os_fence;
 	}
 
 	return 0;
 
+clean_up_os_fence:
+	if (nvgpu_os_fence_is_initialized(&os_fence)) {
+		os_fence.ops->drop_ref(&os_fence);
+	}
+clean_up_cmdbuf:
+	nvgpu_priv_cmdbuf_rollback(c, *incr_cmd);
 clean_up_sema:
 	nvgpu_semaphore_put(semaphore);
 	return err;
@@ -229,7 +226,7 @@ clean_up_sema:
 
 static int channel_sync_semaphore_incr(
 		struct nvgpu_channel_sync *s,
-		struct priv_cmd_entry *entry,
+		struct priv_cmd_entry **entry,
 		struct nvgpu_fence_type *fence,
 		bool need_sync_fence,
 		bool register_irq)
@@ -243,7 +240,7 @@ static int channel_sync_semaphore_incr(
 
 static int channel_sync_semaphore_incr_user(
 		struct nvgpu_channel_sync *s,
-		struct priv_cmd_entry *entry,
+		struct priv_cmd_entry **entry,
 		struct nvgpu_fence_type *fence,
 		bool wfi,
 		bool need_sync_fence,

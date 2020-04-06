@@ -67,7 +67,7 @@ static void channel_sync_syncpt_gen_wait_cmd(struct nvgpu_channel *c,
 }
 
 static int channel_sync_syncpt_wait_raw(struct nvgpu_channel_sync_syncpt *s,
-		u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd)
+		u32 id, u32 thresh, struct priv_cmd_entry **wait_cmd)
 {
 	struct nvgpu_channel *c = s->c;
 	int err = 0;
@@ -77,22 +77,21 @@ static int channel_sync_syncpt_wait_raw(struct nvgpu_channel_sync_syncpt *s,
 		return -EINVAL;
 	}
 
-	err = nvgpu_channel_alloc_priv_cmdbuf(c,
+	err = nvgpu_priv_cmdbuf_alloc(c,
 		c->g->ops.sync.syncpt.get_wait_cmd_size(),
 		wait_cmd);
 	if (err != 0) {
-		nvgpu_err(c->g, "not enough priv cmd buffer space");
 		return err;
 	}
 
 	channel_sync_syncpt_gen_wait_cmd(c, id, thresh,
-			wait_cmd, wait_cmd_size);
+			*wait_cmd, wait_cmd_size);
 
 	return 0;
 }
 
 static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
-	struct priv_cmd_entry *wait_cmd, u32 max_wait_cmds)
+	struct priv_cmd_entry **wait_cmd, u32 max_wait_cmds)
 {
 	struct nvgpu_os_fence os_fence = {0};
 	struct nvgpu_os_fence_syncpt os_fence_syncpt = {0};
@@ -136,11 +135,9 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 	}
 
 	wait_cmd_size = c->g->ops.sync.syncpt.get_wait_cmd_size();
-	err = nvgpu_channel_alloc_priv_cmdbuf(c,
+	err = nvgpu_priv_cmdbuf_alloc(c,
 		wait_cmd_size * num_fences, wait_cmd);
 	if (err != 0) {
-		nvgpu_err(c->g, "not enough priv cmd buffer space");
-		err = -EINVAL;
 		goto cleanup;
 	}
 
@@ -148,7 +145,7 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 		nvgpu_os_fence_syncpt_extract_nth_syncpt(
 			&os_fence_syncpt, i, &syncpt_id, &syncpt_thresh);
 		channel_sync_syncpt_gen_wait_cmd(c, syncpt_id,
-			syncpt_thresh, wait_cmd, wait_cmd_size);
+			syncpt_thresh, *wait_cmd, wait_cmd_size);
 	}
 
 cleanup:
@@ -169,7 +166,7 @@ static void channel_sync_syncpt_update(void *priv, int nr_completed)
 static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 				       bool wfi_cmd,
 				       bool register_irq,
-				       struct priv_cmd_entry *incr_cmd,
+				       struct priv_cmd_entry **incr_cmd,
 				       struct nvgpu_fence_type *fence,
 				       bool need_sync_fence)
 {
@@ -180,7 +177,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	struct nvgpu_channel *c = sp->c;
 	struct nvgpu_os_fence os_fence = {0};
 
-	err = nvgpu_channel_alloc_priv_cmdbuf(c,
+	err = nvgpu_priv_cmdbuf_alloc(c,
 			c->g->ops.sync.syncpt.get_incr_cmd_size(wfi_cmd),
 			incr_cmd);
 	if (err != 0) {
@@ -189,7 +186,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 
 	nvgpu_log(c->g, gpu_dbg_info, "sp->id %d gpu va %llx",
 				sp->id, sp->syncpt_buf.gpu_va);
-	c->g->ops.sync.syncpt.add_incr_cmd(c->g, incr_cmd,
+	c->g->ops.sync.syncpt.add_incr_cmd(c->g, *incr_cmd,
 			sp->id, sp->syncpt_buf.gpu_va, wfi_cmd);
 
 	thresh = nvgpu_nvhost_syncpt_incr_max_ext(sp->nvhost, sp->id,
@@ -244,12 +241,12 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	return 0;
 
 clean_up_priv_cmd:
-	nvgpu_channel_update_priv_cmd_q_and_free_entry(c, incr_cmd);
+	nvgpu_priv_cmdbuf_rollback(c, *incr_cmd);
 	return err;
 }
 
 static int channel_sync_syncpt_incr(struct nvgpu_channel_sync *s,
-			      struct priv_cmd_entry *entry,
+			      struct priv_cmd_entry **entry,
 			      struct nvgpu_fence_type *fence,
 			      bool need_sync_fence,
 			      bool register_irq)
@@ -263,7 +260,7 @@ static int channel_sync_syncpt_incr(struct nvgpu_channel_sync *s,
 }
 
 static int channel_sync_syncpt_incr_user(struct nvgpu_channel_sync *s,
-				   struct priv_cmd_entry *entry,
+				   struct priv_cmd_entry **entry,
 				   struct nvgpu_fence_type *fence,
 				   bool wfi,
 				   bool need_sync_fence,
@@ -278,7 +275,7 @@ static int channel_sync_syncpt_incr_user(struct nvgpu_channel_sync *s,
 }
 
 int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
-	u32 id, u32 thresh, struct priv_cmd_entry *entry)
+	u32 id, u32 thresh, struct priv_cmd_entry **entry)
 {
 	return channel_sync_syncpt_wait_raw(s, id, thresh, entry);
 }

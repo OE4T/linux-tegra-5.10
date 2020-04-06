@@ -62,7 +62,6 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	int wait_fence_fd = -1;
 	int err = 0;
 	bool need_wfi = (flags & NVGPU_SUBMIT_FLAGS_SUPPRESS_WFI) == 0U;
-	bool pre_alloc_enabled = nvgpu_channel_is_prealloc_enabled(c);
 	struct nvgpu_channel_sync_syncpt *sync_syncpt = NULL;
 	bool flag_fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
 	bool flag_sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
@@ -74,7 +73,7 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 			c->sync = nvgpu_channel_sync_create(c);
 			if (c->sync == NULL) {
 				err = -ENOMEM;
-				goto fail;
+				goto clean_up_unlock;
 			}
 			new_sync_created = true;
 		}
@@ -84,7 +83,7 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	if ((g->ops.channel.set_syncpt != NULL) && new_sync_created) {
 		err = g->ops.channel.set_syncpt(c);
 		if (err != 0) {
-			goto fail;
+			goto clean_up_unlock;
 		}
 	}
 
@@ -96,40 +95,27 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 		u32 max_wait_cmds = nvgpu_channel_is_deterministic(c) ?
 			1U : 0U;
 
-		if (!pre_alloc_enabled) {
-			job->wait_cmd = nvgpu_kzalloc(g,
-				sizeof(struct priv_cmd_entry));
-		}
-
-		if (job->wait_cmd == NULL) {
-			err = -ENOMEM;
-			goto fail;
-		}
-
 		if (flag_sync_fence) {
 			nvgpu_assert(fence->id <= (u32)INT_MAX);
 			wait_fence_fd = (int)fence->id;
 			err = nvgpu_channel_sync_wait_fence_fd(c->sync,
-				wait_fence_fd, job->wait_cmd, max_wait_cmds);
+				wait_fence_fd, &job->wait_cmd, max_wait_cmds);
 		} else {
 			sync_syncpt = nvgpu_channel_sync_to_syncpt(c->sync);
 			if (sync_syncpt != NULL) {
 				err = nvgpu_channel_sync_wait_syncpt(
 					sync_syncpt, fence->id,
-					fence->value, job->wait_cmd);
+					fence->value, &job->wait_cmd);
 			} else {
 				err = -EINVAL;
 			}
 		}
 
 		if (err != 0) {
-			goto clean_up_wait_cmd;
+			goto clean_up_unlock;
 		}
 
-		if (job->wait_cmd->valid) {
-			/* not expired yet */
-			*wait_cmd = job->wait_cmd;
-		}
+		*wait_cmd = job->wait_cmd;
 	}
 
 	if (flag_fence_get && flag_sync_fence) {
@@ -146,29 +132,21 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 		err = -ENOMEM;
 		goto clean_up_wait_cmd;
 	}
-	if (!pre_alloc_enabled) {
-		job->incr_cmd = nvgpu_kzalloc(g, sizeof(struct priv_cmd_entry));
-	}
-
-	if (job->incr_cmd == NULL) {
-		err = -ENOMEM;
-		goto clean_up_post_fence;
-	}
 
 	if (flag_fence_get) {
 		err = nvgpu_channel_sync_incr_user(c->sync,
-			job->incr_cmd, job->post_fence, need_wfi,
+			&job->incr_cmd, job->post_fence, need_wfi,
 			need_sync_fence, register_irq);
 	} else {
 		err = nvgpu_channel_sync_incr(c->sync,
-			job->incr_cmd, job->post_fence, need_sync_fence,
+			&job->incr_cmd, job->post_fence, need_sync_fence,
 			register_irq);
 	}
 	if (err == 0) {
 		*incr_cmd = job->incr_cmd;
 		*post_fence = job->post_fence;
 	} else {
-		goto clean_up_incr_cmd;
+		goto clean_up_post_fence;
 	}
 
 	if (g->aggressive_sync_destroy_thresh != 0U) {
@@ -176,22 +154,15 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	}
 	return 0;
 
-clean_up_incr_cmd:
-	nvgpu_channel_free_priv_cmd_entry(c, job->incr_cmd);
-	if (!pre_alloc_enabled) {
-		job->incr_cmd = NULL;
-	}
 clean_up_post_fence:
 	nvgpu_fence_put(job->post_fence);
 	job->post_fence = NULL;
 clean_up_wait_cmd:
 	if (job->wait_cmd != NULL) {
-		nvgpu_channel_free_priv_cmd_entry(c, job->wait_cmd);
+		nvgpu_priv_cmdbuf_rollback(c, job->wait_cmd);
 	}
-	if (!pre_alloc_enabled) {
-		job->wait_cmd = NULL;
-	}
-fail:
+	job->wait_cmd = NULL;
+clean_up_unlock:
 	if (g->aggressive_sync_destroy_thresh != 0U) {
 		nvgpu_mutex_release(&c->sync_lock);
 	}

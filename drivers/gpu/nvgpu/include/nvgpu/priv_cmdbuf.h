@@ -35,18 +35,18 @@ struct priv_cmd_entry {
 	u32 off;	/* offset in mem, in u32 entries */
 	u32 fill_off;	/* write offset from off, in u32 entries */
 	u64 gva;
-	u32 get;	/* start of entry in queue */
 	u32 size;	/* in words */
+	u32 alloc_size;
 };
 
-int nvgpu_alloc_priv_cmdbuf_queue(struct nvgpu_channel *ch, u32 num_in_flight);
-void nvgpu_free_priv_cmdbuf_queue(struct nvgpu_channel *ch);
+int nvgpu_priv_cmdbuf_queue_alloc(struct nvgpu_channel *ch, u32 num_in_flight);
+void nvgpu_priv_cmdbuf_queue_free(struct nvgpu_channel *ch);
 
-int nvgpu_channel_alloc_priv_cmdbuf(struct nvgpu_channel *c, u32 orig_size,
+int nvgpu_priv_cmdbuf_alloc(struct nvgpu_channel *c, u32 size,
+		struct priv_cmd_entry **e);
+void nvgpu_priv_cmdbuf_rollback(struct nvgpu_channel *ch,
 		struct priv_cmd_entry *e);
-void nvgpu_channel_free_priv_cmd_entry(struct nvgpu_channel *c,
-		struct priv_cmd_entry *e);
-void nvgpu_channel_update_priv_cmd_q_and_free_entry(struct nvgpu_channel *ch,
+void nvgpu_priv_cmdbuf_free(struct nvgpu_channel *ch,
 		struct priv_cmd_entry *e);
 
 void nvgpu_priv_cmdbuf_append(struct gk20a *g, struct priv_cmd_entry *e,

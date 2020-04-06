@@ -43,7 +43,7 @@ struct gk20a;
  * Returns a gpu cmdbuf that performs the wait when executed
  */
 int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
-	struct priv_cmd_entry *entry, u32 max_wait_cmds);
+	struct priv_cmd_entry **entry, u32 max_wait_cmds);
 
 /*
  * Increment syncpoint/semaphore.
@@ -52,7 +52,7 @@ int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
  *  - a fence that can be passed to wait_cpu() and is_expired().
  */
 int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
-	struct priv_cmd_entry *entry, struct nvgpu_fence_type *fence,
+	struct priv_cmd_entry **entry, struct nvgpu_fence_type *fence,
 	bool need_sync_fence, bool register_irq);
 
 /*
@@ -64,8 +64,8 @@ int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
  *  - a nvgpu_fence_type that signals when the incr has happened.
  */
 int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
-	struct priv_cmd_entry *entry, struct nvgpu_fence_type *fence, bool wfi,
-	bool need_sync_fence, bool register_irq);
+	struct priv_cmd_entry **entry, struct nvgpu_fence_type *fence,
+	bool wfi, bool need_sync_fence, bool register_irq);
 /*
  * Reset the channel syncpoint/semaphore. Syncpoint increments generally
  * wrap around the range of integer values. Current max value encompasses

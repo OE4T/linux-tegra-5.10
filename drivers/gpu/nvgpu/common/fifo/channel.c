@@ -217,7 +217,7 @@ static void channel_kernelmode_deinit(struct nvgpu_channel *ch)
 #endif
 	(void) memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
 
-	nvgpu_free_priv_cmdbuf_queue(ch);
+	nvgpu_priv_cmdbuf_queue_free(ch);
 
 	/* free pre-allocated resources, if applicable */
 	if (nvgpu_channel_is_prealloc_enabled(ch)) {
@@ -375,7 +375,7 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 		}
 	}
 
-	err = nvgpu_alloc_priv_cmdbuf_queue(c, args->num_inflight_jobs);
+	err = nvgpu_priv_cmdbuf_queue_alloc(c, args->num_inflight_jobs);
 	if (err != 0) {
 		goto clean_up_prealloc;
 	}
@@ -388,7 +388,7 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 	return 0;
 
 clean_up_priv_cmd:
-	nvgpu_free_priv_cmdbuf_queue(c);
+	nvgpu_priv_cmdbuf_queue_free(c);
 clean_up_prealloc:
 	if (nvgpu_channel_is_deterministic(c) &&
 			args->num_inflight_jobs != 0U) {
@@ -998,10 +998,10 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 		 * Free the private command buffers (wait_cmd first and
 		 * then incr_cmd i.e. order of allocation)
 		 */
-		nvgpu_channel_update_priv_cmd_q_and_free_entry(c,
-			job->wait_cmd);
-		nvgpu_channel_update_priv_cmd_q_and_free_entry(c,
-			job->incr_cmd);
+		if (job->wait_cmd != NULL) {
+			nvgpu_priv_cmdbuf_free(c, job->wait_cmd);
+		}
+		nvgpu_priv_cmdbuf_free(c, job->incr_cmd);
 
 		/*
 		 * ensure all pending writes complete before freeing up the job.

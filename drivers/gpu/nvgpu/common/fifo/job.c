@@ -76,17 +76,8 @@ int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
 void nvgpu_channel_free_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job)
 {
-	/*
-	 * In case of pre_allocated jobs, we need to clean out
-	 * the job but maintain the pointers to the priv_cmd_entry,
-	 * since they're inherently tied to the job node.
-	 */
 	if (nvgpu_channel_is_prealloc_enabled(c)) {
-		struct priv_cmd_entry *wait_cmd = job->wait_cmd;
-		struct priv_cmd_entry *incr_cmd = job->incr_cmd;
 		(void) memset(job, 0, sizeof(*job));
-		job->wait_cmd = wait_cmd;
-		job->incr_cmd = incr_cmd;
 	} else {
 		nvgpu_kfree(c->g, job);
 	}
@@ -168,10 +159,8 @@ bool nvgpu_channel_joblist_is_empty(struct nvgpu_channel *c)
 int channel_prealloc_resources(struct nvgpu_channel *ch, u32 num_jobs)
 {
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
-	unsigned int i;
 	int err;
 	size_t size;
-	struct priv_cmd_entry *entries = NULL;
 
 	if ((nvgpu_channel_is_prealloc_enabled(ch)) || (num_jobs == 0U)) {
 		return -EINVAL;
@@ -192,32 +181,10 @@ int channel_prealloc_resources(struct nvgpu_channel *ch, u32 num_jobs)
 		goto clean_up;
 	}
 
-	/*
-	 * pre-allocate 2x priv_cmd_entry for each job up front.
-	 * since vmalloc take in an unsigned long, we need
-	 * to make sure we don't hit an overflow condition
-	 */
-	size = sizeof(struct priv_cmd_entry);
-	if (num_jobs <= U32_MAX / (size << 1U)) {
-		entries = nvgpu_vzalloc(ch->g,
-					((unsigned long)num_jobs << 1UL) *
-					(unsigned long)size);
-	}
-	if (entries == NULL) {
-		err = -ENOMEM;
-		goto clean_up_joblist;
-	}
-
-	for (i = 0; i < num_jobs; i++) {
-		ch->joblist.pre_alloc.jobs[i].wait_cmd = &entries[i];
-		ch->joblist.pre_alloc.jobs[i].incr_cmd =
-			&entries[i + num_jobs];
-	}
-
 	/* pre-allocate a fence pool */
 	err = nvgpu_fence_pool_alloc(ch, num_jobs);
 	if (err != 0) {
-		goto clean_up_priv_cmd;
+		goto clean_up;
 	}
 
 	ch->joblist.pre_alloc.length = num_jobs;
@@ -234,11 +201,8 @@ int channel_prealloc_resources(struct nvgpu_channel *ch, u32 num_jobs)
 
 	return 0;
 
-clean_up_priv_cmd:
-	nvgpu_vfree(ch->g, entries);
-clean_up_joblist:
-	nvgpu_vfree(ch->g, ch->joblist.pre_alloc.jobs);
 clean_up:
+	nvgpu_vfree(ch->g, ch->joblist.pre_alloc.jobs);
 	(void) memset(&ch->joblist.pre_alloc, 0, sizeof(ch->joblist.pre_alloc));
 	return err;
 #else

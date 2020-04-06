@@ -54,19 +54,19 @@ struct nvgpu_channel_sync {
  */
 struct nvgpu_channel_sync_ops {
 	int (*wait_fence_raw)(struct nvgpu_channel_sync *s, u32 id, u32 thresh,
-			   struct priv_cmd_entry *entry);
+			   struct priv_cmd_entry **entry);
 
 	int (*wait_fence_fd)(struct nvgpu_channel_sync *s, int fd,
-		       struct priv_cmd_entry *entry, u32 max_wait_cmds);
+		       struct priv_cmd_entry **entry, u32 max_wait_cmds);
 
 	int (*incr)(struct nvgpu_channel_sync *s,
-		    struct priv_cmd_entry *entry,
+		    struct priv_cmd_entry **entry,
 		    struct nvgpu_fence_type *fence,
 		    bool need_sync_fence,
 		    bool register_irq);
 
 	int (*incr_user)(struct nvgpu_channel_sync *s,
-			 struct priv_cmd_entry *entry,
+			 struct priv_cmd_entry **entry,
 			 struct nvgpu_fence_type *fence,
 			 bool wfi,
 			 bool need_sync_fence,
