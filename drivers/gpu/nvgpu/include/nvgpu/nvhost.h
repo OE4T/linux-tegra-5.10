@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+#define NVGPU_INVALID_SYNCPT_ID	(~U32(0U))
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 

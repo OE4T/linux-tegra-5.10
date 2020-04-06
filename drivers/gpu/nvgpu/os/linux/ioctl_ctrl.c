@@ -24,6 +24,7 @@
 
 #include <nvgpu/bitops.h>
 #include <nvgpu/kmem.h>
+#include <nvgpu/nvhost.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/vidmem.h>

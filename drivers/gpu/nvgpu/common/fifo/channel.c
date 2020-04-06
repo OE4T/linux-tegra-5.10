@@ -54,6 +54,7 @@
 #include <nvgpu/channel_user_syncpt.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
+#include <nvgpu/nvhost.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/preempt.h>
 #include <nvgpu/static_analysis.h>

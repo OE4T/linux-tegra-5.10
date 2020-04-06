@@ -354,7 +354,13 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c)
 	sp->id = nvgpu_nvhost_get_syncpt_host_managed(sp->nvhost,
 					c->chid, syncpt_name);
 
-	if (sp->id == 0U) {
+	/**
+	 * This is a WAR to handle invalid value of a syncpt.
+	 * Once nvhost update the return value as NVGPU_INVALID_SYNCPT_ID,
+	 * we can remove the zero check.
+	 */
+	if ((sp->id == 0U) ||
+		(sp->id == NVGPU_INVALID_SYNCPT_ID)) {
 		nvgpu_kfree(c->g, sp);
 		nvgpu_err(c->g, "failed to get free syncpt");
 		return NULL;
