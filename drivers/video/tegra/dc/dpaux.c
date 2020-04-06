@@ -1,7 +1,7 @@
 /*
  * dpaux.c: dpaux function definitions.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION, All rights reserved.
  * Author: Animesh Kishore <ankishore@nvidia.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -534,7 +534,6 @@ int tegra_dc_dpaux_write_chunk_locked(struct tegra_dc_dpaux_data *dpaux,
 
 		if ((*aux_stat & DPAUX_DP_AUXSTAT_REPLYTYPE_MASK) ==
 			DPAUX_DP_AUXSTAT_REPLYTYPE_ACK) {
-			(*size)++;
 			return 0;
 		} else {
 			dev_err(&dpaux->dc->ndev->dev,
