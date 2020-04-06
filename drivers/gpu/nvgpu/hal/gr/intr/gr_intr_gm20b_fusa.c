@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -93,8 +93,7 @@ u32 gm20b_gr_intr_read_pending_interrupts(struct gk20a *g,
 	return gr_intr;
 }
 
-static u32 gr_gm20b_intr_check_gr_ssync_exception(struct gk20a *g,
-							u32 exception)
+u32 gm20b_gr_intr_check_gr_ssync_exception(struct gk20a *g, u32 exception)
 {
 	u32 reset_gpc = 0U;
 
@@ -112,8 +111,7 @@ static u32 gr_gm20b_intr_check_gr_ssync_exception(struct gk20a *g,
 	return reset_gpc;
 }
 
-static u32 gr_gm20b_intr_check_gr_mme_exception(struct gk20a *g,
-							u32 exception)
+u32 gm20b_gr_intr_check_gr_mme_exception(struct gk20a *g, u32 exception)
 {
 	if ((exception & gr_exception_mme_m()) != 0U) {
 		u32 mme = nvgpu_readl(g, gr_mme_hww_esr_r());
@@ -136,8 +134,7 @@ static u32 gr_gm20b_intr_check_gr_mme_exception(struct gk20a *g,
 	return 0U;
 }
 
-static u32 gr_gm20b_intr_check_gr_sked_exception(struct gk20a *g,
-							u32 exception)
+u32 gm20b_gr_intr_check_gr_sked_exception(struct gk20a *g, u32 exception)
 {
 	if ((exception & gr_exception_sked_m()) != 0U) {
 		u32 sked = nvgpu_readl(g, gr_sked_hww_esr_r());
@@ -187,7 +184,7 @@ static u32 gr_gm20b_intr_check_gr_be_zrop_exception(struct gk20a *g,
 	return 0U;
 }
 
-static u32 gr_gm20b_intr_check_gr_fe_exception(struct gk20a *g, u32 exception)
+u32 gm20b_gr_intr_check_gr_fe_exception(struct gk20a *g, u32 exception)
 {
 	if ((exception & gr_exception_fe_m()) != 0U) {
 		u32 fe = nvgpu_readl(g, gr_fe_hww_esr_r());
@@ -205,8 +202,7 @@ static u32 gr_gm20b_intr_check_gr_fe_exception(struct gk20a *g, u32 exception)
 	return 0U;
 }
 
-static u32 gr_gm20b_intr_check_gr_memfmt_exception(struct gk20a *g,
-							u32 exception)
+u32 gm20b_gr_intr_check_gr_memfmt_exception(struct gk20a *g, u32 exception)
 {
 	if ((exception & gr_exception_memfmt_m()) != 0U) {
 		u32 memfmt = nvgpu_readl(g, gr_memfmt_hww_esr_r());
@@ -222,8 +218,7 @@ static u32 gr_gm20b_intr_check_gr_memfmt_exception(struct gk20a *g,
 	return 0U;
 }
 
-static u32 gr_gm20b_intr_check_gr_pd_exception(struct gk20a *g,
-							u32 exception)
+u32 gm20b_gr_intr_check_gr_pd_exception(struct gk20a *g, u32 exception)
 {
 	if ((exception & gr_exception_pd_m()) != 0U) {
 		u32 pd = nvgpu_readl(g, gr_pd_hww_esr_r());
@@ -239,8 +234,7 @@ static u32 gr_gm20b_intr_check_gr_pd_exception(struct gk20a *g,
 	return 0U;
 }
 
-static u32 gr_gm20b_intr_check_gr_scc_exception(struct gk20a *g,
-							u32 exception)
+u32 gm20b_gr_intr_check_gr_scc_exception(struct gk20a *g, u32 exception)
 {
 	if ((exception & gr_exception_scc_m()) != 0U) {
 		u32 scc = nvgpu_readl(g, gr_scc_hww_esr_r());
@@ -256,8 +250,7 @@ static u32 gr_gm20b_intr_check_gr_scc_exception(struct gk20a *g,
 	return 0U;
 }
 
-static u32 gr_gm20b_intr_check_gr_ds_exception(struct gk20a *g,
-							u32 exception)
+u32 gm20b_gr_intr_check_gr_ds_exception(struct gk20a *g, u32 exception)
 {
 	if ((exception & gr_exception_ds_m()) != 0U) {
 		u32 ds = nvgpu_readl(g, gr_ds_hww_esr_r());
@@ -281,14 +274,14 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				"exception %08x\n", exception);
 
-	gpc_reset = gr_gm20b_intr_check_gr_fe_exception(g, exception);
-	gpc_reset |= gr_gm20b_intr_check_gr_memfmt_exception(g, exception);
-	gpc_reset |= gr_gm20b_intr_check_gr_pd_exception(g, exception);
-	gpc_reset |= gr_gm20b_intr_check_gr_scc_exception(g, exception);
-	gpc_reset |= gr_gm20b_intr_check_gr_ds_exception(g, exception);
-	gpc_reset |= gr_gm20b_intr_check_gr_ssync_exception(g, exception);
-	gpc_reset |= gr_gm20b_intr_check_gr_mme_exception(g, exception);
-	gpc_reset |= gr_gm20b_intr_check_gr_sked_exception(g, exception);
+	gpc_reset = gm20b_gr_intr_check_gr_fe_exception(g, exception);
+	gpc_reset |= gm20b_gr_intr_check_gr_memfmt_exception(g, exception);
+	gpc_reset |= gm20b_gr_intr_check_gr_pd_exception(g, exception);
+	gpc_reset |= gm20b_gr_intr_check_gr_scc_exception(g, exception);
+	gpc_reset |= gm20b_gr_intr_check_gr_ds_exception(g, exception);
+	gpc_reset |= gm20b_gr_intr_check_gr_ssync_exception(g, exception);
+	gpc_reset |= gm20b_gr_intr_check_gr_mme_exception(g, exception);
+	gpc_reset |= gm20b_gr_intr_check_gr_sked_exception(g, exception);
 	gpc_reset |= gr_gm20b_intr_check_gr_be_crop_exception(g, exception);
 	gpc_reset |= gr_gm20b_intr_check_gr_be_zrop_exception(g, exception);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,14 @@ u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
 			struct nvgpu_gr_tpc_exception *pending_tpc);
 void gm20b_gr_intr_enable_interrupts(struct gk20a *g, bool enable);
 u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g);
+u32 gm20b_gr_intr_check_gr_ssync_exception(struct gk20a *g, u32 exception);
+u32 gm20b_gr_intr_check_gr_mme_exception(struct gk20a *g, u32 exception);
+u32 gm20b_gr_intr_check_gr_sked_exception(struct gk20a *g, u32 exception);
+u32 gm20b_gr_intr_check_gr_fe_exception(struct gk20a *g, u32 exception);
+u32 gm20b_gr_intr_check_gr_memfmt_exception(struct gk20a *g, u32 exception);
+u32 gm20b_gr_intr_check_gr_pd_exception(struct gk20a *g, u32 exception);
+u32 gm20b_gr_intr_check_gr_scc_exception(struct gk20a *g, u32 exception);
+u32 gm20b_gr_intr_check_gr_ds_exception(struct gk20a *g, u32 exception);
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_gr_intr_handle_class_error(struct gk20a *g, u32 chid,
 				       struct nvgpu_gr_isr_data *isr_data);
