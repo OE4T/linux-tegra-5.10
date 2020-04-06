@@ -179,21 +179,21 @@ static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
  * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
  */
 static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
-				    struct osi_pkt_err_stats pkt_err_stats)
+				    struct osi_pkt_err_stats *pkt_err_stats)
 {
 	/* increment rx crc if we see CE bit set */
 	if ((rx_desc->rdes3 & RDES3_ERR_CRC) == RDES3_ERR_CRC) {
-		pkt_err_stats.rx_crc_error =
+		pkt_err_stats->rx_crc_error =
 			osi_update_stats_counter(
-					pkt_err_stats.rx_crc_error,
+					pkt_err_stats->rx_crc_error,
 					1UL);
 	}
 
 	/* increment rx frame error if we see RE bit set */
 	if ((rx_desc->rdes3 & RDES3_ERR_RE) == RDES3_ERR_RE) {
-		pkt_err_stats.rx_frame_error =
+		pkt_err_stats->rx_frame_error =
 			osi_update_stats_counter(
-					pkt_err_stats.rx_frame_error,
+					pkt_err_stats->rx_frame_error,
 					1UL);
 	}
 }
@@ -256,7 +256,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 				 * are set
 				 */
 				rx_pkt_cx->flags &= ~OSI_PKT_CX_VALID;
-				get_rx_err_stats(rx_desc, osi->pkt_err_stats);
+				get_rx_err_stats(rx_desc, &osi->pkt_err_stats);
 			}
 
 			/* Check if COE Rx checksum is valid */
@@ -324,85 +324,85 @@ static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi,
  * @param[in] pkt_err_stats: Pakcet error stats which stores the errors reported
  */
 static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
-				    struct osi_pkt_err_stats pkt_err_stats)
+				    struct osi_pkt_err_stats *pkt_err_stats)
 {
 	/* IP Header Error */
 	if ((tx_desc->tdes3 & TDES3_IP_HEADER_ERR) == TDES3_IP_HEADER_ERR) {
-		pkt_err_stats.ip_header_error =
+		pkt_err_stats->ip_header_error =
 			osi_update_stats_counter(
-					pkt_err_stats.ip_header_error,
+					pkt_err_stats->ip_header_error,
 					1UL);
 	}
 
 	/* Jabber timeout Error */
 	if ((tx_desc->tdes3 & TDES3_JABBER_TIMEO_ERR) ==
 	    TDES3_JABBER_TIMEO_ERR) {
-		pkt_err_stats.jabber_timeout_error =
+		pkt_err_stats->jabber_timeout_error =
 			osi_update_stats_counter(
-					pkt_err_stats.jabber_timeout_error,
+					pkt_err_stats->jabber_timeout_error,
 					1UL);
 	}
 
 	/* Packet Flush Error */
 	if ((tx_desc->tdes3 & TDES3_PKT_FLUSH_ERR) == TDES3_PKT_FLUSH_ERR) {
-		pkt_err_stats.pkt_flush_error =
+		pkt_err_stats->pkt_flush_error =
 			osi_update_stats_counter(
-					pkt_err_stats.pkt_flush_error, 1UL);
+					pkt_err_stats->pkt_flush_error, 1UL);
 	}
 
 	/* Payload Checksum Error */
 	if ((tx_desc->tdes3 & TDES3_PL_CHK_SUM_ERR) == TDES3_PL_CHK_SUM_ERR) {
-		pkt_err_stats.payload_cs_error =
+		pkt_err_stats->payload_cs_error =
 			osi_update_stats_counter(
-					pkt_err_stats.payload_cs_error, 1UL);
+					pkt_err_stats->payload_cs_error, 1UL);
 	}
 
 	/* Loss of Carrier Error */
 	if ((tx_desc->tdes3 & TDES3_LOSS_CARRIER_ERR) ==
 	    TDES3_LOSS_CARRIER_ERR) {
-		pkt_err_stats.loss_of_carrier_error =
+		pkt_err_stats->loss_of_carrier_error =
 			osi_update_stats_counter(
-					pkt_err_stats.loss_of_carrier_error,
+					pkt_err_stats->loss_of_carrier_error,
 					1UL);
 	}
 
 	/* No Carrier Error */
 	if ((tx_desc->tdes3 & TDES3_NO_CARRIER_ERR) == TDES3_NO_CARRIER_ERR) {
-		pkt_err_stats.no_carrier_error =
+		pkt_err_stats->no_carrier_error =
 			osi_update_stats_counter(
-					pkt_err_stats.no_carrier_error, 1UL);
+					pkt_err_stats->no_carrier_error, 1UL);
 	}
 
 	/* Late Collision Error */
 	if ((tx_desc->tdes3 & TDES3_LATE_COL_ERR) == TDES3_LATE_COL_ERR) {
-		pkt_err_stats.late_collision_error =
+		pkt_err_stats->late_collision_error =
 			osi_update_stats_counter(
-					pkt_err_stats.late_collision_error,
+					pkt_err_stats->late_collision_error,
 					1UL);
 	}
 
 	/* Execessive Collision Error */
 	if ((tx_desc->tdes3 & TDES3_EXCESSIVE_COL_ERR) ==
 	    TDES3_EXCESSIVE_COL_ERR) {
-		pkt_err_stats.excessive_collision_error =
+		pkt_err_stats->excessive_collision_error =
 			osi_update_stats_counter(
-				pkt_err_stats.excessive_collision_error,
+				pkt_err_stats->excessive_collision_error,
 				1UL);
 	}
 
 	/* Excessive Deferal Error */
 	if ((tx_desc->tdes3 & TDES3_EXCESSIVE_DEF_ERR) ==
 	    TDES3_EXCESSIVE_DEF_ERR) {
-		pkt_err_stats.excessive_deferal_error =
+		pkt_err_stats->excessive_deferal_error =
 			osi_update_stats_counter(
-					pkt_err_stats.excessive_deferal_error,
+					pkt_err_stats->excessive_deferal_error,
 					1UL);
 	}
 
 	/* Under Flow Error */
 	if ((tx_desc->tdes3 & TDES3_UNDER_FLOW_ERR) == TDES3_UNDER_FLOW_ERR) {
-		pkt_err_stats.underflow_error =
-			osi_update_stats_counter(pkt_err_stats.underflow_error,
+		pkt_err_stats->underflow_error =
+			osi_update_stats_counter(pkt_err_stats->underflow_error,
 						 1UL);
 	}
 }
@@ -483,7 +483,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			if ((tx_desc->tdes3 & TDES3_ES_BITS) != 0U) {
 				txdone_pkt_cx->flags |= OSI_TXDONE_CX_ERROR;
 				/* fill packet error stats */
-				get_tx_err_stats(tx_desc, osi->pkt_err_stats);
+				get_tx_err_stats(tx_desc, &osi->pkt_err_stats);
 			} else {
 				inc_tx_pkt_stats(osi, chan);
 			}
