@@ -42,6 +42,8 @@
 static int cvnas_debug;
 module_param(cvnas_debug, int, 0644);
 
+static bool cvnas_rail;
+
 #define CVSRAM_MEM_INIT_OFFSET		0x00
 #define CVSRAM_MEM_INIT_START		BIT(0)
 #define CVSRAM_MEM_INIT_STATUS		BIT(1)
@@ -113,6 +115,31 @@ static u32 nvhsm_readl(struct cvnas_device *dev, u32 reg)
 {
 	return readl(dev->hsm_iobase + reg);
 }
+
+/* Call at the time we allocate something from CVNAS */
+int nvcvnas_busy(void)
+{
+	if (!cvnas_plat_dev) {
+		pr_err("CVNAS Platform Device not found\n");
+		return -ENODEV;
+	}
+
+	return pm_runtime_get_sync(&cvnas_plat_dev->dev);
+}
+EXPORT_SYMBOL(nvcvnas_busy);
+
+/* Call after we release a buffer */
+int nvcvnas_idle(void)
+{
+	if (!cvnas_plat_dev) {
+		pr_err("CVNAS Platform Device not found\n");
+		return -ENODEV;
+	}
+
+	return pm_runtime_put(&cvnas_plat_dev->dev);
+}
+EXPORT_SYMBOL(nvcvnas_idle);
+
 
 static int cvsram_perf_counters_show(struct seq_file *s, void *data)
 {
@@ -222,6 +249,30 @@ static const struct file_operations cvsram_ecc_err_fops = {
 	.release = single_release,
 };
 
+static int rd_cvrail(void *data, u64 *val)
+{
+	*val = cvnas_rail;
+	return 0;
+}
+
+static int wr_cvrail(void *data, u64 val)
+{
+	bool cvrail = (bool)val;
+	int ret = 0;
+
+	if (cvrail) {
+		ret = nvcvnas_busy();
+		cvnas_rail = true;
+	} else {
+		ret = nvcvnas_idle();
+		cvnas_rail = false;
+	}
+
+	return ret;
+}
+DEFINE_SIMPLE_ATTRIBUTE(cvnas_reg_fops, rd_cvrail, wr_cvrail,
+	"%llu\n");
+
 static int nvcvnas_debugfs_init(struct cvnas_device *dev)
 {
 	struct dentry *root;
@@ -230,6 +281,8 @@ static int nvcvnas_debugfs_init(struct cvnas_device *dev)
 	if (!root)
 		return PTR_ERR(root);
 
+	debugfs_create_file("cvrail", 0644,
+		 root, dev, &cvnas_reg_fops);
 	debugfs_create_x64("cvsram_base", S_IRUGO, root, &dev->cvsram_base);
 	debugfs_create_size_t("cvsram_size", S_IRUGO, root, &dev->cvsram_size);
 	debugfs_create_file("cvsram_perf_counters", S_IRUGO, root, dev, &cvsram_perf_fops);
@@ -367,30 +420,6 @@ static int nvcvnas_power_off(struct cvnas_device *cvnas_dev)
 
 	return 0;
 }
-
-/* Call at the time we allocate something from CVNAS */
-int nvcvnas_busy(void)
-{
-	if (!cvnas_plat_dev) {
-		pr_err("CVNAS Platform Device not found\n");
-		return -ENODEV;
-	}
-
-	return pm_runtime_get_sync(&cvnas_plat_dev->dev);
-}
-EXPORT_SYMBOL(nvcvnas_busy);
-
-/* Call after we release a buffer */
-int nvcvnas_idle(void)
-{
-	if (!cvnas_plat_dev) {
-		pr_err("CVNAS Platform Device not found\n");
-		return -ENODEV;
-	}
-
-	return pm_runtime_put(&cvnas_plat_dev->dev);
-}
-EXPORT_SYMBOL(nvcvnas_idle);
 
 phys_addr_t nvcvnas_get_cvsram_base(void)
 {
