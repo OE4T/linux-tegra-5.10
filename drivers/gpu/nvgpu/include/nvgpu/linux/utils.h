@@ -18,6 +18,7 @@
 #define __NVGPU_UTILS_LINUX_H__
 
 #include <linux/kernel.h>
+#include <linux/mm.h>
 
 /** User memory macro. */
 #define nvgpu_user	__user
