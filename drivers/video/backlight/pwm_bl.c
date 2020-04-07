@@ -651,7 +651,7 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 
 	pb->pwm = devm_pwm_get(&pdev->dev, NULL);
 	if (IS_ERR(pb->pwm) && PTR_ERR(pb->pwm) != -EPROBE_DEFER) {
-		pb->pwm = of_pwm_get(target_bl_node, NULL);
+		pb->pwm = of_pwm_get(&pdev->dev, target_bl_node, NULL);
 		if (IS_ERR(pb->pwm) && !node) {
 			dev_err(&pdev->dev, "unable to request PWM, trying legacy API\n");
 			pb->legacy = true;
