@@ -614,22 +614,6 @@ static void nvgpu_get_gpfifo_ex_args(
 			alloc_gpfifo_ex_args->flags);
 }
 
-static void nvgpu_get_gpfifo_args(
-		struct nvgpu_alloc_gpfifo_args *alloc_gpfifo_args,
-		struct nvgpu_setup_bind_args *setup_bind_args)
-{
-	/*
-	 * Kernel can insert one extra gpfifo entry before user
-	 * submitted gpfifos and another one after, for internal usage.
-	 * Triple the requested size.
-	 */
-	setup_bind_args->num_gpfifo_entries =
-		alloc_gpfifo_args->num_entries * 3;
-	setup_bind_args->num_inflight_jobs = 0;
-	setup_bind_args->flags = nvgpu_setup_bind_user_flags_to_common_flags(
-			alloc_gpfifo_args->flags);
-}
-
 static void nvgpu_get_fence_args(
 		struct nvgpu_fence *fence_args_in,
 		struct nvgpu_channel_fence *fence_args_out)
@@ -1231,26 +1215,6 @@ long gk20a_channel_ioctl(struct file *filp,
 			gk20a_idle(ch->g);
 			break;
 		}
-		err = nvgpu_channel_setup_bind(ch, &setup_bind_args);
-		gk20a_idle(ch->g);
-		break;
-	}
-	case NVGPU_IOCTL_CHANNEL_ALLOC_GPFIFO:
-	{
-		struct nvgpu_alloc_gpfifo_args *alloc_gpfifo_args =
-			(struct nvgpu_alloc_gpfifo_args *)buf;
-		struct nvgpu_setup_bind_args setup_bind_args;
-
-		nvgpu_get_gpfifo_args(alloc_gpfifo_args, &setup_bind_args);
-
-		err = gk20a_busy(ch->g);
-		if (err) {
-			dev_err(dev,
-				"%s: failed to host gk20a for ioctl cmd: 0x%x",
-				__func__, cmd);
-			break;
-		}
-
 		err = nvgpu_channel_setup_bind(ch, &setup_bind_args);
 		gk20a_idle(ch->g);
 		break;

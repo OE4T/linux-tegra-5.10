@@ -1522,14 +1522,6 @@ struct nvgpu_alloc_obj_ctx_args {
 };
 
 /* Deprecated. Use the SETUP_BIND IOCTL instead. */
-struct nvgpu_alloc_gpfifo_args {
-	__u32 num_entries;
-#define NVGPU_ALLOC_GPFIFO_FLAGS_VPR_ENABLED	(1 << 0)
-#define NVGPU_ALLOC_GPFIFO_FLAGS_REPLAYABLE_FAULTS_ENABLE   (1 << 2)
-	__u32 flags;
-};
-
-/* Deprecated. Use the SETUP_BIND IOCTL instead. */
 struct nvgpu_alloc_gpfifo_ex_args {
 	__u32 num_entries;
 	__u32 num_inflight_jobs;
@@ -1779,8 +1771,6 @@ struct nvgpu_reschedule_runlist_args {
 	_IOR(NVGPU_IOCTL_MAGIC, 12, struct nvgpu_get_param_args)
 #define NVGPU_IOCTL_CHANNEL_SET_TIMEOUT_EX	\
 	_IOWR(NVGPU_IOCTL_MAGIC, 18, struct nvgpu_set_timeout_ex_args)
-#define NVGPU_IOCTL_CHANNEL_ALLOC_GPFIFO	\
-	_IOW(NVGPU_IOCTL_MAGIC,  100, struct nvgpu_alloc_gpfifo_args)
 #define NVGPU_IOCTL_CHANNEL_WAIT		\
 	_IOWR(NVGPU_IOCTL_MAGIC, 102, struct nvgpu_wait_args)
 #define NVGPU_IOCTL_CHANNEL_SUBMIT_GPFIFO	\
