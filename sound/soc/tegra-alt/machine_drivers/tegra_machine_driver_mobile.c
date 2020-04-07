@@ -358,6 +358,25 @@ static int tegra_machine_compr_set_params(struct snd_compr_stream *cstream)
 	return 0;
 }
 
+static int tegra_machine_respeaker_init(struct snd_soc_pcm_runtime *rtd)
+{
+	struct device *dev = rtd->card->dev;
+	int err;
+
+	/* ac108 codec driver hardcodes the freq as 24000000
+	 * and source as PLL irrespective of args passed through
+	 * this callback
+	 */
+	err = snd_soc_dai_set_sysclk(rtd->codec_dai, 0, 24000000,
+				     SND_SOC_CLOCK_IN);
+	if (err) {
+		dev_err(dev, "failed to set ac108 sysclk!\n");
+		return err;
+	}
+
+	return 0;
+}
+
 static int tegra_machine_fepi_init(struct snd_soc_pcm_runtime *rtd)
 {
 	struct device *dev = rtd->card->dev;
@@ -432,6 +451,8 @@ static int codec_init(struct tegra_machine *machine)
 			dai_links[i].init = tegra_machine_rt565x_init;
 		else if (strstr(dai_links[i].name, "fe-pi-audio-z-v2"))
 			dai_links[i].init = tegra_machine_fepi_init;
+		else if (strstr(dai_links[i].name, "respeaker-4-mic-array"))
+			dai_links[i].init = tegra_machine_respeaker_init;
 	}
 
 	return 0;
