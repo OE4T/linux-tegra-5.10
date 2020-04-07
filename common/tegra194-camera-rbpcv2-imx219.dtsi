@@ -94,7 +94,7 @@
 	cam_i2cmux {
 		i2c_0:i2c@0 {
 			imx219_cam0: rbpcv2_imx219_a@10 {
-				compatible = "nvidia,imx219";
+				compatible = "sony,imx219";
 				/* I2C device address */
 				reg = <0x10>;
 
