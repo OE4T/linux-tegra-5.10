@@ -294,4 +294,7 @@ static void __exit ldpc_exit(void)
 
 module_init(ldpc_init);
 module_exit(ldpc_exit);
+
+MODULE_DESCRIPTION("LDPC KMD");
+MODULE_AUTHOR("Ketan Patil <ketanp@nvidia.com>");
 MODULE_LICENSE("GPL v2");
