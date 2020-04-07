@@ -24,22 +24,22 @@
 
 DEFINE_TNODE(icc_master, TEGRA_ICC_MASTER, TEGRA_ICC_NONE);
 DEFINE_TNODE(debug, TEGRA_ICC_DEBUG, TEGRA_ICC_NISO);
-DEFINE_TNODE(display, TEGRA_ICC_DISPLAY, TEGRA_ICC_ISO_DISPLAY);
-DEFINE_TNODE(vi, TEGRA_ICC_VI, TEGRA_ICC_ISO_VI);
-DEFINE_TNODE(eqos, TEGRA_ICC_EQOS, TEGRA_ICC_ISO_OTHER);
+DEFINE_TNODE(nvdisplayr2mc, NV_NVDISPLAYR2MC_SR_ID, TEGRA_ICC_ISO_DISPLAY);
+DEFINE_TNODE(viw2mc, NV_VIW2MC_SW_ID, TEGRA_ICC_ISO_VI);
+DEFINE_TNODE(eqosw2mc, NV_EQOSW2MC_SW_ID, TEGRA_ICC_ISO_OTHER);
 DEFINE_TNODE(cpu_cluster0, TEGRA_ICC_CPU_CLUSTER0, TEGRA_ICC_NISO);
 DEFINE_TNODE(cpu_cluster1, TEGRA_ICC_CPU_CLUSTER1, TEGRA_ICC_NISO);
 DEFINE_TNODE(cpu_cluster2, TEGRA_ICC_CPU_CLUSTER2, TEGRA_ICC_NISO);
 
 static struct tegra_icc_node *tegra_icc_nodes[] = {
-	[TEGRA_ICC_MASTER] = &icc_master,
-	[TEGRA_ICC_DEBUG] = &debug,
-	[TEGRA_ICC_DISPLAY] = &display,
-	[TEGRA_ICC_VI] = &vi,
-	[TEGRA_ICC_EQOS] = &eqos,
-	[TEGRA_ICC_CPU_CLUSTER0] = &cpu_cluster0,
-	[TEGRA_ICC_CPU_CLUSTER1] = &cpu_cluster1,
-	[TEGRA_ICC_CPU_CLUSTER2] = &cpu_cluster2,
+	&icc_master,
+	&debug,
+	&nvdisplayr2mc,
+	&viw2mc,
+	&eqosw2mc,
+	&cpu_cluster0,
+	&cpu_cluster1,
+	&cpu_cluster2,
 };
 
 static int tegra_icc_probe(struct platform_device *pdev)
