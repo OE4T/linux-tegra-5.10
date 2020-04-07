@@ -32,6 +32,10 @@ struct gk20a;
 #include <nvgpu/types.h>
 #include <nvgpu/errno.h>
 
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_fuse.h"
+#endif
+
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
 
 #ifdef CONFIG_NVGPU_NON_FUSA

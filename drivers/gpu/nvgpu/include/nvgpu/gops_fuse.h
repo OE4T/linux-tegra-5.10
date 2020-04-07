@@ -32,6 +32,10 @@
  */
 struct gk20a;
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+struct nvgpu_fuse_feature_override_ecc;
+#endif
+
 /**
  * Fuse HAL operations.
  *
