@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,5 +64,9 @@
 #define pri_ringstation_gpc_gpc0_priv_error_adr_r()                (0x00128120U)
 #define pri_ringstation_gpc_gpc0_priv_error_wrdat_r()              (0x00128124U)
 #define pri_ringstation_gpc_gpc0_priv_error_info_r()               (0x00128128U)
+#define pri_ringstation_gpc_gpc0_priv_error_info_subid_v(r)\
+				(((r) >> 24U) & 0x3fU)
+#define pri_ringstation_gpc_gpc0_priv_error_info_priv_level_v(r)\
+				(((r) >> 20U) & 0x3U)
 #define pri_ringstation_gpc_gpc0_priv_error_code_r()               (0x0012812cU)
 #endif
