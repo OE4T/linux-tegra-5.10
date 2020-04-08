@@ -58,6 +58,38 @@ struct nvgpu_gr_isr_data;
 #define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
 #define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_TRUE	U32(1)
 
+#define SHIFT_8_BITS	8U
+
+#define MAX_SM_ECC_ERR_COUNT	8U
+
+/* Enum for different types of SM ecc errors */
+enum nvgpu_gr_sm_ecc_error_types {
+	SM_LRF_ECC_ERROR = 0U,
+	SM_L1_DATA_ECC_ERROR = 1U,
+	SM_L1_TAG_ERROR = 2U,
+	SM_CBU_ECC_ERROR = 3U,
+	SM_ICACHE_ECC_ERROR = 4U,
+	SM_RAMS_ECC_ERROR = 5U
+};
+
+/* Use this struch with each SM ecc_status_error type */
+struct nvgpu_gr_sm_ecc_status {
+	/*
+	 * Total ecc errors reporting back to SDL
+	 * from each sm exception
+	 */
+	u32 err_count;
+
+	/* Error index report to SDL */
+	u32 err_id[MAX_SM_ECC_ERR_COUNT];
+
+	/* Reported corrected error status from SM ecc_status */
+	u32 corrected_err_status;
+
+	/* Reported uncorrected error status from SM ecc_status */
+	u32 uncorrected_err_status;
+};
+
 int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
 				struct nvgpu_channel *ch_ptr,
 				struct nvgpu_gr_isr_data *isr_data);
@@ -109,6 +141,9 @@ u64 gv11b_gr_intr_get_sm_hww_warp_esr_pc(struct gk20a *g, u32 offset);
 
 u32 gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val(void);
 
+bool gv11b_gr_intr_sm_ecc_status_errors(struct gk20a *g,
+	u32 ecc_status_reg, enum nvgpu_gr_sm_ecc_error_types err_type,
+	struct nvgpu_gr_sm_ecc_status *ecc_status);
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gv11b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data);
 #endif

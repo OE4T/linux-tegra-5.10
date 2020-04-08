@@ -845,69 +845,165 @@ void gv11b_gr_intr_set_hww_esr_report_mask(struct gk20a *g)
 }
 
 static void gv11b_gr_intr_report_l1_tag_uncorrected_err(struct gk20a *g,
-			u32 l1_tag_ecc_status, u32 gpc, u32 tpc)
+		struct nvgpu_gr_sm_ecc_status *ecc_status, u32 gpc, u32 tpc)
 {
+	u32 i;
+
 	/* This check has been added to ensure that the TPC id is less than
 	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
 	 * the GPC id while reporting SM related ECC errors.
 	 */
-	tpc = tpc & 0xFFU;
+	tpc = tpc & U8_MAX;
 
-	if ((l1_tag_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_0_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_1_m())) != 0U) {
+	for (i = 0U; i < ecc_status->err_count; i++) {
+		if (ecc_status->err_id[i] == GPU_SM_L1_TAG_ECC_UNCORRECTED) {
 			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_L1_TAG_ECC_UNCORRECTED, 0,
 				g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter);
-	}
-	if ((l1_tag_ecc_status &
-		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_miss_fifo_m()) != 0U) {
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_L1_TAG_MISS_FIFO_ECC_UNCORRECTED) {
 			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_L1_TAG_MISS_FIFO_ECC_UNCORRECTED, 0,
 				g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter);
-	}
-	if ((l1_tag_ecc_status &
-		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_pixrpf_m()) != 0U) {
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_L1_TAG_S2R_PIXPRF_ECC_UNCORRECTED) {
 			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_L1_TAG_S2R_PIXPRF_ECC_UNCORRECTED, 0,
 				g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter);
+		}
 	}
 }
 
 static void gv11b_gr_intr_report_l1_tag_corrected_err(struct gk20a *g,
-			u32 l1_tag_ecc_status, u32 gpc, u32 tpc)
+		struct nvgpu_gr_sm_ecc_status *ecc_status, u32 gpc, u32 tpc)
 {
+	u32 i;
+
 	/* This check has been added to ensure that the TPC id is less than
 	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
 	 * the GPC id while reporting SM related ECC errors.
 	 */
-	tpc = tpc & 0xFFU;
+	tpc = tpc & U8_MAX;
 
-	if ((l1_tag_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_0_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_1_m())) != 0U) {
+	for (i = 0U; i < ecc_status->err_count; i++) {
+		if (ecc_status->err_id[i] == GPU_SM_L1_TAG_ECC_CORRECTED) {
 			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_L1_TAG_ECC_CORRECTED, 0,
 				g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
-	}
-	if ((l1_tag_ecc_status &
-		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_miss_fifo_m()) != 0U) {
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_L1_TAG_MISS_FIFO_ECC_CORRECTED) {
 			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_L1_TAG_MISS_FIFO_ECC_CORRECTED, 0,
 				g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
-	}
-	if ((l1_tag_ecc_status &
-		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_pixrpf_m()) != 0U) {
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED) {
 			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED, 0,
 				g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
+		}
 	}
+}
+
+static void gv11b_gr_intr_set_l1_tag_uncorrected_err(struct gk20a *g,
+	u32 l1_tag_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+
+	if ((l1_tag_ecc_status &
+	    (gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_0_m() |
+	     gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_1_m())) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_L1_TAG_ECC_UNCORRECTED;
+		ecc_status->err_count =
+				nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((l1_tag_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_miss_fifo_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_L1_TAG_MISS_FIFO_ECC_UNCORRECTED;
+		ecc_status->err_count =
+				nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((l1_tag_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_pixrpf_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_L1_TAG_S2R_PIXPRF_ECC_UNCORRECTED;
+		ecc_status->err_count =
+				nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+}
+
+static void gv11b_gr_intr_set_l1_tag_corrected_err(struct gk20a *g,
+	u32 l1_tag_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+
+	if ((l1_tag_ecc_status &
+	    (gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_0_m() |
+	     gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_1_m())) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_L1_TAG_ECC_CORRECTED;
+		ecc_status->err_count =
+				nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((l1_tag_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_miss_fifo_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_L1_TAG_MISS_FIFO_ECC_CORRECTED;
+		ecc_status->err_count =
+				nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((l1_tag_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_pixrpf_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED;
+		ecc_status->err_count =
+				nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+}
+
+static bool gv11b_gr_intr_sm_l1_tag_ecc_status_errors(struct gk20a *g,
+	u32 l1_tag_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+	u32 corr_err, uncorr_err;
+	bool err_status = true;
+
+	corr_err = l1_tag_ecc_status &
+		(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_0_m() |
+		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_1_m() |
+		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_pixrpf_m() |
+		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_miss_fifo_m());
+
+	uncorr_err = l1_tag_ecc_status &
+		(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_0_m() |
+		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_1_m() |
+		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_pixrpf_m() |
+		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_miss_fifo_m());
+
+	if ((corr_err == 0U) && (uncorr_err == 0U)) {
+		err_status = false;
+	}
+
+	ecc_status->err_count = 0U;
+	ecc_status->corrected_err_status = corr_err;
+	ecc_status->uncorrected_err_status = uncorr_err;
+
+	gv11b_gr_intr_set_l1_tag_corrected_err(g, l1_tag_ecc_status, ecc_status);
+	gv11b_gr_intr_set_l1_tag_uncorrected_err(g, l1_tag_ecc_status, ecc_status);
+
+	return err_status;
 }
 
 static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc)
@@ -915,12 +1011,12 @@ static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
 	u32 offset;
-	u32 l1_tag_ecc_status, l1_tag_ecc_corrected_err_status = 0;
-	u32 l1_tag_ecc_uncorrected_err_status = 0;
-	u32 l1_tag_corrected_err_count_delta = 0;
-	u32 l1_tag_uncorrected_err_count_delta = 0;
+	u32 l1_tag_ecc_status;
+	u32 l1_tag_corrected_err_count_delta = 0U;
+	u32 l1_tag_uncorrected_err_count_delta = 0U;
 	bool is_l1_tag_ecc_corrected_total_err_overflow = false;
 	bool is_l1_tag_ecc_uncorrected_total_err_overflow = false;
+	struct nvgpu_gr_sm_ecc_status ecc_status;
 
 	offset = nvgpu_safe_add_u32(
 			nvgpu_safe_mult_u32(gpc_stride, gpc),
@@ -929,18 +1025,11 @@ static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 
 	/* Check for L1 tag ECC errors. */
 	l1_tag_ecc_status = nvgpu_readl(g, nvgpu_safe_add_u32(
 		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_r(), offset));
-	l1_tag_ecc_corrected_err_status = l1_tag_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_0_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_1_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_pixrpf_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_miss_fifo_m());
-	l1_tag_ecc_uncorrected_err_status = l1_tag_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_0_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_1_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_pixrpf_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_miss_fifo_m());
 
-	if ((l1_tag_ecc_corrected_err_status == 0U) && (l1_tag_ecc_uncorrected_err_status == 0U)) {
+	(void) memset(&ecc_status, 0, sizeof(struct nvgpu_gr_sm_ecc_status));
+
+	if (g->ops.gr.intr.sm_ecc_status_errors(g, l1_tag_ecc_status,
+				SM_L1_TAG_ERROR, &ecc_status) == false) {
 		return;
 	}
 
@@ -962,7 +1051,7 @@ static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 
 	if ((l1_tag_corrected_err_count_delta > 0U) || is_l1_tag_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"corrected error (SBE) detected in SM L1 tag! err_mask [%08x] is_overf [%d]",
-			l1_tag_ecc_corrected_err_status, is_l1_tag_ecc_corrected_total_err_overflow);
+			ecc_status.corrected_err_status, is_l1_tag_ecc_corrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_l1_tag_ecc_corrected_total_err_overflow) {
@@ -975,15 +1064,15 @@ static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 
 		   nvgpu_safe_add_u32(
 			g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter,
 			l1_tag_corrected_err_count_delta);
-		gv11b_gr_intr_report_l1_tag_corrected_err(g, l1_tag_ecc_status, gpc, tpc);
+		gv11b_gr_intr_report_l1_tag_corrected_err(g, &ecc_status, gpc, tpc);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_corrected_err_count_r(), offset),
-			0);
+			0U);
 	}
 	if ((l1_tag_uncorrected_err_count_delta > 0U) || is_l1_tag_ecc_uncorrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Uncorrected error (DBE) detected in SM L1 tag! err_mask [%08x] is_overf [%d]",
-			l1_tag_ecc_uncorrected_err_status, is_l1_tag_ecc_uncorrected_total_err_overflow);
+			ecc_status.uncorrected_err_status, is_l1_tag_ecc_uncorrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_l1_tag_ecc_uncorrected_total_err_overflow) {
@@ -996,38 +1085,24 @@ static void gv11b_gr_intr_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 
 		   nvgpu_safe_add_u32(
 			g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter,
 			l1_tag_uncorrected_err_count_delta);
-		gv11b_gr_intr_report_l1_tag_uncorrected_err(g, l1_tag_ecc_status, gpc, tpc);
+		gv11b_gr_intr_report_l1_tag_uncorrected_err(g, &ecc_status, gpc, tpc);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_uncorrected_err_count_r(), offset),
-			0);
+			0U);
 	}
 
 	nvgpu_writel(g, nvgpu_safe_add_u32(
-				gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_r(), offset),
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_r(), offset),
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_reset_task_f());
 }
 
-static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc)
+static bool gv11b_gr_intr_sm_lrf_ecc_status_errors(struct gk20a *g,
+	u32 lrf_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
 {
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 offset;
-	u32 lrf_ecc_status, lrf_ecc_corrected_err_status = 0;
-	u32 lrf_ecc_uncorrected_err_status = 0;
-	u32 lrf_corrected_err_count_delta = 0;
-	u32 lrf_uncorrected_err_count_delta = 0;
-	bool is_lrf_ecc_corrected_total_err_overflow = false;
-	bool is_lrf_ecc_uncorrected_total_err_overflow = false;
+	u32 corr_err, uncorr_err;
+	bool err_status = true;
 
-	offset = nvgpu_safe_add_u32(
-			nvgpu_safe_mult_u32(gpc_stride, gpc),
-			nvgpu_safe_mult_u32(tpc_in_gpc_stride, tpc));
-
-	/* Check for LRF ECC errors. */
-	lrf_ecc_status = nvgpu_readl(g,
-		nvgpu_safe_add_u32(gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r(),
-				   offset));
-	lrf_ecc_corrected_err_status = lrf_ecc_status &
+	corr_err = lrf_ecc_status &
 		(gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp0_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp1_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp2_m() |
@@ -1036,7 +1111,8 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp5_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp6_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_qrfdp7_m());
-	lrf_ecc_uncorrected_err_status = lrf_ecc_status &
+
+	uncorr_err = lrf_ecc_status &
 		(gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_qrfdp0_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_qrfdp1_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_qrfdp2_m() |
@@ -1046,7 +1122,57 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_qrfdp6_m() |
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_qrfdp7_m());
 
-	if ((lrf_ecc_corrected_err_status == 0U) && (lrf_ecc_uncorrected_err_status == 0U)) {
+	if ((corr_err == 0U) && (uncorr_err == 0U)) {
+		err_status = false;
+	}
+
+	ecc_status->err_count = 0U;
+
+	if (corr_err != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_LRF_ECC_CORRECTED;
+		ecc_status->err_count =
+			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if (uncorr_err != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_LRF_ECC_UNCORRECTED;
+		ecc_status->err_count =
+			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	ecc_status->corrected_err_status = corr_err;
+	ecc_status->uncorrected_err_status = uncorr_err;
+
+	return err_status;
+}
+
+static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc)
+{
+	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 offset;
+	u32 lrf_ecc_status;
+	u32 lrf_corrected_err_count_delta = 0U;
+	u32 lrf_uncorrected_err_count_delta = 0U;
+	bool is_lrf_ecc_corrected_total_err_overflow = false;
+	bool is_lrf_ecc_uncorrected_total_err_overflow = false;
+	struct nvgpu_gr_sm_ecc_status ecc_status;
+
+	offset = nvgpu_safe_add_u32(
+			nvgpu_safe_mult_u32(gpc_stride, gpc),
+			nvgpu_safe_mult_u32(tpc_in_gpc_stride, tpc));
+
+	/* Check for LRF ECC errors. */
+	lrf_ecc_status = nvgpu_readl(g,
+		nvgpu_safe_add_u32(gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r(),
+				   offset));
+
+	(void) memset(&ecc_status, 0, sizeof(struct nvgpu_gr_sm_ecc_status));
+
+	if (g->ops.gr.intr.sm_ecc_status_errors(g, lrf_ecc_status,
+			SM_LRF_ECC_ERROR, &ecc_status) == false) {
 		return;
 	}
 
@@ -1069,12 +1195,12 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
 	 * the GPC id while reporting SM related ECC errors.
 	 */
-	tpc = tpc & 0xFFU;
+	tpc = tpc & U8_MAX;
 
 	if ((lrf_corrected_err_count_delta > 0U) || is_lrf_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"corrected error (SBE) detected in SM LRF! err_mask [%08x] is_overf [%d]",
-			lrf_ecc_corrected_err_status, is_lrf_ecc_corrected_total_err_overflow);
+			ecc_status.corrected_err_status, is_lrf_ecc_corrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_lrf_ecc_corrected_total_err_overflow) {
@@ -1088,17 +1214,17 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 			g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter,
 			lrf_corrected_err_count_delta);
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
-				GPU_SM_LRF_ECC_CORRECTED, 0,
-				g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter);
+			(gpc << SHIFT_8_BITS) | tpc,
+			GPU_SM_LRF_ECC_CORRECTED, 0,
+			g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_lrf_ecc_corrected_err_count_r(), offset),
-			0);
+			0U);
 	}
 	if ((lrf_uncorrected_err_count_delta > 0U) || is_lrf_ecc_uncorrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Uncorrected error (DBE) detected in SM LRF! err_mask [%08x] is_overf [%d]",
-			lrf_ecc_uncorrected_err_status, is_lrf_ecc_uncorrected_total_err_overflow);
+			ecc_status.uncorrected_err_status, is_lrf_ecc_uncorrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_lrf_ecc_uncorrected_total_err_overflow) {
@@ -1112,17 +1238,61 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 			g->ecc.gr.sm_lrf_ecc_double_err_count[gpc][tpc].counter,
 			lrf_uncorrected_err_count_delta);
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
-				GPU_SM_LRF_ECC_UNCORRECTED, 0,
-				g->ecc.gr.sm_lrf_ecc_double_err_count[gpc][tpc].counter);
+			(gpc << SHIFT_8_BITS) | tpc,
+			GPU_SM_LRF_ECC_UNCORRECTED, 0,
+			g->ecc.gr.sm_lrf_ecc_double_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_lrf_ecc_uncorrected_err_count_r(), offset),
-			0);
+			0U);
 	}
 
 	nvgpu_writel(g, nvgpu_safe_add_u32(
-				gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r(), offset),
+			gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r(), offset),
 			gr_pri_gpc0_tpc0_sm_lrf_ecc_status_reset_task_f());
+}
+
+static bool gv11b_gr_intr_sm_cbu_ecc_status_errors(struct gk20a *g,
+	u32 cbu_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+	u32 corr_err, uncorr_err;
+	bool err_status = true;
+
+	corr_err = cbu_ecc_status &
+		(gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_warp_sm0_m() |
+		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_warp_sm1_m() |
+		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_barrier_sm0_m() |
+		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_barrier_sm1_m());
+
+	uncorr_err = cbu_ecc_status &
+		(gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_warp_sm0_m() |
+		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_warp_sm1_m() |
+		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_barrier_sm0_m() |
+		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_barrier_sm1_m());
+
+	if ((corr_err == 0U) && (uncorr_err == 0U)) {
+		err_status = false;
+	}
+
+	ecc_status->err_count = 0U;
+
+	if (corr_err != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_CBU_ECC_CORRECTED;
+		ecc_status->err_count =
+			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if (uncorr_err != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_CBU_ECC_UNCORRECTED;
+		ecc_status->err_count =
+			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	ecc_status->corrected_err_status = corr_err;
+	ecc_status->uncorrected_err_status = uncorr_err;
+
+	return err_status;
 }
 
 static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc)
@@ -1130,12 +1300,12 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
 	u32 offset;
-	u32 cbu_ecc_status, cbu_ecc_corrected_err_status = 0;
-	u32 cbu_ecc_uncorrected_err_status = 0;
-	u32 cbu_corrected_err_count_delta = 0;
-	u32 cbu_uncorrected_err_count_delta = 0;
+	u32 cbu_ecc_status;
+	u32 cbu_corrected_err_count_delta = 0U;
+	u32 cbu_uncorrected_err_count_delta = 0U;
 	bool is_cbu_ecc_corrected_total_err_overflow = false;
 	bool is_cbu_ecc_uncorrected_total_err_overflow = false;
+	struct nvgpu_gr_sm_ecc_status ecc_status;
 
 	offset = nvgpu_safe_add_u32(
 			nvgpu_safe_mult_u32(gpc_stride, gpc),
@@ -1144,18 +1314,11 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 	/* Check for CBU ECC errors. */
 	cbu_ecc_status = nvgpu_readl(g, nvgpu_safe_add_u32(
 		gr_pri_gpc0_tpc0_sm_cbu_ecc_status_r(), offset));
-	cbu_ecc_corrected_err_status = cbu_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_warp_sm0_m() |
-		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_warp_sm1_m() |
-		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_barrier_sm0_m() |
-		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_barrier_sm1_m());
-	cbu_ecc_uncorrected_err_status = cbu_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_warp_sm0_m() |
-		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_warp_sm1_m() |
-		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_barrier_sm0_m() |
-		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_barrier_sm1_m());
 
-	if ((cbu_ecc_corrected_err_status == 0U) && (cbu_ecc_uncorrected_err_status == 0U)) {
+	(void) memset(&ecc_status, 0, sizeof(struct nvgpu_gr_sm_ecc_status));
+
+	if (g->ops.gr.intr.sm_ecc_status_errors(g, cbu_ecc_status,
+				SM_CBU_ECC_ERROR, &ecc_status) == false) {
 		return;
 	}
 
@@ -1178,12 +1341,12 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
 	 * the GPC id while reporting SM related ECC errors.
 	 */
-	tpc = tpc & 0xFFU;
+	tpc = tpc & U8_MAX;
 
 	if ((cbu_corrected_err_count_delta > 0U) || is_cbu_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"corrected error (SBE) detected in SM CBU! err_mask [%08x] is_overf [%d]",
-			cbu_ecc_corrected_err_status, is_cbu_ecc_corrected_total_err_overflow);
+			ecc_status.corrected_err_status, is_cbu_ecc_corrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_cbu_ecc_corrected_total_err_overflow) {
@@ -1196,17 +1359,17 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 			g->ecc.gr.sm_cbu_ecc_corrected_err_count[gpc][tpc].counter,
 			cbu_corrected_err_count_delta);
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_CBU_ECC_CORRECTED,
 				0, g->ecc.gr.sm_cbu_ecc_corrected_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_cbu_ecc_corrected_err_count_r(), offset),
-			0);
+			0U);
 	}
 	if ((cbu_uncorrected_err_count_delta > 0U) || is_cbu_ecc_uncorrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Uncorrected error (DBE) detected in SM CBU! err_mask [%08x] is_overf [%d]",
-			cbu_ecc_uncorrected_err_status, is_cbu_ecc_uncorrected_total_err_overflow);
+			ecc_status.uncorrected_err_status, is_cbu_ecc_uncorrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_cbu_ecc_uncorrected_total_err_overflow) {
@@ -1219,12 +1382,12 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 			g->ecc.gr.sm_cbu_ecc_uncorrected_err_count[gpc][tpc].counter,
 			cbu_uncorrected_err_count_delta);
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_CBU_ECC_UNCORRECTED,
 				0, g->ecc.gr.sm_cbu_ecc_uncorrected_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_cbu_ecc_uncorrected_err_count_r(), offset),
-			0);
+			0U);
 	}
 
 	nvgpu_writel(g, nvgpu_safe_add_u32(
@@ -1232,17 +1395,56 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 			gr_pri_gpc0_tpc0_sm_cbu_ecc_status_reset_task_f());
 }
 
+static bool gv11b_gr_intr_sm_l1_data_ecc_status_errors(struct gk20a *g,
+	u32 l1_data_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+	u32 corr_err, uncorr_err;
+	bool err_status = true;
+
+	corr_err = l1_data_ecc_status &
+		(gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_corrected_err_el1_0_m() |
+		 gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_corrected_err_el1_1_m());
+	uncorr_err = l1_data_ecc_status &
+		(gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_uncorrected_err_el1_0_m() |
+		 gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_uncorrected_err_el1_1_m());
+
+	if ((corr_err == 0U) && (uncorr_err == 0U)) {
+		err_status = false;
+	}
+
+	ecc_status->err_count = 0U;
+
+	if (corr_err != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_L1_DATA_ECC_CORRECTED;
+		ecc_status->err_count =
+			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if (uncorr_err != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_L1_DATA_ECC_UNCORRECTED;
+		ecc_status->err_count =
+			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	ecc_status->corrected_err_status = corr_err;
+	ecc_status->uncorrected_err_status = uncorr_err;
+
+	return err_status;
+}
+
 static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
 	u32 offset;
-	u32 l1_data_ecc_status, l1_data_ecc_corrected_err_status = 0;
-	u32 l1_data_ecc_uncorrected_err_status = 0;
-	u32 l1_data_corrected_err_count_delta = 0;
-	u32 l1_data_uncorrected_err_count_delta = 0;
+	u32 l1_data_ecc_status;
+	u32 l1_data_corrected_err_count_delta = 0U;
+	u32 l1_data_uncorrected_err_count_delta = 0U;
 	bool is_l1_data_ecc_corrected_total_err_overflow = false;
 	bool is_l1_data_ecc_uncorrected_total_err_overflow = false;
+	struct nvgpu_gr_sm_ecc_status ecc_status;
 
 	offset = nvgpu_safe_add_u32(
 			nvgpu_safe_mult_u32(gpc_stride, gpc),
@@ -1251,14 +1453,11 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 	/* Check for L1 data ECC errors. */
 	l1_data_ecc_status = nvgpu_readl(g, nvgpu_safe_add_u32(
 		gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_r(), offset));
-	l1_data_ecc_corrected_err_status = l1_data_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_corrected_err_el1_0_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_corrected_err_el1_1_m());
-	l1_data_ecc_uncorrected_err_status = l1_data_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_uncorrected_err_el1_0_m() |
-		 gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_uncorrected_err_el1_1_m());
 
-	if ((l1_data_ecc_corrected_err_status == 0U) && (l1_data_ecc_uncorrected_err_status == 0U)) {
+	(void) memset(&ecc_status, 0, sizeof(struct nvgpu_gr_sm_ecc_status));
+
+	if (g->ops.gr.intr.sm_ecc_status_errors(g, l1_data_ecc_status,
+				SM_L1_DATA_ECC_ERROR, &ecc_status) == false) {
 		return;
 	}
 
@@ -1281,12 +1480,12 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
 	 * the GPC id while reporting SM related ECC errors.
 	 */
-	tpc = tpc & 0xFFU;
+	tpc = tpc & U8_MAX;
 
 	if ((l1_data_corrected_err_count_delta > 0U) || is_l1_data_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"corrected error (SBE) detected in SM L1 data! err_mask [%08x] is_overf [%d]",
-			l1_data_ecc_corrected_err_status, is_l1_data_ecc_corrected_total_err_overflow);
+			ecc_status.corrected_err_status, is_l1_data_ecc_corrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_l1_data_ecc_corrected_total_err_overflow) {
@@ -1300,17 +1499,18 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 			g->ecc.gr.sm_l1_data_ecc_corrected_err_count[gpc][tpc].counter,
 			l1_data_corrected_err_count_delta);
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_L1_DATA_ECC_CORRECTED,
 				0, g->ecc.gr.sm_l1_data_ecc_corrected_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_l1_data_ecc_corrected_err_count_r(), offset),
-			0);
+			0U);
 	}
+
 	if ((l1_data_uncorrected_err_count_delta > 0U) || is_l1_data_ecc_uncorrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Uncorrected error (DBE) detected in SM L1 data! err_mask [%08x] is_overf [%d]",
-			l1_data_ecc_uncorrected_err_status, is_l1_data_ecc_uncorrected_total_err_overflow);
+			ecc_status.uncorrected_err_status, is_l1_data_ecc_uncorrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_l1_data_ecc_uncorrected_total_err_overflow) {
@@ -1323,12 +1523,12 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 			g->ecc.gr.sm_l1_data_ecc_uncorrected_err_count[gpc][tpc].counter,
 			l1_data_uncorrected_err_count_delta);
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_L1_DATA_ECC_UNCORRECTED,
 				0, g->ecc.gr.sm_l1_data_ecc_uncorrected_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_l1_data_ecc_uncorrected_err_count_r(), offset),
-			0);
+			0U);
 	}
 	nvgpu_writel(g, nvgpu_safe_add_u32(
 				gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_r(), offset),
@@ -1336,81 +1536,187 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 }
 
 static void gv11b_gr_intr_report_icache_uncorrected_err(struct gk20a *g,
-			u32 icache_ecc_status, u32 gpc, u32 tpc)
+		struct nvgpu_gr_sm_ecc_status *ecc_status, u32 gpc, u32 tpc)
 {
+	u32 i;
+
 	/* This check has been added to ensure that the TPC id is less than
 	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
 	 * the GPC id while reporting SM related ECC errors.
 	 */
-	tpc = tpc & 0xFFU;
+	tpc = tpc & U8_MAX;
 
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_data_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+	for (i = 0U; i < ecc_status->err_count; i++) {
+		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L0_DATA_ECC_UNCORRECTED) {
+			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_ICACHE_L0_DATA_ECC_UNCORRECTED,
 				0, g->ecc.gr.sm_icache_ecc_uncorrected_err_count[gpc][tpc].counter);
-	}
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_predecode_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L0_PREDECODE_ECC_UNCORRECTED) {
+			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_ICACHE_L0_PREDECODE_ECC_UNCORRECTED,
 				0, g->ecc.gr.sm_icache_ecc_uncorrected_err_count[gpc][tpc].counter);
-	}
-	if ((icache_ecc_status  &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_data_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L1_DATA_ECC_UNCORRECTED) {
+			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_ICACHE_L1_DATA_ECC_UNCORRECTED,
 				0, g->ecc.gr.sm_icache_ecc_uncorrected_err_count[gpc][tpc].counter);
-	}
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_predecode_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED) {
+			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED,
 				0, g->ecc.gr.sm_icache_ecc_uncorrected_err_count[gpc][tpc].counter);
+		}
 	}
 }
 
 static void gv11b_gr_intr_report_icache_corrected_err(struct gk20a *g,
-			u32 icache_ecc_status, u32 gpc, u32 tpc)
+		struct nvgpu_gr_sm_ecc_status *ecc_status, u32 gpc, u32 tpc)
 {
+	u32 i;
+
 	/* This check has been added to ensure that the TPC id is less than
 	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
 	 * the GPC id while reporting SM related ECC errors.
 	 */
-	tpc = tpc & 0xFFU;
+	tpc = tpc & U8_MAX;
 
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_data_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+	for (i = 0U; i < ecc_status->err_count; i++) {
+		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L0_DATA_ECC_CORRECTED) {
+			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_ICACHE_L0_DATA_ECC_CORRECTED,
 				0, g->ecc.gr.sm_icache_ecc_corrected_err_count[gpc][tpc].counter);
-	}
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_predecode_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L0_PREDECODE_ECC_CORRECTED) {
+			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_ICACHE_L0_PREDECODE_ECC_CORRECTED,
 				0, g->ecc.gr.sm_icache_ecc_corrected_err_count[gpc][tpc].counter);
-	}
-	if ((icache_ecc_status  &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_data_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L1_DATA_ECC_CORRECTED) {
+			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_ICACHE_L1_DATA_ECC_CORRECTED,
 				0, g->ecc.gr.sm_icache_ecc_corrected_err_count[gpc][tpc].counter);
-	}
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_predecode_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << 8) | tpc,
+		}
+
+		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED) {
+			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
+				(gpc << SHIFT_8_BITS) | tpc,
 				GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED,
 				0, g->ecc.gr.sm_icache_ecc_corrected_err_count[gpc][tpc].counter);
+		}
 	}
+}
+
+static void gv11b_set_icache_ecc_status_corrected_errors(struct gk20a *g,
+	u32 icache_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+	if ((icache_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_data_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_ICACHE_L0_DATA_ECC_CORRECTED;
+		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((icache_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_predecode_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_ICACHE_L0_PREDECODE_ECC_CORRECTED;
+		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((icache_ecc_status  &
+	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_data_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_ICACHE_L1_DATA_ECC_CORRECTED;
+		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((icache_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_predecode_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED;
+		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+}
+
+static void gv11b_set_icache_ecc_status_uncorrected_errors(struct gk20a *g,
+				u32 icache_ecc_status,
+				struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+	if ((icache_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_data_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_ICACHE_L0_DATA_ECC_UNCORRECTED;
+		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((icache_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_predecode_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_ICACHE_L0_PREDECODE_ECC_UNCORRECTED;
+		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((icache_ecc_status  &
+	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_data_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_ICACHE_L1_DATA_ECC_UNCORRECTED;
+		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+
+	if ((icache_ecc_status &
+	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_predecode_m()) != 0U) {
+		ecc_status->err_id[ecc_status->err_count] =
+				GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED;
+		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+	}
+}
+
+static bool gv11b_gr_intr_sm_icache_ecc_status_errors(struct gk20a *g,
+	u32 icache_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+	u32 corr_err, uncorr_err;
+	bool err_status = true;
+
+	corr_err = icache_ecc_status &
+		(gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_data_m() |
+		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_predecode_m() |
+		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_data_m() |
+		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_predecode_m());
+	uncorr_err = icache_ecc_status &
+		(gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_data_m() |
+		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_predecode_m() |
+		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_data_m() |
+		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_predecode_m());
+
+	if ((corr_err == 0U) && (uncorr_err == 0U)) {
+		err_status = false;
+	}
+
+	ecc_status->err_count = 0U;
+
+	gv11b_set_icache_ecc_status_corrected_errors(g, icache_ecc_status,
+						     ecc_status);
+
+	gv11b_set_icache_ecc_status_uncorrected_errors(g, icache_ecc_status,
+						     ecc_status);
+
+	ecc_status->corrected_err_status = corr_err;
+	ecc_status->uncorrected_err_status = uncorr_err;
+
+	return err_status;
 }
 
 static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc)
@@ -1418,12 +1724,12 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
 	u32 offset;
-	u32 icache_ecc_status, icache_ecc_corrected_err_status = 0;
-	u32 icache_ecc_uncorrected_err_status = 0;
-	u32 icache_corrected_err_count_delta = 0;
-	u32 icache_uncorrected_err_count_delta = 0;
+	u32 icache_ecc_status;
+	u32 icache_corrected_err_count_delta = 0U;
+	u32 icache_uncorrected_err_count_delta = 0U;
 	bool is_icache_ecc_corrected_total_err_overflow = false;
 	bool is_icache_ecc_uncorrected_total_err_overflow = false;
+	struct nvgpu_gr_sm_ecc_status ecc_status;
 
 	offset = nvgpu_safe_add_u32(
 			nvgpu_safe_mult_u32(gpc_stride, gpc),
@@ -1432,18 +1738,11 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 	/* Check for L0 && L1 icache ECC errors. */
 	icache_ecc_status = nvgpu_readl(g, nvgpu_safe_add_u32(
 		gr_pri_gpc0_tpc0_sm_icache_ecc_status_r(), offset));
-	icache_ecc_corrected_err_status = icache_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_data_m() |
-		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_predecode_m() |
-		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_data_m() |
-		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_predecode_m());
-	icache_ecc_uncorrected_err_status = icache_ecc_status &
-		(gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_data_m() |
-		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l0_predecode_m() |
-		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_data_m() |
-		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_predecode_m());
 
-	if ((icache_ecc_corrected_err_status == 0U) && (icache_ecc_uncorrected_err_status == 0U)) {
+	(void) memset(&ecc_status, 0, sizeof(struct nvgpu_gr_sm_ecc_status));
+
+	if (g->ops.gr.intr.sm_ecc_status_errors(g, icache_ecc_status,
+				SM_ICACHE_ECC_ERROR, &ecc_status) == false) {
 		return;
 	}
 
@@ -1465,7 +1764,7 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 	if ((icache_corrected_err_count_delta > 0U) || is_icache_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"corrected error (SBE) detected in SM L0 && L1 icache! err_mask [%08x] is_overf [%d]",
-			icache_ecc_corrected_err_status, is_icache_ecc_corrected_total_err_overflow);
+			ecc_status.corrected_err_status, is_icache_ecc_corrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_icache_ecc_corrected_total_err_overflow) {
@@ -1479,13 +1778,14 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 			icache_corrected_err_count_delta);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_icache_ecc_corrected_err_count_r(), offset),
-			0);
-		gv11b_gr_intr_report_icache_corrected_err(g, icache_ecc_status, gpc, tpc);
+			0U);
+		gv11b_gr_intr_report_icache_corrected_err(g, &ecc_status, gpc, tpc);
 	}
+
 	if ((icache_uncorrected_err_count_delta > 0U) || is_icache_ecc_uncorrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Uncorrected error (DBE) detected in SM L0 && L1 icache! err_mask [%08x] is_overf [%d]",
-			icache_ecc_uncorrected_err_status, is_icache_ecc_uncorrected_total_err_overflow);
+			ecc_status.uncorrected_err_status, is_icache_ecc_uncorrected_total_err_overflow);
 
 		/* HW uses 16-bits counter */
 		if (is_icache_ecc_uncorrected_total_err_overflow) {
@@ -1500,13 +1800,39 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 			icache_uncorrected_err_count_delta);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_icache_ecc_uncorrected_err_count_r(), offset),
-			0);
-		gv11b_gr_intr_report_icache_uncorrected_err(g, icache_ecc_status, gpc, tpc);
+			0U);
+		gv11b_gr_intr_report_icache_uncorrected_err(g, &ecc_status, gpc, tpc);
 	}
 
 	nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_icache_ecc_status_r(), offset),
 			gr_pri_gpc0_tpc0_sm_icache_ecc_status_reset_task_f());
+}
+
+bool gv11b_gr_intr_sm_ecc_status_errors(struct gk20a *g,
+	u32 ecc_status_reg, enum nvgpu_gr_sm_ecc_error_types err_type,
+	struct nvgpu_gr_sm_ecc_status *ecc_status)
+{
+	bool err_status = false;
+
+	if (err_type == SM_ICACHE_ECC_ERROR) {
+		err_status = gv11b_gr_intr_sm_icache_ecc_status_errors(g,
+						ecc_status_reg, ecc_status);
+	} else if (err_type == SM_LRF_ECC_ERROR) {
+		err_status = gv11b_gr_intr_sm_lrf_ecc_status_errors(g,
+						ecc_status_reg, ecc_status);
+	} else if (err_type == SM_L1_TAG_ERROR) {
+		err_status = gv11b_gr_intr_sm_l1_tag_ecc_status_errors(g,
+						ecc_status_reg, ecc_status);
+	} else if (err_type == SM_CBU_ECC_ERROR) {
+		err_status = gv11b_gr_intr_sm_cbu_ecc_status_errors(g,
+						ecc_status_reg, ecc_status);
+	} else if (err_type == SM_L1_DATA_ECC_ERROR) {
+		err_status = gv11b_gr_intr_sm_l1_data_ecc_status_errors(g,
+						ecc_status_reg, ecc_status);
+	}
+
+	return err_status;
 }
 
 void gv11b_gr_intr_handle_tpc_sm_ecc_exception(struct gk20a *g,

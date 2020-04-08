@@ -45,6 +45,9 @@ struct nvgpu_fecs_ecc_status;
 struct nvgpu_fecs_host_intr_status;
 struct netlist_av_list;
 struct nvgpu_hw_err_inject_info_desc;
+struct nvgpu_gr_sm_ecc_status;
+
+enum nvgpu_gr_sm_ecc_error_types;
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 struct nvgpu_gr_subctx;
@@ -504,6 +507,9 @@ struct gops_gr_intr {
 	u32 (*get_sm_no_lock_down_hww_global_esr_mask)(
 						struct gk20a *g);
 	u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
+	bool (*sm_ecc_status_errors)(struct gk20a *g, u32 ecc_status_reg,
+				enum nvgpu_gr_sm_ecc_error_types err_type,
+				struct nvgpu_gr_sm_ecc_status *ecc_status);
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	void (*handle_tex_exception)(struct gk20a *g,
 				     u32 gpc, u32 tpc);

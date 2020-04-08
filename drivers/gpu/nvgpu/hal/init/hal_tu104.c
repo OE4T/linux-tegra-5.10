@@ -754,6 +754,8 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_gr_intr_get_sm_hww_global_esr,
 			.get_sm_no_lock_down_hww_global_esr_mask =
 				gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
+			.sm_ecc_status_errors =
+				gv11b_gr_intr_sm_ecc_status_errors,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 			.handle_tex_exception = NULL,
 			.set_shader_exceptions =

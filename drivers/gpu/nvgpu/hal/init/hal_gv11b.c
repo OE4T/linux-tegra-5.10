@@ -736,6 +736,8 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 				gv11b_gr_intr_get_sm_no_lock_down_hww_global_esr_mask,
 			.get_ctxsw_checksum_mismatch_mailbox_val =
 				gv11b_gr_intr_ctxsw_checksum_mismatch_mailbox_val,
+			.sm_ecc_status_errors =
+				gv11b_gr_intr_sm_ecc_status_errors,
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 			.handle_tex_exception = NULL,
 			.set_shader_exceptions =
