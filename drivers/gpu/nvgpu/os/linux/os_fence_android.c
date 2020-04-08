@@ -18,6 +18,7 @@
 #include <nvgpu/linux/os_fence_android.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/nvhost.h>
 
 #include "../drivers/staging/android/sync.h"
 
@@ -66,7 +67,9 @@ int nvgpu_os_fence_fdget(struct nvgpu_os_fence *fence_out,
 	int err = -ENOSYS;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
-	err = nvgpu_os_fence_syncpt_fdget(fence_out, c, fd);
+	if (nvgpu_has_syncpoints(c->g)) {
+		err = nvgpu_os_fence_syncpt_fdget(fence_out, c, fd);
+	}
 #endif
 
 	if (err)
