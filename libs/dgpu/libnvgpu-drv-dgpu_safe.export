@@ -795,3 +795,7 @@ nvgpu_rc_gr_fault
 nvgpu_rc_sched_error_bad_tsg
 nvgpu_rc_tsg_and_related_engines
 nvgpu_rc_mmu_fault
+nvgpu_init_pramin
+gk20a_bus_set_bar0_window
+nvgpu_pramin_ops_init
+nvgpu_dma_alloc_vid_at
