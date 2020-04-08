@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 #include <unit/core.h>
 
 /*
- * Load libnvgpu-drv.so. This is done with dlopen() since this will make
+ * Load driver library. This is done with dlopen() since this will make
  * resolving addresses into symbols easier in the future.
  *
  * Also, this makes people think carefully about what functions to call in
@@ -38,6 +38,7 @@ int core_load_nvgpu(struct unit_fw *fw)
 {
 	const char *msg;
 	int flag = RTLD_NOW;
+	const char *load_path = args(fw)->driver_load_path;
 
 	if (fw->args->is_qnx == 0) {
 		/*
@@ -51,11 +52,11 @@ int core_load_nvgpu(struct unit_fw *fw)
 
 	/* TODO: WAR: remove this dependency of libnvgpu-drv.so for qnx unit
 	 * test, refer NVGPU-1935 for more detail */
-	fw->nvgpu_so = dlopen("libnvgpu-drv.so", flag);
+	fw->nvgpu_so = dlopen(load_path, flag);
 
 	if (fw->nvgpu_so == NULL) {
 		msg = dlerror();
-		core_err(fw, "Failed to load nvgpu-drv: %s\n", msg);
+		core_err(fw, "Failed to load %s: %s\n", load_path, msg);
 		return -1;
 	}
 
@@ -91,10 +92,10 @@ int core_load_nvgpu(struct unit_fw *fw)
 	}
 
 	if (fw->args->is_qnx != 0) {
-		fw->nvgpu_qnx_ut = dlopen("libnvgpu_ut.so", flag);
+		fw->nvgpu_qnx_ut = dlopen("libnvgpu_ut_igpu.so", flag);
 		if (fw->nvgpu_qnx_ut == NULL) {
 			msg = dlerror();
-			core_err(fw, "Failed to load nvgpu_ut: %s\n", msg);
+			core_err(fw, "Failed to load nvgpu_ut_igpu: %s\n", msg);
 			return -1;
 		}
 		fw->nvgpu.nvgpu_posix_init_fault_injection_qnx =

@@ -31,6 +31,11 @@
 #define __stringify(x)			#x
 #define stringify(x)			__stringify(x)
 
+#ifndef __DEFAULT_ARG_DRIVER_LOAD_PATH
+#define __DEFAULT_ARG_DRIVER_LOAD_PATH	./libnvgpu-drv.so
+#endif
+#define DEFAULT_ARG_DRIVER_LOAD_PATH	stringify(__DEFAULT_ARG_DRIVER_LOAD_PATH)
+
 #ifndef __DEFAULT_ARG_UNIT_LOAD_PATH
 #define __DEFAULT_ARG_UNIT_LOAD_PATH	build/units
 #endif
@@ -49,6 +54,8 @@ struct unit_fw_args {
 	unsigned int	 test_lvl;
 	bool		 debug;
 	const char	*binary_name;
+
+	const char	*driver_load_path;
 
 	const char	*unit_name;
 	const char	*unit_load_path;

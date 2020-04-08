@@ -42,7 +42,7 @@ struct unit_fw {
 	struct unit_results	 *results;
 
 	/*
-	 * nvgpu-drv interface. Currently the only two directly referenced
+	 * driver library interface. Currently the only two directly referenced
 	 * functions are:
 	 *
 	 *   nvgpu_posix_probe()

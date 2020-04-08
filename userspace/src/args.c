@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@ static struct option core_opts[] = {
 	{ "nvtest",		0, NULL, 'n' },
 	{ "is-qnx",		0, NULL, 'Q' },
 	{ "unit-load-path",	1, NULL, 'L' },
+	{ "driver-load-path",	1, NULL, 'K' },
 	{ "num-threads",	1, NULL, 'j' },
 	{ "test-level",		1, NULL, 't' },
 	{ "debug",		0, NULL, 'd' },
@@ -44,7 +45,7 @@ static struct option core_opts[] = {
 	{ NULL,			0, NULL,  0  }
 };
 
-static const char *core_opts_str = "hvqCnQL:j:t:dr:";
+static const char *core_opts_str = "hvqCnQL:K:j:t:dr:";
 
 void core_print_help(struct unit_fw *fw)
 {
@@ -69,6 +70,8 @@ void core_print_help(struct unit_fw *fw)
 "  -Q, --is-qnx           QNX specific tests\n",
 "  -L, --unit-load-path <PATH>\n",
 "                         Path to where the unit test libraries reside.\n",
+"  -K, --driver-load-path <PATH>\n",
+"                         Path to driver library.\n",
 "  -j, --num-threads <COUNT>\n",
 "                         Number of threads to use while running all tests.\n",
 "  -t, --test-level <LEVEL>\n",
@@ -92,6 +95,7 @@ NULL
 
 static void set_arg_defaults(struct unit_fw_args *args)
 {
+	args->driver_load_path = DEFAULT_ARG_DRIVER_LOAD_PATH;
 	args->unit_load_path = DEFAULT_ARG_UNIT_LOAD_PATH;
 	args->thread_count = 1;
 	args->test_lvl = TEST_PLAN_MAX;
@@ -149,6 +153,9 @@ int core_parse_args(struct unit_fw *fw, int argc, char **argv)
 			break;
 		case 'L':
 			args->unit_load_path = optarg;
+			break;
+		case 'K':
+			args->driver_load_path = optarg;
 			break;
 		case 'j':
 			args->thread_count = strtol(optarg, NULL, 10);
