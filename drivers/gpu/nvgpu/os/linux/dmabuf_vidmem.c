@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -92,11 +92,13 @@ static void gk20a_vidbuf_release(struct dma_buf *dmabuf)
 	nvgpu_put(g);
 }
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(5, 5, 0)
 static void *gk20a_vidbuf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
 {
 	WARN_ON("Not supported");
 	return NULL;
 }
+#endif
 
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 16, 0)
 static void *gk20a_vidbuf_kmap_atomic(struct dma_buf *dmabuf,
@@ -143,7 +145,9 @@ static const struct dma_buf_ops gk20a_vidbuf_ops = {
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 16, 0)
 	.map_atomic      = gk20a_vidbuf_kmap_atomic,
 #endif
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(5, 5, 0)
 	.map             = gk20a_vidbuf_kmap,
+#endif
 #else
 	.kmap_atomic      = gk20a_vidbuf_kmap_atomic,
 	.kmap             = gk20a_vidbuf_kmap,
