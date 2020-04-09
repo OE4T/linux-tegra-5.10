@@ -652,20 +652,33 @@ static int gk20a_channel_wait_semaphore(struct nvgpu_channel *ch,
 		return -ETIMEDOUT;
 	}
 
-	dmabuf = dma_buf_get(id);
-	if (IS_ERR(dmabuf)) {
-		nvgpu_err(ch->g, "invalid notifier nvmap handle 0x%lx", id);
+	if (!IS_ALIGNED(offset, 4)) {
+		nvgpu_err(ch->g, "invalid semaphore offset %u", offset);
 		return -EINVAL;
 	}
 
-	data = dma_buf_kmap(dmabuf, offset >> PAGE_SHIFT);
-	if (!data) {
-		nvgpu_err(ch->g, "failed to map notifier memory");
+	dmabuf = dma_buf_get(id);
+	if (IS_ERR(dmabuf)) {
+		nvgpu_err(ch->g, "invalid semaphore dma_buf handle 0x%lx", id);
+		return -EINVAL;
+	}
+
+	if (offset > (dmabuf->size - sizeof(u32))) {
+		nvgpu_err(ch->g, "invalid semaphore offset %u", offset);
 		ret = -EINVAL;
 		goto cleanup_put;
 	}
 
-	semaphore = data + (offset & ~PAGE_MASK);
+	nvgpu_speculation_barrier();
+
+	data = dma_buf_vmap(dmabuf);
+	if (!data) {
+		nvgpu_err(ch->g, "failed to map semaphore memory");
+		ret = -EINVAL;
+		goto cleanup_put;
+	}
+
+	semaphore = (u32 *)((uintptr_t)data + offset);
 
 	ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
 			&ch->semaphore_wq,
@@ -673,7 +686,7 @@ static int gk20a_channel_wait_semaphore(struct nvgpu_channel *ch,
 			nvgpu_channel_check_unserviceable(ch),
 			timeout);
 
-	dma_buf_kunmap(dmabuf, offset >> PAGE_SHIFT, data);
+	dma_buf_vunmap(dmabuf, data);
 cleanup_put:
 	dma_buf_put(dmabuf);
 	return ret;
@@ -706,7 +719,7 @@ static int gk20a_channel_wait(struct nvgpu_channel *ch,
 
 		dmabuf = dma_buf_get(id);
 		if (IS_ERR(dmabuf)) {
-			nvgpu_err(g, "invalid notifier nvmap handle 0x%lx",
+			nvgpu_err(g, "invalid notifier dma_buf handle 0x%lx",
 				   id);
 			return -EINVAL;
 		}
