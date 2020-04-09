@@ -133,14 +133,456 @@ static struct attribute_group ether_attribute_group = {
 	.attrs = ether_sysfs_attrs,
 };
 
-int ether_sysfs_register(struct device *dev)
+#ifdef CONFIG_DEBUG_FS
+static char *timestamp_system_source(unsigned int source)
 {
+	switch (source) {
+	case 1:
+		return "Internal";
+	case 2:
+		return "External";
+	case 3:
+		return "Internal and External";
+	case 0:
+		return "Reserved";
+	}
+
+	return "None";
+}
+
+static char *active_phy_selected_interface(unsigned int act_phy_sel)
+{
+	switch (act_phy_sel) {
+	case 0:
+		return "GMII or MII";
+	case 1:
+		return "RGMII";
+	case 2:
+		return "SGMII";
+	case 3:
+		return "TBI";
+	case 4:
+		return "RMII";
+	case 5:
+		return "RTBI";
+	case 6:
+		return "SMII";
+	case 7:
+		return "RevMII";
+	}
+
+	return "None";
+}
+
+static char *mtl_fifo_size(unsigned int fifo_size)
+{
+	switch (fifo_size) {
+	case 0:
+		return "128 Bytes";
+	case 1:
+		return "256 Bytes";
+	case 2:
+		return "512 Bytes";
+	case 3:
+		return "1KB";
+	case 4:
+		return "2KB";
+	case 5:
+		return "4KB";
+	case 6:
+		return "8KB";
+	case 7:
+		return "16KB";
+	case 8:
+		return "32KB";
+	case 9:
+		return "64KB";
+	case 10:
+		return "128KB";
+	case 11:
+		return "256KB";
+	default:
+		return "Reserved";
+	}
+}
+
+static char *address_width(unsigned int val)
+{
+	switch (val) {
+	case 0:
+		return "32";
+	case 1:
+		return "40";
+	case 2:
+		return "48";
+	default:
+		return "Reserved";
+	}
+}
+
+static char *hash_table_size(unsigned int size)
+{
+	switch (size) {
+	case 0:
+		return "No Hash Table";
+	case 1:
+		return "64";
+	case 2:
+		return "128";
+	case 3:
+		return "256";
+	default:
+		return "Invalid size";
+	}
+}
+
+static char *num_vlan_filters(unsigned int filters)
+{
+	switch (filters) {
+	case 0:
+		return "Zero";
+	case 1:
+		return "4";
+	case 2:
+		return "8";
+	case 3:
+		return "16";
+	case 4:
+		return "24";
+	case 5:
+		return "32";
+	default:
+		return "Unknown";
+	}
+}
+
+static char *max_frp_bytes(unsigned int bytes)
+{
+	switch (bytes) {
+	case 0:
+		return "64 Bytes";
+	case 1:
+		return "128 Bytes";
+	case 2:
+		return "256 Bytes";
+	case 3:
+		return "Reserved";
+	default:
+		return "Invalid";
+	}
+}
+
+static char *max_frp_instructions(unsigned int entries)
+{
+	switch (entries) {
+	case 0:
+		return "64";
+	case 1:
+		return "128";
+	case 2:
+		return "256";
+	case 3:
+		return "Reserved";
+	default:
+		return "Invalid";
+	}
+}
+
+static char *auto_safety_package(unsigned int pkg)
+{
+	switch (pkg) {
+	case 0:
+		return "No Safety features selected";
+	case 1:
+		return "Only 'ECC protection for external memory' feature is selected";
+	case 2:
+		return "All the Automotive Safety features are selected without the 'Parity Port Enable for external interface' feature";
+	case 3:
+		return "All the Automotive Safety features are selected with the 'Parity Port Enable for external interface' feature";
+	default:
+		return "Invalid";
+	}
+}
+
+static char *tts_fifo_depth(unsigned int depth)
+{
+	switch (depth) {
+	case 1:
+		return "1";
+	case 2:
+		return "2";
+	case 3:
+		return "4";
+	case 4:
+		return "8";
+	case 5:
+		return "16";
+	default:
+		return "Reserved";
+	}
+}
+
+static char *gate_ctl_depth(unsigned int depth)
+{
+	switch (depth) {
+	case 0:
+		return "No Depth Configured";
+	case 1:
+		return "64";
+	case 2:
+		return "128";
+	case 3:
+		return "256";
+	case 4:
+		return "512";
+	case 5:
+		return "1024";
+	default:
+		return "Reserved";
+	}
+}
+
+static char *gate_ctl_width(unsigned int width)
+{
+	switch (width) {
+	case 0:
+		return "Width not configured";
+	case 1:
+		return "16";
+	case 2:
+		return "20";
+	case 3:
+		return "24";
+	default:
+		return "Invalid";
+	}
+}
+
+static int ether_hw_features_read(struct seq_file *seq, void *v)
+{
+	struct net_device *ndev = seq->private;
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_hw_features *hw_feat = &pdata->hw_feat;
+
+	if (!netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
+		return 0;
+	}
+
+	seq_printf(seq, "==============================\n");
+	seq_printf(seq, "\tHW features\n");
+	seq_printf(seq, "==============================\n");
+
+	seq_printf(seq, "\t10/100 Mbps: %s\n",
+		   (hw_feat->mii_sel) ? "Y" : "N");
+	seq_printf(seq, "\tRGMII Mode: %s\n",
+		   (hw_feat->rgmii_sel) ? "Y" : "N");
+	seq_printf(seq, "\tRMII Mode: %s\n",
+		   (hw_feat->rmii_sel) ? "Y" : "N");
+	seq_printf(seq, "\t1000 Mpbs: %s\n",
+		   (hw_feat->gmii_sel) ? "Y" : "N");
+	seq_printf(seq, "\tHalf duplex support: %s\n",
+		   (hw_feat->hd_sel) ? "Y" : "N");
+	seq_printf(seq, "\tTBI/SGMII/RTBI PHY interface: %s\n",
+		   (hw_feat->pcs_sel) ? "Y" : "N");
+	seq_printf(seq, "\tVLAN Hash Filtering: %s\n",
+		   (hw_feat->vlan_hash_en) ? "Y" : "N");
+	seq_printf(seq, "\tMDIO interface: %s\n",
+		   (hw_feat->sma_sel) ? "Y" : "N");
+	seq_printf(seq, "\tRemote Wake-Up Packet Detection: %s\n",
+		   (hw_feat->rwk_sel) ? "Y" : "N");
+	seq_printf(seq, "\tMagic Packet Detection: %s\n",
+		   (hw_feat->mgk_sel) ? "Y" : "N");
+	seq_printf(seq, "\tMAC Management Counters (MMC): %s\n",
+		   (hw_feat->mmc_sel) ? "Y" : "N");
+	seq_printf(seq, "\tARP Offload: %s\n",
+		   (hw_feat->arp_offld_en) ? "Y" : "N");
+	seq_printf(seq, "\tIEEE 1588 Timestamp Support: %s\n",
+		   (hw_feat->ts_sel) ? "Y" : "N");
+	seq_printf(seq, "\tEnergy Efficient Ethernet (EEE) Support: %s\n",
+		   (hw_feat->eee_sel) ? "Y" : "N");
+	seq_printf(seq, "\tTransmit TCP/IP Checksum Insertion Support: %s\n",
+		   (hw_feat->tx_coe_sel) ? "Y" : "N");
+	seq_printf(seq, "\tReceive TCP/IP Checksum Support: %s\n",
+		   (hw_feat->rx_coe_sel) ? "Y" : "N");
+	seq_printf(seq, "\t (1 - 31) MAC Address registers: %s\n",
+		   (hw_feat->mac_addr_sel) ? "Y" : "N");
+	seq_printf(seq, "\t(32 - 63) MAC Address Registers: %s\n",
+		   (hw_feat->mac_addr32_sel) ? "Y" : "N");
+	seq_printf(seq, "\t(64 - 127) MAC Address Registers: %s\n",
+		   (hw_feat->mac_addr64_sel) ? "Y" : "N");
+	seq_printf(seq, "\tTimestamp System Time Source: %s\n",
+		   timestamp_system_source(hw_feat->tsstssel));
+	seq_printf(seq, "\tSource Address or VLAN Insertion Enable: %s\n",
+		   (hw_feat->sa_vlan_ins) ? "Y" : "N");
+	seq_printf(seq, "\tActive PHY selected Interface: %s\n",
+		   active_phy_selected_interface(hw_feat->sa_vlan_ins));
+	seq_printf(seq, "\tVxLAN/NVGRE Support: %s\n",
+		   (hw_feat->vxn) ? "Y" : "N");
+	seq_printf(seq, "\tDifferent Descriptor Cache Support: %s\n",
+		   (hw_feat->ediffc) ? "Y" : "N");
+	seq_printf(seq, "\tEnhanced DMA Support: %s\n",
+		   (hw_feat->edma) ? "Y" : "N");
+	seq_printf(seq, "\tMTL Receive FIFO Size: %s\n",
+		   mtl_fifo_size(hw_feat->rx_fifo_size));
+	seq_printf(seq, "\tMTL Transmit FIFO Size: %s\n",
+		   mtl_fifo_size(hw_feat->tx_fifo_size));
+	seq_printf(seq, "\tPFC Enable: %s\n",
+		   (hw_feat->pfc_en) ? "Y" : "N");
+	seq_printf(seq, "\tOne-Step Timestamping Support: %s\n",
+		   (hw_feat->ost_en) ? "Y" : "N");
+	seq_printf(seq, "\tPTP Offload Enable: %s\n",
+		   (hw_feat->pto_en) ? "Y" : "N");
+	seq_printf(seq, "\tIEEE 1588 High Word Register Enable: %s\n",
+		   (hw_feat->adv_ts_hword) ? "Y" : "N");
+	seq_printf(seq, "\tAXI Address width: %s\n",
+		   address_width(hw_feat->addr_64));
+	seq_printf(seq, "\tDCB Feature Support: %s\n",
+		   (hw_feat->dcb_en) ? "Y" : "N");
+	seq_printf(seq, "\tSplit Header Feature Support: %s\n",
+		   (hw_feat->sph_en) ? "Y" : "N");
+	seq_printf(seq, "\tTCP Segmentation Offload Support: %s\n",
+		   (hw_feat->tso_en) ? "Y" : "N");
+	seq_printf(seq, "\tDMA Debug Registers Enable: %s\n",
+		   (hw_feat->dma_debug_gen) ? "Y" : "N");
+	seq_printf(seq, "\tAV Feature Enable: %s\n",
+		   (hw_feat->av_sel) ? "Y" : "N");
+	seq_printf(seq, "\tRx Side Only AV Feature Enable: %s\n",
+		   (hw_feat->rav_sel) ? "Y" : "N");
+	seq_printf(seq, "\tHash Table Size: %s\n",
+		   hash_table_size(hw_feat->hash_tbl_sz));
+	seq_printf(seq, "\tTotal number of L3 or L4 Filters: %u\n",
+		   hw_feat->l3l4_filter_num);
+	seq_printf(seq, "\tNumber of MTL Receive Queues: %u\n",
+		   (hw_feat->rx_q_cnt + 1));
+	seq_printf(seq, "\tNumber of MTL Transmit Queues: %u\n",
+		   (hw_feat->tx_q_cnt + 1));
+	seq_printf(seq, "\tNumber of Receive DMA channels: %u\n",
+		   (hw_feat->rx_ch_cnt + 1));
+	seq_printf(seq, "\tNumber of Transmit DMA channels: %u\n",
+		   (hw_feat->tx_ch_cnt + 1));
+	seq_printf(seq, "\tNumber of PPS outputs: %u\n",
+		   hw_feat->pps_out_num);
+	seq_printf(seq, "\tNumber of Auxiliary Snapshot Inputs: %u\n",
+		   hw_feat->aux_snap_num);
+	seq_printf(seq, "\tRSS Feature Enabled: %s\n",
+		   (hw_feat->rss_en) ? "Y" : "N");
+	seq_printf(seq, "\tNumber of Traffic Classes: %u\n",
+		   (hw_feat->num_tc + 1));
+	seq_printf(seq, "\tNumber of VLAN filters: %s\n",
+		   num_vlan_filters(hw_feat->num_vlan_filters));
+	seq_printf(seq,
+		   "\tQueue/Channel based VLAN tag insert on Tx Enable: %s\n",
+		   (hw_feat->cbti_sel) ? "Y" : "N");
+	seq_printf(seq, "\tOne-Step for PTP over UDP/IP Feature Enable: %s\n",
+		   (hw_feat->ost_over_udp) ? "Y" : "N");
+	seq_printf(seq, "\tDouble VLAN processing support: %s\n",
+		   (hw_feat->double_vlan_en) ? "Y" : "N");
+
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+		seq_printf(seq, "\tSupported Flexible Receive Parser: %s\n",
+			   (hw_feat->frp_sel) ? "Y" : "N");
+		seq_printf(seq, "\tNumber of FRP Pipes: %u\n",
+			   (hw_feat->num_frp_pipes + 1));
+		seq_printf(seq, "\tNumber of FRP Parsable Bytes: %s\n",
+			   max_frp_bytes(hw_feat->max_frp_bytes));
+		seq_printf(seq, "\tNumber of FRP Instructions: %s\n",
+			   max_frp_instructions(hw_feat->max_frp_entries));
+		seq_printf(seq, "\tAutomotive Safety Package: %s\n",
+			   auto_safety_package(hw_feat->auto_safety_pkg));
+		seq_printf(seq, "\tTx Timestamp FIFO Depth: %s\n",
+			   tts_fifo_depth(hw_feat->tts_fifo_depth));
+		seq_printf(seq, "\tEnhancements to Scheduling Traffic Support: %s\n",
+			   (hw_feat->est_sel) ? "Y" : "N");
+		seq_printf(seq, "\tDepth of the Gate Control List: %s\n",
+			   gate_ctl_depth(hw_feat->gcl_depth));
+		seq_printf(seq, "\tWidth of the Time Interval field in GCL: %s\n",
+			   gate_ctl_width(hw_feat->gcl_width));
+		seq_printf(seq, "\tFrame Preemption Enable: %s\n",
+			   (hw_feat->fpe_sel) ? "Y" : "N");
+		seq_printf(seq, "\tTime Based Scheduling Enable: %s\n",
+			   (hw_feat->tbs_sel) ? "Y" : "N");
+		seq_printf(seq, "\tNumber of DMA channels enabled for TBS: %u\n",
+			   (hw_feat->num_tbs_ch + 1));
+	}
+
+	return 0;
+}
+
+static int ether_hw_feat_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, ether_hw_features_read, inode->i_private);
+}
+
+static const struct file_operations ether_hw_features_fops = {
+	.owner = THIS_MODULE,
+	.open = ether_hw_feat_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static int ether_create_debugfs(struct ether_priv_data *pdata)
+{
+	char *buf;
+	int ret = 0;
+
+	buf = kasprintf(GFP_KERNEL, "nvethernet-%s", pdata->ndev->name);
+	if (!buf)
+		return -ENOMEM;
+
+	pdata->dbgfs_dir = debugfs_create_dir(buf, NULL);
+	if (!pdata->dbgfs_dir || IS_ERR(pdata->dbgfs_dir)) {
+		netdev_err(pdata->ndev,
+			   "failed to create debugfs directory\n");
+		ret = -ENOMEM;
+		goto exit;
+	}
+
+	pdata->dbgfs_hw_feat = debugfs_create_file("hw_features", S_IRUGO,
+						   pdata->dbgfs_dir, pdata->ndev,
+						   &ether_hw_features_fops);
+	if (!pdata->dbgfs_hw_feat) {
+		netdev_err(pdata->ndev,
+			   "failed to create HW features debugfs\n");
+		debugfs_remove_recursive(pdata->dbgfs_dir);
+		ret = -ENOMEM;
+		goto exit;
+	}
+
+exit:
+	kfree(buf);
+	return ret;
+}
+
+static void ether_remove_debugfs(struct ether_priv_data *pdata)
+{
+	debugfs_remove_recursive(pdata->dbgfs_dir);
+}
+#endif /* CONFIG_DEBUG_FS */
+
+int ether_sysfs_register(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+	int ret = 0;
+
+#ifdef CONFIG_DEBUG_FS
+	ret = ether_create_debugfs(pdata);
+	if (ret < 0)
+		return ret;
+#endif
 	/* Create nvethernet sysfs group under /sys/devices/<ether_device>/ */
 	return sysfs_create_group(&dev->kobj, &ether_attribute_group);
 }
 
-void ether_sysfs_unregister(struct device *dev)
+void ether_sysfs_unregister(struct ether_priv_data *pdata)
 {
+	struct device *dev = pdata->dev;
+
+#ifdef CONFIG_DEBUG_FS
+	ether_remove_debugfs(pdata);
+#endif
 	/* Remove nvethernet sysfs group under /sys/devices/<ether_device>/ */
 	sysfs_remove_group(&dev->kobj, &ether_attribute_group);
 }

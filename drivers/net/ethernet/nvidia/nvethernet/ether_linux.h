@@ -29,6 +29,7 @@
 #include <linux/of_mdio.h>
 #include <linux/if_vlan.h>
 #include <linux/thermal.h>
+#include <linux/debugfs.h>
 #include <linux/of_net.h>
 #include <linux/module.h>
 #include <linux/reset.h>
@@ -372,6 +373,12 @@ struct ether_priv_data {
 #endif
 	/** VM channel info data associated with VM IRQ */
 	struct ether_vm_irq_data *vm_irq_data;
+#ifdef CONFIG_DEBUG_FS
+	/** Debug fs directory pointer */
+	struct dentry *dbgfs_dir;
+	/** HW features dump debug fs pointer */
+	struct dentry *dbgfs_hw_feat;
+#endif
 };
 
 /**
@@ -385,21 +392,21 @@ void ether_set_ethtool_ops(struct net_device *ndev);
 /**
  * @brief Creates Ethernet sysfs group
  *
- * @param[in] dev: device instance
+ * @param[in] pdata: Ethernet driver private data
  *
  * @retval 0 - success,
  * @retval "negative value" - failure.
  */
-int ether_sysfs_register(struct device *dev);
+int ether_sysfs_register(struct ether_priv_data *pdata);
 
 /**
  * @brief Removes Ethernet sysfs group
  *
- * @param[in] dev: device instance
+ * @param[in] pdata: Ethernet driver private data
  *
  * @note  nvethernet sysfs group need to be registered during probe.
  */
-void ether_sysfs_unregister(struct device *dev);
+void ether_sysfs_unregister(struct ether_priv_data *pdata);
 
 /**
  * @brief Function to register ptp clock driver

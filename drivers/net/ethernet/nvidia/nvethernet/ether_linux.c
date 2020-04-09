@@ -4145,8 +4145,8 @@ static void init_filter_values(struct ether_priv_data *pdata)
 		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_128;
 	} else if (pdata->hw_feat.mac_addr32_sel == OSI_ENABLE) {
 		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_64;
-	} else if (pdata->hw_feat.mac_addr16_sel ==
-		   EQOS_MAC_HFR0_ADDMACADRSEL_MASK) {
+	} else if (pdata->hw_feat.mac_addr_sel ==
+		   (ETHER_ADDR_REG_CNT_32 - 1U)) {
 		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_32;
 	} else {
 		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_1;
@@ -4320,19 +4320,20 @@ static int ether_probe(struct platform_device *pdev)
 			ether_tx_usecs_hrtimer;
 	}
 
+	ret = register_netdev(ndev);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to register netdev\n");
+		goto err_netdev;
+	}
+
 	/* Register sysfs entry */
-	ret = ether_sysfs_register(pdata->dev);
+	ret = ether_sysfs_register(pdata);
 	if (ret < 0) {
 		dev_err(&pdev->dev,
 			"failed to create nvethernet sysfs group\n");
 		goto err_sysfs;
 	}
 
-	ret = register_netdev(ndev);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to register netdev\n");
-		goto err_netdev;
-	}
 
 	spin_lock_init(&pdata->rlock);
 	init_filter_values(pdata);
@@ -4351,9 +4352,9 @@ static int ether_probe(struct platform_device *pdev)
 
 	return 0;
 
-err_netdev:
-	ether_sysfs_unregister(pdata->dev);
 err_sysfs:
+	unregister_netdev(ndev);
+err_netdev:
 err_napi:
 	mdiobus_unregister(pdata->mii);
 err_dma_mask:
@@ -4388,7 +4389,7 @@ static int ether_remove(struct platform_device *pdev)
 	unregister_netdev(ndev);
 
 	/* remove nvethernet sysfs group under /sys/devices/<ether_device>/ */
-	ether_sysfs_unregister(pdata->dev);
+	ether_sysfs_unregister(pdata);
 
 	if (pdata->mii != NULL) {
 		mdiobus_unregister(pdata->mii);
