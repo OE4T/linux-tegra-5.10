@@ -151,9 +151,8 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 
 	if (flag_fence_get) {
 		err = nvgpu_channel_sync_incr_user(c->sync,
-			wait_fence_fd, job->incr_cmd,
-			job->post_fence, need_wfi, need_sync_fence,
-			register_irq);
+			job->incr_cmd, job->post_fence, need_wfi,
+			need_sync_fence, register_irq);
 	} else {
 		err = nvgpu_channel_sync_incr(c->sync,
 			job->incr_cmd, job->post_fence, need_sync_fence,

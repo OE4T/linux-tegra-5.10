@@ -263,7 +263,6 @@ static int channel_sync_syncpt_incr(struct nvgpu_channel_sync *s,
 }
 
 static int channel_sync_syncpt_incr_user(struct nvgpu_channel_sync *s,
-				   int wait_fence_fd,
 				   struct priv_cmd_entry *entry,
 				   struct nvgpu_fence_type *fence,
 				   bool wfi,

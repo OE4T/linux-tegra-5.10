@@ -1,7 +1,7 @@
 /*
  * GK20A Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,12 +71,11 @@ int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
 }
 
 int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
-	int wait_fence_fd, struct priv_cmd_entry *entry,
-	struct nvgpu_fence_type *fence, bool wfi, bool need_sync_fence,
-	bool register_irq)
+	struct priv_cmd_entry *entry, struct nvgpu_fence_type *fence, bool wfi,
+	bool need_sync_fence, bool register_irq)
 {
-	return s->ops->incr_user(s, wait_fence_fd, entry, fence, wfi,
-		need_sync_fence, register_irq);
+	return s->ops->incr_user(s, entry, fence, wfi, need_sync_fence,
+			register_irq);
 }
 
 void nvgpu_channel_sync_set_min_eq_max(struct nvgpu_channel_sync *s)

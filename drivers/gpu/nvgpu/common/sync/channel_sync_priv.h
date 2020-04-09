@@ -1,8 +1,7 @@
 /*
- *
  * Nvgpu Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -67,7 +66,6 @@ struct nvgpu_channel_sync_ops {
 		    bool register_irq);
 
 	int (*incr_user)(struct nvgpu_channel_sync *s,
-			 int wait_fence_fd,
 			 struct priv_cmd_entry *entry,
 			 struct nvgpu_fence_type *fence,
 			 bool wfi,
