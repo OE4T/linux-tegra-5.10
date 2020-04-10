@@ -36,6 +36,7 @@
 #include <nvgpu/vm.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/preempt.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
@@ -645,7 +646,7 @@ int test_handle_mmu_fault_common(struct unit_module *m,
 		g->ops.channel.unbind = gv11b_channel_unbind;
 		g->ops.channel.free_inst = nvgpu_channel_free_inst;
 		g->ops.tsg.disable = nvgpu_tsg_disable;
-		g->ops.fifo.preempt_tsg = gv11b_fifo_preempt_tsg;
+		g->ops.fifo.preempt_tsg = nvgpu_fifo_preempt_tsg;
 		g->aggressive_sync_destroy_thresh = 0U;
 
 		g->fifo.g = g;

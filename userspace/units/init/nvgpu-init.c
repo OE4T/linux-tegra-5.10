@@ -699,10 +699,6 @@ static void mock_runlist_write_state(struct gk20a *g, u32 runlist_mask,
 {
 }
 
-static void mock_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlist_mask)
-{
-}
-
 int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
@@ -733,7 +729,6 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* mock out fifo HALs called during quiesce */
 	g->ops.runlist.write_state = mock_runlist_write_state;
-	g->ops.fifo.preempt_runlists_for_rc = mock_fifo_preempt_runlists_for_rc;
 
 	nvgpu_sw_quiesce(g);
 	/* wait for quiesce thread to complete */

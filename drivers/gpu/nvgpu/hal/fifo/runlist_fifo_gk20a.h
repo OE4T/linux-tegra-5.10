@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,11 @@ struct nvgpu_tsg;
 struct gk20a;
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
+int gk20a_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next);
 int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 		bool wait_preempt);
 #endif
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-int gk20a_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next);
 u32 gk20a_runlist_count_max(void);
 #endif
 

@@ -27,6 +27,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/preempt.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pbdma.h>
@@ -288,6 +289,6 @@ void nvgpu_fifo_sw_quiesce(struct gk20a *g)
 	g->ops.runlist.write_state(g, runlist_mask, RUNLIST_DISABLED);
 
 	/* Preempt all runlists */
-	g->ops.fifo.preempt_runlists_for_rc(g, runlist_mask);
+	nvgpu_fifo_preempt_runlists_for_rc(g, runlist_mask);
 }
 #endif

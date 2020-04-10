@@ -21,6 +21,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#include <nvgpu/preempt.h>
 
 #include "hal/mm/mm_gm20b.h"
 #include "hal/mm/mm_gp10b.h"
@@ -961,9 +962,8 @@ static const struct gpu_ops tu104_ops = {
 		.fifo_suspend = nvgpu_fifo_suspend,
 		.init_fifo_setup_hw = tu104_init_fifo_setup_hw,
 		.preempt_channel = gv11b_fifo_preempt_channel,
-		.preempt_tsg = gv11b_fifo_preempt_tsg,
+		.preempt_tsg = nvgpu_fifo_preempt_tsg,
 		.preempt_trigger = gv11b_fifo_preempt_trigger,
-		.preempt_runlists_for_rc = gv11b_fifo_preempt_runlists_for_rc,
 		.preempt_poll_pbdma = gv11b_fifo_preempt_poll_pbdma,
 		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,

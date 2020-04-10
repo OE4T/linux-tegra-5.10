@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,4 +72,48 @@ int nvgpu_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch);
  */
 void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 		struct nvgpu_tsg *tsg);
+/**
+ * @brief Preempt a set of runlists.
+ *
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param runlists_bitmask [in]	Bitmask of runlists to preempt.
+ *
+ * Preempt runlists in \a runlists_bitmask:
+ * - Write h/w register to trigger preempt on runlists.
+ * - All TSG in those runlists are preempted.
+ *
+ * @note This function is called in case of recovery for error, and does
+ * not poll PBDMAs or engines to wait for preempt completion.
+ *
+ * @note This function should be called with runlist lock held for all
+ * the runlists in \a runlists_bitmask.
+ */
+void nvgpu_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_bitmask);
+
+/**
+ * @brief Preempt TSG.
+ *
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param tsg [in]	Pointer to TSG struct.
+ *
+ * Preempt TSG:
+ * - Acquire lock for active runlist.
+ * - Write h/w register to trigger TSG preempt for \a tsg.
+ * - Preemption mode (e.g. CTA or WFI) depends on the preemption
+ *   mode configured in the GR context.
+ * - Release lock acquired for active runlist.
+ * - Poll PBDMAs and engines status until preemption is complete,
+ *   or poll timeout occurs.
+ *
+ * On some chips, it is also needed to disable scheduling
+ * before preempting TSG.
+ *
+ * @see nvgpu_preempt_get_timeout
+ * @see nvgpu_gr_ctx::compute_preempt_mode
+ *
+ * @return 0 in case preemption succeeded, < 0 in case of failure.
+ * @retval -ETIMEDOUT when preemption was triggered, but did not
+ *         complete within preemption poll timeout.
+ */
+int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg);
 #endif /* NVGPU_PREEMPT_H */

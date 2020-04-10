@@ -206,6 +206,10 @@
  */
 #define ID_TYPE_TSG			1U
 /**
+ * S/w defined value for Runlist ID type
+ */
+#define ID_TYPE_RUNLIST			2U
+/**
  * S/w defined value for unknown ID type.
  */
 #define ID_TYPE_UNKNOWN			(~U32(0U))

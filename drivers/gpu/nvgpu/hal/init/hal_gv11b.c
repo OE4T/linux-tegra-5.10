@@ -35,6 +35,7 @@
 #include <nvgpu/fuse.h>
 #include <nvgpu/pbdma.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/preempt.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
@@ -936,9 +937,8 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.fifo_suspend = nvgpu_fifo_suspend,
 		.init_fifo_setup_hw = gv11b_init_fifo_setup_hw,
 		.preempt_channel = gv11b_fifo_preempt_channel,
-		.preempt_tsg = gv11b_fifo_preempt_tsg,
+		.preempt_tsg = nvgpu_fifo_preempt_tsg,
 		.preempt_trigger = gv11b_fifo_preempt_trigger,
-		.preempt_runlists_for_rc = gv11b_fifo_preempt_runlists_for_rc,
 		.preempt_poll_pbdma = gv11b_fifo_preempt_poll_pbdma,
 		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
@@ -1072,9 +1072,10 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.set_eng_method_buffer = gv11b_ramin_set_eng_method_buffer,
 	},
 	.runlist = {
-#ifdef NVGPU_CHANNEL_TSG_SCHEULING
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 		.reschedule = gv11b_runlist_reschedule,
-		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
+		.reschedule_preempt_next_locked =
+			gk20a_fifo_reschedule_preempt_next,
 #endif
 		.update_for_channel = nvgpu_runlist_update_for_channel,
 		.reload = nvgpu_runlist_reload,

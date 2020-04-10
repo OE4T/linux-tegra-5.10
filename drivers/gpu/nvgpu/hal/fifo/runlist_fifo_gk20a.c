@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,19 +35,17 @@
 
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
-int gk20a_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next)
-{
-	return nvgpu_runlist_reschedule(ch, preempt_next, true);
-}
-#endif
-
 u32 gk20a_runlist_count_max(void)
 {
 	return fifo_eng_runlist_base__size_1_v();
 }
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
+int gk20a_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next)
+{
+	return nvgpu_runlist_reschedule(ch, preempt_next, true);
+}
+
 /* trigger host preempt of GR pending load ctx if that ctx is not for ch */
 int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 		bool wait_preempt)

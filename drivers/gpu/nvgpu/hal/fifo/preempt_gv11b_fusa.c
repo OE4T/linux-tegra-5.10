@@ -27,7 +27,6 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/io.h>
 #include <nvgpu/fifo.h>
-#include <nvgpu/rc.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
@@ -52,85 +51,15 @@ void gv11b_fifo_preempt_trigger(struct gk20a *g, u32 id, unsigned int id_type)
 		nvgpu_writel(g, fifo_preempt_r(),
 			fifo_preempt_id_f(id) |
 			fifo_preempt_type_tsg_f());
+	} else if (id_type == ID_TYPE_RUNLIST) {
+		u32 reg_val;
+
+		reg_val = nvgpu_readl(g, fifo_runlist_preempt_r());
+		reg_val |= BIT32(id);
+		nvgpu_writel(g, fifo_runlist_preempt_r(), reg_val);
 	} else {
 		nvgpu_log_info(g, "channel preempt is noop");
 	}
-}
-
-static void gv11b_fifo_issue_runlist_preempt(struct gk20a *g,
-					 u32 runlists_mask)
-{
-	u32 reg_val;
-
-	/* issue runlist preempt */
-	reg_val = nvgpu_readl(g, fifo_runlist_preempt_r());
-	reg_val |= runlists_mask;
-	nvgpu_writel(g, fifo_runlist_preempt_r(), reg_val);
-}
-
-static int gv11b_fifo_preempt_locked(struct gk20a *g, u32 id,
-		unsigned int id_type)
-{
-	nvgpu_log_fn(g, "preempt id: %d id_type: %d", id, id_type);
-
-	g->ops.fifo.preempt_trigger(g, id, id_type);
-
-	/* poll for preempt done */
-	return g->ops.fifo.is_preempt_pending(g, id, id_type);
-
-}
-
-/*
- * This should be called with runlist_lock held for all the
- * runlists set in runlists_mask
- */
-void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask)
-{
-#ifdef CONFIG_NVGPU_LS_PMU
-	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = 0;
-#endif
-#ifdef CONFIG_NVGPU_RECOVERY
-	struct nvgpu_fifo *f = &g->fifo;
-	u32 i;
-#endif
-
-	/* runlist_lock are locked by teardown and sched are disabled too */
-	nvgpu_log_fn(g, "preempt runlists_mask:0x%08x", runlists_mask);
-#ifdef CONFIG_NVGPU_LS_PMU
-	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
-			PMU_MUTEX_ID_FIFO, &token);
-#endif
-	/* issue runlist preempt */
-	gv11b_fifo_issue_runlist_preempt(g, runlists_mask);
-
-#ifdef CONFIG_NVGPU_RECOVERY
-	/*
-	 * Preemption will never complete in RC due to some fatal condition.
-	 * Do not poll for preemption to complete. Reset engines served by
-	 * runlists.
-	 */
-	for (i = 0U; i < f->num_runlists; i++) {
-		struct nvgpu_runlist_info *runlist;
-
-		runlist = &f->active_runlist_info[i];
-
-		if ((fifo_runlist_preempt_runlist_m(runlist->runlist_id) &
-				runlists_mask) != 0U) {
-			runlist->reset_eng_bitmask = runlist->eng_bitmask;
-		}
-	}
-#endif
-#ifdef CONFIG_NVGPU_LS_PMU
-	if (mutex_ret == 0) {
-		int err = nvgpu_pmu_lock_release(g, g->pmu, PMU_MUTEX_ID_FIFO,
-				&token);
-		if (err != 0) {
-			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
-					err);
-		}
-	}
-#endif
 }
 
 static int fifo_preempt_check_tsg_on_pbdma(u32 tsgid,
@@ -445,59 +374,4 @@ int gv11b_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 
 	/* Preempt tsg. Channel preempt is NOOP */
 	return g->ops.fifo.preempt_tsg(g, tsg);
-}
-
-int gv11b_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
-{
-	struct nvgpu_fifo *f = &g->fifo;
-	int ret = 0;
-#ifdef CONFIG_NVGPU_LS_PMU
-	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = 0;
-#endif
-	u32 runlist_id;
-
-	nvgpu_log_fn(g, "tsgid: %d", tsg->tsgid);
-
-	runlist_id = tsg->runlist_id;
-	nvgpu_log_fn(g, "runlist_id: %d", runlist_id);
-	if (runlist_id == NVGPU_INVALID_RUNLIST_ID) {
-		return 0;
-	}
-
-	nvgpu_mutex_acquire(&f->runlist_info[runlist_id]->runlist_lock);
-
-	/* WAR for Bug 2065990 */
-	nvgpu_tsg_disable_sched(g, tsg);
-#ifdef CONFIG_NVGPU_LS_PMU
-	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-#endif
-	ret = gv11b_fifo_preempt_locked(g, tsg->tsgid, ID_TYPE_TSG);
-#ifdef CONFIG_NVGPU_LS_PMU
-	if (mutex_ret == 0) {
-		int err = nvgpu_pmu_lock_release(g, g->pmu, PMU_MUTEX_ID_FIFO,
-				&token);
-		if (err != 0) {
-			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
-					err);
-		}
-	}
-#endif
-	/* WAR for Bug 2065990 */
-	nvgpu_tsg_enable_sched(g, tsg);
-
-	nvgpu_mutex_release(&f->runlist_info[runlist_id]->runlist_lock);
-
-	if (ret != 0) {
-		if (nvgpu_platform_is_silicon(g)) {
-			nvgpu_err(g, "preempt timed out for tsgid: %u, "
-			"ctxsw timeout will trigger recovery if needed",
-			tsg->tsgid);
-		} else {
-			nvgpu_rc_preempt_timeout(g, tsg);
-		}
-	}
-
-	return ret;
 }

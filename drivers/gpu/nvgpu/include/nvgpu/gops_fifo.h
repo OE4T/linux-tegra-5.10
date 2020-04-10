@@ -93,25 +93,6 @@ struct gops_fifo {
 	int (*preempt_tsg)(struct gk20a *g, struct nvgpu_tsg *tsg);
 
 	/**
- 	 * @brief Preempt a set of runlists.
- 	 *
- 	 * @param g [in]		Pointer to GPU driver struct.
-	 * @param runlists_mask [in]	Bitmask of runlists to preempt.
- 	 *
-	 * Preempt runlists in \a runlists_mask:
-	 * - Write h/w register to trigger preempt on runlists.
-	 * - All TSG in those runlists are preempted.
-	 *
-	 * @note This HAL is called in case of critical error, and does
-	 * not poll PBDMAs or engines to wait for preempt completion.
-	 *
-	 * @note This HAL should be called with runlist lock held for all
-	 * the runlists in \a runlists_mask.
- 	 */
-	void (*preempt_runlists_for_rc)(struct gk20a *g,
-			u32 runlists_bitmask);
-
-	/**
 	 * @brief Enable and configure FIFO.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
@@ -179,8 +160,21 @@ struct gops_fifo {
 	void (*cleanup_sw)(struct gk20a *g);
 	int (*init_fifo_setup_hw)(struct gk20a *g);
 	int (*preempt_channel)(struct gk20a *g, struct nvgpu_channel *ch);
-	void (*preempt_trigger)(struct gk20a *g,
-			u32 id, unsigned int id_type);
+	/**
+	 * @brief Preempt requested channel,tsg or runlist.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param id [in]		Tsg or channel or hardware runlist id
+	 * @param id_type [in]		channel,tsg or runlist type
+	 *
+	 * Depending on given \a id_type:
+	 * - Preempt channel
+	 * - Preempt tsg
+	 * - Preempt runlist
+	 *
+	 * @return: None
+	 */
+	void (*preempt_trigger)(struct gk20a *g, u32 id, unsigned int id_type);
 	int (*preempt_poll_pbdma)(struct gk20a *g, u32 tsgid,
 			 u32 pbdma_id);
 	void (*init_pbdma_map)(struct gk20a *g,

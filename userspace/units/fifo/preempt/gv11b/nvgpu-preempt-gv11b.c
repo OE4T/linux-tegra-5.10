@@ -32,6 +32,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/preempt.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/pbdma_status.h>
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
@@ -135,7 +136,7 @@ int test_gv11b_fifo_preempt_runlists_for_rc(struct unit_module *m,
 				0U, 0U);
 	reg_val = nvgpu_readl(g, fifo_runlist_preempt_r());
 
-	gv11b_fifo_preempt_runlists_for_rc(g, runlist_mask);
+	nvgpu_fifo_preempt_runlists_for_rc(g, runlist_mask);
 	unit_assert(nvgpu_readl(g, fifo_runlist_preempt_r()) ==
 			(reg_val | runlist_mask), goto done);
 
@@ -345,7 +346,7 @@ done:
 }
 
 static void stub_fifo_preempt_trigger(struct gk20a *g, u32 id,
-							unsigned int id_type)
+			unsigned int id_type)
 {
 
 }
@@ -419,7 +420,7 @@ int test_gv11b_fifo_preempt_tsg(struct unit_module *m, struct gk20a *g,
 			branches & F_PREEMPT_TSG_PLATFORM_SILICON ?
 			true : false;
 
-		err = EXPECT_BUG(gv11b_fifo_preempt_tsg(g, tsg));
+		err = EXPECT_BUG(nvgpu_fifo_preempt_tsg(g, tsg));
 
 		if (branches & F_PREEMPT_TSG_PREEMPT_LOCKED_FAIL) {
 			if (branches & F_PREEMPT_TSG_PLATFORM_SILICON) {

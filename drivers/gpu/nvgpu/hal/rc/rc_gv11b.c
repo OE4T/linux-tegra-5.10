@@ -218,7 +218,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	 * that all PBDMAs serving the engine are not loaded when engine is
 	 * reset.
 	 */
-	g->ops.fifo.preempt_runlists_for_rc(g, runlists_mask);
+	nvgpu_fifo_preempt_runlists_for_rc(g, runlists_mask);
 	/*
 	 * For each PBDMA which serves the runlist, poll to verify the TSG is no
 	 * longer on the PBDMA and the engine phase of the preempt has started.

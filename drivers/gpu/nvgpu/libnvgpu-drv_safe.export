@@ -153,9 +153,7 @@ gv11b_fifo_is_preempt_pending
 gv11b_fifo_mmu_fault_id_to_pbdma_id
 gv11b_fifo_preempt_channel
 gv11b_fifo_preempt_poll_pbdma
-gv11b_fifo_preempt_runlists_for_rc
 gv11b_fifo_preempt_trigger
-gv11b_fifo_preempt_tsg
 gv11b_get_litter_value
 gv11b_gpu_phys_addr
 gv11b_init_fifo_reset_enable_hw
@@ -411,6 +409,8 @@ nvgpu_fbp_remove_support
 nvgpu_fifo_cleanup_sw_common
 nvgpu_fifo_decode_pbdma_ch_eng_status
 nvgpu_fifo_init_support
+nvgpu_fifo_preempt_runlists_for_rc
+nvgpu_fifo_preempt_tsg
 nvgpu_fifo_suspend
 nvgpu_fifo_sw_quiesce
 nvgpu_finalize_poweron
