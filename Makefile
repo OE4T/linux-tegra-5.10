@@ -6,7 +6,12 @@ makefile-path := platform/t19x/mccoy/kernel-dts
 
 dts-include += platform/t19x/
 
-dtb-$(CONFIG_ARCH_TEGRA_19x_SOC) += tegra194-p2888-0004-e3900-0000.dtb
+BUILD_ENABLE=n
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
+BUILD_ENABLE=y
+endif
+
+dtb-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000.dtb
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
