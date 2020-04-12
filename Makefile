@@ -12,7 +12,7 @@ endif
 dtb-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000.dtb
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-hdr40.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-adafruit-sph0645lm4h.dtbo
-dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-fe-pi-audio-z-v2.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-fe-pi-audio.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-respeaker-4-mic-array.dtbo
 
 ifneq ($(dtb-y),)
