@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,12 +65,6 @@ static const struct nvlink_reginit  nvlink_reginit_per_link_tegra[] = {
 	{ 0xA14U, 0x01FF017FU },
 	{ 0xA18U, 0x01FF017FU },
 	{ 0xA1CU, 0x01FF017FU },
-	{ 0xF04U, 0x00FFFFFFU },
-	{ 0xF0CU, 0x00FFFFFFU },
-	{ 0xF1CU, 0x003FFFFFU },
-	{ 0xF24U, 0x003FFFFFU },
-	{ 0x704U, 0x003FFFFFU },
-	{ 0x70CU, 0x003FFFFFU },
 	{ 0x400U, 0x00000001U },
 	{ 0xC00U, 0x00000001U },
 };
