@@ -926,6 +926,7 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
+	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_dma_chan_ops *ops = osi_dma->ops;
 	unsigned int chan = 0;
 	unsigned int i, j;
@@ -936,11 +937,17 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 
 		for (j = 0; j < TX_DESC_CNT; j++) {
 			tx_desc = tx_ring->tx_desc + j;
+			tx_swcx = tx_ring->tx_swcx + j;
 
 			tx_desc->tdes0 = 0;
 			tx_desc->tdes1 = 0;
 			tx_desc->tdes2 = 0;
 			tx_desc->tdes3 = 0;
+
+			tx_swcx->len = 0;
+			tx_swcx->buf_virt_addr = OSI_NULL;
+			tx_swcx->buf_phy_addr = 0;
+			tx_swcx->is_paged_buf = 0;
 		}
 
 		tx_ring->cur_tx_idx = 0;
