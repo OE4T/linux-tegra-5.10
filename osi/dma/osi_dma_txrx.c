@@ -647,6 +647,14 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 		tx_desc->tdes2 |= TDES2_TTSE;
 	}
 
+	/* if LEN bit is set, update packet payload len */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_LEN) == OSI_PKT_CX_LEN) {
+		/* Remove any overflow bits. PL field is 15 bit wide */
+		tx_pkt_cx->payload_len &= ~TDES3_PL_MASK;
+		/* Update packet len in desc */
+		tx_desc->tdes3 |= tx_pkt_cx->payload_len;
+	}
+
 	/* Enable TSE bit and update TCP hdr, payload len */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
 		tx_desc->tdes3 |= TDES3_TSE;
@@ -664,6 +672,7 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 		/* Remove any overflow bits. TPL field is 18 bit wide */
 		tx_pkt_cx->payload_len &= TDES3_TPL_MASK;
 		/* Update TCP payload len in desc */
+		tx_desc->tdes3 &= ~TDES3_TPL_MASK;
 		tx_desc->tdes3 |= tx_pkt_cx->payload_len;
 	} else {
 		if ((tx_ring->slot_check == OSI_ENABLE) &&
