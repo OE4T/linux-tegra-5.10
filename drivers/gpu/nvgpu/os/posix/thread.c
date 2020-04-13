@@ -221,36 +221,24 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 
 	ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
 	if (ret != 0) {
-		if ((pthread_attr_destroy(&attr)) != 0) {
-			nvgpu_info(NULL, "Thread attr destroy error");
-		}
-		return ret;
+		goto attr_destroy;
 	}
 
 	ret = pthread_attr_setschedpolicy(&attr, SCHED_RR);
 	if (ret != 0) {
-		if ((pthread_attr_destroy(&attr)) != 0) {
-			nvgpu_info(NULL, "Thread attr destroy error");
-		}
-		return ret;
+		goto attr_destroy;
 	}
 
 	param.sched_priority = priority;
 	ret = pthread_attr_setschedparam(&attr, &param);
 	if (ret != 0) {
-		if ((pthread_attr_destroy(&attr)) != 0) {
-			nvgpu_info(NULL, "Thread attr destroy error");
-		}
-		return ret;
+		goto attr_destroy;
 	}
 
 	ret = pthread_create(&thread->thread, &attr,
 			nvgpu_posix_thread_wrapper, &thread->nvgpu);
 	if (ret != 0) {
-		if ((pthread_attr_destroy(&attr)) != 0) {
-			nvgpu_info(NULL, "Thread attr destroy error");
-		}
-		return ret;
+		goto attr_destroy;
 	}
 
 #ifdef _GNU_SOURCE
@@ -283,6 +271,13 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 #endif
 
 	return 0;
+
+attr_destroy:
+	if ((pthread_attr_destroy(&attr)) != 0) {
+		nvgpu_info(NULL, "Thread attr destroy error");
+	}
+
+	return ret;
 }
 
 void nvgpu_thread_stop(struct nvgpu_thread *thread)
