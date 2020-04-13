@@ -14,8 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "tegra234-cpuidle.dtsi"
-
 / {
 	cpus {
 		#address-cells = <2>;
