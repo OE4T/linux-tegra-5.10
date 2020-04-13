@@ -78,6 +78,7 @@
 #define MGBE_MAC_LPI_TIMER_CTRL		0x00D4
 #define MGBE_MAC_LPI_EN_TIMER		0x00D8
 #define MGBE_MAC_1US_TIC_COUNT		0x00DC
+#define MGBE_MAC_EXT_CNF		0x0140
 #define MGBE_MDIO_SCCD			0x0204
 #define MGBE_MDIO_SCCA			0x0200
 #define MGBE_MAC_FPE_CTS		0x0280
@@ -86,6 +87,8 @@
 #define MGBE_MAC_ADDRH(x)		((0x0008U * (x)) + 0x0300U)
 #define MGBE_MAC_MA0LR			0x0304
 #define MGBE_MAC_ADDRL(x)		((0x0008U * (x)) + 0x0304U)
+#define MGBE_MAC_INDIR_AC		0x0700
+#define MGBE_MAC_INDIR_DATA		0x0704
 #define MGBE_MMC_TX_INTR_EN		0x0810
 #define MGBE_MMC_RX_INTR_EN		0x080C
 #define MGBE_MMC_CNTRL			0x0800
@@ -126,6 +129,40 @@
  * @{
  */
 #define MGBE_MAX_HTR_REGS		4U
+/** @} */
+
+/**
+ * @addtogroup MGBE MAC Mode Select Group
+ *
+ * @brief MGBE MAC Indirect Access control and status for
+ * Mode Select type defines.
+ * @{
+ */
+#define MGBE_MAC_XDCS_DMA_MAX		0x3FFU
+#define MGBE_MAC_INDIR_AC_OB_WAIT	10U
+#define MGBE_MAC_INDIR_AC_OB_RETRY	10U
+
+#define MGBE_MAC_DCHSEL			0U
+#define MGBE_MAC_PCCTRL			1U
+#define MGBE_MAC_PCNTRL			2U
+#define MGBE_MAC_DPCSEL			3U
+#define MGBE_MAC_VPCSEL			4U
+#define MGBE_MAC_LPCSEL			5U
+#define MGBE_MAC_APCSEL			6U
+#define MGBE_MAC_PC_STATUS		7U
+
+/* MGBE_MAC_INDIR_AC register defines */
+#define MGBE_MAC_INDIR_AC_MSEL		(OSI_BIT(19) | OSI_BIT(18) | \
+					 OSI_BIT(17) | OSI_BIT(16))
+#define MGBE_MAC_INDIR_AC_MSEL_SHIFT	16U
+#define MGBE_MAC_INDIR_AC_AOFF		(OSI_BIT(15) | OSI_BIT(14) | \
+					 OSI_BIT(13) | OSI_BIT(12) | \
+					 OSI_BIT(11) | OSI_BIT(10) | \
+					 OSI_BIT(9) | OSI_BIT(8))
+#define MGBE_MAC_INDIR_AC_AOFF_SHIFT	8U
+#define MGBE_MAC_INDIR_AC_AUTO		OSI_BIT(5)
+#define MGBE_MAC_INDIR_AC_CMD		OSI_BIT(1)
+#define MGBE_MAC_INDIR_AC_OB		OSI_BIT(0)
 /** @} */
 
 /**
@@ -612,6 +649,7 @@
 #define MGBE_MTL_EST_ITRE_IEBE			OSI_BIT(1)
 #define MGBE_MTL_EST_ITRE_IECC			OSI_BIT(0)
 #define MGBE_MAC_SBD_INTR			OSI_BIT(2)
+#define MGBE_MAC_EXT_CNF_DDS			OSI_BIT(7)
 /** @} */
 
 /**
@@ -686,7 +724,8 @@
 #define MGBE_MAC_LPI_CSR_BAK_IDX	((MGBE_MAC_PMTCSR_BAK_IDX + 1U))
 #define MGBE_MAC_LPI_TIMER_CTRL_BAK_IDX	((MGBE_MAC_LPI_CSR_BAK_IDX + 1U))
 #define MGBE_MAC_LPI_EN_TIMER_BAK_IDX	((MGBE_MAC_LPI_TIMER_CTRL_BAK_IDX + 1U))
-#define MGBE_MAC_TCR_BAK_IDX		((MGBE_MAC_LPI_EN_TIMER_BAK_IDX + 1U))
+#define MGBE_MAC_EXT_CNF_BAK_IDX	((MGBE_MAC_LPI_EN_TIMER_BAK_IDX + 1U))
+#define MGBE_MAC_TCR_BAK_IDX		((MGBE_MAC_EXT_CNF_BAK_IDX + 1U))
 #define MGBE_MAC_SSIR_BAK_IDX		((MGBE_MAC_TCR_BAK_IDX + 1U))
 #define MGBE_MAC_STSR_BAK_IDX		((MGBE_MAC_SSIR_BAK_IDX + 1U))
 #define MGBE_MAC_STNSR_BAK_IDX		((MGBE_MAC_STSR_BAK_IDX + 1U))
@@ -772,9 +811,12 @@
 /* x varies from 0-31, 32 VLAN tag filters total */
 #define MGBE_MAC_VLAN_BAK_IDX(x)	((MGBE_MAC_L3_AD3R_BAK_IDX(0) + \
 					OSI_MGBE_MAX_L3_L4_FILTER + (x)))
+/* Add MAC_DChSel_IndReg */
+#define MGBE_MAC_DCHSEL_BAK_IDX(x)	((MGBE_MAC_VLAN_BAK_IDX(0) + \
+					 MGBE_MAX_VLAN_FILTER + 1U))
 
-#define MGBE_MAX_BAK_IDX		((MGBE_MAC_VLAN_BAK_IDX(0) + \
-					MGBE_MAX_VLAN_FILTER + 1U))
+#define MGBE_MAX_BAK_IDX		((MGBE_MAC_DCHSEL_BAK_IDX(0) + \
+					 OSI_MGBE_MAX_MAC_ADDRESS_FILTER + 1U))
 /** @} */
 
 /**
