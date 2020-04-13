@@ -274,6 +274,8 @@ struct osi_filter {
 	nveu32_t addr_mask;
 	/** src_dest: SA(1) or DA(0) */
 	nveu32_t src_dest;
+	/**  indicates one hot encoded DMA receive channels to program */
+	nveu32_t dma_chansel;
 };
 
 /**
@@ -1000,6 +1002,8 @@ struct osi_core_priv_data {
 	unsigned int fpe_ready;
 	/** TSN stats counters */
 	struct osi_tsn_stats tsn_stats;
+	/** MC packets Multiple DMA channel selection flags */
+	nveu32_t mc_dmasel;
 };
 
 /**

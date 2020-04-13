@@ -213,6 +213,157 @@ static nveu32_t mgbe_calculate_per_queue_fifo(nveu32_t fifo_size,
 }
 
 /**
+ * @brief mgbe_poll_for_mac_accrtl - Poll for Indirect Access control and status
+ * register operations complete.
+ *
+ * Algorithm: Waits for waits for transfer busy bit to be cleared in
+ * MAC Indirect address control register to complete operations.
+ *
+ * @param[in] addr: MGBE virtual base address.
+ *
+ * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_poll_for_mac_acrtl(struct osi_core_priv_data *osi_core)
+{
+	nveu32_t count = 0U;
+	nveu32_t mac_indir_addr_ctrl = 0U;
+
+	/* Poll Until MAC_Indir_Access_Ctrl OB is clear */
+	while (count < MGBE_MAC_INDIR_AC_OB_RETRY) {
+		mac_indir_addr_ctrl = osi_readl((nveu8_t *)osi_core->base +
+						 MGBE_MAC_INDIR_AC);
+		if ((mac_indir_addr_ctrl & MGBE_MAC_INDIR_AC_OB) == OSI_NONE) {
+			/* OB is clear exit the loop */
+			return 0;
+		}
+
+		/* wait for 10 usec for OB clear and retry */
+		osi_core->osd_ops.udelay(MGBE_MAC_INDIR_AC_OB_WAIT);
+		count++;
+	}
+
+	return -1;
+}
+
+/**
+ * @brief mgbe_mac_indir_addr_write - MAC Indirect AC register write.
+ *
+ * Algorithm: writes MAC Indirect AC register
+ *
+ * @param[in] base: MGBE virtual base address.
+ * @param[in] mc_no: MAC AC Mode Select number
+ * @param[in] addr_offset: MAC AC Address Offset.
+ * @param[in] value: MAC AC register value
+ *
+ * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_mac_indir_addr_write(struct osi_core_priv_data *osi_core,
+				     nveu32_t mc_no,
+				     nveu32_t addr_offset,
+				     nveu32_t value)
+{
+	void *base = osi_core->base;
+	nveu32_t addr = 0;
+
+	/* Write MAC_Indir_Access_Data register value */
+	osi_writel(value, (nveu8_t *)base + MGBE_MAC_INDIR_DATA);
+
+	/* Program MAC_Indir_Access_Ctrl */
+	addr = osi_readl((nveu8_t *)base + MGBE_MAC_INDIR_AC);
+
+	/* update Mode Select */
+	addr &= ~(MGBE_MAC_INDIR_AC_MSEL);
+	addr |= ((mc_no << MGBE_MAC_INDIR_AC_MSEL_SHIFT) &
+		  MGBE_MAC_INDIR_AC_MSEL);
+
+	/* update Address Offset */
+	addr &= ~(MGBE_MAC_INDIR_AC_AOFF);
+	addr |= ((addr_offset << MGBE_MAC_INDIR_AC_AOFF_SHIFT) &
+		  MGBE_MAC_INDIR_AC_AOFF);
+
+	/* Set CMD filed bit 0 for write */
+	addr &= ~(MGBE_MAC_INDIR_AC_CMD);
+
+	/* Set OB bit to initiate write */
+	addr |= MGBE_MAC_INDIR_AC_OB;
+
+	/* Write MGBE_MAC_L3L4_ADDR_CTR */
+	osi_writel(addr, (nveu8_t *)base + MGBE_MAC_INDIR_AC);
+
+	/* Wait until OB bit reset */
+	if (mgbe_poll_for_mac_acrtl(osi_core) < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "Fail to write MAC_Indir_Access_Ctrl\n", mc_no);
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_mac_indir_addr_read - MAC Indirect AC register read.
+ *
+ * Algorithm: Reads MAC Indirect AC register
+ *
+ * @param[in] base: MGBE virtual base address.
+ * @param[in] mc_no: MAC AC Mode Select number
+ * @param[in] addr_offset: MAC AC Address Offset.
+ * @param[in] value: Pointer MAC AC register value
+ *
+ * @note MAC needs to be out of reset and proper clock configured.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_mac_indir_addr_read(struct osi_core_priv_data *osi_core,
+				    nveu32_t mc_no,
+				    nveu32_t addr_offset,
+				    nveu32_t *value)
+{
+	void *base = osi_core->base;
+	nveu32_t addr = 0;
+
+	/* Program MAC_Indir_Access_Ctrl */
+	addr = osi_readl((nveu8_t *)base + MGBE_MAC_INDIR_AC);
+
+	/* update Mode Select */
+	addr &= ~(MGBE_MAC_INDIR_AC_MSEL);
+	addr |= ((mc_no << MGBE_MAC_INDIR_AC_MSEL_SHIFT) &
+		  MGBE_MAC_INDIR_AC_MSEL);
+
+	/* update Address Offset */
+	addr &= ~(MGBE_MAC_INDIR_AC_AOFF);
+	addr |= ((addr_offset << MGBE_MAC_INDIR_AC_AOFF_SHIFT) &
+		  MGBE_MAC_INDIR_AC_AOFF);
+
+	/* Set CMD filed bit to 1 for read */
+	addr |= MGBE_MAC_INDIR_AC_CMD;
+
+	/* Set OB bit to initiate write */
+	addr |= MGBE_MAC_INDIR_AC_OB;
+
+	/* Write MGBE_MAC_L3L4_ADDR_CTR */
+	osi_writel(addr, (nveu8_t *)base + MGBE_MAC_INDIR_AC);
+
+	/* Wait until OB bit reset */
+	if (mgbe_poll_for_mac_acrtl(osi_core) < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "Fail to write MAC_Indir_Access_Ctrl\n", mc_no);
+		return -1;
+	}
+
+	/* Read MAC_Indir_Access_Data register value */
+	*value = osi_readl((nveu8_t *)base + MGBE_MAC_INDIR_DATA);
+	return 0;
+}
+
+/**
  * @brief mgbe_config_l2_da_perfect_inverse_match - configure register for
  *	inverse or perfect match.
  *
@@ -312,23 +463,13 @@ static int mgbe_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
 }
 
 /**
- * @brief mgbe_update_mac_addr_helper - Function to update DCS and MBC
+ * @brief mgbe_filter_args_validate - Validates the filter arguments
  *
- * Algorithm: This helper routine is to update passed prameter value
- *	based on DCS and MBC parameter. Validation of dma_chan as well as
- *	dsc_en status performed before updating DCS bits.
+ * Algorithm: This function just validates all arguments provided by
+ * the osi_filter structure variable.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[out] value: unsigned int pointer which has value read from register.
- * @param[in] idx: filter index
- * @param[in] dma_routing_enable: dma channel routing enable(1)
- * @param[in] dma_chan: dma channel number
- * @param[in] addr_mask: filter will not consider byte in comparison
- *	      Bit 5: MAC_Address${i}_High[15:8]
- *	      Bit 4: MAC_Address${i}_High[7:0]
- *	      Bit 3: MAC_Address${i}_Low[31:24]
- *	      ..
- *	      Bit 0: MAC_Address${i}_Low[7:0]
+ * @param[in] filter: OSI filter structure.
  *
  * @note 1) MAC should be initialized and stated. see osi_start_mac()
  *	 2) osi_core->osd should be populated.
@@ -336,42 +477,67 @@ static int mgbe_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int mgbe_update_mac_addr_helper(
-				struct osi_core_priv_data *osi_core,
-				unsigned int *value,
-				unsigned int idx,
-				unsigned int dma_routing_enable,
-				unsigned int dma_chan, unsigned int addr_mask)
+static int mgbe_filter_args_validate(struct osi_core_priv_data *const osi_core,
+				     const struct osi_filter *filter)
 {
-	int ret = 0;
-	/* PDC bit of MAC_Ext_Configuration register is not set so binary
-	 * value representation.
-	 */
-	if (dma_routing_enable == OSI_ENABLE) {
-		if ((dma_chan < OSI_MGBE_MAX_NUM_CHANS) &&
-		    (osi_core->dcs_en == OSI_ENABLE)) {
-			*value = ((dma_chan << MGBE_MAC_ADDRH_DCS_SHIFT) &
-				  MGBE_MAC_ADDRH_DCS);
-		} else if (dma_chan > OSI_MGBE_MAX_NUM_CHANS - 0x1U) {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-				"invalid dma channel\n",
-				(unsigned long long)dma_chan);
-			ret = -1;
-			goto err_dma_chan;
-		} else {
-			/* Do nothing */
-		}
+	nveu32_t idx = filter->index;
+	nveu32_t dma_routing_enable = filter->dma_routing;
+	nveu32_t dma_chan = filter->dma_chan;
+	nveu32_t addr_mask = filter->addr_mask;
+	nveu32_t src_dest = filter->src_dest;
+	nveu32_t dma_chansel = filter->dma_chansel;
+
+	/* check for valid index (0 to 31) */
+	if (idx >= OSI_MGBE_MAX_MAC_ADDRESS_FILTER) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"invalid MAC filter index\n",
+			idx);
+		return -1;
 	}
 
-	/* Address mask validation */
-	if (addr_mask <= MGBE_MAB_ADDRH_MBC_MAX_MASK && addr_mask > OSI_NONE) {
-		*value = (*value |
-			  ((addr_mask << MGBE_MAC_ADDRH_MBC_SHIFT) &
-			   MGBE_MAC_ADDRH_MBC));
+	/* check for DMA channel index (0 to 9) */
+	if ((dma_chan > OSI_MGBE_MAX_NUM_CHANS - 0x1U) &&
+	    (dma_chan != OSI_CHAN_ANY)){
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			"invalid dma channel\n",
+			(nveul64_t)dma_chan);
+		return -1;
 	}
 
-err_dma_chan:
-	return ret;
+	/* validate dma_chansel argument */
+	if (dma_chansel > MGBE_MAC_XDCS_DMA_MAX) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			"invalid dma_chansel value\n",
+			dma_chansel);
+		return -1;
+	}
+
+	/* validate addr_mask argument */
+	if (addr_mask > MGBE_MAB_ADDRH_MBC_MAX_MASK) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"Invalid addr_mask value\n",
+			addr_mask);
+		return -1;
+	}
+
+	/* validate src_dest argument */
+	if (src_dest != OSI_SA_MATCH && src_dest != OSI_DA_MATCH) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"Invalid src_dest value\n",
+			src_dest);
+		return -1;
+	}
+
+	/* validate dma_routing_enable argument */
+	if (dma_routing_enable != OSI_ENABLE &&
+		dma_routing_enable != OSI_DISABLE) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"Invalid dma_routing value\n",
+			dma_routing_enable);
+		return -1;
+	}
+
+	return 0;
 }
 
 /**
@@ -396,20 +562,19 @@ static int mgbe_update_mac_addr_low_high_reg(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter)
 {
-	unsigned int idx = filter->index;
-	unsigned int dma_routing_enable = filter->dma_routing;
-	unsigned int dma_chan = filter->dma_chan;
-	unsigned int addr_mask = filter->addr_mask;
-	unsigned int src_dest = filter->src_dest;
-	const unsigned char *addr = filter->mac_address;
-	unsigned int value = 0x0U;
-	int ret = 0;
+	nveu32_t idx = filter->index;
+	nveu32_t dma_routing_enable = filter->dma_routing;
+	nveu32_t dma_chan = filter->dma_chan;
+	nveu32_t addr_mask = filter->addr_mask;
+	nveu32_t src_dest = filter->src_dest;
+	const nveu8_t *addr = filter->mac_address;
+	nveu32_t dma_chansel = filter->dma_chansel;
+	nveu32_t value = 0x0U;
+	nve32_t ret = 0;
 
-	/* check for valid index (0 to 31) */
-	if (idx >= OSI_MGBE_MAX_MAC_ADDRESS_FILTER) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"invalid MAC filter index\n",
-			idx);
+	/* Validate filter values */
+	if (mgbe_filter_args_validate(osi_core, filter) < 0) {
+		/* Filter argments validation got failed */
 		return -1;
 	}
 
@@ -420,18 +585,21 @@ static int mgbe_update_mac_addr_low_high_reg(
 		return 0;
 	}
 
-	ret = mgbe_update_mac_addr_helper(osi_core, &value, idx,
-					  dma_routing_enable, dma_chan,
-					  addr_mask);
-	if (ret == -1) {
-		/* return on helper error */
-		return ret;
+	/* Add DMA channel to value if DCS enabled */
+	if ((dma_routing_enable == OSI_ENABLE) &&
+	    (osi_core->dcs_en == OSI_ENABLE)) {
+		value = ((dma_chan << MGBE_MAC_ADDRH_DCS_SHIFT) &
+			 MGBE_MAC_ADDRH_DCS);
 	}
 
-	/* Setting Source/Destination Address match valid for 1 to 31 index */
-	if ((src_dest == OSI_SA_MATCH || src_dest == OSI_DA_MATCH)) {
-		value = (value | ((src_dest << MGBE_MAC_ADDRH_SA_SHIFT) &
-			 MGBE_MAC_ADDRH_SA));
+	if (idx != 0U) {
+		/* Add Address mask */
+		value |= ((addr_mask << MGBE_MAC_ADDRH_MBC_SHIFT) &
+			   MGBE_MAC_ADDRH_MBC);
+
+		/* Setting Source/Destination Address match valid */
+		value |= ((src_dest << MGBE_MAC_ADDRH_SA_SHIFT) &
+			  MGBE_MAC_ADDRH_SA);
 	}
 
 	osi_writel(((unsigned int)addr[4] |
@@ -445,6 +613,16 @@ static int mgbe_update_mac_addr_low_high_reg(
 		   ((unsigned int)addr[2] << 16) |
 		   ((unsigned int)addr[3] << 24)),
 		   (unsigned char *)osi_core->base +  MGBE_MAC_ADDRL((idx)));
+
+	/* Write XDCS configuration into MAC_DChSel_IndReg(x) */
+	if (dma_routing_enable == OSI_ENABLE) {
+		/* Append DCS DMA channel to XDCS hot bit selection */
+		dma_chansel |= (OSI_ENABLE << dma_chan);
+		ret = mgbe_mac_indir_addr_write(osi_core,
+						MGBE_MAC_DCHSEL,
+						idx,
+						dma_chansel);
+	}
 
 	return ret;
 }
@@ -2745,7 +2923,12 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	osi_writel(value, (unsigned char *)osi_core->base +
 		   MGBE_MTL_RXQ_DMA_MAP2);
 
-	/* TODO: DCS enable */
+	/* Enable XDCS in MAC_Extended_Configuration */
+	value = osi_readl((nveu8_t *)osi_core->base +
+			  MGBE_MAC_EXT_CNF);
+	value |= MGBE_MAC_EXT_CNF_DDS;
+	osi_writel(value, (nveu8_t *)osi_core->base +
+		   MGBE_MAC_EXT_CNF);
 
 	if (osi_core->pre_si == OSI_ENABLE) {
 		/* For pre silicon Tx and Rx Queue sizes are 64KB */
@@ -3691,6 +3874,16 @@ static inline int mgbe_save_registers(
 		}
 	}
 
+	/* Save MAC_DChSel_IndReg indirect addressing registers */
+	for (i = 0; i < OSI_MGBE_MAX_MAC_ADDRESS_FILTER; i++) {
+		ret = mgbe_mac_indir_addr_read(osi_core, MGBE_MAC_DCHSEL,
+			i, &config->reg_val[MGBE_MAC_DCHSEL_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_DCHSEL read fail return here */
+			return ret;
+		}
+	}
+
 	return ret;
 }
 
@@ -3758,6 +3951,16 @@ static inline int mgbe_restore_registers(
 				config->reg_val[MGBE_MAC_L3_AD3R_BAK_IDX(i)]);
 		if (ret < 0) {
 			/* MGBE_MAC_L3_AD3R write fail return here */
+			return ret;
+		}
+	}
+
+	/* Restore MAC_DChSel_IndReg indirect addressing registers */
+	for (i = 0; i < OSI_MGBE_MAX_MAC_ADDRESS_FILTER; i++) {
+		ret = mgbe_mac_indir_addr_write(osi_core, MGBE_MAC_DCHSEL,
+			i, config->reg_val[MGBE_MAC_DCHSEL_BAK_IDX(i)]);
+		if (ret < 0) {
+			/* MGBE_MAC_DCHSEL write fail return here */
 			return ret;
 		}
 	}
