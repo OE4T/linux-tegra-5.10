@@ -1,7 +1,7 @@
 /*
- * tegra_isomgr_bw_alt.c - ADMA bandwidth calculation
+ * tegra_isomgr_bw.c - ADMA bandwidth calculation
  *
- * Copyright (c) 2016-2017 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,7 @@
 #include <sound/soc.h>
 #include <linux/platform/tegra/isomgr.h>
 #include <linux/platform/tegra/latency_allowance.h>
-#include "tegra_isomgr_bw_alt.h"
+#include "tegra_isomgr_bw.h"
 
 #if defined(CONFIG_TEGRA_ISOMGR)
 

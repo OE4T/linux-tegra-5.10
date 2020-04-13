@@ -17,6 +17,7 @@
 #include <sound/soc.h>
 #include "tegra210_admaif.h"
 #include "tegra_cif.h"
+#include "tegra_isomgr_bw.h"
 #include "tegra_pcm.h"
 
 #define CH_REG(offset, reg, id)						       \
@@ -264,6 +265,26 @@ static int tegra_admaif_set_pack_mode(struct regmap *map, unsigned int reg,
 	return 0;
 }
 
+static int tegra_admaif_prepare(struct snd_pcm_substream *substream,
+				struct snd_soc_dai *dai)
+{
+	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
+
+	if (admaif->soc_data->is_isomgr_client)
+		tegra_isomgr_adma_setbw(substream, true);
+
+	return 0;
+}
+
+static void tegra_admaif_shutdown(struct snd_pcm_substream *substream,
+				struct snd_soc_dai *dai)
+{
+	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
+
+	if (admaif->soc_data->is_isomgr_client)
+		tegra_isomgr_adma_setbw(substream, false);
+}
+
 static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 				  struct snd_pcm_hw_params *params,
 				  struct snd_soc_dai *dai)
@@ -429,6 +450,8 @@ static int tegra_admaif_trigger(struct snd_pcm_substream *substream, int cmd,
 static const struct snd_soc_dai_ops tegra_admaif_dai_ops = {
 	.hw_params	= tegra_admaif_hw_params,
 	.trigger	= tegra_admaif_trigger,
+	.shutdown	= tegra_admaif_shutdown,
+	.prepare	= tegra_admaif_prepare,
 };
 
 static int tegra_admaif_get_control(struct snd_kcontrol *kcontrol,
@@ -707,6 +730,7 @@ static const struct tegra_admaif_soc_data soc_data_tegra210 = {
 	.global_base	= TEGRA210_ADMAIF_GLOBAL_BASE,
 	.tx_base	= TEGRA210_ADMAIF_TX_BASE,
 	.rx_base	= TEGRA210_ADMAIF_RX_BASE,
+	.is_isomgr_client = false,
 };
 
 static const struct tegra_admaif_soc_data soc_data_tegra186 = {
@@ -717,6 +741,7 @@ static const struct tegra_admaif_soc_data soc_data_tegra186 = {
 	.global_base	= TEGRA186_ADMAIF_GLOBAL_BASE,
 	.tx_base	= TEGRA186_ADMAIF_TX_BASE,
 	.rx_base	= TEGRA186_ADMAIF_RX_BASE,
+	.is_isomgr_client = true,
 };
 
 static const struct of_device_id tegra_admaif_of_match[] = {
@@ -798,6 +823,9 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 
 	regcache_cache_only(admaif->regmap, true);
 
+	if (admaif->soc_data->is_isomgr_client)
+		tegra_isomgr_adma_register();
+
 	regmap_update_bits(admaif->regmap, admaif->soc_data->global_base +
 			   TEGRA_ADMAIF_GLOBAL_ENABLE, 1, 1);
 
@@ -849,6 +877,11 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 
 static int tegra_admaif_remove(struct platform_device *pdev)
 {
+	struct tegra_admaif *admaif = dev_get_drvdata(&pdev->dev);
+
+	if (admaif->soc_data->is_isomgr_client)
+		tegra_isomgr_adma_unregister();
+
 	pm_runtime_disable(&pdev->dev);
 
 	return 0;

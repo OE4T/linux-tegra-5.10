@@ -1,7 +1,7 @@
 /*
- * tegra_isomgr_bw_alt.h
+ * tegra_isomgr_bw.h
  *
- * Copyright (c) 2016-2017 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TEGRA_ISOMGR_BW_ALT_H__
-#define __TEGRA_ISOMGR_BW_ALT_H__
+#ifndef __TEGRA_ISOMGR_BW_H__
+#define __TEGRA_ISOMGR_BW_H__
 
 #if defined(CONFIG_TEGRA_ISOMGR)
 void tegra_isomgr_adma_register(void);
