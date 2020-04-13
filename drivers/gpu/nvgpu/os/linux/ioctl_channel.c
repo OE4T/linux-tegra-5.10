@@ -685,7 +685,7 @@ static int gk20a_channel_wait(struct nvgpu_channel *ch,
 	struct dma_buf *dmabuf;
 	struct gk20a *g = ch->g;
 	struct notification *notif;
-	struct timespec tv;
+	struct timespec64 tv;
 	u64 jiffies;
 	ulong id;
 	u32 offset;
@@ -745,7 +745,7 @@ static int gk20a_channel_wait(struct nvgpu_channel *ch,
 
 		/* TBD: fill in correct information */
 		jiffies = get_jiffies_64();
-		jiffies_to_timespec(jiffies, &tv);
+		jiffies_to_timespec64(jiffies, &tv);
 		notif->timestamp.nanoseconds[0] = tv.tv_nsec;
 		notif->timestamp.nanoseconds[1] = tv.tv_sec;
 		notif->info32 = 0xDEADBEEF; /* should be object name */

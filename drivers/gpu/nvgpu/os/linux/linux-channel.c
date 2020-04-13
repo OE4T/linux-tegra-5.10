@@ -121,12 +121,11 @@ void nvgpu_set_err_notifier_locked(struct nvgpu_channel *ch, u32 error)
 	if (priv->error_notifier.dmabuf) {
 		struct nvgpu_notification *notification =
 			priv->error_notifier.notification;
-		struct timespec time_data;
+		struct timespec64 time_data;
 		u64 nsec;
 
-		getnstimeofday(&time_data);
-		nsec = ((u64)time_data.tv_sec) * 1000000000u +
-				(u64)time_data.tv_nsec;
+		ktime_get_real_ts64(&time_data);
+		nsec = time_data.tv_sec * 1000000000u + time_data.tv_nsec;
 		notification->time_stamp.nanoseconds[0] =
 				(u32)nsec;
 		notification->time_stamp.nanoseconds[1] =

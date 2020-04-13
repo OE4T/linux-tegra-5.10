@@ -32,7 +32,6 @@ struct gk20a;
 struct nvgpu_nvhost_dev;
 struct sync_pt;
 struct sync_fence;
-struct timespec;
 
 /**
  * @file Functions that initialize the sync points
