@@ -378,6 +378,8 @@ struct ether_priv_data {
 	struct dentry *dbgfs_dir;
 	/** HW features dump debug fs pointer */
 	struct dentry *dbgfs_hw_feat;
+	/** Descriptor dump debug fs pointer */
+	struct dentry *dbgfs_desc_dump;
 #endif
 };
 

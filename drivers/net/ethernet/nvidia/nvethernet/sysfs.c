@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -523,6 +523,73 @@ static const struct file_operations ether_hw_features_fops = {
 	.release = single_release,
 };
 
+static int ether_desc_dump_read(struct seq_file *seq, void *v)
+{
+	struct net_device *ndev = seq->private;
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	unsigned int num_chan = osi_dma->num_dma_chans;
+	struct osi_tx_ring *tx_ring = NULL;
+	struct osi_rx_ring *rx_ring = NULL;
+	struct osi_tx_desc *tx_desc = NULL;
+	struct osi_rx_desc *rx_desc = NULL;
+	unsigned int chan;
+	unsigned int i;
+	unsigned int j;
+
+	if (!netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
+		return 0;
+	}
+
+	for (i = 0; i < num_chan; i++) {
+		chan = osi_dma->dma_chans[i];
+		tx_ring = osi_dma->tx_ring[chan];
+		rx_ring = osi_dma->rx_ring[chan];
+
+		seq_printf(seq, "\n\tDMA Tx channel %u descriptor dump\n",
+			   chan);
+		seq_printf(seq, "\tcurrent Tx idx = %u, clean idx = %u\n",
+			   tx_ring->cur_tx_idx, tx_ring->clean_idx);
+		for (j = 0; j < TX_DESC_CNT; j++) {
+			tx_desc = tx_ring->tx_desc + j;
+
+			seq_printf(seq, "[%03u %p %#llx] = %#x:%#x:%#x:%#x\n",
+				   j, tx_desc, virt_to_phys(tx_desc),
+				   tx_desc->tdes3, tx_desc->tdes2,
+				   tx_desc->tdes1, tx_desc->tdes0);
+		}
+
+		seq_printf(seq, "\n\tDMA Rx channel %u descriptor dump\n",
+			   chan);
+		seq_printf(seq, "\tcurrent Rx idx = %u, refill idx = %u\n",
+			   rx_ring->cur_rx_idx, rx_ring->refill_idx);
+		for (j = 0; j < RX_DESC_CNT; j++) {
+			rx_desc = rx_ring->rx_desc + j;
+
+			seq_printf(seq, "[%03u %p %#llx] = %#x:%#x:%#x:%#x\n",
+				   j, rx_desc, virt_to_phys(rx_desc),
+				   rx_desc->rdes3, rx_desc->rdes2,
+				   rx_desc->rdes1, rx_desc->rdes0);
+		}
+	}
+
+	return 0;
+}
+
+static int ether_desc_dump_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, ether_desc_dump_read, inode->i_private);
+}
+
+static const struct file_operations ether_desc_dump_fops = {
+	.owner = THIS_MODULE,
+	.open = ether_desc_dump_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
 static int ether_create_debugfs(struct ether_priv_data *pdata)
 {
 	char *buf;
@@ -541,11 +608,25 @@ static int ether_create_debugfs(struct ether_priv_data *pdata)
 	}
 
 	pdata->dbgfs_hw_feat = debugfs_create_file("hw_features", S_IRUGO,
-						   pdata->dbgfs_dir, pdata->ndev,
+						   pdata->dbgfs_dir,
+						   pdata->ndev,
 						   &ether_hw_features_fops);
 	if (!pdata->dbgfs_hw_feat) {
 		netdev_err(pdata->ndev,
 			   "failed to create HW features debugfs\n");
+		debugfs_remove_recursive(pdata->dbgfs_dir);
+		ret = -ENOMEM;
+		goto exit;
+	}
+
+	pdata->dbgfs_desc_dump = debugfs_create_file("descriptors_dump",
+						     S_IRUGO,
+						     pdata->dbgfs_dir,
+						     pdata->ndev,
+						     &ether_desc_dump_fops);
+	if (!pdata->dbgfs_desc_dump) {
+		netdev_err(pdata->ndev,
+			   "failed to create descriptor dump debugfs\n");
 		debugfs_remove_recursive(pdata->dbgfs_dir);
 		ret = -ENOMEM;
 		goto exit;
