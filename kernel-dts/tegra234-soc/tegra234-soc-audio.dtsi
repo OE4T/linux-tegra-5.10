@@ -718,7 +718,7 @@
 			 <&bpmp_clks TEGRA234_CLK_HDA2HDMICODEC>;
 		clock-names = "pllp_out0", "maud", "hda",
 				"hda2codec_2x",	"hda2hdmi";
-		interrupts = <0 161 0x04>;
+		interrupts = <0 60 0x04>;
 		status = "disabled";
 	};
 };
