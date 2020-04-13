@@ -35,6 +35,7 @@
  * whether a VLAN tag is to be inserted for a packet,
  * whether a received packet is valid,
  * whether checksum offload is to be enabled for the packet upon transmit,
+ * whether IP checksum offload is to be enabled for the packet upon transmit,
  * whether TCP segmentation offload is to be enabled for the packet,
  * whether the HW should timestamp transmit/arrival of a packet respectively,
  * whether tx payload length to be updated
@@ -46,6 +47,8 @@
 #define OSI_PKT_CX_VALID		OSI_BIT(10)
 /** CSUM packet */
 #define OSI_PKT_CX_CSUM			OSI_BIT(1)
+/** IP CSUM packet */
+#define OSI_PKT_CX_IP_CSUM		OSI_BIT(12)
 /** TSO packet */
 #define OSI_PKT_CX_TSO			OSI_BIT(2)
 /** PTP packet */
