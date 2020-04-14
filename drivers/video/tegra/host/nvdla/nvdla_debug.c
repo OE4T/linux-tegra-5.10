@@ -1,7 +1,7 @@
 /*
  * NVDLA debug utils
  *
- * Copyright (c) 2016 - 2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016 - 2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,9 +26,11 @@
 #include <linux/uaccess.h>
 #include <soc/tegra/fuse.h>
 #include <soc/tegra/chip-id.h>
+#include <linux/delay.h>
 
 #include "nvdla/nvdla.h"
 #include "nvdla_debug.h"
+#include "nvhost_acm.h"
 
 /*
  * Header in ring buffer consist (start, end) two uint32_t values.
@@ -494,6 +496,8 @@ static ssize_t debug_dla_fw_reload_set(struct file *file,
 	struct nvdla_device *nvdla_dev;
 	struct platform_device *pdev;
 	long val;
+	int ref_cnt;
+	unsigned long end_jiffies;
 
 	if (!p)
 		return -EFAULT;
@@ -511,11 +515,31 @@ static ssize_t debug_dla_fw_reload_set(struct file *file,
 	if (!val)
 		return count; /* "0" does nothing */
 
-	nvdla_dbg_info(pdev, "firmware reload requested.\n");
+
+	/* check current power ref count and make forced idle to
+	 * suspend.
+	 */
+	ref_cnt = atomic_read(&pdev->dev.power.usage_count);
+	nvhost_module_idle_mult(pdev, ref_cnt);
+
+	/* check and wait until module is idle (with a timeout) */
+	end_jiffies = jiffies + msecs_to_jiffies(2000);
+	do {
+		msleep(1);
+		ref_cnt = atomic_read(&pdev->dev.power.usage_count);
+	} while (ref_cnt != 0 && time_before(jiffies, end_jiffies));
+
+	if (ref_cnt != 0)
+		return -EBUSY;
+
+	nvdla_dbg_info(pdev, "firmware reload requesting..\n");
 
 	err = flcn_reload_fw(pdev);
 	if (err)
 		return err; /* propagate firmware reload errors */
+
+	/* make sure device in clean state by reset */
+	nvhost_module_reset(pdev, true);
 
 	return count;
 }
