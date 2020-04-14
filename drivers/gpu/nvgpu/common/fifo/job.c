@@ -45,6 +45,8 @@ int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
 	if (nvgpu_channel_is_prealloc_enabled(c)) {
 		unsigned int put = c->joblist.pre_alloc.put;
 		unsigned int get = c->joblist.pre_alloc.get;
+		unsigned int next = (put + 1) % c->joblist.pre_alloc.length;
+		bool full = next == get;
 
 		/*
 		 * ensure all subsequent reads happen after reading get.
@@ -53,7 +55,7 @@ int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
 		 */
 		nvgpu_smp_rmb();
 
-		if (CIRC_SPACE(put, get, c->joblist.pre_alloc.length) != 0U) {
+		if (!full) {
 			*job_out = &c->joblist.pre_alloc.jobs[put];
 		} else {
 			nvgpu_warn(c->g,
@@ -157,7 +159,7 @@ bool nvgpu_channel_joblist_is_empty(struct nvgpu_channel *c)
 		unsigned int get = c->joblist.pre_alloc.get;
 		unsigned int put = c->joblist.pre_alloc.put;
 
-		return (CIRC_CNT(put, get, c->joblist.pre_alloc.length) == 0U);
+		return get == put;
 	}
 
 	return nvgpu_list_empty(&c->joblist.dynamic.jobs);
