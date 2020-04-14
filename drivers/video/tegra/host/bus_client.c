@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Client Module
  *
- * Copyright (c) 2010-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -756,6 +756,25 @@ static int submit_deliver_fences(struct nvhost_submit_args *args,
 	return 0;
 }
 
+static void nvhost_mark_channel_syncpoints(struct nvhost_channel_userctx *ctx)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(ctx->pdev);
+	struct nvhost_master *host = nvhost_get_host(pdata->pdev);
+	u32 i = 0U;
+
+	const u32 *syncpt_array =
+		(pdata->resource_policy == RESOURCE_PER_CHANNEL_INSTANCE) ?
+			ctx->syncpts :
+			ctx->ch->syncpts;
+
+	for (i = 0U; i < NVHOST_MODULE_MAX_SYNCPTS; i++) {
+		if (syncpt_array[i]) {
+			nvhost_syncpt_mark_used(&host->syncpt, ctx->ch->chid,
+						syncpt_array[i]);
+		}
+	}
+}
+
 static int nvhost_ioctl_channel_submit(struct nvhost_channel_userctx *ctx,
 		struct nvhost_submit_args *args)
 {
@@ -1466,6 +1485,9 @@ static long nvhost_channelctl(struct file *filp,
 		if (err)
 			break;
 
+		/* Mark the syncpoint attached to the channel */
+		nvhost_mark_channel_syncpoints(priv);
+
 		/* ..then, synchronize syncpoint information.
 		 *
 		 * This information is updated only in this ioctl and
@@ -1512,6 +1534,9 @@ static long nvhost_channelctl(struct file *filp,
 		err = nvhost_channel_map(pdata, &priv->ch, identifier);
 		if (err)
 			break;
+
+		/* Mark the syncpoint attached to the channel */
+		nvhost_mark_channel_syncpoints(priv);
 
 		/* ..then, synchronize syncpoint information.
 		 *
