@@ -1338,11 +1338,13 @@ static int gk20a_pm_suspend(struct device *dev)
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	struct gk20a *g = get_gk20a(dev);
 	int ret = 0;
-	int idle_usage_count = 0;
+	int usage_count;
+	struct nvgpu_timeout timeout;
 
 	if (nvgpu_is_powered_off(g)) {
 		if (platform->suspend)
 			ret = platform->suspend(dev);
+
 		if (ret)
 			return ret;
 
@@ -1352,20 +1354,43 @@ static int gk20a_pm_suspend(struct device *dev)
 		return ret;
 	}
 
-	if (nvgpu_atomic_read(&g->usage_count) > idle_usage_count)
-		return -EBUSY;
+	nvgpu_timeout_init(g, &timeout, GK20A_WAIT_FOR_IDLE_MS,
+			   NVGPU_TIMER_CPU_TIMER);
+	/*
+	 * Hold back deterministic submits and changes to deterministic
+	 * channels - this must be outside the power busy locks.
+	 */
+	nvgpu_channel_deterministic_idle(g);
+
+	/* check and wait until GPU is idle (with a timeout) */
+	do {
+		nvgpu_usleep_range(1000, 1100);
+		usage_count = nvgpu_atomic_read(&g->usage_count);
+	} while (usage_count != 0 && !nvgpu_timeout_expired(&timeout));
+
+	if (usage_count != 0) {
+		nvgpu_err(g, "failed to idle - usage_count %d", usage_count);
+		ret = -EINVAL;
+		goto fail_idle;
+	}
 
 	ret = gk20a_pm_runtime_suspend(dev);
 	if (ret)
-		return ret;
+		goto fail_idle;
 
 	if (platform->suspend)
 		ret = platform->suspend(dev);
 	if (ret)
-		return ret;
+		goto fail_suspend;
 
 	g->suspended = true;
 
+	return 0;
+
+fail_suspend:
+	gk20a_pm_runtime_resume(dev);
+fail_idle:
+	nvgpu_channel_deterministic_unidle(g);
 	return ret;
 }
 
@@ -1397,6 +1422,8 @@ static int gk20a_pm_resume(struct device *dev)
 		return ret;
 
 	g->suspended = false;
+
+	nvgpu_channel_deterministic_unidle(g);
 
 	return ret;
 }
