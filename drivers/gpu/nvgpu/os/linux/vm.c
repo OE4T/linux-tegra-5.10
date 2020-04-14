@@ -157,8 +157,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 		  "gv: 0x%04x_%08x + 0x%-7zu "
 		  "[dma: 0x%010llx, pa: 0x%010llx] "
 		  "pgsz=%-3dKb as=%-2d "
-		  "flags=0x%x apt=%s (already pinned, "
-		  "reused in case of dmabuf drvdata, unpinned otherwise)",
+		  "flags=0x%x apt=%s (reused)",
 		  u64_hi32(mapped_buffer->addr), u64_lo32(mapped_buffer->addr),
 		  os_buf->dmabuf->size,
 		  (u64)sg_dma_address(mapped_buffer->os_priv.sgt->sgl),
@@ -171,6 +170,9 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 	/*
 	 * If we find the mapping here then that means we have mapped it already
 	 * and the prior pin and get must be undone.
+	 * The SGT is reused in the case of the dmabuf supporting drvdata. When
+	 * the dmabuf doesn't support drvdata, prior SGT is unpinned as the
+	 * new SGT was pinned at the beginning of the current map call.
 	 */
 	gk20a_mm_unpin(os_buf->dev, os_buf->dmabuf,
 		       mapped_buffer->os_priv.attachment,
