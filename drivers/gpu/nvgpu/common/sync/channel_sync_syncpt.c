@@ -77,7 +77,7 @@ static int channel_sync_syncpt_wait_raw(struct nvgpu_channel_sync_syncpt *s,
 		return -EINVAL;
 	}
 
-	err = nvgpu_priv_cmdbuf_alloc(c,
+	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q,
 		c->g->ops.sync.syncpt.get_wait_cmd_size(),
 		wait_cmd);
 	if (err != 0) {
@@ -135,7 +135,7 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 	}
 
 	wait_cmd_size = c->g->ops.sync.syncpt.get_wait_cmd_size();
-	err = nvgpu_priv_cmdbuf_alloc(c,
+	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q,
 		wait_cmd_size * num_fences, wait_cmd);
 	if (err != 0) {
 		goto cleanup;
@@ -177,7 +177,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	struct nvgpu_channel *c = sp->c;
 	struct nvgpu_os_fence os_fence = {0};
 
-	err = nvgpu_priv_cmdbuf_alloc(c,
+	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q,
 			c->g->ops.sync.syncpt.get_incr_cmd_size(wfi_cmd),
 			incr_cmd);
 	if (err != 0) {
@@ -241,7 +241,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	return 0;
 
 clean_up_priv_cmd:
-	nvgpu_priv_cmdbuf_rollback(c, *incr_cmd);
+	nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, *incr_cmd);
 	return err;
 }
 

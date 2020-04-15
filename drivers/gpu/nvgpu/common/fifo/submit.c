@@ -159,7 +159,7 @@ clean_up_post_fence:
 	job->post_fence = NULL;
 clean_up_wait_cmd:
 	if (job->wait_cmd != NULL) {
-		nvgpu_priv_cmdbuf_rollback(c, job->wait_cmd);
+		nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, job->wait_cmd);
 	}
 	job->wait_cmd = NULL;
 clean_up_unlock:

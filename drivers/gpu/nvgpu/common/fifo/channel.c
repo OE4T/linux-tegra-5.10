@@ -217,7 +217,10 @@ static void channel_kernelmode_deinit(struct nvgpu_channel *ch)
 #endif
 	(void) memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
 
-	nvgpu_priv_cmdbuf_queue_free(ch);
+	if (ch->priv_cmd_q != NULL) {
+		nvgpu_priv_cmdbuf_queue_free(ch->priv_cmd_q);
+		ch->priv_cmd_q = NULL;
+	}
 
 	/* free pre-allocated resources, if applicable */
 	if (nvgpu_channel_is_prealloc_enabled(ch)) {
@@ -304,6 +307,7 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 {
 	u32 gpfifo_size, gpfifo_entry_size;
 	u64 gpfifo_gpu_va;
+	u32 priv_cmd_jobs;
 
 	int err = 0;
 	struct gk20a *g = c->g;
@@ -375,7 +379,20 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 		}
 	}
 
-	err = nvgpu_priv_cmdbuf_queue_alloc(c, args->num_inflight_jobs);
+	/*
+	 * Allocate priv cmdbuf space for pre and post fences. If the inflight
+	 * job count isn't specified, we base it on the gpfifo count. We
+	 * multiply by a factor of 1/3 because at most a third of the GPFIFO
+	 * entries can be used for user-submitted jobs; another third goes to
+	 * wait entries, and the final third to incr entries. There will be one
+	 * pair of acq and incr commands for each job.
+	 */
+	priv_cmd_jobs = args->num_inflight_jobs;
+	if (priv_cmd_jobs == 0U) {
+		priv_cmd_jobs = c->gpfifo.entry_num / 3U;
+	}
+
+	err = nvgpu_priv_cmdbuf_queue_alloc(c->vm, priv_cmd_jobs, &c->priv_cmd_q);
 	if (err != 0) {
 		goto clean_up_prealloc;
 	}
@@ -388,7 +405,8 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 	return 0;
 
 clean_up_priv_cmd:
-	nvgpu_priv_cmdbuf_queue_free(c);
+	nvgpu_priv_cmdbuf_queue_free(c->priv_cmd_q);
+	c->priv_cmd_q = NULL;
 clean_up_prealloc:
 	if (nvgpu_channel_is_deterministic(c) &&
 			args->num_inflight_jobs != 0U) {
@@ -999,9 +1017,9 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 		 * then incr_cmd i.e. order of allocation)
 		 */
 		if (job->wait_cmd != NULL) {
-			nvgpu_priv_cmdbuf_free(c, job->wait_cmd);
+			nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->wait_cmd);
 		}
-		nvgpu_priv_cmdbuf_free(c, job->incr_cmd);
+		nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->incr_cmd);
 
 		/*
 		 * ensure all pending writes complete before freeing up the job.

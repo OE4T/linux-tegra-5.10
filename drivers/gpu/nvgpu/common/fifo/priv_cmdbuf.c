@@ -27,7 +27,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/kmem.h>
-#include <nvgpu/channel.h>
+#include <nvgpu/vm.h>
 #include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/trace.h>
@@ -44,6 +44,7 @@ struct priv_cmd_entry {
 };
 
 struct priv_cmd_queue {
+	struct vm_gk20a *vm;
 	struct nvgpu_mem mem; /* pushbuf */
 	u32 size;	/* allocated length in words */
 	u32 put;	/* next entry will begin here */
@@ -58,15 +59,15 @@ struct priv_cmd_queue {
 
 /* allocate private cmd buffer queue.
    used for inserting commands before/after user submitted buffers. */
-int nvgpu_priv_cmdbuf_queue_alloc(struct nvgpu_channel *ch,
-	u32 num_in_flight)
+int nvgpu_priv_cmdbuf_queue_alloc(struct vm_gk20a *vm,
+	u32 job_count, struct priv_cmd_queue **queue)
 {
-	struct gk20a *g = ch->g;
-	struct vm_gk20a *ch_vm = ch->vm;
+	struct gk20a *g = vm->mm->g;
 	struct priv_cmd_queue *q;
 	u64 size, tmp_size;
 	int err = 0;
 	u32 wait_size, incr_size;
+	u32 mem_per_job;
 
 	/*
 	 * sema size is at least as much as syncpt size, but semas may not be
@@ -96,28 +97,18 @@ int nvgpu_priv_cmdbuf_queue_alloc(struct nvgpu_channel *ch,
 	 * another 2 words. In reality these numbers vary by chip but we'll use
 	 * 8 and 10 as examples.
 	 *
-	 * We have two cases to consider: the first is we base the size of the
-	 * queue on the gpfifo count. Here we multiply by a factor of 1/3
-	 * because at most a third of the GPFIFO entries can be used for
-	 * user-submitted jobs; another third goes to wait entries, and the
-	 * final third to incr entries. There will be one pair of acq and incr
-	 * commands for each job.
-	 *
-	 *   gpfifo entry num * (1 / 3) * (8 + 10) * 4 bytes
-	 *
-	 * If instead num_in_flight is specified then we will use that to size
-	 * the queue instead of a third of the gpfifo entry count. The worst
-	 * case is still both sync commands (one ACQ and one INCR) per submit so
-	 * we have a queue size of:
+	 * Given the job count, cmdbuf space is allocated such that each job
+	 * can get one wait command and one increment command:
 	 *
 	 *   num_in_flight * (8 + 10) * 4 bytes
+	 *
+	 * These cmdbufs are inserted as gpfifo entries right before and after
+	 * the user submitted gpfifo entries per submit.
 	 */
-	if (num_in_flight == 0U) {
-		/* round down to ensure space for all priv cmds */
-		num_in_flight = ch->gpfifo.entry_num / 3U;
-	}
-
-	size = num_in_flight * (wait_size + incr_size) * sizeof(u32);
+	mem_per_job = nvgpu_safe_mult_u32(nvgpu_safe_add_u32(wait_size,
+				incr_size), (u32)sizeof(u32));
+	/* both 32 bit and mem_per_job is small */
+	size = nvgpu_safe_mult_u64((u64)job_count, (u64)mem_per_job);
 
 	tmp_size = PAGE_ALIGN(roundup_pow_of_two(size));
 	if (tmp_size > U32_MAX) {
@@ -130,12 +121,14 @@ int nvgpu_priv_cmdbuf_queue_alloc(struct nvgpu_channel *ch,
 		return -ENOMEM;
 	}
 
-	if (num_in_flight > U32_MAX / 2U) {
+	q->vm = vm;
+
+	if (job_count > U32_MAX / 2U) {
 		err = -ERANGE;
 		goto err_free_queue;
 	}
 
-	q->entries_len = 2U * num_in_flight;
+	q->entries_len = 2U * job_count;
 	q->entries = nvgpu_vzalloc(g,
 			nvgpu_safe_mult_u64((u64)q->entries_len,
 				sizeof(*q->entries)));
@@ -144,7 +137,7 @@ int nvgpu_priv_cmdbuf_queue_alloc(struct nvgpu_channel *ch,
 		goto err_free_queue;
 	}
 
-	err = nvgpu_dma_alloc_map_sys(ch_vm, size, &q->mem);
+	err = nvgpu_dma_alloc_map_sys(vm, size, &q->mem);
 	if (err != 0) {
 		nvgpu_err(g, "%s: memory allocation failed", __func__);
 		goto err_free_entries;
@@ -154,8 +147,7 @@ int nvgpu_priv_cmdbuf_queue_alloc(struct nvgpu_channel *ch,
 	nvgpu_assert(tmp_size <= U32_MAX);
 	q->size = (u32)tmp_size;
 
-	ch->priv_cmd_q = q;
-
+	*queue = q;
 	return 0;
 err_free_entries:
 	nvgpu_vfree(g, q->entries);
@@ -164,32 +156,25 @@ err_free_queue:
 	return err;
 }
 
-void nvgpu_priv_cmdbuf_queue_free(struct nvgpu_channel *ch)
+void nvgpu_priv_cmdbuf_queue_free(struct priv_cmd_queue *q)
 {
-	struct vm_gk20a *ch_vm = ch->vm;
-	struct priv_cmd_queue *q = ch->priv_cmd_q;
-	struct gk20a *g = ch->g;
+	struct vm_gk20a *vm = q->vm;
+	struct gk20a *g = vm->mm->g;
 
-	if (q == NULL) {
-		return;
-	}
-
-	nvgpu_dma_unmap_free(ch_vm, &q->mem);
+	nvgpu_dma_unmap_free(vm, &q->mem);
 	nvgpu_vfree(g, q->entries);
 	nvgpu_kfree(g, q);
-
-	ch->priv_cmd_q = NULL;
 }
 
 /* allocate a cmd buffer with given size. size is number of u32 entries */
-static int nvgpu_priv_cmdbuf_alloc_buf(struct nvgpu_channel *c, u32 orig_size,
+static int nvgpu_priv_cmdbuf_alloc_buf(struct priv_cmd_queue *q, u32 orig_size,
 			     struct priv_cmd_entry *e)
 {
-	struct priv_cmd_queue *q = c->priv_cmd_q;
+	struct gk20a *g = q->vm->mm->g;
 	u32 size = orig_size;
 	u32 free_count;
 
-	nvgpu_log_fn(c->g, "size %d", orig_size);
+	nvgpu_log_fn(g, "size %d", orig_size);
 
 	/*
 	 * If free space in the end is less than requested, increase the size
@@ -206,8 +191,8 @@ static int nvgpu_priv_cmdbuf_alloc_buf(struct nvgpu_channel *c, u32 orig_size,
 		size = orig_size + (q->size - q->put);
 	}
 
-	nvgpu_log_info(c->g, "ch %d: priv cmd queue get:put %d:%d",
-			c->chid, q->get, q->put);
+	nvgpu_log_info(g, "priv cmd queue get:put %d:%d",
+			q->get, q->put);
 
 	nvgpu_assert(q->put < q->size);
 	nvgpu_assert(q->get < q->size);
@@ -250,15 +235,14 @@ static int nvgpu_priv_cmdbuf_alloc_buf(struct nvgpu_channel *c, u32 orig_size,
 	nvgpu_smp_wmb();
 
 	e->valid = true;
-	nvgpu_log_fn(c->g, "done");
+	nvgpu_log_fn(g, "done");
 
 	return 0;
 }
 
-int nvgpu_priv_cmdbuf_alloc(struct nvgpu_channel *c, u32 size,
+int nvgpu_priv_cmdbuf_alloc(struct priv_cmd_queue *q, u32 size,
 			     struct priv_cmd_entry **e)
 {
-	struct priv_cmd_queue *q = c->priv_cmd_q;
 	u32 next_put = nvgpu_safe_add_u32(q->entry_put, 1U) % q->entries_len;
 	struct priv_cmd_entry *entry;
 	int err;
@@ -268,7 +252,7 @@ int nvgpu_priv_cmdbuf_alloc(struct nvgpu_channel *c, u32 size,
 	}
 	entry = &q->entries[q->entry_put];
 
-	err = nvgpu_priv_cmdbuf_alloc_buf(c, size, entry);
+	err = nvgpu_priv_cmdbuf_alloc_buf(q, size, entry);
 	if (err != 0) {
 		return err;
 	}
@@ -279,11 +263,9 @@ int nvgpu_priv_cmdbuf_alloc(struct nvgpu_channel *c, u32 size,
 	return 0;
 }
 
-void nvgpu_priv_cmdbuf_rollback(struct nvgpu_channel *ch,
+void nvgpu_priv_cmdbuf_rollback(struct priv_cmd_queue *q,
 		struct priv_cmd_entry *e)
 {
-	struct priv_cmd_queue *q = ch->priv_cmd_q;
-
 	nvgpu_assert(q->put < q->size);
 	nvgpu_assert(q->size > 0U);
 	nvgpu_assert(e->alloc_size <= q->size);
@@ -297,18 +279,15 @@ void nvgpu_priv_cmdbuf_rollback(struct nvgpu_channel *ch,
 		% q->entries_len;
 }
 
-void nvgpu_priv_cmdbuf_free(struct nvgpu_channel *ch,
-		struct priv_cmd_entry *e)
+void nvgpu_priv_cmdbuf_free(struct priv_cmd_queue *q, struct priv_cmd_entry *e)
 {
-	struct priv_cmd_queue *q = ch->priv_cmd_q;
-	struct gk20a *g = ch->g;
+	struct gk20a *g = q->vm->mm->g;
 
 	if (e->valid) {
 		/* read the entry's valid flag before reading its contents */
 		nvgpu_smp_rmb();
 		if ((q->get != e->off) && e->off != 0U) {
-			nvgpu_err(g, "requests out-of-order, ch=%d",
-				  ch->chid);
+			nvgpu_err(g, "priv cmdbuf requests out-of-order");
 		}
 		nvgpu_assert(q->size > 0U);
 		q->get = nvgpu_safe_add_u32(e->off, e->size) & (q->size - 1U);

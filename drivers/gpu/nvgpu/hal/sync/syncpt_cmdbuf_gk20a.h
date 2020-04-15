@@ -27,6 +27,7 @@
 struct gk20a;
 struct priv_cmd_entry;
 struct nvgpu_mem;
+struct nvgpu_channel;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 

@@ -148,7 +148,7 @@ static int channel_sync_semaphore_wait_fd(
 	}
 
 	wait_cmd_size = c->g->ops.sync.sema.get_wait_cmd_size();
-	err = nvgpu_priv_cmdbuf_alloc(c,
+	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q,
 		wait_cmd_size * num_fences, entry);
 	if (err != 0) {
 		goto cleanup;
@@ -188,7 +188,7 @@ static int channel_sync_semaphore_incr_common(
 	}
 
 	incr_cmd_size = c->g->ops.sync.sema.get_incr_cmd_size();
-	err = nvgpu_priv_cmdbuf_alloc(c, incr_cmd_size, incr_cmd);
+	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q, incr_cmd_size, incr_cmd);
 	if (err != 0) {
 		goto clean_up_sema;
 	}
@@ -218,7 +218,7 @@ clean_up_os_fence:
 		os_fence.ops->drop_ref(&os_fence);
 	}
 clean_up_cmdbuf:
-	nvgpu_priv_cmdbuf_rollback(c, *incr_cmd);
+	nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, *incr_cmd);
 clean_up_sema:
 	nvgpu_semaphore_put(semaphore);
 	return err;

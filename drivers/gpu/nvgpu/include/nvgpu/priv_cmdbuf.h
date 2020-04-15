@@ -26,17 +26,19 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_channel;
+struct vm_gk20a;
 struct priv_cmd_entry;
+struct priv_cmd_queue;
 
-int nvgpu_priv_cmdbuf_queue_alloc(struct nvgpu_channel *ch, u32 num_in_flight);
-void nvgpu_priv_cmdbuf_queue_free(struct nvgpu_channel *ch);
+int nvgpu_priv_cmdbuf_queue_alloc(struct vm_gk20a *vm,
+		u32 job_count, struct priv_cmd_queue **queue);
+void nvgpu_priv_cmdbuf_queue_free(struct priv_cmd_queue *q);
 
-int nvgpu_priv_cmdbuf_alloc(struct nvgpu_channel *c, u32 size,
+int nvgpu_priv_cmdbuf_alloc(struct priv_cmd_queue *q, u32 size,
 		struct priv_cmd_entry **e);
-void nvgpu_priv_cmdbuf_rollback(struct nvgpu_channel *ch,
+void nvgpu_priv_cmdbuf_rollback(struct priv_cmd_queue *q,
 		struct priv_cmd_entry *e);
-void nvgpu_priv_cmdbuf_free(struct nvgpu_channel *ch,
+void nvgpu_priv_cmdbuf_free(struct priv_cmd_queue *q,
 		struct priv_cmd_entry *e);
 
 void nvgpu_priv_cmdbuf_append(struct gk20a *g, struct priv_cmd_entry *e,
