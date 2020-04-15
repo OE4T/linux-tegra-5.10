@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -119,6 +119,27 @@ struct gops_ce {
 	int (*ce_init_support)(struct gk20a *g);
 	void (*set_pce2lce_mapping)(struct gk20a *g);
 	void (*init_prod_values)(struct gk20a *g);
+
+	/*
+	 * @brief Get non-stall vectors from hw.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 *
+	 * Steps:
+	 * - Get a list of non-stall vectors used by the engine
+	 *   from the hw register POR values.
+	 */
+	void (*init_hw)(struct gk20a *g);
+
+	/*
+	 * @brief Enable/disable ce interrupts.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 * @param enable [in]	Enable/disable boolean flag.
+	 *
+	 * Enable/disable CE stall, nonstall interrupts.
+	 */
+	void (*intr_enable)(struct gk20a *g, bool enable);
 
 #ifdef CONFIG_NVGPU_DGPU
 	int (*ce_app_init_support)(struct gk20a *g);

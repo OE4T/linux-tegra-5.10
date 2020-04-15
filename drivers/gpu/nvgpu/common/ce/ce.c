@@ -68,6 +68,14 @@ int nvgpu_ce_init_support(struct gk20a *g)
 		g->ops.ce.init_prod_values(g);
 	}
 
+	if (g->ops.ce.init_hw != NULL) {
+		g->ops.ce.init_hw(g);
+	}
+
+	if (g->ops.ce.intr_enable != NULL) {
+		g->ops.ce.intr_enable(g, true);
+	}
+
 	/** Enable interrupts at MC level */
 	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_CE, MC_INTR_ENABLE);
 	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_CE, MC_INTR_ENABLE);
