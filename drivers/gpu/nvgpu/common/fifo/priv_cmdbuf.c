@@ -34,11 +34,9 @@
 #include <nvgpu/circ_buf.h>
 
 struct priv_cmd_entry {
-	bool valid;
 	struct nvgpu_mem *mem;
 	u32 off;	/* offset in mem, in u32 entries */
 	u32 fill_off;	/* write offset from off, in u32 entries */
-	u64 gva;
 	u32 size;	/* in words */
 	u32 alloc_size;
 };
@@ -215,26 +213,15 @@ static int nvgpu_priv_cmdbuf_alloc_buf(struct priv_cmd_queue *q, u32 orig_size,
 	 */
 	if (size != orig_size) {
 		e->off = 0;
-		e->gva = q->mem.gpu_va;
 		q->put = orig_size;
 	} else {
 		e->off = q->put;
-		e->gva = nvgpu_safe_add_u64(q->mem.gpu_va,
-				nvgpu_safe_mult_u64((u64)q->put, sizeof(u32)));
 		q->put = (q->put + orig_size) & (q->size - 1U);
 	}
 
 	/* we already handled q->put + size > q->size so BUG_ON this */
 	BUG_ON(q->put > q->size);
 
-	/*
-	 * commit the previous writes before making the entry valid.
-	 * see the corresponding nvgpu_smp_rmb() in
-	 * nvgpu_priv_cmdbuf_free().
-	 */
-	nvgpu_smp_wmb();
-
-	e->valid = true;
 	nvgpu_log_fn(g, "done");
 
 	return 0;
@@ -283,17 +270,12 @@ void nvgpu_priv_cmdbuf_free(struct priv_cmd_queue *q, struct priv_cmd_entry *e)
 {
 	struct gk20a *g = q->vm->mm->g;
 
-	if (e->valid) {
-		/* read the entry's valid flag before reading its contents */
-		nvgpu_smp_rmb();
-		if ((q->get != e->off) && e->off != 0U) {
-			nvgpu_err(g, "priv cmdbuf requests out-of-order");
-		}
-		nvgpu_assert(q->size > 0U);
-		q->get = nvgpu_safe_add_u32(e->off, e->size) & (q->size - 1U);
-		q->entry_get = nvgpu_safe_add_u32(q->entry_get, 1U)
-			% q->entries_len;
+	if ((q->get != e->off) && e->off != 0U) {
+		nvgpu_err(g, "priv cmdbuf requests out-of-order");
 	}
+	nvgpu_assert(q->size > 0U);
+	q->get = nvgpu_safe_add_u32(e->off, e->size) & (q->size - 1U);
+	q->entry_get = nvgpu_safe_add_u32(q->entry_get, 1U) % q->entries_len;
 
 	(void)memset(e, 0, sizeof(*e));
 }
@@ -333,6 +315,7 @@ void nvgpu_priv_cmdbuf_finish(struct gk20a *g, struct priv_cmd_entry *e,
 				(u32 *)e->mem->cpu_va + e->off);
 	}
 #endif
-	*gva = e->gva;
+	*gva = nvgpu_safe_add_u64(e->mem->gpu_va,
+			nvgpu_safe_mult_u64((u64)e->off, sizeof(u32)));
 	*size = e->size;
 }
