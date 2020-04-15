@@ -38,10 +38,6 @@
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
-/* ecc scrubbing will done in 1 pri read cycle,but for safety used 10 retries */
-#define GR_ECC_SCRUBBING_TIMEOUT_MAX_US 1000U
-#define GR_ECC_SCRUBBING_TIMEOUT_DEFAULT_US 10U
-
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 #define STATS_COUNTER_BUNDLE 0x00A9U
 #define NVC397_SET_STATISTICS_COUNTER_ALPHA_BETA_CLOCKS_ENABLE 0x8000U

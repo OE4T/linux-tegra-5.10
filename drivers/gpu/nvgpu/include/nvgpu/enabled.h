@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -249,10 +249,13 @@ struct gk20a;
 /** SM diversity enable bit */
 #define NVGPU_SUPPORT_SM_DIVERSITY		85U
 
+/** SM RAMS ECC is enabled */
+#define NVGPU_ECC_ENABLED_SM_RAMS		86U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			86U
+#define NVGPU_MAX_ENABLED_BITS			87U
 
 /**
  * @brief Check if the passed flag is enabled.

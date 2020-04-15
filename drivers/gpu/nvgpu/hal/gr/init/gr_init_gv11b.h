@@ -25,6 +25,12 @@
 
 #include <nvgpu/types.h>
 
+/* ecc scrubbing will be done in 1 pri read cycle,
+ * but for safety used 10 retries
+ */
+#define GR_ECC_SCRUBBING_TIMEOUT_MAX_US 1000U
+#define GR_ECC_SCRUBBING_TIMEOUT_DEFAULT_US 10U
+
 struct gk20a;
 struct nvgpu_gr_config;
 struct nvgpu_gr_ctx;
