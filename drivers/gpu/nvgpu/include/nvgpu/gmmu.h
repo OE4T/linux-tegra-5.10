@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,7 @@
  * GMMU.
  */
 
+struct gk20a;
 struct vm_gk20a;
 struct nvgpu_mem;
 struct nvgpu_gmmu_pd;
@@ -536,5 +537,27 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 		}							\
 NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 14_4), "Bug 2623654") \
 	} while (false)
+
+/**
+ * @brief Function to get the default big page size in bytes.
+ *
+ * Default big page size:
+ *  - Big page size is same for all GPU families.
+ *
+ * @return Default big page size
+ */
+u32 nvgpu_gmmu_default_big_page_size(void);
+
+u32 nvgpu_gmmu_aperture_mask(struct gk20a *g,
+				enum nvgpu_aperture mem_ap,
+				bool platform_atomic_attr,
+				u32 sysmem_mask,
+				u32 sysmem_coh_mask,
+				u32 vidmem_mask);
+
+void nvgpu_pte_dbg_print(struct gk20a *g,
+		struct nvgpu_gmmu_attrs *attrs,
+		const char *vm_name, u32 pd_idx, u32 mmu_level_entry_size,
+		u64 virt_addr, u64 phys_addr, u32 page_size, u32 *pte_w);
 
 #endif /* NVGPU_GMMU_H */

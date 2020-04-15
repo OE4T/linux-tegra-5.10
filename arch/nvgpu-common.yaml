@@ -527,6 +527,7 @@ mm:
         page_table:
           safe: yes
           sources: [ common/mm/gmmu/page_table.c,
+                     common/mm/gmmu/pte.c,
                      include/nvgpu/gmmu.h ]
           deps: [ nvgpu.interface.kmem ]
           tags: M4, unit-testable

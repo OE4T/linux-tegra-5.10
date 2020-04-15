@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/gmmu.h>
 
+#include "hal/mm/gmmu/gmmu_gp10b.h"
 #include "hal/mm/gmmu/gmmu_gv11b.h"
 
 #include "gmmu-gv11b-fusa.h"
@@ -37,17 +38,17 @@
 #define F_GV11B_GPU_PHYS_ADDR_L3_ALLOC_FALSE	1
 #define F_GV11B_GPU_PHYS_ADDR_L3_ALLOC_TRUE	2
 
-/* defined in gmmu_gv11b_fusa.c */
-#define NVGPU_L3_ALLOC_BIT	BIT64(36)
-
 int test_gv11b_gpu_phys_addr(struct unit_module *m, struct gk20a *g, void *args)
 {
+	struct gpu_ops gops = g->ops;
 	struct nvgpu_gmmu_attrs attrs = {0};
 	struct nvgpu_gmmu_attrs *attrs_ptr;
 	u64 phys = BIT(10);
 	u64 ret_phys;
 	u64 branch = (u64)args;
 	int ret = UNIT_FAIL;
+
+	g->ops.mm.gmmu.get_iommu_bit = gp10b_mm_get_iommu_bit;
 
 	attrs_ptr = branch == F_GV11B_GPU_PHYS_ADDR_GMMU_ATTRS_NULL ?
 			NULL : &attrs;
@@ -58,7 +59,9 @@ int test_gv11b_gpu_phys_addr(struct unit_module *m, struct gk20a *g, void *args)
 	ret_phys = gv11b_gpu_phys_addr(g, attrs_ptr, phys);
 
 	if (branch == F_GV11B_GPU_PHYS_ADDR_L3_ALLOC_TRUE) {
-		unit_assert(ret_phys == (phys | NVGPU_L3_ALLOC_BIT), goto done);
+		unit_assert(ret_phys == (phys |
+			BIT64(g->ops.mm.gmmu.get_iommu_bit(g))),
+			goto done);
 	} else {
 		unit_assert(ret_phys == phys, goto done);
 	}
@@ -71,6 +74,7 @@ done:
 				__func__);
 	}
 
+	g->ops = gops;
 	return ret;
 }
 

@@ -30,40 +30,16 @@
 #include "gmmu_gk20a.h"
 #include "gmmu_gp10b.h"
 
-u32 gp10b_mm_get_default_big_page_size(void)
-{
-	return nvgpu_safe_cast_u64_to_u32(SZ_64K);
-}
+/*
+ * Compression support is provided for 64GB memory.
+ * 36 bits (0 to 35) are required for addressing compression memory.
+ * Use 36th bit to describe l3_alloc or iommu bit.
+ */
+#define GP10B_MM_IOMMU_BIT		36U
 
 u32 gp10b_mm_get_iommu_bit(struct gk20a *g)
 {
-	return 36;
-}
-
-/*
- * For GV11B and TU104 MSS NVLINK HW settings are in force_snoop mode.
- * This will force all the GPU mappings to be coherent.
- * By default the mem aperture sets as sysmem_non_coherent and will use L2 mode.
- * Change target pte aperture to sysmem_coherent if mem attribute requests for
- * platform atomics to use rmw atomic capability.
- *
- */
-static u32 gmmu_aperture_mask(struct gk20a *g,
-				  enum nvgpu_aperture mem_ap,
-				  bool platform_atomic_attr,
-				  u32 sysmem_mask,
-				  u32 sysmem_coh_mask,
-				  u32 vidmem_mask)
-{
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC) &&
-			     platform_atomic_attr) {
-		mem_ap = APERTURE_SYSMEM_COH;
-	}
-
-	return nvgpu_aperture_mask_raw(g, mem_ap,
-				sysmem_mask,
-				sysmem_coh_mask,
-				vidmem_mask);
+	return GP10B_MM_IOMMU_BIT;
 }
 
 static void update_gmmu_pde3_locked(struct vm_gk20a *vm,
@@ -188,7 +164,7 @@ static void update_pte(struct vm_gk20a *vm,
 	u32 pte_addr = (attrs->aperture == APERTURE_SYSMEM) ?
 		gmmu_new_pte_address_sys_f(u64_lo32(phys_shifted)) :
 		gmmu_new_pte_address_vid_f(u64_lo32(phys_shifted));
-	u32 pte_tgt = gmmu_aperture_mask(g,
+	u32 pte_tgt = nvgpu_gmmu_aperture_mask(g,
 					attrs->aperture,
 					attrs->platform_atomic,
 					gmmu_new_pte_aperture_sys_mem_ncoh_f(),
@@ -235,52 +211,6 @@ static void update_pte_sparse(u32 *pte_w)
 	pte_w[0] |= gmmu_new_pte_vol_true_f();
 }
 
-static char *map_attrs_to_str(char *dest, struct nvgpu_gmmu_attrs *attrs)
-{
-	dest[0] = attrs->cacheable ? 'C' : '-';
-	dest[1] = attrs->sparse    ? 'S' : '-';
-	dest[2] = attrs->priv      ? 'P' : '-';
-	dest[3] = attrs->valid     ? 'V' : '-';
-	dest[4] = attrs->platform_atomic ? 'A' : '-';
-
-	return dest;
-}
-
-static void pte_dbg_print(struct gk20a *g,
-		struct nvgpu_gmmu_attrs *attrs,
-		const char *vm_name, u32 pd_idx, u32 mmu_level_entry_size,
-		u64 virt_addr, u64 phys_addr, u32 page_size, u32 *pte_w)
-{
-	char attrs_str[5];
-	char ctag_str[32] = "\0";
-	const char *aperture_str = nvgpu_aperture_str(attrs->aperture);
-	const char *perm_str = nvgpu_gmmu_perm_str(attrs->rw_flag);
-#ifdef CONFIG_NVGPU_COMPRESSION
-	u32 ctag = nvgpu_safe_cast_u64_to_u32(attrs->ctag /
-					g->ops.fb.compression_page_size(g));
-	(void)strcpy(ctag_str, "ctag=0x");
-	(void)nvgpu_strnadd_u32(ctag_str, ctag, (u32)strlen(ctag_str), 10U);
-#endif
-	(void)map_attrs_to_str(attrs_str, attrs);
-	pte_dbg(g, attrs,
-		"vm=%s "
-		"PTE: i=%-4u size=%-2u | "
-		"GPU %#-12llx  phys %#-12llx "
-		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %-5s "
-		"%s "
-		"[0x%08x, 0x%08x]",
-		vm_name,
-		pd_idx, mmu_level_entry_size,
-		virt_addr, phys_addr,
-		page_size >> 10,
-		perm_str,
-		attrs->kind_v,
-		aperture_str,
-		attrs_str,
-		ctag_str,
-		pte_w[1], pte_w[0]);
-}
-
 static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 				   const struct gk20a_mmu_level *l,
 				   struct nvgpu_gmmu_pd *pd,
@@ -302,8 +232,8 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		}
 	}
 
-	pte_dbg_print(g, attrs, vm->name, pd_idx, l->entry_size, virt_addr,
-		phys_addr, page_size, pte_w);
+	nvgpu_pte_dbg_print(g, attrs, vm->name, pd_idx, l->entry_size,
+		virt_addr, phys_addr, page_size, pte_w);
 
 	nvgpu_pd_write(g, pd, (size_t)nvgpu_safe_add_u32(pd_offset, 0U),
 								pte_w[0]);

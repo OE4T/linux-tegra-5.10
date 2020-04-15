@@ -183,11 +183,12 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 
 	g->ops.mm.gmmu.get_default_big_page_size =
-					gp10b_mm_get_default_big_page_size;
+					nvgpu_gmmu_default_big_page_size;
 	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
 	g->ops.mm.gmmu.get_max_page_table_levels = gp10b_get_max_page_table_levels;
 	g->ops.mm.gmmu.map = nvgpu_gmmu_map_locked;
 	g->ops.mm.gmmu.unmap = nvgpu_gmmu_unmap_locked;
+	g->ops.mm.gmmu.get_iommu_bit = gp10b_mm_get_iommu_bit;
 	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;

@@ -73,7 +73,7 @@ static struct vm_gk20a *init_vm_env(struct unit_module *m, struct gk20a *g,
 
 	/* Minimum HALs for vm_init */
 	g->ops.mm.gmmu.get_default_big_page_size =
-		gp10b_mm_get_default_big_page_size;
+		nvgpu_gmmu_default_big_page_size;
 	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
 	g->ops.mm.gmmu.get_max_page_table_levels = gp10b_get_max_page_table_levels;
 

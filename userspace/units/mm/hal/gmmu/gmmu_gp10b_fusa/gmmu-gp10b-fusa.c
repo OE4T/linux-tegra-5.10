@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ int test_gp10b_mm_get_default_big_page_size(struct unit_module *m,
 	u32 ret_pgsz;
 	int ret = UNIT_FAIL;
 
-	ret_pgsz = gp10b_mm_get_default_big_page_size();
+	ret_pgsz = nvgpu_gmmu_default_big_page_size();
 	unit_assert(ret_pgsz == U32(SZ_64K), goto done);
 
 	ret = UNIT_SUCCESS;

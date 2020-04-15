@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,11 +26,6 @@
 #include <nvgpu/hw/gm20b/hw_gmmu_gm20b.h>
 
 #include "gmmu_gm20b.h"
-
-u32 gm20b_mm_get_default_big_page_size(void)
-{
-	return U32(SZ_64K);
-}
 
 u64 gm20b_gpu_phys_addr(struct gk20a *g,
 			struct nvgpu_gmmu_attrs *attrs, u64 phys)

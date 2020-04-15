@@ -869,7 +869,7 @@ static const struct gpu_ops gm20b_ops = {
 			.unmap = nvgpu_gmmu_unmap_locked,
 			.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 			.get_default_big_page_size =
-				gm20b_mm_get_default_big_page_size,
+				nvgpu_gmmu_default_big_page_size,
 			.get_iommu_bit = gk20a_mm_get_iommu_bit,
 			.gpu_phys_addr = gm20b_gpu_phys_addr,
 		}

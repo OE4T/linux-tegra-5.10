@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,6 @@
 struct gk20a;
 struct gk20a_mmu_level;
 
-u32 gp10b_mm_get_default_big_page_size(void);
 u32 gp10b_mm_get_iommu_bit(struct gk20a *g);
 const struct gk20a_mmu_level *gp10b_mm_get_mmu_levels(
 	struct gk20a *g, u64 big_page_size);

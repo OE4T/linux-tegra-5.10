@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,8 +25,6 @@
 
 #include "gmmu_gv11b.h"
 
-#define NVGPU_L3_ALLOC_BIT	BIT64(36)
-
 /*
  * On Volta the GPU determines whether to do L3 allocation for a mapping by
  * checking bit 36 of the phsyical address. So if a mapping should allocte lines
@@ -36,7 +34,7 @@ u64 gv11b_gpu_phys_addr(struct gk20a *g,
 			struct nvgpu_gmmu_attrs *attrs, u64 phys)
 {
 	if ((attrs != NULL) && attrs->l3_alloc) {
-		return phys | NVGPU_L3_ALLOC_BIT;
+		return phys | BIT64(g->ops.mm.gmmu.get_iommu_bit(g));
 	}
 
 	return phys;

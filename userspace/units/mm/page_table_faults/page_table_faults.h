@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ int test_page_faults_disable_hw(struct unit_module *m, struct gk20a *g,
  * Test Type: Feature
  *
  * Targets: gops_mm.gops_mm_gmmu.get_default_big_page_size,
- * gp10b_mm_get_default_big_page_size, nvgpu_alloc_inst_block,
+ * nvgpu_gmmu_default_big_page_size, nvgpu_alloc_inst_block,
  * gops_mm.init_inst_block, gv11b_mm_init_inst_block
  *
  * Input: test_page_faults_init

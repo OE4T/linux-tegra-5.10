@@ -99,6 +99,7 @@ srcs +=	common/utils/enabled.c \
 	common/mm/allocators/buddy_allocator.c \
 	common/mm/gmmu/page_table.c \
 	common/mm/gmmu/pd_cache.c \
+	common/mm/gmmu/pte.c \
 	common/mm/as.c \
 	common/mm/vm.c \
 	common/mm/vm_area.c \
