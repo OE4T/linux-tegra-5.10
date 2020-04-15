@@ -3799,7 +3799,11 @@ static struct akcipher_alg pka1_rsa_algs[] = {
 		.base = {
 			.cra_name = "rsa",
 			.cra_driver_name = "tegra-se-pka1-rsa",
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 			.cra_blocksize = MAX_PKA1_SIZE,
+#else
+			.cra_blocksize = MAX_ALGAPI_BLOCKSIZE,
+#endif
 			.cra_ctxsize = sizeof(struct tegra_se_pka1_rsa_context),
 			.cra_alignmask = 0,
 			.cra_module = THIS_MODULE,
