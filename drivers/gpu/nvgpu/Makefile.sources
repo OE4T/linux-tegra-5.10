@@ -574,11 +574,11 @@ srcs += common/vbios/nvlink_bios.c \
 	common/nvlink/init/device_reginit_gv100.c \
 	common/nvlink/minion.c \
 	common/nvlink/link_mode_transitions.c \
-	common/nvlink/nvlink_gv100.c \
-	common/nvlink/nvlink_tu104.c \
 	common/nvlink/nvlink.c \
 	hal/nvlink/minion_gv100.c \
 	hal/nvlink/minion_tu104.c \
+	hal/nvlink/nvlink_gv100.c \
+	hal/nvlink/nvlink_tu104.c \
 	hal/nvlink/intr_and_err_handling_tu104.c \
 	hal/nvlink/link_mode_transitions_gv100.c \
 	hal/nvlink/link_mode_transitions_tu104.c

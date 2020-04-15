@@ -185,8 +185,8 @@
 #include "hal/nvlink/minion_tu104.h"
 #include "hal/nvlink/link_mode_transitions_gv100.h"
 #include "hal/nvlink/link_mode_transitions_tu104.h"
-#include "common/nvlink/nvlink_gv100.h"
-#include "common/nvlink/nvlink_tu104.h"
+#include "hal/nvlink/nvlink_gv100.h"
+#include "hal/nvlink/nvlink_tu104.h"
 #include "hal/fifo/channel_gk20a.h"
 #include "hal/fifo/channel_gm20b.h"
 #include "hal/fifo/channel_gv11b.h"
@@ -236,6 +236,7 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/sbr.h>
 #include <nvgpu/nvhost.h>
+#include <nvgpu/nvlink.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 
@@ -1514,14 +1515,16 @@ static const struct gpu_ops tu104_ops = {
 	},
 #if defined(CONFIG_NVGPU_NVLINK)
 	.nvlink = {
+		.init = nvgpu_nvlink_init,
 		.get_link_reset_mask = gv100_nvlink_get_link_reset_mask,
-		.discover_ioctrl = gv100_nvlink_discover_ioctrl,
 		.discover_link = gv100_nvlink_discover_link,
-		.init = gv100_nvlink_init,
 		.rxdet = tu104_nvlink_rxdet,
 		.get_connected_link_mask = tu104_nvlink_get_connected_link_mask,
 		.set_sw_war = NULL,
-		.link_early_init = gv100_nvlink_link_early_init,
+		.configure_ac_coupling = gv100_nvlink_configure_ac_coupling,
+		.prog_alt_clk = gv100_nvlink_prog_alt_clk,
+		.clear_link_reset = gv100_nvlink_clear_link_reset,
+		.enable_link_an0 = gv100_nvlink_enable_link_an0,
 		/* API */
 		.link_mode_transitions = {
 			.setup_pll = tu104_nvlink_setup_pll,
@@ -1534,10 +1537,7 @@ static const struct gpu_ops tu104_ops = {
 			.get_sublink_mode = gv100_nvlink_link_get_sublink_mode,
 			.set_sublink_mode = gv100_nvlink_link_set_sublink_mode,
 		},
-		.interface_init = gv100_nvlink_interface_init,
 		.reg_init = gv100_nvlink_reg_init,
-		.shutdown = gv100_nvlink_shutdown,
-		.early_init = gv100_nvlink_early_init,
 		.minion = {
 			.base_addr = gv100_nvlink_minion_base_addr,
 			.is_running = gv100_nvlink_minion_is_running,

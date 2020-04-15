@@ -160,13 +160,13 @@ nvgpu-y += \
 	common/nvlink/init/device_reginit_gv100.o \
 	common/nvlink/minion.o \
 	common/nvlink/link_mode_transitions.o \
-	common/nvlink/nvlink_gv100.o \
-	common/nvlink/nvlink_tu104.o \
 	common/nvlink/nvlink.o \
 	os/linux/nvlink_probe.o \
 	os/linux/nvlink.o \
 	hal/nvlink/minion_gv100.o \
 	hal/nvlink/minion_tu104.o \
+	hal/nvlink/nvlink_gv100.o \
+	hal/nvlink/nvlink_tu104.o \
 	hal/nvlink/intr_and_err_handling_tu104.o \
 	hal/nvlink/link_mode_transitions_gv100.o \
 	hal/nvlink/link_mode_transitions_tu104.o

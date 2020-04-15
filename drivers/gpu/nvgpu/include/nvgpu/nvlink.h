@@ -47,8 +47,8 @@ struct gk20a;
 struct nvgpu_nvlink_ioctrl_list {
 	bool valid;
 	u32 pri_base_addr;
-	u8 intr_enum;
-	u8 reset_enum;
+	u32 intr_enum;
+	u32 reset_enum;
 };
 
 struct nvgpu_nvlink_device_list {
@@ -175,7 +175,7 @@ struct nvgpu_nvlink_dev {
 	/* priv struct */
 	void *priv;
 };
-
+int nvgpu_nvlink_init(struct gk20a *g);
 int nvgpu_nvlink_early_init(struct gk20a *g);
 int nvgpu_nvlink_link_early_init(struct gk20a *g);
 int nvgpu_nvlink_interface_init(struct gk20a *g);

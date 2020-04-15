@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # HAL units. These are the units that have access to HW.
 #
@@ -8,11 +8,3 @@ init:
   owner: Terje B
   sources: [ include/nvgpu/hal_init.h ]
 
-nvlink:
-  safe: yes
-  owner: Tejal K
-  gpu: dgpu
-  sources: [ common/nvlink/nvlink_gv100.c,
-             common/nvlink/nvlink_gv100.h,
-             common/nvlink/nvlink_tu104.c,
-             common/nvlink/nvlink_tu104.h ]

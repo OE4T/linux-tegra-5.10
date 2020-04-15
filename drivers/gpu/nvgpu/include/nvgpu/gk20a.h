@@ -520,15 +520,18 @@ struct gpu_ops {
 	} fbp;
 	struct gops_priv_ring priv_ring;
 	struct {
-		u32 (*get_link_reset_mask)(struct gk20a *g);
 		int (*init)(struct gk20a *g);
-		int (*discover_ioctrl)(struct gk20a *g);
+		u32 (*get_link_reset_mask)(struct gk20a *g);
 		int (*discover_link)(struct gk20a *g);
 		int (*rxdet)(struct gk20a *g, u32 link_id);
 		void (*get_connected_link_mask)(u32 *link_mask);
 		void (*set_sw_war)(struct gk20a *g, u32 link_id);
+		int (*configure_ac_coupling)(struct gk20a *g,
+				unsigned long mask, bool sync);
+		void (*prog_alt_clk)(struct gk20a *g);
+		void (*clear_link_reset)(struct gk20a *g, u32 link_id);
+		void (*enable_link_an0)(struct gk20a *g, u32 link_id);
 		/* API */
-		int (*link_early_init)(struct gk20a *g, unsigned long mask);
 		struct {
 			int (*setup_pll)(struct gk20a *g,
 					unsigned long link_mask);
@@ -551,11 +554,7 @@ struct gpu_ops {
 					bool is_rx_sublink,
 					enum nvgpu_nvlink_sublink_mode mode);
 		} link_mode_transitions;
-		int (*interface_init)(struct gk20a *g);
-		int (*interface_disable)(struct gk20a *g);
 		int (*reg_init)(struct gk20a *g);
-		int (*shutdown)(struct gk20a *g);
-		int (*early_init)(struct gk20a *g);
 		struct {
 			u32 (*base_addr)(struct gk20a *g);
 			bool (*is_running)(struct gk20a *g);
