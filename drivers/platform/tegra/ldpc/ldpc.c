@@ -25,7 +25,7 @@
 #include <linux/uaccess.h>
 #include <linux/errno.h>
 #include <linux/debugfs.h>
-#include "ldpc_ioctl.h"
+#include <uapi/linux/ldpc_ioctl.h>
 
 struct ldpc_devdata {
 	struct class *class;
