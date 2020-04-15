@@ -57,9 +57,6 @@ u32 gv100_nvlink_get_link_reset_mask(struct gk20a *g)
 
 static int gv100_nvlink_state_load_hal(struct gk20a *g)
 {
-	unsigned long discovered = g->nvlink.discovered_links;
-
-	g->ops.nvlink.intr.common_intr_enable(g, discovered);
 	return nvgpu_nvlink_minion_load(g);
 }
 
@@ -254,8 +251,8 @@ static int gv100_nvlink_enable_links_post_top(struct gk20a *g,
 		if (g->ops.nvlink.set_sw_war != NULL) {
 			g->ops.nvlink.set_sw_war(g, link_id);
 		}
-		g->ops.nvlink.intr.init_nvlipt_intr(g, link_id);
-		g->ops.nvlink.intr.enable_link_intr(g, link_id, true);
+		g->ops.nvlink.intr.init_link_err_intr(g, link_id);
+		g->ops.nvlink.intr.enable_link_err_intr(g, link_id, true);
 
 		g->nvlink.initialized_links |= BIT32(link_id);
 	};
@@ -766,16 +763,7 @@ int gv100_nvlink_link_early_init(struct gk20a *g, unsigned long mask)
 
 int gv100_nvlink_interface_init(struct gk20a *g)
 {
-	unsigned long mask = g->nvlink.enabled_links;
-	u32 link_id;
 	int err;
-	unsigned long bit;
-
-	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
-		link_id = (u32)bit;
-		g->ops.nvlink.intr.init_mif_intr(g, link_id);
-		g->ops.nvlink.intr.mif_intr_enable(g, link_id, true);
-	}
 
 	err = g->ops.fb.init_nvlink(g);
 	if (err != 0) {

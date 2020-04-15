@@ -143,8 +143,6 @@ nvlink:
              common/nvlink/init/device_reginit.c,
              common/nvlink/init/device_reginit_gv100.c,
              common/nvlink/init/device_reginit_gv100.h,
-             common/nvlink/intr_and_err_handling_gv100.c,
-             common/nvlink/intr_and_err_handling_gv100.h,
              include/nvgpu/nvlink.h,
              include/nvgpu/nvlink_device_reginit.h,
              include/nvgpu/nvlink_link_mode_transitions.h,

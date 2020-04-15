@@ -682,6 +682,8 @@ nvlink:
              hal/nvlink/link_mode_transitions_gv100.h,
              hal/nvlink/link_mode_transitions_tu104.c,
              hal/nvlink/link_mode_transitions_tu104.h,
+             hal/nvlink/intr_and_err_handling_tu104.c,
+             hal/nvlink/intr_and_err_handling_tu104.h,
              hal/nvlink/minion_gv100.c,
              hal/nvlink/minion_gv100.h,
              hal/nvlink/minion_tu104.c,

@@ -575,16 +575,9 @@ struct gpu_ops {
 			bool (*is_debug_mode)(struct gk20a *g);
 		} minion;
 		struct {
-			void (*common_intr_enable)(struct gk20a *g,
-							unsigned long mask);
-			void (*init_nvlipt_intr)(struct gk20a *g, u32 link_id);
-			void (*enable_link_intr)(struct gk20a *g, u32 link_id,
-							bool enable);
-			void (*init_mif_intr)(struct gk20a *g, u32 link_id);
-			void (*mif_intr_enable)(struct gk20a *g, u32 link_id,
-							bool enable);
-			void (*dlpl_intr_enable)(struct gk20a *g, u32 link_id,
-							bool enable);
+			void (*init_link_err_intr)(struct gk20a *g, u32 link_id);
+			void (*enable_link_err_intr)(struct gk20a *g,
+						u32 link_id, bool enable);
 			void (*isr)(struct gk20a *g);
 		} intr;
 	} nvlink;

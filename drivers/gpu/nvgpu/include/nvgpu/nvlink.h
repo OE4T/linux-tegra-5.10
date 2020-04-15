@@ -182,7 +182,6 @@ int nvgpu_nvlink_interface_init(struct gk20a *g);
 int nvgpu_nvlink_interface_disable(struct gk20a *g);
 int nvgpu_nvlink_dev_shutdown(struct gk20a *g);
 int nvgpu_nvlink_enumerate(struct gk20a *g);
-int nvgpu_nvlink_train(struct gk20a *g, u32 link_id, bool from_off);
 int nvgpu_nvlink_remove(struct gk20a *g);
 void nvgpu_mss_nvlink_init_credits(struct gk20a *g);
 

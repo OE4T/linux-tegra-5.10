@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -256,9 +256,25 @@
 #define nvl_sl1_error_rate_ctrl_short_threshold_man_f(v) ((U32(v) & 0x7U) << 0U)
 #define nvl_sl1_error_rate_ctrl_short_threshold_man_m()        (U32(0x7U) << 0U)
 #define nvl_sl1_error_rate_ctrl_short_threshold_man_v(r)    (((r) >> 0U) & 0x7U)
+#define nvl_sl1_error_rate_ctrl_short_threshold_exp_f(v) ((U32(v) & 0x1U) << 3U)
+#define nvl_sl1_error_rate_ctrl_short_threshold_exp_m()        (U32(0x1U) << 3U)
+#define nvl_sl1_error_rate_ctrl_short_threshold_exp_v(r)    (((r) >> 3U) & 0x1U)
 #define nvl_sl1_error_rate_ctrl_long_threshold_man_f(v) ((U32(v) & 0x7U) << 16U)
 #define nvl_sl1_error_rate_ctrl_long_threshold_man_m()        (U32(0x7U) << 16U)
 #define nvl_sl1_error_rate_ctrl_long_threshold_man_v(r)    (((r) >> 16U) & 0x7U)
+#define nvl_sl1_error_rate_ctrl_short_timescale_man_f(v) ((U32(v) & 0x7U) << 4U)
+#define nvl_sl1_error_rate_ctrl_short_timescale_man_m()        (U32(0x7U) << 4U)
+#define nvl_sl1_error_rate_ctrl_short_timescale_man_v(r)    (((r) >> 4U) & 0x7U)
+#define nvl_sl1_error_rate_ctrl_short_timescale_exp_f(v) ((U32(v) & 0xfU) << 8U)
+#define nvl_sl1_error_rate_ctrl_short_timescale_exp_m()        (U32(0xfU) << 8U)
+#define nvl_sl1_error_rate_ctrl_short_timescale_exp_v(r)    (((r) >> 8U) & 0xfU)
+#define nvl_sl1_error_count_ctrl_r()                               (0x00003280U)
+#define nvl_sl1_error_count_ctrl_short_rate_f(v)         ((U32(v) & 0x1U) << 8U)
+#define nvl_sl1_error_count_ctrl_short_rate_m()                (U32(0x1U) << 8U)
+#define nvl_sl1_error_count_ctrl_short_rate_enable_f()                  (0x100U)
+#define nvl_sl1_error_count_ctrl_rate_count_mode_f(v)   ((U32(v) & 0x1U) << 10U)
+#define nvl_sl1_error_count_ctrl_rate_count_mode_m()          (U32(0x1U) << 10U)
+#define nvl_sl1_error_count_ctrl_rate_count_mode_flit_f()                 (0x0U)
 #define nvl_sl1_rxslsm_timeout_2_r()                               (0x00003034U)
 #define nvl_txiobist_configreg_r()                                 (0x00002e14U)
 #define nvl_txiobist_configreg_io_bist_mode_in_f(v)     ((U32(v) & 0x1U) << 17U)

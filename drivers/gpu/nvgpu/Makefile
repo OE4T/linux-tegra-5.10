@@ -158,7 +158,6 @@ nvgpu-y += \
 	common/nvlink/probe.o \
 	common/nvlink/init/device_reginit.o \
 	common/nvlink/init/device_reginit_gv100.o \
-	common/nvlink/intr_and_err_handling_gv100.o \
 	common/nvlink/minion.o \
 	common/nvlink/link_mode_transitions.o \
 	common/nvlink/nvlink_gv100.o \
@@ -168,6 +167,7 @@ nvgpu-y += \
 	os/linux/nvlink.o \
 	hal/nvlink/minion_gv100.o \
 	hal/nvlink/minion_tu104.o \
+	hal/nvlink/intr_and_err_handling_tu104.o \
 	hal/nvlink/link_mode_transitions_gv100.o \
 	hal/nvlink/link_mode_transitions_tu104.o
 

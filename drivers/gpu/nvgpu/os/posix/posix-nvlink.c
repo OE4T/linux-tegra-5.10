@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,11 +26,6 @@
 
 struct gk20a;
 struct nvgpu_firmware;
-
-int nvgpu_nvlink_train(struct gk20a *g, u32 link_id, bool from_off)
-{
-	return -ENOSYS;
-}
 
 int nvgpu_nvlink_enumerate(struct gk20a *g)
 {

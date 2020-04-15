@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,18 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef INTR_AND_ERR_HANDLING_GV100_H
-#define INTR_AND_ERR_HANDLING_GV100_H
+#ifndef INTR_AND_ERR_HANDLING_TU104_H
+#define INTR_AND_ERR_HANDLING_TU104_H
 
 #include <nvgpu/types.h>
 struct gk20a;
 
-void gv100_nvlink_common_intr_enable(struct gk20a *g, unsigned long mask);
-void gv100_nvlink_init_nvlipt_intr(struct gk20a *g, u32 link_id);
-void gv100_nvlink_enable_link_intr(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_init_mif_intr(struct gk20a *g, u32 link_id);
-void gv100_nvlink_mif_intr_enable(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_dlpl_intr_enable(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_isr(struct gk20a *g);
+void tu104_nvlink_init_link_err_intr(struct gk20a *g, u32 link_id);
+void tu104_nvlink_enable_link_err_intr(struct gk20a *g, u32 link_id,
+							bool enable);
+void tu104_nvlink_isr(struct gk20a *g);
 
-#endif /* INTR_AND_ERR_HANDLING_GV100_H */
+#endif /* INTR_AND_ERR_HANDLING_TU104_H */

@@ -476,7 +476,7 @@ int gv100_nvlink_set_link_mode(struct gk20a *g, u32 link_id,
 		break;
 	case nvgpu_nvlink_link_disable_err_detect:
 		/* Disable Link interrupts */
-		g->ops.nvlink.intr.dlpl_intr_enable(g, link_id, false);
+		g->ops.nvlink.intr.enable_link_err_intr(g, link_id, false);
 		break;
 	case nvgpu_nvlink_link_lane_disable:
 		err = gv100_nvlink_lane_disable(g, link_id, true);

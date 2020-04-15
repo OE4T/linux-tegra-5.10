@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -122,7 +122,7 @@
 #define ioctrlmif_tx_err_log_en_0_txramhdrparityerr_f(v) ((U32(v) & 0x1U) << 1U)
 #define ioctrlmif_tx_err_log_en_0_txramhdrparityerr_m()        (U32(0x1U) << 1U)
 #define ioctrlmif_tx_err_log_en_0_txramhdrparityerr_v(r)    (((r) >> 1U) & 0x1U)
-#define ioctrlmif_tx_err_report_en_0_r()                           (0x00000e08U)
+#define ioctrlmif_tx_err_report_en_0_r()                           (0x00000a8cU)
 #define ioctrlmif_tx_err_report_en_0_txramdataparityerr_f(v)\
 				((U32(v) & 0x1U) << 0U)
 #define ioctrlmif_tx_err_report_en_0_txramdataparityerr_m()    (U32(0x1U) << 0U)
@@ -143,4 +143,8 @@
 #define ioctrlmif_tx_err_first_0_r()                               (0x00000a98U)
 #define ioctrlmif_tx_ctrl_buffer_ready_r()                         (0x00000a7cU)
 #define ioctrlmif_rx_ctrl_buffer_ready_r()                         (0x00000dfcU)
+#define ioctrlmif_tx_err_misc_0_r()                                (0x00000a9cU)
+#define ioctrlmif_tx_err_misc_0_txramdataparitypois_f(v) ((U32(v) & 0x1U) << 0U)
+#define ioctrlmif_tx_err_misc_0_txramdataparitypois_m()        (U32(0x1U) << 0U)
+#define ioctrlmif_tx_err_misc_0_txramdataparitypois_v(r)    (((r) >> 0U) & 0x1U)
 #endif

@@ -180,7 +180,7 @@
 #include "hal/xve/xve_tu104.h"
 
 #include "common/nvlink/init/device_reginit_gv100.h"
-#include "common/nvlink/intr_and_err_handling_gv100.h"
+#include "hal/nvlink/intr_and_err_handling_tu104.h"
 #include "hal/nvlink/minion_gv100.h"
 #include "hal/nvlink/minion_tu104.h"
 #include "hal/nvlink/link_mode_transitions_gv100.h"
@@ -1553,13 +1553,9 @@ static const struct gpu_ops tu104_ops = {
 			.is_debug_mode = tu104_nvlink_minion_is_debug_mode,
 		},
 		.intr = {
-			.common_intr_enable = gv100_nvlink_common_intr_enable,
-			.init_nvlipt_intr = gv100_nvlink_init_nvlipt_intr,
-			.enable_link_intr = gv100_nvlink_enable_link_intr,
-			.init_mif_intr = gv100_nvlink_init_mif_intr,
-			.mif_intr_enable = gv100_nvlink_mif_intr_enable,
-			.dlpl_intr_enable = gv100_nvlink_dlpl_intr_enable,
-			.isr = gv100_nvlink_isr,
+			.init_link_err_intr = tu104_nvlink_init_link_err_intr,
+			.enable_link_err_intr = tu104_nvlink_enable_link_err_intr,
+			.isr = tu104_nvlink_isr,
 		}
 	},
 #endif
