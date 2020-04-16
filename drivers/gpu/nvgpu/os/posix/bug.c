@@ -126,12 +126,12 @@ void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb)
 /*
  * Ahhh! A bug!
  */
-void nvgpu_posix_bug(const char *fmt, ...)
+void nvgpu_posix_bug(const char *msg, int line_no)
 {
 	int err;
 	struct nvgpu_bug_cb *cb;
 
-	nvgpu_err(NULL, "BUG detected!");
+	nvgpu_err(NULL, "%s:%d BUG detected!", msg, line_no);
 #ifndef __NVGPU_UNIT_TEST__
 	dump_stack();
 #endif

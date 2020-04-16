@@ -33,7 +33,7 @@
  * Implementation is specific to OS.  For QNX and Posix implementation
  * refer to nvgpu_posix_bug.
  */
-#define BUG()					nvgpu_posix_bug("")
+#define BUG()		nvgpu_posix_bug(__func__, __LINE__)
 
 /** Macro to handle a buggy code only upon meeting the condition. */
 #define BUG_ON(cond)				\
@@ -72,12 +72,12 @@ void dump_stack(void);
 /**
  * @brief Bug.
  *
- * @param fmt [in]	Format of variable argument list.
- * @param ... [in]	Variable length arguments.
+ * @param msg [in]	Message to be printed in log.
+ * @param line_no [in]	Line number.
  *
  * Function to be invoked upon identifying bug in the code.
  */
-void nvgpu_posix_bug(const char *fmt, ...) __attribute__ ((noreturn));
+void nvgpu_posix_bug(const char *msg, int line_no) __attribute__ ((noreturn));
 
 /**
  * @brief Issues Warning.
