@@ -873,6 +873,15 @@ config SPI_TEGRA20_SLINK
 	help
 	  SPI driver for Nvidia Tegra20/Tegra30 SLINK Controller interface.
 
+config QSPI_TEGRA23x
+	tristate "Nvidia Tegra23x QSPI Controller"
+	depends on ARCH_TEGRA
+	select QSPI_TEGRA
+	help
+	  QSPI driver for Nvidia Tegra23x QSPI Controller interface. This
+	  controller is different from the spi controller and first time
+	  introduces Native DMA support on Tegra23x soc.
+
 config QSPI_TEGRA210
 	tristate "Nvidia Tegra210 QSPI Controller"
 	depends on ARCH_TEGRA
