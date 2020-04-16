@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include <nvgpu/posix/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hw/gp10b/hw_fuse_gp10b.h>
+#include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_therm_gv11b.h>
 
 #include "hal/init/hal_gv11b.h"
@@ -310,6 +311,30 @@ static int init_test_env(struct unit_module *m, struct gk20a *g, void *args)
 	 */
 	if (nvgpu_posix_io_add_reg_space(g,
 					 fuse_opt_priv_sec_en_r(), 0x4) != 0) {
+		unit_err(m, "Add reg space failed!\n");
+		return UNIT_FAIL;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+					 fuse_opt_ecc_en_r(), 0x4) != 0) {
+		unit_err(m, "Add reg space failed!\n");
+		return UNIT_FAIL;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+		fuse_opt_feature_fuses_override_disable_r(), 0x4) != 0) {
+		unit_err(m, "Add reg space failed!\n");
+		return UNIT_FAIL;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			 gr_fecs_feature_override_ecc_r(), 0x4) != 0) {
+		unit_err(m, "Add reg space failed!\n");
+		return UNIT_FAIL;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			gr_fecs_feature_override_ecc_1_r(), 0x4) != 0) {
 		unit_err(m, "Add reg space failed!\n");
 		return UNIT_FAIL;
 	}

@@ -32,6 +32,10 @@
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/gk20a.h>
 
+#include <nvgpu/posix/io.h>
+
+#include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
+
 #include "hal/init/hal_gv11b.h"
 
 #include "nvgpu-fifo-common.h"
@@ -136,6 +140,18 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	err = test_fifo_setup_gv11b_reg_space(m, g);
 	if (err != 0) {
 		goto fail;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			 gr_fecs_feature_override_ecc_r(), 0x4) != 0) {
+		unit_err(m, "Add reg space failed!\n");
+		return UNIT_FAIL;
+	}
+
+	if (nvgpu_posix_io_add_reg_space(g,
+			gr_fecs_feature_override_ecc_1_r(), 0x4) != 0) {
+		unit_err(m, "Add reg space failed!\n");
+		return UNIT_FAIL;
 	}
 
 	gv11b_init_hal(g);
