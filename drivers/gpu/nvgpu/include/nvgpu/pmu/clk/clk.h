@@ -127,7 +127,7 @@
 #define FREQ_STEP_SIZE_MHZ      15U
 
 struct gk20a;
-struct nvgpu_avfsfllobjs;
+struct clk_avfs_fll_objs;
 struct nvgpu_clk_domains;
 struct nvgpu_clk_progs;
 struct nvgpu_clk_vf_points;
@@ -238,19 +238,9 @@ struct nvgpu_set_fll_clk {
 	u8 target_regime_id_host;
 };
 
-struct nvgpu_avfsfllobjs {
-	struct boardobjgrp_e32 super;
-	struct boardobjgrpmask_e32 lut_prog_master_mask;
-	u32 lut_step_size_uv;
-	u32 lut_min_voltage_uv;
-	u8 lut_num_entries;
-	u16 max_min_freq_mhz;
-	u8 freq_margin_vfe_idx;
-};
-
 struct nvgpu_clk_pmupstate {
 	struct nvgpu_avfsvinobjs *avfs_vinobjs;
-	struct nvgpu_avfsfllobjs *avfs_fllobjs;
+	struct clk_avfs_fll_objs *avfs_fllobjs;
 	struct nvgpu_clk_domains *clk_domainobjs;
 	struct nvgpu_clk_progs *clk_progobjs;
 	struct nvgpu_clk_vf_points *clk_vf_pointobjs;
@@ -367,4 +357,7 @@ int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
 int nvgpu_clk_vf_point_cache(struct gk20a *g);
 int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
+u16 nvgpu_pmu_clk_fll_get_min_max_freq(struct gk20a *g);
+u32 nvgpu_pmu_clk_fll_get_lut_step_size(struct nvgpu_clk_pmupstate *pclk);
+u32 nvgpu_pmu_clk_fll_get_lut_min_volt(struct nvgpu_clk_pmupstate *pclk);
 #endif /* NVGPU_PMU_CLK_H */

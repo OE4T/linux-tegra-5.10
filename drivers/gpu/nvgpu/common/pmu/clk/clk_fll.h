@@ -27,8 +27,18 @@
 struct gk20a;
 struct fll_device;
 
+struct clk_avfs_fll_objs {
+	struct boardobjgrp_e32 super;
+	struct boardobjgrpmask_e32 lut_prog_master_mask;
+	u32 lut_step_size_uv;
+	u32 lut_min_voltage_uv;
+	u8 lut_num_entries;
+	u16 max_min_freq_mhz;
+	u8 freq_margin_vfe_idx;
+};
+
 typedef int fll_lut_broadcast_slave_register(struct gk20a *g,
-	struct nvgpu_avfsfllobjs *pfllobjs,
+	struct clk_avfs_fll_objs *pfllobjs,
 	struct fll_device *pfll,
 	struct fll_device *pfll_slave);
 

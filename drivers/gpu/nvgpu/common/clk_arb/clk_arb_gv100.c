@@ -58,7 +58,7 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 {
 	u32 clkwhich;
 	struct nvgpu_pmu_perf_pstate_clk_info *p0_info;
-	struct nvgpu_avfsfllobjs *pfllobjs =  g->pmu->clk_pmu->avfs_fllobjs;
+	u16 max_min_freq_mhz;
 	u16 limit_min_mhz;
 	u16 gpcclk_cap_mhz;
 	bool error_status = false;
@@ -90,11 +90,13 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 	limit_min_mhz = p0_info->min_mhz;
 	gpcclk_cap_mhz = p0_info->max_mhz;
 
+	max_min_freq_mhz = nvgpu_pmu_clk_fll_get_min_max_freq(g);
 	/* WAR for DVCO min */
 	if (api_domain == CTRL_CLK_DOMAIN_GPCCLK) {
-		if ((pfllobjs->max_min_freq_mhz != 0U) &&
-			(pfllobjs->max_min_freq_mhz >= limit_min_mhz)) {
-			limit_min_mhz = pfllobjs->max_min_freq_mhz + 1U;
+		if ((max_min_freq_mhz != 0U) &&
+			(max_min_freq_mhz >= limit_min_mhz)) {
+			limit_min_mhz = nvgpu_safe_cast_u32_to_u16(
+				nvgpu_safe_add_u32(max_min_freq_mhz, 1U));
 		}
 		if ((g->clk_arb->gpc_cap_clkmhz != 0U) &&
 			(p0_info->max_mhz > g->clk_arb->gpc_cap_clkmhz )) {

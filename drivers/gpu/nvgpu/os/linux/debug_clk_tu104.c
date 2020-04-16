@@ -53,8 +53,8 @@ static int vftable_show(struct seq_file *s, void *unused)
 	u32 voltage_min_uv, voltage_step_size_uv;
 	u32 gpcclk_clkmhz = 0, gpcclk_voltuv = 0;
 
-	voltage_min_uv = g->pmu->clk_pmu->avfs_fllobjs->lut_min_voltage_uv;
-	voltage_step_size_uv = g->pmu->clk_pmu->avfs_fllobjs->lut_step_size_uv;
+	voltage_min_uv = nvgpu_pmu_clk_fll_get_lut_step_size(g->pmu->clk_pmu);
+	voltage_step_size_uv = nvgpu_pmu_clk_fll_get_lut_step_size(g->pmu->clk_pmu);
 
 	for (index = 0; index < CTRL_CLK_LUT_NUM_ENTRIES_GV10x; index++) {
 		gpcclk_voltuv = voltage_min_uv + index * voltage_step_size_uv;
