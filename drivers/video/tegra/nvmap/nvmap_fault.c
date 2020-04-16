@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_fault.c
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,11 +21,17 @@
 #include "nvmap_priv.h"
 
 static void nvmap_vma_close(struct vm_area_struct *vma);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#include <linux/atomic-fallback.h>
+#define __atomic_add_unless atomic_add_unless
+static vm_fault_t nvmap_vma_fault(struct vm_fault *vmf);
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 static int nvmap_vma_fault(struct vm_fault *vmf);
 #else
 static int nvmap_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf);
 #endif
+
 static bool nvmap_fixup_prot(struct vm_area_struct *vma,
 		unsigned long addr, pgoff_t pgoff);
 
@@ -174,7 +180,10 @@ static void nvmap_vma_close(struct vm_area_struct *vma)
 	}
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+static vm_fault_t nvmap_vma_fault(struct vm_fault *vmf)
+#define vm_insert_pfn vmf_insert_pfn
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 static int nvmap_vma_fault(struct vm_fault *vmf)
 #else
 static int nvmap_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)

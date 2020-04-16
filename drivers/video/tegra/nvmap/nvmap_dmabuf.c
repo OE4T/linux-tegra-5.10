@@ -37,6 +37,12 @@
 #include "nvmap_priv.h"
 #include "nvmap_ioctl.h"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#define NVMAP_DMABUF_ATTACH  nvmap_dmabuf_attach
+#else
+#define NVMAP_DMABUF_ATTACH  __nvmap_dmabuf_attach
+#endif
+
 /**
  * List node for maps of nvmap handles via the dma_buf API. These store the
  * necessary info for stashing mappings.
@@ -89,7 +95,7 @@ int nvmap_dmabuf_stash_init(void)
 	return 0;
 }
 
-static int nvmap_dmabuf_attach(struct dma_buf *dmabuf, struct device *dev,
+static int __nvmap_dmabuf_attach(struct dma_buf *dmabuf, struct device *dev,
 			       struct dma_buf_attachment *attach)
 {
 	struct nvmap_handle_info *info = dmabuf->priv;
@@ -99,6 +105,14 @@ static int nvmap_dmabuf_attach(struct dma_buf *dmabuf, struct device *dev,
 	dev_dbg(dev, "%s() 0x%p\n", __func__, info->handle);
 	return 0;
 }
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+static int nvmap_dmabuf_attach(struct dma_buf *dmabuf,
+			       struct dma_buf_attachment *attach)
+{
+	return __nvmap_dmabuf_attach(dmabuf, attach->dev, attach);
+}
+#endif
 
 static void nvmap_dmabuf_detach(struct dma_buf *dmabuf,
 				struct dma_buf_attachment *attach)
@@ -400,6 +414,32 @@ static void nvmap_dmabuf_release(struct dma_buf *dmabuf)
 	kfree(info);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+static int __nvmap_dmabuf_end_cpu_access(struct dma_buf *dmabuf,
+				       enum dma_data_direction dir)
+{
+	struct nvmap_handle_info *info = dmabuf->priv;
+
+	trace_nvmap_dmabuf_end_cpu_access(dmabuf, 0, dmabuf->size);
+	__nvmap_do_cache_maint(NULL, info->handle,
+				   0, dmabuf->size,
+				   NVMAP_CACHE_OP_WB, false);
+	return 0;
+}
+
+static int __nvmap_dmabuf_begin_cpu_access(struct dma_buf *dmabuf,
+					  enum dma_data_direction dir)
+{
+	struct nvmap_handle_info *info = dmabuf->priv;
+
+	trace_nvmap_dmabuf_begin_cpu_access(dmabuf, 0, dmabuf->size);
+	__nvmap_do_cache_maint(NULL, info->handle, 0, dmabuf->size,
+				      NVMAP_CACHE_OP_WB_INV, false);
+	return 0;
+}
+#define NVMAP_DMABUF_BEGIN_CPU_ACCESS           __nvmap_dmabuf_begin_cpu_access
+#define NVMAP_DMABUF_END_CPU_ACCESS 		__nvmap_dmabuf_end_cpu_access
+#else
 static int nvmap_dmabuf_begin_cpu_access(struct dma_buf *dmabuf,
 					  size_t start, size_t len,
 					  enum dma_data_direction dir)
@@ -422,7 +462,11 @@ static void nvmap_dmabuf_end_cpu_access(struct dma_buf *dmabuf,
 				   start, start + len,
 				   NVMAP_CACHE_OP_WB, false);
 }
+#define NVMAP_DMABUF_BEGIN_CPU_ACCESS           nvmap_dmabuf_begin_cpu_access
+#define NVMAP_DMABUF_END_CPU_ACCESS 		nvmap_dmabuf_end_cpu_access
+#endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 static void *nvmap_dmabuf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
 {
 	struct nvmap_handle_info *info = dmabuf->priv;
@@ -446,6 +490,7 @@ static void *nvmap_dmabuf_kmap_atomic(struct dma_buf *dmabuf,
 	WARN(1, "%s() can't be called from atomic\n", __func__);
 	return NULL;
 }
+#endif
 
 int __nvmap_map(struct nvmap_handle *h, struct vm_area_struct *vma)
 {
@@ -572,21 +617,21 @@ unlock:
 }
 
 static struct dma_buf_ops nvmap_dma_buf_ops = {
-	.attach		= nvmap_dmabuf_attach,
+	.attach		= NVMAP_DMABUF_ATTACH,
 	.detach		= nvmap_dmabuf_detach,
 	.map_dma_buf	= nvmap_dmabuf_map_dma_buf,
 	.unmap_dma_buf	= nvmap_dmabuf_unmap_dma_buf,
 	.release	= nvmap_dmabuf_release,
-	.begin_cpu_access = nvmap_dmabuf_begin_cpu_access,
-	.end_cpu_access = nvmap_dmabuf_end_cpu_access,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-	.map_atomic	= nvmap_dmabuf_kmap_atomic,
-	.map		= nvmap_dmabuf_kmap,
-	.unmap		= nvmap_dmabuf_kunmap,
-#else
+	.begin_cpu_access = NVMAP_DMABUF_BEGIN_CPU_ACCESS,
+	.end_cpu_access = NVMAP_DMABUF_END_CPU_ACCESS,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 	.kmap_atomic	= nvmap_dmabuf_kmap_atomic,
 	.kmap		= nvmap_dmabuf_kmap,
 	.kunmap		= nvmap_dmabuf_kunmap,
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	.map_atomic	= nvmap_dmabuf_kmap_atomic,
+	.map		= nvmap_dmabuf_kmap,
+	.unmap		= nvmap_dmabuf_kunmap,
 #endif
 	.mmap		= nvmap_dmabuf_mmap,
 	.vmap		= nvmap_dmabuf_vmap,
@@ -611,8 +656,10 @@ static struct dma_buf *__dma_buf_export(struct nvmap_handle_info *info,
 	exp_info.ops = &nvmap_dma_buf_ops;
 	exp_info.size = size;
 	exp_info.flags = O_RDWR;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	exp_info.exp_flags = DMABUF_CAN_DEFER_UNMAP |
 				DMABUF_SKIP_CACHE_SYNC;
+#endif
 	exp_info.exp_name = dmabuf_name;
 
 	return dma_buf_export(&exp_info);

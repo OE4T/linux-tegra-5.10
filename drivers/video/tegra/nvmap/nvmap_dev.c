@@ -3,7 +3,7 @@
  *
  * User-space interface to nvmap
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -58,6 +58,10 @@
 
 #include "nvmap_priv.h"
 #include "nvmap_ioctl.h"
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#include <linux/pagewalk.h>
+#endif
 
 #define NVMAP_CARVEOUT_KILLER_RETRY_TIME 100 /* msecs */
 
@@ -320,9 +324,9 @@ static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return -ENOTTY;
 
 	if (_IOC_DIR(cmd) & _IOC_READ)
-		err = !access_ok(VERIFY_WRITE, uarg, _IOC_SIZE(cmd));
+		err = !ACCESS_OK(VERIFY_WRITE, uarg, _IOC_SIZE(cmd));
 	if (!err && (_IOC_DIR(cmd) & _IOC_WRITE))
-		err = !access_ok(VERIFY_READ, uarg, _IOC_SIZE(cmd));
+		err = !ACCESS_OK(VERIFY_READ, uarg, _IOC_SIZE(cmd));
 
 	if (err)
 		return -EFAULT;
@@ -1087,6 +1091,7 @@ static int procrank_pte_entry(pte_t *pte, unsigned long addr, unsigned long end,
 #define PTRACE_MODE_READ_FSCREDS PTRACE_MODE_READ
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 static void nvmap_iovmm_get_client_mss(struct nvmap_client *client, u64 *pss,
 				   u64 *total)
 {
@@ -1137,6 +1142,63 @@ static void nvmap_iovmm_get_client_mss(struct nvmap_client *client, u64 *pss,
 	*pss = (mss.pss >> PSS_SHIFT);
 	nvmap_ref_unlock(client);
 }
+#else
+static void nvmap_iovmm_get_client_mss(struct nvmap_client *client, u64 *pss,
+				   u64 *total)
+{
+	struct mm_walk_ops wk_ops = {
+		.pte_entry = procrank_pte_entry,
+	};
+	struct rb_node *n;
+	struct nvmap_vma_list *tmp;
+	struct procrank_stats mss;
+	struct mm_walk procrank_walk = {
+		.ops = &wk_ops,
+		.private = &mss,
+	};
+	struct mm_struct *mm;
+
+	memset(&mss, 0, sizeof(mss));
+	*pss = *total = 0;
+
+	mm = mm_access(client->task,
+			PTRACE_MODE_READ_FSCREDS);
+	if (!mm || IS_ERR(mm)) return;
+
+	down_read(&mm->mmap_sem);
+	procrank_walk.mm = mm;
+
+	nvmap_ref_lock(client);
+	n = rb_first(&client->handle_refs);
+	for (; n != NULL; n = rb_next(n)) {
+		struct nvmap_handle_ref *ref =
+			rb_entry(n, struct nvmap_handle_ref, node);
+		struct nvmap_handle *h = ref->handle;
+
+		if (!h || !h->alloc || !h->heap_pgalloc)
+			continue;
+
+		mutex_lock(&h->lock);
+		list_for_each_entry(tmp, &h->vmas, list) {
+			if (client->task->pid == tmp->pid) {
+				mss.vma = tmp->vma;
+					walk_page_range(procrank_walk.mm,
+						tmp->vma->vm_start,
+						tmp->vma->vm_end,
+						procrank_walk.ops,
+						procrank_walk.private);
+			}
+		}
+		mutex_unlock(&h->lock);
+		*total += h->size / atomic_read(&h->share_count);
+	}
+
+	up_read(&mm->mmap_sem);
+	mmput(mm);
+	*pss = (mss.pss >> PSS_SHIFT);
+	nvmap_ref_unlock(client);
+}
+#endif
 
 static int nvmap_debug_iovmm_procrank_show(struct seq_file *s, void *unused)
 {

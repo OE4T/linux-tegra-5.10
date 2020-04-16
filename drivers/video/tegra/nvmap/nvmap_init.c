@@ -33,8 +33,6 @@
 #include <asm/dma-contiguous.h>
 
 #include "nvmap_priv.h"
-#include "iomap.h"
-#include "board.h"
 #include <linux/platform/tegra/common.h>
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION

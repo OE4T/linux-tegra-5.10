@@ -3,7 +3,7 @@
  *
  * User-space interface to nvmap
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -45,6 +45,10 @@
 #include "nvmap_ioctl.h"
 #include "nvmap_priv.h"
 #include "nvmap_heap.h"
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#include <linux/syscalls.h>
+#endif
 
 extern struct device tegra_vpr_dev;
 
@@ -204,8 +208,9 @@ int nvmap_ioctl_vpr_floor_size(struct file *filp, void __user *arg)
 
 	if (copy_from_user(&floor_size, arg, sizeof(floor_size)))
 		return -EFAULT;
-
+#if CONFIG_VPR_RESIZE
 	err = dma_set_resizable_heap_floor_size(&tegra_vpr_dev, floor_size);
+#endif
 	return err;
 }
 
@@ -420,7 +425,7 @@ int nvmap_ioctl_free(struct file *filp, unsigned long arg)
 		return 0;
 
 	nvmap_free_handle_fd(client, arg);
-	return sys_close(arg);
+	return SYS_CLOSE(arg);
 }
 
 static ssize_t rw_handle(struct nvmap_client *client, struct nvmap_handle *h,
@@ -660,7 +665,7 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg,
 		return -EINVAL;
 
 	bytes = op.nr * sizeof(*refs);
-	if (!access_ok(VERIFY_READ, op.handles, op.nr * sizeof(u32)))
+	if (!ACCESS_OK(VERIFY_READ, (void *)op.handles, op.nr * sizeof(u32)))
 		return -EFAULT;
 
 	elem_size  = (op.op & NVMAP_ELEM_SIZE_U64) ?

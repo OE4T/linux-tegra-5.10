@@ -607,7 +607,7 @@ static int nvmap_heap_pgalloc(struct nvmap_client *client,
 		return PTR_ERR(dma_dev);
 
 	pages = dma_alloc_attrs(dma_dev, size, &pa,
-			GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE | DMA_ATTR_ALLOC_SINGLE_PAGES);
+			GFP_KERNEL, DMA_ALLOC_FREE_ATTR);
 	if (dma_mapping_error(dma_dev, pa))
 		return -ENOMEM;
 
@@ -628,8 +628,7 @@ static int nvmap_heap_pgfree(struct nvmap_handle *h)
 		return PTR_ERR(dma_dev);
 
 	dma_free_attrs(dma_dev, size, h->pgalloc.pages, pa,
-		       DMA_ATTR_ALLOC_EXACT_SIZE | DMA_ATTR_ALLOC_SINGLE_PAGES);
-
+		       DMA_ALLOC_FREE_ATTR);
 	h->pgalloc.pages = NULL;
 	return 0;
 }

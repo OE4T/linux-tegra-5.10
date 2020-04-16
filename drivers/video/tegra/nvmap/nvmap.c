@@ -3,7 +3,7 @@
  *
  * Memory manager for Tegra GPU
  *
- * Copyright (c) 2009-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -170,7 +170,7 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 		if (!vaddr && !h->vaddr)
 			goto out;
 
-		if (vaddr && atomic_long_cmpxchg(&h->vaddr, 0, (long)vaddr)) {
+		if (vaddr && atomic_long_cmpxchg((atomic_long_t *)&h->vaddr, 0, (long)vaddr)) {
 			nvmap_kmaps_dec(h);
 			vm_unmap_ram(vaddr, h->size >> PAGE_SHIFT);
 		}
@@ -190,7 +190,7 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 	ioremap_page_range((ulong)v->addr, (ulong)v->addr + adj_size,
 		h->carveout->base & PAGE_MASK, prot);
 
-	if (vaddr && atomic_long_cmpxchg(&h->vaddr, 0, (long)vaddr)) {
+	if (vaddr && atomic_long_cmpxchg((atomic_long_t *)&h->vaddr, 0, (long)vaddr)) {
 		struct vm_struct *vm;
 
 		vaddr -= (h->carveout->base & ~PAGE_MASK);
