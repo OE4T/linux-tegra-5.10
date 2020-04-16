@@ -56,7 +56,8 @@ static inline void ether_stats_work_func(struct work_struct *work)
  */
 static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
 {
-	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
+	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
+	    pdata->use_stats == OSI_ENABLE) {
 		schedule_delayed_work(&pdata->ether_stats_work,
 				      msecs_to_jiffies(ETHER_STATS_TIMER *
 						       1000));
@@ -73,7 +74,8 @@ static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
  */
 static inline void ether_stats_work_queue_stop(struct ether_priv_data *pdata)
 {
-	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
+	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
+	    pdata->use_stats == OSI_ENABLE) {
 		cancel_delayed_work_sync(&pdata->ether_stats_work);
 	}
 }
@@ -711,8 +713,6 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 			pdata->common_irq);
 		return ret;
 	}
-	/* TODO: Check return value and handle error */
-	ether_init_ivc(pdata);
 	pdata->common_irq_alloc_mask = 1;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
@@ -3434,7 +3434,19 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		return -EINVAL;
 	}
 
-	ret = -1;
+	/* Allow to set non zero DMA channel for virtualization */
+	if (!ether_init_ivc(pdata)) {
+		osi_dma->use_virtualization = OSI_ENABLE;
+		/* read mac management flag and set use_stats */
+		of_property_read_u32(np, "nvidia,mmc_daemon",
+				     &pdata->use_stats);
+		dev_info(dev, "Virtualization is enabled & stats flag is %d\n",
+			 pdata->use_stats);
+	} else {
+		ret = -1;
+		pdata->use_stats = OSI_ENABLE;
+	}
+
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		if (osi_dma->dma_chans[i] != osi_core->mtl_queues[i]) {
 			dev_err(dev,

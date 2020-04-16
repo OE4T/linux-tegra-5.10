@@ -346,6 +346,8 @@ struct ether_priv_data {
 	char ivc_rx[ETHER_MAX_IVC_BUF];
 	/** ivc work */
 	struct work_struct ivc_work;
+	/** Flag which decides stats is enabled(1) or disabled(0) */
+	unsigned int use_stats;
 };
 
 /**
