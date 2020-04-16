@@ -43,13 +43,13 @@ static DEFINE_SPINLOCK(cbb_errmon_lock);
 
 static void tegra234_cbb_errmon_faulten(void __iomem *addr)
 {
-	writel(0x1FF, addr+MASTER_EN_CFG_INTERRUPT_ENABLE_0_0);
+	writel(0x1FF, addr + FABRIC_EN_CFG_INTERRUPT_ENABLE_0_0);
 	dsb(sy);
 }
 
 static void tegra234_cbb_errmon_errclr(void __iomem *addr)
 {
-	writel(0x3F, addr+ERRMOM_MN_MASTER_ERR_STATUS_0);
+	writel(0x3F, addr + FABRIC_MN_MASTER_ERR_STATUS_0);
 	dsb(sy);
 }
 
@@ -57,7 +57,7 @@ static unsigned int tegra234_cbb_errmon_errvld(void __iomem *addr)
 {
 	unsigned int errvld_status = 0;
 
-	errvld_status = readl(addr+MASTER_EN_CFG_STATUS_0_0);
+	errvld_status = readl(addr + FABRIC_EN_CFG_STATUS_0_0);
 
 	dsb(sy);
 	return errvld_status;
@@ -70,16 +70,16 @@ static void print_errmon_err(struct seq_file *file,
 {
 	int err_type = 0;
 
+	if (errmon_err_status & (errmon_err_status - 1))
+		print_cbb_err(file, "\t  Multiple type of errors reported\n");
+
 	while (errmon_err_status) {
-		if (errmon_err_status & 0x1) {
+		if (errmon_err_status & 0x1)
 			print_cbb_err(file, "\t  Error Code\t\t: %s\n",
 				tegra234_errmon_errors[err_type].errcode);
-			errmon_err_status >>= 1;
-			err_type++;
-		}
+		errmon_err_status >>= 1;
+		err_type++;
 	}
-	if (err_type > 1)
-		print_cbb_err(file, "\t  Multiple errors reported\n");
 
 	err_type = 0;
 	while (errmon_overflow_status) {
@@ -111,7 +111,7 @@ static void print_errlog_err(struct seq_file *file,
 	fabric_id = get_em_el_subfield(errmon->attr2, 20, 16);
 	slave_id = get_em_el_subfield(errmon->attr2, 7, 0);
 
-	mstr_id = get_em_el_subfield(errmon->user_bits, 29, 24)-1;
+	mstr_id = get_em_el_subfield(errmon->user_bits, 29, 24);
 	grpsec = get_em_el_subfield(errmon->user_bits, 17, 16);
 	vqc = get_em_el_subfield(errmon->user_bits, 14, 8);
 	falconsec = get_em_el_subfield(errmon->user_bits, 1, 0);
@@ -152,7 +152,7 @@ static void print_errmonX_info(
 	errmon->err_type = 0;
 
 	errmon_err_status = readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_ERR_STATUS_0);
+					FABRIC_MN_MASTER_ERR_STATUS_0);
 	if (!errmon_err_status) {
 		pr_err("Error Notifier received a spurious notification\n");
 		BUG();
@@ -160,13 +160,13 @@ static void print_errmonX_info(
 
 	/*get overflow flag*/
 	errmon_overflow_status = readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_ERR_OVERFLOW_STATUS_0);
+					FABRIC_MN_MASTER_ERR_OVERFLOW_STATUS_0);
 
 	print_errmon_err(file, errmon, errmon_err_status,
 					errmon_overflow_status);
 
 	errlog_err_status = readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_LOG_ERR_STATUS_0);
+					FABRIC_MN_MASTER_LOG_ERR_STATUS_0);
 	if (!errlog_err_status) {
 		pr_info("Error Monitor doesn't have Error Logger\n");
 		return;
@@ -175,25 +175,24 @@ static void print_errmonX_info(
 	while (errlog_err_status) {
 		if (errlog_err_status & 0x1) {
 			addr = readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_LOG_ADDR_HIGH_0);
+					FABRIC_MN_MASTER_LOG_ADDR_HIGH_0);
 			addr = (addr<<32) | readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_LOG_ADDR_LOW_0);
+					FABRIC_MN_MASTER_LOG_ADDR_LOW_0);
 			errmon->addr_access = (void __iomem *)addr;
 
 			errmon->attr0 = readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_LOG_ATTRIBUTES0_0);
+					FABRIC_MN_MASTER_LOG_ATTRIBUTES0_0);
 			errmon->attr1 = readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_LOG_ATTRIBUTES1_0);
+					FABRIC_MN_MASTER_LOG_ATTRIBUTES1_0);
 			errmon->attr2 = readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_LOG_ATTRIBUTES2_0);
+					FABRIC_MN_MASTER_LOG_ATTRIBUTES2_0);
 			errmon->user_bits = readl(errmon->addr_errmon+
-					ERRMOM_MN_MASTER_LOG_USER_BITS0_0);
+					FABRIC_MN_MASTER_LOG_USER_BITS0_0);
 
 			print_errlog_err(file, errmon);
-
-			errmon->err_type++;
-			errlog_err_status >>= 1;
 		}
+		errmon->err_type++;
+		errlog_err_status >>= 1;
 	}
 }
 
@@ -216,15 +215,15 @@ static void print_err_notifier(struct seq_file *file,
 		if (err_notifier_status & 0x1) {
 			writel(errmon_no, errmon->vaddr+
 					errmon->err_notifier_base+
-					MASTER_EN_CFG_ADDR_INDEX_0_0);
+					FABRIC_EN_CFG_ADDR_INDEX_0_0);
 
 			errmon_phys_addr = readl(errmon->vaddr+
 						errmon->err_notifier_base+
-						MASTER_EN_CFG_ADDR_HI_0);
+						FABRIC_EN_CFG_ADDR_HI_0);
 			errmon_phys_addr = (errmon_phys_addr<<32) |
 						readl(errmon->vaddr+
 						errmon->err_notifier_base+
-						MASTER_EN_CFG_ADDR_LOW_0);
+						FABRIC_EN_CFG_ADDR_LOW_0);
 
 			errmon_addr_offset = errmon_phys_addr - errmon->start;
 			errmon->addr_errmon = (void __iomem *)(errmon->vaddr+

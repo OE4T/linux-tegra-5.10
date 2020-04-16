@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -11,24 +11,24 @@
  * more details.
  */
 
-#define MASTER_EN_CFG_INTERRUPT_ENABLE_0_0	0x0
-#define MASTER_EN_CFG_STATUS_0_0		0x40
-#define MASTER_EN_CFG_ADDR_INDEX_0_0		0x60
-#define MASTER_EN_CFG_ADDR_LOW_0		0x80
-#define MASTER_EN_CFG_ADDR_HI_0			0x84
+#define FABRIC_EN_CFG_INTERRUPT_ENABLE_0_0		0x0
+#define FABRIC_EN_CFG_STATUS_0_0			0x40
+#define FABRIC_EN_CFG_ADDR_INDEX_0_0			0x60
+#define FABRIC_EN_CFG_ADDR_LOW_0			0x80
+#define FABRIC_EN_CFG_ADDR_HI_0				0x84
 
-#define ERRMOM_MN_MASTER_ERR_EN_0			0x200
-#define ERRMOM_MN_MASTER_ERR_FORCE_0			0x204
-#define ERRMOM_MN_MASTER_ERR_STATUS_0			0x208
-#define ERRMOM_MN_MASTER_ERR_OVERFLOW_STATUS_0		0x20c
+#define FABRIC_MN_MASTER_ERR_EN_0			0x200
+#define FABRIC_MN_MASTER_ERR_FORCE_0			0x204
+#define FABRIC_MN_MASTER_ERR_STATUS_0			0x208
+#define FABRIC_MN_MASTER_ERR_OVERFLOW_STATUS_0		0x20c
 
-#define ERRMOM_MN_MASTER_LOG_ERR_STATUS_0		0x300
-#define ERRMOM_MN_MASTER_LOG_ADDR_LOW_0			0x304
-#define ERRMOM_MN_MASTER_LOG_ADDR_HIGH_0		0x308
-#define ERRMOM_MN_MASTER_LOG_ATTRIBUTES0_0		0x30c
-#define ERRMOM_MN_MASTER_LOG_ATTRIBUTES1_0		0x310
-#define ERRMOM_MN_MASTER_LOG_ATTRIBUTES2_0		0x314
-#define ERRMOM_MN_MASTER_LOG_USER_BITS0_0		0x318
+#define FABRIC_MN_MASTER_LOG_ERR_STATUS_0		0x300
+#define FABRIC_MN_MASTER_LOG_ADDR_LOW_0			0x304
+#define FABRIC_MN_MASTER_LOG_ADDR_HIGH_0		0x308
+#define FABRIC_MN_MASTER_LOG_ATTRIBUTES0_0		0x30c
+#define FABRIC_MN_MASTER_LOG_ATTRIBUTES1_0		0x310
+#define FABRIC_MN_MASTER_LOG_ATTRIBUTES2_0		0x314
+#define FABRIC_MN_MASTER_LOG_USER_BITS0_0		0x318
 
 
 #define get_em_el_subfield(_x_, _msb_, _lsb_) CBB_EXTRACT(_x_, _msb_, _lsb_)
@@ -63,20 +63,31 @@ static struct tegra_noc_errors tegra234_errmon_errors[] = {
 };
 
 static char *t234_master_id[] = {
-	"CCPLEX",                               /* 0x1 */
-	"CCPLEX_DPMU",                          /* 0x2 */
-	"BPMP",                                 /* 0x3 */
-	"AON",                                  /* 0x4 */
-	"SCE",                                  /* 0x5 */
-	"GPCDMA_PERIPHERAL",                    /* 0x6 */
-	"TSECA",                                /* 0x7 */
-	"TSECB",                                /* 0x8 */
-	"JTAGM_DFT",                            /* 0x9 */
-	"CORESIGHT_AXIAP",                      /* 0xa */
-	"APE",                                  /* 0xb */
-	"PEATR",                                /* 0xc */
-	"NVDEC",                                /* 0xd */
-	"RCE",                                  /* 0xe */
-	"NVDEC1"                                /* 0xf */
+	"TZ",				/* 0x0  */
+	"CCPLEX",			/* 0x1  */
+	"CCPMU",			/* 0x2  */
+	"BPMP_FW",			/* 0x3  */
+	"AON",				/* 0x4  */
+	"SCE",				/* 0x5  */
+	"GPCDMA_P",			/* 0x6  */
+	"TSECA_NONSECURE",		/* 0x7  */
+	"TSECA_LIGHTSECURE",		/* 0x8  */
+	"TSECA_HEAVYSECURE",		/* 0x9  */
+	"CORESIGHT",			/* 0xA  */
+	"APE",				/* 0xB  */
+	"PEATRANS",			/* 0xC  */
+	"JTAGM_DFT",			/* 0xD  */
+	"RCE",				/* 0xE  */
+	"DCE",				/* 0xF  */
+	"PSC_FW_USER",			/* 0x10 */
+	"PSC_FW_SUPERVISOR",		/* 0x11 */
+	"PSC_FW_MACHINE",		/* 0x12 */
+	"PSC_BOOT",			/* 0x13 */
+	"BPMP_BOOT",			/* 0x14 */
+	"NVDEC_NONSECURE",		/* 0x15 */
+	"NVDEC_LIGHTSECURE",		/* 0x16 */
+	"NVDEC_HEAVYSECURE",		/* 0x17 */
+	"CBB_INTERNAL",			/* 0x18 */
+	"RSVD"				/* 0x3F */
 };
 
