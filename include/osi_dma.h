@@ -389,6 +389,8 @@ struct osi_dma_priv_data {
 	unsigned int tx_frames;
 	/** Flag which decides tx_frames is enabled(1) or disabled(0) */
 	unsigned int use_tx_frames;
+	/** Flag which decides virtualization is enabled(1) or disabled(0) */
+	unsigned int use_virtualization;
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical dma registers */
 	void *safety_config;
