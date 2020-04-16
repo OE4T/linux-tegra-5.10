@@ -33,7 +33,11 @@
 /* Remote wakeup filter */
 #define EQOS_RWK_FILTER_LENGTH		8
 #define ETHER_PRV_TS_IOCTL		(SIOCDEVPRIVATE + 1)
-
+/* TX/RX channel/queue count */
+#define EQOS_GET_TX_QCNT		23
+#define EQOS_GET_RX_QCNT		24
+/* Line speed */
+#define EQOS_GET_CONNECTED_SPEED	25
 /* private ioctl number*/
 #define ETHER_AVB_ALGORITHM		27
 /* L3/L4 filter */

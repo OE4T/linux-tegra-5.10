@@ -706,7 +706,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 			    struct ifreq *ifr)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct phy_device *phydev = ndev->phydev;
 	struct ether_ifr_data ifdata;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = -EOPNOTSUPP;
 
 	if (copy_from_user(&ifdata, ifr->ifr_data, sizeof(ifdata)) != 0U) {
@@ -740,6 +742,24 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	}
 
 	switch (ifdata.ifcmd) {
+	case EQOS_GET_TX_QCNT:
+		ifdata.qinx = osi_core->num_mtl_queues;
+		ret = 0;
+		break;
+	case EQOS_GET_RX_QCNT:
+		ifdata.qinx = osi_core->num_mtl_queues;
+		ret = 0;
+		break;
+	case EQOS_GET_CONNECTED_SPEED:
+		if (phydev != OSI_NULL) {
+			/* If phydev is not NULL, return phydev Speed */
+			ifdata.connected_speed =  phydev->speed;
+		} else {
+			/* If phydev is NULL, return pdata Speed */
+			ifdata.connected_speed =  pdata->speed;
+		}
+		ret = 0;
+		break;
 	case ETHER_AVB_ALGORITHM:
 		ret = ether_set_avb_algo(ndev, &ifdata);
 		break;
