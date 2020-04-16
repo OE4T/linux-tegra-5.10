@@ -611,11 +611,14 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	/* FBE - Fatal Bus Error Enable */
 	value = osi_readl((unsigned char *)osi_dma->base +
 			  EQOS_DMA_CHX_INTR_ENA(chan));
-	value |= EQOS_DMA_CHX_INTR_TIE | EQOS_DMA_CHX_INTR_TBUE |
-		 EQOS_DMA_CHX_INTR_RIE | EQOS_DMA_CHX_INTR_RBUE |
+	if (!osi_dma->use_virtualization) {
+		value |= EQOS_DMA_CHX_INTR_TBUE |
+			 EQOS_DMA_CHX_INTR_RBUE;
+	}
+
+	value |= EQOS_DMA_CHX_INTR_TIE | EQOS_DMA_CHX_INTR_RIE |
 		 EQOS_DMA_CHX_INTR_FBEE | EQOS_DMA_CHX_INTR_AIE |
 		 EQOS_DMA_CHX_INTR_NIE;
-
 	/* For multi-irqs to work nie needs to be disabled */
 	value &= ~(EQOS_DMA_CHX_INTR_NIE);
 	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
