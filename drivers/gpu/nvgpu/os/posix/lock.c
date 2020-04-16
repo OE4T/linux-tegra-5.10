@@ -47,14 +47,12 @@ int nvgpu_mutex_tryacquire(struct nvgpu_mutex *mutex)
 
 void nvgpu_mutex_destroy(struct nvgpu_mutex *mutex)
 {
-#ifndef CONFIG_NVGPU_NON_FUSA
 	int err = pthread_mutex_destroy(&mutex->lock.mutex);
 	if (err != 0) {
 		nvgpu_info(NULL, "Mutex destroy error %d", err);
 	}
+#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#else
-	(void) pthread_mutex_destroy(&mutex->lock.mutex);
 #endif
 }
 

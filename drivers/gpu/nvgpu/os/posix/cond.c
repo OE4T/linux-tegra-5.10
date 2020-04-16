@@ -159,14 +159,12 @@ void nvgpu_cond_destroy(struct nvgpu_cond *cond)
 	if (cond == NULL) {
 		BUG();
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	err = pthread_cond_destroy(&cond->cond);
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_cond_destroy error = %d", err);
 	}
+#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#else
-	(void) pthread_cond_destroy(&cond->cond);
 #endif
 	nvgpu_mutex_destroy(&cond->mutex);
 	err = pthread_condattr_destroy(&cond->attr);
