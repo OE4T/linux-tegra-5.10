@@ -48,6 +48,26 @@
 #define BR4_MODE 4
 #define BR8_MODE 8
 
+/* BANDWIDTH LATENCY COMPONENTS */
+#define SMMU_DISRUPTION_DRAM_CLK_LP4 6003
+#define SMMU_DISRUPTION_DRAM_CLK_LP5 9005
+#define RING0_DISRUPTION_MC_CLK_LP4 63
+#define RING0_DISRUPTION_MC_CLK_LP5 63
+#define HUM_DISRUPTION_DRAM_CLK_LP4 1247
+#define HUM_DISRUPTION_DRAM_CLK_LP5 4768
+#define HUM_DISRUPTION_NS_LP4 1406
+#define HUM_DISRUPTION_NS_LP5 1707
+#define EXPIRED_ISO_DRAM_CLK_LP4 424
+#define EXPIRED_ISO_DRAM_CLK_LP5 792
+#define EXPIRED_ISO_NS_LP4 279
+#define EXPIRED_ISO_NS_LP5 279
+#define REFRESH_RATE_LP4 176
+#define REFRESH_RATE_LP5 226
+#define PERIODIC_TRAINING_LP4 380
+#define PERIODIC_TRAINING_LP5 380
+#define CALIBRATION_LP4 30
+#define CALIBRATION_LP5 30
+
 struct emc_params {
 	u32 rank;
 	u32 ecc;
@@ -115,6 +135,54 @@ unsigned long dram_clk_to_mc_clk(unsigned long dram_clk)
 	return mc_clk;
 }
 EXPORT_SYMBOL_GPL(dram_clk_to_mc_clk);
+
+unsigned long bw_disruption_latency(unsigned long dram_freq,
+				    unsigned long mc_freq,
+				    u32 dram)
+{
+	unsigned long smmu_disruption, ring0_disruption, hum_disruption,
+		      exprired_iso, refresh, periodic_training, calibration,
+		      total_bw_disruption_latency;
+
+	if (dram == DRAM_LPDDR4) {
+		smmu_disruption = ((SMMU_DISRUPTION_DRAM_CLK_LP4 * 1000) + dram_freq - 1)
+				  / dram_freq;
+		ring0_disruption = ((RING0_DISRUPTION_MC_CLK_LP4 * 1000) + mc_freq - 1)
+				   / mc_freq;
+		hum_disruption = (((HUM_DISRUPTION_DRAM_CLK_LP4 * 1000) + dram_freq - 1)
+				 / dram_freq) + HUM_DISRUPTION_NS_LP4;
+		exprired_iso = (((EXPIRED_ISO_DRAM_CLK_LP4 * 1000) + dram_freq - 1)
+			       / dram_freq) + EXPIRED_ISO_NS_LP4;
+		refresh = REFRESH_RATE_LP4;
+		periodic_training = PERIODIC_TRAINING_LP4;
+		calibration = CALIBRATION_LP4;
+	} else if (dram == DRAM_LPDDR5) {
+		smmu_disruption = ((SMMU_DISRUPTION_DRAM_CLK_LP5 * 1000) + dram_freq - 1)
+				  / dram_freq;
+		ring0_disruption = ((RING0_DISRUPTION_MC_CLK_LP5 * 1000) + mc_freq - 1)
+				   / mc_freq;
+		hum_disruption = (((HUM_DISRUPTION_DRAM_CLK_LP5 * 1000) + dram_freq - 1)
+				 / dram_freq) + HUM_DISRUPTION_NS_LP5;
+		exprired_iso = (((EXPIRED_ISO_DRAM_CLK_LP5 * 1000) + dram_freq - 1)
+			       / dram_freq) + EXPIRED_ISO_NS_LP5;
+		refresh = REFRESH_RATE_LP5;
+		periodic_training = PERIODIC_TRAINING_LP5;
+		calibration = CALIBRATION_LP5;
+	} else {
+		pr_err("Unknown frequency configuration\n");
+		return 0;
+	}
+
+	total_bw_disruption_latency = smmu_disruption +
+				      ring0_disruption +
+				      hum_disruption +
+				      exprired_iso +
+				      refresh +
+				      periodic_training +
+				      calibration;
+	return total_bw_disruption_latency;
+}
+EXPORT_SYMBOL_GPL(bw_disruption_latency);
 
 enum dram_types tegra_dram_types(void)
 {
