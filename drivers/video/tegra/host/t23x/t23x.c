@@ -256,7 +256,7 @@ struct nvhost_device_data t23x_isp5_info = {
 
 #if defined(CONFIG_TEGRA_GRHOST_NVENC)
 struct nvhost_device_data t23x_msenc_info = {
-	.version		= NVHOST_ENCODE_FLCN_VER(7, 0),
+	.version		= NVHOST_ENCODE_FLCN_VER(8, 0),
 	.devfs_name		= "msenc",
 	.class			= NV_VIDEO_ENCODE_NVENC_CLASS_ID,
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVENC},
@@ -271,7 +271,7 @@ struct nvhost_device_data t23x_msenc_info = {
 	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.moduleid		= NVHOST_MODULE_MSENC,
 	.num_channels		= 1,
-	.firmware_name		= "nvhost_nvenc070.fw",
+	.firmware_name		= "nvhost_nvenc080.fw",
 	.serialize		= true,
 	.push_work_done		= true,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,

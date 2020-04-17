@@ -108,7 +108,7 @@ static struct nvhost_gating_register __attribute__((__unused__))
 	/* NV_PNVDEC_FALCON_CGCTL */
 	{ .addr = 0x000010a0, .prod = 0x00000000, .disable = 0x00000001 },
 	/* NV_PNVDEC_TFBIF_MCCIF_FIFOCTRL */
-	{ .addr = 0x00002c04, .prod = 0x00000000, .disable = 0x00000000 },
+	{ .addr = 0x00004e04, .prod = 0x00000000, .disable = 0x00000000 },
 	/* NV_PNVDEC_FALCON_CG2 */
 	{ .addr = 0x00001134, .prod = 0x00010004, .disable = 0x0003fffe },
 	/* NV_PNVDEC_CG2 */
@@ -116,7 +116,7 @@ static struct nvhost_gating_register __attribute__((__unused__))
 	/* NV_PNVDEC_CG3 */
 	{ .addr = 0x0000232c, .prod = 0x00800000, .disable = 0xffffffff },
 	/* NV_PNVDEC_CG4 */
-	{ .addr = 0x00002330, .prod = 0xffff000e, .disable = 0xffffffff },
+	{ .addr = 0x00002950, .prod = 0xffff000e, .disable = 0xffffffff },
 	/* NV_PNVDEC_SLCG_GIP_THROTTLE */
 	{ .addr = 0x00002340, .prod = 0x006db6db, .disable = 0x00ffffff },
 	{}
