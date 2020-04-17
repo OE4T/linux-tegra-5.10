@@ -1586,6 +1586,313 @@ static int mgbe_config_rxcsum_offload(
 }
 
 /**
+ * @brief mgbe_config_frp - Enable/Disale RX Flexible Receive Parser in HW
+ *
+ * Algorithm:
+ *      1) Read the MTL OP Mode configuration register.
+ *      2) Enable/Disable FRPE bit based on the input.
+ *      3) Write the MTL OP Mode configuration register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_config_frp(struct osi_core_priv_data *const osi_core,
+			   const unsigned int enabled)
+{
+	unsigned char *base = osi_core->base;
+	unsigned int op_mode = 0U, val = 0U;
+	int ret = -1;
+
+	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid enable input\n",
+			enabled);
+		return -1;
+	}
+
+	op_mode = osi_readl(base + MGBE_MTL_OP_MODE);
+	if (enabled == OSI_ENABLE) {
+		/* Set FRPE bit of MTL_Operation_Mode register */
+		op_mode |= MGBE_MTL_OP_MODE_FRPE;
+		osi_writel(op_mode, base + MGBE_MTL_OP_MODE);
+
+		/* Verify RXPI bit set in MTL_RXP_Control_Status */
+		ret = osi_readl_poll_timeout((base + MGBE_MTL_RXP_CS),
+					     (osi_core->osd_ops.udelay),
+					     (val),
+					     ((val & MGBE_MTL_RXP_CS_RXPI) ==
+					      MGBE_MTL_RXP_CS_RXPI),
+					     (MGBE_MTL_FRP_READ_UDELAY),
+					     (MGBE_MTL_FRP_READ_RETRY));
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				"Fail to enable FRP\n",
+				val);
+			return -1;
+		}
+
+		/* Enable FRP Interrupts in MTL_RXP_Interrupt_Control_Status */
+		val = osi_readl(base + MGBE_MTL_RXP_INTR_CS);
+		val |= (MGBE_MTL_RXP_INTR_CS_NVEOVIE |
+			MGBE_MTL_RXP_INTR_CS_NPEOVIE |
+			MGBE_MTL_RXP_INTR_CS_FOOVIE |
+			MGBE_MTL_RXP_INTR_CS_PDRFIE);
+		osi_writel(val, base + MGBE_MTL_RXP_INTR_CS);
+	} else {
+		/* Reset FRPE bit of MTL_Operation_Mode register */
+		op_mode &= ~MGBE_MTL_OP_MODE_FRPE;
+		osi_writel(op_mode, base + MGBE_MTL_OP_MODE);
+
+		/* Verify RXPI bit reset in MTL_RXP_Control_Status */
+		ret = osi_readl_poll_timeout((base + MGBE_MTL_RXP_CS),
+					     (osi_core->osd_ops.udelay),
+					     (val),
+					     ((val & MGBE_MTL_RXP_CS_RXPI) ==
+					      OSI_NONE),
+					     (MGBE_MTL_FRP_READ_UDELAY),
+					     (MGBE_MTL_FRP_READ_RETRY));
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				"Fail to disable FRP\n",
+				val);
+			return -1;
+		}
+
+		/* Disable FRP Interrupts in MTL_RXP_Interrupt_Control_Status */
+		val = osi_readl(base + MGBE_MTL_RXP_INTR_CS);
+		val &= ~(MGBE_MTL_RXP_INTR_CS_NVEOVIE |
+			 MGBE_MTL_RXP_INTR_CS_NPEOVIE |
+			 MGBE_MTL_RXP_INTR_CS_FOOVIE |
+			 MGBE_MTL_RXP_INTR_CS_PDRFIE);
+		osi_writel(val, base + MGBE_MTL_RXP_INTR_CS);
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_frp_write - Write FRP entry into HW
+ *
+ * Algorithm: This function will write FRP entry registers into HW.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] acc_sel: FRP Indirect Access Selection.
+ *		       0x0 : Access FRP Instruction Table.
+ *		       0x1 : Access Indirect FRP Register block.
+ * @param[in] addr: FRP register address.
+ * @param[in] data: FRP register data.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_frp_write(struct osi_core_priv_data *osi_core,
+			  unsigned int acc_sel,
+			  unsigned int addr,
+			  unsigned int data)
+{
+	int ret = 0;
+	unsigned char *base = osi_core->base;
+	unsigned int val = 0U;
+
+	if (acc_sel != OSI_ENABLE && acc_sel != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid acc_sel argment\n",
+			acc_sel);
+		return -1;
+	}
+
+	/* Wait for ready */
+	ret = osi_readl_poll_timeout((base + MGBE_MTL_RXP_IND_CS),
+				     (osi_core->osd_ops.udelay),
+				     (val),
+				     ((val & MGBE_MTL_RXP_IND_CS_BUSY) ==
+				      OSI_NONE),
+				     (MGBE_MTL_FRP_READ_UDELAY),
+				     (MGBE_MTL_FRP_READ_RETRY));
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"Fail to write\n",
+			val);
+		return -1;
+	}
+
+	/* Write data into MTL_RXP_Indirect_Acc_Data */
+	osi_writel(data, base + MGBE_MTL_RXP_IND_DATA);
+
+	/* Program MTL_RXP_Indirect_Acc_Control_Status */
+	val = osi_readl(base + MGBE_MTL_RXP_IND_CS);
+	/* Set/Reset ACCSEL for FRP Register block/Instruction Table */
+	if (acc_sel == OSI_ENABLE) {
+		/* Set ACCSEL bit */
+		val |= MGBE_MTL_RXP_IND_CS_ACCSEL;
+	} else {
+		/* Reset ACCSEL bit */
+		val &= ~MGBE_MTL_RXP_IND_CS_ACCSEL;
+	}
+	/* Set WRRDN for write */
+	val |= MGBE_MTL_RXP_IND_CS_WRRDN;
+	/* Clear and add ADDR */
+	val &= ~MGBE_MTL_RXP_IND_CS_ADDR;
+	val |= (addr & MGBE_MTL_RXP_IND_CS_ADDR);
+	/* Start write */
+	val |= MGBE_MTL_RXP_IND_CS_BUSY;
+	osi_writel(val, base + MGBE_MTL_RXP_IND_CS);
+
+	/* Wait for complete */
+	ret = osi_readl_poll_timeout((base + MGBE_MTL_RXP_IND_CS),
+				     (osi_core->osd_ops.udelay),
+				     (val),
+				     ((val & MGBE_MTL_RXP_IND_CS_BUSY) ==
+				      OSI_NONE),
+				     (MGBE_MTL_FRP_READ_UDELAY),
+				     (MGBE_MTL_FRP_READ_RETRY));
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"Fail to write\n",
+			val);
+		return -1;
+	}
+
+	return ret;
+}
+
+/**
+ * @brief mgbe_update_frp_entry - Update FRP Instruction Table entry in HW
+ *
+ * Algorithm:
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] pos: FRP Instruction Table entry location.
+ * @param[in] data: FRP entry data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_update_frp_entry(struct osi_core_priv_data *const osi_core,
+				 const unsigned int pos,
+				 struct osi_core_frp_data *const data)
+{
+	unsigned int val = 0U, tmp = 0U;
+	int ret = -1;
+
+	/* Validate pos value */
+	if (pos >= OSI_FRP_MAX_ENTRY) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid FRP table entry\n",
+			pos);
+		return -1;
+	}
+
+	/** Write Match Data into IE0 **/
+	val = data->match_data;
+	ret = mgbe_frp_write(osi_core, OSI_DISABLE, MGBE_MTL_FRP_IE0(pos), val);
+	if (ret < 0) {
+		/* Match Data Write fail */
+		return -1;
+	}
+
+	/** Write Match Enable into IE1 **/
+	val = data->match_en;
+	ret = mgbe_frp_write(osi_core, OSI_DISABLE, MGBE_MTL_FRP_IE1(pos), val);
+	if (ret < 0) {
+		/* Match Enable Write fail */
+		return -1;
+	}
+
+	/** Write AF, RF, IM, NIC, FO and OKI into IE2 **/
+	val = 0;
+	if (data->accept_frame == OSI_ENABLE) {
+		/* Set AF Bit */
+		val |= MGBE_MTL_FRP_IE2_AF;
+	}
+	if (data->reject_frame == OSI_ENABLE) {
+		/* Set RF Bit */
+		val |= MGBE_MTL_FRP_IE2_RF;
+	}
+	if (data->inverse_match == OSI_ENABLE) {
+		/* Set IM Bit */
+		val |= MGBE_MTL_FRP_IE2_IM;
+	}
+	if (data->next_ins_ctrl == OSI_ENABLE) {
+		/* Set NIC Bit */
+		val |= MGBE_MTL_FRP_IE2_NC;
+	}
+	tmp = data->frame_offset;
+	val |= ((tmp << MGBE_MTL_FRP_IE2_FO_SHIFT) & MGBE_MTL_FRP_IE2_FO);
+	tmp = data->ok_index;
+	val |= ((tmp << MGBE_MTL_FRP_IE2_OKI_SHIFT) & MGBE_MTL_FRP_IE2_OKI);
+	tmp = data->dma_chsel;
+	val |= ((tmp << MGBE_MTL_FRP_IE2_DCH_SHIFT) & MGBE_MTL_FRP_IE2_DCH);
+	ret = mgbe_frp_write(osi_core, OSI_DISABLE, MGBE_MTL_FRP_IE2(pos), val);
+	if (ret < 0) {
+		/* FRP IE2 Write fail */
+		return -1;
+	}
+
+	/** Write DCH into IE3 **/
+	/* TODO: The DCH position will be updated in the final RTL.
+	 * We need to update this on the final RTL.
+	 */
+	tmp = (data->dma_chsel >> MGBE_MTL_FRP_IE3_DCH_SHIFT);
+	val = (tmp & MGBE_MTL_FRP_IE3_DCH_MASK);
+	ret = mgbe_frp_write(osi_core, OSI_DISABLE, MGBE_MTL_FRP_IE3(pos), val);
+	if (ret < 0) {
+		/* DCH Write fail */
+		return -1;
+	}
+
+	return ret;
+}
+
+/**
+ * @brief mgbe_update_frp_nve - Update FRP NVE into HW
+ *
+ * Algorithm:
+ *
+ * @param[in] addr: MGBE virtual base address.
+ * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_update_frp_nve(struct osi_core_priv_data *const osi_core,
+			       const unsigned int nve)
+{
+	unsigned int val;
+	unsigned char *base = osi_core->base;
+
+	/* Validate the NVE value */
+	if (nve >= OSI_FRP_MAX_ENTRY) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid NVE value\n",
+			nve);
+		return -1;
+	}
+
+	/* Update NVE and NPE in MTL_RXP_Control_Status register */
+	val = osi_readl(base + MGBE_MTL_RXP_CS);
+	/* Clear old NVE and NPE */
+	val &= ~(MGBE_MTL_RXP_CS_NVE | MGBE_MTL_RXP_CS_NPE);
+	/* Add new NVE and NPE */
+	val |= (nve & MGBE_MTL_RXP_CS_NVE);
+	val |= ((nve << MGBE_MTL_RXP_CS_NPE_SHIFT) & MGBE_MTL_RXP_CS_NPE);
+	osi_writel(val, base + MGBE_MTL_RXP_CS);
+
+	return 0;
+}
+
+/**
  * @brief update_rfa_rfd - Update RFD and RSA values
  *
  * Algorithm: Calulates and stores the RSD (Threshold for Dectivating
@@ -1984,7 +2291,7 @@ static int mgbe_config_flow_control(struct osi_core_priv_data *const osi_core,
  */
 static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 {
-	nveu32_t value;
+	unsigned int value = 0U, max_queue = 0U, i = 0U;
 
 	/* Update MAC address 0 high */
 	value = (((nveu32_t)osi_core->mac_addr[5] << 8U) |
@@ -2032,11 +2339,19 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	}
 	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_TMCR);
 
-	/* Enable Multicast and Broadcast Queue, default is Q1 */
+	/* Enable Multicast and Broadcast Queue */
 	value = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_RQC1R);
 	value |= MGBE_MAC_RQC1R_MCBCQEN;
-	/* Routing Multicast and Broadcast to Q1 */
-	value |= MGBE_MAC_RQC1R_MCBCQ1;
+	/* Set MCBCQ to highest enabled RX queue index */
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		if ((max_queue < osi_core->mtl_queues[i]) &&
+		    (osi_core->mtl_queues[i] < OSI_MGBE_MAX_NUM_QUEUES)) {
+			/* Update max queue number */
+			max_queue = osi_core->mtl_queues[i];
+		}
+	}
+	value &= ~(MGBE_MAC_RQC1R_MCBCQ);
+	value |= (max_queue << MGBE_MAC_RQC1R_MCBCQ_SHIFT);
 	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_RQC1R);
 
 	/* Disable all MMC nve32_terrupts */
@@ -3095,7 +3410,7 @@ static int mgbe_set_speed(struct osi_core_priv_data *const osi_core, const int s
 
 	if (xpcs_init(osi_core) < 0) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			     "xpcs_init failed\n");
+			     "xpcs_init failed\n", OSI_NONE);
 		return -1;
 	}
 
@@ -3890,6 +4205,7 @@ static int mgbe_get_hw_features(struct osi_core_priv_data *osi_core,
 	unsigned int mac_hfr1 = 0;
 	unsigned int mac_hfr2 = 0;
 	unsigned int mac_hfr3 = 0;
+	unsigned int val = 0;
 
 	mac_hfr0 = osi_readl(base + MGBE_MAC_HFR0);
 	mac_hfr1 = osi_readl(base + MGBE_MAC_HFR1);
@@ -3995,10 +4311,36 @@ static int mgbe_get_hw_features(struct osi_core_priv_data *osi_core,
 			    MGBE_MAC_HFR3_FRPPIPE_MASK);
 	hw_feat->ost_over_udp = ((mac_hfr3 >> MGBE_MAC_HFR3_POUOST_SHIFT) &
 				MGBE_MAC_HFR3_POUOST_MASK);
-	hw_feat->max_frp_bytes = ((mac_hfr3 >> MGBE_MAC_HFR3_FRPPB_SHIFT) &
-				MGBE_MAC_HFR3_FRPPB_MASK);
-	hw_feat->max_frp_entries = ((mac_hfr3 >> MGBE_MAC_HFR3_FRPES_SHIFT) &
-				    MGBE_MAC_HFR3_FRPES_MASK);
+
+	val = ((mac_hfr3 >> MGBE_MAC_HFR3_FRPPB_SHIFT) &
+		MGBE_MAC_HFR3_FRPPB_MASK);
+	switch (val) {
+	case MGBE_MAC_FRPPB_64:
+		hw_feat->max_frp_bytes = MGBE_MAC_FRP_BYTES64;
+		break;
+	case MGBE_MAC_FRPPB_128:
+		hw_feat->max_frp_bytes = MGBE_MAC_FRP_BYTES128;
+		break;
+	case MGBE_MAC_FRPPB_256:
+	default:
+		hw_feat->max_frp_bytes = MGBE_MAC_FRP_BYTES256;
+		break;
+	}
+	val = ((mac_hfr3 >> MGBE_MAC_HFR3_FRPES_SHIFT) &
+	       MGBE_MAC_HFR3_FRPES_MASK);
+	switch (val) {
+	case MGBE_MAC_FRPES_64:
+		hw_feat->max_frp_entries = MGBE_MAC_FRP_BYTES64;
+		break;
+	case MGBE_MAC_FRPES_128:
+		hw_feat->max_frp_entries = MGBE_MAC_FRP_BYTES128;
+		break;
+	case MGBE_MAC_FRPES_256:
+	default:
+		hw_feat->max_frp_entries = MGBE_MAC_FRP_BYTES256;
+		break;
+	}
+
 	hw_feat->double_vlan_en = ((mac_hfr3 >> MGBE_MAC_HFR3_DVLAN_SHIFT) &
 				   MGBE_MAC_HFR3_DVLAN_MASK);
 	hw_feat->auto_safety_pkg = ((mac_hfr3 >> MGBE_MAC_HFR3_ASP_SHIFT) &
@@ -4490,4 +4832,7 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_rss = mgbe_config_rss;
 	ops->hw_config_est = mgbe_hw_config_est;
 	ops->hw_config_fpe = mgbe_hw_config_fpe;
+	ops->config_frp = mgbe_config_frp;
+	ops->update_frp_entry = mgbe_update_frp_entry;
+	ops->update_frp_nve = mgbe_update_frp_nve;
 };

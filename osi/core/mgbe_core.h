@@ -232,8 +232,90 @@
 #define MGBE_MTL_RXQ_FLOW_CTRL(x)	((0x0080U * (x)) + 0x1150U)
 #define MGBE_MTL_TC_PRTY_MAP0		0x1040
 #define MGBE_MTL_TC_PRTY_MAP1		0x1044
+#define MGBE_MTL_RXP_CS			0x10A0
+#define MGBE_MTL_RXP_INTR_CS		0x10A4
+#define MGBE_MTL_RXP_IND_CS		0x10B0
+#define MGBE_MTL_RXP_IND_DATA		0x10B4
 /** @} */
 
+/**
+ * @addtogroup MGBE-MTL FRP Indirect Access register defines
+ *
+ * @brief MGBE MTL register offsets
+ * @{
+ */
+#define MGBE_MTL_FRP_READ_UDELAY		1U
+#define MGBE_MTL_FRP_READ_RETRY			1000U
+
+#define MGBE_MTL_OP_MODE_FRPE			OSI_BIT(15)
+/* FRP Control and Status register defines */
+#define MGBE_MTL_RXP_CS_RXPI			OSI_BIT(31)
+#define MGBE_MTL_RXP_CS_PIPE			(OSI_BIT(30) | OSI_BIT(29) | \
+						 OSI_BIT(28))
+#define MGBE_MTL_RXP_CS_NPE			(OSI_BIT(23) | OSI_BIT(22) | \
+						 OSI_BIT(21) | OSI_BIT(20) | \
+						 OSI_BIT(19) | OSI_BIT(18) | \
+						 OSI_BIT(17) | OSI_BIT(16))
+#define MGBE_MTL_RXP_CS_NPE_SHIFT		16U
+#define MGBE_MTL_RXP_CS_FPE_RCH			(OSI_BIT(15) | OSI_BIT(14) | \
+						 OSI_BIT(13) | OSI_BIT(12))
+#define MGBE_MTL_RXP_CS_NVE			(OSI_BIT(7) | OSI_BIT(6) | \
+						 OSI_BIT(5) | OSI_BIT(4) | \
+						 OSI_BIT(3) | OSI_BIT(2) | \
+						 OSI_BIT(1) | OSI_BIT(0))
+/* FRP Interrupt Control and Status register */
+#define MGBE_MTL_RXP_INTR_CS_PDRFIE		OSI_BIT(19)
+#define MGBE_MTL_RXP_INTR_CS_FOOVIE		OSI_BIT(18)
+#define MGBE_MTL_RXP_INTR_CS_NPEOVIE		OSI_BIT(17)
+#define MGBE_MTL_RXP_INTR_CS_NVEOVIE		OSI_BIT(16)
+#define MGBE_MTL_RXP_INTR_CS_PDRFIS		OSI_BIT(3)
+#define MGBE_MTL_RXP_INTR_CS_FOOVIS		OSI_BIT(2)
+#define MGBE_MTL_RXP_INTR_CS_NPEOVIS		OSI_BIT(1)
+#define MGBE_MTL_RXP_INTR_CS_NVEOVIS		OSI_BIT(0)
+/* Indirect Instruction Table defines */
+#define MGBE_MTL_FRP_IE0(x)			((x) * 0x4U + 0x0U)
+#define MGBE_MTL_FRP_IE1(x)			((x) * 0x4U + 0x1U)
+#define MGBE_MTL_FRP_IE2(x)			((x) * 0x4U + 0x2U)
+#define MGBE_MTL_FRP_IE3(x)			((x) * 0x4U + 0x3U)
+#define MGBE_MTL_FRP_IE2_DCH			(OSI_BIT(31) | OSI_BIT(30) | \
+						 OSI_BIT(29) | OSI_BIT(28) | \
+						 OSI_BIT(27) | OSI_BIT(26) | \
+						 OSI_BIT(25) | OSI_BIT(24))
+#define MGBE_MTL_FRP_IE2_DCH_SHIFT		24U
+#define MGBE_MTL_FRP_IE2_DCH_MASK		0xFFU
+#define MGBE_MTL_FRP_IE2_OKI			(OSI_BIT(23) | OSI_BIT(22) | \
+						 OSI_BIT(21) | OSI_BIT(20) | \
+						 OSI_BIT(19) | OSI_BIT(18) | \
+						 OSI_BIT(17) | OSI_BIT(16))
+#define MGBE_MTL_FRP_IE2_OKI_SHIFT		16U
+#define MGBE_MTL_FRP_IE2_FO			(OSI_BIT(13) | OSI_BIT(12) | \
+						 OSI_BIT(11) | OSI_BIT(10) | \
+						 OSI_BIT(9) | OSI_BIT(8))
+#define MGBE_MTL_FRP_IE2_FO_SHIFT		8U
+#define MGBE_MTL_FRP_IE2_NC			OSI_BIT(3)
+#define MGBE_MTL_FRP_IE2_IM			OSI_BIT(2)
+#define MGBE_MTL_FRP_IE2_RF			OSI_BIT(1)
+#define MGBE_MTL_FRP_IE2_AF			OSI_BIT(0)
+#define MGBE_MTL_FRP_IE3_DCH_SHIFT		8U
+#define MGBE_MTL_FRP_IE3_DCH_MASK		0xFFFFU
+/* Indirect register defines */
+#define MGBE_MTL_RXP_DROP_CNT			0U
+#define MGBE_MTL_RXP_ERROR_CNT			1U
+#define MGBE_MTL_RXP_BYPASS_CNT			2U
+#define MGBE_MTL_RXP_ACCEPT_CNT(x)		((0x10 * (x)) + 0x40)
+#define MGBE_MTL_RXP_IND_CS_BUSY		OSI_BIT(31)
+#define MGBE_MTL_RXP_IND_CS_ACCSEL		OSI_BIT(24)
+#define MGBE_MTL_RXP_IND_CS_RXPEIEC		(OSI_BIT(22) | OSI_BIT(21))
+#define MGBE_MTL_RXP_IND_CS_RXPEIEE		OSI_BIT(20)
+#define MGBE_MTL_RXP_IND_CS_CRWEN		OSI_BIT(18)
+#define MGBE_MTL_RXP_IND_CS_CRWSEL		OSI_BIT(17)
+#define MGBE_MTL_RXP_IND_CS_WRRDN		OSI_BIT(16)
+#define MGBE_MTL_RXP_IND_CS_ADDR		(OSI_BIT(9) | OSI_BIT(8) | \
+						 OSI_BIT(7) | OSI_BIT(6) | \
+						 OSI_BIT(5) | OSI_BIT(4) | \
+						 OSI_BIT(3) | OSI_BIT(2) | \
+						 OSI_BIT(1) | OSI_BIT(0))
+/** @} */
 
 /**
  * @addtogroup HW Register BIT values
@@ -299,7 +381,10 @@
 #define MGBE_MAC_RQC1R_TPQC0			OSI_BIT(21)
 #define MGBE_MAC_RQC1R_OMCBCQ			OSI_BIT(20)
 #define MGBE_MAC_RQC1R_MCBCQEN			OSI_BIT(15)
-#define MGBE_MAC_RQC1R_MCBCQ1			OSI_BIT(8)
+#define MGBE_MAC_RQC1R_MCBCQ			(OSI_BIT(11) | OSI_BIT(10) | \
+						 OSI_BIT(9) | OSI_BIT(8))
+#define MGBE_MAC_RQC1R_MCBCQ_SHIFT		8U
+#define MGBE_MAC_RQC1R_MCBCQ_DEFAULT		9U
 #define MGBE_MAC_RQC1R_RQ			(OSI_BIT(7) | OSI_BIT(6) | \
 						 OSI_BIT(5) | OSI_BIT(4))
 #define MGBE_MAC_RQC1R_RQ_SHIFT			4U
@@ -847,5 +932,17 @@
 
 #define MGBE_MAC_HFR3_TBS_CH_MASK	0xFU
 #define MGBE_MAC_HFR3_TBS_CH_SHIFT	28U
+
+/* FRP defines */
+#define MGBE_MAC_FRPPB_64		0U
+#define MGBE_MAC_FRPPB_128		1U
+#define MGBE_MAC_FRPPB_256		2U
+#define MGBE_MAC_FRPES_64		0U
+#define MGBE_MAC_FRPES_128		1U
+#define MGBE_MAC_FRPES_256		2U
+
+#define MGBE_MAC_FRP_BYTES64		64U
+#define MGBE_MAC_FRP_BYTES128		128U
+#define MGBE_MAC_FRP_BYTES256		256U
 /** @} */
 #endif /* MGBE_CORE_H_ */
