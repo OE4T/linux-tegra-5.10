@@ -1,7 +1,7 @@
 /*
  * Top level DTS file for CVM:P2888-0006 and CVB:E3366-1199
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,11 +32,19 @@
 
 	compatible = "nvidia,galen-0006", "nvidia,tegra194";
 
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+	bpmp { i2c {
+#else
 	bpmp_i2c {
+#endif
 		tegra_tmp451: temp-sensor@4c {
 			vdd-supply = <&e3366_vdd_1v8_slt>;
 		};
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+	}; };
+#else
 	};
+#endif
 
 	chosen {
 		bootargs ="console=ttyTCU0,115200";
