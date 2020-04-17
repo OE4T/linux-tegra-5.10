@@ -369,7 +369,7 @@ int test_gv11b_pbdma_config_userd_writeback_enable(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 
-	unit_assert(gv11b_pbdma_config_userd_writeback_enable() ==
+	unit_assert(gv11b_pbdma_config_userd_writeback_enable(0U) ==
 		pbdma_config_userd_writeback_enable_f(), goto done);
 
 	ret = UNIT_SUCCESS;

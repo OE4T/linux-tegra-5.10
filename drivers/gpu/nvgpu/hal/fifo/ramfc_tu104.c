@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -83,7 +83,7 @@ int tu104_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 
 	/* Enable userd writeback */
 	data = nvgpu_mem_rd32(g, mem, ram_fc_config_w());
-	data = data | g->ops.pbdma.config_userd_writeback_enable();
+	data = g->ops.pbdma.config_userd_writeback_enable(data);
 	nvgpu_mem_wr32(g, mem, ram_fc_config_w(), data);
 
 	return g->ops.ramfc.commit_userd(ch);

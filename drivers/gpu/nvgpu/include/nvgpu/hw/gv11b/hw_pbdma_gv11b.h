@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -160,6 +160,7 @@
 #define pbdma_config_ce_split_disable_f()                                (0x10U)
 #define pbdma_config_auth_level_non_privileged_f()                        (0x0U)
 #define pbdma_config_auth_level_privileged_f()                          (0x100U)
+#define pbdma_config_userd_writeback_m()                      (U32(0x1U) << 12U)
 #define pbdma_config_userd_writeback_disable_f()                          (0x0U)
 #define pbdma_config_userd_writeback_enable_f()                        (0x1000U)
 #define pbdma_userd_hi_r(i)\

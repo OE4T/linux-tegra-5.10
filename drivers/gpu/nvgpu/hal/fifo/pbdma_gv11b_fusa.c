@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -275,8 +275,9 @@ u32 gv11b_pbdma_set_channel_info_veid(u32 subctx_id)
 	return pbdma_set_channel_info_veid_f(subctx_id);
 }
 
-u32 gv11b_pbdma_config_userd_writeback_enable(void)
+u32 gv11b_pbdma_config_userd_writeback_enable(u32 v)
 {
-	return pbdma_config_userd_writeback_enable_f();
+	return set_field(v, pbdma_config_userd_writeback_m(),
+			pbdma_config_userd_writeback_enable_f());
 }
 

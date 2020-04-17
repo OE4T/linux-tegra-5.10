@@ -79,7 +79,7 @@ struct gops_pbdma {
 	u32 (*get_fc_runlist_timeslice)(void);
 	u32 (*get_config_auth_level_privileged)(void);
 	u32 (*set_channel_info_veid)(u32 subctx_id);
-	u32 (*config_userd_writeback_enable)(void);
+	u32 (*config_userd_writeback_enable)(u32 v);
 	u32 (*allowed_syncpoints_0_index_f)(u32 syncpt);
 	u32 (*allowed_syncpoints_0_valid_f)(void);
 	u32 (*allowed_syncpoints_0_index_v)(u32 offset);

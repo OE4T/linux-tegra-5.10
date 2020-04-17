@@ -119,7 +119,7 @@ static u32 stub_pbdma_get_ctrl_hce_priv_mode_yes(void)
 	return 0U;
 }
 
-static u32 stub_pbdma_config_userd_writeback_enable(void)
+static u32 stub_pbdma_config_userd_writeback_enable(u32 v)
 {
 	global_count++;
 	return 5U;
