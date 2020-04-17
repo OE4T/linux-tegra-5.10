@@ -256,6 +256,16 @@ struct osi_pkt_err_stats {
 	nveu64_t clear_tx_err;
 	/** clear_rx_pkt_err_stats() API invoked */
 	nveu64_t clear_rx_err;
+	/** FRP Parsed count, includes accept
+	 * routing-bypass, or result-bypass count.
+	 */
+	unsigned long frp_parsed;
+	/** FRP Dropped count */
+	unsigned long frp_dropped;
+	/** FRP Parsing Error count */
+	unsigned long frp_err;
+	/** FRP Incomplete Parsing */
+	unsigned long frp_incomplete;
 };
 
 /**

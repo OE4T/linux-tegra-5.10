@@ -209,7 +209,17 @@ struct core_ops {
 			     struct osi_est_config *const est);
 	/** Called to update FPE config */
 	int (*hw_config_fpe)(struct osi_core_priv_data *const osi_core,
-			     struct osi_fpe_config *const fpe);
+			struct osi_fpe_config *const fpe);
+	/** Called to configure FRP engine */
+	int (*config_frp)(struct osi_core_priv_data *const osi_core,
+			  const unsigned int enabled);
+	/** Called to update FRP Instruction Table entry */
+	int (*update_frp_entry)(struct osi_core_priv_data *const osi_core,
+				const unsigned int pos,
+				struct osi_core_frp_data *const data);
+	/** Called to update FRP NVE and  */
+	int (*update_frp_nve)(struct osi_core_priv_data *const osi_core,
+			      const unsigned int nve);
 };
 
 

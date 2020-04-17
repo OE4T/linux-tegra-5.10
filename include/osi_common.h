@@ -280,6 +280,10 @@
  * @brief osi_update_stats_counter - update value by increment passed
  *	as parameter
  *
+ * @note
+ * Algorithm:
+ *  - Check for boundary and return sum
+ *
  * @param[in] last_value: last value of stat counter
  * @param[in] incr: increment value
  *
