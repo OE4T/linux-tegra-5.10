@@ -216,7 +216,6 @@ static int gv11b_init_gpu_characteristics(struct gk20a *g)
 		return err;
 	}
 
-	g->ops.gr.ecc.detect(g);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
@@ -1603,6 +1602,8 @@ int gv11b_init_hal(struct gk20a *g)
 	 * memory.
 	 */
 	nvgpu_set_enabled(g, NVGPU_MM_BYPASSES_IOMMU, true);
+
+	g->ops.gr.ecc.detect(g);
 
 #ifdef CONFIG_NVGPU_SM_DIVERSITY
 	/*
