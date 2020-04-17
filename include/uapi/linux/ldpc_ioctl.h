@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __LDPC_IOCTL_H
-#define __LDPC_IOCTL_H
+#ifndef _UAPI_LDPC_IOCTL_H_
+#define _UAPI_LDPC_IOCTL_H_
 
 struct ldpc_kmd_buf
 {
