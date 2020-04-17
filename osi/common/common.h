@@ -37,6 +37,36 @@
 /** @} */
 
 /**
+ * @brief osi_readl_poll_timeout - Periodically poll an address until
+ * a condition is met or a timeout occurs
+ *
+ * @param[in] addr: Memory mapped address.
+ * @param[in] val: Variable to read the value.
+ * @param[in] cond: Break condition (usually involving @val).
+ * @param[in] delay_us: Maximum time to sleep between reads in us.
+ * @param[in] retry: Retry count.
+
+ * @note Physical address has to be memmory mapped.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+#define osi_readl_poll_timeout(addr, fn, val, cond, delay_us, retry) \
+({ \
+	unsigned int count = 0; \
+	while (count++ < retry) { \
+		val = osi_readl((unsigned char *)addr); \
+		if ((cond)) { \
+			break; \
+		} \
+		fn(delay_us); \
+	} \
+	(cond) ? 0 : -1; \
+})
+
+struct osi_core_priv_data;
+
+/**
  * @brief osi_lock_init - Initialize lock to unlocked state.
  *
  * @note

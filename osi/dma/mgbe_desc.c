@@ -22,6 +22,7 @@
 
 #include "dma_local.h"
 #include "hw_desc.h"
+#include "mgbe_desc.h"
 
 /**
  * @brief mgbe_get_rx_vlan - Get Rx VLAN from descriptor
@@ -60,10 +61,39 @@ static inline void mgbe_update_rx_err_stats(struct osi_rx_desc *rx_desc,
 					    struct osi_pkt_err_stats
 					    pkt_err_stats)
 {
+	unsigned int frpsm = 0;
+	unsigned int frpsl = 0;
+
 	/* increment rx crc if we see CE bit set */
 	if ((rx_desc->rdes3 & RDES3_ERR_MGBE_CRC) == RDES3_ERR_MGBE_CRC) {
 		pkt_err_stats.rx_crc_error =
 			osi_update_stats_counter(pkt_err_stats.rx_crc_error,
+						 1UL);
+	}
+
+	/* Update FRP Counters */
+	frpsm = rx_desc->rdes2 & MGBE_RDES2_FRPSM;
+	frpsl = rx_desc->rdes3 & MGBE_RDES3_FRPSL;
+	/* Increment FRP parsed count */
+	if ((frpsm == OSI_NONE) && (frpsl == OSI_NONE)) {
+		pkt_err_stats.frp_parsed =
+			osi_update_stats_counter(pkt_err_stats.frp_parsed, 1UL);
+	}
+	/* Increment FRP dropped count */
+	if ((frpsm == OSI_NONE) && (frpsl == MGBE_RDES3_FRPSL)) {
+		pkt_err_stats.frp_dropped =
+			osi_update_stats_counter(pkt_err_stats.frp_dropped,
+						 1UL);
+	}
+	/* Increment FRP Parsing Error count */
+	if ((frpsm == MGBE_RDES2_FRPSM) && (frpsl == OSI_NONE)) {
+		pkt_err_stats.frp_err =
+			osi_update_stats_counter(pkt_err_stats.frp_err, 1UL);
+	}
+	/* Increment FRP Incomplete Parsing count */
+	if ((frpsm == MGBE_RDES2_FRPSM) && (frpsl == MGBE_RDES3_FRPSL)) {
+		pkt_err_stats.frp_incomplete =
+			osi_update_stats_counter(pkt_err_stats.frp_incomplete,
 						 1UL);
 	}
 }
