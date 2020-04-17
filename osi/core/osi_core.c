@@ -25,6 +25,7 @@
 #include "core_local.h"
 #include "../osi/common/common.h"
 #include "vlan_filter.h"
+#include "frp.h"
 
 /**
  * @brief g_core - Static core local data variable
@@ -217,6 +218,9 @@ nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 	}
 
 	init_vlan_filters(osi_core);
+
+	/* Init FRP */
+	init_frp(osi_core);
 
 	return ops_p->core_init(osi_core, tx_fifo_size, rx_fifo_size);
 }
@@ -959,6 +963,30 @@ nve32_t osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
 
 	/* Configure Flow control settings */
 	return ops_p->config_flow_control(osi_core, flw_ctrl);
+}
+
+int osi_configure_frp(struct osi_core_priv_data *const osi_core,
+		      struct osi_core_frp_cmd *const cmd)
+{
+	if (validate_args(osi_core) < 0) {
+		return -1;
+	}
+
+	if (cmd == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"Invalid argment\n", OSI_NONE);
+		return -1;
+	}
+
+	/* Check for supported MAC version */
+	if ((osi_core->mac == OSI_MAC_HW_EQOS) &&
+	    (osi_core->mac_ver < OSI_EQOS_MAC_5_10)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"MAC doesn't support FRP\n", OSI_NONE);
+		return -1;
+	}
+
+	return setup_frp(osi_core, ops_p, cmd);
 }
 
 nve32_t osi_config_arp_offload(struct osi_core_priv_data *const osi_core,

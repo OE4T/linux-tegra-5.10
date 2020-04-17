@@ -199,6 +199,44 @@ typedef my_lint_64		nvel64_t;
 #define OSI_PTP_SSINC_4		4U
 /** @} */
 
+/**
+ * @addtogroup Flexible Receive Parser related information
+ *
+ * @brief Flexible Receive Parser commands, table size and other defines
+ * @{
+ */
+#define OSI_FRP_MAX_ENTRY		256U
+#define OSI_FRP_OFFSET_MAX		64U
+/* FRP Command types */
+#define OSI_FRP_CMD_ADD			0U
+#define OSI_FRP_CMD_UPDATE		1U
+#define OSI_FRP_CMD_DEL			2U
+#define OSI_FRP_CMD_MAX			3U
+/* FRP Filter mode defines */
+#define OSI_FRP_MODE_ROUTE		0U
+#define OSI_FRP_MODE_DROP		1U
+#define OSI_FRP_MODE_BYPASS		2U
+#define OSI_FRP_MODE_LINK		3U
+#define OSI_FRP_MODE_IM_ROUTE		4U
+#define OSI_FRP_MODE_IM_DROP		5U
+#define OSI_FRP_MODE_IM_BYPASS		6U
+#define OSI_FRP_MODE_IM_LINK		7U
+#define OSI_FRP_MODE_MAX		8U
+/* Match data defines */
+#define OSI_FRP_MATCH_DATA_MAX		12U
+#define OSI_FRP_MATCH_NORMAL		0U
+#define OSI_FRP_MATCH_L2_DA		1U
+#define OSI_FRP_MATCH_L2_SA		2U
+#define OSI_FRP_MATCH_L3_SIP		3U
+#define OSI_FRP_MATCH_L3_DIP		4U
+#define OSI_FRP_MATCH_L4_S_UPORT	5U
+#define OSI_FRP_MATCH_L4_D_UPORT	6U
+#define OSI_FRP_MATCH_L4_S_TPORT	7U
+#define OSI_FRP_MATCH_L4_D_TPORT	8U
+#define OSI_FRP_MATCH_VLAN		9U
+#define OSI_FRP_MATCH_MAX		10U
+/** @} */
+
 struct osi_core_priv_data;
 
 /**
@@ -585,6 +623,74 @@ struct osi_vlan_filter {
 };
 
 /**
+ * @brief FRP Instruction configuration structure
+ */
+struct osi_core_frp_data {
+	/* Entry Match Data */
+	unsigned int match_data;
+	/* Entry Match Enable mask */
+	unsigned int match_en;
+	/* Entry Accept frame flag */
+	unsigned char accept_frame;
+	/* Entry Reject Frame flag */
+	unsigned char reject_frame;
+	/* Entry Inverse match flag */
+	unsigned char inverse_match;
+	/* Entry Next Instruction Control match flag */
+	unsigned char next_ins_ctrl;
+	/* Entry Frame offset in the packet data */
+	unsigned char frame_offset;
+	/* Entry OK Index - Next Instruction */
+	unsigned char ok_index;
+	/* Entry DMA Channel selection (1-bit for each channel) */
+	unsigned int dma_chsel;
+};
+
+/**
+ * @brief FRP command structure for OSD to OSI
+ */
+struct osi_core_frp_cmd {
+	/* FRP Command type */
+	unsigned int cmd;
+	/* OSD FRP ID */
+	int frp_id;
+	/* OSD match data type */
+	unsigned char match_type;
+	/* OSD match data */
+	unsigned char match[OSI_FRP_MATCH_DATA_MAX];
+	/* OSD match data length */
+	unsigned char match_length;
+	/* OSD Offset */
+	unsigned char offset;
+	/* OSD FRP filter mode flag */
+	unsigned char filter_mode;
+	/* OSD FRP Link ID */
+	int next_frp_id;
+	/* OSD DMA Channel Selection */
+	unsigned int dma_sel;
+};
+
+/**
+ * @brief FRP Instruction table entry configuration structure
+ */
+struct osi_core_frp_entry {
+	/* FRP ID */
+	int frp_id;
+	/* FRP Entry data structure */
+	struct osi_core_frp_data data;
+};
+
+/**
+ * @brief L2 filter function dependent parameter
+ */
+struct osi_l2_da_filter {
+	/** perfect(0) or hash(1) */
+	nveu32_t perfect_hash;
+	/** perfect(0) or inverse(1) */
+	nveu32_t perfect_inverse_match;
+};
+
+/**
  * @brief OSI Core avb data structure per queue.
  */
 struct  osi_core_avb_algorithm {
@@ -674,6 +780,7 @@ struct osi_tsn_stats {
 	/** Switch to Software Owned List Complete */
 	unsigned long sw_own_list_complete;
 };
+
 
 /**
  * @brief PTP configuration structure
@@ -801,6 +908,8 @@ struct osi_core_priv_data {
 	nveu32_t mac;
 	/** MAC version */
 	nveu32_t mac_ver;
+	/** HW supported feature list */
+	struct osi_hw_features *hw_feat;
 	/** MDC clock rate */
 	nveu32_t mdc_cr;
 	/** MTU size */
@@ -844,6 +953,10 @@ struct osi_core_priv_data {
 	unsigned short vid[VLAN_NUM_VID];
 	/** Count of number of VLAN filters in vid array */
 	unsigned short vlan_filter_cnt;
+	/** FRP Instruction Table */
+	struct osi_core_frp_entry frp_table[OSI_FRP_MAX_ENTRY];
+	/** Number of valid Entries in the FRP Instruction Table */
+	unsigned int frp_cnt;
 	/** RSS core structure */
 	struct osi_core_rss rss;
 	/** HW supported feature list */
@@ -2308,6 +2421,21 @@ nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
  */
 nve32_t osi_config_rss(struct osi_core_priv_data *const osi_core);
 
+/**
+ * @brief osi_configure_frp - Configure the FRP offload entry in the
+ * Instruction Table.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] cmd: FRP command data structure.
+ *
+ * @note
+ *	1) MAC and PHY should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_configure_frp(struct osi_core_priv_data *const osi_core,
+		      struct osi_core_frp_cmd *const cmd);
 /**
  * @brief osi_hw_config_est - Read Setting for GCL from input and update
  * registers.
