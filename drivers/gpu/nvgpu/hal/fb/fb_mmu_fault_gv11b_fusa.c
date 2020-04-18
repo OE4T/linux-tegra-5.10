@@ -411,7 +411,7 @@ void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	fault_status &= ~(fb_mmu_fault_status_valid_m());
 	g->ops.fb.write_mmu_fault_status(g, fault_status);
 
-	gv11b_mm_mmu_fault_parse_mmu_fault_info(mmufault);
+	g->ops.mm.mmu_fault.parse_mmu_fault_info(mmufault);
 
 }
 

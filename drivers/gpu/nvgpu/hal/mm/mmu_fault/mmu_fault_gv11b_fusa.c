@@ -124,6 +124,16 @@ static const char *const gv11b_gpc_client_descs[] = {
 
 void gv11b_mm_mmu_fault_parse_mmu_fault_info(struct mmu_fault_info *mmufault)
 {
+	if (mmufault->mmu_engine_id == gmmu_fault_mmu_eng_id_bar2_v()) {
+		mmufault->mmu_engine_id_type = NVGPU_MMU_ENGINE_ID_TYPE_BAR2;
+
+	} else if (mmufault->mmu_engine_id ==
+			gmmu_fault_mmu_eng_id_physical_v()) {
+		mmufault->mmu_engine_id_type =
+				NVGPU_MMU_ENGINE_ID_TYPE_PHYSICAL;
+	} else {
+		mmufault->mmu_engine_id_type = NVGPU_MMU_ENGINE_ID_TYPE_OTHER;
+	}
 	if (mmufault->fault_type >= ARRAY_SIZE(gv11b_fault_type_descs)) {
 		nvgpu_do_assert();
 		mmufault->fault_type_desc = mmufault_invalid_str;
@@ -287,7 +297,7 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 						gmmu_fault_buf_entry_valid_w()),
 		       rd32_val);
 
-	gv11b_mm_mmu_fault_parse_mmu_fault_info(mmufault);
+	g->ops.mm.mmu_fault.parse_mmu_fault_info(mmufault);
 }
 
 static bool gv11b_mm_mmu_fault_handle_mmu_fault_ce(struct gk20a *g,
@@ -622,12 +632,12 @@ void gv11b_mm_mmu_fault_handle_other_fault_notify(struct gk20a *g,
 	gv11b_mm_copy_from_fault_snap_reg(g, fault_status, mmufault);
 
 	/* BAR2/Physical faults will not be snapped in hw fault buf */
-	if (mmufault->mmu_engine_id == gmmu_fault_mmu_eng_id_bar2_v()) {
+	if (mmufault->mmu_engine_id_type == NVGPU_MMU_ENGINE_ID_TYPE_BAR2) {
 		nvgpu_err(g, "BAR2 MMU FAULT");
 		gv11b_fb_handle_bar2_fault(g, mmufault, fault_status);
 
-	} else if (mmufault->mmu_engine_id ==
-			gmmu_fault_mmu_eng_id_physical_v()) {
+	} else if (mmufault->mmu_engine_id_type ==
+			NVGPU_MMU_ENGINE_ID_TYPE_PHYSICAL) {
 		/* usually means VPR or out of bounds physical accesses */
 		nvgpu_err(g, "PHYSICAL MMU FAULT");
 	} else {

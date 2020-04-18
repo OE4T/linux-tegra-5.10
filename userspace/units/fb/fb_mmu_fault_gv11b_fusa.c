@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"
+#include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 
 #include "fb_fusa.h"
@@ -102,6 +103,8 @@ int fb_mmu_fault_gv11b_init_test(struct unit_module *m, struct gk20a *g,
 	g->ops.bus.bar2_bind = hal_bar2_bind_nop;
 	g->ops.fifo.mmu_fault_id_to_pbdma_id =
 		hal_fifo_mmu_fault_id_to_pbdma_id;
+	g->ops.mm.mmu_fault.parse_mmu_fault_info =
+					gv11b_mm_mmu_fault_parse_mmu_fault_info;
 
 	return UNIT_SUCCESS;
 }

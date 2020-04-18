@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -282,6 +282,16 @@ struct gops_mm {
 		 * Disable the hardware setup of GMMU fault buffer.
 		 */
 		void (*disable_hw)(struct gk20a *g);
+
+		/**
+		 * @brief HAL to parse mmu fault info read from h/w.
+		 *
+		 * @param mmufault [in]	Pointer to memory containing info
+		 *                      to be parsed.
+		 *
+		 */
+		void (*parse_mmu_fault_info)(struct mmu_fault_info *mmufault);
+
 	} mmu_fault;
 
 	/**

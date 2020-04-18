@@ -1204,6 +1204,8 @@ static const struct gpu_ops tu104_ops = {
 			.setup_hw = gv11b_mm_mmu_fault_setup_hw,
 			.info_mem_destroy = gv11b_mm_mmu_fault_info_mem_destroy,
 			.disable_hw = gv11b_mm_mmu_fault_disable_hw,
+			.parse_mmu_fault_info =
+				gv11b_mm_mmu_fault_parse_mmu_fault_info,
 		},
 		.cache = {
 			.fb_flush = gk20a_mm_fb_flush,

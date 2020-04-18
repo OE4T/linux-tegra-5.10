@@ -150,6 +150,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 						gp10b_get_max_page_table_levels;
 	g->ops.mm.mmu_fault.info_mem_destroy =
 					gv11b_mm_mmu_fault_info_mem_destroy;
+	g->ops.mm.mmu_fault.parse_mmu_fault_info =
+					gv11b_mm_mmu_fault_parse_mmu_fault_info;
 
 	nvgpu_posix_register_io(g, &mmu_faults_callbacks);
 	nvgpu_posix_io_init_reg_space(g);

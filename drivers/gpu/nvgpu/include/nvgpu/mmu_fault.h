@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,15 @@
 
 /** State which is used for enabling the GMMU fault hardware support. */
 #define NVGPU_MMU_FAULT_BUF_ENABLED			1U
+
+/** S/w defined mmu engine id type. */
+#define NVGPU_MMU_ENGINE_ID_TYPE_OTHER			0U
+
+/** S/w defined mmu engine id type. */
+#define NVGPU_MMU_ENGINE_ID_TYPE_BAR2			1U
+
+/** S/w defined mmu engine id type. */
+#define NVGPU_MMU_ENGINE_ID_TYPE_PHYSICAL		2U
 
 /**
  * Forward declared opaque placeholder type that does not really exist, but
@@ -117,6 +126,12 @@ struct mmu_fault_info {
 	 * a GMMU fault (i.e. GRAPHICS, CE0, HOST0, ...).
 	 */
 	u32	mmu_engine_id;
+
+	/**
+	 * The s/w defined mmu_engine_id type (BAR2, PHYSICAL).
+	 */
+
+	u32	mmu_engine_id_type;
 
 	/** GPC id if client type is gpc. For gv11b, NUM_GPCS = 1. */
 	u32	gpc_id;
