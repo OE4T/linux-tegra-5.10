@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -66,12 +66,12 @@ int fb_intr_gv11b_isr_test(struct unit_module *m, struct gk20a *g, void *args)
 	if (gv11b_fb_intr_is_mmu_fault_pending(g)) {
 		unit_return_fail(m, "MMU fault should NOT be pending\n");
 	}
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* Hub access counter notify/error: just causes a nvgpu_info call */
 	nvgpu_writel(g, fb_niso_intr_r(),
 		fb_niso_intr_hub_access_counter_notify_m());
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* MMU fault: testing of MMU fault handling is done in other tests */
 	nvgpu_writel(g, fb_niso_intr_r(),
@@ -79,12 +79,12 @@ int fb_intr_gv11b_isr_test(struct unit_module *m, struct gk20a *g, void *args)
 	if (!gv11b_fb_intr_is_mmu_fault_pending(g)) {
 		unit_return_fail(m, "MMU fault should be pending\n");
 	}
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* ECC fault: testing of ECC fault handling is done in other tests */
 	nvgpu_writel(g, fb_niso_intr_r(),
 		fb_niso_intr_mmu_ecc_uncorrected_error_notify_pending_f());
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* Disable interrupts */
 	gv11b_fb_intr_disable(g);
@@ -163,35 +163,35 @@ int fb_intr_gv11b_ecc_test(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* Set the interrupt status as corrected */
 	nvgpu_writel(g, p->status_reg, p->corrected_status);
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* Set the interrupt status as uncorrected */
 	nvgpu_writel(g, p->status_reg, p->uncorrected_status);
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* Set arbitrary number of corrected and uncorrected errors */
 	nvgpu_writel(g, p->corrected_err_reg, ECC_ERRORS);
 	nvgpu_writel(g, p->uncorrected_err_reg, ECC_ERRORS);
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* Same but with corrected overflow bit set */
 	nvgpu_writel(g, p->status_reg, 1 | p->corrected_overflow);
 	nvgpu_writel(g, p->corrected_err_reg, ECC_ERRORS);
 	nvgpu_writel(g, p->uncorrected_err_reg, ECC_ERRORS);
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* Same but with uncorrected overflow bit set */
 	nvgpu_writel(g, p->status_reg, 1 | p->uncorrected_overflow);
 	nvgpu_writel(g, p->corrected_err_reg, ECC_ERRORS);
 	nvgpu_writel(g, p->uncorrected_err_reg, ECC_ERRORS);
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* Both overflow but error counts at 0 */
 	nvgpu_writel(g, p->status_reg, 1 | p->corrected_overflow |
 		p->uncorrected_overflow);
 	nvgpu_writel(g, p->corrected_err_reg, 0);
 	nvgpu_writel(g, p->uncorrected_err_reg, 0);
-	gv11b_fb_intr_isr(g);
+	gv11b_fb_intr_isr(g, 0U);
 
 	/* Extra case for fillunit */
 	if (subcase == TEST_ECC_FILLUNIT) {
@@ -199,7 +199,7 @@ int fb_intr_gv11b_ecc_test(struct unit_module *m, struct gk20a *g, void *args)
 		nvgpu_writel(g, p->status_reg,
 			fb_mmu_fillunit_ecc_status_corrected_err_pde0_data_m() |
 			fb_mmu_fillunit_ecc_status_uncorrected_err_pde0_data_m());
-		gv11b_fb_intr_isr(g);
+		gv11b_fb_intr_isr(g, 0U);
 	}
 
 	/* Clear interrupt status */

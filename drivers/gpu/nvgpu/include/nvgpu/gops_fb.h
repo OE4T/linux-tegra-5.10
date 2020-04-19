@@ -68,12 +68,13 @@ struct gops_fb_intr {
 	/**
 	 * @brief ISR for fb hub interrupts.
 	 *
-	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param g [in]			Pointer to GPU driver struct.
+	 * @param intr_unit_bitmask [in]	Bitmask of the mmu intr_units.
 	 *
 	 * This is the entry point to handle fb hub interrupts. This function
-	 * handled all the interrupts enabled in enable function.
+	 * handles all the interrupts enabled in enable function.
 	 */
-	void (*isr)(struct gk20a *g);
+	void (*isr)(struct gk20a *g, u32 intr_unit_bitmask);
 
 	/**
 	 * @brief Checks any mmu fault interrupt is pending

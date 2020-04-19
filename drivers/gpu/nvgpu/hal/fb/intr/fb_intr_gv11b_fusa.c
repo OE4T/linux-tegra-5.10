@@ -1,7 +1,7 @@
 /*
  * GV11B FB
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,7 @@ void gv11b_fb_intr_disable(struct gk20a *g)
 	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_HUB, MC_INTR_DISABLE);
 }
 
-void gv11b_fb_intr_isr(struct gk20a *g)
+void gv11b_fb_intr_isr(struct gk20a *g, u32 intr_unit_bitmask)
 {
 	u32 niso_intr;
 

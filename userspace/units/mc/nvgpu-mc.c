@@ -189,7 +189,7 @@ static u32 mock_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	return u.ce_isr_return;
 }
 
-static void mock_fb_isr(struct gk20a *g)
+static void mock_fb_isr(struct gk20a *g, u32 intr_unit_bitmask)
 {
 	u.fb_isr = true;
 }

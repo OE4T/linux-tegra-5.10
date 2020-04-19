@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@ struct gk20a;
 
 void tu104_fb_intr_enable(struct gk20a *g);
 void tu104_fb_intr_disable(struct gk20a *g);
-void tu104_fb_intr_isr(struct gk20a *g);
+void tu104_fb_intr_isr(struct gk20a *g, u32 intr_unit_bitmask);
 bool tu104_fb_intr_is_mmu_fault_pending(struct gk20a *g);
 
 #endif /* NVGPU_FB_INTR_TU104_H */

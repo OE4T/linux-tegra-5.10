@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -81,7 +81,7 @@ void tu104_fb_intr_disable(struct gk20a *g)
 		fb_mmu_int_vector_ecc_error_vector_v(ecc_error));
 }
 
-void tu104_fb_intr_isr(struct gk20a *g)
+void tu104_fb_intr_isr(struct gk20a *g, u32 intr_unit_bitmask)
 {
 	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());
 	u32 nonreplay_fault = nvgpu_readl(g,
