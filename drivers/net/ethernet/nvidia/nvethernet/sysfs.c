@@ -122,6 +122,49 @@ static DEVICE_ATTR(mac_loopback, (S_IRUGO | S_IWUSR),
 		   ether_mac_loopback_store);
 
 /**
+ * @brief Shows the current setting of FRP Table
+ *
+ * Algorithm: Display the FRP table
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current MAC loopback setting
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+static ssize_t ether_mac_frp_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_core_frp_entry *entry = NULL;
+	struct osi_core_frp_data *data = NULL;
+	int i = 0, j = 0;
+
+	/* Write FRP table entries */
+	for (i = 0, j = 0; ((i < osi_core->frp_cnt) && (j < PAGE_SIZE)); i++) {
+		entry = &osi_core->frp_table[i];
+		data = &entry->data;
+		j += scnprintf((buf + j), (PAGE_SIZE - j),
+			       "[%d] ID:%d MD:0x%x ME:0x%x AF:%d RF:%d IM:%d NIC:%d FO:%d OKI:%d DCH:x%x\n",
+			       i, entry->frp_id, data->match_data,
+			       data->match_en, data->accept_frame,
+			       data->reject_frame, data->inverse_match,
+			       data->next_ins_ctrl, data->frame_offset,
+			       data->ok_index, data->dma_chsel);
+	}
+
+	return j;
+}
+
+/**
+ * @brief Sysfs attribute for FRP table show
+ *
+ */
+static DEVICE_ATTR(frp, 0644, ether_mac_frp_show, NULL);
+
+/**
  * @brief Shows the current setting of PTP mode
  *
  * Algorithm: Display the current PTP mode setting.
@@ -275,6 +318,7 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_mac_loopback.attr,
 	&dev_attr_ptp_mode.attr,
 	&dev_attr_ptp_sync.attr,
+	&dev_attr_frp.attr,
 	NULL
 };
 
