@@ -132,7 +132,7 @@ void nvgpu_mc_intr_unit_vectorid_init(struct gk20a *g, u32 unit,
 	u32 i = 0U;
 	struct nvgpu_intr_unit_info *intr_unit_info;
 
-	nvgpu_assert(num_entries <= INTR_VECTORID_SIZE_MAX);
+	nvgpu_assert(num_entries <= MC_INTR_VECTORID_SIZE_MAX);
 
 	intr_unit_info = g->mc.nvgpu_next.intr_unit_info;
 
