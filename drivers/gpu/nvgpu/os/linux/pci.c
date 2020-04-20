@@ -192,6 +192,46 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.has_syncpoints = true,
 #endif
 	},
+	/* PG209 */
+	{
+		/* ptimer src frequency in hz */
+		.ptimer_src_freq	= 31250000,
+
+		.probe = nvgpu_pci_tegra_probe,
+		.remove = nvgpu_pci_tegra_remove,
+
+		/* power management configuration */
+		.railgate_delay_init	= 500,
+		.can_railgate_init	= false,
+		.can_pci_gc_off		= false,
+		.can_elpg_init = false,
+		.enable_elpg = false,
+		.enable_elcg = false,
+		.enable_slcg = true,
+		.enable_blcg = true,
+		.enable_mscg = false,
+		.can_slcg    = true,
+		.can_blcg    = true,
+		.can_elcg    = false,
+
+		.disable_aspm = true,
+		.pstate = true,
+
+		/* power management callbacks */
+		.is_railgated = nvgpu_pci_tegra_is_railgated,
+		.clk_round_rate = nvgpu_pci_clk_round_rate,
+
+		.ch_wdt_init_limit_ms = 7000,
+
+		.unify_address_spaces = true,
+		.honors_aperture = true,
+		.dma_mask = DMA_BIT_MASK(40),
+		.hardcode_sw_threshold = false,
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
+		.has_syncpoints = true,
+#endif
+	},
+
 };
 
 #define PCI_DEVICE_INDEX(driver_data) ((driver_data) & 0x0000FFFFU)
@@ -262,6 +302,13 @@ static struct pci_device_id nvgpu_pci_table[] = {
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 1 | PCI_DEVICE_F_FUSA_CHIP_SKU,
+	},
+	{
+		/* PG209 SKU*/
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x20b0),
+		.class = PCI_BASE_CLASS_DISPLAY << 16,
+		.class_mask = 0xff << 16,
+		.driver_data = 3,
 	},
 
 	{}
