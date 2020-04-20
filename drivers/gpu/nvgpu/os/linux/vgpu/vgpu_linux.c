@@ -98,7 +98,6 @@ static void vgpu_init_vars(struct gk20a *g, struct gk20a_platform *platform)
 
 	nvgpu_atomic_set(&g->clk_arb_global_nr, 0);
 
-	g->aggressive_sync_destroy = platform->aggressive_sync_destroy;
 	g->aggressive_sync_destroy_thresh = platform->aggressive_sync_destroy_thresh;
 	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, platform->has_syncpoints);
 	g->ptimer_src_freq = platform->ptimer_src_freq;

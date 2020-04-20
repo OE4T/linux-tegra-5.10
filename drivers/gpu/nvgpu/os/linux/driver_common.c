@@ -177,7 +177,6 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_GPU_CAN_BLCG,
 		nvgpu_platform_is_silicon(g) ? platform->can_blcg : false);
 
-	g->aggressive_sync_destroy = platform->aggressive_sync_destroy;
 	g->aggressive_sync_destroy_thresh = platform->aggressive_sync_destroy_thresh;
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
 	g->has_cde = platform->has_cde;

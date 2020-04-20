@@ -87,9 +87,6 @@ struct gk20a_platform {
 	/* channel limit after which to start aggressive sync destroy */
 	unsigned int aggressive_sync_destroy_thresh;
 
-	/* flag to set sync destroy aggressiveness */
-	bool aggressive_sync_destroy;
-
 	/* set if ASPM should be disabled on boot; only makes sense for PCI */
 	bool disable_aspm;
 
