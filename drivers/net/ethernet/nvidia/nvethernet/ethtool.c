@@ -40,6 +40,35 @@ struct ether_stats {
 };
 
 /**
+ * @brief Name of FRP statistics, with length of name not more than
+ * ETH_GSTRING_LEN
+ */
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
+#define ETHER_PKT_FRP_STAT(y) \
+{ (#y), FIELD_SIZEOF(struct osi_pkt_err_stats, y), \
+	offsetof(struct osi_dma_priv_data, pkt_err_stats.y)}
+#else
+#define ETHER_PKT_FRP_STAT(y) \
+{ (#y), sizeof_field(struct osi_pkt_err_stats, y), \
+	offsetof(struct osi_dma_priv_data, pkt_err_stats.y)}
+#endif
+
+/**
+ * @brief FRP statistics
+ */
+static const struct ether_stats ether_frpstrings_stats[] = {
+	ETHER_PKT_FRP_STAT(frp_parsed),
+	ETHER_PKT_FRP_STAT(frp_dropped),
+	ETHER_PKT_FRP_STAT(frp_err),
+	ETHER_PKT_FRP_STAT(frp_incomplete),
+};
+
+/**
+ * @brief Ethernet FRP statistics array length
+ */
+#define ETHER_FRP_STAT_LEN OSI_ARRAY_SIZE(ether_frpstrings_stats)
+
+/**
  * @brief Name of pkt_err statistics, with length of name not more than
  * ETH_GSTRING_LEN
  */
@@ -496,6 +525,15 @@ static void ether_get_ethtool_stats(struct net_device *dev,
 			data[j++] = (ether_tstrings_stats[i].sizeof_stat ==
 				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
 		}
+
+		for (i = 0; ((i < ETHER_FRP_STAT_LEN) &&
+			     (pdata->hw_feat.frp_sel == OSI_ENABLE)); i++) {
+			char *p = (char *)osi_core +
+				  ether_frpstrings_stats[i].stat_offset;
+
+			data[j++] = (ether_frpstrings_stats[i].sizeof_stat ==
+				     sizeof(u64)) ? (*(u64 *)p) : (*(u32 *)p);
+		}
 	}
 }
 
@@ -544,6 +582,13 @@ static int ether_get_sset_count(struct net_device *dev, int sset)
 		} else {
 			if (pdata->hw_feat.est_sel == OSI_ENABLE) {
 				len += ETHER_EXTRA_TSN_STAT_LEN;
+			}
+		}
+		if (INT_MAX - ETHER_FRP_STAT_LEN < len) {
+			/* do nothing */
+		} else {
+			if (pdata->hw_feat.frp_sel == OSI_ENABLE) {
+				len += ETHER_FRP_STAT_LEN;
 			}
 		}
 	} else if (sset == ETH_SS_TEST) {
@@ -613,6 +658,17 @@ static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 				     (pdata->hw_feat.est_sel == OSI_ENABLE));
 			     i++) {
 				str = (u8 *)ether_tstrings_stats[i].stat_string;
+				if (memcpy(p, str, ETH_GSTRING_LEN) ==
+				    OSI_NULL) {
+					return;
+				}
+				p += ETH_GSTRING_LEN;
+			}
+			for (i = 0; ((i < ETHER_FRP_STAT_LEN) &&
+				     (pdata->hw_feat.frp_sel == OSI_ENABLE));
+			     i++) {
+				str = (u8 *)
+				       ether_frpstrings_stats[i].stat_string;
 				if (memcpy(p, str, ETH_GSTRING_LEN) ==
 				    OSI_NULL) {
 					return;

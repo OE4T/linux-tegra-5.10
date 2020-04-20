@@ -257,6 +257,48 @@ static int ether_config_arp_offload(struct ether_priv_data *pdata,
 }
 
 /**
+ * @brief This function is invoked by ioctl function when user issues an ioctl
+ * command to configure Flexible Receive Parser table entry add, delete, and
+ * update commands.
+ *
+ * @param[in] dev: Pointer to net device structure.
+ * @param[in] ifdata: pointer to IOCTL specific structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @retval 0 on Success
+ * @retval "negative value" on Failure
+ */
+static int ether_config_frp_cmd(struct net_device *dev,
+				struct ether_ifr_data *ifdata)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_core_frp_cmd frp_cmd;
+	int ret = -EINVAL;
+
+	if (pdata->hw_feat.frp_sel == OSI_DISABLE) {
+		dev_err(pdata->dev, "MAC doen't support FRP\n");
+		return ret;
+	}
+
+	if (!ifdata->ptr) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifdata->ifcmd);
+		return ret;
+	}
+
+	if (copy_from_user(&frp_cmd,
+			   (struct osi_core_frp_cmd *)ifdata->ptr,
+			   sizeof(struct osi_core_frp_cmd)) != 0U) {
+		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
+		return -EFAULT;
+	}
+
+	return osi_configure_frp(osi_core, &frp_cmd);
+}
+
+/**
  * @brief This function is invoked by ioctl when user issues an ioctl command
  * to enable/disable L3/L4 filtering.
  *
@@ -909,6 +951,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 			dev_err(pdata->dev, "L3/L4 filters are not supported\n");
 			ret = -EOPNOTSUPP;
 		}
+		break;
+	case ETHER_CONFIG_FRP_CMD:
+		ret = ether_config_frp_cmd(ndev, &ifdata);
 		break;
 	case EQOS_IPV4_FILTERING_CMD:
 		ret = ether_config_ip4_filters(ndev, &ifdata);
