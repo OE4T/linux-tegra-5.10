@@ -62,7 +62,6 @@
 #include "clk.h"
 #include "os_linux.h"
 
-#include "../../../arch/arm/mach-tegra/iomap.h"
 #include <soc/tegra/pmc.h>
 
 #define TEGRA_GK20A_BW_PER_FREQ 32
