@@ -44,6 +44,8 @@
 
 static int cvnas_debug;
 module_param(cvnas_debug, int, 0644);
+#define CVNOC_MISC_DBG_APERTURE_CONTROL 0x8
+#define CVNOC_MISC_DBG_APERTURE_DISABLE 0x1
 
 static bool cvnas_rail;
 
@@ -329,6 +331,16 @@ static int nvcvsram_ecc_setup(struct cvnas_device *dev)
 	return -EBUSY;
 }
 
+/* Disable CVNOC Debug Aperture */
+static void disable_cvnoc_debug_apert(struct cvnas_device *cvnas_dev)
+{
+	unsigned long val;
+
+	val = readl(cvnas_dev->cvreg_iobase + CVNOC_MISC_DBG_APERTURE_CONTROL);
+	val = val | CVNOC_MISC_DBG_APERTURE_DISABLE;
+	writel(val, cvnas_dev->cvreg_iobase + CVNOC_MISC_DBG_APERTURE_CONTROL);
+}
+
 static int nvcvnas_power_on(struct cvnas_device *cvnas_dev)
 {
 	u32 fcm_upg_seq[] =
@@ -375,6 +387,10 @@ static int nvcvnas_power_on(struct cvnas_device *cvnas_dev)
 		pr_err("ECC init failed\n");
 		goto err_init_ecc;
 	}
+
+
+	if (!tegra_platform_is_sim())
+		disable_cvnoc_debug_apert(cvnas_dev);
 
 	return 0;
 
