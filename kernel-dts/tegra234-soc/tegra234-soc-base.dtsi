@@ -234,7 +234,7 @@
 		reg = <0x0 0x13e40000 0x0 0x00010000>,
 		      <0x0 0x13e10000 0x0 0x00010000>,
 		      <0x0 0x13ef0000 0x0 0x00040000>,
-		      <0x0 0x60000000 0x0 0x00400000>,
+		      <0x0 0x60000000 0x0 0x04000000>,
 		      <0x0 0x13e00000 0x0 0x00010000>;
 		reg-names = "guest", "hypervisor", "actmon", "sem-syncpt-shim",
 			"common";
@@ -242,7 +242,6 @@
 			     <0 263 0x04>;
 		nvidia,ignore-dt-update;
 		wakeup_capable;
-		resets = <&bpmp_resets TEGRA194_RESET_HOST1X>;
 		clocks = <&bpmp_clks TEGRA234_CLK_HOST1X>,
 			 <&bpmp_clks TEGRA234_CLK_ACTMON>;
 		clock-names = "host1x", "actmon";
