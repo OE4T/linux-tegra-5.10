@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,8 @@ struct gops_falcon {
 	int (*copy_to_imem)(struct nvgpu_falcon *flcn,
 			    u32 dst, u8 *src, u32 size, u8 port,
 			    bool sec, u32 tag);
+	u32 (*dmemc_blk_mask)(void);
+	u32 (*imemc_blk_field)(u32 blk);
 	void (*bootstrap)(struct nvgpu_falcon *flcn,
 			 u32 boot_vector);
 	u32 (*mailbox_read)(struct nvgpu_falcon *flcn,

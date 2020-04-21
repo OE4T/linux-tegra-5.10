@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -61,6 +61,8 @@
 
 #define FALCON_DMEM_BLKSIZE2	8U
 
+u32 gk20a_falcon_dmemc_blk_mask(void);
+u32 gk20a_falcon_imemc_blk_field(u32 blk);
 void gk20a_falcon_reset(struct nvgpu_falcon *flcn);
 bool gk20a_is_falcon_cpu_halted(struct nvgpu_falcon *flcn);
 bool gk20a_is_falcon_idle(struct nvgpu_falcon *flcn);

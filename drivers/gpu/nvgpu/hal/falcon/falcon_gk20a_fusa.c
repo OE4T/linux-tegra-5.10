@@ -29,6 +29,16 @@
 
 #include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 
+u32 gk20a_falcon_dmemc_blk_mask(void)
+{
+	return falcon_falcon_dmemc_blk_m();
+}
+
+u32 gk20a_falcon_imemc_blk_field(u32 blk)
+{
+	return falcon_falcon_imemc_blk_f(blk);
+}
+
 static inline u32 gk20a_falcon_readl(struct nvgpu_falcon *flcn, u32 offset)
 {
 	return nvgpu_readl(flcn->g,
@@ -170,6 +180,7 @@ static void falcon_copy_to_dmem_unaligned_src(struct nvgpu_falcon *flcn,
 int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		u32 dst, u8 *src, u32 size, u8 port)
 {
+	struct gk20a *g = flcn->g;
 	u32 i = 0U, words = 0U, bytes = 0U;
 	u32 data = 0U, addr_mask = 0U;
 	u32 *src_u32 = NULL;
@@ -180,7 +191,7 @@ int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	bytes = size & 0x3U;
 
 	addr_mask = falcon_falcon_dmemc_offs_m() |
-		falcon_falcon_dmemc_blk_m();
+		g->ops.falcon.dmemc_blk_mask();
 
 	dst &= addr_mask;
 
@@ -280,6 +291,7 @@ static void falcon_copy_to_imem_unaligned_src(struct nvgpu_falcon *flcn,
 int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		u8 *src, u32 size, u8 port, bool sec, u32 tag)
 {
+	struct gk20a *g = flcn->g;
 	u32 *src_u32 = NULL;
 	u32 words = 0U;
 	u32 blk = 0U;
@@ -295,7 +307,7 @@ int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 
 	gk20a_falcon_writel(flcn, falcon_falcon_imemc_r(port),
 			falcon_falcon_imemc_offs_f(dst >> 2) |
-			falcon_falcon_imemc_blk_f(blk) |
+			g->ops.falcon.imemc_blk_field(blk) |
 			/* Set Auto-Increment on write */
 			falcon_falcon_imemc_aincw_f(1) |
 			falcon_falcon_imemc_secure_f(sec ? 1U : 0U));

@@ -1423,6 +1423,8 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.get_ports_count = gk20a_falcon_get_ports_count,
 		.copy_to_dmem = gk20a_falcon_copy_to_dmem,
 		.copy_to_imem = gk20a_falcon_copy_to_imem,
+		.dmemc_blk_mask = gk20a_falcon_dmemc_blk_mask,
+		.imemc_blk_field = gk20a_falcon_imemc_blk_field,
 		.bootstrap = gk20a_falcon_bootstrap,
 		.mailbox_read = gk20a_falcon_mailbox_read,
 		.mailbox_write = gk20a_falcon_mailbox_write,

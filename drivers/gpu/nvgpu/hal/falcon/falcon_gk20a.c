@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@ int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	bytes = size & 0x3U;
 
 	addr_mask = falcon_falcon_dmemc_offs_m() |
-			    falcon_falcon_dmemc_blk_m();
+				g->ops.falcon.dmemc_blk_mask();
 
 	src &= addr_mask;
 
@@ -107,7 +107,7 @@ int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 
 	nvgpu_writel(g, base_addr + falcon_falcon_imemc_r(port),
 		falcon_falcon_imemc_offs_f(src >> 2) |
-		falcon_falcon_imemc_blk_f(blk) |
+		g->ops.falcon.imemc_blk_field(blk) |
 		falcon_falcon_dmemc_aincr_f(1));
 
 	for (i = 0; i < words; i++) {
