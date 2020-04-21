@@ -1,7 +1,7 @@
 /*
  * Top level DTS file for CVM:P2888-0001 and CVB:P2822-0000.
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,3 +16,68 @@
 #include "common/tegra194-p2822-camera-modules.dtsi"
 #include "t19x-common-modules/tegra194-camera-plugin-manager.dtsi"
 #include "common/tegra194-audio-p2822-0000.dtsi"
+
+#if defined(LINUX_VERSION) && LINUX_VERSION >= 419
+
+/ {
+	/* FIXME: K5.4 overrides */
+	bpmp {
+		i2c {
+			spmic@3c {
+				interrupt-parent = <&intc>;
+				interrupts = <GIC_SPI 209 IRQ_TYPE_LEVEL_HIGH>;
+			};
+		};
+	};
+
+	/* Upstream kernel does not implement pinctrl driver (pinmux)
+           as the pinmuxing is done in MB1 */
+	gpio@2200000 {
+		/delete-property/ gpio-ranges;
+	};
+
+	gpio@c2f0000 {
+		/delete-property/ gpio-ranges;
+	};
+
+	gpio-keys {
+		status = "disabled";
+	};
+
+	hda@3510000 {
+		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+		resets = <&bpmp TEGRA194_RESET_HDA>,
+			 <&bpmp TEGRA194_RESET_HDA2CODEC_2X>,
+			 <&bpmp TEGRA194_RESET_HDA2HDMICODEC>;
+		reset-names = "hda", "hda2codec_2x", "hda2hdmi";
+	};
+
+	serial@3100000 {
+		compatible = "nvidia,tegra194-hsuart";
+		reg = <0x03100000 0x40>;
+		interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&bpmp TEGRA194_CLK_UARTA>;
+		clock-names = "serial";
+		resets = <&bpmp TEGRA194_RESET_UARTA>;
+		reset-names = "serial";
+		/delete-property/ dma-names;
+		/delete-property/ dma-coherent;
+	};
+
+	host1x@13e00000 {
+		reset-names = "host1x";
+		reg-names = "vm", "hypervisor";
+
+		/delete-node/ display-hub@15200000;
+		/delete-node/ sor;
+		/delete-node/ sor0;
+		/delete-node/ sor1;
+		/delete-node/ sor2;
+	};
+
+	tegra-cache {
+		status = "okay";
+	};
+};
+
+#endif
