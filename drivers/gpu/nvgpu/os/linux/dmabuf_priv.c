@@ -35,6 +35,7 @@ struct sg_table *gk20a_mm_pin_has_drvdata(struct device *dev,
 				struct dma_buf *dmabuf,
 				struct dma_buf_attachment **attachment)
 {
+	struct gk20a *g = get_gk20a(dev);
 	struct gk20a_dmabuf_priv *priv;
 
 	priv = dma_buf_get_drvdata(dmabuf, dev);
@@ -49,7 +50,9 @@ struct sg_table *gk20a_mm_pin_has_drvdata(struct device *dev,
 		priv->attach = dma_buf_attach(dmabuf, dev);
 		if (IS_ERR(priv->attach)) {
 			nvgpu_mutex_release(&priv->lock);
-			return (struct sg_table *)priv->attach;
+			nvgpu_err(g, "Failed to attach dma_buf (err = %ld)!",
+				  PTR_ERR(priv->attach));
+			return ERR_CAST(priv->attach);
 		}
 
 		priv->sgt = dma_buf_map_attachment(priv->attach,
@@ -57,7 +60,9 @@ struct sg_table *gk20a_mm_pin_has_drvdata(struct device *dev,
 		if (IS_ERR(priv->sgt)) {
 			dma_buf_detach(dmabuf, priv->attach);
 			nvgpu_mutex_release(&priv->lock);
-			return priv->sgt;
+			nvgpu_err(g, "Failed to map attachment (err = %ld)!",
+				  PTR_ERR(priv->sgt));
+			return ERR_CAST(priv->sgt);
 		}
 	}
 

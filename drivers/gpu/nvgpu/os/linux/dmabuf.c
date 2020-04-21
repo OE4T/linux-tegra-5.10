@@ -66,17 +66,22 @@ struct sg_table *gk20a_mm_pin(struct device *dev, struct dma_buf *dmabuf,
 	return gk20a_mm_pin_has_drvdata(dev, dmabuf, attachment);
 #else
 	struct dma_buf_attachment *attach = NULL;
+	struct gk20a *g = get_gk20a(dev);
 	struct sg_table *sgt = NULL;
 
 	attach = dma_buf_attach(dmabuf, dev);
 	if (IS_ERR(attach)) {
-		return NULL;
+		nvgpu_err(g, "Failed to attach dma_buf (err = %ld)!",
+			  PTR_ERR(attach));
+		return ERR_CAST(attach);
 	}
 
 	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
 	if (IS_ERR(sgt)) {
 		dma_buf_detach(dmabuf, attach);
-		return NULL;
+		nvgpu_err(g, "Failed to map attachment (err = %ld)!",
+			  PTR_ERR(sgt));
+		return ERR_CAST(sgt);
 	}
 
 	*attachment = attach;
