@@ -2435,8 +2435,7 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 			      osi_core->hw_feature->fpe_sel);
 	}
 
-	/* XPCS initialization */
-	return xpcs_init(osi_core);
+	return 0;
 }
 
 /**
@@ -3093,6 +3092,12 @@ static int mgbe_set_speed(struct osi_core_priv_data *const osi_core, const int s
 	}
 
 	osi_writel(value, (unsigned char *)osi_core->base + MGBE_MAC_TMCR);
+
+	if (xpcs_init(osi_core) < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "xpcs_init failed\n");
+		return -1;
+	}
 
 	return xpcs_start(osi_core);
 }
