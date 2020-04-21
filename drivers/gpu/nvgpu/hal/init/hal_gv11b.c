@@ -370,6 +370,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
+		.check_warp_esr_error = gv11b_gr_check_warp_esr_error,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = gv11b_ecc_detect_enabled_units,

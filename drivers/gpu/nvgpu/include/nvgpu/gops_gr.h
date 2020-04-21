@@ -1189,6 +1189,7 @@ struct gops_gr {
 				  struct nvgpu_channel *ch, bool enable);
 	bool (*esr_bpt_pending_events)(u32 global_esr,
 				       enum nvgpu_event_id_type bpt_event);
+	bool (*check_warp_esr_error)(struct gk20a *g, u32 warp_esr_error);
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 	int (*set_boosted_ctx)(struct nvgpu_channel *ch, bool boost);
 #endif

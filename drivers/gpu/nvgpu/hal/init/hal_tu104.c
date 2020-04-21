@@ -405,6 +405,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_ctx_buffer_offsets = gr_gk20a_get_ctx_buffer_offsets,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
+		.check_warp_esr_error = gv11b_gr_check_warp_esr_error,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 		.ecc = {
 			.detect = NULL,

@@ -486,7 +486,7 @@ static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	return err;
 }
 
-static bool gr_gv11b_check_warp_esr_error(struct gk20a *g, u32 warp_esr_error)
+bool gv11b_gr_check_warp_esr_error(struct gk20a *g, u32 warp_esr_error)
 {
 	u32 index = 0U;
 	bool esr_err = false;
@@ -559,7 +559,7 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 	/*
 	 * Check for an esr error
 	 */
-	is_esr_error = gr_gv11b_check_warp_esr_error(g, warp_esr_error);
+	is_esr_error = g->ops.gr.check_warp_esr_error(g, warp_esr_error);
 	if (!is_esr_error) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 			"No ESR error, Skip RC recovery and Trigger CILP");

@@ -49,6 +49,7 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 		struct nvgpu_channel *ch, u32 sm_id);
 bool gv11b_gr_sm_debugger_attached(struct gk20a *g);
+bool gv11b_gr_check_warp_esr_error(struct gk20a *g, u32 warp_esr_error);
 void gv11b_gr_suspend_single_sm(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm,
 		u32 global_esr_mask, bool check_errors);
