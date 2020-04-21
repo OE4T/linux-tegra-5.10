@@ -96,6 +96,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.can_elcg    = false,
 
 		.disable_aspm = true,
+		.disable_nvlink = false,
 		.pstate = true,
 
 		/* power management callbacks */
@@ -138,6 +139,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.can_elcg    = false,
 
 		.disable_aspm = true,
+		.disable_nvlink = false,
 		.pstate = true,
 
 		/* power management callbacks */
@@ -178,6 +180,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.can_elcg    = false,
 
 		.disable_aspm = true,
+		.disable_nvlink = false,
 
 		/* power management callbacks */
 		.is_railgated = nvgpu_pci_tegra_is_railgated,
@@ -216,6 +219,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.can_elcg    = false,
 
 		.disable_aspm = true,
+		.disable_nvlink = true,
 		.pstate = false,
 
 		/* power management callbacks */
@@ -651,7 +655,12 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		goto err_free_irq;
 	}
 
-	err = nvgpu_nvlink_probe(g);
+	if (!platform->disable_nvlink) {
+		err = nvgpu_nvlink_probe(g);
+	} else {
+		err = -ENODEV;
+	}
+
 	/*
 	 * ENODEV is a legal error which means there is no NVLINK
 	 * any other error is fatal

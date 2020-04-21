@@ -151,6 +151,9 @@ struct gk20a_platform {
 	/* Disable big page support */
 	bool disable_bigpage;
 
+	/* Disable nvlink support */
+	bool disable_nvlink;
+
 	/*
 	 * gk20a_do_idle() API can take GPU either into rail gate or CAR reset
 	 * This flag can be used to force CAR reset case instead of rail gate
