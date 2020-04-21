@@ -56,11 +56,16 @@ struct nvgpu_error_notifier {
 };
 
 /*
- * This struct contains fence_related data.
- * e.g. sync_timeline for sync_fences.
+ * channel-global data for sync fences created from the hardware
+ * synchronization primitive in each particular channel.
  */
 struct nvgpu_os_fence_framework {
+#if defined(CONFIG_NVGPU_SYNCFD_ANDROID)
 	struct sync_timeline *timeline;
+#elif defined(CONFIG_NVGPU_SYNCFD_STABLE)
+	u64 context;
+	bool exists;
+#endif
 };
 
 struct nvgpu_usermode_bufs_linux {

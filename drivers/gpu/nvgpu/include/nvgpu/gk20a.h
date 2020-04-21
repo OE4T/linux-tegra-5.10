@@ -904,7 +904,8 @@ struct gk20a {
 		bool (*os_fence_framework_inst_exists)(struct nvgpu_channel *ch);
 		int (*init_os_fence_framework)(
 			struct nvgpu_channel *ch, const char *fmt, ...);
-		void (*signal_os_fence_framework)(struct nvgpu_channel *ch);
+		void (*signal_os_fence_framework)(struct nvgpu_channel *ch,
+				struct nvgpu_fence_type *fence);
 		void (*destroy_os_fence_framework)(struct nvgpu_channel *ch);
 		int (*copy_user_gpfifo)(struct nvgpu_gpfifo_entry *dest,
 				struct nvgpu_gpfifo_userdata userdata,

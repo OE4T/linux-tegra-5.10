@@ -980,8 +980,9 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 
 		if (c->sync != NULL) {
 			if (c->has_os_fence_framework_support &&
-				g->os_channel.os_fence_framework_inst_exists(c)) {
-					g->os_channel.signal_os_fence_framework(c);
+			    g->os_channel.os_fence_framework_inst_exists(c)) {
+				g->os_channel.signal_os_fence_framework(c,
+						job->post_fence);
 			}
 
 			if (g->aggressive_sync_destroy_thresh != 0U) {

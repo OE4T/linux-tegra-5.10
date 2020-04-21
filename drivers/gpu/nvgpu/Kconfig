@@ -246,6 +246,13 @@ choice
 	  Select which kernel-provided API is used for sync fds. Matching
 	  support is required for the userspace drivers too.
 
+config NVGPU_SYNCFD_STABLE
+	bool "Upstream stabilized SYNC_FILE"
+	depends on SYNC_FILE
+	help
+	  Select CONFIG_SYNC_FILE, the cross-driver "Explicit Synchronization
+	  Framework" stabilized upstream from the Android sync since v4.9.
+
 config NVGPU_SYNCFD_ANDROID
 	bool "Android SYNC"
 	depends on SYNC

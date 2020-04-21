@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GK20A_SYNC_H_
-#define _GK20A_SYNC_H_
+#ifndef NVGPU_OS_LINUX_SYNC_SEMA_ANDROID_H
+#define NVGPU_OS_LINUX_SYNC_SEMA_ANDROID_H
 
 struct sync_timeline;
 struct sync_fence;

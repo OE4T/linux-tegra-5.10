@@ -21,6 +21,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/fence.h>
 
 /*
  * This is required for nvgpu_vm_find_buf() which is used in the tracing
@@ -43,6 +44,8 @@
 #include <uapi/linux/nvgpu.h>
 
 #include "sync_sema_android.h"
+#include "sync_sema_dma.h"
+#include <nvgpu/linux/os_fence_dma.h>
 
 u32 nvgpu_submit_gpfifo_user_flags_to_common_flags(u32 user_flags)
 {
@@ -330,21 +333,42 @@ static int nvgpu_channel_init_os_fence_framework(struct nvgpu_channel *ch,
 	(void) vsnprintf(name, sizeof(name), fmt, args);
 	va_end(args);
 
+#if defined(CONFIG_NVGPU_SYNCFD_ANDROID)
 	fence_framework->timeline = gk20a_sync_timeline_create(name);
 
 	if (!fence_framework->timeline)
 		return -EINVAL;
+#elif defined(CONFIG_NVGPU_SYNCFD_STABLE)
+	fence_framework->context = nvgpu_sync_dma_context_create();
+	fence_framework->exists = true;
+#endif
 
 	return 0;
 }
-static void nvgpu_channel_signal_os_fence_framework(struct nvgpu_channel *ch)
+static void nvgpu_channel_signal_os_fence_framework(struct nvgpu_channel *ch,
+				struct nvgpu_fence_type *fence)
 {
 	struct nvgpu_channel_linux *priv = ch->os_priv;
 	struct nvgpu_os_fence_framework *fence_framework;
+#if defined(CONFIG_NVGPU_SYNCFD_STABLE)
+	struct dma_fence *f;
+#endif
 
 	fence_framework = &priv->fence_framework;
 
+#if defined(CONFIG_NVGPU_SYNCFD_ANDROID)
 	gk20a_sync_timeline_signal(fence_framework->timeline);
+#elif defined(CONFIG_NVGPU_SYNCFD_STABLE)
+	f = nvgpu_get_dma_fence(&fence->os_fence);
+	/*
+	 * Sometimes the post fence of a job isn't a file. It can be a raw
+	 * semaphore for kernel-internal tracking, or a raw syncpoint for
+	 * internal tracking or for exposing to user.
+	 */
+	if (f != NULL) {
+		nvgpu_sync_dma_signal(f);
+	}
+#endif
 }
 
 static void nvgpu_channel_destroy_os_fence_framework(struct nvgpu_channel *ch)
@@ -354,8 +378,13 @@ static void nvgpu_channel_destroy_os_fence_framework(struct nvgpu_channel *ch)
 
 	fence_framework = &priv->fence_framework;
 
+#if defined(CONFIG_NVGPU_SYNCFD_ANDROID)
 	gk20a_sync_timeline_destroy(fence_framework->timeline);
 	fence_framework->timeline = NULL;
+#elif defined(CONFIG_NVGPU_SYNCFD_STABLE)
+	/* fence_framework->context cannot be freed, see linux/dma-fence.h */
+	fence_framework->exists = false;
+#endif
 }
 
 static bool nvgpu_channel_fence_framework_exists(struct nvgpu_channel *ch)
@@ -365,7 +394,13 @@ static bool nvgpu_channel_fence_framework_exists(struct nvgpu_channel *ch)
 
 	fence_framework = &priv->fence_framework;
 
+#if defined(CONFIG_NVGPU_SYNCFD_ANDROID)
 	return (fence_framework->timeline != NULL);
+#elif defined(CONFIG_NVGPU_SYNCFD_STABLE)
+	return fence_framework->exists;
+#else
+	return false;
+#endif
 }
 
 static int nvgpu_channel_copy_user_gpfifo(struct nvgpu_gpfifo_entry *dest,
