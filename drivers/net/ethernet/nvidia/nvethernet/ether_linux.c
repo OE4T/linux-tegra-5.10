@@ -1598,6 +1598,62 @@ static inline void ether_init_eee_params(struct ether_priv_data *pdata)
 	pdata->tx_lpi_timer = OSI_DEFAULT_TX_LPI_TIMER;
 }
 
+static void ether_reset(struct ether_priv_data *pdata)
+{
+	unsigned int val;
+	void __iomem *addr = devm_ioremap(pdata->dev, 0x21460018, 0x4);
+
+	val = readl(addr);
+	val &= ~BIT(0);
+	writel(val, addr);
+
+	val = readl(addr);
+	val &= ~BIT(4);
+	writel(val, addr);
+
+	val = readl(addr);
+	val &= ~BIT(8);
+	writel(val, addr);
+}
+
+static void power_ungate(struct ether_priv_data *pdata)
+{
+	unsigned int val;
+	void __iomem *pmc_base;
+	void __iomem *hy_mac_base;
+
+	pmc_base = devm_ioremap(pdata->dev, 0xC360000, 0x10000);
+	hy_mac_base = devm_ioremap(pdata->dev, 0x8608400, 0x20);
+
+	val = readl(pmc_base + 0x568);
+	val &= ~BIT(2);
+	val &= ~BIT(1);
+	val &= ~BIT(0);
+	val |= BIT(8);
+	val |= BIT(31);
+	writel(val, pmc_base +  0x568);
+
+	do {
+		val = readl(pmc_base + 0x568);
+		val = (val & BIT(8));
+	} while (val);
+
+	val = readl(pmc_base + 0x56C);
+	if (val != 0) {
+		pr_err("%s(): ERROR - PMC_IMPL_PART_MGBEBA_POWER_GATE_STATUS_0 is not zero\n", __func__);
+	}
+
+	ether_reset(pdata);
+
+	writel(0, pmc_base + 0x570);
+
+	writel(0, pmc_base + 0x6A4);
+	do {
+		val = readl(pmc_base + 0x6A8);
+	} while (val);
+}
+
+
 /**
  * @brief Call back to handle bring up of Ethernet interface
  *
@@ -1643,6 +1699,10 @@ static int ether_open(struct net_device *dev)
 			dev_err(&dev->dev, "failed to reset MAC HW\n");
 			goto err_mac_rst;
 		}
+	}
+
+	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+		power_ungate(pdata);
 	}
 
 	ret = osi_poll_for_mac_reset_complete(osi_core);
@@ -4464,6 +4524,10 @@ static int ether_probe(struct platform_device *pdev)
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to allocate platform resources\n");
 		goto err_init_res;
+	}
+
+	if (mac == OSI_MAC_HW_MGBE) {
+		power_ungate(pdata);
 	}
 
 	ret = osi_get_mac_version(osi_core, &osi_core->mac_ver);
