@@ -1227,6 +1227,7 @@
 
 	display@13800000 {
 		compatible = "nvidia,tegra234-display";
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_DISP>;
 		nvidia,num-dpaux-instance = <1>;
 		reg-names = "nvdisplay", "dpaux0";
 		reg = <0x0 0x13800000 0x0 0xEFFFF    /* nvdisplay */
