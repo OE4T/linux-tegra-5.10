@@ -1883,6 +1883,9 @@
 		interrupt-names = "stall", "nonstall";
 		nvidia,host1x = <&host1x>;
 		access-vpr-phys;
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_GPU>;
+#endif
 		clocks = <&bpmp_clks TEGRA194_CLK_GPCCLK>,
 			<&bpmp_clks TEGRA194_CLK_GPU_PWR>,
 			<&bpmp_clks TEGRA194_CLK_FUSE>;
