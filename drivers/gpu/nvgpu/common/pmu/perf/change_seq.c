@@ -105,11 +105,9 @@ static void build_change_seq_boot (struct gk20a *g)
 	struct nvgpu_pmu *pmu = g->pmu;
 	struct change_seq_pmu *perf_change_seq_pmu =
 		&(g->pmu->perf_pmu->changeseq_pmu);
-	struct nvgpu_clk_domain *pdomain;
-	struct nvgpu_pmu_perf_pstate_clk_info *p0_info;
 	struct change_seq_pmu_script *script_last =
 		&perf_change_seq_pmu->script_last;
-	u8 i = 0;
+	u8 num_domains = 0U;
 
 	nvgpu_log_fn(g, " ");
 
@@ -127,28 +125,9 @@ static void build_change_seq_boot (struct gk20a *g)
 
 	script_last->buf.change.data.flags = CTRL_PERF_CHANGE_SEQ_CHANGE_NONE;
 
-	BOARDOBJGRP_FOR_EACH(&(g->pmu->clk_pmu->clk_domainobjs->super.super),
-		struct nvgpu_clk_domain *, pdomain, i) {
-
-		p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
-				CTRL_PERF_PSTATE_P0, pdomain->domain);
-
-		script_last->buf.change.data.clk_list.clk_domains[i].clk_domain =
-			pdomain->api_domain;
-
-		script_last->buf.change.data.clk_list.clk_domains[i].clk_freq_khz =
-			p0_info->nominal_mhz * 1000U;
-
-		/* VBIOS always boots with FFR*/
-		script_last->buf.change.data.clk_list.clk_domains[i].regime_id =
-			CTRL_CLK_FLL_REGIME_ID_FFR;
-
-		script_last->buf.change.data.clk_list.num_domains++;
-
-		nvgpu_pmu_dbg(g, "Domain %x, Nom Freq = %d Max Freq =%d, regime %d",
-			pdomain->api_domain,p0_info->nominal_mhz, p0_info->max_mhz,
-			CTRL_CLK_FLL_REGIME_ID_FFR);
-	}
+	num_domains = nvgpu_pmu_clk_domain_update_clk_info(g,
+			&script_last->buf.change.data.clk_list);
+	script_last->buf.change.data.clk_list.num_domains = num_domains;
 
 	nvgpu_pmu_dbg(g,"Total domains = %d\n",
 		script_last->buf.change.data.clk_list.num_domains);

@@ -1664,3 +1664,63 @@ int nvgpu_pmu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index)
 	*domain = clk_domain->domain;
 	return 0;
 }
+
+int nvgpu_pmu_clk_domain_get_f_points(struct gk20a *g,
+		u32 clkapidomain,
+		u32 *pfpointscount,
+		u16 *pfreqpointsinmhz)
+{
+	int status = -EINVAL;
+	struct nvgpu_clk_domain *pdomain;
+	struct nvgpu_clk_pmupstate *pclk = g->pmu->clk_pmu;
+	u8 i;
+
+	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs->super.super),
+			struct nvgpu_clk_domain *, pdomain, i) {
+		if (pdomain->api_domain == clkapidomain) {
+			status = pdomain->clkdomainclkgetfpoints(g, pclk,
+				pdomain, pfpointscount,
+				pfreqpointsinmhz,
+				CLK_PROG_VFE_ENTRY_LOGIC);
+			return status;
+		}
+	}
+	return status;
+}
+
+u8 nvgpu_pmu_clk_domain_update_clk_info(struct gk20a *g,
+		struct ctrl_clk_clk_domain_list *clk_list)
+{
+	struct nvgpu_pmu_perf_pstate_clk_info *p0_info;
+	struct nvgpu_clk_domain *pdomain;
+	u8 i = 0U, num_domains = 0U;
+
+	BOARDOBJGRP_FOR_EACH(&(g->pmu->clk_pmu->clk_domainobjs->super.super),
+		struct nvgpu_clk_domain *, pdomain, i) {
+
+		p0_info = nvgpu_pmu_perf_pstate_get_clk_set_info(g,
+				CTRL_PERF_PSTATE_P0, pdomain->domain);
+		if (p0_info == NULL) {
+			nvgpu_err(g, "Unable to get P0 info");
+			return num_domains;
+		}
+		clk_list->clk_domains[i].clk_domain =
+			pdomain->api_domain;
+
+		clk_list->clk_domains[i].clk_freq_khz =
+			p0_info->nominal_mhz * 1000U;
+
+		/* VBIOS always boots with FFR*/
+		clk_list->clk_domains[i].regime_id =
+			CTRL_CLK_FLL_REGIME_ID_FFR;
+
+		num_domains =
+		nvgpu_safe_cast_u32_to_u8(nvgpu_safe_add_u32(num_domains, 1U));
+
+		nvgpu_pmu_dbg(g, "Domain %x, Nom Freq = %d Max Freq =%d,"
+			"regime %d", pdomain->api_domain, p0_info->nominal_mhz,
+			p0_info->max_mhz, CTRL_CLK_FLL_REGIME_ID_FFR);
+	}
+	return num_domains;
+
+}

@@ -297,42 +297,6 @@ typedef int nvgpu_clkgetfpoints(struct gk20a *g,
 	struct nvgpu_clk_pmupstate *pclk, struct nvgpu_clk_domain *pdomain,
 	u32 *pfpointscount, u16 *pfreqpointsinmhz, u8 rail);
 
-struct nvgpu_clk_domain {
-	struct boardobj super;
-	u32 api_domain;
-	u32 part_mask;
-	u32 domain;
-	u8 perf_domain_index;
-	u8 perf_domain_grp_idx;
-	u8 ratio_domain;
-	u8 usage;
-	nvgpu_clkproglink *clkdomainclkproglink;
-	nvgpu_clkvfsearch *clkdomainclkvfsearch;
-	nvgpu_clkgetfpoints *clkdomainclkgetfpoints;
-};
-
-struct nvgpu_clk_domains {
-	struct boardobjgrp_e32 super;
-	u8 n_num_entries;
-	u8 version;
-	bool b_enforce_vf_monotonicity;
-	bool b_enforce_vf_smoothening;
-	bool b_override_o_v_o_c;
-	bool b_debug_mode;
-	u32 vbios_domains;
-	u16 cntr_sampling_periodms;
-	u16 clkmon_refwin_usec;
-	struct boardobjgrpmask_e32 prog_domains_mask;
-	struct boardobjgrpmask_e32 master_domains_mask;
-	struct boardobjgrpmask_e32 clkmon_domains_mask;
-	struct ctrl_clk_clk_delta  deltas;
-
-	struct nvgpu_clk_domain
-		*ordered_noise_aware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
-
-	struct nvgpu_clk_domain
-		*ordered_noise_unaware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
-};
 struct nvgpu_clk_slave_freq{
 	u16 gpc_mhz;
 	u16 sys_mhz;
@@ -360,4 +324,10 @@ int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
 u16 nvgpu_pmu_clk_fll_get_min_max_freq(struct gk20a *g);
 u32 nvgpu_pmu_clk_fll_get_lut_step_size(struct nvgpu_clk_pmupstate *pclk);
 u32 nvgpu_pmu_clk_fll_get_lut_min_volt(struct nvgpu_clk_pmupstate *pclk);
+int nvgpu_pmu_clk_domain_get_f_points(struct gk20a *g,
+	u32 clkapidomain,
+	u32 *pfpointscount,
+	u16 *pfreqpointsinmhz);
+u8 nvgpu_pmu_clk_domain_update_clk_info(struct gk20a *g,
+		struct ctrl_clk_clk_domain_list *clk_list);
 #endif /* NVGPU_PMU_CLK_H */

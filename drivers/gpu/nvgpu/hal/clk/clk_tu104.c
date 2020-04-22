@@ -324,9 +324,7 @@ int tu104_clk_domain_get_f_points(
 	u16 *pfreqpointsinmhz)
 {
 	int status = -EINVAL;
-	struct nvgpu_clk_domain *pdomain;
-	u8 i;
-	struct nvgpu_clk_pmupstate *pclk = g->pmu->clk_pmu;
+
 	if (pfpointscount == NULL) {
 		return -EINVAL;
 	}
@@ -334,15 +332,11 @@ int tu104_clk_domain_get_f_points(
 	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0U)) {
 		return -EINVAL;
 	}
-	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs->super.super),
-			struct nvgpu_clk_domain *, pdomain, i) {
-		if (pdomain->api_domain == clkapidomain) {
-			status = pdomain->clkdomainclkgetfpoints(g, pclk,
-				pdomain, pfpointscount,
-				pfreqpointsinmhz,
-				CLK_PROG_VFE_ENTRY_LOGIC);
-			return status;
-		}
+
+	status = nvgpu_pmu_clk_domain_get_f_points(g,
+			clkapidomain, pfpointscount, pfreqpointsinmhz);
+	if (status != 0) {
+		nvgpu_err(g, "Unable to get frequency points");
 	}
 	return status;
 }
