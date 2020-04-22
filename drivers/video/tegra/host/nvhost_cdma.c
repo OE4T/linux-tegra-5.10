@@ -285,7 +285,9 @@ static void cdma_start_timer_locked(struct nvhost_cdma *cdma,
  */
 static void stop_cdma_timer_locked(struct nvhost_cdma *cdma)
 {
-	cancel_delayed_work_sync(&cdma->timeout.wq);
+	if (cdma->timeout.initialized) {
+		cancel_delayed_work_sync(&cdma->timeout.wq);
+	}
 
 	mutex_lock(&cdma->timeout_lock);
 	if (cdma->timeout.clientid)
