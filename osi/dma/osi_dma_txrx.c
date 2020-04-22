@@ -41,16 +41,51 @@
 static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
 			       struct osi_rx_pkt_cx *rx_pkt_cx)
 {
-	/* Always include either checksum none/unnecessary
-	 * depending on status fields in desc.
-	 * Hence no need to explicitly add OSI_PKT_CX_CSUM flag.
+	/* Set rxcsum flags based on RDES1 values. These are required
+	 * for QNX as it requires more granularity.
+	 * Set none/unnecessary bit as well for other OS to check and
+	 * take proper actions.
 	 */
-	if ((rx_desc->rdes3 & RDES3_RS1V) == RDES3_RS1V) {
-		/* Check if no checksum errors reported in status */
-		if ((rx_desc->rdes1 &
-		    (RDES1_IPCE | RDES1_IPCB | RDES1_IPHE)) == 0U) {
-			rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UNNECESSARY;
+	if ((rx_desc->rdes3 & RDES3_RS1V) != RDES3_RS1V) {
+		return;
+	}
+
+	if ((rx_desc->rdes1 &
+		(RDES1_IPCE | RDES1_IPCB | RDES1_IPHE)) == OSI_DISABLE) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UNNECESSARY;
+	}
+
+	if ((rx_desc->rdes1 & RDES1_IPCB) != OSI_DISABLE) {
+		return;
+	}
+
+	rx_pkt_cx->rxcsum |= OSI_CHECKSUM_IPv4;
+	if ((rx_desc->rdes1 & RDES1_IPHE) == RDES1_IPHE) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_IPv4_BAD;
+	}
+
+	if ((rx_desc->rdes1 & RDES1_PT_UDP) == RDES1_PT_UDP) {
+		if ((rx_desc->rdes1 & RDES1_IPV4) == RDES1_IPV4) {
+			rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UDPv4;
+		} else if ((rx_desc->rdes1 & RDES1_IPV6) == RDES1_IPV6) {
+			rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UDPv6;
+		} else {
+				/* Do nothing here */
 		}
+	} else if ((rx_desc->rdes1 & RDES1_PT_TCP) == RDES1_PT_TCP) {
+		if ((rx_desc->rdes1 & RDES1_IPV4) == RDES1_IPV4) {
+			rx_pkt_cx->rxcsum |= OSI_CHECKSUM_TCPv4;
+		} else if ((rx_desc->rdes1 & RDES1_IPV6) == RDES1_IPV6) {
+			rx_pkt_cx->rxcsum |= OSI_CHECKSUM_TCPv6;
+		} else {
+			/* Do nothing here */
+		}
+	} else {
+			/* Do nothing here */
+	}
+
+	if ((rx_desc->rdes1 & RDES1_IPCE) == RDES1_IPCE) {
+		rx_pkt_cx->rxcsum |= OSI_CHECKSUM_TCP_UDP_BAD;
 	}
 }
 
