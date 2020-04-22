@@ -27,17 +27,7 @@
 #include <linux/debugfs.h>
 #include <uapi/linux/ldpc_ioctl.h>
 
-struct ldpc_devdata {
-	struct class *class;
-	struct cdev cdev;
-	struct device *dev;
-	dev_t dev_nr;
-	struct platform_device *pdev;
-	struct dentry *debugfs_dir;
-	struct dentry *fv;
-	int major;
-	int minor;
-};
+#include "ldpc_dev.h"
 
 int ldpc_open(struct inode *inode, struct file *filp)
 {
@@ -172,6 +162,40 @@ void create_debugfs(struct ldpc_devdata *ldpc_data, const char *devname)
 		return;
 	}
 }
+
+/* Create encoder/decoder device mapping */
+static int ldpc_device_get_resources(struct ldpc_devdata *pdata)
+{
+	int i;
+	void __iomem *regs = NULL;
+	struct platform_device *dev = pdata->pdev;
+	int ret;
+
+	for (i = 0; i < dev->num_resources; i++) {
+		struct resource *r = NULL;
+
+		r = platform_get_resource(dev, IORESOURCE_MEM, i);
+		/* We've run out of mem resources */
+		if (!r)
+			break;
+
+		regs = devm_ioremap_resource(&dev->dev, r);
+		if (IS_ERR(regs)) {
+			ret = PTR_ERR(regs);
+			goto fail;
+		}
+
+		pdata->aperture[i] = regs;
+	}
+
+	return 0;
+
+fail:
+	dev_err(&dev->dev, "failed to get register memory\n");
+
+	return ret;
+}
+
 static int ldpc_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
@@ -239,7 +263,18 @@ static int ldpc_probe(struct platform_device *pdev)
 		goto fail_device;
 	}
 	create_debugfs(ldpc_data, devname);
+
+	ldpc_data->pdev = pdev;
+	ret = ldpc_device_get_resources(ldpc_data);
+	if (ret != 0) {
+		pr_err("ldpc KO: failed to create device mapping:[%d]\n", ret);
+		goto fail_get_res;
+	}
 	return ret;
+
+fail_get_res:
+	debugfs_remove_recursive(ldpc_data->debugfs_dir);
+	device_destroy(ldpc_data->class, ldpc_data->dev_nr);
 
 fail_device:
 	cdev_del(&ldpc_data->cdev);
