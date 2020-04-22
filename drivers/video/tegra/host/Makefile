@@ -75,6 +75,12 @@ obj-$(CONFIG_TEGRA_GRHOST_SLVSEC) += slvsec/
 
 endif
 
+ifdef CONFIG_TEGRA_T23X_GRHOST
+
+obj-y  += nvhost_syncpt_unit_interface.o
+
+endif
+
 ifdef CONFIG_EVENTLIB
 
 $(obj)/bus_client.o: $(obj)/nvhost_events_json.h
