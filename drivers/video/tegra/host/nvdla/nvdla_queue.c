@@ -33,6 +33,7 @@
 #include "nvhost_acm.h"
 
 #include "nvhost_syncpt_unit_interface.h"
+#include "nvhost_gos.h"
 
 #include "nvdla/nvdla.h"
 #include "nvdla/dla_queue.h"

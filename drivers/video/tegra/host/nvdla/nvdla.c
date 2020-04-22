@@ -36,6 +36,7 @@
 #include "flcn/flcn.h"
 #include "flcn/hw_flcn.h"
 #include "nvhost_syncpt_unit_interface.h"
+#include "nvhost_gos.h"
 
 #include "t194/t194.h"
 #ifdef CONFIG_TEGRA_T23X_GRHOST

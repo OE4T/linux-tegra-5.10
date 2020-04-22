@@ -43,6 +43,7 @@
 #endif
 
 #include "nvhost_syncpt_unit_interface.h"
+#include "nvhost_gos.h"
 #include "../drivers/staging/android/sync.h"
 #include "pva.h"
 #include "pva-task.h"

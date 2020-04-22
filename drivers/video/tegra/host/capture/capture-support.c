@@ -39,6 +39,7 @@
 #include "bus_client.h"
 #include "nvhost_acm.h"
 #include "nvhost_syncpt_unit_interface.h"
+#include "nvhost_gos.h"
 #include "t194/t194.h"
 #include "linux/nvmap_t19x.h"
 

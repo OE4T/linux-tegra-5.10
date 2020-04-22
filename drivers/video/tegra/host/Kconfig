@@ -58,4 +58,11 @@ config TEGRA_GRHOST_LEGACY_PD
 	  Enables support for Tegra legacy power domain API
 	  Say Y if using kernel version 4.9 or earlier
 
+config TEGRA_GRHOST_GOS
+	bool "Grid of Semaphores support"
+	depends on TEGRA_GRHOST
+	default TEGRA_T19X_GRHOST || TEGRA_T23X_GRHOST
+	help
+	  Grid of Semaphores management support.
+
 endif

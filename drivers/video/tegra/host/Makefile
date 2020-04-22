@@ -37,6 +37,8 @@ obj-$(CONFIG_TEGRA_GRHOST) += flcn/
 obj-$(CONFIG_TEGRA_GRHOST) += t210/
 obj-$(CONFIG_TEGRA_GRHOST_SCALE) += scale_emc.o nvhost_scale.o
 
+obj-$(CONFIG_TEGRA_GRHOST_GOS) += nvhost_gos.o
+
 ifeq ($(CONFIG_ARCH_TEGRA_18x_SOC),y)
 TEGRA_18X_GRHOST := y
 endif

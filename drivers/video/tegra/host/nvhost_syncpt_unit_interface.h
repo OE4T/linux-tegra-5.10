@@ -19,25 +19,22 @@
 #ifndef NVHOST_SYNCPT_UNIT_INTERFACE_H
 #define NVHOST_SYNCPT_UNIT_INTERFACE_H
 
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_GOS)
+#include <linux/nvmap_t19x.h>
+#endif
+
 struct platform_device;
 struct nvhost_syncpt;
 
-int nvhost_syncpt_get_cv_dev_address_table(struct platform_device *engine_pdev,
-				   int *count,
-				   dma_addr_t **table);
+struct nvhost_syncpt_unit_interface {
+	dma_addr_t start;
+	uint32_t syncpt_page_size;
 
-int nvhost_syncpt_get_gos(struct platform_device *engine_pdev,
-			      u32 syncpt_id,
-			      u32 *gos_id,
-			      u32 *gos_offset);
-
-dma_addr_t nvhost_syncpt_gos_address(struct platform_device *engine_pdev,
-				     u32 syncpt_id);
-
-int nvhost_syncpt_alloc_gos_backing(struct platform_device *engine_pdev,
-				     u32 syncpt_id);
-int nvhost_syncpt_release_gos_backing(struct nvhost_syncpt *sp,
-				      u32 syncpt_id);
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_GOS)
+	int cv_dev_count;
+	dma_addr_t cv_dev_address_table[NVMAP_MAX_GOS_PAGES];
+#endif
+};
 
 dma_addr_t nvhost_syncpt_address(struct platform_device *engine_pdev, u32 id);
 
