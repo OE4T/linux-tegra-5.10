@@ -100,7 +100,22 @@
  */
 /* Checksum offload result flags */
 #define OSI_CHECKSUM_NONE		0x0U
-#define OSI_CHECKSUM_UNNECESSARY	0x1U
+/* TCP header/payload */
+#define OSI_CHECKSUM_TCPv4		OSI_BIT(0)
+/* UDP header/payload */
+#define OSI_CHECKSUM_UDPv4		OSI_BIT(1)
+/* TCP/UDP checksum bad */
+#define OSI_CHECKSUM_TCP_UDP_BAD	OSI_BIT(2)
+/* IPv6 TCP header/payload */
+#define OSI_CHECKSUM_TCPv6		OSI_BIT(4)
+/* IPv6 UDP header/payload */
+#define OSI_CHECKSUM_UDPv6		OSI_BIT(5)
+/* IPv4 header */
+#define OSI_CHECKSUM_IPv4		OSI_BIT(6)
+/* IPv4 header checksum bad */
+#define OSI_CHECKSUM_IPv4_BAD		OSI_BIT(7)
+/* Checksum check not required */
+#define OSI_CHECKSUM_UNNECESSARY	OSI_BIT(8)
 /** @} */
 
 /**
