@@ -37,6 +37,7 @@
 #include "class_ids_t23x.h"
 
 #include "nvhost_syncpt_unit_interface.h"
+#include "nvhost_gos.h"
 #include "t23x.h"
 #include "host1x/host1x.h"
 #if defined(CONFIG_TEGRA_GRHOST_ISP)
