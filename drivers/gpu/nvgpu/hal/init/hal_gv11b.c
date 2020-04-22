@@ -80,6 +80,7 @@
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
+#include "hal/fb/ecc/fb_ecc_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"
 #include "hal/fb/intr/fb_intr_ecc_gv11b.h"
 #include "hal/fuse/fuse_gm20b.h"
@@ -824,8 +825,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 #endif
 	},
 	.fb = {
-		.fb_ecc_init = gv11b_fb_ecc_init,
-		.fb_ecc_free = gv11b_fb_ecc_free,
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 		.get_hubmmu_err_desc =
 			gv11b_fb_intr_get_hubmmu_err_desc,
@@ -882,12 +881,21 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
+		.ecc = {
+			.init = gv11b_fb_ecc_init,
+			.free = gv11b_fb_ecc_free,
+			.l2tlb_error_mask = gv11b_fb_ecc_l2tlb_error_mask,
+		},
 		.intr = {
 			.enable = gv11b_fb_intr_enable,
 			.disable = gv11b_fb_intr_disable,
 			.isr = gv11b_fb_intr_isr,
 			.is_mmu_fault_pending =
 				gv11b_fb_intr_is_mmu_fault_pending,
+			.handle_ecc = gv11b_fb_intr_handle_ecc,
+			.handle_ecc_l2tlb = gv11b_fb_intr_handle_ecc_l2tlb,
+			.handle_ecc_hubtlb = gv11b_fb_intr_handle_ecc_hubtlb,
+			.handle_ecc_fillunit = gv11b_fb_intr_handle_ecc_fillunit,
 		},
 	},
 	.cg = {

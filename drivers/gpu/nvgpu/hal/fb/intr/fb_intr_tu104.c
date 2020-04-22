@@ -28,7 +28,6 @@
 #include "hal/fb/fb_mmu_fault_tu104.h"
 #include "hal/mc/mc_tu104.h"
 
-#include "fb_intr_ecc_gv11b.h"
 #include "fb_intr_tu104.h"
 
 #include "nvgpu/hw/tu104/hw_fb_tu104.h"
@@ -95,7 +94,7 @@ void tu104_fb_intr_isr(struct gk20a *g, u32 intr_unit_bitmask)
 
 	if (intr_tu104_vector_intr_pending(g,
 			fb_mmu_int_vector_ecc_error_vector_v(ecc_error))) {
-		gv11b_fb_intr_handle_ecc(g);
+		g->ops.fb.intr.handle_ecc(g);
 	}
 
 	if (intr_tu104_vector_intr_pending(g,

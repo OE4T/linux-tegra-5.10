@@ -615,6 +615,7 @@ nvgpu-y += \
 	hal/fb/fb_gm20b_fusa.o \
 	hal/fb/fb_gv11b_fusa.o \
 	hal/fb/fb_mmu_fault_gv11b_fusa.o \
+	hal/fb/ecc/fb_ecc_gv11b_fusa.o \
 	hal/fb/intr/fb_intr_ecc_gv11b_fusa.o \
 	hal/fb/intr/fb_intr_gv11b_fusa.o \
 	hal/fifo/channel_gk20a_fusa.o \

@@ -33,7 +33,9 @@
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
+#include "hal/fb/ecc/fb_ecc_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"
+#include "hal/fb/intr/fb_intr_ecc_gv11b.h"
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_mc_gv11b.h>
 
@@ -45,8 +47,13 @@
 int fb_intr_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* HALs under test */
-	g->ops.fb.fb_ecc_init = gv11b_fb_ecc_init;
-	g->ops.fb.fb_ecc_free = gv11b_fb_ecc_free;
+	g->ops.fb.ecc.init = gv11b_fb_ecc_init;
+	g->ops.fb.ecc.free = gv11b_fb_ecc_free;
+	g->ops.fb.ecc.l2tlb_error_mask = gv11b_fb_ecc_l2tlb_error_mask;
+	g->ops.fb.intr.handle_ecc = gv11b_fb_intr_handle_ecc;
+	g->ops.fb.intr.handle_ecc_l2tlb = gv11b_fb_intr_handle_ecc_l2tlb;
+	g->ops.fb.intr.handle_ecc_hubtlb = gv11b_fb_intr_handle_ecc_hubtlb;
+	g->ops.fb.intr.handle_ecc_fillunit = gv11b_fb_intr_handle_ecc_fillunit;
 
 	return UNIT_SUCCESS;
 }
@@ -159,7 +166,7 @@ int fb_intr_gv11b_ecc_test(struct unit_module *m, struct gk20a *g, void *args)
 		unit_return_fail(m, "Invalid subcase\n");
 	}
 
-	g->ops.fb.fb_ecc_init(g);
+	g->ops.fb.ecc.init(g);
 
 	/* Set the interrupt status as corrected */
 	nvgpu_writel(g, p->status_reg, p->corrected_status);
@@ -205,7 +212,7 @@ int fb_intr_gv11b_ecc_test(struct unit_module *m, struct gk20a *g, void *args)
 	/* Clear interrupt status */
 	nvgpu_writel(g, p->status_reg, 0);
 
-	g->ops.fb.fb_ecc_free(g);
+	g->ops.fb.ecc.free(g);
 
 	return UNIT_SUCCESS;
 }

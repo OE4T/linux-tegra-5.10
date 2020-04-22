@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -222,6 +222,9 @@ struct nvgpu_ecc {
 		struct nvgpu_ecc_stat *mmu_fillunit_ecc_corrected_err_count;
 		/** hubmmu fillunit uncorrected error count. */
 		struct nvgpu_ecc_stat *mmu_fillunit_ecc_uncorrected_err_count;
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_ecc.h"
+#endif
 	} fb;
 
 	/**

@@ -557,8 +557,8 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		return err;
 	}
 
-	if ((g->ops.fb.fb_ecc_init != NULL) && !g->ecc.initialized) {
-		err = g->ops.fb.fb_ecc_init(g);
+	if ((g->ops.fb.ecc.init != NULL) && !g->ecc.initialized) {
+		err = g->ops.fb.ecc.init(g);
 		if (err != 0) {
 			return err;
 		}

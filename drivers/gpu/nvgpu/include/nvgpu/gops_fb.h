@@ -86,16 +86,44 @@ struct gops_fb_intr {
 	 * @return true in case of mmu faults pending, false otherwise.
 	 */
 	bool (*is_mmu_fault_pending)(struct gk20a *g);
+
+	/*
+	 * @brief Handle fb ecc error interrupts.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function handles ecc errors generated from memories within
+	 * the fb.
+	 */
+	void (*handle_ecc)(struct gk20a *g);
+	/**
+	 * @brief Handle l2tlb ecc errors.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function handles ecc faults in l2tlb memory.
+	 */
+	void (*handle_ecc_l2tlb)(struct gk20a *g, u32 status);
+	/**
+	 * @brief Handle hubmmu tlb ecc errors.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function handles ecc faults in hubmmu tlb memory.
+	 */
+	void (*handle_ecc_hubtlb)(struct gk20a *g, u32 status);
+	/**
+	 * @brief Handle hubmmu fillunit ecc errors.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 *
+	 * This function handles ecc faults in hubmmu fillunit memory.
+	 */
+	void (*handle_ecc_fillunit)(struct gk20a *g, u32 status);
+
 };
 
-/**
- * common.fb unit hal operations.
- *
- * This structure stores common.fb unit hal pointers.
- *
- * @see gpu_ops
- */
-struct gops_fb {
+struct gops_fb_ecc {
 	/**
 	 * @brief Initialize FB unit ECC support.
 	 *
@@ -106,7 +134,7 @@ struct gops_fb {
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 */
-	int (*fb_ecc_init)(struct gk20a *g);
+	int (*init)(struct gk20a *g);
 
 	/**
 	 * @brief Free FB unit ECC support.
@@ -116,7 +144,31 @@ struct gops_fb {
 	 * This function deallocates memory allocated for ecc error counts
 	 * for FB unit.
 	 */
-	void (*fb_ecc_free)(struct gk20a *g);
+	void (*free)(struct gk20a *g);
+
+	/**
+	 * @brief Fetch bitmask for l2tlb corrected, uncorrcted errors.
+	 *
+	 * @param corrected_error_mask [out]	Pointer to write corrected error
+	 *					mask.
+	 * @param uncorrected_error_mask [out]	Pointer to write uncorrected
+	 *					error mask.
+	 *
+	 * Fetchs a bit mask of all the corrected, uncorrected errors supported
+	 * by l2tlb.
+	 */
+	void (*l2tlb_error_mask)(u32 *corrected_error_mask,
+			u32 *uncorrected_error_mask);
+};
+
+/**
+ * common.fb unit hal operations.
+ *
+ * This structure stores common.fb unit hal pointers.
+ *
+ * @see gpu_ops
+ */
+struct gops_fb {
 
 	/**
 	 * @brief Initializes frame buffer h/w configuration.
@@ -305,6 +357,8 @@ struct gops_fb {
 	 *   NVGPU_MMU_FAULT_BUF_DISABLED : Clears fault buffer size.
 	 */
 	void (*fault_buf_set_state_hw)(struct gk20a *g, u32 index, u32 state);
+
+	struct gops_fb_ecc ecc;
 
 	struct gops_fb_intr intr;
 

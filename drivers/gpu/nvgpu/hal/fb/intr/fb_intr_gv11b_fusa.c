@@ -31,7 +31,6 @@
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 
 #include "fb_intr_gv11b.h"
-#include "fb_intr_ecc_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 
@@ -90,7 +89,7 @@ void gv11b_fb_intr_isr(struct gk20a *g, u32 intr_unit_bitmask)
 	}
 	if ((niso_intr &
 	     fb_niso_intr_mmu_ecc_uncorrected_error_notify_pending_f()) != 0U) {
-		gv11b_fb_intr_handle_ecc(g);
+		g->ops.fb.intr.handle_ecc(g);
 	}
 	if ((niso_intr &
 		(fb_niso_intr_mmu_other_fault_notify_m() |

@@ -155,7 +155,7 @@ int test_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 		gv11b_fb_read_mmu_fault_buffer_size;
 	g->ops.fb.init_hw = gv11b_fb_init_hw;
 	g->ops.fb.intr.enable = gv11b_fb_intr_enable;
-	g->ops.fb.fb_ecc_init = NULL;
+	g->ops.fb.ecc.init = NULL;
 
 	err = nvgpu_init_mm_support(g);
 	if (err != 0) {

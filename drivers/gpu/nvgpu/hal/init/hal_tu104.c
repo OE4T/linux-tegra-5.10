@@ -67,6 +67,8 @@
 #include "hal/fb/fb_tu104.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/fb_mmu_fault_tu104.h"
+#include "hal/fb/ecc/fb_ecc_gv11b.h"
+#include "hal/fb/intr/fb_intr_ecc_gv11b.h"
 #include "hal/fb/intr/fb_intr_tu104.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
@@ -845,8 +847,6 @@ static const struct gpu_ops tu104_ops = {
 #endif
 	},
 	.fb = {
-		.fb_ecc_init = gv11b_fb_ecc_init,
-		.fb_ecc_free = gv11b_fb_ecc_free,
 		.fbpa_ecc_init = tu104_fbpa_ecc_init,
 		.fbpa_ecc_free = tu104_fbpa_ecc_free,
 		.init_hw = gv11b_fb_init_hw,
@@ -907,12 +907,21 @@ static const struct gpu_ops tu104_ops = {
 		.get_vidmem_size = tu104_fb_get_vidmem_size,
 #endif
 		.apply_pdb_cache_war = tu104_fb_apply_pdb_cache_war,
+		.ecc = {
+			.init = gv11b_fb_ecc_init,
+			.free = gv11b_fb_ecc_free,
+			.l2tlb_error_mask = gv11b_fb_ecc_l2tlb_error_mask,
+		},
 		.intr = {
 			.enable = tu104_fb_intr_enable,
 			.disable = tu104_fb_intr_disable,
 			.isr = tu104_fb_intr_isr,
 			.is_mmu_fault_pending =
 				tu104_fb_intr_is_mmu_fault_pending,
+			.handle_ecc = gv11b_fb_intr_handle_ecc,
+			.handle_ecc_l2tlb = gv11b_fb_intr_handle_ecc_l2tlb,
+			.handle_ecc_hubtlb = gv11b_fb_intr_handle_ecc_hubtlb,
+			.handle_ecc_fillunit = gv11b_fb_intr_handle_ecc_fillunit,
 		}
 	},
 	.nvdec = {

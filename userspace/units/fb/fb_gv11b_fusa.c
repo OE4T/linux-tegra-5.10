@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,9 @@
 #include "hal/mc/mc_gp10b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gv11b.h"
+#include "hal/fb/ecc/fb_ecc_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"
+#include "hal/fb/intr/fb_intr_ecc_gv11b.h"
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 
 #include "fb_fusa.h"
@@ -46,8 +48,13 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.ecc.ecc_init_support = nvgpu_ecc_init_support;
 	g->ops.fb.init_hw = gv11b_fb_init_hw;
 	g->ops.fb.init_fs_state = gv11b_fb_init_fs_state;
-	g->ops.fb.fb_ecc_init = gv11b_fb_ecc_init;
-	g->ops.fb.fb_ecc_free = gv11b_fb_ecc_free;
+	g->ops.fb.ecc.init = gv11b_fb_ecc_init;
+	g->ops.fb.ecc.free = gv11b_fb_ecc_free;
+	g->ops.fb.ecc.l2tlb_error_mask = gv11b_fb_ecc_l2tlb_error_mask;
+	g->ops.fb.intr.handle_ecc = gv11b_fb_intr_handle_ecc,
+	g->ops.fb.intr.handle_ecc_l2tlb = gv11b_fb_intr_handle_ecc_l2tlb,
+	g->ops.fb.intr.handle_ecc_hubtlb = gv11b_fb_intr_handle_ecc_hubtlb,
+	g->ops.fb.intr.handle_ecc_fillunit = gv11b_fb_intr_handle_ecc_fillunit,
 
 	/* Other HALs */
 	g->ops.mc.intr_stall_unit_config = mc_gp10b_intr_stall_unit_config;
@@ -94,19 +101,19 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args)
 	 */
 	for (int i = 0; i < 5; i++) {
 		nvgpu_posix_enable_fault_injection(kmem_fi, true, i);
-		err = g->ops.fb.fb_ecc_init(g);
+		err = g->ops.fb.ecc.init(g);
 		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 		if (err != -ENOMEM) {
 			unit_return_fail(m, "gv11b_fb_ecc_init did not fail as expected (%d)\n", i);
 		}
 	}
 
-	err = g->ops.fb.fb_ecc_init(g);
+	err = g->ops.fb.ecc.init(g);
 	if (err != 0) {
 		unit_return_fail(m, "gv11b_fb_ecc_init failed\n");
 	}
 
-	g->ops.fb.fb_ecc_free(g);
+	g->ops.fb.ecc.free(g);
 
 	return UNIT_SUCCESS;
 }

@@ -1,7 +1,7 @@
 /*
- * GV11B FB
+ * GV11B FB ECC
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,17 +22,26 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FB_GV11B_H
-#define NVGPU_FB_GV11B_H
+#ifndef NVGPU_FB_ECC_GV11B_H
+#define NVGPU_FB_ECC_GV11B_H
 
 struct gk20a;
 
-void gv11b_fb_init_hw(struct gk20a *g);
-void gv11b_fb_init_fs_state(struct gk20a *g);
+/*
+ * @brief Allocate and initialize counters for memories within FB.
+ *
+ * @param stat [in] Address of pointer to struct nvgpu_ecc_stat.
+ *
+ */
+#define NVGPU_ECC_COUNTER_INIT_FB(stat) \
+	nvgpu_ecc_counter_init(g, &g->ecc.fb.stat, #stat)
 
-#ifdef CONFIG_NVGPU_COMPRESSION
-struct nvgpu_cbc;
-void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc);
-#endif
+#define NVGPU_ECC_COUNTER_FREE_FB(stat) \
+	nvgpu_kfree(g, g->ecc.fb.stat)
 
-#endif /* NVGPU_FB_GV11B_H */
+int gv11b_fb_ecc_init(struct gk20a *g);
+void gv11b_fb_ecc_free(struct gk20a *g);
+void gv11b_fb_ecc_l2tlb_error_mask(u32 *corrected_error_mask,
+		u32 *uncorrected_error_mask);
+
+#endif /* NVGPU_FB_ECC_GV11B_H */

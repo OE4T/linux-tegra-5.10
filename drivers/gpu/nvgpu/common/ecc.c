@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -58,8 +58,8 @@ void nvgpu_ecc_free(struct gk20a *g)
 	nvgpu_gr_ecc_free(g);
 	nvgpu_ltc_ecc_free(g);
 
-	if (g->ops.fb.fb_ecc_free != NULL) {
-		g->ops.fb.fb_ecc_free(g);
+	if (g->ops.fb.ecc.free != NULL) {
+		g->ops.fb.ecc.free(g);
 	}
 
 #ifdef CONFIG_NVGPU_DGPU

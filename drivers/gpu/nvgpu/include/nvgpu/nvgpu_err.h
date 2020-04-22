@@ -464,6 +464,29 @@ void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u64 err_addr, u64 err_count);
 
 /**
+ * @brief Helper function to report FB MMU ECC errors to 3LSS.
+ *
+ * @param g [in]		- The GPU driver struct.
+ * @param err_id [in]		- Error index.
+ *				  - Min: GPU_HUBMMU_L2TLB_SA_DATA_ECC_CORRECTED
+ *				  - Max: GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED
+ * @param err_addr [in]		- Error address.
+ *				  - This is the location at which correctable or
+ *				    uncorrectable error has occurred.
+ * @param err_count [in]	- Error count.
+ *
+ * Calls nvgpu_report_ecc_err with hw_unit=NVGPU_ERR_MODULE_HUBMMU and inst=0.
+ *
+ * @return	None
+ */
+static inline void nvgpu_report_fb_ecc_err(struct gk20a *g, u32 err_id, u64 err_addr,
+		u64 err_count)
+{
+	nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_HUBMMU, 0, err_id, err_addr,
+			err_count);
+}
+
+/**
  * @brief Report CTXSW error to 3LSS.
  *
  * @param g [in]	- The GPU driver struct.

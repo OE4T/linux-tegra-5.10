@@ -1,7 +1,7 @@
 /*
  * GV11B FB INTR ECC
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,10 @@ struct nvgpu_hw_err_inject_info;
 struct nvgpu_hw_err_inject_info_desc;
 
 void gv11b_fb_intr_handle_ecc(struct gk20a *g);
+void gv11b_fb_intr_handle_ecc_l2tlb(struct gk20a *g, u32 ecc_status);
+void gv11b_fb_intr_handle_ecc_fillunit(struct gk20a *g, u32 ecc_status);
+void gv11b_fb_intr_handle_ecc_hubtlb(struct gk20a *g, u32 ecc_status);
+
 #ifdef CONFIG_NVGPU_INJECT_HWERR
 struct nvgpu_hw_err_inject_info_desc *
 		gv11b_fb_intr_get_hubmmu_err_desc(struct gk20a *g);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -192,7 +192,7 @@ int test_ecc_free(struct unit_module *m, struct gk20a *g,
 	 *  - "nvgpu_ecc_free" should skip freeing ecc counters for fb, fpba,
 	 *    pmu and return without faulting.
 	 */
-	g->ops.fb.fb_ecc_free = NULL;
+	g->ops.fb.ecc.free = NULL;
 	g->ops.pmu.ecc_free = NULL;
 	g->ecc.ltc.ecc_sec_count = nvgpu_kzalloc(g,
 			sizeof(*g->ecc.ltc.ecc_sec_count));
@@ -210,7 +210,7 @@ int test_ecc_free(struct unit_module *m, struct gk20a *g,
 	 *  - fb and pmu ecc HALs have ecc free handles are set.
 	 *  - "nvgpu_ecc_free" should return without faulting.
 	 */
-	g->ops.fb.fb_ecc_free = mock_ecc_free;
+	g->ops.fb.ecc.free = mock_ecc_free;
 	g->ops.pmu.ecc_free = mock_ecc_free;
 	g->ecc.ltc.ecc_sec_count = nvgpu_kzalloc(g,
 			sizeof(*g->ecc.ltc.ecc_sec_count));
