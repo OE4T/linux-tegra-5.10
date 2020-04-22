@@ -660,20 +660,18 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 			nvgpu_err(g, "fatal error probing nvlink, bailing out");
 			goto err_free_irq;
 		}
-		/* Enable Semaphore SHIM on nvlink only for now. */
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
-		nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
-	} else {
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
-		err = nvgpu_nvhost_syncpt_init(g);
-		if (err) {
-			if (err != -ENOSYS) {
-				nvgpu_err(g, "syncpt init failed");
-				goto err_free_irq;
-			}
-		}
-#endif
 	}
+
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
+	err = nvgpu_nvhost_syncpt_init(g);
+	if (err) {
+		if (err != -ENOSYS) {
+			nvgpu_err(g, "syncpt init failed");
+			goto err_free_irq;
+		}
+	}
+#endif
 
 	err = nvgpu_get_dt_clock_limit(g, &g->dgpu_max_clk);
 	if (err != 0) {
