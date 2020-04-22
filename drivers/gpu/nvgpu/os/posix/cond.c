@@ -96,9 +96,7 @@ void nvgpu_cond_signal(struct nvgpu_cond *cond)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_cond_signal error = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
@@ -114,9 +112,7 @@ void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_cond_signal error = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 int nvgpu_cond_broadcast(struct nvgpu_cond *cond)
@@ -163,9 +159,7 @@ void nvgpu_cond_destroy(struct nvgpu_cond *cond)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_cond_destroy error = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 	nvgpu_mutex_destroy(&cond->mutex);
 	err = pthread_condattr_destroy(&cond->attr);
 	if (err != 0) {
@@ -185,9 +179,7 @@ void nvgpu_cond_signal_locked(struct nvgpu_cond *cond)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_cond_signal error = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 int nvgpu_cond_broadcast_locked(struct nvgpu_cond *cond)

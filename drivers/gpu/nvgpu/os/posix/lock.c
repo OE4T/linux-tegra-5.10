@@ -51,9 +51,7 @@ void nvgpu_mutex_destroy(struct nvgpu_mutex *mutex)
 	if (err != 0) {
 		nvgpu_info(NULL, "Mutex destroy error %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 void nvgpu_spinlock_init(struct nvgpu_spinlock *spinlock)
@@ -62,9 +60,7 @@ void nvgpu_spinlock_init(struct nvgpu_spinlock *spinlock)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_mutex_init error = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 void nvgpu_spinlock_acquire(struct nvgpu_spinlock *spinlock)
@@ -83,9 +79,7 @@ void nvgpu_raw_spinlock_init(struct nvgpu_raw_spinlock *spinlock)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_mutex_init error = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 void nvgpu_raw_spinlock_acquire(struct nvgpu_raw_spinlock *spinlock)

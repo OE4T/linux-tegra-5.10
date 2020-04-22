@@ -23,9 +23,7 @@
 #include <pthread.h>
 #include <nvgpu/rwsem.h>
 #include <nvgpu/log.h>
-#ifndef CONFIG_NVGPU_NON_FUSA
 #include <nvgpu/bug.h>
-#endif
 
 void nvgpu_rwsem_init(struct nvgpu_rwsem *rwsem)
 {
@@ -33,9 +31,7 @@ void nvgpu_rwsem_init(struct nvgpu_rwsem *rwsem)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_rwlock_init error = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 /*
@@ -47,9 +43,7 @@ void nvgpu_rwsem_down_read(struct nvgpu_rwsem *rwsem)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_rwlock_rdlock err = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 /*
@@ -61,9 +55,7 @@ void nvgpu_rwsem_up_read(struct nvgpu_rwsem *rwsem)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_rwlock_unlock err = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 void nvgpu_rwsem_down_write(struct nvgpu_rwsem *rwsem)
@@ -72,9 +64,7 @@ void nvgpu_rwsem_down_write(struct nvgpu_rwsem *rwsem)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_rwlock_wrlock err = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 void nvgpu_rwsem_up_write(struct nvgpu_rwsem *rwsem)
@@ -83,7 +73,5 @@ void nvgpu_rwsem_up_write(struct nvgpu_rwsem *rwsem)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_rwlock_unlock err = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }

@@ -27,9 +27,7 @@
 
 #include <pthread.h>
 #include <nvgpu/log.h>
-#ifndef CONFIG_NVGPU_NON_FUSA
 #include <nvgpu/bug.h>
-#endif
 
 /*
  * All locks for posix nvgpu are just pthread locks. There's not a lot of reason
@@ -58,9 +56,7 @@ static inline void nvgpu_posix_lock_acquire(struct __nvgpu_posix_lock *lock)
 	if (err != 0) {
 		nvgpu_err(NULL, "OS API pthread_mutex_lock error = %d", err);
 	}
-#ifndef CONFIG_NVGPU_NON_FUSA
 	nvgpu_assert(err == 0);
-#endif
 }
 
 /**
