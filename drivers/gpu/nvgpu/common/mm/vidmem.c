@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,6 +91,43 @@ void nvgpu_vidmem_destroy(struct gk20a *g)
 	}
 }
 
+static int nvgpu_vidmem_clear_fence_wait(struct gk20a *g,
+		struct nvgpu_fence_type *fence_out)
+{
+	struct nvgpu_timeout timeout;
+	bool done;
+	int err;
+
+	err = nvgpu_timeout_init(g, &timeout,
+		   nvgpu_get_poll_timeout(g),
+		   NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
+		return err;
+	}
+
+	do {
+		err = nvgpu_fence_wait(g, fence_out,
+				       nvgpu_get_poll_timeout(g));
+		if (err != -ERESTARTSYS) {
+			done = true;
+		} else if (nvgpu_timeout_expired(&timeout) != 0) {
+			done = true;
+		} else {
+			done = false;
+		}
+	} while (!done);
+
+	nvgpu_fence_put(fence_out);
+	if (err != 0) {
+		nvgpu_err(g,
+			"fence wait failed for CE execute ops");
+		return err;
+	}
+
+	return 0;
+}
+
 static int nvgpu_vidmem_do_clear_all(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
@@ -125,33 +162,8 @@ static int nvgpu_vidmem_do_clear_all(struct gk20a *g)
 #endif
 
 	if (fence_out != NULL) {
-		struct nvgpu_timeout timeout;
-		bool done;
-
-		err = nvgpu_timeout_init(g, &timeout,
-				   nvgpu_get_poll_timeout(g),
-				   NVGPU_TIMER_CPU_TIMER);
+		err = nvgpu_vidmem_clear_fence_wait(g, fence_out);
 		if (err != 0) {
-			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
-			return err;
-		}
-
-		do {
-			err = nvgpu_fence_wait(g, fence_out,
-					       nvgpu_get_poll_timeout(g));
-			if (err != -ERESTARTSYS) {
-				done = true;
-			} else if (nvgpu_timeout_expired(&timeout) != 0) {
-				done = true;
-			} else {
-				done = false;
-			}
-		} while (!done);
-
-		nvgpu_fence_put(fence_out);
-		if (err != 0) {
-			nvgpu_err(g,
-				"fence wait failed for CE execute ops");
 			return err;
 		}
 	}
@@ -497,33 +509,9 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 	}
 
 	if (last_fence != NULL) {
-		struct nvgpu_timeout timeout;
-		bool done;
-
-		err = nvgpu_timeout_init(g, &timeout,
-				   nvgpu_get_poll_timeout(g),
-				   NVGPU_TIMER_CPU_TIMER);
+		err = nvgpu_vidmem_clear_fence_wait(g, last_fence);
 		if (err != 0) {
-			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
 			return err;
-		}
-
-		do {
-			err = nvgpu_fence_wait(g, last_fence,
-					       nvgpu_get_poll_timeout(g));
-			if (err != -ERESTARTSYS) {
-				done = true;
-			} else if (nvgpu_timeout_expired(&timeout) != 0) {
-				done = true;
-			} else {
-				done = false;
-			}
-		} while (!done);
-
-		nvgpu_fence_put(last_fence);
-		if (err != 0) {
-			nvgpu_err(g,
-				"fence wait failed for CE execute ops");
 		}
 	}
 
