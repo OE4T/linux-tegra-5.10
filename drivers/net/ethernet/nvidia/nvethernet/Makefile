@@ -18,7 +18,7 @@ OSI_DMA := nvethernetrm/osi/dma
 
 obj-$(CONFIG_NVETHERNET) += nvethernet.o
 
-EXTRA_CFLAGS += -DTHERMAL_CAL
+EXTRA_CFLAGS += -DTHERMAL_CAL -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include
 
 nvethernet-objs:= ether_linux.o \
 		  osd.o \
