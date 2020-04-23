@@ -150,7 +150,6 @@ static const char * const tegra_bwmgr_client_names[] = {
 	"se2",
 	"se3",
 	"se4",
-	"pmqos",
 	"nvpmodel",
 	"debug",
 	"nvdla0",
@@ -900,7 +899,6 @@ int __init bwmgr_init(void)
 		purge_client(bwmgr.bwmgr_client + i);
 
 	bwmgr_debugfs_init();
-	pmqos_bwmgr_init();
 
 	/* Check status property is okay or not. */
 	if (of_device_is_available(dn))

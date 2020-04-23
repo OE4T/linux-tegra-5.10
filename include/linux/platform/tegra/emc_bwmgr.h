@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -69,7 +69,6 @@ enum tegra_bwmgr_client_id {
 	TEGRA_BWMGR_CLIENT_SE2,
 	TEGRA_BWMGR_CLIENT_SE3,
 	TEGRA_BWMGR_CLIENT_SE4,
-	TEGRA_BWMGR_CLIENT_PMQOS,
 	TEGRA_BWMGR_CLIENT_NVPMODEL,
 	TEGRA_BWMGR_CLIENT_DEBUG,
 	TEGRA_BWMGR_CLIENT_DLA0,
@@ -256,12 +255,6 @@ int tegra_bwmgr_notifier_unregister(struct notifier_block *nb);
 int __init bwmgr_init(void);
 
 void __exit bwmgr_exit(void);
-
-/*
- * Initialize pmqos bwmgr code which registers pmqos as bwmgr client and
- * registers a notifier which gets called on update to PMQOS_EMC_FREQ_MIN.
- */
-int __init pmqos_bwmgr_init(void);
 
 #else /* CONFIG_TEGRA_BWMGR */
 
