@@ -538,4 +538,22 @@ void mgbe_read_mmc(struct osi_core_priv_data *osi_core)
 	mmc->mmc_rx_icmp_err_octets_h =
 		update_mmc_val(osi_core, mmc->mmc_rx_icmp_err_octets_h,
 			       MMC_RXICMP_ERR_OCTETS_H);
+	mmc->mmc_tx_fpe_frag_cnt =
+		update_mmc_val(osi_core, mmc->mmc_tx_fpe_frag_cnt,
+			       MMC_TX_FPE_FRAG_COUNTER);
+	mmc->mmc_tx_fpe_hold_req_cnt =
+		update_mmc_val(osi_core, mmc->mmc_tx_fpe_hold_req_cnt,
+			       MMC_TX_HOLD_REQ_COUNTER);
+	mmc->mmc_rx_packet_reass_err_cnt =
+		update_mmc_val(osi_core, mmc->mmc_rx_packet_reass_err_cnt,
+			       MMC_RX_PKT_ASSEMBLY_ERR_CNTR);
+	mmc->mmc_rx_packet_smd_err_cnt =
+		update_mmc_val(osi_core, mmc->mmc_rx_packet_smd_err_cnt,
+			       MMC_RX_PKT_SMD_ERR_CNTR);
+	mmc->mmc_rx_packet_asm_ok_cnt =
+		update_mmc_val(osi_core, mmc->mmc_rx_packet_asm_ok_cnt,
+			       MMC_RX_PKT_ASSEMBLY_OK_CNTR);
+	mmc->mmc_rx_fpe_fragment_cnt =
+		update_mmc_val(osi_core, mmc->mmc_rx_fpe_fragment_cnt,
+			       MMC_RX_FPE_FRAG_CNTR);
 }

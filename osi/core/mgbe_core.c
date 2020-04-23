@@ -22,6 +22,7 @@
 
 #include "../osi/common/common.h"
 #include "../osi/common/type.h"
+#include <local_common.h>
 #include <osi_common.h>
 #include <osi_core.h>
 #include "mgbe_core.h"
@@ -1737,7 +1738,8 @@ static nve32_t mgbe_configure_mtl_queue(nveu32_t qinx,
 	/*TTC  not applicable for TX*/
 	/* Enable TxQ */
 	value |= MGBE_MTL_TXQEN;
-	osi_writel(value, (nveu8_t *)
+	value |= (osi_core->tc[qinx] << MGBE_MTL_CHX_TX_OP_MODE_Q2TC_SH);
+	osi_writel(value, (unsigned char *)
 		   osi_core->base + MGBE_MTL_CHX_TX_OP_MODE(qinx));
 
 	/* read RX Q0 Operating Mode Register */
@@ -2213,6 +2215,136 @@ static void mgbe_core_backup_init(struct osi_core_priv_data *const osi_core)
 }
 
 /**
+ * @brief mgbe_enable_mtl_interrupts - Enable MTL interrupts
+ *
+ * Algorithm: enable MTL interrupts for EST
+ *
+ * @param[in] addr: MAC base IOVA address.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void mgbe_enable_mtl_interrupts(void *addr)
+{
+	unsigned int  mtl_est_ir = OSI_DISABLE;
+
+	mtl_est_ir = osi_readl((unsigned char *)addr + MGBE_MTL_EST_ITRE);
+	/* enable only MTL interrupt realted to
+	 * Constant Gate Control Error
+	 * Head-Of-Line Blocking due to Scheduling
+	 * Head-Of-Line Blocking due to Frame Size
+	 * BTR Error
+	 * Switch to S/W owned list Complete
+	 */
+	mtl_est_ir |= (MGBE_MTL_EST_ITRE_CGCE | MGBE_MTL_EST_ITRE_IEHS |
+		       MGBE_MTL_EST_ITRE_IEHF | MGBE_MTL_EST_ITRE_IEBE |
+		       MGBE_MTL_EST_ITRE_IECC);
+	osi_writel(mtl_est_ir, (unsigned char *)addr + MGBE_MTL_EST_ITRE);
+}
+
+/**
+ * @brief mgbe_enable_fpe_interrupts - Enable MTL interrupts
+ *
+ * Algorithm: enable FPE interrupts
+ *
+ * @param[in] addr: MAC base IOVA address.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static inline void mgbe_enable_fpe_interrupts(void *addr)
+{
+	unsigned int  value = OSI_DISABLE;
+
+	/* Read MAC IER Register and enable Frame Preemption Interrupt
+	 * Enable */
+	value = osi_readl((unsigned char *)addr + MGBE_MAC_IER);
+	value |= MGBE_IMR_FPEIE;
+	osi_writel(value, (unsigned char *)addr + MGBE_MAC_IER);
+}
+
+/**
+ * @brief mgbe_tsn_init - initialize TSN feature
+ *
+ * Algorithm:
+ * 1) If hardware support EST,
+ *   a) Set default EST configuration
+ *   b) Set enable interrupts
+ * 2) If hardware supports FPE
+ *   a) Set default FPE configuration
+ *   b) enable interrupts
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est_sel: EST HW support present or not
+ * @param[in] fpe_sel: FPE HW support present or not
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void mgbe_tsn_init(struct osi_core_priv_data *osi_core,
+			  unsigned int est_sel, unsigned int fpe_sel)
+{
+	unsigned int val = 0x0;
+	unsigned int temp = 0U;
+
+	if (est_sel == OSI_ENABLE) {
+		val = osi_readl((unsigned char *)osi_core->base +
+				MGBE_MTL_EST_CONTROL);
+
+		/*
+		 * PTOV PTP clock period * 6
+		 * dual-port RAM based asynchronous FIFO controllers or
+		 * Single-port RAM based synchronous FIFO controllers
+		 * CTOV 96 x Tx clock period
+		 * :
+		 * :
+		 * set other default value
+		 */
+		val &= ~MGBE_MTL_EST_CONTROL_PTOV;
+		if (osi_core->pre_si == OSI_ENABLE) {
+			/* 6*1/(78.6 MHz) in ns*/
+			temp = (6U * 13U);
+		} else {
+			/* 6*1/(312 MHz) in ns*/
+			temp = (6U * 3U);
+		}
+		temp = temp << MGBE_MTL_EST_CONTROL_PTOV_SHIFT;
+		val |= temp;
+
+		/* We have a bug on CTOV for Qbv that synopsys is yet to
+		 * fix[Case – 8001147927, Bug 200468714]. You can go ahead
+		 * with 128*8ns for now. TODO */
+		val &= ~MGBE_MTL_EST_CONTROL_CTOV;
+		temp = (128U * 8U);
+		temp = temp << MGBE_MTL_EST_CONTROL_CTOV_SHIFT;
+		val |= temp;
+
+		/*Loop Count to report Scheduling Error*/
+		val &= ~MGBE_MTL_EST_CONTROL_LCSE;
+		val |= MGBE_MTL_EST_CONTROL_LCSE_VAL;
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   MGBE_MTL_EST_CONTROL);
+
+		mgbe_enable_mtl_interrupts(osi_core->base);
+	}
+
+	if (fpe_sel == OSI_ENABLE) {
+		val = osi_readl((unsigned char *)osi_core->base +
+				MGBE_MAC_RQC1R);
+		val &= ~MGBE_MAC_RQC1R_RQ;
+		temp = osi_core->residual_queue;
+		temp = temp << MGBE_MAC_RQC1R_RQ_SHIFT;
+		temp = (temp & MGBE_MAC_RQC1R_RQ);
+		val |= temp;
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   MGBE_MAC_RQC1R);
+
+		mgbe_enable_fpe_interrupts(osi_core->base);
+	}
+
+	/* CBS setting for TC or TXQ for default configuration
+	   user application should use IOCTL to set CBS as per requirement
+	 */
+}
+
+/**
  * @brief mgbe_core_init - MGBE MAC, MTL and common DMA Initialization
  *
  * Algorithm: This function will take care of initializing MAC, MTL and
@@ -2297,12 +2429,70 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	/* configure MGBE DMA */
 	mgbe_configure_dma(osi_core->base);
 
+	/* tsn initialization */
+	if (osi_core->hw_feature != OSI_NULL) {
+		mgbe_tsn_init(osi_core, osi_core->hw_feature->est_sel,
+			      osi_core->hw_feature->fpe_sel);
+	}
+
 	/* XPCS initialization */
 	return xpcs_init(osi_core);
 }
 
 /**
- * @brief mgbe_handle_mac_nve32_trs - Handle MAC nve32_terrupts
+ * @brief mgbe_handle_mac_fpe_intrs
+ *
+ * Algorithm: This function takes care of handling the
+ *	MAC FPE interrupts.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC interrupts need to be enabled
+ *
+ */
+static void mgbe_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
+{
+	unsigned int val = 0;
+
+	/* interrupt bit clear on read as CSR_SW is reset */
+	val = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_FPE_CTS);
+
+	if ((val & MGBE_MAC_FPE_CTS_RVER) == MGBE_MAC_FPE_CTS_RVER) {
+		val &= ~MGBE_MAC_FPE_CTS_RVER;
+		val |= MGBE_MAC_FPE_CTS_SRSP;
+	}
+
+	if ((val & MGBE_MAC_FPE_CTS_RRSP) == MGBE_MAC_FPE_CTS_RRSP) {
+		/* received respose packet  Nothing to be done, it means other
+		 * IP also support FPE
+		 */
+		val &= ~MGBE_MAC_FPE_CTS_RRSP;
+		val &= ~MGBE_MAC_FPE_CTS_TVER;
+		osi_core->fpe_ready = OSI_ENABLE;
+		val |= MGBE_MAC_FPE_CTS_EFPE;
+	}
+
+	if ((val & MGBE_MAC_FPE_CTS_TRSP) == MGBE_MAC_FPE_CTS_TRSP) {
+		/* TX response packet sucessful */
+		osi_core->fpe_ready = OSI_ENABLE;
+		/* Enable frame preemption */
+		val &= ~MGBE_MAC_FPE_CTS_TRSP;
+		val &= ~MGBE_MAC_FPE_CTS_TVER;
+		val |= MGBE_MAC_FPE_CTS_EFPE;
+	}
+
+	if ((val & MGBE_MAC_FPE_CTS_TVER) == MGBE_MAC_FPE_CTS_TVER) {
+		/*Transmit verif packet sucessful*/
+		osi_core->fpe_ready = OSI_DISABLE;
+		val &= ~MGBE_MAC_FPE_CTS_TVER;
+		val &= ~MGBE_MAC_FPE_CTS_EFPE;
+	}
+
+	osi_writel(val, (unsigned char *)osi_core->base + MGBE_MAC_FPE_CTS);
+}
+
+/**
+ * @brief mgbe_handle_mac_intrs - Handle MAC interrupts
  *
  * Algorithm: This function takes care of handling the
  *	MAC nve32_terrupts which includes speed, mode detection.
@@ -2315,16 +2505,24 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 				  nveu32_t dma_isr)
 {
-#if 0 /* TODO: Need to re-visit */
-	mac_isr = osi_readl((nveu8_t *)osi_core->base + MGBE_MAC_ISR);
+	unsigned int mac_isr = 0;
+	unsigned int mac_ier = 0;
 
+	mac_isr = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_ISR);
 	/* Handle MAC interrupts */
 	if ((dma_isr & MGBE_DMA_ISR_MACIS) != MGBE_DMA_ISR_MACIS) {
 		return;
 	}
 
+	mac_ier = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_IER);
+	if (((mac_isr & MGBE_MAC_IMR_FPEIS) == MGBE_MAC_IMR_FPEIS) &&
+	    ((mac_ier & MGBE_IMR_FPEIE) == MGBE_IMR_FPEIE)) {
+		mgbe_handle_mac_fpe_intrs(osi_core);
+		mac_isr &= ~MGBE_MAC_IMR_FPEIS;
+	}
+
+	osi_writel(mac_isr, (unsigned char *)osi_core->base + MGBE_MAC_ISR);
 	/* TODO: Duplex/speed settigs - Its not same as EQOS for MGBE */
-#endif
 }
 
 /**
@@ -2602,6 +2800,110 @@ static int mgbe_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief mgbe_handle_mtl_intrs - Handle MTL interrupts
+ *
+ * Algorithm: Code to handle interrupt for MTL EST error and status.
+ * There are possible 4 errors which can be part of common interrupt in case of
+ * MTL_EST_SCH_ERR (sheduling error)- HLBS
+ * MTL_EST_FRMS_ERR (Frame size error) - HLBF
+ * MTL_EST_FRMC_ERR (frame check error) - HLBF
+ * Constant Gate Control Error - when time interval in less
+ * than or equal to cycle time, llr = 1
+ * There is one status interrupt which says swich to SWOL complete.
+ *
+ * @param[in] osi_core: osi core priv data structure
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ */
+static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
+{
+	unsigned int val = 0;
+	unsigned int sch_err = 0;
+	unsigned int frm_err = 0;
+	unsigned int temp = 0U;
+	unsigned int i = 0;
+	unsigned long stat_val = 0;
+
+	val = osi_readl(osi_core->base + MGBE_MTL_EST_STATUS);
+	val &= (MGBE_MTL_EST_STATUS_CGCE | MGBE_MTL_EST_STATUS_HLBS |
+		MGBE_MTL_EST_STATUS_HLBF | MGBE_MTL_EST_STATUS_BTRE |
+		MGBE_MTL_EST_STATUS_SWLC);
+
+	/* return if interrupt is not related to EST */
+	if (val == OSI_DISABLE) {
+		return;
+	}
+
+	/* increase counter write 1 back will clear */
+	if ((val & MGBE_MTL_EST_STATUS_CGCE) == MGBE_MTL_EST_STATUS_CGCE) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.const_gate_ctr_err;
+		osi_core->tsn_stats.const_gate_ctr_err =
+				osi_update_stats_counter(stat_val, 1U);
+	}
+
+	if ((val & MGBE_MTL_EST_STATUS_HLBS) == MGBE_MTL_EST_STATUS_HLBS) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.head_of_line_blk_sch;
+		osi_core->tsn_stats.head_of_line_blk_sch =
+				osi_update_stats_counter(stat_val, 1U);
+		/* Need to read MTL_EST_Sch_Error register and cleared */
+		sch_err = osi_readl(osi_core->base + MGBE_MTL_EST_SCH_ERR);
+		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+			temp = OSI_ENABLE;
+			temp = temp << i;
+			if ((sch_err & temp) == temp) {
+				stat_val = osi_core->tsn_stats.hlbs_q[i];
+				osi_core->tsn_stats.hlbs_q[i] =
+					osi_update_stats_counter(stat_val, 1U);
+			}
+		}
+		sch_err &= 0xFFU; //only 8 TC allowed so clearing all
+		osi_writel(sch_err, osi_core->base + MGBE_MTL_EST_SCH_ERR);
+	}
+
+	if ((val & MGBE_MTL_EST_STATUS_HLBF) == MGBE_MTL_EST_STATUS_HLBF) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.head_of_line_blk_frm;
+		osi_core->tsn_stats.head_of_line_blk_frm =
+				osi_update_stats_counter(stat_val, 1U);
+		/* Need to read MTL_EST_Frm_Size_Error register and cleared */
+		frm_err = osi_readl(osi_core->base + MGBE_MTL_EST_FRMS_ERR);
+		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+			temp = OSI_ENABLE;
+			temp = temp << i;
+			if ((frm_err & temp) == temp) {
+				stat_val = osi_core->tsn_stats.hlbf_q[i];
+				osi_core->tsn_stats.hlbf_q[i] =
+					osi_update_stats_counter(stat_val, 1U);
+			}
+		}
+		frm_err &= 0xFFU; //only 8 TC allowed so clearing all
+		osi_writel(frm_err, osi_core->base + MGBE_MTL_EST_FRMS_ERR);
+	}
+
+	if ((val & MGBE_MTL_EST_STATUS_SWLC) == MGBE_MTL_EST_STATUS_SWLC) {
+		if ((val & MGBE_MTL_EST_STATUS_BTRE) !=
+		    MGBE_MTL_EST_STATUS_BTRE) {
+			osi_core->est_ready = OSI_ENABLE;
+		}
+		stat_val = osi_core->tsn_stats.sw_own_list_complete;
+		osi_core->tsn_stats.sw_own_list_complete =
+				osi_update_stats_counter(stat_val, 1U);
+	}
+
+	if ((val & MGBE_MTL_EST_STATUS_BTRE) == MGBE_MTL_EST_STATUS_BTRE) {
+		osi_core->est_ready = OSI_DISABLE;
+		stat_val = osi_core->tsn_stats.base_time_reg_err;
+		osi_core->tsn_stats.base_time_reg_err =
+				osi_update_stats_counter(stat_val, 1U);
+		osi_core->est_ready = OSI_DISABLE;
+	}
+	/* clear EST status register as interrupt is handled */
+	osi_writel(val, osi_core->base + MGBE_MTL_EST_STATUS);
+}
+
+/**
  * @brief mgbe_handle_common_intr - Handles common interrupt.
  *
  * Algorithm: Clear common nve32_terrupt source.
@@ -2613,11 +2915,12 @@ static int mgbe_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
 static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 {
 	void *base = osi_core->base;
-	nveu32_t dma_isr = 0;
-	nveu32_t qinx = 0;
-	nveu32_t i = 0;
-	nveu32_t dma_sr = 0;
-	nveu32_t dma_ier = 0;
+	unsigned int dma_isr = 0;
+	unsigned int qinx = 0;
+	unsigned int i = 0;
+	unsigned int dma_sr = 0;
+	unsigned int dma_ier = 0;
+	unsigned int mtl_isr = 0;
 
 	dma_isr = osi_readl((nveu8_t *)base + MGBE_DMA_ISR);
 	if (dma_isr == OSI_NONE) {
@@ -2662,6 +2965,17 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 	}
 
 	mgbe_handle_mac_intrs(osi_core, dma_isr);
+
+	/* Handle MTL inerrupts */
+	mtl_isr = osi_readl((unsigned char *)base + MGBE_MTL_INTR_STATUS);
+
+	if (((mtl_isr & MGBE_MTL_IS_ESTIS) == MGBE_MTL_IS_ESTIS) &&
+	    ((dma_isr & MGBE_DMA_ISR_MTLIS) == MGBE_DMA_ISR_MTLIS)) {
+		mgbe_handle_mtl_intrs(osi_core);
+		mtl_isr &= ~MGBE_MTL_IS_ESTIS;
+		osi_writel(mtl_isr, (unsigned char *)base +
+			   MGBE_MTL_INTR_STATUS);
+	}
 }
 
 /**
@@ -3118,7 +3432,328 @@ static int mgbe_read_phy_reg(struct osi_core_priv_data *osi_core,
 	reg = osi_readl((unsigned char *)osi_core->base + MGBE_MDIO_SCCD);
 
 	data = (reg & MGBE_MDIO_SCCD_SDATA_MASK);
-        return (int)data;
+	return (int)data;
+}
+
+/**
+ * @brief mgbe_hw_est_write - indirect write the GCL to Software own list
+ * (SWOL)
+ *
+ * @param[in] base: MAC base IOVA address.
+ * @param[in] addr_val: Address offset for indirect write.
+ * @param[in] data: Data to be written at offset.
+ * @param[in] gcla: Gate Control List Address, 0 for ETS register.
+ *	      1 for GCL memory.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_hw_est_write(struct osi_core_priv_data *osi_core,
+			     unsigned int addr_val, unsigned int data,
+			     unsigned int gcla)
+{
+	int retry = 1000;
+	unsigned int val = 0x0;
+
+	osi_writel(data, (unsigned char *)osi_core->base +
+		   MGBE_MTL_EST_DATA);
+
+	val &= ~MGBE_MTL_EST_ADDR_MASK;
+	val |= (gcla == 1U) ? 0x0U : MGBE_MTL_EST_GCRR;
+	val |= MGBE_MTL_EST_SRWO;
+	val |= addr_val;
+	osi_writel(val, (unsigned char *)osi_core->base +
+		   MGBE_MTL_EST_GCL_CONTROL);
+
+	while (--retry > 0) {
+		osi_core->osd_ops.udelay(OSI_DELAY_1US);
+		val = osi_readl((unsigned char *)osi_core->base +
+				MGBE_MTL_EST_GCL_CONTROL);
+		if ((val & MGBE_MTL_EST_SRWO) == MGBE_MTL_EST_SRWO) {
+			continue;
+		}
+
+		break;
+	}
+
+	if ((val & MGBE_MTL_EST_ERR0) == MGBE_MTL_EST_ERR0 ||
+	    (retry <= 0)) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_gcl_validate - validate GCL from user
+ *
+ * Algorithm: validate GCL size and width of time interval value
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est: Configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int mgbe_gcl_validate(struct osi_core_priv_data *osi_core,
+				    struct osi_est_config *est)
+{
+	unsigned int wid_val = 0x0U;
+	unsigned int dep = 0x0U;
+	unsigned int i;
+
+	if (osi_core->hw_feature == OSI_NULL) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"HW feature is NULL\n", 0ULL);
+		return -1;
+	}
+
+	if (osi_core->hw_feature->gcl_width == 0x1U) {
+		wid_val = OSI_MAX_24BITS;
+	} else if (osi_core->hw_feature->gcl_width == 0x2U) {
+		wid_val = OSI_MAX_28BITS;
+	} else if (osi_core->hw_feature->gcl_width == 0x3U) {
+		wid_val = OSI_MAX_32BITS;
+	} else {
+		/* Do Nothing */
+	}
+
+	if (osi_core->hw_feature->gcl_depth == 0x1U) {
+		dep = OSI_GCL_SIZE_64;
+	} else if (osi_core->hw_feature->gcl_depth == 0x2U) {
+		dep = OSI_GCL_SIZE_128;
+	} else if (osi_core->hw_feature->gcl_depth == 0x3U) {
+		dep = OSI_GCL_SIZE_256;
+	} else if (osi_core->hw_feature->gcl_depth == 0x4U) {
+		dep = OSI_GCL_SIZE_512;
+	} else if (osi_core->hw_feature->gcl_depth == 0x5U) {
+		dep = OSI_GCL_SIZE_1024;
+	} else {
+		/* Do Nothing */
+	}
+
+	if (est->llr > dep) {
+		return -1;
+	}
+
+	for (i = 0U; i < est->llr; i++) {
+		if (est->gcl[i] <= wid_val) {
+			continue;
+		}
+
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief mgbe_hw_config_est - Read Setting for GCL from input and update
+ * registers.
+ *
+ * Algorithm:
+ * 1) Write  TER, LLR and EST control register
+ * 2) Update GCL to sw own GCL (MTL_EST_Status bit SWOL will tell which is
+ *    owned by SW) and store which GCL is in use currently in sw.
+ * 3) TODO set DBGB and DBGM for debugging
+ * 4) EST_data and GCRR to 1, update entry sno in ADDR and put data at
+ *    est_gcl_data enable GCL MTL_EST_SSWL and wait for self clear or use
+ *    SWLC in MTL_EST_Status. Please note new GCL will be pushed for each entry.
+ * 5) Configure btr. Update btr based on current time (current time
+ *    should be updated based on PTP by this time)
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] est: EST configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_hw_config_est(struct osi_core_priv_data *osi_core,
+			      struct osi_est_config *est)
+{
+	unsigned int btr[2] = {0};
+	unsigned int val = 0x0;
+	void *base = osi_core->base;
+	unsigned int i;
+	int ret = 0;
+	unsigned int addr = 0x0;
+
+	if ((osi_core->hw_feature != OSI_NULL) &&
+	    (osi_core->hw_feature->est_sel == OSI_DISABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"EST not supported in HW\n", 0ULL);
+		return -1;
+	}
+
+	if (est->en_dis == OSI_DISABLE) {
+		val = osi_readl((unsigned char *)base + MGBE_MTL_EST_CONTROL);
+		val &= ~MGBE_MTL_EST_EEST;
+		osi_writel(val, (unsigned char *)base + MGBE_MTL_EST_CONTROL);
+
+		return 0;
+	}
+	ret = mgbe_hw_est_write(osi_core, MGBE_MTL_EST_CTR_LOW, est->ctr[0], 0);
+	if (ret < 0) {
+		return ret;
+	}
+	/* check for est->ctr[i]  not more than FF, TODO as per hw config
+	 * parameter we can have max 0x3 as this value in sec */
+	est->ctr[1] &= MGBE_MTL_EST_CTR_HIGH_MAX;
+	ret = mgbe_hw_est_write(osi_core, MGBE_MTL_EST_CTR_HIGH, est->ctr[1], 0);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = mgbe_hw_est_write(osi_core, MGBE_MTL_EST_TER, est->ter, 0);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = mgbe_hw_est_write(osi_core, MGBE_MTL_EST_LLR, est->llr, 0);
+	if (ret < 0) {
+		return ret;
+	}
+
+	/* Write GCL table */
+	for (i = 0U; i < est->llr; i++) {
+		addr = i;
+		addr = addr << MGBE_MTL_EST_ADDR_SHIFT;
+		addr &= MGBE_MTL_EST_ADDR_MASK;
+		ret = mgbe_hw_est_write(osi_core, addr, est->gcl[i], 1);
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	if (est->btr[0] == 0U && est->btr[1] == 0U) {
+		common_get_systime_from_mac(osi_core->base,
+					    osi_core->mac,
+					    &btr[1], &btr[0]);
+	}
+	/* Write parameters */
+	ret = mgbe_hw_est_write(osi_core, MGBE_MTL_EST_BTR_LOW,
+				btr[0] + est->btr_offset[0], OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = mgbe_hw_est_write(osi_core, MGBE_MTL_EST_BTR_HIGH,
+				btr[1] + est->btr_offset[1], OSI_DISABLE);
+	if (ret < 0) {
+		return ret;
+	}
+
+	val = osi_readl((unsigned char *)base + MGBE_MTL_EST_CONTROL);
+	/* Store table */
+	val |= MGBE_MTL_EST_SSWL;
+	val |= MGBE_MTL_EST_EEST;
+	osi_writel(val, (unsigned char *)base + MGBE_MTL_EST_CONTROL);
+
+	return ret;
+}
+
+/**
+ * @brief mgbe_hw_config_fep - Read Setting for preemption and express for TC
+ * and update registers.
+ *
+ * Algorithm:
+ * 1) Check for TC enable and TC has masked for setting to preemptable.
+ * 2) update FPE control status register
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] fpe: FPE configuration input argument.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
+			      struct osi_fpe_config *fpe)
+{
+	unsigned int i = 0U;
+	unsigned int val = 0U;
+	unsigned int temp = 0U, temp1 = 0U;
+	unsigned int temp_shift = 0U;
+
+	if ((osi_core->hw_feature != OSI_NULL) &&
+	    (osi_core->hw_feature->fpe_sel == OSI_DISABLE)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"FPE not supported in HW\n", 0ULL);
+		return -1;
+	}
+
+	osi_core->fpe_ready = OSI_DISABLE;
+
+	val = osi_readl((unsigned char *)osi_core->base + MGBE_MTL_FPE_CTS);
+	if (((fpe->tx_queue_preemption_enable << MGBE_MTL_FPE_CTS_PEC_SHIFT) &
+	     MGBE_MTL_FPE_CTS_PEC) == OSI_DISABLE) {
+		val &= ~MGBE_MAC_FPE_CTS_EFPE;
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   MGBE_MAC_FPE_CTS);
+
+		val = osi_readl((unsigned char *)osi_core->base +
+				MGBE_MAC_RQC1R);
+		val &= ~MGBE_MAC_RQC1R_RQ;
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   MGBE_MAC_RQC1R);
+
+		return 0;
+	}
+
+	val &= ~MGBE_MTL_FPE_CTS_PEC;
+	for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
+	/* max 8 bit for this structure fot TC/TXQ. Set the TC for express or
+	 * preemption. Default is express for a TC. DWCXG_NUM_TC = 8 */
+		temp = OSI_BIT(i);
+		if ((fpe->tx_queue_preemption_enable & temp) == temp) {
+			temp_shift = i;
+			temp_shift += MGBE_MTL_FPE_CTS_PEC_SHIFT;
+			/* set queue for preemtable */
+			if (temp_shift < MGBE_MTL_FPE_CTS_PEC_MAX_SHIFT) {
+				temp1 = OSI_ENABLE;
+				temp1 = temp1 << temp_shift;
+				val |= temp1;
+			} else {
+				/* Do nothing */
+			}
+		}
+	}
+	osi_writel(val, (unsigned char *)osi_core->base + MGBE_MTL_FPE_CTS);
+
+	if (fpe->rq == 0x0U || fpe->rq >= OSI_MGBE_MAX_NUM_CHANS) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"FPE init failed due to wrong RQ\n", fpe->rq);
+		return -1;
+	}
+
+	val = osi_readl((unsigned char *)osi_core->base + MGBE_MAC_RQC1R);
+	val &= ~MGBE_MAC_RQC1R_RQ;
+	temp = fpe->rq;
+	temp = temp << MGBE_MAC_RQC1R_RQ_SHIFT;
+	temp = (temp & MGBE_MAC_RQC1R_RQ);
+	val |= temp;
+	osi_core->residual_queue = fpe->rq;
+	osi_writel(val, (unsigned char *)osi_core->base + MGBE_MAC_RQC1R);
+
+	/* initiate SVER for SMD-V and SMD-R */
+	val = osi_readl((unsigned char *)osi_core->base + MGBE_MTL_FPE_CTS);
+	val |= MGBE_MAC_FPE_CTS_SVER;
+	osi_writel(val, (unsigned char *)osi_core->base + MGBE_MAC_FPE_CTS);
+
+	val = osi_readl((unsigned char *)osi_core->base + MGBE_MTL_FPE_ADV);
+	val &= ~MGBE_MTL_FPE_ADV_HADV_MASK;
+	//(minimum_fragment_size +IPG/EIPG + Preamble) *.8 ~98ns for10G
+	val |= MGBE_MTL_FPE_ADV_HADV_VAL;
+	osi_writel(val, (unsigned char *)osi_core->base + MGBE_MTL_FPE_ADV);
+
+	return 0;
 }
 
 /**
@@ -3848,4 +4483,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->configure_eee = mgbe_configure_eee;
 	ops->get_hw_features = mgbe_get_hw_features;
 	ops->config_rss = mgbe_config_rss;
+	ops->hw_config_est = mgbe_hw_config_est;
+	ops->hw_config_fpe = mgbe_hw_config_fpe;
 };
