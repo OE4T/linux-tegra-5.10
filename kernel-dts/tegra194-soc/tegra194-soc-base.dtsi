@@ -2072,12 +2072,20 @@
 	};
 
 	tegra_xhci: xhci@3610000 {
-		compatible = "nvidia,tegra194-xhci";
+		compatible = "nvidia,tegra194-xhci", "nvidia,tegra194-xusb";
 		reg = <0x0 0x03610000 0x0 0x40000>,
 			<0x0 0x03600000 0x0 0x10000>;
-		interrupts = <0 163 0x4>, <0 164 0x4>, <0 167 0x4>;
-		interrupt-parent = <&tegra_pm_irq>;
+		reg-names = "base", "fpci";
 
+		interrupts = <0 163 0x4>, <0 164 0x4>, <0 167 0x4>;
+#if defined(LINUX_VERSION) && LINUX_VERSION <= 414
+		interrupt-parent = <&tegra_pm_irq>;
+#endif
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTR &emc>,
+				<&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTW &emc>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 		clocks = <&bpmp_clks TEGRA194_CLK_XUSB_CORE_MUX>,
 			<&bpmp_clks TEGRA194_CLK_XUSB_CORE_HOST>,
 			<&bpmp_clks TEGRA194_CLK_XUSB_CORE_SS>,
@@ -2096,6 +2104,12 @@
 			"xusb_falcon_host_clk", "xusb_falcon_superspeed_clk",
 			"xusb_fs_src", "xusb_fs_host_clk", "xusb_ss_src",
 			"xusb_ss", "pll_u_480m", "clk_m", "pll_e";
+
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+		power-domains =  <&bpmp TEGRA194_POWER_DOMAIN_XUSBC>,
+			<&bpmp TEGRA194_POWER_DOMAIN_XUSBA>;
+		power-domain-names = "xusb_host", "xusb_ss";
+#endif
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
