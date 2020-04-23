@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -253,7 +253,8 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 		   OSI_PKT_CX_VALID)) {
 		skb_put(skb, rx_pkt_cx->pkt_len);
 
-		if (likely(rx_pkt_cx->rxcsum == OSI_CHECKSUM_UNNECESSARY)) {
+		if (likely((rx_pkt_cx->rxcsum & OSI_CHECKSUM_UNNECESSARY) ==
+			 OSI_CHECKSUM_UNNECESSARY)) {
 			skb->ip_summed = CHECKSUM_UNNECESSARY;
 		} else {
 			skb->ip_summed = CHECKSUM_NONE;
