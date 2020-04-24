@@ -1677,6 +1677,13 @@ source "drivers/acpi/Kconfig"
 
 source "arch/arm64/kvm/Kconfig"
 
+if ARCH_TEGRA
+config TEGRA_DTC_SUPPRESS_WARNINGS
+	bool "Suppress Tegra DTC warnings"
+	help
+	  Allow in-tree or out-of-tree DTs build at any time
+endif
+
 if CRYPTO
 source "arch/arm64/crypto/Kconfig"
 endif
