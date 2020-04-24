@@ -12,9 +12,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-OSI_COMMON := ../../../../../../nvethernetrm/osi/common
-OSI_CORE := ../../../../../../nvethernetrm/osi/core
-OSI_DMA := ../../../../../../nvethernetrm/osi/dma
+OSI_COMMON := nvethernetrm/osi/common
+OSI_CORE := nvethernetrm/osi/core
+OSI_DMA := nvethernetrm/osi/dma
 
 obj-$(CONFIG_NVETHERNET) += nvethernet.o
 
