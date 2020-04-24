@@ -334,6 +334,95 @@ static int nvgpu_submit_append_gpfifo(struct nvgpu_channel *c,
 	return 0;
 }
 
+static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
+		struct nvgpu_gpfifo_entry *gpfifo,
+		struct nvgpu_gpfifo_userdata userdata,
+		u32 num_entries,
+		u32 flags,
+		struct nvgpu_channel_fence *fence,
+		struct nvgpu_fence_type **fence_out,
+		struct nvgpu_profile *profile,
+		bool need_deferred_cleanup)
+{
+	bool skip_buffer_refcounting = (flags &
+			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING) != 0U;
+	struct nvgpu_fence_type *post_fence = NULL;
+	struct priv_cmd_entry *wait_cmd = NULL;
+	struct priv_cmd_entry *incr_cmd = NULL;
+	struct nvgpu_channel_job *job = NULL;
+	int err;
+
+	err = nvgpu_channel_alloc_job(c, &job);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_submit_prepare_syncs(c, fence, job, &wait_cmd, &incr_cmd,
+			&post_fence, need_deferred_cleanup, flags);
+	if (err != 0) {
+		goto clean_up_job;
+	}
+
+	nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
+
+	/*
+	 * wait_cmd can be unset even if flag_fence_wait exists; the
+	 * android sync framework for example can provide entirely
+	 * empty fences that act like trivially expired waits.
+	 */
+	if (wait_cmd != NULL) {
+		nvgpu_submit_append_priv_cmdbuf(c, wait_cmd);
+	}
+
+	err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata, num_entries);
+	if (err != 0) {
+		goto clean_up_fence;
+	}
+
+	nvgpu_submit_append_priv_cmdbuf(c, incr_cmd);
+
+	err = nvgpu_channel_add_job(c, job, skip_buffer_refcounting);
+	if (err != 0) {
+		goto clean_up_fence;
+	}
+
+	if (fence_out != NULL) {
+		*fence_out = nvgpu_fence_get(post_fence);
+	}
+
+	return 0;
+
+clean_up_fence:
+	nvgpu_fence_put(post_fence);
+clean_up_job:
+	nvgpu_channel_free_job(c, job);
+	return err;
+}
+
+static int nvgpu_submit_prepare_gpfifo_notrack(struct nvgpu_channel *c,
+		struct nvgpu_gpfifo_entry *gpfifo,
+		struct nvgpu_gpfifo_userdata userdata,
+		u32 num_entries,
+		struct nvgpu_fence_type **fence_out,
+		struct nvgpu_profile *profile)
+{
+	int err;
+
+	nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
+
+	err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata,
+			num_entries);
+	if (err != 0) {
+		return err;
+	}
+
+	if (fence_out != NULL) {
+		*fence_out = NULL;
+	}
+
+	return 0;
+}
+
 static int check_submit_allowed(struct nvgpu_channel *c)
 {
 	struct gk20a *g = c->g;
@@ -375,9 +464,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 				struct nvgpu_profile *profile)
 {
 	struct gk20a *g = c->g;
-	struct priv_cmd_entry *wait_cmd = NULL;
-	struct priv_cmd_entry *incr_cmd = NULL;
-	struct nvgpu_channel_job *job = NULL;
 	/* we might need two extra gpfifo entries - one for pre fence
 	 * and one for post fence. */
 	const u32 extra_entries = 2U;
@@ -554,62 +640,16 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	}
 
 	if (need_job_tracking) {
-		struct nvgpu_fence_type *post_fence = NULL;
-
-		err = nvgpu_channel_alloc_job(c, &job);
-		if (err != 0) {
-			goto clean_up;
-		}
-
-		err = nvgpu_submit_prepare_syncs(c, fence, job,
-						 &wait_cmd, &incr_cmd,
-						 &post_fence,
-						 need_deferred_cleanup,
-						 flags);
-		if (err != 0) {
-			goto clean_up_job;
-		}
-
-		nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
-
-		/*
-		 * wait_cmd can be unset even if flag_fence_wait exists; the
-		 * android sync framework for example can provide entirely
-		 * empty fences that act like trivially expired waits.
-		 */
-		if (wait_cmd != NULL) {
-			nvgpu_submit_append_priv_cmdbuf(c, wait_cmd);
-		}
-
-		err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata,
-				num_entries);
-		if (err != 0) {
-			nvgpu_fence_put(post_fence);
-			goto clean_up_job;
-		}
-
-		nvgpu_submit_append_priv_cmdbuf(c, incr_cmd);
-
-		err = nvgpu_channel_add_job(c, job, skip_buffer_refcounting);
-		if (err != 0) {
-			nvgpu_fence_put(post_fence);
-			goto clean_up_job;
-		}
-
-		if (fence_out != NULL) {
-			*fence_out = nvgpu_fence_get(post_fence);
-		}
+		err = nvgpu_submit_prepare_gpfifo_track(c, gpfifo,
+				userdata, num_entries, flags, fence,
+				fence_out, profile, need_deferred_cleanup);
 	} else {
-		nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
+		err = nvgpu_submit_prepare_gpfifo_notrack(c, gpfifo,
+				userdata, num_entries, fence_out, profile);
+	}
 
-		err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata,
-				num_entries);
-		if (err != 0) {
-			goto clean_up;
-		}
-		if (fence_out != NULL) {
-			*fence_out = NULL;
-		}
+	if (err) {
+		goto clean_up;
 	}
 
 	nvgpu_profile_snapshot(profile, PROFILE_APPEND);
@@ -644,8 +684,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	nvgpu_log_fn(g, "done");
 	return err;
 
-clean_up_job:
-	nvgpu_channel_free_job(c, job);
 clean_up:
 	nvgpu_log_fn(g, "fail");
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
