@@ -29,6 +29,13 @@
 
 #include "ldpc_dev.h"
 
+#define KMD_MAJOR_VER 1
+#define KMD_MINOR_VER 0
+#define FW_MAJOR_VER 1
+#define FW_MINOR_VER 0
+#define API_MAJOR_VER 1
+#define API_MINOR_VER 0
+
 int ldpc_open(struct inode *inode, struct file *filp)
 {
 	return 0;
@@ -39,24 +46,22 @@ int ldpc_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-int ldpc_ioctl_get_kmd_version(void __user *arg)
+int ldpc_ioctl_get_version(void __user *arg)
 {
-	int ret = 0;
-	struct ldpc_kmd_buf op;
+	struct ldpc_get_version_arg op;
 
-	if (copy_from_user(&op, arg, sizeof(op))) {
-		pr_warn("ldpc KO: failed to copy data from user\n");
-		ret = -EFAULT;
-		goto fail;
-	}
-	//TODO: Later on change this to the actual KMD version
-	strcpy(op.kmd_version,"1.0");
+	op.ldpc_kmd_ver.major = KMD_MAJOR_VER;
+	op.ldpc_kmd_ver.minor = KMD_MINOR_VER;
+	op.ldpc_api_ver.major = API_MAJOR_VER;
+	op.ldpc_api_ver.minor = API_MINOR_VER;
+	op.ldpc_fw_ver.major = FW_MAJOR_VER;
+	op.ldpc_fw_ver.minor = FW_MINOR_VER;
+	op.ver_status = 0U;
 	if (copy_to_user(arg, &op, sizeof(op))) {
-		pr_warn("ldpc KO: failed to copy KMD version to user\n");
-		ret = -EFAULT;
+		pr_warn("ldpc: failed to copy version struct to user\n");
+		return -EFAULT;
 	}
-fail:
-	return ret;
+	return 0;
 }
 
 static long ldpc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
@@ -82,11 +87,26 @@ static long ldpc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	}
 
 	switch (cmd) {
-	case LDPC_IOCTL_KMD_VER:
-		ret = ldpc_ioctl_get_kmd_version((void __user*)arg);
+	case LDPC_IOCTL_ENGINE_OP:
+		pr_warn("ldpc: This ioctl is not yet implemented\n");
+		break;
+	case LDPC_IOCTL_BUFFER_OP:
+		pr_warn("ldpc: This ioctl is not yet implemented\n");
+		break;
+	case LDPC_IOCTL_CHANNEL_OP:
+		pr_warn("ldpc: This ioctl is not yet implemented\n");
+		break;
+	case LDPC_IOCTL_EH_OP:
+		pr_warn("ldpc: This ioctl is not yet implemented\n");
+		break;
+	case LDPC_IOCTL_VERSION_OP:
+		ret = ldpc_ioctl_get_version((void __user*)arg);
+		break;
+	case LDPC_IOCTL_POWER_OP:
+		pr_warn("ldpc: This ioctl is not yet implemented\n");
 		break;
 	default:
-		pr_warn("ldpc KO: Invalid IOCTL cmd\n");
+		pr_warn("ldpc: Invalid IOCTL cmd\n");
 		ret = -EINVAL;
 		break;
 	}
@@ -149,7 +169,7 @@ void create_debugfs(struct ldpc_devdata *ldpc_data, const char *devname)
 
 	ldpc_data -> debugfs_dir = debugfs_create_dir(devname, NULL);
 	if (IS_ERR_OR_NULL(ldpc_data -> debugfs_dir)) {
-		pr_err("ldpc KO: Not able to create the debugfs directory %s\n",devname);
+		pr_err("ldpc: Not able to create the debugfs directory %s\n",devname);
 		return;
 	}
 	/*
@@ -158,7 +178,7 @@ void create_debugfs(struct ldpc_devdata *ldpc_data, const char *devname)
 	ldpc_data -> fv = debugfs_create_file("firmware_version", S_IRUSR, ldpc_data -> debugfs_dir,
 			NULL, &version_fops);
 	if (!(ldpc_data->fv)) {
-		pr_err("ldpc KO: Not able to create the firmware_version debugfs for %s\n",devname);
+		pr_err("ldpc: Not able to create the firmware_version debugfs for %s\n",devname);
 		return;
 	}
 }
@@ -206,7 +226,7 @@ static int ldpc_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	if (np == NULL) {
-		pr_err("ldpc KO: corresponding device not found\n");
+		pr_err("ldpc: corresponding device not found\n");
 		ret = -ENXIO;
 		goto fail;
 	}
@@ -221,14 +241,14 @@ static int ldpc_probe(struct platform_device *pdev)
 		node_name = "ldpc-dec";
 	}
 	else {
-		pr_err("ldpc KO: DT node does not have correct devname value\n");
+		pr_err("ldpc: DT node does not have correct devname value\n");
 		ret = -EINVAL;
 		goto fail;
 	}
 
 	ldpc_data = devm_kzalloc(&pdev->dev, sizeof(struct ldpc_devdata), GFP_KERNEL);
 	if (ldpc_data == NULL) {
-		pr_err("ldpc KO: failed to allocate memory\n");
+		pr_err("ldpc: failed to allocate memory\n");
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -237,13 +257,13 @@ static int ldpc_probe(struct platform_device *pdev)
 	ldpc_data->class = class_create(THIS_MODULE, class_name);
 	if (IS_ERR(ldpc_data->class)) {
 		ret = PTR_ERR(ldpc_data->class);
-		pr_err("ldpc KO: failed to create class\n");
+		pr_err("ldpc: failed to create class\n");
 		goto fail;
 	}
 
 	ret = alloc_chrdev_region(&ldpc_data->dev_nr, 0, 1, node_name);
 	if (ret < 0) {
-		pr_err("ldpc KO: failed to reserve chrdev region\n");
+		pr_err("ldpc: failed to reserve chrdev region\n");
 		goto fail_chrdev;
 	}
 	ldpc_data->major = MAJOR(ldpc_data->dev_nr);
@@ -252,14 +272,14 @@ static int ldpc_probe(struct platform_device *pdev)
 	cdev_init(&ldpc_data->cdev, &ldpc_fops);
 	ret = cdev_add(&ldpc_data->cdev, ldpc_data->dev_nr, 1);
 	if (ret < 0) {
-		pr_err("ldpc KO: failed to add char dev\n");
+		pr_err("ldpc: failed to add char dev\n");
 		goto fail_add;
 	}
 	ldpc_data->dev = device_create(ldpc_data->class, &pdev->dev,
 				ldpc_data->dev_nr, NULL, "%s", node_name);
 	if (IS_ERR(ldpc_data->dev)) {
 		ret = PTR_ERR(ldpc_data->dev);
-		pr_err("ldpc KO: failed to create device node\n");
+		pr_err("ldpc: failed to create device node\n");
 		goto fail_device;
 	}
 	create_debugfs(ldpc_data, devname);
@@ -267,7 +287,7 @@ static int ldpc_probe(struct platform_device *pdev)
 	ldpc_data->pdev = pdev;
 	ret = ldpc_device_get_resources(ldpc_data);
 	if (ret != 0) {
-		pr_err("ldpc KO: failed to create device mapping:[%d]\n", ret);
+		pr_err("ldpc: failed to create device mapping:[%d]\n", ret);
 		goto fail_get_res;
 	}
 	return ret;
@@ -318,10 +338,10 @@ static int __init ldpc_init(void)
 {
 	int ret;
 
-	pr_info("ldpc KO: LDPC init\n");
+	pr_info("ldpc: LDPC init\n");
 	ret = platform_driver_register(&ldpc_driver);
 	if (ret < 0) {
-		pr_err("ldpc KO: Failed to register driver\n");
+		pr_err("ldpc: Failed to register driver\n");
 		return ret;
 	}
 	return 0;
@@ -330,7 +350,7 @@ static int __init ldpc_init(void)
 static void __exit ldpc_exit(void)
 {
 	platform_driver_unregister(&ldpc_driver);
-	pr_info("ldpc KO: LDPC exit\n");
+	pr_info("ldpc: LDPC exit\n");
 	return;
 }
 
