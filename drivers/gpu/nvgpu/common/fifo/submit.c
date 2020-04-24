@@ -39,6 +39,12 @@
 #include <nvgpu/nvhost.h>
 
 /*
+ * We might need two extra gpfifo entries per submit - one for pre fence and
+ * one for post fence.
+ */
+#define EXTRA_GPFIFO_ENTRIES 2U
+
+/*
  * Handle the submit synchronization - pre-fences and post-fences.
  */
 static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
@@ -423,6 +429,256 @@ static int nvgpu_submit_prepare_gpfifo_notrack(struct nvgpu_channel *c,
 	return 0;
 }
 
+static int check_gpfifo_capacity(struct nvgpu_channel *c, u32 required)
+{
+	/*
+	 * Make sure we have enough space for gpfifo entries. Check cached
+	 * values first and then read from HW. If no space, return -EAGAIN
+	 * and let userpace decide to re-try request or not.
+	 */
+	if (nvgpu_channel_get_gpfifo_free_count(c) < required) {
+		if (nvgpu_channel_update_gpfifo_get_and_get_free_count(c) <
+				required) {
+			return -EAGAIN;
+		}
+	}
+
+	return 0;
+}
+
+static int nvgpu_do_submit(struct nvgpu_channel *c,
+		struct nvgpu_gpfifo_entry *gpfifo,
+		struct nvgpu_gpfifo_userdata userdata,
+		u32 num_entries,
+		u32 flags,
+		struct nvgpu_channel_fence *fence,
+		struct nvgpu_fence_type **fence_out,
+		struct nvgpu_profile *profile,
+		bool need_job_tracking,
+		bool need_deferred_cleanup)
+{
+	struct gk20a *g = c->g;
+	int err;
+
+#ifdef CONFIG_NVGPU_TRACE
+	trace_gk20a_channel_submit_gpfifo(g->name,
+					  c->chid,
+					  num_entries,
+					  flags,
+					  fence ? fence->id : 0,
+					  fence ? fence->value : 0);
+#endif
+
+	nvgpu_log_info(g, "pre-submit put %d, get %d, size %d",
+		c->gpfifo.put, c->gpfifo.get, c->gpfifo.entry_num);
+
+	err = check_gpfifo_capacity(c, num_entries + EXTRA_GPFIFO_ENTRIES);
+	if (err != 0) {
+		return err;
+	}
+
+	if (need_job_tracking) {
+		err = nvgpu_submit_prepare_gpfifo_track(c, gpfifo,
+				userdata, num_entries, flags, fence,
+				fence_out, profile, need_deferred_cleanup);
+	} else {
+		err = nvgpu_submit_prepare_gpfifo_notrack(c, gpfifo,
+				userdata, num_entries, fence_out, profile);
+	}
+
+	if (err != 0) {
+		return err;
+	}
+
+	nvgpu_profile_snapshot(profile, PROFILE_APPEND);
+
+	g->ops.userd.gp_put(g, c);
+
+	return 0;
+}
+
+#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
+static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
+				struct nvgpu_gpfifo_entry *gpfifo,
+				struct nvgpu_gpfifo_userdata userdata,
+				u32 num_entries,
+				u32 flags,
+				struct nvgpu_channel_fence *fence,
+				struct nvgpu_fence_type **fence_out,
+				struct nvgpu_profile *profile)
+{
+	bool skip_buffer_refcounting = (flags &
+			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING) != 0U;
+	bool flag_fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
+	bool flag_fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
+	bool flag_sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
+	struct gk20a *g = c->g;
+	bool need_job_tracking;
+	int err = 0;
+
+	nvgpu_assert(nvgpu_channel_is_deterministic(c));
+
+	/* sync framework on post fences would not be deterministic */
+	if (flag_fence_get && flag_sync_fence) {
+		return -EINVAL;
+	}
+
+	/* this would be O(n) */
+	if (!skip_buffer_refcounting) {
+		return -EINVAL;
+	}
+
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
+	/* the watchdog needs periodic job cleanup */
+	if (c->wdt.enabled) {
+		return -EINVAL;
+	}
+#endif
+
+	/*
+	 * Job tracking is necessary on deterministic channels if and only if
+	 * pre- or post-fence functionality is needed. If not, a fast submit
+	 * can be done (ie. only need to write out userspace GPFIFO entries and
+	 * update GP_PUT).
+	 */
+	need_job_tracking = flag_fence_wait || flag_fence_get;
+
+	if (need_job_tracking) {
+		/* nvgpu_semaphore is dynamically allocated, not pooled */
+		if (!nvgpu_has_syncpoints(g)) {
+			return -EINVAL;
+		}
+
+		/* dynamic job allocation wouldn't be deterministic */
+		if (!nvgpu_channel_is_prealloc_enabled(c)) {
+			return -EINVAL;
+		}
+
+		/* dynamic sync allocation wouldn't be deterministic */
+		if (g->aggressive_sync_destroy_thresh != 0U) {
+			return -EINVAL;
+		}
+
+		/*
+		 * (Try to) clean up a single job, if available. Each job
+		 * requires the same amount of metadata, so this is enough for
+		 * the job list, fence pool, and private command buffers that
+		 * this submit will need.
+		 *
+		 * This submit might still need more gpfifo space than what the
+		 * previous has used. The job metadata doesn't look at it
+		 * though - the hw GP_GET pointer can be much further away than
+		 * our metadata pointers; gpfifo space is "freed" by the HW.
+		 */
+		nvgpu_channel_clean_up_jobs(c, true);
+	}
+
+	/* Grab access to HW to deal with do_idle */
+	nvgpu_rwsem_down_read(&g->deterministic_busy);
+
+	if (c->deterministic_railgate_allowed) {
+		/*
+		 * Nope - this channel has dropped its own power ref. As
+		 * deterministic submits don't hold power on per each submitted
+		 * job like normal ones do, the GPU might railgate any time now
+		 * and thus submit is disallowed.
+		 */
+		err = -EINVAL;
+		goto clean_up;
+	}
+
+	err = nvgpu_do_submit(c, gpfifo, userdata, num_entries, flags, fence,
+			fence_out, profile, need_job_tracking, false);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	/* No hw access beyond this point */
+	nvgpu_rwsem_up_read(&g->deterministic_busy);
+
+	return 0;
+
+clean_up:
+	nvgpu_log_fn(g, "fail %d", err);
+	nvgpu_rwsem_up_read(&g->deterministic_busy);
+
+	return err;
+}
+#endif
+
+static int nvgpu_submit_nondeterministic(struct nvgpu_channel *c,
+				struct nvgpu_gpfifo_entry *gpfifo,
+				struct nvgpu_gpfifo_userdata userdata,
+				u32 num_entries,
+				u32 flags,
+				struct nvgpu_channel_fence *fence,
+				struct nvgpu_fence_type **fence_out,
+				struct nvgpu_profile *profile)
+{
+	bool skip_buffer_refcounting = (flags &
+			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING) != 0U;
+	bool flag_fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
+	bool flag_fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
+	struct gk20a *g = c->g;
+	bool need_job_tracking;
+	int err = 0;
+
+	nvgpu_assert(!nvgpu_channel_is_deterministic(c));
+
+	/*
+	 * Job tracking is necessary for any of the following conditions on
+	 * non-deterministic channels:
+	 *  - pre- or post-fence functionality
+	 *  - GPU rail-gating
+	 *  - VPR resize enabled
+	 *  - buffer refcounting
+	 *  - channel watchdog
+	 *
+	 * If none of the conditions are met, then job tracking is not
+	 * required and a fast submit can be done (ie. only need to write
+	 * out userspace GPFIFO entries and update GP_PUT).
+	 */
+	need_job_tracking = (flag_fence_wait ||
+			flag_fence_get ||
+			nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) ||
+			nvgpu_is_vpr_resize_enabled() ||
+			!skip_buffer_refcounting);
+
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
+       need_job_tracking = need_job_tracking || c->wdt.enabled;
+#endif
+
+	if (need_job_tracking) {
+		/*
+		 * Get a power ref because this isn't a deterministic
+		 * channel that holds them during the channel lifetime.
+		 * This one is released by nvgpu_channel_clean_up_jobs,
+		 * via syncpt or sema interrupt, whichever is used.
+		 */
+		err = gk20a_busy(g);
+		if (err != 0) {
+			nvgpu_err(g,
+				"failed to host gk20a to submit gpfifo");
+			nvgpu_print_current(g, NULL, NVGPU_ERROR);
+			return err;
+		}
+	}
+
+	err = nvgpu_do_submit(c, gpfifo, userdata, num_entries, flags, fence,
+			fence_out, profile, need_job_tracking, true);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	return 0;
+
+clean_up:
+	nvgpu_log_fn(g, "fail %d", err);
+	gk20a_idle(g);
+
+	return err;
+}
+
 static int check_submit_allowed(struct nvgpu_channel *c)
 {
 	struct gk20a *g = c->g;
@@ -464,34 +720,22 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 				struct nvgpu_profile *profile)
 {
 	struct gk20a *g = c->g;
-	/* we might need two extra gpfifo entries - one for pre fence
-	 * and one for post fence. */
-	const u32 extra_entries = 2U;
-	bool skip_buffer_refcounting = (flags &
-			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING) != 0U;
-	int err = 0;
-	bool need_job_tracking;
-	bool need_deferred_cleanup = false;
-	bool flag_fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
-	bool flag_fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
-	bool flag_sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
+	int err;
 
 	err = check_submit_allowed(c);
 	if (err != 0) {
 		return err;
 	}
 
-	/* fifo not large enough for request. Return error immediately.
+	/*
+	 * Fifo not large enough for request. Return error immediately.
 	 * Kernel can insert gpfifo entries before and after user gpfifos.
-	 * So, add extra_entries in user request. Also, HW with fifo size N
-	 * can accept only N-1 entreis and so the below condition */
-	if (c->gpfifo.entry_num - 1U < num_entries + extra_entries) {
+	 * So, add extra entries in user request. Also, HW with fifo size N
+	 * can accept only N-1 entries.
+	 */
+	if (c->gpfifo.entry_num - 1U < num_entries + EXTRA_GPFIFO_ENTRIES) {
 		nvgpu_err(g, "not enough gpfifo space allocated");
 		return -ENOMEM;
-	}
-
-	if ((flag_fence_wait || flag_fence_get) && (fence == NULL)) {
-		return -EINVAL;
 	}
 
 	nvgpu_profile_snapshot(profile, PROFILE_ENTRY);
@@ -501,167 +745,20 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 
 	nvgpu_log_info(g, "channel %d", c->chid);
 
-	/*
-	 * Job tracking is necessary for any of the following conditions:
-	 *  - pre- or post-fence functionality
-	 *  - channel wdt
-	 *  - GPU rail-gating with non-deterministic channels
-	 *  - VPR resize enabled with non-deterministic channels
-	 *  - buffer refcounting
-	 *
-	 * If none of the conditions are met, then job tracking is not
-	 * required and a fast submit can be done (ie. only need to write
-	 * out userspace GPFIFO entries and update GP_PUT).
-	 */
-	need_job_tracking = (flag_fence_wait ||
-			flag_fence_get ||
-			((nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) ||
-				nvgpu_is_vpr_resize_enabled()) &&
-				!nvgpu_channel_is_deterministic(c)) ||
-			!skip_buffer_refcounting);
-
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
-       need_job_tracking = need_job_tracking || c->wdt.enabled;
-#endif
-
-	if (need_job_tracking) {
-		/*
-		 * If the channel is to have deterministic latency and
-		 * job tracking is required, the channel must have
-		 * pre-allocated resources. Otherwise, we fail the submit here
-		 */
-		if (nvgpu_channel_is_deterministic(c) &&
-				!nvgpu_channel_is_prealloc_enabled(c)) {
-			return -EINVAL;
-		}
-
-		/*
-		 * Deferred clean-up is necessary for any of the following
-		 * conditions that could make clean-up behaviour
-		 * non-deterministic and as such not suitable for the submit
-		 * path:
-		 * - channel's deterministic flag is not set (job tracking is
-		 *   dynamically allocated)
-		 * - no syncpt support (struct nvgpu_semaphore is dynamically
-		 *   allocated, not pooled)
-		 * - dependency on sync framework for post fences
-		 * - buffer refcounting, which is O(n)
-		 * - aggressive sync destroy is enabled (sync objects are not
-		 *   held during channel lifetime but refcounted for submits)
-		 * - channel wdt, which needs periodic async cleanup
-		 *
-		 * If none of the conditions are met, then deferred clean-up
-		 * is not required, and we clean-up one job-tracking
-		 * resource in the submit path.
-		 */
-		need_deferred_cleanup = !nvgpu_channel_is_deterministic(c) ||
-					!nvgpu_has_syncpoints(g) ||
-					(flag_sync_fence && flag_fence_get) ||
-					!skip_buffer_refcounting ||
-					g->aggressive_sync_destroy_thresh != 0U;
-
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
-		need_deferred_cleanup = need_deferred_cleanup || c->wdt.enabled;
-#endif
-
-		/*
-		 * For deterministic channels, we don't allow deferred clean_up
-		 * processing to occur. In cases we hit this, we fail the submit
-		 */
-		if (nvgpu_channel_is_deterministic(c) && need_deferred_cleanup) {
-			return -EINVAL;
-		}
-
-		if (!nvgpu_channel_is_deterministic(c)) {
-			/*
-			 * Get a power ref unless this is a deterministic
-			 * channel that holds them during the channel lifetime.
-			 * This one is released by nvgpu_channel_clean_up_jobs,
-			 * via syncpt or sema interrupt, whichever is used.
-			 */
-			err = gk20a_busy(g);
-			if (err != 0) {
-				nvgpu_err(g,
-					"failed to host gk20a to submit gpfifo");
-				nvgpu_print_current(g, NULL, NVGPU_ERROR);
-				return err;
-			}
-		}
-
-		if (!need_deferred_cleanup) {
-			/* clean up a single job */
-			nvgpu_channel_clean_up_jobs(c, false);
-		}
-	}
-
-
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
-	/* Grab access to HW to deal with do_idle */
 	if (c->deterministic) {
-		nvgpu_rwsem_down_read(&g->deterministic_busy);
-	}
-
-	if (c->deterministic && c->deterministic_railgate_allowed) {
-		/*
-		 * Nope - this channel has dropped its own power ref. As
-		 * deterministic submits don't hold power on per each submitted
-		 * job like normal ones do, the GPU might railgate any time now
-		 * and thus submit is disallowed.
-		 */
-		err = -EINVAL;
-		goto clean_up;
-	}
+		err = nvgpu_submit_deterministic(c, gpfifo, userdata,
+				num_entries, flags, fence, fence_out, profile);
+	} else
 #endif
-
-#ifdef CONFIG_NVGPU_TRACE
-	trace_gk20a_channel_submit_gpfifo(g->name,
-					  c->chid,
-					  num_entries,
-					  flags,
-					  fence ? fence->id : 0,
-					  fence ? fence->value : 0);
-#endif
-
-	nvgpu_log_info(g, "pre-submit put %d, get %d, size %d",
-		c->gpfifo.put, c->gpfifo.get, c->gpfifo.entry_num);
-
-	/*
-	 * Make sure we have enough space for gpfifo entries. Check cached
-	 * values first and then read from HW. If no space, return EAGAIN
-	 * and let userpace decide to re-try request or not.
-	 */
-	if (nvgpu_channel_get_gpfifo_free_count(c) <
-			num_entries + extra_entries) {
-		if (nvgpu_channel_update_gpfifo_get_and_get_free_count(c) <
-				num_entries + extra_entries) {
-			err = -EAGAIN;
-			goto clean_up;
-		}
+	{
+		err = nvgpu_submit_nondeterministic(c, gpfifo, userdata,
+				num_entries, flags, fence, fence_out, profile);
 	}
 
-	if (need_job_tracking) {
-		err = nvgpu_submit_prepare_gpfifo_track(c, gpfifo,
-				userdata, num_entries, flags, fence,
-				fence_out, profile, need_deferred_cleanup);
-	} else {
-		err = nvgpu_submit_prepare_gpfifo_notrack(c, gpfifo,
-				userdata, num_entries, fence_out, profile);
+	if (err != 0) {
+		return err;
 	}
-
-	if (err) {
-		goto clean_up;
-	}
-
-	nvgpu_profile_snapshot(profile, PROFILE_APPEND);
-
-	g->ops.userd.gp_put(g, c);
-
-#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
-	/* No hw access beyond this point */
-	if (c->deterministic) {
-		nvgpu_rwsem_up_read(&g->deterministic_busy);
-	}
-#endif
 
 #ifdef CONFIG_NVGPU_TRACE
 	if (fence_out != NULL && *fence_out != NULL) {
@@ -682,20 +779,6 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	nvgpu_profile_snapshot(profile, PROFILE_END);
 
 	nvgpu_log_fn(g, "done");
-	return err;
-
-clean_up:
-	nvgpu_log_fn(g, "fail");
-#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
-	if (c->deterministic) {
-		nvgpu_rwsem_up_read(&g->deterministic_busy);
-		return err;
-	}
-#endif
-	if (need_deferred_cleanup) {
-		gk20a_idle(g);
-	}
-
 	return err;
 }
 
