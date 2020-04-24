@@ -2,6 +2,7 @@
 /*
  * A fairly generic DMA-API to IOMMU-API glue layer.
  *
+ * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
  * Copyright (C) 2014-2015 ARM Ltd.
  *
  * based in part on arch/arm/mm/dma-mapping.c:
@@ -446,6 +447,7 @@ dma_addr_t iommu_dma_alloc_iova(struct device *dev, size_t size,
 
 	return __iommu_dma_alloc_iova(domain, size, dma_limit, dev);
 }
+EXPORT_SYMBOL(iommu_dma_alloc_iova);
 
 void iommu_dma_free_iova(struct device *dev, dma_addr_t iova, size_t size)
 {
@@ -454,6 +456,7 @@ void iommu_dma_free_iova(struct device *dev, dma_addr_t iova, size_t size)
 
 	__iommu_dma_free_iova(cookie, iova, size);
 }
+EXPORT_SYMBOL(iommu_dma_free_iova);
 
 static void __iommu_dma_unmap(struct device *dev, dma_addr_t dma_addr,
 		size_t size)
