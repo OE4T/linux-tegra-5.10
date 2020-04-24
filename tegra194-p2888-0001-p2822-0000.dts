@@ -64,17 +64,6 @@
 		/delete-property/ dma-coherent;
 	};
 
-	host1x@13e00000 {
-		reset-names = "host1x";
-		reg-names = "vm", "hypervisor";
-
-		/delete-node/ display-hub@15200000;
-		/delete-node/ sor;
-		/delete-node/ sor0;
-		/delete-node/ sor1;
-		/delete-node/ sor2;
-	};
-
 	tegra-cache {
 		status = "okay";
 	};

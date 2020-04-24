@@ -1,7 +1,7 @@
 /*
  * tegra194-p2822-disp.dtsi:
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,6 +77,12 @@
 &sor0 {
 	status = "okay";
 	nvidia,active-panel = <&sor0_dp_display>;
+#if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
+	avdd-io-hdmi-dp-supply = <&p2888_spmic_sd0>;
+	vdd-hdmi-dp-pll-supply = <&p2888_spmic_sd1>;
+
+	nvidia,dpaux = <&dpaux0>;
+#endif
 };
 
 &sor0_dp_display {
@@ -87,6 +93,12 @@
 &sor1 {
 	status = "okay";
 	nvidia,active-panel = <&sor1_dp_display>;
+#if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
+	avdd-io-hdmi-dp-supply = <&p2888_spmic_sd0>;
+	vdd-hdmi-dp-pll-supply = <&p2888_spmic_sd1>;
+
+	nvidia,dpaux = <&dpaux1>;
+#endif
 };
 
 &sor1_dp_display {
@@ -97,6 +109,15 @@
 &sor2 {
 	status = "okay";
 	nvidia,active-panel = <&sor2_hdmi_display>;
+#if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
+	avdd-io-supply = <&p2888_spmic_sd0>;
+	vdd-pll-supply = <&p2888_spmic_sd1>;
+	hdmi-supply = <&p2822_vdd_hdmi_5v0>;
+
+	nvidia,ddc-i2c-bus = <&dp_aux_ch2_i2c>;
+	nvidia,hpd-gpio = <&tegra_main_gpio TEGRA194_MAIN_GPIO(M, 2)
+			   GPIO_ACTIVE_LOW>;
+#endif
 };
 
 &sor2_hdmi_display {
