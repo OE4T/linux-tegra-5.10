@@ -33,6 +33,7 @@
 #include <nvgpu/pmu/cmd.h>
 #endif
 
+#include "pmu_gk20a.h"
 #include "pmu_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
@@ -112,6 +113,17 @@ static struct pg_init_sequence_list _pginitseq_gv11b[] = {
 	{0x0010ab34U, 0x00000001U} ,
 	{0x00020004U, 0x00000000U} ,
 };
+
+void gv11b_pmu_init_perfmon_counter(struct gk20a *g)
+{
+        u32 data;
+
+        gk20a_pmu_init_perfmon_counter(g);
+
+        /* assign same mask setting from GR ELPG to counter #3 */
+        data = gk20a_readl(g, pwr_pmu_idle_mask_2_supp_r(0));
+        gk20a_writel(g, pwr_pmu_idle_mask_2_r(3), data);
+}
 
 void gv11b_pmu_setup_elpg(struct gk20a *g)
 {

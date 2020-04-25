@@ -42,6 +42,7 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
 #ifdef CONFIG_NVGPU_LS_PMU
 int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 args_offset);
+void gv11b_pmu_init_perfmon_counter(struct gk20a *g);
 void gv11b_pmu_setup_elpg(struct gk20a *g);
 void gv11b_secured_pmu_start(struct gk20a *g);
 void gv11b_write_dmatrfbase(struct gk20a *g, u32 addr);
