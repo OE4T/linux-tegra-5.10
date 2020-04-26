@@ -16,6 +16,11 @@
 
 #include "ether_linux.h"
 
+#ifdef CONFIG_DEBUG_FS
+/* As per IAS Docs */
+#define EOQS_MAX_REGISTER_ADDRESS 0x12FC
+#endif
+
 /**
  * @brief Shows the current setting of MAC loopback
  *
@@ -590,6 +595,49 @@ static const struct file_operations ether_desc_dump_fops = {
 	.release = single_release,
 };
 
+static int ether_register_dump_read(struct seq_file *seq, void *v)
+{
+	struct net_device *ndev = seq->private;
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int max_address = 0x0;
+	int start_addr = 0x0;
+
+	max_address = EOQS_MAX_REGISTER_ADDRESS;
+
+	/* Interface is not up so register dump not allowed */
+	if (!netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
+		return -EBUSY;
+	}
+
+	while (1) {
+		seq_printf(seq,
+			   "\t Register offset 0x%x value 0x%x\n",
+			   start_addr,
+			   ioread32((void *)osi_core->base + start_addr));
+		start_addr += 4;
+
+		if (start_addr > max_address)
+			break;
+	}
+
+	return 0;
+}
+
+static int ether_register_dump_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, ether_register_dump_read, inode->i_private);
+}
+
+static const struct file_operations ether_register_dump_fops = {
+	.owner = THIS_MODULE,
+	.open = ether_register_dump_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
 static int ether_create_debugfs(struct ether_priv_data *pdata)
 {
 	char *buf;
@@ -627,6 +675,18 @@ static int ether_create_debugfs(struct ether_priv_data *pdata)
 	if (!pdata->dbgfs_desc_dump) {
 		netdev_err(pdata->ndev,
 			   "failed to create descriptor dump debugfs\n");
+		debugfs_remove_recursive(pdata->dbgfs_dir);
+		ret = -ENOMEM;
+		goto exit;
+	}
+
+	pdata->dbgfs_reg_dump = debugfs_create_file("register_dump", S_IRUGO,
+						    pdata->dbgfs_dir,
+						    pdata->ndev,
+						    &ether_register_dump_fops);
+	if (!pdata->dbgfs_reg_dump) {
+		netdev_err(pdata->ndev,
+			   "failed to create rgister dump debugfs\n");
 		debugfs_remove_recursive(pdata->dbgfs_dir);
 		ret = -ENOMEM;
 		goto exit;
