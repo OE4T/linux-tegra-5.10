@@ -254,6 +254,16 @@
 		status = "disabled";
 	};
 
+	bpmp_hsp: tegra-hsp@d150000 {
+		compatible = "nvidia,tegra186-hsp";
+		reg = <0x0 0x0d150000 0x0 0x00090000>;
+		interrupts = <0 TEGRA194_IRQ_BPMP_HSP_SHARED_1 0x4>;
+		interrupt-names = "full2";
+		nvidia,mbox-ie;
+		#mbox-cells = <2>;
+		status = "disabled";
+	};
+
 	hsp_pva0: tegra-hsp@16160000 {
 		compatible = "nvidia,tegra186-hsp";
 		reg = <0x0 0x16160000 0x0 0x00090000>;
