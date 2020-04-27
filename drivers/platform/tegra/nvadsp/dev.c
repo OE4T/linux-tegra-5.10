@@ -3,7 +3,7 @@
  *
  * A device driver for ADSP and APE
  *
- * Copyright (C) 2014-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2020, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -29,7 +29,10 @@
 #include <linux/tegra_nvadsp.h>
 #include <soc/tegra/chip-id.h>
 #include <linux/pm_runtime.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <linux/tegra_pm_domains.h>
+#endif
 #include <linux/clk/tegra.h>
 #include <linux/delay.h>
 #include <asm/arch_timer.h>
@@ -321,7 +324,9 @@ static int __init nvadsp_probe(struct platform_device *pdev)
 	nvadsp_drv_data = drv_data;
 
 #ifdef CONFIG_PM
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	tegra_pd_add_device(dev);
+#endif
 
 	pm_runtime_enable(dev);
 
@@ -400,7 +405,9 @@ static int nvadsp_remove(struct platform_device *pdev)
 		nvadsp_runtime_suspend(&pdev->dev);
 #endif
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	tegra_pd_remove_device(&pdev->dev);
+#endif
 
 	return 0;
 }
