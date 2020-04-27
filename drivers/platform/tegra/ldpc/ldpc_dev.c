@@ -28,6 +28,7 @@
 #include <uapi/linux/ldpc_ioctl.h>
 
 #include "ldpc_dev.h"
+#include "ldpc_fw_utils.h"
 
 #define KMD_MAJOR_VER 1
 #define KMD_MINOR_VER 0
@@ -223,6 +224,7 @@ static int ldpc_probe(struct platform_device *pdev)
 	const char* devname;
 	char * class_name;
 	char * node_name;
+	char * fw_name;
 	int ret = 0;
 
 	if (np == NULL) {
@@ -235,10 +237,12 @@ static int ldpc_probe(struct platform_device *pdev)
 	if (strcmp(devname, "ldpc-enc") == 0) {
 		class_name = "ldpc_enc_class";
 		node_name = "ldpc-enc";
+		fw_name = "ldpc_enc_fw.bin";
 	}
 	else if (strcmp(devname, "ldpc-dec") == 0) {
 		class_name = "ldpc_dec_class";
 		node_name = "ldpc-dec";
+		fw_name = "ldpc_dec_fw.bin";
 	}
 	else {
 		pr_err("ldpc: DT node does not have correct devname value\n");
@@ -269,6 +273,7 @@ static int ldpc_probe(struct platform_device *pdev)
 	ldpc_data->major = MAJOR(ldpc_data->dev_nr);
 	ldpc_data->minor = MINOR(ldpc_data->dev_nr);
 	ldpc_data->cdev.owner = THIS_MODULE;
+	strcpy(ldpc_data->fw_name, fw_name);
 	cdev_init(&ldpc_data->cdev, &ldpc_fops);
 	ret = cdev_add(&ldpc_data->cdev, ldpc_data->dev_nr, 1);
 	if (ret < 0) {
@@ -289,6 +294,15 @@ static int ldpc_probe(struct platform_device *pdev)
 	if (ret != 0) {
 		pr_err("ldpc: failed to create device mapping:[%d]\n", ret);
 		goto fail_get_res;
+	}
+
+	/* WAR: Remove if condition after decoder is available */
+	if (strcmp(ldpc_data->fw_name, "ldpc_enc_fw.bin") == 0) {
+		ret = ldpc_load_firmware(ldpc_data);
+		if (ret != 0) {
+			pr_err("ldpc: failed to load firmware:[%d]\n", ret);
+			goto fail_get_res;
+		}
 	}
 	return ret;
 

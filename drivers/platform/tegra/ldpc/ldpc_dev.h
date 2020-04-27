@@ -15,6 +15,7 @@
 #include <linux/cdev.h>
 
 #define LDPC_MAX_IORESOURCE_MEM 5
+#define FW_NAME_MAX_SZ 32U
 
 struct ldpc_devdata {
 	struct class *class;
@@ -26,6 +27,7 @@ struct ldpc_devdata {
 	struct dentry *fv;
 	int major;
 	int minor;
+	char fw_name[FW_NAME_MAX_SZ];
 	void __iomem *aperture[LDPC_MAX_IORESOURCE_MEM];
 };
 
