@@ -25,6 +25,7 @@ srcs :=
 ifdef NVGPU_POSIX
 srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-io.c \
+	os/posix/mock-registers.c \
 	os/posix/posix-nvgpu_mem.c \
 	os/posix/posix-dma.c \
 	os/posix/posix-vm.c \

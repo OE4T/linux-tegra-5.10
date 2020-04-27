@@ -130,7 +130,6 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 					gv11b_mm_mmu_fault_info_mem_destroy;
 
 	nvgpu_posix_register_io(g, &mmu_faults_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Register space: FB_MMU */
 	if (nvgpu_posix_io_add_reg_space(g, flush_fb_flush_r(), 0x800) != 0) {

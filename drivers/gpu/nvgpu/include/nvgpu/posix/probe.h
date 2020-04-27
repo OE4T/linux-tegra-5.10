@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,17 @@
 
 #ifndef NVGPU_POSIX_PROBE_H
 #define NVGPU_POSIX_PROBE_H
+
+/*
+ * In the unit test FW the POSIX code is expecting a gv11b at the moment.
+ */
+#define NV_PMC_BOOT_0_ARCHITECTURE_GV110	(0x00000015 << \
+						NVGPU_GPU_ARCHITECTURE_SHIFT)
+#define NV_PMC_BOOT_0_IMPLEMENTATION_B		0xB
+
+#define NV_PMC_BOOT_0_ARCHITECTURE_INVALID	(0x00000018 << \
+						NVGPU_GPU_ARCHITECTURE_SHIFT)
+#define NV_PMC_BOOT_0_IMPLEMENTATION_INVALID	0xD
 
 struct gk20a;
 

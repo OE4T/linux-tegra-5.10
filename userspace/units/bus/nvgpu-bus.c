@@ -129,9 +129,6 @@ int test_bus_setup(struct unit_module *m, struct gk20a *g, void *args)
 					mc_gp10b_intr_stall_unit_config;
 	g->ops.ptimer.isr = gk20a_ptimer_isr;
 
-	/* Init register space */
-	nvgpu_posix_io_init_reg_space(g);
-
 	/* Map register space NV_PRIV_MASTER */
 	if (nvgpu_posix_io_add_reg_space(g, NV_PBUS_START, NV_PBUS_SIZE) != 0) {
 		unit_err(m, "%s: failed to register space: NV_PBUS\n",

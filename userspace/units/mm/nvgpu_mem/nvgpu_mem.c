@@ -109,7 +109,6 @@ static int init_vidmem_env(struct unit_module *m, struct gk20a *g)
 
 	nvgpu_init_pramin(&g->mm);
 	nvgpu_posix_register_io(g, &pramin_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Minimum HAL init for PRAMIN */
 	g->ops.bus.set_bar0_window = gk20a_bus_set_bar0_window;
@@ -328,6 +327,7 @@ int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 	 * But, mm_is_iommuable = true.
 	 */
 	p->mm_is_iommuable = true;
+	g->ops.mm.gmmu.get_iommu_bit = NULL;
 
 	temp_phys = nvgpu_mem_iommu_translate(g, test_sgl->phys);
 	if (temp_phys != test_sgl->phys) {

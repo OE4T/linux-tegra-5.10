@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,7 +86,6 @@ static struct nvgpu_posix_io_callbacks fb_callbacks = {
 static int fb_gv11b_init(struct unit_module *m, struct gk20a *g, void *args)
 {
 	nvgpu_posix_register_io(g, &fb_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Register space: FB */
 	if (nvgpu_posix_io_add_reg_space(g, fb_niso_intr_r(), SZ_4K) != 0) {
@@ -146,12 +145,14 @@ struct unit_module_test fb_tests[] = {
 		fb_mmu_fault_gv11b_handle_bar2_fault, NULL, 0),
 	UNIT_TEST(fb_intr_gv11b_init_test, fb_intr_gv11b_init_test, NULL, 0),
 	UNIT_TEST(fb_intr_gv11b_isr_test, fb_intr_gv11b_isr_test, NULL, 0),
+
 	UNIT_TEST(fb_intr_gv11b_ecc_test_L2TLB, fb_intr_gv11b_ecc_test,
 		(void *) TEST_ECC_L2TLB, 0),
 	UNIT_TEST(fb_intr_gv11b_ecc_test_HUBTLB, fb_intr_gv11b_ecc_test,
 		(void *) TEST_ECC_HUBTLB, 0),
 	UNIT_TEST(fb_intr_gv11b_ecc_test_FILLUNIT, fb_intr_gv11b_ecc_test,
 		(void *) TEST_ECC_FILLUNIT, 0),
+
 	UNIT_TEST(fb_gv11b_cleanup, fb_gv11b_cleanup, NULL, 0),
 };
 

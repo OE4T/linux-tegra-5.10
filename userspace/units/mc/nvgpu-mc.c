@@ -236,7 +236,6 @@ int test_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args)
 {
 	/* Create mc register space */
-	nvgpu_posix_io_init_reg_space(g);
 	if (nvgpu_posix_io_add_reg_space(g, MC_ADDR_SPACE_START,
 						MC_ADDR_SPACE_SIZE) != 0) {
 		unit_err(m, "%s: failed to create register space\n",

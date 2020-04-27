@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,9 +71,6 @@ int test_fbp_setup(struct unit_module *m, struct gk20a *g, void *args)
 	/* Init HAL */
 	g->ops.top.get_max_fbps_count = gm20b_top_get_max_fbps_count;
 	g->ops.fuse.fuse_status_opt_fbp = gm20b_fuse_status_opt_fbp;
-
-	/* Init register space */
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Map register space for FUSE_STATUS_OPT_FBP */
 	if (nvgpu_posix_io_add_reg_space(g, fuse_status_opt_fbp_r(), 0x4)

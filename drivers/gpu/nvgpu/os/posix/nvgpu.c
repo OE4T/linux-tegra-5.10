@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,11 +29,14 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/hal_init.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
 
 #include <nvgpu/posix/probe.h>
+#include <nvgpu/posix/mock-regs.h>
+#include <nvgpu/posix/io.h>
 
 #include "os_posix.h"
 
@@ -50,6 +53,37 @@ struct nvgpu_posix_fault_inj *nvgpu_nvgpu_get_fault_injection(void)
 	return &c->nvgpu_fi;
 }
 #endif
+
+/*
+ * Write callback. Forward the write access to the mock IO framework.
+ */
+static void writel_access_reg_fn(struct gk20a *g,
+				 struct nvgpu_reg_access *access)
+{
+	nvgpu_posix_io_writel_reg_space(g, access->addr, access->value);
+}
+
+/*
+ * Read callback. Get the register value from the mock IO framework.
+ */
+static void readl_access_reg_fn(struct gk20a *g,
+				struct nvgpu_reg_access *access)
+{
+	access->value = nvgpu_posix_io_readl_reg_space(g, access->addr);
+}
+
+static struct nvgpu_posix_io_callbacks default_posix_reg_callbacks = {
+	/* Write APIs all can use the same accessor. */
+	.writel          = writel_access_reg_fn,
+	.writel_check    = writel_access_reg_fn,
+	.bar1_writel     = writel_access_reg_fn,
+	.usermode_writel = writel_access_reg_fn,
+
+	/* Likewise for the read APIs. */
+	.__readl         = readl_access_reg_fn,
+	.readl           = readl_access_reg_fn,
+	.bar1_readl      = readl_access_reg_fn,
+};
 
 /*
  * Somewhat meaningless in userspace...
@@ -160,6 +194,32 @@ void gk20a_idle(struct gk20a *g)
 	nvgpu_atomic_dec(&g->usage_count);
 }
 
+static void nvgpu_posix_load_regs(struct gk20a *g)
+{
+	u32 i;
+	int err;
+	struct nvgpu_mock_iospace space;
+	struct nvgpu_posix_io_reg_space *regs;
+
+	for (i = 0; i < MOCK_REGS_LAST; i++) {
+		err = nvgpu_get_mock_reglist(g, i, &space);
+		if (err) {
+			nvgpu_err(g, "Unknown IO regspace: %d; ignoring.", i);
+			continue;
+		}
+
+		err = nvgpu_posix_io_add_reg_space(g, space.base, space.size);
+		nvgpu_assert(err == 0);
+
+		regs = nvgpu_posix_io_get_reg_space(g, space.base);
+		nvgpu_assert(regs != NULL);
+
+		if (space.data != NULL) {
+			memcpy(regs->data, space.data, space.size);
+		}
+	}
+}
+
 /*
  * This function aims to initialize enough stuff to make unit testing worth
  * while. There are several interfaces and APIs that rely on the struct gk20a's
@@ -200,6 +260,29 @@ struct gk20a *nvgpu_posix_probe(void)
 	if (nvgpu_init_enabled_flags(g) != 0) {
 		goto fail_enabled_flags;
 	}
+
+	/*
+	 * Initialize a bunch of gv11b register values.
+	 */
+	nvgpu_posix_io_init_reg_space(g);
+	nvgpu_posix_load_regs(g);
+
+	/*
+	 * Set up some default register IO callbacks that basically all
+	 * unit tests will be OK with. Unit tests that wish to override this
+	 * may do so.
+	 *
+	 * This needs to happen before the nvgpu_detect_chip() call below
+	 * otherise we bug out when trying to do a register read.
+	 */
+	(void)nvgpu_posix_register_io(g, &default_posix_reg_callbacks);
+
+	/*
+	 * Detect chip based on the regs we filled above. Most unit tests
+	 * will be fine with this; a few may have to undo a little bit of it
+	 * in roder to fully test the nvgpu_detect_chip() function.
+	 */
+	nvgpu_assert(nvgpu_detect_chip(g) == 0);
 
 	return g;
 

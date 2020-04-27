@@ -497,7 +497,6 @@ int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mm.setup_hw = int_empty_hal;
 
 	nvgpu_posix_register_io(g, &mmu_faults_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Register space: FB_MMU */
 	if (nvgpu_posix_io_add_reg_space(g, fb_niso_intr_r(), 0x800) != 0) {
@@ -565,6 +564,7 @@ int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
 		unit_return_fail(m, "nvgpu_pd_cache_init failed ??\n");
 	}
 
+	g->ops.mm.mmu_fault.info_mem_destroy = NULL;
 	g->mm.remove_support(&g->mm);
 
 	if (g->mm.pd_cache != NULL) {
@@ -601,6 +601,8 @@ int test_mm_remove_mm_support(struct unit_module *m, struct gk20a *g,
 int test_mm_page_sizes(struct unit_module *m, struct gk20a *g,
 				void *args)
 {
+	g->ops.mm.gmmu.get_big_page_sizes = NULL;
+
 	if (nvgpu_mm_get_default_big_page_size(g) != SZ_64K) {
 		unit_return_fail(m, "unexpected big page size (1)\n");
 	}

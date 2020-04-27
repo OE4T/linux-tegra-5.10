@@ -52,7 +52,6 @@ static struct nvgpu_posix_io_callbacks ut_common_io_reg_callbacks = {
 
 int test_writel_check(struct unit_module *m, struct gk20a *g, void *args)
 {
-	nvgpu_posix_io_init_reg_space(g);
 	nvgpu_posix_register_io(g, &ut_common_io_reg_callbacks);
 
 	/* Value 0 will force to fail readback call as read API returns

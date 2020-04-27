@@ -100,7 +100,6 @@ int test_ltc_init_support(struct unit_module *m,
 	struct nvgpu_posix_fault_inj *kmem_fi =
 			nvgpu_kmem_get_fault_injection();
 
-	nvgpu_posix_io_init_reg_space(g);
 	if (nvgpu_posix_io_add_reg_space(g, mc_boot_0_r(), 0xfff) != 0) {
 		unit_err(m, "%s: failed to create register space\n", __func__);
 		return UNIT_FAIL;
@@ -683,5 +682,3 @@ struct unit_module_test nvgpu_ltc_tests[] = {
 };
 
 UNIT_MODULE(nvgpu-ltc, nvgpu_ltc_tests, UNIT_PRIO_NVGPU_TEST);
-
-

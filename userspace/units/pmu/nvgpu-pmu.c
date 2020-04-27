@@ -20,19 +20,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <stdlib.h>
+
 #include <unit/unit.h>
 #include <unit/io.h>
+
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/posix/io.h>
-#include <nvgpu/posix/posix-fault-injection.h>
 #include <nvgpu/hal_init.h>
-#include <nvgpu/hw/gp10b/hw_fuse_gp10b.h>
-#include <nvgpu/hw/gk20a/hw_falcon_gk20a.h>
-#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
+
 #include <nvgpu/gr/gr.h>
+
+#include <nvgpu/posix/io.h>
+#include <nvgpu/posix/mock-regs.h>
 #include <nvgpu/posix/soc_fuse.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+
+#include <nvgpu/hw/gk20a/hw_falcon_gk20a.h>
+#include <nvgpu/hw/gp10b/hw_fuse_gp10b.h>
+#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
 #include "hal/fuse/fuse_gm20b.h"
@@ -40,79 +46,20 @@
 
 #include "../falcon/falcon_utf.h"
 #include "../gr/nvgpu-gr-gv11b.h"
-#include "../mock-iospace/include/gv11b_mock_regs.h"
 #include "nvgpu-pmu.h"
-
-#define NV_PMC_BOOT_0_ARCHITECTURE_GV110        (0x00000015 << \
-						NVGPU_GPU_ARCHITECTURE_SHIFT)
-#define NV_PMC_BOOT_0_IMPLEMENTATION_B          0xB
-
-#define NUM_REG_SPACES 10U
 
 struct utf_falcon *pmu_flcn;
 
-struct gr_test_reg_details {
-	int idx;
-	u32 base;
-	u32 size;
-	const u32 *data;
-};
-
-struct gr_test_reg_details gr_gv11b_reg_space[NUM_REG_SPACES] = {
-	[0] = {
-		.idx = gv11b_master_reg_idx,
-		.base = 0x00000000,
-		.size = 0x0,
-		.data = NULL,
-	},
-	[1] = {
-		.idx = gv11b_pri_reg_idx,
-		.base = 0x00120000,
-		.size = 0x0,
-		.data = NULL,
-	},
-	[2] = {
-		.idx = gv11b_fuse_reg_idx,
-		.base = 0x00021000,
-		.size = 0x0,
-		.data = NULL,
-	},
-	[3] = {
-		.idx = gv11b_top_reg_idx,
-		.base = 0x00022400,
-		.size = 0x0,
-		.data = NULL,
-	},
-	[4] = {
-		.idx = gv11b_gr_reg_idx,
-		.base = 0x00400000,
-		.size = 0x0,
-		.data = NULL,
-	},
-	[5] = {
-		.idx = gv11b_fifo_reg_idx,
-		.base = 0x2000,
-		.size = 0x0,
-		.data = NULL,
-	},
-	[6] = { /* NV_FBIO_REGSPACE */
-		.base = 0x100800,
-		.size = 0x7FF,
-		.data = NULL,
-	},
-	[7] = { /* NV_PLTCG_LTCS_REGSPACE */
+#define NUM_REG_SPACES 2U
+static struct nvgpu_mock_iospace reg_spaces[NUM_REG_SPACES] = {
+	[0] = { /* NV_PLTCG_LTCS_REGSPACE */
 		.base = 0x17E200,
 		.size = 0x100,
 		.data = NULL,
 	},
-	[8] = { /* NV_PFB_HSHUB_ACTIVE_LTCS REGSPACE */
+	[1] = { /* NV_PFB_HSHUB_ACTIVE_LTCS REGSPACE */
 		.base = 0x1FBC20,
 		.size = 0x4,
-		.data = NULL,
-	},
-	[9] = { /* NV_PCCSR_CHANNEL REGSPACE */
-		.base = 0x800004,
-		.size = 0x1F,
 		.data = NULL,
 	},
 };
@@ -198,70 +145,30 @@ static void utf_falcon_register_io(struct gk20a *g)
 	nvgpu_posix_register_io(g, &utf_falcon_reg_callbacks);
 }
 
-static int gr_io_add_reg_space(struct unit_module *m, struct gk20a *g)
+static int add_reg_space(struct unit_module *m, struct gk20a *g)
 {
-	int ret = UNIT_SUCCESS;
-	u32 i = 0, j = 0;
-	u32 base, size;
-	struct nvgpu_posix_io_reg_space *gr_io_reg;
+	int err;
+	u32 i;
 
 	for (i = 0; i < NUM_REG_SPACES; i++) {
-		base = gr_gv11b_reg_space[i].base;
-		size = gr_gv11b_reg_space[i].size;
-		if (size == 0) {
-			struct mock_iospace iospace = {0};
+		struct nvgpu_mock_iospace *iospace = &reg_spaces[i];
 
-			ret = gv11b_get_mock_iospace(gr_gv11b_reg_space[i].idx,
-				&iospace);
-			if (ret != 0) {
-				unit_err(m, "failed to get reg space for %08x\n",
-					base);
-				goto clean_init_reg_space;
-			}
-			gr_gv11b_reg_space[i].data = iospace.data;
-			gr_gv11b_reg_space[i].size = size = iospace.size;
-		}
-		if (nvgpu_posix_io_add_reg_space(g, base, size) != 0) {
-			unit_err(m, "failed to add reg space for %08x\n", base);
-			ret = UNIT_FAIL;
-			goto clean_init_reg_space;
-		}
-
-		gr_io_reg = nvgpu_posix_io_get_reg_space(g, base);
-		if (gr_io_reg == NULL) {
-			unit_err(m, "failed to get reg space for %08x\n", base);
-			ret = UNIT_FAIL;
-			goto clean_init_reg_space;
-		}
-
-		if (gr_gv11b_reg_space[i].data != NULL) {
-			memcpy(gr_io_reg->data, gr_gv11b_reg_space[i].data, size);
-		} else {
-			memset(gr_io_reg->data, 0, size);
-		}
+		err = nvgpu_posix_io_add_reg_space(g, iospace->base,
+						   iospace->size);
+		nvgpu_assert(err == 0);
 	}
 
-	return ret;
-
-clean_init_reg_space:
-	for (j = 0; j < i; j++) {
-		base = gr_gv11b_reg_space[j].base;
-		nvgpu_posix_io_delete_reg_space(g, base);
-	}
-
-	return ret;
+	return 0;
 }
 
 static int init_pmu_falcon_test_env(struct unit_module *m, struct gk20a *g)
 {
 	int err = 0;
 
-	nvgpu_posix_io_init_reg_space(g);
-
 	/*
 	 * Initialise GR registers
 	 */
-	if (gr_io_add_reg_space(m, g) == UNIT_FAIL) {
+	if (add_reg_space(m, g) == UNIT_FAIL) {
 		unit_err(m, "failed to get initialized GR reg space\n");
 		return UNIT_FAIL;
 	}
@@ -277,10 +184,6 @@ static int init_pmu_falcon_test_env(struct unit_module *m, struct gk20a *g)
 		unit_err(m, "Add reg space failed!\n");
 		return -ENOMEM;
 	}
-
-	/* HAL init parameters for gv11b */
-	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
-	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
 
 	/* HAL init required for getting the falcon ops initialized. */
 	err = nvgpu_init_hal(g);
@@ -787,8 +690,7 @@ static int free_falcon_test_env(struct unit_module *m, struct gk20a *g,
 	u32 i = 0;
 
 	for (i = 0; i < NUM_REG_SPACES; i++) {
-		u32 base = gr_gv11b_reg_space[i].base;
-		nvgpu_posix_io_delete_reg_space(g, base);
+		nvgpu_posix_io_delete_reg_space(g, reg_spaces[i].base);
 	}
 
 	nvgpu_utf_falcon_free(g, pmu_flcn);

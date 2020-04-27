@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -103,7 +103,6 @@ int test_fuse_device_common_init(struct unit_module *m,
 	struct fuse_test_args *args = (struct fuse_test_args *)__args;
 
 	/* Create fuse register space */
-	nvgpu_posix_io_init_reg_space(g);
 	if (nvgpu_posix_io_add_reg_space(g, args->fuse_base_addr, 0xfff) != 0) {
 		unit_err(m, "%s: failed to create register space\n",
 			 __func__);

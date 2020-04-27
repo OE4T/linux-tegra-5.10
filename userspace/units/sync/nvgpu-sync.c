@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -109,12 +109,6 @@ int test_sync_init(struct unit_module *m, struct gk20a *g, void *args)
 	test_fifo_setup_gv11b_reg_space(m, g);
 
 	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, true);
-
-	/*
-	 * HAL init parameters for gv11b
-	 */
-	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
-	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
 
 	/*
 	 * HAL init required for getting
@@ -545,8 +539,6 @@ int test_sync_deinit(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	nvgpu_free_nvhost_dev(g);
-
-	test_fifo_cleanup_gv11b_reg_space(m, g);
 
 	return UNIT_SUCCESS;
 }

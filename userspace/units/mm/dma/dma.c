@@ -237,7 +237,6 @@ int test_mm_dma_init(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	nvgpu_posix_register_io(g, &pramin_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 #ifdef CONFIG_NVGPU_DGPU
 	/* Minimum HAL init for PRAMIN */

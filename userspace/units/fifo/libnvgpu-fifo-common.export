@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,4 +26,3 @@ test_fifo_remove_support
 test_fifo_subtest_pruned
 test_fifo_flags_str
 test_fifo_setup_gv11b_reg_space
-test_fifo_cleanup_gv11b_reg_space

@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2019 NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2020 NVIDIA CORPORATION.  All Rights Reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -16,9 +16,6 @@
 
 NVGPU_UNIT_NAME = nvgpu-gr
 NVGPU_UNIT_SRCS = nvgpu-gr.c nvgpu-gr-gv11b.c
-
-NVGPU_UNIT_INTERFACE_DIRS := \
-			$(NV_SOURCE)/kernel/nvgpu/userspace/units/mock-iospace
 
 include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 

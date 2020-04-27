@@ -188,7 +188,6 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	}
 
 	nvgpu_posix_register_io(g, &pramin_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Minimum HAL init for PRAMIN */
 	g->ops.bus.set_bar0_window = gk20a_bus_set_bar0_window;

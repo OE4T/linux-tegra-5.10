@@ -171,10 +171,6 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mm.init_mm_support(g);
 
 	err = nvgpu_fifo_init_support(g);
-	if (err != 0) {
-		test_fifo_cleanup_gv11b_reg_space(m, g);
-		goto fail;
-	}
 
 	/* Do not allocate from vidmem */
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
@@ -192,8 +188,5 @@ int test_fifo_remove_support(struct unit_module *m,
 		g->fifo.remove_support(&g->fifo);
 	}
 
-	test_fifo_cleanup_gv11b_reg_space(m, g);
-
 	return UNIT_SUCCESS;
 }
-

@@ -28,8 +28,7 @@ NVGPU_UNIT_NAME=nvgpu-pmu
 NVGPU_UNIT_SRCS=nvgpu-pmu.c
 
 NVGPU_UNIT_INTERFACE_DIRS := \
-	$(NV_COMPONENT_DIR)/../falcon \
-	$(NV_COMPONENT_DIR)/../mock-iospace
+	$(NV_COMPONENT_DIR)/../falcon
 
 include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 

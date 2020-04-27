@@ -24,6 +24,5 @@
 #define UNIT_NVGPU_FIFO_GV11B_H
 
 int test_fifo_setup_gv11b_reg_space(struct unit_module *m, struct gk20a *g);
-void test_fifo_cleanup_gv11b_reg_space(struct unit_module *m, struct gk20a *g);
 
 #endif /* UNIT_NVGPU_FIFO_GV11B_H */

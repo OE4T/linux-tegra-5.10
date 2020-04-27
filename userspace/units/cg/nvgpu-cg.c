@@ -303,7 +303,6 @@ static struct nvgpu_posix_io_callbacks cg_callbacks = {
 static int init_test_env(struct unit_module *m, struct gk20a *g, void *args)
 {
 	nvgpu_posix_register_io(g, &cg_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 	/*
 	 * Fuse register fuse_opt_priv_sec_en_r() is read during init_hal hence

@@ -127,21 +127,25 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 					mc_gp10b_intr_nonstall_unit_config;
 
 	/* Minimum HALs for page_table */
-	g->ops.mm.gmmu.get_default_big_page_size =
-		nvgpu_gmmu_default_big_page_size;
-	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
-	g->ops.mm.gmmu.get_max_page_table_levels = gp10b_get_max_page_table_levels;
-	g->ops.mm.init_inst_block = gv11b_mm_init_inst_block;
-	g->ops.mm.gmmu.map = nvgpu_gmmu_map_locked;
-	g->ops.mm.gmmu.unmap = nvgpu_gmmu_unmap_locked;
-	g->ops.mm.gmmu.get_iommu_bit = gp10b_mm_get_iommu_bit;
-	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
+	memset(&g->ops.bus, 0, sizeof(g->ops.bus));
+	memset(&g->ops.fb, 0, sizeof(g->ops.fb));
 #ifdef CONFIG_NVGPU_COMPRESSION
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
 #endif
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
+
 	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
+
+	g->ops.mm.init_inst_block = gv11b_mm_init_inst_block;
+	g->ops.mm.gmmu.get_default_big_page_size =
+		nvgpu_gmmu_default_big_page_size;
+	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
+	g->ops.mm.gmmu.get_max_page_table_levels = gp10b_get_max_page_table_levels;
+	g->ops.mm.gmmu.map = nvgpu_gmmu_map_locked;
+	g->ops.mm.gmmu.unmap = nvgpu_gmmu_unmap_locked;
+	g->ops.mm.gmmu.get_iommu_bit = gp10b_mm_get_iommu_bit;
+	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
 
 	/* New HALs for fault testing */
 	g->ops.mc.is_mmu_fault_pending = gv11b_mc_is_mmu_fault_pending;
@@ -178,7 +182,6 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->mm.mmu_rd_mem.cpu_va = (void *) 0x30000000;
 
 	nvgpu_posix_register_io(g, &mmu_faults_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Register space: FB_MMU */
 	if (nvgpu_posix_io_add_reg_space(g, fb_niso_intr_r(), 0x800) != 0) {

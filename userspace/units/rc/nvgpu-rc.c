@@ -88,48 +88,22 @@ int test_rc_init(struct unit_module *m, struct gk20a *g, void *args)
 		unit_return_fail(m, "fifo reg_space failure");
 	}
 
-	/*
-	 * HAL init parameters for gv11b
-	 */
-	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
-	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
-
-	/*
-	 * HAL init required for getting
-	 * the sync ops initialized.
-	 */
-	ret = nvgpu_init_hal(g);
-	if (ret != 0) {
-		unit_err(m, "failed to init hal");
-		goto clean_regspace;
-	}
-
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
 
 	g->ops.ecc.ecc_init_support(g);
 	g->ops.mm.init_mm_support(g);
 
 	ret = nvgpu_fifo_init_support(g);
-	if (ret != 0) {
-		unit_err(m , "failed to init fifo support");
-		goto clean_regspace;
-	}
+	nvgpu_assert(ret == 0);
 
 	/* Do not allocate from vidmem */
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
 
 	ret = nvgpu_runlist_setup_sw(g);
-	if (ret != 0) {
-		unit_err(m, "failed runlist setup_sw");
-		goto clean_regspace;
-	}
+	nvgpu_assert(ret == 0);
 
 	tsg = nvgpu_tsg_open(g, getpid());
-	if (tsg == NULL) {
-		ret = UNIT_FAIL;
-		unit_err(m, "failed tsg open");
-		goto clean_regspace;
-	}
+	nvgpu_assert(tsg != NULL);
 
 	ch = nvgpu_channel_open_new(g, NVGPU_INVALID_RUNLIST_ID, false,
 			getpid(), getpid());
@@ -163,8 +137,6 @@ clear_channel:
 clear_tsg:
 	nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 	tsg = NULL;
-clean_regspace:
-	test_fifo_cleanup_gv11b_reg_space(m, g);
 
 	return ret;
 }
@@ -193,8 +165,6 @@ int test_rc_deinit(struct unit_module *m, struct gk20a *g, void *args)
 	if (g->fifo.remove_support) {
 		g->fifo.remove_support(&g->fifo);
 	}
-
-	test_fifo_cleanup_gv11b_reg_space(m, g);
 
 	return ret;
 }

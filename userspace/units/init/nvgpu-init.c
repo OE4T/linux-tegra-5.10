@@ -44,44 +44,13 @@
 /* value for GV11B */
 #define MC_BOOT_0_GV11B (NVGPU_GPUID_GV11B << 20)
 /* to set the security fuses */
-#define GP10B_FUSE_REG_BASE		0x00021000U
+#define GP10B_FUSE_REG_BASE		0x21000
 #define GP10B_FUSE_OPT_PRIV_SEC_EN	(GP10B_FUSE_REG_BASE+0x434U)
 
 #define assert(cond) unit_assert(cond, goto fail)
 /*
  * Mock I/O
  */
-
-/*
- * Write callback. Forward the write access to the mock IO framework.
- */
-static void writel_access_reg_fn(struct gk20a *g,
-				 struct nvgpu_reg_access *access)
-{
-	nvgpu_posix_io_writel_reg_space(g, access->addr, access->value);
-}
-
-/*
- * Read callback. Get the register value from the mock IO framework.
- */
-static void readl_access_reg_fn(struct gk20a *g,
-				struct nvgpu_reg_access *access)
-{
-	access->value = nvgpu_posix_io_readl_reg_space(g, access->addr);
-}
-
-static struct nvgpu_posix_io_callbacks test_reg_callbacks = {
-	/* Write APIs all can use the same accessor. */
-	.writel          = writel_access_reg_fn,
-	.writel_check    = writel_access_reg_fn,
-	.bar1_writel     = writel_access_reg_fn,
-	.usermode_writel = writel_access_reg_fn,
-
-	/* Likewise for the read APIs. */
-	.__readl         = readl_access_reg_fn,
-	.readl           = readl_access_reg_fn,
-	.bar1_readl      = readl_access_reg_fn,
-};
 
 /*
  * Replacement functions that can be assigned to function pointers
@@ -130,31 +99,12 @@ static void no_return_u32_param(struct gk20a *g, u32 dummy)
 int test_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args)
 {
-	/* Create mc register space */
-	nvgpu_posix_io_init_reg_space(g);
-	if (nvgpu_posix_io_add_reg_space(g, mc_boot_0_r(), 0xfff) != 0) {
-		unit_err(m, "%s: failed to create register space\n",
-			 __func__);
-		return UNIT_FAIL;
-	}
-	/* Create fuse register space */
-	if (nvgpu_posix_io_add_reg_space(g, GP10B_FUSE_REG_BASE, 0xfff) != 0) {
-		unit_err(m, "%s: failed to create register space\n",
-			 __func__);
-		return UNIT_FAIL;
-	}
-	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
-
 	return UNIT_SUCCESS;
 }
 
 int test_free_env(struct unit_module *m,
 			 struct gk20a *g, void *args)
 {
-	/* Free mc register space */
-	nvgpu_posix_io_delete_reg_space(g, mc_boot_0_r());
-	nvgpu_posix_io_delete_reg_space(g, GP10B_FUSE_REG_BASE);
-
 	/* Clean up quiesce thread */
 	nvgpu_sw_quiesce_remove_support(g);
 
@@ -408,18 +358,6 @@ int test_hal_init(struct unit_module *m,
 	u32 i;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 
-	nvgpu_posix_io_writel_reg_space(g, mc_boot_0_r(), MC_BOOT_0_GV11B);
-	nvgpu_posix_io_writel_reg_space(g, GP10B_FUSE_OPT_PRIV_SEC_EN, 0x0);
-	if (nvgpu_detect_chip(g) != 0) {
-		unit_err(m, "%s: failed to init HAL\n", __func__);
-		return UNIT_FAIL;
-	}
-
-	if (strcmp(g->name, "gv11b") != 0) {
-		unit_err(m, "%s: initialized wrong HAL!\n", __func__);
-		return UNIT_FAIL;
-	}
-
 	/* Branch test for check if already inited the hal */
 	if (nvgpu_detect_chip(g) != 0) {
 		unit_err(m, "%s: failed to init HAL\n", __func__);
@@ -434,15 +372,6 @@ int test_hal_init(struct unit_module *m,
 		return UNIT_FAIL;
 	}
 	p->is_soc_t194_a01 = false;
-
-	/* Negative testing for secure fuse */
-	g->params.gpu_arch = 0;
-	nvgpu_posix_io_writel_reg_space(g, GP10B_FUSE_OPT_PRIV_SEC_EN, 0x1);
-	if (nvgpu_detect_chip(g) == 0) {
-		unit_err(m, "%s: HAL init failed to detect incorrect security\n",
-			 __func__);
-		return UNIT_FAIL;
-	}
 
 	/* Negative testing for invalid GPU version */
 	nvgpu_posix_io_writel_reg_space(g, GP10B_FUSE_OPT_PRIV_SEC_EN, 0x0);

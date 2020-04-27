@@ -49,7 +49,6 @@ NV_REPOSITORY_COMPONENTS += libs/dgpu
 NV_REPOSITORY_COMPONENTS += userspace
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/bitops
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/env
-NV_REPOSITORY_COMPONENTS += userspace/units/posix/mockio
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/fault-injection
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/bug
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/os_sched
@@ -163,7 +162,6 @@ NV_REPOSITORY_COMPONENTS += userspace/units/ce
 NV_REPOSITORY_COMPONENTS += userspace/units/cg
 NV_REPOSITORY_COMPONENTS += userspace/units/rc
 NV_REPOSITORY_COMPONENTS += userspace/units/sync
-NV_REPOSITORY_COMPONENTS += userspace/units/mock-iospace
 NV_REPOSITORY_COMPONENTS += userspace/units/ecc
 NV_REPOSITORY_COMPONENTS += userspace/units/io
 endif

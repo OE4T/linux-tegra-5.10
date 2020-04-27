@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -231,7 +231,12 @@ int nvgpu_posix_io_register_reg_space(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	nvgpu_list_add_tail(&reg_space->link, &p->reg_space_head);
+	/*
+	 * Add new register spaces to the front of the list. This lets unit
+	 * tests define their own smaller register spaces that take precedence
+	 * over the default reg lists.
+	 */
+	nvgpu_list_add(&reg_space->link, &p->reg_space_head);
 	return 0;
 }
 
@@ -259,7 +264,7 @@ int nvgpu_posix_io_add_reg_space(struct gk20a *g, u32 base, u32 size)
 
 	new_reg_space->data = nvgpu_vzalloc(g, size);
 	if (new_reg_space->data == NULL) {
-		nvgpu_vfree(g, new_reg_space);
+		nvgpu_kfree(g, new_reg_space);
 		return -ENOMEM;
 	}
 

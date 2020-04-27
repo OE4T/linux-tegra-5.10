@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,10 +39,6 @@
 #include "nvgpu-gr.h"
 #include "nvgpu-gr-gv11b.h"
 
-#define NV_PMC_BOOT_0_ARCHITECTURE_GV110	(0x00000015 << \
-					NVGPU_GPU_ARCHITECTURE_SHIFT)
-#define NV_PMC_BOOT_0_IMPLEMENTATION_B		0xB
-
 int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
@@ -50,21 +46,6 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 	err = test_gr_setup_gv11b_reg_space(m, g);
 	if (err != 0) {
 		goto fail;
-	}
-
-	/*
-	 * HAL init parameters for gv11b
-	 */
-	g->params.gpu_arch = NV_PMC_BOOT_0_ARCHITECTURE_GV110;
-	g->params.gpu_impl = NV_PMC_BOOT_0_IMPLEMENTATION_B;
-
-	/*
-	 * HAL init required for getting
-	 * the falcon ops initialized.
-	 */
-	err = nvgpu_init_hal(g);
-	if (err != 0) {
-		unit_return_fail(m, "nvgpu_init_hal failed\n");
 	}
 
 	/*

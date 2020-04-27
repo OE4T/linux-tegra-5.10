@@ -46,7 +46,6 @@ CORE_HEADERS :=	\
 UNITS :=				\
 	$(UNIT_SRC)/posix/env		\
 	$(UNIT_SRC)/posix/bitops	\
-	$(UNIT_SRC)/posix/mockio	\
 	$(UNIT_SRC)/posix/fault-injection \
 	$(UNIT_SRC)/posix/bug		\
 	$(UNIT_SRC)/posix/os_sched	\
@@ -102,7 +101,6 @@ UNITS :=				\
 	$(UNIT_SRC)/netlist		\
         $(UNIT_SRC)/fb 	        	\
 	$(UNIT_SRC)/fbp			\
-	$(UNIT_SRC)/mock-iospace	\
 	$(UNIT_SRC)/fifo		\
 	$(UNIT_SRC)/fifo/fifo/gk20a	\
 	$(UNIT_SRC)/fifo/fifo/gv11b	\

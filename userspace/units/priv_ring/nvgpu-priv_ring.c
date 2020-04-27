@@ -123,8 +123,6 @@ int test_priv_ring_setup(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.get_litter_value = gv11b_get_litter_value;
 	g->ops.mc.intr_stall_unit_config =
 					mc_gp10b_intr_stall_unit_config;
-	/* Init register space */
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Map register space NV_PRIV_MASTER */
 	if (nvgpu_posix_io_add_reg_space(g, NV_PRIV_MASTER_START,

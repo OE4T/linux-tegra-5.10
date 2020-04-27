@@ -137,7 +137,6 @@ static int init_falcon_test_env(struct unit_module *m, struct gk20a *g)
 {
 	int err = 0;
 
-	nvgpu_posix_io_init_reg_space(g);
 	utf_falcon_register_io(g);
 
 	/*
@@ -364,14 +363,6 @@ int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
 			     void *__args)
 {
 	int err;
-
-	/* verify that sw_init fails when g->params.gpu_arch|impl are invalid */
-	err = nvgpu_falcon_sw_init(g, FALCON_ID_FECS);
-	if (err != -EINVAL) {
-		unit_return_fail(m, "falcon initialized for invalid GPU\n");
-	}
-
-	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
 
 	/* initialize test setup */
 	if (init_falcon_test_env(m, g) != 0) {

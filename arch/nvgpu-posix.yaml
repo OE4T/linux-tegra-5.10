@@ -34,7 +34,8 @@ all:
              os/posix/posix-vidmem.c,
              os/posix/fecs_trace_posix.c,
              os/posix/stubs.c,
-             os/posix/posix-vpr.c ]
+             os/posix/posix-vpr.c,
+             os/posix/mock-registers.c ]
 
 headers:
   safe: no
@@ -42,6 +43,7 @@ headers:
   sources: [ include/nvgpu/posix/barrier.h,
              include/nvgpu/posix/dma.h,
              include/nvgpu/posix/io.h,
+             include/nvgpu/posix/mock-regs.h,
              include/nvgpu/posix/log.h,
              include/nvgpu/posix/nvgpu_mem.h,
              include/nvgpu/posix/pci.h,

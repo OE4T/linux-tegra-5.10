@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,12 +23,5 @@
 OBJS   = nvgpu-fifo-common.o nvgpu-fifo-gv11b.o
 
 MODULE = nvgpu-fifo-common
-LIB_PATHS += -lmock-iospace
 
 include ../Makefile.units
-
-lib$(MODULE).so: mock-iospace
-
-mock-iospace:
-	$(MAKE) -C ../mock-iospace/
-

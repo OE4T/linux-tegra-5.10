@@ -90,9 +90,6 @@ int test_top_setup(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.top.get_num_ltcs = gm20b_top_get_num_ltcs;
 	g->ops.top.get_num_lce = gv11b_top_get_num_lce;
 
-	/* Init register space */
-	nvgpu_posix_io_init_reg_space(g);
-
 	/* Map register space NV_TOP */
 	if (nvgpu_posix_io_add_reg_space(g, NV_TOP_START, NV_TOP_SIZE) != 0) {
 		unit_err(m, "%s: failed to register space: NV_TOP\n",

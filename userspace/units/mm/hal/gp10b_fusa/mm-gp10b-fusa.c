@@ -104,22 +104,23 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	p->mm_is_iommuable = true;
 
 	/* Minimum HALs for page_table */
+	memset(&g->ops.bus, 0, sizeof(g->ops.bus));
+	memset(&g->ops.fb, 0, sizeof(g->ops.fb));
+	g->ops.fb.init_hw = gv11b_fb_init_hw;
+	g->ops.fb.intr.enable = gv11b_fb_intr_enable;
+	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
+	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 	g->ops.mm.gmmu.get_default_big_page_size =
 					nvgpu_gmmu_default_big_page_size;
 	g->ops.mm.init_inst_block = gv11b_mm_init_inst_block;
 	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
-	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
-	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 	g->ops.mm.setup_hw = nvgpu_mm_setup_hw;
-	g->ops.fb.init_hw = gv11b_fb_init_hw;
-	g->ops.fb.intr.enable = gv11b_fb_intr_enable;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
 	g->ops.mm.mmu_fault.info_mem_destroy =
 					gv11b_mm_mmu_fault_info_mem_destroy;
 	g->ops.mc.intr_stall_unit_config = mc_gp10b_intr_stall_unit_config;
 
 	nvgpu_posix_register_io(g, &mmu_faults_callbacks);
-	nvgpu_posix_io_init_reg_space(g);
 
 	/* Register space: FB_MMU */
 	if (nvgpu_posix_io_add_reg_space(g, fb_niso_intr_r(), 0x800) != 0) {

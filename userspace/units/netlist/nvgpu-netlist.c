@@ -92,7 +92,6 @@ int test_netlist_init_support(struct unit_module *m,
 
 	int err = 0;
 
-	nvgpu_posix_io_init_reg_space(g);
 	if (nvgpu_posix_io_add_reg_space(g, mc_boot_0_r(), 0xfff) != 0) {
 		unit_err(m, "%s: failed to create register space\n", __func__);
 		return UNIT_FAIL;
@@ -288,5 +287,3 @@ struct unit_module_test nvgpu_netlist_tests[] = {
 };
 
 UNIT_MODULE(nvgpu-netlist, nvgpu_netlist_tests, UNIT_PRIO_NVGPU_TEST);
-
-

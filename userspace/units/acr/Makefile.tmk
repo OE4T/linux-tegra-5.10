@@ -29,8 +29,7 @@ NVGPU_UNIT_SRCS=nvgpu-acr.c
 
 NVGPU_UNIT_INTERFACE_DIRS := \
 	$(NV_COMPONENT_DIR)/../falcon \
-	$(NV_COMPONENT_DIR)/../gr \
-	$(NV_COMPONENT_DIR)/../mock-iospace
+	$(NV_COMPONENT_DIR)/../gr
 
 include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 
@@ -39,4 +38,3 @@ include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 # tab-width: 8
 # End:
 # vi: set tabstop=8 noexpandtab:
-
