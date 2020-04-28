@@ -145,11 +145,18 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc)
 
 u32 nvgpu_gr_sm_offset(struct gk20a *g, u32 sm)
 {
-
 	u32 sm_pri_stride = nvgpu_get_litter_value(g, GPU_LIT_SM_PRI_STRIDE);
 	u32 sm_offset = nvgpu_safe_mult_u32(sm_pri_stride, sm);
 
 	return sm_offset;
+}
+
+u32 nvgpu_gr_rop_offset(struct gk20a *g, u32 rop)
+{
+	u32 rop_pri_stride = nvgpu_get_litter_value(g, GPU_LIT_ROP_STRIDE);
+	u32 rop_offset = nvgpu_safe_mult_u32(rop_pri_stride, rop);
+
+	return rop_offset;
 }
 
 void nvgpu_gr_init(struct gk20a *g)

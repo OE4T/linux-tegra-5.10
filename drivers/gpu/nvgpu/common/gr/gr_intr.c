@@ -705,6 +705,24 @@ int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 				gpc_exception);
 		}
 
+		/* Handle ZROP exception */
+		if (g->ops.gr.intr.handle_gpc_zrop_hww != NULL) {
+			 g->ops.gr.intr.handle_gpc_zrop_hww(g, gpc,
+				gpc_exception);
+		}
+
+		/* Handle CROP exception */
+		if (g->ops.gr.intr.handle_gpc_crop_hww != NULL) {
+			 g->ops.gr.intr.handle_gpc_crop_hww(g, gpc,
+				gpc_exception);
+		}
+
+		/* Handle RRH exception */
+		if (g->ops.gr.intr.handle_gpc_rrh_hww != NULL) {
+			 g->ops.gr.intr.handle_gpc_rrh_hww(g, gpc,
+				gpc_exception);
+		}
+
 	}
 
 	return ret;

@@ -457,6 +457,12 @@ struct gops_gr_intr {
 				struct nvgpu_gr_isr_data *isr_data);
 	void (*handle_notify_pending)(struct gk20a *g,
 				struct nvgpu_gr_isr_data *isr_data);
+	void (*handle_gpc_zrop_hww)(struct gk20a *g, u32 gpc,
+			u32 gpc_exception);
+	void (*handle_gpc_crop_hww)(struct gk20a *g, u32 gpc,
+			u32 gpc_exception);
+	void (*handle_gpc_rrh_hww)(struct gk20a *g, u32 gpc,
+			u32 gpc_exception);
 	void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,
 			u32 gpc_exception,
 			u32 *corrected_err, u32 *uncorrected_err);
@@ -485,6 +491,8 @@ struct gops_gr_intr {
 	void (*enable_exceptions)(struct gk20a *g,
 				  struct nvgpu_gr_config *gr_config,
 				  bool enable);
+	void (*enable_gpc_crop_hww)(struct gk20a *g);
+	void (*enable_gpc_zrop_hww)(struct gk20a *g);
 	void (*enable_gpc_exceptions)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
 	void (*tpc_exception_sm_enable)(struct gk20a *g);

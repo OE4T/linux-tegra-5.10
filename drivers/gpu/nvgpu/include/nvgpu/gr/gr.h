@@ -318,6 +318,19 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc);
  */
 u32 nvgpu_gr_sm_offset(struct gk20a *g, u32 sm);
 
+/**
+ * @brief Get pri base register offset of a given ROP instance within a GPC
+ *
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param rop [in]	ROP index.
+ *
+ * This function calculates and returns base register offset of a given
+ * ROP within a GPC.
+ *
+ * @return base register offset of a given ROP.
+ */
+u32 nvgpu_gr_rop_offset(struct gk20a *g, u32 rop);
+
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 /**
  * @brief Wait for GR engine to be initialized
