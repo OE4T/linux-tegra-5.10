@@ -1,7 +1,7 @@
 /*
  * Pascal GPU series Copy Engine.
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,14 +42,14 @@ void gp10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	if ((ce_intr & ce_intr_status_blockpipe_pending_f()) != 0U) {
 		nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
 				GPU_CE_BLOCK_PIPE, ce_intr);
-		nvgpu_log(g, gpu_dbg_intr, "ce blocking pipe interrupt");
+		nvgpu_err(g, "ce blocking pipe interrupt");
 		clear_intr |= ce_intr_status_blockpipe_pending_f();
 	}
 
 	if ((ce_intr & ce_intr_status_launcherr_pending_f()) != 0U) {
 		nvgpu_report_ce_err(g, NVGPU_ERR_MODULE_CE, inst_id,
 				GPU_CE_LAUNCH_ERROR, ce_intr);
-		nvgpu_log(g, gpu_dbg_intr, "ce launch error interrupt");
+		nvgpu_err(g, "ce launch error interrupt");
 		clear_intr |= ce_intr_status_launcherr_pending_f();
 	}
 
