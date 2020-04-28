@@ -1,7 +1,7 @@
 /*
  * PVA driver for T194
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,8 +32,11 @@
 #include <linux/firmware.h>
 #include <linux/iommu.h>
 #include <linux/reset.h>
+#include <linux/version.h>
 #include <linux/platform/tegra/common.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#endif
 #include <soc/tegra/fuse.h>
 
 #include "nvhost_syncpt_unit_interface.h"
@@ -710,14 +713,22 @@ static int pva_probe(struct platform_device *pdev)
 		goto err_get_pdata;
 	}
 
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
+#else
+	if (tegra_get_chip_id() == TEGRA194 &&
+#endif
 		tegra_get_sku_id() == 0x9E) {
 		dev_err(dev, "PVA IP is disabled in SKU\n");
 		err = -ENODEV;
 		goto err_no_ip;
 	}
 
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
+#else
+	if (tegra_get_chip_id() == TEGRA194 &&
+#endif
 	    tegra_get_sku_id() == 0x9F &&
 	    pdata->class == NV_PVA1_CLASS_ID) {
 		dev_err(dev, "PVA1 IP is disabled in SKU\n");
@@ -732,7 +743,11 @@ static int pva_probe(struct platform_device *pdev)
 	}
 
 	/* Initialize PVA private data */
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA23) {
+#else
+	if (tegra_get_chip_id() == TEGRA234) {
+#endif
 		pva->version = 2;
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 		pva->version_config = &pva_t23x_config;
@@ -778,7 +793,11 @@ static int pva_probe(struct platform_device *pdev)
 
 #ifdef __linux__
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if (tegra_chip_get_revision() != TEGRA194_REVISION_A01)
+#else
+	if (tegra_get_chip_id() != TEGRA194)
+#endif
 		pva->vmem_war_disable = 1;
 #endif
 #endif

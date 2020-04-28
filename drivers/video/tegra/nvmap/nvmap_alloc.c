@@ -3,7 +3,7 @@
  *
  * Handle allocation and freeing routines for nvmap
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,7 +19,12 @@
 
 #include <linux/moduleparam.h>
 #include <linux/random.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <trace/events/nvmap.h>
 
 #include "nvmap_priv.h"
@@ -460,11 +465,19 @@ static int handle_page_alloc(struct nvmap_client *client,
 	struct page **pages;
 	gfp_t gfp = GFP_NVMAP | __GFP_ZERO;
 	int pages_per_big_pg = NVMAP_PP_BIG_PAGE_SIZE >> PAGE_SHIFT;
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	static u32 chipid;
+#else
+	static u8 chipid;
+#endif
 
 	if (!chipid) {
 #ifdef CONFIG_NVMAP_COLOR_PAGES
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 		chipid = tegra_hidrev_get_chipid(tegra_read_chipid());
+#else
+		chipid = tegra_get_chip_id();
+#endif
 		if (chipid == TEGRA194)
 			s_nr_colors = 16;
 #endif

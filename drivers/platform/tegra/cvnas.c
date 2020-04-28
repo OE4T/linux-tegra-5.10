@@ -1,7 +1,7 @@
 /*
  * drivers/platform/tegra/cvnas.c
  *
- * Copyright (C) 2017-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -35,7 +35,10 @@
 #include <linux/of_reserved_mem.h>
 #include <linux/platform_device.h>
 #include <linux/nvmap_t19x.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#endif
 #include <soc/tegra/fuse.h>
 #include <linux/clk-provider.h>
 
@@ -478,7 +481,11 @@ static int nvcvnas_probe(struct platform_device *pdev)
 	u32 cvsram_reg_data[4];
 	const struct of_device_id *match;
 
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
+#else
+	if (tegra_get_chip_id() == TEGRA194 &&
+#endif
 		tegra_get_sku_id() == 0x9E) {
 		dev_err(&pdev->dev, "CVNAS IP is disabled in SKU.\n");
 		return -ENODEV;

@@ -30,14 +30,15 @@
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
 #include <linux/dma-mapping.h>
-#include <soc/tegra/chip-id.h>
 #include <linux/version.h>
 
 #include <linux/tegra_pm_domains.h>
 #include <uapi/linux/nvhost_nvdec_ioctl.h>
 
 #include <linux/platform/tegra/mc.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#endif
 #include <soc/tegra/fuse.h>
 
 #include <soc/tegra/kfuse.h>
@@ -490,7 +491,11 @@ static int nvdec_probe(struct platform_device *dev)
 		return -ENODATA;
 	}
 
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
+#else
+	if (tegra_get_chip_id() == TEGRA194 &&
+#endif
 	    (tegra_get_sku_id() == 0x9F ||
 	     tegra_get_sku_id() == 0x9E) &&
 	    pdata->class == NV_NVDEC1_CLASS_ID) {

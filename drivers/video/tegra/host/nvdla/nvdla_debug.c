@@ -19,15 +19,18 @@
 #include <linux/platform_device.h>
 #include <linux/debugfs.h>
 #include <linux/nvhost.h>
+#include <linux/uaccess.h>
+#include <linux/delay.h>
+#include <linux/version.h>
+#include <soc/tegra/fuse.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/chip-id.h>
+#endif
+
 #include "host1x/host1x.h"
 #include "flcn/flcn.h"
 #include "flcn/hw_flcn.h"
 #include "dla_os_interface.h"
-#include <linux/uaccess.h>
-#include <soc/tegra/fuse.h>
-#include <soc/tegra/chip-id.h>
-#include <linux/delay.h>
-
 #include "nvdla/nvdla.h"
 #include "nvdla_debug.h"
 #include "nvhost_acm.h"
@@ -571,9 +574,13 @@ static ssize_t debug_dla_fw_a01_war_set(struct file *file,
 	if (val < 0) /* "0" to disable WAR, positive value to enable WAR */
 		return count;
 
-
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if ((tegra_get_chipid() == TEGRA_CHIPID_TEGRA19) &&
 		(tegra_chip_get_revision() == TEGRA194_REVISION_A01))
+#else
+	if ((tegra_get_chip_id() == TEGRA194) &&
+		(tegra_chip_get_revision() == TEGRA_REVISION_A01))
+#endif
 		if (val)
 			nvdla_dev->quirks |= (NVDLA_QUIRK_T194_A01_WAR);
 		else

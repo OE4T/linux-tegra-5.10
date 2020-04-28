@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2010 Google, Inc.
  *
- * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -539,7 +539,9 @@ static int _tegra_dc_program_windows(struct tegra_dc *dc,
 	bool update_blend_par = false;
 	bool update_blend_seq = false;
 	int i;
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	enum tegra_revision rev;
+#endif
 
 	/* If any of the window updates requires vsync to program the window
 	   update safely, vsync all windows in this flip.  Safety overrides both
@@ -644,14 +646,14 @@ static int _tegra_dc_program_windows(struct tegra_dc *dc,
 				DC_WINBUF_CDE_SURFACE_OFFSET_0);
 			tegra_dc_writel(dc, win->cde.ctb_entry,
 				DC_WINBUF_CDE_CTB_ENTRY_0);
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 			rev = tegra_chip_get_revision();
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 0))
-			if (tegra_get_chip_id() == TEGRA210
-				&& ((rev == TEGRA_REVISION_A01) ||
-					(rev == TEGRA_REVISION_A01q)))
-#else
 			if (rev == TEGRA210_REVISION_A01 ||
 					rev == TEGRA210_REVISION_A01q)
+#else
+			if (tegra_get_chip_id() == TEGRA210 && (
+				(tegra_chip_get_revision() == TEGRA_REVISION_A01) ||
+				(tegra_chip_get_revision() == TEGRA_REVISION_A01q)))
 #endif
 				tegra_dc_writel(dc, 0, DC_WINBUF_CDE_CG_SW_OVR);
 		} else {
