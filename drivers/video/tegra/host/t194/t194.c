@@ -516,6 +516,7 @@ struct nvhost_device_data t19_vic_info = {
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
+	.enable_timestamps	= flcn_enable_timestamps,
 	.actmon_regs		= HOST1X_THOST_ACTMON_VIC,
 	.actmon_enabled         = true,
 	.actmon_irq		= 3,
