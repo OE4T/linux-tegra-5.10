@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,10 +53,12 @@ static ssize_t tegrafw_read_denver(struct device *dev,
 	for_each_online_cpu(i) {
 		struct cpuinfo_arm64 *cpuinfo = &per_cpu(cpu_data, i);
 		u32 midr = cpuinfo->reg_midr;
+		u32 aidr;
 
 		if (MIDR_IMPLEMENTOR(midr) == ARM_CPU_IMP_NVIDIA) {
+			asm volatile("mrs %0, AIDR_EL1" : "=r" (aidr) : );
 			printed = snprintf(v, size, "CPU%d: %u(0x%x) ",
-				i, cpuinfo->reg_aidr, cpuinfo->reg_aidr);
+				i, aidr, aidr);
 			size -= printed;
 			v += printed;
 		}
