@@ -38,7 +38,7 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 	struct nvgpu_profiler_object *prof;
 	*_prof = NULL;
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
+	nvgpu_log(g, gpu_dbg_prof, " ");
 
 	prof = nvgpu_kzalloc(g, sizeof(*prof));
 	if (prof == NULL) {
@@ -51,6 +51,9 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 	nvgpu_init_list_node(&prof->prof_obj_entry);
 	nvgpu_list_add(&prof->prof_obj_entry, &g->profiler_objects);
 
+	nvgpu_log(g, gpu_dbg_prof, "Allocated profiler handle %u",
+		prof->prof_handle);
+
 	*_prof = prof;
 	return 0;
 }
@@ -58,6 +61,9 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 void nvgpu_profiler_free(struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
+
+	nvgpu_log(g, gpu_dbg_prof, "Free profiler handle %u",
+		prof->prof_handle);
 
 	nvgpu_list_del(&prof->prof_obj_entry);
 	nvgpu_kfree(g, prof);
