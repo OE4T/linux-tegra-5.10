@@ -242,7 +242,7 @@ int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powerg
 
 bool nvgpu_check_and_set_global_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj)
+				struct nvgpu_profiler_object *prof_obj)
 {
 	struct gk20a *g = dbg_s->g;
 
@@ -258,7 +258,7 @@ bool nvgpu_check_and_set_global_reservation(
 
 bool nvgpu_check_and_set_context_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj)
+				struct nvgpu_profiler_object *prof_obj)
 {
 	struct gk20a *g = dbg_s->g;
 
@@ -272,7 +272,7 @@ bool nvgpu_check_and_set_context_reservation(
 }
 
 void nvgpu_release_profiler_reservation(struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj)
+				struct nvgpu_profiler_object *prof_obj)
 {
 	struct gk20a *g = dbg_s->g;
 

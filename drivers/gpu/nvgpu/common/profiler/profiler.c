@@ -33,9 +33,9 @@ static int generate_unique_id(void)
 }
 
 int nvgpu_profiler_alloc(struct gk20a *g,
-	struct dbg_profiler_object_data **_prof)
+	struct nvgpu_profiler_object **_prof)
 {
-	struct dbg_profiler_object_data *prof;
+	struct nvgpu_profiler_object *prof;
 	*_prof = NULL;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
@@ -55,7 +55,7 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 	return 0;
 }
 
-void nvgpu_profiler_free(struct dbg_profiler_object_data *prof)
+void nvgpu_profiler_free(struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
 

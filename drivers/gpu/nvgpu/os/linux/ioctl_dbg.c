@@ -183,7 +183,7 @@ int gk20a_dbg_gpu_dev_release(struct inode *inode, struct file *filp)
 	struct dbg_session_gk20a_linux *dbg_session_linux = filp->private_data;
 	struct dbg_session_gk20a *dbg_s = &dbg_session_linux->dbg_s;
 	struct gk20a *g = dbg_s->g;
-	struct dbg_profiler_object_data *prof_obj, *tmp_obj;
+	struct nvgpu_profiler_object *prof_obj, *tmp_obj;
 
 	nvgpu_log(g, gpu_dbg_gpu_dbg | gpu_dbg_fn, "%s", g->name);
 
@@ -208,7 +208,7 @@ int gk20a_dbg_gpu_dev_release(struct inode *inode, struct file *filp)
 	 * dbg_unbind_all_channels. We could still have global ones.
 	 */
 	nvgpu_list_for_each_entry_safe(prof_obj, tmp_obj, &g->profiler_objects,
-				dbg_profiler_object_data, prof_obj_entry) {
+				nvgpu_profiler_object, prof_obj_entry) {
 		if (prof_obj->session_id == dbg_s->id) {
 			if (prof_obj->has_reservation)
 				g->ops.debugger.
@@ -444,7 +444,7 @@ static int dbg_unbind_single_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	struct gk20a *g = dbg_s->g;
 	u32 chid;
 	struct dbg_session_data *session_data;
-	struct dbg_profiler_object_data *prof_obj, *tmp_obj;
+	struct nvgpu_profiler_object *prof_obj, *tmp_obj;
 	struct dbg_session_channel_data_linux *ch_data_linux;
 	struct nvgpu_channel *ch;
 
@@ -457,7 +457,7 @@ static int dbg_unbind_single_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	 * session/channel pair, release it.
 	 */
 	nvgpu_list_for_each_entry_safe(prof_obj, tmp_obj, &g->profiler_objects,
-				dbg_profiler_object_data, prof_obj_entry) {
+				nvgpu_profiler_object, prof_obj_entry) {
 		if ((prof_obj->session_id == dbg_s->id) &&
 				(prof_obj->tsg->tsgid == ch->tsgid)) {
 			if (prof_obj->has_reservation) {
@@ -1171,7 +1171,7 @@ static int nvgpu_ioctl_allocate_profiler_object(
 	int err = 0;
 	struct dbg_session_gk20a *dbg_s = &dbg_session_linux->dbg_s;
 	struct gk20a *g = get_gk20a(dbg_session_linux->dev);
-	struct dbg_profiler_object_data *prof_obj;
+	struct nvgpu_profiler_object *prof_obj;
 	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_tsg *tsg;
 
@@ -1220,7 +1220,7 @@ static int nvgpu_ioctl_free_profiler_object(
 	int err = 0;
 	struct dbg_session_gk20a *dbg_s = &dbg_s_linux->dbg_s;
 	struct gk20a *g = get_gk20a(dbg_s_linux->dev);
-	struct dbg_profiler_object_data *prof_obj, *tmp_obj;
+	struct nvgpu_profiler_object *prof_obj, *tmp_obj;
 	bool obj_found = false;
 
 	nvgpu_log_fn(g, "%s session_id = %d profiler_handle = %x",
@@ -1230,7 +1230,7 @@ static int nvgpu_ioctl_free_profiler_object(
 
 	/* Remove profiler object from the list, if a match is found */
 	nvgpu_list_for_each_entry_safe(prof_obj, tmp_obj, &g->profiler_objects,
-				dbg_profiler_object_data, prof_obj_entry) {
+				nvgpu_profiler_object, prof_obj_entry) {
 		if (prof_obj->prof_handle == args->profiler_handle) {
 			if (prof_obj->session_id != dbg_s->id) {
 				nvgpu_err(g,
@@ -1257,15 +1257,15 @@ static int nvgpu_ioctl_free_profiler_object(
 	return  err;
 }
 
-static struct dbg_profiler_object_data *find_matching_prof_obj(
+static struct nvgpu_profiler_object *find_matching_prof_obj(
 						struct dbg_session_gk20a *dbg_s,
 						u32 profiler_handle)
 {
 	struct gk20a *g = dbg_s->g;
-	struct dbg_profiler_object_data *prof_obj;
+	struct nvgpu_profiler_object *prof_obj;
 
 	nvgpu_list_for_each_entry(prof_obj, &g->profiler_objects,
-				dbg_profiler_object_data, prof_obj_entry) {
+				nvgpu_profiler_object, prof_obj_entry) {
 		if (prof_obj->prof_handle == profiler_handle) {
 			if (prof_obj->session_id != dbg_s->id) {
 				nvgpu_err(g,
@@ -1683,7 +1683,7 @@ static int nvgpu_profiler_reserve_release(struct dbg_session_gk20a *dbg_s,
 								u32 profiler_handle)
 {
 	struct gk20a *g = dbg_s->g;
-	struct dbg_profiler_object_data *prof_obj;
+	struct nvgpu_profiler_object *prof_obj;
 	int err = 0;
 
 	nvgpu_log_fn(g, "%s profiler_handle = %x", g->name, profiler_handle);
@@ -1715,7 +1715,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 								u32 profiler_handle)
 {
 	struct gk20a *g = dbg_s->g;
-	struct dbg_profiler_object_data *prof_obj, *my_prof_obj;
+	struct nvgpu_profiler_object *prof_obj, *my_prof_obj;
 	int err = 0;
 
 	nvgpu_log_fn(g, "%s profiler_handle = %x", g->name, profiler_handle);
@@ -1764,7 +1764,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 		u32 my_tsgid = my_prof_obj->tsg->tsgid;
 
 		nvgpu_list_for_each_entry(prof_obj, &g->profiler_objects,
-				dbg_profiler_object_data, prof_obj_entry) {
+				nvgpu_profiler_object, prof_obj_entry) {
 			if (prof_obj->has_reservation &&
 					(prof_obj->tsg->tsgid == my_tsgid)) {
 				nvgpu_err(g,

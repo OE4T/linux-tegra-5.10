@@ -78,7 +78,7 @@ struct sim_nvgpu;
 struct nvgpu_ce_app;
 struct gk20a_ctxsw_trace;
 struct nvgpu_mem_alloc_tracker;
-struct dbg_profiler_object_data;
+struct nvgpu_profiler_object;
 struct nvgpu_debug_context;
 struct nvgpu_clk_pll_debug_data;
 struct nvgpu_nvhost_dev;
@@ -437,13 +437,13 @@ struct gpu_ops {
 					bool disable_powergate);
 		bool (*check_and_set_global_reservation)(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 		bool (*check_and_set_context_reservation)(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 		void (*release_profiler_reservation)(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 	} debugger;
 	struct {
 		void (*enable_membuf)(struct gk20a *g, u32 size,

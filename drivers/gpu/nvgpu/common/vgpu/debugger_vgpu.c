@@ -137,7 +137,7 @@ static int vgpu_sendrecv_prof_cmd(struct dbg_session_gk20a *dbg_s, u32 mode)
 
 bool vgpu_check_and_set_global_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj)
+				struct nvgpu_profiler_object *prof_obj)
 {
 	struct gk20a *g = dbg_s->g;
 
@@ -158,7 +158,7 @@ bool vgpu_check_and_set_global_reservation(
 
 bool vgpu_check_and_set_context_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj)
+				struct nvgpu_profiler_object *prof_obj)
 {
 	struct gk20a *g = dbg_s->g;
 
@@ -181,7 +181,7 @@ bool vgpu_check_and_set_context_reservation(
 
 void vgpu_release_profiler_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj)
+				struct nvgpu_profiler_object *prof_obj)
 {
 	struct gk20a *g = dbg_s->g;
 

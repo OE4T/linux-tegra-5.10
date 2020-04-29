@@ -33,7 +33,7 @@
 struct gk20a;
 struct nvgpu_channel;
 struct dbg_session_gk20a;
-struct dbg_profiler_object_data;
+struct nvgpu_profiler_object;
 
 struct nvgpu_channel *
 nvgpu_dbg_gpu_get_session_channel(struct dbg_session_gk20a *dbg_s);
@@ -111,12 +111,12 @@ void nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct nvgpu_channel *ch);
 int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate);
 bool nvgpu_check_and_set_global_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 bool nvgpu_check_and_set_context_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 void nvgpu_release_profiler_reservation(struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 
 void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s);
 u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,

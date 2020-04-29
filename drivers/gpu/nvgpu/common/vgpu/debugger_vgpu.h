@@ -25,7 +25,7 @@
 
 struct dbg_session_gk20a;
 struct nvgpu_dbg_reg_op;
-struct dbg_profiler_object_data;
+struct nvgpu_profiler_object;
 struct gk20a;
 struct nvgpu_channel;
 
@@ -39,12 +39,12 @@ int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s,
 			bool disable_powergate);
 bool vgpu_check_and_set_global_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 bool vgpu_check_and_set_context_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 
 void vgpu_release_profiler_reservation(
 				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+				struct nvgpu_profiler_object *prof_obj);
 #endif /* NVGPU_DBG_VGPU_H */
