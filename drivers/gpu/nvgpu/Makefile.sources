@@ -389,6 +389,10 @@ srcs += hal/regops/regops_gm20b.c \
 endif
 endif
 
+ifeq ($(CONFIG_NVGPU_PROFILER),1)
+srcs += common/profiler/profiler.c
+endif
+
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
 srcs += common/fifo/submit.c \
         common/fifo/priv_cmdbuf.c \

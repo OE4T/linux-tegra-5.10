@@ -34,6 +34,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/debugger.h>
+#include <nvgpu/profiler.h>
 #include <nvgpu/power_features/power_features.h>
 
 /*
@@ -281,7 +282,7 @@ void nvgpu_release_profiler_reservation(struct dbg_session_gk20a *dbg_s,
 	}
 	dbg_s->has_profiler_reservation = false;
 	prof_obj->has_reservation = false;
-	if (prof_obj->ch == NULL) {
+	if (prof_obj->tsg == NULL) {
 		g->global_profiler_reservation_held = false;
 	}
 }

@@ -59,6 +59,12 @@ debugger:
              include/nvgpu/debugger.h ]
   deps:
 
+profiler:
+  safe: no
+  owner: Deepak N
+  sources: [ common/profiler/profiler.c,
+             include/nvgpu/profiler.h ]
+
 defaults:
   safe: yes
   sources: [ include/nvgpu/defaults.h ]

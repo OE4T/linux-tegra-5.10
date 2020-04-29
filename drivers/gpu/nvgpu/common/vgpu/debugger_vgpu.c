@@ -24,6 +24,7 @@
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/debugger.h>
+#include <nvgpu/profiler.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
@@ -186,7 +187,7 @@ void vgpu_release_profiler_reservation(
 
 	dbg_s->has_profiler_reservation = false;
 	prof_obj->has_reservation = false;
-	if (prof_obj->ch == NULL) {
+	if (prof_obj->tsg == NULL) {
 		g->global_profiler_reservation_held = false;
 	}
 

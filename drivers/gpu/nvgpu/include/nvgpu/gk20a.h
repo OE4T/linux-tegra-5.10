@@ -830,13 +830,16 @@ struct gk20a {
 	} perfbuf;
 
 	/* For profiler reservations */
-	struct nvgpu_list_node profiler_objects;
 	bool global_profiler_reservation_held;
 	int profiler_reservation_count;
 
 	bool mmu_debug_ctrl;
 	u32 mmu_debug_mode_refcnt;
 #endif /* CONFIG_NVGPU_DEBUGGER */
+
+#ifdef CONFIG_NVGPU_PROFILER
+	struct nvgpu_list_node profiler_objects;
+#endif
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	struct gk20a_ctxsw_trace *ctxsw_trace;

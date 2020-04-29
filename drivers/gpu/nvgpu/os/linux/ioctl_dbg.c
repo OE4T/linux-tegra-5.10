@@ -30,6 +30,7 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/cond.h>
 #include <nvgpu/debugger.h>
+#include <nvgpu/profiler.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/gk20a.h>
@@ -77,23 +78,6 @@ static nvgpu_atomic_t unique_id = NVGPU_ATOMIC_INIT(0);
 static int generate_unique_id(void)
 {
 	return nvgpu_atomic_add_return(1, &unique_id);
-}
-
-static int alloc_profiler(struct gk20a *g,
-			  struct dbg_profiler_object_data **_prof)
-{
-	struct dbg_profiler_object_data *prof;
-	*_prof = NULL;
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
-
-	prof = nvgpu_kzalloc(g, sizeof(*prof));
-	if (!prof)
-		return -ENOMEM;
-
-	prof->prof_handle = generate_unique_id();
-	*_prof = prof;
-	return 0;
 }
 
 static int alloc_session(struct gk20a *g, struct dbg_session_gk20a_linux **_dbg_s_linux)
@@ -462,10 +446,12 @@ static int dbg_unbind_single_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	struct dbg_session_data *session_data;
 	struct dbg_profiler_object_data *prof_obj, *tmp_obj;
 	struct dbg_session_channel_data_linux *ch_data_linux;
+	struct nvgpu_channel *ch;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
 	chid = ch_data->chid;
+	ch = &g->fifo.channel[chid];
 
 	/* If there's a profiler ctx reservation record associated with this
 	 * session/channel pair, release it.
@@ -473,7 +459,7 @@ static int dbg_unbind_single_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 	nvgpu_list_for_each_entry_safe(prof_obj, tmp_obj, &g->profiler_objects,
 				dbg_profiler_object_data, prof_obj_entry) {
 		if ((prof_obj->session_id == dbg_s->id) &&
-			(prof_obj->ch->chid == chid)) {
+				(prof_obj->tsg->tsgid == ch->tsgid)) {
 			if (prof_obj->has_reservation) {
 				g->ops.debugger.
 				  release_profiler_reservation(dbg_s, prof_obj);
@@ -1186,36 +1172,42 @@ static int nvgpu_ioctl_allocate_profiler_object(
 	struct dbg_session_gk20a *dbg_s = &dbg_session_linux->dbg_s;
 	struct gk20a *g = get_gk20a(dbg_session_linux->dev);
 	struct dbg_profiler_object_data *prof_obj;
+	struct nvgpu_channel *ch = NULL;
+	struct nvgpu_tsg *tsg;
 
 	nvgpu_log_fn(g, "%s", g->name);
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = alloc_profiler(g, &prof_obj);
-	if (err)
-		goto clean_up;
-
-	prof_obj->session_id = dbg_s->id;
-
-	if (dbg_s->is_profiler)
-		prof_obj->ch = NULL;
-	else {
-		prof_obj->ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
-		if (prof_obj->ch == NULL) {
-			nvgpu_err(g,
-				"bind a channel for dbg session");
-			nvgpu_kfree(g, prof_obj);
+	if (!dbg_s->is_profiler) {
+		ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+		if (ch == NULL) {
+			nvgpu_err(g, "no channel for dbg session");
 			err = -EINVAL;
 			goto clean_up;
 		}
 	}
 
+	err = nvgpu_profiler_alloc(g, &prof_obj);
+	if (err != 0) {
+		goto clean_up;
+	}
+
+	if (ch != NULL) {
+		tsg = nvgpu_tsg_from_ch(ch);
+		if (tsg == NULL) {
+			nvgpu_profiler_free(prof_obj);
+			goto clean_up;
+		}
+
+		prof_obj->tsg = tsg;
+	}
+
+	prof_obj->session_id = dbg_s->id;
+
 	/* Return handle to client */
 	args->profiler_handle = prof_obj->prof_handle;
 
-	nvgpu_init_list_node(&prof_obj->prof_obj_entry);
-
-	nvgpu_list_add(&prof_obj->prof_obj_entry, &g->profiler_objects);
 clean_up:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	return  err;
@@ -1250,8 +1242,7 @@ static int nvgpu_ioctl_free_profiler_object(
 			if (prof_obj->has_reservation)
 				g->ops.debugger.
 				  release_profiler_reservation(dbg_s, prof_obj);
-			nvgpu_list_del(&prof_obj->prof_obj_entry);
-			nvgpu_kfree(g, prof_obj);
+			nvgpu_profiler_free(prof_obj);
 			obj_found = true;
 			break;
 		}
@@ -1726,7 +1717,6 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 	struct gk20a *g = dbg_s->g;
 	struct dbg_profiler_object_data *prof_obj, *my_prof_obj;
 	int err = 0;
-	struct nvgpu_tsg *tsg;
 
 	nvgpu_log_fn(g, "%s profiler_handle = %x", g->name, profiler_handle);
 
@@ -1752,7 +1742,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 		goto exit;
 	}
 
-	if (my_prof_obj->ch == NULL) {
+	if (my_prof_obj->tsg == NULL) {
 		/* Global reservations are only allowed if there are no other
 		 * global or per-context reservations currently held
 		 */
@@ -1769,42 +1759,16 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 		nvgpu_err(g,
 			"per-ctxt reserve: global reservation in effect");
 		err = -EBUSY;
-	} else if ((tsg = nvgpu_tsg_from_ch(my_prof_obj->ch)) != NULL) {
-		/* TSG: check that another channel in the TSG
-		 * doesn't already have the reservation
-		 */
-		u32 my_tsgid = tsg->tsgid;
+	} else {
+		/* check that this TSG doesn't already have the reservation */
+		u32 my_tsgid = my_prof_obj->tsg->tsgid;
 
 		nvgpu_list_for_each_entry(prof_obj, &g->profiler_objects,
 				dbg_profiler_object_data, prof_obj_entry) {
 			if (prof_obj->has_reservation &&
-					(prof_obj->ch->tsgid == my_tsgid)) {
+					(prof_obj->tsg->tsgid == my_tsgid)) {
 				nvgpu_err(g,
 				    "per-ctxt reserve (tsg): already reserved");
-				err = -EBUSY;
-				goto exit;
-			}
-		}
-
-		if (!g->ops.debugger.check_and_set_context_reservation(
-							dbg_s, my_prof_obj)) {
-			/* Another guest OS has the global reservation */
-			nvgpu_err(g,
-				"per-ctxt reserve: global reservation in effect");
-			err = -EBUSY;
-		}
-	} else {
-		/* channel: check that some other profiler object doesn't
-		 * already have the reservation.
-		 */
-		struct nvgpu_channel *my_ch = my_prof_obj->ch;
-
-		nvgpu_list_for_each_entry(prof_obj, &g->profiler_objects,
-				dbg_profiler_object_data, prof_obj_entry) {
-			if (prof_obj->has_reservation &&
-						(prof_obj->ch == my_ch)) {
-				nvgpu_err(g,
-				    "per-ctxt reserve (ch): already reserved");
 				err = -EBUSY;
 				goto exit;
 			}

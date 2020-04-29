@@ -33,6 +33,7 @@
 struct gk20a;
 struct nvgpu_channel;
 struct dbg_session_gk20a;
+struct dbg_profiler_object_data;
 
 struct nvgpu_channel *
 nvgpu_dbg_gpu_get_session_channel(struct dbg_session_gk20a *dbg_s);
@@ -99,21 +100,6 @@ dbg_session_channel_data_from_ch_entry(struct nvgpu_list_node *node)
 {
 	return (struct dbg_session_channel_data *)
 	((uintptr_t)node - offsetof(struct dbg_session_channel_data, ch_entry));
-};
-
-struct dbg_profiler_object_data {
-	int session_id;
-	u32 prof_handle;
-	struct nvgpu_channel *ch;
-	bool has_reservation;
-	struct nvgpu_list_node prof_obj_entry;
-};
-
-static inline struct dbg_profiler_object_data *
-dbg_profiler_object_data_from_prof_obj_entry(struct nvgpu_list_node *node)
-{
-	return (struct dbg_profiler_object_data *)
-	((uintptr_t)node - offsetof(struct dbg_profiler_object_data, prof_obj_entry));
 };
 
 /* used by the interrupt handler to post events */

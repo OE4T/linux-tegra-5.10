@@ -50,6 +50,7 @@ ccflags-y += -DCONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 ccflags-y += -DCONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 ccflags-y += -DCONFIG_NVGPU_SW_SEMAPHORE
 ccflags-y += -DCONFIG_NVGPU_FENCE
+ccflags-y += -DCONFIG_NVGPU_PROFILER
 
 ifeq ($(CONFIG_NVGPU_LOGGING),y)
 ccflags-y += -DCONFIG_NVGPU_LOGGING=1
@@ -541,7 +542,8 @@ nvgpu-y += \
 	common/ecc.o \
 	common/log_common.o \
 	common/ce/ce.o \
-	common/debugger.o
+	common/debugger.o \
+	common/profiler/profiler.o
 
 nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
