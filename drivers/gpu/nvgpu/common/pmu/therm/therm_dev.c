@@ -64,27 +64,33 @@ static int _therm_device_pmudata_instget(struct gk20a *g,
 }
 
 static int construct_therm_device(struct gk20a *g,
-	struct boardobj **ppboardobj, size_t size, void *pargs)
+	struct boardobj *ppboardobj, void *pargs)
 {
-	return nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
+	return pmu_boardobj_construct_super(g, ppboardobj, pargs);
 }
 
 static int construct_therm_device_gpu(struct gk20a *g,
-	struct boardobj **ppboardobj, size_t size, void *pargs)
+	struct boardobj *ppboardobj, void *pargs)
 {
-	return construct_therm_device(g, ppboardobj, size, pargs);
+	return construct_therm_device(g, ppboardobj, pargs);
 }
 
 static struct boardobj *therm_device_construct(struct gk20a *g,
 	void *pargs)
 {
 	struct boardobj *board_obj_ptr = NULL;
+	struct therm_device *ptherm_device = NULL;
 	int status = 0;
+
+	ptherm_device = nvgpu_kzalloc(g, sizeof(struct therm_device));
+	if (ptherm_device == NULL) {
+		return NULL;
+	}
+	board_obj_ptr = (struct boardobj *)(void *)ptherm_device;
 
 	if (BOARDOBJ_GET_TYPE(pargs) ==
 			NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_GPU) {
-		status = construct_therm_device_gpu(g, &board_obj_ptr,
-			sizeof(struct therm_device), pargs);
+		status = construct_therm_device_gpu(g, board_obj_ptr, pargs);
 	} else {
 		nvgpu_err(g, "unsupported therm_device class - 0x%x",
 			BOARDOBJ_GET_TYPE(pargs));

@@ -344,12 +344,18 @@ static int vfe_var_construct_super(struct gk20a *g,
 	struct vfe_var *ptmpvar = (struct vfe_var *)pargs;
 	int status;
 
-	status = nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
+	pvfevar = nvgpu_kzalloc(g, size);
+	if (pvfevar == NULL) {
+		return -ENOMEM;
+	}
+
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)pvfevar, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var *)(void *)*ppboardobj;
+	*ppboardobj = (struct boardobj *)(void *)pvfevar;
 
 	pvfevar->super.pmudatainit =
 			vfe_var_pmudatainit_super;

@@ -115,20 +115,26 @@ static int pstate_init_pmudata(struct gk20a *g,
 	return status;
 }
 
-static int pstate_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
-				size_t size, void *args)
+static int pstate_construct_super(struct gk20a *g, struct boardobj *ppboardobj,
+		void *args)
 {
-	return nvgpu_boardobj_construct_super(g, ppboardobj, size, args);
+	int status;
 
+	status = pmu_boardobj_construct_super(g, ppboardobj, args);
+	if (status != 0) {
+		return -EINVAL;
+	}
+
+	return 0;
 }
 
-static int pstate_construct_35(struct gk20a *g, struct boardobj **ppboardobj,
-				u16 size, void *args)
+static int pstate_construct_35(struct gk20a *g, struct boardobj *ppboardobj,
+		void *args)
 {
 	struct boardobj  *ptmpobj = (struct boardobj *)args;
 
 	ptmpobj->type_mask |= BIT32(CTRL_PERF_PSTATE_TYPE_35);
-	return pstate_construct_super(g, ppboardobj, size, args);
+	return pstate_construct_super(g, ppboardobj, args);
 }
 
 static struct pstate *pstate_construct(struct gk20a *g, void *args)
@@ -138,8 +144,12 @@ static struct pstate *pstate_construct(struct gk20a *g, void *args)
 	int status;
 	u32 clkidx;
 
-	status = pstate_construct_35(g, (struct boardobj **)&pstate,
-			(u16)sizeof(struct pstate), args);
+	pstate = nvgpu_kzalloc(g, sizeof(struct pstate));
+	if (pstate == NULL) {
+		return NULL;
+	}
+
+	status = pstate_construct_35(g, (struct boardobj *)(void *)pstate, args);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing pstate num=%u", ptmppstate->num);

@@ -91,12 +91,18 @@ static int volt_construct_volt_device(struct gk20a *g,
 	struct voltage_device *pvolt_dev = NULL;
 	int status = 0;
 
-	status = nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
-	if (status != 0) {
-		return status;
+	pvolt_dev = nvgpu_kzalloc(g, size);
+	if (pvolt_dev == NULL) {
+		return -ENOMEM;
 	}
 
-	pvolt_dev = (struct voltage_device *)*ppboardobj;
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)pvolt_dev, pargs);
+	if (status != 0) {
+		return -EINVAL;
+	}
+
+	*ppboardobj = (struct boardobj *)(void *)pvolt_dev;
 
 	pvolt_dev->volt_domain = ptmp_dev->volt_domain;
 	pvolt_dev->i2c_dev_idx = ptmp_dev->i2c_dev_idx;

@@ -370,19 +370,25 @@ static int vin_device_construct_v20(struct gk20a *g,
 	return status;
 }
 static int vin_device_construct_super(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs)
+		struct boardobj **obj, size_t size, void *pargs)
 {
 	struct clk_vin_device *pvin_device;
 	struct clk_vin_device *ptmpvin_device =
 		(struct clk_vin_device *)pargs;
 	int status = 0;
-	status = nvgpu_boardobj_construct_super(g, ppboardobj, size, pargs);
 
+	pvin_device = nvgpu_kzalloc(g, size);
+	if (pvin_device == NULL) {
+		return -ENOMEM;
+	}
+
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)pvin_device, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvin_device = (struct clk_vin_device *)*ppboardobj;
+	*obj = (struct boardobj *)(void *)pvin_device;
 
 	pvin_device->super.pmudatainit =
 			vin_device_init_pmudata_super;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -151,8 +151,13 @@ static struct boardobj *construct_pwr_topology(struct gk20a *g,
 	struct pwr_channel_sensor *pwrchannel;
 	struct pwr_channel_sensor *sensor = (struct pwr_channel_sensor*)pargs;
 
-	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
-		pargs_size, pargs);
+	pwrchannel = nvgpu_kzalloc(g, pargs_size);
+	if (pwrchannel == NULL) {
+		return NULL;
+	}
+	board_obj_ptr = (struct boardobj *)(void *)pwrchannel;
+
+	status = pmu_boardobj_construct_super(g, board_obj_ptr, pargs);
 	if (status != 0) {
 		return NULL;
 	}

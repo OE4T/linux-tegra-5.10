@@ -674,13 +674,18 @@ static int clk_prog_construct_super(struct gk20a *g,
 	struct clk_prog *pclkprog;
 	int status = 0;
 
-	status = nvgpu_boardobj_construct_super(g, ppboardobj,
-		size, pargs);
+	pclkprog = nvgpu_kzalloc(g, size);
+	if (pclkprog == NULL) {
+		return -ENOMEM;
+	}
+
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)pclkprog, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pclkprog = (struct clk_prog *)(void *)*ppboardobj;
+	*ppboardobj = (struct boardobj *)(void *)pclkprog;
 
 	pclkprog->super.pmudatainit =
 			clk_prog_pmudatainit_super;

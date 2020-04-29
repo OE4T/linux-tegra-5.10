@@ -290,13 +290,19 @@ static int vfe_equ_construct_super(struct gk20a *g,
 	struct vfe_equ *ptmpequ = (struct vfe_equ *)pargs;
 	int status = 0;
 
-	status = nvgpu_boardobj_construct_super(g, ppboardobj,
-		size, pargs);
+	pvfeequ = nvgpu_kzalloc(g, size);
+	if (pvfeequ == NULL) {
+		return -ENOMEM;
+	}
+
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)pvfeequ, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfeequ = (struct vfe_equ *)(void *)*ppboardobj;
+	*ppboardobj = (struct boardobj *)(void *)pvfeequ;
+
 	status = boardobjgrpmask_e32_init(&pvfeequ->mask_depending_vars, NULL);
 	pvfeequ->super.pmudatainit =
 			vfe_equ_pmudatainit_super;

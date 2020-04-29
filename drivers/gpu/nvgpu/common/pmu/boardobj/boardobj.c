@@ -75,39 +75,29 @@ int nvgpu_boardobj_pmu_data_init_super(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_boardobj_construct_super(struct gk20a *g, struct boardobj
-				**ppboardobj, size_t size, void *args)
+int pmu_boardobj_construct_super(struct gk20a *g, struct boardobj *boardobj_ptr,
+		void *args)
 {
-	struct boardobj  *pboardobj = NULL;
-	struct boardobj  *devtmp = (struct boardobj *)args;
+	struct boardobj *dev_boardobj = (struct boardobj *)args;
 
 	nvgpu_log_info(g, " ");
 
-	if (devtmp == NULL) {
+	if ((dev_boardobj == NULL) || (boardobj_ptr == NULL)) {
 		return -EINVAL;
 	}
 
-	if (*ppboardobj == NULL) {
-		*ppboardobj = nvgpu_kzalloc(g, size);
-		if (*ppboardobj == NULL) {
-			return -ENOMEM;
-		}
-		(*ppboardobj)->allocated = true;
-	}
+	boardobj_ptr->allocated = true;
+	boardobj_ptr->g = g;
+	boardobj_ptr->type = dev_boardobj->type;
+	boardobj_ptr->idx = CTRL_BOARDOBJ_IDX_INVALID;
+	boardobj_ptr->type_mask =
+			BIT32(boardobj_ptr->type) | dev_boardobj->type_mask;
 
-	pboardobj = *ppboardobj;
-	pboardobj->g = g;
-	pboardobj->type = devtmp->type;
-	pboardobj->idx = CTRL_BOARDOBJ_IDX_INVALID;
-	pboardobj->type_mask   = BIT32(pboardobj->type) | devtmp->type_mask;
-
-	pboardobj->implements  = implements_super;
-	pboardobj->destruct    = destruct_super;
-	pboardobj->pmudatainit = nvgpu_boardobj_pmu_data_init_super;
-
-	nvgpu_list_add(&pboardobj->node, &g->boardobj_head);
+	boardobj_ptr->implements = implements_super;
+	boardobj_ptr->destruct = destruct_super;
+	boardobj_ptr->pmudatainit = nvgpu_boardobj_pmu_data_init_super;
+	nvgpu_list_add(&boardobj_ptr->node, &g->boardobj_head);
 
 	return 0;
 }
-
 

@@ -77,8 +77,13 @@ static struct boardobj *construct_channel_device(struct gk20a *g,
 	u16 scale_shift = BIT16(8);
 	struct therm_channel_device *therm_device = (struct therm_channel_device*)pargs;
 
-	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
-		pargs_size, pargs);
+	pchannel_device = nvgpu_kzalloc(g, pargs_size);
+	if (pchannel_device == NULL) {
+		return NULL;
+	}
+	board_obj_ptr = (struct boardobj *)(void *)pchannel_device;
+
+	status = pmu_boardobj_construct_super(g, board_obj_ptr, pargs);
 	if (status != 0) {
 		return NULL;
 	}

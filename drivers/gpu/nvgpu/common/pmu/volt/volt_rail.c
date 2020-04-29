@@ -127,13 +127,19 @@ static struct voltage_rail *volt_construct_volt_rail(struct gk20a *g, void *parg
 	int status;
 
 	nvgpu_log_info(g, " ");
-	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
-		sizeof(struct voltage_rail), pargs);
+
+	board_obj_volt_rail_ptr = nvgpu_kzalloc(g, sizeof(struct voltage_rail));
+	if (board_obj_volt_rail_ptr == NULL) {
+		return NULL;
+	}
+
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)board_obj_volt_rail_ptr, pargs);
 	if (status != 0) {
 		return NULL;
 	}
 
-	board_obj_volt_rail_ptr = (struct voltage_rail *)board_obj_ptr;
+	board_obj_ptr = (struct boardobj *)(void *)board_obj_volt_rail_ptr;
 	/* override super class interface */
 	board_obj_ptr->pmudatainit = volt_rail_init_pmudata_super;
 

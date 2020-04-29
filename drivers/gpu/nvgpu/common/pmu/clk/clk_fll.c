@@ -448,14 +448,19 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 	int status;
 
 	nvgpu_log_info(g, " ");
-	status = nvgpu_boardobj_construct_super(g, &board_obj_ptr,
-		sizeof(struct fll_device), pargs);
+
+	board_obj_fll_ptr = nvgpu_kzalloc(g, sizeof(struct fll_device));
+	if (board_obj_fll_ptr == NULL) {
+		return NULL;
+	}
+	board_obj_ptr = (struct boardobj *)(void *)board_obj_fll_ptr;
+
+	status = pmu_boardobj_construct_super(g, board_obj_ptr, pargs);
 	if (status != 0) {
 		return NULL;
 	}
 
 	pfll_dev = (struct fll_device *)pargs;
-	board_obj_fll_ptr = (struct fll_device *)board_obj_ptr;
 	board_obj_ptr->pmudatainit  = fll_device_init_pmudata_super;
 	board_obj_fll_ptr->lut_broadcast_slave_register =
 		lutbroadcastslaveregister;

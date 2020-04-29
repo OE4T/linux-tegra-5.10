@@ -655,14 +655,19 @@ static int clk_domain_construct_super(struct gk20a *g,
 	struct nvgpu_clk_domain *ptmpdomain = (struct nvgpu_clk_domain *)pargs;
 	int status = 0;
 
-	status = nvgpu_boardobj_construct_super(g, ppboardobj,
-		(u16)size, pargs);
+	pdomain = nvgpu_kzalloc(g, size);
+	if (pdomain == NULL) {
+		return -ENOMEM;
+	}
+
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)pdomain, pargs);
 
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pdomain = (struct nvgpu_clk_domain *)(void *)*ppboardobj;
+	*ppboardobj = (struct boardobj *)(void *)pdomain;
 
 	pdomain->super.pmudatainit =
 			clk_domain_pmudatainit_super;

@@ -197,13 +197,18 @@ static int clk_vf_point_construct_super(struct gk20a *g,
 			(struct clk_vf_point *)pargs;
 	int status = 0;
 
-	status = nvgpu_boardobj_construct_super(g, ppboardobj,
-		size, pargs);
+	pclkvfpoint = nvgpu_kzalloc(g, size);
+	if (pclkvfpoint == NULL) {
+		return -ENOMEM;
+	}
+
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)pclkvfpoint, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pclkvfpoint = (struct clk_vf_point *)*ppboardobj;
+	*ppboardobj = (struct boardobj *)(void *)pclkvfpoint;
 
 	pclkvfpoint->super.pmudatainit =
 			_clk_vf_point_pmudatainit_super;

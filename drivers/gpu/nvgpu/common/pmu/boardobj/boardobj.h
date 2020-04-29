@@ -40,8 +40,8 @@ int nvgpu_boardobj_pmu_data_init_super(struct gk20a *g, struct boardobj
 * Constructor for the base Board Object. Called by each device-specific
 * implementation of the BOARDOBJ interface to initialize the board object.
 */
-int nvgpu_boardobj_construct_super(struct gk20a *g, struct boardobj
-		**ppboardobj, size_t size, void *args);
+int pmu_boardobj_construct_super(struct gk20a *g, struct boardobj *ppboardobj,
+		void *args);
 
 /*
 * Base Class for all physical or logical device on the PCB.

@@ -45,12 +45,18 @@ static int volt_construct_volt_policy(struct gk20a *g,
 	struct voltage_policy *pvolt_policy = NULL;
 	int status = 0;
 
-	status = nvgpu_boardobj_construct_super(g, ppboardobj, size, pArgs);
-	if (status != 0) {
-		return status;
+	pvolt_policy = nvgpu_kzalloc(g, size);
+	if (pvolt_policy == NULL) {
+		return -ENOMEM;
 	}
 
-	pvolt_policy = (struct voltage_policy *)*ppboardobj;
+	status = pmu_boardobj_construct_super(g,
+			(struct boardobj *)(void *)pvolt_policy, pArgs);
+	if (status != 0) {
+		return -EINVAL;
+	}
+
+	*ppboardobj = (struct boardobj *)(void *)pvolt_policy;
 
 	pvolt_policy->super.pmudatainit = volt_policy_pmu_data_init_super;
 
