@@ -46,14 +46,19 @@
 	ethernet@6810000 {
 		compatible = "nvidia,nvmgbe";
 		reg = <0x0 0x06810000 0x0 0x10000>, /* MGBE base */
-		      <0x0 0x068A0000 0x0 0x10000>; /* XPCS base */
-		reg-names = "mac-base", "xpcs-base";
+		      <0x0 0x068A0000 0x0 0x10000>, /* XPCS base */
+		      <0x0 0x068D0000 0x0 0x10000>; /* MACsec RM base */
+		reg-names = "mac-base", "xpcs-base", "macsec-base";
 		interrupts = 	<0 384 0x4>,	/* common */
 				<0 385 0x4>,	/* vm0 */
 				<0 386 0x4>,	/* vm1 */
 				<0 387 0x4>,	/* vm2 */
 				<0 388 0x4>,	/* vm3 */
-				<0 389 0x4>;	/* vm4 */
+				<0 389 0x4>,	/* vm4 */
+				<0 390 0x4>,	/* MACsec non-secure intr */
+				<0 391 0x4>;	/* MACsec secure intr */
+		interrupt-names = "common", "vm0", "vm1", "vm2", "vm3", "vm4",
+				  "macsec-ns-irq", "macsec-s-irq";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
