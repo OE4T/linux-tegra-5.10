@@ -660,11 +660,6 @@ static int gr_init_prepare_hw(struct gk20a *g)
 			nvgpu_err(g, "NVGPU_ENGINE_GR reset failed");
 			return err;
 		}
-		err = nvgpu_next_mc_reset_engine(g, NVGPU_ENGINE_GRCE);
-		if (err != 0) {
-			nvgpu_err(g, "NVGPU_ENGINE_GRCE reset failed");
-			return err;
-		}
 	} else {
 #endif
 	/* reset gr engine */
