@@ -1,34 +1,53 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef __SOC_TEGRA_FUSE_H__
 #define __SOC_TEGRA_FUSE_H__
 
+/* supported tegra chip id list */
 #define TEGRA20		0x20
 #define TEGRA30		0x30
 #define TEGRA114	0x35
 #define TEGRA124	0x40
 #define TEGRA132	0x13
 #define TEGRA210	0x21
+#define TEGRA186	0x18
+#define TEGRA194	0x19
+#define TEGRA234	0x23
+
+/* control read/write calls for below offsets */
+#define FUSE_FUSEBYPASS_0		0x24
+#define FUSE_WRITE_ACCESS_SW_0		0x30
 
 #define TEGRA_FUSE_SKU_CALIB_0	0xf0
 #define TEGRA30_FUSE_SATA_CALIB	0x124
+
+/* read/write calls for below offsets */
+#define FUSE_GCPLEX_CONFIG_FUSE_0	0x1c8
+#define FUSE_RESERVED_CALIB0_0		0x204
+#define FUSE_OPT_GPU_TPC0_DISABLE_0	0x20c
+#define FUSE_OPT_GPU_TPC1_DISABLE_0	0x23c
+
 #define TEGRA_FUSE_USB_CALIB_EXT_0 0x250
 
 #ifndef __ASSEMBLY__
 
-u32 tegra_read_chipid(void);
-u8 tegra_get_chip_id(void);
+#include <linux/of.h>
+
+extern u32 tegra_read_chipid(void);
+extern u8 tegra_get_chip_id(void);
 
 enum tegra_revision {
 	TEGRA_REVISION_UNKNOWN = 0,
 	TEGRA_REVISION_A01,
+	TEGRA_REVISION_A01q,
 	TEGRA_REVISION_A02,
 	TEGRA_REVISION_A03,
 	TEGRA_REVISION_A03p,
 	TEGRA_REVISION_A04,
+	TEGRA_REVISION_A04p,
 	TEGRA_REVISION_MAX,
 };
 
@@ -49,12 +68,70 @@ struct tegra_sku_info {
 
 u32 tegra_read_straps(void);
 u32 tegra_read_ram_code(void);
+
+int tegra_fuse_control_read(unsigned long offset, u32 *value);
+void tegra_fuse_control_write(u32 value, unsigned long offset);
+
 int tegra_fuse_readl(unsigned long offset, u32 *value);
+void tegra_fuse_writel(u32 val, unsigned long offset);
 
 extern struct tegra_sku_info tegra_sku_info;
 
 struct device *tegra_soc_device_register(void);
 
-#endif /* __ASSEMBLY__ */
+/*
+ * begin block - downstream declarations
+ */
 
+enum tegra_platform {
+	TEGRA_PLATFORM_SILICON = 0,
+	TEGRA_PLATFORM_QT,
+	TEGRA_PLATFORM_LINSIM,
+	TEGRA_PLATFORM_FPGA,
+	TEGRA_PLATFORM_VDK,
+	TEGRA_PLATFORM_MAX,
+};
+
+extern int tegra_set_erd(u64 err_config);
+
+extern struct tegra_sku_info tegra_sku_info;
+
+extern enum tegra_revision tegra_revision;
+
+extern u32 tegra_read_emu_revid(void);
+extern u32 tegra_get_sku_id(void);
+extern enum tegra_revision tegra_chip_get_revision(void);
+extern bool is_t210b01_sku(void);
+
+/* tegra-platform.c declarations */
+extern enum tegra_platform tegra_get_platform(void);
+extern bool tegra_cpu_is_asim(void);
+
+static inline bool tegra_platform_is_silicon(void)
+{
+	return tegra_get_platform() == TEGRA_PLATFORM_SILICON;
+}
+static inline bool tegra_platform_is_qt(void)
+{
+	return tegra_get_platform() == TEGRA_PLATFORM_QT;
+}
+static inline bool tegra_platform_is_fpga(void)
+{
+	return tegra_get_platform() == TEGRA_PLATFORM_FPGA;
+}
+static inline bool tegra_platform_is_vdk(void)
+{
+	int plat = tegra_get_platform();
+	return plat == TEGRA_PLATFORM_VDK;
+}
+static inline bool tegra_platform_is_sim(void)
+{
+	return tegra_platform_is_vdk();
+}
+
+/*
+ * end block - downstream declarations
+ */
+
+#endif /* !__ASSEMBLY__ */
 #endif /* __SOC_TEGRA_FUSE_H__ */

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (C) 2010 Google, Inc.
- * Copyright (c) 2013, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author:
  *	Colin Cross <ccross@android.com>
@@ -44,6 +44,10 @@ struct tegra_fuse {
 
 	u32 (*read_early)(struct tegra_fuse *fuse, unsigned int offset);
 	u32 (*read)(struct tegra_fuse *fuse, unsigned int offset);
+	int (*write)(struct tegra_fuse *fuse, u32 value, unsigned int offset);
+	u32 (*control_read)(struct tegra_fuse *fuse, unsigned int offset);
+	int (*control_write)(struct tegra_fuse *fuse, u32 value,
+			 unsigned int offset);
 	const struct tegra_fuse_soc *soc;
 
 	/* APBDMA on Tegra20 */

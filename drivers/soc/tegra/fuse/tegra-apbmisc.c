@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -15,11 +15,46 @@
 
 #define FUSE_SKU_INFO	0x10
 
+#define TEGRA_APBMISC_EMU_REVID 0x60
+#define TEGRA_MISCREG_EMU_REVID 0x3160
+#define ERD_MASK_INBAND_ERR 0x1
+
+#define T210B01_MAJOR_REV 2
+
 #define PMC_STRAPPING_OPT_A_RAM_CODE_SHIFT	4
 #define PMC_STRAPPING_OPT_A_RAM_CODE_MASK_LONG	\
 	(0xf << PMC_STRAPPING_OPT_A_RAM_CODE_SHIFT)
 #define PMC_STRAPPING_OPT_A_RAM_CODE_MASK_SHORT	\
 	(0x3 << PMC_STRAPPING_OPT_A_RAM_CODE_SHIFT)
+
+/* platform macros used for major rev 0 */
+#define MINOR_QT		0
+#define MINOR_FPGA		1
+#define MINOR_ASIM_QT		2
+#define MINOR_ASIM_LINSIM	3
+#define MINOR_VDK		4
+
+/* platform macros used in pre-silicon */
+#define PRE_SI_QT		1
+#define PRE_SI_FPGA		2
+#define PRE_SI_ASIM_QT		3
+#define PRE_SI_ASIM_LINSIM	4
+#define PRE_SI_VDK		5
+
+struct apbmisc_data {
+	u32 emu_revid_offset;
+};
+
+static void __iomem *apbmisc_base;
+static const struct apbmisc_data *apbmisc_data;
+
+static const struct apbmisc_data tegra20_apbmisc_data = {
+	.emu_revid_offset = TEGRA_APBMISC_EMU_REVID
+};
+
+static const struct apbmisc_data tegra186_apbmisc_data = {
+	.emu_revid_offset = TEGRA_MISCREG_EMU_REVID
+};
 
 static bool long_ram_code;
 static u32 strapping;
@@ -31,11 +66,13 @@ u32 tegra_read_chipid(void)
 
 	return chipid;
 }
+EXPORT_SYMBOL(tegra_read_chipid);
 
 u8 tegra_get_chip_id(void)
 {
 	return (tegra_read_chipid() >> 8) & 0xff;
 }
+EXPORT_SYMBOL(tegra_get_chip_id);
 
 u8 tegra_get_major_rev(void)
 {
@@ -45,6 +82,24 @@ u8 tegra_get_major_rev(void)
 u8 tegra_get_minor_rev(void)
 {
 	return (tegra_read_chipid() >> 16) & 0xf;
+}
+
+static u8 tegra_get_pre_si_plat(void)
+{
+	u8 val;
+	u8 chip_id;
+
+	chip_id = tegra_get_chip_id();
+	switch (chip_id) {
+	case TEGRA194:
+	case TEGRA234:
+		val = (tegra_read_chipid() >> 0x14) & 0xf;
+		break;
+	default:
+		val = 0;
+		break;
+	}
+	return val;
 }
 
 u32 tegra_read_straps(void)
@@ -66,10 +121,31 @@ u32 tegra_read_ram_code(void)
 	return straps >> PMC_STRAPPING_OPT_A_RAM_CODE_SHIFT;
 }
 
+/*
+ * The function sets ERD(Error Response Disable) bit.
+ * This allows to mask inband errors and always send an
+ * OKAY response from CBB to the master which caused error.
+ */
+int tegra_set_erd(u64 err_config)
+{
+	int err = 0;
+
+	if (!apbmisc_base) {
+		WARN(1, "Tegra Chip ID not yet available\n");
+		return -ENODEV;
+	}
+	writel_relaxed(ERD_MASK_INBAND_ERR, apbmisc_base + err_config);
+	return err;
+}
+EXPORT_SYMBOL(tegra_set_erd);
+
 static const struct of_device_id apbmisc_match[] __initconst = {
-	{ .compatible = "nvidia,tegra20-apbmisc", },
-	{ .compatible = "nvidia,tegra186-misc", },
-	{ .compatible = "nvidia,tegra194-misc", },
+	{ .compatible = "nvidia,tegra20-apbmisc",
+		.data = &tegra20_apbmisc_data, },
+	{ .compatible = "nvidia,tegra186-misc",
+		.data = &tegra186_apbmisc_data, },
+	{ .compatible = "nvidia,tegra194-misc",
+		.data = &tegra186_apbmisc_data, },
 	{},
 };
 
@@ -106,11 +182,12 @@ void __init tegra_init_revision(void)
 
 void __init tegra_init_apbmisc(void)
 {
-	void __iomem *apbmisc_base, *strapping_base;
+	void __iomem *strapping_base;
 	struct resource apbmisc, straps;
 	struct device_node *np;
+	const struct of_device_id *match;
 
-	np = of_find_matching_node(NULL, apbmisc_match);
+	np = of_find_matching_node_and_match(NULL, apbmisc_match, &match);
 	if (!np) {
 		/*
 		 * Fall back to legacy initialization for 32-bit ARM only. All
@@ -161,6 +238,7 @@ void __init tegra_init_apbmisc(void)
 			pr_err("failed to get strapping options registers\n");
 			return;
 		}
+		apbmisc_data  = match->data;
 	}
 
 	apbmisc_base = ioremap_nocache(apbmisc.start, resource_size(&apbmisc));
@@ -181,3 +259,128 @@ void __init tegra_init_apbmisc(void)
 
 	long_ram_code = of_property_read_bool(np, "nvidia,long-ram-code");
 }
+
+u32 tegra_read_emu_revid(void)
+{
+	return readl_relaxed(apbmisc_base + apbmisc_data->emu_revid_offset);
+}
+EXPORT_SYMBOL(tegra_read_emu_revid);
+
+u32 tegra_get_sku_id(void)
+{
+	if (!tegra_sku_info.sku_id)
+		tegra_fuse_readl(FUSE_SKU_INFO, &tegra_sku_info.sku_id);
+
+	return tegra_sku_info.sku_id;
+}
+EXPORT_SYMBOL(tegra_get_sku_id);
+
+enum tegra_revision tegra_chip_get_revision(void)
+{
+	return tegra_sku_info.revision;
+}
+EXPORT_SYMBOL(tegra_chip_get_revision);
+
+bool is_t210b01_sku(void)
+{
+	if ((tegra_get_chip_id() == TEGRA210) &&
+		(tegra_get_major_rev() == T210B01_MAJOR_REV))
+		return true;
+	return false;
+}
+EXPORT_SYMBOL(is_t210b01_sku);
+
+/*
+ * platform query functions begin
+ */
+static enum tegra_platform __tegra_get_platform(void)
+{
+	u32 major, pre_si_plat;
+
+	major = tegra_get_major_rev();
+	pre_si_plat = tegra_get_pre_si_plat();
+
+	if (!major) {
+		u32 minor;
+
+		minor = tegra_get_minor_rev();
+		switch (minor) {
+		case MINOR_QT:
+			return TEGRA_PLATFORM_QT;
+		case MINOR_FPGA:
+			return TEGRA_PLATFORM_FPGA;
+		case MINOR_ASIM_QT:
+			return TEGRA_PLATFORM_QT;
+		case MINOR_ASIM_LINSIM:
+			return TEGRA_PLATFORM_LINSIM;
+		case MINOR_VDK:
+			return TEGRA_PLATFORM_VDK;
+		}
+	} else if (pre_si_plat) {
+		switch (pre_si_plat) {
+		case PRE_SI_QT:
+			return TEGRA_PLATFORM_QT;
+		case PRE_SI_FPGA:
+			return TEGRA_PLATFORM_FPGA;
+		case PRE_SI_ASIM_QT:
+			return TEGRA_PLATFORM_QT;
+		case PRE_SI_ASIM_LINSIM:
+			return TEGRA_PLATFORM_LINSIM;
+		case PRE_SI_VDK:
+			return TEGRA_PLATFORM_VDK;
+		}
+	}
+
+	return TEGRA_PLATFORM_SILICON;
+}
+
+static enum tegra_platform tegra_platform_id = TEGRA_PLATFORM_MAX;
+
+enum tegra_platform tegra_get_platform(void)
+{
+	if (unlikely(tegra_platform_id == TEGRA_PLATFORM_MAX))
+		tegra_platform_id = __tegra_get_platform();
+
+	return tegra_platform_id;
+}
+EXPORT_SYMBOL(tegra_get_platform);
+
+bool tegra_cpu_is_asim(void)
+{
+	u32 major, pre_si_plat;
+
+	major = tegra_get_major_rev();
+	pre_si_plat = tegra_get_pre_si_plat();
+
+	if (!major) {
+		u32 minor;
+
+		minor = tegra_get_minor_rev();
+		switch (minor) {
+		case MINOR_QT:
+		case MINOR_FPGA:
+			return false;
+		case MINOR_ASIM_QT:
+		case MINOR_ASIM_LINSIM:
+		case MINOR_VDK:
+			return true;
+		}
+	} else if (pre_si_plat) {
+		switch (pre_si_plat) {
+		case PRE_SI_QT:
+		case PRE_SI_FPGA:
+			return false;
+		case PRE_SI_ASIM_QT:
+		case PRE_SI_ASIM_LINSIM:
+		case PRE_SI_VDK:
+			return true;
+		}
+	}
+
+	return false;
+}
+EXPORT_SYMBOL_GPL(tegra_cpu_is_asim);
+
+/*
+ * platform query functions end
+ */

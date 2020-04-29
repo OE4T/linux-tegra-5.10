@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2014, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -27,10 +27,12 @@ EXPORT_SYMBOL(tegra_sku_info);
 static const char *tegra_revision_name[TEGRA_REVISION_MAX] = {
 	[TEGRA_REVISION_UNKNOWN] = "unknown",
 	[TEGRA_REVISION_A01]     = "A01",
+	[TEGRA_REVISION_A01q]    = "A01q",
 	[TEGRA_REVISION_A02]     = "A02",
 	[TEGRA_REVISION_A03]     = "A03",
 	[TEGRA_REVISION_A03p]    = "A03 prime",
 	[TEGRA_REVISION_A04]     = "A04",
+	[TEGRA_REVISION_A04p]     = "A04p",
 };
 
 static const struct of_device_id car_match[] __initconst = {
@@ -282,6 +284,44 @@ int tegra_fuse_readl(unsigned long offset, u32 *value)
 	return 0;
 }
 EXPORT_SYMBOL(tegra_fuse_readl);
+
+void tegra_fuse_writel(u32 value, unsigned long offset)
+{
+	if (!fuse->write || !fuse->clk)
+		return;
+
+	if (IS_ERR(fuse->clk))
+		return;
+
+	fuse->write(fuse, value, offset);
+}
+EXPORT_SYMBOL(tegra_fuse_writel);
+
+int tegra_fuse_control_read(unsigned long offset, u32 *value)
+{
+	if (!fuse->control_read || !fuse->clk)
+		return -EPROBE_DEFER;
+
+	if (IS_ERR(fuse->clk))
+		return PTR_ERR(fuse->clk);
+
+	*value = fuse->control_read(fuse, offset);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_fuse_control_read);
+
+void tegra_fuse_control_write(u32 value, unsigned long offset)
+{
+	if (!fuse->control_write || !fuse->clk)
+		return;
+
+	if (IS_ERR(fuse->clk))
+		return;
+
+	fuse->control_write(fuse, value, offset);
+}
+EXPORT_SYMBOL_GPL(tegra_fuse_control_write);
 
 static void tegra_enable_fuse_clk(void __iomem *base)
 {
