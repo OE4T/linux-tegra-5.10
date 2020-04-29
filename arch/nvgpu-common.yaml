@@ -786,7 +786,7 @@ pmu:
                      common/pmu/clk/clk_vf_point.h,
                      common/pmu/clk/clk_vin.c,
                      common/pmu/clk/clk_vin.h,
-                     include/nvgpu/clk.h,
+                     common/pmu/clk/clk.h,
                      include/nvgpu/pmu/clk/clk.h]
     ipc:
       safe: yes

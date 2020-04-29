@@ -25,6 +25,17 @@
 #ifndef NVGPU_CLK_VF_POINT_H
 #define NVGPU_CLK_VF_POINT_H
 
+struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt {
+	/*[IN/OUT] Must be first field in RPC structure */
+	struct nv_pmu_rpc_header hdr;
+	u8 clk_domain_idx;
+	u8 volt_rail_idx;
+	u8 voltage_type;
+	struct ctrl_clk_vf_input input;
+	struct ctrl_clk_vf_output output;
+	u32 scratch[1];
+};
+
 int clk_vf_point_init_pmupstate(struct gk20a *g);
 void clk_vf_point_free_pmupstate(struct gk20a *g);
 int clk_vf_point_sw_setup(struct gk20a *g);

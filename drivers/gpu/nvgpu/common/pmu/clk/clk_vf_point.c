@@ -35,6 +35,7 @@
 
 #include "ucode_clk_inf.h"
 #include "clk_vf_point.h"
+#include "clk.h"
 
 int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx)

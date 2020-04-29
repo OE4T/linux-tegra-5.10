@@ -32,6 +32,7 @@
 
 #include "ucode_clk_inf.h"
 #include "clk_prog.h"
+#include "clk.h"
 
 static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs);
 static int devinit_get_clk_prog_table(struct gk20a *g,

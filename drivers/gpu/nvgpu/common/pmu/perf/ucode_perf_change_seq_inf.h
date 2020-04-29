@@ -165,6 +165,17 @@ struct ctrl_perf_change_seq_pmu_script_step_bif {
 	u8 nvlink_idx;
 };
 
+struct ctrl_clk_vin_sw_override_list_item {
+	u8 override_mode;
+	u32 voltage_uV;
+};
+
+struct ctrl_clk_vin_sw_override_list {
+	struct ctrl_boardobjgrp_mask_e32 volt_rails_mask;
+	struct ctrl_clk_vin_sw_override_list_item
+		volt[4];
+};
+
 struct ctrl_perf_change_seq_pmu_script_step_clks {
 	struct ctrl_perf_change_seq_pmu_script_step_super super;
 	struct ctrl_clk_clk_domain_list clk_list;

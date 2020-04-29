@@ -31,6 +31,8 @@
 
 #include "ucode_clk_inf.h"
 #include "clk_fll.h"
+#include "clk_vin.h"
+#include "clk.h"
 
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP	0x10U
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK	0x1FU

@@ -121,6 +121,21 @@
 #define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES	(0x00000001U)
 
+union ctrl_clk_freq_delta_data {
+	s32 delta_khz;
+	s16 delta_percent;
+};
+
+struct ctrl_clk_freq_delta {
+	u8 type;
+	union ctrl_clk_freq_delta_data data;
+};
+
+struct ctrl_clk_clk_delta {
+	struct ctrl_clk_freq_delta freq_delta;
+	int volt_deltauv[CTRL_CLK_CLK_DELTA_MAX_VOLT_RAILS];
+};
+
 struct ctrl_clk_domain_control_35_prog_clk_mon {
 	u32 flags;
 	u32 low_threshold_override;
@@ -468,6 +483,17 @@ struct nv_pmu_clk_clk_fll_device_boardobjgrp_set_header {
 	u16 max_min_freq_mhz;
 };
 
+struct nv_pmu_clk_lut_device_desc {
+	u8 vselect_mode;
+	u16 hysteresis_threshold;
+};
+
+struct nv_pmu_clk_regime_desc {
+	u8 regime_id;
+	u8 target_regime_id_override;
+	u16 fixed_freq_regime_limit_mhz;
+};
+
 struct nv_pmu_clk_clk_fll_device_boardobj_set {
 	struct nv_pmu_boardobj super;
 	u8 id;
@@ -596,6 +622,11 @@ struct nv_pmu_clk_clk_vf_point_35_volt_sec_boardobj_get_status {
 		offseted_vf_tuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
 };
 
+struct ctrl_clk_vf_pair {
+	u16 freq_mhz;
+	u32 voltage_uv;
+};
+
 struct nv_pmu_clk_clk_vf_point_boardobj_get_status {
 	struct nv_pmu_boardobj super;
 	struct ctrl_clk_vf_pair pair;
@@ -717,40 +748,5 @@ union nv_pmu_clk_clk_fll_device_boardobj_get_status_union {
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(clk, clk_fll_device);
 
-struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt {
-	/*[IN/OUT] Must be first field in RPC structure */
-	struct nv_pmu_rpc_header hdr;
-	u8 clk_domain_idx;
-	u8 volt_rail_idx;
-	u8 voltage_type;
-	struct ctrl_clk_vf_input input;
-	struct ctrl_clk_vf_output output;
-	u32 scratch[1];
-};
-
-struct nvgpu_clk_vf_points {
-	struct boardobjgrp_e255 super;
-};
-
-struct clk_vf_point {
-	struct boardobj super;
-	u8  vfe_equ_idx;
-	u8  volt_rail_idx;
-	struct ctrl_clk_vf_pair pair;
-};
-
-struct clk_vf_point_volt {
-	struct clk_vf_point super;
-	u32 source_voltage_uv;
-	struct ctrl_clk_freq_delta freq_delta;
-};
-
-struct clk_vf_point_freq {
-	struct clk_vf_point super;
-	int volt_delta_uv;
-};
-
-struct clk_vf_point *nvgpu_construct_clk_vf_point(struct gk20a *g,
-	void *pargs);
 
 #endif /* NVGPU_PMUIF_CLK_H */

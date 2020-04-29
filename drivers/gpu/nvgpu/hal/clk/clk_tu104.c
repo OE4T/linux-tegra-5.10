@@ -33,7 +33,6 @@
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/clk.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/volt.h>

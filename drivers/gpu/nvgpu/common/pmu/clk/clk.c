@@ -39,31 +39,6 @@
 #include "clk_fll.h"
 #include "clk_vf_point.h"
 
-int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
-	u32 *pclkmhz, u32 *pvoltuv, u8 railidx)
-{
-
-	struct nvgpu_clk_vf_points *pclk_vf_points;
-	struct boardobjgrp *pboardobjgrp;
-	struct boardobj *pboardobj = NULL;
-	int status = -EINVAL;
-	struct clk_vf_point *pclk_vf_point;
-	u8 index;
-
-	nvgpu_log_info(g, " ");
-	pclk_vf_points = g->pmu->clk_pmu->clk_vf_pointobjs;
-	pboardobjgrp = &pclk_vf_points->super.super;
-
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
-		pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
-		if((*pclkmhz) <= pclk_vf_point->pair.freq_mhz) {
-			*pvoltuv = pclk_vf_point->pair.voltage_uv;
-			return 0;
-		}
-	}
-	return status;
-}
-
 #ifdef CONFIG_NVGPU_CLK_ARB
 int nvgpu_clk_get_fll_clks(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk)

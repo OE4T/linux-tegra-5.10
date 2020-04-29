@@ -35,6 +35,7 @@
 
 #include "ucode_clk_inf.h"
 #include "clk_vin.h"
+#include "clk.h"
 
 static int devinit_get_vin_device_table(struct gk20a *g,
 		struct nvgpu_avfsvinobjs *pvinobjs);

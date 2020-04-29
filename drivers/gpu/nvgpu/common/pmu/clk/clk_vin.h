@@ -27,6 +27,17 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 
+struct nvgpu_vin_device {
+	struct boardobj super;
+	u8 id;
+	u8 volt_domain;
+	u8 volt_domain_vbios;
+	u8 por_override_mode;
+	u8 override_mode;
+	u32 flls_shared_mask;
+	vin_device_state_load  *state_load;
+};
+
 struct vin_device_v20 {
 	struct nvgpu_vin_device super;
 	struct ctrl_clk_vin_device_info_data_v20 data;

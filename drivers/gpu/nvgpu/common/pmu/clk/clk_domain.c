@@ -37,6 +37,7 @@
 #include "ucode_clk_inf.h"
 #include "clk_domain.h"
 #include "clk_prog.h"
+#include "clk.h"
 
 static struct nvgpu_clk_domain *construct_clk_domain(struct gk20a *g,
 		void *pargs);
@@ -1724,3 +1725,29 @@ u8 nvgpu_pmu_clk_domain_update_clk_info(struct gk20a *g,
 	return num_domains;
 
 }
+
+int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
+	u32 *pclkmhz, u32 *pvoltuv, u8 railidx)
+{
+
+	struct nvgpu_clk_vf_points *pclk_vf_points;
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobj *pboardobj = NULL;
+	int status = -EINVAL;
+	struct clk_vf_point *pclk_vf_point;
+	u8 index;
+
+	nvgpu_log_info(g, " ");
+	pclk_vf_points = g->pmu->clk_pmu->clk_vf_pointobjs;
+	pboardobjgrp = &pclk_vf_points->super.super;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
+		if((*pclkmhz) <= pclk_vf_point->pair.freq_mhz) {
+			*pvoltuv = pclk_vf_point->pair.voltage_uv;
+			return 0;
+		}
+	}
+	return status;
+}
+

@@ -19,7 +19,6 @@
 
 #include "os_linux.h"
 
-#include <nvgpu/clk.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>

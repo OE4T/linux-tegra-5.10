@@ -25,6 +25,23 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/gk20a.h>
 
+#define CLK_NAME_MAX			24
+#define CLK_MAX_CNTRL_REGISTERS		2
+
+struct namemap_cfg {
+	u32 namemap;
+	u32 is_enable;
+	u32 is_counter;
+	struct gk20a *g;
+	struct {
+		u32 reg_ctrl_addr;
+		u32 reg_ctrl_idx;
+		u32 reg_cntr_addr[CLK_MAX_CNTRL_REGISTERS];
+	} cntr;
+	u32 scale;
+	char name[CLK_NAME_MAX];
+};
+
 u32 tu104_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
 int tu104_init_clk_support(struct gk20a *g);
 u32 tu104_crystal_clk_hz(struct gk20a *g);
