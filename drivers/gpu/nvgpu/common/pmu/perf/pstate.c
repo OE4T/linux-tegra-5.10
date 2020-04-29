@@ -25,13 +25,13 @@
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/boardobjgrp_classes.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 #include "ucode_perf_pstate_inf.h"
 #include "pstate.h"

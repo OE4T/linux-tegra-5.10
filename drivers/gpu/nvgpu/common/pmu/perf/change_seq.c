@@ -24,7 +24,6 @@
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
@@ -32,6 +31,7 @@
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 #include <nvgpu/pmu/perf.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 #include "change_seq.h"
 #include "perf.h"

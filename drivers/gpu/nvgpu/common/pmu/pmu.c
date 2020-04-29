@@ -27,9 +27,10 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmu.h>
+
+#include "boardobj/boardobj.h"
 
 /* PMU H/W error functions */
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,

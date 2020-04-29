@@ -29,7 +29,6 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
@@ -39,6 +38,7 @@
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/seq.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 /* PMU F/W version */
 #define APP_VERSION_TU10X	28084434U

@@ -25,7 +25,6 @@
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
@@ -35,6 +34,8 @@
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/pmu_pstate.h>
+
+#include "boardobj/boardobj.h"
 
 void nvgpu_pmu_pstate_deinit(struct gk20a *g)
 {

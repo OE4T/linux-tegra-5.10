@@ -23,9 +23,9 @@
 #ifndef NVGPU_CLK_VIN_H
 #define NVGPU_CLK_VIN_H
 
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 typedef u32 vin_device_state_load(struct gk20a *g,
 		struct nvgpu_clk_pmupstate *clk, struct clk_vin_device *pdev);

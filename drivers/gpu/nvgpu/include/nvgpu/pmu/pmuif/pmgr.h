@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,9 +24,9 @@
 #define NVGPU_PMUIF_PMGR_H
 
 #include <nvgpu/flcnif_cmn.h>
+#include "../../../../common/pmu/boardobj/ucode_boardobj_inf.h"
 
 #include "ctrlpmgr.h"
-#include "boardobj.h"
 
 struct nv_pmu_pmgr_i2c_device_desc {
 	struct nv_pmu_boardobj super;

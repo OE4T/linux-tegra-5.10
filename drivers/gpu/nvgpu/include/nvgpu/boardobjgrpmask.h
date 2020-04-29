@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,6 @@
 
 struct ctrl_boardobjgrp_mask;
 
-
 /*
 * Board Object Group Mask super-structure.
 * Used to unify access to all BOARDOBJGRPMASK_E** child classes
@@ -44,7 +43,8 @@ struct boardobjgrpmask {
 	* Start of the array of 32-bit words representing the bit-mask
 	* Must be the last element of the structure.
 	*/
-	 u32 data[CTRL_BOARDOBJGRP_MASK_ARRAY_START_SIZE];
+	/* 1 will be replace with CTRL_BOARDOBJGRP_MASK_ARRAY_START_SIZE */
+	 u32 data[1];
 };
 
 struct boardobjgrpmask_e32 {

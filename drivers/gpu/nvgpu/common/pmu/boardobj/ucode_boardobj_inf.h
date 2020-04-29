@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,8 +23,7 @@
 #define NVGPU_PMUIF_BOARDOBJ_H
 
 #include <nvgpu/flcnif_cmn.h>
-
-#include "ctrlboardobj.h"
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 
 /* board object group command id's. */
 #define NV_PMU_BOARDOBJGRP_CMD_SET			0x00U
@@ -37,6 +36,67 @@
 #define NV_PMU_RPC_ID_PMGR_BOARD_OBJ_GRP_CMD		0x00U
 #define NV_PMU_RPC_ID_THERM_BOARD_OBJ_GRP_CMD		0x00U
 #define NV_PMU_RPC_ID_VOLT_BOARD_OBJ_GRP_CMD		0x00U
+
+#define CTRL_BOARDOBJGRP_TYPE_INVALID			0x00U
+#define CTRL_BOARDOBJGRP_TYPE_E32			0x01U
+#define CTRL_BOARDOBJGRP_TYPE_E255			0x02U
+
+#define CTRL_BOARDOBJGRP_E32_MAX_OBJECTS		32U
+#define CTRL_BOARDOBJGRP_E255_MAX_OBJECTS		255U
+
+#define CTRL_BOARDOBJ_MAX_BOARD_OBJECTS                                        \
+	CTRL_BOARDOBJGRP_E32_MAX_OBJECTS
+
+#define CTRL_BOARDOBJ_IDX_INVALID			255U
+
+#define CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_BIT_SIZE	32U
+
+#define CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_INDEX(_bit)                         \
+	((_bit) / CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_BIT_SIZE)
+
+#define CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_OFFSET(_bit)                        \
+	((_bit) % CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_BIT_SIZE)
+
+#define CTRL_BOARDOBJGRP_MASK_DATA_SIZE(_bits)                                 \
+	(CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_INDEX((_bits) - 1U) + 1U)
+
+#define CTRL_BOARDOBJGRP_MASK_ARRAY_START_SIZE		1U
+#define CTRL_BOARDOBJGRP_MASK_ARRAY_EXTENSION_SIZE(_bits)                      \
+	(CTRL_BOARDOBJGRP_MASK_DATA_SIZE(_bits) -                              \
+	 CTRL_BOARDOBJGRP_MASK_ARRAY_START_SIZE)
+
+struct ctrl_boardobj {
+	u8 type;
+};
+
+struct ctrl_boardobjgrp_mask {
+	u32 data[1];
+};
+
+struct ctrl_boardobjgrp_mask_e32 {
+	struct ctrl_boardobjgrp_mask super;
+};
+
+struct ctrl_boardobjgrp_mask_e255 {
+	struct ctrl_boardobjgrp_mask super;
+	u32 data_e255[7];
+};
+
+struct ctrl_boardobjgrp_super {
+	struct ctrl_boardobjgrp_mask obj_mask;
+};
+
+struct ctrl_boardobjgrp_e32 {
+	struct ctrl_boardobjgrp_mask_e32 obj_mask;
+};
+
+struct  CTRL_boardobjgrp_e255 {
+	struct ctrl_boardobjgrp_mask_e255 obj_mask;
+};
+
+struct ctrl_boardobjgrp {
+	u32 obj_mask;
+};
 
 /*
  * Base structure describing a BOARDOBJ for communication between Kernel and

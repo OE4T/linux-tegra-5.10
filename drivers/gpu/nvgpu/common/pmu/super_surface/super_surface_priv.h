@@ -24,9 +24,9 @@
 #define SUPER_SURFACE_PRIV_H
 
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
-#include <nvgpu/pmu/pmuif/boardobj.h>
 #include <nvgpu/pmu/pmuif/cmn.h>
 #include <nvgpu/flcnif_cmn.h>
+#include <common/pmu/boardobj/ucode_boardobj_inf.h>
 
 struct nvgpu_mem;
 

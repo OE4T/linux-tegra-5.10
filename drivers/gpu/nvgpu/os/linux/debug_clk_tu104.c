@@ -19,11 +19,13 @@
 
 #include "os_linux.h"
 
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/volt.h>
+
+/* Dependency of this include will be removed in further CL */
+#include "../../common/pmu/boardobj/boardobj.h"
 
 #include "hal/clk/clk_tu104.h"
 

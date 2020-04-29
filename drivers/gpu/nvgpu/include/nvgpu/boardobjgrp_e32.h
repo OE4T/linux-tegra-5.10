@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,8 @@ struct boardobjgrp_e32 {
 	/*
 	* Statically allocated array of PBOARDOBJ-s
 	*/
-	struct boardobj  *objects[CTRL_BOARDOBJGRP_E32_MAX_OBJECTS];
+	/* 32 will be replaced with CTRL_BOARDOBJGRP_E32_MAX_OBJECTS */
+	struct boardobj  *objects[32];
 
 	/*
 	* Statically allocated mask strcuture referenced by super::pMask.

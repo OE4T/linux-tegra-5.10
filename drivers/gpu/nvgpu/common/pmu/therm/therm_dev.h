@@ -24,8 +24,8 @@
 #ifndef NVGPU_THERM_THRMDEV_H
 #define NVGPU_THERM_THRMDEV_H
 
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 struct nvgpu_pmu_therm;
 

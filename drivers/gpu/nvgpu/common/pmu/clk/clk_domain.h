@@ -23,7 +23,6 @@
 #ifndef NVGPU_CLK_DOMAIN_H
 #define NVGPU_CLK_DOMAIN_H
 
-#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION 0x30

@@ -28,11 +28,18 @@ struct gk20a;
 struct nvgpu_list_node;
 
 /* ------------------------ Includes ----------------------------------------*/
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/list.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/pmu/super_surface.h>
+#include <nvgpu/flcnif_cmn.h>
+/* Dependency of this include will be removed in further CL */
+#include "../../common/pmu/boardobj/boardobj.h"
+
+struct nv_pmu_boardobjgrp_super;
+struct nv_pmu_boardobjgrp;
+struct nv_pmu_boardobj;
+struct nv_pmu_boardobj_query;
 
 /*
 * Board Object Group Remover and destructor. This is used to remove and
@@ -149,7 +156,6 @@ struct boardobjgrp {
 	int (*pmugetstatus)(struct gk20a *g,
 			struct boardobjgrp *pboardobjgrp,
 			struct boardobjgrpmask *mask);
-
 	int (*pmudatainstget)(struct gk20a *g,
 			struct nv_pmu_boardobjgrp  *boardobjgrppmu,
 			struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx);

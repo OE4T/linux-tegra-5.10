@@ -23,8 +23,8 @@
 #ifndef NVGPU_VOLT_DEV_H
 #define NVGPU_VOLT_DEV_H
 
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 #include "ucode_volt_inf.h"
 

@@ -26,9 +26,11 @@
 #define NVGPU_PMU_CLK_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/boardobjgrp_e32.h>
+
+/* Following include will be removed in further CL */
+#include "../../../../common/pmu/boardobj/ucode_boardobj_inf.h"
 
 /*!
  * Valid global VIN ID values

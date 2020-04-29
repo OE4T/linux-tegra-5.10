@@ -24,8 +24,8 @@
 #ifndef NVGPU_VOLT_RAIL_H
 #define NVGPU_VOLT_RAIL_H
 
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 #define CTRL_PMGR_PWR_EQUATION_INDEX_INVALID	0xFFU
 

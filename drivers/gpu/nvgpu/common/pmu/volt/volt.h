@@ -23,9 +23,8 @@
 #ifndef NVGPU_VOLT_H
 #define NVGPU_VOLT_H
 
-#include <nvgpu/pmu/pmuif/boardobj.h>
-#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <common/pmu/boardobj/ucode_boardobj_inf.h>
 
 #define CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES	0x04U
 

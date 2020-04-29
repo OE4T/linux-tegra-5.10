@@ -22,10 +22,11 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/allocator.h>
+
+#include "boardobj.h"
 
 static int check_boardobjgrp_param(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp)

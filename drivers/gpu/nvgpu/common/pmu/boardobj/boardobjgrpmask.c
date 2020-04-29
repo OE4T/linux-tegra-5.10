@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/gk20a.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrpmask.h>
+#include "boardobj.h"
 
 /*
 * Assures that unused bits (size .. (maskDataCount * 32 - 1)) are always zero.

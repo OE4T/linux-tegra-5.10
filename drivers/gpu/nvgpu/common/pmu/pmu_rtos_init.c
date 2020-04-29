@@ -27,7 +27,6 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmu.h>
 
@@ -39,6 +38,8 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/pmu/pmu_pstate.h>
+
+#include "boardobj/boardobj.h"
 
 #ifdef CONFIG_NVGPU_POWER_PG
 #include <nvgpu/pmu/pmu_pg.h>

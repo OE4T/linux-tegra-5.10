@@ -26,7 +26,6 @@
 #include <nvgpu/pmu/pmuif/perfmon.h>
 #include <nvgpu/pmu/pmuif/pg.h>
 #include <nvgpu/pmu/pmuif/acr.h>
-#include <nvgpu/pmu/pmuif/boardobj.h>
 #include <nvgpu/pmu/pmuif/pmgr.h>
 #include <nvgpu/pmu/pmuif/rpc.h>
 

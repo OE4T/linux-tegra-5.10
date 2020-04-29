@@ -23,14 +23,10 @@
 #ifndef NVGPU_BOARDOBJ_H
 #define NVGPU_BOARDOBJ_H
 
-#include <nvgpu/list.h>
-#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
-#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
-#include <nvgpu/pmu/pmuif/boardobj.h>
-
 struct boardobj;
 struct nvgpu_list_node;
 struct gk20a;
+struct nv_pmu_boardobj;
 
 /*
 * Fills out the appropriate the nv_pmu_xxxx_device_desc_<xyz> driver->PMU
@@ -72,15 +68,6 @@ struct boardobj {
 	int (*pmudatainit)(struct gk20a *g, struct boardobj *pboardobj,
 			struct nv_pmu_boardobj *pmudata);
 	struct nvgpu_list_node node;
-};
-
-struct boardobjgrp_pmucmdhandler_params {
-	/* Pointer to the BOARDOBJGRP associated with this CMD */
-	struct boardobjgrp *pboardobjgrp;
-	/* Pointer to structure representing this NV_PMU_BOARDOBJ_CMD_GRP */
-	struct boardobjgrp_pmu_cmd *pcmd;
-	/* Boolean indicating whether the PMU successfully handled the CMD */
-	u32 success;
 };
 
 #define BOARDOBJ_GET_TYPE(pobj) (((struct boardobj *)(void *)(pobj))->type)

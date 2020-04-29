@@ -25,9 +25,8 @@
 
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/pmu/volt.h>
-#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
-#include <nvgpu/pmu/pmuif/boardobj.h>
 #include <nvgpu/boardobjgrp_e255.h>
+#include <common/pmu/boardobj/ucode_boardobj_inf.h>
 
 /*!
  * Various types of VIN calibration that the GPU can support

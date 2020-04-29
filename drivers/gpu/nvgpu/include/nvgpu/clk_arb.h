@@ -35,9 +35,11 @@ struct gk20a;
 #include <nvgpu/log.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/cond.h>
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/volt.h>
+
+/* Dependency of this include will be removed in further CL */
+#include "../../common/pmu/boardobj/boardobj.h"
 
 #define MAX_F_POINTS 256
 #define DEFAULT_EVENT_NUMBER 32U

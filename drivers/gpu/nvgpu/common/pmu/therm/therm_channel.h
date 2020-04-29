@@ -24,8 +24,8 @@
 #ifndef NVGPU_THERM_THRMCHANNEL_H
 #define NVGPU_THERM_THRMCHANNEL_H
 
-#include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 struct therm_channel {
 	struct boardobj super;
