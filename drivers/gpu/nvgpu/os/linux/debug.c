@@ -376,10 +376,9 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 				 l->debugfs,
 				 &g->mm.ltc_enabled_target);
 
-	l->debugfs_poll_timeout_default =
-			debugfs_create_u32("poll_timeout_default_ms",
-					S_IRUGO|S_IWUSR, l->debugfs,
-					 &g->poll_timeout_default);
+	debugfs_create_u32("poll_timeout_default_ms", S_IRUGO|S_IWUSR,
+				l->debugfs, &g->poll_timeout_default);
+
 	l->debugfs_timeouts_enabled =
 			debugfs_create_file("timeouts_enabled",
 					S_IRUGO|S_IWUSR,
@@ -394,21 +393,16 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 					g,
 					&disable_bigpage_fops);
 
-	l->debugfs_tsg_timeslice_low_priority_us =
-			debugfs_create_u32("tsg_timeslice_low_priority_us",
-					S_IRUGO|S_IWUSR,
-					l->debugfs,
-					&g->tsg_timeslice_low_priority_us);
-	l->debugfs_tsg_timeslice_medium_priority_us =
-			debugfs_create_u32("tsg_timeslice_medium_priority_us",
-					S_IRUGO|S_IWUSR,
-					l->debugfs,
-					&g->tsg_timeslice_medium_priority_us);
-	l->debugfs_tsg_timeslice_high_priority_us =
-			debugfs_create_u32("tsg_timeslice_high_priority_us",
-					S_IRUGO|S_IWUSR,
-					l->debugfs,
-					&g->tsg_timeslice_high_priority_us);
+	debugfs_create_u32("tsg_timeslice_low_priority_us", S_IRUGO|S_IWUSR,
+				l->debugfs, &g->tsg_timeslice_low_priority_us);
+
+	debugfs_create_u32("tsg_timeslice_medium_priority_us", S_IRUGO|S_IWUSR,
+				l->debugfs,
+				&g->tsg_timeslice_medium_priority_us);
+
+	debugfs_create_u32("tsg_timeslice_high_priority_us", S_IRUGO|S_IWUSR,
+				l->debugfs, &g->tsg_timeslice_high_priority_us);
+
 	l->debugfs_runlist_interleave =
 			debugfs_create_bool("runlist_interleave",
 					S_IRUGO|S_IWUSR,

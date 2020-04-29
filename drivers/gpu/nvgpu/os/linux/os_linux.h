@@ -152,12 +152,8 @@ struct nvgpu_os_linux {
 
 	struct dentry *debugfs_ltc_enabled;
 	struct dentry *debugfs_timeouts_enabled;
-	struct dentry *debugfs_poll_timeout_default;
 	struct dentry *debugfs_disable_bigpage;
 
-	struct dentry *debugfs_tsg_timeslice_low_priority_us;
-	struct dentry *debugfs_tsg_timeslice_medium_priority_us;
-	struct dentry *debugfs_tsg_timeslice_high_priority_us;
 	struct dentry *debugfs_runlist_interleave;
 	struct dentry *debugfs_allocators;
 	struct dentry *debugfs_xve;
