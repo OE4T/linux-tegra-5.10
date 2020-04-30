@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,22 +20,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_DBG_VGPU_H
-#define NVGPU_DBG_VGPU_H
+#ifndef NVGPU_PM_RESERVATION_VGPU_H
+#define NVGPU_PM_RESERVATION_VGPU_H
 
-struct dbg_session_gk20a;
-struct nvgpu_dbg_reg_op;
-struct nvgpu_profiler_object;
+#include <nvgpu/types.h>
+
 struct gk20a;
-struct nvgpu_channel;
+enum nvgpu_profiler_pm_resource_type;
+enum nvgpu_profiler_pm_reservation_scope;
 
-int vgpu_exec_regops(struct gk20a *g,
-		     struct nvgpu_channel *ch,
-		     struct nvgpu_dbg_reg_op *ops,
-		     u32 num_ops,
-		     bool is_profiler,
-		     bool *is_current_ctx);
-int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s,
-			bool disable_powergate);
+int vgpu_pm_reservation_acquire(struct gk20a *g, u32 reservation_id,
+	enum nvgpu_profiler_pm_resource_type pm_resource,
+	enum nvgpu_profiler_pm_reservation_scope scope,
+	u32 vmid);
+int vgpu_pm_reservation_release(struct gk20a *g, u32 reservation_id,
+	enum nvgpu_profiler_pm_resource_type pm_resource,
+	u32 vmid);
 
-#endif /* NVGPU_DBG_VGPU_H */
+#endif /* NVGPU_PM_RESERVATION_VGPU_H */

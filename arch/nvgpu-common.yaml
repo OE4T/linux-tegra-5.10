@@ -63,7 +63,9 @@ profiler:
   safe: no
   owner: Deepak N
   sources: [ common/profiler/profiler.c,
-             include/nvgpu/profiler.h ]
+             include/nvgpu/profiler.h,
+             common/profiler/pm_reservation.c,
+             include/nvgpu/pm_reservation.h ]
 
 defaults:
   safe: yes

@@ -543,7 +543,8 @@ nvgpu-y += \
 	common/log_common.o \
 	common/ce/ce.o \
 	common/debugger.o \
-	common/profiler/profiler.o
+	common/profiler/profiler.o \
+	common/profiler/pm_reservation.o
 
 nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
@@ -568,6 +569,7 @@ nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	common/vgpu/intr/intr_vgpu.o \
 	common/vgpu/ptimer/ptimer_vgpu.o \
 	common/vgpu/debugger_vgpu.o \
+	common/vgpu/pm_reservation_vgpu.o \
 	common/vgpu/perf/perf_vgpu.o \
 	common/vgpu/ecc_vgpu.o \
 	common/vgpu/clk_vgpu.o \

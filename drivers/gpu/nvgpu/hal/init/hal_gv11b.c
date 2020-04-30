@@ -195,6 +195,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/debugger.h>
+#include <nvgpu/pm_reservation.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/perfbuf.h>
@@ -1359,12 +1360,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = nvgpu_dbg_set_powergate,
-		.check_and_set_global_reservation =
-			nvgpu_check_and_set_global_reservation,
-		.check_and_set_context_reservation =
-			nvgpu_check_and_set_context_reservation,
-		.release_profiler_reservation =
-			nvgpu_release_profiler_reservation,
 	},
 	.perf = {
 		.enable_membuf = gv11b_perf_enable_membuf,
@@ -1380,6 +1375,14 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	.perfbuf = {
 		.perfbuf_enable = nvgpu_perfbuf_enable_locked,
 		.perfbuf_disable = nvgpu_perfbuf_disable_locked,
+	},
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	.pm_reservation = {
+		.acquire = nvgpu_pm_reservation_acquire,
+		.release = nvgpu_pm_reservation_release,
+		.release_all_per_vmid =
+			nvgpu_pm_reservation_release_all_per_vmid,
 	},
 #endif
 	.bus = {
@@ -1545,6 +1548,9 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->regops = gv11b_ops.regops;
 	gops->perf = gv11b_ops.perf;
 	gops->perfbuf = gv11b_ops.perfbuf;
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	gops->pm_reservation = gv11b_ops.pm_reservation;
 #endif
 	gops->bus = gv11b_ops.bus;
 	gops->ptimer = gv11b_ops.ptimer;

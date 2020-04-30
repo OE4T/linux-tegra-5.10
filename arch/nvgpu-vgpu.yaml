@@ -18,6 +18,8 @@ all:
              common/vgpu/clk_vgpu.h,
              common/vgpu/debugger_vgpu.c,
              common/vgpu/debugger_vgpu.h,
+             common/vgpu/pm_reservation_vgpu.c,
+             common/vgpu/pm_reservation_vgpu.h,
              common/vgpu/ecc_vgpu.c,
              common/vgpu/ecc_vgpu.h,
              common/vgpu/fifo/fifo_vgpu.c,

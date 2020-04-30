@@ -564,13 +564,15 @@ struct tegra_vgpu_clear_sm_error_state {
 };
 
 enum {
-	TEGRA_VGPU_PROF_GET_GLOBAL = 0,
-	TEGRA_VGPU_PROF_GET_CONTEXT,
-	TEGRA_VGPU_PROF_RELEASE
+	TEGRA_VGPU_PROF_PM_RESERVATION_ACQUIRE = 0,
+	TEGRA_VGPU_PROF_PM_RESERVATION_RELEASE,
 };
 
 struct tegra_vgpu_prof_mgt_params {
 	u32 mode;
+	u32 reservation_id;
+	u32 pm_resource;
+	u32 scope;
 };
 
 struct tegra_vgpu_perfbuf_mgt_params {

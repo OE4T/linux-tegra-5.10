@@ -26,6 +26,7 @@
 #ifdef CONFIG_NVGPU_PROFILER
 
 #include <nvgpu/list.h>
+#include <nvgpu/pm_reservation.h>
 
 struct gk20a;
 struct nvgpu_channel;
@@ -48,8 +49,11 @@ struct nvgpu_profiler_object {
 	 */
 	struct nvgpu_tsg *tsg;
 
-	/* If profiler object has HWPM reservation. */
-	bool has_reservation;
+	/* If profiler object has reservation for each resource. */
+	bool reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_COUNT];
+
+	/* Scope of the profiler object */
+	enum nvgpu_profiler_pm_reservation_scope scope;
 
 	/*
 	 * Entry of this object into global list of objects
@@ -66,8 +70,14 @@ nvgpu_profiler_object_from_prof_obj_entry(struct nvgpu_list_node *node)
 };
 
 int nvgpu_profiler_alloc(struct gk20a *g,
-	struct nvgpu_profiler_object **_prof);
+	struct nvgpu_profiler_object **_prof,
+	enum nvgpu_profiler_pm_reservation_scope scope);
 void nvgpu_profiler_free(struct nvgpu_profiler_object *prof);
+
+int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
+	enum nvgpu_profiler_pm_resource_type pm_resource);
+int nvgpu_profiler_pm_resource_release(struct nvgpu_profiler_object *prof,
+	enum nvgpu_profiler_pm_resource_type pm_resource);
 
 #endif /* CONFIG_NVGPU_PROFILER */
 #endif /* NVGPU_PROFILER_H */

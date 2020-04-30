@@ -51,9 +51,6 @@ struct dbg_session_gk20a {
 	/* profiler session, if any */
 	bool is_profiler;
 
-	/* has a valid profiler reservation */
-	bool has_profiler_reservation;
-
 	/* power enabled or disabled */
 	bool is_pg_disabled;
 
@@ -109,14 +106,6 @@ bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct nvgpu_channel *ch);
 void nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct nvgpu_channel *ch);
 
 int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate);
-bool nvgpu_check_and_set_global_reservation(
-				struct dbg_session_gk20a *dbg_s,
-				struct nvgpu_profiler_object *prof_obj);
-bool nvgpu_check_and_set_context_reservation(
-				struct dbg_session_gk20a *dbg_s,
-				struct nvgpu_profiler_object *prof_obj);
-void nvgpu_release_profiler_reservation(struct dbg_session_gk20a *dbg_s,
-				struct nvgpu_profiler_object *prof_obj);
 
 void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s);
 u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,

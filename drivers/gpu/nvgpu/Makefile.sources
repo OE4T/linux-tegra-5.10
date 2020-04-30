@@ -390,7 +390,8 @@ endif
 endif
 
 ifeq ($(CONFIG_NVGPU_PROFILER),1)
-srcs += common/profiler/profiler.c
+srcs += common/profiler/profiler.c \
+     += common/profiler/pm_reservation.c
 endif
 
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
@@ -553,6 +554,7 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/gr/subctx_vgpu.c \
 	common/vgpu/clk_vgpu.c \
 	common/vgpu/debugger_vgpu.c \
+	common/vgpu/pm_reservation_vgpu.c \
 	common/vgpu/ltc/ltc_vgpu.c \
 	common/vgpu/fbp/fbp_vgpu.c \
 	common/vgpu/ce_vgpu.c \

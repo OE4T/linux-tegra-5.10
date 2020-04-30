@@ -218,6 +218,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/class.h>
 #include <nvgpu/debugger.h>
+#include <nvgpu/pm_reservation.h>
 #include <nvgpu/pbdma.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
@@ -1400,12 +1401,6 @@ static const struct gpu_ops tu104_ops = {
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = nvgpu_dbg_set_powergate,
-		.check_and_set_global_reservation =
-			nvgpu_check_and_set_global_reservation,
-		.check_and_set_context_reservation =
-			nvgpu_check_and_set_context_reservation,
-		.release_profiler_reservation =
-			nvgpu_release_profiler_reservation,
 	},
 	.perf = {
 		.enable_membuf = gv11b_perf_enable_membuf,
@@ -1421,6 +1416,14 @@ static const struct gpu_ops tu104_ops = {
 	.perfbuf = {
 		.perfbuf_enable = nvgpu_perfbuf_enable_locked,
 		.perfbuf_disable = nvgpu_perfbuf_disable_locked,
+	},
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	.pm_reservation = {
+		.acquire = nvgpu_pm_reservation_acquire,
+		.release = nvgpu_pm_reservation_release,
+		.release_all_per_vmid =
+			nvgpu_pm_reservation_release_all_per_vmid,
 	},
 #endif
 	.bus = {
@@ -1674,6 +1677,9 @@ int tu104_init_hal(struct gk20a *g)
 	gops->regops = tu104_ops.regops;
 	gops->perf = tu104_ops.perf;
 	gops->perfbuf = tu104_ops.perfbuf;
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	gops->pm_reservation = tu104_ops.pm_reservation;
 #endif
 	gops->bus = tu104_ops.bus;
 	gops->ptimer = tu104_ops.ptimer;

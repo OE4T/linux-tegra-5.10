@@ -40,6 +40,7 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/fb.h>
 #include <nvgpu/device.h>
+#include <nvgpu/pm_reservation.h>
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -686,6 +687,9 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_xve_set_speed, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_syncpt_mem, NO_FLAG),
+#ifdef CONFIG_NVGPU_PROFILER
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_pm_reservation_init, NO_FLAG),
+#endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.channel.resume_all_serviceable_ch,
 				       NO_FLAG),
 	};
@@ -877,6 +881,10 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	}
 
 	nvgpu_device_cleanup(g);
+
+#ifdef CONFIG_NVGPU_PROFILER
+	nvgpu_pm_reservation_deinit(g);
+#endif
 
 	nvgpu_sw_quiesce_remove_support(g);
 

@@ -112,6 +112,8 @@ enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
 enum nvgpu_nvlink_minion_dlcmd;
 enum nvgpu_unit;
+enum nvgpu_profiler_pm_resource_type;
+enum nvgpu_profiler_pm_reservation_scope;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -437,15 +439,6 @@ struct gpu_ops {
 		void (*post_events)(struct nvgpu_channel *ch);
 		int (*dbg_set_powergate)(struct dbg_session_gk20a *dbg_s,
 					bool disable_powergate);
-		bool (*check_and_set_global_reservation)(
-				struct dbg_session_gk20a *dbg_s,
-				struct nvgpu_profiler_object *prof_obj);
-		bool (*check_and_set_context_reservation)(
-				struct dbg_session_gk20a *dbg_s,
-				struct nvgpu_profiler_object *prof_obj);
-		void (*release_profiler_reservation)(
-				struct dbg_session_gk20a *dbg_s,
-				struct nvgpu_profiler_object *prof_obj);
 	} debugger;
 	struct {
 		void (*enable_membuf)(struct gk20a *g, u32 size,
@@ -462,6 +455,18 @@ struct gpu_ops {
 		int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);
 		int (*perfbuf_disable)(struct gk20a *g);
 	} perfbuf;
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	struct {
+		int (*acquire)(struct gk20a *g, u32 reservation_id,
+			enum nvgpu_profiler_pm_resource_type pm_resource,
+			enum nvgpu_profiler_pm_reservation_scope scope,
+			u32 vmid);
+		int (*release)(struct gk20a *g, u32 reservation_id,
+			enum nvgpu_profiler_pm_resource_type pm_resource,
+			u32 vmid);
+		void (*release_all_per_vmid)(struct gk20a *g, u32 vmid);
+	} pm_reservation;
 #endif
 
 	u32 (*get_litter_value)(struct gk20a *g, int value);
@@ -831,16 +836,13 @@ struct gk20a {
 		u64 offset;
 	} perfbuf;
 
-	/* For profiler reservations */
-	bool global_profiler_reservation_held;
-	int profiler_reservation_count;
-
 	bool mmu_debug_ctrl;
 	u32 mmu_debug_mode_refcnt;
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 #ifdef CONFIG_NVGPU_PROFILER
 	struct nvgpu_list_node profiler_objects;
+	struct nvgpu_pm_resource_reservations *pm_reservations;
 #endif
 
 #ifdef CONFIG_NVGPU_FECS_TRACE

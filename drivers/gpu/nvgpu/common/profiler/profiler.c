@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pm_reservation.h>
 #include <nvgpu/profiler.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/log.h>
@@ -33,7 +34,8 @@ static int generate_unique_id(void)
 }
 
 int nvgpu_profiler_alloc(struct gk20a *g,
-	struct nvgpu_profiler_object **_prof)
+	struct nvgpu_profiler_object **_prof,
+	enum nvgpu_profiler_pm_reservation_scope scope)
 {
 	struct nvgpu_profiler_object *prof;
 	*_prof = NULL;
@@ -46,6 +48,7 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 	}
 
 	prof->prof_handle = generate_unique_id();
+	prof->scope = scope;
 	prof->g = g;
 
 	nvgpu_init_list_node(&prof->prof_obj_entry);
@@ -67,4 +70,74 @@ void nvgpu_profiler_free(struct nvgpu_profiler_object *prof)
 
 	nvgpu_list_del(&prof->prof_obj_entry);
 	nvgpu_kfree(g, prof);
+}
+
+int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
+	enum nvgpu_profiler_pm_resource_type pm_resource)
+{
+	struct gk20a *g = prof->g;
+	enum nvgpu_profiler_pm_reservation_scope scope = prof->scope;
+	u32 reservation_id = prof->prof_handle;
+	int err;
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"Request reservation for profiler handle %u, resource %u, scope %u",
+		prof->prof_handle, pm_resource, prof->scope);
+
+	if (prof->reserved[pm_resource]) {
+		nvgpu_err(g, "Profiler handle %u already has the reservation",
+			prof->prof_handle);
+		return -EEXIST;
+	}
+
+	err = g->ops.pm_reservation.acquire(g, reservation_id, pm_resource,
+			scope, 0);
+	if (err != 0) {
+		nvgpu_err(g, "Profiler handle %u denied the reservation, err %d",
+			prof->prof_handle, err);
+		return err;
+	}
+
+	prof->reserved[pm_resource] = true;
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"Granted reservation for profiler handle %u, resource %u, scope %u",
+		prof->prof_handle, pm_resource, prof->scope);
+
+	return 0;
+}
+
+int nvgpu_profiler_pm_resource_release(struct nvgpu_profiler_object *prof,
+	enum nvgpu_profiler_pm_resource_type pm_resource)
+{
+	struct gk20a *g = prof->g;
+	u32 reservation_id = prof->prof_handle;
+	int err;
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"Release reservation for profiler handle %u, resource %u, scope %u",
+		prof->prof_handle, pm_resource, prof->scope);
+
+	if (!prof->reserved[pm_resource]) {
+		nvgpu_log(g, gpu_dbg_prof,
+			"Profiler handle %u resource is not reserved",
+			prof->prof_handle);
+		return -EINVAL;
+	}
+
+	err = g->ops.pm_reservation.release(g, reservation_id, pm_resource, 0);
+	if (err != 0) {
+		nvgpu_err(g, "Profiler handle %u does not have valid reservation, err %d",
+			prof->prof_handle, err);
+		prof->reserved[pm_resource] = false;
+		return err;
+	}
+
+	prof->reserved[pm_resource] = false;
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"Released reservation for profiler handle %u, resource %u, scope %u",
+		prof->prof_handle, pm_resource, prof->scope);
+
+	return 0;
 }

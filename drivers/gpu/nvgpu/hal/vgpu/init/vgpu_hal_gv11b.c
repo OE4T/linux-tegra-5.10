@@ -125,6 +125,7 @@
 #include "common/vgpu/mm/mm_vgpu.h"
 #include "common/vgpu/cbc/cbc_vgpu.h"
 #include "common/vgpu/debugger_vgpu.h"
+#include "common/vgpu/pm_reservation_vgpu.h"
 #include "common/vgpu/perf/perf_vgpu.h"
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
@@ -901,12 +902,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = vgpu_dbg_set_powergate,
-		.check_and_set_global_reservation =
-			vgpu_check_and_set_global_reservation,
-		.check_and_set_context_reservation =
-			vgpu_check_and_set_context_reservation,
-		.release_profiler_reservation =
-			vgpu_release_profiler_reservation,
 	},
 	.perf = {
 		.get_pmm_per_chiplet_offset =
@@ -915,6 +910,13 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.perfbuf = {
 		.perfbuf_enable = vgpu_perfbuffer_enable,
 		.perfbuf_disable = vgpu_perfbuffer_disable,
+	},
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	.pm_reservation = {
+		.acquire = vgpu_pm_reservation_acquire,
+		.release = vgpu_pm_reservation_release,
+		.release_all_per_vmid = NULL,
 	},
 #endif
 	.bus = {
@@ -1026,6 +1028,9 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->regops = vgpu_gv11b_ops.regops;
 	gops->perf = vgpu_gv11b_ops.perf;
 	gops->perfbuf = vgpu_gv11b_ops.perfbuf;
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	gops->pm_reservation = vgpu_gv11b_ops.pm_reservation;
 #endif
 	gops->bus = vgpu_gv11b_ops.bus;
 	gops->ptimer = vgpu_gv11b_ops.ptimer;

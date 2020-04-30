@@ -210,11 +210,9 @@ int gk20a_dbg_gpu_dev_release(struct inode *inode, struct file *filp)
 	nvgpu_list_for_each_entry_safe(prof_obj, tmp_obj, &g->profiler_objects,
 				nvgpu_profiler_object, prof_obj_entry) {
 		if (prof_obj->session_id == dbg_s->id) {
-			if (prof_obj->has_reservation)
-				g->ops.debugger.
-				  release_profiler_reservation(dbg_s, prof_obj);
-			nvgpu_list_del(&prof_obj->prof_obj_entry);
-			nvgpu_kfree(g, prof_obj);
+			nvgpu_profiler_pm_resource_release(prof_obj,
+				NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY);
+			nvgpu_profiler_free(prof_obj);
 		}
 	}
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
@@ -460,12 +458,9 @@ static int dbg_unbind_single_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 				nvgpu_profiler_object, prof_obj_entry) {
 		if ((prof_obj->session_id == dbg_s->id) &&
 				(prof_obj->tsg->tsgid == ch->tsgid)) {
-			if (prof_obj->has_reservation) {
-				g->ops.debugger.
-				  release_profiler_reservation(dbg_s, prof_obj);
-			}
-			nvgpu_list_del(&prof_obj->prof_obj_entry);
-			nvgpu_kfree(g, prof_obj);
+			nvgpu_profiler_pm_resource_release(prof_obj,
+				NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY);
+			nvgpu_profiler_free(prof_obj);
 		}
 	}
 
@@ -1025,6 +1020,8 @@ static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 	struct nvgpu_channel *ch_gk20a;
 	struct nvgpu_tsg *tsg;
 	u32 mode = nvgpu_hwpm_ctxsw_mode_to_common_mode(args->mode);
+	struct nvgpu_profiler_object *prof_obj, *tmp_obj;
+	bool reserved = false;
 
 	nvgpu_log_fn(g, "%s pm ctxsw mode = %d", g->name, args->mode);
 
@@ -1033,9 +1030,17 @@ static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 	 * return an error, at the point where all client sw has been
 	 * cleaned up.
 	 */
-	if (!dbg_s->has_profiler_reservation) {
-		nvgpu_err(g,
-			"session doesn't have a valid reservation");
+	nvgpu_list_for_each_entry_safe(prof_obj, tmp_obj, &g->profiler_objects,
+				nvgpu_profiler_object, prof_obj_entry) {
+		if (prof_obj->session_id == dbg_s->id) {
+			if (prof_obj->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
+				reserved = true;
+			}
+		}
+	}
+
+	if (!reserved) {
+		nvgpu_err(g, "session doesn't have a valid reservation");
 	}
 
 	err = gk20a_busy(g);
@@ -1191,6 +1196,7 @@ static int nvgpu_ioctl_allocate_profiler_object(
 	struct nvgpu_profiler_object *prof_obj;
 	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_tsg *tsg;
+	enum nvgpu_profiler_pm_reservation_scope scope;
 
 	nvgpu_log_fn(g, "%s", g->name);
 
@@ -1205,7 +1211,13 @@ static int nvgpu_ioctl_allocate_profiler_object(
 		}
 	}
 
-	err = nvgpu_profiler_alloc(g, &prof_obj);
+	if (ch != NULL) {
+		scope = NVGPU_PROFILER_PM_RESERVATION_SCOPE_CONTEXT;
+	} else {
+		scope = NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE;
+	}
+
+	err = nvgpu_profiler_alloc(g, &prof_obj, scope);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -1256,9 +1268,8 @@ static int nvgpu_ioctl_free_profiler_object(
 				err = -EINVAL;
 				break;
 			}
-			if (prof_obj->has_reservation)
-				g->ops.debugger.
-				  release_profiler_reservation(dbg_s, prof_obj);
+			nvgpu_profiler_pm_resource_release(prof_obj,
+				NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY);
 			nvgpu_profiler_free(prof_obj);
 			obj_found = true;
 			break;
@@ -1716,13 +1727,9 @@ static int nvgpu_profiler_reserve_release(struct dbg_session_gk20a *dbg_s,
 		goto exit;
 	}
 
-	if (prof_obj->has_reservation)
-		g->ops.debugger.release_profiler_reservation(dbg_s, prof_obj);
-	else {
-		nvgpu_err(g, "No reservation found");
-		err = -EINVAL;
-		goto exit;
-	}
+	err = nvgpu_profiler_pm_resource_release(prof_obj,
+			NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY);
+
 exit:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	return err;
@@ -1732,73 +1739,42 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 								u32 profiler_handle)
 {
 	struct gk20a *g = dbg_s->g;
-	struct nvgpu_profiler_object *prof_obj, *my_prof_obj;
+	struct nvgpu_profiler_object *prof_obj;
 	int err = 0;
 
 	nvgpu_log_fn(g, "%s profiler_handle = %x", g->name, profiler_handle);
 
-	if (g->profiler_reservation_count < 0) {
-		nvgpu_err(g, "Negative reservation count!");
-		return -EINVAL;
-	}
-
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
 	/* Find matching object. */
-	my_prof_obj = find_matching_prof_obj(dbg_s, profiler_handle);
+	prof_obj = find_matching_prof_obj(dbg_s, profiler_handle);
 
-	if (!my_prof_obj) {
+	if (!prof_obj) {
 		nvgpu_err(g, "object not found");
 		err = -EINVAL;
 		goto exit;
 	}
 
-	/* If we already have the reservation, we're done */
-	if (my_prof_obj->has_reservation) {
-		err = 0;
-		goto exit;
-	}
+	if (prof_obj->tsg != NULL) {
+		struct nvgpu_tsg *tsg = prof_obj->tsg;
+		struct nvgpu_profiler_object *tmp_obj;
 
-	if (my_prof_obj->tsg == NULL) {
-		/* Global reservations are only allowed if there are no other
-		 * global or per-context reservations currently held
-		 */
-		if (!g->ops.debugger.check_and_set_global_reservation(
-							dbg_s, my_prof_obj)) {
-			nvgpu_err(g,
-				"global reserve: have existing reservation");
-			err =  -EBUSY;
-		}
-	} else if (g->global_profiler_reservation_held) {
-		/* If there's a global reservation,
-		 * we can't take a per-context one.
-		 */
-		nvgpu_err(g,
-			"per-ctxt reserve: global reservation in effect");
-		err = -EBUSY;
-	} else {
-		/* check that this TSG doesn't already have the reservation */
-		u32 my_tsgid = my_prof_obj->tsg->tsgid;
-
-		nvgpu_list_for_each_entry(prof_obj, &g->profiler_objects,
+		nvgpu_list_for_each_entry(tmp_obj, &g->profiler_objects,
 				nvgpu_profiler_object, prof_obj_entry) {
-			if (prof_obj->has_reservation &&
-					(prof_obj->tsg->tsgid == my_tsgid)) {
-				nvgpu_err(g,
-				    "per-ctxt reserve (tsg): already reserved");
-				err = -EBUSY;
+			if (tmp_obj->tsg == NULL) {
+				continue;
+			}
+			if ((tmp_obj->tsg->tsgid == tsg->tsgid) &&
+				  tmp_obj->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
+				err = -EINVAL;
 				goto exit;
 			}
 		}
-
-		if (!g->ops.debugger.check_and_set_context_reservation(
-							dbg_s, my_prof_obj)) {
-			/* Another guest OS has the global reservation */
-			nvgpu_err(g,
-				"per-ctxt reserve: global reservation in effect");
-			err = -EBUSY;
-		}
 	}
+
+	err = nvgpu_profiler_pm_resource_reserve(prof_obj,
+		NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY);
+
 exit:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	return err;
