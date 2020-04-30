@@ -56,8 +56,12 @@ static inline void ether_stats_work_func(struct work_struct *work)
  */
 static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
 {
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
 	    pdata->use_stats == OSI_ENABLE) {
+#else
+	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
+#endif
 		schedule_delayed_work(&pdata->ether_stats_work,
 				      msecs_to_jiffies(ETHER_STATS_TIMER *
 						       1000));
@@ -74,8 +78,12 @@ static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
  */
 static inline void ether_stats_work_queue_stop(struct ether_priv_data *pdata)
 {
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
 	    pdata->use_stats == OSI_ENABLE) {
+#else
+	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
+#endif
 		cancel_delayed_work_sync(&pdata->ether_stats_work);
 	}
 }
@@ -616,12 +624,13 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 		devm_free_irq(pdata->dev, pdata->common_irq, pdata);
 		pdata->common_irq_alloc_mask = 0U;
 	}
-
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 	if (pdata->ivck != NULL) {
 		cancel_work_sync(&pdata->ivc_work);
 		tegra_hv_ivc_unreserve(pdata->ivck);
 		devm_free_irq(pdata->dev, pdata->ivck->irq, pdata);
 	}
+#endif
 
 	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
 		for (i = 0; i < pdata->osi_dma->num_vm_irqs; i++) {
@@ -650,6 +659,7 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 	}
 }
 
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 /**
  * @brief IVC ISR Routine
  *
@@ -777,6 +787,7 @@ static int ether_init_ivc(struct ether_priv_data *pdata)
 	}
 	return 0;
 }
+#endif
 
 /**
  * @brief Register IRQs
@@ -2069,8 +2080,12 @@ dma_map_failed:
  */
 static unsigned short ether_select_queue(struct net_device *dev,
 					 struct sk_buff *skb,
-					 void *accel_priv,
-					 select_queue_fallback_t fallback)
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
+					void *accel_priv,
+					select_queue_fallback_t fallback)
+#else
+					 struct net_device *sb_dev)
+#endif
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -3704,7 +3719,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		dev_err(dev, "mismatch in numbers of DMA channel and MTL Q\n");
 		return -EINVAL;
 	}
-
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 	/* Allow to set non zero DMA channel for virtualization */
 	if (!ether_init_ivc(pdata)) {
 		osi_dma->use_virtualization = OSI_ENABLE;
@@ -3717,6 +3732,9 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		ret = -1;
 		pdata->use_stats = OSI_ENABLE;
 	}
+#else
+	ret = -1;
+#endif
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		if (osi_dma->dma_chans[i] != osi_core->mtl_queues[i]) {
