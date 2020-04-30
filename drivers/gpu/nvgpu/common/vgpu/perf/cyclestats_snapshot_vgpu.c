@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,18 +32,12 @@
 #include "cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
-static struct tegra_hv_ivm_cookie *css_cookie;
-
-static int vgpu_css_reserve_mempool(struct gk20a *g,
-					struct tegra_hv_ivm_cookie **cookie_p)
+int vgpu_css_init(struct gk20a *g)
 {
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 	struct tegra_hv_ivm_cookie *cookie;
 	u32 mempool;
 	int err;
-
-	if (cookie_p == NULL) {
-		return -EINVAL;
-	}
 
 	err = nvgpu_dt_read_u32_index(g, "mempool-css", 1, &mempool);
 	if (err) {
@@ -58,40 +52,28 @@ static int vgpu_css_reserve_mempool(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*cookie_p = cookie;
+	priv->css_cookie = cookie;
 
 	return 0;
 }
 
 u32 vgpu_css_get_buffer_size(struct gk20a *g)
 {
-	struct tegra_hv_ivm_cookie *cookie;
-	u32 size;
-	int err;
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	nvgpu_log_fn(g, " ");
 
-	if (css_cookie) {
-		size = (u32)vgpu_ivm_get_size(css_cookie);
-		nvgpu_log_info(g, "buffer size = 0x%08x", size);
-		return size;
+	if (NULL == priv->css_cookie) {
+		return 0U;
 	}
 
-	err = vgpu_css_reserve_mempool(g, &cookie);
-	if (0 != err) {
-		return 0;
-	}
-
-	size = vgpu_ivm_get_size(cookie);
-
-	vgpu_ivm_mempool_unreserve(cookie);
-	nvgpu_log_info(g, "buffer size = 0x%08x", size);
-	return size;
+	return vgpu_ivm_get_size(priv->css_cookie);
 }
 
 static int vgpu_css_init_snapshot_buffer(struct gk20a *g)
 {
 	struct gk20a_cs_snapshot *data = g->cs_data;
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 	void *buf = NULL;
 	int err;
 	u64 size;
@@ -102,12 +84,11 @@ static int vgpu_css_init_snapshot_buffer(struct gk20a *g)
 		return 0;
 	}
 
-	err = vgpu_css_reserve_mempool(g, &css_cookie);
-	if (0 != err) {
-		return err;
+	if (NULL == priv->css_cookie) {
+		return -EINVAL;
 	}
 
-	size = vgpu_ivm_get_size(css_cookie);
+	size = vgpu_ivm_get_size(priv->css_cookie);
 	/* Make sure buffer size is large enough */
 	if (size < CSS_MIN_HW_SNAPSHOT_SIZE) {
 		nvgpu_info(g, "mempool size 0x%llx too small", size);
@@ -115,7 +96,7 @@ static int vgpu_css_init_snapshot_buffer(struct gk20a *g)
 		goto fail;
 	}
 
-	buf = vgpu_ivm_mempool_map(css_cookie);
+	buf = vgpu_ivm_mempool_map(priv->css_cookie);
 	if (!buf) {
 		nvgpu_info(g, "vgpu_ivm_mempool_map failed");
 		err = -EINVAL;
@@ -129,24 +110,20 @@ static int vgpu_css_init_snapshot_buffer(struct gk20a *g)
 	(void) memset(data->hw_snapshot, 0xff, size);
 	return 0;
 fail:
-	vgpu_ivm_mempool_unreserve(css_cookie);
-	css_cookie = NULL;
 	return err;
 }
 
 void vgpu_css_release_snapshot_buffer(struct gk20a *g)
 {
 	struct gk20a_cs_snapshot *data = g->cs_data;
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	if (!data->hw_snapshot) {
 		return;
 	}
 
-	vgpu_ivm_mempool_unmap(css_cookie, data->hw_snapshot);
+	vgpu_ivm_mempool_unmap(priv->css_cookie, data->hw_snapshot);
 	data->hw_snapshot = NULL;
-
-	vgpu_ivm_mempool_unreserve(css_cookie);
-	css_cookie = NULL;
 
 	nvgpu_log_info(g, "cyclestats(vgpu): buffer for snapshots released\n");
 }

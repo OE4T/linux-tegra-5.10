@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,7 @@ struct vgpu_priv_data {
 	u32 num_freqs;
 	unsigned long *freqs;
 	struct nvgpu_mutex vgpu_clk_get_freq_lock;
+	struct tegra_hv_ivm_cookie *css_cookie;
 };
 
 struct vgpu_priv_data *vgpu_get_priv_data(struct gk20a *g);
