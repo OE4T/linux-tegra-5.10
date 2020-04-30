@@ -52,10 +52,6 @@ struct __nvgpu_posix_lock {
 static inline void nvgpu_posix_lock_acquire(struct __nvgpu_posix_lock *lock)
 {
 	int err = pthread_mutex_lock(&lock->mutex);
-
-	if (err != 0) {
-		nvgpu_err(NULL, "OS API pthread_mutex_lock error = %d", err);
-	}
 	nvgpu_assert(err == 0);
 }
 

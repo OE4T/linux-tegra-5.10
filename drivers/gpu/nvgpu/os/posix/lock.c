@@ -48,18 +48,12 @@ int nvgpu_mutex_tryacquire(struct nvgpu_mutex *mutex)
 void nvgpu_mutex_destroy(struct nvgpu_mutex *mutex)
 {
 	int err = pthread_mutex_destroy(&mutex->lock.mutex);
-	if (err != 0) {
-		nvgpu_info(NULL, "Mutex destroy error %d", err);
-	}
 	nvgpu_assert(err == 0);
 }
 
 void nvgpu_spinlock_init(struct nvgpu_spinlock *spinlock)
 {
 	int err = pthread_mutex_init(&spinlock->lock.mutex, NULL);
-	if (err != 0) {
-		nvgpu_err(NULL, "OS API pthread_mutex_init error = %d", err);
-	}
 	nvgpu_assert(err == 0);
 }
 
@@ -76,9 +70,6 @@ void nvgpu_spinlock_release(struct nvgpu_spinlock *spinlock)
 void nvgpu_raw_spinlock_init(struct nvgpu_raw_spinlock *spinlock)
 {
 	int err = pthread_mutex_init(&spinlock->lock.mutex, NULL);
-	if (err != 0) {
-		nvgpu_err(NULL, "OS API pthread_mutex_init error = %d", err);
-	}
 	nvgpu_assert(err == 0);
 }
 
