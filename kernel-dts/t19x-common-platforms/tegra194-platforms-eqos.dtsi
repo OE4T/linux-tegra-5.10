@@ -2,7 +2,7 @@
  * tegra194-platforms-eqos.dtsi: Ethernet QOS DTSI file.  Common for all
  * t194 platforms boards.
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,31 +40,6 @@
 		nvidia,pause_frames = <0>;
 		nvidia,phy-reset-gpio = <&tegra_main_gpio TEGRA194_MAIN_GPIO(G, 5) 0>;
 		phy-mode = "rgmii-id";
-
-#if defined(LINUX_VERSION) && LINUX_VERSION >= 419
-		compatible = "nvidia,tegra186-eqos",
-			     "snps,dwc-qos-ethernet-4.10";
-		reg = <0x0 0x02490000 0x0 0x10000>;
-		interrupts = <GIC_SPI 194 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&bpmp TEGRA194_CLK_AXI_CBB>,
-			 <&bpmp TEGRA194_CLK_EQOS_AXI>,
-			 <&bpmp TEGRA194_CLK_EQOS_RX>,
-			 <&bpmp TEGRA194_CLK_EQOS_TX>,
-			 <&bpmp TEGRA194_CLK_EQOS_PTP_REF>;
-		clock-names = "master_bus", "slave_bus", "rx", "tx", "ptp_ref";
-		resets = <&bpmp TEGRA194_RESET_EQOS>;
-		reset-names = "eqos";
-		status = "okay";
-
-		snps,write-requests = <1>;
-		snps,read-requests = <3>;
-		snps,burst-map = <0x7>;
-		snps,txpbl = <16>;
-		snps,rxpbl = <8>;
-
-		phy-reset-gpios = <&tegra_main_gpio TEGRA194_MAIN_GPIO(G, 5) GPIO_ACTIVE_LOW>;
-		phy-mode = "rgmii";
-#endif
 		phy-handle = <&phy>;
 		nvidia,max-platform-mtu = <16383>;
 
@@ -77,13 +52,9 @@
 				reg = <0>;
 				interrupt-parent = <&tegra_main_gpio>;
 				interrupts = <TEGRA194_MAIN_GPIO(G, 4) IRQ_TYPE_LEVEL_LOW>;
-#if defined(LINUX_VERSION) && LINUX_VERSION >= 419
-				compatible = "ethernet-phy-ieee802.3-c22";
-#else
 				marvell,copper-mode;
 				/* Setup LED[2] as interrupt pin (active low) */
 				marvell,reg-init = <0x03 0x12 0x7fff 0x880>;
-#endif
 			};
 		};
 	};
