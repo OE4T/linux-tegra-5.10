@@ -40,9 +40,11 @@
 #include <linux/of.h>
 #include <linux/ktime.h>
 #include <linux/hrtimer.h>
+#include <linux/version.h>
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 #include <linux/tegra-ivc.h>
+#endif
 #include <soc/tegra/chip-id.h>
-
 #include <osi_core.h>
 #include <osi_dma.h>
 #include <mmc.h>
@@ -123,11 +125,12 @@
  */
 #define ETHER_TX_MAX_FRAME_SIZE	GSO_MAX_SIZE
 
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 /**
  * @brief Ethernet Maximum IVC BUF
  */
 #define ETHER_MAX_IVC_BUF		128
-
+#endif
 
 /**
  * @brief Check if Tx data buffer length is within bounds.
@@ -357,6 +360,7 @@ struct ether_priv_data {
 	unsigned int tx_lpi_enabled;
 	/** Time (usec) MAC waits to enter LPI after Tx complete */
 	unsigned int tx_lpi_timer;
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 	/** ivc cookie */
 	struct tegra_hv_ivc_cookie *ivck;
 	/** Buffer to receive pad ivc message */
@@ -365,6 +369,7 @@ struct ether_priv_data {
 	struct work_struct ivc_work;
 	/** Flag which decides stats is enabled(1) or disabled(0) */
 	unsigned int use_stats;
+#endif
 	/** VM channel info data associated with VM IRQ */
 	struct ether_vm_irq_data *vm_irq_data;
 };
