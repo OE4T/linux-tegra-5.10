@@ -12,14 +12,15 @@ nvgpu:
   children:
     # The common code element. This has gr, mm, etc.
     common:
-      safe: yes
+      safe: no
       children:
-        !include nvgpu-common.yaml
+        !include nvgpu-common.yaml nvgpu-next-common.yaml
 
     # HAL units - Hardware Abstraction Layer.
     hal:
+      safe: no
       children:
-        !include nvgpu-hal-new.yaml
+        !include nvgpu-hal-new.yaml nvgpu-next-hal.yaml
 
     # The QNX OS layer implementation units.
     qnx:
@@ -31,7 +32,7 @@ nvgpu:
     linux:
       safe: no
       children:
-        !include nvgpu-linux.yaml
+        !include nvgpu-linux.yaml nvgpu-next-linux.yaml
 
     # POSIX units for implementing the OS layer for unit testing.
     posix:
@@ -65,10 +66,4 @@ nvgpu:
     gpu_hw:
       safe: no
       children:
-        !include nvgpu-gpu_hw.yaml
-
-    # nvgpu-next code
-    nvgpu-next:
-      safe: no
-      children:
-        !include nvgpu-next.yaml
+        !include nvgpu-gpu_hw.yaml nvgpu-next-gpu_hw.yaml

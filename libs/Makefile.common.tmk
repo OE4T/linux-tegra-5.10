@@ -94,8 +94,10 @@ $(SRC_DEPS):        $(NVGPU_ARCH_YAML)
 $(NVGPU_ARCH_YAML): nvgpu-arch
 nvgpu-arch: $(ARCH_PY)
 	$(PYTHON2) $(ARCH_PY)				\
-		--arch-file $(NVGPU_ARCH)/nvgpu.yaml	\
-		--source    $(NVGPU_SOURCE)		\
+		--arch-file    $(NVGPU_ARCH)/nvgpu.yaml	\
+		--source       $(NVGPU_SOURCE)		\
+		--source       $(NVGPU_NEXT_SOURCE)	\
+		--include-path $(NVGPU_NEXT_ARCH)	\
 		sources --check
 
 .PHONY: nvgpu-arch
