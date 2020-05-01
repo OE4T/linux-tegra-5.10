@@ -1,7 +1,7 @@
 /*
  * Engine side synchronization support
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -427,11 +427,6 @@ dma_addr_t nvhost_syncpt_address(struct platform_device *engine_pdev, u32 id)
  * utilizing Host1x channels to perform syncpoint waits. This includes
  * initialization of the syncpoint<->MSS interface and mapping the GoS
  * for the device if needed.
- *
- * TBD: Currently this function only verifies that IOMMU is disabled. This
- * allows using the physical address of the MSS aperture directly without
- * worrying about the real mappings. In future this function should perform
- * actual mappings.
  */
 int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev)
 {

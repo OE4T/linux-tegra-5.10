@@ -5,8 +5,6 @@ ccflags-y += -I$(srctree.nvidia)/include
 ccflags-y += -Wno-multichar
 ccflags-y += -Werror
 
-ccflags-$(CONFIG_TEGRA_T23X_GRHOST) += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
-
 nvhost-t210-objs  = \
         t210.o
 

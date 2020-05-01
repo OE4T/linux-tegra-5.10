@@ -1,7 +1,6 @@
 GCOV_PROFILE := y
 subdir-ccflags-y := -Werror
 ccflags-y += -I$(overlay)/drivers/video/tegra/host
-ccflags-$(CONFIG_TEGRA_T23X_GRHOST) += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
 ccflags-y += -I$(overlay)/drivers/video/tegra/dc
 ccflags-y += -I$(overlay)/drivers/platform/tegra
 ccflags-$(CONFIG_TRUSTED_LITTLE_KERNEL) += -I$(overlay)/security/tlk_driver

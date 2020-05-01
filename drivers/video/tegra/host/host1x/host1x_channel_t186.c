@@ -269,6 +269,14 @@ static void submit_work(struct nvhost_job *job)
 					NVHOST_OPCODE_NOOP,
 					nvhost_opcode_release_mlock(cur_class));
 
+			/* As per bug: 200406973, Host1x HW expects these
+			 * initial commands in sequence. Otherwise, Host1x HW
+			 * will raise an interrupt.
+			 * - Acquire Mlock
+			 * - SetClass
+			 * - SetStreamID in sequence.
+			 */
+
 			/* acquire lock of the new class */
 			if (use_locking) {
 				op1 = nvhost_opcode_acquire_mlock(g->class_id);
