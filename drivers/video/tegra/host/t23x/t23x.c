@@ -34,6 +34,7 @@
 #include "dev.h"
 #include "class_ids.h"
 #include "class_ids_t194.h"
+#include "class_ids_t23x.h"
 
 #include "nvhost_syncpt_unit_interface.h"
 #include "t23x.h"

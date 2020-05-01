@@ -16,9 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//enum {
+#ifndef __NVHOST_CLASS_IDS_T23X_H
+#define __NVHOST_CLASS_IDS_T23X_H
 
-    NV_NVJPG1_CLASS_ID  = 0x07,
-    NV_OFA_CLASS_ID     = 0xF8,
+enum {
+	NV_NVJPG1_CLASS_ID  = 0x07,
+	NV_OFA_CLASS_ID     = 0xF8,
+};
 
-//}
+#endif /*__NVHOST_CLASS_IDS_T23X_H */
