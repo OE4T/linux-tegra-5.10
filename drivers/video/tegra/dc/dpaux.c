@@ -22,7 +22,12 @@
 #include <linux/of_irq.h>
 #include <linux/tegra_pm_domains.h>
 #include <linux/delay.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include "dpaux_regs.h"
 #include "dc_priv.h"

@@ -55,7 +55,12 @@
 extern ULONG eqos_base_addr;
 #include "yregacc.h"
 #include "nvregacc.h"
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <linux/nospec.h>
 
 static INT eqos_status;

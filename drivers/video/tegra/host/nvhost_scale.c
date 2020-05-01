@@ -24,7 +24,12 @@
 #include <linux/slab.h>
 #include <linux/clk.h>
 #include <linux/clk/tegra.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <linux/pm_qos.h>
 #include <trace/events/nvhost.h>
 #include <linux/uaccess.h>

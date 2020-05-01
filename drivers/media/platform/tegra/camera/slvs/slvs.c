@@ -18,7 +18,6 @@
 #include <linux/of_graph.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
-#include <soc/tegra/chip-id.h>
 
 #include <media/media-entity.h>
 #include <media/v4l2-async.h>
@@ -27,7 +26,12 @@
 #include <media/mc_common.h>
 #include <media/slvs.h>
 
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include "dev.h"
 #include "linux/nvhost.h"

@@ -32,7 +32,12 @@
 #include <linux/tegra_pm_domains.h>
 #include <linux/platform/tegra/tegra_mc.h>
 
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include "dev.h"
 #include "tsec.h"

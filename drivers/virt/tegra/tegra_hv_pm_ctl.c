@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -25,7 +25,12 @@
 #include <linux/tegra-ivc.h>
 #include <linux/tegra-ivc-instance.h>
 
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <soc/tegra/virt/tegra_hv_pm_ctl.h>
 #include <soc/tegra/virt/syscalls.h>
 #include <soc/tegra/virt/tegra_hv_sysmgr.h>

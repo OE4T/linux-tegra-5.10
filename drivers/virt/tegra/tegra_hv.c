@@ -3,7 +3,7 @@
  *
  * Instantiates virtualization-related resources.
  *
- * Copyright (C) 2014-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2014-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This file is licensed under the terms of the GNU General Public License
  * version 2.  This program is licensed "as is" without any warranty of any
@@ -27,7 +27,12 @@
 #include <linux/of.h>
 #include <linux/of_irq.h>
 
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <linux/tegra-ivc.h>
 
 #include <soc/tegra/virt/syscalls.h>

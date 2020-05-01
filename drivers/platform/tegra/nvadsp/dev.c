@@ -27,7 +27,12 @@
 #include <linux/moduleparam.h>
 #include <linux/io.h>
 #include <linux/tegra_nvadsp.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <linux/pm_runtime.h>
 #include <linux/version.h>
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE

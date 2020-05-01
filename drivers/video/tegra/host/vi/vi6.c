@@ -1,7 +1,7 @@
 /*
  * VI6 driver for T234
  *
- * Copyright (c) 2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,7 +35,12 @@
 #include <linux/uaccess.h>
 #include <media/fusa-capture/capture-vi-channel.h>
 #include <soc/tegra/camrtc-capture.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include "vi6.h"
 #include "dev.h"

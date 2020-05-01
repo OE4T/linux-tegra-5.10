@@ -39,7 +39,11 @@
 #include <linux/version.h>
 #include <linux/pm_qos.h>
 #include <linux/tegra-cpufreq.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include "cpufreq_cpu_emc_table.h"
 

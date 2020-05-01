@@ -20,10 +20,13 @@
 #include <linux/types.h>
 #include <linux/bug.h>
 #include <linux/slab.h>
-#include <soc/tegra/chip-id.h>
 #include <linux/version.h>
-
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/chip-id.h>
 #if defined(CONFIG_ARCH_TEGRA_210_SOC) || LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
+#include <soc/tegra/fuse.h>
+#endif
+#else
 #include <soc/tegra/fuse.h>
 #endif
 

@@ -35,7 +35,12 @@
 
 
 #include <uapi/linux/nvhost_pva_ioctl.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include "nvhost_syncpt_unit_interface.h"
 #include "../drivers/staging/android/sync.h"

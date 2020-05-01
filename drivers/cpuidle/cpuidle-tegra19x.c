@@ -1,7 +1,7 @@
 /*
  * drivers/cpuidle/cpuidle-tegra19x.c
  *
- * Copyright (C) 2017-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2017-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,12 @@
 #include <linux/module.h>
 #include <linux/of_platform.h>
 #include <linux/debugfs.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <linux/tegra-mce.h>
 #include <linux/t194_nvg.h>
 #include <linux/suspend.h>

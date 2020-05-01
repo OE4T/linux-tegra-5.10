@@ -1,7 +1,7 @@
 /*
  * tegra_wdt_t18x.c: watchdog driver for NVIDIA tegra internal watchdog
  *
- * Copyright (c) 2012-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION. All rights reserved.
  * Based on:
  *	drivers/watchdog/softdog.c and
  *	drivers/watchdog/omap_wdt.c
@@ -31,7 +31,12 @@
 #include <linux/syscore_ops.h>
 #include <linux/uaccess.h>
 #include <linux/watchdog.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <soc/tegra/pmc.h>
 
 /* The total expiry count of Tegra WDTs supported by HW */

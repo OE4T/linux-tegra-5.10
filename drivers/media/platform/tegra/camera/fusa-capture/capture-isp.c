@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,12 @@
 #include <linux/slab.h>
 #include <linux/tegra-capture-ivc.h>
 #include <asm/arch_timer.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include <camera/nvcamera_log.h>
 #include <uapi/linux/nvhost_events.h>

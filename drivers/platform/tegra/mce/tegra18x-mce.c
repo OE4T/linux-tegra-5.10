@@ -18,7 +18,12 @@
 #include <linux/tegra-mce.h>
 
 #include <asm/smp_plat.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #define SMC_SIP_INVOKE_MCE	0xC2FFFF00
 

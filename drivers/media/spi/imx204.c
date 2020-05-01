@@ -1,7 +1,7 @@
 /*
  * imx204.c - imx204 sensor driver
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,12 @@
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
 #include <linux/regmap.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <media/camera_common.h>
 #include <media/imx204.h>
 #include "imx204_mode_tbls.h"

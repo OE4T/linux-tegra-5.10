@@ -22,7 +22,11 @@
 #include <linux/seq_file.h>
 #include <linux/debugfs.h>
 #include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <linux/clk/tegra.h>
 #include <linux/moduleparam.h>
 #include <linux/of.h>

@@ -1,7 +1,7 @@
 /*
  * drivers/platform/tegra/nvdumper/nvdumper_config.c
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -27,8 +27,12 @@
 #include <linux/idr.h>
 #include <linux/workqueue.h>
 #include <linux/hashtable.h>
-#include <soc/tegra/chip-id.h>
 #include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 /*
  * hack
  */

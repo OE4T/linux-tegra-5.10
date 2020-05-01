@@ -30,7 +30,12 @@
 #include <linux/pm.h>
 #include <linux/pm_runtime.h>
 #include <linux/reset.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <trace/events/nvhost.h>
 #include <uapi/linux/nvhost_ioctl.h>
 #include <linux/version.h>

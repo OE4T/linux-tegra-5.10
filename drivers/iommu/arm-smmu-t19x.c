@@ -50,13 +50,17 @@
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
 #include <linux/dma-attrs.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <linux/ktime.h>
 #include <linux/string.h>
 #include <linux/dma-override.h>
 
 #include <linux/amba/bus.h>
-#include <linux/version.h>
 
 #include <linux/arm-smmu-suspend.h>
 
