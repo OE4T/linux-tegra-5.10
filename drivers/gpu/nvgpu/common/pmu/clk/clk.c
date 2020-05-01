@@ -38,14 +38,7 @@
 #include "clk_vin.h"
 #include "clk_fll.h"
 #include "clk_vf_point.h"
-
-#ifdef CONFIG_NVGPU_CLK_ARB
-int nvgpu_clk_get_fll_clks(struct gk20a *g,
-		struct nvgpu_set_fll_clk *setfllclk)
-{
-	return g->pmu->clk_pmu->get_fll(g, setfllclk);
-}
-#endif
+#include "clk.h"
 
 static int clk_init_pmupstate(struct gk20a *g)
 {

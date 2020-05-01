@@ -460,9 +460,9 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 	pclk_vf_points = g->pmu->clk_pmu->clk_vf_pointobjs;
 	pboardobjgrp = &pclk_vf_points->super.super;
 
-	voltage_min_uv = g->pmu->clk_pmu->get_fll_lut_min_volt(g->pmu->clk_pmu);
+	voltage_min_uv = nvgpu_pmu_clk_fll_get_lut_min_volt(g->pmu->clk_pmu);
 	voltage_step_size_uv =
-			g->pmu->clk_pmu->get_fll_lut_step_size(g->pmu->clk_pmu);
+			nvgpu_pmu_clk_fll_get_lut_step_size(g->pmu->clk_pmu);
 	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
 		pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
 		gpcclk_voltuv =
@@ -494,10 +494,6 @@ int clk_vf_point_init_pmupstate(struct gk20a *g)
 	if (g->pmu->clk_pmu->clk_vf_pointobjs == NULL) {
 		return -ENOMEM;
 	}
-
-#ifdef CONFIG_NVGPU_CLK_ARB
-	g->pmu->clk_pmu->nvgpu_clk_vf_point_cache = nvgpu_clk_vf_point_cache;
-#endif
 
 	return 0;
 }

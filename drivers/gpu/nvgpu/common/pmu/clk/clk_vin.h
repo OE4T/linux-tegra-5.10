@@ -27,7 +27,10 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 
-struct nvgpu_vin_device {
+typedef u32 vin_device_state_load(struct gk20a *g,
+		struct nvgpu_clk_pmupstate *clk, struct clk_vin_device *pdev);
+
+struct clk_vin_device {
 	struct boardobj super;
 	u8 id;
 	u8 volt_domain;
@@ -39,7 +42,7 @@ struct nvgpu_vin_device {
 };
 
 struct vin_device_v20 {
-	struct nvgpu_vin_device super;
+	struct clk_vin_device super;
 	struct ctrl_clk_vin_device_info_data_v20 data;
 };
 struct nvgpu_avfsvinobjs {

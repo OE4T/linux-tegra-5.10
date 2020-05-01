@@ -45,7 +45,6 @@
 #define	CTRL_CLK_VIN_ID_GPCS			0x00000009U
 #define	CTRL_CLK_VIN_ID_SRAM			0x0000000AU
 #define	CTRL_CLK_VIN_ID_UNDEFINED		0x000000FFU
-
 #define	CTRL_CLK_VIN_TYPE_DISABLED		0x00000000U
 #define CTRL_CLK_VIN_TYPE_V20			0x00000002U
 
@@ -69,13 +68,8 @@
 #define CTRL_CLK_DOMAIN_SYSCLK			0x00000004U
 #define CTRL_CLK_DOMAIN_HUBCLK			0x00000008U
 
-
-#define CTRL_CLK_FLL_REGIME_ID_INVALID		((u8)0x00000000)
-#define CTRL_CLK_FLL_REGIME_ID_FFR		((u8)0x00000001)
-#define CTRL_CLK_FLL_REGIME_ID_FR		((u8)0x00000002)
-
 #define CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS	16
-#define CTRL_CLK_CLK_DELTA_MAX_VOLT_RAILS 	4U
+
 /*
  *  Try to get gpc2clk, mclk, sys2clk, xbar2clk work for Pascal
  *
@@ -104,26 +98,20 @@
 #define CLKWHICH_PCIEGENCLK			26U
 
 
-/*!
+/*
  * Mask of all GPC VIN IDs supported by RM
  */
 #define CTRL_CLK_LUT_NUM_ENTRIES_MAX		128U
 #define CTRL_CLK_LUT_NUM_ENTRIES_GV10x		128U
 #define CTRL_CLK_LUT_NUM_ENTRIES_GP10x		100U
-#define CTRL_CLK_VIN_STEP_SIZE_UV		6250U
-#define CTRL_CLK_LUT_MIN_VOLTAGE_UV		450000U
-#define CTRL_CLK_FLL_TYPE_DISABLED		0U
-
-#define CTRL_CLK_FLL_LUT_VSELECT_LOGIC		0x00000000U
-#define CTRL_CLK_FLL_LUT_VSELECT_MIN		0x00000001U
-#define CTRL_CLK_FLL_LUT_VSELECT_SRAM		0x00000002U
-
-#define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_HW_REQ	0x00000000U
-#define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_MIN	0x00000001U
-#define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_SW_REQ	0x00000003U
-#define CLK_CLOCK_MON_DOMAIN_COUNT		0x32U
+/*
+ * The Minimum resolution of frequency which is supported
+ */
 #define FREQ_STEP_SIZE_MHZ			15U
-
+/*
+ * The Maximum count of clock domains supported
+ */
+#define CLK_CLOCK_MON_DOMAIN_COUNT		0x32U
 
 struct gk20a;
 struct clk_avfs_fll_objs;
@@ -133,7 +121,7 @@ struct nvgpu_clk_vf_points;
 struct nvgpu_clk_mclk_state;
 struct nvgpu_clk_slave_freq;
 struct nvgpu_pmu_perf_change_input_clk_info;
-struct nvgpu_vin_device;
+struct clk_vin_device;
 struct nvgpu_clk_domain;
 struct nvgpu_clk_arb;
 struct nvgpu_clk_pmupstate;
@@ -197,53 +185,6 @@ struct nvgpu_set_fll_clk {
 	u8 target_regime_id_host;
 };
 
-struct nvgpu_clk_pmupstate {
-	struct nvgpu_avfsvinobjs *avfs_vinobjs;
-	struct clk_avfs_fll_objs *avfs_fllobjs;
-	struct nvgpu_clk_domains *clk_domainobjs;
-	struct nvgpu_clk_progs *clk_progobjs;
-	struct nvgpu_clk_vf_points *clk_vf_pointobjs;
-
-	/* clk_domain unit functions */
-	int (*get_fll)(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk);
-	void (*set_p0_clks)(struct gk20a *g, u8 *gpcclk_domain,
-		u32 *gpcclk_clkmhz, struct nvgpu_clk_slave_freq *vf_point,
-		struct nvgpu_pmu_perf_change_input_clk_info *change_input);
-	struct nvgpu_clk_domain *(*clk_get_clk_domain)
-			(struct nvgpu_clk_pmupstate *pclk, u8 idx);
-	int (*clk_domain_clk_prog_link)(struct gk20a *g,
-			struct nvgpu_clk_pmupstate *pclk);
-
-	/* clk_vin unit functions */
-	struct nvgpu_vin_device *(*clk_get_vin)
-			(struct nvgpu_avfsvinobjs *pvinobjs, u8 idx);
-
-	/* clk_fll unit functions */
-	u8 (*find_regime_id)(struct gk20a *g, u32 domain, u16 clkmhz);
-	int (*set_regime_id)(struct gk20a *g, u32 domain, u8 regimeid);
-	int (*get_regime_id)(struct gk20a *g, u32 domain, u8 *regimeid);
-	u8 (*get_fll_lut_vf_num_entries)(struct nvgpu_clk_pmupstate *pclk);
-	u32 (*get_fll_lut_min_volt)(struct nvgpu_clk_pmupstate *pclk);
-	u32 (*get_fll_lut_step_size)(struct nvgpu_clk_pmupstate *pclk);
-
-	/* clk_vf_point functions */
-	int (*nvgpu_clk_vf_point_cache)(struct gk20a *g);
-};
-
-typedef u32 vin_device_state_load(struct gk20a *g,
-		struct nvgpu_clk_pmupstate *clk, struct nvgpu_vin_device *pdev);
-
-typedef int nvgpu_clkproglink(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
-	struct nvgpu_clk_domain *pdomain);
-
-typedef int nvgpu_clkvfsearch(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
-	struct nvgpu_clk_domain *pdomain, u16 *clkmhz,
-	u32 *voltuv, u8 rail);
-
-typedef int nvgpu_clkgetfpoints(struct gk20a *g,
-	struct nvgpu_clk_pmupstate *pclk, struct nvgpu_clk_domain *pdomain,
-	u32 *pfpointscount, u16 *pfreqpointsinmhz, u8 rail);
-
 struct nvgpu_clk_slave_freq{
 	u16 gpc_mhz;
 	u16 sys_mhz;
@@ -252,7 +193,7 @@ struct nvgpu_clk_slave_freq{
 	u16 nvd_mhz;
 };
 
-int nvgpu_clk_get_fll_clks(struct gk20a *g,
+int clk_get_fll_clks_per_clk_domain(struct gk20a *g,
 		struct nvgpu_set_fll_clk *setfllclk);
 int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
@@ -270,11 +211,14 @@ int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
 u16 nvgpu_pmu_clk_fll_get_min_max_freq(struct gk20a *g);
 u32 nvgpu_pmu_clk_fll_get_lut_step_size(struct nvgpu_clk_pmupstate *pclk);
-u32 nvgpu_pmu_clk_fll_get_lut_min_volt(struct nvgpu_clk_pmupstate *pclk);
 int nvgpu_pmu_clk_domain_get_f_points(struct gk20a *g,
 	u32 clkapidomain,
 	u32 *pfpointscount,
 	u16 *pfreqpointsinmhz);
 u8 nvgpu_pmu_clk_domain_update_clk_info(struct gk20a *g,
 		struct ctrl_clk_clk_domain_list *clk_list);
+void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
+		u32 *gpcclk_clkmhz,
+		struct nvgpu_clk_slave_freq *vf_point,
+		struct nvgpu_pmu_perf_change_input_clk_info *change_input);
 #endif /* NVGPU_PMU_CLK_H */

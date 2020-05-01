@@ -34,6 +34,17 @@
 
 #define CLK_CLKMON_VFE_INDEX_INVALID 0xFF
 
+typedef int nvgpu_clkproglink(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
+	struct nvgpu_clk_domain *pdomain);
+
+typedef int nvgpu_clkvfsearch(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
+	struct nvgpu_clk_domain *pdomain, u16 *clkmhz,
+	u32 *voltuv, u8 rail);
+
+typedef int nvgpu_clkgetfpoints(struct gk20a *g,
+	struct nvgpu_clk_pmupstate *pclk, struct nvgpu_clk_domain *pdomain,
+	u32 *pfpointscount, u16 *pfreqpointsinmhz, u8 rail);
+
 struct nvgpu_clk_domain {
 	struct boardobj super;
 	u32 api_domain;

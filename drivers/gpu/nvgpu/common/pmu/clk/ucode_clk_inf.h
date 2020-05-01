@@ -121,6 +121,8 @@
 #define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES	(0x00000001U)
 
+#define CTRL_CLK_CLK_DELTA_MAX_VOLT_RAILS				4U
+
 union ctrl_clk_freq_delta_data {
 	s32 delta_khz;
 	s16 delta_percent;
@@ -259,6 +261,19 @@ struct ctrl_clk_vf_input {
 struct ctrl_clk_vf_output {
 	u32 input_best_match;
 	u32 value;
+};
+
+struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt {
+	/*
+	 * [IN/OUT] Must be first field in RPC structure
+	 */
+	struct nv_pmu_rpc_header hdr;
+	u8 clk_domain_idx;
+	u8 volt_rail_idx;
+	u8 voltage_type;
+	struct ctrl_clk_vf_input input;
+	struct ctrl_clk_vf_output output;
+	u32 scratch[1];
 };
 
 /*

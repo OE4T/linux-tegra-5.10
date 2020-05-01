@@ -149,7 +149,7 @@ int clk_prog_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	status = g->pmu->clk_pmu->clk_domain_clk_prog_link(g, g->pmu->clk_pmu);
+	status = clk_domain_clk_prog_link(g, g->pmu->clk_pmu);
 	if (status != 0) {
 		nvgpu_err(g, "error constructing VF point board objects");
 		goto done;
@@ -1060,11 +1060,11 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 
 		case CTRL_CLK_PROG_1X_SOURCE_FLL:
 			voltage_min_uv =
-				g->pmu->clk_pmu->get_fll_lut_min_volt(pclk);
+				nvgpu_pmu_clk_fll_get_lut_min_volt(pclk);
 			voltage_step_size_uv =
-				g->pmu->clk_pmu->get_fll_lut_step_size(pclk);
-			step_count = g->pmu->clk_pmu->
-				get_fll_lut_vf_num_entries(pclk);
+				nvgpu_pmu_clk_fll_get_lut_step_size(pclk);
+			step_count =
+					clk_get_fll_lut_vf_num_entries(pclk);
 
 			/* FLL sources use a voltage-based VF_POINT.*/
 			vf_point_data.board_obj.type =

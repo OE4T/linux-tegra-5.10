@@ -185,7 +185,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 				arb->gpc2clk_f_points[i];
 			setfllclk.gpc2clkmhz = arb->gpc2clk_f_points[i];
 
-			status = nvgpu_clk_get_fll_clks(g, &setfllclk);
+			status = clk_get_fll_clks_per_clk_domain(g, &setfllclk);
 			if (status < 0) {
 				nvgpu_err(g,
 					"failed to get GPC2CLK slave clocks");
@@ -237,7 +237,7 @@ static void nvgpu_clk_arb_run_vf_table_cb(struct nvgpu_clk_arb *arb)
 	int err;
 
 	/* get latest vf curve from pmu */
-	err = g->pmu->clk_pmu->nvgpu_clk_vf_point_cache(g);
+	err = nvgpu_clk_vf_point_cache(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to cache VF table");
 		nvgpu_clk_arb_set_global_alarm(g,

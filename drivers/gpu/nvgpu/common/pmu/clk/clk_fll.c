@@ -47,7 +47,7 @@ static int fll_device_init_pmudata_super(struct gk20a *g,
 
 static u32 clk_get_vbios_clk_domain(u32 vbios_domain);
 
-static u8 clk_get_fll_lut_vf_num_entries(struct nvgpu_clk_pmupstate *pclk)
+u8 clk_get_fll_lut_vf_num_entries(struct nvgpu_clk_pmupstate *pclk)
 {
 	return ((pclk)->avfs_fllobjs->lut_num_entries);
 }
@@ -268,7 +268,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 	u32 index = 0;
 	struct fll_device fll_dev_data;
 	struct fll_device *pfll_dev;
-	struct nvgpu_vin_device *pvin_dev;
+	struct clk_vin_device *pvin_dev;
 	u32 desctablesize;
 	u32 vbios_domain = NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP;
 	struct nvgpu_avfsvinobjs *pvinobjs = g->pmu->clk_pmu->avfs_vinobjs;
@@ -322,7 +322,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 
 		if ((u8)fll_desc_table_entry.vin_idx_logic !=
 				CTRL_CLK_VIN_ID_UNDEFINED) {
-			pvin_dev = g->pmu->clk_pmu->clk_get_vin(pvinobjs,
+			pvin_dev = clk_get_vin_from_index(pvinobjs,
 					(u8)fll_desc_table_entry.vin_idx_logic);
 			if (pvin_dev == NULL) {
 				return -EINVAL;
@@ -340,7 +340,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 
 		if ((u8)fll_desc_table_entry.vin_idx_sram !=
 				CTRL_CLK_VIN_ID_UNDEFINED) {
-			pvin_dev = g->pmu->clk_pmu->clk_get_vin(pvinobjs,
+			pvin_dev = clk_get_vin_from_index(pvinobjs,
 					(u8)fll_desc_table_entry.vin_idx_sram);
 			if (pvin_dev == NULL) {
 				return -EINVAL;
@@ -544,57 +544,6 @@ static int fll_device_init_pmudata_super(struct gk20a *g,
 	return status;
 }
 
-static u8 find_regime_id(struct gk20a *g, u32 domain, u16 clkmhz)
-{
-	struct fll_device *pflldev;
-	u8 j;
-	struct nvgpu_clk_pmupstate *pclk = g->pmu->clk_pmu;
-
-	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs->super.super),
-		struct fll_device *, pflldev, j) {
-		if (pflldev->clk_domain == domain) {
-			if (pflldev->regime_desc.fixed_freq_regime_limit_mhz >=
-							clkmhz) {
-				return CTRL_CLK_FLL_REGIME_ID_FFR;
-			} else {
-				return CTRL_CLK_FLL_REGIME_ID_FR;
-			}
-		}
-	}
-	return CTRL_CLK_FLL_REGIME_ID_INVALID;
-}
-
-static int set_regime_id(struct gk20a *g, u32 domain, u8 regimeid)
-{
-	struct fll_device *pflldev;
-	u8 j;
-	struct nvgpu_clk_pmupstate *pclk = g->pmu->clk_pmu;
-
-	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs->super.super),
-		struct fll_device *, pflldev, j) {
-		if (pflldev->clk_domain == domain) {
-			pflldev->regime_desc.regime_id = regimeid;
-			return 0;
-		}
-	}
-	return -EINVAL;
-}
-
-static int get_regime_id(struct gk20a *g, u32 domain, u8 *regimeid)
-{
-	struct fll_device *pflldev;
-	u8 j;
-	struct nvgpu_clk_pmupstate *pclk = g->pmu->clk_pmu;
-
-	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs->super.super),
-		struct fll_device *, pflldev, j) {
-		if (pflldev->clk_domain == domain) {
-			*regimeid = pflldev->regime_desc.regime_id;
-			return 0;
-		}
-	}
-	return -EINVAL;
-}
 
 u8 nvgpu_pmu_clk_fll_get_fmargin_idx(struct gk20a *g)
 {
@@ -629,16 +578,6 @@ int clk_fll_init_pmupstate(struct gk20a *g)
 	if (g->pmu->clk_pmu->avfs_fllobjs == NULL) {
 		return -ENOMEM;
 	}
-
-	g->pmu->clk_pmu->find_regime_id = find_regime_id;
-	g->pmu->clk_pmu->get_regime_id = get_regime_id;
-	g->pmu->clk_pmu->set_regime_id = set_regime_id;
-	g->pmu->clk_pmu->get_fll_lut_vf_num_entries =
-			clk_get_fll_lut_vf_num_entries;
-	g->pmu->clk_pmu->get_fll_lut_min_volt =
-			nvgpu_pmu_clk_fll_get_lut_min_volt;
-	g->pmu->clk_pmu->get_fll_lut_step_size =
-			nvgpu_pmu_clk_fll_get_lut_step_size;
 
 	return 0;
 }

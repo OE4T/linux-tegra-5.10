@@ -26,6 +26,30 @@
 #include <nvgpu/boardobjgrp_e255.h>
 #include "ucode_clk_inf.h"
 
+#define CTRL_CLK_FLL_REGIME_ID_INVALID			((u8)0x00000000)
+#define CTRL_CLK_FLL_REGIME_ID_FFR			((u8)0x00000001)
+#define CTRL_CLK_FLL_REGIME_ID_FR			((u8)0x00000002)
+
+#define CTRL_CLK_FLL_LUT_VSELECT_LOGIC			(0x00000000U)
+#define CTRL_CLK_FLL_LUT_VSELECT_MIN			(0x00000001U)
+#define CTRL_CLK_FLL_LUT_VSELECT_SRAM			(0x00000002U)
+
+#define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_HW_REQ		(0x00000000U)
+#define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_MIN		(0x00000001U)
+#define CTRL_CLK_VIN_SW_OVERRIDE_VIN_USE_SW_REQ		(0x00000003U)
+
+#define CTRL_CLK_VIN_STEP_SIZE_UV			(6250U)
+#define CTRL_CLK_LUT_MIN_VOLTAGE_UV			(450000U)
+#define CTRL_CLK_FLL_TYPE_DISABLED			(0U)
+
+struct nvgpu_clk_pmupstate {
+	struct nvgpu_avfsvinobjs *avfs_vinobjs;
+	struct clk_avfs_fll_objs *avfs_fllobjs;
+	struct nvgpu_clk_domains *clk_domainobjs;
+	struct nvgpu_clk_progs *clk_progobjs;
+	struct nvgpu_clk_vf_points *clk_vf_pointobjs;
+};
+
 struct clk_vf_point {
 	struct boardobj super;
 	u8  vfe_equ_idx;
@@ -50,4 +74,11 @@ struct nvgpu_clk_vf_points {
 
 struct clk_vf_point *nvgpu_construct_clk_vf_point(struct gk20a *g,
 	void *pargs);
-#endif /* NVGPU_CLK_H */
+
+u32 nvgpu_pmu_clk_fll_get_lut_min_volt(struct nvgpu_clk_pmupstate *pclk);
+u8 clk_get_fll_lut_vf_num_entries(struct nvgpu_clk_pmupstate *pclk);
+struct clk_vin_device *clk_get_vin_from_index(
+		struct nvgpu_avfsvinobjs *pvinobjs, u8 idx);
+int clk_domain_clk_prog_link(struct gk20a *g,
+		struct nvgpu_clk_pmupstate *pclk);
+#endif /* NVGPU_CLK_VIN_H */

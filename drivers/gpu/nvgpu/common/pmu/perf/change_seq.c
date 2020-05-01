@@ -250,7 +250,7 @@ int nvgpu_pmu_perf_changeseq_set_clks(struct gk20a *g,
 	(void) memset(&change_input, 0,
 		sizeof(struct ctrl_perf_change_seq_change_input));
 
-	g->pmu->clk_pmu->set_p0_clks(g, &gpcclk_domain, &gpcclk_clkmhz,
+	clk_set_p0_clk_per_domain(g, &gpcclk_domain, &gpcclk_clkmhz,
 			vf_point, &change_input.clk);
 
 	change_input.pstate_index =
