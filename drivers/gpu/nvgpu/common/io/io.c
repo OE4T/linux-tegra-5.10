@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
 
 #include <nvgpu/io.h>
 #include <nvgpu/types.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 
 void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v)
@@ -31,7 +32,8 @@ void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v)
 	nvgpu_writel(g, r, v);
 	read_val = nvgpu_readl(g, r);
 	if (v != read_val) {
-		nvgpu_log(g, gpu_dbg_reg, "r=0x%x rd=0x%x wr=0x%x (mismatch)",
+		nvgpu_err(g, "r=0x%x rd=0x%x wr=0x%x (mismatch)",
 					r, read_val, v);
+		BUG_ON(1);
 	}
 }

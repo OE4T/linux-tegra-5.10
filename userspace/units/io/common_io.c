@@ -26,6 +26,7 @@
 #include <include/nvgpu/posix/io.h>
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
+#include <nvgpu/bug.h>
 
 #include "common_io.h"
 
@@ -56,7 +57,7 @@ int test_writel_check(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* Value 0 will force to fail readback call as read API returns
 	 * NVGPU_READ_VAL. */
-	nvgpu_writel_check(g, USER_MODE_BASE, 0);
+	EXPECT_BUG(nvgpu_writel_check(g, USER_MODE_BASE, 0));
 
 	/* Value NVGPU_READ_VAL will pass the readback call as read API returns
 	 * NVGPU_READ_VAL. */
