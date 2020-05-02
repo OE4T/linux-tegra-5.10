@@ -376,6 +376,10 @@ struct osi_hw_features {
 	/** It is set to 1 when 10/100 Mbps is selected as the Mode of
 	 * Operation */
 	unsigned int mii_sel;
+	/** It is set to 1 when the RGMII Interface option is selected */
+	unsigned int rgmii_sel;
+	/** It is set to 1 when the RMII Interface option is selected */
+	unsigned int rmii_sel;
 	/** It sets to 1 when 1000 Mbps is selected as the Mode of Operation */
 	unsigned int gmii_sel;
 	/** It sets to 1 when the half-duplex mode is selected */
@@ -414,7 +418,7 @@ struct osi_hw_features {
 	unsigned int rx_coe_sel;
 	/** It sets to 1 when the Enable Additional 1-31 MAC Address Registers
 	 * option is selected */
-	unsigned int mac_addr16_sel;
+	unsigned int mac_addr_sel;
 	/** It sets to 1 when the Enable Additional 32-63 MAC Address Registers
 	 * option is selected */
 	unsigned int mac_addr32_sel;
@@ -495,6 +499,8 @@ struct osi_hw_features {
 	unsigned int dma_debug_gen;
 	/** It sets to 1 if AV Feature Enabled */
 	unsigned int av_sel;
+	/** It sets to 1 if Receive side AV Feature Enabled */
+	unsigned int rav_sel;
 	/** This field indicates the size of the hash table:
 	 * 00: No hash table
 	 * 01: 64
@@ -537,6 +543,140 @@ struct osi_hw_features {
 	 * 100: 4 auxiliary inputs
 	 * 101-111: Reserved */
 	unsigned int aux_snap_num;
+	/** VxLAN/NVGRE Support */
+	unsigned int vxn;
+	/** Enhanced DMA.
+	 * This bit is set to 1 when the "Enhanced DMA" option is
+	 * selected. */
+	unsigned int edma;
+	/** Different Descriptor Cache
+	 * When set to 1, then EDMA mode Separate Memory is
+	 * selected for the Descriptor Cache.*/
+	unsigned int ediffc;
+	/** PFC Enable
+	 * This bit is set to 1 when the Enable PFC Feature is selected */
+	unsigned int pfc_en;
+	/** One-Step Timestamping Enable */
+	unsigned int ost_en;
+	/** PTO Offload Enable */
+	unsigned int pto_en;
+	/** Receive Side Scaling Enable */
+	unsigned int rss_en;
+	/** Number of Traffic Classes */
+	unsigned int num_tc;
+	/** Number of Extended VLAN Tag Filters Enabled */
+	unsigned int num_vlan_filters;
+	/** Supported Flexible Receive Parser.
+	 * This bit is set to 1 when the Enable Flexible Programmable
+	 * Receive Parser option is selected */
+	unsigned int frp_sel;
+	/** Queue/Channel based VLAN tag insertion on Tx Enable
+	 * This bit is set to 1 when the Enable Queue/Channel based
+	 * VLAN tag insertion on Tx Feature is selected. */
+	unsigned int cbti_sel;
+	/** Supported Parallel Instruction Processor Engines (PIPEs)
+	 * This field indicates the maximum number of Instruction
+	 * Processors supported by flexible receive parser. */
+	unsigned int num_frp_pipes;
+	/** One Step for PTP over UDP/IP Feature Enable
+	 * This bit is set to 1 when the Enable One step timestamp for
+	 * PTP over UDP/IP feature is selected */
+	unsigned int ost_over_udp;
+	/** Supported Flexible Receive Parser Parsable Bytes
+	 * This field indicates the supported Max Number of bytes of the
+	 * packet data to be Parsed by Flexible Receive Parser */
+	unsigned int max_frp_bytes;
+	/** Supported Flexible Receive Parser Instructions
+	 * This field indicates the Max Number of Parser Instructions
+	 * supported by Flexible Receive Parser */
+	unsigned int max_frp_entries;
+	/** Double VLAN Processing Enabled
+	 * This bit is set to 1 when the Enable Double VLAN Processing
+	 * feature is selected */
+	unsigned int double_vlan_en;
+	/** Automotive Safety Package
+	 * Following are the encoding for the different Safety features
+	 * Values:
+	 * 0x0 (NONE): No Safety features selected
+	 * 0x1 (ECC_ONLY): Only "ECC protection for external
+	 * memory" feature is selected
+	 * 0x2 (AS_NPPE): All the Automotive Safety features are
+	 * selected without the "Parity Port Enable for external interface"
+	 * feature
+	 * 0x3 (AS_PPE): All the Automotive Safety features are
+	 * selected with the "Parity Port Enable for external interface"
+	 * feature */
+	unsigned int auto_safety_pkg;
+	/** Tx Timestamp FIFO Depth
+	 * This value indicates the depth of the Tx Timetamp FIFO
+	 * 3'b000: Reserved
+	 * 3'b001: 1
+	 * 3'b010: 2
+	 * 3'b011: 4
+	 * 3'b100: 8
+	 * 3'b101: 16
+	 * 3'b110: Reserved
+	 * 3'b111: Reserved */
+	unsigned int tts_fifo_depth;
+	/** Enhancements to Scheduling Traffic Enable
+	 * This bit is set to 1 when the Enable Enhancements to
+	 * Scheduling Traffic feature is selected.
+	 * Values:
+	 * 0x0 (INACTIVE): Enable Enhancements to Scheduling
+	 * Traffic feature is not selected
+	 * 0x1 (ACTIVE): Enable Enhancements to Scheduling
+	 * Traffic feature is selected */
+	unsigned int est_sel;
+	/** Depth of the Gate Control List
+	 * This field indicates the depth of Gate Control list expressed as
+	 * Log2(DWCXG_GCL_DEP)-5
+	 * Values:
+	 * 0x0 (NODEPTH): No Depth configured
+	 * 0x1 (DEPTH64): 64
+	 * 0x2 (DEPTH128): 128
+	 * 0x3 (DEPTH256): 256
+	 * 0x4 (DEPTH512): 512
+	 * 0x5 (DEPTH1024): 1024
+	 * 0x6 (RSVD): Reserved */
+	unsigned int gcl_depth;
+	/** Width of the Time Interval field in the Gate Control List
+	 * This field indicates the width of the Configured Time Interval
+	 * Field
+	 * Values:
+	 * 0x0 (NOWIDTH): Width not configured
+	 * 0x1 (WIDTH16): 16
+	 * 0x2 (WIDTH20): 20
+	 * 0x3 (WIDTH24): 24 */
+	unsigned int gcl_width;
+	/** Frame Preemption Enable
+	 * This bit is set to 1 when the Enable Frame preemption feature
+	 * is selected.
+	 * Values:
+	 * 0x0 (INACTIVE): Frame Preemption Enable feature is not
+	 * selected
+	 * 0x1 (ACTIVE): Frame Preemption Enable feature is
+	 * selected */
+	unsigned int fpe_sel;
+	/** Time Based Scheduling Enable
+	 * This bit is set to 1 when the Time Based Scheduling feature is
+	 * selected.
+	 * Values:
+	 * 0x0 (INACTIVE): Time Based Scheduling Enable feature is
+	 * not selected
+	 * 0x1 (ACTIVE): Time Based Scheduling Enable feature is
+	 * selected */
+	unsigned int tbs_sel;
+	/** The number of DMA channels enabled for TBS (starting from
+	 * the highest Tx Channel in descending order)
+	 * This field provides the number of DMA channels enabled for
+	 * TBS (starting from the highest Tx Channel in descending
+	 * order):
+	 * 0000: 1 DMA Tx Channel enabled for TBS
+	 * 0001: 2 DMA Tx Channels enabled for TBS
+	 * 0010: 3 DMA Tx Channels enabled for TBS
+	 * ...
+	 * 1111: 16 DMA Tx Channels enabled for TBS */
+	unsigned int num_tbs_ch;
 };
 
 /**
