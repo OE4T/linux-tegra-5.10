@@ -60,7 +60,7 @@ void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 		((mac_hfr0 >> 14U) & EQOS_MAC_HFR0_TXCOESEL_MASK);
 	hw_feat->rx_coe_sel =
 		((mac_hfr0 >> 16U) & EQOS_MAC_HFR0_RXCOE_MASK);
-	hw_feat->mac_addr16_sel =
+	hw_feat->mac_addr_sel =
 		((mac_hfr0 >> 18U) & EQOS_MAC_HFR0_ADDMACADRSEL_MASK);
 	hw_feat->mac_addr32_sel =
 		((mac_hfr0 >> 23U) & EQOS_MAC_HFR0_MACADR32SEL_MASK);
