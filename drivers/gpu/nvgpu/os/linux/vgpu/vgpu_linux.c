@@ -23,7 +23,12 @@
 #include <linux/pm_qos.h>
 #include <linux/platform_device.h>
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #endif
 
 #include <nvgpu/kmem.h>

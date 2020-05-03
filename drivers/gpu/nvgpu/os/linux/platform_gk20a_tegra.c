@@ -43,7 +43,12 @@
 
 #include <linux/platform/tegra/tegra_emc.h>
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #endif
 
 #include <nvgpu/kmem.h>
@@ -857,7 +862,12 @@ static int gk20a_tegra_probe(struct device *dev)
 		}
 		platform->g->clk.gpc_pll.id = GM20B_GPC_PLL_B1;
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 		if (tegra_chip_get_revision() > TEGRA210_REVISION_A04p)
+#else
+		if (tegra_get_chip_id() == TEGRA210 &&
+		    tegra_chip_get_revision() > TEGRA_REVISION_A04p)
+#endif
 			platform->g->clk.gpc_pll.id = GM20B_GPC_PLL_C1;
 #endif
 	}

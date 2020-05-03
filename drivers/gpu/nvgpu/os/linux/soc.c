@@ -11,7 +11,10 @@
  * more details.
  */
 
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <soc/tegra/chip-id.h>
+#endif
 #include <soc/tegra/fuse.h>
 #include <soc/tegra/tegra_bpmp.h>
 #ifdef CONFIG_TEGRA_HV_MANAGER
@@ -53,7 +56,7 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 
 	return ((platform->platform_chip_id == TEGRA_194 &&
-			tegra_chip_get_revision() == TEGRA194_REVISION_A01) ?
+			tegra_chip_get_revision() == TEGRA_REVISION_A01) ?
 		true : false);
 }
 
