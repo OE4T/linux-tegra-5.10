@@ -14,7 +14,12 @@
 #include <linux/types.h>
 #include <linux/platform/tegra/mc.h>
 #include <linux/platform/tegra/mc_utils.h>
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #define BYTES_PER_CLK_PER_CH	4
 #define CH_16			16

@@ -17,7 +17,12 @@
 #include <linux/tegra-mce.h>
 
 #include <asm/smp_plat.h>
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 #include <asm/cacheflush.h>
 #include <linux/platform/tegra/tegra19x_cache.h>
 
