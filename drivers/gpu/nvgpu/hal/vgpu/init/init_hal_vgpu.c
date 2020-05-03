@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,10 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "nvgpu_next_gpuid.h"
+#endif
+
 #include "init_hal_vgpu.h"
 #include "vgpu_hal_gp10b.h"
 #include "vgpu_hal_gv11b.h"
@@ -44,6 +48,11 @@ int vgpu_init_hal(struct gk20a *g)
 	case NVGPU_GPUID_GV11B:
 		err = vgpu_gv11b_init_hal(g);
 		break;
+#ifdef CONFIG_NVGPU_NEXT
+	case NVGPU_NEXT_GPUID:
+		err = NVGPU_NEXT_VGPU_INIT_HAL(g);
+		break;
+#endif
 #endif
 	default:
 		nvgpu_err(g, "no support for %x", ver);

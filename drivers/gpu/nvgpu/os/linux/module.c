@@ -731,6 +731,10 @@ static struct of_device_id tegra_gk20a_of_match[] = {
 #if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
 	{ .compatible = NVGPU_NEXT_COMPATIBLE,
 		.data = &NVGPU_NEXT_PLATFORM},
+#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
+	{ .compatible = NVGPU_NEXT_COMPATIBLE_VGPU,
+		.data = &NVGPU_NEXT_PLATFORM_VGPU},
+#endif
 #endif
 #endif
 	{ },

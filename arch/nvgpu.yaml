@@ -58,7 +58,7 @@ nvgpu:
     hal-vgpu:
       safe: yes
       children:
-        !include nvgpu-hal-vgpu.yaml
+        !include nvgpu-hal-vgpu.yaml nvgpu-next-hal-vgpu.yaml
 
     # A meta-element for the GPU HW. A good example of this is the HW headers.
     # This is not code we write in nvgpu, but we import it from the GPU HW

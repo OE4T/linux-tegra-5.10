@@ -211,6 +211,7 @@ timers:
 vgpu:
   sources: [ os/linux/vgpu/fecs_trace_vgpu_linux.c,
              os/linux/vgpu/gv11b/platform_gv11b_vgpu_tegra.c,
+             os/linux/vgpu/gv11b/platform_gv11b_vgpu_tegra.h,
              os/linux/vgpu/platform_vgpu_tegra.c,
              os/linux/vgpu/platform_vgpu_tegra.h,
              os/linux/vgpu/sysfs_vgpu.c,

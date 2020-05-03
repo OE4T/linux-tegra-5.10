@@ -27,7 +27,7 @@
 #include "os/linux/vgpu/vgpu_linux.h"
 #include "os/linux/vgpu/platform_vgpu_tegra.h"
 
-static int gv11b_vgpu_probe(struct device *dev)
+int gv11b_vgpu_probe(struct device *dev)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
