@@ -294,6 +294,8 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 	ndev->stats.rx_packets++;
 	rx_swcx->buf_virt_addr = NULL;
 	rx_swcx->buf_phy_addr = 0;
+	/* mark packet is processed */
+	rx_swcx->flags |= OSI_RX_SWCX_PROCESSED;
 
 	if (osi_get_refill_rx_desc_cnt(rx_ring) >= 16U)
 		ether_realloc_rx_skb(pdata, rx_ring, chan);
