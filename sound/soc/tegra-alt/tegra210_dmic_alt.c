@@ -74,7 +74,7 @@ static int tegra210_dmic_runtime_suspend(struct device *dev)
 	regcache_cache_only(dmic->regmap, true);
 	regcache_mark_dirty(dmic->regmap);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga()))
+	if (!(tegra_platform_is_fpga()))
 		clk_disable_unprepare(dmic->clk_dmic);
 
 	return 0;
@@ -85,7 +85,7 @@ static int tegra210_dmic_runtime_resume(struct device *dev)
 	struct tegra210_dmic *dmic = dev_get_drvdata(dev);
 	int ret;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		ret = clk_prepare_enable(dmic->clk_dmic);
 		if (ret) {
 			dev_err(dev, "clk_enable failed: %d\n", ret);
@@ -159,7 +159,7 @@ static int tegra210_dmic_hw_params(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
-	if ((tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if ((tegra_platform_is_fpga())) {
 		program_dmic_gpio();
 		program_dmic_clk(dmic_clk);
 	} else {
@@ -558,7 +558,7 @@ static int tegra210_dmic_platform_probe(struct platform_device *pdev)
 	dmic->ch_select = DMIC_CH_SELECT_STEREO;
 	dev_set_drvdata(&pdev->dev, dmic);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		dmic->clk_dmic = devm_clk_get(&pdev->dev, "dmic");
 		if (IS_ERR(dmic->clk_dmic)) {
 			dev_err(&pdev->dev, "Can't retrieve dmic clock\n");

@@ -3118,7 +3118,7 @@ static int tegra210_adsp_runtime_suspend(struct device *dev)
 
 	adsp->adsp_started = 0;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		if (!adsp->soc_data->is_soc_t210)
 			clk_disable_unprepare(adsp->apb2ape_clk);
 		clk_disable_unprepare(adsp->ahub_clk);
@@ -3141,7 +3141,7 @@ static int tegra210_adsp_runtime_resume(struct device *dev)
 	if (!adsp->init_done || adsp->adsp_started)
 		goto exit;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		ret = clk_prepare_enable(adsp->ahub_clk);
 		if (ret < 0) {
 			dev_err(dev, "ahub clk_enable failed: %d\n", ret);
@@ -5594,7 +5594,7 @@ static int tegra210_adsp_audio_platform_probe(struct platform_device *pdev)
 	adsp->soc_data = (struct adsp_soc_data *)match->data;
 
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		adsp->ahub_clk = devm_clk_get(&pdev->dev, "ahub");
 		if (IS_ERR(adsp->ahub_clk)) {
 			dev_err(&pdev->dev, "Error: Missing AHUB clock\n");

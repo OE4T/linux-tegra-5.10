@@ -2179,8 +2179,6 @@ static INT set_gmii_speed(struct eqos_prv_data *pdata)
 
 	MAC_MCR_PS_WR(0);
 	MAC_MCR_FES_WR(0);
-	if (tegra_platform_is_unit_fpga())
-		CLK_CRTL0_TX_CLK_WR(0);
 
 	return Y_SUCCESS;
 }
@@ -2198,8 +2196,6 @@ static INT set_mii_speed_10(struct eqos_prv_data *pdata)
 
 	MAC_MCR_PS_WR(0x1);
 	MAC_MCR_FES_WR(0);
-	if (tegra_platform_is_unit_fpga())
-		CLK_CRTL0_TX_CLK_WR(1);
 
 	return Y_SUCCESS;
 }
@@ -2217,8 +2213,6 @@ static INT set_mii_speed_100(struct eqos_prv_data *pdata)
 
 	MAC_MCR_PS_WR(0x1);
 	MAC_MCR_FES_WR(0x1);
-	if (tegra_platform_is_unit_fpga())
-		CLK_CRTL0_TX_CLK_WR(0);
 
 	return Y_SUCCESS;
 }
@@ -3163,9 +3157,6 @@ static INT eqos_pad_calibrate(struct eqos_prv_data *pdata)
 	int ret;
 	int i;
 	u32 hwreg;
-
-	if (tegra_platform_is_unit_fpga())
-		return 0;
 
 	pr_debug("-->%s()\n", __func__);
 

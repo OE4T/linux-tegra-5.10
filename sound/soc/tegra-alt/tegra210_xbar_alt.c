@@ -1264,7 +1264,7 @@ static int tegra_xbar_runtime_suspend(struct device *dev)
 	regcache_cache_only(xbar->regmap, true);
 	regcache_mark_dirty(xbar->regmap);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga()))
+	if (!(tegra_platform_is_fpga()))
 		clk_disable_unprepare(xbar->clk);
 
 	return 0;
@@ -1275,7 +1275,7 @@ static int tegra_xbar_runtime_resume(struct device *dev)
 	struct tegra_xbar *xbar = dev_get_drvdata(dev);
 	int ret;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		ret = clk_prepare_enable(xbar->clk);
 		if (ret) {
 			dev_err(dev, "clk_prepare_enable failed: %d\n", ret);
@@ -1313,7 +1313,7 @@ static int tegra_xbar_probe(struct platform_device *pdev)
 
 	dev_set_drvdata(&pdev->dev, xbar);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		xbar->clk = devm_clk_get(&pdev->dev, "ahub");
 		if (IS_ERR(xbar->clk)) {
 			dev_err(&pdev->dev, "Can't retrieve ahub clock\n");

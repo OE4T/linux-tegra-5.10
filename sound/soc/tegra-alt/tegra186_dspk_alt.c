@@ -94,7 +94,7 @@ static int tegra186_dspk_runtime_suspend(struct device *dev)
 	regcache_cache_only(dspk->regmap, true);
 	regcache_mark_dirty(dspk->regmap);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga()))
+	if (!(tegra_platform_is_fpga()))
 		clk_disable_unprepare(dspk->clk_dspk);
 
 	return 0;
@@ -105,7 +105,7 @@ static int tegra186_dspk_runtime_resume(struct device *dev)
 	struct tegra186_dspk *dspk = dev_get_drvdata(dev);
 	int ret;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		ret = clk_prepare_enable(dspk->clk_dspk);
 		if (ret) {
 			dev_err(dev, "clk_enable failed: %d\n", ret);
@@ -191,7 +191,7 @@ static int tegra186_dspk_hw_params(struct snd_pcm_substream *substream,
 	srate = params_rate(params);
 	dspk_clk = (1 << (5+osr)) * srate * interface_clk_ratio;
 
-	if ((tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if ((tegra_platform_is_fpga())) {
 		program_dspk_clk(dspk_clk);
 	} else {
 		ret = clk_set_rate(dspk->clk_dspk, dspk_clk);
@@ -443,7 +443,7 @@ static int tegra186_dspk_platform_probe(struct platform_device *pdev)
 	dspk->osr_val = TEGRA186_DSPK_OSR_64;
 	dev_set_drvdata(&pdev->dev, dspk);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		dspk->clk_dspk = devm_clk_get(&pdev->dev, "dspk");
 		if (IS_ERR(dspk->clk_dspk)) {
 			dev_err(&pdev->dev, "Can't retrieve dspk clock\n");

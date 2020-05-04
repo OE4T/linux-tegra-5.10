@@ -325,7 +325,7 @@ static int tegra210_adx_in_hw_params(struct snd_pcm_substream *substream,
 	struct tegra210_adx *adx = snd_soc_dai_get_drvdata(dai);
 	int channels;
 
-	if (tegra_platform_is_unit_fpga() || tegra_platform_is_fpga()) {
+	if (tegra_platform_is_fpga()) {
 		/* update the map ram */
 		tegra210_adx_update_map_ram(adx);
 		tegra210_adx_set_in_byte_mask(adx);

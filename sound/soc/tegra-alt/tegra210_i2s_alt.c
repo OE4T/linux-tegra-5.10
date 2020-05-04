@@ -83,7 +83,7 @@ static int tegra210_i2s_set_clock_rate(struct device *dev, int clock_rate)
 		return 0;
 
 	/* skip for fpga units */
-	if (tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())
+	if (tegra_platform_is_fpga())
 		return 0;
 
 	ret = clk_set_rate(i2s->clk_i2s, clock_rate);
@@ -202,7 +202,7 @@ static int tegra210_i2s_runtime_suspend(struct device *dev)
 	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
 
 	regcache_cache_only(i2s->regmap, true);
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		regcache_mark_dirty(i2s->regmap);
 		clk_disable_unprepare(i2s->clk_i2s);
 	}
@@ -215,7 +215,7 @@ static int tegra210_i2s_runtime_resume(struct device *dev)
 	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
 	int ret;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		ret = clk_prepare_enable(i2s->clk_i2s);
 		if (ret) {
 			dev_err(dev, "clk_enable failed: %d\n", ret);
@@ -464,7 +464,7 @@ static int tegra210_i2s_startup(struct snd_pcm_substream *substream,
 	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
 	int ret;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga()) &&
+	if (!(tegra_platform_is_fpga()) &&
 							!i2s->loopback) {
 		if (i2s->prod_name != NULL) {
 			ret = tegra_pinctrl_config_prod(dev, i2s->prod_name);
@@ -492,7 +492,7 @@ static void tegra210_i2s_shutdown(struct snd_pcm_substream *substream,
 	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
 	int ret;
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		if (i2s->num_supplies > 0) {
 			ret = regulator_bulk_disable(i2s->num_supplies,
 								i2s->supplies);
@@ -1078,7 +1078,7 @@ static int tegra210_i2s_platform_probe(struct platform_device *pdev)
 	i2s->rx_fifo_th = 3;
 	dev_set_drvdata(&pdev->dev, i2s);
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		i2s->clk_i2s = devm_clk_get(&pdev->dev, "i2s");
 		if (IS_ERR(i2s->clk_i2s)) {
 			dev_err(&pdev->dev, "Can't retrieve i2s clock\n");
@@ -1109,7 +1109,7 @@ static int tegra210_i2s_platform_probe(struct platform_device *pdev)
 		i2s->bclk_ratio = 1;
 	}
 
-	if (!(tegra_platform_is_unit_fpga() || tegra_platform_is_fpga())) {
+	if (!(tegra_platform_is_fpga())) {
 		if (of_property_read_string(np, "prod-name",
 					    &i2s->prod_name) == 0)
 			tegra_pinctrl_config_prod(&pdev->dev, i2s->prod_name);

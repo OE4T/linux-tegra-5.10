@@ -374,7 +374,7 @@ static int tegra210_amx_out_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_soc_dai *dai)
 {
 	int ret;
-	if (tegra_platform_is_unit_fpga() || tegra_platform_is_fpga()) {
+	if (tegra_platform_is_fpga()) {
 		/* update map ram */
 		struct tegra210_amx *amx = snd_soc_dai_get_drvdata(dai);
 		tegra210_amx_set_master_stream(amx, 0,

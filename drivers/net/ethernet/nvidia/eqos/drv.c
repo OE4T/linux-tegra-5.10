@@ -242,8 +242,7 @@ void handle_non_ti_ri_chan_intrs(struct eqos_prv_data *pdata, int qinx)
 	/* process only those interrupts which we
 	 * have enabled.
 	 */
-	if (!(tegra_platform_is_unit_fpga()))
-		dma_sr = (dma_sr & dma_ier);
+	dma_sr = (dma_sr & dma_ier);
 
 	/* mask off ri and ti */
 	dma_sr &= ~(((0x1) << 6) | 1);
@@ -256,9 +255,6 @@ void handle_non_ti_ri_chan_intrs(struct eqos_prv_data *pdata, int qinx)
 
 	if ((GET_VALUE(dma_sr, DMA_SR_RBU_LPOS, DMA_SR_RBU_HPOS) & 1))
 		pdata->xstats.rx_buf_unavailable_irq_n[qinx]++;
-
-	if (tegra_platform_is_unit_fpga())
-		dma_sr = (dma_sr & dma_ier);
 
 	if (GET_VALUE(dma_sr, DMA_SR_TPS_LPOS, DMA_SR_TPS_HPOS) & 1) {
 		pdata->xstats.tx_process_stopped_irq_n[qinx]++;

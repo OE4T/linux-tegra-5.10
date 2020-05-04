@@ -103,9 +103,6 @@ irqreturn_t EQOS_ISR_SW_EQOS_POWER(int irq, void *device_id)
 	ULONG mac_pmtcsr;
 	ULONG clk_ctrl = 0;
 
-	if (tegra_platform_is_unit_fpga())
-		CLK_CRTL0_RD(clk_ctrl);
-
 	if (clk_ctrl & BIT(31)) {
 		pr_debug("power_isr: phy_intr received\n");
 		return IRQ_NONE;
@@ -1030,71 +1027,65 @@ int eqos_probe(struct platform_device *pdev)
 
 	pdata->num_chans = num_chans;
 	/* PMT and PHY irqs are shared on FPGA system */
-	if (tegra_platform_is_unit_fpga()) {
-		phyirq = power_irq;
-		/* issue sw reset to device */
-		hw_if->exit();
-	} else {
-		/* regulator init */
-		ret = eqos_regulator_init(pdata);
-		if (ret < 0) {
-			dev_err(&pdev->dev,
-				"failed to enable regulator %d\n", ret);
-			goto err_out_regulator_en_failed;
-		}
-
-		/* On silicon the phy_intr line is handled through a wake
-		 * capable GPIO input. DMIC4_CLK is the GPIO input port.
-		 */
-		phyirq = eqos_get_phyirq_from_gpio(pdata);
-		if (phyirq < 0) {
-			dev_info(&pdev->dev, "no PHY interrupt found\n");
-			phyirq = PHY_POLL;
-		}
-
-		/* read phy delays from DT */
-		eqos_get_phy_delays(pdata);
-
-		/* setup PHY reset gpio */
-		ret = eqos_get_phyreset_from_gpio(pdata);
-		if (ret < 0)
-			dev_info(&pdev->dev, "no PHY reset gpio found\n");
-
-		if (gpio_is_valid(pdata->phy_reset_gpio)) {
-			/* reset Broadcom PHY needs minimum of 2us delay */
-			gpio_set_value(pdata->phy_reset_gpio, 0);
-			usleep_range(pdata->phy_reset_duration,
-				     pdata->phy_reset_duration + 1);
-			gpio_set_value(pdata->phy_reset_gpio, 1);
-			msleep(pdata->phy_reset_post_delay);
-		}
-
-		/* CAR reset */
-		pdata->eqos_rst =
-			devm_reset_control_get(&pdev->dev, "eqos_rst");
-		if (IS_ERR_OR_NULL(pdata->eqos_rst)) {
-			ret = PTR_ERR(pdata->eqos_rst);
-			dev_err(&pdev->dev,
-				"failed to get eqos reset %d\n", ret);
-			goto err_out_reset_get_failed;
-		}
-
-		/* clock initialization */
-		ret = eqos_get_clocks(pdata);
-		if (ret < 0) {
-			dev_err(&pdev->dev, "eqos_clock_init failed\n");
-			goto err_out_clock_init_failed;
-		}
-
-		ret = eqos_clock_enable(pdata);
-		if (ret < 0) {
-			dev_err(&pdev->dev, "eqos_clock_enable failed\n");
-			goto err_out_clock_init_failed;
-		}
-
-		/* issue CAR reset to device */
-		hw_if->car_reset(pdata);
+	/* regulator init */
+	ret = eqos_regulator_init(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev,
+			"failed to enable regulator %d\n", ret);
+		goto err_out_regulator_en_failed;
 	}
+
+	/* On silicon the phy_intr line is handled through a wake
+	 * capable GPIO input. DMIC4_CLK is the GPIO input port.
+	 */
+	phyirq = eqos_get_phyirq_from_gpio(pdata);
+	if (phyirq < 0) {
+		dev_info(&pdev->dev, "no PHY interrupt found\n");
+		phyirq = PHY_POLL;
+	}
+
+	/* read phy delays from DT */
+	eqos_get_phy_delays(pdata);
+
+	/* setup PHY reset gpio */
+	ret = eqos_get_phyreset_from_gpio(pdata);
+	if (ret < 0)
+		dev_info(&pdev->dev, "no PHY reset gpio found\n");
+
+	if (gpio_is_valid(pdata->phy_reset_gpio)) {
+		/* reset Broadcom PHY needs minimum of 2us delay */
+		gpio_set_value(pdata->phy_reset_gpio, 0);
+		usleep_range(pdata->phy_reset_duration,
+			     pdata->phy_reset_duration + 1);
+		gpio_set_value(pdata->phy_reset_gpio, 1);
+		msleep(pdata->phy_reset_post_delay);
+	}
+
+	/* CAR reset */
+	pdata->eqos_rst =
+		devm_reset_control_get(&pdev->dev, "eqos_rst");
+	if (IS_ERR_OR_NULL(pdata->eqos_rst)) {
+		ret = PTR_ERR(pdata->eqos_rst);
+		dev_err(&pdev->dev,
+			"failed to get eqos reset %d\n", ret);
+		goto err_out_reset_get_failed;
+	}
+
+	/* clock initialization */
+	ret = eqos_get_clocks(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "eqos_clock_init failed\n");
+		goto err_out_clock_init_failed;
+	}
+
+	ret = eqos_clock_enable(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "eqos_clock_enable failed\n");
+		goto err_out_clock_init_failed;
+	}
+
+	/* issue CAR reset to device */
+	hw_if->car_reset(pdata);
 	pr_debug("phyirq = %d\n", phyirq);
 
 	pdata->prod_list = devm_tegra_prod_get(&pdev->dev);
@@ -1323,17 +1314,6 @@ int eqos_probe(struct platform_device *pdev)
 
 	netif_carrier_off(ndev);
 
-	if (tegra_platform_is_unit_fpga()) {
-		ret = request_irq(power_irq, EQOS_ISR_SW_EQOS_POWER,
-			IRQF_SHARED, DEV_NAME, pdata);
-
-		if (ret != 0) {
-			pr_err("Unable to register PMT IRQ %d\n", power_irq);
-			ret = -EBUSY;
-			goto err_out_pmt_irq_failed;
-		}
-	}
-
 	INIT_WORK(&pdata->fbe_work, eqos_fbe_work);
 	INIT_WORK(&pdata->iso_work, eqos_iso_work);
 
@@ -1345,7 +1325,7 @@ int eqos_probe(struct platform_device *pdev)
 		if (!pdata->isomgr_handle) {
 			dev_err(&pdata->pdev->dev, "EQOS ISO Bandwidth allocation failed\n");
 			ret = -EIO;
-			goto err_isomgr_reg_failed;
+			goto err_out_pmt_irq_failed;
 		}
 	}
 
@@ -1369,13 +1349,6 @@ int eqos_probe(struct platform_device *pdev)
 	if (pdt_cfg->eth_iso_enable)
 		tegra_isomgr_unregister(pdata->isomgr_handle);
 
- err_isomgr_reg_failed:
-	if ((tegra_platform_is_unit_fpga()) &&
-		(pdata->power_irq != 0)) {
-		free_irq(pdata->power_irq, pdata);
-		pdata->power_irq = 0;
-	}
-
  err_out_pmt_irq_failed:
 	unregister_netdev(ndev);
 
@@ -1394,16 +1367,13 @@ int eqos_probe(struct platform_device *pdev)
 
  err_out_q_alloc_failed:
  err_out_pad_calibrate_failed:
-	if (!tegra_platform_is_unit_fpga())
-		eqos_clock_deinit(pdata);
+	eqos_clock_deinit(pdata);
  err_out_clock_init_failed:
-	if (!tegra_platform_is_unit_fpga() &&
-		!IS_ERR_OR_NULL(pdata->eqos_rst)) {
+	if (!IS_ERR_OR_NULL(pdata->eqos_rst)) {
 		reset_control_assert(pdata->eqos_rst);
 	}
  err_out_reset_get_failed:
-	if (!tegra_platform_is_unit_fpga())
-		eqos_regulator_deinit(pdata);
+	eqos_regulator_deinit(pdata);
  err_out_regulator_en_failed:
 	free_netdev(ndev);
 	platform_set_drvdata(pdev, NULL);
@@ -1455,12 +1425,6 @@ int eqos_remove(struct platform_device *pdev)
 	/* free tx skb's */
 	desc_if->tx_skb_free_mem(pdata, EQOS_TX_QUEUE_CNT);
 
-	if ((tegra_platform_is_unit_fpga()) &&
-	    (pdata->power_irq != 0)) {
-		free_irq(pdata->power_irq, pdata);
-		pdata->power_irq = 0;
-	}
-
 	if (pdt_cfg->eth_iso_enable)
 		tegra_isomgr_unregister(pdata->isomgr_handle);
 
@@ -1481,15 +1445,13 @@ int eqos_remove(struct platform_device *pdev)
 
 	desc_if->free_queue_struct(pdata);
 
-	if (!tegra_platform_is_unit_fpga()) {
-		eqos_clock_deinit(pdata);
+	eqos_clock_deinit(pdata);
 
-		if (!IS_ERR_OR_NULL(pdata->eqos_rst))
-			reset_control_assert(pdata->eqos_rst);
-		devm_gpio_free(&pdev->dev, pdata->phy_reset_gpio);
-		devm_gpio_free(&pdev->dev, pdata->phy_intr_gpio);
-		eqos_regulator_deinit(pdata);
-	}
+	if (!IS_ERR_OR_NULL(pdata->eqos_rst))
+		reset_control_assert(pdata->eqos_rst);
+	devm_gpio_free(&pdev->dev, pdata->phy_reset_gpio);
+	devm_gpio_free(&pdev->dev, pdata->phy_intr_gpio);
+	eqos_regulator_deinit(pdata);
 
 	free_netdev(ndev);
 
