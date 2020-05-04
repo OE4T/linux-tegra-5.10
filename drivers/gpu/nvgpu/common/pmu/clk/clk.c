@@ -30,7 +30,6 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pstate.h>
-#include <nvgpu/pmu/perf.h>
 
 #include "ucode_clk_inf.h"
 #include "clk_domain.h"

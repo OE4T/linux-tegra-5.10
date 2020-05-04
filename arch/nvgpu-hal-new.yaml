@@ -145,7 +145,8 @@ clk_mon:
   owner: Ramesh M
   gpu: dgpu
   sources: [ hal/clk/clk_mon_tu104.c,
-             hal/clk/clk_mon_tu104.h ]
+             hal/clk/clk_mon_tu104.h,
+             include/nvgpu/clk_mon.h]
 
 clk_igpu:
   safe: no

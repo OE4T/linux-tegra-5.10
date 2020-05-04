@@ -25,9 +25,9 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/io.h>
 #include <nvgpu/list.h>
-#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/clk_mon.h>
 #include <nvgpu/hw/tu104/hw_trim_tu104.h>
 
 #include "clk_mon_tu104.h"
@@ -35,7 +35,7 @@
  * Mapping between the clk domain and the various clock monitor registers
  * The rows represent clock domains starting from index 0 and column represent
  * the various registers each domain has, non available domains are set to 0
- * for easy accessing, refer nvgpu_pmu_clk_mon_init_domains() for valid domains.
+ * for easy accessing, refer nvgpu_clk_mon_init_domains() for valid domains.
  */
 static  u32 clock_mon_map_tu104[CLK_CLOCK_MON_DOMAIN_COUNT]
 				[CLK_CLOCK_MON_REG_TYPE_COUNT] = {
@@ -189,14 +189,32 @@ bool nvgpu_clk_mon_check_master_fault_status(struct gk20a *g)
 	return false;
 }
 
-int nvgpu_clk_mon_check_status(struct gk20a *g,
-		struct clk_domains_mon_status_params *clk_mon_status,
-		u32 domain_mask)
+int nvgpu_clk_mon_alloc_memory(struct gk20a *g)
+{
+	struct clk_gk20a *clk = &g->clk;
+
+	/* If already allocated, do not re-allocate */
+	if (clk->clk_mon_status != NULL) {
+		return 0;
+	}
+
+	clk->clk_mon_status = nvgpu_kzalloc(g,
+			sizeof(struct clk_domains_mon_status_params));
+	if (clk->clk_mon_status == NULL) {
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+int nvgpu_clk_mon_check_status(struct gk20a *g, u32 domain_mask)
 {
 	u32 reg_address, bit_pos;
 	u32 data;
 	int status;
+	struct clk_domains_mon_status_params *clk_mon_status;
 
+	clk_mon_status = g->clk.clk_mon_status;
 	clk_mon_status->clk_mon_domain_mask = domain_mask;
 	/*
 	 * Parse through each domain and check for faults, each bit set
@@ -277,3 +295,4 @@ bool nvgpu_clk_mon_check_pll_lock(struct gk20a *g)
 	}
 	return false;
 }
+

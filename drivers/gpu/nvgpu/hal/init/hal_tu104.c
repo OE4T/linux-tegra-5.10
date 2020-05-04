@@ -237,6 +237,7 @@
 #include <nvgpu/sbr.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/nvlink.h>
+#include <nvgpu/clk_mon.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 
@@ -1304,13 +1305,18 @@ static const struct gpu_ops tu104_ops = {
 		.get_change_seq_time = tu104_get_change_seq_time,
 #endif
 		.change_host_clk_source = tu104_change_host_clk_source,
-		.clk_mon_check_master_fault_status =
-				nvgpu_clk_mon_check_master_fault_status,
-		.clk_mon_check_status = nvgpu_clk_mon_check_status,
+		.perf_pmu_vfe_load = nvgpu_pmu_perf_load,
 		.clk_mon_init_domains = nvgpu_pmu_clk_mon_init_domains,
+
+	},
+	.clk_mon = {
+		.clk_mon_alloc_memory = nvgpu_clk_mon_alloc_memory,
+		.clk_mon_check_master_fault_status =
+			nvgpu_clk_mon_check_master_fault_status,
+		.clk_mon_check_status = nvgpu_clk_mon_check_status,
 		.clk_mon_check_clk_good = nvgpu_clk_mon_check_clk_good,
 		.clk_mon_check_pll_lock = nvgpu_clk_mon_check_pll_lock,
-		.perf_pmu_vfe_load = nvgpu_pmu_perf_load,
+
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB
 	.clk_arb = {
@@ -1688,6 +1694,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->clk.get_crystal_clk_hz = tu104_ops.clk.get_crystal_clk_hz;
 	gops->clk.measure_freq = tu104_ops.clk.measure_freq;
 	gops->clk.suspend_clk_support = tu104_ops.clk.suspend_clk_support;
+	gops->clk_mon = tu104_ops.clk_mon;
 #ifdef CONFIG_NVGPU_CLK_ARB
 	gops->clk_arb = tu104_ops.clk_arb;
 #endif

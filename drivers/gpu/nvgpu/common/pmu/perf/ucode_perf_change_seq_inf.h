@@ -40,6 +40,19 @@
 #define CTRL_PERF_CHANGE_SEQ_SCRIPT_MAX_PROFILING_THREADS	8
 #define CTRL_PERF_CHANGE_SEQ_SCRIPT_VF_SWITCH_MAX_STEPS		13U
 
+struct ctrl_clk_domain_clk_mon_item {
+	u32 clk_api_domain;
+	u32 clk_freq_Mhz;
+	u32 low_threshold_percentage;
+	u32 high_threshold_percentage;
+};
+
+struct ctrl_clk_domain_clk_mon_list {
+	u8 num_domain;
+	struct ctrl_clk_domain_clk_mon_item
+		clk_domain[CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS];
+};
+
 struct ctrl_volt_volt_rail_list_item {
 	u8 rail_idx;
 	u32 voltage_uv;

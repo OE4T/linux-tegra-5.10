@@ -364,22 +364,24 @@ struct gpu_ops {
 		int (*mclk_change)(struct gk20a *g, u16 val);
 		void (*get_change_seq_time)(struct gk20a *g, s64 *change_time);
 		void (*change_host_clk_source)(struct gk20a *g);
+		u32 (*clk_mon_init_domains)(struct gk20a *g);
 		bool split_rail_support;
 		bool support_pmgr_domain;
 		bool support_lpwr_pg;
 		int (*perf_pmu_vfe_load)(struct gk20a *g);
 		bool support_vf_point;
 		u8 lut_num_entries;
+	} clk;
+#ifdef CONFIG_NVGPU_DGPU
+	struct {
+		int (*clk_mon_alloc_memory)(struct gk20a *g);
 		bool (*clk_mon_check_master_fault_status)(struct gk20a *g);
 		int (*clk_mon_check_status)(struct gk20a *g,
-			struct clk_domains_mon_status_params *clk_mon_status,
 			u32 domain_mask);
-		u32 (*clk_mon_init_domains)(struct gk20a *g);
-#ifdef CONFIG_NVGPU_DGPU
 		bool (*clk_mon_check_clk_good)(struct gk20a *g);
 		bool (*clk_mon_check_pll_lock)(struct gk20a *g);
+	} clk_mon;
 #endif
-	} clk;
 #ifdef CONFIG_NVGPU_CLK_ARB
 	struct {
 		int (*clk_arb_init_arbiter)(struct gk20a *g);

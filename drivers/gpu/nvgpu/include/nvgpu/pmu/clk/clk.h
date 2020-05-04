@@ -106,14 +106,11 @@
 #define CTRL_CLK_LUT_NUM_ENTRIES_MAX		128U
 #define CTRL_CLK_LUT_NUM_ENTRIES_GV10x		128U
 #define CTRL_CLK_LUT_NUM_ENTRIES_GP10x		100U
+
 /*
  * The Minimum resolution of frequency which is supported
  */
 #define FREQ_STEP_SIZE_MHZ			15U
-/*
- * The Maximum count of clock domains supported
- */
-#define CLK_CLOCK_MON_DOMAIN_COUNT		0x32U
 
 struct gk20a;
 struct clk_avfs_fll_objs;
@@ -127,33 +124,6 @@ struct clk_vin_device;
 struct nvgpu_clk_domain;
 struct nvgpu_clk_arb;
 struct nvgpu_clk_pmupstate;
-
-
-struct clk_domain_mon_status {
-	u32 clk_api_domain;
-	u32 low_threshold;
-	u32 high_threshold;
-	u32 clk_domain_fault_status;
-};
-
-struct clk_domains_mon_status_params {
-	u32 clk_mon_domain_mask;
-	struct clk_domain_mon_status
-		clk_mon_list[CLK_CLOCK_MON_DOMAIN_COUNT];
-};
-
-struct ctrl_clk_domain_clk_mon_item {
-	u32 clk_api_domain;
-	u32 clk_freq_Mhz;
-	u32 low_threshold_percentage;
-	u32 high_threshold_percentage;
-};
-
-struct ctrl_clk_domain_clk_mon_list {
-	u8 num_domain;
-	struct ctrl_clk_domain_clk_mon_item
-		clk_domain[CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS];
-};
 
 struct ctrl_clk_clk_domain_list_item_v1 {
 	u32  clk_domain;
@@ -181,7 +151,6 @@ int clk_get_fll_clks_per_clk_domain(struct gk20a *g,
 int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
 int nvgpu_pmu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index);
-u32 nvgpu_pmu_clk_mon_init_domains(struct gk20a *g);
 int nvgpu_pmu_clk_pmu_setup(struct gk20a *g);
 int nvgpu_pmu_clk_sw_setup(struct gk20a *g);
 int nvgpu_pmu_clk_init(struct gk20a *g);
@@ -204,4 +173,5 @@ void clk_set_p0_clk_per_domain(struct gk20a *g, u8 *gpcclk_domain,
 		u32 *gpcclk_clkmhz,
 		struct nvgpu_clk_slave_freq *vf_point,
 		struct nvgpu_pmu_perf_change_input_clk_info *change_input);
+u32 nvgpu_pmu_clk_mon_init_domains(struct gk20a *g);
 #endif /* NVGPU_PMU_CLK_H */

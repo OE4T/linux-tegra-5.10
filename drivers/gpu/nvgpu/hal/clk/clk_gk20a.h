@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 - 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011 - 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -90,6 +90,7 @@ struct pll_parms {
 };
 
 struct namemap_cfg;
+struct clk_domains_mon_status_params;
 
 struct clk_gk20a {
 	struct gk20a *g;
@@ -102,6 +103,7 @@ struct clk_gk20a {
 	struct pll gpc_pll_last;
 	struct nvgpu_mutex clk_mutex;
 	struct namemap_cfg *clk_namemap;
+	struct clk_domains_mon_status_params *clk_mon_status;
 	u32 namemap_num;
 	u32 *namemap_xlat_table;
 	bool sw_ready;
