@@ -1248,6 +1248,34 @@ static int rt5659_hp_vol_put(struct snd_kcontrol *kcontrol,
 	return ret;
 }
 
+/**
+ * manage_dapm_pin - enable or disable dapm pin
+ * @component: SoC audio component device.
+ * @pin_name: dapm widget name
+ * @enable: enable when true, disable otherwise
+ *
+ */
+
+static void manage_dapm_pin(struct snd_soc_component *component, const char *pin_name,
+	bool enable)
+{
+	char prefixed_ctl[SNDRV_CTL_ELEM_ID_NAME_MAXLEN];
+	struct snd_soc_dapm_context *dapm = snd_soc_component_get_dapm(component);
+
+	if (!component->name_prefix) {
+		snprintf(prefixed_ctl, sizeof(prefixed_ctl), "%s",
+			pin_name);
+	} else {
+		snprintf(prefixed_ctl, sizeof(prefixed_ctl), "%s %s",
+			component->name_prefix, pin_name);
+	}
+
+	if (enable)
+		snd_soc_dapm_force_enable_pin(dapm, prefixed_ctl);
+	else
+		snd_soc_dapm_disable_pin(dapm, prefixed_ctl);
+}
+
 static void rt5659_enable_push_button_irq(struct snd_soc_component *component,
 	bool enable)
 {
@@ -1257,9 +1285,8 @@ static void rt5659_enable_push_button_irq(struct snd_soc_component *component,
 		snd_soc_component_write(component, RT5659_4BTN_IL_CMD_1, 0x000b);
 
 		/* MICBIAS1 and Mic Det Power for button detect*/
-		snd_soc_dapm_force_enable_pin(dapm, "MICBIAS1");
-		snd_soc_dapm_force_enable_pin(dapm,
-			"Mic Det Power");
+		manage_dapm_pin(component, "MICBIAS1", true);
+		manage_dapm_pin(component, "Mic Det Power", true);
 		snd_soc_dapm_sync(dapm);
 
 		snd_soc_component_update_bits(component, RT5659_PWR_ANLG_2,
@@ -1277,8 +1304,8 @@ static void rt5659_enable_push_button_irq(struct snd_soc_component *component,
 		snd_soc_component_update_bits(component, RT5659_IRQ_CTRL_2,
 				RT5659_IL_IRQ_MASK, RT5659_IL_IRQ_DIS);
 		/* MICBIAS1 and Mic Det Power for button detect*/
-		snd_soc_dapm_disable_pin(dapm, "MICBIAS1");
-		snd_soc_dapm_disable_pin(dapm, "Mic Det Power");
+		manage_dapm_pin(component, "MICBIAS1", false);
+		manage_dapm_pin(component, "Mic Det Power", false);
 		snd_soc_dapm_sync(dapm);
 	}
 }
@@ -1302,8 +1329,9 @@ static int rt5659_headset_detect(struct snd_soc_component *component, int jack_i
 	struct rt5659_priv *rt5659 = snd_soc_component_get_drvdata(component);
 
 	if (jack_insert) {
-		snd_soc_dapm_force_enable_pin(dapm,
-			"Mic Det Power");
+		manage_dapm_pin(component, "LDO2", true);
+		manage_dapm_pin(component, "MICBIAS1", true);
+		manage_dapm_pin(component, "Mic Det Power", true);
 		snd_soc_dapm_sync(dapm);
 		reg_63 = snd_soc_component_read32(component, RT5659_PWR_ANLG_1);
 
@@ -1333,20 +1361,31 @@ static int rt5659_headset_detect(struct snd_soc_component *component, int jack_i
 		case 1:
 			rt5659->jack_type = SND_JACK_HEADSET;
 			rt5659_enable_push_button_irq(component, true);
+			snd_soc_component_update_bits(component, RT5659_PWR_ANLG_2,
+				RT5659_PWR_BST1 | RT5659_PWR_BST1_P,
+				RT5659_PWR_BST1 | RT5659_PWR_BST1_P);
 			break;
 		default:
 			snd_soc_component_write(component, RT5659_PWR_ANLG_1, reg_63);
 			rt5659->jack_type = SND_JACK_HEADPHONE;
-			snd_soc_dapm_disable_pin(dapm, "Mic Det Power");
+			manage_dapm_pin(component, "LDO2", false);
+			manage_dapm_pin(component, "MICBIAS1", false);
+			manage_dapm_pin(component, "Mic Det Power", false);
 			snd_soc_dapm_sync(dapm);
 			break;
 		}
 	} else {
-		snd_soc_dapm_disable_pin(dapm, "Mic Det Power");
-		snd_soc_dapm_sync(dapm);
-		if (rt5659->jack_type == SND_JACK_HEADSET)
+		if (rt5659->jack_type == SND_JACK_HEADSET) {
 			rt5659_enable_push_button_irq(component, false);
+			snd_soc_component_update_bits(component, RT5659_PWR_ANLG_2,
+				RT5659_PWR_BST1 | RT5659_PWR_BST1_P, 0);
+		}
 		rt5659->jack_type = 0;
+
+		manage_dapm_pin(component, "LDO2", false);
+		manage_dapm_pin(component, "MICBIAS1", false);
+		manage_dapm_pin(component, "Mic Det Power", false);
+		snd_soc_dapm_sync(dapm);
 	}
 
 	dev_dbg(component->dev, "jack_type = %d\n", rt5659->jack_type);
@@ -1368,8 +1407,11 @@ static irqreturn_t rt5659_irq(int irq, void *data)
 {
 	struct rt5659_priv *rt5659 = data;
 
-	queue_delayed_work(system_power_efficient_wq,
-			   &rt5659->jack_detect_work, msecs_to_jiffies(250));
+	if (rt5659->pdata.jd_src == RT5659_JD3 ||
+	    rt5659->pdata.jd_src == RT5659_JD_NULL)
+		queue_delayed_work(system_power_efficient_wq,
+				   &rt5659->jack_detect_work,
+				   msecs_to_jiffies(250));
 
 	return IRQ_HANDLED;
 }
@@ -2534,16 +2576,16 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 		RT5659_DMIC_2_EN_SFT, 0, set_dmic_power, SND_SOC_DAPM_POST_PMU),
 
 	/* Boost */
-	SND_SOC_DAPM_PGA("BST1", RT5659_PWR_ANLG_2,
-		RT5659_PWR_BST1_P_BIT, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("BST1", SND_SOC_NOPM,
+		0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("BST2", RT5659_PWR_ANLG_2,
 		RT5659_PWR_BST2_P_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("BST3", RT5659_PWR_ANLG_2,
 		RT5659_PWR_BST3_P_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("BST4", RT5659_PWR_ANLG_2,
 		RT5659_PWR_BST4_P_BIT, 0, NULL, 0),
-	SND_SOC_DAPM_SUPPLY("BST1 Power", RT5659_PWR_ANLG_2,
-		RT5659_PWR_BST1_BIT, 0, NULL, 0),
+	SND_SOC_DAPM_SUPPLY("BST1 Power", SND_SOC_NOPM,
+		0, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("BST2 Power", RT5659_PWR_ANLG_2,
 		RT5659_PWR_BST2_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("BST3 Power", RT5659_PWR_ANLG_2,
@@ -3377,15 +3419,18 @@ static int rt5659_hw_params(struct snd_pcm_substream *substream,
 	switch (rt5659->lrck[dai->id]) {
 	case 192000:
 		snd_soc_component_update_bits(component, RT5659_ADDA_CLK_1,
-			RT5659_DAC_OSR_MASK, RT5659_DAC_OSR_32);
+			RT5659_DAC_OSR_MASK | RT5659_ADC_OSR_MASK,
+			RT5659_DAC_OSR_32 | RT5659_ADC_OSR_32);
 		break;
 	case 96000:
 		snd_soc_component_update_bits(component, RT5659_ADDA_CLK_1,
-			RT5659_DAC_OSR_MASK, RT5659_DAC_OSR_64);
+			RT5659_DAC_OSR_MASK | RT5659_ADC_OSR_MASK,
+			RT5659_DAC_OSR_64 | RT5659_ADC_OSR_64);
 		break;
 	default:
 		snd_soc_component_update_bits(component, RT5659_ADDA_CLK_1,
-			RT5659_DAC_OSR_MASK, RT5659_DAC_OSR_128);
+			RT5659_DAC_OSR_MASK | RT5659_ADC_OSR_MASK,
+			RT5659_DAC_OSR_128 | RT5659_ADC_OSR_128);
 		break;
 	}
 
@@ -3708,27 +3753,41 @@ static void rt5659_remove(struct snd_soc_component *component)
 }
 
 #ifdef CONFIG_PM
-static int rt5659_suspend(struct snd_soc_component *component)
+static int rt5659_suspend(struct device *dev)
 {
-	struct rt5659_priv *rt5659 = snd_soc_component_get_drvdata(component);
+	struct rt5659_priv *rt5659 = dev_get_drvdata(dev);
+
+	if (rt5659->i2c->irq) {
+		/* disable jack interrupts during system suspend */
+		disable_irq(rt5659->i2c->irq);
+	}
+
+	if (rt5659->pdata.jd_src == RT5659_JD3 ||
+	    rt5659->pdata.jd_src == RT5659_JD_NULL)
+		cancel_delayed_work_sync(&rt5659->jack_detect_work);
 
 	regcache_cache_only(rt5659->regmap, true);
 	regcache_mark_dirty(rt5659->regmap);
+
 	return 0;
 }
 
-static int rt5659_resume(struct snd_soc_component *component)
+static int rt5659_resume(struct device *dev)
 {
-	struct rt5659_priv *rt5659 = snd_soc_component_get_drvdata(component);
+	struct rt5659_priv *rt5659 = dev_get_drvdata(dev);
 
 	regcache_cache_only(rt5659->regmap, false);
 	regcache_sync(rt5659->regmap);
+	if (rt5659->i2c->irq)
+		enable_irq(rt5659->i2c->irq);
+
+	if (rt5659->pdata.jd_src == RT5659_JD3 ||
+	    rt5659->pdata.jd_src == RT5659_JD_NULL)
+		queue_delayed_work(system_power_efficient_wq,
+				   &rt5659->jack_detect_work, 0);
 
 	return 0;
 }
-#else
-#define rt5659_suspend NULL
-#define rt5659_resume NULL
 #endif
 
 #define RT5659_STEREO_RATES SNDRV_PCM_RATE_8000_192000
@@ -3805,8 +3864,6 @@ static struct snd_soc_dai_driver rt5659_dai[] = {
 static const struct snd_soc_component_driver soc_component_dev_rt5659 = {
 	.probe			= rt5659_probe,
 	.remove			= rt5659_remove,
-	.suspend		= rt5659_suspend,
-	.resume			= rt5659_resume,
 	.set_bias_level		= rt5659_set_bias_level,
 	.controls		= rt5659_snd_controls,
 	.num_controls		= ARRAY_SIZE(rt5659_snd_controls),
@@ -3921,7 +3978,7 @@ static void rt5659_calibrate(struct rt5659_priv *rt5659)
 			break;
 
 		if (count > 30) {
-			dev_err(rt5659->component->dev,
+			dev_err(&rt5659->i2c->dev,
 				"HP Calibration 1 Failure\n");
 			return;
 		}
@@ -3946,7 +4003,7 @@ static void rt5659_calibrate(struct rt5659_priv *rt5659)
 			break;
 
 		if (count > 85) {
-			dev_err(rt5659->component->dev,
+			dev_err(&rt5659->i2c->dev,
 				"HP Calibration 2 Failure\n");
 			return;
 		}
@@ -3994,7 +4051,7 @@ static void rt5659_calibrate(struct rt5659_priv *rt5659)
 			break;
 
 		if (count > 10) {
-			dev_err(rt5659->component->dev,
+			dev_err(&rt5659->i2c->dev,
 				"SPK Calibration Failure\n");
 			return;
 		}
@@ -4027,7 +4084,7 @@ static void rt5659_calibrate(struct rt5659_priv *rt5659)
 			break;
 
 		if (count > 35) {
-			dev_err(rt5659->component->dev,
+			dev_err(&rt5659->i2c->dev,
 				"Mono Calibration Failure\n");
 			return;
 		}
@@ -4124,6 +4181,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	if (rt5659 == NULL)
 		return -ENOMEM;
 
+	rt5659->i2c = i2c;
 	i2c_set_clientdata(i2c, rt5659);
 
 	if (pdata)
@@ -4285,6 +4343,8 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 			RT5659_DMIC_1_DP_IN2N | RT5659_DMIC_2_DP_IN2P);
 	}
 
+	regmap_update_bits(rt5659->regmap, RT5659_CLK_DET, 0x4, 0x4);
+
 	switch (rt5659->pdata.jd_src) {
 	case RT5659_JD3:
 		regmap_write(rt5659->regmap, RT5659_EJD_CTRL_1, 0xa880);
@@ -4328,6 +4388,22 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 			rt5659_dai, ARRAY_SIZE(rt5659_dai));
 }
 
+static int rt5659_i2c_remove(struct i2c_client *i2c)
+{
+	struct rt5659_priv *rt5659 = i2c_get_clientdata(i2c);
+
+	if (i2c->irq) {
+		/* disable jack interrupts during system suspend */
+		disable_irq(i2c->irq);
+	}
+
+	if (rt5659->pdata.jd_src == RT5659_JD3 ||
+	    rt5659->pdata.jd_src == RT5659_JD_NULL)
+		cancel_delayed_work_sync(&rt5659->jack_detect_work);
+
+	return 0;
+}
+
 static void rt5659_i2c_shutdown(struct i2c_client *client)
 {
 	struct rt5659_priv *rt5659 = i2c_get_clientdata(client);
@@ -4353,13 +4429,19 @@ static const struct acpi_device_id rt5659_acpi_match[] = {
 MODULE_DEVICE_TABLE(acpi, rt5659_acpi_match);
 #endif
 
+static const struct dev_pm_ops rt5659_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(rt5659_suspend, rt5659_resume)
+};
+
 static struct i2c_driver rt5659_i2c_driver = {
 	.driver = {
 		.name = "rt5659",
 		.of_match_table = of_match_ptr(rt5659_of_match),
 		.acpi_match_table = ACPI_PTR(rt5659_acpi_match),
+		.pm = &rt5659_pm_ops,
 	},
 	.probe = rt5659_i2c_probe,
+	.remove = rt5659_i2c_remove,
 	.shutdown = rt5659_i2c_shutdown,
 	.id_table = rt5659_i2c_id,
 };
