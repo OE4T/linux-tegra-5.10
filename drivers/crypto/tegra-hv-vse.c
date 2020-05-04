@@ -379,6 +379,7 @@ struct tegra_virtual_se_req_context {
 	/* Security Engine device */
 	struct tegra_virtual_se_dev *se_dev;
 	unsigned int digest_size;
+	unsigned int intermediate_digest_size;
 	u8 mode;			/* SHA operation mode */
 	u8 *sha_buf;			/* Buffer to store residual data */
 	dma_addr_t sha_buf_addr;	/* DMA address to residual data */
@@ -803,7 +804,7 @@ static int tegra_hv_vse_sha_send_one(struct ahash_request *req,
 	ivc_tx->args.sha.op_hash1.src.number = 1;
 	ivc_tx->args.sha.op_hash1.dst = (u64)req_ctx->hash_result_addr;
 	memcpy(ivc_tx->args.sha.op_hash1.hash, req_ctx->hash_result,
-		req_ctx->digest_size);
+		req_ctx->intermediate_digest_size);
 
 	err = tegra_hv_vse_send_sha_data(se_dev, req, ivc_req_msg,
 				nbytes, islast);
@@ -914,7 +915,8 @@ static int tegra_hv_vse_sha_fast_path(struct ahash_request *req,
 			ivc_tx->args.sha.op_hash1.dst
 				= (u64)req_ctx->hash_result_addr;
 			memcpy(ivc_tx->args.sha.op_hash1.hash,
-				req_ctx->hash_result, req_ctx->digest_size);
+				req_ctx->hash_result,
+				req_ctx->intermediate_digest_size);
 
 			req_ctx->total_count += bytes_process_in_req;
 
@@ -1206,24 +1208,35 @@ static int tegra_hv_vse_sha_init(struct ahash_request *req)
 	case SHA1_DIGEST_SIZE:
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA1;
 		req_ctx->blk_size = VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT;
+		req_ctx->intermediate_digest_size = SHA1_DIGEST_SIZE;
 		break;
 	case SHA224_DIGEST_SIZE:
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA224;
 		req_ctx->blk_size = VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT;
+		req_ctx->intermediate_digest_size = SHA224_DIGEST_SIZE;
 		break;
 	case SHA256_DIGEST_SIZE:
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA256;
 		req_ctx->blk_size = VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT;
+		req_ctx->intermediate_digest_size = SHA256_DIGEST_SIZE;
 		break;
 	case SHA384_DIGEST_SIZE:
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA384;
 		req_ctx->blk_size =
 			VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT;
+		/*
+		 * The final digest size and intermediate digest size
+		 * are different for SHA384.
+		 * The intermediate digest size is 512 bits which is
+		 * same as SHA512
+		 */
+		req_ctx->intermediate_digest_size = SHA512_DIGEST_SIZE;
 		break;
 	case SHA512_DIGEST_SIZE:
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA512;
 		req_ctx->blk_size =
 			VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT;
+		req_ctx->intermediate_digest_size = SHA512_DIGEST_SIZE;
 		break;
 	default:
 		return -EINVAL;
