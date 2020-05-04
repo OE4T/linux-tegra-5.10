@@ -1780,16 +1780,22 @@ int tu104_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_DGPU
 	nvgpu_pramin_ops_init(g);
 #endif
-	/* dGpu VDK support */
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
-		/* Disable compression */
+
 #ifdef CONFIG_NVGPU_COMPRESSION
+	if (!nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+	}
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
 		gops->cbc.init = NULL;
 		gops->cbc.ctrl = NULL;
 		gops->cbc.alloc_comptags = NULL;
+	}
 #endif
 
+	/* dGpu VDK support */
+#ifdef CONFIG_NVGPU_SIM
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 #ifdef CONFIG_NVGPU_GR_FALCON_NON_SECURE_BOOT
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_ctxsw_ucode;

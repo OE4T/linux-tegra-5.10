@@ -1587,6 +1587,16 @@ int gv11b_init_hal(struct gk20a *g)
 #endif
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
+		gops->cbc.init = NULL;
+		gops->cbc.ctrl = NULL;
+		gops->cbc.alloc_comptags = NULL;
+	}
+#endif
+
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);

@@ -1241,6 +1241,16 @@ int gm20b_init_hal(struct gk20a *g)
 #endif
 	}
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION)) {
+		gops->cbc.init = NULL;
+		gops->cbc.ctrl = NULL;
+		gops->cbc.alloc_comptags = NULL;
+	}
+#endif
+
 #ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, false);
