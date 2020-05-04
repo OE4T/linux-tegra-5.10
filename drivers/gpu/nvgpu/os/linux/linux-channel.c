@@ -291,7 +291,7 @@ static int nvgpu_channel_alloc_linux(struct gk20a *g, struct nvgpu_channel *ch)
 	ch->os_priv = priv;
 	priv->ch = ch;
 
-#ifdef CONFIG_SYNC
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
 	ch->has_os_fence_framework_support = true;
 #endif
 
@@ -311,7 +311,7 @@ static void nvgpu_channel_free_linux(struct gk20a *g, struct nvgpu_channel *ch)
 
 	ch->os_priv = NULL;
 
-#ifdef CONFIG_SYNC
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
 	ch->has_os_fence_framework_support = false;
 #endif
 }

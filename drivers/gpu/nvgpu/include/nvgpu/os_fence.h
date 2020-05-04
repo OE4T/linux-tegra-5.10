@@ -1,7 +1,7 @@
 /*
  * nvgpu os fence
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ static inline bool nvgpu_os_fence_is_initialized(struct nvgpu_os_fence *fence)
 	return (fence->ops != NULL);
 }
 
-#ifdef CONFIG_SYNC
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
 
 int nvgpu_os_fence_sema_create(
 	struct nvgpu_os_fence *fence_out,
@@ -106,9 +106,9 @@ static inline int nvgpu_os_fence_fdget(
 	return -ENOSYS;
 }
 
-#endif /* CONFIG_SYNC */
+#endif /* !CONFIG_NVGPU_SYNCFD_NONE */
 
-#if defined(CONFIG_TEGRA_GK20A_NVHOST) && defined(CONFIG_SYNC)
+#if defined(CONFIG_TEGRA_GK20A_NVHOST) && !defined(CONFIG_NVGPU_SYNCFD_NONE)
 
 int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
 	struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_dev,
@@ -124,6 +124,6 @@ static inline int nvgpu_os_fence_syncpt_create(
 	return -ENOSYS;
 }
 
-#endif /* CONFIG_TEGRA_GK20A_NVHOST && CONFIG_SYNC */
+#endif /* CONFIG_TEGRA_GK20A_NVHOST && !CONFIG_NVGPU_SYNCFD_NONE */
 
 #endif /* NVGPU_OS_FENCE_H */

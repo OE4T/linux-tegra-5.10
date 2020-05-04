@@ -439,13 +439,13 @@ nvgpu-$(CONFIG_NVGPU_TEGRA_FUSE) += os/linux/fuse.o \
 				    os/linux/soc.o
 endif
 
-nvgpu-$(CONFIG_SYNC) += \
+nvgpu-$(CONFIG_NVGPU_SYNCFD_ANDROID) += \
 	os/linux/sync_sema_android.o \
 	os/linux/os_fence_android.o \
 	os/linux/os_fence_android_sema.o
 
 ifeq ($(CONFIG_TEGRA_GK20A_NVHOST), y)
-nvgpu-$(CONFIG_SYNC) += \
+nvgpu-$(CONFIG_NVGPU_SYNCFD_ANDROID) += \
 	os/linux/os_fence_android_syncpt.o
 nvgpu-y += common/sync/channel_sync_syncpt.o
 endif

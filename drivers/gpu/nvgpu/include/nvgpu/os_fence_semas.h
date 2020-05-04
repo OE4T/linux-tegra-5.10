@@ -1,7 +1,7 @@
 /*
  * nvgpu os fence semas
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@ struct nvgpu_os_fence_sema {
 	struct nvgpu_os_fence *fence;
 };
 
-#ifdef CONFIG_SYNC
+#if !defined(CONFIG_NVGPU_SYNCFD_NONE)
 /*
  * Return a struct of nvgpu_os_fence_sema only if the underlying os_fence
  * object is backed by semaphore, else return empty object.
@@ -79,6 +79,6 @@ static inline u32 nvgpu_os_fence_sema_get_num_semaphores(
 	return 0;
 }
 
-#endif
+#endif /* !CONFIG_NVGPU_SYNCFD_NONE */
 
 #endif /* NVGPU_OS_FENCE_SEMAS_H */

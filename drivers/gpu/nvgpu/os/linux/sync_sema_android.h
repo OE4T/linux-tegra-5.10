@@ -1,7 +1,7 @@
 /*
  * Semaphore Sync Framework Integration
  *
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,7 @@ struct sync_pt;
 struct nvgpu_semaphore;
 struct fence;
 
-#ifdef CONFIG_SYNC
+#ifdef CONFIG_NVGPU_SYNCFD_ANDROID
 struct sync_timeline *gk20a_sync_timeline_create(const char *name);
 void gk20a_sync_timeline_destroy(struct sync_timeline *);
 void gk20a_sync_timeline_signal(struct sync_timeline *);

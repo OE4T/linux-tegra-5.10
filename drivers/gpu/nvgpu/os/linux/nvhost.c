@@ -226,7 +226,7 @@ void nvgpu_nvhost_remove_symlink(struct gk20a *g)
 	}
 }
 
-#ifdef CONFIG_SYNC
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
 u32 nvgpu_nvhost_sync_pt_id(struct sync_pt *pt)
 {
 	return nvhost_sync_pt_id(pt);
@@ -258,7 +258,7 @@ struct sync_fence *nvgpu_nvhost_sync_create_fence(
 
 	return nvhost_sync_create_fence(nvhost_dev->host1x_pdev, &pt, 1, name);
 }
-#endif /* CONFIG_SYNC */
+#endif /* !CONFIG_NVGPU_SYNCFD_NONE */
 
 #ifdef CONFIG_TEGRA_T19X_GRHOST
 int nvgpu_nvhost_get_syncpt_aperture(

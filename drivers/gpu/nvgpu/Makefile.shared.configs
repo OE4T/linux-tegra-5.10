@@ -64,6 +64,9 @@ NVGPU_COMMON_CFLAGS		+=		\
 CONFIG_NVGPU_LOGGING                 := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_LOGGING
 
+CONFIG_NVGPU_SYNCFD_NONE               := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SYNCFD_NONE
+
 ifeq ($(profile),$(filter $(profile),safety_debug safety_release))
 
 # Enable golden context verification only for safety debug/release build

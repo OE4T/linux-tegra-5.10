@@ -56,6 +56,7 @@ nvgpu_channel_sync_semaphore_from_base(struct nvgpu_channel_sync *base)
 			offsetof(struct nvgpu_channel_sync_semaphore, base));
 }
 
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
 static void add_sema_wait_cmd(struct gk20a *g, struct nvgpu_channel *c,
 			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd)
 {
@@ -72,6 +73,24 @@ static void add_sema_wait_cmd(struct gk20a *g, struct nvgpu_channel *c,
 			     nvgpu_semaphore_get_hw_pool_page_idx(s),
 			     va, cmd);
 }
+
+static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,
+	struct nvgpu_semaphore *sema, struct priv_cmd_entry *wait_cmd,
+	u32 wait_cmd_size)
+{
+	bool has_incremented;
+
+	if (sema == NULL) {
+		/* came from an expired sync fence */
+		nvgpu_priv_cmdbuf_append_zeros(c->g, wait_cmd, wait_cmd_size);
+	} else {
+		has_incremented = nvgpu_semaphore_can_wait(sema);
+		nvgpu_assert(has_incremented);
+		add_sema_wait_cmd(c->g, c, sema, wait_cmd);
+		nvgpu_semaphore_put(sema);
+	}
+}
+#endif
 
 static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
 			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd,
@@ -95,27 +114,11 @@ static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
 			     va, cmd);
 }
 
-static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,
-	struct nvgpu_semaphore *sema, struct priv_cmd_entry *wait_cmd,
-	u32 wait_cmd_size)
-{
-	bool has_incremented;
-
-	if (sema == NULL) {
-		/* came from an expired sync fence */
-		nvgpu_priv_cmdbuf_append_zeros(c->g, wait_cmd, wait_cmd_size);
-	} else {
-		has_incremented = nvgpu_semaphore_can_wait(sema);
-		nvgpu_assert(has_incremented);
-		add_sema_wait_cmd(c->g, c, sema, wait_cmd);
-		nvgpu_semaphore_put(sema);
-	}
-}
-
 static int channel_sync_semaphore_wait_fd(
 		struct nvgpu_channel_sync *s, int fd,
 		struct priv_cmd_entry **entry, u32 max_wait_cmds)
 {
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
 	struct nvgpu_channel_sync_semaphore *sema =
 		nvgpu_channel_sync_semaphore_from_base(s);
 	struct nvgpu_channel *c = sema->c;
@@ -164,6 +167,14 @@ static int channel_sync_semaphore_wait_fd(
 cleanup:
 	os_fence.ops->drop_ref(&os_fence);
 	return err;
+#else
+	struct nvgpu_channel_sync_semaphore *sema =
+		nvgpu_channel_sync_semaphore_from_base(s);
+
+	nvgpu_err(sema->c->g,
+		  "trying to use sync fds with CONFIG_NVGPU_SYNCFD_NONE");
+	return -ENODEV;
+#endif
 }
 
 static int channel_sync_semaphore_incr_common(
@@ -246,7 +257,7 @@ static int channel_sync_semaphore_incr_user(
 		bool need_sync_fence,
 		bool register_irq)
 {
-#ifdef CONFIG_SYNC
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
 	int err;
 
 	err = channel_sync_semaphore_incr_common(s, wfi, entry, fence,
@@ -259,8 +270,9 @@ static int channel_sync_semaphore_incr_user(
 #else
 	struct nvgpu_channel_sync_semaphore *sema =
 		nvgpu_channel_sync_semaphore_from_base(s);
+
 	nvgpu_err(sema->c->g,
-		  "trying to use sync fds with CONFIG_SYNC disabled");
+		  "trying to use sync fds with CONFIG_NVGPU_SYNCFD_NONE");
 	return -ENODEV;
 #endif
 }

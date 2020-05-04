@@ -233,3 +233,29 @@ config NVGPU_TEGRA_FUSE
 	default y
 	help
 	  Support Tegra fuse
+
+choice
+	prompt "Supported sync fence backend"
+	default NVGPU_SYNCFD_ANDROID
+	depends on GK20A
+	help
+	  GPU job synchronization (fences before and after submits) can use raw
+	  syncpoints if available and sync fds if chosen. Without syncpoints,
+	  nvgpu also provides semaphore-backed sync fds to userspace.
+
+	  Select which kernel-provided API is used for sync fds. Matching
+	  support is required for the userspace drivers too.
+
+config NVGPU_SYNCFD_ANDROID
+	bool "Android SYNC"
+	depends on SYNC
+	help
+	  Select CONFIG_SYNC, the legacy synchronization framework provided by
+	  Android (and deprecated in Linux 4.9+ in favor of dma fences and the
+	  stabilized SYNC_FILE).
+
+config NVGPU_SYNCFD_NONE
+	bool "Nothing"
+	help
+	  Do not build in support for sync fences.
+endchoice

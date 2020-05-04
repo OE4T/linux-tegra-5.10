@@ -810,7 +810,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 		return -ETIMEDOUT;
 	}
 
-#ifndef CONFIG_SYNC
+#ifdef CONFIG_NVGPU_SYNCFD_NONE
 	if (flag_sync_fence) {
 		return -EINVAL;
 	}
