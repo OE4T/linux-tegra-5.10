@@ -261,6 +261,12 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 
 		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
 
+		/* packet already processed */
+		if ((rx_swcx->flags & OSI_RX_SWCX_PROCESSED) ==
+		     OSI_RX_SWCX_PROCESSED) {
+			break;
+		}
+
 		/* WHen JE is set, HW will accept any valid packet on Rx upto
 		 * 9K or 16K (depending on GPSCLE bit), irrespective of whether
 		 * MTU set is lower than these specific values. When Rx buf len

@@ -43,18 +43,18 @@
  */
 /** VLAN packet */
 #define OSI_PKT_CX_VLAN			OSI_BIT(0)
-/** Valid packet */
-#define OSI_PKT_CX_VALID		OSI_BIT(10)
 /** CSUM packet */
 #define OSI_PKT_CX_CSUM			OSI_BIT(1)
-/** IP CSUM packet */
-#define OSI_PKT_CX_IP_CSUM		OSI_BIT(12)
 /** TSO packet */
 #define OSI_PKT_CX_TSO			OSI_BIT(2)
 /** PTP packet */
 #define OSI_PKT_CX_PTP			OSI_BIT(3)
+/** Valid packet */
+#define OSI_PKT_CX_VALID		OSI_BIT(10)
 /** Update Packet Length in Tx Desc3 */
 #define OSI_PKT_CX_LEN			OSI_BIT(11)
+/** IP CSUM packet */
+#define OSI_PKT_CX_IP_CSUM		OSI_BIT(12)
 
 /** @} */
 
@@ -128,6 +128,9 @@
 /* Rx swcx flags */
 #define OSI_RX_SWCX_REUSE	OSI_BIT(0)
 #define OSI_RX_SWCX_BUF_VALID	OSI_BIT(1)
+/** Packet is processed by driver */
+#define OSI_RX_SWCX_PROCESSED	OSI_BIT(3)
+
 /** @} */
 
 /**
