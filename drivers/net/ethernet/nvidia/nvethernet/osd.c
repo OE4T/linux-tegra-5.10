@@ -289,6 +289,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 		ndev->stats.rx_frame_errors = pkt_err_stat->rx_frame_error;
 		ndev->stats.rx_fifo_errors = osi_core->mmc.mmc_rx_fifo_overflow;
 		ndev->stats.rx_errors++;
+		dev_kfree_skb_any(skb);
 	}
 
 	ndev->stats.rx_packets++;
