@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -526,8 +526,10 @@ void vi_capture_shutdown(
 		vi_capture_release(chan,
 			CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE);
 
-		for (i = 0; i < capture->queue_depth; i++)
-			vi_capture_request_unpin(chan, i);
+		if (capture->is_mem_pinned) {
+			for (i = 0; i < capture->queue_depth; i++)
+				vi_capture_request_unpin(chan, i);
+		}
 
 		capture_common_unpin_memory(&capture->requests);
 		destroy_buffer_table(capture->buf_ctx);
