@@ -130,11 +130,7 @@ static inline int nvhost_vm_get_hwid(struct platform_device *pdev,
 
 static inline int nvhost_vm_get_bypass_hwid(void)
 {
-#ifdef CONFIG_NV_TEGRA_MC
-	return tegra_mc_get_smmu_bypass_sid();
-#else
 	return 0x7f;
-#endif
 }
 
 #endif
