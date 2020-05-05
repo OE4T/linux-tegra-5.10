@@ -175,7 +175,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	 */
 	j = 0; num_points = 0; clk_cur = 0;
 	for (i = 0; i < table->gpc2clk_num_points; i++) {
-		struct nvgpu_set_fll_clk setfllclk;
+		struct nvgpu_clk_slave_freq setfllclk;
 
 		if ((arb->gpc2clk_f_points[i] >= arb->gpc2clk_min) &&
 			(arb->gpc2clk_f_points[i] <= arb->gpc2clk_max) &&
@@ -183,7 +183,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 
 			table->gpc2clk_points[j].gpc_mhz =
 				arb->gpc2clk_f_points[i];
-			setfllclk.gpc2clkmhz = arb->gpc2clk_f_points[i];
+			setfllclk.gpc_mhz = arb->gpc2clk_f_points[i];
 
 			status = clk_get_fll_clks_per_clk_domain(g, &setfllclk);
 			if (status < 0) {
@@ -193,13 +193,13 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 			}
 
 			table->gpc2clk_points[j].sys_mhz =
-				setfllclk.sys2clkmhz;
+				setfllclk.sys_mhz;
 			table->gpc2clk_points[j].xbar_mhz =
-				setfllclk.xbar2clkmhz;
+				setfllclk.xbar_mhz;
 			table->gpc2clk_points[j].nvd_mhz =
-				setfllclk.nvdclkmhz;
+				setfllclk.nvd_mhz;
 			table->gpc2clk_points[j].host_mhz =
-				setfllclk.hostclkmhz;
+				setfllclk.host_mhz;
 
 			clk_cur = table->gpc2clk_points[j].gpc_mhz;
 

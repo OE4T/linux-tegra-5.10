@@ -1407,7 +1407,7 @@ int clk_pmu_clk_domains_load(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_CLK_ARB
 int clk_get_fll_clks_per_clk_domain(struct gk20a *g,
-		struct nvgpu_set_fll_clk *setfllclk)
+		struct nvgpu_clk_slave_freq *setfllclk)
 {
 	int status = -EINVAL;
 	struct nvgpu_clk_domain *pdomain;
@@ -1419,7 +1419,7 @@ int clk_get_fll_clks_per_clk_domain(struct gk20a *g,
 	struct clk_domain_35_slave *p35slave;
 	unsigned long slaveidxmask;
 
-	if (setfllclk->gpc2clkmhz == 0U) {
+	if (setfllclk->gpc_mhz == 0U) {
 		return -EINVAL;
 	}
 
@@ -1446,26 +1446,26 @@ int clk_get_fll_clks_per_clk_domain(struct gk20a *g,
 					slave.clkdomainclkgetslaveclk(g,
 					pclk, (struct nvgpu_clk_domain *)
 					(void *)p35slave,
-					&clkmhz, setfllclk->gpc2clkmhz);
+					&clkmhz, setfllclk->gpc_mhz);
 				if (status != 0) {
 					status = -EINVAL;
 					goto done;
 				}
 				if (p35slave->super.super.super.super.
 					api_domain == CTRL_CLK_DOMAIN_XBARCLK) {
-					setfllclk->xbar2clkmhz = clkmhz;
+					setfllclk->xbar_mhz = clkmhz;
 				}
 				if (p35slave->super.super.super.super.
 					api_domain == CTRL_CLK_DOMAIN_SYSCLK) {
-					setfllclk->sys2clkmhz = clkmhz;
+					setfllclk->sys_mhz = clkmhz;
 				}
 				if (p35slave->super.super.super.super.
 					api_domain == CTRL_CLK_DOMAIN_NVDCLK) {
-					setfllclk->nvdclkmhz = clkmhz;
+					setfllclk->nvd_mhz = clkmhz;
 				}
 				if (p35slave->super.super.super.super.
 					api_domain == CTRL_CLK_DOMAIN_HOSTCLK) {
-					setfllclk->hostclkmhz = clkmhz;
+					setfllclk->host_mhz = clkmhz;
 				}
 			}
 		}

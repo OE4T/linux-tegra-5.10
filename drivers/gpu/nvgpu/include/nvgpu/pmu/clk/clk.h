@@ -168,25 +168,6 @@ struct ctrl_clk_clk_domain_list {
 		clk_domains[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
 };
 
-struct nvgpu_set_fll_clk {
-	u32 voltuv;
-	u16 gpc2clkmhz;
-	u8 current_regime_id_gpc;
-	u8 target_regime_id_gpc;
-	u16 sys2clkmhz;
-	u8 current_regime_id_sys;
-	u8 target_regime_id_sys;
-	u16 xbar2clkmhz;
-	u8 current_regime_id_xbar;
-	u8 target_regime_id_xbar;
-	u16 nvdclkmhz;
-	u8 current_regime_id_nvd;
-	u8 target_regime_id_nvd;
-	u16 hostclkmhz;
-	u8 current_regime_id_host;
-	u8 target_regime_id_host;
-};
-
 struct nvgpu_clk_slave_freq{
 	u16 gpc_mhz;
 	u16 sys_mhz;
@@ -196,7 +177,7 @@ struct nvgpu_clk_slave_freq{
 };
 
 int clk_get_fll_clks_per_clk_domain(struct gk20a *g,
-		struct nvgpu_set_fll_clk *setfllclk);
+		struct nvgpu_clk_slave_freq *setfllclk);
 int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
 int nvgpu_pmu_clk_domain_get_from_index(struct gk20a *g, u32 *domain, u32 index);
