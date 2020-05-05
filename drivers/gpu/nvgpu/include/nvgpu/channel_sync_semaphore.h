@@ -33,12 +33,20 @@
 
 struct nvgpu_channel;
 struct nvgpu_channel_sync_semaphore;
+
 /*
  * Converts a valid struct nvgpu_channel_sync ptr to
  * struct nvgpu_channel_sync_semaphore ptr else return NULL.
  */
 struct nvgpu_channel_sync_semaphore *
 nvgpu_channel_sync_to_semaphore(struct nvgpu_channel_sync *sync);
+
+/*
+ * Returns the underlying hw semaphore.
+ */
+struct nvgpu_hw_semaphore *
+nvgpu_channel_sync_semaphore_hw_sema(
+		struct nvgpu_channel_sync_semaphore *sema);
 
 /*
  * Constructs an instance of struct nvgpu_channel_sync_semaphore and

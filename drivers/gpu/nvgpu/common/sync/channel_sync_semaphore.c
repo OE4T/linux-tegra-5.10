@@ -43,9 +43,7 @@
 struct nvgpu_channel_sync_semaphore {
 	struct nvgpu_channel_sync base;
 	struct nvgpu_channel *c;
-
-	/* A semaphore pool owned by this channel. */
-	struct nvgpu_semaphore_pool *pool;
+	struct nvgpu_hw_semaphore *hw_sema;
 };
 
 static struct nvgpu_channel_sync_semaphore *
@@ -94,7 +92,7 @@ static void channel_sync_semaphore_gen_wait_cmd(struct nvgpu_channel *c,
 
 static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
 			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd,
-			 bool wfi)
+			 bool wfi, struct nvgpu_hw_semaphore *hw_sema)
 {
 	int ch = c->chid;
 	u64 va;
@@ -103,7 +101,7 @@ static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
 	va = nvgpu_semaphore_gpu_rw_va(s);
 
 	/* incr the underlying sema next_value (like syncpt's max). */
-	nvgpu_semaphore_prepare(s, c->hw_sema);
+	nvgpu_semaphore_prepare(s, hw_sema);
 
 	g->ops.sync.sema.add_incr_cmd(g, cmd, s, va, wfi);
 	gpu_sema_verbose_dbg(g, "(R) c=%d INCR %u (%u) pool=%-3llu"
@@ -191,7 +189,7 @@ static int channel_sync_semaphore_incr_common(
 	int err = 0;
 	struct nvgpu_os_fence os_fence = {0};
 
-	semaphore = nvgpu_semaphore_alloc(c);
+	semaphore = nvgpu_semaphore_alloc(sp->hw_sema);
 	if (semaphore == NULL) {
 		nvgpu_err(c->g,
 				"ran out of semaphores");
@@ -205,7 +203,7 @@ static int channel_sync_semaphore_incr_common(
 	}
 
 	/* Release the completion semaphore. */
-	add_sema_incr_cmd(c->g, c, semaphore, *incr_cmd, wfi_cmd);
+	add_sema_incr_cmd(c->g, c, semaphore, *incr_cmd, wfi_cmd, sp->hw_sema);
 
 	if (need_sync_fence) {
 		err = nvgpu_os_fence_sema_create(&os_fence, c, semaphore);
@@ -284,11 +282,7 @@ static void channel_sync_semaphore_set_min_eq_max(struct nvgpu_channel_sync *s)
 	struct nvgpu_channel *c = sp->c;
 	bool updated;
 
-	if (c->hw_sema == NULL) {
-		return;
-	}
-
-	updated = nvgpu_hw_semaphore_reset(c->hw_sema);
+	updated = nvgpu_hw_semaphore_reset(sp->hw_sema);
 
 	if (updated) {
 		nvgpu_cond_broadcast_interruptible(&c->semaphore_wq);
@@ -307,11 +301,9 @@ static void channel_sync_semaphore_destroy(struct nvgpu_channel_sync *s)
 		g->os_channel.os_fence_framework_inst_exists(c)) {
 			g->os_channel.destroy_os_fence_framework(c);
 	}
+	nvgpu_hw_semaphore_free(sema->hw_sema);
 
-	/* The sema pool is cleaned up by the VM destroy. */
-	sema->pool = NULL;
-
-	nvgpu_kfree(sema->c->g, sema);
+	nvgpu_kfree(g, sema);
 }
 
 static const struct nvgpu_channel_sync_ops channel_sync_semaphore_ops = {
@@ -336,6 +328,12 @@ struct nvgpu_channel_sync_semaphore *
 	return sema;
 }
 
+struct nvgpu_hw_semaphore *
+nvgpu_channel_sync_semaphore_hw_sema(struct nvgpu_channel_sync_semaphore *sema)
+{
+	return sema->hw_sema;
+}
+
 struct nvgpu_channel_sync *
 nvgpu_channel_sync_semaphore_create(struct nvgpu_channel *c)
 {
@@ -355,7 +353,10 @@ nvgpu_channel_sync_semaphore_create(struct nvgpu_channel *c)
 	}
 	sema->c = c;
 
-	sema->pool = c->vm->sema_pool;
+	err = nvgpu_hw_semaphore_init(c->vm, c->chid, &sema->hw_sema);
+	if (err != 0) {
+		goto err_free_sema;
+	}
 
 	if (c->vm->as_share != NULL) {
 		asid = c->vm->as_share->id;
@@ -367,8 +368,7 @@ nvgpu_channel_sync_semaphore_create(struct nvgpu_channel *c)
 			"gk20a_ch%d_as%d", c->chid, asid);
 
 		if (err != 0) {
-			nvgpu_kfree(g, sema);
-			return NULL;
+			goto err_free_hw_sema;
 		}
 	}
 
@@ -376,4 +376,10 @@ nvgpu_channel_sync_semaphore_create(struct nvgpu_channel *c)
 	sema->base.ops = &channel_sync_semaphore_ops;
 
 	return &sema->base;
+
+err_free_hw_sema:
+	nvgpu_hw_semaphore_free(sema->hw_sema);
+err_free_sema:
+	nvgpu_kfree(g, sema);
+	return NULL;
 }

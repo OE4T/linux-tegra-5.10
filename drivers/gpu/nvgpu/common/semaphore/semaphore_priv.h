@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,13 +34,16 @@
 
 struct gk20a;
 
+/*
+ * The number of channels to get a sema from a VM's pool is determined by the
+ * pool size (one page) divided by this sema size.
+ */
 #define SEMAPHORE_SIZE			16U
 /*
- * Max number of channels that can be used is 512. This of course needs to be
- * fixed to be dynamic but still fast.
+ * Max number of VMs that can be used is 512. This of course needs to be fixed
+ * to be dynamic but still fast.
  */
 #define SEMAPHORE_POOL_COUNT		512U
-#define SEMAPHORE_SEA_GROWTH_RATE	32U
 
 /*
  * A sea of semaphores pools. Each pool is owned by a single VM. Since multiple
@@ -59,7 +62,7 @@ struct nvgpu_semaphore_sea {
 	/*
 	 * TODO:
 	 * List of pages that we use to back the pools. The number of pages
-	 * can grow dynamically since allocating 512 pages for all channels at
+	 * should grow dynamically since allocating 512 pages for all VMs at
 	 * once would be a tremendous waste.
 	 */
 	int page_count;			/* Pages allocated to pools. */
@@ -106,8 +109,8 @@ struct nvgpu_semaphore_pool {
 	bool mapped;
 
 	/*
-	 * Sometimes a channel can be released before other channels are
-	 * done waiting on it. This ref count ensures that the pool doesn't
+	 * Sometimes a channel and its VM can be released before other channels
+	 * are done waiting on it. This ref count ensures that the pool doesn't
 	 * go away until all semaphores using this pool are cleaned up first.
 	 */
 	struct nvgpu_ref ref;
@@ -120,18 +123,19 @@ struct nvgpu_semaphore_loc {
 
 /*
  * Underlying semaphore data structure. This semaphore can be shared amongst
- * other semaphore instances.
+ * instances of nvgpu_semaphore via the location in its pool.
  */
 struct nvgpu_hw_semaphore {
 	struct nvgpu_semaphore_loc location;
 	nvgpu_atomic_t next_value;	/* Next available value. */
-	struct nvgpu_channel *ch;	/* Channel that owns this sema. */
+	u32 chid;			/* Owner, for debugging */
 };
 
 /*
  * A semaphore which the rest of the driver actually uses. This consists of a
- * pointer to a real semaphore and a value to wait for. This allows one physical
- * semaphore to be shared among an essentially infinite number of submits.
+ * reference to a real semaphore location and a value to wait for. This allows
+ * one physical semaphore to be shared among an essentially infinite number of
+ * submits.
  */
 struct nvgpu_semaphore {
 	struct gk20a *g;

@@ -1,7 +1,7 @@
 /*
  * Nvgpu Semaphores
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/sizes.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/semaphore.h>
 
@@ -35,40 +34,35 @@
 
 
 /*
- * Allocate a semaphore from the passed pool.
+ * Allocate a semaphore value object from an underlying hw counter.
  *
  * Since semaphores are ref-counted there's no explicit free for external code
  * to use. When the ref-count hits 0 the internal free will happen.
  */
-struct nvgpu_semaphore *nvgpu_semaphore_alloc(struct nvgpu_channel *ch)
+struct nvgpu_semaphore *nvgpu_semaphore_alloc(
+		struct nvgpu_hw_semaphore *hw_sema)
 {
+	struct nvgpu_semaphore_pool *pool = hw_sema->location.pool;
+	struct gk20a *g = pool->sema_sea->gk20a;
 	struct nvgpu_semaphore *s;
-	int ret;
 
-	if (ch->hw_sema == NULL) {
-		ret = nvgpu_hw_semaphore_init(ch);
-		if (ret != 0) {
-			return NULL;
-		}
-	}
-
-	s = nvgpu_kzalloc(ch->g, sizeof(*s));
+	s = nvgpu_kzalloc(g, sizeof(*s));
 	if (s == NULL) {
 		return NULL;
 	}
 
 	nvgpu_ref_init(&s->ref);
-	s->g = ch->g;
-	s->location = ch->hw_sema->location;
+	s->g = g;
+	s->location = hw_sema->location;
 	nvgpu_atomic_set(&s->value, 0);
 
 	/*
 	 * Take a ref on the pool so that we can keep this pool alive for
 	 * as long as this semaphore is alive.
 	 */
-	nvgpu_semaphore_pool_get(s->location.pool);
+	nvgpu_semaphore_pool_get(pool);
 
-	gpu_sema_dbg(ch->g, "Allocated semaphore (c=%d)", ch->chid);
+	gpu_sema_dbg(g, "Allocated semaphore (c=%d)", hw_sema->chid);
 
 	return s;
 }
@@ -170,7 +164,7 @@ void nvgpu_semaphore_prepare(struct nvgpu_semaphore *s,
 	s->ready_to_wait = true;
 
 	gpu_sema_verbose_dbg(s->g, "INCR sema for c=%d (%u)",
-			     hw_sema->ch->chid, next);
+			     hw_sema->chid, next);
 }
 
 u64 nvgpu_semaphore_get_hw_pool_page_idx(struct nvgpu_semaphore *s)

@@ -51,6 +51,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/channel_sync_semaphore.h>
 #include <nvgpu/channel_user_syncpt.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
@@ -1411,17 +1412,6 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 
 	channel_free_invoke_sync_destroy(ch);
 
-#ifdef CONFIG_NVGPU_SW_SEMAPHORE
-	/*
-	 * free the channel used semaphore index.
-	 * we need to do this before releasing the address space,
-	 * as the semaphore pool might get freed after that point.
-	 */
-	if (ch->hw_sema != NULL) {
-		nvgpu_hw_semaphore_free(ch);
-	}
-#endif
-
 	/*
 	 * When releasing the channel we unbind the VM - so release the ref.
 	 */
@@ -2552,7 +2542,16 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 		struct nvgpu_channel *ch = &f->channel[chid];
 		struct nvgpu_channel_dump_info *info = infos[chid];
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
-		struct nvgpu_hw_semaphore *hw_sema = ch->hw_sema;
+		struct nvgpu_channel_sync_semaphore *sync_sema;
+		struct nvgpu_hw_semaphore *hw_sema = NULL;
+
+		if (ch->sync != NULL) {
+			sync_sema = nvgpu_channel_sync_to_semaphore(ch->sync);
+			if (sync_sema != NULL) {
+				hw_sema = nvgpu_channel_sync_semaphore_hw_sema(
+						sync_sema);
+			}
+		}
 #endif
 
 		/* if this info exists, the above loop took a channel ref */

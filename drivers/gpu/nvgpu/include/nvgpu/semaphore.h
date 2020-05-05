@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@
 #include <nvgpu/nvgpu_mem.h>
 
 struct gk20a;
-struct nvgpu_channel;
 struct nvgpu_semaphore_pool;
 struct nvgpu_hw_semaphore;
 struct nvgpu_semaphore;
@@ -71,8 +70,9 @@ u64 nvgpu_semaphore_pool_get_page_idx(struct nvgpu_semaphore_pool *p);
 /*
  * Hw semaphore functions
  */
-int nvgpu_hw_semaphore_init(struct nvgpu_channel *ch);
-void nvgpu_hw_semaphore_free(struct nvgpu_channel *ch);
+int nvgpu_hw_semaphore_init(struct vm_gk20a *vm, u32 chid,
+		struct nvgpu_hw_semaphore **new_sema);
+void nvgpu_hw_semaphore_free(struct nvgpu_hw_semaphore *hw_sema);
 u64 nvgpu_hw_semaphore_addr(struct nvgpu_hw_semaphore *hw_sema);
 u32 nvgpu_hw_semaphore_read(struct nvgpu_hw_semaphore *hw_sema);
 bool nvgpu_hw_semaphore_reset(struct nvgpu_hw_semaphore *hw_sema);
@@ -82,7 +82,8 @@ int nvgpu_hw_semaphore_update_next(struct nvgpu_hw_semaphore *hw_sema);
 /*
  * Semaphore functions.
  */
-struct nvgpu_semaphore *nvgpu_semaphore_alloc(struct nvgpu_channel *ch);
+struct nvgpu_semaphore *nvgpu_semaphore_alloc(
+		struct nvgpu_hw_semaphore *hw_sema);
 void nvgpu_semaphore_put(struct nvgpu_semaphore *s);
 void nvgpu_semaphore_get(struct nvgpu_semaphore *s);
 

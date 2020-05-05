@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,19 +24,21 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/vm.h>
+#include <nvgpu/mm.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/semaphore.h>
-#include <nvgpu/channel.h>
 
 #include "semaphore_priv.h"
 
-int nvgpu_hw_semaphore_init(struct nvgpu_channel *ch)
+int nvgpu_hw_semaphore_init(struct vm_gk20a *vm, u32 chid,
+		struct nvgpu_hw_semaphore **new_sema)
 {
+	struct nvgpu_semaphore_pool *p = vm->sema_pool;
+	struct nvgpu_hw_semaphore *hw_sema;
+	struct gk20a *g = vm->mm->g;
+	int current_value;
 	int hw_sema_idx;
 	int ret = 0;
-	struct nvgpu_hw_semaphore *hw_sema;
-	struct nvgpu_semaphore_pool *p = ch->vm->sema_pool;
-	int current_value;
 
 	nvgpu_assert(p != NULL);
 
@@ -50,22 +52,22 @@ int nvgpu_hw_semaphore_init(struct nvgpu_channel *ch)
 		goto fail;
 	}
 
-	hw_sema = nvgpu_kzalloc(ch->g, sizeof(struct nvgpu_hw_semaphore));
+	hw_sema = nvgpu_kzalloc(g, sizeof(struct nvgpu_hw_semaphore));
 	if (hw_sema == NULL) {
 		ret = -ENOMEM;
 		goto fail_free_idx;
 	}
 
-	ch->hw_sema = hw_sema;
-	hw_sema->ch = ch;
+	hw_sema->chid = chid;
 	hw_sema->location.pool = p;
 	hw_sema->location.offset = SEMAPHORE_SIZE * (u32)hw_sema_idx;
-	current_value = (int)nvgpu_mem_rd(ch->g, &p->rw_mem,
+	current_value = (int)nvgpu_mem_rd(g, &p->rw_mem,
 			hw_sema->location.offset);
 	nvgpu_atomic_set(&hw_sema->next_value, current_value);
 
 	nvgpu_mutex_release(&p->pool_lock);
 
+	*new_sema = hw_sema;
 	return 0;
 
 fail_free_idx:
@@ -78,11 +80,11 @@ fail:
 /*
  * Free the channel used semaphore index
  */
-void nvgpu_hw_semaphore_free(struct nvgpu_channel *ch)
+void nvgpu_hw_semaphore_free(struct nvgpu_hw_semaphore *hw_sema)
 {
-	struct nvgpu_semaphore_pool *p = ch->vm->sema_pool;
-	struct nvgpu_hw_semaphore *hw_sema = ch->hw_sema;
+	struct nvgpu_semaphore_pool *p = hw_sema->location.pool;
 	int idx = (int)(hw_sema->location.offset / SEMAPHORE_SIZE);
+	struct gk20a *g = p->sema_sea->gk20a;
 
 	nvgpu_assert(p != NULL);
 
@@ -90,8 +92,7 @@ void nvgpu_hw_semaphore_free(struct nvgpu_channel *ch)
 
 	nvgpu_clear_bit((u32)idx, p->semas_alloced);
 
-	nvgpu_kfree(ch->g, hw_sema);
-	ch->hw_sema = NULL;
+	nvgpu_kfree(g, hw_sema);
 
 	nvgpu_mutex_release(&p->pool_lock);
 }
@@ -104,8 +105,10 @@ u64 nvgpu_hw_semaphore_addr(struct nvgpu_hw_semaphore *hw_sema)
 
 u32 nvgpu_hw_semaphore_read(struct nvgpu_hw_semaphore *hw_sema)
 {
-	return nvgpu_mem_rd(hw_sema->ch->g, &hw_sema->location.pool->rw_mem,
-			hw_sema->location.offset);
+	struct nvgpu_semaphore_pool *pool = hw_sema->location.pool;
+	struct gk20a *g = pool->sema_sea->gk20a;
+
+	return nvgpu_mem_rd(g, &pool->rw_mem, hw_sema->location.offset);
 }
 
 /*
@@ -116,6 +119,8 @@ u32 nvgpu_hw_semaphore_read(struct nvgpu_hw_semaphore *hw_sema)
  */
 bool nvgpu_hw_semaphore_reset(struct nvgpu_hw_semaphore *hw_sema)
 {
+	struct nvgpu_semaphore_pool *pool = hw_sema->location.pool;
+	struct gk20a *g = pool->sema_sea->gk20a;
 	u32 threshold = (u32)nvgpu_atomic_read(&hw_sema->next_value);
 	u32 current_val = nvgpu_hw_semaphore_read(hw_sema);
 
@@ -138,11 +143,10 @@ bool nvgpu_hw_semaphore_reset(struct nvgpu_hw_semaphore *hw_sema)
 		return false;
 	}
 
-	nvgpu_mem_wr(hw_sema->ch->g, &hw_sema->location.pool->rw_mem,
-			hw_sema->location.offset, threshold);
+	nvgpu_mem_wr(g, &pool->rw_mem, hw_sema->location.offset, threshold);
 
-	gpu_sema_verbose_dbg(hw_sema->ch->g, "(c=%d) RESET %u -> %u",
-			hw_sema->ch->chid, current_val, threshold);
+	gpu_sema_verbose_dbg(g, "(c=%d) RESET %u -> %u",
+			hw_sema->chid, current_val, threshold);
 
 	return true;
 }
