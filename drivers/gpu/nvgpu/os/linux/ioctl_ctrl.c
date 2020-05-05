@@ -254,7 +254,9 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 	{NVGPU_GPU_FLAGS_SUPPORT_COMPRESSION,
 		NVGPU_SUPPORT_COMPRESSION},
 	{NVGPU_GPU_FLAGS_SUPPORT_SM_TTU,
-		NVGPU_SUPPORT_SM_TTU}
+		NVGPU_SUPPORT_SM_TTU},
+	{NVGPU_GPU_FLAGS_SUPPORT_PLC,
+		NVGPU_SUPPORT_PLC}
 };
 
 static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)

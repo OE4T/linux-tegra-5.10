@@ -258,10 +258,13 @@ struct gk20a;
 /** SM TTU is enabled */
 #define NVGPU_SUPPORT_SM_TTU			88U
 
+/** PLC Compression */
+#define NVGPU_SUPPORT_PLC			89U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			89U
+#define NVGPU_MAX_ENABLED_BITS			90U
 
 /**
  * @brief Check if the passed flag is enabled.
