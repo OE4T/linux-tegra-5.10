@@ -81,7 +81,6 @@ struct nvhost_device_data t21_host1x_info = {
 	.private_data		= &host1x04_info,
 	.finalize_poweron = nvhost_host1x_finalize_poweron,
 	.prepare_poweroff = nvhost_host1x_prepare_poweroff,
-	.bond_out_id		= BOND_OUT_HOST1X,
 };
 
 #ifdef CONFIG_TEGRA_GRHOST_ISP
@@ -110,7 +109,6 @@ struct nvhost_device_data t21_isp_info = {
 	.prepare_poweroff	= nvhost_isp_prepare_poweroff,
 	.hw_init		= nvhost_isp_register_isr_v1,
 	.ctrl_ops		= &tegra_isp_ctrl_ops,
-	.bond_out_id		= BOND_OUT_ISP,
 };
 
 struct nvhost_device_data t21_ispb_info = {
@@ -138,7 +136,6 @@ struct nvhost_device_data t21_ispb_info = {
 	.prepare_poweroff	= nvhost_isp_prepare_poweroff,
 	.hw_init		= nvhost_isp_register_isr_v1,
 	.ctrl_ops		= &tegra_isp_ctrl_ops,
-	.bond_out_id		= BOND_OUT_ISP,
 };
 #endif
 
@@ -176,7 +173,6 @@ struct nvhost_device_data t21_vi_info = {
 	.ctrl_ops		= &tegra_vi_ctrl_ops,
 	.num_channels		= 6,
 	.slcg_notifier_enable	= true,
-	.bond_out_id		= BOND_OUT_VI,
 	.prepare_poweroff = nvhost_vi_prepare_poweroff,
 	.finalize_poweron = nvhost_vi_finalize_poweron,
 };
@@ -216,7 +212,6 @@ struct nvhost_device_data t21_msenc_info = {
 	.firmware_name		= "nvhost_nvenc050.fw",
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.serialize		= true,
-	.bond_out_id		= BOND_OUT_NVENC,
 #if defined(CONFIG_TEGRA_BWMGR)
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_MSENC,
 #endif
@@ -251,7 +246,6 @@ struct nvhost_device_data t21_nvdec_info = {
 	.actmon_enabled		= true,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.serialize		= true,
-	.bond_out_id		= BOND_OUT_NVDEC,
 #if defined(CONFIG_TEGRA_BWMGR)
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_NVDEC,
 #endif
@@ -288,7 +282,6 @@ struct nvhost_device_data t21_nvjpg_info = {
 	.borps_addr		= 0x00001450,
 	.borps_val		= 0x2008,
 	.actmon_enabled		= true,
-	.bond_out_id		= BOND_OUT_NVJPG,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.serialize		= true,
 	.firmware_name		= "nvhost_nvjpg010.fw",
@@ -321,7 +314,6 @@ struct nvhost_device_data t21_tsec_info = {
 	.prepare_poweroff	= nvhost_tsec_prepare_poweroff,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.serialize		= true,
-	.bond_out_id		= BOND_OUT_TSEC,
 #if defined(CONFIG_TEGRA_BWMGR)
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_TSEC,
 #endif
@@ -348,7 +340,6 @@ struct nvhost_device_data t21_tsecb_info = {
 	.prepare_poweroff	= nvhost_tsec_prepare_poweroff,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.serialize		= true,
-	.bond_out_id		= BOND_OUT_TSEC,
 #if defined(CONFIG_TEGRA_BWMGR)
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_TSECB,
 #endif
@@ -392,7 +383,6 @@ struct nvhost_device_data t21_vic_info = {
 	.serialize		= true,
 	.push_work_done		= true,
 	.firmware_name		= "vic04_ucode.bin",
-	.bond_out_id		= BOND_OUT_VIC,
 	.aggregate_constraints	= nvhost_vic_aggregate_constraints,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.num_ppc		= 8,

@@ -337,9 +337,6 @@ struct nvhost_device_data {
 	int (*pre_virt_init)(struct platform_device *pdev);
 	int (*post_virt_init)(struct platform_device *pdev);
 
-	/* bond out device id */
-	unsigned int bond_out_id;
-
 	phys_addr_t carveout_addr;
 	phys_addr_t carveout_size;
 
