@@ -131,7 +131,7 @@ void gm20b_flush_ltc(struct gk20a *g)
 	int err;
 
 	/* Clean... */
-	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt1_r(),
+	nvgpu_writel(g, ltc_ltcs_ltss_tstg_cmgmt1_r(),
 		ltc_ltcs_ltss_tstg_cmgmt1_clean_pending_f() |
 		ltc_ltcs_ltss_tstg_cmgmt1_max_cycles_between_cleans_3_f() |
 		ltc_ltcs_ltss_tstg_cmgmt1_clean_wait_for_fb_to_pull_true_f() |
@@ -146,7 +146,7 @@ void gm20b_flush_ltc(struct gk20a *g)
 	}
 
 	/* And invalidate. */
-	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt0_r(),
+	nvgpu_writel(g, ltc_ltcs_ltss_tstg_cmgmt0_r(),
 	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_pending_f() |
 	     ltc_ltcs_ltss_tstg_cmgmt0_max_cycles_between_invalidates_3_f() |
 	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_last_class_true_f() |
