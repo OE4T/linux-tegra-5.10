@@ -447,6 +447,9 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 		break;
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
+#if defined(CONFIG_NVGPU_NEXT)
+	case NVGPU_NEXT_DGPU_GPUID:
+#endif
 		tu104_falcon_sw_init(flcn);
 		break;
 #endif
