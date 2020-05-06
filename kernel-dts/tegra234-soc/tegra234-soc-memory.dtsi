@@ -21,11 +21,11 @@
 
 		generic_reserved: generic_carveout {
 			compatible = "nvidia,generic_carveout";
-			size = <0 0>;
-			alignment = <0 0x100000>;
+			size = <0 0x10000000>;
+			alignment = <0 0x200000>;
 			alloc-ranges = <0 0 0x1 0>;
 			no-map;
-			status = "disabled";
+			status = "okay";
 		};
 
 		gos_reserved: grid-of-semaphores {
@@ -55,8 +55,9 @@
 		 * once it finds Zero size "memory-region". Hence keep non zero sized
 		 * "memory-region" before the zero sized ones.
 		 */
-		memory-region = <&gos_reserved &generic_reserved>;
-		status = "disabled";
+		memory-region = <&generic_reserved &gos_reserved>;
+		dont-convert-iovmm-to-carveout;
+		status = "okay";
 	};
 
 	tegra-cache {
