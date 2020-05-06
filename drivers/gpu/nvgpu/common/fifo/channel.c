@@ -2316,6 +2316,39 @@ int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 	return 0;
 }
 
+static void nvgpu_channel_semaphore_signal(struct nvgpu_channel *c,
+		bool post_events)
+{
+	struct gk20a *g = c->g;
+
+	if (nvgpu_cond_broadcast_interruptible( &c->semaphore_wq) != 0) {
+		nvgpu_warn(g, "failed to broadcast");
+	}
+
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
+	if (post_events) {
+		struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(c);
+		if (tsg != NULL) {
+			g->ops.tsg.post_event_id(tsg,
+			    NVGPU_EVENT_ID_BLOCKING_SYNC);
+		}
+	}
+#endif
+
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+	/*
+	 * Only non-deterministic channels get the channel_update callback. We
+	 * don't allow semaphore-backed syncs for these channels anyways, since
+	 * they have a dependency on the sync framework. If deterministic
+	 * channels are receiving a semaphore wakeup, it must be for a
+	 * user-space managed semaphore.
+	 */
+	if (!nvgpu_channel_is_deterministic(c)) {
+		nvgpu_channel_update(c);
+	}
+#endif
+}
+
 void nvgpu_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -2333,38 +2366,7 @@ void nvgpu_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 		struct nvgpu_channel *c = &g->fifo.channel[chid];
 		if (nvgpu_channel_get(c) != NULL) {
 			if (nvgpu_atomic_read(&c->bound) != 0) {
-
-				if (nvgpu_cond_broadcast_interruptible(
-						&c->semaphore_wq) != 0) {
-					nvgpu_warn(g, "failed to broadcast");
-				}
-
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
-				if (post_events) {
-					struct nvgpu_tsg *tsg =
-							nvgpu_tsg_from_ch(c);
-					if (tsg != NULL) {
-						g->ops.tsg.post_event_id(tsg,
-						    NVGPU_EVENT_ID_BLOCKING_SYNC);
-					}
-				}
-#endif
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-				/*
-				 * Only non-deterministic channels get the
-				 * channel_update callback. We don't allow
-				 * semaphore-backed syncs for these channels
-				 * anyways, since they have a dependency on
-				 * the sync framework.
-				 * If deterministic channels are receiving a
-				 * semaphore wakeup, it must be for a
-				 * user-space managed
-				 * semaphore.
-				 */
-				if (!nvgpu_channel_is_deterministic(c)) {
-					nvgpu_channel_update(c);
-				}
-#endif
+				nvgpu_channel_semaphore_signal(c, post_events);
 			}
 			nvgpu_channel_put(c);
 		}
