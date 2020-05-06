@@ -62,15 +62,16 @@ struct nvgpu_channel_sync_ops {
 	int (*incr)(struct nvgpu_channel_sync *s,
 		    struct priv_cmd_entry **entry,
 		    struct nvgpu_fence_type *fence,
-		    bool need_sync_fence,
-		    bool register_irq);
+		    bool need_sync_fence);
 
 	int (*incr_user)(struct nvgpu_channel_sync *s,
 			 struct priv_cmd_entry **entry,
 			 struct nvgpu_fence_type *fence,
 			 bool wfi,
-			 bool need_sync_fence,
-			 bool register_irq);
+			 bool need_sync_fence);
+
+	void (*mark_progress)(struct nvgpu_channel_sync *s,
+			     bool register_irq);
 
 	void (*set_min_eq_max)(struct nvgpu_channel_sync *s);
 

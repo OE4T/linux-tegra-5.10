@@ -53,7 +53,7 @@ int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
  */
 int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
 	struct priv_cmd_entry **entry, struct nvgpu_fence_type *fence,
-	bool need_sync_fence, bool register_irq);
+	bool need_sync_fence);
 
 /*
  * Increment syncpoint/semaphore, so that the returned fence represents
@@ -65,7 +65,19 @@ int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
  */
 int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
 	struct priv_cmd_entry **entry, struct nvgpu_fence_type *fence,
-	bool wfi, bool need_sync_fence, bool register_irq);
+	bool wfi, bool need_sync_fence);
+
+/*
+ * Tell the sync that some progress will eventually happen on it: increase the
+ * tracked max value of the underlying syncpoint/semaphore and maybe register
+ * an interrupt notifier to be called if needed so that the channel gets a
+ * job completion signal.
+ *
+ * @param register_irq [in] Register an interrupt for the increment.
+ */
+void nvgpu_channel_sync_mark_progress(struct nvgpu_channel_sync *s,
+	bool register_irq);
+
 /*
  * Reset the channel syncpoint/semaphore. Syncpoint increments generally
  * wrap around the range of integer values. Current max value encompasses

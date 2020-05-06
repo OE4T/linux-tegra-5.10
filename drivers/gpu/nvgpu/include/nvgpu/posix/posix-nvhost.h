@@ -85,4 +85,7 @@ int nvgpu_nvhost_syncpt_wait_timeout_ext(
 int nvgpu_nvhost_syncpt_read_ext_check(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 *val);
 
+u32 nvgpu_nvhost_syncpt_read_maxval(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id);
+
 #endif

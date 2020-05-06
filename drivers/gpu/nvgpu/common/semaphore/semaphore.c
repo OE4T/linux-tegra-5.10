@@ -155,7 +155,8 @@ bool nvgpu_semaphore_can_wait(struct nvgpu_semaphore *s)
 void nvgpu_semaphore_prepare(struct nvgpu_semaphore *s,
 		struct nvgpu_hw_semaphore *hw_sema)
 {
-	int next = nvgpu_hw_semaphore_update_next(hw_sema);
+	/* One submission increments the next value by one. */
+	int next = nvgpu_hw_semaphore_read_next(hw_sema) + 1;
 
 	/* "s" should be an uninitialized sema. */
 	WARN_ON(s->ready_to_wait);
@@ -163,7 +164,7 @@ void nvgpu_semaphore_prepare(struct nvgpu_semaphore *s,
 	nvgpu_atomic_set(&s->value, next);
 	s->ready_to_wait = true;
 
-	gpu_sema_verbose_dbg(s->g, "INCR sema for c=%d (%u)",
+	gpu_sema_verbose_dbg(s->g, "PREP sema for c=%d (%u)",
 			     hw_sema->chid, next);
 }
 

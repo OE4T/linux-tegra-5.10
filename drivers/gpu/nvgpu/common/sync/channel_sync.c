@@ -65,17 +65,22 @@ int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
 
 int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
 	struct priv_cmd_entry **entry, struct nvgpu_fence_type *fence,
-	bool need_sync_fence, bool register_irq)
+	bool need_sync_fence)
 {
-	return s->ops->incr(s, entry, fence, need_sync_fence, register_irq);
+	return s->ops->incr(s, entry, fence, need_sync_fence);
 }
 
 int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
 	struct priv_cmd_entry **entry, struct nvgpu_fence_type *fence,
-	bool wfi, bool need_sync_fence, bool register_irq)
+	bool wfi, bool need_sync_fence)
 {
-	return s->ops->incr_user(s, entry, fence, wfi, need_sync_fence,
-			register_irq);
+	return s->ops->incr_user(s, entry, fence, wfi, need_sync_fence);
+}
+
+void nvgpu_channel_sync_mark_progress(struct nvgpu_channel_sync *s,
+	bool register_irq)
+{
+	s->ops->mark_progress(s, register_irq);
 }
 
 void nvgpu_channel_sync_set_min_eq_max(struct nvgpu_channel_sync *s)

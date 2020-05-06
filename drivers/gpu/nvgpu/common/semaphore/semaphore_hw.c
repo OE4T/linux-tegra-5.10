@@ -158,5 +158,11 @@ int nvgpu_hw_semaphore_read_next(struct nvgpu_hw_semaphore *hw_sema)
 
 int nvgpu_hw_semaphore_update_next(struct nvgpu_hw_semaphore *hw_sema)
 {
-	return nvgpu_atomic_add_return(1, &hw_sema->next_value);
+	int next = nvgpu_atomic_add_return(1, &hw_sema->next_value);
+	struct nvgpu_semaphore_pool *p = hw_sema->location.pool;
+	struct gk20a *g = p->sema_sea->gk20a;
+
+	gpu_sema_verbose_dbg(g, "INCR sema for c=%d (%u)",
+			     hw_sema->chid, next);
+	return next;
 }

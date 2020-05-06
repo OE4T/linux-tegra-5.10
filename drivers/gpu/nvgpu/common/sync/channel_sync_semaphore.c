@@ -100,7 +100,7 @@ static void add_sema_incr_cmd(struct gk20a *g, struct nvgpu_channel *c,
 	/* release will need to write back to the semaphore memory. */
 	va = nvgpu_semaphore_gpu_rw_va(s);
 
-	/* incr the underlying sema next_value (like syncpt's max). */
+	/* find the right sema next_value to write (like syncpt's max). */
 	nvgpu_semaphore_prepare(s, hw_sema);
 
 	g->ops.sync.sema.add_incr_cmd(g, cmd, s, va, wfi);
@@ -237,8 +237,7 @@ static int channel_sync_semaphore_incr(
 		struct nvgpu_channel_sync *s,
 		struct priv_cmd_entry **entry,
 		struct nvgpu_fence_type *fence,
-		bool need_sync_fence,
-		bool register_irq)
+		bool need_sync_fence)
 {
 	/* Don't put wfi cmd to this one since we're not returning
 	 * a fence to user space. */
@@ -252,8 +251,7 @@ static int channel_sync_semaphore_incr_user(
 		struct priv_cmd_entry **entry,
 		struct nvgpu_fence_type *fence,
 		bool wfi,
-		bool need_sync_fence,
-		bool register_irq)
+		bool need_sync_fence)
 {
 #ifndef CONFIG_NVGPU_SYNCFD_NONE
 	int err;
@@ -273,6 +271,19 @@ static int channel_sync_semaphore_incr_user(
 		  "trying to use sync fds with CONFIG_NVGPU_SYNCFD_NONE");
 	return -ENODEV;
 #endif
+}
+
+static void channel_sync_semaphore_mark_progress(struct nvgpu_channel_sync *s,
+		bool register_irq)
+{
+	struct nvgpu_channel_sync_semaphore *sp =
+		nvgpu_channel_sync_semaphore_from_base(s);
+
+	(void)nvgpu_hw_semaphore_update_next(sp->hw_sema);
+	/*
+	 * register_irq is ignored: there is only one semaphore interrupt that
+	 * triggers nvgpu_channel_update() and it's always active.
+	 */
 }
 
 static void channel_sync_semaphore_set_min_eq_max(struct nvgpu_channel_sync *s)
@@ -310,6 +321,7 @@ static const struct nvgpu_channel_sync_ops channel_sync_semaphore_ops = {
 	.wait_fence_fd		= channel_sync_semaphore_wait_fd,
 	.incr			= channel_sync_semaphore_incr,
 	.incr_user		= channel_sync_semaphore_incr_user,
+	.mark_progress		= channel_sync_semaphore_mark_progress,
 	.set_min_eq_max		= channel_sync_semaphore_set_min_eq_max,
 	.destroy		= channel_sync_semaphore_destroy,
 };

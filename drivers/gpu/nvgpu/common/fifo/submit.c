@@ -80,7 +80,7 @@ static int nvgpu_submit_create_wait_cmd(struct nvgpu_channel *c,
 static int nvgpu_submit_create_incr_cmd(struct nvgpu_channel *c,
 		struct priv_cmd_entry **incr_cmd,
 		struct nvgpu_fence_type **post_fence, bool flag_fence_get,
-		bool need_wfi, bool need_sync_fence, bool register_irq)
+		bool need_wfi, bool need_sync_fence)
 {
 	int err;
 
@@ -91,11 +91,10 @@ static int nvgpu_submit_create_incr_cmd(struct nvgpu_channel *c,
 
 	if (flag_fence_get) {
 		err = nvgpu_channel_sync_incr_user(c->sync, incr_cmd,
-				*post_fence, need_wfi, need_sync_fence,
-				register_irq);
+				*post_fence, need_wfi, need_sync_fence);
 	} else {
 		err = nvgpu_channel_sync_incr(c->sync, incr_cmd,
-				*post_fence, need_sync_fence, register_irq);
+				*post_fence, need_sync_fence);
 	}
 
 	if (err != 0) {
@@ -112,7 +111,7 @@ static int nvgpu_submit_create_incr_cmd(struct nvgpu_channel *c,
 static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 				      struct nvgpu_channel_fence *fence,
 				      struct nvgpu_channel_job *job,
-				      bool register_irq, u32 flags)
+				      u32 flags)
 {
 	struct gk20a *g = c->g;
 	bool need_sync_fence;
@@ -163,8 +162,7 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	 * if not requested by user.
 	 */
 	err = nvgpu_submit_create_incr_cmd(c, &job->incr_cmd, &job->post_fence,
-			flag_fence_get, need_wfi, need_sync_fence,
-			register_irq);
+			flag_fence_get, need_wfi, need_sync_fence);
 	if (err != 0) {
 		goto clean_up_wait_cmd;
 	}
@@ -354,8 +352,7 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 		return err;
 	}
 
-	err = nvgpu_submit_prepare_syncs(c, fence, job, need_deferred_cleanup,
-			flags);
+	err = nvgpu_submit_prepare_syncs(c, fence, job, flags);
 	if (err != 0) {
 		goto clean_up_job;
 	}
@@ -382,6 +379,8 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 	if (err != 0) {
 		goto clean_up_gpfifo_incr;
 	}
+
+	nvgpu_channel_sync_mark_progress(c->sync, need_deferred_cleanup);
 
 	if (fence_out != NULL) {
 		*fence_out = nvgpu_fence_get(job->post_fence);

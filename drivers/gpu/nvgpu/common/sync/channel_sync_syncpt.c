@@ -159,13 +159,12 @@ static void channel_sync_syncpt_update(void *priv, int nr_completed)
 
 	nvgpu_channel_update(ch);
 
-	/* note: channel_get() is in channel_sync_syncpt_incr_common() */
+	/* note: channel_get() is in channel_sync_syncpt_mark_progress() */
 	nvgpu_channel_put(ch);
 }
 
 static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 				       bool wfi_cmd,
-				       bool register_irq,
 				       struct priv_cmd_entry **incr_cmd,
 				       struct nvgpu_fence_type *fence,
 				       bool need_sync_fence)
@@ -189,35 +188,9 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	c->g->ops.sync.syncpt.add_incr_cmd(c->g, *incr_cmd,
 			sp->id, sp->syncpt_buf.gpu_va, wfi_cmd);
 
-	thresh = nvgpu_nvhost_syncpt_incr_max_ext(sp->nvhost, sp->id,
+	thresh = nvgpu_wrapping_add_u32(
+			nvgpu_nvhost_syncpt_read_maxval(sp->nvhost, sp->id),
 			c->g->ops.sync.syncpt.get_incr_per_release());
-
-	if (register_irq) {
-		struct nvgpu_channel *referenced = nvgpu_channel_get(c);
-
-		WARN_ON(!referenced);
-
-		if (referenced) {
-			/* note: channel_put() is in
-			 * channel_sync_syncpt_update() */
-
-			err = nvgpu_nvhost_intr_register_notifier(
-				sp->nvhost,
-				sp->id, thresh,
-				channel_sync_syncpt_update, c);
-			if (err != 0) {
-				nvgpu_channel_put(referenced);
-			}
-
-			/* Adding interrupt action should
-			 * never fail. A proper error handling
-			 * here would require us to decrement
-			 * the syncpt max back to its original
-			 * value. */
-			WARN(err,
-			     "failed to set submit complete interrupt");
-		}
-	}
 
 	if (need_sync_fence) {
 		err = nvgpu_os_fence_syncpt_create(&os_fence, c, sp->nvhost,
@@ -248,30 +221,69 @@ clean_up_priv_cmd:
 static int channel_sync_syncpt_incr(struct nvgpu_channel_sync *s,
 			      struct priv_cmd_entry **entry,
 			      struct nvgpu_fence_type *fence,
-			      bool need_sync_fence,
-			      bool register_irq)
+			      bool need_sync_fence)
 {
 	/* Don't put wfi cmd to this one since we're not returning
 	 * a fence to user space. */
-	return channel_sync_syncpt_incr_common(s,
-			false /* no wfi */,
-			register_irq /* register irq */,
-			entry, fence, need_sync_fence);
+	return channel_sync_syncpt_incr_common(s, false, entry, fence,
+			need_sync_fence);
 }
 
 static int channel_sync_syncpt_incr_user(struct nvgpu_channel_sync *s,
 				   struct priv_cmd_entry **entry,
 				   struct nvgpu_fence_type *fence,
 				   bool wfi,
-				   bool need_sync_fence,
-				   bool register_irq)
+				   bool need_sync_fence)
 {
 	/* Need to do 'wfi + host incr' since we return the fence
 	 * to user space. */
-	return channel_sync_syncpt_incr_common(s,
-			wfi,
-			register_irq /* register irq */,
-			entry, fence, need_sync_fence);
+	return channel_sync_syncpt_incr_common(s, wfi, entry, fence,
+			need_sync_fence);
+}
+
+static void channel_sync_syncpt_mark_progress(struct nvgpu_channel_sync *s,
+				   bool register_irq)
+{
+	struct nvgpu_channel_sync_syncpt *sp =
+		nvgpu_channel_sync_syncpt_from_base(s);
+	struct nvgpu_channel *c = sp->c;
+	struct gk20a *g = c->g;
+	u32 thresh;
+
+	thresh = nvgpu_nvhost_syncpt_incr_max_ext(sp->nvhost, sp->id,
+			g->ops.sync.syncpt.get_incr_per_release());
+
+	if (register_irq) {
+		struct nvgpu_channel *referenced = nvgpu_channel_get(c);
+
+		WARN_ON(referenced == NULL);
+
+		if (referenced != NULL) {
+			/*
+			 * note: the matching channel_put() is in
+			 * channel_sync_syncpt_update() that gets called when
+			 * the job completes.
+			 */
+
+			int err = nvgpu_nvhost_intr_register_notifier(
+				sp->nvhost,
+				sp->id, thresh,
+				channel_sync_syncpt_update, c);
+			if (err != 0) {
+				nvgpu_channel_put(referenced);
+			}
+
+			/*
+			 * This never fails in practice. If it does, we won't
+			 * be getting a completion signal to free the job
+			 * resources, but maybe this succeeds on a possible
+			 * subsequent submit, and the channel closure path will
+			 * eventually mark everything completed anyway.
+			 */
+			WARN(err != 0,
+			     "failed to set submit complete interrupt");
+		}
+	}
 }
 
 int nvgpu_channel_sync_wait_syncpt(struct nvgpu_channel_sync_syncpt *s,
@@ -314,6 +326,7 @@ static const struct nvgpu_channel_sync_ops channel_sync_syncpt_ops = {
 	.wait_fence_fd		= channel_sync_syncpt_wait_fd,
 	.incr			= channel_sync_syncpt_incr,
 	.incr_user		= channel_sync_syncpt_incr_user,
+	.mark_progress		= channel_sync_syncpt_mark_progress,
 	.set_min_eq_max		= channel_sync_syncpt_set_min_eq_max,
 	.destroy		= channel_sync_syncpt_destroy,
 };
@@ -348,8 +361,8 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c)
 	snprintf(syncpt_name, sizeof(syncpt_name),
 		"%s_%d", c->g->name, c->chid);
 
-	sp->id = nvgpu_nvhost_get_syncpt_host_managed(sp->nvhost,
-					c->chid, syncpt_name);
+	sp->id = nvgpu_nvhost_get_syncpt_client_managed(sp->nvhost,
+					syncpt_name);
 
 	/**
 	 * This is a WAR to handle invalid value of a syncpt.
