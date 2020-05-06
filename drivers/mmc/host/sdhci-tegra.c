@@ -231,6 +231,9 @@ struct sdhci_tegra {
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
 
+/* Module params */
+static unsigned int en_boot_part_access;
+
 static u16 tegra_sdhci_readw(struct sdhci_host *host, int reg)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
@@ -2058,6 +2061,9 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	if (tegra_host->force_non_rem_rescan)
 		host->mmc->caps2 |= MMC_CAP2_FORCE_RESCAN;
 
+	if (!en_boot_part_access)
+		host->mmc->caps2 |= MMC_CAP2_BOOTPART_NOACC;
+
 	rc = sdhci_tegra_add_host(host);
 	if (rc)
 		goto err_add_host;
@@ -2197,6 +2203,8 @@ static struct platform_driver sdhci_tegra_driver = {
 };
 
 module_platform_driver(sdhci_tegra_driver);
+
+module_param(en_boot_part_access, uint, 0444);
 
 MODULE_DESCRIPTION("SDHCI driver for Tegra");
 MODULE_AUTHOR("Google, Inc.");
