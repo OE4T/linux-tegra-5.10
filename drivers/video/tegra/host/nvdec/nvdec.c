@@ -511,6 +511,10 @@ static int nvdec_probe(struct platform_device *dev)
 		pdata->isolate_contexts = false;
 	}
 
+	if (of_property_read_bool(dev->dev.of_node, "nvidia,secure")) {
+		tegra_nvdec_bootloader_enabled = true;
+	}
+
 	mutex_init(&pdata->lock);
 
 	platform_set_drvdata(dev, pdata);
