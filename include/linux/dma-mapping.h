@@ -78,6 +78,12 @@
 #define DMA_ATTR_READ_ONLY	(1UL << 10)
 
 /*
+ * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping subsystem to allocate
+ * the exact number of pages
+ */
+#define DMA_ATTR_ALLOC_EXACT_SIZE	(1UL << 14)
+
+/*
  * A dma_addr_t can hold any valid DMA or bus address for the platform.
  * It can be given to a device to use as a DMA source or target.  A CPU cannot
  * reference a dma_addr_t directly because there may be translation between
@@ -162,21 +168,27 @@ static inline int valid_dma_direction(int dma_direction)
  * These three functions are only for dma allocator.
  * Don't use them in device drivers.
  */
-int dma_alloc_from_dev_coherent(struct device *dev, ssize_t size,
-				       dma_addr_t *dma_handle, void **ret);
-int dma_release_from_dev_coherent(struct device *dev, int order, void *vaddr);
+int dma_alloc_from_dev_coherent_attr(struct device *dev, ssize_t size,
+					dma_addr_t *dma_handle, void **ret,
+					unsigned long attrs);
+int dma_release_from_dev_coherent_attr(struct device *dev, ssize_t size,
+					void *vaddr, unsigned long attrs);
+#define dma_alloc_from_dev_coherent(d, s, h, r) \
+	 dma_alloc_from_dev_coherent_attr(d, s, h, r, 0)
+#define dma_release_from_dev_coherent(d, s, v) \
+	 dma_release_from_dev_coherent_attr(d, s, v, 0)
 
 int dma_mmap_from_dev_coherent(struct device *dev, struct vm_area_struct *vma,
 			    void *cpu_addr, size_t size, int *ret);
 
 void *dma_alloc_from_global_coherent(struct device *dev, ssize_t size, dma_addr_t *dma_handle);
-int dma_release_from_global_coherent(int order, void *vaddr);
+int dma_release_from_global_coherent(size_t size, void *vaddr);
 int dma_mmap_from_global_coherent(struct vm_area_struct *vma, void *cpu_addr,
 				  size_t size, int *ret);
 
 #else
-#define dma_alloc_from_dev_coherent(dev, size, handle, ret) (0)
-#define dma_release_from_dev_coherent(dev, order, vaddr) (0)
+#define dma_alloc_from_dev_coherent(dev, size, handle, ret, attrs) (0)
+#define dma_release_from_dev_coherent(dev, order, vaddr, attrs) (0)
 #define dma_mmap_from_dev_coherent(dev, vma, vaddr, order, ret) (0)
 
 static inline void *dma_alloc_from_global_coherent(struct device *dev, ssize_t size,
@@ -185,7 +197,7 @@ static inline void *dma_alloc_from_global_coherent(struct device *dev, ssize_t s
 	return NULL;
 }
 
-static inline int dma_release_from_global_coherent(int order, void *vaddr)
+static inline int dma_release_from_global_coherent(ssize_t size, void *vaddr)
 {
 	return 0;
 }
