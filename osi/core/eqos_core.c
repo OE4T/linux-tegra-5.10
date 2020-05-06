@@ -1126,6 +1126,284 @@ static nve32_t eqos_config_rxcsum_offload(
 }
 
 /**
+ * @brief eqos_config_frp - Enable/Disale RX Flexible Receive Parser in HW
+ *
+ * Algorithm:
+ *      1) Read the MTL OP Mode configuration register.
+ *      2) Enable/Disable FRPE bit based on the input.
+ *      3) Write the MTL OP Mode configuration register.
+ *
+ * @param[in] osi_core: OSI core private data.
+ * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_frp(struct osi_core_priv_data *const osi_core,
+			   const unsigned int enabled)
+{
+	unsigned char *base = osi_core->base;
+	unsigned int op_mode = 0U, val = 0U;
+	int ret = 0;
+
+	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid enable input\n",
+			enabled);
+		return -1;
+	}
+
+	/* Disable RE */
+	val = osi_readl(base + EQOS_MAC_MCR);
+	val &= ~EQOS_MCR_RE;
+	osi_writel(val, base + EQOS_MAC_MCR);
+
+	/* Verify RXPI bit set in MTL_RXP_Control_Status */
+	ret = osi_readl_poll_timeout((base + EQOS_MTL_RXP_CS),
+				     (osi_core->osd_ops.udelay),
+				     (val),
+				     ((val & EQOS_MTL_RXP_CS_RXPI) ==
+				      EQOS_MTL_RXP_CS_RXPI),
+				     (EQOS_MTL_FRP_READ_UDELAY),
+				     (EQOS_MTL_FRP_READ_RETRY));
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"Fail to enable FRP\n",
+			val);
+		goto frp_enable_re;
+	}
+
+	op_mode = osi_readl(base + EQOS_MTL_OP_MODE);
+	val = osi_readl(base + EQOS_MTL_RXP_INTR_CS);
+	if (enabled == OSI_ENABLE) {
+		/* Set FRPE bit of MTL_Operation_Mode register */
+		op_mode |= EQOS_MTL_OP_MODE_FRPE;
+
+		/* Enable FRP Interrupt MTL_RXP_Interrupt_Control_Status */
+		val |= (EQOS_MTL_RXP_INTR_CS_NVEOVIE |
+			EQOS_MTL_RXP_INTR_CS_NPEOVIE |
+			EQOS_MTL_RXP_INTR_CS_FOOVIE |
+			EQOS_MTL_RXP_INTR_CS_PDRFIE);
+	} else {
+		/* Reset FRPE bit of MTL_Operation_Mode register */
+		op_mode &= ~EQOS_MTL_OP_MODE_FRPE;
+
+		/* Disable FRP Interrupt MTL_RXP_Interrupt_Control_Status */
+		val = osi_readl(base + EQOS_MTL_RXP_INTR_CS);
+		val &= ~(EQOS_MTL_RXP_INTR_CS_NVEOVIE |
+			 EQOS_MTL_RXP_INTR_CS_NPEOVIE |
+			 EQOS_MTL_RXP_INTR_CS_FOOVIE |
+			 EQOS_MTL_RXP_INTR_CS_PDRFIE);
+	}
+	osi_writel(op_mode, base + EQOS_MTL_OP_MODE);
+	osi_writel(val, base + EQOS_MTL_RXP_INTR_CS);
+
+frp_enable_re:
+	/* Enable RE */
+	val = osi_readl(base + EQOS_MAC_MCR);
+	val |= EQOS_MCR_RE;
+	osi_writel(val, base + EQOS_MAC_MCR);
+
+	return ret;
+}
+
+/**
+ * @brief eqos_update_frp_nve - Update FRP NVE into HW
+ *
+ * Algorithm:
+ *
+ * @param[in] osi_core: OSI core private data.
+ * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_update_frp_nve(struct osi_core_priv_data *const osi_core,
+			       const unsigned int nve)
+{
+	unsigned int val;
+	unsigned char *base = osi_core->base;
+
+	/* Validate the NVE value */
+	if (nve >= OSI_FRP_MAX_ENTRY) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid NVE value\n",
+			nve);
+		return -1;
+	}
+
+	/* Update NVE and NPE in MTL_RXP_Control_Status register */
+	val = osi_readl(base + EQOS_MTL_RXP_CS);
+	/* Clear old NVE and NPE */
+	val &= ~(EQOS_MTL_RXP_CS_NVE | EQOS_MTL_RXP_CS_NPE);
+	/* Add new NVE and NVE */
+	val |= (nve & EQOS_MTL_RXP_CS_NVE);
+	val |= ((nve << EQOS_MTL_RXP_CS_NPE_SHIFT) & EQOS_MTL_RXP_CS_NPE);
+	osi_writel(val, base + EQOS_MTL_RXP_CS);
+
+	return 0;
+}
+
+/**
+ * @brief eqos_frp_write - Write FRP entry into HW
+ *
+ * Algorithm: This function will write FRP entry registers into HW.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] addr: FRP register address.
+ * @param[in] data: FRP register data.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_frp_write(struct osi_core_priv_data *osi_core,
+			  unsigned int addr,
+			  unsigned int data)
+{
+	int ret = 0;
+	unsigned char *base = osi_core->base;
+	unsigned int val = 0U;
+
+	/* Wait for ready */
+	ret = osi_readl_poll_timeout((base + EQOS_MTL_RXP_IND_CS),
+				     (osi_core->osd_ops.udelay),
+				     (val),
+				     ((val & EQOS_MTL_RXP_IND_CS_BUSY) ==
+				      OSI_NONE),
+				     (EQOS_MTL_FRP_READ_UDELAY),
+				     (EQOS_MTL_FRP_READ_RETRY));
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"Fail to write\n",
+			val);
+		return -1;
+	}
+
+	/* Write data into MTL_RXP_Indirect_Acc_Data */
+	osi_writel(data, base + EQOS_MTL_RXP_IND_DATA);
+
+	/* Program MTL_RXP_Indirect_Acc_Control_Status */
+	val = osi_readl(base + EQOS_MTL_RXP_IND_CS);
+	/* Set WRRDN for write */
+	val |= EQOS_MTL_RXP_IND_CS_WRRDN;
+	/* Clear and add ADDR */
+	val &= ~EQOS_MTL_RXP_IND_CS_ADDR;
+	val |= (addr & EQOS_MTL_RXP_IND_CS_ADDR);
+	/* Start write */
+	val |= EQOS_MTL_RXP_IND_CS_BUSY;
+	osi_writel(val, base + EQOS_MTL_RXP_IND_CS);
+
+	/* Wait for complete */
+	ret = osi_readl_poll_timeout((base + EQOS_MTL_RXP_IND_CS),
+				     (osi_core->osd_ops.udelay),
+				     (val),
+				     ((val & EQOS_MTL_RXP_IND_CS_BUSY) ==
+				      OSI_NONE),
+				     (EQOS_MTL_FRP_READ_UDELAY),
+				     (EQOS_MTL_FRP_READ_RETRY));
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			"Fail to write\n",
+			val);
+		return -1;
+	}
+
+	return ret;
+}
+
+/**
+ * @brief eqos_update_frp_entry - Update FRP Instruction Table entry in HW
+ *
+ * Algorithm:
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] pos: FRP Instruction Table entry location.
+ * @param[in] data: FRP entry data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_update_frp_entry(struct osi_core_priv_data *const osi_core,
+				 const unsigned int pos,
+				 struct osi_core_frp_data *const data)
+{
+	unsigned int val = 0U, tmp = 0U;
+	int ret = -1;
+
+	/* Validate pos value */
+	if (pos >= OSI_FRP_MAX_ENTRY) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid FRP table entry\n",
+			pos);
+		return -1;
+	}
+
+	/** Write Match Data into IE0 **/
+	val = data->match_data;
+	ret = eqos_frp_write(osi_core, EQOS_MTL_FRP_IE0(pos), val);
+	if (ret < 0) {
+		/* Match Data Write fail */
+		return -1;
+	}
+
+	/** Write Match Enable into IE1 **/
+	val = data->match_en;
+	ret = eqos_frp_write(osi_core, EQOS_MTL_FRP_IE1(pos), val);
+	if (ret < 0) {
+		/* Match Enable Write fail */
+		return -1;
+	}
+
+	/** Write AF, RF, IM, NIC, FO and OKI into IE2 **/
+	val = 0;
+	if (data->accept_frame == OSI_ENABLE) {
+		/* Set AF Bit */
+		val |= EQOS_MTL_FRP_IE2_AF;
+	}
+	if (data->reject_frame == OSI_ENABLE) {
+		/* Set RF Bit */
+		val |= EQOS_MTL_FRP_IE2_RF;
+	}
+	if (data->inverse_match == OSI_ENABLE) {
+		/* Set IM Bit */
+		val |= EQOS_MTL_FRP_IE2_IM;
+	}
+	if (data->next_ins_ctrl == OSI_ENABLE) {
+		/* Set NIC Bit */
+		val |= EQOS_MTL_FRP_IE2_NC;
+	}
+	tmp = data->frame_offset;
+	val |= ((tmp << EQOS_MTL_FRP_IE2_FO_SHIFT) & EQOS_MTL_FRP_IE2_FO);
+	tmp = data->ok_index;
+	val |= ((tmp << EQOS_MTL_FRP_IE2_OKI_SHIFT) & EQOS_MTL_FRP_IE2_OKI);
+	tmp = data->dma_chsel;
+	val |= ((tmp << EQOS_MTL_FRP_IE2_DCH_SHIFT) & EQOS_MTL_FRP_IE2_DCH);
+	ret = eqos_frp_write(osi_core, EQOS_MTL_FRP_IE2(pos), val);
+	if (ret < 0) {
+		/* FRP IE2 Write fail */
+		return -1;
+	}
+
+	/** Write DCH into IE3 **/
+	val = OSI_NONE;
+	ret = eqos_frp_write(osi_core, EQOS_MTL_FRP_IE3(pos), val);
+	if (ret < 0) {
+		/* DCH Write fail */
+		return -1;
+	}
+
+	return ret;
+}
+
+/**
  * @brief eqos_configure_rxq_priority - Configure Priorities Selected in
  *    the Receive Queue
  *
@@ -1221,7 +1499,7 @@ static void eqos_configure_rxq_priority(
  */
 static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 {
-	nveu32_t value;
+	nveu32_t value, i = 0U, max_queue = 0U;
 	nveu32_t mac_ext;
 
 	/* Update MAC address 0 high */
@@ -1273,13 +1551,26 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_MCR, EQOS_MAC_MCR_IDX);
 
+	/* Enable PDC */
+	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_EXTR);
+	value |= EQOS_MAC_EXTR_PDC;
+	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_EXTR);
+
 	/* Enable Multicast and Broadcast Queue, default is Q0 */
 	value = osi_readla(osi_core,
 			   (nveu8_t *)osi_core->base + EQOS_MAC_RQC1R);
 	value |= EQOS_MAC_RQC1R_MCBCQEN;
-	/* Routing Multicast and Broadcast to Q1 */
-	value |= EQOS_MAC_RQC1R_MCBCQ1;
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
+	/* Set MCBCQ to highest enabled RX queue index */
+	for (i = 0; i < osi_core->num_mtl_queues; i++) {
+		if ((max_queue < osi_core->mtl_queues[i]) &&
+		    (osi_core->mtl_queues[i] < OSI_MGBE_MAX_NUM_QUEUES)) {
+			/* Update max queue number */
+			max_queue = osi_core->mtl_queues[i];
+		}
+	}
+	value &= ~(EQOS_MAC_RQC1R_MCBCQ);
+	value |= (max_queue << EQOS_MAC_RQC1R_MCBCQ_SHIFT);
+	eqos_core_safety_writel(osi_core, value, (unsigned char *)osi_core->base +
 				EQOS_MAC_RQC1R, EQOS_MAC_RQC1R_IDX);
 
 	/* Disable all MMC interrupts */
@@ -1978,6 +2269,7 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	nveu32_t dma_sr = 0;
 	nveu32_t dma_ier = 0;
 	unsigned int mtl_isr = 0;
+	unsigned int frp_isr = 0U;
 
 	dma_isr = osi_readla(osi_core, (nveu8_t *)base + EQOS_DMA_ISR);
 	if (dma_isr == 0U) {
@@ -2029,6 +2321,14 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 		osi_writel(mtl_isr, (unsigned char *)base +
 			   EQOS_MTL_INTR_STATUS);
 	}
+
+	/* Clear FRP Interrupt MTL_RXP_Interrupt_Control_Status */
+	frp_isr = osi_readl((unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
+	frp_isr |= (EQOS_MTL_RXP_INTR_CS_NVEOVIS |
+		    EQOS_MTL_RXP_INTR_CS_NPEOVIS |
+		    EQOS_MTL_RXP_INTR_CS_FOOVIS |
+		    EQOS_MTL_RXP_INTR_CS_PDRFIS);
+	osi_writel(frp_isr, (unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
 }
 
 /**
@@ -5349,4 +5649,7 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->hw_config_est = eqos_hw_config_est;
 	ops->hw_config_fpe = eqos_hw_config_fpe;
 	ops->config_ptp_rxq = eqos_config_ptp_rxq;
+	ops->config_frp = eqos_config_frp;
+	ops->update_frp_entry = eqos_update_frp_entry;
+	ops->update_frp_nve = eqos_update_frp_nve;
 }

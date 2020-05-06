@@ -3419,6 +3419,14 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 	val |= MGBE_MAC_SBD_INTR;
 	osi_writel(val, (unsigned char *)osi_core->base +
 		   MGBE_WRAP_COMMON_INTR_ENABLE);
+
+	/* Clear FRP Interrupts in MTL_RXP_Interrupt_Control_Status */
+	val = osi_readl(base + MGBE_MTL_RXP_INTR_CS);
+	val |= (MGBE_MTL_RXP_INTR_CS_NVEOVIS |
+		MGBE_MTL_RXP_INTR_CS_NPEOVIS |
+		MGBE_MTL_RXP_INTR_CS_FOOVIS |
+		MGBE_MTL_RXP_INTR_CS_PDRFIS);
+	osi_writel(val, base + MGBE_MTL_RXP_INTR_CS);
 }
 
 /**

@@ -152,6 +152,12 @@
 #define EQOS_MTL_EST_DATA		0x0C84
 #define EQOS_MTL_FPE_CTS		0x0C90
 #define EQOS_MTL_FPE_ADV		0x0C94
+#define EQOS_MTL_RXP_CS			0x0CA0
+#define EQOS_MTL_RXP_INTR_CS		0x0CA4
+#define EQOS_MTL_RXP_DROP_CNT		0x0CA8
+#define EQOS_MTL_RXP_ERROR_CNT		0x0CAC
+#define EQOS_MTL_RXP_IND_CS		0x0CB0
+#define EQOS_MTL_RXP_IND_DATA		0x0CB4
 #define EQOS_MTL_CHX_TX_OP_MODE(x)	((0x0040U * (x)) + 0x0D00U)
 #define EQOS_MTL_TXQ_ETS_CR(x)		((0x0040U * (x)) + 0x0D10U)
 #define EQOS_MTL_TXQ_QW(x)		((0x0040U * (x)) + 0x0D18U)
@@ -198,8 +204,8 @@
 #define EQOS_MTL_TSF				OSI_BIT(1)
 #define EQOS_MTL_TXQEN				OSI_BIT(3)
 #define EQOS_MTL_RSF				OSI_BIT(5)
-#define EQOS_MCR_TE				OSI_BIT(0)
-#define EQOS_MCR_RE				OSI_BIT(1)
+#define EQOS_MCR_RE				OSI_BIT(0)
+#define EQOS_MCR_TE				OSI_BIT(1)
 #define EQOS_MCR_DO				OSI_BIT(10)
 #define EQOS_MCR_DM				OSI_BIT(13)
 #define EQOS_MCR_FES				OSI_BIT(14)
@@ -235,6 +241,9 @@
 #define EQOS_DMA_BMR_DPSW			OSI_BIT(8)
 #define EQOS_MAC_RQC1R_TPQC			(OSI_BIT(22) | OSI_BIT(23))
 #define EQOS_MAC_RQC1R_TPQC0			OSI_BIT(22)
+#define EQOS_MAC_RQC1R_MCBCQ			(OSI_BIT(18) | OSI_BIT(17) |\
+						 OSI_BIT(16))
+#define EQOS_MAC_RQC1R_MCBCQ_SHIFT		16U
 #define EQOS_MAC_RQC1R_MCBCQEN			OSI_BIT(20)
 #define EQOS_MAC_RQC1R_MCBCQ1			OSI_BIT(16)
 #define EQOS_MAC_RQC1R_FPRQ			(OSI_BIT(24) | OSI_BIT(26) | \
@@ -303,6 +312,10 @@
 						 OSI_BIT(13) | OSI_BIT(14) | \
 						 OSI_BIT(15))
 #define EQOS_MAC_PFR_SHIFT			16
+#define EQOS_MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
+#define EQOS_MTL_OP_MODE_FRPE			OSI_BIT(15)
+#define EQOS_MTL_OP_MODE_DTXSTS			OSI_BIT(1)
+#define EQOS_MAC_EXTR_PDC			OSI_BIT(19)
 #define EQOS_MAC_EXTR_DCRCC			OSI_BIT(16)
 #endif /* !OSI_STRIPPED_LIB */
 #define EQOS_MTL_RXQ_OP_MODE_FEP		OSI_BIT(4)
@@ -606,6 +619,71 @@ void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 #define EQOS_MTL_CH0_RX_OP_MODE_IDX		26U
 #define EQOS_DMA_SBUS_IDX			30U
 #define EQOS_MAX_CORE_SAFETY_REGS		31U
+/** @} */
+
+/**
+ * @addtogroup EQOS-MTL FRP Indirect Access register defines
+ *
+ * @brief EQOS MTL register offsets
+ * @{
+ */
+#define EQOS_MTL_FRP_READ_UDELAY		1U
+#define EQOS_MTL_FRP_READ_RETRY			10000U
+
+/* FRP Control and Status register defines */
+#define EQOS_MTL_RXP_CS_RXPI			OSI_BIT(31)
+#define EQOS_MTL_RXP_CS_NPE			(OSI_BIT(23) | OSI_BIT(22) | \
+						 OSI_BIT(21) | OSI_BIT(20) | \
+						 OSI_BIT(19) | OSI_BIT(18) | \
+						 OSI_BIT(17) | OSI_BIT(16))
+#define EQOS_MTL_RXP_CS_NPE_SHIFT		16U
+#define EQOS_MTL_RXP_CS_NVE			(OSI_BIT(7) | OSI_BIT(6) | \
+						 OSI_BIT(5) | OSI_BIT(4) | \
+						 OSI_BIT(3) | OSI_BIT(2) | \
+						 OSI_BIT(1) | OSI_BIT(0))
+/* FRP Interrupt Control and Status register */
+#define EQOS_MTL_RXP_INTR_CS_PDRFIE		OSI_BIT(19)
+#define EQOS_MTL_RXP_INTR_CS_FOOVIE		OSI_BIT(18)
+#define EQOS_MTL_RXP_INTR_CS_NPEOVIE		OSI_BIT(17)
+#define EQOS_MTL_RXP_INTR_CS_NVEOVIE		OSI_BIT(16)
+#define EQOS_MTL_RXP_INTR_CS_PDRFIS		OSI_BIT(3)
+#define EQOS_MTL_RXP_INTR_CS_FOOVIS		OSI_BIT(2)
+#define EQOS_MTL_RXP_INTR_CS_NPEOVIS		OSI_BIT(1)
+#define EQOS_MTL_RXP_INTR_CS_NVEOVIS		OSI_BIT(0)
+/* Indirect Instruction Table defines */
+#define EQOS_MTL_FRP_IE0(x)			((x) * 0x4U + 0x0U)
+#define EQOS_MTL_FRP_IE1(x)			((x) * 0x4U + 0x1U)
+#define EQOS_MTL_FRP_IE2(x)			((x) * 0x4U + 0x2U)
+#define EQOS_MTL_FRP_IE3(x)			((x) * 0x4U + 0x3U)
+#define EQOS_MTL_FRP_IE2_DCH			(OSI_BIT(31) | OSI_BIT(30) | \
+						 OSI_BIT(29) | OSI_BIT(28) | \
+						 OSI_BIT(27) | OSI_BIT(26) | \
+						 OSI_BIT(25) | OSI_BIT(24))
+#define EQOS_MTL_FRP_IE2_DCH_SHIFT		24U
+#define EQOS_MTL_FRP_IE2_DCH_MASK		0xFFU
+#define EQOS_MTL_FRP_IE2_OKI			(OSI_BIT(23) | OSI_BIT(22) | \
+						 OSI_BIT(21) | OSI_BIT(20) | \
+						 OSI_BIT(19) | OSI_BIT(18) | \
+						 OSI_BIT(17) | OSI_BIT(16))
+#define EQOS_MTL_FRP_IE2_OKI_SHIFT		16U
+#define EQOS_MTL_FRP_IE2_FO			(OSI_BIT(13) | OSI_BIT(12) | \
+						 OSI_BIT(11) | OSI_BIT(10) | \
+						 OSI_BIT(9) | OSI_BIT(8))
+#define EQOS_MTL_FRP_IE2_FO_SHIFT		8U
+#define EQOS_MTL_FRP_IE2_NC			OSI_BIT(3)
+#define EQOS_MTL_FRP_IE2_IM			OSI_BIT(2)
+#define EQOS_MTL_FRP_IE2_RF			OSI_BIT(1)
+#define EQOS_MTL_FRP_IE2_AF			OSI_BIT(0)
+/* Indirect register defines */
+#define EQOS_MTL_RXP_IND_CS_BUSY		OSI_BIT(31)
+#define EQOS_MTL_RXP_IND_CS_RXPEIEC		(OSI_BIT(22) | OSI_BIT(21))
+#define EQOS_MTL_RXP_IND_CS_RXPEIEE		OSI_BIT(20)
+#define EQOS_MTL_RXP_IND_CS_WRRDN		OSI_BIT(16)
+#define EQOS_MTL_RXP_IND_CS_ADDR		(OSI_BIT(9) | OSI_BIT(8) | \
+						 OSI_BIT(7) | OSI_BIT(6) | \
+						 OSI_BIT(5) | OSI_BIT(4) | \
+						 OSI_BIT(3) | OSI_BIT(2) | \
+						 OSI_BIT(1) | OSI_BIT(0))
 /** @} */
 
 /**
