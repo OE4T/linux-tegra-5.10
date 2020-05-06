@@ -44,25 +44,81 @@
  */
 #define EXTRA_GPFIFO_ENTRIES 2U
 
+static int nvgpu_submit_create_wait_cmd(struct nvgpu_channel *c,
+		struct nvgpu_channel_fence *fence,
+		struct priv_cmd_entry **wait_cmd, bool flag_sync_fence)
+{
+	/*
+	 * A single input sync fd may contain multiple fences. The preallocated
+	 * priv cmdbuf space allows exactly one per submit in the worst case.
+	 * Require at most one wait for consistent deterministic submits; if
+	 * there are more and no space, we'll -EAGAIN in nondeterministic mode.
+	 */
+	u32 max_wait_cmds = nvgpu_channel_is_deterministic(c) ?
+		1U : 0U;
+	int err;
+
+	if (flag_sync_fence) {
+		nvgpu_assert(fence->id <= (u32)INT_MAX);
+		err = nvgpu_channel_sync_wait_fence_fd(c->sync,
+			(int)fence->id, wait_cmd, max_wait_cmds);
+	} else {
+		struct nvgpu_channel_sync_syncpt *sync_syncpt;
+
+		sync_syncpt = nvgpu_channel_sync_to_syncpt(c->sync);
+		if (sync_syncpt != NULL) {
+			err = nvgpu_channel_sync_wait_syncpt(sync_syncpt,
+					fence->id, fence->value, wait_cmd);
+		} else {
+			err = -EINVAL;
+		}
+	}
+
+	return err;
+}
+
+static int nvgpu_submit_create_incr_cmd(struct nvgpu_channel *c,
+		struct priv_cmd_entry **incr_cmd,
+		struct nvgpu_fence_type **post_fence, bool flag_fence_get,
+		bool need_wfi, bool need_sync_fence, bool register_irq)
+{
+	int err;
+
+	*post_fence = nvgpu_fence_alloc(c);
+	if (*post_fence == NULL) {
+		return -ENOMEM;
+	}
+
+	if (flag_fence_get) {
+		err = nvgpu_channel_sync_incr_user(c->sync, incr_cmd,
+				*post_fence, need_wfi, need_sync_fence,
+				register_irq);
+	} else {
+		err = nvgpu_channel_sync_incr(c->sync, incr_cmd,
+				*post_fence, need_sync_fence, register_irq);
+	}
+
+	if (err != 0) {
+		nvgpu_fence_put(*post_fence);
+		*post_fence = NULL;
+	}
+
+	return err;
+}
+
 /*
  * Handle the submit synchronization - pre-fences and post-fences.
  */
 static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 				      struct nvgpu_channel_fence *fence,
 				      struct nvgpu_channel_job *job,
-				      struct priv_cmd_entry **wait_cmd,
-				      struct priv_cmd_entry **incr_cmd,
-				      struct nvgpu_fence_type **post_fence,
-				      bool register_irq,
-				      u32 flags)
+				      bool register_irq, u32 flags)
 {
 	struct gk20a *g = c->g;
-	bool need_sync_fence = false;
+	bool need_sync_fence;
 	bool new_sync_created = false;
-	int wait_fence_fd = -1;
 	int err = 0;
 	bool need_wfi = (flags & NVGPU_SUBMIT_FLAGS_SUPPRESS_WFI) == 0U;
-	struct nvgpu_channel_sync_syncpt *sync_syncpt = NULL;
 	bool flag_fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
 	bool flag_sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
 	bool flag_fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
@@ -83,70 +139,34 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	if ((g->ops.channel.set_syncpt != NULL) && new_sync_created) {
 		err = g->ops.channel.set_syncpt(c);
 		if (err != 0) {
-			goto clean_up_unlock;
+			goto clean_up_put_sync;
 		}
 	}
 
 	/*
 	 * Optionally insert syncpt/semaphore wait in the beginning of gpfifo
-	 * submission when user requested and the wait hasn't expired.
+	 * submission when user requested.
 	 */
 	if (flag_fence_wait) {
-		u32 max_wait_cmds = nvgpu_channel_is_deterministic(c) ?
-			1U : 0U;
-
-		if (flag_sync_fence) {
-			nvgpu_assert(fence->id <= (u32)INT_MAX);
-			wait_fence_fd = (int)fence->id;
-			err = nvgpu_channel_sync_wait_fence_fd(c->sync,
-				wait_fence_fd, &job->wait_cmd, max_wait_cmds);
-		} else {
-			sync_syncpt = nvgpu_channel_sync_to_syncpt(c->sync);
-			if (sync_syncpt != NULL) {
-				err = nvgpu_channel_sync_wait_syncpt(
-					sync_syncpt, fence->id,
-					fence->value, &job->wait_cmd);
-			} else {
-				err = -EINVAL;
-			}
-		}
-
+		err = nvgpu_submit_create_wait_cmd(c, fence, &job->wait_cmd,
+				flag_sync_fence);
 		if (err != 0) {
-			goto clean_up_unlock;
+			goto clean_up_put_sync;
 		}
-
-		*wait_cmd = job->wait_cmd;
 	}
 
-	if (flag_fence_get && flag_sync_fence) {
-		need_sync_fence = true;
-	}
+	need_sync_fence = flag_fence_get && flag_sync_fence;
 
 	/*
-	 * Always generate an increment at the end of a GPFIFO submission. This
-	 * is used to keep track of method completion for idle railgating. The
-	 * sync_pt/semaphore PB is added to the GPFIFO later on in submit.
+	 * Always generate an increment at the end of a GPFIFO submission. When
+	 * we do job tracking, post fences are needed for various reasons even
+	 * if not requested by user.
 	 */
-	job->post_fence = nvgpu_fence_alloc(c);
-	if (job->post_fence == NULL) {
-		err = -ENOMEM;
-		goto clean_up_wait_cmd;
-	}
-
-	if (flag_fence_get) {
-		err = nvgpu_channel_sync_incr_user(c->sync,
-			&job->incr_cmd, job->post_fence, need_wfi,
-			need_sync_fence, register_irq);
-	} else {
-		err = nvgpu_channel_sync_incr(c->sync,
-			&job->incr_cmd, job->post_fence, need_sync_fence,
+	err = nvgpu_submit_create_incr_cmd(c, &job->incr_cmd, &job->post_fence,
+			flag_fence_get, need_wfi, need_sync_fence,
 			register_irq);
-	}
-	if (err == 0) {
-		*incr_cmd = job->incr_cmd;
-		*post_fence = job->post_fence;
-	} else {
-		goto clean_up_post_fence;
+	if (err != 0) {
+		goto clean_up_wait_cmd;
 	}
 
 	if (g->aggressive_sync_destroy_thresh != 0U) {
@@ -154,19 +174,22 @@ static int nvgpu_submit_prepare_syncs(struct nvgpu_channel *c,
 	}
 	return 0;
 
-clean_up_post_fence:
-	nvgpu_fence_put(job->post_fence);
-	job->post_fence = NULL;
 clean_up_wait_cmd:
 	if (job->wait_cmd != NULL) {
 		nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, job->wait_cmd);
 	}
 	job->wait_cmd = NULL;
+clean_up_put_sync:
+	if (g->aggressive_sync_destroy_thresh != 0U) {
+		if (nvgpu_channel_sync_put_ref_and_check(c->sync)
+		    && g->aggressive_sync_destroy) {
+			nvgpu_channel_sync_destroy(c->sync);
+		}
+	}
 clean_up_unlock:
 	if (g->aggressive_sync_destroy_thresh != 0U) {
 		nvgpu_mutex_release(&c->sync_lock);
 	}
-	*wait_cmd = NULL;
 	return err;
 }
 
@@ -323,9 +346,6 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 {
 	bool skip_buffer_refcounting = (flags &
 			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING) != 0U;
-	struct nvgpu_fence_type *post_fence = NULL;
-	struct priv_cmd_entry *wait_cmd = NULL;
-	struct priv_cmd_entry *incr_cmd = NULL;
 	struct nvgpu_channel_job *job = NULL;
 	int err;
 
@@ -334,8 +354,8 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 		return err;
 	}
 
-	err = nvgpu_submit_prepare_syncs(c, fence, job, &wait_cmd, &incr_cmd,
-			&post_fence, need_deferred_cleanup, flags);
+	err = nvgpu_submit_prepare_syncs(c, fence, job, need_deferred_cleanup,
+			flags);
 	if (err != 0) {
 		goto clean_up_job;
 	}
@@ -347,30 +367,34 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 	 * android sync framework for example can provide entirely
 	 * empty fences that act like trivially expired waits.
 	 */
-	if (wait_cmd != NULL) {
-		nvgpu_submit_append_priv_cmdbuf(c, wait_cmd);
+	if (job->wait_cmd != NULL) {
+		nvgpu_submit_append_priv_cmdbuf(c, job->wait_cmd);
 	}
 
 	err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata, num_entries);
 	if (err != 0) {
-		goto clean_up_fence;
+		goto clean_up_syncs;
 	}
 
-	nvgpu_submit_append_priv_cmdbuf(c, incr_cmd);
+	nvgpu_submit_append_priv_cmdbuf(c, job->incr_cmd);
 
 	err = nvgpu_channel_add_job(c, job, skip_buffer_refcounting);
 	if (err != 0) {
-		goto clean_up_fence;
+		goto clean_up_syncs;
 	}
 
 	if (fence_out != NULL) {
-		*fence_out = nvgpu_fence_get(post_fence);
+		*fence_out = nvgpu_fence_get(job->post_fence);
 	}
 
 	return 0;
 
-clean_up_fence:
-	nvgpu_fence_put(post_fence);
+clean_up_syncs:
+	nvgpu_fence_put(job->post_fence);
+	nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, job->incr_cmd);
+	if (job->wait_cmd != NULL) {
+		nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, job->wait_cmd);
+	}
 clean_up_job:
 	nvgpu_channel_free_job(c, job);
 	return err;
