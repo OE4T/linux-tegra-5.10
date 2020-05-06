@@ -373,14 +373,14 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 
 	err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata, num_entries);
 	if (err != 0) {
-		goto clean_up_syncs;
+		goto clean_up_gpfifo_wait;
 	}
 
 	nvgpu_submit_append_priv_cmdbuf(c, job->incr_cmd);
 
 	err = nvgpu_channel_add_job(c, job, skip_buffer_refcounting);
 	if (err != 0) {
-		goto clean_up_syncs;
+		goto clean_up_gpfifo_incr;
 	}
 
 	if (fence_out != NULL) {
@@ -389,7 +389,34 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 
 	return 0;
 
-clean_up_syncs:
+clean_up_gpfifo_incr:
+	/*
+	 * undo the incr priv cmdbuf and the user entries:
+	 * new gp.put =
+	 * (gp.put - (1 + num_entries)) & (gp.entry_num - 1) =
+	 * (gp.put + (gp.entry_num - (1 + num_entries))) & (gp.entry_num - 1)
+	 * the + entry_num does not affect the result but avoids wrapping below
+	 * zero for MISRA, although it would be well defined.
+	 */
+	c->gpfifo.put =
+		(nvgpu_safe_add_u32(c->gpfifo.put,
+		  nvgpu_safe_sub_u32(c->gpfifo.entry_num,
+		    nvgpu_safe_add_u32(1U, num_entries)))) &
+		nvgpu_safe_sub_u32(c->gpfifo.entry_num, 1U);
+clean_up_gpfifo_wait:
+	if (job->wait_cmd != NULL) {
+		/*
+		 * undo the wait priv cmdbuf entry:
+		 * gp.put =
+		 * (gp.put - 1) & (gp.entry_num - 1) =
+		 * (gp.put + (gp.entry_num - 1)) & (gp.entry_num - 1)
+		 * same as above with the gp.entry_num on the left side.
+		 */
+		c->gpfifo.put =
+			nvgpu_safe_add_u32(c->gpfifo.put,
+			  nvgpu_safe_sub_u32(c->gpfifo.entry_num, 1U)) &
+			nvgpu_safe_sub_u32(c->gpfifo.entry_num, 1U);
+	}
 	nvgpu_fence_put(job->post_fence);
 	nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, job->incr_cmd);
 	if (job->wait_cmd != NULL) {
