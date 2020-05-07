@@ -162,7 +162,7 @@ struct pmu_fw_ver_ops {
 		int (*is_boardobjgrp_pmucmd_id_valid)(struct gk20a *g,
 			struct boardobjgrp *pboardobjgrp,
 			struct boardobjgrp_pmu_cmd *cmd);
-	} boardobj;
+	} obj;
 	struct {
 		int (*clk_set_boot_clk)(struct gk20a *g);
 	} clk;

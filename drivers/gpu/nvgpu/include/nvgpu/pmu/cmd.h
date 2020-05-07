@@ -46,7 +46,7 @@ struct pmu_cmd {
 		struct pmu_pg_cmd pg;
 		struct pmu_zbc_cmd zbc;
 		struct pmu_acr_cmd acr;
-		struct nv_pmu_boardobj_cmd boardobj;
+		struct nv_pmu_boardobj_cmd obj;
 		struct nv_pmu_pmgr_cmd pmgr;
 		struct nv_pmu_rpc_cmd rpc;
 	} cmd;

@@ -37,10 +37,10 @@ struct boardobjgrp_e32 {
 	*/
 	struct boardobjgrp super;
 	/*
-	* Statically allocated array of PBOARDOBJ-s
+	* Statically allocated array of obj-s
 	*/
 	/* 32 will be replaced with CTRL_BOARDOBJGRP_E32_MAX_OBJECTS */
-	struct boardobj  *objects[32];
+	struct pmu_board_obj *objects[32];
 
 	/*
 	* Statically allocated mask strcuture referenced by super::pMask.

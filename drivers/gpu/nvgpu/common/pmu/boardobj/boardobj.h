@@ -23,25 +23,10 @@
 #ifndef NVGPU_BOARDOBJ_H
 #define NVGPU_BOARDOBJ_H
 
-struct boardobj;
+struct pmu_board_obj;
 struct nvgpu_list_node;
 struct gk20a;
 struct nv_pmu_boardobj;
-
-/*
-* Fills out the appropriate the nv_pmu_xxxx_device_desc_<xyz> driver->PMU
-* description structure, describing this BOARDOBJ board device to the PMU.
-*
-*/
-int nvgpu_boardobj_pmu_data_init_super(struct gk20a *g, struct boardobj
-		*pboardobj, struct nv_pmu_boardobj *pmudata);
-
-/*
-* Constructor for the base Board Object. Called by each device-specific
-* implementation of the BOARDOBJ interface to initialize the board object.
-*/
-int pmu_boardobj_construct_super(struct gk20a *g, struct boardobj *ppboardobj,
-		void *args);
 
 /*
 * Base Class for all physical or logical device on the PCB.
@@ -50,7 +35,7 @@ int pmu_boardobj_construct_super(struct gk20a *g, struct boardobj *ppboardobj,
 * device or device-type.
 */
 
-struct boardobj {
+struct pmu_board_obj {
 	struct gk20a *g;
 
 	u8 type; /*type of the device*/
@@ -58,20 +43,17 @@ struct boardobj {
 	/* true if allocated in constructor. destructor should free */
 	bool allocated;
 	u32 type_mask; /*mask of types this boardobjimplements*/
-	bool (*implements)(struct gk20a *g, struct boardobj *pboardobj,
+	bool (*implements)(struct gk20a *g, struct pmu_board_obj *obj,
 			u8 type);
-	int (*destruct)(struct boardobj *pboardobj);
+	int (*destruct)(struct pmu_board_obj *obj);
 	/*
 	* Access interface apis which will be overridden by the devices
 	* that inherit from BOARDOBJ
 	*/
-	int (*pmudatainit)(struct gk20a *g, struct boardobj *pboardobj,
-			struct nv_pmu_boardobj *pmudata);
+	int (*pmudatainit)(struct gk20a *g, struct pmu_board_obj *obj,
+			struct nv_pmu_boardobj *pmu_obj);
 	struct nvgpu_list_node node;
 };
-
-#define BOARDOBJ_GET_TYPE(pobj) (((struct boardobj *)(void *)(pobj))->type)
-#define BOARDOBJ_GET_IDX(pobj) (((struct boardobj *)(void *)(pobj))->idx)
 
 #define HIGHESTBITIDX_32(n32)   \
 {                               \
@@ -126,11 +108,29 @@ struct boardobj {
 	(n32) = idx;				\
 }
 
-static inline struct boardobj *
+/*
+* Fills out the appropriate the nv_pmu_xxxx_device_desc_<xyz> driver->PMU
+* description structure, describing this BOARDOBJ board device to the PMU.
+*
+*/
+int pmu_board_obj_pmu_data_init_super(struct gk20a *g, struct pmu_board_obj
+		*obj, struct nv_pmu_boardobj *pmu_obj);
+
+/*
+* Constructor for the base Board Object. Called by each device-specific
+* implementation of the BOARDOBJ interface to initialize the board object.
+*/
+int pmu_board_obj_construct_super(struct gk20a *g, struct pmu_board_obj
+		*obj, void *args);
+
+static inline struct pmu_board_obj *
 boardobj_from_node(struct nvgpu_list_node *node)
 {
-	return (struct boardobj *)
-		((uintptr_t)node - offsetof(struct boardobj, node));
+	return (struct pmu_board_obj *)
+		((uintptr_t)node - offsetof(struct pmu_board_obj, node));
 };
+
+u8 pmu_board_obj_get_type(void *obj);
+u8 pmu_board_obj_get_idx(void *obj);
 
 #endif /* NVGPU_BOARDOBJ_H */

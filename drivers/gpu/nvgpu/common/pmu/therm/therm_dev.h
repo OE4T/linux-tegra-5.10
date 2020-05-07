@@ -34,7 +34,7 @@ struct therm_devices {
 };
 
 struct therm_device {
-	struct boardobj super;
+	struct pmu_board_obj super;
 };
 
 int therm_device_sw_setup(struct gk20a *g);

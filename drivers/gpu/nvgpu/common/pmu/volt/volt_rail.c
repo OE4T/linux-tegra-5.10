@@ -70,7 +70,7 @@ static int volt_rail_state_init(struct gk20a *g,
 }
 
 static int volt_rail_init_pmudata_super(struct gk20a *g,
-	struct boardobj *board_obj_ptr, struct nv_pmu_boardobj *ppmudata)
+	struct pmu_board_obj *obj, struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct voltage_rail *prail;
@@ -79,14 +79,14 @@ static int volt_rail_init_pmudata_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	prail = (struct voltage_rail *)board_obj_ptr;
-	rail_pmu_data = (struct nv_pmu_volt_volt_rail_boardobj_set *)
-		ppmudata;
+	prail = (struct voltage_rail *)(void *)obj;
+	rail_pmu_data = (struct nv_pmu_volt_volt_rail_boardobj_set *)(void *)
+		pmu_obj;
 
 	rail_pmu_data->rel_limit_vfe_equ_idx = prail->rel_limit_vfe_equ_idx;
 	rail_pmu_data->alt_rel_limit_vfe_equ_idx =
@@ -121,7 +121,7 @@ static int volt_rail_init_pmudata_super(struct gk20a *g,
 
 static struct voltage_rail *volt_construct_volt_rail(struct gk20a *g, void *pargs)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct voltage_rail *ptemp_rail = (struct voltage_rail *)pargs;
 	struct voltage_rail  *board_obj_volt_rail_ptr = NULL;
 	int status;
@@ -133,15 +133,16 @@ static struct voltage_rail *volt_construct_volt_rail(struct gk20a *g, void *parg
 		return NULL;
 	}
 
-	status = pmu_boardobj_construct_super(g,
-			(struct boardobj *)(void *)board_obj_volt_rail_ptr, pargs);
+	status = pmu_board_obj_construct_super(g,
+			(struct pmu_board_obj *)(void *)board_obj_volt_rail_ptr,
+			pargs);
 	if (status != 0) {
 		return NULL;
 	}
 
-	board_obj_ptr = (struct boardobj *)(void *)board_obj_volt_rail_ptr;
+	obj = (struct pmu_board_obj *)(void *)board_obj_volt_rail_ptr;
 	/* override super class interface */
-	board_obj_ptr->pmudatainit = volt_rail_init_pmudata_super;
+	obj->pmudatainit = volt_rail_init_pmudata_super;
 
 	board_obj_volt_rail_ptr->boot_voltage_uv =
 			ptemp_rail->boot_voltage_uv;
@@ -164,7 +165,7 @@ static struct voltage_rail *volt_construct_volt_rail(struct gk20a *g, void *parg
 
 	nvgpu_log_info(g, "Done");
 
-	return (struct voltage_rail *)board_obj_ptr;
+	return (struct voltage_rail *)(void *)obj;
 }
 
 static int volt_get_volt_rail_table(struct gk20a *g,
@@ -179,7 +180,7 @@ static int volt_get_volt_rail_table(struct gk20a *g,
 	u8 volt_domain;
 	u8 *entry_ptr;
 	union rail_type {
-		struct boardobj board_obj;
+		struct pmu_board_obj obj;
 		struct voltage_rail volt_rail;
 	} rail_type_data;
 
@@ -211,7 +212,7 @@ static int volt_get_volt_rail_table(struct gk20a *g,
 			continue;
 		}
 
-		rail_type_data.board_obj.type = volt_domain;
+		rail_type_data.obj.type = volt_domain;
 		rail_type_data.volt_rail.boot_voltage_uv =
 			(u32)entry.boot_voltage_uv;
 		rail_type_data.volt_rail.rel_limit_vfe_equ_idx =
@@ -270,7 +271,7 @@ static int volt_get_volt_rail_table(struct gk20a *g,
 
 		status = boardobjgrp_objinsert(
 				&pvolt_rail_metadata->volt_rails.super,
-				(void *)(struct boardobj *)prail, i);
+				(void *)(struct pmu_board_obj *)prail, i);
 	}
 
 done:
@@ -279,7 +280,7 @@ done:
 
 static int volt_rail_devgrp_pmudata_instget(struct gk20a *g,
 	struct nv_pmu_boardobjgrp *pmuboardobjgrp, struct nv_pmu_boardobj
-	**ppboardobjpmudata, u8 idx)
+	**pmu_obj, u8 idx)
 {
 	struct nv_pmu_volt_volt_rail_boardobj_grp_set *pgrp_set =
 		(struct nv_pmu_volt_volt_rail_boardobj_grp_set *)
@@ -293,15 +294,15 @@ static int volt_rail_devgrp_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 	nvgpu_log_info(g, " Done");
 	return 0;
 }
 
 static int volt_rail_devgrp_pmustatus_instget(struct gk20a *g,
 	void *pboardobjgrppmu, struct nv_pmu_boardobj_query
-	**ppboardobjpmustatus, u8 idx)
+	**obj_pmu_status, u8 idx)
 {
 	struct nv_pmu_volt_volt_rail_boardobj_grp_get_status *pgrp_get_status =
 		(struct nv_pmu_volt_volt_rail_boardobj_grp_get_status *)
@@ -313,23 +314,23 @@ static int volt_rail_devgrp_pmustatus_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
-			&pgrp_get_status->objects[idx].data.board_obj;
+	*obj_pmu_status = (struct nv_pmu_boardobj_query *)
+			&pgrp_get_status->objects[idx].data.obj;
 	return 0;
 }
 
 static int volt_rail_obj_update(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	struct voltage_rail *volt_rail_obj;
 	struct nv_pmu_volt_volt_rail_boardobj_get_status *pstatus;
 
 	nvgpu_log_info(g, " ");
 
-	volt_rail_obj = (struct voltage_rail *)(void *)board_obj_ptr;
+	volt_rail_obj = (struct voltage_rail *)(void *)obj;
 	pstatus = (struct nv_pmu_volt_volt_rail_boardobj_get_status *)
-		(void *)ppmudata;
+		(void *)pmu_obj;
 
 	if (pstatus->super.type != volt_rail_obj->super.type) {
 		nvgpu_err(g, "pmu data and boardobj type not matching");
@@ -349,7 +350,7 @@ static int volt_rail_boardobj_grp_get_status(struct gk20a *g)
 	struct boardobjgrp *pboardobjgrp;
 	struct boardobjgrpmask *pboardobjgrpmask;
 	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct nv_pmu_boardobj_query *pboardobjpmustatus = NULL;
 	int status;
 	u8 index;
@@ -365,7 +366,7 @@ static int volt_rail_boardobj_grp_get_status(struct gk20a *g)
 	}
 	pboardobjgrppmu = pboardobjgrp->pmu.getstatus.buf;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
 		status = pboardobjgrp->pmustatusinstget(g,
 				(struct nv_pmu_boardobjgrp *)(void *)pboardobjgrppmu,
 				&pboardobjpmustatus, index);
@@ -373,7 +374,7 @@ static int volt_rail_boardobj_grp_get_status(struct gk20a *g)
 			nvgpu_err(g, "could not get status object instance");
 			return status;
 		}
-		status = volt_rail_obj_update(g, pboardobj,
+		status = volt_rail_obj_update(g, obj,
 				(struct nv_pmu_boardobj *)(void *)pboardobjpmustatus);
 		if (status != 0) {
 			nvgpu_err(g, "could not update volt rail status");
@@ -545,7 +546,7 @@ u8 nvgpu_pmu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domai
 int nvgpu_pmu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_uv)
 {
 	struct boardobjgrp *pboardobjgrp;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct voltage_rail *volt_rail = NULL;
 	int status;
 	u8 index;
@@ -558,8 +559,8 @@ int nvgpu_pmu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_u
 
 	pboardobjgrp = &g->pmu->volt->volt_metadata->volt_rail_metadata.volt_rails.super;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
-		volt_rail = (struct voltage_rail *)(void *)pboardobj;
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
+		volt_rail = (struct voltage_rail *)(void *)obj;
 		if ((volt_rail->vmin_limitu_v != 0U) &&
 			(volt_rail->max_limitu_v != 0U)) {
 			*vmin_uv = volt_rail->vmin_limitu_v;
@@ -574,7 +575,7 @@ int nvgpu_pmu_volt_get_vmin_vmax_ps35(struct gk20a *g, u32 *vmin_uv, u32 *vmax_u
 int nvgpu_pmu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv)
 {
 	struct boardobjgrp *pboardobjgrp;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct voltage_rail *volt_rail = NULL;
 	int status;
 	u8 index;
@@ -587,8 +588,8 @@ int nvgpu_pmu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv)
 
 	pboardobjgrp = &g->pmu->volt->volt_metadata->volt_rail_metadata.volt_rails.super;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
-		volt_rail = (struct voltage_rail *)(void *)pboardobj;
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
+		volt_rail = (struct voltage_rail *)(void *)obj;
 		if (volt_rail->current_volt_uv != 0U) {
 			*vcurr_uv = volt_rail->current_volt_uv;
 			return status;
@@ -600,14 +601,14 @@ int nvgpu_pmu_volt_get_curr_volt_ps35(struct gk20a *g, u32 *vcurr_uv)
 u8 nvgpu_pmu_volt_get_vmargin_ps35(struct gk20a *g)
 {
 	struct boardobjgrp *pboardobjgrp;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct voltage_rail *volt_rail = NULL;
 	u8 index, vmargin_uv;
 
 	pboardobjgrp = &g->pmu->volt->volt_metadata->volt_rail_metadata.volt_rails.super;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj *, pboardobj, index) {
-		volt_rail = (struct voltage_rail *)(void *)pboardobj;
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj *, obj, index) {
+		volt_rail = (struct voltage_rail *)(void *)obj;
 		if (volt_rail->volt_margin_limit_vfe_equ_idx != 255U) {
 			vmargin_uv = volt_rail->volt_margin_limit_vfe_equ_idx;
 			return vmargin_uv;

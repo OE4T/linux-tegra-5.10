@@ -28,7 +28,7 @@
 #include <common/pmu/boardobj/boardobj.h>
 
 struct therm_channel {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	s16 scaling;
 	s16 offset;
 	s32 temp_min;
@@ -46,7 +46,7 @@ struct therm_channel_device {
 };
 
 struct therm_channel_get_status {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u32 curr_temp;
 };
 

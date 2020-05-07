@@ -32,7 +32,7 @@
  * extends boardobj providing attributes common to all voltage_policies.
  */
 struct voltage_policy {
-	struct boardobj super;
+	struct pmu_board_obj super;
 };
 
 struct voltage_policy_single_rail {

@@ -31,7 +31,7 @@
 
 static int _pwr_channel_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-			struct nv_pmu_boardobj **ppboardobjpmudata,
+			struct nv_pmu_boardobj **pmu_obj,
 			u8 idx)
 {
 	struct nv_pmu_pmgr_pwr_channel_desc *ppmgrchannel =
@@ -45,8 +45,8 @@ static int _pwr_channel_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&ppmgrchannel->channels[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&ppmgrchannel->channels[idx].data.obj;
 
 	/* handle Global/common data here as we need index */
 	ppmgrchannel->channels[idx].data.channel.ch_idx = idx;
@@ -58,7 +58,7 @@ static int _pwr_channel_pmudata_instget(struct gk20a *g,
 
 static int _pwr_channel_rels_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-			struct nv_pmu_boardobj **ppboardobjpmudata,
+			struct nv_pmu_boardobj **pmu_obj,
 			u8 idx)
 {
 	struct nv_pmu_pmgr_pwr_chrelationship_desc *ppmgrchrels =
@@ -72,8 +72,8 @@ static int _pwr_channel_rels_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&ppmgrchrels->ch_rels[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&ppmgrchrels->ch_rels[idx].data.obj;
 
 	nvgpu_log_info(g, " Done");
 
@@ -105,18 +105,19 @@ static int _pwr_channel_state_init(struct gk20a *g)
 static bool _pwr_channel_implements(struct pwr_channel *pchannel,
 			u8 type)
 {
-	return (type == BOARDOBJ_GET_TYPE(pchannel));
+	return (type == pmu_board_obj_get_type((struct pmu_board_obj *)
+			(void *)pchannel));
 }
 
 static int _pwr_domains_pmudatainit_sensor(struct gk20a *g,
-					struct boardobj *board_obj_ptr,
-					struct nv_pmu_boardobj *ppmudata)
+					struct pmu_board_obj *obj,
+					struct nv_pmu_boardobj *pmu_obj)
 {
 	struct nv_pmu_pmgr_pwr_channel_sensor *pmu_sensor_data;
 	struct pwr_channel_sensor *sensor;
 	int status = 0;
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error updating pmu boardobjgrp for pwr sensor 0x%x",
@@ -124,8 +125,9 @@ static int _pwr_domains_pmudatainit_sensor(struct gk20a *g,
 		goto done;
 	}
 
-	sensor = (struct pwr_channel_sensor *)board_obj_ptr;
-	pmu_sensor_data = (struct nv_pmu_pmgr_pwr_channel_sensor *) ppmudata;
+	sensor = (struct pwr_channel_sensor *)(void *)obj;
+	pmu_sensor_data = (struct nv_pmu_pmgr_pwr_channel_sensor *)
+			(void *) pmu_obj;
 
 	pmu_sensor_data->super.pwr_rail = sensor->super.pwr_rail;
 	pmu_sensor_data->super.volt_fixedu_v = sensor->super.volt_fixed_uv;
@@ -143,10 +145,10 @@ done:
 	return status;
 }
 
-static struct boardobj *construct_pwr_topology(struct gk20a *g,
+static struct pmu_board_obj *construct_pwr_topology(struct gk20a *g,
 				void *pargs, size_t pargs_size, u8 type)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	int status;
 	struct pwr_channel_sensor *pwrchannel;
 	struct pwr_channel_sensor *sensor = (struct pwr_channel_sensor*)pargs;
@@ -155,17 +157,17 @@ static struct boardobj *construct_pwr_topology(struct gk20a *g,
 	if (pwrchannel == NULL) {
 		return NULL;
 	}
-	board_obj_ptr = (struct boardobj *)(void *)pwrchannel;
+	obj = (struct pmu_board_obj *)(void *)pwrchannel;
 
-	status = pmu_boardobj_construct_super(g, board_obj_ptr, pargs);
+	status = pmu_board_obj_construct_super(g, obj, pargs);
 	if (status != 0) {
 		return NULL;
 	}
 
-	pwrchannel = (struct pwr_channel_sensor*)board_obj_ptr;
+	pwrchannel = (struct pwr_channel_sensor *)(void *)obj;
 
 	/* Set Super class interfaces */
-	board_obj_ptr->pmudatainit = _pwr_domains_pmudatainit_sensor;
+	obj->pmudatainit = _pwr_domains_pmudatainit_sensor;
 
 	pwrchannel->super.pwr_rail = sensor->super.pwr_rail;
 	pwrchannel->super.volt_fixed_uv = sensor->super.volt_fixed_uv;
@@ -180,7 +182,7 @@ static struct boardobj *construct_pwr_topology(struct gk20a *g,
 
 	nvgpu_log_info(g, " Done");
 
-	return board_obj_ptr;
+	return obj;
 }
 
 static int devinit_get_pwr_topology_table(struct gk20a *g,
@@ -189,14 +191,14 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 	int status = 0;
 	u8 *pwr_topology_table_ptr = NULL;
 	u8 *curr_pwr_topology_table_ptr = NULL;
-	struct boardobj *boardobj;
+	struct pmu_board_obj *obj_tmp;
 	struct pwr_topology_2x_header pwr_topology_table_header;
 	struct pwr_topology_2x_entry pwr_topology_table_entry;
 	u32 index;
 	u32 obj_index = 0;
 	size_t pwr_topology_size;
 	union {
-		struct boardobj boardobj;
+		struct pmu_board_obj obj;
 		struct pwr_channel pwrchannel;
 		struct pwr_channel_sensor sensor;
 	} pwr_topology_data;
@@ -274,7 +276,7 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		}
 
 		/* Initialize data for the parent class */
-		pwr_topology_data.boardobj.type = CTRL_PMGR_PWR_CHANNEL_TYPE_SENSOR;
+		pwr_topology_data.obj.type = CTRL_PMGR_PWR_CHANNEL_TYPE_SENSOR;
 		pwr_topology_data.pwrchannel.pwr_rail = (u8)pwr_topology_table_entry.pwr_rail;
 		pwr_topology_data.pwrchannel.volt_fixed_uv = pwr_topology_table_entry.param0;
 		pwr_topology_data.pwrchannel.pwr_corr_slope = BIT32(12);
@@ -284,19 +286,19 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		pwr_topology_data.pwrchannel.curr_corr_offset_ma =
 			(s32)pwr_topology_table_entry.curr_corr_offset;
 
-		boardobj = construct_pwr_topology(g, &pwr_topology_data,
-					pwr_topology_size, pwr_topology_data.boardobj.type);
+		obj_tmp = construct_pwr_topology(g, &pwr_topology_data,
+					pwr_topology_size, pwr_topology_data.obj.type);
 
-		if (boardobj == NULL) {
+		if (obj_tmp == NULL) {
 			nvgpu_err(g,
 				"unable to create pwr topology for %d type %d",
-				index, pwr_topology_data.boardobj.type);
+				index, pwr_topology_data.obj.type);
 			status = -EINVAL;
 			goto done;
 		}
 
 		status = boardobjgrp_objinsert(&ppwrmonitorobjs->pwr_channels.super,
-				boardobj, obj_index);
+				obj_tmp, obj_index);
 
 		if (status != 0) {
 			nvgpu_err(g,

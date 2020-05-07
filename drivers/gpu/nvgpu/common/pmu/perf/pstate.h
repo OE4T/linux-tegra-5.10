@@ -38,7 +38,7 @@ struct pstates {
 };
 
 struct pstate {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u32 num;
 	u8 lpwr_entry_idx;
 	u32 flags;

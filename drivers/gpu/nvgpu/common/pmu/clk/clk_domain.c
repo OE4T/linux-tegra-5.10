@@ -45,8 +45,8 @@ static struct nvgpu_clk_domain *construct_clk_domain(struct gk20a *g,
 static int devinit_get_clocks_table(struct gk20a *g,
 	struct nvgpu_clk_domains *pclkdomainobjs);
 
-static int clk_domain_pmudatainit_super(struct gk20a *g, struct boardobj
-	*board_obj_ptr,	struct nv_pmu_boardobj *ppmudata);
+static int clk_domain_pmudatainit_super(struct gk20a *g, struct pmu_board_obj
+	*obj,	struct nv_pmu_boardobj *pmu_obj);
 
 struct vbios_clocks_table_1x_hal_clock_entry {
 	u32 domain;
@@ -192,7 +192,7 @@ done:
 
 static int _clk_domains_pmudata_instget(struct gk20a *g,
 		struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-		struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
+		struct nv_pmu_boardobj **pmu_obj, u8 idx)
 {
 	struct nv_pmu_clk_clk_domain_boardobj_grp_set  *pgrp_set =
 		(struct nv_pmu_clk_clk_domain_boardobj_grp_set *)(void *)
@@ -206,8 +206,8 @@ static int _clk_domains_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 	nvgpu_log_info(g, " Done");
 	return 0;
 }
@@ -400,7 +400,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 	bool done = false;
 	struct nvgpu_clk_domain *pclkdomain_dev;
 	union {
-		struct boardobj board_obj;
+		struct pmu_board_obj obj;
 		struct nvgpu_clk_domain clk_domain;
 		struct clk_domain_3x v3x;
 		struct clk_domain_3x_fixed v3x_fixed;
@@ -462,7 +462,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE)) {
 		case  NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE_FIXED:
 		{
-			clk_domain_data.board_obj.type =
+			clk_domain_data.obj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED;
 			clk_domain_data.v3x_fixed.freq_mhz = BIOS_GET_FIELD(u16,
 				clocks_table_entry.param1,
@@ -472,7 +472,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 
 		case  NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE_MASTER:
 		{
-			clk_domain_data.board_obj.type =
+			clk_domain_data.obj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER;
 			clk_domain_data.v35_prog.super.clk_prog_idx_first =
 				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
@@ -526,7 +526,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 
 		case  NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE_SLAVE:
 		{
-			clk_domain_data.board_obj.type =
+			clk_domain_data.obj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE;
 			clk_domain_data.v35_prog.super.clk_prog_idx_first =
 				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
@@ -605,7 +605,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 			goto done;
 		}
 		status = boardobjgrp_objinsert(&pclkdomainobjs->super.super,
-				(struct boardobj *)(void *)
+				(struct pmu_board_obj *)(void *)
 				pclkdomain_dev, index);
 		if (status != 0) {
 			nvgpu_err(g,
@@ -648,7 +648,7 @@ done:
 }
 
 static int clk_domain_construct_super(struct gk20a *g,
-				      struct boardobj **ppboardobj,
+				      struct pmu_board_obj **obj,
 				      size_t size, void *pargs)
 {
 	struct nvgpu_clk_domain *pdomain;
@@ -660,14 +660,13 @@ static int clk_domain_construct_super(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	status = pmu_boardobj_construct_super(g,
-			(struct boardobj *)(void *)pdomain, pargs);
-
+	status = pmu_board_obj_construct_super(g,
+			(struct pmu_board_obj *)(void *)pdomain, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	*ppboardobj = (struct boardobj *)(void *)pdomain;
+	*obj = (struct pmu_board_obj *)(void *)pdomain;
 
 	pdomain->super.pmudatainit =
 			clk_domain_pmudatainit_super;
@@ -681,8 +680,8 @@ static int clk_domain_construct_super(struct gk20a *g,
 }
 
 static int _clk_domain_pmudatainit_3x(struct gk20a *g,
-				      struct boardobj *board_obj_ptr,
-				      struct nv_pmu_boardobj *ppmudata)
+				      struct pmu_board_obj *obj,
+				      struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_domain_3x *pclk_domain_3x;
@@ -690,14 +689,14 @@ static int _clk_domain_pmudatainit_3x(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = clk_domain_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = clk_domain_pmudatainit_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pclk_domain_3x = (struct clk_domain_3x *)(void *)board_obj_ptr;
+	pclk_domain_3x = (struct clk_domain_3x *)(void *)obj;
 
-	pset = (struct nv_pmu_clk_clk_domain_3x_boardobj_set *)(void *)ppmudata;
+	pset = (struct nv_pmu_clk_clk_domain_3x_boardobj_set *)(void *)pmu_obj;
 
 	pset->b_noise_aware_capable = pclk_domain_3x->b_noise_aware_capable;
 
@@ -705,23 +704,23 @@ static int _clk_domain_pmudatainit_3x(struct gk20a *g,
 }
 
 static int clk_domain_construct_3x(struct gk20a *g,
-				   struct boardobj **ppboardobj,
+				   struct pmu_board_obj **obj,
 				   size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_domain_3x *pdomain;
 	struct clk_domain_3x *ptmpdomain =
 			(struct clk_domain_3x *)pargs;
 	int status = 0;
 
-	ptmpobj->type_mask = BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X);
-	status = clk_domain_construct_super(g, ppboardobj,
+	obj_tmp->type_mask = BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X);
+	status = clk_domain_construct_super(g, obj,
 					size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pdomain = (struct clk_domain_3x *)(void *)*ppboardobj;
+	pdomain = (struct clk_domain_3x *)(void *)*obj;
 
 	pdomain->super.super.pmudatainit =
 			_clk_domain_pmudatainit_3x;
@@ -773,7 +772,7 @@ static int clkdomaingetslaveclk(struct gk20a *g,
 	if (masterclkmhz == 0U) {
 		return -EINVAL;
 	}
-	slaveidx = BOARDOBJ_GET_IDX(pdomain);
+	slaveidx = pmu_board_obj_get_idx(pdomain);
 	p35master = (struct clk_domain_35_master *)(void *)
 		clk_get_clk_domain_from_index(pclk,
 		((struct clk_domain_35_slave *)
@@ -823,7 +822,7 @@ static int clkdomainvfsearch(struct gk20a *g,
 
 	if (pdomain->super.implements(g, &pdomain->super,
 			CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE)) {
-		slaveidx = BOARDOBJ_GET_IDX(pdomain);
+		slaveidx = pmu_board_obj_get_idx(pdomain);
 		pslaveidx = &slaveidx;
 		p3xmaster = (struct clk_domain_3x_master *)(void *)
 				clk_get_clk_domain_from_index(pclk,
@@ -945,8 +944,8 @@ done:
 }
 
 static int clk_domain_pmudatainit_35_prog(struct gk20a *g,
-					   struct boardobj *board_obj_ptr,
-					   struct nv_pmu_boardobj *ppmudata)
+					   struct pmu_board_obj *obj,
+					   struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_domain_35_prog *pclk_domain_35_prog;
@@ -956,16 +955,16 @@ static int clk_domain_pmudatainit_35_prog(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = _clk_domain_pmudatainit_3x(g, board_obj_ptr, ppmudata);
+	status = _clk_domain_pmudatainit_3x(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pclk_domain_35_prog = (struct clk_domain_35_prog *)(void*)board_obj_ptr;
+	pclk_domain_35_prog = (struct clk_domain_35_prog *)(void *)obj;
 	pclk_domain_3x_prog = &pclk_domain_35_prog->super;
 
 	pset = (struct nv_pmu_clk_clk_domain_35_prog_boardobj_set *)
-		(void*) ppmudata;
+		(void *)pmu_obj;
 
 	pset->super.clk_prog_idx_first =
 			pclk_domain_3x_prog->clk_prog_idx_first;
@@ -998,23 +997,23 @@ static int clk_domain_pmudatainit_35_prog(struct gk20a *g,
 }
 
 static int clk_domain_construct_35_prog(struct gk20a *g,
-					struct boardobj **ppboardobj,
+					struct pmu_board_obj **obj,
 					size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_domain_35_prog *pdomain;
 	struct clk_domain_35_prog *ptmpdomain =
 			(struct clk_domain_35_prog *)pargs;
 	int status = 0;
 
-	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
-	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
+	status = clk_domain_construct_3x(g, obj, size, pargs);
 	if (status != 0)
 	{
 		return -EINVAL;
 	}
 
-	pdomain = (struct clk_domain_35_prog *)(void*) *ppboardobj;
+	pdomain = (struct clk_domain_35_prog *)(void *) *obj;
 
 	pdomain->super.super.super.super.type_mask |=
 		BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
@@ -1059,8 +1058,8 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 }
 
 static int _clk_domain_pmudatainit_35_slave(struct gk20a *g,
-					    struct boardobj *board_obj_ptr,
-					    struct nv_pmu_boardobj *ppmudata)
+					    struct pmu_board_obj *obj,
+					    struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_domain_35_slave *pclk_domain_35_slave;
@@ -1068,16 +1067,16 @@ static int _clk_domain_pmudatainit_35_slave(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = clk_domain_pmudatainit_35_prog(g, board_obj_ptr, ppmudata);
+	status = clk_domain_pmudatainit_35_prog(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pclk_domain_35_slave = (struct clk_domain_35_slave *)
-			       (void *)board_obj_ptr;
+			       (void *)obj;
 
 	pset = (struct nv_pmu_clk_clk_domain_35_slave_boardobj_set *)
-		(void*) ppmudata;
+		(void *)pmu_obj;
 
 	pset->slave.master_idx = pclk_domain_35_slave->slave.master_idx;
 
@@ -1085,27 +1084,27 @@ static int _clk_domain_pmudatainit_35_slave(struct gk20a *g,
 }
 
 static int clk_domain_construct_35_slave(struct gk20a *g,
-					 struct boardobj **ppboardobj,
+					 struct pmu_board_obj **obj,
 					 size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_domain_35_slave *pdomain;
 	struct clk_domain_35_slave *ptmpdomain =
 			(struct clk_domain_35_slave *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) !=
+	if (pmu_board_obj_get_type(pargs) !=
 			(u8) CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE);
-	status = clk_domain_construct_35_prog(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE);
+	status = clk_domain_construct_35_prog(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pdomain = (struct clk_domain_35_slave *)(void*)*ppboardobj;
+	pdomain = (struct clk_domain_35_slave *)(void *)*obj;
 
 	pdomain->super.super.super.super.super.pmudatainit =
 			_clk_domain_pmudatainit_35_slave;
@@ -1152,7 +1151,7 @@ static int clkdomainclkproglink_3x_master(struct gk20a *g,
 
 		pprog1xmaster = (struct clk_prog_1x_master *)(void *)pprog;
 		status = pprog1xmaster->vfflatten(g, pclk, pprog1xmaster,
-			BOARDOBJ_GET_IDX(p3xmaster), &freq_max_last_mhz);
+			pmu_board_obj_get_idx(p3xmaster), &freq_max_last_mhz);
 		if (status != 0) {
 			goto done;
 		}
@@ -1163,8 +1162,8 @@ done:
 }
 
 static int clk_domain_pmudatainit_35_master(struct gk20a *g,
-					     struct boardobj *board_obj_ptr,
-					     struct nv_pmu_boardobj *ppmudata)
+					     struct pmu_board_obj *obj,
+					     struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_domain_35_master *pclk_domain_35_master;
@@ -1172,16 +1171,16 @@ static int clk_domain_pmudatainit_35_master(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = clk_domain_pmudatainit_35_prog(g, board_obj_ptr, ppmudata);
+	status = clk_domain_pmudatainit_35_prog(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pclk_domain_35_master = (struct clk_domain_35_master *)
-		(void*) board_obj_ptr;
+		(void *)obj;
 
 	pset = (struct nv_pmu_clk_clk_domain_35_master_boardobj_set *)
-		(void*) ppmudata;
+		(void *)pmu_obj;
 
 	pset->master.slave_idxs_mask =
 			pclk_domain_35_master->master.slave_idxs_mask;
@@ -1196,25 +1195,25 @@ static int clk_domain_pmudatainit_35_master(struct gk20a *g,
 }
 
 static int clk_domain_construct_35_master(struct gk20a *g,
-					  struct boardobj **ppboardobj,
+					  struct pmu_board_obj **obj,
 					  size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_domain_35_master *pdomain;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) !=
+	if (pmu_board_obj_get_type(pargs) !=
 			(u8) CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER);
-	status = clk_domain_construct_35_prog(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER);
+	status = clk_domain_construct_35_prog(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pdomain = (struct clk_domain_35_master *)(void*) *ppboardobj;
+	pdomain = (struct clk_domain_35_master *)(void *) *obj;
 
 	pdomain->super.super.super.super.super.pmudatainit =
 			clk_domain_pmudatainit_35_master;
@@ -1239,8 +1238,8 @@ static int clkdomainclkproglink_fixed(struct gk20a *g,
 }
 
 static int _clk_domain_pmudatainit_3x_fixed(struct gk20a *g,
-					    struct boardobj *board_obj_ptr,
-					    struct nv_pmu_boardobj *ppmudata)
+					    struct pmu_board_obj *obj,
+					    struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_domain_3x_fixed *pclk_domain_3x_fixed;
@@ -1248,16 +1247,16 @@ static int _clk_domain_pmudatainit_3x_fixed(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = _clk_domain_pmudatainit_3x(g, board_obj_ptr, ppmudata);
+	status = _clk_domain_pmudatainit_3x(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pclk_domain_3x_fixed = (struct clk_domain_3x_fixed *)
-					(void *)board_obj_ptr;
+					(void *)obj;
 
 	pset = (struct nv_pmu_clk_clk_domain_3x_fixed_boardobj_set *)
-		(void *)ppmudata;
+		(void *)pmu_obj;
 
 	pset->freq_mhz = pclk_domain_3x_fixed->freq_mhz;
 
@@ -1265,26 +1264,26 @@ static int _clk_domain_pmudatainit_3x_fixed(struct gk20a *g,
 }
 
 static int clk_domain_construct_3x_fixed(struct gk20a *g,
-					 struct boardobj **ppboardobj,
+					 struct pmu_board_obj **obj,
 					 size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_domain_3x_fixed *pdomain;
 	struct clk_domain_3x_fixed *ptmpdomain =
 			(struct clk_domain_3x_fixed *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED);
-	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED);
+	status = clk_domain_construct_3x(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pdomain = (struct clk_domain_3x_fixed *)(void *)*ppboardobj;
+	pdomain = (struct clk_domain_3x_fixed *)(void *)*obj;
 
 	pdomain->super.super.super.pmudatainit =
 			_clk_domain_pmudatainit_3x_fixed;
@@ -1300,23 +1299,23 @@ static int clk_domain_construct_3x_fixed(struct gk20a *g,
 static struct nvgpu_clk_domain *construct_clk_domain(struct gk20a *g,
 		void *pargs)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	int status;
 
-	nvgpu_log_info(g, " %d", (BOARDOBJ_GET_TYPE(pargs)));
-	switch (BOARDOBJ_GET_TYPE(pargs)) {
+	nvgpu_log_info(g, " %d", (pmu_board_obj_get_type(pargs)));
+	switch (pmu_board_obj_get_type(pargs)) {
 	case CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED:
-		status = clk_domain_construct_3x_fixed(g, &board_obj_ptr,
+		status = clk_domain_construct_3x_fixed(g, &obj,
 			sizeof(struct clk_domain_3x_fixed), pargs);
 		break;
 
 	case CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER:
-		status = clk_domain_construct_35_master(g, &board_obj_ptr,
+		status = clk_domain_construct_35_master(g, &obj,
 			sizeof(struct clk_domain_35_master), pargs);
 		break;
 
 	case CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE:
-		status = clk_domain_construct_35_slave(g, &board_obj_ptr,
+		status = clk_domain_construct_35_slave(g, &obj,
 			sizeof(struct clk_domain_35_slave), pargs);
 		break;
 
@@ -1332,12 +1331,12 @@ static struct nvgpu_clk_domain *construct_clk_domain(struct gk20a *g,
 
 	nvgpu_log_info(g, " Done");
 
-	return (struct nvgpu_clk_domain *)(void *)board_obj_ptr;
+	return (struct nvgpu_clk_domain *)(void *)obj;
 }
 
 static int clk_domain_pmudatainit_super(struct gk20a *g,
-					struct boardobj *board_obj_ptr,
-					struct nv_pmu_boardobj *ppmudata)
+					struct pmu_board_obj *obj,
+					struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct nvgpu_clk_domain *pclk_domain;
@@ -1345,14 +1344,14 @@ static int clk_domain_pmudatainit_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pclk_domain = (struct nvgpu_clk_domain *)(void *)board_obj_ptr;
+	pclk_domain = (struct nvgpu_clk_domain *)(void *)obj;
 
-	pset = (struct nv_pmu_clk_clk_domain_boardobj_set *)(void *)ppmudata;
+	pset = (struct nv_pmu_clk_clk_domain_boardobj_set *)(void *)pmu_obj;
 
 	pset->domain = pclk_domain->domain;
 	pset->api_domain = pclk_domain->api_domain;
@@ -1726,7 +1725,7 @@ int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 
 	struct nvgpu_clk_vf_points *pclk_vf_points;
 	struct boardobjgrp *pboardobjgrp;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	int status = -EINVAL;
 	struct clk_vf_point *pclk_vf_point;
 	u8 index;
@@ -1735,9 +1734,9 @@ int nvgpu_pmu_clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	pclk_vf_points = g->pmu->clk_pmu->clk_vf_pointobjs;
 	pboardobjgrp = &pclk_vf_points->super.super;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
-		pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
-		if ((*pclkmhz) <= pclk_vf_point->pair.freq_mhz) {
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
+		pclk_vf_point = (struct clk_vf_point *)(void *)obj;
+		if((*pclkmhz) <= pclk_vf_point->pair.freq_mhz) {
 			*pvoltuv = pclk_vf_point->pair.voltage_uv;
 			return 0;
 		}

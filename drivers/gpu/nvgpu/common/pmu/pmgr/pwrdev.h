@@ -34,7 +34,7 @@
 #define  PWR_DEVICE_PROV_NUM_DEFAULT                                           1
 
 struct pwr_device {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 power_rail;
 	u8 i2c_dev_idx;
 	bool bIs_inforom_config;

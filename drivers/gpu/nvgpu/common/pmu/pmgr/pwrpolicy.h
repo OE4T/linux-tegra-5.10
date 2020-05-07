@@ -40,7 +40,7 @@ enum pwr_policy_limit_id {
 };
 
 struct pwr_policy {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 ch_idx;
 	u8 num_limit_inputs;
 	u8 limit_unit;
@@ -76,7 +76,7 @@ struct pwr_policy_client_workitem {
 };
 
 struct pwr_policy_relationship {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 policy_idx;
 };
 
@@ -118,7 +118,7 @@ struct pwr_policy_sw_threshold {
 };
 
 union pwr_policy_data_union {
-	struct boardobj boardobj;
+	struct pmu_board_obj obj;
 	struct pwr_policy pwrpolicy;
 	struct pwr_policy_hw_threshold hw_threshold;
 	struct pwr_policy_sw_threshold sw_threshold;

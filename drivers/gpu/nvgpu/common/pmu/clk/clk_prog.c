@@ -88,7 +88,7 @@ done:
 
 static int _clk_progs_pmudata_instget(struct gk20a *g,
 		struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-		struct nv_pmu_boardobj **ppboardobjpmudata,
+		struct nv_pmu_boardobj **pmu_obj,
 		u8 idx)
 {
 	struct nv_pmu_clk_clk_prog_boardobj_grp_set  *pgrp_set =
@@ -103,8 +103,8 @@ static int _clk_progs_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 	nvgpu_log_info(g, " Done");
 	return 0;
 }
@@ -213,7 +213,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 		tableslaveentries[CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES];
 	struct ctrl_clk_clk_prog_1x_source_pll *source_pll;
 	union {
-		struct boardobj board_obj;
+		struct pmu_board_obj obj;
 		struct clk_prog clkprog;
 		struct clk_prog_1x v1x;
 		struct clk_prog_35_master v35_master;
@@ -404,11 +404,11 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 			}
 
 			if (prog_type == NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_RATIO) {
-				prog_data.board_obj.type = CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO;
+				prog_data.obj.type = CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO;
 				prog_data.v35_master_ratio.ratio.p_slave_entries =
 					ratioslaveentries;
 			} else {
-				prog_data.board_obj.type = CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE;
+				prog_data.obj.type = CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE;
 
 				prog_data.v35_master_table.table.p_slave_entries =
 					tableslaveentries;
@@ -416,7 +416,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 			break;
 
 		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_SLAVE:
-			prog_data.board_obj.type = CTRL_CLK_CLK_PROG_TYPE_35;
+			prog_data.obj.type = CTRL_CLK_CLK_PROG_TYPE_35;
 			break;
 
 		default:
@@ -437,7 +437,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 		}
 
 		status = boardobjgrp_objinsert(&pclkprogobjs->super.super,
-			(struct boardobj *)(void *)pprog, i);
+			(struct pmu_board_obj *)(void *)pprog, i);
 		if (status != 0) {
 			nvgpu_err(g, "error adding clk_prog boardobj %d", i);
 			status = -EINVAL;
@@ -479,20 +479,20 @@ static int devinit_get_clk_prog_table(struct gk20a *g,
 }
 
 static int clk_prog_pmudatainit_super(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 
 	nvgpu_log_info(g, " ");
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	return status;
 }
 
 static int clk_prog_pmudatainit_1x(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_prog_1x *pclk_prog_1x;
@@ -500,15 +500,15 @@ static int clk_prog_pmudatainit_1x(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = clk_prog_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = clk_prog_pmudatainit_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pclk_prog_1x = (struct clk_prog_1x *)(void *)board_obj_ptr;
+	pclk_prog_1x = (struct clk_prog_1x *)(void *)obj;
 
 	pset = (struct nv_pmu_clk_clk_prog_1x_boardobj_set *)(void *)
-		ppmudata;
+		pmu_obj;
 
 	pset->source = pclk_prog_1x->source;
 	pset->freq_max_mhz = pclk_prog_1x->freq_max_mhz;
@@ -518,8 +518,8 @@ static int clk_prog_pmudatainit_1x(struct gk20a *g,
 }
 
 static int clk_prog_pmudatainit_1x_master(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_prog_1x_master *pclk_prog_1x_master;
@@ -529,13 +529,13 @@ static int clk_prog_pmudatainit_1x_master(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = clk_prog_pmudatainit_1x(g, board_obj_ptr, ppmudata);
+	status = clk_prog_pmudatainit_1x(g, obj, pmu_obj);
 
 	pclk_prog_1x_master =
-		(struct clk_prog_1x_master *)(void *)board_obj_ptr;
+		(struct clk_prog_1x_master *)(void *)obj;
 
 	pset = (struct nv_pmu_clk_clk_prog_1x_master_boardobj_set *)(void *)
-		ppmudata;
+		pmu_obj;
 
 	nvgpu_memcpy((u8 *)pset->vf_entries,
 		(u8 *)pclk_prog_1x_master->p_vf_entries, vfsize);
@@ -550,8 +550,8 @@ static int clk_prog_pmudatainit_1x_master(struct gk20a *g,
 }
 
 static int clk_prog_pmudatainit_35_master(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_prog_35_master *pclk_prog_35_master;
@@ -562,13 +562,13 @@ static int clk_prog_pmudatainit_35_master(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = clk_prog_pmudatainit_1x_master(g, board_obj_ptr, ppmudata);
+	status = clk_prog_pmudatainit_1x_master(g, obj, pmu_obj);
 
 	pclk_prog_35_master =
-		(struct clk_prog_35_master *)(void *)board_obj_ptr;
+		(struct clk_prog_35_master *)(void *)obj;
 
 	pset = (struct nv_pmu_clk_clk_prog_35_master_boardobj_set *)(void *)
-		ppmudata;
+		pmu_obj;
 
 	nvgpu_memcpy((u8 *)pset->voltrail_sec_vf_entries,
 		(u8 *)pclk_prog_35_master->p_voltrail_sec_vf_entries,
@@ -578,8 +578,8 @@ static int clk_prog_pmudatainit_35_master(struct gk20a *g,
 }
 
 static int clk_prog_pmudatainit_35_master_ratio(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_prog_35_master_ratio *pclk_prog_35_master_ratio;
@@ -589,16 +589,16 @@ static int clk_prog_pmudatainit_35_master_ratio(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = clk_prog_pmudatainit_35_master(g, board_obj_ptr, ppmudata);
+	status = clk_prog_pmudatainit_35_master(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pclk_prog_35_master_ratio =
-		(struct clk_prog_35_master_ratio *)(void *)board_obj_ptr;
+		(struct clk_prog_35_master_ratio *)(void *)obj;
 
 	pset = (struct nv_pmu_clk_clk_prog_35_master_ratio_boardobj_set *)
-				(void *)ppmudata;
+				(void *)pmu_obj;
 
 	nvgpu_memcpy((u8 *)pset->ratio.slave_entries,
 		(u8 *)pclk_prog_35_master_ratio->ratio.p_slave_entries,
@@ -608,8 +608,8 @@ static int clk_prog_pmudatainit_35_master_ratio(struct gk20a *g,
 }
 
 static int clk_prog_pmudatainit_35_master_table(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_prog_35_master_table *pclk_prog_35_master_table;
@@ -620,16 +620,16 @@ static int clk_prog_pmudatainit_35_master_table(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = clk_prog_pmudatainit_35_master(g, board_obj_ptr, ppmudata);
+	status = clk_prog_pmudatainit_35_master(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pclk_prog_35_master_table =
-		(struct clk_prog_35_master_table *)(void *)board_obj_ptr;
+		(struct clk_prog_35_master_table *)(void *)obj;
 
 	pset = (struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set *)
-				(void *)ppmudata;
+				(void *)pmu_obj;
 	nvgpu_memcpy((u8 *)pset->table.slave_entries,
 		(u8 *)pclk_prog_35_master_table->table.p_slave_entries,
 		slavesize);
@@ -669,7 +669,7 @@ done:
 }
 
 static int clk_prog_construct_super(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs)
+		struct pmu_board_obj **obj, size_t size, void *pargs)
 {
 	struct clk_prog *pclkprog;
 	int status = 0;
@@ -679,13 +679,13 @@ static int clk_prog_construct_super(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	status = pmu_boardobj_construct_super(g,
-			(struct boardobj *)(void *)pclkprog, pargs);
+	status = pmu_board_obj_construct_super(g,
+			(struct pmu_board_obj *)(void *)pclkprog, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	*ppboardobj = (struct boardobj *)(void *)pclkprog;
+	*obj = (struct pmu_board_obj *)(void *)pclkprog;
 
 	pclkprog->super.pmudatainit =
 			clk_prog_pmudatainit_super;
@@ -693,23 +693,23 @@ static int clk_prog_construct_super(struct gk20a *g,
 }
 
 
-static int clk_prog_construct_1x(struct gk20a *g, struct boardobj **ppboardobj,
+static int clk_prog_construct_1x(struct gk20a *g, struct pmu_board_obj **obj,
 		size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_prog_1x *pclkprog;
 	struct clk_prog_1x *ptmpprog =
 			(struct clk_prog_1x *)pargs;
 	int status = 0;
 
 	nvgpu_log_info(g, " ");
-	ptmpobj->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_1X);
-	status = clk_prog_construct_super(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_1X);
+	status = clk_prog_construct_super(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pclkprog = (struct clk_prog_1x *)(void *)*ppboardobj;
+	pclkprog = (struct clk_prog_1x *)(void *)*obj;
 
 	pclkprog->super.super.pmudatainit =
 			clk_prog_pmudatainit_1x;
@@ -721,23 +721,23 @@ static int clk_prog_construct_1x(struct gk20a *g, struct boardobj **ppboardobj,
 	return status;
 }
 
-static int clk_prog_construct_35(struct gk20a *g, struct boardobj **ppboardobj,
+static int clk_prog_construct_35(struct gk20a *g, struct pmu_board_obj **obj,
 		size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_prog_1x *pclkprog;
 	struct clk_prog_1x *ptmpprog =
 			(struct clk_prog_1x *)pargs;
 	int status = 0;
 
 	nvgpu_log_info(g, " ");
-	ptmpobj->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_35);
-	status = clk_prog_construct_super(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_35);
+	status = clk_prog_construct_super(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pclkprog = (struct clk_prog_1x *)(void *)*ppboardobj;
+	pclkprog = (struct clk_prog_1x *)(void *)*obj;
 
 	pclkprog->super.super.pmudatainit =
 			clk_prog_pmudatainit_1x;
@@ -750,9 +750,9 @@ static int clk_prog_construct_35(struct gk20a *g, struct boardobj **ppboardobj,
 }
 
 static int clk_prog_construct_1x_master(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs)
+		struct pmu_board_obj **obj, size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_prog_1x_master *pclkprog;
 	struct clk_prog_1x_master *ptmpprog =
 			(struct clk_prog_1x_master *)pargs;
@@ -761,15 +761,15 @@ static int clk_prog_construct_1x_master(struct gk20a *g,
 		g->pmu->clk_pmu->clk_progobjs->vf_entry_count;
 	u8 railidx;
 
-	nvgpu_log_info(g, " type - %x", BOARDOBJ_GET_TYPE(pargs));
+	nvgpu_log_info(g, " type - %x", pmu_board_obj_get_type(pargs));
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_1X_MASTER);
-	status = clk_prog_construct_1x(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_1X_MASTER);
+	status = clk_prog_construct_1x(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pclkprog = (struct clk_prog_1x_master *)(void *)*ppboardobj;
+	pclkprog = (struct clk_prog_1x_master *)(void *)*obj;
 
 	pclkprog->super.super.super.pmudatainit =
 			clk_prog_pmudatainit_1x_master;
@@ -807,9 +807,9 @@ static int clk_prog_construct_1x_master(struct gk20a *g,
 }
 
 static int clk_prog_construct_35_master(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs)
+		struct pmu_board_obj **obj, size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_prog_35_master *pclkprog;
 	struct clk_prog_35_master *ptmpprog =
 			(struct clk_prog_35_master *)pargs;
@@ -818,15 +818,15 @@ static int clk_prog_construct_35_master(struct gk20a *g,
 		sizeof(struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail)
 			* CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES;
 
-	nvgpu_log_info(g, " type - %x", BOARDOBJ_GET_TYPE(pargs));
+	nvgpu_log_info(g, " type - %x", pmu_board_obj_get_type(pargs));
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_35_MASTER);
-	status = clk_prog_construct_1x_master(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_35_MASTER);
+	status = clk_prog_construct_1x_master(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pclkprog = (struct clk_prog_35_master *)(void *)*ppboardobj;
+	pclkprog = (struct clk_prog_35_master *)(void *)*obj;
 
 	pclkprog->super.super.super.pmudatainit =
 			clk_prog_pmudatainit_35_master;
@@ -848,9 +848,9 @@ static int clk_prog_construct_35_master(struct gk20a *g,
 }
 
 static int clk_prog_construct_35_master_ratio(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs)
+		struct pmu_board_obj **obj, size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_prog_35_master_ratio *pclkprog;
 	struct clk_prog_35_master_ratio *ptmpprog =
 			(struct clk_prog_35_master_ratio *)pargs;
@@ -859,17 +859,17 @@ static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 			struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
 		g->pmu->clk_pmu->clk_progobjs->slave_entry_count;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO);
-	status = clk_prog_construct_35_master(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO);
+	status = clk_prog_construct_35_master(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pclkprog = (struct clk_prog_35_master_ratio *)(void *)*ppboardobj;
+	pclkprog = (struct clk_prog_35_master_ratio *)(void *)*obj;
 
 	pclkprog->super.super.super.super.pmudatainit =
 			clk_prog_pmudatainit_35_master_ratio;
@@ -891,9 +891,9 @@ static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 }
 
 static int clk_prog_construct_35_master_table(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs)
+		struct pmu_board_obj **obj, size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct clk_prog_35_master_table *pclkprog;
 	struct clk_prog_35_master_table *ptmpprog =
 			(struct clk_prog_35_master_table *)pargs;
@@ -902,19 +902,19 @@ static int clk_prog_construct_35_master_table(struct gk20a *g,
 		sizeof(struct ctrl_clk_clk_prog_1x_master_table_slave_entry) *
 		g->pmu->clk_pmu->clk_progobjs->slave_entry_count;
 
-	nvgpu_log_info(g, "type - %x", BOARDOBJ_GET_TYPE(pargs));
+	nvgpu_log_info(g, "type - %x", pmu_board_obj_get_type(pargs));
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE);
-	status = clk_prog_construct_35_master(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE);
+	status = clk_prog_construct_35_master(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pclkprog = (struct clk_prog_35_master_table *)(void *)*ppboardobj;
+	pclkprog = (struct clk_prog_35_master_table *)(void *)*obj;
 
 	pclkprog->super.super.super.super.pmudatainit =
 			clk_prog_pmudatainit_35_master_table;
@@ -936,7 +936,7 @@ static int clk_prog_construct_35_master_table(struct gk20a *g,
 
 exit:
 	if (status != 0) {
-		status = (*ppboardobj)->destruct(*ppboardobj);
+		status = (*obj)->destruct(*obj);
 	}
 
 	return status;
@@ -951,23 +951,23 @@ static struct clk_vf_point *get_vf_point_by_idx(
 
 static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	int status;
 
-	nvgpu_log_info(g, " type - %x", BOARDOBJ_GET_TYPE(pargs));
-	switch (BOARDOBJ_GET_TYPE(pargs)) {
+	nvgpu_log_info(g, " type - %x", pmu_board_obj_get_type(pargs));
+	switch (pmu_board_obj_get_type(pargs)) {
 	case CTRL_CLK_CLK_PROG_TYPE_35:
-		status = clk_prog_construct_35(g, &board_obj_ptr,
+		status = clk_prog_construct_35(g, &obj,
 			sizeof(struct clk_prog_1x), pargs);
 		break;
 
 	case CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE:
-		status = clk_prog_construct_35_master_table(g, &board_obj_ptr,
+		status = clk_prog_construct_35_master_table(g, &obj,
 			sizeof(struct clk_prog_35_master_table), pargs);
 		break;
 
 	case CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO:
-		status = clk_prog_construct_35_master_ratio(g, &board_obj_ptr,
+		status = clk_prog_construct_35_master_ratio(g, &obj,
 			sizeof(struct clk_prog_35_master_ratio), pargs);
 		break;
 	default:
@@ -977,8 +977,8 @@ static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 	}
 
 	if (status != 0) {
-		if (board_obj_ptr != NULL) {
-			status = board_obj_ptr->destruct(board_obj_ptr);
+		if (obj != NULL) {
+			status = obj->destruct(obj);
 			if (status != 0) {
 				nvgpu_err(g, "destruct failed err=%d", status);
 			}
@@ -988,7 +988,7 @@ static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 
 	nvgpu_log_info(g, " Done");
 
-	return (struct clk_prog *)(void *)board_obj_ptr;
+	return (struct clk_prog *)(void *)obj;
 }
 
 static int vfflatten_prog_1x_master(struct gk20a *g,
@@ -999,7 +999,7 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 	struct ctrl_clk_clk_prog_1x_master_vf_entry *p_vf_rail;
 	struct ctrl_clk_clk_prog_1x_source_pll *source_pll;
 	union {
-		struct boardobj board_obj;
+		struct pmu_board_obj obj;
 		struct clk_vf_point vf_point;
 		struct clk_vf_point_freq freq;
 		struct clk_vf_point_volt volt;
@@ -1046,7 +1046,7 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 			/* Intentional fall-through.*/
 
 		case CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE:
-			vf_point_data.board_obj.type =
+			vf_point_data.obj.type =
 					CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ;
 			 do {
 				 vf_point_data.vf_point.pair.freq_mhz =
@@ -1072,7 +1072,7 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 					clk_get_fll_lut_vf_num_entries(pclk);
 
 			/* FLL sources use a voltage-based VF_POINT.*/
-			vf_point_data.board_obj.type =
+			vf_point_data.obj.type =
 					CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_PRI;
 			for (i = 0; i < step_count; i++) {
 				vf_point_data.volt.source_voltage_uv =

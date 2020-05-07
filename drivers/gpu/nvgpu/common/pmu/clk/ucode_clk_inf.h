@@ -374,7 +374,7 @@ struct nv_pmu_clk_clk_domain_35_slave_boardobj_set {
 };
 
 union nv_pmu_clk_clk_domain_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_clk_clk_domain_boardobj_set super;
 	struct nv_pmu_clk_clk_domain_3x_boardobj_set v3x;
 	struct nv_pmu_clk_clk_domain_3x_fixed_boardobj_set v3x_fixed;
@@ -471,7 +471,7 @@ struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set {
 };
 
 union nv_pmu_clk_clk_prog_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_clk_clk_prog_boardobj_set super;
 	struct nv_pmu_clk_clk_prog_1x_boardobj_set v1x;
 	struct nv_pmu_clk_clk_prog_1x_master_boardobj_set v1x_master;
@@ -527,7 +527,7 @@ struct nv_pmu_clk_clk_fll_device_boardobj_set {
 };
 
 union nv_pmu_clk_clk_fll_device_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_clk_clk_fll_device_boardobj_set super;
 };
 
@@ -555,7 +555,7 @@ struct nv_pmu_clk_clk_vin_device_v20_boardobj_set {
 };
 
 union nv_pmu_clk_clk_vin_device_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_clk_clk_vin_device_boardobj_set super;
 	struct nv_pmu_clk_clk_vin_device_v20_boardobj_set v20;
 };
@@ -593,14 +593,14 @@ struct nv_pmu_clk_clk_vf_point_volt_35_sec_boardobj_set {
 };
 
 union nv_pmu_clk_clk_vf_point_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_clk_clk_vf_point_boardobj_set super;
 	struct nv_pmu_clk_clk_vf_point_freq_boardobj_set freq;
 	struct nv_pmu_clk_clk_vf_point_volt_boardobj_set volt;
 };
 
 union nv_pmu_clk_clk_vf_point_sec_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_clk_clk_vf_point_boardobj_set super;
 	struct nv_pmu_clk_clk_vf_point_freq_boardobj_set freq;
 	struct nv_pmu_clk_clk_vf_point_volt_boardobj_set volt;
@@ -653,7 +653,7 @@ struct nv_pmu_clk_clk_vf_point_volt_boardobj_get_status {
 };
 
 union nv_pmu_clk_clk_vf_point_boardobj_get_status_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_clk_clk_vf_point_boardobj_get_status super;
 	struct nv_pmu_clk_clk_vf_point_volt_boardobj_get_status volt;
 	struct nv_pmu_clk_clk_vf_point_35_freq_boardobj_get_status v35_freq;
@@ -731,7 +731,7 @@ struct nv_pmu_clk_clk_vin_device_boardobj_get_status {
 };
 
 union nv_pmu_clk_clk_vin_device_boardobj_get_status_union {
-	struct nv_pmu_boardobj_query board_obj;
+	struct nv_pmu_boardobj_query obj;
 	struct nv_pmu_clk_clk_vin_device_boardobj_get_status super;
 };
 
@@ -756,11 +756,10 @@ struct nv_pmu_clk_clk_fll_device_boardobj_get_status {
 };
 
 union nv_pmu_clk_clk_fll_device_boardobj_get_status_union {
-	struct nv_pmu_boardobj_query board_obj;
+	struct nv_pmu_boardobj_query obj;
 	struct nv_pmu_clk_clk_fll_device_boardobj_get_status super;
 };
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(clk, clk_fll_device);
-
 
 #endif /* NVGPU_PMUIF_CLK_H */

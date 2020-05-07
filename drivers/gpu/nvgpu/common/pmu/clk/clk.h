@@ -51,7 +51,7 @@ struct nvgpu_clk_pmupstate {
 };
 
 struct clk_vf_point {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8  vfe_equ_idx;
 	u8  volt_rail_idx;
 	struct ctrl_clk_vf_pair pair;

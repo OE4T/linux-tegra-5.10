@@ -116,7 +116,7 @@ struct nv_pmu_perf_vfe_var_boardobjgrp_get_status_header {
 };
 
 struct nv_pmu_perf_vfe_var_get_status_super {
-	struct nv_pmu_boardobj_query board_obj;
+	struct nv_pmu_boardobj_query obj;
 };
 
 union ctrl_perf_vfe_var_single_sensed_fuse_value_data {
@@ -138,7 +138,7 @@ struct nv_pmu_perf_vfe_var_single_sensed_fuse_get_status {
 };
 
 union nv_pmu_perf_vfe_var_boardobj_get_status_union {
-	struct nv_pmu_boardobj_query board_obj;
+	struct nv_pmu_boardobj_query obj;
 	struct nv_pmu_perf_vfe_var_get_status_super super;
 	struct nv_pmu_perf_vfe_var_single_sensed_fuse_get_status fuse_status;
 };
@@ -278,7 +278,7 @@ struct nv_pmu_perf_vfe_var_boardobjgrp_set_header {
 };
 
 union nv_pmu_perf_vfe_var_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_vfe_var var;
 	struct nv_pmu_vfe_var_derived var_derived;
 	struct nv_pmu_vfe_var_derived_product var_derived_product;
@@ -339,7 +339,7 @@ struct nv_pmu_perf_vfe_equ_boardobjgrp_set_header {
 };
 
 union nv_pmu_perf_vfe_equ_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_vfe_equ equ;
 	struct nv_pmu_vfe_equ_compare equ_comapre;
 	struct nv_pmu_vfe_equ_minmax equ_minmax;

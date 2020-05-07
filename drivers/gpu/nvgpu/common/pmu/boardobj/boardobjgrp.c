@@ -61,7 +61,7 @@ static int check_boardobjgrp_param(struct gk20a *g,
  */
 static int
 obj_insert_final(struct boardobjgrp *pboardobjgrp,
-	struct boardobj *pboardobj, u8 index)
+	struct pmu_board_obj *obj, u8 index)
 {
 	struct gk20a *g = pboardobjgrp->g;
 
@@ -71,7 +71,7 @@ obj_insert_final(struct boardobjgrp *pboardobjgrp,
 		return -EINVAL;
 	}
 
-	if (pboardobj == NULL) {
+	if (obj == NULL) {
 		return -EINVAL;
 	}
 
@@ -87,14 +87,14 @@ obj_insert_final(struct boardobjgrp *pboardobjgrp,
 	 * Check that this BOARDOBJ has not already been added to a
 	 * BOARDOBJGRP
 	 */
-	if (pboardobj->idx != CTRL_BOARDOBJ_IDX_INVALID) {
+	if (obj->idx != CTRL_BOARDOBJ_IDX_INVALID) {
 		return -EINVAL;
 	}
 
-	pboardobjgrp->ppobjects[index] = pboardobj;
+	pboardobjgrp->ppobjects[index] = obj;
 	pboardobjgrp->objmaxidx = (u8)(BOARDOBJGRP_IS_EMPTY(pboardobjgrp) ?
 			index : max(pboardobjgrp->objmaxidx, index));
-	pboardobj->idx = index;
+	obj->idx = index;
 
 	pboardobjgrp->objmask |= BIT32(index);
 
@@ -106,7 +106,7 @@ obj_insert_final(struct boardobjgrp *pboardobjgrp,
 /*
  * Retrieves a Board Object from a Board Object Group using the group's index.
  */
-static struct boardobj *obj_get_by_idx_final(
+static struct pmu_board_obj *obj_get_by_idx_final(
 		struct boardobjgrp *pboardobjgrp, u8 index)
 {
 	if (!boardobjgrp_idxisvalid(pboardobjgrp, index)) {
@@ -119,11 +119,11 @@ static struct boardobj *obj_get_by_idx_final(
  * Retrieve Board Object immediately following one pointed by @ref currentindex
  * filtered out by the provided mask. If (mask == NULL) => no filtering.
  */
-static struct boardobj *obj_get_next_final(
+static struct pmu_board_obj *obj_get_next_final(
 		struct boardobjgrp *pboardobjgrp, u8 *currentindex,
 		struct boardobjgrpmask *mask)
 {
-	struct boardobj *pboardobjnext = NULL;
+	struct pmu_board_obj *obj_next = NULL;
 	u8 objmaxidx;
 	u8 index;
 
@@ -154,13 +154,13 @@ static struct boardobj *obj_get_next_final(
 
 	if (objmaxidx != CTRL_BOARDOBJ_IDX_INVALID) {
 		for (; index <= objmaxidx; index++) {
-			pboardobjnext = pboardobjgrp->ppobjects[index];
-			if (pboardobjnext != NULL) {
+			obj_next = pboardobjgrp->ppobjects[index];
+			if (obj_next != NULL) {
 				/* Filter results using client provided mask.*/
 				if (mask != NULL) {
 					if (!nvgpu_boardobjgrpmask_bit_get(mask,
 						index)) {
-						pboardobjnext = NULL;
+						obj_next = NULL;
 						continue;
 					}
 				}
@@ -170,12 +170,12 @@ static struct boardobj *obj_get_next_final(
 		}
 	}
 
-	return pboardobjnext;
+	return obj_next;
 }
 
 static int pmu_data_inst_get_stub(struct gk20a *g,
 	struct nv_pmu_boardobjgrp *boardobjgrppmu,
-	struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
+	struct nv_pmu_boardobj **pmu_obj, u8 idx)
 {
 	nvgpu_log_info(g, " ");
 	return -EINVAL;
@@ -184,7 +184,7 @@ static int pmu_data_inst_get_stub(struct gk20a *g,
 
 static int pmu_status_inst_get_stub(struct gk20a *g,
 	void *pboardobjgrppmu,
-	struct nv_pmu_boardobj_query **ppBoardobjpmustatus, u8 idx)
+	struct nv_pmu_boardobj_query **obj_pmu_status, u8 idx)
 {
 	nvgpu_log_info(g, " ");
 	return -EINVAL;
@@ -243,7 +243,7 @@ static int pmu_cmd_destroy_impl(struct gk20a *g,
 
 static int destruct_super(struct boardobjgrp *pboardobjgrp)
 {
-	struct boardobj *pboardobj;
+	struct pmu_board_obj *obj;
 	struct gk20a *g = pboardobjgrp->g;
 	int status = 0;
 	int stat;
@@ -258,7 +258,7 @@ static int destruct_super(struct boardobjgrp *pboardobjgrp)
 		return -EINVAL;
 	}
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
 		stat = pboardobjgrp->objremoveanddestroy(pboardobjgrp, index);
 		if (status == 0) {
 			status = stat;
@@ -646,8 +646,8 @@ int nvgpu_boardobjgrp_pmu_data_init_legacy(struct gk20a *g,
 	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
 {
 	int status = 0;
-	struct boardobj *pboardobj = NULL;
-	struct nv_pmu_boardobj *ppmudata = NULL;
+	struct pmu_board_obj *obj = NULL;
+	struct nv_pmu_boardobj *pmu_obj = NULL;
 	u8 index;
 
 	nvgpu_log_info(g, " ");
@@ -665,8 +665,8 @@ int nvgpu_boardobjgrp_pmu_data_init_legacy(struct gk20a *g,
 	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK(32, index, pboardobjgrp->objmask) {
 		/* Obtain pointer to the current instance of the
 		 * Object from the Group */
-		pboardobj = pboardobjgrp->objgetbyidx(pboardobjgrp, index);
-		if (NULL == pboardobj) {
+		obj = pboardobjgrp->objgetbyidx(pboardobjgrp, index);
+		if (NULL == obj) {
 			nvgpu_err(g, "could not get object instance");
 			status = -EINVAL;
 			goto nvgpu_boardobjgrp_pmu_data_init_legacy_exit;
@@ -675,14 +675,14 @@ int nvgpu_boardobjgrp_pmu_data_init_legacy(struct gk20a *g,
 		status = pboardobjgrp->pmudatainstget(g,
 				(struct nv_pmu_boardobjgrp *)
 				(void *)pboardobjgrppmu,
-				&ppmudata, index);
+				&pmu_obj, index);
 		if (status != 0) {
 			nvgpu_err(g, "could not get object instance");
 			goto nvgpu_boardobjgrp_pmu_data_init_legacy_exit;
 		}
 
 		/* Initialize the PMU Data */
-		status = pboardobj->pmudatainit(g, pboardobj, ppmudata);
+		status = obj->pmudatainit(g, obj, pmu_obj);
 		if (status != 0) {
 			nvgpu_err(g,
 				"could not parse pmu for device %d", index);
@@ -701,8 +701,8 @@ int nvgpu_boardobjgrp_pmu_data_init_super(struct gk20a *g, struct boardobjgrp
 	*pboardobjgrp, struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
 {
 	int status = 0;
-	struct boardobj *pboardobj = NULL;
-	struct nv_pmu_boardobj	*ppmudata = NULL;
+	struct pmu_board_obj *obj = NULL;
+	struct nv_pmu_boardobj	*pmu_obj = NULL;
 	u8 index;
 
 	nvgpu_log_info(g, " ");
@@ -722,17 +722,17 @@ int nvgpu_boardobjgrp_pmu_data_init_super(struct gk20a *g, struct boardobjgrp
 		goto boardobjgrp_pmu_data_init_super_exit;
 	}
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
 		status = pboardobjgrp->pmudatainstget(g,
 				(struct nv_pmu_boardobjgrp *)
-				(void *)pboardobjgrppmu, &ppmudata, index);
+				(void *)pboardobjgrppmu, &pmu_obj, index);
 		if (status != 0) {
 			nvgpu_err(g, "could not get object instance");
 			goto boardobjgrp_pmu_data_init_super_exit;
 		}
 
 		/* Initialize the PMU Data and send to PMU */
-		status = pboardobj->pmudatainit(g, pboardobj, ppmudata);
+		status = obj->pmudatainit(g, obj, pmu_obj);
 		if (status != 0) {
 			nvgpu_err(g,
 				"could not parse pmu for device %d", index);

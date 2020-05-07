@@ -31,7 +31,7 @@ struct vfe_equs {
 };
 
 struct vfe_equ {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 var_idx;
 	u8 equ_idx_next;
 	u8 output_type;

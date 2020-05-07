@@ -42,8 +42,8 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 static struct fll_device *construct_fll_device(struct gk20a *g,
 		void *pargs);
 static int fll_device_init_pmudata_super(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata);
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj);
 
 static u32 clk_get_vbios_clk_domain(u32 vbios_domain);
 
@@ -96,7 +96,7 @@ static int _clk_fll_devgrp_pmudatainit_super(struct gk20a *g,
 
 static int _clk_fll_devgrp_pmudata_instget(struct gk20a *g,
 		struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-		struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
+		struct nv_pmu_boardobj **pmu_obj, u8 idx)
 {
 	struct nv_pmu_clk_clk_fll_device_boardobj_grp_set  *pgrp_set =
 		(struct nv_pmu_clk_clk_fll_device_boardobj_grp_set *)
@@ -110,15 +110,15 @@ static int _clk_fll_devgrp_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 	nvgpu_log_info(g, " Done");
 	return 0;
 }
 
 static int _clk_fll_devgrp_pmustatus_instget(struct gk20a *g,
 		void *pboardobjgrppmu,
-		struct nv_pmu_boardobj_query **ppboardobjpmustatus, u8 idx)
+		struct nv_pmu_boardobj_query **obj_pmu_status, u8 idx)
 {
 	struct nv_pmu_clk_clk_fll_device_boardobj_grp_get_status
 	*pgrp_get_status =
@@ -131,8 +131,8 @@ static int _clk_fll_devgrp_pmustatus_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
-			&pgrp_get_status->objects[idx].data.board_obj;
+	*obj_pmu_status = (struct nv_pmu_boardobj_query *)
+			&pgrp_get_status->objects[idx].data.obj;
 	return 0;
 }
 
@@ -217,7 +217,7 @@ int clk_fll_sw_setup(struct gk20a *g)
 		if (pfll_master == NULL) {
 			status = nvgpu_boardobjgrpmask_bit_set(
 				&pfllobjs->lut_prog_master_mask.super,
-				BOARDOBJ_GET_IDX(pfll));
+				pmu_board_obj_get_idx(pfll));
 			if (status != 0) {
 				nvgpu_err(g, "err setting lutprogmask");
 				goto done;
@@ -400,7 +400,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 		pfll_dev = construct_fll_device(g, (void *)&fll_dev_data);
 
 		status = boardobjgrp_objinsert(&pfllobjs->super.super,
-				(struct boardobj *)pfll_dev, index);
+				(struct pmu_board_obj *)pfll_dev, index);
 		fll_tbl_entry_ptr += fll_desc_table_header.entry_size;
 	}
 
@@ -436,13 +436,13 @@ static int lutbroadcastslaveregister(struct gk20a *g,
 
 	return nvgpu_boardobjgrpmask_bit_set(&pfll->
 		lut_prog_broadcast_slave_mask.super,
-		BOARDOBJ_GET_IDX(pfll_slave));
+		pmu_board_obj_get_idx(pfll_slave));
 }
 
 static struct fll_device *construct_fll_device(struct gk20a *g,
 		void *pargs)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct fll_device *pfll_dev;
 	struct fll_device *board_obj_fll_ptr = NULL;
 	int status;
@@ -453,15 +453,15 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 	if (board_obj_fll_ptr == NULL) {
 		return NULL;
 	}
-	board_obj_ptr = (struct boardobj *)(void *)board_obj_fll_ptr;
+	obj = (struct pmu_board_obj *)(void *)board_obj_fll_ptr;
 
-	status = pmu_boardobj_construct_super(g, board_obj_ptr, pargs);
+	status = pmu_board_obj_construct_super(g, obj, pargs);
 	if (status != 0) {
 		return NULL;
 	}
 
 	pfll_dev = (struct fll_device *)pargs;
-	board_obj_ptr->pmudatainit  = fll_device_init_pmudata_super;
+	obj->pmudatainit  = fll_device_init_pmudata_super;
 	board_obj_fll_ptr->lut_broadcast_slave_register =
 		lutbroadcastslaveregister;
 	board_obj_fll_ptr->id = pfll_dev->id;
@@ -488,7 +488,7 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 		&board_obj_fll_ptr->lut_prog_broadcast_slave_mask, NULL);
 	if (status != 0) {
 		nvgpu_err(g, "boardobjgrpmask_e32_init failed err=%d", status);
-		status = board_obj_ptr->destruct(board_obj_ptr);
+		status = obj->destruct(obj);
 		if (status != 0) {
 			nvgpu_err(g, "destruct failed err=%d", status);
 		}
@@ -497,12 +497,12 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 
 	nvgpu_log_info(g, " Done");
 
-	return (struct fll_device *)board_obj_ptr;
+	return (struct fll_device *)(void *)obj;
 }
 
 static int fll_device_init_pmudata_super(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct fll_device *pfll_dev;
@@ -510,14 +510,14 @@ static int fll_device_init_pmudata_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pfll_dev = (struct fll_device *)board_obj_ptr;
+	pfll_dev = (struct fll_device *)(void *)obj;
 	perf_pmu_data = (struct nv_pmu_clk_clk_fll_device_boardobj_set *)
-		ppmudata;
+		pmu_obj;
 
 	perf_pmu_data->id = pfll_dev->id;
 	perf_pmu_data->mdiv = pfll_dev->mdiv;

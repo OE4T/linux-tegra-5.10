@@ -38,7 +38,6 @@
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/seq.h>
-#include <common/pmu/boardobj/boardobj.h>
 
 /* PMU F/W version */
 #define APP_VERSION_TU10X	28084434U

@@ -41,18 +41,18 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 		struct nvgpu_avfsvinobjs *pvinobjs);
 
 static int vin_device_construct_v20(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs);
+		struct pmu_board_obj **obj, size_t size, void *pargs);
 static int vin_device_construct_super(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs);
+		struct pmu_board_obj **obj, size_t size, void *pargs);
 static struct clk_vin_device *construct_vin_device(
 		struct gk20a *g, void *pargs);
 
 static int vin_device_init_pmudata_v20(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata);
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj);
 static int vin_device_init_pmudata_super(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata);
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj);
 
 struct clk_vin_device *clk_get_vin_from_index(
 		struct nvgpu_avfsvinobjs *pvinobjs, u8 idx)
@@ -116,7 +116,7 @@ static int _clk_vin_devgrp_pmudatainit_super(struct gk20a *g,
 
 static int _clk_vin_devgrp_pmudata_instget(struct gk20a *g,
 		struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-		struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
+		struct nv_pmu_boardobj **pmu_obj, u8 idx)
 {
 	struct nv_pmu_clk_clk_vin_device_boardobj_grp_set *pgrp_set =
 		(struct nv_pmu_clk_clk_vin_device_boardobj_grp_set *)
@@ -130,15 +130,15 @@ static int _clk_vin_devgrp_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 	nvgpu_log_info(g, " Done");
 	return 0;
 }
 
 static int _clk_vin_devgrp_pmustatus_instget(struct gk20a *g,
 		void *pboardobjgrppmu,
-		struct nv_pmu_boardobj_query **ppboardobjpmustatus, u8 idx)
+		struct nv_pmu_boardobj_query **obj_pmu_status, u8 idx)
 {
 	struct nv_pmu_clk_clk_vin_device_boardobj_grp_get_status
 	*pgrp_get_status =
@@ -151,8 +151,8 @@ static int _clk_vin_devgrp_pmustatus_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
-			&pgrp_get_status->objects[idx].data.board_obj;
+	*obj_pmu_status = (struct nv_pmu_boardobj_query *)
+			&pgrp_get_status->objects[idx].data.obj;
 	return 0;
 }
 
@@ -253,7 +253,7 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 	u32 cal_type;
 
 	union {
-		struct boardobj boardobj;
+		struct pmu_board_obj obj;
 		struct clk_vin_device vin_device;
 		struct vin_device_v20 vin_device_v20;
 	} vin_device_data;
@@ -304,7 +304,7 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 			continue;
 		}
 
-		vin_device_data.boardobj.type =
+		vin_device_data.obj.type =
 			(u8)vin_desc_table_entry.vin_device_type;
 		vin_device_data.vin_device.id =
 				(u8)vin_desc_table_entry.vin_device_id;
@@ -326,7 +326,7 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 		pvin_dev = construct_vin_device(g, (void *)&vin_device_data);
 
 		status = boardobjgrp_objinsert(&pvinobjs->super.super,
-				(struct boardobj *)pvin_dev, index);
+				(struct pmu_board_obj *)pvin_dev, index);
 
 		vin_tbl_entry_ptr += vin_desc_table_header.entry_size;
 	}
@@ -337,24 +337,24 @@ done:
 }
 
 static int vin_device_construct_v20(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs)
+		struct pmu_board_obj **obj, size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vin_device_v20 *pvin_device_v20;
 	struct vin_device_v20 *ptmpvin_device_v20 = (struct vin_device_v20 *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_VIN_TYPE_V20) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_CLK_VIN_TYPE_V20) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT32(CTRL_CLK_VIN_TYPE_V20);
-	status = vin_device_construct_super(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= BIT32(CTRL_CLK_VIN_TYPE_V20);
+	status = vin_device_construct_super(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvin_device_v20 = (struct vin_device_v20 *)*ppboardobj;
+	pvin_device_v20 = (struct vin_device_v20 *)(void *)*obj;
 
 	pvin_device_v20->super.super.pmudatainit =
 			vin_device_init_pmudata_v20;
@@ -370,7 +370,7 @@ static int vin_device_construct_v20(struct gk20a *g,
 	return status;
 }
 static int vin_device_construct_super(struct gk20a *g,
-		struct boardobj **obj, size_t size, void *pargs)
+		struct pmu_board_obj **obj, size_t size, void *pargs)
 {
 	struct clk_vin_device *pvin_device;
 	struct clk_vin_device *ptmpvin_device =
@@ -382,13 +382,13 @@ static int vin_device_construct_super(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	status = pmu_boardobj_construct_super(g,
-			(struct boardobj *)(void *)pvin_device, pargs);
+	status = pmu_board_obj_construct_super(g,
+			(struct pmu_board_obj *)(void *)pvin_device, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	*obj = (struct boardobj *)(void *)pvin_device;
+	*obj = (struct pmu_board_obj *)(void *)pvin_device;
 
 	pvin_device->super.pmudatainit =
 			vin_device_init_pmudata_super;
@@ -405,12 +405,12 @@ static int vin_device_construct_super(struct gk20a *g,
 static struct clk_vin_device *construct_vin_device(
 		struct gk20a *g, void *pargs)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	int status;
 
-	nvgpu_log_info(g, " %d", BOARDOBJ_GET_TYPE(pargs));
+	nvgpu_log_info(g, " %d", pmu_board_obj_get_type(pargs));
 
-	status = vin_device_construct_v20(g, &board_obj_ptr,
+	status = vin_device_construct_v20(g, &obj,
 			sizeof(struct vin_device_v20), pargs);
 
 	if (status != 0) {
@@ -419,12 +419,12 @@ static struct clk_vin_device *construct_vin_device(
 
 	nvgpu_log_info(g, " Done");
 
-	return (struct clk_vin_device *)board_obj_ptr;
+	return (struct clk_vin_device *)(void *)obj;
 }
 
 static int vin_device_init_pmudata_v20(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vin_device_v20 *pvin_dev_v20;
@@ -432,14 +432,14 @@ static int vin_device_init_pmudata_v20(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = vin_device_init_pmudata_super(g, board_obj_ptr, ppmudata);
+	status = vin_device_init_pmudata_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pvin_dev_v20 = (struct vin_device_v20 *)board_obj_ptr;
+	pvin_dev_v20 = (struct vin_device_v20 *)(void *)obj;
 	perf_pmu_data = (struct nv_pmu_clk_clk_vin_device_v20_boardobj_set *)
-		ppmudata;
+		pmu_obj;
 
 	perf_pmu_data->data.cal_type = pvin_dev_v20->data.cal_type;
 	perf_pmu_data->data.vin_cal.cal_v20.offset =
@@ -455,8 +455,8 @@ static int vin_device_init_pmudata_v20(struct gk20a *g,
 }
 
 static int vin_device_init_pmudata_super(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct clk_vin_device *pvin_dev;
@@ -464,14 +464,14 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pvin_dev = (struct clk_vin_device *)board_obj_ptr;
+	pvin_dev = (struct clk_vin_device *)(void *)obj;
 	perf_pmu_data = (struct nv_pmu_clk_clk_vin_device_boardobj_set *)
-		ppmudata;
+		pmu_obj;
 
 	perf_pmu_data->id = pvin_dev->id;
 	perf_pmu_data->volt_rail_idx =

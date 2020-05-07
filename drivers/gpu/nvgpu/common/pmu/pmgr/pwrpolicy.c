@@ -184,8 +184,8 @@ static u32 _pwr_policy_limitarboutputget(struct gk20a *g,
 }
 
 static int _pwr_domains_pmudatainit_hw_threshold(struct gk20a *g,
-				struct boardobj *board_obj_ptr,
-				struct nv_pmu_boardobj *ppmudata)
+				struct pmu_board_obj *obj,
+				struct nv_pmu_boardobj *pmu_obj)
 {
 	struct nv_pmu_pmgr_pwr_policy_hw_threshold *pmu_hw_threshold_data;
 	struct pwr_policy_hw_threshold *p_hw_threshold;
@@ -193,7 +193,7 @@ static int _pwr_domains_pmudatainit_hw_threshold(struct gk20a *g,
 	struct nv_pmu_pmgr_pwr_policy *pmu_pwr_policy;
 	int status = 0;
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error updating pmu boardobjgrp for pwr sensor 0x%x",
@@ -202,9 +202,9 @@ static int _pwr_domains_pmudatainit_hw_threshold(struct gk20a *g,
 		goto done;
 	}
 
-	p_hw_threshold = (struct pwr_policy_hw_threshold *)board_obj_ptr;
-	pmu_hw_threshold_data = (struct nv_pmu_pmgr_pwr_policy_hw_threshold *) ppmudata;
-	pmu_pwr_policy = (struct nv_pmu_pmgr_pwr_policy *) ppmudata;
+	p_hw_threshold = (struct pwr_policy_hw_threshold *)(void *)obj;
+	pmu_hw_threshold_data = (struct nv_pmu_pmgr_pwr_policy_hw_threshold *) pmu_obj;
+	pmu_pwr_policy = (struct nv_pmu_pmgr_pwr_policy *) pmu_obj;
 	p_pwr_policy = (struct pwr_policy *)&(p_hw_threshold->super.super);
 
 	pmu_pwr_policy->ch_idx = 0;
@@ -239,14 +239,14 @@ static int _pwr_domains_pmudatainit_hw_threshold(struct gk20a *g,
 	pmu_hw_threshold_data->b_use_low_threshold = p_hw_threshold->b_use_low_threshold;
 	pmu_hw_threshold_data->low_threshold_value = p_hw_threshold->low_threshold_value;
 
-	if (BOARDOBJ_GET_TYPE(board_obj_ptr) ==
+	if (pmu_board_obj_get_type(obj) ==
 		CTRL_PMGR_PWR_POLICY_TYPE_SW_THRESHOLD) {
 		struct nv_pmu_pmgr_pwr_policy_sw_threshold *pmu_sw_threshold_data;
 		struct pwr_policy_sw_threshold *p_sw_threshold;
 
-		p_sw_threshold = (struct pwr_policy_sw_threshold *)board_obj_ptr;
+		p_sw_threshold = (struct pwr_policy_sw_threshold *)(void *)obj;
 		pmu_sw_threshold_data =
-			(struct nv_pmu_pmgr_pwr_policy_sw_threshold *) ppmudata;
+			(struct nv_pmu_pmgr_pwr_policy_sw_threshold *)(void *)pmu_obj;
 		pmu_sw_threshold_data->event_id =
 			p_sw_threshold->event_id;
 	}
@@ -254,10 +254,10 @@ done:
 	return status;
 }
 
-static struct boardobj *construct_pwr_policy(struct gk20a *g,
+static struct pmu_board_obj *construct_pwr_policy(struct gk20a *g,
 			void *pargs, size_t pargs_size, u8 type)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	int status;
 	struct pwr_policy_hw_threshold *pwrpolicyhwthreshold;
 	struct pwr_policy *pwrpolicy;
@@ -268,15 +268,15 @@ static struct boardobj *construct_pwr_policy(struct gk20a *g,
 	if (pwrpolicy == NULL) {
 		return NULL;
 	}
-	board_obj_ptr = (struct boardobj *)(void *)pwrpolicy;
 
-	status = pmu_boardobj_construct_super(g, board_obj_ptr, pargs);
+	status = pmu_board_obj_construct_super(g,
+			(struct pmu_board_obj *)(void *)pwrpolicy, pargs);
 	if (status != 0) {
 		return NULL;
 	}
 
-	pwrpolicyhwthreshold = (struct pwr_policy_hw_threshold*)board_obj_ptr;
-	pwrpolicy = (struct pwr_policy *)board_obj_ptr;
+	pwrpolicyhwthreshold = (struct pwr_policy_hw_threshold *)(void *)obj;
+	pwrpolicy = (struct pwr_policy *)(void *)obj;
 
 	nvgpu_log_fn(g, "min=%u rated=%u max=%u",
 		pwrpolicyparams->limit_min,
@@ -284,7 +284,7 @@ static struct boardobj *construct_pwr_policy(struct gk20a *g,
 		pwrpolicyparams->limit_max);
 
 	/* Set Super class interfaces */
-	board_obj_ptr->pmudatainit = _pwr_domains_pmudatainit_hw_threshold;
+	obj->pmudatainit = _pwr_domains_pmudatainit_hw_threshold;
 
 	pwrpolicy->ch_idx = pwrpolicyparams->ch_idx;
 	pwrpolicy->num_limit_inputs = 0;
@@ -364,13 +364,14 @@ static struct boardobj *construct_pwr_policy(struct gk20a *g,
 		struct pwr_policy_sw_threshold *swthreshold =
 			(struct pwr_policy_sw_threshold*)pargs;
 
-		pwrpolicyswthreshold = (struct pwr_policy_sw_threshold*)board_obj_ptr;
+		pwrpolicyswthreshold =
+				(struct pwr_policy_sw_threshold *)(void *)obj;
 		pwrpolicyswthreshold->event_id = swthreshold->event_id;
 	}
 
 	nvgpu_log_info(g, " Done");
 
-	return board_obj_ptr;
+	return obj;
 }
 
 static int _pwr_policy_construct_WAR_SW_Threshold_policy(struct gk20a *g,
@@ -380,7 +381,7 @@ static int _pwr_policy_construct_WAR_SW_Threshold_policy(struct gk20a *g,
 			u32 obj_index)
 {
 	int status = 0;
-	struct boardobj *boardobj;
+	struct pmu_board_obj *obj_tmp;
 
 	/* WARN policy */
 	ppwrpolicydata->pwrpolicy.limit_unit = 0;
@@ -397,20 +398,20 @@ static int _pwr_policy_construct_WAR_SW_Threshold_policy(struct gk20a *g,
 
 	ppwrpolicydata->sw_threshold.event_id = 0x01;
 
-	ppwrpolicydata->boardobj.type = CTRL_PMGR_PWR_POLICY_TYPE_SW_THRESHOLD;
+	ppwrpolicydata->obj.type = CTRL_PMGR_PWR_POLICY_TYPE_SW_THRESHOLD;
 
-	boardobj = construct_pwr_policy(g, ppwrpolicydata,
-				pwr_policy_size, ppwrpolicydata->boardobj.type);
+	obj_tmp = construct_pwr_policy(g, ppwrpolicydata,
+				pwr_policy_size, ppwrpolicydata->obj.type);
 
-	if (boardobj == NULL) {
+	if (obj_tmp == NULL) {
 		nvgpu_err(g,
-			"unable to create pwr policy for type %d", ppwrpolicydata->boardobj.type);
+			"unable to create pwr policy for type %d", ppwrpolicydata->obj.type);
 		status = -EINVAL;
 		goto done;
 	}
 
 	status = boardobjgrp_objinsert(&ppwrpolicyobjs->pwr_policies.super,
-			boardobj, obj_index);
+			obj_tmp, obj_index);
 
 	if (status != 0) {
 		nvgpu_err(g,
@@ -527,7 +528,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 {
 	int status = 0;
 	u8 *ptr = NULL;
-	struct boardobj *boardobj;
+	struct pmu_board_obj *obj_tmp;
 	struct pwr_policy_3x_header_struct *packed_hdr;
 	struct pwr_policy_3x_header_unpacked hdr;
 	u32 index;
@@ -649,7 +650,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 		pwr_policy_size = sizeof(struct pwr_policy_hw_threshold);
 
 		/* Initialize data for the parent class */
-		pwr_policy_data.boardobj.type =
+		pwr_policy_data.obj.type =
 				CTRL_PMGR_PWR_POLICY_TYPE_HW_THRESHOLD;
 		pwr_policy_data.pwrpolicy.ch_idx = entry.ch_idx;
 		pwr_policy_data.pwrpolicy.limit_unit =
@@ -675,19 +676,19 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 		hw_threshold_policy_index |=
 			BIT32(pwr_policy_data.hw_threshold.threshold_idx);
 
-		boardobj = construct_pwr_policy(g, &pwr_policy_data,
-				pwr_policy_size, pwr_policy_data.boardobj.type);
+		obj_tmp = construct_pwr_policy(g, &pwr_policy_data,
+				pwr_policy_size, pwr_policy_data.obj.type);
 
-		if (boardobj == NULL) {
+		if (obj_tmp == NULL) {
 			nvgpu_err(g,
 				"unable to create pwr policy for %d type %d",
-				index, pwr_policy_data.boardobj.type);
+				index, pwr_policy_data.obj.type);
 			status = -EINVAL;
 			goto done;
 		}
 
 		status = boardobjgrp_objinsert(&ppwrpolicyobjs->pwr_policies.super,
-				boardobj, obj_index);
+				obj_tmp, obj_index);
 
 		if (status != 0) {
 			nvgpu_err(g,

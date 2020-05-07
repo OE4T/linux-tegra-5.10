@@ -31,7 +31,7 @@
 
 static int _pwr_device_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-			struct nv_pmu_boardobj **ppboardobjpmudata,
+			struct nv_pmu_boardobj **pmu_obj,
 			u8 idx)
 {
 	struct nv_pmu_pmgr_pwr_device_desc_table *ppmgrdevice =
@@ -45,8 +45,8 @@ static int _pwr_device_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&ppmgrdevice->devices[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&ppmgrdevice->devices[idx].data.obj;
 
 	nvgpu_log_info(g, " Done");
 
@@ -54,15 +54,15 @@ static int _pwr_device_pmudata_instget(struct gk20a *g,
 }
 
 static int _pwr_domains_pmudatainit_ina3221(struct gk20a *g,
-			struct boardobj *board_obj_ptr,
-			struct nv_pmu_boardobj *ppmudata)
+			struct pmu_board_obj *obj,
+			struct nv_pmu_boardobj *pmu_obj)
 {
 	struct nv_pmu_pmgr_pwr_device_desc_ina3221 *ina3221_desc;
 	struct pwr_device_ina3221 *ina3221;
 	int status = 0;
 	u32 indx;
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error updating pmu boardobjgrp for pwr domain 0x%x",
@@ -70,8 +70,9 @@ static int _pwr_domains_pmudatainit_ina3221(struct gk20a *g,
 		goto done;
 	}
 
-	ina3221 = (struct pwr_device_ina3221 *)board_obj_ptr;
-	ina3221_desc = (struct nv_pmu_pmgr_pwr_device_desc_ina3221 *) ppmudata;
+	ina3221 = (struct pwr_device_ina3221 *)(void *)obj;
+	ina3221_desc = (struct nv_pmu_pmgr_pwr_device_desc_ina3221 *)
+			(void *) pmu_obj;
 
 	ina3221_desc->super.power_corr_factor = ina3221->super.power_corr_factor;
 	ina3221_desc->i2c_dev_idx = ina3221->super.i2c_dev_idx;
@@ -90,10 +91,10 @@ done:
 	return status;
 }
 
-static struct boardobj *construct_pwr_device(struct gk20a *g,
+static struct pmu_board_obj *construct_pwr_device(struct gk20a *g,
 			void *pargs, size_t pargs_size, u8 type)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	int status;
 	u32 indx;
 	struct pwr_device_ina3221 *pwrdev;
@@ -103,17 +104,19 @@ static struct boardobj *construct_pwr_device(struct gk20a *g,
 	if (pwrdev == NULL) {
 		return NULL;
 	}
-	board_obj_ptr = (struct boardobj *)(void *)pwrdev;
+	obj = (struct pmu_board_obj *)(void *)pwrdev;
 
-	status = pmu_boardobj_construct_super(g, board_obj_ptr, pargs);
+	status = pmu_board_obj_construct_super(g, obj, pargs);
 	if (status != 0) {
 		return NULL;
 	}
 
-	pwrdev = (struct pwr_device_ina3221*)(void *)board_obj_ptr;
-
+	obj = (struct pmu_board_obj *)(void *)pwrdev;
 	/* Set Super class interfaces */
-	board_obj_ptr->pmudatainit = _pwr_domains_pmudatainit_ina3221;
+	obj->pmudatainit = _pwr_domains_pmudatainit_ina3221;
+
+	pwrdev = (struct pwr_device_ina3221 *)(void *)obj;
+
 	pwrdev->super.power_rail          = ina3221->super.power_rail;
 	pwrdev->super.i2c_dev_idx       = ina3221->super.i2c_dev_idx;
 	pwrdev->super.power_corr_factor = BIT32(12);
@@ -132,7 +135,7 @@ static struct boardobj *construct_pwr_device(struct gk20a *g,
 
 	nvgpu_log_info(g, " Done");
 
-	return board_obj_ptr;
+	return obj;
 }
 
 static int devinit_get_pwr_device_table(struct gk20a *g,
@@ -141,14 +144,14 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 	int status = 0;
 	u8 *pwr_device_table_ptr = NULL;
 	u8 *curr_pwr_device_table_ptr = NULL;
-	struct boardobj *boardobj;
+	struct pmu_board_obj *obj_tmp;
 	struct pwr_sensors_2x_header pwr_sensor_table_header = { 0 };
 	struct pwr_sensors_2x_entry pwr_sensor_table_entry = { 0 };
 	u32 index;
 	u32 obj_index = 0;
 	size_t pwr_device_size;
 	union {
-		struct boardobj boardobj;
+		struct pmu_board_obj obj;
 		struct pwr_device pwrdev;
 		struct pwr_device_ina3221 ina3221;
 	} pwr_device_data;
@@ -263,21 +266,22 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 			continue;
 		}
 
-		pwr_device_data.boardobj.type = CTRL_PMGR_PWR_DEVICE_TYPE_INA3221;
+		pwr_device_data.obj.type = CTRL_PMGR_PWR_DEVICE_TYPE_INA3221;
 		pwr_device_data.pwrdev.power_rail = (u8)0;
 
-		boardobj = construct_pwr_device(g, &pwr_device_data,
-					pwr_device_size, pwr_device_data.boardobj.type);
+		obj_tmp = construct_pwr_device(g, &pwr_device_data,
+					pwr_device_size, pwr_device_data.obj.type);
 
-		if (boardobj == NULL) {
+		if (obj_tmp == NULL) {
 			nvgpu_err(g,
-			"unable to create pwr device for %d type %d", index, pwr_device_data.boardobj.type);
+			"unable to create pwr device for %d type %d", index,
+			pwr_device_data.obj.type);
 			status = -EINVAL;
 			goto done;
 		}
 
 		status = boardobjgrp_objinsert(&ppwrdeviceobjs->super.super,
-				boardobj, obj_index);
+				obj_tmp, obj_index);
 
 		if (status != 0) {
 			nvgpu_err(g,

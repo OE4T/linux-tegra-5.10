@@ -24,6 +24,7 @@
 #define NVGPU_CLK_DOMAIN_H
 
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
+#include <common/pmu/boardobj/boardobj.h>
 
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION 0x30
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION_35 0x35
@@ -45,7 +46,7 @@ typedef int nvgpu_clkgetfpoints(struct gk20a *g,
 	u32 *pfpointscount, u16 *pfreqpointsinmhz, u8 rail);
 
 struct nvgpu_clk_domain {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u32 api_domain;
 	u32 part_mask;
 	u32 domain;

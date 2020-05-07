@@ -43,7 +43,7 @@ typedef int fll_lut_broadcast_slave_register(struct gk20a *g,
 	struct fll_device *pfll_slave);
 
 struct fll_device {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 id;
 	u8 mdiv;
 	u16 input_freq_mhz;

@@ -35,15 +35,15 @@
 #include "thrm.h"
 
 static int _therm_channel_pmudatainit_device(struct gk20a *g,
-			struct boardobj *board_obj_ptr,
-			struct nv_pmu_boardobj *ppmudata)
+			struct pmu_board_obj *obj,
+			struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct therm_channel *pchannel;
 	struct therm_channel_device *ptherm_channel;
 	struct nv_pmu_therm_therm_channel_device_boardobj_set *pset;
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error updating pmu boardobjgrp for therm channel 0x%x",
@@ -52,9 +52,10 @@ static int _therm_channel_pmudatainit_device(struct gk20a *g,
 		goto done;
 	}
 
-	pchannel = (struct therm_channel *)board_obj_ptr;
-	pset = (struct nv_pmu_therm_therm_channel_device_boardobj_set *)ppmudata;
-	ptherm_channel = (struct therm_channel_device *)board_obj_ptr;
+	pchannel = (struct therm_channel *)(void *)obj;
+	pset = (struct nv_pmu_therm_therm_channel_device_boardobj_set *)
+			(void *)pmu_obj;
+	ptherm_channel = (struct therm_channel_device *)(void *)obj;
 
 	pset->super.scaling = pchannel->scaling;
 	pset->super.offset = pchannel->offset;
@@ -67,10 +68,10 @@ static int _therm_channel_pmudatainit_device(struct gk20a *g,
 done:
 	return status;
 }
-static struct boardobj *construct_channel_device(struct gk20a *g,
+static struct pmu_board_obj *construct_channel_device(struct gk20a *g,
 			void *pargs, size_t pargs_size, u8 type)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct therm_channel *pchannel;
 	struct therm_channel_device *pchannel_device;
 	int status;
@@ -81,18 +82,18 @@ static struct boardobj *construct_channel_device(struct gk20a *g,
 	if (pchannel_device == NULL) {
 		return NULL;
 	}
-	board_obj_ptr = (struct boardobj *)(void *)pchannel_device;
+	obj = (struct pmu_board_obj *)(void *)pchannel_device;
 
-	status = pmu_boardobj_construct_super(g, board_obj_ptr, pargs);
+	status = pmu_board_obj_construct_super(g, obj, pargs);
 	if (status != 0) {
 		return NULL;
 	}
 
 	/* Set Super class interfaces */
-	board_obj_ptr->pmudatainit = _therm_channel_pmudatainit_device;
+	obj->pmudatainit = _therm_channel_pmudatainit_device;
 
-	pchannel = (struct therm_channel *)board_obj_ptr;
-	pchannel_device = (struct therm_channel_device *)board_obj_ptr;
+	pchannel = (struct therm_channel *)(void *)obj;
+	pchannel_device = (struct therm_channel_device *)(void *)obj;
 
 	g->ops.therm.get_internal_sensor_limits(&pchannel->temp_max,
 		&pchannel->temp_min);
@@ -104,12 +105,12 @@ static struct boardobj *construct_channel_device(struct gk20a *g,
 
 	nvgpu_log_info(g, " Done");
 
-	return board_obj_ptr;
+	return obj;
 }
 
 static int _therm_channel_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-			struct nv_pmu_boardobj **ppboardobjpmudata,
+			struct nv_pmu_boardobj **pmu_obj,
 			u8 idx)
 {
 	struct nv_pmu_therm_therm_channel_boardobj_grp_set *pgrp_set =
@@ -124,8 +125,8 @@ static int _therm_channel_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 
 	nvgpu_log_info(g, " Done");
 
@@ -134,7 +135,7 @@ static int _therm_channel_pmudata_instget(struct gk20a *g,
 
 static int therm_channel_pmustatus_instget(struct gk20a *g,
 	void *pboardobjgrppmu, struct nv_pmu_boardobj_query
-	**ppboardobjpmustatus, u8 idx)
+	**obj_pmu_status, u8 idx)
 {
 	struct nv_pmu_therm_therm_channel_boardobj_grp_get_status *pmu_status =
 		(struct nv_pmu_therm_therm_channel_boardobj_grp_get_status *)
@@ -146,8 +147,8 @@ static int therm_channel_pmustatus_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
-			&pmu_status->objects[idx].data.board_obj;
+	*obj_pmu_status = (struct nv_pmu_boardobj_query *)
+			&pmu_status->objects[idx].data.obj;
 	return 0;
 }
 
@@ -157,14 +158,14 @@ static int devinit_get_therm_channel_table(struct gk20a *g,
 	int status = 0;
 	u8 *therm_channel_table_ptr = NULL;
 	u8 *curr_therm_channel_table_ptr = NULL;
-	struct boardobj *boardobj;
+	struct pmu_board_obj *obj_tmp;
 	struct therm_channel_1x_header therm_channel_table_header = { 0 };
 	struct therm_channel_1x_entry *therm_channel_table_entry = NULL;
 	u32 index;
 	u32 obj_index = 0;
 	size_t therm_channel_size = 0;
 	union {
-		struct boardobj boardobj;
+		struct pmu_board_obj obj;
 		struct therm_channel therm_channel;
 		struct therm_channel_device device;
 	} therm_channel_data;
@@ -217,21 +218,21 @@ static int devinit_get_therm_channel_table(struct gk20a *g,
 		therm_channel_data.device.therm_dev_prov_idx = therm_channel_table_entry->param1;
 
 		therm_channel_size = sizeof(struct therm_channel_device);
-		therm_channel_data.boardobj.type = CTRL_THERMAL_THERM_CHANNEL_CLASS_DEVICE;
+		therm_channel_data.obj.type = CTRL_THERMAL_THERM_CHANNEL_CLASS_DEVICE;
 
-		boardobj = construct_channel_device(g, &therm_channel_data,
-					therm_channel_size, therm_channel_data.boardobj.type);
+		obj_tmp = construct_channel_device(g, &therm_channel_data,
+					therm_channel_size, therm_channel_data.obj.type);
 
-		if (boardobj == NULL) {
+		if (obj_tmp == NULL) {
 			nvgpu_err(g,
 				"unable to create thermal device for %d type %d",
-				index, therm_channel_data.boardobj.type);
+				index, therm_channel_data.obj.type);
 			status = -EINVAL;
 			goto done;
 		}
 
 		status = boardobjgrp_objinsert(&pthermchannelobjs->super.super,
-				boardobj, obj_index);
+				obj_tmp, obj_index);
 
 		if (status != 0) {
 			nvgpu_err(g,
@@ -302,8 +303,8 @@ done:
 }
 
 static int therm_channel_currtemp_update(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	struct therm_channel_get_status *therm_channel_obj;
 	struct nv_pmu_therm_therm_channel_boardobj_get_status *pstatus;
@@ -311,9 +312,9 @@ static int therm_channel_currtemp_update(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	therm_channel_obj = (struct therm_channel_get_status *)
-		(void *)board_obj_ptr;
+		(void *)obj;
 	pstatus = (struct nv_pmu_therm_therm_channel_boardobj_get_status *)
-		(void *)ppmudata;
+		(void *)pmu_obj;
 
 	if (pstatus->super.type != therm_channel_obj->super.type) {
 		nvgpu_err(g, "pmu data and boardobj type not matching");
@@ -329,7 +330,7 @@ static int therm_channel_boardobj_grp_get_status(struct gk20a *g)
 	struct boardobjgrp *pboardobjgrp = NULL;
 	struct boardobjgrpmask *pboardobjgrpmask;
 	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct nv_pmu_boardobj_query *pboardobjpmustatus = NULL;
 	int status;
 	u8 index;
@@ -345,7 +346,7 @@ static int therm_channel_boardobj_grp_get_status(struct gk20a *g)
 	}
 	pboardobjgrppmu = pboardobjgrp->pmu.getstatus.buf;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
 		status = pboardobjgrp->pmustatusinstget(g,
 				(struct nv_pmu_boardobjgrp *)(void *)pboardobjgrppmu,
 				&pboardobjpmustatus, index);
@@ -353,7 +354,7 @@ static int therm_channel_boardobj_grp_get_status(struct gk20a *g)
 			nvgpu_err(g, "could not get status object instance");
 			return status;
 		}
-		status = therm_channel_currtemp_update(g, pboardobj,
+		status = therm_channel_currtemp_update(g, obj,
 				(struct nv_pmu_boardobj *)(void *)pboardobjpmustatus);
 		if (status != 0) {
 			nvgpu_err(g, "could not update therm_channel status");
@@ -367,7 +368,7 @@ static int therm_channel_boardobj_grp_get_status(struct gk20a *g)
 int nvgpu_pmu_therm_channel_get_curr_temp(struct gk20a *g, u32 *temp)
 {
 	struct boardobjgrp *pboardobjgrp;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct therm_channel_get_status *therm_channel_status = NULL;
 	int status;
 	u8 index;
@@ -380,9 +381,9 @@ int nvgpu_pmu_therm_channel_get_curr_temp(struct gk20a *g, u32 *temp)
 
 	pboardobjgrp = &g->pmu->therm_pmu->therm_channelobjs.super.super;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
 		therm_channel_status = (struct therm_channel_get_status *)
-				(void *)pboardobj;
+				(void *)obj;
 		if (therm_channel_status->curr_temp != 0U) {
 			*temp = therm_channel_status->curr_temp;
 			return status;

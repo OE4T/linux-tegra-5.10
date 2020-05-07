@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -355,8 +355,9 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 			ppwrpack->policies.hdr.data.super.obj_mask.super.data[0]) {
 		ppolicy = PMGR_GET_PWR_POLICY(g, indx);
 
-		status = ((struct boardobj *)ppolicy)->pmudatainit(g, (struct boardobj *)ppolicy,
-				(struct nv_pmu_boardobj *)&(ppwrpack->policies.policies[indx].data));
+		status = ((struct pmu_board_obj *)(void *)ppolicy)->pmudatainit(
+			g, (struct pmu_board_obj *)ppolicy,
+			(struct nv_pmu_boardobj *)&(ppwrpack->policies.policies[indx].data));
 		if (status != 0) {
 			nvgpu_err(g, "pmudatainit failed %x indx %x",
 				status, indx);

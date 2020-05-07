@@ -31,7 +31,7 @@ typedef u32 vin_device_state_load(struct gk20a *g,
 		struct nvgpu_clk_pmupstate *clk, struct clk_vin_device *pdev);
 
 struct clk_vin_device {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 id;
 	u8 volt_domain;
 	u8 volt_domain_vbios;

@@ -58,7 +58,7 @@ done:
 
 static int vfe_vars_pmudata_instget(struct gk20a *g,
 				     struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-				     struct nv_pmu_boardobj **ppboardobjpmudata,
+				     struct nv_pmu_boardobj **pmu_obj,
 				     u8 idx)
 {
 	struct nv_pmu_perf_vfe_var_boardobj_grp_set  *pgrp_set =
@@ -70,15 +70,15 @@ static int vfe_vars_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 
 	nvgpu_log_info(g, " Done");
 	return 0;
 }
 
 static int vfe_vars_pmustatus_instget(struct gk20a *g, void *pboardobjgrppmu,
-	struct nv_pmu_boardobj_query **ppboardobjpmustatus, u8 idx)
+	struct nv_pmu_boardobj_query **obj_pmu_status, u8 idx)
 {
 	struct nv_pmu_perf_vfe_var_boardobj_grp_get_status *pgrp_get_status =
 		(struct nv_pmu_perf_vfe_var_boardobj_grp_get_status *)
@@ -89,20 +89,20 @@ static int vfe_vars_pmustatus_instget(struct gk20a *g, void *pboardobjgrppmu,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
-			&pgrp_get_status->objects[idx].data.board_obj;
+	*obj_pmu_status = (struct nv_pmu_boardobj_query *)
+			&pgrp_get_status->objects[idx].data.obj;
 	return 0;
 }
 
 static int vfe_var_get_s_param_value(struct gk20a *g,
 		struct vfe_var_single_sensed_fuse *fuse_value,
-		struct nv_pmu_boardobj *ppmudata)
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	struct nv_pmu_perf_vfe_var_single_sensed_fuse_get_status *pstatus;
 	pstatus = (struct nv_pmu_perf_vfe_var_single_sensed_fuse_get_status *)
-		(void *)ppmudata;
+		(void *)pmu_obj;
 
-	if (pstatus->super.board_obj.type !=
+	if (pstatus->super.obj.type !=
 			fuse_value->super.super.super.super.type) {
 		nvgpu_err(g, "pmu data and boardobj type not matching");
 		return -EINVAL;
@@ -132,13 +132,13 @@ static int vfe_var_dependency_mask_build(struct gk20a *g,
 	int status;
 	u8 index_1 = 0, index_2 = 0;
 	struct vfe_var *tmp_vfe_var_1 = NULL, *tmp_vfe_var_2 = NULL;
-	struct boardobj *pboardobj_1 = NULL, *pboardobj_2 = NULL;
+	struct pmu_board_obj *obj_tmp_1 = NULL, *obj_tmp_2 = NULL;
 	struct boardobjgrp *pboardobjgrp = &(pvfe_vars->super.super);
 
 	/* Initialize mask_depending_vars */
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*,
-			pboardobj_1, index_1) {
-		tmp_vfe_var_1 = (struct vfe_var *)(void *)pboardobj_1;
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*,
+			obj_tmp_1, index_1) {
+		tmp_vfe_var_1 = (struct vfe_var *)(void *)obj_tmp_1;
 		status = tmp_vfe_var_1->mask_depending_build(g, pboardobjgrp,
 				tmp_vfe_var_1);
 		if (status != 0) {
@@ -148,13 +148,13 @@ static int vfe_var_dependency_mask_build(struct gk20a *g,
 		}
 	}
 	/* Initialize mask_dependent_vars */
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*,
-			pboardobj_1, index_1) {
-		tmp_vfe_var_1 = (struct vfe_var *)(void *)pboardobj_1;
-		BOARDOBJGRP_ITERATOR(pboardobjgrp, struct boardobj*,
-				pboardobj_2, index_2,
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*,
+			obj_tmp_1, index_1) {
+		tmp_vfe_var_1 = (struct vfe_var *)(void *)obj_tmp_1;
+		BOARDOBJGRP_ITERATOR(pboardobjgrp, struct pmu_board_obj*,
+				obj_tmp_2, index_2,
 				&tmp_vfe_var_1->mask_depending_vars.super) {
-			tmp_vfe_var_2 = (struct vfe_var *)(void *)pboardobj_2;
+			tmp_vfe_var_2 = (struct vfe_var *)(void *)obj_tmp_2;
 			status = nvgpu_boardobjgrpmask_bit_set(
 				&tmp_vfe_var_2->mask_dependent_vars.super,
 				index_1);
@@ -297,8 +297,8 @@ done:
 }
 
 static int vfe_var_pmudatainit_super(struct gk20a *g,
-				      struct boardobj *board_obj_ptr,
-				      struct nv_pmu_boardobj *ppmudata)
+				      struct pmu_board_obj *obj,
+				      struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vfe_var *pvfe_var;
@@ -306,13 +306,13 @@ static int vfe_var_pmudatainit_super(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pvfe_var = (struct vfe_var *)(void *)board_obj_ptr;
-	pset = (struct nv_pmu_vfe_var *)(void *)ppmudata;
+	pvfe_var = (struct vfe_var *)(void *)obj;
+	pset = (struct nv_pmu_vfe_var *)(void *)pmu_obj;
 
 	pset->out_range_min = pvfe_var->out_range_min;
 	pset->out_range_max = pvfe_var->out_range_max;
@@ -337,7 +337,7 @@ static int vfe_var_build_depending_mask_null(struct gk20a *g,
 }
 
 static int vfe_var_construct_super(struct gk20a *g,
-				   struct boardobj **ppboardobj,
+				   struct pmu_board_obj **obj,
 				   size_t size, void *pargs)
 {
 	struct vfe_var *pvfevar;
@@ -349,13 +349,13 @@ static int vfe_var_construct_super(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	status = pmu_boardobj_construct_super(g,
-			(struct boardobj *)(void *)pvfevar, pargs);
+	status = pmu_board_obj_construct_super(g,
+			(struct pmu_board_obj *)(void *)pvfevar, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	*ppboardobj = (struct boardobj *)(void *)pvfevar;
+	*obj = (struct pmu_board_obj *)(void *)pvfevar;
 
 	pvfevar->super.pmudatainit =
 			vfe_var_pmudatainit_super;
@@ -383,27 +383,27 @@ static int vfe_var_construct_super(struct gk20a *g,
 }
 
 static int vfe_var_pmudatainit_derived(struct gk20a *g,
-					struct boardobj *board_obj_ptr,
-					struct nv_pmu_boardobj *ppmudata)
+					struct pmu_board_obj *obj,
+					struct nv_pmu_boardobj *pmu_obj)
 {
-	return vfe_var_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	return vfe_var_pmudatainit_super(g, obj, pmu_obj);
 }
 
 static int vfe_var_construct_derived(struct gk20a *g,
-				     struct boardobj **ppboardobj,
+				     struct pmu_board_obj **obj,
 				     size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	int status = 0;
 	struct vfe_var_derived *pvfevar;
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_DERIVED);
-	status = vfe_var_construct_super(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_DERIVED);
+	status = vfe_var_construct_super(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_derived *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_derived *)(void *)*obj;
 
 	pvfevar->super.super.pmudatainit =
 			vfe_var_pmudatainit_derived;
@@ -412,8 +412,8 @@ static int vfe_var_construct_derived(struct gk20a *g,
 }
 
 static int vfe_var_pmudatainit_derived_product(struct gk20a *g,
-						struct boardobj *board_obj_ptr,
-						struct nv_pmu_boardobj *ppmudata)
+						struct pmu_board_obj *obj,
+						struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vfe_var_derived_product *pvfe_var_derived_product;
@@ -421,14 +421,14 @@ static int vfe_var_pmudatainit_derived_product(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = vfe_var_pmudatainit_derived(g, board_obj_ptr, ppmudata);
+	status = vfe_var_pmudatainit_derived(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pvfe_var_derived_product =
-		(struct vfe_var_derived_product *)(void *)board_obj_ptr;
-	pset = (struct nv_pmu_vfe_var_derived_product *)(void *)ppmudata;
+		(struct vfe_var_derived_product *)(void *)obj;
+	pset = (struct nv_pmu_vfe_var_derived_product *)(void *)pmu_obj;
 
 	pset->var_idx0 = pvfe_var_derived_product->var_idx0;
 	pset->var_idx1 = pvfe_var_derived_product->var_idx1;
@@ -472,26 +472,26 @@ static int vfe_var_build_depending_mask_derived_product(struct gk20a *g,
 }
 
 static int vfe_var_construct_derived_product(struct gk20a *g,
-					     struct boardobj **ppboardobj,
+					     struct pmu_board_obj **obj,
 					     size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_derived_product *pvfevar;
 	struct vfe_var_derived_product *ptmpvar =
 			(struct vfe_var_derived_product *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT);
-	status = vfe_var_construct_derived(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT);
+	status = vfe_var_construct_derived(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_derived_product *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_derived_product *)(void *)*obj;
 	pvfevar->super.super.mask_depending_build =
 			vfe_var_build_depending_mask_derived_product;
 	pvfevar->super.super.super.pmudatainit =
@@ -505,21 +505,21 @@ static int vfe_var_construct_derived_product(struct gk20a *g,
 }
 
 static int vfe_var_pmudatainit_derived_sum(struct gk20a *g,
-					    struct boardobj *board_obj_ptr,
-					    struct nv_pmu_boardobj *ppmudata)
+					    struct pmu_board_obj *obj,
+					    struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vfe_var_derived_sum *pvfe_var_derived_sum;
 	struct nv_pmu_vfe_var_derived_sum *pset;
 
-	status = vfe_var_pmudatainit_derived(g, board_obj_ptr, ppmudata);
+	status = vfe_var_pmudatainit_derived(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pvfe_var_derived_sum = (struct vfe_var_derived_sum *)
-							(void *)board_obj_ptr;
-	pset = (struct nv_pmu_vfe_var_derived_sum *)(void *)ppmudata;
+							(void *)obj;
+	pset = (struct nv_pmu_vfe_var_derived_sum *)(void *)pmu_obj;
 
 	pset->var_idx0 = pvfe_var_derived_sum->var_idx0;
 	pset->var_idx1 = pvfe_var_derived_sum->var_idx1;
@@ -563,26 +563,26 @@ static int vfe_var_build_depending_mask_derived_sum(struct gk20a *g,
 }
 
 static int vfe_var_construct_derived_sum(struct gk20a *g,
-					 struct boardobj **ppboardobj,
+					 struct pmu_board_obj **obj,
 					 size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_derived_sum *pvfevar;
 	struct vfe_var_derived_sum *ptmpvar =
 			(struct vfe_var_derived_sum *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM);
-	status = vfe_var_construct_derived(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM);
+	status = vfe_var_construct_derived(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_derived_sum *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_derived_sum *)(void *)*obj;
 	pvfevar->super.super.mask_depending_build =
 				vfe_var_build_depending_mask_derived_sum;
 	pvfevar->super.super.super.pmudatainit =
@@ -595,21 +595,21 @@ static int vfe_var_construct_derived_sum(struct gk20a *g,
 }
 
 static int vfe_var_pmudatainit_single(struct gk20a *g,
-				       struct boardobj *board_obj_ptr,
-				       struct nv_pmu_boardobj *ppmudata)
+				       struct pmu_board_obj *obj,
+				       struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vfe_var_single *pvfe_var_single;
 	struct nv_pmu_vfe_var_single *pset;
 
-	status = vfe_var_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = vfe_var_pmudatainit_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pvfe_var_single = (struct vfe_var_single *)(void *)board_obj_ptr;
+	pvfe_var_single = (struct vfe_var_single *)(void *)obj;
 	pset = (struct nv_pmu_vfe_var_single *)(void *)
-		ppmudata;
+		pmu_obj;
 
 	pset->override_type = pvfe_var_single->override_type;
 	pset->override_value = pvfe_var_single->override_value;
@@ -618,18 +618,18 @@ static int vfe_var_pmudatainit_single(struct gk20a *g,
 }
 
 static int vfe_var_pmudatainit_single_frequency(struct gk20a *g,
-						 struct boardobj *board_obj_ptr,
-						 struct nv_pmu_boardobj *ppmudata)
+						 struct pmu_board_obj *obj,
+						 struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vfe_var_single_frequency *pvfe_var_single_frequency;
 	struct nv_pmu_vfe_var_single_frequency *pset;
 
-	status = vfe_var_pmudatainit_single(g, board_obj_ptr, ppmudata);
+	status = vfe_var_pmudatainit_single(g, obj, pmu_obj);
 
 	pvfe_var_single_frequency = (struct vfe_var_single_frequency *)
-							(void *)board_obj_ptr;
-	pset = (struct nv_pmu_vfe_var_single_frequency *)(void *)ppmudata;
+							(void *)obj;
+	pset = (struct nv_pmu_vfe_var_single_frequency *)(void *)pmu_obj;
 
 	pset->clk_domain_idx = pvfe_var_single_frequency->clk_domain_idx;
 
@@ -646,19 +646,19 @@ static int vfe_var_build_depending_mask_single(struct gk20a *g,
 }
 
 static int vfe_var_construct_single(struct gk20a *g,
-		struct boardobj **ppboardobj, size_t size, void *pargs)
+		struct pmu_board_obj **obj, size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_single *pvfevar;
 	int status = 0;
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE);
-	status = vfe_var_construct_super(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE);
+	status = vfe_var_construct_super(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_single *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_single *)(void *)*obj;
 	pvfevar->super.mask_depending_build =
 				vfe_var_build_depending_mask_single;
 	pvfevar->super.super.pmudatainit =
@@ -673,26 +673,26 @@ static int vfe_var_construct_single(struct gk20a *g,
 }
 
 static int vfe_var_construct_single_frequency(struct gk20a *g,
-					      struct boardobj **ppboardobj,
+					      struct pmu_board_obj **obj,
 					      size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_single_frequency *pvfevar;
 	struct vfe_var_single_frequency *ptmpvar =
 			(struct vfe_var_single_frequency *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY);
-	status = vfe_var_construct_single(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY);
+	status = vfe_var_construct_single(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_single_frequency *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_single_frequency *)(void *)*obj;
 	pvfevar->super.super.mask_depending_build =
 				vfe_var_build_depending_mask_single;
 	pvfevar->super.super.super.pmudatainit =
@@ -707,20 +707,20 @@ static int vfe_var_construct_single_frequency(struct gk20a *g,
 }
 
 static int vfe_var_pmudatainit_single_caller_specified(struct gk20a *g,
-						 struct boardobj *board_obj_ptr,
-						 struct nv_pmu_boardobj *ppmudata)
+						 struct pmu_board_obj *obj,
+						 struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vfe_var_single_caller_specified
 					*pvfe_var_single_caller_specified;
 	struct nv_pmu_vfe_var_single_caller_specified *pset;
 
-	status = vfe_var_pmudatainit_single(g, board_obj_ptr, ppmudata);
+	status = vfe_var_pmudatainit_single(g, obj, pmu_obj);
 
 	pvfe_var_single_caller_specified =
-		(struct vfe_var_single_caller_specified *)(void *)board_obj_ptr;
+		(struct vfe_var_single_caller_specified *)(void *)obj;
 	pset = (struct nv_pmu_vfe_var_single_caller_specified *)
-							(void *)ppmudata;
+							(void *)pmu_obj;
 
 	pset->uid = pvfe_var_single_caller_specified->uid;
 
@@ -728,26 +728,26 @@ static int vfe_var_pmudatainit_single_caller_specified(struct gk20a *g,
 }
 
 static int vfe_var_construct_single_caller_specified(struct gk20a *g,
-					      struct boardobj **ppboardobj,
+					      struct pmu_board_obj **obj,
 					      size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_single_caller_specified *pvfevar;
 	struct vfe_var_single_caller_specified *ptmpvar =
 			(struct vfe_var_single_caller_specified *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY);
-	status = vfe_var_construct_single(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY);
+	status = vfe_var_construct_single(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_single_caller_specified *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_single_caller_specified *)(void *)*obj;
 
 	pvfevar->super.super.super.pmudatainit =
 			vfe_var_pmudatainit_single_caller_specified;
@@ -761,30 +761,30 @@ static int vfe_var_construct_single_caller_specified(struct gk20a *g,
 }
 
 static int vfe_var_pmudatainit_single_sensed(struct gk20a *g,
-					      struct boardobj *board_obj_ptr,
-					      struct nv_pmu_boardobj *ppmudata)
+					      struct pmu_board_obj *obj,
+					      struct nv_pmu_boardobj *pmu_obj)
 {
-	return vfe_var_pmudatainit_single(g, board_obj_ptr, ppmudata);
+	return vfe_var_pmudatainit_single(g, obj, pmu_obj);
 }
 
 static int vfe_var_pmudatainit_single_sensed_fuse(struct gk20a *g,
-						   struct boardobj *board_obj_ptr,
-						   struct nv_pmu_boardobj *ppmudata)
+						   struct pmu_board_obj *obj,
+						   struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vfe_var_single_sensed_fuse *pvfe_var_single_sensed_fuse;
 	struct nv_pmu_vfe_var_single_sensed_fuse *pset;
 
-	status = vfe_var_pmudatainit_single_sensed(g, board_obj_ptr, ppmudata);
+	status = vfe_var_pmudatainit_single_sensed(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pvfe_var_single_sensed_fuse =
-		(struct vfe_var_single_sensed_fuse *)(void *)board_obj_ptr;
+		(struct vfe_var_single_sensed_fuse *)(void *)obj;
 
 	pset = (struct nv_pmu_vfe_var_single_sensed_fuse *)(void *)
-		ppmudata;
+		pmu_obj;
 
 	nvgpu_memcpy((u8 *)&pset->vfield_info,
 		(u8 *)&pvfe_var_single_sensed_fuse->vfield_info,
@@ -803,20 +803,20 @@ static int vfe_var_pmudatainit_single_sensed_fuse(struct gk20a *g,
 }
 
 static int vfe_var_construct_single_sensed(struct gk20a *g,
-					   struct boardobj **ppboardobj,
+					   struct pmu_board_obj **obj,
 					   size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_single_sensed *pvfevar;
 	int status = 0;
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED);
-	status = vfe_var_construct_single(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED);
+	status = vfe_var_construct_single(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_single_sensed *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_single_sensed *)(void *)*obj;
 
 	pvfevar->super.super.super.pmudatainit =
 			vfe_var_pmudatainit_single_sensed;
@@ -827,26 +827,26 @@ static int vfe_var_construct_single_sensed(struct gk20a *g,
 }
 
 static int vfe_var_construct_single_sensed_fuse(struct gk20a *g,
-						struct boardobj **ppboardobj,
+						struct pmu_board_obj **obj,
 						size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_single_sensed_fuse *pvfevar;
 	struct vfe_var_single_sensed_fuse *ptmpvar =
 			(struct vfe_var_single_sensed_fuse *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE);
-	status = vfe_var_construct_single_sensed(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE);
+	status = vfe_var_construct_single_sensed(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_single_sensed_fuse *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_single_sensed_fuse *)(void *)*obj;
 
 	pvfevar->super.super.super.super.pmudatainit =
 			vfe_var_pmudatainit_single_sensed_fuse;
@@ -892,30 +892,30 @@ static int vfe_var_construct_single_sensed_fuse(struct gk20a *g,
 	}
 exit:
 	if (status != 0) {
-		(*ppboardobj)->destruct(*ppboardobj);
+		(*obj)->destruct(*obj);
 	}
 
 	return status;
 }
 
 static int vfe_var_pmudatainit_single_sensed_temp(struct gk20a *g,
-						   struct boardobj *board_obj_ptr,
-						   struct nv_pmu_boardobj *ppmudata)
+						   struct pmu_board_obj *obj,
+						   struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct vfe_var_single_sensed_temp *pvfe_var_single_sensed_temp;
 	struct nv_pmu_vfe_var_single_sensed_temp *pset;
 
-	status = vfe_var_pmudatainit_single_sensed(g, board_obj_ptr, ppmudata);
+	status = vfe_var_pmudatainit_single_sensed(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
 	pvfe_var_single_sensed_temp =
-		(struct vfe_var_single_sensed_temp *)(void *)board_obj_ptr;
+		(struct vfe_var_single_sensed_temp *)(void *)obj;
 
 	pset = (struct nv_pmu_vfe_var_single_sensed_temp *)(void *)
-		ppmudata;
+		pmu_obj;
 	pset->therm_channel_index =
 		 pvfe_var_single_sensed_temp->therm_channel_index;
 	pset->temp_hysteresis_positive =
@@ -928,26 +928,26 @@ static int vfe_var_pmudatainit_single_sensed_temp(struct gk20a *g,
 }
 
 static int vfe_var_construct_single_sensed_temp(struct gk20a *g,
-						struct boardobj **ppboardobj,
+						struct pmu_board_obj **obj,
 						size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_single_sensed_temp *pvfevar;
 	struct vfe_var_single_sensed_temp *ptmpvar =
 			(struct vfe_var_single_sensed_temp *)pargs;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP);
-	status = vfe_var_construct_single_sensed(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP);
+	status = vfe_var_construct_single_sensed(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_single_sensed_temp *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_single_sensed_temp *)(void *)*obj;
 
 	pvfevar->super.super.super.super.pmudatainit =
 			vfe_var_pmudatainit_single_sensed_temp;
@@ -967,31 +967,31 @@ static int vfe_var_construct_single_sensed_temp(struct gk20a *g,
 }
 
 static int vfe_var_pmudatainit_single_voltage(struct gk20a *g,
-					       struct boardobj *board_obj_ptr,
-					       struct nv_pmu_boardobj *ppmudata)
+					       struct pmu_board_obj *obj,
+					       struct nv_pmu_boardobj *pmu_obj)
 {
-	return vfe_var_pmudatainit_single(g, board_obj_ptr, ppmudata);
+	return vfe_var_pmudatainit_single(g, obj, pmu_obj);
 }
 
 static int vfe_var_construct_single_voltage(struct gk20a *g,
-					    struct boardobj **ppboardobj,
+					    struct pmu_board_obj **obj,
 					    size_t size, void *pargs)
 {
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)pargs;
 	struct vfe_var_single_voltage *pvfevar;
 	int status = 0;
 
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE) {
+	if (pmu_board_obj_get_type(pargs) != CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE) {
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE);
-	status = vfe_var_construct_super(g, ppboardobj, size, pargs);
+	obj_tmp->type_mask |= (u32)BIT(CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE);
+	status = vfe_var_construct_super(g, obj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfevar = (struct vfe_var_single_voltage *)(void *)*ppboardobj;
+	pvfevar = (struct vfe_var_single_voltage *)(void *)*obj;
 	pvfevar->super.super.mask_depending_build =
 			vfe_var_build_depending_mask_single;
 	pvfevar->super.super.super.pmudatainit =
@@ -1005,42 +1005,42 @@ static int vfe_var_construct_single_voltage(struct gk20a *g,
 
 static struct vfe_var *construct_vfe_var(struct gk20a *g, void *pargs)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	int status;
 
-	switch (BOARDOBJ_GET_TYPE(pargs)) {
+	switch (pmu_board_obj_get_type(pargs)) {
 	case CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT:
-		status = vfe_var_construct_derived_product(g, &board_obj_ptr,
+		status = vfe_var_construct_derived_product(g, &obj,
 			sizeof(struct vfe_var_derived_product), pargs);
 		break;
 
 	case CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM:
-		status = vfe_var_construct_derived_sum(g, &board_obj_ptr,
+		status = vfe_var_construct_derived_sum(g, &obj,
 			sizeof(struct vfe_var_derived_sum), pargs);
 		break;
 
 	case CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY:
-		status = vfe_var_construct_single_frequency(g, &board_obj_ptr,
+		status = vfe_var_construct_single_frequency(g, &obj,
 			sizeof(struct vfe_var_single_frequency), pargs);
 		break;
 
 	case CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE:
-		status = vfe_var_construct_single_sensed_fuse(g, &board_obj_ptr,
+		status = vfe_var_construct_single_sensed_fuse(g, &obj,
 			sizeof(struct vfe_var_single_sensed_fuse), pargs);
 		break;
 
 	case CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP:
-		status = vfe_var_construct_single_sensed_temp(g, &board_obj_ptr,
+		status = vfe_var_construct_single_sensed_temp(g, &obj,
 			sizeof(struct vfe_var_single_sensed_temp), pargs);
 		break;
 
 	case CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE:
-		status = vfe_var_construct_single_voltage(g, &board_obj_ptr,
+		status = vfe_var_construct_single_voltage(g, &obj,
 			sizeof(struct vfe_var_single_voltage), pargs);
 		break;
 
 	case CTRL_PERF_VFE_VAR_TYPE_SINGLE_CALLER_SPECIFIED:
-		status = vfe_var_construct_single_caller_specified(g, &board_obj_ptr,
+		status = vfe_var_construct_single_caller_specified(g, &obj,
 			sizeof(struct vfe_var_single_caller_specified), pargs);
 		break;
 
@@ -1058,7 +1058,7 @@ static struct vfe_var *construct_vfe_var(struct gk20a *g, void *pargs)
 
 	nvgpu_log_info(g, "done");
 
-	return (struct vfe_var *)board_obj_ptr;
+	return (struct vfe_var *)(void *)obj;
 }
 
 static int devinit_get_vfe_var_table(struct gk20a *g,
@@ -1080,7 +1080,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 		VBIOS_VFE_3X_VAR_ENTRY_PAR0_SFREQ_CLK_DOMAIN_IS_AVAILABLE_NO;
 
 	union {
-		struct boardobj board_obj;
+		struct pmu_board_obj obj;
 		struct vfe_var super;
 		struct vfe_var_derived_product derived_product;
 		struct vfe_var_derived_sum derived_sum;
@@ -1253,8 +1253,8 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 			goto done;
 		}
 
-		var_data.board_obj.type = var_type;
-		var_data.board_obj.type_mask = 0;
+		var_data.obj.type = var_type;
+		var_data.obj.type_mask = 0;
 
 		pvar = construct_vfe_var(g, &var_data);
 		if (pvar == NULL) {
@@ -1266,7 +1266,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 		}
 
 		status = boardobjgrp_objinsert(&pvfevarobjs->super.super,
-					       (struct boardobj *)pvar, index);
+					       (struct pmu_board_obj *)pvar, index);
 		if (status != 0) {
 			nvgpu_err(g, "error adding vfe_var boardobj %d", index);
 			status = -EINVAL;
@@ -1285,7 +1285,7 @@ static int vfe_var_boardobj_grp_get_status(struct gk20a *g)
 	struct boardobjgrp *pboardobjgrp;
 	struct boardobjgrpmask *pboardobjgrpmask;
 	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct nv_pmu_boardobj_query *pboardobjpmustatus = NULL;
 	struct vfe_var_single_sensed_fuse *single_sensed_fuse = NULL;
 	int status;
@@ -1302,9 +1302,9 @@ static int vfe_var_boardobj_grp_get_status(struct gk20a *g)
 
 	pboardobjgrppmu = pboardobjgrp->pmu.getstatus.buf;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
 		single_sensed_fuse = (struct vfe_var_single_sensed_fuse *)
-				(void *)pboardobj;
+				(void *)obj;
 		status = pboardobjgrp->pmustatusinstget(g,
 			(struct nv_pmu_boardobjgrp *)(void *)pboardobjgrppmu,
 				&pboardobjpmustatus, index);
@@ -1408,7 +1408,7 @@ int perf_vfe_var_pmu_setup(struct gk20a *g)
 int nvgpu_pmu_perf_vfe_get_s_param(struct gk20a *g, u64 *s_param)
 {
 	struct boardobjgrp *pboardobjgrp;
-	struct boardobj *pboardobj = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct vfe_var_single_sensed_fuse *single_sensed_fuse = NULL;
 	u8 index;
 	int status;
@@ -1421,9 +1421,9 @@ int nvgpu_pmu_perf_vfe_get_s_param(struct gk20a *g, u64 *s_param)
 
 	pboardobjgrp = &g->pmu->perf_pmu->vfe_varobjs.super.super;
 
-	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pmu_board_obj*, obj, index) {
 		single_sensed_fuse = (struct vfe_var_single_sensed_fuse *)
-				(void *)pboardobj;
+				(void *)obj;
 		if (single_sensed_fuse->vfield_info.v_field_id ==
 				VFIELD_ID_S_PARAM) {
 			*s_param = single_sensed_fuse->fuse_value_hw_integer;

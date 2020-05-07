@@ -29,7 +29,7 @@ struct vfe_vars {
 };
 
 struct vfe_var {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u32 out_range_min;
 	u32 out_range_max;
 	struct boardobjgrpmask_e32 mask_depending_vars;

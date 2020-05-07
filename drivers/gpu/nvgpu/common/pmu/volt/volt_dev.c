@@ -39,19 +39,19 @@
 #include "volt_rail.h"
 
 static int volt_device_pmu_data_init_super(struct gk20a *g,
-	struct boardobj *pboard_obj, struct nv_pmu_boardobj *ppmudata)
+	struct pmu_board_obj *obj, struct nv_pmu_boardobj *pmu_obj)
 {
 	int status;
 	struct voltage_device *pdev;
 	struct nv_pmu_volt_volt_device_boardobj_set *pset;
 
-	status = nvgpu_boardobj_pmu_data_init_super(g, pboard_obj, ppmudata);
+	status = pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pdev = (struct voltage_device *)pboard_obj;
-	pset = (struct nv_pmu_volt_volt_device_boardobj_set *)ppmudata;
+	pdev = (struct voltage_device *)(void *)obj;
+	pset = (struct nv_pmu_volt_volt_device_boardobj_set *)(void *)pmu_obj;
 
 	pset->switch_delay_us = pdev->switch_delay_us;
 	pset->voltage_min_uv = pdev->voltage_min_uv;
@@ -62,19 +62,19 @@ static int volt_device_pmu_data_init_super(struct gk20a *g,
 }
 
 static int volt_device_pmu_data_init_pwm(struct gk20a *g,
-		struct boardobj *pboard_obj, struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj, struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	struct voltage_device_pwm *pdev;
 	struct nv_pmu_volt_volt_device_pwm_boardobj_set *pset;
 
-	status = volt_device_pmu_data_init_super(g, pboard_obj, ppmudata);
+	status = volt_device_pmu_data_init_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return  status;
 	}
 
-	pdev = (struct voltage_device_pwm *)pboard_obj;
-	pset = (struct nv_pmu_volt_volt_device_pwm_boardobj_set *)ppmudata;
+	pdev = (struct voltage_device_pwm *)(void *)obj;
+	pset = (struct nv_pmu_volt_volt_device_pwm_boardobj_set *)(void *)pmu_obj;
 
 	pset->raw_period = pdev->raw_period;
 	pset->voltage_base_uv = pdev->voltage_base_uv;
@@ -85,7 +85,7 @@ static int volt_device_pmu_data_init_pwm(struct gk20a *g,
 }
 
 static int volt_construct_volt_device(struct gk20a *g,
-	struct boardobj **ppboardobj, size_t size, void *pargs)
+	struct pmu_board_obj **obj, size_t size, void *pargs)
 {
 	struct voltage_device *ptmp_dev = (struct voltage_device *)pargs;
 	struct voltage_device *pvolt_dev = NULL;
@@ -96,13 +96,13 @@ static int volt_construct_volt_device(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	status = pmu_boardobj_construct_super(g,
-			(struct boardobj *)(void *)pvolt_dev, pargs);
+	status = pmu_board_obj_construct_super(g,
+			(struct pmu_board_obj *)(void *)pvolt_dev, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	*ppboardobj = (struct boardobj *)(void *)pvolt_dev;
+	*obj = (struct pmu_board_obj *)(void *)pvolt_dev;
 
 	pvolt_dev->volt_domain = ptmp_dev->volt_domain;
 	pvolt_dev->i2c_dev_idx = ptmp_dev->i2c_dev_idx;
@@ -120,24 +120,24 @@ static int volt_construct_volt_device(struct gk20a *g,
 }
 
 static int volt_construct_pwm_volt_device(struct gk20a *g,
-		struct boardobj **ppboardobj,
+		struct pmu_board_obj **obj,
 		size_t size, void *pargs)
 {
-	struct boardobj *pboard_obj = NULL;
+	struct pmu_board_obj *obj_tmp = NULL;
 	struct voltage_device_pwm *ptmp_dev =
 			(struct voltage_device_pwm *)pargs;
 	struct voltage_device_pwm *pdev = NULL;
 	int status = 0;
 
-	status = volt_construct_volt_device(g, ppboardobj, size, pargs);
+	status = volt_construct_volt_device(g, obj, size, pargs);
 	if (status != 0) {
 		return status;
 	}
 
-	pboard_obj = (*ppboardobj);
-	pdev  = (struct voltage_device_pwm *)*ppboardobj;
+	obj_tmp = (*obj);
+	pdev  = (struct voltage_device_pwm *)(void *)*obj;
 
-	pboard_obj->pmudatainit  = volt_device_pmu_data_init_pwm;
+	obj_tmp->pmudatainit  = volt_device_pmu_data_init_pwm;
 
 	/* Set VOLTAGE_DEVICE_PWM-specific parameters */
 	pdev->voltage_base_uv = ptmp_dev->voltage_base_uv;
@@ -185,20 +185,20 @@ static u8 volt_dev_operation_type_convert(u8 vbios_type)
 static struct voltage_device *volt_volt_device_construct(struct gk20a *g,
 		void *pargs)
 {
-	struct boardobj *pboard_obj = NULL;
+	struct pmu_board_obj *obj = NULL;
 
-	if (BOARDOBJ_GET_TYPE(pargs) == CTRL_VOLT_DEVICE_TYPE_PWM) {
-		int status = volt_construct_pwm_volt_device(g, &pboard_obj,
+	if (pmu_board_obj_get_type(pargs) == CTRL_VOLT_DEVICE_TYPE_PWM) {
+		int status = volt_construct_pwm_volt_device(g, &obj,
 				sizeof(struct voltage_device_pwm), pargs);
 		if (status != 0) {
 			nvgpu_err(g,
 				" Could not allocate memory for VOLTAGE_DEVICE type (%x).",
-				BOARDOBJ_GET_TYPE(pargs));
-			pboard_obj = NULL;
+				pmu_board_obj_get_type(pargs));
+			obj = NULL;
 		}
 	}
 
-	return (struct voltage_device *)pboard_obj;
+	return (struct voltage_device *)(void *)obj;
 }
 
 static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
@@ -316,7 +316,7 @@ static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
 
 	status = boardobjgrp_objinsert(
 				&p_Volt_Device_Meta_Data->volt_devices.super,
-				(struct boardobj *)pvolt_dev, entry_Idx);
+				(struct pmu_board_obj *)pvolt_dev, entry_Idx);
 	if (status != 0) {
 		nvgpu_err(g,
 			"could not add VOLTAGE_DEVICE for entry %d into boardobjgrp ",
@@ -424,7 +424,7 @@ done:
 
 static int volt_device_devgrp_pmudata_instget(struct gk20a *g,
 	struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-	struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
+	struct nv_pmu_boardobj **pmu_obj, u8 idx)
 {
 	struct nv_pmu_volt_volt_device_boardobj_grp_set *pgrp_set =
 		(struct nv_pmu_volt_volt_device_boardobj_grp_set *)
@@ -438,8 +438,8 @@ static int volt_device_devgrp_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.board_obj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 	nvgpu_log_info(g, "Done");
 	return 0;
 }
@@ -483,7 +483,7 @@ static int volt_device_state_init(struct gk20a *g,
 		}
 
 		status = volt_rail_volt_dev_register(g, pRail,
-			BOARDOBJ_GET_IDX(pvolt_dev), pvolt_dev->operation_type);
+			pmu_board_obj_get_idx(pvolt_dev), pvolt_dev->operation_type);
 		if (status != 0) {
 			nvgpu_err(g,
 				"Failed to register the device with rail obj");

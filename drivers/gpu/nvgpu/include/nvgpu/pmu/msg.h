@@ -65,7 +65,7 @@ struct pmu_msg {
 			struct pmu_pg_msg pg;
 			struct pmu_rc_msg rc;
 			struct pmu_acr_msg acr;
-			struct nv_pmu_boardobj_msg boardobj;
+			struct nv_pmu_boardobj_msg obj;
 			struct nv_pmu_pmgr_msg pmgr;
 			struct nv_pmu_rpc_msg rpc;
 		} msg;

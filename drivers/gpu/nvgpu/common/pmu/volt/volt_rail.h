@@ -30,7 +30,7 @@
 #define CTRL_PMGR_PWR_EQUATION_INDEX_INVALID	0xFFU
 
 struct voltage_rail {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u32 boot_voltage_uv;
 	u8 rel_limit_vfe_equ_idx;
 	u8 alt_rel_limit_vfe_equ_idx;

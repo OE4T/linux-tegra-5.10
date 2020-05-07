@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
  */
 struct boardobjgrp_e255 {
 	struct boardobjgrp  super;
-	struct boardobj *objects[CTRL_BOARDOBJGRP_E255_MAX_OBJECTS];
+	struct pmu_board_obj *objects[CTRL_BOARDOBJGRP_E255_MAX_OBJECTS];
 	struct boardobjgrpmask_e255  mask;
 };
 

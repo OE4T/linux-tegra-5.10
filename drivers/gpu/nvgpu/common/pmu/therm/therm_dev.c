@@ -40,7 +40,7 @@ bool therm_device_idx_is_valid(struct nvgpu_pmu_therm *therm_pmu, u8 idx)
 
 static int _therm_device_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-			struct nv_pmu_boardobj **ppboardobjpmudata,
+			struct nv_pmu_boardobj **pmu_obj,
 			u8 idx)
 {
 	struct nv_pmu_therm_therm_device_boardobj_grp_set *pgrp_set =
@@ -55,7 +55,7 @@ static int _therm_device_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
+	*pmu_obj = (struct nv_pmu_boardobj *)(void *)
 		&pgrp_set->objects[idx].data;
 
 	nvgpu_log_info(g, " Done");
@@ -64,21 +64,21 @@ static int _therm_device_pmudata_instget(struct gk20a *g,
 }
 
 static int construct_therm_device(struct gk20a *g,
-	struct boardobj *ppboardobj, void *pargs)
+	struct pmu_board_obj *obj, void *pargs)
 {
-	return pmu_boardobj_construct_super(g, ppboardobj, pargs);
+	return pmu_board_obj_construct_super(g, obj, pargs);
 }
 
 static int construct_therm_device_gpu(struct gk20a *g,
-	struct boardobj *ppboardobj, void *pargs)
+	struct pmu_board_obj *obj, void *pargs)
 {
-	return construct_therm_device(g, ppboardobj, pargs);
+	return construct_therm_device(g, obj, pargs);
 }
 
-static struct boardobj *therm_device_construct(struct gk20a *g,
+static struct pmu_board_obj *therm_device_construct(struct gk20a *g,
 	void *pargs)
 {
-	struct boardobj *board_obj_ptr = NULL;
+	struct pmu_board_obj *obj = NULL;
 	struct therm_device *ptherm_device = NULL;
 	int status = 0;
 
@@ -86,28 +86,28 @@ static struct boardobj *therm_device_construct(struct gk20a *g,
 	if (ptherm_device == NULL) {
 		return NULL;
 	}
-	board_obj_ptr = (struct boardobj *)(void *)ptherm_device;
+	obj = (struct pmu_board_obj *)(void *)ptherm_device;
 
-	if (BOARDOBJ_GET_TYPE(pargs) ==
+	if (pmu_board_obj_get_type(pargs) ==
 			NV_VBIOS_THERM_DEVICE_1X_ENTRY_CLASS_GPU) {
-		status = construct_therm_device_gpu(g, board_obj_ptr, pargs);
+		status = construct_therm_device_gpu(g, obj, pargs);
 	} else {
 		nvgpu_err(g, "unsupported therm_device class - 0x%x",
-			BOARDOBJ_GET_TYPE(pargs));
+			pmu_board_obj_get_type(pargs));
 		return NULL;
 	}
 
 	if(status != 0) {
-		board_obj_ptr = NULL;
+		obj = NULL;
 		nvgpu_err(g,
 			"could not allocate memory for therm_device");
-		if (board_obj_ptr != NULL) {
-			nvgpu_kfree(g, board_obj_ptr);
+		if (obj != NULL) {
+			nvgpu_kfree(g, obj);
 		}
 	}
 
 
-	return board_obj_ptr;
+	return obj;
 }
 
 static int devinit_get_therm_device_table(struct gk20a *g,
@@ -116,7 +116,7 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 	int status = 0;
 	u8 *therm_device_table_ptr = NULL;
 	u8 *curr_therm_device_table_ptr = NULL;
-	struct boardobj *boardobj;
+	struct pmu_board_obj *obj_tmp;
 	struct therm_device_1x_header therm_device_table_header = { 0 };
 	struct therm_device_1x_entry *therm_device_table_entry = NULL;
 	u32 index;
@@ -124,7 +124,7 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 	u8 class_id = 0;
 	bool error_status = false;
 	union {
-		struct boardobj boardobj;
+		struct pmu_board_obj obj;
 		struct therm_device therm_device;
 	} therm_device_data;
 
@@ -188,18 +188,18 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 			goto done;
 		}
 
-		therm_device_data.boardobj.type = class_id;
-		boardobj = therm_device_construct(g, &therm_device_data);
-		if (boardobj == NULL) {
+		therm_device_data.obj.type = class_id;
+		obj_tmp = therm_device_construct(g, &therm_device_data);
+		if (obj_tmp == NULL) {
 			nvgpu_err(g,
 				"unable to create thermal device for %d type %d",
-				index, therm_device_data.boardobj.type);
+				index, therm_device_data.obj.type);
 			status = -EINVAL;
 			goto done;
 		}
 
 		status = boardobjgrp_objinsert(&pthermdeviceobjs->super.super,
-				boardobj, obj_index);
+				obj_tmp, obj_index);
 
 		if (status != 0) {
 			nvgpu_err(g,

@@ -52,7 +52,7 @@ typedef int get_fpoints(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 
 
 struct clk_prog {
-	struct boardobj super;
+	struct pmu_board_obj super;
 };
 
 struct clk_prog_1x {

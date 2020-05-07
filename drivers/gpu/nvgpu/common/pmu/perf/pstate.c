@@ -55,28 +55,28 @@ int perf_pstate_get_table_entry_idx(struct gk20a *g, u32 num)
 }
 
 static int pstate_init_pmudata_super(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
-	return nvgpu_boardobj_pmu_data_init_super(g, board_obj_ptr, ppmudata);
+	return pmu_board_obj_pmu_data_init_super(g, obj, pmu_obj);
 }
 
 static int pstate_init_pmudata(struct gk20a *g,
-		struct boardobj *board_obj_ptr,
-		struct nv_pmu_boardobj *ppmudata)
+		struct pmu_board_obj *obj,
+		struct nv_pmu_boardobj *pmu_obj)
 {
 	int status = 0;
 	u32 clkidx;
 	struct pstate *pstate;
 	struct nv_pmu_perf_pstate_35 *pstate_pmu_data;
 
-	status = pstate_init_pmudata_super(g, board_obj_ptr, ppmudata);
+	status = pstate_init_pmudata_super(g, obj, pmu_obj);
 	if (status != 0) {
 		return status;
 	}
 
-	pstate = (struct pstate *)board_obj_ptr;
-	pstate_pmu_data = (struct nv_pmu_perf_pstate_35 *)ppmudata;
+	pstate = (struct pstate *)(void *)obj;
+	pstate_pmu_data = (struct nv_pmu_perf_pstate_35 *)(void *)pmu_obj;
 
 	pstate_pmu_data->super.super.lpwrEntryIdx = pstate->lpwr_entry_idx;
 	pstate_pmu_data->super.super.flags = pstate->flags;
@@ -115,12 +115,12 @@ static int pstate_init_pmudata(struct gk20a *g,
 	return status;
 }
 
-static int pstate_construct_super(struct gk20a *g, struct boardobj *ppboardobj,
+static int pstate_construct_super(struct gk20a *g, struct pmu_board_obj *obj,
 		void *args)
 {
 	int status;
 
-	status = pmu_boardobj_construct_super(g, ppboardobj, args);
+	status = pmu_board_obj_construct_super(g, obj, args);
 	if (status != 0) {
 		return -EINVAL;
 	}
@@ -128,13 +128,13 @@ static int pstate_construct_super(struct gk20a *g, struct boardobj *ppboardobj,
 	return 0;
 }
 
-static int pstate_construct_35(struct gk20a *g, struct boardobj *ppboardobj,
+static int pstate_construct_35(struct gk20a *g, struct pmu_board_obj *obj,
 		void *args)
 {
-	struct boardobj  *ptmpobj = (struct boardobj *)args;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)args;
 
-	ptmpobj->type_mask |= BIT32(CTRL_PERF_PSTATE_TYPE_35);
-	return pstate_construct_super(g, ppboardobj, args);
+	obj_tmp->type_mask |= BIT32(CTRL_PERF_PSTATE_TYPE_35);
+	return pstate_construct_super(g, obj, args);
 }
 
 static struct pstate *pstate_construct(struct gk20a *g, void *args)
@@ -149,7 +149,8 @@ static struct pstate *pstate_construct(struct gk20a *g, void *args)
 		return NULL;
 	}
 
-	status = pstate_construct_35(g, (struct boardobj *)(void *)pstate, args);
+	status = pstate_construct_35(g, (struct pmu_board_obj *)
+			(void *)pstate, args);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing pstate num=%u", ptmppstate->num);
@@ -184,7 +185,7 @@ static int pstate_insert(struct gk20a *g, struct pstate *pstate, u8 index)
 	int err;
 
 	err = boardobjgrp_objinsert(&pstates->super.super,
-			(struct boardobj *)pstate, index);
+			(struct pmu_board_obj *)pstate, index);
 	if (err != 0) {
 		nvgpu_err(g,
 			  "error adding pstate boardobj %d", index);
@@ -354,7 +355,7 @@ done:
 
 static int perf_pstate_pmudata_instget(struct gk20a *g,
 		struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-		struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
+		struct nv_pmu_boardobj **pmu_obj, u8 idx)
 {
 	struct nv_pmu_perf_pstate_boardobj_grp_set  *pgrp_set =
 		(struct nv_pmu_perf_pstate_boardobj_grp_set *)
@@ -365,8 +366,8 @@ static int perf_pstate_pmudata_instget(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	*ppboardobjpmudata = (struct nv_pmu_boardobj *)
-		&pgrp_set->objects[idx].data.boardObj;
+	*pmu_obj = (struct nv_pmu_boardobj *)
+		&pgrp_set->objects[idx].data.obj;
 
 	return 0;
 }

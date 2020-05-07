@@ -35,7 +35,7 @@
 #define VOLT_DEV_PWM_VOLTAGE_STEPS_DEFAULT	1U
 
 struct voltage_device {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 volt_domain;
 	u8 i2c_dev_idx;
 	u32 switch_delay_us;

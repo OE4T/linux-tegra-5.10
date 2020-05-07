@@ -46,7 +46,7 @@ struct nv_pmu_volt_volt_rail_boardobj_set {
 };
 
 union nv_pmu_volt_volt_rail_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_volt_volt_rail_boardobj_set super;
 };
 
@@ -83,7 +83,7 @@ struct nv_pmu_volt_volt_device_pwm_boardobj_set {
 };
 
 union nv_pmu_volt_volt_device_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_volt_volt_device_boardobj_set super;
 	struct nv_pmu_volt_volt_device_vid_boardobj_set vid;
 	struct nv_pmu_volt_volt_device_pwm_boardobj_set pwm;
@@ -133,7 +133,7 @@ struct nv_pmu_volt_volt_policy_srss_boardobj_set {
 };
 
 union nv_pmu_volt_volt_policy_boardobj_set_union {
-	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_volt_volt_policy_boardobj_set super;
 	struct nv_pmu_volt_volt_policy_sr_boardobj_set single_rail;
 	struct nv_pmu_volt_volt_policy_sr_multi_step_boardobj_set
@@ -165,7 +165,7 @@ struct nv_pmu_volt_volt_rail_boardobj_get_status {
 };
 
 union nv_pmu_volt_volt_rail_boardobj_get_status_union {
-	struct nv_pmu_boardobj_query board_obj;
+	struct nv_pmu_boardobj_query obj;
 	struct nv_pmu_volt_volt_rail_boardobj_get_status super;
 };
 

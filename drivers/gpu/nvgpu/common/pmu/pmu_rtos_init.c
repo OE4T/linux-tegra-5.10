@@ -117,7 +117,7 @@ int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
 static void remove_pmu_support(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
-	struct boardobj *pboardobj, *pboardobj_tmp;
+	struct pmu_board_obj *obj, *obj_tmp;
 	struct boardobjgrp *pboardobjgrp, *pboardobjgrp_tmp;
 	int err = 0;
 
@@ -137,9 +137,9 @@ static void remove_pmu_support(struct nvgpu_pmu *pmu)
 				}
 		}
 
-		nvgpu_list_for_each_entry_safe(pboardobj, pboardobj_tmp,
+		nvgpu_list_for_each_entry_safe(obj, obj_tmp,
 			&g->boardobj_head, boardobj, node) {
-				pboardobj->destruct(pboardobj);
+				obj->destruct(obj);
 		}
 	}
 

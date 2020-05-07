@@ -30,7 +30,7 @@
 #include <common/pmu/boardobj/boardobj.h>
 
 struct pwr_channel {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 pwr_rail;
 	u32 volt_fixed_uv;
 	u32 pwr_corr_slope;
@@ -41,7 +41,7 @@ struct pwr_channel {
 };
 
 struct pwr_chrelationship {
-	struct boardobj super;
+	struct pmu_board_obj super;
 	u8 chIdx;
 };
 

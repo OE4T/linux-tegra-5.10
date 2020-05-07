@@ -126,7 +126,7 @@ struct boardobjgrp {
 	bool bconstructed;
 	u8 type;
 	u8 classid;
-	struct boardobj **ppobjects;
+	struct pmu_board_obj **ppobjects;
 	struct boardobjgrpmask *mask;
 	u8  objslots;
 	u8  objmaxidx;
@@ -135,10 +135,10 @@ struct boardobjgrp {
 	/* Basic interfaces */
 	int (*destruct)(struct boardobjgrp *pboardobjgrp);
 	int (*objinsert)(struct boardobjgrp *pboardobjgrp,
-			struct boardobj *pboardobj, u8 index);
-	struct boardobj *(*objgetbyidx)(
+			struct pmu_board_obj *obj, u8 index);
+	struct pmu_board_obj *(*objgetbyidx)(
 			struct boardobjgrp *pBobrdobjgrp, u8 index);
-	struct boardobj *(*objgetnext)(struct boardobjgrp *pboardobjgrp,
+	struct pmu_board_obj *(*objgetnext)(struct boardobjgrp *pboardobjgrp,
 			u8 *currentindex, struct boardobjgrpmask *mask);
 	int (*objremoveanddestroy)(struct boardobjgrp *pboardobjgrp, u8 index);
 
@@ -158,9 +158,9 @@ struct boardobjgrp {
 			struct boardobjgrpmask *mask);
 	int (*pmudatainstget)(struct gk20a *g,
 			struct nv_pmu_boardobjgrp  *boardobjgrppmu,
-			struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx);
+			struct nv_pmu_boardobj **pmu_obj, u8 idx);
 	int (*pmustatusinstget)(struct gk20a *g, void *pboardobjgrppmu,
-			struct nv_pmu_boardobj_query **ppBoardobjpmustatus,
+			struct nv_pmu_boardobj_query **obj_pmu_status,
 			u8 idx);
 	struct nvgpu_list_node node;
 };

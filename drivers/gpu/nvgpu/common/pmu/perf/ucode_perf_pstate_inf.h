@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,7 +75,7 @@ struct nv_pmu_perf_pstate_35 {
 };
 
 union nv_pmu_perf_pstate_boardobj_set_union {
-	struct nv_pmu_boardobj boardObj;
+	struct nv_pmu_boardobj obj;
 	struct nv_pmu_perf_pstate super;
 	struct nv_pmu_perf_pstate_3x v3x;
 	struct nv_pmu_perf_pstate_30 v30;

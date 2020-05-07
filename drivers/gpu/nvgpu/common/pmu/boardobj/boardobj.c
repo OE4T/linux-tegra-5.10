@@ -31,18 +31,15 @@
 * This has to be explicitly set by each device that extends from the
 * board object.
 */
-static int destruct_super(struct boardobj *pboardobj)
+static int destruct_super(struct pmu_board_obj *obj)
 {
-	struct gk20a *g = pboardobj->g;
-
-	nvgpu_log_info(g, " ");
-	if (pboardobj == NULL) {
+	if (obj == NULL) {
 		return -EINVAL;
 	}
 
-	nvgpu_list_del(&pboardobj->node);
-	if (pboardobj->allocated) {
-		nvgpu_kfree(pboardobj->g, pboardobj);
+	nvgpu_list_del(&obj->node);
+	if (obj->allocated) {
+		nvgpu_kfree(obj->g, obj);
 	}
 
 	return 0;
@@ -52,52 +49,60 @@ static int destruct_super(struct boardobj *pboardobj)
 * check whether the specified BOARDOBJ object implements the queried
 * type/class enumeration.
 */
-static bool implements_super(struct gk20a *g, struct boardobj *pboardobj,
+static bool implements_super(struct gk20a *g, struct pmu_board_obj *obj,
 	u8 type)
 {
 	nvgpu_log_info(g, " ");
 
-	return (0U != (pboardobj->type_mask & BIT32(type)));
+	return (0U != (obj->type_mask & BIT32(type)));
 }
 
-int nvgpu_boardobj_pmu_data_init_super(struct gk20a *g,
-		struct boardobj *pboardobj, struct nv_pmu_boardobj *pmudata)
+int pmu_board_obj_pmu_data_init_super(struct gk20a *g,
+		struct pmu_board_obj *obj, struct nv_pmu_boardobj *pmu_obj)
 {
 	nvgpu_log_info(g, " ");
-	if (pboardobj == NULL) {
+	if (obj == NULL) {
 		return -EINVAL;
 	}
-	if (pmudata == NULL) {
+	if (pmu_obj == NULL) {
 		return -EINVAL;
 	}
-	pmudata->type = pboardobj->type;
+	pmu_obj->type = obj->type;
 	nvgpu_log_info(g, " Done");
 	return 0;
 }
 
-int pmu_boardobj_construct_super(struct gk20a *g, struct boardobj *boardobj_ptr,
-		void *args)
+int pmu_board_obj_construct_super(struct gk20a *g,
+		struct pmu_board_obj  *obj, void *args)
 {
-	struct boardobj *dev_boardobj = (struct boardobj *)args;
+	struct pmu_board_obj *obj_tmp = (struct pmu_board_obj *)args;
 
 	nvgpu_log_info(g, " ");
 
-	if ((dev_boardobj == NULL) || (boardobj_ptr == NULL)) {
+	if ((obj_tmp == NULL) || (obj == NULL)) {
 		return -EINVAL;
 	}
 
-	boardobj_ptr->allocated = true;
-	boardobj_ptr->g = g;
-	boardobj_ptr->type = dev_boardobj->type;
-	boardobj_ptr->idx = CTRL_BOARDOBJ_IDX_INVALID;
-	boardobj_ptr->type_mask =
-			BIT32(boardobj_ptr->type) | dev_boardobj->type_mask;
-
-	boardobj_ptr->implements = implements_super;
-	boardobj_ptr->destruct = destruct_super;
-	boardobj_ptr->pmudatainit = nvgpu_boardobj_pmu_data_init_super;
-	nvgpu_list_add(&boardobj_ptr->node, &g->boardobj_head);
-
+	obj->allocated = true;
+	obj->g = g;
+	obj->type = obj_tmp->type;
+	obj->idx = CTRL_BOARDOBJ_IDX_INVALID;
+	obj->type_mask =
+			BIT32(obj->type) | obj_tmp->type_mask;
+	obj->implements = implements_super;
+	obj->destruct = destruct_super;
+	obj->pmudatainit = pmu_board_obj_pmu_data_init_super;
+	nvgpu_list_add(&obj->node, &g->boardobj_head);
 	return 0;
+}
+
+u8 pmu_board_obj_get_type(void *obj)
+{
+	return (((struct pmu_board_obj *)(obj))->type);
+}
+
+u8 pmu_board_obj_get_idx(void *obj)
+{
+	return (((struct pmu_board_obj *)(obj))->idx);
 }
 
