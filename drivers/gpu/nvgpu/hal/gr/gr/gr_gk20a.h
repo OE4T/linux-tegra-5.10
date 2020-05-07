@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics Engine
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -104,6 +104,13 @@ void gr_gk20a_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 int gr_gk20a_get_offset_in_gpccs_segment(struct gk20a *g,
 	enum ctxsw_addr_type addr_type, u32 num_tpcs, u32 num_ppcs,
 	u32 reg_list_ppc_count, u32 *__offset_in_segment);
+int
+gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
+					     enum ctxsw_addr_type addr_type,
+					     u32 pri_addr,
+					     u32 gpc_num, u32 num_tpcs,
+					     u32 num_ppcs, u32 ppc_mask,
+					     u32 *priv_offset);
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /*__GR_GK20A_H__*/

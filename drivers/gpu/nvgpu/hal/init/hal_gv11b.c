@@ -365,6 +365,8 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
+		.process_context_buffer_priv_segment =
+			gr_gk20a_process_context_buffer_priv_segment,
 		.get_ctx_buffer_offsets = gr_gk20a_get_ctx_buffer_offsets,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,

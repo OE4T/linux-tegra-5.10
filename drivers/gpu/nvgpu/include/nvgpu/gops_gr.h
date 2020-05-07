@@ -1184,6 +1184,12 @@ struct gops_gr {
 					u32 *offsets, u32 *offset_addrs,
 					u32 *num_offsets,
 					bool is_quad, u32 quad);
+	int (*process_context_buffer_priv_segment)(struct gk20a *g,
+					     enum ctxsw_addr_type addr_type,
+					     u32 pri_addr,
+					     u32 gpc_num, u32 num_tpcs,
+					     u32 num_ppcs, u32 ppc_mask,
+					     u32 *priv_offset);
 	void (*set_debug_mode)(struct gk20a *g, bool enable);
 	int (*set_mmu_debug_mode)(struct gk20a *g,
 				  struct nvgpu_channel *ch, bool enable);

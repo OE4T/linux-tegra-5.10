@@ -388,6 +388,9 @@ struct netlist_aiv_list *nvgpu_netlist_get_perf_gpc_control_ctxsw_regs(
 		struct gk20a *g);
 struct netlist_aiv_list *nvgpu_netlist_get_perf_pma_control_ctxsw_regs(
 		struct gk20a *g);
+u32 nvgpu_netlist_get_ppc_ctxsw_regs_count(struct gk20a *g);
+u32 nvgpu_netlist_get_tpc_ctxsw_regs_count(struct gk20a *g);
+u32 nvgpu_netlist_get_etpc_ctxsw_regs_count(struct gk20a *g);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 #ifdef CONFIG_NVGPU_NON_FUSA

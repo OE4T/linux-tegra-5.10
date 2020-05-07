@@ -970,7 +970,7 @@ static int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
 }
 
 
-static int
+int
 gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
 					     enum ctxsw_addr_type addr_type,
 					     u32 pri_addr,
@@ -1136,19 +1136,19 @@ static int gr_gk20a_determine_ppc_configuration(struct gk20a *g,
 					       u32 *reg_ppc_count)
 {
 	u32 num_pes_per_gpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_PES_PER_GPC);
+	u32 ppc_count = nvgpu_netlist_get_ppc_ctxsw_regs_count(g);
 
 	/*
 	 * if there is only 1 PES_PER_GPC, then we put the PES registers
 	 * in the GPC reglist, so we can't error out if ppc.count == 0
 	 */
 	if ((!g->netlist_valid) ||
-	    ((nvgpu_netlist_get_ppc_ctxsw_regs(g)->count == 0U) &&
-	     (num_pes_per_gpc > 1U))) {
+		((ppc_count == 0U) && (num_pes_per_gpc > 1U))) {
 		return -EINVAL;
 	}
 
 	g->ops.gr.ctxsw_prog.get_ppc_info(context, num_ppcs, ppc_mask);
-	*reg_ppc_count = nvgpu_netlist_get_ppc_ctxsw_regs(g)->count;
+	*reg_ppc_count = ppc_count;
 
 	return 0;
 }
@@ -1161,8 +1161,8 @@ int gr_gk20a_get_offset_in_gpccs_segment(struct gk20a *g,
 					u32 *__offset_in_segment)
 {
 	u32 offset_in_segment = 0;
-	u32 tpc_count = nvgpu_netlist_get_tpc_ctxsw_regs(g)->count;
-	u32 etpc_count = nvgpu_netlist_get_etpc_ctxsw_regs(g)->count;
+	u32 tpc_count = nvgpu_netlist_get_tpc_ctxsw_regs_count(g);
+	u32 etpc_count = nvgpu_netlist_get_etpc_ctxsw_regs_count(g);
 
 	if (addr_type == CTXSW_ADDR_TYPE_TPC) {
 		/*
@@ -1283,7 +1283,7 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 		/* Find the offset in the FECS segment. */
 		offset_to_segment = sys_priv_offset * 256U;
 
-		err = gr_gk20a_process_context_buffer_priv_segment(g,
+		err = g->ops.gr.process_context_buffer_priv_segment(g,
 					   addr_type, addr,
 					   0, 0, 0, 0,
 					   &offset);
@@ -1352,7 +1352,7 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 				"offset_to_segment 0x%#08x",
 				offset_to_segment);
 
-			err = gr_gk20a_process_context_buffer_priv_segment(g,
+			err = g->ops.gr.process_context_buffer_priv_segment(g,
 							   addr_type, addr,
 							   i, num_tpcs,
 							   num_ppcs, ppc_mask,
