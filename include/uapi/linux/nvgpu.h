@@ -194,6 +194,12 @@ struct nvgpu_gpu_zbc_query_table_args {
 /* Flag to indicate whether Multi Instance Gpu per GPU physical device
    is enabled/disabled. */
 #define NVGPU_GPU_FLAGS_SUPPORT_MIG			(1ULL << 45)
+/* Profiler V2 device objects are supported */
+#define NVGPU_GPU_FLAGS_SUPPORT_PROFILER_V2_DEVICE	(1ULL << 46)
+/* Profiler V2 context objects are supported */
+#define NVGPU_GPU_FLAGS_SUPPORT_PROFILER_V2_CONTEXT	(1ULL << 47)
+/* Profiling SMPC in global mode is supported */
+#define NVGPU_GPU_FLAGS_SUPPORT_SMPC_GLOBAL_MODE	(1ULL << 48)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
@@ -1502,6 +1508,127 @@ struct nvgpu_dbg_gpu_set_ctx_mmu_debug_mode_args {
 
 #define NVGPU_DBG_GPU_IOCTL_MAX_ARG_SIZE		\
 	sizeof(struct nvgpu_dbg_gpu_access_fb_memory_args)
+
+
+/*
+ * /dev/nvhost-prof-dev-gpu and /dev/nvhost-prof-ctx-gpu devices
+ *
+ * Opening a '/dev/nvhost-prof-*' device node creates a way to
+ * open and manage a profiler object.
+ */
+
+#define NVGPU_PROFILER_IOCTL_MAGIC 'P'
+
+struct nvgpu_profiler_bind_context_args {
+	__s32 tsg_fd;		/* in: TSG file descriptor */
+	__u32 reserved;
+};
+
+enum {
+	NVGPU_PROFILER_PM_RESOURCE_ARG_HWPM_LEGACY,
+	NVGPU_PROFILER_PM_RESOURCE_ARG_SMPC,
+};
+
+struct nvgpu_profiler_reserve_pm_resource_args {
+	__u32 resource; 	/* in: NVGPU_PROFILER_PM_RESOURCE_ARG_* resource to be reserved */
+
+/* in: if ctxsw should be enabled for resource */
+#define NVGPU_PROFILER_RESERVE_PM_RESOURCE_ARG_FLAG_CTXSW	(1 << 0)
+	__u32 flags;
+
+	__u32 reserved[2];
+};
+
+struct nvgpu_profiler_release_pm_resource_args {
+	__u32 resource; 	/* in: NVGPU_PROFILER_PM_RESOURCE_ARG_* resource to be released */
+	__u32 reserved;
+};
+
+struct nvgpu_profiler_alloc_pma_stream_args {
+	__u64 pma_buffer_map_size;			/* in: PMA stream buffer size */
+	__u64 pma_buffer_offset;			/* in: offset of PMA stream buffer */
+	__u64 pma_buffer_va;				/* out: PMA stream buffer virtual address */
+	__s32 pma_buffer_fd;				/* in: PMA stream buffer fd */
+
+	__s32 pma_bytes_available_buffer_fd;		/* in: PMA available bytes buffer fd */
+
+/* in: if ctxsw should be enabled for PMA channel */
+#define NVGPU_PROFILER_ALLOC_PMA_STREAM_ARG_FLAG_CTXSW		(1 << 0)
+	__u32 flags;
+
+	__u32 reserved[3];
+};
+
+struct nvgpu_profiler_pma_stream_update_get_put_args {
+	__u64 bytes_consumed;		/* in: total bytes consumed by user since last update */
+	__u64 bytes_available;		/* out: available bytes in PMA buffer for user to consume */
+
+	__u64 put_ptr;			/* out: current PUT pointer to be returned */
+
+/* in: if available bytes buffer should be updated */
+#define NVGPU_PROFILER_PMA_STREAM_UPDATE_GET_PUT_ARG_FLAG_UPDATE_AVAILABLE_BYTES	(1 << 0)
+/* in: if need to wait for available bytes buffer to get updated */
+#define NVGPU_PROFILER_PMA_STREAM_UPDATE_GET_PUT_ARG_FLAG_WAIT_FOR_UPDATE		(1 << 1)
+/* in: if current PUT pointer should be returned */
+#define NVGPU_PROFILER_PMA_STREAM_UPDATE_GET_PUT_ARG_FLAG_RETURN_PUT_PTR		(1 << 2)
+/* out: if PMA stream buffer overflow was triggered */
+#define NVGPU_PROFILER_PMA_STREAM_UPDATE_GET_PUT_ARG_FLAG_OVERFLOW_TRIGGERED		(1 << 3)
+	__u32 flags;
+
+	__u32 reserved[3];
+};
+
+enum {
+	NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_ALL_OR_NONE,
+	NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_CONTINUE_ON_ERROR,
+};
+
+struct nvgpu_profiler_reg_op {
+	__u8    op;
+	__u8    status;
+	__u32   offset;
+	__u64   value;
+	__u64   and_n_mask;
+};
+
+struct nvgpu_profiler_exec_reg_ops_args {
+	__u32 mode;		/* in: operation mode NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_* */
+
+	__u32 count;		/* in: number of reg_ops operations */
+	__u64 ops;		/* in/out: pointer to actual operations nvgpu_profiler_reg_op */
+
+/* out: if all reg_ops passed, valid only for MODE_CONTINUE_ON_ERROR */
+#define NVGPU_PROFILER_EXEC_REG_OPS_ARG_FLAG_ALL_PASSED		(1 << 0)
+/* out: if the operations were performed directly on HW or in context image */
+#define NVGPU_PROFILER_EXEC_REG_OPS_ARG_FLAG_DIRECT_OPS		(1 << 1)
+	__u32 flags;
+
+	__u32 reserved[3];
+};
+
+#define NVGPU_PROFILER_IOCTL_BIND_CONTEXT \
+	_IOW(NVGPU_PROFILER_IOCTL_MAGIC, 1, struct nvgpu_profiler_bind_context_args)
+#define NVGPU_PROFILER_IOCTL_RESERVE_PM_RESOURCE \
+	_IOW(NVGPU_PROFILER_IOCTL_MAGIC, 2, struct nvgpu_profiler_reserve_pm_resource_args)
+#define NVGPU_PROFILER_IOCTL_RELEASE_PM_RESOURCE \
+	_IOW(NVGPU_PROFILER_IOCTL_MAGIC, 3, struct nvgpu_profiler_release_pm_resource_args)
+#define NVGPU_PROFILER_IOCTL_ALLOC_PMA_STREAM \
+	_IOWR(NVGPU_PROFILER_IOCTL_MAGIC, 4, struct nvgpu_profiler_alloc_pma_stream_args)
+#define NVGPU_PROFILER_IOCTL_FREE_PMA_STREAM \
+	_IO(NVGPU_PROFILER_IOCTL_MAGIC, 5)
+#define NVGPU_PROFILER_IOCTL_BIND_PM_RESOURCES \
+	_IO(NVGPU_PROFILER_IOCTL_MAGIC, 6)
+#define NVGPU_PROFILER_IOCTL_UNBIND_PM_RESOURCES \
+	_IO(NVGPU_PROFILER_IOCTL_MAGIC, 7)
+#define NVGPU_PROFILER_IOCTL_PMA_STREAM_UPDATE_GET_PUT \
+	_IOWR(NVGPU_PROFILER_IOCTL_MAGIC, 8, struct nvgpu_profiler_pma_stream_update_get_put_args)
+#define NVGPU_PROFILER_IOCTL_EXEC_REG_OPS \
+	_IOWR(NVGPU_PROFILER_IOCTL_MAGIC, 9, struct nvgpu_profiler_exec_reg_ops_args)
+#define NVGPU_PROFILER_IOCTL_MAX_ARG_SIZE	\
+		sizeof(struct nvgpu_profiler_alloc_pma_stream_args)
+#define NVGPU_PROFILER_IOCTL_LAST		\
+	_IOC_NR(NVGPU_PROFILER_IOCTL_EXEC_REG_OPS)
+
 
 /*
  * /dev/nvhost-gpu device

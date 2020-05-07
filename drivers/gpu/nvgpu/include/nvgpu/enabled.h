@@ -282,10 +282,19 @@ struct gk20a;
 /** Multi Instance GPU support */
 #define NVGPU_SUPPORT_MIG			96U
 
+/* Profiler V2 device object support */
+#define NVGPU_SUPPORT_PROFILER_V2_DEVICE	97U
+
+/* Profiler V2 context object support */
+#define NVGPU_SUPPORT_PROFILER_V2_CONTEXT	98U
+
+/* SMPC in global mode support */
+#define NVGPU_SUPPORT_SMPC_GLOBAL_MODE		99U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			97U
+#define NVGPU_MAX_ENABLED_BITS			100U
 
 /**
  * @brief Check if the passed flag is enabled.
