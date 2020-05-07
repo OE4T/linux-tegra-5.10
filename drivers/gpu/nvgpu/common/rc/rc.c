@@ -26,6 +26,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/watchdog.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/nvgpu_err.h>

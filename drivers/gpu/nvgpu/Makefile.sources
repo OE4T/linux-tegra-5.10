@@ -396,6 +396,10 @@ srcs += common/fifo/submit.c \
 	common/sync/channel_sync_syncpt.c
 endif
 
+ifeq ($(CONFIG_NVGPU_CHANNEL_WDT),1)
+srcs += common/fifo/watchdog.c
+endif
+
 ifeq ($(CONFIG_NVGPU_SW_SEMAPHORE),1)
 srcs += common/semaphore/semaphore_sea.c \
 	common/semaphore/semaphore_pool.c \

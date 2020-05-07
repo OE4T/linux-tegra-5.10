@@ -578,12 +578,6 @@ struct nvgpu_channel {
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 
-static inline struct nvgpu_channel *
-nvgpu_channel_from_worker_item(struct nvgpu_list_node *node)
-{
-	return (struct nvgpu_channel *)
-	   ((uintptr_t)node - offsetof(struct nvgpu_channel, worker_item));
-};
 int nvgpu_channel_worker_init(struct gk20a *g);
 void nvgpu_channel_worker_deinit(struct gk20a *g);
 void nvgpu_channel_update(struct nvgpu_channel *c);
@@ -616,10 +610,6 @@ bool nvgpu_channel_is_prealloc_enabled(struct nvgpu_channel *c);
 
 bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,
 		u32 timeout_delta_ms, bool *progress);
-
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
-void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g);
-#endif
 
 #endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 

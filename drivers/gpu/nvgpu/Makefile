@@ -535,6 +535,7 @@ nvgpu-y += \
 	common/fifo/engines.o \
 	common/fifo/pbdma_status.o \
 	common/fifo/userd.o \
+	common/fifo/watchdog.o \
 	common/fence/fence.o \
 	common/ecc.o \
 	common/log_common.o \

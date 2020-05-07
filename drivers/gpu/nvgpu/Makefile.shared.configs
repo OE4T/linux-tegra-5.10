@@ -243,6 +243,7 @@ CONFIG_NVGPU_SW_SEMAPHORE       := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_SW_SEMAPHORE
 
 # Enable Channel WDT for safety build until we switch to user mode submits only
+CONFIG_NVGPU_CHANNEL_WDT := 1
 NVGPU_COMMON_CFLAGS		+= -DCONFIG_NVGPU_CHANNEL_WDT
 
 # Enable Kernel Mode submit for safety build until we switch to user mode
