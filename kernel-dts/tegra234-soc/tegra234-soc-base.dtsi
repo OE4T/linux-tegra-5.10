@@ -457,7 +457,7 @@
 				 <&bpmp_clks TEGRA234_CLK_NVCSI>,
 				 <&bpmp_clks TEGRA234_CLK_NVCSILP>;
 			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp";
-
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
 			nvidia,vi-falcon-device = <&vi_thi>;
 
 			iommus = <&smmu TEGRA_SID_VI>;
@@ -475,7 +475,7 @@
 				 <&bpmp_clks TEGRA234_CLK_NVCSI>,
 				 <&bpmp_clks TEGRA234_CLK_NVCSILP>;
 			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp";
-
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
 			nvidia,vi-falcon-device = <&vi_thi>;
 
 			iommus = <&smmu TEGRA_SID_VI2>;
@@ -490,6 +490,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_VI>,
 			         <&bpmp_clks TEGRA234_CLK_VI_CONST>;
 			clock-names = "vi", "vi-const";
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
 		};
 
 		isp: isp@14800000 {
