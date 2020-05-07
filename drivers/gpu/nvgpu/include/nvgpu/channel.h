@@ -275,24 +275,6 @@ struct nvgpu_channel_joblist {
 	struct nvgpu_mutex cleanup_lock;
 };
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
-
-struct nvgpu_channel_wdt {
-	/* lock protects the running timer state */
-	struct nvgpu_spinlock lock;
-	struct nvgpu_timeout timer;
-	bool running;
-	u32 gp_get;
-	u64 pb_get;
-
-	/* lock not needed */
-	u32 limit_ms;
-	bool enabled;
-	bool debug_dump;
-};
-
-#endif
-
 /**
  * Track refcount actions, saving their stack traces. This number specifies how
  * many most recent actions are stored in a buffer. Set to 0 to disable. 128
@@ -398,7 +380,7 @@ struct nvgpu_channel {
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/* kernel watchdog to kill stuck jobs */
-	struct nvgpu_channel_wdt wdt;
+	struct nvgpu_channel_wdt *wdt;
 #endif /* CONFIG_NVGPU_CHANNEL_WDT */
 #endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 

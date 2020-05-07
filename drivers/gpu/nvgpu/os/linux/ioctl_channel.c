@@ -40,6 +40,7 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/channel_user_syncpt.h>
+#include <nvgpu/watchdog.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/obj_ctx.h>
@@ -294,19 +295,22 @@ static int gk20a_channel_set_wdt_status(struct nvgpu_channel *ch,
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
 	u32 status = args->wdt_status & (NVGPU_IOCTL_CHANNEL_DISABLE_WDT |
 			NVGPU_IOCTL_CHANNEL_ENABLE_WDT);
+	bool set_timeout = (args->wdt_status &
+			NVGPU_IOCTL_CHANNEL_WDT_FLAG_SET_TIMEOUT) != 0U;
+	bool disable_dump = (args->wdt_status &
+			NVGPU_IOCTL_CHANNEL_WDT_FLAG_DISABLE_DUMP) != 0U;
 
 	if (status == NVGPU_IOCTL_CHANNEL_DISABLE_WDT)
-		ch->wdt.enabled = false;
+		nvgpu_channel_wdt_disable(ch->wdt);
 	else if (status == NVGPU_IOCTL_CHANNEL_ENABLE_WDT)
-		ch->wdt.enabled = true;
+		nvgpu_channel_wdt_enable(ch->wdt);
 	else
 		return -EINVAL;
 
-	if (args->wdt_status & NVGPU_IOCTL_CHANNEL_WDT_FLAG_SET_TIMEOUT)
-		ch->wdt.limit_ms = args->timeout_ms;
+	if (set_timeout)
+		nvgpu_channel_wdt_set_limit(ch->wdt, args->timeout_ms);
 
-	ch->wdt.debug_dump = (args->wdt_status &
-			NVGPU_IOCTL_CHANNEL_WDT_FLAG_DISABLE_DUMP) == 0;
+	nvgpu_channel_wdt_set_debug_dump(ch->wdt, !disable_dump);
 
 	return 0;
 #else

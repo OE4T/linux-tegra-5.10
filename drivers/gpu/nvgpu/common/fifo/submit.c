@@ -29,6 +29,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/watchdog.h>
 #include <nvgpu/job.h>
 #include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/bug.h>
@@ -551,7 +552,7 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/* the watchdog needs periodic job cleanup */
-	if (c->wdt.enabled) {
+	if (nvgpu_channel_wdt_enabled(c->wdt)) {
 		return -EINVAL;
 	}
 #endif
@@ -666,7 +667,8 @@ static int nvgpu_submit_nondeterministic(struct nvgpu_channel *c,
 			!skip_buffer_refcounting);
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
-       need_job_tracking = need_job_tracking || c->wdt.enabled;
+       need_job_tracking = need_job_tracking ||
+	       nvgpu_channel_wdt_enabled(c->wdt);
 #endif
 
 	if (need_job_tracking) {

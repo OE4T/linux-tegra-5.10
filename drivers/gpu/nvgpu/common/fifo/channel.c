@@ -490,7 +490,7 @@ static void nvgpu_channel_poll_wdt(struct gk20a *g)
 
 		if (ch != NULL) {
 			if (!nvgpu_channel_check_unserviceable(ch)) {
-				nvgpu_channel_wdt_check(ch);
+				nvgpu_channel_wdt_check(ch->wdt, ch);
 			}
 			nvgpu_channel_put(ch);
 		}
@@ -641,7 +641,7 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 		job->mapped_buffers = mapped_buffers;
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
-		nvgpu_channel_wdt_start(c);
+		nvgpu_channel_wdt_start(c->wdt, c);
 #endif
 
 		if (!pre_alloc_enabled) {
@@ -706,7 +706,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 	 * anyway (this would be a no-op).
 	 */
 	if (clean_all) {
-		watchdog_on = nvgpu_channel_wdt_stop(c);
+		watchdog_on = nvgpu_channel_wdt_stop(c->wdt);
 	}
 #endif
 
@@ -746,7 +746,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			 * later timeout is still used.
 			 */
 			if (clean_all && watchdog_on) {
-				nvgpu_channel_wdt_continue(c);
+				nvgpu_channel_wdt_continue(c->wdt);
 			}
 #endif
 			break;
@@ -1202,6 +1202,11 @@ unbind:
 	g->ops.channel.unbind(ch);
 	g->ops.channel.free_inst(g, ch);
 
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
+	nvgpu_channel_wdt_destroy(ch->wdt);
+	ch->wdt = NULL;
+#endif
+
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	channel_free_put_deterministic_ref_from_init(ch);
 #endif
@@ -1459,10 +1464,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	ch->unserviceable = true;
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
-	/* init kernel watchdog timeout */
-	ch->wdt.enabled = true;
-	ch->wdt.limit_ms = g->ch_wdt_init_limit_ms;
-	ch->wdt.debug_dump = true;
+	ch->wdt = nvgpu_channel_wdt_alloc(ch);
 #endif
 
 	ch->obj_class = 0;
@@ -1513,8 +1515,9 @@ static int channel_setup_ramfc(struct nvgpu_channel *c,
 	struct gk20a *g = c->g;
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
-	if (c->wdt.enabled && nvgpu_is_timeouts_enabled(c->g)) {
-		pbdma_acquire_timeout = c->wdt.limit_ms;
+	if (nvgpu_channel_wdt_enabled(c->wdt) &&
+			nvgpu_is_timeouts_enabled(c->g)) {
+		pbdma_acquire_timeout = nvgpu_channel_wdt_limit(c->wdt);
 	}
 #endif
 
@@ -1930,9 +1933,6 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid)
 	nvgpu_spinlock_init(&c->ref_actions_lock);
 #endif
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
-	nvgpu_spinlock_init(&c->wdt.lock);
-#endif
 	nvgpu_spinlock_init(&c->joblist.dynamic.lock);
 	nvgpu_init_list_node(&c->joblist.dynamic.jobs);
 	nvgpu_init_list_node(&c->worker_item);

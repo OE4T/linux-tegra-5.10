@@ -25,6 +25,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/watchdog.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/fence.h>
@@ -535,7 +536,7 @@ u32 nvgpu_ce_app_create_context(struct gk20a *g,
 	}
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
-	ce_ctx->ch->wdt.enabled = false;
+	nvgpu_channel_wdt_disable(ce_ctx->ch->wdt);
 #endif
 
 	/* bind the channel to the vm */

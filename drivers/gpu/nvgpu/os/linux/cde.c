@@ -33,6 +33,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/watchdog.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
@@ -1343,7 +1344,7 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 	}
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
-	ch->wdt.enabled = false;
+	nvgpu_channel_wdt_disable(ch->wdt);
 #endif
 
 	/* bind the channel to the vm */
