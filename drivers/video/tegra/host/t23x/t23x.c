@@ -534,10 +534,7 @@ struct nvhost_device_data t23x_nvdla0_info = {
 	.class			= NV_DLA0_CLASS_ID,
 	.clocks			= {
 		{"nvdla0", UINT_MAX},
-		{"nvdla0_flcn", UINT_MAX},
-		{"emc", UINT_MAX,
-		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		{"nvdla0_flcn", UINT_MAX}
 	},
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.finalize_poweron	= nvhost_nvdla_finalize_poweron,
@@ -556,7 +553,6 @@ struct nvhost_device_data t23x_nvdla0_info = {
 	.engine_cg_regs		= t23x_nvdla_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= false,
-	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_DLA0,
 	.transcfg_addr		= 0x0444,
 	.transcfg_val		= 0x20,
 	.firmware_not_in_subdir = true,
@@ -567,10 +563,7 @@ struct nvhost_device_data t23x_nvdla1_info = {
 	.class			= NV_DLA1_CLASS_ID,
 	.clocks			= {
 		{"nvdla1", UINT_MAX},
-		{"nvdla1_flcn", UINT_MAX},
-		{"emc", UINT_MAX,
-		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
+		{"nvdla1_flcn", UINT_MAX}
 	},
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
 	.finalize_poweron	= nvhost_nvdla_finalize_poweron,
@@ -589,7 +582,6 @@ struct nvhost_device_data t23x_nvdla1_info = {
 	.engine_cg_regs		= t23x_nvdla_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= false,
-	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_DLA1,
 	.transcfg_addr		= 0x0444,
 	.transcfg_val		= 0x20,
 	.firmware_not_in_subdir = true,
