@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -124,6 +124,12 @@ u32 tu104_get_litter_value(struct gk20a *g, int value)
 		break;
 	case GPU_LIT_SMPC_PRI_STRIDE:
 		ret = proj_smpc_stride_v();
+		break;
+	case GPU_LIT_SM_UNIQUE_BASE:
+		ret = proj_sm_unique_base_v();
+		break;
+	case GPU_LIT_SM_SHARED_BASE:
+		ret = proj_sm_shared_base_v();
 		break;
 #ifdef CONFIG_NVGPU_GRAPHICS
 	case GPU_LIT_TWOD_CLASS:

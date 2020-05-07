@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,5 +91,7 @@
 #define proj_scal_litter_num_sm_per_tpc_v()                        (0x00000002U)
 #define proj_scal_max_gpcs_v()                                     (0x00000020U)
 #define proj_scal_max_tpc_per_gpc_v()                              (0x00000008U)
+#define proj_sm_unique_base_v()                                    (0x00000700U)
+#define proj_sm_shared_base_v()                                    (0x00000680U)
 #define proj_sm_stride_v()                                         (0x00000080U)
 #endif

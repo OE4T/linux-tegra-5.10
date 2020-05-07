@@ -228,6 +228,8 @@ struct railgate_stats {
 #define GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_COUNT 42
 #define GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_START 43
 #define GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_COUNT 44
+#define GPU_LIT_SM_UNIQUE_BASE			45
+#define GPU_LIT_SM_SHARED_BASE			46
 
 #define nvgpu_get_litter_value(g, v) ((g)->ops.get_litter_value((g), v))
 
