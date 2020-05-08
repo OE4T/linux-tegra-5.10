@@ -28,8 +28,18 @@
 #include <nvgpu/posix/bitops.h>
 #include <nvgpu/posix/atomic.h>
 
-#define BIT_MASK(nr)	(1UL << ((nr) % BITS_PER_LONG))
-#define BIT_WORD(nr)	((nr) / BITS_PER_LONG)
+static inline unsigned long get_mask(unsigned int bit)
+{
+	unsigned long lbit = bit;
+	lbit %= BITS_PER_LONG;
+	return (1UL << lbit);
+}
+
+static inline unsigned int get_index(unsigned int bit)
+{
+	unsigned long bpl = BITS_PER_LONG;
+	return (bit / nvgpu_safe_cast_u64_to_u32(bpl));
+}
 
 unsigned long nvgpu_posix_ffs(unsigned long word)
 {
@@ -67,7 +77,7 @@ unsigned long nvgpu_posix_fls(unsigned long word)
 	return ret;
 }
 
-static unsigned long nvgpu_posix_find_next_bit(const unsigned long *addr,
+static unsigned long nvgpu_posix_find_next_bit(const unsigned long *address,
 				     unsigned long n,
 				     unsigned long start,
 				     bool invert)
@@ -75,7 +85,7 @@ static unsigned long nvgpu_posix_find_next_bit(const unsigned long *addr,
 	unsigned long idx, idx_max;
 	unsigned long w;
 	unsigned long start_mask;
-	const unsigned long *base_addr = (const unsigned long *)&addr[0];
+	const unsigned long *base_addr = (const unsigned long *)&address[0];
 
 	/*
 	 * We make a mask we can XOR into the word so that we can invert the
@@ -124,27 +134,27 @@ static unsigned long nvgpu_posix_find_next_bit(const unsigned long *addr,
 				(nvgpu_safe_mult_u64(idx, BITS_PER_LONG)))));
 }
 
-unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
+unsigned long find_first_bit(const unsigned long *address, unsigned long size)
 {
-	return nvgpu_posix_find_next_bit(addr, size, 0, false);
+	return nvgpu_posix_find_next_bit(address, size, 0, false);
 }
 
-unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
+unsigned long find_first_zero_bit(const unsigned long *address, unsigned long size)
 {
-	return nvgpu_posix_find_next_bit(addr, size, 0, true);
+	return nvgpu_posix_find_next_bit(address, size, 0, true);
 }
 
-unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
+unsigned long find_next_bit(const unsigned long *address, unsigned long size,
 			    unsigned long offset)
 {
-	return nvgpu_posix_find_next_bit(addr, size, offset, false);
+	return nvgpu_posix_find_next_bit(address, size, offset, false);
 }
 
-static unsigned long find_next_zero_bit(const unsigned long *addr,
+static unsigned long find_next_zero_bit(const unsigned long *address,
 					unsigned long size,
 					unsigned long offset)
 {
-	return nvgpu_posix_find_next_bit(addr, size, offset, true);
+	return nvgpu_posix_find_next_bit(address, size, offset, true);
 }
 
 void nvgpu_bitmap_set(unsigned long *map, unsigned int start, unsigned int len)
@@ -175,33 +185,29 @@ void nvgpu_bitmap_clear(unsigned long *map,
  * That means that this is not a vary smart allocator. But it is fast relative
  * to an allocator that goes looking for an optimal location.
  */
-unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
-					     unsigned long size,
-					     unsigned long start,
-					     unsigned int nr,
-					     unsigned long align_mask,
-					     unsigned long align_offset)
+unsigned long bitmap_find_next_zero_area(unsigned long *map,
+					 unsigned long size,
+					 unsigned long start,
+					 unsigned int bit,
+					 unsigned long align_mask)
 {
 	unsigned long offs;
 
-	while ((nvgpu_safe_add_u64(start, (unsigned long)nr)) <= size) {
+	while ((nvgpu_safe_add_u64(start, (unsigned long)bit)) <= size) {
 		start = find_next_zero_bit(map, size, start);
 
-		start = nvgpu_safe_sub_u64(
-			ALIGN_MASK(nvgpu_safe_add_u64(start, align_offset),
-				align_mask),
-			align_offset);
+		start = ALIGN_MASK(start, align_mask);
 
 		/*
 		 * Not enough space left to satisfy the requested area.
 		 */
-		if ((nvgpu_safe_add_u64(start, (unsigned long)nr)) > size) {
+		if ((nvgpu_safe_add_u64(start, (unsigned long)bit)) > size) {
 			return size;
 		}
 
 		offs = find_next_bit(map, size, start);
 
-		if ((offs - start) >= nr) {
+		if ((offs - start) >= bit) {
 			return start;
 		}
 
@@ -211,54 +217,44 @@ unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 	return size;
 }
 
-unsigned long bitmap_find_next_zero_area(unsigned long *map,
-					 unsigned long size,
-					 unsigned long start,
-					 unsigned int nr,
-					 unsigned long align_mask)
+bool nvgpu_test_bit(unsigned int bit, const volatile unsigned long *address)
 {
-	return bitmap_find_next_zero_area_off(map, size, start, nr,
-					      align_mask, 0);
+	return (1UL & (address[get_index(bit)] >>
+			(bit & (BITS_PER_LONG-1UL)))) != 0UL;
 }
 
-bool nvgpu_test_bit(unsigned int nr, const volatile unsigned long *addr)
+bool nvgpu_test_and_set_bit(unsigned int bit, volatile unsigned long *address)
 {
-	return (1UL & (addr[BIT_WORD(nr)] >>
-			(nr & (BITS_PER_LONG-1UL)))) != 0UL;
-}
-
-bool nvgpu_test_and_set_bit(unsigned int nr, volatile unsigned long *addr)
-{
-	unsigned long mask = BIT_MASK(nr);
+	unsigned long mask = get_mask(bit);
 	volatile unsigned _Atomic long *p =
-		(volatile unsigned _Atomic long *)addr + BIT_WORD(nr);
+		(volatile unsigned _Atomic long *)address + get_index(bit);
 
 	return (atomic_fetch_or(p, mask) & mask) != 0ULL;
 }
 
-bool nvgpu_test_and_clear_bit(unsigned int nr, volatile unsigned long *addr)
+bool nvgpu_test_and_clear_bit(unsigned int bit, volatile unsigned long *address)
 {
-	unsigned long mask = BIT_MASK(nr);
+	unsigned long mask = get_mask(bit);
 	volatile unsigned _Atomic long *p =
-		(volatile unsigned _Atomic long *)addr + BIT_WORD(nr);
+		(volatile unsigned _Atomic long *)address + get_index(bit);
 
 	return (atomic_fetch_and(p, ~mask) & mask) != 0ULL;
 }
 
-void nvgpu_set_bit(unsigned int nr, volatile unsigned long *addr)
+void nvgpu_set_bit(unsigned int bit, volatile unsigned long *address)
 {
-	unsigned long mask = BIT_MASK(nr);
+	unsigned long mask = get_mask(bit);
 	volatile unsigned _Atomic long *p =
-		(unsigned volatile _Atomic long *)addr + BIT_WORD(nr);
+		(unsigned volatile _Atomic long *)address + get_index(bit);
 
 	(void)atomic_fetch_or(p, mask);
 }
 
-void nvgpu_clear_bit(unsigned int nr, volatile unsigned long *addr)
+void nvgpu_clear_bit(unsigned int bit, volatile unsigned long *address)
 {
-	unsigned long mask = BIT_MASK(nr);
+	unsigned long mask = get_mask(bit);
 	volatile unsigned _Atomic long *p =
-		(volatile unsigned _Atomic long *)addr + BIT_WORD(nr);
+		(volatile unsigned _Atomic long *)address + get_index(bit);
 
 	(void)atomic_fetch_and(p, ~mask);
 }

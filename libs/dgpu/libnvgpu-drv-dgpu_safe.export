@@ -1,6 +1,5 @@
 # Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
 
-bitmap_find_next_zero_area_off
 bitmap_find_next_zero_area
 fb_gv11b_write_mmu_fault_buffer_get
 find_first_bit

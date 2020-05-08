@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -97,13 +97,13 @@
  * @brief Loop for each set bit.
  *
  * @param bit [in]	Each set bit, this is the loop index.
- * @param addr [in]	Starting of the bitmap.
+ * @param address [in]	Starting of the bitmap.
  * @param size [in]	Size of the bitmap.
  */
-#define for_each_set_bit(bit, addr, size) \
-	for ((bit) = find_first_bit((addr), (size));		\
+#define for_each_set_bit(bit, address, size) \
+	for ((bit) = find_first_bit((address), (size));		\
 	     (bit) < (size);					\
-	     (bit) = find_next_bit((addr), (size), (bit) + 1U))
+	     (bit) = find_next_bit((address), (size), (bit) + 1U))
 
 /**
  * @brief Find first set bit.
@@ -153,77 +153,79 @@ unsigned long nvgpu_posix_fls(unsigned long word);
 /**
  * @brief Find the first set bit.
  *
- * @param addr [in]	Input value to search for set bit.
+ * @param address [in]	Input value to search for set bit.
  * @param size [in]	Size of the input value in bits.
  *
- * Finds the first set bit position in the input data \a addr.
+ * Finds the first set bit position in the input data \a address.
  *
  * @return Returns the position of first set bit.
  */
-unsigned long find_first_bit(const unsigned long *addr, unsigned long size);
+unsigned long find_first_bit(const unsigned long *address, unsigned long size);
 
 /**
  * @brief Finds the next set bit.
  *
- * @param addr [in]	Input value to search for next set bit.
+ * @param address [in]	Input value to search for next set bit.
  * @param size [in]	Size of the input value in bits.
  * @param offset [in]	Offset to start from the input data.
  *
- * Finds the next set bit position in the input data \a addr.
+ * Finds the next set bit position in the input data \a address.
  *
  * @return Returns the position of next set bit.
  */
-unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
+unsigned long find_next_bit(const unsigned long *address, unsigned long size,
 			    unsigned long offset);
 
 /**
  * @brief Finds the first zero bit.
  *
- * @param addr [in]	Input value to search.
+ * @param address [in]	Input value to search.
  * @param size [in]	Size of the input value in bits.
  *
- * Finds the first zero bit position in the input data \a addr.
+ * Finds the first zero bit position in the input data \a address.
  *
  * @return Returns the position of first zero bit.
  */
-unsigned long find_first_zero_bit(const unsigned long *addr,
+unsigned long find_first_zero_bit(const unsigned long *address,
 				  unsigned long size);
 
 /**
  * @brief Test the bit value at given position.
  *
- * @param nr [in]	Bit position to check.
- * @param addr [in]	Input data stream.
+ * @param bit [in]	Bit position to check.
+ * @param address [in]	Input data stream.
  *
- * Checks if the bit at position mentioned by \a nr in \a addr is set or not.
+ * Checks if the bit at position mentioned by \a bit in \a address is set
+ * or not.
  *
- * @return Returns true if bit position \a nr is set, else returns false.
+ * @return Returns true if bit position \a bit is set, else returns false.
  */
-bool nvgpu_test_bit(unsigned int nr, const volatile unsigned long *addr);
+bool nvgpu_test_bit(unsigned int bit, const volatile unsigned long *address);
 
 /**
  * @brief Test and set the bit at given position.
  *
- * @param nr [in]	Bit position to test and set.
- * @param addr [in]	Input data stream.
+ * @param bit [in]	Bit position to test and set.
+ * @param address [in]	Input data stream.
  *
- * Tests and sets the bit at position \a nr in \a addr.
+ * Tests and sets the bit at position \a bit in \a address.
  *
  * @return Returns true if the bit position was already set, else returns false.
  */
-bool nvgpu_test_and_set_bit(unsigned int nr, volatile unsigned long *addr);
+bool nvgpu_test_and_set_bit(unsigned int bit, volatile unsigned long *address);
 
 /**
  * @brief Test and clear the bit at given position.
  *
- * @param nr [in]	Bit position to test and clear.
- * @param addr [in]	Input data stream.
+ * @param bit [in]	Bit position to test and clear.
+ * @param address [in]	Input data stream.
  *
- * Tests and clears the bit at position \a nr in \a addr.
+ * Tests and clears the bit at position \a bit in \a address.
  *
  * @return Returns true if the bit position was already set, else returns false.
  */
-bool nvgpu_test_and_clear_bit(unsigned int nr, volatile unsigned long *addr);
+bool nvgpu_test_and_clear_bit(unsigned int bit,
+			      volatile unsigned long *address);
 
 /*
  * These two are atomic.
@@ -232,22 +234,22 @@ bool nvgpu_test_and_clear_bit(unsigned int nr, volatile unsigned long *addr);
 /**
  * @brief Sets the bit at given position.
  *
- * @param nr [in]	Bit position to set.
- * @param addr [in]	Input data stream.
+ * @param bit [in]	Bit position to set.
+ * @param address [in]	Input data stream.
  *
- * Sets the bit atomically at bit position \a nr in \a addr.
+ * Sets the bit atomically at bit position \a bit in \a address.
  */
-void nvgpu_set_bit(unsigned int nr, volatile unsigned long *addr);
+void nvgpu_set_bit(unsigned int bit, volatile unsigned long *address);
 
 /**
  * @brief Clears the bit at given position.
  *
- * @param nr [in]	Bit position to clear.
- * @param addr [in]	Input data stream.
+ * @param bit [in]	Bit position to clear.
+ * @param address [in]	Input data stream.
  *
- * Clears the bit atomically at bit position \a nr in \a addr.
+ * Clears the bit atomically at bit position \a bit in \a address.
  */
-void nvgpu_clear_bit(unsigned int nr, volatile unsigned long *addr);
+void nvgpu_clear_bit(unsigned int bit, volatile unsigned long *address);
 
 /**
  * @brief Sets a bitmap.
@@ -275,36 +277,12 @@ void nvgpu_bitmap_clear(unsigned long *map, unsigned int start,
 			unsigned int len);
 
 /**
- * @brief Find first bitmap space from an offset.
- *
- * @param map [in]		Input data stream.
- * @param size [in]		Size of the input data.
- * @param start [in]		Start position in input.
- * @param nr [in]		Number of bits in bitmap.
- * @param align_mask [in]	Align mask for start.
- * @param align_offset [in]	Align offset from Input data.
- *
- * Finds the first space of contiguous zeros in input data stream which can
- * accommodate a bitmap of length \a nr starting from position \a start.
- *
- * @return Returns the position at which the bitmap starts if enough free space
- * is present in the input stream to accommodate the bitmap; otherwise, return
- * the size of the input data.
- */
-unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
-					     unsigned long size,
-					     unsigned long start,
-					     unsigned int nr,
-					     unsigned long align_mask,
-					     unsigned long align_offset);
-
-/**
  * @brief Find first bitmap space.
  *
  * @param map [in]		Input data stream.
  * @param size [in]		Size of the input data.
  * @param start [in]		Start position in input.
- * @param nr [in]		Number of bits in bitmap.
+ * @param bit [in]		Number of bits in bitmap.
  * @param align_mask [in]	Align mask for start.
  *
  * Searches a bitmap for the first space of contiguous zeros that is large
@@ -317,7 +295,7 @@ unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 unsigned long bitmap_find_next_zero_area(unsigned long *map,
 					 unsigned long size,
 					 unsigned long start,
-					 unsigned int nr,
+					 unsigned int bit,
 					 unsigned long align_mask);
 
 #endif /* NVGPU_POSIX_BITOPS_H */

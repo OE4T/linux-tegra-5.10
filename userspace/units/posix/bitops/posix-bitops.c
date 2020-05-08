@@ -348,29 +348,29 @@ int test_find_zero_area(struct unit_module *m, struct gk20a *g, void *unused)
 	}
 
 	for (i = 0; i < TEST_BITMAP_SIZE; i++) {
-		result = bitmap_find_next_zero_area_off(bmap_all_zeros,
+		result = bitmap_find_next_zero_area(bmap_all_zeros,
 							TEST_BITMAP_SIZE,
 							i,
 							TEST_BITMAP_SIZE - i,
-							0, 0);
+							0);
 		if (result != i)
 			unit_return_fail(m, FAIL_MSG,
 					 "all_zeros: alloc-to-end", i);
 
-		result = bitmap_find_next_zero_area_off(bmap_all_zeros,
+		result = bitmap_find_next_zero_area(bmap_all_zeros,
 							TEST_BITMAP_SIZE,
 							i,
 							1,
-							0, 0);
+							0);
 		if (result != i)
 			unit_return_fail(m, FAIL_MSG,
 					 "all_zeros: alloc-one-bit", i);
 
-		result = bitmap_find_next_zero_area_off(bmap_all_zeros,
+		result = bitmap_find_next_zero_area(bmap_all_zeros,
 							TEST_BITMAP_SIZE,
 							0,
 							TEST_BITMAP_SIZE - i,
-							0, 0);
+							0);
 		if (result != 0)
 			unit_return_fail(m, FAIL_MSG,
 					 "all_zeros: alloc-i-bits-at-0", i);
@@ -382,11 +382,11 @@ int test_find_zero_area(struct unit_module *m, struct gk20a *g, void *unused)
 	 */
 	for (i = 0; i < TEST_BITMAP_SIZE; i++) {
 		for (j = 0; j < (TEST_BITMAP_SIZE - i); j++) {
-			result = bitmap_find_next_zero_area_off(bmap_all_ones,
+			result = bitmap_find_next_zero_area(bmap_all_ones,
 							TEST_BITMAP_SIZE,
 							i,
 							j,
-							0, 0);
+							0);
 			if (result != TEST_BITMAP_SIZE)
 				unit_return_fail(m, FAIL_MSG_EX,
 						 "all_ones: failed", i, j);
@@ -402,11 +402,11 @@ int test_find_zero_area(struct unit_module *m, struct gk20a *g, void *unused)
 	memset(words, 0x0f, sizeof(words));
 	for (i = 0; i < ((NUM_WORDS * BITS_PER_LONG) - 8); i++) {
 		for (j = 0; j < ((NUM_WORDS * BITS_PER_LONG) - i - 8); j++) {
-			result = bitmap_find_next_zero_area_off(words,
+			result = bitmap_find_next_zero_area(words,
 						NUM_WORDS * BITS_PER_LONG,
 						i,
 						j,
-						0, 0);
+						0);
 
 			/*
 			 * Should only return a valid result when j < 4 (since
@@ -422,27 +422,16 @@ int test_find_zero_area(struct unit_module *m, struct gk20a *g, void *unused)
 						 "alternating-nibbles: failed",
 						 i, j);
 
-			result = bitmap_find_next_zero_area_off(words,
+			result = bitmap_find_next_zero_area(words,
 						NUM_WORDS * BITS_PER_LONG,
 						i,
 						(j % 4) + 1,
-						0x3, 0);
+						0x3);
 			if (result % 8 != 4)
 				unit_return_fail(m, FAIL_MSG_EX,
 						 "basic-align_mask: failed",
 						 i, j);
 
-
-			result = bitmap_find_next_zero_area_off(words,
-						NUM_WORDS * BITS_PER_LONG,
-						i,
-						(j % 2) + 1,
-						0x7, 2);
-
-			if (result % 8 != 6)
-				unit_return_fail(m, FAIL_MSG_EX,
-						 "basic-align_offset: failed",
-						 i, j);
 		}
 	}
 
