@@ -61,7 +61,6 @@
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
-#include "dmabuf.h"
 #include "channel.h"
 #include "dmabuf_vidmem.h"
 #include "fecs_trace_linux.h"

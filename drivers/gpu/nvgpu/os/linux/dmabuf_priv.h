@@ -17,7 +17,7 @@
 #ifndef NVGPU_DMABUF_PRIV_H
 #define NVGPU_DMABUF_PRIV_H
 
-#ifdef CONFIG_NVGPU_DMABUF_HAS_DRVDATA
+#include <linux/dma-buf.h>
 
 #include <nvgpu/comptags.h>
 #include <nvgpu/list.h>
@@ -28,9 +28,9 @@ struct sg_table;
 struct dma_buf;
 struct dma_buf_attachment;
 struct device;
+struct nvgpu_os_linux;
 
 struct gk20a;
-
 struct gk20a_buffer_state {
 	struct nvgpu_list_node list;
 
@@ -80,20 +80,46 @@ struct gk20a_dmabuf_priv {
 	struct nvgpu_list_node states;
 
 	u64 buffer_id;
+
+	/* Used for retrieving the associated dmabuf from the priv */
+	struct dma_buf *dmabuf;
+	/* 'dma_buf->ops' which is a pointer to a constant struct is
+	 * altered to point to the local copy for the entire lifetime
+	 * of this existing dma-buf until the driver is shutdown or
+	 * the last reference to this dma_buf instance is put. This local
+	 * copy replaces the 'release' callback with nvgpu's custom
+	 * release function handler. This custom function handler frees the
+	 * priv structure and replaces back the original pointer associated
+	 * with the 'producer' of the dma_buf.
+	 */
+	struct dma_buf_ops local_ops;
+	/* Store a copy of the original ops for later restoration */
+	const struct dma_buf_ops *previous_ops;
+
+	/* list node for tracking the dmabuf_priv instances per gpu */
+	struct nvgpu_list_node list;
 };
 
-struct sg_table *gk20a_mm_pin_has_drvdata(struct device *dev,
+struct sg_table *nvgpu_mm_pin_privdata(struct device *dev,
 			struct dma_buf *dmabuf,
 			struct dma_buf_attachment **attachment);
 
-void gk20a_mm_unpin_has_drvdata(struct device *dev,
+void nvgpu_mm_unpin_privdata(struct device *dev,
 		struct dma_buf *dmabuf,
 		struct dma_buf_attachment *attachment,
 		struct sg_table *sgt);
+
+void gk20a_mm_delete_priv(struct gk20a_dmabuf_priv *priv);
 
 int gk20a_dmabuf_alloc_drvdata(struct dma_buf *dmabuf, struct device *dev);
 
 int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
 			   u64 offset, struct gk20a_buffer_state **state);
-#endif
+
+int gk20a_dma_buf_set_drvdata(struct dma_buf *dmabuf, struct device *device,
+			struct gk20a_dmabuf_priv *priv);
+void gk20a_dma_buf_priv_list_clear(struct nvgpu_os_linux *l);
+struct gk20a_dmabuf_priv *gk20a_dma_buf_get_drvdata(
+		struct dma_buf *dmabuf, struct device *device);
+
 #endif

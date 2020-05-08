@@ -37,8 +37,7 @@ dma:
   sources: [ os/linux/linux-dma.c ]
 
 dmabuf:
-  sources: [ os/linux/dmabuf.c, os/linux/dmabuf_vidmem.c,
-             os/linux/dmabuf.h, os/linux/dmabuf_vidmem.h,
+  sources: [ os/linux/dmabuf_vidmem.c, os/linux/dmabuf_vidmem.h,
              os/linux/dmabuf_priv.c, os/linux/dmabuf_priv.h ]
 
 driver_common:

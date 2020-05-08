@@ -33,7 +33,6 @@
 #include "channel.h"
 #include "ioctl_channel.h"
 #include "os_linux.h"
-#include "dmabuf.h"
 #include "dmabuf_priv.h"
 
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
@@ -434,14 +433,12 @@ int nvgpu_usermode_buf_from_dmabuf(struct gk20a *g, int dmabuf_fd,
 		goto put_dmabuf;
 	}
 
-#ifdef CONFIG_NVGPU_DMABUF_HAS_DRVDATA
 	err = gk20a_dmabuf_alloc_drvdata(dmabuf, dev);
 	if (err != 0) {
 		goto put_dmabuf;
 	}
-#endif
 
-	sgt = gk20a_mm_pin(dev, dmabuf, &attachment);
+	sgt = nvgpu_mm_pin_privdata(dev, dmabuf, &attachment);
 	if (IS_ERR(sgt)) {
 		nvgpu_warn(g, "Failed to pin dma_buf!");
 		err = PTR_ERR(sgt);
@@ -479,7 +476,7 @@ void nvgpu_os_channel_free_usermode_buffers(struct nvgpu_channel *c)
 	struct device *dev = dev_from_gk20a(g);
 
 	if (priv->usermode.gpfifo.dmabuf != NULL) {
-		gk20a_mm_unpin(dev, priv->usermode.gpfifo.dmabuf,
+		nvgpu_mm_unpin_privdata(dev, priv->usermode.gpfifo.dmabuf,
 			       priv->usermode.gpfifo.attachment,
 			       priv->usermode.gpfifo.sgt);
 		dma_buf_put(priv->usermode.gpfifo.dmabuf);
@@ -487,7 +484,7 @@ void nvgpu_os_channel_free_usermode_buffers(struct nvgpu_channel *c)
 	}
 
 	if (priv->usermode.userd.dmabuf != NULL) {
-		gk20a_mm_unpin(dev, priv->usermode.userd.dmabuf,
+		nvgpu_mm_unpin_privdata(dev, priv->usermode.userd.dmabuf,
 		       priv->usermode.userd.attachment,
 		       priv->usermode.userd.sgt);
 		dma_buf_put(priv->usermode.userd.dmabuf);
@@ -550,7 +547,7 @@ static int nvgpu_channel_alloc_usermode_buffers(struct nvgpu_channel *c,
 unmap_free_gpfifo:
 	nvgpu_dma_unmap_free(c->vm, &c->usermode_gpfifo);
 free_gpfifo:
-	gk20a_mm_unpin(dev, priv->usermode.gpfifo.dmabuf,
+	nvgpu_mm_unpin_privdata(dev, priv->usermode.gpfifo.dmabuf,
 		       priv->usermode.gpfifo.attachment,
 		       priv->usermode.gpfifo.sgt);
 	dma_buf_put(priv->usermode.gpfifo.dmabuf);

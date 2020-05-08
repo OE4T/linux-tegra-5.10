@@ -21,14 +21,13 @@
 
 #include <nvgpu/linux/vm.h>
 
-#include "dmabuf.h"
 #include "dmabuf_priv.h"
 
 void gk20a_get_comptags(struct nvgpu_os_buffer *buf,
 			struct gk20a_comptags *comptags)
 {
-	struct gk20a_dmabuf_priv *priv = dma_buf_get_drvdata(buf->dmabuf,
-							     buf->dev);
+	struct gk20a_dmabuf_priv *priv = gk20a_dma_buf_get_drvdata(buf->dmabuf,
+							buf->dev);
 
 	if (!comptags)
 		return;
@@ -48,8 +47,8 @@ int gk20a_alloc_or_get_comptags(struct gk20a *g,
 				struct gk20a_comptag_allocator *allocator,
 				struct gk20a_comptags *comptags)
 {
-	struct gk20a_dmabuf_priv *priv = dma_buf_get_drvdata(buf->dmabuf,
-							     buf->dev);
+	struct gk20a_dmabuf_priv *priv = gk20a_dma_buf_get_drvdata(
+						buf->dmabuf, buf->dev);
 	u32 offset;
 	int err;
 	u64 ctag_granularity;
@@ -111,8 +110,8 @@ exit_locked:
 
 bool gk20a_comptags_start_clear(struct nvgpu_os_buffer *buf)
 {
-	struct gk20a_dmabuf_priv *priv = dma_buf_get_drvdata(buf->dmabuf,
-							     buf->dev);
+	struct gk20a_dmabuf_priv *priv = gk20a_dma_buf_get_drvdata(buf->dmabuf,
+						buf->dev);
 	bool clear_started = false;
 
 	if (priv) {
@@ -130,8 +129,8 @@ bool gk20a_comptags_start_clear(struct nvgpu_os_buffer *buf)
 void gk20a_comptags_finish_clear(struct nvgpu_os_buffer *buf,
 				 bool clear_successful)
 {
-	struct gk20a_dmabuf_priv *priv = dma_buf_get_drvdata(buf->dmabuf,
-							     buf->dev);
+	struct gk20a_dmabuf_priv *priv = gk20a_dma_buf_get_drvdata(buf->dmabuf,
+						buf->dev);
 	if (priv) {
 		if (clear_successful)
 			priv->comptags.needs_clear = false;

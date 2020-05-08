@@ -43,6 +43,7 @@
 #include "pci_power.h"
 
 #include "driver_common.h"
+#include "dmabuf_priv.h"
 
 #define BOOT_GPC2CLK_MHZ	2581U
 #define PCI_INTERFACE_NAME	"card-%s%%s"
@@ -684,6 +685,9 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		goto err_free_irq;
 	}
 
+	nvgpu_mutex_init(&l->dmabuf_priv_list_lock);
+	nvgpu_init_list_node(&l->dmabuf_priv_list);
+
 	return 0;
 
 err_free_irq:
@@ -719,10 +723,14 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 	struct gk20a *g = get_gk20a(&pdev->dev);
 	struct device *dev = dev_from_gk20a(g);
 	int err;
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
 	/* no support yet for unbind if DGPU is in VGPU mode */
 	if (gk20a_gpu_is_virtual(dev))
 		return;
+
+	gk20a_dma_buf_priv_list_clear(l);
+	nvgpu_mutex_destroy(&l->dmabuf_priv_list_lock);
 
 	err = nvgpu_pci_clear_pci_power(dev_name(dev));
 	WARN(err, "gpu failed to clear pci power");

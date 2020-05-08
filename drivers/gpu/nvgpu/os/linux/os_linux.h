@@ -170,6 +170,9 @@ struct nvgpu_os_linux {
 
 	struct rw_semaphore busy_lock;
 
+	struct nvgpu_mutex dmabuf_priv_list_lock;
+	struct nvgpu_list_node dmabuf_priv_list;
+
 	bool init_done;
 
 	/** Debugfs knob for forcing syncpt support off in runtime. */

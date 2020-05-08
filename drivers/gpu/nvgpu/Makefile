@@ -380,7 +380,6 @@ nvgpu-y += \
 	os/linux/linux-io.o \
 	os/linux/io_usermode.o \
 	os/linux/rwsem.o \
-	os/linux/dmabuf.o \
 	os/linux/sched.o \
 	os/linux/linux-channel.o \
 	os/linux/sim.o \
@@ -389,11 +388,10 @@ nvgpu-y += \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
 	os/linux/bsearch.o \
-	os/linux/sdl/sdl_stub.o
+	os/linux/sdl/sdl_stub.o \
+	os/linux/dmabuf_priv.o
 
 nvgpu-$(CONFIG_NVGPU_VPR) += os/linux/vpr.o
-
-nvgpu-$(CONFIG_NVGPU_DMABUF_HAS_DRVDATA) += os/linux/dmabuf_priv.o
 
 nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug.o \

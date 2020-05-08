@@ -60,6 +60,7 @@
 #include "os/linux/driver_common.h"
 #include "os/linux/platform_gk20a.h"
 #include "os/linux/vgpu/platform_vgpu_tegra.h"
+#include "os/linux/dmabuf_priv.h"
 
 struct vgpu_priv_data *vgpu_get_priv_data(struct gk20a *g)
 {
@@ -487,6 +488,9 @@ int vgpu_probe(struct platform_device *pdev)
 #endif
 	gk20a->max_comptag_mem = totalram_size_in_mb;
 
+	nvgpu_mutex_init(&l->dmabuf_priv_list_lock);
+	nvgpu_init_list_node(&l->dmabuf_priv_list);
+
 	nvgpu_ref_init(&gk20a->refcount);
 
 	return 0;
@@ -496,8 +500,12 @@ int vgpu_remove(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct gk20a *g = get_gk20a(dev);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
 	nvgpu_log_fn(g, " ");
+
+	gk20a_dma_buf_priv_list_clear(l);
+	nvgpu_mutex_destroy(&l->dmabuf_priv_list_lock);
 
 	vgpu_pm_qos_remove(dev);
 	if (g->remove_support)

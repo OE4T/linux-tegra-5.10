@@ -78,6 +78,7 @@
 #include "driver_common.h"
 #include "channel.h"
 #include "debug_pmgr.h"
+#include "dmabuf_priv.h"
 
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
 #include "cde.h"
@@ -1713,6 +1714,9 @@ static int gk20a_probe(struct platform_device *dev)
 	if (err)
 		goto return_err;
 
+	nvgpu_mutex_init(&l->dmabuf_priv_list_lock);
+	nvgpu_init_list_node(&l->dmabuf_priv_list);
+
 	return 0;
 
 return_err:
@@ -1792,6 +1796,9 @@ static int __exit gk20a_remove(struct platform_device *pdev)
 		return vgpu_remove(pdev);
 
 	err = nvgpu_remove(dev, &nvgpu_class);
+
+	gk20a_dma_buf_priv_list_clear(l);
+	nvgpu_mutex_destroy(&l->dmabuf_priv_list_lock);
 
 	unregister_reboot_notifier(&l->nvgpu_reboot_nb);
 

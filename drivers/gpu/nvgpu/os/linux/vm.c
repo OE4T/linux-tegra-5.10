@@ -35,7 +35,6 @@
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
-#include "dmabuf.h"
 #include "dmabuf_priv.h"
 #include "dmabuf_vidmem.h"
 
@@ -174,7 +173,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 	 * the dmabuf doesn't support drvdata, prior SGT is unpinned as the
 	 * new SGT was pinned at the beginning of the current map call.
 	 */
-	gk20a_mm_unpin(os_buf->dev, os_buf->dmabuf,
+	nvgpu_mm_unpin_privdata(os_buf->dev, os_buf->dmabuf,
 		       mapped_buffer->os_priv.attachment,
 		       mapped_buffer->os_priv.sgt);
 	dma_buf_put(os_buf->dmabuf);
@@ -204,7 +203,7 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 	struct dma_buf_attachment *attachment;
 	int err = 0;
 
-	sgt = gk20a_mm_pin(dev, dmabuf, &attachment);
+	sgt = nvgpu_mm_pin_privdata(dev, dmabuf, &attachment);
 	if (IS_ERR(sgt)) {
 		nvgpu_warn(g, "Failed to pin dma_buf!");
 		return PTR_ERR(sgt);
@@ -252,7 +251,7 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 	return 0;
 
 clean_up:
-	gk20a_mm_unpin(dev, dmabuf, attachment, sgt);
+	nvgpu_mm_unpin_privdata(dev, dmabuf, attachment, sgt);
 
 	return err;
 }
@@ -319,13 +318,11 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 		return -EINVAL;
 	}
 
-#ifdef CONFIG_NVGPU_DMABUF_HAS_DRVDATA
 	err = gk20a_dmabuf_alloc_drvdata(dmabuf, dev_from_vm(vm));
 	if (err) {
 		dma_buf_put(dmabuf);
 		return err;
 	}
-#endif
 
 	err = nvgpu_vm_map_linux(vm, dmabuf, *map_addr,
 				 nvgpu_vm_translate_linux_flags(g, flags),
@@ -356,7 +353,7 @@ void nvgpu_vm_unmap_system(struct nvgpu_mapped_buf *mapped_buffer)
 {
 	struct vm_gk20a *vm = mapped_buffer->vm;
 
-	gk20a_mm_unpin(dev_from_vm(vm), mapped_buffer->os_priv.dmabuf,
+	nvgpu_mm_unpin_privdata(dev_from_vm(vm), mapped_buffer->os_priv.dmabuf,
 		       mapped_buffer->os_priv.attachment,
 		       mapped_buffer->os_priv.sgt);
 
