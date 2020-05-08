@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/dc/nvdisplay/nvdis_win.c
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1014,7 +1014,7 @@ int tegra_nvdisp_update_windows(struct tegra_dc *dc,
 			 * mark csc_dirty so that next time when window is
 			 * enabled, CSC can be programmed.
 			 */
-			win->csc_dirty = true;
+			dc_win->csc_dirty = true;
 
 			/* disable cde */
 			nvdisp_win_write(win, 0, win_cde_ctrl_r());
@@ -1066,7 +1066,6 @@ int tegra_nvdisp_update_windows(struct tegra_dc *dc,
 			}
 
 			dc_win->dirty = 1;
-			win->dirty = 1;
 		}
 
 		trace_window_update(dc, win);
@@ -1149,8 +1148,13 @@ int tegra_nvdisp_update_windows(struct tegra_dc *dc,
 			udelay(1);
 
 		if (i) {
-			for (i = 0; i < n; i++)
-				windows[i]->dirty = 0;
+			struct tegra_dc_win *dc_win;
+
+			for (i = 0; i < n; i++) {
+				dc_win = tegra_dc_get_window(dc,
+							windows[i]->idx);
+				dc_win->dirty = 0;
+			}
 		} else {  /* time out */
 			dev_warn(&dc->ndev->dev, "winmask:0x%x: HSync timeout\n",
 				winmask);

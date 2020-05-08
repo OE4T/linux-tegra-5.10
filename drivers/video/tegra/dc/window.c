@@ -41,7 +41,10 @@ static bool tegra_dc_windows_are_clean(struct tegra_dc_win *windows[],
 	int i;
 
 	for (i = 0; i < n; i++) {
-		if (windows[i]->dirty) {
+		struct tegra_dc *dc = windows[i]->dc;
+		struct tegra_dc_win *win =
+			tegra_dc_get_window(dc, windows[i]->idx);
+		if (win->dirty) {
 			return false;
 		}
 	}
