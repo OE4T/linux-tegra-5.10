@@ -174,7 +174,7 @@ struct nvgpu_gpu_zbc_query_table_args {
 /* Fault recovery is enabled */
 #define NVGPU_GPU_FLAGS_SUPPORT_FAULT_RECOVERY		(1ULL << 33)
 /* Compression is enabled */
-#define NVGPU_GPU_FLAGS_SUPPORT_COMPRESSION		(1ULL << 34)
+#define NVGPU_GPU_FLAGS_SUPPORT_COMPRESSION		(1ULL << 36)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
