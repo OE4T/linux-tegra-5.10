@@ -1783,7 +1783,7 @@ int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,
 	u32 *broadcast_flags)
 {
-	u32 gpc_addr;
+	u32 gpc_addr, tpc_addr;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
 
@@ -1816,9 +1816,14 @@ int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 			*addr_type = CTXSW_ADDR_TYPE_TPC;
 			if (pri_is_tpc_addr_shared(g, gpc_addr)) {
 				*broadcast_flags |= PRI_BROADCAST_FLAGS_TPC;
-				return 0;
+			} else {
+				*tpc_num = g->ops.gr.get_tpc_num(g, gpc_addr);
 			}
-			*tpc_num = g->ops.gr.get_tpc_num(g, gpc_addr);
+			/* mask bits other than tpc addr bits */
+			tpc_addr = pri_tpccs_addr_mask(gpc_addr);
+			if (pri_is_sm_addr_shared(g, tpc_addr)) {
+				*broadcast_flags |= PRI_BROADCAST_FLAGS_SM;
+			}
 		}
 		return 0;
 	} else if (pri_is_be_addr(g, addr)) {
@@ -1925,7 +1930,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 					   u32 *num_registers)
 {
 	enum ctxsw_addr_type addr_type;
-	u32 gpc_num, tpc_num, ppc_num, be_num;
+	u32 gpc_num, tpc_num, ppc_num, be_num, sm_num;
 	u32 priv_addr, gpc_addr;
 	u32 broadcast_flags;
 	u32 t;
@@ -1976,14 +1981,24 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 				for (tpc_num = 0;
 				     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num);
 				     tpc_num++) {
-					priv_addr_table[t++] =
-						pri_tpc_addr(g,
-						    pri_tpccs_addr_mask(addr),
-						    gpc_num, tpc_num);
+					if ((broadcast_flags &
+						PRI_BROADCAST_FLAGS_SM) != 0U) {
+						for (sm_num = 0;
+							sm_num < nvgpu_gr_config_get_sm_count_per_tpc(g->gr->config);
+							sm_num++) {
+								priv_addr_table[t++] =
+								pri_sm_addr(g,
+								pri_sm_in_tpc_addr_mask(g, addr),
+								gpc_num, tpc_num, sm_num);
+						}
+					} else {
+						priv_addr_table[t++] =
+							pri_tpc_addr(g,
+								pri_tpccs_addr_mask(addr),
+								gpc_num, tpc_num);
+					}
 				}
-			}
-
-			else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PPC) != 0U) {
+			} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PPC) != 0U) {
 				err = gr_gk20a_split_ppc_broadcast_addr(g,
 					addr, gpc_num, priv_addr_table, &t);
 				if (err != 0) {
