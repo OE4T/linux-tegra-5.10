@@ -49,8 +49,6 @@
 
 #include <asm/uaccess.h>
 
-#include <soc/tegra/chip-id.h>
-
 #include "ape_actmon.h"
 #include "os.h"
 #include "dev.h"
@@ -756,7 +754,7 @@ static void nvadsp_set_shared_mem(struct platform_device *pdev,
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
 	struct device *dev = &pdev->dev;
 	struct nvadsp_os_args *os_args;
-	enum tegra_chipid chip_id;
+	u8 chip_id;
 
 	shared_mem->os_args.dynamic_app_support = dynamic_app_support;
 	/* set logger strcuture with required properties */
@@ -765,7 +763,7 @@ static void nvadsp_set_shared_mem(struct platform_device *pdev,
 	priv.logger.dev = dev;
 	priv.adsp_os_fw_loaded = true;
 
-	chip_id = tegra_get_chipid();
+	chip_id = tegra_get_chip_id();
 	os_args = &shared_mem->os_args;
 	os_args->chip_id = chip_id;
 
