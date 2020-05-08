@@ -227,5 +227,7 @@
 #define TEGRA_ICC_CPU_CLUSTER0		    402
 #define TEGRA_ICC_CPU_CLUSTER1		    403
 #define TEGRA_ICC_CPU_CLUSTER2		    404
+#define TEGRA_ICC_GPU			    405
+#define TEGRA_ICC_CACTMON		    406
 
 #endif /* _DT_BINDINGS_TEGRA_ICC_ID_H */
