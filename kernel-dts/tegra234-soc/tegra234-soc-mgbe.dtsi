@@ -59,6 +59,9 @@
 		nvidia,dma-chans = <0 1 2 3 4 5 6 7 8 9>;
 		nvidia,num-mtl-queues = <10>;
 		nvidia,mtl-queues = <0 1 2 3 4 5 6 7 8 9>;
+		nvidia,tc-mapping = <0 1 2 3 4 5 6 7 0 1>;
+		/* Residual Queue can be any valid queue except RxQ0 */
+		nvidia,residual-queue = <1>;
 		nvidia,rxq_enable_ctrl = <2 2 2 2 2 2 2 2 2 2>;
 		nvidia,vm-irq-config = <&mgbe_vm_irq_config>;
 		nvidia,tx-queue-prio = <0 1 2 3 4 5 6 7 0 0>;
