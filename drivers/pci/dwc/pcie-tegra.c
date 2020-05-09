@@ -3000,8 +3000,11 @@ static void tegra_pcie_dw_scan_bus(struct pcie_port *pp)
 	freq = pcie->dvfs_tbl[width][speed - 1];
 	dev_dbg(pcie->dev, "EMC Freq requested = %lu\n", freq);
 
-	if (tegra_bwmgr_set_emc(pcie->emc_bw, freq, TEGRA_BWMGR_SET_EMC_FLOOR))
-		dev_err(pcie->dev, "can't set emc clock[%lu]\n", freq);
+	if (!IS_ERR_OR_NULL(pcie->emc_bw)) {
+		if (tegra_bwmgr_set_emc(pcie->emc_bw, freq,
+					TEGRA_BWMGR_SET_EMC_FLOOR))
+			dev_err(pcie->dev, "can't set emc clock[%lu]\n", freq);
+	}
 
 	speed = ((data >> 16) & PCI_EXP_LNKSTA_CLS);
 	clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
@@ -3822,8 +3825,11 @@ static void pex_ep_event_bme_change(struct tegra_pcie_dw *pcie)
 	freq = pcie->dvfs_tbl[width][speed - 1];
 	dev_dbg(pcie->dev, "EMC Freq requested = %lu\n", freq);
 
-	if (tegra_bwmgr_set_emc(pcie->emc_bw, freq, TEGRA_BWMGR_SET_EMC_FLOOR))
-		dev_err(pcie->dev, "can't set emc clock[%lu]\n", freq);
+	if (!IS_ERR_OR_NULL(pcie->emc_bw)) {
+		if (tegra_bwmgr_set_emc(pcie->emc_bw, freq,
+					TEGRA_BWMGR_SET_EMC_FLOOR))
+			dev_err(pcie->dev, "can't set emc clock[%lu]\n", freq);
+	}
 
 	speed = ((val >> 16) & PCI_EXP_LNKSTA_CLS);
 	clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
@@ -4429,9 +4435,7 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 
 	pcie->emc_bw = tegra_bwmgr_register(pcie_emc_client_id[pcie->cid]);
 	if (IS_ERR_OR_NULL(pcie->emc_bw)) {
-		dev_err(pcie->dev, "bwmgr registration failed\n");
-		ret = -ENOENT;
-		return ret;
+		dev_info(pcie->dev, "bwmgr registration failed\n");
 	}
 
 	platform_set_drvdata(pdev, pcie);
@@ -4581,7 +4585,8 @@ static int tegra_pcie_dw_remove(struct platform_device *pdev)
 				uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
 		}
 	}
-	tegra_bwmgr_unregister(pcie->emc_bw);
+	if (!IS_ERR_OR_NULL(pcie->emc_bw))
+		tegra_bwmgr_unregister(pcie->emc_bw);
 
 	return 0;
 }
@@ -5038,7 +5043,9 @@ static void tegra_pcie_dw_shutdown(struct platform_device *pdev)
 		if (pcie->cid != CTRL_5)
 			uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
 	}
-	tegra_bwmgr_unregister(pcie->emc_bw);
+	if (!IS_ERR_OR_NULL(pcie->emc_bw)) {
+		tegra_bwmgr_unregister(pcie->emc_bw);
+	}
 }
 
 static const struct dev_pm_ops tegra_pcie_dw_pm_ops = {
