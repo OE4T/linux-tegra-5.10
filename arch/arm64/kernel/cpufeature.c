@@ -3,6 +3,7 @@
  * Contains CPU feature definitions
  *
  * Copyright (C) 2015 ARM Ltd.
+ * Copyright (C) 2020 NVIDIA Corporation. All rights reserved.
  */
 
 #define pr_fmt(fmt) "CPU features: " fmt
@@ -2030,6 +2031,7 @@ unsigned long cpu_get_elf_hwcap(void)
 	 */
 	return lower_32_bits(elf_hwcap);
 }
+EXPORT_SYMBOL_GPL(cpu_get_elf_hwcap);
 
 unsigned long cpu_get_elf_hwcap2(void)
 {
