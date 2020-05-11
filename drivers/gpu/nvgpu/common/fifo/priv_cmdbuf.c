@@ -98,13 +98,23 @@ int nvgpu_priv_cmdbuf_queue_alloc(struct vm_gk20a *vm,
 	 * Given the job count, cmdbuf space is allocated such that each job
 	 * can get one wait command and one increment command:
 	 *
-	 *   num_in_flight * (8 + 10) * 4 bytes
+	 *   job_count * (8 + 10) * 4 bytes
 	 *
 	 * These cmdbufs are inserted as gpfifo entries right before and after
 	 * the user submitted gpfifo entries per submit.
+	 *
+	 * One extra slot is added to the queue length so that the requested
+	 * job count can actually be allocated. This ring buffer implementation
+	 * is full when the number of consumed entries is one less than the
+	 * allocation size:
+	 *
+	 * alloc bytes = job_count * (wait + incr + 1) * slot in bytes
 	 */
-	mem_per_job = nvgpu_safe_mult_u32(nvgpu_safe_add_u32(wait_size,
-				incr_size), (u32)sizeof(u32));
+	mem_per_job = nvgpu_safe_mult_u32(
+			nvgpu_safe_add_u32(
+				nvgpu_safe_add_u32(wait_size, incr_size),
+				1U),
+			(u32)sizeof(u32));
 	/* both 32 bit and mem_per_job is small */
 	size = nvgpu_safe_mult_u64((u64)job_count, (u64)mem_per_job);
 
@@ -121,12 +131,14 @@ int nvgpu_priv_cmdbuf_queue_alloc(struct vm_gk20a *vm,
 
 	q->vm = vm;
 
-	if (job_count > U32_MAX / 2U) {
+	if (job_count > U32_MAX / 2U - 1U) {
 		err = -ERANGE;
 		goto err_free_queue;
 	}
 
-	q->entries_len = 2U * job_count;
+	/* One extra to account for the full condition: 2 * job_count + 1 */
+	q->entries_len = nvgpu_safe_mult_u32(2U,
+			nvgpu_safe_add_u32(job_count, 1U));
 	q->entries = nvgpu_vzalloc(g,
 			nvgpu_safe_mult_u64((u64)q->entries_len,
 				sizeof(*q->entries)));

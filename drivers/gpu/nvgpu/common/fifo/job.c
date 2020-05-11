@@ -160,22 +160,27 @@ int channel_prealloc_resources(struct nvgpu_channel *ch, u32 num_jobs)
 {
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	int err;
-	size_t size;
+	u32 size;
 
 	if ((nvgpu_channel_is_prealloc_enabled(ch)) || (num_jobs == 0U)) {
 		return -EINVAL;
 	}
 
-	/*
-	 * pre-allocate the job list.
-	 * since vmalloc take in an unsigned long, we need
-	 * to make sure we don't hit an overflow condition
-	 */
-	size = sizeof(struct nvgpu_channel_job);
-	if (num_jobs <= U32_MAX / size) {
-		ch->joblist.pre_alloc.jobs = nvgpu_vzalloc(ch->g,
-							  num_jobs * size);
+	size = (u32)sizeof(struct nvgpu_channel_job);
+	if (num_jobs > nvgpu_safe_sub_u32(U32_MAX / size, 1U)) {
+		err = -ERANGE;
+		goto clean_up;
 	}
+
+	/*
+	 * The max capacity of this ring buffer is the alloc size minus one (in
+	 * units of item slot), so allocate a size of (num_jobs + 1) * size
+	 * bytes.
+	 */
+	ch->joblist.pre_alloc.jobs = nvgpu_vzalloc(ch->g,
+			nvgpu_safe_mult_u32(
+				nvgpu_safe_add_u32(num_jobs, 1U),
+				size));
 	if (ch->joblist.pre_alloc.jobs == NULL) {
 		err = -ENOMEM;
 		goto clean_up;
