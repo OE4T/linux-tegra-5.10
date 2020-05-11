@@ -47,23 +47,16 @@
 #define nvgpu_assert(cond)	((void) WARN_ON(!(cond)))
 #else
 /*
- * A static inline for POSIX/QNX/etc so that we can hide the branch in BUG_ON()
- * from the branch analyzer. This prevents unit testing branch analysis from
- * marking this as an untested branch everywhere the nvgpu_assert() macro is
- * used. Similarly for MISRA this hides the messy BUG_ON() macro from users of
- * this function. This means the MISRA scanner will only trigger 1 issue for
- * this instead of 1 for every place it's used.
- *
- * When this assert fails the function will not return.
+ * When this assert fails, the function will not return.
  */
-static inline void nvgpu_assert(bool cond)
-{
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
-NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
-	BUG_ON(!cond);
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
-NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
-}
+#define nvgpu_assert(cond)											\
+	({													\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")	\
+		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")	\
+		BUG_ON(!(cond));										\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))						\
+		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))						\
+	})
 #endif
 
 /*

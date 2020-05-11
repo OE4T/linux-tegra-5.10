@@ -169,7 +169,7 @@ done:
 #endif
 	while ((err = raise(SIGSEGV)) != 0) {
 		/*
-		 * Make sure the signal is raised.
+		 * Make sure that SIGSEGV signal is raised.
 		 */
 	}
 
