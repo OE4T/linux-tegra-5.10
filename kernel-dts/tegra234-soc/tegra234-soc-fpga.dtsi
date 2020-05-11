@@ -22,6 +22,7 @@
 #include "tegra234-soc/tegra234-soc-memory.dtsi"
 #include "tegra234-soc-pcie-fpga.dtsi"
 #include <dt-bindings/gpio/tegra234-gpio.h>
+#include "tegra234-soc-gpcdma.dtsi"
 
 / {
 	aliases {
