@@ -1214,7 +1214,7 @@ static void tegra_sdhci_hs400_dll_cal(struct sdhci_host *host)
 			"HS400 delay line calibration timed out\n");
 }
 
-static void tegra_sdhci_post_init(struct sdhci_host *host)
+static void tegra_sdhci_dll_calib(struct sdhci_host *host)
 {
 	struct mmc_host *mmc = host->mmc;
 
@@ -1255,6 +1255,7 @@ static void tegra_sdhci_set_uhs_signaling(struct sdhci_host *host,
 	bool set_trim_delay = false;
 	bool set_padpipe_clk_override = false;
 	bool set_sdmmc_spare_0 = false;
+	bool do_hs400_dll_cal = false;
 
 	tegra_host->ddr_signaling = false;
 
@@ -1284,6 +1285,7 @@ static void tegra_sdhci_set_uhs_signaling(struct sdhci_host *host,
 		tuning_mode = true;
 		set_num_tun_iter = true;
 		set_padpipe_clk_override = true;
+		do_hs400_dll_cal = true;
 		break;
 	default:
 		break;
@@ -1342,6 +1344,9 @@ static void tegra_sdhci_set_uhs_signaling(struct sdhci_host *host,
 				"Failed to set spare0 field for timing %d, %d\n",
 				timing, ret);
 	}
+
+	if (do_hs400_dll_cal)
+		tegra_sdhci_dll_calib(host);
 }
 
 static unsigned int tegra_sdhci_get_sw_timeout_value(struct sdhci_host *host)
@@ -1709,7 +1714,6 @@ static const struct sdhci_ops tegra_sdhci_ops = {
 	.get_max_tuning_loop_counter = tegra_sdhci_get_max_tuning_loop_counter,
 	.skip_retuning = tegra_sdhci_skip_retuning,
 	.hs400_enhanced_strobe = tegra_sdhci_hs400_enhanced_strobe,
-	.post_init = tegra_sdhci_post_init,
 	.dump_vendor_regs = tegra_sdhci_dump_vendor_regs,
 	.irq = sdhci_tegra_cqhci_irq,
 	.get_sw_timeout = tegra_sdhci_get_sw_timeout_value,

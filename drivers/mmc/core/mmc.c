@@ -1690,9 +1690,7 @@ int mmc_ddr_to_hs400(struct mmc_card *card)
 		err = mmc_hs200_to_ddr(card);
 		return err;
 	}
-	/* Execute DLL calibration since device switched to hs400 mode*/
-	if (card->host->ops->post_init)
-		card->host->ops->post_init(card->host);
+
 	return err;
 }
 
@@ -1965,10 +1963,6 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 				goto free_card;
 		}
 	}
-
-	/* Execute post init if exists */
-	if (host->ops->post_init)
-		host->ops->post_init(host);
 
 	/*
 	 * Choose the power class with selected bus interface
