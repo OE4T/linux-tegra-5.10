@@ -98,12 +98,14 @@
 	display@13800000 {
 		compatible = "nvidia,tegra234-display";
 		nvidia,num-dpaux-instance = <1>;
-		reg-names = "nvdisplay", "dpaux0";
-		reg = <0x0 0x13800000 0x0 0xEFFFF  /* nvdisplay */
-		       0x0 0x155C0000 0x0 0xFFFF>; /* dpaux0 */
-		interrupt-names = "nvdisplay", "dpaux0";
+		reg-names = "nvdisplay", "dpaux0", "hdacodec";
+		reg = <0x0 0x13800000 0x0 0xEFFFF    /* nvdisplay */
+		       0x0 0x155C0000 0x0 0xFFFF     /* dpaux0 */
+		       0x0 0x0242c000 0x0 0x1000>;   /* hdacodec */
+		interrupt-names = "nvdisplay", "dpaux0", "hdacodec";
 		interrupts = <0 416 4
-			      0 419 4>;
+			      0 419 4
+			      0  61 4>;
 		status = "disabled";
 		iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 		iso-smmu;
