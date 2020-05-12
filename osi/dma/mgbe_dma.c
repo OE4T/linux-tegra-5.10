@@ -137,9 +137,13 @@ static void mgbe_set_tx_ring_len(struct osi_dma_priv_data *osi_dma,
 				 nveu32_t len)
 {
 	void *addr = osi_dma->base;
+	nveu32_t value;
+
 	MGBE_CHECK_CHAN_BOUND(chan);
 
-	osi_writel(len, (nveu8_t *)addr + MGBE_DMA_CHX_TDRL(chan));
+	value = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_TX_CNTRL2(chan));
+	value |= (len & MGBE_DMA_RING_LENGTH_MASK);
+	osi_writel(value, (nveu8_t *)addr + MGBE_DMA_CHX_TX_CNTRL2(chan));
 }
 
 /**
@@ -214,9 +218,13 @@ static void mgbe_set_rx_ring_len(struct osi_dma_priv_data *osi_dma,
 				 nveu32_t len)
 {
 	void *addr = osi_dma->base;
+	nveu32_t value;
+
 	MGBE_CHECK_CHAN_BOUND(chan);
 
-	osi_writel(len, (nveu8_t *)addr + MGBE_DMA_CHX_RDRL(chan));
+	value = osi_readl((nveu8_t *)addr + MGBE_DMA_CHX_RX_CNTRL2(chan));
+	value |= (len & MGBE_DMA_RING_LENGTH_MASK);
+	osi_writel(value, (nveu8_t *)addr + MGBE_DMA_CHX_RX_CNTRL2(chan));
 }
 
 /**
@@ -350,16 +358,24 @@ static void mgbe_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
  *	3) Program Tx, Rx PBL
  *	4) Enable TSO if HW supports
  *	5) Program Rx Watchdog timer
+ *	6) Program Out Standing DMA Read Requests
+ *	7) Program Out Standing DMA write Requests
  *
  * @param[in] chan: DMA channel number that need to be configured.
+ * @param[in] owrq: out standing write dma requests
+ * @param[in] orrq: out standing read dma requests
  * @param[in] osi_dma: OSI DMA private data structure.
  *
  * @note MAC has to be out of reset.
  */
 static void mgbe_configure_dma_channel(nveu32_t chan,
+				       nveu32_t owrq,
+				       nveu32_t orrq,
 				       struct osi_dma_priv_data *osi_dma)
 {
 	nveu32_t value;
+	nveu32_t txpbl;
+	nveu32_t rxpbl;
 
 	MGBE_CHECK_CHAN_BOUND(chan);
 
@@ -397,8 +413,32 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 			  MGBE_DMA_CHX_TX_CTRL(chan));
 	/* Enable OSF mode */
 	value |= MGBE_DMA_CHX_TX_CTRL_OSP;
-	/* TxPBL = 16 */
-	value |= MGBE_DMA_CHX_TX_CTRL_TXPBL_RECOMMENDED;
+
+	/*
+	 * Formula for TxPBL calculation is
+	 * (TxPBL) < ((TXQSize - MTU)/(DATAWIDTH/8)) - 5
+	 * if TxPBL exceeds the value of 256 then we need to make use of 256
+	 * as the TxPBL else we should be using the value whcih we get after
+	 * calculation by using above formula
+	 */
+	if (osi_dma->pre_si == OSI_ENABLE) {
+		txpbl = ((((MGBE_TXQ_RXQ_SIZE_FPGA / osi_dma->num_dma_chans) -
+			 osi_dma->mtu) / (MGBE_AXI_DATAWIDTH / 8U)) - 5U);
+	} else {
+		txpbl = ((((MGBE_TXQ_SIZE / osi_dma->num_dma_chans) -
+			 osi_dma->mtu) / (MGBE_AXI_DATAWIDTH / 8U)) - 5U);
+	}
+
+	/* Since PBLx8 is set, so txpbl/8 will be the value that
+	 * need to be programmed
+	 */
+	if (txpbl >= MGBE_DMA_CHX_MAX_PBL) {
+		value |= ((MGBE_DMA_CHX_MAX_PBL / 8U) <<
+			  MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+	} else {
+		value |= ((txpbl / 8U) << MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+	}
+
 	/* enable TSO by default if HW supports */
 	value |= MGBE_DMA_CHX_TX_CTRL_TSE;
 
@@ -415,8 +455,26 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 	/* clear previous Rx buffer size */
 	value &= ~MGBE_DMA_CHX_RBSZ_MASK;
 	value |= (osi_dma->rx_buf_len << MGBE_DMA_CHX_RBSZ_SHIFT);
-	/* RXPBL = 16 */
-	value |= MGBE_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED;
+	/* RxPBL calculation is
+	 * RxPBL  <= Rx Queue Size/2
+	 */
+	if (osi_dma->pre_si == OSI_ENABLE) {
+		rxpbl = (((MGBE_TXQ_RXQ_SIZE_FPGA / osi_dma->num_dma_chans) /
+			 2U) << MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+	} else {
+		rxpbl = (((MGBE_RXQ_SIZE / osi_dma->num_dma_chans) / 2U) <<
+			 MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+	}
+	/* Since PBLx8 is set, so rxpbl/8 will be the value that
+	 * need to be programmed
+	 */
+	if (rxpbl >= MGBE_DMA_CHX_MAX_PBL) {
+		value |= ((MGBE_DMA_CHX_MAX_PBL / 8) <<
+			  MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+	} else {
+		value |= ((rxpbl / 8) << MGBE_DMA_CHX_CTRL_PBL_SHIFT);
+	}
+
 	osi_writel(value, (nveu8_t *)osi_dma->base +
 		   MGBE_DMA_CHX_RX_CTRL(chan));
 
@@ -442,6 +500,20 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 		osi_writel(value, (nveu8_t *)osi_dma->base +
 			   MGBE_DMA_CHX_RX_WDT(chan));
 	}
+
+	/* Update ORRQ in DMA_CH(#i)_Tx_Control2 register */
+	value = osi_readl((nveu8_t *)osi_dma->base +
+			  MGBE_DMA_CHX_TX_CNTRL2(chan));
+	value |= (orrq << MGBE_DMA_CHX_TX_CNTRL2_ORRQ_SHIFT);
+	osi_writel(value, (nveu8_t *)osi_dma->base +
+		   MGBE_DMA_CHX_TX_CNTRL2(chan));
+
+	/* Update OWRQ in DMA_CH(#i)_Rx_Control2 register */
+	value = osi_readl((nveu8_t *)osi_dma->base +
+			  MGBE_DMA_CHX_RX_CNTRL2(chan));
+	value |= (owrq << MGBE_DMA_CHX_RX_CNTRL2_OWRQ_SHIFT);
+	osi_writel(value, (nveu8_t *)osi_dma->base +
+		   MGBE_DMA_CHX_RX_CNTRL2(chan));
 }
 
 /**
@@ -487,10 +559,41 @@ static void mgbe_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
 static nve32_t mgbe_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 {
 	nveu32_t chinx;
+	nveu32_t owrq;
+	nveu32_t orrq;
+
+	/* DMA Read Out Standing Requests */
+	/* For Presi ORRQ is 16 in case of schannel and 64 in case of mchannel.
+	 * For Si ORRQ is 64 in case of single and multi channel
+	 */
+	orrq = (MGBE_DMA_CHX_TX_CNTRL2_ORRQ_RECOMMENDED /
+		osi_dma->num_dma_chans);
+	if ((osi_dma->num_dma_chans == 1U) && (osi_dma->pre_si == OSI_ENABLE)) {
+		/* For Presi ORRQ is 16 in a single channel configuration
+		 * so overwrite only for this configuration
+		 */
+		orrq = MGBE_DMA_CHX_RX_CNTRL2_ORRQ_SCHAN_PRESI;
+	}
+
+	/* DMA Write Out Standing Requests */
+	/* For Presi OWRQ is 8 and for Si it is 32 in case of single channel.
+	 * For Multi Channel OWRQ is 64 for both si and presi
+	 */
+	if (osi_dma->num_dma_chans == 1U) {
+		if (osi_dma->pre_si == OSI_ENABLE) {
+			owrq = MGBE_DMA_CHX_RX_CNTRL2_OWRQ_SCHAN_PRESI;
+		} else {
+			owrq = MGBE_DMA_CHX_RX_CNTRL2_OWRQ_SCHAN;
+		}
+	} else {
+		owrq = (MGBE_DMA_CHX_RX_CNTRL2_OWRQ_MCHAN /
+			osi_dma->num_dma_chans);
+	}
 
 	/* configure MGBE DMA channels */
 	for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
-		mgbe_configure_dma_channel(osi_dma->dma_chans[chinx], osi_dma);
+		mgbe_configure_dma_channel(osi_dma->dma_chans[chinx],
+					   owrq, orrq, osi_dma);
 	}
 
 	mgbe_dma_chan_to_vmirq_map(osi_dma);

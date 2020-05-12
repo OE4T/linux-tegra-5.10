@@ -553,6 +553,8 @@ struct osi_dma_priv_data {
 	 * bit 0 PTP mode master(1) slave(0)
 	 * bit 1 PTP sync method twostep(1) onestep(0) */
 	unsigned int ptp_flag;
+	/** Tegra Pre-si platform info */
+	unsigned int pre_si;
 };
 
 

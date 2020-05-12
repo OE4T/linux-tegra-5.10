@@ -46,8 +46,8 @@
 #define MGBE_DMA_CHX_INTR_ENA(x)	((0x0080U * (x)) + 0x3138U)
 #define MGBE_DMA_CHX_CTRL(x)		((0x0080U * (x)) + 0x3100U)
 #define MGBE_DMA_CHX_RX_WDT(x)          ((0x0080U * (x)) + 0x313CU)
-#define MGBE_DMA_CHX_TDRL(x)		((0x0080U * (x)) + 0x3130U)
-#define MGBE_DMA_CHX_RDRL(x)		((0x0080U * (x)) + 0x3134U)
+#define MGBE_DMA_CHX_TX_CNTRL2(x)	((0x0080U * (x)) + 0x3130U)
+#define MGBE_DMA_CHX_RX_CNTRL2(x)	((0x0080U * (x)) + 0x3134U)
 #define MGBE_DMA_CHX_TDLH(x)		((0x0080U * (x)) + 0x3110U)
 #define MGBE_DMA_CHX_TDLA(x)		((0x0080U * (x)) + 0x3114U)
 #define MGBE_DMA_CHX_TDTLP(x)		((0x0080U * (x)) + 0x3124U)
@@ -81,8 +81,6 @@
 #define MGBE_DMA_CHX_RX_WDT_RWTU		256U
 #define MGBE_DMA_CHX_RBSZ_MASK			0x7FFEU
 #define MGBE_DMA_CHX_RBSZ_SHIFT			1U
-#define MGBE_DMA_CHX_TX_CTRL_TXPBL_RECOMMENDED	0x100000U
-#define MGBE_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED	0x100000U
 #define MGBE_AXI_BUS_WIDTH			0x10U
 #define MGBE_GLOBAL_DMA_STATUS			0x8700U
 #define MGBE_DMA_CHX_CTRL_PBLX8			OSI_BIT(16)
@@ -105,6 +103,33 @@
 #define MGBE_VIRT_INTR_CHX_STATUS_RX		OSI_BIT(1)
 #define MGBE_VIRT_INTR_CHX_CNTRL_TX		OSI_BIT(0)
 #define MGBE_VIRT_INTR_CHX_CNTRL_RX		OSI_BIT(1)
+#define MGBE_DMA_CHX_TX_CNTRL2_ORRQ_RECOMMENDED	64U
+#define MGBE_DMA_CHX_TX_CNTRL2_ORRQ_SHIFT	24U
+#define MGBE_DMA_CHX_RX_CNTRL2_OWRQ_SCHAN	32U
+#define MGBE_DMA_CHX_RX_CNTRL2_OWRQ_MCHAN	64U
+#define MGBE_DMA_CHX_RX_CNTRL2_OWRQ_SHIFT	24U
+#define MGBE_DMA_CHX_RX_CNTRL2_OWRQ_SCHAN_PRESI	8U
+#define MGBE_DMA_CHX_RX_CNTRL2_ORRQ_SCHAN_PRESI	16U
+#define MGBE_DMA_RING_LENGTH_MASK		0xFFFFU
+#define MGBE_DMA_CHX_CTRL_PBL_SHIFT		16U
+/** @} */
+
+/**
+ * @addtogroup MGBE PBL settings.
+ *
+ * @brief Values defined for PBL settings
+ * @{
+ */
+/* Tx and Rx Qsize is 64KB */
+#define MGBE_TXQ_RXQ_SIZE_FPGA		65536U
+/* Tx Queue size is 128KB */
+#define MGBE_TXQ_SIZE			131072U
+/* Rx Queue size is 192KB */
+#define MGBE_RXQ_SIZE			196608U
+/* MAX PBL value */
+#define MGBE_DMA_CHX_MAX_PBL		256U
+/* AXI Data width */
+#define MGBE_AXI_DATAWIDTH		128U
 /** @} */
 
 /**
