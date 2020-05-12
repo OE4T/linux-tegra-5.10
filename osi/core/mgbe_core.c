@@ -113,7 +113,7 @@ static nve32_t mgbe_poll_for_swr(struct osi_core_priv_data *const osi_core)
 	nveu32_t pre_si = osi_core->pre_si;
 
 	/* Performing software reset */
-	if (pre_si == 1U) {
+	if (pre_si == OSI_ENABLE) {
 		osi_writel(OSI_ENABLE, (nveu8_t *)addr + MGBE_DMA_MODE);
 	}
 
@@ -193,6 +193,10 @@ static nveu32_t mgbe_calculate_per_queue_fifo(nveu32_t fifo_size,
 		break;
 	case 11:
 		q_fifo_size = FIFO_SIZE_KB(256U);
+		break;
+	case 12:
+		/* Size mapping not found for 192KB, so assigned 12 */
+		q_fifo_size = FIFO_SIZE_KB(192U);
 		break;
 	default:
 		q_fifo_size = FIFO_SIZE_KB(1U);
@@ -2431,22 +2435,42 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
  *
  * @note MAC has to be out of reset.
  */
-static void mgbe_configure_dma(void *base)
+static void mgbe_configure_dma(void *base, nveu32_t pre_si)
 {
 	nveu32_t value = 0;
 
-	/* AXI Burst Length 8*/
-	value |= MGBE_DMA_SBUS_BLEN8;
-	/* AXI Burst Length 16*/
-	value |= MGBE_DMA_SBUS_BLEN16;
+	/* Set AXI Undefined Burst Length */
+	value |= MGBE_DMA_SBUS_UNDEF;
+	/* AXI Burst Length 256*/
+	value |= MGBE_DMA_SBUS_BLEN256;
 	/* Enhanced Address Mode Enable */
 	value |= MGBE_DMA_SBUS_EAME;
-	/* AXI Maximum Read Outstanding Request Limit = 31 */
+	/* AXI Maximum Read Outstanding Request Limit = 63 */
 	value |= MGBE_DMA_SBUS_RD_OSR_LMT;
-	/* AXI Maximum Write Outstanding Request Limit = 31 */
+	/* AXI Maximum Write Outstanding Request Limit = 63 */
 	value |= MGBE_DMA_SBUS_WR_OSR_LMT;
 
 	osi_writel(value, (nveu8_t *)base + MGBE_DMA_SBUS);
+
+	/* Configure TDPS to 5 */
+	value = osi_readl((nveu8_t *)base + MGBE_DMA_TX_EDMA_CTRL);
+	if (pre_si == OSI_ENABLE) {
+		/* For Pre silicon TDPS Value is 3 */
+		value |= MGBE_DMA_TX_EDMA_CTRL_TDPS_PRESI;
+	} else {
+		value |= MGBE_DMA_TX_EDMA_CTRL_TDPS;
+	}
+	osi_writel(value, (nveu8_t *)base + MGBE_DMA_TX_EDMA_CTRL);
+
+	/* Configure RDPS to 5 */
+	value = osi_readl((nveu8_t *)base + MGBE_DMA_RX_EDMA_CTRL);
+	if (pre_si == OSI_ENABLE) {
+		/* For Pre silicon RDPS Value is 3 */
+		value |= MGBE_DMA_RX_EDMA_CTRL_RDPS_PRESI;
+	} else {
+		value |= MGBE_DMA_RX_EDMA_CTRL_RDPS;
+	}
+	osi_writel(value, (nveu8_t *)base + MGBE_DMA_RX_EDMA_CTRL);
 }
 
 /**
@@ -2723,6 +2747,16 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 
 	/* TODO: DCS enable */
 
+	if (osi_core->pre_si == OSI_ENABLE) {
+		/* For pre silicon Tx and Rx Queue sizes are 64KB */
+		tx_fifo_size = MGBE_TX_FIFO_SIZE_64KB;
+		rx_fifo_size = MGBE_RX_FIFO_SIZE_64KB;
+	} else {
+		/* Actual HW RAM size for Tx is 128KB and Rx is 192KB */
+		tx_fifo_size = MGBE_TX_FIFO_SIZE_128KB;
+		rx_fifo_size = MGBE_RX_FIFO_SIZE_192KB;
+	}
+
 	/* Calculate value of Transmit queue fifo size to be programmed */
 	tx_fifo = mgbe_calculate_per_queue_fifo(tx_fifo_size,
 						osi_core->num_mtl_queues);
@@ -2748,7 +2782,7 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	}
 
 	/* configure MGBE DMA */
-	mgbe_configure_dma(osi_core->base);
+	mgbe_configure_dma(osi_core->base, osi_core->pre_si);
 
 	/* tsn initialization */
 	if (osi_core->hw_feature != OSI_NULL) {
