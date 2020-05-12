@@ -132,6 +132,30 @@ static inline s64 nvgpu_safe_add_s64(s64 sl_a, s64 sl_b)
 }
 
 /**
+ * @brief Add two u32 values with wraparound arithmetic
+ *
+ * @param ui_a [in]	Addend value for adding.
+ * @param ui_b [in]	Addend value for adding.
+ *
+ * Adds the two u32 values together. If the result would overflow an u32, wrap
+ * in modulo arithmetic as defined in the C standard (value mod (U32_MAX + 1)).
+ *
+ * @return wrapping add of (\a ui_a + \a ui_b).
+ */
+static inline u32 nvgpu_wrapping_add_u32(u32 ui_a, u32 ui_b)
+{
+	/* INT30-C */
+	u64 ul_a = (u64)ui_a;
+	u64 ul_b = (u64)ui_b;
+	u64 sum = (ul_a + ul_b) & 0xffffffffULL;
+
+	/* satisfy Coverity's CERT INT31-C checker */
+	nvgpu_assert(sum <= U32_MAX);
+
+	return (u32)sum;
+}
+
+/**
  * @brief Subtract two u8 values and check for underflow.
  *
  * @param uc_a [in]	Value of minuend.
