@@ -52,6 +52,7 @@ struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_gr_ctx;
 struct nvgpu_channel_hw_state;
+struct nvgpu_profiler_object;
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 enum nvgpu_event_id_type;
@@ -192,6 +193,11 @@ struct nvgpu_tsg {
 #define NVGPU_SM_EXCEPTION_TYPE_MASK_FATAL		(0x1U << 0)
 	u32 sm_exception_mask_type;
 	struct nvgpu_mutex sm_exception_mask_lock;
+#endif
+
+#ifdef CONFIG_NVGPU_PROFILER
+	/** Pointer of profiler object to which this TSG is bound */
+	struct nvgpu_profiler_object *prof;
 #endif
 };
 

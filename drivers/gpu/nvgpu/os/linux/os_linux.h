@@ -106,6 +106,16 @@ struct nvgpu_os_linux {
 	struct {
 		struct cdev cdev;
 		struct device *node;
+	} prof_dev;
+
+	struct {
+		struct cdev cdev;
+		struct device *node;
+	} prof_ctx;
+
+	struct {
+		struct cdev cdev;
+		struct device *node;
 	} tsg;
 
 	struct {

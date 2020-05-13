@@ -1,7 +1,7 @@
 /*
  * NVGPU IOCTLs
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,6 +26,7 @@
 #include "ioctl_as.h"
 #include "ioctl_tsg.h"
 #include "ioctl_dbg.h"
+#include "ioctl_prof.h"
 #include "module.h"
 #include "os_linux.h"
 #include "fecs_trace_linux.h"
@@ -91,7 +92,27 @@ static const struct file_operations gk20a_prof_ops = {
 #endif
 };
 
-static const struct file_operations gk20a_tsg_ops = {
+static const struct file_operations gk20a_prof_dev_ops = {
+	.owner = THIS_MODULE,
+	.release = nvgpu_prof_fops_release,
+	.open = nvgpu_prof_dev_fops_open,
+	.unlocked_ioctl = nvgpu_prof_fops_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl = nvgpu_prof_fops_ioctl,
+#endif
+};
+
+static const struct file_operations gk20a_prof_ctx_ops = {
+	.owner = THIS_MODULE,
+	.release = nvgpu_prof_fops_release,
+	.open = nvgpu_prof_ctx_fops_open,
+	.unlocked_ioctl = nvgpu_prof_fops_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl = nvgpu_prof_fops_ioctl,
+#endif
+};
+
+const struct file_operations gk20a_tsg_ops = {
 	.owner = THIS_MODULE,
 	.release = nvgpu_ioctl_tsg_dev_release,
 	.open = nvgpu_ioctl_tsg_dev_open,
@@ -195,6 +216,16 @@ void gk20a_user_deinit(struct device *dev, struct class *class)
 		cdev_del(&l->prof.cdev);
 	}
 
+	if (l->prof_dev.node) {
+		device_destroy(class, l->prof_dev.cdev.dev);
+		cdev_del(&l->prof_dev.cdev);
+	}
+
+	if (l->prof_ctx.node) {
+		device_destroy(class, l->prof_ctx.cdev.dev);
+		cdev_del(&l->prof_ctx.cdev);
+	}
+
 	if (l->tsg.node) {
 		device_destroy(class, l->tsg.cdev.dev);
 		cdev_del(&l->tsg.cdev);
@@ -260,6 +291,20 @@ int gk20a_user_init(struct device *dev, const char *interface_name,
 	err = gk20a_create_device(dev, devno++, interface_name, "-prof",
 				  &l->prof.cdev, &l->prof.node,
 				  &gk20a_prof_ops,
+				  class);
+	if (err)
+		goto fail;
+
+	err = gk20a_create_device(dev, devno++, interface_name, "-prof-dev",
+				  &l->prof_dev.cdev, &l->prof_dev.node,
+				  &gk20a_prof_dev_ops,
+				  class);
+	if (err)
+		goto fail;
+
+	err = gk20a_create_device(dev, devno++, interface_name, "-prof-ctx",
+				  &l->prof_ctx.cdev, &l->prof_ctx.node,
+				  &gk20a_prof_ctx_ops,
 				  class);
 	if (err)
 		goto fail;

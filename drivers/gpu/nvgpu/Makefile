@@ -377,6 +377,7 @@ nvgpu-y += \
 	os/linux/ioctl_channel.o \
 	os/linux/ioctl_tsg.o \
 	os/linux/ioctl_dbg.o \
+	os/linux/ioctl_prof.o \
 	os/linux/ioctl_clk_arb.o \
 	os/linux/cond.o \
 	os/linux/nvgpu_mem.o \

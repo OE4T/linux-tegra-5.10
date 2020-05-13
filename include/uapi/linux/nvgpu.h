@@ -315,7 +315,8 @@ struct nvgpu_gpu_characteristics {
 	__u32 max_css_buffer_size;
 
 	__s16 ctxsw_ioctl_nr_last;
-	__u8 reserved2[6];
+	__s16 prof_ioctl_nr_last;
+	__u8 reserved2[4];
 
 	__u32 max_ctxsw_ring_buffer_size;
 	__u32 reserved3;
@@ -1624,10 +1625,12 @@ struct nvgpu_profiler_exec_reg_ops_args {
 	_IOWR(NVGPU_PROFILER_IOCTL_MAGIC, 8, struct nvgpu_profiler_pma_stream_update_get_put_args)
 #define NVGPU_PROFILER_IOCTL_EXEC_REG_OPS \
 	_IOWR(NVGPU_PROFILER_IOCTL_MAGIC, 9, struct nvgpu_profiler_exec_reg_ops_args)
+#define NVGPU_PROFILER_IOCTL_UNBIND_CONTEXT \
+	_IO(NVGPU_PROFILER_IOCTL_MAGIC, 10)
 #define NVGPU_PROFILER_IOCTL_MAX_ARG_SIZE	\
 		sizeof(struct nvgpu_profiler_alloc_pma_stream_args)
 #define NVGPU_PROFILER_IOCTL_LAST		\
-	_IOC_NR(NVGPU_PROFILER_IOCTL_EXEC_REG_OPS)
+	_IOC_NR(NVGPU_PROFILER_IOCTL_UNBIND_CONTEXT)
 
 
 /*

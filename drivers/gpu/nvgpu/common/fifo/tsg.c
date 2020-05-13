@@ -34,6 +34,9 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/static_analysis.h>
+#ifdef CONFIG_NVGPU_PROFILER
+#include <nvgpu/profiler.h>
+#endif
 
 void nvgpu_tsg_disable(struct nvgpu_tsg *tsg)
 {
@@ -807,6 +810,12 @@ void nvgpu_tsg_release_common(struct gk20a *g, struct nvgpu_tsg *tsg)
 	if (g->ops.tsg.deinit_eng_method_buffers != NULL) {
 		g->ops.tsg.deinit_eng_method_buffers(g, tsg);
 	}
+
+#ifdef CONFIG_NVGPU_PROFILER
+	if (tsg->prof != NULL) {
+		nvgpu_profiler_unbind_context(tsg->prof);
+	}
+#endif
 
 	if (tsg->vm != NULL) {
 		nvgpu_vm_put(tsg->vm);

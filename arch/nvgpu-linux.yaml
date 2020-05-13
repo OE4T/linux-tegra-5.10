@@ -117,6 +117,8 @@ ioctl:
              os/linux/ioctl_ctrl.h,
              os/linux/ioctl_dbg.c,
              os/linux/ioctl_dbg.h,
+             os/linux/ioctl_prof.c,
+             os/linux/ioctl_prof.h,
              os/linux/ioctl_tsg.c,
              os/linux/ioctl_tsg.h ]
 

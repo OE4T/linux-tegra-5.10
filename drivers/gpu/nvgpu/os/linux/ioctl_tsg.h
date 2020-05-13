@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -17,6 +17,8 @@ struct inode;
 struct file;
 struct gk20a;
 struct nvgpu_ref;
+
+struct nvgpu_tsg *nvgpu_tsg_get_from_file(int fd);
 
 int nvgpu_ioctl_tsg_dev_release(struct inode *inode, struct file *filp);
 int nvgpu_ioctl_tsg_dev_open(struct inode *inode, struct file *filp);

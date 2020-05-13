@@ -30,6 +30,7 @@
 
 struct gk20a;
 struct nvgpu_channel;
+struct nvgpu_tsg;
 
 struct nvgpu_profiler_object {
 	struct gk20a *g;
@@ -48,6 +49,13 @@ struct nvgpu_profiler_object {
 	 * objects with context scope.
 	 */
 	struct nvgpu_tsg *tsg;
+
+	/*
+	 * If context has been bound by userspace.
+	 * For objects with device scope, userspace should still trigger
+	 * BIND_CONTEXT IOCTL/DEVCTL with tsg_fd = -1 for consistency.
+	 */
+	bool context_init;
 
 	/* If profiler object has reservation for each resource. */
 	bool reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_COUNT];
@@ -73,6 +81,10 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 	struct nvgpu_profiler_object **_prof,
 	enum nvgpu_profiler_pm_reservation_scope scope);
 void nvgpu_profiler_free(struct nvgpu_profiler_object *prof);
+
+int nvgpu_profiler_bind_context(struct nvgpu_profiler_object *prof,
+	struct nvgpu_tsg *tsg);
+int nvgpu_profiler_unbind_context(struct nvgpu_profiler_object *prof);
 
 int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
 	enum nvgpu_profiler_pm_resource_type pm_resource);

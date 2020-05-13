@@ -44,6 +44,29 @@ struct tsg_private {
 	struct nvgpu_tsg *tsg;
 };
 
+extern const struct file_operations gk20a_tsg_ops;
+
+struct nvgpu_tsg *nvgpu_tsg_get_from_file(int fd)
+{
+	struct nvgpu_tsg *tsg;
+	struct tsg_private *priv;
+	struct file *f = fget(fd);
+
+	if (!f) {
+		return NULL;
+	}
+
+	if (f->f_op != &gk20a_tsg_ops) {
+		fput(f);
+		return NULL;
+	}
+
+	priv = (struct tsg_private *)f->private_data;
+	tsg = priv->tsg;
+	fput(f);
+	return tsg;
+}
+
 static int nvgpu_tsg_bind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 {
 	struct nvgpu_channel *ch;

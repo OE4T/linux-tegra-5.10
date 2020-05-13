@@ -26,6 +26,7 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/log.h>
 #include <nvgpu/kmem.h>
+#include <nvgpu/tsg.h>
 
 static nvgpu_atomic_t unique_id = NVGPU_ATOMIC_INIT(0);
 static int generate_unique_id(void)
@@ -68,8 +69,59 @@ void nvgpu_profiler_free(struct nvgpu_profiler_object *prof)
 	nvgpu_log(g, gpu_dbg_prof, "Free profiler handle %u",
 		prof->prof_handle);
 
+	nvgpu_profiler_unbind_context(prof);
+
 	nvgpu_list_del(&prof->prof_obj_entry);
 	nvgpu_kfree(g, prof);
+}
+
+int nvgpu_profiler_bind_context(struct nvgpu_profiler_object *prof,
+		struct nvgpu_tsg *tsg)
+{
+	struct gk20a *g = prof->g;
+
+	nvgpu_log(g, gpu_dbg_prof, "Request to bind tsgid %u with profiler handle %u",
+		tsg->tsgid, prof->prof_handle);
+
+	if (tsg->prof != NULL) {
+		nvgpu_err(g, "TSG %u is already bound", tsg->tsgid);
+		return -EINVAL;
+	}
+
+	if (prof->tsg != NULL) {
+		nvgpu_err(g, "Profiler object %u already bound!", prof->prof_handle);
+		return -EINVAL;
+	}
+
+	prof->tsg = tsg;
+	tsg->prof = prof;
+
+	nvgpu_log(g, gpu_dbg_prof, "Bind tsgid %u with profiler handle %u successful",
+		tsg->tsgid, prof->prof_handle);
+
+	prof->context_init = true;
+	return 0;
+}
+
+int nvgpu_profiler_unbind_context(struct nvgpu_profiler_object *prof)
+{
+	struct gk20a *g = prof->g;
+	struct nvgpu_tsg *tsg = prof->tsg;
+
+	if (!prof->context_init) {
+		return -EINVAL;
+	}
+
+	if (tsg != NULL) {
+		tsg->prof = NULL;
+		prof->tsg = NULL;
+
+		nvgpu_log(g, gpu_dbg_prof, "Unbind profiler handle %u and tsgid %u",
+			prof->prof_handle, tsg->tsgid);
+	}
+
+	prof->context_init = false;
+	return 0;
 }
 
 int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
