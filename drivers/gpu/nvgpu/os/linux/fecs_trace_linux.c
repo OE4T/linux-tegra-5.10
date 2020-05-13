@@ -355,6 +355,8 @@ int gk20a_ctxsw_dev_open(struct inode *inode, struct file *filp)
 
 	/* enable all traces by default */
 	NVGPU_CTXSW_FILTER_SET_ALL(&dev->filter);
+	if (g->ops.gr.fecs_trace.set_filter)
+		g->ops.gr.fecs_trace.set_filter(g, &dev->filter);
 
 	/* compute max number of entries generated with this filter */
 	n = g->ops.gr.fecs_trace.max_entries(g, &dev->filter);
