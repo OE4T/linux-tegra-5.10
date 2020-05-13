@@ -33,7 +33,6 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/job.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
@@ -1267,14 +1266,6 @@ __releases(&cde_app->mutex)
 	struct nvgpu_os_linux *l = cde_ctx->l;
 	struct gk20a *g = &l->g;
 	struct gk20a_cde_app *cde_app = &l->cde_app;
-	bool channel_idle;
-
-	nvgpu_channel_joblist_lock(ch);
-	channel_idle = nvgpu_channel_joblist_is_empty(ch);
-	nvgpu_channel_joblist_unlock(ch);
-
-	if (!channel_idle)
-		return;
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_cde_finished_ctx_cb(cde_ctx);
