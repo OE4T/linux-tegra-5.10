@@ -569,7 +569,7 @@
 			reset-names = "isp";
 			clocks = <&bpmp_clks TEGRA234_CLK_ISP>;
 			clock-names = "isp";
-
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_ISPA>;
 			nvidia,isp-falcon-device = <&isp_thi>;
 
 			iommus = <&smmu TEGRA_SID_ISP>;
