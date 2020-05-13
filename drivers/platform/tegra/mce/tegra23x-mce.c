@@ -283,6 +283,26 @@ static int tegra23x_mce_write_uncore_perfmon(u32 req, u32 data)
 	return 0;
 }
 
+static int tegra23x_mce_read_cstate_stats(u32 state, u64 *stats)
+{
+	int cpu_idx;
+	int32_t ret = 0;
+
+	if (IS_ERR_OR_NULL(stats))
+		return -EINVAL;
+
+	preempt_disable();
+	cpu_idx = get_ari_address_index();
+	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
+		(u32)TEGRA_ARI_CSTATE_STAT_QUERY, state, 0U);
+	if (ret)
+		return ret;
+	*stats = ari_get_response_low(ari_bar_array[cpu_idx]);
+	preempt_enable();
+
+	return 0;
+}
+
 #ifdef CONFIG_DEBUG_FS
 
 static struct dentry *mce_debugfs;
@@ -314,6 +334,135 @@ static int tegra23x_mce_echo_set(void *data, u64 val)
 	return 0;
 }
 
+#define MCE_STAT_ID_SHIFT	16UL
+#define MAX_CSTATE_ENTRIES	3U
+#define MAX_CLUSTERS		3U
+
+struct cstats_req {
+	char *name;
+	int id;
+};
+
+struct cstats_resp {
+	uint32_t stats[3]; /* entries, entry_time_sum, exit_time_sum */
+	uint32_t log_id;
+};
+
+static struct cstats_req core_req[MAX_CSTATE_ENTRIES] = {
+	{ "C7_ENTRIES", TEGRA_ARI_STAT_QUERY_C7_ENTRIES},
+	{ "C7_ENTRY_TIME_SUM", TEGRA_ARI_STAT_QUERY_C7_ENTRY_TIME_SUM},
+	{ "C7_EXIT_TIME_SUM", TEGRA_ARI_STAT_QUERY_C7_EXIT_TIME_SUM},
+};
+
+static struct cstats_req cluster_req[MAX_CSTATE_ENTRIES] = {
+	{ "CC7_ENTRIES", TEGRA_ARI_STAT_QUERY_CC7_ENTRIES},
+	{ "CC7_ENTRY_TIME_SUM", TEGRA_ARI_STAT_QUERY_CC7_ENTRY_TIME_SUM},
+	{ "CC7_EXIT_TIME_SUM", TEGRA_ARI_STAT_QUERY_CC7_EXIT_TIME_SUM},
+};
+
+static struct cstats_req system_req[MAX_CSTATE_ENTRIES] = {
+	{ "SC7_ENTRIES", TEGRA_ARI_STAT_QUERY_SC7_ENTRIES},
+	{ "SC7_CCPLEX_ENTRY_TIME_SUM", TEGRA_ARI_STAT_QUERY_SC7_ENTRY_TIME_SUM},
+	{ "SC7_CCPLEX_EXIT_TIME_SUM", TEGRA_ARI_STAT_QUERY_SC7_EXIT_TIME_SUM},
+};
+
+static int tegra23x_mce_dbg_cstats_show(struct seq_file *s, void *data)
+{
+	u64 val;
+	u32 mce_index;
+	int cpu, mpidr_core, mpidr_cl, mpidr_lin, i, j;
+	struct cstats_resp core_resp[MAX_CPUS] = { 0 };
+	struct cstats_resp cl_resp[MAX_CLUSTERS] = { 0 };
+	struct cstats_resp sys_resp = { 0 };
+
+	for_each_possible_cpu(cpu) {
+		mpidr_cl = MPIDR_AFFINITY_LEVEL(cpu_logical_map(cpu), 2);
+		mpidr_core = MPIDR_AFFINITY_LEVEL(cpu_logical_map(cpu), 1);
+		mpidr_lin = ((mpidr_cl * MAX_CORES_PER_CLUSTER) + mpidr_core);
+
+		/* core cstats */
+		for (i = 0; i < MAX_CSTATE_ENTRIES; i++) {
+			mce_index = (core_req[i].id <<
+					MCE_STAT_ID_SHIFT) + mpidr_lin;
+			if (tegra23x_mce_read_cstate_stats(mce_index, &val))
+				pr_err("mce: failed to read cstat: %x\n", mce_index);
+			else {
+				core_resp[mpidr_lin].stats[i] = val;
+				core_resp[mpidr_lin].log_id = cpu;
+			}
+		}
+
+		/*
+		 * cluster cstats
+		 * for multiple cores in the same cluster we end up calling
+		 * more than once. Optimize this later
+		 */
+		for (i = 0; i < MAX_CSTATE_ENTRIES; i++) {
+			mce_index = (cluster_req[i].id <<
+					MCE_STAT_ID_SHIFT) + mpidr_cl;
+			if (tegra23x_mce_read_cstate_stats(mce_index, &val))
+				pr_err("mce: failed to read cstat: %x\n", mce_index);
+			else
+				cl_resp[mpidr_cl].stats[i] = val;
+		}
+	}
+
+	/* system cstats */
+	for (i = 0; i < MAX_CSTATE_ENTRIES; i++) {
+		mce_index = (system_req[i].id << MCE_STAT_ID_SHIFT);
+		if (tegra23x_mce_read_cstate_stats(mce_index, &val))
+			pr_err("mce: failed to read cstat: %x\n", mce_index);
+		else
+			sys_resp.stats[i] = val;
+	}
+
+	seq_puts(s, "System Power States\n");
+	seq_puts(s, "---------------------------------------------------\n");
+	seq_printf(s, "%-25s%-15s\n", "name", "count/time");
+	seq_puts(s, "---------------------------------------------------\n");
+	for (i = 0; i < MAX_CSTATE_ENTRIES; i++)
+		seq_printf(s, "%-25s%-20u\n",
+			system_req[i].name, sys_resp.stats[i]);
+
+	seq_puts(s, "\nCluster Power States\n");
+	seq_puts(s, "---------------------------------------------------\n");
+	seq_printf(s, "%-25s%-15s%-15s\n", "name", "phy-id", "count/time");
+	seq_puts(s, "---------------------------------------------------\n");
+	for (j = 0; j < MAX_CLUSTERS; j++) {
+		for (i = 0; i < MAX_CSTATE_ENTRIES; i++)
+			seq_printf(s, "%-25s%-15d%-20u\n",
+				cluster_req[i].name, j, cl_resp[j].stats[i]);
+	}
+
+	seq_puts(s, "\nCore Power States\n");
+	seq_puts(s, "-------------------------------------------------------------------\n");
+	seq_printf(s, "%-25s%-15s%-15s%-15s\n", "name", "mpidr-lin", "log-id", "count/time");
+	seq_puts(s, "-------------------------------------------------------------------\n");
+	for (j = 0; j < MAX_CPUS; j++) {
+		for (i = 0; i < MAX_CSTATE_ENTRIES; i++)
+			seq_printf(s, "%-25s%-15d%-15u%-20u\n",
+				core_req[i].name, j, core_resp[j].log_id,
+					core_resp[j].stats[i]);
+	}
+
+	return 0;
+}
+
+static int tegra23x_mce_dbg_cstats_open(struct inode *inode, struct file *file)
+{
+	int (*f)(struct seq_file *s, void *data);
+
+	f = tegra23x_mce_dbg_cstats_show;
+	return single_open(file, f, inode->i_private);
+}
+
+static const struct file_operations tegra23x_mce_cstats_fops = {
+	.open = tegra23x_mce_dbg_cstats_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
 DEFINE_SIMPLE_ATTRIBUTE(tegra23x_mce_versions_fops, tegra23x_mce_versions_get,
 			NULL, "%llx\n");
 DEFINE_SIMPLE_ATTRIBUTE(tegra23x_mce_echo_fops, NULL,
@@ -329,6 +478,7 @@ struct debugfs_entry {
 static struct debugfs_entry tegra23x_mce_attrs[] = {
 	{ "versions", &tegra23x_mce_versions_fops, 0444 },
 	{ "echo", &tegra23x_mce_echo_fops, 0200 },
+	{ "cstats", &tegra23x_mce_cstats_fops, 0444 },
 	{ NULL, NULL, 0 }
 };
 
@@ -384,6 +534,7 @@ static struct tegra_mce_ops t23x_mce_ops = {
 	.echo_data = tegra23x_mce_echo_data,
 	.read_uncore_perfmon = tegra23x_mce_read_uncore_perfmon,
 	.write_uncore_perfmon = tegra23x_mce_write_uncore_perfmon,
+	.read_cstate_stats = tegra23x_mce_read_cstate_stats,
 };
 
 static int t23x_mce_probe(struct platform_device *pdev)
