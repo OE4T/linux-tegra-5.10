@@ -2050,7 +2050,6 @@ int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
 	struct sg_table     *sgt;
 	struct scatterlist  *sg;
 	u64                  iova;
-	bool                 is_coherent;
 	int                  smmudev_idx;
 	struct MODS_MEM_INFO *p_mem_info;
 	char                 *dev_name = p->dev_name;
@@ -2058,7 +2057,6 @@ int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
 	u32                  num_chunks = 0;
 	int                  ents, i, err = 0;
 	size_t iova_offset = 0;
-	DEFINE_DMA_ATTRS(attrs);
 
 	LOG_ENT();
 
@@ -2085,14 +2083,11 @@ int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
 
 	/* do smmu mapping */
 	num_chunks = p_mem_info->num_chunks;
-	is_coherent = is_device_dma_coherent(smmu_pdev->dev);
 	cl_debug(DEBUG_MEM_DETAILED,
-		 "smmu_map_sg: dev_name=%s, pages=%u, chunks=%u, %s\n",
+		 "smmu_map_sg: dev_name=%s, pages=%u, chunks=%u\n",
 		 dev_name,
 		 p_mem_info->num_pages,
-		 num_chunks,
-		 is_coherent ? "conherent" : "non-coherent");
-	dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
+		 num_chunks);
 	sgt = vzalloc(sizeof(*sgt));
 	if (!sgt) {
 		err = -ENOMEM;
@@ -2117,7 +2112,7 @@ int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
 	}
 
 	ents = dma_map_sg_attrs(smmu_pdev->dev, sgt->sgl, sgt->nents,
-				DMA_BIDIRECTIONAL, __DMA_ATTR(attrs));
+				DMA_BIDIRECTIONAL, 0);
 	if (ents <= 0) {
 		cl_error("failed to map sg attrs. err=%d\n", ents);
 		sg_free_table(sgt);
@@ -2147,7 +2142,7 @@ int esc_mods_iommu_dma_map_memory(struct mods_client               *client,
 	}
 	if (err) {
 		dma_unmap_sg_attrs(smmu_pdev->dev, sgt->sgl, sgt->nents,
-				   DMA_BIDIRECTIONAL, __DMA_ATTR(attrs));
+				   DMA_BIDIRECTIONAL, 0);
 		sg_free_table(sgt);
 		kvfree(sgt);
 		p_mem_info->sgt = NULL;
@@ -2185,11 +2180,9 @@ static int mods_smmu_unmap_memory(struct mods_client   *client,
 				  struct MODS_MEM_INFO *p_mem_info)
 {
 	struct sg_table      *sgt;
-	bool                  is_coherent;
 	u32                   smmudev_idx;
 	int                   err = 0;
 	struct mods_smmu_dev *smmu_pdev = NULL;
-	DEFINE_DMA_ATTRS(attrs);
 
 	LOG_ENT();
 
@@ -2215,14 +2208,11 @@ static int mods_smmu_unmap_memory(struct mods_client   *client,
 	}
 
 	sgt = p_mem_info->sgt;
-	dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
 	dma_unmap_sg_attrs(smmu_pdev->dev, sgt->sgl, sgt->nents,
-			   DMA_BIDIRECTIONAL, __DMA_ATTR(attrs));
-	is_coherent = is_device_dma_coherent(smmu_pdev->dev);
+			   DMA_BIDIRECTIONAL, 0);
 	cl_debug(DEBUG_MEM_DETAILED,
-		 "smmu: dma_unmap_sg_attrs: %s %s, iova=0x%llx, pages=%d\n",
+		 "smmu: dma_unmap_sg_attrs: %s, iova=0x%llx, pages=%d\n",
 		 smmu_pdev->dev_name,
-		 is_coherent ? "coherent" : "non-coherent",
 		 p_mem_info->pages[0].dev_addr,
 		 p_mem_info->num_pages);
 	sg_free_table(sgt);
