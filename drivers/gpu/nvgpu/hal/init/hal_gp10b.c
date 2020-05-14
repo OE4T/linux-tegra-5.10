@@ -913,7 +913,7 @@ static const struct gpu_ops gp10b_ops = {
 		.count = gm20b_channel_count,
 		.read_state = gk20a_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+#if defined(CONFIG_NVGPU_KERNEL_MODE_SUBMIT) && defined(CONFIG_TEGRA_GK20A_NVHOST)
 		.set_syncpt = nvgpu_channel_set_syncpt,
 #endif
 		.abort_clean_up = nvgpu_channel_abort_clean_up,

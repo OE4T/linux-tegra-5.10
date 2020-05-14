@@ -249,6 +249,7 @@ bool nvgpu_channel_is_prealloc_enabled(struct nvgpu_channel *c)
 #endif
 }
 
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
@@ -302,6 +303,7 @@ out:
 	}
 	return err;
 }
+#endif
 
 static int channel_setup_kernelmode(struct nvgpu_channel *c,
 		struct nvgpu_setup_bind_args *args)

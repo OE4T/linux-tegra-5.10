@@ -609,7 +609,9 @@ int nvgpu_submit_channel_gpfifo_kernel(struct nvgpu_channel *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out);
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch);
+#endif
 bool nvgpu_channel_is_prealloc_enabled(struct nvgpu_channel *c);
 
 bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,
