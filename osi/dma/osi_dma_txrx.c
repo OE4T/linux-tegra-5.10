@@ -731,6 +731,14 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 	}
 }
 
+/**
+ * @brief dma_wmb- Helper function to add memory write barrier
+ */
+static inline void dma_wmb(void)
+{
+	asm volatile("dmb oshst" : : : "memory");
+}
+
 void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 {
 	struct osi_tx_ring *tx_ring = osi->tx_ring[chan];
@@ -855,6 +863,12 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	}
 
 	tx_ring->cur_tx_idx = entry;
+
+	/*
+	 * We need to make sure Tx descriptor updated above is really updated
+	 * before setting up the DMA, hence add memory write barrier here.
+	 */
+	dma_wmb();
 	ops->update_tx_tailptr(osi->base, chan, tailptr);
 }
 
