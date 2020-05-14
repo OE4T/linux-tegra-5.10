@@ -255,10 +255,13 @@ struct gk20a;
 /** Enable compression */
 #define NVGPU_SUPPORT_COMPRESSION		87U
 
+/** SM TTU is enabled */
+#define NVGPU_SUPPORT_SM_TTU			88U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			88U
+#define NVGPU_MAX_ENABLED_BITS			89U
 
 /**
  * @brief Check if the passed flag is enabled.
