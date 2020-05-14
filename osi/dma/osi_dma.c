@@ -25,6 +25,20 @@
 
 int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
+	/*
+	 * Currently these osd_ops are optional to be filled in the OSD layer.
+	 * If OSD updates these pointers, use the same. If not, fall back to the
+	 * exisitng way of using osd_* API's.
+	 * TODO: Once These API's are mandatory, return errors instead of
+	 * default API usage.
+	 */
+	if (osi_dma->osd_ops.transmit_complete == OSI_NULL) {
+		osi_dma->osd_ops.transmit_complete = osd_transmit_complete;
+	}
+	if (osi_dma->osd_ops.receive_packet == OSI_NULL) {
+		osi_dma->osd_ops.receive_packet = osd_receive_packet;
+	}
+
 	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
 		/* Get EQOS HW ops */
 		osi_dma->ops = eqos_get_dma_chan_ops();

@@ -387,6 +387,20 @@ struct osi_vm_irq_data {
 };
 
 /**
+ *@brief OSD DMA callbacks
+ */
+struct osd_dma_ops {
+	/** DMA transmit complete callback */
+	void (*transmit_complete)(void *priv, void *buffer,
+				  unsigned long dmaaddr, unsigned int len,
+				  void *txdone_pkt_cx);
+	/** DMA receive packet callback */
+	void (*receive_packet)(void *priv, void *rxring,
+			       unsigned int chan, unsigned int dma_buf_len,
+			       void *rxpkt_cx, void *rx_pkt_swcx);
+};
+
+/**
  * @brief The OSI DMA private data structure.
  */
 struct osi_dma_priv_data {
@@ -443,6 +457,8 @@ struct osi_dma_priv_data {
 	unsigned int num_vm_irqs;
 	/** Array of VM IRQ's */
 	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
+	/** DMA callback ops structure */
+	struct osd_dma_ops osd_ops;
 };
 
 /**

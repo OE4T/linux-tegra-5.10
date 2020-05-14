@@ -322,8 +322,9 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 				 */
 				INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
 			}
-			osd_receive_packet(osi->osd, rx_ring, chan,
-					   osi->rx_buf_len, rx_pkt_cx, rx_swcx);
+			osi->osd_ops.receive_packet(osi->osd, rx_ring, chan,
+						    osi->rx_buf_len, rx_pkt_cx,
+						    rx_swcx);
 		}
 		osi->dstats.q_rx_pkt_n[chan] =
 			osi_update_stats_counter(osi->dstats.q_rx_pkt_n[chan],
@@ -562,9 +563,9 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			txdone_pkt_cx->flags |= OSI_TXDONE_CX_PAGED_BUF;
 		}
 
-		osd_transmit_complete(osi->osd, tx_swcx->buf_virt_addr,
-				      tx_swcx->buf_phy_addr, tx_swcx->len,
-				      txdone_pkt_cx);
+		osi->osd_ops.transmit_complete(osi->osd, tx_swcx->buf_virt_addr,
+					       tx_swcx->buf_phy_addr,
+					       tx_swcx->len, txdone_pkt_cx);
 
 		tx_desc->tdes3 = 0;
 		tx_desc->tdes2 = 0;
