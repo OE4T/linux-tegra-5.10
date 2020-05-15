@@ -203,6 +203,12 @@ Required properties:
 				should be "rgmii-id".
 - phy-handle:			Phandle, specifies a reference to a node
 				representing a PHY device;
+- nvidia,residual-queue:	Residual Queue to receive untagged Preempted
+				fragments. RxQ0 can't be residual queue.
+- nvidia,tc-mapping:		Traffic class mapping for TxQ. This will map
+				Transmit queue to a traffic class. Default
+				mapping is 1:1 between TxQ and TC class. Valid
+				property for IP with more number queue than TC.
 MDIO node
 - mdio:				Child of Ethernet controller which holds the PHY
 				devices connected via MDIO bus
