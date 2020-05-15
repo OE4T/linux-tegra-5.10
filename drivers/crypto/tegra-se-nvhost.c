@@ -79,7 +79,8 @@ enum tegra_se_aes_op_mode {
 	SE_AES_OP_MODE_SHA256,	/* Secure Hash Algorithm-256  (SHA256) mode */
 	SE_AES_OP_MODE_SHA384,	/* Secure Hash Algorithm-384  (SHA384) mode */
 	SE_AES_OP_MODE_SHA512,	/* Secure Hash Algorithm-512  (SHA512) mode */
-	SE_AES_OP_MODE_XTS	/* XTS mode */
+	SE_AES_OP_MODE_XTS,	/* XTS mode */
+	SE_AES_OP_MODE_INS	/* key insertion */
 };
 
 /* Security Engine key table type */
@@ -94,9 +95,16 @@ enum tegra_se_key_table_type {
 	SE_KEY_TABLE_TYPE_XTS_KEY2_IN_MEM	/* XTS Key2 in Memory */
 };
 
+/* Key access control type */
+enum tegra_se_kac_type {
+	SE_KAC_T18X,
+	SE_KAC_T23X
+};
+
 struct tegra_se_chipdata {
 	unsigned long aes_freq;
 	unsigned int cpu_freq_mhz;
+	enum tegra_se_kac_type kac_type;
 };
 
 /* Security Engine Linked List */
@@ -696,6 +704,10 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 		}
 			val |= SE_CONFIG_DST(DST_MEMORY);
 		break;
+	case SE_AES_OP_MODE_INS:
+		val = SE_CONFIG_ENC_ALG(ALG_INS);
+		val |= SE_CONFIG_DEC_ALG(ALG_NOP);
+		break;
 	default:
 		dev_warn(se_dev->dev, "Invalid operation mode\n");
 		break;
@@ -784,6 +796,8 @@ static void tegra_se_aes_complete_callback(void *priv, int nr_completed)
 	void *buf;
 	u32 num_sgs;
 
+	pr_debug("%s(%d) aes callback\n", __func__, __LINE__);
+
 	se_dev = priv_data->se_dev;
 	atomic_set(&se_dev->cmdbuf_addr_list[priv_data->cmdbuf_node].free, 1);
 
@@ -832,6 +846,7 @@ static void tegra_se_aes_complete_callback(void *priv, int nr_completed)
 	}
 
 	devm_kfree(se_dev->dev, priv_data);
+	pr_debug("%s(%d) aes callback complete\n", __func__, __LINE__);
 }
 
 static void se_nvhost_write_method(u32 *buf, u32 op1, u32 op2, u32 *offset)
@@ -1026,6 +1041,92 @@ static void tegra_se_send_ctr_seed(struct tegra_se_dev *se_dev, u32 *pdata,
 	se_dev->cmdbuf_cnt = i;
 }
 
+static int tegra_se_aes_ins_op(struct tegra_se_dev *se_dev, u8 *pdata,
+				  u32 data_len, u8 slot_num,
+				  enum tegra_se_key_table_type type,
+				  unsigned int opcode_addr, u32 *cpuvaddr,
+				  dma_addr_t iova,
+				  enum tegra_se_callback callback)
+{
+	u32 *pdata_buf = (u32 *)pdata;
+	u32 val = 0, j;
+	u32 cmdbuf_num_words = 0, i = 0;
+	int err = 0;
+
+	if (!pdata_buf) {
+		dev_err(se_dev->dev, "No key data available\n");
+		return -ENODATA;
+	}
+
+	pr_debug("%s(%d) data_len = %d slot_num = %d\n", __func__, __LINE__,
+						data_len, slot_num);
+
+	i = se_dev->cmdbuf_cnt;
+
+	if (!se_dev->cmdbuf_cnt) {
+		cpuvaddr[i++] = __nvhost_opcode_nonincr(
+				opcode_addr + SE_AES_OPERATION_OFFSET, 1);
+		cpuvaddr[i++] = SE_OPERATION_WRSTALL(WRSTALL_TRUE) |
+				SE_OPERATION_OP(OP_DUMMY);
+	}
+
+	/* key manifest */
+	val = SE_KEYMANIFEST_USER(NS);
+	val |= SE_KEYMANIFEST_PURPOSE(ENC);
+	if (data_len == 16)
+		val |= SE_KEYMANIFEST_SIZE(KEY128);
+	else if (data_len == 24)
+		val |= SE_KEYMANIFEST_SIZE(KEY192);
+	else if (data_len == 32)
+		val |= SE_KEYMANIFEST_SIZE(KEY256);
+	val |= SE_KEYMANIFEST_EX(false);
+
+	cpuvaddr[i++] = __nvhost_opcode_nonincr(opcode_addr +
+				SE_AES_CRYPTO_KEYTABLE_KEYMANIFEST_OFFSET, 1);
+	cpuvaddr[i++] = val;
+
+	/* configure slot number */
+	cpuvaddr[i++] = __nvhost_opcode_nonincr(
+			opcode_addr + SE_AES_CRYPTO_KEYTABLE_DST_OFFSET, 1);
+	cpuvaddr[i++] = SE_AES_KEY_INDEX(slot_num);
+
+	/* write key data */
+	for (j = 0; j < data_len; j += 4) {
+		pr_debug("%s(%d) data_len = %d j = %d\n", __func__,
+						__LINE__, data_len, j);
+		cpuvaddr[i++] = __nvhost_opcode_nonincr(
+				opcode_addr +
+				SE_AES_CRYPTO_KEYTABLE_ADDR_OFFSET, 1);
+		val = (j / 4); /* program quad */
+		cpuvaddr[i++] = val;
+
+		cpuvaddr[i++] = __nvhost_opcode_nonincr(
+				opcode_addr +
+				SE_AES_CRYPTO_KEYTABLE_DATA_OFFSET, 1);
+		cpuvaddr[i++] = *pdata_buf++;
+	}
+
+	/* configure INS operation */
+	cpuvaddr[i++] = __nvhost_opcode_nonincr(opcode_addr, 1);
+	cpuvaddr[i++] = tegra_se_get_config(se_dev, SE_AES_OP_MODE_INS, 0, 0);
+
+	/* initiate key write operation to key slot */
+	cpuvaddr[i++] = __nvhost_opcode_nonincr(
+			opcode_addr + SE_AES_OPERATION_OFFSET, 1);
+	cpuvaddr[i++] = SE_OPERATION_WRSTALL(WRSTALL_TRUE) |
+				SE_OPERATION_OP(OP_START);
+
+	cmdbuf_num_words = i;
+	se_dev->cmdbuf_cnt = i;
+
+	err = tegra_se_channel_submit_gather(
+		se_dev, cpuvaddr, iova, 0, cmdbuf_num_words, callback);
+
+	pr_debug("%s(%d) complete\n", __func__, __LINE__);
+
+	return err;
+}
+
 static int tegra_se_send_key_data(struct tegra_se_dev *se_dev, u8 *pdata,
 				  u32 data_len, u8 slot_num,
 				  enum tegra_se_key_table_type type,
@@ -1043,6 +1144,22 @@ static int tegra_se_send_key_data(struct tegra_se_dev *se_dev, u8 *pdata,
 	if (!pdata_buf) {
 		dev_err(se_dev->dev, "No Key Data available\n");
 		return -ENODATA;
+	}
+
+	if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+		if (type == SE_KEY_TABLE_TYPE_ORGIV ||
+			type == SE_KEY_TABLE_TYPE_UPDTDIV) {
+			pr_debug("%s(%d) IV programming\n", __func__, __LINE__);
+
+			/* Program IV using CTR registers */
+			tegra_se_send_ctr_seed(se_dev, pdata_buf, opcode_addr,
+							cpuvaddr);
+		} else {
+			/* Program key using INS operation */
+			err = tegra_se_aes_ins_op(se_dev, pdata, data_len,
+			slot_num, type, opcode_addr, cpuvaddr, iova, callback);
+		}
+		return err;
 	}
 
 	if ((type == SE_KEY_TABLE_TYPE_KEY) &&
@@ -1213,9 +1330,13 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 			SE_CRYPTO_CTR_CNTN(1);
 	} else {
 		val |= SE_CRYPTO_HASH(HASH_DISABLE) |
-			SE_CRYPTO_KEY_INDEX(slot_num) |
-			(org_iv ? SE_CRYPTO_IV_SEL(IV_ORIGINAL) :
-			SE_CRYPTO_IV_SEL(IV_UPDATED));
+			SE_CRYPTO_KEY_INDEX(slot_num);
+		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+			val |= SE_CRYPTO_IV_SEL(IV_REG);
+		} else {
+			val |= (org_iv ? SE_CRYPTO_IV_SEL(IV_ORIGINAL) :
+				SE_CRYPTO_IV_SEL(IV_UPDATED));
+		}
 	}
 
 	/* enable hash for CMAC */
@@ -1592,6 +1713,8 @@ static int tegra_se_prepare_cmdbuf(struct tegra_se_dev *se_dev,
 	struct crypto_ablkcipher *tfm;
 	u32 keylen;
 
+	pr_debug("%s:%d req_cnt = %d\n", __func__, __LINE__, se_dev->req_cnt);
+
 	for (i = 0; i < se_dev->req_cnt; i++) {
 		req = se_dev->reqs[i];
 		tfm = crypto_ablkcipher_reqtfm(req);
@@ -1681,6 +1804,9 @@ static void tegra_se_process_new_req(struct tegra_se_dev *se_dev)
 	unsigned int index = 0;
 	int err = 0, i = 0;
 
+	pr_debug("%s:%d start req_cnt = %d\n", __func__, __LINE__,
+				se_dev->req_cnt);
+
 	tegra_se_boost_cpu_freq(se_dev);
 
 	for (i = 0; i < se_dev->req_cnt; i++) {
@@ -1716,6 +1842,8 @@ static void tegra_se_process_new_req(struct tegra_se_dev *se_dev)
 	if (err)
 		goto cmdbuf_out;
 	se_dev->dynamic_mem = false;
+
+	pr_debug("%s:%d complete\n", __func__, __LINE__);
 
 	return;
 cmdbuf_out:
@@ -4108,6 +4236,7 @@ static int tegra_se_nvhost_prepare_poweroff(struct platform_device *pdev)
 static struct tegra_se_chipdata tegra18_se_chipdata = {
 	.aes_freq = 600000000,
 	.cpu_freq_mhz = 2400,
+	.kac_type = SE_KAC_T18X,
 };
 
 static struct nvhost_device_data nvhost_se1_info = {
@@ -4178,6 +4307,63 @@ static struct nvhost_device_data nvhost_se4_info = {
 	.prepare_poweroff = tegra_se_nvhost_prepare_poweroff,
 };
 
+static struct tegra_se_chipdata tegra23_se_chipdata = {
+	.aes_freq = 600000000,
+	.cpu_freq_mhz = 2400,
+	.kac_type = SE_KAC_T23X,
+};
+
+static struct nvhost_device_data nvhost_t234_se1_info = {
+	.clocks = {{"se", 600000000},
+		   {"emc", UINT_MAX,
+		   NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
+		   0, TEGRA_BWMGR_SET_EMC_FLOOR}, {} },
+	.can_powergate          = true,
+	.autosuspend_delay      = 500,
+	.class = NV_SE1_CLASS_ID,
+	.private_data = &tegra23_se_chipdata,
+	.serialize = 1,
+	.push_work_done = 1,
+	.vm_regs		= {{SE_STREAMID_REG_OFFSET, true} },
+	.kernel_only = true,
+	.bwmgr_client_id = TEGRA_BWMGR_CLIENT_SE1,
+	.prepare_poweroff = tegra_se_nvhost_prepare_poweroff,
+};
+
+static struct nvhost_device_data nvhost_t234_se2_info = {
+	.clocks = {{"se", 600000000},
+		   {"emc", UINT_MAX,
+		   NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
+		   0, TEGRA_BWMGR_SET_EMC_FLOOR}, {} },
+	.can_powergate          = true,
+	.autosuspend_delay      = 500,
+	.class = NV_SE2_CLASS_ID,
+	.private_data = &tegra23_se_chipdata,
+	.serialize = 1,
+	.push_work_done = 1,
+	.vm_regs		= {{SE_STREAMID_REG_OFFSET, true} },
+	.kernel_only = true,
+	.bwmgr_client_id = TEGRA_BWMGR_CLIENT_SE2,
+	.prepare_poweroff = tegra_se_nvhost_prepare_poweroff,
+};
+
+static struct nvhost_device_data nvhost_t234_se4_info = {
+	.clocks = {{"se", 600000000},
+		   {"emc", UINT_MAX,
+		   NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
+		   0, TEGRA_BWMGR_SET_EMC_FLOOR}, {} },
+	.can_powergate          = true,
+	.autosuspend_delay      = 500,
+	.class = NV_SE4_CLASS_ID,
+	.private_data = &tegra23_se_chipdata,
+	.serialize = 1,
+	.push_work_done = 1,
+	.vm_regs		= {{SE_STREAMID_REG_OFFSET, true} },
+	.kernel_only = true,
+	.bwmgr_client_id = TEGRA_BWMGR_CLIENT_SE4,
+	.prepare_poweroff = tegra_se_nvhost_prepare_poweroff,
+};
+
 static const struct of_device_id tegra_se_of_match[] = {
 	{
 		.compatible = "nvidia,tegra186-se1-nvhost",
@@ -4191,6 +4377,15 @@ static const struct of_device_id tegra_se_of_match[] = {
 	}, {
 		.compatible = "nvidia,tegra186-se4-nvhost",
 		.data = &nvhost_se4_info,
+	}, {
+		.compatible = "nvidia,tegra234-se1-nvhost",
+		.data = &nvhost_t234_se1_info,
+	}, {
+		.compatible = "nvidia,tegra234-se2-nvhost",
+		.data = &nvhost_t234_se2_info,
+	}, {
+		.compatible = "nvidia,tegra234-se4-nvhost",
+		.data = &nvhost_t234_se4_info,
 	}, {}
 };
 MODULE_DEVICE_TABLE(of, tegra_se_of_match);

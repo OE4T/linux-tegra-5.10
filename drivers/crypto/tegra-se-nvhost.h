@@ -1,7 +1,7 @@
 /*
  * Header file for Tegra Security Engine
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -56,6 +56,9 @@
 #define ALG_NOP			0
 #define ALG_AES_DEC		1
 #define ALG_KEYFETCH		5
+#define ALG_HMAC		7
+#define ALG_KDF			8
+#define ALG_INS			13
 #define SE_CONFIG_ENC_ALG(x)		(x << SE_CONFIG_ENC_ALG_SHIFT)
 #define SE_CONFIG_DEC_ALG(x)		(x << SE_CONFIG_DEC_ALG_SHIFT)
 #define SE_CONFIG_DST_SHIFT			2
@@ -336,4 +339,36 @@
 #define SE_KEY_LEN_MASK	0x3FF
 #define SE_MAGIC_PATTERN_OFFSET	16
 #define SE_STREAMID_REG_OFFSET	0x90
+
+/* Key manifest */
+#define SE_KEYMANIFEST_ORIGIN(x)	(x << 0)
+
+#define SE_KEYMANIFEST_USER(x)	(x << 4)
+#define NS		3
+
+#define SE_KEYMANIFEST_PURPOSE(x)	(x << 8)
+#define ENC		0
+#define CMAC		1
+#define HMAC		2
+#define KW		3
+#define KUW		4
+#define KWUW		5
+#define KDK		6
+#define KDD		7
+#define KDD_KUW		8
+#define XTS		9
+#define GCM		10
+
+#define SE_KEYMANIFEST_SIZE(x)	(x << 14)
+#define KEY128 0
+#define KEY192 1
+#define KEY256 2
+
+#define SE_KEYMANIFEST_EX(x)	(x << 12)
+
+#define SE_AES_CRYPTO_KEYTABLE_KEYMANIFEST_OFFSET	0x110
+
+#define SE_AES_CRYPTO_KEYTABLE_DST_OFFSET		0x2c
+
+#define SE_AES_KEY_INDEX(x)	(x << 8)
 #endif /* _CRYPTO_TEGRA_SE_H */
