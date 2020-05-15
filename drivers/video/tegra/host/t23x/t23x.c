@@ -72,6 +72,11 @@
 #include "classid_vm_regs.c"
 #include "mmio_vm_regs.c"
 
+/* HOST1X_THOST_COMMON_CH_MLOCK_EN_0 */
+static const u32 host1x_ch_mlock_en0_r = 0x1710u;
+/* HOST1X_THOST_COMMON_CH_MLOCK_EN_1 */
+static const u32 host1x_ch_mlock_en1_r = 0x1714u;
+
 static dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
 						  u32 reloc_type)
 {
@@ -702,6 +707,13 @@ static void t23x_init_map_regs(struct platform_device *pdev)
 					0x1);
 	}
 
+	/*
+	 * Disabling the requirement of using MLOCKs for channels.
+	 * So for engines like SE, where we were not programming MLOCKs,
+	 * it should allow things to work.
+	 */
+	host1x_hypervisor_writel(pdev, host1x_ch_mlock_en0_r, 0x0);
+	host1x_hypervisor_writel(pdev, host1x_ch_mlock_en1_r, 0x0);
 }
 
 #include "host1x/host1x_cdma_t186.c"
