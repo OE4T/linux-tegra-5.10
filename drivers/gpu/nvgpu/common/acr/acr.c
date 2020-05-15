@@ -36,6 +36,10 @@
 #include "acr_sw_tu104.h"
 #endif
 
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#include "nvgpu_next_gpuid.h"
+#endif
+
 /* ACR public API's */
 bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 	u32 falcon_id)
@@ -171,6 +175,9 @@ int nvgpu_acr_init(struct gk20a *g)
 		break;
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
+#if defined(CONFIG_NVGPU_NEXT)
+	case NVGPU_NEXT_DGPU_GPUID:
+#endif
 		nvgpu_tu104_acr_sw_init(g, g->acr);
 		break;
 #endif

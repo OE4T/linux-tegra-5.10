@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -123,6 +123,12 @@ static u32 tu104_acr_lsf_sec2(struct gk20a *g,
 static u32 tu104_acr_lsf_pmu(struct gk20a *g,
 		struct acr_lsf_config *lsf)
 {
+	/* PMU support not required until PSTATE support is enabled */
+	if (!g->support_ls_pmu) {
+		/* skip adding LS PMU ucode to ACR blob */
+		return 0;
+	}
+
 	/* PMU LS falcon info */
 	lsf->falcon_id = FALCON_ID_PMU;
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
