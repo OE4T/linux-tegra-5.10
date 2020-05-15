@@ -213,7 +213,7 @@
 
 	fixed-regulators {
 		vdd_1v8_aud2: regulator@200 {
-			compatible = "regulator-fixed-sync";
+			compatible = "regulator-fixed-sync", "regulator-fixed";
 			reg = <200>;
 			regulator-name = "vdd-1v8-aud2";
 			regulator-min-microvolt = <1800000>;
