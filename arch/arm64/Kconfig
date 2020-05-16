@@ -11,3 +11,10 @@ config TEGRA_5G_LDPC
 	default n
 	help
 	  Enable NVIDIA Tegra Option for 5G-LDPC module
+
+config TEGRA_PSC
+	tristate "NVIDIA Tegra Option for PSC module"
+	depends on ARCH_TEGRA_23x_SOC
+	default y
+	help
+	  Enable NVIDIA Tegra Option for platform security controller
