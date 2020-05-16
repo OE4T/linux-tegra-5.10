@@ -589,26 +589,31 @@ static int tegracam_check_ctrl_ops(
 	struct device *dev = tc_dev->dev;
 	const struct tegracam_ctrl_ops *ops = handler->ctrl_ops;
 	const u32 *cids = ops->ctrl_cid_list;
-	int sensor_ops = 0, mode_ops = 0, string_ops = 0;
-	int default_ops = 0, total_ops = 0;
+	int sensor_ops = 0, sensor_ex_ops = 0, mode_ops = 0, string_ops = 0;
+	int default_ops = 0, default_ex_ops = 0, total_ops = 0;
 	int i;
 
 	/* Find missing sensor controls */
 	for (i = 0; i < ops->numctrls; i++) {
 		switch (cids[i]) {
 		case TEGRA_CAMERA_CID_GAIN:
-			if (ops->set_gain == NULL)
+			if (ops->set_gain == NULL && ops->set_gain_ex == NULL)
 				dev_err(dev,
 					"Missing TEGRA_CAMERA_CID_GAIN implementation\n");
-			else
+			if (ops->set_gain != NULL)
 				sensor_ops++;
+			if (ops->set_gain_ex != NULL)
+				sensor_ex_ops++;
 			break;
 		case TEGRA_CAMERA_CID_EXPOSURE:
-			if (ops->set_exposure == NULL)
+			if (ops->set_exposure == NULL &&
+				ops->set_exposure_ex == NULL)
 				dev_err(dev,
 					"Missing TEGRA_CAMERA_CID_EXPOSURE implementation\n");
-			else
+			if (ops->set_exposure != NULL)
 				sensor_ops++;
+			if (ops->set_exposure_ex != NULL)
+				sensor_ex_ops++;
 			break;
 		case TEGRA_CAMERA_CID_EXPOSURE_SHORT:
 			if (ops->set_exposure_short == NULL)
@@ -618,11 +623,14 @@ static int tegracam_check_ctrl_ops(
 				sensor_ops++;
 			break;
 		case TEGRA_CAMERA_CID_FRAME_RATE:
-			if (ops->set_frame_rate == NULL)
+			if (ops->set_frame_rate == NULL &&
+				ops->set_frame_rate_ex == NULL)
 				dev_err(dev,
 					"Missing TEGRA_CAMERA_CID_FRAME_RATE implementation\n");
-			else
+			if (ops->set_frame_rate != NULL)
 				sensor_ops++;
+			if (ops->set_frame_rate_ex != NULL)
+				sensor_ex_ops++;
 			break;
 		case TEGRA_CAMERA_CID_GROUP_HOLD:
 			dev_err(dev,
@@ -671,18 +679,38 @@ static int tegracam_check_ctrl_ops(
 	for (i = 0; i < TEGRACAM_DEF_CTRLS; i++) {
 		switch (tegracam_def_cids[i]) {
 		case TEGRA_CAMERA_CID_GROUP_HOLD:
-			if (sensor_ops > 0 && ops->set_group_hold == NULL)
+			if ((sensor_ops > 0 &&
+				ops->set_group_hold == NULL) ||
+				(sensor_ex_ops > 0 &&
+				ops->set_group_hold_ex == NULL))
 				dev_err(dev,
 					"Missing TEGRA_CAMERA_CID_GROUP_HOLD implementation\n");
-			else
+			if (ops->set_group_hold != NULL)
 				default_ops++;
+			if (ops->set_group_hold_ex != NULL)
+				default_ex_ops++;
 			break;
 		default:
 			break;
 		}
 	}
 
+	/* Don't use extended control when blob support is not enabled */
+	if (sensor_ex_ops > 0 && ops->is_blob_supported == false) {
+		dev_err(dev,
+			"ERROR: Extended controls only work when blob support is enabled\n");
+		return -EINVAL;
+	}
+
+	/* Should not mix normal and extended controls */
+	if ((sensor_ops + default_ops) > 0 &&
+		(sensor_ex_ops + default_ex_ops) > 0) {
+		dev_err(dev,
+			"ERROR: Can not mix normal and extended sensor controls\n");
+		return -EINVAL;
+	}
 	total_ops = sensor_ops + mode_ops + string_ops + default_ops;
+	total_ops += sensor_ex_ops + default_ex_ops;
 
 	if (total_ops != (ops->numctrls + TEGRACAM_DEF_CTRLS)) {
 		dev_err(dev,
@@ -691,11 +719,13 @@ static int tegracam_check_ctrl_ops(
 		return -EINVAL;
 	}
 
-	*numctrls = sensor_ops + mode_ops + string_ops;
+	*numctrls = sensor_ops + sensor_ex_ops + mode_ops + string_ops;
 
 	/* default controls are only needed if sensor controls are registered */
 	if (sensor_ops > 0)
 		*numctrls += default_ops;
+	if (sensor_ex_ops > 0)
+		*numctrls += default_ex_ops;
 
 	return 0;
 }
@@ -720,7 +750,7 @@ static int tegracam_check_ctrl_cids(struct tegracam_ctrl_handler *handler)
 	int errors_found = 0;
 
 	/* Find missing sensor control IDs */
-	if (ops->set_gain != NULL) {
+	if (ops->set_gain != NULL || ops->set_gain_ex != NULL) {
 		if (!find_matching_cid(ops->ctrl_cid_list,
 			ops->numctrls,
 			TEGRA_CAMERA_CID_GAIN)) {
@@ -729,7 +759,7 @@ static int tegracam_check_ctrl_cids(struct tegracam_ctrl_handler *handler)
 		}
 	}
 
-	if (ops->set_exposure != NULL) {
+	if (ops->set_exposure != NULL || ops->set_exposure_ex != NULL) {
 		if (!find_matching_cid(ops->ctrl_cid_list,
 			ops->numctrls,
 			TEGRA_CAMERA_CID_EXPOSURE)) {
@@ -748,7 +778,7 @@ static int tegracam_check_ctrl_cids(struct tegracam_ctrl_handler *handler)
 		}
 	}
 
-	if (ops->set_frame_rate != NULL) {
+	if (ops->set_frame_rate != NULL || ops->set_frame_rate_ex != NULL) {
 		if (!find_matching_cid(ops->ctrl_cid_list,
 			ops->numctrls,
 			TEGRA_CAMERA_CID_FRAME_RATE)) {
