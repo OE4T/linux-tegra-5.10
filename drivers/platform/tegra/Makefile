@@ -7,4 +7,7 @@ obj-$(CONFIG_TEGRA_DCE) += dce/
 obj-$(CONFIG_TEGRA_MCE) += mce/
 obj-$(CONFIG_TEGRA_PSC) += psc/
 
-obj-$(CONFIG_ARCH_TEGRA_23x_SOC) += t23x_cache.o
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_18x_SOC) $(CONFIG_ARCH_TEGRA_19x_SOC)),)
+obj-y += cache/
+endif
+

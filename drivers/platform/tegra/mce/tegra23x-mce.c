@@ -26,10 +26,8 @@
 #include <linux/platform_device.h>
 #include <linux/t23x_ari.h>
 #include <linux/debugfs.h>
-#include <linux/platform/tegra/tegra19x_cache.h>
 #include <asm/cputype.h>
 #include <asm/smp_plat.h>
-#include <asm/cacheflush.h>
 
 #define MAX_CPUS			12U
 #define MAX_CORES_PER_CLUSTER		4U
@@ -190,51 +188,6 @@ static int tegra23x_mce_write_l4_cache_ways(u64 data, u64 *value)
 	return 0;
 }
 
-static int tegra_23x_flush_cache_all(void)
-{
-	int ret = 0;
-
-	ret = tegra19x_flush_cache_all();
-	/* Fallback to VA flush cache all if not support or failed */
-	if (ret)
-		flush_cache_all();
-
-	/* CRITICAL: failed to flush all cache */
-	WARN_ON(ret && ret != -ENOTSUPP);
-
-	return ret;
-}
-
-static int tegra_23x_flush_dcache_all(void *__maybe_unused unused)
-{
-	int ret = 0;
-
-	ret = tegra19x_flush_dcache_all();
-	/* Fallback to VA flush dcache if not support or failed */
-	if (ret)
-		__flush_dcache_all(unused);
-
-	/* CRITICAL: failed to flush dcache */
-	WARN_ON(ret && ret != -ENOTSUPP);
-
-	return ret;
-}
-
-static int tegra_23x_clean_dcache_all(void *__maybe_unused unused)
-{
-	int ret = 0;
-
-	ret = tegra19x_clean_dcache_all();
-	/* Fallback to VA clean if not support or failed */
-	if (ret)
-		__clean_dcache_all(unused);
-
-	/* CRITICAL: failed to clean dcache */
-	WARN_ON(ret && ret != -ENOTSUPP);
-
-	return ret;
-}
-
 #ifdef CONFIG_DEBUG_FS
 
 static struct dentry *mce_debugfs;
@@ -333,9 +286,6 @@ static struct tegra_mce_ops t23x_mce_ops = {
 	.read_versions = tegra23x_mce_read_versions,
 	.read_l3_cache_ways = tegra23x_mce_read_l4_cache_ways,
 	.write_l3_cache_ways = tegra23x_mce_write_l4_cache_ways,
-	.flush_cache_all = tegra_23x_flush_cache_all,
-	.flush_dcache_all = tegra_23x_flush_dcache_all,
-	.clean_dcache_all = tegra_23x_clean_dcache_all,
 	.echo_data = tegra23x_mce_echo_data,
 };
 
