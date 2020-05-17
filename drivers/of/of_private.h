@@ -157,8 +157,6 @@ extern void __of_sysfs_remove_bin_file(struct device_node *np,
 extern int of_bus_n_addr_cells(struct device_node *np);
 extern int of_bus_n_size_cells(struct device_node *np);
 
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_OF_ADDRESS
 extern int of_dma_get_range(struct device_node *np, u64 *dma_addr,
 			    u64 *paddr, u64 *size);
@@ -170,5 +168,4 @@ static inline int of_dma_get_range(struct device_node *np, u64 *dma_addr,
 }
 #endif
 
->>>>>>> v5.7-rc5
 #endif /* _LINUX_OF_PRIVATE_H */

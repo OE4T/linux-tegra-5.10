@@ -168,11 +168,8 @@ Examples:
 
 Tegra194 RC mode:
 -----------------
-<<<<<<< HEAD
 
 SoC DTSI:
-=======
->>>>>>> v5.7-rc5
 
 	pcie@14180000 {
 		compatible = "nvidia,tegra194-pcie";

@@ -544,10 +544,7 @@ int dw_pcie_ep_init_complete(struct dw_pcie_ep *ep)
 
 	return 0;
 }
-<<<<<<< HEAD
-=======
 EXPORT_SYMBOL_GPL(dw_pcie_ep_init_complete);
->>>>>>> v5.7-rc5
 
 int dw_pcie_ep_init(struct dw_pcie_ep *ep)
 {

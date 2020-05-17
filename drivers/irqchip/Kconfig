@@ -500,7 +500,6 @@ config TI_SCI_INTA_IRQCHIP
 	  If you wish to use interrupt aggregator irq resources managed by the
 	  TI System Controller, say Y here. Otherwise, say N.
 
-<<<<<<< HEAD
 config MINIMAL_GIC_INIT
 	def_bool n
 	help
@@ -514,10 +513,6 @@ config MINIMAL_GIC_INIT
 	  This config should not be enabled if either GICD_INT_DEF_PRI or GIC_DIST_TARGET
 	  initialization cannot be disabled in the system
 
-endmenu
-
-=======
->>>>>>> v5.7-rc5
 config SIFIVE_PLIC
 	bool "SiFive Platform-Level Interrupt Controller"
 	depends on RISCV

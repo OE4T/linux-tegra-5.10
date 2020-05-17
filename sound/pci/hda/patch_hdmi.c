@@ -893,14 +893,10 @@ static int hdmi_pin_hbr_setup(struct hda_codec *codec, hda_nid_t pin_nid,
 {
 	int pinctl, new_pinctl;
 
-<<<<<<< HEAD
 	/* Assuming the HW supports HBR for Tegra HDMI */
 	if ((snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) ||
 		is_tegra_hdmi(codec)) {
-=======
-	if (snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) {
 		snd_hda_set_dev_select(codec, pin_nid, dev_id);
->>>>>>> v5.7-rc5
 		pinctl = snd_hda_codec_read(codec, pin_nid, 0,
 					    AC_VERB_GET_PIN_WIDGET_CONTROL, 0);
 
@@ -1643,16 +1639,11 @@ static void hdmi_present_sense_via_verbs(struct hdmi_spec_per_pin *per_pin,
 		if (spec->ops.pin_get_eld(codec, pin_nid, dev_id,
 					  eld->eld_buffer, &eld->eld_size) < 0)
 			eld->eld_valid = false;
-<<<<<<< HEAD
 
 		if (snd_hdmi_parse_eld(codec, &eld->info, eld->eld_buffer,
 						    eld->eld_size) < 0)
 			eld->eld_valid = false;
 
-		if (!eld->eld_valid && repoll)
-			do_repoll = true;
-=======
->>>>>>> v5.7-rc5
 	}
 
 	update_eld(codec, per_pin, eld, repoll);
@@ -2230,7 +2221,6 @@ static int generic_hdmi_build_controls(struct hda_codec *codec)
 		struct hdmi_spec_per_pin *per_pin = get_pin(spec, pin_idx);
 		struct hdmi_eld *pin_eld = &per_pin->sink_eld;
 
-<<<<<<< HEAD
 		/* add control for custom ELD */
 		err = hdmi_create_custom_eld_ctl(codec,
 						 per_pin->pin_nid,
@@ -2238,9 +2228,7 @@ static int generic_hdmi_build_controls(struct hda_codec *codec)
 		if (err < 0)
 			return err;
 
-=======
 		pin_eld->eld_valid = false;
->>>>>>> v5.7-rc5
 		hdmi_present_sense(per_pin, 0);
 	}
 

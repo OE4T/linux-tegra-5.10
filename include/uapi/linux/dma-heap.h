@@ -42,20 +42,12 @@ struct dma_heap_allocation_data {
 #define DMA_HEAP_IOC_MAGIC		'H'
 
 /**
-<<<<<<< HEAD
- * DOC: DMA_HEAP_IOC_ALLOC - allocate memory from pool
-=======
  * DOC: DMA_HEAP_IOCTL_ALLOC - allocate memory from pool
->>>>>>> v5.7-rc5
  *
  * Takes a dma_heap_allocation_data struct and returns it with the fd field
  * populated with the dmabuf handle of the allocation.
  */
-<<<<<<< HEAD
-#define DMA_HEAP_IOC_ALLOC	_IOWR(DMA_HEAP_IOC_MAGIC, 0x0,\
-=======
 #define DMA_HEAP_IOCTL_ALLOC	_IOWR(DMA_HEAP_IOC_MAGIC, 0x0,\
->>>>>>> v5.7-rc5
 				      struct dma_heap_allocation_data)
 
 #endif /* _UAPI_LINUX_DMABUF_POOL_H */

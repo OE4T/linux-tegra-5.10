@@ -60,9 +60,6 @@ struct psci_operations psci_ops = {
 	.smccc_version = SMCCC_VERSION_1_0,
 };
 
-<<<<<<< HEAD
-struct extended_psci_operations extended_ops;
-=======
 enum arm_smccc_conduit arm_smccc_1_1_get_conduit(void)
 {
 	if (psci_ops.smccc_version < SMCCC_VERSION_1_1)
@@ -70,7 +67,8 @@ enum arm_smccc_conduit arm_smccc_1_1_get_conduit(void)
 
 	return psci_ops.conduit;
 }
->>>>>>> v5.7-rc5
+
+struct extended_psci_operations extended_ops;
 
 typedef unsigned long (psci_fn)(unsigned long, unsigned long,
 				unsigned long, unsigned long);

@@ -660,10 +660,7 @@ static int pci_epf_test_set_bar(struct pci_epf *epf)
 
 static int pci_epf_test_core_init(struct pci_epf *epf)
 {
-<<<<<<< HEAD
-=======
 	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
->>>>>>> v5.7-rc5
 	struct pci_epf_header *header = epf->header;
 	const struct pci_epc_features *epc_features;
 	struct pci_epc *epc = epf->epc;
@@ -697,13 +694,9 @@ static int pci_epf_test_core_init(struct pci_epf *epf)
 	}
 
 	if (msix_capable) {
-<<<<<<< HEAD
-		ret = pci_epc_set_msix(epc, epf->func_no, epf->msix_interrupts);
-=======
 		ret = pci_epc_set_msix(epc, epf->func_no, epf->msix_interrupts,
 				       epf_test->test_reg_bar,
 				       epf_test->msix_table_offset);
->>>>>>> v5.7-rc5
 		if (ret) {
 			dev_err(dev, "MSI-X configuration failed\n");
 			return ret;
@@ -853,9 +846,6 @@ static int pci_epf_test_bind(struct pci_epf *epf)
 		if (ret)
 			return ret;
 	}
-<<<<<<< HEAD
-
-=======
 
 	epf_test->dma_supported = true;
 
@@ -863,7 +853,6 @@ static int pci_epf_test_bind(struct pci_epf *epf)
 	if (ret)
 		epf_test->dma_supported = false;
 
->>>>>>> v5.7-rc5
 	if (linkup_notifier) {
 		epf->nb.notifier_call = pci_epf_test_notifier;
 		pci_epc_register_notifier(epc, &epf->nb);

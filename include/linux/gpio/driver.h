@@ -360,15 +360,11 @@ struct gpio_chip {
 						unsigned offset);
 	int			(*direction_output)(struct gpio_chip *gc,
 						unsigned offset, int value);
-<<<<<<< HEAD
-	int			(*timestamp_control)(struct gpio_chip *chip,
+	int			(*timestamp_control)(struct gpio_chip *gc,
 						unsigned offset, int enable);
-	int			(*timestamp_read)(struct gpio_chip *chip,
+	int			(*timestamp_read)(struct gpio_chip *gc,
 						unsigned offset, u64 *ts);
-	int			(*get)(struct gpio_chip *chip,
-=======
 	int			(*get)(struct gpio_chip *gc,
->>>>>>> v5.7-rc5
 						unsigned offset);
 	int			(*get_multiple)(struct gpio_chip *gc,
 						unsigned long *mask,
@@ -381,15 +377,11 @@ struct gpio_chip {
 	int			(*set_config)(struct gpio_chip *gc,
 					      unsigned offset,
 					      unsigned long config);
-<<<<<<< HEAD
-	int			(*suspend_configure)(struct gpio_chip *chip,
+	int			(*suspend_configure)(struct gpio_chip *gc,
 						     unsigned offset,
 						     enum gpiod_flags dflags);
 
-	int			(*to_irq)(struct gpio_chip *chip,
-=======
 	int			(*to_irq)(struct gpio_chip *gc,
->>>>>>> v5.7-rc5
 						unsigned offset);
 
 	void			(*dbg_show)(struct seq_file *s,

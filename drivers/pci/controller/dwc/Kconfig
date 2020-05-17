@@ -257,10 +257,7 @@ config PCIE_TEGRA194_HOST
 	select PCIE_DW_HOST
 	select PHY_TEGRA194_P2U
 	select PCIE_TEGRA194
-<<<<<<< HEAD
 	default y
-=======
->>>>>>> v5.7-rc5
 	help
 	  Enables support for the PCIe controller in the NVIDIA Tegra194 SoC to
 	  work in host mode. There are two instances of PCIe controllers in

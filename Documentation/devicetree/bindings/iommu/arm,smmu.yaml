@@ -37,6 +37,12 @@ properties:
               - qcom,sc7180-smmu-500
               - qcom,sdm845-smmu-500
           - const: arm,mmu-500
+      - description: NVIDIA SoCs implementing "arm,mmu-500"
+        items:
+	  - enum:
+	      - nvidia,tegra194-smmu
+          - const: arm,mmu-500
+
       - items:
           - const: arm,mmu-500
           - const: arm,smmu-v2

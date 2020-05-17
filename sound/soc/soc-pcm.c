@@ -2928,8 +2928,6 @@ int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num)
 			SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
 		int cpu_playback = rtd->dai_link->params ?
 			SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
-<<<<<<< HEAD
-=======
 
 		for_each_rtd_codec_dais(rtd, i, codec_dai) {
 			if (rtd->num_cpus == 1) {
@@ -2941,7 +2939,6 @@ int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num)
 					"N cpus to M codecs link is not supported yet\n");
 				return -EINVAL;
 			}
->>>>>>> v5.7-rc5
 
 			if (snd_soc_dai_stream_valid(codec_dai, SNDRV_PCM_STREAM_PLAYBACK) &&
 			    snd_soc_dai_stream_valid(cpu_dai,   cpu_playback))

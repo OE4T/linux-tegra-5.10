@@ -123,23 +123,7 @@ int __cpu_up(unsigned int cpu, struct task_struct *idle)
 
 	/* Now bring the CPU into our world */
 	ret = boot_secondary(cpu, idle);
-<<<<<<< HEAD
-	if (ret == 0) {
-		/*
-		 * CPU was successfully started, wait for it to come online or
-		 * time out.
-		 */
-		wait_for_completion_timeout(&cpu_running,
-					    msecs_to_jiffies(10000));
-
-		if (!cpu_online(cpu)) {
-			pr_crit("CPU%u: failed to come online\n", cpu);
-			ret = -EIO;
-		}
-	} else {
-=======
 	if (ret) {
->>>>>>> v5.7-rc5
 		pr_err("CPU%u: failed to boot: %d\n", cpu, ret);
 		return ret;
 	}

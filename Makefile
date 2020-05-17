@@ -1290,15 +1290,9 @@ ifneq ($(dtstree),)
 %.dtb: include/config/kernel.release scripts_dtc
 	$(Q)$(MAKE) $(build)=$(dtstree) $(dtstree)/$@
 
-<<<<<<< HEAD
-PHONY += dtbs dtbs_install dt_binding_check
-dtbs dtbs_check: include/config/kernel.release scripts_dtc
-	$(Q)$(MAKE) $(build)=$(dtstree) dtbs
-=======
 PHONY += dtbs dtbs_install dtbs_check
 dtbs: include/config/kernel.release scripts_dtc
-	$(Q)$(MAKE) $(build)=$(dtstree)
->>>>>>> v5.7-rc5
+	$(Q)$(MAKE) $(build)=$(dtstree) dtbs
 
 ifneq ($(filter dtbs_check, $(MAKECMDGOALS)),)
 export CHECK_DTBS=y

@@ -2420,7 +2420,6 @@ static int snd_hda_spdif_out_switch_put(struct snd_kcontrol *kcontrol,
 	return change;
 }
 
-<<<<<<< HEAD
 int snd_hda_max_pcm_ch_info(struct snd_kcontrol *kcontrol,
 		struct snd_ctl_elem_info *uinfo)
 {
@@ -2487,10 +2486,7 @@ static int snd_hda_comfort_noise_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static struct snd_kcontrol_new dig_mixes[] = {
-=======
 static const struct snd_kcontrol_new dig_mixes[] = {
->>>>>>> v5.7-rc5
 	{
 		.access = SNDRV_CTL_ELEM_ACCESS_READ,
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,

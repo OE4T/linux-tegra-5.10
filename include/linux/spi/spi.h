@@ -651,9 +651,7 @@ struct spi_controller {
 	void			*dummy_tx;
 
 	int (*fw_translate_cs)(struct spi_controller *ctlr, unsigned cs);
-<<<<<<< HEAD
 	int (*spi_cs_low)(struct spi_device *spi, bool state);
-=======
 
 	/*
 	 * Driver sets this field to indicate it is able to snapshot SPI
@@ -663,7 +661,6 @@ struct spi_controller {
 
 	/* Interrupt enable state during PTP system timestamping */
 	unsigned long		irq_flags;
->>>>>>> v5.7-rc5
 };
 
 static inline void *spi_controller_get_devdata(struct spi_controller *ctlr)

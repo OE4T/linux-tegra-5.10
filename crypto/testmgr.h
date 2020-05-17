@@ -1037,7 +1037,6 @@ static const struct kpp_testvec dh_tv_template[] = {
 	}
 };
 
-<<<<<<< HEAD
 #ifdef CONFIG_CRYPTO_FIPS
 #define ECDSA_TEST_VECTORS 2
 #else
@@ -1270,12 +1269,6 @@ static struct akcipher_testvec eddsa_tv_template[] = {
 	},
 };
 
-#ifdef CONFIG_CRYPTO_FIPS
-#define ECDH_TEST_VECTORS 3
-#else
-#define ECDH_TEST_VECTORS 4
-#endif
-=======
 static const struct kpp_testvec curve25519_tv_template[] = {
 {
 	.secret = (u8[32]){ 0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5, 0x7d,
@@ -2501,7 +2494,11 @@ static const struct kpp_testvec curve25519_tv_template[] = {
 }
 };
 
->>>>>>> v5.7-rc5
+#ifdef CONFIG_CRYPTO_FIPS
+#define ECDH_TEST_VECTORS 3
+#else
+#define ECDH_TEST_VECTORS 4
+#endif
 static const struct kpp_testvec ecdh_tv_template[] = {
 	{
 #ifndef CONFIG_CRYPTO_FIPS

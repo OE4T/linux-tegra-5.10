@@ -134,8 +134,6 @@ struct pci_epf {
 	struct notifier_block   nb;
 	/* mutex to protect against concurrent access of pci_epf_ops */
 	struct mutex		lock;
-<<<<<<< HEAD
-=======
 };
 
 /**
@@ -149,7 +147,6 @@ struct pci_epf_msix_tbl {
 	u64 msg_addr;
 	u32 msg_data;
 	u32 vector_ctrl;
->>>>>>> v5.7-rc5
 };
 
 #define to_pci_epf(epf_dev) container_of((epf_dev), struct pci_epf, dev)

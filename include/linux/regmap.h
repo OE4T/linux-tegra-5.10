@@ -163,13 +163,8 @@ struct reg_sequence {
  * This is modelled after the readx_poll_timeout_atomic macros in linux/iopoll.h.
  *
  * Note: In general regmap cannot be used in atomic context. If you want to use
-<<<<<<< HEAD
- * this macro then first setup your regmap for atomic use (by using flat or no cache
- * and MMIO)
-=======
  * this macro then first setup your regmap for atomic use (flat or no cache
  * and MMIO regmap).
->>>>>>> v5.7-rc5
  */
 #define regmap_read_poll_timeout_atomic(map, addr, val, cond, delay_us, timeout_us) \
 ({ \

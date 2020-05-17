@@ -2958,13 +2958,8 @@ static int gpiod_request_commit(struct gpio_desc *desc, const char *label)
 		}
 	}
 
-<<<<<<< HEAD
-	if (chip->request && !hogged) {
-		/* chip->request may sleep */
-=======
-	if (gc->request) {
+	if (gc->request && !hogged) {
 		/* gc->request may sleep */
->>>>>>> v5.7-rc5
 		spin_unlock_irqrestore(&gpio_lock, flags);
 		offset = gpio_chip_hwgpio(desc);
 		if (gpiochip_line_is_valid(gc, offset))
@@ -3450,7 +3445,6 @@ set_output_flag:
 EXPORT_SYMBOL_GPL(gpiod_direction_output);
 
 /**
-<<<<<<< HEAD
  * gpiod_timestamp_control - Enable/Disable timstamping for GPIO
  * @desc:       GPIO for which to Enable/Disable Timestamp
  * @enable:     Enable/Disable timestamp
@@ -3504,7 +3498,8 @@ int gpiod_timestamp_read(struct gpio_desc *desc, u64 *ts)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(gpiod_timestamp_read);
-=======
+
+/**
  * gpiod_set_config - sets @config for a GPIO
  * @desc: descriptor of the GPIO for which to set the configuration
  * @config: Same packed config format as generic pinconf
@@ -3523,7 +3518,6 @@ int gpiod_set_config(struct gpio_desc *desc, unsigned long config)
 	return gpio_do_set_config(gc, gpio_chip_hwgpio(desc), config);
 }
 EXPORT_SYMBOL_GPL(gpiod_set_config);
->>>>>>> v5.7-rc5
 
 /**
  * gpiod_set_debounce - sets @debounce time for a GPIO

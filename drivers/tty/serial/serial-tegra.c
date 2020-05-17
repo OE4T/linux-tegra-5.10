@@ -141,11 +141,8 @@ struct tegra_uart_port {
 	int					configured_rate;
 	bool					use_rx_pio;
 	bool					use_tx_pio;
-<<<<<<< HEAD
 	bool                                    is_hw_flow_enabled;
-=======
 	bool					rx_dma_active;
->>>>>>> v5.7-rc5
 };
 
 static void tegra_uart_start_next_tx(struct tegra_uart_port *tup);
@@ -705,20 +702,6 @@ static void do_handle_rx_pio(struct tegra_uart_port *tup)
 	struct tty_struct *tty = tty_port_tty_get(&tup->uport.state->port);
 	struct tty_port *port = &tup->uport.state->port;
 
-	tegra_uart_handle_rx_pio(tup, port);
-	if (tty) {
-		tty_flip_buffer_push(port);
-		tty_kref_put(tty);
-	}
-}
-
-static void tegra_uart_rx_buffer_push(struct tegra_uart_port *tup,
-				      unsigned int residue)
-{
-	struct tty_port *port = &tup->uport.state->port;
-	unsigned int count;
-
-	async_tx_ack(tup->rx_dma_desc);
 	count = tup->rx_bytes_requested - residue;
 
 	/* If we are here, DMA is stopped */
@@ -764,21 +747,15 @@ static void tegra_uart_terminate_rx_dma(struct tegra_uart_port *tup)
 {
 	struct dma_tx_state state;
 
-<<<<<<< HEAD
 	if (!tup->rx_dma_chan) {
 		dev_err(tup->uport.dev, "No rx dma channel\n");
 		return;
 	}
 
-	/* Deactivate flow control to stop sender */
-	if (tup->rts_active && tup->is_hw_flow_enabled)
-		set_rts(tup, false);
-=======
-	if (!tup->rx_dma_active) {
+	if (!tup->rx_dma_active && tup->is_hw_flow_enabled) {
 		do_handle_rx_pio(tup);
 		return;
 	}
->>>>>>> v5.7-rc5
 
 	dmaengine_terminate_all(tup->rx_dma_chan);
 	dmaengine_tx_status(tup->rx_dma_chan, tup->rx_cookie, &state);
@@ -790,7 +767,7 @@ static void tegra_uart_terminate_rx_dma(struct tegra_uart_port *tup)
 static void tegra_uart_handle_rx_dma(struct tegra_uart_port *tup)
 {
 	/* Deactivate flow control to stop sender */
-	if (tup->rts_active)
+	if (tup->rts_active  && tup->is_hw_flow_enabled)
 		set_rts(tup, false);
 
 	tegra_uart_terminate_rx_dma(tup);
@@ -844,27 +821,6 @@ static void tegra_uart_handle_modem_signal_change(struct uart_port *u)
 		uart_handle_cts_change(&tup->uport, msr & UART_MSR_CTS);
 }
 
-<<<<<<< HEAD
-static void do_handle_rx_pio(struct tegra_uart_port *tup)
-{
-	struct tty_struct *tty = tty_port_tty_get(&tup->uport.state->port);
-	struct tty_port *port = &tup->uport.state->port;
-
-	if (tup->rts_active && tup->is_hw_flow_enabled)
-		set_rts(tup, false);
-
-	tegra_uart_handle_rx_pio(tup, port);
-	if (tty) {
-		tty_flip_buffer_push(port);
-		tty_kref_put(tty);
-	}
-
-	if (tup->rts_active)
-		set_rts(tup, true);
-}
-
-=======
->>>>>>> v5.7-rc5
 static irqreturn_t tegra_uart_isr(int irq, void *data)
 {
 	struct tegra_uart_port *tup = data;

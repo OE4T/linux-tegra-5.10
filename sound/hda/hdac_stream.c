@@ -637,26 +637,6 @@ void snd_hdac_stream_sync(struct hdac_stream *azx_dev, bool start,
 		nwait = 0;
 		i = 0;
 		list_for_each_entry(s, &bus->stream_list, list) {
-<<<<<<< HEAD
-			if (streams & (1 << i)) {
-				if (start) {
-					/* check FIFO gets ready */
-					if (!(snd_hdac_stream_readb(s, SD_STS) &
-					      SD_STS_FIFO_READY))
-						nwait++;
-				} else {
-					/* check RUN bit is cleared */
-					if (snd_hdac_stream_readb(s, SD_CTL) &
-					    SD_CTL_DMA_START) {
-						nwait++;
-						/* Do stream reset, if DMA RUN
-						 * bit not cleared with given
-						 * timeout
-						 */
-						if (timeout == 1)
-							snd_hdac_stream_reset(s);
-					}
-=======
 			if (!(streams & (1 << i++)))
 				continue;
 
@@ -676,7 +656,6 @@ void snd_hdac_stream_sync(struct hdac_stream *azx_dev, bool start,
 					 */
 					if (timeout == 1)
 						snd_hdac_stream_reset(s);
->>>>>>> v5.7-rc5
 				}
 			}
 		}

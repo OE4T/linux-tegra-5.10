@@ -27,7 +27,6 @@
 #define PMC_STRAPPING_OPT_A_RAM_CODE_MASK_SHORT	\
 	(0x3 << PMC_STRAPPING_OPT_A_RAM_CODE_SHIFT)
 
-<<<<<<< HEAD
 /* platform macros used for major rev 0 */
 #define MINOR_QT		0
 #define MINOR_FPGA		1
@@ -57,8 +56,6 @@ static const struct apbmisc_data tegra186_apbmisc_data = {
 	.emu_revid_offset = TEGRA_MISCREG_EMU_REVID
 };
 
-=======
->>>>>>> v5.7-rc5
 static bool long_ram_code;
 static u32 strapping;
 static u32 chipid;
@@ -143,18 +140,12 @@ int tegra_set_erd(u64 err_config)
 EXPORT_SYMBOL(tegra_set_erd);
 
 static const struct of_device_id apbmisc_match[] __initconst = {
-<<<<<<< HEAD
 	{ .compatible = "nvidia,tegra20-apbmisc",
 		.data = &tegra20_apbmisc_data, },
 	{ .compatible = "nvidia,tegra186-misc",
 		.data = &tegra186_apbmisc_data, },
 	{ .compatible = "nvidia,tegra194-misc",
 		.data = &tegra186_apbmisc_data, },
-=======
-	{ .compatible = "nvidia,tegra20-apbmisc", },
-	{ .compatible = "nvidia,tegra186-misc", },
-	{ .compatible = "nvidia,tegra194-misc", },
->>>>>>> v5.7-rc5
 	{},
 };
 
@@ -191,11 +182,7 @@ void __init tegra_init_revision(void)
 
 void __init tegra_init_apbmisc(void)
 {
-<<<<<<< HEAD
-	void __iomem *strapping_base;
-=======
 	void __iomem *apbmisc_base, *strapping_base;
->>>>>>> v5.7-rc5
 	struct resource apbmisc, straps;
 	struct device_node *np;
 	const struct of_device_id *match;
@@ -254,11 +241,7 @@ void __init tegra_init_apbmisc(void)
 		apbmisc_data  = match->data;
 	}
 
-<<<<<<< HEAD
-	apbmisc_base = ioremap_nocache(apbmisc.start, resource_size(&apbmisc));
-=======
 	apbmisc_base = ioremap(apbmisc.start, resource_size(&apbmisc));
->>>>>>> v5.7-rc5
 	if (!apbmisc_base) {
 		pr_err("failed to map APBMISC registers\n");
 	} else {
@@ -266,11 +249,7 @@ void __init tegra_init_apbmisc(void)
 		iounmap(apbmisc_base);
 	}
 
-<<<<<<< HEAD
-	strapping_base = ioremap_nocache(straps.start, resource_size(&straps));
-=======
 	strapping_base = ioremap(straps.start, resource_size(&straps));
->>>>>>> v5.7-rc5
 	if (!strapping_base) {
 		pr_err("failed to map strapping options registers\n");
 	} else {

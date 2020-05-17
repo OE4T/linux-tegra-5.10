@@ -79,14 +79,10 @@ static void dwmac4_dma_init_rx_chan(void __iomem *ioaddr,
 	value = value | (rxpbl << DMA_BUS_MODE_RPBL_SHIFT);
 	writel(value, ioaddr + DMA_CHAN_RX_CONTROL(chan));
 
-<<<<<<< HEAD
-	writel(upper_32_bits(dma_rx_phy), ioaddr + DMA_CHAN_RX_BASE_ADDR_HI(chan));
-=======
 	if (IS_ENABLED(CONFIG_ARCH_DMA_ADDR_T_64BIT) && likely(dma_cfg->eame))
 		writel(upper_32_bits(dma_rx_phy),
 		       ioaddr + DMA_CHAN_RX_BASE_ADDR_HI(chan));
 
->>>>>>> v5.7-rc5
 	writel(lower_32_bits(dma_rx_phy), ioaddr + DMA_CHAN_RX_BASE_ADDR(chan));
 }
 
@@ -105,14 +101,10 @@ static void dwmac4_dma_init_tx_chan(void __iomem *ioaddr,
 
 	writel(value, ioaddr + DMA_CHAN_TX_CONTROL(chan));
 
-<<<<<<< HEAD
-	writel(upper_32_bits(dma_tx_phy), ioaddr + DMA_CHAN_TX_BASE_ADDR_HI(chan));
-=======
 	if (IS_ENABLED(CONFIG_ARCH_DMA_ADDR_T_64BIT) && likely(dma_cfg->eame))
 		writel(upper_32_bits(dma_tx_phy),
 		       ioaddr + DMA_CHAN_TX_BASE_ADDR_HI(chan));
 
->>>>>>> v5.7-rc5
 	writel(lower_32_bits(dma_tx_phy), ioaddr + DMA_CHAN_TX_BASE_ADDR(chan));
 }
 
@@ -366,10 +358,7 @@ static void dwmac4_get_hw_feature(void __iomem *ioaddr,
 	dma_cap->hash_tb_sz = (hw_cap & GMAC_HW_HASH_TB_SZ) >> 24;
 	dma_cap->av = (hw_cap & GMAC_HW_FEAT_AVSEL) >> 20;
 	dma_cap->tsoen = (hw_cap & GMAC_HW_TSOEN) >> 18;
-<<<<<<< HEAD
-=======
 	dma_cap->sphen = (hw_cap & GMAC_HW_FEAT_SPHEN) >> 17;
->>>>>>> v5.7-rc5
 
 	dma_cap->addr64 = (hw_cap & GMAC_HW_ADDR64) >> 14;
 	switch (dma_cap->addr64) {

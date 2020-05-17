@@ -4859,12 +4859,8 @@ int stmmac_dvr_probe(struct device *device,
 			 * If more than 32 bits can be addressed, make sure to
 			 * enable enhanced addressing mode.
 			 */
-<<<<<<< HEAD
-			priv->plat->dma_cfg->eame = true;
-=======
 			if (IS_ENABLED(CONFIG_ARCH_DMA_ADDR_T_64BIT))
 				priv->plat->dma_cfg->eame = true;
->>>>>>> v5.7-rc5
 		} else {
 			ret = dma_set_mask_and_coherent(device, DMA_BIT_MASK(32));
 			if (ret) {

@@ -2664,10 +2664,8 @@ sub process {
 			}
 		}
 
-<<<<<<< HEAD
 # Check if MAINTAINERS and/or NVIDIA-REVIEWERS is being updated.  If so, there's probably no need to
 # emit the "does MAINTAINERS/NVIDIA-REVIEWERS need updating?" message on file add/move/delete
-=======
 # Check for patch separator
 		if ($line =~ /^---$/) {
 			$has_patch_separator = 1;
@@ -2676,7 +2674,6 @@ sub process {
 
 # Check if MAINTAINERS is being updated.  If so, there's probably no need to
 # emit the "does MAINTAINERS need updating?" message on file add/move/delete
->>>>>>> v5.7-rc5
 		if ($line =~ /^\s*MAINTAINERS\s*\|/) {
 			$reported_maintainer_file = 1;
 		}
@@ -2778,13 +2775,8 @@ sub process {
 			     "A patch subject line should describe the change not the tool that found it\n" . $herecurr);
 		}
 
-<<<<<<< HEAD
-# Check for unwanted Gerrit info
-		if ($in_commit_log && !$ignore_changeid && $line =~ /^\s*change-id:/i) {
-=======
 # Check for Gerrit Change-Ids not in any patch context
-		if ($realfile eq '' && !$has_patch_separator && $line =~ /^\s*change-id:/i) {
->>>>>>> v5.7-rc5
+		if ($realfile eq '' && !$has_patch_separator && !$ignore_changeid && $line =~ /^\s*change-id:/i) {
 			ERROR("GERRIT_CHANGE_ID",
 			      "Remove Gerrit Change-Id's before submitting upstream\n" . $herecurr);
 		}

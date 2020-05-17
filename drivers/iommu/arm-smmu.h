@@ -387,11 +387,8 @@ struct arm_smmu_impl {
 	int (*init_context)(struct arm_smmu_domain *smmu_domain);
 	void (*tlb_sync)(struct arm_smmu_device *smmu, int page, int sync,
 			 int status);
-<<<<<<< HEAD
 	irqreturn_t (*global_fault)(int irq, void *dev);
 	irqreturn_t (*context_fault)(int irq, void *dev);
-=======
->>>>>>> v5.7-rc5
 };
 
 static inline void __iomem *arm_smmu_page(struct arm_smmu_device *smmu, int n)
@@ -455,12 +452,9 @@ static inline void arm_smmu_writeq(struct arm_smmu_device *smmu, int page,
 	arm_smmu_writeq((s), ARM_SMMU_CB((s), (n)), (o), (v))
 
 struct arm_smmu_device *arm_smmu_impl_init(struct arm_smmu_device *smmu);
-<<<<<<< HEAD
-struct arm_smmu_device *nvidia_smmu_impl_init(struct arm_smmu_device *smmu);
-=======
 struct arm_smmu_device *qcom_smmu_impl_init(struct arm_smmu_device *smmu);
 
 int arm_mmu500_reset(struct arm_smmu_device *smmu);
->>>>>>> v5.7-rc5
+struct arm_smmu_device *nvidia_smmu_impl_init(struct arm_smmu_device *smmu);
 
 #endif /* _ARM_SMMU_H */

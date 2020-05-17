@@ -680,7 +680,6 @@ static int of_gpiochip_scan_gpios(struct gpio_chip *chip)
 		if (!of_property_read_bool(np, "gpio-hog"))
 			continue;
 
-<<<<<<< HEAD
 		ngpios = of_property_count_u32_elems(np, "gpios");
 		if (ngpios < 0)
 			continue;
@@ -713,12 +712,6 @@ static int of_gpiochip_scan_gpios(struct gpio_chip *chip)
 				of_node_put(np);
 				return ret;
 			}
-=======
-		ret = of_gpiochip_add_hog(chip, np);
-		if (ret < 0) {
-			of_node_put(np);
-			return ret;
->>>>>>> v5.7-rc5
 		}
 
 		of_node_set_flag(np, OF_POPULATED);

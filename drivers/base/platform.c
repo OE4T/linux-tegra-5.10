@@ -134,29 +134,6 @@ devm_platform_ioremap_resource_byname(struct platform_device *pdev,
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, name);
 	return devm_ioremap_resource(&pdev->dev, res);
 }
-<<<<<<< HEAD
-EXPORT_SYMBOL_GPL(devm_platform_ioremap_resource);
-
-/**
- * devm_platform_ioremap_resource_byname - call devm_ioremap_resource for
- *                                        a platform device, retrieve the
- *                                        resource by name
- *
- * @pdev: platform device to use both for memory resource lookup as well as
- *       resource management
- * @name: name of the resource
- */
-	void __iomem *
-devm_platform_ioremap_resource_byname(struct platform_device *pdev,
-				      const char *name)
-{
-	struct resource *res;
-
-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, name);
-	return devm_ioremap_resource(&pdev->dev, res);
-}
-=======
->>>>>>> v5.7-rc5
 EXPORT_SYMBOL_GPL(devm_platform_ioremap_resource_byname);
 #endif /* CONFIG_HAS_IOMEM */
 

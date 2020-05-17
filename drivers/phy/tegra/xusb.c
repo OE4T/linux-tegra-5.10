@@ -947,11 +947,7 @@ static int tegra_xusb_usb3_port_parse_dt(struct tegra_xusb_usb3_port *usb3)
 			return -EINVAL;
 	}
 
-<<<<<<< HEAD
-	usb3->supply = devm_regulator_get(&port->dev, "vbus");
-=======
 	usb3->supply = regulator_get(&port->dev, "vbus");
->>>>>>> v5.7-rc5
 	return PTR_ERR_OR_ZERO(usb3->supply);
 }
 
@@ -1375,8 +1371,6 @@ int tegra_phy_xusb_utmi_port_reset(struct phy *phy)
 }
 EXPORT_SYMBOL_GPL(tegra_phy_xusb_utmi_port_reset);
 
-<<<<<<< HEAD
-=======
 int tegra_xusb_padctl_get_usb3_companion(struct tegra_xusb_padctl *padctl,
 				    unsigned int port)
 {
@@ -1398,7 +1392,6 @@ int tegra_xusb_padctl_get_usb3_companion(struct tegra_xusb_padctl *padctl,
 }
 EXPORT_SYMBOL_GPL(tegra_xusb_padctl_get_usb3_companion);
 
->>>>>>> v5.7-rc5
 MODULE_AUTHOR("Thierry Reding <treding@nvidia.com>");
 MODULE_DESCRIPTION("Tegra XUSB Pad Controller driver");
 MODULE_LICENSE("GPL v2");

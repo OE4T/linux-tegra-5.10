@@ -293,27 +293,6 @@ static int max77620_gpio_probe(struct platform_device *pdev)
 #endif
 
 	platform_set_drvdata(pdev, mgpio);
-<<<<<<< HEAD
-	ret = devm_regmap_add_irq_chip(&pdev->dev, chip->rmap, gpio_irq,
-				       IRQF_ONESHOT, -1,
-				       &max77620_gpio_irq_chip,
-				       &chip->gpio_irq_data);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "Failed to add gpio irq_chip %d\n", ret);
-		goto out;
-	}
-
-	ret = devm_gpiochip_add_data(&pdev->dev, &mgpio->gpio_chip, mgpio);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "gpio_init: Failed to add max77620_gpio\n");
-		goto out;
-	}
-
-
-	ret = 0;
-out:
-	return ret;
-=======
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &mgpio->gpio_chip, mgpio);
 	if (ret < 0) {
@@ -337,7 +316,6 @@ out:
 				    gpio_irq);
 
 	return 0;
->>>>>>> v5.7-rc5
 }
 
 static const struct platform_device_id max77620_gpio_devtype[] = {
