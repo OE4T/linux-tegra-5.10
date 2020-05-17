@@ -24,8 +24,6 @@
 #else
 #include <soc/tegra/fuse.h>
 #endif
-#include <asm/cacheflush.h>
-#include <linux/platform/tegra/tegra19x_cache.h>
 
 /* Issue a NVG request with data */
 static noinline notrace void nvg_send_req_data(uint64_t req, uint64_t data)
@@ -355,52 +353,6 @@ static int tegra19x_mce_write_rt_fwd_progress_us(u64 rt_fwd_progress_us)
 	return 0;
 }
 
-static int tegra_19x_flush_cache_all(void)
-{
-	int ret = 0;
-
-	ret = tegra19x_flush_cache_all();
-	/* Fallback to VA flush cache all if not support or failed */
-	if (ret)
-		flush_cache_all();
-
-	/* CRITICAL: failed to flush all cache */
-	WARN_ON(ret && ret != -ENOTSUPP);
-
-	return ret;
-}
-
-static int tegra_19x_flush_dcache_all(void *__maybe_unused unused)
-{
-	int ret = 0;
-
-	ret = tegra19x_flush_dcache_all();
-	/* Fallback to VA flush dcache if not support or failed */
-	if (ret)
-		__flush_dcache_all(unused);
-
-	/* CRITICAL: failed to flush dcache */
-	WARN_ON(ret && ret != -ENOTSUPP);
-
-	return ret;
-}
-
-static int tegra_19x_clean_dcache_all(void *__maybe_unused unused)
-{
-	int ret = 0;
-
-	ret = tegra19x_clean_dcache_all();
-	/* Fallback to VA clean if not support or failed */
-	if (ret)
-		__clean_dcache_all(unused);
-
-	/* CRITICAL: failed to clean dcache */
-	WARN_ON(ret && ret != -ENOTSUPP);
-
-	return ret;
-}
-
-
 #ifdef CONFIG_DEBUG_FS
 #define NVG_STAT_MAX_ENTRIES	10
 #define MCE_STAT_ID_SHIFT	16UL
@@ -646,9 +598,6 @@ static struct tegra_mce_ops t19x_mce_ops = {
 	.read_dda_ctrl = tegra19x_mce_read_dda_ctrl,
 	.read_l3_cache_ways = tegra19x_mce_read_l3_cache_ways,
 	.write_l3_cache_ways = tegra19x_mce_write_l3_cache_ways,
-	.flush_cache_all = tegra_19x_flush_cache_all,
-	.flush_dcache_all = tegra_19x_flush_dcache_all,
-	.clean_dcache_all = tegra_19x_clean_dcache_all,
 	.read_rt_safe_mask = tegra19x_mce_read_rt_safe_mask,
 	.write_rt_safe_mask = tegra19x_mce_write_rt_safe_mask,
 	.read_rt_window_us = tegra19x_mce_read_rt_window_us,

@@ -11,8 +11,6 @@
  * more details.
  */
 
-#define pr_fmt(fmt)	"%s(): " fmt, __func__
-
 #include <linux/bitops.h>
 #include <linux/module.h>
 #include <linux/of.h>
@@ -21,6 +19,8 @@
 #include <linux/uaccess.h>
 #include <linux/debugfs.h>
 #include <linux/tegra-mce.h>
+#include <linux/tegra-cache.h>
+#include <asm/cacheflush.h>
 #include <linux/platform_device.h>
 #include <linux/sysfs.h>
 #include <uapi/linux/tegra_l3_cache.h>
@@ -31,7 +31,6 @@
 #include <soc/tegra/fuse.h>
 #endif
 #include <linux/delay.h>
-#include <linux/platform/tegra/tegra19x_cache.h>
 
 #define MASK GENMASK(15, 12)
 #define T19x_CACHE_STR	"l3_cache"
@@ -55,7 +54,7 @@ struct cache_drv_data {
 static struct cache_drv_data *cache_data;
 
 
-int tegra19x_flush_cache_all(void)
+int tegra19x_hw_flush_cache_all(void)
 {
 	u64 id_afr0;
 	u64 ret;
@@ -88,7 +87,7 @@ struct flush_error {
 	u64 ret;
 };
 
-static int __t19x_flush_dcache_all(void)
+static int __tegra19x_hw_flush_dcache_all(void)
 {
 #define FLUSH_TO_IN_MS 1000
 #define RETRY 10
@@ -141,10 +140,10 @@ static int __t19x_flush_dcache_all(void)
 }
 #endif
 
-int tegra19x_flush_dcache_all(void)
+int tegra19x_hw_flush_dcache_all(void)
 {
 #if PROFILE_DCACHE_FLUSH
-	return __t19x_flush_dcache_all();
+	return __tegra19x_hw_flush_dcache_all();
 #else
 	u64 id_afr0;
 	u64 ret;
@@ -173,7 +172,7 @@ int tegra19x_flush_dcache_all(void)
 #endif
 }
 
-int tegra19x_clean_dcache_all(void)
+int tegra19x_hw_clean_dcache_all(void)
 {
 	u64 id_afr0;
 	u64 ret;
@@ -198,6 +197,57 @@ int tegra19x_clean_dcache_all(void)
 	}
 
 	return 0;
+}
+
+static int tegra19x_flush_cache_all(void)
+{
+	int ret = 0;
+
+	ret = tegra19x_hw_flush_cache_all();
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	/* Fallback to VA flush cache all if not support or failed */
+	if (ret)
+		flush_cache_all();
+#endif
+	/* CRITICAL: failed to flush all cache */
+	WARN_ON(ret && ret != -ENOTSUPP);
+
+	return ret;
+}
+
+static int tegra19x_flush_dcache_all(void *__maybe_unused unused)
+{
+	int ret = 0;
+
+	ret = tegra19x_hw_flush_dcache_all();
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	/* Fallback to VA flush dcache if not support or failed */
+	if (ret)
+		__flush_dcache_all(unused);
+#endif
+	/* CRITICAL: failed to flush dcache */
+	WARN_ON(ret && ret != -ENOTSUPP);
+
+	return ret;
+}
+
+static int tegra19x_clean_dcache_all(void *__maybe_unused unused)
+{
+	int ret = 0;
+
+	ret = tegra19x_hw_clean_dcache_all();
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	/* Fallback to VA clean if not support or failed */
+	if (ret)
+		__clean_dcache_all(unused);
+#endif
+	/* CRITICAL: failed to clean dcache */
+	WARN_ON(ret && ret != -ENOTSUPP);
+
+	return ret;
 }
 
 static int t19x_extract_l3_cache_ways(struct device *dev)
@@ -466,9 +516,17 @@ static long t19x_cache_ioctl(struct file *filp, unsigned int cmd,
 	}
 
 	if (_IOC_DIR(cmd) & _IOC_READ)
-		err = !access_ok(VERIFY_WRITE, uarg, _IOC_SIZE(cmd));
+		err = !access_ok(
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+				VERIFY_WRITE,
+#endif
+				uarg, _IOC_SIZE(cmd));
 	if (!err && (_IOC_DIR(cmd) & _IOC_WRITE))
-		err = !access_ok(VERIFY_READ, uarg, _IOC_SIZE(cmd));
+		err = !access_ok(
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+				VERIFY_READ,
+#endif
+				uarg, _IOC_SIZE(cmd));
 	if (err)
 		return -EFAULT;
 
@@ -609,6 +667,12 @@ static const struct file_operations t19x_cache_user_fops = {
 #endif
 };
 
+static struct tegra_cache_ops t19x_cache_ops = {
+	.flush_cache_all = tegra19x_flush_cache_all,
+	.flush_dcache_all = tegra19x_flush_dcache_all,
+	.clean_dcache_all = tegra19x_clean_dcache_all,
+};
+
 static int __init t19x_cache_probe(struct platform_device *pdev)
 {
 	struct cache_drv_data *drv_data;
@@ -619,8 +683,6 @@ static int __init t19x_cache_probe(struct platform_device *pdev)
 		dev_err(dev, "is not supported on this platform\n");
 		return -EPERM;
 	}
-
-	dev_dbg(dev, "in probe()...\n");
 
 	drv_data = devm_kzalloc(dev, sizeof(*drv_data),
 				GFP_KERNEL);
@@ -646,6 +708,9 @@ static int __init t19x_cache_probe(struct platform_device *pdev)
 	ret = t19x_parse_dt();
 	if (ret)
 		goto err_out;
+
+	/* Set t19x specific cache ops */
+	tegra_cache_set_ops(&t19x_cache_ops);
 
 	if (is_tegra_hypervisor_mode()) {
 		ret = t19x_extract_l3_cache_ways(dev);
