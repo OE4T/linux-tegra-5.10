@@ -64,6 +64,9 @@ struct nvgpu_profiler_object {
 	/* If profiler object has reservation for each resource. */
 	bool reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_COUNT];
 
+	/* If context switch is enabled for each resource */
+	bool ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_COUNT];
+
 	/* Scope of the profiler object */
 	enum nvgpu_profiler_pm_reservation_scope scope;
 

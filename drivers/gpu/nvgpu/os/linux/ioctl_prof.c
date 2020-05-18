@@ -174,6 +174,105 @@ static int nvgpu_prof_ioctl_unbind_context(struct nvgpu_profiler_object *prof)
 	return nvgpu_profiler_unbind_context(prof);
 }
 
+static int nvgpu_prof_ioctl_get_pm_resource_type(u32 resource,
+		enum nvgpu_profiler_pm_resource_type *pm_resource)
+{
+	switch (resource) {
+	case NVGPU_PROFILER_PM_RESOURCE_ARG_HWPM_LEGACY:
+		*pm_resource = NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY;
+		return 0;
+	case NVGPU_PROFILER_PM_RESOURCE_ARG_SMPC:
+		*pm_resource = NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC;
+		return 0;
+	default:
+		break;
+	}
+
+	return -EINVAL;
+}
+
+static int nvgpu_prof_ioctl_reserve_pm_resource(struct nvgpu_profiler_object *prof,
+		struct nvgpu_profiler_reserve_pm_resource_args *args)
+{
+	enum nvgpu_profiler_pm_resource_type pm_resource;
+	struct gk20a *g = prof->g;
+	bool flag_ctxsw;
+	int err;
+
+	if (!prof->context_init) {
+		nvgpu_err(g, "Context info not initialized");
+		return -EINVAL;
+	}
+
+	err = nvgpu_prof_ioctl_get_pm_resource_type(args->resource,
+			&pm_resource);
+	if (err) {
+		nvgpu_err(prof->g, "invalid resource %u", args->resource);
+		return err;
+	}
+
+	flag_ctxsw = ((args->flags & NVGPU_PROFILER_RESERVE_PM_RESOURCE_ARG_FLAG_CTXSW) != 0);
+
+	switch (prof->scope) {
+	case NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE:
+		if (flag_ctxsw && (prof->tsg == NULL)) {
+			nvgpu_err(g, "Context must be bound to enable context switch");
+			return -EINVAL;
+		}
+		if (!flag_ctxsw	&& (pm_resource == NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC)
+				&& !nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
+			nvgpu_err(g, "SMPC global mode not supported");
+			return -EINVAL;
+		}
+		if (flag_ctxsw) {
+			prof->ctxsw[pm_resource] = true;
+		} else {
+			prof->ctxsw[pm_resource] = false;
+		}
+		break;
+
+	case NVGPU_PROFILER_PM_RESERVATION_SCOPE_CONTEXT:
+		if (prof->tsg == NULL) {
+			nvgpu_err(g, "Context must be bound for context session");
+			return -EINVAL;
+		}
+		prof->ctxsw[pm_resource] = true;
+		break;
+
+	default:
+		return -EINVAL;
+	}
+
+	err = nvgpu_profiler_pm_resource_reserve(prof, pm_resource);
+	if (err) {
+		return err;
+	}
+
+	return 0;
+}
+
+static int nvgpu_prof_ioctl_release_pm_resource(struct nvgpu_profiler_object *prof,
+		struct nvgpu_profiler_release_pm_resource_args *args)
+{
+	enum nvgpu_profiler_pm_resource_type pm_resource;
+	int err;
+
+	err = nvgpu_prof_ioctl_get_pm_resource_type(args->resource,
+			&pm_resource);
+	if (err) {
+		return err;
+	}
+
+	err = nvgpu_profiler_pm_resource_release(prof, pm_resource);
+	if (err) {
+		return err;
+	}
+
+	prof->ctxsw[pm_resource] = false;
+
+	return 0;
+}
+
 long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 		unsigned long arg)
 {
@@ -212,6 +311,16 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 
 	case NVGPU_PROFILER_IOCTL_UNBIND_CONTEXT:
 		err = nvgpu_prof_ioctl_unbind_context(prof);
+		break;
+
+	case NVGPU_PROFILER_IOCTL_RESERVE_PM_RESOURCE:
+		err = nvgpu_prof_ioctl_reserve_pm_resource(prof,
+			(struct nvgpu_profiler_reserve_pm_resource_args *)buf);
+		break;
+
+	case NVGPU_PROFILER_IOCTL_RELEASE_PM_RESOURCE:
+		err = nvgpu_prof_ioctl_release_pm_resource(prof,
+			(struct nvgpu_profiler_release_pm_resource_args *)buf);
 		break;
 
 	default:

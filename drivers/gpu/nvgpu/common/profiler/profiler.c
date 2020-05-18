@@ -109,6 +109,15 @@ int nvgpu_profiler_unbind_context(struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
 	struct nvgpu_tsg *tsg = prof->tsg;
+	int i;
+
+	for (i = 0; i < NVGPU_PROFILER_PM_RESOURCE_TYPE_COUNT; i++) {
+		if (prof->reserved[i]) {
+			nvgpu_warn(g, "Releasing reserved resource %u for handle %u",
+				i, prof->prof_handle);
+			nvgpu_profiler_pm_resource_release(prof, i);
+		}
+	}
 
 	if (!prof->context_init) {
 		return -EINVAL;

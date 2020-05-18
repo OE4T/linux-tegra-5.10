@@ -1525,10 +1525,8 @@ struct nvgpu_profiler_bind_context_args {
 	__u32 reserved;
 };
 
-enum {
-	NVGPU_PROFILER_PM_RESOURCE_ARG_HWPM_LEGACY,
-	NVGPU_PROFILER_PM_RESOURCE_ARG_SMPC,
-};
+#define NVGPU_PROFILER_PM_RESOURCE_ARG_HWPM_LEGACY	0U
+#define NVGPU_PROFILER_PM_RESOURCE_ARG_SMPC		1U
 
 struct nvgpu_profiler_reserve_pm_resource_args {
 	__u32 resource; 	/* in: NVGPU_PROFILER_PM_RESOURCE_ARG_* resource to be reserved */
