@@ -408,6 +408,8 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.pci_class = g->pci_class;
 	gpu.pci_revision = g->pci_revision;
 
+	gpu.per_device_identifier = g->per_device_identifier;
+
 	nvgpu_set_preemption_mode_flags(g, &gpu);
 
 	if (request->gpu_characteristics_buf_size > 0) {

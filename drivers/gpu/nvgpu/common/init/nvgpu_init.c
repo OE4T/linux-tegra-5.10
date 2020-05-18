@@ -456,6 +456,18 @@ static int nvgpu_init_boot_clk_or_clk_arb(struct gk20a *g)
 	return err;
 }
 
+static int nvgpu_init_per_device_identifier(struct gk20a *g)
+{
+	int err = 0;
+
+	if (g->ops.fuse.read_per_device_identifier != NULL) {
+		err = g->ops.fuse.read_per_device_identifier(
+			g, &g->per_device_identifier);
+	}
+
+	return err;
+}
+
 static int nvgpu_init_set_debugger_mode(struct gk20a *g)
 {
 #ifdef CONFIG_NVGPU_DEBUGGER
@@ -662,6 +674,8 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.cbc.cbc_init_support, NO_FLAG),
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.chip_init_gpu_characteristics,
+				       NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_per_device_identifier,
 				       NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_set_debugger_mode, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ce.ce_init_support, NO_FLAG),

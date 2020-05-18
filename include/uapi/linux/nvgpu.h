@@ -297,6 +297,8 @@ struct nvgpu_gpu_characteristics {
 	__u32 max_ctxsw_ring_buffer_size;
 	__u32 reserved3;
 
+	__u64 per_device_identifier;
+
 	/* Notes:
 	   - This struct can be safely appended with new fields. However, always
 	     keep the structure size multiple of 8 and make sure that the binary

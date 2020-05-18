@@ -128,6 +128,7 @@ nvgpu-$(CONFIG_NVGPU_DGPU) += \
 	hal/fifo/runlist_fifo_tu104.o \
 	hal/fifo/fifo_intr_gv100.o \
 	hal/fuse/fuse_gp106.o \
+	hal/fuse/fuse_tu104.o \
 	hal/netlist/netlist_gv100.o \
 	hal/netlist/netlist_tu104.o \
 	hal/nvdec/nvdec_gp106.o \

@@ -349,7 +349,9 @@ fuse:
   owner: Seema K
   sources: [ hal/fuse/fuse_gm20b.c,
              hal/fuse/fuse_gp106.c,
-             hal/fuse/fuse_gp106.h ]
+             hal/fuse/fuse_gp106.h,
+             hal/fuse/fuse_tu104.c,
+             hal/fuse/fuse_tu104.h ]
 
 gsp:
   safe: no

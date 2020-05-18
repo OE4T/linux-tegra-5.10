@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,7 +72,9 @@
 		(nvgpu_safe_add_u32(0x00021d70U, nvgpu_safe_mult_u32((i), 4U)))
 #define fuse_status_opt_fbp_r()                                    (0x00021d38U)
 #define fuse_status_opt_fbp_idx_v(r, i)\
-		(((r) >> (0U + i*1U)) & 0x1U)
+		(((r) >> (0U + (i)*1U)) & 0x1U)
 #define fuse_opt_ecc_en_r()                                        (0x00021228U)
 #define fuse_opt_feature_fuses_override_disable_r()                (0x000213f0U)
+#define fuse_opt_pdi_0_r()                                         (0x00021344U)
+#define fuse_opt_pdi_1_r()                                         (0x00021348U)
 #endif

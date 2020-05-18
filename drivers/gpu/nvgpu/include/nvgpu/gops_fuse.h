@@ -193,6 +193,28 @@ struct gops_fuse {
 	int (*read_vin_cal_gain_offset_fuse)(struct gk20a *g,
 					u32 vin_id, s8 *gain,
 					s8 *offset);
+
+	/**
+	 * @brief Read the 64-bit per-device identifier (PDI).
+	 *
+	 * On GPUs where available, the HAL reads NV_FUSE_OPT_PDI_0
+	 * and NV_FUSE_OPT_PDI_1. Combined, these give the 64-bit
+	 * per-device identifier (PDI).
+	 *
+	 * On GP10B/GV11B, this function reads the 64-bit SoC PDI from
+	 * FUSE_PDI0 and FUSE_PDI1.
+	 *
+	 * Null PDI (0) is returned when the device does not have a
+	 * PDI. Errors are returned when there was an error
+	 * determining the PDI.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 * @param val [out]	Pointer to receive the PDI on success.
+	 *
+	 * @return 0 on success.
+	 */
+	int (*read_per_device_identifier)(struct gk20a *g, u64 *pdi);
+
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_gops_fuse.h"
 #endif

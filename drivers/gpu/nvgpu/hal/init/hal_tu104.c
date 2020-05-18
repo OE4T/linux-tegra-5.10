@@ -76,6 +76,7 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
+#include "hal/fuse/fuse_tu104.h"
 #ifdef CONFIG_NVGPU_RECOVERY
 #include "hal/rc/rc_gv11b.h"
 #endif
@@ -1534,6 +1535,8 @@ static const struct gpu_ops tu104_ops = {
 			gp106_fuse_read_vin_cal_slope_intercept_fuse,
 		.read_vin_cal_gain_offset_fuse =
 			gp106_fuse_read_vin_cal_gain_offset_fuse,
+		.read_per_device_identifier =
+			tu104_fuse_read_per_device_identifier,
 	},
 #if defined(CONFIG_NVGPU_NVLINK)
 	.nvlink = {

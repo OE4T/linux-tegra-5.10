@@ -959,6 +959,12 @@ struct gk20a {
 	u16 pci_class;
 	u8 pci_revision;
 
+	/**
+	 * The per-device identifier. The iGPUs without a PDI will use
+	 * the SoC PDI if one exists. Zero if neither exists.
+	 */
+	u64 per_device_identifier;
+
 	/*
 	 * PCI power management: i2c device index, port and address for
 	 * INA3221.
