@@ -460,6 +460,59 @@ static const struct snd_soc_dai_ops tegra_admaif_dai_ops = {
 	.prepare	= tegra_admaif_prepare,
 };
 
+static void tegra_admaif_reg_dump(struct device *dev)
+{
+	struct tegra_admaif *admaif = dev_get_drvdata(dev);
+	int tx_offset = admaif->soc_data->tx_base;
+	int i, stride, ret;
+
+	ret = pm_runtime_get_sync(dev);
+	if (ret < 0) {
+		dev_err(dev, "parent get_sync failed: %d\n", ret);
+		return;
+	}
+
+	dev_info(dev, "=========ADMAIF reg dump=========\n");
+
+	for (i = 0; i < admaif->soc_data->num_ch; i++) {
+		stride = (i * TEGRA_ADMAIF_CHANNEL_REG_STRIDE);
+
+		dev_info(dev, "RX%d_Enable	= %#x\n", i + 1,
+			 readl(admaif->base_addr +
+			       TEGRA_ADMAIF_RX_ENABLE + stride));
+
+		dev_info(dev, "RX%d_STATUS	= %#x\n", i + 1,
+			 readl(admaif->base_addr +
+			       TEGRA_ADMAIF_RX_STATUS + stride));
+
+		dev_info(dev, "RX%d_CIF_CTRL	= %#x\n", i + 1,
+			readl(admaif->base_addr +
+			      TEGRA_ADMAIF_CH_ACIF_RX_CTRL + stride));
+
+		dev_info(dev, "RX%d_FIFO_CTRL = %#x\n", i + 1,
+			 readl(admaif->base_addr +
+			       TEGRA_ADMAIF_RX_FIFO_CTRL + stride));
+
+		dev_info(dev, "TX%d_Enable	= %#x\n", i + 1,
+			 readl(admaif->base_addr + tx_offset +
+			       TEGRA_ADMAIF_TX_ENABLE + stride));
+
+		dev_info(dev, "TX%d_STATUS	= %#x\n", i + 1,
+			 readl(admaif->base_addr + tx_offset +
+			       TEGRA_ADMAIF_TX_STATUS + stride));
+
+		dev_info(dev, "TX%d_CIF_CTRL	= %#x\n", i + 1,
+			readl(admaif->base_addr + tx_offset +
+			      TEGRA_ADMAIF_CH_ACIF_TX_CTRL + stride));
+
+		dev_info(dev, "TX%d_FIFO_CTRL = %#x\n", i + 1,
+			readl(admaif->base_addr + tx_offset +
+			      TEGRA_ADMAIF_TX_FIFO_CTRL + stride));
+	}
+
+	pm_runtime_put_sync(dev);
+}
+
 static int tegra_admaif_get_control(struct snd_kcontrol *kcontrol,
 				    struct snd_ctl_elem_value *ucontrol)
 {
@@ -486,6 +539,8 @@ static int tegra_admaif_get_control(struct snd_kcontrol *kcontrol,
 		*uctl_val = admaif->stereo_to_mono[ADMAIF_TX_PATH][ec->reg];
 	else if (strstr(kcontrol->id.name, "Capture Stereo To Mono"))
 		*uctl_val = admaif->stereo_to_mono[ADMAIF_RX_PATH][ec->reg];
+	else if (strstr(kcontrol->id.name, "APE Reg Dump"))
+		*uctl_val = admaif->reg_dump_flag;
 
 	return 0;
 }
@@ -516,6 +571,16 @@ static int tegra_admaif_put_control(struct snd_kcontrol *kcontrol,
 		admaif->stereo_to_mono[ADMAIF_TX_PATH][ec->reg] = value;
 	else if (strstr(kcontrol->id.name, "Capture Stereo To Mono"))
 		admaif->stereo_to_mono[ADMAIF_RX_PATH][ec->reg] = value;
+	else if (strstr(kcontrol->id.name, "APE Reg Dump")) {
+		admaif->reg_dump_flag = value;
+
+		if (admaif->reg_dump_flag) {
+#if IS_ENABLED(CONFIG_TEGRA210_ADMA)
+			tegra_adma_dump_ch_reg();
+#endif
+			tegra_admaif_reg_dump(cmpnt->dev);
+		}
+	}
 
 	return 0;
 }
@@ -836,6 +901,8 @@ static struct snd_kcontrol_new tegra210_admaif_controls[] = {
 	TEGRA_ADMAIF_CIF_CTRL(8),
 	TEGRA_ADMAIF_CIF_CTRL(9),
 	TEGRA_ADMAIF_CIF_CTRL(10),
+	SOC_SINGLE_EXT("APE Reg Dump", SND_SOC_NOPM, 0, 1, 0,
+		       tegra_admaif_get_control, tegra_admaif_put_control),
 };
 
 static struct snd_kcontrol_new tegra186_admaif_controls[] = {
@@ -879,6 +946,8 @@ static struct snd_kcontrol_new tegra186_admaif_controls[] = {
 	TEGRA_ADMAIF_CIF_CTRL(18),
 	TEGRA_ADMAIF_CIF_CTRL(19),
 	TEGRA_ADMAIF_CIF_CTRL(20),
+	SOC_SINGLE_EXT("APE Reg Dump", SND_SOC_NOPM, 0, 1, 0,
+		       tegra_admaif_get_control, tegra_admaif_put_control),
 };
 
 static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
@@ -1002,6 +1071,8 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 	regs = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
+
+	admaif->base_addr = regs;
 
 	admaif->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
 					       admaif->soc_data->regmap_conf);

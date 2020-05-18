@@ -160,6 +160,10 @@ struct tegra_admaif {
 	unsigned int *mono_to_stereo[ADMAIF_PATHS];
 	unsigned int *stereo_to_mono[ADMAIF_PATHS];
 	struct regmap *regmap;
+	int reg_dump_flag;
+	void __iomem *base_addr;
 };
+
+extern void tegra_adma_dump_ch_reg(void);
 
 #endif
