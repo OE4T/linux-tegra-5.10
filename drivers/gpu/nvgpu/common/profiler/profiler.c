@@ -30,6 +30,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/perfbuf.h>
 
 static nvgpu_atomic_t unique_id = NVGPU_ATOMIC_INIT(0);
 static int generate_unique_id(void)
@@ -74,6 +75,7 @@ void nvgpu_profiler_free(struct nvgpu_profiler_object *prof)
 		prof->prof_handle);
 
 	nvgpu_profiler_unbind_context(prof);
+	nvgpu_profiler_free_pma_stream(prof);
 
 	nvgpu_list_del(&prof->prof_obj_entry);
 	nvgpu_kfree(g, prof);
@@ -329,10 +331,17 @@ static int nvgpu_profiler_unbind_hwpm(struct nvgpu_profiler_object *prof)
 
 static int nvgpu_profiler_bind_hwpm_streamout(struct nvgpu_profiler_object *prof)
 {
+	struct gk20a *g = prof->g;
 	int err;
 
 	err = nvgpu_profiler_bind_hwpm(prof, true);
 	if (err) {
+		return err;
+	}
+
+	err = g->ops.perfbuf.perfbuf_enable(g, prof->pma_buffer_va, prof->pma_buffer_size);
+	if (err) {
+		nvgpu_profiler_unbind_hwpm(prof);
 		return err;
 	}
 
@@ -341,7 +350,13 @@ static int nvgpu_profiler_bind_hwpm_streamout(struct nvgpu_profiler_object *prof
 
 static int nvgpu_profiler_unbind_hwpm_streamout(struct nvgpu_profiler_object *prof)
 {
+	struct gk20a *g = prof->g;
 	int err;
+
+	err = g->ops.perfbuf.perfbuf_disable(g);
+	if (err) {
+		return err;
+	}
 
 	err = nvgpu_profiler_unbind_hwpm(prof);
 	if (err) {
@@ -489,4 +504,49 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 fail:
 	gk20a_idle(g);
 	return err;
+}
+
+int nvgpu_profiler_alloc_pma_stream(struct nvgpu_profiler_object *prof)
+{
+	struct gk20a *g = prof->g;
+	int err;
+
+	err = nvgpu_profiler_pm_resource_reserve(prof,
+			NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
+	if (err) {
+		nvgpu_err(g, "failed to reserve PMA stream");
+		return err;
+	}
+
+	err = nvgpu_perfbuf_init_vm(g);
+	if (err) {
+		nvgpu_err(g, "failed to initialize perfbuf VM");
+		nvgpu_profiler_pm_resource_release(prof,
+				NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
+		return err;
+	}
+
+	return 0;
+}
+
+void nvgpu_profiler_free_pma_stream(struct nvgpu_profiler_object *prof)
+{
+	struct gk20a *g = prof->g;
+	struct mm_gk20a *mm = &g->mm;
+
+	if (prof->pma_buffer_va == 0U) {
+		return;
+	}
+
+	nvgpu_vm_unmap(mm->perfbuf.vm, prof->pma_bytes_available_buffer_va, NULL);
+	prof->pma_bytes_available_buffer_va = 0U;
+
+	nvgpu_vm_unmap(mm->perfbuf.vm, prof->pma_buffer_va, NULL);
+	prof->pma_buffer_va = 0U;
+	prof->pma_buffer_size = 0U;
+
+	nvgpu_perfbuf_deinit_vm(g);
+
+	nvgpu_profiler_pm_resource_release(prof,
+			NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
 }

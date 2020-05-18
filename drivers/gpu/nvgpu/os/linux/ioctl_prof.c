@@ -18,6 +18,7 @@
 #include <linux/file.h>
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
+#include <linux/dma-buf.h>
 #include <uapi/linux/nvgpu.h>
 
 #include <nvgpu/kmem.h>
@@ -26,6 +27,7 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/profiler.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/perfbuf.h>
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/tsg.h>
 
@@ -61,7 +63,15 @@ struct nvgpu_profiler_object_priv {
 	 * execution.
 	 */
 	struct nvgpu_dbg_reg_op *regops_staging_buf;
+
+	/*
+	 * dmabuf handle of the buffer that would store available bytes in PMA buffer
+	 * (if PMA stream resource is reserved successfully).
+	 */
+	struct dma_buf *pma_bytes_available_buffer_dmabuf;
 };
+
+static void nvgpu_prof_free_pma_stream_priv_data(struct nvgpu_profiler_object_priv *priv);
 
 static int nvgpu_prof_fops_open(struct gk20a *g, struct file *filp,
 		enum nvgpu_profiler_pm_reservation_scope scope)
@@ -180,6 +190,8 @@ int nvgpu_prof_fops_release(struct inode *inode, struct file *filp)
 		prof->scope, prof->prof_handle);
 
 	nvgpu_profiler_free(prof);
+
+	nvgpu_prof_free_pma_stream_priv_data(prof_priv);
 
 	nvgpu_kfree(g, prof_priv->regops_umd_copy_buf);
 	nvgpu_kfree(g, prof_priv->regops_staging_buf);
@@ -321,6 +333,137 @@ static int nvgpu_prof_ioctl_release_pm_resource(struct nvgpu_profiler_object *pr
 	}
 
 	prof->ctxsw[pm_resource] = false;
+
+	return 0;
+}
+
+static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *priv,
+		struct nvgpu_profiler_alloc_pma_stream_args *args)
+{
+	struct nvgpu_profiler_object *prof = priv->prof;
+	struct gk20a *g = prof->g;
+	struct mm_gk20a *mm = &g->mm;
+	u64 pma_bytes_available_buffer_offset = 0ULL;
+	struct dma_buf *dmabuf;
+	void *cpuva;
+	u32 pma_buffer_size;
+	int err;
+
+	nvgpu_log(g, gpu_dbg_prof, "Request to setup PMA stream for handle %u",
+		prof->prof_handle);
+
+	if (prof->pma_buffer_va != 0U) {
+		nvgpu_err(g, "PMA stream already initialized");
+		return -EINVAL;
+	}
+
+	err = nvgpu_profiler_alloc_pma_stream(prof);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init PMA stream");
+		return err;
+	}
+
+	/*
+	 * Size register is 32-bit in HW, ensure requested size does
+	 * not violate that.
+	 */
+	pma_buffer_size = nvgpu_safe_cast_u64_to_u32(args->pma_buffer_map_size);
+
+	err = nvgpu_vm_map_buffer(mm->perfbuf.vm, args->pma_buffer_fd,
+			&args->pma_buffer_offset, 0, SZ_4K, 0, 0,
+			0, 0, NULL);
+	if (err != 0) {
+		nvgpu_err(g, "failed to map PMA buffer");
+		goto err_put_vm;
+	}
+
+	err = nvgpu_vm_map_buffer(mm->perfbuf.vm, args->pma_bytes_available_buffer_fd,
+			&pma_bytes_available_buffer_offset, 0, SZ_4K, 0, 0,
+			0, 0, NULL);
+	if (err != 0) {
+		nvgpu_err(g, "failed to map available bytes buffer");
+		goto err_unmap_pma;
+	}
+
+	dmabuf = dma_buf_get(args->pma_bytes_available_buffer_fd);
+	if (IS_ERR(dmabuf)) {
+		err = -EINVAL;
+		nvgpu_err(g, "failed to get available bytes buffer FD");
+		goto err_unmap_bytes_available;
+	}
+
+	cpuva = dma_buf_vmap(dmabuf);
+	if (cpuva == NULL) {
+		err = -ENOMEM;
+		nvgpu_err(g, "failed to vmap available bytes buffer FD");
+		goto err_dma_buf_put;
+	}
+
+	prof->pma_buffer_va = args->pma_buffer_offset;
+	prof->pma_buffer_size = pma_buffer_size;
+	prof->pma_bytes_available_buffer_va = pma_bytes_available_buffer_offset;
+	prof->pma_bytes_available_buffer_cpuva = cpuva;
+	priv->pma_bytes_available_buffer_dmabuf = dmabuf;
+
+	nvgpu_log(g, gpu_dbg_prof, "PMA stream initialized for profiler handle %u, 0x%llx 0x%x 0x%llx",
+		prof->prof_handle, prof->pma_buffer_va, prof->pma_buffer_size,
+		prof->pma_bytes_available_buffer_va);
+
+	args->pma_buffer_va = args->pma_buffer_offset;
+
+	return 0;
+
+err_dma_buf_put:
+	dma_buf_put(dmabuf);
+err_unmap_bytes_available:
+	nvgpu_vm_unmap(mm->perfbuf.vm, pma_bytes_available_buffer_offset, NULL);
+err_unmap_pma:
+	nvgpu_vm_unmap(mm->perfbuf.vm, args->pma_buffer_offset, NULL);
+err_put_vm:
+	nvgpu_perfbuf_deinit_vm(g);
+	nvgpu_profiler_pm_resource_release(prof,
+			NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
+	return err;
+}
+
+static void nvgpu_prof_free_pma_stream_priv_data(struct nvgpu_profiler_object_priv *priv)
+{
+	struct nvgpu_profiler_object *prof = priv->prof;
+
+	if (priv->pma_bytes_available_buffer_dmabuf == NULL) {
+		return;
+	}
+
+	dma_buf_vunmap(priv->pma_bytes_available_buffer_dmabuf,
+		prof->pma_bytes_available_buffer_cpuva);
+	dma_buf_put(priv->pma_bytes_available_buffer_dmabuf);
+	priv->pma_bytes_available_buffer_dmabuf = NULL;
+	prof->pma_bytes_available_buffer_cpuva = NULL;
+}
+
+static int nvgpu_prof_ioctl_free_pma_stream(struct nvgpu_profiler_object_priv *priv)
+{
+	struct nvgpu_profiler_object *prof = priv->prof;
+	struct gk20a *g = prof->g;
+
+	nvgpu_log(g, gpu_dbg_prof, "Request to free PMA stream for handle %u",
+		prof->prof_handle);
+
+	if (prof->pma_buffer_va == 0U) {
+		nvgpu_err(g, "PMA stream not initialized");
+		return -EINVAL;
+	}
+
+	if (prof->bound) {
+		nvgpu_err(g, "PM resources are bound, cannot free PMA");
+		return -EINVAL;
+	}
+
+	nvgpu_profiler_free_pma_stream(prof);
+	nvgpu_prof_free_pma_stream_priv_data(priv);
+
+	nvgpu_log(g, gpu_dbg_prof, "Request to free PMA stream for handle %u completed",
+		prof->prof_handle);
 
 	return 0;
 }
@@ -561,6 +704,15 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 
 	case NVGPU_PROFILER_IOCTL_UNBIND_PM_RESOURCES:
 		err = nvgpu_prof_ioctl_unbind_pm_resources(prof);
+		break;
+
+	case NVGPU_PROFILER_IOCTL_ALLOC_PMA_STREAM:
+		err = nvgpu_prof_ioctl_alloc_pma_stream(prof_priv,
+			(struct nvgpu_profiler_alloc_pma_stream_args *)buf);
+		break;
+
+	case NVGPU_PROFILER_IOCTL_FREE_PMA_STREAM:
+		err = nvgpu_prof_ioctl_free_pma_stream(prof_priv);
 		break;
 
 	case NVGPU_PROFILER_IOCTL_EXEC_REG_OPS:

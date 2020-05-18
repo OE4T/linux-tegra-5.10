@@ -82,6 +82,30 @@ struct nvgpu_profiler_object {
 	 * until this flag is set.
 	 */
 	bool bound;
+
+	/*
+	 * GPU VA of the PMA stream buffer (if PMA stream resource is reserved
+	 * successfully) associated with this profiler object.
+	 */
+	u64 pma_buffer_va;
+
+	/*
+	 * Size of the PMA stream buffer (if PMA stream resource is reserved
+	 * successfully) associated with this profiler object.
+	 */
+	u32 pma_buffer_size;
+
+	/*
+	 * GPU VA of the buffer that would store available bytes in PMA buffer
+	 * (if PMA stream resource is reserved successfully).
+	 */
+	u64 pma_bytes_available_buffer_va;
+
+	/*
+	 * CPU VA of the buffer that would store available bytes in PMA buffer
+	 * (if PMA stream resource is reserved successfully).
+	 */
+	void *pma_bytes_available_buffer_cpuva;
 };
 
 static inline struct nvgpu_profiler_object *
@@ -107,6 +131,9 @@ int nvgpu_profiler_pm_resource_release(struct nvgpu_profiler_object *prof,
 
 int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof);
 int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof);
+
+int nvgpu_profiler_alloc_pma_stream(struct nvgpu_profiler_object *prof);
+void nvgpu_profiler_free_pma_stream(struct nvgpu_profiler_object *prof);
 
 #endif /* CONFIG_NVGPU_PROFILER */
 #endif /* NVGPU_PROFILER_H */
