@@ -122,14 +122,13 @@ void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
 {
 	u32 i;
 
-	nvgpu_writel_check(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
+	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
 		ltc_ltcs_ltss_dstg_zbc_index_address_f(
 			nvgpu_safe_add_u32(index, NVGPU_GR_ZBC_STARTOF_TABLE)));
 
 	for (i = 0;
 	     i < ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v(); i++) {
-		nvgpu_writel_check(g,
-			ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(i),
+		nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(i),
 			color_l2[i]);
 	}
 }
@@ -141,13 +140,12 @@ void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
 					  u32 depth_val,
 					  u32 index)
 {
-	nvgpu_writel_check(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
+	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
 		ltc_ltcs_ltss_dstg_zbc_index_address_f(
 			nvgpu_safe_add_u32(index, NVGPU_GR_ZBC_STARTOF_TABLE)));
 
-	nvgpu_writel_check(g,
-			ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r(),
-			depth_val);
+	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r(),
+		depth_val);
 }
 
 u32 gm20b_ltc_zbc_table_size(struct gk20a *g)
