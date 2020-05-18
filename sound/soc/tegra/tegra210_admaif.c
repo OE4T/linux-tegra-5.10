@@ -557,6 +557,53 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 		.ops = &tegra_admaif_dai_ops,			\
 	}
 
+#define ADMAIF_CODEC_FIFO_DAI(id)                                       \
+	{								\
+		.name = "ADMAIF" #id " FIFO",				\
+		.playback = {						\
+			.stream_name = "ADMAIF" #id " FIFO Transmit",	\
+			.channels_min = 1,				\
+			.channels_max = 16,				\
+			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.formats = SNDRV_PCM_FMTBIT_S8 |		\
+				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S32_LE,		\
+		},							\
+		.capture = {						\
+			.stream_name = "ADMAIF" #id " FIFO Receive",	\
+			.channels_min = 1,				\
+			.channels_max = 16,				\
+			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.formats = SNDRV_PCM_FMTBIT_S8 |		\
+				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S32_LE,		\
+		},							\
+		.ops = &tegra_admaif_dai_ops,				\
+	}
+
+#define ADMAIF_CODEC_CIF_DAI(id)					\
+	{								\
+		.name = "ADMAIF" #id " CIF",				\
+		.playback = {						\
+			.stream_name = "ADMAIF" #id " CIF Transmit",	\
+			.channels_min = 1,				\
+			.channels_max = 16,				\
+			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.formats = SNDRV_PCM_FMTBIT_S8 |		\
+				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S32_LE,		\
+		},							\
+		.capture = {						\
+			.stream_name = "ADMAIF" #id " CIF Receive",	\
+			.channels_min = 1,				\
+			.channels_max = 16,				\
+			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.formats = SNDRV_PCM_FMTBIT_S8 |		\
+				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S32_LE,		\
+		},							\
+	}
+
 static struct snd_soc_dai_driver tegra210_admaif_cmpnt_dais[] = {
 	ADMAIF_DAI(1),
 	ADMAIF_DAI(2),
@@ -568,6 +615,26 @@ static struct snd_soc_dai_driver tegra210_admaif_cmpnt_dais[] = {
 	ADMAIF_DAI(8),
 	ADMAIF_DAI(9),
 	ADMAIF_DAI(10),
+	ADMAIF_CODEC_FIFO_DAI(1),
+	ADMAIF_CODEC_FIFO_DAI(2),
+	ADMAIF_CODEC_FIFO_DAI(3),
+	ADMAIF_CODEC_FIFO_DAI(4),
+	ADMAIF_CODEC_FIFO_DAI(5),
+	ADMAIF_CODEC_FIFO_DAI(6),
+	ADMAIF_CODEC_FIFO_DAI(7),
+	ADMAIF_CODEC_FIFO_DAI(8),
+	ADMAIF_CODEC_FIFO_DAI(9),
+	ADMAIF_CODEC_FIFO_DAI(10),
+	ADMAIF_CODEC_CIF_DAI(1),
+	ADMAIF_CODEC_CIF_DAI(2),
+	ADMAIF_CODEC_CIF_DAI(3),
+	ADMAIF_CODEC_CIF_DAI(4),
+	ADMAIF_CODEC_CIF_DAI(5),
+	ADMAIF_CODEC_CIF_DAI(6),
+	ADMAIF_CODEC_CIF_DAI(7),
+	ADMAIF_CODEC_CIF_DAI(8),
+	ADMAIF_CODEC_CIF_DAI(9),
+	ADMAIF_CODEC_CIF_DAI(10),
 };
 
 static struct snd_soc_dai_driver tegra186_admaif_cmpnt_dais[] = {
@@ -591,6 +658,110 @@ static struct snd_soc_dai_driver tegra186_admaif_cmpnt_dais[] = {
 	ADMAIF_DAI(18),
 	ADMAIF_DAI(19),
 	ADMAIF_DAI(20),
+	ADMAIF_CODEC_FIFO_DAI(1),
+	ADMAIF_CODEC_FIFO_DAI(2),
+	ADMAIF_CODEC_FIFO_DAI(3),
+	ADMAIF_CODEC_FIFO_DAI(4),
+	ADMAIF_CODEC_FIFO_DAI(5),
+	ADMAIF_CODEC_FIFO_DAI(6),
+	ADMAIF_CODEC_FIFO_DAI(7),
+	ADMAIF_CODEC_FIFO_DAI(8),
+	ADMAIF_CODEC_FIFO_DAI(9),
+	ADMAIF_CODEC_FIFO_DAI(10),
+	ADMAIF_CODEC_FIFO_DAI(11),
+	ADMAIF_CODEC_FIFO_DAI(12),
+	ADMAIF_CODEC_FIFO_DAI(13),
+	ADMAIF_CODEC_FIFO_DAI(14),
+	ADMAIF_CODEC_FIFO_DAI(15),
+	ADMAIF_CODEC_FIFO_DAI(16),
+	ADMAIF_CODEC_FIFO_DAI(17),
+	ADMAIF_CODEC_FIFO_DAI(18),
+	ADMAIF_CODEC_FIFO_DAI(19),
+	ADMAIF_CODEC_FIFO_DAI(20),
+	ADMAIF_CODEC_CIF_DAI(1),
+	ADMAIF_CODEC_CIF_DAI(2),
+	ADMAIF_CODEC_CIF_DAI(3),
+	ADMAIF_CODEC_CIF_DAI(4),
+	ADMAIF_CODEC_CIF_DAI(5),
+	ADMAIF_CODEC_CIF_DAI(6),
+	ADMAIF_CODEC_CIF_DAI(7),
+	ADMAIF_CODEC_CIF_DAI(8),
+	ADMAIF_CODEC_CIF_DAI(9),
+	ADMAIF_CODEC_CIF_DAI(10),
+	ADMAIF_CODEC_CIF_DAI(11),
+	ADMAIF_CODEC_CIF_DAI(12),
+	ADMAIF_CODEC_CIF_DAI(13),
+	ADMAIF_CODEC_CIF_DAI(14),
+	ADMAIF_CODEC_CIF_DAI(15),
+	ADMAIF_CODEC_CIF_DAI(16),
+	ADMAIF_CODEC_CIF_DAI(17),
+	ADMAIF_CODEC_CIF_DAI(18),
+	ADMAIF_CODEC_CIF_DAI(19),
+	ADMAIF_CODEC_CIF_DAI(20),
+};
+
+#define ADMAIF_WIDGETS(id)					\
+	SND_SOC_DAPM_AIF_IN("ADMAIF" #id " FIFO RX", NULL, 0,	\
+		SND_SOC_NOPM, 0, 0),				\
+	SND_SOC_DAPM_AIF_OUT("ADMAIF" #id " FIFO TX", NULL, 0,	\
+		SND_SOC_NOPM, 0, 0),				\
+	SND_SOC_DAPM_AIF_IN("ADMAIF" #id " CIF RX", NULL, 0,	\
+		SND_SOC_NOPM, 0, 0),				\
+	SND_SOC_DAPM_AIF_OUT("ADMAIF" #id " CIF TX", NULL, 0,	\
+		SND_SOC_NOPM, 0, 0)
+
+static const struct snd_soc_dapm_widget tegra_admaif_widgets[] = {
+	ADMAIF_WIDGETS(1),
+	ADMAIF_WIDGETS(2),
+	ADMAIF_WIDGETS(3),
+	ADMAIF_WIDGETS(4),
+	ADMAIF_WIDGETS(5),
+	ADMAIF_WIDGETS(6),
+	ADMAIF_WIDGETS(7),
+	ADMAIF_WIDGETS(8),
+	ADMAIF_WIDGETS(9),
+	ADMAIF_WIDGETS(10),
+	ADMAIF_WIDGETS(11),
+	ADMAIF_WIDGETS(12),
+	ADMAIF_WIDGETS(13),
+	ADMAIF_WIDGETS(14),
+	ADMAIF_WIDGETS(15),
+	ADMAIF_WIDGETS(16),
+	ADMAIF_WIDGETS(17),
+	ADMAIF_WIDGETS(18),
+	ADMAIF_WIDGETS(19),
+	ADMAIF_WIDGETS(20)
+};
+
+#define ADMAIF_ROUTES(id)						       \
+	{ "ADMAIF" #id " FIFO RX",	NULL, "ADMAIF" #id " FIFO Transmit" }, \
+	{ "ADMAIF" #id " CIF TX",	NULL, "ADMAIF" #id " FIFO RX" },       \
+	{ "ADMAIF" #id " CIF Receive",	NULL, "ADMAIF" #id " CIF TX" },	       \
+	{ "ADMAIF" #id " CIF RX",	NULL, "ADMAIF" #id " CIF Transmit" },  \
+	{ "ADMAIF" #id " FIFO TX",	NULL, "ADMAIF" #id " CIF RX" },	       \
+	{ "ADMAIF" #id " FIFO Receive", NULL, "ADMAIF" #id " FIFO TX" }	       \
+
+static const struct snd_soc_dapm_route tegra_admaif_routes[] = {
+	ADMAIF_ROUTES(1),
+	ADMAIF_ROUTES(2),
+	ADMAIF_ROUTES(3),
+	ADMAIF_ROUTES(4),
+	ADMAIF_ROUTES(5),
+	ADMAIF_ROUTES(6),
+	ADMAIF_ROUTES(7),
+	ADMAIF_ROUTES(8),
+	ADMAIF_ROUTES(9),
+	ADMAIF_ROUTES(10),
+	ADMAIF_ROUTES(11),
+	ADMAIF_ROUTES(12),
+	ADMAIF_ROUTES(13),
+	ADMAIF_ROUTES(14),
+	ADMAIF_ROUTES(15),
+	ADMAIF_ROUTES(16),
+	ADMAIF_ROUTES(17),
+	ADMAIF_ROUTES(18),
+	ADMAIF_ROUTES(19),
+	ADMAIF_ROUTES(20)
 };
 
 static const char * const tegra_admaif_stereo_conv_text[] = {
@@ -711,6 +882,8 @@ static struct snd_kcontrol_new tegra186_admaif_controls[] = {
 };
 
 static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
+	.dapm_widgets		= tegra_admaif_widgets,
+	.num_dapm_widgets	= ARRAY_SIZE(tegra_admaif_widgets),
 	.controls		= tegra210_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra210_admaif_controls),
 	.pcm_construct		= tegra_pcm_construct,
@@ -724,6 +897,8 @@ static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
 };
 
 static const struct snd_soc_component_driver tegra186_admaif_cmpnt = {
+	.dapm_widgets		= tegra_admaif_widgets,
+	.num_dapm_widgets	= ARRAY_SIZE(tegra_admaif_widgets),
 	.controls		= tegra186_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra186_admaif_controls),
 	.pcm_construct		= tegra_pcm_construct,
@@ -877,7 +1052,7 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 	err = devm_snd_soc_register_component(&pdev->dev,
 					      admaif->soc_data->cmpnt,
 					      admaif->soc_data->dais,
-					      admaif->soc_data->num_ch);
+					      admaif->soc_data->num_ch * 3);
 	if (err) {
 		dev_err(&pdev->dev,
 			"can't register ADMAIF component, err: %d\n", err);
