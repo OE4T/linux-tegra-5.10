@@ -1030,6 +1030,7 @@ static int tegra_adma_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	tdma->dev = &pdev->dev;
+	dma_device = &pdev->dev;
 	tdma->cdata = cdata;
 	tdma->nr_channels = cdata->nr_channels;
 	platform_set_drvdata(pdev, tdma);
