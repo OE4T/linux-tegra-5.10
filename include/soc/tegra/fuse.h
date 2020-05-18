@@ -32,6 +32,10 @@
 
 #define TEGRA_FUSE_USB_CALIB_EXT_0 0x250
 
+/* T186+ */
+#define FUSE_PDI0			0x300
+#define FUSE_PDI1			0x304
+
 #ifndef __ASSEMBLY__
 
 #include <linux/of.h>
