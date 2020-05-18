@@ -115,3 +115,10 @@ int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val)
 	return p->callbacks->tegra_fuse_readl(FUSE_RESERVED_CALIB0_0, val);
 }
 #endif
+
+int nvgpu_tegra_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi)
+{
+	*pdi = 0;
+
+	return 0;
+}

@@ -105,6 +105,18 @@ void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g, u32 val);
  */
 int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val);
 
+/**
+ * @brief - Reads the per-device identifier fuses.
+ *
+ * @param g [in] - GPU super structure.
+ * @param pdi [out] - Per-device identifier
+ *
+ * The per-device identifier fuses are FUSE_PDI0 and FUSE_PDI1.
+ *
+ * @return 0 on success
+ */
+int nvgpu_tegra_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi);
+
 #else /* CONFIG_NVGPU_TEGRA_FUSE */
 
 #ifdef CONFIG_NVGPU_NON_FUSA
@@ -146,6 +158,13 @@ static inline int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g,
 	 * by default that is expected on the production chip.
 	 */
 	*val = 0x4;
+
+	return 0;
+}
+
+static inline int nvgpu_tegra_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi)
+{
+	*pdi = 0U;
 
 	return 0;
 }

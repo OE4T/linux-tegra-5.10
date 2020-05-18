@@ -55,3 +55,22 @@ int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val)
 {
 	return tegra_fuse_readl(FUSE_RESERVED_CALIB0_0, val);
 }
+
+int nvgpu_tegra_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi)
+{
+	u32 lo = 0U;
+	u32 hi = 0U;
+	int err;
+
+	err = tegra_fuse_readl(FUSE_PDI0, &lo);
+	if (err)
+		return err;
+
+	err = tegra_fuse_readl(FUSE_PDI1, &hi);
+	if (err)
+		return err;
+
+	*pdi = ((u64)lo) | (((u64)hi) << 32);
+
+	return 0;
+}

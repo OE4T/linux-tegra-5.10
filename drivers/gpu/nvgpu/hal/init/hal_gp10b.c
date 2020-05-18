@@ -1217,6 +1217,8 @@ static const struct gpu_ops gp10b_ops = {
 		.read_vin_cal_gain_offset_fuse = NULL,
 		.read_gcplex_config_fuse =
 				nvgpu_tegra_fuse_read_gcplex_config_fuse,
+		.read_per_device_identifier =
+			nvgpu_tegra_fuse_read_per_device_identifier,
 	},
 	.top = {
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
