@@ -18,7 +18,7 @@ int iommu_get_dma_cookie(struct iommu_domain *domain);
 int iommu_get_msi_cookie(struct iommu_domain *domain, dma_addr_t base);
 void iommu_put_dma_cookie(struct iommu_domain *domain);
 dma_addr_t iommu_dma_alloc_iova(struct device *dev, size_t size,
-				dma_addr_t dma_limit);
+				u64 dma_limit);
 void iommu_dma_free_iova(struct device *dev, dma_addr_t iova, size_t size);
 
 /* Setup call for arch DMA mapping code */
@@ -67,7 +67,7 @@ static inline void iommu_put_dma_cookie(struct iommu_domain *domain)
 }
 
 static dma_addr_t iommu_dma_alloc_iova(struct device *dev, size_t size,
-				       dma_addr_t dma_limit)
+				       u64 dma_limit)
 {
 	return 0;
 }

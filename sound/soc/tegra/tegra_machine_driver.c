@@ -35,6 +35,9 @@
 
 #define DRV_NAME "tegra-asoc:"
 
+#define MAX_DAI_LINKS 10
+static unsigned int dai_links_idx[MAX_DAI_LINKS];
+
 static const char * const tegra_machine_srate_text[] = {
 	"None",
 	"8kHz",
@@ -181,7 +184,7 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 		}
 	}
 
-	rtd = snd_soc_get_pcm_runtime(card, "rt565x-playback");
+	rtd = snd_soc_get_pcm_runtime(card, &machine->asoc->dai_links[dai_links_idx[0]]);
 	if (rtd) {
 		err = snd_soc_dai_set_sysclk(rtd->codec_dai, RT5659_SCLK_S_MCLK,
 					     aud_mclk, SND_SOC_CLOCK_IN);
@@ -191,7 +194,7 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 		}
 	}
 
-	rtd = snd_soc_get_pcm_runtime(card, "rt565x-codec-sysclk-bclk1");
+	rtd = snd_soc_get_pcm_runtime(card, &machine->asoc->dai_links[dai_links_idx[1]]);
 	if (rtd) {
 		unsigned int bclk_rate;
 		dai_params = (struct snd_soc_pcm_stream *)rtd->dai_link->params;
@@ -231,7 +234,7 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 		}
 	}
 
-	rtd = snd_soc_get_pcm_runtime(card, "dspk-playback-r");
+	rtd = snd_soc_get_pcm_runtime(card, &machine->asoc->dai_links[dai_links_idx[2]]);
 	if (rtd) {
 		if (!strcmp(rtd->codec_dai->name, "tas2552-amplifier")) {
 			err = snd_soc_dai_set_sysclk(rtd->codec_dai,
@@ -244,7 +247,7 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 		}
 	}
 
-	rtd = snd_soc_get_pcm_runtime(card, "dspk-playback-l");
+	rtd = snd_soc_get_pcm_runtime(card, &machine->asoc->dai_links[dai_links_idx[3]]);
 	if (rtd) {
 		if (!strcmp(rtd->codec_dai->name, "tas2552-amplifier")) {
 			err = snd_soc_dai_set_sysclk(rtd->codec_dai,
@@ -431,6 +434,14 @@ static int codec_init(struct tegra_machine *machine)
 		if (!dai_links[i].name)
 			continue;
 
+		if (strstr(dai_links[i].name, "rt565x-playback"))
+			dai_links_idx[0] = i;
+		else if (strstr(dai_links[i].name, "rt565x-codec-sysclk-bclk1"))
+			dai_links_idx[1] = i;
+		else if (strstr(dai_links[i].name, "dspk-playback-r"))
+			dai_links_idx[2] = i;
+		else if (strstr(dai_links[i].name, "dspk-playback-l"))
+			dai_links_idx[3] = i;
 		if (strstr(dai_links[i].name, "rt565x-playback") ||
 		    strstr(dai_links[i].name, "rt565x-codec-sysclk-bclk1"))
 			dai_links[i].init = tegra_machine_rt565x_init;

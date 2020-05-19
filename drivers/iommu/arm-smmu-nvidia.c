@@ -91,7 +91,7 @@ static void nsmmu_tlb_sync(struct arm_smmu_device *smmu, int page,
 				reg |= readl_relaxed(
 					nsmmu_page(smmu, i, page) + status);
 			}
-			if (!(reg & sTLBGSTATUS_GSACTIVE))
+			if (!(reg & ARM_SMMU_sTLBGSTATUS_GSACTIVE))
 				return;
 			cpu_relax();
 		}
@@ -172,7 +172,7 @@ static irqreturn_t nsmmu_context_fault_bank(int irq,
 	unsigned long iova;
 
 	fsr = arm_smmu_cb_read(smmu, idx, ARM_SMMU_CB_FSR);
-	if (!(fsr & FSR_FAULT))
+	if (!(fsr & ARM_SMMU_FSR_FAULT))
 		return IRQ_NONE;
 
 	fsynr = readl_relaxed(nsmmu_page(smmu, inst, smmu->numpage + idx) +

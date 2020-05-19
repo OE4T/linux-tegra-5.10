@@ -1587,7 +1587,7 @@ int mmc_ddr_to_hs200(struct mmc_card *card)
 	/* Switch HS DDR to HS */
 	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_BUS_WIDTH,
 			   bus_width, card->ext_csd.generic_cmd6_time, 0,
-			   true, true, true);
+			   true, true);
 	if (err) {
 		pr_err("%s: Switch to High Speed Bus Width Failed, error %d\n",
 			mmc_hostname(card->host), err);
@@ -1599,8 +1599,7 @@ int mmc_ddr_to_hs200(struct mmc_card *card)
 	/* Switch HS to HS200 */
 	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_HS_TIMING,
 			   EXT_CSD_TIMING_HS200,
-			   card->ext_csd.generic_cmd6_time, 0, true, true,
-			   true);
+			   card->ext_csd.generic_cmd6_time, 0, true, true);
 	if (err) {
 		pr_err("%s: Switch to Hs200 failed, error %d\n",
 			mmc_hostname(card->host), err);
@@ -1627,7 +1626,7 @@ int mmc_hs200_to_ddr(struct mmc_card *card)
 	/* Switch HS200 to HS DDR */
 	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_HS_TIMING,
 			   EXT_CSD_TIMING_HS, card->ext_csd.generic_cmd6_time,
-			   0, true, true, true);
+			   0, true, true);
 	if (err) {
 		pr_err("%s: switch to DDR mode failed, error %d\n",
 			mmc_hostname(card->host), err);
@@ -1712,7 +1711,7 @@ int mmc_hs400_to_ddr(struct mmc_card *card)
 	/* Switch HS400 to HS DDR */
 	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_HS_TIMING,
 			   EXT_CSD_TIMING_HS, card->ext_csd.generic_cmd6_time,
-			   0, true, true, true);
+			   0, true, true);
 	if (err) {
 		pr_err("%s: switch to DDR mode failed, error %d\n",
 			mmc_hostname(card->host), err);

@@ -704,22 +704,14 @@ static struct snd_kcontrol_new tegra186_admaif_controls[] = {
 	TEGRA_ADMAIF_CIF_CTRL(20),
 };
 
-extern const struct snd_pcm_ops tegra_pcm_ops;
-
 static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
 	.controls		= tegra210_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra210_admaif_controls),
-	.pcm_new		= tegra_pcm_new,
-	.pcm_free		= tegra_pcm_free,
-	.ops			= &tegra_pcm_ops,
 };
 
 static const struct snd_soc_component_driver tegra186_admaif_cmpnt = {
 	.controls		= tegra186_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra186_admaif_controls),
-	.pcm_new		= tegra_pcm_new,
-	.pcm_free		= tegra_pcm_free,
-	.ops			= &tegra_pcm_ops,
 };
 
 static const struct tegra_admaif_soc_data soc_data_tegra210 = {

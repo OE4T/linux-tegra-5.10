@@ -702,6 +702,20 @@ static void do_handle_rx_pio(struct tegra_uart_port *tup)
 	struct tty_struct *tty = tty_port_tty_get(&tup->uport.state->port);
 	struct tty_port *port = &tup->uport.state->port;
 
+	tegra_uart_handle_rx_pio(tup, port);
+	if (tty) {
+		tty_flip_buffer_push(port);
+		tty_kref_put(tty);
+	}
+}
+
+static void tegra_uart_rx_buffer_push(struct tegra_uart_port *tup,
+				      unsigned int residue)
+{
+	struct tty_port *port = &tup->uport.state->port;
+	unsigned int count;
+
+	async_tx_ack(tup->rx_dma_desc);
 	count = tup->rx_bytes_requested - residue;
 
 	/* If we are here, DMA is stopped */

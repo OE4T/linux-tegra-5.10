@@ -640,11 +640,27 @@ static int of_gpiochip_add_hog(struct gpio_chip *chip, struct device_node *hog)
 	const char *name;
 	unsigned int i;
 	int ret;
+	int ncells, ngpios;
 
-	for (i = 0;; i++) {
+	ncells = of_gpio_get_gpio_cells_size(chip->of_node);
+
+	ngpios = of_property_count_u32_elems(hog, "gpios");
+
+	ngpios /= ncells;
+	for (i = 0; i < ngpios; i++) {
 		desc = of_parse_own_gpio(hog, chip, i, &name, &lflags, &dflags);
 		if (IS_ERR(desc))
 			break;
+
+		/* dflags is 0 for making pin in non-gpio mode */
+		if (!dflags) {
+			ret = chip->request(chip,
+					    gpio_chip_hwgpio(desc));
+			if (!ret)
+				chip->free(chip,
+					   gpio_chip_hwgpio(desc));
+			continue;
+		}
 
 		ret = gpiod_hog(desc, name, lflags, dflags);
 		if (ret < 0)
@@ -690,28 +706,10 @@ static int of_gpiochip_scan_gpios(struct gpio_chip *chip)
 			continue;
 		}
 
-		ngpios /= ncells;
-		for (i = 0; i < ngpios; i++) {
-			desc = of_parse_own_gpio(np, chip, i, &name,
-						 &lflags, &dflags);
-			if (IS_ERR(desc))
-				break;
-
-			/* dflags is 0 for making pin in non-gpio mode */
-			if (!dflags) {
-				ret = chip->request(chip,
-						    gpio_chip_hwgpio(desc));
-				if (!ret)
-					chip->free(chip,
-						   gpio_chip_hwgpio(desc));
-				continue;
-			}
-
-			ret = gpiod_hog(desc, name, lflags, dflags);
-			if (ret < 0) {
-				of_node_put(np);
-				return ret;
-			}
+		ret = of_gpiochip_add_hog(chip, np);
+		if (ret < 0) {
+			of_node_put(np);
+			return ret;
 		}
 
 		of_node_set_flag(np, OF_POPULATED);
@@ -818,10 +816,6 @@ int of_gpiochip_suspend(struct gpio_chip *chip)
 	enum gpiod_flags dflags;
 	int ret;
 	int i, ncells, ngpios;
-
-	ncells = of_gpio_get_gpio_cells_size(chip->of_node);
-	if (ncells < 0)
-		return 0;
 
 	for_each_available_child_of_node(chip->of_node, np) {
 		if (!of_property_read_bool(np, "gpio-suspend"))

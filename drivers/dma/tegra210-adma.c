@@ -1041,7 +1041,7 @@ static int tegra_adma_probe(struct platform_device *pdev)
 
 	if (cdata->adma_war.is_adma_war) {
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-		tdma->shrd_sem_addr = devm_ioremap_nocache(&pdev->dev,
+		tdma->shrd_sem_addr = devm_ioremap(&pdev->dev,
 						res->start, resource_size(res));
 		if (IS_ERR(tdma->shrd_sem_addr))
 			return PTR_ERR(tdma->shrd_sem_addr);
