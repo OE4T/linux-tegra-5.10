@@ -26,6 +26,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 
 #include <hal/fifo/mmu_fault_gm20b.h>
 
@@ -66,18 +67,18 @@ void gm20b_fifo_get_mmu_fault_gpc_desc(struct mmu_fault_info *mmufault)
 static inline u32 gm20b_engine_id_to_fault_id(struct gk20a *g,
 			u32 engine_id)
 {
-	u32 fault_id = INVAL_ID;
-	struct nvgpu_engine_info *engine_info;
+	const struct nvgpu_device *dev;
 
-	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
+	dev = nvgpu_engine_get_active_eng_info(g, engine_id);
 
-	if (engine_info != NULL) {
-		fault_id = engine_info->fault_id;
-	} else {
-		nvgpu_err(g, "engine_id is not in active list/invalid %d",
-				engine_id);
+	if (dev == NULL) {
+		nvgpu_err(g,
+			  "engine_id is not in active list/invalid %d",
+			  engine_id);
+		return INVAL_ID;
 	}
-	return fault_id;
+
+	return dev->fault_id;
 }
 
 void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,

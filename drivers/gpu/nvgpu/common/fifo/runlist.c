@@ -24,6 +24,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/bug.h>
@@ -681,8 +682,8 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 {
 	struct nvgpu_runlist_info *runlist;
-	struct nvgpu_engine_info *engine_info;
-	u32 i, engine_id, j;
+	const struct nvgpu_device *dev;
+	u32 i, j;
 
 	nvgpu_log_fn(g, " ");
 
@@ -700,11 +701,10 @@ void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 				 runlist->runlist_id, runlist->pbdma_bitmask);
 
 		for (j = 0; j < f->num_engines; j++) {
-			engine_id = f->active_engines_list[j];
-			engine_info = &f->engine_info[engine_id];
+			dev = f->active_engines[j];
 
-			if (engine_info->runlist_id == runlist->runlist_id) {
-				runlist->eng_bitmask |= BIT32(engine_id);
+			if (dev->runlist_id == runlist->runlist_id) {
+				runlist->eng_bitmask |= BIT32(dev->engine_id);
 			}
 		}
 		nvgpu_log(g, gpu_dbg_info, "runlist %d: act eng bitmask 0x%x",

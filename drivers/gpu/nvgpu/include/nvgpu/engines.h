@@ -61,55 +61,6 @@ enum nvgpu_fifo_engine {
 	NVGPU_ENGINE_INVAL     = 3U,
 };
 
-struct nvgpu_engine_info {
-	/**
-	 * Contains valid engine id read from device info h/w register or
-	 * invalid engine id, U32_MAX.
-	 */
-	u32 engine_id;
-	/**
-	 * Contains valid runlist id read from device info h/w register or
-	 * invalid runlist id, U32_MAX.
-	 */
-	u32 runlist_id;
-	/**
-	 * Contains bit mask for the intr id read from device info h/w register
-	 * or invalid intr id mask, U32_MAX. This is used to check pending
-	 * interrupt for the engine_id.
-	 */
-	u32 intr_mask;
-	/**
-	 * Contains bit mask for the reset id read from device info h/w register
-	 * or invalid reset id mask, U32_MAX.
-	 */
-	u32 reset_mask;
-	/** Pbdma id servicing #runlist_id. */
-	u32 pbdma_id;
-	/**
-	 * Specifies instance of a device, allowing s/w to distinguish between
-	 * multiple copies of a device present on the chip.
-	 */
-	u32 inst_id;
-	/**
-	 * Used to determine the start of the h/w register address space
-	 * for #inst_id 0.
-	 */
-	u32 pri_base;
-	/**
-	 * Contains valid mmu fault id read from device info h/w register or
-	 * invalid mmu fault id, U32_MAX.
-	 */
-	u32 fault_id;
-	/** Engine enum type used for s/w purpose. */
-	enum nvgpu_fifo_engine engine_enum;
-
-	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-	/* nvgpu next engine info additions */
-	struct nvgpu_next_engine_info nvgpu_next;
-#endif
-	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
-};
 /**
  * @brief Get s/w defined engine enum type for engine enum type defined by h/w.
  *        See device.h for engine enum types defined by h/w.
@@ -129,7 +80,7 @@ struct nvgpu_engine_info {
 enum nvgpu_fifo_engine nvgpu_engine_enum_from_dev(struct gk20a *g,
 					const struct nvgpu_device *dev);
 /**
- * @brief Get pointer to #nvgpu_engine_info for the h/w engine id.
+ * @brief Get pointer to #nvgpu_device for the h/w engine id.
  *
  * @param g [in]		The GPU driver struct.
  * @param engine_id [in]	Active (h/w) Engine id.
@@ -138,39 +89,16 @@ enum nvgpu_fifo_engine nvgpu_engine_enum_from_dev(struct gk20a *g,
  * #nvgpu_engine_info from an array of structures that is indexed by h/w
  * engine id.
  *
- * @return Pointer to #nvgpu_engine_info.
+ * @return Pointer to #nvgpu_device.
  * @retval NULL if #g is NULL.
  * @retval NULL if engine_id is not less than max supported number of engines
  *         i.e. #nvgpu_fifo.max_engines or if #engine_id does not match with
  *         any engine id supported by h/w or number of available engines
  *         i.e. #nvgpu_fifo.num_engines is 0.
  */
-struct nvgpu_engine_info *nvgpu_engine_get_active_eng_info(
+const struct nvgpu_device *nvgpu_engine_get_active_eng_info(
 		struct gk20a *g, u32 engine_id);
-/**
- * @brief Get instance count and h/w engine id/s for s/w defined engine
- *        enum type. See #nvgpu_fifo_engine for s/w defined engine enum types.
- *
- * @param g [in]		The GPU driver struct.
- * @param engine_ids [in,out]	Pointer to memory area to store h/w engine ids.
- * @param engine_id_sz [in]	Number of h/w engine ids to be stored in
- *                              memory area pointed by #engine_ids.
- * @param engine_enum [in]	Engine enum types defined by #nvgpu_fifo_engine.
- *
- * - Check validity of input parameters.
- * - Get #nvgpu_engine_info for each of #nvgpu_fifo.num_engines.
- *   - Increase instance count and store h/w engine id in #engine_ids if
- *     #nvgpu_engine_info.engine_enum matches with #engine_enum until
- *     instance count is less than #engine_id_sz.
- *
- * @return Instance count.
- * @retval 0 if #g is NULL or #engine_id_sz is 0 or #engine_enum is
- *         #NVGPU_ENGINE_INVAL
- * @retval 0 if #nvgpu_fifo.num_engines is 0.
- */
-u32 nvgpu_engine_get_ids(struct gk20a *g,
-		u32 *engine_ids, u32 engine_id_sz,
-		enum nvgpu_fifo_engine engine_enum);
+
 /**
  * @brief Check if engine id is one of the supported h/w engine ids.
  *
@@ -204,16 +132,9 @@ u32 nvgpu_engine_get_gr_id(struct gk20a *g);
  *
  * @param g[in]			The GPU driver struct.
  *
- * For each of #nvgpu_fifo.num_engines, get pointer to
- * #nvgpu_engine_info. Use this to get #nvgpu_engine_info.intr_mask.
- * If #nvgpu_engine_info.engine_num type matches with
- * #NVGPU_ENGINE_GR, local intr_mask variable is logically ORed with
- * #nvgpu_engine_info.intr_mask.
+ * Return bitmask of each GR engine's interrupt bit.
  *
  * @return Interrupt mask for GR engine.
- * @retval 0 if #nvgpu_fifo.num_engines is 0.
- * @retval 0 if all of the supported engine enum types don't match with
- *         #NVGPU_ENGINE_GR.
  */
 u32 nvgpu_gr_engine_interrupt_mask(struct gk20a *g);
 /**
@@ -221,34 +142,23 @@ u32 nvgpu_gr_engine_interrupt_mask(struct gk20a *g);
  *
  * @param g [in]		The GPU driver struct.
  *
- * For each of #nvgpu_fifo.num_engines, get pointer to
- * #nvgpu_engine_info. Use this to get #nvgpu_engine_info.intr_mask.
- * If #nvgpu_engine_info.engine_num type matches with
- * #NVGPU_ENGINE_GRCE or #NVGPU_ENGINE_ASYNC_CE but interrupt handlers
- * are not supported or engine_enum type matches with #NVGPU_ENGINE_GR
- * , local intr_mask variable is not logically ORed with
- * #nvgpu_engine_info.intr_mask.
+ * Query all types of copy engine devices and OR their interrupt bits into
+ * a CE interrupt mask.
  *
- * @return Interrupt mask for CE engines that support interrupt handlers.
- * @retval 0 if #nvgpu_fifo.num_engines is 0.
- * @retval 0 if all of the supported engine enum types match with
- *         #NVGPU_ENGINE_GRCE or #NVGPU_ENGINE_ASYNC_CE and does not
- *         support interrupt handler or engine enum type matches with
- *         #NVGPU_ENGINE_GR.
+ * @return 0U if there is no CE support in the system.
+ * @return The logical OR of all interrupt bits for all CE devices present.
  */
 u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g);
 /**
- * @brief Get intr mask for the h/w engine id.
+ * @brief Get intr mask for the device corresponding the provided engine_id.
  *
  * @param g [in]		The GPU driver struct.
- * @param engine_id [in]	H/w Engine id.
+ * @param engine_id [in]	HW engine_id.
  *
- * Get pointer to #nvgpu_engine_info for the #engine_id. Use this to
- * get intr mask for the #engine_id.
+ * Return the interrupt mask for the host device corresponding to \a engine_id.
  *
- * @return Intr mask for the #engine_id.
- * @retval 0 if pointer to #nvgpu_engine_info is NULL for the
- *         #engine_id.
+ * @return Intr mask for the #engine_id or 0 if the engine_id does not have a
+ *         corresponding device.
  */
 u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 engine_id);
 /**
@@ -256,16 +166,7 @@ u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 engine_id);
  *
  * @param g [in]		The GPU driver struct.
  *
- * For each #nvgpu_fifo.num_engines, get pointer to #nvgpu_engine_info.
- * Use this pointer to check if engine enum type matches with
- * #NVGPU_ENGINE_GRCE or #NVGPU_ENGINE_ASYNC_CE. Upon match, logical OR
- * the reset mask (init to 0) with reset_mask read from pointer to
- * #nvgpu_engine_info.
- *
- * @return Reset mask for all the supported CE engine enum types.
- * @retval NULL if #g is NULL.
- * @retval 0 if none of the supported engine enum types match with
- *         #NVGPU_ENGINE_GRCE or #NVGPU_ENGINE_ASYNC_CE.
+ * @return The logical OR of the reset mask of each CE present on the GPU.
  */
 u32 nvgpu_engine_get_all_ce_reset_mask(struct gk20a *g);
 /**
@@ -307,11 +208,9 @@ int nvgpu_engine_setup_sw(struct gk20a *g);
 void nvgpu_engine_cleanup_sw(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
-int nvgpu_engine_enable_activity(struct gk20a *g,
-			struct nvgpu_engine_info *eng_info);
-int nvgpu_engine_enable_activity_all(struct gk20a *g);
+void nvgpu_engine_enable_activity_all(struct gk20a *g);
 int nvgpu_engine_disable_activity(struct gk20a *g,
-			struct nvgpu_engine_info *eng_info,
+			const struct nvgpu_device *dev,
 			bool wait_for_idle);
 int nvgpu_engine_disable_activity_all(struct gk20a *g,
 				bool wait_for_idle);
@@ -483,22 +382,6 @@ bool nvgpu_engine_should_defer_reset(struct gk20a *g, u32 engine_id,
  */
 u32 nvgpu_engine_mmu_fault_id_to_veid(struct gk20a *g, u32 mmu_fault_id,
 			u32 gr_eng_fault_id);
-/**
- * @brief Get h/w engine id and veid from mmu fault id.
- *
- * @param g [in]		The GPU driver struct.
- * @param mmu_fault_id [in]	Mmu fault id.
- * @param veid [in,out]		Pointer to store veid.
- *
- * Get valid h/w engine id for given #mmu_fault_id. Also get veid if engine
- * enum for h/w engine id is of type #NVGPU_ENGINE_GR.
- *
- * @return Valid h/w (active) engine id. Updated #veid with valid veid
- *         if engine enum type for h/w engine id is of type #NVGPU_ENGINE_GR.
- * @retval #INVAL_ID.
- */
-u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
-			 u32 mmu_fault_id, u32 *veid);
 /**
  * @brief Get engine id, veid and pbdma id from mmu fault id.
  *

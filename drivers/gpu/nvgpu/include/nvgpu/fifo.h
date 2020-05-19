@@ -135,10 +135,6 @@
  *
  *       TODO
  *
- *   + struct nvgpu_engine_info
- *
- *       TODO
- *
  *   + struct nvgpu_channel
  *
  *       TODO
@@ -229,7 +225,6 @@
 #define CHANNEL_INFO_VEID0		0U
 
 struct gk20a;
-struct nvgpu_engine_info;
 struct nvgpu_runlist_info;
 struct nvgpu_channel;
 struct nvgpu_tsg;
@@ -238,41 +233,47 @@ struct nvgpu_swprofiler;
 struct nvgpu_fifo {
 	/** Pointer to GPU driver struct. */
 	struct gk20a *g;
+
 	/** Number of channels supported by the h/w. */
 	unsigned int num_channels;
+
 	/** Runlist entry size in bytes as supported by h/w. */
 	unsigned int runlist_entry_size;
+
 	/** Number of runlist entries per runlist as supported by the h/w. */
 	unsigned int num_runlist_entries;
 
 	/**
-	 * This is the area of memory allocated by kernel to keep information for
-	 * #max_engines supported by the chip. This information is filled up
-	 * with device info h/w registers' values. Pointer is indexed by
-	 * engine_id defined by h/w.
+	 * Array of pointers to the engines that host controls. The size is
+	 * based on the GPU litter value HOST_NUM_ENGINES. This is indexed by
+	 * engine ID. That is to say, if you want to get a device that
+	 * corresponds to engine ID, E, then host_engines[E] will give you a
+	 * pointer to that device.
+	 *
+	 * If a given element is NULL, that means that there is no engine for
+	 * the given engine ID. This is expected for chips that do not populate
+	 * the full set of possible engines for a given family of chips. E.g
+	 * a GV100 has a lot more engines than a gv11b.
 	 */
-	struct nvgpu_engine_info *engine_info;
+	const struct nvgpu_device **host_engines;
+
 	/**
-	 * Total number of engines supported on the chip. This variable is
-	 * updated with one of the h/w register's value defined for chip
-	 * configuration related settings.
+	 * Total number of engines supported by the chip family. See
+	 * #host_engines above.
 	 */
 	u32 max_engines;
+
 	/**
-	 * This represents total number of active engines supported on the chip.
-	 * This is calculated based on total number of available engines
-	 * read from device info h/w registers. This variable can be less than
-	 * or equal to #max_engines.
+	 * The list of active engines; it can be (and often is) smaller than
+	 * #host_engines. This list will have exactly #num_engines engines;
+	 * use #num_engines to iterate over the list of devices with a for-loop.
+	 */
+	const struct nvgpu_device **active_engines;
+
+	/**
+	 * Length of the #active_engines array.
 	 */
 	u32 num_engines;
-	/**
-	 * This is the area of memory allocated by kernel for #max_engines
-	 * supported by the chip. This is needed to map engine_id defined
-	 * by s/w to engine_id defined by device info h/w registers.
-	 * This area of memory is indexed by s/w defined engine_id starting
-	 * with 0.
-	 */
-	u32 *active_engines_list;
 
 	/**
 	 * Pointers to runlists, indexed by real hw runlist_id.

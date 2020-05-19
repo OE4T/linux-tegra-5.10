@@ -67,9 +67,3 @@ int gm20b_device_info_parse_data(struct gk20a *g, u32 table_entry, u32 *inst_id,
 
 	return 0;
 }
-
-u32 gm20b_get_ce_inst_id(struct gk20a *g, u32 engine_type)
-{
-	/* inst_id starts from CE0 to CE2 */
-	return (engine_type - NVGPU_DEVTYPE_COPY0);
-}

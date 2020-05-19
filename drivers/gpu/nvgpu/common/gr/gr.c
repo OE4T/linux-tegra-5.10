@@ -44,6 +44,7 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/device.h>
 #include <nvgpu/gops_mc.h>
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include <nvgpu/engines.h>
@@ -665,7 +666,7 @@ static int gr_init_prepare_hw(struct gk20a *g)
 	if (g->ops.mc.reset_engine != NULL) {
 		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
-		err = nvgpu_next_mc_reset_engine(g, NVGPU_ENGINE_GR);
+		err = nvgpu_next_mc_reset_engine(g, NVGPU_DEVTYPE_GRAPHICS);
 		if (err != 0) {
 			nvgpu_err(g, "NVGPU_ENGINE_GR reset failed");
 			return err;

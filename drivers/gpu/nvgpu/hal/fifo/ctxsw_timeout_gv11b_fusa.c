@@ -28,6 +28,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/device.h>
 
 #include <hal/fifo/ctxsw_timeout_gv11b.h>
 
@@ -174,7 +175,7 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 {
 	bool recover = false;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
-	u32 engine_id, active_eng_id;
+	u32 i;
 	u32 timeout_val, ctxsw_timeout_engines;
 	u32 info_status;
 	struct nvgpu_tsg *tsg = NULL;
@@ -191,12 +192,12 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 
 	nvgpu_log_info(g, "eng ctxsw timeout period = 0x%x", timeout_val);
 
-	for (engine_id = 0; engine_id < g->fifo.num_engines; engine_id++) {
-		active_eng_id = g->fifo.active_engines_list[engine_id];
+	for (i = 0; i < g->fifo.num_engines; i++) {
+		const struct nvgpu_device *dev = g->fifo.active_engines[i];
 
 		if ((ctxsw_timeout_engines &
 			fifo_intr_ctxsw_timeout_engine_pending_f(
-				active_eng_id)) != 0U) {
+				dev->engine_id)) != 0U) {
 			u32 ms = 0;
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 			bool debug_dump = false;
@@ -207,7 +208,7 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 				"dropped timeout"
 			};
 #endif
-			tsgid = gv11b_fifo_ctxsw_timeout_info(g, active_eng_id,
+			tsgid = gv11b_fifo_ctxsw_timeout_info(g, dev->engine_id,
 						&info_status);
 			tsg = nvgpu_tsg_check_and_get_from_id(g, tsgid);
 			if (tsg == NULL) {
@@ -229,12 +230,13 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 					ctxsw_timeout_status_desc[info_status];
 				}
 
-				nvgpu_err(g, "ctxsw timeout error: "
-				"active engine id =%u, %s=%d, info: %s ms=%u",
-				active_eng_id, "tsg", tsgid, info_status_str,
-				ms);
+				nvgpu_err(g,
+					  "ctxsw timeout error: engine_id=%u"
+					  "%s=%d, info: %s ms=%u",
+					  dev->engine_id, "tsg", tsgid,
+					  info_status_str, ms);
 
-				nvgpu_rc_ctxsw_timeout(g, BIT32(active_eng_id),
+				nvgpu_rc_ctxsw_timeout(g, BIT32(dev->engine_id),
 					tsg, debug_dump);
 				continue;
 			}

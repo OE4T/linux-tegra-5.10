@@ -121,15 +121,16 @@ int nvgpu_device_init(struct gk20a *g)
 {
 	u32 i;
 
+	device_dbg(g, "Initializating GPU device list");
+
 	/*
 	 * Ground work - make sure we aren't doing this again and that we have
 	 * all the necessary data structures.
 	 */
 	if (g->devs != NULL) {
+		device_dbg(g, "  GPU device list already present. Done.");
 		return 0;
 	}
-
-	device_dbg(g, "Initializating GPU device list");
 
 	g->devs = nvgpu_kzalloc(g, sizeof(*g->devs));
 	if (g->devs == NULL) {
@@ -162,10 +163,13 @@ void nvgpu_device_cleanup(struct gk20a *g)
 	u32 i;
 	struct nvgpu_list_node *devlist;
 
+	device_dbg(g, "Releasing GPU device list");
+
 	/*
 	 * Make unit testing a bit easier.
 	 */
 	if (g->devs == NULL) {
+		device_dbg(g, "  Already done.");
 		return;
 	}
 
@@ -193,14 +197,12 @@ void nvgpu_device_cleanup(struct gk20a *g)
 static const struct nvgpu_device *dev_instance_from_devlist(
 	struct nvgpu_list_node *devlist, u32 inst_id)
 {
-	u32 i = 0U;
 	struct nvgpu_device *dev;
 
 	nvgpu_list_for_each_entry(dev, devlist, nvgpu_device, dev_list_node) {
-		if (inst_id == i) {
+		if (dev->inst_id == inst_id) {
 			return dev;
 		}
-		i++;
 	}
 
 	return NULL;

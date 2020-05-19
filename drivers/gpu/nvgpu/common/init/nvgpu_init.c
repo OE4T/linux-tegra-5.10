@@ -900,6 +900,12 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 		g->ops.ltc.ltc_remove_support(g);
 	}
 
+	/*
+	 * Free the device list once the gk20a struct is removed. We don't want
+	 * to do this during the railgate poweroff sequence since that means
+	 * that the device list disappears every time we rail-gate. That will
+	 * cause the fifo engine code to explode.
+	 */
 	nvgpu_device_cleanup(g);
 
 #ifdef CONFIG_NVGPU_PROFILER

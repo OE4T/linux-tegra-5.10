@@ -26,8 +26,10 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/fifo.h>
-#include <nvgpu/power_features/cg.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/device.h>
+
+#include <nvgpu/power_features/cg.h>
 
 #include "therm_gv11b.h"
 
@@ -142,7 +144,7 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 {
 	u32 gate_ctrl, idle_filter;
 	u32 i;
-	u32 engine_id = 0;
+	const struct nvgpu_device *dev;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	if (nvgpu_platform_is_simulation(g)) {
@@ -152,9 +154,9 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 	nvgpu_log_info(g, "init clock/power gate reg");
 
 	for (i = 0; i < f->num_engines; i++) {
-		engine_id = f->active_engines_list[i];
+		dev = f->active_engines[i];
 
-		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(engine_id));
+		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(dev->engine_id));
 		gate_ctrl = set_field(gate_ctrl,
 			therm_gate_ctrl_eng_idle_filt_exp_m(),
 			therm_gate_ctrl_eng_idle_filt_exp__prod_f());
@@ -167,7 +169,7 @@ int gv11b_elcg_init_idle_filters(struct gk20a *g)
 		gate_ctrl = set_field(gate_ctrl,
 				therm_gate_ctrl_eng_delay_after_m(),
 				therm_gate_ctrl_eng_delay_after__prod_f());
-		nvgpu_writel(g, therm_gate_ctrl_r(engine_id), gate_ctrl);
+		nvgpu_writel(g, therm_gate_ctrl_r(dev->engine_id), gate_ctrl);
 	}
 
 	idle_filter = nvgpu_readl(g, therm_fecs_idle_filter_r());

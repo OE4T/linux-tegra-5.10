@@ -31,6 +31,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/engine_status.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/power_features/power_features.h>
@@ -93,7 +94,9 @@ void gk20a_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 			 * same channel as faulty engine
 			 */
 			for (i = 0; i < g->fifo.num_engines; i++) {
-				u32 active_engine_id = g->fifo.active_engines_list[i];
+				const struct nvgpu_device *dev =
+					g->fifo.active_engines[i];
+				u32 active_engine_id = dev->engine_id;
 				u32 type;
 				u32 id;
 

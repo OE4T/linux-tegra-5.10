@@ -1227,7 +1227,6 @@ static const struct gpu_ops gp10b_ops = {
 		.parse_next_device = gm20b_top_parse_next_dev,
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
 		.device_info_parse_data = gp10b_device_info_parse_data,
-		.get_ce_inst_id = NULL,
 		.get_max_gpc_count = gm20b_top_get_max_gpc_count,
 		.get_max_tpc_per_gpc_count =
 			gm20b_top_get_max_tpc_per_gpc_count,

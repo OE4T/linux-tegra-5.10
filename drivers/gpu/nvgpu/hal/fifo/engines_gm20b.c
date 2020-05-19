@@ -39,23 +39,14 @@ int gm20b_engine_init_ce_info(struct nvgpu_fifo *f)
 {
 	struct gk20a *g = f->g;
 	u32 i;
-	enum nvgpu_fifo_engine engine_enum;
-	u32 pbdma_mask = 0U;
-	u32 gr_runlist_id;
 	bool found;
 
-	gr_runlist_id = nvgpu_engine_get_gr_runlist_id(g);
-	nvgpu_log_info(g, "gr_runlist_id: %d", gr_runlist_id);
-
 	for (i = NVGPU_DEVTYPE_COPY0;  i <= NVGPU_DEVTYPE_COPY2; i++) {
-		struct nvgpu_device *dev;
-		struct nvgpu_engine_info *info;
+		const struct nvgpu_device *dev;
+		struct nvgpu_device *dev_rw;
 
-		/*
-		 * Cast to a non-const version since we have to hack up a few fields for
-		 * SW to work.
-		 */
-		dev = (struct nvgpu_device *)nvgpu_device_get(g, i, 0);
+		dev = (struct nvgpu_device *)nvgpu_device_get(g, i,
+							      i - NVGPU_DEVTYPE_COPY0);
 		if (dev == NULL) {
 			/*
 			 * Not an error condition; gm20b has only 1 CE.
@@ -63,51 +54,23 @@ int gm20b_engine_init_ce_info(struct nvgpu_fifo *f)
 			continue;
 		}
 
+		/*
+		 * Cast to a non-const version since we have to hack up a few fields for
+		 * SW to work.
+		 */
+		dev_rw = (struct nvgpu_device *)dev;
+
 		found = g->ops.fifo.find_pbdma_for_runlist(g,
 							   dev->runlist_id,
-							   &pbdma_mask);
+							   &dev_rw->pbdma_id);
 		if (!found) {
 			nvgpu_err(g, "busted pbdma map");
 			return -EINVAL;
 		}
 
-		info = &g->fifo.engine_info[dev->engine_id];
-
-		engine_enum = nvgpu_engine_enum_from_dev(g, dev);
-
-		/* GR and GR_COPY shares same runlist_id */
-		if ((engine_enum == NVGPU_ENGINE_ASYNC_CE) &&
-		    (gr_runlist_id == dev->runlist_id)) {
-			engine_enum = NVGPU_ENGINE_GRCE;
-		}
-		info->engine_enum = engine_enum;
-
-		if (g->ops.top.get_ce_inst_id != NULL) {
-			dev->inst_id = g->ops.top.get_ce_inst_id(g, dev->type);
-		}
-
-		info->fault_id = dev->fault_id;
-		info->intr_mask |= BIT32(dev->intr_id);
-		info->reset_mask |= BIT32(dev->reset_id);
-		info->runlist_id = dev->runlist_id;
-		info->pbdma_id = nvgpu_safe_sub_u32(
-			nvgpu_safe_cast_u64_to_u32(nvgpu_ffs(pbdma_mask)), 1U);
-		info->inst_id  = dev->inst_id;
-		info->pri_base = dev->pri_base;
-
-		/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
-		f->active_engines_list[f->num_engines] = dev->engine_id;
+		f->host_engines[dev->engine_id] = dev;
+		f->active_engines[f->num_engines] = dev;
 		++f->num_engines;
-		nvgpu_log_info(g, "gr info: engine_id %d runlist_id %d "
-			       "intr_id %d reset_id %d type %d "
-			       "engine_enum %d inst_id %d",
-			       dev->engine_id,
-			       dev->runlist_id,
-			       dev->intr_id,
-			       dev->reset_id,
-			       dev->type,
-			       engine_enum,
-			       dev->inst_id);
 	}
 
 	return 0;

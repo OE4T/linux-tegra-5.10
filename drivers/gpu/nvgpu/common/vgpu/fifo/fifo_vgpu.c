@@ -47,6 +47,19 @@
 
 void vgpu_fifo_cleanup_sw(struct gk20a *g)
 {
+	u32 i;
+	struct nvgpu_fifo *f = &g->fifo;
+
+	for (i = 0U; i < f->max_engines; i++) {
+		if (f->host_engines[i] == NULL) {
+			continue;
+		}
+
+		/*
+		 * Cast to (void *) to get rid of the constness.
+		 */
+		nvgpu_kfree(g, (void *)f->host_engines[i]);
+	}
 	nvgpu_fifo_cleanup_sw_common(g);
 }
 

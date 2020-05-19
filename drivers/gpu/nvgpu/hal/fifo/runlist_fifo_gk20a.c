@@ -27,6 +27,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/engine_status.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/gr/gr_falcon.h>
 
 #include "runlist_fifo_gk20a.h"
@@ -54,17 +55,19 @@ int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 	struct nvgpu_runlist_info *runlist =
 		g->fifo.runlist_info[ch->runlist_id];
 	int ret = 0;
-	u32 gr_eng_id = 0;
 	u32 fecsstat0 = 0, fecsstat1 = 0;
 	u32 preempt_id;
 	u32 preempt_type = 0;
+	const struct nvgpu_device *dev;
 	struct nvgpu_engine_status_info engine_status;
 
-	if (nvgpu_engine_get_ids(
-		g, &gr_eng_id, 1, NVGPU_ENGINE_GR) != 1U) {
-		return ret;
+	dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
+	if (dev == NULL) {
+		nvgpu_warn(g, "GPU has no GR engine?!");
+		return -EINVAL;
 	}
-	if ((runlist->eng_bitmask & BIT32(gr_eng_id)) == 0U) {
+
+	if ((runlist->eng_bitmask & BIT32(dev->engine_id)) == 0U) {
 		return ret;
 	}
 
@@ -78,8 +81,8 @@ int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 
 	fecsstat0 = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
 			NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX0);
-	g->ops.engine_status.read_engine_status_info(g, gr_eng_id,
-							&engine_status);
+	g->ops.engine_status.read_engine_status_info(g, dev->engine_id,
+						     &engine_status);
 	if (nvgpu_engine_status_is_ctxsw_switch(&engine_status)) {
 		nvgpu_engine_status_get_next_ctx_id_type(&engine_status,
 			&preempt_id, &preempt_type);

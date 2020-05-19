@@ -27,6 +27,7 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/gops_mc.h>
 #include <nvgpu/power_features/pg.h>
 
@@ -139,7 +140,7 @@ static void intr_tu104_nonstall_enable(struct gk20a *g)
 	u32 i;
 	u32 nonstall_intr_base = 0;
 	u64 nonstall_intr_mask = 0;
-	u32 engine_id, intr_mask;
+	u32 intr_mask;
 
 	/* Keep NV_PMC_INTR(1) disabled */
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING), U32_MAX);
@@ -156,8 +157,9 @@ static void intr_tu104_nonstall_enable(struct gk20a *g)
 		ctrl_legacy_engine_nonstall_intr_base_vectorid_r());
 
 	for (i = 0; i < g->fifo.num_engines; i++) {
-		engine_id = g->fifo.active_engines_list[i];
-		intr_mask = g->fifo.engine_info[engine_id].intr_mask;
+		const struct nvgpu_device *dev = g->fifo.active_engines[i];
+
+		intr_mask = BIT32(dev->intr_id);
 
 		nonstall_intr_mask |= U64(intr_mask) << U64(nonstall_intr_base);
 	}
@@ -309,7 +311,7 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 	u64 nonstall_intr_mask = 0U;
 	u32 nonstall_intr_mask_lo, nonstall_intr_mask_hi;
 	u32 intr_leaf_reg0, intr_leaf_reg1;
-	u32 engine_id, intr_mask;
+	u32 intr_mask;
 	u32 ops = 0U;
 
 	intr_leaf_reg0 = nvgpu_func_readl(g,
@@ -326,8 +328,9 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 		ctrl_legacy_engine_nonstall_intr_base_vectorid_r());
 
 	for (i = 0U; i < g->fifo.num_engines; i++) {
-		engine_id = g->fifo.active_engines_list[i];
-		intr_mask = g->fifo.engine_info[engine_id].intr_mask;
+		const struct nvgpu_device *dev = g->fifo.active_engines[i];
+
+		intr_mask = BIT32(dev->intr_id);
 
 		nonstall_intr_mask = U64(intr_mask) << U64(nonstall_intr_base);
 		nonstall_intr_mask_lo = u64_lo32(nonstall_intr_mask);
@@ -337,7 +340,7 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 		    (nonstall_intr_mask_hi & intr_leaf_reg1) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr,
 				"nonstall intr from engine %d",
-				engine_id);
+				dev->engine_id);
 
 			nvgpu_func_writel(g,
 				func_priv_cpu_intr_leaf_r(
@@ -482,8 +485,7 @@ void mc_tu104_isr_stall(struct gk20a *g)
 {
 	u32 mc_intr_0;
 	u32 i;
-	u32 engine_id = 0U;
-	enum nvgpu_fifo_engine engine_enum;
+	const struct nvgpu_device *dev;
 
 	mc_intr_0 = nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
 
@@ -492,14 +494,13 @@ void mc_tu104_isr_stall(struct gk20a *g)
 	mc_tu104_isr_stall_primary(g, mc_intr_0);
 
 	for (i = 0U; i < g->fifo.num_engines; i++) {
-		engine_id = g->fifo.active_engines_list[i];
+		dev = g->fifo.active_engines[i];
 
-		if ((mc_intr_0 &
-			g->fifo.engine_info[engine_id].intr_mask) == 0U) {
+		if ((mc_intr_0 & BIT32(dev->intr_id)) == 0U) {
 			continue;
 		}
-		engine_enum = g->fifo.engine_info[engine_id].engine_enum;
-		mc_gp10b_isr_stall_engine(g, engine_enum, engine_id);
+
+		mc_gp10b_isr_stall_engine(g, dev);
 	}
 
 	mc_gp10b_isr_stall_secondary_0(g, mc_intr_0);

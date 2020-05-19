@@ -23,6 +23,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/ce.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/gops_mc.h>
@@ -41,14 +42,9 @@ int nvgpu_ce_init_support(struct gk20a *g)
 
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	if (g->ops.mc.reset_engine != NULL) {
-		err = nvgpu_next_mc_reset_engine(g, NVGPU_ENGINE_GRCE);
+		err = nvgpu_next_mc_reset_engine(g, NVGPU_DEVTYPE_LCE);
 		if (err != 0) {
 			nvgpu_err(g, "NVGPU_ENGINE_GRCE reset failed");
-			return err;
-		}
-		err = nvgpu_next_mc_reset_engine(g, NVGPU_ENGINE_ASYNC_CE);
-		if (err != 0) {
-			nvgpu_err(g, "NVGPU_ENGINE_ASYNC_CE reset failed");
 			return err;
 		}
 	} else {

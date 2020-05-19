@@ -25,6 +25,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/device.h>
 
 #include "therm_gp10b.h"
 
@@ -92,16 +93,14 @@ int gp10b_init_therm_setup_hw(struct gk20a *g)
 
 int gp10b_elcg_init_idle_filters(struct gk20a *g)
 {
-	u32 gate_ctrl, idle_filter;
-	u32 engine_id;
-	u32 active_engine_id = 0;
+	u32 gate_ctrl = 0, idle_filter;
+	u32 i;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 
-	for (engine_id = 0; engine_id < f->num_engines; engine_id++) {
-		active_engine_id = f->active_engines_list[engine_id];
-		gate_ctrl = nvgpu_readl(g, therm_gate_ctrl_r(active_engine_id));
+	for (i = 0; i < f->num_engines; i++) {
+		const struct nvgpu_device *dev = f->active_engines[i];
 
 		if (nvgpu_platform_is_simulation(g)) {
 			gate_ctrl = set_field(gate_ctrl,
@@ -119,7 +118,7 @@ int gp10b_elcg_init_idle_filters(struct gk20a *g)
 		gate_ctrl = set_field(gate_ctrl,
 			therm_gate_ctrl_eng_delay_before_m(),
 			therm_gate_ctrl_eng_delay_before_f(4));
-		nvgpu_writel(g, therm_gate_ctrl_r(active_engine_id), gate_ctrl);
+		nvgpu_writel(g, therm_gate_ctrl_r(dev->engine_id), gate_ctrl);
 	}
 
 	/* default fecs_idle_filter to 0 */

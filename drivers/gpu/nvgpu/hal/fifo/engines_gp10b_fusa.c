@@ -34,22 +34,12 @@
 int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 {
 	struct gk20a *g = f->g;
-	enum nvgpu_fifo_engine engine_enum;
 	u32 i;
-	u32 gr_runlist_id;
-	u32 lce_num_entries = 0;
 	bool found;
 
-	gr_runlist_id = nvgpu_engine_get_gr_runlist_id(g);
-	nvgpu_log_info(g, "gr_runlist_id: %d", gr_runlist_id);
-
-	lce_num_entries = nvgpu_device_count(g, NVGPU_DEVTYPE_LCE);
-	nvgpu_log_info(g, "lce_num_entries: %d", lce_num_entries);
-
-	for (i = 0; i < lce_num_entries; i++) {
+	for (i = 0; i < nvgpu_device_count(g, NVGPU_DEVTYPE_LCE); i++) {
 		const struct nvgpu_device *dev;
 		struct nvgpu_device *dev_rw;
-		struct nvgpu_engine_info *info;
 
 		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
 		if (dev == NULL) {
@@ -57,8 +47,6 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 			return -EINVAL;
 		}
 		dev_rw = (struct nvgpu_device *)dev;
-
-		info = &g->fifo.engine_info[dev->engine_id];
 
 		/*
 		 * vGPU consideration. Not present in older chips. See
@@ -74,37 +62,20 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 				return -EINVAL;
 			}
 		}
-		info->pbdma_id = dev->pbdma_id;
 
-		engine_enum = nvgpu_engine_enum_from_dev(g, dev);
-		/* GR and GR_COPY shares same runlist_id */
-		if ((engine_enum == NVGPU_ENGINE_ASYNC_CE) &&
-		    (gr_runlist_id == dev->runlist_id)) {
-			engine_enum = NVGPU_ENGINE_GRCE;
+#if defined(CONFIG_NVGPU_NEXT)
+		{
+			int err = nvgpu_next_engine_init_one_dev(g, dev);
+			if (err != 0) {
+				return err;
+			}
 		}
-		info->engine_enum = engine_enum;
+#endif
 
-		info->fault_id = dev->fault_id;
-		info->intr_mask |= BIT32(dev->intr_id);
-		info->reset_mask |= BIT32(dev->reset_id);
-		info->runlist_id = dev->runlist_id;
-		info->inst_id  = dev->inst_id;
-		info->pri_base = dev->pri_base;
-		info->engine_id = dev->engine_id;
-
-		/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
-		f->active_engines_list[f->num_engines] = dev->engine_id;
+		f->host_engines[dev->engine_id] = dev;
+		f->active_engines[f->num_engines] = dev;
 		f->num_engines = nvgpu_safe_add_u32(f->num_engines, 1U);
-		nvgpu_log_info(g, "gr info: engine_id %d runlist_id %d "
-			"intr_id %d reset_id %d engine_type %d "
-			"engine_enum %d inst_id %d",
-			dev->engine_id,
-			dev->runlist_id,
-			dev->intr_id,
-			dev->reset_id,
-			dev->type,
-			engine_enum,
-			dev->inst_id);
 	}
+
 	return 0;
 }

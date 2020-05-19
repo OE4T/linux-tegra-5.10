@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/gops_mc.h>
 
@@ -41,36 +42,32 @@ void gm20b_mc_isr_stall(struct gk20a *g)
 {
 	u32 mc_intr_0;
 	u32 i;
-	u32 engine_id = 0U;
-	enum nvgpu_fifo_engine engine_enum;
+	const struct nvgpu_device *dev;
 
 	mc_intr_0 = g->ops.mc.intr_stall(g);
 
 	nvgpu_log(g, gpu_dbg_intr, "stall intr %08x", mc_intr_0);
 
 	for (i = 0U; i < g->fifo.num_engines; i++) {
-		engine_id = g->fifo.active_engines_list[i];
+		dev = g->fifo.active_engines[i];
 
-		if ((mc_intr_0 &
-			g->fifo.engine_info[engine_id].intr_mask) == 0U) {
+		if ((mc_intr_0 & BIT32(dev->intr_id)) == 0U) {
 			continue;
 		}
-		engine_enum = g->fifo.engine_info[engine_id].engine_enum;
+
 		/* GR Engine */
-		if (engine_enum == NVGPU_ENGINE_GR) {
+		if (nvgpu_device_is_graphics(g, dev)) {
 			nvgpu_pg_elpg_protected_call(g,
 						g->ops.gr.intr.stall_isr(g));
 		}
 
 		/* CE Engine */
-		if (((engine_enum == NVGPU_ENGINE_GRCE) ||
-				(engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
-				(g->ops.ce.isr_stall != NULL)) {
-			g->ops.ce.isr_stall(g,
-				g->fifo.engine_info[engine_id].inst_id,
-				g->fifo.engine_info[engine_id].pri_base);
+		if (nvgpu_device_is_ce(g, dev) &&
+		    (g->ops.ce.isr_stall != NULL)) {
+			g->ops.ce.isr_stall(g, dev->inst_id, dev->pri_base);
 		}
 	}
+
 	if ((mc_intr_0 & mc_intr_pfifo_pending_f()) != 0U) {
 		g->ops.fifo.intr_0_isr(g);
 	}
@@ -296,4 +293,3 @@ bool gm20b_mc_is_mmu_fault_pending(struct gk20a *g)
 {
 	return g->ops.fifo.is_mmu_fault_pending(g);
 }
-

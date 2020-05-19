@@ -54,6 +54,7 @@ struct nvgpu_device *vgpu_top_parse_next_dev(struct gk20a *g, u32 *token)
 	/*
 	 * Copy the engine data into the device and return it to our caller.
 	 */
+	dev->type       = engines->info[*token].engine_enum;
 	dev->engine_id  = engines->info[*token].engine_id;
 	dev->intr_id    = nvgpu_ffs(engines->info[*token].intr_mask) - 1;
 	dev->reset_id   = nvgpu_ffs(engines->info[*token].reset_mask) - 1;
@@ -62,29 +63,6 @@ struct nvgpu_device *vgpu_top_parse_next_dev(struct gk20a *g, u32 *token)
 	dev->inst_id    = engines->info[*token].inst_id;
 	dev->pri_base   = engines->info[*token].pri_base;
 	dev->fault_id   = engines->info[*token].fault_id;
-
-	/*
-	 * vGPU sends us an engine enum; this'll be fixed once we remove
-	 * the engine_info struct. For now just do a quick reverse map.
-	 *
-	 * GRCEs and ASYNC_CEs are both LCEs in terms of engine types.
-	 */
-	switch (engines->info[*token].engine_enum) {
-	case NVGPU_ENGINE_GR:
-		dev->type = NVGPU_DEVTYPE_GRAPHICS;
-		break;
-	case NVGPU_ENGINE_GRCE:
-		dev->type = NVGPU_DEVTYPE_LCE;
-		break;
-	case NVGPU_ENGINE_ASYNC_CE:
-		dev->type = NVGPU_DEVTYPE_LCE;
-		break;
-	default:
-		nvgpu_err(g, "Unknown engine_enum: %d",
-			  engines->info[*token].engine_enum);
-		nvgpu_assert(true);
-		break;
-	}
 
 	(*token)++;
 

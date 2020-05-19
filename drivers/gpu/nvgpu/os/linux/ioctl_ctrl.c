@@ -36,6 +36,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/gr/config.h>
 #ifdef CONFIG_NVGPU_GRAPHICS
 #include <nvgpu/gr/zbc.h>
@@ -1009,46 +1010,43 @@ static int nvgpu_gpu_get_engine_info(
 	struct nvgpu_gpu_get_engine_info_args *args)
 {
 	int err = 0;
-	u32 engine_enum = NVGPU_ENGINE_INVAL;
 	u32 report_index = 0;
-	u32 engine_id_idx;
+	u32 i;
+	const struct nvgpu_device *gr_dev;
 	const u32 max_buffer_engines = args->engine_info_buf_size /
 		sizeof(struct nvgpu_gpu_get_engine_info_item);
 	struct nvgpu_gpu_get_engine_info_item __user *dst_item_list =
 		(void __user *)(uintptr_t)args->engine_info_buf_addr;
 
-	for (engine_id_idx = 0; engine_id_idx < g->fifo.num_engines;
-		++engine_id_idx) {
-		u32 active_engine_id = g->fifo.active_engines_list[engine_id_idx];
-		const struct nvgpu_engine_info *src_info =
-			&g->fifo.engine_info[active_engine_id];
+	gr_dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
+	nvgpu_assert(gr_dev != NULL);
+
+	for (i = 0; i < g->fifo.num_engines; i++) {
+		const struct nvgpu_device *dev = g->fifo.active_engines[i];
 		struct nvgpu_gpu_get_engine_info_item dst_info;
 
 		(void) memset(&dst_info, 0, sizeof(dst_info));
 
-		engine_enum = src_info->engine_enum;
-
-		switch (engine_enum) {
-		case NVGPU_ENGINE_GR:
+		if (nvgpu_device_is_graphics(g, dev)) {
 			dst_info.engine_id = NVGPU_GPU_ENGINE_ID_GR;
-			break;
-
-		case NVGPU_ENGINE_GRCE:
-			dst_info.engine_id = NVGPU_GPU_ENGINE_ID_GR_COPY;
-			break;
-
-		case NVGPU_ENGINE_ASYNC_CE:
-			dst_info.engine_id = NVGPU_GPU_ENGINE_ID_ASYNC_COPY;
-			break;
-
-		default:
-			nvgpu_err(g, "Unmapped engine enum %u",
-				  engine_enum);
-			continue;
+		} else if (nvgpu_device_is_ce(g, dev)) {
+			/*
+			 * There's two types of CE userpsace is interested in:
+			 * ASYNC_CEs which are copy engines with their own
+			 * runlists and GRCEs which are CEs that share a runlist
+			 * with GR.
+			 */
+			if (dev->runlist_id == gr_dev->runlist_id) {
+				dst_info.engine_id =
+					NVGPU_GPU_ENGINE_ID_GR_COPY;
+			} else {
+				dst_info.engine_id =
+					NVGPU_GPU_ENGINE_ID_ASYNC_COPY;
+			}
 		}
 
-		dst_info.engine_instance = src_info->inst_id;
-		dst_info.runlist_id = src_info->runlist_id;
+		dst_info.engine_instance = dev->inst_id;
+		dst_info.runlist_id = dev->runlist_id;
 
 		if (report_index < max_buffer_engines) {
 			err = copy_to_user(&dst_item_list[report_index],

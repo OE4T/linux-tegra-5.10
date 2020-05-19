@@ -35,7 +35,7 @@
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-#include "include/nvgpu/nvgpu_next_runlist.h"
+#include <nvgpu/nvgpu_next_runlist.h>
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 

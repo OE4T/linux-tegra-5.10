@@ -66,27 +66,6 @@ struct gops_top {
 	struct nvgpu_device *(*parse_next_device)(struct gk20a *g, u32 *token);
 
 	/**
-	 * @brief Get the instance ID for particular copy engine
-	 *
-	 * @param g [in]		GPU device struct pointer
-	 * @param engine_type [in]	Engine enumeration value
-	 *
-	 * 1. This HAL is valid for chips prior to Pascal when each instance of
-	 *    copy engine had unique engine_type. The three instances of copy
-	 *    engine are allocated engine_type in ascending starting from 1.
-	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	 *  COPY_ENGINE_INSTANCE0 engine_type -  1
-	 *  COPY_ENGINE_INSTANCE1 engine_type -  2
-	 *  COPY_ENGINE_INSTANCE2 engine_type -  3
-	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	 * 2. Calculate the instance id by subtracting COPY_ENGINE_INSTANCE0
-	 *    enum value from \a engine_type.
-	 *
-	 * @return Calculated instance ID as explained above.
-	 */
-	u32 (*get_ce_inst_id)(struct gk20a *g, u32 engine_type);
-
-	/**
 	 * @brief Gets maximum number of GPCs in a GPU as programmed in HW
 	 *
 	 * @param g [in]		GPU device struct pointer

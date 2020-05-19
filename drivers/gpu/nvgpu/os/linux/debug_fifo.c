@@ -22,6 +22,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/runlist.h>
 
 static void *gk20a_fifo_sched_debugfs_seq_start(
@@ -62,15 +63,15 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 	struct nvgpu_channel *ch = v;
 	struct nvgpu_tsg *tsg = NULL;
 
-	struct nvgpu_engine_info *engine_info;
+	const struct nvgpu_device *dev;
 	struct nvgpu_runlist_info *runlist;
 	u32 runlist_id;
 	int ret = SEQ_SKIP;
-	u32 engine_id;
 
-	engine_id = nvgpu_engine_get_gr_id(g);
-	engine_info = (f->engine_info + engine_id);
-	runlist_id = engine_info->runlist_id;
+	dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
+	nvgpu_assert(dev != NULL);
+
+	runlist_id = dev->runlist_id;
 	runlist = f->runlist_info[runlist_id];
 
 	if (ch == f->channel) {

@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/power_features/cg.h>
 
@@ -29,22 +30,18 @@ static void nvgpu_cg_set_mode(struct gk20a *g, u32 cgmode, u32 mode_config)
 {
 	u32 n;
 	u32 engine_id = 0;
-#ifdef CONFIG_NVGPU_NON_FUSA
-	struct nvgpu_engine_info *engine_info = NULL;
-#endif
+	const struct nvgpu_device *dev = NULL;
 	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 
 	for (n = 0; n < f->num_engines; n++) {
-		engine_id = f->active_engines_list[n];
+		dev = f->active_engines[n];
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-		engine_info = &f->engine_info[engine_id];
-
 		/* gr_engine supports both BLCG and ELCG */
-		if ((cgmode == BLCG_MODE) && (engine_info->engine_enum ==
-						NVGPU_ENGINE_GR)) {
+		if ((cgmode == BLCG_MODE) &&
+		    (dev->type == NVGPU_DEVTYPE_GRAPHICS)) {
 			g->ops.therm.init_blcg_mode(g, (u32)mode_config,
 						engine_id);
 			break;
@@ -52,7 +49,7 @@ static void nvgpu_cg_set_mode(struct gk20a *g, u32 cgmode, u32 mode_config)
 #endif
 		if (cgmode == ELCG_MODE) {
 			g->ops.therm.init_elcg_mode(g, (u32)mode_config,
-						engine_id);
+						dev->engine_id);
 		} else {
 			nvgpu_err(g, "invalid cg mode %d, config %d for "
 							"engine_id %d",

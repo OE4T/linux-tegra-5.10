@@ -26,6 +26,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/device.h>
 #include <nvgpu/nvlink_bios.h>
+#include <nvgpu/device.h>
 
 #ifdef CONFIG_NVGPU_NVLINK
 
@@ -156,8 +157,8 @@ fail:
 static int nvgpu_nvlink_discover_ioctrl(struct gk20a *g)
 {
 	u32 i;
-	struct nvgpu_nvlink_ioctrl_list *ioctrl_table;
 	u32 ioctrl_num_entries = 0U;
+	struct nvgpu_nvlink_ioctrl_list *ioctrl_table;
 
 	ioctrl_num_entries = nvgpu_device_count(g, NVGPU_DEVTYPE_IOCTRL);
 	nvgpu_log_info(g, "ioctrl_num_entries: %d", ioctrl_num_entries);

@@ -26,6 +26,7 @@
 #include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 
 #include "mc_gm20b.h"
 
@@ -60,8 +61,6 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 	u32 ops = 0U;
 	u32 mc_intr_1;
 	u32 i;
-	u32 engine_id = 0U;
-	enum nvgpu_fifo_engine engine_enum;
 
 	mc_intr_1 = g->ops.mc.intr_nonstall(g);
 
@@ -74,25 +73,23 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 	}
 
 	for (i = 0U; i < g->fifo.num_engines; i++) {
-		struct nvgpu_engine_info *engine_info;
+		const struct nvgpu_device *dev = g->fifo.active_engines[i];
 
-		engine_id = g->fifo.active_engines_list[i];
-		engine_info = &g->fifo.engine_info[engine_id];
+		if ((mc_intr_1 & BIT32(dev->intr_id)) == 0U) {
+			continue;
+		}
 
-		if ((mc_intr_1 & engine_info->intr_mask) != 0U) {
-			engine_enum = engine_info->engine_enum;
-			/* GR Engine */
-			if (engine_enum == NVGPU_ENGINE_GR) {
-				ops |= g->ops.gr.intr.nonstall_isr(g);
-			}
-			/* CE Engine */
-			if (((engine_enum == NVGPU_ENGINE_GRCE) ||
-			     (engine_enum == NVGPU_ENGINE_ASYNC_CE)) &&
-			      (g->ops.ce.isr_nonstall != NULL)) {
-				ops |= g->ops.ce.isr_nonstall(g,
-					engine_info->inst_id,
-					engine_info->pri_base);
-			}
+		/* GR Engine */
+		if (nvgpu_device_is_graphics(g, dev)) {
+			ops |= g->ops.gr.intr.nonstall_isr(g);
+		}
+
+		/* CE Engine */
+		if (nvgpu_device_is_ce(g, dev) &&
+		    (g->ops.ce.isr_nonstall != NULL)) {
+			ops |= g->ops.ce.isr_nonstall(g,
+						      dev->inst_id,
+						      dev->pri_base);
 		}
 	}
 

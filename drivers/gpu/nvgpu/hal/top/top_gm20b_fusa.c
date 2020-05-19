@@ -85,7 +85,6 @@ struct nvgpu_device *gm20b_top_parse_next_dev(struct gk20a *g, u32 *token)
 	struct nvgpu_device *dev;
 
 	while (true) {
-
 		/*
 		 * The core code relies on us to manage the index - a.k.a the
 		 * token. If token crosses the device table size, then break and
@@ -161,6 +160,24 @@ struct nvgpu_device *gm20b_top_parse_next_dev(struct gk20a *g, u32 *token)
 			nvgpu_kfree(g, dev);
 			return NULL;
 		}
+
+		/*
+		 * SW hack: override the HW inst_id field for COPY1 and 2.
+		 * Although each CE on gm20b is considered its own device type
+		 * that's not really very sensible. HW fixes this in future
+		 * chips, but for now, set the inst_id field to a more intuitive
+		 * value.
+		 *
+		 * It's possible this can be fixed in the future such that nvgpu
+		 * does not rely on this; it'd make a lot of code less arbitrary.
+		 */
+		if (dev->type == NVGPU_DEVTYPE_COPY1) {
+			dev->inst_id = 1U;
+		}
+		if (dev->type == NVGPU_DEVTYPE_COPY2) {
+			dev->inst_id = 2U;
+		}
+
 
 		break;
 	}
