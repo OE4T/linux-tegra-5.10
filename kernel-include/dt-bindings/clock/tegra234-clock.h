@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -703,11 +703,104 @@
 #define TEGRA234_CLK_MPHY_L0_TX_SYMB_SRC	345U
 /** @brief output of gate CLK_ENB_MPHY_L0_TX_2X_SYMB */
 #define TEGRA234_CLK_MPHY_L0_TX_2X_SYMB		346U
-/** @brief output of gate CLK_ENB_MPHY_L2_RX_LS_BIT */
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_TACH1 */
 #define TEGRA234_CLK_TACH1			365U
+/** @brief GBE_UPHY_MGBES_APP_CLK switch divider gated output */
+#define TEGRA234_CLK_MGBES_APP			366U
+/** @brief Logical clk for setting GBE UPHY PLL2 TX_REF rate */
+#define TEGRA234_CLK_UPHY_GBE_PLL2_TX_REF	367U
+/** @brief Logical clk for setting GBE UPHY PLL2 XDIG rate */
+#define TEGRA234_CLK_UPHY_GBE_PLL2_XDIG		368U
+/** @brief clock recovered from MGBE0 lane RX input */
+#define TEGRA234_CLK_MGBE0_RX_PCS_INPUT		369U
+/** @brief clock recovered from MGBE1 lane RX input */
+#define TEGRA234_CLK_MGBE1_RX_PCS_INPUT		370U
+/** @brief clock recovered from MGBE2 lane RX input */
+#define TEGRA234_CLK_MGBE2_RX_PCS_INPUT		371U
+/** @brief clock recovered from MGBE3 lane RX input */
+#define TEGRA234_CLK_MGBE3_RX_PCS_INPUT		372U
+/** @brief output of mux controlled by GBE_UPHY_MGBE0_RX_PCS_CLK_SRC_SEL */
+#define TEGRA234_CLK_MGBE0_RX_PCS		373U
+/** @brief GBE_UPHY_MGBE0_TX_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE0_TX			374U
+/** @brief GBE_UPHY_MGBE0_TX_PCS_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE0_TX_PCS		375U
+/** @brief GBE_UPHY_MGBE0_MAC_CLK divider ouput */
+#define TEGRA234_CLK_MGBE0_MAC_DIVIDER		376U
+/** @brief GBE_UPHY_MGBE0_MAC_CLK gate ouput */
+#define TEGRA234_CLK_MGBE0_MAC			377U
+/** @brief GBE_UPHY_MGBE0_MACSEC_CLK gate ouput */
+#define TEGRA234_CLK_MGBE0_MACSEC		378U
+/** @brief GBE_UPHY_MGBE0_EEE_PCS_CLK gate ouput */
+#define TEGRA234_CLK_MGBE0_EEE_PCS		379U
+/** @brief GBE_UPHY_MGBE0_APP_CLK gate ouput */
+#define TEGRA234_CLK_MGBE0_APP			380U
+/** @brief GBE_UPHY_MGBE0_PTP_REF_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE0_PTP_REF		381U
+/** @brief output of mux controlled by GBE_UPHY_MGBE1_RX_PCS_CLK_SRC_SEL */
+#define TEGRA234_CLK_MGBE1_RX_PCS		382U
+/** @brief GBE_UPHY_MGBE1_TX_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE1_TX			383U
+/** @brief GBE_UPHY_MGBE1_TX_PCS_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE1_TX_PCS		384U
+/** @brief GBE_UPHY_MGBE1_MAC_CLK divider ouput */
+#define TEGRA234_CLK_MGBE1_MAC_DIVIDER		385U
+/** @brief GBE_UPHY_MGBE1_MAC_CLK gate ouput */
+#define TEGRA234_CLK_MGBE1_MAC			386U
+/** @brief GBE_UPHY_MGBE1_MACSEC_CLK gate ouput */
+#define TEGRA234_CLK_MGBE1_MACSEC		387U
+/** @brief GBE_UPHY_MGBE1_EEE_PCS_CLK gate ouput */
+#define TEGRA234_CLK_MGBE1_EEE_PCS		388U
+/** @brief GBE_UPHY_MGBE1_APP_CLK gate ouput */
+#define TEGRA234_CLK_MGBE1_APP			389U
+/** @brief GBE_UPHY_MGBE1_PTP_REF_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE1_PTP_REF		390U
+/** @brief output of mux controlled by GBE_UPHY_MGBE2_RX_PCS_CLK_SRC_SEL */
+#define TEGRA234_CLK_MGBE2_RX_PCS		391U
+/** @brief GBE_UPHY_MGBE2_TX_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE2_TX			392U
+/** @brief GBE_UPHY_MGBE2_TX_PCS_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE2_TX_PCS		393U
+/** @brief GBE_UPHY_MGBE2_MAC_CLK divider ouput */
+#define TEGRA234_CLK_MGBE2_MAC_DIVIDER		394U
+/** @brief GBE_UPHY_MGBE2_MAC_CLK gate ouput */
+#define TEGRA234_CLK_MGBE2_MAC			395U
+/** @brief GBE_UPHY_MGBE2_MACSEC_CLK gate ouput */
+#define TEGRA234_CLK_MGBE2_MACSEC		396U
+/** @brief GBE_UPHY_MGBE2_EEE_PCS_CLK gate ouput */
+#define TEGRA234_CLK_MGBE2_EEE_PCS		397U
+/** @brief GBE_UPHY_MGBE2_APP_CLK gate ouput */
+#define TEGRA234_CLK_MGBE2_APP			398U
+/** @brief GBE_UPHY_MGBE2_PTP_REF_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE2_PTP_REF		399U
+/** @brief output of mux controlled by GBE_UPHY_MGBE3_RX_PCS_CLK_SRC_SEL */
+#define TEGRA234_CLK_MGBE3_RX_PCS		400U
+/** @brief GBE_UPHY_MGBE3_TX_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE3_TX			401U
+/** @brief GBE_UPHY_MGBE3_TX_PCS_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE3_TX_PCS		402U
+/** @brief GBE_UPHY_MGBE3_MAC_CLK divider ouput */
+#define TEGRA234_CLK_MGBE3_MAC_DIVIDER		403U
+/** @brief GBE_UPHY_MGBE3_MAC_CLK gate ouput */
+#define TEGRA234_CLK_MGBE3_MAC			404U
+/** @brief GBE_UPHY_MGBE3_MACSEC_CLK gate ouput */
+#define TEGRA234_CLK_MGBE3_MACSEC		405U
+/** @brief GBE_UPHY_MGBE3_EEE_PCS_CLK gate ouput */
+#define TEGRA234_CLK_MGBE3_EEE_PCS		406U
+/** @brief GBE_UPHY_MGBE3_APP_CLK gate ouput */
+#define TEGRA234_CLK_MGBE3_APP			407U
+/** @brief GBE_UPHY_MGBE3_PTP_REF_CLK divider gated ouput */
+#define TEGRA234_CLK_MGBE3_PTP_REF		408U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_GBE_RX_BYP switch divider output */
+#define TEGRA234_CLK_GBE_RX_BYP_REF		409U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_GBE_PLL0_MGMT switch divider output */
+#define TEGRA234_CLK_GBE_PLL0_MGMT		410U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_GBE_PLL1_MGMT switch divider output */
+#define TEGRA234_CLK_GBE_PLL1_MGMT		411U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_GBE_PLL2_MGMT switch divider output */
+#define TEGRA234_CLK_GBE_PLL2_MGMT		412U
 
-#define TEGRA234_MAX_PUBLIC_CLK_ID		365U
+#define TEGRA234_MAX_PUBLIC_CLK_ID		412U
 
 /** @} */
 
