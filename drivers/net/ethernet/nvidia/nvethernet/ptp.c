@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/version.h>
 #include "ether_linux.h"
 
 /**
@@ -297,7 +298,11 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct hwtstamp_config config;
 	unsigned int hwts_rx_en = 1;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec now;
+#else
+	struct timespec64 now;
+#endif
 
 	if (pdata->hw_feat.tsstssel == OSI_DISABLE) {
 		dev_info(pdata->dev, "HW timestamping not available\n");
@@ -436,7 +441,11 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		 * can make use of it for coarse correction */
 		osi_core->ptp_config.ptp_clock = pdata->ptp_ref_clock_speed;
 		/* initialize system time */
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		getnstimeofday(&now);
+#else
+		ktime_get_ts64(&now);
+#endif
 		/* Store sec and nsec */
 		osi_core->ptp_config.sec = now.tv_sec;
 		osi_core->ptp_config.nsec = now.tv_nsec;
@@ -518,7 +527,11 @@ int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 
 	raw_spin_unlock_irqrestore(&ether_ts_lock, flags);
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	dev_dbg(pdata->dev, "tv_sec = %ld, tv_nsec = %ld\n",
+#else
+	dev_dbg(pdata->dev, "tv_sec = %lld, tv_nsec = %ld\n",
+#endif
 		req.hw_ptp_ts.tv_sec, req.hw_ptp_ts.tv_nsec);
 
 	if (copy_to_user(ifr->ifr_data, &req, sizeof(req))) {

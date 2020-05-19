@@ -281,7 +281,7 @@ struct ether_priv_data {
 	struct phy_device *phydev;
 	/** Interface type assciated with MAC (SGMII/RGMII/...)
 	 * this information will be provided with phy-mode DT entry */
-	int interface;
+	phy_interface_t interface;
 	/** Previous detected link */
 	unsigned int oldlink;
 	/** PHY link speed */
