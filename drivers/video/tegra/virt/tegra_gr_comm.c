@@ -526,7 +526,7 @@ int tegra_gr_comm_recv(u32 index, void **handle, void **data,
 	if (!queue->valid)
 		return -EINVAL;
 
-	err = down_timeout(&queue->sem, 10 * HZ);
+	err = down_timeout(&queue->sem, 20 * HZ);
 	if (unlikely(err))
 		return err;
 	mutex_lock(&queue->lock);
