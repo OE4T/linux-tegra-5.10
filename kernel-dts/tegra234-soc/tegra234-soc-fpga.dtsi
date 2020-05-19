@@ -34,6 +34,7 @@
 / {
 	aliases {
 		i2c3 = &dp_aux_ch1_i2c;
+		host1x = &host1x;
 	};
 
 #if TEGRA_BPMP_FW_DT_VERSION <= DT_VERSION_1
@@ -145,6 +146,132 @@
 		};
 	};
 #endif
+
+	efuse@3810000 {
+		compatible = "nvidia,tegra194-efuse";
+		reg = <0x0 0x03810000 0x0 0x600>;
+		clocks = <&bpmp_clks TEGRA234_CLK_FUSE>,
+		         <&bpmp_clks TEGRA234_CLK_CLK_M>;
+		clock-names = "fuse", "clk_m";
+		status = "disabled";
+		efuse-burn {
+			compatible = "nvidia,tegra194-efuse-burn";
+			clocks = <&bpmp_clks TEGRA234_CLK_CLK_M>;
+			clock-names = "clk_m";
+			status = "disabled";
+		};
+	};
+
+	kfuse@3830000 {
+		compatible = "nvidia,tegra194-kfuse";
+		reg = <0x0 0x3830000 0x0 0x10000>;
+		clocks = <&bpmp_clks TEGRA234_CLK_KFUSE>;
+		clock-names = "kfuse";
+		status = "disabled";
+	};
+
+	host1x: host1x@13e00000 {
+		compatible = "nvidia,tegra234-host1x", "simple-bus";
+		reg = <0x0 0x13e40000 0x0 0x00010000>,
+		      <0x0 0x13e10000 0x0 0x00010000>,
+		      <0x0 0x13ef0000 0x0 0x00040000>,
+		      <0x0 0x60000000 0x0 0x04000000>,
+		      <0x0 0x13e00000 0x0 0x00010000>;
+		reg-names = "guest", "hypervisor", "actmon", "sem-syncpt-shim",
+			"common";
+		interrupts = <0 448 0x04>,
+			     <0 263 0x04>;
+		nvidia,ignore-dt-update;
+		wakeup_capable;
+		clocks = <&bpmp_clks TEGRA234_CLK_HOST1X>,
+			 <&bpmp_clks TEGRA234_CLK_ACTMON>;
+		clock-names = "host1x", "actmon";
+		nvidia,vmid = <1>;
+
+		iommus = <&smmu TEGRA_SID_HC>,
+			 <&smmu TEGRA_SID_HC_VM0>,
+			 <&smmu TEGRA_SID_HC_VM1>,
+			 <&smmu TEGRA_SID_HC_VM2>,
+			 <&smmu TEGRA_SID_HC_VM3>,
+			 <&smmu TEGRA_SID_HC_VM4>,
+			 <&smmu TEGRA_SID_HC_VM5>,
+			 <&smmu TEGRA_SID_HC_VM6>,
+			 <&smmu TEGRA_SID_HC_VM7>;
+		dma-coherent;
+
+		#address-cells = <2>;
+		#size-cells = <2>;
+
+		ranges;
+
+		host1x_ctx0: ctx0 {
+			compatible = "nvidia,tegra186-iommu-context";
+			iommus = <&smmu TEGRA_SID_HOST1X_CTX0>;
+			dma-coherent;
+			status = "disabled";
+		};
+
+		host1x_ctx1: ctx1 {
+			compatible = "nvidia,tegra186-iommu-context";
+			iommus = <&smmu TEGRA_SID_HOST1X_CTX1>;
+			dma-coherent;
+			status = "disabled";
+		};
+
+		host1x_ctx2: ctx2 {
+			compatible = "nvidia,tegra186-iommu-context";
+			iommus = <&smmu TEGRA_SID_HOST1X_CTX2>;
+			dma-coherent;
+			status = "disabled";
+		};
+
+		host1x_ctx3: ctx3 {
+			compatible = "nvidia,tegra186-iommu-context";
+			iommus = <&smmu TEGRA_SID_HOST1X_CTX3>;
+			dma-coherent;
+			status = "disabled";
+		};
+
+		host1x_ctx4: ctx4 {
+			compatible = "nvidia,tegra186-iommu-context";
+			iommus = <&smmu TEGRA_SID_HOST1X_CTX4>;
+			dma-coherent;
+			status = "disabled";
+		};
+
+		host1x_ctx5: ctx5 {
+			compatible = "nvidia,tegra186-iommu-context";
+			iommus = <&smmu TEGRA_SID_HOST1X_CTX5>;
+			dma-coherent;
+			status = "disabled";
+		};
+
+		host1x_ctx6: ctx6 {
+			compatible = "nvidia,tegra186-iommu-context";
+			iommus = <&smmu TEGRA_SID_HOST1X_CTX6>;
+			dma-coherent;
+			status = "disabled";
+		};
+
+		host1x_ctx7: ctx7 {
+			compatible = "nvidia,tegra186-iommu-context";
+			iommus = <&smmu TEGRA_SID_HOST1X_CTX7>;
+			dma-coherent;
+			status = "disabled";
+		};
+
+		tsec@15500000 {
+			compatible = "nvidia,tegra234-tsec";
+			reg = <0x0 0x15500000 0x0 0x00040000>;
+			resets = <&bpmp_resets TEGRA234_RESET_TSEC>;
+			clocks = <&bpmp_clks TEGRA234_CLK_TSEC>,
+				 <&bpmp_clks TEGRA234_CLK_FUSE>;
+			clock-names = "tsec", "efuse";
+
+			iommus = <&smmu TEGRA_SID_TSEC>;
+			dma-coherent;
+		};
+	}; // host1x@13e00000
 
 	dp_aux_ch1_i2c: i2c@3190000 {
 		#address-cells = <1>;
