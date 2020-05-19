@@ -1,23 +1,12 @@
 /*
  * tegra210_peq.h - Definitions for Tegra210 PEQ driver
  *
- * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TEGRA210_PEQ_ALT_H__
-#define __TEGRA210_PEQ_ALT_H__
+#ifndef __TEGRA210_PEQ_H__
+#define __TEGRA210_PEQ_H__
 
 /* Register offsets from TEGRA210_PEQ*_BASE */
 #define TEGRA210_PEQ_SOFT_RESET				0x0

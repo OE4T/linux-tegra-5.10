@@ -2,7 +2,7 @@
 /*
  * tegra210_dmic.c - Tegra210 DMIC driver
  *
- * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 #include <linux/clk.h>

@@ -1,19 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
- * tegra_asoc_dt_parser.c - Tegra DAI links parser
+ * tegra_asoc_machine.c - Tegra DAI links parser
  *
- * Copyright (c) 2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <linux/module.h>
@@ -500,9 +490,6 @@ int parse_card_info(struct snd_soc_card *card, struct snd_soc_ops *pcm_ops,
 }
 EXPORT_SYMBOL_GPL(parse_card_info);
 
-MODULE_DESCRIPTION("Tegra ASoC Machine driver DT parser code");
-MODULE_AUTHOR("Sameer Pujar <spujar@nvidia.com>");
-MODULE_LICENSE("GPL v2");
 struct tegra_machine_control_data {
 	struct snd_soc_pcm_runtime *rtd;
 	unsigned int frame_mode;
@@ -795,3 +782,6 @@ void release_asoc_phandles(struct tegra_machine *machine)
 }
 EXPORT_SYMBOL_GPL(release_asoc_phandles);
 MODULE_LICENSE("GPL");
+
+MODULE_DESCRIPTION("Tegra ASoC Machine Utility Code");
+MODULE_LICENSE("GPL v2");

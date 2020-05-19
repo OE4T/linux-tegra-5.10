@@ -2,7 +2,7 @@
 /*
  * tegra210_ahub.c - Tegra210 AHUB driver
  *
- * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 

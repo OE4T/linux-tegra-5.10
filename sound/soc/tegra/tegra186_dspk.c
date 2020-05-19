@@ -2,7 +2,7 @@
 /*
  * tegra186_dspk.c - Tegra186 DSPK driver
  *
- * Copyright (c) 2020 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2020 NVIDIA CORPORATION. All rights reserved.
  *
  */
 
