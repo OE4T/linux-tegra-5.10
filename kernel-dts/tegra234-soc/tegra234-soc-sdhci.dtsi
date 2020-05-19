@@ -49,6 +49,7 @@
 		nvidia,periodic-cflush-to = <10>;
 		resets = <&bpmp_resets TEGRA194_RESET_SDMMC4>;
 		reset-names = "sdhci";
+#if TEGRA_SDMMC_VERSION == DT_VERSION_1
 		pll_source = "pll_p", "pll_c4_out0_lj";
 		nvidia,set-parent-clk;
 		nvidia,parent_clk_list = "pll_p", "pll_p", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "pll_p", "pll_c4_out0_lj", "pll_c4_out0_lj";
@@ -57,6 +58,7 @@
 			<&bpmp_clks TEGRA234_CLK_PLLC4>,
 			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>;
 		clock-names = "sdmmc", "pll_p", "pll_c4_out0_lj", "sdmmc_legacy_tm";
+#endif
 		status = "disabled";
 	};
 
@@ -85,6 +87,7 @@
 		ignore-pm-notify;
 		resets = <&bpmp_resets TEGRA194_RESET_SDMMC1>;
 		reset-names = "sdhci";
+#if TEGRA_SDMMC_VERSION == DT_VERSION_1
 		pll_source = "pll_p", "pll_c4_muxed";
 		nvidia,set-parent-clk;
 		nvidia,parent_clk_list = "pll_p", "pll_p", "pll_p", "pll_p", "pll_p", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "NULL";
@@ -93,6 +96,7 @@
 			<&bpmp_clks TEGRA234_CLK_PLLC4_MUXED>,
 			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>;
 		clock-names = "sdmmc", "pll_p", "pll_c4_muxed", "sdmmc_legacy_tm";
+#endif
 		uhs-mask = <0x08>;
 		nvidia,en-periodic-calib;
 		status = "disabled";
