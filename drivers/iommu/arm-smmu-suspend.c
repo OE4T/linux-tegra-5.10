@@ -214,7 +214,7 @@ int arm_smmu_suspend_init(void __iomem **smmu_base, u32 *smmu_base_pa,
 		goto free_reg_list;
 	}
 
-	arm_smmu_ctx.scratch_va = ioremap_nocache(scratch_reg_pa, 4);
+	arm_smmu_ctx.scratch_va = ioremap(scratch_reg_pa, 4);
 	if (IS_ERR(arm_smmu_ctx.scratch_va)) {
 		pr_err("Failed to ioremap scratch register\n");
 		ret = PTR_ERR(arm_smmu_ctx.scratch_va);

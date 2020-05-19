@@ -2952,7 +2952,11 @@ int eqos_config_mac_loopback_mode(struct net_device *dev,
 
 static VOID eqos_config_timer_registers(struct eqos_prv_data *pdata)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec now;
+#else
+	struct timespec64 now;
+#endif
 	struct hw_if_struct *hw_if = &(pdata->hw_if);
 	u64 temp;
 
@@ -2980,7 +2984,11 @@ static VOID eqos_config_timer_registers(struct eqos_prv_data *pdata)
 	hw_if->config_addend(pdata->default_addend);
 
 	/* initialize system time */
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	getnstimeofday(&now);
+#else
+	ktime_get_ts64(&now);
+#endif
 	hw_if->init_systime(now.tv_sec, now.tv_nsec);
 
 	pr_debug("-->eqos_config_timer_registers\n");
@@ -3505,7 +3513,11 @@ static int eqos_handle_hwtstamp_ioctl(struct eqos_prv_data *pdata,
 	u32 av_8021asm_en = 0;
 	u32 mac_tcr = 0;
 	u64 temp = 0;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec now;
+#else
+	struct timespec64 now;
+#endif
 
 	DBGPR_PTP("-->eqos_handle_hwtstamp_ioctl\n");
 
@@ -3699,7 +3711,11 @@ static int eqos_handle_hwtstamp_ioctl(struct eqos_prv_data *pdata,
 		hw_if->config_addend(pdata->default_addend);
 
 		/* initialize system time */
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		getnstimeofday(&now);
+#else
+		ktime_get_ts64(&now);
+#endif
 		hw_if->init_systime(now.tv_sec, now.tv_nsec);
 
 		DBGPR_PTP("-->eqos registering get_ptp function\n");

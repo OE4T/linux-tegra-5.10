@@ -29,7 +29,6 @@
 #include <linux/version.h>
 #include <linux/string.h>
 #include <linux/nospec.h>
-#include <linux/version.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #include <linux/types.h>
 #include <uapi/linux/sched/types.h>
@@ -599,7 +598,11 @@ static int tegra_dc_ext_set_windowattr(struct tegra_dc_ext *ext,
 			/* XXX: Should timestamping be overridden by "no_vsync"
 			 * flag */
 			if (vrr && vrr->enable) {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 				struct timespec tm;
+#else
+				struct timespec64 tm;
+#endif
 				s64 now_ns = 0;
 				s64 sleep_us = 0;
 				ktime_get_ts(&tm);

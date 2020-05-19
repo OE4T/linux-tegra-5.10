@@ -357,7 +357,7 @@ static int init_c2c_memory(struct c2c *ctx)
 	ctx->peer_mem.aper = (phys_addr_t)ctx->dt_param.apt.base;
 	ctx->peer_mem.size = (resource_size_t)ctx->dt_param.apt.size;
 #ifdef C2C_MAP
-	ctx->peer_mem.pva  = ioremap_nocache(ctx->dt_param.apt.base,
+	ctx->peer_mem.pva  = ioremap(ctx->dt_param.apt.base,
 			ctx->dt_param.apt.size);
 #endif
 
@@ -373,7 +373,7 @@ static int init_c2c_memory(struct c2c *ctx)
 	ctx->self_mem.phys_addr  = ctx->ivmk->ipa;
 	ctx->self_mem.size       = (size_t)ctx->ivmk->size;
 #ifdef C2C_MAP
-	ctx->self_mem.pva        = ioremap_nocache(ctx->ivmk->ipa,
+	ctx->self_mem.pva        = ioremap(ctx->ivmk->ipa,
 			ctx->ivmk->size);
 #endif
 

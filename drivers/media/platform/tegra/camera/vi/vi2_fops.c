@@ -14,6 +14,7 @@
 #include <linux/tegra-powergate.h>
 #include <linux/kthread.h>
 #include <linux/freezer.h>
+#include <linux/version.h>
 #include <media/tegra_camera_platform.h>
 #include <media/vi.h>
 #include "nvhost_acm.h"
@@ -365,7 +366,11 @@ static int tegra_channel_capture_frame_single_thread(
 			struct tegra_channel_buffer *buf)
 {
 	struct vb2_v4l2_buffer *vb = &buf->buf;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 	int err = 0;
 	u32 val, frame_start;
 	int bytes_per_line = chan->format.bytesperline;
@@ -478,7 +483,11 @@ static int tegra_channel_capture_frame_multi_thread(
 			struct tegra_channel *chan,
 			struct tegra_channel_buffer *buf)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts = {0, 0};
+#else
+	struct timespec64 ts = {0, 0};
+#endif
 	int err = 0;
 	u32 val, frame_start, mw_ack_done;
 	int bytes_per_line = chan->format.bytesperline;
@@ -648,7 +657,11 @@ static int tegra_channel_capture_frame(struct tegra_channel *chan,
 static void tegra_channel_release_frame(struct tegra_channel *chan,
 				struct tegra_channel_buffer *buf)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts = {0, 0};
+#else
+	struct timespec64 ts = {0, 0};
+#endif
 	int index;
 	int err = 0;
 	int restart_version = 0;
@@ -720,7 +733,11 @@ static int tegra_channel_kthread_release(void *data)
 
 static void tegra_channel_capture_done(struct tegra_channel *chan)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 	int index, err;
 	int bytes_per_line = chan->format.bytesperline;
 	u32 val, mw_ack_done;

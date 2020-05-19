@@ -503,7 +503,7 @@ static int add_irq_map(struct mods_client         *client,
 	if ((irq_type == MODS_IRQ_TYPE_INT) &&
 	    (p->aperture_addr != 0) &&
 	    (p->aperture_size != 0)) {
-		char *bar = ioremap_nocache(p->aperture_addr, p->aperture_size);
+		char *bar = ioremap(p->aperture_addr, p->aperture_size);
 
 		if (!bar) {
 			cl_debug(DEBUG_ISR,

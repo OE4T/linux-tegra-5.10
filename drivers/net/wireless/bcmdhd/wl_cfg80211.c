@@ -33,6 +33,7 @@
 #include <linuxver.h>
 #include <osl.h>
 #include <linux/kernel.h>
+#include <linux/version.h>
 
 #include <bcmutils.h>
 #include <bcmwifi_channels.h>
@@ -8975,7 +8976,11 @@ static s32 wl_inform_single_bss(struct bcm_cfg80211 *cfg, struct wl_bss_info *bi
 	signal = notif_bss_info->rssi * 100;
 	if (!mgmt->u.probe_resp.timestamp) {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39))
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		struct timespec ts;
+#else
+		struct timespec64 ts;
+#endif
 		get_monotonic_boottime(&ts);
 		mgmt->u.probe_resp.timestamp = ((u64)ts.tv_sec*1000000)
 				+ ts.tv_nsec / 1000;

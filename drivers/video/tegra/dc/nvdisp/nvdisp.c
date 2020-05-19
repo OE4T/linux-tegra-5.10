@@ -27,6 +27,7 @@
 #include <linux/platform/tegra/isomgr.h>
 #include <linux/debugfs.h>
 #include <linux/ktime.h>
+#include <linux/version.h>
 
 #include "dc.h"
 #include "nvdisp.h"
@@ -2266,7 +2267,11 @@ void tegra_nvdisp_vrr_work(struct work_struct *work)
 {
 	int reg_val;
 	int frame_time_elapsed;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec time_now;
+#else
+	struct timespec64 time_now;
+#endif
 	s64 time_now_us;
 
 	struct tegra_dc *dc = container_of(
@@ -2276,7 +2281,11 @@ void tegra_nvdisp_vrr_work(struct work_struct *work)
 	mutex_lock(&dc->lock);
 	tegra_dc_get(dc);
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	getnstimeofday(&time_now);
+#else
+	ktime_get_ts64(&time_now);
+#endif
 	time_now_us = (s64)time_now.tv_sec * 1000000 +
 		time_now.tv_nsec / 1000;
 

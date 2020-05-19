@@ -45,6 +45,8 @@
 
 #define __EQOS_YAPPHDR_H__
 
+#include <linux/version.h>
+
 #define EQOS_MAX_TX_QUEUE_CNT 8
 #define EQOS_MAX_RX_QUEUE_CNT 8
 
@@ -280,8 +282,13 @@ typedef enum {
  */
 struct ifr_data_timestamp_struct {
 	clockid_t clockid;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec kernel_ts;
 	struct timespec hw_ptp_ts;
+#else
+	struct timespec64 kernel_ts;
+	struct timespec64 hw_ptp_ts;
+#endif
 };
 
 struct ifr_data_struct {

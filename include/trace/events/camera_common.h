@@ -19,10 +19,15 @@
 #if !defined(_TRACE_CAMERA_COMMON_H) || defined(TRACE_HEADER_MULTI_READ)
 #define _TRACE_CAMERA_COMMON_H
 
+#include <linux/version.h>
 #include <linux/tracepoint.h>
 
 struct tegra_channel;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 struct timespec;
+#else
+struct timespec64;
+#endif
 
 DECLARE_EVENT_CLASS(channel_simple,
 	TP_PROTO(const char *name),
@@ -111,7 +116,11 @@ TRACE_EVENT(tegra_channel_capture_setup,
 );
 
 DECLARE_EVENT_CLASS(frame,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	TP_PROTO(const char *str, struct timespec ts),
+#else
+	TP_PROTO(const char *str, struct timespec64 ts),
+#endif
 	TP_ARGS(str, ts),
 	TP_STRUCT__entry(
 		__string(str,	str)
@@ -128,12 +137,20 @@ DECLARE_EVENT_CLASS(frame,
 );
 
 DEFINE_EVENT(frame, tegra_channel_capture_frame,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	TP_PROTO(const char *str, struct timespec ts),
+#else
+	TP_PROTO(const char *str, struct timespec64 ts),
+#endif
 	TP_ARGS(str, ts)
 );
 
 DEFINE_EVENT(frame, tegra_channel_capture_done,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	TP_PROTO(const char *str, struct timespec ts),
+#else
+	TP_PROTO(const char *str, struct timespec64 ts),
+#endif
 	TP_ARGS(str, ts)
 );
 #endif

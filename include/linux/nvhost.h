@@ -31,6 +31,7 @@
 #include <linux/pm_domain.h>
 #include <linux/pm_qos.h>
 #include <linux/time.h>
+#include <linux/version.h>
 
 #ifdef CONFIG_TEGRA_HOST1X
 #include <linux/host1x.h>
@@ -457,7 +458,11 @@ static inline void nvhost_syncpt_cpu_incr_ext(struct platform_device *dev,
 
 static inline int nvhost_syncpt_wait_timeout_ext(
 			struct platform_device *dev, u32 id, u32 thresh,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			u32 timeout, u32 *value, struct timespec *ts)
+#else
+			u32 timeout, u32 *value, struct timespec64 *ts)
+#endif
 {
 	struct host1x *host = nvhost_get_host1x(dev);
 	struct host1x_syncpt *syncpt = host1x_syncpt_get(host, id);
@@ -766,7 +771,11 @@ u32 nvhost_syncpt_incr_max_ext(struct platform_device *dev, u32 id, u32 incrs);
 void nvhost_syncpt_cpu_incr_ext(struct platform_device *dev, u32 id);
 int nvhost_syncpt_read_ext_check(struct platform_device *dev, u32 id, u32 *val);
 int nvhost_syncpt_wait_timeout_ext(struct platform_device *dev, u32 id, u32 thresh,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	u32 timeout, u32 *value, struct timespec *ts);
+#else
+	u32 timeout, u32 *value, struct timespec64 *ts);
+#endif
 int nvhost_syncpt_create_fence_single_ext(struct platform_device *dev,
 	u32 id, u32 thresh, const char *name, int *fence_fd);
 int nvhost_syncpt_is_expired_ext(struct platform_device *dev,

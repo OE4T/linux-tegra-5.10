@@ -639,7 +639,7 @@ static int nvpps_probe(struct platform_device *pdev)
 
 #ifdef NVPPS_MAP_EQOS_REGS
 	/* remap base address for eqos */
-	pdev_data->eqos_base_addr = (u64)devm_ioremap_nocache(&pdev->dev,
+	pdev_data->eqos_base_addr = (u64)devm_ioremap(&pdev->dev,
 		EQOS_BASE_ADDR, 4096);
 	dev_info(&pdev->dev, "map EQOS to (%p)\n", (void *)pdev_data->eqos_base_addr);
 #endif /* NVPPS_MAP_EQOS_REGS */

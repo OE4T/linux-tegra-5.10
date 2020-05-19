@@ -44,6 +44,7 @@
 /*!@file: eqos_ethtool.c
  * @brief: Driver functions.
  */
+#include <linux/version.h>
 #include "yheader.h"
 #include "ethtool.h"
 
@@ -54,9 +55,15 @@ struct eqos_stats {
 };
 
 /* HW extra status */
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 #define EQOS_EXTRA_STAT(m) \
 	{#m, FIELD_SIZEOF(struct eqos_extra_stats, m), \
 	offsetof(struct eqos_prv_data, xstats.m)}
+#else
+#define EQOS_EXTRA_STAT(m) \
+	{#m, sizeof_field(struct eqos_extra_stats, m), \
+	offsetof(struct eqos_prv_data, xstats.m)}
+#endif
 
 static const struct eqos_stats eqos_gstrings_stats[] = {
 	EQOS_EXTRA_STAT(q_re_alloc_rx_buf_failed[0]),
@@ -168,9 +175,15 @@ static const struct eqos_stats eqos_gstrings_stats[] = {
 #define EQOS_EXTRA_STAT_LEN ARRAY_SIZE(eqos_gstrings_stats)
 
 /* HW MAC Management counters (if supported) */
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 #define EQOS_MMC_STAT(m)	\
 	{ #m, FIELD_SIZEOF(struct eqos_mmc_counters, m),	\
 	offsetof(struct eqos_prv_data, mmc.m)}
+#else
+#define EQOS_MMC_STAT(m)	\
+	{ #m, sizeof_field(struct eqos_mmc_counters, m),	\
+	offsetof(struct eqos_prv_data, mmc.m)}
+#endif
 
 static const struct eqos_stats eqos_mmc[] = {
 	/* MMC TX counters */

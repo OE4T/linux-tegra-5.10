@@ -481,7 +481,11 @@ void tegra_dc_set_background_color(struct tegra_dc *dc,
 
 static void tegra_dc_vrr_flip_time(struct tegra_dc *dc)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec time_now;
+#else
+	struct timespec64 time_now;
+#endif
 	struct tegra_vrr *vrr  = dc->out->vrr;
 
 	if (!vrr || !vrr->capability)
@@ -489,7 +493,11 @@ static void tegra_dc_vrr_flip_time(struct tegra_dc *dc)
 
 	if (vrr->enable) {
 		vrr->lastenable = 1;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		getnstimeofday(&time_now);
+#else
+		ktime_get_ts64(&time_now);
+#endif
 		vrr->curr_flip_us = (s64)time_now.tv_sec * 1000000 +
 				time_now.tv_nsec / 1000;
 		vrr->flip = 1;

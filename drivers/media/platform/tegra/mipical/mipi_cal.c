@@ -1090,7 +1090,7 @@ static int tegra_mipi_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Cannot request mem region\n");
 		return -EBUSY;
 	}
-	regs = devm_ioremap_nocache(&pdev->dev, mem->start, resource_size(mem));
+	regs = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
 	if (!regs) {
 		dev_err(&pdev->dev, "ioremap failed\n");
 		return -ENOMEM;

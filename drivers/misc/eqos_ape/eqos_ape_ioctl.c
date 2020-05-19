@@ -340,7 +340,7 @@ static int eqos_ape_probe(struct platform_device *pdev)
 			ret = -EINVAL;
 			goto out;
 		}
-		base = devm_ioremap_nocache(dev,
+		base = devm_ioremap(dev,
 				res->start,
 				resource_size(res));
 		if (IS_ERR_OR_NULL(base)) {

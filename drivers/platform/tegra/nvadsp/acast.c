@@ -118,7 +118,7 @@ int nvadsp_acast_init(struct platform_device *pdev)
 	int i;
 
 	if (!acast_base) {
-		acast_base = devm_ioremap_nocache(dev, ACAST_BASE, ACAST_SIZE);
+		acast_base = devm_ioremap(dev, ACAST_BASE, ACAST_SIZE);
 		if (IS_ERR_OR_NULL(acast_base)) {
 			dev_err(dev, "failed to map ACAST\n");
 			return PTR_ERR(acast_base);

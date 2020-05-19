@@ -187,7 +187,11 @@ dhd_pno_set_mac_oui(dhd_pub_t *dhd, uint8 *oui)
 static uint64
 convert_fw_rel_time_to_systime(uint32 fw_ts_ms)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 
 	get_monotonic_boottime(&ts);
 	return ((uint64)(TIMESPEC_TO_US(ts)) - (uint64)(fw_ts_ms * 1000));
@@ -3634,7 +3638,11 @@ dhd_process_full_gscan_result(dhd_pub_t *dhd, const void *data, int *size)
 	uint8 channel;
 	uint32 mem_needed;
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 
 	*size = 0;
 

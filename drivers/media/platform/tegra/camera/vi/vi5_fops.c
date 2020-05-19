@@ -15,6 +15,7 @@
 #include <linux/nvhost.h>
 #include <linux/tegra-powergate.h>
 #include <linux/semaphore.h>
+#include <linux/version.h>
 #include <media/tegra_camera_platform.h>
 #include <media/mc_common.h>
 #include <media/tegra-v4l2-camera.h>
@@ -368,7 +369,11 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 	unsigned long flags;
 	struct tegra_mc_vi *vi = chan->vi;
 	struct vb2_v4l2_buffer *vb = &buf->buf;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 	struct capture_descriptor *descr =
 		&chan->request[buf->capture_descr_index];
 

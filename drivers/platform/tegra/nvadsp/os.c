@@ -726,7 +726,7 @@ static int allocate_memory_for_adsp_os(void)
 		goto end;
 	}
 #else
-	dram_va = ioremap_nocache(addr, size);
+	dram_va = ioremap(addr, size);
 	if (!dram_va) {
 		dev_err(dev, "remap failed for addr 0x%llx\n", addr);
 		ret = -ENOMEM;

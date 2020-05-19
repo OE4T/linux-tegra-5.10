@@ -21,6 +21,8 @@
 #ifndef __NVHOST_KTIME_H
 #define __NVHOST_KTIME_H
 
+#include <linux/version.h>
+
 enum nvhost_clock_id {
 	NVHOST_CLOCK_UNKNOWN = 0,
 	NVHOST_CLOCK_MONOTONIC,
@@ -28,7 +30,11 @@ enum nvhost_clock_id {
 };
 
 struct nvhost_timespec {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 	enum nvhost_clock_id clock;
 };
 

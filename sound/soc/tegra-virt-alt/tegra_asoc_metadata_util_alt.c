@@ -174,7 +174,7 @@ tegra_metadata_init(struct tegra_audio_metadata_cntx *s, struct device *dev)
 	/* get adma resource corresponding to dma id */
 	dma_chan_addr = ADMA_PAGE1_BASE + (s->dma_ch_page * ADMA_PAGE_SIZE)
 					+ (s->dma_id *  T186_CH_REG_SIZE);
-	s->dma_addr = ioremap_nocache(dma_chan_addr, T186_CH_REG_SIZE);
+	s->dma_addr = ioremap(dma_chan_addr, T186_CH_REG_SIZE);
 	if (!s->dma_addr) {
 		pr_err("Unable to map dma channel for metadata\n");
 		return -1;

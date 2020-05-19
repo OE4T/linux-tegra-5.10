@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/version.h>
 #include "ether_linux.h"
 
 /**
@@ -42,9 +43,15 @@ struct ether_stats {
  * @brief Name of pkt_err statistics, with length of name not more than
  * ETH_GSTRING_LEN
  */
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 #define ETHER_PKT_ERR_STAT(y) \
 { (#y), FIELD_SIZEOF(struct osi_pkt_err_stats, y), \
 	offsetof(struct osi_dma_priv_data, pkt_err_stats.y)}
+#else
+#define ETHER_PKT_ERR_STAT(y) \
+{ (#y), sizeof_field(struct osi_pkt_err_stats, y), \
+	offsetof(struct osi_dma_priv_data, pkt_err_stats.y)}
+#endif
 /**
  * @brief ETHER clear pkt_err statistics
  */
@@ -62,9 +69,15 @@ static const struct ether_stats ether_cstrings_stats[] = {
 /**
  * @brief Name of extra DMA stat, with length of name not more than ETH_GSTRING_LEN
  */
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 #define ETHER_DMA_EXTRA_STAT(a) \
 { (#a), FIELD_SIZEOF(struct osi_xtra_dma_stat_counters, a), \
 	offsetof(struct osi_dma_priv_data, dstats.a)}
+#else
+#define ETHER_DMA_EXTRA_STAT(a) \
+{ (#a), sizeof_field(struct osi_xtra_dma_stat_counters, a), \
+	offsetof(struct osi_dma_priv_data, dstats.a)}
+#endif
 /**
  * @brief Ethernet DMA extra statistics
  */
@@ -101,9 +114,15 @@ static const struct ether_stats ether_dstrings_stats[] = {
  * @brief Name of extra Ethernet stats, with length of name not more than
  * ETH_GSTRING_LEN MAC
  */
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 #define ETHER_EXTRA_STAT(b) \
 { #b, FIELD_SIZEOF(struct osi_xtra_stat_counters, b), \
 	offsetof(struct osi_core_priv_data, xstats.b)}
+#else
+#define ETHER_EXTRA_STAT(b) \
+{ #b, sizeof_field(struct osi_xtra_stat_counters, b), \
+	offsetof(struct osi_core_priv_data, xstats.b)}
+#endif
 /**
  * @brief Ethernet extra statistics
  */
@@ -159,9 +178,15 @@ static const struct ether_stats ether_gstrings_stats[] = {
  * @brief HW MAC Management counters
  * 	  Structure variable name MUST up to MAX length of ETH_GSTRING_LEN
  */
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 #define ETHER_MMC_STAT(c) \
 { #c, FIELD_SIZEOF(struct osi_mmc_counters, c), \
 	offsetof(struct osi_core_priv_data, mmc.c)}
+#else
+#define ETHER_MMC_STAT(c) \
+{ #c, sizeof_field(struct osi_mmc_counters, c), \
+	offsetof(struct osi_core_priv_data, mmc.c)}
+#endif
 
 /**
  * @brief MMC statistics

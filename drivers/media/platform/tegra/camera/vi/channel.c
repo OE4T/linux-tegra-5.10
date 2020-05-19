@@ -24,6 +24,7 @@
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/semaphore.h>
+#include <linux/version.h>
 
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-event.h>
@@ -370,7 +371,11 @@ static void tegra_channel_fmts_bitmap_init(struct tegra_channel *chan)
  * Update the timestamp of the buffer
  */
 void set_timestamp(struct tegra_channel_buffer *buf,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			const struct timespec *ts)
+#else
+			const struct timespec64 *ts)
+#endif
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
 	/* update time stamp of the buffer */
@@ -563,8 +568,11 @@ static void update_state_to_buffer(struct tegra_channel *chan, int state)
 
 void tegra_channel_ring_buffer(struct tegra_channel *chan,
 					struct vb2_v4l2_buffer *vb,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 					struct timespec *ts, int state)
-
+#else
+					struct timespec64 *ts, int state)
+#endif
 {
 	if (!chan->bfirst_fstart)
 		chan->bfirst_fstart = true;

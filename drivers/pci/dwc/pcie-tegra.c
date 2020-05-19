@@ -1325,7 +1325,7 @@ static int write(struct seq_file *s, void *data)
 	tx.size = pcie->size;
 	tx.channel = pcie->channel;
 
-	dst_cpu_virt = ioremap_nocache(pcie->dst, pcie->size);
+	dst_cpu_virt = ioremap(pcie->dst, pcie->size);
 
 	/* fill source with random data */
 	get_random_bytes(pcie->cpu_virt_addr, pcie->size);
@@ -1356,7 +1356,7 @@ static int write_ll(struct seq_file *s, void *data)
 	struct dma_ll *ll;
 	void __iomem *dst_cpu_virt;
 
-	dst_cpu_virt = ioremap_nocache(pcie->dst, 6 * 64 * 1024);
+	dst_cpu_virt = ioremap(pcie->dst, 6 * 64 * 1024);
 
 	/* create linked list */
 	ll = (struct dma_ll *)(pcie->cpu_virt_addr);
@@ -1441,7 +1441,7 @@ static int read(struct seq_file *s, void *data)
 	tx.size = pcie->size;
 	tx.channel = pcie->channel;
 
-	dst_cpu_virt = ioremap_nocache(pcie->src, pcie->size);
+	dst_cpu_virt = ioremap(pcie->src, pcie->size);
 	/* fill source with random data */
 	get_random_bytes(dst_cpu_virt, pcie->size);
 
@@ -1471,7 +1471,7 @@ static int read_ll(struct seq_file *s, void *data)
 	struct dma_ll *ll;
 	void __iomem *dst_cpu_virt;
 
-	dst_cpu_virt = ioremap_nocache(pcie->src, 6 * 64 * 1024);
+	dst_cpu_virt = ioremap(pcie->src, 6 * 64 * 1024);
 
 	/* create linked list to be sent to ep's local memory */
 	ll = (struct dma_ll *)(pcie->cpu_virt_addr);

@@ -982,7 +982,7 @@ int eqos_probe(struct platform_device *pdev)
 	pr_debug("============================================================\n");
 
 	/* remap base address */
-	eqos_base_addr = (ULONG) devm_ioremap_nocache(&pdev->dev,
+	eqos_base_addr = (ULONG) devm_ioremap(&pdev->dev,
 		res->start, (res->end - res->start) + 1);
 
 	/* Set DMA addressing limitations */
@@ -1219,7 +1219,13 @@ int eqos_probe(struct platform_device *pdev)
 		ndev->dev_addr[4] = mac_addr[4];
 		ndev->dev_addr[5] = mac_addr[5];
 	}
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 	pdata->interface = of_get_phy_mode(node);
+#else
+	ret = of_get_phy_mode(node, &pdata->interface);
+	if (ret < 0)
+		pr_debug("%s(): phy interface not found\n", __func__);
+#endif
 
 	pdata->phy_node = of_parse_phandle(node, "phy-handle", 0);
 	if (!pdata->phy_node)

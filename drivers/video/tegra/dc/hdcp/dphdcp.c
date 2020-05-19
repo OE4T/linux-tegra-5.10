@@ -24,6 +24,7 @@
 #include <linux/wait.h>
 #include <linux/uaccess.h>
 #include <linux/tsec.h>
+#include <linux/version.h>
 #include <soc/tegra/kfuse.h>
 #include <soc/tegra/fuse.h>
 
@@ -1652,7 +1653,11 @@ static int dphdcp_poll(struct tegra_dc_dp_data *dp, int timeout, int status)
 	int e;
 	s64 start_time;
 	s64 end_time;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec tm;
+#else
+	struct timespec64 tm;
+#endif
 	u8 val;
 	u32 aux_stat;
 

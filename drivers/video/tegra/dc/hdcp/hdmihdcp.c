@@ -24,6 +24,7 @@
 #include <linux/uaccess.h>
 #include <linux/wait.h>
 #include <linux/workqueue.h>
+#include <linux/version.h>
 #include <asm/atomic.h>
 #include <linux/debugfs.h>
 #include <linux/delay.h>
@@ -1112,7 +1113,11 @@ static int nvhdcp_poll(struct tegra_nvhdcp *nvhdcp, int timeout, int status)
 	u16 val;
 	s64 start_time;
 	s64 end_time;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec tm;
+#else
+	struct timespec64 tm;
+#endif
 	ktime_get_ts(&tm);
 	start_time = timespec_to_ns(&tm);
 	while (1) {

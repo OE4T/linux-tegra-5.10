@@ -13,6 +13,7 @@
 #include <linux/kthread.h>
 #include <linux/nvhost.h>
 #include <linux/tegra-powergate.h>
+#include <linux/version.h>
 #include <media/fusa-capture/capture-vi.h>
 #include <media/tegra_camera_platform.h>
 #include <media/mc_common.h>
@@ -175,7 +176,11 @@ static bool vi4_check_status(struct tegra_channel *chan)
 
 static bool vi_notify_wait(struct tegra_channel *chan,
 		struct tegra_channel_buffer *buf,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		struct timespec *ts)
+#else
+		struct timespec64 *ts)
+#endif
 {
 	int i, err;
 	u32 thresh[TEGRA_CSI_BLOCKS];
@@ -521,7 +526,11 @@ static int tegra_channel_capture_frame_single_thread(
 			struct tegra_channel_buffer *buf)
 {
 	struct vb2_v4l2_buffer *vb = &buf->buf;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 	int state = VB2_BUF_STATE_DONE;
 	unsigned long flags;
 	int err = false;
@@ -612,7 +621,11 @@ static int tegra_channel_capture_frame_multi_thread(
 			struct tegra_channel *chan,
 			struct tegra_channel_buffer *buf)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 	unsigned long flags;
 	bool is_streaming = atomic_read(&chan->is_streaming);
 	int restart_version = 0;
@@ -781,7 +794,11 @@ static int tegra_channel_stop_increments(struct tegra_channel *chan)
 
 static void tegra_channel_capture_done(struct tegra_channel *chan)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 	struct tegra_channel_buffer *buf;
 	int state = VB2_BUF_STATE_DONE;
 	u32 thresh[TEGRA_CSI_BLOCKS];

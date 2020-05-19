@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/version.h>
 #include "ether_linux.h"
 
 /**
@@ -3576,7 +3577,15 @@ rst_clk_fail:
 static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 			      struct device_node *node)
 {
+#if KERNEL_VERSION(5, 5, 0) > LINUX_VERSION_CODE
 	pdata->interface = of_get_phy_mode(node);
+#else
+	int err;
+
+	err = of_get_phy_mode(node, &pdata->interface);
+	if (err < 0)
+		pr_debug("%s(): phy interface not found\n", __func__);
+#endif
 
 	pdata->phy_node = of_parse_phandle(node, "phy-handle", 0);
 	if (pdata->phy_node == NULL)

@@ -105,7 +105,7 @@ struct ifr_data_timestamp_struct {
 	/** Store kernel time */
 	struct timespec64 kernel_ts;
 	/** Store HW time */
-	struct timespec hw_ptp_ts;
+	struct timespec64 hw_ptp_ts;
 };
 
 /**

@@ -34,6 +34,7 @@
 #include <linux/workqueue.h>
 #include <linux/semaphore.h>
 #include <linux/rwsem.h>
+#include <linux/version.h>
 
 #define MAX_FORMAT_NUM	64
 #define	MAX_SUBDEVICES	4
@@ -382,7 +383,11 @@ int tegra_channel_set_stream(struct tegra_channel *chan, bool on);
 int tegra_channel_write_blobs(struct tegra_channel *chan);
 void tegra_channel_ring_buffer(struct tegra_channel *chan,
 			       struct vb2_v4l2_buffer *vb,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			       struct timespec *ts, int state);
+#else
+			       struct timespec64 *ts, int state);
+#endif
 struct tegra_channel_buffer *dequeue_buffer(struct tegra_channel *chan,
 	bool requeue);
 struct tegra_channel_buffer *dequeue_dequeue_buffer(struct tegra_channel *chan);
@@ -395,7 +400,11 @@ void free_ring_buffers(struct tegra_channel *chan, int frames);
 void release_buffer(struct tegra_channel *chan,
 			struct tegra_channel_buffer *buf);
 void set_timestamp(struct tegra_channel_buffer *buf,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			const struct timespec *ts);
+#else
+			const struct timespec64 *ts);
+#endif
 void enqueue_inflight(struct tegra_channel *chan,
 			struct tegra_channel_buffer *buf);
 struct tegra_channel_buffer *dequeue_inflight(struct tegra_channel *chan);

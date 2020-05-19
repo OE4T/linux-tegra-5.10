@@ -4572,14 +4572,22 @@ int tegra_dc_get_v_count(struct tegra_dc *dc)
 
 static void tegra_dc_vrr_get_ts(struct tegra_dc *dc)
 {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec time_now;
+#else
+	struct timespec64 time_now;
+#endif
 	struct tegra_vrr *vrr  = dc->out->vrr;
 
 	if (!vrr || !vrr->capability ||
 		(!vrr->enable && !vrr->lastenable))
 		return;
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	getnstimeofday(&time_now);
+#else
+	ktime_get_ts64(&time_now);
+#endif
 	vrr->fe_time_us = (s64)time_now.tv_sec * 1000000 +
 				time_now.tv_nsec / 1000;
 	vrr->v_count = tegra_dc_get_v_count(dc);
@@ -4916,7 +4924,11 @@ static void tegra_dc_continuous_irq(struct tegra_dc *dc, unsigned long status)
 	}
 
 	if (status & FRAME_END_INT) {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		struct timespec tm;
+#else
+		struct timespec64 tm;
+#endif
 		ktime_get_ts(&tm);
 		dc->frame_end_timestamp = timespec_to_ns(&tm);
 		wake_up(&dc->timestamp_wq);
