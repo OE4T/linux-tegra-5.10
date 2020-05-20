@@ -111,19 +111,19 @@ unsigned long emc_freq_to_bw(unsigned long freq)
 {
 	return freq_to_bw(freq);
 }
-EXPORT_SYMBOL_GPL(emc_freq_to_bw);
+EXPORT_SYMBOL(emc_freq_to_bw);
 
 unsigned long emc_bw_to_freq(unsigned long bw)
 {
 	return bw_to_freq(bw);
 }
-EXPORT_SYMBOL_GPL(emc_bw_to_freq);
+EXPORT_SYMBOL(emc_bw_to_freq);
 
 u8 get_dram_num_channels(void)
 {
 	return ch_num;
 }
-EXPORT_SYMBOL_GPL(get_dram_num_channels);
+EXPORT_SYMBOL(get_dram_num_channels);
 
 /* DRAM clock in MHz
  *
@@ -139,7 +139,7 @@ unsigned long dram_clk_to_mc_clk(unsigned long dram_clk)
 		mc_clk = (dram_clk + BR8_MODE - 1) / BR8_MODE;
 	return mc_clk;
 }
-EXPORT_SYMBOL_GPL(dram_clk_to_mc_clk);
+EXPORT_SYMBOL(dram_clk_to_mc_clk);
 
 unsigned long bw_disruption_latency(unsigned long dram_freq,
 				    unsigned long mc_freq,
@@ -187,7 +187,7 @@ unsigned long bw_disruption_latency(unsigned long dram_freq,
 				      calibration;
 	return total_bw_disruption_latency;
 }
-EXPORT_SYMBOL_GPL(bw_disruption_latency);
+EXPORT_SYMBOL(bw_disruption_latency);
 
 enum dram_types tegra_dram_types(void)
 {
@@ -310,7 +310,7 @@ enum dram_types tegra_dram_types(void)
 
 	return dram_type;
 }
-EXPORT_SYMBOL_GPL(tegra_dram_types);
+EXPORT_SYMBOL(tegra_dram_types);
 
 void tegra_mc_utils_init(void)
 {
