@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,12 @@ struct gk20a;
 
 int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size);
 int nvgpu_perfbuf_disable_locked(struct gk20a *g);
+
+int nvgpu_perfbuf_init_vm(struct gk20a *g);
+void nvgpu_perfbuf_deinit_vm(struct gk20a *g);
+
+int nvgpu_perfbuf_init_inst_block(struct gk20a *g);
+void nvgpu_perfbuf_deinit_inst_block(struct gk20a *g);
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif

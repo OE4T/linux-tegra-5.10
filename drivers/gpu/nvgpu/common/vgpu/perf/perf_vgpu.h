@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,3 +24,6 @@ struct gk20a;
 
 int vgpu_perfbuffer_enable(struct gk20a *g, u64 offset, u32 size);
 int vgpu_perfbuffer_disable(struct gk20a *g);
+
+int vgpu_perfbuffer_init_inst_block(struct gk20a *g);
+void vgpu_perfbuffer_deinit_inst_block(struct gk20a *g);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,12 +70,10 @@ void gv11b_perf_membuf_reset_streaming(struct gk20a *g)
 	}
 }
 
-void gv11b_perf_enable_membuf(struct gk20a *g, u32 size,
-	u64 buf_addr, struct nvgpu_mem *inst_block)
+void gv11b_perf_enable_membuf(struct gk20a *g, u32 size, u64 buf_addr)
 {
 	u32 addr_lo;
 	u32 addr_hi;
-	u32 inst_block_ptr;
 
 	addr_lo = u64_lo32(buf_addr);
 	addr_hi = u64_hi32(buf_addr);
@@ -84,8 +82,19 @@ void gv11b_perf_enable_membuf(struct gk20a *g, u32 size,
 	nvgpu_writel(g, perf_pmasys_outbaseupper_r(),
 		perf_pmasys_outbaseupper_ptr_f(addr_hi));
 	nvgpu_writel(g, perf_pmasys_outsize_r(), size);
+}
 
-	inst_block_ptr = nvgpu_inst_block_ptr(g, inst_block);
+void gv11b_perf_disable_membuf(struct gk20a *g)
+{
+	nvgpu_writel(g, perf_pmasys_outbase_r(), 0);
+	nvgpu_writel(g, perf_pmasys_outbaseupper_r(),
+			perf_pmasys_outbaseupper_ptr_f(0));
+	nvgpu_writel(g, perf_pmasys_outsize_r(), 0);
+}
+
+void gv11b_perf_init_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
+{
+	u32 inst_block_ptr = nvgpu_inst_block_ptr(g, inst_block);
 
 	nvgpu_writel(g, perf_pmasys_mem_block_r(),
 		     perf_pmasys_mem_block_base_f(inst_block_ptr) |
@@ -96,13 +105,8 @@ void gv11b_perf_enable_membuf(struct gk20a *g, u32 size,
 				perf_pmasys_mem_block_target_lfb_f()));
 }
 
-void gv11b_perf_disable_membuf(struct gk20a *g)
+void gv11b_perf_deinit_inst_block(struct gk20a *g)
 {
-	nvgpu_writel(g, perf_pmasys_outbase_r(), 0);
-	nvgpu_writel(g, perf_pmasys_outbaseupper_r(),
-			perf_pmasys_outbaseupper_ptr_f(0));
-	nvgpu_writel(g, perf_pmasys_outsize_r(), 0);
-
 	nvgpu_writel(g, perf_pmasys_mem_block_r(),
 			perf_pmasys_mem_block_base_f(0) |
 			perf_pmasys_mem_block_valid_false_f() |

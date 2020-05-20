@@ -784,6 +784,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.perfbuf = {
 		.perfbuf_enable = vgpu_perfbuffer_enable,
 		.perfbuf_disable = vgpu_perfbuffer_disable,
+		.init_inst_block = vgpu_perfbuffer_init_inst_block,
+		.deinit_inst_block = vgpu_perfbuffer_deinit_inst_block,
 	},
 #endif
 #ifdef CONFIG_NVGPU_PROFILER

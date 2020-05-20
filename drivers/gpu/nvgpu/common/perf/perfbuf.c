@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,6 @@
 
 int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size)
 {
-	struct mm_gk20a *mm = &g->mm;
 	int err;
 
 	err = gk20a_busy(g);
@@ -37,15 +36,8 @@ int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size)
 		return err;
 	}
 
-	err = nvgpu_alloc_inst_block(g, &mm->perfbuf.inst_block);
-	if (err != 0) {
-		return err;
-	}
-
-	g->ops.mm.init_inst_block(&mm->perfbuf.inst_block, mm->perfbuf.vm, 0);
-
 	g->ops.perf.membuf_reset_streaming(g);
-	g->ops.perf.enable_membuf(g, size, offset, &mm->perfbuf.inst_block);
+	g->ops.perf.enable_membuf(g, size, offset);
 
 	gk20a_idle(g);
 
@@ -66,4 +58,56 @@ int nvgpu_perfbuf_disable_locked(struct gk20a *g)
 	gk20a_idle(g);
 
 	return 0;
+}
+
+int nvgpu_perfbuf_init_inst_block(struct gk20a *g)
+{
+	struct mm_gk20a *mm = &g->mm;
+	int err;
+
+	err = nvgpu_alloc_inst_block(g, &mm->perfbuf.inst_block);
+	if (err != 0) {
+		return err;
+	}
+
+	g->ops.mm.init_inst_block(&mm->perfbuf.inst_block, mm->perfbuf.vm, 0);
+	g->ops.perf.init_inst_block(g, &mm->perfbuf.inst_block);
+
+	return 0;
+}
+
+int nvgpu_perfbuf_init_vm(struct gk20a *g)
+{
+	struct mm_gk20a *mm = &g->mm;
+	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
+	int err;
+
+	mm->perfbuf.vm = nvgpu_vm_init(g, big_page_size,
+			big_page_size << 10,
+			NV_MM_DEFAULT_KERNEL_SIZE,
+			NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
+			false, false, false, "perfbuf");
+	if (mm->perfbuf.vm == NULL) {
+		return -ENOMEM;
+	}
+
+	err = g->ops.perfbuf.init_inst_block(g);
+	if (err != 0) {
+		nvgpu_vm_put(mm->perfbuf.vm);
+		return err;
+	}
+
+	return 0;
+}
+
+void nvgpu_perfbuf_deinit_inst_block(struct gk20a *g)
+{
+	g->ops.perf.deinit_inst_block(g);
+	nvgpu_free_inst_block(g, &g->mm.perfbuf.inst_block);
+}
+
+void nvgpu_perfbuf_deinit_vm(struct gk20a *g)
+{
+	g->ops.perfbuf.deinit_inst_block(g);
+	nvgpu_vm_put(g->mm.perfbuf.vm);
 }

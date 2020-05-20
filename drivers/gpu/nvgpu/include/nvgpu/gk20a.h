@@ -443,9 +443,11 @@ struct gpu_ops {
 					bool disable_powergate);
 	} debugger;
 	struct {
-		void (*enable_membuf)(struct gk20a *g, u32 size,
-			u64 buf_addr, struct nvgpu_mem *inst_block);
+		void (*enable_membuf)(struct gk20a *g, u32 size, u64 buf_addr);
 		void (*disable_membuf)(struct gk20a *g);
+		void (*init_inst_block)(struct gk20a *g,
+			struct nvgpu_mem *inst_block);
+		void (*deinit_inst_block)(struct gk20a *g);
 		void (*membuf_reset_streaming)(struct gk20a *g);
 		u32 (*get_membuf_pending_bytes)(struct gk20a *g);
 		void (*set_membuf_handled_bytes)(struct gk20a *g,
@@ -456,6 +458,8 @@ struct gpu_ops {
 	struct {
 		int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);
 		int (*perfbuf_disable)(struct gk20a *g);
+		int (*init_inst_block)(struct gk20a *g);
+		void (*deinit_inst_block)(struct gk20a *g);
 	} perfbuf;
 #endif
 #ifdef CONFIG_NVGPU_PROFILER

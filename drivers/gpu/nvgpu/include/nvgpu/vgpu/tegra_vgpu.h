@@ -118,6 +118,7 @@ enum {
 	TEGRA_VGPU_CMD_GET_TPC_EXCEPTION_EN_STATUS = 87,
 	TEGRA_VGPU_CMD_FB_SET_MMU_DEBUG_MODE = 88,
 	TEGRA_VGPU_CMD_GR_SET_MMU_DEBUG_MODE = 89,
+	TEGRA_VGPU_CMD_PERFBUF_INST_BLOCK_MGT = 90,
 };
 
 struct tegra_vgpu_connect_params {
@@ -581,6 +582,16 @@ struct tegra_vgpu_perfbuf_mgt_params {
 	u32 size;
 };
 
+enum {
+	TEGRA_VGPU_PROF_PERFBUF_INST_BLOCK_INIT = 0,
+	TEGRA_VGPU_PROF_PERFBUF_INST_BLOCK_DEINIT,
+};
+
+struct tegra_vgpu_perfbuf_inst_block_mgt_params {
+	u64 vm_handle;
+	u32 mode;
+};
+
 #define TEGRA_VGPU_GPU_FREQ_TABLE_SIZE		25
 
 struct tegra_vgpu_get_gpu_freq_table_params {
@@ -701,6 +712,7 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_get_tpc_exception_en_status_params get_tpc_exception_status;
 		struct tegra_vgpu_fb_set_mmu_debug_mode_params fb_set_mmu_debug_mode;
 		struct tegra_vgpu_gr_set_mmu_debug_mode_params gr_set_mmu_debug_mode;
+		struct tegra_vgpu_perfbuf_inst_block_mgt_params perfbuf_inst_block_management;
 		char padding[184];
 	} params;
 };

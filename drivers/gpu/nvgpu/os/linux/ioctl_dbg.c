@@ -31,6 +31,7 @@
 #include <nvgpu/cond.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/profiler.h>
+#include <nvgpu/perfbuf.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/gk20a.h>
@@ -1433,7 +1434,6 @@ static int gk20a_perfbuf_map(struct dbg_session_gk20a *dbg_s,
 	struct mm_gk20a *mm = &g->mm;
 	int err;
 	u32 virt_size;
-	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
@@ -1442,14 +1442,10 @@ static int gk20a_perfbuf_map(struct dbg_session_gk20a *dbg_s,
 		return -EBUSY;
 	}
 
-	mm->perfbuf.vm = nvgpu_vm_init(g, big_page_size,
-			big_page_size << 10,
-			NV_MM_DEFAULT_KERNEL_SIZE,
-			NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
-			false, false, false, "perfbuf");
-	if (!mm->perfbuf.vm) {
+	err = nvgpu_perfbuf_init_vm(g);
+	if (err) {
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
-		return -ENOMEM;
+		return err;
 	}
 
 	err = nvgpu_vm_map_buffer(mm->perfbuf.vm,
@@ -1485,7 +1481,7 @@ static int gk20a_perfbuf_map(struct dbg_session_gk20a *dbg_s,
 err_unmap:
 	nvgpu_vm_unmap(mm->perfbuf.vm, args->offset, NULL);
 err_remove_vm:
-	nvgpu_vm_put(mm->perfbuf.vm);
+	nvgpu_perfbuf_deinit_vm(g);
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	return err;
 }
@@ -1712,8 +1708,8 @@ static int gk20a_perfbuf_release_locked(struct gk20a *g, u64 offset)
 	err = g->ops.perfbuf.perfbuf_disable(g);
 
 	nvgpu_vm_unmap(vm, offset, NULL);
-	nvgpu_free_inst_block(g, &mm->perfbuf.inst_block);
-	nvgpu_vm_put(vm);
+
+	nvgpu_perfbuf_deinit_vm(g);
 
 	g->perfbuf.owner = NULL;
 	g->perfbuf.offset = 0;

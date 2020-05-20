@@ -1,7 +1,7 @@
 /*
  * Cycle stats snapshots support
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -141,8 +141,8 @@ int nvgpu_css_enable_snapshot(struct nvgpu_channel *ch,
 	(void) memset(data->hw_snapshot, 0xff, snapshot_size);
 
 	g->ops.perf.membuf_reset_streaming(g);
-	g->ops.perf.enable_membuf(g, snapshot_size, data->hw_memdesc.gpu_va,
-				  &g->mm.hwpm.inst_block);
+	g->ops.perf.init_inst_block(g, &g->mm.hwpm.inst_block);
+	g->ops.perf.enable_membuf(g, snapshot_size, data->hw_memdesc.gpu_va);
 
 	nvgpu_log_info(g, "cyclestats: buffer for hardware snapshots enabled\n");
 
@@ -168,6 +168,7 @@ void nvgpu_css_disable_snapshot(struct gk20a *g)
 
 	g->ops.perf.membuf_reset_streaming(g);
 	g->ops.perf.disable_membuf(g);
+	g->ops.perf.deinit_inst_block(g);
 
 	nvgpu_dma_unmap_free(g->mm.pmu.vm, &data->hw_memdesc);
 	(void) memset(&data->hw_memdesc, 0, sizeof(data->hw_memdesc));

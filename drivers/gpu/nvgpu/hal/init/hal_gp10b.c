@@ -1100,6 +1100,8 @@ static const struct gpu_ops gp10b_ops = {
 	.perf = {
 		.enable_membuf = gm20b_perf_enable_membuf,
 		.disable_membuf = gm20b_perf_disable_membuf,
+		.init_inst_block = gm20b_perf_init_inst_block,
+		.deinit_inst_block = gm20b_perf_deinit_inst_block,
 		.membuf_reset_streaming = gm20b_perf_membuf_reset_streaming,
 		.get_membuf_pending_bytes = gm20b_perf_get_membuf_pending_bytes,
 		.set_membuf_handled_bytes = gm20b_perf_set_membuf_handled_bytes,
@@ -1111,6 +1113,8 @@ static const struct gpu_ops gp10b_ops = {
 	.perfbuf = {
 		.perfbuf_enable = nvgpu_perfbuf_enable_locked,
 		.perfbuf_disable = nvgpu_perfbuf_disable_locked,
+		.init_inst_block = nvgpu_perfbuf_init_inst_block,
+		.deinit_inst_block = nvgpu_perfbuf_deinit_inst_block,
 	},
 #endif
 #ifdef CONFIG_NVGPU_PROFILER
