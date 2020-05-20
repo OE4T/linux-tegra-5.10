@@ -556,9 +556,18 @@ void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn)
 		gk20a_falcon_readl(flcn, falcon_falcon_curctx_r()));
 	nvgpu_err(g, "falcon_falcon_nxtctx_r : 0x%x",
 		gk20a_falcon_readl(flcn, falcon_falcon_nxtctx_r()));
+	/*
+	 * Common Falcon code accesses each engine's falcon registers
+	 * using engine's falcon base address + offset.
+	 * So generate offset for falcon_falcon_exterrstat_r()
+	 * and falcon_falcon_exterraddr_r() registers by applying
+	 * the mask 0xFFF
+	 */
 	nvgpu_err(g, "falcon_falcon_exterrstat_r : 0x%x",
-		gk20a_falcon_readl(flcn, falcon_falcon_exterrstat_r()));
+		gk20a_falcon_readl(flcn,
+			(falcon_falcon_exterrstat_r() & 0x0FFF)));
 	nvgpu_err(g, "falcon_falcon_exterraddr_r : 0x%x",
-		gk20a_falcon_readl(flcn, falcon_falcon_exterraddr_r()));
+		gk20a_falcon_readl(flcn,
+			(falcon_falcon_exterraddr_r() & 0x0FFF)));
 }
 #endif
