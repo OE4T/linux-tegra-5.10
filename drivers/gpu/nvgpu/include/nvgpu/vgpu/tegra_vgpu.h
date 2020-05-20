@@ -372,7 +372,7 @@ enum {
 	TEGRA_VGPU_ENABLE_SAMPLING,
 };
 struct tegra_vgpu_channel_set_ctxsw_mode {
-	u64 handle;
+	u32 tsg_id;
 	u64 gpu_va;
 	u32 mode;
 };

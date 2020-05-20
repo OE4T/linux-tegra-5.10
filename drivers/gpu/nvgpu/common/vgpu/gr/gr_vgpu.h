@@ -68,11 +68,11 @@ int vgpu_gr_query_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			struct nvgpu_gr_zbc_query_params *query_params);
 #endif
 int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,
-	struct nvgpu_channel *ch, bool enable);
+	struct nvgpu_tsg *tsg, bool enable);
 int vgpu_gr_set_sm_debug_mode(struct gk20a *g,
 	struct nvgpu_channel *ch, u64 sms, bool enable);
 int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
-	struct nvgpu_channel *ch, u64 gpu_va, u32 mode);
+	struct nvgpu_tsg *tsg, u64 gpu_va, u32 mode);
 int vgpu_gr_clear_sm_error_state(struct gk20a *g,
 		struct nvgpu_channel *ch, u32 sm_id);
 int vgpu_gr_suspend_contexts(struct gk20a *g,

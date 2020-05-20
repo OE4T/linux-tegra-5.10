@@ -1101,10 +1101,10 @@ struct gops_gr {
 				  u32 *gpc_num, u32 *tpc_num);
 	u32 (*get_egpc_base)(struct gk20a *g);
 	int (*update_smpc_ctxsw_mode)(struct gk20a *g,
-				      struct nvgpu_channel *c,
+				      struct nvgpu_tsg *tsg,
 				      bool enable);
 	int (*update_hwpm_ctxsw_mode)(struct gk20a *g,
-				      struct nvgpu_channel *c,
+				      struct nvgpu_tsg *tsg,
 				      u64 gpu_va,
 				      u32 mode);
 	void (*init_hwpm_pmm_register)(struct gk20a *g);

@@ -954,6 +954,7 @@ static int nvgpu_dbg_gpu_ioctl_smpc_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 	int err;
 	struct gk20a *g = dbg_s->g;
 	struct nvgpu_channel *ch_gk20a;
+	struct nvgpu_tsg *tsg;
 
 	nvgpu_log_fn(g, "%s smpc ctxsw mode = %d",
 		     g->name, args->mode);
@@ -975,7 +976,14 @@ static int nvgpu_dbg_gpu_ioctl_smpc_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 		goto clean_up;
 	}
 
-	err = g->ops.gr.update_smpc_ctxsw_mode(g, ch_gk20a,
+	tsg = nvgpu_tsg_from_ch(ch_gk20a);
+	if (tsg == NULL) {
+		nvgpu_err(g, "channel not bound to TSG");
+		err = -EINVAL;
+		goto clean_up;
+	}
+
+	err = g->ops.gr.update_smpc_ctxsw_mode(g, tsg,
 				args->mode == NVGPU_DBG_GPU_SMPC_CTXSW_MODE_CTXSW);
 	if (err) {
 		nvgpu_err(g,
@@ -1015,6 +1023,7 @@ static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 	int err;
 	struct gk20a *g = dbg_s->g;
 	struct nvgpu_channel *ch_gk20a;
+	struct nvgpu_tsg *tsg;
 	u32 mode = nvgpu_hwpm_ctxsw_mode_to_common_mode(args->mode);
 
 	nvgpu_log_fn(g, "%s pm ctxsw mode = %d", g->name, args->mode);
@@ -1050,7 +1059,15 @@ static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 		err = -ENOSYS;
 		goto clean_up;
 	}
-	err = g->ops.gr.update_hwpm_ctxsw_mode(g, ch_gk20a, 0,
+
+	tsg = nvgpu_tsg_from_ch(ch_gk20a);
+	if (tsg == NULL) {
+		nvgpu_err(g, "channel not bound to TSG");
+		err = -EINVAL;
+		goto clean_up;
+	}
+
+	err = g->ops.gr.update_hwpm_ctxsw_mode(g, tsg, 0,
 		mode);
 
 	if (err)

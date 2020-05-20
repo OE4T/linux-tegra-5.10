@@ -892,7 +892,7 @@ int vgpu_gr_set_sm_debug_mode(struct gk20a *g,
 }
 
 int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,
-	struct nvgpu_channel *ch, bool enable)
+	struct nvgpu_tsg *tsg, bool enable)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_set_ctxsw_mode *p = &msg.params.set_ctxsw_mode;
@@ -902,7 +902,7 @@ int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,
 
 	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_SET_SMPC_CTXSW_MODE;
 	msg.handle = vgpu_get_handle(g);
-	p->handle = ch->virt_ctx;
+	p->tsg_id = tsg->tsgid;
 
 	if (enable) {
 		p->mode = TEGRA_VGPU_CTXSW_MODE_CTXSW;
@@ -917,20 +917,14 @@ int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,
 }
 
 int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
-	struct nvgpu_channel *ch, u64 gpu_va, u32 mode)
+	struct nvgpu_tsg *tsg, u64 gpu_va, u32 mode)
 {
-	struct nvgpu_tsg *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_set_ctxsw_mode *p = &msg.params.set_ctxsw_mode;
 	int err;
 
 	nvgpu_log_fn(g, " ");
-
-	tsg = nvgpu_tsg_from_ch(ch);
-	if (!tsg) {
-		return -EINVAL;
-	}
 
 	if (gpu_va) {
 		nvgpu_err(g, "gpu_va suppose to be allocated by this function.");
@@ -970,7 +964,7 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 	if (mode != NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
 		/* Allocate buffer if necessary */
-		err = vgpu_gr_alloc_pm_ctx(g, tsg->gr_ctx, ch->vm);
+		err = vgpu_gr_alloc_pm_ctx(g, tsg->gr_ctx, tsg->vm);
 		if (err != 0) {
 			nvgpu_err(g,
 				"failed to allocate pm ctxt buffer");
@@ -980,7 +974,7 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_SET_HWPM_CTXSW_MODE;
 	msg.handle = vgpu_get_handle(g);
-	p->handle = ch->virt_ctx;
+	p->tsg_id = tsg->tsgid;
 	p->gpu_va = nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx)->gpu_va;
 
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));

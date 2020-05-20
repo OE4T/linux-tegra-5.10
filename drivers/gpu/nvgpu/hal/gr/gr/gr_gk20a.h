@@ -30,6 +30,7 @@
 
 struct gk20a;
 struct nvgpu_channel;
+struct nvgpu_tsg;
 struct nvgpu_warpstate;
 struct dbg_session_gk20a;
 struct nvgpu_dbg_reg_op;
@@ -51,10 +52,10 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 				       u32 *offsets, u32 *offset_addrs,
 				       u32 *num_offsets);
 int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
-				    struct nvgpu_channel *c,
+				    struct nvgpu_tsg *tsg,
 				    bool enable_smpc_ctxsw);
 int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
-				  struct nvgpu_channel *c,
+				  struct nvgpu_tsg *tsg,
 				  u64 gpu_va, u32 mode);
 void gk20a_gr_resume_single_sm(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm);
