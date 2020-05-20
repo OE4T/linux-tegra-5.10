@@ -1,7 +1,7 @@
 /*
  * dma_buf exporter for nvmap
  *
- * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -587,12 +587,13 @@ static struct dma_buf_ops nvmap_dma_buf_ops = {
 	.get_drvdata	= nvmap_dmabuf_get_private,
 };
 
+static char dmabuf_name[] = "nvmap_dmabuf";
+
 bool dmabuf_is_nvmap(struct dma_buf *dmabuf)
 {
-	return dmabuf->ops == &nvmap_dma_buf_ops;
+	return dmabuf->exp_name == dmabuf_name;
 }
 EXPORT_SYMBOL(dmabuf_is_nvmap);
-
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 static struct dma_buf *__dma_buf_export(struct nvmap_handle_info *info,
@@ -606,6 +607,7 @@ static struct dma_buf *__dma_buf_export(struct nvmap_handle_info *info,
 	exp_info.flags = O_RDWR;
 	exp_info.exp_flags = DMABUF_CAN_DEFER_UNMAP |
 				DMABUF_SKIP_CACHE_SYNC;
+	exp_info.exp_name = dmabuf_name;
 
 	return dma_buf_export(&exp_info);
 }
