@@ -2433,9 +2433,9 @@ static void nvgpu_channel_sync_debug_dump(struct gk20a *g,
 {
 #ifdef CONFIG_NVGPU_NON_FUSA
 	gk20a_debug_output(o,
-			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
-			"FETCH: %016llx"
-			"HEADER: %08x COUNT: %08x"
+			"RAMFC: TOP: %012llx PUT: %012llx GET: %012llx "
+			"FETCH: %012llx "
+			"HEADER: %08x COUNT: %08x "
 			"SYNCPOINT: %08x %08x "
 			"SEMAPHORE: %08x %08x %08x %08x",
 			info->inst.pb_top_level_get,
@@ -2483,10 +2483,10 @@ static void nvgpu_channel_info_debug_dump(struct gk20a *g,
 		nvgpu_channel_sync_debug_dump(g, o, info);
 	} else {
 		gk20a_debug_output(o,
-			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
-			"FETCH: %016llx"
-			"HEADER: %08x COUNT: %08x"
-			"SEMAPHORE: addr %016llx"
+			"RAMFC: TOP: %012llx PUT: %012llx GET: %012llx "
+			"FETCH: %012llx "
+			"HEADER: %08x COUNT: %08x "
+			"SEMAPHORE: addr %012llx "
 			"payload %016llx execute %08x",
 			info->inst.pb_top_level_get,
 			info->inst.pb_put,
@@ -2507,7 +2507,7 @@ static void nvgpu_channel_info_debug_dump(struct gk20a *g,
 				  info->sema.addr);
 	}
 
-	gk20a_debug_output(o, "\n");
+	gk20a_debug_output(o, " ");
 }
 
 void nvgpu_channel_debug_dump_all(struct gk20a *g,

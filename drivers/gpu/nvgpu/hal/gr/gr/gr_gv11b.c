@@ -192,32 +192,32 @@ static void gr_gv11b_dump_gr_per_sm_regs(struct gk20a *g,
 {
 
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_HWW_WARP_ESR: 0x%x\n",
+		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_HWW_WARP_ESR: 0x%x",
 		gpc, tpc, sm, gk20a_readl(g,
 		gr_gpc0_tpc0_sm0_hww_warp_esr_r() + offset));
 
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_HWW_WARP_ESR_REPORT_MASK: 0x%x\n",
+		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_HWW_WARP_ESR_REPORT_MASK: 0x%x",
 		gpc, tpc, sm, gk20a_readl(g,
 		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_r() + offset));
 
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_HWW_GLOBAL_ESR: 0x%x\n",
+		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_HWW_GLOBAL_ESR: 0x%x",
 		gpc, tpc, sm, gk20a_readl(g,
 		gr_gpc0_tpc0_sm0_hww_global_esr_r() + offset));
 
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_HWW_GLOBAL_ESR_REPORT_MASK: 0x%x\n",
+		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_HWW_GLOBAL_ESR_REPORT_MASK: 0x%x",
 		gpc, tpc, sm, gk20a_readl(g,
 		gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_r() + offset));
 
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_DBGR_CONTROL0: 0x%x\n",
+		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_DBGR_CONTROL0: 0x%x",
 		gpc, tpc, sm, gk20a_readl(g,
 		gr_gpc0_tpc0_sm0_dbgr_control0_r() + offset));
 
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_DBGR_STATUS0: 0x%x\n",
+		"NV_PGRAPH_PRI_GPC%d_TPC%d_SM%d_DBGR_STATUS0: 0x%x",
 		gpc, tpc, sm, gk20a_readl(g,
 		gr_gpc0_tpc0_sm0_dbgr_status0_r() + offset));
 }
@@ -229,26 +229,26 @@ static void gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
 	u32 gpc_offset, tpc_offset, offset;
 
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_HWW_GLOBAL_ESR_REPORT_MASK: 0x%x\n",
+		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_HWW_GLOBAL_ESR_REPORT_MASK: 0x%x",
 		gk20a_readl(g,
 		gr_gpcs_tpcs_sms_hww_global_esr_report_mask_r()));
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_HWW_WARP_ESR_REPORT_MASK: 0x%x\n",
+		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_HWW_WARP_ESR_REPORT_MASK: 0x%x",
 		gk20a_readl(g, gr_gpcs_tpcs_sms_hww_warp_esr_report_mask_r()));
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_HWW_GLOBAL_ESR: 0x%x\n",
+		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_HWW_GLOBAL_ESR: 0x%x",
 		gk20a_readl(g, gr_gpcs_tpcs_sms_hww_global_esr_r()));
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_DBGR_CONTROL0: 0x%x\n",
+		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_DBGR_CONTROL0: 0x%x",
 		gk20a_readl(g, gr_gpcs_tpcs_sms_dbgr_control0_r()));
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_DBGR_STATUS0: 0x%x\n",
+		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_DBGR_STATUS0: 0x%x",
 		gk20a_readl(g, gr_gpcs_tpcs_sms_dbgr_status0_r()));
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_DBGR_BPT_PAUSE_MASK_0: 0x%x\n",
+		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_DBGR_BPT_PAUSE_MASK_0: 0x%x",
 		gk20a_readl(g, gr_gpcs_tpcs_sms_dbgr_bpt_pause_mask_0_r()));
 	gk20a_debug_output(o,
-		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_DBGR_BPT_PAUSE_MASK_1: 0x%x\n",
+		"NV_PGRAPH_PRI_GPCS_TPCS_SMS_DBGR_BPT_PAUSE_MASK_1: 0x%x",
 		gk20a_readl(g, gr_gpcs_tpcs_sms_dbgr_bpt_pause_mask_1_r()));
 
 	sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
@@ -280,132 +280,132 @@ int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 
 	gr_engine_id = nvgpu_engine_get_gr_id(g);
 
-	gk20a_debug_output(o, "NV_PGRAPH_STATUS: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_STATUS: 0x%x",
 		gk20a_readl(g, gr_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_STATUS1: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_STATUS1: 0x%x",
 		gk20a_readl(g, gr_status_1_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_STATUS2: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_STATUS2: 0x%x",
 		gk20a_readl(g, gr_status_2_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_ENGINE_STATUS: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_ENGINE_STATUS: 0x%x",
 		gk20a_readl(g, gr_engine_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_GRFIFO_STATUS : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_GRFIFO_STATUS : 0x%x",
 		gk20a_readl(g, gr_gpfifo_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_GRFIFO_CONTROL : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_GRFIFO_CONTROL : 0x%x",
 		gk20a_readl(g, gr_gpfifo_ctl_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_HOST_INT_STATUS : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_HOST_INT_STATUS : 0x%x",
 		gk20a_readl(g, gr_fecs_host_int_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_EXCEPTION  : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_EXCEPTION  : 0x%x",
 		gk20a_readl(g, gr_exception_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_FECS_INTR  : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_FECS_INTR  : 0x%x",
 		gk20a_readl(g, gr_fecs_intr_r()));
 	g->ops.engine_status.read_engine_status_info(g, gr_engine_id,
 		&engine_status);
-	gk20a_debug_output(o, "NV_PFIFO_ENGINE_STATUS(GR) : 0x%x\n",
+	gk20a_debug_output(o, "NV_PFIFO_ENGINE_STATUS(GR) : 0x%x",
 		engine_status.reg_data);
-	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY0: 0x%x",
 		gk20a_readl(g, gr_activity_0_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY1: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY1: 0x%x",
 		gk20a_readl(g, gr_activity_1_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY2: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY2: 0x%x",
 		gk20a_readl(g, gr_activity_2_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY4: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY4: 0x%x",
 		gk20a_readl(g, gr_activity_4_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_SKED_ACTIVITY: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_SKED_ACTIVITY: 0x%x",
 		gk20a_readl(g, gr_pri_sked_activity_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_ACTIVITY0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_ACTIVITY0: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity0_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_ACTIVITY1: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_ACTIVITY1: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity1_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_ACTIVITY2: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_ACTIVITY2: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity2_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_ACTIVITY3: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_ACTIVITY3: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity3_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tpccs_tpc_activity_0_r()));
 	if ((nvgpu_gr_config_get_gpc_tpc_count_base(gr->config) != NULL) &&
 		(nvgpu_gr_config_get_gpc_tpc_count(gr->config, 0) == 2U)) {
 		gk20a_debug_output(o,
-			"NV_PGRAPH_PRI_GPC0_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x\n",
+			"NV_PGRAPH_PRI_GPC0_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x",
 			gk20a_readl(g,
 			(gr_pri_gpc0_tpc0_tpccs_tpc_activity_0_r() +
 			nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE))));
 	}
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_GPCCS_GPC_ACTIVITY0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_GPCCS_GPC_ACTIVITY0: 0x%x",
 		gk20a_readl(g, gr_pri_gpcs_gpccs_gpc_activity_0_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_GPCCS_GPC_ACTIVITY1: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_GPCCS_GPC_ACTIVITY1: 0x%x",
 		gk20a_readl(g, gr_pri_gpcs_gpccs_gpc_activity_1_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_GPCCS_GPC_ACTIVITY2: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_GPCCS_GPC_ACTIVITY2: 0x%x",
 		gk20a_readl(g, gr_pri_gpcs_gpccs_gpc_activity_2_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_GPCCS_GPC_ACTIVITY3: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_GPCCS_GPC_ACTIVITY3: 0x%x",
 		gk20a_readl(g, gr_pri_gpcs_gpccs_gpc_activity_3_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_TPCS_TPCCS_TPC_ACTIVITY0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_TPCS_TPCCS_TPC_ACTIVITY0: 0x%x",
 		gk20a_readl(g, gr_pri_gpcs_tpcs_tpccs_tpc_activity_0_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_BECS_BE_ACTIVITY0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_BECS_BE_ACTIVITY0: 0x%x",
 		gk20a_readl(g, gr_pri_be0_becs_be_activity0_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE1_BECS_BE_ACTIVITY0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE1_BECS_BE_ACTIVITY0: 0x%x",
 		gk20a_readl(g, (gr_pri_be0_becs_be_activity0_r() +
 		nvgpu_get_litter_value(g, GPU_LIT_ROP_STRIDE))));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BES_BECS_BE_ACTIVITY0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BES_BECS_BE_ACTIVITY0: 0x%x",
 		gk20a_readl(g, gr_pri_bes_becs_be_activity0_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_DS_MPIPE_STATUS: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_DS_MPIPE_STATUS: 0x%x",
 		gk20a_readl(g, gr_pri_ds_mpipe_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FE_GO_IDLE_TIMEOUT : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FE_GO_IDLE_TIMEOUT : 0x%x",
 		gk20a_readl(g, gr_fe_go_idle_timeout_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FE_GO_IDLE_INFO : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FE_GO_IDLE_INFO : 0x%x",
 		gk20a_readl(g, gr_pri_fe_go_idle_info_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TEX_M_TEX_SUBUNITS_STATUS: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TEX_M_TEX_SUBUNITS_STATUS: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tex_m_tex_subunits_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_CWD_FS: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_CWD_FS: 0x%x",
 		gk20a_readl(g, gr_cwd_fs_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FE_TPC_FS(0): 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FE_TPC_FS(0): 0x%x",
 		gk20a_readl(g, gr_fe_tpc_fs_r(0)));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_CWD_GPC_TPC_ID: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_CWD_GPC_TPC_ID: 0x%x",
 		gk20a_readl(g, gr_cwd_gpc_tpc_id_r(0)));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_CWD_SM_ID(0): 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_CWD_SM_ID(0): 0x%x",
 		gk20a_readl(g, gr_cwd_sm_id_r(0)));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CTXSW_STATUS_FE_0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CTXSW_STATUS_FE_0: 0x%x",
 		g->ops.gr.falcon.read_fecs_ctxsw_status0(g));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CTXSW_STATUS_1: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CTXSW_STATUS_1: 0x%x",
 		g->ops.gr.falcon.read_fecs_ctxsw_status1(g));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_STATUS_GPC_0: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_STATUS_GPC_0: 0x%x",
 		gk20a_readl(g, gr_gpc0_gpccs_ctxsw_status_gpc_0_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_STATUS_1: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_STATUS_1: 0x%x",
 		gk20a_readl(g, gr_gpc0_gpccs_ctxsw_status_1_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CTXSW_IDLESTATE : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CTXSW_IDLESTATE : 0x%x",
 		gk20a_readl(g, gr_fecs_ctxsw_idlestate_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_IDLESTATE : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_IDLESTATE : 0x%x",
 		gk20a_readl(g, gr_gpc0_gpccs_ctxsw_idlestate_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CURRENT_CTX : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CURRENT_CTX : 0x%x",
 		g->ops.gr.falcon.get_current_ctx(g));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_NEW_CTX : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_NEW_CTX : 0x%x",
 		gk20a_readl(g, gr_fecs_new_ctx_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_HOST_INT_ENABLE : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_HOST_INT_ENABLE : 0x%x",
 		gk20a_readl(g, gr_fecs_host_int_enable_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_HOST_INT_STATUS : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_HOST_INT_STATUS : 0x%x",
 		gk20a_readl(g, gr_fecs_host_int_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_CROP_STATUS1 : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_CROP_STATUS1 : 0x%x",
 		gk20a_readl(g, gr_pri_be0_crop_status1_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BES_CROP_STATUS1 : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BES_CROP_STATUS1 : 0x%x",
 		gk20a_readl(g, gr_pri_bes_crop_status1_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_ZROP_STATUS : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_ZROP_STATUS : 0x%x",
 		gk20a_readl(g, gr_pri_be0_zrop_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_ZROP_STATUS2 : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_ZROP_STATUS2 : 0x%x",
 		gk20a_readl(g, gr_pri_be0_zrop_status2_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BES_ZROP_STATUS : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BES_ZROP_STATUS : 0x%x",
 		gk20a_readl(g, gr_pri_bes_zrop_status_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BES_ZROP_STATUS2 : 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BES_ZROP_STATUS2 : 0x%x",
 		gk20a_readl(g, gr_pri_bes_zrop_status2_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_BECS_BE_EXCEPTION: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_BECS_BE_EXCEPTION: 0x%x",
 		gk20a_readl(g, gr_pri_be0_becs_be_exception_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_BECS_BE_EXCEPTION_EN: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_BE0_BECS_BE_EXCEPTION_EN: 0x%x",
 		gk20a_readl(g, gr_pri_be0_becs_be_exception_en_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_EXCEPTION: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_EXCEPTION: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_exception_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_EXCEPTION_EN: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_GPC_EXCEPTION_EN: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_exception_en_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_EXCEPTION: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_EXCEPTION: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tpccs_tpc_exception_r()));
-	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_EXCEPTION_EN: 0x%x\n",
+	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_EXCEPTION_EN: 0x%x",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tpccs_tpc_exception_en_r()));
 
 	gr_gv11b_dump_gr_sm_regs(g, o);
@@ -714,7 +714,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 					"gpc %d tpc %d sm %d",
 					gpc, tpc, sm);
 
-			nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "CILP: Setting CILP preempt pending\n");
+			nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "CILP: Setting CILP preempt pending");
 			ret = gr_gp10b_set_cilp_preempt_pending(g, fault_ch);
 			if (ret != 0) {
 				nvgpu_err(g, "CILP: error while setting CILP preempt pending!");
@@ -827,19 +827,19 @@ void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 
 	/* Only for debug purpose */
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
-		nvgpu_log_fn(g, "w_state[%d].valid_warps[0]: %llx\n",
+		nvgpu_log_fn(g, "w_state[%d].valid_warps[0]: %llx",
 					sm_id, w_state[sm_id].valid_warps[0]);
-		nvgpu_log_fn(g, "w_state[%d].valid_warps[1]: %llx\n",
+		nvgpu_log_fn(g, "w_state[%d].valid_warps[1]: %llx",
 					sm_id, w_state[sm_id].valid_warps[1]);
 
-		nvgpu_log_fn(g, "w_state[%d].trapped_warps[0]: %llx\n",
+		nvgpu_log_fn(g, "w_state[%d].trapped_warps[0]: %llx",
 					sm_id, w_state[sm_id].trapped_warps[0]);
-		nvgpu_log_fn(g, "w_state[%d].trapped_warps[1]: %llx\n",
+		nvgpu_log_fn(g, "w_state[%d].trapped_warps[1]: %llx",
 					sm_id, w_state[sm_id].trapped_warps[1]);
 
-		nvgpu_log_fn(g, "w_state[%d].paused_warps[0]: %llx\n",
+		nvgpu_log_fn(g, "w_state[%d].paused_warps[0]: %llx",
 					sm_id, w_state[sm_id].paused_warps[0]);
-		nvgpu_log_fn(g, "w_state[%d].paused_warps[1]: %llx\n",
+		nvgpu_log_fn(g, "w_state[%d].paused_warps[1]: %llx",
 					sm_id, w_state[sm_id].paused_warps[1]);
 	}
 }
@@ -931,7 +931,7 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 
 	err = gr_gk20a_exec_ctx_ops(ch, ops, i, i, 0, NULL);
 	if (err != 0) {
-		nvgpu_err(g, "Failed to access register\n");
+		nvgpu_err(g, "Failed to access register");
 	}
 	nvgpu_kfree(g, ops);
 	return err;
@@ -1223,16 +1223,16 @@ static void gv11b_gr_sm_dump_warp_bpt_pause_trap_mask_regs(struct gk20a *g,
 			gr_gpc0_tpc0_sm0_dbgr_bpt_trap_mask_0_r() + offset);
 	if (timeout) {
 		nvgpu_err(g,
-		"STATUS0=0x%x CONTROL0=0x%x VALID_MASK=0x%llx "
-		"PAUSE_MASK=0x%llx TRAP_MASK=0x%llx\n",
-		dbgr_status0, dbgr_control0, warps_valid,
-		warps_paused, warps_trapped);
+			  "STATUS0=0x%x CONTROL0=0x%x VALID_MASK=0x%llx "
+			  "PAUSE_MASK=0x%llx TRAP_MASK=0x%llx",
+			  dbgr_status0, dbgr_control0, warps_valid,
+			  warps_paused, warps_trapped);
 	} else {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-		"STATUS0=0x%x CONTROL0=0x%x VALID_MASK=0x%llx "
-		"PAUSE_MASK=0x%llx TRAP_MASK=0x%llx\n",
-		dbgr_status0, dbgr_control0, warps_valid,
-		warps_paused, warps_trapped);
+			  "STATUS0=0x%x CONTROL0=0x%x VALID_MASK=0x%llx "
+			  "PAUSE_MASK=0x%llx TRAP_MASK=0x%llx",
+			  dbgr_status0, dbgr_control0, warps_valid,
+			  warps_paused, warps_trapped);
 	}
 }
 

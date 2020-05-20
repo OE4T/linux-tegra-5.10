@@ -31,7 +31,7 @@ struct gk20a;
 struct gpu_ops;
 
 struct nvgpu_debug_context {
-	void (*fn)(void *ctx, const char *str, size_t len);
+	void (*fn)(void *ctx, const char *str);
 	void *ctx;
 	char buf[256];
 };

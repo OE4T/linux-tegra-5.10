@@ -39,29 +39,26 @@
 
 unsigned int gk20a_debug_trace_cmdbuf;
 
-static inline void gk20a_debug_write_printk(void *ctx, const char *str,
-					    size_t len)
+static inline void gk20a_debug_write_printk(void *ctx, const char *str)
 {
 	struct gk20a *g = ctx;
 
 	nvgpu_err(g, str);
 }
 
-static inline void gk20a_debug_write_to_seqfile(void *ctx, const char *str,
-						size_t len)
+static inline void gk20a_debug_write_to_seqfile(void *ctx, const char *str)
 {
-	seq_write((struct seq_file *)ctx, str, len);
+	seq_printf((struct seq_file *)ctx, "%s\n", str);
 }
 
 void gk20a_debug_output(struct nvgpu_debug_context *o, const char *fmt, ...)
 {
 	va_list args;
-	int len;
 
 	va_start(args, fmt);
-	len = vsnprintf(o->buf, sizeof(o->buf), fmt, args);
+	vsnprintf(o->buf, sizeof(o->buf), fmt, args);
 	va_end(args);
-	o->fn(o->ctx, o->buf, len);
+	o->fn(o->ctx, o->buf);
 }
 
 void gk20a_debug_show_dump(struct gk20a *g, struct nvgpu_debug_context *o)

@@ -77,7 +77,7 @@ void gv100_dump_engine_status(struct gk20a *g, struct nvgpu_debug_context *o)
 		if (engine_status.is_busy) {
 			gk20a_debug_output(o, "busy ");
 		}
-		gk20a_debug_output(o, "\n");
+		gk20a_debug_output(o, " ");
 	}
-	gk20a_debug_output(o, "\n");
+	gk20a_debug_output(o, " ");
 }

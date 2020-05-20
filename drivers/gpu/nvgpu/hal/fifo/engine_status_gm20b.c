@@ -66,5 +66,5 @@ void gm20b_dump_engine_status(struct gk20a *g, struct nvgpu_debug_context *o)
 			gk20a_debug_output(o, "  State: busy");
 		}
 	}
-	gk20a_debug_output(o, "\n");
+	gk20a_debug_output(o, " ");
 }
