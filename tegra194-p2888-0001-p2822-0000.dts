@@ -78,6 +78,10 @@
 	tegra-cache {
 		status = "okay";
 	};
+
+	sdhci@3460000 {
+		uhs-mask = <0x60>;
+	};
 };
 
 #endif
