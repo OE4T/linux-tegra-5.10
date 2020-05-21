@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -118,13 +118,14 @@ void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v);
  * @param g [in]		GPU super structure.
  * @param r [in]		Register offset in GPU IO space.
  * @param v [in]		Value to write at the offset.
+ * @param retries [in]		Number of retries before failing.
  *
  * This is a blocking call. It keeps on writing a 32-bit value to a GPU
  * register and reads it back until read/write values are not match.
  *
  * @return None.
  */
-void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v);
+void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v, u32 retries);
 
 /**
  * @brief Write a value to an already mapped bar1 io-region.

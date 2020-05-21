@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,8 @@
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
+#define NVGPU_WRITEL_LOOP_ZBC_RETRIES		20U
+
 u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g)
 {
 	return gr_gpcs_swdx_dss_zbc_c_01_to_04_format_r();
@@ -46,18 +48,23 @@ int gp10b_gr_zbc_add_color(struct gk20a *g,
 		g->ops.gr.zbc.get_gpcs_swdx_dss_zbc_c_format_reg(g);
 
 	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_r_r(index),
-			nvgpu_gr_zbc_get_entry_color_ds(color_val, 0));
+			nvgpu_gr_zbc_get_entry_color_ds(color_val, 0),
+			NVGPU_WRITEL_LOOP_ZBC_RETRIES);
 	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_g_r(index),
-			nvgpu_gr_zbc_get_entry_color_ds(color_val, 1));
+			nvgpu_gr_zbc_get_entry_color_ds(color_val, 1),
+			NVGPU_WRITEL_LOOP_ZBC_RETRIES);
 	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_b_r(index),
-			nvgpu_gr_zbc_get_entry_color_ds(color_val, 2));
+			nvgpu_gr_zbc_get_entry_color_ds(color_val, 2),
+			NVGPU_WRITEL_LOOP_ZBC_RETRIES);
 	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_a_r(index),
-			nvgpu_gr_zbc_get_entry_color_ds(color_val, 3));
+			nvgpu_gr_zbc_get_entry_color_ds(color_val, 3),
+			NVGPU_WRITEL_LOOP_ZBC_RETRIES);
 	zbc_c = nvgpu_readl(g, zbc_c_format_reg + (index & ~3U));
 	zbc_c &= ~(0x7fU << ((index % 4U) * 7U));
 	zbc_c |= nvgpu_gr_zbc_get_entry_format(color_val) <<
 			((index % 4U) * 7U);
-	nvgpu_writel_loop(g, zbc_c_format_reg + (index & ~3U), zbc_c);
+	nvgpu_writel_loop(g, zbc_c_format_reg + (index & ~3U), zbc_c,
+			NVGPU_WRITEL_LOOP_ZBC_RETRIES);
 
 	return 0;
 }

@@ -23,6 +23,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/types.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/static_analysis.h>
 #include <nvgpu/gk20a.h>
 
 void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v)
@@ -34,6 +35,20 @@ void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v)
 	if (v != read_val) {
 		nvgpu_err(g, "r=0x%x rd=0x%x wr=0x%x (mismatch)",
 					r, read_val, v);
-		BUG_ON(1);
+		nvgpu_assert(v == read_val);
 	}
+}
+
+void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v, u32 retries)
+{
+	u32 reg_val = 0U;
+
+	nvgpu_writel(g, r, v);
+
+	do {
+		retries = nvgpu_safe_sub_u32(retries, 1U);
+		reg_val = nvgpu_readl(g, r);
+	} while ((reg_val != v) && (retries > 0U));
+
+	nvgpu_assert(reg_val == v);
 }

@@ -107,11 +107,6 @@ u32 nvgpu_readl(struct gk20a *g, u32 r)
 	return access.value;
 }
 
-void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v)
-{
-	BUG();
-}
-
 u32 nvgpu_readl_impl(struct gk20a *g, u32 r)
 {
 	struct nvgpu_posix_io_callbacks *callbacks =
