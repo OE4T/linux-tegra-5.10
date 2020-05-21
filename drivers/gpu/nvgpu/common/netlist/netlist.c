@@ -235,21 +235,23 @@ static bool nvgpu_netlist_handle_generic_region_id(struct gk20a *g,
 
 	switch (region_id) {
 	case NETLIST_REGIONID_BUFFER_SIZE:
-		netlist_vars->buffer_size = *src;
+		nvgpu_memcpy((u8 *)&netlist_vars->buffer_size,
+							src, sizeof(u32));
 		nvgpu_log_info(g, "NETLIST_REGIONID_BUFFER_SIZE : %d",
 			netlist_vars->buffer_size);
 		break;
 	case NETLIST_REGIONID_CTXSW_REG_BASE_INDEX:
-		netlist_vars->regs_base_index = *src;
+		nvgpu_memcpy((u8 *)&netlist_vars->regs_base_index,
+							src, sizeof(u32));
 		nvgpu_log_info(g, "NETLIST_REGIONID_CTXSW_REG_BASE_INDEX : %u",
 			netlist_vars->regs_base_index);
 		break;
 	case NETLIST_REGIONID_MAJORV:
-		*major_v = *src;
+		nvgpu_memcpy((u8 *)major_v, src, sizeof(u32));
 		nvgpu_log_info(g, "NETLIST_REGIONID_MAJORV : %d", *major_v);
 		break;
 	case NETLIST_REGIONID_NETLIST_NUM:
-		*netlist_num = *src;
+		nvgpu_memcpy((u8 *)netlist_num, src, sizeof(u32));
 		nvgpu_log_info(g, "NETLIST_REGIONID_NETLIST_NUM : %d",
 					*netlist_num);
 		break;
