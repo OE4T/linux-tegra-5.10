@@ -96,10 +96,17 @@
 
 	efuse@3820000 {
 		status = "okay";
+#if LINUX_VERSION < 419
 		efuse-burn {
 			status = "okay";
 		};
+#endif
 	};
+#if LINUX_VERSION >= 419
+	efuse-burn {
+		status = "okay";
+	};
+#endif
 
 	kfuse@3830000 {
 		status = "okay";
