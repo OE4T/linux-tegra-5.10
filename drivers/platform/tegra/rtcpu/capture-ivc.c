@@ -2,7 +2,7 @@
  * @file drivers/platform/tegra/rtcpu/capture-ivc.c
  * @brief Capture IVC driver
  *
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -31,6 +31,11 @@
 #include <asm/barrier.h>
 
 #include "capture-ivc-priv.h"
+
+#include <soc/tegra/camrtc-capture-messages.h>
+
+/* Temporay csi channel-id */
+#define CSI_TEMP_CHANNEL_ID 65
 
 static int tegra_capture_ivc_tx(struct tegra_capture_ivc *civc,
 				const void *req, size_t len)
@@ -344,9 +349,21 @@ static void tegra_capture_ivc_worker(struct work_struct *work)
 			goto skip;
 		}
 
+		/* WAR: Skip the callback if channel-id is 65, and msg-id is
+		 * greater than CAPTURE_CHANNEL_ISP_RELEASE_RESP. Channel id
+		 * 65 is used for csi and it is specific to v4l2.
+		 * TODO: Bug 200619454
+		 */
 		/* Invoke client callback.*/
-		civc->cb_ctx[id].cb_func(msg, civc->cb_ctx[id].priv_context);
-
+		if (msg->header.msg_id >= CAPTURE_CHANNEL_ISP_RELEASE_RESP &&
+			id == CSI_TEMP_CHANNEL_ID) {
+			dev_err(&chan->dev,
+				"No callback found for msg id: 0x%x",
+				msg->header.msg_id);
+		} else {
+			civc->cb_ctx[id].cb_func(msg,
+				civc->cb_ctx[id].priv_context);
+		}
 skip:
 		tegra_ivc_read_advance(&chan->ivc);
 	}
