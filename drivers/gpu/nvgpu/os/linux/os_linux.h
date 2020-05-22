@@ -174,6 +174,7 @@ struct nvgpu_os_linux {
 
 	/** Debugfs knob for forcing syncpt support off in runtime. */
 	bool disable_syncpoints;
+	bool enable_platform_dbg;
 };
 
 static inline struct nvgpu_os_linux *nvgpu_os_linux_from_gk20a(struct gk20a *g)

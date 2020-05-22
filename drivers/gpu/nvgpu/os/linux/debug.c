@@ -113,6 +113,7 @@ static int gk20a_gr_debug_show(struct seq_file *s, void *unused)
 void gk20a_debug_dump(struct gk20a *g)
 {
 	struct gk20a_platform *platform = gk20a_get_platform(dev_from_gk20a(g));
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct nvgpu_debug_context o = {
 		.fn = gk20a_debug_write_printk,
 		.ctx = g,
@@ -122,7 +123,7 @@ void gk20a_debug_dump(struct gk20a *g)
 	if (g->ops.debug.show_dump)
 		g->ops.debug.show_dump(g, &o);
 
-	if (platform->dump_platform_dependencies)
+	if (platform->dump_platform_dependencies && l->enable_platform_dbg)
 		platform->dump_platform_dependencies(dev_from_gk20a(g));
 }
 
@@ -361,8 +362,10 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 	debugfs_create_u32("ch_wdt_init_limit_ms", S_IRUGO|S_IWUSR,
 		l->debugfs, &g->ch_wdt_init_limit_ms);
 
-	debugfs_create_bool("disable_syncpoints", S_IRUGO,
+	debugfs_create_bool("disable_syncpoints", S_IRUGO|S_IWUSR,
 		l->debugfs, &l->disable_syncpoints);
+	debugfs_create_bool("enable_platform_dbg", S_IRUGO|S_IWUSR,
+		l->debugfs, &l->enable_platform_dbg);
 
 	/* New debug logging API. */
 	debugfs_create_u64("log_mask", S_IRUGO|S_IWUSR,
