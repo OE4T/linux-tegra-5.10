@@ -3670,6 +3670,43 @@ static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 
 	return ret;
 }
+
+#if (KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE)
+/**
+ * @brief ether_setup_tc - TC HW offload support
+ *
+ * Algorithm:
+ * 1) Check the TC setup type
+ * 2) Call appropriate function based on type.
+ *
+ * @param[in] ndev: Network device structure
+ * @param[in] type: qdisc type
+ * @param[in] type_data: void pointer having user passed configuration
+ *
+ * @note Ethernet interface should be up
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_setup_tc(struct net_device *ndev, enum tc_setup_type type,
+			  void *type_data)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+	if (!netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
+		return -EOPNOTSUPP;
+	}
+
+	switch (type) {
+	case TC_SETUP_QDISC_TAPRIO:
+		return ether_tc_setup_taprio(pdata, type_data);
+	default:
+		return -EOPNOTSUPP;
+	}
+}
+#endif
+
 /**
  * @brief Ethernet network device operations
  */
@@ -3685,6 +3722,9 @@ static const struct net_device_ops ether_netdev_ops = {
 	.ndo_set_rx_mode = ether_set_rx_mode,
 	.ndo_vlan_rx_add_vid = ether_vlan_rx_add_vid,
 	.ndo_vlan_rx_kill_vid = ether_vlan_rx_kill_vid,
+#if (KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE)
+	.ndo_setup_tc = ether_setup_tc,
+#endif
 };
 
 /**
