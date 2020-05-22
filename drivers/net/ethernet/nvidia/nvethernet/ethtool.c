@@ -1100,6 +1100,10 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.get_ethtool_stats = ether_get_ethtool_stats,
 	.get_sset_count = ether_get_sset_count,
 	.get_coalesce = ether_get_coalesce,
+#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE
+	.supported_coalesce_params = (ETHTOOL_COALESCE_USECS |
+		ETHTOOL_COALESCE_MAX_FRAMES),
+#endif
 	.set_coalesce = ether_set_coalesce,
 	.get_wol = ether_get_wol,
 	.set_wol = ether_set_wol,
