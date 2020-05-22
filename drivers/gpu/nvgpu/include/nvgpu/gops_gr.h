@@ -428,6 +428,9 @@ struct gops_gr_intr {
 	void (*flush_channel_tlb)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_gr.h"
+#endif
 	int (*handle_fecs_error)(struct gk20a *g,
 				 struct nvgpu_channel *ch,
 				 struct nvgpu_gr_isr_data *isr_data);

@@ -146,6 +146,11 @@ struct gops_ce {
 	void (*ce_app_suspend)(struct gk20a *g);
 	void (*ce_app_destroy)(struct gk20a *g);
 #endif
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_ce.h"
+#endif
+
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
