@@ -353,6 +353,8 @@ struct core_backup {
 struct osi_core_priv_data {
 	/** Memory mapped base address of MAC IP */
 	void *base;
+	/** Memory mapped base address of DMA window of MAC IP */
+	void *dma_base;
 	/** Pointer to OSD private data structure */
 	void *osd;
 	/** Address of HW Core operations structure */
