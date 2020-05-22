@@ -56,6 +56,28 @@ void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
 #define nvgpu_info_impl(g, fmt, arg...)					\
 	nvgpu_log_msg_impl(g, __func__, __LINE__, NVGPU_INFO, fmt, ##arg)
 
+/**
+ * nvgpu_dbg_dump_impl - Print part of a debug dump.
+ *
+ * @g        - The GPU.
+ * @str      - A debug message.
+ *
+ * Print a component of a debug message. Typically the err, warning, and
+ * info prints have a bunch of information about the location of the call.
+ * For example on Linux:
+ *
+ *   nvgpu: 17000000.gv11b                nvgpu_rc_mmu_fault:296  [ERR]
+ *
+ * But, for debug dumps this information is completely useless and
+ * redundant. This also slows down the UART terminal significantly.
+ * Note that this function does not take a format and subsequent args. In
+ * our current model the formatting happens a layer above this function
+ * call.
+ *
+ * This variant prints only a small prefix (to aid in grepping logs).
+ */
+void nvgpu_dbg_dump_impl(struct gk20a *g, const char *str);
+
 /*
  * Deprecated API. Do not use!!
  */

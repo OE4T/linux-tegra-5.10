@@ -43,7 +43,7 @@ static inline void gk20a_debug_write_printk(void *ctx, const char *str)
 {
 	struct gk20a *g = ctx;
 
-	nvgpu_err(g, str);
+	nvgpu_dbg_dump_impl(g, str);
 }
 
 static inline void gk20a_debug_write_to_seqfile(void *ctx, const char *str)

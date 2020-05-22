@@ -2595,7 +2595,6 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 			nvgpu_kfree(g, info);
 		}
 	}
-	gk20a_debug_output(o, " ");
 
 	nvgpu_kfree(g, infos);
 }

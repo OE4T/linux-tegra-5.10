@@ -127,3 +127,8 @@ void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
 	__nvgpu_really_print_log(g->log_trace, nvgpu_log_name(g),
 				 func_name, line, NVGPU_DEBUG, log);
 }
+
+void nvgpu_dbg_dump_impl(struct gk20a *g, const char *str)
+{
+	pr_err("__%s__ %s", g->name, str);
+}
