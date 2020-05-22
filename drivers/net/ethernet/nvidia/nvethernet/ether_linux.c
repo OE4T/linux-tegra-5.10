@@ -3430,8 +3430,13 @@ static int ether_configure_car(struct platform_device *pdev,
 
 	/* get PHY reset */
 	pdata->phy_reset = of_get_named_gpio(np, "nvidia,phy-reset-gpio", 0);
-	if (pdata->phy_reset < 0)
-		dev_info(dev, "failed to get phy reset gpio\n");
+	if (pdata->phy_reset < 0) {
+		if (pdata->phy_reset == -EPROBE_DEFER)
+			return pdata->phy_reset;
+		else
+			dev_info(dev, "failed to get phy reset gpio error: %d\n",
+				pdata->phy_reset);
+	}
 
 	if (gpio_is_valid(pdata->phy_reset)) {
 		ret = devm_gpio_request_one(dev, (unsigned int)pdata->phy_reset,
