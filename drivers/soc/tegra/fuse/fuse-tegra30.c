@@ -36,7 +36,8 @@
     defined(CONFIG_ARCH_TEGRA_124_SOC) || \
     defined(CONFIG_ARCH_TEGRA_132_SOC) || \
     defined(CONFIG_ARCH_TEGRA_210_SOC) || \
-    defined(CONFIG_ARCH_TEGRA_186_SOC)
+    defined(CONFIG_ARCH_TEGRA_186_SOC) || \
+    defined(CONFIG_ARCH_TEGRA_194_SOC)
 static u32 tegra30_fuse_read_early(struct tegra_fuse *fuse, unsigned int offset)
 {
 	if (WARN_ON(!fuse->base))
@@ -264,7 +265,10 @@ const struct tegra_fuse_soc tegra124_fuse_soc = {
 	.info = &tegra124_fuse_info,
 	.lookups = tegra124_fuse_lookups,
 	.num_lookups = ARRAY_SIZE(tegra124_fuse_lookups),
+<<<<<<< HEAD
 	.soc_attr_group = &tegra_soc_attr_group,
+=======
+>>>>>>> v5.7-rc5
 };
 #endif
 
@@ -350,7 +354,10 @@ const struct tegra_fuse_soc tegra210_fuse_soc = {
 	.info = &tegra210_fuse_info,
 	.lookups = tegra210_fuse_lookups,
 	.num_lookups = ARRAY_SIZE(tegra210_fuse_lookups),
+<<<<<<< HEAD
 	.soc_attr_group = &tegra_soc_attr_group,
+=======
+>>>>>>> v5.7-rc5
 };
 #endif
 
@@ -380,7 +387,10 @@ const struct tegra_fuse_soc tegra186_fuse_soc = {
 	.info = &tegra186_fuse_info,
 	.lookups = tegra186_fuse_lookups,
 	.num_lookups = ARRAY_SIZE(tegra186_fuse_lookups),
+<<<<<<< HEAD
 	.soc_attr_group = &tegra_soc_attr_group,
+=======
+>>>>>>> v5.7-rc5
 };
 #endif
 
@@ -410,6 +420,9 @@ const struct tegra_fuse_soc tegra194_fuse_soc = {
 	.info = &tegra194_fuse_info,
 	.lookups = tegra194_fuse_lookups,
 	.num_lookups = ARRAY_SIZE(tegra194_fuse_lookups),
+<<<<<<< HEAD
 	.soc_attr_group = &tegra194_soc_attr_group,
+=======
+>>>>>>> v5.7-rc5
 };
 #endif

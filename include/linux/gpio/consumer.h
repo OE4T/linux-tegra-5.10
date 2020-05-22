@@ -2,9 +2,10 @@
 #ifndef __LINUX_GPIO_CONSUMER_H
 #define __LINUX_GPIO_CONSUMER_H
 
+#include <linux/bits.h>
 #include <linux/bug.h>
+#include <linux/compiler_types.h>
 #include <linux/err.h>
-#include <linux/kernel.h>
 
 struct device;
 
@@ -159,8 +160,10 @@ int gpiod_set_raw_array_value_cansleep(unsigned int array_size,
 				       struct gpio_array *array_info,
 				       unsigned long *value_bitmap);
 
+int gpiod_set_config(struct gpio_desc *desc, unsigned long config);
 int gpiod_set_debounce(struct gpio_desc *desc, unsigned debounce);
 int gpiod_set_transitory(struct gpio_desc *desc, bool transitory);
+void gpiod_toggle_active_low(struct gpio_desc *desc);
 
 int gpiod_is_active_low(const struct gpio_desc *desc);
 int gpiod_cansleep(const struct gpio_desc *desc);
@@ -179,13 +182,19 @@ struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
 					 const char *propname, int index,
 					 enum gpiod_flags dflags,
 					 const char *label);
-struct gpio_desc *devm_fwnode_get_index_gpiod_from_child(struct device *dev,
-						const char *con_id, int index,
-						struct fwnode_handle *child,
-						enum gpiod_flags flags,
-						const char *label);
+struct gpio_desc *fwnode_gpiod_get_index(struct fwnode_handle *fwnode,
+					 const char *con_id, int index,
+					 enum gpiod_flags flags,
+					 const char *label);
+struct gpio_desc *devm_fwnode_gpiod_get_index(struct device *dev,
+					      struct fwnode_handle *child,
+					      const char *con_id, int index,
+					      enum gpiod_flags flags,
+					      const char *label);
 
 #else /* CONFIG_GPIOLIB */
+
+#include <linux/kernel.h>
 
 static inline int gpiod_count(struct device *dev, const char *con_id)
 {
@@ -481,6 +490,13 @@ static inline int gpiod_set_raw_array_value_cansleep(unsigned int array_size,
 	return 0;
 }
 
+static inline int gpiod_set_config(struct gpio_desc *desc, unsigned long config)
+{
+	/* GPIO can never have been requested */
+	WARN_ON(desc);
+	return -ENOSYS;
+}
+
 static inline int gpiod_set_debounce(struct gpio_desc *desc, unsigned debounce)
 {
 	/* GPIO can never have been requested */
@@ -493,6 +509,12 @@ static inline int gpiod_set_transitory(struct gpio_desc *desc, bool transitory)
 	/* GPIO can never have been requested */
 	WARN_ON(desc);
 	return -ENOSYS;
+}
+
+static inline void gpiod_toggle_active_low(struct gpio_desc *desc)
+{
+	/* GPIO can never have been requested */
+	WARN_ON(desc);
 }
 
 static inline int gpiod_is_active_low(const struct gpio_desc *desc)
@@ -548,16 +570,47 @@ struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
 }
 
 static inline
+struct gpio_desc *fwnode_gpiod_get_index(struct fwnode_handle *fwnode,
+					 const char *con_id, int index,
+					 enum gpiod_flags flags,
+					 const char *label)
+{
+	return ERR_PTR(-ENOSYS);
+}
+
+static inline
+struct gpio_desc *devm_fwnode_gpiod_get_index(struct device *dev,
+					      struct fwnode_handle *fwnode,
+					      const char *con_id, int index,
+					      enum gpiod_flags flags,
+					      const char *label)
+{
+	return ERR_PTR(-ENOSYS);
+}
+
+#endif /* CONFIG_GPIOLIB */
+
+static inline
+struct gpio_desc *devm_fwnode_gpiod_get(struct device *dev,
+					struct fwnode_handle *fwnode,
+					const char *con_id,
+					enum gpiod_flags flags,
+					const char *label)
+{
+	return devm_fwnode_gpiod_get_index(dev, fwnode, con_id, 0,
+					   flags, label);
+}
+
+static inline
 struct gpio_desc *devm_fwnode_get_index_gpiod_from_child(struct device *dev,
 						const char *con_id, int index,
 						struct fwnode_handle *child,
 						enum gpiod_flags flags,
 						const char *label)
 {
-	return ERR_PTR(-ENOSYS);
+	return devm_fwnode_gpiod_get_index(dev, child, con_id, index,
+					   flags, label);
 }
-
-#endif /* CONFIG_GPIOLIB */
 
 static inline
 struct gpio_desc *devm_fwnode_get_gpiod_from_child(struct device *dev,
@@ -566,8 +619,7 @@ struct gpio_desc *devm_fwnode_get_gpiod_from_child(struct device *dev,
 						   enum gpiod_flags flags,
 						   const char *label)
 {
-	return devm_fwnode_get_index_gpiod_from_child(dev, con_id, 0, child,
-						      flags, label);
+	return devm_fwnode_gpiod_get_index(dev, child, con_id, 0, flags, label);
 }
 
 #if IS_ENABLED(CONFIG_GPIOLIB) && IS_ENABLED(CONFIG_OF_GPIO)

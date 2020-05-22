@@ -118,7 +118,7 @@ struct meson_nfc_nand_chip {
 	u8 *data_buf;
 	__le64 *info_buf;
 	u32 nsels;
-	u8 sels[0];
+	u8 sels[];
 };
 
 struct meson_nand_ecc {
@@ -1399,10 +1399,8 @@ static int meson_nfc_probe(struct platform_device *pdev)
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
-		dev_err(dev, "no NFC IRQ resource\n");
+	if (irq < 0)
 		return -EINVAL;
-	}
 
 	ret = meson_nfc_clk_init(nfc);
 	if (ret) {

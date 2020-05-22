@@ -358,8 +358,12 @@ static DECLARE_WORK(cpuset_hotplug_work, cpuset_hotplug_workfn);
 static DECLARE_WAIT_QUEUE_HEAD(cpuset_attach_wq);
 
 /*
- * Cgroup v2 behavior is used when on default hierarchy or the
- * cgroup_v2_mode flag is set.
+ * Cgroup v2 behavior is used on the "cpus" and "mems" control files when
+ * on default hierarchy or when the cpuset_v2_mode flag is set by mounting
+ * the v1 cpuset cgroup filesystem with the "cpuset_v2_mode" mount option.
+ * With v2 behavior, "cpus" and "mems" are always what the users have
+ * requested and won't be changed by hotplug events. Only the effective
+ * cpus or mems will be affected.
  */
 static inline bool is_in_v2_mode(void)
 {
@@ -928,8 +932,6 @@ static void rebuild_root_domains(void)
 	percpu_rwsem_assert_held(&cpuset_rwsem);
 	lockdep_assert_cpus_held();
 	lockdep_assert_held(&sched_domains_mutex);
-
-	cgroup_enable_task_cg_lists();
 
 	rcu_read_lock();
 

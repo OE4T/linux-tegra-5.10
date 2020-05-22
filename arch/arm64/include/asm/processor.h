@@ -9,7 +9,7 @@
 #define __ASM_PROCESSOR_H
 
 #define KERNEL_DS		UL(-1)
-#define USER_DS			((UL(1) << MAX_USER_VA_BITS) - 1)
+#define USER_DS			((UL(1) << VA_BITS) - 1)
 
 /*
  * On arm64 systems, unaligned accesses by the CPU are cheap, and so there is
@@ -26,10 +26,14 @@
 #include <linux/init.h>
 #include <linux/stddef.h>
 #include <linux/string.h>
+#include <linux/thread_info.h>
+
+#include <vdso/processor.h>
 
 #include <asm/alternative.h>
 #include <asm/cpufeature.h>
 #include <asm/hw_breakpoint.h>
+#include <asm/kasan.h>
 #include <asm/lse.h>
 #include <asm/pgtable-hwdef.h>
 #include <asm/pointer_auth.h>
@@ -144,7 +148,8 @@ struct thread_struct {
 	unsigned long		fault_code;	/* ESR_EL1 value */
 	struct debug_info	debug;		/* debugging */
 #ifdef CONFIG_ARM64_PTR_AUTH
-	struct ptrauth_keys	keys_user;
+	struct ptrauth_keys_user	keys_user;
+	struct ptrauth_keys_kernel	keys_kernel;
 #endif
 };
 
@@ -214,6 +219,18 @@ static inline void start_thread(struct pt_regs *regs, unsigned long pc,
 	regs->sp = sp;
 }
 
+static inline bool is_ttbr0_addr(unsigned long addr)
+{
+	/* entry assembly clears tags for TTBR0 addrs */
+	return addr < TASK_SIZE;
+}
+
+static inline bool is_ttbr1_addr(unsigned long addr)
+{
+	/* TTBR1 addresses may have a tag if KASAN_SW_TAGS is in use */
+	return arch_kasan_reset_tag(addr) >= PAGE_OFFSET;
+}
+
 #ifdef CONFIG_COMPAT
 static inline void compat_start_thread(struct pt_regs *regs, unsigned long pc,
 				       unsigned long sp)
@@ -241,11 +258,6 @@ struct task_struct;
 extern void release_thread(struct task_struct *);
 
 unsigned long get_wchan(struct task_struct *p);
-
-static inline void cpu_relax(void)
-{
-	asm volatile("yield" ::: "memory");
-}
 
 /* Thread switching */
 extern struct task_struct *cpu_switch_to(struct task_struct *prev,

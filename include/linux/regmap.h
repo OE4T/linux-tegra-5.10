@@ -163,8 +163,13 @@ struct reg_sequence {
  * This is modelled after the readx_poll_timeout_atomic macros in linux/iopoll.h.
  *
  * Note: In general regmap cannot be used in atomic context. If you want to use
+<<<<<<< HEAD
  * this macro then first setup your regmap for atomic use (by using flat or no cache
  * and MMIO)
+=======
+ * this macro then first setup your regmap for atomic use (flat or no cache
+ * and MMIO regmap).
+>>>>>>> v5.7-rc5
  */
 #define regmap_read_poll_timeout_atomic(map, addr, val, cond, delay_us, timeout_us) \
 ({ \
@@ -461,8 +466,8 @@ struct regmap_config {
  * @range_max: Address of the highest register in virtual range.
  *
  * @selector_reg: Register with selector field.
- * @selector_mask: Bit shift for selector value.
- * @selector_shift: Bit mask for selector value.
+ * @selector_mask: Bit mask for selector value.
+ * @selector_shift: Bit shift for selector value.
  *
  * @window_start: Address of first (lowest) register in data window.
  * @window_len: Number of registers in data window.

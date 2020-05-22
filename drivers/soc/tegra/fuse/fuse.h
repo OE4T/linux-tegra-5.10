@@ -32,8 +32,11 @@ struct tegra_fuse_soc {
 
 	const struct nvmem_cell_lookup *lookups;
 	unsigned int num_lookups;
+<<<<<<< HEAD
 
 	const struct attribute_group *soc_attr_group;
+=======
+>>>>>>> v5.7-rc5
 };
 
 struct tegra_fuse {
@@ -121,7 +124,10 @@ extern const struct tegra_fuse_soc tegra186_fuse_soc;
 
 #ifdef CONFIG_ARCH_TEGRA_194_SOC
 extern const struct tegra_fuse_soc tegra194_fuse_soc;
+<<<<<<< HEAD
 extern const struct attribute_group tegra194_soc_attr_group;
+=======
+>>>>>>> v5.7-rc5
 #endif
 
 #endif

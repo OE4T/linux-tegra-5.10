@@ -209,11 +209,9 @@ static int __maybe_unused hda_tegra_runtime_suspend(struct device *dev)
 	struct snd_card *card = dev_get_drvdata(dev);
 	struct azx *chip = card->private_data;
 	struct hda_tegra *hda = container_of(chip, struct hda_tegra, chip);
-	struct hdac_bus *bus = azx_bus(chip);
 
 	if (chip && chip->running) {
 		azx_stop_chip(chip);
-		synchronize_irq(bus->irq);
 		azx_enter_link_reset(chip);
 	}
 	hda_tegra_disable_clocks(hda);
@@ -353,8 +351,7 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 	irq_set_affinity_hint(irq_id, &mask);
 #endif /* #ifdef CONFIG_ANDROID */
 	bus->irq = irq_id;
-
-	synchronize_irq(bus->irq);
+	card->sync_irq = bus->irq;
 
 	/*
 	 * WAR to override no. of SDO lines on T194.
@@ -444,7 +441,7 @@ static int hda_tegra_create(struct snd_card *card,
 			    unsigned int driver_caps,
 			    struct hda_tegra *hda)
 {
-	static struct snd_device_ops ops = {
+	static const struct snd_device_ops ops = {
 		.dev_disconnect = hda_tegra_dev_disconnect,
 		.dev_free = hda_tegra_dev_free,
 	};
@@ -472,7 +469,12 @@ static int hda_tegra_create(struct snd_card *card,
 	if (err < 0)
 		return err;
 
+<<<<<<< HEAD
 	chip->bus.needs_damn_long_delay = 0;
+=======
+	chip->bus.core.needs_damn_long_delay = 1;
+	chip->bus.core.aligned_mmio = 1;
+>>>>>>> v5.7-rc5
 
 	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
 	if (err < 0) {

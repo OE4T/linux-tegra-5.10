@@ -16,7 +16,11 @@
 
 OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 
+<<<<<<< HEAD
 targets := Image Image.gz zImage
+=======
+targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo
+>>>>>>> v5.7-rc5
 
 $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)

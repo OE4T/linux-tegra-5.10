@@ -156,16 +156,26 @@ EP mode:
 NOTE:- On Tegra194's P2972-0000 platform, only C5 controller can be enabled to
 operate in the endpoint mode because of the way the platform is designed.
 
+EP mode:
+- nvidia,refclk-select-gpios: Must contain a phandle to a GPIO controller
+  followed by GPIO that is being used to enable REFCLK to controller from host
+
+NOTE:- On Tegra194's P2972-0000 platform, only C5 controller can be enabled to
+operate in the endpoint mode because of the way the platform is designed.
+
 Examples:
 =========
 
 Tegra194 RC mode:
 -----------------
+<<<<<<< HEAD
 
 SoC DTSI:
+=======
+>>>>>>> v5.7-rc5
 
 	pcie@14180000 {
-		compatible = "nvidia,tegra194-pcie", "snps,dw-pcie";
+		compatible = "nvidia,tegra194-pcie";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX8B>;
 		reg = <0x00 0x14180000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x38000000 0x0 0x00040000   /* configuration space (256K) */

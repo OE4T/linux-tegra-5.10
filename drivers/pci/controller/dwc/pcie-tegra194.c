@@ -11,6 +11,7 @@
 #include <linux/debugfs.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
+#include <linux/gpio/consumer.h>
 #include <linux/interrupt.h>
 #include <linux/iopoll.h>
 #include <linux/kernel.h>
@@ -42,8 +43,6 @@
 #define APPL_PINMUX_CLKREQ_OVERRIDE		BIT(3)
 #define APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE_EN	BIT(4)
 #define APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE	BIT(5)
-#define APPL_PINMUX_CLKREQ_OUT_OVRD_EN		BIT(9)
-#define APPL_PINMUX_CLKREQ_OUT_OVRD		BIT(10)
 
 #define APPL_CTRL				0x4
 #define APPL_CTRL_SYS_PRE_DET_STATE		BIT(6)
@@ -250,6 +249,7 @@
 
 #define PERST_DEBOUNCE_TIME	(5 * 1000)
 
+<<<<<<< HEAD
 #define EVENT_QUEUE_LEN		(256)
 
 #define EP_STATE_DISABLED	0
@@ -265,6 +265,11 @@ enum ep_event {
 	EP_EVENT_INVALID,
 };
 
+=======
+#define EP_STATE_DISABLED	0
+#define EP_STATE_ENABLED	1
+
+>>>>>>> v5.7-rc5
 static const unsigned int pcie_gen_freq[] = {
 	GEN1_CORE_CLK_FREQ,
 	GEN2_CORE_CLK_FREQ,
@@ -329,13 +334,19 @@ struct tegra_pcie_dw {
 	struct dentry *debugfs;
 
 	/* Endpoint mode specific */
+<<<<<<< HEAD
 	struct task_struct *pcie_ep_task;
 	wait_queue_head_t wq;
+=======
+>>>>>>> v5.7-rc5
 	struct gpio_desc *pex_rst_gpiod;
 	struct gpio_desc *pex_refclk_sel_gpiod;
 	unsigned int pex_rst_irq;
 	int ep_state;
+<<<<<<< HEAD
 	DECLARE_KFIFO(event_fifo, u32, EVENT_QUEUE_LEN);
+=======
+>>>>>>> v5.7-rc5
 };
 
 struct tegra_pcie_dw_of_data {
@@ -469,6 +480,7 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 	return IRQ_HANDLED;
 }
 
+<<<<<<< HEAD
 static irqreturn_t tegra_pcie_ep_irq_handler(int irq, void *arg)
 {
 	struct tegra_pcie_dw *pcie = arg;
@@ -476,11 +488,93 @@ static irqreturn_t tegra_pcie_ep_irq_handler(int irq, void *arg)
 	int spurious = 1;
 	u32 val, tmp;
 
+=======
+static void pex_ep_event_hot_rst_done(struct tegra_pcie_dw *pcie)
+{
+	u32 val;
+
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L0);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_0_0);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_1);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_2);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_3);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_6);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_7);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_8_0);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_9);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_10);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_11);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_13);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_14);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_15);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_INTR_STATUS_L1_17);
+	appl_writel(pcie, 0xFFFFFFFF, APPL_MSI_CTRL_2);
+
+	val = appl_readl(pcie, APPL_CTRL);
+	val |= APPL_CTRL_LTSSM_EN;
+	appl_writel(pcie, val, APPL_CTRL);
+}
+
+static irqreturn_t tegra_pcie_ep_irq_thread(int irq, void *arg)
+{
+	struct tegra_pcie_dw *pcie = arg;
+	struct dw_pcie *pci = &pcie->pci;
+	u32 val, speed;
+
+	speed = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKSTA) &
+		PCI_EXP_LNKSTA_CLS;
+	clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
+
+	/* If EP doesn't advertise L1SS, just return */
+	val = dw_pcie_readl_dbi(pci, pcie->cfg_link_cap_l1sub);
+	if (!(val & (PCI_L1SS_CAP_ASPM_L1_1 | PCI_L1SS_CAP_ASPM_L1_2)))
+		return IRQ_HANDLED;
+
+	/* Check if BME is set to '1' */
+	val = dw_pcie_readl_dbi(pci, PCI_COMMAND);
+	if (val & PCI_COMMAND_MASTER) {
+		ktime_t timeout;
+
+		/* 110us for both snoop and no-snoop */
+		val = 110 | (2 << PCI_LTR_SCALE_SHIFT) | LTR_MSG_REQ;
+		val |= (val << LTR_MST_NO_SNOOP_SHIFT);
+		appl_writel(pcie, val, APPL_LTR_MSG_1);
+
+		/* Send LTR upstream */
+		val = appl_readl(pcie, APPL_LTR_MSG_2);
+		val |= APPL_LTR_MSG_2_LTR_MSG_REQ_STATE;
+		appl_writel(pcie, val, APPL_LTR_MSG_2);
+
+		timeout = ktime_add_us(ktime_get(), LTR_MSG_TIMEOUT);
+		for (;;) {
+			val = appl_readl(pcie, APPL_LTR_MSG_2);
+			if (!(val & APPL_LTR_MSG_2_LTR_MSG_REQ_STATE))
+				break;
+			if (ktime_after(ktime_get(), timeout))
+				break;
+			usleep_range(1000, 1100);
+		}
+		if (val & APPL_LTR_MSG_2_LTR_MSG_REQ_STATE)
+			dev_err(pcie->dev, "Failed to send LTR message\n");
+	}
+
+	return IRQ_HANDLED;
+}
+
+static irqreturn_t tegra_pcie_ep_hard_irq(int irq, void *arg)
+{
+	struct tegra_pcie_dw *pcie = arg;
+	struct dw_pcie_ep *ep = &pcie->pci.ep;
+	int spurious = 1;
+	u32 val, tmp;
+
+>>>>>>> v5.7-rc5
 	val = appl_readl(pcie, APPL_INTR_STATUS_L0);
 	if (val & APPL_INTR_STATUS_L0_LINK_STATE_INT) {
 		val = appl_readl(pcie, APPL_INTR_STATUS_L1_0_0);
 		appl_writel(pcie, val, APPL_INTR_STATUS_L1_0_0);
 
+<<<<<<< HEAD
 		if (val & APPL_INTR_STATUS_L1_0_0_HOT_RESET_DONE) {
 			/* clear any stale PEX_RST interrupt */
 			if (!kfifo_put(&pcie->event_fifo, EP_HOT_RST_DONE)) {
@@ -489,6 +583,10 @@ static irqreturn_t tegra_pcie_ep_irq_handler(int irq, void *arg)
 			}
 			wake_up(&pcie->wq);
 		}
+=======
+		if (val & APPL_INTR_STATUS_L1_0_0_HOT_RESET_DONE)
+			pex_ep_event_hot_rst_done(pcie);
+>>>>>>> v5.7-rc5
 
 		if (val & APPL_INTR_STATUS_L1_0_0_RDLH_LINK_UP_CHGED) {
 			tmp = appl_readl(pcie, APPL_LINK_STATUS);
@@ -505,6 +603,7 @@ static irqreturn_t tegra_pcie_ep_irq_handler(int irq, void *arg)
 		val = appl_readl(pcie, APPL_INTR_STATUS_L1_15);
 		appl_writel(pcie, val, APPL_INTR_STATUS_L1_15);
 
+<<<<<<< HEAD
 		if (val & APPL_INTR_STATUS_L1_15_CFG_BME_CHGED) {
 			if (!kfifo_put(&pcie->event_fifo, EP_BME_CHANGE)) {
 				dev_err(pcie->dev, "EVENT FIFO is full\n");
@@ -512,6 +611,10 @@ static irqreturn_t tegra_pcie_ep_irq_handler(int irq, void *arg)
 			}
 			wake_up(&pcie->wq);
 		}
+=======
+		if (val & APPL_INTR_STATUS_L1_15_CFG_BME_CHGED)
+			return IRQ_WAKE_THREAD;
+>>>>>>> v5.7-rc5
 
 		spurious = 0;
 	}
@@ -1117,17 +1220,42 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 	/* Endpoint mode specific DT entries */
 	pcie->pex_rst_gpiod = devm_gpiod_get(pcie->dev, "reset", GPIOD_IN);
 	if (IS_ERR(pcie->pex_rst_gpiod)) {
+<<<<<<< HEAD
 		dev_err(pcie->dev, "Failed to get PERST GPIO: %ld\n",
 			PTR_ERR(pcie->pex_rst_gpiod));
 		return PTR_ERR(pcie->pex_rst_gpiod);
+=======
+		int err = PTR_ERR(pcie->pex_rst_gpiod);
+		const char *level = KERN_ERR;
+
+		if (err == -EPROBE_DEFER)
+			level = KERN_DEBUG;
+
+		dev_printk(level, pcie->dev,
+			   dev_fmt("Failed to get PERST GPIO: %d\n"),
+			   err);
+		return err;
+>>>>>>> v5.7-rc5
 	}
 
 	pcie->pex_refclk_sel_gpiod = devm_gpiod_get(pcie->dev,
 						    "nvidia,refclk-select",
 						    GPIOD_OUT_HIGH);
 	if (IS_ERR(pcie->pex_refclk_sel_gpiod)) {
+<<<<<<< HEAD
 		dev_info(pcie->dev, "Failed to get REFCLK select GPIOs: %ld\n",
 			 PTR_ERR(pcie->pex_refclk_sel_gpiod));
+=======
+		int err = PTR_ERR(pcie->pex_refclk_sel_gpiod);
+		const char *level = KERN_ERR;
+
+		if (err == -EPROBE_DEFER)
+			level = KERN_DEBUG;
+
+		dev_printk(level, pcie->dev,
+			   dev_fmt("Failed to get REFCLK select GPIOs: %d\n"),
+			   err);
+>>>>>>> v5.7-rc5
 		pcie->pex_refclk_sel_gpiod = NULL;
 	}
 
@@ -1364,8 +1492,8 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 
 	if (!pcie->supports_clkreq) {
 		val = appl_readl(pcie, APPL_PINMUX);
-		val |= APPL_PINMUX_CLKREQ_OUT_OVRD_EN;
-		val |= APPL_PINMUX_CLKREQ_OUT_OVRD;
+		val |= APPL_PINMUX_CLKREQ_OVERRIDE_EN;
+		val &= ~APPL_PINMUX_CLKREQ_OVERRIDE;
 		appl_writel(pcie, val, APPL_PINMUX);
 	}
 
@@ -1782,6 +1910,11 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 				   val);
 	}
 
+<<<<<<< HEAD
+=======
+	pcie->pcie_cap_base = dw_pcie_find_capability(&pcie->pci,
+						      PCI_CAP_ID_EXP);
+>>>>>>> v5.7-rc5
 	clk_set_rate(pcie->core_clk, GEN4_CORE_CLK_FREQ);
 
 	val = (ep->msi_mem_phys & MSIX_ADDR_MATCH_LOW_OFF_MASK);
@@ -1821,6 +1954,7 @@ fail_pll_init:
 	pm_runtime_put_sync(dev);
 }
 
+<<<<<<< HEAD
 static void pex_ep_event_hot_rst_done(struct tegra_pcie_dw *pcie)
 {
 	u32 val;
@@ -1942,10 +2076,13 @@ static int tegra_pcie_ep_work_thread(void *p)
 	return 0;
 }
 
+=======
+>>>>>>> v5.7-rc5
 static irqreturn_t tegra_pcie_ep_pex_rst_irq(int irq, void *arg)
 {
 	struct tegra_pcie_dw *pcie = arg;
 
+<<<<<<< HEAD
 	if (gpiod_get_value(pcie->pex_rst_gpiod)) {
 		if (!kfifo_put(&pcie->event_fifo, EP_PEX_RST_ASSERT)) {
 			dev_err(pcie->dev, "EVENT FIFO is full\n");
@@ -1959,6 +2096,12 @@ static irqreturn_t tegra_pcie_ep_pex_rst_irq(int irq, void *arg)
 	}
 
 	wake_up(&pcie->wq);
+=======
+	if (gpiod_get_value(pcie->pex_rst_gpiod))
+		pex_ep_event_pex_rst_assert(pcie);
+	else
+		pex_ep_event_pex_rst_deassert(pcie);
+>>>>>>> v5.7-rc5
 
 	return IRQ_HANDLED;
 }
@@ -2084,27 +2227,41 @@ static int tegra_pcie_config_ep(struct tegra_pcie_dw *pcie,
 
 	irq_set_status_flags(pcie->pex_rst_irq, IRQ_NOAUTOEN);
 
+<<<<<<< HEAD
 	ret = devm_request_irq(dev, pcie->pex_rst_irq,
 			       tegra_pcie_ep_pex_rst_irq,
 			       IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
 			       name, (void *)pcie);
+=======
+	pcie->ep_state = EP_STATE_DISABLED;
+
+	ret = devm_request_threaded_irq(dev, pcie->pex_rst_irq, NULL,
+					tegra_pcie_ep_pex_rst_irq,
+					IRQF_TRIGGER_RISING |
+					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+					name, (void *)pcie);
+>>>>>>> v5.7-rc5
 	if (ret < 0) {
 		dev_err(dev, "Failed to request IRQ for PERST: %d\n", ret);
 		return ret;
 	}
 
+<<<<<<< HEAD
 	pcie->ep_state = EP_STATE_DISABLED;
 
 	INIT_KFIFO(pcie->event_fifo);
 
 	init_waitqueue_head(&pcie->wq);
 
+=======
+>>>>>>> v5.7-rc5
 	name = devm_kasprintf(dev, GFP_KERNEL, "tegra_pcie_%u_ep_work",
 			      pcie->cid);
 	if (!name) {
 		dev_err(dev, "Failed to create PCIe EP work thread string\n");
 		return -ENOMEM;
 	}
+<<<<<<< HEAD
 	pcie->pcie_ep_task = kthread_run(tegra_pcie_ep_work_thread,
 					 (void *)pcie, name);
 	if (IS_ERR(pcie->pcie_ep_task)) {
@@ -2112,6 +2269,8 @@ static int tegra_pcie_config_ep(struct tegra_pcie_dw *pcie,
 			PTR_ERR_OR_ZERO(pcie->pcie_ep_task));
 		return PTR_ERR_OR_ZERO(pcie->pcie_ep_task);
 	}
+=======
+>>>>>>> v5.7-rc5
 
 	pm_runtime_enable(dev);
 
@@ -2154,13 +2313,27 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 
 	ret = tegra_pcie_dw_parse_dt(pcie);
 	if (ret < 0) {
-		dev_err(dev, "Failed to parse device tree: %d\n", ret);
+		const char *level = KERN_ERR;
+
+		if (ret == -EPROBE_DEFER)
+			level = KERN_DEBUG;
+
+		dev_printk(level, dev,
+			   dev_fmt("Failed to parse device tree: %d\n"),
+			   ret);
 		return ret;
 	}
 
 	ret = tegra_pcie_get_slot_regulators(pcie);
 	if (ret < 0) {
-		dev_err(dev, "Failed to get slot regulators: %d\n", ret);
+		const char *level = KERN_ERR;
+
+		if (ret == -EPROBE_DEFER)
+			level = KERN_DEBUG;
+
+		dev_printk(level, dev,
+			   dev_fmt("Failed to get slot regulators: %d\n"),
+			   ret);
 		return ret;
 	}
 
@@ -2286,8 +2459,16 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 		break;
 
 	case DW_PCIE_EP_TYPE:
+<<<<<<< HEAD
 		ret = devm_request_irq(dev, pp->irq, tegra_pcie_ep_irq_handler,
 				       IRQF_SHARED, "tegra-pcie-ep-intr", pcie);
+=======
+		ret = devm_request_threaded_irq(dev, pp->irq,
+						tegra_pcie_ep_hard_irq,
+						tegra_pcie_ep_irq_thread,
+						IRQF_SHARED | IRQF_ONESHOT,
+						"tegra-pcie-ep-intr", pcie);
+>>>>>>> v5.7-rc5
 		if (ret) {
 			dev_err(dev, "Failed to request IRQ %d: %d\n", pp->irq,
 				ret);
