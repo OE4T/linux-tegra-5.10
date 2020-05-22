@@ -27,6 +27,7 @@ ccflags-y += -DMACSEC_SUPPORT -DNET30 -DMACSEC_DEBUG -DOSI_DMA_DEBUG
 nvethernet-objs:= ether_linux.o \
 		  osd.o \
 		  ethtool.o \
+		  ether_tc.o \
 		  sysfs.o \
 		  ioctl.o \
 		  ptp.o \

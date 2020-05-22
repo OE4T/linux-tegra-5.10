@@ -44,6 +44,7 @@
 #include <linux/hrtimer.h>
 #include <linux/version.h>
 #include <linux/list.h>
+#include <net/pkt_sched.h>
 #include <linux/tegra-ivc.h>
 #if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 #include <soc/tegra/chip-id.h>
@@ -584,8 +585,8 @@ void ether_ptp_remove(struct ether_priv_data *pdata);
  *
  * Algorithm: This function is used to handle the hardware PTP settings.
  *
- * @param[in] pdata Pointer to private data structure.
- * @param[in] ifr Interface request structure used for socket ioctl
+ * @param[in] pdata: Pointer to private data structure.
+ * @param[in] ifr: Interface request structure used for socket ioctl
  *
  * @note PTP clock driver need to be successfully registered during
  * 	 initialization and HW need to support PTP functionality.
@@ -659,5 +660,25 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
  */
 int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf,
 		     unsigned int len);
+
 void ether_set_rx_mode(struct net_device *dev);
+
+#if (KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE)
+/**
+ * @brief Function to configure traffic class
+ *
+ * Algorithm: This function is used to handle the hardware TC
+ * settings.
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ * @param[in] qopt:  Pointer to qdisc taprio offload data.
+ *
+ * @note MAC interface should be up.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on Failure
+ */
+int ether_tc_setup_taprio(struct ether_priv_data *pdata,
+			  struct tc_taprio_qopt_offload *qopt);
+#endif
 #endif /* ETHER_LINUX_H */
