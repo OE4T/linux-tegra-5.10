@@ -329,6 +329,8 @@ u32 nvgpu_gr_sm_offset(struct gk20a *g, u32 sm);
  */
 void nvgpu_gr_wait_initialized(struct gk20a *g);
 #endif
+bool nvgpu_gr_is_tpc_addr(struct gk20a *g, u32 addr);
+u32 nvgpu_gr_get_tpc_num(struct gk20a *g, u32 addr);
 
 #if defined(CONFIG_NVGPU_RECOVERY) || defined(CONFIG_NVGPU_DEBUGGER)
 int nvgpu_gr_disable_ctxsw(struct gk20a *g);

@@ -953,3 +953,42 @@ void nvgpu_gr_wait_initialized(struct gk20a *g)
 	NVGPU_COND_WAIT(&g->gr->init_wq, g->gr->initialized, 0U);
 }
 #endif
+
+bool nvgpu_gr_is_tpc_addr(struct gk20a *g, u32 addr)
+{
+	u32 tpc_in_gpc_base =
+		nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_BASE);
+	u32 tpc_in_gpc_stride =
+		nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 num_tpc_per_gpc =
+		nvgpu_get_litter_value(g, GPU_LIT_NUM_TPC_PER_GPC);
+	u32 tpc_in_gpc_shared_base =
+		nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_SHARED_BASE);
+	bool is_tpc_addr_shared = ((addr >= tpc_in_gpc_shared_base) &&
+			(addr < (tpc_in_gpc_shared_base + tpc_in_gpc_stride)));
+
+	return (((addr >= tpc_in_gpc_base) &&
+		(addr < (tpc_in_gpc_base +
+			(num_tpc_per_gpc * tpc_in_gpc_stride)))) ||
+		is_tpc_addr_shared);
+}
+
+u32 nvgpu_gr_get_tpc_num(struct gk20a *g, u32 addr)
+{
+	u32 i, start;
+	u32 num_tpcs =
+		nvgpu_get_litter_value(g, GPU_LIT_NUM_TPC_PER_GPC);
+	u32 tpc_in_gpc_base =
+		nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_BASE);
+	u32 tpc_in_gpc_stride =
+		nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
+
+	for (i = 0; i < num_tpcs; i++) {
+		start = tpc_in_gpc_base + (i * tpc_in_gpc_stride);
+		if ((addr >= start) &&
+		    (addr < (start + tpc_in_gpc_stride))) {
+			return i;
+		}
+	}
+	return 0;
+}

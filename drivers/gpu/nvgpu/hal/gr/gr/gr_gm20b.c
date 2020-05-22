@@ -234,43 +234,6 @@ void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 }
 #endif
 
-static bool gr_gm20b_is_tpc_addr_shared(struct gk20a *g, u32 addr)
-{
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 tpc_in_gpc_shared_base = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_SHARED_BASE);
-	return (addr >= tpc_in_gpc_shared_base) &&
-		(addr < (tpc_in_gpc_shared_base +
-			 tpc_in_gpc_stride));
-}
-
-bool gr_gm20b_is_tpc_addr(struct gk20a *g, u32 addr)
-{
-	u32 tpc_in_gpc_base = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_BASE);
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_TPC_PER_GPC);
-	return ((addr >= tpc_in_gpc_base) &&
-		(addr < tpc_in_gpc_base +
-		 (num_tpc_per_gpc * tpc_in_gpc_stride)))
-		|| gr_gm20b_is_tpc_addr_shared(g, addr);
-}
-
-u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr)
-{
-	u32 i, start;
-	u32 num_tpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_TPC_PER_GPC);
-	u32 tpc_in_gpc_base = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_BASE);
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-
-	for (i = 0; i < num_tpcs; i++) {
-		start = tpc_in_gpc_base + (i * tpc_in_gpc_stride);
-		if ((addr >= start) &&
-		    (addr < (start + tpc_in_gpc_stride))) {
-			return i;
-		}
-	}
-	return 0;
-}
-
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 			   struct nvgpu_debug_context *o)
 {

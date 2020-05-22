@@ -358,8 +358,6 @@ static const struct gpu_ops tu104_ops = {
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
 		.set_gpc_tpc_mask = gr_gv100_set_gpc_tpc_mask,
 #endif
-		.is_tpc_addr = gr_gm20b_is_tpc_addr,
-		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.init_sm_dsm_reg_info = gr_tu104_init_sm_dsm_reg_info,

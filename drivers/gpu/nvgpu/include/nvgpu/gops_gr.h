@@ -1083,12 +1083,10 @@ struct gops_gr {
 					  u32 broadcast_flags,
 					  u32 *priv_addr_table,
 					  u32 *priv_addr_table_index);
-	bool (*is_tpc_addr)(struct gk20a *g, u32 addr);
 	bool (*is_egpc_addr)(struct gk20a *g, u32 addr);
 	bool (*is_etpc_addr)(struct gk20a *g, u32 addr);
 	void (*get_egpc_etpc_num)(struct gk20a *g, u32 addr,
 				  u32 *gpc_num, u32 *tpc_num);
-	u32 (*get_tpc_num)(struct gk20a *g, u32 addr);
 	u32 (*get_egpc_base)(struct gk20a *g);
 	int (*update_smpc_ctxsw_mode)(struct gk20a *g,
 				      struct nvgpu_channel *c,

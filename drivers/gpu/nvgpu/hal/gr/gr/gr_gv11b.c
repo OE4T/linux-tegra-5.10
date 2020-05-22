@@ -1458,7 +1458,7 @@ void gv11b_gr_access_smpc_reg(struct gk20a *g, u32 quad, u32 offset)
 
 	gpc = pri_get_gpc_num(g, offset);
 	gpc_tpc_addr = pri_gpccs_addr_mask(offset);
-	tpc = g->ops.gr.get_tpc_num(g, gpc_tpc_addr);
+	tpc = nvgpu_gr_get_tpc_num(g, gpc_tpc_addr);
 
 	quad_ctrl = quad & 0x1U; /* first bit tells us quad */
 	half_ctrl = (quad >> 1) & 0x1U; /* second bit tells us half */
@@ -1550,7 +1550,7 @@ bool gv11b_gr_pri_is_etpc_addr(struct gk20a *g, u32 addr)
 
 	if (g->ops.gr.is_egpc_addr(g, addr)) {
 		egpc_addr = pri_gpccs_addr_mask(addr);
-		if (g->ops.gr.is_tpc_addr(g, egpc_addr)) {
+		if (nvgpu_gr_is_tpc_addr(g, egpc_addr)) {
 			return true;
 		}
 	}
@@ -1603,7 +1603,7 @@ void gv11b_gr_get_egpc_etpc_num(struct gk20a *g, u32 addr,
 
 	*egpc_num = pri_get_egpc_num(g, addr);
 	egpc_addr = pri_gpccs_addr_mask(addr);
-	*etpc_num = g->ops.gr.get_tpc_num(g, egpc_addr);
+	*etpc_num = nvgpu_gr_get_tpc_num(g, egpc_addr);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 			"egpc_num = %d etpc_num = %d", *egpc_num, *etpc_num);
@@ -1629,7 +1629,7 @@ int gv11b_gr_decode_egpc_addr(struct gk20a *g, u32 addr,
 			*gpc_num = pri_get_egpc_num(g, addr);
 			nvgpu_log_info(g, "gpc=0x%x", *gpc_num);
 		}
-		if (g->ops.gr.is_tpc_addr(g, gpc_addr)) {
+		if (nvgpu_gr_is_tpc_addr(g, gpc_addr)) {
 			nvgpu_log_info(g, "addr=0x%x is etpc", addr);
 			*addr_type = CTXSW_ADDR_TYPE_ETPC;
 			if (pri_is_tpc_addr_shared(g, gpc_addr)) {
@@ -1637,7 +1637,7 @@ int gv11b_gr_decode_egpc_addr(struct gk20a *g, u32 addr,
 				*tpc_num = 0;
 				nvgpu_log_info(g, "shared etpc");
 			} else {
-				*tpc_num = g->ops.gr.get_tpc_num(g, gpc_addr);
+				*tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
 				nvgpu_log_info(g, "tpc=0x%x", *tpc_num);
 			}
 			tpc_addr = pri_tpccs_addr_mask(addr);
@@ -1723,7 +1723,7 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 						gpc_num);
 
 				gpc_addr = pri_gpccs_addr_mask(priv_addr);
-				tpc_num = g->ops.gr.get_tpc_num(g, gpc_addr);
+				tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
 				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num)) {
 					continue;
 				}
@@ -1812,12 +1812,12 @@ int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 				return 0;
 			}
 		}
-		if (g->ops.gr.is_tpc_addr(g, gpc_addr)) {
+		if (nvgpu_gr_is_tpc_addr(g, gpc_addr)) {
 			*addr_type = CTXSW_ADDR_TYPE_TPC;
 			if (pri_is_tpc_addr_shared(g, gpc_addr)) {
 				*broadcast_flags |= PRI_BROADCAST_FLAGS_TPC;
 			} else {
-				*tpc_num = g->ops.gr.get_tpc_num(g, gpc_addr);
+				*tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
 			}
 			/* mask bits other than tpc addr bits */
 			tpc_addr = pri_tpccs_addr_mask(gpc_addr);
@@ -2010,7 +2010,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 						gpc_num);
 
 				gpc_addr = pri_gpccs_addr_mask(priv_addr);
-				tpc_num = g->ops.gr.get_tpc_num(g, gpc_addr);
+				tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
 				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num)) {
 					continue;
 				}
