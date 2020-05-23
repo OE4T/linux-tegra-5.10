@@ -28,6 +28,10 @@ static int gr_default_attrib_cb_size_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
 
+	/* HAL might not be initialized yet */
+	if (g->ops.gr.init.get_attrib_cb_default_size == NULL)
+		return -EFAULT;
+
 	seq_printf(s, "%u\n", g->ops.gr.init.get_attrib_cb_default_size(g));
 
 	return 0;
