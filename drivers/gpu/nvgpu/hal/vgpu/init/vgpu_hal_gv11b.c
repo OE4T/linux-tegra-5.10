@@ -377,7 +377,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.set_type_per_veid_header =
 				gv11b_ctxsw_prog_set_type_per_veid_header,
 #ifdef CONFIG_DEBUG_FS
-			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
+			.dump_ctxsw_stats = NULL,
 #endif
 		},
 		.config = {

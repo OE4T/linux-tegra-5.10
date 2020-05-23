@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -226,12 +226,14 @@ int gr_gk20a_debugfs_init(struct gk20a *g)
 	if (!d)
 		return -ENOMEM;
 
-	d = debugfs_create_file(
-		"dump_ctxsw_stats_on_channel_close", S_IRUGO|S_IWUSR,
+	if (!g->is_virtual) {
+		d = debugfs_create_file(
+			"dump_ctxsw_stats_on_channel_close", S_IRUGO|S_IWUSR,
 				l->debugfs, g,
 				&dump_ctxsw_stats_on_channel_close_fops);
-	if (!d)
-		return -ENOMEM;
+		if (!d)
+			return -ENOMEM;
+	}
 
 	return 0;
 }

@@ -287,7 +287,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.set_pmu_options_boost_clock_frequencies = NULL,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_DEBUG_FS
-			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
+			.dump_ctxsw_stats = NULL,
 #endif
 #ifdef CONFIG_NVGPU_FECS_TRACE
 			.hw_get_ts_tag_invalid_timestamp =
