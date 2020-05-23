@@ -30,7 +30,6 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/ce.h>
-#include <nvgpu/ce_app.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/runlist.h>
 #ifdef CONFIG_NVGPU_LS_PMU
@@ -164,9 +163,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.ce = {
 		.ce_init_support = nvgpu_ce_init_support,
 #ifdef CONFIG_NVGPU_DGPU
-		.ce_app_init_support = nvgpu_ce_app_init_support,
-		.ce_app_suspend = nvgpu_ce_app_suspend,
-		.ce_app_destroy = nvgpu_ce_app_destroy,
+		.ce_app_init_support = NULL,
+		.ce_app_suspend = NULL,
+		.ce_app_destroy = NULL,
 #endif
 		.isr_stall = NULL,
 		.isr_nonstall = NULL,
