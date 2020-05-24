@@ -84,10 +84,6 @@ static inline u32 ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f(u32 v)
 }
 
 static struct nvgpu_hw_err_inject_info ltc_ecc_err_desc[] = {
-	NVGPU_ECC_ERR("cache_rstg_ecc_corrected",
-			gv11b_ltc_inject_ecc_error,
-			ltc0_lts0_l1_cache_ecc_control_r,
-			ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f),
 	NVGPU_ECC_ERR("cache_rstg_ecc_uncorrected",
 			gv11b_ltc_inject_ecc_error,
 			ltc0_lts0_l1_cache_ecc_control_r,

@@ -41,11 +41,12 @@ static void gv11b_fb_intr_handle_ecc_l2tlb_errs(struct gk20a *g,
 			&uncorrected_error_mask);
 
 	if ((ecc_status & corrected_error_mask) != 0U) {
-		nvgpu_report_fb_ecc_err(g,
-			GPU_HUBMMU_L2TLB_SA_DATA_ECC_CORRECTED,
-			ecc_addr,
-			g->ecc.fb.mmu_l2tlb_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		nvgpu_mutex_release(&g->mm.hub_isr_mutex);
+		BUG();
 	}
 	if ((ecc_status & uncorrected_error_mask) != 0U) {
 		nvgpu_report_fb_ecc_err(g,
@@ -127,11 +128,12 @@ static void gv11b_fb_intr_handle_ecc_hubtlb_errs(struct gk20a *g,
 {
 	if ((ecc_status &
 	     fb_mmu_hubtlb_ecc_status_corrected_err_sa_data_m()) != 0U) {
-		nvgpu_report_fb_ecc_err(g,
-				GPU_HUBMMU_TLB_SA_DATA_ECC_CORRECTED,
-				ecc_addr,
-				g->ecc.fb.mmu_hubtlb_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		nvgpu_mutex_release(&g->mm.hub_isr_mutex);
+		BUG();
 	}
 	if ((ecc_status &
 	     fb_mmu_hubtlb_ecc_status_uncorrected_err_sa_data_m()) != 0U) {
@@ -216,11 +218,12 @@ static void gv11b_fb_intr_handle_ecc_fillunit_errors(struct gk20a *g,
 {
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_corrected_err_pte_data_m()) != 0U) {
-		nvgpu_report_fb_ecc_err(g,
-			GPU_HUBMMU_PTE_DATA_ECC_CORRECTED,
-			ecc_addr,
-			g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc pte data error");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		nvgpu_mutex_release(&g->mm.hub_isr_mutex);
+		BUG();
 	}
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_uncorrected_err_pte_data_m())
@@ -233,11 +236,12 @@ static void gv11b_fb_intr_handle_ecc_fillunit_errors(struct gk20a *g,
 	}
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_corrected_err_pde0_data_m()) != 0U) {
-		nvgpu_report_fb_ecc_err(g,
-			GPU_HUBMMU_PDE0_DATA_ECC_CORRECTED,
-			ecc_addr,
-			g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc pde0 data error");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		nvgpu_mutex_release(&g->mm.hub_isr_mutex);
+		BUG();
 	}
 	if ((ecc_status &
 		fb_mmu_fillunit_ecc_status_uncorrected_err_pde0_data_m())

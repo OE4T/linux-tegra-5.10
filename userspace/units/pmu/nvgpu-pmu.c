@@ -575,8 +575,8 @@ int test_pmu_isr(struct unit_module *m,
 
 	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_falcon_ecc_status_r(),
 						ecc_value);
+	EXPECT_BUG(g->ops.pmu.pmu_isr(g));
 
-	g->ops.pmu.pmu_isr(g);
 	/*
 	 * Set pwr_pmu_ecc_intr_status_r to
 	 * pwr_pmu_ecc_intr_status_uncorrected_m() to cover branches
@@ -585,7 +585,7 @@ int test_pmu_isr(struct unit_module *m,
 						ecc_value);
 	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_ecc_intr_status_r(),
 					pwr_pmu_ecc_intr_status_uncorrected_m());
-	g->ops.pmu.pmu_isr(g);
+	EXPECT_BUG(g->ops.pmu.pmu_isr(g));
 
 	/*
 	 * Set pwr_pmu_ecc_intr_status_r to
@@ -595,7 +595,7 @@ int test_pmu_isr(struct unit_module *m,
 						ecc_value);
 	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_ecc_intr_status_r(),
 					pwr_pmu_ecc_intr_status_corrected_m());
-	g->ops.pmu.pmu_isr(g);
+	EXPECT_BUG(g->ops.pmu.pmu_isr(g));
 
 	/*
 	 * intr 1 = 0x1
@@ -603,6 +603,7 @@ int test_pmu_isr(struct unit_module *m,
 	nvgpu_posix_io_writel_reg_space(g, pwr_pmu_ecc_intr_status_r(),
 					pwr_pmu_ecc_intr_status_corrected_m());
 	g->ops.pmu.pmu_isr(g);
+
 	/*
 	 * intr 1 = 0x2
 	 */

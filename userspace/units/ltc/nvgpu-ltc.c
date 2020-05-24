@@ -472,7 +472,7 @@ int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args)
 		ltc_ltc0_lts0_dstg_ecc_address_info_ram_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
-	g->ops.ltc.intr.isr(g, 0);
+	EXPECT_BUG(g->ops.ltc.intr.isr(g, 0));
 
 	/* set tstg & rstg bits */
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_l2_cache_ecc_status_r(),
@@ -482,7 +482,7 @@ int test_ltc_intr(struct unit_module *m, struct gk20a *g, void *args)
 		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_m());
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr3_r(),
 			ltc_ltcs_ltss_intr3_ecc_uncorrected_m());
-	g->ops.ltc.intr.isr(g, 0);
+	EXPECT_BUG(g->ops.ltc.intr.isr(g, 0));
 
 	/* set sec & ded error bits */
 	nvgpu_posix_io_writel_reg_space(g, ltc_ltc0_lts0_intr_r(),

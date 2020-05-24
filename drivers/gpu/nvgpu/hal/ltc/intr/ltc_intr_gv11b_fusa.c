@@ -103,12 +103,11 @@ void gv11b_ltc_intr_handle_rstg_ecc_interrupts(struct gk20a *g,
 	if ((ecc_status &
 		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m())
 								!= 0U) {
-		nvgpu_report_ecc_err(g,
-			NVGPU_ERR_MODULE_LTC,
-			(ltc << 8U) | slice,
-			GPU_LTC_CACHE_RSTG_ECC_CORRECTED, ecc_addr,
-			g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
 		nvgpu_log(g, gpu_dbg_intr, "rstg ecc error corrected");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if ((ecc_status &
 		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_m())
@@ -129,12 +128,11 @@ void gv11b_ltc_intr_handle_tstg_ecc_interrupts(struct gk20a *g,
 	if ((ecc_status &
 		ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_m())
 								!= 0U) {
-		nvgpu_report_ecc_err(g,
-			NVGPU_ERR_MODULE_LTC,
-			(ltc << 8U) | slice,
-			GPU_LTC_CACHE_TSTG_ECC_CORRECTED, ecc_addr,
-			g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
 		nvgpu_log(g, gpu_dbg_intr, "tstg ecc error corrected");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if ((ecc_status &
 		ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_m())
@@ -165,11 +163,10 @@ void gv11b_ltc_intr_handle_dstg_ecc_interrupts(struct gk20a *g,
 				GPU_LTC_CACHE_DSTG_ECC_CORRECTED, ecc_addr,
 				g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
 		} else {
-			nvgpu_report_ecc_err(g,
-				NVGPU_ERR_MODULE_LTC,
-				(ltc << 8U) | slice,
-				GPU_LTC_CACHE_DSTG_BE_ECC_CORRECTED, ecc_addr,
-				g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
+			/* This error is not expected to occur in gv11b and
+			 * hence, this scenario is considered as a fatal error.
+			 */
+			BUG();
 		}
 		nvgpu_log(g, gpu_dbg_intr, "dstg ecc error corrected");
 	}

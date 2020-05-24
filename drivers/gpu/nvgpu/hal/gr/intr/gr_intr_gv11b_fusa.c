@@ -68,11 +68,11 @@ static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 		nvgpu_log(g, gpu_dbg_intr, "imem ecc error uncorrected");
 	}
 	if (fecs_ecc_status.dmem_corrected_err) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_FECS, 0,
-			GPU_FECS_FALCON_DMEM_ECC_CORRECTED,
-			fecs_ecc_status.ecc_addr,
-			g->ecc.gr.fecs_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if (fecs_ecc_status.dmem_uncorrected_err) {
 		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_FECS, 0,
@@ -277,11 +277,12 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 		*corrected_err = nvgpu_safe_add_u32(
 					*corrected_err,
 					gcc_l15_corrected_err_count_delta);
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_GCC, gpc,
-				GPU_GCC_L15_ECC_CORRECTED,
-				0, *corrected_err);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 		 gr_pri_gpc0_gcc_l15_ecc_corrected_err_count_r(), offset), 0);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if ((gcc_l15_uncorrected_err_count_delta > 0U) ||
 	    is_gcc_l15_ecc_uncorrected_total_err_overflow) {
@@ -322,10 +323,11 @@ static void gv11b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_sa_data_m()) !=
 									0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_MMU, gpc,
-				GPU_MMU_L1TLB_SA_DATA_ECC_CORRECTED,
-				0, correct_err);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_uncorrected_err_l1tlb_sa_data_m()) !=
@@ -338,10 +340,11 @@ static void gv11b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_fa_data_m()) !=
 									0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_MMU, gpc,
-				GPU_MMU_L1TLB_FA_DATA_ECC_CORRECTED,
-				0, correct_err);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc fa data error");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_uncorrected_err_l1tlb_fa_data_m()) !=
@@ -460,10 +463,11 @@ static void gv11b_gr_intr_report_gpccs_ecc_err(struct gk20a *g,
 	}
 	if ((ecc_status &
 	     gr_gpc0_gpccs_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_GPCCS,
-				gpc, GPU_GPCCS_FALCON_DMEM_ECC_CORRECTED,
-				ecc_addr, correct_err);
 		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if ((ecc_status &
 	     gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
@@ -897,20 +901,6 @@ static void gv11b_gr_intr_report_l1_tag_corrected_err(struct gk20a *g,
 				GPU_SM_L1_TAG_ECC_CORRECTED, 0,
 				g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
 		}
-
-		if (ecc_status->err_id[i] == GPU_SM_L1_TAG_MISS_FIFO_ECC_CORRECTED) {
-			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << SHIFT_8_BITS) | tpc,
-				GPU_SM_L1_TAG_MISS_FIFO_ECC_CORRECTED, 0,
-				g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
-		}
-
-		if (ecc_status->err_id[i] == GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED) {
-			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << SHIFT_8_BITS) | tpc,
-				GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED, 0,
-				g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
-		}
 	}
 }
 
@@ -959,18 +949,18 @@ static void gv11b_gr_intr_set_l1_tag_corrected_err(struct gk20a *g,
 
 	if ((l1_tag_ecc_status &
 	     gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_miss_fifo_m()) != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_L1_TAG_MISS_FIFO_ECC_CORRECTED;
-		ecc_status->err_count =
-				nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 
 	if ((l1_tag_ecc_status &
 	     gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_pixrpf_m()) != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED;
-		ecc_status->err_count =
-				nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 }
 
@@ -1129,10 +1119,10 @@ static bool gv11b_gr_intr_sm_lrf_ecc_status_errors(struct gk20a *g,
 	ecc_status->err_count = 0U;
 
 	if (corr_err != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_LRF_ECC_CORRECTED;
-		ecc_status->err_count =
-			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 
 	if (uncorr_err != 0U) {
@@ -1213,13 +1203,13 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 		   nvgpu_safe_add_u32(
 			g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter,
 			lrf_corrected_err_count_delta);
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-			(gpc << SHIFT_8_BITS) | tpc,
-			GPU_SM_LRF_ECC_CORRECTED, 0,
-			g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_lrf_ecc_corrected_err_count_r(), offset),
 			0U);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if ((lrf_uncorrected_err_count_delta > 0U) || is_lrf_ecc_uncorrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
@@ -1276,10 +1266,10 @@ static bool gv11b_gr_intr_sm_cbu_ecc_status_errors(struct gk20a *g,
 	ecc_status->err_count = 0U;
 
 	if (corr_err != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_CBU_ECC_CORRECTED;
-		ecc_status->err_count =
-			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 
 	if (uncorr_err != 0U) {
@@ -1358,13 +1348,13 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 		  nvgpu_safe_add_u32(
 			g->ecc.gr.sm_cbu_ecc_corrected_err_count[gpc][tpc].counter,
 			cbu_corrected_err_count_delta);
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << SHIFT_8_BITS) | tpc,
-				GPU_SM_CBU_ECC_CORRECTED,
-				0, g->ecc.gr.sm_cbu_ecc_corrected_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_cbu_ecc_corrected_err_count_r(), offset),
 			0U);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 	if ((cbu_uncorrected_err_count_delta > 0U) || is_cbu_ecc_uncorrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
@@ -1415,10 +1405,10 @@ static bool gv11b_gr_intr_sm_l1_data_ecc_status_errors(struct gk20a *g,
 	ecc_status->err_count = 0U;
 
 	if (corr_err != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_L1_DATA_ECC_CORRECTED;
-		ecc_status->err_count =
-			nvgpu_safe_add_u32(ecc_status->err_count, 1U);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 
 	if (uncorr_err != 0U) {
@@ -1498,13 +1488,13 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 		   nvgpu_safe_add_u32(
 			g->ecc.gr.sm_l1_data_ecc_corrected_err_count[gpc][tpc].counter,
 			l1_data_corrected_err_count_delta);
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << SHIFT_8_BITS) | tpc,
-				GPU_SM_L1_DATA_ECC_CORRECTED,
-				0, g->ecc.gr.sm_l1_data_ecc_corrected_err_count[gpc][tpc].counter);
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_l1_data_ecc_corrected_err_count_r(), offset),
 			0U);
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
 	}
 
 	if ((l1_data_uncorrected_err_count_delta > 0U) || is_l1_data_ecc_uncorrected_total_err_overflow) {
@@ -1577,80 +1567,6 @@ static void gv11b_gr_intr_report_icache_uncorrected_err(struct gk20a *g,
 	}
 }
 
-static void gv11b_gr_intr_report_icache_corrected_err(struct gk20a *g,
-		struct nvgpu_gr_sm_ecc_status *ecc_status, u32 gpc, u32 tpc)
-{
-	u32 i;
-
-	/* This check has been added to ensure that the TPC id is less than
-	 * 8-bits and hence, it can be packed as part of LSB 8-bits along with
-	 * the GPC id while reporting SM related ECC errors.
-	 */
-	tpc = tpc & U8_MAX;
-
-	for (i = 0U; i < ecc_status->err_count; i++) {
-		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L0_DATA_ECC_CORRECTED) {
-			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << SHIFT_8_BITS) | tpc,
-				GPU_SM_ICACHE_L0_DATA_ECC_CORRECTED,
-				0, g->ecc.gr.sm_icache_ecc_corrected_err_count[gpc][tpc].counter);
-		}
-
-		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L0_PREDECODE_ECC_CORRECTED) {
-			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << SHIFT_8_BITS) | tpc,
-				GPU_SM_ICACHE_L0_PREDECODE_ECC_CORRECTED,
-				0, g->ecc.gr.sm_icache_ecc_corrected_err_count[gpc][tpc].counter);
-		}
-
-		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L1_DATA_ECC_CORRECTED) {
-			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << SHIFT_8_BITS) | tpc,
-				GPU_SM_ICACHE_L1_DATA_ECC_CORRECTED,
-				0, g->ecc.gr.sm_icache_ecc_corrected_err_count[gpc][tpc].counter);
-		}
-
-		if (ecc_status->err_id[i] == GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED) {
-			nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_SM,
-				(gpc << SHIFT_8_BITS) | tpc,
-				GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED,
-				0, g->ecc.gr.sm_icache_ecc_corrected_err_count[gpc][tpc].counter);
-		}
-	}
-}
-
-static void gv11b_set_icache_ecc_status_corrected_errors(struct gk20a *g,
-	u32 icache_ecc_status, struct nvgpu_gr_sm_ecc_status *ecc_status)
-{
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_data_m()) != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_ICACHE_L0_DATA_ECC_CORRECTED;
-		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
-	}
-
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l0_predecode_m()) != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_ICACHE_L0_PREDECODE_ECC_CORRECTED;
-		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
-	}
-
-	if ((icache_ecc_status  &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_data_m()) != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_ICACHE_L1_DATA_ECC_CORRECTED;
-		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
-	}
-
-	if ((icache_ecc_status &
-	     gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_l1_predecode_m()) != 0U) {
-		ecc_status->err_id[ecc_status->err_count] =
-				GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED;
-		ecc_status->err_count = nvgpu_safe_add_u32(ecc_status->err_count, 1U);
-	}
-}
-
 static void gv11b_set_icache_ecc_status_uncorrected_errors(struct gk20a *g,
 				u32 icache_ecc_status,
 				struct nvgpu_gr_sm_ecc_status *ecc_status)
@@ -1707,8 +1623,12 @@ static bool gv11b_gr_intr_sm_icache_ecc_status_errors(struct gk20a *g,
 
 	ecc_status->err_count = 0U;
 
-	gv11b_set_icache_ecc_status_corrected_errors(g, icache_ecc_status,
-						     ecc_status);
+	if (corr_err != 0U) {
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		BUG();
+	}
 
 	gv11b_set_icache_ecc_status_uncorrected_errors(g, icache_ecc_status,
 						     ecc_status);
@@ -1779,7 +1699,6 @@ static void gv11b_gr_intr_handle_icache_exception(struct gk20a *g, u32 gpc, u32 
 		nvgpu_writel(g, nvgpu_safe_add_u32(
 			gr_pri_gpc0_tpc0_sm_icache_ecc_corrected_err_count_r(), offset),
 			0U);
-		gv11b_gr_intr_report_icache_corrected_err(g, &ecc_status, gpc, tpc);
 	}
 
 	if ((icache_uncorrected_err_count_delta > 0U) || is_icache_ecc_uncorrected_total_err_overflow) {

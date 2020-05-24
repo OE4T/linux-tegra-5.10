@@ -206,7 +206,7 @@ static int gr_test_intr_block_ptr_as_current_ctx(struct unit_module *m,
 	struct nvgpu_gr_intr *intr = g->gr->intr;
 	u32 tsgid = nvgpu_inst_block_ptr(g, &ch->inst_block);
 
-	err = g->ops.gr.intr.stall_isr(g);
+	err = EXPECT_BUG(g->ops.gr.intr.stall_isr(g));
 	if (err != 0) {
 		unit_return_fail(m, "failed stall isr\n");
 	}
@@ -294,7 +294,6 @@ static int gr_test_intr_allocate_ch_tsg(struct unit_module *m,
 		unit_err(m, "isr failed with block_ptr as current_ctx\n");
 		goto tsg_unbind;
 	}
-
 
 	err = gr_test_intr_cache_current_ctx(g, ch, tsgid);
 	if (err != 0) {
@@ -746,21 +745,21 @@ static void gr_intr_gpc_ecc_err_injections(struct gk20a *g)
 			nvgpu_posix_io_writel_reg_space(g, uncorr_reg, uncorr_cnt);
 			nvgpu_posix_io_writel_reg_space(g, status_reg, ecc_status);
 			if (i <= 4) {
-				g->ops.gr.intr.handle_tpc_sm_ecc_exception(g, 0 , 0);
+				EXPECT_BUG(g->ops.gr.intr.handle_tpc_sm_ecc_exception(g, 0 , 0));
 			} else if (i == 5) {
 				gpc_exception =
 					gr_gpc0_gpccs_gpc_exception_gpcmmu_m();
-				g->ops.gr.intr.handle_gpc_gpcmmu_exception(g,
-					0, gpc_exception, &corr_cnt, &uncorr_cnt);
+				EXPECT_BUG(g->ops.gr.intr.handle_gpc_gpcmmu_exception(g,
+					0, gpc_exception, &corr_cnt, &uncorr_cnt));
 			} else if (i == 6) {
 				gpc_exception =
 					gr_gpc0_gpccs_gpc_exception_gpccs_m();
-				g->ops.gr.intr.handle_gpc_gpccs_exception(g,
-					0, gpc_exception, &corr_cnt, &uncorr_cnt);
+				EXPECT_BUG(g->ops.gr.intr.handle_gpc_gpccs_exception(g,
+					0, gpc_exception, &corr_cnt, &uncorr_cnt));
 			} else if (i == 7) {
 				gpc_exception = 0x1 << 2;
-				g->ops.gr.intr.handle_gcc_exception(g,
-					0, gpc_exception, &corr_cnt, &uncorr_cnt);
+				EXPECT_BUG(g->ops.gr.intr.handle_gcc_exception(g,
+					0, gpc_exception, &corr_cnt, &uncorr_cnt));
 			}
 		}
 	}
@@ -1066,8 +1065,13 @@ int test_gr_intr_gpc_exceptions(struct unit_module *m,
 	gr_intr_gpc_gpccs_esr_regs(g);
 	gr_intr_gpc_ecc_err_regs(g);
 
-	err = gr_test_gpc_exception_intr(g);
-	if (err != 0) {
+	/* enable gpc exception interrupt bit */
+	gr_test_enable_gpc_exception_intr(g);
+
+	/* Call interrupt routine */
+	err = EXPECT_BUG(g->ops.gr.intr.stall_isr(g));
+
+	if (err == 0) {
 		unit_return_fail(m, "stall isr failed\n");
 	}
 
@@ -1076,9 +1080,6 @@ int test_gr_intr_gpc_exceptions(struct unit_module *m,
 	 * for overflow and corrected and uncorrected errors.
 	 */
 	gr_intr_gpc_ecc_err_injections(g);
-	if (err != 0) {
-		unit_return_fail(m, "gr_intr_gpc_ecc_err_injections failed\n");
-	}
 
 	gr_test_set_gpc_pes_exception(g);
 
@@ -1172,9 +1173,17 @@ int test_gr_intr_fecs_exceptions(struct unit_module *m,
 			j += 1;
 		}
 
-		err = g->ops.gr.intr.stall_isr(g);
-		if (err != 0) {
-			unit_return_fail(m, "failed in fecs error interrupts\n");
+		if (i == 10) {
+			/* Injection of ECC corrected error will trigger BUG(). */
+			err = EXPECT_BUG(g->ops.gr.intr.stall_isr(g));
+			if (err == 0) {
+				unit_return_fail(m, "failed in fecs error interrupts\n");
+			}
+		} else {
+			err = g->ops.gr.intr.stall_isr(g);
+			if (err != 0) {
+				unit_return_fail(m, "failed in fecs error interrupts\n");
+			}
 		}
 	}
 	return UNIT_SUCCESS;

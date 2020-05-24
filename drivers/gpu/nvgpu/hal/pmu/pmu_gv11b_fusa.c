@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -157,11 +157,12 @@ static int gv11b_pmu_correct_ecc(struct gk20a *g, u32 ecc_status, u32 ecc_addr)
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
-		nvgpu_report_ecc_err(g, NVGPU_ERR_MODULE_PMU, 0,
-			GPU_PMU_FALCON_DMEM_ECC_CORRECTED,
-			ecc_addr,
-			g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
+		/* This error is not expected to occur in gv11b and hence,
+		 * this scenario is considered as a fatal error.
+		 */
+		nvgpu_mutex_release(&g->pmu->isr_mutex);
+		BUG();
 	}
 	if ((ecc_status &
 		pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
