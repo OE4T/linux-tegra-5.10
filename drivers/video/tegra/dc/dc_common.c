@@ -1142,9 +1142,6 @@ static int tegra_dc_common_probe(struct platform_device *pdev)
 	}
 	dev_info(&dc_common->pdev->dev, "dma mapping done\n");
 
-
-	dc_common->channel->syncpts[0] = dc_common->syncpt_id;
-
 	mutex_init(&dc_common->lock);
 	init_waitqueue_head(&dc_common->prgrm_reg_reqs_wq);
 

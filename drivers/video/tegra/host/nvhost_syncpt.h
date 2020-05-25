@@ -35,6 +35,8 @@
 /* timeout to wait for a syncpt to become free */
 #define NVHOST_SYNCPT_FREE_WAIT_TIMEOUT (1 * HZ)
 
+#define NVHOST_SYNCPT_IN_USE_CH_NONE	(-1)
+
 struct nvhost_syncpt;
 
 /* Attribute struct for sysfs min and max attributes */
@@ -45,9 +47,9 @@ struct nvhost_syncpt_attr {
 };
 
 struct nvhost_syncpt {
-	bool *assigned;
-	bool *in_use;
-	bool *client_managed;
+	bool	*assigned;
+	bool	*client_managed;
+	int	*in_use_ch;
 	struct kobject *kobj;
 	struct mutex syncpt_mutex;
 	atomic_t *min_val;
@@ -181,7 +183,7 @@ bool nvhost_syncpt_wrapping_comparison(u32 syncpt, u32 threshold);
 
 struct nvhost_sync_timeline *nvhost_syncpt_timeline(struct nvhost_syncpt *sp,
 		int idx);
-int nvhost_syncpt_mark_unused(struct nvhost_syncpt *sp, u32 syncptid);
+int nvhost_syncpt_mark_unused(struct nvhost_syncpt *sp, u32 chid);
 int nvhost_syncpt_mark_used(struct nvhost_syncpt *sp,
 			    u32 chid, u32 syncptid);
 
