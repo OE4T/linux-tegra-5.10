@@ -90,6 +90,9 @@ static u8 otf_key[TSEC_KEY_LENGTH];
 /* Pointer to this device */
 static struct platform_device *tsec;
 
+/* Pointer to this nvhost channel */
+static struct nvhost_channel *channel = NULL;
+
 int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 {
 	int err = 0;
@@ -373,12 +376,10 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 	dma_addr_t dma_handle = 0;
 	u32 increment_opcode;
 	struct nvhost_device_data *pdata = platform_get_drvdata(tsec);
-	static struct nvhost_channel *channel = NULL;
 	int err;
-	static bool mapped = false;
 
 	mutex_lock(&tegra_tsec_lock);
-	if (!mapped) {
+	if (!channel) {
 		err = nvhost_channel_map(pdata, &channel, pdata);
 		if (err) {
 			nvhost_err(&tsec->dev, "Channel map failed\n");
@@ -393,8 +394,6 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 			mutex_unlock(&tegra_tsec_lock);
 			return;
 		}
-
-		mapped = true;
 	}
 
 	cpuvaddr = dma_alloc_attrs(tsec->dev.parent, HDCP_MTHD_BUF_SIZE,
@@ -739,6 +738,11 @@ int nvhost_tsec_prepare_poweroff(struct platform_device *dev)
 	struct flcn *m = get_flcn(dev);
 	if (m)
 		m->is_booted = false;
+
+	if (channel) {
+		nvhost_putchannel(channel, 1);
+		channel = NULL;
+	}
 
 	return 0;
 }
