@@ -32,7 +32,11 @@
 #define stringify(x)			__stringify(x)
 
 #ifndef __DEFAULT_ARG_DRIVER_LOAD_PATH
+#if defined(__NVGPU_POSIX__)
+#define __DEFAULT_ARG_DRIVER_LOAD_PATH	./build/libnvgpu-drv-igpu.so
+#else
 #define __DEFAULT_ARG_DRIVER_LOAD_PATH	./libnvgpu-drv-igpu.so
+#endif
 #endif
 #define DEFAULT_ARG_DRIVER_LOAD_PATH	stringify(__DEFAULT_ARG_DRIVER_LOAD_PATH)
 
