@@ -208,7 +208,7 @@ config NVGPU_SUPPORT_CDE
 	bool "Support extraction of comptags for CDE"
 	depends on GK20A
 	depends on NVGPU_COMPRESSION
-	default y
+	default n
 	help
 	  Enable support for extraction of comptags for CDE.
 
