@@ -80,13 +80,20 @@ static u32 mc_gp10b_intr_pending_f(struct gk20a *g, u32 unit)
 	return intr_pending_f;
 }
 
+static void mc_gp10b_isr_stall_primary(struct gk20a *g, u32 mc_intr_0)
+{
+	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
+		g->ops.bus.isr(g);
+	}
+	if ((mc_intr_0 & mc_intr_priv_ring_pending_f()) != 0U) {
+		g->ops.priv_ring.isr(g);
+	}
+}
+
 static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
 {
 	if ((mc_intr_0 & mc_intr_ltc_pending_f()) != 0U) {
 		g->ops.mc.ltc_isr(g);
-	}
-	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
-		g->ops.bus.isr(g);
 	}
 #ifdef CONFIG_NVGPU_DGPU
 	if ((g->ops.mc.is_intr_nvlink_pending != NULL) &&
@@ -111,9 +118,6 @@ static void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0)
 	}
 	if ((mc_intr_0 & mc_intr_pmu_pending_f()) != 0U) {
 		g->ops.pmu.pmu_isr(g);
-	}
-	if ((mc_intr_0 & mc_intr_priv_ring_pending_f()) != 0U) {
-		g->ops.priv_ring.isr(g);
 	}
 }
 
@@ -185,6 +189,8 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 	mc_intr_0 = nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
 
 	nvgpu_log(g, gpu_dbg_intr, "stall intr 0x%08x", mc_intr_0);
+
+	mc_gp10b_isr_stall_primary(g, mc_intr_0);
 
 	for (i = 0U; i < g->fifo.num_engines; i++) {
 		engine_id = g->fifo.active_engines_list[i];
