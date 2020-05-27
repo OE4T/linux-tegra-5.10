@@ -416,11 +416,26 @@ static int do_relocs(struct nvhost_job *job,
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(job->ch->dev);
 	int i = 0;
-	int last_page = -1;
-	size_t last_offset;
-	void *cmdbuf_page_addr = NULL;
+	void *cmdbuf_base_addr = NULL;
 	dma_addr_t phys_addr;
 	int err;
+
+	cmdbuf_base_addr = dma_buf_vmap(buf);
+	if (!cmdbuf_base_addr) {
+		nvhost_err(&pdata->pdev->dev, "could not vmap cmdbuf");
+		return -ENOMEM;
+	}
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+	err = dma_buf_begin_cpu_access(buf, 0, buf->size, DMA_TO_DEVICE);
+#else
+	err = dma_buf_begin_cpu_access(buf, DMA_TO_DEVICE);
+#endif
+	if (err) {
+		nvhost_err(&pdata->pdev->dev, "could not begin_cpu_access: %d",
+		           err);
+		goto vunmap;
+	}
 
 	/* pin & patch the relocs for one gather */
 	while (i < job->num_relocs) {
@@ -439,43 +454,8 @@ static int do_relocs(struct nvhost_job *job,
 			nvhost_err(&pdata->pdev->dev,
 				   "invalid cmdbuf_offset=0x%x",
 				   reloc->cmdbuf_offset);
-			return -EINVAL;
-		}
-
-		if (last_page != reloc->cmdbuf_offset >> PAGE_SHIFT) {
-			if (cmdbuf_page_addr) {
-				dma_buf_kunmap(buf, last_page,
-						cmdbuf_page_addr);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
-				dma_buf_end_cpu_access(buf, last_offset,
-					PAGE_SIZE, DMA_TO_DEVICE);
-#else
-				dma_buf_end_cpu_access(buf, DMA_TO_DEVICE);
-#endif
-			}
-
-			cmdbuf_page_addr = dma_buf_kmap(buf,
-					reloc->cmdbuf_offset >> PAGE_SHIFT);
-			last_page = reloc->cmdbuf_offset >> PAGE_SHIFT;
-			last_offset = reloc->cmdbuf_offset & PAGE_MASK;
-
-			if (unlikely(!cmdbuf_page_addr)) {
-				pr_err("Couldn't map cmdbuf for relocation\n");
-				return -ENOMEM;
-			}
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
-			err = dma_buf_begin_cpu_access(buf, last_offset,
-					PAGE_SIZE, DMA_TO_DEVICE);
-#else
-			err = dma_buf_begin_cpu_access(buf, DMA_TO_DEVICE);
-#endif
-			if (err) {
-				nvhost_err(&pdata->pdev->dev,
-					"begin_cpu_access() failed for patching reloc %d",
-					err);
-				return err;
-			}
+			err = -EINVAL;
+			goto end_cpu_access;
 		}
 
 		if (pdata->get_reloc_phys_addr)
@@ -488,8 +468,8 @@ static int do_relocs(struct nvhost_job *job,
 		__raw_writel(
 			(phys_addr +
 				reloc->target_offset) >> shift->shift,
-			(void __iomem *)(cmdbuf_page_addr +
-				(reloc->cmdbuf_offset & ~PAGE_MASK)));
+			(void __iomem *)(cmdbuf_base_addr +
+				reloc->cmdbuf_offset));
 
 		/* remove completed reloc from the job */
 		if (i != job->num_relocs - 1) {
@@ -513,17 +493,18 @@ static int do_relocs(struct nvhost_job *job,
 		}
 	}
 
-	if (cmdbuf_page_addr) {
-		dma_buf_kunmap(buf, last_page, cmdbuf_page_addr);
+end_cpu_access:
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
-		dma_buf_end_cpu_access(buf, last_offset,
-				PAGE_SIZE, DMA_TO_DEVICE);
+	dma_buf_end_cpu_access(buf, 0,
+			       buf->size, DMA_TO_DEVICE);
 #else
-		dma_buf_end_cpu_access(buf, DMA_TO_DEVICE);
+	dma_buf_end_cpu_access(buf, DMA_TO_DEVICE);
 #endif
-	}
 
-	return 0;
+vunmap:
+	dma_buf_vunmap(buf, cmdbuf_base_addr);
+
+	return err;
 }
 
 
