@@ -208,7 +208,11 @@ int nvhost_read_module_regs(struct platform_device *ndev,
 		return err;
 
 	/* prevent speculative access to mod's aperture + offset */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	spec_bar();
+#else
 	speculation_barrier();
+#endif
 
 	while (count--) {
 		*(values++) = host1x_readl(ndev, offset);
@@ -868,7 +872,13 @@ static int nvhost_ioctl_channel_submit(struct nvhost_channel_userctx *ctx,
 
 	nvhost_eventlib_log_submit(ctx->pdev, job->sp[0].id,
 			pdata->push_work_done ? (job->sp[0].fence - 1) :
-			job->sp[0].fence, arch_counter_get_cntvct());
+			job->sp[0].fence,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+			arch_timer_read_counter()
+#else
+			arch_counter_get_cntvct()
+#endif
+	);
 
 	err = submit_deliver_fences(args, job, ctx);
 	if (err)

@@ -31,6 +31,7 @@
 
 #include <iommu_context_dev.h>
 
+#include "nvhost_vm.h"
 #include "chip_support.h"
 
 static struct of_device_id tegra_iommu_context_dev_of_match[] = {
@@ -171,7 +172,7 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 #endif
 
 	dev_info(&pdev->dev, "initialized (streamid=%d)",
-		 iommu_get_hwid(pdev->dev.archdata.iommu, &pdev->dev, 0));
+		 nvhost_vm_get_hwid(pdev, 0));
 
 	if (vm_op().init_syncpt_interface)
 		vm_op().init_syncpt_interface(pdev);

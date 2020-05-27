@@ -135,8 +135,13 @@ struct nvhost_job *nvhost_job_alloc(struct nvhost_channel *ch,
 
 	if (pdata->enable_timestamps) {
 		job->engine_timestamps.ptr =
-			dma_zalloc_coherent(&ch->vm->pdev->dev, sizeof(u64) * 2,
-			&job->engine_timestamps.dma, GFP_KERNEL);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+			dma_alloc_coherent
+#else
+			dma_zalloc_coherent
+#endif
+			(&ch->vm->pdev->dev, sizeof(u64) * 2, &job->engine_timestamps.dma,
+			 GFP_KERNEL);
 		if (!job->engine_timestamps.ptr) {
 			nvhost_err(&pdata->pdev->dev,
 				   "failed to allocate engine timestamps");

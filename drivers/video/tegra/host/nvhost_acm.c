@@ -43,8 +43,8 @@
 #include <linux/clk/tegra.h>
 #include <linux/clk-provider.h>
 
-#include <linux/platform/tegra/mc.h>
 #if defined(CONFIG_TEGRA_BWMGR)
+#include <linux/platform/tegra/mc.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
 #endif
 

@@ -2,6 +2,7 @@
 
 #include <linux/anon_inodes.h>
 #include <linux/file.h>
+#include <linux/fs.h>
 #include <linux/nvhost.h>
 #include <linux/slab.h>
 #include <uapi/linux/nvhost_ioctl.h>
