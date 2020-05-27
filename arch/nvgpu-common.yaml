@@ -483,6 +483,12 @@ gr:
       sources: [ common/gr/gr_ecc.c,
                  include/nvgpu/gr/gr_ecc.h ]
 
+fb:
+  safe: yes
+  owner: Vedashree V
+  sources: [ common/fb/fb.c,
+             include/nvgpu/fb.h ]
+
 fbp:
   safe: yes
   owner: Deepak N

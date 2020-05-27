@@ -193,6 +193,7 @@ nvgpu-y += \
 	common/semaphore/semaphore.o \
 	common/regops/regops.o \
 	common/ltc/ltc.o \
+	common/fb/fb.o \
 	common/fbp/fbp.o \
 	common/gr/gr_utils.o \
 	common/gr/gr.o \

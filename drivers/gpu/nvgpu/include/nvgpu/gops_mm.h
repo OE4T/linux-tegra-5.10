@@ -58,9 +58,6 @@ struct gops_mm {
 	 * @param g [in]	The GPU.
 	 *
 	 * MM init:
-	 * - Request common.fb and common.ltc to load the prod values for
-	 *   slcg and blcg.
-	 * - Initializes the fbhub mmu.
 	 * - MM S/W init:
 	 *  - Resets the current pramin window index to 0.
 	 *  - Initializes the vidmem page allocator with size, flags and etc.

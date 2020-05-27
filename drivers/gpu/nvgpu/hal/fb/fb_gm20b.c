@@ -44,7 +44,7 @@ void fb_gm20b_init_fs_state(struct gk20a *g)
 	nvgpu_log_info(g, "initialize gm20b fb");
 
 	gk20a_writel(g, fb_fbhub_num_active_ltcs_r(),
-			nvgpu_ltc_get_ltc_count(g));
+			g->ops.priv_ring.enum_ltc(g));
 
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Bypass MMU check for non-secure boot. For

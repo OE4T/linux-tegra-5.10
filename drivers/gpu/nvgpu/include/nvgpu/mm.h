@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -520,9 +520,6 @@ void nvgpu_init_mm_ce_context(struct gk20a *g);
  * @param g	[in]	The GPU.
  *
  * MM init:
- * - Request common.fb and common.ltc to load the prod values for
- *   slcg and blcg.
- * - Initializes the fbhub mmu.
  * - MM S/W init:
  *   - Resets the current pramin window index to 0.
  *   - Initializes the vidmem page allocator with size, flags and etc.

@@ -110,6 +110,7 @@ srcs +=	common/utils/enabled.c \
 	common/mm/dma.c \
 	common/therm/therm.c \
 	common/ltc/ltc.c \
+	common/fb/fb.c \
 	common/fbp/fbp.c \
 	common/io/io.c \
 	common/ecc.c \

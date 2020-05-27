@@ -522,6 +522,7 @@ nvgpu_gr_suspend
 nvgpu_gr_sw_ready
 nvgpu_has_syncpoints
 nvgpu_init_enabled_flags
+nvgpu_init_fb_support
 nvgpu_init_hal
 nvgpu_init_ltc_support
 nvgpu_init_mm_support
