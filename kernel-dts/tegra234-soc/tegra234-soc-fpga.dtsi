@@ -172,12 +172,14 @@
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_DISP>,
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P0>,
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P1>,
-			 <&bpmp_clks TEGRA234_CLK_DPAUX>;
+			 <&bpmp_clks TEGRA234_CLK_DPAUX>,
+			 <&bpmp_clks TEGRA234_CLK_FUSE>;
 		clock-names = "display_hub_clk",
 			      "display_disp_clk",
 			      "display_p_clk0",
 			      "display_p_clk1",
-			      "dpaux0_clk";
+			      "dpaux0_clk",
+			      "fuse_clk";
 		resets = <&bpmp_resets TEGRA234_RESET_NVDISPLAY>,
 			 <&bpmp_resets TEGRA234_RESET_DPAUX>;
 		reset-names = "nvdisplay_reset",
