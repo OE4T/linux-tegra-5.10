@@ -221,11 +221,7 @@ void nvhost_job_add_gather(struct nvhost_job *job,
 void nvhost_job_set_notifier(struct nvhost_job *job, u32 error)
 {
 	struct nvhost_notification *error_notifier;
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
-	struct timespec time_data;
-#else
 	struct timespec64 time_data;
-#endif
 	void *va;
 	u64 nsec;
 
@@ -242,11 +238,8 @@ void nvhost_job_set_notifier(struct nvhost_job *job, u32 error)
 
 	error_notifier = va + job->error_notifier_offset;
 
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
-	getnstimeofday(&time_data);
-#else
-	ktime_get_ts64(&time_data);
-#endif
+	ktime_get_real_ts64(&time_data);
+
 	nsec = ((u64)time_data.tv_sec) * 1000000000u +
 		(u64)time_data.tv_nsec;
 	error_notifier->time_stamp.nanoseconds[0] =

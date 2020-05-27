@@ -30,11 +30,7 @@ enum nvhost_clock_id {
 };
 
 struct nvhost_timespec {
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
-	struct timespec ts;
-#else
 	struct timespec64 ts;
-#endif
 	enum nvhost_clock_id clock;
 };
 
@@ -46,7 +42,7 @@ do {					\
 	u64 time_ns;			\
 	int err = get_ptp_hwtime(&time_ns);		\
 	if (err) {					\
-		ktime_get_ts(&(nvts)->ts);			\
+		ktime_get_ts64(&(nvts)->ts);			\
 		(nvts)->clock = NVHOST_CLOCK_MONOTONIC;	\
 	} else {						\
 		(nvts)->ts = ns_to_timespec(time_ns);		\
@@ -59,7 +55,7 @@ do {					\
 
 #define nvhost_ktime_get_ts(nvts)	\
 do {					\
-	ktime_get_ts(&(nvts)->ts);			\
+	ktime_get_ts64(&(nvts)->ts);			\
 	(nvts)->clock = NVHOST_CLOCK_MONOTONIC;	\
 } while (0)
 

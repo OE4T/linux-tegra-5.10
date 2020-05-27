@@ -1412,11 +1412,7 @@ int nvhost_syncpt_is_expired_ext(struct platform_device *dev,
 EXPORT_SYMBOL(nvhost_syncpt_is_expired_ext);
 
 int nvhost_syncpt_wait_timeout_ext(struct platform_device *dev, u32 id,
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
-	u32 thresh, u32 timeout, u32 *value, struct timespec *ts)
-#else
 	u32 thresh, u32 timeout, u32 *value, struct timespec64 *ts)
-#endif
 {
 	struct nvhost_master *master = nvhost_get_host(dev);
 	struct nvhost_syncpt *sp =
