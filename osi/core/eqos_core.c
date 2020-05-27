@@ -2103,7 +2103,10 @@ static int eqos_update_mac_addr_low_high_reg(
 
 	/* High address clean should happen for filter index >= 0 */
 	if (addr == OSI_NULL) {
-		osi_writel(0x0U, (unsigned char *)osi_core->base +
+		value = osi_readl((unsigned char *)osi_core->base +
+				  EQOS_MAC_ADDRH((idx)));
+		value &= ~EQOS_MAC_ADDRH_AE;
+		osi_writel(value, (unsigned char *)osi_core->base +
 			   EQOS_MAC_ADDRH((idx)));
 		return 0;
 	}
@@ -2124,7 +2127,7 @@ static int eqos_update_mac_addr_low_high_reg(
 	}
 
 	osi_writel(((unsigned int)addr[4] |
-		   ((unsigned int)addr[5] << 8) | OSI_BIT(31) | value),
+		   ((unsigned int)addr[5] << 8) | EQOS_MAC_ADDRH_AE | value),
 		   (unsigned char *)osi_core->base + EQOS_MAC_ADDRH((idx)));
 
 	osi_writel(((unsigned int)addr[0] | ((unsigned int)addr[1] << 8) |
