@@ -23,16 +23,11 @@
 #include <linux/tegra-powergate.h>
 
 #include <linux/version.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-#include <soc/tegra/chip-id.h>
-#else
-#include <soc/tegra/fuse.h>
-#endif
-
 #include <trace/events/nvhost.h>
 
 #include "dev.h"
 #include "nvhost_pd.h"
+#include "platform.h"
 
 static int nvhost_module_power_on(struct generic_pm_domain *domain);
 static int nvhost_module_power_off(struct generic_pm_domain *domain);

@@ -32,11 +32,6 @@
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
 #include <linux/version.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-#include <soc/tegra/chip-id.h>
-#else
-#include <soc/tegra/fuse.h>
-#endif
 #include <linux/vmalloc.h>
 #include <linux/poll.h>
 #include <linux/anon_inodes.h>
@@ -56,6 +51,7 @@
 #include "nvhost_channel.h"
 #include "nvhost_job.h"
 #include "vhost/vhost.h"
+#include "platform.h"
 
 #include "../syncpt_fd.h"
 

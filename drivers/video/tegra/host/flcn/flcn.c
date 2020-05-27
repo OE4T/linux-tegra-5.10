@@ -28,10 +28,6 @@
 #include <linux/module.h>
 #include <linux/version.h>
 #include <linux/iopoll.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-#include <soc/tegra/chip-id.h>
-#endif
-#include <soc/tegra/fuse.h>
 
 #include "dev.h"
 #include "class_ids.h"
@@ -41,6 +37,7 @@
 #include "nvhost_vm.h"
 #include "nvhost_scale.h"
 #include "nvhost_channel.h"
+#include "platform.h"
 
 #include "flcn.h"
 #include "hw_flcn.h"

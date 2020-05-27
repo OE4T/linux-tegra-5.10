@@ -36,10 +36,6 @@
 #include <uapi/linux/nvhost_nvdec_ioctl.h>
 
 #include <linux/platform/tegra/mc.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-#include <soc/tegra/chip-id.h>
-#endif
-#include <soc/tegra/fuse.h>
 
 #include <soc/tegra/kfuse.h>
 
@@ -54,6 +50,7 @@
 #include "t210/t210.h"
 #include "iomap.h"
 #include "class_ids_t194.h"
+#include "platform.h"
 
 #if defined(CONFIG_TRUSTED_LITTLE_KERNEL) || defined(CONFIG_TRUSTY)
 #include <linux/ote_protocol.h>

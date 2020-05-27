@@ -20,14 +20,6 @@
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
 #include <linux/version.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-#include <soc/tegra/chip-id.h>
-#if defined(CONFIG_ARCH_TEGRA_210_SOC)
-#include <soc/tegra/fuse.h>
-#endif
-#else
-#include <soc/tegra/fuse.h>
-#endif
 #include <linux/module.h>
 
 #include "dev.h"

@@ -25,11 +25,6 @@
 #include <linux/clk.h>
 #include <linux/clk/tegra.h>
 #include <linux/version.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-#include <soc/tegra/chip-id.h>
-#else
-#include <soc/tegra/fuse.h>
-#endif
 #include <linux/pm_qos.h>
 #include <trace/events/nvhost.h>
 #include <linux/uaccess.h>
@@ -48,6 +43,7 @@
 #include "nvhost_acm.h"
 #include "nvhost_scale.h"
 #include "host1x/host1x_actmon.h"
+#include "platform.h"
 
 static ssize_t nvhost_scale_load_show(struct device *dev,
 				      struct device_attribute *attr,

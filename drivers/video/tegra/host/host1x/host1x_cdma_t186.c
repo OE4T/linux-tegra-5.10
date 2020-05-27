@@ -29,6 +29,7 @@
 #include "chip_support.h"
 #include "nvhost_job.h"
 #include "nvhost_vm.h"
+#include "platform.h"
 
 static inline u32 host1x_channel_dmactrl(int stop, int get_rst, int init_get)
 {
