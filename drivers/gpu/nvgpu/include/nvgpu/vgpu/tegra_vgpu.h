@@ -538,6 +538,7 @@ struct tegra_vgpu_constants_params {
 	u32 l2_en_mask[TEGRA_VGPU_L2_EN_MASK];
 	/** Max SM configuration count. */
 	u32 max_sm_diversity_config_count;
+	u64 per_device_identifier;
 };
 
 enum {

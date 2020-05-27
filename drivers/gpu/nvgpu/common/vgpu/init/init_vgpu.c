@@ -106,6 +106,7 @@ void vgpu_remove_support_common(struct gk20a *g)
 int vgpu_init_gpu_characteristics(struct gk20a *g)
 {
 	int err;
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	nvgpu_log_fn(g, " ");
 
@@ -122,6 +123,9 @@ int vgpu_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
+
+	/* per-device identifier */
+	g->per_device_identifier = priv->constants.per_device_identifier;
 
 	return 0;
 }
