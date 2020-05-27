@@ -1251,12 +1251,6 @@ static void eqos_configure_rxq_priority(
 	unsigned int pmask = 0x0U;
 	unsigned int mfix_var1, mfix_var2;
 
-	if (osi_core->dcs_en == OSI_ENABLE) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid combination of DCS and RxQ-UP mapping\n",
-			0ULL);
-		return;
-	}
 	/* make sure EQOS_MAC_RQC2R is reset before programming */
 	osi_writel(OSI_DISABLE, (unsigned char *)osi_core->base +
 		   EQOS_MAC_RQC2R);
@@ -1429,8 +1423,10 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 				0ULL);
 		}
 	}
-	/* USP (user Priority) to RxQ Mapping */
-	eqos_configure_rxq_priority(osi_core);
+	/* USP (user Priority) to RxQ Mapping, only if DCS not enabled */
+	if (osi_core->dcs_en != OSI_ENABLE) {
+		eqos_configure_rxq_priority(osi_core);
+	}
 }
 
 /**
