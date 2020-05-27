@@ -22,6 +22,7 @@
 #include "tegra234-soc/tegra234-soc-memory.dtsi"
 #include "tegra234-soc-pcie-fpga.dtsi"
 #include <dt-bindings/gpio/tegra234-gpio.h>
+#include <dt-bindings/mailbox/tegra186-hsp.h>
 #include "tegra234-soc-gpcdma.dtsi"
 #include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/clock/tegra194-clock.h>
@@ -76,6 +77,54 @@
 		status = "disabled";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+	/* TODO: current version of pre-silicon platforms use still sysram for messaging
+	* between BPMP and kernel. In future, this will need to move. */
+	sysram@40000000 {
+		compatible = "nvidia,tegra194-sysram", "mmio-sram";
+		reg = <0x0 0x40000000 0x0 0x50000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x40000000 0x50000>;
+
+		cpu_bpmp_tx: shmem@4e000 {
+			compatible = "nvidia,tegra194-bpmp-shmem";
+			reg = <0x4e000 0x1000>;
+			label = "cpu-bpmp-tx";
+			pool;
+		};
+
+		cpu_bpmp_rx: shmem@4f000 {
+			compatible = "nvidia,tegra194-bpmp-shmem";
+			reg = <0x4f000 0x1000>;
+			label = "cpu-bpmp-rx";
+			pool;
+		};
+	};
+
+	bpmp: bpmp {
+		compatible = "nvidia,tegra234-bpmp", "nvidia,tegra186-bpmp";
+		mboxes = <&hsp_top TEGRA_HSP_MBOX_TYPE_DB
+				   TEGRA_HSP_DB_MASTER_BPMP>;
+		shmem = <&cpu_bpmp_tx &cpu_bpmp_rx>;
+		#clock-cells = <1>;
+		#reset-cells = <1>;
+		#power-domain-cells = <1>;
+
+		pwr_i2c: i2c {
+			compatible = "nvidia,tegra186-bpmp-i2c";
+			nvidia,bpmp-bus-id = <5>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+
+		bpmpthermal {
+			compatible = "nvidia,tegra186-bpmp-thermal";
+			#thermal-sensor-cells = <1>;
+			status = "disabled";
+		};
+	};
+#else
 	bpmp: bpmp {
 		compatible = "nvidia,tegra186-bpmp";
 		iommus = <&smmu TEGRA_SID_BPMP>;
@@ -87,8 +136,14 @@
 		#power-domain-cells = <1>;
 		#strap-cells = <1>;
 		#nvidia,controller-id-cells = <1>;
-	};
 
+		bpmpthermal {
+			compatible = "nvidia,tegra186-bpmp-thermal";
+			#thermal-sensor-cells = <1>;
+			status = "disabled";
+		};
+	};
+#endif
 
 	dp_aux_ch1_i2c: i2c@3190000 {
 		#address-cells = <1>;
