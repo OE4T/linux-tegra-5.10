@@ -59,6 +59,7 @@
 #include "tegra234-soc-thermal.dtsi"
 #include "tegra234-soc-ldpc.dtsi"
 #include "dt-bindings/soc/tegra-io-pads.h"
+#include "tegra234-soc-pmc.dtsi"
 
 / {
 	aliases {
@@ -850,20 +851,6 @@
 		compatible = "generic-pwm-tachometer";
 		pwms = <&tegra_tachometer 0 1000000>;
 		status = "disabled";
-	};
-
-	tegra_pmc: pmc@c360000 {
-		compatible = "nvidia,tegra194-pmc";
-		reg = <0x0 0xC360000 0x0 0x400
-			0x0 0xC390000 0x0 0x2fff
-			0x0 0xC3a0000 0x0 0xfff>;
-		#padcontroller-cells = <1>;
-		nvidia,restrict-voltage-switch;
-		pinctrl-names = "default";
-		pinctrl-0 = <&iopad_defaults>;
-		status = "disabled";
-		iopad_defaults: iopad-defaults {
-		};
 	};
 
 	tegra_aowake: pmc@c370000 {
