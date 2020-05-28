@@ -48,6 +48,7 @@ struct nvgpu_gr_ctx;
 struct nvgpu_debug_context;
 struct priv_cmd_queue;
 struct priv_cmd_entry;
+struct nvgpu_channel_wdt;
 
 /**
  * S/W defined invalid channel identifier.
@@ -377,12 +378,10 @@ struct nvgpu_channel {
 	struct nvgpu_channel_sync *sync;
 	/* for job cleanup handling in the background worker */
 	struct nvgpu_list_node worker_item;
+#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/* kernel watchdog to kill stuck jobs */
 	struct nvgpu_channel_wdt *wdt;
-#endif /* CONFIG_NVGPU_CHANNEL_WDT */
-#endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
 
 	/** Fence allocator in case of deterministic submit. */
 	struct nvgpu_allocator fence_allocator;

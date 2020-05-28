@@ -640,9 +640,7 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 		job->num_mapped_buffers = num_mapped_buffers;
 		job->mapped_buffers = mapped_buffers;
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 		nvgpu_channel_wdt_start(c->wdt, c);
-#endif
 
 		if (!pre_alloc_enabled) {
 			nvgpu_channel_joblist_lock(c);
@@ -689,9 +687,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 	struct nvgpu_channel_job *job;
 	struct gk20a *g;
 	bool job_finished = false;
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	bool watchdog_on = false;
-#endif
 
 	if (nvgpu_is_powered_off(c->g)) { /* shutdown case */
 		return;
@@ -700,7 +696,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 	vm = c->vm;
 	g = c->g;
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/*
 	 * If !clean_all, we're in a condition where watchdog isn't supported
 	 * anyway (this would be a no-op).
@@ -708,7 +703,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 	if (clean_all) {
 		watchdog_on = nvgpu_channel_wdt_stop(c->wdt);
 	}
-#endif
 
 	/* Synchronize with abort cleanup that needs the jobs. */
 	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
@@ -737,7 +731,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 
 		completed = nvgpu_fence_is_expired(job->post_fence);
 		if (!completed) {
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 			/*
 			 * The watchdog eventually sees an updated gp_get if
 			 * something happened in this loop. A new job can have
@@ -748,7 +741,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			if (clean_all && watchdog_on) {
 				nvgpu_channel_wdt_continue(c->wdt);
 			}
-#endif
 			break;
 		}
 
@@ -1202,10 +1194,8 @@ unbind:
 	g->ops.channel.unbind(ch);
 	g->ops.channel.free_inst(g, ch);
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	nvgpu_channel_wdt_destroy(ch->wdt);
 	ch->wdt = NULL;
-#endif
 
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	channel_free_put_deterministic_ref_from_init(ch);
@@ -1465,6 +1455,10 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
 	ch->wdt = nvgpu_channel_wdt_alloc(ch);
+	if (ch->wdt == NULL) {
+		nvgpu_err(g, "wdt alloc failed");
+		goto clean_up;
+	}
 #endif
 
 	ch->obj_class = 0;
@@ -1514,12 +1508,10 @@ static int channel_setup_ramfc(struct nvgpu_channel *c,
 	u64 pbdma_acquire_timeout = 0ULL;
 	struct gk20a *g = c->g;
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	if (nvgpu_channel_wdt_enabled(c->wdt) &&
 			nvgpu_is_timeouts_enabled(c->g)) {
 		pbdma_acquire_timeout = nvgpu_channel_wdt_limit(c->wdt);
 	}
-#endif
 
 	err = g->ops.ramfc.setup(c, gpfifo_gpu_va, gpfifo_size,
 			pbdma_acquire_timeout, args->flags);

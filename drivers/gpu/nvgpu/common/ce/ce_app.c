@@ -535,9 +535,7 @@ u32 nvgpu_ce_app_create_context(struct gk20a *g,
 		goto end;
 	}
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	nvgpu_channel_wdt_disable(ce_ctx->ch->wdt);
-#endif
 
 	/* bind the channel to the vm */
 	err = g->ops.mm.vm_bind_channel(g->mm.ce.vm, ce_ctx->ch);

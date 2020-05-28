@@ -550,12 +550,10 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 		return -EINVAL;
 	}
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
 	/* the watchdog needs periodic job cleanup */
 	if (nvgpu_channel_wdt_enabled(c->wdt)) {
 		return -EINVAL;
 	}
-#endif
 
 	/*
 	 * Job tracking is necessary on deterministic channels if and only if
@@ -660,16 +658,12 @@ static int nvgpu_submit_nondeterministic(struct nvgpu_channel *c,
 	 * required and a fast submit can be done (ie. only need to write
 	 * out userspace GPFIFO entries and update GP_PUT).
 	 */
-	need_job_tracking = (flag_fence_wait ||
+	need_job_tracking = flag_fence_wait ||
 			flag_fence_get ||
 			nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) ||
 			nvgpu_is_vpr_resize_enabled() ||
-			!skip_buffer_refcounting);
-
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
-       need_job_tracking = need_job_tracking ||
-	       nvgpu_channel_wdt_enabled(c->wdt);
-#endif
+			!skip_buffer_refcounting ||
+			nvgpu_channel_wdt_enabled(c->wdt);
 
 	if (need_job_tracking) {
 		/*
