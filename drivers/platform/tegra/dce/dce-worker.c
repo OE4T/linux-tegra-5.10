@@ -91,9 +91,6 @@ void dce_worker_thread_wait(struct tegra_dce *d,
 	ret = DCE_COND_WAIT_INTERRUPTIBLE(&w->cond,
 				dce_worker_wakeup_cond(d),
 				timeout_val_ms);
-	if (ret)
-		dce_info(d, "Timeout occurred in event [%d] & state [%d]",
-				event, w->c_state);
 
 	dce_mutex_lock(&w->lock);
 
