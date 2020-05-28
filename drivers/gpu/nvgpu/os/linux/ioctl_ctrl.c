@@ -258,7 +258,17 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 	{NVGPU_GPU_FLAGS_SUPPORT_POST_L2_COMPRESSION,
 		NVGPU_SUPPORT_POST_L2_COMPRESSION},
 	{NVGPU_GPU_FLAGS_SUPPORT_MAP_ACCESS_TYPE,
-		NVGPU_SUPPORT_MAP_ACCESS_TYPE}
+		NVGPU_SUPPORT_MAP_ACCESS_TYPE},
+	{NVGPU_GPU_FLAGS_SUPPORT_2D,
+		NVGPU_SUPPORT_2D},
+	{NVGPU_GPU_FLAGS_SUPPORT_3D,
+		NVGPU_SUPPORT_3D},
+	{NVGPU_GPU_FLAGS_SUPPORT_COMPUTE,
+		NVGPU_SUPPORT_COMPUTE},
+	{NVGPU_GPU_FLAGS_SUPPORT_I2M,
+		NVGPU_SUPPORT_I2M},
+	{NVGPU_GPU_FLAGS_SUPPORT_ZBC,
+		NVGPU_SUPPORT_ZBC}
 };
 
 static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)
@@ -329,6 +339,10 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 
 	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config);
 
+	gpu.num_ppc_per_gpc = nvgpu_gr_config_get_pe_count_per_gpc(gr_config);
+
+	gpu.max_veid_count_per_tsg = g->fifo.max_subctx_count;
+
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
 #ifdef CONFIG_NVGPU_COMPRESSION
@@ -396,6 +410,11 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.lts_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
 	gpu.cbc_cache_line_size = nvgpu_ltc_get_cacheline_size(g);
 
+	/* All nvgpu supported GPUs have 64 bit FBIO channel
+	 * So number of Sub partition per FBPA is always 0x2.
+	 */
+	gpu.num_sub_partition_per_fbpa = 0x2;
+
 	if ((g->ops.clk.get_maxrate) && nvgpu_platform_is_silicon(g)) {
 		gpu.max_freq = g->ops.clk.get_maxrate(g,
 				CTRL_CLK_DOMAIN_GPCCLK);
@@ -415,6 +434,12 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.per_device_identifier = g->per_device_identifier;
 
 	nvgpu_set_preemption_mode_flags(g, &gpu);
+
+	/* Default values for legacy mode (non MIG) */
+	gpu.mig_enabled = false;
+	gpu.gpu_instance_id = 0x0;
+	gpu.gr_sys_pipe_id = 0x0;
+	gpu.gr_instance_id = 0x0;
 
 	if (request->gpu_characteristics_buf_size > 0) {
 		size_t write_size = sizeof(gpu);

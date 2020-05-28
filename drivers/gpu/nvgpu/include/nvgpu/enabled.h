@@ -264,10 +264,25 @@ struct gk20a;
 /** GMMU map access type support */
 #define NVGPU_SUPPORT_MAP_ACCESS_TYPE		90U
 
+/** 2d operations support */
+#define NVGPU_SUPPORT_2D			91U
+
+/** 3d graphics operations support */
+#define NVGPU_SUPPORT_3D			92U
+
+/** compute operations support */
+#define NVGPU_SUPPORT_COMPUTE			93U
+
+/** inline methods support */
+#define NVGPU_SUPPORT_I2M			94U
+
+/** zbc classes support */
+#define NVGPU_SUPPORT_ZBC			95U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			91U
+#define NVGPU_MAX_ENABLED_BITS			96U
 
 /**
  * @brief Check if the passed flag is enabled.
