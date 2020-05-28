@@ -82,6 +82,9 @@
 			/* Sensor output flip settings */
 			vertical-flip = "true";
 
+			/* Enable EEPROM support */
+			has-eeprom = "1";
+
 			/**
 			* A modeX node is required to support v4l2 driver
 			* implementation with NVIDIA camera software stack
