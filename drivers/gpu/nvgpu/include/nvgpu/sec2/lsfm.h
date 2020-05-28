@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,12 @@ struct nv_sec2_acr_cmd_bootstrap_falcon {
 
 	/* ID to identify Falcon, ref FALCON_ID_<XYZ> */
 	u32 falcon_id;
+
+	/* Falcon Instance bootstrapped by ACR */
+	u32 falcon_instance;
+
+	/* Mask of indexes of same falcon to be multi bootstrapped by ACR */
+	u32 falcon_Index_Mask;
 };
 
 #define NV_SEC2_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET     0U
@@ -83,6 +89,9 @@ struct nv_sec2_acr_msg_bootstrap_falcon {
 
 	/* Bootstrapped falcon ID by ACR */
 	u32 falcon_id;
+
+	/* Falcon Instance bootstrapped by ACR */
+	u32 falcon_instance;
 };
 
 /*

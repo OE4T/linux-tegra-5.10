@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -58,6 +58,9 @@ struct sec2_init_msg_sec2_init {
 
 	u32 nv_managed_area_offset;
 	u16 nv_managed_area_size;
+	/* Unused, kept for the binary compatibility */
+	u8 rsvd_1[16];
+	u8 rsvd_2[16];
 };
 
 union nv_flcn_msg_sec2_init {
