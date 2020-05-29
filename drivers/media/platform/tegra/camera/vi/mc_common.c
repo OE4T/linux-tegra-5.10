@@ -1,7 +1,7 @@
 /*
  * Tegra Video Input device common APIs
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Bryan Wu <pengw@nvidia.com>
  *
@@ -238,7 +238,11 @@ int tpg_vi_media_controller_init(struct tegra_mc_vi *mc_vi, int pg_mode)
 			goto channel_init_error;
 		}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		err = video_register_device(item->video, VFL_TYPE_GRABBER, -1);
+#else
+		err = video_register_device(item->video, VFL_TYPE_VIDEO, -1);
+#endif
 		if (err < 0) {
 			devm_kfree(mc_vi->dev, item);
 			video_device_release(item->video);

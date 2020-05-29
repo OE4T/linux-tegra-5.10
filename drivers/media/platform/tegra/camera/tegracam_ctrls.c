@@ -403,7 +403,13 @@ int tegracam_ctrl_set_overrides(struct tegracam_ctrl_handler *hdl)
 	for (i = 0; i < NUM_OVERRIDE_CTRLS; i++) {
 		s64 val = 0;
 		control.id = tegracam_override_cids[i];
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		result = v4l2_g_ext_ctrls(&hdl->ctrl_handler, &ctrls);
+#else
+		result = v4l2_g_ext_ctrls(&hdl->ctrl_handler, tc_dev->s_data->subdev.devnode, NULL, &ctrls);
+#endif
+
 		if (result == 0) {
 			val = control.value64;
 			switch (control.id) {

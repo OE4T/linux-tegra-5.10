@@ -382,7 +382,11 @@ void set_timestamp(struct tegra_channel_buffer *buf,
 	buf->buf.timestamp.tv_sec = ts->tv_sec;
 	buf->buf.timestamp.tv_usec = ts->tv_nsec / NSEC_PER_USEC;
 #else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	buf->buf.vb2_buf.timestamp = (u64)timespec_to_ns(ts);
+#else
+	buf->buf.vb2_buf.timestamp = (u64)timespec64_to_ns(ts);
+#endif
 #endif
 }
 
@@ -405,7 +409,12 @@ void release_buffer(struct tegra_channel *chan,
 	 * with no error status or padding.
 	 */
 	if (chan->capture_state != CAPTURE_GOOD || vbuf->sequence < 2)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+		buf->state = VB2_BUF_STATE_ERROR;
+#endif
+
 
 	if (chan->sequence == 1) {
 		/*
@@ -543,7 +552,11 @@ static void add_buffer_to_ring(struct tegra_channel *chan,
 	/* save the buffer to the ring first */
 	/* Mark buffer state as error before start */
 	spin_lock(&chan->buffer_lock);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	chan->buffer_state[chan->save_index] = VB2_BUF_STATE_REQUEUEING;
+#else
+	chan->buffer_state[chan->save_index] = VB2_BUF_STATE_ERROR;
+#endif
 	chan->buffers[chan->save_index++] = vb;
 	if (chan->save_index >= chan->capture_queue_depth)
 		chan->save_index = 0;
@@ -1543,8 +1556,14 @@ static int tegra_channel_setup_controls(struct tegra_channel *chan)
 	while ((sd = chan->subdev[num_sd++]) &&
 		(num_sd <= chan->num_subdevs)) {
 		/* Add control handler for the subdevice */
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		ret = v4l2_ctrl_add_handler(&chan->ctrl_handler,
 					sd->ctrl_handler, NULL);
+#else
+		ret = v4l2_ctrl_add_handler(&chan->ctrl_handler,
+					sd->ctrl_handler, NULL, false);
+#endif
 		if (ret || chan->ctrl_handler.error)
 			dev_err(chan->vi->dev,
 				"Failed to add sub-device controls\n");
@@ -1576,8 +1595,14 @@ static int tegra_channel_setup_controls(struct tegra_channel *chan)
 	vi->fops->vi_add_ctrls(chan);
 
 	if (chan->pg_mode) {
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		ret = v4l2_ctrl_add_handler(&chan->ctrl_handler,
 					&chan->vi->ctrl_handler, NULL);
+#else
+		ret = v4l2_ctrl_add_handler(&chan->ctrl_handler,
+					&chan->vi->ctrl_handler, NULL, false);
+#endif
 		if (ret || chan->ctrl_handler.error)
 			dev_err(chan->vi->dev,
 				"Failed to add VI controls\n");
@@ -2337,7 +2362,12 @@ int tegra_channel_init_video(struct tegra_channel *chan)
 	snprintf(chan->video->name, sizeof(chan->video->name), "%s-%s-%u",
 		dev_name(vi->dev), chan->pg_mode ? "tpg" : "output",
 		chan->pg_mode ? (chan->id - vi->num_channels) : chan->port[0]);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	chan->video->vfl_type = VFL_TYPE_GRABBER;
+#else
+	chan->video->vfl_type = VFL_TYPE_VIDEO;
+#endif
 	chan->video->vfl_dir = VFL_DIR_RX;
 	chan->video->release = video_device_release_empty;
 	chan->video->ioctl_ops = &tegra_channel_ioctl_ops;
