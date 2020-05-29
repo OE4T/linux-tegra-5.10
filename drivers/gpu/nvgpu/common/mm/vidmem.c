@@ -340,10 +340,19 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	static struct nvgpu_alloc_carveout bootstrap_co =
 		NVGPU_CARVEOUT("bootstrap-region", 0, 0);
 
-	size = (g->ops.fb.get_vidmem_size != NULL) ?
-			g->ops.fb.get_vidmem_size(g) : 0UL;
-	if (size == 0UL) {
+	if (g->ops.fb.get_vidmem_size ==  NULL) {
+
+		/*
+		 * As it is a common function, the return value
+		 * need to be handled for igpu.
+		 */
 		return 0;
+	} else {
+		size = g->ops.fb.get_vidmem_size(g);
+		if (size == 0UL) {
+			nvgpu_err(g, "Found zero vidmem");
+			return -ENOMEM;
+		}
 	}
 
 	vidmem_dbg(g, "init begin");
