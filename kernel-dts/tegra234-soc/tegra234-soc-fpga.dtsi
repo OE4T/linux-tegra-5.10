@@ -697,5 +697,18 @@
 		cpu_suspend = <0xC4000001>;
 		status = "okay";
 	};
+
+	dce@d800000 {
+		compatible = "nvidia,tegra234-dce";
+		reg = <0x0 0x0d800000 0x0 0x00800000>;
+		interrupts = <0 376 0x4>, <0 377 0x4>;
+		interrupt-names = "wdt-remote", "dce-sm0";
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+ 		iommus = <&smmu_niso0 TEGRA_SID_DCE>;
+#else
+ 		iommus = <&smmu TEGRA_SID_DCE>;
+#endif
+ 		status = "disabled";
+	};
 };
 
