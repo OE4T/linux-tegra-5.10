@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -641,12 +641,23 @@ int capture_common_request_pin_and_reloc(
 
 		/* locate page of request in capture desc reloc is on */
 		if (last_page != reloc_offset >> PAGE_SHIFT) {
+		/**
+		 * TODO: BUG: http://nvbugs/200666399
+		 * Use vmap and vunmap across all kernel versions.
+		 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			if (reloc_page_addr != NULL)
 				dma_buf_kunmap(req->requests->buf,
 					last_page, reloc_page_addr);
 
 			reloc_page_addr = dma_buf_kmap(req->requests->buf,
 						reloc_offset >> PAGE_SHIFT);
+#else
+			if (reloc_page_addr != NULL)
+				dma_buf_vunmap(req->requests->buf, reloc_page_addr);
+
+			reloc_page_addr = dma_buf_vmap(req->requests->buf);
+#endif
 			last_page = reloc_offset >> PAGE_SHIFT;
 
 			if (unlikely(reloc_page_addr == NULL)) {
@@ -717,8 +728,13 @@ reloc_fail:
 		kfree(req->unpins);
 
 	if (reloc_page_addr != NULL)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		dma_buf_kunmap(req->requests->buf, last_page,
 			reloc_page_addr);
+#else
+		dma_buf_vunmap(req->requests->buf, reloc_page_addr);
+#endif
+
 
 	kfree(reloc_relatives);
 
