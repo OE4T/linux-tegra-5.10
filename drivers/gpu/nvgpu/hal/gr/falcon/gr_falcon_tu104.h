@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,25 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_TU104_H
-#define NVGPU_GR_TU104_H
-
-#ifdef CONFIG_NVGPU_DEBUGGER
+#ifndef NVGPU_GR_FALCON_TU104_H
+#define NVGPU_GR_FALCON_TU104_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
 
-int gr_tu104_init_sw_bundle64(struct gk20a *g);
-void gr_tu10x_create_sysfs(struct gk20a *g);
-void gr_tu10x_remove_sysfs(struct gk20a *g);
-int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
-	enum ctxsw_addr_type addr_type, u32 num_tpcs, u32 num_ppcs,
-	u32 reg_list_ppc_count, u32 *__offset_in_segment);
-void gr_tu104_init_sm_dsm_reg_info(void);
-void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
-	u32 *num_sm_dsm_perf_ctrl_regs, u32 **sm_dsm_perf_ctrl_regs,
-	u32 *ctrl_register_stride);
-int tu104_gr_update_smpc_global_mode(struct gk20a *g, bool enable);
-#endif /* CONFIG_NVGPU_DEBUGGER */
-#endif /* NVGPU_GR_TU104_H */
+int tu104_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
+		u32 data, u32 *ret_val);
+
+#endif /* NVGPU_GR_FALCON_TU104_H */

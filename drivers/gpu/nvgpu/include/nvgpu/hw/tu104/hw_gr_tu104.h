@@ -485,6 +485,8 @@
 #define gr_fecs_method_push_adr_halt_pipeline_v()                  (0x00000004U)
 #define gr_fecs_method_push_adr_configure_interrupt_completion_option_v()\
 				(0x0000003aU)
+#define gr_fecs_method_push_adr_smpc_global_mode_start_v()         (0x00000069U)
+#define gr_fecs_method_push_adr_smpc_global_mode_stop_v()          (0x0000006aU)
 #define gr_fecs_host_int_status_r()                                (0x00409c18U)
 #define gr_fecs_host_int_status_fault_during_ctxsw_f(v) ((U32(v) & 0x1U) << 16U)
 #define gr_fecs_host_int_status_umimp_firmware_method_f(v)\

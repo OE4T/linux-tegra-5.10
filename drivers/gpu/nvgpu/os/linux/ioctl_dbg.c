@@ -950,6 +950,7 @@ static int nvgpu_dbg_gpu_ioctl_smpc_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 	struct gk20a *g = dbg_s->g;
 	struct nvgpu_channel *ch_gk20a;
 	struct nvgpu_tsg *tsg;
+	bool global_mode = false;
 
 	nvgpu_log_fn(g, "%s smpc ctxsw mode = %d",
 		     g->name, args->mode);
@@ -965,24 +966,36 @@ static int nvgpu_dbg_gpu_ioctl_smpc_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 
 	ch_gk20a = nvgpu_dbg_gpu_get_session_channel(dbg_s);
 	if (!ch_gk20a) {
-		nvgpu_err(g,
-			  "no bound channel for smpc ctxsw mode update");
-		err = -EINVAL;
-		goto clean_up;
+		global_mode = true;
 	}
 
-	tsg = nvgpu_tsg_from_ch(ch_gk20a);
-	if (tsg == NULL) {
-		nvgpu_err(g, "channel not bound to TSG");
-		err = -EINVAL;
-		goto clean_up;
-	}
+	if (global_mode) {
+		if (g->ops.gr.update_smpc_global_mode == NULL) {
+			nvgpu_err(g, "SMPC global mode not supported");
+			err = -EINVAL;
+			goto clean_up;
+		}
 
-	err = g->ops.gr.update_smpc_ctxsw_mode(g, tsg,
+		err = g->ops.gr.update_smpc_global_mode(g,
 				args->mode == NVGPU_DBG_GPU_SMPC_CTXSW_MODE_CTXSW);
-	if (err) {
-		nvgpu_err(g,
-			  "error (%d) during smpc ctxsw mode update", err);
+		if (err) {
+			nvgpu_err(g,
+				  "error (%d) during smpc global mode update", err);
+		}
+	} else {
+		tsg = nvgpu_tsg_from_ch(ch_gk20a);
+		if (tsg == NULL) {
+			nvgpu_err(g, "channel not bound to TSG");
+			err = -EINVAL;
+			goto clean_up;
+		}
+
+		err = g->ops.gr.update_smpc_ctxsw_mode(g, tsg,
+					args->mode == NVGPU_DBG_GPU_SMPC_CTXSW_MODE_CTXSW);
+		if (err) {
+			nvgpu_err(g,
+				  "error (%d) during smpc ctxsw mode update", err);
+		}
 	}
 
  clean_up:

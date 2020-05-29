@@ -107,6 +107,7 @@ nvgpu-$(CONFIG_NVGPU_DGPU) += \
 	hal/gr/init/gr_init_gv100.o \
 	hal/gr/init/gr_init_tu104.o \
 	hal/gr/intr/gr_intr_tu104.o \
+	hal/gr/falcon/gr_falcon_tu104.o \
 	hal/fbpa/fbpa_tu104.o \
 	hal/init/hal_tu104.o \
 	hal/init/hal_tu104_litter.o \

@@ -1103,6 +1103,8 @@ struct gops_gr {
 	int (*update_smpc_ctxsw_mode)(struct gk20a *g,
 				      struct nvgpu_tsg *tsg,
 				      bool enable);
+	int (*update_smpc_global_mode)(struct gk20a *g,
+				      bool enable);
 	int (*update_hwpm_ctxsw_mode)(struct gk20a *g,
 				      struct nvgpu_tsg *tsg,
 				      u64 gpu_va,

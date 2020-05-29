@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/gr/gr_falcon.h>
 
 #include "gr_pri_gk20a.h"
 #include "gr_tu104.h"
@@ -108,4 +109,21 @@ void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	*num_sm_dsm_perf_ctrl_regs = 0;
 	*sm_dsm_perf_ctrl_regs = NULL;
 	*ctrl_register_stride = 0;
+}
+
+int tu104_gr_update_smpc_global_mode(struct gk20a *g, bool enable)
+{
+	int err;
+
+	if (enable) {
+		err = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_START_SMPC_GLOBAL_MODE,
+			0U, NULL);
+	} else {
+		err = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_STOP_SMPC_GLOBAL_MODE,
+			0U, NULL);
+	}
+
+	return err;
 }

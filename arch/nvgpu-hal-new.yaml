@@ -550,7 +550,9 @@ gr:
                  hal/gr/falcon/gr_falcon_gv11b.h ]
     falcon:
       safe: no
-      sources: [ hal/gr/falcon/gr_falcon_gm20b.c ]
+      sources: [ hal/gr/falcon/gr_falcon_gm20b.c,
+                 hal/gr/falcon/gr_falcon_tu104.c,
+                 hal/gr/falcon/gr_falcon_tu104.h ]
     fecs_trace:
       safe: no
       sources: [ hal/gr/fecs_trace/fecs_trace_gm20b.c,

@@ -123,6 +123,7 @@
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
+#include "hal/gr/falcon/gr_falcon_tu104.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/config/gr_config_gv100.h"
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -366,6 +367,7 @@ static const struct gpu_ops tu104_ops = {
 		.set_sm_debug_mode = gv11b_gr_set_sm_debug_mode,
 		.bpt_reg_info = gv11b_gr_bpt_reg_info,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
+		.update_smpc_global_mode = tu104_gr_update_smpc_global_mode,
 		.get_num_hwpm_perfmon = gr_gv100_get_num_hwpm_perfmon,
 		.set_pmm_register = gr_gv100_set_pmm_register,
 		.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,
@@ -805,7 +807,7 @@ static const struct gpu_ops tu104_ops = {
 			.wait_mem_scrubbing =
 					gm20b_gr_falcon_wait_mem_scrubbing,
 			.wait_ctxsw_ready = gm20b_gr_falcon_wait_ctxsw_ready,
-			.ctrl_ctxsw = gp10b_gr_falcon_ctrl_ctxsw,
+			.ctrl_ctxsw = tu104_gr_falcon_ctrl_ctxsw,
 			.get_current_ctx = gm20b_gr_falcon_get_current_ctx,
 			.get_ctx_ptr = gm20b_gr_falcon_get_ctx_ptr,
 			.get_fecs_current_ctx_data =

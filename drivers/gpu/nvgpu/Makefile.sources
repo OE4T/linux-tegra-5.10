@@ -626,6 +626,7 @@ srcs += common/sec2/sec2.c \
 	hal/gr/init/gr_init_gv100.c \
 	hal/gr/init/gr_init_tu104.c \
 	hal/gr/intr/gr_intr_tu104.c \
+	hal/gr/falcon/gr_falcon_tu104.c \
 	hal/fbpa/fbpa_tu104.c \
 	hal/init/hal_tu104.c \
 	hal/init/hal_tu104_litter.c \
