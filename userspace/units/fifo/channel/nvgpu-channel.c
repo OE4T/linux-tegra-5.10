@@ -1270,10 +1270,8 @@ int test_channel_sw_quiesce(struct unit_module *m, struct gk20a *g, void *vargs)
 	unit_assert(ch != NULL, goto done);
 	unit_assert(f->num_channels > 0U, goto done);
 
-#ifndef CONFIG_NVGPU_RECOVERY
 	nvgpu_channel_sw_quiesce(g);
 	unit_assert(ch->unserviceable == true, goto done);
-#endif
 
 	ret = UNIT_SUCCESS;
 

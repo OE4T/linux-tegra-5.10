@@ -509,7 +509,6 @@ const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index);
  */
 int nvgpu_fifo_suspend(struct gk20a *g);
 
-#ifndef CONFIG_NVGPU_RECOVERY
 /**
  * @brief Emergency quiescing of FIFO.
  *
@@ -523,6 +522,5 @@ int nvgpu_fifo_suspend(struct gk20a *g);
  * - Preempt all runlists
  */
 void nvgpu_fifo_sw_quiesce(struct gk20a *g);
-#endif
 
 #endif /* NVGPU_FIFO_COMMON_H */

@@ -1762,7 +1762,6 @@ void nvgpu_channel_set_error_notifier(struct gk20a *g, struct nvgpu_channel *ch,
 	g->ops.channel.set_error_notifier(ch, error_notifier);
 }
 
-#ifndef CONFIG_NVGPU_RECOVERY
 void nvgpu_channel_sw_quiesce(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -1779,7 +1778,6 @@ void nvgpu_channel_sw_quiesce(struct gk20a *g)
 		}
 	}
 }
-#endif
 
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 /*

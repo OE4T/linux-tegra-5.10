@@ -39,11 +39,9 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 		return IRQ_NONE;
 
 	nvgpu_mc_intr_stall_pause(g);
-#ifndef CONFIG_NVGPU_RECOVERY
 	if (g->sw_quiesce_pending) {
 		return IRQ_NONE;
 	}
-#endif
 
 	nvgpu_atomic_set(&g->mc.sw_irq_stall_pending, 1);
 
@@ -91,11 +89,9 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 		return IRQ_NONE;
 
 	nvgpu_mc_intr_nonstall_pause(g);
-#ifndef CONFIG_NVGPU_RECOVERY
 	if (g->sw_quiesce_pending) {
 		return IRQ_NONE;
 	}
-#endif
 
 	nvgpu_atomic_set(&g->mc.sw_irq_nonstall_pending, 1);
 	ops = g->ops.mc.isr_nonstall(g);

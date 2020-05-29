@@ -281,7 +281,6 @@ int nvgpu_fifo_suspend(struct gk20a *g)
 	return 0;
 }
 
-#ifndef CONFIG_NVGPU_RECOVERY
 void nvgpu_fifo_sw_quiesce(struct gk20a *g)
 {
 	u32 runlist_mask = U32_MAX;
@@ -291,4 +290,3 @@ void nvgpu_fifo_sw_quiesce(struct gk20a *g)
 	/* Preempt all runlists */
 	nvgpu_fifo_preempt_runlists_for_rc(g, runlist_mask);
 }
-#endif

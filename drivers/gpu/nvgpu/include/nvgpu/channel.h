@@ -696,7 +696,6 @@ int nvgpu_channel_setup_sw(struct gk20a *g);
  */
 void nvgpu_channel_cleanup_sw(struct gk20a *g);
 
-#ifndef CONFIG_NVGPU_RECOVERY
 /**
  * @brief Emergency quiescing of channels
  *
@@ -709,7 +708,6 @@ void nvgpu_channel_cleanup_sw(struct gk20a *g);
  * - signal on wait queues (notify_wq and semaphore_wq)
  */
 void nvgpu_channel_sw_quiesce(struct gk20a *g);
-#endif
 
 /**
  * @brief Close channel

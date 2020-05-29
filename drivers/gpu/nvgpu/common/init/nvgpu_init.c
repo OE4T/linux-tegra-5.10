@@ -70,8 +70,6 @@ static void gk20a_mask_interrupts(struct gk20a *g)
 #endif
 }
 
-#ifndef CONFIG_NVGPU_RECOVERY
-
 #define NVGPU_SW_QUIESCE_TIMEOUT_MS	50
 
 static int nvgpu_sw_quiesce_thread(void *data)
@@ -79,7 +77,7 @@ static int nvgpu_sw_quiesce_thread(void *data)
 	struct gk20a *g = data;
 
 	/* wait until SW quiesce is requested */
-	NVGPU_COND_WAIT(&g->sw_quiesce_cond,
+	NVGPU_COND_WAIT_INTERRUPTIBLE(&g->sw_quiesce_cond,
 		g->sw_quiesce_pending ||
 		nvgpu_thread_should_stop(&g->sw_quiesce_thread), 0U);
 
@@ -105,20 +103,39 @@ static void nvgpu_sw_quiesce_bug_cb(void *arg)
 
 	nvgpu_sw_quiesce(g);
 }
-#endif
+
+static void nvgpu_sw_quiesce_thread_stop_fn(void *data)
+{
+	struct gk20a *g = data;
+
+	/*
+	 * If the thread is still waiting on the cond,
+	 * nvgpu_thread_should_stop() will return true, and the thread will
+	 * exit.
+	 */
+	nvgpu_cond_signal_interruptible(&g->sw_quiesce_cond);
+}
+
+void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
+{
+	if (g->sw_quiesce_init_done) {
+		nvgpu_bug_unregister_cb(&g->sw_quiesce_bug_cb);
+		nvgpu_thread_stop_graceful(&g->sw_quiesce_thread,
+					   nvgpu_sw_quiesce_thread_stop_fn,
+					   g);
+		nvgpu_cond_destroy(&g->sw_quiesce_cond);
+		g->sw_quiesce_init_done = false;
+	}
+}
 
 static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 {
-#ifdef CONFIG_NVGPU_RECOVERY
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
-#else
 	int err;
 
 	if (g->sw_quiesce_init_done) {
 		return 0;
 	}
 
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, false);
 
 	err = nvgpu_cond_init(&g->sw_quiesce_cond);
 	if (err != 0) {
@@ -141,44 +158,18 @@ static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 	g->sw_quiesce_bug_cb.cb = nvgpu_sw_quiesce_bug_cb;
 	g->sw_quiesce_bug_cb.arg = g;
 	nvgpu_bug_register_cb(&g->sw_quiesce_bug_cb);
+
+#ifdef CONFIG_NVGPU_RECOVERY
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
+#else
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, false);
 #endif
 
 	return 0;
 }
 
-#ifndef CONFIG_NVGPU_RECOVERY
-static void nvgpu_sw_quiesce_thread_stop_fn(void *data)
-{
-	struct gk20a *g = data;
-
-	/*
-	 * If the thread is still waiting on the cond,
-	 * nvgpu_thread_should_stop() will return true, and the thread will
-	 * exit.
-	 */
-	nvgpu_cond_signal(&g->sw_quiesce_cond);
-}
-#endif
-
-void nvgpu_sw_quiesce_remove_support(struct gk20a *g)
-{
-#ifndef CONFIG_NVGPU_RECOVERY
-	if (g->sw_quiesce_init_done) {
-		nvgpu_bug_unregister_cb(&g->sw_quiesce_bug_cb);
-		nvgpu_thread_stop_graceful(&g->sw_quiesce_thread,
-					   nvgpu_sw_quiesce_thread_stop_fn,
-					   g);
-		nvgpu_cond_destroy(&g->sw_quiesce_cond);
-		g->sw_quiesce_init_done = false;
-	}
-#endif
-}
-
 void nvgpu_sw_quiesce(struct gk20a *g)
 {
-#ifdef CONFIG_NVGPU_RECOVERY
-	nvgpu_err(g, "SW quiesce not supported");
-#else
 	if (g->is_virtual || (g->enabled_flags == NULL) ||
 		nvgpu_is_enabled(g, NVGPU_DISABLE_SW_QUIESCE)) {
 		nvgpu_err(g, "SW quiesce not supported");
@@ -204,10 +195,9 @@ void nvgpu_sw_quiesce(struct gk20a *g)
 	 */
 	g->sw_quiesce_pending = true;
 
-	nvgpu_cond_signal(&g->sw_quiesce_cond);
+	nvgpu_cond_signal_interruptible(&g->sw_quiesce_cond);
 	gk20a_mask_interrupts(g);
 	nvgpu_fifo_sw_quiesce(g);
-#endif
 }
 
 /* init interface layer support for all falcons */
@@ -748,11 +738,9 @@ int nvgpu_can_busy(struct gk20a *g)
 	 * or the driver is restarting
 	 */
 
-#ifndef CONFIG_NVGPU_RECOVERY
 	if (g->sw_quiesce_pending) {
 		return 0;
 	}
-#endif
 
 	if (nvgpu_is_enabled(g, NVGPU_KERNEL_IS_DYING) ||
 		nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
