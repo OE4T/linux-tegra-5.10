@@ -389,6 +389,12 @@ struct gops_fb {
 	bool (*set_use_full_comp_tag_line)(struct gk20a *g);
 
 	/*
+	 * Check if comptagline mode is enabled.
+	 * Legacy chips support only comptagline mode
+	 */
+	bool (*is_comptagline_mode_enabled)(struct gk20a *g);
+
+	/*
 	 * Compression tag line coverage. When mapping a compressible
 	 * buffer, ctagline is increased when the virtual address
 	 * crosses over the compression page boundary.

@@ -95,58 +95,62 @@ struct nvgpu_gmmu_attrs {
 	 * Min: GMMU_PAGE_SIZE_SMALL
 	 * Max: GMMU_PAGE_SIZE_KERNEL
 	 */
-	u32			 pgsz;
+	u32			pgsz;
 	/**
 	 * Kind attributes for mapping.
 	 */
-	u32			 kind_v;
+	u32			kind_v;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	/**
 	 * Comptag line in the comptag cache.
 	 * updated every time we write a PTE.
 	 */
-	u64			 ctag;
+	u64			ctag;
+	/**
+	 * True if cbc policy is comptagline_mode
+	 */
+	bool			cbc_comptagline_mode;
 #endif
 	/**
 	 * Cacheability of the mapping.
 	 * Cacheable if this flag is set to true, else non-cacheable.
 	 */
-	bool			 cacheable;
+	bool			cacheable;
 	/**
 	 * Flag from enum #gk20a_mem_rw_flag
 	 * (i.e gk20a_mem_flag_none, gk20a_mem_flag_read_only, ...).
 	 */
-	enum gk20a_mem_rw_flag	 rw_flag;
+	enum gk20a_mem_rw_flag	rw_flag;
 	/**
 	 * True if the mapping should be sparse.
 	 */
-	bool			 sparse;
+	bool			sparse;
 	/**
 	 * True if the mapping should be Privileged.
 	 */
-	bool			 priv;
+	bool			priv;
 	/**
 	 * True if the PTE should be marked valid.
 	 */
-	bool			 valid;
+	bool			valid;
 	/**
 	 * This flag variable designates where the memory actually
 	 * was allocated from. #nvgpu_aperture.
 	 * (i.e APERTURE_SYSMEM, APERTURE_VIDMEM, ...).
 	 */
-	enum nvgpu_aperture	 aperture;
+	enum nvgpu_aperture	aperture;
 	/**
 	 * When set (i.e True) print debugging info.
 	 */
-	bool			 debug;
+	bool			debug;
 	/**
 	 * True if l3_alloc flag is valid.
 	 */
-	bool			 l3_alloc;
+	bool			l3_alloc;
 	/**
 	 * True if platform_atomic flag is valid.
 	 */
-	bool			 platform_atomic;
+	bool			platform_atomic;
 };
 
 /**
