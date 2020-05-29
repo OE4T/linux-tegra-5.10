@@ -193,6 +193,9 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 
 	watchdog_set_nowayout(wdt_dev, nowayout);
 
+	/* Stop watchdog on reboot */
+	watchdog_stop_on_reboot(wdt_dev);
+
 	watchdog_stop_on_unregister(wdt_dev);
 	return devm_watchdog_register_device(dev, wdt_dev);
 }
