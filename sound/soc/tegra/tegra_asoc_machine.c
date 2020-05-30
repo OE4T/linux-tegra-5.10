@@ -281,6 +281,9 @@ static int parse_dt_codec_confs(struct snd_soc_card *card)
 				return err;
 			}
 
+			codec_confs[i].dlc.of_node = args.np;
+			codec_confs[i].dlc.name = NULL;
+
 			of_property_read_string(codec, "prefix",
 						&codec_confs[i].name_prefix);
 
@@ -784,6 +787,10 @@ void release_asoc_phandles(struct tegra_machine *machine)
 			of_node_put(machine->asoc->dai_links[i].cpus->of_node);
 			of_node_put(machine->asoc->dai_links[i].codecs->of_node);
 		}
+	}
+	if (machine->asoc->codec_confs) {
+		for (i = 0; i < machine->asoc->num_confs; i++)
+			of_node_put(machine->asoc->codec_confs[i].dlc.of_node);
 	}
 }
 EXPORT_SYMBOL_GPL(release_asoc_phandles);

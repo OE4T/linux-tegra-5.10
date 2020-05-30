@@ -1703,7 +1703,8 @@ static struct snd_compr_ops tegra210_adsp_compr_ops = {
 };
 
 /* PCM APIs */
-static int tegra210_adsp_pcm_open(struct snd_pcm_substream *substream)
+static int tegra210_adsp_pcm_open(struct snd_soc_component *component,
+				  struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_component *cmpnt = snd_soc_rtdcom_lookup(rtd, DRV_NAME);
@@ -1786,7 +1787,8 @@ static int tegra210_adsp_pcm_open(struct snd_pcm_substream *substream)
 	return 0;
 }
 
-static int tegra210_adsp_pcm_close(struct snd_pcm_substream *substream)
+static int tegra210_adsp_pcm_close(struct snd_soc_component *component,
+				   struct snd_pcm_substream *substream)
 {
 	struct tegra210_adsp_pcm_rtd *prtd = substream->runtime->private_data;
 	unsigned long flags;
@@ -1818,15 +1820,17 @@ static int tegra210_adsp_pcm_close(struct snd_pcm_substream *substream)
 	return 0;
 }
 
-static int tegra210_adsp_pcm_prepare(struct snd_pcm_substream *substream)
+static int tegra210_adsp_pcm_prepare(struct snd_soc_component *component,
+				     struct snd_pcm_substream *substream)
 {
 	tegra_isomgr_adma_setbw(substream, true);
 
 	return 0;
 }
 
-static int tegra210_adsp_pcm_hw_params(struct snd_pcm_substream *substream,
-				struct snd_pcm_hw_params *params)
+static int tegra210_adsp_pcm_hw_params(struct snd_soc_component *component,
+				       struct snd_pcm_substream *substream,
+				       struct snd_pcm_hw_params *params)
 {
 	struct tegra210_adsp_pcm_rtd *prtd = substream->runtime->private_data;
 	struct snd_dma_buffer *buf = &substream->dma_buffer;
@@ -1861,14 +1865,16 @@ static int tegra210_adsp_pcm_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static int tegra210_adsp_pcm_hw_free(struct snd_pcm_substream *substream)
+static int tegra210_adsp_pcm_hw_free(struct snd_soc_component *component,
+				     struct snd_pcm_substream *substream)
 {
 	snd_pcm_set_runtime_buffer(substream, NULL);
 	return 0;
 }
 
 
-static int tegra210_adsp_pcm_trigger(struct snd_pcm_substream *substream,
+static int tegra210_adsp_pcm_trigger(struct snd_soc_component *component,
+				     struct snd_pcm_substream *substream,
 				     int cmd)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
@@ -1940,8 +1946,9 @@ static int tegra210_adsp_pcm_trigger(struct snd_pcm_substream *substream,
 }
 
 
-static snd_pcm_uframes_t tegra210_adsp_pcm_pointer(
-		struct snd_pcm_substream *substream)
+static snd_pcm_uframes_t
+	tegra210_adsp_pcm_pointer(struct snd_soc_component *component,
+				  struct snd_pcm_substream *substream)
 {
 	struct tegra210_adsp_pcm_rtd *prtd = substream->runtime->private_data;
 	struct tegra210_adsp_app *app = prtd->fe_apm;
@@ -1961,19 +1968,8 @@ static snd_pcm_uframes_t tegra210_adsp_pcm_pointer(
 	return bytes_to_frames(substream->runtime, pos);
 }
 
-static struct snd_pcm_ops tegra210_adsp_pcm_ops = {
-	.open		= tegra210_adsp_pcm_open,
-	.close		= tegra210_adsp_pcm_close,
-	.ioctl		= snd_pcm_lib_ioctl,
-	.hw_params	= tegra210_adsp_pcm_hw_params,
-	.hw_free	= tegra210_adsp_pcm_hw_free,
-	.prepare	= tegra210_adsp_pcm_prepare,
-	.trigger	= tegra210_adsp_pcm_trigger,
-	.pointer	= tegra210_adsp_pcm_pointer,
-	.ack		= tegra210_adsp_pcm_ack,
-};
-
-static int tegra210_adsp_pcm_new(struct snd_soc_pcm_runtime *rtd)
+static int tegra210_adsp_pcm_construct(struct snd_soc_component *component,
+				       struct snd_soc_pcm_runtime *rtd)
 {
 #if ENABLE_ADSP
 	struct snd_card *card = rtd->card->snd_card;
@@ -2014,7 +2010,8 @@ err:
 #endif
 }
 
-static void tegra210_adsp_pcm_free(struct snd_pcm *pcm)
+static void tegra210_adsp_pcm_destruct(struct snd_soc_component *component,
+				       struct snd_pcm *pcm)
 {
 	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {
 		int stream = SNDRV_PCM_STREAM_PLAYBACK;
@@ -4394,9 +4391,18 @@ static struct snd_soc_component_driver tegra210_adsp_cmpnt = {
 	.controls		= tegra210_adsp_controls,
 	.num_controls		= ARRAY_SIZE(tegra210_adsp_controls),
 	.probe			= tegra210_adsp_component_probe,
-	.pcm_new		= tegra210_adsp_pcm_new,
-	.pcm_free		= tegra210_adsp_pcm_free,
-	.ops			= &tegra210_adsp_pcm_ops,
+	.pcm_construct		= tegra210_adsp_pcm_construct,
+	.pcm_destruct		= tegra210_adsp_pcm_destruct,
+
+	/* PCM ops */
+	.open			= tegra210_adsp_pcm_open,
+	.close			= tegra210_adsp_pcm_close,
+	.hw_params		= tegra210_adsp_pcm_hw_params,
+	.hw_free		= tegra210_adsp_pcm_hw_free,
+	.prepare		= tegra210_adsp_pcm_prepare,
+	.trigger		= tegra210_adsp_pcm_trigger,
+	.pointer		= tegra210_adsp_pcm_pointer,
+
 	.compr_ops		= &tegra210_adsp_compr_ops,
 	.read			= tegra210_adsp_read,
 	.write			= tegra210_adsp_write,

@@ -433,6 +433,12 @@ static int tegra_admaif_stop(struct snd_soc_dai *dai, int direction)
 static int tegra_admaif_trigger(struct snd_pcm_substream *substream, int cmd,
 				struct snd_soc_dai *dai)
 {
+	int err;
+
+	err = snd_dmaengine_pcm_trigger(substream, cmd);
+	if (err)
+		return err;
+
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
@@ -707,11 +713,27 @@ static struct snd_kcontrol_new tegra186_admaif_controls[] = {
 static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
 	.controls		= tegra210_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra210_admaif_controls),
+	.pcm_construct		= tegra_pcm_construct,
+	.pcm_destruct		= tegra_pcm_destruct,
+	.open			= tegra_pcm_open,
+	.close			= tegra_pcm_close,
+	.hw_params		= tegra_pcm_hw_params,
+	.hw_free		= tegra_pcm_hw_free,
+	.mmap			= tegra_pcm_mmap,
+	.pointer		= tegra_pcm_pointer,
 };
 
 static const struct snd_soc_component_driver tegra186_admaif_cmpnt = {
 	.controls		= tegra186_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra186_admaif_controls),
+	.pcm_construct		= tegra_pcm_construct,
+	.pcm_destruct		= tegra_pcm_destruct,
+	.open			= tegra_pcm_open,
+	.close			= tegra_pcm_close,
+	.hw_params		= tegra_pcm_hw_params,
+	.hw_free		= tegra_pcm_hw_free,
+	.mmap			= tegra_pcm_mmap,
+	.pointer		= tegra_pcm_pointer,
 };
 
 static const struct tegra_admaif_soc_data soc_data_tegra210 = {

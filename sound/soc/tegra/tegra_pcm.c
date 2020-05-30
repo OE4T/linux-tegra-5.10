@@ -67,7 +67,8 @@ void tegra_pcm_platform_unregister(struct device *dev)
 }
 EXPORT_SYMBOL_GPL(tegra_pcm_platform_unregister);
 
-static int tegra_pcm_open(struct snd_pcm_substream *substream)
+int tegra_pcm_open(struct snd_soc_component *component,
+		   struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_dmaengine_dai_dma_data *dmap;
@@ -108,8 +109,10 @@ static int tegra_pcm_open(struct snd_pcm_substream *substream)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(tegra_pcm_open);
 
-static int tegra_pcm_close(struct snd_pcm_substream *substream)
+int tegra_pcm_close(struct snd_soc_component *component,
+		    struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 
@@ -120,9 +123,11 @@ static int tegra_pcm_close(struct snd_pcm_substream *substream)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(tegra_pcm_close);
 
-static int tegra_pcm_hw_params(struct snd_pcm_substream *substream,
-			       struct snd_pcm_hw_params *params)
+int tegra_pcm_hw_params(struct snd_soc_component *component,
+			struct snd_pcm_substream *substream,
+			struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_dmaengine_dai_dma_data *dmap;
@@ -166,8 +171,10 @@ static int tegra_pcm_hw_params(struct snd_pcm_substream *substream,
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(tegra_pcm_hw_params);
 
-static int tegra_pcm_hw_free(struct snd_pcm_substream *substream)
+int tegra_pcm_hw_free(struct snd_soc_component *component,
+		      struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 
@@ -178,9 +185,11 @@ static int tegra_pcm_hw_free(struct snd_pcm_substream *substream)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(tegra_pcm_hw_free);
 
-static int tegra_pcm_mmap(struct snd_pcm_substream *substream,
-			  struct vm_area_struct *vma)
+int tegra_pcm_mmap(struct snd_soc_component *component,
+		   struct snd_pcm_substream *substream,
+		   struct vm_area_struct *vma)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_pcm_runtime *runtime = substream->runtime;
@@ -191,23 +200,14 @@ static int tegra_pcm_mmap(struct snd_pcm_substream *substream,
 	return dma_mmap_wc(substream->pcm->card->dev, vma, runtime->dma_area,
 			   runtime->dma_addr, runtime->dma_bytes);
 }
+EXPORT_SYMBOL_GPL(tegra_pcm_mmap);
 
-static snd_pcm_uframes_t tegra_pcm_pointer(struct snd_pcm_substream *substream)
+snd_pcm_uframes_t tegra_pcm_pointer(struct snd_soc_component *component,
+				    struct snd_pcm_substream *substream)
 {
 	return snd_dmaengine_pcm_pointer(substream);
 }
-
-static struct snd_pcm_ops tegra_pcm_ops = {
-	.open		= tegra_pcm_open,
-	.close		= tegra_pcm_close,
-	.ioctl		= snd_pcm_lib_ioctl,
-	.hw_params	= tegra_pcm_hw_params,
-	.hw_free	= tegra_pcm_hw_free,
-	.trigger	= snd_dmaengine_pcm_trigger,
-	.pointer	= tegra_pcm_pointer,
-	.mmap		= tegra_pcm_mmap,
-};
-EXPORT_SYMBOL_GPL(tegra_pcm_ops);
+EXPORT_SYMBOL_GPL(tegra_pcm_pointer);
 
 static int tegra_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream,
 					    size_t size)
@@ -272,18 +272,20 @@ err:
 	return ret;
 }
 
-int tegra_pcm_new(struct snd_soc_pcm_runtime *rtd)
+int tegra_pcm_construct(struct snd_soc_component *component,
+			struct snd_soc_pcm_runtime *rtd)
 {
 	return tegra_pcm_dma_allocate(rtd, tegra_pcm_hardware.buffer_bytes_max);
 }
-EXPORT_SYMBOL_GPL(tegra_pcm_new);
+EXPORT_SYMBOL_GPL(tegra_pcm_construct);
 
-void tegra_pcm_free(struct snd_pcm *pcm)
+void tegra_pcm_destruct(struct snd_soc_component *component,
+			struct snd_pcm *pcm)
 {
 	tegra_pcm_deallocate_dma_buffer(pcm, SNDRV_PCM_STREAM_CAPTURE);
 	tegra_pcm_deallocate_dma_buffer(pcm, SNDRV_PCM_STREAM_PLAYBACK);
 }
-EXPORT_SYMBOL_GPL(tegra_pcm_free);
+EXPORT_SYMBOL_GPL(tegra_pcm_destruct);
 
 MODULE_AUTHOR("Stephen Warren <swarren@nvidia.com>");
 MODULE_DESCRIPTION("Tegra PCM ASoC driver");
