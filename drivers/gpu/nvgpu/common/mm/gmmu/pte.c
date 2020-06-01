@@ -79,10 +79,24 @@ void nvgpu_pte_dbg_print(struct gk20a *g,
 	const char *aperture_str = nvgpu_aperture_str(attrs->aperture);
 	const char *perm_str = nvgpu_gmmu_perm_str(attrs->rw_flag);
 #ifdef CONFIG_NVGPU_COMPRESSION
-	u32 ctag = nvgpu_safe_cast_u64_to_u32(attrs->ctag /
+	u64 ctag_tmp = attrs->ctag;
+	u32 str_len = 0U;
+	u32 ctag_num = 0U;
+
+	/*
+	 * attrs->ctag is incremented to count current page size as well.
+	 * Subtract to get this page's ctag line number.
+	 */
+	if (ctag_tmp != 0ULL) {
+		ctag_tmp = nvgpu_safe_sub_u64(ctag_tmp, page_size);
+	}
+
+	ctag_num = nvgpu_safe_cast_u64_to_u32(ctag_tmp /
 					g->ops.fb.compression_page_size(g));
-	(void)strcpy(ctag_str, "ctag=0x");
-	(void)nvgpu_strnadd_u32(ctag_str, ctag, (u32)strlen(ctag_str), 10U);
+	(void)strcpy(ctag_str, "ctag=0x\0");
+	str_len = (u32)strlen(ctag_str);
+	(void)nvgpu_strnadd_u32(ctag_str + str_len, ctag_num,
+		nvgpu_safe_sub_u32(31U, str_len), 16U);
 #endif
 	(void)map_attrs_to_str(attrs_str, attrs);
 	pte_dbg(g, attrs,
