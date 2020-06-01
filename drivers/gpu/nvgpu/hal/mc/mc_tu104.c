@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/gops_mc.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "hal/mc/mc_gp10b.h"
 
@@ -463,4 +464,49 @@ void mc_tu104_ltc_isr(struct gk20a *g)
 	for (ltc = 0; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
 		g->ops.ltc.intr.isr(g, ltc);
 	}
+}
+
+static void mc_tu104_isr_stall_primary(struct gk20a *g, u32 mc_intr_0)
+{
+	/*
+	 * In Turing, mc_intr_1 is deprecated and pbus intr is routed to
+	 * mc_intr_0. This is different than legacy chips pbus interrupt.
+	 */
+	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
+		g->ops.bus.isr(g);
+	}
+
+	if ((mc_intr_0 & mc_intr_priv_ring_pending_f()) != 0U) {
+		g->ops.priv_ring.isr(g);
+	}
+}
+
+void mc_tu104_isr_stall(struct gk20a *g)
+{
+	u32 mc_intr_0;
+	u32 i;
+	u32 engine_id = 0U;
+	enum nvgpu_fifo_engine engine_enum;
+
+	mc_intr_0 = nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
+
+	nvgpu_log(g, gpu_dbg_intr, "stall intr 0x%08x", mc_intr_0);
+
+	mc_tu104_isr_stall_primary(g, mc_intr_0);
+
+	for (i = 0U; i < g->fifo.num_engines; i++) {
+		engine_id = g->fifo.active_engines_list[i];
+
+		if ((mc_intr_0 &
+			g->fifo.engine_info[engine_id].intr_mask) == 0U) {
+			continue;
+		}
+		engine_enum = g->fifo.engine_info[engine_id].engine_enum;
+		mc_gp10b_isr_stall_engine(g, engine_enum, engine_id);
+	}
+
+	mc_gp10b_isr_stall_secondary_0(g, mc_intr_0);
+	mc_gp10b_isr_stall_secondary_1(g, mc_intr_0);
+	nvgpu_log(g, gpu_dbg_intr, "stall intr done 0x%08x", mc_intr_0);
+
 }

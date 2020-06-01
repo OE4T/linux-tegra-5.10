@@ -85,9 +85,6 @@ void gm20b_mc_isr_stall(struct gk20a *g)
 	if ((mc_intr_0 & mc_intr_ltc_pending_f()) != 0U) {
 		g->ops.mc.ltc_isr(g);
 	}
-	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
-		g->ops.bus.isr(g);
-	}
 }
 
 void gm20b_mc_intr_mask(struct gk20a *g)

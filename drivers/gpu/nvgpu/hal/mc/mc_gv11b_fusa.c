@@ -49,7 +49,6 @@ bool gv11b_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 engine_id,
 	stall_intr = mc_intr_pfifo_pending_f() |
 			mc_intr_hub_pending_f() |
 			mc_intr_priv_ring_pending_f() |
-			mc_intr_pbus_pending_f() |
 			mc_intr_ltc_pending_f();
 
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_intr,

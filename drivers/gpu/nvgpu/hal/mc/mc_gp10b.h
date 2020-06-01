@@ -31,10 +31,15 @@
 
 struct gk20a;
 enum nvgpu_unit;
+enum nvgpu_fifo_engine;
 
 void mc_gp10b_intr_mask(struct gk20a *g);
 void mc_gp10b_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
 void mc_gp10b_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable);
+void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0);
+void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0);
+void mc_gp10b_isr_stall_engine(struct gk20a *g,
+			enum nvgpu_fifo_engine engine_enum, u32 engine_id);
 void mc_gp10b_isr_stall(struct gk20a *g);
 bool mc_gp10b_is_intr1_pending(struct gk20a *g,
 				      enum nvgpu_unit unit, u32 mc_intr_1);

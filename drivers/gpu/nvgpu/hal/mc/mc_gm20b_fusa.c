@@ -65,6 +65,10 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 
 	mc_intr_1 = g->ops.mc.intr_nonstall(g);
 
+	if ((mc_intr_1 & mc_intr_pbus_pending_f()) != 0U) {
+		g->ops.bus.isr(g);
+	}
+
 	if (g->ops.mc.is_intr1_pending(g, NVGPU_UNIT_FIFO, mc_intr_1)) {
 		ops |= g->ops.fifo.intr_1_isr(g);
 	}

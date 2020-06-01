@@ -492,7 +492,10 @@ int test_isr_stall(struct unit_module *m, struct gk20a *g, void *args)
 	nvgpu_posix_io_writel_reg_space(g, mc_intr_ltc_r(), 1U);
 	reset_ctx();
 	g->ops.mc.isr_stall(g);
-	if (!u.bus_isr || !u.ce_isr || !u.fb_isr || !u.fifo_isr || !u.gr_isr ||
+	if (u.bus_isr) {
+		unit_return_fail(m, "BUS ISR called from Stall\n");
+	}
+	if (!u.ce_isr || !u.fb_isr || !u.fifo_isr || !u.gr_isr ||
 	    !u.pmu_isr || !u.priv_ring_isr) {
 		unit_return_fail(m, "not all ISRs called\n");
 	}
@@ -599,7 +602,7 @@ int test_isr_nonstall(struct unit_module *m, struct gk20a *g, void *args)
 	u.fifo_isr_return = 0x2;
 	u.gr_isr_return = 0x4;
 	val = g->ops.mc.isr_nonstall(g);
-	if (!u.ce_isr || !u.fifo_isr || !u.gr_isr) {
+	if (!u.bus_isr || !u.ce_isr || !u.fifo_isr || !u.gr_isr) {
 		unit_return_fail(m, "not all ISRs called\n");
 	}
 	if (val != 0x7) {

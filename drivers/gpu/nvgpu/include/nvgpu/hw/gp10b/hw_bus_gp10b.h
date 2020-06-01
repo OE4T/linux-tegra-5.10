@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -100,8 +100,8 @@
 #define bus_intr_0_pri_squash_m()                              (U32(0x1U) << 1U)
 #define bus_intr_0_pri_fecserr_m()                             (U32(0x1U) << 2U)
 #define bus_intr_0_pri_timeout_m()                             (U32(0x1U) << 3U)
-#define bus_intr_en_0_r()                                          (0x00001140U)
-#define bus_intr_en_0_pri_squash_m()                           (U32(0x1U) << 1U)
-#define bus_intr_en_0_pri_fecserr_m()                          (U32(0x1U) << 2U)
-#define bus_intr_en_0_pri_timeout_m()                          (U32(0x1U) << 3U)
+#define bus_intr_en_1_r()                                          (0x00001144U)
+#define bus_intr_en_1_pri_squash_m()                           (U32(0x1U) << 1U)
+#define bus_intr_en_1_pri_fecserr_m()                          (U32(0x1U) << 2U)
+#define bus_intr_en_1_pri_timeout_m()                          (U32(0x1U) << 3U)
 #endif

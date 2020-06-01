@@ -1368,7 +1368,7 @@ static const struct gpu_ops tu104_ops = {
 #endif
 		.intr_stall_unit_config = intr_tu104_stall_unit_config,
 		.intr_nonstall_unit_config = intr_tu104_nonstall_unit_config,
-		.isr_stall = mc_gp10b_isr_stall,
+		.isr_stall = mc_tu104_isr_stall,
 		.intr_stall = intr_tu104_stall,
 		.intr_stall_pause = intr_tu104_stall_pause,
 		.intr_stall_resume = intr_tu104_stall_resume,
@@ -1427,7 +1427,7 @@ static const struct gpu_ops tu104_ops = {
 	},
 #endif
 	.bus = {
-		.init_hw = gk20a_bus_init_hw,
+		.init_hw = tu104_bus_init_hw,
 		.isr = gk20a_bus_isr,
 		.bar1_bind = NULL,
 		.bar2_bind = bus_tu104_bar2_bind,

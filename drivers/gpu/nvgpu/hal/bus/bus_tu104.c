@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,8 @@
  */
 
 #include <nvgpu/timers.h>
+#include <nvgpu/soc.h>
+#include <nvgpu/io.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/gk20a.h>
 
@@ -30,6 +32,31 @@
 
 #include <nvgpu/hw/tu104/hw_bus_tu104.h>
 #include <nvgpu/hw/tu104/hw_func_tu104.h>
+
+int tu104_bus_init_hw(struct gk20a *g)
+{
+	u32 intr_en_mask = 0U;
+
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_BUS, MC_INTR_ENABLE);
+
+	/*
+	 * Note: bus_intr_en_0 is for routing intr to stall tree (mc_intr_0)
+	 * bus_intr_en_1 is for routing bus intr to nostall tree (mc_intr_1)
+	 */
+	if (nvgpu_platform_is_silicon(g) || nvgpu_platform_is_fpga(g)) {
+		intr_en_mask = bus_intr_en_0_pri_squash_m() |
+				bus_intr_en_0_pri_fecserr_m() |
+				bus_intr_en_0_pri_timeout_m();
+	}
+
+	nvgpu_writel(g, bus_intr_en_0_r(), intr_en_mask);
+
+	if (g->ops.bus.configure_debug_bus != NULL) {
+		g->ops.bus.configure_debug_bus(g);
+	}
+
+	return 0;
+}
 
 int bus_tu104_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst)
 {

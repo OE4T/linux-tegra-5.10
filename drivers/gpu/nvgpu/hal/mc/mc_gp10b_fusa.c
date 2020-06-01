@@ -82,15 +82,12 @@ static u32 mc_gp10b_intr_pending_f(struct gk20a *g, u32 unit)
 
 static void mc_gp10b_isr_stall_primary(struct gk20a *g, u32 mc_intr_0)
 {
-	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
-		g->ops.bus.isr(g);
-	}
 	if ((mc_intr_0 & mc_intr_priv_ring_pending_f()) != 0U) {
 		g->ops.priv_ring.isr(g);
 	}
 }
 
-static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
+void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
 {
 	if ((mc_intr_0 & mc_intr_ltc_pending_f()) != 0U) {
 		g->ops.mc.ltc_isr(g);
@@ -107,7 +104,7 @@ static void mc_gp10b_isr_stall_secondary_1(struct gk20a *g, u32 mc_intr_0)
 #endif
 }
 
-static void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0)
+void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0)
 {
 	if ((g->ops.mc.is_intr_hub_pending != NULL) &&
 			g->ops.mc.is_intr_hub_pending(g, mc_intr_0)) {
@@ -121,7 +118,7 @@ static void mc_gp10b_isr_stall_secondary_0(struct gk20a *g, u32 mc_intr_0)
 	}
 }
 
-static void mc_gp10b_isr_stall_engine(struct gk20a *g,
+void mc_gp10b_isr_stall_engine(struct gk20a *g,
 			enum nvgpu_fifo_engine engine_enum, u32 engine_id)
 {
 	/* GR Engine */

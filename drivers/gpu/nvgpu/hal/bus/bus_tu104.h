@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 struct gk20a;
 struct nvgpu_mem;
 
+int tu104_bus_init_hw(struct gk20a *g);
 int bus_tu104_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst);
 
 #endif /* NVGPU_BUS_TU104_H */
