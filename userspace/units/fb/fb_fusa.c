@@ -142,7 +142,7 @@ struct unit_module_test fb_tests[] = {
 	UNIT_TEST(fb_mmu_fault_gv11b_handle_fault,
 		fb_mmu_fault_gv11b_handle_fault, NULL, 0),
 	UNIT_TEST(fb_mmu_fault_gv11b_handle_bar2_fault,
-		fb_mmu_fault_gv11b_handle_bar2_fault, NULL, 0),
+		fb_mmu_fault_gv11b_handle_bar2_fault, NULL, 2),
 	UNIT_TEST(fb_intr_gv11b_init_test, fb_intr_gv11b_init_test, NULL, 0),
 	UNIT_TEST(fb_intr_gv11b_isr_test, fb_intr_gv11b_isr_test, NULL, 0),
 
