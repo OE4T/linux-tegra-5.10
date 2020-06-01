@@ -87,6 +87,8 @@ struct device *tegra_soc_device_register(void);
  * begin block - downstream declarations
  */
 
+#define TEGRA_FUSE_HAS_PLATFORM_APIS
+
 enum tegra_platform {
 	TEGRA_PLATFORM_SILICON = 0,
 	TEGRA_PLATFORM_QT,
