@@ -267,28 +267,6 @@ static int tegra18x_mce_enable_latic(void)
 	return send_smc(MCE_SMC_ENABLE_LATIC, &regs);
 }
 
-/* Tegra18x Cache functions */
-static int tegra18x_roc_flush_cache(void)
-{
-	struct tegra_mce_regs regs;
-
-	return send_smc(MCE_SMC_ROC_FLUSH_CACHE, &regs);
-}
-
-static int tegra18x_roc_flush_cache_only(void *__maybe_unused unused)
-{
-	struct tegra_mce_regs regs;
-
-	return send_smc(MCE_SMC_ROC_FLUSH_CACHE_ONLY, &regs);
-}
-
-static int tegra18x_roc_clean_cache(void *__maybe_unused unused)
-{
-	struct tegra_mce_regs regs;
-
-	return send_smc(MCE_SMC_ROC_CLEAN_CACHE_ONLY, &regs);
-}
-
 #ifdef CONFIG_DEBUG_FS
 static int tegra18x_mce_features_get(void *data, u64 *val)
 {
@@ -506,9 +484,6 @@ static struct tegra_mce_ops t18x_mce_ops = {
 	.read_uncore_perfmon = tegra18x_mce_read_uncore_perfmon,
 	.write_uncore_perfmon = tegra18x_mce_write_uncore_perfmon,
 	.enable_latic = tegra18x_mce_enable_latic,
-	.flush_cache_all = tegra18x_roc_flush_cache,
-	.flush_dcache_all = tegra18x_roc_flush_cache_only,
-	.clean_dcache_all = tegra18x_roc_clean_cache,
 };
 
 static int __init tegra18x_mce_early_init(void)

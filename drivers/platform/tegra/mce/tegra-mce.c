@@ -16,7 +16,6 @@
 #include <linux/module.h>
 #include <linux/tegra-mce.h>
 
-#include <asm/cacheflush.h>
 #include <asm/smp_plat.h>
 
 static struct tegra_mce_ops *mce_ops;

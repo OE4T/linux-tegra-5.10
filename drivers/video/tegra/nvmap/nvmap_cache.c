@@ -20,6 +20,7 @@
 #include <linux/debugfs.h>
 #include <linux/of.h>
 #include <linux/version.h>
+#include <linux/tegra-cache.h>
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
 #else

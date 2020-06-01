@@ -17,6 +17,7 @@
 
 #include "nvmap_priv.h"
 #include <linux/tegra-mce.h>
+#include <linux/tegra-cache.h>
 #include <linux/version.h>
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>

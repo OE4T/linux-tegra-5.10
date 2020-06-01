@@ -10,6 +10,10 @@ ccflags-y += -Werror
 
 obj-y += tegra-cache.o
 
+ifeq ($(CONFIG_ARCH_TEGRA_18x_SOC),y)
+obj-y += tegra18x-cache.o
+endif
+
 ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_23x_SOC)),)
 obj-y += tegra19x-cache.o
 endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -117,10 +117,6 @@ int tegra_mce_enable_latic(void);
 int tegra_mce_write_dda_ctrl(u32 index, u64 value);
 int tegra_mce_read_dda_ctrl(u32 index, u64 *value);
 
-/* Tegra cache functions */
-int tegra_flush_cache_all(void);
-int tegra_flush_dcache_all(void *__maybe_unused unused);
-int tegra_clean_dcache_all(void *__maybe_unused unused);
 /* L3 cache ways read/write functions */
 int tegra_mce_read_l3_cache_ways(u64 *value);
 int tegra_mce_write_l3_cache_ways(u64 data, u64 *value);
@@ -159,9 +155,6 @@ struct tegra_mce_ops {
 	int (*write_rt_window_us)(u64);
 	int (*read_rt_fwd_progress_us)(u64 *);
 	int (*write_rt_fwd_progress_us)(u64);
-	int (*flush_cache_all)(void);
-	int (*flush_dcache_all)(void *__maybe_unused unused);
-	int (*clean_dcache_all)(void *__maybe_unused unused);
 };
 
 void tegra_mce_set_ops(struct tegra_mce_ops *);
