@@ -457,4 +457,24 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 			       struct ifreq *ifr);
 int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable);
+
+#if IS_ENABLED(CONFIG_NVETHERNET_SELFTESTS)
+void ether_selftest_run(struct net_device *dev,
+		        struct ethtool_test *etest, u64 *buf);
+void ether_selftest_get_strings(struct ether_priv_data *pdata, u8 *data);
+int ether_selftest_get_count(struct ether_priv_data *pdata);
+#else
+static inline void ether_selftest_run(struct net_device *dev,
+				      struct ethtool_test *etest, u64 *buf)
+{
+}
+static inline void ether_selftest_get_strings(struct ether_priv_data *pdata,
+					      u8 *data)
+{
+}
+static inline int ether_selftest_get_count(struct ether_priv_data *pdata)
+{
+	return -EOPNOTSUPP;
+}
+#endif /* CONFIG_NVETHERNET_SELFTESTS */
 #endif /* ETHER_LINUX_H */

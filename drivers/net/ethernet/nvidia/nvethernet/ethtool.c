@@ -402,6 +402,8 @@ static int ether_get_sset_count(struct net_device *dev, int sset)
 		} else {
 			len += ETHER_PKT_ERR_STAT_LEN;
 		}
+	} else if (sset == ETH_SS_TEST) {
+		len = ether_selftest_get_count(pdata);
 	} else {
 		len = -EOPNOTSUPP;
 	}
@@ -464,6 +466,8 @@ static void ether_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 				p += ETH_GSTRING_LEN;
 			}
 		}
+	} else if (stringset == (u32)ETH_SS_TEST) {
+		ether_selftest_get_strings(pdata, p);
 	} else {
 		dev_err(pdata->dev, "%s() Unsupported stringset\n", __func__);
 	}
@@ -1109,6 +1113,7 @@ static const struct ethtool_ops ether_ethtool_ops = {
 	.set_wol = ether_set_wol,
 	.get_eee = ether_get_eee,
 	.set_eee = ether_set_eee,
+	.self_test = ether_selftest_run,
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev)
