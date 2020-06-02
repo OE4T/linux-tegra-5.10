@@ -235,6 +235,10 @@ static void submit_setstreamid(struct nvhost_job *job)
 	}
 }
 
+#ifdef NVHOST_HAS_SUBMIT_HOST1XSTREAMID
+#include "host1x/submit_host1x_streamid.h"
+#endif
+
 static void submit_work(struct nvhost_job *job)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(job->ch->dev);
@@ -250,6 +254,9 @@ static void submit_work(struct nvhost_job *job)
 		nvhost_cdma_push(&job->ch->cdma,
 				 nvhost_opcode_acquire_mlock(cur_class),
 				 nvhost_opcode_setclass(cur_class, 0, 0));
+#ifdef NVHOST_HAS_SUBMIT_HOST1XSTREAMID
+		submit_host1xstreamid(job);
+#endif
 	}
 
 	/* make all waits in the beginning */
@@ -293,6 +300,10 @@ static void submit_work(struct nvhost_job *job)
 			cur_class = g->class_id;
 			if (g->class_id != NV_HOST1X_CLASS_ID)
 				submit_setstreamid(job);
+#ifdef NVHOST_HAS_SUBMIT_HOST1XSTREAMID
+			else
+				submit_host1xstreamid(job);
+#endif
 
 			/* initialize class context */
 			if (cur_class != NV_HOST1X_CLASS_ID) {
