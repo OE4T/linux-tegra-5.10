@@ -33,6 +33,11 @@
 #include "acr_wpr.h"
 #include "acr_priv.h"
 
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#include "nvgpu_next_gpuid.h"
+#endif
+
+
 #define APP_IMEM_OFFSET			(0)
 #define APP_IMEM_ENTRY			(0)
 #define APP_DMEM_OFFSET			(0)
@@ -108,6 +113,13 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 				NVGPU_REQUEST_FIRMWARE_NO_SOC);
 			break;
 #endif
+#if defined(CONFIG_NVGPU_NEXT)
+		case NVGPU_NEXT_DGPU_GPUID:
+			fecs_sig = nvgpu_request_firmware(g, NEXT_DGPU_FECS_UCODE_SIG,
+				NVGPU_REQUEST_FIRMWARE_NO_SOC);
+			break;
+#endif
+
 		default:
 			nvgpu_err(g, "no support for GPUID %x", ver);
 			break;
@@ -208,6 +220,13 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 					NVGPU_REQUEST_FIRMWARE_NO_SOC);
 			break;
 #endif
+#if defined(CONFIG_NVGPU_NEXT)
+		case NVGPU_NEXT_DGPU_GPUID:
+			gpccs_sig = nvgpu_request_firmware(g, NEXT_DGPU_GPCCS_UCODE_SIG,
+				NVGPU_REQUEST_FIRMWARE_NO_SOC);
+			break;
+#endif
+
 		default:
 			nvgpu_err(g, "no support for GPUID %x", ver);
 			break;
