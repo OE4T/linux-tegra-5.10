@@ -436,8 +436,6 @@ static int pwm_backlight_parse_dt(struct device *dev,
 		data->max_brightness = data->levels[item_counts - 1];
 	}
 
-	data->enable_gpio = -EINVAL;
-
 	value = 0;
 	ret = of_property_read_u32(bl_node, "lth-brightness",
 		&value);
