@@ -40,7 +40,7 @@
 struct gk20a;
 struct dbg_session_gk20a;
 struct nvgpu_fence_type;
-struct nvgpu_profile;
+struct nvgpu_swprofiler;
 struct nvgpu_channel_sync;
 struct nvgpu_gpfifo_userdata;
 struct nvgpu_gr_subctx;
@@ -576,7 +576,7 @@ int nvgpu_submit_channel_gpfifo_user(struct nvgpu_channel *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out,
-				struct nvgpu_profile *profile);
+				struct nvgpu_swprofiler *profiler);
 
 int nvgpu_submit_channel_gpfifo_kernel(struct nvgpu_channel *c,
 				struct nvgpu_gpfifo_entry *gpfifo,

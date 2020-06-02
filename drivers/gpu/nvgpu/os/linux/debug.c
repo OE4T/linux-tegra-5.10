@@ -442,8 +442,6 @@ void gk20a_debug_deinit(struct gk20a *g)
 	if (!l->debugfs)
 		return;
 
-	gk20a_fifo_debugfs_deinit(g);
-
 	debugfs_remove_recursive(l->debugfs);
 	debugfs_remove(l->debugfs_alias);
 }

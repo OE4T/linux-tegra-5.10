@@ -357,8 +357,7 @@ fifo:
                  common/fifo/priv_cmdbuf.c,
                  common/fifo/job.c,
                  include/nvgpu/priv_cmdbuf.h,
-                 include/nvgpu/job.h,
-                 include/nvgpu/profile.h ]
+                 include/nvgpu/job.h ]
       deps: [ ]
     runlist:
       safe: yes
@@ -992,6 +991,13 @@ power_features:
       safe: no
       sources: [ common/power_features/pg/pg.c,
                  include/nvgpu/power_features/pg.h ]
+
+swdebug:
+  owner: Alex W
+  safe: no
+  sources: [ common/swdebug/profile.c,
+             include/nvgpu/swprofile.h,
+             include/nvgpu/fifo/swprofile.h ]
 
 ##
 ## HAL units. Currently they are under common but this needs to change.

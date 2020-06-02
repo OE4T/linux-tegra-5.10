@@ -46,8 +46,10 @@
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/preempt.h>
-#include <nvgpu/profile.h>
+#include <nvgpu/swprofile.h>
 #include <nvgpu/nvgpu_init.h>
+
+#include <nvgpu/fifo/swprofile.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_channel.h"
@@ -792,10 +794,11 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 {
 	struct nvgpu_channel_fence fence;
 	struct nvgpu_fence_type *fence_out;
-	struct nvgpu_profile *profile = NULL;
 	u32 submit_flags = 0;
 	int fd = -1;
 	struct gk20a *g = ch->g;
+	struct nvgpu_fifo *f = &g->fifo;
+	struct nvgpu_swprofiler *kickoff_profiler = &f->kickoff_profiler;
 	struct nvgpu_gpfifo_userdata userdata;
 	bool flag_fence_wait = (args->flags &
 			NVGPU_SUBMIT_GPFIFO_FLAGS_FENCE_WAIT) != 0U;
@@ -807,8 +810,8 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	int ret = 0;
 	nvgpu_log_fn(g, " ");
 
-	profile = nvgpu_profile_acquire(ch->g);
-	nvgpu_profile_snapshot(profile, PROFILE_IOCTL_ENTRY);
+	nvgpu_swprofile_begin_sample(kickoff_profiler);
+	nvgpu_swprofile_snapshot(kickoff_profiler, PROF_KICKOFF_IOCTL_ENTRY);
 
 	if (nvgpu_channel_check_unserviceable(ch)) {
 		return -ETIMEDOUT;
@@ -846,7 +849,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 
 	ret = nvgpu_submit_channel_gpfifo_user(ch,
 			userdata, args->num_entries,
-			submit_flags, &fence, &fence_out, profile);
+			submit_flags, &fence, &fence_out, kickoff_profiler);
 
 	if (ret) {
 		if (fd != -1)
@@ -869,9 +872,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	}
 	nvgpu_fence_put(fence_out);
 
-	nvgpu_profile_snapshot(profile, PROFILE_IOCTL_EXIT);
-	if (profile)
-		nvgpu_profile_release(ch->g, profile);
+	nvgpu_swprofile_snapshot(kickoff_profiler, PROF_KICKOFF_IOCTL_EXIT);
 
 clean_up:
 	return ret;

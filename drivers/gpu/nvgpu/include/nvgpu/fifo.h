@@ -197,6 +197,8 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/kref.h>
 #include <nvgpu/list.h>
+#include <nvgpu/swprofile.h>
+
 /**
  * H/w defined value for Channel ID type
  */
@@ -231,6 +233,7 @@ struct nvgpu_engine_info;
 struct nvgpu_runlist_info;
 struct nvgpu_channel;
 struct nvgpu_tsg;
+struct nvgpu_swprofiler;
 
 struct nvgpu_fifo {
 	/** Pointer to GPU driver struct. */
@@ -297,16 +300,8 @@ struct nvgpu_fifo {
 	/** Number of active runlists. */
 	u32 num_runlists;
 
-#ifdef CONFIG_DEBUG_FS
-	struct {
-		struct nvgpu_profile *data;
-		nvgpu_atomic_t get;
-		bool enabled;
-		u64 *sorted;
-		struct nvgpu_ref ref;
-		struct nvgpu_mutex lock;
-	} profile;
-#endif
+	struct nvgpu_swprofiler kickoff_profiler;
+
 #ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_mutex userd_mutex;
 	struct nvgpu_mem *userd_slabs;

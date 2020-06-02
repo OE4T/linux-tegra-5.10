@@ -95,6 +95,7 @@ srcs +=	common/device.c \
 	common/utils/rbtree.c \
 	common/utils/string.c \
 	common/utils/worker.c \
+	common/swdebug/profile.c \
 	common/init/nvgpu_init.c \
 	common/mm/allocators/nvgpu_allocator.c \
 	common/mm/allocators/bitmap_allocator.c \

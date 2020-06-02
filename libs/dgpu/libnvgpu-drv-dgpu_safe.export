@@ -725,6 +725,8 @@ nvgpu_spinlock_release
 nvgpu_strnadd_u32
 nvgpu_sw_quiesce
 nvgpu_sw_quiesce_remove_support
+nvgpu_swprofile_initialize
+nvgpu_swprofile_snapshot
 nvgpu_thread_create
 nvgpu_thread_create_priority
 nvgpu_thread_get_fault_injection

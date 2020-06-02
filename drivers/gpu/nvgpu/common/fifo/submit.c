@@ -34,10 +34,12 @@
 #include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/fence.h>
-#include <nvgpu/profile.h>
+#include <nvgpu/swprofile.h>
 #include <nvgpu/vpr.h>
 #include <nvgpu/trace.h>
 #include <nvgpu/nvhost.h>
+
+#include <nvgpu/fifo/swprofile.h>
 
 /*
  * We might need two extra gpfifo entries per submit - one for pre fence and
@@ -340,7 +342,7 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 		u32 flags,
 		struct nvgpu_channel_fence *fence,
 		struct nvgpu_fence_type **fence_out,
-		struct nvgpu_profile *profile,
+		struct nvgpu_swprofiler *profiler,
 		bool need_deferred_cleanup)
 {
 	bool skip_buffer_refcounting = (flags &
@@ -358,7 +360,7 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 		goto clean_up_job;
 	}
 
-	nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
+	nvgpu_swprofile_snapshot(profiler, PROF_KICKOFF_JOB_TRACKING);
 
 	/*
 	 * wait_cmd can be unset even if flag_fence_wait exists; the
@@ -432,11 +434,11 @@ static int nvgpu_submit_prepare_gpfifo_notrack(struct nvgpu_channel *c,
 		struct nvgpu_gpfifo_userdata userdata,
 		u32 num_entries,
 		struct nvgpu_fence_type **fence_out,
-		struct nvgpu_profile *profile)
+		struct nvgpu_swprofiler *profiler)
 {
 	int err;
 
-	nvgpu_profile_snapshot(profile, PROFILE_JOB_TRACKING);
+	nvgpu_swprofile_snapshot(profiler, PROF_KICKOFF_JOB_TRACKING);
 
 	err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata,
 			num_entries);
@@ -475,7 +477,7 @@ static int nvgpu_do_submit(struct nvgpu_channel *c,
 		u32 flags,
 		struct nvgpu_channel_fence *fence,
 		struct nvgpu_fence_type **fence_out,
-		struct nvgpu_profile *profile,
+		struct nvgpu_swprofiler *profiler,
 		bool need_job_tracking,
 		bool need_deferred_cleanup)
 {
@@ -502,17 +504,17 @@ static int nvgpu_do_submit(struct nvgpu_channel *c,
 	if (need_job_tracking) {
 		err = nvgpu_submit_prepare_gpfifo_track(c, gpfifo,
 				userdata, num_entries, flags, fence,
-				fence_out, profile, need_deferred_cleanup);
+				fence_out, profiler, need_deferred_cleanup);
 	} else {
 		err = nvgpu_submit_prepare_gpfifo_notrack(c, gpfifo,
-				userdata, num_entries, fence_out, profile);
+				userdata, num_entries, fence_out, profiler);
 	}
 
 	if (err != 0) {
 		return err;
 	}
 
-	nvgpu_profile_snapshot(profile, PROFILE_APPEND);
+	nvgpu_swprofile_snapshot(profiler, PROF_KICKOFF_APPEND);
 
 	g->ops.userd.gp_put(g, c);
 
@@ -527,7 +529,7 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out,
-				struct nvgpu_profile *profile)
+				struct nvgpu_swprofiler *profiler)
 {
 	bool skip_buffer_refcounting = (flags &
 			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING) != 0U;
@@ -608,7 +610,7 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 	}
 
 	err = nvgpu_do_submit(c, gpfifo, userdata, num_entries, flags, fence,
-			fence_out, profile, need_job_tracking, false);
+			fence_out, profiler, need_job_tracking, false);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -633,7 +635,7 @@ static int nvgpu_submit_nondeterministic(struct nvgpu_channel *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out,
-				struct nvgpu_profile *profile)
+				struct nvgpu_swprofiler *profiler)
 {
 	bool skip_buffer_refcounting = (flags &
 			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING) != 0U;
@@ -682,7 +684,7 @@ static int nvgpu_submit_nondeterministic(struct nvgpu_channel *c,
 	}
 
 	err = nvgpu_do_submit(c, gpfifo, userdata, num_entries, flags, fence,
-			fence_out, profile, need_job_tracking, true);
+			fence_out, profiler, need_job_tracking, true);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -734,7 +736,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out,
-				struct nvgpu_profile *profile)
+				struct nvgpu_swprofiler *profiler)
 {
 	struct gk20a *g = c->g;
 	int err;
@@ -755,7 +757,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 		return -ENOMEM;
 	}
 
-	nvgpu_profile_snapshot(profile, PROFILE_ENTRY);
+	nvgpu_swprofile_snapshot(profiler, PROF_KICKOFF_ENTRY);
 
 	/* update debug settings */
 	nvgpu_ltc_sync_enabled(g);
@@ -765,12 +767,12 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 #ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
 	if (c->deterministic) {
 		err = nvgpu_submit_deterministic(c, gpfifo, userdata,
-				num_entries, flags, fence, fence_out, profile);
+				num_entries, flags, fence, fence_out, profiler);
 	} else
 #endif
 	{
 		err = nvgpu_submit_nondeterministic(c, gpfifo, userdata,
-				num_entries, flags, fence, fence_out, profile);
+				num_entries, flags, fence, fence_out, profiler);
 	}
 
 	if (err != 0) {
@@ -793,7 +795,7 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 	nvgpu_log_info(g, "post-submit put %d, get %d, size %d",
 		c->gpfifo.put, c->gpfifo.get, c->gpfifo.entry_num);
 
-	nvgpu_profile_snapshot(profile, PROFILE_END);
+	nvgpu_swprofile_snapshot(profiler, PROF_KICKOFF_END);
 
 	nvgpu_log_fn(g, "done");
 	return err;
@@ -805,10 +807,10 @@ int nvgpu_submit_channel_gpfifo_user(struct nvgpu_channel *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct nvgpu_fence_type **fence_out,
-				struct nvgpu_profile *profile)
+				struct nvgpu_swprofiler *profiler)
 {
 	return nvgpu_submit_channel_gpfifo(c, NULL, userdata, num_entries,
-			flags, fence, fence_out, profile);
+			flags, fence, fence_out, profiler);
 }
 
 int nvgpu_submit_channel_gpfifo_kernel(struct nvgpu_channel *c,

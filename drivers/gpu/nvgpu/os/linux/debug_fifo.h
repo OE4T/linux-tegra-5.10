@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -17,6 +17,5 @@
 
 struct gk20a;
 void gk20a_fifo_debugfs_init(struct gk20a *g);
-void gk20a_fifo_debugfs_deinit(struct gk20a *g);
 
 #endif /* __NVGPU_DEBUG_FIFO_H__ */
