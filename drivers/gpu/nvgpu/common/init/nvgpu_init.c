@@ -87,9 +87,10 @@ static int nvgpu_sw_quiesce_thread(void *data)
 	}
 
 	nvgpu_err(g, "SW quiesce thread running");
+
 	nvgpu_msleep(NVGPU_SW_QUIESCE_TIMEOUT_MS);
 
-	nvgpu_fifo_sw_quiesce(g);
+	nvgpu_disable_irqs(g);
 	nvgpu_channel_sw_quiesce(g);
 	nvgpu_bug_exit(1);
 
@@ -198,6 +199,7 @@ void nvgpu_sw_quiesce(struct gk20a *g)
 
 	nvgpu_cond_signal_interruptible(&g->sw_quiesce_cond);
 	gk20a_mask_interrupts(g);
+	nvgpu_start_gpu_idle(g);
 	nvgpu_fifo_sw_quiesce(g);
 }
 

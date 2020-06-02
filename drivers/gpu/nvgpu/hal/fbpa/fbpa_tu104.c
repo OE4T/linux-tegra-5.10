@@ -1,7 +1,7 @@
 /*
  * TU104 FBPA
  *
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hw/tu104/hw_fbpa_tu104.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "hal/fbpa/fbpa_tu104.h"
 
@@ -96,8 +97,11 @@ void tu104_fbpa_handle_intr(struct gk20a *g, u32 fbpa_id)
 
 	status = nvgpu_readl(g, offset + fbpa_0_intr_status_r());
 	if ((status & (ecc_subp0_mask | ecc_subp1_mask)) == 0U) {
-		nvgpu_err(g, "unknown interrupt fbpa %u status %08x",
+		nvgpu_err(g, "Unknown interrupt fbpa %u status %08x",
 				fbpa_id, status);
+		nvgpu_err(g, "Suspected unrecoverable EDC interrupt;"
+				" HW no longer reliable");
+		nvgpu_sw_quiesce(g);
 		return;
 	}
 
