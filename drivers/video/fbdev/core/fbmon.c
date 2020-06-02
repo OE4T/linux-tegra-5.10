@@ -1259,9 +1259,9 @@ void fb_edid_add_monspecs(unsigned char *edid, struct fb_monspecs *specs)
 		int idx = svd[i - specs->modedb_len - num];
 		int row, col;
 		if (!idx || idx >= CEA_MODEDB_SIZE) {
-			pr_warning("Reserved SVD code %d\n", idx);
+			pr_warn("Reserved SVD code %d\n", idx);
 		} else if (!cea_modes[idx].xres) {
-			pr_warning("Unimplemented SVD code %d\n", idx);
+			pr_warn("Unimplemented SVD code %d\n", idx);
 		} else {
 			memcpy(&m[i], cea_modes + idx, sizeof(m[i]));
 			m[i].vmode |= FB_VMODE_IS_CEA;
@@ -1283,7 +1283,7 @@ void fb_edid_add_monspecs(unsigned char *edid, struct fb_monspecs *specs)
 		unsigned vic = hvd.hdmi_vic[j];
 
 		if (vic >= HDMI_EXT_MODEDB_SIZE) {
-			pr_warning("Unsupported HDMI VIC %d, ignoring\n", vic);
+			pr_warn("Unsupported HDMI VIC %d, ignoring\n", vic);
 			continue;
 		}
 
