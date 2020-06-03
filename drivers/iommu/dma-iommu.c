@@ -1042,9 +1042,17 @@ static void *iommu_dma_alloc(struct device *dev, size_t size,
 		dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
 {
 	bool coherent = dev_is_dma_coherent(dev);
-	int ioprot = dma_info_to_prot(DMA_BIDIRECTIONAL, coherent, attrs);
+	enum dma_data_direction dir;
 	struct page *page = NULL;
 	void *cpu_addr;
+	int ioprot;
+
+	if (attrs & DMA_ATTR_READ_ONLY)
+		dir = DMA_TO_DEVICE;
+	else
+		dir = DMA_BIDIRECTIONAL;
+
+	ioprot = dma_info_to_prot(dir, coherent, attrs);
 
 	gfp |= __GFP_ZERO;
 

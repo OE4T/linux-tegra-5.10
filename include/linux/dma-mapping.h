@@ -68,6 +68,14 @@
 #define DMA_ATTR_PRIVILEGED		(1UL << 9)
 
 /*
+ * DMA_ATTR_READ_ONLY: for DMA memory allocations, attempt to map
+ * memory as read-only for the device. CPU access will still be
+ * read-write. This corresponds to the direction being DMA_TO_DEVICE
+ * instead of DMA_BIDIRECTIONAL.
+ */
+#define DMA_ATTR_READ_ONLY	(1UL << 10)
+
+/*
  * A dma_addr_t can hold any valid DMA or bus address for the platform.
  * It can be given to a device to use as a DMA source or target.  A CPU cannot
  * reference a dma_addr_t directly because there may be translation between
