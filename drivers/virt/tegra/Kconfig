@@ -17,7 +17,7 @@ config TEGRA_HV_MANAGER
 
 config	TEGRA_VIRTUALIZATION
 	bool "Tegra Virtualization support"
-	depends on ARCH_TEGRA_12x_SOC || ARCH_TEGRA_210_SOC || ARCH_TEGRA_18x_SOC
+	depends on ARCH_TEGRA_12x_SOC || ARCH_TEGRA_210_SOC || ARCH_TEGRA_18x_SOC || ARCH_TEGRA_186_SOC || ARCH_TEGRA_194_SOC
 	select VIRTUALIZATION
 	default n
 	help
