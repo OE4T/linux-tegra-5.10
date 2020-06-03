@@ -1039,11 +1039,7 @@ static int nvadsp_set_adsp_clks(struct nvadsp_drv_data *drv_data)
 	adsp_freq = drv_data->adsp_freq_hz; /* in Hz*/
 
 	/* round rate shall be used with adsp parent clk i.e. aclk */
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	max_adsp_freq = clk_round_rate(drv_data->aclk_clk, ULONG_MAX);
-#else
-	max_adsp_freq = clk_round_rate(drv_data->aclk_clk, 600000000);
-#endif
 
 	/* Set max adsp boot freq */
 	if (!adsp_freq)
