@@ -74,11 +74,6 @@
 
 #define NVHOST_HAS_SUBMIT_HOST1XSTREAMID
 
-/* HOST1X_THOST_COMMON_CH_MLOCK_EN_0 */
-static const u32 host1x_ch_mlock_en0_r = 0x1710u;
-/* HOST1X_THOST_COMMON_CH_MLOCK_EN_1 */
-static const u32 host1x_ch_mlock_en1_r = 0x1714u;
-
 static dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
 						  u32 reloc_type)
 {
@@ -461,6 +456,7 @@ struct nvhost_device_data t23x_tsec_info = {
 	.engine_cg_regs		= t23x_tsec_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
+	.isolate_contexts	= true,
 };
 #endif
 
@@ -714,8 +710,8 @@ static void t23x_init_map_regs(struct platform_device *pdev)
 	 * So for engines like SE, where we were not programming MLOCKs,
 	 * it should allow things to work.
 	 */
-	host1x_hypervisor_writel(pdev, host1x_ch_mlock_en0_r, 0x0);
-	host1x_hypervisor_writel(pdev, host1x_ch_mlock_en1_r, 0x0);
+	host1x_hypervisor_writel(pdev, host1x_channel_mlock_en_0_r(), 0x0);
+	host1x_hypervisor_writel(pdev, host1x_channel_mlock_en_0_r(), 0x0);
 }
 
 #include "host1x/host1x_cdma_t186.c"
