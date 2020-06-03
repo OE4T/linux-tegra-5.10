@@ -42,6 +42,9 @@ void nvgpu_pramin_ops_init(struct gk20a *g)
 		g->ops.pramin.data032_r = gv100_pramin_data032_r;
 		break;
 	case NVGPU_GPUID_TU104:
+#ifdef CONFIG_NVGPU_DGPU_NEXT
+	case NVGPU_NEXT_DGPU_GPUID:
+#endif
 		g->ops.pramin.data032_r = tu104_pramin_data032_r;
 		break;
 #endif
