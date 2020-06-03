@@ -38,7 +38,7 @@ usage() {
 # It helps a lot of you set up an authorized key on the target! Otherwise
 # you may have a lot of typing to do...
 jcp() {
-    cmd="rsync -qr $1 $target:$2"
+    cmd="rsync -qur $1 $target:$2"
     echo "> $cmd"
     $cmd
 }
@@ -102,7 +102,7 @@ fi
 
 # Building the necessary directory structure. It may not be present
 # first time this is run.
-ssh $target mkdir -p nvgpu_unit/units
+ssh $target mkdir -p nvgpu_unit/units/igpu
 ssh $target mkdir -p nvgpu_unit/firmware/gv11b
 ssh $target mkdir -p $TOP/kernel
 if [ $? != 0 ]; then
@@ -116,17 +116,15 @@ fi
 # And copy...
 jcp $nvgpu_bins/userspace-l4t_64/nvgpu_unit              nvgpu_unit/nvgpu_unit
 jcp $nvgpu_bins/userspace-l4t_64/libnvgpu_unit-lib.so    nvgpu_unit/libnvgpu-unit.so
-jcp $nvgpu_bins/drivers/gpu/nvgpu-l4t_64/libnvgpu-drv-igpu.so nvgpu_unit/libnvgpu-drv-igpu.so
+jcp $nvgpu_bins/libs/igpu-l4t_64/libnvgpu-drv-igpu.so nvgpu_unit/libnvgpu-drv-igpu.so
 jcp $TOP/kernel/nvgpu/userspace/unit.sh                  nvgpu_unit/unit.sh
 jcp $TOP/kernel/nvgpu/userspace/gcov.sh                  nvgpu_unit/gcov.sh
 jcp $TOP/kernel/nvgpu/userspace/testlist.py              nvgpu_unit/testlist.py
-jcp $TOP/kernel/nvgpu/userspace/required_tests.json      \
-	nvgpu_unit/required_tests.json
-jcp $TOP/kernel/nvgpu/userspace/firmware/gv11b nvgpu_unit/firmware/gv11b/
+jcp $TOP/kernel/nvgpu/userspace/firmware/gv11b           nvgpu_unit/firmware/
 
 find $nvgpu_bins/userspace/units -name "*.so" -not -path "*unit.so" \
     -not -path "*drv.so" -exec du -b {} \; | sort -n | while read size unit_so ; do
-        jcp $unit_so nvgpu_unit/units/
+        jcp $unit_so nvgpu_unit/units/igpu
 done
 
 # Set up the necessary coverage files. Basically what we do is recreate just
