@@ -268,6 +268,31 @@ typedef struct syncpoint_info {
 /**@}*/
 
 /**
+ * @defgroup VIUnitIds
+ * VI Unit Identifiers
+ */
+/**@{*/
+/** VI unit 0 */
+#define VI_UNIT_VI				MK_U32(0x0000)
+/** VI unit 1 */
+#define VI_UNIT_VI2				MK_U32(0x0001)
+/**@}*/
+
+/**
+ * @brief Identifies a specific CSI stream.
+ */
+struct csi_stream_config {
+	/** See @ref NvCsiStream "NVCSI stream id" */
+	uint32_t stream_id;
+	/** See @ref NvCsiPort "NvCSI Port" */
+	uint32_t csi_port;
+	/** See @ref NvPhyType "NvCSI Physical stream type" */
+	uint32_t phy_type;
+	/** CSI Virtual Channel */
+	uint32_t virtual_channel;
+};
+
+/**
  * @brief Describes RTCPU side resources for a capture pipe-line.
  */
 struct capture_channel_config {
@@ -290,6 +315,13 @@ struct capture_channel_config {
 
 	/** rtcpu internal data field - Should be set to zero */
 	uint32_t channel_id;
+
+	/** VI unit ID. See @ref ViUnitIds "VI Unit Identifiers". */
+	uint32_t vi_unit_id;
+
+	/** Reserved */
+	uint32_t __pad;
+
 	/**
 	 * A bitmask indicating which VI channels to consider for allocation. LSB is VI channel 0.
 	 * This allows the client to enforce allocation of HW VI channel in particular range for its own
@@ -305,6 +337,28 @@ struct capture_channel_config {
 	 * 2. Verify that RTCPU enforces VI channel permissions defined in VM DT.
 	 */
 	uint64_t vi_channel_mask;
+
+	/**
+	 * A bitmask indicating which VI2 channels to consider for allocation. LSB is VI2 channel 0.
+	 * This allows the client to enforce allocation of HW VI channel in particular range for its own
+	 * purpose.
+	 *
+	 * Beware that client VM may have restricted range of available VI2 channels.
+	 *
+	 * In most of the cases client can set to ~0ULL to let RTCPU to allocate any available channel
+	 * permitted for client VM.
+	 *
+	 * This mask is expected to be useful for following use-cases:
+	 * 1. Debugging functionality of particular HW VI2 channel.
+	 * 2. Verify that RTCPU enforces VI channel permissions defined in VM DT.
+	 */
+	uint64_t vi2_channel_mask;
+
+	/**
+	 * CSI stream configuration identifies the CSI stream input for this channel.
+	 */
+	struct csi_stream_config csi_stream;
+
 	/**
 	 * Base address of a memory mapped ring buffer containing capture requests.
 	 * The size of the buffer is queue_depth * request_size

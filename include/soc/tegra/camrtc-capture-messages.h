@@ -45,7 +45,8 @@ struct CAPTURE_MSG_HEADER {
  * @defgroup ViCapCtrlMsgType Message types for capture-control IVC channel messages.
  * @{
  */
-#define CAPTURE_CHANNEL_SETUP_REQ		MK_U32(0x10)
+#define CAPTURE_CONTROL_RESERVED_10		MK_U32(0x10)
+#define CAPTURE_CHANNEL_SETUP_REQ		MK_U32(0x1E)
 #define CAPTURE_CHANNEL_SETUP_RESP		MK_U32(0x11)
 #define CAPTURE_CHANNEL_RESET_REQ		MK_U32(0x12)
 #define CAPTURE_CHANNEL_RESET_RESP		MK_U32(0x13)
@@ -331,6 +332,7 @@ struct CAPTURE_SYNCGEN_DISABLE_RESP_MSG {
 
 /**
  * @brief Open an NVCSI stream request message
+ * @deprecated
  */
 struct CAPTURE_PHY_STREAM_OPEN_REQ_MSG {
 	/** See NvCsiStream "NVCSI stream id" */
@@ -345,6 +347,7 @@ struct CAPTURE_PHY_STREAM_OPEN_REQ_MSG {
 
 /**
  * @brief NVCSI stream open response message
+ * @deprecated
  */
 struct CAPTURE_PHY_STREAM_OPEN_RESP_MSG {
 	/** Stream open request status. See @ref CapErrorCodes "Return values". */
@@ -355,6 +358,7 @@ struct CAPTURE_PHY_STREAM_OPEN_RESP_MSG {
 
 /**
  * @brief NVCSI stream close request message
+ * @deprecated
  */
 struct CAPTURE_PHY_STREAM_CLOSE_REQ_MSG {
 	/** NVCSI stream Id */
@@ -369,6 +373,7 @@ struct CAPTURE_PHY_STREAM_CLOSE_REQ_MSG {
 
 /**
  * @brief NVCSI stream close response message
+ * @deprecated
  */
 struct CAPTURE_PHY_STREAM_CLOSE_RESP_MSG {
 	/** Stream close request status. See @ref CapErrorCodes "Return values". */
@@ -648,7 +653,7 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 /** @} */
 
 /**
- * @defgroup NvCsiMsgType Message types for NVCSI
+ * @addtogroup NvCsiMsgType Message types for NVCSI
  * @{
  */
 #define CAPTURE_CHANNEL_EI_REQ			MK_U32(0x50)
