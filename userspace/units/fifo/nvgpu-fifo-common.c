@@ -31,6 +31,7 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/device.h>
 
 #include <nvgpu/posix/io.h>
 
@@ -169,6 +170,8 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 #endif
 	g->ops.ecc.ecc_init_support(g);
 	g->ops.mm.init_mm_support(g);
+
+	nvgpu_device_init(g);
 
 	err = nvgpu_fifo_init_support(g);
 

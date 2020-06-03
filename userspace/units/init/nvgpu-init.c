@@ -785,7 +785,7 @@ struct unit_module_test init_tests[] = {
 	UNIT_TEST(init_check_gpu_state,			test_check_gpu_state,	NULL, 0),
 	UNIT_TEST(init_poweron,				test_poweron,		NULL, 0),
 	UNIT_TEST(init_poweron_branches,		test_poweron_branches,	NULL, 0),
-	UNIT_TEST(init_poweroff,			test_poweroff,		NULL, 0),
+	UNIT_TEST(init_poweroff,			test_poweroff,		NULL, 2),
 	UNIT_TEST(init_quiesce,				test_quiesce,		NULL, 0),
 	UNIT_TEST(init_free_env,			test_free_env,		NULL, 0),
 };

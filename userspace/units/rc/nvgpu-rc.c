@@ -33,6 +33,7 @@
 #include <nvgpu/posix/posix-nvhost.h>
 #include <nvgpu/posix/posix-channel.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/device.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/pbdma_status.h>
@@ -87,6 +88,8 @@ int test_rc_init(struct unit_module *m, struct gk20a *g, void *args)
 	if (ret != 0) {
 		unit_return_fail(m, "fifo reg_space failure");
 	}
+
+	nvgpu_device_init(g);
 
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
 

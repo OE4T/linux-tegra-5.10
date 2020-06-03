@@ -243,6 +243,8 @@ int test_setup_env(struct unit_module *m,
 	g->ops.pmu.pmu_isr = mock_pmu_isr;
 	g->ops.priv_ring.isr = mock_priv_ring_isr;
 
+	nvgpu_device_init(g);
+
 	/* setup engines for getting interrupt info */
 	g->fifo.g = g;
 	if (nvgpu_engine_setup_sw(g) != 0) {
@@ -724,13 +726,13 @@ int test_wait_for_deferred_interrupts(struct unit_module *m, struct gk20a *g,
 
 struct unit_module_test mc_tests[] = {
 	UNIT_TEST(mc_setup_env,			test_setup_env,				NULL, 0),
-	UNIT_TEST(unit_config,			test_unit_config,			NULL, 0),
+	UNIT_TEST(unit_config,			test_unit_config,			NULL, 2),
 	UNIT_TEST(pause_resume_mask,		test_pause_resume_mask,			NULL, 0),
 	UNIT_TEST(intr_stall,			test_intr_stall,			NULL, 0),
 	UNIT_TEST(intr_is_stall_and_eng_intr_pending,
-						test_is_stall_and_eng_intr_pending,	NULL, 0),
-	UNIT_TEST(isr_stall,			test_isr_stall,				NULL, 0),
-	UNIT_TEST(isr_nonstall,			test_isr_nonstall,			NULL, 0),
+						test_is_stall_and_eng_intr_pending,	NULL, 2),
+	UNIT_TEST(isr_stall,			test_isr_stall,				NULL, 2),
+	UNIT_TEST(isr_nonstall,			test_isr_nonstall,			NULL, 2),
 	UNIT_TEST(is_intr1_pending,		test_is_intr1_pending,			NULL, 0),
 	UNIT_TEST(enable_disable_reset,		test_enable_disable_reset,		NULL, 0),
 	UNIT_TEST(reset_mask,			test_reset_mask,			NULL, 0),

@@ -711,10 +711,10 @@ struct unit_module_test nvgpu_mem_tests[] = {
 	/*
 	 * Tests for SYSMEM
 	 */
-	UNIT_TEST(nvgpu_mem_phys_ops,	test_nvgpu_mem_phys_ops,	NULL, 0),
+	UNIT_TEST(nvgpu_mem_phys_ops,	test_nvgpu_mem_phys_ops,	NULL, 2),
 	UNIT_TEST(nvgpu_memset_sysmem,	test_nvgpu_memset_sysmem,	NULL, 0),
 	UNIT_TEST(nvgpu_mem_wr_rd,	test_nvgpu_mem_wr_rd,		NULL, 0),
-	UNIT_TEST(mem_iommu_translate,	test_nvgpu_mem_iommu_translate,	NULL, 0),
+	UNIT_TEST(mem_iommu_translate,	test_nvgpu_mem_iommu_translate,	NULL, 2),
 
 	/*
 	 * Tests covering VIDMEM branches
@@ -723,7 +723,7 @@ struct unit_module_test nvgpu_mem_tests[] = {
 	UNIT_TEST(nvgpu_aperture_name,	test_nvgpu_aperture_str,	NULL, 0),
 	UNIT_TEST(create_mem_from_mem,	test_nvgpu_mem_create_from_mem,	NULL, 0),
 #ifdef CONFIG_NVGPU_DGPU
-	UNIT_TEST(nvgpu_mem_vidmem,	test_nvgpu_mem_vidmem,		NULL, 0),
+	UNIT_TEST(nvgpu_mem_vidmem,	test_nvgpu_mem_vidmem,		NULL, 2),
 #endif
 	/*
 	 * Free test should be executed at the end to free allocated memory.

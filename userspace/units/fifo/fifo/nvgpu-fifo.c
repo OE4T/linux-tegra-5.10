@@ -29,6 +29,7 @@
 #include <nvgpu/posix/dma.h>
 #include <nvgpu/io.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/device.h>
 
 #include "hal/init/hal_gv11b.h"
 #include "nvgpu/hw/gk20a/hw_fifo_gk20a.h"
@@ -265,7 +266,8 @@ int test_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	err = test_fifo_setup_gv11b_reg_space(m, g);
 	unit_assert(err == 0, goto done);
 
-	gv11b_init_hal(g);
+	nvgpu_device_init(g);
+
 	gops = g->ops;
 
 	for (branches = 0U; branches < F_FIFO_INIT_LAST; branches++) {

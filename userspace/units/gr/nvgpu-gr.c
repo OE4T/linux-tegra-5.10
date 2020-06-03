@@ -29,6 +29,7 @@
 #include <nvgpu/posix/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hal_init.h>
+#include <nvgpu/device.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
 
@@ -47,6 +48,8 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 	if (err != 0) {
 		goto fail;
 	}
+
+	nvgpu_device_init(g);
 
 	/*
 	 * Allocate gr unit
