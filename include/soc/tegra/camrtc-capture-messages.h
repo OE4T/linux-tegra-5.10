@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * NVIDIA Corporation and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -383,30 +383,6 @@ struct CAPTURE_PHY_STREAM_CLOSE_RESP_MSG {
 } CAPTURE_IVC_ALIGN;
 
 /**
- * @brief Physical stream reset message
- */
-struct CAPTURE_PHY_STREAM_RESET_REQ_MSG {
-	/** NVCSI stream Id */
-	uint32_t stream_id;
-	/** NVCSI port */
-	uint32_t csi_port;
-	/** See @ref NvPhyType "NvCSI Physical stream type" */
-	uint32_t phy_type;
-	/** Reserved */
-	uint32_t __pad32;
-} CAPTURE_IVC_ALIGN;
-
-/**
- * @brief Physical stream reset response message
- */
-struct CAPTURE_PHY_STREAM_RESET_RESP_MSG {
-	/** Stream reset request status. See @ref CapErrorCodes "Return values". */
-	uint32_t result;
-	/** Reserved */
-	uint32_t __pad32;
-} CAPTURE_IVC_ALIGN;
-
-/**
  * @brief Physical stream dump registers request message. (Debug only)
  */
 struct CAPTURE_PHY_STREAM_DUMPREGS_REQ_MSG {
@@ -628,8 +604,6 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 #define CAPTURE_PHY_STREAM_OPEN_RESP		MK_U32(0x37)
 #define CAPTURE_PHY_STREAM_CLOSE_REQ		MK_U32(0x38)
 #define CAPTURE_PHY_STREAM_CLOSE_RESP		MK_U32(0x39)
-#define CAPTURE_PHY_STREAM_RESET_REQ		MK_U32(0x3A)
-#define CAPTURE_PHY_STREAM_RESET_RESP		MK_U32(0x3B)
 #define CAPTURE_PHY_STREAM_DUMPREGS_REQ		MK_U32(0x3C)
 #define CAPTURE_PHY_STREAM_DUMPREGS_RESP	MK_U32(0x3D)
 /** @} */
@@ -774,10 +748,6 @@ struct CAPTURE_CONTROL_MSG {
 		struct CAPTURE_PHY_STREAM_CLOSE_REQ_MSG phy_stream_close_req;
 		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_CLOSE_RESP_MSG phy_stream_close_resp;
-		/** @anon_union_member */
-		struct CAPTURE_PHY_STREAM_RESET_REQ_MSG phy_stream_reset_req;
-		/** @anon_union_member */
-		struct CAPTURE_PHY_STREAM_RESET_RESP_MSG phy_stream_reset_resp;
 		/** @anon_union_member */
 		struct CAPTURE_PHY_STREAM_DUMPREGS_REQ_MSG
 			phy_stream_dumpregs_req;
