@@ -29,7 +29,6 @@
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
 #include <linux/dma-mapping.h>
-#include <linux/tegra_pm_domains.h>
 #include <linux/platform/tegra/tegra_mc.h>
 
 #include <linux/version.h>
@@ -829,7 +828,7 @@ static int tsec_probe(struct platform_device *dev)
 					       __va(pdata->carveout_addr),
 					       pdata->carveout_size,
 					       DMA_TO_DEVICE,
-					       DMA_ATTR_SKIP_IOVA_GAP | DMA_ATTR_SKIP_CPU_SYNC);
+					       DMA_ATTR_SKIP_CPU_SYNC);
 		if (dma_mapping_error(&dev->dev, pdata->carveout_addr)) {
 			dev_err(&dev->dev, "mapping to iova failed\n");
 			return -EINVAL;

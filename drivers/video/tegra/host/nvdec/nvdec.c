@@ -32,7 +32,6 @@
 #include <linux/dma-mapping.h>
 #include <linux/version.h>
 
-#include <linux/tegra_pm_domains.h>
 #include <uapi/linux/nvhost_nvdec_ioctl.h>
 
 #include <linux/platform/tegra/mc.h>
@@ -48,7 +47,6 @@
 #include "nvhost_scale.h"
 #include "chip_support.h"
 #include "t210/t210.h"
-#include "iomap.h"
 #include "class_ids_t194.h"
 #include "platform.h"
 
