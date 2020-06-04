@@ -618,7 +618,6 @@
 		se@15810000 {
 			compatible = "nvidia,tegra234-se1-nvhost";
 			reg = <0x0 0x15810000 0x0 0x10000>;
-			supported-algos = "xts";
 			nvidia,io-coherent;
 			opcode_addr = <0x1004>;
 			resets = <&bpmp_resets TEGRA234_RESET_SE>;
@@ -634,7 +633,7 @@
 		se@15820000 {
 			compatible = "nvidia,tegra234-se2-nvhost";
 			reg = <0x0 0x15820000 0x0 0x10000>;
-			supported-algos = "aes", "cmac";
+			supported-algos = "aes", "cmac", "xts";
 			nvidia,io-coherent;
 			opcode_addr = <0x2004>;
 			resets = <&bpmp_resets TEGRA234_RESET_SE>;
@@ -652,7 +651,7 @@
 			reg = <0x0 0x15840000 0x0 0x10000>;
 			supported-algos = "sha";
 			nvidia,io-coherent;
-			opcode_addr = <0x4000>;
+			opcode_addr = <0x4004>;
 			resets = <&bpmp_resets TEGRA234_RESET_SE>;
 			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
