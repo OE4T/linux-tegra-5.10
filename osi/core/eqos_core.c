@@ -1796,7 +1796,9 @@ static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
 		/*Loop Count to report Scheduling Error*/
 		val &= ~EQOS_MTL_EST_CONTROL_LCSE;
 		val |= EQOS_MTL_EST_CONTROL_LCSE_VAL;
-		osi_writel(val, (unsigned char *)osi_core->base +
+		/* Drop Frames causing Scheduling Error */
+		val |= EQOS_MTL_EST_CONTROL_DFBS;
+		osi_writel(val, (nveu8_t *)osi_core->base +
 			   EQOS_MTL_EST_CONTROL);
 
 		eqos_enable_mtl_interrupts(osi_core->base);
@@ -2039,6 +2041,13 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 		return;
 	}
 
+	if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
+	    ((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
+		eqos_handle_mac_fpe_intrs(osi_core);
+		mac_isr &= ~EQOS_MAC_IMR_FPEIS;
+	}
+	osi_writel(mac_isr, (nveu8_t *)osi_core->base + EQOS_MAC_ISR);
+
 	mac_pcs = osi_readla(osi_core,
 			     (nveu8_t *)osi_core->base + EQOS_MAC_PCS);
 	/* check whether Link is UP or NOT - if not return. */
@@ -2075,6 +2084,7 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	} else {
 		/* Nothing here */
 	}
+
 	if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
 	    ((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
 		eqos_handle_mac_fpe_intrs(osi_core);
@@ -4174,10 +4184,9 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 	}
 
 	if (est->en_dis == OSI_DISABLE) {
-		val = osi_readl((unsigned char *)base + EQOS_MTL_EST_CONTROL);
-		val &= ~EQOS_MTL_EST_EEST;
-		osi_writel(val, (unsigned char *)base + EQOS_MTL_EST_CONTROL);
-
+		val = osi_readl((nveu8_t *)base + EQOS_MTL_EST_CONTROL);
+		val &= ~EQOS_MTL_EST_CONTROL_EEST;
+		osi_writel(val, (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
 		return 0;
 	}
 
@@ -4240,9 +4249,9 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 
 	val = osi_readl((unsigned char *)base + EQOS_MTL_EST_CONTROL);
 	/* Store table */
-	val |= EQOS_MTL_EST_SSWL;
-	val |= EQOS_MTL_EST_EEST;
-	osi_writel(val, (unsigned char *)base + EQOS_MTL_EST_CONTROL);
+	val |= EQOS_MTL_EST_CONTROL_SSWL;
+	val |= EQOS_MTL_EST_CONTROL_EEST;
+	osi_writel(val, (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
 
 	return ret;
 }
