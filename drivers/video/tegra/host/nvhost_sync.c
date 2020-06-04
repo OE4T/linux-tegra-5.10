@@ -367,6 +367,7 @@ struct nvhost_fence *nvhost_fence_get(int fd)
 {
 	return (struct nvhost_fence *)nvhost_sync_fdget(fd);
 }
+EXPORT_SYMBOL(nvhost_fence_get);
 
 int nvhost_sync_num_pts(struct sync_fence *fence)
 {
@@ -387,6 +388,14 @@ u32 nvhost_sync_pt_thresh(struct sync_pt *__pt)
 	return pt->thresh;
 }
 EXPORT_SYMBOL(nvhost_sync_pt_thresh);
+
+int nvhost_fence_num_pts(struct nvhost_fence *fence)
+{
+	struct sync_fence *f = (struct sync_fence *)fence;
+
+	return f->num_fences;
+}
+EXPORT_SYMBOL(nvhost_fence_num_pts);
 
 int nvhost_fence_foreach_pt(
 	struct nvhost_fence *fence,
@@ -412,6 +421,7 @@ int nvhost_fence_foreach_pt(
 
 	return 0;
 }
+EXPORT_SYMBOL(nvhost_fence_foreach_pt);
 
 /* Public API */
 
@@ -582,8 +592,21 @@ struct nvhost_fence *nvhost_fence_create(struct platform_device *pdev,
 	return (struct nvhost_fence *)
 		nvhost_sync_create_fence(pdev, pts, num_pts, name);
 }
+EXPORT_SYMBOL(nvhost_fence_create);
+
+int nvhost_fence_install(struct nvhost_fence *fence, int fd)
+{
+	struct sync_fence *f = (struct sync_fence *)fence;
+
+	sync_fence_get(f);
+	sync_fence_install(f, fd);
+
+	return 0;
+}
+EXPORT_SYMBOL(nvhost_fence_install);
 
 void nvhost_fence_put(struct nvhost_fence *fence)
 {
 	sync_fence_put((struct sync_fence *)fence);
 }
+EXPORT_SYMBOL(nvhost_fence_put);

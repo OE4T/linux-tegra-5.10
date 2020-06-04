@@ -851,6 +851,7 @@ int nvhost_fence_create_fd(
 
 struct nvhost_fence *nvhost_fence_get(int fd);
 int nvhost_fence_num_pts(struct nvhost_fence *fence);
+int nvhost_fence_install(struct nvhost_fence *fence, int fence_fd);
 void nvhost_fence_put(struct nvhost_fence *fence);
 
 #if !defined(CONFIG_SYNC)
