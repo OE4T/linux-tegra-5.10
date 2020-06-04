@@ -60,11 +60,11 @@ u32 nvgpu_os_fence_syncpt_get_num_syncpoints(
 	return -EINVAL;
 }
 
-void nvgpu_os_fence_syncpt_extract_nth_syncpt(
-		struct nvgpu_os_fence_syncpt *fence, u32 n,
-		u32 *syncpt_id, u32 *syncpt_threshold)
+int nvgpu_os_fence_syncpt_foreach_pt(
+	struct nvgpu_os_fence_syncpt *fence,
+	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
+	void *data)
 {
 	WARN(1, "can't get here until nvhost support exists");
-	*syncpt_id = 0;
-	*syncpt_threshold = 0;
+	return -EINVAL;
 }

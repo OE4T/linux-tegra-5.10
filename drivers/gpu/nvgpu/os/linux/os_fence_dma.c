@@ -38,11 +38,11 @@ static void nvgpu_os_fence_clear(struct nvgpu_os_fence *fence_out)
 
 void nvgpu_os_fence_init(struct nvgpu_os_fence *fence_out,
 	struct gk20a *g, const struct nvgpu_os_fence_ops *fops,
-	struct dma_fence *fence)
+	void *fence)
 {
 	fence_out->g = g;
 	fence_out->ops = fops;
-	fence_out->priv = (void *)fence;
+	fence_out->priv = fence;
 }
 
 void nvgpu_os_fence_dma_drop_ref(struct nvgpu_os_fence *s)
@@ -54,12 +54,17 @@ void nvgpu_os_fence_dma_drop_ref(struct nvgpu_os_fence *s)
 	nvgpu_os_fence_clear(s);
 }
 
-void nvgpu_os_fence_dma_install_fd(struct nvgpu_os_fence *s, int fd)
+int nvgpu_os_fence_dma_install_fd(struct nvgpu_os_fence *s, int fd)
 {
 	struct dma_fence *fence = nvgpu_get_dma_fence(s);
 	struct sync_file *file = sync_file_create(fence);
 
+	if (file == NULL) {
+		return -ENOMEM;
+	}
+
 	fd_install(fd, file->file);
+	return 0;
 }
 
 int nvgpu_os_fence_fdget(struct nvgpu_os_fence *fence_out,

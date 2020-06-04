@@ -58,12 +58,15 @@ struct nvgpu_os_fence_ops {
 	 * Used to install the fd in the corresponding OS. The underlying
 	 * implementation varies from OS to OS.
 	 */
-	void (*install_fence)(struct nvgpu_os_fence *s, int fd);
+	int (*install_fence)(struct nvgpu_os_fence *s, int fd);
 };
 
 /*
- * The priv structure here is used to contain the struct sync_fence
- * for LINUX_VERSION <= 4.9 and dma_fence for LINUX_VERSION > 4.9
+ * The priv field contains the actual backend:
+ * - struct sync_fence for semas on LINUX_VERSION <= 4.14
+ * - struct dma_fence for semas on LINUX_VERSION > 4.14
+ * - struct nvhost_fence (which is an opaque alias for one of the two above)
+ *   for syncpt-backed fences on all kernel versions
  */
 struct nvgpu_os_fence {
 	void *priv;

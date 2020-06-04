@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -37,11 +37,11 @@ static void nvgpu_os_fence_clear(struct nvgpu_os_fence *fence_out)
 
 void nvgpu_os_fence_init(struct nvgpu_os_fence *fence_out,
 	struct gk20a *g, const struct nvgpu_os_fence_ops *fops,
-	struct sync_fence *fence)
+	void *fence)
 {
 	fence_out->g = g;
 	fence_out->ops = fops;
-	fence_out->priv = (void *)fence;
+	fence_out->priv = fence;
 }
 
 void nvgpu_os_fence_android_drop_ref(struct nvgpu_os_fence *s)
@@ -53,12 +53,14 @@ void nvgpu_os_fence_android_drop_ref(struct nvgpu_os_fence *s)
 	nvgpu_os_fence_clear(s);
 }
 
-void nvgpu_os_fence_android_install_fd(struct nvgpu_os_fence *s, int fd)
+int nvgpu_os_fence_android_install_fd(struct nvgpu_os_fence *s, int fd)
 {
 	struct sync_fence *fence = nvgpu_get_sync_fence(s);
 
 	sync_fence_get(fence);
 	sync_fence_install(fence, fd);
+
+	return 0;
 }
 
 int nvgpu_os_fence_fdget(struct nvgpu_os_fence *fence_out,

@@ -22,6 +22,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
+#include <uapi/linux/nvhost_ioctl.h>
+#endif
+
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
 #include <nvgpu/atomic.h>
@@ -57,8 +61,7 @@ nvgpu_channel_sync_syncpt_from_base(struct nvgpu_channel_sync *base)
 }
 
 static void channel_sync_syncpt_gen_wait_cmd(struct nvgpu_channel *c,
-	u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd,
-	u32 wait_cmd_size)
+	u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd)
 {
 	nvgpu_log(c->g, gpu_dbg_info, "sp->id %d gpu va %llx",
 			id, c->vm->syncpt_ro_map_gpu_va);
@@ -77,16 +80,28 @@ static int channel_sync_syncpt_wait_raw(struct nvgpu_channel_sync_syncpt *s,
 		return -EINVAL;
 	}
 
-	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q,
-		c->g->ops.sync.syncpt.get_wait_cmd_size(),
-		wait_cmd);
+	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q, wait_cmd_size, wait_cmd);
 	if (err != 0) {
 		return err;
 	}
 
-	channel_sync_syncpt_gen_wait_cmd(c, id, thresh,
-			*wait_cmd, wait_cmd_size);
+	channel_sync_syncpt_gen_wait_cmd(c, id, thresh, *wait_cmd);
 
+	return 0;
+}
+
+#ifndef CONFIG_NVGPU_SYNCFD_NONE
+struct gen_wait_cmd_iter_data {
+	struct nvgpu_channel *c;
+	struct priv_cmd_entry *wait_cmd;
+};
+
+static int gen_wait_cmd_iter(struct nvhost_ctrl_sync_fence_info info, void *d)
+{
+	struct gen_wait_cmd_iter_data *data = d;
+
+	channel_sync_syncpt_gen_wait_cmd(data->c, info.id, info.thresh,
+			data->wait_cmd);
 	return 0;
 }
 
@@ -98,10 +113,11 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 	struct nvgpu_channel_sync_syncpt *sp =
 		nvgpu_channel_sync_syncpt_from_base(s);
 	struct nvgpu_channel *c = sp->c;
+	struct gen_wait_cmd_iter_data iter_data = {
+		.c = c
+	};
+	u32 num_fences, wait_cmd_size;
 	int err = 0;
-	u32 i, num_fences, wait_cmd_size;
-	u32 syncpt_id = 0U;
-	u32 syncpt_thresh = 0U;
 
 	err = nvgpu_os_fence_fdget(&os_fence, c, fd);
 	if (err != 0) {
@@ -124,16 +140,6 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 		goto cleanup;
 	}
 
-	for (i = 0; i < num_fences; i++) {
-		nvgpu_os_fence_syncpt_extract_nth_syncpt(
-			&os_fence_syncpt, i, &syncpt_id, &syncpt_thresh);
-		if ((syncpt_id == 0U) || !nvgpu_nvhost_syncpt_is_valid_pt_ext(
-			c->g->nvhost, syncpt_id)) {
-				err = -EINVAL;
-				goto cleanup;
-		}
-	}
-
 	wait_cmd_size = c->g->ops.sync.syncpt.get_wait_cmd_size();
 	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q,
 		wait_cmd_size * num_fences, wait_cmd);
@@ -141,17 +147,26 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 		goto cleanup;
 	}
 
-	for (i = 0; i < num_fences; i++) {
-		nvgpu_os_fence_syncpt_extract_nth_syncpt(
-			&os_fence_syncpt, i, &syncpt_id, &syncpt_thresh);
-		channel_sync_syncpt_gen_wait_cmd(c, syncpt_id,
-			syncpt_thresh, *wait_cmd, wait_cmd_size);
-	}
+	iter_data.wait_cmd = *wait_cmd;
+
+	nvgpu_os_fence_syncpt_foreach_pt(&os_fence_syncpt,
+			gen_wait_cmd_iter, &iter_data);
 
 cleanup:
 	os_fence.ops->drop_ref(&os_fence);
 	return err;
 }
+#else /* CONFIG_NVGPU_SYNCFD_NONE */
+static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
+	struct priv_cmd_entry **wait_cmd, u32 max_wait_cmds)
+{
+	struct nvgpu_channel_sync_syncpt *sp =
+		nvgpu_channel_sync_syncpt_from_base(s);
+	nvgpu_err(sp->c->g,
+		  "trying to use sync fds with CONFIG_NVGPU_SYNCFD_NONE");
+	return -ENODEV;
+}
+#endif /* CONFIG_NVGPU_SYNCFD_NONE */
 
 static void channel_sync_syncpt_update(void *priv, int nr_completed)
 {

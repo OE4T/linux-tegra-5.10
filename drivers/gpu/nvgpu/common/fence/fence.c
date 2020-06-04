@@ -90,9 +90,7 @@ int nvgpu_fence_install_fd(struct nvgpu_fence_type *f, int fd)
 		return -EINVAL;
 	}
 
-	f->os_fence.ops->install_fence(&f->os_fence, fd);
-
-	return 0;
+	return f->os_fence.ops->install_fence(&f->os_fence, fd);
 }
 
 int nvgpu_fence_wait(struct gk20a *g, struct nvgpu_fence_type *f,

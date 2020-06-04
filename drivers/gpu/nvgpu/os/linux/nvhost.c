@@ -237,40 +237,6 @@ void nvgpu_nvhost_remove_symlink(struct gk20a *g)
 	}
 }
 
-#ifndef CONFIG_NVGPU_SYNCFD_NONE
-u32 nvgpu_nvhost_sync_pt_id(struct sync_pt *pt)
-{
-	return nvhost_sync_pt_id(pt);
-}
-
-u32 nvgpu_nvhost_sync_pt_thresh(struct sync_pt *pt)
-{
-	return nvhost_sync_pt_thresh(pt);
-}
-
-struct sync_fence *nvgpu_nvhost_sync_fdget(int fd)
-{
-	return nvhost_sync_fdget(fd);
-}
-
-int nvgpu_nvhost_sync_num_pts(struct sync_fence *fence)
-{
-	return nvhost_sync_num_pts(fence);
-}
-
-struct sync_fence *nvgpu_nvhost_sync_create_fence(
-	struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 id, u32 thresh, const char *name)
-{
-	struct nvhost_ctrl_sync_fence_info pt = {
-		.id = id,
-		.thresh = thresh,
-	};
-
-	return nvhost_sync_create_fence(nvhost_dev->host1x_pdev, &pt, 1, name);
-}
-#endif /* !CONFIG_NVGPU_SYNCFD_NONE */
-
 #ifdef CONFIG_TEGRA_T19X_GRHOST
 int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvhost_dev,

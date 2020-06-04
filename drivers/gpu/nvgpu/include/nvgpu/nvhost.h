@@ -31,8 +31,6 @@ struct gk20a;
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 
 struct nvgpu_nvhost_dev;
-struct sync_pt;
-struct sync_fence;
 
 /**
  * @file Functions that initialize the sync points
@@ -240,17 +238,6 @@ void nvgpu_nvhost_syncpt_put_ref_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev
 	*nvgpu_syncpt_dev,
 	const char *syncpt_name);
-
-#ifdef CONFIG_NVGPU_SYNCFD_ANDROID
-u32 nvgpu_nvhost_sync_pt_id(struct sync_pt *pt);
-u32 nvgpu_nvhost_sync_pt_thresh(struct sync_pt *pt);
-int nvgpu_nvhost_sync_num_pts(struct sync_fence *fence);
-
-struct sync_fence *nvgpu_nvhost_sync_fdget(int fd);
-struct sync_fence *nvgpu_nvhost_sync_create_fence(
-	struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 id, u32 thresh, const char *name);
-#endif /* CONFIG_NVGPU_SYNCFD_ANDROID */
 
 #ifdef CONFIG_TEGRA_T19X_GRHOST
 

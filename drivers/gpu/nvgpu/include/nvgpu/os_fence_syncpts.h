@@ -26,6 +26,7 @@
 #define NVGPU_OS_FENCE_SYNCPT_H
 
 struct nvgpu_os_fence;
+struct nvhost_ctrl_sync_fence_info;
 
 struct nvgpu_os_fence_syncpt {
 	struct nvgpu_os_fence *fence;
@@ -40,14 +41,15 @@ int nvgpu_os_fence_get_syncpts(struct nvgpu_os_fence_syncpt *fence_syncpt_out,
 	struct nvgpu_os_fence *fence_in);
 
 /*
- * This method returns the nth syncpt id and syncpt threshold as *syncpt_id
- * and *syncpt_threshold respectively and should be called on a valid
- * instance of type nvgpu_os_fence_syncpt.
+ * Go through the id/value pairs inside a sync fd and call the supplied iter
+ * callback for each, providing the given data pointer as the second argument.
+ * The first argument contains the syncpt id and threshold for each individual
+ * fence.
  */
-void nvgpu_os_fence_syncpt_extract_nth_syncpt(
-	struct nvgpu_os_fence_syncpt *fence, u32 n,
-		u32 *syncpt_id, u32 *syncpt_threshold);
-
+int nvgpu_os_fence_syncpt_foreach_pt(
+	struct nvgpu_os_fence_syncpt *fence,
+	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
+	void *data);
 
 /*
  * This method returns the number of underlying syncpoints
@@ -64,12 +66,6 @@ static inline int nvgpu_os_fence_get_syncpts(
 	struct nvgpu_os_fence *fence_in)
 {
 	return -EINVAL;
-}
-
-static inline void nvgpu_os_fence_syncpt_extract_nth_syncpt(
-	struct nvgpu_os_fence_syncpt *fence, u32 n,
-		u32 *syncpt_id, u32 *syncpt_threshold)
-{
 }
 
 static inline u32 nvgpu_os_fence_syncpt_get_num_syncpoints(

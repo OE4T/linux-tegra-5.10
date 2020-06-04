@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,7 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <uapi/linux/nvhost_ioctl.h>
+
 #include <linux/err.h>
+#include <linux/nvhost.h>
 #include <nvgpu/errno.h>
 
 #include <nvgpu/types.h>
@@ -27,19 +30,34 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 
-#include "../drivers/staging/android/sync.h"
+#include "nvhost_priv.h"
+
+static int nvgpu_os_fence_android_syncpt_install_fd(struct nvgpu_os_fence *s,
+		int fd)
+{
+	return nvhost_fence_install(s->priv, fd);
+}
+
+static void nvgpu_os_fence_android_syncpt_drop_ref(struct nvgpu_os_fence *s)
+{
+	nvhost_fence_put(s->priv);
+}
 
 static const struct nvgpu_os_fence_ops syncpt_ops = {
-	.drop_ref = nvgpu_os_fence_android_drop_ref,
-	.install_fence = nvgpu_os_fence_android_install_fd,
+	.drop_ref = nvgpu_os_fence_android_syncpt_drop_ref,
+	.install_fence = nvgpu_os_fence_android_syncpt_install_fd,
 };
 
-int nvgpu_os_fence_syncpt_create(
-	struct nvgpu_os_fence *fence_out, struct nvgpu_channel *c,
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh)
+int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
+		struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_dev,
+		u32 id, u32 thresh)
 {
-	struct sync_fence *fence = nvgpu_nvhost_sync_create_fence(
-		nvhost_dev, id, thresh, "fence");
+	struct nvhost_ctrl_sync_fence_info pt = {
+		.id = id,
+		.thresh = thresh,
+	};
+	struct nvhost_fence *fence = nvhost_fence_create(
+		nvhost_dev->host1x_pdev, &pt, 1, "fence");
 
 	if (IS_ERR(fence)) {
 		nvgpu_err(c->g, "error %d during construction of fence.",
@@ -55,7 +73,7 @@ int nvgpu_os_fence_syncpt_create(
 int nvgpu_os_fence_syncpt_fdget(struct nvgpu_os_fence *fence_out,
 	struct nvgpu_channel *c, int fd)
 {
-	struct sync_fence *fence = nvgpu_nvhost_sync_fdget(fd);
+	struct nvhost_fence *fence = nvhost_fence_get(fd);
 
 	if (fence == NULL) {
 		return -ENOMEM;
@@ -82,19 +100,13 @@ int nvgpu_os_fence_get_syncpts(
 u32 nvgpu_os_fence_syncpt_get_num_syncpoints(
 	struct nvgpu_os_fence_syncpt *fence)
 {
-	struct sync_fence *f = nvgpu_get_sync_fence(fence->fence);
-
-	return (u32)f->num_fences;
+	return nvhost_fence_num_pts(fence->fence->priv);
 }
 
-void nvgpu_os_fence_syncpt_extract_nth_syncpt(
-	struct nvgpu_os_fence_syncpt *fence, u32 n,
-		u32 *syncpt_id, u32 *syncpt_threshold)
+int nvgpu_os_fence_syncpt_foreach_pt(
+	struct nvgpu_os_fence_syncpt *fence,
+	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
+	void *data)
 {
-
-	struct sync_fence *f = nvgpu_get_sync_fence(fence->fence);
-	struct sync_pt *pt = sync_pt_from_fence(f->cbs[n].sync_pt);
-
-	*syncpt_id = nvgpu_nvhost_sync_pt_id(pt);
-	*syncpt_threshold = nvgpu_nvhost_sync_pt_thresh(pt);
+	return nvhost_fence_foreach_pt(fence->fence->priv, iter, data);
 }
