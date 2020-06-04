@@ -75,6 +75,13 @@ struct nvgpu_profiler_object {
 	 * maintained in struct gk20a.
 	 */
 	struct nvgpu_list_node prof_obj_entry;
+
+	/*
+	 * If PM resources are bound to this profiler object.
+	 * Profiler object cannot get into runtime i.e. cannot execute RegOps
+	 * until this flag is set.
+	 */
+	bool bound;
 };
 
 static inline struct nvgpu_profiler_object *
@@ -97,6 +104,9 @@ int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
 	enum nvgpu_profiler_pm_resource_type pm_resource);
 int nvgpu_profiler_pm_resource_release(struct nvgpu_profiler_object *prof,
 	enum nvgpu_profiler_pm_resource_type pm_resource);
+
+int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof);
+int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof);
 
 #endif /* CONFIG_NVGPU_PROFILER */
 #endif /* NVGPU_PROFILER_H */

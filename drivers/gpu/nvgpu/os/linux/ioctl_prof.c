@@ -273,6 +273,16 @@ static int nvgpu_prof_ioctl_release_pm_resource(struct nvgpu_profiler_object *pr
 	return 0;
 }
 
+static int nvgpu_prof_ioctl_bind_pm_resources(struct nvgpu_profiler_object *prof)
+{
+	return nvgpu_profiler_bind_pm_resources(prof);
+}
+
+static int nvgpu_prof_ioctl_unbind_pm_resources(struct nvgpu_profiler_object *prof)
+{
+	return nvgpu_profiler_unbind_pm_resources(prof);
+}
+
 long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 		unsigned long arg)
 {
@@ -321,6 +331,14 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 	case NVGPU_PROFILER_IOCTL_RELEASE_PM_RESOURCE:
 		err = nvgpu_prof_ioctl_release_pm_resource(prof,
 			(struct nvgpu_profiler_release_pm_resource_args *)buf);
+		break;
+
+	case NVGPU_PROFILER_IOCTL_BIND_PM_RESOURCES:
+		err = nvgpu_prof_ioctl_bind_pm_resources(prof);
+		break;
+
+	case NVGPU_PROFILER_IOCTL_UNBIND_PM_RESOURCES:
+		err = nvgpu_prof_ioctl_unbind_pm_resources(prof);
 		break;
 
 	default:
