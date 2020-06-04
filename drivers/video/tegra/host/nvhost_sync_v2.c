@@ -140,8 +140,8 @@ int nvhost_dma_fence_unpack(struct dma_fence *fence, u32 *id, u32 *threshold)
 	return 0;
 }
 
-struct dma_fence *nvhost_dma_fence_create_single(struct nvhost_syncpt *syncpt,
-						 u32 id, u32 threshold)
+static struct dma_fence *nvhost_dma_fence_create_single(
+			struct nvhost_syncpt *syncpt, u32 id, u32 threshold)
 {
 	struct nvhost_dma_fence *f;
 	void *waiter;
@@ -149,12 +149,12 @@ struct dma_fence *nvhost_dma_fence_create_single(struct nvhost_syncpt *syncpt,
 
 	f = kzalloc(sizeof(*f), GFP_KERNEL);
 	if (!f)
-		return NULL;
+		return ERR_PTR(-ENOMEM);
 
 	waiter = nvhost_intr_alloc_waiter();
 	if (!waiter) {
 		kfree(f);
-		return NULL;
+		return ERR_PTR(-ENOMEM);
 	}
 
 	f->host = syncpt_to_dev(syncpt);
@@ -173,7 +173,7 @@ struct dma_fence *nvhost_dma_fence_create_single(struct nvhost_syncpt *syncpt,
 	if (err) {
 		/* f, waiter will be freed through fence refcount dropping */
 		dma_fence_put((struct dma_fence *)f);
-		return NULL;
+		return ERR_PTR(err);
 	}
 
 	/* Retain handle so that fence stays alive for intr callback */
@@ -187,7 +187,7 @@ struct dma_fence *nvhost_dma_fence_create(
 	int num_pts)
 {
 	struct dma_fence **fences, *array;
-	int i;
+	int i, err;
 
 	if (num_pts == 1)
 		return nvhost_dma_fence_create_single(syncpt, pts->id,
@@ -195,27 +195,30 @@ struct dma_fence *nvhost_dma_fence_create(
 
 	fences = kmalloc_array(num_pts, sizeof(*fences), GFP_KERNEL);
 	if (!fences)
-		return NULL;
+		return ERR_PTR(-ENOMEM);
 
 	for (i = 0; i < num_pts; ++i) {
 		fences[i] = nvhost_dma_fence_create_single(syncpt, pts[i].id,
 							   pts[i].thresh);
-		if (!fences[i])
+		if (IS_ERR(fences[i])) {
+			err = PTR_ERR(fences[i]);
 			goto put_fences;
 	}
 
 	array = (struct dma_fence *)dma_fence_array_create(
 		num_pts, fences, dma_fence_context_alloc(1), 1, false);
-	if  (!array)
+	if  (!array) {
+		err = -ENOMEM;
 		goto put_fences;
+	}
 
 	return array;
 
 put_fences:
 	while (--i >= 0)
 		dma_fence_put(fences[i]);
-	
+
 	kfree(fences);
 
-	return NULL;
+	return ERR_PTR(err);
 }

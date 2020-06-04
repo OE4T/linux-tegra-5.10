@@ -23,4 +23,4 @@ struct dma_fence *nvhost_dma_fence_create(
 	struct nvhost_syncpt *syncpt, struct nvhost_ctrl_sync_fence_info *pts,
 	int num_pts);
 
-#endif /* __NVHOST_SYNC_H */
+#endif /* __NVHOST_SYNC_V2_H */
