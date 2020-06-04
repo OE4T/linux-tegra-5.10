@@ -1666,7 +1666,22 @@ static int apply_pme_turnoff(struct seq_file *s, void *data)
 static int apply_sbr(struct seq_file *s, void *data)
 {
 	struct tegra_pcie_dw *pcie = (struct tegra_pcie_dw *)(s->private);
-	u32 val = 0;
+	struct pci_dev *pdev = NULL;
+	u32 val = 0, lnkspd = 0, tls = 0;
+	bool pass = true;
+	int domain;
+
+	domain = of_get_pci_domain_nr(pcie->dev->of_node);
+
+	/* save config state */
+	for_each_pci_dev(pdev)
+		if (pci_domain_nr(pdev->bus) == domain)
+			pci_save_state(pdev);
+
+	dw_pcie_read(pcie->pci.dbi_base + CFG_LINK_STATUS_CONTROL, 4, &lnkspd);
+	lnkspd = ((lnkspd >> 16) & PCI_EXP_LNKSTA_CLS);
+	dw_pcie_read(pcie->pci.dbi_base + CFG_LINK_STATUS_CONTROL_2, 4, &tls);
+	tls &= PCI_EXP_LNKSTA_CLS;
 
 	dw_pcie_read(pcie->pci.dbi_base + PCI_BRIDGE_CONTROL, 2, &val);
 	val |= PCI_BRIDGE_CTL_BUS_RESET;
@@ -1676,7 +1691,34 @@ static int apply_sbr(struct seq_file *s, void *data)
 	val &= ~PCI_BRIDGE_CTL_BUS_RESET;
 	dw_pcie_write(pcie->pci.dbi_base + PCI_BRIDGE_CONTROL, 2, val);
 
-	seq_puts(s, "Secondary Bus Reset applied successfully...\n");
+	/* Compare PCIE_CAP_TARGET_LINK_SPEED sticky bit before & after SBR */
+	dw_pcie_read(pcie->pci.dbi_base + CFG_LINK_STATUS_CONTROL, 4, &val);
+	val = ((val >> 16) & PCI_EXP_LNKSTA_CLS);
+	if (lnkspd != val) {
+		seq_printf(s, "Link speed is not restored to %d, cur speed: %d\n",
+			   lnkspd, val);
+		pass = false;
+	}
+
+	dw_pcie_read(pcie->pci.dbi_base + CFG_LINK_STATUS_CONTROL_2, 4, &val);
+	val &= PCI_EXP_LNKSTA_CLS;
+	if (tls != val) {
+		seq_printf(s, "Sticky reg changed, prev tls: %d, cur tls: %d\n",
+			   tls, val);
+		pass = false;
+	}
+
+	mdelay(100);
+
+	/* restore config state */
+	for_each_pci_dev(pdev)
+		if (pci_domain_nr(pdev->bus) == domain)
+			pci_restore_state(pdev);
+
+	if (pass == true)
+		seq_puts(s, "Secondary Bus Reset applied successfully...\n");
+	else
+		seq_puts(s, "Secondary Bus Reset failed\n");
 
 	return 0;
 }
