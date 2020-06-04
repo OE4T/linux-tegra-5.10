@@ -282,3 +282,43 @@ done:
 	nvgpu_vfree(g, percentiles);
 	nvgpu_mutex_release(&p->lock);
 }
+
+/*
+ * Print raw data for the profiler. Can be useful if you want to do more sophisticated
+ * analysis in python or something like that.
+ *
+ * Note this requires a debug context that does not automatically add newlines.
+ */
+void nvgpu_swprofile_print_raw_data(struct gk20a *g,
+				    struct nvgpu_swprofiler *p,
+				    struct nvgpu_debug_context *o)
+{
+	u32 i, j;
+
+	nvgpu_mutex_acquire(&p->lock);
+
+	if (p->samples == NULL) {
+		gk20a_debug_output(o, "Profiler not enabled.\n");
+		goto done;
+	}
+
+	gk20a_debug_output(o, "max samples: %u, sample len: %u\n",
+			   PROFILE_ENTRIES, p->psample_len);
+
+	for (i = 0U; i < p->psample_len; i++) {
+		gk20a_debug_output(o, " %15s", p->col_names[i]);
+	}
+	gk20a_debug_output(o, "\n");
+
+	for (i = 0U; i < PROFILE_ENTRIES; i++) {
+		for (j = 0U; j < p->psample_len; j++) {
+			u32 index = matrix_to_linear_index(p, i, j);
+
+			gk20a_debug_output(o, " %15llu", p->samples[index]);
+		}
+		gk20a_debug_output(o, "\n");
+	}
+
+done:
+	nvgpu_mutex_release(&p->lock);
+}

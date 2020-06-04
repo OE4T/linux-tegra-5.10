@@ -165,4 +165,18 @@ void nvgpu_swprofile_print_ranges(struct gk20a *g,
 				  struct nvgpu_swprofiler *p,
 				  struct nvgpu_debug_context *o);
 
+/**
+ * @brief Print raw data in a SW profiler.
+ *
+ * @param[in] g   The GPU that owns this profiler.
+ * @param[in] p   The profiler to print.
+ * @param[in] o   A debug context object used for printing.
+ *
+ * Print out the raw data captured by this profiler. The data is formatted
+ * as one row per sample.
+ */
+void nvgpu_swprofile_print_raw_data(struct gk20a *g,
+				    struct nvgpu_swprofiler *p,
+				    struct nvgpu_debug_context *o);
+
 #endif /* NVGPU_PROFILE_H */
