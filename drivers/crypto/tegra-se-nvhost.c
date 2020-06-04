@@ -234,6 +234,7 @@ struct tegra_se_aes_context {
 	struct tegra_se_dev *se_dev;	/* Security Engine device */
 	struct skcipher_request *req;
 	struct tegra_se_slot *slot;	/* Security Engine key slot */
+	struct tegra_se_slot *slot2;    /* Security Engine key slot 2 */
 	u32 keylen;	/* key length in bits */
 	u32 op_mode;	/* AES operation mode */
 	bool is_key_in_mem; /* Whether key is in memory */
@@ -514,9 +515,11 @@ static int tegra_init_key_slot(struct tegra_se_dev *se_dev)
 		 * for handling keys which are stored in memories and Slot 15 is
 		 * is used for SSK operation.
 		 */
-		if ((i == srk_slot.slot_num) || (i == ssk_slot.slot_num)
+		if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+			if ((i == srk_slot.slot_num) || (i == ssk_slot.slot_num)
 				|| (i == keymem_slot.slot_num))
-			continue;
+				continue;
+		}
 		se_dev->slot_list[i].available = true;
 		se_dev->slot_list[i].slot_num = i;
 		INIT_LIST_HEAD(&se_dev->slot_list[i].node);
@@ -588,21 +591,25 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 	case SE_AES_OP_MODE_CMAC:
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
-			if (key_len == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
-			else if (key_len == TEGRA_SE_KEY_192_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
-			else
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+				else if (key_len == TEGRA_SE_KEY_192_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
+				else
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			}
 			val |= SE_CONFIG_DEC_ALG(ALG_NOP);
 		} else {
 			val = SE_CONFIG_DEC_ALG(ALG_AES_DEC);
-			if (key_len == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_DEC_MODE(MODE_KEY256);
-			else if (key_len == TEGRA_SE_KEY_192_SIZE)
-				val |= SE_CONFIG_DEC_MODE(MODE_KEY192);
-			else
-				val |= SE_CONFIG_DEC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY256);
+				else if (key_len == TEGRA_SE_KEY_192_SIZE)
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY192);
+				else
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY128);
+			}
 		}
 		if (mode == SE_AES_OP_MODE_CMAC)
 			val |= SE_CONFIG_DST(DST_HASHREG);
@@ -619,60 +626,72 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 	case SE_AES_OP_MODE_ECB:
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
-			if (key_len == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
-			else if (key_len == TEGRA_SE_KEY_192_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
-			else
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+				else if (key_len == TEGRA_SE_KEY_192_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
+				else
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			}
 		} else {
 			val = SE_CONFIG_DEC_ALG(ALG_AES_DEC);
-			if (key_len == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_DEC_MODE(MODE_KEY256);
-			else if (key_len == TEGRA_SE_KEY_192_SIZE)
-				val |= SE_CONFIG_DEC_MODE(MODE_KEY192);
-			else
-				val |= SE_CONFIG_DEC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY256);
+				else if (key_len == TEGRA_SE_KEY_192_SIZE)
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY192);
+				else
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY128);
+			}
 		}
 		val |= SE_CONFIG_DST(DST_MEMORY);
 		break;
 	case SE_AES_OP_MODE_CTR:
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
-			if (key_len == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
-			else if (key_len == TEGRA_SE_KEY_192_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
-			else
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+				else if (key_len == TEGRA_SE_KEY_192_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
+				else
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			}
 		} else {
 			val = SE_CONFIG_DEC_ALG(ALG_AES_DEC);
-			if (key_len == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
-			else if (key_len == TEGRA_SE_KEY_192_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
-			else
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+				else if (key_len == TEGRA_SE_KEY_192_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
+				else
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			}
 		}
 		val |= SE_CONFIG_DST(DST_MEMORY);
 		break;
 	case SE_AES_OP_MODE_OFB:
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
-			if (key_len == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
-			else if (key_len == TEGRA_SE_KEY_192_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
-			else
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+				else if (key_len == TEGRA_SE_KEY_192_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
+				else
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			}
 		} else {
 			val = SE_CONFIG_DEC_ALG(ALG_AES_DEC);
-			if (key_len == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
-			else if (key_len == TEGRA_SE_KEY_192_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
-			else
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+				else if (key_len == TEGRA_SE_KEY_192_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
+				else
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			}
 		}
 		val |= SE_CONFIG_DST(DST_MEMORY);
 		break;
@@ -710,17 +729,21 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 	case SE_AES_OP_MODE_XTS:
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
-			if ((key_len / 2) == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
-			else
-				val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if ((key_len / 2) == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+				else
+					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+			}
 			val |= SE_CONFIG_DEC_ALG(ALG_NOP);
 		} else {
 			val = SE_CONFIG_DEC_ALG(ALG_AES_DEC);
-			if (key_len / 2 == TEGRA_SE_KEY_256_SIZE)
-				val |= SE_CONFIG_DEC_MODE(MODE_KEY256);
-			else
-				val |= SE_CONFIG_DEC_MODE(MODE_KEY128);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				if (key_len / 2 == TEGRA_SE_KEY_256_SIZE)
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY256);
+				else
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY128);
+			}
 			val |= SE_CONFIG_ENC_ALG(ALG_NOP);
 		}
 			val |= SE_CONFIG_DST(DST_MEMORY);
@@ -733,6 +756,8 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 		dev_warn(se_dev->dev, "Invalid operation mode\n");
 		break;
 	}
+
+	pr_debug("%s:%d config val = 0x%x\n", __func__, __LINE__, val);
 
 	return val;
 }
@@ -959,6 +984,7 @@ static int tegra_se_channel_submit_gather(struct tegra_se_dev *se_dev,
 		dev_err(se_dev->dev, "Nvhost submit failed\n");
 		goto error;
 	}
+	pr_debug("%s:%d submitted job\n", __func__, __LINE__);
 
 	if (callback == AES_CB) {
 		priv->se_dev = se_dev;
@@ -1092,19 +1118,29 @@ static int tegra_se_aes_ins_op(struct tegra_se_dev *se_dev, u8 *pdata,
 	}
 
 	/* key manifest */
+	/* user */
 	val = SE_KEYMANIFEST_USER(NS);
-	val |= SE_KEYMANIFEST_PURPOSE(ENC);
+	/* purpose */
+	if (type == SE_KEY_TABLE_TYPE_XTS_KEY1
+			|| type == SE_KEY_TABLE_TYPE_XTS_KEY2)
+		val |= SE_KEYMANIFEST_PURPOSE(XTS);
+	else
+		val |= SE_KEYMANIFEST_PURPOSE(ENC);
+	/* size */
 	if (data_len == 16)
 		val |= SE_KEYMANIFEST_SIZE(KEY128);
 	else if (data_len == 24)
 		val |= SE_KEYMANIFEST_SIZE(KEY192);
 	else if (data_len == 32)
 		val |= SE_KEYMANIFEST_SIZE(KEY256);
+	/* exportable */
 	val |= SE_KEYMANIFEST_EX(false);
 
 	cpuvaddr[i++] = __nvhost_opcode_nonincr(opcode_addr +
 				SE_AES_CRYPTO_KEYTABLE_KEYMANIFEST_OFFSET, 1);
 	cpuvaddr[i++] = val;
+
+	pr_debug("%s(%d) key manifest = 0x%x\n", __func__, __LINE__, val);
 
 	/* configure slot number */
 	cpuvaddr[i++] = __nvhost_opcode_nonincr(
@@ -1274,7 +1310,8 @@ static int tegra_se_send_key_data(struct tegra_se_dev *se_dev, u8 *pdata,
 
 static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 				      enum tegra_se_aes_op_mode mode,
-				      bool encrypt, u8 slot_num, bool org_iv)
+				      bool encrypt, u8 slot_num,
+				      u8 slot2_num, bool org_iv)
 {
 	u32 val = 0;
 	unsigned long freq = 0;
@@ -1292,6 +1329,8 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 				SE_CRYPTO_XOR_POS(XOR_BOTH) |
 				SE_CRYPTO_CORE_SEL(CORE_DECRYPT);
 		}
+		if (se_dev->chipdata->kac_type == SE_KAC_T23X)
+			val |= SE_CRYPTO_KEY2_INDEX(slot2_num);
 		freq = se_dev->chipdata->aes_freq;
 		break;
 	case SE_AES_OP_MODE_CMAC:
@@ -1349,11 +1388,14 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 		val |= SE_CRYPTO_HASH(HASH_DISABLE) |
 			SE_CRYPTO_KEY_INDEX(slot_num) |
 			SE_CRYPTO_CTR_CNTN(1);
+		if (se_dev->chipdata->kac_type == SE_KAC_T23X)
+			val |= SE_CRYPTO_IV_SEL(IV_REG);
 	} else {
 		val |= SE_CRYPTO_HASH(HASH_DISABLE) |
 			SE_CRYPTO_KEY_INDEX(slot_num);
 		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
-			val |= SE_CRYPTO_IV_SEL(IV_REG);
+			if (mode != SE_AES_OP_MODE_ECB)
+				val |= SE_CRYPTO_IV_SEL(IV_REG);
 		} else {
 			val |= (org_iv ? SE_CRYPTO_IV_SEL(IV_ORIGINAL) :
 				SE_CRYPTO_IV_SEL(IV_UPDATED));
@@ -1388,6 +1430,8 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 		/* Power off device after register access done */
 		nvhost_module_idle(se_dev->pdev);
 	}
+
+	pr_debug("%s:%d crypto_config val = 0x%x\n", __func__, __LINE__, val);
 
 	return val;
 }
@@ -1804,10 +1848,22 @@ static int tegra_se_prepare_cmdbuf(struct tegra_se_dev *se_dev,
 		req_ctx->config = tegra_se_get_config(se_dev, req_ctx->op_mode,
 						      req_ctx->encrypt,
 						      aes_ctx->keylen);
-		req_ctx->crypto_config = tegra_se_get_crypto_config(
+
+		if (aes_ctx->slot2 != NULL) {
+			req_ctx->crypto_config = tegra_se_get_crypto_config(
 						se_dev, req_ctx->op_mode,
 						req_ctx->encrypt,
-						aes_ctx->slot->slot_num, false);
+						aes_ctx->slot->slot_num,
+						aes_ctx->slot2->slot_num,
+						false);
+		} else {
+			req_ctx->crypto_config = tegra_se_get_crypto_config(
+						se_dev, req_ctx->op_mode,
+						req_ctx->encrypt,
+						aes_ctx->slot->slot_num,
+						0,
+						false);
+		}
 
 		tegra_se_send_data(se_dev, req_ctx, req, req->cryptlen,
 				   se_dev->opcode_addr, cpuvaddr);
@@ -2129,6 +2185,19 @@ static int tegra_se_aes_setkey(struct crypto_skcipher *tfm,
 				return -ENOMEM;
 			}
 			ctx->slot = pslot;
+			ctx->slot2 = NULL;
+			if (!strcmp(crypto_tfm_alg_name(&tfm->base),
+							"xts(aes)")) {
+				if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+					pslot = tegra_se_alloc_key_slot();
+					if (!pslot) {
+						dev_err(se_dev->dev, "no free key slot\n");
+						mutex_unlock(&se_dev->mtx);
+						return -ENOMEM;
+					}
+					ctx->slot2 = pslot;
+				}
+			}
 		}
 		ctx->keylen = keylen;
 	} else if ((keylen >> SE_MAGIC_PATTERN_OFFSET) == SE_MAGIC_PATTERN) {
@@ -2175,15 +2244,25 @@ static int tegra_se_aes_setkey(struct crypto_skcipher *tfm,
 		if (ret)
 			goto keyslt_free;
 
-		ret = tegra_se_send_key_data(se_dev, pdata + keylen, keylen,
-					     ctx->slot->slot_num,
+		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+			ret = tegra_se_send_key_data(se_dev, pdata + keylen,
+					     keylen, ctx->slot2->slot_num,
 					     SE_KEY_TABLE_TYPE_XTS_KEY2,
 					     se_dev->opcode_addr, cpuvaddr,
 					     iova, AES_CB);
+		} else {
+			ret = tegra_se_send_key_data(se_dev, pdata + keylen,
+					     keylen, ctx->slot->slot_num,
+					     SE_KEY_TABLE_TYPE_XTS_KEY2,
+					     se_dev->opcode_addr, cpuvaddr,
+					     iova, AES_CB);
+		}
 	}
 keyslt_free:
-	if (ret)
+	if (ret) {
 		tegra_se_free_key_slot(ctx->slot);
+		tegra_se_free_key_slot(ctx->slot2);
+	}
 out:
 	mutex_unlock(&se_dev->mtx);
 
@@ -2202,7 +2281,9 @@ static void tegra_se_aes_cra_exit(struct crypto_skcipher *tfm)
 	struct tegra_se_aes_context *ctx = crypto_tfm_ctx(&tfm->base);
 
 	tegra_se_free_key_slot(ctx->slot);
+	tegra_se_free_key_slot(ctx->slot2);
 	ctx->slot = NULL;
+	ctx->slot2 = NULL;
 }
 
 static int tegra_se_rng_drbg_init(struct crypto_tfm *tfm)
@@ -2268,7 +2349,7 @@ static int tegra_se_rng_drbg_get_random(struct crypto_rng *tfm, const u8 *src,
 					      TEGRA_SE_KEY_128_SIZE);
 	req_ctx->crypto_config = tegra_se_get_crypto_config(se_dev,
 							    req_ctx->op_mode,
-							    true, 0, true);
+							    true, 0, 0, true);
 	for (j = 0; j <= num_blocks; j++) {
 		se_dev->src_ll->addr = rng_ctx->dt_buf_adr;
 		se_dev->src_ll->data_len = TEGRA_SE_RNG_DT_SIZE;
@@ -2895,7 +2976,7 @@ static int tegra_se_aes_cmac_final(struct ahash_request *req)
 
 		req_ctx->crypto_config = tegra_se_get_crypto_config(
 				se_dev, req_ctx->op_mode, true,
-				cmac_ctx->slot->slot_num, true);
+				cmac_ctx->slot->slot_num, 0, true);
 
 		tegra_se_send_data(se_dev, req_ctx, NULL, total,
 				   se_dev->opcode_addr,
@@ -2992,7 +3073,7 @@ static int tegra_se_aes_cmac_final(struct ahash_request *req)
 					      true, cmac_ctx->keylen);
 	req_ctx->crypto_config = tegra_se_get_crypto_config(
 				se_dev, req_ctx->op_mode, true,
-				cmac_ctx->slot->slot_num, use_orig_iv);
+				cmac_ctx->slot->slot_num, 0, use_orig_iv);
 
 	tegra_se_send_data(se_dev, req_ctx, NULL, TEGRA_SE_AES_BLOCK_SIZE,
 			   se_dev->opcode_addr, se_dev->aes_cmdbuf_cpuvaddr);
@@ -3116,7 +3197,7 @@ static int tegra_se_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 					      true, keylen);
 	req_ctx->crypto_config = tegra_se_get_crypto_config(
 				se_dev, SE_AES_OP_MODE_CBC, true,
-				ctx->slot->slot_num, true);
+				ctx->slot->slot_num, 0, true);
 
 	tegra_se_send_data(se_dev, req_ctx, NULL, TEGRA_SE_AES_BLOCK_SIZE,
 			   se_dev->opcode_addr, se_dev->aes_cmdbuf_cpuvaddr);
