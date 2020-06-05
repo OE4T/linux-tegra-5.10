@@ -67,6 +67,9 @@ struct nvhost_syncpt {
 	struct nvhost_syncpt_attr invalid_syncpt_type_attr;
 	struct nvhost_syncpt_attr invalid_assigned_attr;
 #endif
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SYNC) && IS_ENABLED(CONFIG_SYNC_FILE)
+	u64 syncpt_context_base;
+#endif
 };
 
 int nvhost_syncpt_init(struct platform_device *, struct nvhost_syncpt *);

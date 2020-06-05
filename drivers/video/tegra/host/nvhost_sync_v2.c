@@ -164,8 +164,8 @@ static struct dma_fence *nvhost_dma_fence_create_single(
 	snprintf(f->timeline_name, ARRAY_SIZE(f->timeline_name), "sp%d", id);
 
 	spin_lock_init(&f->lock);
-	dma_fence_init(&f->base, &nvhost_dma_fence_ops, &f->lock, id,
-		       threshold);
+	dma_fence_init(&f->base, &nvhost_dma_fence_ops, &f->lock,
+		       syncpt->syncpt_context_base + id, threshold);
 
 	err = nvhost_intr_add_action(&f->host->intr, id, threshold,
 				     NVHOST_INTR_ACTION_SIGNAL_SYNC_PT,

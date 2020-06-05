@@ -35,6 +35,10 @@
 #include "nvhost_sync.h"
 #endif
 
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SYNC) && !IS_ENABLED(CONFIG_SYNC)
+#include <linux/dma-fence.h>
+#endif
+
 #include "nvhost_acm.h"
 #include "dev.h"
 #include "chip_support.h"
@@ -1216,6 +1220,11 @@ int nvhost_syncpt_init(struct platform_device *dev,
 		err = -ENOMEM;
 		goto fail;
 	}
+#endif
+
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SYNC) && !IS_ENABLED(CONFIG_SYNC)
+	sp->syncpt_context_base = dma_fence_context_alloc(
+		nvhost_syncpt_nb_hw_pts(sp));
 #endif
 
 	/*
