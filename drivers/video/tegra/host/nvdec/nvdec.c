@@ -510,11 +510,7 @@ static int nvdec_probe(struct platform_device *dev)
 		return -ENODATA;
 	}
 
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
-#else
-	if (tegra_get_chip_id() == TEGRA194 &&
-#endif
+	if (nvhost_is_194() &&
 	    (tegra_get_sku_id() == 0x9F ||
 	     tegra_get_sku_id() == 0x9E) &&
 	    pdata->class == NV_NVDEC1_CLASS_ID) {
@@ -525,7 +521,7 @@ static int nvdec_probe(struct platform_device *dev)
 
 	pdata->pdev = dev;
 
-	if (tegra_platform_is_sim() && tegra_get_chip_id() == TEGRA194) {
+	if (tegra_platform_is_sim() && nvhost_is_194()) {
 		dev_info(&dev->dev, "context isolation disabled on simulator");
 		pdata->isolate_contexts = false;
 	}

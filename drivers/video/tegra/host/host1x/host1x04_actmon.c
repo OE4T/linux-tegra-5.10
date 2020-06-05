@@ -148,7 +148,7 @@ static int host1x_actmon_init(struct host1x_actmon *actmon)
 		return 0;
 
 	if (actmon->init == ACTMON_OFF) {
-		if (tegra_get_chip_id() == TEGRA210) {
+		if (nvhost_is_210()) {
 			actmon->usecs_per_sample = 80;
 			actmon->k = 4;
 		} else {

@@ -233,6 +233,7 @@ struct nvhost_chip_support *nvhost_get_chip_ops(void);
 
 int nvhost_init_chip_support(struct nvhost_master *);
 
+bool nvhost_is_194(void);
 bool nvhost_is_186(void);
 bool nvhost_is_210(void);
 bool nvhost_is_124(void);

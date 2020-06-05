@@ -783,11 +783,7 @@ static int flcn_probe(struct platform_device *dev)
 
 	nvhost_dbg_fn("dev:%p pdata:%p", dev, pdata);
 
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
-#else
-	if (tegra_get_chip_id() == TEGRA194 &&
-#endif
+	if (nvhost_is_194() &&
 	    (tegra_get_sku_id() == 0x9F ||
 	     tegra_get_sku_id() == 0x9E) &&
 	    pdata->class == NV_VIDEO_ENCODE_NVENC1_CLASS_ID) {
