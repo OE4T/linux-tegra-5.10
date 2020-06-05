@@ -197,6 +197,7 @@
 		ports {
 			usb2-0 {
 				mode = "otg";
+				usb-role-switch;
 				status = "okay";
 			};
 			usb2-1 {
@@ -233,7 +234,11 @@
 		#extcon-cells = <1>;
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-2}>;
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+		phy-names = "usb2-0", "usb3-2";
+#else
 		phy-names = "usb2", "usb3";
+#endif
 		nvidia,xusb-padctl = <&xusb_padctl>;
 		nvidia,boost_cpu_freq = <1200>;
 		status = "okay";
