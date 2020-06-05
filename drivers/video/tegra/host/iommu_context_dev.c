@@ -134,7 +134,7 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	if (!pdev->dev.archdata.iommu) {
+	if (!iommu_get_domain_for_dev(&pdev->dev)) {
 		dev_err(&pdev->dev, "iommu is not enabled for context device. aborting.");
 		return -ENOSYS;
 	}

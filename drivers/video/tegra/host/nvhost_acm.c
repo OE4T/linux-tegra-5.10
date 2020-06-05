@@ -37,6 +37,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/clk/tegra.h>
 #include <linux/clk-provider.h>
+#include <linux/iommu.h>
 
 #if defined(CONFIG_TEGRA_BWMGR)
 #include <linux/platform/tegra/mc.h>
@@ -803,7 +804,7 @@ int nvhost_module_init(struct platform_device *dev)
 		pm_runtime_use_autosuspend(&dev->dev);
 	}
 
-	if (dev->dev.archdata.iommu == NULL) {
+	if (!iommu_get_domain_for_dev(&dev->dev)) {
 		pdata->isolate_contexts = false;
 		dev_info(&dev->dev, "context isolation disabled due to no IOMMU");
 	}
