@@ -23,26 +23,12 @@
 #include <linux/sync_file.h>
 #include <linux/file.h>
 
+#include "os_fence_priv.h"
+
 inline struct dma_fence *nvgpu_get_dma_fence(struct nvgpu_os_fence *s)
 {
 	struct dma_fence *fence = (struct dma_fence *)s->priv;
 	return fence;
-}
-
-static void nvgpu_os_fence_clear(struct nvgpu_os_fence *fence_out)
-{
-	fence_out->priv = NULL;
-	fence_out->g = NULL;
-	fence_out->ops = NULL;
-}
-
-void nvgpu_os_fence_init(struct nvgpu_os_fence *fence_out,
-	struct gk20a *g, const struct nvgpu_os_fence_ops *fops,
-	void *fence)
-{
-	fence_out->g = g;
-	fence_out->ops = fops;
-	fence_out->priv = fence;
 }
 
 void nvgpu_os_fence_dma_drop_ref(struct nvgpu_os_fence *s)

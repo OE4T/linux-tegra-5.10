@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
+#include "os_fence_priv.h"
 #include "sync_sema_dma.h"
 
 static const struct nvgpu_os_fence_ops sema_ops = {

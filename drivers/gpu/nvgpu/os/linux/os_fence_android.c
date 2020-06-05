@@ -20,28 +20,14 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/nvhost.h>
 
+#include "os_fence_priv.h"
+
 #include "../drivers/staging/android/sync.h"
 
 inline struct sync_fence *nvgpu_get_sync_fence(struct nvgpu_os_fence *s)
 {
 	struct sync_fence *fence = (struct sync_fence *)s->priv;
 	return fence;
-}
-
-static void nvgpu_os_fence_clear(struct nvgpu_os_fence *fence_out)
-{
-	fence_out->priv = NULL;
-	fence_out->g = NULL;
-	fence_out->ops = NULL;
-}
-
-void nvgpu_os_fence_init(struct nvgpu_os_fence *fence_out,
-	struct gk20a *g, const struct nvgpu_os_fence_ops *fops,
-	void *fence)
-{
-	fence_out->g = g;
-	fence_out->ops = fops;
-	fence_out->priv = fence;
 }
 
 void nvgpu_os_fence_android_drop_ref(struct nvgpu_os_fence *s)

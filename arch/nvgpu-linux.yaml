@@ -142,10 +142,10 @@ nvlink:
 fence:
   sources: [ os/linux/os_fence_android.c,
              os/linux/os_fence_android_sema.c,
-             os/linux/os_fence_android_syncpt.c,
              os/linux/os_fence_dma.c,
              os/linux/os_fence_dma_sema.c,
-             os/linux/os_fence_dma_syncpt.c,
+             os/linux/os_fence_syncpt.c,
+             os/linux/os_fence_priv.h,
              os/linux/sync_sema_android.c,
              os/linux/sync_sema_android.h,
              os/linux/sync_sema_dma.c,

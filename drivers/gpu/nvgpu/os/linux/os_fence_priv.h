@@ -14,25 +14,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NVGPU_LINUX_OS_FENCE_ANDROID_H
-#define NVGPU_LINUX_OS_FENCE_ANDROID_H
+#ifndef NVGPU_OS_FENCE_PRIV_H
+#define NVGPU_OS_FENCE_PRIV_H
 
-struct gk20a;
-struct nvgpu_os_fence;
-struct sync_fence;
-struct nvgpu_channel;
+#include <nvgpu/os_fence.h>
 
-struct sync_fence *nvgpu_get_sync_fence(struct nvgpu_os_fence *s);
+static inline void nvgpu_os_fence_clear(struct nvgpu_os_fence *fence_out)
+{
+	fence_out->priv = NULL;
+	fence_out->g = NULL;
+	fence_out->ops = NULL;
+}
 
-void nvgpu_os_fence_android_drop_ref(struct nvgpu_os_fence *s);
+static inline void nvgpu_os_fence_init(struct nvgpu_os_fence *fence_out,
+		struct gk20a *g, const struct nvgpu_os_fence_ops *fops,
+		void *fence)
+{
+	fence_out->g = g;
+	fence_out->ops = fops;
+	fence_out->priv = fence;
+}
 
-int nvgpu_os_fence_sema_fdget(struct nvgpu_os_fence *fence_out,
-	struct nvgpu_channel *c, int fd);
-
-int nvgpu_os_fence_android_install_fd(struct nvgpu_os_fence *s, int fd);
-
-int nvgpu_os_fence_syncpt_fdget(
-	struct nvgpu_os_fence *fence_out,
-	struct nvgpu_channel *c, int fd);
-
-#endif /* NVGPU_LINUX_OS_FENCE_ANDROID_H */
+#endif /* NVGPU_OS_FENCE_PRIV_H */

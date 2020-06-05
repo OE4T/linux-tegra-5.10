@@ -26,6 +26,7 @@
 #include <nvgpu/channel_sync.h>
 
 #include "sync_sema_android.h"
+#include "os_fence_priv.h"
 
 #include "../drivers/staging/android/sync.h"
 

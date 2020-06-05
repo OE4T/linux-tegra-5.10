@@ -23,29 +23,30 @@
 #include <nvgpu/types.h>
 #include <nvgpu/os_fence.h>
 #include <nvgpu/os_fence_syncpts.h>
-#include <nvgpu/linux/os_fence_android.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 
+#include "os_fence_priv.h"
 #include "nvhost_priv.h"
 
-static int nvgpu_os_fence_android_syncpt_install_fd(struct nvgpu_os_fence *s,
+static int nvgpu_os_fence_syncpt_install_fd(struct nvgpu_os_fence *s,
 		int fd)
 {
 	return nvhost_fence_install(s->priv, fd);
 }
 
-static void nvgpu_os_fence_android_syncpt_drop_ref(struct nvgpu_os_fence *s)
+static void nvgpu_os_fence_syncpt_drop_ref(struct nvgpu_os_fence *s)
 {
 	nvhost_fence_put(s->priv);
+	nvgpu_os_fence_clear(s);
 }
 
 static const struct nvgpu_os_fence_ops syncpt_ops = {
-	.drop_ref = nvgpu_os_fence_android_syncpt_drop_ref,
-	.install_fence = nvgpu_os_fence_android_syncpt_install_fd,
+	.drop_ref = nvgpu_os_fence_syncpt_drop_ref,
+	.install_fence = nvgpu_os_fence_syncpt_install_fd,
 };
 
 int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
