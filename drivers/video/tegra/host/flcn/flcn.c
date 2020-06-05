@@ -290,13 +290,36 @@ int flcn_reload_fw(struct platform_device *pdev)
 	return 0;
 }
 
+static int get_dma_attrs(struct platform_device *dev, unsigned long *attrs)
+{
+#ifdef DMA_ATTR_READ_ONLY
+	*attrs = DMA_ATTR_READ_ONLY;
+	return 0;
+#else
+	struct nvhost_device_data *pdata = nvhost_get_devdata(dev);
+	if (pdata->isolate_contexts) {
+		*attrs = 0;
+		return 0;
+	} else {
+		dev_err(&dev->dev, "kernel doesn't support DMA_ATTR_READ_ONLY and context isolation is disabled!\n");
+		return -EINVAL;
+	}
+#endif
+}
+
 static int flcn_read_ucode(struct platform_device *dev,
 		    const char *fw_name,
 		    struct flcn *v)
 {
 	const struct firmware *ucode_fw;
 	struct ucode_v1_flcn ucode;
+	unsigned long attrs;
 	int err;
+
+	err = get_dma_attrs(dev, &attrs);
+	if (err) {
+		return err;
+	}
 
 	nvhost_dbg_fn("");
 	v->dma_addr = 0;
@@ -312,7 +335,7 @@ static int flcn_read_ucode(struct platform_device *dev,
 
 	v->size = ucode_fw->size;
 	v->mapped = dma_alloc_attrs(&dev->dev, v->size, &v->dma_addr,
-				    GFP_KERNEL, DMA_ATTR_READ_ONLY);
+				    GFP_KERNEL, attrs);
 	if (!v->mapped) {
 		dev_err(&dev->dev, "dma memory allocation failed");
 		err = -ENOMEM;
@@ -333,7 +356,7 @@ static int flcn_read_ucode(struct platform_device *dev,
 clean_up:
 	if (v->mapped) {
 		dma_free_attrs(&dev->dev, v->size, v->mapped, v->dma_addr,
-			       DMA_ATTR_READ_ONLY);
+			       attrs);
 		v->mapped = NULL;
 		v->dma_addr = 0;
 	}
@@ -558,13 +581,20 @@ static int nvhost_flcn_init_sw(struct platform_device *dev)
 static int nvhost_flcn_deinit_sw(struct platform_device *dev)
 {
 	struct flcn *v = get_flcn(dev);
+	unsigned long attrs;
+	int err;
+
+	err = get_dma_attrs(dev, &attrs);
+	if (err) {
+		return err;
+	}
 
 	if (!v)
 		return 0;
 
 	if (v->mapped) {
 		dma_free_attrs(&dev->dev, v->size, v->mapped, v->dma_addr,
-			       DMA_ATTR_READ_ONLY);
+			       attrs);
 		v->mapped = NULL;
 		v->dma_addr = 0;
 	}
