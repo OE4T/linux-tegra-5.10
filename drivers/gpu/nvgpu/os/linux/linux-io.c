@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -73,6 +73,22 @@ u32 nvgpu_readl_impl(struct gk20a *g, u32 r)
 	}
 
 	return v;
+}
+
+void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v)
+{
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+
+	if (unlikely(!l->regs)) {
+		nvgpu_warn_on_no_regs();
+		nvgpu_log(g, gpu_dbg_reg, "r=0x%x v=0x%x (failed)", r, v);
+	} else {
+		nvgpu_wmb();
+		do {
+			writel_relaxed(v, l->regs + r);
+		} while (readl(l->regs + r) != v);
+		nvgpu_log(g, gpu_dbg_reg, "r=0x%x v=0x%x", r, v);
+	}
 }
 
 void nvgpu_bar1_writel(struct gk20a *g, u32 b, u32 v)
