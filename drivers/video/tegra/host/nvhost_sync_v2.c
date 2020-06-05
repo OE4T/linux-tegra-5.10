@@ -203,6 +203,7 @@ struct dma_fence *nvhost_dma_fence_create(
 		if (IS_ERR(fences[i])) {
 			err = PTR_ERR(fences[i]);
 			goto put_fences;
+		}
 	}
 
 	array = (struct dma_fence *)dma_fence_array_create(

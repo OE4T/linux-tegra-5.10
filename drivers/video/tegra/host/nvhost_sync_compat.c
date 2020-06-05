@@ -78,15 +78,16 @@ put_fence:
 }
 EXPORT_SYMBOL(nvhost_fence_create_fd);
 
-void nvhost_fence_install(struct nvhost_fence *fence, int fd)
+int nvhost_fence_install(struct nvhost_fence *fence, int fd)
 {
-	struct dma_fence *f = (struct sync_fence *)fence;
+	struct dma_fence *f = (struct dma_fence *)fence;
 	struct sync_file *file = sync_file_create(f);
 
 	if (!file)
 		return -ENOMEM;
 
 	fd_install(fd, file->file);
+	return 0;
 }
 EXPORT_SYMBOL(nvhost_fence_install);
 
