@@ -87,11 +87,27 @@ static void nvhost_dma_fence_release(struct dma_fence *fence)
 	kfree(f);
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+static bool nvhost_dma_fence_enable_signaling(struct dma_fence *fence)
+{
+	struct nvhost_dma_fence *f = to_nvhost_dma_fence(fence);
+
+	if (nvhost_syncpt_is_expired(f->syncpt, f->id, f->threshold))
+		return false;
+
+	return true;
+}
+#endif
+
 static const struct dma_fence_ops nvhost_dma_fence_ops = {
 	.get_driver_name = nvhost_dma_fence_get_driver_name,
 	.get_timeline_name = nvhost_dma_fence_get_timeline_name,
 	.signaled = nvhost_dma_fence_signaled,
 	.release = nvhost_dma_fence_release,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+	.enable_signaling = nvhost_dma_fence_enable_signaling,
+	.wait = dma_fence_default_wait,
+#endif
 };
 
 static inline struct nvhost_dma_fence *to_nvhost_dma_fence(
