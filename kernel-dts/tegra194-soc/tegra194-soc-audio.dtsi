@@ -742,6 +742,9 @@
 				<&mc TEGRA194_MEMORY_CLIENT_HDAW &emc>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
+#if LINUX_VERSION >= 504
+		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+#endif
 		status = "disabled";
 	};
 
