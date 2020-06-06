@@ -42,15 +42,6 @@ static bool enable_acomp = true;
 module_param(enable_acomp, bool, 0444);
 MODULE_PARM_DESC(enable_acomp, "Enable audio component binding (default=yes)");
 
-#define is_tegra21x(codec)  ((codec)->core.vendor_id == 0x10de0029)
-#define is_tegra_18x_sor0(codec)  ((codec)->core.vendor_id == 0x10de002d)
-#define is_tegra_18x_sor1(codec)  ((codec)->core.vendor_id == 0x10de002e)
-#define is_tegra_19x_sor2(codec)  ((codec)->core.vendor_id == 0x10de002f)
-#define is_tegra_19x_sor3(codec)  ((codec)->core.vendor_id == 0x10de0030)
-#define is_tegra_hdmi(codec) (is_tegra21x(codec) \
-				|| is_tegra_18x_sor0(codec) || is_tegra_18x_sor1(codec) \
-				|| is_tegra_19x_sor2(codec) || is_tegra_19x_sor3(codec))
-
 struct hdmi_spec_per_cvt {
 	hda_nid_t cvt_nid;
 	int assigned;
@@ -160,6 +151,7 @@ struct hdmi_spec {
 
 	bool dyn_pin_out;
 	bool dyn_pcm_assign;
+	bool tegra_fixup;	/* apply Nvidia Tegra platform-specific fixups */
 	bool intel_hsw_fixup;	/* apply Intel platform-specific fixups */
 	/*
 	 * Non-generic VIA/NVIDIA specific
@@ -892,10 +884,11 @@ static int hdmi_pin_hbr_setup(struct hda_codec *codec, hda_nid_t pin_nid,
 			      int dev_id, bool hbr)
 {
 	int pinctl, new_pinctl;
+	struct hdmi_spec *spec = codec->spec;
 
 	/* Assuming the HW supports HBR for Tegra HDMI */
 	if ((snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) ||
-		is_tegra_hdmi(codec)) {
+		spec->tegra_fixup) {
 		snd_hda_set_dev_select(codec, pin_nid, dev_id);
 		pinctl = snd_hda_codec_read(codec, pin_nid, 0,
 					    AC_VERB_GET_PIN_WIDGET_CONTROL, 0);
@@ -2252,7 +2245,7 @@ static int generic_hdmi_init_per_pins(struct hda_codec *codec)
 	struct hdmi_spec *spec = codec->spec;
 	int pin_idx;
 
-	if (is_tegra_hdmi(codec))
+	if (spec->tegra_fixup)
 		snd_hda_codec_write(codec, 4, 0,
 				    AC_VERB_SET_DIGI_CONVERT_1, 0x11);
 
@@ -3674,12 +3667,15 @@ static int tegra_hdmi_build_pcms(struct hda_codec *codec)
 
 static int patch_tegra_hdmi(struct hda_codec *codec)
 {
+	struct hdmi_spec *spec;
 	int err;
 
 	err = patch_generic_hdmi(codec);
 	if (err)
 		return err;
 
+	spec = codec->spec;
+	spec->tegra_fixup = true;
 	codec->patch_ops.build_pcms = tegra_hdmi_build_pcms;
 
 	return 0;
