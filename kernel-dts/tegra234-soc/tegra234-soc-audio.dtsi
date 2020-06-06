@@ -718,6 +718,9 @@
 			 <&bpmp_clks TEGRA234_CLK_HDA2HDMICODEC>;
 		clock-names = "pllp_out0", "maud", "hda",
 				"hda2codec_2x",	"hda2hdmi";
+#if LINUX_VERSION >= 504
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_DISP>;
+#endif
 		interrupts = <0 60 0x04>;
 		status = "disabled";
 	};
