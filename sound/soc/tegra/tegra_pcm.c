@@ -3,7 +3,7 @@
  * tegra_pcm.c - Tegra PCM driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (C) 2010,2012 - NVIDIA, Inc.
+ * Copyright (c) 2010-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * Based on code copyright/by:
  *
@@ -160,6 +160,8 @@ int tegra_pcm_hw_params(struct snd_soc_component *component,
 		slave_config.src_addr = dmap->addr;
 		slave_config.src_maxburst = 8;
 	}
+
+	slave_config.slave_id = dmap->slave_id;
 
 	ret = dmaengine_slave_config(chan, &slave_config);
 	if (ret < 0) {

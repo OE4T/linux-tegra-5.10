@@ -3,7 +3,7 @@
  * tegra_pcm.h - Definitions for Tegra PCM driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (C) 2010,2012 - NVIDIA, Inc.
+ * Copyright (c) 2010-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * Based on code copyright/by:
  *
