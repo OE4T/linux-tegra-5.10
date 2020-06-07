@@ -254,11 +254,23 @@ static void tegra_pcm_deallocate_dma_buffer(struct snd_pcm *pcm, int stream)
 	buf->area = NULL;
 }
 
+#if defined(CONFIG_ARCH_TEGRA_APE)
+static u64 tegra_dma_mask = DMA_BIT_MASK(64);
+#else
+static u64 tegra_dma_mask = DMA_BIT_MASK(32);
+#endif
+
 static int tegra_pcm_dma_allocate(struct snd_soc_pcm_runtime *rtd,
 				  size_t size)
 {
+	struct snd_card *card = rtd->card->snd_card;
 	struct snd_pcm *pcm = rtd->pcm;
 	int ret = 0;
+
+	if (!card->dev->dma_mask)
+		card->dev->dma_mask = &tegra_dma_mask;
+	if (!card->dev->coherent_dma_mask)
+		card->dev->coherent_dma_mask = tegra_dma_mask;
 
 	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {
 		ret = tegra_pcm_preallocate_dma_buffer(pcm,
