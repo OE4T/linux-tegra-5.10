@@ -214,7 +214,34 @@ EXPORT_SYMBOL_GPL(tegra_pcm_mmap);
 snd_pcm_uframes_t tegra_pcm_pointer(struct snd_soc_component *component,
 				    struct snd_pcm_substream *substream)
 {
-	return snd_dmaengine_pcm_pointer(substream);
+	snd_pcm_uframes_t appl_offset, pos = 0;
+	struct snd_pcm_runtime *runtime = substream->runtime;
+	char *appl_ptr;
+
+	pos = snd_dmaengine_pcm_pointer(substream);
+
+	/*
+	 * In DRAINING state pointer callback comes from dma completion, here
+	 * we want to make sure if dma completion callback is late we should
+	 * not end up playing stale data.
+	 */
+	if ((runtime->status->state == SNDRV_PCM_STATE_DRAINING) &&
+		(substream->stream == SNDRV_PCM_STREAM_PLAYBACK)) {
+		appl_offset = runtime->control->appl_ptr %
+					runtime->buffer_size;
+		appl_ptr = runtime->dma_area + frames_to_bytes(runtime,
+					appl_offset);
+		if (pos < appl_offset) {
+			memset(appl_ptr, 0, frames_to_bytes(runtime,
+					runtime->buffer_size - appl_offset));
+			memset(runtime->dma_area, 0, frames_to_bytes(runtime,
+					pos));
+		} else
+			memset(appl_ptr, 0, frames_to_bytes(runtime,
+					pos - appl_offset));
+	}
+
+	return pos;
 }
 EXPORT_SYMBOL_GPL(tegra_pcm_pointer);
 
