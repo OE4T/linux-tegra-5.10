@@ -199,8 +199,9 @@ int tegra_pcm_mmap(struct snd_soc_component *component,
 	if (rtd->dai_link->no_pcm)
 		return 0;
 
-	return dma_mmap_wc(substream->pcm->card->dev, vma, runtime->dma_area,
-			   runtime->dma_addr, runtime->dma_bytes);
+	return dma_mmap_coherent(substream->pcm->card->dev, vma,
+				 runtime->dma_area, runtime->dma_addr,
+				 runtime->dma_bytes);
 }
 EXPORT_SYMBOL_GPL(tegra_pcm_mmap);
 
@@ -217,7 +218,8 @@ static int tegra_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream,
 	struct snd_pcm_substream *substream = pcm->streams[stream].substream;
 	struct snd_dma_buffer *buf = &substream->dma_buffer;
 
-	buf->area = dma_alloc_wc(pcm->card->dev, size, &buf->addr, GFP_KERNEL);
+	buf->area = dma_alloc_coherent(pcm->card->dev, size, &buf->addr,
+				       GFP_KERNEL);
 	if (!buf->area)
 		return -ENOMEM;
 
@@ -242,7 +244,7 @@ static void tegra_pcm_deallocate_dma_buffer(struct snd_pcm *pcm, int stream)
 	if (!buf->area)
 		return;
 
-	dma_free_wc(pcm->card->dev, buf->bytes, buf->area, buf->addr);
+	dma_free_coherent(pcm->card->dev, buf->bytes, buf->area, buf->addr);
 	buf->area = NULL;
 }
 
