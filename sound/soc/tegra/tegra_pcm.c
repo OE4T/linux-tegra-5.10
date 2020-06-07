@@ -27,10 +27,16 @@
 static const struct snd_pcm_hardware tegra_pcm_hardware = {
 	.info			= SNDRV_PCM_INFO_MMAP |
 				  SNDRV_PCM_INFO_MMAP_VALID |
+				  SNDRV_PCM_INFO_PAUSE |
+				  SNDRV_PCM_INFO_RESUME |
 				  SNDRV_PCM_INFO_INTERLEAVED,
-	.period_bytes_min	= 1024,
-	.period_bytes_max	= PAGE_SIZE,
-	.periods_min		= 2,
+	.formats		= SNDRV_PCM_FMTBIT_S8 |
+				  SNDRV_PCM_FMTBIT_S16_LE |
+				  SNDRV_PCM_FMTBIT_S24_LE |
+				  SNDRV_PCM_FMTBIT_S32_LE,
+	.period_bytes_min	= 128,
+	.period_bytes_max	= PAGE_SIZE * 4,
+	.periods_min		= 1,
 	.periods_max		= 8,
 	.buffer_bytes_max	= PAGE_SIZE * 8,
 	.fifo_size		= 4,
