@@ -72,6 +72,8 @@
 #include "classid_vm_regs.c"
 #include "mmio_vm_regs.c"
 
+#define NVHOST_HAS_SUBMIT_HOST1XSTREAMID
+
 /* HOST1X_THOST_COMMON_CH_MLOCK_EN_0 */
 static const u32 host1x_ch_mlock_en0_r = 0x1710u;
 /* HOST1X_THOST_COMMON_CH_MLOCK_EN_1 */
