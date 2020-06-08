@@ -88,6 +88,8 @@
 		interrupt-map-mask = <0 0 0 0>;
 		interrupt-map = <0 0 0 0 &intc 0 45 0x04>;
 
+		linux,pci-domain = <1>;
+
 		nvidia,dvfs-tbl = < 204000000 408000000 800000000  1333000000
 					0         0         0          0
 					0         0         0          0
