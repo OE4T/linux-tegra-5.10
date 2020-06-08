@@ -513,7 +513,7 @@ static void nvmap_dmabuf_vunmap(struct dma_buf *dmabuf, void *vaddr)
 	__nvmap_munmap(info->handle, vaddr);
 }
 
-static int nvmap_dmabuf_set_private(struct dma_buf *dmabuf,
+int nvmap_dmabuf_set_drv_data(struct dma_buf *dmabuf,
 		struct device *dev, void *priv, void (*delete)(void *priv))
 {
 	struct nvmap_handle_info *info = dmabuf->priv;
@@ -543,7 +543,7 @@ unlock:
 	return ret;
 }
 
-static void *nvmap_dmabuf_get_private(struct dma_buf *dmabuf,
+void *nvmap_dmabuf_get_drv_data(struct dma_buf *dmabuf,
 		struct device *dev)
 {
 	void *priv = NULL;
@@ -583,8 +583,6 @@ static struct dma_buf_ops nvmap_dma_buf_ops = {
 	.mmap		= nvmap_dmabuf_mmap,
 	.vmap		= nvmap_dmabuf_vmap,
 	.vunmap		= nvmap_dmabuf_vunmap,
-	.set_drvdata	= nvmap_dmabuf_set_private,
-	.get_drvdata	= nvmap_dmabuf_get_private,
 };
 
 static char dmabuf_name[] = "nvmap_dmabuf";

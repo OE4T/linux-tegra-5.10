@@ -3,7 +3,7 @@
  *
  * GPU memory management driver for Tegra
  *
- * Copyright (c) 2009-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -749,4 +749,9 @@ __weak void nvmap_sci_ipc_exit(void)
 {
 }
 #endif
+
+int nvmap_dmabuf_set_drv_data(struct dma_buf *dmabuf,
+		struct device *dev, void *priv, void (*delete)(void *priv));
+void *nvmap_dmabuf_get_drv_data(struct dma_buf *dmabuf,
+		struct device *dev);
 #endif /* __VIDEO_TEGRA_NVMAP_NVMAP_H */

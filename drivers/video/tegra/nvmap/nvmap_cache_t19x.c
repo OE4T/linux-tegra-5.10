@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_cache_t19x.c
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -37,7 +37,7 @@ void nvmap_handle_get_cacheability(struct nvmap_handle *h,
 		static_key_slow_dec(&nvmap_updated_cache_config);
 	}
 
-	handle_t19x = dma_buf_get_drvdata(h->dmabuf, dev);
+	handle_t19x = nvmap_dmabuf_get_drv_data(h->dmabuf, dev);
 	if (handle_t19x && atomic_read(&handle_t19x->nc_pin)) {
 		*inner = *outer = false;
 		return;
