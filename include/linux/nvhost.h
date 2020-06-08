@@ -830,7 +830,7 @@ nvhost_client_request_firmware(struct platform_device *dev,
 
 struct nvhost_fence;
 
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SYNC)
 
 int nvhost_fence_foreach_pt(
 	struct nvhost_fence *fence,
@@ -853,30 +853,6 @@ struct nvhost_fence *nvhost_fence_get(int fd);
 int nvhost_fence_num_pts(struct nvhost_fence *fence);
 int nvhost_fence_install(struct nvhost_fence *fence, int fence_fd);
 void nvhost_fence_put(struct nvhost_fence *fence);
-
-#if !defined(CONFIG_SYNC)
-int nvhost_dma_fence_unpack(struct dma_fence *fence, u32 *id, u32 *threshold);
-bool nvhost_dma_fence_is_waitable(struct dma_fence *fence);
-#endif
-
-#if defined(CONFIG_SYNC)
-struct sync_fence *nvhost_sync_fdget(int fd);
-int nvhost_sync_num_pts(struct sync_fence *fence);
-struct sync_fence *nvhost_sync_create_fence(struct platform_device *pdev,
-		struct nvhost_ctrl_sync_fence_info *pts,
-				u32 num_pts, const char *name);
-int nvhost_sync_create_fence_fd(
-		struct platform_device *pdev,
-		struct nvhost_ctrl_sync_fence_info *pts,
-		u32 num_pts,
-		const char *name,
-		s32 *fence_fd);
-int nvhost_sync_fence_set_name(int fence_fd, const char *name);
-u32 nvhost_sync_pt_id(struct sync_pt *__pt);
-u32 nvhost_sync_pt_thresh(struct sync_pt *__pt);
-struct sync_pt *nvhost_sync_pt_from_fence_index(struct sync_fence *fence,
-                u32 sync_pt_index);
-#endif
 
 #else
 
@@ -921,7 +897,12 @@ static inline void nvhost_fence_put(struct nvhost_fence *fence)
 {
 }
 
-#if !defined(CONFIG_SYNC)
+#endif
+
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SYNC) && !defined(CONFIG_SYNC)
+int nvhost_dma_fence_unpack(struct dma_fence *fence, u32 *id, u32 *threshold);
+bool nvhost_dma_fence_is_waitable(struct dma_fence *fence);
+#else
 static inline int nvhost_dma_fence_unpack(struct dma_fence *fence, u32 *id,
 					  u32 *threshold)
 {
@@ -933,7 +914,24 @@ static inline bool nvhost_dma_fence_is_waitable(struct dma_fence *fence)
 }
 #endif
 
-#if defined(CONFIG_SYNC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SYNC) && defined(CONFIG_SYNC)
+struct sync_fence *nvhost_sync_fdget(int fd);
+int nvhost_sync_num_pts(struct sync_fence *fence);
+struct sync_fence *nvhost_sync_create_fence(struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+				u32 num_pts, const char *name);
+int nvhost_sync_create_fence_fd(
+		struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+		u32 num_pts,
+		const char *name,
+		s32 *fence_fd);
+int nvhost_sync_fence_set_name(int fence_fd, const char *name);
+u32 nvhost_sync_pt_id(struct sync_pt *__pt);
+u32 nvhost_sync_pt_thresh(struct sync_pt *__pt);
+struct sync_pt *nvhost_sync_pt_from_fence_index(struct sync_fence *fence,
+                u32 sync_pt_index);
+#else
 static inline struct sync_fence *nvhost_sync_fdget(int fd)
 {
 	return NULL;
@@ -981,9 +979,6 @@ static inline struct sync_pt *nvhost_sync_pt_from_fence_index(
 {
 	return NULL;
 }
-
-#endif
-
 #endif
 
 /* Hacky way to get access to struct nvhost_device_data for VI device. */
