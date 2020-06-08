@@ -126,8 +126,6 @@ struct nvhost_intr_ops {
 	int (*debug_dump)(struct nvhost_intr *, struct output *);
 	void (*enable_host_irq)(struct nvhost_intr *, int irq);
 	void (*disable_host_irq)(struct nvhost_intr *, int irq);
-	void (*enable_module_intr)(struct nvhost_intr *, int irq);
-	void (*disable_module_intr)(struct nvhost_intr *, int irq);
 };
 
 struct nvhost_dev_ops {

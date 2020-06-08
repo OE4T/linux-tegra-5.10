@@ -1218,11 +1218,6 @@ static int nvhost_module_prepare_poweroff(struct device *dev)
 	devfreq_suspend_device(pdata->power_manager);
 	nvhost_scale_hw_deinit(to_platform_device(dev));
 
-	/* disable module interrupt if support available */
-	if (pdata->module_irq)
-		nvhost_intr_disable_module_intr(&host->intr,
-						pdata->module_irq);
-
 #if defined(CONFIG_TEGRA_BWMGR)
 	/* set EMC rate to zero */
 	if (pdata->bwmgr_handle) {
@@ -1298,11 +1293,6 @@ static int nvhost_module_finalize_poweron(struct device *dev)
 			}
 		}
 	}
-
-	/* enable module interrupt if support available */
-	if (pdata->module_irq)
-		nvhost_intr_enable_module_intr(&host->intr,
-						pdata->module_irq);
 
 	nvhost_scale_hw_init(to_platform_device(dev));
 	devfreq_resume_device(pdata->power_manager);
