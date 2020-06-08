@@ -21,6 +21,7 @@
 
 #include <linux/kref.h>
 #include <linux/iommu.h>
+#include <linux/version.h>
 
 #ifdef CONFIG_NV_TEGRA_MC
 #include <linux/platform/tegra/tegra-mc-sid.h>
@@ -112,7 +113,11 @@ static inline int nvhost_vm_get_hwid(struct platform_device *pdev,
 				     unsigned int id)
 {
 	struct device *dev = &pdev->dev;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+#else
+	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
+#endif
 
 	if (!fwspec)
 		return -EINVAL;
