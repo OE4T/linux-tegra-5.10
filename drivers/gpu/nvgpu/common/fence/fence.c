@@ -75,43 +75,23 @@ struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f)
 	return f;
 }
 
-static bool nvgpu_fence_is_valid(struct nvgpu_fence_type *f)
-{
-	bool valid = f->valid;
-
-	nvgpu_smp_rmb();
-	return valid;
-}
-
 int nvgpu_fence_install_fd(struct nvgpu_fence_type *f, int fd)
 {
-	if ((f == NULL) || !nvgpu_fence_is_valid(f) ||
-			!nvgpu_os_fence_is_initialized(&f->os_fence)) {
-		return -EINVAL;
-	}
-
 	return f->os_fence.ops->install_fence(&f->os_fence, fd);
 }
 
 int nvgpu_fence_wait(struct gk20a *g, struct nvgpu_fence_type *f,
 							u32 timeout)
 {
-	if ((f != NULL) && nvgpu_fence_is_valid(f)) {
-		if (!nvgpu_platform_is_silicon(g)) {
-			timeout = U32_MAX;
-		}
-		return f->ops->wait(f, timeout);
+	if (!nvgpu_platform_is_silicon(g)) {
+		timeout = U32_MAX;
 	}
-	return 0;
+	return f->ops->wait(f, timeout);
 }
 
 bool nvgpu_fence_is_expired(struct nvgpu_fence_type *f)
 {
-	if ((f != NULL) && nvgpu_fence_is_valid(f) && (f->ops != NULL)) {
-		return f->ops->is_expired(f);
-	} else {
-		return true;
-	}
+	return f->ops->is_expired(f);
 }
 
 int nvgpu_fence_pool_alloc(struct nvgpu_channel *ch, unsigned int count)
@@ -243,10 +223,6 @@ int nvgpu_fence_from_semaphore(
 	f->semaphore = semaphore;
 	f->semaphore_wq = semaphore_wq;
 
-	/* commit previous writes before setting the valid flag */
-	nvgpu_smp_wmb();
-	f->valid = true;
-
 	return 0;
 }
 
@@ -306,10 +282,6 @@ int nvgpu_fence_from_syncpt(
 	f->nvhost_dev = nvhost_dev;
 	f->syncpt_id = id;
 	f->syncpt_value = value;
-
-	/* commit previous writes before setting the valid flag */
-	nvgpu_smp_wmb();
-	f->valid = true;
 
 	return 0;
 }

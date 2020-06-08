@@ -40,7 +40,6 @@ struct nvgpu_fence_type {
 	struct gk20a *g;
 
 	/* Valid for all fence types: */
-	bool valid;
 	struct nvgpu_ref ref;
 	const struct nvgpu_fence_ops *ops;
 
