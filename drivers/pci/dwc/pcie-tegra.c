@@ -280,6 +280,12 @@
 
 #define DL_FEATURE_EXCHANGE_EN		BIT(31)
 
+/* PTM */
+#define PTM_CLK_GRAN_MASK	GENMASK(15, 8)
+#define PTM_ROOT_CAPABLE        BIT(2)
+#define PTM_RES_CAPABLE         BIT(1)
+#define PTM_REQ_CAPABLE         BIT(0)
+
 #define PORT_LOGIC_ACK_F_ASPM_CTRL			0x70C
 #define ENTER_ASPM					BIT(30)
 #define L0S_ENTRANCE_LAT_SHIFT				24
@@ -579,6 +585,7 @@ struct tegra_pcie_dw {
 	u32 aspm_pwr_on_t;
 	u32 aspm_l0s_enter_lat;
 	bool update_fc_fixup;
+	u32 ptm_cap_off;
 
 	int n_gpios;
 	int *gpios;
@@ -3273,6 +3280,11 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		pcie->disabled_aspm_states = 0xF;
 	}
 
+	ret = of_property_read_u32(np, "nvidia,ptm-cap-off",
+				   &pcie->ptm_cap_off);
+	if (ret < 0)
+		dev_info(pcie->dev, "fail to read PTM cap off: %d\n", ret);
+
 	if (pcie->mode == DW_PCIE_RC_TYPE) {
 		ret = of_property_read_u32(np, "nvidia,preset-init",
 					   &pcie->preset_init);
@@ -3802,6 +3814,21 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	writel(val, pci->dbi_base + MSIX_ADDR_MATCH_LOW_OFF);
 	val = ((ep->msi_mem_phys >> 32) & MSIX_ADDR_MATCH_HIGH_OFF_MASK);
 	writel(val, pci->dbi_base + MSIX_ADDR_MATCH_HIGH_OFF);
+
+	/* PTM disable responder capabities for EP */
+	if (pcie->ptm_cap_off != 0) {
+		val = readl(pci->dbi_base +  pcie->ptm_cap_off);
+		val &= ~PTM_ROOT_CAPABLE;
+		writel(val, pci->dbi_base +  pcie->ptm_cap_off);
+
+		val = readl(pci->dbi_base +  pcie->ptm_cap_off);
+		val &= ~PTM_RES_CAPABLE;
+		writel(val, pci->dbi_base +  pcie->ptm_cap_off);
+
+		val = readl(pci->dbi_base +  pcie->ptm_cap_off);
+		val &= ~PTM_CLK_GRAN_MASK;
+		writel(val, pci->dbi_base +  pcie->ptm_cap_off);
+	}
 
 	dw_pcie_set_regs_available(pci);
 
