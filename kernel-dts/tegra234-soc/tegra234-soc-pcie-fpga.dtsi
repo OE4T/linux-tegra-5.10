@@ -59,6 +59,7 @@
 		nvidia,event-cntr-ctrl = <0x168>;
 		nvidia,event-cntr-data = <0x16c>;
 		nvidia,max-speed = <2>;
+		nvidia,ptm-cap-off = <0x29c>;
 
 		iommus = <&smmu TEGRA_SID_PCIE1>;
 		dma-coherent;
@@ -115,6 +116,7 @@
 		nvidia,event-cntr-ctrl = <0x168>;
 		nvidia,event-cntr-data = <0x16c>;
 		nvidia,dl-feature-cap = <0x2dc>;
+		nvidia,ptm-cap-off = <0x29c>;
 
 		iommus = <&smmu TEGRA_SID_PCIE1>;
 		dma-coherent;

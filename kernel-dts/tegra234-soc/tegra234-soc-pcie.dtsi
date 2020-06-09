@@ -396,6 +396,7 @@
 		nvidia,event-cntr-ctrl = <0x1d8>;
 		nvidia,event-cntr-data = <0x1dc>;
 		nvidia,dl-feature-cap = <0x30c>;
+		nvidia,ptm-cap-off = <0x318>;
 	};
 
 
@@ -442,6 +443,7 @@
 		nvidia,event-cntr-ctrl = <0x1c4>;
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
+		nvidia,ptm-cap-off = <0x304>;
 	};
 
 	/* C7 X8 */
@@ -486,6 +488,7 @@
 		nvidia,event-cntr-ctrl = <0x1d8>;
 		nvidia,event-cntr-data = <0x1dc>;
 		nvidia,dl-feature-cap = <0x30c>;
+		nvidia,ptm-cap-off = <0x318>;
 	};
 
 	/* C10 X4 */
@@ -530,6 +533,7 @@
 		nvidia,event-cntr-ctrl = <0x1c4>;
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
+		nvidia,ptm-cap-off = <0x304>;
 	};
 
 	/* C0 X4 */
@@ -594,6 +598,7 @@
 		nvidia,event-cntr-ctrl = <0x1c4>;
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
+		nvidia,ptm-cap-off = <0x304>;
 	};
 
 	/* C1 X1 */
@@ -659,6 +664,7 @@
 		nvidia,event-cntr-ctrl = <0x1a8>;
 		nvidia,event-cntr-data = <0x1ac>;
 		nvidia,dl-feature-cap = <0x2dc>;
+		nvidia,ptm-cap-off = <0x2e8>;
 	};
 
 	/* C2 X1 */
@@ -723,6 +729,7 @@
 		nvidia,event-cntr-ctrl = <0x1a8>;
 		nvidia,event-cntr-data = <0x1ac>;
 		nvidia,dl-feature-cap = <0x2dc>;
+		nvidia,ptm-cap-off = <0x2e8>;
 	};
 
 	/* C3 X1 */
@@ -787,6 +794,7 @@
 		nvidia,event-cntr-ctrl = <0x1a8>;
 		nvidia,event-cntr-data = <0x1ac>;
 		nvidia,dl-feature-cap = <0x2dc>;
+		nvidia,ptm-cap-off = <0x2e8>;
 	};
 
 	/* C4 X4 */
@@ -851,6 +859,7 @@
 		nvidia,event-cntr-ctrl = <0x1c4>;
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
+		nvidia,ptm-cap-off = <0x304>;
 	};
 
 	/* C5 X8 */
@@ -916,6 +925,7 @@
 		nvidia,event-cntr-ctrl = <0x1d8>;
 		nvidia,event-cntr-data = <0x1dc>;
 		nvidia,dl-feature-cap = <0x30c>;
+		nvidia,ptm-cap-off = <0x318>;
 	};
 
 	/* C6 X4 */
@@ -982,6 +992,7 @@
 		nvidia,event-cntr-ctrl = <0x1c4>;
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
+		nvidia,ptm-cap-off = <0x304>;
 	};
 
 	/* C7 X8*/
@@ -1048,6 +1059,7 @@
 		nvidia,event-cntr-ctrl = <0x1d8>;
 		nvidia,event-cntr-data = <0x1dc>;
 		nvidia,dl-feature-cap = <0x30c>;
+		nvidia,ptm-cap-off = <0x318>;
 	};
 
 	/* C8 X4 */
@@ -1114,6 +1126,7 @@
 		nvidia,event-cntr-ctrl = <0x1c4>;
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
+		nvidia,ptm-cap-off = <0x304>;
 	};
 
 	/* C9 X4 */
@@ -1180,6 +1193,7 @@
 		nvidia,event-cntr-ctrl = <0x1c4>;
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
+		nvidia,ptm-cap-off = <0x304>;
 	};
 
 	/* C10 X4 */
@@ -1246,5 +1260,6 @@
 		nvidia,event-cntr-ctrl = <0x1c4>;
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
+		nvidia,ptm-cap-off = <0x304>;
 	};
 };
