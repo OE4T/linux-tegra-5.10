@@ -106,6 +106,14 @@ struct nvhost_fence *nvhost_fence_get(int fd)
 }
 EXPORT_SYMBOL(nvhost_fence_get);
 
+struct nvhost_fence *nvhost_fence_dup(struct nvhost_fence *fence)
+{
+	dma_fence_get((struct dma_fence *)fence);
+
+	return fence;
+}
+EXPORT_SYMBOL(nvhost_fence_dup);
+
 int nvhost_fence_num_pts(struct nvhost_fence *fence)
 {
 	struct dma_fence_array *array;

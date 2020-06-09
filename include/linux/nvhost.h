@@ -850,6 +850,7 @@ int nvhost_fence_create_fd(
 		s32 *fence_fd);
 
 struct nvhost_fence *nvhost_fence_get(int fd);
+struct nvhost_fence *nvhost_fence_dup(struct nvhost_fence *fence);
 int nvhost_fence_num_pts(struct nvhost_fence *fence);
 int nvhost_fence_install(struct nvhost_fence *fence, int fence_fd);
 void nvhost_fence_put(struct nvhost_fence *fence);

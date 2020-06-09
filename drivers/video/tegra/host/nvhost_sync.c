@@ -369,6 +369,14 @@ struct nvhost_fence *nvhost_fence_get(int fd)
 }
 EXPORT_SYMBOL(nvhost_fence_get);
 
+struct nvhost_fence *nvhost_fence_dup(struct nvhost_fence *fence)
+{
+	sync_fence_get((struct sync_fence *)fence);
+
+	return fence;
+}
+EXPORT_SYMBOL(nvhost_fence_dup);
+
 int nvhost_sync_num_pts(struct sync_fence *fence)
 {
 	return fence->num_fences;
