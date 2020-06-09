@@ -245,7 +245,7 @@ static void gv11b_ltc_intr_handle_lts_interrupts(struct gk20a *g,
 			corrected_delta, corrected_overflow,
 			uncorrected_delta, uncorrected_overflow, offset);
 
-		nvgpu_writel_check(g,
+		nvgpu_writel(g,
 			nvgpu_safe_add_u32(
 				ltc_ltc0_lts0_l2_cache_ecc_status_r(), offset),
 			ltc_ltc0_lts0_l2_cache_ecc_status_reset_task_f());
