@@ -12,22 +12,17 @@
  */
 
 #include "debug_fifo.h"
+#include "swprofile_debugfs.h"
 #include "os_linux.h"
 
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>
 
-#include <nvgpu/sort.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
-#include <nvgpu/swprofile.h>
-
-#include <nvgpu/fifo/swprofile.h>
-
-void __gk20a_fifo_profile_free(struct nvgpu_ref *ref);
 
 static void *gk20a_fifo_sched_debugfs_seq_start(
 		struct seq_file *s, loff_t *pos)
@@ -143,87 +138,11 @@ static const struct file_operations gk20a_fifo_sched_debugfs_fops = {
 	.release = seq_release
 };
 
-static int gk20a_fifo_profile_enable(void *data, u64 val)
-{
-	struct gk20a *g = (struct gk20a *) data;
-	struct nvgpu_fifo *f = &g->fifo;
-
-	if (val == 0) {
-		nvgpu_swprofile_close(&f->kickoff_profiler);
-		return 0;
-	} else {
-		return nvgpu_swprofile_open(g, &f->kickoff_profiler);
-	}
-}
-
-DEFINE_SIMPLE_ATTRIBUTE(
-	gk20a_fifo_profile_enable_debugfs_fops,
-	NULL,
-	gk20a_fifo_profile_enable,
-	"%llu\n"
-);
-
-static void gk20a_fifo_write_to_seqfile_no_nl(void *ctx, const char *str)
-{
-	seq_printf((struct seq_file *)ctx, str);
-}
-
-static int gk20a_fifo_profile_stats(struct seq_file *s, void *unused)
-{
-	struct gk20a *g = s->private;
-	struct nvgpu_debug_context o = {
-		.fn = gk20a_fifo_write_to_seqfile_no_nl,
-		.ctx = s,
-	};
-
-	nvgpu_swprofile_print_ranges(g, &g->fifo.kickoff_profiler, &o);
-
-	return 0;
-}
-
-static int gk20a_fifo_profile_stats_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, gk20a_fifo_profile_stats, inode->i_private);
-}
-
-static const struct file_operations gk20a_fifo_profile_stats_debugfs_fops = {
-	.open		= gk20a_fifo_profile_stats_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-};
-
-static int gk20a_fifo_profile_raw_data(struct seq_file *s, void *unused)
-{
-	struct gk20a *g = s->private;
-	struct nvgpu_debug_context o = {
-		.fn = gk20a_fifo_write_to_seqfile_no_nl,
-		.ctx = s,
-	};
-
-	nvgpu_swprofile_print_raw_data(g, &g->fifo.kickoff_profiler, &o);
-
-	return 0;
-}
-
-static int gk20a_fifo_profile_raw_data_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, gk20a_fifo_profile_raw_data, inode->i_private);
-}
-
-static const struct file_operations gk20a_fifo_profile_raw_data_debugfs_fops = {
-	.open		= gk20a_fifo_profile_raw_data_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-};
-
 void gk20a_fifo_debugfs_init(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct dentry *gpu_root = l->debugfs;
 	struct dentry *fifo_root;
-	struct dentry *profile_root;
 
 	fifo_root = debugfs_create_dir("fifo", gpu_root);
 	if (IS_ERR_OR_NULL(fifo_root))
@@ -234,16 +153,5 @@ void gk20a_fifo_debugfs_init(struct gk20a *g)
 	debugfs_create_file("sched", 0600, fifo_root, g,
 		&gk20a_fifo_sched_debugfs_fops);
 
-	profile_root = debugfs_create_dir("profile", fifo_root);
-	if (IS_ERR_OR_NULL(profile_root))
-		return;
-
-	debugfs_create_file("enable", 0600, profile_root, g,
-		&gk20a_fifo_profile_enable_debugfs_fops);
-
-	debugfs_create_file("stats", 0600, profile_root, g,
-		&gk20a_fifo_profile_stats_debugfs_fops);
-
-	debugfs_create_file("raw_data", 0600, profile_root, g,
-		&gk20a_fifo_profile_raw_data_debugfs_fops);
+	nvgpu_debugfs_swprofile_init(g, fifo_root, &g->fifo.kickoff_profiler, "kickoff_profiler");
 }

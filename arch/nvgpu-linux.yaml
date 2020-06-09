@@ -86,6 +86,8 @@ debug:
              os/linux/debug_s_param.h,
              os/linux/debug_volt.c,
              os/linux/debug_volt.h,
+             os/linux/swprofile_debugfs.c,
+             os/linux/swprofile_debugfs.h,
              os/linux/fecs_trace_linux.c,
              os/linux/fecs_trace_linux.h,
              os/linux/nvlink_probe.c ]

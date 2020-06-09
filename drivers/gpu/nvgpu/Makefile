@@ -408,7 +408,8 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_clk_gm20b.o \
 	os/linux/debug_ltc.o \
 	os/linux/debug_volt.o \
-	os/linux/debug_s_param.o
+	os/linux/debug_s_param.o \
+	os/linux/swprofile_debugfs.o
 
 nvgpu-$(CONFIG_NVGPU_LOGGING) += os/linux/log.o
 
