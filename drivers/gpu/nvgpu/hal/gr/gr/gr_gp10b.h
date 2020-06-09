@@ -55,7 +55,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 		bool *early_exit, bool *ignore_debugger);
 u32 gp10b_gr_get_sm_hww_warp_esr(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm);
-u32 get_ecc_override_val(struct gk20a *g);
+u32 gp10b_gr_get_ecc_override_val(struct gk20a *g);
 int gr_gp10b_suspend_contexts(struct gk20a *g,
 				struct dbg_session_gk20a *dbg_s,
 				int *ctx_resident_ch_fd);

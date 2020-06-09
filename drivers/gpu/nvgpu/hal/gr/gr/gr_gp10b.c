@@ -613,7 +613,7 @@ u32 gp10b_gr_get_sm_hww_warp_esr(struct gk20a *g,
 	return hww_warp_esr;
 }
 
-u32 get_ecc_override_val(struct gk20a *g)
+u32 gp10b_gr_get_ecc_override_val(struct gk20a *g)
 {
 	bool en = false;
 
