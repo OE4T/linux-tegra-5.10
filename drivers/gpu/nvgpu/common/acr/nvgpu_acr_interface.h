@@ -200,6 +200,11 @@ struct lsf_wpr_header {
  */
 /** @{*/
 /**
+ * Size in entries of the ucode descriptor's dependency map.
+ */
+#define LSF_FALCON_DEPMAP_SIZE  (11U)
+
+/**
  * Code/data signature details of LS falcon
  */
 struct lsf_ucode_desc {
@@ -239,7 +244,7 @@ struct lsf_ucode_desc {
 	 * packed dependency map used to compute the DM hashes on the code and
 	 * data.
 	 */
-	u8  dep_map[FALCON_ID_END * 2 * 4];
+	u8  dep_map[LSF_FALCON_DEPMAP_SIZE * 2 * 4];
 	/** Message used to derive key */
 	u8  kdf[16];
 };

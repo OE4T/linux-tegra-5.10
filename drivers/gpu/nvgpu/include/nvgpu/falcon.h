@@ -130,7 +130,7 @@
 #define FALCON_ID_SEC2      (7U)
 /** Falcon ID for MINION engine */
 #define FALCON_ID_MINION    (10U)
-#define FALCON_ID_END	    (11U)
+#define FALCON_ID_END	    (15U)
 #define FALCON_ID_INVALID   0xFFFFFFFFU
 
 #define FALCON_MAILBOX_0	0x0U
