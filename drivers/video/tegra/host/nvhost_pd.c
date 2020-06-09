@@ -98,7 +98,6 @@ static int nvhost_module_power_off(struct generic_pm_domain *domain)
 	return do_powergate_locked(pd->powergate_id);
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 static int pm_subdomain_attach(struct device_node *node)
 {
 	int ret;
@@ -118,7 +117,6 @@ static int pm_subdomain_attach(struct device_node *node)
 
 	return of_genpd_add_subdomain(&master_phandle, &child_phandle);
 }
-#endif
 
 static LIST_HEAD(pd_list);
 
@@ -152,17 +150,10 @@ static int _nvhost_init_domain(struct device_node *np)
 
 	pd->domain.power_off = nvhost_module_power_off;
 	pd->domain.power_on = nvhost_module_power_on;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	pd->domain.flags = GENPD_FLAG_PM_UPSTREAM;
-#endif
 
 	of_genpd_add_provider_simple(np, &pd->domain);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	genpd_pm_subdomain_attach(&pd->domain);
-#else
 	pm_subdomain_attach(np);
-#endif
 
 	list_add(&pd->list, &pd_list);
 

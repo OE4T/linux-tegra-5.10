@@ -30,10 +30,8 @@
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <soc/tegra/tegra-dvfs.h>
 #include <linux/clk-provider.h>
-#endif
 
 #include <governor.h>
 
