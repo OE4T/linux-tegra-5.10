@@ -120,6 +120,10 @@ static u32 stub_gv11b_gr_init_get_no_of_sm(struct gk20a *g)
 	return 8;
 }
 
+static void stub_gr_falcon_dump_stats(struct gk20a *g)
+{
+}
+
 #ifdef CONFIG_NVGPU_USERD
 static int stub_userd_setup_sw(struct gk20a *g)
 {
@@ -157,6 +161,7 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 
 	gv11b_init_hal(g);
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;
+	g->ops.gr.falcon.dump_stats = stub_gr_falcon_dump_stats;
 
 	global_m = m;
 

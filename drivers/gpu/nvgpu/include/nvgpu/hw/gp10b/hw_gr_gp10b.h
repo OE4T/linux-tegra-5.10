@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -802,7 +802,10 @@
 		(nvgpu_safe_add_u32(0x0041a1c4U, nvgpu_safe_mult_u32((i), 8U)))
 #define gr_gpccs_ctxsw_mailbox_r(i)\
 		(nvgpu_safe_add_u32(0x0041a800U, nvgpu_safe_mult_u32((i), 4U)))
+#define gr_gpccs_ctxsw_mailbox__size_1_v()                         (0x00000010U)
 #define gr_gpccs_ctxsw_mailbox_value_f(v)         ((U32(v) & 0xffffffffU) << 0U)
+#define gr_gpc0_gpccs_ctxsw_mailbox_r(i)\
+		(nvgpu_safe_add_u32(0x00502800U, nvgpu_safe_mult_u32((i), 4U)))
 #define gr_gpcs_swdx_bundle_cb_base_r()                            (0x00418e24U)
 #define gr_gpcs_swdx_bundle_cb_base_addr_39_8_s()                          (32U)
 #define gr_gpcs_swdx_bundle_cb_base_addr_39_8_f(v)\

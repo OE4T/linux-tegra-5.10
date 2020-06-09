@@ -28,11 +28,11 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/pmu/clk/clk.h>
 
 #include "gr_falcon_gm20b.h"
 #include "common/gr/gr_falcon_priv.h"
-#include <nvgpu/gr/gr_utils.h>
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
@@ -596,7 +596,7 @@ u32 gm20b_gr_falcon_gpccs_base_addr(void)
 	return gr_gpcs_gpccs_irqsset_r();
 }
 
-void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g)
+static void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g)
 {
 	unsigned int i;
 
@@ -605,9 +605,36 @@ void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g)
 #endif
 
 	for (i = 0; i < g->ops.gr.falcon.fecs_ctxsw_mailbox_size(); i++) {
-		nvgpu_err(g, "gr_fecs_ctxsw_mailbox_r(%d) : 0x%x",
+		nvgpu_err(g, "gr_fecs_ctxsw_mailbox_r(%d): 0x%x",
 			i, nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(i)));
 	}
+}
+
+static void gm20b_gr_falcon_gpccs_dump_stats(struct gk20a *g)
+{
+	unsigned int i;
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr_config);
+	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	u32 gpc = 0U, offset = 0U;
+
+	for (gpc = 0U; gpc < gpc_count; gpc++) {
+		offset = nvgpu_safe_mult_u32(gpc_stride, gpc);
+		for (i = 0U; i < gr_gpccs_ctxsw_mailbox__size_1_v(); i++) {
+			nvgpu_err(g,
+				"gr_gpc%d_gpccs_ctxsw_mailbox_r(%d): 0x%x",
+				gpc, i,
+				nvgpu_readl(g, nvgpu_safe_add_u32(
+					gr_gpc0_gpccs_ctxsw_mailbox_r(i),
+					offset)));
+		}
+	}
+}
+
+void gm20b_gr_falcon_dump_stats(struct gk20a *g)
+{
+	gm20b_gr_falcon_fecs_dump_stats(g);
+	gm20b_gr_falcon_gpccs_dump_stats(g);
 }
 
 u32 gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id(struct gk20a *g)

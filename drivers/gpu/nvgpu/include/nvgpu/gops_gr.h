@@ -274,8 +274,10 @@ struct gops_gr_falcon {
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
-	 * This function reads and prints all context switch mailbox
-	 * register values. This is helpful for ucode debugging.
+	 * This function reads and prints all
+	 * - fecs context switch mailbox values
+	 * - gpccs context switch mailbox values for all available gpcs
+	 * This is helpful for ucode debugging.
 	 */
 	void (*dump_stats)(struct gk20a *g);
 
