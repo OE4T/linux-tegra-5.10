@@ -1796,7 +1796,7 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	struct dw_pcie *pci = &pcie->pci;
 	struct dw_pcie_ep *ep = &pci->ep;
 	struct device *dev = pcie->dev;
-	u32 val;
+	u32 val, ptm_cap_base = 0;
 	int ret;
 
 	if (pcie->ep_state == EP_STATE_ENABLED)
@@ -1957,6 +1957,24 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	pcie->pcie_cap_base = dw_pcie_find_capability(&pcie->pci,
 						      PCI_CAP_ID_EXP);
 	clk_set_rate(pcie->core_clk, GEN4_CORE_CLK_FREQ);
+
+	/*
+	 * PTM responder capability can be disabled only after disabling
+	 * PTM root capability.
+	 */
+	ptm_cap_base = dw_pcie_find_ext_capability(&pcie->pci,
+						   PCI_EXT_CAP_ID_PTM);
+	if (ptm_cap_base) {
+		dw_pcie_dbi_ro_wr_en(pci);
+		val = dw_pcie_readl_dbi(pci, ptm_cap_base + PCI_PTM_CAP);
+		val &= ~PCI_PTM_CAP_ROOT;
+		dw_pcie_writel_dbi(pci, ptm_cap_base + PCI_PTM_CAP, val);
+
+		val = dw_pcie_readl_dbi(pci, ptm_cap_base + PCI_PTM_CAP);
+		val &= ~(PCI_PTM_CAP_RES | PCI_PTM_GRANULARITY_MASK);
+		dw_pcie_writel_dbi(pci, ptm_cap_base + PCI_PTM_CAP, val);
+		dw_pcie_dbi_ro_wr_dis(pci);
+	}
 
 	val = (ep->msi_mem_phys & MSIX_ADDR_MATCH_LOW_OFF_MASK);
 	val |= MSIX_ADDR_MATCH_LOW_OFF_EN;
