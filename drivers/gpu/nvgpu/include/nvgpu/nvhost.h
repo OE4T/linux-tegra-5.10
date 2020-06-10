@@ -239,8 +239,6 @@ u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev
 	*nvgpu_syncpt_dev,
 	const char *syncpt_name);
 
-#ifdef CONFIG_TEGRA_T19X_GRHOST
-
 /**
  * @brief Initializes the address and size of memory mapped
  * sync point unit region(MSS).
@@ -271,22 +269,7 @@ u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id);
 #ifdef __KERNEL__
 int nvgpu_nvhost_syncpt_init(struct gk20a *g);
 #endif
-#else
-static inline int nvgpu_nvhost_get_syncpt_aperture(
-		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-		u64 *base, size_t *size)
-{
-	return -EINVAL;
-}
-static inline u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
-{
-	return 0;
-}
-static inline int nvgpu_nvhost_syncpt_init(struct gk20a *g)
-{
-	return 0;
-}
-#endif /* CONFIG_TEGRA_T19X_GRHOST */
+
 #else /* CONFIG_TEGRA_GK20A_NVHOST */
 /**
  * @brief Check if the gpu has access to syncpoints.

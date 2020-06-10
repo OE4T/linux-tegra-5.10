@@ -237,7 +237,6 @@ void nvgpu_nvhost_remove_symlink(struct gk20a *g)
 	}
 }
 
-#ifdef CONFIG_TEGRA_T19X_GRHOST
 int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvhost_dev,
 		u64 *base, size_t *size)
@@ -328,4 +327,3 @@ fail_sync:
 	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
 	return err;
 }
-#endif
