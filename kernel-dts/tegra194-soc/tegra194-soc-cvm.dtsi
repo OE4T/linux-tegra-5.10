@@ -309,6 +309,12 @@
 		};
 	};
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+	iommu@10000000 {
+		status = "okay";
+	};
+#endif
+
 	iommu@12000000 {
 		status = "okay";
 	};

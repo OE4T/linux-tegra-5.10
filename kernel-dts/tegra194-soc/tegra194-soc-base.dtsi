@@ -682,7 +682,9 @@
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15200000 0x0 0x10000>;
 				interrupts = <0 153 4>;
-
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
+#else
 				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 #if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
 				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
@@ -700,6 +702,7 @@
 #else
 				status = "disabled";
 				iso-smmu;
+#endif
 				non-coherent;
 
 				nvidia,dc-ctrlnum = <0>;
@@ -758,6 +761,9 @@
 				reg = <0x0 0x15210000 0x0 0x10000>;
 				interrupts = <0 154 4>;
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
+#else
 				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 #if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
 				clocks = <&bpmp TEGRA194_CLK_NVDISPLAY_P1>;
@@ -775,6 +781,7 @@
 #else
 				status = "disabled";
 				iso-smmu;
+#endif
 				non-coherent;
 
 				nvidia,dc-ctrlnum = <1>;
@@ -832,7 +839,9 @@
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15220000 0x0 0x10000>;
 				interrupts = <0 155 4>;
-
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
+#else
 				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 #if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
 				clocks = <&bpmp TEGRA194_CLK_NVDISPLAY_P2>;
@@ -850,6 +859,7 @@
 #else
 				status = "disabled";
 				iso-smmu;
+#endif
 				non-coherent;
 
 				nvidia,dc-ctrlnum = <2>;
@@ -907,7 +917,9 @@
 				compatible = "nvidia,tegra194-dc";
 				reg = <0x0 0x15230000 0x0 0x10000>;
 				interrupts = <0 242 4>;
-
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
+#else
 				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 #if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
 				clocks = <&bpmp TEGRA194_CLK_NVDISPLAY_P3>;
@@ -925,6 +937,7 @@
 #else
 				status = "disabled";
 				iso-smmu;
+#endif
 				non-coherent;
 
 				nvidia,dc-ctrlnum = <3>;
@@ -1409,8 +1422,12 @@
 
 			nvidia,vi-falcon-device = <&vi_thi>;
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+			iommus = <&smmu_iso TEGRA_SID_VI>;
+#else
 			iommus = <&smmu TEGRA_SID_VI>;
 			iso-smmu;
+#endif
 			non-coherent;
 		};
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -209,18 +209,162 @@
 	};
 #endif
 
-	smmu: iommu@12000000{
-#if TEGRA_IOMMU_DT_VERSION < DT_VERSION_2
-		compatible = "t19x,arm,mmu-500";
-#else
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+	smmu_iso: iommu@10000000{
 		compatible = "arm,mmu-500","nvidia,tegra194-smmu";
-#endif
+		reg = <0 0x10000000 0 0x800000>;
+		#global-interrupts = <1>;
+		interrupts = <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>;
+		stream-match-mask = <0x7F80>;
+		#iommu-cells = <1>;
+		status = "disabled";
+	};
 
-#if LINUX_VERSION >= 414
+	smmu: iommu@12000000{
+		compatible = "arm,mmu-500","nvidia,tegra194-smmu";
+		reg = <0 0x12000000 0 0x800000>,
+		      <0 0x11000000 0 0x800000>;
+		#global-interrupts = <2>;
+		interrupts = <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 232 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 232 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>;
+		stream-match-mask = <0x7F80>;
+		#iommu-cells = <1>;
+		status = "disabled";
+
+#elif LINUX_VERSION >= 414
+	smmu: iommu@12000000{
+		compatible = "t19x,arm,mmu-500";
 		reg = <0 0x12000000 0 0x800000>,
 		      <0 0x11000000 0 0x800000>,
 		      <0 0x10000000 0 0x800000>;
-#if TEGRA_IOMMU_DT_VERSION < DT_VERSION_2
 		#global-interrupts = <1>;
 		interrupts = <0 170 4>,
 			     <0 170 4>,
@@ -287,80 +431,16 @@
 			     <0 170 4>,
 			     <0 170 4>,
 			     <0 170 4>;
-#else
-		#global-interrupts = <3>;
-		interrupts = <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 232 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 232 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>,
-			     <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>;
-#endif
+
 		stream-match-mask = <0x7F80>;
 		input-address-size = <39>; /* Used by K4.14 only */
-#else
+		iso-smmu-id = <2>;
+		#iommu-cells = <1>;
+		status = "disabled";
 
+#else
+	smmu: iommu@12000000{
+		compatible = "t19x,arm,mmu-500";
 		reg = <0x0 0x12000000 0x0 0x01000000>, /* SMMU0 16MB */
 		      <0x0 0x11000000 0x0 0x01000000>, /* SMMU1 16MB */
 		      <0x0 0x10000000 0x0 0x01000000>; /* SMMU2 16MB */
@@ -372,15 +452,11 @@
 			     <0 233 4>,
 			     <0 240 4>,
 			     <0 241 4>;
-#endif
-
 		iso-smmu-id = <2>;
-
-		suspend-save-reg = <0x0c3902ac>; /* SCRATCH_SECURE_RSV73_SCRATCH_0 */
-
 		status = "disabled";
-
 		#iommu-cells = <1>;
+#endif
+		suspend-save-reg = <0x0c3902ac>; /* SCRATCH_SECURE_RSV73_SCRATCH_0 */
 
 		/* Note: Keep domain and address space in alphabetical order */
 		domains {
@@ -655,8 +731,12 @@
 
 	mods_iso_smmu: mods_iso_smmu {
 		compatible = "nvidia,mods_smmu";
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		iommus = <&smmu_iso TEGRA_SID_SMMU_TEST>;
+#else
 		iommus = <&smmu TEGRA_SID_SMMU_TEST>;
 		iso-smmu;
+#endif
 		non-coherent;
 		dev-names = "mods_iso_smmu";
 		status = "disabled";
