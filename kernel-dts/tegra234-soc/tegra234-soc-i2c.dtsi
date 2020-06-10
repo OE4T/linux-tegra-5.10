@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_I2C1
 			&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "div-clk", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_I2C1>;
+		resets = <&bpmp_resets TEGRA234_RESET_I2C1>;
 		reset-names = "i2c";
 		dmas = <&gpcdma 21>, <&gpcdma 21>;
 		dma-names = "rx", "tx";
@@ -69,7 +69,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_I2C2
 			&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "div-clk", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_I2C2>;
+		resets = <&bpmp_resets TEGRA234_RESET_I2C2>;
 		reset-names = "i2c";
 		dmas = <&gpcdma 22>, <&gpcdma 22>;
 		dma-names = "rx", "tx";
@@ -91,7 +91,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_I2C3
 			&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "div-clk", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_I2C3>;
+		resets = <&bpmp_resets TEGRA234_RESET_I2C3>;
 		reset-names = "i2c";
 		dmas = <&gpcdma 23>, <&gpcdma 23>;
 		dma-names = "rx", "tx";
@@ -111,7 +111,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_I2C4
 			&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "div-clk", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_I2C4>;
+		resets = <&bpmp_resets TEGRA234_RESET_I2C4>;
 		reset-names = "i2c";
 		dmas = <&gpcdma 26>, <&gpcdma 26>;
 		dma-names = "rx", "tx";
@@ -142,7 +142,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_I2C6
 			&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "div-clk", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_I2C6>;
+		resets = <&bpmp_resets TEGRA234_RESET_I2C6>;
 		reset-names = "i2c";
 		dmas = <&gpcdma 30>, <&gpcdma 30>;
 		dma-names = "rx", "tx";
@@ -162,7 +162,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_I2C7
 			&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "div-clk", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_I2C7>;
+		resets = <&bpmp_resets TEGRA234_RESET_I2C7>;
 		reset-names = "i2c";
 		dmas = <&gpcdma 27>, <&gpcdma 27>;
 		dma-names = "rx", "tx";
@@ -184,7 +184,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_I2C8
 			&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "div-clk", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_I2C8>;
+		resets = <&bpmp_resets TEGRA234_RESET_I2C8>;
 		reset-names = "i2c";
 		dmas = <&gpcdma 0>, <&gpcdma 0>;
 		dma-names = "rx", "tx";
@@ -204,7 +204,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_I2C9
 			&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "div-clk", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_I2C9>;
+		resets = <&bpmp_resets TEGRA234_RESET_I2C9>;
 		reset-names = "i2c";
 		dmas = <&gpcdma 31>, <&gpcdma 31>;
 		dma-names = "rx", "tx";

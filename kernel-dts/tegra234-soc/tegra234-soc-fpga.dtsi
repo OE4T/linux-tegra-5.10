@@ -30,10 +30,10 @@
 #include "dt-bindings/soc/tegra234-powergate.h"
 #include "tegra234-soc/tegra234-soc-sdhci.dtsi"
 #include "tegra234-soc-pmc.dtsi"
+#include "tegra234-soc-i2c.dtsi"
 
 / {
 	aliases {
-		i2c3 = &dp_aux_ch1_i2c;
 		host1x = &host1x;
 	};
 
@@ -319,17 +319,6 @@
 			status = "disabled";
 		};
 	}; // host1x@13e00000
-
-	dp_aux_ch1_i2c: i2c@3190000 {
-		#address-cells = <1>;
-		#size-cells = <0>;
-		compatible = "nvidia,tegra194-i2c";
-		reg = <0x0 0x3190000 0x0 0x100>;
-		nvidia,hw-instance-id = <0x3>;
-		interrupts = <0 TEGRA194_IRQ_I2C4 0x04>;
-		status = "disabled";
-		clock-frequency = <100000>;
-	};
 
 	display@13800000 {
 		compatible = "nvidia,tegra234-display";
