@@ -43,6 +43,7 @@
 #include <crypto/internal/akcipher.h>
 #include <crypto/internal/skcipher.h>
 #include <crypto/sha.h>
+#include <crypto/sha3.h>
 #include <crypto/internal/kpp.h>
 #include <crypto/kpp.h>
 #include <crypto/dh.h>
@@ -83,8 +84,18 @@ enum tegra_se_aes_op_mode {
 	SE_AES_OP_MODE_SHA256,	/* Secure Hash Algorithm-256  (SHA256) mode */
 	SE_AES_OP_MODE_SHA384,	/* Secure Hash Algorithm-384  (SHA384) mode */
 	SE_AES_OP_MODE_SHA512,	/* Secure Hash Algorithm-512  (SHA512) mode */
-	SE_AES_OP_MODE_XTS,	/* XTS mode */
-	SE_AES_OP_MODE_INS	/* key insertion */
+	SE_AES_OP_MODE_SHA3_224,/* Secure Hash Algorithm3-224 (SHA3-224) mode */
+	SE_AES_OP_MODE_SHA3_256,/* Secure Hash Algorithm3-256 (SHA3-256) mode */
+	SE_AES_OP_MODE_SHA3_384,/* Secure Hash Algorithm3-384 (SHA3-384) mode */
+	SE_AES_OP_MODE_SHA3_512,/* Secure Hash Algorithm3-512 (SHA3-512) mode */
+	SE_AES_OP_MODE_SHAKE128,/* Secure Hash Algorithm3 (SHAKE128) mode */
+	SE_AES_OP_MODE_SHAKE256,/* Secure Hash Algorithm3 (SHAKE256) mode */
+	SE_AES_OP_MODE_HMAC_SHA224,	/* Hash based MAC (HMAC) - 224 */
+	SE_AES_OP_MODE_HMAC_SHA256,	/* Hash based MAC (HMAC) - 256 */
+	SE_AES_OP_MODE_HMAC_SHA384,	/* Hash based MAC (HMAC) - 384 */
+	SE_AES_OP_MODE_HMAC_SHA512,	/* Hash based MAC (HMAC) - 512 */
+	SE_AES_OP_MODE_XTS,		/* XTS mode */
+	SE_AES_OP_MODE_INS		/* key insertion */
 };
 
 /* Security Engine key table type */
@@ -725,6 +736,66 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 	case SE_AES_OP_MODE_SHA512:
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
+			SE_CONFIG_ENC_MODE(MODE_SHA512) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_SHA3_224:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_SHA) |
+			SE_CONFIG_ENC_MODE(MODE_SHA3_224) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_SHA3_256:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_SHA) |
+			SE_CONFIG_ENC_MODE(MODE_SHA3_256) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_SHA3_384:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_SHA) |
+			SE_CONFIG_ENC_MODE(MODE_SHA3_384) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_SHA3_512:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_SHA) |
+			SE_CONFIG_ENC_MODE(MODE_SHA3_512) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_SHAKE128:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_SHA) |
+			SE_CONFIG_ENC_MODE(MODE_SHAKE128) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_SHAKE256:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_SHA) |
+			SE_CONFIG_ENC_MODE(MODE_SHAKE256) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_HMAC_SHA224:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_HMAC) |
+			SE_CONFIG_ENC_MODE(MODE_SHA224) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_HMAC_SHA256:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_HMAC) |
+			SE_CONFIG_ENC_MODE(MODE_SHA256) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_HMAC_SHA384:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_HMAC) |
+			SE_CONFIG_ENC_MODE(MODE_SHA384) |
+			SE_CONFIG_DST(DST_MEMORY);
+		break;
+	case SE_AES_OP_MODE_HMAC_SHA512:
+		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
+			SE_CONFIG_ENC_ALG(ALG_HMAC) |
 			SE_CONFIG_ENC_MODE(MODE_SHA512) |
 			SE_CONFIG_DST(DST_MEMORY);
 		break;
@@ -2467,6 +2538,8 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 	u32 current_total = 0, num_sgs, bytes_process_in_req = 0, num_blks;
 	int err = 0, dst_len = crypto_ahash_digestsize(tfm);
 
+	pr_debug("%s:%d process sha buffer\n", __func__, __LINE__);
+
 	sg_init_one(&se_dev->sg, req->result, dst_len);
 
 	se_dev->sha_last = is_last;
@@ -2604,6 +2677,8 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 	}
 	sha_ctx->is_first = false;
 
+	pr_debug("%s:%d process sha buffer complete\n", __func__, __LINE__);
+
 	return 0;
 }
 
@@ -2652,29 +2727,74 @@ static int tegra_se_sha_op(struct ahash_request *req, bool is_last,
 				  "\xff\x83\x18\xd2\x87\x7e\xec\x2f"
 				  "\x63\xb9\x31\xbd\x47\x41\x7a\x81"
 				  "\xa5\x38\x32\x7a\xf9\x27\xda\x3e",
+		}, {
+			.size = SHA3_224_DIGEST_SIZE,
+			.digest = "\x6b\x4e\x03\x42\x36\x67\xdb\xb7"
+				  "\x3b\x6e\x15\x45\x4f\x0e\xb1\xab"
+				  "\xd4\x59\x7f\x9a\x1b\x07\x8e\x3f"
+				  "\x5b\x5a\x6b\xc7",
+		}, {
+			.size = SHA3_256_DIGEST_SIZE,
+			.digest = "\xa7\xff\xc6\xf8\xbf\x1e\xd7\x66"
+				  "\x51\xc1\x47\x56\xa0\x61\xd6\x62"
+				  "\xf5\x80\xff\x4d\xe4\x3b\x49\xfa"
+				  "\x82\xd8\x0a\x4b\x80\xf8\x43\x4a",
+		}, {
+			.size = SHA3_384_DIGEST_SIZE,
+			.digest = "\x0c\x63\xa7\x5b\x84\x5e\x4f\x7d"
+				  "\x01\x10\x7d\x85\x2e\x4c\x24\x85"
+				  "\xc5\x1a\x50\xaa\xaa\x94\xfc\x61"
+				  "\x99\x5e\x71\xbb\xee\x98\x3a\x2a"
+				  "\xc3\x71\x38\x31\x26\x4a\xdb\x47"
+				  "\xfb\x6b\xd1\xe0\x58\xd5\xf0\x04",
+		}, {
+			.size = SHA3_512_DIGEST_SIZE,
+			.digest = "\xa6\x9f\x73\xcc\xa2\x3a\x9a\xc5"
+				   "\xc8\xb5\x67\xdc\x18\x5a\x75\x6e"
+				   "\x97\xc9\x82\x16\x4f\xe2\x58\x59"
+				  "\xe0\xd1\xdc\xc1\x47\x5c\x80\xa6"
+				  "\x15\xb2\x12\x3a\xf1\xf5\xf9\x4c"
+				  "\x11\xe3\xe9\x40\x2c\x3a\xc5\x58"
+				  "\xf5\x00\x19\x9d\x95\xb6\xd3\xe3"
+				  "\x01\x75\x85\x86\x28\x1d\xcd\x26",
 		}
 	};
 
-	switch (crypto_ahash_digestsize(tfm)) {
-	case SHA1_DIGEST_SIZE:
+	if (strcmp(crypto_ahash_alg_name(tfm), "sha1") == 0) {
 		sha_ctx->op_mode = SE_AES_OP_MODE_SHA1;
-		break;
-	case SHA224_DIGEST_SIZE:
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha224") == 0) {
 		sha_ctx->op_mode = SE_AES_OP_MODE_SHA224;
-		break;
-	case SHA256_DIGEST_SIZE:
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha256") == 0) {
 		sha_ctx->op_mode = SE_AES_OP_MODE_SHA256;
-		break;
-	case SHA384_DIGEST_SIZE:
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha384") == 0) {
 		sha_ctx->op_mode = SE_AES_OP_MODE_SHA384;
-		break;
-	case SHA512_DIGEST_SIZE:
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha512") == 0) {
 		sha_ctx->op_mode = SE_AES_OP_MODE_SHA512;
-		break;
-	default:
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha3-224") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_SHA3_224;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha3-256") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_SHA3_256;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha3-384") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_SHA3_384;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha3-512") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_SHA3_512;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "shake128") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_SHAKE128;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "shake256") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_SHAKE256;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "hmac(sha224)") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_HMAC_SHA224;
+	} else  if (strcmp(crypto_ahash_alg_name(tfm), "hmac(sha256)") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_HMAC_SHA256;
+	} else  if (strcmp(crypto_ahash_alg_name(tfm), "hmac(sha384)") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_HMAC_SHA384;
+	} else  if (strcmp(crypto_ahash_alg_name(tfm), "hmac(sha512)") == 0) {
+		sha_ctx->op_mode = SE_AES_OP_MODE_HMAC_SHA512;
+	} else {
 		dev_err(se_dev->dev, "Invalid SHA digest size\n");
 		return -EINVAL;
 	}
+
 	/* If the request length is zero, */
 	if (!req->nbytes) {
 		if (sha_ctx->total_count) {
@@ -4299,6 +4419,226 @@ static struct ahash_alg hash_algs[] = {
 			.cra_init = tegra_se_sha_cra_init,
 			.cra_exit = tegra_se_sha_cra_exit,
 		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA3_224_DIGEST_SIZE,
+		.halg.statesize = SHA3_224_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "sha3-224",
+			.cra_driver_name = "tegra-se-sha3-224",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_224_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA3_256_DIGEST_SIZE,
+		.halg.statesize = SHA3_256_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "sha3-256",
+			.cra_driver_name = "tegra-se-sha3-256",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_256_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA3_384_DIGEST_SIZE,
+		.halg.statesize = SHA3_384_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "sha3-384",
+			.cra_driver_name = "tegra-se-sha3-384",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_384_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA3_512_DIGEST_SIZE,
+		.halg.statesize = SHA3_512_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "sha3-512",
+			.cra_driver_name = "tegra-se-sha3-512",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_512_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA3_512_DIGEST_SIZE,
+		.halg.statesize = SHA3_512_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "shake128",
+			.cra_driver_name = "tegra-se-shake128",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_512_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA3_512_DIGEST_SIZE,
+		.halg.statesize = SHA3_512_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "shake256",
+			.cra_driver_name = "tegra-se-shake256",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_512_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA224_DIGEST_SIZE,
+		.halg.statesize = SHA224_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "hmac(sha224)",
+			.cra_driver_name = "tegra-se-hmac-sha224",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA224_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA256_DIGEST_SIZE,
+		.halg.statesize = SHA256_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "hmac(sha256)",
+			.cra_driver_name = "tegra-se-hmac-sha256",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA256_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA384_DIGEST_SIZE,
+		.halg.statesize = SHA384_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "hmac(sha384)",
+			.cra_driver_name = "tegra-se-hmac-sha384",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA384_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_se_sha_init,
+		.update = tegra_se_sha_update,
+		.final = tegra_se_sha_final,
+		.finup = tegra_se_sha_finup,
+		.digest = tegra_se_sha_digest,
+		.export = tegra_se_sha_export,
+		.import = tegra_se_sha_import,
+		.halg.digestsize = SHA512_DIGEST_SIZE,
+		.halg.statesize = SHA512_STATE_SIZE,
+		.halg.base = {
+			.cra_name = "hmac(sha512)",
+			.cra_driver_name = "tegra-se-hmac-sha512",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA512_BLOCK_SIZE,
+			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_se_sha_cra_init,
+			.cra_exit = tegra_se_sha_cra_exit,
+		}
 	}
 };
 
@@ -4682,6 +5022,30 @@ static int tegra_se_probe(struct platform_device *pdev)
 
 	if (is_algo_supported(node, "sha")) {
 		for (i = 1; i < 6; i++) {
+			err = crypto_register_ahash(&hash_algs[i]);
+			if (err) {
+				dev_err(se_dev->dev,
+					"crypto_register_ahash %s failed\n",
+					hash_algs[i].halg.base.cra_name);
+				goto reg_fail;
+			}
+		}
+	}
+
+	if (is_algo_supported(node, "sha3")) {
+		for (i = 6; i < 12; i++) {
+			err = crypto_register_ahash(&hash_algs[i]);
+			if (err) {
+				dev_err(se_dev->dev,
+					"crypto_register_ahash %s failed\n",
+					hash_algs[i].halg.base.cra_name);
+				goto reg_fail;
+			}
+		}
+	}
+
+	if (is_algo_supported(node, "hmac")) {
+		for (i = 12; i < 16; i++) {
 			err = crypto_register_ahash(&hash_algs[i]);
 			if (err) {
 				dev_err(se_dev->dev,
