@@ -33,6 +33,7 @@
 static const struct nvgpu_os_fence_ops sema_ops = {
 	.drop_ref = nvgpu_os_fence_android_drop_ref,
 	.install_fence = nvgpu_os_fence_android_install_fd,
+	.dup = nvgpu_os_fence_android_dup,
 };
 
 int nvgpu_os_fence_get_semas(struct nvgpu_os_fence_sema *fence_sema_out,

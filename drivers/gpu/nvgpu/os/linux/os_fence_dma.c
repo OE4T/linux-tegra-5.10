@@ -53,6 +53,13 @@ int nvgpu_os_fence_dma_install_fd(struct nvgpu_os_fence *s, int fd)
 	return 0;
 }
 
+void nvgpu_os_fence_dma_dup(struct nvgpu_os_fence *s)
+{
+	struct dma_fence *fence = nvgpu_get_dma_fence(s);
+
+	dma_fence_get(fence);
+}
+
 int nvgpu_os_fence_fdget(struct nvgpu_os_fence *fence_out,
 	struct nvgpu_channel *c, int fd)
 {

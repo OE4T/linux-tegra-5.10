@@ -44,9 +44,15 @@ static void nvgpu_os_fence_syncpt_drop_ref(struct nvgpu_os_fence *s)
 	nvgpu_os_fence_clear(s);
 }
 
+static void nvgpu_os_fence_syncpt_dup(struct nvgpu_os_fence *s)
+{
+	nvhost_fence_dup(s->priv);
+}
+
 static const struct nvgpu_os_fence_ops syncpt_ops = {
 	.drop_ref = nvgpu_os_fence_syncpt_drop_ref,
 	.install_fence = nvgpu_os_fence_syncpt_install_fd,
+	.dup = nvgpu_os_fence_syncpt_dup,
 };
 
 int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,

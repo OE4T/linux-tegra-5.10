@@ -59,6 +59,12 @@ struct nvgpu_os_fence_ops {
 	 * implementation varies from OS to OS.
 	 */
 	int (*install_fence)(struct nvgpu_os_fence *s, int fd);
+	/*
+	 * Increment a refcount of the underlying sync object. After this the
+	 * struct nvgpu_os_fence object can be copied once. This call must be
+	 * matched with a drop_ref as usual.
+	 */
+	void (*dup)(struct nvgpu_os_fence *s);
 };
 
 /*
