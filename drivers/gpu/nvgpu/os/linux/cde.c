@@ -1149,9 +1149,28 @@ __releases(&l->cde_app->mutex)
 			err = -EINVAL;
 			goto exit_unmap_surface;
 		} else {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+			err = dma_buf_begin_cpu_access(compbits_scatter_buf, scatterbuffer_byte_offset,
+					scatterbuffer_size, DMA_BIDIRECTIONAL);
+#else
+			err = dma_buf_begin_cpu_access(compbits_scatter_buf, DMA_BIDIRECTIONAL);
+#endif
+			if (err != 0) {
+				nvgpu_warn(g, "buffer access setup failed");
+				nvgpu_mm_unpin_privdata(dev_from_gk20a(g), compbits_scatter_buf,
+					attachment, sgt);
+				goto exit_unmap_surface;
+			}
 			err = l->ops.cde.populate_scatter_buffer(g, sgt,
 					compbits_byte_offset, scatter_buffer,
 					scatterbuffer_size);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+			dma_buf_end_cpu_access(compbits_scatter_buf, scatterbuffer_byte_offset,
+					scatterbuffer_size, DMA_BIDIRECTIONAL);
+#else
+			dma_buf_end_cpu_access(compbits_scatter_buf, DMA_BIDIRECTIONAL);
+#endif
 			WARN_ON(err);
 
 			nvgpu_mm_unpin_privdata(dev_from_gk20a(g), compbits_scatter_buf,
@@ -1160,7 +1179,6 @@ __releases(&l->cde_app->mutex)
 				goto exit_unmap_surface;
 		}
 
-		__cpuc_flush_dcache_area(scatter_buffer, scatterbuffer_size);
 		dma_buf_vunmap(compbits_scatter_buf, surface);
 		surface = NULL;
 	}
@@ -1250,8 +1268,9 @@ __releases(&l->cde_app->mutex)
 	return err;
 
 exit_unmap_surface:
-	if (surface)
+	if (surface) {
 		dma_buf_vunmap(compbits_scatter_buf, surface);
+	}
 exit_unmap_vaddr:
 	nvgpu_vm_unmap(cde_ctx->vm, map_vaddr, NULL);
 exit_idle:
