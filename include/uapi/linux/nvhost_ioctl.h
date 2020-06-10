@@ -70,7 +70,6 @@ struct nvhost_reloc_shift {
 #define NVHOST_RELOC_TYPE_DEFAULT	0
 #define NVHOST_RELOC_TYPE_PITCH_LINEAR	1
 #define NVHOST_RELOC_TYPE_BLOCK_LINEAR	2
-#define NVHOST_RELOC_TYPE_NVLINK	3
 struct nvhost_reloc_type {
 	__u32 reloc_type;
 	__u32 padding;
