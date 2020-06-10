@@ -48,6 +48,7 @@
 #include <nvgpu/preempt.h>
 #include <nvgpu/swprofile.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/user_fence.h>
 
 #include <nvgpu/fifo/swprofile.h>
 
@@ -793,13 +794,13 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	struct nvgpu_submit_gpfifo_args *args)
 {
 	struct nvgpu_channel_fence fence;
-	struct nvgpu_fence_type *fence_out;
+	struct nvgpu_user_fence fence_out = nvgpu_user_fence_init();
 	u32 submit_flags = 0;
 	int fd = -1;
 	struct gk20a *g = ch->g;
 	struct nvgpu_fifo *f = &g->fifo;
 	struct nvgpu_swprofiler *kickoff_profiler = &f->kickoff_profiler;
-	struct nvgpu_gpfifo_userdata userdata;
+	struct nvgpu_gpfifo_userdata userdata = { NULL, NULL };
 	bool flag_fence_wait = (args->flags &
 			NVGPU_SUBMIT_GPFIFO_FLAGS_FENCE_WAIT) != 0U;
 	bool flag_fence_get = (args->flags &
@@ -860,17 +861,18 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	/* Convert fence_out to something we can pass back to user space. */
 	if (flag_fence_get) {
 		if (flag_sync_fence) {
-			ret = nvgpu_fence_install_fd(fence_out, fd);
+			ret = fence_out.os_fence.ops->install_fence(
+					&fence_out.os_fence, fd);
 			if (ret)
 				put_unused_fd(fd);
 			else
 				args->fence.id = fd;
 		} else {
-			args->fence.id = fence_out->syncpt_id;
-			args->fence.value = fence_out->syncpt_value;
+			args->fence.id = fence_out.syncpt_id;
+			args->fence.value = fence_out.syncpt_value;
 		}
+		nvgpu_user_fence_release(&fence_out);
 	}
-	nvgpu_fence_put(fence_out);
 
 	nvgpu_swprofile_snapshot(kickoff_profiler, PROF_KICKOFF_IOCTL_EXIT);
 

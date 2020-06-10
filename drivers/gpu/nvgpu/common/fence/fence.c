@@ -30,6 +30,7 @@
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/user_fence.h>
 
 static struct nvgpu_fence_type *nvgpu_fence_from_ref(struct nvgpu_ref *ref)
 {
@@ -75,9 +76,23 @@ struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f)
 	return f;
 }
 
-int nvgpu_fence_install_fd(struct nvgpu_fence_type *f, int fd)
+struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f)
 {
-	return f->os_fence.ops->install_fence(&f->os_fence, fd);
+	struct nvgpu_user_fence uf = (struct nvgpu_user_fence) {
+		.syncpt_id = f->syncpt_id,
+		.syncpt_value = f->syncpt_value,
+		.os_fence = f->os_fence,
+	};
+
+	/*
+	 * Keep our ref to the os fence for now so that the user fence can be
+	 * extracted multiple times (for cde).
+	 */
+	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
+		f->os_fence.ops->dup(&f->os_fence);
+	}
+
+	return uf;
 }
 
 int nvgpu_fence_wait(struct gk20a *g, struct nvgpu_fence_type *f,

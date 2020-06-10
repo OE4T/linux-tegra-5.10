@@ -40,6 +40,7 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/string.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/user_fence.h>
 
 #include <nvgpu/linux/vm.h>
 
@@ -1695,7 +1696,7 @@ int gk20a_prepare_compressible_read(
 		u32 width, u32 height, u32 block_height_log2,
 		u32 submit_flags, struct nvgpu_channel_fence *fence,
 		u32 *valid_compbits, u32 *zbc_color,
-		struct nvgpu_fence_type **fence_out)
+		struct nvgpu_user_fence *fence_out)
 {
 	struct gk20a *g = &l->g;
 	int err = 0;
@@ -1743,14 +1744,12 @@ int gk20a_prepare_compressible_read(
 		}
 	}
 
-	if (state->fence && fence_out)
-		*fence_out = nvgpu_fence_get(state->fence);
+	if (submit_flags & NVGPU_SUBMIT_FLAGS_FENCE_GET && state->fence != NULL) {
+		*fence_out = nvgpu_fence_extract_user(state->fence);
+	}
 
-	if (valid_compbits)
-		*valid_compbits = state->valid_compbits;
-
-	if (zbc_color)
-		*zbc_color = state->zbc_color;
+	*valid_compbits = state->valid_compbits;
+	*zbc_color = state->zbc_color;
 
 out:
 	nvgpu_mutex_release(&state->lock);

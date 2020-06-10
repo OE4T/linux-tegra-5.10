@@ -1,7 +1,5 @@
 /*
- * Fences
- *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +33,7 @@ struct platform_device;
 struct nvgpu_semaphore;
 #endif
 struct nvgpu_os_fence;
+struct nvgpu_user_fence;
 
 struct nvgpu_fence_type {
 	struct gk20a *g;
@@ -98,6 +97,6 @@ void nvgpu_fence_put(struct nvgpu_fence_type *f);
 struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f);
 int  nvgpu_fence_wait(struct gk20a *g, struct nvgpu_fence_type *f, u32 timeout);
 bool nvgpu_fence_is_expired(struct nvgpu_fence_type *f);
-int  nvgpu_fence_install_fd(struct nvgpu_fence_type *f, int fd);
+struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f);
 
 #endif /* NVGPU_FENCE_H */

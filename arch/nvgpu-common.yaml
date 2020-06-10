@@ -84,7 +84,8 @@ fence:
   safe: no
   owner: Seema K
   sources: [ common/fence/fence.c,
-             include/nvgpu/fence.h ]
+             include/nvgpu/fence.h,
+             include/nvgpu/user_fence.h ]
 
 io:
   safe: yes

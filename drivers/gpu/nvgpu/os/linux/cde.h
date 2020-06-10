@@ -48,6 +48,7 @@ struct nvgpu_channel_fence;
 struct nvgpu_channel;
 struct vm_gk20a;
 struct nvgpu_gpfifo_entry;
+struct nvgpu_user_fence;
 
 /*
  * this element defines a buffer that is allocated and mapped into gpu address
@@ -317,7 +318,7 @@ int gk20a_prepare_compressible_read(
 		u32 width, u32 height, u32 block_height_log2,
 		u32 submit_flags, struct nvgpu_channel_fence *fence,
 		u32 *valid_compbits, u32 *zbc_color,
-		struct nvgpu_fence_type **fence_out);
+		struct nvgpu_user_fence *fence_out);
 int gk20a_mark_compressible_write(
 		struct gk20a *g, u32 buffer_fd, u32 valid_compbits, u64 offset,
 		u32 zbc_color);

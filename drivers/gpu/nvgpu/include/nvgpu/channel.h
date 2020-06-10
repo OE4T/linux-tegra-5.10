@@ -49,6 +49,7 @@ struct nvgpu_debug_context;
 struct priv_cmd_queue;
 struct priv_cmd_entry;
 struct nvgpu_channel_wdt;
+struct nvgpu_user_fence;
 
 /**
  * S/W defined invalid channel identifier.
@@ -575,7 +576,7 @@ int nvgpu_submit_channel_gpfifo_user(struct nvgpu_channel *c,
 				u32 num_entries,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
-				struct nvgpu_fence_type **fence_out,
+				struct nvgpu_user_fence *fence_out,
 				struct nvgpu_swprofiler *profiler);
 
 int nvgpu_submit_channel_gpfifo_kernel(struct nvgpu_channel *c,

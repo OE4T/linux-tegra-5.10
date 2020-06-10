@@ -38,6 +38,7 @@
 #include <nvgpu/vpr.h>
 #include <nvgpu/trace.h>
 #include <nvgpu/nvhost.h>
+#include <nvgpu/user_fence.h>
 
 #include <nvgpu/fifo/swprofile.h>
 
@@ -806,11 +807,19 @@ int nvgpu_submit_channel_gpfifo_user(struct nvgpu_channel *c,
 				u32 num_entries,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
-				struct nvgpu_fence_type **fence_out,
+				struct nvgpu_user_fence *fence_out,
 				struct nvgpu_swprofiler *profiler)
 {
-	return nvgpu_submit_channel_gpfifo(c, NULL, userdata, num_entries,
-			flags, fence, fence_out, profiler);
+	struct nvgpu_fence_type *fence_internal = NULL;
+	int err;
+
+	err = nvgpu_submit_channel_gpfifo(c, NULL, userdata, num_entries,
+			flags, fence, &fence_internal, profiler);
+	if (err == 0 && fence_internal != NULL) {
+		*fence_out = nvgpu_fence_extract_user(fence_internal);
+		nvgpu_fence_put(fence_internal);
+	}
+	return err;
 }
 
 int nvgpu_submit_channel_gpfifo_kernel(struct nvgpu_channel *c,

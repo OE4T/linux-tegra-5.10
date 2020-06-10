@@ -52,6 +52,7 @@
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/user_fence.h>
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
@@ -442,7 +443,7 @@ static int gk20a_ctrl_prepare_compressible_read(
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct nvgpu_channel_fence fence;
-	struct nvgpu_fence_type *fence_out = NULL;
+	struct nvgpu_user_fence fence_out = nvgpu_user_fence_init();
 	int submit_flags = nvgpu_submit_gpfifo_user_flags_to_common_flags(
 		args->submit_flags);
 	int fd = -1;
@@ -472,31 +473,31 @@ static int gk20a_ctrl_prepare_compressible_read(
 		return ret;
 	}
 
-	/* Convert fence_out to something we can pass back to user space. */
+	/*
+	 * Convert fence_out, if any, to something we can pass back to user
+	 * space. Even if successful, the fence may not exist if there was
+	 * nothing to be done (no compbits requested); that's not an error.
+	 */
 	if (submit_flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) {
 		if (submit_flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) {
-			if (fence_out) {
-				ret = nvgpu_fence_install_fd(fence_out, fd);
-				if (ret)
+			if (nvgpu_os_fence_is_initialized(&fence_out.os_fence)) {
+				ret = fence_out.os_fence.ops->install_fence(
+						&fence_out.os_fence, fd);
+				if (ret) {
 					put_unused_fd(fd);
-				else
-					args->fence.fd = fd;
+					fd = -1;
+				}
 			} else {
-				args->fence.fd = -1;
 				put_unused_fd(fd);
+				fd = -1;
 			}
+			args->fence.fd = fd;
 		} else {
-			if (fence_out) {
-				args->fence.syncpt_id = fence_out->syncpt_id;
-				args->fence.syncpt_value =
-						fence_out->syncpt_value;
-			} else {
-				args->fence.syncpt_id = NVGPU_INVALID_SYNCPT_ID;
-				args->fence.syncpt_value = 0;
-			}
+			args->fence.syncpt_id = fence_out.syncpt_id;
+			args->fence.syncpt_value = fence_out.syncpt_value;
 		}
+		nvgpu_user_fence_release(&fence_out);
 	}
-	nvgpu_fence_put(fence_out);
 #endif
 
 	return ret;
