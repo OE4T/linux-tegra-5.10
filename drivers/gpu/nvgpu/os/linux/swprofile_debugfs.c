@@ -94,6 +94,31 @@ static const struct file_operations nvgpu_debugfs_swprofile_raw_data_debugfs_fop
 	.release	= single_release,
 };
 
+static int nvgpu_debugfs_swprofile_basic_stats(struct seq_file *s, void *unused)
+{
+	struct nvgpu_swprofiler *p = s->private;
+	struct nvgpu_debug_context o = {
+		.fn = nvgpu_debugfs_write_to_seqfile_no_nl,
+		.ctx = s,
+	};
+
+	nvgpu_swprofile_print_basic_stats(p->g, p, &o);
+
+	return 0;
+}
+
+static int nvgpu_debugfs_swprofile_basic_stats_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, nvgpu_debugfs_swprofile_basic_stats, inode->i_private);
+}
+
+static const struct file_operations nvgpu_debugfs_swprofile_basic_stats_debugfs_fops = {
+	.open		= nvgpu_debugfs_swprofile_basic_stats_open,
+	.read		= seq_read,
+	.llseek		= seq_lseek,
+	.release	= single_release,
+};
+
 void nvgpu_debugfs_swprofile_init(struct gk20a *g,
 				  struct dentry *root,
 				  struct nvgpu_swprofiler *p,
@@ -113,4 +138,7 @@ void nvgpu_debugfs_swprofile_init(struct gk20a *g,
 
 	debugfs_create_file("raw_data", 0600, swprofile_root, p,
 		&nvgpu_debugfs_swprofile_raw_data_debugfs_fops);
+
+	debugfs_create_file("basic_stats", 0600, swprofile_root, p,
+		&nvgpu_debugfs_swprofile_basic_stats_debugfs_fops);
 }

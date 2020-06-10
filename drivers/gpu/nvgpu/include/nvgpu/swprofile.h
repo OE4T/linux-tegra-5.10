@@ -54,6 +54,13 @@ struct nvgpu_swprofiler {
 	u64                  *samples;
 
 	/**
+	 * Array of u64 timestamps for each sample to reference against. This
+	 * way each subsample in .samples can reference this, not the 0th entry
+	 * of each sample.
+	 */
+	u64                  *samples_start;
+
+	/**
 	 * Pointer to next sample array to write. Will be wrapped at
 	 * %PROFILING_ENTRIES.
 	 */
@@ -178,5 +185,22 @@ void nvgpu_swprofile_print_ranges(struct gk20a *g,
 void nvgpu_swprofile_print_raw_data(struct gk20a *g,
 				    struct nvgpu_swprofiler *p,
 				    struct nvgpu_debug_context *o);
+
+/**
+ * @brief Print a few basic statistical measures for each subsample of data.
+ *
+ * @param[in] g   The GPU that owns this profiler.
+ * @param[in] p   The profiler to print.
+ * @param[in] o   A debug context object used for printing.
+ *
+ * The following statistical measures are printed:
+ *
+ *   { Min, Max, Mean, Median, Sample Variance }
+ *
+ * This set of data is provided to allow basic first pass analysis.
+ */
+void nvgpu_swprofile_print_basic_stats(struct gk20a *g,
+				       struct nvgpu_swprofiler *p,
+				       struct nvgpu_debug_context *o);
 
 #endif /* NVGPU_PROFILE_H */
