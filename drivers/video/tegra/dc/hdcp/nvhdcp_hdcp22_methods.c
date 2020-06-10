@@ -30,8 +30,8 @@
 #include <linux/tsec.h>
 
 #include "tsec/tsec_methods.h"
-#include "nvhdcp_hdcp22_methods.h"
 #include "tsec_drv.h"
+#include "nvhdcp_hdcp22_methods.h"
 
 #define hdcp_debug(...)       \
 		pr_debug("hdcp: " __VA_ARGS__)
