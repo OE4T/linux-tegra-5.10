@@ -2,7 +2,7 @@ if ARCH_TEGRA
 
 config TEGRA_GRHOST_OFA
         depends on TEGRA_GRHOST
-        tristate "Tegra OFA support"
+        bool "Tegra OFA support"
         default y
         help
           Driver for the Tegra OFA is an engine which

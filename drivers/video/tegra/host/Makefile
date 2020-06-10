@@ -1,5 +1,8 @@
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
-obj-$(CONFIG_TEGRA_T23X_GRHOST) += t23x/
-obj-$(CONFIG_TEGRA_T23X_GRHOST) += pva/
-obj-$(CONFIG_TEGRA_T23X_GRHOST) += nvdla/
+
+nvhost-$(CONFIG_TEGRA_T23X_GRHOST) += \
+	t23x/t23x.o
+
+obj-y += pva/
+obj-y += nvdla/
