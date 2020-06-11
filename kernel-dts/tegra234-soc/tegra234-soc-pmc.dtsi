@@ -39,4 +39,13 @@
 		iopad_defaults: iopad-defaults {
 		};
 	};
+
+#if TEGRA_PMC_VERSION < DT_VERSION_2
+	tegra_aowake: pmc@c370000 {
+		compatible = "nvidia,tegra194-aowake";
+		reg = <0x0 0xc370000 0x0 0x600>;
+		status = "disabled";
+	};
+#endif
+
 };
