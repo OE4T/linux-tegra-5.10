@@ -130,5 +130,9 @@ void nvgpu_log_dbg_impl(struct gk20a *g, u64 log_mask,
 
 void nvgpu_dbg_dump_impl(struct gk20a *g, const char *str)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	pr_err("__%s__ %s", g->name, str);
+#else
+	pr_err("__%s__ %s\n", g->name, str);
+#endif
 }
