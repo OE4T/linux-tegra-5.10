@@ -369,6 +369,11 @@
 		iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 		iso-smmu;
 		non-coherent;
+		nvdisplay-niso {
+			compatible = "nvidia,tegra234-display-niso";
+			iommus = <&smmu TEGRA_SID_NVDISPLAY_NISO>;
+			dma-coherent;
+		};
 	};
 
 	rce-en@BE00000 {
