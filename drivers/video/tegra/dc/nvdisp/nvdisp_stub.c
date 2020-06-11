@@ -31,7 +31,9 @@
 #include <linux/backlight.h>
 #include <linux/iommu.h>
 #include <linux/memblock.h>
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <linux/bootmem.h>
+#endif
 
 #include <linux/platform/tegra/latency_allowance.h>
 
