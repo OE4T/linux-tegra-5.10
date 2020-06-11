@@ -1805,16 +1805,12 @@ struct nvgpu_reschedule_runlist_args {
 	_IOW(NVGPU_IOCTL_MAGIC, 119, struct nvgpu_channel_wdt_args)
 #define NVGPU_IOCTL_CHANNEL_SET_RUNLIST_INTERLEAVE \
 	_IOW(NVGPU_IOCTL_MAGIC, 120, struct nvgpu_runlist_interleave_args)
-#define NVGPU_IOCTL_CHANNEL_SET_TIMESLICE \
-	_IOW(NVGPU_IOCTL_MAGIC, 121, struct nvgpu_timeslice_args)
 #define NVGPU_IOCTL_CHANNEL_SET_PREEMPTION_MODE \
 	_IOW(NVGPU_IOCTL_MAGIC, 122, struct nvgpu_preemption_mode_args)
 #define NVGPU_IOCTL_CHANNEL_ALLOC_GPFIFO_EX	\
 	_IOW(NVGPU_IOCTL_MAGIC, 123, struct nvgpu_alloc_gpfifo_ex_args)
 #define NVGPU_IOCTL_CHANNEL_SET_BOOSTED_CTX	\
 	_IOW(NVGPU_IOCTL_MAGIC, 124, struct nvgpu_boosted_ctx_args)
-#define NVGPU_IOCTL_CHANNEL_GET_TIMESLICE \
-	_IOW(NVGPU_IOCTL_MAGIC, 125, struct nvgpu_timeslice_args)
 #define NVGPU_IOCTL_CHANNEL_GET_USER_SYNCPOINT \
 	_IOR(NVGPU_IOCTL_MAGIC, 126, struct nvgpu_get_user_syncpoint_args)
 #define NVGPU_IOCTL_CHANNEL_RESCHEDULE_RUNLIST	\
