@@ -233,15 +233,6 @@ DEFINE_EVENT(gk20a_channel_sched_params, gk20a_channel_set_runlist_interleave,
 		interleave, graphics_preempt_mode, compute_preempt_mode)
 );
 
-DEFINE_EVENT(gk20a_channel_sched_params, gk20a_channel_set_timeslice,
-	TP_PROTO(int chid, int tsgid, pid_t pid, u32 timeslice,
-		u32 timeout, const char *interleave,
-		const char *graphics_preempt_mode,
-		const char *compute_preempt_mode),
-	TP_ARGS(chid, tsgid, pid, timeslice, timeout,
-		interleave, graphics_preempt_mode, compute_preempt_mode)
-);
-
 DEFINE_EVENT(gk20a_channel_sched_params, gk20a_channel_set_timeout,
 	TP_PROTO(int chid, int tsgid, pid_t pid, u32 timeslice,
 		u32 timeout, const char *interleave,
