@@ -819,7 +819,7 @@ static int tegra_fb_mmap(struct fb_info *info,
 		return -ENOMEM;
 
 	tegra_fb->mmap_count++;
-	return dma_mmap_writecombine(&tegra_fb->ndev->dev, vma,
+	return dma_mmap_wc(&tegra_fb->ndev->dev, vma,
 					tegra_fb->win.virt_addr,
 					tegra_fb->phys_start,
 					tegra_fb->fb_size);

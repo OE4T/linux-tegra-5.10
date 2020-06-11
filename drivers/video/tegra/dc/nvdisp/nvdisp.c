@@ -801,8 +801,13 @@ static int nvdisp_alloc_output_lut(struct tegra_dc *dc)
 
 	/* Allocate the memory for LUT */
 	nvdisp_lut->size = NVDISP_OUTPUT_LUT_SIZE * sizeof(u64);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	nvdisp_lut->rgb = (u64 *)dma_zalloc_coherent(&dc->ndev->dev,
 			nvdisp_lut->size, &nvdisp_lut->phy_addr, GFP_KERNEL);
+#else
+	nvdisp_lut->rgb = (u64 *)dma_alloc_coherent(&dc->ndev->dev,
+			nvdisp_lut->size, &nvdisp_lut->phy_addr, GFP_KERNEL);
+#endif
 	if (!nvdisp_lut->rgb)
 		return -ENOMEM;
 
@@ -836,8 +841,13 @@ static int nvdisp_alloc_input_lut(struct tegra_dc *dc,
 
 	/* Allocate the memory for LUT */
 	nvdisp_lut->size = NVDISP_INPUT_LUT_SIZE * sizeof(u64);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	nvdisp_lut->rgb = (u64 *)dma_zalloc_coherent(&dc->ndev->dev,
 			nvdisp_lut->size, &nvdisp_lut->phy_addr, GFP_KERNEL);
+#else
+	nvdisp_lut->rgb = (u64 *)dma_alloc_coherent(&dc->ndev->dev,
+			nvdisp_lut->size, &nvdisp_lut->phy_addr, GFP_KERNEL);
+#endif
 	if (!nvdisp_lut->rgb)
 		return -ENOMEM;
 

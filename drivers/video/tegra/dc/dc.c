@@ -7526,7 +7526,6 @@ static void tegra_dc_collect_latency_data(struct tegra_dc *dc)
 {
 	int ret;
 	struct dma_buf *handle;
-	int page_num = 0;
 	void *ptr;
 	u64 value;
 
@@ -7544,8 +7543,11 @@ static void tegra_dc_collect_latency_data(struct tegra_dc *dc)
 		return;
 	}
 
-	ret = dma_buf_begin_cpu_access(handle, 0,
-				handle->size, DMA_BIDIRECTIONAL);
+	ret = dma_buf_begin_cpu_access(handle,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+				0, handle->size,
+#endif
+				DMA_BIDIRECTIONAL);
 
 	if (ret) {
 		dev_err(&dc->ndev->dev, "dma_buf_begin_cpu_access failed\n");
@@ -7553,11 +7555,14 @@ static void tegra_dc_collect_latency_data(struct tegra_dc *dc)
 		return;
 	}
 
-	ptr = dma_buf_kmap(handle, page_num);
+	ptr = dma_buf_vmap(handle);
 	if (!ptr) {
-		dev_err(&dc->ndev->dev, "dma_buf_kmap failed\n");
-		dma_buf_end_cpu_access(handle, 0,
-				handle->size, DMA_BIDIRECTIONAL);
+		dev_err(&dc->ndev->dev, "dma_buf_vmap failed\n");
+		dma_buf_end_cpu_access(handle,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+				0, handle->size,
+#endif
+				DMA_BIDIRECTIONAL);
 		mutex_unlock(&dc->msrmnt_info.lock);
 		return;
 	}
@@ -7565,8 +7570,12 @@ static void tegra_dc_collect_latency_data(struct tegra_dc *dc)
 	trace_display_embedded_latency(dc->ctrl_num,
 			dc->msrmnt_info.line_num, be64_to_cpup(&value));
 
-	dma_buf_kunmap(handle, page_num, ptr);
-	dma_buf_end_cpu_access(handle, 0, handle->size, DMA_BIDIRECTIONAL);
+	dma_buf_vunmap(handle, ptr);
+	dma_buf_end_cpu_access(handle,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+			0, handle->size,
+#endif
+			DMA_BIDIRECTIONAL);
 	mutex_unlock(&dc->msrmnt_info.lock);
 }
 
