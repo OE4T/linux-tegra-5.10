@@ -221,13 +221,13 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 
 	vm_area = nvgpu_kzalloc(g, sizeof(*vm_area));
 	if (vm_area == NULL) {
-		goto clean_up_err;
+		return -ENOMEM;
 	}
 
 	vma = vm->vma[pgsz_idx];
 	if (nvgpu_vm_area_alloc_memory(vma, our_addr, pages,
 				page_size, flags, &vaddr_start) != 0) {
-		goto clean_up_err;
+		goto free_vm_area;
 	}
 
 	vm_area->flags = flags;
@@ -242,7 +242,7 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 	if (nvgpu_vm_area_alloc_gmmu_map(vm, vm_area, vaddr_start,
 						pgsz_idx, flags) != 0) {
 		nvgpu_mutex_release(&vm->update_gmmu_lock);
-		goto clean_up_err;
+		goto free_vaddr;
 	}
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
@@ -250,13 +250,10 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 	*addr = vaddr_start;
 	return 0;
 
-clean_up_err:
-	if (vaddr_start != 0ULL) {
-		nvgpu_free(vma, vaddr_start);
-	}
-	if (vm_area != NULL) {
-		nvgpu_kfree(g, vm_area);
-	}
+free_vaddr:
+	nvgpu_free(vma, vaddr_start);
+free_vm_area:
+	nvgpu_kfree(g, vm_area);
 	return -ENOMEM;
 }
 
