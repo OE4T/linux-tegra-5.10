@@ -1360,6 +1360,7 @@ static int mmc_select_hs400es(struct mmc_card *card)
 	struct mmc_host *host = card->host;
 	int err = -EINVAL;
 	u8 val;
+	bool use_busy_signal = host->caps & MMC_CAP_WAIT_WHILE_BUSY;
 
 	if (!(host->caps & MMC_CAP_8_BIT_DATA)) {
 		err = -ENOTSUPP;
@@ -1439,10 +1440,11 @@ static int mmc_select_hs400es(struct mmc_card *card)
 	if (host->ops->hs400_enhanced_strobe)
 		host->ops->hs400_enhanced_strobe(host, &host->ios);
 
-	err = mmc_switch_status(card, true);
-	if (err)
-		goto out_err;
-
+	if (!use_busy_signal) {
+		err = mmc_switch_status(card, true);
+		if (err)
+			goto out_err;
+	}
 	return 0;
 
 out_err:
