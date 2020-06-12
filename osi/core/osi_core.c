@@ -323,7 +323,8 @@ int osi_l2_filter(struct osi_core_priv_data *const osi_core,
 		return ret;
 	}
 
-	if ((filter->oper_mode & OSI_OPER_ADDR_UPDATE) != OSI_NONE) {
+	if (((filter->oper_mode & OSI_OPER_ADDR_UPDATE) != OSI_NONE) ||
+	    ((filter->oper_mode & OSI_OPER_ADDR_DEL) != OSI_NONE)) {
 		ret = -1;
 
 		if ((filter->dma_routing == OSI_ENABLE) &&
