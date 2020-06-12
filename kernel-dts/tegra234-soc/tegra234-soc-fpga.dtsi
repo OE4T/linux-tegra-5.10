@@ -170,6 +170,15 @@
 		status = "disabled";
 	};
 
+	se: se_ahb@3ae0000 {
+		compatible = "nvidia,tegra234-se-ahb";
+		reg = <0x0 0x03ae0000 0x0 0x10000>;
+		interrupts = <0 283 0x04>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SE>;
+		clock-names = "se";
+		status = "disabled";
+	};
+
 	host1x: host1x@13e00000 {
 		compatible = "nvidia,tegra234-host1x", "simple-bus";
 		reg = <0x0 0x13e40000 0x0 0x00010000>,
