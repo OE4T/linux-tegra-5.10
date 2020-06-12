@@ -323,6 +323,9 @@
 #define PMC_FUSE_CTRL_PS18_LATCH_CLEAR  (1 << 9)
 
 #define PMC_SCRATCH43		0x22c
+#define PMC_SCRATCH203		0x84c
+/* PMIC watchdog reset bit */
+#define PMIC_WATCHDOG_RESET	0x02
 
 struct pmc_clk {
 	struct clk_hw	hw;
@@ -562,6 +565,7 @@ static const char * const tegra210_reset_sources[] = {
 	"SW_MAIN",
 	"LP0",
 	"AOTAG"
+	"PMIC_WATCHDOG_POR",
 };
 
 /**
@@ -2572,6 +2576,14 @@ static ssize_t reset_reason_show(struct device *dev,
 	value = tegra_pmc_readl(pmc, pmc->soc->regs->rst_status);
 	value &= pmc->soc->regs->rst_source_mask;
 	value >>= pmc->soc->regs->rst_source_shift;
+
+	/* In case of PMIC watchdog, Reset is Power On Reset.
+	* PMIC status register is saved in SRATCH203 register.
+	* PMC driver checks watchdog status bit to identify
+	* POR is because of watchdog timer reset */
+	if (tegra_pmc_readl(pmc, PMC_SCRATCH203) &
+	    PMIC_WATCHDOG_RESET)
+		value = pmc->soc->num_reset_sources - 1;
 
 	if (WARN_ON(value >= pmc->soc->num_reset_sources))
 		return sprintf(buf, "%s\n", "UNKNOWN");
