@@ -1723,6 +1723,11 @@ static int tegra_sdhci_set_dma_mask(struct sdhci_host *host)
 	const struct sdhci_tegra_soc_data *soc = tegra->soc_data;
 	struct device *dev = mmc_dev(host->mmc);
 
+	if (host->quirks2 & SDHCI_QUIRK2_BROKEN_64_BIT_DMA) {
+		host->flags &= ~SDHCI_USE_64_BIT_DMA;
+		return dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32));
+	}
+
 	if (soc->dma_mask)
 		return dma_set_mask_and_coherent(dev, soc->dma_mask);
 
