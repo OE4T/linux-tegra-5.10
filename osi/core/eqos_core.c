@@ -2122,8 +2122,14 @@ static int eqos_update_mac_addr_low_high_reg(
 			EQOS_MAC_ADDRH_SA));
 	}
 
+	/* Update AE bit if OSI_OPER_ADDR_UPDATE is set */
+	if ((filter->oper_mode & OSI_OPER_ADDR_UPDATE) ==
+	     OSI_OPER_ADDR_UPDATE) {
+		value |= EQOS_MAC_ADDRH_AE;
+	}
+
 	osi_writel(((unsigned int)addr[4] |
-		   ((unsigned int)addr[5] << 8) | EQOS_MAC_ADDRH_AE | value),
+		   ((unsigned int)addr[5] << 8) | value),
 		   (unsigned char *)osi_core->base + EQOS_MAC_ADDRH((idx)));
 
 	osi_writel(((unsigned int)addr[0] | ((unsigned int)addr[1] << 8) |
