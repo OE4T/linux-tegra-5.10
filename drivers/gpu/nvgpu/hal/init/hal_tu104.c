@@ -1318,10 +1318,10 @@ static const struct gpu_ops tu104_ops = {
 	.clk_mon = {
 		.clk_mon_alloc_memory = nvgpu_clk_mon_alloc_memory,
 		.clk_mon_check_master_fault_status =
-			nvgpu_clk_mon_check_master_fault_status,
-		.clk_mon_check_status = nvgpu_clk_mon_check_status,
-		.clk_mon_check_clk_good = nvgpu_clk_mon_check_clk_good,
-		.clk_mon_check_pll_lock = nvgpu_clk_mon_check_pll_lock,
+			tu104_clk_mon_check_master_fault_status,
+		.clk_mon_check_status = tu104_clk_mon_check_status,
+		.clk_mon_check_clk_good = tu104_clk_mon_check_clk_good,
+		.clk_mon_check_pll_lock = tu104_clk_mon_check_pll_lock,
 
 	},
 #ifdef CONFIG_NVGPU_CLK_ARB

@@ -178,7 +178,7 @@ static int nvgpu_clk_mon_get_fault(struct gk20a *g, u32 i, u32 data,
 	return status;
 }
 
-bool nvgpu_clk_mon_check_master_fault_status(struct gk20a *g)
+bool tu104_clk_mon_check_master_fault_status(struct gk20a *g)
 {
 	u32 fmon_master_status = nvgpu_readl(g, trim_fmon_master_status_r());
 
@@ -207,7 +207,7 @@ int nvgpu_clk_mon_alloc_memory(struct gk20a *g)
 	return 0;
 }
 
-int nvgpu_clk_mon_check_status(struct gk20a *g, u32 domain_mask)
+int tu104_clk_mon_check_status(struct gk20a *g, u32 domain_mask)
 {
 	u32 reg_address, bit_pos;
 	u32 data;
@@ -247,7 +247,7 @@ int nvgpu_clk_mon_check_status(struct gk20a *g, u32 domain_mask)
 	return 0;
 }
 
-bool nvgpu_clk_mon_check_clk_good(struct gk20a *g)
+bool tu104_clk_mon_check_clk_good(struct gk20a *g)
 {
 	u32 clk_status = nvgpu_readl(g, trim_xtal4x_cfg5_r());
 
@@ -258,7 +258,7 @@ bool nvgpu_clk_mon_check_clk_good(struct gk20a *g)
 	return false;
 }
 
-bool nvgpu_clk_mon_check_pll_lock(struct gk20a *g)
+bool tu104_clk_mon_check_pll_lock(struct gk20a *g)
 {
 	u32 clk_status = nvgpu_readl(g, trim_xtal4x_cfg_r());
 
