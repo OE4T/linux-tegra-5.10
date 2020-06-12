@@ -1,7 +1,7 @@
 /*
  * tegra194-camera.dtsi: Camera RTCPU DTSI file.
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -181,5 +181,15 @@
 		nvidia,enable-printk;
 		nvidia,interval-ms = <50>;
 		nvidia,log-prefix = "[RCE]";
+	};
+
+	reserved-memory {
+		camdbg_reserved: camdbg_carveout {
+			compatible = "nvidia,camdbg_carveout";
+			size = <0 0x600000>;
+			alignment = <0 0x100000>;
+			alloc-ranges = <0x1 0 0x1 0>;
+			status = "disabled";
+		};
 	};
 };
