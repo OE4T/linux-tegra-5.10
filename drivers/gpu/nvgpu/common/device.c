@@ -35,20 +35,6 @@ nvgpu_device_from_dev_list_node(struct nvgpu_list_node *node)
 					    dev_list_node));
 };
 
-struct nvgpu_device_list {
-	/**
-	 * Array of lists of devices; each list corresponds to one type of
-	 * device. By having this as an array it's trivial to go from device
-	 * enum type in the HW to the relevant devlist.
-	 */
-	struct nvgpu_list_node devlist_heads[NVGPU_MAX_DEVTYPE];
-
-	/**
-	 * Keep track of how many devices of each type exist.
-	 */
-	u32 dev_counts[NVGPU_MAX_DEVTYPE];
-};
-
 /*
  * Faciliate the parsing of the TOP array describing the devices present in the
  * GPU.
