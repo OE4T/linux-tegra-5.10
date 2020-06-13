@@ -60,8 +60,6 @@ struct gops_pbdma {
 	u32 (*device_fatal_0_intr_descs)(void);
 	u32 (*channel_fatal_0_intr_descs)(void);
 	u32 (*restartable_0_intr_descs)(void);
-	bool (*find_for_runlist)(struct gk20a *g,
-			u32 runlist_id, u32 *pbdma_id);
 	void (*format_gpfifo_entry)(struct gk20a *g,
 			struct nvgpu_gpfifo_entry *gpfifo_entry,
 			u64 pb_gpu_va, u32 method_size);

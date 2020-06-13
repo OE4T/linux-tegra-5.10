@@ -138,12 +138,6 @@ static void reset_ctx(void)
 	u.priv_ring_isr = false;
 }
 
-static bool mock_pbdma_find_for_runlist(struct gk20a *g, u32 runlist_id,
-					u32 *pbdma_id)
-{
-	return true;
-}
-
 static void mock_bus_isr(struct gk20a *g)
 {
 	u.bus_isr = true;
@@ -230,7 +224,6 @@ int test_setup_env(struct unit_module *m,
 	}
 
 	/* override HALs */
-	g->ops.pbdma.find_for_runlist = mock_pbdma_find_for_runlist;
 	g->ops.bus.isr = mock_bus_isr;
 	g->ops.ce.isr_stall = mock_ce_stall_isr;
 	g->ops.ce.isr_nonstall = mock_ce_nonstall_isr;

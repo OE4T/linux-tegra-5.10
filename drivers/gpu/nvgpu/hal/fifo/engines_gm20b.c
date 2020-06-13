@@ -40,9 +40,9 @@ int gm20b_engine_init_ce_info(struct nvgpu_fifo *f)
 	struct gk20a *g = f->g;
 	u32 i;
 	enum nvgpu_fifo_engine engine_enum;
-	u32 pbdma_id = U32_MAX;
+	u32 pbdma_mask = 0U;
 	u32 gr_runlist_id;
-	bool found_pbdma_for_runlist = false;
+	bool found;
 
 	gr_runlist_id = nvgpu_engine_get_gr_runlist_id(g);
 	nvgpu_log_info(g, "gr_runlist_id: %d", gr_runlist_id);
@@ -63,10 +63,10 @@ int gm20b_engine_init_ce_info(struct nvgpu_fifo *f)
 			continue;
 		}
 
-		found_pbdma_for_runlist = g->ops.pbdma.find_for_runlist(g,
-							dev->runlist_id,
-							&pbdma_id);
-		if (!found_pbdma_for_runlist) {
+		found = g->ops.fifo.find_pbdma_for_runlist(g,
+							   dev->runlist_id,
+							   &pbdma_mask);
+		if (!found) {
 			nvgpu_err(g, "busted pbdma map");
 			return -EINVAL;
 		}
@@ -95,7 +95,8 @@ int gm20b_engine_init_ce_info(struct nvgpu_fifo *f)
 		info->intr_mask |= BIT32(dev->intr_id);
 		info->reset_mask |= BIT32(dev->reset_id);
 		info->runlist_id = dev->runlist_id;
-		info->pbdma_id = pbdma_id;
+		info->pbdma_id = nvgpu_safe_sub_u32(
+			nvgpu_safe_cast_u64_to_u32(nvgpu_ffs(pbdma_mask)), 1U);
 		info->inst_id  = dev->inst_id;
 		info->pri_base = dev->pri_base;
 

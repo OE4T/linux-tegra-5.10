@@ -245,18 +245,6 @@ struct nvgpu_fifo {
 	/** Number of runlist entries per runlist as supported by the h/w. */
 	unsigned int num_runlist_entries;
 
-	/** Number of PBDMA supported by the h/w. */
-	unsigned int num_pbdma;
-	/**
-	 * This is the area of memory allocated by kernel to store pbdma_map for
-	 * #num_pbdma supported by the chip. This area of memory is used to
-	 * store pbdma map value as read from h/w register. Pbdma_map value
-	 * gives a bitmask describing the runlists that the given pbdma
-	 * will service. Pointer is indexed by pbdma_id starting with 0 to
-	 * #num_pbdma - 1.
-	 */
-	u32 *pbdma_map;
-
 	/**
 	 * This is the area of memory allocated by kernel to keep information for
 	 * #max_engines supported by the chip. This information is filled up

@@ -336,7 +336,8 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	runlist_served_pbdmas = f->runlist_info[runlist_id]->pbdma_bitmask;
 	runlist_served_engines = f->runlist_info[runlist_id]->eng_bitmask;
 
-	for_each_set_bit(bit, &runlist_served_pbdmas, f->num_pbdma) {
+	for_each_set_bit(bit, &runlist_served_pbdmas,
+			 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA)) {
 		pbdma_id = U32(bit);
 		err = gv11b_fifo_preempt_poll_pbdma(g, tsgid,
 				pbdma_id);

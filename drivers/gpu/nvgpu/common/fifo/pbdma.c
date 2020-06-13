@@ -23,27 +23,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pbdma.h>
 
-bool nvgpu_pbdma_find_for_runlist(struct gk20a *g,
-		u32 runlist_id, u32 *pbdma_id)
-{
-	struct nvgpu_fifo *f = &g->fifo;
-	bool found_pbdma_for_runlist = false;
-	u32 runlist_bit;
-	u32 id = U32_MAX;
-
-	runlist_bit = BIT32(runlist_id);
-	for (id = 0U; id < f->num_pbdma; id++) {
-		if ((f->pbdma_map[id] & runlist_bit) != 0U) {
-			nvgpu_log_info(g, "gr info: pbdma_map[%d]=%d",
-					id, f->pbdma_map[id]);
-			found_pbdma_for_runlist = true;
-			break;
-		}
-	}
-	*pbdma_id = id;
-	return found_pbdma_for_runlist;
-}
-
 static void nvgpu_pbdma_init_intr_descs(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -65,21 +44,6 @@ static void nvgpu_pbdma_init_intr_descs(struct gk20a *g)
 
 int nvgpu_pbdma_setup_sw(struct gk20a *g)
 {
-	struct nvgpu_fifo *f = &g->fifo;
-
-	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
-	f->pbdma_map = NULL;
-
-	if (g->ops.fifo.init_pbdma_map != NULL) {
-		f->pbdma_map = nvgpu_kzalloc(g,
-				f->num_pbdma * sizeof(*f->pbdma_map));
-		if (f->pbdma_map == NULL) {
-			return -ENOMEM;
-		}
-
-		g->ops.fifo.init_pbdma_map(g, f->pbdma_map, f->num_pbdma);
-	}
-
 	nvgpu_pbdma_init_intr_descs(g);
 
 	return 0;
@@ -87,10 +51,5 @@ int nvgpu_pbdma_setup_sw(struct gk20a *g)
 
 void nvgpu_pbdma_cleanup_sw(struct gk20a *g)
 {
-	struct nvgpu_fifo *f = &g->fifo;
-
-	if (f->pbdma_map != NULL) {
-		nvgpu_kfree(g, f->pbdma_map);
-		f->pbdma_map = NULL;
-	}
+	return;
 }

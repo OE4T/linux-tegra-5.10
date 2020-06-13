@@ -64,22 +64,4 @@ int nvgpu_pbdma_setup_sw(struct gk20a *g);
  */
 void nvgpu_pbdma_cleanup_sw(struct gk20a *g);
 
-/**
- * @brief Find PBDMA servicing the runlist
- *
- * @param g [in]		The GPU driver struct owning the runlist.
- * @param runlist_id [in]	Runlist identifier.
- * @param pbdma_id [out]	Pointer to PBDMA identifier.
- *
- * Finds the PBDMA which is servicing #runlist_id.
- *
- * @return true if PBDMA was found, false otherwise.
- * @retval Sets #pbdma_id to valid value and returns true in case PBDMA
- *         could be found.
- * @retval Sets #pbdma_id to U32_MAX and returns false in case PBDMA could
- *         not be found.
- */
-bool nvgpu_pbdma_find_for_runlist(struct gk20a *g,
-		u32 runlist_id, u32 *pbdma_id);
-
 #endif /* NVGPU_PBDMA_COMMON_H */

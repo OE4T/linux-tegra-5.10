@@ -12,7 +12,6 @@ gk20a_channel_enable
 gk20a_channel_read_state
 gk20a_fifo_get_pb_timeslice
 gk20a_fifo_get_runlist_timeslice
-gk20a_fifo_init_pbdma_map
 gk20a_fifo_intr_1_enable
 gk20a_fifo_intr_1_isr
 gk20a_fifo_intr_handle_chsw_error
@@ -592,7 +591,6 @@ nvgpu_netlist_get_gpccs_inst_list
 nvgpu_netlist_get_gpccs_data_list
 nvgpu_nvgpu_get_fault_injection
 nvgpu_pbdma_cleanup_sw
-nvgpu_pbdma_find_for_runlist
 nvgpu_pbdma_status_is_chsw_load
 nvgpu_pbdma_status_is_chsw_save
 nvgpu_pbdma_status_is_chsw_switch

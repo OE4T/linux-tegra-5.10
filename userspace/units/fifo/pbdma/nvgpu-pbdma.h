@@ -62,30 +62,6 @@ int test_pbdma_setup_sw(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_pbdma_find_for_runlist
- *
- * Description: Branch coverage for nvgpu_pbdma_find_for_runlist
- *
- * Test Type: Feature
- *
- * Targets: nvgpu_pbdma_find_for_runlist, nvgpu_engine_is_valid_runlist_id
- *
- * Input: test_fifo_init_support() run for this GPU.
- *
- * Steps:
- * - Check that nvgpu_pbdma_find_for_runlist does not find any valid
- *   PBDMA for inactive runlists.
- * - Check that nvgpu_pbdma_find_for_runlist finds a valid PBDMA for
- *   active runlists:
- *   - Function must return true for active runlists.
- *   - Check PBDMA actually services the runlist using pbdma_map.
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_pbdma_find_for_runlist(struct unit_module *m,
-		struct gk20a *g, void *args);
-
-/**
  * Test specification for: test_pbdma_status
  *
  * Description: Branch coverage for nvgpu_pbdma_status_* functions.

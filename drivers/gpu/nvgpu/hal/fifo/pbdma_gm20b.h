@@ -62,6 +62,8 @@ u32 gm20b_pbdma_get_ctrl_hce_priv_mode_yes(void);
 u32 gm20b_pbdma_get_userd_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem);
 u32 gm20b_pbdma_get_userd_addr(u32 addr_lo);
 u32 gm20b_pbdma_get_userd_hi_addr(u32 addr_hi);
+bool gm20b_pbdma_find_for_runlist(struct gk20a *g,
+				  u32 runlist_id, u32 *pbdma_mask);
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_pbdma_intr_enable(struct gk20a *g, bool enable);

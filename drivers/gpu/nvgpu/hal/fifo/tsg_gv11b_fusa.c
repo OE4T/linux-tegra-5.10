@@ -109,7 +109,7 @@ int gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct nvgpu_tsg *tsg)
 	int i;
 	unsigned int runque, buffer_size;
 	u32 page_size = U32(PAGE_SIZE);
-	unsigned int num_pbdma = g->fifo.num_pbdma;
+	unsigned int num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 
 	if (tsg->eng_method_buffers != NULL) {
 		nvgpu_warn(g, "eng method buffers already allocated");
@@ -161,7 +161,9 @@ void gv11b_tsg_deinit_eng_method_buffers(struct gk20a *g,
 		return;
 	}
 
-	for (runque = 0; runque < g->fifo.num_pbdma; runque++) {
+	for (runque = 0;
+	     runque < nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
+	     runque++) {
 		nvgpu_dma_unmap_free(vm, &tsg->eng_method_buffers[runque]);
 	}
 

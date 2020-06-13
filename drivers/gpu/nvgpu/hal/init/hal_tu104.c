@@ -980,7 +980,6 @@ static const struct gpu_ops tu104_ops = {
 		.preempt_tsg = nvgpu_fifo_preempt_tsg,
 		.preempt_trigger = gv11b_fifo_preempt_trigger,
 		.preempt_poll_pbdma = gv11b_fifo_preempt_poll_pbdma,
-		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = gv11b_init_fifo_reset_enable_hw,
 #ifdef CONFIG_NVGPU_RECOVERY
@@ -1008,6 +1007,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_runlist_timeslice = gk20a_fifo_get_runlist_timeslice,
 		.get_pb_timeslice = gk20a_fifo_get_pb_timeslice,
 		.mmu_fault_id_to_pbdma_id = gv11b_fifo_mmu_fault_id_to_pbdma_id,
+		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
@@ -1036,7 +1036,6 @@ static const struct gpu_ops tu104_ops = {
 			gv11b_pbdma_channel_fatal_0_intr_descs,
 		.restartable_0_intr_descs =
 			gm20b_pbdma_restartable_0_intr_descs,
-		.find_for_runlist = nvgpu_pbdma_find_for_runlist,
 		.format_gpfifo_entry =
 			gm20b_pbdma_format_gpfifo_entry,
 		.get_gp_base = gm20b_pbdma_get_gp_base,

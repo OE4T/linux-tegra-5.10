@@ -826,7 +826,7 @@ struct unit_module_test mm_mmu_fault_gv11b_fusa_tests[] = {
 	UNIT_TEST(handle_mmu_common_s7, test_handle_mmu_fault_common, (void *)F_MMU_HANDLER_NON_REPLAYABLE_REFCH, 0),
 	UNIT_TEST(handle_mmu_common_s8, test_handle_mmu_fault_common, (void *)F_MMU_HANDLER_NON_REPLAYABLE_REFCH_NACK_HNDLD, 0),
 	UNIT_TEST(handle_mmu_common_s9, test_handle_mmu_fault_common, (void *)F_MMU_HANDLER_NON_REPLAYABLE_FAULTED_INVALID, 0),
-	UNIT_TEST(handle_mmu_common_s10, test_handle_mmu_fault_common, (void *)F_MMU_HANDLER_NON_REPLAYABLE_TSG, 0),
+	UNIT_TEST(handle_mmu_common_s10, test_handle_mmu_fault_common, (void *)F_MMU_HANDLER_NON_REPLAYABLE_TSG, 2),
 	UNIT_TEST(handle_nonreplay_s0, test_handle_nonreplay_replay_fault, (void *)F_HANDLE_NON_RPLYBLE_BUF_EMPTY, 0),
 	UNIT_TEST(handle_nonreplay_s1, test_handle_nonreplay_replay_fault, (void *)F_HANDLE_NON_RPLYBLE_INVALID_BUF_ENTRY, 0),
 	UNIT_TEST(handle_nonreplay_s2, test_handle_nonreplay_replay_fault, (void *)F_HANDLE_NON_RPLYBLE_VALID_BUF_ENTRY, 0),

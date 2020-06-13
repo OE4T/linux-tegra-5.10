@@ -32,13 +32,24 @@
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 
-void gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
+bool gk20a_fifo_find_pbdma_for_runlist(struct gk20a *g,
+				       u32 runlist_id, u32 *pbdma_mask)
 {
+	u32 runlist_bit = BIT32(runlist_id);
+	u32 num_pbdmas = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	u32 id;
 
-	for (id = 0U; id < num_pbdma; ++id) {
-		pbdma_map[id] = nvgpu_readl(g, fifo_pbdma_map_r(id));
+	*pbdma_mask = 0U;
+
+	for (id = 0U; id < num_pbdmas; id++) {
+		u32 pbdma_map = nvgpu_readl(g, fifo_pbdma_map_r(id));
+
+		if ((pbdma_map & runlist_bit) != 0U) {
+			*pbdma_mask |= BIT32(id);
+		}
 	}
+
+	return *pbdma_mask != 0U;
 }
 
 u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g)

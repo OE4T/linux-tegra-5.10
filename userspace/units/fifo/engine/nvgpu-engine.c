@@ -173,15 +173,8 @@ done:
 
 #define F_ENGINE_INIT_INFO_GET_DEV_INFO_NULL	BIT(0)
 #define F_ENGINE_INIT_INFO_GET_DEV_INFO_FAIL	BIT(1)
-#define F_ENGINE_INIT_INFO_PBDMA_FIND_FAIL	BIT(2)
-#define F_ENGINE_INIT_INFO_INIT_CE_FAIL		BIT(3)
-#define F_ENGINE_INIT_INFO_LAST			BIT(4)
-
-static bool stub_pbdma_find_for_runlist_none(struct gk20a *g,
-			u32 runlist_id, u32 *pbdma_id)
-{
-	return false;
-}
+#define F_ENGINE_INIT_INFO_INIT_CE_FAIL		BIT(2)
+#define F_ENGINE_INIT_INFO_LAST			BIT(3)
 
 static int stub_engine_init_ce_info_EINVAL(struct nvgpu_fifo *f)
 {
@@ -200,12 +193,10 @@ int test_engine_init_info(struct unit_module *m,
 	u32 fail =
 		F_ENGINE_INIT_INFO_GET_DEV_INFO_NULL |
 		F_ENGINE_INIT_INFO_GET_DEV_INFO_FAIL |
-		F_ENGINE_INIT_INFO_PBDMA_FIND_FAIL |
 		F_ENGINE_INIT_INFO_INIT_CE_FAIL;
 	const char *labels[] = {
 		"get_dev_info_null",
 		"get_dev_info_fail",
-		"pbdma_find_fail",
 		"init_ce_fail",
 	};
 	u32 prune = fail;
@@ -220,11 +211,6 @@ int test_engine_init_info(struct unit_module *m,
 		subtest_setup(branches);
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, labels));
-
-		g->ops.pbdma.find_for_runlist =
-			branches & F_ENGINE_INIT_INFO_PBDMA_FIND_FAIL ?
-				stub_pbdma_find_for_runlist_none :
-				gops.pbdma.find_for_runlist;
 
 		g->ops.engine.init_ce_info =
 			branches & F_ENGINE_INIT_INFO_INIT_CE_FAIL ?

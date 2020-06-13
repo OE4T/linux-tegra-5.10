@@ -64,11 +64,10 @@ struct unit_ctx {
 
 static struct unit_ctx unit_ctx;
 
-#define F_PBDMA_SETUP_SW_KZALLOC_FAIL		BIT(0)
-#define F_PBDMA_SETUP_SW_DEVICE_FATAL_0		BIT(1)
-#define F_PBDMA_SETUP_SW_CHANNEL_FATAL_0	BIT(2)
-#define F_PBDMA_SETUP_SW_RESTARTABLE_0		BIT(3)
-#define F_PBDMA_SETUP_SW_LAST			BIT(4)
+#define F_PBDMA_SETUP_SW_DEVICE_FATAL_0		BIT(0)
+#define F_PBDMA_SETUP_SW_CHANNEL_FATAL_0	BIT(1)
+#define F_PBDMA_SETUP_SW_RESTARTABLE_0		BIT(2)
+#define F_PBDMA_SETUP_SW_LAST			BIT(3)
 
 static u32 stub_pbdma_device_fatal_0_intr_descs(void) {
 	return F_PBDMA_SETUP_SW_DEVICE_FATAL_0;
@@ -90,14 +89,12 @@ int test_pbdma_setup_sw(struct unit_module *m,
 	struct nvgpu_posix_fault_inj *kmem_fi;
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
-	u32 fail = F_PBDMA_SETUP_SW_KZALLOC_FAIL;
 	static const char *labels[] = {
-		"kzalloc_fail",
 		"device_fatal_0",
 		"channel_fatal_0",
 		"restartable_0",
 	};
-	u32 prune = fail;
+	u32 prune = 0U;
 	int err;
 
 	kmem_fi = nvgpu_kmem_get_fault_injection();
@@ -117,10 +114,6 @@ int test_pbdma_setup_sw(struct unit_module *m,
 		unit_verbose(m, "%s branches=%s\n", __func__,
 			branches_str(branches, labels));
 
-		nvgpu_posix_enable_fault_injection(kmem_fi,
-			branches & F_PBDMA_SETUP_SW_KZALLOC_FAIL ?
-				true : false, 0);
-
 		f->intr.pbdma.device_fatal_0 = 0;
 		f->intr.pbdma.channel_fatal_0 = 0;
 		f->intr.pbdma.restartable_0 = 0;
@@ -139,24 +132,18 @@ int test_pbdma_setup_sw(struct unit_module *m,
 
 		err = nvgpu_pbdma_setup_sw(g);
 
-		if (branches & fail) {
-			unit_assert(err != 0, goto done);
-			unit_assert(f->pbdma_map == NULL, goto done);
-		} else {
-			unit_assert(err == 0, goto done);
-			unit_assert(f->pbdma_map != NULL, goto done);
-			unit_assert(f->intr.pbdma.device_fatal_0 ==
-				(branches & F_PBDMA_SETUP_SW_DEVICE_FATAL_0),
-				goto done);
-			unit_assert(f->intr.pbdma.channel_fatal_0 ==
-				(branches & F_PBDMA_SETUP_SW_CHANNEL_FATAL_0),
-				goto done);
-			unit_assert(f->intr.pbdma.restartable_0 ==
-				(branches & F_PBDMA_SETUP_SW_RESTARTABLE_0),
-				goto done);
-			nvgpu_pbdma_cleanup_sw(g);
-			unit_assert(f->pbdma_map == NULL, goto done);
-		}
+		unit_assert(err == 0, goto done);
+		unit_assert(f->intr.pbdma.device_fatal_0 ==
+			    (branches & F_PBDMA_SETUP_SW_DEVICE_FATAL_0),
+			    goto done);
+		unit_assert(f->intr.pbdma.channel_fatal_0 ==
+			    (branches & F_PBDMA_SETUP_SW_CHANNEL_FATAL_0),
+			    goto done);
+		unit_assert(f->intr.pbdma.restartable_0 ==
+			    (branches & F_PBDMA_SETUP_SW_RESTARTABLE_0),
+			    goto done);
+
+		nvgpu_pbdma_cleanup_sw(g);
 	}
 	ret = UNIT_SUCCESS;
 
@@ -167,46 +154,6 @@ done:
 	}
 	g->ops = gops;
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
-	return ret;
-}
-
-int test_pbdma_find_for_runlist(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_fifo fifo = g->fifo;
-	u32 runlist_id;
-	bool active;
-	bool found;
-	u32 pbdma_id;
-	int ret = UNIT_FAIL;
-
-	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-
-		active = nvgpu_engine_is_valid_runlist_id(g, runlist_id);
-
-		pbdma_id = U32_MAX;
-		found = nvgpu_pbdma_find_for_runlist(g, runlist_id, &pbdma_id);
-
-		if (active) {
-			unit_assert(found, goto done);
-			unit_assert(pbdma_id != U32_MAX, goto done);
-			unit_assert((f->pbdma_map[pbdma_id] &
-				BIT(runlist_id)) != 0, goto done);
-		} else {
-			unit_assert(!found, goto done);
-			unit_assert(pbdma_id == U32_MAX, goto done);
-		}
-	}
-
-	f->num_pbdma = 0;
-	unit_assert(!nvgpu_pbdma_find_for_runlist(g, 0, &pbdma_id), goto done);
-
-	ret = UNIT_SUCCESS;
-
-done:
-	g->fifo = fifo;
-
 	return ret;
 }
 
@@ -264,7 +211,6 @@ done:
 struct unit_module_test nvgpu_pbdma_tests[] = {
 	UNIT_TEST(setup_sw, test_pbdma_setup_sw, &unit_ctx, 0),
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
-	UNIT_TEST(pbdma_find_for_runlist, test_pbdma_find_for_runlist, &unit_ctx, 0),
 	UNIT_TEST(pbdma_status, test_pbdma_status, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };

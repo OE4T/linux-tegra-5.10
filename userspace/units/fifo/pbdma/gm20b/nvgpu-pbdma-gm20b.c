@@ -418,10 +418,11 @@ int test_gm20b_pbdma_read_data(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int ret = UNIT_FAIL;
-	struct nvgpu_fifo *f = &g->fifo;
 	u32 pbdma_id = 0;
 
-	for (pbdma_id = 0; pbdma_id < f->num_pbdma; pbdma_id++) {
+	for (pbdma_id = 0;
+	     pbdma_id < nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
+	     pbdma_id++) {
 		u32 pattern = (0xbeef << 16) + pbdma_id;
 		nvgpu_writel(g, pbdma_hdr_shadow_r(pbdma_id), pattern);
 		unit_assert(gm20b_pbdma_read_data(g, pbdma_id) == pattern,

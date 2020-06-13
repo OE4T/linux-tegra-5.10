@@ -133,7 +133,8 @@ void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 	runlist_id = tsg->runlist_id;
 	runlist_served_pbdmas = f->runlist_info[runlist_id]->pbdma_bitmask;
 
-	for_each_set_bit(pbdma_id_bit, &runlist_served_pbdmas, f->num_pbdma) {
+	for_each_set_bit(pbdma_id_bit, &runlist_served_pbdmas,
+			 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA)) {
 		pbdma_id = U32(pbdma_id_bit);
 		/*
 		 * If pbdma preempt fails the only option is to reset

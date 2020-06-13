@@ -177,8 +177,6 @@ struct gops_fifo {
 	void (*preempt_trigger)(struct gk20a *g, u32 id, unsigned int id_type);
 	int (*preempt_poll_pbdma)(struct gk20a *g, u32 tsgid,
 			 u32 pbdma_id);
-	void (*init_pbdma_map)(struct gk20a *g,
-			u32 *pbdma_map, u32 num_pbdma);
 	int (*is_preempt_pending)(struct gk20a *g, u32 id,
 		unsigned int id_type);
 	void (*intr_set_recover_mask)(struct gk20a *g);
@@ -203,6 +201,8 @@ struct gops_fifo {
 	u32  (*mmu_fault_id_to_pbdma_id)(struct gk20a *g,
 				u32 mmu_fault_id);
 	void (*bar1_snooping_disable)(struct gk20a *g);
+	bool (*find_pbdma_for_runlist)(struct gk20a *g,
+				       u32 runlist_id, u32 *pbdma_id);
 
 #ifdef CONFIG_NVGPU_RECOVERY
 	void (*recover)(struct gk20a *g, u32 act_eng_bitmask,

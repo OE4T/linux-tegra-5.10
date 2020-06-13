@@ -58,28 +58,6 @@
 
 #define UNIT_MAX_PBDMA	32
 
-int test_gk20a_init_pbdma_map(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	int ret = UNIT_FAIL;
-	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
-	u32 pbdma_map[UNIT_MAX_PBDMA];
-	u32 id;
-	unit_assert(num_pbdma > 0, goto done);
-	unit_assert(num_pbdma <= UNIT_MAX_PBDMA, goto done);
-
-	memset(pbdma_map, 0, sizeof(pbdma_map));
-	gk20a_fifo_init_pbdma_map(g, pbdma_map, num_pbdma);
-	for (id = 0; id < num_pbdma; id++) {
-		unit_verbose(m, "id=%u map=%08x\n", id, pbdma_map[id]);
-		unit_assert(pbdma_map[id] != 0, goto done);
-	}
-
-	ret = UNIT_SUCCESS;
-done:
-	return ret;
-}
-
 int test_gk20a_get_timeslices(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
@@ -106,7 +84,6 @@ struct unit_module_test nvgpu_fifo_gk20a_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, NULL, 0),
 
 	/* fifo gk20a */
-	UNIT_TEST(init_pbdma_map, test_gk20a_init_pbdma_map, NULL, 0),
 	UNIT_TEST(get_timeslices, test_gk20a_get_timeslices, NULL, 0),
 
 	/* fifo intr gk20a */
