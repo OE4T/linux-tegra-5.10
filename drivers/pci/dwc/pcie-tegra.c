@@ -3209,29 +3209,6 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		return ret;
 	}
 
-	ret = of_property_read_u32(np, "nvidia,aux-clk-freq",
-				   &pcie->aux_clk_freq);
-	if (ret < 0) {
-		dev_err(pcie->dev, "fail to read Aux_Clk_Freq: %d\n", ret);
-		return ret;
-	}
-
-	ret = of_property_read_u32(np, "nvidia,aspm-cmrt", &pcie->aspm_cmrt);
-	if (ret < 0)
-		dev_info(pcie->dev, "fail to read ASPM cmrt: %d\n", ret);
-
-	ret = of_property_read_u32(np, "nvidia,aspm-pwr-on-t",
-				   &pcie->aspm_pwr_on_t);
-	if (ret < 0)
-		dev_info(pcie->dev, "fail to read ASPM Power On time: %d\n",
-			 ret);
-
-	ret = of_property_read_u32(np, "nvidia,aspm-l0s-entrance-latency",
-				   &pcie->aspm_l0s_enter_lat);
-	if (ret < 0)
-		dev_info(pcie->dev,
-			 "fail to read ASPM L0s Entrance latency: %d\n", ret);
-
 	ret = of_property_read_u32(np, "num-lanes", &pcie->num_lanes);
 	if (ret < 0) {
 		dev_err(pcie->dev, "fail to read num-lanes: %d\n", ret);
@@ -3243,12 +3220,6 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		dev_err(pcie->dev, "invalid max-speed (err=%d), set to Gen-1\n",
 			ret);
 		pcie->max_speed = 1;
-	}
-
-	ret = of_property_read_u32(np, "nvidia,init-speed", &pcie->init_speed);
-	if ((ret < 0) || (pcie->init_speed < 1 || pcie->init_speed > 4)) {
-		dev_info(pcie->dev, "Setting init speed to max speed\n");
-		pcie->init_speed = pcie->max_speed;
 	}
 
 	ret = of_property_read_u32_index(np, "nvidia,controller-id", 1,
@@ -3286,6 +3257,41 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		dev_info(pcie->dev, "fail to read PTM cap off: %d\n", ret);
 
 	if (pcie->mode == DW_PCIE_RC_TYPE) {
+		ret = of_property_read_u32(np, "nvidia,aux-clk-freq",
+				&pcie->aux_clk_freq);
+		if (ret < 0) {
+			dev_err(pcie->dev, "fail to read Aux_Clk_Freq: %d\n",
+					ret);
+			return ret;
+		}
+
+		ret = of_property_read_u32(np, "nvidia,aspm-cmrt",
+				&pcie->aspm_cmrt);
+		if (ret < 0)
+			dev_info(pcie->dev, "fail to read ASPM cmrt: %d\n",
+					ret);
+
+		ret = of_property_read_u32(np, "nvidia,aspm-pwr-on-t",
+				&pcie->aspm_pwr_on_t);
+		if (ret < 0)
+			dev_info(pcie->dev,
+				 "fail to read ASPM Power On time: %d\n", ret);
+
+		ret = of_property_read_u32(np,
+				"nvidia,aspm-l0s-entrance-latency",
+				&pcie->aspm_l0s_enter_lat);
+		if (ret < 0)
+			dev_info(pcie->dev, "fail to read ASPM L0s Entrance latency: %d\n",
+					ret);
+
+		ret = of_property_read_u32(np, "nvidia,init-speed",
+				&pcie->init_speed);
+		if ((ret < 0) || (pcie->init_speed < 1 ||
+					pcie->init_speed > 4)) {
+			dev_info(pcie->dev, "set init speed to max speed\n");
+			pcie->init_speed = pcie->max_speed;
+		}
+
 		ret = of_property_read_u32(np, "nvidia,preset-init",
 					   &pcie->preset_init);
 		if (ret < 0) {
