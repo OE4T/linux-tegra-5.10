@@ -259,7 +259,7 @@ struct gk20a;
 #define NVGPU_SUPPORT_SM_TTU			88U
 
 /** PLC Compression */
-#define NVGPU_SUPPORT_PLC			89U
+#define NVGPU_SUPPORT_POST_L2_COMPRESSION	89U
 
 /*
  * Must be greater than the largest bit offset in the above list.
