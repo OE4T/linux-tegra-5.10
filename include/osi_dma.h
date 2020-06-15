@@ -750,6 +750,8 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
  * @param[in] osi: OSI private data structure.
  * @param[in] chan: Rx DMA channel number
  * @param[in] budget: Threshould for reading the packets at a time.
+ * @param[in] more_data_avail: Pointer to more data available flag. OSI fills
+ *	       this flag if more rx packets available to read(1) or not(0).
  *
  * @note
  *	1) MAC needs to be out of reset and proper clocks need to be configured.
@@ -759,7 +761,8 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
  * @returns Number of decriptors (buffers) proccessed.
  */
 int osi_process_rx_completions(struct osi_dma_priv_data *osi,
-			       unsigned int chan, int budget);
+			       unsigned int chan, int budget,
+			       unsigned int *more_data_avail);
 
 /**
  * @brief osi_hw_dma_init - Initialize DMA
