@@ -61,6 +61,9 @@
 #include "tegra234-soc-pmc.dtsi"
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 
+#include "tegra234-soc/tegra234-automotive-nvguard.dtsi"
+#include "tegra234-soc/tegra234-automotive-nvguard-srvprop.dtsi"
+
 / {
 	aliases {
 		host1x = &host1x;

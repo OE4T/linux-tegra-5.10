@@ -134,4 +134,40 @@
                 status = "okay";
         };
 
+	tegra_safety: sce@b000000 {
+		status = "okay";
+	};
+
+	tegra_safety_ivc: tegra_safety_ivc {
+                status = "okay";
+        };
+
+	tegra-hsp@b150000 {
+		status = "okay";
+	};
+
+	tegra_hv_L1L0ivc {
+		status = "okay";
+	};
+
+	safetysrv_cfg{
+		status = "okay";
+        };
+
+        ecthreshold_cfg: ecthreshold_cfg {
+		status="okay";
+	};
+
+        safety_ivc {
+		compatible = "nvidia,tegra-hv-safety-ivc";
+		client_0 {
+			channel = "lpbck_0";
+			channelEx = "lpbck_ex_0";
+			layerid = <4>;
+		};
+	};
+
+	combined-uart {
+		status = "okay";
+	};
 };
