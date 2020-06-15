@@ -1111,7 +1111,6 @@ __releases(&l->cde_app->mutex)
 							     map_size),
 				 NV_KIND_INVALID,
 				 compbits_kind, /* incompressible kind */
-				 gk20a_mem_flag_none,
 				 map_offset, map_size,
 				 NULL,
 				 &map_vaddr);

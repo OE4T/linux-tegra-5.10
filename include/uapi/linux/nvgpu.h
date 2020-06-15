@@ -1918,6 +1918,7 @@ struct nvgpu_as_bind_channel_args {
 #define NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC          (1 << 7)
 #define NVGPU_AS_MAP_BUFFER_FLAGS_DIRECT_KIND_CTRL  (1 << 8)
 #define NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC   (1 << 9)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_NO_WRITE   (1 << 10)
 
 /*
  * VM map buffer IOCTL

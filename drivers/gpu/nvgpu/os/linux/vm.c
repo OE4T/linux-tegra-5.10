@@ -58,6 +58,8 @@ static u32 nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags)
 		core_flags |= NVGPU_VM_MAP_DIRECT_KIND_CTRL;
 	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC)
 		core_flags |= NVGPU_VM_MAP_PLATFORM_ATOMIC;
+	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_NO_WRITE)
+		core_flags |= NVGPU_VM_MAP_ACCESS_NO_WRITE;
 
 	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS)
 		nvgpu_warn(g, "Ignoring deprecated flag: "
@@ -188,12 +190,12 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 		       u32 page_size,
 		       s16 compr_kind,
 		       s16 incompr_kind,
-		       enum gk20a_mem_rw_flag rw_flag,
 		       u64 buffer_offset,
 		       u64 mapping_size,
 		       struct vm_gk20a_mapping_batch *batch,
 		       u64 *gpu_va)
 {
+	enum gk20a_mem_rw_flag rw_flag = gk20a_mem_flag_none;
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct device *dev = dev_from_gk20a(g);
 	struct nvgpu_os_buffer os_buf;
@@ -221,6 +223,10 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 	if (!nvgpu_sgt) {
 		err = -ENOMEM;
 		goto clean_up;
+	}
+
+	if (flags & NVGPU_VM_MAP_ACCESS_NO_WRITE) {
+		rw_flag = gk20a_mem_flag_read_only;
 	}
 
 	err = nvgpu_vm_map(vm,
@@ -328,7 +334,6 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 				 nvgpu_vm_translate_linux_flags(g, flags),
 				 page_size,
 				 compr_kind, incompr_kind,
-				 gk20a_mem_flag_none,
 				 buffer_offset,
 				 mapping_size,
 				 batch,
