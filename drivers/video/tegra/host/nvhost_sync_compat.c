@@ -159,3 +159,10 @@ void nvhost_fence_put(struct nvhost_fence *fence)
 	dma_fence_put((struct dma_fence *)fence);
 }
 EXPORT_SYMBOL(nvhost_fence_put);
+
+void nvhost_fence_wait(struct nvhost_fence *fence, u32 timeout_in_ms)
+{
+	dma_fence_wait_timeout((struct dma_fence *)fence, true,
+				msecs_to_jiffies(timeout_in_ms));
+}
+EXPORT_SYMBOL(nvhost_fence_wait);

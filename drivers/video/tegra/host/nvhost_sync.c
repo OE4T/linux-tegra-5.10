@@ -618,3 +618,9 @@ void nvhost_fence_put(struct nvhost_fence *fence)
 	sync_fence_put((struct sync_fence *)fence);
 }
 EXPORT_SYMBOL(nvhost_fence_put);
+
+void nvhost_fence_wait(struct nvhost_fence *fence, u32 timeout_in_ms)
+{
+	sync_fence_wait((struct sync_fence *)fence, timeout_in_ms);
+}
+EXPORT_SYMBOL(nvhost_fence_wait);

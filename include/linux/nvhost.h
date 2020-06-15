@@ -854,6 +854,7 @@ struct nvhost_fence *nvhost_fence_dup(struct nvhost_fence *fence);
 int nvhost_fence_num_pts(struct nvhost_fence *fence);
 int nvhost_fence_install(struct nvhost_fence *fence, int fence_fd);
 void nvhost_fence_put(struct nvhost_fence *fence);
+void nvhost_fence_wait(struct nvhost_fence *fence, u32 timeout_in_ms);
 
 #else
 
@@ -895,6 +896,10 @@ static inline int nvhost_fence_num_pts(struct nvhost_fence *fence)
 }
 
 static inline void nvhost_fence_put(struct nvhost_fence *fence)
+{
+}
+
+static inline void nvhost_fence_wait(struct nvhost_fence *fence, u32 timeout_in_ms)
 {
 }
 
