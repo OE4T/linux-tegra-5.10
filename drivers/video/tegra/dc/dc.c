@@ -4912,13 +4912,10 @@ static void tegra_dc_continuous_irq(struct tegra_dc *dc, unsigned long status)
 	}
 
 	if (status & FRAME_END_INT) {
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
-		struct timespec tm;
-#else
 		struct timespec64 tm;
-#endif
-		ktime_get_ts(&tm);
-		dc->frame_end_timestamp = timespec_to_ns(&tm);
+
+		ktime_get_ts64(&tm);
+		dc->frame_end_timestamp = timespec64_to_ns(&tm);
 		wake_up(&dc->timestamp_wq);
 
 		if (!tegra_dc_windows_are_dirty(dc, WIN_ALL_ACT_REQ)) {

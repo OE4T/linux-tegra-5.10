@@ -596,15 +596,12 @@ static int tegra_dc_ext_set_windowattr(struct tegra_dc_ext *ext,
 			/* XXX: Should timestamping be overridden by "no_vsync"
 			 * flag */
 			if (vrr && vrr->enable) {
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
-				struct timespec tm;
-#else
 				struct timespec64 tm;
-#endif
 				s64 now_ns = 0;
 				s64 sleep_us = 0;
-				ktime_get_ts(&tm);
-				now_ns = timespec_to_ns(&tm);
+
+				ktime_get_ts64(&tm);
+				now_ns = timespec64_to_ns(&tm);
 				sleep_us = div_s64(timestamp_ns -
 					now_ns, 1000ll);
 
