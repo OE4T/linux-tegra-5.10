@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,6 +24,7 @@
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_platform.h>
+#include <linux/of_reserved_mem.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/sched.h>
@@ -86,6 +87,24 @@ struct camrtc_debug {
 
 #define NV(x) "nvidia," #x
 #define FALCON_COVERAGE_MEM_SIZE (1024 * 128) /* 128kB */
+
+struct camrtc_dbgfs_rmem {
+	unsigned long	size;
+	phys_addr_t	address;
+};
+
+static struct camrtc_dbgfs_rmem _camdbg_rmem;
+
+static int __init camrtc_dbgfs_rmem_init(struct reserved_mem *rmem)
+{
+	_camdbg_rmem.address = rmem->base;
+	_camdbg_rmem.size = rmem->size;
+
+	return 0;
+}
+
+RESERVEDMEM_OF_DECLARE(tegra_cam_rtcpu,
+		"nvidia,camdbg_carveout", camrtc_dbgfs_rmem_init);
 
 /* Get a camera-rtcpu device */
 static struct device *camrtc_get_device(struct tegra_ivc_channel *ch)
@@ -611,7 +630,27 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 	struct device *mem_dev = camrtc_dbgfs_memory_dev(crd);
 	ssize_t ret;
 
-	if (*f_pos + count > mem->size) {
+	if (_camdbg_rmem.size != 0ULL) {
+		/*
+		 * If reserved memory, only 6 MegaBytes is available
+		 * as of now to be mapped into mem0.
+		 * TODO: Add co memory support for other memX too, if needed.
+		 */
+		if ((mem->index != 0) ||
+			(*f_pos + count > _camdbg_rmem.size)) {
+			pr_err("%s: only 6MB mem0 available\n", __func__);
+			return -ENOMEM;
+		}
+
+		mem->ptr = (void*)_camdbg_rmem.address;
+		mem->size = _camdbg_rmem.size;
+		mem->iova = dma_map_single(mem_dev, mem->ptr,
+						mem->size, DMA_BIDIRECTIONAL);
+		if (dma_mapping_error(mem_dev,  mem->iova)) {
+			pr_err("%s: dma map failed\n", __func__);
+			return -ENOMEM;
+		}
+	} else if (*f_pos + count > mem->size) {
 		size_t size = round_up(*f_pos + count, 64 * 1024);
 		dma_addr_t iova;
 		void *ptr = dma_alloc_coherent(mem_dev, size, &iova,
@@ -634,8 +673,13 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 		mem->used = *f_pos;
 
 		if (mem->used == 0 && mem->ptr != NULL) {
-			dma_free_coherent(mem_dev, mem->size, mem->ptr,
-					mem->iova);
+			if (_camdbg_rmem.size != 0ULL)
+				dma_unmap_single(mem_dev, mem->iova, mem->size,
+						DMA_BIDIRECTIONAL);
+			else
+				dma_free_coherent(mem_dev, mem->size, mem->ptr,
+						mem->iova);
+
 			memset(mem, 0, sizeof(*mem));
 		}
 	}
@@ -724,6 +768,22 @@ runtime_put:
 	return ret;
 }
 
+static void camrtc_run_rmem_unmap_all(struct camrtc_debug *crd,
+		struct camrtc_test_mem *mem)
+{
+	int i;
+
+	/* Nothing to unmap */
+	if (mem->ptr == NULL)
+		return;
+
+	for (i = 0; i < ARRAY_SIZE(crd->mem_devices); i++) {
+		struct device *dev = crd->mem_devices[i];
+		dma_unmap_single(dev, mem->iova,
+				mem->size, DMA_BIDIRECTIONAL);
+	}
+}
+
 static int camrtc_run_mem_map(struct tegra_ivc_channel *ch,
 		struct device *mem_dev,
 		struct device *dev,
@@ -731,7 +791,7 @@ static int camrtc_run_mem_map(struct tegra_ivc_channel *ch,
 		struct camrtc_test_mem *mem,
 		uint64_t *return_iova)
 {
-	int ret;
+	int ret = 0;
 
 	*return_iova = 0ULL;
 
@@ -743,21 +803,32 @@ static int camrtc_run_mem_map(struct tegra_ivc_channel *ch,
 		return 0;
 	}
 
-	ret = dma_get_sgtable(dev, sgt, mem->ptr, mem->iova, mem->size);
-	if (ret < 0) {
-		dev_err(&ch->dev, "dma_get_sgtable for %s failed\n",
-			dev_name(dev));
-		return ret;
-	}
+	if (_camdbg_rmem.size != 0ULL) {
+		*return_iova = dma_map_single(dev, mem->ptr,
+					mem->size, DMA_BIDIRECTIONAL);
+		if (dma_mapping_error(dev, *return_iova)) {
+			pr_err("%s: dma map failed\n", __func__);
+			*return_iova = 0ULL;
+			return -ENOMEM;
+		}
+	} else {
+		ret = dma_get_sgtable(dev, sgt, mem->ptr, mem->iova, mem->size);
+		if (ret < 0) {
+			dev_err(&ch->dev, "dma_get_sgtable for %s failed\n",
+				dev_name(dev));
+			return ret;
+		}
 
-	if (!dma_map_sg(dev, sgt->sgl, sgt->orig_nents, DMA_BIDIRECTIONAL)) {
-		dev_err(&ch->dev, "failed to map %s mem at 0x%llx\n",
-			dev_name(dev), (u64)mem->iova);
-		sg_free_table(sgt);
-		ret = -ENXIO;
-	}
+		if (!dma_map_sg(dev, sgt->sgl, sgt->orig_nents,
+				DMA_BIDIRECTIONAL)) {
+			dev_err(&ch->dev, "failed to map %s mem at 0x%llx\n",
+				dev_name(dev), (u64)mem->iova);
+			sg_free_table(sgt);
+			ret = -ENXIO;
+		}
 
-	*return_iova = sgt->sgl->dma_address;
+		*return_iova = sgt->sgl->dma_address;
+	}
 
 	return ret;
 }
@@ -770,7 +841,7 @@ static int camrtc_run_mem_test(struct seq_file *file,
 	struct camrtc_debug *crd = tegra_ivc_channel_get_drvdata(ch);
 	struct camrtc_dbg_test_mem *testmem;
 	size_t i;
-	int ret;
+	int ret = 0;
 	struct device *mem_dev = camrtc_dbgfs_memory_dev(crd);
 	struct device *rce_dev = crd->mem_devices[0];
 	struct sg_table rce_sgt[ARRAY_SIZE(crd->mem)];
@@ -789,19 +860,37 @@ static int camrtc_run_mem_test(struct seq_file *file,
 
 	/* Allocate 6MB scratch memory in mem0 by default */
 	if (!mem0->used) {
-		const size_t size = 6U << 20U; /* 6 MB */
+		size_t size = 6U << 20U; /* 6 MB */
 		dma_addr_t iova;
 		void *ptr;
 
 		if (mem0->ptr) {
-			dma_free_coherent(mem_dev, mem0->size, mem0->ptr,
-					mem0->iova);
+			if (_camdbg_rmem.size != 0ULL)
+				camrtc_run_rmem_unmap_all(crd, mem0);
+			else
+				dma_free_coherent(mem_dev, mem0->size,
+					mem0->ptr, mem0->iova);
+
 			memset(mem0, 0, sizeof(*mem0));
 		}
-		ptr = dma_alloc_coherent(mem_dev, size, &iova,
+
+		if (_camdbg_rmem.size != 0ULL) {
+			ptr = (void*)_camdbg_rmem.address;
+			size = _camdbg_rmem.size;
+
+			iova = dma_map_single(mem_dev, ptr, size,
+						DMA_BIDIRECTIONAL);
+			if (dma_mapping_error(mem_dev, iova)) {
+				pr_err("%s: dma map failed\n", __func__);
+				return -ENOMEM;
+			}
+		} else {
+			ptr = dma_alloc_coherent(mem_dev, size, &iova,
 					GFP_KERNEL | __GFP_ZERO);
-		if (ptr == NULL)
-			return -ENOMEM;
+			if (ptr == NULL)
+				return -ENOMEM;
+		}
+
 		mem0->ptr = ptr;
 		mem0->size = size;
 		mem0->iova = iova;
@@ -896,6 +985,13 @@ unmap:
 			dma_unmap_sg(isp_dev, isp_sgt[i].sgl,
 				isp_sgt[i].orig_nents, DMA_BIDIRECTIONAL);
 			sg_free_table(&isp_sgt[i]);
+		}
+	}
+
+	if (_camdbg_rmem.size != 0ULL) {
+		for (i = 0; i < ARRAY_SIZE(crd->mem); i++) {
+			struct camrtc_test_mem *mem = &crd->mem[i];
+			camrtc_run_rmem_unmap_all(crd, mem);
 		}
 	}
 
