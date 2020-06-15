@@ -37,9 +37,11 @@
 #include <crypto/algapi.h>
 #include <crypto/aes.h>
 #include <crypto/akcipher.h>
+#include <crypto/skcipher.h>
 #include <crypto/internal/rng.h>
 #include <crypto/internal/hash.h>
 #include <crypto/internal/akcipher.h>
+#include <crypto/internal/skcipher.h>
 #include <crypto/sha.h>
 #include <crypto/internal/kpp.h>
 #include <crypto/kpp.h>
@@ -157,7 +159,7 @@ struct tegra_se_dev {
 	struct tegra_se_ll *aes_src_ll;
 	struct tegra_se_ll *aes_dst_ll;
 	u32 *dh_buf1, *dh_buf2;
-	struct ablkcipher_request *reqs[SE_MAX_TASKS_PER_SUBMIT];
+	struct skcipher_request *reqs[SE_MAX_TASKS_PER_SUBMIT];
 	struct ahash_request *sha_req;
 	unsigned int req_cnt;
 	u32 syncpt_id;
@@ -208,7 +210,7 @@ struct tegra_se_req_context {
 };
 
 struct tegra_se_priv_data {
-	struct ablkcipher_request *reqs[SE_MAX_TASKS_PER_SUBMIT];
+	struct skcipher_request *reqs[SE_MAX_TASKS_PER_SUBMIT];
 	struct ahash_request *sha_req;
 	struct tegra_se_dev *se_dev;
 	unsigned int req_cnt;
@@ -230,7 +232,7 @@ struct tegra_se_priv_data {
 /* Security Engine AES context */
 struct tegra_se_aes_context {
 	struct tegra_se_dev *se_dev;	/* Security Engine device */
-	struct ablkcipher_request *req;
+	struct skcipher_request *req;
 	struct tegra_se_slot *slot;	/* Security Engine key slot */
 	u32 keylen;	/* key length in bits */
 	u32 op_mode;	/* AES operation mode */
@@ -241,7 +243,7 @@ struct tegra_se_aes_context {
 /* Security Engine random number generator context */
 struct tegra_se_rng_context {
 	struct tegra_se_dev *se_dev;	/* Security Engine device */
-	struct ablkcipher_request *req;
+	struct skcipher_request *req;
 	struct tegra_se_slot *slot;	/* Security Engine key slot */
 	u32 *dt_buf;	/* Destination buffer pointer */
 	dma_addr_t dt_buf_adr;	/* Destination buffer dma address */
@@ -791,7 +793,7 @@ static void tegra_se_aes_complete_callback(void *priv, int nr_completed)
 {
 	int i = 0;
 	struct tegra_se_priv_data *priv_data = priv;
-	struct ablkcipher_request *req;
+	struct skcipher_request *req;
 	struct tegra_se_dev *se_dev;
 	void *buf;
 	u32 num_sgs;
@@ -821,14 +823,14 @@ static void tegra_se_aes_complete_callback(void *priv, int nr_completed)
 			return;
 		}
 
-		num_sgs = tegra_se_count_sgs(req->dst, req->nbytes);
+		num_sgs = tegra_se_count_sgs(req->dst, req->cryptlen);
 		if (num_sgs == 1)
-			memcpy(sg_virt(req->dst), buf, req->nbytes);
+			memcpy(sg_virt(req->dst), buf, req->cryptlen);
 		else
 			sg_copy_from_buffer(req->dst, num_sgs, buf,
-					    req->nbytes);
+					    req->cryptlen);
 
-		buf += req->nbytes;
+		buf += req->cryptlen;
 		req->base.complete(&req->base, 0);
 	}
 
@@ -1509,7 +1511,7 @@ static void tegra_se_read_cmac_result(struct tegra_se_dev *se_dev, u8 *pdata,
 
 static void tegra_se_send_data(struct tegra_se_dev *se_dev,
 			       struct tegra_se_req_context *req_ctx,
-			       struct ablkcipher_request *req, u32 nbytes,
+			       struct skcipher_request *req, u32 nbytes,
 			       unsigned int opcode_addr, u32 *cpuvaddr)
 {
 	u32 cmdbuf_num_words = 0, i = 0;
@@ -1523,8 +1525,8 @@ static void tegra_se_send_data(struct tegra_se_dev *se_dev,
 		dst_ll = se_dev->aes_dst_ll;
 		src_ll->addr = se_dev->aes_cur_addr;
 		dst_ll->addr = se_dev->aes_cur_addr;
-		src_ll->data_len = req->nbytes;
-		dst_ll->data_len = req->nbytes;
+		src_ll->data_len = req->cryptlen;
+		dst_ll->data_len = req->cryptlen;
 	} else {
 		src_ll = se_dev->src_ll;
 		dst_ll = se_dev->dst_ll;
@@ -1592,7 +1594,7 @@ static void tegra_se_send_data(struct tegra_se_dev *se_dev,
 	cmdbuf_num_words = i;
 	se_dev->cmdbuf_cnt = i;
 	if (req)
-		se_dev->aes_cur_addr += req->nbytes;
+		se_dev->aes_cur_addr += req->cryptlen;
 }
 
 static int tegra_map_sg(struct device *dev, struct scatterlist *sg,
@@ -1621,7 +1623,7 @@ static int tegra_map_sg(struct device *dev, struct scatterlist *sg,
 
 static int tegra_se_setup_ablk_req(struct tegra_se_dev *se_dev)
 {
-	struct ablkcipher_request *req;
+	struct skcipher_request *req;
 	void *buf;
 	int i, ret = 0;
 	u32 num_sgs;
@@ -1661,13 +1663,13 @@ static int tegra_se_setup_ablk_req(struct tegra_se_dev *se_dev)
 	for (i = 0; i < se_dev->req_cnt; i++) {
 		req = se_dev->reqs[i];
 
-		num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
+		num_sgs = tegra_se_count_sgs(req->src, req->cryptlen);
 
 		if (num_sgs == 1)
-			memcpy(buf, sg_virt(req->src), req->nbytes);
+			memcpy(buf, sg_virt(req->src), req->cryptlen);
 		else
-			sg_copy_to_buffer(req->src, num_sgs, buf, req->nbytes);
-		buf += req->nbytes;
+			sg_copy_to_buffer(req->src, num_sgs, buf, req->cryptlen);
+		buf += req->cryptlen;
 	}
 
 	if (se_dev->ioc) {
@@ -1708,17 +1710,17 @@ static int tegra_se_prepare_cmdbuf(struct tegra_se_dev *se_dev,
 {
 	int i, ret = 0;
 	struct tegra_se_aes_context *aes_ctx;
-	struct ablkcipher_request *req;
+	struct skcipher_request *req;
 	struct tegra_se_req_context *req_ctx;
-	struct crypto_ablkcipher *tfm;
+	struct crypto_skcipher *tfm;
 	u32 keylen;
 
 	pr_debug("%s:%d req_cnt = %d\n", __func__, __LINE__, se_dev->req_cnt);
 
 	for (i = 0; i < se_dev->req_cnt; i++) {
 		req = se_dev->reqs[i];
-		tfm = crypto_ablkcipher_reqtfm(req);
-		aes_ctx = crypto_ablkcipher_ctx(tfm);
+		tfm = crypto_skcipher_reqtfm(req);
+		aes_ctx = crypto_skcipher_ctx(tfm);
 		/* Ensure there is valid slot info */
 		if (!aes_ctx->slot) {
 			dev_err(se_dev->dev, "Invalid AES Ctx Slot\n");
@@ -1760,17 +1762,17 @@ static int tegra_se_prepare_cmdbuf(struct tegra_se_dev *se_dev,
 			}
 		}
 
-		req_ctx = ablkcipher_request_ctx(req);
+		req_ctx = skcipher_request_ctx(req);
 
-		if (req->info) {
+		if (req->iv) {
 			if (req_ctx->op_mode == SE_AES_OP_MODE_CTR ||
 			    req_ctx->op_mode == SE_AES_OP_MODE_XTS) {
-				tegra_se_send_ctr_seed(se_dev, (u32 *)req->info,
+				tegra_se_send_ctr_seed(se_dev, (u32 *)req->iv,
 						       se_dev->opcode_addr,
 						       cpuvaddr);
 			} else {
 				ret = tegra_se_send_key_data(
-				se_dev, req->info, TEGRA_SE_AES_IV_SIZE,
+				se_dev, req->iv, TEGRA_SE_AES_IV_SIZE,
 				aes_ctx->slot->slot_num,
 				SE_KEY_TABLE_TYPE_UPDTDIV, se_dev->opcode_addr,
 				cpuvaddr, iova, AES_CB);
@@ -1788,7 +1790,7 @@ static int tegra_se_prepare_cmdbuf(struct tegra_se_dev *se_dev,
 						req_ctx->encrypt,
 						aes_ctx->slot->slot_num, false);
 
-		tegra_se_send_data(se_dev, req_ctx, req, req->nbytes,
+		tegra_se_send_data(se_dev, req_ctx, req, req->cryptlen,
 				   se_dev->opcode_addr, cpuvaddr);
 	}
 
@@ -1798,7 +1800,7 @@ out:
 
 static void tegra_se_process_new_req(struct tegra_se_dev *se_dev)
 {
-	struct ablkcipher_request *req;
+	struct skcipher_request *req;
 	u32 *cpuvaddr = NULL;
 	dma_addr_t iova = 0;
 	unsigned int index = 0;
@@ -1811,7 +1813,7 @@ static void tegra_se_process_new_req(struct tegra_se_dev *se_dev)
 
 	for (i = 0; i < se_dev->req_cnt; i++) {
 		req = se_dev->reqs[i];
-		if (req->nbytes != SE_STATIC_MEM_ALLOC_BUFSZ) {
+		if (req->cryptlen != SE_STATIC_MEM_ALLOC_BUFSZ) {
 			se_dev->dynamic_mem = true;
 			break;
 		}
@@ -1868,7 +1870,7 @@ static void tegra_se_work_handler(struct work_struct *work)
 						   se_work);
 	struct crypto_async_request *async_req = NULL;
 	struct crypto_async_request *backlog = NULL;
-	struct ablkcipher_request *req;
+	struct skcipher_request *req;
 	bool process_requests;
 
 	mutex_lock(&se_dev->mtx);
@@ -1887,9 +1889,9 @@ static void tegra_se_work_handler(struct work_struct *work)
 			}
 
 			if (async_req) {
-				req = ablkcipher_request_cast(async_req);
+				req = skcipher_request_cast(async_req);
 				se_dev->reqs[se_dev->req_cnt] = req;
-				se_dev->gather_buf_sz += req->nbytes;
+				se_dev->gather_buf_sz += req->cryptlen;
 				se_dev->req_cnt++;
 				process_requests = true;
 			} else {
@@ -1906,12 +1908,12 @@ static void tegra_se_work_handler(struct work_struct *work)
 }
 
 static int tegra_se_aes_queue_req(struct tegra_se_dev *se_dev,
-				  struct ablkcipher_request *req)
+				  struct skcipher_request *req)
 {
 	int err = 0;
 
 	mutex_lock(&se_dev->lock);
-	err = ablkcipher_enqueue_request(&se_dev->queue, req);
+	err = crypto_enqueue_request(&se_dev->queue, &req->base);
 
 	if (!se_dev->work_q_busy) {
 		se_dev->work_q_busy = true;
@@ -1924,9 +1926,9 @@ static int tegra_se_aes_queue_req(struct tegra_se_dev *se_dev,
 	return err;
 }
 
-static int tegra_se_aes_xts_encrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_xts_encrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	if (!req_ctx->se_dev) {
@@ -1940,9 +1942,9 @@ static int tegra_se_aes_xts_encrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_xts_decrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_xts_decrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	if (!req_ctx->se_dev) {
@@ -1956,9 +1958,9 @@ static int tegra_se_aes_xts_decrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_cbc_encrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_cbc_encrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	req_ctx->encrypt = true;
@@ -1967,9 +1969,9 @@ static int tegra_se_aes_cbc_encrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_cbc_decrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_cbc_decrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	req_ctx->encrypt = false;
@@ -1978,9 +1980,9 @@ static int tegra_se_aes_cbc_decrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_ecb_encrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_ecb_encrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	req_ctx->encrypt = true;
@@ -1989,9 +1991,9 @@ static int tegra_se_aes_ecb_encrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_ecb_decrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_ecb_decrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	req_ctx->encrypt = false;
@@ -2000,9 +2002,9 @@ static int tegra_se_aes_ecb_decrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_ctr_encrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_ctr_encrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	req_ctx->encrypt = true;
@@ -2011,9 +2013,9 @@ static int tegra_se_aes_ctr_encrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_ctr_decrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_ctr_decrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	req_ctx->encrypt = false;
@@ -2022,9 +2024,9 @@ static int tegra_se_aes_ctr_decrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_ofb_encrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_ofb_encrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	req_ctx->encrypt = true;
@@ -2033,9 +2035,9 @@ static int tegra_se_aes_ofb_encrypt(struct ablkcipher_request *req)
 	return tegra_se_aes_queue_req(req_ctx->se_dev, req);
 }
 
-static int tegra_se_aes_ofb_decrypt(struct ablkcipher_request *req)
+static int tegra_se_aes_ofb_decrypt(struct skcipher_request *req)
 {
-	struct tegra_se_req_context *req_ctx = ablkcipher_request_ctx(req);
+	struct tegra_se_req_context *req_ctx = skcipher_request_ctx(req);
 
 	req_ctx->se_dev = se_devices[SE_AES];
 	req_ctx->encrypt = false;
@@ -2059,10 +2061,10 @@ static void tegra_se_init_aesbuf(struct tegra_se_dev *se_dev)
 	}
 }
 
-static int tegra_se_aes_setkey(struct crypto_ablkcipher *tfm,
+static int tegra_se_aes_setkey(struct crypto_skcipher *tfm,
 			       const u8 *key, u32 keylen)
 {
-	struct tegra_se_aes_context *ctx = crypto_ablkcipher_ctx(tfm);
+	struct tegra_se_aes_context *ctx = crypto_tfm_ctx(&tfm->base);
 	struct tegra_se_dev *se_dev;
 	struct tegra_se_slot *pslot;
 	u8 *pdata = (u8 *)key;
@@ -2169,16 +2171,16 @@ out:
 	return ret;
 }
 
-static int tegra_se_aes_cra_init(struct crypto_tfm *tfm)
+static int tegra_se_aes_cra_init(struct crypto_skcipher *tfm)
 {
-	tfm->crt_ablkcipher.reqsize = sizeof(struct tegra_se_req_context);
+	tfm->reqsize = sizeof(struct tegra_se_req_context);
 
 	return 0;
 }
 
-static void tegra_se_aes_cra_exit(struct crypto_tfm *tfm)
+static void tegra_se_aes_cra_exit(struct crypto_skcipher *tfm)
 {
-	struct tegra_se_aes_context *ctx = crypto_tfm_ctx(tfm);
+	struct tegra_se_aes_context *ctx = crypto_tfm_ctx(&tfm->base);
 
 	tegra_se_free_key_slot(ctx->slot);
 	ctx->slot = NULL;
@@ -3954,114 +3956,102 @@ static struct rng_alg rng_algs[] = {
 	}
 };
 
-static struct crypto_alg aes_algs[] = {
+static struct skcipher_alg aes_algs[] = {
 	{
-		.cra_name = "xts(aes)",
-		.cra_driver_name = "xts-aes-tegra",
-		.cra_priority = 500,
-		.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
-		.cra_blocksize = TEGRA_SE_AES_BLOCK_SIZE,
-		.cra_ctxsize  = sizeof(struct tegra_se_aes_context),
-		.cra_alignmask = 0,
-		.cra_type = &crypto_ablkcipher_type,
-		.cra_module = THIS_MODULE,
-		.cra_init = tegra_se_aes_cra_init,
-		.cra_exit = tegra_se_aes_cra_exit,
-		.cra_u.ablkcipher = {
-			.min_keysize = TEGRA_SE_AES_MIN_KEY_SIZE,
-			.max_keysize = TEGRA_SE_AES_MAX_KEY_SIZE,
-			.ivsize = TEGRA_SE_AES_IV_SIZE,
-			.setkey = tegra_se_aes_setkey,
-			.encrypt = tegra_se_aes_xts_encrypt,
-			.decrypt = tegra_se_aes_xts_decrypt,
-		}
-	}, {
-		.cra_name = "cbc(aes)",
-		.cra_driver_name = "cbc-aes-tegra",
-		.cra_priority = 500,
-		.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
-		.cra_blocksize = TEGRA_SE_AES_BLOCK_SIZE,
-		.cra_ctxsize  = sizeof(struct tegra_se_aes_context),
-		.cra_alignmask = 0,
-		.cra_type = &crypto_ablkcipher_type,
-		.cra_module = THIS_MODULE,
-		.cra_init = tegra_se_aes_cra_init,
-		.cra_exit = tegra_se_aes_cra_exit,
-		.cra_u.ablkcipher = {
-			.min_keysize = TEGRA_SE_AES_MIN_KEY_SIZE,
-			.max_keysize = TEGRA_SE_AES_MAX_KEY_SIZE,
-			.ivsize = TEGRA_SE_AES_IV_SIZE,
-			.setkey = tegra_se_aes_setkey,
-			.encrypt = tegra_se_aes_cbc_encrypt,
-			.decrypt = tegra_se_aes_cbc_decrypt,
-		}
-	}, {
-		.cra_name = "ecb(aes)",
-		.cra_driver_name = "ecb-aes-tegra",
-		.cra_priority = 500,
-		.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
-		.cra_blocksize = TEGRA_SE_AES_BLOCK_SIZE,
-		.cra_ctxsize  = sizeof(struct tegra_se_aes_context),
-		.cra_alignmask = 0,
-		.cra_type = &crypto_ablkcipher_type,
-		.cra_module = THIS_MODULE,
-		.cra_init = tegra_se_aes_cra_init,
-		.cra_exit = tegra_se_aes_cra_exit,
-		.cra_u.ablkcipher = {
-			.min_keysize = TEGRA_SE_AES_MIN_KEY_SIZE,
-			.max_keysize = TEGRA_SE_AES_MAX_KEY_SIZE,
-			.ivsize = TEGRA_SE_AES_IV_SIZE,
-			.setkey = tegra_se_aes_setkey,
-			.encrypt = tegra_se_aes_ecb_encrypt,
-			.decrypt = tegra_se_aes_ecb_decrypt,
-		}
-	}, {
-		.cra_name = "ctr(aes)",
-		.cra_driver_name = "ctr-aes-tegra",
-		.cra_priority = 500,
-		.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
-		.cra_blocksize = TEGRA_SE_AES_BLOCK_SIZE,
-		.cra_ctxsize  = sizeof(struct tegra_se_aes_context),
-		.cra_alignmask = 0,
-		.cra_type = &crypto_ablkcipher_type,
-		.cra_module = THIS_MODULE,
-		.cra_init = tegra_se_aes_cra_init,
-		.cra_exit = tegra_se_aes_cra_exit,
-		.cra_u.ablkcipher = {
-			.min_keysize = TEGRA_SE_AES_MIN_KEY_SIZE,
-			.max_keysize = TEGRA_SE_AES_MAX_KEY_SIZE,
-			.ivsize = TEGRA_SE_AES_IV_SIZE,
-			.setkey = tegra_se_aes_setkey,
-			.encrypt = tegra_se_aes_ctr_encrypt,
-			.decrypt = tegra_se_aes_ctr_decrypt,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-			.geniv = "eseqiv",
-#endif
-		}
-	}, {
-		.cra_name = "ofb(aes)",
-		.cra_driver_name = "ofb-aes-tegra",
-		.cra_priority = 500,
-		.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
-		.cra_blocksize = TEGRA_SE_AES_BLOCK_SIZE,
-		.cra_ctxsize  = sizeof(struct tegra_se_aes_context),
-		.cra_alignmask = 0,
-		.cra_type = &crypto_ablkcipher_type,
-		.cra_module = THIS_MODULE,
-		.cra_init = tegra_se_aes_cra_init,
-		.cra_exit = tegra_se_aes_cra_exit,
-		.cra_u.ablkcipher = {
-			.min_keysize = TEGRA_SE_AES_MIN_KEY_SIZE,
-			.max_keysize = TEGRA_SE_AES_MAX_KEY_SIZE,
-			.ivsize = TEGRA_SE_AES_IV_SIZE,
-			.setkey = tegra_se_aes_setkey,
-			.encrypt = tegra_se_aes_ofb_encrypt,
-			.decrypt = tegra_se_aes_ofb_decrypt,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-			.geniv = "eseqiv",
-#endif
-		}
-	}
+		.base.cra_name		= "xts(aes)",
+		.base.cra_driver_name	= "xts-aes-tegra",
+		.base.cra_priority	= 500,
+		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
+					  CRYPTO_ALG_ASYNC,
+		.base.cra_blocksize	= TEGRA_SE_AES_BLOCK_SIZE,
+		.base.cra_ctxsize	= sizeof(struct tegra_se_aes_context),
+		.base.cra_alignmask	= 0,
+		.base.cra_module	= THIS_MODULE,
+		.init			= tegra_se_aes_cra_init,
+		.exit			= tegra_se_aes_cra_exit,
+		.setkey			= tegra_se_aes_setkey,
+		.encrypt		= tegra_se_aes_xts_encrypt,
+		.decrypt		= tegra_se_aes_xts_decrypt,
+		.min_keysize		= TEGRA_SE_AES_MIN_KEY_SIZE,
+		.max_keysize		= TEGRA_SE_AES_MAX_KEY_SIZE,
+		.ivsize			= TEGRA_SE_AES_IV_SIZE,
+	},
+	{
+		.base.cra_name		= "cbc(aes)",
+		.base.cra_driver_name	= "cbc-aes-tegra",
+		.base.cra_priority	= 500,
+		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
+					  CRYPTO_ALG_ASYNC,
+		.base.cra_blocksize	= TEGRA_SE_AES_BLOCK_SIZE,
+		.base.cra_ctxsize	= sizeof(struct tegra_se_aes_context),
+		.base.cra_alignmask	= 0,
+		.base.cra_module	= THIS_MODULE,
+		.init			= tegra_se_aes_cra_init,
+		.exit			= tegra_se_aes_cra_exit,
+		.setkey			= tegra_se_aes_setkey,
+		.encrypt		= tegra_se_aes_cbc_encrypt,
+		.decrypt		= tegra_se_aes_cbc_decrypt,
+		.min_keysize		= TEGRA_SE_AES_MIN_KEY_SIZE,
+		.max_keysize		= TEGRA_SE_AES_MAX_KEY_SIZE,
+		.ivsize			= TEGRA_SE_AES_IV_SIZE,
+	},
+	{
+		.base.cra_name		= "ecb(aes)",
+		.base.cra_driver_name	= "ecb-aes-tegra",
+		.base.cra_priority	= 500,
+		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
+					  CRYPTO_ALG_ASYNC,
+		.base.cra_blocksize	= TEGRA_SE_AES_BLOCK_SIZE,
+		.base.cra_ctxsize	= sizeof(struct tegra_se_aes_context),
+		.base.cra_alignmask	= 0,
+		.base.cra_module	= THIS_MODULE,
+		.init			= tegra_se_aes_cra_init,
+		.exit			= tegra_se_aes_cra_exit,
+		.setkey			= tegra_se_aes_setkey,
+		.encrypt		= tegra_se_aes_ecb_encrypt,
+		.decrypt		= tegra_se_aes_ecb_decrypt,
+		.min_keysize		= TEGRA_SE_AES_MIN_KEY_SIZE,
+		.max_keysize		= TEGRA_SE_AES_MAX_KEY_SIZE,
+		.ivsize			= TEGRA_SE_AES_IV_SIZE,
+	},
+	{
+		.base.cra_name		= "ctr(aes)",
+		.base.cra_driver_name	= "ctr-aes-tegra",
+		.base.cra_priority	= 500,
+		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
+					  CRYPTO_ALG_ASYNC,
+		.base.cra_blocksize	= TEGRA_SE_AES_BLOCK_SIZE,
+		.base.cra_ctxsize	= sizeof(struct tegra_se_aes_context),
+		.base.cra_alignmask	= 0,
+		.base.cra_module	= THIS_MODULE,
+		.init			= tegra_se_aes_cra_init,
+		.exit			= tegra_se_aes_cra_exit,
+		.setkey			= tegra_se_aes_setkey,
+		.encrypt		= tegra_se_aes_ctr_encrypt,
+		.decrypt		= tegra_se_aes_ctr_decrypt,
+		.min_keysize		= TEGRA_SE_AES_MIN_KEY_SIZE,
+		.max_keysize		= TEGRA_SE_AES_MAX_KEY_SIZE,
+		.ivsize			= TEGRA_SE_AES_IV_SIZE,
+	},
+	{
+		.base.cra_name		= "ofb(aes)",
+		.base.cra_driver_name	= "ofb-aes-tegra",
+		.base.cra_priority	= 500,
+		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
+					  CRYPTO_ALG_ASYNC,
+		.base.cra_blocksize	= TEGRA_SE_AES_BLOCK_SIZE,
+		.base.cra_ctxsize	= sizeof(struct tegra_se_aes_context),
+		.base.cra_alignmask	= 0,
+		.base.cra_module	= THIS_MODULE,
+		.init			= tegra_se_aes_cra_init,
+		.exit			= tegra_se_aes_cra_exit,
+		.setkey			= tegra_se_aes_setkey,
+		.encrypt		= tegra_se_aes_ofb_encrypt,
+		.decrypt		= tegra_se_aes_ofb_decrypt,
+		.min_keysize		= TEGRA_SE_AES_MIN_KEY_SIZE,
+		.max_keysize		= TEGRA_SE_AES_MAX_KEY_SIZE,
+		.ivsize			= TEGRA_SE_AES_IV_SIZE,
+	},
 };
 
 static struct ahash_alg hash_algs[] = {
@@ -4546,8 +4536,8 @@ static int tegra_se_probe(struct platform_device *pdev)
 	}
 
 	if (is_algo_supported(node, "xts")) {
-		INIT_LIST_HEAD(&aes_algs[0].cra_list);
-		err = crypto_register_alg(&aes_algs[0]);
+		INIT_LIST_HEAD(&aes_algs[0].base.cra_list);
+		err = crypto_register_skcipher(&aes_algs[0]);
 		if (err) {
 			dev_err(se_dev->dev,
 				"crypto_register_alg xts failed\n");
@@ -4557,12 +4547,12 @@ static int tegra_se_probe(struct platform_device *pdev)
 
 	if (is_algo_supported(node, "aes")) {
 		for (i = 1; i < ARRAY_SIZE(aes_algs); i++) {
-			INIT_LIST_HEAD(&aes_algs[i].cra_list);
-			err = crypto_register_alg(&aes_algs[i]);
+			INIT_LIST_HEAD(&aes_algs[i].base.cra_list);
+			err = crypto_register_skcipher(&aes_algs[i]);
 			if (err) {
 				dev_err(se_dev->dev,
 					"crypto_register_alg %s failed\n",
-					aes_algs[i].cra_name);
+					aes_algs[i].base.cra_name);
 				goto reg_fail;
 			}
 		}
@@ -4735,12 +4725,12 @@ static int tegra_se_remove(struct platform_device *pdev)
 		crypto_unregister_rng(&rng_algs[0]);
 
 	if (is_algo_supported(node, "xts"))
-		crypto_unregister_alg(&aes_algs[0]);
+		crypto_unregister_skcipher(&aes_algs[0]);
 
 	if (is_algo_supported(node, "aes")) {
-		crypto_unregister_alg(&aes_algs[1]);
+		crypto_unregister_skcipher(&aes_algs[1]);
 		for (i = 2; i < ARRAY_SIZE(aes_algs); i++)
-			crypto_unregister_alg(&aes_algs[i]);
+			crypto_unregister_skcipher(&aes_algs[i]);
 	}
 
 	if (is_algo_supported(node, "cmac"))

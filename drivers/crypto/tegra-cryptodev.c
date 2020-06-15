@@ -158,7 +158,7 @@ static int tegra_crypto_dev_open(struct inode *inode, struct file *filp)
 	 */
 	ctx->aes_tfm[TEGRA_CRYPTO_CBC] =
 		crypto_alloc_skcipher("cbc(aes)",
-		CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC, 0);
+		CRYPTO_ALG_TYPE_SKCIPHER | CRYPTO_ALG_ASYNC, 0);
 	if (IS_ERR(ctx->aes_tfm[TEGRA_CRYPTO_CBC])) {
 		pr_err("Failed to load transform for cbc-aes-tegra: %ld\n",
 			PTR_ERR(ctx->aes_tfm[TEGRA_CRYPTO_CBC]));
@@ -253,7 +253,7 @@ static int process_crypt_req(struct tegra_crypto_ctx *ctx,
 							TEGRA_CRYPTO_MAX);
 
 		tfm = crypto_alloc_skcipher(aes_algo[crypt_req->op],
-			CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC, 0);
+			CRYPTO_ALG_TYPE_SKCIPHER | CRYPTO_ALG_ASYNC, 0);
 		if (IS_ERR(tfm)) {
 			pr_err("Failed to load transform for %s: %ld\n",
 				aes_algo[crypt_req->op], PTR_ERR(tfm));
