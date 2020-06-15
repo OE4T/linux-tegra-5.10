@@ -1,7 +1,7 @@
 /*
  * board-panel.c: Functions definitions for general panel.
  *
- * Copyright (c) 2013-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,8 +32,6 @@
 #include "../dc_priv.h"
 #include "board-panel.h"
 #include "tegra-board-id.h"
-#include "board.h"
-#include "iomap.h"
 #include <linux/platform_data/lp855x.h>
 
 int tegra_bl_notify(struct device *dev, int brightness)
