@@ -2753,10 +2753,12 @@ static int ether_napi_poll_rx(struct napi_struct *napi, int budget)
 	struct ether_priv_data *pdata = rx_napi->pdata;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	unsigned int chan = rx_napi->chan;
+	unsigned int more_data_avail;
 	unsigned long flags;
 	int received = 0;
 
-	received = osi_process_rx_completions(osi_dma, chan, budget);
+	received = osi_process_rx_completions(osi_dma, chan, budget,
+					      &more_data_avail);
 	if (received < budget) {
 		napi_complete(napi);
 		spin_lock_irqsave(&pdata->rlock, flags);
