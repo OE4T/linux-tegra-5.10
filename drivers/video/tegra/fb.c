@@ -6,7 +6,7 @@
  *         Colin Cross <ccross@android.com>
  *         Travis Geiselbrecht <travis@palm.com>
  *
- * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -885,6 +885,18 @@ void tegra_fbcon_set_fb_mode(struct tegra_fb_info *fb_info,
 	fb_blank(fb_info->info, FB_BLANK_UNBLANK);
 }
 
+static int tegra_fb_lock_fb_info(struct fb_info *info)
+{
+	int b_locked_fb_info = 1;
+
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+	b_locked_fb_info = lock_fb_info(info);
+#else
+	lock_fb_info(info);
+#endif
+	return b_locked_fb_info;
+}
+
 void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 			      struct fb_monspecs *specs,
 			      bool (*mode_filter)(const struct tegra_dc *dc,
@@ -901,7 +913,8 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 	}
 
 	console_lock();
-	b_locked_fb_info = lock_fb_info(fb_info->info);
+	b_locked_fb_info = tegra_fb_lock_fb_info(fb_info->info);
+
 	/*
 	 * fb_info modedb shares the same pointer as specs modedb. Avoid freeing
 	 * modedb pointer if specs modedb is still valid. This helps avoid using
@@ -953,6 +966,7 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 
 		if (b_locked_fb_info)
 			unlock_fb_info(fb_info->info);
+
 		console_unlock();
 		return;
 	}
@@ -1004,8 +1018,10 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 		if (!IS_ENABLED(CONFIG_FRAMEBUFFER_CONSOLE))
 			fb_notifier_call_chain(FB_EVENT_NEW_MODELIST, &event);
 	}
+
 	if (b_locked_fb_info)
 		unlock_fb_info(fb_info->info);
+
 	console_unlock();
 }
 
@@ -1015,10 +1031,10 @@ void tegra_fb_update_fix(struct tegra_fb_info *fb_info,
 	struct tegra_dc *dc = fb_info->win.dc;
 	struct tegra_edid *dc_edid = dc->edid;
 	struct fb_fix_screeninfo *fix = &fb_info->info->fix;
-	int	b_locked_fb_info;
+	int	b_locked_fb_info = 0;
 
 	console_lock();
-	b_locked_fb_info = lock_fb_info(fb_info->info);
+	b_locked_fb_info = tegra_fb_lock_fb_info(fb_info->info);
 
 	/* FB_CAP_* and TEGRA_DC_* color depth flags are shifted by 1 */
 	BUILD_BUG_ON((TEGRA_DC_Y420_30 << 1) != FB_CAP_Y420_DC_30);
