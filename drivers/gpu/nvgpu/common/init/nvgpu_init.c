@@ -326,8 +326,6 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	}
 #endif
 
-	nvgpu_device_cleanup(g);
-
 	/* Disable GPCPLL */
 	if (g->ops.clk.suspend_clk_support != NULL) {
 		g->ops.clk.suspend_clk_support(g);
@@ -867,6 +865,8 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 	if (g->ops.ltc.ltc_remove_support != NULL) {
 		g->ops.ltc.ltc_remove_support(g);
 	}
+
+	nvgpu_device_cleanup(g);
 
 	nvgpu_sw_quiesce_remove_support(g);
 

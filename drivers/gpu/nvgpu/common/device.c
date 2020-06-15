@@ -116,6 +116,13 @@ void nvgpu_device_cleanup(struct gk20a *g)
 	u32 i;
 	struct nvgpu_list_node *devlist;
 
+	/*
+	 * Make unit testing a bit easier.
+	 */
+	if (g->devs == NULL) {
+		return;
+	}
+
 	for (i = 0; i < NVGPU_MAX_DEVTYPE; i++) {
 		devlist = &g->devs->devlist_heads[i];
 
