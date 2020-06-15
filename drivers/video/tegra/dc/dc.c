@@ -3813,18 +3813,6 @@ void tegra_dc_incr_syncpt_min(struct tegra_dc *dc, int i, u32 val)
 	mutex_unlock(&dc->lock);
 }
 
-struct sync_fence *tegra_dc_create_fence(struct tegra_dc *dc, int i, u32 val)
-{
-	struct nvhost_ctrl_sync_fence_info syncpt;
-	u32 id = tegra_dc_get_syncpt_id(dc, i);
-
-	syncpt.id = id;
-	syncpt.thresh = val;
-	return nvhost_sync_create_fence(
-			to_platform_device(dc->ndev->dev.parent),
-			&syncpt, 1, dev_name(&dc->ndev->dev));
-}
-
 void
 tegra_dc_config_pwm(struct tegra_dc *dc, struct tegra_dc_pwm_params *cfg)
 {

@@ -6,7 +6,7 @@
  * Author:
  *	Erik Gilling <konkers@google.com>
  *
- * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -831,7 +831,6 @@ int tegra_dc_set_default_videomode(struct tegra_dc *dc);
 u32 tegra_dc_get_syncpt_id(struct tegra_dc *dc, int i);
 u32 tegra_dc_incr_syncpt_max(struct tegra_dc *dc, int i);
 void tegra_dc_incr_syncpt_min(struct tegra_dc *dc, int i, u32 val);
-struct sync_fence *tegra_dc_create_fence(struct tegra_dc *dc, int i, u32 val);
 
 /* needed for tegra/dc/ext/ */
 

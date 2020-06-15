@@ -43,10 +43,6 @@
 #include "../dc_config.h"
 /* XXX ew 3 */
 #include "tegra_dc_ext_priv.h"
-/* XXX ew 4 */
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
-#include "../drivers/staging/android/sync.h"
-#endif
 
 #include "../edid.h"
 
@@ -101,9 +97,7 @@ struct tegra_dc_ext_flip_win {
 	dma_addr_t				phys_addr_u2;
 	dma_addr_t				phys_addr_v2;
 	u32					syncpt_max;
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
-	struct sync_fence			*pre_syncpt_fence;
-#endif
+	struct nvhost_fence			*pre_syncpt_fence;
 	bool					user_nvdisp_win_csc;
 	struct tegra_dc_ext_nvdisp_win_csc		nvdisp_win_csc;
 };
@@ -575,13 +569,10 @@ static int tegra_dc_ext_set_windowattr(struct tegra_dc_ext *ext,
 		dev_err(&ext->dc->ndev->dev,
 				"Window atrributes are invalid.\n");
 
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
 	if (flip_win->pre_syncpt_fence) {
-		sync_fence_wait(flip_win->pre_syncpt_fence, 5000);
-		sync_fence_put(flip_win->pre_syncpt_fence);
-	} else
-#endif
-	if ((s32)flip_win->attr.pre_syncpt_id >= 0) {
+		nvhost_fence_wait(flip_win->pre_syncpt_fence, 5000);
+		nvhost_fence_put(flip_win->pre_syncpt_fence);
+	} else if ((s32)flip_win->attr.pre_syncpt_id >= 0) {
 		nvhost_syncpt_wait_timeout_ext(ext->dc->ndev,
 				flip_win->attr.pre_syncpt_id,
 				flip_win->attr.pre_syncpt_val,
@@ -1541,12 +1532,8 @@ static int tegra_dc_ext_pin_windows(struct tegra_dc_ext_user *user,
 
 		if (syncpt_fd) {
 			if (flip_win->attr.pre_syncpt_fd >= 0) {
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
-				flip_win->pre_syncpt_fence = sync_fence_fdget(
+				flip_win->pre_syncpt_fence = nvhost_fence_get(
 					flip_win->attr.pre_syncpt_fd);
-#else
-				BUG();
-#endif
 			} else {
 				flip_win->attr.pre_syncpt_id = NVSYNCPT_INVALID;
 			}
@@ -2054,12 +2041,10 @@ fail_pin:
 			dma_buf_put(data->win[i].handle[j]->buf);
 			kfree(data->win[i].handle[j]);
 		}
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
-		if (data->win[i].pre_syncpt_fence) {
-			sync_fence_put(data->win[i].pre_syncpt_fence);
-		}
-#endif
 
+		if (data->win[i].pre_syncpt_fence) {
+			nvhost_fence_put(data->win[i].pre_syncpt_fence);
+		}
 	}
 
 	/* Release the COMMON channel in case of failure. */
