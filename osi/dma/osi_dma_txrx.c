@@ -234,7 +234,8 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
 }
 
 int osi_process_rx_completions(struct osi_dma_priv_data *osi,
-			       unsigned int chan, int budget)
+			       unsigned int chan, int budget,
+			       unsigned int *more_data_avail)
 {
 	struct osi_rx_ring *rx_ring = osi->rx_ring[chan];
 	struct osi_rx_pkt_cx *rx_pkt_cx = &rx_ring->rx_pkt_cx;
@@ -245,9 +246,12 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	int received = 0;
 	int ret = 0;
 
-	if (rx_ring->cur_rx_idx >= RX_DESC_CNT) {
+	if (rx_ring->cur_rx_idx >= RX_DESC_CNT || more_data_avail == OSI_NULL) {
 		return -1;
 	}
+
+	/* Reset flag to indicate if more Rx frames available to OSD layer */
+	*more_data_avail = OSI_NONE;
 
 	while (received < budget) {
 		osi_memset(rx_pkt_cx, 0U, sizeof(*rx_pkt_cx));
@@ -332,6 +336,23 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 		osi->dstats.rx_pkt_n =
 			osi_update_stats_counter(osi->dstats.rx_pkt_n, 1UL);
 		received++;
+
+		/* If budget is done, check if HW ring still has unprocessed
+		 * Rx packets, so that the OSD layer can decide to schedule
+		 * this function again.
+		 */
+		if (received == budget) {
+			rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
+			rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
+			if (((rx_swcx->flags & OSI_RX_SWCX_PROCESSED) !=
+			    OSI_RX_SWCX_PROCESSED) &&
+			    ((rx_desc->rdes3 & RDES3_OWN) != RDES3_OWN)) {
+				/* Next desciptor has owned by SW
+				 * So set more data avail flag here.
+				 */
+				*more_data_avail = OSI_ENABLE;
+			}
+		}
 	}
 
 	return received;
