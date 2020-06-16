@@ -336,8 +336,8 @@
 #define TEGRA234_CLK_TACH0			152U
 /** output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_TSEC */
 #define TEGRA234_CLK_TSEC			153U
-/** @brief NAFLL clock source for NVJPG1 */
-#define TEGRA234_CLK_NAFLL_NVJPG1		154U
+/** output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_PKA */
+#define TEGRA234_CLK_TSEC_PKA			154U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_UARTA */
 #define TEGRA234_CLK_UARTA			155U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_UARTB */
@@ -400,18 +400,21 @@
 #define TEGRA234_CLK_NVDISPLAY_P3		184U
 /** @brief output of gate CLK_ENB_PEX2_CORE_10 */
 #define TEGRA234_CLK_PEX2_CORE_10		187U
-
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_UARTI switch divider output (uarti_r_clk) */
+#define TEGRA234_CLK_UARTI			188U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_UARTJ switch divider output (uartj_r_clk) */
+#define TEGRA234_CLK_UARTJ			189U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_UARTH switch divider output */
 #define TEGRA234_CLK_UARTH			190U
 /** @brief ungated version of fuse clk */
 #define TEGRA234_CLK_FUSE_SERIAL		191U
-/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_QSPI0 switch divider output */
-#define TEGRA234_CLK_QSPI0			192U
-/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_QSPI1 switch divider output */
-#define TEGRA234_CLK_QSPI1			193U
-/** @brief output of the divider QSPI_CLK_DIV2_SEL in CLK_RST_CONTROLLER_CLK_SOURCE_QSPI0 */
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_QSPI0 switch divider output (qspi0_2x_pm_clk) */
+#define TEGRA234_CLK_QSPI0_2X_PM		192U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_QSPI1 switch divider output (qspi1_2x_pm_clk) */
+#define TEGRA234_CLK_QSPI1_2X_PM		193U
+/** @brief output of the divider QSPI_CLK_DIV2_SEL in CLK_RST_CONTROLLER_CLK_SOURCE_QSPI0 (qspi0_pm_clk) */
 #define TEGRA234_CLK_QSPI0_PM			194U
-/** @brief output of the divider QSPI_CLK_DIV2_SEL in CLK_RST_CONTROLLER_CLK_SOURCE_QSPI1 */
+/** @brief output of the divider QSPI_CLK_DIV2_SEL in CLK_RST_CONTROLLER_CLK_SOURCE_QSPI1 (qspi1_pm_clk) */
 #define TEGRA234_CLK_QSPI1_PM			195U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_VI_CONST switch divider output */
 #define TEGRA234_CLK_VI_CONST			196U
@@ -441,9 +444,8 @@
 #define TEGRA234_CLK_NAFLL_NVDISPLAYHUB		208U
 /** @brief NAFLL clock source for AXICBB */
 #define TEGRA234_CLK_NAFLL_AXICBB		209U
-
-#define TEGRA234_CLK_UNUSED_210			210U
-
+/** @brief NAFLL clock source for NVJPG1 */
+#define TEGRA234_CLK_NAFLL_NVJPG1		210U
 /** @brief NAFLL clock source for PVA_CORE */
 #define TEGRA234_CLK_NAFLL_PVA_CORE		211U
 /** @brief NAFLL clock source for PVA_VPS */
@@ -798,8 +800,18 @@
 #define TEGRA234_CLK_GBE_PLL1_MGMT		411U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_GBE_PLL2_MGMT switch divider output */
 #define TEGRA234_CLK_GBE_PLL2_MGMT		412U
+/** @brief output of gate CLK_ENB_EQOS_MACSEC_RX */
+#define TEGRA234_CLK_EQOS_MACSEC_RX		413U
+/** @brief output of gate CLK_ENB_EQOS_MACSEC_TX */
+#define TEGRA234_CLK_EQOS_MACSEC_TX		414U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_EQOS_TX_CLK divider ungated output */
+#define TEGRA234_CLK_EQOS_TX_DIVIDER		415U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_NVHS_PLL1_MGMT switch divider output */
+#define TEGRA234_CLK_NVHS_PLL1_MGMT		416U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_EMCHUB mux output */
+#define TEGRA234_CLK_EMCHUB			417U
 
-#define TEGRA234_MAX_PUBLIC_CLK_ID		412U
+#define TEGRA234_MAX_PUBLIC_CLK_ID		417U
 
 /** @} */
 
@@ -811,5 +823,7 @@
 #define TEGRA234_CLK_DLA0_FALCON_MUX		TEGRA234_CLK_DLA0_FALCON
 #define TEGRA234_CLK_DLA1_CORE_MUX		TEGRA234_CLK_DLA1_CORE
 #define TEGRA234_CLK_DLA1_FALCON_MUX		TEGRA234_CLK_DLA1_FALCON
+#define TEGRA234_CLK_QSPI0			TEGRA234_CLK_QSPI0_2X_PM
+#define TEGRA234_CLK_QSPI1			TEGRA234_CLK_QSPI1_2X_PM
 
 #endif
