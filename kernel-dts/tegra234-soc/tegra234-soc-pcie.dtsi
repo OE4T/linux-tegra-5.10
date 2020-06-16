@@ -382,6 +382,12 @@
 		interrupts = <0 53 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
 
+		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
+				    204000000 204000000 408000000  666000000
+				    204000000 408000000 666000000  1066000000
+				    408000000 666000000 1066000000 2133000000 >;
+
+		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229B>;
 
@@ -417,18 +423,22 @@
 		num-lanes = <4>;
 		nvidia,controller-id = <&bpmp 0x6>;
 
-#if 0
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6>;
-#endif
 		reset-names = "core_apb_rst", "core_rst";
 
 		interrupts = <0 352 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
 
+		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
+				    204000000 204000000 408000000  800000000
+				    204000000 408000000 800000000  1600000000
+				    0         0         0          0 >;
+
+		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229D>;
 
@@ -462,18 +472,23 @@
 
 		num-lanes = <8>;
 		nvidia,controller-id = <&bpmp 0x7>;
-#if 0
+
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7>;
-#endif
 		reset-names = "core_apb_rst", "core_rst";
 
 		interrupts = <0 354 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
 
+		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
+				    204000000 204000000 408000000  666000000
+				    204000000 408000000 666000000  1066000000
+				    408000000 666000000 1066000000 2133000000 >;
+
+		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229B>;
 
@@ -507,18 +522,23 @@
 
 		num-lanes = <4>;
 		nvidia,controller-id = <&bpmp 0xa>;
-#if 0
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_10>;
+
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10>;
-#endif
 		reset-names = "core_apb_rst", "core_rst";
 
 		interrupts = <0 360 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
 
+		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
+				    204000000 204000000 408000000  800000000
+				    204000000 408000000 800000000  1600000000
+				    0         0         0          0 >;
+
+		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229D>;
 
@@ -943,13 +963,12 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
-#if 0
+
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6>;
-#endif
 		reset-names = "core_apb_rst", "core_rst";
 
 		interrupts = <0 352 0x04>,	/* controller interrupt */
@@ -1010,13 +1029,12 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <8>;
-#if 0
+
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7>;
-#endif
 		reset-names = "core_apb_rst", "core_rst";
 
 		interrupts = <0 354 0x04>,	/* controller interrupt */
@@ -1077,13 +1095,12 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
-#if 0
+
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_8>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_8_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_8>;
-#endif
 		reset-names = "core_apb_rst", "core_rst";
 
 		interrupts = <0 356 0x04>,	/* controller interrupt */
@@ -1144,13 +1161,12 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
-#if 0
+
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_9>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_9_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_9>;
-#endif
 		reset-names = "core_apb_rst", "core_rst";
 
 		interrupts = <0 358 0x04>,	/* controller interrupt */
@@ -1211,13 +1227,12 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
-#if 0
+
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10>;
-#endif
 		reset-names = "core_apb_rst", "core_rst";
 
 		interrupts = <0 360 0x04>,	/* controller interrupt */
