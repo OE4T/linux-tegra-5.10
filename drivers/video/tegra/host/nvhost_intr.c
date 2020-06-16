@@ -219,9 +219,7 @@ static void action_signal_sync_pt(struct nvhost_waitlist *waiter)
 	nvhost_sync_pt_signal(pt, ktime_to_ns(time));
 #elif IS_ENABLED(CONFIG_SYNC_FILE)
 	struct dma_fence *fence = waiter->data;
-
 	dma_fence_signal(fence);
-	dma_fence_put(fence);
 #endif
 #endif
 }

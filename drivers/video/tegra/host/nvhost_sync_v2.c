@@ -192,9 +192,6 @@ static struct dma_fence *nvhost_dma_fence_create_single(
 		return ERR_PTR(err);
 	}
 
-	/* Retain handle so that fence stays alive for intr callback */
-	dma_fence_get((struct dma_fence *)f);
-
 	return (struct dma_fence *)f;
 }
 
