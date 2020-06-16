@@ -1,0 +1,56 @@
+From fb62e693bb87aa117ba7a27d1962e2fc74bf0aa9 Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Fri, 31 Jan 2020 16:07:08 +0100
+Subject: [PATCH 040/219] locking/percpu-rwsem: Remove the embedded rwsem
+
+The filesystem freezer uses percpu-rwsem in a way that is effectively
+write_non_owner() and achieves this with a few horrible hacks that
+rely on the rwsem (!percpu) implementation.
+
+When PREEMPT_RT replaces the rwsem implementation with a PI aware
+variant this comes apart.
+
+Remove the embedded rwsem and implement it using a waitqueue and an
+atomic_t.
+
+ - make readers_block an atomic, and use it, with the waitqueue
+   for a blocking test-and-set write-side.
+
+ - have the read-side wait for the 'lock' state to clear.
+
+Have the waiters use FIFO queueing and mark them (reader/writer) with
+a new WQ_FLAG. Use a custom wake_function to wake either a single
+writer or all readers until a writer.
+
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Tested-by: Juri Lelli <juri.lelli@redhat.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/locking/rwsem.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
+index f9d1e0b..f11b9bd 100644
+--- a/kernel/locking/rwsem.c
++++ b/kernel/locking/rwsem.c
+@@ -1380,7 +1380,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
+-inline void __down_write(struct rw_semaphore *sem)
++static inline void __down_write(struct rw_semaphore *sem)
+ {
+ 	long tmp = RWSEM_UNLOCKED_VALUE;
+ 
+@@ -1443,7 +1443,7 @@ static inline void __up_read(struct rw_semaphore *sem)
+ /*
+  * unlock after writing
+  */
+-inline void __up_write(struct rw_semaphore *sem)
++static inline void __up_write(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 
+-- 
+2.7.4
+

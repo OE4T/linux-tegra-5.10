@@ -1,0 +1,35 @@
+From 30e70f1af6c8728c3124e7a4080c3acae76d7a4a Mon Sep 17 00:00:00 2001
+From: Scott Wood <swood@redhat.com>
+Date: Sat, 27 Jul 2019 00:56:32 -0500
+Subject: [PATCH 043/219] sched: __set_cpus_allowed_ptr(): Check cpus_mask, not
+ cpus_ptr
+
+This function is concerned with the long-term cpu mask, not the
+transitory mask the task might have while migrate disabled.  Before
+this patch, if a task was migrate disabled at the time
+__set_cpus_allowed_ptr() was called, and the new mask happened to be
+equal to the cpu that the task was running on, then the mask update
+would be lost.
+
+Signed-off-by: Scott Wood <swood@redhat.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/sched/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 9a2fbf9..52f56d2 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -1637,7 +1637,7 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
+ 		goto out;
+ 	}
+ 
+-	if (cpumask_equal(p->cpus_ptr, new_mask))
++	if (cpumask_equal(&p->cpus_mask, new_mask))
+ 		goto out;
+ 
+ 	/*
+-- 
+2.7.4
+

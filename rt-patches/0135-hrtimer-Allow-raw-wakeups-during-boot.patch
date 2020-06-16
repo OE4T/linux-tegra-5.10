@@ -1,0 +1,39 @@
+From e53484b2c938d77979bdf8059b3aa54258821fdd Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Fri, 9 Aug 2019 15:25:21 +0200
+Subject: [PATCH 098/219] hrtimer: Allow raw wakeups during boot
+
+There are a few wake-up timers during the early boot which are essencial for
+the system to make progress. At this stage there are no softirq spawn for the
+softirq processing so there is no timer processing in softirq.
+The wakeup in question:
+
+smpboot_create_thread()
+ -> kthread_create_on_cpu()
+    -> kthread_bind()
+       -> wait_task_inactive()
+         -> schedule_hrtimeout()
+
+Let the timer fire in hardirq context during the system boot.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/time/hrtimer.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
+index d89da1c..ab4fbd9 100644
+--- a/kernel/time/hrtimer.c
++++ b/kernel/time/hrtimer.c
+@@ -1824,7 +1824,7 @@ static void __hrtimer_init_sleeper(struct hrtimer_sleeper *sl,
+ 	 * expiry.
+ 	 */
+ 	if (IS_ENABLED(CONFIG_PREEMPT_RT)) {
+-		if (task_is_realtime(current) && !(mode & HRTIMER_MODE_SOFT))
++		if ((task_is_realtime(current) && !(mode & HRTIMER_MODE_SOFT)) || system_state != SYSTEM_RUNNING)
+ 			mode |= HRTIMER_MODE_HARD;
+ 	}
+ 
+-- 
+2.7.4
+

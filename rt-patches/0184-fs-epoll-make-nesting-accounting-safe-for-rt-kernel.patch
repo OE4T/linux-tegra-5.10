@@ -1,0 +1,71 @@
+From 1a73ed43085f563409f3a1e03195843fc497ec3c Mon Sep 17 00:00:00 2001
+From: Jason Baron <jbaron@akamai.com>
+Date: Fri, 17 Jan 2020 14:16:47 -0500
+Subject: [PATCH 147/219] fs/epoll: make nesting accounting safe for -rt kernel
+
+Davidlohr Bueso pointed out that when CONFIG_DEBUG_LOCK_ALLOC is set
+ep_poll_safewake() can take several non-raw spinlocks after disabling
+pre-emption which is no no for the -rt kernel. So let's re-work how we
+determine the nesting level such that it plays nicely with -rt kernel.
+
+Let's introduce a 'nests' field in struct eventpoll that records the
+current nesting level during ep_poll_callback(). Then, if we nest again we
+can find the previous struct eventpoll that we were called from and
+increase our count by 1. The 'nests' field is protected by
+ep->poll_wait.lock.
+
+I've also moved napi_id field into a hole in struct eventpoll as part of
+introduing the nests field. This change reduces the struct eventpoll from
+184 bytes to 176 bytes on x86_64 for the !CONFIG_DEBUG_LOCK_ALLOC
+production config.
+
+Reported-by: Davidlohr Bueso <dbueso@suse.de>
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ fs/eventpoll.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/fs/eventpoll.c b/fs/eventpoll.c
+index 12eebcd..7a3ae569 100644
+--- a/fs/eventpoll.c
++++ b/fs/eventpoll.c
+@@ -218,7 +218,6 @@ struct eventpoll {
+ 	struct file *file;
+ 
+ 	/* used to optimize loop detection check */
+-	struct list_head visited_list_link;
+ 	int visited;
+ 
+ #ifdef CONFIG_NET_RX_BUSY_POLL
+@@ -226,8 +225,10 @@ struct eventpoll {
+ 	unsigned int napi_id;
+ #endif
+ 
++	struct list_head visited_list_link;
++
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+-	/* tracks wakeup nests for lockdep validation */
++	/* used to track wakeup nests for lockdep validation */
+ 	u8 nests;
+ #endif
+ };
+@@ -570,6 +571,15 @@ static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
+ 	 * wakeup chain then we use its nests value and record ours as
+ 	 * nests + 1. The previous epoll file nests value is stable since its
+ 	 * already holding its own poll_wait.lock.
++	 * If we are not being call from ep_poll_callback(), epi is
++	 * NULL and we are at the first level of nesting, 0. Otherwise,
++	 * we are being called from ep_poll_callback() and if a previous
++	 * wakeup source is not an epoll file itself, we are at depth
++	 * 1 since the wakeup source is depth 0. If the wakeup source
++	 * is a previous epoll file in the wakeup chain then we use its
++	 * nests value and record ours as nests + 1. The previous epoll
++	 * file nests value is stable since its already holding its
++	 * own poll_wait.lock.
+ 	 */
+ 	if (epi) {
+ 		if ((is_file_epoll(epi->ffd.file))) {
+-- 
+2.7.4
+

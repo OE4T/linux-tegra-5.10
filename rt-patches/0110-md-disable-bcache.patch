@@ -1,0 +1,41 @@
+From 3576ae6f3800b1b90a8eb3df84de8ed09ea9bd27 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Thu, 29 Aug 2013 11:48:57 +0200
+Subject: [PATCH 073/219] md: disable bcache
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+It uses anon semaphores
+|drivers/md/bcache/request.c: In function ‘cached_dev_write_complete’:
+|drivers/md/bcache/request.c:1007:2: error: implicit declaration of function ‘up_read_non_owner’ [-Werror=implicit-function-declaration]
+|  up_read_non_owner(&dc->writeback_lock);
+|  ^
+|drivers/md/bcache/request.c: In function ‘request_write’:
+|drivers/md/bcache/request.c:1033:2: error: implicit declaration of function ‘down_read_non_owner’ [-Werror=implicit-function-declaration]
+|  down_read_non_owner(&dc->writeback_lock);
+|  ^
+
+either we get rid of those or we have to introduce them…
+
+Link: http://lkml.kernel.org/r/20130820111602.3cea203c@gandalf.local.home
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/md/bcache/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/md/bcache/Kconfig b/drivers/md/bcache/Kconfig
+index 6dfa653..29c35eb 100644
+--- a/drivers/md/bcache/Kconfig
++++ b/drivers/md/bcache/Kconfig
+@@ -2,6 +2,7 @@
+ 
+ config BCACHE
+ 	tristate "Block device as cache"
++	depends on !PREEMPT_RT
+ 	select CRC64
+ 	help
+ 	Allows a block device to be used as cache for other devices; uses
+-- 
+2.7.4
+

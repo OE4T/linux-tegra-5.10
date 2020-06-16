@@ -1,0 +1,77 @@
+From 0b2e69270767747a2cc8f3d36cc2ffe12015ea9c Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Fri, 26 Jul 2019 11:30:49 +0200
+Subject: [PATCH 042/219] Use CONFIG_PREEMPTION
+
+Thisi is an all-in-one patch of the current `PREEMPTION' branch.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ Documentation/RCU/checklist.txt | 4 ++--
+ Documentation/RCU/stallwarn.txt | 4 ++--
+ arch/powerpc/kernel/traps.c     | 7 ++++++-
+ 3 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/RCU/checklist.txt b/Documentation/RCU/checklist.txt
+index e98ff26..087dc6c 100644
+--- a/Documentation/RCU/checklist.txt
++++ b/Documentation/RCU/checklist.txt
+@@ -210,8 +210,8 @@ over a rather long period of time, but improvements are always welcome!
+ 	the rest of the system.
+ 
+ 7.	As of v4.20, a given kernel implements only one RCU flavor,
+-	which is RCU-sched for PREEMPT=n and RCU-preempt for PREEMPT=y.
+-	If the updater uses call_rcu() or synchronize_rcu(),
++	which is RCU-sched for PREEMPTION=n and RCU-preempt for
++	PREEMPTION=y. If the updater uses call_rcu() or synchronize_rcu(),
+ 	then the corresponding readers my use rcu_read_lock() and
+ 	rcu_read_unlock(), rcu_read_lock_bh() and rcu_read_unlock_bh(),
+ 	or any pair of primitives that disables and re-enables preemption,
+diff --git a/Documentation/RCU/stallwarn.txt b/Documentation/RCU/stallwarn.txt
+index a360a87..376ff68 100644
+--- a/Documentation/RCU/stallwarn.txt
++++ b/Documentation/RCU/stallwarn.txt
+@@ -20,7 +20,7 @@ o	A CPU looping with preemption disabled.
+ 
+ o	A CPU looping with bottom halves disabled.
+ 
+-o	For !CONFIG_PREEMPT kernels, a CPU looping anywhere in the kernel
++o	For !CONFIG_PREEMPTION kernels, a CPU looping anywhere in the kernel
+ 	without invoking schedule().  If the looping in the kernel is
+ 	really expected and desirable behavior, you might need to add
+ 	some calls to cond_resched().
+@@ -39,7 +39,7 @@ o	Anything that prevents RCU's grace-period kthreads from running.
+ 	result in the "rcu_.*kthread starved for" console-log message,
+ 	which will include additional debugging information.
+ 
+-o	A CPU-bound real-time task in a CONFIG_PREEMPT kernel, which might
++o	A CPU-bound real-time task in a CONFIG_PREEMPTION kernel, which might
+ 	happen to preempt a low-priority task in the middle of an RCU
+ 	read-side critical section.   This is especially damaging if
+ 	that low-priority task is not permitted to run on any other CPU,
+diff --git a/arch/powerpc/kernel/traps.c b/arch/powerpc/kernel/traps.c
+index c6566cc..22a8b15 100644
+--- a/arch/powerpc/kernel/traps.c
++++ b/arch/powerpc/kernel/traps.c
+@@ -260,12 +260,17 @@ static char *get_mmu_str(void)
+ 
+ static int __die(const char *str, struct pt_regs *regs, long err)
+ {
++	const char *pr = "";
++
+ 	printk("Oops: %s, sig: %ld [#%d]\n", str, err, ++die_counter);
+ 
++	if (IS_ENABLED(CONFIG_PREEMPTION))
++		pr = IS_ENABLED(CONFIG_PREEMPT_RT) ? " PREEMPT_RT" : " PREEMPT";
++
+ 	printk("%s PAGE_SIZE=%luK%s%s%s%s%s%s %s\n",
+ 	       IS_ENABLED(CONFIG_CPU_LITTLE_ENDIAN) ? "LE" : "BE",
+ 	       PAGE_SIZE / 1024, get_mmu_str(),
+-	       IS_ENABLED(CONFIG_PREEMPT) ? " PREEMPT" : "",
++	       pr,
+ 	       IS_ENABLED(CONFIG_SMP) ? " SMP" : "",
+ 	       IS_ENABLED(CONFIG_SMP) ? (" NR_CPUS=" __stringify(NR_CPUS)) : "",
+ 	       debug_pagealloc_enabled() ? " DEBUG_PAGEALLOC" : "",
+-- 
+2.7.4
+

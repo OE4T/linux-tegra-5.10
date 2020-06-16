@@ -1,0 +1,37 @@
+From 28265d27ca7bc5760193d39230b56ea1994ce554 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Thu, 29 Jan 2015 15:10:08 +0100
+Subject: [PATCH 150/219] block/mq: don't complete requests via IPI
+
+The IPI runs in hardirq context and there are sleeping locks. Assume caches are
+shared and complete them on the local CPU.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ block/blk-mq.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/block/blk-mq.c b/block/blk-mq.c
+index 0cefa11..dff5bb9 100644
+--- a/block/blk-mq.c
++++ b/block/blk-mq.c
+@@ -590,8 +590,16 @@ static void __blk_mq_complete_request(struct request *rq)
+ 	}
+ 
+ 	cpu = get_cpu_light();
++	/*
++	 * Avoid SMP function calls for completions because they acquire
++	 * sleeping spinlocks on RT.
++	 */
++#ifdef CONFIG_PREEMPT_RT
++	shared = true;
++#else
+ 	if (!test_bit(QUEUE_FLAG_SAME_FORCE, &q->queue_flags))
+ 		shared = cpus_share_cache(cpu, ctx->cpu);
++#endif
+ 
+ 	if (cpu != ctx->cpu && !shared && cpu_online(ctx->cpu)) {
+ 		rq->csd.func = __blk_mq_complete_request_remote;
+-- 
+2.7.4
+

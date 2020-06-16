@@ -1,0 +1,49 @@
+From c3d36cd868870a9bd68d894e8a82db8447b1aeed Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Fri, 6 Mar 2020 15:59:06 +0100
+Subject: [PATCH 052/219] mm: Warn on memory allocation in non-preemptible
+ context on RT
+
+The memory allocation via kmalloc(, GFP_ATOMIC) in atomic context
+(disabled preemption or interrupts) is not allowed on RT because the
+buddy allocator is using sleeping locks which can't be acquired in this
+context.
+Such an an allocation may not trigger a warning in the buddy allocator
+if it is always satisfied in the SLUB allocator.
+
+Add a warning on RT if a memory allocation was attempted in not
+preemptible region.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reviewed-by: Daniel Bristot de Oliveira <bristot@redhat.com>
+---
+ mm/slub.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/mm/slub.c b/mm/slub.c
+index b762450f..b21b017 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -2718,6 +2718,9 @@ static __always_inline void *slab_alloc_node(struct kmem_cache *s,
+ 	struct page *page;
+ 	unsigned long tid;
+ 
++	if (IS_ENABLED(CONFIG_PREEMPT_RT) && IS_ENABLED(CONFIG_DEBUG_ATOMIC_SLEEP))
++		WARN_ON_ONCE(!preemptible() && system_state >= SYSTEM_SCHEDULING);
++
+ 	s = slab_pre_alloc_hook(s, gfpflags);
+ 	if (!s)
+ 		return NULL;
+@@ -3179,6 +3182,9 @@ int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
+ 	struct kmem_cache_cpu *c;
+ 	int i;
+ 
++	if (IS_ENABLED(CONFIG_PREEMPT_RT) && IS_ENABLED(CONFIG_DEBUG_ATOMIC_SLEEP))
++		WARN_ON_ONCE(!preemptible() && system_state >= SYSTEM_SCHEDULING);
++
+ 	/* memcg and kmem_cache debug support */
+ 	s = slab_pre_alloc_hook(s, flags);
+ 	if (unlikely(!s))
+-- 
+2.7.4
+

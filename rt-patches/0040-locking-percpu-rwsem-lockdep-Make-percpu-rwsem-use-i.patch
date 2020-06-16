@@ -1,0 +1,41 @@
+From fba1b0032b5834934b4b40ffa1fa8213ff022db0 Mon Sep 17 00:00:00 2001
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Fri, 31 Jan 2020 16:07:04 +0100
+Subject: [PATCH 039/219] locking/percpu-rwsem, lockdep: Make percpu-rwsem use
+ its own lockdep_map
+
+As preparation for replacing the embedded rwsem, give percpu-rwsem its
+own lockdep_map.
+
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Tested-by: Juri Lelli <juri.lelli@redhat.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/locking/rwsem.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
+index f11b9bd..f9d1e0b 100644
+--- a/kernel/locking/rwsem.c
++++ b/kernel/locking/rwsem.c
+@@ -1380,7 +1380,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
+-static inline void __down_write(struct rw_semaphore *sem)
++inline void __down_write(struct rw_semaphore *sem)
+ {
+ 	long tmp = RWSEM_UNLOCKED_VALUE;
+ 
+@@ -1443,7 +1443,7 @@ static inline void __up_read(struct rw_semaphore *sem)
+ /*
+  * unlock after writing
+  */
+-static inline void __up_write(struct rw_semaphore *sem)
++inline void __up_write(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 
+-- 
+2.7.4
+

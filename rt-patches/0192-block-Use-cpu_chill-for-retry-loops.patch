@@ -1,0 +1,43 @@
+From 895f190a72750b13db1c700350e11d76a8e0c9f2 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 20 Dec 2012 18:28:26 +0100
+Subject: [PATCH 155/219] block: Use cpu_chill() for retry loops
+
+Retry loops on RT might loop forever when the modifying side was
+preempted. Steven also observed a live lock when there was a
+concurrent priority boosting going on.
+
+Use cpu_chill() instead of cpu_relax() to let the system
+make progress.
+
+[bigeasy: After all those changes that occured over the years, this one hunk is
+left and should not cause any starvation on -RT anymore]
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ block/blk-ioc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/block/blk-ioc.c b/block/blk-ioc.c
+index 9df50fb..10244a1 100644
+--- a/block/blk-ioc.c
++++ b/block/blk-ioc.c
+@@ -9,6 +9,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/slab.h>
+ #include <linux/sched/task.h>
++#include <linux/delay.h>
+ 
+ #include "blk.h"
+ 
+@@ -116,7 +117,7 @@ static void ioc_release_fn(struct work_struct *work)
+ 			spin_unlock(&q->queue_lock);
+ 		} else {
+ 			spin_unlock_irqrestore(&ioc->lock, flags);
+-			cpu_relax();
++			cpu_chill();
+ 			spin_lock_irqsave_nested(&ioc->lock, flags, 1);
+ 		}
+ 	}
+-- 
+2.7.4
+

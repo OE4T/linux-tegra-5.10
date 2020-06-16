@@ -1,0 +1,70 @@
+From d8e6f04c130e7b3cd0fcb3cb7679f5bf5bc337c6 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 24 Feb 2020 15:01:32 +0100
+Subject: [PATCH 041/219] bpf: Tighten the requirements for preallocated hash
+ maps
+
+The assumption that only programs attached to perf NMI events can deadlock
+on memory allocators is wrong. Assume the following simplified callchain:
+
+ kmalloc() from regular non BPF context
+  cache empty
+   freelist empty
+    lock(zone->lock);
+     tracepoint or kprobe
+      BPF()
+       update_elem()
+        lock(bucket)
+          kmalloc()
+           cache empty
+            freelist empty
+             lock(zone->lock);  <- DEADLOCK
+
+There are other ways which do not involve locking to create wreckage:
+
+ kmalloc() from regular non BPF context
+  local_irq_save();
+   ...
+    obj = slab_first();
+     kprobe()
+      BPF()
+       update_elem()
+        lock(bucket)
+         kmalloc()
+          local_irq_save();
+           ...
+            obj = slab_first(); <- Same object as above ...
+
+So preallocation _must_ be enforced for all variants of intrusive
+instrumentation.
+
+Unfortunately immediate enforcement would break backwards compatibility, so
+for now such programs still are allowed to run, but a one time warning is
+emitted in dmesg and the verifier emits a warning in the verifier log as
+well so developers are made aware about this and can fix their programs
+before the enforcement becomes mandatory.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/bpf/verifier.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
+index efe14cf..ea7514d 100644
+--- a/kernel/bpf/verifier.c
++++ b/kernel/bpf/verifier.c
+@@ -8799,6 +8799,10 @@ static int check_map_prog_compatibility(struct bpf_verifier_env *env,
+ 	 * !RT kernels it is allowed for backwards compatibility reasons for
+ 	 * now, but warnings are emitted so developers are made aware of
+ 	 * the unsafety and can fix their programs before this is enforced.
++	 * For now running such programs is allowed for backwards
++	 * compatibility reasons, but warnings are emitted so developers are
++	 * made aware of the unsafety and can fix their programs before this
++	 * is enforced.
+ 	 */
+ 	if (is_tracing_prog_type(prog->type) && !is_preallocated_map(map)) {
+ 		if (prog->type == BPF_PROG_TYPE_PERF_EVENT) {
+-- 
+2.7.4
+
