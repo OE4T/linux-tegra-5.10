@@ -289,6 +289,128 @@ static const struct file_operations boot_dce_fops = {
 	.write =	dbg_dce_boot_dce_fops_write,
 };
 
+static ssize_t dbg_dce_boot_status_fops_read(struct file *file,
+					     char __user *user_buf,
+					     size_t count, loff_t *ppos)
+{
+	char buf[32];
+	u32 last_status;
+	ssize_t len = 0;
+	unsigned long *addr;
+	struct tegra_dce *d = file->private_data;
+	u32 boot_status = d->boot_status;
+	hsp_sema_t ss = dce_ss_get_state(d, DCE_BOOT_SEMA);
+
+	if (ss & DCE_BOOT_COMPLETE)
+		goto core_boot_done;
+
+	/* Clear BOOT_COMPLETE bit and bits set by OS */
+	ss &= ~(DCE_OS_BITMASK | DCE_BOOT_COMPLETE);
+	addr = (unsigned long *)&ss;
+	last_status = DCE_BIT(find_first_bit(addr, 32));
+
+	switch (last_status) {
+	case DCE_HALTED:
+		strcpy(buf, "DCE_HALTED");
+		break;
+	case DCE_BOOT_TCM_COPY:
+		strcpy(buf, "TCM_COPY");
+		break;
+	case DCE_BOOT_HW_INIT:
+		strcpy(buf, "HW_INIT");
+		break;
+	case DCE_BOOT_MPU_INIT:
+		strcpy(buf, "MPU_INIT:");
+		break;
+	case DCE_BOOT_CACHE_INIT:
+		strcpy(buf, "CACHE_INIT");
+		break;
+	case DCE_BOOT_R5_INIT:
+		strcpy(buf, "R5_INIT");
+		break;
+	case DCE_BOOT_DRIVER_INIT:
+		strcpy(buf, "DRIVER_INIT");
+		break;
+	case DCE_BOOT_MAIN_STARTED:
+		strcpy(buf, "MAIN_STARTED");
+		break;
+	case DCE_BOOT_TASK_INIT_START:
+		strcpy(buf, "TASK_INIT_STARTED");
+		break;
+	case DCE_BOOT_TASK_INIT_DONE:
+		strcpy(buf, "TASK_INIT_DONE");
+		break;
+	default:
+		strcpy(buf, "STATUS_UNKNOWN");
+		break;
+	}
+	goto done;
+
+core_boot_done:
+	/* Clear DCE_STATUS_FAILED bit get actual failure reason*/
+	boot_status &= ~DCE_STATUS_FAILED;
+	addr = (unsigned long *)&boot_status;
+	last_status = DCE_BIT(find_first_bit(addr, 32));
+
+	switch (last_status) {
+	case DCE_FW_BOOT_DONE:
+		strcpy(buf, "DCE_FW_BOOT_DONE");
+		break;
+	case DCE_FW_ADMIN_SEQ_DONE:
+		strcpy(buf, "DCE_FW_ADMIN_SEQ_DONE");
+		break;
+	case DCE_FW_ADMIN_SEQ_FAILED:
+		strcpy(buf, "DCE_FW_ADMIN_SEQ_FAILED");
+		break;
+	case DCE_FW_ADMIN_SEQ_START:
+		strcpy(buf, "DCE_FW_ADMIN_SEQ_STARTED");
+		break;
+	case DCE_FW_BOOTSTRAP_DONE:
+		strcpy(buf, "DCE_FW_BOOTSTRAP_DONE");
+		break;
+	case DCE_FW_BOOTSTRAP_FAILED:
+		strcpy(buf, "DCE_FW_BOOTSTRAP_FAILED");
+		break;
+	case DCE_FW_BOOTSTRAP_START:
+		strcpy(buf, "DCE_FW_BOOTSTRAP_STARTED");
+		break;
+	case DCE_FW_EARLY_BOOT_FAILED:
+		strcpy(buf, "DCE_FW_EARLY_BOOT_FAILED");
+		break;
+	case DCE_FW_EARLY_BOOT_DONE:
+		strcpy(buf, "DCE_FW_EARLY_BOOT_DONE");
+		break;
+	case DCE_AST_CONFIG_DONE:
+		strcpy(buf, "DCE_AST_CONFIG_DONE");
+		break;
+	case DCE_AST_CONFIG_START:
+		strcpy(buf, "DCE_AST_CONFIG_STARTED");
+		break;
+	case DCE_EARLY_INIT_DONE:
+		strcpy(buf, "DCE_EARLY_INIT_DONE");
+		break;
+	case DCE_EARLY_INIT_FAILED:
+		strcpy(buf, "DCE_EARLY_INIT_FAILED");
+		break;
+	case DCE_EARLY_INIT_START:
+		strcpy(buf, "DCE_EARLY_INIT_STARTED");
+		break;
+	default:
+		strcpy(buf, "STATUS_UNKNOWN");
+	}
+
+done:
+	len = strlen(buf);
+	buf[len] = '\0';
+	dce_info(d, "boot status:%s status_val:0x%x\n", buf, d->boot_status);
+	return simple_read_from_buffer(user_buf, count, ppos, buf, len + 1);
+}
+
+static const struct file_operations boot_status_fops = {
+	.open	= simple_open,
+	.read	= dbg_dce_boot_status_fops_read,
+};
+
 void dce_remove_debug(struct tegra_dce *d)
 {
 	struct dce_device *d_dev = dce_device_from_dce(d);
@@ -381,32 +503,32 @@ void dce_init_debug(struct tegra_dce *d)
 		return;
 
 	retval = debugfs_create_file("load_fw", 0444,
-				d_dev->debugfs, d, &load_firmware_fops);
+				     d_dev->debugfs, d, &load_firmware_fops);
 	if (!retval)
 		goto err_handle;
 
 	retval = debugfs_create_file("config_ast", 0444,
-				d_dev->debugfs, d, &config_ast_fops);
+				     d_dev->debugfs, d, &config_ast_fops);
 	if (!retval)
 		goto err_handle;
 
-	retval = debugfs_create_file("reset_dce", 0444,
-				d_dev->debugfs, d, &reset_dce_fops);
+	retval = debugfs_create_file("reset", 0444,
+				     d_dev->debugfs, d, &reset_dce_fops);
 	if (!retval)
 		goto err_handle;
 
-	retval = debugfs_create_file("boot_dce", 0444,
-				d_dev->debugfs, d, &boot_dce_fops);
+	retval = debugfs_create_file("boot", 0444,
+				     d_dev->debugfs, d, &boot_dce_fops);
 	if (!retval)
 		goto err_handle;
 
-	retval = debugfs_create_bool("boot_status", 0644,
-				d_dev->debugfs, &d->boot_complete);
+	retval = debugfs_create_file("boot_status", 0444,
+				     d_dev->debugfs, d, &boot_status_fops);
 	if (!retval)
 		goto err_handle;
 
 	retval = debugfs_create_file("dump_hsp_regs", 0444,
-				d_dev->debugfs, d, &dump_hsp_regs_fops);
+				     d_dev->debugfs, d, &dump_hsp_regs_fops);
 	if (!retval)
 		goto err_handle;
 

@@ -51,6 +51,7 @@ err_worker_thread_init:
 err_admin_interface_init:
 	dce_boot_interface_deinit(d);
 err_boot_interface_init:
+	d->boot_status |= DCE_STATUS_FAILED;
 	return ret;
 }
 

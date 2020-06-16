@@ -41,6 +41,7 @@ typedef uint32_t				hsp_sema_t;
 #define DCE_WAIT_DEBUG		DCE_BIT(30)	// wait in debug loop
 #define DCE_SC7_RESUME		DCE_BIT(29)	// resume using saved SC7 state
 						// rather than a full restart
+#define DCE_OS_BITMASK		(DCE_BOOT_INT | DCE_WAIT_DEBUG | DCE_SC7_RESUME)
 
 /*
  * Bits set by the R5 and examined by the OS

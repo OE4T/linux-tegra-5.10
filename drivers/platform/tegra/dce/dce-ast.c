@@ -576,10 +576,12 @@ void dce_config_ast(struct tegra_dce *d)
 	u32 slave_addr;
 	u64 master_addr;
 
+	d->boot_status |= DCE_AST_CONFIG_START;
 	slave_addr = dce_get_fw_dce_addr(d);
 
 	if (!d->fw_data) {
-		dce_err(d, "No fw_data present");
+		dce_err(d, "DCE_BOOT_FAILED: No fw_data present");
+		d->boot_status |= DCE_AST_CONFIG_FAILED;
 		return;
 	}
 
@@ -599,4 +601,5 @@ void dce_config_ast(struct tegra_dce *d)
 			ast_slave_addr_fn[i][j](d, slave_addr);
 		}
 	}
+	d->boot_status |= DCE_AST_CONFIG_DONE;
 }

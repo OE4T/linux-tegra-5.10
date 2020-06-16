@@ -96,7 +96,10 @@ int dce_wait_boot_complete(struct tegra_dce *d)
 boot_done:
 	if (!ret) {
 		dce_set_boot_complete(d, true);
+		d->boot_status |= DCE_FW_EARLY_BOOT_DONE;
 		dce_info(d, "dce is ready to receive bootstrap commands");
+	} else {
+		d->boot_status |= DCE_FW_EARLY_BOOT_FAILED;
 	}
 	return ret;
 }
@@ -702,6 +705,7 @@ int dce_start_bootstrap_flow(struct tegra_dce *d)
 	u32 val;
 	int ret = 0;
 
+	d->boot_status |= DCE_FW_BOOTSTRAP_START;
 	ret = dce_send_version_cmd(d);
 	if (ret) {
 		dce_err(d, "Sending of bootstrap cmd VERSION failed");
@@ -744,9 +748,11 @@ int dce_start_bootstrap_flow(struct tegra_dce *d)
 		goto err_sending;
 	}
 
+	d->boot_status |= DCE_FW_BOOTSTRAP_DONE;
 	return 0;
 
 err_sending:
 	dce_err(d, "Bootstrap process failed");
+	d->boot_status |= DCE_FW_BOOTSTRAP_FAILED;
 	return ret;
 }

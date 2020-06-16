@@ -29,6 +29,33 @@
 
 #define DCE_MAX_CPU_IRQS 4
 
+/**
+ * DCE Boot Status : DCE Driver Init States
+ *
+ * @DCE_EARLY_INIT_* : Driver Init Before Bootstrap
+ * @DCE_AST_CONFIG_* : Used When DCE-CPU Driver Loads the Firmware
+ */
+#define DCE_EARLY_INIT_START		DCE_BIT(31)
+#define DCE_EARLY_INIT_FAILED		DCE_BIT(30)
+#define DCE_EARLY_INIT_DONE		DCE_BIT(29)
+#define DCE_AST_CONFIG_START		DCE_BIT(28)
+#define DCE_AST_CONFIG_FAILED		DCE_BIT(27)
+#define DCE_AST_CONFIG_DONE		DCE_BIT(26)
+/**
+ * DCE Boot Status: FW Boot States
+ */
+#define DCE_FW_EARLY_BOOT_FAILED	DCE_BIT(15)
+#define DCE_FW_EARLY_BOOT_DONE		DCE_BIT(14)
+#define DCE_FW_BOOTSTRAP_START		DCE_BIT(13)
+#define DCE_FW_BOOTSTRAP_FAILED		DCE_BIT(12)
+#define DCE_FW_BOOTSTRAP_DONE		DCE_BIT(11)
+#define DCE_FW_ADMIN_SEQ_START		DCE_BIT(10)
+#define DCE_FW_ADMIN_SEQ_FAILED		DCE_BIT(9)
+#define DCE_FW_ADMIN_SEQ_DONE		DCE_BIT(8)
+#define DCE_FW_BOOT_DONE		DCE_BIT(1)
+#define DCE_STATUS_FAILED		DCE_BIT(0)
+#define DCE_STATUS_UNKNOWN		((u32)(0))
+
 struct tegra_dce;
 
 /**
@@ -132,6 +159,10 @@ struct tegra_dce {
 	 * @d_clients - Stores all dce clients data.
 	 */
 	struct tegra_dce_client_ipc *d_clients[DCE_CLIENT_IPC_TYPE_MAX];
+	/**
+	 * @boot_status - u32 variable to store dce's boot status.
+	 */
+	u32 boot_status;
 	/**
 	 * @boot_complete - Boolean variable to store dce's boot status.
 	 */

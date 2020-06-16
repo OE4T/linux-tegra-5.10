@@ -205,6 +205,7 @@ int dce_admin_init(struct tegra_dce *d)
 {
 	int ret = 0;
 
+	d->boot_status |= DCE_EARLY_INIT_START;
 	ret = dce_ipc_allocate_region(d);
 	if (ret) {
 		dce_err(d, "IPC region allocation failed");
@@ -217,11 +218,13 @@ int dce_admin_init(struct tegra_dce *d)
 		goto err_channel_init;
 	}
 
+	d->boot_status |= DCE_EARLY_INIT_DONE;
 	return 0;
 
 err_channel_init:
 	dce_ipc_free_region(d);
 err_ipc_reg_alloc:
+	d->boot_status |= DCE_EARLY_INIT_FAILED;
 	return ret;
 }
 
@@ -482,6 +485,7 @@ int dce_start_admin_seq(struct tegra_dce *d)
 	if (!msg)
 		return -1;
 
+	d->boot_status |= DCE_FW_ADMIN_SEQ_START;
 	ret = dce_admin_send_cmd_ver(d, msg);
 	if (ret) {
 		dce_err(d, "RPC failed for DCE_ADMIN_CMD_VERSION");
@@ -490,16 +494,19 @@ int dce_start_admin_seq(struct tegra_dce *d)
 
 	ret = dce_admin_setup_clients_ipc(d, msg);
 	if (ret) {
-		dce_err(d, "RPC failed for DCE_ADMIN_CMD_VERSION");
+		dce_err(d, "RPC failed for DCE_ADMIN_CMD_IPC_CREATE");
 		goto out;
 	}
 
 	ret = dce_admin_send_rm_bootstrap(d, msg);
 	if (ret) {
-		dce_err(d, "RPC failed for DCE_ADMIN_CMD_VERSION");
+		dce_err(d, "RPC failed for DCE_ADMIN_CMD_RM_BOOTSTRAP");
 		goto out;
 	}
+	d->boot_status |= DCE_FW_ADMIN_SEQ_DONE;
 out:
 	dce_admin_free_message(d, msg);
+	if (ret)
+		d->boot_status |= DCE_FW_ADMIN_SEQ_FAILED;
 	return ret;
 }

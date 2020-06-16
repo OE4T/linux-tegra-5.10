@@ -192,15 +192,14 @@ static int dce_worker(void *arg)
 	dce_info(d, "Starting DCE Worker Thread...");
 	ret = dce_wait_boot_complete(d);
 	if (ret) {
-		dce_warn(d, "DCE Boot didn't complete");
+		dce_warn(d, "DCE_BOOT_FAILED: Boot didn't complete");
 		goto worker_exit;
 	}
 
 	dce_info(d, "DCE Ready to bootstrap ...");
-
 	ret = dce_start_bootstrap_flow(d);
 	if (ret) {
-		dce_warn(d, "DCE Bootstrap flow didn't complete");
+		dce_warn(d, "DCE_BOOT_FAILED: Bootstrap flow didn't complete");
 		goto worker_exit;
 	}
 
@@ -211,20 +210,28 @@ static int dce_worker(void *arg)
 	dce_info(d, "DCE Admin Channel Reset Complete...");
 
 	ret = dce_start_admin_seq(d);
-	if (ret)
-		dce_warn(d, "DCE Admin flow didn't complete");
+	if (ret) {
+		dce_warn(d, "DCE_BOOT_FAILED: Admin flow didn't complete");
+	} else {
+		d->boot_status |= DCE_FW_BOOT_DONE;
+		dce_info(d, "DCE_BOOT_DONE");
+	}
 
 	dce_worker_thread_wait(d, EVENT_ID_DCE_BOOT_COMPLETE);
 
 	while ((w->c_state != STATE_DCE_WORKER_ABORTED) ||
 		(!dce_thread_should_stop(&w->wrk_thread))) {
-		if (w->c_state == STATE_DCE_WORKER_HANDLE_DCE_ERROR)
+		if (w->c_state == STATE_DCE_WORKER_HANDLE_DCE_ERROR) {
 			dce_handle_dce_error(d);
+			d->boot_status |= DCE_STATUS_FAILED;
+		}
 	}
 
 worker_exit:
 	if (w->c_state == STATE_DCE_WORKER_ABORTED)
 		dce_info(d, "Exiting Dce Worker Thread");
+	if (ret)
+		d->boot_status |= DCE_STATUS_FAILED;
 	return 0;
 }
 
