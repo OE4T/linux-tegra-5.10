@@ -252,8 +252,14 @@ static int tegra_dc_ext_set_winmask(struct tegra_dc_ext_user *user,
 int tegra_dc_ext_restore(struct tegra_dc_ext *ext)
 {
 	int nwins = tegra_dc_get_numof_dispwindows();
-	struct tegra_dc_win *wins[nwins];
+	struct tegra_dc_win **wins = NULL;
 	int i, nr_win = 0;
+
+	wins = kcalloc(nwins, sizeof(struct tegra_dc_win *), GFP_KERNEL);
+	if (!wins) {
+		pr_err("%s: Failed memory alloc for wins\n", __func__);
+		return -ENOMEM;
+	}
 
 	for_each_set_bit(i, &ext->dc->valid_windows,
 			tegra_dc_get_numof_dispwindows())
@@ -268,6 +274,7 @@ int tegra_dc_ext_restore(struct tegra_dc_ext *ext)
 		tegra_dc_program_bandwidth(ext->dc, true);
 	}
 
+	kfree(wins);
 	return nr_win;
 }
 

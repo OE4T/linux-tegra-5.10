@@ -2521,7 +2521,13 @@ static int tegra_nvdisp_update_pd_ref_cnts(struct tegra_dc *dc, bool enable)
 	u32 pd_owner;
 	int npower_domains = pd_table->npd;
 	int ret = 0, i;
-	int pd_ref_cnt_updates[npower_domains];
+	int *pd_ref_cnt_updates = NULL;
+
+	pd_ref_cnt_updates = kcalloc(npower_domains, sizeof(int), GFP_KERNEL);
+	if (!pd_ref_cnt_updates) {
+		pr_err("%s: Failed pd_ref_cnt_updates mem alloc\n", __func__);
+		return -ENOMEM;
+	}
 
 	memset(pd_ref_cnt_updates, 0,
 			sizeof(pd_ref_cnt_updates[0]) * npower_domains);
@@ -2576,6 +2582,7 @@ static int tegra_nvdisp_update_pd_ref_cnts(struct tegra_dc *dc, bool enable)
 	}
 
 	mutex_unlock(&pd_table->pd_lock);
+	kfree(pd_ref_cnt_updates);
 
 	return ret;
 }
@@ -2916,11 +2923,20 @@ static int cpy_dvfs_pairs_to_user(void __user *ext_dvfs_ptr,
 {
 	struct mrq_emc_dvfs_latency_response *dvfs_table =
 							&g_imp.emc_dvfs_table;
-	struct tegra_dc_ext_imp_emc_dvfs_pair ext_pairs[dvfs_table->num_pairs];
+	struct tegra_dc_ext_imp_emc_dvfs_pair *ext_pairs = NULL;
 	u32 num_pairs_to_cpy = 0;
 	size_t i;
 	int emc_to_dram_factor = bwmgr_get_emc_to_dram_freq_factor();
 	int ret = 0;
+
+	ext_pairs = kcalloc(dvfs_table->num_pairs,
+			sizeof(struct tegra_dc_ext_imp_emc_dvfs_pair),
+			GFP_KERNEL);
+	if (!ext_pairs) {
+		pr_err("%s: Failed to allocate memory for ext_pairs\n",
+				__func__);
+		return -ENOMEM;
+	}
 
 	num_pairs_to_cpy = min(dvfs_table->num_pairs, num_pairs_requested);
 	for (i = 0; i < num_pairs_to_cpy; i++) {
@@ -2954,6 +2970,7 @@ static int cpy_dvfs_pairs_to_user(void __user *ext_dvfs_ptr,
 		*num_pairs_returned = num_pairs_to_cpy;
 	}
 
+	kfree(ext_pairs);
 	return ret;
 }
 
@@ -2978,7 +2995,7 @@ static int cpy_thread_info_to_user(struct tegra_dc_ext_imp_caps *imp_caps)
 	int max_wins = tegra_dc_get_numof_dispwindows();
 	struct tegra_dc_ext_imp_thread_info *ext_info_arr;
 	struct tegra_dc_ext_imp_thread_info *ext_info;
-	struct tegra_dc_ext_imp_thread_info *thread_info_map[max_wins];
+	struct tegra_dc_ext_imp_thread_info **thread_info_map = NULL;
 	u32 num_info = imp_caps->num_thread_info;
 	struct nvdisp_imp_table *imp_table;
 	struct tegra_nvdisp_imp_settings *boot_setting;
@@ -3006,6 +3023,16 @@ static int cpy_thread_info_to_user(struct tegra_dc_ext_imp_caps *imp_caps)
 		pr_err("%s: Can't copy thread info from user\n", __func__);
 		ret = -EFAULT;
 
+		goto free_thread_info_ret;
+	}
+
+	thread_info_map = kcalloc(max_wins,
+				sizeof(struct tegra_dc_ext_imp_thread_info *),
+				GFP_KERNEL);
+	if (!thread_info_map) {
+		pr_err("%s: Failed to allocate memory for thread_info_map\n",
+				__func__);
+		ret = -ENOMEM;
 		goto free_thread_info_ret;
 	}
 
@@ -3049,6 +3076,7 @@ static int cpy_thread_info_to_user(struct tegra_dc_ext_imp_caps *imp_caps)
 	}
 
 free_thread_info_ret:
+	kfree(thread_info_map);
 	kfree(ext_info_arr);
 	return ret;
 }
@@ -3511,8 +3539,15 @@ static struct tegra_nvdisp_imp_settings *cpy_from_ext_imp_settings_v1(
 	struct tegra_nvdisp_imp_settings *nvdisp_settings;
 	struct tegra_dc_ext_nvdisp_imp_global_entries *global_entries;
 	u8 active_heads = 0, max_heads = tegra_dc_get_numof_dispheads();
-	u8 num_wins_per_head[max_heads];
+	u8 *num_wins_per_head = NULL;
 	int i;
+
+	num_wins_per_head = kcalloc(max_heads, sizeof(u8), GFP_KERNEL);
+	if (!num_wins_per_head) {
+		pr_err("%s: Failed to alloc mem for num_win_per_head\n",
+				__func__);
+		return NULL;
+	}
 
 	for (i = 0; i < max_heads; i++) {
 		struct tegra_dc_ext_imp_head_results *head_results;
@@ -3525,8 +3560,10 @@ static struct tegra_nvdisp_imp_settings *cpy_from_ext_imp_settings_v1(
 	}
 
 	nvdisp_settings = alloc_imp_settings(active_heads, num_wins_per_head);
-	if (!nvdisp_settings)
+	if (!nvdisp_settings) {
+		kfree(num_wins_per_head);
 		return NULL;
+	}
 
 	global_entries = &nvdisp_settings->global_entries;
 	global_entries->total_win_fetch_slots =
@@ -3553,6 +3590,7 @@ static struct tegra_nvdisp_imp_settings *cpy_from_ext_imp_settings_v1(
 		cpy_from_ext_imp_head_v1(head_results, nvdisp_head, i);
 	}
 
+	kfree(num_wins_per_head);
 	return nvdisp_settings;
 }
 
@@ -3594,12 +3632,18 @@ static struct tegra_nvdisp_imp_settings *cpy_from_ext_imp_settings_v2(
 	struct tegra_dc_ext_nvdisp_imp_head_settings *ext_heads;
 	u8 num_heads = ext_settings->num_heads;
 	u8 max_heads = tegra_dc_get_numof_dispheads();
-	u8 num_wins_per_head[max_heads];
+	u8 *num_wins_per_head = NULL;
 	int i, ret = 0;
 
 	ext_heads = kcalloc(num_heads, sizeof(*ext_heads), GFP_KERNEL);
 	if (!ext_heads) {
 		pr_err("%s: Failed to alloc mem for dc_ext heads\n", __func__);
+		return NULL;
+	}
+
+	num_wins_per_head = kcalloc(max_heads, sizeof(u8), GFP_KERNEL);
+	if (!num_wins_per_head) {
+		pr_err("%s: Failed mem alloc for num_win_per_head\n", __func__);
 		return NULL;
 	}
 
@@ -3637,6 +3681,7 @@ static struct tegra_nvdisp_imp_settings *cpy_from_ext_imp_settings_v2(
 	}
 
 cpy_imp_v2_ret:
+	kfree(num_wins_per_head);
 	kfree(ext_heads);
 	return nvdisp_settings;
 }
@@ -4193,9 +4238,15 @@ static struct tegra_nvdisp_imp_settings *cpy_imp_entries(
 {
 	struct tegra_nvdisp_imp_settings *dst_settings;
 	u32 max_heads = tegra_dc_get_numof_dispheads();
-	u8 num_wins_per_head[max_heads];
+	u8 *num_wins_per_head = NULL;
 	u8 num_heads = src_settings->num_heads;
 	int i;
+
+	num_wins_per_head = kcalloc(max_heads, sizeof(u8), GFP_KERNEL);
+	if (!num_wins_per_head) {
+		pr_err("%s: Failed mem alloc for num_win_per_head\n", __func__);
+		return NULL;
+	}
 
 	for (i = 0; i < num_heads; i++) {
 		struct tegra_nvdisp_imp_head_settings *head_settings;
@@ -4213,7 +4264,7 @@ static struct tegra_nvdisp_imp_settings *cpy_imp_entries(
 
 	dst_settings = alloc_imp_settings(num_heads, num_wins_per_head);
 	if (!dst_settings)
-		return NULL;
+		goto cpy_imp_entries_ret;
 
 	memcpy(&dst_settings->global_entries, &src_settings->global_entries,
 					sizeof(dst_settings->global_entries));
@@ -4229,6 +4280,8 @@ static struct tegra_nvdisp_imp_settings *cpy_imp_entries(
 			sizeof(*(dst_head->win_entries)) * dst_head->num_wins);
 	}
 
+cpy_imp_entries_ret:
+	kfree(num_wins_per_head);
 	return dst_settings;
 }
 

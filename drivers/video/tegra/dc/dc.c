@@ -5896,7 +5896,7 @@ bool tegra_dc_stats_get(struct tegra_dc *dc)
 void tegra_dc_blank_wins(struct tegra_dc *dc, unsigned windows)
 {
 	int nwins = tegra_dc_get_numof_dispwindows();
-	struct tegra_dc_win *dcwins[nwins];
+	struct tegra_dc_win **dcwins = NULL;
 	struct tegra_dc_win blank_win;
 	unsigned i;
 	unsigned long int blank_windows;
@@ -5906,6 +5906,12 @@ void tegra_dc_blank_wins(struct tegra_dc *dc, unsigned windows)
 	bool yuv_420_10b_path = false;
 	int fb_win_idx = -1;
 	int fb_win_pos = -1;
+
+	dcwins = kcalloc(nwins, sizeof(struct tegra_dc_win *), GFP_KERNEL);
+	if (!dcwins) {
+		pr_err("%s: Failed memory alloc for dcwins\n", __func__);
+		return;
+	}
 
 	if (dc->yuv_bypass && tegra_dc_is_yuv420_10bpc(&dc->mode))
 		yuv_420_10b_path = true;
@@ -5937,7 +5943,7 @@ void tegra_dc_blank_wins(struct tegra_dc *dc, unsigned windows)
 	blank_windows = windows & dc->valid_windows;
 
 	if (!blank_windows)
-		return;
+		goto fail;
 
 	for_each_set_bit(i, &blank_windows, tegra_dc_get_numof_dispwindows()) {
 		dcwins[nr_win] = tegra_dc_get_window(dc, i);
@@ -5972,6 +5978,8 @@ void tegra_dc_blank_wins(struct tegra_dc *dc, unsigned windows)
 		}
 		tegra_dc_disable_window(dc, i);
 	}
+fail:
+	kfree(dcwins);
 }
 
 int tegra_dc_restore(struct tegra_dc *dc)

@@ -2467,19 +2467,58 @@ static int parse_imp_cursor_values(struct device_node *settings_np,
 			int num_entries)
 {
 	u32 max_heads = tegra_dc_get_numof_dispheads();
-	u8 ctrl_num_arr[max_heads];
-	u16 fetch_slots_arr[max_heads];
-	u32 pipe_meter_arr[max_heads];
-	u64 dvfs_watermark_arr[max_heads];
-	u64 mempool_entries_arr[max_heads];
+	u8 *ctrl_num_arr = NULL;
+	u16 *fetch_slots_arr = NULL;
+	u32 *pipe_meter_arr = NULL;
+	u64 *dvfs_watermark_arr = NULL;
+	u64 *mempool_entries_arr = NULL;
 	int ret = 0, i;
+
+	ctrl_num_arr = kcalloc(max_heads, sizeof(u8), GFP_KERNEL);
+	if (!ctrl_num_arr) {
+		pr_err("%s: Failed memory alloc for ctrl_num_arr\n", __func__);
+		ret = -ENOMEM;
+		goto fail;
+	}
+
+	fetch_slots_arr = kcalloc(max_heads, sizeof(u16), GFP_KERNEL);
+	if (!fetch_slots_arr) {
+		pr_err("%s: Failed memory alloc for fetch_slots_arr\n",
+				__func__);
+		ret = -ENOMEM;
+		goto fail;
+	}
+
+	pipe_meter_arr = kcalloc(max_heads, sizeof(u32), GFP_KERNEL);
+	if (!pipe_meter_arr) {
+		pr_err("%s: Failed memory alloc for pipe_meter_arr\n",
+				__func__);
+		ret = -ENOMEM;
+		goto fail;
+	}
+
+	dvfs_watermark_arr = kcalloc(max_heads, sizeof(u64), GFP_KERNEL);
+	if (!dvfs_watermark_arr) {
+		pr_err("%s: Failed memory alloc for dvfs_watermark_arr\n",
+				__func__);
+		ret = -ENOMEM;
+		goto fail;
+	}
+
+	mempool_entries_arr = kcalloc(max_heads, sizeof(u64), GFP_KERNEL);
+	if (!mempool_entries_arr) {
+		pr_err("%s: Failed memory alloc for mempool_entries_arr\n",
+				__func__);
+		ret = -ENOMEM;
+		goto fail;
+	}
 
 	ret = of_property_read_u8_array(settings_np,
 		"nvidia,imp_head_mapping",
 		ctrl_num_arr, num_entries);
 	if (ret) {
 		dev_err(&pdev->dev, "Can't parse nvidia,imp_head_mapping\n");
-		return ret;
+		goto fail;
 	}
 
 	ret = of_property_read_u16_array(settings_np,
@@ -2488,7 +2527,7 @@ static int parse_imp_cursor_values(struct device_node *settings_np,
 	if (ret) {
 		dev_err(&pdev->dev,
 			"Can't parse nvidia,cursor_fetch_meter_slots\n");
-		return ret;
+		goto fail;
 	}
 
 	ret = of_property_read_u64_array(settings_np,
@@ -2497,7 +2536,7 @@ static int parse_imp_cursor_values(struct device_node *settings_np,
 	if (ret) {
 		dev_err(&pdev->dev,
 			"Can't parse nvidia,cursor_dvfs_watermark_values\n");
-		return ret;
+		goto fail;
 	}
 
 	ret = of_property_read_u32_array(settings_np,
@@ -2506,7 +2545,7 @@ static int parse_imp_cursor_values(struct device_node *settings_np,
 	if (ret) {
 		dev_err(&pdev->dev,
 			"Can't parse nvidia,cursor_pipe_meter_values\n");
-		return ret;
+		goto fail;
 	}
 
 	ret = of_property_read_u64_array(settings_np,
@@ -2515,7 +2554,7 @@ static int parse_imp_cursor_values(struct device_node *settings_np,
 	if (ret) {
 		dev_err(&pdev->dev,
 			"Can't parse nvidia,cursor_mempool_buffer_entries\n");
-		return ret;
+		goto fail;
 	}
 
 	for (i = 0; i < num_entries; i++) {
@@ -2531,6 +2570,13 @@ static int parse_imp_cursor_values(struct device_node *settings_np,
 		head_entries->curs_dvfs_watermark = dvfs_watermark_arr[i];
 		head_entries->curs_mempool_entries = mempool_entries_arr[i];
 	}
+
+fail:
+	kfree(ctrl_num_arr);
+	kfree(fetch_slots_arr);
+	kfree(pipe_meter_arr);
+	kfree(dvfs_watermark_arr);
+	kfree(mempool_entries_arr);
 
 	return ret;
 }
