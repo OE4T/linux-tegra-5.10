@@ -192,6 +192,7 @@ struct mrq_response {
 #define MRQ_FMON		72U
 #define MRQ_EC			73U
 #define MRQ_DEBUG		75U
+#define MRQ_EMC_DVFS_EMCHUB	76U
 
 /** @} */
 
@@ -200,7 +201,7 @@ struct mrq_response {
  * @brief Maximum MRQ code to be sent by CPU software to
  * BPMP. Subject to change in future
  */
-#define MAX_CPU_MRQ_ID		75U
+#define MAX_CPU_MRQ_ID		76U
 
 /**
  * @addtogroup MRQ_Payloads
@@ -1151,6 +1152,7 @@ enum {
 #define BPMP_CLK_HAS_MUX	(1U << 0U)
 #define BPMP_CLK_HAS_SET_RATE	(1U << 1U)
 #define BPMP_CLK_IS_ROOT	(1U << 2U)
+#define BPMP_CLK_IS_VAR_ROOT	(1U << 3U)
 
 #define MRQ_CLK_NAME_MAXLEN	40U
 #define MRQ_CLK_MAX_PARENTS	16U
@@ -2055,7 +2057,7 @@ struct mrq_abi_ratchet_response {
  * @def MRQ_EMC_DVFS_LATENCY
  * @brief Query frequency dependent EMC DVFS latency
  *
- * * Platforms: T186, T194
+ * * Platforms: T186, T194, T234
  * * Initiators: CCPLEX
  * * Targets: BPMP
  * * Request Payload: N/A
@@ -2068,7 +2070,7 @@ struct mrq_abi_ratchet_response {
  * @brief Used by @ref mrq_emc_dvfs_latency_response
  */
 struct emc_dvfs_latency {
-	/** @brief EMC frequency in kHz */
+	/** @brief EMC DVFS node frequency in kHz */
 	uint32_t freq;
 	/** @brief EMC DVFS latency in nanoseconds */
 	uint32_t latency;
@@ -2081,11 +2083,50 @@ struct emc_dvfs_latency {
 struct mrq_emc_dvfs_latency_response {
 	/** @brief The number valid entries in #pairs */
 	uint32_t num_pairs;
-	/** @brief EMC <frequency, latency> information */
+	/** @brief EMC DVFS node <frequency, latency> information */
 	struct emc_dvfs_latency pairs[EMC_DVFS_LATENCY_MAX_SIZE];
 } BPMP_ABI_PACKED;
 
 /** @} */
+
+/**
+ * @ingroup MRQ_Codes
+ * @def MRQ_EMC_DVFS_EMCHUB
+ * @brief Query EMC HUB frequencies
+ *
+ * * Platforms: T234 onwards
+ * @cond bpmp_t234
+ * * Initiators: CCPLEX
+ * * Targets: BPMP
+ * * Request Payload: N/A
+ * * Response Payload: @ref mrq_emc_dvfs_emchub_response
+ * @addtogroup EMC
+ * @{
+ */
+
+/**
+ * @brief Used by @ref mrq_emc_dvfs_emchub_response
+ */
+struct emc_dvfs_emchub {
+	/** @brief EMC DVFS node frequency in kHz */
+	uint32_t freq;
+	/** @brief EMC HUB frequency in kHz */
+	uint32_t hub_freq;
+} BPMP_ABI_PACKED;
+
+#define EMC_DVFS_EMCHUB_MAX_SIZE	EMC_DVFS_LATENCY_MAX_SIZE
+/**
+ * @brief Response to #MRQ_EMC_DVFS_EMCHUB
+ */
+struct mrq_emc_dvfs_emchub_response {
+	/** @brief The number valid entries in #pairs */
+	uint32_t num_pairs;
+	/** @brief EMC DVFS node <frequency, hub frequency> information */
+	struct emc_dvfs_emchub pairs[EMC_DVFS_EMCHUB_MAX_SIZE];
+} BPMP_ABI_PACKED;
+
+/** @} */
+/** @endcond */
 
 /**
  * @ingroup MRQ_Codes
