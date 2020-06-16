@@ -225,7 +225,7 @@ void gk20a_mm_delete_priv(struct gk20a_dmabuf_priv *priv)
 	/* Free buffer states */
 	nvgpu_list_for_each_entry_safe(s, s_tmp, &priv->states,
 				gk20a_buffer_state, list) {
-		nvgpu_fence_put(s->fence);
+		nvgpu_user_fence_release(&s->fence);
 		nvgpu_list_del(&s->list);
 		nvgpu_kfree(g, s);
 	}

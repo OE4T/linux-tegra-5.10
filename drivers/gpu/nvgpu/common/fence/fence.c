@@ -76,6 +76,10 @@ struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f)
 	return f;
 }
 
+/*
+ * Extract an object to be passed to the userspace as a result of a submitted
+ * job. This must be balanced with a call to nvgpu_user_fence_release().
+ */
 struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f)
 {
 	struct nvgpu_user_fence uf = (struct nvgpu_user_fence) {

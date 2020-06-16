@@ -30,6 +30,9 @@ struct nvgpu_user_fence {
 	struct nvgpu_os_fence os_fence;
 };
 
+/*
+ * Initialize an empty fence that acts like a null pointer.
+ */
 static inline struct nvgpu_user_fence nvgpu_user_fence_init(void)
 {
 	return (struct nvgpu_user_fence) {
@@ -37,11 +40,32 @@ static inline struct nvgpu_user_fence nvgpu_user_fence_init(void)
 	};
 }
 
+/*
+ * Copy a fence, incrementing a refcount (if any) of the underlying object.
+ * This needs to be balanced with a nvgpu_user_fence_release().
+ *
+ * It's OK to call this for an empty fence.
+ */
+static inline struct nvgpu_user_fence nvgpu_user_fence_clone(
+		struct nvgpu_user_fence *f)
+{
+	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
+		f->os_fence.ops->dup(&f->os_fence);
+	}
+	return *f;
+}
+
+/*
+ * Decrement the refcount of the underlying fence, if any, and make this fence
+ * behave like a null pointer.
+ */
 static inline void nvgpu_user_fence_release(struct nvgpu_user_fence *fence)
 {
 	if (nvgpu_os_fence_is_initialized(&fence->os_fence)) {
 		fence->os_fence.ops->drop_ref(&fence->os_fence);
 	}
+	fence->syncpt_id = NVGPU_INVALID_SYNCPT_ID;
+	fence->syncpt_value = 0;
 }
 
 #endif /* NVGPU_USER_FENCE_H */

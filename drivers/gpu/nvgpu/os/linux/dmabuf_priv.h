@@ -23,6 +23,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/gmmu.h>
+#include <nvgpu/user_fence.h>
 
 struct sg_table;
 struct dma_buf;
@@ -51,10 +52,11 @@ struct gk20a_buffer_state {
 	u32 zbc_color;
 
 	/*
-	 * This struct reflects the state of the buffer when this
-	 * fence signals.
+	 * This struct reflects the compression state of the associated buffer
+	 * when this fence signals. The fence is provided to userspace via
+	 * struct nvgpu_gpu_prepare_compressible_read_args.
 	 */
-	struct nvgpu_fence_type *fence;
+	struct nvgpu_user_fence fence;
 };
 
 static inline struct gk20a_buffer_state *

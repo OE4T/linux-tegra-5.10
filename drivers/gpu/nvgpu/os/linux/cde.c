@@ -1648,9 +1648,17 @@ static int gk20a_buffer_convert_gpu_to_cde_v1(
 	if (err)
 		goto out;
 
-	/* compbits generated, update state & fence */
-	nvgpu_fence_put(state->fence);
-	state->fence = new_fence;
+	/*
+	 * compbits generated, update state & fence to match the most recent
+	 * request (state lock held by the caller)
+	 */
+	nvgpu_user_fence_release(&state->fence);
+	/*
+	 * released in gk20a_mm_delete_priv, in gk20a_prepare_compressible_read
+	 * (above, or up in the call stack), or in gk20a_mark_compressible_write
+	 */
+	state->fence = nvgpu_fence_extract_user(new_fence);
+	nvgpu_fence_put(new_fence);
 	state->valid_compbits |= consumer &
 		(NVGPU_GPU_COMPBITS_CDEH | NVGPU_GPU_COMPBITS_CDEV);
 out:
@@ -1719,11 +1727,7 @@ int gk20a_prepare_compressible_read(
 	nvgpu_mutex_acquire(&state->lock);
 
 	if (state->valid_compbits && request == NVGPU_GPU_COMPBITS_NONE) {
-
-		nvgpu_fence_put(state->fence);
-		state->fence = NULL;
-		/* state->fence = decompress();
-		state->valid_compbits = 0; */
+		nvgpu_user_fence_release(&state->fence);
 		err = -EINVAL;
 		goto out;
 	} else if (missing_bits) {
@@ -1744,8 +1748,14 @@ int gk20a_prepare_compressible_read(
 		}
 	}
 
-	if (submit_flags & NVGPU_SUBMIT_FLAGS_FENCE_GET && state->fence != NULL) {
-		*fence_out = nvgpu_fence_extract_user(state->fence);
+	if (submit_flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) {
+		/*
+		 * If no missing bits, this is the fence of a previously
+		 * submitted preparation job, if any. If a job was submitted
+		 * now, this is a new fence. Anyway, this is owned by the
+		 * state; clone a new one.
+		 */
+		*fence_out = nvgpu_user_fence_clone(&state->fence);
 	}
 
 	*valid_compbits = state->valid_compbits;
@@ -1784,8 +1794,7 @@ int gk20a_mark_compressible_write(struct gk20a *g, u32 buffer_fd,
 	state->zbc_color = zbc_color;
 
 	/* Discard previous compbit job fence. */
-	nvgpu_fence_put(state->fence);
-	state->fence = NULL;
+	nvgpu_user_fence_release(&state->fence);
 
 	nvgpu_mutex_release(&state->lock);
 	dma_buf_put(dmabuf);
