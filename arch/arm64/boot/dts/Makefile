@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 
-DTC_CPP_FLAGS += -DLINUX_VERSION=504
+DTC_CPP_FLAGS += -DLINUX_VERSION=504 -DTEGRA_HOST1X_DT_VERSION=1
 
 DTC_INCLUDE += $(srctree)/arch/arm64/boot/dts/nvidia
 DTC_INCLUDE += $(tegra-dtstree)/soc/tegra/kernel-include
