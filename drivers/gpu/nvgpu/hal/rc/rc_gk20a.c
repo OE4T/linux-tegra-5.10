@@ -62,7 +62,7 @@ void gk20a_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 	nvgpu_runlist_lock_active_runlists(g);
 
 	if (id_is_known) {
-		engine_ids = g->ops.engine.get_mask_on_id(g,
+		engine_ids = nvgpu_engine_get_mask_on_id(g,
 				hw_id, id_is_tsg);
 		ref_id = hw_id;
 		ref_type = id_is_tsg ?

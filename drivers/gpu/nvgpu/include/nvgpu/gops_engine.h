@@ -76,8 +76,6 @@ struct gops_engine {
 
 	bool (*is_fault_engine_subid_gpc)(struct gk20a *g,
 				 u32 engine_subid);
-	u32 (*get_mask_on_id)(struct gk20a *g,
-		u32 id, bool is_tsg);
 	int (*init_info)(struct nvgpu_fifo *f);
 	int (*init_ce_info)(struct nvgpu_fifo *f);
 };

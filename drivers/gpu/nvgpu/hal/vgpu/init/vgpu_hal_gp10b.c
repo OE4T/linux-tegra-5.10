@@ -497,7 +497,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
-		.get_mask_on_id = NULL,
 		.init_info = vgpu_engine_init_info,
 	},
 	.pbdma = {

@@ -250,7 +250,7 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct nvgpu_tsg *tsg,
 		nvgpu_err(g, "failed to disable ctxsw");
 	} else {
 		/* recover engines if tsg is loaded on the engines */
-		eng_bitmask = g->ops.engine.get_mask_on_id(g,
+		eng_bitmask = nvgpu_engine_get_mask_on_id(g,
 				tsg->tsgid, true);
 
 		/*
