@@ -352,8 +352,13 @@ static void tegra_se_restore_cpu_freq_fn(struct work_struct *work)
 	if (time_is_after_jiffies(se_dev->cpufreq_last_boosted + delay)) {
 		schedule_delayed_work(&se_dev->restore_cpufreq_work, delay);
 	} else {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
 		pm_qos_update_request(&se_dev->boost_cpufreq_req,
 				      PM_QOS_DEFAULT_VALUE);
+#else
+		cpu_latency_qos_update_request(&se_dev->boost_cpufreq_req,
+					       PM_QOS_DEFAULT_VALUE);
+#endif
 		se_dev->cpufreq_boosted = false;
 	}
 	mutex_unlock(&se_dev->boost_cpufreq_lock);
@@ -366,7 +371,12 @@ static void tegra_se_boost_cpu_freq(struct tegra_se_dev *se_dev)
 
 	mutex_lock(&se_dev->boost_cpufreq_lock);
 	if (!se_dev->cpufreq_boosted) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
 		pm_qos_update_request(&se_dev->boost_cpufreq_req, cpufreq_hz);
+#else
+		cpu_latency_qos_update_request(&se_dev->boost_cpufreq_req,
+					       cpufreq_hz);
+#endif
 		schedule_delayed_work(&se_dev->restore_cpufreq_work, delay);
 		se_dev->cpufreq_boosted = true;
 	}
@@ -382,8 +392,13 @@ static void tegra_se_boost_cpu_init(struct tegra_se_dev *se_dev)
 	INIT_DELAYED_WORK(&se_dev->restore_cpufreq_work,
 			  tegra_se_restore_cpu_freq_fn);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
 	pm_qos_add_request(&se_dev->boost_cpufreq_req, PM_QOS_CPU_FREQ_MIN,
 			   PM_QOS_DEFAULT_VALUE);
+#else
+	cpu_latency_qos_add_request(&se_dev->boost_cpufreq_req,
+				    PM_QOS_DEFAULT_VALUE);
+#endif
 
 	mutex_init(&se_dev->boost_cpufreq_lock);
 }
@@ -391,7 +406,11 @@ static void tegra_se_boost_cpu_init(struct tegra_se_dev *se_dev)
 static void tegra_se_boost_cpu_deinit(struct tegra_se_dev *se_dev)
 {
 	mutex_destroy(&se_dev->boost_cpufreq_lock);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
 	pm_qos_remove_request(&se_dev->boost_cpufreq_req);
+#else
+	cpu_latency_qos_remove_request(&se_dev->boost_cpufreq_req);
+#endif
 	cancel_delayed_work_sync(&se_dev->restore_cpufreq_work);
 }
 
