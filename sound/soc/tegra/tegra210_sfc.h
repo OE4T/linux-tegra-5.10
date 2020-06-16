@@ -70,6 +70,12 @@
 /* SRC coefficients */
 #define TEGRA210_SFC_COEF_RAM_DEPTH		64
 
+enum tegra210_sfc_path {
+	SFC_RX_PATH,
+	SFC_TX_PATH,
+	SFC_PATHS,
+};
+
 struct tegra210_sfc {
 	int srate_in;
 	int srate_out;
@@ -78,9 +84,10 @@ struct tegra210_sfc {
 	struct regmap *regmap;
 	struct snd_pcm_hw_params in_hw_params;
 	struct snd_pcm_hw_params out_hw_params;
-	int stereo_conv_input;
-	int mono_conv_output;
-	unsigned int channels_via_control;
+	int audio_ch_override[SFC_PATHS];
+	int client_ch_override; /* common for both TX and RX */
+	int stereo_to_mono[SFC_PATHS];
+	int mono_to_stereo[SFC_PATHS];
 };
 
 #endif

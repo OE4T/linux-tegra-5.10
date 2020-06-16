@@ -2957,7 +2957,7 @@ static int tegra210_sfc_set_audio_cif(struct tegra210_sfc *sfc,
 				struct snd_pcm_hw_params *params,
 				unsigned int reg)
 {
-	int channels, audio_bits;
+	int channels, audio_bits, path;
 	struct tegra_cif_conf cif_conf;
 
 	memset(&cif_conf, 0, sizeof(struct tegra_cif_conf));
@@ -2975,22 +2975,21 @@ static int tegra210_sfc_set_audio_cif(struct tegra210_sfc *sfc,
 		return -EINVAL;
 	}
 
-	if (sfc->channels_via_control)
-		channels = sfc->channels_via_control;
-
-	if (sfc->stereo_conv_input > 0 && 2 == channels &&
-		(reg == TEGRA210_SFC_AXBAR_RX_CIF_CTRL)) {
-		cif_conf.stereo_conv = sfc->stereo_conv_input - 1;
-		cif_conf.client_ch = 1;
-	} else if (sfc->mono_conv_output > 0 && 2 == channels &&
-		(reg == TEGRA210_SFC_AXBAR_TX_CIF_CTRL)) {
-		cif_conf.mono_conv = sfc->mono_conv_output - 1;
-		cif_conf.client_ch = 1;
-	} else {
-		cif_conf.client_ch = channels;
-	}
+	path = (reg == TEGRA210_SFC_AXBAR_RX_CIF_CTRL) ?
+	       SFC_RX_PATH : SFC_TX_PATH;
 
 	cif_conf.audio_ch = channels;
+	cif_conf.client_ch = channels;
+
+	if (sfc->audio_ch_override[path])
+		cif_conf.audio_ch = sfc->audio_ch_override[path];
+
+	if (sfc->client_ch_override)
+		cif_conf.client_ch = sfc->client_ch_override;
+
+	cif_conf.stereo_conv = sfc->stereo_to_mono[path];
+	cif_conf.mono_conv = sfc->mono_to_stereo[path];
+
 	cif_conf.audio_bits = audio_bits;
 	if (sfc->format_in && (reg == TEGRA210_SFC_AXBAR_RX_CIF_CTRL))
 		cif_conf.audio_bits = tegra210_sfc_fmt_values[sfc->format_in];
@@ -3133,8 +3132,26 @@ static int tegra210_sfc_get_format(struct snd_kcontrol *kcontrol,
 		ucontrol->value.integer.value[0] = sfc->format_in;
 	else if (strstr(kcontrol->id.name, "output"))
 		ucontrol->value.integer.value[0] = sfc->format_out;
-	else if (strstr(kcontrol->id.name, "Channels"))
-		ucontrol->value.integer.value[0] = sfc->channels_via_control;
+	else if (strstr(kcontrol->id.name, "Input Audio Channels"))
+		ucontrol->value.integer.value[0] =
+			sfc->audio_ch_override[SFC_RX_PATH];
+	else if (strstr(kcontrol->id.name, "Output Audio Channels"))
+		ucontrol->value.integer.value[0] =
+			sfc->audio_ch_override[SFC_TX_PATH];
+	else if (strstr(kcontrol->id.name, "Client Channels"))
+		ucontrol->value.integer.value[0] = sfc->client_ch_override;
+	else if (strstr(kcontrol->id.name, "Input Stereo To Mono"))
+		ucontrol->value.integer.value[0] =
+			sfc->stereo_to_mono[SFC_RX_PATH];
+	else if (strstr(kcontrol->id.name, "Input Mono To Stereo"))
+		ucontrol->value.integer.value[0] =
+			sfc->mono_to_stereo[SFC_RX_PATH];
+	else if (strstr(kcontrol->id.name, "Output Stereo To Mono"))
+		ucontrol->value.integer.value[0] =
+			sfc->stereo_to_mono[SFC_TX_PATH];
+	else if (strstr(kcontrol->id.name, "Output Mono To Stereo"))
+		ucontrol->value.integer.value[0] =
+			sfc->mono_to_stereo[SFC_TX_PATH];
 
 	return 0;
 }
@@ -3151,12 +3168,20 @@ static int tegra210_sfc_put_format(struct snd_kcontrol *kcontrol,
 		sfc->format_in = value;
 	else if (strstr(kcontrol->id.name, "output"))
 		sfc->format_out = value;
-	else if (strstr(kcontrol->id.name, "Channels")) {
-		if (value >= 0 && value <= 2)
-			sfc->channels_via_control = value;
-		else
-			return -EINVAL;
-	}
+	else if (strstr(kcontrol->id.name, "Input Audio Channels"))
+		sfc->audio_ch_override[SFC_RX_PATH] = value;
+	else if (strstr(kcontrol->id.name, "Output Audio Channels"))
+		sfc->audio_ch_override[SFC_TX_PATH] = value;
+	else if (strstr(kcontrol->id.name, "Client Channels"))
+		sfc->client_ch_override = value;
+	else if (strstr(kcontrol->id.name, "Input Stereo To Mono"))
+		sfc->stereo_to_mono[SFC_RX_PATH] = value;
+	else if (strstr(kcontrol->id.name, "Input Mono To Stereo"))
+		sfc->mono_to_stereo[SFC_RX_PATH] = value;
+	else if (strstr(kcontrol->id.name, "Output Stereo To Mono"))
+		sfc->stereo_to_mono[SFC_TX_PATH] = value;
+	else if (strstr(kcontrol->id.name, "Output Mono To Stereo"))
+		sfc->mono_to_stereo[SFC_TX_PATH] = value;
 
 	return 0;
 }
@@ -3251,46 +3276,6 @@ exit:
 	return ret;
 }
 
-static int tegra210_sfc_get_stereo_conv(struct snd_kcontrol *kcontrol,
-					 struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
-	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
-
-	ucontrol->value.integer.value[0] = sfc->stereo_conv_input;
-	return 0;
-}
-
-static int tegra210_sfc_put_stereo_conv(struct snd_kcontrol *kcontrol,
-					 struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
-	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
-
-	sfc->stereo_conv_input = ucontrol->value.integer.value[0];
-	return 0;
-}
-
-static int tegra210_sfc_get_mono_conv(struct snd_kcontrol *kcontrol,
-					 struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
-	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
-
-	ucontrol->value.integer.value[0] = sfc->mono_conv_output;
-	return 0;
-}
-
-static int tegra210_sfc_put_mono_conv(struct snd_kcontrol *kcontrol,
-					 struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
-	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
-
-	sfc->mono_conv_output = ucontrol->value.integer.value[0];
-	return 0;
-}
-
 static struct snd_soc_dai_ops tegra210_sfc_in_dai_ops = {
 	.hw_params	= tegra210_sfc_in_hw_params,
 };
@@ -3350,11 +3335,11 @@ static const char * const tegra210_sfc_format_text[] = {
 };
 
 static const char * const tegra210_sfc_stereo_conv_text[] = {
-	"None", "CH0", "CH1", "AVG",
+	"CH0", "CH1", "AVG",
 };
 
 static const char * const tegra210_sfc_mono_conv_text[] = {
-	"None", "ZERO", "COPY",
+	"ZERO", "COPY",
 };
 
 static const struct soc_enum tegra210_sfc_format_enum =
@@ -3381,14 +3366,22 @@ static const struct snd_kcontrol_new tegra210_sfc_controls[] = {
 		tegra210_sfc_get_format, tegra210_sfc_put_format),
 	SOC_ENUM_EXT("output bit format", tegra210_sfc_format_enum,
 		tegra210_sfc_get_format, tegra210_sfc_put_format),
-	SOC_SINGLE_EXT("Channels", 0, 0, 2, 0,
+	SOC_SINGLE_EXT("Input Audio Channels", 0, 0, 2, 0,
+		tegra210_sfc_get_format, tegra210_sfc_put_format),
+	SOC_SINGLE_EXT("Output Audio Channels", 0, 0, 2, 0,
+		tegra210_sfc_get_format, tegra210_sfc_put_format),
+	SOC_SINGLE_EXT("Client Channels", 0, 0, 2, 0,
 		tegra210_sfc_get_format, tegra210_sfc_put_format),
 	SOC_SINGLE_EXT("init", 0, 0, 1, 0,
 		tegra210_sfc_init_get, tegra210_sfc_init_put),
-	SOC_ENUM_EXT("input stereo conv", tegra210_sfc_stereo_conv_enum,
-		tegra210_sfc_get_stereo_conv, tegra210_sfc_put_stereo_conv),
-	SOC_ENUM_EXT("output mono conv", tegra210_sfc_mono_conv_enum,
-		tegra210_sfc_get_mono_conv, tegra210_sfc_put_mono_conv),
+	SOC_ENUM_EXT("Input Stereo To Mono", tegra210_sfc_stereo_conv_enum,
+		tegra210_sfc_get_format, tegra210_sfc_put_format),
+	SOC_ENUM_EXT("Input Mono To Stereo", tegra210_sfc_mono_conv_enum,
+		tegra210_sfc_get_format, tegra210_sfc_put_format),
+	SOC_ENUM_EXT("Output Stereo To Mono", tegra210_sfc_stereo_conv_enum,
+		tegra210_sfc_get_format, tegra210_sfc_put_format),
+	SOC_ENUM_EXT("Output Mono To Stereo", tegra210_sfc_mono_conv_enum,
+		tegra210_sfc_get_format, tegra210_sfc_put_format),
 };
 
 static struct snd_soc_component_driver tegra210_sfc_cmpnt = {
