@@ -903,7 +903,6 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 						  struct fb_videomode *mode))
 
 {
-	struct fb_event event;
 	int i, b_locked_fb_info = 0;
 	struct tegra_dc *dc = fb_info->win.dc;
 
@@ -925,7 +924,6 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 		fb_info->info->monspecs.modedb = NULL;
 	}
 	fb_destroy_modelist(&fb_info->info->modelist);
-	event.info = fb_info->info;
 	/* Notify layers above fb.c that the hardware is unavailable */
 	fb_set_suspend(fb_info->info, true);
 
@@ -955,7 +953,7 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 			 */
 			fb_add_videomode(&fb_info->mode,
 						&fb_info->info->modelist);
-			fb_notifier_call_chain(FB_EVENT_NEW_MODELIST, &event);
+			fb_new_modelist(fb_info->info);
 		} else {
 			/* For L4T - After the next hotplug, framebuffer console will
 			 * use the old variable screeninfo by default, only video-mode
@@ -1014,9 +1012,6 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 
 		fb_info->info->state = FBINFO_STATE_RUNNING;
 		tegra_fbcon_set_fb_mode(fb_info, &fb_mode);
-	} else {
-		if (!IS_ENABLED(CONFIG_FRAMEBUFFER_CONSOLE))
-			fb_notifier_call_chain(FB_EVENT_NEW_MODELIST, &event);
 	}
 
 	if (b_locked_fb_info)
