@@ -62,13 +62,8 @@
 #define I2C_INT_TX_FIFO_DATA_REQ		BIT(1)
 #define I2C_INT_RX_FIFO_DATA_REQ		BIT(0)
 #define I2C_CLK_DIVISOR				0x06c
-<<<<<<< HEAD
-#define I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT	16
-#define I2C_CLK_DIVISOR_HS_MODE_MASK		0xFFFF
-=======
 #define I2C_CLK_DIVISOR_STD_FAST_MODE		GENMASK(31, 16)
 #define I2C_CLK_DIVISOR_HSMODE			GENMASK(15, 0)
->>>>>>> v5.8-rc3
 
 #define DVC_CTRL_REG1				0x000
 #define DVC_CTRL_REG1_INTR_EN			BIT(10)
@@ -84,19 +79,12 @@
 #define I2C_ERR_UNKNOWN_INTERRUPT		BIT(2)
 #define I2C_ERR_RX_BUFFER_OVERFLOW		BIT(3)
 
-<<<<<<< HEAD
-#define PACKET_HEADER0_HEADER_SIZE_SHIFT	28
-#define PACKET_HEADER0_PACKET_ID_SHIFT		16
-#define PACKET_HEADER0_CONT_ID_SHIFT		12
-#define PACKET_HEADER0_PROTOCOL_I2C		BIT(4)
-#define PACKET_HEADER0_CONT_ID_MASK		0xF
-=======
 #define PACKET_HEADER0_HEADER_SIZE		GENMASK(29, 28)
 #define PACKET_HEADER0_PACKET_ID		GENMASK(23, 16)
 #define PACKET_HEADER0_CONT_ID			GENMASK(15, 12)
+#define PACKET_HEADER0_CONT_ID_MASK		0xF
 #define PACKET_HEADER0_PROTOCOL			GENMASK(7, 4)
 #define PACKET_HEADER0_PROTOCOL_I2C		1
->>>>>>> v5.8-rc3
 
 #define I2C_HEADER_HIGHSPEED_MODE		BIT(22)
 #define I2C_HEADER_CONT_ON_NAK			BIT(21)
@@ -151,16 +139,8 @@
 #define I2C_MST_FIFO_STATUS_TX			GENMASK(23, 16)
 #define I2C_MST_FIFO_STATUS_RX			GENMASK(7, 0)
 
-<<<<<<< HEAD
-#define I2C_INTERFACE_TIMING_0			0x94
-#define I2C_TLOW_MASK				0x3F
-#define I2C_THIGH_SHIFT				8
-#define I2C_THIGH_MASK					(0x3F << I2C_THIGH_SHIFT)
-#define I2C_INTERFACE_TIMING_1			0x98
-=======
 /* configuration load timeout in microseconds */
 #define I2C_CONFIG_LOAD_TIMEOUT			1000000
->>>>>>> v5.8-rc3
 
 #define I2C_STANDARD_MODE			100000
 #define I2C_FAST_MODE				400000
@@ -783,7 +763,6 @@ static int tegra_i2c_wait_for_config_load(struct tegra_i2c_dev *i2c_dev)
 	return 0;
 }
 
-<<<<<<< HEAD
 static void tegra_i2c_config_prod_settings(struct tegra_i2c_dev *i2c_dev)
 {
 	char *prod_name;
@@ -814,7 +793,8 @@ static void tegra_i2c_config_prod_settings(struct tegra_i2c_dev *i2c_dev)
 				     i2c_dev->prod_list);
 	if (ret == 0)
 		dev_dbg(i2c_dev->dev, "setting prod: %s\n", prod_name);
-=======
+}
+
 static void tegra_i2c_vi_init(struct tegra_i2c_dev *i2c_dev)
 {
 	u32 value;
@@ -842,7 +822,6 @@ static void tegra_i2c_vi_init(struct tegra_i2c_dev *i2c_dev)
 	i2c_writel(i2c_dev, value, I2C_BUS_CLEAR_CNFG);
 
 	i2c_writel(i2c_dev, 0x0, I2C_TLOW_SEXT);
->>>>>>> v5.8-rc3
 }
 
 static int tegra_i2c_init(struct tegra_i2c_dev *i2c_dev, bool clk_reinit)
@@ -885,14 +864,9 @@ skip_periph_reset:
 	if (i2c_dev->is_dvc)
 		tegra_dvc_init(i2c_dev);
 
-<<<<<<< HEAD
 	val = I2C_CNFG_NEW_MASTER_FSM | I2C_CNFG_PACKET_MODE_EN;
 	if (i2c_dev->bus_clk_rate != I2C_HS_MODE)
-		val |= (0x2 << I2C_CNFG_DEBOUNCE_CNT_SHIFT);
-=======
-	val = I2C_CNFG_NEW_MASTER_FSM | I2C_CNFG_PACKET_MODE_EN |
-	      FIELD_PREP(I2C_CNFG_DEBOUNCE_CNT, 2);
->>>>>>> v5.8-rc3
+		val |= FIELD_PREP(I2C_CNFG_DEBOUNCE_CNT, 2);
 
 	if (i2c_dev->hw->has_multi_master_mode)
 		val |= I2C_CNFG_MULTI_MASTER_MODE;
@@ -904,23 +878,20 @@ skip_periph_reset:
 		tegra_i2c_vi_init(i2c_dev);
 
 	/* Make sure clock divisor programmed correctly */
-<<<<<<< HEAD
 	if (i2c_dev->bus_clk_rate == I2C_HS_MODE) {
 		i2c_dev->clk_divisor_hs_mode = i2c_dev->hw->clk_divisor_hs_mode;
+		clk_divisor = FIELD_PREP(I2C_CLK_DIVISOR_HSMODE,
+					 i2c_dev->hw->clk_divisor_hs_mode) |
+			      FIELD_PREP(I2C_CLK_DIVISOR_STD_FAST_MODE,
+					 i2c_dev->clk_divisor_non_hs_mode);
 	} else {
 		val = i2c_readl(i2c_dev, I2C_CLK_DIVISOR);
-		i2c_dev->clk_divisor_hs_mode = val & I2C_CLK_DIVISOR_HS_MODE_MASK;
+		clk_divisor = FIELD_PREP(I2C_CLK_DIVISOR_HSMODE,
+					 val) |
+			      FIELD_PREP(I2C_CLK_DIVISOR_STD_FAST_MODE,
+					 i2c_dev->clk_divisor_non_hs_mode);
 	}
 
-	clk_divisor = i2c_dev->clk_divisor_hs_mode;
-	clk_divisor |= i2c_dev->clk_divisor_non_hs_mode <<
-					I2C_CLK_DIVISOR_STD_FAST_MODE_SHIFT;
-=======
-	clk_divisor = FIELD_PREP(I2C_CLK_DIVISOR_HSMODE,
-				 i2c_dev->hw->clk_divisor_hs_mode) |
-		      FIELD_PREP(I2C_CLK_DIVISOR_STD_FAST_MODE,
-				 i2c_dev->clk_divisor_non_hs_mode);
->>>>>>> v5.8-rc3
 	i2c_writel(i2c_dev, clk_divisor, I2C_CLK_DIVISOR);
 
 	if (i2c_dev->bus_clk_rate > I2C_MAX_STANDARD_MODE_FREQ &&
@@ -1894,7 +1865,6 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 	i2c_dev->hw = of_device_get_match_data(&pdev->dev);
 	i2c_dev->is_dvc = of_device_is_compatible(pdev->dev.of_node,
 						  "nvidia,tegra20-i2c-dvc");
-<<<<<<< HEAD
 	if ((i2c_dev->bus_clk_rate == I2C_HS_MODE) &&
 			!i2c_dev->hw->has_hs_mode_support) {
 		dev_info(i2c_dev->dev, "HS mode not supported\n");
@@ -1906,10 +1876,8 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 		dev_info(i2c_dev->dev, "multi-master mode not supported\n");
 		i2c_dev->is_multimaster_mode = false;
 	}
-=======
 	i2c_dev->is_vi = of_device_is_compatible(dev->of_node,
 						 "nvidia,tegra210-i2c-vi");
->>>>>>> v5.8-rc3
 	i2c_dev->adapter.quirks = i2c_dev->hw->quirks;
 	i2c_dev->dma_buf_size = i2c_dev->adapter.quirks->max_write_len +
 				I2C_PACKET_HEADER_SIZE;
@@ -1925,12 +1893,11 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 		i2c_dev->fast_clk = fast_clk;
 	}
 
-<<<<<<< HEAD
 	i2c_dev->prod_list = devm_tegra_prod_get(&pdev->dev);
 	if (IS_ERR_OR_NULL(i2c_dev->prod_list)) {
 		dev_dbg(&pdev->dev, "Prod-setting not available\n");
 		i2c_dev->prod_list = NULL;
-=======
+	}
 	if (i2c_dev->is_vi) {
 		i2c_dev->slow_clk = devm_clk_get(dev, "slow");
 		if (IS_ERR(i2c_dev->slow_clk)) {
@@ -1940,7 +1907,6 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 
 			return PTR_ERR(i2c_dev->slow_clk);
 		}
->>>>>>> v5.8-rc3
 	}
 
 	platform_set_drvdata(pdev, i2c_dev);
@@ -2139,23 +2105,6 @@ static int __maybe_unused tegra_i2c_resume(struct device *dev)
 	if (err)
 		return err;
 
-<<<<<<< HEAD
-	err = tegra_i2c_runtime_suspend(dev);
-	if (err)
-		return err;
-
-	if (i2c_dev->is_clkon_always) {
-		err = clk_enable(i2c_dev->div_clk);
-		if (err < 0) {
-			dev_err(i2c_dev->dev, "clock enable failed %d\n",
-				err);
-			return err;
-		}
-	}
-	err = pm_runtime_force_resume(dev);
-	if (err < 0)
-		return err;
-=======
 	/*
 	 * In case we are runtime suspended, disable clocks again so that we
 	 * don't unbalance the clock reference counts during the next runtime
@@ -2166,7 +2115,15 @@ static int __maybe_unused tegra_i2c_resume(struct device *dev)
 		if (err)
 			return err;
 	}
->>>>>>> v5.8-rc3
+
+	if (i2c_dev->is_clkon_always) {
+		err = clk_enable(i2c_dev->div_clk);
+		if (err < 0) {
+			dev_err(i2c_dev->dev, "clock enable failed %d\n",
+				err);
+			return err;
+		}
+	}
 
 	i2c_mark_adapter_resumed(&i2c_dev->adapter);
 	return 0;

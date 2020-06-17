@@ -467,7 +467,6 @@ static struct gpio_desc *of_find_arizona_gpio(struct device *dev,
 	return of_get_named_gpiod_flags(dev->of_node, con_id, 0, of_flags);
 }
 
-<<<<<<< HEAD
 static int of_gpio_get_gpio_cells_size(struct device_node *chip_np)
 {
 	u32 ncells;
@@ -481,7 +480,8 @@ static int of_gpio_get_gpio_cells_size(struct device_node *chip_np)
 		return -EINVAL;
 
 	return ncells;
-=======
+}
+
 static struct gpio_desc *of_find_usb_gpio(struct device *dev,
 					  const char *con_id,
 					  enum of_gpio_flags *of_flags)
@@ -498,7 +498,6 @@ static struct gpio_desc *of_find_usb_gpio(struct device *dev,
 		return ERR_PTR(-ENOENT);
 
 	return of_get_named_gpiod_flags(dev->of_node, con_id, 0, of_flags);
->>>>>>> v5.8-rc3
 }
 
 struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,

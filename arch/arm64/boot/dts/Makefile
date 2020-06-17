@@ -69,7 +69,7 @@ DTB_NEW_RULE_LIST := $(addprefix $(obj)/,$(DTB_NEW_RULE_LIST))
 DTB_NEW_RULE_LIST := $(call replace_ddot,$(DTB_NEW_RULE_LIST))
 
 $(DTB_NEW_RULE_LIST):
-	$(call if_changed_dep,dtc,dtb)
+	$(call if_changed_dep,dtc)
 
 define _define_dtbo_rule
 $(obj)/$(call replace_ddot,$(1)): $(src)/$(patsubst %.dtbo,%.dts,$(1)) FORCE
@@ -82,7 +82,7 @@ DTBO_NEW_RULE_LIST := $(addprefix $(obj)/,$(DTBO_NEW_RULE_LIST))
 DTBO_NEW_RULE_LIST := $(call replace_ddot,$(DTBO_NEW_RULE_LIST))
 
 $(DTBO_NEW_RULE_LIST):
-	$(call if_changed_dep,dtc,dtb)
+	$(call if_changed_dep,dtc)
 
 dtbs: $(DTB_OBJS) $(DTBO_OBJS) FORCE
 	if [ ! -d arch/arm64/boot/dts/nvidia/ ] ; then \

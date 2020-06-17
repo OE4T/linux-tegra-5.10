@@ -192,12 +192,8 @@ config FB_BACKLIGHT
 config FB_MODE_HELPERS
 	bool "Enable Video Mode Handling Helpers"
 	depends on FB
-<<<<<<< HEAD
 	default y
-	---help---
-=======
 	help
->>>>>>> v5.8-rc3
 	  This enables functions for handling video modes using the
 	  Generalized Timing Formula and the EDID parser. A few drivers rely
 	  on this feature such as the radeonfb, rivafb, and the i810fb. If

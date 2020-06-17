@@ -74,16 +74,6 @@ u8 tegra_get_chip_id(void)
 }
 EXPORT_SYMBOL(tegra_get_chip_id);
 
-u8 tegra_get_major_rev(void)
-{
-	return (tegra_read_chipid() >> 4) & 0xf;
-}
-
-u8 tegra_get_minor_rev(void)
-{
-	return (tegra_read_chipid() >> 16) & 0xf;
-}
-
 static u8 tegra_get_pre_si_plat(void)
 {
 	u8 val;

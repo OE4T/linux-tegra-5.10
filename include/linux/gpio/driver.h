@@ -372,15 +372,11 @@ struct gpio_chip {
 	int			(*direction_input)(struct gpio_chip *gc,
 						unsigned int offset);
 	int			(*direction_output)(struct gpio_chip *gc,
-<<<<<<< HEAD
-						unsigned offset, int value);
+						unsigned int offset, int value);
 	int			(*timestamp_control)(struct gpio_chip *gc,
 						unsigned offset, int enable);
 	int			(*timestamp_read)(struct gpio_chip *gc,
 						unsigned offset, u64 *ts);
-=======
-						unsigned int offset, int value);
->>>>>>> v5.8-rc3
 	int			(*get)(struct gpio_chip *gc,
 						unsigned int offset);
 	int			(*get_multiple)(struct gpio_chip *gc,

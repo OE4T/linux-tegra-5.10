@@ -25,9 +25,9 @@ enum tegra_asoc_utils_soc {
 struct tegra_asoc_utils_data {
 	struct device *dev;
 	enum tegra_asoc_utils_soc soc;
-	struct clk *clk_pll;
-	struct clk *clk_pll_out;
-	struct clk *clk_aud_mclk;
+	struct clk *clk_pll_a;
+	struct clk *clk_pll_a_out0;
+	struct clk *clk_cdev1;
 	int set_baseclock;
 	int set_mclk;
 	unsigned int set_pll_out;

@@ -365,13 +365,8 @@ struct hdac_bus {
 	struct list_head hlink_list;
 	bool cmd_dma_state;
 
-<<<<<<< HEAD
-	/* WAR for SDO limitation */
-	bool avoid_compact_sdo_bw;
-=======
 	/* factor used to derive STRIPE control value */
 	unsigned int sdo_limit;
->>>>>>> v5.8-rc3
 };
 
 int snd_hdac_bus_init(struct hdac_bus *bus, struct device *dev,

@@ -73,21 +73,17 @@ int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 	data->set_baseclock = 0;
 	data->set_mclk = 0;
 
-<<<<<<< HEAD
-	clk_disable_unprepare(data->clk_aud_mclk);
-	clk_disable_unprepare(data->clk_pll_out);
-	clk_disable_unprepare(data->clk_pll);
-=======
 	clk_disable_unprepare(data->clk_cdev1);
->>>>>>> v5.8-rc3
+	clk_disable_unprepare(data->clk_pll_a_out0);
+	clk_disable_unprepare(data->clk_pll_a);
 
-	err = clk_set_rate(data->clk_pll, new_baseclock);
+	err = clk_set_rate(data->clk_pll_a, new_baseclock);
 	if (err) {
 		dev_err(data->dev, "Can't set base pll rate: %d\n", err);
 		return err;
 	}
 
-	err = clk_set_rate(data->clk_pll_out, mclk);
+	err = clk_set_rate(data->clk_pll_a_out0, mclk);
 	if (err) {
 		dev_err(data->dev, "Can't set pll_out rate: %d\n", err);
 		return err;
@@ -95,25 +91,21 @@ int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 
 	/* Don't set cdev1/extern1 rate; it's locked to pll_out */
 
-<<<<<<< HEAD
-	err = clk_prepare_enable(data->clk_pll);
+	err = clk_prepare_enable(data->clk_pll_a);
 	if (err) {
 		dev_err(data->dev, "Can't enable pll: %d\n", err);
 		return err;
 	}
 
-	err = clk_prepare_enable(data->clk_pll_out);
+	err = clk_prepare_enable(data->clk_pll_a_out0);
 	if (err) {
 		dev_err(data->dev, "Can't enable pll_out: %d\n", err);
 		return err;
 	}
 
-	err = clk_prepare_enable(data->clk_aud_mclk);
-=======
 	err = clk_prepare_enable(data->clk_cdev1);
->>>>>>> v5.8-rc3
 	if (err) {
-		dev_err(data->dev, "Can't enable aud_mclk: %d\n", err);
+		dev_err(data->dev, "Can't enable clk_cdev1: %d\n", err);
 		return err;
 	}
 
@@ -130,25 +122,21 @@ int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data)
 	const int ac97_rate = 24576000;
 	int err;
 
-<<<<<<< HEAD
-	clk_disable_unprepare(data->clk_aud_mclk);
-	clk_disable_unprepare(data->clk_pll_out);
-	clk_disable_unprepare(data->clk_pll);
-=======
 	clk_disable_unprepare(data->clk_cdev1);
->>>>>>> v5.8-rc3
+	clk_disable_unprepare(data->clk_pll_a_out0);
+	clk_disable_unprepare(data->clk_pll_a);
 
 	/*
 	 * AC97 rate is fixed at 24.576MHz and is used for both the host
 	 * controller and the external codec
 	 */
-	err = clk_set_rate(data->clk_pll, pll_rate);
+	err = clk_set_rate(data->clk_pll_a, pll_rate);
 	if (err) {
 		dev_err(data->dev, "Can't set pll_a rate: %d\n", err);
 		return err;
 	}
 
-	err = clk_set_rate(data->clk_pll_out, ac97_rate);
+	err = clk_set_rate(data->clk_pll_a_out0, ac97_rate);
 	if (err) {
 		dev_err(data->dev, "Can't set pll_a_out0 rate: %d\n", err);
 		return err;
@@ -156,23 +144,19 @@ int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data)
 
 	/* Don't set cdev1/extern1 rate; it's locked to pll_a_out0 */
 
-<<<<<<< HEAD
-	err = clk_prepare_enable(data->clk_pll);
+	err = clk_prepare_enable(data->clk_pll_a);
 	if (err) {
 		dev_err(data->dev, "Can't enable pll_a: %d\n", err);
 		return err;
 	}
 
-	err = clk_prepare_enable(data->clk_pll_out);
+	err = clk_prepare_enable(data->clk_pll_a_out0);
 	if (err) {
 		dev_err(data->dev, "Can't enable pll_a_out0: %d\n", err);
 		return err;
 	}
 
-	err = clk_prepare_enable(data->clk_aud_mclk);
-=======
 	err = clk_prepare_enable(data->clk_cdev1);
->>>>>>> v5.8-rc3
 	if (err) {
 		dev_err(data->dev, "Can't enable cdev1: %d\n", err);
 		return err;
@@ -220,9 +204,9 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 		aud_mclk = sample_rate * data->mclk_fs;
 
 	if (data->set_baseclock != new_pll_base) {
-		err = clk_set_rate(data->clk_pll, new_pll_base);
+		err = clk_set_rate(data->clk_pll_a, new_pll_base);
 		if (err) {
-			dev_err(data->dev, "Can't set clk_pll rate: %d\n",
+			dev_err(data->dev, "Can't set clk_pll_a rate: %d\n",
 				err);
 			return err;
 		}
@@ -230,9 +214,9 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 	}
 
 	if (data->set_pll_out != pll_out) {
-		err = clk_set_rate(data->clk_pll_out, pll_out);
+		err = clk_set_rate(data->clk_pll_a_out0, pll_out);
 		if (err) {
-			dev_err(data->dev, "Can't set clk_pll_out rate: %d\n",
+			dev_err(data->dev, "Can't set clk_pll_a_out0 rate: %d\n",
 				err);
 			return err;
 		}
@@ -240,7 +224,7 @@ int tegra_asoc_utils_set_tegra210_rate(struct tegra_asoc_utils_data *data,
 	}
 
 	if (data->set_mclk != aud_mclk) {
-		err = clk_set_rate(data->clk_aud_mclk, aud_mclk);
+		err = clk_set_rate(data->clk_cdev1, aud_mclk);
 		if (err) {
 			dev_err(data->dev, "Can't set clk_cdev1 rate: %d\n",
 				err);
@@ -257,9 +241,9 @@ int tegra_asoc_utils_clk_enable(struct tegra_asoc_utils_data *data)
 {
 	int err;
 
-	err = clk_prepare_enable(data->clk_aud_mclk);
+	err = clk_prepare_enable(data->clk_cdev1);
 	if (err) {
-		dev_err(data->dev, "Can't enable clock aud_mclk\n");
+		dev_err(data->dev, "Can't enable clock cdev1\n");
 		return err;
 	}
 
@@ -269,7 +253,7 @@ EXPORT_SYMBOL_GPL(tegra_asoc_utils_clk_enable);
 
 void tegra_asoc_utils_clk_disable(struct tegra_asoc_utils_data *data)
 {
-	clk_disable_unprepare(data->clk_aud_mclk);
+	clk_disable_unprepare(data->clk_cdev1);
 }
 EXPORT_SYMBOL_GPL(tegra_asoc_utils_clk_disable);
 
@@ -300,36 +284,6 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 		return -EINVAL;
 	}
 
-<<<<<<< HEAD
-	data->clk_pll = devm_clk_get(dev, "pll_a");
-	if (IS_ERR(data->clk_pll)) {
-		dev_err(data->dev, "Can't retrieve clk pll_a\n");
-		return PTR_ERR(data->clk_pll);
-	}
-
-	data->clk_pll_out = devm_clk_get(dev, "pll_a_out0");
-	if (IS_ERR(data->clk_pll_out)) {
-		dev_err(data->dev, "Can't retrieve clk pll_a_out0\n");
-		return PTR_ERR(data->clk_pll_out);
-	}
-
-	data->clk_aud_mclk = devm_clk_get(dev, "extern1");
-	if (IS_ERR(data->clk_aud_mclk)) {
-		dev_err(data->dev, "Can't retrieve clk aud_mclk\n");
-		return PTR_ERR(data->clk_aud_mclk);
-	}
-
-	if (data->soc < TEGRA_ASOC_UTILS_SOC_TEGRA210) {
-		ret = tegra_asoc_utils_set_rate(data, 44100, 256 * 44100);
-		if (ret)
-			return ret;
-	}
-
-	if (data->soc < TEGRA_ASOC_UTILS_SOC_TEGRA186)
-		data->pll_base_rate = tegra210_pll_base_rate;
-	else
-		data->pll_base_rate = tegra186_pll_base_rate;
-=======
 	data->clk_pll_a = devm_clk_get(dev, "pll_a");
 	if (IS_ERR(data->clk_pll_a)) {
 		dev_err(data->dev, "Can't retrieve clk pll_a\n");
@@ -342,12 +296,23 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 		return PTR_ERR(data->clk_pll_a_out0);
 	}
 
-	data->clk_cdev1 = devm_clk_get(dev, "mclk");
+	/* FIXME: data->clk_cdev1 = devm_clk_get(dev, "mclk"); */
+	data->clk_cdev1 = devm_clk_get(dev, "extern1");
 	if (IS_ERR(data->clk_cdev1)) {
 		dev_err(data->dev, "Can't retrieve clk cdev1\n");
 		return PTR_ERR(data->clk_cdev1);
 	}
 
+	if (data->soc < TEGRA_ASOC_UTILS_SOC_TEGRA210) {
+		ret = tegra_asoc_utils_set_rate(data, 44100, 256 * 44100);
+		if (ret)
+			return ret;
+	}
+
+	if (data->soc < TEGRA_ASOC_UTILS_SOC_TEGRA186)
+		data->pll_base_rate = tegra210_pll_base_rate;
+	else
+		data->pll_base_rate = tegra186_pll_base_rate;
 	/*
 	 * If clock parents are not set in DT, configure here to use clk_out_1
 	 * as mclk and extern1 as parent for Tegra30 and higher.
@@ -397,7 +362,6 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 		dev_err(data->dev, "Can't enable cdev1: %d\n", ret);
 		return ret;
 	}
->>>>>>> v5.8-rc3
 
 	return 0;
 }

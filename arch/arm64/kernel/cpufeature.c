@@ -3,9 +3,6 @@
  * Contains CPU feature definitions
  *
  * Copyright (C) 2015 ARM Ltd.
-<<<<<<< HEAD
- * Copyright (C) 2020 NVIDIA Corporation. All rights reserved.
-=======
  *
  * A note for the weary kernel hacker: the code here is confusing and hard to
  * follow! That's partly because it's solving a nasty problem, but also because
@@ -61,7 +58,6 @@
  *   field is treated as STRICT RES0, including for read_sanitised_ftr_reg().
  *   This is stronger than FTR_HIDDEN and can be used to hide features from
  *   KVM guests.
->>>>>>> v5.8-rc3
  */
 
 #define pr_fmt(fmt) "CPU features: " fmt

@@ -4249,19 +4249,15 @@ static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
 
 	vmf->ptl = pte_lockptr(vmf->vma->vm_mm, vmf->pmd);
 	spin_lock(vmf->ptl);
-<<<<<<< HEAD
-	if (unlikely(!pte_same(*vmf->pte, entry)))
-		goto unlock;
-	if (fix_prot) {
-		entry = pte_modify(entry, vmf->vma->vm_page_prot);
-		vm_stat_account(vmf->vma->vm_mm, VM_NONE, -1);
-		vm_stat_account(vmf->vma->vm_mm, vmf->vma->vm_flags, 1);
-=======
 	entry = vmf->orig_pte;
 	if (unlikely(!pte_same(*vmf->pte, entry))) {
 		update_mmu_tlb(vmf->vma, vmf->address, vmf->pte);
 		goto unlock;
->>>>>>> v5.8-rc3
+	}
+	if (fix_prot) {
+		entry = pte_modify(entry, vmf->vma->vm_page_prot);
+		vm_stat_account(vmf->vma->vm_mm, VM_NONE, -1);
+		vm_stat_account(vmf->vma->vm_mm, vmf->vma->vm_flags, 1);
 	}
 	if (vmf->flags & FAULT_FLAG_WRITE) {
 		if (!pte_write(entry))

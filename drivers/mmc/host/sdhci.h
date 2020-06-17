@@ -654,17 +654,13 @@ struct sdhci_ops {
 	bool	(*skip_retuning)(struct sdhci_host *host);
 	void	(*adma_write_desc)(struct sdhci_host *host, void **desc,
 				   dma_addr_t addr, int len, unsigned int cmd);
-<<<<<<< HEAD
 	void	(*hs400_enhanced_strobe)(struct sdhci_host *host, bool enable);
-	void	(*dump_vendor_regs)(struct sdhci_host *host);
 	unsigned int	(*get_sw_timeout)(struct sdhci_host *host);
 	void	(*voltage_switch_req)(struct sdhci_host *sdhci, bool req);
 	void	(*skip_host_clkgate)(struct sdhci_host *host, bool req);
-=======
 	void	(*copy_to_bounce_buffer)(struct sdhci_host *host,
 					 struct mmc_data *data,
 					 unsigned int length);
->>>>>>> v5.8-rc3
 	void	(*request_done)(struct sdhci_host *host,
 				struct mmc_request *mrq);
 	void    (*dump_vendor_regs)(struct sdhci_host *host);

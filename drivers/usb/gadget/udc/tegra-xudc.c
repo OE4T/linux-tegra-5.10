@@ -3614,13 +3614,6 @@ static const char * const tegra186_xudc_clock_names[] = {
 	"fs_src",
 };
 
-static const char * const tegra194_xudc_clock_names[] = {
-	"dev",
-	"ss",
-	"ss_src",
-	"fs_src",
-};
-
 static struct tegra_xudc_soc tegra210_xudc_soc_data = {
 	.supply_names = tegra210_xudc_supply_names,
 	.num_supplies = ARRAY_SIZE(tegra210_xudc_supply_names),
@@ -3657,24 +3650,11 @@ static struct tegra_xudc_soc tegra194_xudc_soc_data = {
 	.num_phys = 4,
 	.u1_enable = true,
 	.u2_enable = true,
-	.lpm_enable = true,
-	.invalid_seq_num = false,
-	.pls_quirk = false,
-	.port_reset_quirk = false,
-	.port_speed_quirk = true,
-	.has_ipfs = false,
-};
-
-static struct tegra_xudc_soc tegra194_xudc_soc_data = {
-	.clock_names = tegra194_xudc_clock_names,
-	.num_clks = ARRAY_SIZE(tegra194_xudc_clock_names),
-	.num_phys = 4,
-	.u1_enable = true,
-	.u2_enable = true,
 	.lpm_enable = false,
 	.invalid_seq_num = false,
 	.pls_quirk = false,
 	.port_reset_quirk = false,
+	.port_speed_quirk = true,
 	.has_ipfs = false,
 };
 

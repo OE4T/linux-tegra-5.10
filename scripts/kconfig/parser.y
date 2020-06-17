@@ -266,13 +266,9 @@ choice_end: end
 	}
 };
 
-<<<<<<< HEAD
 choice_stmt:
-	  choice_entry choice_block choice_end
-	| append_choice_entry choice_block choice_end
-=======
-choice_stmt: choice_entry stmt_list_in_choice choice_end
->>>>>>> v5.8-rc3
+	  choice_entry stmt_list_in_choice choice_end
+	| append_choice_entry stmt_list_in_choice choice_end
 ;
 
 choice_option_list:

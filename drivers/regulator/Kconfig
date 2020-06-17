@@ -595,16 +595,15 @@ config REGULATOR_MAX77802
 	  Exynos5420/Exynos5800 SoCs to control various voltages.
 	  It includes support for control of voltage and ramp speed.
 
-<<<<<<< HEAD
 config REGULATOR_MAX77812
-	tristate "Maxim 77812 Quad-Phase Buck regualtor"
+	tristate "Maxim 77812 Quad-Phase Buck regulator"
 	depends on I2C
 	select REGMAP_I2C
 	help
 	  MAXIM MAX77812 is a quad-phase, high-current, buck regulator.
 	  This driver supports configuration of this device
 	  through regulator interface.
-=======
+
 config REGULATOR_MAX77826
 	tristate "Maxim 77826 regulator"
 	depends on I2C
@@ -614,7 +613,6 @@ config REGULATOR_MAX77826
 	  The regulator include 15 LDOs, BUCK and BUCK BOOST regulator.
 	  It includes support for control of output voltage. This
 	  regulator is found on the Samsung Galaxy S5 (klte) smartphone.
->>>>>>> v5.8-rc3
 
 config REGULATOR_MC13XXX_CORE
 	tristate

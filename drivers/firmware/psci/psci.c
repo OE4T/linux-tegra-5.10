@@ -57,24 +57,8 @@ bool psci_tos_resident_on(int cpu)
 	return cpu == resident_cpu;
 }
 
-<<<<<<< HEAD
-struct psci_operations psci_ops = {
-	.conduit = SMCCC_CONDUIT_NONE,
-	.smccc_version = SMCCC_VERSION_1_0,
-};
-
-enum arm_smccc_conduit arm_smccc_1_1_get_conduit(void)
-{
-	if (psci_ops.smccc_version < SMCCC_VERSION_1_1)
-		return SMCCC_CONDUIT_NONE;
-
-	return psci_ops.conduit;
-}
-
 struct extended_psci_operations extended_ops;
 
-=======
->>>>>>> v5.8-rc3
 typedef unsigned long (psci_fn)(unsigned long, unsigned long,
 				unsigned long, unsigned long);
 static psci_fn *invoke_psci_fn;

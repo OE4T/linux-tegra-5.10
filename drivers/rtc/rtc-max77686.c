@@ -78,12 +78,9 @@ struct max77686_rtc_driver_data {
 	int			alarm_pending_status_reg;
 	/* RTC IRQ CHIP for regmap */
 	const struct regmap_irq_chip *rtc_irq_chip;
-<<<<<<< HEAD
 	bool avoid_rtc_bulk_write;
-=======
 	/* regmap configuration for the chip */
 	const struct regmap_config *regmap_config;
->>>>>>> v5.8-rc3
 };
 
 struct max77686_rtc_info {
@@ -202,9 +199,7 @@ static const struct max77686_rtc_driver_data max77686_drv_data = {
 	.alarm_pending_status_reg = MAX77686_REG_STATUS2,
 	.rtc_i2c_addr = MAX77686_I2C_ADDR_RTC,
 	.rtc_irq_chip = &max77686_rtc_irq_chip,
-<<<<<<< HEAD
 	.avoid_rtc_bulk_write = false,
-=======
 	.regmap_config = &max77686_rtc_regmap_config,
 };
 
@@ -212,7 +207,6 @@ static const struct regmap_config max77620_rtc_regmap_config = {
 	.reg_bits = 8,
 	.val_bits = 8,
 	.use_single_write = true,
->>>>>>> v5.8-rc3
 };
 
 static const struct max77686_rtc_driver_data max77620_drv_data = {
@@ -224,11 +218,8 @@ static const struct max77686_rtc_driver_data max77620_drv_data = {
 	.alarm_pending_status_reg = MAX77686_INVALID_REG,
 	.rtc_i2c_addr = MAX77620_I2C_ADDR_RTC,
 	.rtc_irq_chip = &max77686_rtc_irq_chip,
-<<<<<<< HEAD
 	.avoid_rtc_bulk_write = true,
-=======
 	.regmap_config = &max77620_rtc_regmap_config,
->>>>>>> v5.8-rc3
 };
 
 static const unsigned int max77802_map[REG_RTC_END] = {
