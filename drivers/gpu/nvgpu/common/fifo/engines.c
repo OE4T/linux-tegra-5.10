@@ -516,7 +516,7 @@ int nvgpu_engine_setup_sw(struct gk20a *g)
 	}
 	(void) memset(f->active_engines_list, 0xff, size);
 
-	err = g->ops.engine.init_info(f);
+	err = nvgpu_engine_init_info(f);
 	if (err != 0) {
 		nvgpu_err(g, "init engine info failed");
 		goto clean_up;
@@ -795,59 +795,93 @@ u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg)
 	return engines;
 }
 
+static int nvgpu_engine_init_from_device_info(struct gk20a *g,
+				       struct nvgpu_engine_info *info,
+				       const struct nvgpu_device *dev)
+{
+	bool found;
+	struct nvgpu_device *dev_rw = (struct nvgpu_device *)dev;
+
+	info->engine_id = dev->engine_id;
+	info->intr_mask |= BIT32(dev->intr_id);
+	info->reset_mask |= BIT32(dev->reset_id);
+	info->runlist_id = dev->runlist_id;
+	info->inst_id  = dev->inst_id;
+	info->pri_base = dev->pri_base;
+	info->engine_enum = nvgpu_engine_enum_from_dev(g, dev);
+	info->fault_id = dev->fault_id;
+
+	/*
+	 * Populate the PBDMA info for this device; ideally it'd be done during
+	 * device init, but the FIFO unit is not out of reset that early in the
+	 * nvgpu_finalize_poweron() sequence.
+	 *
+	 * We only need to do this for native; vGPU already has pbdma_id populated
+	 * during device initialization.
+	 */
+	if (g->ops.fifo.find_pbdma_for_runlist != NULL) {
+		found = g->ops.fifo.find_pbdma_for_runlist(g,
+							dev->runlist_id,
+							&dev_rw->pbdma_id);
+		if (!found) {
+			nvgpu_err(g, "busted pbdma map");
+			return -EINVAL;
+		}
+	}
+	info->pbdma_id = dev->pbdma_id;
+
+#if defined(CONFIG_NVGPU_NEXT)
+	return nvgpu_next_engine_init_from_device_info(g, info, dev);
+#else
+	return 0;
+#endif
+}
+
+static int nvgpu_engine_populate_gr_info(struct nvgpu_fifo *f,
+					 u32 gr_inst)
+{
+	struct gk20a *g = f->g;
+	const struct nvgpu_device *dev;
+	int ret;
+
+	dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, gr_inst);
+	if (dev == NULL) {
+		nvgpu_err(g, "Failed to get graphics engine inst: %d", gr_inst);
+		return -EINVAL;
+	}
+
+	ret = nvgpu_engine_init_from_device_info(g,
+						 &g->fifo.engine_info[dev->engine_id],
+						 dev);
+	if (ret != 0) {
+		nvgpu_err(g, "Failed to init engine_info for engine_id: %d",
+							dev->engine_id);
+		return -EINVAL;
+	}
+
+	/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
+	f->active_engines_list[f->num_engines] = dev->engine_id;
+	f->num_engines = nvgpu_safe_add_u32(f->num_engines, 1U);
+
+	return 0;
+}
+
 int nvgpu_engine_init_info(struct nvgpu_fifo *f)
 {
 	struct gk20a *g = f->g;
 	int ret = 0;
-	enum nvgpu_fifo_engine engine_enum;
-	u32 pbdma_mask = 0U;
-	bool found = false;
-	struct nvgpu_engine_info *info;
-	const struct nvgpu_device *dev;
+	u32 gr_inst;
 
 	f->num_engines = 0;
 
-	dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
-	if (dev == NULL) {
-		nvgpu_err(g, "Failed to get graphics engine %d", 0);
-		return -EINVAL;
+	for (gr_inst = 0U;
+	     gr_inst < nvgpu_device_count(g, NVGPU_DEVTYPE_GRAPHICS);
+	     gr_inst++) {
+		ret = nvgpu_engine_populate_gr_info(f, gr_inst);
+		if (ret != 0) {
+			return ret;
+		}
 	}
-
-	found = g->ops.fifo.find_pbdma_for_runlist(g,
-						   dev->runlist_id,
-						   &pbdma_mask);
-	if (!found) {
-		nvgpu_err(g, "busted pbdma map");
-		return -EINVAL;
-	}
-
-	engine_enum = nvgpu_engine_enum_from_dev(g, dev);
-
-	info = &g->fifo.engine_info[dev->engine_id];
-
-	info->intr_mask |= BIT32(dev->intr_id);
-	info->reset_mask |= BIT32(dev->reset_id);
-	info->runlist_id = dev->runlist_id;
-	info->pbdma_id = nvgpu_safe_sub_u32(
-		nvgpu_safe_cast_u64_to_u32(nvgpu_ffs(pbdma_mask)), 1U);
-	info->inst_id  = dev->inst_id;
-	info->pri_base = dev->pri_base;
-	info->engine_enum = engine_enum;
-	info->fault_id = dev->fault_id;
-
-	/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
-	f->active_engines_list[f->num_engines] = dev->engine_id;
-	++f->num_engines;
-	nvgpu_log_info(g,
-		"gr info: engine_id %d runlist_id %d intr_id %d "
-		"reset_id %d engine_type %d engine_enum %d inst_id %d",
-		dev->engine_id,
-		dev->runlist_id,
-		dev->intr_id,
-		dev->reset_id,
-		dev->type,
-		engine_enum,
-		dev->inst_id);
 
 	ret = g->ops.engine.init_ce_info(f);
 

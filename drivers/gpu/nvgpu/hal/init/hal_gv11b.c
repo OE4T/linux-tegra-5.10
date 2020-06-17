@@ -34,7 +34,6 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/pbdma.h>
-#include <nvgpu/engines.h>
 #include <nvgpu/preempt.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/gr_falcon.h>
@@ -980,7 +979,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
-		.init_info = nvgpu_engine_init_info,
 		.init_ce_info = gp10b_engine_init_ce_info,
 	},
 	.pbdma = {

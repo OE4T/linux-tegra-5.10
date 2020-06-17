@@ -28,7 +28,6 @@
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/pbdma.h>
-#include <nvgpu/engines.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/fifo/userd.h>
@@ -680,7 +679,6 @@ static const struct gpu_ops gm20b_ops = {
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
-		.init_info = nvgpu_engine_init_info,
 		.init_ce_info = gm20b_engine_init_ce_info,
 	},
 	.pbdma = {

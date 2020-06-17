@@ -71,7 +71,7 @@ void gm20b_device_info_parse_enum(struct gk20a *g, u32 table_entry,
 }
 
 /*
- * Parse the device starting at *i. This will return a valid device struct
+ * Parse the device starting at *token. This will return a valid device struct
  * pointer if a device was detected and parsed, NULL otherwise.
  */
 struct nvgpu_device *gm20b_top_parse_next_dev(struct gk20a *g, u32 *token)

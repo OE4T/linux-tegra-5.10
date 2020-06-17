@@ -228,11 +228,6 @@ static const char *f_fifo_init[] = {
 	"fifo setup hw fail",
 };
 
-static int stub_nvgpu_engine_init_info(struct nvgpu_fifo *f)
-{
-	return 0;
-}
-
 static int stub_init_fifo_setup_hw_fail(struct gk20a *g)
 {
 	return -1;
@@ -298,15 +293,6 @@ int test_init_support(struct unit_module *m, struct gk20a *g, void *args)
 		g->ops.pbdma.setup_sw =
 			(branches & F_FIFO_SETUP_SW_PBDMA_NULL) ?
 				NULL : gops.pbdma.setup_sw;
-
-		/*
-		 * Replace engine init_info with stub when
-		 * PBDMA setup_sw is NULL
-		 */
-		g->ops.engine.init_info =
-			(branches & F_FIFO_SETUP_SW_PBDMA_NULL) ?
-				stub_nvgpu_engine_init_info :
-				gops.engine.init_info;
 
 		g->ops.pbdma.cleanup_sw =
 			(branches & (F_FIFO_CLEANUP_SW_PBDMA_NULL |

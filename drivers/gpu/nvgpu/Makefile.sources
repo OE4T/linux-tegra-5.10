@@ -535,10 +535,10 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/ivc/comm_vgpu.c \
 	common/vgpu/intr/intr_vgpu.c \
 	common/vgpu/ptimer/ptimer_vgpu.c \
+	common/vgpu/top/top_vgpu.c \
 	common/vgpu/fifo/fifo_vgpu.c \
 	common/vgpu/fifo/channel_vgpu.c \
 	common/vgpu/fifo/tsg_vgpu.c \
-	common/vgpu/fifo/engines_vgpu.c \
 	common/vgpu/fifo/preempt_vgpu.c \
 	common/vgpu/fifo/runlist_vgpu.c \
 	common/vgpu/fifo/ramfc_vgpu.c \

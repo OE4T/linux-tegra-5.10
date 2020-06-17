@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_ENGINES_VGPU_H
-#define NVGPU_ENGINES_VGPU_H
+#ifndef COMMON_VGPU_TOP_VGPU_H
+#define COMMON_VGPU_TOP_VGPU_H
 
-int vgpu_engine_init_info(struct nvgpu_fifo *f);
+#include <nvgpu/types.h>
+
+struct gk20a;
+struct nvgpu_device;
+
+struct nvgpu_device *vgpu_top_parse_next_dev(struct gk20a *g, u32 *token);
 
 #endif

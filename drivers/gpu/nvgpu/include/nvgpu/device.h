@@ -141,6 +141,17 @@ struct nvgpu_device {
 	 */
 	u32 reset_id;
 
+	/**
+	 * PBDMA ID for this device. Technically not part of the dev_top array,
+	 * but it's computable from various registers when the other device info
+	 * is read.
+	 *
+	 * This also makes the vGPU support a little easier as this field gets
+	 * passed to the vGPU client in the same data structure as the rest of the
+	 * device info.
+	 */
+	u32 pbdma_id;
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	/* nvgpu next device info additions */

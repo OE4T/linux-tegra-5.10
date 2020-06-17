@@ -221,7 +221,6 @@
 #include <nvgpu/debugger.h>
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/pbdma.h>
-#include <nvgpu/engines.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/perfbuf.h>
@@ -1012,7 +1011,6 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
-		.init_info = nvgpu_engine_init_info,
 		.init_ce_info = gp10b_engine_init_ce_info,
 	},
 	.pbdma = {

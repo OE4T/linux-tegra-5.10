@@ -37,7 +37,6 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 	enum nvgpu_fifo_engine engine_enum;
 	u32 i;
 	u32 gr_runlist_id;
-	u32 pbdma_mask = 0U;
 	u32 lce_num_entries = 0;
 	bool found;
 
@@ -49,6 +48,7 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 
 	for (i = 0; i < lce_num_entries; i++) {
 		const struct nvgpu_device *dev;
+		struct nvgpu_device *dev_rw;
 		struct nvgpu_engine_info *info;
 
 		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
@@ -56,16 +56,25 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 			nvgpu_err(g, "Failed to get LCE device %u", i);
 			return -EINVAL;
 		}
-
-		found =	g->ops.fifo.find_pbdma_for_runlist(g,
-							   dev->runlist_id,
-							   &pbdma_mask);
-		if (!found) {
-			nvgpu_err(g, "busted pbdma map");
-			return -EINVAL;
-		}
+		dev_rw = (struct nvgpu_device *)dev;
 
 		info = &g->fifo.engine_info[dev->engine_id];
+
+		/*
+		 * vGPU consideration. Not present in older chips. See
+		 * nvgpu_engine_init_from_device_info() for more details in the
+		 * comments.
+		 */
+		if (g->ops.fifo.find_pbdma_for_runlist != NULL) {
+			found =	g->ops.fifo.find_pbdma_for_runlist(g,
+							   dev->runlist_id,
+							   &dev_rw->pbdma_id);
+			if (!found) {
+				nvgpu_err(g, "busted pbdma map");
+				return -EINVAL;
+			}
+		}
+		info->pbdma_id = dev->pbdma_id;
 
 		engine_enum = nvgpu_engine_enum_from_dev(g, dev);
 		/* GR and GR_COPY shares same runlist_id */
@@ -79,8 +88,6 @@ int gp10b_engine_init_ce_info(struct nvgpu_fifo *f)
 		info->intr_mask |= BIT32(dev->intr_id);
 		info->reset_mask |= BIT32(dev->reset_id);
 		info->runlist_id = dev->runlist_id;
-		info->pbdma_id = nvgpu_safe_sub_u32(
-			nvgpu_safe_cast_u64_to_u32(nvgpu_ffs(pbdma_mask)), 1U);
 		info->inst_id  = dev->inst_id;
 		info->pri_base = dev->pri_base;
 		info->engine_id = dev->engine_id;

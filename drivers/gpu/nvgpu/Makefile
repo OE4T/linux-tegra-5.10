@@ -553,10 +553,10 @@ nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	common/vgpu/gr/gr_vgpu.o \
 	common/vgpu/gr/ctx_vgpu.o \
 	common/vgpu/gr/subctx_vgpu.o \
+	common/vgpu/top/top_vgpu.o \
 	common/vgpu/fifo/fifo_vgpu.o \
 	common/vgpu/fifo/channel_vgpu.o \
 	common/vgpu/fifo/tsg_vgpu.o \
-	common/vgpu/fifo/engines_vgpu.o \
 	common/vgpu/fifo/preempt_vgpu.o \
 	common/vgpu/fifo/runlist_vgpu.o \
 	common/vgpu/fifo/ramfc_vgpu.o \

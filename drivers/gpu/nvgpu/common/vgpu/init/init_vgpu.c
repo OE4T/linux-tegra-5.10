@@ -36,6 +36,7 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/device.h>
 
 #include "init_vgpu.h"
 #include "hal/vgpu/init/init_hal_vgpu.h"
@@ -169,6 +170,12 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 	vgpu_detect_chip(g);
 	err = vgpu_init_hal(g);
 	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_device_init(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init devices");
 		return err;
 	}
 

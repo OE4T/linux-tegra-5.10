@@ -81,19 +81,7 @@ static void subtest_setup(u32 branches)
 
 #define F_ENGINE_SETUP_SW_ENGINE_INFO_ENOMEM	BIT(0)
 #define F_ENGINE_SETUP_SW_ENGINE_LIST_ENOMEM	BIT(1)
-#define F_ENGINE_SETUP_SW_INIT_INFO_FAIL	BIT(2)
 #define F_ENGINE_SETUP_SW_LAST			BIT(3)
-
-
-static int stub_engine_init_info_EINVAL(struct nvgpu_fifo *f)
-{
-	return -EINVAL;
-}
-
-static int stub_engine_init_info(struct nvgpu_fifo *f)
-{
-	return 0;
-}
 
 int test_engine_setup_sw(struct unit_module *m,
 		struct gk20a *g, void *args)
@@ -105,12 +93,10 @@ int test_engine_setup_sw(struct unit_module *m,
 	int ret = UNIT_FAIL;
 	int err;
 	u32 fail = F_ENGINE_SETUP_SW_ENGINE_INFO_ENOMEM |
-		F_ENGINE_SETUP_SW_ENGINE_LIST_ENOMEM |
-		F_ENGINE_SETUP_SW_INIT_INFO_FAIL;
+		F_ENGINE_SETUP_SW_ENGINE_LIST_ENOMEM;
 	const char *labels[] = {
 		"engine_info_nomem",
 		"engine_list_nomem",
-		"init_info_fail",
 	};
 	u32 prune = fail;
 
@@ -141,10 +127,6 @@ int test_engine_setup_sw(struct unit_module *m,
 		if (branches & F_ENGINE_SETUP_SW_ENGINE_LIST_ENOMEM) {
 			nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
 		}
-
-		g->ops.engine.init_info =
-			branches & F_ENGINE_SETUP_SW_INIT_INFO_FAIL ?
-			stub_engine_init_info_EINVAL : stub_engine_init_info;
 
 		err = nvgpu_engine_setup_sw(g);
 

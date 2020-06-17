@@ -33,6 +33,7 @@
 #include "hal/class/class_gv11b.h"
 #include "hal/fifo/fifo_gv11b.h"
 #include "hal/fifo/preempt_gv11b.h"
+#include "hal/fifo/engines_gp10b.h"
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
@@ -110,10 +111,10 @@
 
 #include "common/vgpu/init/init_vgpu.h"
 #include "common/vgpu/fb/fb_vgpu.h"
+#include "common/vgpu/top/top_vgpu.h"
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/fifo/channel_vgpu.h"
 #include "common/vgpu/fifo/tsg_vgpu.h"
-#include "common/vgpu/fifo/engines_vgpu.h"
 #include "common/vgpu/fifo/preempt_vgpu.h"
 #include "common/vgpu/fifo/runlist_vgpu.h"
 #include "common/vgpu/fifo/ramfc_vgpu.h"
@@ -616,7 +617,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
-		.init_info = vgpu_engine_init_info,
+		.init_ce_info = gp10b_engine_init_ce_info,
 	},
 	.pbdma = {
 		.setup_sw = NULL,
@@ -977,6 +978,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
 		.get_max_ltc_per_fbp = vgpu_gr_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = vgpu_gr_get_max_lts_per_ltc,
+		.parse_next_device = vgpu_top_parse_next_dev,
 	},
 	.chip_init_gpu_characteristics = vgpu_gv11b_init_gpu_characteristics,
 	.get_litter_value = gv11b_get_litter_value,
