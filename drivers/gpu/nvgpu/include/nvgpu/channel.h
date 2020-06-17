@@ -256,18 +256,12 @@ struct notification {
 
 struct nvgpu_channel_joblist {
 	struct {
-		bool enabled;
 		unsigned int length;
 		unsigned int put;
 		unsigned int get;
 		struct nvgpu_channel_job *jobs;
 		struct nvgpu_mutex read_lock;
 	} pre_alloc;
-
-	struct {
-		struct nvgpu_list_node jobs;
-		struct nvgpu_spinlock lock;
-	} dynamic;
 
 	/**
 	 * Synchronize abort cleanup (when closing a channel) and job cleanup
@@ -588,7 +582,6 @@ int nvgpu_submit_channel_gpfifo_kernel(struct nvgpu_channel *c,
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 int nvgpu_channel_set_syncpt(struct nvgpu_channel *ch);
 #endif
-bool nvgpu_channel_is_prealloc_enabled(struct nvgpu_channel *c);
 
 bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,
 		u32 timeout_delta_ms, bool *progress);

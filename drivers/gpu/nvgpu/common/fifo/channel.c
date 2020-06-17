@@ -224,10 +224,7 @@ static void channel_kernelmode_deinit(struct nvgpu_channel *ch)
 		ch->priv_cmd_q = NULL;
 	}
 
-	/* free pre-allocated resources, if applicable */
-	if (nvgpu_channel_is_prealloc_enabled(ch)) {
-		channel_free_prealloc_resources(ch);
-	}
+	channel_free_prealloc_resources(ch);
 
 	/* sync must be destroyed before releasing channel vm */
 	nvgpu_mutex_acquire(&ch->sync_lock);
@@ -236,18 +233,6 @@ static void channel_kernelmode_deinit(struct nvgpu_channel *ch)
 		ch->sync = NULL;
 	}
 	nvgpu_mutex_release(&ch->sync_lock);
-}
-
-bool nvgpu_channel_is_prealloc_enabled(struct nvgpu_channel *c)
-{
-#ifdef CONFIG_NVGPU_DETERMINISTIC_CHANNELS
-	bool pre_alloc_enabled = c->joblist.pre_alloc.enabled;
-
-	nvgpu_smp_rmb();
-	return pre_alloc_enabled;
-#else
-	return false;
-#endif
 }
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -311,7 +296,7 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 {
 	u32 gpfifo_size, gpfifo_entry_size;
 	u64 gpfifo_gpu_va;
-	u32 priv_cmd_jobs;
+	u32 job_count;
 
 	int err = 0;
 	struct gk20a *g = c->g;
@@ -374,15 +359,6 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 		goto clean_up_sync;
 	}
 
-	if (nvgpu_channel_is_deterministic(c) &&
-			args->num_inflight_jobs != 0U) {
-		err = channel_prealloc_resources(c,
-				args->num_inflight_jobs);
-		if (err != 0) {
-			goto clean_up_sync;
-		}
-	}
-
 	/*
 	 * Allocate priv cmdbuf space for pre and post fences. If the inflight
 	 * job count isn't specified, we base it on the gpfifo count. We
@@ -391,12 +367,25 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 	 * wait entries, and the final third to incr entries. There will be one
 	 * pair of acq and incr commands for each job.
 	 */
-	priv_cmd_jobs = args->num_inflight_jobs;
-	if (priv_cmd_jobs == 0U) {
-		priv_cmd_jobs = c->gpfifo.entry_num / 3U;
+	job_count = args->num_inflight_jobs;
+	if (job_count == 0U) {
+		/*
+		 * Round up so the allocation behaves nicely with a very small
+		 * gpfifo, and to be able to use all slots when the entry count
+		 * would be one too small for both wait and incr commands. An
+		 * increment would then still just fit.
+		 *
+		 * gpfifo_size is required to be at most 2^31 earlier.
+		 */
+		job_count = nvgpu_safe_add_u32(gpfifo_size, 2U) / 3U;
 	}
 
-	err = nvgpu_priv_cmdbuf_queue_alloc(c->vm, priv_cmd_jobs, &c->priv_cmd_q);
+	err = channel_prealloc_resources(c, job_count);
+	if (err != 0) {
+		goto clean_up_sync;
+	}
+
+	err = nvgpu_priv_cmdbuf_queue_alloc(c->vm, job_count, &c->priv_cmd_q);
 	if (err != 0) {
 		goto clean_up_prealloc;
 	}
@@ -412,10 +401,7 @@ clean_up_priv_cmd:
 	nvgpu_priv_cmdbuf_queue_free(c->priv_cmd_q);
 	c->priv_cmd_q = NULL;
 clean_up_prealloc:
-	if (nvgpu_channel_is_deterministic(c) &&
-			args->num_inflight_jobs != 0U) {
-		channel_free_prealloc_resources(c);
-	}
+	channel_free_prealloc_resources(c);
 clean_up_sync:
 	if (c->sync != NULL) {
 		nvgpu_channel_sync_destroy(c->sync);
@@ -626,7 +612,6 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 	struct nvgpu_mapped_buf **mapped_buffers = NULL;
 	int err = 0;
 	u32 num_mapped_buffers = 0;
-	bool pre_alloc_enabled = nvgpu_channel_is_prealloc_enabled(c);
 
 	if (!skip_buffer_refcounting) {
 		err = nvgpu_vm_get_buffers(vm, &mapped_buffers,
@@ -642,21 +627,9 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 
 		nvgpu_channel_wdt_start(c->wdt, c);
 
-		if (!pre_alloc_enabled) {
-			nvgpu_channel_joblist_lock(c);
-		}
-
-		/*
-		 * ensure all pending write complete before adding to the list.
-		 * see corresponding nvgpu_smp_rmb in
-		 * nvgpu_channel_clean_up_jobs()
-		 */
-		nvgpu_smp_wmb();
+		nvgpu_channel_joblist_lock(c);
 		channel_joblist_add(c, job);
-
-		if (!pre_alloc_enabled) {
-			nvgpu_channel_joblist_unlock(c);
-		}
+		nvgpu_channel_joblist_unlock(c);
 	} else {
 		err = -ETIMEDOUT;
 		goto err_put_buffers;
@@ -719,13 +692,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			nvgpu_channel_joblist_unlock(c);
 			break;
 		}
-
-		/*
-		 * ensure that all subsequent reads occur after checking
-		 * that we have a valid node. see corresponding nvgpu_smp_wmb in
-		 * nvgpu_channel_add_job().
-		 */
-		nvgpu_smp_rmb();
 		job = channel_joblist_peek(c);
 		nvgpu_channel_joblist_unlock(c);
 
@@ -769,15 +735,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 				job->num_mapped_buffers);
 		}
 
-		/*
-		 * Remove job from channel's job list before we close the
-		 * fences, to prevent other callers (nvgpu_channel_abort) from
-		 * trying to dereference post_fence when it no longer exists.
-		 */
-		nvgpu_channel_joblist_lock(c);
-		channel_joblist_delete(c, job);
-		nvgpu_channel_joblist_unlock(c);
-
 		/* Close the fence (this will unref the semaphore and release
 		 * it to the pool). */
 		nvgpu_fence_put(job->post_fence);
@@ -791,13 +748,12 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 		}
 		nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->incr_cmd);
 
-		/*
-		 * ensure all pending writes complete before freeing up the job.
-		 * see corresponding nvgpu_smp_rmb in nvgpu_channel_alloc_job().
-		 */
-		nvgpu_smp_wmb();
-
 		nvgpu_channel_free_job(c, job);
+
+		nvgpu_channel_joblist_lock(c);
+		channel_joblist_delete(c, job);
+		nvgpu_channel_joblist_unlock(c);
+
 		job_finished = true;
 
 		/*
@@ -1584,6 +1540,16 @@ static int channel_setup_bind_prechecks(struct nvgpu_channel *c,
 		goto fail;
 	}
 
+	/*
+	 * The gpfifo ring buffer is empty when get == put and it's full when
+	 * get == put + 1. Just one entry wouldn't make sense.
+	 */
+	if (args->num_gpfifo_entries < 2U) {
+		nvgpu_err(g, "gpfifo has no space for any jobs");
+		err = -EINVAL;
+		goto fail;
+	}
+
 	/* an address space needs to have been bound at this point. */
 	if (!nvgpu_channel_as_bound(c)) {
 		nvgpu_err(g,
@@ -1923,8 +1889,6 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid)
 	nvgpu_spinlock_init(&c->ref_actions_lock);
 #endif
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-	nvgpu_spinlock_init(&c->joblist.dynamic.lock);
-	nvgpu_init_list_node(&c->joblist.dynamic.jobs);
 	nvgpu_init_list_node(&c->worker_item);
 
 	nvgpu_mutex_init(&c->joblist.cleanup_lock);

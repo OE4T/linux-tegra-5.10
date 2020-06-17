@@ -41,24 +41,21 @@ static struct nvgpu_fence_type *nvgpu_fence_from_ref(struct nvgpu_ref *ref)
 static void nvgpu_fence_free(struct nvgpu_ref *ref)
 {
 	struct nvgpu_fence_type *f = nvgpu_fence_from_ref(ref);
-	struct gk20a *g = f->g;
 
 	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
 		f->os_fence.ops->drop_ref(&f->os_fence);
 	}
+
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
 	if (f->semaphore != NULL) {
 		nvgpu_semaphore_put(f->semaphore);
 	}
 #endif
 
-	if (f->allocator != NULL) {
-		if (nvgpu_alloc_initialized(f->allocator)) {
-			nvgpu_free(f->allocator, (u64)(uintptr_t)f);
-		}
-	} else {
-		nvgpu_kfree(g, f);
-	}
+	/* the allocator must outlive the fences */
+	BUG_ON(!nvgpu_alloc_initialized(f->allocator));
+
+	nvgpu_free(f->allocator, (u64)(uintptr_t)f);
 }
 
 void nvgpu_fence_put(struct nvgpu_fence_type *f)
@@ -146,7 +143,8 @@ void nvgpu_fence_pool_free(struct nvgpu_channel *ch)
 {
 	if (nvgpu_alloc_initialized(&ch->fence_allocator)) {
 		struct nvgpu_fence_type *fence_pool;
-			fence_pool = (struct nvgpu_fence_type *)(uintptr_t)
+
+		fence_pool = (struct nvgpu_fence_type *)(uintptr_t)
 				nvgpu_alloc_base(&ch->fence_allocator);
 		nvgpu_alloc_destroy(&ch->fence_allocator);
 		nvgpu_vfree(ch->g, fence_pool);
@@ -158,23 +156,16 @@ struct nvgpu_fence_type *nvgpu_fence_alloc(struct nvgpu_channel *ch)
 {
 	struct nvgpu_fence_type *fence = NULL;
 
-	if (nvgpu_channel_is_prealloc_enabled(ch)) {
-		if (nvgpu_alloc_initialized(&ch->fence_allocator)) {
-			fence = (struct nvgpu_fence_type *)(uintptr_t)
-				nvgpu_alloc(&ch->fence_allocator,
-					sizeof(struct nvgpu_fence_type));
-
-			/* clear the node and reset the allocator pointer */
-			if (fence != NULL) {
-				(void) memset(fence, 0, sizeof(*fence));
-				fence->allocator = &ch->fence_allocator;
-			}
-		}
-	} else {
-		fence = nvgpu_kzalloc(ch->g, sizeof(struct nvgpu_fence_type));
+	if (nvgpu_alloc_initialized(&ch->fence_allocator)) {
+		fence = (struct nvgpu_fence_type *)(uintptr_t)
+			nvgpu_alloc(&ch->fence_allocator,
+				sizeof(struct nvgpu_fence_type));
 	}
 
 	if (fence != NULL) {
+		(void) memset(fence, 0, sizeof(*fence));
+		fence->allocator = &ch->fence_allocator;
+
 		nvgpu_ref_init(&fence->ref);
 		fence->g = ch->g;
 	}

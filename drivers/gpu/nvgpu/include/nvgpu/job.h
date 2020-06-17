@@ -54,7 +54,7 @@ void channel_joblist_delete(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job);
 bool nvgpu_channel_joblist_is_empty(struct nvgpu_channel *c);
 
-int channel_prealloc_resources(struct nvgpu_channel *ch, u32 num_jobs);
+int channel_prealloc_resources(struct nvgpu_channel *c, u32 num_jobs);
 void channel_free_prealloc_resources(struct nvgpu_channel *c);
 
 #endif

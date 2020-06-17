@@ -90,6 +90,11 @@ static int nvgpu_submit_create_incr_cmd(struct nvgpu_channel *c,
 
 	*post_fence = nvgpu_fence_alloc(c);
 	if (*post_fence == NULL) {
+		/*
+		 * The fence pool is exactly as long as the job list so this
+		 * should always succeed. If not, things are so broken that
+		 * ENOMEM is better than ENOSPC.
+		 */
 		return -ENOMEM;
 	}
 
@@ -351,7 +356,9 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 	struct nvgpu_channel_job *job = NULL;
 	int err;
 
+	nvgpu_channel_joblist_lock(c);
 	err = nvgpu_channel_alloc_job(c, &job);
+	nvgpu_channel_joblist_unlock(c);
 	if (err != 0) {
 		return err;
 	}
@@ -569,11 +576,6 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 	if (need_job_tracking) {
 		/* nvgpu_semaphore is dynamically allocated, not pooled */
 		if (!nvgpu_has_syncpoints(g)) {
-			return -EINVAL;
-		}
-
-		/* dynamic job allocation wouldn't be deterministic */
-		if (!nvgpu_channel_is_prealloc_enabled(c)) {
 			return -EINVAL;
 		}
 
