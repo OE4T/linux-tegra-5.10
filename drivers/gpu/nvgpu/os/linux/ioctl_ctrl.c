@@ -2115,7 +2115,11 @@ static void alter_usermode_mapping(struct gk20a *g,
 		return;
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+	down_write(&vma->vm_mm->mmap_lock);
+#else
 	down_write(&vma->vm_mm->mmap_sem);
+#endif
 
 	/*
 	 * This is a no-op for the below cases
@@ -2149,7 +2153,11 @@ static void alter_usermode_mapping(struct gk20a *g,
 		}
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+	up_write(&vma->vm_mm->mmap_lock);
+#else
 	up_write(&vma->vm_mm->mmap_sem);
+#endif
 }
 
 static void alter_usermode_mappings(struct gk20a *g, bool poweroff)
