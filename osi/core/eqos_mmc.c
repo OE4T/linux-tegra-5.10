@@ -286,14 +286,14 @@ void eqos_read_mmc(struct osi_core_priv_data *osi_core)
 	mmc->mmc_rx_ipv4_udsbl =
 		update_mmc_val(osi_core, mmc->mmc_rx_ipv4_udsbl,
 			       MMC_RXIPV4_UBSBL_PKTS);
-	mmc->mmc_rx_ipv6_gd_octets =
-		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_gd_octets,
+	mmc->mmc_rx_ipv6_gd =
+		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_gd,
 			       MMC_RXIPV6_GD_PKTS);
-	mmc->mmc_rx_ipv6_hderr_octets =
-		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_hderr_octets,
+	mmc->mmc_rx_ipv6_hderr =
+		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_hderr,
 			       MMC_RXIPV6_HDRERR_PKTS);
-	mmc->mmc_rx_ipv6_nopay_octets =
-		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_nopay_octets,
+	mmc->mmc_rx_ipv6_nopay =
+		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_nopay,
 			       MMC_RXIPV6_NOPAY_PKTS);
 	mmc->mmc_rx_udp_gd =
 		update_mmc_val(osi_core, mmc->mmc_rx_udp_gd,
@@ -330,12 +330,15 @@ void eqos_read_mmc(struct osi_core_priv_data *osi_core)
 			       MMC_RXIPV4_UDSBL_OCTETS);
 	mmc->mmc_rx_udp_gd_octets =
 		update_mmc_val(osi_core, mmc->mmc_rx_udp_gd_octets,
+			       MMC_RXUDP_GD_OCTETS);
+	mmc->mmc_rx_ipv6_gd_octets =
+		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_gd_octets,
 			       MMC_RXIPV6_GD_OCTETS);
-	mmc->mmc_rx_ipv6_hderr =
-		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_hderr,
+	mmc->mmc_rx_ipv6_hderr_octets =
+		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_hderr_octets,
 			       MMC_RXIPV6_HDRERR_OCTETS);
-	mmc->mmc_rx_ipv6_nopay =
-		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_nopay,
+	mmc->mmc_rx_ipv6_nopay_octets =
+		update_mmc_val(osi_core, mmc->mmc_rx_ipv6_nopay_octets,
 			       MMC_RXIPV6_NOPAY_OCTETS);
 	mmc->mmc_rx_udp_gd_octets =
 		update_mmc_val(osi_core, mmc->mmc_rx_udp_gd_octets,
