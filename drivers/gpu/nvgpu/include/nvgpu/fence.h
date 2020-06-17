@@ -67,15 +67,15 @@ struct nvgpu_fence_ops {
 
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
 /* Fences can be created from semaphores or syncpoint (id, value) pairs */
-int nvgpu_fence_from_semaphore(
-		struct nvgpu_fence_type *fence_out,
+void nvgpu_fence_from_semaphore(
+		struct nvgpu_fence_type *f,
 		struct nvgpu_semaphore *semaphore,
 		struct nvgpu_cond *semaphore_wq,
 		struct nvgpu_os_fence os_fence);
 #endif
 
-int nvgpu_fence_from_syncpt(
-		struct nvgpu_fence_type *fence_out,
+void nvgpu_fence_from_syncpt(
+		struct nvgpu_fence_type *f,
 		struct nvgpu_nvhost_dev *nvhost_dev,
 		u32 id, u32 value,
 		struct nvgpu_os_fence os_fence);

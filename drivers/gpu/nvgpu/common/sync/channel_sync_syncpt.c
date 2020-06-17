@@ -216,15 +216,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 		}
 	}
 
-	err = nvgpu_fence_from_syncpt(fence, sp->nvhost,
-	 sp->id, thresh, os_fence);
-
-	if (err != 0) {
-		if (nvgpu_os_fence_is_initialized(&os_fence) != 0) {
-			os_fence.ops->drop_ref(&os_fence);
-		}
-		goto clean_up_priv_cmd;
-	}
+	nvgpu_fence_from_syncpt(fence, sp->nvhost, sp->id, thresh, os_fence);
 
 	return 0;
 

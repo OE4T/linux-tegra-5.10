@@ -213,19 +213,10 @@ static int channel_sync_semaphore_incr_common(
 		}
 	}
 
-	err = nvgpu_fence_from_semaphore(fence, semaphore, &c->semaphore_wq,
-			os_fence);
-
-	if (err != 0) {
-		goto clean_up_os_fence;
-	}
+	nvgpu_fence_from_semaphore(fence, semaphore, &c->semaphore_wq, os_fence);
 
 	return 0;
 
-clean_up_os_fence:
-	if (nvgpu_os_fence_is_initialized(&os_fence)) {
-		os_fence.ops->drop_ref(&os_fence);
-	}
 clean_up_cmdbuf:
 	nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, *incr_cmd);
 clean_up_sema:

@@ -63,16 +63,12 @@ static void nvgpu_fence_free(struct nvgpu_ref *ref)
 
 void nvgpu_fence_put(struct nvgpu_fence_type *f)
 {
-	if (f != NULL) {
-		nvgpu_ref_put(&f->ref, nvgpu_fence_free);
-	}
+	nvgpu_ref_put(&f->ref, nvgpu_fence_free);
 }
 
 struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f)
 {
-	if (f != NULL) {
-		nvgpu_ref_get(&f->ref);
-	}
+	nvgpu_ref_get(&f->ref);
 	return f;
 }
 
@@ -89,8 +85,11 @@ struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f)
 	};
 
 	/*
-	 * Keep our ref to the os fence for now so that the user fence can be
-	 * extracted multiple times (for cde).
+	 * The os fence member has to live so it can be signaled when the job
+	 * completes. The returned user fence may live longer than that before
+	 * being safely attached to an fd if the job completes before a
+	 * submission ioctl finishes, or if it's stored for cde job state
+	 * tracking.
 	 */
 	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
 		f->os_fence.ops->dup(&f->os_fence);
@@ -188,9 +187,6 @@ void nvgpu_fence_init(struct nvgpu_fence_type *f,
 		const struct nvgpu_fence_ops *ops,
 		struct nvgpu_os_fence os_fence)
 {
-	if (f == NULL) {
-		return;
-	}
 	f->ops = ops;
 	f->syncpt_id = NVGPU_INVALID_SYNCPT_ID;
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE
@@ -225,24 +221,16 @@ static const struct nvgpu_fence_ops nvgpu_semaphore_fence_ops = {
 };
 
 /* This function takes ownership of the semaphore as well as the os_fence */
-int nvgpu_fence_from_semaphore(
-		struct nvgpu_fence_type *fence_out,
+void nvgpu_fence_from_semaphore(
+		struct nvgpu_fence_type *f,
 		struct nvgpu_semaphore *semaphore,
 		struct nvgpu_cond *semaphore_wq,
 		struct nvgpu_os_fence os_fence)
 {
-	struct nvgpu_fence_type *f = fence_out;
-
 	nvgpu_fence_init(f, &nvgpu_semaphore_fence_ops, os_fence);
-	if (f == NULL) {
-		return -EINVAL;
-	}
-
 
 	f->semaphore = semaphore;
 	f->semaphore_wq = semaphore_wq;
-
-	return 0;
 }
 
 #endif
@@ -286,30 +274,15 @@ static const struct nvgpu_fence_ops nvgpu_fence_syncpt_ops = {
 };
 
 /* This function takes the ownership of the os_fence */
-int nvgpu_fence_from_syncpt(
-		struct nvgpu_fence_type *fence_out,
+void nvgpu_fence_from_syncpt(
+		struct nvgpu_fence_type *f,
 		struct nvgpu_nvhost_dev *nvhost_dev,
 		u32 id, u32 value, struct nvgpu_os_fence os_fence)
 {
-	struct nvgpu_fence_type *f = fence_out;
-
 	nvgpu_fence_init(f, &nvgpu_fence_syncpt_ops, os_fence);
-	if (!f) {
-		return -EINVAL;
-	}
 
 	f->nvhost_dev = nvhost_dev;
 	f->syncpt_id = id;
 	f->syncpt_value = value;
-
-	return 0;
-}
-#else
-int nvgpu_fence_from_syncpt(
-		struct nvgpu_fence_type *fence_out,
-		struct nvgpu_nvhost_dev *nvhost_dev,
-		u32 id, u32 value, struct nvgpu_os_fence os_fence)
-{
-	return -EINVAL;
 }
 #endif
