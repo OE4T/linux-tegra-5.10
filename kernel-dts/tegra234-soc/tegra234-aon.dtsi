@@ -28,8 +28,6 @@
 		/* common mailbox binding property, should be 1. */
 		#mbox-cells = <1>;
 		reg =   <0 0xc000000 0 0x800000>;
-		nvidia,hsp-shared-mailbox = <&aon_hsp 2>;
-		nvidia,hsp-shared-mailbox-names = "ivc-pair";
 		nvidia,ivc-carveout-base-ss = <0>;
 		nvidia,ivc-carveout-size-ss = <1>;
 		nvidia,ivc-rx-ss = <2>;
@@ -37,6 +35,14 @@
 
 		/* mailbox for debugging */
 		mboxes = <&aon 0>;
+
+		hsp {
+			compatible = "nvidia,tegra-aon-hsp";
+			mboxes =
+			  <&hsp_top1 TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(5)>,
+			  <&hsp_top1 TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(4)>;
+			mbox-names = "ivc-tx", "ivc-rx";
+		};
 
 		ivc-channels@80000000 {
 			#address-cells = <1>;
