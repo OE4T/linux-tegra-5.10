@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -2511,6 +2511,10 @@ struct isp5_downscaler_configbuf {
 #define	ISP5BLOCK_ENABLED_LAC1_REGION1			MK_BIT32(25)
 #define	ISP5BLOCK_ENABLED_LAC1_REGION2			MK_BIT32(26)
 #define	ISP5BLOCK_ENABLED_LAC1_REGION3			MK_BIT32(27)
+/**
+ * Enable ISP6 LTM Softkey automatic update feature
+ */
+#define ISP6BLOCK_ENABLED_AP_LTM_SK_UPDATE		MK_BIT32(28)
 
 /**
  * @brief ISP overfetch requirements.
@@ -2553,7 +2557,7 @@ struct isp_overfetch {
  *
  * Settings needed by RCE ISP driver to generate config buffer.
  * Content and format of these fields is the same as corresponding ISP config buffer fields.
- * See T19X_ISP_Microcode.docx for detailed description.
+ * See T19X/T23X ISP_Microcode.docx for detailed description.
  */
 struct isp5_program {
 	/**
