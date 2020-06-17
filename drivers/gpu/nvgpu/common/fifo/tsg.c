@@ -239,7 +239,7 @@ int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	err = nvgpu_tsg_unbind_channel_common(tsg, ch);
 	if (err != 0) {
 		nvgpu_err(g, "unbind common failed, err=%d", err);
-		goto fail;
+		goto fail_common;
 	}
 
 	if (g->ops.tsg.unbind_channel != NULL) {
@@ -259,6 +259,13 @@ int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 
 	return 0;
 
+fail_common:
+	if (g->ops.tsg.unbind_channel != NULL) {
+		int unbind_err = g->ops.tsg.unbind_channel(tsg, ch);
+		if (unbind_err != 0) {
+			nvgpu_err(g, "unbind hal failed, err=%d", unbind_err);
+		}
+	}
 fail:
 	nvgpu_err(g, "Channel %d unbind failed, tearing down TSG %d",
 		ch->chid, tsg->tsgid);
