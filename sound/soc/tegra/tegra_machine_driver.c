@@ -309,19 +309,6 @@ static void tegra_machine_pcm_shutdown(struct snd_pcm_substream *substream)
 	tegra_asoc_utils_clk_disable(&machine->audio_clock);
 }
 
-static int tegra_machine_suspend_pre(struct snd_soc_card *card)
-{
-	struct snd_soc_pcm_runtime *rtd;
-
-	/* DAPM dai link stream work for non pcm links */
-	list_for_each_entry(rtd, &card->rtd_list, list) {
-		if (rtd->dai_link->params)
-			INIT_DELAYED_WORK(&rtd->delayed_work, NULL);
-	}
-
-	return 0;
-}
-
 static int tegra_machine_compr_startup(struct snd_compr_stream *cstream)
 {
 	struct snd_soc_pcm_runtime *rtd = cstream->private_data;
@@ -515,7 +502,6 @@ static struct snd_soc_card snd_soc_tegra_card = {
 	.owner = THIS_MODULE,
 	.controls = tegra_machine_controls,
 	.num_controls = ARRAY_SIZE(tegra_machine_controls),
-	.suspend_pre = tegra_machine_suspend_pre,
 	.fully_routed = true,
 };
 
