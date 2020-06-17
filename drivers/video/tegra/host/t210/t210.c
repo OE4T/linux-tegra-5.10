@@ -367,6 +367,7 @@ struct nvhost_device_data t21_vic_info = {
 	.engine_can_cg		= true,
 	.poweron_toggle_slcg	= true,
 	.finalize_poweron	= nvhost_vic_finalize_poweron,
+	.prepare_poweroff	= nvhost_flcn_prepare_poweroff,
 	.flcn_isr               = nvhost_flcn_common_isr,
 	.module_irq             = 1,
 	.scaling_init           = nvhost_scale_emc_init,
