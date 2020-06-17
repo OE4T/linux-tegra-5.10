@@ -36,6 +36,7 @@
 #define NVGPU_PG189_MIN_VBIOS		0x90041800U
 
 #define NVGPU_PG189_0600_VBIOS		0x90049500U
+#define NVGPU_PG189_0600_QS_VBIOS	0x9004A200U
 #define NVGPU_PG189_0601_VBIOS		0x90045a00U
 #define NVGPU_PG189_0610_QS_VBIOS	0x90049100U
 #define NVGPU_PG189_0601_QS_VBIOS	0x90049600U
@@ -56,7 +57,7 @@ static struct nvgpu_vbios_board vbios_boards[NVGPU_PG189_NUM_VBIOS_BOARDS] = {
 	/* SKU 600 QS */
 	[1] = {
 		.board_id = 0x0183,
-		.vbios_version = NVGPU_PG189_0600_VBIOS,
+		.vbios_version = NVGPU_PG189_0600_QS_VBIOS,
 	},
 	/* SKU 601 CS */
 	[2] = {
