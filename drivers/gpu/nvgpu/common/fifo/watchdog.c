@@ -230,7 +230,8 @@ void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g)
 		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
 
 		if (ch != NULL) {
-			if (!nvgpu_channel_check_unserviceable(ch)) {
+			if ((ch->wdt != NULL) &&
+				(!nvgpu_channel_check_unserviceable(ch))) {
 				nvgpu_channel_wdt_rewind(ch->wdt, ch);
 			}
 			nvgpu_channel_put(ch);
