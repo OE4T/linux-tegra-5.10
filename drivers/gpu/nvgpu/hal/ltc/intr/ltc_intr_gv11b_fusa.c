@@ -42,7 +42,7 @@ void gv11b_ltc_intr_configure(struct gk20a *g)
 	reg = nvgpu_readl(g, ltc_ltcs_ltss_intr_r());
 	reg &= ~ltc_ltcs_ltss_intr_en_evicted_cb_m();
 	reg &= ~ltc_ltcs_ltss_intr_en_illegal_compstat_access_m();
-	nvgpu_writel_check(g, ltc_ltcs_ltss_intr_r(), reg);
+	nvgpu_writel(g, ltc_ltcs_ltss_intr_r(), reg);
 
 	/* illegal_compstat interrupts can be also controlled through
 	 * debug_fs, so enable/disable based on g->ltc_intr_en_illegal_compstat
@@ -57,7 +57,7 @@ void gv11b_ltc_intr_configure(struct gk20a *g)
 	reg = nvgpu_readl(g, ltc_ltcs_ltss_intr_r());
 	reg |= ltc_ltcs_ltss_intr_en_ecc_sec_error_enabled_f() |
 		ltc_ltcs_ltss_intr_en_ecc_ded_error_enabled_f();
-	nvgpu_writel_check(g, ltc_ltcs_ltss_intr_r(), reg);
+	nvgpu_writel(g, ltc_ltcs_ltss_intr_r(), reg);
 }
 
 void gv11b_ltc_intr_en_illegal_compstat(struct gk20a *g, bool enable)
@@ -84,13 +84,13 @@ void gv11b_ltc_intr_init_counters(struct gk20a *g,
 			u32 offset)
 {
 	if ((corrected_delta > 0U) || (corrected_overflow != 0U)) {
-		nvgpu_writel_check(g,
+		nvgpu_writel(g,
 			nvgpu_safe_add_u32(
 			ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_r(),
 			offset), 0);
 	}
 	if ((uncorrected_delta > 0U) || (uncorrected_overflow != 0U)) {
-		nvgpu_writel_check(g,
+		nvgpu_writel(g,
 			nvgpu_safe_add_u32(
 			ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_r(),
 			offset), 0);

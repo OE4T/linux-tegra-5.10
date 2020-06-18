@@ -63,7 +63,7 @@ void gp10b_ltc_intr_handle_lts_interrupts(struct gk20a *g, u32 ltc, u32 slice)
 							ecc_stats_reg_val));
 		ecc_stats_reg_val &=
 			~(ltc_ltc0_lts0_dstg_ecc_report_sec_count_m());
-		nvgpu_writel_check(g,
+		nvgpu_writel(g,
 			nvgpu_safe_add_u32(
 				ltc_ltc0_lts0_dstg_ecc_report_r(), offset),
 			ecc_stats_reg_val);
@@ -88,7 +88,7 @@ void gp10b_ltc_intr_handle_lts_interrupts(struct gk20a *g, u32 ltc, u32 slice)
 							ecc_stats_reg_val));
 		ecc_stats_reg_val &=
 			~(ltc_ltc0_lts0_dstg_ecc_report_ded_count_m());
-		nvgpu_writel_check(g,
+		nvgpu_writel(g,
 			nvgpu_safe_add_u32(
 				ltc_ltc0_lts0_dstg_ecc_report_r(), offset),
 			ecc_stats_reg_val);
@@ -96,7 +96,7 @@ void gp10b_ltc_intr_handle_lts_interrupts(struct gk20a *g, u32 ltc, u32 slice)
 
 	nvgpu_log(g, gpu_dbg_intr, "ltc%d, slice %d: %08x",
 		  ltc, slice, ltc_intr);
-	nvgpu_writel_check(g, nvgpu_safe_add_u32(ltc_ltc0_lts0_intr_r(),
+	nvgpu_writel(g, nvgpu_safe_add_u32(ltc_ltc0_lts0_intr_r(),
 		nvgpu_safe_add_u32(nvgpu_safe_mult_u32(ltc_stride, ltc),
 				nvgpu_safe_mult_u32(lts_stride, slice))),
 		ltc_intr);

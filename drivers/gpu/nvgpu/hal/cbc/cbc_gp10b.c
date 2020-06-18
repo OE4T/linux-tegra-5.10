@@ -146,12 +146,12 @@ int gp10b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		nvgpu_log_info(g, "clearing CBC lines %u..%u", min, iter_max);
 
 		if (op == nvgpu_cbc_op_clear) {
-			nvgpu_writel_check(
+			nvgpu_writel(
 				g, ltc_ltcs_ltss_cbc_ctrl2_r(),
 				ltc_ltcs_ltss_cbc_ctrl2_clear_lower_bound_f(
 					min));
 
-			nvgpu_writel_check(
+			nvgpu_writel(
 				g, ltc_ltcs_ltss_cbc_ctrl3_r(),
 				ltc_ltcs_ltss_cbc_ctrl3_clear_upper_bound_f(
 					iter_max));

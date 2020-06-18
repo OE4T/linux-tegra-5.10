@@ -71,5 +71,5 @@ void gp10b_ltc_set_enabled(struct gk20a *g, bool enabled)
 		reg |= reg_f;
 	}
 
-	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_set_mgmt_2_r(), reg);
+	nvgpu_writel(g, ltc_ltcs_ltss_tstg_set_mgmt_2_r(), reg);
 }
