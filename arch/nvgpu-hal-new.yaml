@@ -595,8 +595,6 @@ regops:
              hal/regops/regops_gm20b.h,
              hal/regops/regops_gp10b.c,
              hal/regops/regops_gp10b.h,
-             hal/regops/regops_gv100.c,
-             hal/regops/regops_gv100.h,
              hal/regops/regops_gv11b.c,
              hal/regops/regops_gv11b.h,
              hal/regops/regops_tu104.c,

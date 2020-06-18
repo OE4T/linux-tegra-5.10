@@ -422,8 +422,6 @@ struct gpu_ops {
 		u64 (*get_context_whitelist_ranges_count)(void);
 		const u32* (*get_runcontrol_whitelist)(void);
 		u64 (*get_runcontrol_whitelist_count)(void);
-		const u32* (*get_qctl_whitelist)(void);
-		u64 (*get_qctl_whitelist_count)(void);
 	} regops;
 #endif
 	struct gops_mc mc;

@@ -384,7 +384,6 @@ srcs += common/debugger.c \
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += hal/regops/regops_gm20b.c \
 	hal/regops/regops_gp10b.c \
-	hal/regops/regops_gv100.c \
 	hal/regops/regops_tu104.c \
 	hal/perf/perf_gm20b.c
 endif

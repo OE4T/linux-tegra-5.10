@@ -391,12 +391,6 @@ static const u32 gp10b_runcontrol_whitelist[] = {
 static const u64 gp10b_runcontrol_whitelist_count =
 	ARRAY_SIZE(gp10b_runcontrol_whitelist);
 
-/* quad ctl */
-static const u32 gp10b_qctl_whitelist[] = {
-};
-static const u64 gp10b_qctl_whitelist_count =
-	ARRAY_SIZE(gp10b_qctl_whitelist);
-
 const struct regop_offset_range *gp10b_get_global_whitelist_ranges(void)
 {
 	return gp10b_global_whitelist_ranges;
@@ -425,14 +419,4 @@ const u32 *gp10b_get_runcontrol_whitelist(void)
 u64 gp10b_get_runcontrol_whitelist_count(void)
 {
 	return gp10b_runcontrol_whitelist_count;
-}
-
-const u32 *gp10b_get_qctl_whitelist(void)
-{
-	return gp10b_qctl_whitelist;
-}
-
-u64 gp10b_get_qctl_whitelist_count(void)
-{
-	return gp10b_qctl_whitelist_count;
 }

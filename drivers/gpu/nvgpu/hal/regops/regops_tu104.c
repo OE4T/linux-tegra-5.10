@@ -6608,12 +6608,6 @@ static const u32 tu104_runcontrol_whitelist[] = {
 static const u64 tu104_runcontrol_whitelist_count =
 	ARRAY_SIZE(tu104_runcontrol_whitelist);
 
-/* quad ctl */
-static const u32 tu104_qctl_whitelist[] = {
-};
-static const u64 tu104_qctl_whitelist_count =
-	ARRAY_SIZE(tu104_qctl_whitelist);
-
 const struct regop_offset_range *tu104_get_global_whitelist_ranges(void)
 {
 	return tu104_global_whitelist_ranges;
@@ -6642,14 +6636,4 @@ const u32 *tu104_get_runcontrol_whitelist(void)
 u64 tu104_get_runcontrol_whitelist_count(void)
 {
 	return tu104_runcontrol_whitelist_count;
-}
-
-const u32 *tu104_get_qctl_whitelist(void)
-{
-	return tu104_qctl_whitelist;
-}
-
-u64 tu104_get_qctl_whitelist_count(void)
-{
-	return tu104_qctl_whitelist_count;
 }

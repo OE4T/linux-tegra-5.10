@@ -720,7 +720,6 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/priv_ring/priv_ring_gm20b.o \
 	hal/regops/regops_gm20b.o \
 	hal/regops/regops_gp10b.o \
-	hal/regops/regops_gv100.o \
 	hal/regops/regops_tu104.o \
 	hal/therm/therm_gm20b.o \
 	hal/top/top_gm20b.o

@@ -251,7 +251,6 @@ bool gk20a_gr_sm_debugger_attached(struct gk20a *g)
 
 static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 					       u32 addr,
-					       bool is_quad, u32 quad,
 					       u32 *context_buffer,
 					       u32 context_buffer_size,
 					       u32 *priv_offset);
@@ -495,8 +494,7 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 				    u32 addr,
 				    u32 max_offsets,
 				    u32 *offsets, u32 *offset_addrs,
-				    u32 *num_offsets,
-				    bool is_quad, u32 quad)
+				    u32 *num_offsets)
 {
 	u32 i;
 	u32 priv_offset = 0;
@@ -549,7 +547,6 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 	for (i = 0; i < num_registers; i++) {
 		err = gr_gk20a_find_priv_offset_in_buffer(g,
 			  priv_registers[i],
-			  is_quad, quad,
 			  nvgpu_gr_obj_ctx_get_local_golden_image_ptr(
 				g->gr->golden_image),
 			  nvgpu_gr_obj_ctx_get_golden_image_size(
@@ -755,7 +752,6 @@ void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 
 static int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
 						   u32 addr,
-						   bool is_quad, u32 quad,
 						   u32 *context_buffer,
 						   u32 context_buffer_size,
 						   u32 *priv_offset)
@@ -1215,7 +1211,6 @@ int gr_gk20a_get_offset_in_gpccs_segment(struct gk20a *g,
  */
 static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 					       u32 addr,
-					       bool is_quad, u32 quad,
 					       u32 *context_buffer,
 					       u32 context_buffer_size,
 					       u32 *priv_offset)
@@ -1264,17 +1259,13 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	       g->ops.gr.ctxsw_prog.get_local_priv_register_ctl_offset(context);
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "sys_priv_offset=0x%x", sys_priv_offset);
 
-	/* If found in Ext buffer, ok.
-	 * If it failed and we expected to find it there (quad offset)
-	 * then return the error.  Otherwise continue on.
-	 */
+	/* If found in Ext buffer, ok. If not, continue on. */
 	err = gr_gk20a_find_priv_offset_in_ext_buffer(g,
-				      addr, is_quad, quad, context_buffer,
+				      addr, context_buffer,
 				      context_buffer_size, priv_offset);
-	if ((err == 0) || ((err != 0) && is_quad)) {
+	if (err == 0) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
-				"err = %d, is_quad = %s",
-				err, is_quad ? "true" : "false");
+			"offset found in Ext buffer");
 		return err;
 	}
 
@@ -1463,13 +1454,6 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 					continue;
 				}
 
-				/* if this is a quad access, setup for special access*/
-				if ((ctx_ops[i].type == REGOP(TYPE_GR_CTX_QUAD))
-					&& (g->ops.gr.access_smpc_reg != NULL)) {
-					g->ops.gr.access_smpc_reg(g,
-							ctx_ops[i].quad,
-							ctx_ops[i].offset);
-				}
 				offset = ctx_ops[i].offset;
 
 				if (pass == 0) { /* write pass */
@@ -1558,9 +1542,7 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 						ctx_ops[i].offset,
 						max_offsets,
 						offsets, offset_addrs,
-						&num_offsets,
-						ctx_ops[i].type == REGOP(TYPE_GR_CTX_QUAD),
-						ctx_ops[i].quad);
+						&num_offsets);
 			if (err == 0) {
 				if (!gr_ctx_ready) {
 					gr_ctx_ready = true;
@@ -1591,13 +1573,6 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 					pm_ctx_ready = true;
 				}
 				current_mem = nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx);
-			}
-
-			/* if this is a quad access, setup for special access*/
-			if ((ctx_ops[i].type == REGOP(TYPE_GR_CTX_QUAD)) &&
-				(g->ops.gr.access_smpc_reg != NULL)) {
-				g->ops.gr.access_smpc_reg(g, ctx_ops[i].quad,
-							 ctx_ops[i].offset);
 			}
 
 			for (j = 0; j < num_offsets; j++) {

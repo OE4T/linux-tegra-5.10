@@ -1062,8 +1062,6 @@ static const struct gpu_ops gp10b_ops = {
 		.get_runcontrol_whitelist = gp10b_get_runcontrol_whitelist,
 		.get_runcontrol_whitelist_count =
 			gp10b_get_runcontrol_whitelist_count,
-		.get_qctl_whitelist = gp10b_get_qctl_whitelist,
-		.get_qctl_whitelist_count = gp10b_get_qctl_whitelist_count,
 	},
 #endif
 	.mc = {

@@ -32,10 +32,6 @@ const u32 *tu104_get_runcontrol_whitelist(void);
 u64 tu104_get_runcontrol_whitelist_count(void);
 const struct regop_offset_range *tu104_get_runcontrol_whitelist_ranges(void);
 u64 tu104_get_runcontrol_whitelist_ranges_count(void);
-const u32 *tu104_get_qctl_whitelist(void);
-u64 tu104_get_qctl_whitelist_count(void);
-const struct regop_offset_range *tu104_get_qctl_whitelist_ranges(void);
-u64 tu104_get_qctl_whitelist_ranges_count(void);
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_REGOPS_TU104_H */

@@ -77,7 +77,6 @@ void gv11b_gr_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 					       u32 *ctrl_register_stride);
 void gv11b_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 					       u32 **ovr_perf_regs);
-void gv11b_gr_access_smpc_reg(struct gk20a *g, u32 quad, u32 offset);
 bool gv11b_gr_pri_is_egpc_addr(struct gk20a *g, u32 addr);
 bool gv11b_gr_pri_is_etpc_addr(struct gk20a *g, u32 addr);
 void gv11b_gr_get_egpc_etpc_num(struct gk20a *g, u32 addr,

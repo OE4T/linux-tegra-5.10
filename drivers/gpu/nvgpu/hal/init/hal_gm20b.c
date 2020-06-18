@@ -960,8 +960,6 @@ static const struct gpu_ops gm20b_ops = {
 		.get_runcontrol_whitelist = gm20b_get_runcontrol_whitelist,
 		.get_runcontrol_whitelist_count =
 			gm20b_get_runcontrol_whitelist_count,
-		.get_qctl_whitelist = gm20b_get_qctl_whitelist,
-		.get_qctl_whitelist_count = gm20b_get_qctl_whitelist_count,
 	},
 #endif
 	.mc = {

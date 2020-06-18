@@ -45,7 +45,7 @@ int gr_gk20a_exec_ctx_ops(struct nvgpu_channel *ch,
 int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 				    u32 addr, u32 max_offsets,
 				    u32 *offsets, u32 *offset_addrs,
-				    u32 *num_offsets, bool is_quad, u32 quad);
+				    u32 *num_offsets);
 int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 				       u32 addr, u32 max_offsets,
 				       u32 *offsets, u32 *offset_addrs,

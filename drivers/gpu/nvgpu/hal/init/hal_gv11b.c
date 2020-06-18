@@ -356,7 +356,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
 		.get_egpc_base = gv11b_gr_get_egpc_base,
 		.get_egpc_etpc_num = gv11b_gr_get_egpc_etpc_num,
-		.access_smpc_reg = gv11b_gr_access_smpc_reg,
 		.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
 		.decode_egpc_addr = gv11b_gr_decode_egpc_addr,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
@@ -1317,8 +1316,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.get_runcontrol_whitelist = gv11b_get_runcontrol_whitelist,
 		.get_runcontrol_whitelist_count =
 			gv11b_get_runcontrol_whitelist_count,
-		.get_qctl_whitelist = gv11b_get_qctl_whitelist,
-		.get_qctl_whitelist_count = gv11b_get_qctl_whitelist_count,
 	},
 #endif
 	.mc = {

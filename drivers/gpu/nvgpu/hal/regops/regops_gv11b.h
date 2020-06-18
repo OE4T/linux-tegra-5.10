@@ -35,10 +35,6 @@ const u32 *gv11b_get_runcontrol_whitelist(void);
 u64 gv11b_get_runcontrol_whitelist_count(void);
 const struct regop_offset_range *gv11b_get_runcontrol_whitelist_ranges(void);
 u64 gv11b_get_runcontrol_whitelist_ranges_count(void);
-const u32 *gv11b_get_qctl_whitelist(void);
-u64 gv11b_get_qctl_whitelist_count(void);
-const struct regop_offset_range *gv11b_get_qctl_whitelist_ranges(void);
-u64 gv11b_get_qctl_whitelist_ranges_count(void);
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_REGOPS_GV11B_H */

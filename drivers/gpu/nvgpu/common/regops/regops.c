@@ -316,12 +316,6 @@ static bool check_whitelists(struct gk20a *g,
 					     g->ops.regops.get_runcontrol_whitelist(),
 					     g->ops.regops.get_runcontrol_whitelist_count());
 		}
-
-	} else if (op->type == REGOP(TYPE_GR_CTX_QUAD)) {
-		valid = (g->ops.regops.get_qctl_whitelist != NULL) &&
-			linear_search(offset,
-				     g->ops.regops.get_qctl_whitelist(),
-				     g->ops.regops.get_qctl_whitelist_count());
 	}
 
 	return valid;
@@ -357,9 +351,7 @@ static int validate_reg_op_offset(struct gk20a *g,
 						      1,
 						      &buf_offset_lo,
 						      &buf_offset_addr,
-						      &num_offsets,
-						      op->type == REGOP(TYPE_GR_CTX_QUAD),
-						      op->quad);
+						      &num_offsets);
 		if (err != 0) {
 			err = gr_gk20a_get_pm_ctx_buffer_offsets(g,
 							      op->offset,

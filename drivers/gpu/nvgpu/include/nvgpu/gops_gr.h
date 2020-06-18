@@ -1067,7 +1067,6 @@ struct gops_gr {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #ifdef CONFIG_NVGPU_DEBUGGER
 	u32 (*get_gr_status)(struct gk20a *g);
-	void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 	void (*set_alpha_circular_buffer_size)(struct gk20a *g,
 					       u32 data);
 	void (*set_circular_buffer_size)(struct gk20a *g, u32 data);
@@ -1193,8 +1192,7 @@ struct gops_gr {
 					u32 addr,
 					u32 max_offsets,
 					u32 *offsets, u32 *offset_addrs,
-					u32 *num_offsets,
-					bool is_quad, u32 quad);
+					u32 *num_offsets);
 	int (*process_context_buffer_priv_segment)(struct gk20a *g,
 					     enum ctxsw_addr_type addr_type,
 					     u32 pri_addr,
