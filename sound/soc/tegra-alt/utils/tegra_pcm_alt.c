@@ -257,12 +257,6 @@ static void tegra_alt_pcm_deallocate_dma_buffer(struct snd_pcm *pcm, int stream)
 	buf->area = NULL;
 }
 
-#if defined(CONFIG_ARCH_TEGRA_APE)
-static u64 tegra_dma_mask = DMA_BIT_MASK(64);
-#else
-static u64 tegra_dma_mask = DMA_BIT_MASK(32);
-#endif
-
 static int tegra_alt_pcm_dma_allocate(struct snd_soc_pcm_runtime *rtd,
 	size_t size)
 {
@@ -270,12 +264,11 @@ static int tegra_alt_pcm_dma_allocate(struct snd_soc_pcm_runtime *rtd,
 	struct snd_pcm *pcm = rtd->pcm;
 	struct tegra_alt_pcm_dma_params *dmap;
 	size_t buffer_size = size;
-	int ret = 0;
+	int ret;
 
-	if (!card->dev->dma_mask)
-		card->dev->dma_mask = &tegra_dma_mask;
-	if (!card->dev->coherent_dma_mask)
-		card->dev->coherent_dma_mask = tegra_dma_mask;
+	ret = dma_set_mask_and_coherent(card->dev, DMA_BIT_MASK(32));
+	if (ret)
+		return ret;
 
 	dmap = snd_soc_dai_get_dma_data(rtd->cpu_dai,
 			pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream);
