@@ -644,7 +644,6 @@ static ssize_t clk_cap_show(struct kobject *kobj,
 
 static void acm_kobj_release(struct kobject *kobj)
 {
-	sysfs_remove_dir(kobj);
 }
 
 static struct kobj_type acm_kobj_ktype = {
