@@ -86,11 +86,6 @@ int gm20b_engine_init_ce_info(struct nvgpu_fifo *f)
 			dev->inst_id = g->ops.top.get_ce_inst_id(g, dev->type);
 		}
 
-		if ((dev->fault_id == 0U) &&
-		    (engine_enum == NVGPU_ENGINE_GRCE)) {
-			dev->fault_id = 0x1b;
-		}
-
 		info->fault_id = dev->fault_id;
 		info->intr_mask |= BIT32(dev->intr_id);
 		info->reset_mask |= BIT32(dev->reset_id);
