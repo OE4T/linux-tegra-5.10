@@ -16,7 +16,7 @@ config TEGRA_GRHOST_ISP
 
 config TEGRA_GRHOST_VIC
         depends on TEGRA_GRHOST
-        tristate "Tegra VIC support"
+        bool "Tegra VIC support"
         default y
         help
           Driver for the Tegra Video Image Compositor is an falcon
@@ -24,7 +24,7 @@ config TEGRA_GRHOST_VIC
 
 config TEGRA_GRHOST_NVDEC
         depends on TEGRA_GRHOST
-        tristate "Tegra NVDEC support"
+        bool "Tegra NVDEC support"
         default y
         help
           Driver for the Tegra NVDEC is an engine which
@@ -32,7 +32,7 @@ config TEGRA_GRHOST_NVDEC
 
 config TEGRA_GRHOST_NVENC
         depends on TEGRA_GRHOST
-        tristate "Tegra NVENC support"
+        bool "Tegra NVENC support"
         default y
         help
           Driver for the Tegra NVENC is an engine which
@@ -40,7 +40,7 @@ config TEGRA_GRHOST_NVENC
 
 config TEGRA_GRHOST_NVJPG
         depends on TEGRA_GRHOST
-        tristate "Tegra NVJPG support"
+        bool "Tegra NVJPG support"
         default y
         help
           Driver for the Tegra NVJPG is an engine which
@@ -48,7 +48,7 @@ config TEGRA_GRHOST_NVJPG
 
 config TEGRA_GRHOST_TSEC
         depends on TEGRA_GRHOST
-        tristate "Tegra TSEC support"
+        bool "Tegra TSEC support"
         default y
         help
           Driver for the Tegra TSEC is falcon based engine which

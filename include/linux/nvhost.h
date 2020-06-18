@@ -807,7 +807,7 @@ int nvhost_intr_register_fast_notifier(struct platform_device *pdev,
 				  void (*callback)(void *, int),
 				  void *private_data);
 
-#if defined(CONFIG_TEGRA_GRHOST) && defined(CONFIG_DEBUG_FS)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST) && defined(CONFIG_DEBUG_FS)
 void nvhost_debug_dump_device(struct platform_device *pdev);
 #else
 static inline void nvhost_debug_dump_device(struct platform_device *pdev)
@@ -815,7 +815,7 @@ static inline void nvhost_debug_dump_device(struct platform_device *pdev)
 }
 #endif
 
-#ifdef CONFIG_TEGRA_GRHOST
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST)
 const struct firmware *
 nvhost_client_request_firmware(struct platform_device *dev,
 	const char *fw_name);

@@ -1,5 +1,3 @@
-ifdef CONFIG_TEGRA_T19X_GRHOST
-
 GCOV_PROFILE := y
 ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
 ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host/pva
@@ -23,5 +21,3 @@ nvhost-pva-objs  = \
 		pva_selftest.o
 
 obj-$(CONFIG_TEGRA_GRHOST_PVA) += nvhost-pva.o
-
-endif

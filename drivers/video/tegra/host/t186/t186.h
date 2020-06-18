@@ -25,29 +25,29 @@
 extern struct nvhost_device_data t18_host1x_info;
 extern struct nvhost_device_data t18_host1x_hv_info;
 extern struct nvhost_device_data t18_host1xb_info;
-#if defined(CONFIG_TEGRA_GRHOST_VIC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_VIC)
 extern struct nvhost_device_data t18_vic_info;
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
 extern struct nvhost_device_data t18_nvdec_info;
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVJPG)
 extern struct nvhost_device_data t18_nvjpg_info;
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVENC)
 extern struct nvhost_device_data t18_msenc_info;
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_ISP)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_ISP)
 extern struct nvhost_device_data t18_isp_info;
 #endif
-#if defined(CONFIG_VIDEO_TEGRA_VI) || defined(CONFIG_VIDEO_TEGRA_VI_MODULE)
+#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI) || IS_ENABLED(CONFIG_VIDEO_TEGRA_VI_MODULE)
 extern struct nvhost_device_data t18_vi_info;
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_TSEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
 extern struct nvhost_device_data t18_tsec_info;
 extern struct nvhost_device_data t18_tsecb_info;
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_NVCSI)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
 extern struct nvhost_device_data t18_nvcsi_info;
 #endif
 

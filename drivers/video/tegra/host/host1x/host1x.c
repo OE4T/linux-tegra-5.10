@@ -63,12 +63,8 @@
 #include "chip_support.h"
 #include "t210/t210.h"
 
-#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #include "t186/t186.h"
-#endif
-#ifdef CONFIG_TEGRA_T19X_GRHOST
 #include "t194/t194.h"
-#endif
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
 #endif
@@ -945,11 +941,8 @@ static int nvhost_alloc_resources(struct nvhost_master *host)
 }
 
 static struct of_device_id tegra_host1x_of_match[] = {
-#ifdef TEGRA_21X_OR_HIGHER_CONFIG
 	{ .compatible = "nvidia,tegra210-host1x",
 		.data = (struct nvhost_device_data *)&t21_host1x_info },
-#endif
-#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 	{ .name = "host1x",
 		.compatible = "nvidia,tegra186-host1x",
 		.data = (struct nvhost_device_data *)&t18_host1x_info },
@@ -961,15 +954,12 @@ static struct of_device_id tegra_host1x_of_match[] = {
 	{ .name = "host1x",
 	  .compatible = "nvidia,tegra186-host1x-hv",
 		.data = (struct nvhost_device_data *)&t18_host1x_hv_info },
-#endif
-#ifdef CONFIG_TEGRA_T19X_GRHOST
 	{ .name = "host1x",
 		.compatible = "nvidia,tegra194-host1x",
 		.data = (struct nvhost_device_data *)&t19_host1x_info },
 	{ .name = "host1x",
 		.compatible = "nvidia,tegra194-host1x-hv",
 		.data = (struct nvhost_device_data *)&t19_host1x_hv_info },
-#endif
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 	{ .name = "host1x",
 		.compatible = "nvidia,tegra234-host1x",

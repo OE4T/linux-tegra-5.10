@@ -27,12 +27,8 @@
 #include "nvhost_acm.h"
 
 #include "vhost.h"
-#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #include "t186/t186.h"
-#endif
-#ifdef CONFIG_TEGRA_T19X_GRHOST
 #include "t194/t194.h"
-#endif
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
 #endif
@@ -51,7 +47,6 @@ static int nvhost_vhost_client_prepare_poweroff(struct platform_device *pdev)
 }
 
 static struct of_device_id tegra_client_of_match[] = {
-#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #ifdef CONFIG_TEGRA_GRHOST_VIC
 	{ .compatible = "nvidia,tegra186-vhost-vic",
 		.data = (struct nvhost_device_data *)&t18_vic_info },
@@ -80,7 +75,6 @@ static struct of_device_id tegra_client_of_match[] = {
 	{ .compatible = "nvidia,tegra186-vhost-nvcsi",
 		.data = (struct nvhost_device_data *)&t18_nvcsi_info },
 #endif
-#ifdef CONFIG_TEGRA_T19X_GRHOST
 #if defined(CONFIG_TEGRA_GRHOST_VIC)
 	{ .compatible = "nvidia,tegra194-vhost-vic",
 		.data = (struct nvhost_device_data *)&t19_vic_info },
@@ -117,11 +111,9 @@ static struct of_device_id tegra_client_of_match[] = {
 	{ .compatible = "nvidia,tegra194-vhost-nvcsi",
 		.data = (struct nvhost_device_data *)&t19_nvcsi_info },
 #endif
-#endif
 
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "vhost/vhost_client_t23x.h"
-#endif
 #endif
 	{ },
 };

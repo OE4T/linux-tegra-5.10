@@ -35,31 +35,31 @@
 #include "nvhost_gos.h"
 #include "t194.h"
 #include "host1x/host1x.h"
-#if defined(CONFIG_TEGRA_GRHOST_ISP)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_ISP)
 #include "isp/isp5.h"
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_TSEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
 #include "tsec/tsec.h"
 #endif
 #include "flcn/flcn.h"
-#if defined(CONFIG_TEGRA_GRHOST_NVCSI)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
 #include "nvcsi/nvcsi-t194.h"
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
 #include "nvdec/nvdec.h"
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_PVA)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
 #include "pva/pva.h"
 #endif
 #include "hardware_t194.h"
-#if defined(CONFIG_TEGRA_GRHOST_NVDLA)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDLA)
 #include "nvdla/nvdla.h"
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_SLVSEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SLVSEC)
 #include "slvsec/slvsec.h"
 #endif
-#if defined(CONFIG_VIDEO_TEGRA_VI)
+#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
 #include "vi/vi5.h"
 #endif
 
@@ -151,7 +151,7 @@ struct nvhost_device_data t19_host1xb_info = {
 	.private_data		= &host1xb04_info,
 };
 
-#if defined(CONFIG_VIDEO_TEGRA_VI)
+#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
 struct nvhost_device_data t19_vi_thi_info = {
 	.devfs_name		= "vi-thi",
 	.exclusive		= true,
@@ -197,7 +197,7 @@ struct nvhost_device_data t19_vi5_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVCSI)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
 struct nvhost_device_data t19_nvcsi_info = {
 	.num_channels		= 1,
 	.moduleid		= NVHOST_MODULE_NVCSI,
@@ -245,7 +245,7 @@ struct nvhost_device_data t19_isp5_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVENC)
 struct nvhost_device_data t19_msenc_info = {
 	.version		= NVHOST_ENCODE_FLCN_VER(7, 0),
 	.devfs_name		= "msenc",
@@ -315,7 +315,7 @@ struct nvhost_device_data t19_nvenc1_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
 struct nvhost_device_data t19_nvdec_info = {
 	.version		= NVHOST_ENCODE_NVDEC_VER(4, 0),
 	.devfs_name		= "nvdec",
@@ -389,7 +389,7 @@ struct nvhost_device_data t19_nvdec1_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVJPG)
 struct nvhost_device_data t19_nvjpg_info = {
 	.version		= NVHOST_ENCODE_FLCN_VER(1, 2),
 	.devfs_name		= "nvjpg",
@@ -421,7 +421,7 @@ struct nvhost_device_data t19_nvjpg_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_TSEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
 struct nvhost_device_data t19_tsec_info = {
 	.num_channels		= 1,
 	.devfs_name		= "tsec",
@@ -481,7 +481,7 @@ struct nvhost_device_data t19_tsecb_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_VIC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_VIC)
 struct nvhost_device_data t19_vic_info = {
 	.num_channels		= 1,
 	.devfs_name		= "vic",
@@ -530,7 +530,7 @@ struct nvhost_device_data t19_vic_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_PVA)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_PVA)
 struct nvhost_device_data t19_pva1_info = {
 	.num_channels		= 1,
 	.clocks			= {
@@ -583,7 +583,7 @@ struct nvhost_device_data t19_pva0_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVDLA)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDLA)
 struct nvhost_device_data t19_nvdla0_info = {
 	.devfs_name_family	= "nvdla",
 	.class			= NV_DLA0_CLASS_ID,
@@ -653,7 +653,7 @@ struct nvhost_device_data t19_nvdla1_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_SLVSEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SLVSEC)
 struct nvhost_device_data t19_slvsec_info = {
 	.num_channels		= 1,
 	.clocks			= {
@@ -775,7 +775,7 @@ static void t194_init_regs(struct platform_device *pdev, bool prod)
 #include "host1x/host1x_intr_t186.c"
 #include "host1x/host1x_debug_t186.c"
 #include "host1x/host1x_vm_t186.c"
-#if defined(CONFIG_TEGRA_GRHOST_SCALE)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SCALE)
 #include "host1x/host1x_actmon_t186.c"
 #endif
 
@@ -800,7 +800,7 @@ int nvhost_init_t194_support(struct nvhost_master *host,
 	op->intr = host1x_intr_ops;
 	op->vm = host1x_vm_ops;
 	op->vm.init_syncpt_interface = nvhost_syncpt_unit_interface_init;
-#if defined(CONFIG_TEGRA_GRHOST_SCALE)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SCALE)
 	op->actmon = host1x_actmon_ops;
 #endif
 	op->nvhost_dev.load_gating_regs = t194_init_regs;

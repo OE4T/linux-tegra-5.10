@@ -31,7 +31,7 @@
 #include "flcn/flcn.h"
 #include "isp/isp.h"
 #include "isp/isp_isr_v2.h"
-#if defined(CONFIG_TEGRA_GRHOST_NVCSI)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
 #include "nvcsi/nvcsi.h"
 #endif
 #include <video/vi4.h>
@@ -140,7 +140,7 @@ struct nvhost_device_data t18_isp_info = {
 };
 #endif
 
-#if defined(CONFIG_VIDEO_TEGRA_VI) || defined(CONFIG_VIDEO_TEGRA_VI_MODULE)
+#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI) || IS_ENABLED(CONFIG_VIDEO_TEGRA_VI_MODULE)
 struct nvhost_device_data t18_vi_info = {
 	.devfs_name		= "vi",
 	.exclusive		= true,
@@ -181,7 +181,7 @@ struct nvhost_device_data t18_vi_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVENC)
 struct nvhost_device_data t18_msenc_info = {
 	.version		= NVHOST_ENCODE_FLCN_VER(6, 1),
 	.devfs_name		= "msenc",
@@ -214,7 +214,7 @@ struct nvhost_device_data t18_msenc_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
 struct nvhost_device_data t18_nvdec_info = {
 	.version		= NVHOST_ENCODE_NVDEC_VER(3, 0),
 	.devfs_name		= "nvdec",
@@ -248,7 +248,7 @@ struct nvhost_device_data t18_nvdec_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVJPG)
 struct nvhost_device_data t18_nvjpg_info = {
 	.version		= NVHOST_ENCODE_FLCN_VER(1, 1),
 	.devfs_name		= "nvjpg",
@@ -282,7 +282,7 @@ struct nvhost_device_data t18_nvjpg_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_TSEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
 struct nvhost_device_data t18_tsec_info = {
 	.num_channels		= 1,
 	.devfs_name		= "tsec",
@@ -346,7 +346,7 @@ struct nvhost_device_data t18_tsecb_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_VIC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_VIC)
 struct nvhost_device_data t18_vic_info = {
 	.num_channels		= 1,
 	.devfs_name		= "vic",
@@ -394,7 +394,7 @@ struct nvhost_device_data t18_vic_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVCSI)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
 struct nvhost_device_data t18_nvcsi_info = {
 	.num_channels		= 1,
 	.clocks			= {
@@ -475,7 +475,7 @@ static void t186_init_regs(struct platform_device *pdev, bool prod)
 #include "host1x/host1x_intr_t186.c"
 #include "host1x/host1x_debug_t186.c"
 #include "host1x/host1x_vm_t186.c"
-#if defined(CONFIG_TEGRA_GRHOST_SCALE)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SCALE)
 #include "host1x/host1x_actmon_t186.c"
 #endif
 
@@ -500,7 +500,7 @@ int nvhost_init_t186_support(struct nvhost_master *host,
 	op->syncpt = host1x_syncpt_ops;
 	op->intr = host1x_intr_ops;
 	op->vm = host1x_vm_ops;
-#if defined(CONFIG_TEGRA_GRHOST_SCALE)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SCALE)
 	op->actmon = host1x_actmon_ops;
 #endif
 

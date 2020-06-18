@@ -1,15 +1,8 @@
 if ARCH_TEGRA
 
 config TEGRA_T23X_GRHOST
-	tristate "Tegra 23x graphics host driver"
+	bool "Tegra 23x graphics host driver"
 	depends on TEGRA_GRHOST && ARCH_TEGRA_23x_SOC
-	default y
-	help
-	  Driver for the Tegra graphics host hardware.
-
-config TEGRA_T19X_GRHOST
-	tristate "Tegra 19x graphics host driver"
-	depends on TEGRA_GRHOST && (ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC)
 	default y
 	help
 	  Driver for the Tegra graphics host hardware.
@@ -40,7 +33,7 @@ config TEGRA_GRHOST_SLVSEC
 
 config TEGRA_GRHOST_CAPTURE_SUPPORT
 	bool "Tegra camera capture support module"
-	depends on TEGRA_T19X_GRHOST && VIDEO_TEGRA_VI && TEGRA_GRHOST_ISP
+	depends on VIDEO_TEGRA_VI && TEGRA_GRHOST_ISP
 	default y
 	help
 	  Enables support module for camera capture using VI and ISP
@@ -61,7 +54,7 @@ config TEGRA_GRHOST_LEGACY_PD
 config TEGRA_GRHOST_GOS
 	bool "Grid of Semaphores support"
 	depends on TEGRA_GRHOST
-	default TEGRA_T19X_GRHOST || TEGRA_T23X_GRHOST
+	default y
 	help
 	  Grid of Semaphores management support.
 

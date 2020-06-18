@@ -134,7 +134,7 @@ struct nvhost_device_data t21_ispb_info = {
 };
 #endif
 
-#if defined(CONFIG_VIDEO_TEGRA_VI) || defined(CONFIG_VIDEO_TEGRA_VI_MODULE)
+#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI) || IS_ENABLED(CONFIG_VIDEO_TEGRA_VI_MODULE)
 struct nvhost_device_data t21_vi_info = {
 	.modulemutexes		= {NVMODMUTEX_VI_0},
 	.devfs_name		= "vi",
@@ -174,7 +174,7 @@ struct nvhost_device_data t21_vi_info = {
 EXPORT_SYMBOL(t21_vi_info);
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVENC)
 struct nvhost_device_data t21_msenc_info = {
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.class			= NV_VIDEO_ENCODE_NVENC_CLASS_ID,
@@ -213,7 +213,7 @@ struct nvhost_device_data t21_msenc_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
 struct nvhost_device_data t21_nvdec_info = {
 	.version		= NVHOST_ENCODE_NVDEC_VER(2, 0),
 	.class			= NV_NVDEC_CLASS_ID,
@@ -247,7 +247,7 @@ struct nvhost_device_data t21_nvdec_info = {
 };
 #endif
 
-#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVJPG)
 struct nvhost_device_data t21_nvjpg_info = {
 	.version		= NVHOST_ENCODE_FLCN_VER(1, 0),
 	.class			= NV_NVJPG_CLASS_ID,
@@ -287,7 +287,7 @@ struct nvhost_device_data t21_nvjpg_info = {
 #endif
 
 
-#if defined(CONFIG_TEGRA_GRHOST_TSEC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
 struct nvhost_device_data t21_tsec_info = {
 	.num_channels		= 1,
 	.modulemutexes		= {NVMODMUTEX_TSECA},
@@ -416,7 +416,7 @@ static void t210_remove_support(struct nvhost_chip_support *op)
 #include "host1x/host1x_syncpt.c"
 #include "host1x/host1x_intr.c"
 #define NVHOST_T210_ACTMON
-#if defined(CONFIG_TEGRA_GRHOST_SCALE)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SCALE)
 #include "host1x/host1x04_actmon.c"
 #endif
 #include "host1x/host1x_debug.c"
@@ -440,7 +440,7 @@ int nvhost_init_t210_support(struct nvhost_master *host,
 	host->sync_aperture = host->aperture + HOST1X_CHANNEL_SYNC_REG_BASE;
 	op->syncpt = host1x_syncpt_ops;
 	op->intr = host1x_intr_ops;
-#if defined(CONFIG_TEGRA_GRHOST_SCALE)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SCALE)
 	op->actmon = host1x_actmon_ops;
 #endif
 

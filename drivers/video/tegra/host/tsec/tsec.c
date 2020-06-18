@@ -53,12 +53,8 @@
 #include "tsec_drv.h"
 #include "nvhost_vm.h"
 
-#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #include "t186/t186.h"
-#endif
-#ifdef CONFIG_TEGRA_T19X_GRHOST
 #include "t194/t194.h"
-#endif
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "t23x/t23x.h"
 #endif
@@ -749,30 +745,24 @@ int nvhost_tsec_prepare_poweroff(struct platform_device *dev)
 
 
 static struct of_device_id tegra_tsec_of_match[] = {
-#ifdef TEGRA_21X_OR_HIGHER_CONFIG
 	{ .name = "tsec",
 		.compatible = "nvidia,tegra210-tsec",
 		.data = (struct nvhost_device_data *)&t21_tsec_info },
 	{ .name = "tsecb",
 		.compatible = "nvidia,tegra210-tsec",
 		.data = (struct nvhost_device_data *)&t21_tsecb_info },
-#endif
-#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 	{ .name = "tsec",
 		.compatible = "nvidia,tegra186-tsec",
 		.data = (struct nvhost_device_data *)&t18_tsec_info },
 	{ .name = "tsecb",
 		.compatible = "nvidia,tegra186-tsec",
 		.data = (struct nvhost_device_data *)&t18_tsecb_info },
-#endif
-#ifdef CONFIG_TEGRA_T19X_GRHOST
 	{ .name = "tsec",
 		.compatible = "nvidia,tegra194-tsec",
 		.data = (struct nvhost_device_data *)&t19_tsec_info },
 	{ .name = "tsecb",
 		.compatible = "nvidia,tegra194-tsec",
 		.data = (struct nvhost_device_data *)&t19_tsecb_info },
-#endif
 #ifdef CONFIG_TEGRA_T23X_GRHOST
 	{ .name = "tsec",
 		.compatible = "nvidia,tegra234-tsec",
