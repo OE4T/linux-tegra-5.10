@@ -571,6 +571,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		linux,pci-domain = <0>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0>;
 		clock-names = "core_clk";
@@ -636,6 +637,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		linux,pci-domain = <1>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>;
 		clock-names = "core_clk";
@@ -702,6 +704,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		linux,pci-domain = <2>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_2>;
 		clock-names = "core_clk";
@@ -767,6 +770,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		linux,pci-domain = <3>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_3>;
 		clock-names = "core_clk";
@@ -832,6 +836,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		linux,pci-domain = <4>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4>;
 		clock-names = "core_clk";
@@ -897,6 +902,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <8>;
+		linux,pci-domain = <5>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>;
 		clock-names = "core_clk";
@@ -963,6 +969,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		linux,pci-domain = <6>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>;
 		clock-names = "core_clk";
@@ -1029,6 +1036,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <8>;
+		linux,pci-domain = <7>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>;
 		clock-names = "core_clk";
@@ -1095,6 +1103,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		linux,pci-domain = <8>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_8>;
 		clock-names = "core_clk";
@@ -1161,6 +1170,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		linux,pci-domain = <9>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_9>;
 		clock-names = "core_clk";
@@ -1227,6 +1237,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		linux,pci-domain = <10>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>;
 		clock-names = "core_clk";
