@@ -59,6 +59,7 @@
 #include "hardware_t23x.h"
 #if defined(CONFIG_TEGRA_GRHOST_NVDLA)
 #include "nvdla/nvdla.h"
+#include "nvdla/dla_t23x_fw_version.h"
 #endif
 
 #if defined(CONFIG_VIDEO_TEGRA_VI)
@@ -550,6 +551,7 @@ struct nvhost_device_data t23x_nvdla0_info = {
 	.self_config_flcn_isr	= true,
 	.vm_regs		= {{0x30, true}, {0x34, false} },
 	.firmware_name		= "nvhost_nvdla020.fw",
+	.version		= FIRMWARE_ENCODE_VERSION(T23X),
 	.autosuspend_delay      = 500,
 	.keepalive		= true,
 	.poweron_reset		= true,
@@ -579,6 +581,7 @@ struct nvhost_device_data t23x_nvdla1_info = {
 	.self_config_flcn_isr	= true,
 	.vm_regs		= {{0x30, true}, {0x34, false} },
 	.firmware_name		= "nvhost_nvdla020.fw",
+	.version		= FIRMWARE_ENCODE_VERSION(T23X),
 	.autosuspend_delay      = 500,
 	.keepalive		= true,
 	.poweron_reset		= true,
