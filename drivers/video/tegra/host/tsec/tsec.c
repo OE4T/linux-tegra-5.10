@@ -50,7 +50,6 @@
 #include "host1x/host1x04_hardware.h"
 #include "class_ids.h"
 #include "tsec_methods.h"
-#include "tsec_drv.h"
 #include "nvhost_vm.h"
 
 #include "t186/t186.h"
