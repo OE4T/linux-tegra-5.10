@@ -317,6 +317,7 @@ void gk20a_init_linux_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PARTIAL_MAPPINGS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DETERMINISTIC_OPTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERSPACE_MANAGED_AS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_ACCESS_TYPE, true);
 
 	if (!IS_ENABLED(CONFIG_NVGPU_SYNCFD_NONE)) {
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNC_FENCE_FDS, true);

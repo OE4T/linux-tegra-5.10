@@ -261,10 +261,13 @@ struct gk20a;
 /** PLC Compression */
 #define NVGPU_SUPPORT_POST_L2_COMPRESSION	89U
 
+/** GMMU map access type support */
+#define NVGPU_SUPPORT_MAP_ACCESS_TYPE		90U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			90U
+#define NVGPU_MAX_ENABLED_BITS			91U
 
 /**
  * @brief Check if the passed flag is enabled.

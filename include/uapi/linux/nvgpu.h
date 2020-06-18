@@ -179,6 +179,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_SM_TTU			(1ULL << 37)
 /* Compression PLC is enabled */
 #define NVGPU_GPU_FLAGS_SUPPORT_POST_L2_COMPRESSION	(1ULL << 38)
+/** GMMU map access type available */
+#define NVGPU_GPU_FLAGS_SUPPORT_MAP_ACCESS_TYPE		(1ULL << 39)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
