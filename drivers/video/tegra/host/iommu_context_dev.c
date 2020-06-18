@@ -191,7 +191,7 @@ static int __exit iommu_context_dev_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver iommu_context_dev_driver = {
+struct platform_driver nvhost_iommu_context_dev_driver = {
 	.probe = iommu_context_dev_probe,
 	.remove = __exit_p(iommu_context_dev_remove),
 	.driver = {
@@ -202,17 +202,4 @@ static struct platform_driver iommu_context_dev_driver = {
 #endif
 	},
 };
-
-static int __init iommu_context_dev_init(void)
-{
-	return platform_driver_register(&iommu_context_dev_driver);
-}
-
-static void __exit iommu_context_dev_exit(void)
-{
-	platform_driver_unregister(&iommu_context_dev_driver);
-}
-
-module_init(iommu_context_dev_init);
-module_exit(iommu_context_dev_exit);
 

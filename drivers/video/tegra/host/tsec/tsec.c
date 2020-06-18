@@ -846,7 +846,7 @@ static int __exit tsec_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver tsec_driver = {
+struct platform_driver nvhost_tsec_driver = {
 	.probe = tsec_probe,
 	.remove = __exit_p(tsec_remove),
 	.driver = {
@@ -861,7 +861,7 @@ static struct platform_driver tsec_driver = {
 	}
 };
 
-static int __init tsec_key_setup(char *line)
+static int __init __maybe_unused tsec_key_setup(char *line)
 {
 	int i;
 	u8 tmp[] = {0, 0, 0};
@@ -885,33 +885,11 @@ static int __init tsec_key_setup(char *line)
 }
 __setup("otf_key=", tsec_key_setup);
 
-static struct of_device_id tegra_tsec_domain_match[] = {
-#ifdef TEGRA_21X_OR_HIGHER_CONFIG
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_LEGACY_PD)
+struct of_device_id nvhost_tsec_domain_match[] = {
 	{.compatible = "nvidia,tegra210-tsec-pd",
 	 .data = (struct nvhost_device_data *)&t21_tsec_info},
-#endif
-#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
-	{.compatible = "nvidia,tegra186-tsec-pd",
-	 .data = (struct nvhost_device_data *)&t18_tsec_info},
-#endif
 	{},
 };
+#endif
 
-static int __init tsec_init(void)
-{
-	int ret;
-
-	ret = nvhost_domain_init(tegra_tsec_domain_match);
-	if (ret)
-		return ret;
-
-	return platform_driver_register(&tsec_driver);
-}
-
-static void __exit tsec_exit(void)
-{
-	platform_driver_unregister(&tsec_driver);
-}
-
-module_init(tsec_init);
-module_exit(tsec_exit);

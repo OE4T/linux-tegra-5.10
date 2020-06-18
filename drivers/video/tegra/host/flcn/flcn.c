@@ -690,7 +690,7 @@ static struct of_device_id tegra_flcn_of_match[] = {
 	{ .compatible = "nvidia,tegra194-vic",
 		.data = (struct nvhost_device_data *)&t19_vic_info },
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVENC)
 	{ .compatible = "nvidia,tegra210-nvenc",
 		.data = (struct nvhost_device_data *)&t21_msenc_info },
 	{ .compatible = "nvidia,tegra186-nvenc",
@@ -702,7 +702,7 @@ static struct of_device_id tegra_flcn_of_match[] = {
 		.data = (struct nvhost_device_data *)&t19_nvenc1_info,
 		.name = "nvenc1" },
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVJPG)
 	{ .compatible = "nvidia,tegra210-nvjpg",
 		.data = (struct nvhost_device_data *)&t21_nvjpg_info },
 	{ .compatible = "nvidia,tegra186-nvjpg",
@@ -806,7 +806,7 @@ static int __exit flcn_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver flcn_driver = {
+struct platform_driver nvhost_flcn_driver = {
 	.probe = flcn_probe,
 	.remove = __exit_p(flcn_remove),
 	.driver = {
@@ -822,59 +822,20 @@ static struct platform_driver flcn_driver = {
 	},
 };
 
-static struct of_device_id tegra_flcn_domain_match[] = {
-#ifdef CONFIG_TEGRA_GRHOST_VIC
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_LEGACY_PD)
+struct of_device_id nvhost_flcn_domain_match[] = {
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_VIC)
 	{.compatible = "nvidia,tegra210-vic03-pd",
 	 .data = (struct nvhost_device_data *)&t21_vic_info},
 #endif
-#ifdef TEGRA_21X_OR_HIGHER_CONFIG
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVENC)
 	{.compatible = "nvidia,tegra210-msenc-pd",
 	 .data = (struct nvhost_device_data *)&t21_msenc_info},
 #endif
-#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVJPG)
 	{.compatible = "nvidia,tegra210-nvjpg-pd",
 	 .data = (struct nvhost_device_data *)&t21_nvjpg_info},
 #endif
-#endif
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
-#if defined(CONFIG_TEGRA_GRHOST_VIC)
-	{.compatible = "nvidia,tegra186-vic03-pd",
-	 .data = (struct nvhost_device_data *)&t18_vic_info},
-#endif
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
-	{.compatible = "nvidia,tegra186-msenc-pd",
-	 .data = (struct nvhost_device_data *)&t18_msenc_info},
-#endif
-#if defined(CONFIG_TEGRA_GRHOST_NVJPG)
-	{.compatible = "nvidia,tegra186-nvjpg-pd",
-	 .data = (struct nvhost_device_data *)&t18_nvjpg_info},
-#endif
-#endif
-#ifdef CONFIG_TEGRA_T19X_GRHOST
-#if defined(CONFIG_TEGRA_GRHOST_NVENC)
-	{.compatible = "nvidia,tegra194-nvenc1-pd",
-	 .data = (struct nvhost_device_data *)&t19_nvenc1_info},
-#endif
-#endif
 	{},
 };
-
-static int __init flcn_init(void)
-{
-	int ret;
-
-	ret = nvhost_domain_init(tegra_flcn_domain_match);
-	if (ret)
-		return ret;
-
-	return platform_driver_register(&flcn_driver);
-}
-
-static void __exit flcn_exit(void)
-{
-	platform_driver_unregister(&flcn_driver);
-}
-
-module_init(flcn_init);
-module_exit(flcn_exit);
+#endif

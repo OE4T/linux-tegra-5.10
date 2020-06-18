@@ -1445,34 +1445,60 @@ static struct platform_driver platform_driver = {
 	},
 };
 
-static struct of_device_id tegra_host1x_domain_match[] = {
-#ifdef TEGRA_21X_OR_HIGHER_CONFIG
-	{.compatible = "nvidia,tegra210-host1x-pd",
-	 .data = (struct nvhost_device_data *)&t21_host1x_info},
+extern struct platform_driver nvhost_iommu_context_dev_driver;
+extern struct platform_driver nvhost_flcn_driver;
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
+extern struct platform_driver nvhost_nvdec_driver;
 #endif
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
-	{.compatible = "nvidia,tegra186-host1x-pd",
-	 .data = (struct nvhost_device_data *)&t18_host1x_info},
-	{.compatible = "nvidia,tegra186-host1x-pd-hv",
-	 .data = (struct nvhost_device_data *)&t18_host1x_hv_info},
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
+extern struct platform_driver nvhost_tsec_driver;
 #endif
-	{},
+
+static struct platform_driver *platform_drivers[] = {
+	&platform_driver,
+	&nvhost_iommu_context_dev_driver,
+	&nvhost_flcn_driver,
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC)
+	&nvhost_nvdec_driver,
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
+	&nvhost_tsec_driver,
+#endif
+	NULL
 };
+
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_LEGACY_PD)
+extern struct of_device_id nvhost_flcn_domain_match[];
+extern struct of_device_id nvhost_nvdec_domain_match[];
+extern struct of_device_id nvhost_tsec_domain_match[];
+#endif
 
 static int __init nvhost_mod_init(void)
 {
-	int ret;
+	int ret, i;
 
-	ret = nvhost_domain_init(tegra_host1x_domain_match);
-	if (ret)
-		return ret;
+	for (i = 0; platform_drivers[i] != NULL; i++) {
+		ret = platform_driver_register(platform_drivers[i]);
+		if (ret)
+			return ret;
+	}
 
-	return platform_driver_register(&platform_driver);
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_LEGACY_PD)
+	nvhost_domain_init(nvhost_flcn_domain_match);
+	nvhost_domain_init(nvhost_nvdec_domain_match);
+	nvhost_domain_init(nvhost_tsec_domain_match);
+#endif
+
+	return 0;
 }
 
 static void __exit nvhost_mod_exit(void)
 {
-	platform_driver_unregister(&platform_driver);
+	int i;
+
+	for (i = 0; platform_drivers[i] != NULL; i++) {
+		platform_driver_unregister(platform_drivers[i]);
+	}
 }
 
 /* host1x master device needs nvmap to be instantiated first.

@@ -30,6 +30,13 @@ config TEGRA_GRHOST_NVDEC
           Driver for the Tegra NVDEC is an engine which
           can be used for decoding various multimedia formats.
 
+config TEGRA_GRHOST_NVDEC_SECURE
+	depends on TEGRA_GRHOST_NVDEC
+	bool "NVDEC bootloader support"
+	default y
+	help
+	  Enable support for secure mode NVDEC bootloader.
+
 config TEGRA_GRHOST_NVENC
         depends on TEGRA_GRHOST
         bool "Tegra NVENC support"

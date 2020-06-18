@@ -34,7 +34,9 @@
 
 #include <uapi/linux/nvhost_nvdec_ioctl.h>
 
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC_SECURE)
 #include <linux/platform/tegra/mc.h>
+#endif
 
 #include <soc/tegra/kfuse.h>
 
@@ -125,6 +127,7 @@ static void nvdec_get_fw_name(struct platform_device *pdev, char *name)
 	dev_info(&pdev->dev, "fw name:%s\n", name);
 }
 
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVDEC_SECURE)
 static int nvhost_nvdec_bl_init(struct platform_device *dev)
 {
 	u32 fb_data_offset = 0;
@@ -169,6 +172,13 @@ static int nvhost_nvdec_bl_init(struct platform_device *dev)
 
 	return 0;
 }
+#else
+static int nvhost_nvdec_bl_init(struct platform_device *dev)
+{
+	dev_err(&dev->dev, "kernel configuration does not support booting NVDEC in secure mode\n");
+	return -EINVAL;
+}
+#endif
 
 /*
  * On T186, technically we don't need to keep KFUSE enabled after booting
@@ -485,6 +495,16 @@ static int nvdec_probe(struct platform_device *dev)
 	int err = 0;
 	struct nvhost_device_data *pdata = NULL;
 
+	if (tegra_nvdec_enabled_in_bootcmd != -1) {
+		/* If "nvdec_enabled" exists in kernel boot command,
+		tegra_nvdec_bootloader_enabled is updated with that value */
+		tegra_nvdec_bootloader_enabled = tegra_nvdec_enabled_in_bootcmd;
+	} else {
+		/* Below kernel config check is for T210 */
+		if (IS_ENABLED(CONFIG_NVDEC_BOOTLOADER))
+			tegra_nvdec_bootloader_enabled = 1;
+	}
+
 	if (dev->dev.of_node) {
 		const struct of_device_id *match;
 
@@ -544,7 +564,7 @@ static int __exit nvdec_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver nvdec_driver = {
+struct platform_driver nvhost_nvdec_driver = {
 	.probe = nvdec_probe,
 	.remove = __exit_p(nvdec_remove),
 	.driver = {
@@ -570,22 +590,16 @@ const struct file_operations tegra_nvdec_ctrl_ops = {
 	.release = nvdec_release,
 };
 
-static struct of_device_id tegra_nvdec_domain_match[] = {
-#ifdef TEGRA_21X_OR_HIGHER_CONFIG
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_LEGACY_PD)
+struct of_device_id nvhost_nvdec_domain_match[] = {
 	{ .compatible = "nvidia,tegra210-nvdec-pd",
 	.data = (struct nvhost_device_data *)&t21_nvdec_info},
-#endif
-#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
-	{ .compatible = "nvidia,tegra186-nvdec-pd",
-	.data = (struct nvhost_device_data *)&t18_nvdec_info},
-#endif
-#ifdef CONFIG_TEGRA_T19X_GRHOST
-	{.compatible = "nvidia,tegra194-nvdec1-pd",
-	 .data = (struct nvhost_device_data *)&t19_nvdec1_info},
-#endif
 	{},
 };
+#endif
 
+#ifndef MODULE
+/* early_param not available for modules */
 static int __init tegra_nvdec_bootloader_enabled_arg(char *options)
 {
 	char *p = options;
@@ -595,32 +609,4 @@ static int __init tegra_nvdec_bootloader_enabled_arg(char *options)
 	return 0;
 }
 early_param("nvdec_enabled", tegra_nvdec_bootloader_enabled_arg);
-
-static int __init nvdec_init(void)
-{
-	int ret;
-
-	if (tegra_nvdec_enabled_in_bootcmd != -1) {
-		/* If "nvdec_enabled" exists in kernel boot command,
-		tegra_nvdec_bootloader_enabled is updated with that value */
-		tegra_nvdec_bootloader_enabled = tegra_nvdec_enabled_in_bootcmd;
-	} else {
-		/* Below kernel config check is for T210 */
-		if (IS_ENABLED(CONFIG_NVDEC_BOOTLOADER))
-			tegra_nvdec_bootloader_enabled = 1;
-	}
-
-	ret = nvhost_domain_init(tegra_nvdec_domain_match);
-	if (ret)
-		return ret;
-
-	return platform_driver_register(&nvdec_driver);
-}
-
-static void __exit nvdec_exit(void)
-{
-	platform_driver_unregister(&nvdec_driver);
-}
-
-module_init(nvdec_init);
-module_exit(nvdec_exit);
+#endif
