@@ -531,6 +531,20 @@ static struct tegra_hv_ivc_cookie *g_ivck;
 static struct tegra_virtual_se_dev *g_virtual_se_dev[VIRTUAL_MAX_SE_ENGINE_NUM];
 static struct completion tegra_vse_complete;
 
+static inline int tegra_hv_get_hwid(struct platform_device *pdev, unsigned id)
+{
+	struct device *dev = &pdev->dev;
+	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+
+	if(!fwspec)
+		return -EINVAL;
+
+	if (id >= fwspec->num_ids)
+		return -EINVAL;
+
+	return fwspec->ids[id] & 0xffff;
+}
+
 #define GET_MSB(x)  ((x) >> (8*sizeof(x)-1))
 static void tegra_virtual_se_leftshift_onebit(u8 *in_buf, u32 size, u8 *org_msb)
 {
@@ -3853,8 +3867,7 @@ static int tegra_hv_vse_probe(struct platform_device *pdev)
 	}
 
 	if (engine_id != VIRTUAL_SE_RNG1) {
-		se_dev->stream_id = iommu_get_hwid(pdev->dev.archdata.iommu,
-				&pdev->dev, 0);
+		se_dev->stream_id = tegra_hv_get_hwid(pdev, 0);
 		dev_info(se_dev->dev, "Virtual SE Stream ID: %d",
 			se_dev->stream_id);
 	}
