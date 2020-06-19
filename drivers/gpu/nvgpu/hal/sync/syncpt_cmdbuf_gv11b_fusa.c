@@ -76,8 +76,8 @@ int gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 
 	nr_pages = DIV_ROUND_UP(g->syncpt_size, PAGE_SIZE);
 	err = nvgpu_mem_create_from_phys(g, syncpt_buf,
-		(g->syncpt_unit_base +
-		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(syncpt_id)),
+		nvgpu_safe_add_u64(g->syncpt_unit_base,
+			nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(syncpt_id)),
 		nr_pages);
 	if (err < 0) {
 		nvgpu_err(g, "failed to create mem from physical addr");

@@ -446,8 +446,10 @@ static int nvgpu_vm_init_user_lp_vma(struct gk20a *g, struct vm_gk20a *vm,
 	int err = 0;
 	char alloc_name[NVGPU_VM_NAME_LEN];
 	size_t name_len;
+	const size_t prefix_len = strlen("gk20a_");
 
-	name_len  = strlen("gk20a_") + strlen(name) + strlen("_lp");
+	name_len  = nvgpu_safe_add_u64(nvgpu_safe_add_u64(prefix_len,
+						strlen(name)), strlen("_lp"));
 	if (name_len >= NVGPU_VM_NAME_LEN) {
 		nvgpu_err(g, "Invalid MAX_NAME_SIZE %lu %u", name_len,
 				  NVGPU_VM_NAME_LEN);
@@ -459,7 +461,8 @@ static int nvgpu_vm_init_user_lp_vma(struct gk20a *g, struct vm_gk20a *vm,
 	 */
 	if (user_lp_vma_start < user_lp_vma_limit) {
 		(void) strcpy(alloc_name, "gk20a_");
-		(void) strcat(alloc_name, name);
+		(void) strncat(alloc_name, name, nvgpu_safe_sub_u64(
+					NVGPU_VM_NAME_LEN, prefix_len));
 		(void) strcat(alloc_name, "_lp");
 		err = nvgpu_allocator_init(g, &vm->user_lp,
 						 vm, alloc_name,
@@ -484,8 +487,10 @@ static int nvgpu_vm_init_kernel_vma(struct gk20a *g, struct vm_gk20a *vm,
 	int err = 0;
 	char alloc_name[NVGPU_VM_NAME_LEN];
 	size_t name_len;
+	const size_t prefix_len = strlen("gk20a_");
 
-	name_len  = strlen("gk20a_") + strlen(name) + strlen("-sys");
+	name_len  = nvgpu_safe_add_u64(nvgpu_safe_add_u64(prefix_len,
+						strlen(name)),strlen("-sys"));
 	if (name_len >= NVGPU_VM_NAME_LEN) {
 		nvgpu_err(g, "Invalid MAX_NAME_SIZE %lu %u", name_len,
 				  NVGPU_VM_NAME_LEN);
@@ -497,7 +502,8 @@ static int nvgpu_vm_init_kernel_vma(struct gk20a *g, struct vm_gk20a *vm,
 	 */
 	if (kernel_vma_start < kernel_vma_limit) {
 		(void) strcpy(alloc_name, "gk20a_");
-		(void) strcat(alloc_name, name);
+		(void) strncat(alloc_name, name, nvgpu_safe_sub_u64(
+						NVGPU_VM_NAME_LEN, prefix_len));
 		(void) strcat(alloc_name, "-sys");
 		err = nvgpu_allocator_init(g, &vm->kernel,
 						 vm, alloc_name,
