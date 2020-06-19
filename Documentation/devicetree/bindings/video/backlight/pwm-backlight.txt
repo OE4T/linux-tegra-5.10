@@ -8,7 +8,16 @@ For pwm-backlight bindings
     of backlight goes to zero(OFF) when the value in not zero almost nearing to zero(some x%)
   - pwm-gpio: specifies a GPIO used for pwm pin if there is.
   - bl-measured: Arrays for backlight calibration, which is usually for linear backlight response.
+  - brightness-levels: Array of distinct brightness levels. Typically these
+      are in the range from 0 to 255, but any range starting at 0 will do.
+      The actual brightness level (PWM duty cycle) will be interpolated
+      from these values. 0 means a 0% duty cycle (darkest/off), while the
+      last value in the array represents a 100% duty cycle (brightest).
+  - default-brightness-level: the default brightness level (index into the
+      array defined by the "brightness-levels" property)
   - power-supply: regulator for supply voltage
+  - label: name of the backlight device. If not specified, node name will be
+      be used as device name.
 
   The following "max-brightness" and "default-brightness" are mutually exclusive
   with "brightness-levels" and "default-brightness-level".
@@ -26,23 +35,6 @@ For pwm-backlight bindings
                "pwms" property (see PWM binding[0])
   - enable-gpios: contains a single GPIO specifier for the GPIO which enables
                   and disables the backlight (see GPIO binding[1])
-  - post-pwm-on-delay-ms: Delay in ms between setting an initial (non-zero) PWM
-                          and enabling the backlight using GPIO.
-  - pwm-off-delay-ms: Delay in ms between disabling the backlight using GPIO
-                      and setting PWM value to 0.
-  - brightness-levels: Array of distinct brightness levels. Typically these
-                       are in the range from 0 to 255, but any range starting at
-                       0 will do. The actual brightness level (PWM duty cycle)
-                       will be interpolated from these values. 0 means a 0% duty
-                       cycle (darkest/off), while the last value in the array
-                       represents a 100% duty cycle (brightest).
-  - default-brightness-level: The default brightness level (index into the
-                              array defined by the "brightness-levels" property).
-  - num-interpolated-steps: Number of interpolated steps between each value
-                            of brightness-levels table. This way a high
-                            resolution pwm duty cycle can be used without
-                            having to list out every possible value in the
-                            brightness-level array.
 
  It is possible for backlight node to have child backlight node.
   - Child node represents one of multiple backlight settings nodes, which are pwm-backlight based.
@@ -56,6 +48,8 @@ For pwm-backlight bindings
  should have its own compatible property.
 
   - compatible: Can be arbitrary, but each child backlight node should have unique name.
+  - pwms: OF device-tree PWM specification (see PWM binding[0]). If pwms is not searched
+    underneath backlight node, then, search pwm device in this node.
 
 [0]: Documentation/devicetree/bindings/pwm/pwm.txt
 [1]: Documentation/devicetree/bindings/gpio/gpio.txt
@@ -67,22 +61,6 @@ Examples:
 		pwms = <&pwm 0 5000000>;
 		brightness-levels = <0 4 8 16 32 64 128 255>;
 		default-brightness-level = <6>;
-
-		power-supply = <&vdd_bl_reg>;
-		enable-gpios = <&gpio 58 0>;
-		post-pwm-on-delay-ms = <10>;
-		pwm-off-delay-ms = <10>;
-	};
-
-Example using num-interpolation-steps:
-
-	backlight {
-		compatible = "pwm-backlight";
-		pwms = <&pwm 0 5000000>;
-
-		brightness-levels = <0 2048 4096 8192 16384 65535>;
-		num-interpolated-steps = <2048>;
-		default-brightness-level = <4096>;
 
 		power-supply = <&vdd_bl_reg>;
 		enable-gpios = <&gpio 58 0>;
