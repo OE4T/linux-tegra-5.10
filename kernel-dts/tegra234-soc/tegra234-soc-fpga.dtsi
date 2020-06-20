@@ -31,6 +31,7 @@
 #include "tegra234-soc/tegra234-soc-sdhci.dtsi"
 #include "tegra234-soc-pmc.dtsi"
 #include "tegra234-soc-i2c.dtsi"
+#include "tegra234-soc-ufshc.dtsi"
 
 / {
 	aliases {
@@ -469,5 +470,9 @@
 		cd-gpios = <&tegra_main_gpio TEGRA234_MAIN_GPIO(G, 7) 0>;
 		status = "okay";
 	 };
+
+	 tegra_ufs: ufshci@2500000 {
+		status = "okay";
+	};
 };
 
