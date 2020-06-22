@@ -573,6 +573,7 @@ static int gr_init_reset_enable_hw(struct gk20a *g)
 	enable_gr_interrupts(g);
 
 	/* load non_ctx init */
+	nvgpu_log_info(g, "begin: netlist: sw_non_ctx_load: register writes");
 	for (i = 0; i < sw_non_ctx_load->count; i++) {
 		nvgpu_writel(g, sw_non_ctx_load->l[i].addr,
 			sw_non_ctx_load->l[i].value);
@@ -582,6 +583,7 @@ static int gr_init_reset_enable_hw(struct gk20a *g)
 	nvgpu_next_gr_init_reset_enable_hw_non_ctx_local(g);
 	nvgpu_next_gr_init_reset_enable_hw_non_ctx_global(g);
 #endif
+	nvgpu_log_info(g, "end: netlist: sw_non_ctx_load: register writes");
 
 	err = g->ops.gr.falcon.wait_mem_scrubbing(g);
 	if (err != 0) {

@@ -467,10 +467,12 @@ static int nvgpu_gr_obj_ctx_init_hw_state(struct gk20a *g,
 	err = g->ops.gr.init.wait_idle(g);
 
 	/* load ctx init */
+	nvgpu_log_info(g, "begin: netlist: sw_ctx_load: register writes");
 	for (i = 0U; i < sw_ctx_load->count; i++) {
 		nvgpu_writel(g, sw_ctx_load->l[i].addr,
 			     sw_ctx_load->l[i].value);
 	}
+	nvgpu_log_info(g, "end: netlist: sw_ctx_load: register writes");
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (g->ops.gr.init.preemption_state != NULL) {
