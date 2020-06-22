@@ -2832,12 +2832,12 @@ static int dbg_flip_stats_show(struct seq_file *m, void *unused)
 	if (WARN_ON(!dc || !dc->out))
 		return -EINVAL;
 
-	seq_printf(m, "Flips queued: %ld\n",
-		atomic64_read(&dc->flip_stats.flips_queued));
-	seq_printf(m, "Flips skipped: %ld\n",
-		atomic64_read(&dc->flip_stats.flips_skipped));
-	seq_printf(m, "Flips completed: %ld\n",
-		atomic64_read(&dc->flip_stats.flips_cmpltd));
+	seq_printf(m, "Flips queued: %lld\n",
+		(long long int)atomic64_read(&dc->flip_stats.flips_queued));
+	seq_printf(m, "Flips skipped: %lld\n",
+		(long long int)atomic64_read(&dc->flip_stats.flips_skipped));
+	seq_printf(m, "Flips completed: %lld\n",
+		(long long int)atomic64_read(&dc->flip_stats.flips_cmpltd));
 
 	return 0;
 }
