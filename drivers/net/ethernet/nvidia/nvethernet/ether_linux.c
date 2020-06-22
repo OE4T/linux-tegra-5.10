@@ -3353,12 +3353,16 @@ static inline void ether_put_clks(struct ether_priv_data *pdata)
 static int ether_get_clks(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret;
 
-	pdata->pllrefe_clk = devm_clk_get(dev, "pllrefe_vcoout");
-	if (IS_ERR(pdata->pllrefe_clk)) {
-		dev_info(dev, "failed to get pllrefe_vcoout clk\n");
-		return PTR_ERR(pdata->pllrefe_clk);
+	/* Skip pll_refe clock initialisation for t18x platform */
+	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_00) {
+		pdata->pllrefe_clk = devm_clk_get(dev, "pllrefe_vcoout");
+		if (IS_ERR(pdata->pllrefe_clk)) {
+			dev_info(dev, "failed to get pllrefe_vcoout clk\n");
+			return PTR_ERR(pdata->pllrefe_clk);
+		}
 	}
 
 	pdata->axi_cbb_clk = devm_clk_get(dev, "axi_cbb");
