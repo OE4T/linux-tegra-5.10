@@ -14,6 +14,7 @@
 #include <linux/slab.h>
 #include <linux/dma-iommu.h>
 #include <linux/dma-mapping.h>
+#include <linux/pci.h>
 
 #include <soc/tegra/ahb.h>
 #include <soc/tegra/mc.h>
@@ -834,7 +835,7 @@ static struct iommu_device *tegra_smmu_probe_device(struct device *dev)
 	if (!smmu || !fwspec || fwspec->ops != &tegra_smmu_ops)
 		return ERR_PTR(-ENODEV);
 
-	dev_iommu_priv_set(dev);
+	dev_iommu_priv_set(dev, smmu);
 
 	return &smmu->iommu;
 }
@@ -844,7 +845,7 @@ static void tegra_smmu_release_device(struct device *dev)
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
 
 	if (fwspec && fwspec->ops == &tegra_smmu_ops)
-		dev_iommu_priv_set(NULL);
+		dev_iommu_priv_set(dev, NULL);
 }
 
 static const struct tegra_smmu_group_soc *
@@ -860,11 +861,13 @@ tegra_smmu_find_group(struct tegra_smmu *smmu, unsigned int swgroup)
 	return NULL;
 }
 
-static struct iommu_group *tegra_smmu_group_get(struct tegra_smmu *smmu,
+static struct iommu_group *tegra_smmu_group_get(struct device *dev,
+						struct tegra_smmu *smmu,
 						unsigned int swgroup)
 {
 	const struct tegra_smmu_group_soc *soc;
 	struct tegra_smmu_group *group;
+	bool pci = dev_is_pci(dev);
 
 	soc = tegra_smmu_find_group(smmu, swgroup);
 	if (!soc)
@@ -887,7 +890,7 @@ static struct iommu_group *tegra_smmu_group_get(struct tegra_smmu *smmu,
 	INIT_LIST_HEAD(&group->list);
 	group->soc = soc;
 
-	group->group = iommu_group_alloc();
+	group->group = pci ? pci_device_group(dev) : iommu_group_alloc();
 	if (IS_ERR(group->group)) {
 		devm_kfree(smmu->dev, group);
 		mutex_unlock(&smmu->lock);
@@ -905,6 +908,7 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
 	struct tegra_smmu *smmu;
 	struct iommu_group *group;
+	bool pci = dev_is_pci(dev);
 
 	if (!fwspec || fwspec->ops != &tegra_smmu_ops)
 		return NULL;
@@ -913,9 +917,9 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 	if (!smmu)
 		return NULL;
 
-	group = tegra_smmu_group_get(smmu, fwspec->ids[0]);
+	group = tegra_smmu_group_get(dev, smmu, fwspec->ids[0]);
 	if (!group)
-		group = generic_device_group(dev);
+		group = pci ? pci_device_group(dev) : generic_device_group(dev);
 
 	return group;
 }
@@ -1123,6 +1127,19 @@ struct tegra_smmu *tegra_smmu_probe(struct device *dev,
 		iommu_device_sysfs_remove(&smmu->iommu);
 		return ERR_PTR(err);
 	}
+
+#ifdef CONFIG_PCI
+	if (!iommu_present(&pci_bus_type)) {
+		pci_request_acs();
+		err = bus_set_iommu(&pci_bus_type, &tegra_smmu_ops);
+		if (err < 0) {
+			bus_set_iommu(&platform_bus_type, NULL);
+			iommu_device_unregister(&smmu->iommu);
+			iommu_device_sysfs_remove(&smmu->iommu);
+			return ERR_PTR(err);
+		}
+	}
+#endif
 
 	if (IS_ENABLED(CONFIG_DEBUG_FS))
 		tegra_smmu_debugfs_init(smmu);
