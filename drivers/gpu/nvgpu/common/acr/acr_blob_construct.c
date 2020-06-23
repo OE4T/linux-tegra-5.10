@@ -489,54 +489,74 @@ static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	return 0;
 }
 
-/* Discover all managed falcon ucode images */
-static int lsfm_discover_ucode_images(struct gk20a *g,
-	struct ls_flcn_mgr *plsfm)
+static int lsfm_check_and_add_ucode_image(struct gk20a *g,
+		struct ls_flcn_mgr *plsfm, u32 lsf_index)
 {
 	struct flcn_ucode_img ucode_img;
 	struct nvgpu_acr *acr = g->acr;
 	u32 falcon_id;
+	int err = 0;
+
+	if (!nvgpu_test_bit(lsf_index, (void *)&acr->lsf_enable_mask)) {
+		return err;
+	}
+
+	if (acr->lsf[lsf_index].get_lsf_ucode_details == NULL) {
+		nvgpu_err(g, "LS falcon-%d ucode fetch details not initialized",
+				lsf_index);
+		return -ENOENT;
+	}
+
+	(void) memset(&ucode_img, MEMSET_VALUE, sizeof(ucode_img));
+
+	err = acr->lsf[lsf_index].get_lsf_ucode_details(g,
+			(void *)&ucode_img);
+	if (err != 0) {
+		nvgpu_err(g, "LS falcon-%d ucode get failed", lsf_index);
+		return err;
+	}
+
+	falcon_id = ucode_img.lsf_desc->falcon_id;
+	err = lsfm_add_ucode_img(g, plsfm, &ucode_img, falcon_id);
+	if (err != 0) {
+		nvgpu_err(g, " Failed to add falcon-%d to LSFM ", falcon_id);
+		return err;
+	}
+
+	plsfm->managed_flcn_cnt++;
+
+	return err;
+}
+
+/* Discover all managed falcon ucode images */
+static int lsfm_discover_ucode_images(struct gk20a *g,
+	struct ls_flcn_mgr *plsfm)
+{
 	u32 i;
 	int err = 0;
 
+#ifdef CONFIG_NVGPU_DGPU
+	err = lsfm_check_and_add_ucode_image(g, plsfm, FALCON_ID_SEC2);
+	if (err != 0) {
+		return err;
+	}
+#endif
 	/*
 	 * Enumerate all constructed falcon objects, as we need the ucode
 	 * image info and total falcon count
 	 */
 	for (i = 0U; i < FALCON_ID_END; i++) {
-		if (nvgpu_test_bit(i, (void *)&acr->lsf_enable_mask) &&
-			(acr->lsf[i].get_lsf_ucode_details != NULL)) {
-
-			(void) memset(&ucode_img, MEMSET_VALUE, sizeof(ucode_img));
-			err = acr->lsf[i].get_lsf_ucode_details(g,
-				(void *)&ucode_img);
-			if (err != 0) {
-				nvgpu_err(g, "LS falcon-%d ucode get failed", i);
-				goto exit;
-			}
-
-			if (ucode_img.lsf_desc != NULL) {
-				/*
-				 * falon_id is formed by grabbing the static
-				 * base falonId from the image and adding the
-				 * engine-designated falcon instance.
-				 */
-				falcon_id = ucode_img.lsf_desc->falcon_id;
-
-				err = lsfm_add_ucode_img(g, plsfm, &ucode_img,
-					falcon_id);
-				if (err != 0) {
-					nvgpu_err(g, " Failed to add falcon-%d to LSFM ",
-						falcon_id);
-					goto exit;
-				}
-
-				plsfm->managed_flcn_cnt++;
-			}
+#ifdef CONFIG_NVGPU_DGPU
+		if (i == FALCON_ID_SEC2) {
+			continue;
+		}
+#endif
+		err = lsfm_check_and_add_ucode_image(g, plsfm, i);
+		if (err != 0) {
+			return err;
 		}
 	}
 
-exit:
 	return err;
 }
 
@@ -1007,14 +1027,14 @@ int nvgpu_acr_prepare_ucode_blob(struct gk20a *g)
 	err = lsfm_discover_ucode_images(g, plsfm);
 	nvgpu_acr_dbg(g, " Managed Falcon cnt %d\n", plsfm->managed_flcn_cnt);
 	if (err != 0) {
-		goto exit_err;
+		goto cleanup_exit;
 	}
 
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
 		err = lsfm_discover_and_add_sub_wprs(g, plsfm);
 		if (err != 0) {
-			goto exit_err;
+			goto cleanup_exit;
 		}
 	}
 #endif
@@ -1024,14 +1044,14 @@ int nvgpu_acr_prepare_ucode_blob(struct gk20a *g)
 		/* Generate WPR requirements */
 		err = lsf_gen_wpr_requirements(g, plsfm);
 		if (err != 0) {
-			goto exit_err;
+			goto cleanup_exit;
 		}
 
 		/* Alloc memory to hold ucode blob contents */
 		err = g->acr->alloc_blob_space(g, plsfm->wpr_size,
 							&g->acr->ucode_blob);
 		if (err != 0) {
-			goto exit_err;
+			goto cleanup_exit;
 		}
 
 		nvgpu_acr_dbg(g, "managed LS falcon %d, WPR size %d bytes.\n",
@@ -1040,15 +1060,14 @@ int nvgpu_acr_prepare_ucode_blob(struct gk20a *g)
 		err = lsfm_init_wpr_contents(g, plsfm, &g->acr->ucode_blob);
 		if (err != 0) {
 			nvgpu_kfree(g, &g->acr->ucode_blob);
-			goto free_acr;
+			goto cleanup_exit;
 		}
 	} else {
 		nvgpu_acr_dbg(g, "LSFM is managing no falcons.\n");
 	}
 	nvgpu_acr_dbg(g, "prepare ucode blob return 0\n");
 
-free_acr:
+cleanup_exit:
 	free_acr_resources(g, plsfm);
-exit_err:
 	return err;
 }
