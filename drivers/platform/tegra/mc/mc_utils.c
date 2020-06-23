@@ -12,6 +12,7 @@
  */
 
 #include <linux/types.h>
+#include <linux/debugfs.h>
 #include <linux/platform/tegra/mc.h>
 #include <linux/platform/tegra/mc_utils.h>
 #include <linux/version.h>
@@ -82,6 +83,8 @@ struct emc_params {
 
 static struct emc_params emc_param;
 static int ch_num;
+
+static enum dram_types dram_type;
 
 static unsigned long freq_to_bw(unsigned long freq)
 {
@@ -189,9 +192,9 @@ unsigned long bw_disruption_latency(unsigned long dram_freq,
 }
 EXPORT_SYMBOL(bw_disruption_latency);
 
-enum dram_types tegra_dram_types(void)
+static void set_dram_type(void)
 {
-	enum dram_types dram_type = DRAM_TYPE_NONE;
+	dram_type = DRAM_TYPE_NONE;
 
 	switch (emc_param.dram) {
 	case DRAM_LPDDR5:
@@ -307,10 +310,32 @@ enum dram_types tegra_dram_types(void)
 		pr_err("mc_util: ddr config not supported\n");
 		WARN_ON(true);
 	}
+}
 
+enum dram_types tegra_dram_types(void)
+{
 	return dram_type;
 }
 EXPORT_SYMBOL(tegra_dram_types);
+
+#if defined(CONFIG_DEBUG_FS)
+static void tegra_mc_utils_debugfs_init(void)
+{
+	struct dentry *tegra_mc_debug_root = NULL, *dram_file = NULL;
+
+	tegra_mc_debug_root = debugfs_create_dir("tegra_mc_utils", NULL);
+	if (IS_ERR_OR_NULL(tegra_mc_debug_root)) {
+		pr_err("tegra_mc: Unable to create debugfs dir\n");
+		return;
+	}
+
+	dram_file = debugfs_create_u32("dram_type", S_IRUGO, tegra_mc_debug_root, &dram_type);
+	if (IS_ERR_OR_NULL(dram_file)) {
+		pr_err("tegra_mc: Unable to create dram_type file\n");
+	}
+
+}
+#endif
 
 void tegra_mc_utils_init(void)
 {
@@ -345,4 +370,10 @@ void tegra_mc_utils_init(void)
 	emc_param.ecc = ecc;
 	emc_param.rank = rank;
 	emc_param.dram = dram;
+
+	set_dram_type();
+
+#if defined(CONFIG_DEBUG_FS)
+	tegra_mc_utils_debugfs_init();
+#endif
 }
