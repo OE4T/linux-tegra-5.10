@@ -312,6 +312,11 @@ static int process_crypt_req(struct tegra_crypto_ctx *ctx,
 			goto process_req_out;
 		}
 
+		if ((key == NULL) && is_tegra_hypervisor_mode()) {
+			ret = -EINVAL;
+			goto process_req_out;
+		}
+
 		ret = crypto_skcipher_setkey(tfm, key, crypt_req->keylen);
 		if (ret < 0) {
 			pr_err("setkey failed");
