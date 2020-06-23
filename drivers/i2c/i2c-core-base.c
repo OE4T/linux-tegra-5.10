@@ -739,9 +739,9 @@ EXPORT_SYMBOL_GPL(i2c_shutdown_clear_adapter);
 
 int i2c_set_adapter_bus_clk_rate(struct i2c_adapter *adap, int bus_rate)
 {
-	i2c_lock_adapter(adap);
+	i2c_lock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
 	adap->bus_clk_rate = bus_rate;
-	i2c_unlock_adapter(adap);
+	i2c_unlock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
 
 	return 0;
 }
@@ -751,9 +751,9 @@ int i2c_get_adapter_bus_clk_rate(struct i2c_adapter *adap)
 {
 	int bus_clk_rate;
 
-	i2c_lock_adapter(adap);
+	i2c_lock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
 	bus_clk_rate = adap->bus_clk_rate;
-	i2c_unlock_adapter(adap);
+	i2c_unlock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
 
 	return bus_clk_rate;
 }
