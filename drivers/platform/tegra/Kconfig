@@ -13,3 +13,11 @@ config TEGRA_SPE_HSP_MBOX_CLIENT
 	bool "Enable Mailbox Client Implementation of HSP Protocol for Camera"
 	depends on TEGRA_SPE && ARCH_TEGRA_23x_SOC && MAILBOX
 	default n
+
+config TEGRA_SOC_HWPM
+	bool "Tegra SOC HWPM driver"
+	depends on ARCH_TEGRA_23x_SOC
+	default n
+	help
+	  The SOC HWPM driver enables performance monitoring for various Tegra
+	  IPs.
