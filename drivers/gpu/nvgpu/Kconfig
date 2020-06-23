@@ -214,14 +214,14 @@ config NVGPU_DGPU
 
 config NVGPU_VPR
 	bool "NVGPU VPR support"
-	depends on GK20A
+	depends on GK20A && TEGRA_VPR
 	default y
 	help
 	  Support for NVGPU VPR
 
 config NVGPU_TEGRA_FUSE
 	bool "Tegra fuse Support"
-	depends on GK20A
+	depends on GK20A && TEGRA_KFUSE
 	default y
 	help
 	  Support Tegra fuse
