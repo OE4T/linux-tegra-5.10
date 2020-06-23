@@ -202,6 +202,9 @@ int nvgpu_pmu_early_init(struct gk20a *g)
 		g->elpg_enabled = false;
 		g->aelpg_enabled = false;
 		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, false);
+#ifdef  CONFIG_NVGPU_DGPU
+               nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
+#endif
 		goto exit;
 	}
 
