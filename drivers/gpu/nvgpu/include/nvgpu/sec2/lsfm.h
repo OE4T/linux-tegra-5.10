@@ -28,6 +28,10 @@
 struct gk20a;
 struct nvgpu_sec2;
 
+#define LSF_FALCON_INSTANCE_DEFAULT	0x0U
+#define LSF_FALCON_INDEX_MASK_DEFAULT	0x0U
+#define LSF_FALCON_INDEX_MASK_MAX	0xFFU
+
 /*
  * ACR Command Types
  * _BOOT_FALCON
@@ -53,7 +57,7 @@ struct nv_sec2_acr_cmd_bootstrap_falcon {
 	u32 falcon_instance;
 
 	/* Mask of indexes of same falcon to be multi bootstrapped by ACR */
-	u32 falcon_Index_Mask;
+	u32 falcon_index_mask;
 };
 
 #define NV_SEC2_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET     0U

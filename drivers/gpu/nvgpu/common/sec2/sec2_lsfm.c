@@ -67,6 +67,15 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 		NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON;
 	cmd.cmd.acr.bootstrap_falcon.flags = flags;
 	cmd.cmd.acr.bootstrap_falcon.falcon_id = falcon_id;
+	cmd.cmd.acr.bootstrap_falcon.falcon_instance =
+		LSF_FALCON_INSTANCE_DEFAULT;
+	cmd.cmd.acr.bootstrap_falcon.falcon_index_mask =
+		LSF_FALCON_INDEX_MASK_DEFAULT;
+
+	if (falcon_id == FALCON_ID_GPCCS) {
+		cmd.cmd.acr.bootstrap_falcon.falcon_index_mask =
+				LSF_FALCON_INDEX_MASK_MAX;
+	}
 
 	nvgpu_sec2_dbg(g, "NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON : %x",
 		falcon_id);
