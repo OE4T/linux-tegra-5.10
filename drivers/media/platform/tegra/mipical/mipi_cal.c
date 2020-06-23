@@ -36,6 +36,8 @@
 #include <soc/tegra/fuse.h>
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/tegra_powergate.h>
+#else
+#include <linux/pm_runtime.h>
 #endif
 #include <linux/tegra_prod.h>
 #include <uapi/misc/tegra_mipi_ioctl.h>
@@ -179,16 +181,38 @@ static int mipical_update_bits(struct regmap *map, unsigned int reg,
 
 	return ret;
 }
+
+static int tegra_mipi_unpowergate(struct tegra_mipi *mipi)
+{
+	int ret = 0;
+
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+	ret = tegra_unpowergate_partition(mipi->soc->powergate_id);
+#else
+	ret = pm_runtime_get(mipi->dev);
+#endif
+	return ret;
+}
+
+static void tegra_mipi_powergate(struct tegra_mipi *mipi)
+{
+
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+	tegra_powergate_partition(mipi->soc->powergate_id);
+#else
+	pm_runtime_put(mipi->dev);
+#endif
+}
+
 static int tegra_mipi_clk_enable(struct tegra_mipi *mipi)
 {
 	int err;
 
-	err = tegra_unpowergate_partition(mipi->soc->powergate_id);
-	if (err) {
-		dev_err(mipi->dev, "Fail to unpowergate SOR\n");
+	err = tegra_mipi_unpowergate(mipi);
+	if (IS_ERR(ERR_PTR(err))) {
+		dev_err(mipi->dev, "Failed to unpowergate DISP, err %d\n", err);
 		return err;
 	}
-
 	err = clk_prepare_enable(mipi->mipi_cal_fixed);
 	if (err) {
 		dev_err(mipi->dev, "Fail to enable uart_mipi_cal clk\n");
@@ -205,8 +229,7 @@ static int tegra_mipi_clk_enable(struct tegra_mipi *mipi)
 err_mipi_cal_clk:
 	clk_disable_unprepare(mipi->mipi_cal_fixed);
 err_fixed_clk:
-	tegra_powergate_partition(mipi->soc->powergate_id);
-
+	tegra_mipi_powergate(mipi);
 	return err;
 }
 
@@ -214,7 +237,7 @@ static void tegra_mipi_clk_disable(struct tegra_mipi *mipi)
 {
 	clk_disable_unprepare(mipi->mipi_cal_clk);
 	clk_disable_unprepare(mipi->mipi_cal_fixed);
-	tegra_powergate_partition(mipi->soc->powergate_id);
+	tegra_mipi_powergate(mipi);
 }
 
 static void tegra_mipi_print(struct tegra_mipi *mipi) __maybe_unused;
@@ -540,9 +563,9 @@ static int dbgfs_show_regs(struct seq_file *s, void *data)
 	int err, i;
 	static int first = 1;
 
-	err = tegra_unpowergate_partition(mipi->soc->powergate_id);
-	if (err) {
-		dev_err(mipi->dev, "Fail to unpowergate SOR\n");
+	err = tegra_mipi_unpowergate(mipi);
+	if (IS_ERR(ERR_PTR(err))) {
+		dev_err(mipi->dev, "Failed to unpowergate DISP, err %d\n", err);
 		return err;
 	}
 
@@ -583,7 +606,7 @@ static int dbgfs_show_regs(struct seq_file *s, void *data)
 	err = 0;
 
 clk_err:
-	tegra_powergate_partition(mipi->soc->powergate_id);
+	tegra_mipi_powergate(mipi);
 	return err;
 }
 
@@ -1112,6 +1135,9 @@ static int tegra_mipi_probe(struct platform_device *pdev)
 	if (IS_ERR(mipi->mipi_cal_clk))
 		return PTR_ERR(mipi->mipi_cal_clk);
 
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+	pm_runtime_enable(mipi->dev);
+#endif
 	if (of_device_is_compatible(np, "nvidia,tegra210-mipical")) {
 		mipi->mipi_cal_fixed = devm_clk_get(&pdev->dev,
 				"uart_mipi_cal");
