@@ -1001,7 +1001,7 @@ static void tegra_dsi_init_sw(struct tegra_dc *dc,
 }
 
 #define SELECT_T_PHY(platform_t_phy_ps, default_phy, clk_ps, hw_inc) ( \
-(platform_t_phy_ps) ? ( \
+((platform_t_phy_ps) > 0) ? ( \
 ((DSI_CONVERT_T_PHY_PS_TO_T_PHY(platform_t_phy_ps, clk_ps, hw_inc)) < 0 ? 0 : \
 (DSI_CONVERT_T_PHY_PS_TO_T_PHY(platform_t_phy_ps, clk_ps, hw_inc)))) : \
 ((default_phy) < 0 ? 0 : (default_phy)))
