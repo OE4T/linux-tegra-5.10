@@ -818,14 +818,10 @@ static struct dentry *tegra_dpaux_i2c_dir_create(struct tegra_dc_dp_data *dp,
 	dpaux_i2c_dir = debugfs_create_dir("dpaux_i2c", parent);
 	if (!dpaux_i2c_dir)
 		return retval;
-	retval = debugfs_create_u16("addr", 0644, dpaux_i2c_dir,
+	debugfs_create_u16("addr", 0644, dpaux_i2c_dir,
 			&dp->dpaux_i2c_dbg_addr);
-	if (!retval)
-		goto free_out;
-	retval = debugfs_create_u32("num_bytes", 0644,
+	debugfs_create_u32("num_bytes", 0644,
 			dpaux_i2c_dir, &dp->dpaux_i2c_dbg_num_bytes);
-	if (!retval)
-		goto free_out;
 	retval = debugfs_create_file("data", 0444, dpaux_i2c_dir, dp,
 			&dpaux_i2c_data_fops);
 	if (!retval)
@@ -846,14 +842,10 @@ static struct dentry *tegra_dpaux_dpcd_dir_create(struct tegra_dc_dp_data *dp,
 	dpaux_dir = debugfs_create_dir("dpaux_dpcd", parent);
 	if (!dpaux_dir)
 		return retval;
-	retval = debugfs_create_u16("addr", 0644, dpaux_dir,
+	debugfs_create_u16("addr", 0644, dpaux_dir,
 			&dp->dpaux_dpcd_dbg_addr);
-	if (!retval)
-		goto free_out;
-	retval = debugfs_create_u32("num_bytes", 0644,
+	debugfs_create_u32("num_bytes", 0644,
 			dpaux_dir, &dp->dpaux_dpcd_dbg_num_bytes);
-	if (!retval)
-		goto free_out;
 	retval = debugfs_create_file("data", 0444, dpaux_dir, dp,
 			&dpaux_dpcd_data_fops);
 	if (!retval)

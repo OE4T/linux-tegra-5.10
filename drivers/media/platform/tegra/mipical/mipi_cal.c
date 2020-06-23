@@ -604,16 +604,10 @@ static int dbgfs_mipi_init(struct tegra_mipi *mipi)
 	if (!dir)
 		return -ENOMEM;
 
-	val = debugfs_create_x32("LAST_STATUS", S_IRUGO, dir, &mipical_status);
-	if (!val)
-		goto err;
-	val = debugfs_create_u32("COUNT", S_IRUGO | S_IWUGO, dir, &counts);
-	if (!val)
-		goto err;
-	val = debugfs_create_u32("TIMEOUTS", S_IRUGO | S_IWUGO, dir,
+	debugfs_create_x32("LAST_STATUS", S_IRUGO, dir, &mipical_status);
+	debugfs_create_u32("COUNT", S_IRUGO | S_IWUGO, dir, &counts);
+	debugfs_create_u32("TIMEOUTS", S_IRUGO | S_IWUGO, dir,
 				&timeout_ct);
-	if (!val)
-		goto err;
 
 	val = debugfs_create_file("regs", S_IRUGO, dir, mipi, &dbgfs_ops);
 	if (!val)
