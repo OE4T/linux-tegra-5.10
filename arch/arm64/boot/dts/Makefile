@@ -6,17 +6,24 @@ DTC_INCLUDE += $(srctree)/arch/arm64/boot/dts/nvidia
 DTC_INCLUDE += $(tegra-dtstree)/soc/tegra/kernel-include
 DTC_INCLUDE += $(tegra-dtstree)/platform/tegra/common/kernel-dts
 
+ifeq ($(CONFIG_ARCH_TEGRA_210_SOC),y)
 DTC_INCLUDE += $(tegra-dtstree)/soc/t210/kernel-dts
 DTC_INCLUDE += $(tegra-dtstree)/platform/t210/common/kernel-dts
 DTC_INCLUDE += $(tegra-dtstree)/platform/t210b01/common/kernel-dts
+endif
 
+ifeq ($(CONFIG_ARCH_TEGRA_186_SOC),y)
 DTC_INCLUDE += $(tegra-dtstree)/soc/t18x/kernel-include
 DTC_INCLUDE += $(tegra-dtstree)/soc/t18x/kernel-dts
 DTC_INCLUDE += $(tegra-dtstree)/platform/t18x/common/kernel-dts
+endif
 
+ifeq ($(CONFIG_ARCH_TEGRA_194_SOC),y)
 DTC_INCLUDE += $(tegra-dtstree)/soc/t19x/kernel-include
 DTC_INCLUDE += $(tegra-dtstree)/soc/t19x/kernel-dts
 DTC_INCLUDE += $(tegra-dtstree)/platform/t19x/common/kernel-dts
+DTC_INCLUDE += $(tegra-dtstree)/platform/t19x/automotive/kernel-dts/common
+endif
 
 ifeq ($(CONFIG_ARCH_TEGRA_23x_SOC),y)
 DTC_INCLUDE += $(tegra-dtstree)/soc/t23x/kernel-include
