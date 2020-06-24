@@ -220,22 +220,23 @@ static int get_reset_handle(struct reset_data reset_data)
 		handle = rst_entry->handle;
 		if (strcmp(rst_entry->rst_data.name,
 			   reset_data.name) == 0) {
-			return handle;
+			goto failed;
 		}
 	}
 
 	/* If reset not already in array, then we must add it */
 	rst_entry = kzalloc(sizeof(struct reset_entry), GFP_ATOMIC);
 	if (unlikely(!rst_entry)) {
-		spin_unlock(&mods_clock_lock);
-		return -1;
+		handle = -1;
+		goto failed;
 	}
 	rst_entry->handle = ++handle;
 	rst_entry->rst_data = reset_data;
 	INIT_LIST_HEAD(&rst_entry->list);
 	list_add_tail(&rst_entry->list, &reset_handles);
-	spin_unlock(&mods_clock_lock);
 
+failed:
+	spin_unlock(&mods_clock_lock);
 	return handle;
 }
 
