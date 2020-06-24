@@ -68,6 +68,7 @@
 #define MGBE_MAC_VLANTIR		0x0060
 #define MGBE_MAC_QX_TX_FLW_CTRL(x)	((0x0004U * (x)) + 0x0070U)
 #define MGBE_MAC_RX_FLW_CTRL		0x0090
+#define MGBE_MAC_RQC4R			0x0094
 #define MGBE_MAC_RQC0R			0x00A0
 #define MGBE_MAC_RQC1R			0x00A4
 #define MGBE_MAC_RQC2R			0x00A8
@@ -266,6 +267,7 @@
 #define MGBE_MTL_RXQ_DMA_MAP2		0x1038
 #define MGBE_MTL_RXQ_DMA_MAP3		0x103b
 #define MGBE_MTL_EST_CONTROL		0x1050
+#define MGBE_MTL_EST_OVERHEAD		0x1054
 #define MGBE_MTL_EST_STATUS		0x1058
 #define MGBE_MTL_EST_SCH_ERR		0x1060
 #define MGBE_MTL_EST_FRMS_ERR		0x1064
@@ -441,6 +443,9 @@
 #define MGBE_MAC_RQC1R_RQ			(OSI_BIT(7) | OSI_BIT(6) | \
 						 OSI_BIT(5) | OSI_BIT(4))
 #define MGBE_MAC_RQC1R_RQ_SHIFT			4U
+#define MGBE_MAC_RQC4R_PMCBCQ			(OSI_BIT(27) | OSI_BIT(26) | \
+						 OSI_BIT(25) | OSI_BIT(24))
+#define MGBE_MAC_RQC4R_PMCBCQ_SHIFT		24U
 #define MGBE_IMR_RGSMIIIE			OSI_BIT(0)
 #define MGBE_IMR_FPEIE				OSI_BIT(15)
 #define MGBE_MAC_IMR_FPEIS			OSI_BIT(16)
@@ -607,6 +612,9 @@
 #define MGBE_MTL_EST_CONTROL_DDBF		OSI_BIT(4)
 #define MGBE_MTL_EST_CONTROL_SSWL		OSI_BIT(1)
 #define MGBE_MTL_EST_CONTROL_EEST		OSI_BIT(0)
+#define MGBE_MTL_EST_OVERHEAD_OVHD		(OSI_BIT(0) | OSI_BIT(1) | \
+						 OSI_BIT(2) | OSI_BIT(3) | \
+						 OSI_BIT(4) | OSI_BIT(5))
 /* EST controlOSI_BITmap */
 #define MGBE_MTL_EST_EEST			OSI_BIT(0)
 #define MGBE_MTL_EST_SSWL			OSI_BIT(1)
@@ -818,6 +826,14 @@
 #define MGBE_MAX_BAK_IDX		((MGBE_MAC_DCHSEL_BAK_IDX(0) + \
 					 OSI_MGBE_MAX_MAC_ADDRESS_FILTER + 1U))
 /** @} */
+
+/**
+ * @addtogroup IPG over head
+ *
+ * @brief OVHD value for MGBE MAC
+ * @{
+ */
+#define OVHD_MGBE_MAC			56U
 
 /**
  * @addtogroup MGBE-MAC MGBE MAC HW feature registers
