@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,20 +42,22 @@ int vgpu_fecs_trace_init(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	if (g->fecs_trace) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, false);
 		return 0;
 	}
 
 	vcst = nvgpu_kzalloc(g, sizeof(*vcst));
 	if (!vcst) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, false);
 		return -ENOMEM;
 	}
 
 	err = nvgpu_dt_read_u32_index(g, "mempool-fecs-trace", 1, &mempool);
 	if (err) {
 		nvgpu_info(g, "does not support fecs trace");
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, false);
 		goto fail;
 	}
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
 
 	vcst->cookie = vgpu_ivm_mempool_reserve(mempool);
 	if ((vcst->cookie == NULL) ||

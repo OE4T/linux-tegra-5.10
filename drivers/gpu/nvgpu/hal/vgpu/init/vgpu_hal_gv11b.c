@@ -1045,6 +1045,10 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->fuse = vgpu_gv11b_ops.fuse;
 	gops->top = vgpu_gv11b_ops.top;
 
+#ifdef CONFIG_NVGPU_FECS_TRACE
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
+#endif
+
 	/* Lone functions */
 	gops->chip_init_gpu_characteristics =
 		vgpu_gv11b_ops.chip_init_gpu_characteristics;

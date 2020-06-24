@@ -26,6 +26,7 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/enabled.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/string.h>
 #include <nvgpu/nvgpu_init.h>
@@ -325,6 +326,11 @@ int gk20a_ctxsw_dev_open(struct inode *inode, struct file *filp)
 	if (!g)
 		return -ENODEV;
 
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE)) {
+		nvgpu_put(&l->g);
+		return -ENODEV;
+	}
+
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, "g=%p", g);
 
 	if (!capable(CAP_SYS_ADMIN)) {
@@ -576,7 +582,7 @@ int gk20a_ctxsw_trace_init(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, "g=%p trace=%p", g, trace);
 
 	/* if tracing is not supported, skip this */
-	if (!g->ops.gr.fecs_trace.init)
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE))
 		return 0;
 
 	if (likely(trace))

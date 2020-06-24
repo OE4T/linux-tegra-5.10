@@ -1320,6 +1320,7 @@ int gp10b_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, false);
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
 #endif
 
 #ifdef CONFIG_NVGPU_DGPU

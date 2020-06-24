@@ -1609,6 +1609,7 @@ int gv11b_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
 #endif
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);

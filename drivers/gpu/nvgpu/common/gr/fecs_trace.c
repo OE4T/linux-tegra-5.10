@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -137,12 +137,14 @@ int nvgpu_gr_fecs_trace_init(struct gk20a *g)
 
 	if (!is_power_of_2(GK20A_FECS_TRACE_NUM_RECORDS)) {
 		nvgpu_err(g, "invalid NUM_RECORDS chosen");
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, false);
 		return -EINVAL;
 	}
 
 	trace = nvgpu_kzalloc(g, sizeof(struct nvgpu_gr_fecs_trace));
 	if (trace == NULL) {
 		nvgpu_err(g, "failed to allocate fecs_trace");
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, false);
 		return -ENOMEM;
 	}
 	g->fecs_trace = trace;
@@ -152,8 +154,6 @@ int nvgpu_gr_fecs_trace_init(struct gk20a *g)
 	nvgpu_mutex_init(&trace->enable_lock);
 
 	nvgpu_init_list_node(&trace->context_list);
-
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
 
 	trace->enable_count = 0;
 
