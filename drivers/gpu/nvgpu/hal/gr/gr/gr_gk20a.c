@@ -1212,7 +1212,8 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	}
 
 	if ((addr_type == CTXSW_ADDR_TYPE_SYS) ||
-	    (addr_type == CTXSW_ADDR_TYPE_BE)) {
+	    (addr_type == CTXSW_ADDR_TYPE_BE) ||
+	    (addr_type == CTXSW_ADDR_TYPE_LTS_MAIN)) {
 		/* Find the offset in the FECS segment. */
 		offset_to_segment = sys_priv_offset * 256U;
 
