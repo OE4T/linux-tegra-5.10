@@ -634,38 +634,8 @@ static void tegra_smmu_pte_get_use(struct tegra_smmu_as *as, unsigned long iova)
 static void tegra_smmu_pte_put_use(struct tegra_smmu_as *as, unsigned long iova)
 {
 	unsigned int pde = iova_pd_index(iova);
-	struct page *page = as->pts[pde];
 
-	/*
-	 * When no entries in this page table are used anymore, return the
-	 * memory page to the system.
-	 */
-	if (--as->count[pde] == 0) {
-		struct tegra_smmu *smmu = as->smmu;
-		u32 *pd = page_address(as->pd);
-		dma_addr_t pte_dma = smmu_pde_to_dma(smmu, pd[pde]);
-
-		tegra_smmu_set_pde(as, iova, 0);
-
-		dma_unmap_page(smmu->dev, pte_dma, SMMU_SIZE_PT, DMA_TO_DEVICE);
-		__free_page(page);
-		as->pts[pde] = NULL;
-	}
-}
-
-static void tegra_smmu_set_pte(struct tegra_smmu_as *as, unsigned long iova,
-			       u32 *pte, dma_addr_t pte_dma, u32 val)
-{
-	struct tegra_smmu *smmu = as->smmu;
-	unsigned long offset = SMMU_OFFSET_IN_PAGE(pte);
-
-	*pte = val;
-
-	dma_sync_single_range_for_device(smmu->dev, pte_dma, offset,
-					 4, DMA_TO_DEVICE);
-	smmu_flush_ptc(smmu, pte_dma, offset);
-	smmu_flush_tlb_group(smmu, as->id, iova);
-	smmu_flush(smmu);
+	as->count[pde]--;
 }
 
 static int tegra_smmu_map(struct iommu_domain *domain, unsigned long iova,
@@ -699,8 +669,9 @@ static int tegra_smmu_map(struct iommu_domain *domain, unsigned long iova,
 	if (prot & IOMMU_WRITE)
 		pte_attrs |= SMMU_PTE_WRITABLE;
 
-	tegra_smmu_set_pte(as, iova, pte, pte_dma,
-			   SMMU_PHYS_PFN(paddr) | pte_attrs);
+	*pte = SMMU_PHYS_PFN(paddr) | pte_attrs;
+
+	iommu_iotlb_gather_add_page(domain, gather, iova, size);
 
 	return 0;
 }
@@ -718,11 +689,13 @@ static size_t tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 	if (!pte || !*pte)
 		return 0;
 
-	tegra_smmu_set_pte(as, iova, pte, pte_dma, 0);
+	*pte = 0;
 
 	spin_lock_irqsave(&smmu->as_lock, flags);
 	tegra_smmu_pte_put_use(as, iova);
 	spin_unlock_irqrestore(&smmu->as_lock, flags);
+
+	iommu_iotlb_gather_add_page(domain, gather, iova, size);
 
 	return size;
 }
@@ -933,6 +906,60 @@ static int tegra_smmu_of_xlate(struct device *dev,
 	return iommu_fwspec_add_ids(dev, &id, 1);
 }
 
+static void tegra_smmu_iotlb_sync(struct iommu_domain *domain,
+				  struct iommu_iotlb_gather *gather)
+{
+	unsigned long iova = gather->start, size = gather->end - gather->start;
+	struct tegra_smmu_as *as = to_smmu_as(domain);
+	struct tegra_smmu *smmu = as->smmu;
+	unsigned int total = size >> SMMU_PTE_SHIFT;
+	unsigned int len;
+
+	for (;total; total -= len, iova += len << SMMU_PTE_SHIFT) {
+		unsigned int pt_index = iova_pt_index(iova);
+		unsigned int pd_index = iova_pd_index(iova);
+		unsigned long offset, flags;
+		dma_addr_t pte_dma;
+		u32 *pte;
+
+		if (pt_index + total < SMMU_NUM_PTE)
+			len = total;
+		else
+			len = SMMU_NUM_PTE - pt_index;
+
+		pte = tegra_smmu_pte_lookup(as, iova, &pte_dma);
+		if (!pte)
+			continue;
+
+		offset = SMMU_OFFSET_IN_PAGE(pte);
+		dma_sync_single_range_for_device(smmu->dev, pte_dma, offset,
+						 sizeof(*pte) * len, DMA_TO_DEVICE);
+		smmu_flush_ptc(smmu, pte_dma, offset);
+		smmu_flush_tlb_group(smmu, as->id, iova);
+		smmu_flush(smmu);
+
+		spin_lock_irqsave(&smmu->as_lock, flags);
+
+		/*
+		 * When no entries in this page table are used anymore, return the
+		 * memory page to the system.
+		 */
+		if (as->count[pd_index] == 0 && as->pts[pd_index]) {
+			struct page *page = as->pts[pd_index];
+			u32 *pd = page_address(as->pd);
+			dma_addr_t pte_dma = smmu_pde_to_dma(smmu, pd[pd_index]);
+
+			tegra_smmu_set_pde(as, iova, 0);
+
+			dma_unmap_page(smmu->dev, pte_dma, SMMU_SIZE_PT, DMA_TO_DEVICE);
+			__free_page(page);
+			as->pts[pd_index] = NULL;
+		}
+
+		spin_unlock_irqrestore(&smmu->as_lock, flags);
+	}
+}
+
 static const struct iommu_ops tegra_smmu_ops = {
 	.capable = tegra_smmu_capable,
 	.domain_alloc = tegra_smmu_domain_alloc,
@@ -944,6 +971,8 @@ static const struct iommu_ops tegra_smmu_ops = {
 	.device_group = tegra_smmu_device_group,
 	.map = tegra_smmu_map,
 	.unmap = tegra_smmu_unmap,
+	.iotlb_sync_map = tegra_smmu_iotlb_sync,
+	.iotlb_sync = tegra_smmu_iotlb_sync,
 	.iova_to_phys = tegra_smmu_iova_to_phys,
 	.of_xlate = tegra_smmu_of_xlate,
 	.pgsize_bitmap = SZ_4K,
