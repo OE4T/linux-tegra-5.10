@@ -2125,10 +2125,16 @@ static unsigned short ether_select_queue(struct net_device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned short txqueue_select = 0;
 	unsigned int i, mtlq;
+	u16 vlan_tci;
+	unsigned int priority = skb->priority;
+
+	if (vlan_get_tag(skb, &vlan_tci) == 0) {
+		priority = (vlan_tci & VLAN_PRIO_MASK) >> VLAN_PRIO_SHIFT;
+	}
 
 	for (i = 0; i < osi_core->num_mtl_queues; i++) {
 		mtlq = osi_core->mtl_queues[i];
-		if (pdata->txq_prio[mtlq] == skb->priority) {
+		if (pdata->txq_prio[mtlq] == priority) {
 			txqueue_select = (unsigned short)i;
 			break;
 		}
