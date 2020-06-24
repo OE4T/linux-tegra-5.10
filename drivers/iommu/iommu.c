@@ -2172,6 +2172,7 @@ int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 	      phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
 {
 	const struct iommu_ops *ops = domain->ops;
+	struct iommu_iotlb_gather iotlb_gather;
 	unsigned long orig_iova = iova;
 	unsigned int min_pagesz;
 	size_t orig_size = size;
@@ -2199,6 +2200,8 @@ int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 		return -EINVAL;
 	}
 
+	iommu_iotlb_gather_init(&iotlb_gather);
+
 	pr_debug("map: iova 0x%lx pa %pa size 0x%zx\n", iova, &paddr, size);
 
 	while (size) {
@@ -2206,7 +2209,7 @@ int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 
 		pr_debug("mapping: iova 0x%lx pa %pa pgsize 0x%zx\n",
 			 iova, &paddr, pgsize);
-		ret = ops->map(domain, iova, paddr, pgsize, prot, gfp);
+		ret = ops->map(domain, iova, paddr, pgsize, prot, gfp, &iotlb_gather);
 
 		if (ret)
 			break;
@@ -2217,7 +2220,7 @@ int __iommu_map(struct iommu_domain *domain, unsigned long iova,
 	}
 
 	if (ops->iotlb_sync_map)
-		ops->iotlb_sync_map(domain);
+		ops->iotlb_sync_map(domain, &iotlb_gather);
 
 	/* unroll mapping in case something went wrong */
 	if (ret)
