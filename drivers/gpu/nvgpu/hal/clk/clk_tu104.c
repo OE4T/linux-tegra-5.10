@@ -126,6 +126,11 @@ static void nvgpu_gpu_gpcclk_counter_init(struct gk20a *g)
 	gk20a_writel(g,trim_gpc_bcast_fr_clk_cntr_ncgpcclk_cfg_r(), data);
 }
 
+u32 tu104_clk_get_cntr_sysclk_source(struct gk20a *g)
+{
+	return trim_sys_fr_clk_cntr_sysclk_cfg_source_sys_noeg_f();
+}
+
 static void nvgpu_gpu_sysclk_counter_init(struct gk20a *g)
 {
 	u32 data;
@@ -135,7 +140,7 @@ static void nvgpu_gpu_sysclk_counter_init(struct gk20a *g)
 		trim_sys_fr_clk_cntr_sysclk_cfg_cont_update_enabled_f() |
 		trim_sys_fr_clk_cntr_sysclk_cfg_start_count_disabled_f() |
 		trim_sys_fr_clk_cntr_sysclk_cfg_reset_asserted_f() |
-		trim_sys_fr_clk_cntr_sysclk_cfg_source_sys_noeg_f();
+		g->ops.clk.get_cntr_sysclk_source(g);
 	gk20a_writel(g,trim_sys_fr_clk_cntr_sysclk_cfg_r(), data);
 
 	nvgpu_udelay(1);
@@ -150,6 +155,11 @@ static void nvgpu_gpu_sysclk_counter_init(struct gk20a *g)
 	gk20a_writel(g,trim_sys_fr_clk_cntr_sysclk_cfg_r(), data);
 }
 
+u32 tu104_clk_get_cntr_xbarclk_source(struct gk20a *g)
+{
+	return trim_sys_fll_fr_clk_cntr_xbarclk_cfg_source_xbar_nobg_f();
+}
+
 static void nvgpu_gpu_xbarclk_counter_init(struct gk20a *g)
 {
 	u32 data;
@@ -159,7 +169,7 @@ static void nvgpu_gpu_xbarclk_counter_init(struct gk20a *g)
 		trim_sys_fll_fr_clk_cntr_xbarclk_cfg_cont_update_enabled_f() |
 		trim_sys_fll_fr_clk_cntr_xbarclk_cfg_start_count_disabled_f() |
 		trim_sys_fll_fr_clk_cntr_xbarclk_cfg_reset_asserted_f() |
-		trim_sys_fll_fr_clk_cntr_xbarclk_cfg_source_xbar_nobg_f();
+		g->ops.clk.get_cntr_xbarclk_source(g);
 	gk20a_writel(g,trim_sys_fll_fr_clk_cntr_xbarclk_cfg_r(), data);
 
 	nvgpu_udelay(1);
@@ -224,7 +234,7 @@ int tu104_init_clk_support(struct gk20a *g)
 		.g = g,
 		.cntr = {
 			.reg_ctrl_addr = trim_sys_fr_clk_cntr_sysclk_cfg_r(),
-			.reg_ctrl_idx  = trim_sys_fr_clk_cntr_sysclk_cfg_source_sys_noeg_f(),
+			.reg_ctrl_idx  = g->ops.clk.get_cntr_sysclk_source(g),
 			.reg_cntr_addr[0] = trim_sys_fr_clk_cntr_sysclk_cntr0_r(),
 			.reg_cntr_addr[1] = trim_sys_fr_clk_cntr_sysclk_cntr1_r()
 		},
@@ -242,7 +252,7 @@ int tu104_init_clk_support(struct gk20a *g)
 		.g = g,
 		.cntr = {
 			.reg_ctrl_addr = trim_sys_fll_fr_clk_cntr_xbarclk_cfg_r(),
-			.reg_ctrl_idx  = trim_sys_fll_fr_clk_cntr_xbarclk_cfg_source_xbar_nobg_f(),
+			.reg_ctrl_idx  = g->ops.clk.get_cntr_xbarclk_source(g),
 			.reg_cntr_addr[0] = trim_sys_fll_fr_clk_cntr_xbarclk_cntr0_r(),
 			.reg_cntr_addr[1] = trim_sys_fll_fr_clk_cntr_xbarclk_cntr1_r()
 		},

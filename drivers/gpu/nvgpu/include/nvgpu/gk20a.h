@@ -345,6 +345,8 @@ struct gpu_ops {
 			u16 *min_mhz, u16 *max_mhz);
 		unsigned long (*measure_freq)(struct gk20a *g, u32 api_domain);
 		u32 (*get_rate_cntr)(struct gk20a *g, struct namemap_cfg *c);
+		u32 (*get_cntr_xbarclk_source)(struct gk20a *g);
+		u32 (*get_cntr_sysclk_source)(struct gk20a *g);
 		unsigned long (*get_rate)(struct gk20a *g, u32 api_domain);
 		int (*set_rate)(struct gk20a *g, u32 api_domain, unsigned long rate);
 		unsigned long (*get_fmax_at_vmin_safe)(struct gk20a *g);

@@ -45,6 +45,8 @@ struct namemap_cfg {
 u32 tu104_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
 int tu104_init_clk_support(struct gk20a *g);
 u32 tu104_crystal_clk_hz(struct gk20a *g);
+u32 tu104_clk_get_cntr_xbarclk_source(struct gk20a *g);
+u32 tu104_clk_get_cntr_sysclk_source(struct gk20a *g);
 unsigned long tu104_clk_measure_freq(struct gk20a *g, u32 api_domain);
 void tu104_suspend_clk_support(struct gk20a *g);
 int tu104_clk_domain_get_f_points(

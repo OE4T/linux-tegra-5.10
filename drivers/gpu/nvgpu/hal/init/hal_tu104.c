@@ -1308,6 +1308,8 @@ static const struct gpu_ops tu104_ops = {
 		.clk_domain_get_f_points = tu104_clk_domain_get_f_points,
 		.get_maxrate = tu104_clk_maxrate,
 		.get_change_seq_time = tu104_get_change_seq_time,
+		.get_cntr_xbarclk_source = tu104_clk_get_cntr_xbarclk_source,
+		.get_cntr_sysclk_source = tu104_clk_get_cntr_sysclk_source,
 #endif
 		.change_host_clk_source = tu104_change_host_clk_source,
 		.perf_pmu_vfe_load = nvgpu_pmu_perf_load,
