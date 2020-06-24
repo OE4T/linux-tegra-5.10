@@ -2845,6 +2845,14 @@ static void mgbe_tsn_init(struct osi_core_priv_data *osi_core,
 		osi_writel(val, (unsigned char *)osi_core->base +
 			   MGBE_MTL_EST_CONTROL);
 
+		val = osi_readl((nveu8_t *)osi_core->base +
+				MGBE_MTL_EST_OVERHEAD);
+		val &= ~MGBE_MTL_EST_OVERHEAD_OVHD;
+		/* As per hardware programming info */
+		val |= OVHD_MGBE_MAC;
+		osi_writel(val, (nveu8_t *)osi_core->base +
+			   MGBE_MTL_EST_OVERHEAD);
+
 		mgbe_enable_mtl_interrupts(osi_core->base);
 	}
 
@@ -2858,6 +2866,16 @@ static void mgbe_tsn_init(struct osi_core_priv_data *osi_core,
 		val |= temp;
 		osi_writel(val, (unsigned char *)osi_core->base +
 			   MGBE_MAC_RQC1R);
+
+		val = osi_readl((nveu8_t *)osi_core->base +
+				MGBE_MAC_RQC4R);
+		val &= ~MGBE_MAC_RQC4R_PMCBCQ;
+		temp = osi_core->residual_queue;
+		temp = temp << MGBE_MAC_RQC4R_PMCBCQ_SHIFT;
+		temp = (temp & MGBE_MAC_RQC4R_PMCBCQ);
+		val |= temp;
+		osi_writel(val, (nveu8_t *)osi_core->base +
+			   MGBE_MAC_RQC4R);
 
 		mgbe_enable_fpe_interrupts(osi_core->base);
 	}
@@ -4435,6 +4453,14 @@ static int mgbe_hw_config_fpe(struct osi_core_priv_data *osi_core,
 	val |= temp;
 	osi_core->residual_queue = fpe->rq;
 	osi_writel(val, (unsigned char *)osi_core->base + MGBE_MAC_RQC1R);
+
+	val = osi_readl((nveu8_t *)osi_core->base + MGBE_MAC_RQC4R);
+	val &= ~MGBE_MAC_RQC4R_PMCBCQ;
+	temp = fpe->rq;
+	temp = temp << MGBE_MAC_RQC4R_PMCBCQ_SHIFT;
+	temp = (temp & MGBE_MAC_RQC4R_PMCBCQ);
+	val |= temp;
+	osi_writel(val, (nveu8_t *)osi_core->base + MGBE_MAC_RQC4R);
 
 	/* initiate SVER for SMD-V and SMD-R */
 	val = osi_readl((unsigned char *)osi_core->base + MGBE_MTL_FPE_CTS);
