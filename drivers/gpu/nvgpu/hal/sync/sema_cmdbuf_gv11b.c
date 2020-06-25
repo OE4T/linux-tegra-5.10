@@ -1,7 +1,7 @@
 /*
  * GV11B sema cmdbuf
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,9 +68,9 @@ void gv11b_sema_add_wait_cmd(struct gk20a *g,
 		struct nvgpu_semaphore *s, u64 sema_va)
 {
 	u32 data[] = {
-		/* sema_execute : acq_strict_geq | switch_en | 32bit */
+		/* sema_execute : acq_circ_geq | switch_en */
 		0x2001001b,
-		U32(0x2) | BIT32(12),
+		U32(0x3) | BIT32(12U),
 	};
 
 	nvgpu_log_fn(g, " ");

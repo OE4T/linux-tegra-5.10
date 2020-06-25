@@ -1,7 +1,7 @@
 /*
  * GV11B syncpt cmdbuf
  *
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,9 +52,9 @@ void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
 		0x2001001a,
 		0U,
 
-		/* sema_execute : acq_strict_geq | switch_en | 32bit */
+		/* sema_execute : acq_circ_geq | switch_en */
 		0x2001001b,
-		0x2U | ((u32)1U << 12U),
+		U32(0x3) | BIT32(12U),
 	};
 
 	nvgpu_log_fn(g, " ");
