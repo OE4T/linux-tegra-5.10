@@ -94,6 +94,11 @@ static int acquire_platform_clocks(struct device *dev,
 	unsigned int i, num_clks_dt;
 	int err = 0;
 
+#ifdef TEGRA186_POWER_DOMAIN_GPU
+	if (!tegra_bpmp_running()) {
+		return 0;
+	}
+#endif
 	num_clks_dt = of_clk_get_parent_count(np);
 	if (num_clks_dt > num_clk_entries) {
 		nvgpu_err(g, "maximum number of clocks supported is %d",
