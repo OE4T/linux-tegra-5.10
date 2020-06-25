@@ -52,6 +52,9 @@ struct gops_ltc_intr {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	void (*configure)(struct gk20a *g);
 	void (*en_illegal_compstat)(struct gk20a *g, bool enable);
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_ltc.h"
+#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
 
