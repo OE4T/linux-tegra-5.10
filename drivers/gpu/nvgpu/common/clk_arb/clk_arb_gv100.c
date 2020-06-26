@@ -91,7 +91,16 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 	gpcclk_cap_mhz = p0_info->max_mhz;
 
 	max_min_freq_mhz = nvgpu_pmu_clk_fll_get_min_max_freq(g);
-	/* WAR for DVCO min */
+	/*
+	 * When DVCO min is 0 in vbios update it to DVCO_MIN_DEFAULT_MHZ.
+	 */
+	if (max_min_freq_mhz == 0U) {
+		max_min_freq_mhz = DVCO_MIN_DEFAULT_MHZ;
+	}
+
+	/*
+	 * Needed for DVCO min.
+	 */
 	if (api_domain == CTRL_CLK_DOMAIN_GPCCLK) {
 		if ((max_min_freq_mhz != 0U) &&
 			(max_min_freq_mhz >= limit_min_mhz)) {

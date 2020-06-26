@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,8 @@
 
 struct nvgpu_clk_session;
 struct nvgpu_clk_arb;
+
+#define DVCO_MIN_DEFAULT_MHZ	405
 
 bool gv100_check_clk_arb_support(struct gk20a *g);
 u32 gv100_get_arbiter_clk_domains(struct gk20a *g);
