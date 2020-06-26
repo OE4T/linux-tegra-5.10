@@ -1,7 +1,7 @@
 /*
  * NVDLA queue and task management for T194
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,8 +25,6 @@
 #include <linux/delay.h>
 #include <trace/events/nvhost.h>
 
-#include "../drivers/staging/android/sync.h"
-
 #include "dev.h"
 #include "bus_client.h"
 #include "chip_support.h"
@@ -43,6 +41,12 @@
 
 #define NVDLA_QUEUE_ABORT_TIMEOUT	10000	/* 10 sec */
 #define NVDLA_QUEUE_ABORT_RETRY_PERIOD	500	/* 500 ms */
+
+/* struct to hold information required for nvdla_add_fence_action_cb */
+struct nvdla_add_fence_action_cb_args {
+	struct nvdla_queue *queue;
+	u8 **mem;
+};
 
 /* task management API's */
 static void nvdla_queue_dump_op(struct nvdla_queue *queue, struct seq_file *s)
@@ -491,6 +495,71 @@ static u8 *add_gos_action(u8 *mem, uint8_t op, uint8_t index, uint16_t offset,
 	return mem + sizeof(struct dla_action_gos);
 }
 
+static int nvdla_get_gos(struct platform_device *pdev, u32 syncpt_id,
+			u32 *gos_id, u32 *gos_offset)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct nvdla_device *nvdla_dev = pdata->private_data;
+	int err = 0;
+
+	if (!nvdla_dev->is_gos_enabled) {
+		nvdla_dbg_info(pdev, "GoS is not enabled\n");
+		err = -EINVAL;
+		goto gos_disabled;
+	}
+
+	err = nvhost_syncpt_get_gos(pdev, syncpt_id, gos_id, gos_offset);
+	if (err) {
+		nvdla_dbg_err(pdev,
+		  "Get GoS failed for syncpt[%d], err[%d]\n", syncpt_id, err);
+	}
+
+gos_disabled:
+	return err;
+}
+
+static int nvdla_add_fence_action_cb(struct nvhost_ctrl_sync_fence_info info, void *data)
+{
+	u32 gos_id, gos_offset, id, thresh;
+	struct nvdla_add_fence_action_cb_args *args = data;
+	struct nvdla_queue *queue = args->queue;
+	u8 **next = args->mem;
+	struct platform_device *pdev = queue->pool->pdev;
+	struct nvhost_master *host = nvhost_get_host(pdev);
+	struct nvhost_syncpt *sp = &host->syncpt;
+
+	id = info.id;
+	thresh = info.thresh;
+
+	if (!id || !nvhost_syncpt_is_valid_hw_pt(sp, id)) {
+		nvdla_dbg_err(pdev, "Invalid sync_fd");
+		return -EINVAL;
+	}
+
+	/* check if GoS backing available */
+	if (!nvdla_get_gos(pdev, id, &gos_id, &gos_offset)) {
+		nvdla_dbg_info(pdev, "syncfd_pt:[%u] "
+			"gos_id[%u] gos_offset[%u] val[%u]",
+			id, gos_id, gos_offset, thresh);
+		*next = add_gos_action(*next, ACTION_GOS_GE,
+				gos_id, gos_offset, thresh);
+	} else {
+		dma_addr_t syncpt_addr;
+
+		nvdla_dbg_info(pdev,
+			"GoS missing for syncfd [%d]", id);
+		syncpt_addr = nvhost_syncpt_address(
+				queue->vm_pdev, id);
+		nvdla_dbg_info(pdev, "syncfd_pt:[%u]"
+			"mss_dma_addr[%pad]",
+			id, &syncpt_addr);
+		*next = add_fence_action(*next, ACTION_SEM_GE,
+				syncpt_addr, thresh);
+	}
+
+	return 0;
+}
+
 static int nvdla_map_task_memory(struct nvdla_task *task)
 {
 	int jj;
@@ -595,29 +664,6 @@ fail_to_poweron:
 	return err;
 }
 
-static int nvdla_get_gos(struct platform_device *pdev, u32 syncpt_id,
-			u32 *gos_id, u32 *gos_offset)
-{
-	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	struct nvdla_device *nvdla_dev = pdata->private_data;
-	int err = 0;
-
-	if (!nvdla_dev->is_gos_enabled) {
-		nvdla_dbg_info(pdev, "GoS is not enabled\n");
-		err = -EINVAL;
-		goto gos_disabled;
-	}
-
-	err = nvhost_syncpt_get_gos(pdev, syncpt_id, gos_id, gos_offset);
-	if (err) {
-		nvdla_dbg_err(pdev,
-		  "Get GoS failed for syncpt[%d], err[%d]\n", syncpt_id, err);
-	}
-
-gos_disabled:
-	return err;
-}
-
 static int nvdla_fill_wait_fence_action(struct nvdla_task *task,
 	struct nvdev_fence *fence,
 	struct dma_buf **dma_buf,
@@ -629,56 +675,24 @@ static int nvdla_fill_wait_fence_action(struct nvdla_task *task,
 	struct nvdla_buffers *buffers = task->buffers;
 	struct nvdla_queue *queue = task->queue;
 	struct platform_device *pdev = queue->pool->pdev;
-	struct nvhost_master *host = nvhost_get_host(pdev);
-	struct nvhost_syncpt *sp = &host->syncpt;
 	u8 *next = *mem_next;
 
 	switch(fence->type) {
 	case NVDEV_FENCE_TYPE_SYNC_FD: {
-		struct sync_fence *f;
-		struct sync_pt *pt;
-		u32 id, thresh, j;
+		struct nvhost_fence *f;
+		struct nvdla_add_fence_action_cb_args args;
 
-		f = nvhost_sync_fdget(fence->sync_fd);
+		f = nvhost_fence_get(fence->sync_fd);
 		if (!f) {
 			nvdla_dbg_err(pdev, "failed to get sync fd");
 			break;
 		}
 
-		j = id = thresh = 0;
-		for (j = 0; j < f->num_fences; j++) {
-			u32 gos_id, gos_offset;
-
-			pt = sync_pt_from_fence(f->cbs[j].sync_pt);
-			id = nvhost_sync_pt_id(pt);
-			thresh = nvhost_sync_pt_thresh(pt);
-
-			if (!id || !nvhost_syncpt_is_valid_hw_pt(sp, id)) {
-				nvdla_dbg_err(pdev, "Invalid sync_fd");
-				sync_fence_put(f);
-				break;
-			}
-
-			/* check if GoS backing available */
-			if (!nvdla_get_gos(pdev, id, &gos_id, &gos_offset)) {
-				nvdla_dbg_info(pdev, "syncfd_pt:[%u] "
-					"gos_id[%u] gos_offset[%u] val[%u]",
-					id, gos_id, gos_offset, thresh);
-				next = add_gos_action(next, ACTION_GOS_GE,
-						gos_id, gos_offset, thresh);
-			} else {
-				dma_addr_t syncpt_addr;
-
-				nvdla_dbg_info(pdev,
-					"GoS missing for syncfd [%d]", id);
-				syncpt_addr = nvhost_syncpt_address(
-						queue->vm_pdev, id);
-				nvdla_dbg_info(pdev, "syncfd_pt:[%u]"
-					"mss_dma_addr[%pad]",
-					id, &syncpt_addr);
-				next = add_fence_action(next, ACTION_SEM_GE,
-						syncpt_addr, thresh);
-			}
+		args.queue = queue;
+		args.mem = &next;
+		err = nvhost_fence_foreach_pt(f, nvdla_add_fence_action_cb, &args);
+		if (err != 0) {
+			nvhost_fence_put(f);
 		}
 
 		break;

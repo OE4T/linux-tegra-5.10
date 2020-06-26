@@ -468,7 +468,7 @@ static int nvdla_send_emu_signal_fences(struct nvdla_emu_task *task,
 				"%s_%d_%d_prefence", dev_name(&dla_pdev->dev),
 				task->prefences[i].syncpoint_index, i);
 
-			err = nvhost_sync_create_fence_fd(host_pdev,
+			err = nvhost_fence_create_fd(host_pdev,
 				&info, 1, fence_name,
 				&task->prefences[i].sync_fd);
 
@@ -510,7 +510,7 @@ static int nvdla_send_emu_signal_fences(struct nvdla_emu_task *task,
 				"%s_%d_%d_postfence", dev_name(&dla_pdev->dev),
 				task->postfences[i].syncpoint_index, i);
 
-			err = nvhost_sync_create_fence_fd(host_pdev,
+			err = nvhost_fence_create_fd(host_pdev,
 				&info, 1, fence_name,
 				&task->postfences[i].sync_fd);
 
@@ -572,7 +572,7 @@ static int nvdla_update_signal_fences(struct nvdla_task *task,
 				"%s_%d_%d_prefence", dev_name(&dla_pdev->dev),
 				task->prefences[i].syncpoint_index, i);
 
-			err = nvhost_sync_create_fence_fd(host_pdev,
+			err = nvhost_fence_create_fd(host_pdev,
 				&info, 1, fence_name,
 				&task->prefences[i].sync_fd);
 
@@ -614,7 +614,7 @@ static int nvdla_update_signal_fences(struct nvdla_task *task,
 				"%s_%d_%d_postfence", dev_name(&dla_pdev->dev),
 				task->postfences[i].syncpoint_index, i);
 
-			err = nvhost_sync_create_fence_fd(host_pdev,
+			err = nvhost_fence_create_fd(host_pdev,
 				&info, 1, fence_name,
 				&task->postfences[i].sync_fd);
 
