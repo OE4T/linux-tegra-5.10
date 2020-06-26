@@ -168,6 +168,7 @@ struct nvmap_handle_ref *nvmap_create_handle_from_va(struct nvmap_client *client
 {
 	struct vm_area_struct *vma;
 	struct nvmap_handle_ref *ref;
+	vm_flags_t vm_flags;
 
 	/* don't allow non-page aligned addresses. */
 	if (vaddr & ~PAGE_MASK)
@@ -184,8 +185,13 @@ struct nvmap_handle_ref *nvmap_create_handle_from_va(struct nvmap_client *client
 	if (!size)
 		size = vma->vm_end - vaddr;
 	ref = nvmap_create_handle(client, size);
-	if (!IS_ERR(ref))
+	if (!IS_ERR(ref)) {
 		ref->handle->orig_size = size;
+		vm_flags = vma->vm_flags;
+		/*If the buffer is read only, then set is_ro flag. */
+		if (!(vm_flags & VM_WRITE))
+			ref->handle->is_ro = true;
+	}
 	return ref;
 }
 
