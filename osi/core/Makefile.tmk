@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -33,13 +33,15 @@ NV_COMPONENT_SOURCES           := \
 	eqos_core.c \
 	eqos_mmc.c \
 	osi_core.c \
-	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c
+	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c \
+	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c
 
 NV_COMPONENT_NEEDED_INTERFACE_DIRS := \
 	$(NV_SOURCE)/qnx/src/libs/nvethernet/osi_dependencies
 
 NV_COMPONENT_INCLUDES          := \
 	$(NV_SOURCE)/nvethernetrm/include \
+	$(NV_SOURCE)/nvethernetrm/osi/common/include \
 	$(NV_SOURCE)/core/include
 
 include $(NV_BUILD_SHARED_LIBRARY)

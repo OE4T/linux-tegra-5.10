@@ -912,4 +912,24 @@ int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan);
  * @retval status
  */
 unsigned int osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
+
+/**
+ * @brief osi_dma_get_systime_from_mac - Get system time
+ *
+ * Algorithm: Gets the current system time
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[out] sec: Value read in Seconds
+ * @param[out] nsec: Value read in Nano seconds
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_dma_get_systime_from_mac(
+			     struct osi_dma_priv_data *const osi_dma,
+			     unsigned int *sec,
+			     unsigned int *nsec);
+
 #endif /* OSI_DMA_H */

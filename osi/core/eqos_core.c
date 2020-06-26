@@ -3213,54 +3213,6 @@ static int eqos_adjust_mactime(void *addr, unsigned int sec, unsigned int nsec,
 }
 
 /**
- * @brief eqos_get_systime - Get system time from MAC
- *
- * Algorithm: Get current system time
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- *
- * @note MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static unsigned long long eqos_get_systime_from_mac(void *addr)
-{
-	unsigned long long ns1, ns2, ns = 0;
-	unsigned int varmac_stnsr, temp1;
-	unsigned int varmac_stsr;
-
-	varmac_stnsr = osi_readl((unsigned char *)addr + EQOS_MAC_STNSR);
-	temp1 = (varmac_stnsr & EQOS_MAC_STNSR_TSSS_MASK);
-	ns1 = (unsigned long long)temp1;
-
-	varmac_stsr = osi_readl((unsigned char *)addr + EQOS_MAC_STSR);
-
-	varmac_stnsr = osi_readl((unsigned char *)addr + EQOS_MAC_STNSR);
-	temp1 = (varmac_stnsr & EQOS_MAC_STNSR_TSSS_MASK);
-	ns2 = (unsigned long long)temp1;
-
-	/* if ns1 is greater than ns2, it means nsec counter rollover
-	 * happened. In that case read the updated sec counter again
-	 */
-	if (ns1 >= ns2) {
-		varmac_stsr = osi_readl((unsigned char *)addr + EQOS_MAC_STSR);
-		/* convert sec/high time value to nanosecond */
-		if (varmac_stsr < UINT_MAX) {
-			ns = ns2 + (varmac_stsr * OSI_NSEC_PER_SEC);
-		}
-	} else {
-		/* convert sec/high time value to nanosecond */
-		if (varmac_stsr < UINT_MAX) {
-			ns = ns1 + (varmac_stsr * OSI_NSEC_PER_SEC);
-		}
-	}
-
-	return ns;
-}
-
-/**
  * @brief eqos_config_tscr - Configure Time Stamp Register
  *
  * @param[in] addr: Base address indicating the start of
@@ -3781,7 +3733,6 @@ static struct osi_core_ops eqos_core_ops = {
 	.set_systime_to_mac = eqos_set_systime_to_mac,
 	.config_addend = eqos_config_addend,
 	.adjust_mactime = eqos_adjust_mactime,
-	.get_systime_from_mac = eqos_get_systime_from_mac,
 	.config_tscr = eqos_config_tscr,
 	.config_ssir = eqos_config_ssir,
 	.read_mmc = eqos_read_mmc,

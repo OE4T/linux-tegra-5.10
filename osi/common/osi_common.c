@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <osi_core.h>
 #include <osd.h>
+#include "eqos_common.h"
 
 void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 {
@@ -132,5 +132,62 @@ void osi_memset(void *s, unsigned int c, unsigned long count)
 			*xs++ = (unsigned char)c;
 		}
 		count--;
+	}
+}
+
+/**
+ *@brief div_u64_rem - updates remainder and returns Quotient
+ *
+ * Algorithm: Dividend will be divided by divisor and stores the
+ *	 remainder value and returns quotient
+ *
+ * @param[in] dividend: Dividend value
+ * @param[in] divisor: Divisor value
+ * @param[out] remain: Remainder
+ *
+ * @note MAC IP should be out of reset and need to be initialized as the
+ *	 requirements
+ *
+ * @returns Quotient
+ */
+static inline unsigned long div_u64_rem(unsigned long dividend,
+					unsigned long divisor,
+					unsigned long *remain)
+{
+	unsigned long ret = 0;
+
+	if (divisor != 0U) {
+		*remain = dividend % divisor;
+		ret = dividend / divisor;
+	} else {
+		ret = 0;
+	}
+	return ret;
+}
+
+void common_get_systime_from_mac(void *addr, unsigned int mac,
+				 unsigned int *sec, unsigned int *nsec)
+{
+	unsigned long temp;
+	unsigned long remain;
+	unsigned long long ns;
+
+	if (mac == OSI_MAC_HW_EQOS) {
+		ns = eqos_get_systime_from_mac(addr);
+	} else {
+		/* Non EQOS HW is supported yet */
+		return;
+	}
+
+	temp = div_u64_rem((unsigned long)ns, OSI_NSEC_PER_SEC, &remain);
+	if (temp < UINT_MAX) {
+		*sec = (unsigned int) temp;
+	} else {
+		/* do nothing here */
+	}
+	if (remain < UINT_MAX) {
+		*nsec = (unsigned int)remain;
+	} else {
+		/* do nothing here */
 	}
 }
