@@ -22,6 +22,7 @@
 
 #include <osi_core.h>
 #include <osd.h>
+#include <local_common.h>
 
 int osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
 		      const unsigned int phyaddr, const unsigned int phyreg,
@@ -723,27 +724,11 @@ int osi_get_systime_from_mac(
 			     unsigned int *sec,
 			     unsigned int *nsec)
 {
-	unsigned long long ns = 0;
-	unsigned long long temp = 0;
-	unsigned long remain = 0;
-
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->get_systime_from_mac != OSI_NULL)) {
-		ns = osi_core->ops->get_systime_from_mac(osi_core->base);
+	if ((osi_core != OSI_NULL) && (osi_core->base != OSI_NULL)) {
+		common_get_systime_from_mac(osi_core->base, osi_core->mac, sec,
+					    nsec);
 	} else {
 		return -1;
-	}
-
-	temp = div_u64_rem((unsigned long)ns, OSI_NSEC_PER_SEC, &remain);
-	if (temp < UINT_MAX) {
-		*sec = (unsigned int) temp;
-	} else {
-		/* do nothing here */
-	}
-	if (remain < UINT_MAX) {
-		*nsec = (unsigned int)remain;
-	} else {
-		/* do nothing here */
 	}
 
 	return 0;

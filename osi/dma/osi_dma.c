@@ -22,6 +22,7 @@
 
 #include "osi_dma_local.h"
 #include <osd.h>
+#include <local_common.h>
 
 int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
@@ -410,4 +411,18 @@ int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan)
 	struct osi_tx_ring *tx_ring = osi_dma->tx_ring[chan];
 
 	return (tx_ring->clean_idx == tx_ring->cur_tx_idx) ? 1 : 0;
+}
+
+int osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
+				 unsigned int *sec,
+				 unsigned int *nsec)
+{
+	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
+		common_get_systime_from_mac(osi_dma->base, osi_dma->mac, sec,
+					    nsec);
+	} else {
+		return -1;
+	}
+
+	return 0;
 }
