@@ -104,6 +104,9 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 
 	switch (ver) {
 		case NVGPU_GPUID_GV11B:
+#if defined(CONFIG_NVGPU_NEXT)
+		case NVGPU_NEXT_GPUID:
+#endif
 			fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG,
 				NVGPU_REQUEST_FIRMWARE_NO_WARN);
 			break;
@@ -211,6 +214,9 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 
 	switch (ver) {
 		case NVGPU_GPUID_GV11B:
+#if defined(CONFIG_NVGPU_NEXT)
+		case NVGPU_NEXT_GPUID:
+#endif
 			gpccs_sig = nvgpu_request_firmware(g, T18x_GPCCS_UCODE_SIG,
 					NVGPU_REQUEST_FIRMWARE_NO_WARN);
 			break;

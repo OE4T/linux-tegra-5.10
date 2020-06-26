@@ -161,8 +161,22 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	if (acr_fw != NULL) {
 		acr->patch_wpr_info_to_ucode(g, acr, acr_desc, true);
 	} else {
-		acr_fw = nvgpu_request_firmware(g, acr_desc->acr_fw_name,
-				NVGPU_REQUEST_FIRMWARE_NO_SOC);
+		/* Firmware is stored in soc specific path in FMODEL
+		 * Hence NVGPU_REQUEST_FIRMWARE_NO_WARN is used instead
+		 * of NVGPU_REQUEST_FIRMWARE_NO_SOC
+		 */
+#ifdef CONFIG_NVGPU_SIM
+		if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+			acr_fw = nvgpu_request_firmware(g,
+					acr_desc->acr_fw_name,
+					NVGPU_REQUEST_FIRMWARE_NO_WARN);
+		} else
+#endif
+		{
+			acr_fw = nvgpu_request_firmware(g,
+					acr_desc->acr_fw_name,
+					NVGPU_REQUEST_FIRMWARE_NO_SOC);
+		}
 		if (acr_fw == NULL) {
 			nvgpu_err(g, "%s ucode get fail for %s",
 				acr_desc->acr_fw_name, g->name);
