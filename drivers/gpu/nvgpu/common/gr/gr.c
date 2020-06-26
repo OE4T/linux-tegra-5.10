@@ -253,7 +253,12 @@ static int gr_init_setup_hw(struct gk20a *g)
 	g->ops.gr.falcon.fecs_host_int_enable(g);
 
 	g->ops.gr.intr.enable_hww_exceptions(g);
-	g->ops.gr.intr.set_hww_esr_report_mask(g);
+
+	/*
+	 * SM HWWs are enabled during golden context creation, which happens
+	 * at the time of first context creation i.e. first GPU job submission.
+	 * Hence, injection of SM HWWs should only be attempted afterwards.
+	 */
 
 	/** Enable TPC exceptions per GPC */
 	g->ops.gr.intr.enable_gpc_exceptions(g, gr->config);

@@ -36,6 +36,35 @@
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
+#define SM_HWW_WARP_ESR_REPORT_MASK \
+	(\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_stack_error_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_api_stack_error_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_pc_wrap_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_misaligned_pc_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_pc_overflow_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_misaligned_reg_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_illegal_instr_encoding_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_illegal_instr_param_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_oor_reg_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_oor_addr_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_misaligned_addr_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_invalid_addr_space_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_invalid_const_addr_ldc_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_stack_overflow_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_mmu_fault_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_mmu_nack_report_f() \
+	)\
+
+#define SM_HWW_GLOBAL_ESR_REPORT_MASK \
+	(\
+	 gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_multiple_warp_errors_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_bpt_int_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_bpt_pause_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_single_step_complete_report_f() |\
+	 gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_error_in_trap_report_f() \
+	)
+
 static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 {
 	struct nvgpu_fecs_ecc_status fecs_ecc_status;
@@ -819,33 +848,34 @@ void gv11b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 
 void gv11b_gr_intr_set_hww_esr_report_mask(struct gk20a *g)
 {
+	u32 sm_hww_global_esr_report_mask;
+	u32 sm_hww_warp_esr_report_mask;
+
+	/*
+	 * Perform a RMW to the warp, global ESR report mask registers.
+	 * This is done in-order to retain the default values loaded from
+	 * sw_ctx_load.
+	 */
+	sm_hww_warp_esr_report_mask = nvgpu_readl(g,
+		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_r());
+	sm_hww_global_esr_report_mask = nvgpu_readl(g,
+		gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_r());
 
 	/* clear hww */
-	nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_r(), 0xffffffffU);
-	nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_r(), 0xffffffffU);
+	nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_r(), U32_MAX);
+
 
 	/* setup sm warp esr report masks */
 	nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_warp_esr_report_mask_r(),
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_stack_error_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_api_stack_error_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_pc_wrap_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_misaligned_pc_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_pc_overflow_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_misaligned_reg_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_illegal_instr_encoding_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_illegal_instr_param_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_oor_reg_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_oor_addr_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_misaligned_addr_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_invalid_addr_space_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_invalid_const_addr_ldc_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_stack_overflow_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_mmu_fault_report_f() |
-		gr_gpc0_tpc0_sm0_hww_warp_esr_report_mask_mmu_nack_report_f());
+		sm_hww_warp_esr_report_mask | SM_HWW_WARP_ESR_REPORT_MASK);
 
-	/* setup sm global esr report mask. vat_alarm_report is not enabled */
 	nvgpu_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_report_mask_r(),
-		gr_gpc0_tpc0_sm0_hww_global_esr_report_mask_multiple_warp_errors_report_f());
+		sm_hww_global_esr_report_mask | SM_HWW_GLOBAL_ESR_REPORT_MASK);
+
+	nvgpu_log_info(g,
+		"configured (global, warp)_esr_report_mask(0x%x, 0x%x)",
+		sm_hww_global_esr_report_mask | SM_HWW_GLOBAL_ESR_REPORT_MASK,
+		sm_hww_warp_esr_report_mask | SM_HWW_WARP_ESR_REPORT_MASK);
 }
 
 static void gv11b_gr_intr_report_l1_tag_uncorrected_err(struct gk20a *g,

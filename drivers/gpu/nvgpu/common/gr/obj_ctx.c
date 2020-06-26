@@ -474,6 +474,9 @@ static int nvgpu_gr_obj_ctx_init_hw_state(struct gk20a *g,
 	}
 	nvgpu_log_info(g, "end: netlist: sw_ctx_load: register writes");
 
+	nvgpu_log_info(g, "configure sm_hww_esr_report mask after sw_ctx_load");
+	g->ops.gr.intr.set_hww_esr_report_mask(g);
+
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (g->ops.gr.init.preemption_state != NULL) {
 		err = g->ops.gr.init.preemption_state(g);
