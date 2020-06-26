@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -596,6 +596,7 @@ int camrtc_hsp_get_fw_hash(struct camrtc_hsp *camhsp,
 		u8 hash[], size_t hash_size)
 {
 	int i;
+	int ret = 0;
 	long timeout;
 
 	if (WARN_ON(camhsp == NULL))
@@ -611,15 +612,17 @@ int camrtc_hsp_get_fw_hash(struct camrtc_hsp *camhsp,
 		if (value < 0 || value > 255) {
 			dev_warn(&camhsp->dev,
 				"FW_HASH failed: 0x%08x\n", value);
-			return value < 0 ? value : -EIO;
+			ret = value < 0 ? value : -EIO;
+			goto fail;
 		}
 
 		hash[i] = value;
 	}
 
+fail:
 	mutex_unlock(&camhsp->mutex);
 
-	return 0;
+	return ret;
 }
 EXPORT_SYMBOL(camrtc_hsp_get_fw_hash);
 
