@@ -887,28 +887,52 @@ u32 gm20b_gr_falcon_fecs_host_intr_status(struct gk20a *g,
 			struct nvgpu_fecs_host_intr_status *fecs_host_intr)
 {
 	u32 gr_fecs_intr = nvgpu_readl(g, gr_fecs_host_int_status_r());
+	u32 host_int_status = 0U;
 
 	(void) memset(fecs_host_intr, 0,
 				sizeof(struct nvgpu_fecs_host_intr_status));
+
 	if ((gr_fecs_intr &
 	     gr_fecs_host_int_status_umimp_firmware_method_f(1)) != 0U) {
 		fecs_host_intr->unimp_fw_method_active = true;
-	} else if ((gr_fecs_intr &
+		host_int_status |=
+			gr_fecs_host_int_status_umimp_firmware_method_f(1);
+	}
+
+	if ((gr_fecs_intr &
 			gr_fecs_host_int_status_watchdog_active_f()) != 0U) {
 		fecs_host_intr->watchdog_active = true;
-	} else if ((gr_fecs_intr &
+		host_int_status |= gr_fecs_host_int_status_watchdog_active_f();
+	}
+
+	if ((gr_fecs_intr &
 		    gr_fecs_host_int_status_ctxsw_intr_f(CTXSW_INTR0)) != 0U) {
 		fecs_host_intr->ctxsw_intr0 =
 			gr_fecs_host_int_status_ctxsw_intr_f(CTXSW_INTR0);
-	} else if ((gr_fecs_intr &
+		host_int_status |=
+			gr_fecs_host_int_status_ctxsw_intr_f(CTXSW_INTR0);
+	}
+
+	if ((gr_fecs_intr &
 		    gr_fecs_host_int_status_ctxsw_intr_f(CTXSW_INTR1)) != 0U) {
 		fecs_host_intr->ctxsw_intr1 =
 			gr_fecs_host_int_clear_ctxsw_intr1_clear_f();
-	} else if ((gr_fecs_intr &
+		host_int_status |=
+			gr_fecs_host_int_status_ctxsw_intr_f(CTXSW_INTR1);
+	}
+
+	if ((gr_fecs_intr &
 		    gr_fecs_host_int_status_fault_during_ctxsw_f(1)) != 0U) {
 		fecs_host_intr->fault_during_ctxsw_active = true;
-	} else {
-		nvgpu_log_info(g, "un-handled fecs intr: 0x%x", gr_fecs_intr);
+		host_int_status |=
+			gr_fecs_host_int_status_fault_during_ctxsw_f(1);
+	}
+
+	if (gr_fecs_intr != host_int_status) {
+		nvgpu_err(g, "un-supported fecs_host_int_status. "
+			"fecs_host_int_status: 0x%x "
+			"handled host_int_status: 0x%x",
+			gr_fecs_intr, host_int_status);
 	}
 
 	return gr_fecs_intr;

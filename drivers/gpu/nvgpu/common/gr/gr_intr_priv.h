@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/lock.h>
+#include <include/nvgpu/gr/gr_falcon.h>
 
 struct nvgpu_channel;
 
@@ -154,6 +155,14 @@ struct nvgpu_gr_isr_data {
 	 * Class ID corresponding to above subchannel.
 	 */
 	u32 class_num;
+	/**
+	 * Value read from fecs_host_int_status h/w reg.
+	 */
+	u32 fecs_intr;
+	/**
+	 * S/W defined status for fecs_host_int_status.
+	 */
+	struct nvgpu_fecs_host_intr_status fecs_host_intr_status;
 };
 
 /**

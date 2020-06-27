@@ -422,10 +422,12 @@ static int test_gr_intr_error_injections(struct unit_module *m,
 	/* Call fecs_interrupt handler with fecs error set */
 	isr_data.ch = NULL;
 	nvgpu_posix_io_writel_reg_space(g, gr_fecs_host_int_status_r(), 0);
-	err = nvgpu_gr_intr_handle_fecs_error(g, NULL, &isr_data);
+	isr_data.fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
+					&(isr_data.fecs_host_intr_status));
+	err = g->ops.gr.intr.handle_fecs_error(g, NULL, &isr_data);
 	if (err != 0) {
 		unit_return_fail(m,
-			"nvgpu_gr_intr_handle_fecs_error failed\n");
+			"gr.intr.handle_fecs_error failed\n");
 	}
 
 	/* Fault injection - gpc exception with reset */

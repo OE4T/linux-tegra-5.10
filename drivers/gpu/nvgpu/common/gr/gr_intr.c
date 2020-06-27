@@ -518,18 +518,18 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 {
 	u32 gr_fecs_intr, mailbox_value;
 	int ret = 0;
-	struct nvgpu_fecs_host_intr_status fecs_host_intr;
 	u32 chid = (isr_data->ch != NULL) ?
 		isr_data->ch->chid : NVGPU_INVALID_CHANNEL_ID;
 	u32 mailbox_id = NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX6;
+	struct nvgpu_fecs_host_intr_status *fecs_host_intr;
 
-	gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
-						&fecs_host_intr);
+	gr_fecs_intr = isr_data->fecs_intr;
 	if (gr_fecs_intr == 0U) {
 		return 0;
 	}
+	fecs_host_intr = &isr_data->fecs_host_intr_status;
 
-	if (fecs_host_intr.unimp_fw_method_active) {
+	if (fecs_host_intr->unimp_fw_method_active) {
 		mailbox_value = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
 								mailbox_id);
 		nvgpu_gr_intr_set_error_notifier(g, isr_data,
@@ -542,15 +542,9 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 			isr_data->offset << 2U, isr_data->class_num,
 			isr_data->data_lo);
 		ret = -1;
-	} else if (fecs_host_intr.watchdog_active) {
-		gr_intr_report_ctxsw_error(g,
-				GPU_FECS_CTXSW_WATCHDOG_TIMEOUT,
-				chid, 0);
-		/* currently, recovery is not initiated */
-		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
-				"cannot ctxsw anymore !!", chid);
-		g->ops.gr.falcon.dump_stats(g);
-	} else if (fecs_host_intr.ctxsw_intr0 != 0U) {
+	}
+
+	if (fecs_host_intr->ctxsw_intr0 != 0U) {
 		mailbox_value = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
 								mailbox_id);
 #ifdef CONFIG_NVGPU_FECS_TRACE
@@ -589,19 +583,30 @@ int nvgpu_gr_intr_handle_fecs_error(struct gk20a *g, struct nvgpu_channel *ch,
 				 mailbox_value);
 			ret = -1;
 		}
-	} else if (fecs_host_intr.fault_during_ctxsw_active) {
+	}
+
+	if (fecs_host_intr->fault_during_ctxsw_active) {
 		gr_intr_report_ctxsw_error(g,
 				GPU_FECS_FAULT_DURING_CTXSW,
 				chid, 0);
 		nvgpu_err(g, "fecs fault during ctxsw for channel %u", chid);
 		ret = -1;
-	} else {
-		nvgpu_err(g,
-			"unhandled fecs error interrupt 0x%08x for channel %u",
-			gr_fecs_intr, chid);
+	}
+
+	if (fecs_host_intr->watchdog_active) {
+		gr_intr_report_ctxsw_error(g,
+				GPU_FECS_CTXSW_WATCHDOG_TIMEOUT,
+				chid, 0);
+		/* currently, recovery is not initiated */
+		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
+				"cannot ctxsw anymore !!", chid);
 		g->ops.gr.falcon.dump_stats(g);
 	}
 
+	/*
+	 * un-supported interrupts will be flagged in
+	 * g->ops.gr.falcon.fecs_host_intr_status.
+	 */
 	g->ops.gr.falcon.fecs_host_clear_intr(g, gr_fecs_intr);
 
 	return ret;
@@ -899,6 +904,8 @@ static u32 gr_intr_handle_error_interrupts(struct gk20a *g,
 	u32 do_reset = 0U;
 
 	if (intr_info->fecs_error != 0U) {
+		isr_data->fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
+					&(isr_data->fecs_host_intr_status));
 		if (g->ops.gr.intr.handle_fecs_error(g,
 				isr_data->ch, isr_data) != 0) {
 			do_reset = 1U;

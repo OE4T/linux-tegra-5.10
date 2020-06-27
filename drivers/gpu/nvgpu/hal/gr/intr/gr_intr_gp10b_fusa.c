@@ -150,13 +150,12 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 	struct nvgpu_channel *ch;
 	u32 chid = NVGPU_INVALID_CHANNEL_ID;
 	int ret = 0;
+	struct nvgpu_fecs_host_intr_status *fecs_host_intr;
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	struct nvgpu_tsg *tsg;
 #endif
 #endif
-	struct nvgpu_fecs_host_intr_status fecs_host_intr;
-	u32 gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
-						&fecs_host_intr);
+	u32 gr_fecs_intr = isr_data->fecs_intr;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
 
@@ -164,18 +163,27 @@ int gp10b_gr_intr_handle_fecs_error(struct gk20a *g,
 		return 0;
 	}
 
+
 #ifdef CONFIG_NVGPU_CILP
+	fecs_host_intr = &isr_data->fecs_host_intr_status;
 	/*
 	 * INTR1 (bit 1 of the HOST_INT_STATUS_CTXSW_INTR)
 	 * indicates that a CILP ctxsw save has finished
 	 */
-	if (fecs_host_intr.ctxsw_intr1 != 0U) {
+	if (fecs_host_intr->ctxsw_intr1 != 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 				"CILP: ctxsw save completed!\n");
 
 		/* now clear the interrupt */
 		g->ops.gr.falcon.fecs_host_clear_intr(g,
-					fecs_host_intr.ctxsw_intr1);
+					fecs_host_intr->ctxsw_intr1);
+		/**
+		 * clear the interrupt from isr_data too. This is
+		 * for nvgpu_gr_intr_handle_fecs_error to not handle
+		 * already handled interrupt.
+		 */
+		isr_data->fecs_intr &= ~(fecs_host_intr->ctxsw_intr1);
+		fecs_host_intr->ctxsw_intr1 = 0U;
 
 		ret = gp10b_gr_intr_get_cilp_preempt_pending_chid(g, &chid);
 		if ((ret != 0) || (chid == NVGPU_INVALID_CHANNEL_ID)) {
