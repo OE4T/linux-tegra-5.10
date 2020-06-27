@@ -659,8 +659,11 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 	struct secure_page_buffer *secure_buffer = &platform->secure_buffer;
 	dma_addr_t iova;
 
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL))
+	/* VPR is not supported on pre-silicon platforms - Jira NVGPU-5302 */
+	if (!tegra_platform_is_silicon()) {
+		nvgpu_log_info(g, "VPR is not supported on pre-si platform");
 		return 0;
+	}
 
 #if PAGE_SIZE > 4096
 	platform->secure_buffer_size += SZ_64K;
