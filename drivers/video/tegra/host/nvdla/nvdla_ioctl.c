@@ -1,7 +1,7 @@
 /*
  * NVDLA IOCTL for T194
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1152,7 +1152,7 @@ static int nvdla_open(struct inode *inode, struct file *file)
 		if (clock->moduleid ==
 			NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER) {
 			err = nvhost_module_set_rate(pdev, priv, UINT_MAX,
-				index, clock->bwmgr_request_type);
+				index, clock->request_type);
 			if (err < 0)
 				goto err_alloc_queue;
 			break;

@@ -115,11 +115,20 @@ struct nvhost_actmon_register {
 	u32 val;
 };
 
+enum tegra_emc_request_type {
+	TEGRA_SET_EMC_FLOOR,		/* lower bound */
+	TEGRA_SET_EMC_CAP,		/* upper bound */
+	TEGRA_SET_EMC_ISO_CAP,		/* upper bound that affects ISO Bw */
+	TEGRA_SET_EMC_SHARED_BW,	/* shared bw request */
+	TEGRA_SET_EMC_SHARED_BW_ISO,	/* for use by ISO Mgr only */
+	TEGRA_SET_EMC_REQ_COUNT		/* Should always be last */
+};
+
 struct nvhost_clock {
 	char *name;
 	unsigned long default_rate;
 	u32 moduleid;
-	int bwmgr_request_type;
+	enum tegra_emc_request_type request_type;
 	bool disable_scaling;
 	unsigned long devfreq_rate;
 };
@@ -374,6 +383,12 @@ struct nvhost_device_data {
 	 * pointer of gk20a_debug_dump_device once the module loads */
 	void *debug_dump_data;
 	void (*debug_dump_device)(void *dev);
+
+	/* icc client id for emc requests */
+	int icc_id;
+
+	/* icc_path handle handle */
+	struct icc_path *icc_path_handle;
 
 	/* bandwidth manager client id for emc requests */
 	int bwmgr_client_id;

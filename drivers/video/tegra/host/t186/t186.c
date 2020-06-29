@@ -193,7 +193,7 @@ struct nvhost_device_data t18_msenc_info = {
 		{"nvenc", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 TEGRA_BWMGR_SET_EMC_SHARED_BW}
+		 TEGRA_SET_EMC_SHARED_BW}
 	},
 	.engine_cg_regs		= t18x_nvenc_gating_registers,
 	.engine_can_cg		= true,
@@ -226,7 +226,7 @@ struct nvhost_device_data t18_nvdec_info = {
 		{"nvdec", UINT_MAX, 0},
 		{"emc", HOST_NVDEC_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_SET_EMC_FLOOR}
 	},
 	.engine_cg_regs		= t18x_nvdec_gating_registers,
 	.engine_can_cg		= true,
@@ -260,7 +260,7 @@ struct nvhost_device_data t18_nvjpg_info = {
 		{"nvjpg", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 TEGRA_BWMGR_SET_EMC_SHARED_BW}
+		 TEGRA_SET_EMC_SHARED_BW}
 	},
 	.engine_cg_regs		= t18x_nvjpg_gating_registers,
 	.engine_can_cg		= true,
@@ -293,7 +293,7 @@ struct nvhost_device_data t18_tsec_info = {
 		{"tsec", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_SET_EMC_FLOOR}
 	},
 	.engine_cg_regs		= t18x_tsec_gating_registers,
 	.engine_can_cg		= true,
@@ -324,7 +324,7 @@ struct nvhost_device_data t18_tsecb_info = {
 		{"tsecb", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 TEGRA_BWMGR_SET_EMC_FLOOR}
+		 TEGRA_SET_EMC_FLOOR}
 	},
 	.engine_cg_regs		= t18x_tsec_gating_registers,
 	.engine_can_cg		= true,
@@ -354,7 +354,7 @@ struct nvhost_device_data t18_vic_info = {
 		{"vic", UINT_MAX, 0},
 		{"emc", HOST_EMC_FLOOR,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
-		 TEGRA_BWMGR_SET_EMC_SHARED_BW},
+		 TEGRA_SET_EMC_SHARED_BW},
 	},
 	.engine_cg_regs		= t18x_vic_gating_registers,
 	.engine_can_cg		= true,

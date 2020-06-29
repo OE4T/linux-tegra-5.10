@@ -186,7 +186,7 @@ struct nvhost_device_data t21_msenc_info = {
 				   {"emc", HOST_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
 #if defined(CONFIG_TEGRA_BWMGR)
-				TEGRA_BWMGR_SET_EMC_SHARED_BW} },
+				TEGRA_SET_EMC_SHARED_BW} },
 #else
 				} },
 #endif
@@ -259,7 +259,7 @@ struct nvhost_device_data t21_nvjpg_info = {
 				    {"emc", HOST_EMC_FLOOR,
 				NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
 #if defined(CONFIG_TEGRA_BWMGR)
-				0, TEGRA_BWMGR_SET_EMC_SHARED_BW} },
+				TEGRA_SET_EMC_SHARED_BW} },
 #else
 				} },
 #endif
@@ -354,7 +354,7 @@ struct nvhost_device_data t21_vic_info = {
 				   {"emc_shared", 0,
 				   NVHOST_MODULE_ID_EMC_SHARED,
 #if defined(CONFIG_TEGRA_BWMGR)
-				   0, TEGRA_BWMGR_SET_EMC_SHARED_BW}, {} },
+				   TEGRA_SET_EMC_SHARED_BW}, {} },
 #else
 				   }, {} },
 #endif

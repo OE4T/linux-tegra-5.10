@@ -39,8 +39,15 @@
 #include <linux/clk-provider.h>
 #include <linux/iommu.h>
 
-#if defined(CONFIG_TEGRA_BWMGR)
 #include <linux/platform/tegra/mc.h>
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#include <linux/platform/tegra/mc_utils.h>
+#endif
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#include <linux/interconnect.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
 #include <linux/platform/tegra/emc_bwmgr.h>
 #endif
 
@@ -93,13 +100,6 @@ static bool nvhost_module_emc_clock(struct nvhost_clock *clock)
 	       (clock->moduleid == NVHOST_MODULE_ID_EMC_SHARED);
 }
 
-static bool nvhost_is_bwmgr_clk(struct nvhost_device_data *pdata, int index)
-{
-
-	return (nvhost_module_emc_clock(&pdata->clocks[index]) &&
-		pdata->bwmgr_handle);
-}
-
 static void do_module_reset_locked(struct platform_device *dev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
@@ -115,17 +115,169 @@ static void do_module_reset_locked(struct platform_device *dev)
 	}
 }
 
-#ifdef CONFIG_TEGRA_BWMGR
-static unsigned long nvhost_emc_bw_to_freq_req(unsigned long rate)
+static bool nvhost_is_bw_handle_valid(struct nvhost_device_data *pdata)
 {
-	return tegra_emc_bw_to_freq_req((unsigned long)(rate));
+	bool ret = false;
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	ret |= !IS_ERR_OR_NULL(pdata->icc_path_handle);
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	ret |= !(pdata->bwmgr_handle == NULL);
+#endif
+	return ret;
 }
-#else
-static unsigned long nvhost_emc_bw_to_freq_req(unsigned long rate)
+
+static bool nvhost_is_bw_clk(struct nvhost_device_data *pdata, int index)
 {
+	return (nvhost_module_emc_clock(&pdata->clocks[index]) &&
+		nvhost_is_bw_handle_valid(pdata));
+}
+
+static void nvhost_register_bw(struct device *devp,
+			      struct nvhost_device_data *pdata)
+{
+	if (pdata->icc_id && pdata->bwmgr_client_id) {
+		dev_err(devp, "both (bwmgr and icc) IDs are present");
+		return;
+	}
+
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	/* get icc_path handle if needed */
+	if (pdata->icc_id) {
+		pdata->icc_path_handle =
+			icc_get(devp, pdata->icc_id, TEGRA_ICC_MASTER);
+		if (IS_ERR_OR_NULL(pdata->icc_path_handle))
+			dev_warn(devp, "failed to get icc path (err=%ld)",
+				PTR_ERR(pdata->icc_path_handle));
+	}
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	/* get bandwidth manager handle if needed */
+	if (pdata->bwmgr_client_id)
+		pdata->bwmgr_handle =
+			tegra_bwmgr_register(pdata->bwmgr_client_id);
+#endif
+}
+
+static void nvhost_unregister_bw(struct nvhost_device_data *pdata)
+{
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	if (!IS_ERR_OR_NULL(pdata->icc_path_handle))
+		icc_put(pdata->icc_path_handle);
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	if (pdata->bwmgr_handle)
+		tegra_bwmgr_unregister(pdata->bwmgr_handle);
+#endif
+}
+
+static int nvhost_get_emc_rate(struct nvhost_device_data *pdata,
+				unsigned long *rate)
+{
+	int ret = -EINVAL;
+
+	/*
+	 * Below APIs are not framework specific, however in this file we need
+	 * them when respective framework is enabled. Keeping it simple.
+	 */
+
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	if (!IS_ERR_OR_NULL(pdata->icc_path_handle)) {
+		*rate = tegra_get_emc_rate();
+		ret = 0;
+	}
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	if (pdata->bwmgr_handle) {
+		*rate = tegra_bwmgr_get_emc_rate();
+		ret = 0;
+	}
+#endif
+	return ret;
+}
+
+static int nvhost_set_emc_rate(struct device *devp,
+				struct nvhost_device_data *pdata,
+				int index,
+				unsigned long rate)
+{
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	if (!IS_ERR_OR_NULL(pdata->icc_path_handle)) {
+		u32 avg_bw_kbps = 0;
+		u32 floor_bw_kbps = 0;
+
+		if (pdata->clocks[index].request_type ==
+				TEGRA_SET_EMC_SHARED_BW) {
+			avg_bw_kbps = emc_freq_to_bw(rate / 1000);
+		} else if (pdata->clocks[index].request_type ==
+				TEGRA_SET_EMC_FLOOR) {
+			floor_bw_kbps = emc_freq_to_bw(rate / 1000);
+		} else {
+			dev_warn(devp, "Not handled request type %d",
+					pdata->clocks[index].request_type);
+			return -EINVAL;
+		}
+
+		return icc_set_bw(pdata->icc_path_handle,
+					avg_bw_kbps, floor_bw_kbps);
+	}
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	if (pdata->bwmgr_handle) {
+		enum tegra_bwmgr_request_type bwmgr_req_type;
+
+		switch (pdata->clocks[index].request_type) {
+		case TEGRA_SET_EMC_FLOOR:
+			bwmgr_req_type = TEGRA_BWMGR_SET_EMC_FLOOR;
+		break;
+		case TEGRA_SET_EMC_CAP:
+			bwmgr_req_type = TEGRA_BWMGR_SET_EMC_CAP;
+		break;
+		case TEGRA_SET_EMC_ISO_CAP:
+			bwmgr_req_type = TEGRA_BWMGR_SET_EMC_ISO_CAP;
+		break;
+		case TEGRA_SET_EMC_SHARED_BW:
+			bwmgr_req_type = TEGRA_BWMGR_SET_EMC_SHARED_BW;
+		break;
+		case TEGRA_SET_EMC_SHARED_BW_ISO:
+			bwmgr_req_type = TEGRA_BWMGR_SET_EMC_SHARED_BW_ISO;
+		break;
+		case TEGRA_SET_EMC_REQ_COUNT:
+			bwmgr_req_type = TEGRA_BWMGR_SET_EMC_REQ_COUNT;
+		break;
+		default:
+			dev_warn(devp, "Not handled request type %d",
+					pdata->clocks[index].request_type);
+			return -EINVAL;
+		}
+
+		return tegra_bwmgr_set_emc(pdata->bwmgr_handle, rate,
+						bwmgr_req_type);
+	}
+#endif
+	return -EINVAL;
+}
+
+static unsigned long nvhost_emc_bw_to_freq_req(struct device *devp,
+					struct nvhost_device_data *pdata,
+					unsigned long bw)
+{
+	/*
+	 * Below APIs are not framework specific, however in this file we need
+	 * them when respective framework is enabled. Keeping it simple.
+	 */
+
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	if (!IS_ERR_OR_NULL(pdata->icc_path_handle))
+		return emc_bw_to_freq((unsigned long)(bw));
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	if (pdata->bwmgr_handle)
+		return tegra_emc_bw_to_freq_req((unsigned long)(bw));
+#endif
+
 	return 0;
 }
-#endif
 
 void nvhost_module_reset(struct platform_device *dev, bool reboot)
 {
@@ -345,12 +497,9 @@ int nvhost_module_get_rate(struct platform_device *dev, unsigned long *rate,
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 
-#if defined(CONFIG_TEGRA_BWMGR)
-	if (nvhost_is_bwmgr_clk(pdata, index)) {
-		*rate = tegra_bwmgr_get_emc_rate();
-		return 0;
+	if (nvhost_is_bw_clk(pdata, index)) {
+		return nvhost_get_emc_rate(pdata, rate);
 	}
-#endif
 
 	if (pdata->clk[index]) {
 		/* Terrible and racy, but so is the whole concept of
@@ -377,7 +526,7 @@ static int nvhost_module_update_rate(struct platform_device *dev, int index)
 	struct nvhost_module_client *m;
 	int ret = -EINVAL;
 
-	if (!nvhost_is_bwmgr_clk(pdata, index) && !pdata->clk[index]) {
+	if (!nvhost_is_bw_clk(pdata, index) && !pdata->clk[index]) {
 		nvhost_err(&dev->dev, "invalid clk index %d", index);
 		return -EINVAL;
 	}
@@ -415,8 +564,8 @@ static int nvhost_module_update_rate(struct platform_device *dev, int index)
 
 	/* if frequency is not available, use default policy */
 	if (!rate) {
-		unsigned long bw_freq_khz =
-			nvhost_emc_bw_to_freq_req(bw_constraint);
+		unsigned long bw_freq_khz = nvhost_emc_bw_to_freq_req(&dev->dev,
+							pdata, bw_constraint);
 		bw_freq_khz = min(ULONG_MAX / 1000, bw_freq_khz);
 		rate = max(floor_rate, bw_freq_khz * 1000);
 		if (pdata->num_ppc)
@@ -433,12 +582,9 @@ static int nvhost_module_update_rate(struct platform_device *dev, int index)
 	trace_nvhost_module_update_rate(dev->name, pdata->clocks[index].name,
 					rate);
 
-#if defined(CONFIG_TEGRA_BWMGR)
-	if (nvhost_is_bwmgr_clk(pdata, index))
-		ret = tegra_bwmgr_set_emc(pdata->bwmgr_handle, rate,
-			pdata->clocks[index].bwmgr_request_type);
+	if (nvhost_is_bw_clk(pdata, index))
+		ret = nvhost_set_emc_rate(&dev->dev, pdata, index, rate);
 	else
-#endif
 		ret = clk_set_rate(pdata->clk[index], rate);
 
 	return ret;
@@ -714,28 +860,20 @@ int nvhost_module_init(struct platform_device *dev)
 		return err;
 	}
 
-#if defined(CONFIG_TEGRA_BWMGR)
-	/* get bandwidth manager handle if needed */
-	if (pdata->bwmgr_client_id)
-		pdata->bwmgr_handle =
-			tegra_bwmgr_register(pdata->bwmgr_client_id);
-#endif
+	nvhost_register_bw(&dev->dev, pdata);
 
 	while (i < NVHOST_MODULE_MAX_CLOCKS && pdata->clocks[i].name) {
 		char devname[MAX_DEVID_LENGTH];
 		long rate = pdata->clocks[i].default_rate;
 		struct clk *c;
 
-#if defined(CONFIG_TEGRA_BWMGR)
 		if (nvhost_module_emc_clock(&pdata->clocks[i])) {
-			if (nvhost_is_bwmgr_clk(pdata, i))
-				tegra_bwmgr_set_emc(pdata->bwmgr_handle, 0,
-					pdata->clocks[i].bwmgr_request_type);
+			if (nvhost_is_bw_clk(pdata, i))
+				nvhost_set_emc_rate(&dev->dev, pdata, i, 0);
 			pdata->clk[pdata->num_clks++] = NULL;
 			i++;
 			continue;
 		}
-#endif
 
 		snprintf(devname, MAX_DEVID_LENGTH,
 			 (dev->id <= 0) ? "tegra_%s" : "tegra_%s.%d",
@@ -948,10 +1086,7 @@ void nvhost_module_deinit(struct platform_device *dev)
 		nvhost_module_disable_clk(&dev->dev);
 	}
 
-#if defined(CONFIG_TEGRA_BWMGR)
-	if (pdata->bwmgr_handle)
-		tegra_bwmgr_unregister(pdata->bwmgr_handle);
-#endif
+	nvhost_unregister_bw(pdata);
 
 	/* kobj of acm_kobj_ktype cleans up sysfs entries automatically */
 	kobject_put(&pdata->clk_cap_kobj);
@@ -1217,20 +1352,17 @@ static int nvhost_module_prepare_poweroff(struct device *dev)
 	devfreq_suspend_device(pdata->power_manager);
 	nvhost_scale_hw_deinit(to_platform_device(dev));
 
-#if defined(CONFIG_TEGRA_BWMGR)
 	/* set EMC rate to zero */
-	if (pdata->bwmgr_handle) {
+	if (nvhost_is_bw_handle_valid(pdata)) {
 		int i;
 
 		for (i = 0; i < NVHOST_MODULE_MAX_CLOCKS; i++) {
 			if (nvhost_module_emc_clock(&pdata->clocks[i])) {
-				tegra_bwmgr_set_emc(pdata->bwmgr_handle, 0,
-					pdata->clocks[i].bwmgr_request_type);
+				nvhost_set_emc_rate(dev, pdata, i, 0);
 				break;
 			}
 		}
 	}
-#endif
 
 	if (pdata->prepare_poweroff)
 		pdata->prepare_poweroff(to_platform_device(dev));
@@ -1282,7 +1414,7 @@ static int nvhost_module_finalize_poweron(struct device *dev)
 	nvhost_module_set_actmon_regs(pdev);
 
 	/* set default EMC rate to zero */
-	if (pdata->bwmgr_handle) {
+	if (nvhost_is_bw_handle_valid(pdata)) {
 		for (i = 0; i < NVHOST_MODULE_MAX_CLOCKS; i++) {
 			if (nvhost_module_emc_clock(&pdata->clocks[i])) {
 				mutex_lock(&client_list_lock);
