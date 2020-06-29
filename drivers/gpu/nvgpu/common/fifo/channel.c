@@ -1599,6 +1599,11 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
 
 #ifdef CONFIG_NVGPU_VPR
 	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR) != 0U) {
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_VPR)) {
+			err = -EINVAL;
+			goto fail;
+		}
+
 		c->vpr = true;
 	}
 #else
