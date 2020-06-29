@@ -42,6 +42,10 @@ static const char *nvgpu_fifo_kickoff_profile_events[] = {
 	NVGPU_FIFO_KICKOFF_PROFILE_EVENTS,
 };
 
+static const char *nvgpu_fifo_recovery_profile_events[] = {
+	NVGPU_FIFO_RECOVERY_PROFILE_EVENTS,
+};
+
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -101,6 +105,8 @@ int nvgpu_fifo_setup_sw_common(struct gk20a *g)
 
 	nvgpu_swprofile_initialize(g, &f->kickoff_profiler,
 				 nvgpu_fifo_kickoff_profile_events);
+	nvgpu_swprofile_initialize(g, &f->recovery_profiler,
+				 nvgpu_fifo_recovery_profile_events);
 
 	err = nvgpu_channel_setup_sw(g);
 	if (err != 0) {

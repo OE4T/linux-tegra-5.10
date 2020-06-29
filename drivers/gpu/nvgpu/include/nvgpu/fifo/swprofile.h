@@ -47,4 +47,31 @@
 #define PROF_KICKOFF_END			4U
 #define PROF_KICKOFF_IOCTL_EXIT			5U
 
+/*
+ * Recovery profiling - this covers the gv11b+ recovery sequence; the older recovery
+ * sequence is very different.
+ */
+#define NVGPU_FIFO_RECOVERY_PROFILE_EVENTS	\
+	"acq_active_rl",			\
+	"get_rl_mask",				\
+	"disable_rl",				\
+	"disable_tsg",				\
+	"preempt_rl",				\
+	"poll_tsg_on_pbdma",			\
+	"engines_reset",			\
+	"enable_rl",				\
+	"done",					\
+	NULL
+
+#define PROF_RECOVERY_ACQ_ACTIVE_RL		0U
+#define PROF_RECOVERY_GET_RL_MASK		1U
+#define PROF_RECOVERY_DISABLE_RL		2U
+#define PROF_RECOVERY_DISABLE_TSG		3U
+#define PROF_RECOVERY_PREEMPT_RL		4U
+#define PROF_RECOVERY_POLL_TSG_ON_PBDMA		5U
+#define PROF_RECOVERY_ENGINES_RESET		6U
+#define PROF_RECOVERY_ENABLE_RL			7U
+#define PROF_RECOVERY_DONE			8U
+
+
 #endif

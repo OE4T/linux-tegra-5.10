@@ -35,6 +35,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/swprofile.h>
+#include <nvgpu/fifo/swprofile.h>
 #include <nvgpu/power_features/power_features.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/preempt.h>
@@ -151,10 +153,13 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	struct nvgpu_runlist_info *runlist = NULL;
 	u32 engine_id;
 	struct nvgpu_fifo *f = &g->fifo;
+	struct nvgpu_swprofiler *prof = &f->recovery_profiler;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	u32 client_type = ~U32(0U);
 	bool deferred_reset_pending = false;
 #endif
+
+	nvgpu_swprofile_begin_sample(prof);
 
 	nvgpu_log_info(g, "acquire engines_reset_mutex");
 	nvgpu_mutex_acquire(&f->engines_reset_mutex);
@@ -162,6 +167,8 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	/* acquire runlist_lock for num_runlists */
 	nvgpu_log_fn(g, "acquire runlist_lock for active runlists");
 	nvgpu_runlist_lock_active_runlists(g);
+
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_ACQ_ACTIVE_RL);
 
 	g->ops.fifo.intr_set_recover_mask(g);
 
@@ -205,6 +212,8 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	runlists_mask = nvgpu_runlist_get_runlists_mask(g, id, id_type,
 				act_eng_bitmask, pbdma_bitmask);
 
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_GET_RL_MASK);
+
 	/*
 	 * release runlist lock for the runlists that are not
 	 * being recovered
@@ -213,6 +222,8 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 	/* Disable runlist scheduler */
 	nvgpu_runlist_set_state(g, runlists_mask, RUNLIST_DISABLED);
+
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_DISABLE_RL);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 	if (nvgpu_cg_pg_disable(g) != 0) {
@@ -232,6 +243,8 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		g->ops.tsg.disable(tsg);
 	}
 
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_DISABLE_TSG);
+
 	/*
 	 * Even though TSG preempt timed out, the RC sequence would by design
 	 * require s/w to issue another preempt.
@@ -242,6 +255,9 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	 * reset.
 	 */
 	nvgpu_fifo_preempt_runlists_for_rc(g, runlists_mask);
+
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_PREEMPT_RL);
+
 	/*
 	 * For each PBDMA which serves the runlist, poll to verify the TSG is no
 	 * longer on the PBDMA and the engine phase of the preempt has started.
@@ -253,6 +269,8 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		nvgpu_sw_quiesce(g);
 		return;
 	}
+
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_POLL_TSG_ON_PBDMA);
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
@@ -302,6 +320,8 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		}
 	}
 
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_ENGINES_RESET);
+
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	if (tsg != NULL)
 		nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
@@ -324,6 +344,8 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 	nvgpu_runlist_set_state(g, runlists_mask, RUNLIST_ENABLED);
 
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_ENABLE_RL);
+
 #ifdef CONFIG_NVGPU_NON_FUSA
 	if (nvgpu_cg_pg_enable(g) != 0) {
 		nvgpu_warn(g, "fail to enable power mgmt");
@@ -337,4 +359,6 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 	nvgpu_log_info(g, "release engines_reset_mutex");
 	nvgpu_mutex_release(&f->engines_reset_mutex);
+
+	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_DONE);
 }

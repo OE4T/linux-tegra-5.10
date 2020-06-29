@@ -289,6 +289,7 @@ struct nvgpu_fifo {
 	u32 num_runlists;
 
 	struct nvgpu_swprofiler kickoff_profiler;
+	struct nvgpu_swprofiler recovery_profiler;
 
 #ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_mutex userd_mutex;
