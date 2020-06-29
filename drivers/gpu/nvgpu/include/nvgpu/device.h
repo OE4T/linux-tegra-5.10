@@ -225,4 +225,17 @@ bool nvgpu_device_is_ce(struct gk20a *g, const struct nvgpu_device *dev);
  */
 bool nvgpu_device_is_graphics(struct gk20a *g, const struct nvgpu_device *dev);
 
+/**
+ * @brief Dubug dump for a device. Prints under the gpu_dbg_device log
+ *        level.
+ *
+ * @param g [in]	The GPU.
+ * @param dev [in]	A device.
+ *
+ * Use the nvgpu_info() framework for printing a given given device's
+ * state information. This uses the gpu_dbg_device log level to condition
+ * the prints.
+ */
+void nvgpu_device_dump_dev(struct gk20a *g, const struct nvgpu_device *dev);
+
 #endif /* NVGPU_DEVICE_H */

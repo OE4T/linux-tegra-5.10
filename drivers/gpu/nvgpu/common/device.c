@@ -27,6 +27,11 @@
 #include <nvgpu/string.h>
 #include <nvgpu/log.h>
 
+#define device_dbg(g, fmt, args...)					\
+	do {								\
+		nvgpu_log(g, gpu_dbg_device, fmt, ##args);		\
+	} while (0)
+
 static inline struct nvgpu_device *
 nvgpu_device_from_dev_list_node(struct nvgpu_list_node *node)
 {
@@ -34,6 +39,47 @@ nvgpu_device_from_dev_list_node(struct nvgpu_list_node *node)
 		((uintptr_t)node - offsetof(struct nvgpu_device,
 					    dev_list_node));
 };
+
+static inline const char *nvgpu_device_type_to_str(const struct nvgpu_device *dev)
+{
+	const char *str = "Unknown";
+
+	switch (dev->type) {
+	case NVGPU_DEVTYPE_GRAPHICS:
+		str = "GFX";
+		break;
+	case NVGPU_DEVTYPE_COPY0:
+		str = "CE0";
+		break;
+	case NVGPU_DEVTYPE_COPY1:
+		str = "CE1";
+		break;
+	case NVGPU_DEVTYPE_COPY2:
+		str = "CE2";
+		break;
+	case NVGPU_DEVTYPE_IOCTRL:
+		str = "IOCTRL";
+		break;
+	case NVGPU_DEVTYPE_LCE:
+		str = "LCE";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+void nvgpu_device_dump_dev(struct gk20a *g, const struct nvgpu_device *dev)
+{
+	device_dbg(g, "Device %s:%d",
+		   nvgpu_device_type_to_str(dev), dev->inst_id);
+	device_dbg(g, "  EngineID:  %2u  FaultID: %2u",
+		   dev->engine_id, dev->fault_id);
+	device_dbg(g, "  RunlistID: %2u  IntrID:  %2u  ResetID: %u",
+		   dev->runlist_id, dev->intr_id, dev->reset_id);
+	device_dbg(g, "  PRI Base: 0x%x", dev->pri_base);
+}
 
 /*
  * Faciliate the parsing of the TOP array describing the devices present in the
@@ -52,7 +98,7 @@ static int nvgpu_device_parse_hw_table(struct gk20a *g)
 			break;
 		}
 
-		nvgpu_log(g, gpu_dbg_info, "Parsed one device: %u", dev->type);
+		nvgpu_device_dump_dev(g, dev);
 
 		/*
 		 * Otherwise we have a device - let's add it to the right device
@@ -83,7 +129,7 @@ int nvgpu_device_init(struct gk20a *g)
 		return 0;
 	}
 
-	nvgpu_log(g, gpu_dbg_info, "Initialization GPU device list");
+	device_dbg(g, "Initializating GPU device list");
 
 	g->devs = nvgpu_kzalloc(g, sizeof(*g->devs));
 	if (g->devs == NULL) {
