@@ -757,8 +757,11 @@ static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	unsigned int rx_buf_len = 0U;
 
 	/* Add Ethernet header + VLAN header + NET IP align size to MTU */
-	if (osi_dma->mtu < UINT_MAX) {
+	if (osi_dma->mtu <= OSI_MAX_MTU_SIZE) {
 		rx_buf_len = osi_dma->mtu + OSI_ETH_HLEN + NV_VLAN_HLEN +
+			     OSI_NET_IP_ALIGN;
+	} else {
+		rx_buf_len = OSI_MAX_MTU_SIZE + OSI_ETH_HLEN + NV_VLAN_HLEN +
 			     OSI_NET_IP_ALIGN;
 	}
 
