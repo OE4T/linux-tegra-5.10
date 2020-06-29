@@ -61,8 +61,12 @@
 #define HDA_IPFS_EN_INTR          (1 << 16)
 
 /* FPCI */
+<<<<<<< HEAD
 #define FPCI_DBG_CFG_2		  0xF4
 
+=======
+#define FPCI_DBG_CFG_2		  0x10F4
+>>>>>>> v5.8-rc3
 #define FPCI_GCAP_NSDO_SHIFT	  18
 #define FPCI_GCAP_NSDO_MASK	  (0x3 << FPCI_GCAP_NSDO_SHIFT)
 
@@ -70,6 +74,7 @@
 #define NUM_CAPTURE_SD 1
 #define NUM_PLAYBACK_SD 1
 
+<<<<<<< HEAD
 /* GSC_ID register */
 #define HDA_GSC_REG		0x1e0
 #define HDA_GSC_ID		10
@@ -91,6 +96,13 @@ struct hda_pcm_devices {
 	int dev_id;
 };
 #endif
+=======
+/*
+ * Tegra194 does not reflect correct number of SDO lines. Below macro
+ * is used to update the GCAP register to workaround the issue.
+ */
+#define TEGRA194_NUM_SDO_LINES	  4
+>>>>>>> v5.8-rc3
 
 struct hda_tegra {
 	struct azx chip;
@@ -354,6 +366,7 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 	card->sync_irq = bus->irq;
 
 	/*
+<<<<<<< HEAD
 	 * WAR to override no. of SDO lines on T194.
 	 * GCAP_NSDO is bits 19:18 in T_AZA_DBG_CFG_2
 	 * 0 for 1 SDO, 1 for 2 SDO, 2 for 4 SDO lines
@@ -369,6 +382,25 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 		val |= ((num_sdo_lines >> 1) << FPCI_GCAP_NSDO_SHIFT) &
 		       FPCI_GCAP_NSDO_MASK;
 		writel(val, hda->regs_fpci + FPCI_DBG_CFG_2);
+=======
+	 * Tegra194 has 4 SDO lines and the STRIPE can be used to
+	 * indicate how many of the SDO lines the stream should be
+	 * striped. But GCAP register does not reflect the true
+	 * capability of HW. Below workaround helps to fix this.
+	 *
+	 * GCAP_NSDO is bits 19:18 in T_AZA_DBG_CFG_2,
+	 * 0 for 1 SDO, 1 for 2 SDO, 2 for 4 SDO lines.
+	 */
+	if (of_device_is_compatible(np, "nvidia,tegra194-hda")) {
+		u32 val;
+
+		dev_info(card->dev, "Override SDO lines to %u\n",
+			 TEGRA194_NUM_SDO_LINES);
+
+		val = readl(hda->regs + FPCI_DBG_CFG_2) & ~FPCI_GCAP_NSDO_MASK;
+		val |= (TEGRA194_NUM_SDO_LINES >> 1) << FPCI_GCAP_NSDO_SHIFT;
+		writel(val, hda->regs + FPCI_DBG_CFG_2);
+>>>>>>> v5.8-rc3
 	}
 
 	gcap = azx_readw(chip, GCAP);
@@ -406,6 +438,23 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 
 	/* initialize chip */
 	azx_init_chip(chip, 1);
+
+	/*
+	 * Playback (for 44.1K/48K, 2-channel, 16-bps) fails with
+	 * 4 SDO lines due to legacy design limitation. Following
+	 * is, from HD Audio Specification (Revision 1.0a), used to
+	 * control striping of the stream across multiple SDO lines
+	 * for sample rates <= 48K.
+	 *
+	 * { ((num_channels * bits_per_sample) / number of SDOs) >= 8 }
+	 *
+	 * Due to legacy design issue it is recommended that above
+	 * ratio must be greater than 8. Since number of SDO lines is
+	 * in powers of 2, next available ratio is 16 which can be
+	 * used as a limiting factor here.
+	 */
+	if (of_device_is_compatible(np, "nvidia,tegra194-hda"))
+		chip->bus.core.sdo_limit = 16;
 
 	/* codec detection */
 	if (!bus->codec_mask) {
@@ -498,7 +547,11 @@ static const struct tegra_hda_chip_data tegra194_cdata = {
 
 static const struct of_device_id hda_tegra_match[] = {
 	{ .compatible = "nvidia,tegra30-hda" },
+<<<<<<< HEAD
 	{ .compatible = "nvidia,tegra194-hda", .data = &tegra194_cdata},
+=======
+	{ .compatible = "nvidia,tegra194-hda" },
+>>>>>>> v5.8-rc3
 	{},
 };
 MODULE_DEVICE_TABLE(of, hda_tegra_match);

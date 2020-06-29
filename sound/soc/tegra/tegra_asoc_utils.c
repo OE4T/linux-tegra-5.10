@@ -73,9 +73,13 @@ int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 	data->set_baseclock = 0;
 	data->set_mclk = 0;
 
+<<<<<<< HEAD
 	clk_disable_unprepare(data->clk_aud_mclk);
 	clk_disable_unprepare(data->clk_pll_out);
 	clk_disable_unprepare(data->clk_pll);
+=======
+	clk_disable_unprepare(data->clk_cdev1);
+>>>>>>> v5.8-rc3
 
 	err = clk_set_rate(data->clk_pll, new_baseclock);
 	if (err) {
@@ -91,6 +95,7 @@ int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 
 	/* Don't set cdev1/extern1 rate; it's locked to pll_out */
 
+<<<<<<< HEAD
 	err = clk_prepare_enable(data->clk_pll);
 	if (err) {
 		dev_err(data->dev, "Can't enable pll: %d\n", err);
@@ -104,6 +109,9 @@ int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
 	}
 
 	err = clk_prepare_enable(data->clk_aud_mclk);
+=======
+	err = clk_prepare_enable(data->clk_cdev1);
+>>>>>>> v5.8-rc3
 	if (err) {
 		dev_err(data->dev, "Can't enable aud_mclk: %d\n", err);
 		return err;
@@ -122,9 +130,13 @@ int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data)
 	const int ac97_rate = 24576000;
 	int err;
 
+<<<<<<< HEAD
 	clk_disable_unprepare(data->clk_aud_mclk);
 	clk_disable_unprepare(data->clk_pll_out);
 	clk_disable_unprepare(data->clk_pll);
+=======
+	clk_disable_unprepare(data->clk_cdev1);
+>>>>>>> v5.8-rc3
 
 	/*
 	 * AC97 rate is fixed at 24.576MHz and is used for both the host
@@ -144,6 +156,7 @@ int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data)
 
 	/* Don't set cdev1/extern1 rate; it's locked to pll_a_out0 */
 
+<<<<<<< HEAD
 	err = clk_prepare_enable(data->clk_pll);
 	if (err) {
 		dev_err(data->dev, "Can't enable pll_a: %d\n", err);
@@ -157,6 +170,9 @@ int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data)
 	}
 
 	err = clk_prepare_enable(data->clk_aud_mclk);
+=======
+	err = clk_prepare_enable(data->clk_cdev1);
+>>>>>>> v5.8-rc3
 	if (err) {
 		dev_err(data->dev, "Can't enable cdev1: %d\n", err);
 		return err;
@@ -260,6 +276,7 @@ EXPORT_SYMBOL_GPL(tegra_asoc_utils_clk_disable);
 int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 			  struct device *dev)
 {
+	struct clk *clk_out_1, *clk_extern1;
 	int ret;
 
 	data->dev = dev;
@@ -283,6 +300,7 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 		return -EINVAL;
 	}
 
+<<<<<<< HEAD
 	data->clk_pll = devm_clk_get(dev, "pll_a");
 	if (IS_ERR(data->clk_pll)) {
 		dev_err(data->dev, "Can't retrieve clk pll_a\n");
@@ -311,6 +329,75 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 		data->pll_base_rate = tegra210_pll_base_rate;
 	else
 		data->pll_base_rate = tegra186_pll_base_rate;
+=======
+	data->clk_pll_a = devm_clk_get(dev, "pll_a");
+	if (IS_ERR(data->clk_pll_a)) {
+		dev_err(data->dev, "Can't retrieve clk pll_a\n");
+		return PTR_ERR(data->clk_pll_a);
+	}
+
+	data->clk_pll_a_out0 = devm_clk_get(dev, "pll_a_out0");
+	if (IS_ERR(data->clk_pll_a_out0)) {
+		dev_err(data->dev, "Can't retrieve clk pll_a_out0\n");
+		return PTR_ERR(data->clk_pll_a_out0);
+	}
+
+	data->clk_cdev1 = devm_clk_get(dev, "mclk");
+	if (IS_ERR(data->clk_cdev1)) {
+		dev_err(data->dev, "Can't retrieve clk cdev1\n");
+		return PTR_ERR(data->clk_cdev1);
+	}
+
+	/*
+	 * If clock parents are not set in DT, configure here to use clk_out_1
+	 * as mclk and extern1 as parent for Tegra30 and higher.
+	 */
+	if (!of_find_property(dev->of_node, "assigned-clock-parents", NULL) &&
+	    data->soc > TEGRA_ASOC_UTILS_SOC_TEGRA20) {
+		dev_warn(data->dev,
+			 "Configuring clocks for a legacy device-tree\n");
+		dev_warn(data->dev,
+			 "Please update DT to use assigned-clock-parents\n");
+		clk_extern1 = devm_clk_get(dev, "extern1");
+		if (IS_ERR(clk_extern1)) {
+			dev_err(data->dev, "Can't retrieve clk extern1\n");
+			return PTR_ERR(clk_extern1);
+		}
+
+		ret = clk_set_parent(clk_extern1, data->clk_pll_a_out0);
+		if (ret < 0) {
+			dev_err(data->dev,
+				"Set parent failed for clk extern1\n");
+			return ret;
+		}
+
+		clk_out_1 = devm_clk_get(dev, "pmc_clk_out_1");
+		if (IS_ERR(clk_out_1)) {
+			dev_err(data->dev, "Can't retrieve pmc_clk_out_1\n");
+			return PTR_ERR(clk_out_1);
+		}
+
+		ret = clk_set_parent(clk_out_1, clk_extern1);
+		if (ret < 0) {
+			dev_err(data->dev,
+				"Set parent failed for pmc_clk_out_1\n");
+			return ret;
+		}
+
+		data->clk_cdev1 = clk_out_1;
+	}
+
+	/*
+	 * FIXME: There is some unknown dependency between audio mclk disable
+	 * and suspend-resume functionality on Tegra30, although audio mclk is
+	 * only needed for audio.
+	 */
+	ret = clk_prepare_enable(data->clk_cdev1);
+	if (ret) {
+		dev_err(data->dev, "Can't enable cdev1: %d\n", ret);
+		return ret;
+	}
+>>>>>>> v5.8-rc3
 
 	return 0;
 }

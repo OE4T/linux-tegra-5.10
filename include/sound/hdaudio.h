@@ -207,8 +207,8 @@ static inline int snd_hdac_power_down_pm(struct hdac_device *codec) { return 0; 
 static inline int snd_hdac_keep_power_up(struct hdac_device *codec) { return 0; }
 static inline void snd_hdac_enter_pm(struct hdac_device *codec) {}
 static inline void snd_hdac_leave_pm(struct hdac_device *codec) {}
-static inline bool snd_hdac_is_in_pm(struct hdac_device *codec) { return 0; }
-static inline bool snd_hdac_is_power_on(struct hdac_device *codec) { return 1; }
+static inline bool snd_hdac_is_in_pm(struct hdac_device *codec) { return false; }
+static inline bool snd_hdac_is_power_on(struct hdac_device *codec) { return true; }
 #endif
 
 /*
@@ -365,18 +365,20 @@ struct hdac_bus {
 	struct list_head hlink_list;
 	bool cmd_dma_state;
 
+<<<<<<< HEAD
 	/* WAR for SDO limitation */
 	bool avoid_compact_sdo_bw;
+=======
+	/* factor used to derive STRIPE control value */
+	unsigned int sdo_limit;
+>>>>>>> v5.8-rc3
 };
 
 int snd_hdac_bus_init(struct hdac_bus *bus, struct device *dev,
 		      const struct hdac_bus_ops *ops);
 void snd_hdac_bus_exit(struct hdac_bus *bus);
-int snd_hdac_bus_exec_verb(struct hdac_bus *bus, unsigned int addr,
-			   unsigned int cmd, unsigned int *res);
 int snd_hdac_bus_exec_verb_unlocked(struct hdac_bus *bus, unsigned int addr,
 				    unsigned int cmd, unsigned int *res);
-void snd_hdac_bus_queue_event(struct hdac_bus *bus, u32 res, u32 res_ex);
 
 static inline void snd_hdac_codec_link_up(struct hdac_device *codec)
 {

@@ -78,7 +78,12 @@ struct max77686_rtc_driver_data {
 	int			alarm_pending_status_reg;
 	/* RTC IRQ CHIP for regmap */
 	const struct regmap_irq_chip *rtc_irq_chip;
+<<<<<<< HEAD
 	bool avoid_rtc_bulk_write;
+=======
+	/* regmap configuration for the chip */
+	const struct regmap_config *regmap_config;
+>>>>>>> v5.8-rc3
 };
 
 struct max77686_rtc_info {
@@ -183,6 +188,11 @@ static const struct regmap_irq_chip max77686_rtc_irq_chip = {
 	.num_irqs	= ARRAY_SIZE(max77686_rtc_irqs),
 };
 
+static const struct regmap_config max77686_rtc_regmap_config = {
+	.reg_bits = 8,
+	.val_bits = 8,
+};
+
 static const struct max77686_rtc_driver_data max77686_drv_data = {
 	.delay = 16000,
 	.mask  = 0x7f,
@@ -192,7 +202,17 @@ static const struct max77686_rtc_driver_data max77686_drv_data = {
 	.alarm_pending_status_reg = MAX77686_REG_STATUS2,
 	.rtc_i2c_addr = MAX77686_I2C_ADDR_RTC,
 	.rtc_irq_chip = &max77686_rtc_irq_chip,
+<<<<<<< HEAD
 	.avoid_rtc_bulk_write = false,
+=======
+	.regmap_config = &max77686_rtc_regmap_config,
+};
+
+static const struct regmap_config max77620_rtc_regmap_config = {
+	.reg_bits = 8,
+	.val_bits = 8,
+	.use_single_write = true,
+>>>>>>> v5.8-rc3
 };
 
 static const struct max77686_rtc_driver_data max77620_drv_data = {
@@ -204,7 +224,11 @@ static const struct max77686_rtc_driver_data max77620_drv_data = {
 	.alarm_pending_status_reg = MAX77686_INVALID_REG,
 	.rtc_i2c_addr = MAX77620_I2C_ADDR_RTC,
 	.rtc_irq_chip = &max77686_rtc_irq_chip,
+<<<<<<< HEAD
 	.avoid_rtc_bulk_write = true,
+=======
+	.regmap_config = &max77620_rtc_regmap_config,
+>>>>>>> v5.8-rc3
 };
 
 static const unsigned int max77802_map[REG_RTC_END] = {
@@ -687,11 +711,6 @@ static int max77686_rtc_init_reg(struct max77686_rtc_info *info)
 	return ret;
 }
 
-static const struct regmap_config max77686_rtc_regmap_config = {
-	.reg_bits = 8,
-	.val_bits = 8,
-};
-
 static int max77686_init_rtc_regmap(struct max77686_rtc_info *info)
 {
 	struct device *parent = info->dev->parent;
@@ -727,7 +746,7 @@ static int max77686_init_rtc_regmap(struct max77686_rtc_info *info)
 	}
 
 	info->rtc_regmap = devm_regmap_init_i2c(info->rtc,
-						&max77686_rtc_regmap_config);
+						info->drv_data->regmap_config);
 	if (IS_ERR(info->rtc_regmap)) {
 		ret = PTR_ERR(info->rtc_regmap);
 		dev_err(info->dev, "Failed to allocate RTC regmap: %d\n", ret);

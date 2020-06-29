@@ -2416,8 +2416,13 @@ static int fbcon_blank(struct vc_data *vc, int blank, int mode_switch)
 		ops->graphics = 1;
 
 		if (!blank) {
+<<<<<<< HEAD
 			fb_blank(info, FB_BLANK_POWERDOWN);
 			var.activate = FB_ACTIVATE_NOW | FB_ACTIVATE_FORCE;
+=======
+			var.activate = FB_ACTIVATE_NOW | FB_ACTIVATE_FORCE |
+				FB_ACTIVATE_KD_TEXT;
+>>>>>>> v5.8-rc3
 			fb_set_var(info, &var);
 			ops->graphics = 0;
 			ops->var = info->var;
