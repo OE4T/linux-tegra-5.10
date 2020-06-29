@@ -18,6 +18,12 @@
 #include <linux/device.h>
 #include <linux/of_address.h>
 #include <linux/platform/tegra/iso_client.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/bpmp_abi.h>
+#else
+#include <soc/tegra/bpmp.h>
+#endif
 
 /* keep in sync with tegra_bwmgr_client_names */
 enum tegra_bwmgr_client_id {
@@ -112,6 +118,7 @@ extern u32 *bwmgr_vi_bw_reqd_offset;
 extern int bwmgr_iso_bw_percentage;
 extern enum bwmgr_dram_types bwmgr_dram_type;
 extern int emc_to_dram_freq_factor;
+extern struct mrq_emc_dvfs_latency_response bwmgr_emc_dvfs;
 
 struct tegra_bwmgr_client;
 

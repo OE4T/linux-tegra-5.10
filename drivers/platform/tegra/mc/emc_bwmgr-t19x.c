@@ -16,8 +16,6 @@
 #include <linux/platform/tegra/bwmgr_mc.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/io.h>
-#include <soc/tegra/bpmp_abi.h>
-#include <soc/tegra/tegra_bpmp.h>
 #include <linux/version.h>
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
@@ -366,7 +364,6 @@ static u32 bwmgr_t194_lpddr4_16ch_ecc_iso_vi_bw_reqd_offset[] = { /* MHz */
 	   0,    37
 };
 
-static struct mrq_emc_dvfs_latency_response bwmgr_emc_dvfs;
 static int dram_rank;
 static int dram_freq_count;
 
@@ -878,9 +875,6 @@ struct bwmgr_ops *bwmgr_eff_init_t19x(void)
 	}
 
 	dram_freq_count = ARRAY_SIZE(bwmgr_t194_dram_freq_table);
-
-	tegra_bpmp_send_receive(MRQ_EMC_DVFS_LATENCY, NULL, 0,
-			&bwmgr_emc_dvfs, sizeof(bwmgr_emc_dvfs));
 
 	/* isomgr uses this value to calculate max_iso_bw.
 	 * We need this until the isomgr framework changes are checked in.

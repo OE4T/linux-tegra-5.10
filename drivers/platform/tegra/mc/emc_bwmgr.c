@@ -23,8 +23,11 @@
 #include <linux/version.h>
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#include <soc/tegra/tegra_bpmp.h>
+#include <soc/tegra/bpmp_abi.h>
 #else
 #include <soc/tegra/fuse.h>
+#include <soc/tegra/bpmp.h>
 #endif
 
 #define CREATE_TRACE_POINTS
@@ -44,6 +47,7 @@ int bwmgr_iso_bw_percentage;
 enum bwmgr_dram_types bwmgr_dram_type;
 int emc_to_dram_freq_factor;
 static bool bwmgr_disable = false;
+struct mrq_emc_dvfs_latency_response bwmgr_emc_dvfs;
 
 #define IS_HANDLE_VALID(x) ((x >= bwmgr.bwmgr_client) && \
 		(x < bwmgr.bwmgr_client + TEGRA_BWMGR_CLIENT_COUNT))
@@ -834,6 +838,12 @@ int __init bwmgr_init(void)
 	struct device_node *dn;
 	long round_rate;
 	struct clk *emc_master_clk;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+	struct device dev = {0};
+	struct tegra_bpmp *bpmp_dev;
+	struct tegra_bpmp_message msg;
+	int err;
+#endif
 
 	mutex_init(&bwmgr.lock);
 
@@ -855,6 +865,33 @@ int __init bwmgr_init(void)
 		pr_err("bwmgr: dt node not found.\n");
 		return -ENODEV;
 	}
+
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+	tegra_bpmp_send_receive(MRQ_EMC_DVFS_LATENCY, NULL, 0,
+			&bwmgr_emc_dvfs, sizeof(bwmgr_emc_dvfs));
+#else
+	dev.of_node = dn;
+	bpmp_dev = tegra_bpmp_get(&dev);
+	if (IS_ERR(bpmp_dev)) {
+		pr_err("bwmgr: bpmp_get failed\n");
+		return -ENODEV;
+	}
+
+	memset(&msg, 0, sizeof(msg));
+	msg.mrq = MRQ_EMC_DVFS_LATENCY;
+	msg.tx.data = NULL;
+	msg.tx.size = 0;
+	msg.rx.data = &bwmgr_emc_dvfs;
+	msg.rx.size = sizeof(bwmgr_emc_dvfs);
+
+	err = tegra_bpmp_transfer(bpmp_dev, &msg);
+	if (err < 0) {
+		pr_err("bwmgr: dvfs_lat mrq failed\n");
+		return err;
+        }
+
+	tegra_bpmp_put(bpmp_dev);
+#endif
 
 	bwmgr.emc_clk = of_clk_get(dn, 0);
 	if (IS_ERR_OR_NULL(bwmgr.emc_clk)) {
