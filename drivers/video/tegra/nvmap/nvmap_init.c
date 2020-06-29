@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -57,7 +57,6 @@ struct device __weak tegra_generic_dev;
 struct device __weak tegra_vpr_dev;
 EXPORT_SYMBOL(tegra_vpr_dev);
 
-struct device __weak tegra_iram_dev;
 struct device __weak tegra_generic_cma_dev;
 struct device __weak tegra_vpr_cma_dev;
 struct dma_resize_notifier_ops __weak vpr_dev_ops;
@@ -82,14 +81,6 @@ static struct dma_declare_info vpr_dma_info = {
 
 static struct nvmap_platform_carveout nvmap_carveouts[] = {
 	[0] = {
-		.name		= "iram",
-		.usage_mask	= NVMAP_HEAP_CARVEOUT_IRAM,
-		.base		= 0,
-		.size		= 0,
-		.dma_dev	= &tegra_iram_dev,
-		.disable_dynamic_dma_map = true,
-	},
-	[1] = {
 		.name		= "generic-0",
 		.usage_mask	= NVMAP_HEAP_CARVEOUT_GENERIC,
 		.base		= 0,
@@ -98,7 +89,7 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.cma_dev	= &tegra_generic_cma_dev,
 		.dma_info	= &generic_dma_info,
 	},
-	[2] = {
+	[1] = {
 		.name		= "vpr",
 		.usage_mask	= NVMAP_HEAP_CARVEOUT_VPR,
 		.base		= 0,
@@ -108,7 +99,7 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.dma_info	= &vpr_dma_info,
 		.enable_static_dma_map = true,
 	},
-	[3] = {
+	[2] = {
 		.name		= "vidmem",
 		.usage_mask	= NVMAP_HEAP_CARVEOUT_VIDMEM,
 		.base		= 0,
@@ -117,6 +108,10 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.no_cpu_access = true,
 	},
 	/* Need uninitialized entries for IVM carveouts */
+	[3] = {
+		.name		= NULL,
+		.usage_mask	= NVMAP_HEAP_CARVEOUT_IVM,
+	},
 	[4] = {
 		.name		= NULL,
 		.usage_mask	= NVMAP_HEAP_CARVEOUT_IVM,
@@ -129,15 +124,11 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.name		= NULL,
 		.usage_mask	= NVMAP_HEAP_CARVEOUT_IVM,
 	},
-	[7] = {
-		.name		= NULL,
-		.usage_mask	= NVMAP_HEAP_CARVEOUT_IVM,
-	},
 };
 
 static struct nvmap_platform_data nvmap_data = {
 	.carveouts	= nvmap_carveouts,
-	.nr_carveouts	= 4,
+	.nr_carveouts	= 3,
 };
 
 static struct nvmap_platform_carveout *nvmap_get_carveout_pdata(const char *name)
@@ -417,7 +408,6 @@ finish:
 EXPORT_SYMBOL(nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_co, "nvidia,generic_carveout", nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_ivm_co, "nvidia,ivm_carveout", nvmap_co_setup);
-RESERVEDMEM_OF_DECLARE(nvmap_iram_co, "nvidia,iram-carveout", nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_vpr_co, "nvidia,vpr-carveout", nvmap_co_setup);
 
 /*
@@ -426,19 +416,19 @@ RESERVEDMEM_OF_DECLARE(nvmap_vpr_co, "nvidia,vpr-carveout", nvmap_co_setup);
 static int __nvmap_init_legacy(struct device *dev)
 {
 	/* Carveout. */
-	if (!nvmap_carveouts[1].base) {
-		nvmap_carveouts[1].base = tegra_carveout_start;
-		nvmap_carveouts[1].size = tegra_carveout_size;
+	if (!nvmap_carveouts[0].base) {
+		nvmap_carveouts[0].base = tegra_carveout_start;
+		nvmap_carveouts[0].size = tegra_carveout_size;
 		if (!tegra_vpr_resize)
-			nvmap_carveouts[1].cma_dev = NULL;
+			nvmap_carveouts[0].cma_dev = NULL;
 	}
 
 	/* VPR */
-	if (!nvmap_carveouts[2].base) {
-		nvmap_carveouts[2].base = tegra_vpr_start;
-		nvmap_carveouts[2].size = tegra_vpr_size;
+	if (!nvmap_carveouts[1].base) {
+		nvmap_carveouts[1].base = tegra_vpr_start;
+		nvmap_carveouts[1].size = tegra_vpr_size;
 		if (!tegra_vpr_resize)
-			nvmap_carveouts[2].cma_dev = NULL;
+			nvmap_carveouts[1].cma_dev = NULL;
 	}
 
 	return 0;
@@ -464,15 +454,15 @@ int __init nvmap_init(struct platform_device *pdev)
 		pr_debug("reserved_mem_device_init fails, try legacy init\n");
 
 	/* try legacy init */
-	if (!nvmap_carveouts[1].init_done) {
-		rmem.priv = &nvmap_carveouts[1];
+	if (!nvmap_carveouts[0].init_done) {
+		rmem.priv = &nvmap_carveouts[0];
 		err = nvmap_co_device_init(&rmem, &pdev->dev);
 		if (err)
 			goto end;
 	}
 
-	if (!nvmap_carveouts[2].init_done) {
-		rmem.priv = &nvmap_carveouts[2];
+	if (!nvmap_carveouts[1].init_done) {
+		rmem.priv = &nvmap_carveouts[1];
 		err = nvmap_co_device_init(&rmem, &pdev->dev);
 	}
 

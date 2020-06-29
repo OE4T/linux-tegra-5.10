@@ -721,7 +721,6 @@ static int alloc_handle_from_va(struct nvmap_client *client,
  * sub-page splinters */
 static const unsigned int heap_policy_small[] = {
 	NVMAP_HEAP_CARVEOUT_VPR,
-	NVMAP_HEAP_CARVEOUT_IRAM,
 	NVMAP_HEAP_CARVEOUT_MASK,
 	NVMAP_HEAP_IOVMM,
 	0,
@@ -729,7 +728,6 @@ static const unsigned int heap_policy_small[] = {
 
 static const unsigned int heap_policy_large[] = {
 	NVMAP_HEAP_CARVEOUT_VPR,
-	NVMAP_HEAP_CARVEOUT_IRAM,
 	NVMAP_HEAP_IOVMM,
 	NVMAP_HEAP_CARVEOUT_MASK,
 	0,

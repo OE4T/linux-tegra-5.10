@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2011-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -40,7 +40,6 @@ extern int tegra_with_secure_firmware;
 
 extern struct device tegra_generic_dev;
 extern struct device tegra_vpr_dev;
-extern struct device tegra_iram_dev;
 extern struct dma_resize_notifier_ops vpr_dev_ops;
 
 u32 tegra_get_bct_strapping(void);
