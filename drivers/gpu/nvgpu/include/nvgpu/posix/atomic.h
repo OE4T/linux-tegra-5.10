@@ -714,14 +714,8 @@ static inline bool nvgpu_atomic64_sub_and_test_impl(long x, nvgpu_atomic64_t *v)
  * @param old	Value to compare.
  * @param new	Value to exchange.
  */
-#define cmpxchg(p, old, new) 						\
-	({								\
-		typeof(*(p)) tmp = (old);				\
-									\
-		(void) nvgpu_atomic_cmpxchg((nvgpu_atomic_t *)(void *)(p), tmp,\
-			(new));						\
-		tmp;							\
-	})
+#define cmpxchg(p, old, new) \
+		nvgpu_atomic_cmpxchg((nvgpu_atomic_t *)(void *)(p), (old), (new))
 
 
 #endif /* NVGPU_POSIX_ATOMIC_H */
