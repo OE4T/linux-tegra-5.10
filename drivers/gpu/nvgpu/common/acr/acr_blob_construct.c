@@ -580,9 +580,6 @@ static int lsfm_discover_and_add_sub_wprs(struct gk20a *g,
 		sub_wpr_index++) {
 
 		switch (sub_wpr_index) {
-		case LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_FRTS_VBIOS_TABLES:
-			size_4K = LSF_SHARED_DATA_SUB_WPR_FRTS_VBIOS_TABLES_SIZE_IN_4K;
-			break;
 		case LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_PLAYREADY_SHARED_DATA:
 			size_4K = LSF_SHARED_DATA_SUB_WPR_PLAYREADY_SHARED_DATA_SIZE_IN_4K;
 			break;
