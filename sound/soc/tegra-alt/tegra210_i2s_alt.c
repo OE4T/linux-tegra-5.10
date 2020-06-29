@@ -872,7 +872,7 @@ static const struct snd_kcontrol_new tegra210_i2s_controls[] = {
 		     tegra210_i2s_get_format, tegra210_i2s_put_format),
 	SOC_ENUM_EXT("codec bit format", tegra210_i2s_format_enum,
 		tegra210_i2s_get_format, tegra210_i2s_put_format),
-	SOC_SINGLE_EXT("fsync width", SND_SOC_NOPM, 0, 255, 0,
+	SOC_SINGLE_EXT("FSYNC Width", SND_SOC_NOPM, 0, 255, 0,
 		tegra210_i2s_fsync_width_get, tegra210_i2s_fsync_width_put),
 	SOC_SINGLE_EXT("Sample Rate", 0, 0, 192000, 0,
 		tegra210_i2s_get_format, tegra210_i2s_put_format),
