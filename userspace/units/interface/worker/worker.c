@@ -343,7 +343,7 @@ int test_deinit(struct unit_module *m, struct gk20a *g, void *args)
 
 struct unit_module_test worker_tests[] = {
 	UNIT_TEST(init,		test_init,				NULL, 0),
-	UNIT_TEST(enqueue,	test_enqueue,				NULL, 0),
+	UNIT_TEST(enqueue,	test_enqueue,				NULL, 1),
 	UNIT_TEST(branches,	test_branches,				NULL, 0),
 	UNIT_TEST(deinit,	test_deinit,				NULL, 0),
 };
