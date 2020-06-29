@@ -698,10 +698,12 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 	/* If HW checksum offload enabled, mark CIC bits of FD */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_CSUM) == OSI_PKT_CX_CSUM) {
 		tx_desc->tdes3 |= TDES3_HW_CIC_ALL;
-	} else if ((tx_pkt_cx->flags & OSI_PKT_CX_IP_CSUM) ==
+	} else {
+		if ((tx_pkt_cx->flags & OSI_PKT_CX_IP_CSUM) ==
 		    OSI_PKT_CX_IP_CSUM) {
-		/* If IP only Checksum enabled, mark fist bit of CIC */
-		tx_desc->tdes3 |= TDES3_HW_CIC_IP_ONLY;
+			/* If IP only Checksum enabled, mark fist bit of CIC */
+			tx_desc->tdes3 |= TDES3_HW_CIC_IP_ONLY;
+		}
 	}
 
 	/* Enable VTIR in normal descriptor for VLAN packet */

@@ -1037,7 +1037,6 @@ int osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
  */
 struct osi_core_ops *eqos_get_hw_core_ops(void);
 void *eqos_get_core_safety_config(void);
-void *eqos_get_core_backup_config(void);
 
 /**
  * @brief osi_l3l4_filter -  invoke OSI call to add L3/L4
