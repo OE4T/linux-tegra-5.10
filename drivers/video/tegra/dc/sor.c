@@ -31,6 +31,7 @@
 #include <linux/tegra_pm_domains.h>
 #include <uapi/video/tegra_dc_ext.h>
 #include <linux/of_irq.h>
+#include <linux/pinctrl/pinctrl.h>
 
 #include "dc.h"
 #include "sor.h"
