@@ -377,6 +377,29 @@ void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
 }
 
 /**
+ * @brief ether_get_free_tx_ts_node - get free node for pending SKB
+ *
+ * Algorithm:
+ *  - Find index of statically allocayted free memory for pending SKB
+ *
+ * @param[in] pdata: OSD private data structure.
+ *
+ * @retval index number
+ */
+static inline unsigned int ether_get_free_tx_ts_node(struct ether_priv_data *pdata)
+{
+	unsigned int i;
+
+	for (i = 0; i < ETHER_MAX_PENDING_SKB_CNT; i++) {
+		if (pdata->tx_ts_skb[i].in_use == OSI_NONE) {
+			break;
+		}
+	}
+
+	return i;
+}
+
+/**
  * @brief osd_transmit_complete - Transmit completion routine.
  *
  * Algorithm:
@@ -407,6 +430,7 @@ static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaadd
 	struct osi_tx_ring *tx_ring;
 	struct netdev_queue *txq;
 	unsigned int chan, qinx;
+	unsigned int idx;
 
 	ndev->stats.tx_bytes += len;
 
@@ -445,8 +469,32 @@ static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaadd
 		}
 
 		ndev->stats.tx_packets++;
-		dev_consume_skb_any(skb);
+		if ((txdone_pkt_cx->flags & OSI_TXDONE_CX_TS_DELAYED) ==
+		    OSI_TXDONE_CX_TS_DELAYED) {
+			struct ether_tx_ts_skb_list *pnode = NULL;
+
+			idx = ether_get_free_tx_ts_node(pdata);
+			if (idx == ETHER_MAX_PENDING_SKB_CNT) {
+				dev_dbg(pdata->dev,
+					"No free node to store pending SKB\n");
+				dev_consume_skb_any(skb);
+				return;
+			}
+
+			pnode = &pdata->tx_ts_skb[idx];
+			pnode->skb = skb;
+			pnode->pktid = txdone_pkt_cx->pktid;
+
+			dev_dbg(pdata->dev, "SKB %p added for pktid = %d\n",
+				skb, txdone_pkt_cx->pktid);
+			list_add_tail(&pnode->list_head,
+				      &pdata->tx_ts_skb_head);
+			schedule_work(&pdata->tx_ts_work);
+		} else {
+			dev_consume_skb_any(skb);
+		}
 	}
+
 }
 
 void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,

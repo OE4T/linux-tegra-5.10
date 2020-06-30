@@ -18,6 +18,78 @@
 #include <linux/iommu.h>
 #include "ether_linux.h"
 
+/**
+ * @brief Gets timestamp and update skb
+ *
+ * Algorithm:
+ * - Parse through tx_ts_skb_head.
+ * - Issue osi_handle_ioctl(OSI_CMD_GET_TX_TS) to read timestamp.
+ * - Update skb with timestamp and give to network stack
+ * - Free skb and node.
+ *
+ * @param[in] work: Work to handle SKB list update
+ */
+static void ether_get_tx_ts(struct work_struct *work)
+{
+	struct ether_priv_data *pdata = container_of(work,
+			struct ether_priv_data, tx_ts_work);
+	struct list_head *head_node, *temp_head_node;
+	struct skb_shared_hwtstamps shhwtstamp;
+	struct osi_ioctl ioctl_data = {};
+	unsigned long long nsec = 0x0;
+	struct ether_tx_ts_skb_list *pnode;
+	int ret = -1;
+
+	if (list_empty(&pdata->tx_ts_skb_head)) {
+		return;
+	}
+
+	list_for_each_safe(head_node, temp_head_node,
+			   &pdata->tx_ts_skb_head) {
+		pnode = list_entry(head_node,
+				   struct ether_tx_ts_skb_list,
+				   list_head);
+		memset(&shhwtstamp, 0,
+		       sizeof(struct skb_shared_hwtstamps));
+
+		ioctl_data.cmd = OSI_CMD_GET_TX_TS;
+		ioctl_data.tx_ts.pkt_id = pnode->pktid;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+		if (ret == 0) {
+			/* get time stamp form ethernet server */
+			dev_dbg(pdata->dev, "%s() pktid = %x, skb = %p\n",
+				__func__, pnode->pktid, pnode->skb);
+
+			if ((ioctl_data.tx_ts.nsec & OSI_MAC_TCR_TXTSSMIS) ==
+			    OSI_MAC_TCR_TXTSSMIS) {
+				dev_warn(pdata->dev,
+					 "No valid time for skb, removed\n");
+				goto update_skb;
+			}
+
+			nsec = ioctl_data.tx_ts.sec * ETHER_ONESEC_NENOSEC +
+			       ioctl_data.tx_ts.nsec;
+
+			/* pass tstamp to stack */
+			shhwtstamp.hwtstamp = ns_to_ktime(nsec);
+			if (pnode->skb != NULL) {
+				skb_tstamp_tx(pnode->skb, &shhwtstamp);
+			}
+
+update_skb:
+			if (pnode->skb != NULL) {
+				dev_consume_skb_any(pnode->skb);
+			}
+
+			list_del(head_node);
+			pnode->in_use = OSI_DISABLE;
+
+		} else {
+			dev_dbg(pdata->dev, "Unable to retrieve TS from OSI\n");
+		}
+	}
+}
+
 /** @brief invalidate local l2 address list
  *
  * Algorithm: Invalidate all nodes in local address link list
@@ -2261,7 +2333,8 @@ static int ether_open(struct net_device *dev)
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_ioctl ioctl_data = {};
-	int ret = 0;
+	unsigned int chan = 0x0;
+	int ret = 0, i;
 
 	/* Reset the PHY */
 	if (gpio_is_valid(pdata->phy_reset)) {
@@ -2369,12 +2442,29 @@ static int ether_open(struct net_device *dev)
 		goto err_hw_init;
 	}
 
+	for (i = 0; i < pdata->osi_dma->num_dma_chans; i++) {
+		chan = pdata->osi_dma->dma_chans[i];
+		ioctl_data.cmd = OSI_CMD_FREE_TS;
+		if ((pdata->osi_dma->ptp_flag & OSI_PTP_SYNC_ONESTEP) ==
+		    OSI_PTP_SYNC_ONESTEP) {
+			ioctl_data.arg1_u32 = OSI_NONE;
+		} else {
+			ioctl_data.arg1_u32 = chan;
+		}
+
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		if (ret < 0) {
+			dev_err(&dev->dev,
+				"%s: failed to free TX TS for channel %d\n",
+				__func__, chan);
+			goto err_hw_init;
+		}
+	}
+
 	/* As all registers reset as part of ether_close(), reset private
 	 * structure variable as well */
 	pdata->vlan_hash_filtering = OSI_PERFECT_FILTER_MODE;
 	pdata->l2_filtering_mode = OSI_PERFECT_FILTER_MODE;
-	/* Set default PTP mode as Two step */
-	pdata->osi_dma->ptp_flag = OSI_PTP_SYNC_TWOSTEP;
 
 	/* Initialize PTP */
 	ret = ether_ptp_init(pdata);
@@ -2568,6 +2658,37 @@ static inline void ether_delete_l2_filter(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief Call to delete nodes form tx timestamp skb list
+ *
+ * Algorithm:
+ * - Stop work queue
+ * - Delete nodes from link list
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ */
+static inline void ether_flush_tx_ts_skb_list(struct ether_priv_data *pdata)
+{
+	struct ether_tx_ts_skb_list *pnode;
+	struct list_head *head_node, *temp_head_node;
+
+	/* stop workqueue */
+	cancel_work_sync(&pdata->tx_ts_work);
+
+	/* Delete nodes from list and rest static memory for reuse */
+	if (!list_empty(&pdata->tx_ts_skb_head)) {
+		list_for_each_safe(head_node, temp_head_node,
+				   &pdata->tx_ts_skb_head) {
+			pnode = list_entry(head_node,
+					   struct ether_tx_ts_skb_list,
+					   list_head);
+			dev_kfree_skb(pnode->skb);
+			list_del(head_node);
+			pnode->in_use = OSI_DISABLE;
+		}
+	}
+}
+
+/**
  * @brief Call back to handle bring down of Ethernet interface
  *
  * Algorithm: This routine takes care of below
@@ -2648,6 +2769,9 @@ static int ether_close(struct net_device *ndev)
 
 	/* MAC deinit which inturn stop MAC Tx,Rx */
 	osi_hw_core_deinit(pdata->osi_core);
+
+	/* stop tx ts pending SKB workqueue and remove skb nodes */
+	ether_flush_tx_ts_skb_list(pdata);
 
 	cancel_work_sync(&pdata->set_rx_mode_work);
 
@@ -2801,7 +2925,7 @@ static int ether_tx_swcx_alloc(struct ether_priv_data *pdata,
 	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
 	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) ||
 	    (((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) &&
-	      /* Check only MGBE as we need ctx fro both sync mode */
+	      /* Check only MGBE as we need ctx for both sync mode */
 	      ((pdata->osi_core->mac == OSI_MAC_HW_MGBE) ||
 	       ((pdata->osi_dma->ptp_flag & OSI_PTP_SYNC_ONESTEP) ==
 		OSI_PTP_SYNC_ONESTEP)))) {
@@ -5793,6 +5917,8 @@ static int ether_probe(struct platform_device *pdev)
 	INIT_WORK(&pdata->set_rx_mode_work, set_rx_mode_work_func);
 	osi_core->hw_feature = &pdata->hw_feat;
 	INIT_LIST_HEAD(&pdata->mac_addr_list_head);
+	INIT_LIST_HEAD(&pdata->tx_ts_skb_head);
+	INIT_WORK(&pdata->tx_ts_work, ether_get_tx_ts);
 
 	return 0;
 

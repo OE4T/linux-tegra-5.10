@@ -116,6 +116,12 @@
 #define ETHER_EQOS_TX_CLK_1000M		125000000UL
 #define ETHER_EQOS_TX_CLK_100M		25000000UL
 #define ETHER_EQOS_TX_CLK_10M		2500000UL
+
+/**
+ * @brief 1 Second in Neno Second
+ */
+#define ETHER_ONESEC_NENOSEC           1000000000ULL
+
 /**
  * @addtogroup CONFIG Ethernet configuration error codes
  *
@@ -149,6 +155,11 @@
 #define HW_HASH_TBL_SZ_1		1
 #define HW_HASH_TBL_SZ_0		0
 /** @} */
+
+/**
+ * @brief Max pending SKB count
+ */
+#define ETHER_MAX_PENDING_SKB_CNT	(64 * OSI_MGBE_MAX_NUM_CHANS)
 
 /**
  * @brief Maximum buffer length per DMA descriptor (16KB).
@@ -324,6 +335,20 @@ struct ether_mac_addr_list {
 };
 
 /**
+ * @brief tx timestamp pending skb list node structure
+ */
+struct ether_tx_ts_skb_list {
+	/** Link list node head */
+	struct list_head list_head;
+	/** if node is in use */
+	unsigned int in_use;
+	/** skb pointer */
+	struct sk_buff *skb;
+	/** packet id to identify timestamp */
+	unsigned int pktid;
+};
+
+/**
  * @brief Ethernet driver private data
  */
 struct ether_priv_data {
@@ -495,6 +520,12 @@ struct ether_priv_data {
 #endif /* MACSEC_SUPPORT */
 	/** local L2 filter address list head pointer */
 	struct list_head mac_addr_list_head;
+	/** skb tx timestamp update work queue */
+	struct work_struct tx_ts_work;
+	/** local skb list head */
+	struct list_head tx_ts_skb_head;
+	/** pre allocated memory for ether_tx_ts_skb_list list */
+	struct ether_tx_ts_skb_list tx_ts_skb[ETHER_MAX_PENDING_SKB_CNT];
 };
 
 /**
