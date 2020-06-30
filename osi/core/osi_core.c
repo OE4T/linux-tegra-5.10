@@ -122,6 +122,9 @@ struct osi_core_priv_data *osi_get_core(void)
 
 	g_core[i].magic_num = (nveu64_t)&g_core[i].osi_core;
 
+	g_core[i].tx_ts_head.prev = &g_core[i].tx_ts_head;
+	g_core[i].tx_ts_head.next = &g_core[i].tx_ts_head;
+
 	return &g_core[i].osi_core;
 }
 

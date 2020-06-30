@@ -25,6 +25,7 @@
 #include "hw_desc.h"
 #include "../osi/common/common.h"
 #include "mgbe_dma.h"
+#include "local_common.h"
 
 static struct desc_ops d_ops[MAX_MAC_IP_TYPES];
 
@@ -508,102 +509,6 @@ static inline nve32_t validate_tx_completions_arg(
 }
 
 /**
- * @brief poll_for_ts_update - Poll for TXTSC bit set for timestamp capture
- *
- * Algorithm: This routine will be invoked by get_mac_tx_timestamp to poll
- *      on TXTSC bit to get set or timedout.
- *
- * @param[in] addr: Base address
- * @param[in] chan: Current counter value
- *
- * @retval -1 on failure
- * @retval 0 on success
- */
-static inline int poll_for_ts_update(struct osi_dma_priv_data *osi_dma,
-				     unsigned int *count)
-{
-	unsigned int retry = OSI_POLL_COUNT;
-	unsigned int val = 0U;
-
-	while (*count < retry) {
-		/* Read and Check TXTSC in MAC_Timestamp_Control register */
-		val = osi_readl((unsigned char *)osi_dma->base +
-				MGBE_MAC_TSS);
-		if ((val & MGBE_MAC_TSS_TXTSC) == MGBE_MAC_TSS_TXTSC) {
-			return 0;
-		}
-		(*count)++;
-		osi_dma->osd_ops.udelay(OSI_DELAY_1US);
-	}
-
-	return -1;
-}
-
-/**
- * @brief get_mac_tx_timestamp - get TX timestamp from timestamp capture
- * registers
- *
- * Algorithm: This routine will be invoked on TX_DONE interrupt and if hw
- * timestamp capture enabled for that descriptor. SW will check for Packet
- * id maching with dma channel number as for same DMA all tx are FIFO. If match
- * update hwtimestamp into local variables.
- *
- * @param[in] osi:	OSI private data structure.
- * @param[in] tx_desc:	Pointer to tranmit descriptor.
- * @param[out] txdone_pkt_cx:	Pointer to txdone packet descriptor to be filled
- * @param[in] chan:	Rx channel number.
- *
- */
-static void get_mac_tx_timestamp(struct osi_dma_priv_data *osi_dma,
-			  struct osi_tx_desc *tx_desc,
-			  struct osi_txdone_pkt_cx *txdone_pkt_cx,
-			  unsigned int chan)
-{
-	unsigned char *addr = (unsigned char *)osi_dma->base;
-	int ret = -1;
-	int found = 1;
-	unsigned int count = 0;
-	unsigned long long var = 0;
-
-	ret = poll_for_ts_update(osi_dma, &count);
-	if (ret < 0) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			    "timestamp done failed\n", 0ULL);
-		found = 0;
-	}
-
-	/* check if pkt id is also correct for pkt. current implemtation
-	 * use dma channel index as pktid, we will use pktid from index 0 to
-	 * max DMA channels -1 */
-	while (found == 1) {
-		if (((osi_readl(addr + MGBE_MAC_TS_PID) &
-		    MGBE_MAC_TS_PID_MASK) == chan)) {
-			txdone_pkt_cx->flags |= OSI_TXDONE_CX_TS;
-			txdone_pkt_cx->ns = osi_readl(addr + MGBE_MAC_TS_NSEC);
-			txdone_pkt_cx->ns &= MGBE_MAC_TS_NSEC_MASK;
-			var = osi_readl(addr + MGBE_MAC_TS_SEC);
-			if (OSI_NSEC_PER_SEC > (OSI_ULLONG_MAX / var)) {
-				/* Will not hit this case */
-			} else if ((OSI_ULLONG_MAX - (var * OSI_NSEC_PER_SEC)) <
-				   txdone_pkt_cx->ns) {
-				/* Will not hit this case */
-			} else {
-				txdone_pkt_cx->ns += var * OSI_NSEC_PER_SEC;
-			}
-
-			found = 0;
-		} else {
-			OSI_DMA_INFO(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				     "packet ID mismatch \n", 0ULL);
-			ret = poll_for_ts_update(osi_dma, &count);
-			if (ret < 0) {
-				found = 0;
-			}
-		}
-	}
-}
-
-/**
  * @brief is_ptp_twostep_or_slave_mode - check for dut in ptp 2step or slave
  * mode
  *
@@ -697,10 +602,12 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 		} else if (((tx_swcx->flags & OSI_PKT_CX_PTP) ==
 			   OSI_PKT_CX_PTP) &&
 			   // if not master in onestep mode
+			   /* TODO: Is this check needed and can be removed ? */
 			   (is_ptp_twostep_or_slave_mode(osi_dma->ptp_flag) ==
 			    OSI_ENABLE) &&
 			   ((tx_desc->tdes3 & TDES3_CTXT) == 0U)) {
-			get_mac_tx_timestamp(osi_dma, tx_desc, txdone_pkt_cx, chan);
+			txdone_pkt_cx->pktid = tx_swcx->pktid;
+			txdone_pkt_cx->flags |= OSI_TXDONE_CX_TS_DELAYED;
 		} else {
 			/* Do nothing here */
 		}
@@ -993,6 +900,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		    struct dma_chan_ops *ops,
 		    nveu32_t chan)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	struct osi_tx_pkt_cx *tx_pkt_cx = OSI_NULL;
 	struct osi_tx_desc *first_desc = OSI_NULL;
 	struct osi_tx_desc *last_desc = OSI_NULL;
@@ -1000,6 +908,7 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_tx_desc *cx_desc = OSI_NULL;
 	nve32_t cntx_desc_consumed;
+	nveu32_t pkt_id = 0x0U;
 	nveu32_t desc_cnt = 0U;
 	nveu64_t tailptr, tmp;
 	nveu32_t entry = 0U;
@@ -1043,8 +952,15 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 		    (osi_dma->mac == OSI_MAC_HW_MGBE)) {
 			/* mark packet id valid */
 			tx_desc->tdes3 |= TDES3_PIDV;
-			/* Packet id */
-			tx_desc->tdes0 =  chan;
+			if ((osi_dma->ptp_flag & OSI_PTP_SYNC_ONESTEP) ==
+			    OSI_PTP_SYNC_ONESTEP) {
+				/* packet ID for Onestep is 0x0 always */
+				pkt_id = OSI_NONE;
+			} else {
+				pkt_id = GET_TX_TS_PKTID(l_dma->pkt_id, chan);
+			}
+			/* update packet id */
+			tx_desc->tdes0 = pkt_id;
 		}
 		INCR_TX_DESC_INDEX(entry, 1U);
 
@@ -1058,6 +974,13 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 
 	/* Fill first descriptor */
 	fill_first_desc(tx_ring, tx_pkt_cx, tx_desc, tx_swcx, osi_dma->ptp_flag);
+	if (((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) &&
+	    (osi_dma->mac == OSI_MAC_HW_MGBE)) {
+		/* save packet id for first desc, time stamp will be with
+		 * first FD only
+		 */
+		tx_swcx->pktid = pkt_id;
+	}
 
 	INCR_TX_DESC_INDEX(entry, 1U);
 

@@ -106,6 +106,10 @@
 #define MGBE_MAC_STSUR			0x0D10
 #define MGBE_MAC_STNSUR			0x0D14
 #define MGBE_MAC_TAR			0x0D18
+#define MGBE_MAC_TSS			0x0D20
+#define MGBE_MAC_TSNSSEC		0x0D30
+#define MGBE_MAC_TSSEC			0x0D34
+#define MGBE_MAC_TSPKID			0x0D38
 #define MGBE_MAC_PTO_CR			0x0DC0
 #define MGBE_MAC_PIDR0			0x0DC4
 #define MGBE_MAC_PIDR1			0x0DC8
@@ -450,8 +454,10 @@
 						 OSI_BIT(25) | OSI_BIT(24))
 #define MGBE_MAC_RQC4R_PMCBCQ_SHIFT		24U
 #define MGBE_IMR_RGSMIIIE			OSI_BIT(0)
+#define MGBE_IMR_TSIE				OSI_BIT(12)
 #define MGBE_IMR_FPEIE				OSI_BIT(15)
 #define MGBE_MAC_IMR_FPEIS			OSI_BIT(16)
+#define MGBE_ISR_TSIS				OSI_BIT(12)
 #define MGBE_DMA_ISR_MTLIS                      OSI_BIT(16)
 #define MGBE_DMA_ISR_MACIS                      OSI_BIT(17)
 #define MGBE_DMA_ISR_DCH0_DCH15_MASK		0xFFU
@@ -662,6 +668,8 @@
 #define MGBE_MAC_SBD_INTR			OSI_BIT(2)
 #define MGBE_MAC_EXT_CNF_DDS			OSI_BIT(7)
 #define MGBE_MAC_EXT_CNF_EIPG 			0x1U
+/* TX timestamp */
+#define MGBE_MAC_TSS_TXTSC			OSI_BIT(15)
 /** @} */
 
 /**
