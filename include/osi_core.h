@@ -80,6 +80,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_MAC_TCR_CSC			OSI_BIT(19)
 #define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
 #define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
+#define OSI_MAC_TCR_TXTSSMIS		OSI_BIT(31)
 /** @} */
 
 /**
@@ -205,6 +206,8 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_CONFIG_FPE		39U
 #define OSI_CMD_READ_REG		40U
 #define OSI_CMD_WRITE_REG		41U
+#define OSI_CMD_GET_TX_TS			42U
+#define OSI_CMD_FREE_TS			43U
 /** @} */
 
 /**
@@ -1026,6 +1029,24 @@ struct osi_macsec_irq_stats {
 #endif /* MACSEC_SUPPORT */
 
 /**
+ * @brief Core time stamp data strcuture
+ */
+struct osi_core_tx_ts {
+	/** Pointer to next item in the link */
+	struct osi_core_tx_ts *next;
+	/** Pointer to prev item in the link */
+	struct osi_core_tx_ts *prev;
+	/** Packet ID for corresponding timestamp */
+	nveu32_t pkt_id;
+	/** Time in seconds */
+	nveu32_t sec;
+	/** Time in nano seconds */
+	nveu32_t nsec;
+	/** Variable which says if pkt_id is in use or not */
+	nveu32_t in_use;
+};
+
+/**
  * @brief OSI Core data structure for runtime commands.
  */
 struct osi_ioctl {
@@ -1071,6 +1092,8 @@ struct osi_ioctl {
 	struct osi_fpe_config fpe;
 	/** PTP configuration settings */
 	struct osi_ptp_config ptp_config;
+	/** TX Timestamp structure */
+	struct osi_core_tx_ts tx_ts;
 };
 
 /**
@@ -2181,6 +2204,14 @@ nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
  *	Configuration FPE register and preemptable queue
  *	fpe - FPE configuration structure
  *
+ *  - OSI_CMD_GET_TX_TS
+ *	Command to get TX timestamp for PTP packet
+ *	ts - OSI core timestamp structure
+ *
+ *  - OSI_CMD_FREE_TS
+ *	Command to free old timestamp for PTP packet
+ *	chan - DMA channel number +1. 0 will be used for onestep
+ *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] data: void pointer pointing to osi_ioctl
  *
@@ -2364,6 +2395,14 @@ struct osi_core_priv_data *osi_get_core(void);
  *  - OSI_CMD_CONFIG_FPE
  *	Configuration FPE register and preemptable queue
  *	fpe - FPE configuration structure
+ *
+ *  - OSI_CMD_GET_TX_TS
+ *	Command to get TX timestamp for PTP packet
+ *	ts - OSI core timestamp structure
+ *
+ *  - OSI_CMD_FREE_TS
+ *	Command to free old timestamp for PTP packet
+ *	chan - DMA channel number +1. 0 will be used for onestep
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] data: void pointer pointing to osi_ioctl

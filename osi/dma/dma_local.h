@@ -123,6 +123,12 @@ struct dma_local {
 	struct osi_dma_priv_data osi_dma;
 	/** DMA channel operations */
 	struct dma_chan_ops *ops_p;
+	/**
+	 * PacketID for PTP TS.
+	 * MSB 4-bits of channel number and LSB 6-bits of local
+	 * index(PKT_ID_CNT).
+	 */
+	nveu32_t pkt_id;
 	/** Flag to represent OSI DMA software init done */
 	nveu32_t init_done;
 	/** Holds the MAC version of MAC controller */

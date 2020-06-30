@@ -157,6 +157,8 @@
 #define OSI_TXDONE_CX_ERROR		OSI_BIT(1)
 /** Flag to indicate the availability of time stamp */
 #define OSI_TXDONE_CX_TS		OSI_BIT(2)
+/** Flag to indicate the delayed availability of time stamp */
+#define OSI_TXDONE_CX_TS_DELAYED	OSI_BIT(3)
 /** @} */
 
 /**
@@ -363,6 +365,8 @@ struct osi_tx_swcx {
 	 * is a paged buffer/linear buffer
 	 * Bit 1 PTP hwtime form timestamp registers */
 	unsigned int flags;
+	/** Packet id of packet for which TX timestamp needed */
+	unsigned int pktid;
 };
 
 /**
@@ -410,6 +414,8 @@ struct osi_txdone_pkt_cx {
 	/** TS captured for the tx packet and this is valid only when the PTP
 	 * bit is set in fields */
 	nveul64_t ns;
+	/** Passing packet id to map TX time to packet */
+	unsigned int pktid;
 };
 
 /**

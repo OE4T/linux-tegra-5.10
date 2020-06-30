@@ -2642,9 +2642,9 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 	/* Enable MAC nve32_terrupts */
 	/* Read MAC IMR Register */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + MGBE_MAC_IER);
-	/* RGSMIIIM - RGMII/SMII nve32_terrupt Enable */
+	/* RGSMIIIM - RGMII/SMII interrupt and TSIE Enable */
 	/* TODO: LPI need to be enabled during EEE implementation */
-	value |= MGBE_IMR_RGSMIIIE;
+	value |= (MGBE_IMR_RGSMIIIE | MGBE_IMR_TSIE);
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + MGBE_MAC_IER);
 
 	/* Enable common interrupt at wrapper level */
@@ -3194,6 +3194,28 @@ static void mgbe_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
 }
 
 /**
+ * @brief Get free timestamp index from TS array by validating in_use param
+ *
+ * @param[in] l_core: Core local private data structure.
+ *
+ * @retval Free timestamp index.
+ *
+ * @post If timestamp index is MAX_TX_TS_CNT, then its no free count index
+ *       is available.
+ */
+static inline nveu32_t get_free_ts_idx(struct core_local *l_core)
+{
+	nveu32_t i;
+
+	for (i = 0; i < MAX_TX_TS_CNT; i++) {
+		if (l_core->ts[i].in_use == OSI_NONE) {
+			break;
+		}
+	}
+	return i;
+}
+
+/**
  * @brief mgbe_handle_mac_intrs - Handle MAC interrupts
  *
  * Algorithm: This function takes care of handling the
@@ -3207,8 +3229,9 @@ static void mgbe_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
 static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 				  nveu32_t dma_isr)
 {
-	unsigned int mac_isr = 0;
-	unsigned int mac_ier = 0;
+	struct core_local *l_core = (struct core_local *)osi_core;
+	nveu32_t mac_isr = 0;
+	nveu32_t mac_ier = 0;
 
 	mac_isr = osi_readla(osi_core,
 			     (unsigned char *)osi_core->base + MGBE_MAC_ISR);
@@ -3224,6 +3247,43 @@ static void mgbe_handle_mac_intrs(struct osi_core_priv_data *osi_core,
 		mgbe_handle_mac_fpe_intrs(osi_core);
 		mac_isr &= ~MGBE_MAC_IMR_FPEIS;
 	}
+
+	osi_writela(osi_core, mac_isr,
+		    (unsigned char *)osi_core->base + MGBE_MAC_ISR);
+	if ((mac_isr & MGBE_ISR_TSIS) == MGBE_ISR_TSIS) {
+		struct osi_core_tx_ts *head = &l_core->tx_ts_head;
+
+		/* TXTSC bit should get reset when all timestamp read */
+		while (((osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					       MGBE_MAC_TSS) &
+			MGBE_MAC_TSS_TXTSC) == MGBE_MAC_TSS_TXTSC)) {
+			nveu32_t i = get_free_ts_idx(l_core);
+
+			if (i == MAX_TX_TS_CNT) {
+				OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+					     "TS queue is full\n", i);
+				break;
+			}
+
+			l_core->ts[i].nsec = osi_readla(osi_core,
+						    (nveu8_t *)osi_core->base +
+						     MGBE_MAC_TSNSSEC);
+
+			l_core->ts[i].in_use = OSI_ENABLE;
+			l_core->ts[i].pkt_id = osi_readla(osi_core,
+						    (nveu8_t *)osi_core->base +
+						     MGBE_MAC_TSPKID);
+			l_core->ts[i].sec = osi_readla(osi_core,
+						    (nveu8_t *)osi_core->base +
+						     MGBE_MAC_TSSEC);
+			/* Add time stamp to end of list */
+			l_core->ts[i].next = head->prev->next;
+			head->prev->next = &l_core->ts[i];
+			l_core->ts[i].prev = head->prev;
+			head->prev = &l_core->ts[i];
+		}
+	}
+	mac_isr &= ~MGBE_ISR_TSIS;
 
 	osi_writela(osi_core, mac_isr,
 		    (unsigned char *)osi_core->base + MGBE_MAC_ISR);

@@ -1362,6 +1362,80 @@ static nve32_t config_fpe(struct osi_core_priv_data *osi_core,
 	return l_core->ops_p->hw_config_fpe(osi_core, fpe);
 }
 
+/**
+ * @brief Free stale timestamps for channel
+ *
+ * Algorithm:
+ * - Check for if any timestamp for input channel id
+ * - if yes, reset node to 0x0 for reuse.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] chan: 1 for DMA channel 0, 2 for dma channel 1,...
+ *		    0 is used for onestep.
+ */
+static inline void free_tx_ts(struct osi_core_priv_data *osi_core,
+			   nveu32_t chan)
+{
+	struct core_local *l_core = (struct core_local *)osi_core;
+	struct osi_core_tx_ts *head = &l_core->tx_ts_head;
+	struct osi_core_tx_ts *temp = l_core->tx_ts_head.next;
+	nveu32_t count = 0U;
+
+	while ((temp != head) && (count < MAX_TX_TS_CNT)) {
+		if (((temp->pkt_id >> CHAN_START_POSITION) & chan) == chan) {
+			temp->next->prev = temp->prev;
+			temp->prev->next = temp->next;
+			/* reset in_use for temp node from the link */
+			temp->in_use = OSI_DISABLE;
+		}
+		count++;
+		temp = temp->next;
+	}
+}
+
+/**
+ * @brief Parses internal ts structure array and update time stamp if packet
+ *   id matches.
+ * Algorithm:
+ * - Check for if any timestamp with packet ID in list and valid
+ * - update sec and nsec in timestamp structure
+ * - reset node to reuse for next call
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in,out] ts: osi core ts structure, pkt_id is input and time is output.
+ *
+ * @retval 0 on success
+ * @retval -1 any other failure.
+ */
+static inline nve32_t get_tx_ts(struct osi_core_priv_data *osi_core,
+				struct osi_core_tx_ts *ts)
+{
+	struct core_local *l_core = (struct core_local *)osi_core;
+	struct osi_core_tx_ts *temp = l_core->tx_ts_head.next;
+	struct osi_core_tx_ts *head = &l_core->tx_ts_head;
+	nve32_t ret = -1;
+	nveu32_t count = 0U;
+
+	while ((temp != head) && (count < MAX_TX_TS_CNT)) {
+		if ((temp->pkt_id == ts->pkt_id) &&
+		    (temp->in_use != OSI_NONE)) {
+			ts->sec = temp->sec;
+			ts->nsec = temp->nsec;
+			/* remove temp node from the link */
+			temp->next->prev = temp->prev;
+			temp->prev->next =  temp->next;
+			/* Clear in_use fields */
+			temp->in_use = OSI_DISABLE;
+			ret = 0;
+			break;
+		}
+		count++;
+		temp = temp->next;
+	}
+
+	return ret;
+}
+
 nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 			     struct osi_ioctl *data)
 {
@@ -1561,6 +1635,16 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = ops_p->write_reg(osi_core, (nve32_t) data->arg1_u32,
 				       (nve32_t) data->arg2_u32);
 		break;
+
+	case OSI_CMD_GET_TX_TS:
+		ret = get_tx_ts(osi_core, &data->tx_ts);
+		break;
+
+	case OSI_CMD_FREE_TS:
+		free_tx_ts(osi_core, data->arg1_u32);
+		ret = 0;
+		break;
+
 	default:
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "CORE: Incorrect command\n",

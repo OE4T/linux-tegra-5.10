@@ -24,6 +24,7 @@
 #define INCLUDED_CORE_LOCAL_H
 
 #include <osi_core.h>
+#include <local_common.h>
 
 /**
  * @brief Maximum number of OSI core instances.
@@ -36,6 +37,11 @@
  * @brief Maximum number of interface operations.
  */
 #define MAX_INTERFACE_OPS	2U
+
+/**
+ * @brief Maximum number of timestamps stored in OSI from HW FIFO.
+ */
+#define MAX_TX_TS_CNT		(PKT_ID_CNT * OSI_MGBE_MAX_NUM_CHANS)
 
 /**
  * interface core ops
@@ -273,12 +279,16 @@ struct core_local {
 	struct core_ops *ops_p;
 	/** interface core local operations variable */
 	struct if_core_ops *if_ops_p;
+	/** structure to store tx time stamps */
+	struct osi_core_tx_ts ts[MAX_TX_TS_CNT];
 	/** Flag to represent initialization done or not */
 	nveu32_t init_done;
 	/** Flag to represent infterface initialization done or not */
 	nveu32_t if_init_done;
 	/** Magic number to validate osi core pointer */
 	nveu64_t magic_num;
+	/** This is the head node for PTP packet ID queue */
+	struct osi_core_tx_ts tx_ts_head;
 };
 
 /**
