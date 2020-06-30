@@ -70,13 +70,13 @@ config NVGPU_FECS_TRACE
 
 config TEGRA_GK20A_NVHOST
 	bool "Support interfacing with nvhost hardware"
-	depends on TEGRA_GRHOST || TEGRA_HOST1X
+	depends on TEGRA_GRHOST
 	depends on GK20A
 	default y
 	help
 	  Enable support in GK20A for the nvhost (host1x) dma engine hardware
-	  that includes things like hardware syncpts. This requires either
-	  TEGRA_GRHOST or TEGRA_HOST1X.
+	  that includes things like hardware syncpts. This requires
+	  TEGRA_GRHOST.
 
 config TEGRA_GK20A
 	bool "Enable the GK20A GPU on Tegra"
