@@ -258,7 +258,6 @@ static const struct gpu_ops gp10b_ops = {
 		.init_cyclestats = gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = gr_gk20a_set_sm_debug_mode,
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
-		.get_lrf_tex_ltc_dram_override = gp10b_gr_get_ecc_override_val,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
 		.set_mmu_debug_mode = NULL,

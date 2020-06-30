@@ -191,7 +191,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_cyclestats = vgpu_gr_init_cyclestats,
 		.set_sm_debug_mode = vgpu_gr_set_sm_debug_mode,
 		.bpt_reg_info = NULL,
-		.get_lrf_tex_ltc_dram_override = NULL,
 		.update_smpc_ctxsw_mode = vgpu_gr_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = vgpu_gr_update_hwpm_ctxsw_mode,
 		.clear_sm_error_state = vgpu_gr_clear_sm_error_state,

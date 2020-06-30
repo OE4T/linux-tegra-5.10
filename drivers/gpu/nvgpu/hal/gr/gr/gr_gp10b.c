@@ -613,20 +613,6 @@ u32 gp10b_gr_get_sm_hww_warp_esr(struct gk20a *g,
 	return hww_warp_esr;
 }
 
-u32 gp10b_gr_get_ecc_override_val(struct gk20a *g)
-{
-	bool en = false;
-
-	if (g->ops.fuse.is_opt_ecc_enable != NULL) {
-		en = g->ops.fuse.is_opt_ecc_enable(g);
-		if (en) {
-			return gk20a_readl(g, gr_fecs_feature_override_ecc_r());
-		}
-	}
-
-	return 0;
-}
-
 bool gr_gp10b_suspend_context(struct nvgpu_channel *ch,
 				bool *cilp_preempt_pending)
 {

@@ -1136,7 +1136,6 @@ struct gops_gr {
 	int  (*wait_for_sm_lock_down)(struct gk20a *g, u32 gpc, u32 tpc,
 				      u32 sm, u32 global_esr_mask,
 				      bool check_errors);
-	u32 (*get_lrf_tex_ltc_dram_override)(struct gk20a *g);
 	int (*clear_sm_error_state)(struct gk20a *g,
 				    struct nvgpu_channel *ch, u32 sm_id);
 	int (*suspend_contexts)(struct gk20a *g,
