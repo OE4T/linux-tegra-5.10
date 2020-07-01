@@ -12,6 +12,10 @@
 
 #include "arm-smmu.h"
 
+#ifdef CONFIG_ARM_SMMU_DEBUG
+#include <linux/arm-smmu-debug.h>
+#endif
+
 /* Tegra194 has three ARM MMU-500 Instances.
  * Two of them are used together for Interleaved IOVA accesses and
  * used by Non-Isochronous Hw devices for SMMU translations.
@@ -256,6 +260,10 @@ struct arm_smmu_device *nvidia_smmu_impl_init(struct arm_smmu_device *smmu)
 	devm_kfree(smmu->dev, smmu);
 	pr_info("NVIDIA ARM SMMU Implementation, Instances=%d\n",
 		nsmmu->num_inst);
+
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	arm_smmu_debugfs_setup(smmu);
+#endif
 
 	return &nsmmu->smmu;
 }

@@ -304,6 +304,9 @@ struct arm_smmu_device {
 
 	spinlock_t			global_sync_lock;
 
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	struct smmu_debugfs_info	*debug_info;
+#endif
 	/* IOMMU core code handle */
 	struct iommu_device		iommu;
 };
