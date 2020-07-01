@@ -17,6 +17,12 @@ endif
 # Turn off when this is fixed upstream, if ever.
 ccflags-y += -D__NVGPU_PREVENT_UNTRUSTED_SPECULATION
 
+ifneq ($(srctree.nvgpu),)
+include $(srctree.nvgpu)/drivers/gpu/nvgpu/Makefile.linux.configs
+else
+include Makefile.linux.configs
+endif
+
 ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
 ccflags-y += -DCONFIG_NVGPU_DEBUGGER
 ccflags-y += -DCONFIG_NVGPU_ENGINE_RESET

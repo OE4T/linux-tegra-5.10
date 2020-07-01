@@ -1151,7 +1151,9 @@ static int gk20a_pm_unrailgate(struct device *dev)
 {
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	int ret = 0;
+#ifdef CONFIG_DEBUG_FS
 	struct gk20a *g = get_gk20a(dev);
+#endif
 
 	/* return early if platform didn't implement unrailgate */
 	if (!platform->unrailgate)
