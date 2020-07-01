@@ -629,13 +629,41 @@ static void nvgpu_get_fence_args(
 	fence_args_out->value = fence_args_in->value;
 }
 
+static bool channel_test_user_semaphore(struct dma_buf *dmabuf, void *data,
+		u32 offset, u32 payload)
+{
+	u32 *semaphore;
+	bool ret;
+	int err;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+	err = dma_buf_begin_cpu_access(dmabuf, offset, sizeof(u32), DMA_FROM_DEVICE);
+#else
+	err = dma_buf_begin_cpu_access(dmabuf, DMA_FROM_DEVICE);
+#endif
+	if (err != 0) {
+		pr_err("nvgpu: sema begin cpu access failed\n");
+		return false;
+	}
+
+	semaphore = (u32 *)((uintptr_t)data + offset);
+	ret = *semaphore == payload;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+	dma_buf_end_cpu_access(dmabuf, offset, sizeof(u32), DMA_FROM_DEVICE);
+#else
+	dma_buf_end_cpu_access(dmabuf, DMA_FROM_DEVICE);
+#endif
+
+	return ret;
+}
+
 static int gk20a_channel_wait_semaphore(struct nvgpu_channel *ch,
 					ulong id, u32 offset,
 					u32 payload, u32 timeout)
 {
 	struct dma_buf *dmabuf;
 	void *data;
-	u32 *semaphore;
 	int ret = 0;
 
 	/* do not wait if channel has timed out */
@@ -669,12 +697,10 @@ static int gk20a_channel_wait_semaphore(struct nvgpu_channel *ch,
 		goto cleanup_put;
 	}
 
-	semaphore = (u32 *)((uintptr_t)data + offset);
-
 	ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
 			&ch->semaphore_wq,
-			*semaphore == payload ||
-			nvgpu_channel_check_unserviceable(ch),
+			channel_test_user_semaphore(dmabuf, data, offset, payload) ||
+				nvgpu_channel_check_unserviceable(ch),
 			timeout);
 
 	dma_buf_vunmap(dmabuf, data);
