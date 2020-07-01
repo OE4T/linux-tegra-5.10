@@ -279,10 +279,13 @@ struct gk20a;
 /** zbc classes support */
 #define NVGPU_SUPPORT_ZBC			95U
 
+/** Multi Instance GPU support */
+#define NVGPU_SUPPORT_MIG			96U
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			96U
+#define NVGPU_MAX_ENABLED_BITS			97U
 
 /**
  * @brief Check if the passed flag is enabled.

@@ -268,7 +268,9 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 	{NVGPU_GPU_FLAGS_SUPPORT_I2M,
 		NVGPU_SUPPORT_I2M},
 	{NVGPU_GPU_FLAGS_SUPPORT_ZBC,
-		NVGPU_SUPPORT_ZBC}
+		NVGPU_SUPPORT_ZBC},
+	{NVGPU_GPU_FLAGS_SUPPORT_MIG,
+		NVGPU_SUPPORT_MIG}
 };
 
 static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)
@@ -436,7 +438,6 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	nvgpu_set_preemption_mode_flags(g, &gpu);
 
 	/* Default values for legacy mode (non MIG) */
-	gpu.mig_enabled = false;
 	gpu.gpu_instance_id = 0x0;
 	gpu.gr_sys_pipe_id = 0x0;
 	gpu.gr_instance_id = 0x0;

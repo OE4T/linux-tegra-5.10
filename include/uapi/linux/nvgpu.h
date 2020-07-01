@@ -191,6 +191,9 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_I2M			(1ULL << 43)
 /* Flag to indicate whether zbc classes are supported */
 #define NVGPU_GPU_FLAGS_SUPPORT_ZBC			(1ULL << 44)
+/* Flag to indicate whether Multi Instance Gpu per GPU physical device
+   is enabled/disabled. */
+#define NVGPU_GPU_FLAGS_SUPPORT_MIG			(1ULL << 45)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
@@ -317,14 +320,10 @@ struct nvgpu_gpu_characteristics {
 	__u32 max_veid_count_per_tsg;
 
 	__u32 num_sub_partition_per_fbpa;
-	__u8 mig_enabled;
-	__u8 reserved4[3];
-
 	__u32 gpu_instance_id;
-	__u32 gr_sys_pipe_id;
 
+	__u32 gr_sys_pipe_id;
 	__u32 gr_instance_id;
-	__u32 reserved5;
 
 	/* Notes:
 	   - This struct can be safely appended with new fields. However, always
