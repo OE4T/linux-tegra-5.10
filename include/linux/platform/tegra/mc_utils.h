@@ -115,4 +115,17 @@ unsigned long dram_clk_to_mc_clk(unsigned long dram_clk);
 unsigned long bw_disruption_latency(unsigned long dram_freq,
 				    unsigned long mc_freq,
 				    u32 dram);
+/*
+ * Return current emc rate.
+ *
+ * Return current emc rate in Hz
+ */
+unsigned long tegra_get_emc_rate(void);
+
+/*
+ * Return emc max rate.
+ *
+ * Return emc max rate in Hz
+ */
+unsigned long tegra_get_emc_max_rate(void);
 #endif
