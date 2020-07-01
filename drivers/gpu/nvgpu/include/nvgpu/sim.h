@@ -26,6 +26,11 @@
 
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/gk20a.h>
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include <nvgpu/nvgpu_next_sim.h>
+#endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 struct sim_nvgpu {
 	struct gk20a *g;
