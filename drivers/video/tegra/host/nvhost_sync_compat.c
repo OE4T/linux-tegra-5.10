@@ -154,6 +154,32 @@ int nvhost_fence_foreach_pt(
 }
 EXPORT_SYMBOL(nvhost_fence_foreach_pt);
 
+int nvhost_fence_get_pt(
+	struct nvhost_fence *fence, size_t i,
+	u32 *id, u32 *threshold)
+{
+	struct dma_fence *f = (struct dma_fence *)fence;
+	struct dma_fence_array *array;
+
+	array = to_dma_fence_array(f);
+	if (!array) {
+		if (i != 0)
+			return -EINVAL;
+
+		nvhost_dma_fence_unpack(f, id, threshold);
+
+		return 0;
+	}
+
+	if (i >= array->num_fences)
+		return -EINVAL;
+
+	nvhost_dma_fence_unpack(array->fences[i], id, threshold);
+
+	return 0;
+}
+EXPORT_SYMBOL(nvhost_fence_get_pt);
+
 void nvhost_fence_put(struct nvhost_fence *fence)
 {
 	dma_fence_put((struct dma_fence *)fence);

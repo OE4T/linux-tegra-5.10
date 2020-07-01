@@ -431,6 +431,27 @@ int nvhost_fence_foreach_pt(
 }
 EXPORT_SYMBOL(nvhost_fence_foreach_pt);
 
+int nvhost_fence_get_pt(
+	struct nvhost_fence *fence, size_t i,
+	u32 *id, u32 *threshold)
+{
+	struct sync_fence *f = (struct sync_fence *)fence;
+	struct sync_pt *pt;
+	struct nvhost_sync_pt *npt;
+
+	if (i >= f->num_fences)
+		return -EINVAL;
+
+	pt = sync_pt_from_fence(f->cbs[i].sync_pt);
+	npt = to_nvhost_sync_pt(pt);
+
+	*id = npt->obj->id;
+	*threshold = npt->thresh;
+
+	return 0;
+}
+EXPORT_SYMBOL(nvhost_fence_get_pt);
+
 /* Public API */
 
 struct nvhost_sync_timeline *nvhost_sync_timeline_create(

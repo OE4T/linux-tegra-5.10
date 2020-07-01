@@ -837,6 +837,10 @@ int nvhost_fence_foreach_pt(
 	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
 	void *data);
 
+int nvhost_fence_get_pt(
+	struct nvhost_fence *fence, size_t i,
+	u32 *id, u32 *threshold);
+
 struct nvhost_fence *nvhost_fence_create(
 		struct platform_device *pdev,
 		struct nvhost_ctrl_sync_fence_info *pts,
