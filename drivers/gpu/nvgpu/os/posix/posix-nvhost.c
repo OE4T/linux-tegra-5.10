@@ -96,6 +96,12 @@ int nvgpu_nvhost_get_syncpt_aperture(
 
 }
 
+const char *nvgpu_nvhost_syncpt_get_name(
+	struct nvgpu_nvhost_dev *nvgpu_syncpt_dev, int id)
+{
+	return NULL;
+}
+
 u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
 {
 	return nvgpu_safe_mult_u32(syncpt_id, 0x1000U);

@@ -58,6 +58,9 @@ u32 nvgpu_nvhost_get_syncpt_client_managed(
 	struct nvgpu_nvhost_dev *nvhost_dev,
 	const char *syncpt_name);
 
+const char *nvgpu_nvhost_syncpt_get_name(
+	struct nvgpu_nvhost_dev *nvgpu_syncpt_dev, int id);
+
 void nvgpu_nvhost_syncpt_set_safe_state(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id);
 
