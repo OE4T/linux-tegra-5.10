@@ -385,6 +385,10 @@ static void nvgpu_gr_falcon_bind_instblk(struct gk20a *g,
 					&falcon->ctxsw_ucode_info;
 	u64 inst_ptr;
 
+	if (g->ops.gr.falcon.bind_instblk == NULL) {
+		return;
+        }
+
 	inst_ptr = nvgpu_inst_block_addr(g, &ucode_info->inst_blk_desc);
 
 	g->ops.gr.falcon.bind_instblk(g, &ucode_info->inst_blk_desc,

@@ -800,7 +800,7 @@ static const struct gpu_ops tu104_ops = {
 			.start_fecs = gm20b_gr_falcon_start_fecs,
 			.get_gpccs_start_reg_offset =
 				gm20b_gr_falcon_get_gpccs_start_reg_offset,
-			.bind_instblk = gm20b_gr_falcon_bind_instblk,
+			.bind_instblk = NULL,
 			.load_ctxsw_ucode =
 				nvgpu_gr_falcon_load_secure_ctxsw_ucode,
 			.wait_mem_scrubbing =

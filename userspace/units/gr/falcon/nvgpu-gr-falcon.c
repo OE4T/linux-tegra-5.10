@@ -170,6 +170,10 @@ static int gr_falcon_bind_instblk(struct unit_module *m, struct gk20a *g)
 
 	g->ops.gr.falcon.bind_instblk = gr_falcon_gops.bind_instblk;
 
+	if (g->ops.gr.falcon.bind_instblk == NULL) {
+		return 0;
+	}
+
 	/* Generate expected bug with hi32 instr value */
 	mem = &ucode_info->inst_blk_desc;
 	mem->cpu_va = (void *)0xFFFFFFFFFFFFFFFF;

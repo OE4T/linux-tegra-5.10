@@ -613,7 +613,7 @@ static const struct gpu_ops gp10b_ops = {
 			.start_fecs = gm20b_gr_falcon_start_fecs,
 			.get_gpccs_start_reg_offset =
 				gm20b_gr_falcon_get_gpccs_start_reg_offset,
-			.bind_instblk = gm20b_gr_falcon_bind_instblk,
+			.bind_instblk = NULL,
 			.wait_mem_scrubbing =
 					gm20b_gr_falcon_wait_mem_scrubbing,
 			.wait_ctxsw_ready = gm20b_gr_falcon_wait_ctxsw_ready,
