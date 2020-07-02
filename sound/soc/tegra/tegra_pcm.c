@@ -84,7 +84,7 @@ int tegra_pcm_open(struct snd_soc_component *component,
 	if (rtd->dai_link->no_pcm)
 		return 0;
 
-	dmap = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
+	dmap = snd_soc_dai_get_dma_data(rtd->dais[0], substream);
 
 	/* Set HW params now that initialization is complete */
 	snd_soc_set_runtime_hwparams(substream, &tegra_pcm_hardware);
@@ -97,9 +97,9 @@ int tegra_pcm_open(struct snd_soc_component *component,
 		return ret;
 	}
 
-	chan = dma_request_slave_channel(rtd->cpu_dai->dev, dmap->chan_name);
+	chan = dma_request_slave_channel(rtd->dais[0]->dev, dmap->chan_name);
 	if (!chan) {
-		dev_err(rtd->cpu_dai->dev,
+		dev_err(rtd->dais[0]->dev,
 			"dmaengine request slave channel failed! (%s)\n",
 			dmap->chan_name);
 		return -ENODEV;
@@ -144,7 +144,7 @@ int tegra_pcm_hw_params(struct snd_soc_component *component,
 	if (rtd->dai_link->no_pcm)
 		return 0;
 
-	dmap = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
+	dmap = snd_soc_dai_get_dma_data(rtd->dais[0], substream);
 	if (!dmap)
 		return 0;
 

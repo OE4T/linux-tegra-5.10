@@ -1377,17 +1377,17 @@ static int tegra210_adsp_compr_msg_handler(struct tegra210_adsp_app *app,
 }
 
 /* Compress call-back APIs */
-static int tegra210_adsp_compr_open(struct snd_compr_stream *cstream)
+static int tegra210_adsp_compr_open(struct snd_soc_component *component,
+				    struct snd_compr_stream *cstream)
 {
 	struct snd_soc_pcm_runtime *rtd = cstream->device->private_data;
-	struct snd_soc_component *cmpnt = snd_soc_rtdcom_lookup(rtd, DRV_NAME);
-	struct tegra210_adsp *adsp = snd_soc_component_get_drvdata(cmpnt);
+	struct tegra210_adsp *adsp = snd_soc_component_get_drvdata(component);
 	struct tegra210_adsp_compr_rtd *prtd;
-	uint32_t fe_reg = rtd->codec_dai->id + 1;
+	uint32_t fe_reg = rtd->dais[rtd->num_cpus]->id + 1;
 	int ret;
 	int i;
 
-	dev_vdbg(adsp->dev, "%s : DAI ID %d", __func__, rtd->codec_dai->id);
+	dev_vdbg(adsp->dev, "%s : DAI ID %d", __func__, rtd->dais[rtd->num_cpus]->id);
 
 	if (!adsp->init_done)
 		return -ENODEV;
@@ -1435,7 +1435,8 @@ static int tegra210_adsp_compr_open(struct snd_compr_stream *cstream)
 	return ret;
 }
 
-static int tegra210_adsp_compr_free(struct snd_compr_stream *cstream)
+static int tegra210_adsp_compr_free(struct snd_soc_component *component,
+				    struct snd_compr_stream *cstream)
 {
 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
 	unsigned long flags;
@@ -1463,8 +1464,9 @@ static int tegra210_adsp_compr_free(struct snd_compr_stream *cstream)
 	return 0;
 }
 
-static int tegra210_adsp_compr_set_params(struct snd_compr_stream *cstream,
-			struct snd_compr_params *params)
+static int tegra210_adsp_compr_set_params(struct snd_soc_component *component,
+					  struct snd_compr_stream *cstream,
+					  struct snd_compr_params *params)
 {
 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
 	int ret = 0;
@@ -1511,8 +1513,9 @@ static int tegra210_adsp_compr_set_params(struct snd_compr_stream *cstream,
 	return 0;
 }
 
-static int tegra210_adsp_compr_get_params(struct snd_compr_stream *cstream,
-			struct snd_codec *codec)
+static int tegra210_adsp_compr_get_params(struct snd_soc_component *component,
+					  struct snd_compr_stream *cstream,
+					  struct snd_codec *codec)
 {
 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
 
@@ -1520,8 +1523,8 @@ static int tegra210_adsp_compr_get_params(struct snd_compr_stream *cstream,
 	return 0;
 }
 
-static int tegra210_adsp_compr_trigger(struct snd_compr_stream *cstream,
-					int cmd)
+static int tegra210_adsp_compr_trigger(struct snd_soc_component *component,
+				       struct snd_compr_stream *cstream, int cmd)
 {
 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
 	int ret = 0;
@@ -1590,8 +1593,9 @@ static int tegra210_adsp_compr_trigger(struct snd_compr_stream *cstream,
 	return 0;
 }
 
-static int tegra210_adsp_compr_copy(struct snd_compr_stream *cstream,
-			char __user *buf, size_t count)
+static int tegra210_adsp_compr_copy(struct snd_soc_component *component,
+				    struct snd_compr_stream *cstream,
+				    char __user *buf, size_t count)
 {
 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
 	struct snd_compr_runtime *runtime = cstream->runtime;
@@ -1627,8 +1631,9 @@ static int tegra210_adsp_compr_copy(struct snd_compr_stream *cstream,
 	return count;
 }
 
-static int tegra210_adsp_compr_pointer(struct snd_compr_stream *cstream,
-			struct snd_compr_tstamp *tstamp)
+static int tegra210_adsp_compr_pointer(struct snd_soc_component *component,
+				       struct snd_compr_stream *cstream,
+				       struct snd_compr_tstamp *tstamp)
 {
 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
 	struct tegra210_adsp_app *app = prtd->fe_apm;
@@ -1651,8 +1656,9 @@ static int tegra210_adsp_compr_pointer(struct snd_compr_stream *cstream,
 	return 0;
 }
 
-static int tegra210_adsp_compr_get_caps(struct snd_compr_stream *cstream,
-			struct snd_compr_caps *caps)
+static int tegra210_adsp_compr_get_caps(struct snd_soc_component *component,
+					struct snd_compr_stream *cstream,
+					struct snd_compr_caps *caps)
 {
 	if (cstream->direction == SND_COMPRESS_PLAYBACK)
 		memcpy(caps, &tegra210_adsp_compr_caps[SND_COMPRESS_PLAYBACK],
@@ -1664,8 +1670,9 @@ static int tegra210_adsp_compr_get_caps(struct snd_compr_stream *cstream,
 	return 0;
 }
 
-static int tegra210_adsp_compr_codec_caps(struct snd_compr_stream *cstream,
-			struct snd_compr_codec_caps *codec_caps)
+static int tegra210_adsp_compr_codec_caps(struct snd_soc_component *component,
+					  struct snd_compr_stream *cstream,
+					  struct snd_compr_codec_caps *codec_caps)
 {
 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
 
@@ -1690,7 +1697,7 @@ static int tegra210_adsp_compr_codec_caps(struct snd_compr_stream *cstream,
 	return 0;
 }
 
-static struct snd_compr_ops tegra210_adsp_compr_ops = {
+static struct snd_compress_ops tegra210_adsp_compress_ops = {
 	.open = tegra210_adsp_compr_open,
 	.free = tegra210_adsp_compr_free,
 	.set_params = tegra210_adsp_compr_set_params,
@@ -1710,7 +1717,7 @@ static int tegra210_adsp_pcm_open(struct snd_soc_component *component,
 	struct snd_soc_component *cmpnt = snd_soc_rtdcom_lookup(rtd, DRV_NAME);
 	struct tegra210_adsp *adsp = snd_soc_component_get_drvdata(cmpnt);
 	struct tegra210_adsp_pcm_rtd *prtd;
-	uint32_t fe_reg = rtd->codec_dai->id + 1;
+	uint32_t fe_reg = rtd->dais[rtd->num_cpus]->id + 1;
 	uint32_t source;
 	int i, ret = 0;
 
@@ -4403,7 +4410,7 @@ static struct snd_soc_component_driver tegra210_adsp_cmpnt = {
 	.trigger		= tegra210_adsp_pcm_trigger,
 	.pointer		= tegra210_adsp_pcm_pointer,
 
-	.compr_ops		= &tegra210_adsp_compr_ops,
+	.compress_ops		= &tegra210_adsp_compress_ops,
 	.read			= tegra210_adsp_read,
 	.write			= tegra210_adsp_write,
 };
@@ -4660,7 +4667,7 @@ static int tegra210_adsp_audio_probe(struct platform_device *pdev)
 	/* enable/disable compr-ops from DT */
 	of_property_read_u32(pdev->dev.of_node, "compr-ops", &compr_ops);
 	if (!compr_ops)
-		tegra210_adsp_cmpnt.compr_ops = NULL;
+		tegra210_adsp_cmpnt.compress_ops = NULL;
 
 	if (of_property_read_u32_index(pdev->dev.of_node, "nvidia,adma_ch_page",
 		0, &adma_ch_page)) {

@@ -183,12 +183,12 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 		if (fmt == SND_SOC_DAIFMT_DSP_A ||
 		    fmt == SND_SOC_DAIFMT_DSP_B) {
 			err = snd_soc_dai_set_tdm_slot(
-					rtd->cpu_dai, mask,
+					rtd->dais[0], mask,
 					mask, 0, 0);
 			if (err < 0) {
 				dev_err(card->dev,
 				"%s cpu DAI slot mask not set\n",
-				rtd->cpu_dai->name);
+				rtd->dais[0]->name);
 				return err;
 			}
 		}
@@ -196,10 +196,10 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 
 	rtd = get_pcm_runtime(card, "rt565x-playback");
 	if (rtd) {
-		err = snd_soc_dai_set_sysclk(rtd->codec_dai, RT5659_SCLK_S_MCLK,
+		err = snd_soc_dai_set_sysclk(rtd->dais[rtd->num_cpus], RT5659_SCLK_S_MCLK,
 					     aud_mclk, SND_SOC_CLOCK_IN);
 		if (err < 0) {
-			dev_err(card->dev, "codec_dai clock not set\n");
+			dev_err(card->dev, "dais[%d] clock not set\n", rtd->num_cpus);
 			return err;
 		}
 	}
@@ -228,7 +228,7 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 			return -EINVAL;
 		}
 
-		err = snd_soc_dai_set_pll(rtd->codec_dai, 0,
+		err = snd_soc_dai_set_pll(rtd->dais[rtd->num_cpus], 0,
 					  RT5659_PLL1_S_BCLK1,
 					  bclk_rate, srate * 256);
 		if (err < 0) {
@@ -236,22 +236,22 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 			return err;
 		}
 
-		err = snd_soc_dai_set_sysclk(rtd->codec_dai, RT5659_SCLK_S_PLL1,
+		err = snd_soc_dai_set_sysclk(rtd->dais[rtd->num_cpus], RT5659_SCLK_S_PLL1,
 					     srate * 256, SND_SOC_CLOCK_IN);
 		if (err < 0) {
-			dev_err(card->dev, "codec_dai clock not set\n");
+			dev_err(card->dev, "dais[%d] clock not set\n", rtd->num_cpus);
 			return err;
 		}
 	}
 
 	rtd = get_pcm_runtime(card, "dspk-playback-r");
 	if (rtd) {
-		if (!strcmp(rtd->codec_dai->name, "tas2552-amplifier")) {
-			err = snd_soc_dai_set_sysclk(rtd->codec_dai,
+		if (!strcmp(rtd->dais[rtd->num_cpus]->name, "tas2552-amplifier")) {
+			err = snd_soc_dai_set_sysclk(rtd->dais[rtd->num_cpus],
 				TAS2552_PDM_CLK_IVCLKIN, aud_mclk,
 				SND_SOC_CLOCK_IN);
 			if (err < 0) {
-				dev_err(card->dev, "codec_dai clock not set\n");
+				dev_err(card->dev, "dais[%d] clock not set\n", rtd->num_cpus);
 				return err;
 			}
 		}
@@ -259,12 +259,12 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 
 	rtd = get_pcm_runtime(card, "dspk-playback-l");
 	if (rtd) {
-		if (!strcmp(rtd->codec_dai->name, "tas2552-amplifier")) {
-			err = snd_soc_dai_set_sysclk(rtd->codec_dai,
+		if (!strcmp(rtd->dais[rtd->num_cpus]->name, "tas2552-amplifier")) {
+			err = snd_soc_dai_set_sysclk(rtd->dais[rtd->num_cpus],
 				TAS2552_PDM_CLK_IVCLKIN, aud_mclk,
 				SND_SOC_CLOCK_IN);
 			if (err < 0) {
-				dev_err(card->dev, "codec_dai clock not set\n");
+				dev_err(card->dev, "dais[%d] clock not set\n", rtd->num_cpus);
 				return err;
 			}
 		}
@@ -367,7 +367,7 @@ static int tegra_machine_respeaker_init(struct snd_soc_pcm_runtime *rtd)
 	 * and source as PLL irrespective of args passed through
 	 * this callback
 	 */
-	err = snd_soc_dai_set_sysclk(rtd->codec_dai, 0, 24000000,
+	err = snd_soc_dai_set_sysclk(rtd->dais[rtd->num_cpus], 0, 24000000,
 				     SND_SOC_CLOCK_IN);
 	if (err) {
 		dev_err(dev, "failed to set ac108 sysclk!\n");
@@ -382,7 +382,7 @@ static int tegra_machine_fepi_init(struct snd_soc_pcm_runtime *rtd)
 	struct device *dev = rtd->card->dev;
 	int err;
 
-	err = snd_soc_dai_set_sysclk(rtd->codec_dai, SGTL5000_SYSCLK, 12288000,
+	err = snd_soc_dai_set_sysclk(rtd->dais[rtd->num_cpus], SGTL5000_SYSCLK, 12288000,
 				     SND_SOC_CLOCK_IN);
 	if (err) {
 		dev_err(dev, "failed to set sgtl5000 sysclk!\n");
@@ -418,7 +418,7 @@ static int tegra_machine_rt565x_init(struct snd_soc_pcm_runtime *rtd)
 
 /* FIXME */
 #if 0
-	err = rt5659_set_jack_detect(rtd->codec_dai->component, jack);
+	err = rt5659_set_jack_detect(rtd->dais[rtd->num_cpus]->component, jack);
 	if (err) {
 		dev_err(card->dev, "Failed to set jack for RT565x: %d\n", err);
 		return err;

@@ -38,11 +38,7 @@ int snd_hdac_get_stream_stripe_ctl(struct hdac_bus *bus,
 		else
 			value = (channels * bits_per_sample) / sdo_line;
 
-		/* WAR to avoid boundary condition */
-		if (bus->avoid_compact_sdo_bw && (value == 8))
-			continue;
-
-		if (value >= 8)
+		if (value >= bus->sdo_limit)
 			break;
 	}
 
