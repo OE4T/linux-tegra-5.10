@@ -303,6 +303,15 @@ static int gk20a_channel_set_wdt_status(struct nvgpu_channel *ch,
 	bool disable_dump = (args->wdt_status &
 			NVGPU_IOCTL_CHANNEL_WDT_FLAG_DISABLE_DUMP) != 0U;
 
+	if (ch->deterministic && status != NVGPU_IOCTL_CHANNEL_DISABLE_WDT) {
+		/*
+		 * Deterministic channels require disabled wdt before
+		 * setup_bind gets called and wdt must not be changed after
+		 * that point.
+		 */
+		return -EINVAL;
+	}
+
 	if (status == NVGPU_IOCTL_CHANNEL_DISABLE_WDT)
 		nvgpu_channel_wdt_disable(ch->wdt);
 	else if (status == NVGPU_IOCTL_CHANNEL_ENABLE_WDT)

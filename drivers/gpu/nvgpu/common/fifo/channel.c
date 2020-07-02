@@ -1628,6 +1628,18 @@ static int channel_setup_bind_prechecks(struct nvgpu_channel *c,
 		goto fail;
 	}
 #endif
+	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC) != 0U
+			&& nvgpu_channel_wdt_enabled(c->wdt)) {
+		/*
+		 * The watchdog would need async job tracking, but that's not
+		 * compatible with deterministic mode. We won't disable it
+		 * implicitly; the user has to ask.
+		 */
+		nvgpu_err(g,
+			"deterministic is not compatible with watchdog");
+		err = -EINVAL;
+		goto fail;
+	}
 fail:
 	return err;
 }
