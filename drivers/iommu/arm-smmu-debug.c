@@ -585,3 +585,24 @@ void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[])
 
 	list_add_tail(&master->node, &smmu_handle->masters_list);
 }
+
+void arm_smmu_debugfs_remove_master(struct device *dev)
+{
+	struct smmu_debugfs_master *master = NULL;
+
+	if (smmu_handle == NULL) {
+		pr_warn("Debugfs setup not complete\n");
+		return;
+	}
+
+	list_for_each_entry(master, &smmu_handle->masters_list, node) {
+		if (master->dev == dev)
+			break;
+	}
+
+	if (master != NULL) {
+		debugfs_remove_recursive(master->dent);
+		list_del(&master->node);
+		kfree(master);
+	}
+}

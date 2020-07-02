@@ -88,5 +88,6 @@ struct smmu_debugfs_info {
 void arm_smmu_debugfs_setup(struct arm_smmu_device *smmu, u32 num_smmus,
 			    void __iomem *bases[]);
 void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[]);
+void arm_smmu_debugfs_remove_master(struct device *dev);
 
 #endif /* _ARM_SMMU_DEBUG_H */
