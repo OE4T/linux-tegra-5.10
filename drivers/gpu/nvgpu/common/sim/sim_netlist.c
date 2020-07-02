@@ -52,6 +52,15 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 	struct netlist_aiv_list *pm_tpc_ctxsw_regs;
 	struct netlist_aiv_list *ppc_ctxsw_regs;
 	struct netlist_aiv_list *etpc_ctxsw_regs;
+	struct netlist_aiv_list *pm_ppc_ctxsw_regs;
+	struct netlist_aiv_list *perf_sys_ctxsw_regs;
+	struct netlist_aiv_list *perf_sysrouter_ctxsw_regs;
+	struct netlist_aiv_list *perf_pma_ctxsw_regs;
+	struct netlist_aiv_list *perf_fbp_ctxsw_regs;
+	struct netlist_aiv_list *perf_fbprouter_ctxsw_regs;
+	struct netlist_aiv_list *perf_gpc_ctxsw_regs;
+	struct netlist_aiv_list *perf_gpcrouter_ctxsw_regs;
+	struct netlist_aiv_list *pm_ltc_ctxsw_regs;
 #endif /* CONFIG_NVGPU_DEBUGGER */
 	struct netlist_u32_list *fecs_inst, *fecs_data;
 	struct netlist_u32_list *gpccs_inst, *gpccs_data;
@@ -87,6 +96,19 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 	pm_tpc_ctxsw_regs = nvgpu_netlist_get_pm_tpc_ctxsw_regs(g);
 	ppc_ctxsw_regs = nvgpu_netlist_get_ppc_ctxsw_regs(g);
 	etpc_ctxsw_regs = nvgpu_netlist_get_etpc_ctxsw_regs(g);
+
+	pm_ppc_ctxsw_regs = nvgpu_netlist_get_pm_ppc_ctxsw_regs(g);
+	perf_sys_ctxsw_regs = nvgpu_netlist_get_perf_sys_ctxsw_regs(g);
+	perf_sysrouter_ctxsw_regs =
+		nvgpu_netlist_get_perf_sys_router_ctxsw_regs(g);
+	perf_pma_ctxsw_regs = nvgpu_netlist_get_perf_pma_ctxsw_regs(g);
+	perf_fbp_ctxsw_regs = nvgpu_netlist_get_fbp_ctxsw_regs(g);
+	perf_fbprouter_ctxsw_regs =
+		nvgpu_netlist_get_fbp_router_ctxsw_regs(g);
+	perf_gpc_ctxsw_regs = nvgpu_netlist_get_perf_gpc_ctxsw_regs(g);
+	perf_gpcrouter_ctxsw_regs =
+		nvgpu_netlist_get_gpc_router_ctxsw_regs(g);
+	pm_ltc_ctxsw_regs = nvgpu_netlist_get_pm_ltc_ctxsw_regs(g);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 	fecs_inst = nvgpu_netlist_get_fecs_inst(g);
@@ -142,6 +164,26 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 			    &ppc_ctxsw_regs->count);
 	g->sim->esc_readl(g, "GRCTX_REG_LIST_ETPC_COUNT", 0,
 			    &etpc_ctxsw_regs->count);
+
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_PPC_COUNT", 0,
+			&pm_ppc_ctxsw_regs->count);
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_SYS_COUNT", 0,
+			&perf_sys_ctxsw_regs->count);
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_SYSROUTER_COUNT", 0,
+			&perf_sysrouter_ctxsw_regs->count);
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_PMA_COUNT", 0,
+			&perf_pma_ctxsw_regs->count);
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_FBP_COUNT", 0,
+			&perf_fbp_ctxsw_regs->count);
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_FBPROUTER_COUNT", 0,
+			&perf_fbprouter_ctxsw_regs->count);
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_GPC_COUNT", 0,
+			&perf_gpc_ctxsw_regs->count);
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_GPCROUTER_COUNT", 0,
+			&perf_gpcrouter_ctxsw_regs->count);
+	g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_LTC_COUNT", 0,
+			&pm_ltc_ctxsw_regs->count);
+
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 	if (nvgpu_netlist_alloc_u32_list(g, fecs_inst) == NULL) {
@@ -202,6 +244,36 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 		goto fail;
 	}
 	if (nvgpu_netlist_alloc_aiv_list(g, etpc_ctxsw_regs) == NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, pm_ppc_ctxsw_regs) == NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, perf_sys_ctxsw_regs) == NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, perf_sysrouter_ctxsw_regs)
+			== NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, perf_pma_ctxsw_regs) == NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, perf_fbp_ctxsw_regs) == NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, perf_fbprouter_ctxsw_regs)
+			== NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, perf_gpc_ctxsw_regs) == NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, perf_gpcrouter_ctxsw_regs)
+			== NULL) {
+		goto fail;
+	}
+	if (nvgpu_netlist_alloc_aiv_list(g, pm_ltc_ctxsw_regs) == NULL) {
 		goto fail;
 	}
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
@@ -382,6 +454,132 @@ int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 				"addr:0x%#08x index:0x%08x value:0x%08x",
 				l[i].addr, l[i].index, l[i].value);
 	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PM_PPC");
+	for (i = 0; i < pm_ppc_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l = pm_ppc_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_PPC:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_PPC:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_PPC:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PERF_SYS");
+	for (i = 0; i < perf_sys_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l = perf_sys_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_SYS:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_SYS:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_SYS:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PERF_SYSROUTER");
+	for (i = 0; i < perf_sysrouter_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l = perf_sysrouter_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_SYSROUTER:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_SYSROUTER:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_SYSROUTER:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PERF_PMA");
+	for (i = 0; i < perf_pma_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l = perf_pma_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_PMA:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_PMA:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_PMA:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PERF_FBP");
+	for (i = 0; i < perf_fbp_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l = perf_fbp_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_FBP:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_FBP:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_FBP:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PERF_FBPROUTER");
+	for (i = 0; i < perf_fbprouter_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l = perf_fbprouter_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_FBPROUTER:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_FBPROUTER:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_FBPROUTER:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PERF_GPC");
+	for (i = 0; i < perf_gpc_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l =  perf_gpc_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_GPC:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_GPC:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_GPC:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PERF_GPCROUTER");
+	for (i = 0; i < perf_gpcrouter_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l =  perf_gpcrouter_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_GPCROUTER:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_GPCROUTER:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PERF_GPCROUTER:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
+
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn, "query GRCTX_REG_LIST_PM_LTC");
+	for (i = 0; i < pm_ltc_ctxsw_regs->count; i++) {
+		struct netlist_aiv *l =  pm_ltc_ctxsw_regs->l;
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_LTC:ADDR",
+				    i, &l[i].addr);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_LTC:INDEX",
+				    i, &l[i].index);
+		g->sim->esc_readl(g, "GRCTX_REG_LIST_PM_LTC:VALUE",
+				    i, &l[i].value);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_fn,
+				"addr:0x%#08x index:0x%08x value:0x%08x",
+				l[i].addr, l[i].index, l[i].value);
+	}
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 	g->netlist_valid = true;
@@ -420,6 +618,15 @@ fail:
 	nvgpu_kfree(g, pm_gpc_ctxsw_regs->l);
 	nvgpu_kfree(g, pm_tpc_ctxsw_regs->l);
 	nvgpu_kfree(g, etpc_ctxsw_regs->l);
+	nvgpu_kfree(g, pm_ppc_ctxsw_regs->l);
+	nvgpu_kfree(g, perf_sys_ctxsw_regs->l);
+	nvgpu_kfree(g, perf_sysrouter_ctxsw_regs->l);
+	nvgpu_kfree(g, perf_pma_ctxsw_regs->l);
+	nvgpu_kfree(g, perf_fbp_ctxsw_regs->l);
+	nvgpu_kfree(g, perf_fbprouter_ctxsw_regs->l);
+	nvgpu_kfree(g, perf_gpc_ctxsw_regs->l);
+	nvgpu_kfree(g, perf_gpcrouter_ctxsw_regs->l);
+	nvgpu_kfree(g, pm_ltc_ctxsw_regs->l);
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	nvgpu_next_init_sim_netlist_ctxsw_regs_free(g);
 #endif
