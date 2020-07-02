@@ -351,6 +351,7 @@ int vgpu_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 	gk20a = &l->g;
+	gk20a->log_mask = NVGPU_DEFAULT_DBG_MASK;
 
 	nvgpu_log_fn(gk20a, " ");
 
