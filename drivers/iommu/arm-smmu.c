@@ -1474,6 +1474,10 @@ static void arm_smmu_release_device(struct device *dev)
 	if (ret < 0)
 		return;
 
+#ifdef CONFIG_DEBUG_FS
+	arm_smmu_debugfs_remove_master(dev);
+#endif
+
 	arm_smmu_master_free_smes(cfg, fwspec);
 
 	arm_smmu_rpm_put(smmu);
