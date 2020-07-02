@@ -43,6 +43,10 @@
 
 #include "arm-smmu.h"
 
+#ifdef CONFIG_ARM_SMMU_DEBUG
+#include <linux/arm-smmu-debug.h>
+#endif
+
 /*
  * Apparently, some Qualcomm arm64 platforms which appear to expose their SMMU
  * global register space are still, in fact, using a hypervisor to mediate it
@@ -1213,6 +1217,10 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 	 */
 	pm_runtime_set_autosuspend_delay(smmu->dev, 20);
 	pm_runtime_use_autosuspend(smmu->dev);
+
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	arm_smmu_debugfs_add_master(dev, &smmu_domain->cfg.cbndx, cfg->smendx);
+#endif
 
 rpm_put:
 	arm_smmu_rpm_put(smmu);
