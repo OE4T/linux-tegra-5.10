@@ -36,12 +36,37 @@ struct gk20a;
 #include "include/nvgpu/nvgpu_next_fuse.h"
 #endif
 
-#ifdef CONFIG_NVGPU_TEGRA_FUSE
-
 #ifdef CONFIG_NVGPU_NON_FUSA
 int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g, int *id);
 int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val);
 #endif /* CONFIG_NVGPU_NON_FUSA */
+
+/**
+ * @brief - Reads GCPLEX_CONFIG_FUSE configuration.
+ *
+ * @param g [in] - GPU super structure.
+ * @param val [out] - Populated with register GCPLEX_CONFIG_FUSE value.
+ *
+ * - Provide information about the GPU complex configuration.
+ *
+ * @return 0 on success.
+ *
+ */
+int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val);
+
+/**
+ * @brief - Reads the per-device identifier fuses.
+ *
+ * @param g [in] - GPU super structure.
+ * @param pdi [out] - Per-device identifier
+ *
+ * The per-device identifier fuses are FUSE_PDI0 and FUSE_PDI1.
+ *
+ * @return 0 on success
+ */
+int nvgpu_tegra_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi);
+
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 
 /**
  * @brief -  Write Fuse bypass register which controls fuse bypass.
@@ -92,45 +117,7 @@ void nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(struct gk20a *g, u32 val);
  */
 void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g, u32 val);
 
-/**
- * @brief - Reads GCPLEX_CONFIG_FUSE configuration.
- *
- * @param g [in] - GPU super structure.
- * @param val [out] - Populated with register GCPLEX_CONFIG_FUSE value.
- *
- * - Provide information about the GPU complex configuration.
- *
- * @return 0 on success.
- *
- */
-int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val);
-
-/**
- * @brief - Reads the per-device identifier fuses.
- *
- * @param g [in] - GPU super structure.
- * @param pdi [out] - Per-device identifier
- *
- * The per-device identifier fuses are FUSE_PDI0 and FUSE_PDI1.
- *
- * @return 0 on success
- */
-int nvgpu_tegra_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi);
-
 #else /* CONFIG_NVGPU_TEGRA_FUSE */
-
-#ifdef CONFIG_NVGPU_NON_FUSA
-static inline int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g, int *id)
-{
-	return -EINVAL;
-}
-
-static inline int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g,
-						       u32 *val)
-{
-	return -EINVAL;
-}
-#endif /* CONFIG_NVGPU_NON_FUSA */
 
 static inline void nvgpu_tegra_fuse_write_bypass(struct gk20a *g, u32 val)
 {
@@ -150,24 +137,6 @@ static inline void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g,
 {
 }
 
-static inline int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g,
-							   u32 *val)
-{
-	/*
-	 * Setting gcplex_config fuse to wpr_enabled/vpr_auto_fetch_disable
-	 * by default that is expected on the production chip.
-	 */
-	*val = 0x4;
-
-	return 0;
-}
-
-static inline int nvgpu_tegra_fuse_read_per_device_identifier(struct gk20a *g, u64 *pdi)
-{
-	*pdi = 0U;
-
-	return 0;
-}
-
 #endif /* CONFIG_NVGPU_TEGRA_FUSE */
+
 #endif /* NVGPU_FUSE_H */

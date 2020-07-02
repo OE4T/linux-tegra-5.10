@@ -238,6 +238,7 @@ headers:
              include/nvgpu/linux/rwsem.h,
              include/nvgpu/linux/sim.h,
              include/nvgpu/linux/sim_pci.h,
+             include/nvgpu/linux/soc_fuse.h,
              include/nvgpu/linux/thread.h,
              include/nvgpu/linux/log.h,
              include/nvgpu/linux/utils.h,

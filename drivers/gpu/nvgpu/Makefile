@@ -430,8 +430,8 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_fecs_trace.o
 endif
 
-
 nvgpu-$(CONFIG_TEGRA_GK20A) += \
+	os/linux/fuse.o \
 	os/linux/module.o \
 	os/linux/module_usermode.o \
 	os/linux/platform_gk20a_tegra.o \
@@ -439,8 +439,7 @@ nvgpu-$(CONFIG_TEGRA_GK20A) += \
 	os/linux/platform_gv11b_tegra.o
 
 ifeq ($(CONFIG_TEGRA_GK20A),y)
-nvgpu-$(CONFIG_NVGPU_TEGRA_FUSE) += os/linux/fuse.o \
-				    os/linux/soc.o
+nvgpu-$(CONFIG_NVGPU_TEGRA_FUSE) += os/linux/soc.o
 endif
 
 nvgpu-$(CONFIG_NVGPU_SYNCFD_ANDROID) += \

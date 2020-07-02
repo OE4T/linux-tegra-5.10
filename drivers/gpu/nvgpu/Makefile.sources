@@ -37,14 +37,11 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/stubs.c \
 	os/posix/posix-nvhost.c \
 	os/posix/posix-vgpu.c \
-	os/posix/posix-dt.c
+	os/posix/posix-dt.c \
+	os/posix/fuse.c
 
 ifdef CONFIG_NVGPU_VPR
 srcs += os/posix/posix-vpr.c
-endif
-
-ifdef CONFIG_NVGPU_TEGRA_FUSE
-srcs += os/posix/fuse.c
 endif
 
 ifdef CONFIG_NVGPU_FECS_TRACE
