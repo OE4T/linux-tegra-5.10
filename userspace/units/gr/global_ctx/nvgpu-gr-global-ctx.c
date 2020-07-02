@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -201,7 +201,6 @@ int test_gr_global_ctx_local_ctx_error_injection(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
-	bool valid;
 	struct nvgpu_mem mem;
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image_bk;
@@ -249,6 +248,8 @@ int test_gr_global_ctx_local_ctx_error_injection(struct unit_module *m,
 	if (local_golden_image_bk == NULL) {
 		unit_return_fail(m, "failed to initialize local golden image");
 	}
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
+	bool valid;
 
 	/* Compare two images, they should match since both have zero's only */
 	valid = nvgpu_gr_global_ctx_compare_golden_images(g, true, local_golden_image,
@@ -271,6 +272,7 @@ int test_gr_global_ctx_local_ctx_error_injection(struct unit_module *m,
 	if (valid) {
 		unit_return_fail(m, "unexpected success");
 	}
+#endif
 
 	/* Cleanup */
 	nvgpu_gr_global_ctx_deinit_local_golden_image(g, local_golden_image);

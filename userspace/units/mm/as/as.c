@@ -36,6 +36,7 @@
 #include "hal/mm/gmmu/gmmu_gv11b.h"
 #include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include "hal/fb/fb_gm20b.h"
+#include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -298,8 +298,10 @@ int test_gr_obj_ctx_error_injection(struct unit_module *m,
 
 	/* gops.gr.init.load_sw_veid_bundle could be NULL */
 	g->ops.gr.init.load_sw_veid_bundle = NULL;
+#ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	/* gops.gr.init.restore_stats_counter_bundle_data could be NULL */
 	g->ops.gr.init.restore_stats_counter_bundle_data = NULL;
+#endif
 
 	/* Fail 4th gops.gr.init.wait_idle */
 	g->ops.gr.init.wait_idle = test_gr_wait_idle;
