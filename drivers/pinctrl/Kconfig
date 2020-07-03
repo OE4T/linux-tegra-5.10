@@ -17,7 +17,7 @@ config PINCTRL_TEGRA186_PADCTL
 
 config PINCTRL_TEGRA186_DPAUX
 	bool "NVIDIA Tegra186 DP AUX Pinctrl Driver"
-        depends on ARCH_TEGRA_18x_SOC
+        depends on ARCH_TEGRA_18x_SOC || ARCH_TEGRA_186_SOC || ARCH_TEGRA_194_SOC
         select PINCONF
         select PINMUX
 
