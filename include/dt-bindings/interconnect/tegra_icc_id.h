@@ -58,6 +58,10 @@
 #define TEGRA_ICC_APEDMA			37
 #define TEGRA_ICC_SE				38
 #define TEGRA_ICC_ISP				39
+#define TEGRA_ICC_HDA				40
+#define TEGRA_ICC_VIFAL				41
+#define TEGRA_ICC_VI2FAL			42
+#define TEGRA_ICC_VI2				43
 
 /* remove later */
 #define NV_NVDISPLAYR2MC_SR_ID			TEGRA_ICC_DISPLAY

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2020-21, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -17,17 +17,26 @@
 #ifndef _TEGRA_INTERCONNECT_H_
 #define _TEGRA_INTERCONNECT_H_
 
-#include <linux/version.h>
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/interconnect-provider.h>
+#include <linux/version.h>
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+#include <soc/tegra/bpmp.h>
+#endif
 
 struct tegra_icc_provider {
 	struct icc_provider provider;
 	struct device *dev;
 	struct clk *dram_clk;
-	uint64_t rate;
-	uint64_t max_dram_rate;
+	long rate;
+	long max_rate;
+	long min_rate;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+	struct tegra_bpmp *bpmp_dev;
+	struct tegra_bpmp_message msg;
+#endif
+	uint32_t last_disp_la_floor;
 };
 
 #define to_tegra_provider(_provider) \
@@ -38,7 +47,8 @@ enum tegra_icc_client_type {
 	TEGRA_ICC_NISO,
 	TEGRA_ICC_ISO_DISPLAY,
 	TEGRA_ICC_ISO_VI,
-	TEGRA_ICC_ISO_OTHER,
+	TEGRA_ICC_ISO_AUDIO,
+	TEGRA_ICC_ISO_VIFAL,
 };
 
 /*
@@ -55,8 +65,9 @@ struct tegra_icc_node {
 
 struct tegra_icc_ops {
 	int (*plat_icc_set)(struct icc_node *, struct icc_node *);
-#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 7, 0)
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
 	int (*plat_icc_aggregate)(struct icc_node *, u32, u32, u32, u32 *, u32 *);
+	int (*plat_icc_get_bw)(struct icc_node *, u32 *, u32 *);
 #else
 	int (*plat_icc_aggregate)(struct icc_node *, u32, u32, u32 *, u32 *);
 #endif

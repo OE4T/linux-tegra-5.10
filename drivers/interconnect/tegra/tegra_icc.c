@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-21, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,7 +26,7 @@ DEFINE_TNODE(icc_primary, TEGRA_ICC_PRIMARY, TEGRA_ICC_NONE);
 DEFINE_TNODE(debug, TEGRA_ICC_DEBUG, TEGRA_ICC_NISO);
 DEFINE_TNODE(display, TEGRA_ICC_DISPLAY, TEGRA_ICC_ISO_DISPLAY);
 DEFINE_TNODE(vi, TEGRA_ICC_VI, TEGRA_ICC_ISO_VI);
-DEFINE_TNODE(eqos, TEGRA_ICC_EQOS, TEGRA_ICC_ISO_OTHER);
+DEFINE_TNODE(eqos, TEGRA_ICC_EQOS, TEGRA_ICC_NISO);
 DEFINE_TNODE(cpu_cluster0, TEGRA_ICC_CPU_CLUSTER0, TEGRA_ICC_NISO);
 DEFINE_TNODE(cpu_cluster1, TEGRA_ICC_CPU_CLUSTER1, TEGRA_ICC_NISO);
 DEFINE_TNODE(cpu_cluster2, TEGRA_ICC_CPU_CLUSTER2, TEGRA_ICC_NISO);
@@ -56,12 +56,16 @@ DEFINE_TNODE(xusb_host, TEGRA_ICC_XUSB_HOST, TEGRA_ICC_NISO);
 DEFINE_TNODE(xusb_dev, TEGRA_ICC_XUSB_DEV, TEGRA_ICC_NISO);
 DEFINE_TNODE(tsec, TEGRA_ICC_TSEC, TEGRA_ICC_NISO);
 DEFINE_TNODE(vic, TEGRA_ICC_VIC, TEGRA_ICC_NISO);
-DEFINE_TNODE(ape, TEGRA_ICC_APE, TEGRA_ICC_ISO_OTHER);
-DEFINE_TNODE(apedma, TEGRA_ICC_APEDMA, TEGRA_ICC_ISO_OTHER);
+DEFINE_TNODE(ape, TEGRA_ICC_APE, TEGRA_ICC_ISO_AUDIO);
+DEFINE_TNODE(apedma, TEGRA_ICC_APEDMA, TEGRA_ICC_ISO_AUDIO);
 DEFINE_TNODE(se, TEGRA_ICC_SE, TEGRA_ICC_NISO);
 DEFINE_TNODE(gpu, TEGRA_ICC_GPU, TEGRA_ICC_NISO);
 DEFINE_TNODE(cactmon, TEGRA_ICC_CACTMON, TEGRA_ICC_NISO);
 DEFINE_TNODE(isp, TEGRA_ICC_ISP, TEGRA_ICC_NISO); /* non ISO camera */
+DEFINE_TNODE(hda, TEGRA_ICC_HDA, TEGRA_ICC_ISO_AUDIO);
+DEFINE_TNODE(vifal, TEGRA_ICC_VIFAL, TEGRA_ICC_ISO_VIFAL);
+DEFINE_TNODE(vi2fal, TEGRA_ICC_VI2FAL, TEGRA_ICC_ISO_VIFAL);
+DEFINE_TNODE(vi2, TEGRA_ICC_VI2, TEGRA_ICC_ISO_VI);
 
 static struct tegra_icc_node *tegra_icc_nodes[] = {
 	[TEGRA_ICC_PRIMARY] = &icc_primary,
@@ -104,6 +108,10 @@ static struct tegra_icc_node *tegra_icc_nodes[] = {
 	[TEGRA_ICC_GPU] = &gpu,
 	[TEGRA_ICC_CACTMON] = &cactmon,
 	[TEGRA_ICC_ISP] = &isp,
+	[TEGRA_ICC_HDA] = &hda,
+	[TEGRA_ICC_VIFAL] = &vifal,
+	[TEGRA_ICC_VI2FAL] = &vi2fal,
+	[TEGRA_ICC_VI2] = &vi2,
 };
 
 static int tegra_icc_probe(struct platform_device *pdev)
@@ -136,16 +144,50 @@ static int tegra_icc_probe(struct platform_device *pdev)
 	provider->dev = &pdev->dev;
 	provider->set = ops->plat_icc_set;
 	provider->aggregate = ops->plat_icc_aggregate;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+	provider->get_bw = ops->plat_icc_get_bw;
+#endif
 	provider->xlate = of_icc_xlate_onecell;
 	INIT_LIST_HEAD(&provider->nodes);
 	provider->data = data;
 
 	tp->dev = &pdev->dev;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+	tp->bpmp_dev = tegra_bpmp_get(tp->dev);
+	if (IS_ERR(tp->bpmp_dev)) {
+		dev_err(&pdev->dev, "bpmp_get failed\n");
+		return -EPROBE_DEFER;
+	}
+#endif
+
+	tp->dram_clk = of_clk_get_by_name(pdev->dev.of_node, "emc");
+	if (IS_ERR_OR_NULL(tp->dram_clk)) {
+		dev_err(&pdev->dev, "couldn't find emc clock\n");
+		ret = PTR_ERR(tp->dram_clk);
+		tp->dram_clk = NULL;
+		goto err_bpmp;
+	}
+	clk_prepare_enable(tp->dram_clk);
+
+	tp->max_rate = clk_round_rate(tp->dram_clk, ULONG_MAX);
+	if (tp->max_rate < 0) {
+		dev_err(&pdev->dev, "couldn't get emc clock max rate\n");
+		ret = tp->max_rate;
+		goto err_bpmp;
+	}
+
+	tp->min_rate = clk_round_rate(tp->dram_clk, 0);
+	if (tp->min_rate < 0) {
+		dev_err(&pdev->dev, "couldn't get emc clock min rate\n");
+		ret = tp->min_rate;
+		goto err_bpmp;
+	}
+
 	ret = icc_provider_add(provider);
 	if (ret) {
 		dev_err(&pdev->dev, "error adding interconnect provider\n");
-		return ret;
+		goto err_bpmp;
 	}
 
 	for (i = 0; i < num_nodes; i++) {
@@ -162,7 +204,6 @@ static int tegra_icc_probe(struct platform_device *pdev)
 		dev_dbg(&pdev->dev, "registered node %p %s %d\n", node,
 			tnodes[i]->name, node->id);
 
-		/* populate links */
 		icc_link_create(node, TEGRA_ICC_PRIMARY);
 
 		data->nodes[i] = node;
@@ -181,6 +222,10 @@ err:
 	}
 
 	icc_provider_del(provider);
+err_bpmp:
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+	tegra_bpmp_put(tp->bpmp_dev);
+#endif
 	return ret;
 }
 
@@ -194,6 +239,9 @@ static int tegra_icc_remove(struct platform_device *pdev)
 		icc_node_del(n);
 		icc_node_destroy(n->id);
 	}
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+	tegra_bpmp_put(tp->bpmp_dev);
+#endif
 
 	return icc_provider_del(provider);
 }
@@ -210,14 +258,12 @@ static struct platform_driver tegra_icc_driver = {
 	.driver = {
 		.name = "tegra-icc",
 		.of_match_table = tegra_icc_of_match,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+		.sync_state = icc_sync_state,
+#endif
 	},
 };
-
-static int __init tegra_icc_init(void)
-{
-	return platform_driver_register(&tegra_icc_driver);
-}
-core_initcall(tegra_icc_init);
+module_platform_driver(tegra_icc_driver);
 
 MODULE_AUTHOR("Sanjay Chandrashekara <sanjayc@nvidia.com>");
 MODULE_DESCRIPTION("Tegra ICC driver");
