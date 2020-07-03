@@ -332,7 +332,9 @@
 		dpaux@155F0000 {
 			status = "okay";
 			compatible = "nvidia,tegra194-dpaux3-padctl";
+#if LINUX_VERSION <= 419
 			/delete-property/ power-domains;
+#endif
 			dpaux_default: pinmux@0 {
 				dpaux3_pins {
 					pins = "dpaux3-3";
