@@ -392,6 +392,8 @@ struct tegra_pcie_port {
 
 	int n_gpios;
 	int *gpios;
+	bool has_mxm_port;
+	int pwr_gd_gpio;
 
 	struct phy **phys;
 
@@ -755,6 +757,14 @@ static void tegra_pcie_port_enable(struct tegra_pcie_port *port)
 	afi_writel(port->pcie, value, ctrl);
 
 	tegra_pcie_port_reset(port);
+
+	/*
+	 * On platforms where MXM is not directly connected to Tegra root port,
+	 * 200 ms delay (worst case) is required after reset, to ensure linkup
+	 * between PCIe switch and MXM
+	 */
+	if (port->has_mxm_port)
+		mdelay(200);
 
 	if (soc->force_pca_enable) {
 		value = readl(port->base + RP_VEND_CTL2);
@@ -2318,6 +2328,28 @@ static int tegra_pcie_parse_dt(struct tegra_pcie *pcie)
 			}
 		}
 
+		rp->has_mxm_port = of_property_read_bool(port,
+							 "nvidia,has-mxm-port");
+		if (rp->has_mxm_port) {
+			rp->pwr_gd_gpio = of_get_named_gpio(port,
+						"nvidia,pwr-gd-gpio", 0);
+			if (gpio_is_valid(rp->pwr_gd_gpio)) {
+				err = devm_gpio_request(dev, rp->pwr_gd_gpio,
+							"pwr_gd_gpio");
+				if (err < 0) {
+					dev_err(dev, "%s: pwr_gd_gpio request failed %d\n",
+						__func__, err);
+					return err;
+				}
+
+				err = gpio_direction_input(rp->pwr_gd_gpio);
+				if (err < 0) {
+					dev_err(dev, "%s: pwr_gd_gpio direction input failed %d\n",
+						__func__, err);
+				}
+			}
+		}
+
 		list_add_tail(&rp->list, &pcie->ports);
 	}
 
@@ -2447,6 +2479,16 @@ static void tegra_pcie_change_link_speed(struct tegra_pcie *pcie)
 			dev_err(dev, "failed to retrain link of port %u\n",
 				port->index);
 	}
+}
+
+static int tegra_pcie_mxm_pwr_init(struct tegra_pcie_port *port)
+{
+	mdelay(100);
+
+	if (!gpio_get_value(port->pwr_gd_gpio))
+		return 1;
+
+	return 0;
 }
 
 static void tegra_pcie_enable_ports(struct tegra_pcie *pcie)
@@ -2763,6 +2805,7 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct pci_host_bridge *host;
 	struct tegra_pcie *pcie;
+	struct tegra_pcie_port *port = NULL;
 	struct pci_bus *child;
 	struct resource *bus;
 	int err;
@@ -2800,6 +2843,11 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 		dev_err(dev, "failed to enable MSI support: %d\n", err);
 		goto put_resources;
 	}
+
+	list_for_each_entry(port, &pcie->ports, list)
+		if (port->has_mxm_port && tegra_pcie_mxm_pwr_init(port))
+			dev_info(dev, "pwr_good is down for port %d, ignoring\n",
+				 port->index);
 
 	pm_runtime_enable(pcie->dev);
 	err = pm_runtime_get_sync(pcie->dev);
