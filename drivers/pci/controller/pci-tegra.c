@@ -3276,6 +3276,25 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 		goto pm_runtime_put;
 	}
 
+	/*
+	 * If all PCIe ports are down, power gate PCIe. This can happen if
+	 * no endpoints are connected, so don't fail probe.
+	 */
+	port = NULL;
+	err = -ENOMEDIUM;
+
+	list_for_each_entry(port, &pcie->ports, list) {
+		if (tegra_pcie_link_up(port)) {
+			err = 0;
+			break;
+		}
+	}
+
+	if (err == -ENOMEDIUM) {
+		err = 0;
+		goto pm_runtime_put;
+	}
+
 	pci_add_flags(PCI_REASSIGN_ALL_BUS);
 
 	host->busnr = bus->start;
@@ -3323,6 +3342,9 @@ static int tegra_pcie_remove(struct platform_device *pdev)
 	struct pci_host_bridge *host = pci_host_bridge_from_priv(pcie);
 	struct tegra_pcie_port *port, *tmp;
 
+	if (list_empty(&pcie->ports))
+		return 0;
+
 	device_init_wakeup(&pdev->dev, false);
 
 	if (IS_ENABLED(CONFIG_DEBUG_FS))
@@ -3354,6 +3376,9 @@ static int __maybe_unused tegra_pcie_pm_suspend(struct device *dev)
 	struct tegra_pcie *pcie = dev_get_drvdata(dev);
 	struct tegra_pcie_port *port;
 	int err;
+
+	if (list_empty(&pcie->ports))
+		return 0;
 
 	list_for_each_entry(port, &pcie->ports, list)
 		tegra_pcie_pme_turnoff(port);
@@ -3389,6 +3414,9 @@ static int __maybe_unused tegra_pcie_pm_resume(struct device *dev)
 {
 	struct tegra_pcie *pcie = dev_get_drvdata(dev);
 	int err;
+
+	if (list_empty(&pcie->ports))
+		return 0;
 
 	tegra_pcie_config_plat(pcie, 1);
 
@@ -3446,6 +3474,9 @@ static int tegra_pcie_suspend_late(struct device *dev)
 {
 	struct tegra_pcie *pcie = dev_get_drvdata(dev);
 
+	if (list_empty(&pcie->ports))
+		return 0;
+
 	if (gpio_is_valid(pcie->pex_wake))
 		enable_irq_wake(gpio_to_irq(pcie->pex_wake));
 
@@ -3455,6 +3486,9 @@ static int tegra_pcie_suspend_late(struct device *dev)
 static int tegra_pcie_resume_early(struct device *dev)
 {
 	struct tegra_pcie *pcie = dev_get_drvdata(dev);
+
+	if (list_empty(&pcie->ports))
+		return 0;
 
 	if (gpio_is_valid(pcie->pex_wake))
 		disable_irq_wake(gpio_to_irq(pcie->pex_wake));
