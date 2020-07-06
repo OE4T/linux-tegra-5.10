@@ -3277,7 +3277,7 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 	if (!osi_core->pre_si) {
 		/* read MAC address */
 		eth_mac_addr = of_get_mac_address(np);
-		if (!eth_mac_addr) {
+		if (IS_ERR_OR_NULL(eth_mac_addr)) {
 			ret = ether_get_mac_address_dtb("/chosen",
 							"nvidia,ether-mac",
 							mac_addr);
