@@ -936,14 +936,6 @@ static int tegra_nvdisp_reset_prepare(struct tegra_dc *dc)
 	char rst_name[6];
 	int i;
 
-	/* Continue if bpmp is enabled or sim */
-	if (!tegra_bpmp_running()) {
-		if (tegra_platform_is_vdk())
-			dev_err(&dc->ndev->dev, "Continue without BPMP for sim\n");
-		else
-			return 0;
-	}
-
 	nvdisp_common_rst[0] =
 		devm_reset_control_get(&dc->ndev->dev, "misc");
 	if (IS_ERR(nvdisp_common_rst[0])) {
@@ -1619,14 +1611,12 @@ int tegra_nvdisp_init(struct tegra_dc *dc)
 	tegra_nvdisp_bandwidth_attach(dc);
 #endif
 
-	if (tegra_bpmp_running()) {
-		snprintf(rst_name, sizeof(rst_name), "head%u", dc->ctrl_num);
-		dc->rst = devm_reset_control_get(&dc->ndev->dev, rst_name);
-		if (IS_ERR(dc->rst)) {
-			dev_err(&dc->ndev->dev,"Unable to get %s reset\n",
-				rst_name);
-			return PTR_ERR(dc->rst);
-		}
+	snprintf(rst_name, sizeof(rst_name), "head%u", dc->ctrl_num);
+	dc->rst = devm_reset_control_get(&dc->ndev->dev, rst_name);
+	if (IS_ERR(dc->rst)) {
+		dev_err(&dc->ndev->dev, "Unable to get %s reset\n",
+			rst_name);
+		return PTR_ERR(dc->rst);
 	}
 
 	dc->parent_clk_safe = tegra_disp_clk_get(&dc->ndev->dev,
@@ -2176,16 +2166,14 @@ int tegra_nvdisp_head_enable(struct tegra_dc *dc)
 	tegra_dc_get(dc);
 
 	/* Deassert the dc reset */
-	if (tegra_bpmp_running()) {
-		res = reset_control_deassert(dc->rst);
-		if (res) {
-			dev_err(&dc->ndev->dev, "Unable to deassert dc %d\n",
-					dc->ctrl_num);
-			return res;
-		}
-
-		tegra_nvdisp_wgrp_reset_deassert(dc);
+	res = reset_control_deassert(dc->rst);
+	if (res) {
+		dev_err(&dc->ndev->dev, "Unable to deassert dc %d\n",
+				dc->ctrl_num);
+		return res;
 	}
+
+	tegra_nvdisp_wgrp_reset_deassert(dc);
 
 	/* Mask interrupts during init */
 	tegra_dc_writel(dc, 0, DC_CMD_INT_MASK);
@@ -2370,7 +2358,7 @@ u32 tegra_nvdisp_sysfs_read_rg_crc(struct tegra_dc *dc)
 	}
 
 	/* If gated quitely return */
-	if (tegra_bpmp_running() && !tegra_dc_is_powered(dc))
+	if (!tegra_dc_is_powered(dc))
 		return 0;
 
 #ifdef INIT_COMPLETION

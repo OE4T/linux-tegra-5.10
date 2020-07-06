@@ -942,7 +942,7 @@ static inline int tegra_dc_clk_set_rate(struct tegra_dc *dc, unsigned long rate)
 	if (!tegra_dc_is_nvdisplay())
 		return 0;
 
-	if (!tegra_platform_is_silicon() || !tegra_bpmp_running())
+	if (!tegra_platform_is_silicon())
 		return 0;
 
 	if (clk_set_rate(dc->clk, rate)) {
@@ -956,38 +956,24 @@ static inline int tegra_dc_clk_set_rate(struct tegra_dc *dc, unsigned long rate)
 
 static inline unsigned long tegra_dc_clk_get_rate(struct tegra_dc *dc)
 {
-	if (tegra_dc_is_nvdisplay()) {
-		if (!tegra_platform_is_silicon() || !tegra_bpmp_running())
-			return dc->mode.pclk;
-	} else {
-		if (!tegra_platform_is_silicon())
-			return dc->mode.pclk;
-	}
+	if (!tegra_platform_is_silicon())
+		return dc->mode.pclk;
 
 	return clk_get_rate(dc->clk);
 }
 
 static inline int tegra_disp_clk_prepare_enable(struct clk *clk)
 {
-	if (tegra_dc_is_nvdisplay()) {
-		if (tegra_platform_is_silicon() && tegra_bpmp_running())
-			return clk_prepare_enable(clk);
-	} else {
-		if (tegra_platform_is_silicon())
-			return clk_prepare_enable(clk);
-	}
+	if (tegra_platform_is_silicon())
+		return clk_prepare_enable(clk);
+
 	return 0;
 }
 
 static inline void tegra_disp_clk_disable_unprepare(struct clk *clk)
 {
-	if (tegra_dc_is_nvdisplay()) {
-		if (tegra_platform_is_silicon() && tegra_bpmp_running())
-			clk_disable_unprepare(clk);
-	} else {
-		if (tegra_platform_is_silicon())
-			clk_disable_unprepare(clk);
-	}
+	if (tegra_platform_is_silicon())
+		clk_disable_unprepare(clk);
 }
 
 static inline void tegra_dc_set_edid(struct tegra_dc *dc,

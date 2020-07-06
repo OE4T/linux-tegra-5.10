@@ -2237,8 +2237,7 @@ static void tegra_dsi_set_dsi_clk(struct tegra_dc *dc,
 			DIV_ROUND_UP(S_TO_MS(1), dsi->info.refresh_rate);
 
 	tegra_dsi_setup_clk(dc, dsi);
-	if (tegra_bpmp_running())
-		tegra_dsi_reset_deassert(dsi);
+	tegra_dsi_reset_deassert(dsi);
 
 	dsi->current_dsi_clk_khz =
 			clk_get_rate(dsi->dsi_clk[0]) / 1000;
@@ -4660,7 +4659,7 @@ static int _tegra_dc_dsi_init(struct tegra_dc *dc)
 			goto err_dsi_clk_put;
 		}
 
-		if (tegra_platform_is_silicon() && tegra_bpmp_running()) {
+		if (tegra_platform_is_silicon()) {
 			dsi_reset = of_reset_control_get(np_dsi,
 					dsi_reset_name[index]);
 			if (IS_ERR_OR_NULL(dsi_reset)) {
@@ -5362,7 +5361,7 @@ static int tegra_dc_dsi_init(struct tegra_dc *dc)
 	dsi = tegra_dc_get_outdata(dc);
 
 	if (tegra_dc_is_t21x() || (tegra_dc_is_nvdisplay() &&
-		tegra_platform_is_silicon() && tegra_bpmp_running())) {
+		tegra_platform_is_silicon())) {
 		if (!dsi->avdd_dsi_csi) {
 			dsi->avdd_dsi_csi =  devm_regulator_get(&dc->ndev->dev,
 				"avdd_dsi_csi");
@@ -5544,8 +5543,7 @@ static void tegra_dc_dsi_setup_clk_nvdisplay(struct tegra_dc *dc,
 		}
 	}
 
-	if (tegra_bpmp_running() && base_clk &&
-			rate != clk_get_rate(base_clk)) {
+	if (base_clk && rate != clk_get_rate(base_clk)) {
 		err = clk_set_rate(base_clk, rate);
 		if (err)
 			dev_err(&dc->ndev->dev, "Failed to set pll freq\n");
