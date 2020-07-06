@@ -43,12 +43,30 @@
 
 #include <dt-bindings/memory/tegra-swgroup.h>
 
+#define CAMRTC_TEST_CAM_DEVICES 3
+
+struct camrtc_test_device {
+	/* device handle */
+	struct device *dev;
+	/* device iova for the memory in context */
+	dma_addr_t dev_iova;
+};
+
 struct camrtc_test_mem {
+	/* access id in memory array */
 	u32 index;
+	/* occupied memory size */
 	size_t used;
+	/* total size */
 	size_t size;
+	/* CPU address */
 	void *ptr;
+	/* base iova for device used for allocation */
 	dma_addr_t iova;
+	/* device index */
+	u32 dev_index;
+	/* metadata for all the devices using this memory */
+	struct camrtc_test_device devices[CAMRTC_TEST_CAM_DEVICES];
 };
 
 struct camrtc_falcon_coverage {
@@ -89,7 +107,9 @@ struct camrtc_debug {
 #define FALCON_COVERAGE_MEM_SIZE (1024 * 128) /* 128kB */
 
 struct camrtc_dbgfs_rmem {
+	/* reserved memory size */
 	unsigned long	size;
+	/* reserved memory address */
 	phys_addr_t	address;
 };
 
@@ -630,6 +650,11 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 	struct device *mem_dev = camrtc_dbgfs_memory_dev(crd);
 	ssize_t ret;
 
+	if (mem->dev_index >= CAMRTC_TEST_CAM_DEVICES) {
+		pr_err("%s: device list exhausted\n", __func__);
+		return -ENOMEM;
+	}
+
 	if (_camdbg_rmem.size != 0ULL) {
 		/*
 		 * If reserved memory, only 6 MegaBytes is available
@@ -683,6 +708,9 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 			memset(mem, 0, sizeof(*mem));
 		}
 	}
+
+	mem->devices[mem->dev_index].dev = mem_dev;
+	mem->devices[mem->dev_index++].dev_iova = mem->iova;
 
 	return ret;
 }
@@ -777,9 +805,11 @@ static void camrtc_run_rmem_unmap_all(struct camrtc_debug *crd,
 	if (mem->ptr == NULL)
 		return;
 
-	for (i = 0; i < ARRAY_SIZE(crd->mem_devices); i++) {
-		struct device *dev = crd->mem_devices[i];
-		dma_unmap_single(dev, mem->iova,
+	for (i = 0; i < ARRAY_SIZE(mem->devices); i++) {
+		struct device *dev = mem->devices[i].dev;
+		dma_addr_t iova = mem->devices[i].dev_iova;
+
+		dma_unmap_single(dev, iova,
 				mem->size, DMA_BIDIRECTIONAL);
 	}
 }
@@ -798,9 +828,15 @@ static int camrtc_run_mem_map(struct tegra_ivc_channel *ch,
 	if (dev == NULL)
 		return 0;
 
+	if (mem->dev_index >= CAMRTC_TEST_CAM_DEVICES) {
+		pr_err("%s: device list exhausted\n", __func__);
+		return -ENOMEM;
+	}
+
 	if (mem_dev == dev) {
 		*return_iova = mem->iova;
-		return 0;
+		ret = 0;
+		goto done;
 	}
 
 	if (_camdbg_rmem.size != 0ULL) {
@@ -829,6 +865,10 @@ static int camrtc_run_mem_map(struct tegra_ivc_channel *ch,
 
 		*return_iova = sgt->sgl->dma_address;
 	}
+
+done:
+	mem->devices[mem->dev_index].dev = dev;
+	mem->devices[mem->dev_index++].dev_iova = *return_iova;
 
 	return ret;
 }
@@ -994,6 +1034,9 @@ unmap:
 			camrtc_run_rmem_unmap_all(crd, mem);
 		}
 	}
+
+	for (i = 0; i < ARRAY_SIZE(crd->mem); i++)
+		memset(&crd->mem[i], 0, sizeof(struct camrtc_test_mem));
 
 	return ret;
 }
