@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/soc.h>
 #include <nvgpu/gr/gr_falcon.h>
 
 #include "gr_falcon_gp10b.h"
@@ -141,10 +142,13 @@ int gv11b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.method.addr =
 			gr_fecs_method_push_adr_set_watchdog_timeout_f();
 		op.method.data = data;
+		if (nvgpu_platform_is_silicon(g)) {
+			op.cond.ok = GR_IS_UCODE_OP_EQUAL;
+			op.mailbox.ok = gr_fecs_ctxsw_mailbox_value_pass_v();
+		} else {
+			op.cond.ok = GR_IS_UCODE_OP_SKIP;
+		}
 		flags |= NVGPU_GR_FALCON_SUBMIT_METHOD_F_LOCKED;
-#ifdef CONFIG_NVGPU_SIM
-		op.cond.ok = GR_IS_UCODE_OP_SKIP;
-#endif
 
 		ret = gm20b_gr_falcon_submit_fecs_method_op(g, op, flags);
 		break;
