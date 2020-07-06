@@ -18,7 +18,6 @@
 #include <linux/of_platform.h>
 #include <linux/debugfs.h>
 #include <linux/dma-buf.h>
-#include <linux/nvmap.h>
 #include <linux/reset.h>
 #ifdef CONFIG_TEGRA_BWMGR
 #include <linux/platform/tegra/emc_bwmgr.h>

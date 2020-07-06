@@ -19,7 +19,6 @@
 #include <linux/of_platform.h>
 #include <linux/debugfs.h>
 #include <linux/dma-buf.h>
-#include <linux/nvmap.h>
 #include <linux/reset.h>
 #include <linux/hashtable.h>
 #include <linux/clk.h>

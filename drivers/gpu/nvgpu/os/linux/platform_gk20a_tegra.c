@@ -20,7 +20,6 @@
 #include <linux/delay.h>
 #include <uapi/linux/nvgpu.h>
 #include <linux/dma-buf.h>
-#include <linux/nvmap.h>
 #include <linux/reset.h>
 #if defined(CONFIG_TEGRA_DVFS)
 #include <linux/tegra_soctherm.h>
