@@ -38,9 +38,9 @@
 
 #ifdef CONFIG_TEGRA_BWMGR
 #include <linux/platform/tegra/emc_bwmgr.h>
+#include <linux/platform/tegra/tegra_emc.h>
 #endif
 
-#include <linux/platform/tegra/tegra_emc.h>
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
 #include <linux/version.h>
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
