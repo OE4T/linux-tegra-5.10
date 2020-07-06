@@ -25,16 +25,17 @@
 #include <trace/events/display.h>
 #define WIN_IS_BLOCKLINEAR(win)	((win)->flags & TEGRA_WIN_FLAG_BLOCKLINEAR)
 #endif
-#include <soc/tegra/tegra_powergate.h>
 #include <uapi/video/tegra_dc_ext.h>
 #include <video/tegra_dc_ext_kernel.h>
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/bpmp_abi.h>
 #include <soc/tegra/tegra_bpmp.h>
+#include <soc/tegra/tegra_powergate.h>
 #else
 #include <soc/tegra/bpmp-abi.h>
 #include <soc/tegra/bpmp.h>
 #include <linux/extcon-provider.h>
+#include <linux/pm_runtime.h>
 #endif
 
 #include <linux/clk-provider.h>
@@ -478,16 +479,50 @@ static inline void reg_dump(struct tegra_dc *dc, void *data,
 		return tegra_dc_reg_dump(dc, data, print);
 }
 
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+static void t21x_disp_pd_disable(struct tegra_dc *dc)
+{
+	struct tegra_dc_pd_table *pd_table = tegra_dc_get_disp_pd_table();
+	struct tegra_dc_pd_info *pds = pd_table->pd_entries;
+	struct tegra_dc_pd_info *pd = &pds[dc->ctrl_num];
+
+	pm_runtime_put_sync(pd->genpd_dev);
+}
+
+static int t21x_disp_pd_enable(struct tegra_dc *dc)
+{
+	struct tegra_dc_pd_table *pd_table = tegra_dc_get_disp_pd_table();
+	struct tegra_dc_pd_info *pds = pd_table->pd_entries;
+	struct tegra_dc_pd_info *pd = &pds[dc->ctrl_num];
+
+	return pm_runtime_get_sync(pd->genpd_dev);
+}
+
+static int t21x_disp_is_pd_enabled(struct tegra_dc *dc)
+{
+	struct tegra_dc_pd_table *pd_table = tegra_dc_get_disp_pd_table();
+	struct tegra_dc_pd_info *pds = pd_table->pd_entries;
+	struct tegra_dc_pd_info *pd = &pds[dc->ctrl_num];
+
+	return pm_runtime_enabled(pd->genpd_dev);
+}
+#endif
+
 #if IS_ENABLED(CONFIG_PM_GENERIC_DOMAINS)
 static inline void tegra_dc_powergate_locked(struct tegra_dc *dc)
 {
 	if (tegra_platform_is_sim() || tegra_platform_is_fpga())
 		return;
 
-	if (tegra_dc_is_nvdisplay())
+	if (tegra_dc_is_nvdisplay()) {
 		tegra_nvdisp_powergate_dc(dc);
-	else
+	} else {
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+		t21x_disp_pd_disable(dc);
+#else
 		tegra_powergate_partition(dc->powergate_id);
+#endif
+	}
 }
 
 static inline void tegra_dc_unpowergate_locked(struct tegra_dc *dc)
@@ -497,11 +532,15 @@ static inline void tegra_dc_unpowergate_locked(struct tegra_dc *dc)
 	if (tegra_platform_is_sim() || tegra_platform_is_fpga())
 		return;
 
-	if (tegra_dc_is_nvdisplay())
+	if (tegra_dc_is_nvdisplay()) {
 		ret = tegra_nvdisp_unpowergate_dc(dc);
-	else
+	} else {
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+		ret = t21x_disp_pd_enable(dc);
+#else
 		ret = tegra_unpowergate_partition(dc->powergate_id);
-
+#endif
+	}
 	if (ret < 0)
 		dev_err(&dc->ndev->dev, "%s: could not unpowergate %d\n",
 							__func__, ret);
@@ -512,10 +551,15 @@ static inline bool tegra_dc_is_powered(struct tegra_dc *dc)
 	if (tegra_platform_is_sim() || tegra_platform_is_fpga())
 		return true;
 
-	if (tegra_dc_is_nvdisplay())
+	if (tegra_dc_is_nvdisplay()) {
 		return tegra_nvdisp_is_powered(dc);
-	else
+	} else {
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+		return t21x_disp_is_pd_enabled(dc);
+#else
 		return tegra_powergate_is_powered(dc->powergate_id);
+#endif
+	}
 }
 
 void tegra_dc_powergate_locked(struct tegra_dc *dc);

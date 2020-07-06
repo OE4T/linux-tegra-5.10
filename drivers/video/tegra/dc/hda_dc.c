@@ -65,7 +65,7 @@ int tegra_hda_get_dev_id(struct tegra_dc_sor_data *sor)
 	if (!sor)
 		return -ENODEV;
 
-	tegra_unpowergate_partition(sor->powergate_id);
+	tegra_sor_unpowergate(sor);
 	tegra_sor_safe_clk_enable(sor);
 	if (!sor->dc->initialized)
 		tegra_sor_clk_enable(sor);
@@ -77,7 +77,7 @@ int tegra_hda_get_dev_id(struct tegra_dc_sor_data *sor)
 	if (!sor->dc->initialized)
 		tegra_sor_clk_disable(sor);
 	tegra_sor_safe_clk_disable(sor);
-	tegra_powergate_partition(sor->powergate_id);
+	tegra_sor_powergate(sor);
 	return dev_id;
 }
 EXPORT_SYMBOL(tegra_hda_get_dev_id);
@@ -242,7 +242,7 @@ int tegra_hdmi_setup_hda_presence(int dev_id)
 		goto err;
 
 	if (*(hda->enabled) && *(hda->eld_valid)) {
-		tegra_unpowergate_partition(hda->sor->powergate_id);
+		tegra_sor_unpowergate(hda->sor);
 		tegra_sor_safe_clk_enable(hda->sor);
 		tegra_sor_clk_enable(hda->sor);
 		tegra_dc_io_start(hda->dc);
@@ -258,7 +258,7 @@ int tegra_hdmi_setup_hda_presence(int dev_id)
 		tegra_dc_io_end(hda->dc);
 		tegra_sor_clk_disable(hda->sor);
 		tegra_sor_safe_clk_disable(hda->sor);
-		tegra_powergate_partition(hda->sor->powergate_id);
+		tegra_sor_powergate(hda->sor);
 		val = 0;
 	}
 
@@ -441,7 +441,7 @@ int tegra_hdmi_setup_audio_freq_source(unsigned audio_freq,
 		goto err;
 
 	if (valid_freq) {
-		tegra_unpowergate_partition(hda->sor->powergate_id);
+		tegra_sor_unpowergate(hda->sor);
 		tegra_sor_clk_enable(hda->sor);
 		tegra_dc_io_start(hda->dc);
 
@@ -449,7 +449,7 @@ int tegra_hdmi_setup_audio_freq_source(unsigned audio_freq,
 
 		tegra_dc_io_end(hda->dc);
 		tegra_sor_clk_disable(hda->sor);
-		tegra_powergate_partition(hda->sor->powergate_id);
+		tegra_sor_powergate(hda->sor);
 		val = 0;
 	}
 err:
@@ -482,7 +482,7 @@ int tegra_hdmi_audio_null_sample_inject(bool on, int dev_id)
 	if (hda_inst[sor_num].hda_state != HDA_ENABLED)
 		goto err;
 
-	tegra_unpowergate_partition(hda->sor->powergate_id);
+	tegra_sor_unpowergate(hda->sor);
 	tegra_sor_clk_enable(hda->sor);
 	tegra_dc_io_start(hda->dc);
 
@@ -500,7 +500,7 @@ int tegra_hdmi_audio_null_sample_inject(bool on, int dev_id)
 	null_sample_flag = on;
 	tegra_dc_io_end(hda->dc);
 	tegra_sor_clk_disable(hda->sor);
-	tegra_powergate_partition(hda->sor->powergate_id);
+	tegra_sor_powergate(hda->sor);
 err:
 	hda->null_sample_inject = null_sample_flag;
 	mutex_unlock(&hda_inst[sor_num].hda_inst_lock);

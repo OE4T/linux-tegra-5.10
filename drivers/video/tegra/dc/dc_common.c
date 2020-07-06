@@ -14,7 +14,6 @@
  * GNU General Public License for more details.
  *
  */
-#include <linux/pm_runtime.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/err.h>
@@ -1164,8 +1163,6 @@ static int tegra_dc_common_probe(struct platform_device *pdev)
 		ret = -ENOMEM;
 		goto err_free_upd_val;
 	}
-
-	pm_runtime_enable(&pdev->dev);
 
 	tegra_dc_common_create_debugfs(dc_common);
 

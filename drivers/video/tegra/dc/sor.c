@@ -28,7 +28,9 @@
 #include <linux/tegra_prod.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <linux/tegra_pm_domains.h>
+#endif
 #include <uapi/video/tegra_dc_ext.h>
 #include <linux/of_irq.h>
 #include <linux/pinctrl/pinctrl.h>
@@ -162,7 +164,7 @@ static const struct tegra_dc_dp_training_pattern training_pattern_table[] = {
 	},
 };
 
-static struct of_device_id tegra_sor_pd[] = {
+static struct of_device_id __maybe_unused tegra_sor_pd[] = {
 	{ .compatible = "nvidia,tegra210-sor-pd", },
 	{ .compatible = "nvidia,tegra186-disa-pd", },
 	{ .compatible = "nvidia,tegra194-disa-pd", },
@@ -494,7 +496,11 @@ static int dbg_sor_show(struct seq_file *s, void *unused)
 		#a, a, tegra_sor_readl(sor, a));
 
 	if (tegra_dc_is_t21x()) {
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+		if (!pm_runtime_enabled(sor->genpd_dev)) {
+#else
 		if (!tegra_powergate_is_powered(sor->powergate_id)) {
+#endif
 			seq_puts(s, "SOR is powergated\n");
 			return 0;
 		}
@@ -1036,6 +1042,25 @@ bypass_pads:
 		}
 	}
 
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+	/*
+	 * SOR powerdomain, named "sor", should be specified under DC node.
+	 *
+	 * dev_pm_domain_attach_by_name() calls pm_runtime_enable() on the
+	 * newly created virtual device, no need to enable again.
+	 */
+	sor->genpd_dev = dev_pm_domain_attach_by_name(&dc->ndev->dev, "sor");
+
+	if (IS_ERR(sor->genpd_dev)) {
+		dev_err(&dc->ndev->dev,
+			"Failed to attach power domain to sor.%d\n",
+			sor->ctrl_num);
+		err = -EINVAL;
+		goto err_rst;
+	}
+#else
+	sor->powergate_id = tegra_pd_get_powergate_id(tegra_sor_pd);
+#endif
 	sor->dc = dc;
 	sor->np = sor_np;
 	sor->sor_clk = sor_clk;
@@ -1044,7 +1069,6 @@ bypass_pads:
 	sor->ref_clk = ref_clk;
 	sor->link_cfg = cfg;
 	sor->portnum = 0;
-	sor->powergate_id = tegra_pd_get_powergate_id(tegra_sor_pd);
 	sor->sor_state = SOR_DETACHED;
 
 	tegra_dc_sor_debug_create(sor, res_name);
@@ -1124,6 +1148,10 @@ void tegra_dc_sor_destroy(struct tegra_dc_sor_data *sor)
 	if ((!(sor->irq < 0)) && sor->audio_support)
 		free_irq(sor->irq, sor);
 
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+	if (!IS_ERR_OR_NULL(sor->genpd_dev))
+		dev_pm_domain_detach(sor->genpd_dev, true);
+#endif
 	if (tegra_dc_is_nvdisplay())
 		devm_kfree(dev, sor->win_state_arr);
 	devm_kfree(dev, sor);

@@ -20,14 +20,16 @@
 #include <linux/io.h>
 #include <linux/of_address.h>
 #include <linux/dma-mapping.h>
+#include <linux/version.h>
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <linux/tegra_pm_domains.h>
+#endif
 #include <linux/tegra-pm.h>
 #include <linux/platform/tegra/bwmgr_mc.h>
 #include <linux/uaccess.h>
 #include <linux/platform/tegra/isomgr.h>
 #include <linux/debugfs.h>
 #include <linux/ktime.h>
-#include <linux/version.h>
 
 #include "dc.h"
 #include "nvdisp.h"
@@ -119,6 +121,8 @@ static struct tegra_dc_pd_info t18x_disp_pd_info[] = {
 			{},
 		},
 		.pg_id = -1,
+		.pd_name = "disa",
+		.genpd_dev = NULL,
 		.head_owner = 0,
 		.head_mask = 0x1,	/* Head(s):	0 */
 		.win_mask = 0x1,	/* Window(s):	0 */
@@ -133,6 +137,8 @@ static struct tegra_dc_pd_info t18x_disp_pd_info[] = {
 			{},
 		},
 		.pg_id = -1,
+		.pd_name = "disb",
+		.genpd_dev = NULL,
 		.head_owner = 1,
 		.head_mask = 0x2,	/* Head(s):	1 */
 		.win_mask = 0x6,	/* Window(s):	1,2 */
@@ -147,6 +153,8 @@ static struct tegra_dc_pd_info t18x_disp_pd_info[] = {
 			{},
 		},
 		.pg_id = -1,
+		.pd_name = "disc",
+		.genpd_dev = NULL,
 		.head_owner = 2,
 		.head_mask = 0x4,	/* Head(s):	2 */
 		.win_mask = 0x38,	/* Window(s):	3,4,5 */
@@ -1053,9 +1061,24 @@ static int _tegra_nvdisp_init_pd_table(struct tegra_dc *dc)
 		int nclks = pd->nclks;
 		int j;
 
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+		/*
+		 * dev_pm_domain_attach_by_name() calls pm_runtime_enable() on
+		 * the newly created virtual device, no need to enable again.
+		 */
+		pd->genpd_dev =
+			dev_pm_domain_attach_by_name(
+			&dc->ndev->dev, pd->pd_name);
+		if (IS_ERR(pd->genpd_dev)) {
+			dev_err(&dc->ndev->dev,
+				"Failed to attach pm-domain %s to dc.%d\n",
+				pd->pd_name, dc->ctrl_num);
+			return -EINVAL;
+		}
+#else
 		/* Fill in the powergate id for this power domain. */
 		pd->pg_id = tegra_pd_get_powergate_id(pd->of_id);
-
+#endif
 		/* Query all the required clocks for this power domain. */
 		for (j = 0; j < nclks; j++) {
 			struct tegra_dc_pd_clk_info *domain_clk;
@@ -1088,6 +1111,10 @@ static void _tegra_nvdisp_destroy_pd_table(struct tegra_dc *dc)
 		int nclks = pd->nclks;
 		int j;
 
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+		if (!IS_ERR_OR_NULL(pd->genpd_dev))
+			dev_pm_domain_detach(pd->genpd_dev, true);
+#endif
 		/* Release all the required clocks for this power domain. */
 		for (j = 0; j < nclks; j++) {
 			struct tegra_dc_pd_clk_info *domain_clk;
@@ -2475,12 +2502,21 @@ static inline int tegra_nvdisp_handle_pd_enable(struct tegra_dc_pd_info *pd,
 		int nclks = pd->nclks;
 		int i;
 
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+		ret = pm_runtime_get_sync(pd->genpd_dev);
+		if (IS_ERR(ERR_PTR(ret))) {
+			pr_err("%s: Failed to unpowergate %s domain for Head%u\n",
+				__func__, pd->pd_name, pd->head_owner);
+			return -EINVAL;
+		}
+#else
 		ret = tegra_unpowergate_partition(pd->pg_id);
 		if (ret) {
 			pr_err("%s: Failed to unpowergate Head%u pd\n",
 				__func__, pd->head_owner);
 			return -EINVAL;
 		}
+#endif
 
 		for (i = 0; i < nclks; i++)
 			tegra_disp_clk_prepare_enable(domain_clks[i].clk);
@@ -2508,13 +2544,21 @@ static inline int tegra_nvdisp_handle_pd_disable(struct tegra_dc_pd_info *pd,
 		int nclks = pd->nclks;
 		int i;
 
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+		ret = pm_runtime_put_sync(pd->genpd_dev);
+		if (ret) {
+			pr_err("%s: Failed to powergate %s domain for Head%u\n",
+				__func__, pd->pd_name, pd->head_owner);
+			return -EINVAL;
+		}
+#else
 		ret = tegra_powergate_partition(pd->pg_id);
 		if (ret) {
 			pr_err("%s: Failed to powergate Head%u pd\n",
 				__func__, pd->head_owner);
 			return -EINVAL;
 		}
-
+#endif
 		for (i = 0; i < nclks; i++)
 			tegra_disp_clk_disable_unprepare(domain_clks[i].clk);
 

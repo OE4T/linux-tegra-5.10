@@ -212,6 +212,7 @@ struct tegra_dc_sor_data {
 	struct pinctrl_state *dpd_enable;
 	struct pinctrl_state *dpd_disable;
 	int powergate_id;
+	struct device *genpd_dev;
 	struct rw_semaphore reset_lock;
 	struct dentry	*debugdir;
 	unsigned int irq;
@@ -633,5 +634,23 @@ static inline void tegra_sor_write_field_ext(struct tegra_dc_sor_data *sor,
 	reg_val |= val;
 	tegra_sor_writel(sor, reg, reg_val);
 	up_read(&sor->reset_lock);
+}
+
+static inline void tegra_sor_unpowergate(struct tegra_dc_sor_data *sor)
+{
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+	pm_runtime_get_sync(sor->genpd_dev);
+#else
+	tegra_unpowergate_partition(sor->powergate_id);
+#endif
+}
+
+static inline void tegra_sor_powergate(struct tegra_dc_sor_data *sor)
+{
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+	pm_runtime_put_sync(sor->genpd_dev);
+#else
+	tegra_powergate_partition(sor->powergate_id);
+#endif
 }
 #endif

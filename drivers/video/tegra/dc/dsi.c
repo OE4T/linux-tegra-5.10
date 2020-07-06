@@ -5074,7 +5074,6 @@ static int tegra_dsi_host_suspend(struct tegra_dc *dc)
 			tegra_dc_put(dc);
 	}
 
-	pm_runtime_put_sync(&dc->ndev->dev);
 fail:
 	tegra_dc_io_end(dc);
 	tegra_dsi_host_suspend_unlock(dc, dsi);
@@ -5192,8 +5191,6 @@ static int tegra_dsi_host_resume(struct tegra_dc *dc)
 	}
 
 	tegra_dc_io_start(dc);
-
-	pm_runtime_get_sync(&dc->ndev->dev);
 
 	err = _tegra_dsi_host_resume(dc, dsi, dsi->info.suspend_aggr);
 	if (err < 0) {

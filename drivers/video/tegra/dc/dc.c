@@ -51,7 +51,9 @@
 #endif
 #include <linux/of_irq.h>
 #include <linux/of_address.h>
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <linux/tegra_pm_domains.h>
+#endif
 #include <linux/uaccess.h>
 #if defined(CONFIG_TRUSTED_LITTLE_KERNEL) || defined(CONFIG_TRUSTY)
 #include <linux/ote_protocol.h>
@@ -114,13 +116,13 @@ static const struct of_device_id tegra_display_of_match[] = {
 MODULE_DEVICE_TABLE(of, tegra_display_of_match);
 
 /* Used only on T21x*/
-static struct of_device_id tegra_disa_pd[] = {
+static struct of_device_id __maybe_unused tegra_disa_pd[] = {
 	{ .compatible = "nvidia,tegra210-disa-pd", },
 	{},
 };
 
 /* Used only on T21x */
-static struct of_device_id tegra_disb_pd[] = {
+static struct of_device_id __maybe_unused tegra_disb_pd[] = {
 	{ .compatible = "nvidia,tegra210-disb-pd", },
 	{},
 };
@@ -598,6 +600,39 @@ void tegra_dc_activate_general_channel(struct tegra_dc *dc)
 	else
 		tegra_nvdisp_activate_general_channel(dc);
 }
+
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+static int __maybe_unused t21x_disp_attach_pd(struct tegra_dc *dc)
+{
+	struct tegra_dc_pd_table *pd_table = tegra_dc_get_disp_pd_table();
+	struct tegra_dc_pd_info *pds = pd_table->pd_entries;
+	struct tegra_dc_pd_info *pd = &pds[dc->ctrl_num];
+
+	/*
+	 * dev_pm_domain_attach_by_name() calls pm_runtime_enable() on the
+	 * newly created virtual device, no need to enable again.
+	 */
+	pd->genpd_dev = dev_pm_domain_attach_by_name(
+				&dc->ndev->dev, pd->pd_name);
+	if (IS_ERR(pd->genpd_dev)) {
+		dev_err(&dc->ndev->dev,
+			"Failed to attach pm-domain %s to dc.%d\n",
+			pd->pd_name, dc->ctrl_num);
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static void __maybe_unused t21x_disp_detach_pd(struct tegra_dc *dc)
+{
+	struct tegra_dc_pd_table *pd_table = tegra_dc_get_disp_pd_table();
+	struct tegra_dc_pd_info *pds = pd_table->pd_entries;
+	struct tegra_dc_pd_info *pd = &pds[dc->ctrl_num];
+
+	if (!IS_ERR_OR_NULL(pd->genpd_dev))
+		dev_pm_domain_detach(pd->genpd_dev, true);
+}
+#endif
 
 unsigned long tegra_dc_readl_exported(struct tegra_dc *dc, unsigned long reg)
 {
@@ -5726,16 +5761,12 @@ static bool _tegra_dc_enable(struct tegra_dc *dc)
 		!tegra_dc_hpd(dc))
 		return false;
 
-	pm_runtime_get_sync(&dc->ndev->dev);
-
 	if (tegra_dc_is_nvdisplay()) {
 		if (tegra_nvdisp_head_enable(dc)) {
-			pm_runtime_put_sync(&dc->ndev->dev);
 			return false;
 		}
 	} else {
 		if (!_tegra_dc_controller_enable(dc)) {
-			pm_runtime_put_sync(&dc->ndev->dev);
 			return false;
 		}
 	}
@@ -5999,8 +6030,6 @@ static void _tegra_dc_disable(struct tegra_dc *dc)
 	tegra_dc_put(dc);
 
 	tegra_dc_powergate_locked(dc);
-
-	pm_runtime_put(&dc->ndev->dev);
 
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	tegra_log_suspend_entry_time();
@@ -6364,7 +6393,7 @@ static int tegra_dc_probe(struct platform_device *ndev)
 	int irq;
 	int i;
 #if IS_ENABLED(CONFIG_PM_GENERIC_DOMAINS)
-	int partition_id_disa, partition_id_disb;
+	int __maybe_unused partition_id_disa, partition_id_disb;
 #endif
 	struct resource of_fb_res;
 	struct resource of_lut_res;
@@ -6447,6 +6476,12 @@ static int tegra_dc_probe(struct platform_device *ndev)
 		if (dc->ctrl_num == 0) {
 			dc->vblank_syncpt = NVSYNCPT_VBLANK0;
 #if IS_ENABLED(CONFIG_PM_GENERIC_DOMAINS)
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+			if (t21x_disp_attach_pd(dc)) {
+				ret = -EINVAL;
+				goto err_iounmap_reg;
+			}
+#else
 			partition_id_disa = tegra_pd_get_powergate_id(
 								tegra_disa_pd);
 			if (partition_id_disa < 0) {
@@ -6454,6 +6489,7 @@ static int tegra_dc_probe(struct platform_device *ndev)
 				goto err_iounmap_reg;
 			}
 			dc->powergate_id = partition_id_disa;
+#endif
 #ifdef CONFIG_TEGRA_ISOMGR
 			isomgr_client_id = TEGRA_ISO_CLIENT_DISP_0;
 #endif
@@ -6461,6 +6497,12 @@ static int tegra_dc_probe(struct platform_device *ndev)
 		} else if (dc->ctrl_num == 1) {
 			dc->vblank_syncpt = NVSYNCPT_VBLANK1;
 #if IS_ENABLED(CONFIG_PM_GENERIC_DOMAINS)
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+			if (t21x_disp_attach_pd(dc)) {
+				ret = -EINVAL;
+				goto err_iounmap_reg;
+			}
+#else
 			partition_id_disb = tegra_pd_get_powergate_id(
 								tegra_disb_pd);
 			if (partition_id_disb < 0) {
@@ -6468,6 +6510,7 @@ static int tegra_dc_probe(struct platform_device *ndev)
 				goto err_iounmap_reg;
 			}
 			dc->powergate_id = partition_id_disb;
+#endif
 #endif
 #ifdef CONFIG_TEGRA_ISOMGR
 			isomgr_client_id = TEGRA_ISO_CLIENT_DISP_1;
@@ -6715,10 +6758,6 @@ static int tegra_dc_probe(struct platform_device *ndev)
 	}
 	disable_dc_irq(dc);
 
-	tegra_pd_add_device(&ndev->dev);
-	pm_runtime_use_autosuspend(&ndev->dev);
-	pm_runtime_set_autosuspend_delay(&ndev->dev, 100);
-	pm_runtime_enable(&ndev->dev);
 	/* Enable async suspend/resume to reduce LP0 latency */
 	device_enable_async_suspend(&ndev->dev);
 
@@ -6846,6 +6885,7 @@ static int tegra_dc_probe(struct platform_device *ndev)
 		_tegra_dc_set_default_videomode(dc);
 		dc->enabled = _tegra_dc_enable(dc);
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #if IS_ENABLED(CONFIG_PM_GENERIC_DOMAINS)
 		/* BL or PG init will keep DISA unpowergated after booting.
 		 * Adding an extra powergate to balance the refcount
@@ -6856,6 +6896,7 @@ static int tegra_dc_probe(struct platform_device *ndev)
 				if (dc->powergate_id == TEGRA_POWERGATE_DISA)
 					tegra_dc_powergate_locked(dc);
 		}
+#endif
 #endif
 	}
 
@@ -6993,6 +7034,9 @@ static int tegra_dc_remove(struct platform_device *ndev)
 	}
 #else
 	tegra_disp_clk_put(&ndev->dev, dc->emc_clk);
+#endif
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+	t21x_disp_detach_pd(dc);
 #endif
 
 	if (!tegra_dc_is_nvdisplay())
@@ -7693,6 +7737,27 @@ static struct tegra_dc_sor_info t21x_sor_info[] = {
 	{ .hdcp_supported = true },   /* SOR1 */
 };
 
+/*
+ * NOTE: Keep the following power domains ordered according to their head owner.
+ */
+static struct tegra_dc_pd_info t21x_disp_pd_info[] = {
+	/* Head0 power domain */
+	{
+		.pd_name = "disa",
+		.genpd_dev = NULL,
+	},
+	/* Head1 power domain */
+	{
+		.pd_name = "disb",
+		.genpd_dev = NULL,
+	},
+};
+
+static struct tegra_dc_pd_table t21x_disp_pd_table = {
+	.pd_entries = t21x_disp_pd_info,
+	.npd = ARRAY_SIZE(t21x_disp_pd_info),
+};
+
 static void tegra_dc_populate_t21x_hw_data(struct tegra_dc_hw_data *hw_data)
 {
 	if (!hw_data)
@@ -7703,8 +7768,7 @@ static void tegra_dc_populate_t21x_hw_data(struct tegra_dc_hw_data *hw_data)
 	hw_data->nsors = 2;
 	hw_data->sor_info = t21x_sor_info;
 
-	/* unused */
-	hw_data->pd_table = NULL;
+	hw_data->pd_table = &t21x_disp_pd_table;
 
 	hw_data->valid = true;
 	hw_data->version = TEGRA_DC_HW_T210;

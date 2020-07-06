@@ -34,7 +34,9 @@
 #endif
 #include <linux/of_address.h>
 #include <linux/of_gpio.h>
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/tegra_powergate.h>
+#endif
 
 #include "dc.h"
 #include "dc_reg.h"
@@ -550,7 +552,7 @@ static int tegra_hdmi_edid_eld_setup(struct tegra_hdmi *hdmi)
 {
 	int err;
 
-	tegra_unpowergate_partition(hdmi->sor->powergate_id);
+	tegra_sor_unpowergate(hdmi->sor);
 
 	err = tegra_hdmi_edid_read(hdmi);
 	if (err < 0)
@@ -570,7 +572,7 @@ static int tegra_hdmi_edid_eld_setup(struct tegra_hdmi *hdmi)
 	 */
 	tegra_hdmi_setup_hda_presence(hdmi->sor->dev_id);
 
-	tegra_powergate_partition(hdmi->sor->powergate_id);
+	tegra_sor_powergate(hdmi->sor);
 
 	tegra_hdmi_edid_config(hdmi);
 
@@ -582,7 +584,7 @@ static int tegra_hdmi_edid_eld_setup(struct tegra_hdmi *hdmi)
 	tegra_hdmi_hotplug_notify(hdmi, true);
 	return 0;
 fail:
-	tegra_powergate_partition(hdmi->sor->powergate_id);
+	tegra_sor_powergate(hdmi->sor);
 	return err;
 }
 

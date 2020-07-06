@@ -223,6 +223,8 @@ struct tegra_dc_pd_clk_info {
 struct tegra_dc_pd_info {
 	struct of_device_id			of_id[2];
 	int					pg_id;
+	const char				pd_name[5];
+	struct device				*genpd_dev;
 
 	const u32				head_owner;
 	const u32				head_mask;
