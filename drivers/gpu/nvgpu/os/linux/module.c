@@ -26,7 +26,9 @@
 #include <linux/reset.h>
 #include <linux/reboot.h>
 #include <linux/notifier.h>
+#ifdef CONFIG_NVGPU_VPR
 #include <linux/platform/tegra/common.h>
+#endif
 #include <linux/pci.h>
 #include <linux/of_gpio.h>
 

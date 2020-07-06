@@ -24,7 +24,9 @@
 #if defined(CONFIG_TEGRA_DVFS)
 #include <linux/tegra_soctherm.h>
 #endif
+#ifdef CONFIG_NVGPU_TEGRA_FUSE
 #include <linux/platform/tegra/common.h>
+#endif
 
 #ifdef CONFIG_NV_TEGRA_MC
 #include <linux/platform/tegra/mc.h>
