@@ -215,7 +215,7 @@ int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 
 	if (pri_is_gpc_addr(g, addr)) {
 		*addr_type = CTXSW_ADDR_TYPE_GPC;
-		gpc_addr = pri_gpccs_addr_mask(addr);
+		gpc_addr = pri_gpccs_addr_mask(g, addr);
 		if (pri_is_gpc_addr_shared(g, addr)) {
 			*addr_type = CTXSW_ADDR_TYPE_GPC;
 			*broadcast_flags |= PRI_BROADCAST_FLAGS_GPC;
@@ -369,8 +369,9 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 				     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_num);
 				     tpc_num++) {
 					priv_addr_table[t++] =
-						pri_tpc_addr(g, pri_tpccs_addr_mask(addr),
-							     gpc_num, tpc_num);
+						pri_tpc_addr(g,
+							pri_tpccs_addr_mask(g, addr),
+							gpc_num, tpc_num);
 				}
 
 			} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PPC) != 0U) {
@@ -381,10 +382,10 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 				}
 			} else {
 				priv_addr = pri_gpc_addr(g,
-						pri_gpccs_addr_mask(addr),
+						pri_gpccs_addr_mask(g, addr),
 						gpc_num);
 
-				gpc_addr = pri_gpccs_addr_mask(priv_addr);
+				gpc_addr = pri_gpccs_addr_mask(g, priv_addr);
 				tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
 				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_num)) {
 					continue;
@@ -415,8 +416,9 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 			     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_num);
 			     tpc_num++) {
 				priv_addr_table[t++] =
-					pri_tpc_addr(g, pri_tpccs_addr_mask(addr),
-						     gpc_num, tpc_num);
+					pri_tpc_addr(g,
+						pri_tpccs_addr_mask(g, addr),
+						gpc_num, tpc_num);
 			}
 		} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PPC) != 0U) {
 			err = gr_gk20a_split_ppc_broadcast_addr(g,
@@ -728,7 +730,7 @@ static int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
 	if (pri_is_gpc_addr(g, addr))   {
 		u32 gpc_addr = 0;
 		gpc_num = pri_get_gpc_num(g, addr);
-		gpc_addr = pri_gpccs_addr_mask(addr);
+		gpc_addr = pri_gpccs_addr_mask(g, addr);
 		if (nvgpu_gr_is_tpc_addr(g, gpc_addr)) {
 			tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
 		} else {
@@ -956,7 +958,7 @@ gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
 			for (i = 0; i < list->count; i++) {
 				reg = &list->l[i];
 				address = reg->addr;
-				tpc_addr = pri_tpccs_addr_mask(address);
+				tpc_addr = pri_tpccs_addr_mask(g, address);
 				base_address = gpc_base +
 					(gpc_num * gpc_stride) +
 					tpc_in_gpc_base +
@@ -987,7 +989,7 @@ gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
 			for (i = 0; i < list->count; i++) {
 				reg = &list->l[i];
 				address = reg->addr;
-				tpc_addr = pri_tpccs_addr_mask(address);
+				tpc_addr = pri_tpccs_addr_mask(g, address);
 				base_address = g->ops.gr.get_egpc_base(g) +
 					(gpc_num * gpc_stride) +
 					tpc_in_gpc_base +
@@ -1051,7 +1053,7 @@ gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
 			reg = &list->l[i];
 
 			address = reg->addr;
-			gpc_addr = pri_gpccs_addr_mask(address);
+			gpc_addr = pri_gpccs_addr_mask(g, address);
 			gpc_offset = reg->index;
 
 			base_address = gpc_base + (gpc_num * gpc_stride);

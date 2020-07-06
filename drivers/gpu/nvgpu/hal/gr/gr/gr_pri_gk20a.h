@@ -35,13 +35,13 @@
  * GPC pri addressing
  * For "from where?" refer *_PGRAPH_Memory_Map.xlsx
  */
-static inline u32 pri_gpccs_addr_width(void)
+static inline u32 pri_gpccs_addr_width(struct gk20a *g)
 {
-	return 15U; /*from where?*/
+	return nvgpu_get_litter_value(g, GPU_LIT_GPC_ADDR_WIDTH);
 }
-static inline u32 pri_gpccs_addr_mask(u32 addr)
+static inline u32 pri_gpccs_addr_mask(struct gk20a *g, u32 addr)
 {
-	return addr & (BIT32(pri_gpccs_addr_width()) - 1U);
+	return addr & (BIT32(pri_gpccs_addr_width(g)) - 1U);
 }
 static inline u32 pri_gpc_addr(struct gk20a *g, u32 addr, u32 gpc)
 {
@@ -111,13 +111,13 @@ static inline bool pri_is_ppc_addr(struct gk20a *g, u32 addr)
 /*
  * TPC pri addressing
  */
-static inline u32 pri_tpccs_addr_width(void)
+static inline u32 pri_tpccs_addr_width(struct gk20a *g)
 {
-	return 11U; /* from where? */
+	return nvgpu_get_litter_value(g, GPU_LIT_TPC_ADDR_WIDTH);
 }
-static inline u32 pri_tpccs_addr_mask(u32 addr)
+static inline u32 pri_tpccs_addr_mask(struct gk20a *g, u32 addr)
 {
-	return addr & (BIT32(pri_tpccs_addr_width()) - 1U);
+	return addr & (BIT32(pri_tpccs_addr_width(g)) - 1U);
 }
 static inline u32 pri_fbpa_addr_mask(struct gk20a *g, u32 addr)
 {

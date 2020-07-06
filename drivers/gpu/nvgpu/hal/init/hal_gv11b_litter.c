@@ -59,6 +59,12 @@ u32 gv11b_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_GPC_SHARED_BASE:
 		ret = proj_gpc_shared_base_v();
 		break;
+	case GPU_LIT_GPC_ADDR_WIDTH:
+		ret = 15U;	/* refer *_PGRAPH_Memory_Map.xlsx */
+		break;
+	case GPU_LIT_TPC_ADDR_WIDTH:
+		ret = 11U;	/* refer *_PGRAPH_Memory_Map.xlsx */
+		break;
 	case GPU_LIT_TPC_IN_GPC_BASE:
 		ret = proj_tpc_in_gpc_base_v();
 		break;
