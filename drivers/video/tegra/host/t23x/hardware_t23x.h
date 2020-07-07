@@ -162,6 +162,11 @@ static inline u32 nvhost_opcode_nonincr_w(unsigned int offset)
 	return (11 << 28) | offset;
 }
 
+static inline u32 nvhost_opcode_incr_w(unsigned int offset)
+{
+	return (10 << 28) | offset;
+}
+
 #define NVHOST_OPCODE_NOOP nvhost_opcode_nonincr(0, 0)
 
 static inline u32 nvhost_mask2(unsigned int x, unsigned int y)
