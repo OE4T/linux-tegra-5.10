@@ -4881,7 +4881,7 @@ static void __exit tegra_se_module_exit(void)
 	platform_driver_unregister(&tegra_se_driver);
 }
 
-module_init(tegra_se_module_init);
+late_initcall(tegra_se_module_init);
 module_exit(tegra_se_module_exit);
 
 MODULE_DESCRIPTION("Tegra Crypto algorithm support using Host1x Interface");
