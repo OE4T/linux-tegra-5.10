@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author:
  *      Abhinav Site    <asite@nvidia.com>
@@ -539,28 +539,27 @@ static const struct file_operations bootlun_en_id_debugfs_ops = {
 static int create_desc_debugfs_nodes(struct dentry *parent_lun_root,
 							u8 *lun_desc_off)
 {
-	int err = 0;
 
-	CHECK_NULL(debugfs_create_x8("bLUenable", 0644, parent_lun_root,
-				lun_desc_off + LUENABLE_OFFSET));
-	CHECK_NULL(debugfs_create_x8("bBootLUNID", 0644, parent_lun_root,
-				lun_desc_off + BOOTLUN_ID_OFFSET));
-	CHECK_NULL(debugfs_create_x8("bLUWriteProtect", 0644, parent_lun_root,
-				lun_desc_off + LU_WRITE_PROTECT_OFFSET));
-	CHECK_NULL(debugfs_create_x8("bMemoryType", 0644, parent_lun_root,
-				lun_desc_off + MEMORY_TYPE_OFFSET));
-	CHECK_NULL(debugfs_create_x32("dNumAllocUnits", 0644, parent_lun_root,
-			(u32 *)(lun_desc_off + NUM_ALLOC_UNITS_OFFSET)));
-	CHECK_NULL(debugfs_create_x8("bDataReliability", 0644, parent_lun_root,
-				lun_desc_off + DATA_RELIABILITY_OFFSET));
-	CHECK_NULL(debugfs_create_x8("bLogicalBlocksize", 0644, parent_lun_root,
-				lun_desc_off + LOGICAL_BLK_SIZE_OFFSET));
-	CHECK_NULL(debugfs_create_x8("bProvisionType", 0644, parent_lun_root,
-				lun_desc_off + PROV_TYPE_OFFSET));
-	CHECK_NULL(debugfs_create_x16("wContextCapabilities", 0644,
-		parent_lun_root, (u16 *)(lun_desc_off + CONTEXT_CAP_OFFSET)));
-out:
-	return err;
+	debugfs_create_x8("bLUenable", 0644, parent_lun_root,
+				lun_desc_off + LUENABLE_OFFSET);
+	debugfs_create_x8("bBootLUNID", 0644, parent_lun_root,
+				lun_desc_off + BOOTLUN_ID_OFFSET);
+	debugfs_create_x8("bLUWriteProtect", 0644, parent_lun_root,
+				lun_desc_off + LU_WRITE_PROTECT_OFFSET);
+	debugfs_create_x8("bMemoryType", 0644, parent_lun_root,
+				lun_desc_off + MEMORY_TYPE_OFFSET);
+	debugfs_create_x32("dNumAllocUnits", 0644, parent_lun_root,
+			(u32 *)(lun_desc_off + NUM_ALLOC_UNITS_OFFSET));
+	debugfs_create_x8("bDataReliability", 0644, parent_lun_root,
+				lun_desc_off + DATA_RELIABILITY_OFFSET);
+	debugfs_create_x8("bLogicalBlocksize", 0644, parent_lun_root,
+				lun_desc_off + LOGICAL_BLK_SIZE_OFFSET);
+	debugfs_create_x8("bProvisionType", 0644, parent_lun_root,
+				lun_desc_off + PROV_TYPE_OFFSET);
+	debugfs_create_x16("wContextCapabilities", 0644,
+		parent_lun_root, (u16 *)(lun_desc_off + CONTEXT_CAP_OFFSET));
+
+	return 0;
 }
 
 void debugfs_provision_init(struct ufs_hba *hba, struct dentry *device_root)
@@ -573,15 +572,15 @@ void debugfs_provision_init(struct ufs_hba *hba, struct dentry *device_root)
 
 	refclk_root = debugfs_create_dir("ufs_refclk", device_root);
 	CHECK_NULL(refclk_root);
-	CHECK_NULL(debugfs_create_x32("refclkfreq_value", 0644,
-			refclk_root, &(ufs_tegra->refclk_value)));
-	CHECK_NULL(debugfs_create_file("program_refclkfreq", 0644,
-			refclk_root, hba, &refclk_debugfs_ops));
+	debugfs_create_x32("refclkfreq_value", 0644,
+			refclk_root, &(ufs_tegra->refclk_value));
+	debugfs_create_file("program_refclkfreq", 0644,
+			refclk_root, hba, &refclk_debugfs_ops);
 
 	bootlun_en_id_root = debugfs_create_dir("ufs_bootlun_en_id", device_root);
 	CHECK_NULL(bootlun_en_id_root);
-	CHECK_NULL(debugfs_create_x32("bootlun_en_id", 0644,
-			bootlun_en_id_root, &(ufs_tegra->bootlun_en_id)));
+	debugfs_create_x32("bootlun_en_id", 0644,
+			bootlun_en_id_root, &(ufs_tegra->bootlun_en_id));
 	CHECK_NULL(debugfs_create_file("program_bootlun_en_id", 0644,
 			bootlun_en_id_root, hba, &bootlun_en_id_debugfs_ops));
 
@@ -597,12 +596,12 @@ void debugfs_provision_init(struct ufs_hba *hba, struct dentry *device_root)
 
 	lun_root = debugfs_create_dir("ufs_luns", device_root);
 	CHECK_NULL(lun_root);
-	CHECK_NULL(debugfs_create_x32("boot_enable", 0644,
-			lun_root, &(ufs_tegra->boot_enable)));
-	CHECK_NULL(debugfs_create_x32("descr_access_en", 0644,
-			lun_root, &(ufs_tegra->descr_access_en)));
-	CHECK_NULL(debugfs_create_file("program_lun", 0644,
-			lun_root, hba, &program_lun_debugfs_ops));
+	debugfs_create_x32("boot_enable", 0644,
+			lun_root, &(ufs_tegra->boot_enable));
+	debugfs_create_x32("descr_access_en", 0644,
+			lun_root, &(ufs_tegra->descr_access_en));
+	debugfs_create_file("program_lun", 0644,
+			lun_root, hba, &program_lun_debugfs_ops);
 
 	for (i = 0; i < MAX_LUN_COUNT; i++) {
 
