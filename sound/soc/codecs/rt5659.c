@@ -4297,7 +4297,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 		INIT_DELAYED_WORK(&rt5659->jack_detect_work,
 			rt5659_jack_detect_work);
 		break;
-	case RT5659_JD_HDA_HEADER:
+	case RT5659_JD_NULL:
 		regmap_write(rt5659->regmap, RT5659_GPIO_CTRL_3, 0x8000);
 		regmap_write(rt5659->regmap, RT5659_RC_CLK_CTRL, 0x0900);
 		regmap_write(rt5659->regmap, RT5659_EJD_CTRL_1,  0x70c0);
