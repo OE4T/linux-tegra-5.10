@@ -195,7 +195,7 @@ EXPORT_SYMBOL(bw_disruption_latency);
 
 static void set_dram_type(void)
 {
-	dram_type = DRAM_TYPE_NONE;
+	dram_type = DRAM_TYPE_INVAL;
 
 	switch (emc_param.dram) {
 	case DRAM_LPDDR5:
@@ -387,7 +387,7 @@ unsigned long tegra_get_emc_rate(void)
 	struct clk *emc_clk;
 
 	emc_clk = clk_get_sys(NULL, "emc");
-	if (emc_clk)
+	if (!IS_ERR_OR_NULL(emc_clk))
 		return clk_get_rate(emc_clk);
 
 	pr_err("EMC clock is not found\n");
