@@ -74,11 +74,6 @@ struct gk20a_dmabuf_priv {
 	struct gk20a_comptag_allocator *comptag_allocator;
 	struct gk20a_comptags comptags;
 
-	struct dma_buf_attachment *attach;
-	struct sg_table *sgt;
-
-	int pin_count;
-
 	struct nvgpu_list_node states;
 
 	u64 buffer_id;
@@ -102,11 +97,11 @@ struct gk20a_dmabuf_priv {
 	struct nvgpu_list_node list;
 };
 
-struct sg_table *nvgpu_mm_pin_privdata(struct device *dev,
+struct sg_table *nvgpu_mm_pin(struct device *dev,
 			struct dma_buf *dmabuf,
 			struct dma_buf_attachment **attachment);
 
-void nvgpu_mm_unpin_privdata(struct device *dev,
+void nvgpu_mm_unpin(struct device *dev,
 		struct dma_buf *dmabuf,
 		struct dma_buf_attachment *attachment,
 		struct sg_table *sgt);
@@ -118,8 +113,6 @@ int gk20a_dmabuf_alloc_drvdata(struct dma_buf *dmabuf, struct device *dev);
 int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
 			   u64 offset, struct gk20a_buffer_state **state);
 
-int gk20a_dma_buf_set_drvdata(struct dma_buf *dmabuf, struct device *device,
-			struct gk20a_dmabuf_priv *priv);
 void gk20a_dma_buf_priv_list_clear(struct nvgpu_os_linux *l);
 struct gk20a_dmabuf_priv *gk20a_dma_buf_get_drvdata(
 		struct dma_buf *dmabuf, struct device *device);

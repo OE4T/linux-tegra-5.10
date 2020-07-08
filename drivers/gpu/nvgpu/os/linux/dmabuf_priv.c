@@ -91,7 +91,7 @@ static void nvgpu_dma_buf_release(struct dma_buf *dmabuf)
 	dmabuf->ops->release(dmabuf);
 }
 
-int gk20a_dma_buf_set_drvdata(struct dma_buf *dmabuf, struct device *device,
+static int gk20a_dma_buf_set_drvdata(struct dma_buf *dmabuf, struct device *device,
 			struct gk20a_dmabuf_priv *priv)
 {
 	nvgpu_mutex_acquire(&priv->lock);
@@ -134,69 +134,40 @@ struct gk20a_dmabuf_priv *gk20a_dma_buf_get_drvdata(
 	return priv;
 }
 
-struct sg_table *nvgpu_mm_pin_privdata(struct device *dev,
+struct sg_table *nvgpu_mm_pin(struct device *dev,
 			struct dma_buf *dmabuf, struct dma_buf_attachment **attachment)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct gk20a_dmabuf_priv *priv = NULL;
+	struct dma_buf_attachment *attach = NULL;
+	struct sg_table *sgt = NULL;
 
-	priv = gk20a_dma_buf_get_drvdata(dmabuf, dev);
-	if (!priv) {
-		nvgpu_do_assert();
-		return ERR_PTR(-EINVAL);
+	attach = dma_buf_attach(dmabuf, dev);
+	if (IS_ERR(attach)) {
+		nvgpu_err(g, "Failed to attach dma_buf (err = %ld)!",
+				PTR_ERR(attach));
+		return ERR_CAST(attach);
 	}
 
-	nvgpu_mutex_acquire(&priv->lock);
-
-	if (priv->pin_count == 0) {
-		priv->attach = dma_buf_attach(dmabuf, dev);
-		if (IS_ERR(priv->attach)) {
-			nvgpu_mutex_release(&priv->lock);
-			nvgpu_err(g, "Failed to attach dma_buf (err = %ld)!",
-				  PTR_ERR(priv->attach));
-			return ERR_CAST(priv->attach);
-		}
-
-		priv->sgt = dma_buf_map_attachment(priv->attach,
-						   DMA_BIDIRECTIONAL);
-		if (IS_ERR(priv->sgt)) {
-			dma_buf_detach(dmabuf, priv->attach);
-			nvgpu_mutex_release(&priv->lock);
-			nvgpu_err(g, "Failed to map attachment (err = %ld)!",
-				  PTR_ERR(priv->sgt));
-			return ERR_CAST(priv->sgt);
-		}
+	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
+	if (IS_ERR(sgt)) {
+		dma_buf_detach(dmabuf, attach);
+		nvgpu_err(g, "Failed to map attachment (err = %ld)!",
+				PTR_ERR(sgt));
+		return ERR_CAST(sgt);
 	}
 
-	priv->pin_count++;
-	nvgpu_mutex_release(&priv->lock);
-	*attachment = priv->attach;
-	return priv->sgt;
+	*attachment = attach;
+
+	return sgt;
 }
 
-void nvgpu_mm_unpin_privdata(struct device *dev,
+void nvgpu_mm_unpin(struct device *dev,
 			struct dma_buf *dmabuf,
 			struct dma_buf_attachment *attachment,
 			struct sg_table *sgt)
 {
-	struct gk20a_dmabuf_priv *priv = gk20a_dma_buf_get_drvdata(dmabuf, dev);
-	dma_addr_t dma_addr;
-
-	if (IS_ERR(priv) || !priv)
-		return;
-
-	nvgpu_mutex_acquire(&priv->lock);
-	nvgpu_assert(priv->sgt == sgt);
-	nvgpu_assert(priv->attach == attachment);
-	priv->pin_count--;
-	nvgpu_assert(priv->pin_count >= 0);
-	dma_addr = sg_dma_address(priv->sgt->sgl);
-	if (priv->pin_count == 0) {
-		dma_buf_unmap_attachment(priv->attach, priv->sgt,
-					 DMA_BIDIRECTIONAL);
-		dma_buf_detach(dmabuf, priv->attach);
-	}
-	nvgpu_mutex_release(&priv->lock);
+	dma_buf_unmap_attachment(attachment, sgt, DMA_BIDIRECTIONAL);
+	dma_buf_detach(dmabuf, attachment);
 }
 
 /* This function must be called after acquiring the global level

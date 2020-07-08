@@ -47,13 +47,21 @@ int gk20a_alloc_or_get_comptags(struct gk20a *g,
 				struct gk20a_comptag_allocator *allocator,
 				struct gk20a_comptags *comptags)
 {
-	struct gk20a_dmabuf_priv *priv = gk20a_dma_buf_get_drvdata(
-						buf->dmabuf, buf->dev);
+	int ret = 0;
+
+	struct gk20a_dmabuf_priv *priv = NULL;
 	u32 offset;
 	int err;
 	u64 ctag_granularity;
 	u32 lines;
 
+	ret = gk20a_dmabuf_alloc_drvdata(buf->dmabuf, buf->dev);
+	if (ret) {
+		nvgpu_err(g, "error allocating comptags priv data");
+		return ret;
+	}
+
+	priv = gk20a_dma_buf_get_drvdata(buf->dmabuf, buf->dev);
 	if (!priv)
 		return -ENOSYS;
 

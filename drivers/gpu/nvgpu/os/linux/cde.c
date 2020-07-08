@@ -1140,10 +1140,10 @@ __releases(&l->cde_app->mutex)
 
 		nvgpu_log(g, gpu_dbg_cde, "surface=0x%p scatterBuffer=0x%p",
 			  surface, scatter_buffer);
-		sgt = nvgpu_mm_pin_privdata(dev_from_gk20a(g), compbits_scatter_buf,
+		sgt = nvgpu_mm_pin(dev_from_gk20a(g), compbits_scatter_buf,
 				   &attachment);
 		if (IS_ERR(sgt)) {
-			nvgpu_warn(g,
+			nvgpu_err(g,
 				   "mm_pin failed");
 			err = -EINVAL;
 			goto exit_unmap_surface;
@@ -1156,7 +1156,7 @@ __releases(&l->cde_app->mutex)
 #endif
 			if (err != 0) {
 				nvgpu_warn(g, "buffer access setup failed");
-				nvgpu_mm_unpin_privdata(dev_from_gk20a(g), compbits_scatter_buf,
+				nvgpu_mm_unpin(dev_from_gk20a(g), compbits_scatter_buf,
 					attachment, sgt);
 				goto exit_unmap_surface;
 			}
@@ -1172,7 +1172,7 @@ __releases(&l->cde_app->mutex)
 #endif
 			WARN_ON(err);
 
-			nvgpu_mm_unpin_privdata(dev_from_gk20a(g), compbits_scatter_buf,
+			nvgpu_mm_unpin(dev_from_gk20a(g), compbits_scatter_buf,
 				       attachment, sgt);
 			if (err)
 				goto exit_unmap_surface;
