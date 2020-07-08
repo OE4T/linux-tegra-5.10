@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms and conditions of the GNU General Public License,
@@ -18,7 +18,8 @@ OSI_DMA := nvethernetrm/osi/dma
 
 obj-$(CONFIG_NVETHERNET) += nvethernet.o
 
-EXTRA_CFLAGS += -DTHERMAL_CAL -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include
+ccflags-y += -DTHERMAL_CAL -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include \
+	     -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/osi/common/include
 
 nvethernet-objs:= ether_linux.o \
 		  osd.o \
@@ -28,6 +29,7 @@ nvethernet-objs:= ether_linux.o \
 		  ptp.o \
 		  $(OSI_CORE)/osi_core.o \
 		  $(OSI_COMMON)/osi_common.o \
+		  $(OSI_COMMON)/eqos_common.o \
 		  $(OSI_DMA)/osi_dma.o \
 		  $(OSI_DMA)/osi_dma_txrx.o \
 		  $(OSI_CORE)/eqos_core.o \
