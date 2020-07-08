@@ -7567,12 +7567,7 @@ int ufshcd_rescan(struct ufs_hba *hba)
 		}
 
 		/* enable host irq as host controller would be active soon */
-		ret = ufshcd_enable_irq(hba);
-		if (ret) {
-			dev_err(hba->dev, "%s: irq enable failed, ret: %d\n",
-				__func__, ret);
-			goto disable_clks;
-		}
+		ufshcd_enable_irq(hba);
 
 		/* Enable UFS and MPhy clocks */
 		if (hba->vops && hba->vops->set_ufs_mphy_clocks) {
@@ -7590,7 +7585,7 @@ int ufshcd_rescan(struct ufs_hba *hba)
 
 		ufshcd_set_ufs_dev_active(hba);
 
-		ret = ufshcd_probe_hba(hba);
+		ret = ufshcd_probe_hba(hba, false);
 		if (!ret && (hba->ufshcd_state != UFSHCD_STATE_OPERATIONAL)) {
 			ret = -EIO;
 			dev_err(hba->dev, "%s: Host init failed %d\n",
@@ -7602,7 +7597,7 @@ int ufshcd_rescan(struct ufs_hba *hba)
 		/* disable interrupts */
 		ufshcd_disable_intr(hba, hba->intr_mask);
 
-		ufshcd_hba_stop(hba, true);
+		ufshcd_hba_stop(hba);
 
 		/* Disable UFS and MPhy clocks */
 		if (hba->vops && hba->vops->set_ufs_mphy_clocks)
@@ -7622,7 +7617,6 @@ int ufshcd_rescan(struct ufs_hba *hba)
 disable_irqs_clks:
 	hba->vops->set_ufs_mphy_clocks(hba, false);
 	ufshcd_disable_irq(hba);
-disable_clks:
 	ufshcd_setup_clocks(hba, false);
 out:
 	pm_runtime_put_sync(hba->dev);

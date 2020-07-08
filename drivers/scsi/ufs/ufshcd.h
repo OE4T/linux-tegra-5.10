@@ -83,6 +83,8 @@ enum dev_cmd_type {
 	DEV_CMD_TYPE_QUERY		= 0x1,
 };
 
+#define UFS_BIT(x)     (1L << (x))
+
 /**
  * struct uic_command - UIC command structure
  * @command: UIC command
@@ -714,6 +716,8 @@ struct ufs_hba {
 	u32 intr_mask;
 	u16 ee_ctrl_mask;
 	bool is_powered;
+	bool is_init_prefetch;
+	struct ufs_init_prefetch init_prefetch_data;
 
 	/* Work Queues */
 	struct work_struct eh_work;
@@ -967,7 +971,7 @@ static inline bool ufshcd_is_hs_mode(struct ufs_pa_layer_attr *pwr_info)
 
 static inline int ufshcd_disable_host_tx_lcc(struct ufs_hba *hba)
 {
-	return ufshcd_dme_set(hba, UIC_ARG_MIB(PA_LOCAL_TX_LCC_ENABLE), 0);
+	return ufshcd_dme_set(hba, UIC_ARG_MIB(PA_Local_TX_LCC_Enable), 0);
 }
 
 /* Expose Query-Request API */

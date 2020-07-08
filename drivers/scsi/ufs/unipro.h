@@ -109,7 +109,7 @@
 #define PA_TxHsG1SyncLength	0x1552
 #define PA_TxHsG2SyncLength	0x1554
 #define PA_TxHsG3SyncLength	0x1556
-#define PA_LOCAL_TX_LCC_ENABLE	0x155E
+#define PA_Local_TX_LCC_Enable	0x155E
 #define PA_TXSPEEDFAST		0x1565
 #define PA_TXSPEEDSLOW		0x1566
 #define PA_REMOTEVERINFO	0x15A0
