@@ -564,12 +564,6 @@ out:
 	return ret;
 }
 
-static int ufs_tegra_set_dma_mask(struct ufs_hba *hba)
-{
-	/* Tegra194 only supports 39 bits address memory access for ufs */
-	return dma_set_mask_and_coherent(hba->dev, DMA_BIT_MASK(39));
-}
-
 static int ufs_tegra_ufs_reset_init(struct ufs_tegra_host *ufs_tegra)
 {
 	struct device *dev = ufs_tegra->hba->dev;
@@ -1731,7 +1725,6 @@ struct ufs_hba_variant_ops ufs_hba_tegra_vops = {
 	.pwr_change_notify      = ufs_tegra_pwr_change_notify,
 	.hibern8_entry_notify   = ufs_tegra_hibern8_entry_notify,
 	.set_ufs_mphy_clocks	= ufs_tegra_set_ufs_mphy_clocks,
-	.set_dma_mask		= ufs_tegra_set_dma_mask,
 };
 
 static int ufs_tegra_probe(struct platform_device *pdev)
