@@ -2051,6 +2051,12 @@ int gr_gk20a_trigger_suspend(struct gk20a *g)
 	int err = 0;
 	u32 dbgr_control0;
 
+	if (!g->ops.gr.sm_debugger_attached(g)) {
+		nvgpu_err(g,
+			"SM debugger not attached, do not trigger suspend!");
+		return -EINVAL;
+	}
+
 	/* assert stop trigger. uniformity assumption: all SMs will have
 	 * the same state in dbg_control0. */
 	dbgr_control0 =
@@ -2070,6 +2076,12 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	u32 gpc, tpc, sm, sm_id;
 	u32 global_mask;
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
+
+	if (!g->ops.gr.sm_debugger_attached(g)) {
+		nvgpu_err(g,
+			"SM debugger not attached, do not wait for pause!");
+		return -EINVAL;
+	}
 
 	/* Wait for the SMs to reach full stop. This condition is:
 	 * 1) All SMs with valid warps must be in the trap handler (SM_IN_TRAP_MODE)
@@ -2103,6 +2115,12 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 int gr_gk20a_resume_from_pause(struct gk20a *g)
 {
 	int err = 0;
+
+	if (!g->ops.gr.sm_debugger_attached(g)) {
+		nvgpu_err(g,
+			"SM debugger not attached, do not resume for pause!");
+		return -EINVAL;
+	}
 
 	/* Clear the pause mask to tell the GPU we want to resume everyone */
 	gk20a_writel(g,

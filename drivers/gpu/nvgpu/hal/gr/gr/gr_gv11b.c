@@ -755,6 +755,12 @@ int gv11b_gr_sm_trigger_suspend(struct gk20a *g)
 {
 	u32 dbgr_control0;
 
+	if (!g->ops.gr.sm_debugger_attached(g)) {
+		nvgpu_err(g,
+			"SM debugger not attached, do not trigger suspend!");
+		return -EINVAL;
+	}
+
 	/* assert stop trigger. uniformity assumption: all SMs will have
 	 * the same state in dbg_control0.
 	 */
@@ -1178,6 +1184,12 @@ int gv11b_gr_resume_from_pause(struct gk20a *g)
 {
 	int err = 0;
 	u32 reg_val;
+
+	if (!g->ops.gr.sm_debugger_attached(g)) {
+		nvgpu_err(g,
+			"SM debugger not attached, do not resume for pause!");
+		return -EINVAL;
+	}
 
 	/* Clear the pause mask to tell the GPU we want to resume everyone */
 	gk20a_writel(g, gr_gpcs_tpcs_sms_dbgr_bpt_pause_mask_0_r(), 0);
