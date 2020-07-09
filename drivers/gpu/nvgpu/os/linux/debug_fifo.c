@@ -113,9 +113,6 @@ static int gk20a_fifo_sched_debugfs_open(struct inode *inode,
 	struct gk20a *g = inode->i_private;
 	int err;
 
-	if (!capable(CAP_SYS_ADMIN))
-		return -EPERM;
-
 	err = seq_open(file, &gk20a_fifo_sched_debugfs_seq_ops);
 	if (err)
 		return err;
