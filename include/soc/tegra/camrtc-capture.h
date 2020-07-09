@@ -216,7 +216,10 @@ typedef struct syncpoint_info {
 #define CAPTURE_CHANNEL_FLAG_ENABLE_HSM_ERROR_MASKS	MK_U32(0x4000)
 /** Capture with VI PFSD enabled */
 #define CAPTURE_CHANNEL_FLAG_ENABLE_VI_PFSD	MK_U32(0x8000)
-/**@}*/
+/** Channel binds to a CSI stream and channel */
+#define CAPTURE_CHANNEL_FLAG_CSI		MK_U32(0x10000)
+
+  /**@}*/
 
 /**
  * @defgroup CaptureChannelErrMask
@@ -282,10 +285,10 @@ struct csi_stream_config {
 	uint32_t stream_id;
 	/** See @ref NvCsiPort "NvCSI Port" */
 	uint32_t csi_port;
-	/** See @ref NvPhyType "NvCSI Physical stream type" */
-	uint32_t phy_type;
 	/** CSI Virtual Channel */
 	uint32_t virtual_channel;
+	/** Reserved */
+	uint32_t __pad;
 };
 
 /**
