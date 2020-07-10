@@ -674,7 +674,6 @@ static void tegra_rce_cam_assert_resets(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 
-	tegra_camrtc_set_fwloaddone(dev, false);
 	camrtc_reset_group_assert(rtcpu->resets[0]);
 }
 
