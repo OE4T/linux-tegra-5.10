@@ -107,18 +107,37 @@ struct camrtc_debug {
 #define FALCON_COVERAGE_MEM_SIZE (1024 * 128) /* 128kB */
 
 struct camrtc_dbgfs_rmem {
-	/* reserved memory size */
-	unsigned long	size;
-	/* reserved memory address */
-	phys_addr_t	address;
+	/* reserved memory base address */
+	phys_addr_t     base_address;
+	 /* reserved memory size */
+	unsigned long   total_size;
+	/* if reserved memory enabled */
+	bool enabled;
+	/* memory contexts */
+	struct camrtc_rmem_ctx {
+		phys_addr_t address;
+		unsigned long size;
+	} mem_ctxs[CAMRTC_DBG_NUM_MEM_TEST_MEM];
 };
 
 static struct camrtc_dbgfs_rmem _camdbg_rmem;
 
 static int __init camrtc_dbgfs_rmem_init(struct reserved_mem *rmem)
 {
-	_camdbg_rmem.address = rmem->base;
-	_camdbg_rmem.size = rmem->size;
+	int i;
+	phys_addr_t curr_address = rmem->base;
+	unsigned long ctx_size = rmem->size/CAMRTC_DBG_NUM_MEM_TEST_MEM;
+
+	_camdbg_rmem.base_address = rmem->base;
+	_camdbg_rmem.total_size = rmem->size;
+
+	for (i = 0; i < CAMRTC_DBG_NUM_MEM_TEST_MEM; i++) {
+		_camdbg_rmem.mem_ctxs[i].address = curr_address;
+		_camdbg_rmem.mem_ctxs[i].size = ctx_size;
+		curr_address += ctx_size;
+	}
+
+	_camdbg_rmem.enabled = true;
 
 	return 0;
 }
@@ -650,46 +669,49 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 	struct device *mem_dev = camrtc_dbgfs_memory_dev(crd);
 	ssize_t ret;
 
-	if (mem->dev_index >= CAMRTC_TEST_CAM_DEVICES) {
-		pr_err("%s: device list exhausted\n", __func__);
-		return -ENOMEM;
-	}
+	if ((*f_pos + count) > mem->size) {
+		if (_camdbg_rmem.enabled) {
+			size_t size = round_up(*f_pos + count, 64 * 1024);
+			void *ptr = phys_to_virt(
+				_camdbg_rmem.mem_ctxs[mem->index].address);
+			unsigned long rmem_size =
+				_camdbg_rmem.mem_ctxs[mem->index].size;
 
-	if (_camdbg_rmem.size != 0ULL) {
-		/*
-		 * If reserved memory, only 6 MegaBytes is available
-		 * as of now to be mapped into mem0.
-		 * TODO: Add co memory support for other memX too, if needed.
-		 */
-		if ((mem->index != 0) ||
-			(*f_pos + count > _camdbg_rmem.size)) {
-			pr_err("%s: only 6MB mem0 available\n", __func__);
-			return -ENOMEM;
-		}
+			if (size > rmem_size) {
+				pr_err("%s: not enough memory\n", __func__);
+				return -ENOMEM;
+			}
 
-		mem->ptr = (void*)_camdbg_rmem.address;
-		mem->size = _camdbg_rmem.size;
-		mem->iova = dma_map_single(mem_dev, mem->ptr,
+			if (mem->ptr)
+				dma_unmap_single(mem_dev, mem->iova, mem->size,
+						DMA_BIDIRECTIONAL);
+
+			/* same addr, no overwrite concern */
+			mem->ptr = ptr;
+			mem->size = size;
+
+			mem->iova = dma_map_single(mem_dev, mem->ptr,
 						mem->size, DMA_BIDIRECTIONAL);
-		if (dma_mapping_error(mem_dev,  mem->iova)) {
-			pr_err("%s: dma map failed\n", __func__);
-			return -ENOMEM;
-		}
-	} else if (*f_pos + count > mem->size) {
-		size_t size = round_up(*f_pos + count, 64 * 1024);
-		dma_addr_t iova;
-		void *ptr = dma_alloc_coherent(mem_dev, size, &iova,
+			if (dma_mapping_error(mem_dev,  mem->iova)) {
+				pr_err("%s: dma map failed\n", __func__);
+				return -ENOMEM;
+			}
+		} else {
+			size_t size = round_up(*f_pos + count, 64 * 1024);
+			dma_addr_t iova;
+			void *ptr = dma_alloc_coherent(mem_dev, size, &iova,
 					GFP_KERNEL | __GFP_ZERO);
-		if (ptr == NULL)
-			return -ENOMEM;
-		if (mem->ptr) {
-			memcpy(ptr, mem->ptr, mem->used);
-			dma_free_coherent(mem_dev, mem->size, mem->ptr,
+			if (ptr == NULL)
+				return -ENOMEM;
+			if (mem->ptr) {
+				memcpy(ptr, mem->ptr, mem->used);
+				dma_free_coherent(mem_dev, mem->size, mem->ptr,
 					mem->iova);
+			}
+			mem->ptr = ptr;
+			mem->size = size;
+			mem->iova = iova;
 		}
-		mem->ptr = ptr;
-		mem->size = size;
-		mem->iova = iova;
 	}
 
 	ret = simple_write_to_buffer(mem->ptr, mem->size, f_pos, buf, count);
@@ -698,7 +720,7 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 		mem->used = *f_pos;
 
 		if (mem->used == 0 && mem->ptr != NULL) {
-			if (_camdbg_rmem.size != 0ULL)
+			if (_camdbg_rmem.enabled)
 				dma_unmap_single(mem_dev, mem->iova, mem->size,
 						DMA_BIDIRECTIONAL);
 			else
@@ -708,9 +730,6 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 			memset(mem, 0, sizeof(*mem));
 		}
 	}
-
-	mem->devices[mem->dev_index].dev = mem_dev;
-	mem->devices[mem->dev_index++].dev_iova = mem->iova;
 
 	return ret;
 }
@@ -797,9 +816,10 @@ runtime_put:
 }
 
 static void camrtc_run_rmem_unmap_all(struct camrtc_debug *crd,
-		struct camrtc_test_mem *mem)
+		struct camrtc_test_mem *mem, bool all)
 {
 	int i;
+	struct device *mem_dev = camrtc_dbgfs_memory_dev(crd);
 
 	/* Nothing to unmap */
 	if (mem->ptr == NULL)
@@ -809,8 +829,12 @@ static void camrtc_run_rmem_unmap_all(struct camrtc_debug *crd,
 		struct device *dev = mem->devices[i].dev;
 		dma_addr_t iova = mem->devices[i].dev_iova;
 
+		/* keep mem_dev mapped unless forced */
+		if (!all && (dev == mem_dev))
+			continue;
+
 		dma_unmap_single(dev, iova,
-				mem->size, DMA_BIDIRECTIONAL);
+			mem->size, DMA_BIDIRECTIONAL);
 	}
 }
 
@@ -835,11 +859,10 @@ static int camrtc_run_mem_map(struct tegra_ivc_channel *ch,
 
 	if (mem_dev == dev) {
 		*return_iova = mem->iova;
-		ret = 0;
 		goto done;
 	}
 
-	if (_camdbg_rmem.size != 0ULL) {
+	if (_camdbg_rmem.enabled) {
 		*return_iova = dma_map_single(dev, mem->ptr,
 					mem->size, DMA_BIDIRECTIONAL);
 		if (dma_mapping_error(dev, *return_iova)) {
@@ -900,13 +923,13 @@ static int camrtc_run_mem_test(struct seq_file *file,
 
 	/* Allocate 6MB scratch memory in mem0 by default */
 	if (!mem0->used) {
-		size_t size = 6U << 20U; /* 6 MB */
+		const size_t size = 6U << 20U; /* 6 MB */
 		dma_addr_t iova;
 		void *ptr;
 
 		if (mem0->ptr) {
-			if (_camdbg_rmem.size != 0ULL)
-				camrtc_run_rmem_unmap_all(crd, mem0);
+			if (_camdbg_rmem.enabled)
+				camrtc_run_rmem_unmap_all(crd, mem0, true);
 			else
 				dma_free_coherent(mem_dev, mem0->size,
 					mem0->ptr, mem0->iova);
@@ -914,9 +937,16 @@ static int camrtc_run_mem_test(struct seq_file *file,
 			memset(mem0, 0, sizeof(*mem0));
 		}
 
-		if (_camdbg_rmem.size != 0ULL) {
-			ptr = (void*)_camdbg_rmem.address;
-			size = _camdbg_rmem.size;
+		if (_camdbg_rmem.enabled) {
+			if (_camdbg_rmem.mem_ctxs[0].size < size) {
+				pr_err(
+				"%s: mem [%lu] < req size [%lu]\n",
+				__func__, _camdbg_rmem.mem_ctxs[0].size,
+				size);
+				return -ENOMEM;
+			}
+
+			ptr = phys_to_virt(_camdbg_rmem.mem_ctxs[0].address);
 
 			iova = dma_map_single(mem_dev, ptr, size,
 						DMA_BIDIRECTIONAL);
@@ -1028,15 +1058,20 @@ unmap:
 		}
 	}
 
-	if (_camdbg_rmem.size != 0ULL) {
+	if (_camdbg_rmem.enabled) {
 		for (i = 0; i < ARRAY_SIZE(crd->mem); i++) {
 			struct camrtc_test_mem *mem = &crd->mem[i];
-			camrtc_run_rmem_unmap_all(crd, mem);
+			camrtc_run_rmem_unmap_all(crd, mem, false);
 		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(crd->mem); i++)
-		memset(&crd->mem[i], 0, sizeof(struct camrtc_test_mem));
+	/* Reset mapping info, memory can still be used by cpu tests */
+	for (i = 0; i < ARRAY_SIZE(crd->mem); i++) {
+		crd->mem[i].dev_index = 0U;
+		memset(&crd->mem[i].devices, 0,
+				(ARRAY_SIZE(crd->mem[i].devices) *
+				sizeof(struct camrtc_test_device)));
+	}
 
 	return ret;
 }
