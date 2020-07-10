@@ -44,6 +44,7 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/preempt.h>
+#include <nvgpu/string.h>
 
 #include <nvgpu/linux/vm.h>
 
@@ -2251,6 +2252,441 @@ static int nvgpu_dbg_gpu_cycle_stats_snapshot(struct dbg_session_gk20a *dbg_s,
 
 #endif
 
+static void nvgpu_dbg_gpu_get_valid_mappings(struct nvgpu_channel *ch, u64 start,
+		u64 end, u32 *buf_count, u8 *has_more, u32 count_lmt,
+		struct nvgpu_dbg_gpu_get_mappings_entry *buffer)
+{
+	struct vm_gk20a *vm = ch->vm;
+	u64 key = start;
+	u32 size = 0;
+	struct nvgpu_mapped_buf *mbuf_curr = NULL;
+	struct nvgpu_mapped_buf *mbuf_last = NULL;
+	struct nvgpu_rbtree_node *node = NULL;
+	struct dma_buf *dmabuf = NULL;
+	u32 f_mode = FMODE_READ;
+	u32 count = 0;
+
+	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
+
+	nvgpu_rbtree_enum_start(0, &node, vm->mapped_buffers);
+
+	while (node != NULL) {
+		mbuf_curr = mapped_buffer_from_rbtree_node(node);
+		dmabuf = mbuf_curr->os_priv.dmabuf;
+
+		/* Find first key node */
+		if (key > (mbuf_curr->addr + mbuf_curr->size)) {
+			nvgpu_rbtree_enum_next(&node, node);
+			continue;
+		}
+
+		if (key < mbuf_curr->addr) {
+			key = mbuf_curr->addr;
+		}
+
+		if (key >= end) {
+			break;
+		}
+
+		/*
+		 * Check for adjacent ranges are having same access permissions,
+		 * coalesced them into single ops_buffer. Keep the gpu_va same
+		 * and just increase the size of the buffer. Need to decrease
+		 * count to get the correct buffer index as it was increased in
+		 * last iteration.
+		 */
+
+		if (mbuf_last &&
+			(mbuf_last->addr + mbuf_last->size == mbuf_curr->addr)
+			&& (f_mode == dmabuf->file->f_mode)) {
+			count--;
+			size += min(end, mbuf_curr->addr
+				+ mbuf_curr->size) - key;
+		} else {
+			size = min(end, mbuf_curr->addr
+				+ mbuf_curr->size) - key;
+			buffer[count].gpu_va = mbuf_curr->addr;
+		}
+
+		buffer[count].size = size;
+
+		(count)++;
+		if (count == count_lmt) {
+			*has_more = 1;
+			break;
+		}
+
+		mbuf_last = mbuf_curr;
+		f_mode = dmabuf->file->f_mode;
+		nvgpu_rbtree_enum_next(&node, node);
+	}
+
+	*buf_count = count;
+	nvgpu_mutex_release(&vm->update_gmmu_lock);
+}
+
+static int nvgpu_dbg_gpu_get_mappings(struct dbg_session_gk20a *dbg_s,
+		struct nvgpu_dbg_gpu_get_mappings_args *arg)
+{
+	int err;
+	struct gk20a *g = dbg_s->g;
+	struct nvgpu_channel *ch;
+	u64 start = arg->va_lo;
+	u64 end = arg->va_hi;
+	u32 count_in = 0U;
+	u32 buf_len = 0U;
+	struct nvgpu_dbg_gpu_get_mappings_entry *buffer = NULL;
+
+	if (start > end) {
+		nvgpu_err(g, "start is greater than end");
+		return -EINVAL;
+	}
+
+	count_in = arg->count;
+	if (count_in == 0U) {
+		nvgpu_err(g, "Invalid input param");
+		return -EINVAL;
+	}
+
+	err = gk20a_busy(g);
+	if (err) {
+		nvgpu_err(g, "failed to poweron");
+		return err;
+	}
+
+	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	if (!ch) {
+		nvgpu_err(g, "no bound channel for mmu debug mode");
+		err = -EINVAL;
+		goto clean_up;
+	}
+
+	buf_len = sizeof(*buffer) * count_in;
+	buffer = nvgpu_kzalloc(g, buf_len);
+	if (!buffer) {
+		err = -ENOMEM;
+		goto clean_up;
+	}
+
+	nvgpu_dbg_gpu_get_valid_mappings(ch, start, end, &arg->count,
+		&arg->has_more, count_in, buffer);
+
+	/*
+	 * Buffer will be copied to userspace only when arg->ops_buffer is not
+	 * 0. If value of arg->ops_buffer is 0 then interface only sets count.
+	 */
+	if (arg->ops_buffer) {
+		err = copy_to_user((void __user *)arg->ops_buffer, buffer,
+			(arg->count * sizeof(*buffer)));
+		if (err != 0) {
+			nvgpu_err(g, "gpu va copy_to_user failed");
+			err = -EFAULT;
+			goto clean_up;
+		}
+	}
+
+clean_up:
+	if (buffer) {
+		nvgpu_kfree(g, buffer);
+		buffer = NULL;
+	}
+
+	gk20a_idle(g);
+	return err;
+}
+
+static int nvgpu_gpu_access_sysmem_gpu_va(struct gk20a *g, u8 cmd, u32 size,
+		u64 *data, struct dma_buf *dmabuf, u64 offset)
+{
+	int ret = 0;
+	u8 *cpu_va = NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+	struct dma_buf_map map;
+
+	ret = dma_buf_vmap(dmabuf, &map);
+	cpu_va = ret ? NULL : map.vaddr;
+#else
+	cpu_va = (u8 *)dma_buf_vmap(dmabuf) + offset;
+#endif
+
+	if (!cpu_va) {
+		return -ENOMEM;
+	}
+
+	switch (cmd) {
+	case NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_READ:
+		nvgpu_memcpy((u8 *)data, cpu_va, size);
+		break;
+
+	case NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_WRITE:
+		nvgpu_memcpy(cpu_va, (u8 *)data, size);
+		break;
+
+	default:
+		nvgpu_err(g, "%x is invalid command", cmd);
+		ret = -EINVAL;
+	}
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+	dma_buf_vunmap(dmabuf, &map);
+#else
+	dma_buf_vunmap(dmabuf, cpu_va);
+#endif
+	return ret;
+}
+
+#ifdef CONFIG_NVGPU_DGPU
+static int nvgpu_gpu_access_vidmem_va(struct gk20a *g, u8 cmd, u64 size,
+	void *data, struct dma_buf *dmabuf, u64 offset)
+{
+	int ret = 0;
+
+	switch (cmd) {
+	case NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_READ:
+		ret = nvgpu_vidmem_buf_access_memory(g, dmabuf, data, offset,
+			size, NVGPU_DBG_GPU_IOCTL_ACCESS_FB_MEMORY_CMD_READ);
+		break;
+
+	case NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_WRITE:
+		ret = nvgpu_vidmem_buf_access_memory(g, dmabuf, data, offset,
+			size, NVGPU_DBG_GPU_IOCTL_ACCESS_FB_MEMORY_CMD_WRITE);
+		break;
+
+	default:
+		nvgpu_err(g, "%x is invalid command", cmd);
+		ret = -EINVAL;
+		break;
+	}
+
+	return ret;
+}
+#endif
+
+static int nvgpu_dbg_gpu_buf_access_check(struct gk20a *g, u8 cmd, u64 offset,
+	struct dma_buf *dmabuf)
+{
+	int ret = 0;
+
+	if (cmd == NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_WRITE) {
+		if ((dmabuf->file->f_mode & (FMODE_WRITE | FMODE_PWRITE)) == 0) {
+			nvgpu_err(g, "offset %llu does not have write permission",
+				offset);
+			ret = -EINVAL;
+		}
+	} else if (cmd == NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_READ) {
+		if ((dmabuf->file->f_mode & (FMODE_READ | FMODE_PREAD)) == 0) {
+			nvgpu_err(g, "offset %llu does not have read permission",
+				offset);
+			ret = -EINVAL;
+		}
+	} else {
+		nvgpu_err(g, "Invalid command");
+		ret = -EINVAL;
+	}
+
+	return ret;
+
+}
+
+static int nvgpu_dbg_gpu_op_on_mapped_buf(struct gk20a *g, u8 cmd, u64 offset,
+	u32 *size_in, struct dma_buf *dmabuf, struct nvgpu_mapped_buf *mapped_buf,
+	u64 *gpu_va, u64 *data)
+{
+	int ret = 0;
+	bool is_vidmem;
+	u32 size = *size_in;
+	u32 access_buf_sz = 0;
+
+	access_buf_sz = mapped_buf->addr + mapped_buf->size - *gpu_va;
+	if (size < access_buf_sz) {
+		access_buf_sz = size;
+		size = 0;
+	} else {
+		size -= access_buf_sz;
+	}
+
+	is_vidmem = (gk20a_dmabuf_aperture(g, dmabuf) ==
+		APERTURE_VIDMEM) ? true : false;
+#ifdef CONFIG_NVGPU_DGPU
+	if (is_vidmem) {
+		ret = nvgpu_gpu_access_vidmem_va(g, cmd,
+			(u64)access_buf_sz, (void *)data, dmabuf,
+			offset);
+	}
+	else
+#endif
+	{
+		ret = nvgpu_gpu_access_sysmem_gpu_va(g, cmd, access_buf_sz,
+			data, dmabuf, offset);
+	}
+
+	if (ret) {
+		nvgpu_err(g, "gpu va access failed");
+		return ret;
+	}
+
+	*gpu_va += access_buf_sz;
+	*size_in = size;
+	data = (u64 *)((u8 *)data + access_buf_sz);
+
+	return ret;
+}
+
+static int nvgpu_dbg_gpu_access_gpu_va_mapping(struct gk20a *g,
+		struct nvgpu_channel *ch, u8 cmd, u64 *op_data,
+		struct nvgpu_dbg_gpu_va_access_entry *op)
+{
+	u64 gpu_va = op->gpu_va;
+	int ret = 0;
+	u32 size = 0;
+	struct vm_gk20a *vm = ch->vm;
+	struct nvgpu_mapped_buf *mapped_buf = NULL;
+	struct dma_buf *dmabuf = NULL;
+	u64 *data = op_data;
+	u64 offset = 0;
+
+	op->valid = 0;
+	size = op->size;
+	if (size & 0x3) {
+		nvgpu_err(g, "given size is not 4byte aligned");
+		return -EINVAL;
+	}
+
+	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
+	while (size > 0) {
+		mapped_buf = nvgpu_vm_find_mapped_buf(vm, gpu_va);
+		if (mapped_buf == NULL) {
+			nvgpu_err(g, "gpuva is not mapped");
+			ret = -EINVAL;
+			break;
+		}
+
+		offset = gpu_va - mapped_buf->addr;
+		if (offset & 0x3) {
+			nvgpu_err(g, "given offset is not 4byte aligned");
+			ret = -EINVAL;
+			break;
+		}
+
+		dmabuf = mapped_buf->os_priv.dmabuf;
+		ret = nvgpu_dbg_gpu_buf_access_check(g, cmd, offset, dmabuf);
+		if (ret) {
+			break;
+		}
+
+		ret = nvgpu_dbg_gpu_op_on_mapped_buf(g, cmd, offset, &size,
+			dmabuf, mapped_buf, &gpu_va, data);
+		if (ret) {
+			break;
+		}
+	}
+
+	if (ret == 0) {
+		op->valid = 1;
+	}
+	nvgpu_mutex_release(&vm->update_gmmu_lock);
+	return ret;
+}
+
+static int nvgpu_dbg_gpu_access_gpu_va(struct dbg_session_gk20a *dbg_s,
+		struct nvgpu_dbg_gpu_va_access_args *arg)
+{
+	int ret = 0;
+	u32 i, buf_len;
+	u8 cmd;
+	u64 *buffer = NULL;
+	u32 size, allocated_size = 0;
+	void __user *user_buffer;
+	struct gk20a *g = dbg_s->g;
+	struct nvgpu_channel *ch;
+	struct nvgpu_dbg_gpu_va_access_entry *ops_buffer = NULL;
+
+	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	if (!ch) {
+		nvgpu_err(g, "no bound channel for debug session");
+		return -EINVAL;
+	}
+
+	if (arg->count == 0) {
+		nvgpu_err(g, "access count is 0");
+		return -EINVAL;
+	}
+
+	buf_len = sizeof(*ops_buffer) * arg->count;
+	ops_buffer = nvgpu_kzalloc(g, buf_len);
+	if (!ops_buffer) {
+		ret = -ENOMEM;
+		goto fail;
+	}
+
+	ret = copy_from_user(ops_buffer, (void __user *)arg->ops_buf, buf_len);
+	if (ret != 0) {
+		nvgpu_err(g, "gpu va copy_from_user failed");
+		ret = -EFAULT;
+		goto fail;
+	}
+
+	cmd = arg->cmd;
+	for (i = 0; i < arg->count; i++) {
+		size = ops_buffer[i].size;
+		if ((ops_buffer[i].gpu_va & 0x3)) {
+			nvgpu_err(g, "gpu va is not aligned %u 0x%llx", i,
+				ops_buffer[i].gpu_va);
+			ret = -EINVAL;
+			goto fail;
+		}
+		user_buffer = (void __user *)(uintptr_t)ops_buffer[i].data;
+
+		if (size > allocated_size) {
+			if (buffer) {
+				nvgpu_kfree(g, buffer);
+				buffer = NULL;
+			}
+
+			buffer = nvgpu_kzalloc(g, size);
+			if (buffer == NULL) {
+				ret = -ENOMEM;
+				goto fail;
+			}
+		}
+		(void)memset(buffer, 0, size);
+		allocated_size = size;
+		if (cmd == NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_WRITE) {
+			ret = copy_from_user(buffer, user_buffer, size);
+			if (ret != 0) {
+				nvgpu_err(g, "gpu va copy_from_user failed");
+				ret = -EFAULT;
+				goto fail;
+			}
+		}
+		ret = nvgpu_dbg_gpu_access_gpu_va_mapping(g, ch, cmd, buffer,
+			&ops_buffer[i]);
+		if (ret != 0) {
+			nvgpu_err(g, "gpu va buffer access failed for itr %u"
+				"cmd %u ch %p", i, cmd, ch);
+			goto fail;
+		}
+
+		if (cmd == NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_READ) {
+			ret = copy_to_user(user_buffer, buffer, size);
+			if (ret != 0) {
+				nvgpu_err(g, "gpu va copy_to_user failed");
+				ret = -EFAULT;
+				goto fail;
+			}
+		}
+	}
+fail:
+	if (buffer) {
+		 nvgpu_kfree(g, buffer);
+	}
+
+	if (ops_buffer) {
+		nvgpu_kfree(g, ops_buffer);
+	}
+	return ret;
+}
+
 int gk20a_dbg_gpu_dev_open(struct inode *inode, struct file *filp)
 {
 	struct gk20a *g;
@@ -2447,6 +2883,16 @@ long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,
 	case NVGPU_DBG_GPU_IOCTL_TSG_GET_TIMESLICE:
 		err = nvgpu_dbg_gpu_ioctl_tsg_get_timeslice(dbg_s,
 		   (struct nvgpu_timeslice_args *)buf);
+		break;
+
+	case NVGPU_DBG_GPU_IOCTL_GET_MAPPINGS:
+		err = nvgpu_dbg_gpu_get_mappings(dbg_s,
+			(struct nvgpu_dbg_gpu_get_mappings_args *)buf);
+		break;
+
+	case NVGPU_DBG_GPU_IOCTL_ACCESS_GPU_VA:
+		err = nvgpu_dbg_gpu_access_gpu_va(dbg_s,
+			(struct nvgpu_dbg_gpu_va_access_args *)buf);
 		break;
 
 	default:

@@ -510,8 +510,65 @@ struct nvgpu_dbg_gpu_get_gr_context_args {
 	_IOR(NVGPU_DBG_GPU_IOCTL_MAGIC, 30, \
 	struct nvgpu_timeslice_args)
 
+struct nvgpu_dbg_gpu_get_mappings_entry {
+	/* out: start of GPU VA for this mapping */
+	__u64 gpu_va;
+	/* out: size in bytes of this mapping */
+	__u32 size;
+	__u32 reserved;
+};
+
+struct nvgpu_dbg_gpu_get_mappings_args {
+	/* in: lower VA range, inclusive */
+	__u64 va_lo;
+	/* in: upper VA range, exclusive */
+	__u64 va_hi;
+	/* in: Pointer to the struct nvgpu_dbg_gpu_get_mappings_entry. */
+	__u64 ops_buffer;
+	/*
+	 * in: maximum number of the entries that ops_buffer may hold.
+	 * out: number of entries written to ops_buffer.
+	 * When ops_buffer is zero:
+	 * out: number of mapping entries in range [va_lo, va_hi).
+	 */
+	__u32 count;
+	/* out: Has more valid mappings in this range than count */
+	__u8 has_more;
+	__u8 reserved[3];
+};
+
+/* Maximum read/write ops supported in a single call */
+#define NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_READ 1U
+#define NVGPU_DBG_GPU_IOCTL_ACCESS_GPUVA_CMD_WRITE 2U
+struct nvgpu_dbg_gpu_va_access_entry {
+	/* in: gpu_va address */
+	__u64 gpu_va;
+	/* in/out: Pointer to buffer through which data needs to be read/written */
+	__u64 data;
+	/* in: Access size in bytes */
+	__u32 size;
+	/* out: Whether the GpuVA is accessible */
+	__u8 valid;
+	__u8 reserved[3];
+};
+
+struct nvgpu_dbg_gpu_va_access_args {
+	/* in/out: Pointer to the struct nvgpu_dbg_gpu_va_access_entry */
+	__u64 ops_buf;
+	/* in: Number of buffer ops */
+	__u32 count;
+	/* in: Access cmd Read/Write */
+	__u8 cmd;
+	__u8 reserved[3];
+};
+
+#define NVGPU_DBG_GPU_IOCTL_GET_MAPPINGS \
+	_IOWR(NVGPU_DBG_GPU_IOCTL_MAGIC, 31, struct nvgpu_dbg_gpu_get_mappings_args)
+#define NVGPU_DBG_GPU_IOCTL_ACCESS_GPU_VA \
+	_IOWR(NVGPU_DBG_GPU_IOCTL_MAGIC, 32, struct nvgpu_dbg_gpu_va_access_args)
+
 #define NVGPU_DBG_GPU_IOCTL_LAST		\
-	_IOC_NR(NVGPU_DBG_GPU_IOCTL_TSG_GET_TIMESLICE)
+	_IOC_NR(NVGPU_DBG_GPU_IOCTL_ACCESS_GPU_VA)
 
 #define NVGPU_DBG_GPU_IOCTL_MAX_ARG_SIZE		\
 	sizeof(struct nvgpu_dbg_gpu_access_fb_memory_args)
