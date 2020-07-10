@@ -686,6 +686,9 @@
 				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
 #else
 				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
+				iso-smmu;
+#endif
+
 #if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
 				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
 						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
@@ -701,8 +704,6 @@
 				nvidia,head = <0>;
 #else
 				status = "disabled";
-				iso-smmu;
-#endif
 				non-coherent;
 
 				nvidia,dc-ctrlnum = <0>;
@@ -765,6 +766,9 @@
 				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
 #else
 				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
+				iso-smmu;
+#endif
+
 #if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
 				clocks = <&bpmp TEGRA194_CLK_NVDISPLAY_P1>;
 				clock-names = "dc";
@@ -780,8 +784,6 @@
 				nvidia,head = <1>;
 #else
 				status = "disabled";
-				iso-smmu;
-#endif
 				non-coherent;
 
 				nvidia,dc-ctrlnum = <1>;
@@ -843,6 +845,9 @@
 				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
 #else
 				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
+				iso-smmu;
+#endif
+
 #if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
 				clocks = <&bpmp TEGRA194_CLK_NVDISPLAY_P2>;
 				clock-names = "dc";
@@ -858,8 +863,6 @@
 				nvidia,head = <2>;
 #else
 				status = "disabled";
-				iso-smmu;
-#endif
 				non-coherent;
 
 				nvidia,dc-ctrlnum = <2>;
@@ -921,6 +924,9 @@
 				iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
 #else
 				iommus = <&smmu TEGRA_SID_NVDISPLAY>;
+				iso-smmu;
+#endif
+
 #if TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2
 				clocks = <&bpmp TEGRA194_CLK_NVDISPLAY_P3>;
 				clock-names = "dc";
@@ -936,8 +942,6 @@
 				nvidia,head = <3>;
 #else
 				status = "disabled";
-				iso-smmu;
-#endif
 				non-coherent;
 
 				nvidia,dc-ctrlnum = <3>;
