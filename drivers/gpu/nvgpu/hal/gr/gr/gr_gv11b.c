@@ -751,30 +751,53 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 	return 0;
 }
 
-int gv11b_gr_sm_trigger_suspend(struct gk20a *g)
+static void gv11b_gr_sm_stop_trigger_enable(struct gk20a *g)
 {
 	u32 dbgr_control0;
+	u32 gpc, tpc, sm, gpc_offset, tpc_offset, offset;
+	struct nvgpu_gr *gr = g->gr;
+	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 
+	/*
+	 * dbgr_control0 value can be different for different SMs.
+	 *
+	 * SINGLE_STEP_MODE: Debugger supports single stepping at warp level
+	 * which is implemented by resuming with required PAUSE_MASK and
+	 * setting SINGLE_STEP_MODE only for the requested SM.
+	 */
+	for (gpc = 0U; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
+		gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+		for (tpc = 0U;
+		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc);
+		     tpc++) {
+			tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
+			for (sm = 0U; sm < sm_per_tpc; sm++) {
+				offset = gpc_offset + tpc_offset +
+						nvgpu_gr_sm_offset(g, sm);
+				dbgr_control0 = gk20a_readl(g,
+					gr_gpc0_tpc0_sm0_dbgr_control0_r() + offset);
+				dbgr_control0 |=
+					gr_gpc0_tpc0_sm0_dbgr_control0_stop_trigger_enable_f();
+				nvgpu_writel(g,
+					gr_gpc0_tpc0_sm0_dbgr_control0_r() + offset, dbgr_control0);
+				nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+					"gpc(%d) tpc(%d) sm(%d) assert stop trigger "
+					"dbgr_control0: 0x%08x, "
+					, gpc, tpc, sm, dbgr_control0);
+			}
+		}
+	}
+}
+
+int gv11b_gr_sm_trigger_suspend(struct gk20a *g)
+{
 	if (!g->ops.gr.sm_debugger_attached(g)) {
 		nvgpu_err(g,
 			"SM debugger not attached, do not trigger suspend!");
 		return -EINVAL;
 	}
 
-	/* assert stop trigger. uniformity assumption: all SMs will have
-	 * the same state in dbg_control0.
-	 */
-	dbgr_control0 =
-		gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_control0_r());
-	dbgr_control0 |= gr_gpc0_tpc0_sm0_dbgr_control0_stop_trigger_enable_f();
-
-	/* broadcast write */
-	gk20a_writel(g,
-		gr_gpcs_tpcs_sms_dbgr_control0_r(), dbgr_control0);
-
-	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			"stop trigger enable: broadcast dbgr_control0: 0x%x ",
-			dbgr_control0);
+	gv11b_gr_sm_stop_trigger_enable(g);
 
 	return 0;
 }
@@ -943,25 +966,55 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	return err;
 }
 
-bool gv11b_gr_sm_debugger_attached(struct gk20a *g)
+static bool gv11b_gr_single_sm_debugger_attached(struct gk20a *g, u32 gpc,
+				u32 tpc, u32 sm)
 {
 	u32 debugger_mode;
-	u32 dbgr_control0 = gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_control0_r());
+	u32 dbgr_control0;
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) +
+			nvgpu_gr_tpc_offset(g, tpc) +
+			nvgpu_gr_sm_offset(g, sm);
 
-	/* check if sm debugger is attached.
-	 * assumption: all SMs will have debug mode enabled/disabled
-	 * uniformly.
-	 */
+	dbgr_control0 = nvgpu_readl(g, gr_gpc0_tpc0_sm0_dbgr_control0_r() +
+					offset);
+
 	debugger_mode =
 		gr_gpc0_tpc0_sm0_dbgr_control0_debugger_mode_v(dbgr_control0);
+
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			"SM Debugger Mode: %d", debugger_mode);
+			"gpc(%d) tpc(%d) sm(%d) debugger mode: %d",
+			gpc, tpc, sm, debugger_mode);
 	if (debugger_mode ==
 			gr_gpc0_tpc0_sm0_dbgr_control0_debugger_mode_on_v()) {
 		return true;
 	}
 
 	return false;
+}
+
+bool gv11b_gr_sm_debugger_attached(struct gk20a *g)
+{
+	u32 gpc, tpc, sm;
+	struct nvgpu_gr *gr = g->gr;
+	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
+
+	/* return true only if all SMs are in debug mode */
+	for (gpc = 0U; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
+		for (tpc = 0U;
+		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc);
+		     tpc++) {
+			for (sm = 0U; sm < sm_per_tpc; sm++) {
+				if (!gv11b_gr_single_sm_debugger_attached(g,
+							gpc, tpc, sm)) {
+					nvgpu_err(g,
+					"gpc(%d) tpc(%d) sm(%d) debugger NOT attached, "
+					, gpc, tpc, sm);
+					return false;
+				}
+			}
+		}
+	}
+	return true;
 }
 
 void gv11b_gr_suspend_single_sm(struct gk20a *g,
@@ -974,7 +1027,11 @@ void gv11b_gr_suspend_single_sm(struct gk20a *g,
 			nvgpu_gr_tpc_offset(g, tpc) +
 			nvgpu_gr_sm_offset(g, sm);
 
-	/* if an SM debugger isn't attached, skip suspend */
+	/* If all SMs are not in not in debug mode, skip suspend.
+	 * Suspend (STOP_TRIGGER) will cause SM to enter trap handler however
+	 * SM can enter into trap handler only if all other SMs are in debug mode.
+	 * as all SMs will enter trap handler.
+	 */
 	if (!g->ops.gr.sm_debugger_attached(g)) {
 		nvgpu_err(g,
 			"SM debugger not attached, skipping suspend!");
@@ -982,7 +1039,7 @@ void gv11b_gr_suspend_single_sm(struct gk20a *g,
 	}
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
-		"suspending gpc:%d, tpc:%d, sm%d", gpc, tpc, sm);
+		"suspending gpc(%d) tpc(%d) sm(%d)", gpc, tpc, sm);
 
 	/* assert stop trigger. */
 	dbgr_control0 = gk20a_readl(g,
@@ -994,8 +1051,8 @@ void gv11b_gr_suspend_single_sm(struct gk20a *g,
 	err = g->ops.gr.wait_for_sm_lock_down(g, gpc, tpc, sm,
 			global_esr_mask, check_errors);
 	if (err != 0) {
-		nvgpu_err(g,
-			"SuspendSm failed");
+		nvgpu_err(g, "suspend failed for gpc(%d) tpc(%d) sm(%d)",
+				gpc, tpc, sm);
 		return;
 	}
 }
@@ -1006,10 +1063,14 @@ void gv11b_gr_suspend_all_sms(struct gk20a *g,
 	struct nvgpu_gr *gr = g->gr;
 	u32 gpc, tpc, sm;
 	int err;
-	u32 dbgr_control0;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 
-	/* if an SM debugger isn't attached, skip suspend */
+	/* If all SMs are not in not in debug mode, skip suspend.
+	 * Suspend (STOP_TRIGGER) will cause SM to enter trap handler however
+	 * SM can enter into trap handler only if all other SMs are in debug mode.
+	 * as all SMs will enter trap handler.
+	 */
+
 	if (!g->ops.gr.sm_debugger_attached(g)) {
 		nvgpu_err(g,
 			"SM debugger not attached, skipping suspend!");
@@ -1018,16 +1079,7 @@ void gv11b_gr_suspend_all_sms(struct gk20a *g,
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "suspending all sms");
 
-	/* assert stop trigger. uniformity assumption: all SMs will have
-	 * the same state in dbg_control0.
-	 */
-	dbgr_control0 =
-		gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_control0_r());
-	dbgr_control0 |= gr_gpc0_tpc0_sm0_dbgr_control0_stop_trigger_enable_f();
-
-	/* broadcast write */
-	gk20a_writel(g,
-		gr_gpcs_tpcs_sms_dbgr_control0_r(), dbgr_control0);
+	gv11b_gr_sm_stop_trigger_enable(g);
 
 	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
 		for (tpc = 0;
@@ -1038,8 +1090,9 @@ void gv11b_gr_suspend_all_sms(struct gk20a *g,
 					gpc, tpc, sm,
 					global_esr_mask, check_errors);
 				if (err != 0) {
-					nvgpu_err(g,
-						"SuspendAllSms failed");
+					nvgpu_err(g, "suspend failed for "
+						"gpc(%d) tpc(%d) sm(%d)",
+						gpc, tpc, sm);
 					return;
 				}
 			}
@@ -1047,11 +1100,12 @@ void gv11b_gr_suspend_all_sms(struct gk20a *g,
 	}
 }
 
-void gv11b_gr_resume_single_sm(struct gk20a *g,
+static void gv11b_gr_sm_stop_trigger_disable(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm)
 {
 	u32 dbgr_control0, dbgr_status0;
 	u32 offset;
+
 	/*
 	 * The following requires some clarification. Despite the fact that both
 	 * RUN_TRIGGER and STOP_TRIGGER have the word "TRIGGER" in their
@@ -1069,10 +1123,18 @@ void gv11b_gr_resume_single_sm(struct gk20a *g,
 			nvgpu_gr_sm_offset(g, sm);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
-			"resuming gpc:%d, tpc:%d, sm%d", gpc, tpc, sm);
-	dbgr_control0 = gk20a_readl(g,
+			"resuming gpc(%d), tpc(%d), sm(%d)", gpc, tpc, sm);
+	/*
+	 * dbgr_control0 value can be different for different SMs.
+	 *
+	 * SINGLE_STEP_MODE: Debugger supports single stepping at warp level
+	 * which is implemented by resuming with required PAUSE_MASK and
+	 * setting SINGLE_STEP_MODE only for the requested SM.
+	 */
+
+	dbgr_control0 = nvgpu_readl(g,
 			gr_gpc0_tpc0_sm0_dbgr_control0_r() + offset);
-	dbgr_status0 = gk20a_readl(g,
+	dbgr_status0 = nvgpu_readl(g,
 			gr_gpc0_tpc0_sm0_dbgr_status0_r() + offset);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
@@ -1087,9 +1149,9 @@ void gv11b_gr_resume_single_sm(struct gk20a *g,
 	gk20a_writel(g, gr_gpc0_tpc0_sm0_dbgr_control0_r() +
 				offset, dbgr_control0);
 
-	dbgr_control0 = gk20a_readl(g,
+	dbgr_control0 = nvgpu_readl(g,
 			gr_gpc0_tpc0_sm0_dbgr_control0_r() + offset);
-	dbgr_status0 = gk20a_readl(g,
+	dbgr_status0 = nvgpu_readl(g,
 			gr_gpc0_tpc0_sm0_dbgr_status0_r() + offset);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
@@ -1099,13 +1161,13 @@ void gv11b_gr_resume_single_sm(struct gk20a *g,
 	/* Run trigger */
 	dbgr_control0 |=
 		gr_gpc0_tpc0_sm0_dbgr_control0_run_trigger_task_f();
-	gk20a_writel(g,
+	nvgpu_writel(g,
 		gr_gpc0_tpc0_sm0_dbgr_control0_r() +
 		offset, dbgr_control0);
 
-	dbgr_control0 = gk20a_readl(g,
+	dbgr_control0 = nvgpu_readl(g,
 			gr_gpc0_tpc0_sm0_dbgr_control0_r() + offset);
-	dbgr_status0 = gk20a_readl(g,
+	dbgr_status0 = nvgpu_readl(g,
 			gr_gpc0_tpc0_sm0_dbgr_status0_r() + offset);
 	/* run trigger is not sticky bit. SM clears it immediately */
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
@@ -1115,69 +1177,38 @@ void gv11b_gr_resume_single_sm(struct gk20a *g,
 
 }
 
+void gv11b_gr_resume_single_sm(struct gk20a *g,
+		u32 gpc, u32 tpc, u32 sm)
+{
+	if (!g->ops.gr.sm_debugger_attached(g)) {
+		nvgpu_err(g,
+			"SM debugger not attached, do not resume "
+			"gpc(%d) tpc(%d) sm(%d)", gpc, tpc, sm);
+	}
+
+	gv11b_gr_sm_stop_trigger_disable(g, gpc, tpc, sm);
+}
+
 void gv11b_gr_resume_all_sms(struct gk20a *g)
 {
-	u32 dbgr_control0, dbgr_status0;
-	/*
-	 * The following requires some clarification. Despite the fact that both
-	 * RUN_TRIGGER and STOP_TRIGGER have the word "TRIGGER" in their
-	 *  names, only one is actually a trigger, and that is the STOP_TRIGGER.
-	 * Merely writing a 1(_TASK) to the RUN_TRIGGER is not sufficient to
-	 * resume the gpu - the _STOP_TRIGGER must explicitly be set to 0
-	 * (_DISABLE) as well.
+	u32 gpc, tpc, sm;
+	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
+	struct nvgpu_gr *gr = g->gr;
 
-	* Advice from the arch group:  Disable the stop trigger first, as a
-	* separate operation, in order to ensure that the trigger has taken
-	* effect, before enabling the run trigger.
-	*/
+	if (!g->ops.gr.sm_debugger_attached(g)) {
+		nvgpu_err(g,
+			"SM debugger not attached, do not resume all sm!");
+	}
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "resuming all sms");
-
-	/* Read from unicast registers */
-	dbgr_control0 =
-		gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_control0_r());
-	dbgr_status0 =
-		gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_status0_r());
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
-			"before stop trigger disable: "
-			"dbgr_control0 = 0x%x dbgr_status0: 0x%x",
-			dbgr_control0, dbgr_status0);
-
-	dbgr_control0 = set_field(dbgr_control0,
-			gr_gpc0_tpc0_sm0_dbgr_control0_stop_trigger_m(),
-			gr_gpc0_tpc0_sm0_dbgr_control0_stop_trigger_disable_f());
-	/* Write to broadcast registers */
-	gk20a_writel(g,
-		gr_gpcs_tpcs_sms_dbgr_control0_r(), dbgr_control0);
-
-	/* Read from unicast registers */
-	dbgr_control0 =
-		gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_control0_r());
-	dbgr_status0 =
-		gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_status0_r());
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
-			"before run trigger: "
-			"dbgr_control0 = 0x%x dbgr_status0: 0x%x",
-			dbgr_control0, dbgr_status0);
-	/* Run trigger */
-	dbgr_control0 |=
-		gr_gpc0_tpc0_sm0_dbgr_control0_run_trigger_task_f();
-	/* Write to broadcast registers */
-	gk20a_writel(g,
-		gr_gpcs_tpcs_sms_dbgr_control0_r(), dbgr_control0);
-
-	/* Read from unicast registers */
-	dbgr_control0 =
-		gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_control0_r());
-	dbgr_status0 =
-		gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_status0_r());
-	/* run trigger is not sticky bit. SM clears it immediately */
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
-			"after run trigger: "
-			"dbgr_control0 = 0x%x dbgr_status0: 0x%x",
-			dbgr_control0, dbgr_status0);
+	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
+		for (tpc = 0;
+		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc);
+		     tpc++) {
+			for (sm = 0; sm < sm_per_tpc; sm++) {
+				gv11b_gr_sm_stop_trigger_disable(g, gpc, tpc, sm);
+			}
+		}
+	}
 }
 
 int gv11b_gr_resume_from_pause(struct gk20a *g)
