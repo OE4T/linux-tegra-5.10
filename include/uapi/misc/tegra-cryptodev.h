@@ -170,6 +170,7 @@ struct tegra_crypt_req {
 #define TEGRA_CRYPTO_IOCTL_PROCESS_REQ	\
 		_IOWR(0x98, 101, struct tegra_crypt_req)
 
+#ifdef __KERNEL__
 #ifdef CONFIG_COMPAT
 struct tegra_crypt_req_32 {
 	int op; /* e.g. TEGRA_CRYPTO_ECB */
@@ -187,7 +188,8 @@ struct tegra_crypt_req_32 {
 };
 #define TEGRA_CRYPTO_IOCTL_PROCESS_REQ_32	\
 		_IOWR(0x98, 121, struct tegra_crypt_req_32)
-#endif
+#endif /* CONFIG_COMPAT */
+#endif /* __KERNEL__ */
 
 /* pointer to this struct should be passed to:
  * TEGRA_CRYPTO_IOCTL_SET_SEED
@@ -204,6 +206,7 @@ struct tegra_rng_req {
 #define TEGRA_CRYPTO_IOCTL_GET_RANDOM	\
 		_IOWR(0x98, 103, struct tegra_rng_req)
 
+#ifdef __KERNEL__
 #ifdef CONFIG_COMPAT
 struct tegra_rng_req_32 {
 	__u8 seed[TEGRA_CRYPTO_RNG_SEED_SIZE];
@@ -215,7 +218,8 @@ struct tegra_rng_req_32 {
 		_IOWR(0x98, 122, struct tegra_rng_req_32)
 #define TEGRA_CRYPTO_IOCTL_GET_RANDOM_32	\
 		_IOWR(0x98, 123, struct tegra_rng_req_32)
-#endif
+#endif /* CONFIG_COMPAT */
+#endif /* __KERNEL__ */
 
 struct tegra_rsa_req {
 	char *key;
@@ -248,6 +252,7 @@ struct tegra_rsa_req_ahash {
 #define TEGRA_CRYPTO_IOCTL_RSA_REQ_AHASH	\
 		_IOWR(0x98, 110, struct tegra_rsa_req_ahash)
 
+#ifdef __KERNEL__
 #ifdef CONFIG_COMPAT
 struct tegra_rsa_req_32 {
 	__u32 key;
@@ -263,7 +268,8 @@ struct tegra_rsa_req_32 {
 };
 #define TEGRA_CRYPTO_IOCTL_RSA_REQ_32	\
 		_IOWR(0x98, 125, struct tegra_rsa_req_32)
-#endif
+#endif /* CONFIG_COMPAT */
+#endif /* __KERNEL__ */
 
 struct tegra_sha_req {
 	char key[TEGRA_CRYPTO_MAX_KEY_SIZE];
@@ -287,6 +293,7 @@ struct tegra_sha_req_shash {
 #define TEGRA_CRYPTO_IOCTL_GET_SHA_SHASH	\
 		_IOWR(0x98, 106, struct tegra_sha_req_shash)
 
+#ifdef __KERNEL__
 #ifdef CONFIG_COMPAT
 struct tegra_sha_req_32 {
 	char key[TEGRA_CRYPTO_MAX_KEY_SIZE];
@@ -298,6 +305,7 @@ struct tegra_sha_req_32 {
 };
 #define TEGRA_CRYPTO_IOCTL_GET_SHA_32	\
 		_IOWR(0x98, 124, struct tegra_sha_req_32)
-#endif
+#endif /* CONFIG_COMPAT */
+#endif /* __KERNEL__ */
 
 #endif
