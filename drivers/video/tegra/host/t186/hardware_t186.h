@@ -167,6 +167,18 @@ static inline u32 nvhost_opcode_setpayload(unsigned payload)
 	return (9 << 28) | payload;
 }
 
+static inline u32 nvhost_opcode_incr_w(unsigned int offset)
+{
+	/* 20-bit offset supported */
+	return (10 << 28) | offset;
+}
+
+static inline u32 nvhost_opcode_nonincr_w(unsigned int offset)
+{
+	/* 20-bit offset supported */
+	return (11 << 28) | offset;
+}
+
 static inline u32 nvhost_opcode_acquire_mlock(unsigned id)
 {
 	return (14 << 28) | id;

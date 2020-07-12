@@ -3,7 +3,7 @@
  *
  * Tegra T194 HOST1X Register Definitions
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -161,8 +161,15 @@ static inline u32 nvhost_opcode_release_mlock(unsigned id)
 	return (14 << 28) | (1 << 24) | id;
 }
 
+static inline u32 nvhost_opcode_incr_w(unsigned int offset)
+{
+	/* 22-bit offset supported */
+	return (10 << 28) | offset;
+}
+
 static inline u32 nvhost_opcode_nonincr_w(unsigned offset)
 {
+	/* 22-bit offset supported */
 	return (11 << 28) | offset;
 }
 
