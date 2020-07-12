@@ -12,6 +12,7 @@
  */
 
 #include <linux/types.h>
+#include <linux/interconnect.h>
 #include <linux/interrupt.h>
 #include <linux/iopoll.h>
 #include <linux/clk.h>
@@ -30,6 +31,9 @@
 #include <linux/pci-aspm.h>
 #include <linux/platform_device.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#include <linux/platform/tegra/mc_utils.h>
+#endif
 #include <linux/pm_runtime.h>
 #include <linux/phy/phy.h>
 #include <linux/resource.h>
@@ -477,6 +481,12 @@
 #define MARGIN_WIN_TIME 1000
 #define MARGIN_READ_DELAY 100
 
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#define FREQ2ICC(x) (Bps_to_icc(emc_freq_to_bw(x)))
+#else
+#define FREQ2ICC(x) 0UL
+#endif
+
 enum ep_event {
 	EP_EVENT_NONE = 0,
 	EP_PEX_RST_DEASSERT,
@@ -539,6 +549,7 @@ struct tegra_pcie_dw {
 	u8 init_link_width;
 
 	struct tegra_bwmgr_client *emc_bw;
+	struct icc_path *icc_bwmgr_path;
 
 #ifdef CONFIG_PCIE_TEGRA_DW_DMA_TEST
 	/* DMA operation */
@@ -606,6 +617,8 @@ struct tegra_pcie_of_data {
 	bool sbr_reset_fixup;
 	/* Bug 200390637 */
 	bool l1ss_exit_fixup;
+	/* interconnect framework support */
+	bool icc_bwmgr;
 };
 
 struct dma_tx {
@@ -3047,11 +3060,17 @@ static void tegra_pcie_dw_scan_bus(struct pcie_port *pp)
 	width = find_first_bit((const unsigned long *)&width, 6);
 	speed = ((data >> 16) & PCI_EXP_LNKSTA_CLS);
 	freq = pcie->dvfs_tbl[width][speed - 1];
-	dev_dbg(pcie->dev, "EMC Freq requested = %lu\n", freq);
+	if (pcie->of_data->icc_bwmgr)
+		dev_info(pcie->dev, "ICC bw requested = %lu\n", FREQ2ICC(freq));
+	else
+		dev_info(pcie->dev, "EMC Freq requested = %lu\n", freq);
 
 	if (!IS_ERR_OR_NULL(pcie->emc_bw)) {
 		if (tegra_bwmgr_set_emc(pcie->emc_bw, freq,
 					TEGRA_BWMGR_SET_EMC_FLOOR))
+			dev_err(pcie->dev, "can't set emc clock[%lu]\n", freq);
+	} else if (!IS_ERR_OR_NULL(pcie->icc_bwmgr_path)) {
+		if (icc_set_bw(pcie->icc_bwmgr_path, 0, FREQ2ICC(freq)))
 			dev_err(pcie->dev, "can't set emc clock[%lu]\n", freq);
 	}
 
@@ -3904,6 +3923,9 @@ static void pex_ep_event_bme_change(struct tegra_pcie_dw *pcie)
 		if (tegra_bwmgr_set_emc(pcie->emc_bw, freq,
 					TEGRA_BWMGR_SET_EMC_FLOOR))
 			dev_err(pcie->dev, "can't set emc clock[%lu]\n", freq);
+	} else if (!IS_ERR_OR_NULL(pcie->icc_bwmgr_path)) {
+		if (icc_set_bw(pcie->icc_bwmgr_path, 0, FREQ2ICC(freq)))
+			dev_err(pcie->dev, "can't set emc clock[%lu]\n", freq);
 	}
 
 	speed = ((val >> 16) & PCI_EXP_LNKSTA_CLS);
@@ -4246,6 +4268,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.msix_doorbell_access_fixup = true,
 	.sbr_reset_fixup = true,
 	.l1ss_exit_fixup = true,
+	.icc_bwmgr = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
@@ -4253,6 +4276,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = true,
+	.icc_bwmgr = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
@@ -4260,6 +4284,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
+	.icc_bwmgr = true,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
@@ -4267,6 +4292,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
+	.icc_bwmgr = true,
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {
@@ -4508,9 +4534,15 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	pcie->emc_bw = tegra_bwmgr_register(pcie_emc_client_id[pcie->cid]);
-	if (IS_ERR_OR_NULL(pcie->emc_bw)) {
-		dev_info(pcie->dev, "bwmgr registration failed\n");
+	if (pcie->of_data->icc_bwmgr) {
+		pcie->icc_bwmgr_path = of_icc_get(&pdev->dev, "icc_bwmgr");
+		if (IS_ERR_OR_NULL(pcie->icc_bwmgr_path))
+			dev_info(pcie->dev, "icc bwmgr registration failed\n");
+	} else {
+		pcie->emc_bw = tegra_bwmgr_register(
+				pcie_emc_client_id[pcie->cid]);
+		if (IS_ERR_OR_NULL(pcie->emc_bw))
+			dev_info(pcie->dev, "bwmgr registration failed\n");
 	}
 
 	platform_set_drvdata(pdev, pcie);
@@ -4662,6 +4694,8 @@ static int tegra_pcie_dw_remove(struct platform_device *pdev)
 	}
 	if (!IS_ERR_OR_NULL(pcie->emc_bw))
 		tegra_bwmgr_unregister(pcie->emc_bw);
+	if (!IS_ERR_OR_NULL(pcie->icc_bwmgr_path))
+		icc_put(pcie->icc_bwmgr_path);
 
 	return 0;
 }
@@ -5121,6 +5155,8 @@ static void tegra_pcie_dw_shutdown(struct platform_device *pdev)
 	if (!IS_ERR_OR_NULL(pcie->emc_bw)) {
 		tegra_bwmgr_unregister(pcie->emc_bw);
 	}
+	if (!IS_ERR_OR_NULL(pcie->icc_bwmgr_path))
+		icc_put(pcie->icc_bwmgr_path);
 }
 
 static const struct dev_pm_ops tegra_pcie_dw_pm_ops = {
