@@ -1392,7 +1392,11 @@
 			clock-names = "dpaux3";
 			resets = <&bpmp_resets TEGRA194_RESET_DPAUX3>;
 			reset-names = "dpaux3";
+#if TEGRA_POWER_DOMAIN_DT_VERSION <= DT_VERSION_2
 			power-domains = <&disa_pd>;
+#else
+			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+#endif
 #endif /* TEGRA_HOST1X_DT_VERSION >= DT_VERSION_2 */
 		}; //dpaux3
 
