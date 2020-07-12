@@ -17,6 +17,7 @@
 #include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/memory/tegra234-mc.h>
 #include <dt-bindings/reset/tegra234-reset.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
 
 /*
  * Power domain to PCIE controller and chiplet mapping
@@ -404,6 +405,9 @@
 		nvidia,event-cntr-data = <0x1dc>;
 		nvidia,dl-feature-cap = <0x30c>;
 		nvidia,ptm-cap-off = <0x318>;
+
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_5 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 	};
 
 
@@ -455,6 +459,9 @@
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
 		nvidia,ptm-cap-off = <0x304>;
+
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_6 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 	};
 
 	/* C7 X8 */
@@ -505,6 +512,9 @@
 		nvidia,event-cntr-data = <0x1dc>;
 		nvidia,dl-feature-cap = <0x30c>;
 		nvidia,ptm-cap-off = <0x318>;
+
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_7 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 	};
 
 	/* C10 X4 */
@@ -555,6 +565,9 @@
 		nvidia,event-cntr-data = <0x1c8>;
 		nvidia,dl-feature-cap = <0x2f8>;
 		nvidia,ptm-cap-off = <0x304>;
+
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_10 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 	};
 
 	/* C0 X4 */
@@ -589,8 +602,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE0R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE0W>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_0 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE0>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE0 0x1000>;
@@ -661,8 +676,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE1R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE1W>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_1 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE1>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE1 0x1000>;
@@ -734,8 +751,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE2AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE2AW>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_2 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE2>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE2 0x1000>;
@@ -806,8 +825,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE3R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE3W>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_3 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE3>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE3 0x1000>;
@@ -878,8 +899,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE4R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE4W>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_4 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE4>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE4 0x1000>;
@@ -950,8 +973,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE5R>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE5W>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_5 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE5>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE5 0x1000>;
@@ -1023,8 +1048,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE6AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE6AW>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_6 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE6>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE6 0x1000>;
@@ -1096,8 +1123,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE7AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE7AW>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_7 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE7>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE7 0x1000>;
@@ -1169,8 +1198,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE8AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE8AW>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_8 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE8>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE8 0x1000>;
@@ -1242,8 +1273,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE9AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE9AW>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_9 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE9>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE9 0x1000>;
@@ -1315,8 +1348,10 @@
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE10AR>,
 			        <&mc TEGRA234_MEMORY_CLIENT_PCIE10AW>;
 		interconnect-names = "dma-mem", "dma-mem";
+#else
+		interconnects = <&tegra_icc TEGRA_ICC_PCIE_10 &tegra_icc TEGRA_ICC_PRIMARY>;
+		interconnect-names = "icc_bwmgr";
 #endif
-
 		iommus = <&smmu TEGRA_SID_PCIE10>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE10 0x1000>;
