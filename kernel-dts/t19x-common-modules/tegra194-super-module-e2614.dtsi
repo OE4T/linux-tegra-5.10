@@ -1,7 +1,7 @@
 /*
  * tegra194-super-module-e2614.dtsi: E2600 DTSI file.
  *
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,9 +28,6 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 				e2614_tas2552_r:tas2552.9-0040@40 {
-#if LINUX_VERSION >= 500
-					status = "disabled";
-#endif
 					compatible = "ti,tas2552";
 					reg = <0x40>;
 					vbat-supply = <&battery_reg>;
@@ -39,9 +36,6 @@
 					#sound-dai-cells = <1>;
 				};
 				e2614_tas2552_l:tas2552.9-0041@41 {
-#if LINUX_VERSION >= 500
-					status = "disabled";
-#endif
                                         compatible = "ti,tas2552";
                                         reg = <0x41>;
                                         vbat-supply = <&battery_reg>;
@@ -339,12 +333,10 @@
 		fragment-e2614-a00@1 {
 			ids = "2614-0000-000";
 			overrides@0 {
-#if LINUX_VERSION < 500
 				target = <&e2614_rt5658>;
 				_overlay_ {
 					status = "okay";
 				};
-#endif
 			};
 			overrides@1 {
 				target = <&hdr40_snd_link_i2s>;
@@ -361,12 +353,10 @@
 		fragment-e2614-b00@2 {
 			ids = "2614-0000-100";
 			overrides@0 {
-#if LINUX_VERSION < 500
 				target = <&e2614_rt5658_i2c3>;
 				_overlay_ {
 					status = "okay";
 				};
-#endif
 			};
 
 			overrides@1 {
