@@ -10,7 +10,7 @@ ccflags-y += -Werror
 
 obj-y += tegra-cache.o
 
-ifeq ($(CONFIG_ARCH_TEGRA_18x_SOC),y)
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_18x_SOC) $(CONFIG_TEGRA_NVMAP)),)
 obj-y += tegra18x-cache.o
 endif
 
