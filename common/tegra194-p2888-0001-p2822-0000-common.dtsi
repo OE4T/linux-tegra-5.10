@@ -138,6 +138,7 @@
 		};
 		ucsi_ccg: ucsi_ccg@8 {
 			status = "okay";
+#if TEGRA_XUSB_DT_VERSION == DT_VERSION_2
 			typec-extcon {
 				typec_port0: port-0 {
 					status = "okay";
@@ -154,6 +155,20 @@
 					#extcon-cells = <1>;
 				};
 			};
+#endif
+#if TEGRA_XUSB_DT_VERSION >= DT_VERSION_3
+			ccgx,firmware-build = "gn";
+			ccg_typec_con0: connector@0 {
+				compatible = "usb-c-connector";
+				label = "USB-C";
+				data-role = "dual";
+				port {
+					ucsi_ccg_p0: endpoint {
+						remote-endpoint = <&usb_role_switch0>;
+					};
+				};
+			};
+#endif
 		};
 	};
 
@@ -204,6 +219,13 @@
 				mode = "otg";
 				usb-role-switch;
 				status = "okay";
+#if TEGRA_XUSB_DT_VERSION >= DT_VERSION_3
+				port {
+					usb_role_switch0: endpoint {
+						remote-endpoint = <&ucsi_ccg_p0>;
+					};
+				};
+#endif
 			};
 			usb2-1 {
 				mode = "host";
@@ -234,9 +256,11 @@
 	};
 
 	tegra_xudc: xudc@3550000 {
+#if TEGRA_XUSB_DT_VERSION == DT_VERSION_2
 		extcon-cables = <&typec_port0 0>;
 		extcon-cable-names = "vbus";
 		#extcon-cells = <1>;
+#endif
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-2}>;
 #if defined(LINUX_VERSION) && LINUX_VERSION > 414
@@ -250,9 +274,11 @@
 	};
 
 	tegra_xhci: xhci@3610000 {
+#if TEGRA_XUSB_DT_VERSION == DT_VERSION_2
 		extcon-cables = <&typec_port0 1>;
 		extcon-cable-names = "id";
 		#extcon-cells = <1>;
+#endif
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-1}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-3}>,
@@ -399,6 +425,7 @@
 	};
 };
 
+#if TEGRA_XUSB_DT_VERSION == DT_VERSION_2
 &head0 {
 	extcon-cables = <&typec_port0 2 &typec_port1 2>;
 	extcon-cable-names = "typec0", "typec1";
@@ -424,6 +451,7 @@
 &sor1 {
 	nvidia,typec-port = /bits/ 8 <1>;
 };
+#endif
 
 #if LINUX_VERSION >= 414
 #include <tegra194-linux-4.14.dtsi>
