@@ -121,7 +121,11 @@ static int nvmap_prot_handle(struct nvmap_handle *handle, u64 offset,
 			vm_size = vma->vm_end - vma->vm_start;
 
 		if (vma->vm_mm != current->mm)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			down_write(&vma->vm_mm->mmap_sem);
+#else
+			down_write(&vma->vm_mm->mmap_lock);
+#endif
 		switch (op) {
 		case NVMAP_HANDLE_PROT_NONE:
 			vma->vm_flags = vma_list->save_vm_flags;
@@ -153,7 +157,11 @@ static int nvmap_prot_handle(struct nvmap_handle *handle, u64 offset,
 		};
 try_unlock:
 		if (vma->vm_mm != current->mm)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			up_write(&vma->vm_mm->mmap_sem);
+#else
+			up_write(&vma->vm_mm->mmap_lock);
+#endif
 		if (err)
 			goto finish;
 	}
@@ -168,7 +176,11 @@ static int nvmap_prot_handles(struct nvmap_handle **handles, u64 *offsets,
 	int i, err = 0;
 	u32 *offs_32 = (u32 *)offsets, *sizes_32 = (u32 *)sizes;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	down_write(&current->mm->mmap_sem);
+#else
+	down_write(&current->mm->mmap_lock);
+#endif
 	for (i = 0; i < nr; i++) {
 		err = nvmap_prot_handle(handles[i],
 				is_32 ? offs_32[i] : offsets[i],
@@ -180,7 +192,11 @@ static int nvmap_prot_handles(struct nvmap_handle **handles, u64 *offsets,
 		}
 	}
 finish:
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	up_write(&current->mm->mmap_sem);
+#else
+	up_write(&current->mm->mmap_lock);
+#endif
 	return err;
 }
 

@@ -442,7 +442,11 @@ int __nvmap_cache_maint(struct nvmap_client *client,
 	if (!handle)
 		return -EINVAL;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	down_read(&current->mm->mmap_sem);
+#else
+	down_read(&current->mm->mmap_lock);
+#endif
 
 	vma = find_vma(current->active_mm, (unsigned long)op->addr);
 	if (!vma || !is_nvmap_vma(vma) ||
@@ -467,7 +471,11 @@ int __nvmap_cache_maint(struct nvmap_client *client,
 	err = __nvmap_do_cache_maint(client, priv->handle, start, end, op->op,
 				     false);
 out:
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	up_read(&current->mm->mmap_sem);
+#else
+	up_read(&current->mm->mmap_lock);
+#endif
 	nvmap_handle_put(handle);
 	return err;
 }

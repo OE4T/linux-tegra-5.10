@@ -702,7 +702,11 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 	struct vm_area_struct *vma;
 	vm_flags_t vm_flags;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	down_read(&current->mm->mmap_sem);
+#else
+	down_read(&current->mm->mmap_lock);
+#endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
         user_pages = get_user_pages(current, current->mm,
 			      vaddr & PAGE_MASK, nr_page,
@@ -725,7 +729,11 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 		}
 	}
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	up_read(&current->mm->mmap_sem);
+#else
+	up_read(&current->mm->mmap_lock);
+#endif
 	if (user_pages != nr_page) {
 		ret = user_pages < 0 ? user_pages : -ENOMEM;
 		pr_err("get_user_pages requested/got: %d/%d]\n", nr_page,
