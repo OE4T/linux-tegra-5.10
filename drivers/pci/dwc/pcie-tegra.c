@@ -197,6 +197,13 @@
 #define APPL_GTH_PHY			0x138
 #define APPL_GTH_PHY_RST		0x1
 
+#define APPL_SEC_EXTERNAL_MSI_ADDR_H	0x10100
+#define APPL_SEC_EXTERNAL_MSI_ADDR_L	0x10104
+#define APPL_SEC_INTERNAL_MSI_ADDR_H	0x10108
+#define APPL_SEC_INTERNAL_MSI_ADDR_L	0x1010c
+
+#define V2M_MSI_SETSPI_NS		0x040
+
 #define EP_CFG_LINK_CAP				0x7C
 #define EP_CFG_LINK_CAP_MAX_SPEED_MASK		0xF
 
@@ -518,6 +525,8 @@ struct tegra_pcie_dw {
 	struct device *dev;
 	struct resource	*dbi_res;
 	struct resource	*atu_dma_res;
+	struct resource gic_base;
+	struct resource msi_base;
 	void __iomem		*appl_base;
 	struct clk		*core_clk;
 	struct clk		*core_clk_m;
@@ -619,6 +628,8 @@ struct tegra_pcie_of_data {
 	bool l1ss_exit_fixup;
 	/* interconnect framework support */
 	bool icc_bwmgr;
+	/* GIC V2M support available */
+	bool gic_v2m;
 };
 
 struct dma_tx {
@@ -4269,6 +4280,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.sbr_reset_fixup = true,
 	.l1ss_exit_fixup = true,
 	.icc_bwmgr = false,
+	.gic_v2m = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
@@ -4277,6 +4289,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = true,
 	.icc_bwmgr = false,
+	.gic_v2m = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
@@ -4285,6 +4298,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
 	.icc_bwmgr = true,
+	.gic_v2m = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
@@ -4293,6 +4307,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
 	.icc_bwmgr = true,
+	.gic_v2m = false,
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {
@@ -4736,6 +4751,53 @@ ep_suspend:
 	return 0;
 }
 
+static int tegra_pcie_msi_host_init(struct pcie_port *pp,
+				    struct msi_controller *chip)
+{
+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	struct tegra_pcie_dw *pcie = dw_pcie_to_tegra_pcie(pci);
+	struct device *dev = pcie->dev;
+	struct device_node *np = dev->of_node;
+	struct device_node *msi_node;
+	int ret;
+
+	/*
+	 * The MSI domain is set by the generic of_msi_configure().  This
+	 * .msi_host_init() function keeps us from doing the default MSI
+	 * domain setup in dw_pcie_host_init() and also enforces the
+	 * requirement that "msi-parent" exists.
+	 */
+	msi_node = of_parse_phandle(np, "msi-parent", 0);
+	if (!msi_node) {
+		dev_err(dev, "failed to find msi-parent\n");
+		return -EINVAL;
+	}
+
+	ret = of_address_to_resource(msi_node, 0, &pcie->gic_base);
+	if (ret) {
+		dev_err(dev, "Failed to allocate gic_base resource.\n");
+		return ret;
+	}
+
+	ret = of_address_to_resource(msi_node, 1, &pcie->msi_base);
+	if (ret) {
+		dev_err(dev, "Failed to allocate msi_base resource.\n");
+		return ret;
+	}
+
+	writel(lower_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
+	       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_L);
+	writel(upper_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
+	       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_H);
+
+	writel(lower_32_bits(pcie->msi_base.start),
+	       pcie->appl_base + APPL_SEC_INTERNAL_MSI_ADDR_L);
+	writel(upper_32_bits(pcie->msi_base.start),
+	       pcie->appl_base + APPL_SEC_INTERNAL_MSI_ADDR_H);
+
+	return 0;
+}
+
 static int tegra_pcie_dw_runtime_resume(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
@@ -4839,6 +4901,10 @@ static int tegra_pcie_dw_runtime_resume(struct device *dev)
 	pcie_bus_config = PCIE_BUS_SAFE;
 
 	pp->root_bus_nr = -1;
+
+	if (pcie->of_data->gic_v2m)
+		tegra_pcie_dw_host_ops.msi_host_init = tegra_pcie_msi_host_init;
+
 	pp->ops = &tegra_pcie_dw_host_ops;
 
 	/* Disable MSI interrupts for PME messages */
@@ -5015,6 +5081,18 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 			dev_err(dev, "failed to enable phy\n");
 			goto fail_phy;
 		}
+	}
+
+	if (pcie->of_data->gic_v2m) {
+		writel(lower_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
+		       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_L);
+		writel(upper_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
+		       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_H);
+
+		writel(lower_32_bits(pcie->msi_base.start),
+		       pcie->appl_base + APPL_SEC_INTERNAL_MSI_ADDR_L);
+		writel(upper_32_bits(pcie->msi_base.start),
+		       pcie->appl_base + APPL_SEC_INTERNAL_MSI_ADDR_H);
 	}
 
 	/* Enable HW_HOT_RST mode */
