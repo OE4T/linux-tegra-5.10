@@ -1,7 +1,7 @@
 /*
  * tegra194-super-module-e2614-p2888-0000.dtsi: E2600 DTSI file.
  *
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,6 @@
 						"Headphone",	"H40-TAS-R Headphone",
 						"Headphone",	"H40-TAS-L Headphone";
 
-#if LINUX_VERSION < 500
 					nvidia-audio-card,routing =
 						"CVB-RT Headphone Jack",	"CVB-RT HPO L Playback",
 						"CVB-RT Headphone Jack",	"CVB-RT HPO R Playback",
@@ -66,7 +65,6 @@
 						"H40-RT IN1P",			"H40-RT Mic",
 						"H40-TAS-R Headphone",		"H40-TAS-R OUT",
 						"H40-TAS-L Headphone",		"H40-TAS-L OUT";
-#endif
 				};
 			};
 		};
