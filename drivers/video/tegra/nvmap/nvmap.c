@@ -165,7 +165,11 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 		if (!pages)
 			goto out;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		vaddr = vm_map_ram(pages, h->size >> PAGE_SHIFT, -1, prot);
+#else
+		vaddr = vm_map_ram(pages, h->size >> PAGE_SHIFT, -1);
+#endif
 		nvmap_altfree(pages, (h->size >> PAGE_SHIFT) * sizeof(*pages));
 		if (!vaddr && !h->vaddr)
 			goto out;
