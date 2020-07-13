@@ -585,12 +585,13 @@ static struct device *nvmap_heap_pgalloc_dev(unsigned long type)
 		return ERR_PTR(-EINVAL);
 
 	dma_dev = dma_dev_from_handle(type);
-	if (IS_ERR(dma_dev))
-		return dma_dev;
-
-	ret = dma_set_resizable_heap_floor_size(dma_dev, 0);
-	if (ret)
-		return ERR_PTR(ret);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	if (!IS_ERR(dma_dev)) {
+		ret = dma_set_resizable_heap_floor_size(dma_dev, 0);
+		if (ret)
+			return ERR_PTR(ret);
+	}
+#endif
 	return dma_dev;
 }
 

@@ -57,24 +57,27 @@ EXPORT_SYMBOL(tegra_vpr_dev);
 
 struct device __weak tegra_generic_cma_dev;
 struct device __weak tegra_vpr_cma_dev;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 struct dma_resize_notifier_ops __weak vpr_dev_ops;
 
-__weak const struct of_device_id nvmap_of_ids[] = {
-	{ .compatible = "nvidia,carveouts" },
-	{ .compatible = "nvidia,carveouts-t18x" },
-	{ }
-};
-
 static struct dma_declare_info generic_dma_info = {
-	.name = "generic",
-	.size = 0,
-	.notifier.ops = NULL,
+        .name = "generic",
+        .size = 0,
+        .notifier.ops = NULL,
 };
 
 static struct dma_declare_info vpr_dma_info = {
 	.name = "vpr",
 	.size = SZ_32M,
 	.notifier.ops = &vpr_dev_ops,
+};
+#endif
+
+__weak const struct of_device_id nvmap_of_ids[] = {
+        { .compatible = "nvidia,carveouts" },
+        { .compatible = "nvidia,carveouts-t18x" },
+        { }
 };
 
 static struct nvmap_platform_carveout nvmap_carveouts[] = {
@@ -85,7 +88,9 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.size		= 0,
 		.dma_dev	= &tegra_generic_dev,
 		.cma_dev	= &tegra_generic_cma_dev,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		.dma_info	= &generic_dma_info,
+#endif
 	},
 	[1] = {
 		.name		= "vpr",
@@ -94,7 +99,9 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.size		= 0,
 		.dma_dev	= &tegra_vpr_dev,
 		.cma_dev	= &tegra_vpr_cma_dev,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		.dma_info	= &vpr_dma_info,
+#endif
 		.enable_static_dma_map = true,
 	},
 	[2] = {
@@ -312,6 +319,7 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 				"%s :dma coherent mem declare fail %pa,%zu,err:%d\n",
 				co->name, &co->base, co->size, err);
 	} else {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		/*
 		 * When vpr memory is reserved, kmemleak tries to scan vpr
 		 * memory for pointers. vpr memory should not be accessed
@@ -329,6 +337,7 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 			dev_err(dev, "%s coherent memory declaration failed\n",
 				     co->name);
 		else
+#endif
 			co->init_done = true;
 	}
 	return err;
