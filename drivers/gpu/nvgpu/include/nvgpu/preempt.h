@@ -70,7 +70,7 @@ int nvgpu_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch);
  * Called from recovery handling for volta onwards. This will
  * not be part of safety build after recovery is not supported in safety build.
  */
-void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
+int nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 		struct nvgpu_tsg *tsg);
 /**
  * @brief Preempt a set of runlists.

@@ -41,6 +41,7 @@
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/mutex.h>
 #endif
+#include <nvgpu/nvgpu_init.h>
 
 #include "rc_gv11b.h"
 
@@ -223,8 +224,12 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	 * For each PBDMA which serves the runlist, poll to verify the TSG is no
 	 * longer on the PBDMA and the engine phase of the preempt has started.
 	 */
-	if (tsg != NULL) {
-		nvgpu_preempt_poll_tsg_on_pbdma(g, tsg);
+	if (tsg != NULL && (nvgpu_preempt_poll_tsg_on_pbdma(g, tsg) != 0)) {
+		nvgpu_err(g, "TSG preemption on PBDMA failed; "
+			"PBDMA seems stuck; cannot recover stuck PBDMA.");
+		/* Trigger Quiesce as recovery failed on hung PBDMA. */
+		nvgpu_sw_quiesce(g);
+		return;
 	}
 
 #ifdef CONFIG_NVGPU_DEBUGGER

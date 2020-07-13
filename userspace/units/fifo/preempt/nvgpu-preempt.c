@@ -162,13 +162,11 @@ done:
 }
 
 #define F_PREEMPT_POLL_PBDMA_NULL	BIT(0)
-#define F_PREEMPT_POLL_TSG_NULL		BIT(1)
-#define F_PREEMPT_POLL_PBDMA_BUSY	BIT(2)
-#define F_PREEMPT_POLL_LAST		BIT(3)
+#define F_PREEMPT_POLL_PBDMA_BUSY	BIT(1)
+#define F_PREEMPT_POLL_LAST		BIT(2)
 
 static const char *f_preempt_poll[] = {
 	"preempt_poll_pbdma_null",
-	"tsg_null",
 	"preempt_poll_pbdma_busy",
 };
 
@@ -197,7 +195,7 @@ int test_preempt_poll_tsg_on_pbdma(struct unit_module *m, struct gk20a *g,
 
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
-	u32 prune = F_PREEMPT_POLL_PBDMA_NULL | F_PREEMPT_POLL_TSG_NULL;
+	u32 prune = F_PREEMPT_POLL_PBDMA_NULL;
 
 	tsg = nvgpu_tsg_open(g, getpid());
 	unit_assert(tsg != NULL, goto done);
@@ -221,14 +219,11 @@ int test_preempt_poll_tsg_on_pbdma(struct unit_module *m, struct gk20a *g,
 					stub_fifo_preempt_poll_pbdma_busy :
 					stub_fifo_preempt_poll_pbdma);
 
-		if (branches & F_PREEMPT_POLL_TSG_NULL) {
-			nvgpu_preempt_poll_tsg_on_pbdma(g, NULL);
-		} else {
-			nvgpu_preempt_poll_tsg_on_pbdma(g, tsg);
-		}
+		nvgpu_preempt_poll_tsg_on_pbdma(g, tsg);
 
-		if (branches & F_PREEMPT_POLL_TSG_NULL) {
-			unit_assert(stub[0].tsgid == NVGPU_INVALID_TSG_ID,
+		if (branches & F_PREEMPT_POLL_PBDMA_BUSY) {
+			unit_assert(stub[0].pbdma_id !=
+				nvgpu_ffs(f->runlist_info[0]->pbdma_bitmask),
 				goto done);
 		} else if (!(branches & F_PREEMPT_POLL_PBDMA_NULL)) {
 			unit_assert(stub[0].tsgid == 0, goto done);

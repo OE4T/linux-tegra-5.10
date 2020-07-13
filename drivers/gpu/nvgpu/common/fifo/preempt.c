@@ -112,7 +112,7 @@ int nvgpu_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 }
 
 /* called from rc */
-void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
+int nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 		struct nvgpu_tsg *tsg)
 {
 	struct nvgpu_fifo *f = &g->fifo;
@@ -122,11 +122,7 @@ void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 	u32 tsgid, pbdma_id;
 
 	if (g->ops.fifo.preempt_poll_pbdma == NULL) {
-		return;
-	}
-
-	if (tsg == NULL) {
-		return;
+		return 0;
 	}
 
 	tsgid = tsg->tsgid;
@@ -142,12 +138,11 @@ void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 		 * memory system would be blocked.
 		 */
 		if (g->ops.fifo.preempt_poll_pbdma(g, tsgid, pbdma_id) != 0) {
-			nvgpu_report_host_err(g, NVGPU_ERR_MODULE_HOST,
-					pbdma_id,
-					GPU_HOST_PBDMA_PREEMPT_ERROR, 0);
 			nvgpu_err(g, "PBDMA preempt failed");
+			return -EBUSY;
 		}
 	}
+	return 0;
 }
 
 /*
