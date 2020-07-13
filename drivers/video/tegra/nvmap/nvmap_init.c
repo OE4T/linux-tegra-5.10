@@ -18,7 +18,6 @@
 #include <linux/of_fdt.h>
 #include <linux/of_platform.h>
 #include <linux/nvmap.h>
-#include <linux/tegra-ivc.h>
 #include <linux/dma-contiguous.h>
 #include <linux/version.h>
 
@@ -36,6 +35,7 @@
 #include <linux/platform/tegra/common.h>
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
+#include <linux/tegra-ivc.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <soc/tegra/virt/syscalls.h>
 #else
