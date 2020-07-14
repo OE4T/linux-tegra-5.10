@@ -1786,7 +1786,8 @@ EXPORT_SYMBOL(nvhost_client_device_get_resources);
  * The caller is responsible for calling release_firmware later.
  */
 const struct firmware *
-nvhost_client_request_firmware(struct platform_device *dev, const char *fw_name)
+nvhost_client_request_firmware(struct platform_device *dev, const char *fw_name,
+			       bool warn)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 	struct nvhost_chip_support *op = nvhost_get_chip_ops();
@@ -1822,10 +1823,15 @@ nvhost_client_request_firmware(struct platform_device *dev, const char *fw_name)
 	snprintf(fw_path, sizeof(*fw_path) * path_len, "%s/%s", op->soc_name,
 		 fw_name);
 
-	err = request_firmware(&fw, fw_path, &dev->dev);
+	if (warn)
+		err = request_firmware(&fw, fw_path, &dev->dev);
+	else
+		err = firmware_request_nowarn(&fw, fw_path, &dev->dev);
+
 	kfree(fw_path);
 	if (err) {
-		dev_err(&dev->dev, "failed to get firmware\n");
+		if (warn)
+			dev_err(&dev->dev, "failed to get firmware\n");
 		return NULL;
 	}
 

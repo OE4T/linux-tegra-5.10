@@ -264,7 +264,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 
 	nvhost_dbg_fn("");
 
-	ucode_fw = nvhost_client_request_firmware(pdev, fw_name);
+	ucode_fw = nvhost_client_request_firmware(pdev, fw_name, true);
 	if (!ucode_fw) {
 		nvhost_dbg_fn("pva firmware request failed");
 		dev_err(&pdev->dev,
