@@ -145,7 +145,7 @@ static void nvhost_register_bw(struct device *devp,
 	/* get icc_path handle if needed */
 	if (pdata->icc_id) {
 		pdata->icc_path_handle =
-			icc_get(devp, pdata->icc_id, TEGRA_ICC_MASTER);
+			icc_get(devp, pdata->icc_id, TEGRA_ICC_PRIMARY);
 		if (IS_ERR_OR_NULL(pdata->icc_path_handle))
 			dev_warn(devp, "failed to get icc path (err=%ld)",
 				PTR_ERR(pdata->icc_path_handle));
