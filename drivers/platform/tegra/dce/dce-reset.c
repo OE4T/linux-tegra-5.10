@@ -31,8 +31,6 @@ enum pm_controls {
 static inline void dce_evp_set_reset_addr(struct tegra_dce *d, u32 addr)
 {
 	dce_writel(d, evp_reset_addr_r(), addr);
-	dce_info(d, "EVP_RESET_ADDR_R : 0x%x",
-		 dce_readl(d, evp_reset_addr_r()));
 }
 
 /**
@@ -55,7 +53,6 @@ static void dce_pm_set_pm_ctrl(struct tegra_dce *d, enum pm_controls val)
 	default:
 		break;
 	}
-	dce_info(d, "PM_R5_CTRL_R : 0x%x", dce_readl(d, pm_r5_ctrl_r()));
 }
 
 /**

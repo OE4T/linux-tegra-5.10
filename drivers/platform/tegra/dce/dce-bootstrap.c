@@ -156,8 +156,6 @@ void dce_bootstrap_handle_boot_status(struct tegra_dce *d, u32 status)
 
 	event = EVENT_ID_DCE_IPC_SIGNAL_RECEIVED;
 
-	dce_info(d, "Boot Cmd Resp Received. Status: [%x]", status);
-
 	dce_mailbox_store_interface_status(d, status,
 					   DCE_MAILBOX_BOOT_INTERFACE);
 
@@ -643,13 +641,6 @@ static int dce_bootstrap_send_admin_ivc_info(struct tegra_dce *d)
 		goto err_sending;
 	}
 
-
-	dce_err(d, "value of q_struct:");
-	dce_err(d, "ch->q_info.nframes : %u", q_info.nframes);
-	dce_err(d, "ch->q_info.frame_sz: %u", q_info.frame_sz);
-	dce_err(d, "ch->q_info.rx_iova: [0x%llx]", q_info.rx_iova);
-	dce_err(d, "ch->q_info.tx_iova: [0x%llx]", q_info.tx_iova);
-
 	ret = dce_send_set_addr_read_cmd(d, (u64)(q_info.tx_iova));
 	if (ret) {
 		dce_err(d, "Sending of bootstrap cmd set_addr_read failed");
@@ -673,8 +664,6 @@ static int dce_bootstrap_send_admin_ivc_info(struct tegra_dce *d)
 	 */
 	val = dce_mailbox_get_interface_status(d,
 				DCE_MAILBOX_BOOT_INTERFACE);
-	dce_info(d, "Frame size received: [%u]", DCE_BOOT_CMD_GET(val));
-
 
 	ret = dce_send_set_nframes_cmd(d, q_info.nframes);
 	if (ret) {
@@ -716,7 +705,6 @@ int dce_start_bootstrap_flow(struct tegra_dce *d)
 	 */
 	val = dce_mailbox_get_interface_status(d,
 				DCE_MAILBOX_BOOT_INTERFACE);
-	dce_info(d, "Version received: [%u]", DCE_BOOT_CMD_GET(val));
 
 	ret = dce_send_set_sid_cmd(d);
 	if (ret) {

@@ -166,7 +166,6 @@ struct dce_firmware *dce_request_firmware(struct tegra_dce *d,
 
 	/* Make sure the address is aligned to 4K */
 	fw->size = l_fw->size;
-	dce_info(d, "Size of l_fw is %lu\n", l_fw->size);
 
 	fw->size = ALIGN(fw->size + SZ_4K, SZ_4K);
 	/**
@@ -175,15 +174,12 @@ struct dce_firmware *dce_request_firmware(struct tegra_dce *d,
 	 * actual size of the fw.
 	 */
 	fw->size = SZ_32M;
-	dce_info(d, "Size of fw after alignment is %lu\n", fw->size);
 
 	fw->data = dma_alloc_coherent(dev, fw->size,
 				      (dma_addr_t *)&fw->dma_handle,
 				      GFP_KERNEL);
 	if (!fw->data)
 		goto err_release;
-
-	dce_info(d, "Value of dma_address 0x%llx\n", fw->dma_handle);
 
 	memcpy((u8 *)fw->data, (u8 *)l_fw->data, l_fw->size);
 

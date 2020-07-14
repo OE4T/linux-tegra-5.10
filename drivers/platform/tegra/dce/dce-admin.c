@@ -78,12 +78,6 @@ void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type)
 	bool wakeup_cl = false;
 	bool wakeup_needed = false;
 
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Signal Received : check if channel is ready [%d]",
-		 ch_type);
-
 	if (!(dce_ipc_channel_is_ready(d, ch_type))) {
 		/**
 		 * The ivc channel is not ready yet. Exit
@@ -91,11 +85,6 @@ void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type)
 		 */
 		goto process_wakeup;
 	}
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Signal Received : Channel in established state already : [%d]",
-		 ch_type);
 
 	wakeup_needed = (DCE_IPC_WAIT_TYPE_SYNC ==
 			 dce_ipc_get_cur_wait_type(d, ch_type));
@@ -107,11 +96,6 @@ void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type)
 		 */
 		goto process_wakeup;
 	}
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Signal Received : Channel synchronized already : [%d]",
-		 ch_type);
 
 	/**
 	 * Channel already in sync with remote. Check if data
@@ -121,11 +105,6 @@ void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type)
 	if (wakeup_needed)
 		wakeup_cl = (ch_type != DCE_IPC_CH_KMD_TYPE_ADMIN);
 
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Signal Received : Data available : [%d] for channel: [%d]",
-		 wakeup_needed, ch_type);
 
 process_wakeup:
 	if (!wakeup_needed) {
@@ -365,8 +344,8 @@ static int dce_admin_send_cmd_ver(struct tegra_dce *d,
 		dce_err(d, "Error sending get version info : [%d]", ret);
 		goto out;
 	}
-	dce_info(d, "error value : [0x%x]", resp_msg->error);
-	dce_info(d, "version number : [0x%x]", ver_info->version);
+	dce_info(d, "version : [0x%x] err : [0x%x]", ver_info->version,
+						     resp_msg->error);
 
 out:
 	/**
@@ -408,15 +387,6 @@ static int dce_admin_setup_clients_ipc(struct tegra_dce *d,
 		ipc_info->fsize = q_info.frame_sz;
 		ipc_info->n_frames = q_info.nframes;
 
-		/**
-		 * TODO : Get rid of prints
-		 */
-		dce_err(d, "value of q_struct for type [%d]", ipc_info->type);
-		dce_err(d, "ch->q_info.nframes : [%u]", ipc_info->n_frames);
-		dce_err(d, "ch->q_info.frame_sz: [%u]", ipc_info->fsize);
-		dce_err(d, "ch->q_info.rx_iova: [0x%llx]", ipc_info->wr_iova);
-		dce_err(d, "ch->q_info.tx_iova: [0x%llx]", ipc_info->rd_iova);
-
 		ret = dce_admin_send_msg(d, msg);
 		if (ret) {
 			dce_err(d, "Error sending IPC create msg for type [%u]",
@@ -424,7 +394,6 @@ static int dce_admin_setup_clients_ipc(struct tegra_dce *d,
 			goto out;
 		}
 
-		dce_info(d, "error value : [0x%x]", resp_msg->error);
 		if (resp_msg->error) {
 			dce_err(d, "IPC create for type [%u] failed", i);
 			goto out;
@@ -460,8 +429,6 @@ static int dce_admin_send_rm_bootstrap(struct tegra_dce *d,
 		dce_err(d, "Error sending rm bootstrap cmd: [%d]", ret);
 		goto out;
 	}
-
-	dce_info(d, "error value : [0x%x]", resp_msg->error);
 
 	if (resp_msg->error) {
 		dce_err(d, "Error in handling rm bootstrap cmd on dce: [0x%x]",

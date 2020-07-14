@@ -47,8 +47,6 @@ static void dce_config_ast0_control(struct tegra_dce *d)
 		| ast_ast0_control_lock_false_f();
 
 	dce_writel(d, ast_ast0_control_r(), val);
-	dce_info(d, "AST_AST0_CONTROL_R : 0x%x",
-		 dce_readl(d, ast_ast0_control_r()));
 }
 
 /**
@@ -78,8 +76,6 @@ static void dce_config_ast1_control(struct tegra_dce *d)
 		| ast_ast1_control_lock_false_f();
 
 	dce_writel(d, ast_ast1_control_r(), val);
-	dce_info(d, "AST_AST1_CONTROL_R : 0x%x",
-		 dce_readl(d, ast_ast1_control_r()));
 }
 
 /**
@@ -116,8 +112,6 @@ static void dce_cfg_ast0_streamid_ctl_0(struct tegra_dce *d)
 	dce_writel(d, ast_ast0_streamid_ctl_0_r(),
 		(dce_stream_id << ast_ast0_streamid_ctl_0_streamid_shift_v()) |
 		stream_id_en);
-	dce_info(d, "AST_AST0_STREAMID_CTL_0_R : 0x%x",
-		 dce_readl(d, ast_ast0_streamid_ctl_0_r()));
 }
 
 /**
@@ -141,8 +135,6 @@ static void dce_cfg_ast0_streamid_ctl_1(struct tegra_dce *d)
 	dce_writel(d, ast_ast0_streamid_ctl_1_r(), (dce_stream_id <<
 			ast_ast0_streamid_ctl_1_streamid_shift_v()) |
 			stream_id_en);
-	dce_info(d, "AST_AST0_STREAMID_CTL_1_R : 0x%x",
-		 dce_readl(d, ast_ast0_streamid_ctl_1_r()));
 }
 
 /**
@@ -166,8 +158,6 @@ static void dce_cfg_ast1_streamid_ctl_0(struct tegra_dce *d)
 	dce_writel(d, ast_ast1_streamid_ctl_0_r(),
 		(dce_stream_id << ast_ast1_streamid_ctl_0_streamid_shift_v()) |
 		stream_id_en);
-	dce_info(d, "AST_AST1_STREAMID_CTL_0_R : 0x%x",
-		dce_readl(d, ast_ast1_streamid_ctl_0_r()));
 }
 
 /**
@@ -191,8 +181,6 @@ static void dce_cfg_ast1_streamid_ctl_1(struct tegra_dce *d)
 	dce_writel(d, ast_ast1_streamid_ctl_1_r(),
 		(dce_stream_id << ast_ast1_streamid_ctl_1_streamid_shift_v()) |
 		stream_id_en);
-	dce_info(d, "AST_AST1_STREAMID_CTL_1_R : 0x%x",
-		dce_readl(d, ast_ast1_streamid_ctl_1_r()));
 }
 
 /**
@@ -230,8 +218,6 @@ static void dce_set_ast0_slave_addr_32_reg0(struct tegra_dce *d, u32 addr)
 	dce_writel(d, ast_ast0_region_0_slave_base_lo_r(),
 		   (addr | ast_ast0_region_0_slave_base_lo_enable_true_f()) &
 		   ast_ast1_region_0_slave_base_lo_write_mask_v());
-	dce_info(d, "AST_AST0_REGION_0_SLAVE_BASE_LO_R : 0x%x",
-		 dce_readl(d, ast_ast0_region_0_slave_base_lo_r()));
 }
 
 /**
@@ -248,8 +234,6 @@ static void dce_set_ast1_slave_addr_32_reg0(struct tegra_dce *d, u32 addr)
 	dce_writel(d, ast_ast1_region_0_slave_base_lo_r(),
 		   (addr | ast_ast1_region_0_slave_base_lo_enable_true_f()) &
 		   ast_ast1_region_0_slave_base_lo_write_mask_v());
-	dce_info(d, "AST_AST1_REGION_0_SLAVE_BASE_LO_R : 0x%x",
-		 dce_readl(d, ast_ast1_region_0_slave_base_lo_r()));
 }
 
 /**
@@ -284,8 +268,6 @@ static inline void
 dce_set_ast0_master_addr_lo_reg0(struct tegra_dce *d, u32 addr)
 {
 	dce_writel(d, ast_ast0_region_0_master_base_lo_r(), addr);
-	dce_info(d, "AST_AST0_REGION_0_MASTER_BASE_LO_R : 0x%x",
-		 dce_readl(d, ast_ast0_region_0_master_base_lo_r()));
 }
 
 /**
@@ -301,8 +283,6 @@ static inline void
 dce_set_ast1_master_addr_lo_reg0(struct tegra_dce *d, u32 addr)
 {
 	dce_writel(d, ast_ast1_region_0_master_base_lo_r(), addr);
-	dce_info(d, "AST_AST1_REGION_0_MASTER_BASE_LO_R : 0x%x",
-		 dce_readl(d, ast_ast1_region_0_master_base_lo_r()));
 }
 
 /**
@@ -318,8 +298,6 @@ static inline void
 dce_set_ast1_master_addr_hi_reg0(struct tegra_dce *d, u32 addr)
 {
 	dce_writel(d, ast_ast1_region_0_master_base_hi_r(), addr);
-	dce_info(d, "AST_AST1_REGION_0_MASTER_BASE_HI_R : 0x%x",
-		 dce_readl(d, ast_ast1_region_0_master_base_hi_r()));
 }
 
 /**
@@ -335,8 +313,6 @@ static inline void
 dce_set_ast0_master_addr_hi_reg0(struct tegra_dce *d, u32 addr)
 {
 	dce_writel(d, ast_ast0_region_0_master_base_hi_r(), addr);
-	dce_info(d, "AST_AST0_REGION_0_MASTER_BASE_HI_R : 0x%x",
-		 dce_readl(d, ast_ast0_region_0_master_base_hi_r()));
 }
 
 /**
@@ -431,8 +407,6 @@ static void dce_ast_cfg_reg_mask_ast0_reg0(struct tegra_dce *d)
 	u32 val = size_mask & ast_ast0_region_0_mask_lo_write_mask_v();
 
 	dce_writel(d, ast_ast0_region_0_mask_lo_r(), val);
-	dce_info(d, "AST_AST0_REGION_0_MASK_LO_R : 0x%x",
-		 dce_readl(d, ast_ast0_region_0_mask_lo_r()));
 }
 
 /**
@@ -449,8 +423,6 @@ static void dce_ast_cfg_reg_mask_ast1_reg0(struct tegra_dce *d)
 	u32 val = size_mask & ast_ast1_region_0_mask_lo_write_mask_v();
 
 	dce_writel(d, ast_ast1_region_0_mask_lo_r(), val);
-	dce_info(d, "AST_AST1_REGION_0_MASK_LO_R : 0x%x",
-		 dce_readl(d, ast_ast1_region_0_mask_lo_r()));
 }
 
 /**
@@ -502,8 +474,6 @@ static void dce_ast_cfg_reg_control_ast0_reg0(struct tegra_dce *d)
 	dce_writel(d, ast_ast0_region_0_control_r(),
 		   use_physical_id | vm_index | carveout_id |
 		   ast_ast0_region_0_control_snoop_enable_f());
-	dce_info(d, "AST_AST0_REGION_0_CONTROL_R : 0x%x",
-		 dce_readl(d, ast_ast0_region_0_control_r()));
 }
 
 /**
@@ -539,8 +509,6 @@ static void dce_ast_cfg_reg_control_ast1_reg0(struct tegra_dce *d)
 	dce_writel(d, ast_ast1_region_0_control_r(),
 		   use_physical_id | vm_index | carveout_id |
 		   ast_ast1_region_0_control_snoop_enable_f());
-	dce_info(d, "AST_AST1_REGION_0_CONTROL_R : 0x%x",
-		 dce_readl(d, ast_ast1_region_0_control_r()));
 }
 
 /**
@@ -586,7 +554,6 @@ void dce_config_ast(struct tegra_dce *d)
 	}
 
 	master_addr = d->fw_data->dma_handle;
-	dce_info(d, "Value of master address 0x%llx\n", master_addr);
 
 	for (i = 0; i < MAX_NO_ASTS; i++) {
 		ast_ctl_fn[i](d);

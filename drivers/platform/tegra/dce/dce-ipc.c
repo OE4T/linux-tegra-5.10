@@ -123,16 +123,8 @@ int dce_ipc_allocate_region(struct tegra_dce *d)
 			* tegra_ivc_align(DCE_ADMIN_CMD_CHAN_FSIZE)
 			* 2));
 
-	dce_info(d, "Tot_raw_q_size : [%lu]", tot_q_sz);
-
 	tot_ivc_q_sz = tegra_ivc_total_queue_size(tot_q_sz);
-
-	dce_info(d, "Tot_aligned_q_size : [%lu]", tot_ivc_q_sz);
-
 	region->size = dce_get_nxt_pow_of_2(&tot_ivc_q_sz, 32);
-
-	dce_info(d, "Region size as a power of 2 : [%lu]", region->size);
-
 	region->base = dma_alloc_coherent(dev, region->size,
 			&region->iova, GFP_KERNEL | __GFP_ZERO);
 	if (!region->base)
@@ -180,10 +172,6 @@ static void dce_ipc_signal_target(struct ivc *ivc)
 	ch = container_of(ivc, struct dce_ipc_channel, d_ivc);
 
 	ch->signal.notify(ch->d, &ch->signal.to_d);
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(ch->d, "Notify : notify called for [%d]", ch->ch_type);
 }
 
 static int dce_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
@@ -333,19 +321,6 @@ int dce_ipc_channel_init(struct tegra_dce *d, u32 ch_type)
 	q_info->rx_iova = r->iova + r->s_offset;
 	q_info->tx_iova = r->iova + r->s_offset + q_sz;
 
-
-	dce_info(d, "Info for chn_type [%d]", ch_type);
-	dce_info(d, "======================");
-	dce_info(d, "msg_sz [%u]", msg_sz);
-	dce_info(d, "frame_sz [%u]", q_info->frame_sz);
-	dce_info(d, "Max frames [%u]", q_info->nframes);
-	dce_info(d, "q_sz [%u]", q_sz);
-	dce_info(d, "r->s_offset [%u]", r->s_offset);
-	dce_info(d, "base address [0x%p]", r->base);
-	dce_info(d, "q_info->rx_iova [0x%llx]", q_info->rx_iova);
-	dce_info(d, "q_info->tx_iova [0x%llx]", q_info->tx_iova);
-	dce_info(d, "======================");
-
 	trace_ivc_channel_init_complete(d, ch);
 
 	d->d_ipc.ch[ch_type] = ch;
@@ -450,7 +425,6 @@ void dce_ipc_channel_reset(struct tegra_dce *d, u32 ch_type)
 
 	tegra_ivc_channel_reset(&ch->d_ivc);
 
-	dce_info(d, "Channel [%d] sync triggered", ch_type);
 	trace_ivc_channel_reset_triggered(d, ch);
 
 	ch->flags &= ~DCE_IPC_CHANNEL_SYNCED;
@@ -464,8 +438,6 @@ void dce_ipc_channel_reset(struct tegra_dce *d, u32 ch_type)
 	ch->flags |= DCE_IPC_CHANNEL_SYNCED;
 
 	trace_ivc_channel_reset_complete(d, ch);
-
-	dce_info(d, "Channel [%d] : Wait type : [%u]", ch_type, ch->w_type);
 
 	dce_mutex_unlock(&ch->lock);
 }
@@ -549,11 +521,6 @@ int dce_ipc_send_message(struct tegra_dce *d, u32 ch_type,
 		dce_err(ch->d, "Error getting next free buf to write");
 		goto out;
 	}
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Send Message : Retrieved Next Buff to write: [%d]",
-		 ch_type);
 
 	ret = _dce_ipc_write_channel(ch, data, size);
 	if (ret) {
@@ -561,16 +528,7 @@ int dce_ipc_send_message(struct tegra_dce *d, u32 ch_type,
 		goto out;
 	}
 
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Send Message : Advanced Channel w_pos: [%d]", ch_type);
-
 	ch->signal.notify(d, &ch->signal.to_d);
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Send Message : Notified target: [%d]", ch_type);
 
 	trace_ivc_send_complete(d, ch);
 
@@ -657,22 +615,12 @@ int dce_ipc_read_message(struct tegra_dce *d, u32 ch_type,
 		dce_err(ch->d, "Error getting next free buf to read");
 		goto out;
 	}
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Recv Message : Retrieved Next Buff to read: [%d]",
-		 ch_type);
-
 
 	ret = _dce_ipc_read_channel(ch, data, size);
 	if (ret) {
 		dce_err(ch->d, "Error reading from channel");
 		goto out;
 	}
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Recv Message : Advanced r_pos: [%d]", ch_type);
 
 	trace_ivc_receive_req_complete(d, ch);
 
@@ -702,23 +650,12 @@ int dce_ipc_send_message_sync(struct tegra_dce *d, u32 ch_type,
 		dce_err(ch->d, "Error in sending message to DCE");
 		goto done;
 	}
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "%s : Send successful, Waiting for recv: [%d]",
-		 __func__, ch_type);
-
 
 	ret = dce_ipc_wait(ch->d, DCE_IPC_WAIT_TYPE_RPC, ch_type);
 	if (ret) {
 		dce_err(ch->d, "Error in waiting for ack");
 		goto done;
 	}
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "%s : Wait complete... Reading Message: [%d]",
-		 __func__, ch_type);
 
 	trace_ivc_wait_complete(d, ch);
 
@@ -728,12 +665,6 @@ int dce_ipc_send_message_sync(struct tegra_dce *d, u32 ch_type,
 			ch_type);
 		goto done;
 	}
-	/**
-	 * TODO : Get rid of prints
-	 */
-	dce_info(d, "Send Message Sync: Read Sucessful: [%d]", ch_type);
-
-
 done:
 	return ret;
 }

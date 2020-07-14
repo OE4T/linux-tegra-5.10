@@ -49,8 +49,6 @@ void dce_mailbox_isr(struct tegra_dce *d)
 	struct dce_mailbox_interface *d_mb;
 	u32 irq_sources = dce_hsp_get_irq_sources(d);
 
-	dce_info(d, "Mailbox INTR Rcvd. IRQ SOURCES = [%x]", irq_sources);
-
 	do {
 		d_mb = &d->d_mb[i];
 		/**
@@ -163,10 +161,9 @@ void dce_mailbox_set_full_interrupt(struct tegra_dce *d, u8 id)
 
 	dce_mutex_lock(&d_mb->lock);
 
-	if (!dce_mailbox_write_safe(d, d_mb->s_mb)) {
-		dce_info(d, "Warning : Intr bit set multiple times for MB : [0x%x]",
-				d_mb->s_mb);
-	}
+	if (!dce_mailbox_write_safe(d, d_mb->s_mb))
+		dce_info(d, "Intr bit set multiple times for MB : [0x%x]",
+			 d_mb->s_mb);
 
 	dce_smb_set(d, BIT(31), d_mb->s_mb);
 
@@ -186,8 +183,6 @@ int dce_mailbox_send_cmd_sync(struct tegra_dce *d, u32 cmd, u32 interface)
 {
 	int ret = 0;
 	struct dce_mailbox_interface *d_mb;
-
-	dce_info(d, "write cmd received for interface : %d", interface);
 
 	d_mb = &d->d_mb[interface];
 

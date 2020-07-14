@@ -189,25 +189,19 @@ static int dce_worker(void *arg)
 	struct tegra_dce *d = (struct tegra_dce *)arg;
 	struct dce_worker_info *w = &d->wrk_info;
 
-	dce_info(d, "Starting DCE Worker Thread...");
 	ret = dce_wait_boot_complete(d);
 	if (ret) {
 		dce_warn(d, "DCE_BOOT_FAILED: Boot didn't complete");
 		goto worker_exit;
 	}
 
-	dce_info(d, "DCE Ready to bootstrap ...");
 	ret = dce_start_bootstrap_flow(d);
 	if (ret) {
 		dce_warn(d, "DCE_BOOT_FAILED: Bootstrap flow didn't complete");
 		goto worker_exit;
 	}
 
-	dce_info(d, "DCE Bootstrapping Complete...");
-
 	dce_admin_ivc_channel_reset(d);
-
-	dce_info(d, "DCE Admin Channel Reset Complete...");
 
 	ret = dce_start_admin_seq(d);
 	if (ret) {
@@ -229,7 +223,7 @@ static int dce_worker(void *arg)
 
 worker_exit:
 	if (w->c_state == STATE_DCE_WORKER_ABORTED)
-		dce_info(d, "Exiting Dce Worker Thread");
+		dce_warn(d, "Exiting Dce Worker Thread");
 	if (ret)
 		d->boot_status |= DCE_STATUS_FAILED;
 	return 0;
