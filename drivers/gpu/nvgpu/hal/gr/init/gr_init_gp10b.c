@@ -183,9 +183,18 @@ int gp10b_gr_init_preemption_state(struct gk20a *g)
 	return 0;
 }
 
+#define GP10B_CBM_BETA_CB_NO_DEEP_TILING_SIZE_DEFAULT	0x800
+/*
+ * Ideally, gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v() gives default beta cb
+ * size.
+ * To enable deep tiling this size value was increased to accommodate additional
+ * state information to be preserved through the pipeline. But, deep tiling is
+ * not used and hw manuals are not updated. Use hw recommended beta cb default
+ * size hardcoded value (same as gm20b).
+ */
 u32 gp10b_gr_init_get_attrib_cb_default_size(struct gk20a *g)
 {
-	return 0x800;
+	return GP10B_CBM_BETA_CB_NO_DEEP_TILING_SIZE_DEFAULT;
 }
 
 u32 gp10b_gr_init_get_alpha_cb_default_size(struct gk20a *g)
