@@ -117,7 +117,7 @@ config TEGRA_VPR
 
 config TEGRA_MCE
 	bool "Enable Tegra MCE Driver"
-	default y if ARCH_TEGRA_21x_SOC || ARCH_TEGRA_18x_SOC || ARCH_TEGRA_19x_SOC
+	default y if ARCH_TEGRA_21x_SOC || ARCH_TEGRA_18x_SOC || ARCH_TEGRA_19x_SOC || TEGRA_NVMAP
 	help
 	  Enable Tegra MCE driver for various power state and cache
 	  management support operations.
