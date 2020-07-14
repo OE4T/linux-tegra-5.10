@@ -61,6 +61,7 @@
 #include "tegra234-soc/tegra234-psc.dtsi"
 #include "dt-bindings/soc/tegra-io-pads.h"
 #include "tegra234-soc-pmc.dtsi"
+#include <dt-bindings/interconnect/tegra_icc_id.h>
 
 / {
 	aliases {
