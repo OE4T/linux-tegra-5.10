@@ -57,15 +57,16 @@
  *		V3: Use Genpd power domain APIs.
  *
  * TEGRA_XUSB_PADCONTROL_VERSION
- *		V1: Nv Version of DT bidning
+ *		V1: Nv Version of DT binding
  *		V2: Mainline compatible DT binding.
  *
  * TEGRA_XUSB_DT_VERSION: XUSB DT binding version
- *		V1: Nv Version of DT bidning
- *		V2: Mainline compatible DT binding.
+ *		V1: Nv Version of DT binding
+ *		V2: NV Version2 DT binding
+ *		V3: Mainline compatible DT binding.
  *
  * TEGRA_XUDC_DT_VERSION: XUDC DT binding version
- *		V1: Nv Version of DT bidning
+ *		V1: Nv Version of DT binding
  *		V2: Mainline compatible DT binding.
  *
  * TEGRA_HSP_DT_VERSION: HSP DT binding version
@@ -86,7 +87,7 @@
  *		V2: the unified aperture for two clusters.
  *
  * TEGRA_IOMMU_DT_VERSION: IOMMU/smmu DT binding version
- *		V1: Nv Version of DT bidning
+ *		V1: Nv Version of DT binding
  *		V2: Mainline compatible DT binding.
  *
  * TEGRA_SDMMC_VERSION: SDMMC DT version.
@@ -119,6 +120,7 @@
 #define TEGRA_IOMMU_DT_VERSION			DT_VERSION_2
 #define TEGRA_SDMMC_VERSION			DT_VERSION_2
 #define TEGRA_PCIE_VERSION			DT_VERSION_2
+#define TEGRA_XUSB_DT_VERSION			DT_VERSION_3
 #ifndef TEGRA_HOST1X_DT_VERSION
 #define TEGRA_HOST1X_DT_VERSION			DT_VERSION_2
 #endif
@@ -131,11 +133,11 @@
 #define TEGRA_IOMMU_DT_VERSION			DT_VERSION_1
 #define TEGRA_SDMMC_VERSION			DT_VERSION_1
 #define TEGRA_PCIE_VERSION			DT_VERSION_1
+#define TEGRA_XUSB_DT_VERSION			DT_VERSION_2
 #define TEGRA_HOST1X_DT_VERSION			DT_VERSION_1
 #endif
 #define TEGRA_AUDIO_BUS_DT_VERSION		DT_VERSION_2
 #define TEGRA_XUSB_PADCONTROL_VERSION		DT_VERSION_2
-#define TEGRA_XUSB_DT_VERSION			DT_VERSION_2
 #define TEGRA_XUDC_DT_VERSION			DT_VERSION_2
 #define TEGRA_HSP_DT_VERSION			DT_VERSION_2
 #define TEGRA_BOOTARGUMENT_VERSION		DT_VERSION_2
