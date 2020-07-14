@@ -198,10 +198,11 @@ CONFIG_NVGPU_DGPU               := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DGPU
 
 # Enable dgpu_next for normal build
+
+ifneq ($(NV_BUILD_CONFIGURATION_IS_EXTERNAL), 1)
 CONFIG_NVGPU_NEXT               := 1
-CONFIG_NVGPU_HAL_NON_FUSA       := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_NEXT
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_HAL_NON_FUSA
+endif
 
 CONFIG_NVGPU_VPR                := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_VPR
