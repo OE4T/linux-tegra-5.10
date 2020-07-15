@@ -192,4 +192,22 @@
 			status = "disabled";
 		};
 	};
+
+	tegra-capture-vi {
+		/* Setting the status to disabled until feature is implemented */
+		status = "disabled";
+		compatible = "nvidia,tegra-camrtc-capture-vi";
+
+		nvidia,vi-devices = <&vi>;
+		nvidia,vi-mapping-size = <6>;
+		/* T194 has only one VI so vi-unit-id should be set to 0 */
+		nvidia,vi-mapping =
+			<0 0>,
+			<1 0>,
+			<2 0>,
+			<3 0>,
+			<4 0>,
+			<5 0>;
+		nvidia,vi-mapping-names = "csi-stream-id", "vi-unit-id";
+	};
 };
