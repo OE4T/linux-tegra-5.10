@@ -764,6 +764,22 @@ int gk20a_do_idle_impl(struct gk20a *g, bool force_reset)
 	bool is_railgated;
 	int err = 0;
 
+	if (!g->probe_done) {
+		/*
+		 * Note that autosuspend delay is 0 at this point hence the device
+		 * will suspend immediately. Deterministic channels, gk20a_busy and
+		 * unrailgate don't intervene during probe so no need to hold the
+		 * locks below.
+		 */
+		pm_runtime_put_sync_autosuspend(dev);
+		if (pm_runtime_status_suspended(dev)) {
+			return 0;
+		} else {
+			nvgpu_err(g, "failed to idle");
+			return -EBUSY;
+		}
+	}
+
 	/*
 	 * Hold back deterministic submits and changes to deterministic
 	 * channels - this must be outside the power busy locks.
@@ -904,6 +920,16 @@ int gk20a_do_unidle_impl(struct gk20a *g)
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	int err;
+
+	if (!g->probe_done) {
+		pm_runtime_get_sync(dev);
+		if (pm_runtime_active(dev)) {
+			return 0;
+		} else {
+			nvgpu_err(g, "failed to unidle");
+			return -EBUSY;
+		}
+	}
 
 	if (g->forced_reset) {
 		/*
@@ -1291,11 +1317,16 @@ finish:
 #ifdef CONFIG_PM
 static int gk20a_pm_runtime_resume(struct device *dev)
 {
+	struct gk20a *g = get_gk20a(dev);
 	int err = 0;
 
 	err = gk20a_pm_unrailgate(dev);
 	if (err)
 		goto fail;
+
+	if (!g->probe_done) {
+		return 0;
+	}
 
 	if (gk20a_gpu_is_virtual(dev))
 		err = vgpu_pm_finalize_poweron(dev);
@@ -1319,6 +1350,13 @@ static int gk20a_pm_runtime_suspend(struct device *dev)
 
 	if (!g)
 		return 0;
+
+	if (!g->probe_done) {
+		err = gk20a_pm_railgate(dev);
+		if (err)
+			pm_runtime_mark_last_busy(dev);
+		return err;
+	}
 
 	if (gk20a_gpu_is_virtual(dev))
 		err = vgpu_pm_prepare_poweroff(dev);
@@ -1452,9 +1490,27 @@ static int gk20a_pm_init(struct device *dev)
 	nvgpu_log_fn(g, " ");
 
 	/*
-	 * Initialise pm runtime. For railgate disable
-	 * case, set autosuspend delay to negative which
-	 * will suspend runtime pm
+	 * runtime PM is enabled here. Irrespective of the device power state,
+	 * it is resumed and suspended as part of nvgpu_probe due to dependency
+	 * on clocks setup. From there onwards runtime PM is truly enabled.
+	 */
+	pm_runtime_enable(dev);
+
+	return err;
+}
+
+static int gk20a_pm_late_init(struct device *dev)
+{
+	struct gk20a *g = get_gk20a(dev);
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	pm_runtime_disable(dev);
+
+	/*
+	 * For railgate disable case, set autosuspend delay to negative which
+	 * will avoid runtime pm suspend.
 	 */
 	if (g->railgate_delay && nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE))
 		pm_runtime_set_autosuspend_delay(dev,
@@ -1624,6 +1680,7 @@ static int gk20a_probe(struct platform_device *dev)
 
 	nvgpu_init_gk20a(gk20a);
 	set_gk20a(dev, gk20a);
+	gk20a->probe_done = false;
 	l->dev = &dev->dev;
 	gk20a->log_mask = NVGPU_DEFAULT_DBG_MASK;
 
@@ -1711,13 +1768,19 @@ static int gk20a_probe(struct platform_device *dev)
 		platform->reset_control = NULL;
 #endif
 
+	err = gk20a_pm_init(&dev->dev);
+	if (err) {
+		dev_err(&dev->dev, "pm init failed");
+		goto return_err;
+	}
+
 	err = nvgpu_probe(gk20a, "gpu.0");
 	if (err)
 		goto return_err;
 
-	err = gk20a_pm_init(&dev->dev);
+	err = gk20a_pm_late_init(&dev->dev);
 	if (err) {
-		dev_err(&dev->dev, "pm init failed");
+		dev_err(&dev->dev, "pm late_init failed");
 		goto return_err;
 	}
 
@@ -1729,6 +1792,8 @@ static int gk20a_probe(struct platform_device *dev)
 
 	nvgpu_mutex_init(&l->dmabuf_priv_list_lock);
 	nvgpu_init_list_node(&l->dmabuf_priv_list);
+
+	gk20a->probe_done = true;
 
 	return 0;
 

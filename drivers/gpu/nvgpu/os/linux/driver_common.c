@@ -18,6 +18,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/mm.h>
 #include <linux/slab.h>
+#include <linux/pm_runtime.h>
 #include <uapi/linux/nvgpu.h>
 
 #include <nvgpu/defaults.h>
@@ -292,6 +293,13 @@ int nvgpu_probe(struct gk20a *g,
 	if (err)
 		return err;
 
+	/*
+	 * Note that for runtime suspend to work the clocks have to be setup
+	 * which happens in the probe call above. Hence the driver resume
+	 * is done here and not in gk20a_pm_init.
+	 */
+	pm_runtime_get_sync(dev);
+
 	if (platform->late_probe) {
 		err = platform->late_probe(dev);
 		if (err) {
@@ -299,6 +307,8 @@ int nvgpu_probe(struct gk20a *g,
 			return err;
 		}
 	}
+
+	pm_runtime_put_sync_autosuspend(dev);
 
 	nvgpu_create_sysfs(dev);
 	gk20a_debug_init(g, debugfs_symlink);
@@ -323,6 +333,8 @@ int nvgpu_probe(struct gk20a *g,
 static void nvgpu_free_gk20a(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+
+	g->probe_done = false;
 
 	kfree(l);
 }

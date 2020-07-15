@@ -285,6 +285,9 @@ struct gk20a {
 	/** Is the GPU ready to be used? */
 	u32 power_on_state;
 
+	/** Is the GPU probe complete? */
+	bool probe_done;
+
 #ifdef CONFIG_NVGPU_DGPU
 	bool gpu_reset_done;
 #endif
