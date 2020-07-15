@@ -205,6 +205,15 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 	struct dma_buf_attachment *attachment;
 	int err = 0;
 
+	nvgpu_log(g, gpu_dbg_map, "dmabuf file mode: 0x%x mapping flags: 0x%x",
+		  dmabuf->file->f_mode, flags);
+
+	if (!(dmabuf->file->f_mode & (FMODE_WRITE | FMODE_PWRITE)) &&
+	    !(flags & NVGPU_VM_MAP_ACCESS_NO_WRITE)) {
+		nvgpu_err(g, "RW access requested for RO mapped buffer");
+		return -EINVAL;
+	}
+
 	sgt = nvgpu_mm_pin(dev, dmabuf, &attachment);
 	if (IS_ERR(sgt)) {
 		nvgpu_warn(g, "Failed to pin dma_buf!");
