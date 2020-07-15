@@ -154,12 +154,6 @@ struct gk20a_platform {
 	/* Disable nvlink support */
 	bool disable_nvlink;
 
-	/*
-	 * gk20a_do_idle() API can take GPU either into rail gate or CAR reset
-	 * This flag can be used to force CAR reset case instead of rail gate
-	 */
-	bool force_reset_in_do_idle;
-
 	/* guest/vm id, needed for IPA to PA transation */
 	int vmid;
 

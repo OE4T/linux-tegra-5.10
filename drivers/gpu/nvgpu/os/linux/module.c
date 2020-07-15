@@ -745,24 +745,23 @@ MODULE_DEVICE_TABLE(of, tegra_gk20a_of_match);
 
 #ifdef CONFIG_PM
 /**
- * gk20a_do_idle_impl() - force the GPU to idle and railgate
+ * gk20a_do_idle() - force the GPU to idle and railgate
  *
- * In success, this call MUST be balanced by caller with gk20a_do_unidle_impl()
+ * In success, this call MUST be balanced by caller with gk20a_do_unidle()
  *
  * Acquires two locks : &l->busy_lock and &platform->railgate_lock
  * In success, we hold these locks and return
  * In failure, we release these locks and return
  */
-int gk20a_do_idle_impl(struct gk20a *g, bool force_reset)
+int gk20a_do_idle(void *_g)
 {
+	struct gk20a *g = (struct gk20a *)_g;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	struct nvgpu_timeout timeout;
 	int ref_cnt;
 	int target_ref_cnt = 0;
-	bool is_railgated;
-	int err = 0;
 
 	if (!g->probe_done) {
 		/*
@@ -812,6 +811,7 @@ int gk20a_do_idle_impl(struct gk20a *g, bool force_reset)
 		target_ref_cnt = 1;
 	else
 		target_ref_cnt = 2;
+
 	nvgpu_mutex_acquire(&platform->railgate_lock);
 
 	nvgpu_timeout_init(g, &timeout, GK20A_WAIT_FOR_IDLE_MS,
@@ -826,100 +826,47 @@ int gk20a_do_idle_impl(struct gk20a *g, bool force_reset)
 	if (ref_cnt != target_ref_cnt) {
 		nvgpu_err(g, "failed to idle - refcount %d != target_ref_cnt",
 			ref_cnt);
-		goto fail_drop_usage_count;
+
+		pm_runtime_put_noidle(dev);
+
+		nvgpu_mutex_release(&platform->railgate_lock);
+		up_write(&l->busy_lock);
+		nvgpu_channel_deterministic_unidle(g);
+		return -EBUSY;
 	}
 
-	/* check if global force_reset flag is set */
-	force_reset |= platform->force_reset_in_do_idle;
+	/*
+	 * If railgating is enabled, autosuspend delay will be > 0. Set it to
+	 * 0 to suspend immediately. If railgating is disabled setting it to
+	 * 0 will reduce the usage count. pm_runtime_put_sync_autosuspend
+	 * will then suspend immediately.
+	 */
+	pm_runtime_set_autosuspend_delay(dev, 0);
 
-	nvgpu_timeout_init(g, &timeout, GK20A_WAIT_FOR_IDLE_MS,
-			   NVGPU_TIMER_CPU_TIMER);
+	pm_runtime_put_sync_autosuspend(dev);
 
-	if (nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) && !force_reset) {
-		/*
-		 * Case 1 : GPU railgate is supported
-		 *
-		 * if GPU is now idle, we will have only one ref count,
-		 * drop this ref which will rail gate the GPU
-		 */
-		pm_runtime_put_sync(dev);
-
-		/* add sufficient delay to allow GPU to rail gate */
-		nvgpu_msleep(g->railgate_delay);
-
-		/* check in loop if GPU is railgated or not */
-		do {
-			nvgpu_usleep_range(1000, 1100);
-			is_railgated = platform->is_railgated(dev);
-		} while (!is_railgated && !nvgpu_timeout_expired(&timeout));
-
-		if (is_railgated) {
-			return 0;
-		} else {
-			nvgpu_err(g, "failed to idle in timeout");
-			goto fail_timeout;
-		}
-	} else {
-		/*
-		 * Case 2 : GPU railgate is not supported or we explicitly
-		 * do not want to depend on runtime PM
-		 *
-		 * if GPU is now idle, call prepare_poweroff() to save the
-		 * state and then do explicit railgate
-		 *
-		 * gk20a_do_unidle_impl() needs to unrailgate, call
-		 * finalize_poweron(), and then call pm_runtime_put_sync()
-		 * to balance the GPU usage counter
-		 */
-
-		/* Save the GPU state */
-		err = gk20a_pm_prepare_poweroff(dev);
-		if (err)
-			goto fail_drop_usage_count;
-
-		/* railgate GPU */
-		platform->railgate(dev);
-
-		nvgpu_udelay(10);
-
-		g->forced_reset = true;
+	if (pm_runtime_status_suspended(dev)) {
 		return 0;
+	} else {
+		nvgpu_err(g, "failed to idle in timeout");
+		/*
+		 * gk20a_do_unidle will release the locks and reset the
+		 * autosuspend delay.
+		 */
+		(void) gk20a_do_unidle(g);
+		return -EBUSY;
 	}
-
-fail_drop_usage_count:
-	pm_runtime_put_noidle(dev);
-fail_timeout:
-	nvgpu_mutex_release(&platform->railgate_lock);
-	up_write(&l->busy_lock);
-	nvgpu_channel_deterministic_unidle(g);
-	return -EBUSY;
 }
 
-#ifdef CONFIG_NVGPU_VPR
 /**
- * gk20a_do_idle() - wrap up for gk20a_do_idle_impl() to be called
- * from outside of GPU driver
- *
- * In success, this call MUST be balanced by caller with gk20a_do_unidle()
+ * gk20a_do_unidle() - unblock all the tasks blocked by gk20a_do_idle()
  */
-int gk20a_do_idle(void *_g)
+int gk20a_do_unidle(void *_g)
 {
 	struct gk20a *g = (struct gk20a *)_g;
-
-	return gk20a_do_idle_impl(g, true);
-}
-#endif
-
-/**
- * gk20a_do_unidle_impl() - unblock all the tasks blocked by
- * gk20a_do_idle_impl()
- */
-int gk20a_do_unidle_impl(struct gk20a *g)
-{
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
-	int err;
 
 	if (!g->probe_done) {
 		pm_runtime_get_sync(dev);
@@ -931,44 +878,25 @@ int gk20a_do_unidle_impl(struct gk20a *g)
 		}
 	}
 
-	if (g->forced_reset) {
-		/*
-		 * If we did a forced-reset/railgate
-		 * then unrailgate the GPU here first
-		 */
-		platform->unrailgate(dev);
+	/*
+	 * Release the railgate_lock here as setting autosuspend_delay to -1
+	 * resumes the device that needs this lock.
+	 */
+	nvgpu_mutex_release(&platform->railgate_lock);
 
-		/* restore the GPU state */
-		err = gk20a_pm_finalize_poweron(dev);
-		if (err)
-			return err;
-
-		/* balance GPU usage counter */
-		pm_runtime_put_sync(dev);
-
-		g->forced_reset = false;
-	}
+	if (g->railgate_delay && nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE))
+		pm_runtime_set_autosuspend_delay(dev,
+				 g->railgate_delay);
+	else
+		pm_runtime_set_autosuspend_delay(dev, -1);
 
 	/* release the lock and open up all other busy() calls */
-	nvgpu_mutex_release(&platform->railgate_lock);
 	up_write(&l->busy_lock);
 
 	nvgpu_channel_deterministic_unidle(g);
 
 	return 0;
 }
-
-#ifdef CONFIG_NVGPU_VPR
-/**
- * gk20a_do_unidle() - wrap up for gk20a_do_unidle_impl()
- */
-int gk20a_do_unidle(void *_g)
-{
-	struct gk20a *g = (struct gk20a *)_g;
-
-	return gk20a_do_unidle_impl(g);
-}
-#endif
 #endif
 
 void __iomem *nvgpu_devm_ioremap_resource(struct platform_device *dev, int i,

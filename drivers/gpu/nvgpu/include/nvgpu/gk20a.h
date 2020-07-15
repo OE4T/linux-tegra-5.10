@@ -390,7 +390,6 @@ struct gk20a {
 	bool can_elpg;
 	bool mscg_enabled;
 	bool forced_idle;
-	bool forced_reset;
 	bool allow_all;
 
 	u32 ptimer_src_freq;
@@ -681,8 +680,8 @@ int gk20a_do_unidle(void *_g);
 #endif
 
 #ifdef CONFIG_PM
-int gk20a_do_idle_impl(struct gk20a *g, bool force_reset);
-int gk20a_do_unidle_impl(struct gk20a *g);
+int gk20a_do_idle(void *_g);
+int gk20a_do_unidle(void *_g);
 #endif
 
 /**

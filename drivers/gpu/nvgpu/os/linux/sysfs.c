@@ -788,7 +788,7 @@ static ssize_t force_idle_store(struct device *dev,
 		if (g->forced_idle)
 			return count; /* do nothing */
 		else {
-			err = gk20a_do_idle_impl(g, false);
+			err = gk20a_do_idle(g);
 			if (!err) {
 				g->forced_idle = 1;
 				nvgpu_info(g, "gpu is idle : %d",
@@ -799,7 +799,7 @@ static ssize_t force_idle_store(struct device *dev,
 		if (!g->forced_idle)
 			return count; /* do nothing */
 		else {
-			err = gk20a_do_unidle_impl(g);
+			err = gk20a_do_unidle(g);
 			if (!err) {
 				g->forced_idle = 0;
 				nvgpu_info(g, "gpu is idle : %d",
