@@ -67,6 +67,8 @@
 
 #define __nvhost_opcode_nonincr(x, y)	nvhost_opcode_nonincr((x) / 4, (y))
 #define __nvhost_opcode_incr(x, y)	nvhost_opcode_incr((x) / 4, (y))
+#define __nvhost_opcode_nonincr_w(x)	nvhost_opcode_nonincr_w((x) / 4)
+#define __nvhost_opcode_incr_w(x)	nvhost_opcode_incr_w((x) / 4)
 
 /* Security Engine operation modes */
 enum tegra_se_aes_op_mode {
@@ -810,6 +812,8 @@ static void tegra_se_sha_complete_callback(void *priv, int nr_completed)
 	struct ahash_request *req;
 	struct tegra_se_dev *se_dev;
 
+	pr_debug("%s:%d sha callback", __func__, __LINE__);
+
 	se_dev = priv_data->se_dev;
 	atomic_set(&se_dev->cmdbuf_addr_list[priv_data->cmdbuf_node].free, 1);
 
@@ -831,6 +835,8 @@ static void tegra_se_sha_complete_callback(void *priv, int nr_completed)
 	req->base.complete(&req->base, 0);
 
 	devm_kfree(se_dev->dev, priv_data);
+
+	pr_debug("%s:%d sha callback complete", __func__, __LINE__);
 }
 
 static void tegra_se_aes_complete_callback(void *priv, int nr_completed)
@@ -1467,15 +1473,20 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 		}
 
 		if (total == count) {
-			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_incr(
+			cmdbuf_cpuvaddr[i++] = nvhost_opcode_setpayload(8);
+			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_incr_w(
 						se_dev->opcode_addr +
-						SE_SHA_MSG_LENGTH_OFFSET, 8);
+						SE_SHA_MSG_LENGTH_OFFSET);
+
+			/* Program message length in next 4 four registers */
 			msg_len = (count * 8);
 			cmdbuf_cpuvaddr[i++] =
 					(sha_ctx->total_count * 8);
 			cmdbuf_cpuvaddr[i++] = (u32)(msg_len >> 32);
 			cmdbuf_cpuvaddr[i++] = 0;
 			cmdbuf_cpuvaddr[i++] = 0;
+
+			/* Program message left in next 4 four registers */
 
 			/* If it is not last request, length of message left
 			 * should be more than input buffer length.
@@ -1490,8 +1501,9 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 			cmdbuf_cpuvaddr[i++] = 0;
 			cmdbuf_cpuvaddr[i++] = 0;
 
-			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_incr(
-						se_dev->opcode_addr, 6);
+			cmdbuf_cpuvaddr[i++] = nvhost_opcode_setpayload(6);
+			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_incr_w(
+						se_dev->opcode_addr);
 
 			cmdbuf_cpuvaddr[i++] = req_ctx->config;
 
@@ -1502,9 +1514,10 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 				cmdbuf_cpuvaddr[i++] =
 					SE4_HW_INIT_HASH(HW_INIT_HASH_DISABLE);
 		} else {
-			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_incr(
+			cmdbuf_cpuvaddr[i++] = nvhost_opcode_setpayload(4);
+			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_incr_w(
 						se_dev->opcode_addr +
-						SE4_SHA_IN_ADDR_OFFSET, 4);
+						SE4_SHA_IN_ADDR_OFFSET);
 		}
 		cmdbuf_cpuvaddr[i++] = src_ll->addr;
 		cmdbuf_cpuvaddr[i++] = (u32)(SE_ADDR_HI_MSB(MSB(src_ll->addr)) |
@@ -1513,9 +1526,10 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 		cmdbuf_cpuvaddr[i++] = (u32)(SE_ADDR_HI_MSB(MSB(dst_ll->addr)) |
 					SE_ADDR_HI_SZ(dst_ll->data_len));
 
-		cmdbuf_cpuvaddr[i++] = __nvhost_opcode_nonincr(
+		cmdbuf_cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+		cmdbuf_cpuvaddr[i++] = __nvhost_opcode_nonincr_w(
 						se_dev->opcode_addr +
-						SE_SHA_OPERATION_OFFSET, 1);
+						SE_SHA_OPERATION_OFFSET);
 
 		val = SE_OPERATION_WRSTALL(WRSTALL_TRUE);
 		if (total == count) {
