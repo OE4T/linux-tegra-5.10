@@ -58,4 +58,8 @@
 #define TEGRA_ICC_APEDMA			37
 #define TEGRA_ICC_SE				38
 
+/* remove later */
+#define NV_NVDISPLAYR2MC_SR_ID			TEGRA_ICC_DISPLAY
+#define TEGRA_ICC_MASTER			TEGRA_ICC_PRIMARY
+
 #endif /* _DT_BINDINGS_TEGRA_ICC_ID_H */
