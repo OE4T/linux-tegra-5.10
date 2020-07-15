@@ -998,8 +998,6 @@ static struct dentry *debugfs_node_iso_cap;
 static struct dentry *debugfs_node_bw;
 static struct dentry *debugfs_node_iso_bw;
 static struct dentry *debugfs_node_emc_rate;
-static struct dentry *debugfs_node_emc_min;
-static struct dentry *debugfs_node_emc_max;
 static struct dentry *debugfs_node_core_emc_rate;
 static struct dentry *debugfs_node_clients_info;
 static struct dentry *debugfs_node_dram_channels;
@@ -1209,11 +1207,9 @@ static void bwmgr_debugfs_init(void)
 		debugfs_create_bool(
 			"clk_update_disabled", S_IRWXU, debugfs_dir,
 			&clk_update_disabled);
-		debugfs_node_emc_min = debugfs_create_u64(
-			"emc_min_rate", S_IRUSR, debugfs_dir,
+		debugfs_create_u64("emc_min_rate", S_IRUSR, debugfs_dir,
 			(u64 *) &bwmgr.emc_min_rate);
-		debugfs_node_emc_max = debugfs_create_u64(
-			"emc_max_rate", S_IRUSR, debugfs_dir,
+		debugfs_create_u64("emc_max_rate", S_IRUSR, debugfs_dir,
 			(u64 *) &bwmgr.emc_max_rate);
 		debugfs_node_core_emc_rate = debugfs_create_file(
 			"core_emc_rate", S_IRUSR, debugfs_dir, NULL,
