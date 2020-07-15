@@ -789,19 +789,6 @@ static void gv11b_gr_sm_stop_trigger_enable(struct gk20a *g)
 	}
 }
 
-int gv11b_gr_sm_trigger_suspend(struct gk20a *g)
-{
-	if (!g->ops.gr.sm_debugger_attached(g)) {
-		nvgpu_err(g,
-			"SM debugger not attached, do not trigger suspend!");
-		return -EINVAL;
-	}
-
-	gv11b_gr_sm_stop_trigger_enable(g);
-
-	return 0;
-}
-
 void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 {
 	/* Check if we have at least one valid warp
@@ -1209,31 +1196,6 @@ void gv11b_gr_resume_all_sms(struct gk20a *g)
 			}
 		}
 	}
-}
-
-int gv11b_gr_resume_from_pause(struct gk20a *g)
-{
-	int err = 0;
-	u32 reg_val;
-
-	if (!g->ops.gr.sm_debugger_attached(g)) {
-		nvgpu_err(g,
-			"SM debugger not attached, do not resume for pause!");
-		return -EINVAL;
-	}
-
-	/* Clear the pause mask to tell the GPU we want to resume everyone */
-	gk20a_writel(g, gr_gpcs_tpcs_sms_dbgr_bpt_pause_mask_0_r(), 0);
-
-	/* explicitly re-enable forwarding of SM interrupts upon any resume */
-	reg_val = gk20a_readl(g, gr_gpc0_tpc0_tpccs_tpc_exception_en_r());
-	reg_val |= gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
-
-	gk20a_writel(g, gr_gpcs_tpcs_tpccs_tpc_exception_en_r(), reg_val);
-
-	g->ops.gr.resume_all_sms(g);
-
-	return err;
 }
 
 static void gv11b_gr_sm_dump_warp_bpt_pause_trap_mask_regs(struct gk20a *g,

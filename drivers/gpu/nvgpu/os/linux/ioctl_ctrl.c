@@ -768,8 +768,12 @@ static int nvgpu_gpu_ioctl_trigger_suspend(struct gk20a *g)
 	    return err;
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-	err = nvgpu_pg_elpg_protected_call(g,
+	if (g->ops.gr.trigger_suspend != NULL) {
+		err = nvgpu_pg_elpg_protected_call(g,
 			g->ops.gr.trigger_suspend(g));
+	} else {
+		err = -ENOSYS;
+	}
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
 	gk20a_idle(g);
@@ -806,28 +810,32 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 	}
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-	(void)nvgpu_pg_elpg_protected_call(g,
+	if (g->ops.gr.wait_for_pause != NULL) {
+		err = nvgpu_pg_elpg_protected_call(g,
 			g->ops.gr.wait_for_pause(g, w_state));
 
-	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
-		ioctl_w_state[sm_id].valid_warps[0] =
-			w_state[sm_id].valid_warps[0];
-		ioctl_w_state[sm_id].valid_warps[1] =
-			w_state[sm_id].valid_warps[1];
-		ioctl_w_state[sm_id].trapped_warps[0] =
-			w_state[sm_id].trapped_warps[0];
-		ioctl_w_state[sm_id].trapped_warps[1] =
-			w_state[sm_id].trapped_warps[1];
-		ioctl_w_state[sm_id].paused_warps[0] =
-			w_state[sm_id].paused_warps[0];
-		ioctl_w_state[sm_id].paused_warps[1] =
-			w_state[sm_id].paused_warps[1];
-	}
-	/* Copy to user space - pointed by "args->pwarpstate" */
-	if (copy_to_user((void __user *)(uintptr_t)args->pwarpstate,
-	    w_state, ioctl_size)) {
-		nvgpu_log_fn(g, "copy_to_user failed!");
-		err = -EFAULT;
+		for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
+			ioctl_w_state[sm_id].valid_warps[0] =
+				w_state[sm_id].valid_warps[0];
+			ioctl_w_state[sm_id].valid_warps[1] =
+				w_state[sm_id].valid_warps[1];
+			ioctl_w_state[sm_id].trapped_warps[0] =
+				w_state[sm_id].trapped_warps[0];
+			ioctl_w_state[sm_id].trapped_warps[1] =
+				w_state[sm_id].trapped_warps[1];
+			ioctl_w_state[sm_id].paused_warps[0] =
+				w_state[sm_id].paused_warps[0];
+			ioctl_w_state[sm_id].paused_warps[1] =
+				w_state[sm_id].paused_warps[1];
+		}
+		/* Copy to user space - pointed by "args->pwarpstate" */
+		if (copy_to_user((void __user *)(uintptr_t)args->pwarpstate,
+		    w_state, ioctl_size)) {
+			nvgpu_log_fn(g, "copy_to_user failed!");
+			err = -EFAULT;
+		}
+	} else {
+		err = -ENOSYS;
 	}
 
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
@@ -850,8 +858,12 @@ static int nvgpu_gpu_ioctl_resume_from_pause(struct gk20a *g)
 	    return err;
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-	err = nvgpu_pg_elpg_protected_call(g,
+	if (g->ops.gr.resume_from_pause != NULL) {
+		err = nvgpu_pg_elpg_protected_call(g,
 			g->ops.gr.resume_from_pause(g));
+	} else {
+		err = -ENOSYS;
+	}
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
 	gk20a_idle(g);

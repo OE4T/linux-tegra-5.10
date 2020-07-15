@@ -42,7 +42,6 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
 		bool sm_debugger_attached, struct nvgpu_channel *fault_ch,
 		bool *early_exit, bool *ignore_debugger);
-int gv11b_gr_sm_trigger_suspend(struct gk20a *g);
 void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state);
 int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	struct nvgpu_channel *ch, u64 sms, bool enable);
@@ -58,7 +57,6 @@ void gv11b_gr_suspend_all_sms(struct gk20a *g,
 void gv11b_gr_resume_single_sm(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm);
 void gv11b_gr_resume_all_sms(struct gk20a *g);
-int gv11b_gr_resume_from_pause(struct gk20a *g);
 int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm,
 		u32 global_esr_mask, bool check_errors);
