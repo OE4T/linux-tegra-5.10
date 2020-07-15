@@ -720,6 +720,12 @@ static struct of_device_id tegra_gk20a_of_match[] = {
 		.data = &gm20b_tegra_platform },
 	{ .compatible = "nvidia,tegra186-gp10b",
 		.data = &gp10b_tegra_platform },
+	/*
+	 * Upstream device trees use nvidia,gp10b instead of
+	 * nvidia,tegra186-gp10b used in downstream.
+	 */
+	{ .compatible = "nvidia,gp10b",
+		.data = &gp10b_tegra_platform },
 	{ .compatible = "nvidia,gv11b",
 		.data = &gv11b_tegra_platform },
 #ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
