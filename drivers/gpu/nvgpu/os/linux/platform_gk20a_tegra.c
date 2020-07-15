@@ -889,9 +889,6 @@ static int gk20a_tegra_probe(struct device *dev)
 
 	gk20a_tegra_get_clocks(dev);
 	nvgpu_linux_init_clk_support(platform->g);
-	ret = gk20a_tegra_init_secure_alloc(platform);
-	if (ret)
-		return ret;
 
 	if (platform->clk_register) {
 		ret = platform->clk_register(platform->g);
@@ -904,6 +901,13 @@ static int gk20a_tegra_probe(struct device *dev)
 
 static int gk20a_tegra_late_probe(struct device *dev)
 {
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	int ret;
+
+	ret = gk20a_tegra_init_secure_alloc(platform);
+	if (ret)
+		return ret;
+
 	return 0;
 }
 

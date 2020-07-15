@@ -91,10 +91,6 @@ static int gv11b_tegra_probe(struct device *dev)
 	}
 #endif
 
-	err = gk20a_tegra_init_secure_alloc(platform);
-	if (err)
-		return err;
-
 	platform->disable_bigpage = !(iommu_get_domain_for_dev(dev)) &&
 					(NVGPU_CPU_PAGE_SIZE < SZ_64K);
 
@@ -126,6 +122,13 @@ static int gv11b_tegra_probe(struct device *dev)
 
 static int gv11b_tegra_late_probe(struct device *dev)
 {
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	int err;
+
+	err = gk20a_tegra_init_secure_alloc(platform);
+	if (err)
+		return err;
+
 	return 0;
 }
 
