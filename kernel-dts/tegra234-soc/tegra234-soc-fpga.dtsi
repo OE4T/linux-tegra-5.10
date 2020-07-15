@@ -475,5 +475,13 @@
 	 tegra_ufs: ufshci@2500000 {
 		status = "okay";
 	};
+
+	tegra_icc: icc {
+		#interconnect-cells = <1>;
+		clocks = <&bpmp_clks TEGRA234_CLK_EMC>;
+		clock-names = "emc";
+		compatible = "nvidia,tegra23x-icc";
+		status = "okay";
+	};
 };
 
