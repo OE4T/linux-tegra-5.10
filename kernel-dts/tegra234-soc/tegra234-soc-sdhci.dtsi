@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,6 +15,7 @@
  */
 
 #include <dt-bindings/clock/tegra234-clock.h>
+#include <dt-bindings/memory/tegra234-mc.h>
 #include <dt-bindings/reset/tegra194-reset.h>
 #include <dt-bindings/interrupt/tegra194-irq.h>
 #include "tegra234-pin-drive-sdmmc-common.dtsi"
@@ -30,6 +31,11 @@
 		compatible = "nvidia,tegra194-sdhci";
 		reg = <0x0 0x3460000 0x0 0x00020000>;
 		interrupts = < 0 TEGRA194_IRQ_SDMMC4 0x04>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_SDMMCRAB>,
+				<&mc TEGRA234_MEMORY_CLIENT_SDMMCWAB>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 		iommus = <&smmu TEGRA_SID_SDMMC4A>;
 		dma-coherent;
 		max-clk-limit = <200000000>;
@@ -64,6 +70,11 @@
 		compatible = "nvidia,tegra194-sdhci";
 		reg = <0x0 0x3400000 0x0 0x00020000>;
 		interrupts = < 0 TEGRA194_IRQ_SDMMC1 0x04>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_SDMMCRA>,
+				<&mc TEGRA234_MEMORY_CLIENT_SDMMCWA>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 		iommus = <&smmu TEGRA_SID_SDMMC1A>;
 		dma-coherent;
 		max-clk-limit = <208000000>;

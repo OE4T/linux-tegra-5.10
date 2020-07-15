@@ -34,6 +34,11 @@
 		compatible = "tegra,ufs_variant";
 		reg = <0x0 0x02500000 0x0 0x4000>;
 		interrupts = < 0 44 0x04 >;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_UFSHCR>,
+			        <&mc TEGRA234_MEMORY_CLIENT_UFSHCW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 		iommus = <&smmu TEGRA_SID_UFSHC>;
 		dma-coherent;
 		clocks = <&bpmp_clks TEGRA234_CLK_PLLREFE_VCOOUT>,

@@ -256,6 +256,13 @@
 		#clock-cells = <1>;
 		#reset-cells = <1>;
 		#power-domain-cells = <1>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_BPMPR>,
+				<&mc TEGRA234_MEMORY_CLIENT_BPMPW>,
+				<&mc TEGRA234_MEMORY_CLIENT_BPMPDMAR>,
+				<&mc TEGRA234_MEMORY_CLIENT_BPMPDMAW>;
+		interconnect-names = "dma-mem", "dma-mem", "dma-mem", "dma-mem";
+#endif
 
 		pwr_i2c: i2c {
 			compatible = "nvidia,tegra186-bpmp-i2c";
@@ -318,6 +325,10 @@
 		clock-names = "host1x", "actmon";
 		nvidia,vmid = <1>;
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_HOST1XDMAR>;
+		interconnect-names = "dma-mem";
+#endif
 		iommus = <&smmu TEGRA_SID_HC>,
 			 <&smmu TEGRA_SID_HC_VM0>,
 			 <&smmu TEGRA_SID_HC_VM1>,
@@ -400,6 +411,11 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_VIC>;
 			clock-names = "vic";
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+			interconnects = <&mc TEGRA234_MEMORY_CLIENT_VICSRD>,
+					<&mc TEGRA234_MEMORY_CLIENT_VICSWR>;
+			interconnect-names = "dma-mem", "dma-mem";
+#endif
 			iommus = <&smmu TEGRA_SID_VIC>;
 			dma-coherent;
 		};
@@ -1255,6 +1271,11 @@
 		reset-names = "nvdisplay_reset",
 			      "dpaux0_reset";
 		status = "disabled";
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_NVDISPLAYR>,
+			        <&mc TEGRA234_MEMORY_CLIENT_NVDISPLAYR1>;
+		interconnect-names = "dma-mem", "read-1";
+#endif
 		iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 		iso-smmu;
 		non-coherent;

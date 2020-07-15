@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,6 +15,7 @@
  */
 
 #include <dt-bindings/clock/tegra234-clock.h>
+#include <dt-bindings/memory/tegra234-mc.h>
 #include <dt-bindings/reset/tegra234-reset.h>
 
 /*
@@ -584,6 +585,12 @@
 			     <0 73 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE0R>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE0W>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
+
 		iommus = <&smmu TEGRA_SID_PCIE0>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE0 0x1000>;
@@ -649,6 +656,12 @@
 		interrupts = <0 45 0x04>,	/* controller interrupt */
 			     <0 46 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE1R>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE1W>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		iommus = <&smmu TEGRA_SID_PCIE1>;
 		dma-coherent;
@@ -717,6 +730,12 @@
 			     <0 48 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE2AR>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE2AW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
+
 		iommus = <&smmu TEGRA_SID_PCIE2>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE2 0x1000>;
@@ -782,6 +801,12 @@
 		interrupts = <0 49 0x04>,	/* controller interrupt */
 			     <0 50 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE3R>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE3W>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		iommus = <&smmu TEGRA_SID_PCIE3>;
 		dma-coherent;
@@ -849,6 +874,12 @@
 			     <0 52 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE4R>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE4W>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
+
 		iommus = <&smmu TEGRA_SID_PCIE4>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE4 0x1000>;
@@ -914,6 +945,12 @@
 		interrupts = <0 53 0x04>,	/* controller interrupt */
 			     <0 54 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE5R>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE5W>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		iommus = <&smmu TEGRA_SID_PCIE5>;
 		dma-coherent;
@@ -982,6 +1019,12 @@
 			     <0 353 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE6AR>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE6AW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
+
 		iommus = <&smmu TEGRA_SID_PCIE6>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE6 0x1000>;
@@ -1048,6 +1091,12 @@
 		interrupts = <0 354 0x04>,	/* controller interrupt */
 			     <0 355 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE7AR>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE7AW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		iommus = <&smmu TEGRA_SID_PCIE7>;
 		dma-coherent;
@@ -1116,6 +1165,12 @@
 			     <0 357 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE8AR>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE8AW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
+
 		iommus = <&smmu TEGRA_SID_PCIE8>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE8 0x1000>;
@@ -1183,6 +1238,12 @@
 			     <0 359 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
 
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE9AR>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE9AW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
+
 		iommus = <&smmu TEGRA_SID_PCIE9>;
 		dma-coherent;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE9 0x1000>;
@@ -1249,6 +1310,12 @@
 		interrupts = <0 360 0x04>,	/* controller interrupt */
 			     <0 361 0x04>;	/* MSI interrupt */
 		interrupt-names = "intr", "msi";
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_PCIE10AR>,
+			        <&mc TEGRA234_MEMORY_CLIENT_PCIE10AW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		iommus = <&smmu TEGRA_SID_PCIE10>;
 		dma-coherent;
