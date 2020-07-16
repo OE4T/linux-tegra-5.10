@@ -625,7 +625,7 @@ int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	nvgpu_log_fn(g, " ");
 
-	fw = nvgpu_pmu_fw_image_desc(g, pmu);
+	fw = nvgpu_pmu_fw_desc_desc(g, pmu);
 	desc = (struct pmu_ucode_desc *)(void *)fw->data;
 
 	gk20a_writel(g, pwr_falcon_itfen_r(),

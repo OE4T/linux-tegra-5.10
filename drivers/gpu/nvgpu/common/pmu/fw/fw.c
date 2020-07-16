@@ -33,9 +33,7 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/pmu_pg.h>
 
-/* PMU NS UCODE IMG */
-#define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
-/* PMU SECURE UCODE IMG */
+/* PMU UCODE IMG */
 #define NVGPU_PMU_UCODE_IMAGE "gpmu_ucode_image.bin"
 #define NVGPU_PMU_UCODE_DESC "gpmu_ucode_desc.bin"
 #define NVGPU_PMU_UCODE_SIG "pmu_sig.bin"
@@ -211,40 +209,28 @@ static int pmu_fw_read_and_init_ops(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		/* non-secure PMU boot uocde */
-		rtos_fw->fw_image = nvgpu_request_firmware(g,
-				NVGPU_PMU_NS_UCODE_IMAGE, 0);
-		if (rtos_fw->fw_image == NULL) {
-			nvgpu_err(g,
-				"failed to load non-secure pmu ucode!!");
-			goto exit;
-		}
+	/* secure boot ucodes's */
+	nvgpu_pmu_dbg(g, "requesting PMU ucode image");
+	rtos_fw->fw_image =
+		nvgpu_request_firmware(g,
+			NVGPU_PMU_UCODE_IMAGE, 0);
+	if (rtos_fw->fw_image == NULL) {
+		nvgpu_err(g, "failed to load pmu ucode!!");
+		err = -ENOENT;
+		goto exit;
+	}
 
-		desc = (struct pmu_ucode_desc *)
-			(void *)rtos_fw->fw_image->data;
-	} else {
-		/* secure boot ucodes's */
-		nvgpu_pmu_dbg(g, "requesting PMU ucode image");
-		rtos_fw->fw_image =
-			nvgpu_request_firmware(g,
-				NVGPU_PMU_UCODE_IMAGE, 0);
-		if (rtos_fw->fw_image == NULL) {
-			nvgpu_err(g, "failed to load pmu ucode!!");
-			err = -ENOENT;
-			goto exit;
-		}
+	nvgpu_pmu_dbg(g, "requesting PMU ucode desc");
+	rtos_fw->fw_desc =
+		nvgpu_request_firmware(g,
+			NVGPU_PMU_UCODE_DESC, 0);
+	if (rtos_fw->fw_desc == NULL) {
+		nvgpu_err(g, "failed to load pmu ucode desc!!");
+		err = -ENOENT;
+		goto release_img_fw;
+	}
 
-		nvgpu_pmu_dbg(g, "requesting PMU ucode desc");
-		rtos_fw->fw_desc =
-			nvgpu_request_firmware(g,
-				NVGPU_PMU_UCODE_DESC, 0);
-		if (rtos_fw->fw_desc == NULL) {
-			nvgpu_err(g, "failed to load pmu ucode desc!!");
-			err = -ENOENT;
-			goto release_img_fw;
-		}
-
+	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		nvgpu_pmu_dbg(g, "requesting PMU ucode sign");
 		rtos_fw->fw_sig =
 			nvgpu_request_firmware(g,
@@ -254,10 +240,10 @@ static int pmu_fw_read_and_init_ops(struct gk20a *g, struct nvgpu_pmu *pmu,
 			err = -ENOENT;
 			goto release_desc;
 		}
-
-		desc = (struct pmu_ucode_desc *)(void *)
-					rtos_fw->fw_desc->data;
 	}
+
+	desc = (struct pmu_ucode_desc *)(void *)
+				rtos_fw->fw_desc->data;
 
 	err = nvgpu_pmu_init_fw_ver_ops(g, pmu, desc->app_version);
 	if (err != 0) {

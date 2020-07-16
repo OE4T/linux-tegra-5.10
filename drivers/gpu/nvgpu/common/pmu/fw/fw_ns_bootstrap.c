@@ -39,8 +39,8 @@ static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	desc = (struct pmu_ucode_desc *)(void *)rtos_fw->fw_image->data;
-	ucode_image = (u32 *)(void *)((u8 *)desc + desc->descriptor_size);
+	desc = (struct pmu_ucode_desc *)(void *)rtos_fw->fw_desc->data;
+	ucode_image = (u32 *)(void *)rtos_fw->fw_image->data;
 
 	if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
 		err = nvgpu_dma_alloc_map_sys(vm, PMU_RTOS_UCODE_SIZE_MAX,

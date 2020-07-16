@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -146,7 +146,7 @@ int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	nvgpu_log_fn(g, " ");
 
-	fw = nvgpu_pmu_fw_image_desc(g, pmu);
+	fw = nvgpu_pmu_fw_desc_desc(g, pmu);
 	desc = (struct pmu_ucode_desc *)(void *)fw->data;
 
 	nvgpu_writel(g, pwr_falcon_itfen_r(),
