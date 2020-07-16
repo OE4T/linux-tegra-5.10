@@ -39,6 +39,10 @@
 #include "pg_sw_gv11b.h"
 #include "pg_sw_gp10b.h"
 
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#include "nvgpu_next_gpuid.h"
+#endif
+
 /* state transition :
  * OFF => [OFF_ON_PENDING optional] => ON_PENDING => ON => OFF
  * ON => OFF is always synchronized
@@ -1049,6 +1053,9 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 		break;
 
 	case NVGPU_GPUID_GV11B:
+#if defined(CONFIG_NVGPU_NEXT)
+	case NVGPU_NEXT_GPUID:
+#endif
 		nvgpu_gv11b_pg_sw_init(g, *pg_p);
 		break;
 

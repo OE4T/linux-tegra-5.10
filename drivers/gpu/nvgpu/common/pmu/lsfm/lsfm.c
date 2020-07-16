@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,10 @@
 #ifdef CONFIG_NVGPU_DGPU
 #include "lsfm_sw_gv100.h"
 #include "lsfm_sw_tu104.h"
+#endif
+
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+#include "nvgpu_next_gpuid.h"
 #endif
 
 static bool is_lsfm_supported(struct gk20a *g,
@@ -168,6 +172,11 @@ int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm)
 		break;
 	case NVGPU_GPUID_TU104:
 			nvgpu_tu104_lsfm_sw_init(g, *lsfm);
+		break;
+#endif
+#if defined(CONFIG_NVGPU_NEXT)
+	case NVGPU_NEXT_GPUID:
+		nvgpu_gv100_lsfm_sw_init(g, *lsfm);
 		break;
 #endif
 	default:
