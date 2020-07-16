@@ -32,6 +32,7 @@ int nvgpu_pmu_super_surface_buf_alloc(struct gk20a *g, struct nvgpu_pmu *pmu,
 {
 	struct vm_gk20a *vm = g->mm.pmu.vm;
 	int err = 0;
+	u32 tmp = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -43,7 +44,21 @@ int nvgpu_pmu_super_surface_buf_alloc(struct gk20a *g, struct nvgpu_pmu *pmu,
 		&ss->super_surface_buf);
 	if (err != 0) {
 		nvgpu_err(g, "failed to allocate pmu suffer surface\n");
+		return err;
 	}
+
+	/* store the gpu_va in super-surface header for PMU ucode to access */
+	tmp = u64_lo32(ss->super_surface_buf.gpu_va);
+	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
+		(u64)offsetof(struct super_surface, hdr.data.address.lo),
+		&tmp, sizeof(u32));
+
+	tmp = u64_hi32(ss->super_surface_buf.gpu_va);
+	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
+		(u64)offsetof(struct super_surface, hdr.data.address.hi),
+		&tmp, sizeof(u32));
 
 	return err;
 }

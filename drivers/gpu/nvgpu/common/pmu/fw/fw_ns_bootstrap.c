@@ -107,6 +107,10 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 	pmu->fw->ops.set_cmd_line_args_cpu_freq(pmu,
 		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
 
+	if (pmu->fw->ops.config_cmd_line_args_super_surface != NULL) {
+		pmu->fw->ops.config_cmd_line_args_super_surface(pmu);
+	}
+
 	nvgpu_pmu_fw_get_cmd_line_args_offset(g, &args_offset);
 
 	err = nvgpu_falcon_copy_to_dmem(pmu->flcn, args_offset,
