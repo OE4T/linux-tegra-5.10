@@ -88,6 +88,16 @@
 				/delete-property/ iommus;
 				/delete-property/ iso-smmu;
 			};
+
+			nvdec@15480000 {
+				clocks = <&bpmp_clks TEGRA194_CLK_NVDEC>;
+				clock-names = "nvdec";
+			};
+
+			nvdec1@15140000 {
+				clocks = <&bpmp_clks TEGRA194_CLK_NVDEC1>;
+				clock-names = "nvdec";
+			};
 		};
 
 		vi: vi@15c10000 {
