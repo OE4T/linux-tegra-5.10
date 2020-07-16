@@ -1656,7 +1656,9 @@
 		compatible = "nvidia,tegra194-pinmux";
 		reg = <0x0 0x2430000 0x0 0x17000
 			0x0 0xc300000 0x0 0x4000>;
+#if TEGRA_GPIO_DT_VERSION < DT_VERSION_2
 		#gpio-range-cells = <3>;
+#endif
 		status = "disabled";
 
 		vbus_en0_sfio_tristate_state: vbus_en0_oc_tristate {
@@ -1772,9 +1774,11 @@
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
+#if TEGRA_GPIO_DT_VERSION < DT_VERSION_2
 		gpio-ranges =
 			<&tegra_pinctrl TEGRA194_MAIN_GPIO_BASE(A) TEGRA_PIN_BASE(A) TEGRA194_MAIN_GPIO_RANGE(A, Z) >,
 			<&tegra_pinctrl TEGRA194_MAIN_GPIO_BASE(FF) TEGRA_PIN_BASE(FF) TEGRA194_MAIN_GPIO_RANGE(FF, GG) >;
+#endif
 		status = "disabled";
 	};
 
@@ -1794,8 +1798,10 @@
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
+#if TEGRA_GPIO_DT_VERSION < DT_VERSION_2
 		gpio-ranges =
 			<&tegra_pinctrl TEGRA194_AON_GPIO_BASE(AA) TEGRA_PIN_BASE(AA) TEGRA194_AON_GPIO_RANGE(AA, EE) >;
+#endif
 	};
 
 	tegra_gte_lic: gte@3aa0000 {
