@@ -2196,7 +2196,7 @@
 		clocks = <&bpmp_clks TEGRA194_CLK_GPCCLK>,
 			<&bpmp_clks TEGRA194_CLK_GPU_PWR>,
 			<&bpmp_clks TEGRA194_CLK_FUSE>;
-		clock-names = "gpu", "gpu_sys", "fuse";
+		clock-names = "gpu", "pwr", "fuse";
 		resets = <&bpmp_resets TEGRA194_RESET_GPU>;
 		dma-coherent;
 		status = "disabled";

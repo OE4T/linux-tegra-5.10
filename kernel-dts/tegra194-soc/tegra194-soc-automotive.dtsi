@@ -70,7 +70,7 @@
 		status = "okay";
 		clocks = <&bpmp_clks TEGRA194_CLK_GPCCLK>,
 			<&bpmp_clks TEGRA194_CLK_GPU_PWR>;
-		clock-names = "gpu", "gpu_sys";
+		clock-names = "gpu", "pwr";
 	};
 
 	pinmux@2430000 {
