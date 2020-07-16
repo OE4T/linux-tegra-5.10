@@ -2,7 +2,7 @@
 
 /*
  *
- * Copyright (c) 2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA Corporation. All rights reserved.
  *
  * Tegra 23x mcerr driver.
  */
@@ -12,6 +12,7 @@
 #include <linux/bitops.h>
 #include <linux/of.h>
 #include <linux/platform/tegra/mc-regs-t19x.h>
+#include <linux/platform/tegra/mc-regs-t23x.h>
 #include <linux/platform/tegra/mcerr.h>
 #include <dt-bindings/memory/tegra-swgroup.h>
 #include <linux/interrupt.h>
@@ -405,7 +406,7 @@ enum {
 	MC_ERR_STATUS_ADR_HI_BITS = (0xFF << 20),
 
 	/* Client that caused hub_smmu_bypass_allow error */
-	MC_HUB_SMMU_BYPASS_ALLOW_ERR_STATUS = (0xFF << 0)
+	MC_ERR_HUB_SMMU_BYPASS_ALLOW_ID = (0xFF << 0)
 };
 
 /* reported in MC_INTSTATUS_0 */
@@ -469,6 +470,10 @@ static const struct mc_error hubc_mc_errors[] = {
 
 /* reported in MC_HUB_INTSTATUS_0 */
 static const struct mc_error hub_mc_errors[] = {
+	MC_ERR_HI(MC_HUB_INT_HUB_SMMU_BYPASS_ALLOW_ERR,
+	       "Hub bypass allow error", 0,
+	       MC_HUB_SMMU_BYPASS_ALLOW_ERR_STATUS, MC_COALESCE_ERR_ADR,
+	       MC_COALESCE_ERR_ADR_HI),
 	MC_ERR_HI(MC_HUB_INT_HUB_COALESCER_ERR,
 	       "Hub coalescer error", 0,
 	       MC_COALESCE_ERR_STATUS, MC_COALESCE_ERR_ADR,
