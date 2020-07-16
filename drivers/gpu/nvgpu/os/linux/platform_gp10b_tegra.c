@@ -74,7 +74,7 @@ static int num_supported_freq;
 
 struct gk20a_platform_clk tegra_gp10b_clocks[] = {
 	{"gpu", GPCCLK_INIT_RATE},
-	{"gpu_sys", 204000000},
+	{"pwr", 204000000},
 	{"fuse", UINT_MAX}
 };
 
