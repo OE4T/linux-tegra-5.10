@@ -35,16 +35,6 @@
 		};
 	};
 
-	/* Upstream kernel does not implement pinctrl driver (pinmux)
-           as the pinmuxing is done in MB1 */
-	gpio@2200000 {
-		/delete-property/ gpio-ranges;
-	};
-
-	gpio@c2f0000 {
-		/delete-property/ gpio-ranges;
-	};
-
 	gpio-keys {
 		status = "disabled";
 	};
