@@ -20,6 +20,7 @@
 #include <linux/dma-buf.h>
 #include <linux/reset.h>
 #include <linux/iommu.h>
+#include <linux/pm_runtime.h>
 #ifdef CONFIG_TEGRA_BWMGR
 #include <linux/platform/tegra/emc_bwmgr.h>
 #endif
@@ -28,8 +29,6 @@
 #include <uapi/linux/nvgpu.h>
 
 #ifdef CONFIG_NV_TEGRA_BPMP
-#include <soc/tegra/tegra_bpmp.h>
-#include <soc/tegra/tegra_powergate.h>
 #include <soc/tegra/tegra-bpmp-dvfs.h>
 #endif /* CONFIG_NV_TEGRA_BPMP */
 
@@ -261,12 +260,14 @@ static int gp10b_tegra_remove(struct device *dev)
 
 static bool gp10b_tegra_is_railgated(struct device *dev)
 {
+	struct gk20a *g = get_gk20a(dev);
 	bool ret = false;
 
-#ifdef TEGRA186_POWER_DOMAIN_GPU
-	if (tegra_bpmp_running())
-		ret = !tegra_powergate_is_powered(TEGRA186_POWER_DOMAIN_GPU);
-#endif
+	if (pm_runtime_status_suspended(dev)) {
+		ret = true;
+	}
+
+	nvgpu_log(g, gpu_dbg_info, "railgated? %s", ret ? "yes" : "no");
 
 	return ret;
 }
@@ -305,17 +306,10 @@ static int gp10b_tegra_railgate(struct device *dev)
 		tegra_bwmgr_set_emc(
 			(struct tegra_bwmgr_client *)profile->private_data,
 			0, TEGRA_BWMGR_SET_EMC_FLOOR);
-#endif
+#endif /* CONFIG_TEGRA_BWMGR */
 
-#ifdef TEGRA186_POWER_DOMAIN_GPU
-	if (tegra_bpmp_running() &&
-	    tegra_powergate_is_powered(TEGRA186_POWER_DOMAIN_GPU)) {
-		gp10b_tegra_clks_control(dev, false);
-		tegra_powergate_partition(TEGRA186_POWER_DOMAIN_GPU);
-	}
-#else
 	gp10b_tegra_clks_control(dev, false);
-#endif
+
 	return 0;
 }
 
@@ -327,14 +321,7 @@ static int gp10b_tegra_unrailgate(struct device *dev)
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 #endif
 
-#ifdef TEGRA186_POWER_DOMAIN_GPU
-	if (tegra_bpmp_running()) {
-		ret = tegra_unpowergate_partition(TEGRA186_POWER_DOMAIN_GPU);
-		gp10b_tegra_clks_control(dev, true);
-	}
-#else
 	gp10b_tegra_clks_control(dev, true);
-#endif
 
 #ifdef CONFIG_TEGRA_BWMGR
 	/* to start with set emc frequency floor to max rate*/

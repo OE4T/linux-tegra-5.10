@@ -23,6 +23,7 @@
 #include <linux/hashtable.h>
 #include <linux/clk.h>
 #include <linux/iommu.h>
+#include <linux/pm_runtime.h>
 #ifdef CONFIG_TEGRA_BWMGR
 #include <linux/platform/tegra/emc_bwmgr.h>
 #endif
@@ -31,11 +32,6 @@
 #include <nvgpu/nvhost.h>
 
 #include <uapi/linux/nvgpu.h>
-
-#ifdef CONFIG_NV_TEGRA_BPMP
-#include <soc/tegra/tegra_bpmp.h>
-#include <soc/tegra/tegra_powergate.h>
-#endif /* CONFIG_NV_TEGRA_BPMP */
 
 #include "platform_gk20a.h"
 #include "clk.h"
@@ -150,19 +146,15 @@ static int gv11b_tegra_remove(struct device *dev)
 
 static bool gv11b_tegra_is_railgated(struct device *dev)
 {
-	bool ret = false;
-#ifdef TEGRA194_POWER_DOMAIN_GPU
 	struct gk20a *g = get_gk20a(dev);
+	bool ret = false;
 
-	if (tegra_bpmp_running()) {
-		nvgpu_log(g, gpu_dbg_info, "bpmp running");
-		ret = !tegra_powergate_is_powered(TEGRA194_POWER_DOMAIN_GPU);
-
-		nvgpu_log(g, gpu_dbg_info, "railgated? %s", ret ? "yes" : "no");
-	} else {
-		nvgpu_log(g, gpu_dbg_info, "bpmp not running");
+	if (pm_runtime_status_suspended(dev)) {
+		ret = true;
 	}
-#endif
+
+	nvgpu_log(g, gpu_dbg_info, "railgated? %s", ret ? "yes" : "no");
+
 	return ret;
 }
 
@@ -181,24 +173,10 @@ static int gv11b_tegra_railgate(struct device *dev)
 		tegra_bwmgr_set_emc(
 			(struct tegra_bwmgr_client *)profile->private_data,
 			0, TEGRA_BWMGR_SET_EMC_FLOOR);
-#endif
+#endif /* CONFIG_TEGRA_BWMGR */
 
-#ifdef TEGRA194_POWER_DOMAIN_GPU
-	if (tegra_bpmp_running()) {
-		nvgpu_log(g, gpu_dbg_info, "bpmp running");
-		if (!tegra_powergate_is_powered(TEGRA194_POWER_DOMAIN_GPU)) {
-			nvgpu_log(g, gpu_dbg_info, "powergate is not powered");
-			return 0;
-		}
-		gp10b_tegra_clks_control(dev, false);
-		nvgpu_log(g, gpu_dbg_info, "powergate_partition");
-		tegra_powergate_partition(TEGRA194_POWER_DOMAIN_GPU);
-	} else {
-		nvgpu_log(g, gpu_dbg_info, "bpmp not running");
-	}
-#else
 	gp10b_tegra_clks_control(dev, false);
-#endif
+
 	return 0;
 }
 
@@ -209,24 +187,8 @@ static int gv11b_tegra_unrailgate(struct device *dev)
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
 #endif
-#ifdef TEGRA194_POWER_DOMAIN_GPU
-	struct gk20a *g = get_gk20a(dev);
 
-	if (tegra_bpmp_running()) {
-		nvgpu_log(g, gpu_dbg_info, "bpmp running");
-		ret = tegra_unpowergate_partition(TEGRA194_POWER_DOMAIN_GPU);
-		if (ret) {
-			nvgpu_log(g, gpu_dbg_info,
-				"unpowergate partition failed");
-			return ret;
-		}
-		gp10b_tegra_clks_control(dev, true);
-	} else {
-		nvgpu_log(g, gpu_dbg_info, "bpmp not running");
-	}
-#else
 	gp10b_tegra_clks_control(dev, true);
-#endif
 
 #ifdef CONFIG_TEGRA_BWMGR
 	/* to start with set emc frequency floor to max rate*/
