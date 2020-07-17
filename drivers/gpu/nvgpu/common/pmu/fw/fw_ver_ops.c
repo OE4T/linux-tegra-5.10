@@ -1094,6 +1094,66 @@ static void pmu_pg_cmd_eng_buf_load_set_dma_idx_v2(struct pmu_pg_cmd *pg,
 	pg->eng_buf_load_v2.dma_desc.params |= (U32(value) << U32(24));
 }
 
+static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = g->pmu;
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->pmu.vm;
+	struct pmu_ucode_desc *desc;
+	struct pmu_rtos_fw *rtos_fw = pmu->fw;
+	u32 *ucode_image = NULL;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	desc = (struct pmu_ucode_desc *)(void *)rtos_fw->fw_desc->data;
+	ucode_image = (u32 *)(void *)rtos_fw->fw_image->data;
+
+	if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
+		err = nvgpu_dma_alloc_map_sys(vm, PMU_RTOS_UCODE_SIZE_MAX,
+				&rtos_fw->ucode);
+		if (err != 0) {
+			goto exit;
+		}
+	}
+
+	nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
+		(desc->app_start_offset + desc->app_size));
+
+exit:
+	return err;
+}
+
+static int pmu_prepare_ns_ucode_blob_v1(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = g->pmu;
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->pmu.vm;
+	struct pmu_ucode_desc_v1 *desc;
+	struct pmu_rtos_fw *rtos_fw = pmu->fw;
+	u32 *ucode_image = NULL;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	desc = (struct pmu_ucode_desc_v1 *)(void *)rtos_fw->fw_desc->data;
+	ucode_image = (u32 *)(void *)rtos_fw->fw_image->data;
+
+	if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
+		err = nvgpu_dma_alloc_map_sys(vm, PMU_RTOS_UCODE_SIZE_MAX,
+				&rtos_fw->ucode);
+		if (err != 0) {
+			goto exit;
+		}
+	}
+
+	nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
+		(desc->app_start_offset + desc->app_size));
+
+exit:
+	return err;
+}
+
 int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 	struct nvgpu_pmu *pmu, u32 app_version)
 {
@@ -1204,6 +1264,8 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 			pmu_get_sequence_in_alloc_ptr_v1;
 		fw_ops->get_seq_out_alloc_ptr =
 			pmu_get_sequence_out_alloc_ptr_v1;
+		fw_ops->prepare_ns_ucode_blob =
+			pmu_prepare_ns_ucode_blob;
 		break;
 	case APP_VERSION_GV11B:
 	case APP_VERSION_GV10X:
@@ -1329,6 +1391,13 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 			pmu_get_sequence_in_alloc_ptr_v3;
 		fw_ops->get_seq_out_alloc_ptr =
 			pmu_get_sequence_out_alloc_ptr_v3;
+		if (app_version == APP_VERSION_NVGPU_NEXT) {
+			fw_ops->prepare_ns_ucode_blob =
+				pmu_prepare_ns_ucode_blob_v1;
+		} else {
+			fw_ops->prepare_ns_ucode_blob =
+				pmu_prepare_ns_ucode_blob;
+		}
 		break;
 	case APP_VERSION_GM20B:
 		fw_ops->pg_cmd_eng_buf_load_size =
@@ -1431,6 +1500,8 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 			pmu_get_sequence_in_alloc_ptr_v1;
 		fw_ops->get_seq_out_alloc_ptr =
 			pmu_get_sequence_out_alloc_ptr_v1;
+		fw_ops->prepare_ns_ucode_blob =
+			pmu_prepare_ns_ucode_blob;
 		break;
 	default:
 		nvgpu_err(g, "PMU code version not supported version: %d\n",

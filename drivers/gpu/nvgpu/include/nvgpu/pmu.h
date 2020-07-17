@@ -240,7 +240,7 @@ struct pmu_payload {
 	struct pmu_rpc_desc rpc;
 };
 
-#define PMU_UCODE_NB_MAX_OVERLAY	    32U
+#define PMU_UCODE_NB_MAX_OVERLAY	64U
 #define PMU_UCODE_NB_MAX_DATE_LENGTH  64U
 
 struct pmu_ucode_desc {
@@ -273,6 +273,43 @@ struct pmu_ucode_desc {
 	u32 nb_overlays;
 	struct {u32 start; u32 size; } load_ovl[PMU_UCODE_NB_MAX_OVERLAY];
 	u32 compressed;
+};
+
+/*
+ * nvgpu-next PMU ucode built with below new ucode descriptor, so use
+ * below descriptor to read nvgpu-next PMU ucode details from PMU desc
+ * bin.
+ */
+struct pmu_ucode_desc_v1 {
+	u32 descriptor_size;
+	u32 image_size;
+	u32 tools_version;
+	u32 app_version;
+	char date[PMU_UCODE_NB_MAX_DATE_LENGTH];
+	u32 secure_bootloader;
+	u32 bootloader_start_offset;
+	u32 bootloader_size;
+	u32 bootloader_imem_offset;
+	u32 bootloader_entry_point;
+	u32 app_start_offset;
+	u32 app_size;
+	u32 app_imem_offset;
+	u32 app_imem_entry;
+	u32 app_dmem_offset;
+	/* Offset from appStartOffset */
+	u32 app_resident_code_offset;
+	/* Exact size of the resident code
+	 * ( potentially contains CRC inside at the end )
+	 */
+	u32 app_resident_code_size;
+	/* Offset from appStartOffset */
+	u32 app_resident_data_offset;
+	/* Exact size of the resident code
+	 * ( potentially contains CRC inside at the end )
+	 */
+	u32 app_resident_data_size;
+	u32 nb_overlays;
+	struct {u32 start; u32 size; } load_ovl[PMU_UCODE_NB_MAX_OVERLAY];
 };
 #endif
 

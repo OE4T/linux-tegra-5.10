@@ -27,36 +27,6 @@
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/clk/clk.h>
 
-static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = g->pmu;
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
-	struct pmu_ucode_desc *desc;
-	struct pmu_rtos_fw *rtos_fw = pmu->fw;
-	u32 *ucode_image = NULL;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	desc = (struct pmu_ucode_desc *)(void *)rtos_fw->fw_desc->data;
-	ucode_image = (u32 *)(void *)rtos_fw->fw_image->data;
-
-	if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
-		err = nvgpu_dma_alloc_map_sys(vm, PMU_RTOS_UCODE_SIZE_MAX,
-				&rtos_fw->ucode);
-		if (err != 0) {
-			goto exit;
-		}
-	}
-
-	nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
-		desc->app_start_offset + desc->app_size);
-
-exit:
-	return err;
-}
-
 static void pmu_free_ns_ucode_blob(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = g->pmu;
@@ -77,7 +47,7 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 	u32 args_offset = 0;
 
 	/* prepare blob for non-secure PMU boot */
-	err = pmu_prepare_ns_ucode_blob(g);
+	err = pmu->fw->ops.prepare_ns_ucode_blob(g);
 	if (err != 0) {
 		nvgpu_err(g, "non secure ucode blop consrtuct failed");
 		return err;

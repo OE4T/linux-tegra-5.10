@@ -166,6 +166,7 @@ struct pmu_fw_ver_ops {
 	struct {
 		int (*clk_set_boot_clk)(struct gk20a *g);
 	} clk;
+	int (*prepare_ns_ucode_blob)(struct gk20a *g);
 };
 
 struct pmu_rtos_fw {
