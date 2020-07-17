@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  * tegra234-soc-minimal.dtsi: dtsi file that provides a skeleton for boot to
  *                            shell. Please don't modify this file unless
  *                            without the new change, boot to shell is broken.
@@ -28,7 +28,9 @@
 	interrupt-parent = <&intc>;
 	#address-cells = <2>;
 	#size-cells = <2>;
+#if TEGRA_IOMMU_DT_VERSION < DT_VERSION_2
 	dma-ranges = <0x0 0x0 0x0 0x0 0x7f 0xffff0000>;
+#endif
 
 	intc: interrupt-controller@f400000 {
 		compatible = "arm,gic-v3";
