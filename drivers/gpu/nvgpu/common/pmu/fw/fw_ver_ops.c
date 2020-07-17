@@ -40,6 +40,7 @@
 #include <nvgpu/pmu/seq.h>
 
 /* PMU F/W version */
+#define APP_VERSION_NVGPU_NEXT	28801972U
 #define APP_VERSION_TU10X	28084434U
 #define APP_VERSION_GV11B	25005711U
 #define APP_VERSION_GV10X	25633490U
@@ -1270,6 +1271,7 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 	case APP_VERSION_GV11B:
 	case APP_VERSION_GV10X:
 	case APP_VERSION_TU10X:
+	case APP_VERSION_NVGPU_NEXT:
 		fw_ops->pg_cmd_eng_buf_load_size =
 			pmu_pg_cmd_eng_buf_load_size_v2;
 		fw_ops->pg_cmd_eng_buf_load_set_cmd_type =
@@ -1335,7 +1337,8 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 		fw_ops->allocation_get_fb_size =
 			pmu_allocation_get_fb_size_v3;
 		if (app_version == APP_VERSION_GV10X ||
-			app_version == APP_VERSION_TU10X) {
+			app_version == APP_VERSION_TU10X ||
+			app_version == APP_VERSION_NVGPU_NEXT) {
 			fw_ops->get_init_msg_ptr =
 				pmu_get_init_msg_ptr_v5;
 			fw_ops->get_init_msg_sw_mngd_area_off =
