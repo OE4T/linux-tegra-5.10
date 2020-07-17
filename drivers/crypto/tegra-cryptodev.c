@@ -386,7 +386,9 @@ static int process_crypt_req(struct tegra_crypto_ctx *ctx,
 			goto process_req_buf_out;
 		}
 
-		if (strcmp(driver_name, "cbc-aes-tegra-safety") == 0 && crypt_req->encrypt)
+		if (((strcmp(driver_name, "cbc-aes-tegra-safety") == 0)
+				|| (strcmp(driver_name, "ctr-aes-tegra-safety") == 0))
+			&& crypt_req->encrypt)
 			memcpy(crypt_req->iv, req->iv, AES_IV_SIZE);
 
 		ret = copy_to_user((void __user *)crypt_req->result,

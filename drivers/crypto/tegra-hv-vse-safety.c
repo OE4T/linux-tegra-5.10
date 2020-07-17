@@ -1279,8 +1279,7 @@ void tegra_hv_vse_safety_prpare_cmd(struct tegra_virtual_se_dev *se_dev,
 		memcpy(aes->op.lctr, req->iv,
 				TEGRA_VIRTUAL_SE_AES_LCTR_SIZE);
 		if (req_ctx->op_mode == AES_CTR)
-			aes->op.ctr_cntn =
-					TEGRA_VIRTUAL_SE_AES_LCTR_CNTN;
+			aes->op.ctr_cntn = TEGRA_VIRTUAL_SE_AES_LCTR_CNTN;
 		else if (req_ctx->op_mode == AES_CBC)
 			aes->op.ivsel = AES_IV_REG;
 		else
@@ -1337,7 +1336,9 @@ static void complete_call_back(void *data)
 				buf, req->cryptlen);
 		buf += req->cryptlen;
 
-		if (req_ctx->op_mode == AES_CBC && req_ctx->encrypt == true)
+		if (((req_ctx->op_mode == AES_CBC)
+					|| (req_ctx->op_mode == AES_CTR))
+				&& req_ctx->encrypt == true)
 			memcpy(req->iv, priv->iv[k], TEGRA_VIRTUAL_SE_AES_IV_SIZE);
 
 		err = status_to_errno(priv->rx_status[k]);
@@ -2343,7 +2344,7 @@ static struct skcipher_alg aes_algs[] = {
 	},
 	{
 		.base.cra_name		= "ctr(aes)",
-		.base.cra_driver_name	= "ctr-aes-tegra",
+		.base.cra_driver_name	= "ctr-aes-tegra-safety",
 		.base.cra_priority	= 400,
 		.base.cra_flags		= CRYPTO_ALG_TYPE_SKCIPHER |
 					  CRYPTO_ALG_ASYNC,
