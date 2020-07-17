@@ -119,8 +119,8 @@
 #define TEGRA234_CLK_HDA2HDMICODEC		45U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_HOST1X */
 #define TEGRA234_CLK_HOST1X			46U
-/** @brief Obselete - maintained for ABI compatibility */
-#define TEGRA234_CLK_HSIC_TRK			47U
+/** @brief xusb_hs_hsicp_clk */
+#define TEGRA234_CLK_XUSB_HS_HSICP		47U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2C1 */
 #define TEGRA234_CLK_I2C1			48U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2C2 */
@@ -157,7 +157,7 @@
 #define TEGRA234_CLK_I2S5			64U
 /** @brief clock recovered from I2S5 input */
 #define TEGRA234_CLK_I2S5_SYNC_INPUT		65U
-/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2C6 */
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2S6 */
 #define TEGRA234_CLK_I2S6			66U
 /** @brief clock recovered from I2S6 input */
 #define TEGRA234_CLK_I2S6_SYNC_INPUT		67U
@@ -429,7 +429,7 @@
 /** @brief NAFLL clock source for TSEC */
 #define TEGRA234_CLK_NAFLL_TSEC			201U
 /** @brief NAFLL clock source for TSECB */
-#define TEGRA234_CLK_NAFLL_TSECB		202U
+#define TEGRA234_CLK_NAFLL_TSECB		202U /* TODO: remove */
 /** @brief NAFLL clock source for VI */
 #define TEGRA234_CLK_NAFLL_VI			203U
 /** @brief NAFLL clock source for SE */
@@ -441,7 +441,7 @@
 /** @brief NAFLL clock source for VIC */
 #define TEGRA234_CLK_NAFLL_VIC			207U
 /** @brief NAFLL clock source for NVDISPLAYHUB */
-#define TEGRA234_CLK_NAFLL_NVDISPLAYHUB		208U
+#define TEGRA234_CLK_NAFLL_NVDISPLAYHUB		208U /* TODO: remove */
 /** @brief NAFLL clock source for AXICBB */
 #define TEGRA234_CLK_NAFLL_AXICBB		209U
 /** @brief NAFLL clock source for NVJPG1 */
@@ -451,14 +451,16 @@
 /** @brief NAFLL clock source for PVA_VPS */
 #define TEGRA234_CLK_NAFLL_PVA_VPS		212U
 /** @brief NAFLL clock source for CVNAS */
-#define TEGRA234_CLK_NAFLL_CVNAS		213U
+#define TEGRA234_CLK_NAFLL_CVNAS		213U /* TODO: remove */
 /** @brief NAFLL clock source for RCE */
 #define TEGRA234_CLK_NAFLL_RCE			214U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_LA switch divider output (la_r_clk) */
+#define TEGRA234_CLK_LA				215U
 
 #define TEGRA234_CLK_UNUSED_216			216U
 
 /** @brief NAFLL clock source for GPU */
-#define TEGRA234_CLK_NAFLL_GPU			218U
+#define TEGRA234_CLK_NAFLL_GPU			218U /* TODO: remove */
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_SDMMC_LEGACY_TM switch divider output */
 #define TEGRA234_CLK_SDMMC_LEGACY_TM		219U
 /** @brief output of gate CLK_ENB_PEX0_CORE_0 */
@@ -588,7 +590,7 @@
 /** @brief NAFLL clock source for CPU cluster 2 */
 #define TEGRA234_CLK_NAFLL_CLUSTER2		282U
 /** @brief NAFLL clock source for CPU cluster 3 */
-#define TEGRA234_CLK_NAFLL_CLUSTER3		283U
+#define TEGRA234_CLK_NAFLL_CLUSTER3		283U /* TODO: remove */
 /** @brief CLK_RST_CONTROLLER_CAN1_CORE_RATE divider output */
 #define TEGRA234_CLK_CAN1_CORE			284U
 /** @brief CLK_RST_CONTROLLER_CAN2_CORE_RATE divider outputt */
@@ -627,7 +629,8 @@
 #define TEGRA234_CLK_UTMIPLL_HPS		304U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2C5 */
 #define TEGRA234_CLK_I2C5			305U
-
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_SE switch divider free running clk */
+#define TEGRA234_CLK_FR_SE			306U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_BPMP_CPU_NIC switch divider output */
 #define TEGRA234_CLK_BPMP_CPU_NIC		307U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_BPMP_APB switch divider output */
@@ -676,18 +679,18 @@
 #define TEGRA234_CLK_SOC_THERM			329U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_TSENSOR switch divider output */
 #define TEGRA234_CLK_TSENSOR			330U
-/** @brief CLK_RST_CONTROLLER_CLK_OUT_ENB_XUSB_0.CLK_ENB_XUSB gate */
-#define TEGRA234_CLK_XUSB_PADCTL		331U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_SEU1 switch divider free running clk */
+#define TEGRA234_CLK_FR_SEU1			331U
 /** @brief PLL controlled by CLK_RST_CONTROLLER_PLLBPMPCAM_BASE */
 #define TEGRA234_CLK_PLLBPMPCAM			332U
 /** @brief NAFLL clock source for OFA */
 #define TEGRA234_CLK_NAFLL_OFA			333U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_OFA switch divider output */
 #define TEGRA234_CLK_OFA			334U
-/** @brief NAFLL clock source for SE1 */
-#define TEGRA234_CLK_NAFLL_SE1			335U
-/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_SE1 switch divider gated output */
-#define TEGRA234_CLK_SE1			336U
+/** @brief NAFLL clock source for SEU1 */
+#define TEGRA234_CLK_NAFLL_SEU1			335U
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_SEU1 switch divider gated output */
+#define TEGRA234_CLK_SEU1			336U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_SPI4 */
 #define TEGRA234_CLK_SPI4			337U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_SPI5 */
@@ -810,8 +813,42 @@
 #define TEGRA234_CLK_NVHS_PLL1_MGMT		416U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_EMCHUB mux output */
 #define TEGRA234_CLK_EMCHUB			417U
+/** @brief clock recovered from I2S7 input */
+#define TEGRA234_CLK_I2S7_SYNC_INPUT		418U
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_AUDIO_SYNC_CLK_I2S7 */
+#define TEGRA234_CLK_SYNC_I2S7			419U
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2S7 */
+#define TEGRA234_CLK_I2S7			420U
+/** @brief Monitored output of I2S7 pad macro mux */
+#define TEGRA234_CLK_I2S7M			421U
+/** @brief clock recovered from I2S8 input */
+#define TEGRA234_CLK_I2S8_SYNC_INPUT		422U
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_AUDIO_SYNC_CLK_I2S8 */
+#define TEGRA234_CLK_SYNC_I2S8			423U
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2S8 */
+#define TEGRA234_CLK_I2S8			424U
+/** @brief Monitored output of I2S8 pad macro mux */
+#define TEGRA234_CLK_I2S8M			425U
+/** @brief NAFLL clock source for GPU GPC0 */
+#define TEGRA234_CLK_NAFLL_GPC0			426U
+/** @brief NAFLL clock source for GPU GPC1 */
+#define TEGRA234_CLK_NAFLL_GPC1			427U
+/** @brief NAFLL clock source for GPU SYSCLK */
+#define TEGRA234_CLK_NAFLL_GPUSYS		428U
+/** @brief NAFLL clock source for CPU cluster 0 DSUCLK */
+#define TEGRA234_CLK_NAFLL_DSU0			429U
+/** @brief NAFLL clock source for CPU cluster 1 DSUCLK */
+#define TEGRA234_CLK_NAFLL_DSU1			430U
+/** @brief NAFLL clock source for CPU cluster 2 DSUCLK */
+#define TEGRA234_CLK_NAFLL_DSU2			431U
+/** @brief output of gate CLK_ENB_SCE_CPU */
+#define TEGRA234_CLK_SCE_CPU			432U
+/** @brief output of gate CLK_ENB_RCE_CPU */
+#define TEGRA234_CLK_RCE_CPU			433U
+/** @brief output of gate CLK_ENB_DCE_CPU */
+#define TEGRA234_CLK_DCE_CPU			434U
 
-#define TEGRA234_MAX_PUBLIC_CLK_ID		417U
+#define TEGRA234_MAX_PUBLIC_CLK_ID		434U
 
 /** @} */
 
@@ -825,5 +862,7 @@
 #define TEGRA234_CLK_DLA1_FALCON_MUX		TEGRA234_CLK_DLA1_FALCON
 #define TEGRA234_CLK_QSPI0			TEGRA234_CLK_QSPI0_2X_PM
 #define TEGRA234_CLK_QSPI1			TEGRA234_CLK_QSPI1_2X_PM
+#define TEGRA234_CLK_NAFLL_SE1			TEGRA234_CLK_NAFLL_SEU1
+#define TEGRA234_CLK_SE1			TEGRA234_CLK_SEU1
 
 #endif
