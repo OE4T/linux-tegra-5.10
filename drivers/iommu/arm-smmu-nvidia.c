@@ -262,7 +262,7 @@ struct arm_smmu_device *nvidia_smmu_impl_init(struct arm_smmu_device *smmu)
 		nsmmu->num_inst);
 
 #ifdef CONFIG_ARM_SMMU_DEBUG
-	arm_smmu_debugfs_setup(smmu, nsmmu->num_inst, nsmmu->bases);
+	arm_smmu_debugfs_setup_bases(&nsmmu->smmu, nsmmu->num_inst, nsmmu->bases);
 #endif
 
 	return &nsmmu->smmu;

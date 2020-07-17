@@ -1936,6 +1936,9 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 		dev_notice(smmu->dev, "\tStage-2: %lu-bit IPA -> %lu-bit PA\n",
 			   smmu->ipa_size, smmu->pa_size);
 
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	arm_smmu_debugfs_setup_cfg(smmu);
+#endif
 	if (smmu->impl && smmu->impl->cfg_probe)
 		return smmu->impl->cfg_probe(smmu);
 
