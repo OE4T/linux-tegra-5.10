@@ -310,10 +310,14 @@ static void arm_smmu_tlb_sync_context(struct arm_smmu_domain *smmu_domain)
 static void arm_smmu_tlb_inv_context_s1(void *cookie)
 {
 	struct arm_smmu_domain *smmu_domain = cookie;
+#ifdef CONFIG_TRACEPOINTS
+	struct arm_smmu_device *smmu = smmu_domain->smmu;
+#endif
 	u64 time_before = 0;
 
 #ifdef CONFIG_TRACEPOINTS
-	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key))
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key)
+		&& test_bit(smmu_domain->cfg.cbndx, smmu->debug_info->context_filter))
 		time_before = local_clock();
 #endif
 	/*
@@ -337,7 +341,9 @@ static void arm_smmu_tlb_inv_context_s2(void *cookie)
 	u64 time_before = 0;
 
 #ifdef CONFIG_TRACEPOINTS
-	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key))
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key)
+		&& test_bit(smmu_domain->cfg.cbndx,
+					smmu->debug_info->context_filter))
 		time_before = local_clock();
 #endif
 
@@ -361,7 +367,8 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 	u64 time_before = 0;
 
 #ifdef CONFIG_TRACEPOINTS
-	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_range.key))
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_range.key)
+		&& test_bit(cfg->cbndx, smmu->debug_info->context_filter))
 		time_before = local_clock();
 #endif
 
@@ -1264,7 +1271,8 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 			phys_addr_t paddr, size_t size, int prot, gfp_t gfp,
 			struct iommu_iotlb_gather *gather)
 {
-	struct io_pgtable_ops *ops = to_smmu_domain(domain)->pgtbl_ops;
+	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+	struct io_pgtable_ops *ops = smmu_domain->pgtbl_ops;
 	struct arm_smmu_device *smmu = to_smmu_domain(domain)->smmu;
 	u64 time_before = 0;
 	int ret;
@@ -1273,7 +1281,9 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 		return -ENODEV;
 
 #ifdef CONFIG_TRACEPOINTS
-	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key))
+	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key)
+		&& test_bit(smmu_domain->cfg.cbndx,
+				smmu_domain->smmu->debug_info->context_filter))
 		time_before = local_clock();
 #endif
 
@@ -1291,7 +1301,8 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 static size_t arm_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 			     size_t size, struct iommu_iotlb_gather *gather)
 {
-	struct io_pgtable_ops *ops = to_smmu_domain(domain)->pgtbl_ops;
+	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+	struct io_pgtable_ops *ops = smmu_domain->pgtbl_ops;
 	struct arm_smmu_device *smmu = to_smmu_domain(domain)->smmu;
 	u64 time_before = 0;
 	size_t ret;
@@ -1300,7 +1311,9 @@ static size_t arm_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 		return 0;
 
 #ifdef CONFIG_TRACEPOINTS
-	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key))
+	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key)
+		&& test_bit(smmu_domain->cfg.cbndx,
+				smmu_domain->smmu->debug_info->context_filter))
 		time_before = local_clock();
 #endif
 
