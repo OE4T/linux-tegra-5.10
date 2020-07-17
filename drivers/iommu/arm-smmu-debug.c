@@ -490,7 +490,7 @@ static void arm_smmu_debugfs_create(struct smmu_debugfs_info *info)
 	arm_smmu_regs_debugfs_create(info);
 }
 
-void arm_smmu_debugfs_setup(struct arm_smmu_device *smmu, u32 num_smmus,
+void arm_smmu_debugfs_setup_bases(struct arm_smmu_device *smmu, u32 num_smmus,
 			    void __iomem *bases[])
 {
 	struct smmu_debugfs_info *info;
@@ -506,16 +506,26 @@ void arm_smmu_debugfs_setup(struct arm_smmu_device *smmu, u32 num_smmus,
 	info->base 		= smmu->base;
 	for (i = 0; i < num_smmus; i++)
 		info->bases[i] 	= bases[i];
+	info->num_smmus		= num_smmus;
+	info->max_cbs		= ARM_SMMU_MAX_CBS;
+
+	smmu->debug_info = info;
+}
+
+void arm_smmu_debugfs_setup_cfg(struct arm_smmu_device *smmu)
+{
+	struct smmu_debugfs_info *info = smmu->debug_info;
+
+	if (info == NULL) {
+		dev_err(smmu->dev, "Debugfs cfg setup fail\n");
+		return;
+	}
 	info->size 		= smmu->numpage;
 	info->num_context_banks = smmu->num_context_banks;
-	info->num_smmus		= num_smmus;
 	info->pgshift		= smmu->pgshift;
-	info->max_cbs		= ARM_SMMU_MAX_CBS;
 	info->streamid_mask	= smmu->streamid_mask;
 
 	arm_smmu_debugfs_create(info);
-
-	smmu->debug_info = info;
 }
 
 static int smmu_master_show(struct seq_file *s, void *unused)
