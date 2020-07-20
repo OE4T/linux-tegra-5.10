@@ -1390,7 +1390,12 @@ int __init nvmap_probe(struct platform_device *pdev)
 				"dont-convert-iovmm-to-carveout"))
 			nvmap_convert_iovmm_to_carveout = 1;
 	} else {
+		/*
+		 * Enable BUG_ON for K-5.9. Bug: 200638870
+		 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		BUG_ON(!iommu_present(&platform_bus_type));
+#endif
 		nvmap_convert_carveout_to_iovmm = 1;
 	}
 
