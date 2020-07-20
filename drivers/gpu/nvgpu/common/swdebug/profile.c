@@ -44,6 +44,20 @@ static inline u32 matrix_to_linear_index(struct nvgpu_swprofiler *p,
 	return (row * p->psample_len) + col;
 }
 
+/*
+ * Just check the samples field; it'll be allocated for an enabled profiler.
+ * This is an intrisically racy call; don't rely on it to determine whether the
+ * underlying pointers/fields really are initialized or not.
+ *
+ * However, since this doesn't take the profiler lock, if you use it under the
+ * profiler lock, you can be sure the state won't change while you hold the
+ * lock.
+ */
+bool nvgpu_swprofile_is_enabled(struct nvgpu_swprofiler *p)
+{
+	return p->samples != NULL;
+}
+
 void nvgpu_swprofile_initialize(struct gk20a *g,
 				struct nvgpu_swprofiler *p,
 				const char *col_names[])

@@ -130,6 +130,24 @@ int nvgpu_swprofile_open(struct gk20a *g, struct nvgpu_swprofiler *p);
 void nvgpu_swprofile_close(struct nvgpu_swprofiler *p);
 
 /**
+ * @brief Check if a profiler is enabled.
+ *
+ * @param[in] p  The profiler to check.
+ *
+ * Returns true if the profiler is currently enabled. Do not rely on this
+ * to ensure that the underlying data and fields remain initialized. This does
+ * not take the profiler's lock.
+ *
+ * However, you can rely on the profiler's state not changing if you take the
+ * profiler's lock before calling this. In that scenario the profiler's state
+ * (but not necessarily the actual data) will be unchanged until you release
+ * the lock.
+ *
+ * @return %true if the profiler is enabled; %false otherwise.
+ */
+bool nvgpu_swprofile_is_enabled(struct nvgpu_swprofiler *p);
+
+/**
  * @brief Begin a series of timestamp samples.
  *
  * @param[in] p  The profiler to start sampling with.

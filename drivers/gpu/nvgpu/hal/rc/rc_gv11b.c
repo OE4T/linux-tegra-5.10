@@ -232,7 +232,9 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 #endif
 
 	if (rc_type == RC_TYPE_MMU_FAULT) {
-		gk20a_debug_dump(g);
+		if (!nvgpu_swprofile_is_enabled(prof)) {
+			gk20a_debug_dump(g);
+		}
 #ifdef CONFIG_NVGPU_DEBUGGER
 		client_type = mmufault->client_type;
 #endif
