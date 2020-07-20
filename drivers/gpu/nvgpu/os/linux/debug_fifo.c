@@ -150,6 +150,10 @@ void gk20a_fifo_debugfs_init(struct gk20a *g)
 	debugfs_create_file("sched", 0600, fifo_root, g,
 		&gk20a_fifo_sched_debugfs_fops);
 
-	nvgpu_debugfs_swprofile_init(g, fifo_root, &g->fifo.kickoff_profiler, "kickoff_profiler");
-	nvgpu_debugfs_swprofile_init(g, fifo_root, &g->fifo.recovery_profiler, "recovery_profiler");
+	nvgpu_debugfs_swprofile_init(g, fifo_root, &g->fifo.kickoff_profiler,
+				     "kickoff_profiler");
+	nvgpu_debugfs_swprofile_init(g, fifo_root, &g->fifo.recovery_profiler,
+				     "recovery_profiler");
+	nvgpu_debugfs_swprofile_init(g, fifo_root, &g->fifo.eng_reset_profiler,
+				     "eng_reset_profiler");
 }

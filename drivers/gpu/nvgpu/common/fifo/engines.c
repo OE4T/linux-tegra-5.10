@@ -43,6 +43,9 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/gops_mc.h>
+#include <nvgpu/swprofile.h>
+
+#include <nvgpu/fifo/swprofile.h>
 
 #define FECS_METHOD_WFI_RESTORE	0x80000U
 
@@ -551,12 +554,15 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 {
 	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL;
 	struct nvgpu_engine_info *engine_info;
+	struct nvgpu_swprofiler *prof = &g->fifo.eng_reset_profiler;
 
 	nvgpu_log_fn(g, " ");
 
 	if (g == NULL) {
 		return;
 	}
+
+	nvgpu_swprofile_begin_sample(prof);
 
 	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
 
@@ -568,12 +574,15 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 		nvgpu_err(g, "unsupported engine_id %d", engine_id);
 	}
 
+	nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_PREAMBLE);
+
 	if (engine_enum == NVGPU_ENGINE_GR) {
 #ifdef CONFIG_NVGPU_POWER_PG
 		if (nvgpu_pg_elpg_disable(g) != 0 ) {
 			nvgpu_err(g, "failed to set disable elpg");
 		}
 #endif
+		nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_ELPG_DISABLE);
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 		/*
@@ -586,6 +595,9 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 			}
 		}
 #endif
+
+		nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_FECS_TRACE_RESET);
+
 		if (!nvgpu_platform_is_simulation(g)) {
 			int err = 0;
 
@@ -595,6 +607,8 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 			if (err != 0) {
 				nvgpu_err(g, "failed to halt gr pipe");
 			}
+
+			nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_HALT_PIPELINE);
 
 			/*
 			 * resetting engine using mc_enable_r() is not
@@ -606,6 +620,7 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 			if (err != 0) {
 				nvgpu_err(g, "failed to reset gr engine");
 			}
+			nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_GR_RESET);
 		} else {
 			nvgpu_log(g, gpu_dbg_info,
 				"HALT gr pipe not supported and "
@@ -618,6 +633,8 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 		}
 #endif
 	}
+
+	nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_ELPG_REENABLE);
 
 	if ((engine_enum == NVGPU_ENGINE_GRCE) ||
 		(engine_enum == NVGPU_ENGINE_ASYNC_CE)) {

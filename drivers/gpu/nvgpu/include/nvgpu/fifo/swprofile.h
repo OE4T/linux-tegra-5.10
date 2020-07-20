@@ -73,5 +73,24 @@
 #define PROF_RECOVERY_ENABLE_RL			7U
 #define PROF_RECOVERY_DONE			8U
 
+/*
+ * Engine reset profiling - essentially part of the recovery sequence. This
+ * is a big portion of the time spent in recovery.
+ */
+#define NVGPU_FIFO_ENGINE_RESET_EVENTS		\
+	"preamble",				\
+	"elpg_disable",				\
+	"fecs_trace_reset",			\
+	"halt_pipeline",			\
+	"gr_reset",				\
+	"elpg_reenable",			\
+	NULL
+
+#define PROF_ENG_RESET_PREAMBLE			0U
+#define PROF_ENG_RESET_ELPG_DISABLE		1U
+#define PROF_ENG_RESET_FECS_TRACE_RESET		2U
+#define PROF_ENG_RESET_HALT_PIPELINE		3U
+#define PROF_ENG_RESET_GR_RESET			4U
+#define PROF_ENG_RESET_ELPG_REENABLE		5U
 
 #endif

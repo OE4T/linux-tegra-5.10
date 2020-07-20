@@ -290,6 +290,7 @@ struct nvgpu_fifo {
 
 	struct nvgpu_swprofiler kickoff_profiler;
 	struct nvgpu_swprofiler recovery_profiler;
+	struct nvgpu_swprofiler eng_reset_profiler;
 
 #ifdef CONFIG_NVGPU_USERD
 	struct nvgpu_mutex userd_mutex;
