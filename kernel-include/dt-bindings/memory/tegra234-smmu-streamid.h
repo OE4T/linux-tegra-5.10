@@ -117,4 +117,19 @@
 #define TEGRA_SID_EQOS_VF3     0x67
 #define TEGRA_SID_EQOS_VF4     0x68
 
+/* SE data buffers */
+#define TEGRA_SID_SE_VM0	0x69U
+#define TEGRA_SID_SE_VM1	0x6AU
+#define TEGRA_SID_SE_VM2	0x6BU
+
+/* The GPC DMA clients. */
+#define TEGRA_SID_GPCDMA_1	0x6CU
+#define TEGRA_SID_GPCDMA_2	0x6DU
+#define TEGRA_SID_GPCDMA_3	0x6EU
+#define TEGRA_SID_GPCDMA_4	0x6FU
+
+#define TEGRA_SID_RCE_VM2	0x70U
+
+#define TEGRA_SID_VI_VM2	0x71U
+
 #endif /* _DT_BINDINGS_MEMORY_TEGRA234_SMMU_STREAMID_H */

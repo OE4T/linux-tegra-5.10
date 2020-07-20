@@ -71,7 +71,7 @@
                         /delete-property/ iso-smmu;
 		};
 
-		vi1: vi1@14c0000 {
+		vi1: vi1@14c00000 {
                         /delete-property/ iommus;
                         /delete-property/ iso-smmu;
 		};
