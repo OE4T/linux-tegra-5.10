@@ -569,7 +569,7 @@ struct nvhost_device_data t23x_nvdla0_info = {
 	.engine_can_cg		= true,
 	.can_powergate		= false,
 	.icc_id			= TEGRA_ICC_DLA_0,
-	.transcfg_addr		= 0x0444,
+	.transcfg_addr		= 0x1444,
 	.transcfg_val		= 0x20,
 	.firmware_not_in_subdir = true,
 };
@@ -600,7 +600,7 @@ struct nvhost_device_data t23x_nvdla1_info = {
 	.engine_can_cg		= true,
 	.can_powergate		= false,
 	.icc_id			= TEGRA_ICC_DLA_1,
-	.transcfg_addr		= 0x0444,
+	.transcfg_addr		= 0x1444,
 	.transcfg_val		= 0x20,
 	.firmware_not_in_subdir = true,
 };
