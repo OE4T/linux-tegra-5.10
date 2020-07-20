@@ -73,7 +73,7 @@
 					<&bpmp_clks TEGRA234_CLK_HDA2CODEC_2X>,
 					<&bpmp_clks TEGRA234_CLK_HDA2HDMICODEC>,
 					<&bpmp_clks TEGRA234_CLK_HOST1X>,
-					<&bpmp_clks TEGRA234_CLK_HSIC_TRK>,
+					<&bpmp_clks TEGRA234_CLK_XUSB_HS_HSICP>,
 					<&bpmp_clks TEGRA234_CLK_I2C1>,
 					<&bpmp_clks TEGRA234_CLK_I2C2>,
 					<&bpmp_clks TEGRA234_CLK_I2C3>,
