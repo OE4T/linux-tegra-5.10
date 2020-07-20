@@ -173,6 +173,10 @@ enum nvgpu_profiler_pm_reservation_scope;
 
 #include "hal/clk/clk_gk20a.h"
 
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
+#include "include/nvgpu/nvgpu_next_gops_grmgr.h"
+#endif
+
 #ifdef CONFIG_DEBUG_FS
 struct railgate_stats {
 	unsigned long last_rail_gate_start;
@@ -636,6 +640,11 @@ struct gpu_ops {
 	} tpc;
 #endif
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
+
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
+	struct gops_grmgr grmgr;
+#endif
+
 };
 
 /**

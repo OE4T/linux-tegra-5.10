@@ -143,6 +143,10 @@ struct gops_priv_ring {
 	void (*decode_error_code)(struct gk20a *g, u32 error_code);
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
+#if defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_priv_ring.h"
+#endif
+
 };
 
 #endif /* NVGPU_GOPS_PRIV_RING_H */

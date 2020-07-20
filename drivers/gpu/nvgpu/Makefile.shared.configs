@@ -291,6 +291,10 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_TEGRA_GR_VIRTUALIZATION_SERVER
 CONFIG_NVGPU_SM_DIVERSITY            := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SM_DIVERSITY
 
+# Enable Multi Instance GPU support for normal build
+CONFIG_NVGPU_MIG                     := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_MIG
+
 endif
 endif
 
