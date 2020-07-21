@@ -35,7 +35,7 @@
 
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
-u32 gk20a_runlist_count_max(void)
+u32 gk20a_runlist_count_max(struct gk20a *g)
 {
 	return fifo_eng_runlist_base__size_1_v();
 }

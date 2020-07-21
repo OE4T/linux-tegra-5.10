@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,8 @@
 #define NVGPU_RUNLIST_FIFO_GV100_H
 
 #include <nvgpu/types.h>
+struct gk20a;
 
-u32 gv100_runlist_count_max(void);
+u32 gv100_runlist_count_max(struct gk20a *g);
 
 #endif /* NVGPU_RUNLIST_FIFO_GV100_H */

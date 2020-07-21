@@ -806,7 +806,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 
 	f->runlist_entry_size = g->ops.runlist.entry_size(g);
 	f->num_runlist_entries = g->ops.runlist.length_max(g);
-	f->max_runlists = g->ops.runlist.count_max();
+	f->max_runlists = g->ops.runlist.count_max(g);
 	f->runlist_info = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(
 				sizeof(*f->runlist_info), f->max_runlists));
 	if (f->runlist_info == NULL) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,11 @@
 #include <nvgpu/types.h>
 
 struct nvgpu_channel;
+struct gk20a;
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 int gv11b_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next);
 #endif
-u32 gv11b_runlist_count_max(void);
+u32 gv11b_runlist_count_max(struct gk20a *g);
 
 #endif /* NVGPU_RUNLIST_FIFO_GV11B_H */

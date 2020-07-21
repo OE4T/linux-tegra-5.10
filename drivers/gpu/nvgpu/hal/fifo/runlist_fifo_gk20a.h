@@ -35,7 +35,7 @@ int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 		bool wait_preempt);
 #endif
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-u32 gk20a_runlist_count_max(void);
+u32 gk20a_runlist_count_max(struct gk20a *g);
 #endif
 
 u32 gk20a_runlist_length_max(struct gk20a *g);

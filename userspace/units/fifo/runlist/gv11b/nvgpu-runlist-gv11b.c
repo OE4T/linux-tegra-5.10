@@ -160,7 +160,7 @@ done:
 int test_gv11b_runlist_count_max(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	if (gv11b_runlist_count_max() != fifo_eng_runlist_base__size_1_v()) {
+	if (gv11b_runlist_count_max(g) != fifo_eng_runlist_base__size_1_v()) {
 		unit_return_fail(m, "runlist count max value incorrect\n");
 	}
 

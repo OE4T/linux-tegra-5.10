@@ -238,6 +238,7 @@ struct railgate_stats {
 #define GPU_LIT_SM_SHARED_BASE			46
 #define GPU_LIT_GPC_ADDR_WIDTH			47
 #define GPU_LIT_TPC_ADDR_WIDTH			48
+#define GPU_LIT_MAX_RUNLISTS_SUPPORTED		49
 
 #define nvgpu_get_litter_value(g, v) ((g)->ops.get_litter_value((g), v))
 

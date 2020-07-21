@@ -73,7 +73,7 @@ struct gops_runlist {
 	int (*update_for_channel)(struct gk20a *g, u32 runlist_id,
 			struct nvgpu_channel *ch, bool add,
 			bool wait_for_finish);
-	u32 (*count_max)(void);
+	u32 (*count_max)(struct gk20a *g);
 	u32 (*entry_size)(struct gk20a *g);
 	u32 (*length_max)(struct gk20a *g);
 	void (*get_tsg_entry)(struct nvgpu_tsg *tsg,

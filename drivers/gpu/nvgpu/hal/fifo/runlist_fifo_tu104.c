@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,8 +27,9 @@
 #include "runlist_fifo_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_fifo_tu104.h>
+struct gk20a;
 
-u32 tu104_runlist_count_max(void)
+u32 tu104_runlist_count_max(struct gk20a *g)
 {
 	return fifo_runlist_base_lo__size_1_v();
 }
