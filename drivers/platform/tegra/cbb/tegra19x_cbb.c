@@ -598,7 +598,8 @@ static struct tegra_cbb_noc_data tegra194_cbb_central_noc_data = {
 	.is_ax2apb_bridge_connected = 1,
 	.is_clk_rst = false,
 	.erd_mask_inband_err = true,
-	.off_erd_err_config = 0x120c
+	.off_mask_erd = 0x120c,
+	.tegra_cbb_noc_set_erd = tegra_miscreg_set_erd
 };
 
 static struct tegra_cbb_noc_data tegra194_aon_noc_data = {
@@ -802,6 +803,7 @@ static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 	cbb_init_data->secure_irq = errlog->noc_secure_irq;
 	cbb_init_data->nonsecure_irq = errlog->noc_nonsecure_irq;
 	cbb_init_data->vaddr = errlog->vaddr;
+	cbb_init_data->addr_mask_erd = bdata->off_mask_erd;
 
 	platform_set_drvdata(pdev, errlog);
 

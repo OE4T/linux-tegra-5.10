@@ -306,7 +306,7 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 
 	if (bdata->erd_mask_inband_err) {
 		/* set Error Response Disable to mask SError/inband errors */
-		ret = tegra_set_erd(bdata->off_erd_err_config);
+		ret = bdata->tegra_cbb_noc_set_erd(cbb_init_data.addr_mask_erd);
 		if (ret) {
 			dev_err(&pdev->dev, "couldn't mask inband errors\n");
 			return ret;

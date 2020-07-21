@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -117,7 +117,8 @@ struct tegra_cbb_noc_data {
 	int  apb_bridge_cnt;
 	bool is_clk_rst;
 	bool erd_mask_inband_err;
-	u64  off_erd_err_config;
+	u64  off_mask_erd;
+	int  (*tegra_cbb_noc_set_erd)(u64 err_config);
 	int  (*is_cluster_probed)(void);
 	int  (*is_clk_enabled)(void);
 	int  (*tegra_noc_en_clk_rpm)(void);
@@ -131,6 +132,7 @@ struct tegra_cbb_init_data {
 	int secure_irq;
 	int nonsecure_irq;
 	void __iomem *vaddr;
+	u64  addr_mask_erd;
 	int num;
 };
 
