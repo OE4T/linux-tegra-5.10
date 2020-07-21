@@ -1162,21 +1162,45 @@ static void tegra_nvdisp_init_imp_mc_caps(void)
 		mc_caps->request_batch_size = 32;
 }
 
-static void tegra_nvdisp_init_common_imp_data(void)
+static void tegra_nvdisp_init_common_imp_data(struct tegra_dc *dc)
 {
 	struct mrq_emc_dvfs_latency_response *emc_dvfs_table =
 							&g_imp.emc_dvfs_table;
 	uint32_t cur_max_latency = 0;
 	int i;
 	int ret;
+#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE
+	struct tegra_bpmp *bpmp_dev;
+	struct tegra_bpmp_message msg;
+#endif
 
 	INIT_LIST_HEAD(&g_imp.imp_settings_queue);
 
 	tegra_nvdisp_init_imp_wqs();
-
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	ret = tegra_bpmp_send_receive(MRQ_EMC_DVFS_LATENCY, NULL, 0,
 			emc_dvfs_table,
 			sizeof(*emc_dvfs_table));
+#else
+	bpmp_dev = tegra_bpmp_get(&dc->ndev->dev);
+	if (IS_ERR(bpmp_dev)) {
+		pr_err("%s: bpmp_get failed\n", __func__);
+		ret = -ENODEV;
+	} else {
+		memset(&msg, 0, sizeof(msg));
+		msg.mrq = MRQ_EMC_DVFS_LATENCY;
+		msg.tx.data = NULL;
+		msg.tx.size = 0;
+		msg.rx.data = emc_dvfs_table;
+		msg.rx.size = sizeof(*emc_dvfs_table);
+
+		ret = tegra_bpmp_transfer(bpmp_dev, &msg);
+		if (ret < 0) {
+			pr_err("%s: MRQ_EMC_DVFS_LATENCY failed\n", __func__);
+		}
+	}
+#endif
+
 	if (ret != 0) {
 		pr_warn("%s: IPC failed: %d\n", __func__, ret);
 		emc_dvfs_table->num_pairs = 0;
@@ -1291,7 +1315,7 @@ static int _tegra_nvdisp_init_once(struct tegra_dc *dc)
 	}
 #endif
 
-	tegra_nvdisp_init_common_imp_data();
+	tegra_nvdisp_init_common_imp_data(dc);
 	tegra_nvdisp_crc_region_init();
 
 	dc->valid_windows = 0;

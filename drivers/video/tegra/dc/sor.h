@@ -25,7 +25,6 @@
 #endif
 #include <linux/clk/tegra.h>
 #include <linux/reset.h>
-#include <soc/tegra/tegra_bpmp.h>
 #include <linux/rwsem.h>
 #include <linux/delay.h>
 #include <uapi/video/tegra_dc_ext.h>

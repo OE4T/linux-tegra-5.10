@@ -28,7 +28,13 @@
 #include <soc/tegra/tegra_powergate.h>
 #include <uapi/video/tegra_dc_ext.h>
 #include <video/tegra_dc_ext_kernel.h>
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/bpmp_abi.h>
 #include <soc/tegra/tegra_bpmp.h>
+#else
+#include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/bpmp.h>
+#endif
 
 #include <linux/clk-provider.h>
 

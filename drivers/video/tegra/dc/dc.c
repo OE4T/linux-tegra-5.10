@@ -69,7 +69,6 @@ EXPORT_TRACEPOINT_SYMBOL(display_readl);
 #include <uapi/linux/nvhost_ioctl.h>
 #include <linux/platform/tegra/latency_allowance.h>
 #include <linux/platform/tegra/mc.h>
-#include <soc/tegra/tegra_bpmp.h>
 #include <uapi/video/tegra_dc_ext.h>
 
 #include "dc.h"
