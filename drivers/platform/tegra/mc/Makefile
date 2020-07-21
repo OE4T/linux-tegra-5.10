@@ -16,7 +16,6 @@ obj-y                                   += mcerr-t21.o
 obj-y                                   += latency_allowance.o
 obj-y                                   += tegra21x_la.o
 
-obj-$(CONFIG_ARCH_TEGRA_19x_SOC)        += tegra19x_la_ptsa_core.o tegra19x_la_ptsa.o
 obj-y                                   += fixed_point.o
 obj-$(CONFIG_TEGRA_ISOMGR)              += isomgr.o isomgr-pre_t19x.o isomgr-t19x.o
 obj-$(CONFIG_TEGRA_BWMGR)               += emc_bwmgr.o
@@ -32,10 +31,10 @@ obj-$(CONFIG_ARCH_TEGRA_18x_SOC)        += tegra186-mc-sid.o
 
 obj-y					+= tegra_fd.o
 
-ifdef CONFIG_ARCH_TEGRA_19x_SOC
-
+ifneq (,$(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)))
 ccflags-y += -Werror
 
+obj-y += tegra19x_la_ptsa_core.o tegra19x_la_ptsa.o
 obj-y += tegra194-mc-sid.o
 obj-y += mcerr-t19x.o
 
