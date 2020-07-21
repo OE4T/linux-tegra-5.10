@@ -268,11 +268,19 @@ static struct isoclient_info tegra18x_isoclients[] = {
 
 static struct isoclient_info *get_iso_client_info(int *length)
 {
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	enum tegra_chipid cid;
+#else
+	u8 cid;
+#endif
 	struct isoclient_info *cinfo;
 	int i, len;
 
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+	cid = tegra_get_chipid();
+#else
 	cid = tegra_get_chip_id();
+#endif
 	switch (cid) {
 	case TEGRA114:
 		cinfo = tegra11x_isoclients;
