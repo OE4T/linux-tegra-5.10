@@ -100,6 +100,7 @@ static struct host1x_device_info host1x04_info = {
 	.nb_pts		= NV_HOST1X_SYNCPT_NB_PTS,
 	.pts_base	= 0,
 	.pts_limit	= NV_HOST1X_SYNCPT_NB_PTS,
+	.nb_syncpt_irqs	= 8,
 	.syncpt_policy	= SYNCPT_PER_CHANNEL_INSTANCE,
 	.channel_policy	= MAP_CHANNEL_ON_SUBMIT,
 	.nb_actmons	= 1,
@@ -149,6 +150,7 @@ static struct host1x_device_info host1xb04_info = {
 	.nb_pts		= NV_HOST1X_SYNCPT_NB_PTS,
 	.pts_base	= 0,
 	.pts_limit	= NV_HOST1X_SYNCPT_NB_PTS,
+	.nb_syncpt_irqs	= 8,
 	.syncpt_policy	= SYNCPT_PER_CHANNEL_INSTANCE,
 	.channel_policy	= MAP_CHANNEL_ON_SUBMIT,
 	.use_cross_vm_interrupts = 1,
@@ -742,19 +744,31 @@ static void host1x08_intr_resume(struct nvhost_intr *intr)
 {
 	struct nvhost_master *dev = intr_to_dev(intr);
 	const int nb_pts = nvhost_syncpt_nb_hw_pts(&dev->syncpt);
+	const int nb_syncpt_irqs = nvhost_syncpt_nb_irqs(&dev->syncpt);
+	const int pts_per_irq = nb_pts / nb_syncpt_irqs;
+	const int routed_equally = nb_syncpt_irqs * pts_per_irq;
 	unsigned int i;
 
 	host1x_intr_ops.resume(intr);
 
 	/*
 	 * Configure Host1x to send syncpoint threshold interrupts to the
-	 * first interrupt line.
+	 * interrupt lines as below:
+	 * - Available syncpoints are equally distributed among 8 interrupt
+	 *   lines
+	 * - First 1/8 syncpoints shall trigger 1st line
+	 * - Second 1/8 syncpoints shall trigger 2nd line
+	 * - Similarly, for all other lines
+	 * - Left-over(if any) are mapped to last line
 	 */
 	for (i = 0; i < nb_pts; i++) {
 		const int reg = host1x_common_vm1_syncpt_intr_dest_vm_r() +
 				i * 4;
 
-		host1x_writel(dev->dev, reg, 0);
+		if (i < routed_equally)
+			host1x_writel(dev->dev, reg, (i / pts_per_irq));
+		else
+			host1x_writel(dev->dev, reg, (nb_syncpt_irqs-1));
 	}
 }
 
