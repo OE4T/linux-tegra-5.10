@@ -194,8 +194,6 @@
 	};
 
 	tegra-capture-vi {
-		/* Setting the status to disabled until feature is implemented */
-		status = "disabled";
 		compatible = "nvidia,tegra-camrtc-capture-vi";
 
 		nvidia,vi-devices = <&vi>;
