@@ -2834,60 +2834,63 @@ static int eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
  */
 static void eqos_config_tscr(void *addr, const unsigned int ptp_filter)
 {
-	unsigned int mac_tcr = 0;
+	unsigned int mac_tcr = 0U, i = 0U, temp = 0U;
 
-	if (ptp_filter != OSI_DISABLE) {
-		mac_tcr = (OSI_MAC_TCR_TSENA	|
-			   OSI_MAC_TCR_TSCFUPDT |
-			   OSI_MAC_TCR_TSCTRLSSR);
-
-		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_1) ==
-		    OSI_MAC_TCR_SNAPTYPSEL_1) {
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_2) ==
-		    OSI_MAC_TCR_SNAPTYPSEL_2) {
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_SNAPTYPSEL_3) ==
-		    OSI_MAC_TCR_SNAPTYPSEL_3) {
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_3;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSIPV4ENA) ==
-		    OSI_MAC_TCR_TSIPV4ENA) {
-			mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSIPV6ENA) ==
-		    OSI_MAC_TCR_TSIPV6ENA) {
-			mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSEVENTENA) ==
-		    OSI_MAC_TCR_TSEVENTENA) {
-			mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSMASTERENA) ==
-		    OSI_MAC_TCR_TSMASTERENA) {
-			mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSVER2ENA) ==
-		    OSI_MAC_TCR_TSVER2ENA) {
-			mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSIPENA) ==
-		    OSI_MAC_TCR_TSIPENA) {
-			mac_tcr |= OSI_MAC_TCR_TSIPENA;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_AV8021ASMEN) ==
-		    OSI_MAC_TCR_AV8021ASMEN) {
-			mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
-		}
-		if ((ptp_filter & OSI_MAC_TCR_TSENALL) ==
-		    OSI_MAC_TCR_TSENALL) {
-			mac_tcr |= OSI_MAC_TCR_TSENALL;
-		}
-	} else {
+	if (ptp_filter == OSI_DISABLE) {
 		/* Disabling the MAC time stamping */
 		mac_tcr = OSI_DISABLE;
+		eqos_core_safety_writel(mac_tcr,
+					(unsigned char *)addr + EQOS_MAC_TCR,
+					EQOS_MAC_TCR_IDX);
+		return;
+	}
+
+	mac_tcr = (OSI_MAC_TCR_TSENA	|
+		   OSI_MAC_TCR_TSCFUPDT |
+		   OSI_MAC_TCR_TSCTRLSSR);
+
+	for (i = 0U; i < 32U; i++) {
+		temp = ptp_filter & OSI_BIT(i);
+
+		switch (temp) {
+		case OSI_MAC_TCR_SNAPTYPSEL_1:
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_1;
+			break;
+		case OSI_MAC_TCR_SNAPTYPSEL_2:
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
+			break;
+		case OSI_MAC_TCR_SNAPTYPSEL_3:
+			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_3;
+			break;
+		case OSI_MAC_TCR_TSIPV4ENA:
+			mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
+			break;
+		case OSI_MAC_TCR_TSIPV6ENA:
+			mac_tcr |= OSI_MAC_TCR_TSIPV6ENA;
+			break;
+		case OSI_MAC_TCR_TSEVENTENA:
+			mac_tcr |= OSI_MAC_TCR_TSEVENTENA;
+			break;
+		case OSI_MAC_TCR_TSMASTERENA:
+			mac_tcr |= OSI_MAC_TCR_TSMASTERENA;
+			break;
+		case OSI_MAC_TCR_TSVER2ENA:
+			mac_tcr |= OSI_MAC_TCR_TSVER2ENA;
+			break;
+		case OSI_MAC_TCR_TSIPENA:
+			mac_tcr |= OSI_MAC_TCR_TSIPENA;
+			break;
+		case OSI_MAC_TCR_AV8021ASMEN:
+			mac_tcr |= OSI_MAC_TCR_AV8021ASMEN;
+			break;
+		case OSI_MAC_TCR_TSENALL:
+			mac_tcr |= OSI_MAC_TCR_TSENALL;
+			break;
+		default:
+			/* To avoid MISRA violation */
+			mac_tcr |= mac_tcr;
+			break;
+		}
 	}
 
 	eqos_core_safety_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR,
