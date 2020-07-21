@@ -337,6 +337,10 @@ static int therm_channel_boardobj_grp_get_status(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
+	if (g->pmu->therm_pmu == NULL) {
+		return -EINVAL;
+	}
+
 	pboardobjgrp = &g->pmu->therm_pmu->therm_channelobjs.super.super;
 	pboardobjgrpmask = &g->pmu->therm_pmu->therm_channelobjs.super.mask.super;
 	status = pboardobjgrp->pmugetstatus(g, pboardobjgrp, pboardobjgrpmask);
