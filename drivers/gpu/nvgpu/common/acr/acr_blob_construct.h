@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,32 @@ struct ls_falcon_ucode_desc {
 	u32 tools_version;
 	u32 app_version;
 	char date[UCODE_NB_MAX_DATE_LENGTH];
+	u32 bootloader_start_offset;
+	u32 bootloader_size;
+	u32 bootloader_imem_offset;
+	u32 bootloader_entry_point;
+	u32 app_start_offset;
+	u32 app_size;
+	u32 app_imem_offset;
+	u32 app_imem_entry;
+	u32 app_dmem_offset;
+	u32 app_resident_code_offset;
+	u32 app_resident_code_size;
+	u32 app_resident_data_offset;
+	u32 app_resident_data_size;
+	u32 nb_imem_overlays;
+	u32 nb_dmem_overlays;
+	struct {u32 start; u32 size; } load_ovl[64];
+	u32 compressed;
+};
+
+struct ls_falcon_ucode_desc_v1 {
+	u32 descriptor_size;
+	u32 image_size;
+	u32 tools_version;
+	u32 app_version;
+	char date[UCODE_NB_MAX_DATE_LENGTH];
+	u32 secure_bootloader;
 	u32 bootloader_start_offset;
 	u32 bootloader_size;
 	u32 bootloader_imem_offset;

@@ -48,6 +48,7 @@
 
 #if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
 #define UCODE_PARAMS			(1)
+#define UCODE_DESC_TOOL_VERSION		0x4U
 #else
 #define UCODE_PARAMS			(0)
 #endif
@@ -61,6 +62,7 @@ int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	struct nvgpu_firmware *fw_image;
 	struct flcn_ucode_img *p_img =
 		(struct flcn_ucode_img *)lsf_ucode_img;
+	struct ls_falcon_ucode_desc_v1 tmp_desc_v1;
 	int err = 0;
 
 	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
@@ -79,6 +81,20 @@ int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	lsf_desc->falcon_id = FALCON_ID_PMU;
 
 	p_img->desc = (struct ls_falcon_ucode_desc *)(void *)fw_desc->data;
+	if (p_img->desc->tools_version >= UCODE_DESC_TOOL_VERSION) {
+		(void) memset((u8 *)&tmp_desc_v1, 0,
+				sizeof(struct ls_falcon_ucode_desc_v1));
+
+		nvgpu_memcpy((u8 *)&tmp_desc_v1, (u8 *)fw_desc->data,
+			sizeof(struct ls_falcon_ucode_desc_v1));
+
+		nvgpu_memcpy((u8 *)&p_img->desc->bootloader_start_offset,
+			(u8 *)&tmp_desc_v1.bootloader_start_offset,
+			sizeof(struct ls_falcon_ucode_desc) -
+			offsetof(struct ls_falcon_ucode_desc,
+			bootloader_start_offset));
+	}
+
 	p_img->data = (u32 *)(void *)fw_image->data;
 	p_img->data_size = p_img->desc->app_start_offset + p_img->desc->app_size;
 	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
