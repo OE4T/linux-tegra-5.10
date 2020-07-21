@@ -235,15 +235,22 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
 	return (rx_ring->cur_rx_idx - rx_ring->refill_idx) & (RX_DESC_CNT - 1U);
 }
 
-int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
-			 struct osi_rx_ring *rx_ring, unsigned int chan)
+/**
+ * @brief rx_dma_desc_validate_args - DMA Rx descriptor init args Validate
+ *
+ * Algorithm: Validates DMA Rx descriptor init argments.
+ *
+ * @param[in] osi_dma: OSI DMA private data struture.
+ * @param[in] rx_ring: HW ring corresponding to Rx DMA channel.
+ * @param[in] chan: Rx DMA channel number
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int rx_dma_desc_validate_args(struct osi_dma_priv_data *osi_dma,
+					    struct osi_rx_ring *rx_ring,
+					    unsigned int chan)
 {
-	/* for CERT-C error */
-	unsigned long temp;
-	unsigned long tailptr = 0;
-	struct osi_rx_swcx *rx_swcx = OSI_NULL;
-	struct osi_rx_desc *rx_desc = OSI_NULL;
-
 	/* Validate args */
 	if (!(osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
 	    osi_dma->ops->update_rx_tailptr != OSI_NULL)) {
@@ -256,6 +263,54 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	}
 
 	if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief rx_dma_handle_ioc - DMA Rx descriptor RWIT Handler
+ *
+ * Algorithm:
+ * 1) Check RWIT enable and reset IOC bit
+ * 2) Check rx_frames enable and update IOC bit
+ *
+ * @param[in] osi_dma: OSI DMA private data struture.
+ * @param[in] rx_ring: HW ring corresponding to Rx DMA channel.
+ * @param[in] rx_desc: Rx Rx descriptor.
+ *
+ */
+static inline void rx_dma_handle_ioc(struct osi_dma_priv_data *osi_dma,
+				     struct osi_rx_ring *rx_ring,
+				     struct osi_rx_desc *rx_desc)
+{
+	/* reset IOC bit if RWIT is enabled */
+	if (osi_dma->use_riwt == OSI_ENABLE) {
+		rx_desc->rdes3 &= ~RDES3_IOC;
+		/* update IOC bit if rx_frames is enabled. Rx_frames
+		 * can be enabled only along with RWIT.
+		 */
+		if (osi_dma->use_rx_frames == OSI_ENABLE) {
+			if ((rx_ring->refill_idx %
+			    osi_dma->rx_frames) == OSI_NONE) {
+				rx_desc->rdes3 |= RDES3_IOC;
+			}
+		}
+	}
+}
+
+int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
+			 struct osi_rx_ring *rx_ring, unsigned int chan)
+{
+	/* for CERT-C error */
+	unsigned long temp;
+	unsigned long tailptr = 0;
+	struct osi_rx_swcx *rx_swcx = OSI_NULL;
+	struct osi_rx_desc *rx_desc = OSI_NULL;
+
+	if (rx_dma_desc_validate_args(osi_dma, rx_ring, chan) < 0) {
+		/* Return on arguments validation failure */
 		return -1;
 	}
 
@@ -277,32 +332,21 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		if (temp > UINT_MAX) {
 			/* error case do nothing */
 		} else {
+			/* Store Receive Descriptor 0 */
 			rx_desc->rdes0 = (unsigned int)temp;
 		}
 
 		temp = H32(rx_swcx->buf_phy_addr);
-		if (temp > UINT_MAX) {
-			/* error case do nothing */
-		} else {
+		if (temp <= UINT_MAX) {
+			/* Store Receive Descriptor 1 */
 			rx_desc->rdes1 = (unsigned int)temp;
 		}
 
 		rx_desc->rdes2 = 0;
 		rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
 
-		/* reset IOC bit if RWIT is enabled */
-		if (osi_dma->use_riwt == OSI_ENABLE) {
-			rx_desc->rdes3 &= ~RDES3_IOC;
-			/* update IOC bit if rx_frames is enabled. Rx_frames
-			 * can be enabled only along with RWIT.
-			 */
-			if (osi_dma->use_rx_frames == OSI_ENABLE) {
-				if ((rx_ring->refill_idx %
-				    osi_dma->rx_frames) == OSI_NONE) {
-					rx_desc->rdes3 |= RDES3_IOC;
-				}
-			}
-		}
+		/* Reset IOC bit if RWIT is enabled */
+		rx_dma_handle_ioc(osi_dma, rx_ring, rx_desc);
 
 		INCR_RX_DESC_INDEX(rx_ring->refill_idx, 1U);
 	}
