@@ -419,6 +419,13 @@ static struct tegra_cbberr_ops tegra234_cbb_errmon_ops = {
 #endif
 };
 
+static int tegra234_cbb_mn_mask_erd(u64 mask_erd)
+{
+	writel(0x1, (void __iomem *)mask_erd);
+	dsb(sy);
+	return 0;
+}
+
 static struct tegra_cbb_noc_data tegra234_aon_en_data = {
 	.name   = "AON-EN",
 	.is_ax2apb_bridge_connected = 0,
@@ -437,8 +444,9 @@ static struct tegra_cbb_noc_data tegra234_cbb_en_data = {
 	.name   = "CBB-EN",
 	.is_ax2apb_bridge_connected = 0,
 	.is_clk_rst = false,
-	.erd_mask_inband_err = false,
-	.off_erd_err_config = 0x120c
+	.erd_mask_inband_err = true,
+	.off_mask_erd = 0x3a004,
+	.tegra_cbb_noc_set_erd = tegra234_cbb_mn_mask_erd
 };
 
 static struct tegra_cbb_noc_data tegra234_dce_en_data = {
@@ -565,6 +573,8 @@ static int tegra234_cbb_errmon_init(struct platform_device *pdev,
 	cbb_init_data->secure_irq = errmon->errmon_secure_irq;
 	cbb_init_data->nonsecure_irq = errmon->errmon_nonsecure_irq;
 	cbb_init_data->vaddr = errmon->vaddr+errmon->err_notifier_base;
+	cbb_init_data->addr_mask_erd = (u64)(errmon->vaddr)
+						+ bdata->off_mask_erd;
 
 	platform_set_drvdata(pdev, errmon);
 
