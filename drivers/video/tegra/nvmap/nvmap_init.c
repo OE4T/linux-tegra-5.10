@@ -464,6 +464,7 @@ static const struct reserved_mem_ops nvmap_co_ops = {
 	.device_release	= nvmap_co_device_release,
 };
 
+#ifndef NVMAP_LOADABLE_MODULE
 int __init nvmap_co_setup(struct reserved_mem *rmem)
 {
 	struct nvmap_platform_carveout *co;
@@ -523,10 +524,39 @@ finish:
 	return ret;
 }
 EXPORT_SYMBOL(nvmap_co_setup);
+#else
+int __init nvmap_co_setup(struct reserved_mem *rmem)
+{
+	struct nvmap_platform_carveout *co;
+	ulong start = sched_clock();
+	int ret = 0;
+
+	co = nvmap_get_carveout_pdata(rmem->name);
+	if (!co)
+		return ret;
+
+	rmem->ops = &nvmap_co_ops;
+	rmem->priv = co;
+
+	/* IVM carveouts */
+	if (!co->name)
+		goto finish;
+
+	co->base = rmem->base;
+	co->size = rmem->size;
+	co->cma_dev = NULL;
+finish:
+	nvmap_init_time += sched_clock() - start;
+	return ret;
+}
+#endif /* !NVMAP_LOADABLE_MODULE */
+
 RESERVEDMEM_OF_DECLARE(nvmap_co, "nvidia,generic_carveout", nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_ivm_co, "nvidia,ivm_carveout", nvmap_co_setup);
+#ifndef NVMAP_LOADABLE_MODULE
 RESERVEDMEM_OF_DECLARE(nvmap_vpr_co, "nvidia,vpr-carveout", nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_fsi_co, "nvidia,fsi-carveout", nvmap_co_setup);
+#endif /* !NVMAP_LOADABLE_MODULE */
 
 /*
  * This requires proper kernel arguments to have been passed.
