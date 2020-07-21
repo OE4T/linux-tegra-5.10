@@ -64,6 +64,7 @@ static struct host1x_device_info host1x04_info = {
 	.nb_pts		= NV_HOST1X_SYNCPT_NB_PTS,
 	.pts_base	= 0,
 	.pts_limit	= NV_HOST1X_SYNCPT_NB_PTS,
+	.nb_syncpt_irqs	= 1,
 	.syncpt_policy	= SYNCPT_PER_CHANNEL,
 	.nb_actmons	= 1,
 };

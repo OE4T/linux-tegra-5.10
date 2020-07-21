@@ -120,6 +120,7 @@ int nvhost_syncpt_client_managed(struct nvhost_syncpt *sp, u32 id);
 int nvhost_syncpt_nb_hw_pts(struct nvhost_syncpt *sp);
 int nvhost_syncpt_nb_pts(struct nvhost_syncpt *sp);
 int nvhost_syncpt_pts_base(struct nvhost_syncpt *sp);
+int nvhost_syncpt_nb_irqs(struct nvhost_syncpt *sp);
 bool nvhost_syncpt_is_valid_hw_pt(struct nvhost_syncpt *sp, u32 id);
 bool nvhost_syncpt_is_valid_hw_pt_nospec(struct nvhost_syncpt *sp, u32 *id);
 bool nvhost_syncpt_is_valid_pt(struct nvhost_syncpt *sp, u32 id);

@@ -1162,7 +1162,7 @@ fail:
 static int nvhost_probe(struct platform_device *dev)
 {
 	struct nvhost_master *host;
-	int syncpt_irq, generic_irq;
+	int syncpt_irqs[8], generic_irq, irq_idx;
 	int err;
 	struct nvhost_device_data *pdata = NULL;
 
@@ -1190,22 +1190,33 @@ static int nvhost_probe(struct platform_device *dev)
 		return -ENODATA;
 	}
 
-	syncpt_irq = platform_get_irq(dev, 0);
-	if (syncpt_irq < 0) {
-		dev_err(&dev->dev, "missing syncpt irq\n");
-		return -ENXIO;
-	}
-
-	generic_irq = platform_get_irq(dev, 1);
-	if (generic_irq < 0) {
-		dev_err(&dev->dev, "missing generic irq\n");
-		generic_irq = 0;
-	}
-
 	host = devm_kzalloc(&dev->dev, sizeof(*host), GFP_KERNEL);
 	if (!host) {
 		nvhost_err(NULL, "failed to alloc host structure");
 		return -ENOMEM;
+	}
+
+	/*
+	 * Copy host1x parameters. The private_data gets replaced
+	 * by nvhost_master later
+	 */
+	memcpy(&host->info, pdata->private_data,
+			sizeof(struct host1x_device_info));
+
+	for (irq_idx = 0; irq_idx < host->info.nb_syncpt_irqs; irq_idx++) {
+		syncpt_irqs[irq_idx] = platform_get_irq(dev, irq_idx);
+		if (syncpt_irqs[irq_idx] < 0) {
+			dev_err(&dev->dev, "missing syncpt irq\n");
+			return -ENXIO;
+		}
+	}
+
+	/* In DT, generic irq index comes after all configured syncpt irqs */
+	irq_idx = host->info.nb_syncpt_irqs;
+	generic_irq = platform_get_irq(dev, irq_idx);
+	if (generic_irq < 0) {
+		dev_err(&dev->dev, "missing generic irq\n");
+		generic_irq = 0;
 	}
 
 	host->dev = dev;
@@ -1215,11 +1226,6 @@ static int nvhost_probe(struct platform_device *dev)
 	mutex_init(&host->vm_alloc_mutex);
 	mutex_init(&pdata->lock);
 	init_rwsem(&pdata->busy_lock);
-
-	/* Copy host1x parameters. The private_data gets replaced
-	 * by nvhost_master later */
-	memcpy(&host->info, pdata->private_data,
-			sizeof(struct host1x_device_info));
 
 	pdata->pdev = dev;
 
@@ -1294,7 +1300,7 @@ static int nvhost_probe(struct platform_device *dev)
 	if (err)
 		goto fail;
 
-	err = nvhost_intr_init(&host->intr, generic_irq, syncpt_irq);
+	err = nvhost_intr_init(&host->intr, generic_irq, syncpt_irqs);
 	if (err)
 		goto fail;
 

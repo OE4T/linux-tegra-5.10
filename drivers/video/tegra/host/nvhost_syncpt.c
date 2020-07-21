@@ -1325,6 +1325,11 @@ int nvhost_syncpt_pts_base(struct nvhost_syncpt *sp)
 	return syncpt_to_dev(sp)->info.pts_base;
 }
 
+int nvhost_syncpt_nb_irqs(struct nvhost_syncpt *sp)
+{
+	return syncpt_to_dev(sp)->info.nb_syncpt_irqs;
+}
+
 bool nvhost_syncpt_is_valid_hw_pt(struct nvhost_syncpt *sp, u32 id)
 {
 	return (id >= 0 && id < nvhost_syncpt_nb_hw_pts(sp) &&
