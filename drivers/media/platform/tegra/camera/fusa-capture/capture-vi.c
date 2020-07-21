@@ -55,6 +55,16 @@
 #define NVCSI_STREAM_INVALID_TPG_VC_ID	U32_C(0xFFFF)
 
 /**
+ * @brief Maximum number of VI devices supported.
+ */
+#define MAX_VI_UNITS	U32_C(0x2)
+
+struct capture_vi_info {
+	uint32_t num_vi_devices; // number of available VI devices
+	struct device *vi_devices[MAX_VI_UNITS];
+};
+
+/**
  * @brief Initialize a VI syncpoint and get its GoS backing.
  *
  * @param[in]	chan	VI channel context
@@ -1230,3 +1240,94 @@ int vi_capture_set_progress_status_notifier(
 	capture->is_progress_status_notifier_set = true;
 	return err;
 }
+
+static int capture_vi_probe(struct platform_device *pdev)
+{
+	uint32_t ii;
+	int err;
+	struct capture_vi_info *info;
+	struct device *dev = &pdev->dev;
+
+	dev_dbg(dev, "%s:tegra-camrtc-capture-vi probe\n", __func__);
+
+	info = devm_kzalloc(dev,
+				sizeof(*info), GFP_KERNEL);
+	if (info == NULL)
+		return -ENOMEM;
+
+	info->num_vi_devices = 0;
+
+	for (ii = 0; ; ii++) {
+		struct device_node *np;
+		struct platform_device *pvidev;
+
+		np = of_parse_phandle(dev->of_node, "nvidia,vi-devices", ii);
+		if (np == NULL)
+			break;
+
+		if (info->num_vi_devices >= ARRAY_SIZE(info->vi_devices)) {
+			of_node_put(np);
+			err = -EINVAL;
+			goto cleanup;
+		}
+
+		pvidev = of_find_device_by_node(np);
+		of_node_put(np);
+
+		if (pvidev == NULL) {
+			dev_WARN(dev, "vi node %d has no device\n", ii);
+			err = -ENODEV;
+			goto cleanup;
+		}
+
+		info->vi_devices[ii] = &pvidev->dev;
+		info->num_vi_devices++;
+	}
+
+	if (info->num_vi_devices < 1)
+		return -EINVAL;
+
+	platform_set_drvdata(pdev, info);
+
+	return 0;
+
+cleanup:
+	for (ii = 0; ii < info->num_vi_devices; ii++)
+		put_device(info->vi_devices[ii]);
+
+	dev_err(dev, "%s:tegra-camrtc-capture-vi probe failed\n", __func__);
+	return err;
+}
+
+static int capture_vi_remove(struct platform_device *pdev)
+{
+	struct capture_vi_info *info;
+	uint32_t ii;
+	struct device *dev = &pdev->dev;
+
+	dev_dbg(dev, "%s:tegra-camrtc-capture-vi remove\n", __func__);
+
+	info = platform_get_drvdata(pdev);
+
+	for (ii = 0; ii < info->num_vi_devices; ii++)
+		put_device(info->vi_devices[ii]);
+
+	return 0;
+}
+
+static const struct of_device_id capture_vi_of_match[] = {
+	{ .compatible = "nvidia,tegra-camrtc-capture-vi" },
+	{ },
+};
+
+static struct platform_driver capture_vi_driver = {
+	.probe = capture_vi_probe,
+	.remove = capture_vi_remove,
+	.driver = {
+		.owner = THIS_MODULE,
+		.name = "tegra-camrtc-capture-vi",
+		.of_match_table = capture_vi_of_match
+	}
+};
+
+module_platform_driver(capture_vi_driver);
