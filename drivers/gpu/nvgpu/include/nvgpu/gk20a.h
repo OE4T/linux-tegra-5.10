@@ -283,6 +283,10 @@ struct gpu_ops {
 		int (*sbr_pub_load_and_execute)(struct gk20a *g);
 	} sbr;
 
+	struct {
+		u32 (*get_full_phys_offset)(struct gk20a *g);
+	} func;
+
 	struct gops_ecc ecc;
 	struct gops_ltc ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION

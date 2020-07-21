@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 
 struct gk20a;
 
-void nvgpu_func_writel(struct gk20a *g, u32 r, u32 v);
-u32 nvgpu_func_readl(struct gk20a *g, u32 r);
+u32 tu104_func_get_full_phys_offset(struct gk20a *g);
 
-#endif
+#endif /* FUNC_TU104_H */

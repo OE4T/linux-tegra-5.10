@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,19 +21,13 @@
  */
 
 #include <nvgpu/types.h>
-#include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
 #include "func_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_func_tu104.h>
 
-void nvgpu_func_writel(struct gk20a *g, u32 r, u32 v)
+u32 tu104_func_get_full_phys_offset(struct gk20a *g)
 {
-	nvgpu_writel(g, r + func_full_phys_offset_v(), v);
-}
-
-u32 nvgpu_func_readl(struct gk20a *g, u32 r)
-{
-	return nvgpu_readl(g, r + func_full_phys_offset_v());
+	return func_full_phys_offset_v();
 }

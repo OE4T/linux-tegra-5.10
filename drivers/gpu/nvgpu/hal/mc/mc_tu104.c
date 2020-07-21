@@ -31,10 +31,7 @@
 #include <nvgpu/power_features/pg.h>
 
 #include "hal/mc/mc_gp10b.h"
-
 #include "mc_tu104.h"
-
-#include "hal/func/func_tu104.h"
 
 #include "nvgpu/hw/tu104/hw_mc_tu104.h"
 #include "nvgpu/hw/tu104/hw_func_tu104.h"

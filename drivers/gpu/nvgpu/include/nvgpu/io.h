@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -173,5 +173,32 @@ bool nvgpu_io_exists(struct gk20a *g);
  * @return TRUE if bar0 offset is valid or else FALSE.
  */
 bool nvgpu_io_valid_reg(struct gk20a *g, u32 r);
+
+/**
+ * @brief Write value to register at phys offset.
+ *
+ * @param g [in]		GPU super structure.
+ * @param r [in]		Register offset in GPU IO-space.
+ * @param v [in]		Value to write at the offset.
+ *
+ * - Write a 32-bit value at phys offset. Phys_offset can be retrieved using
+ * gops.func.get_full_phys_offset().
+ *
+ * @return None.
+ */
+void nvgpu_func_writel(struct gk20a *g, u32 r, u32 v);
+
+/**
+ * @brief Read value from register at phys offset.
+ *
+ * @param g [in]		GPU super structure.
+ * @param b [in]		Register offset in GPU IO-space.
+ *
+ * - Read a 32-bit value from phys offset. Phys_offset can be retrieved using
+ * gops.func.get_full_phys_offset().
+ *
+ * @return Value at the given offset.
+ */
+u32 nvgpu_func_readl(struct gk20a *g, u32 r);
 
 #endif /* NVGPU_IO_H */

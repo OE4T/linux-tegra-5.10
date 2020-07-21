@@ -35,8 +35,6 @@
 #include "hal/fb/fb_gv100.h"
 #include "hal/mc/mc_tu104.h"
 
-#include "hal/func/func_tu104.h"
-
 #include "fb_tu104.h"
 
 #include "nvgpu/hw/tu104/hw_fb_tu104.h"

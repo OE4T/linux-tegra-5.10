@@ -28,8 +28,6 @@
 
 #include "bus_tu104.h"
 
-#include "hal/func/func_tu104.h"
-
 #include <nvgpu/hw/tu104/hw_bus_tu104.h>
 #include <nvgpu/hw/tu104/hw_func_tu104.h>
 

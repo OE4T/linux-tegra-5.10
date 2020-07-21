@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,6 @@
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/fb_mmu_fault_tu104.h"
 #include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
-#include "hal/func/func_tu104.h"
 
 #include "nvgpu/hw/tu104/hw_fb_tu104.h"
 #include "nvgpu/hw/tu104/hw_func_tu104.h"

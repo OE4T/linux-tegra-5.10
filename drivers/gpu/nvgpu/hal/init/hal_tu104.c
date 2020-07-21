@@ -73,6 +73,7 @@
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
 #include "hal/regops/regops_tu104.h"
+#include "hal/func/func_tu104.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
@@ -276,6 +277,9 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.sbr = {
 		.sbr_pub_load_and_execute = nvgpu_sbr_pub_load_and_execute,
+	},
+	.func = {
+		.get_full_phys_offset = tu104_func_get_full_phys_offset,
 	},
 	.bios = {
 #ifdef CONFIG_NVGPU_DGPU
@@ -1641,6 +1645,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->bios = tu104_ops.bios;
 	gops->acr = tu104_ops.acr;
 	gops->sbr = tu104_ops.sbr;
+	gops->func = tu104_ops.func;
 	gops->ecc = tu104_ops.ecc;
 	gops->fbp = tu104_ops.fbp;
 	gops->ltc = tu104_ops.ltc;

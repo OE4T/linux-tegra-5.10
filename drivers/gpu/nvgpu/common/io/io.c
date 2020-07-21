@@ -37,3 +37,21 @@ void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v)
 		BUG_ON(1);
 	}
 }
+
+void nvgpu_func_writel(struct gk20a *g, u32 r, u32 v)
+{
+	if (g->ops.func.get_full_phys_offset == NULL) {
+		BUG_ON(1);
+	}
+	nvgpu_writel(g,
+		nvgpu_safe_add_u32(r, g->ops.func.get_full_phys_offset(g)), v);
+}
+
+u32 nvgpu_func_readl(struct gk20a *g, u32 r)
+{
+	if (g->ops.func.get_full_phys_offset == NULL) {
+		BUG_ON(1);
+	}
+	return nvgpu_readl(g,
+		nvgpu_safe_add_u32(r, g->ops.func.get_full_phys_offset(g)));
+}
