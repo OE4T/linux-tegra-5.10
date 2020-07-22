@@ -22,6 +22,8 @@
 
 #include "nvmap_priv.h"
 
+
+#ifndef NVMAP_LOADABLE_MODULE
 void nvmap_zap_handle(struct nvmap_handle *handle, u64 offset, u64 size)
 {
 	struct list_head *vmas;
@@ -74,3 +76,9 @@ void nvmap_zap_handle(struct nvmap_handle *handle, u64 offset, u64 size)
 	}
 	mutex_unlock(&handle->lock);
 }
+#else
+void nvmap_zap_handle(struct nvmap_handle *handle, u64 offset, u64 size)
+{
+	WARN(1, "%s is not supported!\n", __func__);
+}
+#endif /* !NVMAP_LOADABLE_MODULE */
