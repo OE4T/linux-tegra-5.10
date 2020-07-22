@@ -1741,6 +1741,7 @@ int tu104_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_PROFILER
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PROFILER_V2_DEVICE, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PROFILER_V2_CONTEXT, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE, true);
 #endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_RTOS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ, true);

@@ -971,7 +971,7 @@ static int nvgpu_dbg_gpu_ioctl_smpc_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 	}
 
 	if (global_mode) {
-		if (g->ops.gr.update_smpc_global_mode == NULL) {
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE)) {
 			nvgpu_err(g, "SMPC global mode not supported");
 			err = -EINVAL;
 			goto clean_up;
