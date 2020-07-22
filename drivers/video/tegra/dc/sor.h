@@ -223,6 +223,7 @@ struct tegra_dc_sor_data {
 		unsigned int is_pcm_format;
 		bool valid;
 	} audio;
+	u32 dev_id;
 };
 
 #define TEGRA_SOR_TIMEOUT_MS		1000
