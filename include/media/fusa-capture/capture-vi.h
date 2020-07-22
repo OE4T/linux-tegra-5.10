@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -113,6 +113,8 @@ struct vi_capture_setup {
 		 */
 	uint64_t vi_channel_mask;
 		/**< Bitmask of VI channels to consider for allocation by RCE */
+	uint64_t vi2_channel_mask;
+		/**< Bitmask of 2nd VI channels */
 	uint32_t queue_depth; /**< No. of capture descriptors in queue. */
 	uint32_t request_size;
 		/**< Size of a single capture descriptor [byte] */
@@ -129,6 +131,10 @@ struct vi_capture_setup {
 	uint8_t slvsec_stream_sub;
 		/**< SLVS-EC sub stream (hardcode to 0xFF - disabled) */
 	uint16_t __pad_slvsec1;
+
+	uint32_t csi_stream_id; /**< NVCSI PixelParser index [0-5] */
+	uint32_t __pad_csi; /**< Reserved */
+
 	uint32_t error_mask_uncorrectable;
 		/**<
 		 * Bitmask for correctable channel errors. See

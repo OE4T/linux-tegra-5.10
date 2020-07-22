@@ -242,8 +242,10 @@ static int tegra_channel_capture_setup(struct tegra_channel *chan)
 	chan->request = dma_alloc_coherent(chan->tegra_vi_channel->rtcpu_dev,
 					setup.queue_depth * setup.request_size,
 					&setup.iova, GFP_KERNEL);
-	if (chan->request == NULL)
+	if (chan->request == NULL) {
 		dev_err(chan->vi->dev, "dma_alloc_coherent failed\n");
+		return -ENOMEM;
+	}
 
 	if (chan->is_slvsec) {
 		setup.channel_flags |= CAPTURE_CHANNEL_FLAG_SLVSEC;
@@ -251,9 +253,15 @@ static int tegra_channel_capture_setup(struct tegra_channel *chan)
 		setup.slvsec_stream_sub = SLVSEC_STREAM_DISABLED;
 	}
 
+	/* Set the NVCSI PixelParser index (Stream ID) */
+	setup.csi_stream_id = chan->port[0];
+
 	err = vi_capture_setup(chan->tegra_vi_channel, &setup);
 	if (err) {
 		dev_err(chan->vi->dev, "vi capture setup failed\n");
+		dma_free_coherent(chan->tegra_vi_channel->rtcpu_dev,
+				setup.queue_depth * setup.request_size,
+				chan->request, setup.iova);
 		return err;
 	}
 

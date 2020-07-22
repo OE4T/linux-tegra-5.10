@@ -59,9 +59,29 @@
  */
 #define MAX_VI_UNITS	U32_C(0x2)
 
+/**
+ * @brief Invalid VI unit ID, to initialize vi-mapping table before parsing DT.
+ */
+#define INVALID_VI_UNIT_ID  U32_C(0xFFFF)
+
+/**
+ * @brief Maximum number of NVCSI streams supported.
+ */
+#define MAX_NVCSI_STREAM_IDS  U32_C(0x6)
+
+/**
+ * @brief Names of VI-unit and CSI-stream mapping elements in device-tree node
+ */
+static const char * const vi_mapping_elements[] = {
+	"csi-stream-id",
+	"vi-unit-id"
+};
+
 struct capture_vi_info {
 	uint32_t num_vi_devices; // number of available VI devices
 	struct device *vi_devices[MAX_VI_UNITS];
+	uint32_t num_csi_vi_maps;
+	uint32_t vi_instance_table[MAX_NVCSI_STREAM_IDS];
 };
 
 /**
@@ -549,6 +569,9 @@ void vi_capture_shutdown(
 	chan->capture_data = NULL;
 }
 
+/* TODO: remove this when VI_channels_registeration is done from capture-vi. */
+struct platform_device *capture_pdev;
+
 int vi_capture_setup(
 	struct tegra_vi_channel *chan,
 	struct vi_capture_setup *setup)
@@ -563,6 +586,7 @@ int vi_capture_setup(
 #ifdef HAVE_VI_GOS_TABLES
 	int i;
 #endif
+	struct capture_vi_info *info = platform_get_drvdata(capture_pdev);
 
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
@@ -590,12 +614,15 @@ int vi_capture_setup(
 	dev_dbg(chan->dev, "chan mask %llx\n", setup->vi_channel_mask);
 	dev_dbg(chan->dev, "queue depth %u\n", setup->queue_depth);
 	dev_dbg(chan->dev, "request size %u\n", setup->request_size);
+	dev_dbg(chan->dev, "csi_stream_id %u\n", setup->csi_stream_id);
 
-	if (setup->vi_channel_mask == CAPTURE_CHANNEL_INVALID_MASK ||
-			setup->channel_flags == 0 ||
-			setup->queue_depth == 0 ||
-			setup->request_size == 0) {
-		WARN(1, "setup->vi_channel_mask == CAPTURE_CHANNEL_INVALID_MASK");
+	if (WARN_ON(setup->vi_channel_mask == CAPTURE_CHANNEL_INVALID_MASK) ||
+		WARN_ON(setup->channel_flags == 0) ||
+		WARN_ON(setup->queue_depth == 0) ||
+		WARN_ON(setup->request_size == 0) ||
+		WARN_ON(setup->csi_stream_id == NVCSI_STREAM_INVALID_ID)) {
+
+		dev_err(chan->dev, "%s: invalid setup parameters\n", __func__);
 		return -EINVAL;
 	}
 
@@ -626,6 +653,8 @@ int vi_capture_setup(
 	config->slvsec_stream_main = setup->slvsec_stream_main;
 	config->slvsec_stream_sub = setup->slvsec_stream_sub;
 
+	config->vi_unit_id = info->vi_instance_table[setup->csi_stream_id];
+
 	config->queue_depth = setup->queue_depth;
 	config->request_size = setup->request_size;
 	config->requests = setup->iova;
@@ -633,6 +662,13 @@ int vi_capture_setup(
 	config->error_mask_correctable = setup->error_mask_correctable;
 	config->error_mask_uncorrectable = setup->error_mask_uncorrectable;
 	config->stop_on_error_notify_bits = setup->stop_on_error_notify_bits;
+
+	/* WAR:remove when vi2_channel_mask support is added in client driver */
+	if (setup->vi2_channel_mask == CAPTURE_CHANNEL_INVALID_MASK)
+		config->vi2_channel_mask = ~(0ULL);
+
+	dev_dbg(chan->dev, "vi_unit_id %u\n", config->vi_unit_id);
+	dev_dbg(chan->dev, "vi2_chan_mask %llx\n", config->vi2_channel_mask);
 
 #ifdef HAVE_VI_GOS_TABLES
 	dev_dbg(chan->dev, "%u GoS tables configured.\n",
@@ -850,8 +886,7 @@ int csi_stream_release(
 		if (err < 0) {
 			dev_err(chan->dev,
 				"%s: failed to disable nvcsi tpg on stream %u virtual channel %u\n",
-				__func__,
-				capture->stream_id,
+				__func__, capture->stream_id,
 				capture->virtual_channel_id);
 			return err;
 		}
@@ -1183,8 +1218,9 @@ int vi_capture_set_compand(struct tegra_vi_channel *chan,
 
 	result = capture->control_resp_msg.compand_config_resp.result;
 	if (result != CAPTURE_OK) {
-		dev_err(chan->dev, "%s: setting compand config failed, result: %d",
-				__func__, result);
+		dev_err(chan->dev,
+			"%s: setting compand config failed, result: %d",
+			__func__, result);
 		return -EINVAL;
 	}
 
@@ -1241,14 +1277,93 @@ int vi_capture_set_progress_status_notifier(
 	return err;
 }
 
+static int csi_vi_get_mapping_table(struct platform_device *pdev)
+{
+	uint32_t index = 0;
+	struct device *dev = &pdev->dev;
+	struct capture_vi_info *info = platform_get_drvdata(pdev);
+
+	int nmap_elems;
+	uint32_t map_table_size;
+	uint32_t *map_table = info->vi_instance_table;
+
+	const struct device_node *np = dev->of_node;
+
+	(void)of_property_read_u32(np,
+			"nvidia,vi-mapping-size", &map_table_size);
+	if (map_table_size > MAX_NVCSI_STREAM_IDS) {
+		dev_err(dev, "invalid mapping table size %u\n", map_table_size);
+		return -EINVAL;
+	}
+	info->num_csi_vi_maps = map_table_size;
+
+	nmap_elems = of_property_count_strings(np, "nvidia,vi-mapping-names");
+	if (nmap_elems != ARRAY_SIZE(vi_mapping_elements))
+		return -EINVAL;
+
+	/* check for order of csi-stream-id and vi-unit-id in DT entry */
+	for (index = 0; index < ARRAY_SIZE(vi_mapping_elements); index++) {
+		int map_elem = of_property_match_string(np,
+			"nvidia,vi-mapping-names", vi_mapping_elements[index]);
+		if (map_elem != index) {
+			dev_err(dev, "invalid mapping order\n");
+			return -EINVAL;
+		}
+	}
+
+	for (index = 0; index < map_table_size; index++)
+		map_table[index] = INVALID_VI_UNIT_ID;
+
+	for (index = 0; index < map_table_size; index++) {
+		uint32_t stream_index = NVCSI_STREAM_INVALID_ID;
+		uint32_t vi_unit_id = INVALID_VI_UNIT_ID;
+
+		of_property_read_u32_index(np,
+			"nvidia,vi-mapping",
+			2 * index,
+			&stream_index);
+
+		/* Check for valid/duplicate csi-stream-id */
+		if (stream_index >= MAX_NVCSI_STREAM_IDS ||
+			map_table[stream_index] != INVALID_VI_UNIT_ID) {
+			dev_err(dev, "%s: mapping invalid csi_stream_id: %u\n",
+					__func__, stream_index);
+			return -EINVAL;
+		}
+
+		of_property_read_u32_index(np,
+			"nvidia,vi-mapping",
+			2 * index + 1,
+			&vi_unit_id);
+
+		/* check for valid vi-unit-id */
+		if (vi_unit_id >= MAX_VI_UNITS) {
+			dev_err(dev, "%s: mapping invalid vi_unit_id: %u\n",
+					__func__, vi_unit_id);
+			return -EINVAL;
+		}
+
+		map_table[stream_index] = vi_unit_id;
+	}
+
+	dev_dbg(dev, "%s: csi-stream to vi-instance mapping table size: %u\n",
+		__func__, info->num_csi_vi_maps);
+
+	for (index = 0; index < ARRAY_SIZE(info->vi_instance_table); index++)
+		dev_dbg(dev, "%s: vi_instance_table[%d] = %d\n",
+			__func__, index, info->vi_instance_table[index]);
+
+	return 0;
+}
+
 static int capture_vi_probe(struct platform_device *pdev)
 {
-	uint32_t ii;
 	int err;
+	uint32_t ii;
 	struct capture_vi_info *info;
 	struct device *dev = &pdev->dev;
 
-	dev_dbg(dev, "%s:tegra-camrtc-capture-vi probe\n", __func__);
+	dev_dbg(dev, "%s: tegra-camrtc-capture-vi probe\n", __func__);
 
 	info = devm_kzalloc(dev,
 				sizeof(*info), GFP_KERNEL);
@@ -1289,13 +1404,28 @@ static int capture_vi_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, info);
 
+	capture_pdev = pdev;
+
+	if (info->num_vi_devices == 1) {
+		dev_dbg(dev, "default 0 vi-unit-id for all csi-stream-ids\n");
+	} else {
+		/* read mapping table from DT for multiple VIs */
+		err = csi_vi_get_mapping_table(pdev);
+		if (err) {
+			dev_err(dev,
+				"%s: reading csi-to-vi mapping failed\n",
+				__func__);
+			goto cleanup;
+		}
+	}
+
 	return 0;
 
 cleanup:
 	for (ii = 0; ii < info->num_vi_devices; ii++)
 		put_device(info->vi_devices[ii]);
 
-	dev_err(dev, "%s:tegra-camrtc-capture-vi probe failed\n", __func__);
+	dev_err(dev, "%s: tegra-camrtc-capture-vi probe failed\n", __func__);
 	return err;
 }
 
