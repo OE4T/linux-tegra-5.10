@@ -1074,7 +1074,11 @@ int __init isomgr_init(void)
 	return 0;
 }
 #ifdef CONFIG_COMMON_CLK
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
+device_initcall_sync(isomgr_init);
+#else
 fs_initcall(isomgr_init);
+#endif
 #endif
 
 int tegra_isomgr_enable_test_mode(void)

@@ -945,7 +945,11 @@ int __init bwmgr_init(void)
 
 	return 0;
 }
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
+device_initcall(bwmgr_init);
+#else
 subsys_initcall_sync(bwmgr_init);
+#endif
 
 void __exit bwmgr_exit(void)
 {
