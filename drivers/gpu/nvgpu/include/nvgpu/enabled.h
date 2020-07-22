@@ -38,263 +38,179 @@ struct gk20a;
  * flag here is defined by it's offset in a bitmap.
  */
 
-/** Running FMODEL Simulation. */
-#define NVGPU_IS_FMODEL				1U
-/** Driver is shutting down. */
-#define NVGPU_DRIVER_IS_DYING			2U
-/** Load Falcons using DMA because it's faster. */
-#define NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP	3U
-/** Use VAs for FECS Trace buffer (instead of PAs) */
-#define NVGPU_FECS_TRACE_VA			4U
-/** Can gate the power rail */
-#define NVGPU_CAN_RAILGATE			5U
-/** The OS is shutting down */
-#define NVGPU_KERNEL_IS_DYING			6U
-/** Enable FECS Tracing  */
-#define NVGPU_FECS_TRACE_FEATURE_CONTROL	7U
+#define ENABLED_FLAGS							\
+	DEFINE_FLAG(NVGPU_IS_FMODEL, "Running FMODEL Simulation"),	\
+	DEFINE_FLAG(NVGPU_DRIVER_IS_DYING, "Driver is shutting down"),	\
+	DEFINE_FLAG(NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP,			\
+		"Load Falcons using DMA because it's faster"),		\
+	DEFINE_FLAG(NVGPU_FECS_TRACE_VA,				\
+		"Use VAs for FECS Trace buffer (instead of PAs)"),	\
+	DEFINE_FLAG(NVGPU_CAN_RAILGATE, "Can gate the power rail"),	\
+	DEFINE_FLAG(NVGPU_KERNEL_IS_DYING, "OS is shutting down"),	\
+	DEFINE_FLAG(NVGPU_FECS_TRACE_FEATURE_CONTROL,			\
+		"Enable FECS Tracing"),					\
+	/* ECC Flags */							\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_SM_LRF, "SM LRF ECC is enabled"),	\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_SM_SHM, "SM SHM ECC is enabled"),	\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_TEX, "TEX ECC is enabled"),	\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_LTC, "L2 ECC is enabled"),	\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_SM_L1_DATA,			\
+		"SM L1 DATA ECC is enabled"),				\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_SM_L1_TAG,			\
+		"SM L1 TAG ECC is enabled"),				\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_SM_CBU, "SM CBU ECC is enabled"),	\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_SM_ICACHE,			\
+		"SM ICAHE ECC is enabled"),				\
+	/* MM Flags */							\
+	DEFINE_FLAG(NVGPU_MM_UNIFY_ADDRESS_SPACES,			\
+		"Unified Memory address space"),			\
+	DEFINE_FLAG(NVGPU_MM_HONORS_APERTURE,				\
+		"false if vidmem aperture actually points to sysmem"),	\
+	DEFINE_FLAG(NVGPU_MM_UNIFIED_MEMORY,				\
+		"unified or split memory with separate vidmem?"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_USERSPACE_MANAGED_AS,			\
+		"User-space managed address spaces support"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_IO_COHERENCE,				\
+		"IO coherence support is available"),			\
+	DEFINE_FLAG(NVGPU_SUPPORT_PARTIAL_MAPPINGS,			\
+		"MAP_BUFFER_EX with partial mappings"),			\
+	DEFINE_FLAG(NVGPU_SUPPORT_SPARSE_ALLOCS,			\
+		"MAP_BUFFER_EX with sparse allocations"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_MAP_DIRECT_KIND_CTRL,			\
+		"Direct PTE kind control is supported (map_buffer_ex)"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_MAP_BUFFER_BATCH,			\
+		"Support batch mapping"),				\
+	DEFINE_FLAG(NVGPU_USE_COHERENT_SYSMEM,				\
+		"Use coherent aperture for sysmem"),			\
+	DEFINE_FLAG(NVGPU_MM_USE_PHYSICAL_SG,				\
+		"Use physical scatter tables instead of IOMMU"),	\
+	DEFINE_FLAG(NVGPU_MM_FORCE_128K_PMU_VM, "WAR for gm20b chips"),	\
+	DEFINE_FLAG(NVGPU_MM_BYPASSES_IOMMU,				\
+		"Some chips (using nvlink) bypass the IOMMU on tegra"),	\
+	/* Host Flags */						\
+	DEFINE_FLAG(NVGPU_HAS_SYNCPOINTS, "GPU has syncpoints"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_SYNC_FENCE_FDS,			\
+		"sync fence FDs are available in, e.g., submit_gpfifo"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_CYCLE_STATS,				\
+		"NVGPU_DBG_GPU_IOCTL_CYCLE_STATS is available"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT,			\
+		"NVGPU_DBG_GPU_IOCTL_CYCLE_STATS_SNAPSHOT is available"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_TSG,					\
+		"Both gpu driver and device support TSG"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_DETERMINISTIC_SUBMIT_NO_JOBTRACKING,	\
+		"Support ast deterministic submits with no job tracking"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_DETERMINISTIC_SUBMIT_FULL,		\
+		"Support Deterministic submits even with job tracking"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_RESCHEDULE_RUNLIST,			\
+		"NVGPU_IOCTL_CHANNEL_RESCHEDULE_RUNLIST is available"),	\
+									\
+	DEFINE_FLAG(NVGPU_SUPPORT_DEVICE_EVENTS,			\
+		"NVGPU_GPU_IOCTL_GET_EVENT_FD is available"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_FECS_CTXSW_TRACE,			\
+		"FECS context switch tracing is available"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_DETERMINISTIC_OPTS,			\
+		"NVGPU_GPU_IOCTL_SET_DETERMINISTIC_OPTS is available"),	\
+	/* Security Flags */						\
+	DEFINE_FLAG(NVGPU_SEC_SECUREGPCCS, "secure gpccs boot support"),\
+	DEFINE_FLAG(NVGPU_SEC_PRIVSECURITY, "Priv Sec enabled"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_VPR, "VPR is supported"),		\
+	/* Nvlink Flags */						\
+	DEFINE_FLAG(NVGPU_SUPPORT_NVLINK, "Nvlink enabled"),		\
+	/* PMU Flags */							\
+	DEFINE_FLAG(NVGPU_PMU_PERFMON,					\
+		"perfmon enabled or disabled for PMU"),			\
+	DEFINE_FLAG(NVGPU_PMU_PSTATE, "PMU Pstates"),			\
+	DEFINE_FLAG(NVGPU_PMU_ZBC_SAVE, "Save ZBC reglist"),		\
+	DEFINE_FLAG(NVGPU_PMU_FECS_BOOTSTRAP_DONE,			\
+		"Completed booting FECS"),				\
+	DEFINE_FLAG(NVGPU_GPU_CAN_BLCG,					\
+		"Supports Block Level Clock Gating"),			\
+	DEFINE_FLAG(NVGPU_GPU_CAN_SLCG,					\
+		"Supports Second Level Clock Gating"),			\
+	DEFINE_FLAG(NVGPU_GPU_CAN_ELCG,					\
+		"Supports Engine Level Clock Gating"),			\
+	DEFINE_FLAG(NVGPU_SUPPORT_CLOCK_CONTROLS,			\
+		"Clock control support"),				\
+	DEFINE_FLAG(NVGPU_SUPPORT_GET_VOLTAGE,				\
+		"NVGPU_GPU_IOCTL_GET_VOLTAGE is available"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_GET_CURRENT,				\
+		"NVGPU_GPU_IOCTL_GET_CURRENT is available"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_GET_POWER,				\
+		"NVGPU_GPU_IOCTL_GET_POWER is available"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_GET_TEMPERATURE,			\
+		"NVGPU_GPU_IOCTL_GET_TEMPERATURE is available"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_SET_THERM_ALERT_LIMIT,		\
+		"NVGPU_GPU_IOCTL_SET_THERM_ALERT_LIMIT is available"),	\
+									\
+	DEFINE_FLAG(NVGPU_PMU_RUN_PREOS,				\
+		"whether to run PREOS binary on dGPUs"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_ASPM,					\
+		"set if ASPM is enabled; only makes sense for PCI"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_TSG_SUBCONTEXTS,			\
+		"subcontexts are available"),				\
+	DEFINE_FLAG(NVGPU_SUPPORT_SCG,					\
+		"Simultaneous Compute and Graphics (SCG) is available"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_SYNCPOINT_ADDRESS,			\
+		"GPU_VA address of a syncpoint is supported"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_USER_SYNCPOINT,			\
+		"Allocating per-channel syncpoint in user space is supported"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_USERMODE_SUBMIT,			\
+		"USERMODE enable bit"),					\
+	DEFINE_FLAG(NVGPU_SUPPORT_MULTIPLE_WPR, "Multiple WPR support"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_SEC2_RTOS, "SEC2 RTOS support"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_PMU_RTOS_FBQ, "PMU RTOS FBQ support"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_ZBC_STENCIL, "ZBC STENCIL support"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_PLATFORM_ATOMIC,			\
+		"PLATFORM_ATOMIC support"),				\
+	DEFINE_FLAG(NVGPU_SUPPORT_SEC2_VM, "SEC2 VM support"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_GSP_VM, "GSP VM support"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_PREEMPTION_GFXP,			\
+		"GFXP preemption support"),				\
+	DEFINE_FLAG(NVGPU_SUPPORT_PMU_SUPER_SURFACE, "PMU Super surface"),\
+	DEFINE_FLAG(NVGPU_DRIVER_REDUCED_PROFILE,			\
+		"Reduced profile of nvgpu driver"),			\
+	DEFINE_FLAG(NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE,		\
+		"NVGPU_GPU_IOCTL_SET_MMU_DEBUG_MODE is available"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_DGPU_THERMAL_ALERT,			\
+		"DGPU Thermal Alert"),					\
+	DEFINE_FLAG(NVGPU_SUPPORT_FAULT_RECOVERY,			\
+		"Fault recovery support"),				\
+	DEFINE_FLAG(NVGPU_DISABLE_SW_QUIESCE, "SW Quiesce"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE,		\
+		"DGPU PCIe Script Update"),				\
+	DEFINE_FLAG(NVGPU_FMON_SUPPORT_ENABLE, "FMON feature Enable"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_COPY_ENGINE_DIVERSITY,		\
+		"Copy Engine diversity enable bit"),			\
+	DEFINE_FLAG(NVGPU_SUPPORT_SM_DIVERSITY,				\
+		"SM diversity enable bit"),				\
+	DEFINE_FLAG(NVGPU_ECC_ENABLED_SM_RAMS, "SM RAMS ECC is enabled"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_COMPRESSION, "Enable compression"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_SM_TTU, "SM TTU is enabled"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_POST_L2_COMPRESSION, "PLC Compression"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_MAP_ACCESS_TYPE,			\
+		"GMMU map access type support"),			\
+	DEFINE_FLAG(NVGPU_SUPPORT_2D, "2d operations support"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_3D, "3d graphics operations support"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_COMPUTE, "compute operations support"),\
+	DEFINE_FLAG(NVGPU_SUPPORT_I2M, "inline methods support"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_ZBC, "zbc classes support"),		\
+	DEFINE_FLAG(NVGPU_SUPPORT_MIG, "Multi Instance GPU support"),	\
+	DEFINE_FLAG(NVGPU_SUPPORT_PROFILER_V2_DEVICE,			\
+		"Profiler V2 device object support"),			\
+	DEFINE_FLAG(NVGPU_SUPPORT_PROFILER_V2_CONTEXT,			\
+		"Profiler V2 context object support"),			\
+	DEFINE_FLAG(NVGPU_SUPPORT_SMPC_GLOBAL_MODE,			\
+		"SMPC in global mode support"),				\
+	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
-/*
- * ECC flags
+/**
+ * Enumerated array of flags
  */
-/** SM LRF ECC is enabled */
-#define NVGPU_ECC_ENABLED_SM_LRF		8U
-/** SM SHM ECC is enabled */
-#define NVGPU_ECC_ENABLED_SM_SHM		9U
-/** TEX ECC is enabled */
-#define NVGPU_ECC_ENABLED_TEX			10U
-/** L2 ECC is enabled */
-#define NVGPU_ECC_ENABLED_LTC			11U
-/** SM L1 DATA ECC is enabled */
-#define NVGPU_ECC_ENABLED_SM_L1_DATA		12U
-/** SM L1 TAG ECC is enabled */
-#define NVGPU_ECC_ENABLED_SM_L1_TAG		13U
-/** SM CBU ECC is enabled */
-#define NVGPU_ECC_ENABLED_SM_CBU		14U
-/** SM ICAHE ECC is enabled */
-#define NVGPU_ECC_ENABLED_SM_ICACHE		15U
-
-/*
- * MM flags.
- */
-/** Unified Memory address space */
-#define NVGPU_MM_UNIFY_ADDRESS_SPACES		16U
-/** false if vidmem aperture actually points to sysmem */
-#define NVGPU_MM_HONORS_APERTURE		17U
-/** unified or split memory with separate vidmem? */
-#define NVGPU_MM_UNIFIED_MEMORY			18U
-/** User-space managed address spaces support */
-#define NVGPU_SUPPORT_USERSPACE_MANAGED_AS	20U
-/** IO coherence support is available */
-#define NVGPU_SUPPORT_IO_COHERENCE		21U
-/** MAP_BUFFER_EX with partial mappings */
-#define NVGPU_SUPPORT_PARTIAL_MAPPINGS		22U
-/** MAP_BUFFER_EX with sparse allocations */
-#define NVGPU_SUPPORT_SPARSE_ALLOCS		23U
-/** Direct PTE kind control is supported (map_buffer_ex) */
-#define NVGPU_SUPPORT_MAP_DIRECT_KIND_CTRL	24U
-/** Support batch mapping */
-#define NVGPU_SUPPORT_MAP_BUFFER_BATCH		25U
-/** Use coherent aperture for sysmem. */
-#define NVGPU_USE_COHERENT_SYSMEM		26U
-/** Use physical scatter tables instead of IOMMU */
-#define NVGPU_MM_USE_PHYSICAL_SG		27U
-/** WAR for gm20b chips. */
-#define NVGPU_MM_FORCE_128K_PMU_VM		28U
-/** Some chips (those that use nvlink) bypass the IOMMU on tegra. */
-#define NVGPU_MM_BYPASSES_IOMMU			29U
-
-/*
- * Host flags
- */
-/** GPU has syncpoints */
-#define NVGPU_HAS_SYNCPOINTS			30U
-/** sync fence FDs are available in, e.g., submit_gpfifo */
-#define NVGPU_SUPPORT_SYNC_FENCE_FDS		31U
-/** NVGPU_DBG_GPU_IOCTL_CYCLE_STATS is available */
-#define NVGPU_SUPPORT_CYCLE_STATS		32U
-/** NVGPU_DBG_GPU_IOCTL_CYCLE_STATS_SNAPSHOT is available */
-#define NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT	33U
-/** Both gpu driver and device support TSG */
-#define NVGPU_SUPPORT_TSG			34U
-/** Fast deterministic submits with no job tracking are supported */
-#define NVGPU_SUPPORT_DETERMINISTIC_SUBMIT_NO_JOBTRACKING 35U
-/** Deterministic submits are supported even with job tracking */
-#define NVGPU_SUPPORT_DETERMINISTIC_SUBMIT_FULL	36U
-/** NVGPU_IOCTL_CHANNEL_RESCHEDULE_RUNLIST is available */
-#define NVGPU_SUPPORT_RESCHEDULE_RUNLIST	37U
-
-/** NVGPU_GPU_IOCTL_GET_EVENT_FD is available */
-#define NVGPU_SUPPORT_DEVICE_EVENTS		38U
-/** FECS context switch tracing is available */
-#define NVGPU_SUPPORT_FECS_CTXSW_TRACE		39U
-
-/** NVGPU_GPU_IOCTL_SET_DETERMINISTIC_OPTS is available */
-#define NVGPU_SUPPORT_DETERMINISTIC_OPTS	40U
-
-/*
- * Security flags
- */
-/** secure gpccs boot support */
-#define NVGPU_SEC_SECUREGPCCS			41U
-/** Priv Sec enabled */
-#define NVGPU_SEC_PRIVSECURITY			42U
-/** VPR is supported */
-#define NVGPU_SUPPORT_VPR			43U
-
-/*
- * Nvlink flags
- */
-
-/** Nvlink enabled */
-#define NVGPU_SUPPORT_NVLINK			45U
-/*
- * PMU flags.
- */
-/** perfmon enabled or disabled for PMU */
-#define NVGPU_PMU_PERFMON			48U
-/** PMU Pstates */
-#define NVGPU_PMU_PSTATE			49U
-/** Save ZBC reglist */
-#define NVGPU_PMU_ZBC_SAVE			50U
-/** Completed booting FECS */
-#define NVGPU_PMU_FECS_BOOTSTRAP_DONE		51U
-/** Supports Block Level Clock Gating */
-#define NVGPU_GPU_CAN_BLCG			52U
-/** Supports Second Level Clock Gating */
-#define NVGPU_GPU_CAN_SLCG			53U
-/** Supports Engine Level Clock Gating */
-#define NVGPU_GPU_CAN_ELCG			54U
-/** Clock control support */
-#define NVGPU_SUPPORT_CLOCK_CONTROLS		55U
-/** NVGPU_GPU_IOCTL_GET_VOLTAGE is available */
-#define NVGPU_SUPPORT_GET_VOLTAGE		56U
-/** NVGPU_GPU_IOCTL_GET_CURRENT is available */
-#define NVGPU_SUPPORT_GET_CURRENT		57U
-/** NVGPU_GPU_IOCTL_GET_POWER is available */
-#define NVGPU_SUPPORT_GET_POWER			58U
-/** NVGPU_GPU_IOCTL_GET_TEMPERATURE is available */
-#define NVGPU_SUPPORT_GET_TEMPERATURE		59U
-/** NVGPU_GPU_IOCTL_SET_THERM_ALERT_LIMIT is available */
-#define NVGPU_SUPPORT_SET_THERM_ALERT_LIMIT	60U
-
-/** whether to run PREOS binary on dGPUs */
-#define NVGPU_PMU_RUN_PREOS			61U
-
-/** set if ASPM is enabled; only makes sense for PCI */
-#define NVGPU_SUPPORT_ASPM			62U
-/** subcontexts are available */
-#define NVGPU_SUPPORT_TSG_SUBCONTEXTS		63U
-/** Simultaneous Compute and Graphics (SCG) is available */
-#define NVGPU_SUPPORT_SCG			64U
-
-/** GPU_VA address of a syncpoint is supported */
-#define NVGPU_SUPPORT_SYNCPOINT_ADDRESS		65U
-/** Allocating per-channel syncpoint in user space is supported */
-#define NVGPU_SUPPORT_USER_SYNCPOINT		66U
-
-/** USERMODE enable bit */
-#define NVGPU_SUPPORT_USERMODE_SUBMIT		67U
-
-/** Multiple WPR support */
-#define NVGPU_SUPPORT_MULTIPLE_WPR		68U
-
-/** SEC2 RTOS support*/
-#define NVGPU_SUPPORT_SEC2_RTOS			69U
-
-/** PMU RTOS FBQ support*/
-#define NVGPU_SUPPORT_PMU_RTOS_FBQ		70U
-
-/** ZBC STENCIL support*/
-#define NVGPU_SUPPORT_ZBC_STENCIL		71U
-
-/** PLATFORM_ATOMIC support */
-#define NVGPU_SUPPORT_PLATFORM_ATOMIC		72U
-
-/** SEC2 VM support */
-#define NVGPU_SUPPORT_SEC2_VM			73U
-
-/** GSP VM support */
-#define NVGPU_SUPPORT_GSP_VM			74U
-
-/** GFXP preemption support */
-#define NVGPU_SUPPORT_PREEMPTION_GFXP		75U
-
-/** PMU Super surface */
-#define NVGPU_SUPPORT_PMU_SUPER_SURFACE		76U
-
-/** Reduced profile of nvgpu driver */
-#define NVGPU_DRIVER_REDUCED_PROFILE		77U
-
-/** NVGPU_GPU_IOCTL_SET_MMU_DEBUG_MODE is available */
-#define NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE	78U
-
-/** DGPU Thermal Alert */
-#define NVGPU_SUPPORT_DGPU_THERMAL_ALERT	79U
-
-/** Fault recovery support */
-#define NVGPU_SUPPORT_FAULT_RECOVERY		80U
-
-/** SW Quiesce */
-#define NVGPU_DISABLE_SW_QUIESCE		81U
-
-/** DGPU PCIe Script Update */
-#define NVGPU_SUPPORT_DGPU_PCIE_SCRIPT_EXECUTE	82U
-
-/** FMON feature Enable */
-#define NVGPU_FMON_SUPPORT_ENABLE		83U
-
-/** Copy Engine diversity enable bit */
-#define NVGPU_SUPPORT_COPY_ENGINE_DIVERSITY	84U
-
-/** SM diversity enable bit */
-#define NVGPU_SUPPORT_SM_DIVERSITY		85U
-
-/** SM RAMS ECC is enabled */
-#define NVGPU_ECC_ENABLED_SM_RAMS		86U
-
-/** Enable compression */
-#define NVGPU_SUPPORT_COMPRESSION		87U
-
-/** SM TTU is enabled */
-#define NVGPU_SUPPORT_SM_TTU			88U
-
-/** PLC Compression */
-#define NVGPU_SUPPORT_POST_L2_COMPRESSION	89U
-
-/** GMMU map access type support */
-#define NVGPU_SUPPORT_MAP_ACCESS_TYPE		90U
-
-/** 2d operations support */
-#define NVGPU_SUPPORT_2D			91U
-
-/** 3d graphics operations support */
-#define NVGPU_SUPPORT_3D			92U
-
-/** compute operations support */
-#define NVGPU_SUPPORT_COMPUTE			93U
-
-/** inline methods support */
-#define NVGPU_SUPPORT_I2M			94U
-
-/** zbc classes support */
-#define NVGPU_SUPPORT_ZBC			95U
-
-/** Multi Instance GPU support */
-#define NVGPU_SUPPORT_MIG			96U
-
-/* Profiler V2 device object support */
-#define NVGPU_SUPPORT_PROFILER_V2_DEVICE	97U
-
-/* Profiler V2 context object support */
-#define NVGPU_SUPPORT_PROFILER_V2_CONTEXT	98U
-
-/* SMPC in global mode support */
-#define NVGPU_SUPPORT_SMPC_GLOBAL_MODE		99U
-
-/*
- * Must be greater than the largest bit offset in the above list.
- */
-#define NVGPU_MAX_ENABLED_BITS			100U
+#define DEFINE_FLAG(flag, desc) flag
+enum enum_enabled_flags {
+	ENABLED_FLAGS
+};
+#undef DEFINE_FLAG
 
 /**
  * @brief Check if the passed flag is enabled.
@@ -339,6 +255,13 @@ int nvgpu_init_enabled_flags(struct gk20a *g);
  * @param g [in]	The GPU superstructure.
  */
 void nvgpu_free_enabled_flags(struct gk20a *g);
+
+/**
+ * @brief Print enabled flags value.
+ *
+ * @param g [in]	The GPU superstructure.
+ */
+void nvgpu_print_enabled_flags(struct gk20a *g);
 
 /**
  * @}
