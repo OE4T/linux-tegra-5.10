@@ -315,6 +315,13 @@
 		reg-names = "guest", "hypervisor", "actmon", "sem-syncpt-shim",
 			"common";
 		interrupts = <0 448 0x04>,
+			     <0 449 0x04>,
+			     <0 450 0x04>,
+			     <0 451 0x04>,
+			     <0 452 0x04>,
+			     <0 453 0x04>,
+			     <0 454 0x04>,
+			     <0 455 0x04>,
 			     <0 263 0x04>;
 		nvidia,ignore-dt-update;
 		wakeup_capable;
