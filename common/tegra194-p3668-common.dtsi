@@ -281,6 +281,10 @@
 		nvidia,cmd-timeout = <2000>;
 	};
 
+	tegra-capture-vi {
+		status = "okay";
+	};
+
 #if TEGRA_PCIE_VERSION < DT_VERSION_2
 	gpio@c2f0000 {
 		pex-refclk-sel-low {
