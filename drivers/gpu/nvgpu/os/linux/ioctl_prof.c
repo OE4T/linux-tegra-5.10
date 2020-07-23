@@ -200,6 +200,8 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 	nvgpu_log(g, gpu_dbg_prof, "Profiler handle %u received IOCTL cmd %u",
 		prof->prof_handle, cmd);
 
+	nvgpu_mutex_acquire(&prof->ioctl_lock);
+
 	nvgpu_speculation_barrier();
 
 	switch (cmd) {
@@ -217,6 +219,8 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 		err = -ENOTTY;
 		break;
 	}
+
+	nvgpu_mutex_release(&prof->ioctl_lock);
 
 	if ((err == 0) && (_IOC_DIR(cmd) & _IOC_READ))
 		err = copy_to_user((void __user *)arg,

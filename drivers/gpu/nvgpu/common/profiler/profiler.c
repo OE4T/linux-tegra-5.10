@@ -25,6 +25,7 @@
 #include <nvgpu/profiler.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/log.h>
+#include <nvgpu/lock.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/tsg.h>
 
@@ -52,6 +53,7 @@ int nvgpu_profiler_alloc(struct gk20a *g,
 	prof->scope = scope;
 	prof->g = g;
 
+	nvgpu_mutex_init(&prof->ioctl_lock);
 	nvgpu_init_list_node(&prof->prof_obj_entry);
 	nvgpu_list_add(&prof->prof_obj_entry, &g->profiler_objects);
 

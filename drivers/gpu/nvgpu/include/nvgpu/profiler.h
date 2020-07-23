@@ -26,6 +26,7 @@
 #ifdef CONFIG_NVGPU_PROFILER
 
 #include <nvgpu/list.h>
+#include <nvgpu/lock.h>
 #include <nvgpu/pm_reservation.h>
 
 struct gk20a;
@@ -56,6 +57,9 @@ struct nvgpu_profiler_object {
 	 * BIND_CONTEXT IOCTL/DEVCTL with tsg_fd = -1 for consistency.
 	 */
 	bool context_init;
+
+	/* Lock to serialize IOCTL/DEVCTL calls */
+	struct nvgpu_mutex ioctl_lock;
 
 	/* If profiler object has reservation for each resource. */
 	bool reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_COUNT];
