@@ -27,13 +27,14 @@
 
 /*
  * On Volta the GPU determines whether to do L3 allocation for a mapping by
- * checking bit 36 of the phsyical address. So if a mapping should allocte lines
- * in the L3 this bit must be set.
+ * checking the l3 alloc bit (bit number depends on soc) of the physical address.
+ * So if a mapping should allocate lines in the L3 this bit must be set.
  */
 u64 gv11b_gpu_phys_addr(struct gk20a *g,
 			struct nvgpu_gmmu_attrs *attrs, u64 phys)
 {
-	if ((attrs != NULL) && attrs->l3_alloc) {
+	if ((attrs != NULL) && attrs->l3_alloc &&
+			(g->ops.mm.gmmu.get_iommu_bit != NULL)) {
 		return phys | BIT64(g->ops.mm.gmmu.get_iommu_bit(g));
 	}
 

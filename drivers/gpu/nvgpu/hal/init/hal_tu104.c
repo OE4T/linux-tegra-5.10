@@ -1232,7 +1232,8 @@ static const struct gpu_ops tu104_ops = {
 			.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 			.get_default_big_page_size =
 				nvgpu_gmmu_default_big_page_size,
-			.get_iommu_bit = gp10b_mm_get_iommu_bit,
+			/* iommu bit is not applicable for dgpu */
+			.get_iommu_bit = NULL,
 			.gpu_phys_addr = gv11b_gpu_phys_addr,
 		}
 	},
