@@ -702,6 +702,14 @@
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_WGRP4>,
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_WGRP5>,
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_HEAD0>;
+#if TEGRA_POWER_DOMAIN_DT_VERSION >= DT_VERSION_3
+				power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISPB>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISPC>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISP>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+				power-domain-names = "disa", "disb", "disc", "sor", "dpaux";
+#endif
 				fb_reserved = <&fb0_reserved>;
 				iommu-direct-regions = <&fb0_reserved &fb1_reserved
 							&fb2_reserved &fb3_reserved>;
@@ -774,6 +782,14 @@
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_WGRP4>,
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_WGRP5>,
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_HEAD1>;
+#if TEGRA_POWER_DOMAIN_DT_VERSION >= DT_VERSION_3
+				power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISPB>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISPC>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISP>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+				power-domain-names = "disa", "disb", "disc", "sor", "dpaux";
+#endif
 				fb_reserved = <&fb1_reserved>;
 				iommu-direct-regions = <&fb0_reserved &fb1_reserved
 							&fb2_reserved &fb3_reserved>;
@@ -845,6 +861,14 @@
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_WGRP4>,
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_WGRP5>,
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_HEAD2>;
+#if TEGRA_POWER_DOMAIN_DT_VERSION >= DT_VERSION_3
+				power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISPB>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISPC>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISP>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+				power-domain-names = "disa", "disb", "disc", "sor", "dpaux";
+#endif
 				fb_reserved = <&fb2_reserved>;
 				iommu-direct-regions = <&fb0_reserved &fb1_reserved
 							&fb2_reserved &fb3_reserved>;
@@ -916,6 +940,14 @@
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_WGRP4>,
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_WGRP5>,
 					 <&bpmp_resets TEGRA194_RESET_NVDISPLAY0_HEAD3>;
+#if TEGRA_POWER_DOMAIN_DT_VERSION >= DT_VERSION_3
+				power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISPB>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISPC>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISP>,
+					<&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+				power-domain-names = "disa", "disb", "disc", "sor", "dpaux";
+#endif
 				fb_reserved = <&fb3_reserved>;
 				iommu-direct-regions = <&fb0_reserved &fb1_reserved
 							&fb2_reserved &fb3_reserved>;
@@ -1163,6 +1195,9 @@
 			interrupts = <0 162 0x04>;
 			clocks = <&bpmp_clks TEGRA194_CLK_CEC>;
 			clock-names = "cec";
+#if TEGRA_POWER_DOMAIN_DT_VERSION >= DT_VERSION_3
+			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+#endif
 		};
 
 		vi: vi@15c10000 {
