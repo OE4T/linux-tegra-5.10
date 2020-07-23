@@ -322,7 +322,7 @@ EXPORT_SYMBOL(tegra_dram_types);
 #if defined(CONFIG_DEBUG_FS)
 static void tegra_mc_utils_debugfs_init(void)
 {
-	struct dentry *tegra_mc_debug_root = NULL, *dram_file = NULL;
+	struct dentry *tegra_mc_debug_root = NULL;
 
 	tegra_mc_debug_root = debugfs_create_dir("tegra_mc_utils", NULL);
 	if (IS_ERR_OR_NULL(tegra_mc_debug_root)) {
@@ -330,10 +330,7 @@ static void tegra_mc_utils_debugfs_init(void)
 		return;
 	}
 
-	dram_file = debugfs_create_u32("dram_type", S_IRUGO, tegra_mc_debug_root, &dram_type);
-	if (IS_ERR_OR_NULL(dram_file)) {
-		pr_err("tegra_mc: Unable to create dram_type file\n");
-	}
+	debugfs_create_u32("dram_type", S_IRUGO, tegra_mc_debug_root, &dram_type);
 
 }
 #endif
