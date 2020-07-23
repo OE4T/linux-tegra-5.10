@@ -2225,6 +2225,9 @@
 		cooling-min-state = <0>;
 		cooling-max-state = <1>;
 		#cooling-cells = <2>;
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+		nvidia,bpmp = <&bpmp>;
+#endif
 		status = "okay";
 	};
 
