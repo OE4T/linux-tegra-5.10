@@ -34,6 +34,7 @@
 #else
 #include <soc/tegra/bpmp-abi.h>
 #include <soc/tegra/bpmp.h>
+#include <linux/extcon-provider.h>
 #endif
 
 #include <linux/clk-provider.h>
