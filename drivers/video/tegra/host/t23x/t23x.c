@@ -64,7 +64,7 @@
 #include "nvdla/dla_t23x_fw_version.h"
 #endif
 #if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
-#include "vi/vi6.h"
+#include "vi/vi5.h"
 #endif
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_OFA)
 #include "ofa/ofa.h"
@@ -196,10 +196,10 @@ struct nvhost_device_data t23x_vi0_info = {
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
-	.aggregate_constraints	= nvhost_vi6_aggregate_constraints,
+	.aggregate_constraints	= nvhost_vi5_aggregate_constraints,
 	.can_powergate		= true,
-	.pre_virt_init		= vi6_priv_early_probe,
-	.post_virt_init		= vi6_priv_late_probe,
+	.pre_virt_init		= vi5_priv_early_probe,
+	.post_virt_init		= vi5_priv_late_probe,
 };
 
 struct nvhost_device_data t23x_vi1_info = {
@@ -217,10 +217,10 @@ struct nvhost_device_data t23x_vi1_info = {
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
-	.aggregate_constraints	= nvhost_vi6_aggregate_constraints,
+	.aggregate_constraints	= nvhost_vi5_aggregate_constraints,
 	.can_powergate		= true,
-	.pre_virt_init		= vi6_priv_early_probe,
-	.post_virt_init		= vi6_priv_late_probe,
+	.pre_virt_init		= vi5_priv_early_probe,
+	.post_virt_init		= vi5_priv_late_probe,
 };
 #endif
 
