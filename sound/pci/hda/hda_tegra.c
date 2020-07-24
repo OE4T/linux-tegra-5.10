@@ -25,6 +25,7 @@
 #include <linux/string.h>
 #include <linux/pm_runtime.h>
 
+#include <soc/tegra/fuse.h>
 #include <sound/core.h>
 #include <sound/initval.h>
 
@@ -73,12 +74,6 @@
 #define HDA_GSC_REG		0x1e0
 #define HDA_GSC_ID		10
 
-struct tegra_hda_chip_data {
-	unsigned int war_sdo_lines;
-	bool war_sdo_bw;
-	bool set_gsc_id;
-};
-
 #if IS_ENABLED(CONFIG_TEGRA_DC)
 #define CHAR_BUF_SIZE_MAX	50
 struct hda_pcm_devices {
@@ -106,7 +101,6 @@ struct hda_tegra {
 	void __iomem *regs;
 	void __iomem *regs_fpci;
 	struct work_struct probe_work;
-	const struct tegra_hda_chip_data *cdata;
 #if IS_ENABLED(CONFIG_TEGRA_DC)
 	int num_codecs;
 	struct kobject *kobj;
@@ -148,6 +142,15 @@ static void hda_tegra_init(struct hda_tegra *hda)
 	v = readl(hda->regs + HDA_IPFS_INTR_MASK);
 	v |= HDA_IPFS_EN_INTR;
 	writel(v, hda->regs + HDA_IPFS_INTR_MASK);
+
+	/* program HDA_GSC_ID to get access to APR */
+	switch (tegra_get_chip_id()) {
+	case TEGRA194:
+		writel(HDA_GSC_ID, hda->regs + HDA_GSC_REG);
+		break;
+	default:
+		break;
+	}
 }
 
 static int hda_tegra_enable_clocks(struct hda_tegra *data)
@@ -329,7 +332,6 @@ static int hda_tegra_first_init(struct azx *chip, struct platform_device *pdev)
 	struct snd_card *card = chip->card;
 	int err;
 	unsigned short gcap;
-	unsigned int num_sdo_lines;
 	int irq_id = platform_get_irq(pdev, 0);
 	const char *sname, *drv_name = "tegra-hda";
 	struct device_node *np = pdev->dev.of_node;
@@ -505,24 +507,9 @@ static int hda_tegra_create(struct snd_card *card,
 	return 0;
 }
 
-static const struct tegra_hda_chip_data tegra194_cdata = {
-	/* GCAP reg shows 2 SDO lines which does not reflect true capability */
-	.war_sdo_lines		= 4,
-
-	/*
-	 * audio can support up to 4SDO lines, but 4SDO lines can not support
-	 * 32K/44.1K/48K 2 channel 16bps audio format due to legacy design
-	 * limitation. With below flag, following condition is avoided while
-	 * deciding number of SDO lines for audio stripe functionality.
-	 * { ((num_channels * bits_per_sample) / number of SDOs) = 8 }
-	 * Ref: Section 5.3.2.3 (Revision 1.0a: HD audio spec.)
-	 */
-	.war_sdo_bw		= true,
-};
-
 static const struct of_device_id hda_tegra_match[] = {
 	{ .compatible = "nvidia,tegra30-hda" },
-	{ .compatible = "nvidia,tegra194-hda", .data = &tegra194_cdata},
+	{ .compatible = "nvidia,tegra194-hda" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, hda_tegra_match);
@@ -542,9 +529,6 @@ static int hda_tegra_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	hda->dev = &pdev->dev;
 	chip = &hda->chip;
-
-	/* chip data can be NULL for legacy hda devices */
-	hda->cdata = of_device_get_match_data(&pdev->dev);
 
 	err = snd_card_new(&pdev->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
 			   THIS_MODULE, 0, &card);
@@ -698,17 +682,12 @@ static void hda_tegra_probe_work(struct work_struct *work)
 	struct hda_tegra *hda = container_of(work, struct hda_tegra, probe_work);
 	struct azx *chip = &hda->chip;
 	struct platform_device *pdev = to_platform_device(hda->dev);
-	struct hdac_bus *bus = azx_bus(chip);
 	int err;
 
 	pm_runtime_get_sync(hda->dev);
 	err = hda_tegra_first_init(chip, pdev);
 	if (err < 0)
 		goto out_free;
-
-	/* program HDA_GSC_ID to get access to APR */
-	if (hda->cdata && hda->cdata->set_gsc_id)
-		writel(HDA_GSC_ID, hda->regs + HDA_GSC_REG);
 
 	/* create codec instances */
 	err = azx_probe_codecs(chip, 8);
