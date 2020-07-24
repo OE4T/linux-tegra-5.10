@@ -13,11 +13,17 @@ Required properties:
     One of:
     - "nvidia,tegra186-bpmp"
 - mboxes : The phandle of mailbox controller and the mailbox specifier.
-- shmem : List of the phandle of the TX and RX shared memory area that
-	  the IPC between CPU and BPMP is based on.
 - #clock-cells : Should be 1.
 - #power-domain-cells : Should be 1.
 - #reset-cells : Should be 1.
+
+Optional properties:
+- shmem : List of the phandle of the TX and RX shared memory area that
+	  the IPC between CPU and BPMP is based on.
+- memory-region : phandle to reserved memory region used for IPC between
+	  CPU-NS and BPMP.
+One 1 of the above 2 properties must be present. In case both are present
+memory-region will take precedence and shmem will be ignored.
 
 This node is a mailbox consumer. See the following files for details of
 the mailbox subsystem, and the specifiers implemented by the relevant
@@ -99,6 +105,34 @@ bpmp {
 	#clock-cells = <1>;
 	#power-domain-cells = <1>;
 	#reset-cells = <1>;
+
+	i2c {
+		compatible = "...";
+		...
+	};
+};
+
+memory-region binding for BPMP
+------------------------------
+
+The shared memory area for the IPC TX and RX between CPU-NS and BPMP
+resides in normal SDRAM and is defined using a sub-node of the reserved-memory
+node. See ../reserved-memory/nvidia,tegra234-bpmp-shmem.txt for binding.
+
+Example:
+
+hsp_top: hsp@3c00000 {
+	...
+	#mbox-cells = <2>;
+};
+
+bpmp: bpmp {
+	compatible = "nvidia,tegra234-bpmp", "nvidia,tegra186-bpmp";
+	mboxes = <&hsp_top TEGRA_HSP_MBOX_TYPE_DB TEGRA_HSP_DB_MASTER_BPMP>;
+	memory-region = <&dram_cpu_bpmp_mail>;
+	#clock-cells = <1>;
+	#reset-cells = <1>;
+	#power-domain-cells = <1>;
 
 	i2c {
 		compatible = "...";

@@ -1,0 +1,33 @@
+* Tegra CPU-NS - BPMP IPC reserved memory binding
+
+Define a memory region used for communication between CPU-NS and BPMP.
+Typically this node is created by the bootloader as the physical address
+has to be known to both CPU-NS and BPMP for correct IPC operation.
+
+The memory region is defined using a child node under /reserved-memory.
+The sub-node is named shmem@<address> and has the following properties:
+
+- compatible:
+	compatible = "nvidia,tegra234-bpmp-shmem";
+
+- reg:
+	The physical address and size of the shared SDRAM region
+
+- no-map:
+	To prevent the OS from creating a virtual mapping for this region.
+	(See reserved-memory.txt for details on the no-map property)
+
+Example:
+
+/ {
+	reserved-memory {
+		...
+		dram_cpu_bpmp_mail: shmem@0xf1be0000  {
+			compatible = "nvidia,tegra234-bpmp-shmem";
+			reg = <0x0 0xf1be0000 0x0 0x2000>;
+			no-map;
+		};
+
+		...
+	};
+};
