@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -116,12 +116,8 @@ void gk20a_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 		g->ops.fifo.intr_set_recover_mask(g);
 
 		g->ops.fifo.trigger_mmu_fault(g, engine_ids);
-		/*
-		 * Ignore the "Verbose" flag from
-		 * gk20a_fifo_handle_mmu_fault_locked since it is not needed
-		 * here
-		 */
-		(void) gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines,
+
+		gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines,
 				ref_id, ref_id_is_tsg);
 
 		g->ops.fifo.intr_unset_recover_mask(g);

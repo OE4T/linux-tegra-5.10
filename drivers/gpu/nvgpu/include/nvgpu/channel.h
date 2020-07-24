@@ -1050,6 +1050,18 @@ void nvgpu_channel_set_unserviceable(struct nvgpu_channel *ch);
  */
 bool nvgpu_channel_check_unserviceable(struct nvgpu_channel *ch);
 
+/**
+ * @brief Signal on wait queues (notify_wq and semaphore_wq).
+ *
+ * @param g [in]	Pointer to GPU driver struct.
+ * @param ch [in]	Channel pointer.
+ *
+ * Unblock pending waits on this channel (semaphore and error
+ * notifier wait queues).
+ *
+ */
+void nvgpu_channel_wakeup_wqs(struct gk20a *g, struct nvgpu_channel *ch);
+
 #ifdef CONFIG_NVGPU_USERD
 /**
  * @brief Channel userd physical address.

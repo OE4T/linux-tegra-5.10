@@ -541,6 +541,49 @@ void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
 int nvgpu_tsg_alloc_sm_error_states_mem(struct gk20a *g,
 					struct nvgpu_tsg *tsg,
 					u32 num_sm);
+
+/**
+ * @brief Mark for all the referenceable channels of tsg's channel
+ *        list as unserviceable.
+ *
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to TSG struct.
+ *
+ * The channels are set unserviceable to convey that an uncorrectable
+ * error has occurred on the channel. It is not possible to take more
+ * references on this channel and only available option for userspace
+ * is to close the channel fd.
+ * - Acquire #nvgpu_tsg.ch_list_lock of the tsg.
+ * - For each entry of the channels in #nvgpu_tsg.ch_list of the tsg,
+ * -- Get reference to the channel.
+ * -- If channel is referenceable,
+ * --- Call #nvgpu_channel_set_unserviceable.
+ * --- Put reference to the channel.
+ * - Release #nvgpu_tsg.ch_list_lock of the tsg.
+ *
+ */
+void nvgpu_tsg_set_unserviceable(struct gk20a *g, struct nvgpu_tsg *tsg);
+
+/**
+ * @brief Release waiters for all the referenceable channels of tsg's
+ *        channel list.
+ *
+ * @param g [in]		The GPU driver struct.
+ * @param tsg [in]		Pointer to TSG struct.
+ *
+ * Unblock pending waits on this channel (semaphore and error
+ * notifier wait queues)
+ * - Acquire #nvgpu_tsg.ch_list_lock of the tsg.
+ * - For each entry of the channels in #nvgpu_tsg.ch_list of the tsg,
+ * -- Get reference to the channel.
+ * -- If channel is referenceable,
+ * --- Call #nvgpu_channel_wakeup_wqs.
+ * --- Put reference to the channel.
+ * - Release #nvgpu_tsg.ch_list_lock of the tsg.
+ *
+ */
+void nvgpu_tsg_wakeup_wqs(struct gk20a *g, struct nvgpu_tsg *tsg);
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_tsg_set_sm_exception_type_mask(struct nvgpu_channel *ch,
 		u32 exception_mask);

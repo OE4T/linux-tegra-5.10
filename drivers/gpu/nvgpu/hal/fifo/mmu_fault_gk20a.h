@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,10 +39,10 @@ void gk20a_fifo_mmu_fault_info_dump(struct gk20a *g, u32 engine_id,
 
 void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g);
 
-bool gk20a_fifo_handle_mmu_fault(struct gk20a *g, u32 mmu_fault_engines,
+void gk20a_fifo_handle_mmu_fault(struct gk20a *g, u32 mmu_fault_engines,
 	u32 hw_id, bool id_is_tsg);
 
-bool gk20a_fifo_handle_mmu_fault_locked(struct gk20a *g, u32 mmu_fault_engines,
+void gk20a_fifo_handle_mmu_fault_locked(struct gk20a *g, u32 mmu_fault_engines,
 	u32 hw_id, bool id_is_tsg);
 
 #endif /* NVGPU_FIFO_MMU_FAULT_GK20A_H */

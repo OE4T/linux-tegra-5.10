@@ -1694,12 +1694,9 @@ static bool nvgpu_channel_ctxsw_timeout_debug_dump_state(
 	return verbose;
 }
 
-static void nvgpu_channel_set_has_timedout_and_wakeup_wqs(struct gk20a *g,
-		struct nvgpu_channel *ch)
+void nvgpu_channel_wakeup_wqs(struct gk20a *g,
+				struct nvgpu_channel *ch)
 {
-	/* mark channel as faulted */
-	nvgpu_channel_set_unserviceable(ch);
-
 	/* unblock pending waits */
 	if (nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq) != 0) {
 		nvgpu_warn(g, "failed to broadcast");
@@ -1714,7 +1711,11 @@ bool nvgpu_channel_mark_error(struct gk20a *g, struct nvgpu_channel *ch)
 	bool verbose;
 
 	verbose = nvgpu_channel_ctxsw_timeout_debug_dump_state(ch);
-	nvgpu_channel_set_has_timedout_and_wakeup_wqs(g, ch);
+
+	/* mark channel as faulted */
+	nvgpu_channel_set_unserviceable(ch);
+
+	nvgpu_channel_wakeup_wqs(g, ch);
 
 	return verbose;
 }
@@ -1736,7 +1737,8 @@ void nvgpu_channel_sw_quiesce(struct gk20a *g)
 		if (ch != NULL) {
 			nvgpu_channel_set_error_notifier(g, ch,
 				NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
-			nvgpu_channel_set_has_timedout_and_wakeup_wqs(g, ch);
+			nvgpu_channel_set_unserviceable(ch);
+			nvgpu_channel_wakeup_wqs(g, ch);
 			nvgpu_channel_put(ch);
 		}
 	}

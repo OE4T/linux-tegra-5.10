@@ -175,6 +175,28 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 			"act_eng_bitmask = 0x%x, mmufault ptr = 0x%p",
 			 id, id_type, rc_type, act_eng_bitmask, mmufault);
 
+	/* Set unserviceable flag right at start of recovery to reduce
+	 * the window of race between job submit and recovery on same
+	 * TSG.
+	 * The unserviceable flag is checked during job submit and
+	 * prevent new jobs from being submitted to TSG which is headed
+	 * for teardown.
+	 */
+	if (tsg != NULL) {
+		/* Set error notifier before letting userspace
+		 * know about faulty channel
+		 * The unserviceable flag is moved early to
+		 * disallow submits on the broken channel. If
+		 * userspace checks the notifier code when a
+		 * submit fails, we need it set to convey to
+		 * userspace that channel is no longer usable.
+		 */
+		if (rc_type == RC_TYPE_MMU_FAULT) {
+			nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+		}
+		nvgpu_tsg_set_unserviceable(g, tsg);
+	}
+
 	if (rc_type == RC_TYPE_MMU_FAULT && mmufault != NULL) {
 		if(mmufault->faulted_pbdma != INVAL_ID) {
 			pbdma_bitmask = BIT32(mmufault->faulted_pbdma);
@@ -290,10 +312,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 			g->ops.tsg.disable(tsg);
 		} else {
 #endif
-			if (rc_type == RC_TYPE_MMU_FAULT) {
-				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
-			}
-			(void)nvgpu_tsg_mark_error(g, tsg);
+			nvgpu_tsg_wakeup_wqs(g, tsg);
 			nvgpu_tsg_abort(g, tsg, false);
 #ifdef CONFIG_NVGPU_DEBUGGER
 		}

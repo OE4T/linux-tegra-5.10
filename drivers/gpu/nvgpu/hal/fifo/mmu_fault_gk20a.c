@@ -231,7 +231,7 @@ void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g)
 	nvgpu_err(g, "dropped mmu fault (0x%08x)", fault_id);
 }
 
-bool gk20a_fifo_handle_mmu_fault_locked(
+void gk20a_fifo_handle_mmu_fault_locked(
 	struct gk20a *g,
 	u32 mmu_fault_engines, /* queried from HW if 0 */
 	u32 hw_id, /* queried from HW if ~(u32)0 OR mmu_fault_engines == 0*/
@@ -240,7 +240,6 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 	bool fake_fault;
 	unsigned long fault_id;
 	unsigned long engine_mmu_fault_id;
-	bool debug_dump = true;
 	struct nvgpu_engine_status_info engine_status;
 	bool deferred_reset_pending = false;
 
@@ -340,6 +339,28 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 			}
 		}
 
+		/* Set unserviceable flag right at start of recovery to reduce
+		 * the window of race between job submit and recovery on same
+		 * TSG.
+		 * The unserviceable flag is checked during job submit and
+		 * prevent new jobs from being submitted to TSG which is headed
+		 * for teardown.
+		 */
+		if (tsg != NULL) {
+			/* Set error notifier before letting userspace
+			 * know about faulty channel.
+			 * The unserviceable flag is moved early to
+			 * disallow submits on the broken channel. If
+			 * userspace checks the notifier code when a
+			 * submit fails, we need it set to convey to
+			 * userspace that channel is no longer usable.
+			 */
+			if (!fake_fault) {
+				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+			}
+			nvgpu_tsg_set_unserviceable(g, tsg);
+		}
+
 		/* check if engine reset should be deferred */
 		if (engine_id != NVGPU_INVALID_ENG_ID) {
 #ifdef CONFIG_NVGPU_DEBUGGER
@@ -381,10 +402,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 			if (deferred_reset_pending) {
 				g->ops.tsg.disable(tsg);
 			} else {
-				if (!fake_fault) {
-					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
-				}
-				debug_dump = nvgpu_tsg_mark_error(g, tsg);
+				nvgpu_tsg_wakeup_wqs(g, tsg);
 				nvgpu_tsg_abort(g, tsg, false);
 			}
 
@@ -426,17 +444,14 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 	if (nvgpu_cg_pg_enable(g) != 0) {
 		nvgpu_warn(g, "fail to enable power mgmt");
 	}
-	return debug_dump;
 }
 
-bool gk20a_fifo_handle_mmu_fault(
+void gk20a_fifo_handle_mmu_fault(
 	struct gk20a *g,
 	u32 mmu_fault_engines, /* queried from HW if 0 */
 	u32 hw_id, /* queried from HW if ~(u32)0 OR mmu_fault_engines == 0*/
 	bool id_is_tsg)
 {
-	bool debug_dump;
-
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_log_info(g, "acquire engines_reset_mutex");
@@ -444,13 +459,11 @@ bool gk20a_fifo_handle_mmu_fault(
 
 	nvgpu_runlist_lock_active_runlists(g);
 
-	debug_dump = gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines,
+	gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines,
 			hw_id, id_is_tsg);
 
 	nvgpu_runlist_unlock_active_runlists(g);
 
 	nvgpu_log_info(g, "release engines_reset_mutex");
 	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
-
-	return debug_dump;
 }

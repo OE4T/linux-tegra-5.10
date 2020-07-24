@@ -423,6 +423,36 @@ clean_up_mutex:
 	return err;
 }
 
+void nvgpu_tsg_set_unserviceable(struct gk20a *g,
+				struct nvgpu_tsg *tsg)
+{
+	struct nvgpu_channel *ch = NULL;
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, nvgpu_channel, ch_entry) {
+		if (nvgpu_channel_get(ch) != NULL) {
+			nvgpu_channel_set_unserviceable(ch);
+			nvgpu_channel_put(ch);
+		}
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+}
+
+void nvgpu_tsg_wakeup_wqs(struct gk20a *g,
+				struct nvgpu_tsg *tsg)
+{
+	struct nvgpu_channel *ch = NULL;
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, nvgpu_channel, ch_entry) {
+		if (nvgpu_channel_get(ch) != NULL) {
+			nvgpu_channel_wakeup_wqs(g, ch);
+			nvgpu_channel_put(ch);
+		}
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+}
+
 bool nvgpu_tsg_mark_error(struct gk20a *g,
 		struct nvgpu_tsg *tsg)
 {
