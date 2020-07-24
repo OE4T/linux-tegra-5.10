@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -91,7 +91,9 @@ struct vi_channel_drv_ops {
  */
 struct tegra_vi_channel {
 	struct device *dev; /**< VI device */
-	struct platform_device *ndev; /**< VI platform_device */
+	struct platform_device *ndev; /**< VI nvhost platform_device */
+	struct platform_device *vi_capture_pdev;
+		/**< Capture VI driver platform device */
 	struct vi_channel_drv *drv; /**< VI channel driver context */
 	struct rcu_head rcu; /**< VI channel rcu */
 	struct vi_capture *capture_data; /**< VI channel capture context */
@@ -101,18 +103,17 @@ struct tegra_vi_channel {
 
 /**
  * @brief Create the VI channels driver contexts, and instantiate
- * MAX_VI_CHANNELS many channel character device nodes.
+ * as many channel character device nodes as specified in the device tree.
  *
  * VI channel nodes appear in the filesystem as:
- * /dev/capture-vi-channel{0..MAX_VI_CHANNELS-1}
+ * /dev/capture-vi-channel{0..max_vi_channels-1}
  *
  * @param[in]	ndev	VI platform_device context
- * @param[in]	ops	vi_channel_drv_ops fops
+ * @param[in]	max_vi_channels	Maximum number of VI channels
  * @returns	0 (success), neg. errno (failure)
  */
 int vi_channel_drv_register(
-	struct platform_device *ndev,
-	const struct vi_channel_drv_ops *ops);
+	struct platform_device *ndev, unsigned int max_vi_channels);
 
 /**
  * @brief Destroy the VI channels driver and all character device nodes.
@@ -124,6 +125,15 @@ int vi_channel_drv_register(
  */
 void vi_channel_drv_unregister(
 	struct device *dev);
+
+/**
+ * @brief Register the chip specific syncpt/gos related function table
+ *
+ * @param[in]	ops	vi_channel_drv_ops fops
+ * @returns	0 (success), neg. errno (failure)
+ */
+int vi_channel_drv_fops_register(
+	const struct vi_channel_drv_ops *ops);
 
 /**
  * @brief Unpin and free the list of pinned capture_mapping's associated with a

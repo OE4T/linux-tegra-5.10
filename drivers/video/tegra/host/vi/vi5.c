@@ -49,7 +49,9 @@
 #include "capture/capture-support.h"
 
 #include "t194/t194.h"
-
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#include "t23x/t23x.h"
+#endif
 #include <media/vi.h>
 #include <media/mc_common.h>
 #include <media/tegra_camera_platform.h>
@@ -75,6 +77,12 @@ struct host_vi5 {
 	struct vi5_debug {
 		struct debugfs_regset32 ch0;
 	} debug;
+
+	/* WAR: Adding a temp flags to avoid registering to V4L2 and
+	 * tegra camera platform device.
+	 */
+	bool skip_isobw_init;
+	bool skip_v4l2_init;
 };
 
 static int vi5_init_debugfs(struct host_vi5 *vi5);
@@ -177,12 +185,22 @@ int vi5_priv_early_probe(struct platform_device *pdev)
 		goto put_vi;
 	}
 
+	err = vi_channel_drv_fops_register(&vi5_channel_drv_ops);
+	if (err) {
+		dev_warn(&pdev->dev, "syncpt fops register failed, defer probe\n");
+		goto put_vi;
+	}
+
 	vi5 = (struct host_vi5*) devm_kzalloc(dev, sizeof(*vi5), GFP_KERNEL);
 	if (!vi5) {
 		err = -ENOMEM;
 		goto put_vi;
 	}
 
+	vi5->skip_v4l2_init = of_property_read_bool(dev->of_node,
+					"nvidia,skip-v4l2-init");
+	vi5->skip_isobw_init = of_property_read_bool(dev->of_node,
+					"nvidia,skip-isobw-init");
 	vi5->vi_thi = thi;
 	vi5->pdev = pdev;
 	info->pdev = pdev;
@@ -216,22 +234,24 @@ int vi5_priv_late_probe(struct platform_device *pdev)
 	vi_info.hw_type = HWTYPE_VI;
 	vi_info.ppc = NUM_PPC;
 	vi_info.overhead = VI_OVERHEAD;
-	err = tegra_camera_device_register(&vi_info, vi5);
-	if (err)
-		goto device_release;
 
-	err = vi_channel_drv_register(pdev, &vi5_channel_drv_ops);
-	if (err)
-		goto device_release;
+	if (!vi5->skip_isobw_init) {
+		err = tegra_camera_device_register(&vi_info, vi5);
+		if (err)
+			goto device_release;
+	}
 
 	vi5_init_debugfs(vi5);
 
-	vi5->vi_common.mc_vi.vi = &vi5->vi_common;
-	vi5->vi_common.mc_vi.fops = &vi5_fops;
-	err = tegra_vi_media_controller_init(&vi5->vi_common.mc_vi, pdev);
-	if (err) {
-		dev_warn(&pdev->dev, "media controller init failed\n");
-		err = 0;
+	if (!vi5->skip_v4l2_init) {
+		vi5->vi_common.mc_vi.vi = &vi5->vi_common;
+		vi5->vi_common.mc_vi.fops = &vi5_fops;
+		err = tegra_vi_media_controller_init(
+			&vi5->vi_common.mc_vi, pdev);
+		if (err) {
+			dev_warn(&pdev->dev, "media controller init failed\n");
+			err = 0;
+		}
 	}
 
 	return 0;
@@ -247,6 +267,8 @@ static int vi5_probe(struct platform_device *pdev)
 	int err;
 	struct nvhost_device_data *pdata;
 	struct host_vi5 *vi5;
+
+	dev_dbg(&pdev->dev, "%s: probe\n", __func__);
 
 	err = vi5_priv_early_probe(pdev);
 	if (err)
@@ -267,7 +289,9 @@ static int vi5_probe(struct platform_device *pdev)
 	if (err)
 		goto deinit;
 
-	vi5_priv_late_probe(pdev);
+	err = vi5_priv_late_probe(pdev);
+	if (err)
+		goto deinit;
 
 	return 0;
 
@@ -310,9 +334,22 @@ static int vi5_remove(struct platform_device *pdev)
 
 static const struct of_device_id tegra_vi5_of_match[] = {
 	{
+		.name = "vi",
 		.compatible = "nvidia,tegra194-vi",
 		.data = &t19_vi5_info,
 	},
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	{
+		.name = "vi0",
+		.compatible = "nvidia,tegra234-vi",
+		.data = &t23x_vi0_info,
+	},
+	{
+		.name = "vi1",
+		.compatible = "nvidia,tegra234-vi",
+		.data = &t23x_vi1_info,
+	},
+#endif
 	{ },
 };
 

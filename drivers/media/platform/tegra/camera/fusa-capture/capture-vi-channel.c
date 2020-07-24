@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,15 +35,13 @@
 #include <media/fusa-capture/capture-vi-channel.h>
 
 /**
- * @todo This parameter is platform-dependent and should be retrieved from the
- * Device Tree.
- */
-#define MAX_VI_CHANNELS	64
-
-/**
  * @brief VI channel character device driver context.
  */
 struct vi_channel_drv {
+	struct platform_device *vi_capture_pdev;
+		/**< Capture VI driver platform device */
+	bool use_legacy_path;
+		/**< Flag to maintain backward-compatibility for T186 */
 	struct device *dev; /**< VI kernel @em device */
 	struct platform_device *ndev; /**< VI kernel @em platform_device */
 	struct mutex lock; /**< VI channel driver context lock */
@@ -198,51 +196,6 @@ struct vi_channel_drv {
 
 /** @} */
 
-/**
- * @brief Power on VI via Host1x. The VI channel is registered as an NvHost VI
- * client and the reference count is incremented by one.
- *
- * @param[in]	chan	VI channel context
- *
- * @returns	0 (success), neg. errno (failure)
- */
-static int vi_channel_power_on_vi_device(
-	struct tegra_vi_channel *chan)
-{
-	int ret = 0;
-
-	dev_dbg(chan->dev, "vi_channel_power_on_vi_device\n");
-
-	ret = nvhost_module_add_client(chan->ndev, chan->capture_data);
-	if (ret < 0) {
-		dev_err(chan->dev, "%s: failed to add vi client\n", __func__);
-		return ret;
-	}
-
-	ret = nvhost_module_busy(chan->ndev);
-	if (ret < 0) {
-		dev_err(chan->dev, "%s: failed to power on vi\n", __func__);
-		return ret;
-	}
-
-	return 0;
-}
-
-/**
- * @brief Power off VI via Host1x. The NvHost module reference count is
- * decreased by one and the VI channel is unregistered as a client.
- *
- * @param[in]	chan	VI channel context
- */
-static void vi_channel_power_off_vi_device(
-	struct tegra_vi_channel *chan)
-{
-	dev_dbg(chan->dev, "vi_channel_power_off_vi_device\n");
-
-	nvhost_module_idle(chan->ndev);
-	nvhost_module_remove_client(chan->ndev, chan->capture_data);
-}
-
 void vi_capture_request_unpin(
 	struct tegra_vi_channel *chan,
 	uint32_t buffer_index)
@@ -290,13 +243,13 @@ struct tegra_vi_channel *vi_channel_open_ex(
 		return ERR_PTR(-ENOMEM);
 
 	chan->drv = chan_drv;
-	chan->dev = chan_drv->dev;
-	chan->ndev = chan_drv->ndev;
+	if (chan_drv->use_legacy_path) {
+		chan->dev = chan_drv->dev;
+		chan->ndev = chan_drv->ndev;
+	} else {
+		chan->vi_capture_pdev = chan_drv->vi_capture_pdev;
+	}
 	chan->ops = chan_drv->ops;
-
-	err = vi_channel_power_on_vi_device(chan);
-	if (err < 0)
-		goto error;
 
 	err = vi_capture_init(chan, is_mem_pinned);
 	if (err < 0)
@@ -315,7 +268,6 @@ struct tegra_vi_channel *vi_channel_open_ex(
 	return chan;
 
 rcu_err:
-	vi_channel_power_off_vi_device(chan);
 	vi_capture_shutdown(chan);
 error:
 	kfree(chan);
@@ -330,7 +282,6 @@ int vi_channel_close_ex(
 	struct vi_channel_drv *chan_drv = chan->drv;
 
 	vi_capture_shutdown(chan);
-	vi_channel_power_off_vi_device(chan);
 
 	mutex_lock(&chan_drv->lock);
 
@@ -426,6 +377,16 @@ static long vi_channel_ioctl(
 
 		if (copy_from_user(&setup, ptr, sizeof(setup)))
 			break;
+
+		if (chan->drv->use_legacy_path == false) {
+			vi_get_nvhost_device(chan, &setup);
+			if (chan->dev == NULL) {
+				dev_err(&chan->vi_capture_pdev->dev,
+					"%s: channel device is NULL",
+					__func__);
+				return -EINVAL;
+			}
+		}
 
 		capture->buf_ctx = create_buffer_table(chan->dev);
 		if (capture->buf_ctx == NULL) {
@@ -647,22 +608,29 @@ static int vi_channel_major;
 
 int vi_channel_drv_register(
 	struct platform_device *ndev,
-	const struct vi_channel_drv_ops *ops)
+	unsigned int max_vi_channels)
 {
 	struct vi_channel_drv *chan_drv;
 	int err = 0;
 	unsigned int i;
 
 	chan_drv = devm_kzalloc(&ndev->dev, sizeof(*chan_drv) +
-			MAX_VI_CHANNELS * sizeof(struct tegra_vi_channel *),
+			max_vi_channels * sizeof(struct tegra_vi_channel *),
 			GFP_KERNEL);
 	if (unlikely(chan_drv == NULL))
 		return -ENOMEM;
 
-	chan_drv->dev = &ndev->dev;
-	chan_drv->ndev = ndev;
-	chan_drv->ops = ops;
-	chan_drv->num_channels = MAX_VI_CHANNELS;
+	if (strstr(ndev->name, "tegra-capture-vi") == NULL) {
+		chan_drv->use_legacy_path = true;
+		chan_drv->dev = &ndev->dev;
+		chan_drv->ndev = ndev;
+	} else {
+		chan_drv->use_legacy_path = false;
+		chan_drv->dev = NULL;
+		chan_drv->ndev = NULL;
+		chan_drv->vi_capture_pdev = ndev;
+	}
+	chan_drv->num_channels = max_vi_channels;
 	mutex_init(&chan_drv->lock);
 
 	mutex_lock(&chdrv_lock);
@@ -678,7 +646,10 @@ int vi_channel_drv_register(
 	for (i = 0; i < chan_drv->num_channels; i++) {
 		dev_t devt = MKDEV(vi_channel_major, i);
 
-		device_create(vi_channel_class, chan_drv->dev, devt, NULL,
+		struct device *dev =
+			(chan_drv->use_legacy_path)?chan_drv->dev :
+			&chan_drv->vi_capture_pdev->dev;
+		device_create(vi_channel_class, dev, devt, NULL,
 				"capture-vi-channel%u", i);
 	}
 
@@ -688,6 +659,32 @@ error:
 	return err;
 }
 EXPORT_SYMBOL(vi_channel_drv_register);
+
+int vi_channel_drv_fops_register(
+	const struct vi_channel_drv_ops *ops)
+{
+	int err = 0;
+	struct vi_channel_drv *chan_drv;
+
+	chan_drv = chdrv_;
+	if (chan_drv == NULL) {
+		err = -EPROBE_DEFER;
+		goto error;
+	}
+
+	mutex_lock(&chdrv_lock);
+	if (chan_drv->ops == NULL)
+		chan_drv->ops = ops;
+	else
+		dev_warn(chan_drv->dev, "fops function table already registered\n");
+	mutex_unlock(&chdrv_lock);
+
+	return 0;
+
+error:
+	return err;
+}
+EXPORT_SYMBOL(vi_channel_drv_fops_register);
 
 void vi_channel_drv_unregister(
 	struct device *dev)

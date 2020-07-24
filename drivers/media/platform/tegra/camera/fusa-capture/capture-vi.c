@@ -33,6 +33,7 @@
 #include <media/fusa-capture/capture-common.h>
 
 #include <media/fusa-capture/capture-vi.h>
+#include "nvhost_acm.h"
 
 /**
  * @brief Invalid VI channel ID; the channel is not initialized.
@@ -53,6 +54,12 @@
  * @brief INVALID NVCSI TPG virtual channel ID; the TPG stream is not enabled.
  */
 #define NVCSI_STREAM_INVALID_TPG_VC_ID	U32_C(0xFFFF)
+
+/**
+ * @brief The default number of VI channels to be used if not specified in
+ * the device tree.
+ */
+#define DEFAULT_VI_CHANNELS	U32_C(64)
 
 /**
  * @brief Maximum number of VI devices supported.
@@ -77,11 +84,19 @@ static const char * const vi_mapping_elements[] = {
 	"vi-unit-id"
 };
 
-struct capture_vi_info {
-	uint32_t num_vi_devices; // number of available VI devices
-	struct device *vi_devices[MAX_VI_UNITS];
+/**
+ * @brief The Capture-VI standalone driver context.
+ */
+struct tegra_capture_vi_data {
+	uint32_t num_vi_devices; /**< Number of available VI devices */
+	struct platform_device *vi_pdevices[MAX_VI_UNITS];
+		/**< VI nvhost client platform device for each VI instance */
+	uint32_t max_vi_channels;
+		/**< Maximum number of VI capture channel devices */
 	uint32_t num_csi_vi_maps;
+		/**< Number of NVCSI to VI mapping elements in the table */
 	uint32_t vi_instance_table[MAX_NVCSI_STREAM_IDS];
+		/**< NVCSI stream-id & VI instance mapping, read from the DT */
 };
 
 /**
@@ -569,8 +584,20 @@ void vi_capture_shutdown(
 	chan->capture_data = NULL;
 }
 
-/* TODO: remove this when VI_channels_registeration is done from capture-vi. */
-struct platform_device *capture_pdev;
+void vi_get_nvhost_device(
+	struct tegra_vi_channel *chan,
+	struct vi_capture_setup *setup)
+{
+	uint32_t vi_inst = 0;
+
+	struct tegra_capture_vi_data *info =
+		platform_get_drvdata(chan->vi_capture_pdev);
+
+	vi_inst = info->vi_instance_table[setup->csi_stream_id];
+
+	chan->dev = &info->vi_pdevices[vi_inst]->dev;
+	chan->ndev = info->vi_pdevices[vi_inst];
+}
 
 int vi_capture_setup(
 	struct tegra_vi_channel *chan,
@@ -586,7 +613,26 @@ int vi_capture_setup(
 #ifdef HAVE_VI_GOS_TABLES
 	int i;
 #endif
-	struct capture_vi_info *info = platform_get_drvdata(capture_pdev);
+
+	uint32_t vi_inst = 0;
+
+	if (chan->vi_capture_pdev != NULL) {
+		struct tegra_capture_vi_data *info =
+			platform_get_drvdata(chan->vi_capture_pdev);
+		vi_inst = info->vi_instance_table[setup->csi_stream_id];
+	}
+
+	/* V4L2 directly calls this function. So need to make sure the
+	 * correct VI5 instance is associated with the VI capture channel.
+	 */
+	if (chan->dev == NULL) {
+		vi_get_nvhost_device(chan, setup);
+		if (chan->dev == NULL) {
+			dev_err(&chan->vi_capture_pdev->dev,
+				"%s: channel device is NULL", __func__);
+			return -EINVAL;
+		}
+	}
 
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
@@ -653,7 +699,7 @@ int vi_capture_setup(
 	config->slvsec_stream_main = setup->slvsec_stream_main;
 	config->slvsec_stream_sub = setup->slvsec_stream_sub;
 
-	config->vi_unit_id = info->vi_instance_table[setup->csi_stream_id];
+	config->vi_unit_id = vi_inst;
 
 	config->queue_depth = setup->queue_depth;
 	config->request_size = setup->request_size;
@@ -1281,7 +1327,7 @@ static int csi_vi_get_mapping_table(struct platform_device *pdev)
 {
 	uint32_t index = 0;
 	struct device *dev = &pdev->dev;
-	struct capture_vi_info *info = platform_get_drvdata(pdev);
+	struct tegra_capture_vi_data *info = platform_get_drvdata(pdev);
 
 	int nmap_elems;
 	uint32_t map_table_size;
@@ -1358,19 +1404,24 @@ static int csi_vi_get_mapping_table(struct platform_device *pdev)
 
 static int capture_vi_probe(struct platform_device *pdev)
 {
-	int err;
 	uint32_t ii;
-	struct capture_vi_info *info;
+	int err = 0;
+	struct tegra_capture_vi_data *info;
 	struct device *dev = &pdev->dev;
 
 	dev_dbg(dev, "%s: tegra-camrtc-capture-vi probe\n", __func__);
 
 	info = devm_kzalloc(dev,
-				sizeof(*info), GFP_KERNEL);
+			sizeof(*info), GFP_KERNEL);
 	if (info == NULL)
 		return -ENOMEM;
 
 	info->num_vi_devices = 0;
+
+	(void)of_property_read_u32(dev->of_node, "nvidia,vi-max-channels",
+			&info->max_vi_channels);
+	if (info->max_vi_channels == 0)
+		info->max_vi_channels = DEFAULT_VI_CHANNELS;
 
 	for (ii = 0; ; ii++) {
 		struct device_node *np;
@@ -1380,7 +1431,7 @@ static int capture_vi_probe(struct platform_device *pdev)
 		if (np == NULL)
 			break;
 
-		if (info->num_vi_devices >= ARRAY_SIZE(info->vi_devices)) {
+		if (info->num_vi_devices >= ARRAY_SIZE(info->vi_pdevices)) {
 			of_node_put(np);
 			err = -EINVAL;
 			goto cleanup;
@@ -1395,7 +1446,7 @@ static int capture_vi_probe(struct platform_device *pdev)
 			goto cleanup;
 		}
 
-		info->vi_devices[ii] = &pvidev->dev;
+		info->vi_pdevices[ii] = pvidev;
 		info->num_vi_devices++;
 	}
 
@@ -1403,8 +1454,6 @@ static int capture_vi_probe(struct platform_device *pdev)
 		return -EINVAL;
 
 	platform_set_drvdata(pdev, info);
-
-	capture_pdev = pdev;
 
 	if (info->num_vi_devices == 1) {
 		dev_dbg(dev, "default 0 vi-unit-id for all csi-stream-ids\n");
@@ -1419,11 +1468,15 @@ static int capture_vi_probe(struct platform_device *pdev)
 		}
 	}
 
+	err = vi_channel_drv_register(pdev, info->max_vi_channels);
+	if (err)
+		goto cleanup;
+
 	return 0;
 
 cleanup:
 	for (ii = 0; ii < info->num_vi_devices; ii++)
-		put_device(info->vi_devices[ii]);
+		put_device(&info->vi_pdevices[ii]->dev);
 
 	dev_err(dev, "%s: tegra-camrtc-capture-vi probe failed\n", __func__);
 	return err;
@@ -1431,7 +1484,7 @@ cleanup:
 
 static int capture_vi_remove(struct platform_device *pdev)
 {
-	struct capture_vi_info *info;
+	struct tegra_capture_vi_data *info;
 	uint32_t ii;
 	struct device *dev = &pdev->dev;
 
@@ -1440,7 +1493,7 @@ static int capture_vi_remove(struct platform_device *pdev)
 	info = platform_get_drvdata(pdev);
 
 	for (ii = 0; ii < info->num_vi_devices; ii++)
-		put_device(info->vi_devices[ii]);
+		put_device(&info->vi_pdevices[ii]->dev);
 
 	return 0;
 }

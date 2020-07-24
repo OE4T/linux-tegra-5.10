@@ -1,7 +1,7 @@
 /*
  * VI driver for T186
  *
- * Copyright (c) 2015-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2015-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -57,6 +57,8 @@
 /* HW capability, pixels per clock */
 #define NUM_PPC					8
 #define VI_OVERHEAD				10
+
+#define DEFAULT_VI_CHANNELS	64
 
 /* Interrupt handler */
 /* NOTE: VI4 has three interrupt lines. This handler is for the master/error
@@ -357,7 +359,11 @@ static int tegra_vi4_probe(struct platform_device *pdev)
 		return err;
 	}
 
-	err = vi_channel_drv_register(pdev, &vi4_channel_drv_ops);
+	err = vi_channel_drv_register(pdev, DEFAULT_VI_CHANNELS);
+	if (err)
+		return err;
+
+	err = vi_channel_drv_fops_register(&vi4_channel_drv_ops);
 	if (err)
 		return err;
 
