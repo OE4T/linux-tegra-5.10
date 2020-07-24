@@ -37,12 +37,60 @@
 
 #define INVAL_ID			(~U32(0U))
 
+/*
+ * Requires a string literal for the format - notice the string
+ * concatination.
+ */
+#define dbg_rec(g, fmt, args...)					\
+	nvgpu_log((g), gpu_dbg_rec, "REC | " fmt, ##args)
+
+
 struct gk20a;
 struct nvgpu_fifo;
 struct nvgpu_tsg;
 struct nvgpu_channel;
 struct nvgpu_pbdma_status_info;
 struct mmu_fault_info;
+
+static inline const char *nvgpu_rc_type_to_str(unsigned int rc_type)
+{
+	const char *str = NULL;
+
+	switch (rc_type) {
+	case RC_TYPE_NO_RC:
+		str = "None";
+		break;
+	case RC_TYPE_MMU_FAULT:
+		str = "MMU fault";
+		break;
+	case RC_TYPE_PBDMA_FAULT:
+		str = "PBDMA fault";
+		break;
+	case RC_TYPE_GR_FAULT:
+		str = "GR fault";
+		break;
+	case RC_TYPE_PREEMPT_TIMEOUT:
+		str = "Preemption timeout";
+		break;
+	case RC_TYPE_CTXSW_TIMEOUT:
+		str = "CTXSW timeout";
+		break;
+	case RC_TYPE_RUNLIST_UPDATE_TIMEOUT:
+		str = "RL Update timeout";
+		break;
+	case RC_TYPE_FORCE_RESET:
+		str = "Force reset";
+		break;
+	case RC_TYPE_SCHED_ERR:
+		str = "Sched err";
+		break;
+	default:
+		str = "Unknown";
+		break;
+	}
+
+	return str;
+}
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct nvgpu_tsg *tsg, bool debug_dump);

@@ -397,6 +397,28 @@ struct nvgpu_fifo {
 	u32 channel_base;
 };
 
+static inline const char *nvgpu_id_type_to_str(unsigned int id_type)
+{
+	const char *str = NULL;
+
+	switch (id_type) {
+	case ID_TYPE_CHANNEL:
+		str = "Channel";
+		break;
+	case ID_TYPE_TSG:
+		str = "TSG";
+		break;
+	case ID_TYPE_RUNLIST:
+		str = "Runlist";
+		break;
+	default:
+		str = "Unknown";
+		break;
+	}
+
+	return str;
+}
+
 /**
  * @brief Initialize FIFO software context.
  *

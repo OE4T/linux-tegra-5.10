@@ -71,5 +71,6 @@ enum nvgpu_log_type {
 #define gpu_dbg_device		BIT(32) /* Device initialization and
                                            querying. */
 #define gpu_dbg_mig		BIT(33) /* MIG info */
+#define gpu_dbg_rec		BIT(34) /* Recovery sequence debugging. */
 
 #endif
