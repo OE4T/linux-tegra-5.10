@@ -502,12 +502,9 @@ void arm_smmu_debugfs_setup_bases(struct arm_smmu_device *smmu, u32 num_smmus,
 		dev_err(smmu->dev, "Out of memoryn\n");
 		return;
 	}
-	info->dev 		= smmu->dev;
-	info->base 		= smmu->base;
 	for (i = 0; i < num_smmus; i++)
-		info->bases[i] 	= bases[i];
-	info->num_smmus		= num_smmus;
-	info->max_cbs		= ARM_SMMU_MAX_CBS;
+		info->bases[i] = bases[i];
+	info->num_smmus = num_smmus;
 
 	smmu->debug_info = info;
 }
@@ -517,13 +514,22 @@ void arm_smmu_debugfs_setup_cfg(struct arm_smmu_device *smmu)
 	struct smmu_debugfs_info *info = smmu->debug_info;
 
 	if (info == NULL) {
-		dev_err(smmu->dev, "Debugfs cfg setup fail\n");
-		return;
+		info = devm_kmalloc(smmu->dev, sizeof(struct smmu_debugfs_info),
+				    GFP_KERNEL);
+		if (info == NULL) {
+			dev_err(smmu->dev, "Out of memoryn\n");
+			return;
+		}
+		info->num_smmus = 1;
+		info->bases[0] = smmu->base;
 	}
-	info->size 		= smmu->numpage;
+	info->base = smmu->base;
+	info->dev = smmu->dev;
+	info->size = smmu->numpage;
 	info->num_context_banks = smmu->num_context_banks;
-	info->pgshift		= smmu->pgshift;
-	info->streamid_mask	= smmu->streamid_mask;
+	info->pgshift = smmu->pgshift;
+	info->streamid_mask = smmu->streamid_mask;
+	info->max_cbs = ARM_SMMU_MAX_CBS;
 
 	arm_smmu_debugfs_create(info);
 }
@@ -578,7 +584,7 @@ void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[])
 
 	master = kmalloc(sizeof(*master), GFP_KERNEL);
 	if (master == NULL) {
-		pr_err("Failed to allocate memory for master\n");
+		dev_err(dev, "Failed to allocate memory for master\n");
 		return;
 	}
 	master->dev = dev;
