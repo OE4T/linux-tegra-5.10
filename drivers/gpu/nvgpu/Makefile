@@ -292,6 +292,7 @@ nvgpu-y += \
 	common/clk_arb/clk_arb.o \
 	common/clk_arb/clk_arb_gp10b.o \
 	common/rc/rc.o \
+	common/grmgr/grmgr.o \
 	hal/bus/bus_gk20a.o \
 	hal/class/class_gm20b.o \
 	hal/class/class_gp10b.o \

@@ -108,6 +108,7 @@
 #include <nvgpu/fbp.h>
 #include <nvgpu/therm.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/grmgr.h>
 
 #include "common/vgpu/init/init_vgpu.h"
 #include "common/vgpu/fb/fb_vgpu.h"
@@ -981,6 +982,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_max_ltc_per_fbp = vgpu_gr_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = vgpu_gr_get_max_lts_per_ltc,
 		.parse_next_device = vgpu_top_parse_next_dev,
+	},
+	.grmgr = {
+		.init_gr_manager = nvgpu_init_gr_manager,
 	},
 	.chip_init_gpu_characteristics = vgpu_gv11b_init_gpu_characteristics,
 	.get_litter_value = gv11b_get_litter_value,

@@ -243,6 +243,7 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/nvlink.h>
 #include <nvgpu/clk_mon.h>
+#include <nvgpu/grmgr.h>
 
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
 
@@ -1633,6 +1634,9 @@ static const struct gpu_ops tu104_ops = {
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 		.get_num_ltcs = gm20b_top_get_num_ltcs,
 		.get_num_lce = gv11b_top_get_num_lce,
+	},
+	.grmgr = {
+		.init_gr_manager = nvgpu_init_gr_manager,
 	},
 	.chip_init_gpu_characteristics = tu104_init_gpu_characteristics,
 	.get_litter_value = tu104_get_litter_value,

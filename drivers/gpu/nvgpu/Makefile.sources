@@ -150,6 +150,7 @@ srcs +=	common/device.c \
 	common/mc/mc.c \
 	common/rc/rc.c \
 	common/ce/ce.c \
+	common/grmgr/grmgr.c \
 	hal/init/hal_gv11b.c \
 	hal/init/hal_gv11b_litter.c \
 	hal/init/hal_init.c \

@@ -1008,6 +1008,14 @@ swdebug:
              include/nvgpu/swprofile.h,
              include/nvgpu/fifo/swprofile.h ]
 
+grmgr:
+  owner: Lakshmanan M
+  safe: no
+  sources: [ common/grmgr/grmgr.c,
+             include/nvgpu/grmgr.h,
+             include/nvgpu/mig.h,
+             include/nvgpu/gops_grmgr.h ]
+
 ##
 ## HAL units. Currently they are under common but this needs to change.
 ## We are moving these to a top level directory.

@@ -55,6 +55,7 @@
 #include <nvgpu/fbp.h>
 #include <nvgpu/therm.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/grmgr.h>
 
 #include "hal/mm/mm_gk20a.h"
 #include "hal/mm/mm_gm20b.h"
@@ -1239,6 +1240,9 @@ static const struct gpu_ops gp10b_ops = {
 		.tpc_gr_pg = NULL,
 	},
 #endif
+	.grmgr = {
+		.init_gr_manager = nvgpu_init_gr_manager,
+	},
 	.chip_init_gpu_characteristics = gp10b_init_gpu_characteristics,
 	.get_litter_value = gp10b_get_litter_value,
 };

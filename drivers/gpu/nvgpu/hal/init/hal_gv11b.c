@@ -204,6 +204,7 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/grmgr.h>
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
@@ -1502,6 +1503,9 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.tpc_gr_pg = gv11b_gr_pg_tpc,
 	},
 #endif
+	.grmgr = {
+		.init_gr_manager = nvgpu_init_gr_manager,
+	},
 	.chip_init_gpu_characteristics = gv11b_init_gpu_characteristics,
 	.get_litter_value = gv11b_get_litter_value,
 };

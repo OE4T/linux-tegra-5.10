@@ -140,6 +140,7 @@ enum nvgpu_profiler_pm_reservation_scope;
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/sched.h>
+#include <nvgpu/mig.h>
 
 #include <nvgpu/gops_class.h>
 #include <nvgpu/gops_ce.h>
@@ -170,12 +171,9 @@ enum nvgpu_profiler_pm_reservation_scope;
 #include <nvgpu/gops_cg.h>
 #include <nvgpu/gops_pmu.h>
 #include <nvgpu/gops_ecc.h>
+#include <nvgpu/gops_grmgr.h>
 
 #include "hal/clk/clk_gk20a.h"
-
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
-#include "include/nvgpu/nvgpu_next_gops_grmgr.h"
-#endif
 
 #ifdef CONFIG_DEBUG_FS
 struct railgate_stats {
@@ -646,9 +644,7 @@ struct gpu_ops {
 #endif
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 
-#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
 	struct gops_grmgr grmgr;
-#endif
 
 };
 
@@ -1041,6 +1037,9 @@ struct gk20a {
 
 	/** Max SM diversity configuration count. */
 	u32 max_sm_diversity_config_count;
+
+	/**  Multi Instance GPU information. */
+	struct nvgpu_mig mig;
 
 };
 

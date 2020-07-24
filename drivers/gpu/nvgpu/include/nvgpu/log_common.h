@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,5 +70,6 @@ enum nvgpu_log_type {
 #define	gpu_dbg_mem		BIT(31)	/* memory accesses; very verbose. */
 #define gpu_dbg_device		BIT(32) /* Device initialization and
                                            querying. */
+#define gpu_dbg_mig		BIT(33) /* MIG info */
 
 #endif
