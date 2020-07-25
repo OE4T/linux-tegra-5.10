@@ -551,6 +551,8 @@
 			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
 			nvidia,vi-falcon-device = <&vi_thi>;
+			nvidia,skip-isobw-init;
+			nvidia,skip-v4l2-init;
 
 			iommus = <&smmu TEGRA_SID_VI>;
 			iso-smmu;
@@ -568,6 +570,8 @@
 			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
 			nvidia,vi-falcon-device = <&vi_thi>;
+			nvidia,skip-isobw-init;
+			nvidia,skip-v4l2-init;
 
 			iommus = <&smmu TEGRA_SID_VI2>;
 			iso-smmu;
