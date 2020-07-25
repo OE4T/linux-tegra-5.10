@@ -59,7 +59,11 @@
 #include <linux/completion.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,26)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,3,0)
+#include <linux/pci.h>
+#else
 #include <linux/pci-aspm.h>
+#endif
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,37)
 #include <linux/prefetch.h>

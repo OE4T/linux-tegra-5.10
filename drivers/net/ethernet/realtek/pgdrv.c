@@ -40,7 +40,11 @@
 #include <linux/fs.h>		// struct file_operations
 #include <linux/mm.h>		// mmap
 #include <linux/slab.h>		// kmalloc
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,3,0)
+#include <linux/pci.h>
+#else
 #include <linux/pci-aspm.h>
+#endif
 #include <asm/io.h>
 #include <asm/uaccess.h>		// copy_to_user
 #include <asm/byteorder.h>
