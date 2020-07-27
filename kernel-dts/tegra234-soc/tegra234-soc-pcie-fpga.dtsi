@@ -137,6 +137,9 @@
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE1>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE1 0x1000>;
+
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_1 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
 	};

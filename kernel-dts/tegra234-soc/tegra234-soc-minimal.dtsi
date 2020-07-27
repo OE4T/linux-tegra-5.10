@@ -22,6 +22,7 @@
 
 #include "dt-bindings/interrupt/tegra194-irq.h"
 #include "dt-bindings/interrupt-controller/arm-gic.h"
+#include "dt-bindings/interrupt-controller/tegra-t23x-agic.h"
 #include <dt-bindings/version.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 
@@ -41,7 +42,18 @@
 		interrupt-controller;
 		reg = <0x0 0x0f400000 0x0 0x00010000    /* GICD */
 		       0x0 0x0f440000 0x0 0x00200000>;  /* GICR CPU 0-15 */
+		ranges;
 		status = "disabled";
+
+		gic_v2m: v2m@f400000 {
+			msi-controller;
+			#msi-cells = <1>;
+			reg = <0x0 0x0f410000 0x0 0x00010000	/* GICA */
+			       0x0 0x54000000 0x0 0x04000000>;
+			reg-names = "gic_base", "msi_base";
+			arm,msi-base-spi = <GIC_SPI_MSI_BASE>;
+			arm,msi-num-spis = <GIC_SPI_MSI_SIZE>;
+		};
 	};
 
 	timer {

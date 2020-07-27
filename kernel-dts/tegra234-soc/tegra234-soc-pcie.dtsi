@@ -634,6 +634,9 @@
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE0>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE0 0x1000>;
+
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
 		interrupt-map = <0 0 0 0 &intc 0 72 0x04>;
@@ -711,6 +714,9 @@
 #endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
+
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE1>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE1 0x1000>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -790,6 +796,9 @@
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE2>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE2 0x1000>;
+
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
 		interrupt-map = <0 0 0 0 &intc 0 47 0x04>;
@@ -865,6 +874,9 @@
 #endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
+
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE3>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE3 0x1000>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -942,6 +954,9 @@
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE4>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE4 0x1000>;
+
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
 		interrupt-map = <0 0 0 0 &intc 0 51 0x04>;
@@ -1017,6 +1032,9 @@
 #endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
+
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE5>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE5 0x1000>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -1095,6 +1113,9 @@
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE6>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE6 0x1000>;
+
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
 		interrupt-map = <0 0 0 0 &intc 0 352 0x04>;
@@ -1171,6 +1192,9 @@
 #endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
+
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE7>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE7 0x1000>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -1249,6 +1273,9 @@
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE8>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE8 0x1000>;
+
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
 		interrupt-map = <0 0 0 0 &intc 0 356 0x04>;
@@ -1326,6 +1353,9 @@
 		dma-coherent;
 		iommu-map-mask = <0x0>;
 
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE9>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE9 0x1000>;
+
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
 		interrupt-map = <0 0 0 0 &intc 0 358 0x04>;
@@ -1402,6 +1432,9 @@
 #endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
+
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE10>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE10 0x1000>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
