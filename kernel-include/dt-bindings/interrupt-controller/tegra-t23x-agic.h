@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DT_BINDINGS_INTERRUPT_CONTROLLER_TEGRA_T19X_AGIC_H
-#define _DT_BINDINGS_INTERRUPT_CONTROLLER_TEGRA_T19X_AGIC_H
+#ifndef _DT_BINDINGS_INTERRUPT_CONTROLLER_TEGRA_T23X_AGIC_H
+#define _DT_BINDINGS_INTERRUPT_CONTROLLER_TEGRA_T23X_AGIC_H
 
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 
@@ -166,4 +166,9 @@
 /* UART interrupt to AGIC (In FPGA platform only) */
 #define INT_UART_FPGA			AGIC_IRQ(117)
 
-#endif /* _DT_BINDINGS_INTERRUPT_CONTROLLER_TEGRA_T19X_AGIC_H */
+/* SPIs which are available for MSI interrupts */
+#define GIC_SPI_MSI_BASE		576
+#define GIC_SPI_MSI_END			960
+#define GIC_SPI_MSI_SIZE		(GIC_SPI_MSI_END - GIC_SPI_MSI_BASE)
+
+#endif /* _DT_BINDINGS_INTERRUPT_CONTROLLER_TEGRA_T23X_AGIC_H */
