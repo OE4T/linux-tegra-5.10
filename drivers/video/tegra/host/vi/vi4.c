@@ -22,7 +22,12 @@
 #include <linux/platform_device.h>
 #include <linux/reset.h>
 #include <linux/slab.h>
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 #include <linux/tegra_pm_domains.h>
+#else
+#include <linux/pm_domain.h>
+#endif
 #include <linux/uaccess.h>
 #include <linux/module.h>
 #include <media/fusa-capture/capture-vi-channel.h>
@@ -390,7 +395,11 @@ static int tegra_vi4_remove(struct platform_device *pdev)
 	nvhost_client_device_release(pdev);
 	/* ^ includes call to nvhost_module_deinit() */
 #ifdef CONFIG_PM_GENERIC_DOMAINS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	tegra_pd_remove_device(&pdev->dev);
+#else
+	pm_genpd_remove_device(&pdev->dev);
+#endif
 #endif
 	debugfs_remove_recursive(vi->debug_dir);
 	return 0;

@@ -40,7 +40,11 @@
 #include <linux/tegra-firmwares.h>
 #include <linux/tegra-hsp.h>
 #include <linux/tegra-ivc-bus.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 #include <linux/tegra_pm_domains.h>
+#else
+#include <linux/pm_domain.h>
+#endif
 #include <linux/tegra-rtcpu-monitor.h>
 #include <linux/tegra-rtcpu-trace.h>
 #include <linux/version.h>
@@ -1059,7 +1063,12 @@ static int tegra_cam_rtcpu_remove(struct platform_device *pdev)
 	if (rtcpu->bwmgr != NULL)
 		tegra_bwmgr_unregister(rtcpu->bwmgr);
 	rtcpu->bwmgr = NULL;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	tegra_pd_remove_device(&pdev->dev);
+#else
+	pm_genpd_remove_device(&pdev->dev);
+#endif
 	tegra_cam_rtcpu_mon_destroy(rtcpu->monitor);
 	tegra_ivc_bus_destroy(rtcpu->ivc);
 

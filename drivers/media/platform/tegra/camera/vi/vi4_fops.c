@@ -12,7 +12,6 @@
 #include <linux/freezer.h>
 #include <linux/kthread.h>
 #include <linux/nvhost.h>
-#include <linux/tegra-powergate.h>
 #include <linux/version.h>
 #include <media/fusa-capture/capture-vi.h>
 #include <media/tegra_camera_platform.h>

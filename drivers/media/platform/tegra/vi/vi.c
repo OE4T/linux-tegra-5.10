@@ -33,7 +33,11 @@
 #else
 #include <soc/tegra/fuse.h>
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 #include <linux/tegra_pm_domains.h>
+#else
+#include <linux/pm_domain.h>
+#endif
 #include <linux/debugfs.h>
 #include <linux/slab.h>
 
@@ -540,7 +544,11 @@ static int __exit vi_remove(struct platform_device *dev)
 #endif
 
 #ifdef CONFIG_PM_GENERIC_DOMAINS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	tegra_pd_remove_device(&dev->dev);
+#else
+	pm_genpd_remove_device(&dev->dev);
+#endif
 #endif
 
 	regulator_put(tegra_vi->reg);

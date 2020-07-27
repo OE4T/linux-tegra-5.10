@@ -1,7 +1,7 @@
 /*
  * Tegra Video Input 2 device common APIs
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Bryan Wu <pengw@nvidia.com>
  *
@@ -11,7 +11,6 @@
  */
 #include <linux/device.h>
 #include <linux/nvhost.h>
-#include <linux/tegra-powergate.h>
 #include <linux/kthread.h>
 #include <linux/freezer.h>
 #include <linux/version.h>

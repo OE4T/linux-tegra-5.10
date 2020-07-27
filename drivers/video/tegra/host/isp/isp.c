@@ -26,7 +26,6 @@
 #include <linux/workqueue.h>
 #include <linux/slab.h>
 #include <linux/module.h>
-#include <linux/tegra_pm_domains.h>
 #include <linux/version.h>
 #include <soc/tegra/fuse.h>
 
