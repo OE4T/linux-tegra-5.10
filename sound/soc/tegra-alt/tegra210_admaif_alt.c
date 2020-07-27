@@ -495,13 +495,13 @@ static int tegra_admaif_get_format(struct snd_kcontrol *kcontrol,
 		*uctl_val = admaif->client_ch_override[ADMAIF_TX_PATH][mc->reg];
 	else if (strstr(kcontrol->id.name, "Capture Client Channels"))
 		*uctl_val = admaif->client_ch_override[ADMAIF_RX_PATH][mc->reg];
-	else if (strstr(kcontrol->id.name, "Playback mono to stereo"))
+	else if (strstr(kcontrol->id.name, "Playback Mono To Stereo"))
 		*uctl_val = admaif->mono_to_stereo[ADMAIF_TX_PATH][ec->reg];
-	else if (strstr(kcontrol->id.name, "Playback stereo to mono"))
+	else if (strstr(kcontrol->id.name, "Playback Stereo To Mono"))
 		*uctl_val = admaif->stereo_to_mono[ADMAIF_TX_PATH][ec->reg];
-	else if (strstr(kcontrol->id.name, "Capture mono to stereo"))
+	else if (strstr(kcontrol->id.name, "Capture Mono To Stereo"))
 		*uctl_val = admaif->mono_to_stereo[ADMAIF_RX_PATH][ec->reg];
-	else if (strstr(kcontrol->id.name, "Capture stereo to mono"))
+	else if (strstr(kcontrol->id.name, "Capture Stereo To Mono"))
 		*uctl_val = admaif->stereo_to_mono[ADMAIF_RX_PATH][ec->reg];
 
 	return 0;
@@ -525,13 +525,13 @@ static int tegra_admaif_put_format(struct snd_kcontrol *kcontrol,
 		admaif->client_ch_override[ADMAIF_TX_PATH][mc->reg] = value;
 	else if (strstr(kcontrol->id.name, "Capture Client Channels"))
 		admaif->client_ch_override[ADMAIF_RX_PATH][mc->reg] = value;
-	else if (strstr(kcontrol->id.name, "Playback mono to stereo"))
+	else if (strstr(kcontrol->id.name, "Playback Mono To Stereo"))
 		admaif->mono_to_stereo[ADMAIF_TX_PATH][ec->reg] = value;
-	else if (strstr(kcontrol->id.name, "Playback stereo to mono"))
+	else if (strstr(kcontrol->id.name, "Playback Stereo To Mono"))
 		admaif->stereo_to_mono[ADMAIF_TX_PATH][ec->reg] = value;
-	else if (strstr(kcontrol->id.name, "Capture mono to stereo"))
+	else if (strstr(kcontrol->id.name, "Capture Mono To Stereo"))
 		admaif->mono_to_stereo[ADMAIF_RX_PATH][ec->reg] = value;
-	else if (strstr(kcontrol->id.name, "Capture stereo to mono"))
+	else if (strstr(kcontrol->id.name, "Capture Stereo To Mono"))
 		admaif->stereo_to_mono[ADMAIF_RX_PATH][ec->reg] = value;
 
 	return 0;
@@ -899,16 +899,16 @@ static const struct soc_enum tegra_admaif_stereo_conv_enum =
 }
 
 #define TEGRA_ADMAIF_CIF_CTRL(reg)					       \
-	NV_SOC_ENUM_EXT("ADMAIF" #reg " Playback mono to stereo conv", reg - 1,\
+	NV_SOC_ENUM_EXT("ADMAIF" #reg " Playback Mono To Stereo", reg - 1,\
 			tegra_admaif_get_format, tegra_admaif_put_format,      \
 			tegra_admaif_mono_conv_text),			       \
-	NV_SOC_ENUM_EXT("ADMAIF" #reg " Playback stereo to mono conv", reg - 1,\
+	NV_SOC_ENUM_EXT("ADMAIF" #reg " Playback Stereo To Mono", reg - 1,\
 			tegra_admaif_get_format, tegra_admaif_put_format,      \
 			tegra_admaif_stereo_conv_text),			       \
-	NV_SOC_ENUM_EXT("ADMAIF" #reg " Capture mono to stereo conv", reg - 1, \
+	NV_SOC_ENUM_EXT("ADMAIF" #reg " Capture Mono To Stereo", reg - 1, \
 			tegra_admaif_get_format, tegra_admaif_put_format,      \
 			tegra_admaif_mono_conv_text),			       \
-	NV_SOC_ENUM_EXT("ADMAIF" #reg " Capture stereo to mono conv", reg - 1, \
+	NV_SOC_ENUM_EXT("ADMAIF" #reg " Capture Stereo To Mono", reg - 1, \
 			tegra_admaif_get_format, tegra_admaif_put_format,      \
 			tegra_admaif_stereo_conv_text)
 
