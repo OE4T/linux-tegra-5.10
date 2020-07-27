@@ -714,7 +714,7 @@ static struct of_device_id tegra_nvdla_of_match[] = {
 
 static int nvdla_probe(struct platform_device *pdev)
 {
-	int err = 0, dla_dma_bit_mask = 39;
+	int err = 0;
 	struct nvhost_device_data *pdata = NULL;
 	struct nvdla_device *nvdla_dev = NULL;
 	struct device *dev = &pdev->dev;
@@ -759,10 +759,7 @@ static int nvdla_probe(struct platform_device *pdev)
 		goto err_no_ip;
 	}
 
-	if (tegra_platform_is_vdk())
-		dla_dma_bit_mask = 32;
-
-	dma_set_mask(dev, DMA_BIT_MASK(dla_dma_bit_mask));
+	dma_set_mask(dev, DMA_BIT_MASK(39));
 
 	nvdla_dev = devm_kzalloc(dev, sizeof(*nvdla_dev), GFP_KERNEL);
 	if (!nvdla_dev) {
