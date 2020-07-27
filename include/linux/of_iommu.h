@@ -16,6 +16,9 @@ extern const struct iommu_ops *of_iommu_configure(struct device *dev,
 					struct device_node *master_np,
 					const u32 *id);
 
+extern int of_iommu_msi_get_resv_regions(struct device *dev,
+		struct list_head *head);
+
 #else
 
 static inline int of_get_dma_window(struct device_node *dn, const char *prefix,
@@ -28,6 +31,11 @@ static inline int of_get_dma_window(struct device_node *dn, const char *prefix,
 static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
 					 struct device_node *master_np,
 					 const u32 *id)
+{
+	return NULL;
+}
+
+int of_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
 {
 	return NULL;
 }

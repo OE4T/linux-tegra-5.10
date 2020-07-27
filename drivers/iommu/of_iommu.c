@@ -12,6 +12,7 @@
 #include <linux/module.h>
 #include <linux/msi.h>
 #include <linux/of.h>
+#include <linux/of_address.h>
 #include <linux/of_iommu.h>
 #include <linux/of_pci.h>
 #include <linux/pci.h>
@@ -84,6 +85,81 @@ void of_get_iommu_resv_regions(struct device *dev, struct list_head *head)
 					IOMMU_RESV_RESERVED);
 }
 
+static int of_iommu_alloc_resv_msi_region(struct device_node *np,
+		struct list_head *head)
+{
+	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+	struct iommu_resv_region *region;
+	struct resource res;
+	int i = 0;
+
+	while (of_address_to_resource(np, i++, &res) == 0) {
+		region = iommu_alloc_resv_region(res.start, resource_size(&res),
+				prot, IOMMU_RESV_MSI);
+		if (!region)
+			return -ENOMEM;
+
+		list_add_tail(&region->list, head);
+	}
+
+	return 0;
+}
+
+static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+{
+	u32 *rid = data;
+
+	*rid = alias;
+	return 0;
+}
+
+static int of_pci_msi_get_resv_regions(struct device *dev,
+		struct list_head *head)
+{
+	struct device_node *msi_np;
+	struct device *pdev;
+	u32 rid;
+	int err, resv = 0;
+
+	pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid, &rid);
+
+	for_each_node_with_property(msi_np, "msi-controller") {
+		for (pdev = dev; pdev; pdev = pdev->parent) {
+			if (!pdev->of_node)
+				continue;
+
+			if (!of_map_id(pdev->of_node, rid, "msi-map",
+					"msi-map-mask", &msi_np, NULL)) {
+				err = of_iommu_alloc_resv_msi_region(msi_np,
+									head);
+				if (err)
+					return err;
+				resv++;
+			}
+		}
+	}
+
+	return resv;
+}
+
+static int of_platform_msi_get_resv_regions(struct device *dev,
+		struct list_head *head)
+{
+	struct of_phandle_args args;
+	int err, resv = 0;
+
+	while (!of_parse_phandle_with_args(dev->of_node, "msi-parent",
+				"#msi-cells", resv, &args)) {
+		err = of_iommu_alloc_resv_msi_region(args.np, head);
+		of_node_put(args.np);
+		if (err)
+			return err;
+
+		resv++;
+	}
+
+	return resv;
+}
 
 void of_get_iommu_direct_regions(struct device *dev, struct list_head *head)
 {
@@ -328,4 +404,23 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
 	}
 
 	return ops;
+}
+
+/*
+ * of_iommu_msi_get_resv_regions - Reserved region driver helper
+ * @dev: Device from iommu_get_resv_regions()
+ * @head: Reserved region list from iommu_get_resv_regions()
+ *
+ * Returns: Number of reserved regions on success (0 if no associated
+ * msi parent), appropriate error value otherwise.
+ */
+int of_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+{
+
+	if (dev_is_pci(dev))
+		return of_pci_msi_get_resv_regions(dev, head);
+	else if (dev->of_node)
+		return of_platform_msi_get_resv_regions(dev, head);
+
+	return 0;
 }
