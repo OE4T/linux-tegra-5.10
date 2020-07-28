@@ -63,9 +63,11 @@
 #include "nvdla/nvdla.h"
 #include "nvdla/dla_t23x_fw_version.h"
 #endif
-
 #if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
 #include "vi/vi6.h"
+#endif
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_OFA)
+#include "ofa/ofa.h"
 #endif
 
 #include "chip_support.h"
@@ -415,6 +417,7 @@ struct nvhost_device_data t23x_ofa_info = {
 	},
 	.poweron_reset		= true,
 	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
+	.memory_init		= ofa_safety_ram_init,
 	.moduleid		= NVHOST_MODULE_OFA,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_ofa012.fw",
