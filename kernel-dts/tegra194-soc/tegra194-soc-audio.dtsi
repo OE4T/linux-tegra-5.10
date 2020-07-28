@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -726,7 +726,16 @@
 
 	hda@3510000 {
 		compatible = "nvidia,tegra194-hda", "nvidia,tegra30-hda";
+
+		/*
+		 * For backward compatibility with kernels (v4.14 and v4.9)
+		 * Use 'nvidia,model' instead on newer kernels
+		 */
 		hda,card-name = "tegra-hda-galen-t194";
+
+		/* Used for kernel v5.9 onward */
+		nvidia,model = "tegra-hda-galen-t194";
+
 		iommus = <&smmu TEGRA_SID_HDA>;
 		reg = <0x0 0x3510000 0x0 0x10000>;
 		clocks = <&bpmp_clks TEGRA194_CLK_PLLP_OUT0>,
