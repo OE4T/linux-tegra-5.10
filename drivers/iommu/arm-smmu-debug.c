@@ -502,7 +502,7 @@ void arm_smmu_debugfs_setup_bases(struct arm_smmu_device *smmu, u32 num_smmus,
 		dev_err(smmu->dev, "Out of memoryn\n");
 		return;
 	}
-	for (i = 0; i < num_smmus; i++)
+	for (i = 1; i < num_smmus; i++)
 		info->bases[i] = bases[i];
 	info->num_smmus = num_smmus;
 
@@ -521,9 +521,9 @@ void arm_smmu_debugfs_setup_cfg(struct arm_smmu_device *smmu)
 			return;
 		}
 		info->num_smmus = 1;
-		info->bases[0] = smmu->base;
 	}
 	info->base = smmu->base;
+	info->bases[0] = smmu->base;
 	info->dev = smmu->dev;
 	info->size = smmu->numpage;
 	info->num_context_banks = smmu->num_context_banks;
