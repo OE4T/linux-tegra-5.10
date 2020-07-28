@@ -1,7 +1,7 @@
 /*
  * mipi_cal.c
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -34,7 +34,9 @@
 #include <linux/version.h>
 
 #include <soc/tegra/fuse.h>
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/tegra_powergate.h>
+#endif
 #include <linux/tegra_prod.h>
 #include <uapi/misc/tegra_mipi_ioctl.h>
 
@@ -132,7 +134,9 @@ static inline bool is_compat_above_18x(struct device_node *np)
 }
 
 struct tegra_mipi_soc {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	int powergate_id;
+#endif
 	u8 total_dsilanes;
 	u8 total_cillanes;
 	s8 csi_base;
@@ -822,7 +826,9 @@ static const struct tegra_mipi_soc tegra21x_mipi_soc = {
 	.cil_sw_reset = NULL,
 	.calibrate = &t21x_tegra_mipical_using_prod,
 	.parse_cfg = &t21x_tegra_prod_get_config,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	.powergate_id = TEGRA210_POWER_DOMAIN_SOR,
+#endif
 };
 
 static const struct tegra_mipi_soc tegra18x_mipi_soc = {
@@ -837,7 +843,9 @@ static const struct tegra_mipi_soc tegra18x_mipi_soc = {
 	.cil_sw_reset = &nvcsi_cil_sw_reset,
 	.calibrate = &tegra_mipical_using_prod,
 	.parse_cfg = &tegra_prod_get_config,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	.powergate_id = TEGRA186_POWER_DOMAIN_DISP,
+#endif
 };
 
 /*
@@ -857,7 +865,9 @@ static const struct tegra_mipi_soc tegra19x_mipi_soc = {
 	.cil_sw_reset = NULL,
 	.calibrate = &tegra_mipical_no_op,
 	.parse_cfg = &tegra_prod_get_config,
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	.powergate_id = TEGRA194_POWER_DOMAIN_DISP,
+#endif
 };
 
 static const struct tegra_mipi_soc tegra_vmipi_soc = {
