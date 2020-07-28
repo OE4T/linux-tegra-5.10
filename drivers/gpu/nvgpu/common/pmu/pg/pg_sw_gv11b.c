@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -138,4 +138,11 @@ void nvgpu_gv11b_pg_sw_init(struct gk20a *g,
 	pg->engines_feature_list = gm20b_pmu_pg_feature_list;
 	pg->set_sub_feature_mask = gv11b_pg_set_subfeature_mask;
 	pg->save_zbc = gm20b_pmu_save_zbc;
+	pg->allow = gm20b_pmu_pg_elpg_allow;
+	pg->disallow = gm20b_pmu_pg_elpg_disallow;
+	pg->init = gm20b_pmu_pg_elpg_init;
+	pg->alloc_dmem = gm20b_pmu_pg_elpg_alloc_dmem;
+	pg->load_buff = gm20b_pmu_pg_elpg_load_buff;
+	pg->hw_load_zbc = gm20b_pmu_pg_elpg_hw_load_zbc;
+
 }

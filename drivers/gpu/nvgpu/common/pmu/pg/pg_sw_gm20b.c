@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,8 +26,10 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/engines.h>
 
 #include "pg_sw_gm20b.h"
+#include "pmu_pg.h"
 
 u32 gm20b_pmu_pg_engines_list(struct gk20a *g)
 {
@@ -111,6 +113,160 @@ int gm20b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	return err;
 }
 
+int gm20b_pmu_pg_elpg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
+		u8 pg_engine_id)
+{
+	struct pmu_cmd cmd;
+	u64 tmp;
+
+	/* init ELPG */
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	cmd.hdr.unit_id = PMU_UNIT_PG;
+	tmp = nvgpu_safe_add_u64(PMU_CMD_HDR_SIZE,
+			sizeof(struct pmu_pg_cmd_elpg_cmd));
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = nvgpu_safe_cast_u64_to_u8(tmp);
+	cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
+	cmd.cmd.pg.elpg_cmd.engine_id = pg_engine_id;
+	cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_INIT;
+
+	return nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+			pmu_handle_pg_elpg_msg, pmu);
+}
+
+int gm20b_pmu_pg_elpg_allow(struct gk20a *g, struct nvgpu_pmu *pmu,
+		u8 pg_engine_id)
+{
+	struct pmu_cmd cmd;
+	u64 tmp;
+
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	cmd.hdr.unit_id = PMU_UNIT_PG;
+	tmp = nvgpu_safe_add_u64(PMU_CMD_HDR_SIZE,
+			sizeof(struct pmu_pg_cmd_elpg_cmd));
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = nvgpu_safe_cast_u64_to_u8(tmp);
+	cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
+	cmd.cmd.pg.elpg_cmd.engine_id = pg_engine_id;
+	cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_ALLOW;
+
+	return nvgpu_pmu_cmd_post(g, &cmd, NULL,
+			PMU_COMMAND_QUEUE_HPQ, pmu_handle_pg_elpg_msg,
+			pmu);
+}
+
+int gm20b_pmu_pg_elpg_disallow(struct gk20a *g, struct nvgpu_pmu *pmu,
+		u8 pg_engine_id)
+{
+	struct pmu_cmd cmd;
+	u64 tmp;
+
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	cmd.hdr.unit_id = PMU_UNIT_PG;
+	tmp = nvgpu_safe_add_u64(PMU_CMD_HDR_SIZE,
+			sizeof(struct pmu_pg_cmd_elpg_cmd));
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = nvgpu_safe_cast_u64_to_u8(tmp);
+	cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
+	cmd.cmd.pg.elpg_cmd.engine_id = pg_engine_id;
+	cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_DISALLOW;
+
+	return nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+			pmu_handle_pg_elpg_msg, pmu);
+}
+
+int gm20b_pmu_pg_elpg_alloc_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
+		u8 pg_engine_id)
+{
+	struct pmu_cmd cmd;
+	u64 tmp;
+
+	pmu->pg->stat_dmem_offset[pg_engine_id] = 0;
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	cmd.hdr.unit_id = PMU_UNIT_PG;
+	tmp = nvgpu_safe_add_u64(PMU_CMD_HDR_SIZE,
+			sizeof(struct pmu_pg_cmd_elpg_cmd));
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = nvgpu_safe_cast_u64_to_u8(tmp);
+	cmd.cmd.pg.stat.cmd_type = PMU_PG_CMD_ID_PG_STAT;
+	cmd.cmd.pg.stat.engine_id = pg_engine_id;
+	cmd.cmd.pg.stat.sub_cmd_id = PMU_PG_STAT_CMD_ALLOC_DMEM;
+	cmd.cmd.pg.stat.data = 0;
+
+	return nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
+		pmu_handle_pg_stat_msg, pmu);
+}
+
+int gm20b_pmu_pg_elpg_load_buff(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	struct pmu_cmd cmd;
+	u64 tmp;
+	u32 gr_engine_id;
+
+	gr_engine_id = nvgpu_engine_get_gr_id(g);
+
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	tmp = nvgpu_safe_add_u64(PMU_CMD_HDR_SIZE,
+		pmu->fw->ops.pg_cmd_eng_buf_load_size(&cmd.cmd.pg));
+	cmd.hdr.unit_id = PMU_UNIT_PG;
+	nvgpu_assert(PMU_CMD_HDR_SIZE < U32(U8_MAX));
+	cmd.hdr.size = nvgpu_safe_cast_u64_to_u8(tmp);
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
+		PMU_PG_CMD_ID_ENG_BUF_LOAD);
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
+		nvgpu_safe_cast_u32_to_u8(gr_engine_id));
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
+		PMU_PGENG_GR_BUFFER_IDX_FECS);
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
+		nvgpu_safe_cast_u64_to_u16(pmu->pg->pg_buf.size));
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
+		u64_lo32(pmu->pg->pg_buf.gpu_va));
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
+		nvgpu_safe_cast_u64_to_u8(pmu->pg->pg_buf.gpu_va & 0xFFU));
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
+		PMU_DMAIDX_VIRT);
+
+	pmu->pg->buf_loaded = false;
+
+	return nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
+			pmu_handle_pg_buf_config_msg, pmu);
+}
+
+int gm20b_pmu_pg_elpg_hw_load_zbc(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	struct pmu_cmd cmd;
+	u64 tmp;
+	u32 gr_engine_id;
+
+	gr_engine_id = nvgpu_engine_get_gr_id(g);
+
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	tmp = nvgpu_safe_add_u64(PMU_CMD_HDR_SIZE,
+		pmu->fw->ops.pg_cmd_eng_buf_load_size(&cmd.cmd.pg));
+	cmd.hdr.unit_id = PMU_UNIT_PG;
+	nvgpu_assert(PMU_CMD_HDR_SIZE < U32(U8_MAX));
+	cmd.hdr.size = nvgpu_safe_cast_u64_to_u8(tmp);
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
+		PMU_PG_CMD_ID_ENG_BUF_LOAD);
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
+		nvgpu_safe_cast_u32_to_u8(gr_engine_id));
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
+		PMU_PGENG_GR_BUFFER_IDX_ZBC);
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
+		nvgpu_safe_cast_u64_to_u16(pmu->pg->seq_buf.size));
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
+		u64_lo32(pmu->pg->seq_buf.gpu_va));
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
+		nvgpu_safe_cast_u64_to_u8(pmu->pg->seq_buf.gpu_va & 0xFFU));
+	pmu->fw->ops.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
+		PMU_DMAIDX_VIRT);
+
+	pmu->pg->buf_loaded = false;
+
+	return nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
+			pmu_handle_pg_buf_config_msg, pmu);
+}
+
 void nvgpu_gm20b_pg_sw_init(struct gk20a *g,
 		struct nvgpu_pmu_pg *pg)
 {
@@ -123,4 +279,10 @@ void nvgpu_gm20b_pg_sw_init(struct gk20a *g,
 	pg->lpwr_disable_pg = NULL;
 	pg->param_post_init = NULL;
 	pg->save_zbc = gm20b_pmu_save_zbc;
+	pg->allow = gm20b_pmu_pg_elpg_allow;
+	pg->disallow = gm20b_pmu_pg_elpg_disallow;
+	pg->init = gm20b_pmu_pg_elpg_init;
+	pg->alloc_dmem = gm20b_pmu_pg_elpg_alloc_dmem;
+	pg->load_buff = gm20b_pmu_pg_elpg_load_buff;
+	pg->hw_load_zbc = gm20b_pmu_pg_elpg_hw_load_zbc;
 }

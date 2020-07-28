@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -101,6 +101,17 @@ struct nvgpu_pmu_pg {
 	int (*lpwr_disable_pg)(struct gk20a *g, bool pstate_lock);
 	int (*param_post_init)(struct gk20a *g);
 	void (*save_zbc)(struct gk20a *g, u32 entries);
+	/* ELPG cmd post functions */
+	int (*allow)(struct gk20a *g, struct nvgpu_pmu *pmu,
+			u8 pg_engine_id);
+	int (*disallow)(struct gk20a *g, struct nvgpu_pmu *pmu,
+			u8 pg_engine_id);
+	int (*init)(struct gk20a *g, struct nvgpu_pmu *pmu,
+			u8 pg_engine_id);
+	int (*alloc_dmem)(struct gk20a *g, struct nvgpu_pmu *pmu,
+			u8 pg_engine_id);
+	int (*load_buff)(struct gk20a *g, struct nvgpu_pmu *pmu);
+	int (*hw_load_zbc)(struct gk20a *g, struct nvgpu_pmu *pmu);
 };
 
 /*PG defines used by nvpgu-pmu*/

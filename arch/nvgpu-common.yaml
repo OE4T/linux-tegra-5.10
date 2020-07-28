@@ -854,6 +854,7 @@ pmu:
                  common/pmu/pg/pg_sw_gv11b.h,
                  common/pmu/pg/pmu_aelpg.c,
                  common/pmu/pg/pmu_pg.c,
+                 common/pmu/pg/pmu_pg.h,
                  include/nvgpu/pmu/pmu_pg.h ]
 
     pmgr:
