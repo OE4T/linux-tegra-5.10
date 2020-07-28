@@ -110,7 +110,13 @@ static void do_module_reset_locked(struct platform_device *dev)
 	}
 
 	if (pdata->reset_control) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+		reset_control_acquire(pdata->reset_control);
+#endif
 		reset_control_reset(pdata->reset_control);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+		reset_control_release(pdata->reset_control);
+#endif
 		return;
 	}
 }
@@ -909,7 +915,12 @@ int nvhost_module_init(struct platform_device *dev)
 	}
 	pdata->num_clks = i;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+	pdata->reset_control = devm_reset_control_get_exclusive_released(
+					&dev->dev, NULL);
+#else
 	pdata->reset_control = devm_reset_control_get(&dev->dev, NULL);
+#endif
 	if (IS_ERR(pdata->reset_control))
 		pdata->reset_control = NULL;
 
