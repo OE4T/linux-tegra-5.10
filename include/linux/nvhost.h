@@ -346,6 +346,9 @@ struct nvhost_device_data {
 	int (*pre_virt_init)(struct platform_device *pdev);
 	int (*post_virt_init)(struct platform_device *pdev);
 
+	/* engine specific functions */
+	int (*memory_init)(struct platform_device *pdev);
+
 	phys_addr_t carveout_addr;
 	phys_addr_t carveout_size;
 

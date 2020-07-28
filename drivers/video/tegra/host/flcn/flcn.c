@@ -505,6 +505,10 @@ int nvhost_flcn_finalize_poweron(struct platform_device *pdev)
 	if (err)
 		return err;
 
+	if (pdata->memory_init && !tegra_platform_is_sim())
+		if (pdata->memory_init(pdev))
+			return err;
+
 	/* load transcfg configuration if defined */
 	if (pdata->transcfg_addr)
 		host1x_writel(pdev, pdata->transcfg_addr, pdata->transcfg_val);
