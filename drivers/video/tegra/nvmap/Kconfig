@@ -93,7 +93,7 @@ config NVMAP_DEFER_FD_RECYCLE_MAX_FD
 config NVMAP_SCIIPC
 	bool "nvmap sciipc buffer mapping"
 	depends on NVSCIIPC
-	depends on ARCH_TEGRA_19x_SOC
+	depends on (ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC)
 	default n
 	help
 	   Enable nvmap mapping with SciIpc secure buffer sharing.
