@@ -221,7 +221,11 @@
 
 	reserved-memory {
 		grid-of-semaphores {
+#if LINUX_VERSION < 504
 			status = "okay";
+#else
+			status = "disabled";
+#endif
 		};
 	};
 
