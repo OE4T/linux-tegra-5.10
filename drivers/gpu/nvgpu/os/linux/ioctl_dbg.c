@@ -579,7 +579,7 @@ static int dbg_unbind_all_channels_gk20a(struct dbg_session_gk20a *dbg_s)
  * Convert common regops op values of the form of NVGPU_DBG_REG_OP_*
  * into linux regops op values of the form of NVGPU_DBG_GPU_REG_OP_*
  */
-static u32 nvgpu_get_regops_op_values_linux(u32 regops_op)
+u32 nvgpu_get_regops_op_values_linux(u32 regops_op)
 {
 	switch (regops_op) {
 	case REGOP(READ_32):
@@ -603,7 +603,7 @@ static u32 nvgpu_get_regops_op_values_linux(u32 regops_op)
  * Convert linux regops op values of the form of NVGPU_DBG_GPU_REG_OP_*
  * into common regops op values of the form of NVGPU_DBG_REG_OP_*
  */
-static u32 nvgpu_get_regops_op_values_common(u32 regops_op)
+u32 nvgpu_get_regops_op_values_common(u32 regops_op)
 {
 	switch (regops_op) {
 	case REGOP_LINUX(READ_32):
@@ -679,7 +679,7 @@ static u32 nvgpu_get_regops_type_values_common(u32 regops_type)
  * Convert common regops status values of the form of NVGPU_DBG_REG_OP_STATUS_*
  * into linux regops type values of the form of NVGPU_DBG_GPU_REG_OP_STATUS_*
  */
-static u32 nvgpu_get_regops_status_values_linux(u32 regops_status)
+u32 nvgpu_get_regops_status_values_linux(u32 regops_status)
 {
 	switch (regops_status) {
 	case REGOP(STATUS_SUCCESS):
@@ -703,7 +703,7 @@ static u32 nvgpu_get_regops_status_values_linux(u32 regops_status)
  * Convert linux regops status values of the form of NVGPU_DBG_GPU_REG_OP_STATUS_*
  * into common regops type values of the form of NVGPU_DBG_REG_OP_STATUS_*
  */
-static u32 nvgpu_get_regops_status_values_common(u32 regops_status)
+u32 nvgpu_get_regops_status_values_common(u32 regops_status)
 {
 	switch (regops_status) {
 	case REGOP_LINUX(STATUS_SUCCESS):

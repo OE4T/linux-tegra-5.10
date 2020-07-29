@@ -1400,6 +1400,16 @@ static int gr_exec_ctx_ops(struct nvgpu_tsg *tsg,
 				if (ctx_op_nr >= num_ctx_ops[pass]) {
 					break;
 				}
+
+				/*
+				 * Move to next op if current op is invalid.
+				 * Execution will reach here only if CONTINUE_ON_ERROR
+				 * mode is requested.
+				 */
+				if (ctx_ops[i].status != REGOP(STATUS_SUCCESS)) {
+					continue;
+				}
+
 				/* only do ctx ops and only on the right pass */
 				if ((ctx_ops[i].type == REGOP(TYPE_GLOBAL)) ||
 				    (((pass == 0) && reg_op_is_read(ctx_ops[i].op)) ||

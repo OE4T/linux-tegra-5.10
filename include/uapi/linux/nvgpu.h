@@ -1577,14 +1577,31 @@ struct nvgpu_profiler_pma_stream_update_get_put_args {
 	__u32 reserved[3];
 };
 
-enum {
-	NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_ALL_OR_NONE,
-	NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_CONTINUE_ON_ERROR,
-};
+/*
+ * MODE_ALL_OR_NONE
+ * Reg_ops execution will bail out if any of the reg_op is not valid
+ * or if there is any other error such as failure to access context image.
+ * Subsequent reg_ops will not be executed and nvgpu_profiler_reg_op.status
+ * will not be populated for them.
+ * IOCTL will always return error for all of the errors.
+ */
+#define NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_ALL_OR_NONE	0U
+/*
+ * MODE_CONTINUE_ON_ERROR
+ * This mode allows continuing reg_ops execution even if some of the
+ * reg_ops are not valid. Invalid reg_ops will be skipped and valid
+ * ones will be executed.
+ * IOCTL will return error only if there is some other severe failure
+ * such as failure to access context image.
+ * If any of the reg_op is invalid, or if didn't pass, it will be
+ * reported via NVGPU_PROFILER_EXEC_REG_OPS_ARG_FLAG_ALL_PASSED flag.
+ * IOCTL will return success in such cases.
+ */
+#define NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_CONTINUE_ON_ERROR	1U
 
 struct nvgpu_profiler_reg_op {
-	__u8    op;
-	__u8    status;
+	__u8    op;		/* Operation in the form NVGPU_DBG_GPU_REG_OP_READ/WRITE_* */
+	__u8    status;		/* Status in the form NVGPU_DBG_GPU_REG_OP_STATUS_* */
 	__u32   offset;
 	__u64   value;
 	__u64   and_n_mask;
@@ -1593,7 +1610,10 @@ struct nvgpu_profiler_reg_op {
 struct nvgpu_profiler_exec_reg_ops_args {
 	__u32 mode;		/* in: operation mode NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_* */
 
-	__u32 count;		/* in: number of reg_ops operations */
+	__u32 count;		/* in: number of reg_ops operations,
+				 *     upper limit nvgpu_gpu_characteristics.reg_ops_limit
+				 */
+
 	__u64 ops;		/* in/out: pointer to actual operations nvgpu_profiler_reg_op */
 
 /* out: if all reg_ops passed, valid only for MODE_CONTINUE_ON_ERROR */

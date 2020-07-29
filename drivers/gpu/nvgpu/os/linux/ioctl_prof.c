@@ -25,16 +25,42 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/profiler.h>
+#include <nvgpu/regops.h>
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/tsg.h>
 
 #include "os_linux.h"
 #include "ioctl_prof.h"
+#include "ioctl_dbg.h"
 #include "ioctl_tsg.h"
+
+#define NVGPU_PROF_UMD_COPY_WINDOW_SIZE		SZ_4K
 
 struct nvgpu_profiler_object_priv {
 	struct nvgpu_profiler_object *prof;
 	struct gk20a *g;
+
+	/*
+	 * Staging buffer to hold regops copied from userspace.
+	 * Regops are stored in struct nvgpu_profiler_reg_op format. This
+	 * struct is added for new profiler design and is trimmed down
+	 * version of legacy regop struct nvgpu_dbg_reg_op.
+	 *
+	 * Struct nvgpu_profiler_reg_op is OS specific struct and cannot
+	 * be used in common nvgpu code.
+	 */
+	struct nvgpu_profiler_reg_op *regops_umd_copy_buf;
+
+	/*
+	 * Staging buffer to execute regops in common code.
+	 * Regops are stored in struct nvgpu_dbg_reg_op which is defined
+	 * in common code.
+	 *
+	 * Regops in struct nvgpu_profiler_reg_op should be first converted
+	 * to this format and this handle should be passed for regops
+	 * execution.
+	 */
+	struct nvgpu_dbg_reg_op *regops_staging_buf;
 };
 
 static int nvgpu_prof_fops_open(struct gk20a *g, struct file *filp,
@@ -42,6 +68,7 @@ static int nvgpu_prof_fops_open(struct gk20a *g, struct file *filp,
 {
 	struct nvgpu_profiler_object_priv *prof_priv;
 	struct nvgpu_profiler_object *prof;
+	u32 num_regops;
 	int err;
 
 	nvgpu_log(g, gpu_dbg_prof, "Request to open profiler session with scope %u",
@@ -54,19 +81,40 @@ static int nvgpu_prof_fops_open(struct gk20a *g, struct file *filp,
 
 	err = nvgpu_profiler_alloc(g, &prof, scope);
 	if (err != 0) {
-		nvgpu_kfree(g, prof_priv);
-		return -ENOMEM;
+		goto free_priv;
 	}
 
 	prof_priv->g = g;
 	prof_priv->prof = prof;
 	filp->private_data = prof_priv;
 
+	prof_priv->regops_umd_copy_buf = nvgpu_kzalloc(g,
+			NVGPU_PROF_UMD_COPY_WINDOW_SIZE);
+	if (prof_priv->regops_umd_copy_buf == NULL) {
+		goto free_prof;
+	}
+
+	num_regops = NVGPU_PROF_UMD_COPY_WINDOW_SIZE /
+		     sizeof(prof_priv->regops_umd_copy_buf[0]);
+	prof_priv->regops_staging_buf = nvgpu_kzalloc(g,
+		num_regops * sizeof(prof_priv->regops_staging_buf[0]));
+	if (prof_priv->regops_staging_buf == NULL) {
+		goto free_umd_buf;
+	}
+
 	nvgpu_log(g, gpu_dbg_prof,
 		"Profiler session with scope %u created successfully with profiler handle %u",
 		scope, prof->prof_handle);
 
 	return 0;
+
+free_umd_buf:
+	nvgpu_kfree(g, prof_priv->regops_umd_copy_buf);
+free_prof:
+	nvgpu_profiler_free(prof);
+free_priv:
+	nvgpu_kfree(g, prof_priv);
+	return err;
 }
 
 int nvgpu_prof_dev_fops_open(struct inode *inode, struct file *filp)
@@ -132,6 +180,10 @@ int nvgpu_prof_fops_release(struct inode *inode, struct file *filp)
 		prof->scope, prof->prof_handle);
 
 	nvgpu_profiler_free(prof);
+
+	nvgpu_kfree(g, prof_priv->regops_umd_copy_buf);
+	nvgpu_kfree(g, prof_priv->regops_staging_buf);
+
 	nvgpu_kfree(g, prof_priv);
 	nvgpu_put(g);
 
@@ -283,6 +335,168 @@ static int nvgpu_prof_ioctl_unbind_pm_resources(struct nvgpu_profiler_object *pr
 	return nvgpu_profiler_unbind_pm_resources(prof);
 }
 
+static void nvgpu_prof_get_regops_staging_data(struct nvgpu_profiler_object *prof,
+		struct nvgpu_profiler_reg_op *in,
+		struct nvgpu_dbg_reg_op *out, u32 num_ops)
+{
+	u32 i;
+	u8 reg_op_type = 0U;
+
+	switch (prof->scope) {
+	case NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE:
+		if (prof->tsg != NULL) {
+			reg_op_type = NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+		} else {
+			reg_op_type = NVGPU_DBG_REG_OP_TYPE_GLOBAL;
+		}
+		break;
+	case NVGPU_PROFILER_PM_RESERVATION_SCOPE_CONTEXT:
+		reg_op_type = NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+		break;
+	}
+
+	for (i = 0; i < num_ops; i++) {
+		out[i].op = nvgpu_get_regops_op_values_common(in[i].op);
+		out[i].type = reg_op_type;
+		out[i].status = nvgpu_get_regops_status_values_common(in[i].status);
+		out[i].quad = 0U;
+		out[i].group_mask = 0U;
+		out[i].sub_group_mask = 0U;
+		out[i].offset = in[i].offset;
+		out[i].value_lo = u64_lo32(in[i].value);
+		out[i].value_hi = u64_hi32(in[i].value);
+		out[i].and_n_mask_lo = u64_lo32(in[i].and_n_mask);
+		out[i].and_n_mask_hi = u64_hi32(in[i].and_n_mask);
+	}
+}
+
+static void nvgpu_prof_get_regops_linux_data(struct nvgpu_dbg_reg_op *in,
+		struct nvgpu_profiler_reg_op *out, u32 num_ops)
+{
+	u32 i;
+
+	for (i = 0; i < num_ops; i++) {
+		out[i].op = nvgpu_get_regops_op_values_linux(in[i].op);
+		out[i].status = nvgpu_get_regops_status_values_linux(in[i].status);
+		out[i].offset = in[i].offset;
+		out[i].value = hi32_lo32_to_u64(in[i].value_hi, in[i].value_lo);
+		out[i].and_n_mask = hi32_lo32_to_u64(in[i].and_n_mask_hi, in[i].and_n_mask_lo);
+	}
+}
+
+static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv,
+		struct nvgpu_profiler_exec_reg_ops_args *args)
+{
+	struct nvgpu_profiler_object *prof = priv->prof;
+	struct gk20a *g = prof->g;
+	struct nvgpu_tsg *tsg = prof->tsg;
+	u32 num_regops_in_copy_buf = NVGPU_PROF_UMD_COPY_WINDOW_SIZE /
+				     sizeof(priv->regops_umd_copy_buf[0]);
+	u32 ops_offset = 0;
+	u32 flags = 0U;
+	bool all_passed = true;
+	int err;
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"REG_OPS for handle %u: count=%u mode=%u flags=0x%x",
+		prof->prof_handle, args->count, args->mode, args->flags);
+
+	if (args->count == 0) {
+		return -EINVAL;
+	}
+
+	if (args->count > NVGPU_IOCTL_DBG_REG_OPS_LIMIT) {
+		nvgpu_err(g, "regops limit exceeded");
+		return -EINVAL;
+	}
+
+	if (!prof->bound) {
+		nvgpu_err(g, "PM resources are not bound to profiler");
+		return -EINVAL;
+	}
+
+	if (args->mode == NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_CONTINUE_ON_ERROR) {
+		flags |= NVGPU_REG_OP_FLAG_MODE_CONTINUE_ON_ERROR;
+	} else {
+		flags |= NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE;
+	}
+
+	while (ops_offset < args->count) {
+		const u32 num_ops =
+			min(args->count - ops_offset, num_regops_in_copy_buf);
+		const u64 fragment_size =
+			num_ops * sizeof(priv->regops_umd_copy_buf[0]);
+		void __user *const user_fragment =
+			(void __user *)(uintptr_t)
+			(args->ops +
+			 ops_offset * sizeof(priv->regops_umd_copy_buf[0]));
+
+		nvgpu_log(g, gpu_dbg_prof, "Regops fragment: start_op=%u ops=%u",
+			     ops_offset, num_ops);
+
+		if (copy_from_user(priv->regops_umd_copy_buf,
+				   user_fragment, fragment_size)) {
+			nvgpu_err(g, "copy_from_user failed!");
+			err = -EFAULT;
+			break;
+		}
+
+		nvgpu_prof_get_regops_staging_data(prof,
+			priv->regops_umd_copy_buf,
+			priv->regops_staging_buf, num_ops);
+
+		if (args->mode == NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_CONTINUE_ON_ERROR) {
+			flags &= ~NVGPU_REG_OP_FLAG_ALL_PASSED;
+		}
+
+		err = g->ops.regops.exec_regops(g, tsg,
+			priv->regops_staging_buf, num_ops,
+			&flags);
+		if (err) {
+			nvgpu_err(g, "regop execution failed");
+			break;
+		}
+
+		if (ops_offset == 0) {
+			if (flags & NVGPU_REG_OP_FLAG_DIRECT_OPS) {
+				args->flags |=
+					NVGPU_PROFILER_EXEC_REG_OPS_ARG_FLAG_DIRECT_OPS;
+			}
+		}
+
+		if (args->mode == NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_CONTINUE_ON_ERROR) {
+			if ((flags & NVGPU_REG_OP_FLAG_ALL_PASSED) == 0) {
+				all_passed = false;
+			}
+		}
+
+		 nvgpu_prof_get_regops_linux_data(
+			priv->regops_staging_buf,
+			priv->regops_umd_copy_buf, num_ops);
+
+		if (copy_to_user(user_fragment,
+				 priv->regops_umd_copy_buf,
+				 fragment_size)) {
+			nvgpu_err(g, "copy_to_user failed!");
+			err = -EFAULT;
+			break;
+		}
+
+		ops_offset += num_ops;
+	}
+
+	if (args->mode == NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_CONTINUE_ON_ERROR
+			&& all_passed && (err == 0)) {
+		args->flags |= NVGPU_PROFILER_EXEC_REG_OPS_ARG_FLAG_ALL_PASSED;
+	}
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"REG_OPS for handle %u complete: count=%u mode=%u flags=0x%x err=%d",
+		prof->prof_handle, args->count, args->mode, args->flags, err);
+
+	return err;
+}
+
 long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 		unsigned long arg)
 {
@@ -339,6 +553,11 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 
 	case NVGPU_PROFILER_IOCTL_UNBIND_PM_RESOURCES:
 		err = nvgpu_prof_ioctl_unbind_pm_resources(prof);
+		break;
+
+	case NVGPU_PROFILER_IOCTL_EXEC_REG_OPS:
+		err = nvgpu_prof_ioctl_exec_reg_ops(prof_priv,
+			(struct nvgpu_profiler_exec_reg_ops_args *)buf);
 		break;
 
 	default:

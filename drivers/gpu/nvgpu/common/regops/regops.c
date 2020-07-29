@@ -122,6 +122,15 @@ int exec_regops_gk20a(struct gk20a *g,
 			continue;
 		}
 
+		/*
+		 * Move to next op if current op is invalid.
+		 * Execution will reach here only if CONTINUE_ON_ERROR
+		 * mode is requested.
+		 */
+		if (ops[i].status != REGOP(STATUS_SUCCESS)) {
+			continue;
+		}
+
 		switch (ops[i].op) {
 
 		case REGOP(READ_32):
