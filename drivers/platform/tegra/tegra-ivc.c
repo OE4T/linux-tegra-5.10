@@ -133,11 +133,11 @@ static inline int ivc_channel_empty(struct ivc *ivc,
 {
 	/*
 	 * This function performs multiple checks on the same values with
-	 * security implications, so create snapshots with ACCESS_ONCE() to
+	 * security implications, so create snapshots with READ_ONCE() to
 	 * ensure that these checks use the same values.
 	 */
-	uint32_t w_count = ACCESS_ONCE(ch->w_count);
-	uint32_t r_count = ACCESS_ONCE(ch->r_count);
+	uint32_t w_count = READ_ONCE(ch->w_count);
+	uint32_t r_count = READ_ONCE(ch->r_count);
 
 	/*
 	 * Perform an over-full check to prevent denial of service attacks where
@@ -162,7 +162,7 @@ static inline int ivc_channel_full(struct ivc *ivc,
 	 * Invalid cases where the counters indicate that the queue is over
 	 * capacity also appear full.
 	 */
-	return ACCESS_ONCE(ch->w_count) - ACCESS_ONCE(ch->r_count)
+	return READ_ONCE(ch->w_count) - READ_ONCE(ch->r_count)
 		>= ivc->nframes;
 }
 
@@ -175,13 +175,12 @@ static inline uint32_t ivc_channel_avail_count(struct ivc *ivc,
 	 * comment in ivc_channel_empty() for an explanation about special
 	 * over-full considerations.
 	 */
-	return ACCESS_ONCE(ch->w_count) - ACCESS_ONCE(ch->r_count);
+	return READ_ONCE(ch->w_count) - READ_ONCE(ch->r_count);
 }
 
 static inline void ivc_advance_tx(struct ivc *ivc)
 {
-	ACCESS_ONCE(ivc->tx_channel->w_count) =
-		ACCESS_ONCE(ivc->tx_channel->w_count) + 1;
+	WRITE_ONCE(ivc->tx_channel->w_count, (READ_ONCE(ivc->tx_channel->w_count) + 1));
 
 	if (ivc->w_pos == ivc->nframes - 1)
 		ivc->w_pos = 0;
@@ -191,8 +190,7 @@ static inline void ivc_advance_tx(struct ivc *ivc)
 
 static inline void ivc_advance_rx(struct ivc *ivc)
 {
-	ACCESS_ONCE(ivc->rx_channel->r_count) =
-		ACCESS_ONCE(ivc->rx_channel->r_count) + 1;
+	WRITE_ONCE(ivc->rx_channel->r_count, (READ_ONCE(ivc->rx_channel->r_count) + 1));
 
 	if (ivc->r_pos == ivc->nframes - 1)
 		ivc->r_pos = 0;
@@ -264,8 +262,8 @@ uint32_t tegra_ivc_tx_frames_available(struct ivc *ivc)
 {
 	ivc_invalidate_counter(ivc, ivc->tx_handle +
 			offsetof(struct ivc_channel_header, r_count));
-	return ivc->nframes - (ACCESS_ONCE(ivc->tx_channel->w_count) -
-			ACCESS_ONCE(ivc->tx_channel->r_count));
+	return ivc->nframes - (READ_ONCE(ivc->tx_channel->w_count) -
+			READ_ONCE(ivc->tx_channel->r_count));
 }
 EXPORT_SYMBOL(tegra_ivc_tx_frames_available);
 
@@ -644,7 +642,7 @@ int tegra_ivc_channel_notified(struct ivc *ivc)
 	/* Copy the receiver's state out of shared memory. */
 	ivc_invalidate_counter(ivc, ivc->rx_handle +
 			offsetof(struct ivc_channel_header, w_count));
-	peer_state = ACCESS_ONCE(ivc->rx_channel->state);
+	peer_state = READ_ONCE(ivc->rx_channel->state);
 
 	if (peer_state == ivc_state_sync) {
 		/*
