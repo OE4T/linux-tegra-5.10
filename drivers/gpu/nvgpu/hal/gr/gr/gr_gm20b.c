@@ -555,12 +555,13 @@ int gm20b_gr_set_mmu_debug_mode(struct gk20a *g,
 	};
 	int err;
 	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
+	u32 flags = NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE;
 
 	if (tsg == NULL) {
 		return enable ? -EINVAL : 0;
 	}
 
-	err = gr_gk20a_exec_ctx_ops(ch, &ctx_ops, 1, 1, 0, NULL);
+	err = gr_gk20a_exec_ctx_ops(tsg, &ctx_ops, 1, 1, 0, &flags);
 	if (err != 0) {
 		nvgpu_err(g, "update MMU debug mode failed");
 	}

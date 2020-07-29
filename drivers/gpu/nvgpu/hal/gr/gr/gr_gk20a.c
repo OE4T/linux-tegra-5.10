@@ -625,8 +625,7 @@ void gk20a_gr_init_ovr_sm_dsm_perf(void)
  * which makes it impossible to know externally whether a ctx
  * write will actually occur. so later we should put a lazy,
  *  map-and-hold system in the patch write state */
-static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
-			    struct nvgpu_channel *ch,
+int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 			    u32 addr, u32 data,
 			    struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -663,15 +662,8 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 				nvgpu_gr_ctx_patch_write(g, gr_ctx,
 							 addr, data, true);
 
-				if (ch->subctx != NULL) {
-					nvgpu_gr_ctx_set_patch_ctx(g, gr_ctx,
-						false);
-					nvgpu_gr_subctx_set_patch_ctx(g,
-						ch->subctx, gr_ctx);
-				} else {
-					nvgpu_gr_ctx_set_patch_ctx(g, gr_ctx,
+				nvgpu_gr_ctx_set_patch_ctx(g, gr_ctx,
 						true);
-				}
 
 				/* we're not caching these on cpu side,
 				   but later watch for it */
@@ -1303,14 +1295,10 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	return -EINVAL;
 }
 
-bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch)
+static struct nvgpu_channel *gk20a_get_resident_ctx(struct gk20a *g, u32 *tsgid)
 {
 	u32 curr_gr_ctx;
-	u32 curr_gr_tsgid;
-	struct gk20a *g = ch->g;
 	struct nvgpu_channel *curr_ch;
-	bool ret = false;
-	struct nvgpu_tsg *tsg;
 
 	curr_gr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 
@@ -1320,20 +1308,27 @@ bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch)
 	 * valid context is currently resident.
 	 */
 	if (gr_fecs_current_ctx_valid_v(curr_gr_ctx) == 0U) {
-		return false;
+		return NULL;
 	}
 
-	curr_ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_gr_ctx,
-					      &curr_gr_tsgid);
+	curr_ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_gr_ctx, tsgid);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
-		  "curr_gr_chid=%d curr_tsgid=%d, ch->tsgid=%d"
-		  " ch->chid=%d",
-		  (curr_ch != NULL) ? curr_ch->chid : U32_MAX,
-		  curr_gr_tsgid,
-		  ch->tsgid,
-		  ch->chid);
+		  "curr_gr_chid=%d curr_tsgid=%d",
+		  (curr_ch != NULL) ? curr_ch->chid : U32_MAX, *tsgid);
 
+	return curr_ch;
+}
+
+bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch)
+{
+	u32 curr_gr_tsgid;
+	struct gk20a *g = ch->g;
+	struct nvgpu_channel *curr_ch;
+	bool ret = false;
+	struct nvgpu_tsg *tsg;
+
+	curr_ch = gk20a_get_resident_ctx(g, &curr_gr_tsgid);
 	if (curr_ch == NULL) {
 		return false;
 	}
@@ -1351,13 +1346,33 @@ bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch)
 	return ret;
 }
 
-static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
+static bool gk20a_is_tsg_ctx_resident(struct nvgpu_tsg *tsg)
+{
+	u32 curr_gr_tsgid;
+	struct gk20a *g = tsg->g;
+	struct nvgpu_channel *curr_ch;
+	bool ret = false;
+
+	curr_ch = gk20a_get_resident_ctx(g, &curr_gr_tsgid);
+	if (curr_ch == NULL) {
+		return false;
+	}
+
+	if ((tsg->tsgid == curr_gr_tsgid) &&
+	    (tsg->tsgid == curr_ch->tsgid)) {
+		ret = true;
+	}
+
+	nvgpu_channel_put(curr_ch);
+	return ret;
+}
+
+static int gr_exec_ctx_ops(struct nvgpu_tsg *tsg,
 			    struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			    u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
-			    bool ch_is_curr_ctx)
+			    bool ctx_resident)
 {
-	struct gk20a *g = ch->g;
-	struct nvgpu_tsg *tsg;
+	struct gk20a *g = tsg->g;
 	struct nvgpu_gr_ctx *gr_ctx;
 	bool gr_ctx_ready = false;
 	bool pm_ctx_ready = false;
@@ -1376,14 +1391,9 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "wr_ops=%d rd_ops=%d",
 		   num_ctx_wr_ops, num_ctx_rd_ops);
 
-	tsg = nvgpu_tsg_from_ch(ch);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
 	gr_ctx = tsg->gr_ctx;
 
-	if (ch_is_curr_ctx) {
+	if (ctx_resident) {
 		for (pass = 0; pass < 2; pass++) {
 			ctx_op_nr = 0;
 			for (i = 0; i < num_ops; ++i) {
@@ -1549,10 +1559,11 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 							   offsets[j] + 4U, v);
 					}
 
-					if (current_mem == nvgpu_gr_ctx_get_ctx_mem(gr_ctx)) {
+					if (current_mem == nvgpu_gr_ctx_get_ctx_mem(gr_ctx) &&
+							g->ops.gr.ctx_patch_smpc != NULL) {
 						/* check to see if we need to add a special WAR
 						   for some of the SMPC perf regs */
-						gr_gk20a_ctx_patch_smpc(g, ch,
+						g->ops.gr.ctx_patch_smpc(g,
 							offset_addrs[j],
 							v, gr_ctx);
 					}
@@ -1591,14 +1602,14 @@ static int gr_exec_ctx_ops(struct nvgpu_channel *ch,
 	return err;
 }
 
-int gr_gk20a_exec_ctx_ops(struct nvgpu_channel *ch,
+int gr_gk20a_exec_ctx_ops(struct nvgpu_tsg *tsg,
 			  struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			  u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
-			  bool *is_curr_ctx)
+			  u32 *flags)
 {
-	struct gk20a *g = ch->g;
+	struct gk20a *g = tsg->g;
 	int err, tmp_err;
-	bool ch_is_curr_ctx;
+	bool ctx_resident;
 
 	/* disable channel switching.
 	 * at that point the hardware state can be inspected to
@@ -1611,15 +1622,16 @@ int gr_gk20a_exec_ctx_ops(struct nvgpu_channel *ch,
 		return err;
 	}
 
-	ch_is_curr_ctx = gk20a_is_channel_ctx_resident(ch);
-	if (is_curr_ctx != NULL) {
-		*is_curr_ctx = ch_is_curr_ctx;
+	ctx_resident = gk20a_is_tsg_ctx_resident(tsg);
+	if (ctx_resident) {
+		*flags |= NVGPU_REG_OP_FLAG_DIRECT_OPS;
 	}
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "is curr ctx=%d",
-		  ch_is_curr_ctx);
 
-	err = gr_exec_ctx_ops(ch, ctx_ops, num_ops, num_ctx_wr_ops,
-				      num_ctx_rd_ops, ch_is_curr_ctx);
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "is curr ctx=%d",
+		  ctx_resident);
+
+	err = gr_exec_ctx_ops(tsg, ctx_ops, num_ops, num_ctx_wr_ops,
+				      num_ctx_rd_ops, ctx_resident);
 
 	tmp_err = nvgpu_gr_enable_ctxsw(g);
 	if (tmp_err != 0) {
@@ -1865,6 +1877,12 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
+	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
+	u32 flags = NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE;
+
+	if (tsg == NULL) {
+		return -EINVAL;
+	}
 
 	ops = nvgpu_kcalloc(g, no_of_sm, sizeof(*ops));
 	if (ops == NULL) {
@@ -1910,7 +1928,7 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 		i++;
 	}
 
-	err = gr_gk20a_exec_ctx_ops(ch, ops, i, i, 0, NULL);
+	err = gr_gk20a_exec_ctx_ops(tsg, ops, i, i, 0, &flags);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to access register");
 	}

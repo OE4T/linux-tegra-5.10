@@ -26,6 +26,11 @@
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 
+#include <nvgpu/types.h>
+
+struct gk20a;
+struct nvgpu_tsg;
+
 /*
  * Register operations
  * All operations are targeted towards first channel
@@ -57,6 +62,11 @@
 #define NVGPU_DBG_REG_OP_STATUS_UNSUPPORTED_OP               0x00000008U
 #define NVGPU_DBG_REG_OP_STATUS_INVALID_MASK                 0x00000010U
 
+#define NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE		BIT32(1U)
+#define NVGPU_REG_OP_FLAG_MODE_CONTINUE_ON_ERROR	BIT32(2U)
+#define NVGPU_REG_OP_FLAG_ALL_PASSED			BIT32(3U)
+#define NVGPU_REG_OP_FLAG_DIRECT_OPS			BIT32(4U)
+
 struct nvgpu_dbg_reg_op {
 	u8    op;
 	u8    type;
@@ -77,11 +87,10 @@ struct regop_offset_range {
 };
 
 int exec_regops_gk20a(struct gk20a *g,
-		      struct nvgpu_channel *ch,
+		      struct nvgpu_tsg *tsg,
 		      struct nvgpu_dbg_reg_op *ops,
 		      u32 num_ops,
-		      bool is_profiler,
-		      bool *is_current_ctx);
+		      u32 *flags);
 
 /* turn seriously unwieldy names -> something shorter */
 #define REGOP(x) NVGPU_DBG_REG_OP_##x

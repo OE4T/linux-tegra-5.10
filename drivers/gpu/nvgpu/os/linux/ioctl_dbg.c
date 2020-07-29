@@ -778,12 +778,10 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 {
 	int err = 0, powergate_err = 0;
 	bool is_pg_disabled = false;
-
 	struct gk20a *g = dbg_s->g;
 	struct nvgpu_channel *ch;
-
-	bool is_current_ctx = false;
-
+	struct nvgpu_tsg *tsg = NULL;
+	u32 flags = NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE;
 
 	nvgpu_log_fn(g, "%d ops, max fragment %d", args->num_ops, g->dbg_regops_tmp_buf_ops);
 
@@ -811,6 +809,14 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 	if (!dbg_s->is_profiler && !ch) {
 		nvgpu_err(g, "bind a channel before regops for a debugging session");
 		return -EINVAL;
+	}
+
+	if (ch != NULL) {
+		tsg = nvgpu_tsg_from_ch(ch);
+		if (tsg == NULL) {
+			nvgpu_err(g, "channel not bound to TSG");
+			return -EINVAL;
+		}
 	}
 
 	/* since exec_reg_ops sends methods to the ucode, it must take the
@@ -869,16 +875,16 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 			if (err)
 				break;
 
-			err = g->ops.regops.exec_regops(g, ch,
-				g->dbg_regops_tmp_buf, num_ops,
-				dbg_s->is_profiler, &is_current_ctx);
+			err = g->ops.regops.exec_regops(g, tsg,
+				g->dbg_regops_tmp_buf, num_ops, &flags);
 
 			if (err) {
 				break;
 			}
 
 			if (ops_offset == 0) {
-				args->gr_ctx_resident = is_current_ctx;
+				args->gr_ctx_resident =
+					flags & NVGPU_REG_OP_FLAG_DIRECT_OPS;
 			}
 
 			err = nvgpu_get_regops_data_linux(g->dbg_regops_tmp_buf,

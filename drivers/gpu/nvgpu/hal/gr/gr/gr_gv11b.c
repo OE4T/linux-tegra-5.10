@@ -867,14 +867,13 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	unsigned int i = 0, sm_id;
 	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 	int err;
-#ifdef CONFIG_NVGPU_SM_DIVERSITY
 	struct nvgpu_tsg *tsg = nvgpu_tsg_from_ch(ch);
+	u32 flags = NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE;
 
 	if (tsg == NULL) {
 		nvgpu_err(g, "gv11b_gr_set_sm_debug_mode failed=>tsg NULL");
 		return -EINVAL;
 	}
-#endif
 
 	ops = nvgpu_kcalloc(g, no_of_sm, sizeof(*ops));
 	if (ops == NULL) {
@@ -945,7 +944,7 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 		i++;
 	}
 
-	err = gr_gk20a_exec_ctx_ops(ch, ops, i, i, 0, NULL);
+	err = gr_gk20a_exec_ctx_ops(tsg, ops, i, i, 0, &flags);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to access register");
 	}

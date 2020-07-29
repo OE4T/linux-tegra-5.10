@@ -30,11 +30,10 @@ struct gk20a;
 struct nvgpu_channel;
 
 int vgpu_exec_regops(struct gk20a *g,
-		     struct nvgpu_channel *ch,
-		     struct nvgpu_dbg_reg_op *ops,
-		     u32 num_ops,
-		     bool is_profiler,
-		     bool *is_current_ctx);
+		      struct nvgpu_tsg *tsg,
+		      struct nvgpu_dbg_reg_op *ops,
+		      u32 num_ops,
+		      u32 *flags);
 int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s,
 			bool disable_powergate);
 

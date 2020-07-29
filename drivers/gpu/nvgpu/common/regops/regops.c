@@ -81,14 +81,14 @@ static bool validate_reg_ops(struct gk20a *g,
 			    u32 *ctx_rd_count, u32 *ctx_wr_count,
 			    struct nvgpu_dbg_reg_op *ops,
 			    u32 op_count,
-			    bool is_profiler);
+			    bool valid_ctx,
+			    u32 *flags);
 
 int exec_regops_gk20a(struct gk20a *g,
-		      struct nvgpu_channel *ch,
+		      struct nvgpu_tsg *tsg,
 		      struct nvgpu_dbg_reg_op *ops,
 		      u32 num_ops,
-		      bool is_profiler,
-		      bool *is_current_ctx)
+		      u32 *flags)
 {
 	int err = 0;
 	unsigned int i;
@@ -99,20 +99,8 @@ int exec_regops_gk20a(struct gk20a *g,
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
-	/* For vgpu, the regops routines need to be handled in the
-	 * context of the server and support for that does not exist.
-	 *
-	 * The two users of the regops interface are the compute driver
-	 * and tools. The compute driver will work without a functional
-	 * regops implementation, so we return -ENOSYS. This will allow
-	 * compute apps to run with vgpu. Tools will not work in this
-	 * configuration and are not required to work at this time. */
-	if (g->is_virtual) {
-		return -ENOSYS;
-	}
-
 	ok = validate_reg_ops(g, &ctx_rd_count, &ctx_wr_count,
-			      ops, num_ops, is_profiler);
+		ops, num_ops, tsg != NULL, flags);
 	if (!ok) {
 		nvgpu_err(g, "invalid op(s)");
 		err = -EINVAL;
@@ -211,9 +199,9 @@ int exec_regops_gk20a(struct gk20a *g,
 	}
 
 	if ((ctx_wr_count | ctx_rd_count) != 0U) {
-		err = gr_gk20a_exec_ctx_ops(ch, ops, num_ops,
+		err = gr_gk20a_exec_ctx_ops(tsg, ops, num_ops,
 					    ctx_wr_count, ctx_rd_count,
-					    is_current_ctx);
+					    flags);
 		if (err != 0) {
 			nvgpu_warn(g, "failed to perform ctx ops\n");
 			goto clean_up;
@@ -269,7 +257,7 @@ static int validate_reg_op_info(struct nvgpu_dbg_reg_op *op)
 static bool check_whitelists(struct gk20a *g,
 			     struct nvgpu_dbg_reg_op *op,
 			     u32 offset,
-			     bool is_profiler)
+			     bool valid_ctx)
 {
 	bool valid = false;
 
@@ -283,7 +271,7 @@ static bool check_whitelists(struct gk20a *g,
 			        regop_bsearch_range_cmp) != NULL);
 
 		/* if debug session, search context list */
-		if ((!valid) && (!is_profiler)) {
+		if ((!valid) && (valid_ctx)) {
 			/* binary search context list */
 			valid = (g->ops.regops.get_context_whitelist_ranges != NULL) &&
 			        (nvgpu_bsearch(&offset,
@@ -294,7 +282,7 @@ static bool check_whitelists(struct gk20a *g,
 		}
 
 		/* if debug session, search runcontrol list */
-		if ((!valid) && (!is_profiler)) {
+		if ((!valid) && (valid_ctx)) {
 			valid = (g->ops.regops.get_runcontrol_whitelist != NULL) &&
 				linear_search(offset,
 					     g->ops.regops.get_runcontrol_whitelist(),
@@ -310,7 +298,7 @@ static bool check_whitelists(struct gk20a *g,
 			        regop_bsearch_range_cmp) != NULL);
 
 		/* if debug session, search runcontrol list */
-		if ((!valid) && (!is_profiler)) {
+		if ((!valid) && (valid_ctx)) {
 			valid = (g->ops.regops.get_runcontrol_whitelist != NULL) &&
 				linear_search(offset,
 					     g->ops.regops.get_runcontrol_whitelist(),
@@ -324,7 +312,7 @@ static bool check_whitelists(struct gk20a *g,
 /* note: the op here has already been through validate_reg_op_info */
 static int validate_reg_op_offset(struct gk20a *g,
 				  struct nvgpu_dbg_reg_op *op,
-				  bool is_profiler)
+				  bool valid_ctx)
 {
 	int err;
 	u32 buf_offset_lo, buf_offset_addr, num_offsets, offset;
@@ -340,9 +328,9 @@ static int validate_reg_op_offset(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	valid = check_whitelists(g, op, offset, is_profiler);
+	valid = check_whitelists(g, op, offset, valid_ctx);
 	if ((op->op == REGOP(READ_64) || op->op == REGOP(WRITE_64)) && valid) {
-		valid = check_whitelists(g, op, offset + 4U, is_profiler);
+		valid = check_whitelists(g, op, offset + 4U, valid_ctx);
 	}
 
 	if (valid && (op->type != REGOP(TYPE_GLOBAL))) {
@@ -383,19 +371,23 @@ static bool validate_reg_ops(struct gk20a *g,
 			    u32 *ctx_rd_count, u32 *ctx_wr_count,
 			    struct nvgpu_dbg_reg_op *ops,
 			    u32 op_count,
-			    bool is_profiler)
+			    bool valid_ctx,
+			    u32 *flags)
 {
-	u32 i;
-	bool ok = true;
+	bool all_or_none = (*flags) & NVGPU_REG_OP_FLAG_MODE_ALL_OR_NONE;
 	bool gr_ctx_ops = false;
+	bool op_failed = false;
+	u32 i;
 
 	/* keep going until the end so every op can get
 	 * a separate error code if needed */
 	for (i = 0; i < op_count; i++) {
 
 		if (validate_reg_op_info(&ops[i]) != 0) {
-			ok = false;
-			break;
+			op_failed = true;
+			if (all_or_none) {
+				break;
+			}
 		}
 
 		if (reg_op_is_gr_ctx(ops[i].type)) {
@@ -408,28 +400,42 @@ static bool validate_reg_ops(struct gk20a *g,
 			gr_ctx_ops = true;
 		}
 
-		/* context operations are not valid on profiler session */
-		if (gr_ctx_ops && is_profiler) {
-			ok = false;
-			break;
+		/* context operations need valid context */
+		if (gr_ctx_ops && !valid_ctx) {
+			op_failed = true;
+			if (all_or_none) {
+				break;
+			}
 		}
 
 		/* if "allow_all" flag enabled, dont validate offset */
 		if (!g->allow_all) {
-			if (validate_reg_op_offset(g, &ops[i],
-					is_profiler) != 0) {
-				ok = false;
-				break;
+			if (validate_reg_op_offset(g, &ops[i], valid_ctx) != 0) {
+				op_failed = true;
+				if (all_or_none) {
+					break;
+				}
 			}
 		}
 	}
 
-	if (ok) {
-		nvgpu_log(g, gpu_dbg_gpu_dbg, "ctx_wrs:%d ctx_rds:%d",
-			   *ctx_wr_count, *ctx_rd_count);
+	nvgpu_log(g, gpu_dbg_gpu_dbg, "ctx_wrs:%d ctx_rds:%d",
+		   *ctx_wr_count, *ctx_rd_count);
+
+	if (all_or_none) {
+		if (op_failed) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
-	return ok;
+	/* Continue on error */
+	if (!op_failed) {
+		*flags |= NVGPU_REG_OP_FLAG_ALL_PASSED;
+	}
+
+	return true;
 }
 
 /* exported for tools like cyclestats, etc */

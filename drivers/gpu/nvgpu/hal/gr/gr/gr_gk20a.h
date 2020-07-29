@@ -34,15 +34,16 @@ struct nvgpu_tsg;
 struct nvgpu_warpstate;
 struct dbg_session_gk20a;
 struct nvgpu_dbg_reg_op;
+struct nvgpu_gr_ctx;
 
 enum ctxsw_addr_type;
 
 /* sm */
 bool gk20a_gr_sm_debugger_attached(struct gk20a *g);
-int gr_gk20a_exec_ctx_ops(struct nvgpu_channel *ch,
+int gr_gk20a_exec_ctx_ops(struct nvgpu_tsg *tsg,
 			  struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			  u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
-			  bool *is_curr_ctx);
+			  u32 *flags);
 int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 				    u32 addr, u32 max_offsets,
 				    u32 *offsets, u32 *offset_addrs,
@@ -57,6 +58,9 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  struct nvgpu_tsg *tsg,
 				  u64 gpu_va, u32 mode);
+int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
+			    u32 addr, u32 data,
+			    struct nvgpu_gr_ctx *gr_ctx);
 void gk20a_gr_resume_single_sm(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm);
 void gk20a_gr_resume_all_sms(struct gk20a *g);

@@ -35,11 +35,10 @@
 #include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_exec_regops(struct gk20a *g,
-		     struct nvgpu_channel *ch,
-		     struct nvgpu_dbg_reg_op *ops,
-		     u32 num_ops,
-		     bool is_profiler,
-		     bool *is_current_ctx)
+		      struct nvgpu_tsg *tsg,
+		      struct nvgpu_dbg_reg_op *ops,
+		      u32 num_ops,
+		      u32 *flags)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_reg_ops_params *p = &msg.params.reg_ops;
@@ -68,17 +67,15 @@ int vgpu_exec_regops(struct gk20a *g,
 
 	msg.cmd = TEGRA_VGPU_CMD_REG_OPS;
 	msg.handle = vgpu_get_handle(g);
-	p->handle = ch ? ch->virt_ctx : 0;
+	p->tsg_id = tsg ? tsg->tsgid : U32_MAX;
 	p->num_ops = num_ops;
-	p->is_profiler = is_profiler;
+	p->flags = *flags;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err == 0) {
 		nvgpu_memcpy((u8 *)ops, (u8 *)oob, ops_size);
-		if (is_current_ctx != NULL) {
-			*is_current_ctx = p->is_current_ctx != 0u;
-		}
 	}
+	*flags = p->flags;
 
 fail:
 	vgpu_ivc_oob_put_ptr(handle);

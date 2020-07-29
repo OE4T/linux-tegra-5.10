@@ -212,6 +212,7 @@ static const struct gpu_ops gm20b_ops = {
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
+		.ctx_patch_smpc = gr_gk20a_ctx_patch_smpc,
 		.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,
 		.clear_sm_error_state = gm20b_gr_clear_sm_error_state,
 		.suspend_contexts = gr_gk20a_suspend_contexts,

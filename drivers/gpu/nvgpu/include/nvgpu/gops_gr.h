@@ -1109,6 +1109,9 @@ struct gops_gr {
 				      struct nvgpu_tsg *tsg,
 				      u64 gpu_va,
 				      u32 mode);
+	int (*ctx_patch_smpc)(struct gk20a *g,
+			    u32 addr, u32 data,
+			    struct nvgpu_gr_ctx *gr_ctx);
 	void (*init_hwpm_pmm_register)(struct gk20a *g);
 	void (*get_num_hwpm_perfmon)(struct gk20a *g, u32 *num_sys_perfmon,
 				     u32 *num_fbp_perfmon,
