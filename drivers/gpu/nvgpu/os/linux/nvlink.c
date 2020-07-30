@@ -15,6 +15,7 @@
  */
 
 #include <linux/mutex.h>
+#include <linux/io.h>
 #ifdef CONFIG_NVGPU_NVLINK
 #include <nvlink/common/tegra-nvlink.h>
 #endif
