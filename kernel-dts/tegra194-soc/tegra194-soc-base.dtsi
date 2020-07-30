@@ -2287,8 +2287,9 @@
 				<&bpmp_clks TEGRA194_CLK_PLLNVHS>,
 				<&bpmp_clks TEGRA194_CLK_CLK_M>,
 				<&bpmp_clks TEGRA194_CLK_NVLINK_PLL_TXCLK>,
-				<&bpmp_clks TEGRA194_CLK_NVLINK_TX>;
-		clock-names = "nvhs_pll0_mgmt", "pllrefe_vcoout_gated", "nvlink_sys", "pllnvhs", "clk_m", "nvlink_pll_txclk", "nvlink_tx";
+				<&bpmp_clks TEGRA194_CLK_NVLINK_TX>,
+				<&bpmp_clks TEGRA194_CLK_FUSE>;
+		clock-names = "nvhs_pll0_mgmt", "pllrefe_vcoout_gated", "nvlink_sys", "pllnvhs", "clk_m", "nvlink_pll_txclk", "nvlink_tx", "fuse";
 		resets = <&bpmp_resets TEGRA194_RESET_MSSNVL>,
 				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_PM>,
 				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY>,
