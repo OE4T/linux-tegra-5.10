@@ -139,6 +139,7 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
 	if (start && h->is_ivm) {
 		void *ret;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		pa = h->base + (*start);
 		ret = dma_mark_declared_memory_occupied(dev, pa, len,
 					DMA_ATTR_ALLOC_EXACT_SIZE);
@@ -146,7 +147,15 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 			dev_err(dev, "Failed to reserve (%pa) len(%zu)\n",
 					&pa, len);
 			return DMA_ERROR_CODE;
-		} else {
+		}
+#else
+		if(!(dma_alloc_from_dev_coherent_attr(dev, len, &pa, &ret,
+						DMA_ATTR_ALLOC_EXACT_SIZE))) {
+			dev_err(dev, "Failed to reserve len(%zu)\n", len);
+			return DMA_ERROR_CODE;
+		}
+#endif
+ 		else {
 			dev_dbg(dev, "reserved (%pa) len(%zu)\n",
 				&pa, len);
 		}
@@ -188,7 +197,13 @@ static void nvmap_free_mem(struct nvmap_heap *h, phys_addr_t base,
 	dev_dbg(dev, "Free base (%pa) size (%zu)\n", &base, len);
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
 	if (h->is_ivm && !h->can_alloc) {
-		dma_mark_declared_memory_unoccupied(dev, base, len, DMA_ATTR_ALLOC_EXACT_SIZE);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+		dma_mark_declared_memory_unoccupied(dev, base, len,
+						    DMA_ATTR_ALLOC_EXACT_SIZE);
+#else
+		dma_release_from_dev_coherent_attr(dev, len, (void *)(uintptr_t)base,
+						   DMA_ATTR_ALLOC_EXACT_SIZE);
+#endif
 	} else
 #endif
 	{

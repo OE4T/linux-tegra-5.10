@@ -50,6 +50,8 @@
 #include "nvmap_heap.h"
 #include "nvmap_stats.h"
 
+#define DMA_ERROR_CODE	(~(dma_addr_t)0)
+
 #define NVMAP_TAG_LABEL_MAXLEN	(63 - sizeof(struct nvmap_tag_entry))
 
 #define NVMAP_TP_ARGS_H(handle)					      	      \
