@@ -24,17 +24,17 @@
 #define NVGPU_JOB_H
 
 #include <nvgpu/list.h>
+#include <nvgpu/fence.h>
 
 struct priv_cmd_entry;
 struct nvgpu_mapped_buf;
-struct nvgpu_fence_type;
 struct priv_cmd_entry;
 struct nvgpu_channel;
 
 struct nvgpu_channel_job {
 	struct nvgpu_mapped_buf **mapped_buffers;
 	u32 num_mapped_buffers;
-	struct nvgpu_fence_type *post_fence;
+	struct nvgpu_fence_type post_fence;
 	struct priv_cmd_entry *wait_cmd;
 	struct priv_cmd_entry *incr_cmd;
 	struct nvgpu_list_node list;

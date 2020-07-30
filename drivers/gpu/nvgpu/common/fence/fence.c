@@ -51,11 +51,6 @@ static void nvgpu_fence_free(struct nvgpu_ref *ref)
 		nvgpu_semaphore_put(f->semaphore);
 	}
 #endif
-
-	/* the allocator must outlive the fences */
-	BUG_ON(!nvgpu_alloc_initialized(f->allocator));
-
-	nvgpu_free(f->allocator, (u64)(uintptr_t)f);
 }
 
 void nvgpu_fence_put(struct nvgpu_fence_type *f)
@@ -109,75 +104,11 @@ bool nvgpu_fence_is_expired(struct nvgpu_fence_type *f)
 	return f->ops->is_expired(f);
 }
 
-int nvgpu_fence_pool_alloc(struct nvgpu_channel *ch, unsigned int count)
-{
-	int err;
-	size_t size;
-	struct nvgpu_fence_type *fence_pool = NULL;
-
-	size = sizeof(struct nvgpu_fence_type);
-	if (count <= UINT_MAX / size) {
-		size = count * size;
-		fence_pool = nvgpu_vzalloc(ch->g, size);
-	}
-
-	if (fence_pool == NULL) {
-		return -ENOMEM;
-	}
-
-	err = nvgpu_lockless_allocator_init(ch->g, &ch->fence_allocator,
-				"fence_pool", (size_t)fence_pool, size,
-				sizeof(struct nvgpu_fence_type), 0);
-	if (err != 0) {
-		goto fail;
-	}
-
-	return 0;
-
-fail:
-	nvgpu_vfree(ch->g, fence_pool);
-	return err;
-}
-
-void nvgpu_fence_pool_free(struct nvgpu_channel *ch)
-{
-	if (nvgpu_alloc_initialized(&ch->fence_allocator)) {
-		struct nvgpu_fence_type *fence_pool;
-
-		fence_pool = (struct nvgpu_fence_type *)(uintptr_t)
-				nvgpu_alloc_base(&ch->fence_allocator);
-		nvgpu_alloc_destroy(&ch->fence_allocator);
-		nvgpu_vfree(ch->g, fence_pool);
-	}
-}
-
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-struct nvgpu_fence_type *nvgpu_fence_alloc(struct nvgpu_channel *ch)
-{
-	struct nvgpu_fence_type *fence = NULL;
-
-	if (nvgpu_alloc_initialized(&ch->fence_allocator)) {
-		fence = (struct nvgpu_fence_type *)(uintptr_t)
-			nvgpu_alloc(&ch->fence_allocator,
-				sizeof(struct nvgpu_fence_type));
-	}
-
-	if (fence != NULL) {
-		(void) memset(fence, 0, sizeof(*fence));
-		fence->allocator = &ch->fence_allocator;
-
-		nvgpu_ref_init(&fence->ref);
-		fence->g = ch->g;
-	}
-
-	return fence;
-}
-#endif
-
 void nvgpu_fence_init(struct nvgpu_fence_type *f,
 		const struct nvgpu_fence_ops *ops,
 		struct nvgpu_os_fence os_fence)
 {
+	nvgpu_ref_init(&f->ref);
 	f->ops = ops;
 	f->syncpt_id = NVGPU_INVALID_SYNCPT_ID;
 #ifdef CONFIG_NVGPU_SW_SEMAPHORE

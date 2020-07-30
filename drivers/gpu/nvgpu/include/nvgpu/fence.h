@@ -36,8 +36,6 @@ struct nvgpu_os_fence;
 struct nvgpu_user_fence;
 
 struct nvgpu_fence_type {
-	struct gk20a *g;
-
 	/* Valid for all fence types: */
 	struct nvgpu_ref ref;
 	const struct nvgpu_fence_ops *ops;
@@ -54,9 +52,6 @@ struct nvgpu_fence_type {
 	struct nvgpu_nvhost_dev *nvhost_dev;
 	u32 syncpt_id;
 	u32 syncpt_value;
-
-	/* Valid for fences part of a pre-allocated fence pool */
-	struct nvgpu_allocator *allocator;
 };
 
 struct nvgpu_fence_ops {
@@ -79,14 +74,6 @@ void nvgpu_fence_from_syncpt(
 		struct nvgpu_nvhost_dev *nvhost_dev,
 		u32 id, u32 value,
 		struct nvgpu_os_fence os_fence);
-
-int nvgpu_fence_pool_alloc(struct nvgpu_channel *ch, unsigned int count);
-
-void nvgpu_fence_pool_free(struct nvgpu_channel *ch);
-
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-struct nvgpu_fence_type *nvgpu_fence_alloc(struct nvgpu_channel *ch);
-#endif
 
 void nvgpu_fence_init(struct nvgpu_fence_type *f,
 		const struct nvgpu_fence_ops *ops,

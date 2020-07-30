@@ -50,6 +50,7 @@ int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
 	}
 
 	*job_out = &c->joblist.pre_alloc.jobs[put];
+	(void) memset(*job_out, 0, sizeof(**job_out));
 
 	return 0;
 }
@@ -57,7 +58,12 @@ int nvgpu_channel_alloc_job(struct nvgpu_channel *c,
 void nvgpu_channel_free_job(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job)
 {
-	(void) memset(job, 0, sizeof(*job));
+	/*
+	 * Nothing needed for now. The job contents are preallocated. The
+	 * completion fence may briefly outlive the job, but the job memory is
+	 * reclaimed only when a new submit comes in and the ringbuffer has ran
+	 * out of space.
+	 */
 }
 
 void nvgpu_channel_joblist_lock(struct nvgpu_channel *c)
@@ -127,11 +133,6 @@ int channel_prealloc_resources(struct nvgpu_channel *c, u32 num_jobs)
 		goto clean_up;
 	}
 
-	err = nvgpu_fence_pool_alloc(c, num_jobs);
-	if (err != 0) {
-		goto clean_up;
-	}
-
 	/*
 	 * length is the allocation size of the ringbuffer; the number of jobs
 	 * that fit is one less.
@@ -153,6 +154,5 @@ void channel_free_prealloc_resources(struct nvgpu_channel *c)
 	if (c->joblist.pre_alloc.jobs != NULL) {
 		nvgpu_vfree(c->g, c->joblist.pre_alloc.jobs);
 		c->joblist.pre_alloc.jobs = NULL;
-		nvgpu_fence_pool_free(c);
 	}
 }

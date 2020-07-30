@@ -695,7 +695,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 		job = channel_joblist_peek(c);
 		nvgpu_channel_joblist_unlock(c);
 
-		completed = nvgpu_fence_is_expired(job->post_fence);
+		completed = nvgpu_fence_is_expired(&job->post_fence);
 		if (!completed) {
 			/*
 			 * The watchdog eventually sees an updated gp_get if
@@ -716,7 +716,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			if (c->has_os_fence_framework_support &&
 			    g->os_channel.os_fence_framework_inst_exists(c)) {
 				g->os_channel.signal_os_fence_framework(c,
-						job->post_fence);
+						&job->post_fence);
 			}
 
 			if (g->aggressive_sync_destroy_thresh != 0U) {
@@ -735,9 +735,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 				job->num_mapped_buffers);
 		}
 
-		/* Close the fence (this will unref the semaphore and release
-		 * it to the pool). */
-		nvgpu_fence_put(job->post_fence);
+		nvgpu_fence_put(&job->post_fence);
 
 		/*
 		 * Free the private command buffers (wait_cmd first and

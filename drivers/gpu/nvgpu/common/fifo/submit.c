@@ -83,32 +83,17 @@ static int nvgpu_submit_create_wait_cmd(struct nvgpu_channel *c,
 
 static int nvgpu_submit_create_incr_cmd(struct nvgpu_channel *c,
 		struct priv_cmd_entry **incr_cmd,
-		struct nvgpu_fence_type **post_fence, bool flag_fence_get,
+		struct nvgpu_fence_type *post_fence, bool flag_fence_get,
 		bool need_wfi, bool need_sync_fence)
 {
 	int err;
 
-	*post_fence = nvgpu_fence_alloc(c);
-	if (*post_fence == NULL) {
-		/*
-		 * The fence pool is exactly as long as the job list so this
-		 * should always succeed. If not, things are so broken that
-		 * ENOMEM is better than ENOSPC.
-		 */
-		return -ENOMEM;
-	}
-
 	if (flag_fence_get) {
 		err = nvgpu_channel_sync_incr_user(c->sync, incr_cmd,
-				*post_fence, need_wfi, need_sync_fence);
+				post_fence, need_wfi, need_sync_fence);
 	} else {
 		err = nvgpu_channel_sync_incr(c->sync, incr_cmd,
-				*post_fence, need_sync_fence);
-	}
-
-	if (err != 0) {
-		nvgpu_fence_put(*post_fence);
-		*post_fence = NULL;
+				post_fence, need_sync_fence);
 	}
 
 	return err;
@@ -394,7 +379,11 @@ static int nvgpu_submit_prepare_gpfifo_track(struct nvgpu_channel *c,
 	nvgpu_channel_sync_mark_progress(c->sync, need_deferred_cleanup);
 
 	if (fence_out != NULL) {
-		*fence_out = nvgpu_fence_get(job->post_fence);
+		/* This fence ref is going somewhere else but it's owned by the
+		 * job; the caller is expected to release it promptly, so that
+		 * a subsequent job cannot reclaim its memory.
+		 */
+		*fence_out = nvgpu_fence_get(&job->post_fence);
 	}
 
 	return 0;
@@ -427,7 +416,7 @@ clean_up_gpfifo_wait:
 			  nvgpu_safe_sub_u32(c->gpfifo.entry_num, 1U)) &
 			nvgpu_safe_sub_u32(c->gpfifo.entry_num, 1U);
 	}
-	nvgpu_fence_put(job->post_fence);
+	nvgpu_fence_put(&job->post_fence);
 	nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, job->incr_cmd);
 	if (job->wait_cmd != NULL) {
 		nvgpu_priv_cmdbuf_rollback(c->priv_cmd_q, job->wait_cmd);
