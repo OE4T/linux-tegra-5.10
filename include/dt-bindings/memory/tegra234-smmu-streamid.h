@@ -84,7 +84,17 @@
 #define TEGRA_SID_JESD204	0x37
 #define TEGRA_SID_LDPC		0x38
 
-#define TEGRA_SID_SMMU_TEST	0x50
+#define TEGRA_SID_SMMU_TEST	0x39
+
+/* PVA virtualization clients. */
+#define TEGRA_SID_PVA_VM0	0x3A
+#define TEGRA_SID_PVA_VM1	0x3B
+#define TEGRA_SID_PVA_VM2	0x3C
+#define TEGRA_SID_PVA_VM3	0x3D
+#define TEGRA_SID_PVA_VM4	0x3E
+#define TEGRA_SID_PVA_VM5	0x3F
+#define TEGRA_SID_PVA_VM6	0x40
+#define TEGRA_SID_PVA_VM7	0x41
 
 /* Host1x virtualization clients. */
 #define TEGRA_SID_HOST1X_CTX0	0x51
@@ -112,10 +122,10 @@
 #define TEGRA_SID_XUSB_VF3	0x64
 
 /* EQOS virtual functions */
-#define TEGRA_SID_EQOS_VF1     0x65
-#define TEGRA_SID_EQOS_VF2     0x66
-#define TEGRA_SID_EQOS_VF3     0x67
-#define TEGRA_SID_EQOS_VF4     0x68
+#define TEGRA_SID_EQOS_VF1	0x65
+#define TEGRA_SID_EQOS_VF2	0x66
+#define TEGRA_SID_EQOS_VF3	0x67
+#define TEGRA_SID_EQOS_VF4	0x68
 
 /* SE data buffers */
 #define TEGRA_SID_SE_VM0	0x69U
