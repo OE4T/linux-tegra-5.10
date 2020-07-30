@@ -76,15 +76,31 @@ static unsigned int tegra_oc_readl(unsigned int offset)
 	return __raw_readl(tegra_oc.soctherm_base + offset);
 }
 
-static void tegra_oc_event_raised(void *arg, uint32_t msg)
+static unsigned int tegra_oc_read_status_regs(void)
 {
+	unsigned int oc_status = 0;
+	int irq_cnt;
 	int i;
 
-	/* Read all oc stats registers */
 	for (i = 0; i < SOCTHERM_EDP_OC_INVALID; i++) {
-		tegra_oc.edp_oc[i].irq_cnt = tegra_oc_readl(EDP_OC_STATS(i)) /
-									(tegra_oc_readl(EDP_OC_THRESH_CNT(i)) + 1);
+		irq_cnt = tegra_oc_readl(EDP_OC_STATS(i)) /
+				(tegra_oc_readl(EDP_OC_THRESH_CNT(i)) + 1);
+		if (irq_cnt > tegra_oc.edp_oc[i].irq_cnt) {
+			oc_status |= BIT(i);
+			tegra_oc.edp_oc[i].irq_cnt = irq_cnt;
+		}
 	}
+
+	return oc_status;
+}
+
+static void tegra_oc_event_raised(void *arg, uint32_t msg)
+{
+	static unsigned long state;
+	unsigned int oc_status = tegra_oc_read_status_regs();
+
+	if (printk_timed_ratelimit(&state, 1000))
+		pr_err("soctherm: OC ALARM 0x%08x\n", oc_status);
 }
 
 static void tegra_get_throtctrl_vectors(void)
@@ -291,6 +307,7 @@ static int tegra_oc_event_probe(struct platform_device *pdev)
 {
 	const struct of_device_id *match;
 	struct device_node *np = pdev->dev.of_node;
+	unsigned int oc_status;
 
 	match = of_match_node(tegra_oc_event_of_match, np);
 	if (!match)
@@ -326,6 +343,11 @@ static int tegra_oc_event_probe(struct platform_device *pdev)
 			tegra_hsp_sm_rx_free(tegra_oc.hsp_sm);
 			return PTR_ERR(tegra_oc.hwmon);
 		}
+
+		/* Check if any OC events before probe */
+		oc_status = tegra_oc_read_status_regs();
+		if (oc_status)
+			pr_err("soctherm: OC ALARM 0x%08x\n", oc_status);
 	}
 
 	dev_info(&pdev->dev, "OC driver initialized");
