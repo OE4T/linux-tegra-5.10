@@ -1,4 +1,5 @@
 nvidia
+nvlink
 nvgpu
 nvidia-t23x
 display-t23x
