@@ -87,14 +87,13 @@
 	};
 
 	qspi0: spi@3270000 {
-		compatible = "nvidia,tegra186-qspi";
+		compatible = "nvidia,tegra23x-qspi";
 		reg = <0x0 0x3270000 0x0 0x10000>;
 		interrupts = < 0 35 0x04 >;
 		#address-cells = <1>;
 		#size-cells = <0>;
-		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
+		iommus = <&smmu TEGRA_SID_XSPI0>;
 		dma-coherent;
-		dmas = <&gpcdma 5>, <&gpcdma 5>;
 		dma-names = "rx", "tx";
 		spi-max-frequency = <204000000>;
 		nvidia,clk-parents = "pllc", "pll_p";
@@ -109,14 +108,13 @@
 	};
 
 	qspi1: spi@3300000 {
-		compatible = "nvidia,tegra186-qspi";
+		compatible = "nvidia,tegra23x-qspi";
 		reg = <0x0 0x3300000 0x0 0x10000>;
 		interrupts = < 0 39 0x04 >;
 		#address-cells = <1>;
 		#size-cells = <0>;
-		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
+		iommus = <&smmu TEGRA_SID_XSPI1>;
 		dma-coherent;
-		dmas = <&gpcdma 6>, <&gpcdma 6>;
 		dma-names = "rx", "tx";
 		spi-max-frequency = <204000000>;
 		nvidia,clk-parents = "pllc", "pll_p";

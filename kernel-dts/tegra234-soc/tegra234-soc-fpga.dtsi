@@ -30,6 +30,7 @@
 #include "tegra234-soc-pmc.dtsi"
 #include "tegra234-soc-i2c.dtsi"
 #include "tegra234-soc-ufshc.dtsi"
+#include "tegra234-soc-spi.dtsi"
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 
 / {
