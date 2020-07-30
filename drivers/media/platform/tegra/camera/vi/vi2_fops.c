@@ -423,7 +423,11 @@ static int tegra_channel_capture_frame_single_thread(
 	if (!chan->bfirst_fstart) {
 		err = tegra_channel_enable_stream(chan);
 		if (err) {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			state = VB2_BUF_STATE_REQUEUEING;
+#else
+			state = VB2_BUF_STATE_ERROR;
+#endif
 			chan->capture_state = CAPTURE_ERROR;
 			tegra_channel_ring_buffer(chan, vb, &ts, state);
 			return err;
@@ -450,7 +454,11 @@ static int tegra_channel_capture_frame_single_thread(
 		if (err) {
 			dev_err(&chan->video->dev,
 				"frame start syncpt timeout!%d\n", index);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			state = VB2_BUF_STATE_REQUEUEING;
+#else
+			state = VB2_BUF_STATE_ERROR;
+#endif
 			/* perform error recovery for timeout */
 			tegra_channel_ec_recover(chan);
 			chan->capture_state = CAPTURE_TIMEOUT;
@@ -458,14 +466,22 @@ static int tegra_channel_capture_frame_single_thread(
 		}
 	}
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	getrawmonotonic(&ts);
+#else
+	ktime_get_ts64(&ts);
+#endif
 
 	if (!err && !chan->pg_mode) {
 		/* Marking error frames and resume capture */
 		/* TODO: TPG has frame height short error always set */
 		err = tegra_channel_error_status(chan);
 		if (err) {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			state = VB2_BUF_STATE_REQUEUEING;
+#else
+			state = VB2_BUF_STATE_ERROR;
+#endif
 			chan->capture_state = CAPTURE_ERROR;
 			/* do we have to run recover here ?? */
 			/* tegra_channel_ec_recover(chan); */
@@ -508,7 +524,11 @@ static int tegra_channel_capture_frame_multi_thread(
 	} else {
 		up_read(&chan->reset_lock);
 		/* requeue this vb2buf */
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+		buf->state = VB2_BUF_STATE_ERROR;
+#endif
 		release_buffer(chan, buf);
 		/* sleep, waiting for the programmed syncpt being handled */
 		usleep_range(1000, 1010);
@@ -571,8 +591,11 @@ static int tegra_channel_capture_frame_multi_thread(
 			up_read(&chan->reset_lock);
 			dev_err(&chan->video->dev,
 				"failed to enable stream. ERROR: %d\n", err);
-
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+			buf->state = VB2_BUF_STATE_ERROR;
+#endif
 			chan->capture_state = CAPTURE_ERROR;
 			release_buffer(chan, buf);
 			return err;
@@ -602,7 +625,12 @@ static int tegra_channel_capture_frame_multi_thread(
 		if (err) {
 			dev_err(&chan->video->dev,
 				"frame start syncpt timeout!%d\n", index);
+
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+			buf->state = VB2_BUF_STATE_ERROR;
+#endif
 			/* perform error recovery for timeout */
 			tegra_channel_ec_recover(chan);
 			chan->capture_state = CAPTURE_TIMEOUT;
@@ -613,14 +641,22 @@ static int tegra_channel_capture_frame_multi_thread(
 			"%s: vi2 got SOF syncpt buf[%p]\n", __func__, buf);
 	}
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	getrawmonotonic(&ts);
+#else
+	ktime_get_ts64(&ts);
+#endif
 
 	if (!err && !chan->pg_mode) {
 		/* Marking error frames and resume capture */
 		/* TODO: TPG has frame height short error always set */
 		err = tegra_channel_error_status(chan);
 		if (err) {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+			buf->state = VB2_BUF_STATE_ERROR;
+#endif
 			chan->capture_state = CAPTURE_ERROR;
 			tegra_channel_ec_recover(chan);
 		}
@@ -633,7 +669,11 @@ static int tegra_channel_capture_frame_multi_thread(
 		buf->version = chan->capture_version;
 		enqueue_inflight(chan, buf);
 	} else {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+		buf->state = VB2_BUF_STATE_ERROR;
+#endif
 		release_buffer(chan, buf);
 	}
 
@@ -673,7 +713,11 @@ static void tegra_channel_release_frame(struct tegra_channel *chan,
 	 */
 	restart_version = atomic_read(&chan->restart_version);
 	if (buf->version != restart_version) {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+		buf->state = VB2_BUF_STATE_ERROR;
+#endif
 		goto fail;
 	}
 
@@ -685,7 +729,12 @@ static void tegra_channel_release_frame(struct tegra_channel *chan,
 			dev_err(&chan->video->dev,
 				"%s: MW_ACK_DONE syncpoint time out!%d\n",
 				__func__, index);
+
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+			buf->state = VB2_BUF_STATE_ERROR;
+#endif
 			/* perform error recovery for timeout */
 			tegra_channel_ec_recover(chan);
 			chan->capture_state = CAPTURE_TIMEOUT;
@@ -817,7 +866,11 @@ static void tegra_channel_capture_done(struct tegra_channel *chan)
 			dev_err(&chan->video->dev,
 				"%s: MW_ACK_DONE syncpoint time out!%d\n",
 				__func__, index);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			state = VB2_BUF_STATE_REQUEUEING;
+#else
+			state = VB2_BUF_STATE_ERROR;
+#endif
 			/* perform error recovery for timeout */
 			tegra_channel_ec_recover(chan);
 			chan->capture_state = CAPTURE_TIMEOUT;

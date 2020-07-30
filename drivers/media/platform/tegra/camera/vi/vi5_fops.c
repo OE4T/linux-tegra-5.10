@@ -410,7 +410,12 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 				"err_data %d\n",
 				descr->status.frame_id, descr->status.flags,
 				descr->status.err_data);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			buf->vb2_state = VB2_BUF_STATE_REQUEUEING;
+#else
+			buf->vb2_state = VB2_BUF_STATE_ERROR;
+#endif
 			goto done;
 		}
 	}
@@ -418,7 +423,11 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 	buf->vb2_state = VB2_BUF_STATE_DONE;
 
 	/* Read SOF from capture descriptor */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	ts = ns_to_timespec((s64)descr->status.sof_timestamp);
+#else
+	ts = ns_to_timespec64((s64)descr->status.sof_timestamp);
+#endif
 	trace_tegra_channel_capture_frame("sof", ts);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
 	/* update time stamp of the buffer */
@@ -429,7 +438,11 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 #endif
 
 	/* Read EOF from capture descriptor */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	ts = ns_to_timespec((s64)descr->status.eof_timestamp);
+#else
+	ts = ns_to_timespec64((s64)descr->status.eof_timestamp);
+#endif
 	trace_tegra_channel_capture_frame("eof", ts);
 
 done:

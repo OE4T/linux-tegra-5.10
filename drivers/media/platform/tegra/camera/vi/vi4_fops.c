@@ -25,6 +25,7 @@
 #include "vi4_fops.h"
 #include <media/sensor_common.h>
 #include <trace/events/camera_common.h>
+
 #define BPP_MEM		2
 #define MAX_VI_CHANNEL 12
 #define NUM_FIELDS_INTERLACED 2
@@ -232,7 +233,11 @@ static bool vi_notify_wait(struct tegra_channel *chan,
 				dev_err(chan->vi->dev,
 					"no capture status! err = %d\n", err);
 			else {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 				*ts = ns_to_timespec((s64)status.sof_ts);
+#else
+				*ts = ns_to_timespec64((s64)status.sof_ts);
+#endif
 
 				dev_dbg(&chan->video->dev,
 					"%s: vi4 got SOF syncpt buf[%p]\n",
@@ -593,8 +598,11 @@ static int tegra_channel_capture_frame_single_thread(
 		/* wait for vi notifier events */
 		if (!vi_notify_wait(chan, buf, &ts)) {
 			tegra_channel_error_recovery(chan);
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			state = VB2_BUF_STATE_REQUEUEING;
+#else
+			state = VB2_BUF_STATE_ERROR;
+#endif
 
 			spin_lock_irqsave(&chan->capture_state_lock, flags);
 			chan->capture_state = CAPTURE_TIMEOUT;
@@ -712,7 +720,11 @@ static void tegra_channel_release_frame(struct tegra_channel *chan,
 	 */
 	restart_version = atomic_read(&chan->restart_version);
 	if (buf->version != restart_version) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+		buf->state = VB2_BUF_STATE_ERROR;
+#endif
 		release_buffer(chan, buf);
 		return;
 	}
@@ -736,7 +748,11 @@ static void tegra_channel_release_frame(struct tegra_channel *chan,
 	}
 
 	if (err) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		buf->state = VB2_BUF_STATE_REQUEUEING;
+#else
+		buf->state = VB2_BUF_STATE_ERROR;
+#endif
 		atomic_inc(&chan->restart_version);
 	}
 
@@ -849,12 +865,20 @@ static void tegra_channel_capture_done(struct tegra_channel *chan)
 					"no capture status! err = %d\n", err);
 			break;
 		}
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		ts = ns_to_timespec((s64)status.eof_ts);
+#else
+		ts = ns_to_timespec64((s64)status.eof_ts);
+#endif
 	}
 
 	if (err) {
 		tegra_channel_error_recovery(chan);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		state = VB2_BUF_STATE_REQUEUEING;
+#else
+		state = VB2_BUF_STATE_ERROR;
+#endif
 	}
 
 	set_timestamp(buf, &ts);
