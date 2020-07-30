@@ -30,6 +30,7 @@
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
+#include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/seq.h>
 
@@ -576,6 +577,12 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 	case PMU_UNIT_THERM:
 		if (pmu->therm_rpc_handler != NULL) {
 			pmu->therm_rpc_handler(g, pmu, &rpc);
+		}
+		break;
+	case PMU_UNIT_PG_LOADING:
+	case PMU_UNIT_PG:
+		if (pmu->pg->rpc_handler != NULL) {
+			pmu->pg->rpc_handler(g, pmu, &rpc);
 		}
 		break;
 	default:

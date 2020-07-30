@@ -30,6 +30,7 @@
 #define PMU_UNIT_REWIND			U8(0x00)
 #define PMU_UNIT_CMDMGMT		U8(0x01)
 #define PMU_UNIT_PG			U8(0x03)
+#define PMU_UNIT_PG_LOADING		U8(0x06)
 #define PMU_UNIT_INIT			U8(0x07)
 #define PMU_UNIT_ACR			U8(0x0A)
 #define PMU_UNIT_PERFMON_T18X		U8(0x11)

@@ -112,6 +112,9 @@ struct nvgpu_pmu_pg {
 			u8 pg_engine_id);
 	int (*load_buff)(struct gk20a *g, struct nvgpu_pmu *pmu);
 	int (*hw_load_zbc)(struct gk20a *g, struct nvgpu_pmu *pmu);
+	void (*rpc_handler)(struct gk20a *g, struct nvgpu_pmu *pmu,
+			struct nv_pmu_rpc_header *rpc);
+	int (*init_send)(struct gk20a *g, struct nvgpu_pmu *pmu, u8 pg_engine_id);
 };
 
 /*PG defines used by nvpgu-pmu*/

@@ -47,5 +47,7 @@ int gm20b_pmu_pg_elpg_alloc_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
 		u8 pg_engine_id);
 int gm20b_pmu_pg_elpg_load_buff(struct gk20a *g, struct nvgpu_pmu *pmu);
 int gm20b_pmu_pg_elpg_hw_load_zbc(struct gk20a *g, struct nvgpu_pmu *pmu);
+int gm20b_pmu_pg_init_send(struct gk20a *g, struct nvgpu_pmu *pmu,
+		u8 pg_engine_id);
 
 #endif /* NVGPU_PMU_PG_SW_GM20B_H */

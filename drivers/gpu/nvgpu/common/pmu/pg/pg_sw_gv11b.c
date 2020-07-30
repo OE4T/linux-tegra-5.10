@@ -144,5 +144,6 @@ void nvgpu_gv11b_pg_sw_init(struct gk20a *g,
 	pg->alloc_dmem = gm20b_pmu_pg_elpg_alloc_dmem;
 	pg->load_buff = gm20b_pmu_pg_elpg_load_buff;
 	pg->hw_load_zbc = gm20b_pmu_pg_elpg_hw_load_zbc;
-
+	pg->rpc_handler = NULL;
+	pg->init_send = gm20b_pmu_pg_init_send;
 }

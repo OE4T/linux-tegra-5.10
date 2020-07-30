@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,15 @@
 #define PMU_PG_ELPG_ENGINE_ID_MS		(0x00000004U)
 #define PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE	(0x00000005U)
 #define PMU_PG_ELPG_ENGINE_MAX    PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE
+
+/* RPC function calls supported by PG unit */
+#define NV_PMU_RPC_ID_PG_LOADING_PRE_INIT	0x00U
+#define NV_PMU_RPC_ID_PG_LOADING_INIT	0x0AU
+#define NV_PMU_RPC_ID_PG_LOADING_BUF_LOAD	0x0BU
+#define NV_PMU_RPC_ID_PG_ALLOW	0x04U
+#define NV_PMU_RPC_ID_PG_DISALLOW	0x05U
+#define NV_PMU_RPC_ID_PG_THRESHOLD_UPDATE	0x06U
+#define NV_PMU_RPC_ID_PG_SFM_UPDATE	0x08U
 
 /* PG message */
 enum {

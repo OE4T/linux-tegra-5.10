@@ -491,79 +491,6 @@ void pmu_handle_pg_stat_msg(struct gk20a *g, struct pmu_msg *msg,
 	}
 }
 
-static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
-{
-	struct nvgpu_pmu *pmu = g->pmu;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	g->ops.pmu.pmu_pg_idle_counter_config(g, pg_engine_id);
-
-	if (pmu->pg->init_param != NULL) {
-		err = pmu->pg->init_param(g, pg_engine_id);
-		if (err != 0) {
-			nvgpu_err(g, "init_param failed err=%d", err);
-			return err;
-		}
-	}
-
-	nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_INIT");
-	if (pmu->pg->init == NULL) {
-		nvgpu_err(g, "PG init function not assigned");
-		return -EINVAL;
-	}
-	err = pmu->pg->init(g, pmu, pg_engine_id);
-	if (err != 0) {
-		nvgpu_err(g, "PMU_PG_ELPG_CMD_INIT cmd failed\n");
-		return err;
-	}
-
-	/* alloc dmem for powergating state log */
-	nvgpu_pmu_dbg(g, "cmd post PMU_PG_STAT_CMD_ALLOC_DMEM");
-	if (pmu->pg->alloc_dmem == NULL) {
-		nvgpu_err(g, "PG alloc dmem function not assigned");
-		return -EINVAL;
-	}
-	err = pmu->pg->alloc_dmem(g, pmu, pg_engine_id);
-	if (err != 0) {
-		nvgpu_err(g, "PMU_PG_STAT_CMD_ALLOC_DMEM cmd failed\n");
-		return err;
-	}
-
-
-	/* disallow ELPG initially
-	 * PMU ucode requires a disallow cmd before allow cmd
-	 * set for wait_event PMU_ELPG_STAT_OFF */
-	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
-		pmu->pg->elpg_stat = PMU_ELPG_STAT_OFF;
-	} else if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_MS) {
-		pmu->pg->mscg_transition_state = PMU_ELPG_STAT_OFF;
-	}
-
-	nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_DISALLOW");
-	if (pmu->pg->disallow == NULL) {
-		nvgpu_err(g, "PG disallow function not assigned");
-		return -EINVAL;
-	}
-	err = pmu->pg->disallow(g, pmu, pg_engine_id);
-	if (err != 0) {
-		nvgpu_err(g, "PMU_PG_ELPG_CMD_DISALLOW cmd failed\n");
-		return err;
-	}
-
-	if (pmu->pg->set_sub_feature_mask != NULL) {
-		err = pmu->pg->set_sub_feature_mask(g, pg_engine_id);
-		if (err != 0) {
-			nvgpu_err(g, "set_sub_feature_mask failed err=%d",
-				err);
-			return err;
-		}
-	}
-
-	return err;
-}
-
 static int pmu_pg_init_powergating(struct gk20a *g, struct nvgpu_pmu *pmu,
 	struct nvgpu_pmu_pg *pg)
 {
@@ -590,8 +517,8 @@ static int pmu_pg_init_powergating(struct gk20a *g, struct nvgpu_pmu *pmu,
 				nvgpu_pmu_fw_state_change(g, pmu,
 					PMU_FW_STATE_ELPG_BOOTING, false);
 			}
-			/* Error print handled by pmu_pg_init_send */
-			err = pmu_pg_init_send(g, pg_engine_id);
+			/* Error print handled by pmu->pg->init_send */
+			err = pmu->pg->init_send(g, pmu, pg_engine_id);
 			if (err != 0) {
 				return err;
 			}
@@ -950,11 +877,14 @@ int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
 		break;
 
 	case NVGPU_GPUID_GV11B:
-#if defined(CONFIG_NVGPU_NEXT)
-	case NVGPU_NEXT_GPUID:
-#endif
 		nvgpu_gv11b_pg_sw_init(g, *pg_p);
 		break;
+
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_NON_FUSA)
+	case NVGPU_NEXT_GPUID:
+		nvgpu_next_pg_sw_init(g, *pg_p);
+		break;
+#endif
 
 	default:
 		nvgpu_kfree(g, *pg_p);
