@@ -473,27 +473,6 @@ int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 			      u64 base, u64 length, u64 blk_size, u64 max_order,
 			      u64 flags, enum nvgpu_allocator_type alloc_type);
 
-#ifdef CONFIG_NVGPU_FENCE
-/**
- * @brief Initialize lockless allocator.
- *
- * @param[in] g		Pointer to GPU structure.
- * @param[in] na	Pointer to allocator structure.
- * @param[in] name	Name of lockless allocator.
- * @param[in] base	Base address of lockless allocator.
- * @param[in] length	Size of lockless allocator.
- * @param[in] blk_size	Block size of lockless allocator.
- * @param[in] flags	Flags indicating lockless allocator conditions.
- *
- * @return 0 in case of success, < 0 otherwise.
- * @retval -EINVAL in case of incorrect input value.
- * @retval -ENOMEM in case there is not enough memory for allocation.
- */
-int nvgpu_lockless_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
-				  const char *name, u64 base, u64 length,
-				  u64 blk_size, u64 flags);
-#endif
-
 /**
  * Largest block of resources that fits in address space.
  */

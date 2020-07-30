@@ -580,11 +580,6 @@ mm:
           sources: [ common/mm/allocators/page_allocator.c,
                      include/nvgpu/page_allocator.h ]
           deps: [ ]
-        lockless:
-          safe: no
-          sources: [ common/mm/allocators/lockless_allocator.c,
-                     common/mm/allocators/lockless_allocator_priv.h ]
-          tags: unit-testable
     dma:
       safe: yes
       sources: [ common/mm/dma.c ]

@@ -701,21 +701,4 @@ static inline bool nvgpu_atomic64_sub_and_test_impl(long x, nvgpu_atomic64_t *v)
 	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, x) == 0;
 }
 
-/*
- * The following is only used by the lockless allocator and makes direct use
- * of the cmpxchg function. For POSIX, this is translated to a call to
- * nvgpu_atomic_cmpxchg.
- */
-
-/**
- * @brief Define for compare and exchange POSIX implementation.
- *
- * @param p	Pointer to data.
- * @param old	Value to compare.
- * @param new	Value to exchange.
- */
-#define cmpxchg(p, old, new) \
-		nvgpu_atomic_cmpxchg((nvgpu_atomic_t *)(void *)(p), (old), (new))
-
-
 #endif /* NVGPU_POSIX_ATOMIC_H */

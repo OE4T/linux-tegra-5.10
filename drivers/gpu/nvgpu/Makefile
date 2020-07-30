@@ -508,7 +508,6 @@ nvgpu-y += \
 	common/mm/allocators/nvgpu_allocator.o \
 	common/mm/allocators/bitmap_allocator.o \
 	common/mm/allocators/buddy_allocator.o \
-	common/mm/allocators/lockless_allocator.o \
 	common/mm/gmmu/page_table.o \
 	common/mm/gmmu/pd_cache.o \
 	common/mm/gmmu/pte.o \
