@@ -592,8 +592,6 @@ static const struct gpu_ops tu104_ops = {
 			.get_nonpes_aware_tpc =
 					gv11b_gr_init_get_nonpes_aware_tpc,
 			.ecc_scrub_reg = NULL,
-			.lg_coalesce = gm20b_gr_init_lg_coalesce,
-			.su_coalesce = gm20b_gr_init_su_coalesce,
 			.pes_vsc_stream = gm20b_gr_init_pes_vsc_stream,
 			.gpc_mmu = gv11b_gr_init_gpc_mmu,
 			.fifo_access = gm20b_gr_init_fifo_access,

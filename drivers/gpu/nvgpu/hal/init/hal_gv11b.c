@@ -555,8 +555,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 			.get_nonpes_aware_tpc =
 					gv11b_gr_init_get_nonpes_aware_tpc,
 			.ecc_scrub_reg = gv11b_gr_init_ecc_scrub_reg,
-			.lg_coalesce = gm20b_gr_init_lg_coalesce,
-			.su_coalesce = gm20b_gr_init_su_coalesce,
 			.pes_vsc_stream = gm20b_gr_init_pes_vsc_stream,
 			.gpc_mmu = gv11b_gr_init_gpc_mmu,
 			.fifo_access = gm20b_gr_init_fifo_access,
