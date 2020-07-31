@@ -25,10 +25,7 @@
 #include <linux/sched/clock.h>
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <linux/cma.h>
-#endif
-
 #include <asm/dma-contiguous.h>
 
 #include "nvmap_priv.h"
@@ -36,11 +33,7 @@
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
 #include <linux/tegra-ivc.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <soc/tegra/virt/syscalls.h>
-#else
-#include "../../../drivers/virt/tegra/syscalls.h"
-#endif
 #endif
 
 phys_addr_t __weak tegra_carveout_start;

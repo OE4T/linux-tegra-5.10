@@ -646,7 +646,6 @@ bool dmabuf_is_nvmap(struct dma_buf *dmabuf)
 }
 EXPORT_SYMBOL(dmabuf_is_nvmap);
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 static struct dma_buf *__dma_buf_export(struct nvmap_handle_info *info,
 					size_t size)
 {
@@ -664,10 +663,6 @@ static struct dma_buf *__dma_buf_export(struct nvmap_handle_info *info,
 
 	return dma_buf_export(&exp_info);
 }
-#else
-#define __dma_buf_export(info, size) \
-	dma_buf_export(info, &nvmap_dma_buf_ops, size, O_RDWR, NULL)
-#endif
 
 /*
  * Make a dmabuf object for an nvmap handle.

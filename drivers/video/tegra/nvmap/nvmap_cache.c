@@ -162,11 +162,7 @@ __weak void nvmap_override_cache_ops(void)
 void inner_cache_maint(unsigned int op, void *vaddr, size_t size)
 {
 	if (op == NVMAP_CACHE_OP_WB_INV)
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		__dma_flush_range(vaddr, vaddr + size);
-#else
 		__dma_flush_area(vaddr, size);
-#endif
 	else if (op == NVMAP_CACHE_OP_INV)
 		__dma_map_area(vaddr, size, DMA_FROM_DEVICE);
 	else

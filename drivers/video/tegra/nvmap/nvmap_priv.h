@@ -707,12 +707,6 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 #else
 	down_read(&current->mm->mmap_lock);
 #endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-        user_pages = get_user_pages(current, current->mm,
-			      vaddr & PAGE_MASK, nr_page,
-			      1/*write*/, 1, /* force */
-			      pages, NULL);
-#else
 	vma = find_vma(current->mm, vaddr);
 	if (vma) {
 		vm_flags = vma->vm_flags;
@@ -728,7 +722,6 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 					pages, NULL);
 		}
 	}
-#endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	up_read(&current->mm->mmap_sem);
 #else
@@ -744,13 +737,8 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 	return ret;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 #define device_node_from_iter(iter) \
 	iter.node
-#else
-#define device_node_from_iter(iter) \
-	iter.out_args.np
-#endif
 
 #define CALL_CLEAN_CACHE_ON_INIT 1
 #define CALL_FLUSH_CACHE_ON_INIT 2

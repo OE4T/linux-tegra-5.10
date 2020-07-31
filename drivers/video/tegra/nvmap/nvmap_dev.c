@@ -47,10 +47,7 @@
 #include <linux/sched/mm.h>
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <linux/backing-dev.h>
-#endif
-
 #include <asm/cputype.h>
 
 #define CREATE_TRACE_POINTS
@@ -77,7 +74,7 @@ static int nvmap_open(struct inode *inode, struct file *filp);
 static int nvmap_release(struct inode *inode, struct file *filp);
 static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 static int nvmap_map(struct file *filp, struct vm_area_struct *vma);
-#if !defined(CONFIG_MMU) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
+#if !defined(CONFIG_MMU)
 static unsigned nvmap_mmap_capabilities(struct file *filp);
 #endif
 
@@ -90,7 +87,7 @@ static const struct file_operations nvmap_user_fops = {
 	.compat_ioctl = nvmap_ioctl,
 #endif
 	.mmap		= nvmap_map,
-#if !defined(CONFIG_MMU) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
+#if !defined(CONFIG_MMU)
 	.mmap_capabilities = nvmap_mmap_capabilities,
 #endif
 };

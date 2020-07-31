@@ -577,9 +577,7 @@ static struct device *nvmap_heap_pgalloc_dev(unsigned long type)
 	int ret = -EINVAL;
 	struct device *dma_dev;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 	ret = 0;
-#endif
 
 	if (ret || (type != NVMAP_HEAP_CARVEOUT_VPR))
 		return ERR_PTR(-EINVAL);
