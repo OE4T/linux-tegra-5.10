@@ -22,7 +22,6 @@
 #include <linux/of_gpio.h>
 #include <linux/gpio.h>
 #include <linux/gpio/consumer.h>
-#include <linux/gpio-tegra186.h>
 #include <linux/platform_device.h>
 #include <linux/tegra-gte.h>
 #include <linux/cdev.h>
@@ -159,7 +158,6 @@ struct tegra_gte_dev {
 	int gte_irq;
 	int num_events;
 	int id;
-	int gpio_base;
 	u32 itr_thrshld;
 	u32 conf_rval;
 	atomic_t usage;
@@ -169,7 +167,6 @@ struct tegra_gte_dev {
 	struct kobject *kobj;
 	struct gte_slices *sl;
 	struct tegra_gte_event_info *ev;
-	struct device_node *mp;
 	const struct tegra_gte_ev_table *ev_map;
 	struct list_head list;
 	void __iomem *regs;
@@ -292,7 +289,7 @@ static struct attribute_group event_attr_group = {
 int tegra_gte_unregister_event(struct tegra_gte_ev_desc *data)
 {
 	u32 slice, val;
-	int ev_id, g_id, ret;
+	int ev_id, ret;
 	unsigned long flags;
 	struct tegra_gte_dev *gte_dev;
 	struct tegra_gte_ev_desc *pri;
@@ -305,7 +302,6 @@ int tegra_gte_unregister_event(struct tegra_gte_ev_desc *data)
 	ev = container_of(pri, struct tegra_gte_event_info, pv);
 	gte_dev = ev->dev;
 	ev_id = pri->id;
-	g_id = pri->gid;
 	slice = pri->slice;
 
 	set_bit(GTE_EVENT_UNREGISTERING, &ev->flags);
@@ -329,9 +325,6 @@ int tegra_gte_unregister_event(struct tegra_gte_ev_desc *data)
 	tegra_gte_writel(gte_dev, ev->reg, val);
 	spin_unlock(&gte_dev->sl[slice].s_lock);
 
-	if (g_id != -EINVAL)
-		gpio_timestamp_control(g_id, 0);
-
 	spin_lock_irqsave(&ev->lock, flags);
 	clear_bit(GTE_EVENT_REGISTERED, &ev->flags);
 	spin_unlock_irqrestore(&ev->lock, flags);
@@ -344,14 +337,39 @@ int tegra_gte_unregister_event(struct tegra_gte_ev_desc *data)
 	memset(&ev->kobj, 0, sizeof(ev->kobj));
 	kfifo_free(&ev->ev_fifo);
 	ret = 0;
-	dev_dbg(gte_dev->pdev, "%s: event id:%d, g_id: %d, slice:%d",
-		__func__, ev_id, g_id, slice);
+	dev_dbg(gte_dev->pdev, "%s: event id:%d, slice:%d",
+		__func__, ev_id, slice);
 
 clear_unregister:
 	clear_bit(GTE_EVENT_UNREGISTERING, &ev->flags);
 	return ret;
 }
 EXPORT_SYMBOL(tegra_gte_unregister_event);
+
+static int tegra_gte_convert_to_offset(u32 ev_id,
+				       struct tegra_gte_dev *gte_dev)
+{
+	struct gpio_chip *chip;
+	int offset;
+
+	dev_dbg(gte_dev->pdev, "gpio gte is requested\n");
+
+	chip = gpiod_to_chip(gpio_to_desc(ev_id));
+	if (!chip) {
+		dev_err(gte_dev->pdev,
+			"GPIO controller not found for the gpio: %u\n",
+			ev_id);
+		return -EINVAL;
+	}
+
+	offset = (int)(ev_id - chip->base);
+	if (offset < 0) {
+		dev_err(gte_dev->pdev, "Invalid gpio pin: %u\n", ev_id);
+		return -EINVAL;
+	}
+
+	return offset;
+}
 
 static void tegra_gte_map_to_ev_id(u32 eid, struct tegra_gte_dev *gdev,
 				   u32 *mapped)
@@ -372,9 +390,8 @@ static void tegra_gte_map_to_ev_id(u32 eid, struct tegra_gte_dev *gdev,
 	*mapped = eid;
 }
 
-static struct tegra_gte_ev_desc *__gte_register_event(u32 eid, u32 gid,
-						struct tegra_gte_dev *gte_dev,
-						bool is_aon_gte)
+static struct tegra_gte_ev_desc *__gte_register_event(u32 eid,
+						struct tegra_gte_dev *gte_dev)
 {
 	u32 slice, sl_bit_shift, ev_bit, offset, val, reg;
 	int ret, sysfs_created;
@@ -423,20 +440,6 @@ static struct tegra_gte_ev_desc *__gte_register_event(u32 eid, u32 gid,
 
 	reg = (slice << sl_bit_shift) + GTE_SLICE0_TETEN;
 
-	if (is_aon_gte) {
-		ret = gpio_timestamp_control(gid, 1);
-		if (ret) {
-			dev_err(gte_dev->pdev,
-				"failed to set timestamp control %d",
-				gid);
-			ret = -EOPNOTSUPP;
-			goto error_fifo_free;
-		}
-		ev[offset].pv.gid = gid;
-	} else {
-		ev[offset].pv.gid = -EINVAL;
-	}
-
 	ev[offset].reg = reg;
 	ev[offset].pv.ev_bit = ev_bit;
 	ev[offset].pv.slice = slice;
@@ -477,8 +480,8 @@ static struct tegra_gte_ev_desc *__gte_register_event(u32 eid, u32 gid,
 	atomic_inc(&gte_dev->usage);
 	set_bit(GTE_EVENT_REGISTERED, &ev[offset].flags);
 	dev_dbg(gte_dev->pdev,
-		"%s: slice: %u, bit: %u, offset: %d,  g_id: %d reg = 0x%x",
-		__func__, slice, ev_bit, offset, gid, reg);
+		"%s: slice: %u, bit: %u, offset: %d, reg = 0x%x",
+		__func__, slice, ev_bit, offset, reg);
 	mutex_unlock(&ev[offset].ev_lock);
 
 	return &ev[offset].pv;
@@ -500,7 +503,6 @@ struct tegra_gte_ev_desc *tegra_gte_register_event(struct device_node *np,
 {
 	struct tegra_gte_dev *gte_dev = NULL;
 	int offset;
-	bool aon_gte = false;
 
 	if (!np) {
 		pr_err("Node empty\n");
@@ -518,20 +520,14 @@ struct tegra_gte_ev_desc *tegra_gte_register_event(struct device_node *np,
 	}
 
 	if (of_device_is_compatible(np, "nvidia,tegra194-gte-aon")) {
-		dev_dbg(gte_dev->pdev, "gpio gte is requested\n");
-		offset = (int)(ev_id - gte_dev->gpio_base);
-		if (offset < 0) {
-			dev_err(gte_dev->pdev,
-				"gpio pin: %u from non-supported controller\n",
-				ev_id);
-			return ERR_PTR(-EINVAL);
-		}
-		aon_gte = true;
+		offset = tegra_gte_convert_to_offset(ev_id, gte_dev);
+		if (offset < 0)
+			return ERR_PTR(offset);
 	} else {
 		offset = ev_id;
 	}
 
-	return __gte_register_event(offset, ev_id, gte_dev, aon_gte);
+	return __gte_register_event(offset, gte_dev);
 }
 EXPORT_SYMBOL(tegra_gte_register_event);
 
@@ -728,18 +724,9 @@ static int gte_event_create(struct tegra_gte_dev *gdev, void __user *ip)
 	if (copy_from_user(&eventreq, ip, sizeof(eventreq)))
 		return -EFAULT;
 
-	if (!gdev->mp) {
-		dev_err(gdev->pdev, "no controller node\n");
+	offset = tegra_gte_convert_to_offset(eventreq.global_gpio_pin, gdev);
+	if (offset < 0)
 		return -EINVAL;
-	}
-
-	offset = (int)(eventreq.global_gpio_pin - gdev->gpio_base);
-	if (offset < 0) {
-		dev_err(gdev->pdev,
-			"gpio pin: %u from non-supported controller\n",
-			eventreq.global_gpio_pin);
-		return -EINVAL;
-	}
 
 	eflags = eventreq.eventflags;
 	/* Return an error if a unknown flag is set */
@@ -830,7 +817,7 @@ static int gte_event_create(struct tegra_gte_dev *gdev, void __user *ip)
 
 	eventreq.fd = fd;
 
-	le->gte_data = __gte_register_event(offset, le->gpio_in, gdev, true);
+	le->gte_data = __gte_register_event(offset, gdev);
 	if (IS_ERR(le->gte_data)) {
 		ret = PTR_ERR(le->gte_data);
 		dev_err(gdev->pdev, "failed gte register event\n");
@@ -1111,11 +1098,9 @@ static int tegra_gte_probe(struct platform_device *pdev)
 {
 	int ret;
 	u32 slices;
-	phandle mp;
 	struct resource *res;
 	struct device *dev;
 	struct tegra_gte_dev *gte_dev;
-	struct gpio_chip *c;
 
 	dev = &pdev->dev;
 
@@ -1174,34 +1159,8 @@ static int tegra_gte_probe(struct platform_device *pdev)
 	}
 	gte_dev->kobj = &dev->kobj;
 
-	gte_dev->gpio_base = -1;
-	if (of_device_is_compatible(dev->of_node, "nvidia,tegra194-gte-aon")) {
+	if (of_device_is_compatible(dev->of_node, "nvidia,tegra194-gte-aon"))
 		tegra_gte_chardv_create(gte_dev);
-		ret = of_property_read_u32(dev->of_node,
-					  "nvidia,gpio-controller", &mp);
-		if (ret != 0) {
-			dev_err(gte_dev->pdev, "no gpio controller phandle\n");
-			return -EINVAL;
-		} else {
-			gte_dev->mp = of_find_node_by_phandle(mp);
-			if (!gte_dev->mp) {
-				dev_err(gte_dev->pdev, "no controller node\n");
-				return -ENOSYS;
-			}
-			of_node_put(gte_dev->mp);
-			c = of_get_chip_from_node(gte_dev->mp);
-			if (c) {
-				dev_dbg(gte_dev->pdev, "controller base:%d\n",
-					c->base);
-				gte_dev->gpio_base = c->base;
-				tegra_gpio_enable_external_gte(c);
-			} else {
-				dev_err(gte_dev->pdev,
-					"can not find gpio controller\n");
-				return -EPROBE_DEFER;
-			}
-		}
-	}
 
 	ret = tegra_gte_sysfs_create(pdev);
 	if (ret)
