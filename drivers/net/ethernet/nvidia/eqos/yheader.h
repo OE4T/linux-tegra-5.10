@@ -1531,6 +1531,9 @@ struct eqos_prv_data {
 	uint	max_platform_mtu; /* Max platform mtu supported */
 	/** Clocks enable check */
 	bool clks_enable;
+	/** Reserve SKB pointer and DMA */
+	struct sk_buff *resv_skb;
+	dma_addr_t resv_dma;
 };
 
 typedef enum {
