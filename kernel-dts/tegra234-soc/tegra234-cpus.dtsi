@@ -165,6 +165,6 @@
 	arm-pmu {
 		compatible = "arm,armv8-pmuv3";
 		interrupts = <GIC_PPI 7 (GIC_CPU_MASK_SIMPLE(12) | IRQ_TYPE_LEVEL_HIGH)>;
-		status = "disabled";
+		status = "okay";
 	};
 };
