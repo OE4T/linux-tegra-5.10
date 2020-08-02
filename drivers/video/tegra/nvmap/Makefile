@@ -9,29 +9,36 @@ endif
 
 ccflags-y += -I$(srctree.nvidia)/include/
 
-obj-y += nvmap.o
-obj-y += nvmap_alloc.o
-obj-y += nvmap_cache.o
-obj-y += nvmap_dev.o
-obj-y += nvmap_dmabuf.o
-obj-y += nvmap_fault.o
-obj-y += nvmap_handle.o
-obj-y += nvmap_heap.o
-obj-y += nvmap_ioctl.o
-obj-y += nvmap_init.o
-obj-y += nvmap_tag.o
-obj-y += nvmap_mm.o
-obj-y += nvmap_stats.o
-obj-y += nvmap_carveout.o
-obj-y += nvmap_kasan_wrapper.o
-obj-$(CONFIG_NVMAP_SCIIPC) += nvmap_sci_ipc.o
+nvmap-y := nvmap_core.o \
+	nvmap_alloc.o \
+	nvmap_cache.o \
+	nvmap_dev.o \
+	nvmap_dmabuf.o \
+	nvmap_fault.o \
+	nvmap_handle.o \
+	nvmap_heap.o \
+	nvmap_ioctl.o \
+	nvmap_init.o \
+	nvmap_tag.o \
+	nvmap_mm.o \
+	nvmap_stats.o \
+	nvmap_carveout.o \
+	nvmap_kasan_wrapper.o
+nvmap-$(CONFIG_NVMAP_SCIIPC) += nvmap_sci_ipc.o
 
 obj-$(CONFIG_NVMAP_PAGE_POOLS) += nvmap_pp.o
 
 ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
-obj-y += nvmap_init_t19x.o
-obj-y += nvmap_dmabuf_t19x.o
-obj-y += nvmap_cache_t19x.o
+nvmap-y += nvmap_init_t19x.o
+nvmap-y += nvmap_dmabuf_t19x.o
+nvmap-y += nvmap_cache_t19x.o
 endif
 
 KASAN_SANITIZE_nvmap_kasan_wrapper.o := n
+
+ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+ccflags-y += -DNVMAP_LOADABLE_MODULE
+obj-m +=nvmap.o
+else
+obj-y +=nvmap.o
+endif

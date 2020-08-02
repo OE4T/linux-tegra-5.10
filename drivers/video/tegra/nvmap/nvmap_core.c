@@ -1,5 +1,5 @@
 /*
- * drivers/video/tegra/nvmap/nvmap.c
+ * drivers/video/tegra/nvmap/nvmap_core.c
  *
  * Memory manager for Tegra GPU
  *
