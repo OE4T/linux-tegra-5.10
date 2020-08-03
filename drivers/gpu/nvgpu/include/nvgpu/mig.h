@@ -44,6 +44,22 @@
 /** Maximum config name size. */
 #define NVGPU_MIG_MAX_CONFIG_NAME_SIZE			256U
 
+/** Maximum number of GPC count. */
+#define NVGPU_MIG_MAX_GPCS				32U
+
+/**
+ * @brief GPC Id information.
+ * This struct describes the logical, physical and gpcgrp id of each GPC.
+ */
+struct nvgpu_gpc {
+	/** Logical GPC Id which is used to access GPC registers. */
+	u32 logical_id;
+	/** Physical GPC Id. */
+	u32 physical_id;
+	/** GPC group Id. */
+	u32 gpcgrp_id;
+};
+
 /**
  * @brief GR syspipe information.
  * This struct describes the number of gpc, physical_gpc_mask, veid, etc
@@ -60,16 +76,10 @@ struct nvgpu_gr_syspipe {
 	u32 engine_id;
 	/** Number of GPC assigned to this gr syspipe. */
 	u32 num_gpc;
-	/**
-	 * Mask of Physical GPCs. A set bit indicates GPC is available,
-	 * otherwise it is not available.
-	 */
-	u32 physical_gpc_mask;
-	/**
-	 * Mask of Logical GPCs. A set bit indicates GPC is available,
-	 * otherwise it is not available.
-	 */
-	u32 logical_gpc_mask;
+
+	/** GPC Id information (logical, physical and gpcgrp Ids). */
+	struct nvgpu_gpc gpcs[NVGPU_MIG_MAX_GPCS];
+
 	/**
 	 * Mask of local GPCs belongs to this syspipe. A set bit indicates
 	 * GPC is available, otherwise it is not available.
@@ -79,8 +89,6 @@ struct nvgpu_gr_syspipe {
 	u32 max_veid_count_per_tsg;
 	/** VEID start offset. */
 	u32 veid_start_offset;
-	/** GPC group Id. */
-	u32 gpcgrp_id;
 };
 
 /**
@@ -102,18 +110,39 @@ struct nvgpu_gpu_instance {
 };
 
 /**
+ * @brief GPU instance static configuration information.
+ * This struct describes the gpu_instance_id, number of gpc, gr_syspipe_id,
+ * veid, etc associated to a particualr static congig.
+ */
+struct nvgpu_gpu_instance_static_config {
+	/** GPU instance Id */
+	u32 gpu_instance_id;
+	/** GR syspipe id which is used to set gr remap window */
+	u32 gr_syspipe_id;
+	/** Number of GPC assigned to this config. */
+	u32 num_gpc;
+	/** Maximum veid allocated to this gr syspipe. */
+	u32 max_veid_count_per_tsg;
+	/** VEID start offset. */
+	u32 veid_start_offset;
+};
+
+/**
  * @brief GPU instance configuration information.
  * This struct describes the number of gpu instances, gr_syspipe, LCEs, etc
  * associated to a particualr mig config.
  */
 struct nvgpu_gpu_instance_config {
 	/** Name of the gpu instance config. */
-	const char config_name[NVGPU_MIG_MAX_CONFIG_NAME_SIZE];
+	char config_name[NVGPU_MIG_MAX_CONFIG_NAME_SIZE];
 	/** Number of gpu instance associated to this config. */
 	u32 num_gpu_instances;
-	/** Array of gpu instance information associated to this config. */
-	struct nvgpu_gpu_instance
-		gpu_instance[NVGPU_MIG_MAX_GPU_INSTANCES];
+	/**
+	 * Array of gpu instance static config information associated
+	 * to this config (gpu_instance_id, gr_syspipe_id, num_gpc, etc).
+	 */
+	struct nvgpu_gpu_instance_static_config
+		gpu_instance_static_config[NVGPU_MIG_MAX_GPU_INSTANCES];
 };
 
 /**
@@ -122,8 +151,14 @@ struct nvgpu_gpu_instance_config {
  * supported by a particual GPU.
  */
 struct nvgpu_mig_gpu_instance_config {
+	/** Total Number of GR syspipe is supported by HW after floor swept. */
+	u32 usable_gr_syspipe_count;
+	/** Usable GR sys pipe mask. */
+	u32 usable_gr_syspipe_mask;
 	/** Number of gpu instance configurations. */
 	u32 num_config_supported;
+	/** Total Number of GPCs (priv_ring enumerated (floor swept) value). */
+	u32 gpc_count;
 	/** GPC count associated to each GPC group. */
 	u32 gpcgrp_gpc_count[NVGPU_MIG_MAX_GPCGRP];
 	/** Array of gpu instance configuration information. */
@@ -137,6 +172,14 @@ struct nvgpu_mig_gpu_instance_config {
  * by a particual GPU.
  */
 struct nvgpu_mig {
+	/** Total Number of GR syspipe is supported by HW after floor swept. */
+	u32 usable_gr_syspipe_count;
+	/** Usable GR sys pipe mask. */
+	u32 usable_gr_syspipe_mask;
+	/** Array of usable GR sys pipe instance id. */
+	u32 usable_gr_syspipe_instance_id[NVGPU_MIG_MAX_ENGINES];
+	/** Total Number of GPCs (priv_ring enumerated (floor swept) value). */
+	u32 gpc_count;
 	/** GPC count associated to each GPC group. */
 	u32 gpcgrp_gpc_count[NVGPU_MIG_MAX_GPCGRP];
 	/** Enabled gpu instances count. */

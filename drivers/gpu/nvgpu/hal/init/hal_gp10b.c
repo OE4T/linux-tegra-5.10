@@ -1313,6 +1313,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->fuse = gp10b_ops.fuse;
 	gops->tpc = gp10b_ops.tpc;
 	gops->top = gp10b_ops.top;
+	gops->grmgr = gp10b_ops.grmgr;
 
 	/* Lone Functions */
 	gops->chip_init_gpu_characteristics =

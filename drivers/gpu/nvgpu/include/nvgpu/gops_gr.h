@@ -780,8 +780,7 @@ struct gops_gr_config {
 	u32 (*get_gpc_tpc_mask)(struct gk20a *g,
 				struct nvgpu_gr_config *config,
 				u32 gpc_index);
-	u32 (*get_gpc_mask)(struct gk20a *g,
-			    struct nvgpu_gr_config *config);
+	u32 (*get_gpc_mask)(struct gk20a *g);
 	u32 (*get_tpc_count_in_gpc)(struct gk20a *g,
 				    struct nvgpu_gr_config *config,
 				    u32 gpc_index);

@@ -1217,6 +1217,8 @@ int gm20b_init_hal(struct gk20a *g)
 
 	gops->top = gm20b_ops.top;
 
+	gops->grmgr = gm20b_ops.grmgr;
+
 	/* Lone functions */
 	gops->chip_init_gpu_characteristics =
 		gm20b_ops.chip_init_gpu_characteristics;

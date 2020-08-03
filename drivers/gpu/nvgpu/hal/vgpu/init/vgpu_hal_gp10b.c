@@ -305,6 +305,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 #endif
 		},
 		.config = {
+			.get_gpc_mask = vgpu_gr_get_gpc_mask,
 			.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,
 			.init_sm_id_table = vgpu_gr_init_sm_id_table,
 		},
@@ -836,6 +837,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.isr = NULL,
 		.set_ppriv_timeout_settings = NULL,
 		.enum_ltc = NULL,
+		.get_gpc_count = vgpu_gr_get_gpc_count,
 	},
 	.fuse = {
 		.check_priv_security = NULL,
@@ -928,6 +930,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 
 	gops->fuse = vgpu_gp10b_ops.fuse;
 	gops->top = vgpu_gp10b_ops.top;
+	gops->grmgr = vgpu_gp10b_ops.grmgr;
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);

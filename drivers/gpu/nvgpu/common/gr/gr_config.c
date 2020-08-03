@@ -148,7 +148,7 @@ static void gr_config_set_gpc_mask(struct gk20a *g,
 {
 #ifdef CONFIG_NVGPU_DGPU
 	if (g->ops.gr.config.get_gpc_mask != NULL) {
-		config->gpc_mask = g->ops.gr.config.get_gpc_mask(g, config);
+		config->gpc_mask = g->ops.gr.config.get_gpc_mask(g);
 	} else
 #endif
 	{

@@ -1570,6 +1570,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->clk_arb = gv11b_ops.clk_arb;
 #endif
 	gops->top = gv11b_ops.top;
+	gops->grmgr = gv11b_ops.grmgr;
 
 	/* Lone functions */
 	gops->chip_init_gpu_characteristics =

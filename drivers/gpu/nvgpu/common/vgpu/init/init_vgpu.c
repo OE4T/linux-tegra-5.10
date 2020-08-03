@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,6 +73,12 @@ void vgpu_remove_support_common(struct gk20a *g)
 #endif
 
 	nvgpu_gr_remove_support(g);
+
+	if (g->ops.grmgr.remove_gr_manager != NULL) {
+		if (g->ops.grmgr.remove_gr_manager(g) != 0) {
+			nvgpu_err(g, "g->ops.grmgr.remove_gr_manager-failed");
+		}
+	}
 
 	if (g->fifo.remove_support) {
 		g->fifo.remove_support(&g->fifo);
@@ -200,6 +206,12 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 	err = vgpu_fbp_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a fbp");
+		return err;
+	}
+
+	err = g->ops.grmgr.init_gr_manager(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a grmgr");
 		return err;
 	}
 

@@ -1525,6 +1525,20 @@ int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
 	return err;
 }
 
+u32 vgpu_gr_get_gpc_count(struct gk20a *g)
+{
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+
+	return priv->constants.gpc_count;
+}
+
+u32 vgpu_gr_get_gpc_mask(struct gk20a *g)
+{
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+
+	return priv->constants.gpc_mask;
+}
+
 #ifdef CONFIG_NVGPU_DEBUGGER
 
 u64 vgpu_gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)

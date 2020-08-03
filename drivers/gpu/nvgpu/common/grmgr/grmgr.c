@@ -27,16 +27,15 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/grmgr.h>
 #include <nvgpu/engines.h>
-#include <nvgpu/gr/config.h>
-#include <nvgpu/gr/gr_utils.h>
 
 int nvgpu_init_gr_manager(struct gk20a *g)
 {
+	u32 gpc_id;
 	struct nvgpu_gpu_instance *gpu_instance = &g->mig.gpu_instance[0];
 	struct nvgpu_gr_syspipe *gr_syspipe = &gpu_instance->gr_syspipe;
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 
 	/* Number of gpu instance is 1 for legacy mode */
+	g->mig.gpc_count = g->ops.priv_ring.get_gpc_count(g);
 	g->mig.num_gpu_instances = 1U;
 	g->mig.current_gpu_instance_config_id = 0U;
 	g->mig.is_nongr_engine_sharable = false;
@@ -47,12 +46,21 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	gr_syspipe->gr_instance_id = 0U;
 	gr_syspipe->gr_syspipe_id = 0U;
 	gr_syspipe->engine_id = 0U;
-	gr_syspipe->num_gpc = nvgpu_gr_config_get_gpc_count(gr_config);
+	gr_syspipe->num_gpc = g->mig.gpc_count;
 	g->mig.gpcgrp_gpc_count[0] = gr_syspipe->num_gpc;
-	gr_syspipe->logical_gpc_mask = nvgpu_gr_config_get_gpc_mask(gr_config);
+	if (g->ops.gr.config.get_gpc_mask != NULL) {
+		gr_syspipe->gpc_mask = g->ops.gr.config.get_gpc_mask(g);
+	} else {
+		gr_syspipe->gpc_mask = nvgpu_safe_sub_u32(
+			BIT32(gr_syspipe->num_gpc),
+			1U);
+	}
 	/* In Legacy mode, Local GPC Id = physical GPC Id = Logical GPC Id */
-	gr_syspipe->gpc_mask = gr_syspipe->logical_gpc_mask;
-	gr_syspipe->physical_gpc_mask = gr_syspipe->gpc_mask;
+	for (gpc_id = 0U; gpc_id < gr_syspipe->num_gpc; gpc_id++) {
+		gr_syspipe->gpcs[gpc_id].logical_id =
+			gr_syspipe->gpcs[gpc_id].physical_id = gpc_id;
+		gr_syspipe->gpcs[gpc_id].gpcgrp_id = 0U;
+	}
 	gr_syspipe->max_veid_count_per_tsg = g->fifo.max_subctx_count;
 	gr_syspipe->veid_start_offset = 0U;
 
@@ -61,8 +69,14 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 		NVGPU_MIG_MAX_ENGINES, NVGPU_ENGINE_ASYNC_CE);
 
 	if (gpu_instance->num_lce == 0U) {
-		nvgpu_err(g, "nvgpu_init_gr_manager[failed]-no LCEs");
-		return -ENOMEM;
+		/* Fall back to GRCE */
+		gpu_instance->num_lce = nvgpu_engine_get_ids(g,
+			gpu_instance->lce_engine_ids,
+			NVGPU_MIG_MAX_ENGINES, NVGPU_ENGINE_GRCE);
+		if (gpu_instance->num_lce == 0U) {
+			nvgpu_warn(g,
+				"No GRCE engine available on this device!");
+		}
 	}
 
 	g->mig.max_gr_sys_pipes_supported = 1U;
@@ -73,24 +87,16 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_mig,
 		"[non MIG boot] gpu_instance_id[%u] gr_instance_id[%u] "
-			"gr_syspipe_id[%u] num_gpc[%u] physical_gpc_mask[%x] "
-			"logical_gpc_mask[%x] gr_engine_id[%u] "
+			"gr_syspipe_id[%u] num_gpc[%u] gr_engine_id[%u] "
 			"max_veid_count_per_tsg[%u] veid_start_offset[%u] "
-			"veid_end_offset[%u] gpcgrp_id[%u] "
 			"is_memory_partition_support[%d] num_lce[%u] ",
 		gpu_instance->gpu_instance_id,
 		gr_syspipe->gr_instance_id,
 		gr_syspipe->gr_syspipe_id,
 		gr_syspipe->num_gpc,
-		gr_syspipe->physical_gpc_mask,
-		gr_syspipe->logical_gpc_mask,
 		gr_syspipe->engine_id,
 		gr_syspipe->max_veid_count_per_tsg,
 		gr_syspipe->veid_start_offset,
-		nvgpu_safe_sub_u32(
-			nvgpu_safe_add_u32(gr_syspipe->veid_start_offset,
-				gr_syspipe->max_veid_count_per_tsg), 1U),
-		gr_syspipe->gpcgrp_id,
 		gpu_instance->is_memory_partition_supported,
 		gpu_instance->num_lce);
 
@@ -119,6 +125,14 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 		} else {
 			gr_syspipe_id = 0U;
 		}
+
+		nvgpu_log(g, gpu_dbg_mig,
+			"nvgpu_grmgr_config_gr_remap_window "
+				"current_gr_syspipe_id[%u] requested_gr_syspipe_id[%u] "
+				"enable[%d] ",
+				g->mig.current_gr_syspipe_id,
+				gr_syspipe_id,
+				enable);
 
 		if (((g->mig.current_gr_syspipe_id != gr_syspipe_id) &&
 				(gr_syspipe_id <

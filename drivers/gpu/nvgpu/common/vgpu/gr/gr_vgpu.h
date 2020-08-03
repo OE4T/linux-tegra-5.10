@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -92,6 +92,8 @@ int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info);
 void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 			struct tegra_vgpu_sm_esr_info *info);
 int vgpu_init_gr_support(struct gk20a *g);
+u32 vgpu_gr_get_gpc_count(struct gk20a *g);
+u32 vgpu_gr_get_gpc_mask(struct gk20a *g);
 #ifdef CONFIG_NVGPU_DEBUGGER
 u64 vgpu_gr_gk20a_tpc_enabled_exceptions(struct gk20a *g);
 int vgpu_gr_set_mmu_debug_mode(struct gk20a *g,

@@ -73,11 +73,10 @@ u32 gm20b_gr_config_get_pd_dist_skip_table_size(void)
 	return gr_pd_dist_skip_table__size_1_v();
 }
 
-u32 gm20b_gr_config_get_gpc_mask(struct gk20a *g,
-	struct nvgpu_gr_config *config)
+u32 gm20b_gr_config_get_gpc_mask(struct gk20a *g)
 {
 	u32 val;
-	u32 tpc_cnt = nvgpu_gr_config_get_max_gpc_count(config);
+	u32 tpc_cnt = g->ops.top.get_max_gpc_count(g);
 
 	/*
 	 * For register NV_FUSE_STATUS_OPT_GPC a set bit with index i indicates

@@ -1707,6 +1707,7 @@ int tu104_init_hal(struct gk20a *g)
 #endif
 	gops->gsp = tu104_ops.gsp;
 	gops->top = tu104_ops.top;
+	gops->grmgr = tu104_ops.grmgr;
 
 	/* clocks */
 	gops->clk.init_clk_support = tu104_ops.clk.init_clk_support;

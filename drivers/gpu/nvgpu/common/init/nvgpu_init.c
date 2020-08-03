@@ -305,6 +305,13 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	if (tmp_ret != 0) {
 		ret = tmp_ret;
 	}
+	if (g->ops.grmgr.remove_gr_manager != NULL) {
+		tmp_ret = g->ops.grmgr.remove_gr_manager(g);
+		if (tmp_ret != 0) {
+			nvgpu_err(g, "g->ops.grmgr.remove_gr_manager-failed");
+			ret = tmp_ret;
+		}
+	}
 	tmp_ret = g->ops.mm.mm_suspend(g);
 	if (tmp_ret != 0) {
 		ret = tmp_ret;
@@ -640,6 +647,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_tpc_pg_lock, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate_gr, NO_FLAG),
 #endif
+		NVGPU_INIT_TABLE_ENTRY(g->ops.grmgr.init_gr_manager, NO_FLAG),
 		/* prepare portion of sw required for enable hw */
 		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_prepare_sw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_enable_hw, NO_FLAG),
