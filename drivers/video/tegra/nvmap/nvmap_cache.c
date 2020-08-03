@@ -137,37 +137,26 @@ struct cache_maint_op {
 int nvmap_cache_maint_phys_range(unsigned int op, phys_addr_t pstart,
 		phys_addr_t pend, int inner, int outer)
 {
-	unsigned long kaddr;
-	struct vm_struct *area = NULL;
+	void __iomem *io_addr;
 	phys_addr_t loop;
 
 	if (!inner)
 		goto do_outer;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-	area = alloc_vm_area(PAGE_SIZE, NULL);
-#else
-	area = get_vm_area(PAGE_SIZE, 0);
-#endif
-	if (!area)
-		return -ENOMEM;
-
-	kaddr = (ulong)area->addr;
-
 	loop = pstart;
 	while (loop < pend) {
 		phys_addr_t next = (loop + PAGE_SIZE) & PAGE_MASK;
-		void *base = (void *)kaddr + (loop & ~PAGE_MASK);
-
+		void *base;
 		next = min(next, pend);
-		ioremap_page_range(kaddr, kaddr + PAGE_SIZE,
-			loop, PG_PROT_KERNEL);
+		io_addr = __ioremap(loop, PAGE_SIZE, PG_PROT_KERNEL);
+		if (io_addr == NULL)
+			return -ENOMEM;
+		base = (void *)io_addr + (loop & ~PAGE_MASK);
 		inner_cache_maint(op, base, next - loop);
+		iounmap(io_addr);
 		loop = next;
-		unmap_kernel_range(kaddr, PAGE_SIZE);
 	}
 
-	free_vm_area(area);
 do_outer:
 	return 0;
 }

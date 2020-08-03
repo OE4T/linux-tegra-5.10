@@ -3,7 +3,7 @@
  *
  * Memory manager for Tegra GPU
  *
- * Copyright (c) 2009-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -45,8 +45,8 @@ void *__nvmap_kmap(struct nvmap_handle *h, unsigned int pagenum)
 {
 	phys_addr_t paddr;
 	unsigned long kaddr;
+	void __iomem *addr;
 	pgprot_t prot;
-	struct vm_struct *area = NULL;
 
 	if (!virt_addr_valid(h))
 		return NULL;
@@ -69,23 +69,16 @@ void *__nvmap_kmap(struct nvmap_handle *h, unsigned int pagenum)
 		kaddr = (unsigned long)h->vaddr + pagenum * PAGE_SIZE;
 	} else {
 		prot = nvmap_pgprot(h, PG_PROT_KERNEL);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-		area = alloc_vm_area(PAGE_SIZE, NULL);
-#else
-		area = get_vm_area(PAGE_SIZE, 0);
-#endif
-		if (!area)
-			goto out;
-
-		kaddr = (ulong)area->addr;
-
 		if (h->heap_pgalloc)
 			paddr = page_to_phys(nvmap_to_page(
 						h->pgalloc.pages[pagenum]));
 		else
 			paddr = h->carveout->base + pagenum * PAGE_SIZE;
 
-		ioremap_page_range(kaddr, kaddr + PAGE_SIZE, paddr, prot);
+		addr = __ioremap(paddr, PAGE_SIZE, prot);
+		if (addr == NULL)
+			goto out;
+		kaddr = (unsigned long)addr;
 	}
 	return (void *)kaddr;
 out:
@@ -99,7 +92,6 @@ void __nvmap_kunmap(struct nvmap_handle *h, unsigned int pagenum,
 		  void *addr)
 {
 	phys_addr_t paddr;
-	struct vm_struct *area = NULL;
 
 	if (!h || !h->alloc ||
 	    WARN_ON(!virt_addr_valid(h)) ||
@@ -123,12 +115,7 @@ void __nvmap_kunmap(struct nvmap_handle *h, unsigned int pagenum,
 		__dma_flush_area(addr, PAGE_SIZE);
 		outer_flush_range(paddr, paddr + PAGE_SIZE); /* FIXME */
 	}
-
-	area = find_vm_area(addr);
-	if (area)
-		free_vm_area(area);
-	else
-		WARN(1, "Invalid address passed");
+	iounmap(addr);
 out:
 	nvmap_kmaps_dec(h);
 	nvmap_handle_put(h);
@@ -139,8 +126,8 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 	pgprot_t prot;
 	void *vaddr;
 	unsigned long adj_size;
-	struct vm_struct *v;
-	struct page **pages;
+	struct page **pages = NULL;
+	int i = 0;
 
 	if (!virt_addr_valid(h))
 		return NULL;
@@ -183,33 +170,51 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 	adj_size += h->size;
 	adj_size = PAGE_ALIGN(adj_size);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-	v = alloc_vm_area(adj_size, NULL);
-#else
-	v = get_vm_area(adj_size, 0);
-#endif
-	if (!v)
+	if (pfn_valid(__phys_to_pfn(h->carveout->base & PAGE_MASK))) {
+		unsigned long pfn;
+		struct page *page;
+		int nr_pages;
+
+		pfn = ((h->carveout->base) >> PAGE_SHIFT);
+		page = pfn_to_page(pfn);
+		nr_pages = h->size >> PAGE_SHIFT;
+
+		pages = vmalloc(nr_pages * sizeof(*pages));
+		if (!pages)
+			goto out;
+
+		for (i = 0; i < nr_pages; i++)
+			pages[i] = nth_page(page, i);
+
+		vaddr = vmap(pages, nr_pages, VM_MAP, prot);
+	} else {
+		vaddr = (void *)__ioremap(h->carveout->base, adj_size,
+			 prot);
+	}
+	if (vaddr == NULL)
 		goto out;
 
-	vaddr = v->addr + (h->carveout->base & ~PAGE_MASK);
-	ioremap_page_range((ulong)v->addr, (ulong)v->addr + adj_size,
-		h->carveout->base & PAGE_MASK, prot);
-
-	if (vaddr && atomic_long_cmpxchg((atomic_long_t *)&h->vaddr, 0, (long)vaddr)) {
-		struct vm_struct *vm;
-
+	if (vaddr && atomic_long_cmpxchg((atomic_long_t *)&h->vaddr,
+						 0, (long)vaddr)) {
 		vaddr -= (h->carveout->base & ~PAGE_MASK);
-		vm = find_vm_area(vaddr);
-		BUG_ON(!vm);
-		free_vm_area(vm);
+		/*
+		 * iounmap calls vunmap for vmalloced address, hence
+		 * takes care of vmap/__ioremap freeing part.
+		 */
+		iounmap(vaddr);
 		nvmap_kmaps_dec(h);
 	}
+
+	if (pages)
+		vfree(pages);
 
 	/* leave the handle ref count incremented by 1, so that
 	 * the handle will not be freed while the kernel mapping exists.
 	 * nvmap_handle_put will be called by unmapping this address */
 	return h->vaddr;
 out:
+	if (pages)
+		vfree(pages);
 	nvmap_kmaps_dec(h);
 put_handle:
 	nvmap_handle_put(h);

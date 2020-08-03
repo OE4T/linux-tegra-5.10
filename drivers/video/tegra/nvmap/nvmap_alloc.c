@@ -960,13 +960,10 @@ void _nvmap_handle_free(struct nvmap_handle *h)
 	nvmap_stats_dec(NS_TOTAL, h->size);
 	if (!h->heap_pgalloc) {
 		if (h->vaddr) {
-			struct vm_struct *vm;
 			void *addr = h->vaddr;
 
 			addr -= (h->carveout->base & ~PAGE_MASK);
-			vm = find_vm_area(addr);
-			BUG_ON(!vm);
-			free_vm_area(vm);
+			iounmap(addr);
 		}
 
 		nvmap_heap_free(h->carveout);
