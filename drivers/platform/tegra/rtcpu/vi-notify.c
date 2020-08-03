@@ -1,7 +1,7 @@
 /*
  * VI NOTIFY driver for Tegra186
  *
- * Copyright (c) 2015-2017 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2015-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -114,13 +114,26 @@ static inline s64 get_ts_adjustment(u64 tsc_res)
 	#define _DELTA_DIFF_THRESHOLD (5000)
 
 	do {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		tsc = (s64)(arch_counter_get_cntvct() * tsc_res);
+#else
+		tsc = (s64)(__arch_counter_get_cntvct() * tsc_res);
+#endif
 
 		ktime_get_ts64(&ts);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		mono_time = timespec_to_ns(&ts);
+#else
+		mono_time = timespec64_to_ns(&ts);
+#endif
 
 		delta1 = mono_time - tsc;
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		tsc = (s64)(arch_counter_get_cntvct() * tsc_res);
+#else
+		tsc = (s64)(__arch_counter_get_cntvct() * tsc_res);
+#endif
+
 		delta2 = mono_time - tsc;
 
 		tries++;

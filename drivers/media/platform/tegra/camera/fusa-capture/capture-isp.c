@@ -298,9 +298,12 @@ static int isp_capture_populate_fence_info(
 	uint32_t gos_index;
 	uint32_t gos_offset;
 	uint64_t gos_info = 0;
-
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	reloc_page_addr = dma_buf_kmap(capture->capture_desc_ctx.requests.buf,
 				fence_offset >> PAGE_SHIFT);
+#else
+	reloc_page_addr = dma_buf_vmap(capture->capture_desc_ctx.requests.buf);
+#endif
 
 	if (unlikely(reloc_page_addr == NULL)) {
 		dev_err(chan->isp_dev, "%s: couldn't map request\n", __func__);
@@ -330,8 +333,12 @@ static int isp_capture_populate_fence_info(
 			((fence_offset + sp_relative) & ~PAGE_MASK)));
 
 ret:
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	dma_buf_kunmap(capture->capture_desc_ctx.requests.buf,
 			fence_offset >> PAGE_SHIFT, reloc_page_addr);
+#else
+	dma_buf_vunmap(capture->capture_desc_ctx.requests.buf, reloc_page_addr);
+#endif
 	return err;
 }
 
@@ -945,9 +952,15 @@ int isp_capture_setup(
 	int i;
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_SETUP);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_SETUP);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1155,9 +1168,15 @@ int isp_capture_release(
 	int i;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_RELEASE);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_RELEASE);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1250,9 +1269,15 @@ int isp_capture_reset(
 	int i;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_RESET);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_RESET);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1334,9 +1359,16 @@ int isp_capture_get_info(
 	struct isp_capture *capture = chan->capture_data;
 	int err;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_GET_INFO);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_GET_INFO);
+#endif
+
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1462,12 +1494,21 @@ int isp_capture_request(
 		cap_common_req.unpins;
 	mutex_unlock(&capture->capture_desc_ctx.unpins_list_lock);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log_submit(
 			chan->ndev,
 			capture->progress_sp.id,
 			capture->progress_sp.threshold,
 			capture_msg.header.channel_id,
 			arch_counter_get_cntvct());
+#else
+	nv_camera_log_submit(
+			chan->ndev,
+			capture->progress_sp.id,
+			capture->progress_sp.threshold,
+			capture_msg.header.channel_id,
+			__arch_counter_get_cntvct());
+#endif
 
 	dev_dbg(chan->isp_dev, "%s: sending chan_id %u msg_id %u buf:%u\n",
 			__func__, capture_msg.header.channel_id,
@@ -1498,9 +1539,15 @@ int isp_capture_status(
 	struct isp_capture *capture = chan->capture_data;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_STATUS);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_STATUS);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1558,9 +1605,15 @@ int isp_capture_program_request(
 	struct CAPTURE_MSG capture_msg;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_PROGRAM_REQUEST);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_PROGRAM_REQUEST);
+#endif
 
 	err = isp_capture_program_prepare(chan, req);
 	if (err < 0) {
@@ -1595,9 +1648,15 @@ int isp_capture_program_status(
 	struct isp_capture *capture = chan->capture_data;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_PROGRAM_STATUS);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_PROGRAM_STATUS);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1638,9 +1697,15 @@ int isp_capture_request_ex(
 {
 	int err;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_REQUEST_EX);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_REQUEST_EX);
+#endif
 
 	if (req->program_req.buffer_index == U32_MAX) {
 		/* forward to process request */
@@ -1672,9 +1737,15 @@ int isp_capture_set_progress_status_notifier(
 	int err = 0;
 	struct isp_capture *capture = chan->capture_data;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_SET_PROGRESS_STATUS);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_SET_PROGRESS_STATUS);
+#endif
 
 	if (req->mem == 0 ||
 		req->process_buffer_depth == 0) {

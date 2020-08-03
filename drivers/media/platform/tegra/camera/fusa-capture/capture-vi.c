@@ -634,9 +634,15 @@ int vi_capture_setup(
 		}
 	}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_SETUP);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SETUP);
+#endif
 
 	if (setup->mem == 0 && setup->iova == 0) {
 		dev_err(chan->dev,
@@ -786,9 +792,15 @@ int vi_capture_reset(
 	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_RESET);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_RESET);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -856,9 +868,15 @@ int vi_capture_release(
 	int ret = 0;
 	int i = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_RELEASE);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_RELEASE);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -960,9 +978,15 @@ int vi_capture_control_message(
 	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -1070,9 +1094,15 @@ int vi_capture_get_info(
 	struct vi_capture *capture = chan->capture_data;
 	int err;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_GET_INFO);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_GET_INFO);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -1120,9 +1150,15 @@ int vi_capture_request(
 	struct CAPTURE_MSG capture_desc;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_REQUEST);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_REQUEST);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -1149,12 +1185,21 @@ int vi_capture_request(
 	capture_desc.header.channel_id = capture->channel_id;
 	capture_desc.capture_request_req.buffer_index = req->buffer_index;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log_submit(
 			chan->ndev,
 			capture->progress_sp.id,
 			capture->progress_sp.threshold,
 			capture_desc.header.channel_id,
 			arch_counter_get_cntvct());
+#else
+	nv_camera_log_submit(
+			chan->ndev,
+			capture->progress_sp.id,
+			capture->progress_sp.threshold,
+			capture_desc.header.channel_id,
+			__arch_counter_get_cntvct());
+#endif
 
 	dev_dbg(chan->dev, "%s: sending chan_id %u msg_id %u buf:%u\n",
 			__func__, capture_desc.header.channel_id,
@@ -1179,9 +1224,15 @@ int vi_capture_status(
 	struct vi_capture *capture = chan->capture_data;
 	int ret = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_STATUS);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_STATUS);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -1231,9 +1282,15 @@ int vi_capture_set_compand(struct tegra_vi_channel *chan,
 	struct vi_compand_config *desc_compand;
 	int err = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_SET_COMPAND);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SET_COMPAND);
+#endif
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -1280,9 +1337,15 @@ int vi_capture_set_progress_status_notifier(
 	int err = 0;
 	struct vi_capture *capture = chan->capture_data;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_VI_CAPTURE_SET_PROGRESS_STATUS);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SET_PROGRESS_STATUS);
+#endif
 
 	if (req->mem == 0 ||
 		req->buffer_depth == 0) {
