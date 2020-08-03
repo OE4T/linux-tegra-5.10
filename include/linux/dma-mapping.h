@@ -75,21 +75,21 @@
 #define DMA_ATTR_SKIP_IOVA_GAP		(1UL << 10)
 
 /*
+ * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping subsystem to allocate
+ * the exact number of pages
+ */
+#define DMA_ATTR_ALLOC_EXACT_SIZE	(1UL << 11)
+
+/*
  * DMA_ATTR_READ_ONLY: for DMA memory allocations, attempt to map
  * memory as read-only for the device. CPU access will still be
  * read-write. This corresponds to the direction being DMA_TO_DEVICE
  * instead of DMA_BIDIRECTIONAL.
  */
-#define DMA_ATTR_READ_ONLY	(1UL << 10)
+#define DMA_ATTR_READ_ONLY	(1UL << 12)
 
 /* DMA_ATTR_WRITE_ONLY: This tells the DMA-mapping subsystem to map as write-only */
 #define DMA_ATTR_WRITE_ONLY	(1UL << 13)
-
-/*
- * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping subsystem to allocate
- * the exact number of pages
- */
-#define DMA_ATTR_ALLOC_EXACT_SIZE	(1UL << 14)
 
 /*
  * A dma_addr_t can hold any valid DMA or bus address for the platform.
