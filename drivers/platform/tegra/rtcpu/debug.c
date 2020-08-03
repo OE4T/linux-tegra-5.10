@@ -1664,9 +1664,16 @@ static int camrtc_debug_populate(struct tegra_ivc_channel *ch)
 	if (!debugfs_create_file("log-level", 0644, dir, ch,
 			&camrtc_dbgfs_fops_loglevel))
 		goto error;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	if (!debugfs_create_u32("timeout", 0644, dir,
 			&crd->parameters.completion_timeout))
 		goto error;
+#else
+	debugfs_create_u32("timeout", 0644, dir,
+			&crd->parameters.completion_timeout);
+#endif
+
 	if (!debugfs_create_file("forced-reset-restore", 0400, dir, ch,
 			&camrtc_dbgfs_fops_forced_reset_restore))
 		goto error;
@@ -1681,9 +1688,16 @@ static int camrtc_debug_populate(struct tegra_ivc_channel *ch)
 	dir = debugfs_create_dir("mods", crd->root);
 	if (!dir)
 		goto error;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	if (!debugfs_create_u32("loops", 0644, dir,
 			&crd->parameters.mods_loops))
 		goto error;
+#else
+	debugfs_create_u32("loops", 0644, dir,
+			&crd->parameters.mods_loops);
+#endif
+
 	if (!debugfs_create_file("result", 0400, dir, ch,
 			&camrtc_dbgfs_fops_mods_result))
 		goto error;
@@ -1707,9 +1721,15 @@ static int camrtc_debug_populate(struct tegra_ivc_channel *ch)
 	if (!debugfs_create_file("result", 0400, dir, ch,
 			&camrtc_dbgfs_fops_test_result))
 		goto error;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	if (!debugfs_create_u32("timeout", 0644, dir,
 			&crd->parameters.test_timeout))
 		goto error;
+#else
+	debugfs_create_u32("timeout", 0644, dir,
+			&crd->parameters.test_timeout);
+#endif
+
 	for (i = 0; i < ARRAY_SIZE(crd->mem); i++) {
 		char name[8];
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2017 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2016-2020 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -354,7 +354,11 @@ EXPORT_SYMBOL(tegra_ivc_rpc_channel_notify);
  * RPC APIs
  */
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 static void tegra_ivc_rpc_timer(unsigned long arg)
+#else
+static void tegra_ivc_rpc_timer(struct timer_list *arg)
+#endif
 {
 	struct tegra_ivc_rpc_tx_desc *tx_desc =
 		(struct tegra_ivc_rpc_tx_desc *) arg;
@@ -475,8 +479,13 @@ int tegra_ivc_rpc_call(
 	 * back for this msg
 	 */
 	if (param->callback) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		setup_timer(&tx_desc->rx_timer, tegra_ivc_rpc_timer,
 			(unsigned long) tx_desc);
+#else
+		timer_setup(&(tx_desc->rx_timer), tegra_ivc_rpc_timer,
+			(unsigned long) tx_desc);
+#endif
 		mod_timer(&tx_desc->rx_timer, jiffies + timeout_jiffies);
 	}
 

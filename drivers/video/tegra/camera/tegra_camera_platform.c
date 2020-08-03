@@ -326,18 +326,26 @@ static u64 bypass_mode_d;
 static int dbgfs_tegra_camera_init(void)
 {
 	struct dentry *dir;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	struct dentry *val;
+#endif
 
 	dir = debugfs_create_dir("tegra_camera_platform", NULL);
 	if (!dir)
 		return -ENOMEM;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	val = debugfs_create_u64("vi", S_IRUGO, dir, &vi_mode_d);
 	if (!val)
 		return -ENOMEM;
 	val = debugfs_create_u64("scf", S_IRUGO, dir, &bypass_mode_d);
 	if (!val)
 		return -ENOMEM;
+#else
+	debugfs_create_u64("vi", S_IRUGO, dir, &vi_mode_d);
+	debugfs_create_u64("scf", S_IRUGO, dir, &bypass_mode_d);
+#endif
+
 	return 0;
 }
 #endif
