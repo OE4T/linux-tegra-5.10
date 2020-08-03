@@ -53,7 +53,6 @@ NVGPU_COMMON_CFLAGS		:=
 #
 
 NVGPU_COMMON_CFLAGS		+=		\
-	-DCONFIG_TEGRA_GK20A_NVHOST		\
 	-DCONFIG_NVGPU_SUPPORT_TURING		\
 	-DCONFIG_TEGRA_GK20A_PMU=1		\
 	-DCONFIG_TEGRA_ACR=1			\
@@ -63,7 +62,12 @@ NVGPU_COMMON_CFLAGS		+=		\
 CONFIG_NVGPU_LOGGING                 := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_LOGGING
 
-CONFIG_NVGPU_SYNCFD_NONE               := 1
+# Syncpoint support provided by nvhost is expected to exist.
+CONFIG_TEGRA_GK20A_NVHOST            := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_TEGRA_GK20A_NVHOST
+
+# Syncfds are a Linux feature.
+CONFIG_NVGPU_SYNCFD_NONE             := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SYNCFD_NONE
 
 ifeq ($(profile),$(filter $(profile),safety_debug safety_release))

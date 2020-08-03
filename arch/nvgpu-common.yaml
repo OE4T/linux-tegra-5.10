@@ -92,7 +92,12 @@ fence:
   safe: no
   owner: Seema K
   sources: [ common/fence/fence.c,
+             common/fence/fence_syncpt.c,
+             common/fence/fence_sema.c,
+             common/fence/fence_priv.h,
              include/nvgpu/fence.h,
+             include/nvgpu/fence_syncpt.h,
+             include/nvgpu/fence_sema.h,
              include/nvgpu/user_fence.h ]
 
 io:

@@ -37,6 +37,7 @@
 #include <nvgpu/channel_sync_semaphore.h>
 #include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/fence_sema.h>
 
 #include "channel_sync_priv.h"
 

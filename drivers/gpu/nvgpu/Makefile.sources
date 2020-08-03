@@ -428,6 +428,12 @@ endif
 
 ifeq ($(CONFIG_NVGPU_FENCE),1)
 srcs += common/fence/fence.c
+ifeq ($(CONFIG_TEGRA_GK20A_NVHOST),1)
+srcs += common/fence/fence_syncpt.c
+endif
+ifeq ($(CONFIG_NVGPU_SW_SEMAPHORE),1)
+srcs += common/fence/fence_sema.c
+endif
 endif
 
 ifeq ($(CONFIG_NVGPU_FECS_TRACE),1)

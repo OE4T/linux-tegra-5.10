@@ -1,0 +1,78 @@
+/*
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#include <nvgpu/nvhost.h>
+#include <nvgpu/fence.h>
+#include <nvgpu/fence_syncpt.h>
+#include "fence_priv.h"
+
+static int nvgpu_fence_syncpt_wait(struct nvgpu_fence_type *f, u32 timeout)
+{
+	return nvgpu_nvhost_syncpt_wait_timeout_ext(
+			f->nvhost_dev, f->syncpt_id, f->syncpt_value,
+			timeout, NVGPU_NVHOST_DEFAULT_WAITER);
+}
+
+static bool nvgpu_fence_syncpt_is_expired(struct nvgpu_fence_type *f)
+{
+	/*
+	 * In cases we don't register a notifier, we can't expect the
+	 * syncpt value to be updated. For this case, we force a read
+	 * of the value from HW, and then check for expiration.
+	 */
+	if (!nvgpu_nvhost_syncpt_is_expired_ext(f->nvhost_dev, f->syncpt_id,
+				f->syncpt_value)) {
+		u32 val;
+
+		if (!nvgpu_nvhost_syncpt_read_ext_check(f->nvhost_dev,
+				f->syncpt_id, &val)) {
+			return nvgpu_nvhost_syncpt_is_expired_ext(
+					f->nvhost_dev,
+					f->syncpt_id, f->syncpt_value);
+		}
+	}
+
+	return true;
+}
+
+static void nvgpu_fence_syncpt_free(struct nvgpu_fence_type *f)
+{
+}
+
+static const struct nvgpu_fence_ops nvgpu_fence_syncpt_ops = {
+	.wait = nvgpu_fence_syncpt_wait,
+	.is_expired = nvgpu_fence_syncpt_is_expired,
+	.free = nvgpu_fence_syncpt_free,
+};
+
+/* This function takes the ownership of the os_fence */
+void nvgpu_fence_from_syncpt(
+		struct nvgpu_fence_type *f,
+		struct nvgpu_nvhost_dev *nvhost_dev,
+		u32 id, u32 value, struct nvgpu_os_fence os_fence)
+{
+	nvgpu_fence_init(f, &nvgpu_fence_syncpt_ops, os_fence);
+
+	f->nvhost_dev = nvhost_dev;
+	f->syncpt_id = id;
+	f->syncpt_value = value;
+}

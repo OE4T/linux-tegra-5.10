@@ -26,6 +26,7 @@
 #define NVGPU_OS_FENCE_H
 
 #include <nvgpu/errno.h>
+#include <nvgpu/types.h>
 
 struct nvgpu_semaphore;
 struct nvgpu_channel;

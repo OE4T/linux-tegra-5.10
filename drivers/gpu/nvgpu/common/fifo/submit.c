@@ -773,10 +773,16 @@ static int nvgpu_submit_channel_gpfifo(struct nvgpu_channel *c,
 
 #ifdef CONFIG_NVGPU_TRACE
 	if (fence_out != NULL && *fence_out != NULL) {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 		trace_gk20a_channel_submitted_gpfifo(g->name,
 					c->chid, num_entries, flags,
 					(*fence_out)->syncpt_id,
 					(*fence_out)->syncpt_value);
+#else
+		trace_gk20a_channel_submitted_gpfifo(g->name,
+					c->chid, num_entries, flags,
+					0, 0);
+#endif
 	} else {
 		trace_gk20a_channel_submitted_gpfifo(g->name,
 					c->chid, num_entries, flags,

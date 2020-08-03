@@ -40,6 +40,7 @@
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/priv_cmdbuf.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/fence_syncpt.h>
 #include <nvgpu/string.h>
 
 #include "channel_sync_priv.h"

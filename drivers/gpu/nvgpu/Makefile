@@ -462,7 +462,8 @@ nvgpu-$(CONFIG_NVGPU_SYNCFD_STABLE) += \
 	os/linux/os_fence_dma_sema.o
 
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
-	common/sync/channel_sync_syncpt.o
+	common/sync/channel_sync_syncpt.o \
+	common/fence/fence_syncpt.o
 ifneq ($(CONFIG_NVGPU_SYNCFD_NONE),y)
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/os_fence_syncpt.o
@@ -546,6 +547,7 @@ nvgpu-y += \
 	common/fifo/userd.o \
 	common/fifo/watchdog.o \
 	common/fence/fence.o \
+	common/fence/fence_sema.o \
 	common/ecc.o \
 	common/log_common.o \
 	common/ce/ce.o \

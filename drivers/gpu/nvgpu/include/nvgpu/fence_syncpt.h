@@ -19,49 +19,23 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_FENCE_H
-#define NVGPU_FENCE_H
-
-#include <nvgpu/types.h>
-#include <nvgpu/kref.h>
-#include <nvgpu/os_fence.h>
-
-struct gk20a;
-struct nvgpu_channel;
-struct platform_device;
-#ifdef CONFIG_NVGPU_SW_SEMAPHORE
-struct nvgpu_semaphore;
-#endif
-struct nvgpu_os_fence;
-struct nvgpu_user_fence;
-struct nvgpu_fence_ops;
-
-struct nvgpu_fence_type {
-	/* Valid for all fence types: */
-	struct nvgpu_ref ref;
-	const struct nvgpu_fence_ops *ops;
-
-	struct nvgpu_os_fence os_fence;
-
-#ifdef CONFIG_NVGPU_SW_SEMAPHORE
-	/* Valid for fences created from semaphores: */
-	struct nvgpu_semaphore *semaphore;
-	struct nvgpu_cond *semaphore_wq;
-#endif
+#ifndef NVGPU_FENCE_SYNCPT_H
+#define NVGPU_FENCE_SYNCPT_H
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
-	/* Valid for fences created from syncpoints: */
-	struct nvgpu_nvhost_dev *nvhost_dev;
-	u32 syncpt_id;
-	u32 syncpt_value;
+
+#include <nvgpu/types.h>
+#include <nvgpu/os_fence.h>
+
+struct nvgpu_fence_type;
+struct nvgpu_nvhost_dev;
+
+void nvgpu_fence_from_syncpt(
+		struct nvgpu_fence_type *f,
+		struct nvgpu_nvhost_dev *nvhost_dev,
+		u32 id, u32 value,
+		struct nvgpu_os_fence os_fence);
+
+#endif /* CONFIG_TEGRA_GK20A_NVHOST */
+
 #endif
-};
-
-/* Fence operations */
-void nvgpu_fence_put(struct nvgpu_fence_type *f);
-struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f);
-int  nvgpu_fence_wait(struct gk20a *g, struct nvgpu_fence_type *f, u32 timeout);
-bool nvgpu_fence_is_expired(struct nvgpu_fence_type *f);
-struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f);
-
-#endif /* NVGPU_FENCE_H */

@@ -20,17 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/kmem.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/nvhost.h>
-#include <nvgpu/barrier.h>
 #include <nvgpu/os_fence.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/channel.h>
-#include <nvgpu/semaphore.h>
 #include <nvgpu/fence.h>
-#include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/user_fence.h>
+#include "fence_priv.h"
 
 static struct nvgpu_fence_type *nvgpu_fence_from_ref(struct nvgpu_ref *ref)
 {
@@ -46,11 +41,7 @@ static void nvgpu_fence_free(struct nvgpu_ref *ref)
 		f->os_fence.ops->drop_ref(&f->os_fence);
 	}
 
-#ifdef CONFIG_NVGPU_SW_SEMAPHORE
-	if (f->semaphore != NULL) {
-		nvgpu_semaphore_put(f->semaphore);
-	}
-#endif
+	f->ops->free(f);
 }
 
 void nvgpu_fence_put(struct nvgpu_fence_type *f)
@@ -71,8 +62,10 @@ struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f)
 struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f)
 {
 	struct nvgpu_user_fence uf = (struct nvgpu_user_fence) {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.syncpt_id = f->syncpt_id,
 		.syncpt_value = f->syncpt_value,
+#endif
 		.os_fence = f->os_fence,
 	};
 
@@ -110,101 +103,5 @@ void nvgpu_fence_init(struct nvgpu_fence_type *f,
 {
 	nvgpu_ref_init(&f->ref);
 	f->ops = ops;
-	f->syncpt_id = NVGPU_INVALID_SYNCPT_ID;
-#ifdef CONFIG_NVGPU_SW_SEMAPHORE
-	f->semaphore = NULL;
-#endif
 	f->os_fence = os_fence;
 }
-
-#ifdef CONFIG_NVGPU_SW_SEMAPHORE
-/* Fences that are backed by GPU semaphores: */
-
-static int nvgpu_semaphore_fence_wait(struct nvgpu_fence_type *f, u32 timeout)
-{
-	if (!nvgpu_semaphore_is_acquired(f->semaphore)) {
-		return 0;
-	}
-
-	return NVGPU_COND_WAIT_INTERRUPTIBLE(
-		f->semaphore_wq,
-		!nvgpu_semaphore_is_acquired(f->semaphore),
-		timeout);
-}
-
-static bool nvgpu_semaphore_fence_is_expired(struct nvgpu_fence_type *f)
-{
-	return !nvgpu_semaphore_is_acquired(f->semaphore);
-}
-
-static const struct nvgpu_fence_ops nvgpu_semaphore_fence_ops = {
-	.wait = &nvgpu_semaphore_fence_wait,
-	.is_expired = &nvgpu_semaphore_fence_is_expired,
-};
-
-/* This function takes ownership of the semaphore as well as the os_fence */
-void nvgpu_fence_from_semaphore(
-		struct nvgpu_fence_type *f,
-		struct nvgpu_semaphore *semaphore,
-		struct nvgpu_cond *semaphore_wq,
-		struct nvgpu_os_fence os_fence)
-{
-	nvgpu_fence_init(f, &nvgpu_semaphore_fence_ops, os_fence);
-
-	f->semaphore = semaphore;
-	f->semaphore_wq = semaphore_wq;
-}
-
-#endif
-
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
-/* Fences that are backed by host1x syncpoints: */
-
-static int nvgpu_fence_syncpt_wait(struct nvgpu_fence_type *f, u32 timeout)
-{
-	return nvgpu_nvhost_syncpt_wait_timeout_ext(
-			f->nvhost_dev, f->syncpt_id, f->syncpt_value,
-			timeout, NVGPU_NVHOST_DEFAULT_WAITER);
-}
-
-static bool nvgpu_fence_syncpt_is_expired(struct nvgpu_fence_type *f)
-{
-
-	/*
-	 * In cases we don't register a notifier, we can't expect the
-	 * syncpt value to be updated. For this case, we force a read
-	 * of the value from HW, and then check for expiration.
-	 */
-	if (!nvgpu_nvhost_syncpt_is_expired_ext(f->nvhost_dev, f->syncpt_id,
-				f->syncpt_value)) {
-		u32 val;
-
-		if (!nvgpu_nvhost_syncpt_read_ext_check(f->nvhost_dev,
-				f->syncpt_id, &val)) {
-			return nvgpu_nvhost_syncpt_is_expired_ext(
-					f->nvhost_dev,
-					f->syncpt_id, f->syncpt_value);
-		}
-	}
-
-	return true;
-}
-
-static const struct nvgpu_fence_ops nvgpu_fence_syncpt_ops = {
-	.wait = &nvgpu_fence_syncpt_wait,
-	.is_expired = &nvgpu_fence_syncpt_is_expired,
-};
-
-/* This function takes the ownership of the os_fence */
-void nvgpu_fence_from_syncpt(
-		struct nvgpu_fence_type *f,
-		struct nvgpu_nvhost_dev *nvhost_dev,
-		u32 id, u32 value, struct nvgpu_os_fence os_fence)
-{
-	nvgpu_fence_init(f, &nvgpu_fence_syncpt_ops, os_fence);
-
-	f->nvhost_dev = nvhost_dev;
-	f->syncpt_id = id;
-	f->syncpt_value = value;
-}
-#endif
