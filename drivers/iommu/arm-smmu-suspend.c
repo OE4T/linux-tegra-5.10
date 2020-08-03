@@ -15,9 +15,14 @@
 #include <linux/of_platform.h>
 #include <linux/of_reserved_mem.h>
 #include <linux/syscore_ops.h>
+#include <linux/version.h>
+#include <linux/types.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
+#include "arm/arm-smmu/arm-smmu.h"
+#include "arm-smmu-suspend-regs.h"
+#else
 #include "arm-smmu-regs-t19x.h"
-
-#ifdef CONFIG_PM_SLEEP
+#endif
 
 #define SMMU_GNSR1_CBAR_CFG(n, smmu_pgshift) \
 		((1U << smmu_pgshift) + ARM_SMMU_GR1_CBAR(n))
@@ -33,6 +38,10 @@
 
 #define SMMU_REG_TABLE_END_REG		0xFFFFFFFFU
 #define SMMU_REG_TABLE_END_VALUE	0xFFFFFFFFU
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
+#define MAX_SMMUS 5
+#endif
 
 struct arm_smmu_reg {
 	u32 reg;
@@ -251,4 +260,84 @@ void arm_smmu_suspend_exit(void)
 		arm_smmu_free_reg_list();
 }
 
-#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
+
+static const struct of_device_id arm_smmu_of_match[] = {
+	{ .compatible = "nvidia,smmu_suspend"},
+	{ },
+};
+
+static int arm_smmu_suspend_probe(struct platform_device *pdev)
+{
+	struct resource *res;
+	void __iomem *bases[MAX_SMMUS];
+	struct device *dev = &pdev->dev;
+	u32 base_pa[MAX_SMMUS];
+	u32 suspend_save_reg, i, num_smmus, id;
+	unsigned long size, pgshift;
+	int err;
+
+	for (i = 0; i < MAX_SMMUS; i++) {
+		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
+		if (!res)
+			break;
+
+		bases[i] = ioremap(res->start, resource_size(res));
+		if (IS_ERR(bases[i])) {
+			break;
+		}
+
+		base_pa[i] = res->start;
+		if (i == 0) {
+			size = resource_size(res);
+		}
+	}
+	num_smmus = i;
+
+	id = readl_relaxed(bases[0] + ARM_SMMU_GR0_ID1);
+	pgshift = (id & ARM_SMMU_ID1_PAGESIZE) ? 16 : 12;
+
+	if (!of_property_read_u32(dev->of_node, "suspend-save-reg",
+			&suspend_save_reg)) {
+
+		err = arm_smmu_suspend_init(bases, base_pa, num_smmus, size,
+					    pgshift, suspend_save_reg);
+		if (err) {
+			dev_err(dev, "failed to init arm_smu_suspend\n");
+			return err;
+		}
+	}
+
+	dev_info(dev, "arm_smmu_suspend probe successful\n");
+
+	return 0;
+}
+
+static int arm_smmu_suspend_remove(struct platform_device *pdev)
+{
+	return 0;
+}
+
+static struct platform_driver arm_smmu_suspend_driver = {
+	.driver	= {
+		.name		= "arm-smmu-suspend",
+		.of_match_table	= arm_smmu_of_match,
+	},
+	.probe	= arm_smmu_suspend_probe,
+	.remove	= arm_smmu_suspend_remove,
+};
+
+static int __init arm_smmu_suspend_driver_init(void)
+{
+	platform_driver_register(&arm_smmu_suspend_driver);
+	return 0;
+}
+
+static void __exit arm_smmu_suspend_driver_exit(void)
+{
+	platform_driver_unregister(&arm_smmu_suspend_driver);
+}
+
+module_init(arm_smmu_suspend_driver_init);
+module_exit(arm_smmu_suspend_driver_exit);
+#endif /* LINUX_VERSION_CODE */
