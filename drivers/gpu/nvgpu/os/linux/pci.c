@@ -794,14 +794,24 @@ void nvgpu_pci_shutdown(struct pci_dev *pdev)
 		return;
 	}
 
+	gk20a_driver_start_unload(g);
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT) &&
+			nvgpu_platform_is_silicon(g)) {
+		nvgpu_thermal_deinit(g);
+	}
+
 	if (is_nvgpu_gpu_state_valid(g)) {
 		err = nvgpu_nvlink_deinit(g);
 		/* ENODEV is a legal error if there is no NVLINK */
 		if (err != -ENODEV) {
 			WARN(err, "gpu failed to remove nvlink");
 		}
-	} else
-		nvgpu_err(g, "skipped nvlink deinit");
+		err = nvgpu_quiesce(g);
+		WARN(err, "gpu failed to idle during shutdown");
+	} else {
+		nvgpu_err(g, "skipped nvlink deinit and HW quiesce");
+	}
 
 	nvgpu_info(g, "shut down complete");
 }
