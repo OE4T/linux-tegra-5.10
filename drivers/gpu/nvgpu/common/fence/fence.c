@@ -30,28 +30,33 @@
 static struct nvgpu_fence_type *nvgpu_fence_from_ref(struct nvgpu_ref *ref)
 {
 	return (struct nvgpu_fence_type *)((uintptr_t)ref -
-				offsetof(struct nvgpu_fence_type, ref));
+				offsetof(struct nvgpu_fence_type, priv.ref));
 }
 
 static void nvgpu_fence_free(struct nvgpu_ref *ref)
 {
 	struct nvgpu_fence_type *f = nvgpu_fence_from_ref(ref);
+	struct nvgpu_fence_type_priv *pf = &f->priv;
 
-	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
-		f->os_fence.ops->drop_ref(&f->os_fence);
+	if (nvgpu_os_fence_is_initialized(&pf->os_fence)) {
+		pf->os_fence.ops->drop_ref(&pf->os_fence);
 	}
 
-	f->ops->free(f);
+	pf->ops->free(f);
 }
 
 void nvgpu_fence_put(struct nvgpu_fence_type *f)
 {
-	nvgpu_ref_put(&f->ref, nvgpu_fence_free);
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
+	nvgpu_ref_put(&pf->ref, nvgpu_fence_free);
 }
 
 struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f)
 {
-	nvgpu_ref_get(&f->ref);
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
+	nvgpu_ref_get(&pf->ref);
 	return f;
 }
 
@@ -61,12 +66,14 @@ struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f)
  */
 struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f)
 {
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
 	struct nvgpu_user_fence uf = (struct nvgpu_user_fence) {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
-		.syncpt_id = f->syncpt_id,
-		.syncpt_value = f->syncpt_value,
+		.syncpt_id = pf->syncpt_id,
+		.syncpt_value = pf->syncpt_value,
 #endif
-		.os_fence = f->os_fence,
+		.os_fence = pf->os_fence,
 	};
 
 	/*
@@ -76,8 +83,8 @@ struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f)
 	 * submission ioctl finishes, or if it's stored for cde job state
 	 * tracking.
 	 */
-	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
-		f->os_fence.ops->dup(&f->os_fence);
+	if (nvgpu_os_fence_is_initialized(&pf->os_fence)) {
+		pf->os_fence.ops->dup(&pf->os_fence);
 	}
 
 	return uf;
@@ -86,22 +93,28 @@ struct nvgpu_user_fence nvgpu_fence_extract_user(struct nvgpu_fence_type *f)
 int nvgpu_fence_wait(struct gk20a *g, struct nvgpu_fence_type *f,
 							u32 timeout)
 {
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
 	if (!nvgpu_platform_is_silicon(g)) {
 		timeout = U32_MAX;
 	}
-	return f->ops->wait(f, timeout);
+	return pf->ops->wait(f, timeout);
 }
 
 bool nvgpu_fence_is_expired(struct nvgpu_fence_type *f)
 {
-	return f->ops->is_expired(f);
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
+	return pf->ops->is_expired(f);
 }
 
 void nvgpu_fence_init(struct nvgpu_fence_type *f,
 		const struct nvgpu_fence_ops *ops,
 		struct nvgpu_os_fence os_fence)
 {
-	nvgpu_ref_init(&f->ref);
-	f->ops = ops;
-	f->os_fence = os_fence;
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
+	nvgpu_ref_init(&pf->ref);
+	pf->ops = ops;
+	pf->os_fence = os_fence;
 }

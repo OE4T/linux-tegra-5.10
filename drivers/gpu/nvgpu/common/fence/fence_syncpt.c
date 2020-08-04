@@ -27,27 +27,31 @@
 
 static int nvgpu_fence_syncpt_wait(struct nvgpu_fence_type *f, u32 timeout)
 {
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
 	return nvgpu_nvhost_syncpt_wait_timeout_ext(
-			f->nvhost_dev, f->syncpt_id, f->syncpt_value,
+			pf->nvhost_dev, pf->syncpt_id, pf->syncpt_value,
 			timeout, NVGPU_NVHOST_DEFAULT_WAITER);
 }
 
 static bool nvgpu_fence_syncpt_is_expired(struct nvgpu_fence_type *f)
 {
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
 	/*
 	 * In cases we don't register a notifier, we can't expect the
 	 * syncpt value to be updated. For this case, we force a read
 	 * of the value from HW, and then check for expiration.
 	 */
-	if (!nvgpu_nvhost_syncpt_is_expired_ext(f->nvhost_dev, f->syncpt_id,
-				f->syncpt_value)) {
+	if (!nvgpu_nvhost_syncpt_is_expired_ext(pf->nvhost_dev, pf->syncpt_id,
+				pf->syncpt_value)) {
 		u32 val;
 
-		if (!nvgpu_nvhost_syncpt_read_ext_check(f->nvhost_dev,
-				f->syncpt_id, &val)) {
+		if (!nvgpu_nvhost_syncpt_read_ext_check(pf->nvhost_dev,
+				pf->syncpt_id, &val)) {
 			return nvgpu_nvhost_syncpt_is_expired_ext(
-					f->nvhost_dev,
-					f->syncpt_id, f->syncpt_value);
+					pf->nvhost_dev,
+					pf->syncpt_id, pf->syncpt_value);
 		}
 	}
 
@@ -70,9 +74,11 @@ void nvgpu_fence_from_syncpt(
 		struct nvgpu_nvhost_dev *nvhost_dev,
 		u32 id, u32 value, struct nvgpu_os_fence os_fence)
 {
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
 	nvgpu_fence_init(f, &nvgpu_fence_syncpt_ops, os_fence);
 
-	f->nvhost_dev = nvhost_dev;
-	f->syncpt_id = id;
-	f->syncpt_value = value;
+	pf->nvhost_dev = nvhost_dev;
+	pf->syncpt_id = id;
+	pf->syncpt_value = value;
 }

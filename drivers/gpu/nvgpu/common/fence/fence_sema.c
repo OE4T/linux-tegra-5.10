@@ -28,25 +28,31 @@
 
 static int nvgpu_fence_semaphore_wait(struct nvgpu_fence_type *f, u32 timeout)
 {
-	if (!nvgpu_semaphore_is_acquired(f->semaphore)) {
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
+	if (!nvgpu_semaphore_is_acquired(pf->semaphore)) {
 		return 0;
 	}
 
 	return NVGPU_COND_WAIT_INTERRUPTIBLE(
-		f->semaphore_wq,
-		!nvgpu_semaphore_is_acquired(f->semaphore),
+		pf->semaphore_wq,
+		!nvgpu_semaphore_is_acquired(pf->semaphore),
 		timeout);
 }
 
 static bool nvgpu_fence_semaphore_is_expired(struct nvgpu_fence_type *f)
 {
-	return !nvgpu_semaphore_is_acquired(f->semaphore);
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
+	return !nvgpu_semaphore_is_acquired(pf->semaphore);
 }
 
 static void nvgpu_fence_semaphore_free(struct nvgpu_fence_type *f)
 {
-	if (f->semaphore != NULL) {
-		nvgpu_semaphore_put(f->semaphore);
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
+	if (pf->semaphore != NULL) {
+		nvgpu_semaphore_put(pf->semaphore);
 	}
 }
 
@@ -63,8 +69,10 @@ void nvgpu_fence_from_semaphore(
 		struct nvgpu_cond *semaphore_wq,
 		struct nvgpu_os_fence os_fence)
 {
+	struct nvgpu_fence_type_priv *pf = &f->priv;
+
 	nvgpu_fence_init(f, &nvgpu_fence_semaphore_ops, os_fence);
 
-	f->semaphore = semaphore;
-	f->semaphore_wq = semaphore_wq;
+	pf->semaphore = semaphore;
+	pf->semaphore_wq = semaphore_wq;
 }

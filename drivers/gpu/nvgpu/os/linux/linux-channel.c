@@ -358,7 +358,11 @@ static void nvgpu_channel_signal_os_fence_framework(struct nvgpu_channel *ch,
 #if defined(CONFIG_NVGPU_SYNCFD_ANDROID)
 	gk20a_sync_timeline_signal(fence_framework->timeline);
 #elif defined(CONFIG_NVGPU_SYNCFD_STABLE)
-	f = nvgpu_get_dma_fence(&fence->os_fence);
+	/*
+	 * This is not a good example on how to use the fence type. Don't touch
+	 * the priv data. This is os-specific code for the fence unit.
+	 */
+	f = nvgpu_get_dma_fence(&fence->priv.os_fence);
 	/*
 	 * Sometimes the post fence of a job isn't a file. It can be a raw
 	 * semaphore for kernel-internal tracking, or a raw syncpoint for

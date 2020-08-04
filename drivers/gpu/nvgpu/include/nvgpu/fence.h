@@ -36,7 +36,7 @@ struct nvgpu_os_fence;
 struct nvgpu_user_fence;
 struct nvgpu_fence_ops;
 
-struct nvgpu_fence_type {
+struct nvgpu_fence_type_priv {
 	/* Valid for all fence types: */
 	struct nvgpu_ref ref;
 	const struct nvgpu_fence_ops *ops;
@@ -55,6 +55,16 @@ struct nvgpu_fence_type {
 	u32 syncpt_id;
 	u32 syncpt_value;
 #endif
+};
+
+struct nvgpu_fence_type {
+	/*
+	 * struct nvgpu_fence_type needs to be allocated outside fence code for
+	 * performance. It's technically possible to peek inside this priv
+	 * data, but it's called priv for a reason. Don't touch it; use the
+	 * public API (nvgpu_fence_*()).
+	 */
+	struct nvgpu_fence_type_priv priv;
 };
 
 /* Fence operations */
