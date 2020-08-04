@@ -25,14 +25,22 @@
 #ifndef NVGPU_OS_FENCE_SYNCPT_H
 #define NVGPU_OS_FENCE_SYNCPT_H
 
+#include <nvgpu/errno.h>
+
 struct nvgpu_os_fence;
 struct nvhost_ctrl_sync_fence_info;
+struct nvgpu_nvhost_dev;
 
 struct nvgpu_os_fence_syncpt {
 	struct nvgpu_os_fence *fence;
 };
 
 #if defined(CONFIG_TEGRA_GK20A_NVHOST) && !defined(CONFIG_NVGPU_SYNCFD_NONE)
+
+int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
+	struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_dev,
+	u32 id, u32 thresh);
+
 /*
  * Return a struct of nvgpu_os_fence_syncpt only if the underlying os_fence
  * object is backed by syncpoints, else return empty object.
@@ -59,7 +67,15 @@ int nvgpu_os_fence_syncpt_foreach_pt(
 u32 nvgpu_os_fence_syncpt_get_num_syncpoints(
 	struct nvgpu_os_fence_syncpt *fence);
 
-#else
+#else /* CONFIG_TEGRA_GK20A_NVHOST && !CONFIG_NVGPU_SYNCFD_NONE */
+
+static inline int nvgpu_os_fence_syncpt_create(
+	struct nvgpu_os_fence *fence_out, struct nvgpu_channel *c,
+	struct nvgpu_nvhost_dev *nvhost_dev,
+	u32 id, u32 thresh)
+{
+	return -ENOSYS;
+}
 
 static inline int nvgpu_os_fence_get_syncpts(
 	struct nvgpu_os_fence_syncpt *fence_syncpt_out,
@@ -74,6 +90,6 @@ static inline u32 nvgpu_os_fence_syncpt_get_num_syncpoints(
 	return 0;
 }
 
-#endif
+#endif /* CONFIG_TEGRA_GK20A_NVHOST && !CONFIG_NVGPU_SYNCFD_NONE */
 
 #endif /* NVGPU_OS_FENCE_SYNPT_H */

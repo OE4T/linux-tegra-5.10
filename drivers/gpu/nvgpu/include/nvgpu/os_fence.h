@@ -25,13 +25,7 @@
 #ifndef NVGPU_OS_FENCE_H
 #define NVGPU_OS_FENCE_H
 
-#include <nvgpu/errno.h>
 #include <nvgpu/types.h>
-
-struct nvgpu_semaphore;
-struct nvgpu_channel;
-struct priv_cmd_entry;
-struct nvgpu_nvhost_dev;
 
 /*
  * struct nvgpu_os_fence adds an abstraction to the earlier Android Sync
@@ -68,6 +62,11 @@ struct nvgpu_os_fence_ops {
 	void (*dup)(struct nvgpu_os_fence *s);
 };
 
+#if !defined(CONFIG_NVGPU_SYNCFD_NONE)
+
+struct gk20a;
+struct nvgpu_channel;
+
 /*
  * The priv field contains the actual backend:
  * - struct sync_fence for semas on LINUX_VERSION <= 4.14
@@ -89,51 +88,21 @@ static inline bool nvgpu_os_fence_is_initialized(struct nvgpu_os_fence *fence)
 	return (fence->ops != NULL);
 }
 
-#ifndef CONFIG_NVGPU_SYNCFD_NONE
-
-int nvgpu_os_fence_sema_create(
-	struct nvgpu_os_fence *fence_out,
-	struct nvgpu_channel *c,
-	struct nvgpu_semaphore *sema);
-
 int nvgpu_os_fence_fdget(
 	struct nvgpu_os_fence *fence_out,
 	struct nvgpu_channel *c, int fd);
 
-#else
+#else /* CONFIG_NVGPU_SYNCFD_NONE */
 
-static inline int nvgpu_os_fence_sema_create(
-	struct nvgpu_os_fence *fence_out,
-	struct nvgpu_channel *c,
-	struct nvgpu_semaphore *sema)
+struct nvgpu_os_fence {
+	const struct nvgpu_os_fence_ops *ops;
+};
+
+static inline bool nvgpu_os_fence_is_initialized(struct nvgpu_os_fence *fence)
 {
-	return -ENOSYS;
-}
-static inline int nvgpu_os_fence_fdget(
-	struct nvgpu_os_fence *fence_out,
-	struct nvgpu_channel *c, int fd)
-{
-	return -ENOSYS;
+	return false;
 }
 
-#endif /* !CONFIG_NVGPU_SYNCFD_NONE */
-
-#if defined(CONFIG_TEGRA_GK20A_NVHOST) && !defined(CONFIG_NVGPU_SYNCFD_NONE)
-
-int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
-	struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 id, u32 thresh);
-
-#else
-
-static inline int nvgpu_os_fence_syncpt_create(
-	struct nvgpu_os_fence *fence_out, struct nvgpu_channel *c,
-	struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 id, u32 thresh)
-{
-	return -ENOSYS;
-}
-
-#endif /* CONFIG_TEGRA_GK20A_NVHOST && !CONFIG_NVGPU_SYNCFD_NONE */
+#endif /* CONFIG_NVGPU_SYNCFD_NONE */
 
 #endif /* NVGPU_OS_FENCE_H */

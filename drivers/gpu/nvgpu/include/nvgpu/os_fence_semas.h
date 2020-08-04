@@ -25,6 +25,8 @@
 #ifndef NVGPU_OS_FENCE_SEMA_H
 #define NVGPU_OS_FENCE_SEMA_H
 
+#include <nvgpu/errno.h>
+
 struct nvgpu_os_fence;
 struct nvgpu_semaphore;
 
@@ -32,7 +34,13 @@ struct nvgpu_os_fence_sema {
 	struct nvgpu_os_fence *fence;
 };
 
-#if !defined(CONFIG_NVGPU_SYNCFD_NONE)
+#if defined(CONFIG_NVGPU_SW_SEMAPHORE) && !defined(CONFIG_NVGPU_SYNCFD_NONE)
+
+int nvgpu_os_fence_sema_create(
+	struct nvgpu_os_fence *fence_out,
+	struct nvgpu_channel *c,
+	struct nvgpu_semaphore *sema);
+
 /*
  * Return a struct of nvgpu_os_fence_sema only if the underlying os_fence
  * object is backed by semaphore, else return empty object.
@@ -58,7 +66,15 @@ void nvgpu_os_fence_sema_extract_nth_semaphore(
 u32 nvgpu_os_fence_sema_get_num_semaphores(
 	struct nvgpu_os_fence_sema *fence);
 
-#else
+#else /* CONFIG_NVGPU_SW_SEMAPHORE && !CONFIG_NVGPU_SYNCFD_NONE */
+
+static inline int nvgpu_os_fence_sema_create(
+	struct nvgpu_os_fence *fence_out,
+	struct nvgpu_channel *c,
+	struct nvgpu_semaphore *sema)
+{
+	return -ENOSYS;
+}
 
 static inline int nvgpu_os_fence_get_semas(
 	struct nvgpu_os_fence_sema *fence_sema_out,
@@ -79,6 +95,6 @@ static inline u32 nvgpu_os_fence_sema_get_num_semaphores(
 	return 0;
 }
 
-#endif /* !CONFIG_NVGPU_SYNCFD_NONE */
+#endif /* CONFIG_NVGPU_SW_SEMAPHORE && !CONFIG_NVGPU_SYNCFD_NONE */
 
 #endif /* NVGPU_OS_FENCE_SEMAS_H */
