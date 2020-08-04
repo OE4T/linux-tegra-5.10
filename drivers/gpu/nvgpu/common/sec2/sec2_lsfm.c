@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,8 @@
 #include <nvgpu/sec2/msg.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/sec2/cmd.h>
+#include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_utils.h>
 
 /* Add code below to handle SEC2 RTOS commands */
 /* LSF's bootstrap command */
@@ -74,7 +76,7 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 
 	if (falcon_id == FALCON_ID_GPCCS) {
 		cmd.cmd.acr.bootstrap_falcon.falcon_index_mask =
-				LSF_FALCON_INDEX_MASK_MAX;
+			nvgpu_gr_config_get_gpc_mask(nvgpu_gr_get_config_ptr(g));
 	}
 
 	nvgpu_sec2_dbg(g, "NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON : %x",
