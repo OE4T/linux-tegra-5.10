@@ -563,8 +563,8 @@ u32 nvgpu_channel_get_gpfifo_free_count(struct nvgpu_channel *ch);
 int nvgpu_channel_add_job(struct nvgpu_channel *c,
 				 struct nvgpu_channel_job *job,
 				 bool skip_buffer_refcounting);
-void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
-					bool clean_all);
+void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c);
+void nvgpu_channel_clean_up_deterministic_job(struct nvgpu_channel *c);
 int nvgpu_submit_channel_gpfifo_user(struct nvgpu_channel *c,
 				struct nvgpu_gpfifo_userdata userdata,
 				u32 num_entries,

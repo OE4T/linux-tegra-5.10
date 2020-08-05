@@ -584,7 +584,7 @@ static int nvgpu_submit_deterministic(struct nvgpu_channel *c,
 		 * though - the hw GP_GET pointer can be much further away than
 		 * our metadata pointers; gpfifo space is "freed" by the HW.
 		 */
-		nvgpu_channel_clean_up_jobs(c, true);
+		nvgpu_channel_clean_up_deterministic_job(c);
 	}
 
 	/* Grab access to HW to deal with do_idle */

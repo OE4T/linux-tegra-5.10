@@ -1376,6 +1376,10 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 		goto err_setup_bind;
 	}
 
+	/*
+	 * Note that this cannot be deterministic because of the job completion
+	 * callbacks that aren't delivered for deterministic channels.
+	 */
 	setup_bind_args.num_gpfifo_entries = 1024;
 	setup_bind_args.num_inflight_jobs = 0;
 	setup_bind_args.flags = 0;

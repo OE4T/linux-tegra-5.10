@@ -98,6 +98,7 @@ u32 nvgpu_submit_gpfifo_user_flags_to_common_flags(u32 user_flags);
 int nvgpu_channel_init_support_linux(struct nvgpu_os_linux *l);
 void nvgpu_channel_remove_support_linux(struct nvgpu_os_linux *l);
 
+/* Deprecated. Use fences in new code. */
 struct nvgpu_channel *gk20a_open_new_channel_with_cb(struct gk20a *g,
 		void (*update_fn)(struct nvgpu_channel *, void *),
 		void *update_fn_data,

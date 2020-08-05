@@ -202,11 +202,21 @@ void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch)
 
 	nvgpu_mutex_release(&ch->joblist.cleanup_lock);
 
-	/*
-	 * When closing the channel, this scheduled update holds one ref which
-	 * is waited for before advancing with freeing.
+	/* The update to flush the job queue is only needed to process
+	 * nondeterministic resources and ch wdt timeouts. Any others are
+	 * either nonexistent or preallocated from pools that can be killed in
+	 * one go on deterministic channels; take a look at what would happen
+	 * in nvgpu_channel_clean_up_deterministic_job() and what
+	 * nvgpu_submit_deterministic() requires.
 	 */
-	nvgpu_channel_update(ch);
+	if (!nvgpu_channel_is_deterministic(ch)) {
+		/*
+		 * When closing the channel, this scheduled update holds one
+		 * channel ref which is waited for before advancing with
+		 * freeing.
+		 */
+		nvgpu_channel_update(ch);
+	}
 }
 
 static void channel_kernelmode_deinit(struct nvgpu_channel *ch)
@@ -529,7 +539,7 @@ static void nvgpu_channel_worker_poll_wakeup_process_item(
 
 	nvgpu_log_fn(ch->g, " ");
 
-	nvgpu_channel_clean_up_jobs(ch, true);
+	nvgpu_channel_clean_up_jobs(ch);
 
 	/* ref taken when enqueued */
 	nvgpu_channel_put(ch);
@@ -645,16 +655,14 @@ err_put_buffers:
 
 /**
  * Clean up job resources for further jobs to use.
- * @clean_all: If true, process as many jobs as possible, otherwise just one.
  *
- * Loop all jobs from the joblist until a pending job is found, or just one if
- * clean_all is not set. Pending jobs are detected from the job's post fence,
- * so this is only done for jobs that have job tracking resources. Free all
- * per-job memory for completed jobs; in case of preallocated resources, this
- * opens up slots for new jobs to be submitted.
+ * Loop all jobs from the joblist until a pending job is found. Pending jobs
+ * are detected from the job's post fence, so this is only done for jobs that
+ * have job tracking resources. Free all per-job memory for completed jobs; in
+ * case of preallocated resources, this opens up slots for new jobs to be
+ * submitted.
  */
-void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
-					bool clean_all)
+void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c)
 {
 	struct vm_gk20a *vm;
 	struct nvgpu_channel_job *job;
@@ -669,13 +677,9 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 	vm = c->vm;
 	g = c->g;
 
-	/*
-	 * If !clean_all, we're in a condition where watchdog isn't supported
-	 * anyway (this would be a no-op).
-	 */
-	if (clean_all) {
-		watchdog_on = nvgpu_channel_wdt_stop(c->wdt);
-	}
+	nvgpu_assert(!nvgpu_channel_is_deterministic(c));
+
+	watchdog_on = nvgpu_channel_wdt_stop(c->wdt);
 
 	/* Synchronize with abort cleanup that needs the jobs. */
 	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
@@ -704,7 +708,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			 * this - in that case, this is a no-op and the new
 			 * later timeout is still used.
 			 */
-			if (clean_all && watchdog_on) {
+			if (watchdog_on) {
 				nvgpu_channel_wdt_continue(c->wdt);
 			}
 			break;
@@ -738,8 +742,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 		nvgpu_fence_put(&job->post_fence);
 
 		/*
-		 * Free the private command buffers (wait_cmd first and
-		 * then incr_cmd i.e. order of allocation)
+		 * Free the private command buffers (in order of allocation)
 		 */
 		if (job->wait_cmd != NULL) {
 			nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->wait_cmd);
@@ -754,18 +757,8 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 
 		job_finished = true;
 
-		/*
-		 * Deterministic channels have a channel-wide power reference;
-		 * for others, there's one per submit.
-		 */
-		if (!nvgpu_channel_is_deterministic(c)) {
-			gk20a_idle(g);
-		}
-
-		if (!clean_all) {
-			/* Timeout isn't supported here so don't touch it. */
-			break;
-		}
+		/* taken in nvgpu_submit_nondeterministic() */
+		gk20a_idle(g);
 	}
 
 	nvgpu_mutex_release(&c->joblist.cleanup_lock);
@@ -774,6 +767,61 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c,
 			(g->os_channel.work_completion_signal != NULL)) {
 		g->os_channel.work_completion_signal(c);
 	}
+}
+
+/**
+ * Clean up one job if any to provide space for a new submit.
+ *
+ * Deterministic channels do very little in the submit path, so the cleanup
+ * code does not do much either. This assumes the preconditions that
+ * deterministic channels are missing features such as timeouts and mapped
+ * buffers.
+ */
+void nvgpu_channel_clean_up_deterministic_job(struct nvgpu_channel *c)
+{
+	struct nvgpu_channel_job *job;
+
+	nvgpu_assert(nvgpu_channel_is_deterministic(c));
+
+	/* Synchronize with abort cleanup that needs the jobs. */
+	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
+
+	nvgpu_channel_joblist_lock(c);
+	if (nvgpu_channel_joblist_is_empty(c)) {
+		nvgpu_channel_joblist_unlock(c);
+		goto out_unlock;
+	}
+	job = channel_joblist_peek(c);
+	nvgpu_channel_joblist_unlock(c);
+
+	nvgpu_assert(job->num_mapped_buffers == 0U);
+
+	if (!nvgpu_fence_is_expired(&job->post_fence)) {
+		goto out_unlock;
+	}
+
+	/*
+	 * This fence is syncpoint-based, so cleanup doesn't do anything. Put
+	 * the ref back for consistency though.
+	 */
+	nvgpu_fence_put(&job->post_fence);
+
+	/*
+	 * Free the private command buffers (in order of allocation)
+	 */
+	if (job->wait_cmd != NULL) {
+		nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->wait_cmd);
+	}
+	nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->incr_cmd);
+
+	nvgpu_channel_free_job(c, job);
+
+	nvgpu_channel_joblist_lock(c);
+	channel_joblist_delete(c, job);
+	nvgpu_channel_joblist_unlock(c);
+
+out_unlock:
+	nvgpu_mutex_release(&c->joblist.cleanup_lock);
 }
 
 /**
