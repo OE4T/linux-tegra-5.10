@@ -1177,12 +1177,24 @@ static int test_shash_vec_cfg(const char *driver,
 {
 	struct crypto_shash *tfm = desc->tfm;
 	const unsigned int alignmask = crypto_shash_alignmask(tfm);
-	const unsigned int digestsize = crypto_shash_digestsize(tfm);
+	unsigned int digestsize = crypto_shash_digestsize(tfm);
 	const unsigned int statesize = crypto_shash_statesize(tfm);
 	const struct test_sg_division *divs[XBUFSIZE];
 	unsigned int i;
-	u8 result[HASH_MAX_DIGESTSIZE + TESTMGR_POISON_LEN];
-	int err;
+	u8 *result;
+	int err = -ENOMEM;
+
+	/* For SHAKE128/SHAKE256 where digest size can vary */
+	if (vec->dsize) {
+		result = kmalloc(vec->dsize + TESTMGR_POISON_LEN, GFP_KERNEL);
+		digestsize = vec->dsize;
+	} else {
+		result = kmalloc(HASH_MAX_DIGESTSIZE + TESTMGR_POISON_LEN,
+					GFP_KERNEL);
+	}
+
+	if (!result)
+		return err;
 
 	/* Set the key, if specified */
 	if (vec->ksize) {
@@ -1361,7 +1373,7 @@ static int test_ahash_vec_cfg(const char *driver,
 {
 	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
 	const unsigned int alignmask = crypto_ahash_alignmask(tfm);
-	const unsigned int digestsize = crypto_ahash_digestsize(tfm);
+	unsigned int digestsize = crypto_ahash_digestsize(tfm);
 	const unsigned int statesize = crypto_ahash_statesize(tfm);
 	const u32 req_flags = CRYPTO_TFM_REQ_MAY_BACKLOG | cfg->req_flags;
 	const struct test_sg_division *divs[XBUFSIZE];
@@ -1369,8 +1381,20 @@ static int test_ahash_vec_cfg(const char *driver,
 	unsigned int i;
 	struct scatterlist *pending_sgl;
 	unsigned int pending_len;
-	u8 result[HASH_MAX_DIGESTSIZE + TESTMGR_POISON_LEN];
-	int err;
+	u8 *result, hash_result[HASH_MAX_DIGESTSIZE + TESTMGR_POISON_LEN];
+	int err = -ENOMEM;
+
+	/* For SHAKE128/SHAKE256 where digest size can vary */
+	if (vec->dsize) {
+		result = kmalloc(vec->dsize + TESTMGR_POISON_LEN, GFP_KERNEL);
+		digestsize = vec->dsize;
+		req->dst_size = vec->dsize;
+	} else {
+		result = hash_result;
+	}
+
+	if (!result)
+		return err;
 
 	/* Set the key, if specified */
 	if (vec->ksize) {
@@ -1857,14 +1881,14 @@ static int __alg_test_hash(const struct hash_testvec *vecs,
 	}
 
 	for (i = 0; i < num_vecs; i++) {
-		err = test_hash_vec(driver, &vecs[i], i, req, desc, tsgl,
+		err = test_hash_vec(driver_name, &vecs[i], i, req, desc, tsgl,
 				    hashstate);
 		if (err)
 			goto out;
 		cond_resched();
 	}
-	err = test_hash_vs_generic_impl(driver, generic_driver, maxkeysize, req,
-					desc, tsgl, hashstate);
+	err = test_hash_vs_generic_impl(driver_name, generic_driver, maxkeysize,
+					req, desc, tsgl, hashstate);
 out:
 	kfree(hashstate);
 	if (tsgl) {
@@ -3200,16 +3224,16 @@ static int alg_test_skcipher(const struct alg_test_desc *desc,
 		goto out;
 	}
 
-	err = test_skcipher(driver, ENCRYPT, suite, req, tsgls);
+	err = test_skcipher(driver_name, ENCRYPT, suite, req, tsgls);
 	if (err)
 		goto out;
 
-	err = test_skcipher(driver, DECRYPT, suite, req, tsgls);
+	err = test_skcipher(driver_name, DECRYPT, suite, req, tsgls);
 	if (err)
 		goto out;
 
-	err = test_skcipher_vs_generic_impl(driver, desc->generic_driver, req,
-					    tsgls);
+	err = test_skcipher_vs_generic_impl(driver_name, desc->generic_driver,
+						req, tsgls);
 out:
 	free_cipher_test_sglists(tsgls);
 	skcipher_request_free(req);
@@ -6047,6 +6071,20 @@ static const struct alg_test_desc alg_test_descs[] = {
 		.fips_allowed = 1,
 		.suite = {
 			.hash = __VECS(sha512_tv_template)
+		}
+	}, {
+		.alg = "shake128",
+		.test = alg_test_hash,
+		.fips_allowed = 1,
+		.suite = {
+			.hash = __VECS(shake128_tv_template)
+		}
+	}, {
+		.alg = "shake256",
+		.test = alg_test_hash,
+		.fips_allowed = 1,
+		.suite = {
+			.hash = __VECS(shake256_tv_template)
 		}
 	}, {
 		.alg = "sm2",
