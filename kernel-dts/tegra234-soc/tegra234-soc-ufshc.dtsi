@@ -44,7 +44,12 @@
 			        <&mc TEGRA234_MEMORY_CLIENT_UFSHCW>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		iommus = <&smmu_niso0 TEGRA_SID_UFSHC>;
+#else
 		iommus = <&smmu TEGRA_SID_UFSHC>;
+#endif
 		dma-coherent;
 		clocks = <&bpmp_clks TEGRA234_CLK_PLLREFE_VCOOUT>,
 				<&bpmp_clks TEGRA234_CLK_MPHY_CORE_PLL_FIXED>,

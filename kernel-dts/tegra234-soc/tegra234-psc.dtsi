@@ -18,7 +18,12 @@
 	psc_mbox: psc@e800000 {
 		compatible = "nvidia,tegra234-psc";
 		nvidia,cpu-name = "psc";
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		iommus = <&smmu_niso0 TEGRA_SID_PSC>;
+#else
 		iommus = <&smmu TEGRA_SID_PSC>;
+#endif
 		dma-coherent;
 
 		/* common mailbox binding property, should be 1. */
