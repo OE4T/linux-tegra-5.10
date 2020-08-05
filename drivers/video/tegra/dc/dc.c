@@ -6611,8 +6611,16 @@ static int tegra_dc_probe(struct platform_device *ndev)
 	tegra_dc_feature_register(dc);
 
 	if (dc->pdata->default_out) {
-		if (dc->pdata->default_out->hotplug_init)
-			dc->pdata->default_out->hotplug_init(&dc->ndev->dev);
+		if (dc->pdata->default_out->hotplug_init) {
+			ret = dc->pdata->default_out->hotplug_init(
+							&dc->ndev->dev);
+			if (ret < 0) {
+				dev_err(&dc->ndev->dev,
+					"dc_probe: failed hotplug init, %d\n",
+					ret);
+				goto err_put_clk;
+			}
+		}
 		ret = tegra_dc_set_out(dc, dc->pdata->default_out, false);
 		if (ret < 0) {
 			dev_err(&dc->ndev->dev, "failed to initialize DC out ops\n");
