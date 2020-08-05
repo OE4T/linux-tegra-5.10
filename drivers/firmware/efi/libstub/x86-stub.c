@@ -8,7 +8,6 @@
 
 #include <linux/efi.h>
 #include <linux/pci.h>
-#include <linux/stddef.h>
 
 #include <asm/efi.h>
 #include <asm/e820/types.h>
@@ -362,6 +361,8 @@ efi_status_t __efiapi efi_pe_entry(efi_handle_t handle,
 	int options_size = 0;
 	efi_status_t status;
 	char *cmdline_ptr;
+	unsigned long ramdisk_addr;
+	unsigned long ramdisk_size;
 
 	efi_system_table = sys_table_arg;
 
@@ -389,9 +390,8 @@ efi_status_t __efiapi efi_pe_entry(efi_handle_t handle,
 
 	hdr = &boot_params->hdr;
 
-	/* Copy the setup header from the second sector to boot_params */
-	memcpy(&hdr->jump, image_base + 512,
-	       sizeof(struct setup_header) - offsetof(struct setup_header, jump));
+	/* Copy the second sector to boot_params */
+	memcpy(&hdr->jump, image_base + 512, 512);
 
 	/*
 	 * Fill out some of the header fields ourselves because the

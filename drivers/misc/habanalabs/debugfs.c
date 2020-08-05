@@ -36,7 +36,7 @@ static int hl_debugfs_i2c_read(struct hl_device *hdev, u8 i2c_bus, u8 i2c_addr,
 	pkt.i2c_reg = i2c_reg;
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, (long *) val);
+					HL_DEVICE_TIMEOUT_USEC, (long *) val);
 
 	if (rc)
 		dev_err(hdev->dev, "Failed to read from I2C, error %d\n", rc);
@@ -63,7 +63,7 @@ static int hl_debugfs_i2c_write(struct hl_device *hdev, u8 i2c_bus, u8 i2c_addr,
 	pkt.value = cpu_to_le64(val);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, NULL);
+					HL_DEVICE_TIMEOUT_USEC, NULL);
 
 	if (rc)
 		dev_err(hdev->dev, "Failed to write to I2C, error %d\n", rc);
@@ -87,7 +87,7 @@ static void hl_debugfs_led_set(struct hl_device *hdev, u8 led, u8 state)
 	pkt.value = cpu_to_le64(state);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, NULL);
+						HL_DEVICE_TIMEOUT_USEC, NULL);
 
 	if (rc)
 		dev_err(hdev->dev, "Failed to set LED %d, error %d\n", led, rc);
@@ -981,7 +981,7 @@ static ssize_t hl_clk_gate_read(struct file *f, char __user *buf,
 	if (*ppos)
 		return 0;
 
-	sprintf(tmp_buf, "0x%llx\n", hdev->clock_gating_mask);
+	sprintf(tmp_buf, "%d\n", hdev->clock_gating);
 	rc = simple_read_from_buffer(buf, strlen(tmp_buf) + 1, ppos, tmp_buf,
 			strlen(tmp_buf) + 1);
 
@@ -993,7 +993,7 @@ static ssize_t hl_clk_gate_write(struct file *f, const char __user *buf,
 {
 	struct hl_dbg_device_entry *entry = file_inode(f)->i_private;
 	struct hl_device *hdev = entry->hdev;
-	u64 value;
+	u32 value;
 	ssize_t rc;
 
 	if (atomic_read(&hdev->in_reset)) {
@@ -1002,12 +1002,19 @@ static ssize_t hl_clk_gate_write(struct file *f, const char __user *buf,
 		return 0;
 	}
 
-	rc = kstrtoull_from_user(buf, count, 16, &value);
+	rc = kstrtouint_from_user(buf, count, 10, &value);
 	if (rc)
 		return rc;
 
-	hdev->clock_gating_mask = value;
-	hdev->asic_funcs->set_clock_gating(hdev);
+	if (value) {
+		hdev->clock_gating = 1;
+		if (hdev->asic_funcs->enable_clock_gating)
+			hdev->asic_funcs->enable_clock_gating(hdev);
+	} else {
+		if (hdev->asic_funcs->disable_clock_gating)
+			hdev->asic_funcs->disable_clock_gating(hdev);
+		hdev->clock_gating = 0;
+	}
 
 	return count;
 }

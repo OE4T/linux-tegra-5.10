@@ -556,8 +556,7 @@ static int ag71xx_mdio_probe(struct ag71xx *ag)
 	ag->mdio_reset = of_reset_control_get_exclusive(np, "mdio");
 	if (IS_ERR(ag->mdio_reset)) {
 		netif_err(ag, probe, ndev, "Failed to get reset mdio.\n");
-		err = PTR_ERR(ag->mdio_reset);
-		goto mdio_err_put_clk;
+		return PTR_ERR(ag->mdio_reset);
 	}
 
 	mii_bus->name = "ag71xx_mdio";

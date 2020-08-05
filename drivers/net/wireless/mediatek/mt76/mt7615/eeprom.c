@@ -72,7 +72,8 @@ static int mt7615_eeprom_load(struct mt7615_dev *dev, u32 addr)
 {
 	int ret;
 
-	ret = mt76_eeprom_init(&dev->mt76, MT7615_EEPROM_FULL_SIZE);
+	ret = mt76_eeprom_init(&dev->mt76, MT7615_EEPROM_SIZE +
+					   MT7615_EEPROM_EXTRA_DATA);
 	if (ret < 0)
 		return ret;
 

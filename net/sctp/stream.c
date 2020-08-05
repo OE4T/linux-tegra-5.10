@@ -22,11 +22,17 @@
 #include <net/sctp/sm.h>
 #include <net/sctp/stream_sched.h>
 
-static void sctp_stream_shrink_out(struct sctp_stream *stream, __u16 outcnt)
+/* Migrates chunks from stream queues to new stream queues if needed,
+ * but not across associations. Also, removes those chunks to streams
+ * higher than the new max.
+ */
+static void sctp_stream_outq_migrate(struct sctp_stream *stream,
+				     struct sctp_stream *new, __u16 outcnt)
 {
 	struct sctp_association *asoc;
 	struct sctp_chunk *ch, *temp;
 	struct sctp_outq *outq;
+	int i;
 
 	asoc = container_of(stream, struct sctp_association, stream);
 	outq = &asoc->outqueue;
@@ -50,19 +56,6 @@ static void sctp_stream_shrink_out(struct sctp_stream *stream, __u16 outcnt)
 
 		sctp_chunk_free(ch);
 	}
-}
-
-/* Migrates chunks from stream queues to new stream queues if needed,
- * but not across associations. Also, removes those chunks to streams
- * higher than the new max.
- */
-static void sctp_stream_outq_migrate(struct sctp_stream *stream,
-				     struct sctp_stream *new, __u16 outcnt)
-{
-	int i;
-
-	if (stream->outcnt > outcnt)
-		sctp_stream_shrink_out(stream, outcnt);
 
 	if (new) {
 		/* Here we actually move the old ext stuff into the new
@@ -1044,13 +1037,11 @@ struct sctp_chunk *sctp_process_strreset_resp(
 		nums = ntohs(addstrm->number_of_streams);
 		number = stream->outcnt - nums;
 
-		if (result == SCTP_STRRESET_PERFORMED) {
+		if (result == SCTP_STRRESET_PERFORMED)
 			for (i = number; i < stream->outcnt; i++)
 				SCTP_SO(stream, i)->state = SCTP_STREAM_OPEN;
-		} else {
-			sctp_stream_shrink_out(stream, number);
+		else
 			stream->outcnt = number;
-		}
 
 		*evp = sctp_ulpevent_make_stream_change_event(asoc, flags,
 			0, nums, GFP_ATOMIC);

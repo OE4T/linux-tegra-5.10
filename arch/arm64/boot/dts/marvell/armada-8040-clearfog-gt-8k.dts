@@ -454,7 +454,10 @@
 	status = "okay";
 	phy-mode = "2500base-x";
 	phys = <&cp1_comphy5 2>;
-	managed = "in-band-status";
+	fixed-link {
+		speed = <2500>;
+		full-duplex;
+	};
 };
 
 &cp1_spi1 {

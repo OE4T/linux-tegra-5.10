@@ -271,8 +271,6 @@ static int iwl_dbg_tlv_alloc_trigger(struct iwl_trans *trans,
 {
 	struct iwl_fw_ini_trigger_tlv *trig = (void *)tlv->data;
 	u32 tp = le32_to_cpu(trig->time_point);
-	struct iwl_ucode_tlv *dup = NULL;
-	int ret;
 
 	if (le32_to_cpu(tlv->length) < sizeof(*trig))
 		return -EINVAL;
@@ -285,20 +283,10 @@ static int iwl_dbg_tlv_alloc_trigger(struct iwl_trans *trans,
 		return -EINVAL;
 	}
 
-	if (!le32_to_cpu(trig->occurrences)) {
-		dup = kmemdup(tlv, sizeof(*tlv) + le32_to_cpu(tlv->length),
-				GFP_KERNEL);
-		if (!dup)
-			return -ENOMEM;
-		trig = (void *)dup->data;
+	if (!le32_to_cpu(trig->occurrences))
 		trig->occurrences = cpu_to_le32(-1);
-		tlv = dup;
-	}
 
-	ret = iwl_dbg_tlv_add(tlv, &trans->dbg.time_point[tp].trig_list);
-	kfree(dup);
-
-	return ret;
+	return iwl_dbg_tlv_add(tlv, &trans->dbg.time_point[tp].trig_list);
 }
 
 static int (*dbg_tlv_alloc[])(struct iwl_trans *trans,

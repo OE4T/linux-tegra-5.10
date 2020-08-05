@@ -1899,7 +1899,7 @@ static int ov5693_probe(struct i2c_client *client)
 {
 	struct ov5693_device *dev;
 	int i2c;
-	int ret;
+	int ret = 0;
 	void *pdata;
 	unsigned int i;
 
@@ -1929,10 +1929,8 @@ static int ov5693_probe(struct i2c_client *client)
 	pdata = gmin_camera_platform_data(&dev->sd,
 					  ATOMISP_INPUT_FORMAT_RAW_10,
 					  atomisp_bayer_order_bggr);
-	if (!pdata) {
-		ret = -EINVAL;
+	if (!pdata)
 		goto out_free;
-	}
 
 	ret = ov5693_s_config(&dev->sd, client->irq, pdata);
 	if (ret)

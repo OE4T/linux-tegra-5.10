@@ -635,7 +635,7 @@ static void tegra_uart_handle_tx_pio(struct tegra_uart_port *tup)
 }
 
 static void tegra_uart_handle_rx_pio(struct tegra_uart_port *tup,
-		struct tty_port *port)
+		struct tty_port *tty)
 {
 	do {
 		char flag = TTY_NORMAL;
@@ -653,18 +653,16 @@ static void tegra_uart_handle_rx_pio(struct tegra_uart_port *tup,
 		ch = (unsigned char) tegra_uart_read(tup, UART_RX);
 		tup->uport.icount.rx++;
 
-		if (uart_handle_sysrq_char(&tup->uport, ch))
-			continue;
+		if (!uart_handle_sysrq_char(&tup->uport, ch) && tty)
+			tty_insert_flip_char(tty, ch, flag);
 
 		if (tup->uport.ignore_status_mask & UART_LSR_DR)
 			continue;
-
-		tty_insert_flip_char(port, ch, flag);
 	} while (1);
 }
 
 static void tegra_uart_copy_rx_to_tty(struct tegra_uart_port *tup,
-				      struct tty_port *port,
+				      struct tty_port *tty,
 				      unsigned int count)
 {
 	int copied;
@@ -674,6 +672,10 @@ static void tegra_uart_copy_rx_to_tty(struct tegra_uart_port *tup,
 		return;
 
 	tup->uport.icount.rx += count;
+	if (!tty) {
+		dev_err(tup->uport.dev, "No tty port\n");
+		return;
+	}
 
 	if (tup->uport.ignore_status_mask & UART_LSR_DR)
 		return;
@@ -685,7 +687,7 @@ static void tegra_uart_copy_rx_to_tty(struct tegra_uart_port *tup,
 
 	dma_sync_single_for_cpu(tup->uport.dev, tup->rx_dma_buf_phys,
 				count, DMA_FROM_DEVICE);
-	copied = tty_insert_flip_string(port,
+	copied = tty_insert_flip_string(tty,
 			((unsigned char *)(tup->rx_dma_buf_virt)), count);
 	if (copied != count) {
 		WARN_ON(1);

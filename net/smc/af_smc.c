@@ -126,10 +126,8 @@ EXPORT_SYMBOL_GPL(smc_proto6);
 
 static void smc_restore_fallback_changes(struct smc_sock *smc)
 {
-	if (smc->clcsock->file) { /* non-accepted sockets have no file yet */
-		smc->clcsock->file->private_data = smc->sk.sk_socket;
-		smc->clcsock->file = NULL;
-	}
+	smc->clcsock->file->private_data = smc->sk.sk_socket;
+	smc->clcsock->file = NULL;
 }
 
 static int __smc_release(struct smc_sock *smc)
@@ -354,7 +352,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
 	 */
 	mutex_lock(&lgr->llc_conf_mutex);
 	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
-		if (!smc_link_active(&lgr->lnk[i]))
+		if (lgr->lnk[i].state != SMC_LNK_ACTIVE)
 			continue;
 		rc = smcr_link_reg_rmb(&lgr->lnk[i], rmb_desc);
 		if (rc)
@@ -634,9 +632,7 @@ static int smc_connect_rdma(struct smc_sock *smc,
 		for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
 			struct smc_link *l = &smc->conn.lgr->lnk[i];
 
-			if (l->peer_qpn == ntoh24(aclc->qpn) &&
-			    !memcmp(l->peer_gid, &aclc->lcl.gid, SMC_GID_SIZE) &&
-			    !memcmp(l->peer_mac, &aclc->lcl.mac, sizeof(l->peer_mac))) {
+			if (l->peer_qpn == ntoh24(aclc->qpn)) {
 				link = l;
 				break;
 			}

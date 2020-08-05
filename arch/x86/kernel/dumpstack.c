@@ -71,22 +71,6 @@ static void printk_stack_address(unsigned long address, int reliable,
 	printk("%s %s%pB\n", log_lvl, reliable ? "" : "? ", (void *)address);
 }
 
-static int copy_code(struct pt_regs *regs, u8 *buf, unsigned long src,
-		     unsigned int nbytes)
-{
-	if (!user_mode(regs))
-		return copy_from_kernel_nofault(buf, (u8 *)src, nbytes);
-
-	/*
-	 * Make sure userspace isn't trying to trick us into dumping kernel
-	 * memory by pointing the userspace instruction pointer at it.
-	 */
-	if (__chk_range_not_ok(src, nbytes, TASK_SIZE_MAX))
-		return -EINVAL;
-
-	return copy_from_user_nmi(buf, (void __user *)src, nbytes);
-}
-
 /*
  * There are a couple of reasons for the 2/3rd prologue, courtesy of Linus:
  *
@@ -113,8 +97,17 @@ void show_opcodes(struct pt_regs *regs, const char *loglvl)
 #define OPCODE_BUFSIZE (PROLOGUE_SIZE + 1 + EPILOGUE_SIZE)
 	u8 opcodes[OPCODE_BUFSIZE];
 	unsigned long prologue = regs->ip - PROLOGUE_SIZE;
+	bool bad_ip;
 
-	if (copy_code(regs, opcodes, prologue, sizeof(opcodes))) {
+	/*
+	 * Make sure userspace isn't trying to trick us into dumping kernel
+	 * memory by pointing the userspace instruction pointer at it.
+	 */
+	bad_ip = user_mode(regs) &&
+		__chk_range_not_ok(prologue, OPCODE_BUFSIZE, TASK_SIZE_MAX);
+
+	if (bad_ip || copy_from_kernel_nofault(opcodes, (u8 *)prologue,
+					OPCODE_BUFSIZE)) {
 		printk("%sCode: Bad RIP value.\n", loglvl);
 	} else {
 		printk("%sCode: %" __stringify(PROLOGUE_SIZE) "ph <%02x> %"

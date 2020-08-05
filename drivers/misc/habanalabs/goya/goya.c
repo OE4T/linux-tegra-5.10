@@ -88,7 +88,6 @@
 #define GOYA_PLDM_MMU_TIMEOUT_USEC	(MMU_CONFIG_TIMEOUT_USEC * 100)
 #define GOYA_PLDM_QMAN0_TIMEOUT_USEC	(HL_DEVICE_TIMEOUT_USEC * 30)
 #define GOYA_BOOT_FIT_REQ_TIMEOUT_USEC	1000000		/* 1s */
-#define GOYA_MSG_TO_CPU_TIMEOUT_USEC	4000000		/* 4s */
 
 #define GOYA_QMAN0_FENCE_VAL		0xD169B243
 
@@ -2831,9 +2830,6 @@ int goya_send_cpu_message(struct hl_device *hdev, u32 *msg, u16 len,
 		return 0;
 	}
 
-	if (!timeout)
-		timeout = GOYA_MSG_TO_CPU_TIMEOUT_USEC;
-
 	return hl_fw_send_cpu_message(hdev, GOYA_QUEUE_ID_CPU_PQ, msg, len,
 					timeout, result);
 }
@@ -4435,8 +4431,8 @@ static int goya_unmask_irq_arr(struct hl_device *hdev, u32 *irq_arr,
 	pkt->armcp_pkt.ctl = cpu_to_le32(ARMCP_PACKET_UNMASK_RAZWI_IRQ_ARRAY <<
 						ARMCP_PKT_CTL_OPCODE_SHIFT);
 
-	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) pkt,
-						total_pkt_size,	0, &result);
+	rc = goya_send_cpu_message(hdev, (u32 *) pkt, total_pkt_size,
+			HL_DEVICE_TIMEOUT_USEC, &result);
 
 	if (rc)
 		dev_err(hdev->dev, "failed to unmask IRQ array\n");
@@ -4468,8 +4464,8 @@ static int goya_unmask_irq(struct hl_device *hdev, u16 event_type)
 				ARMCP_PKT_CTL_OPCODE_SHIFT);
 	pkt.value = cpu_to_le64(event_type);
 
-	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, &result);
+	rc = goya_send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
+			HL_DEVICE_TIMEOUT_USEC, &result);
 
 	if (rc)
 		dev_err(hdev->dev, "failed to unmask RAZWI IRQ %d", event_type);
@@ -5032,14 +5028,14 @@ int goya_armcp_info_get(struct hl_device *hdev)
 	return 0;
 }
 
-static void goya_set_clock_gating(struct hl_device *hdev)
+static void goya_enable_clock_gating(struct hl_device *hdev)
 {
-	/* clock gating not supported in Goya */
+
 }
 
 static void goya_disable_clock_gating(struct hl_device *hdev)
 {
-	/* clock gating not supported in Goya */
+
 }
 
 static bool goya_is_device_idle(struct hl_device *hdev, u32 *mask,
@@ -5263,7 +5259,7 @@ static const struct hl_asic_funcs goya_funcs = {
 	.mmu_invalidate_cache = goya_mmu_invalidate_cache,
 	.mmu_invalidate_cache_range = goya_mmu_invalidate_cache_range,
 	.send_heartbeat = goya_send_heartbeat,
-	.set_clock_gating = goya_set_clock_gating,
+	.enable_clock_gating = goya_enable_clock_gating,
 	.disable_clock_gating = goya_disable_clock_gating,
 	.debug_coresight = goya_debug_coresight,
 	.is_device_idle = goya_is_device_idle,

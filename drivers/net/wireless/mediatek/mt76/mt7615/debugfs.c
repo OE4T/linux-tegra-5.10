@@ -234,11 +234,10 @@ mt7615_queues_acq(struct seq_file *s, void *data)
 	int i;
 
 	for (i = 0; i < 16; i++) {
-		int j, wmm_idx = i % MT7615_MAX_WMM_SETS;
-		int acs = i / MT7615_MAX_WMM_SETS;
+		int j, acs = i / 4, index = i % 4;
 		u32 ctrl, val, qlen = 0;
 
-		val = mt76_rr(dev, MT_PLE_AC_QEMPTY(acs, wmm_idx));
+		val = mt76_rr(dev, MT_PLE_AC_QEMPTY(acs, index));
 		ctrl = BIT(31) | BIT(15) | (acs << 8);
 
 		for (j = 0; j < 32; j++) {
@@ -246,11 +245,11 @@ mt7615_queues_acq(struct seq_file *s, void *data)
 				continue;
 
 			mt76_wr(dev, MT_PLE_FL_Q0_CTRL,
-				ctrl | (j + (wmm_idx << 5)));
+				ctrl | (j + (index << 5)));
 			qlen += mt76_get_field(dev, MT_PLE_FL_Q3_CTRL,
 					       GENMASK(11, 0));
 		}
-		seq_printf(s, "AC%d%d: queued=%d\n", wmm_idx, acs, qlen);
+		seq_printf(s, "AC%d%d: queued=%d\n", acs, index, qlen);
 	}
 
 	return 0;

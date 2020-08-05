@@ -120,17 +120,12 @@ static struct sk_buff *frame_get_stripped_skb(struct hsr_frame_info *frame,
 	return skb_clone(frame->skb_std, GFP_ATOMIC);
 }
 
-static struct sk_buff *hsr_fill_tag(struct sk_buff *skb,
-				    struct hsr_frame_info *frame,
-				    struct hsr_port *port, u8 proto_version)
+static void hsr_fill_tag(struct sk_buff *skb, struct hsr_frame_info *frame,
+			 struct hsr_port *port, u8 proto_version)
 {
 	struct hsr_ethhdr *hsr_ethhdr;
 	int lane_id;
 	int lsdu_size;
-
-	/* pad to minimum packet size which is 60 + 6 (HSR tag) */
-	if (skb_put_padto(skb, ETH_ZLEN + HSR_HLEN))
-		return NULL;
 
 	if (port->type == HSR_PT_SLAVE_A)
 		lane_id = 0;
@@ -149,8 +144,6 @@ static struct sk_buff *hsr_fill_tag(struct sk_buff *skb,
 	hsr_ethhdr->hsr_tag.encap_proto = hsr_ethhdr->ethhdr.h_proto;
 	hsr_ethhdr->ethhdr.h_proto = htons(proto_version ?
 			ETH_P_HSR : ETH_P_PRP);
-
-	return skb;
 }
 
 static struct sk_buff *create_tagged_skb(struct sk_buff *skb_o,
@@ -179,10 +172,9 @@ static struct sk_buff *create_tagged_skb(struct sk_buff *skb_o,
 	memmove(dst, src, movelen);
 	skb_reset_mac_header(skb);
 
-	/* skb_put_padto free skb on error and hsr_fill_tag returns NULL in
-	 * that case
-	 */
-	return hsr_fill_tag(skb, frame, port, port->hsr->prot_version);
+	hsr_fill_tag(skb, frame, port, port->hsr->prot_version);
+
+	return skb;
 }
 
 /* If the original frame was an HSR tagged frame, just clone it to be sent

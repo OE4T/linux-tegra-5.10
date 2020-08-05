@@ -48,7 +48,7 @@ static struct ia_css_refcount_entry *refcount_find_entry(ia_css_ptr ptr,
 		return NULL;
 	if (!myrefcount.items) {
 		ia_css_debug_dtrace(IA_CSS_DEBUG_ERROR,
-				    "%s(): Ref count not initialized!\n", __func__);
+				    "refcount_find_entry(): Ref count not initialized!\n");
 		return NULL;
 	}
 
@@ -73,12 +73,12 @@ int ia_css_refcount_init(uint32_t size)
 
 	if (size == 0) {
 		ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-				    "%s(): Size of 0 for Ref count init!\n", __func__);
+				    "ia_css_refcount_init(): Size of 0 for Ref count init!\n");
 		return -EINVAL;
 	}
 	if (myrefcount.items) {
 		ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-				    "%s(): Ref count is already initialized\n", __func__);
+				    "ia_css_refcount_init(): Ref count is already initialized\n");
 		return -EINVAL;
 	}
 	myrefcount.items =
@@ -99,7 +99,7 @@ void ia_css_refcount_uninit(void)
 	u32 i;
 
 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-			    "%s() entry\n", __func__);
+			    "ia_css_refcount_uninit() entry\n");
 	for (i = 0; i < myrefcount.size; i++) {
 		/* driver verifier tool has issues with &arr[i]
 		   and prefers arr + i; as these are actually equivalent
@@ -120,7 +120,7 @@ void ia_css_refcount_uninit(void)
 	myrefcount.items = NULL;
 	myrefcount.size = 0;
 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-			    "%s() leave\n", __func__);
+			    "ia_css_refcount_uninit() leave\n");
 }
 
 ia_css_ptr ia_css_refcount_increment(s32 id, ia_css_ptr ptr)
@@ -133,7 +133,7 @@ ia_css_ptr ia_css_refcount_increment(s32 id, ia_css_ptr ptr)
 	entry = refcount_find_entry(ptr, false);
 
 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-			    "%s(%x) 0x%x\n", __func__, id, ptr);
+			    "ia_css_refcount_increment(%x) 0x%x\n", id, ptr);
 
 	if (!entry) {
 		entry = refcount_find_entry(ptr, true);
@@ -145,7 +145,7 @@ ia_css_ptr ia_css_refcount_increment(s32 id, ia_css_ptr ptr)
 
 	if (entry->id != id) {
 		ia_css_debug_dtrace(IA_CSS_DEBUG_ERROR,
-				    "%s(): Ref count IDS do not match!\n", __func__);
+				    "ia_css_refcount_increment(): Ref count IDS do not match!\n");
 		return mmgr_NULL;
 	}
 
@@ -165,7 +165,7 @@ bool ia_css_refcount_decrement(s32 id, ia_css_ptr ptr)
 	struct ia_css_refcount_entry *entry;
 
 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-			    "%s(%x) 0x%x\n", __func__, id, ptr);
+			    "ia_css_refcount_decrement(%x) 0x%x\n", id, ptr);
 
 	if (ptr == mmgr_NULL)
 		return false;
@@ -175,7 +175,7 @@ bool ia_css_refcount_decrement(s32 id, ia_css_ptr ptr)
 	if (entry) {
 		if (entry->id != id) {
 			ia_css_debug_dtrace(IA_CSS_DEBUG_ERROR,
-					    "%s(): Ref count IDS do not match!\n", __func__);
+					    "ia_css_refcount_decrement(): Ref count IDS do not match!\n");
 			return false;
 		}
 		if (entry->count > 0) {
@@ -225,8 +225,8 @@ void ia_css_refcount_clear(s32 id, clear_func clear_func_ptr)
 	u32 count = 0;
 
 	assert(clear_func_ptr);
-	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "%s(%x)\n",
-			    __func__, id);
+	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_refcount_clear(%x)\n",
+			    id);
 
 	for (i = 0; i < myrefcount.size; i++) {
 		/* driver verifier tool has issues with &arr[i]
@@ -236,14 +236,14 @@ void ia_css_refcount_clear(s32 id, clear_func clear_func_ptr)
 		entry = myrefcount.items + i;
 		if ((entry->data != mmgr_NULL) && (entry->id == id)) {
 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-					    "%s: %x: 0x%x\n", __func__,
+					    "ia_css_refcount_clear: %x: 0x%x\n",
 					    id, entry->data);
 			if (clear_func_ptr) {
 				/* clear using provided function */
 				clear_func_ptr(entry->data);
 			} else {
 				ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-						    "%s: using hmm_free: no clear_func\n", __func__);
+						    "ia_css_refcount_clear: using hmm_free: no clear_func\n");
 				hmm_free(entry->data);
 			}
 
@@ -260,7 +260,7 @@ void ia_css_refcount_clear(s32 id, clear_func clear_func_ptr)
 		}
 	}
 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,
-			    "%s(%x): cleared %d\n", __func__, id,
+			    "ia_css_refcount_clear(%x): cleared %d\n", id,
 			    count);
 }
 

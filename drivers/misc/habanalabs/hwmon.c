@@ -10,6 +10,7 @@
 #include <linux/pci.h>
 #include <linux/hwmon.h>
 
+#define SENSORS_PKT_TIMEOUT		1000000	/* 1s */
 #define HWMON_NR_SENSOR_TYPES		(hwmon_pwm + 1)
 
 int hl_build_hwmon_channel_info(struct hl_device *hdev,
@@ -322,7 +323,7 @@ int hl_get_temperature(struct hl_device *hdev,
 	pkt.type = __cpu_to_le16(attr);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, value);
+			SENSORS_PKT_TIMEOUT, value);
 
 	if (rc) {
 		dev_err(hdev->dev,
@@ -349,7 +350,7 @@ int hl_set_temperature(struct hl_device *hdev,
 	pkt.value = __cpu_to_le64(value);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, NULL);
+						SENSORS_PKT_TIMEOUT, NULL);
 
 	if (rc)
 		dev_err(hdev->dev,
@@ -373,7 +374,7 @@ int hl_get_voltage(struct hl_device *hdev,
 	pkt.type = __cpu_to_le16(attr);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, value);
+					SENSORS_PKT_TIMEOUT, value);
 
 	if (rc) {
 		dev_err(hdev->dev,
@@ -399,7 +400,7 @@ int hl_get_current(struct hl_device *hdev,
 	pkt.type = __cpu_to_le16(attr);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, value);
+					SENSORS_PKT_TIMEOUT, value);
 
 	if (rc) {
 		dev_err(hdev->dev,
@@ -425,7 +426,7 @@ int hl_get_fan_speed(struct hl_device *hdev,
 	pkt.type = __cpu_to_le16(attr);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, value);
+					SENSORS_PKT_TIMEOUT, value);
 
 	if (rc) {
 		dev_err(hdev->dev,
@@ -451,7 +452,7 @@ int hl_get_pwm_info(struct hl_device *hdev,
 	pkt.type = __cpu_to_le16(attr);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, value);
+					SENSORS_PKT_TIMEOUT, value);
 
 	if (rc) {
 		dev_err(hdev->dev,
@@ -478,7 +479,7 @@ void hl_set_pwm_info(struct hl_device *hdev, int sensor_index, u32 attr,
 	pkt.value = cpu_to_le64(value);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, NULL);
+					SENSORS_PKT_TIMEOUT, NULL);
 
 	if (rc)
 		dev_err(hdev->dev,
@@ -501,7 +502,7 @@ int hl_set_voltage(struct hl_device *hdev,
 	pkt.value = __cpu_to_le64(value);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, NULL);
+						SENSORS_PKT_TIMEOUT, NULL);
 
 	if (rc)
 		dev_err(hdev->dev,
@@ -526,7 +527,7 @@ int hl_set_current(struct hl_device *hdev,
 	pkt.value = __cpu_to_le64(value);
 
 	rc = hdev->asic_funcs->send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt),
-						0, NULL);
+						SENSORS_PKT_TIMEOUT, NULL);
 
 	if (rc)
 		dev_err(hdev->dev,
