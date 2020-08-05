@@ -794,9 +794,9 @@ int test_gr_init_hal_error_injection(struct unit_module *m,
 
 	g->ops.mm.cache.l2_flush = dummy_l2_flush;
 
-	vm = nvgpu_vm_init(g, SZ_4K, SZ_4K << 10, (1ULL << 32),
-			(1ULL << 32) + (1ULL << 37), false, false, false,
-			"dummy");
+	vm = nvgpu_vm_init(g, SZ_4K, SZ_4K << 10,
+		nvgpu_safe_sub_u64(1ULL << 37, SZ_4K << 10),
+		(1ULL << 32), false, false, false, "dummy");
 	if (!vm) {
 		unit_return_fail(m, "failed to allocate VM");
 	}

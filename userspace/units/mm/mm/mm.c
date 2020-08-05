@@ -228,12 +228,12 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 						     -ENOMEM, 4);
 
 	/* Making nvgpu_init_system_vm fail on the PMU VM init */
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 29,
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 10,
 						     -ENOMEM, 5);
 
 	/* Making nvgpu_init_system_vm fail again with extra branch coverage */
 	g->ops.mm.init_bar2_vm = NULL;
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 20,
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 6,
 						     -ENOMEM, 6);
 	g->ops.mm.init_bar2_vm = gp10b_mm_init_bar2_vm;
 
@@ -246,7 +246,7 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 						     -ENOMEM, 8);
 
 	/* Making nvgpu_init_engine_ucode_vm(sec2) fail on VM init */
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 46,
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 15,
 						     -ENOMEM, 9);
 
 	/* Making nvgpu_init_engine_ucode_vm(sec2) fail on alloc_inst_block */
@@ -258,11 +258,11 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 						     -ENOMEM, 11);
 
 	/* Making nvgpu_init_cde_vm fail */
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 80,
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 25,
 						     -ENOMEM, 12);
 
 	/* Making nvgpu_init_ce_vm fail */
-	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 98,
+	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_KMEM, 33,
 						     -ENOMEM, 13);
 
 	/* Making nvgpu_init_mmu_debug fail on wr_mem DMA alloc */

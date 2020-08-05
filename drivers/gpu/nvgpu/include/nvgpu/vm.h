@@ -733,8 +733,8 @@ void nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
  * @param low_hole [in]		The size of the low hole
  *				(non-addressable memory at the bottom of
  *				the address space).
+ * @param user_reserved [in]	Space reserved for user allocations.
  * @param kernel_reserved [in]	Space reserved for kernel only allocations.
- * @param aperture_size [in]	Total size of the aperture.
  * @param big_pages [in]	If true then big pages are possible in the
  *				VM. Note this does not guarantee that big
  *				pages will be possible.
@@ -761,8 +761,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		     struct vm_gk20a *vm,
 		     u32 big_page_size,
 		     u64 low_hole,
+		     u64 user_reserved,
 		     u64 kernel_reserved,
-		     u64 aperture_size,
 		     bool big_pages,
 		     bool userspace_managed,
 		     bool unified_va,
@@ -777,8 +777,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
  * @param low_hole [in]		The size of the low hole
  *				(non-addressable memory at the bottom of
  *				the address space).
+ * @param user_reserved [in]	Space reserved for user allocations.
  * @param kernel_reserved [in]	Space reserved for kernel only allocations.
- * @param aperture_size [in]	Total size of the aperture.
  * @param big_pages [in]	If true then big pages are possible in the
  *				VM. Note this does not guarantee that big
  *				pages will be possible.
@@ -817,8 +817,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u32 big_page_size,
 			       u64 low_hole,
+			       u64 user_reserved,
 			       u64 kernel_reserved,
-			       u64 aperture_size,
 			       bool big_pages,
 			       bool userspace_managed,
 			       bool unified_va,

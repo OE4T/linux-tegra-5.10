@@ -84,12 +84,13 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 					sizeof(name) - sizeof("as_"), 10U);
 
 	vm = nvgpu_vm_init(g, big_page_size,
-			   U64(big_page_size) << U64(10),
-			   mm->channel.kernel_size,
-			   nvgpu_safe_add_u64(mm->channel.user_size,
-			   mm->channel.kernel_size),
-			   !mm->disable_bigpage,
-			   userspace_managed, unified_va, name);
+			U64(big_page_size) << U64(10),
+			nvgpu_safe_sub_u64(mm->channel.user_size,
+				nvgpu_safe_sub_u64(mm->channel.kernel_size,
+				U64(big_page_size) << U64(10))),
+			mm->channel.kernel_size,
+			!mm->disable_bigpage,
+			userspace_managed, unified_va, name);
 	if (vm == NULL) {
 		return -ENOMEM;
 	}

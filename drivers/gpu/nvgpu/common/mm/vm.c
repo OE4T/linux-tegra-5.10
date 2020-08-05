@@ -618,33 +618,34 @@ static int nvgpu_vm_init_check_vma_limits(struct gk20a *g, struct vm_gk20a *vm,
 
 static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 		     u64 low_hole,
+		     u64 user_reserved,
 		     u64 kernel_reserved,
-		     u64 aperture_size,
 		     bool big_pages,
 		     bool unified_va,
 		     const char *name)
 {
 	int err = 0;
+	u64 kernel_vma_flags = 0ULL;
 	u64 user_vma_start, user_vma_limit;
 	u64 user_lp_vma_start, user_lp_vma_limit;
 	u64 kernel_vma_start, kernel_vma_limit;
-	u64 kernel_vma_flags;
 
 	/* Setup vma limits. */
-	if (nvgpu_safe_add_u64(kernel_reserved, low_hole) < aperture_size) {
+	if (user_reserved > 0ULL) {
+		kernel_vma_flags = GPU_ALLOC_GVA_SPACE;
 		/*
 		 * If big_pages are disabled for this VM then it only makes
 		 * sense to make one VM, same as if the unified address flag
 		 * is set.
 		 */
 		if (!big_pages || unified_va) {
-			user_vma_start = low_hole;
+			user_vma_start = vm->va_start;
 			user_vma_limit = nvgpu_safe_sub_u64(vm->va_limit,
 							kernel_reserved);
 			user_lp_vma_start = user_vma_limit;
 			user_lp_vma_limit = user_vma_limit;
 		} else {
-			user_vma_start = low_hole;
+			user_vma_start = vm->va_start;
 			user_vma_limit = nvgpu_gmmu_va_small_page_limit();
 			user_lp_vma_start = nvgpu_gmmu_va_small_page_limit();
 			user_lp_vma_limit = nvgpu_safe_sub_u64(vm->va_limit,
@@ -676,10 +677,6 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 		goto clean_up_page_tables;
 	}
 
-	kernel_vma_flags =
-		(nvgpu_safe_add_u64(kernel_reserved, low_hole) ==
-			aperture_size) ? 0ULL : GPU_ALLOC_GVA_SPACE;
-
 	nvgpu_vm_init_check_big_pages(vm, user_vma_start, user_vma_limit,
 				user_lp_vma_start, user_lp_vma_limit,
 				big_pages, unified_va);
@@ -705,16 +702,30 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 		     struct vm_gk20a *vm,
 		     u32 big_page_size,
 		     u64 low_hole,
+		     u64 user_reserved,
 		     u64 kernel_reserved,
-		     u64 aperture_size,
 		     bool big_pages,
 		     bool userspace_managed,
 		     bool unified_va,
 		     const char *name)
 {
 	struct gk20a *g = gk20a_from_mm(mm);
+	u64 low_hole_size, user_va_size;
+	u64 aperture_size;
+	u64 pde_align = (U64(big_page_size) << U64(10));
 
-	if (nvgpu_safe_add_u64(kernel_reserved, low_hole) > aperture_size) {
+	if (user_reserved == 0ULL) {
+		low_hole_size = low_hole;
+		user_va_size = user_reserved;
+	} else {
+		low_hole_size = ALIGN(low_hole, pde_align);
+		user_va_size = ALIGN(user_reserved, pde_align);
+	}
+
+	aperture_size = nvgpu_safe_add_u64(kernel_reserved,
+		nvgpu_safe_add_u64(user_va_size, low_hole_size));
+
+	if (aperture_size > NV_MM_DEFAULT_APERTURE_SIZE) {
 		nvgpu_do_assert_print(g,
 			"Overlap between user and kernel spaces");
 		return -ENOMEM;
@@ -747,8 +758,8 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 		vm->vma[GMMU_PAGE_SIZE_BIG] = &vm->user_lp;
 	}
 
-	vm->va_start  = low_hole;
-	vm->va_limit  = aperture_size;
+	vm->va_start = low_hole_size;
+	vm->va_limit = aperture_size;
 
 	vm->big_page_size     = vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG];
 	vm->userspace_managed = userspace_managed;
@@ -772,8 +783,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		     struct vm_gk20a *vm,
 		     u32 big_page_size,
 		     u64 low_hole,
+		     u64 user_reserved,
 		     u64 kernel_reserved,
-		     u64 aperture_size,
 		     bool big_pages,
 		     bool userspace_managed,
 		     bool unified_va,
@@ -783,7 +794,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	int err = 0;
 
 	err = nvgpu_vm_init_attributes(mm, vm, big_page_size, low_hole,
-		kernel_reserved, aperture_size, big_pages, userspace_managed,
+		user_reserved, kernel_reserved, big_pages, userspace_managed,
 		unified_va, name);
 	if (err != 0) {
 		return err;
@@ -805,7 +816,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		goto clean_up_gpu_vm;
 	}
 
-	err = nvgpu_vm_init_vma(g, vm, low_hole, kernel_reserved, aperture_size,
+	err = nvgpu_vm_init_vma(g, vm, low_hole, user_reserved, kernel_reserved,
 					big_pages, unified_va, name);
 	if (err != 0) {
 		goto clean_up_gpu_vm;
@@ -855,8 +866,8 @@ clean_up_gpu_vm:
  * @big_page_size - Size of big pages associated with this VM.
  * @low_hole - The size of the low hole (unaddressable memory at the bottom of
  *	       the address space).
+ * @user_reserved - Space reserved for user allocations..
  * @kernel_reserved - Space reserved for kernel only allocations.
- * @aperture_size - Total size of the aperture.
  * @big_pages - If true then big pages are possible in the VM. Note this does
  *              not guarantee that big pages will be possible.
  * @name - Name of the address space.
@@ -887,8 +898,8 @@ clean_up_gpu_vm:
 struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u32 big_page_size,
 			       u64 low_hole,
+			       u64 user_reserved,
 			       u64 kernel_reserved,
-			       u64 aperture_size,
 			       bool big_pages,
 			       bool userspace_managed,
 			       bool unified_va,
@@ -902,7 +913,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 	}
 
 	err = nvgpu_vm_do_init(&g->mm, vm, big_page_size, low_hole,
-			     kernel_reserved, aperture_size, big_pages,
+			     user_reserved, kernel_reserved, big_pages,
 			     userspace_managed, unified_va, name);
 	if (err != 0) {
 		nvgpu_kfree(g, vm);

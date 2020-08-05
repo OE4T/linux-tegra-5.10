@@ -148,8 +148,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	mm->pmu.vm = nvgpu_vm_init(g,
 				   g->ops.mm.gmmu.get_default_big_page_size(),
 				   low_hole,
-				   aperture_size - low_hole,
-				   aperture_size,
+				   0ULL,
+				   nvgpu_safe_sub_u64(aperture_size, low_hole),
 				   true,
 				   false,
 				   false,
@@ -162,8 +162,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	mm->bar1.aperture_size = U32(16) << 20U;
 	mm->bar1.vm = nvgpu_vm_init(g,
 		g->ops.mm.gmmu.get_default_big_page_size(),
-		SZ_4K, mm->bar1.aperture_size - SZ_4K,
-		mm->bar1.aperture_size, false, false, false, "bar1");
+		SZ_4K, 0ULL, nvgpu_safe_sub_u64(mm->bar1.aperture_size, SZ_4K),
+		false, false, false, "bar1");
 	if (mm->bar1.vm == NULL) {
 		unit_return_fail(m, "'bar1' nvgpu_vm_init failed\n");
 	}

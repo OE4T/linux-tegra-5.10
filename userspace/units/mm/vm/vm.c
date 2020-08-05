@@ -221,8 +221,8 @@ static struct vm_gk20a *create_test_vm(struct unit_module *m, struct gk20a *g)
 	vm = nvgpu_vm_init(g,
 			   g->ops.mm.gmmu.get_default_big_page_size(),
 			   low_hole,
+			   user_vma,
 			   kernel_reserved,
-			   aperture_size,
 			   true,
 			   false,
 			   true,
@@ -451,7 +451,7 @@ int test_map_buffer_error_cases(struct unit_module *m, struct gk20a *g,
 #endif
 
 	/* Make g->ops.mm.gmmu.map fail */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 40);
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 20);
 	ret = nvgpu_vm_map(vm,
 			   &os_buf,
 			   sgt,
@@ -895,6 +895,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	u64 low_hole = 0;
 	u64 kernel_reserved = 0;
 	u64 aperture_size = 0;
+	u64 user_vma = 0;
 	bool big_pages = true;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
@@ -910,14 +911,15 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	low_hole = SZ_1M * 64;
 	aperture_size = 128 * SZ_1G;
 	kernel_reserved = 4 * SZ_1G - low_hole;
+	user_vma = aperture_size - low_hole - kernel_reserved;
 
 	/* Error injection to make the allocation for struct vm_gk20a to fail */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
 	vm = nvgpu_vm_init(g,
 			   g->ops.mm.gmmu.get_default_big_page_size(),
 			   low_hole,
+			   user_vma,
 			   kernel_reserved,
-			   aperture_size,
 			   big_pages,
 			   false,
 			   true,
@@ -935,14 +937,14 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	 */
 	if (!EXPECT_BUG(
 		nvgpu_vm_init(g,
-			   g->ops.mm.gmmu.get_default_big_page_size(),
-			   low_hole,
-			   kernel_reserved,
-			   0, /* invalid aperture size */
-			   big_pages,
-			   false,
-			   true,
-			   __func__)
+			g->ops.mm.gmmu.get_default_big_page_size(),
+			low_hole,
+			user_vma,
+			NV_MM_DEFAULT_APERTURE_SIZE, /* invalid aperture size */
+			big_pages,
+			false,
+			true,
+			__func__)
 	)) {
 		unit_err(m, "BUG() was not called but it was expected (2).\n");
 		ret = UNIT_FAIL;
@@ -955,7 +957,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	if (!EXPECT_BUG(
 		nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, false, true, __func__)
 	)) {
 		unit_err(m, "BUG() was not called but it was expected (3).\n");
@@ -968,7 +970,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	g->is_virtual = true;
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, true, true, __func__);
 	g->is_virtual = false;
 	if (ret != -ENOSYS) {
@@ -981,7 +983,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	g->ops.mm.vm_as_alloc_share = hal_vm_as_alloc_share_error;
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, true, true, __func__);
 	g->ops.mm.vm_as_alloc_share = hal_vm_as_alloc_share_success;
 	if (ret != -1) {
@@ -995,7 +997,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	if (!EXPECT_BUG(
 		nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, false, false, __func__)
 	)) {
 		unit_err(m, "BUG() was not called but it was expected (6).\n");
@@ -1008,7 +1010,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, false, true, __func__);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
@@ -1021,7 +1023,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 5);
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, false, true, __func__);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
@@ -1034,7 +1036,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 12);
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, false, false, __func__);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
@@ -1047,7 +1049,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 17);
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, false, false, __func__);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
@@ -1061,7 +1063,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				nvgpu_gmmu_va_small_page_limit(),
-				0, aperture_size, big_pages, false, false,
+				((u64)SZ_1G * 200U), 0, big_pages, false, false,
 				__func__);
 	vm->guest_managed = false;
 	if (ret != -EINVAL) {
@@ -1073,7 +1075,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	/* Cause nvgpu_vm_init_vma_allocators to fail for long vm name */
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, false, false,
 				"very_long_vm_name_to_fail_vm_init");
 	if (ret != -EINVAL) {
@@ -1085,7 +1087,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	/* Success with big pages and not unified VA */
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				big_pages, false, false, __func__);
 	if (ret != 0) {
 		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (B).\n");
@@ -1096,7 +1098,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	/* Success with big pages disabled */
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, kernel_reserved, aperture_size,
+				low_hole, user_vma, kernel_reserved,
 				false, false, false, __func__);
 	if (ret != 0) {
 		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (C).\n");
@@ -1108,7 +1110,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				nvgpu_gmmu_va_small_page_limit(),
-				kernel_reserved, aperture_size, big_pages,
+				0ULL, kernel_reserved, big_pages,
 				false, false, __func__);
 	if (ret != 0) {
 		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (D).\n");
@@ -1192,8 +1194,8 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 	vm = nvgpu_vm_init(g,
 			   g->ops.mm.gmmu.get_default_big_page_size(),
 			   low_hole,
+			   user_vma,
 			   kernel_reserved,
-			   aperture_size,
 			   big_pages,
 			   false,
 			   true,
@@ -1429,7 +1431,6 @@ int test_map_buf_gpu_va(struct unit_module *m,
 	aperture_size = 128 * SZ_1G;
 	kernel_reserved = 4 * SZ_1G - low_hole;
 	user_vma = aperture_size - low_hole - kernel_reserved;
-	user_vma_limit = aperture_size - kernel_reserved;
 	unit_info(m, "Initializing VM:\n");
 	unit_info(m, "   - Low Hole Size = 0x%llx\n", low_hole);
 	unit_info(m, "   - User Aperture Size = 0x%llx\n", user_vma);
@@ -1438,8 +1439,8 @@ int test_map_buf_gpu_va(struct unit_module *m,
 	vm = nvgpu_vm_init(g,
 			   g->ops.mm.gmmu.get_default_big_page_size(),
 			   low_hole,
+			   user_vma,
 			   kernel_reserved,
-			   aperture_size,
 			   big_pages,
 			   false,
 			   true,
@@ -1458,7 +1459,9 @@ int test_map_buf_gpu_va(struct unit_module *m,
 	 * Calculate a valid base GPU VA for the buffer. We're multiplying
 	 * buf_size by 10 just to be on the safe side.
 	 */
+	user_vma_limit = nvgpu_alloc_end(&vm->user);
 	gpu_va = user_vma_limit - buf_size*10;
+	unit_info(m, "   - user_vma_limit = 0x%llx\n", user_vma_limit);
 	unit_info(m, "Mapping Buffer:\n");
 	unit_info(m, "   - CPU PA = 0x%llx\n", BUF_CPU_PA);
 	unit_info(m, "   - GPU VA = 0x%llx\n", gpu_va);
@@ -1708,8 +1711,8 @@ int test_batch(struct unit_module *m, struct gk20a *g, void *__args)
 	vm = nvgpu_vm_init(g,
 			   g->ops.mm.gmmu.get_default_big_page_size(),
 			   low_hole,
+			   user_vma,
 			   kernel_reserved,
-			   aperture_size,
 			   big_pages,
 			   false,
 			   true,
@@ -1881,7 +1884,7 @@ int test_vm_area_error_cases(struct unit_module *m, struct gk20a *g,
 	}
 
 	/* Failure: Dynamic allocation in nvgpu_vm_area_alloc_gmmu_map fails */
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 33);
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 25);
 	ret = nvgpu_vm_area_alloc(vm, 10, SZ_4K, &gpu_va,
 		NVGPU_VM_AREA_ALLOC_SPARSE);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);

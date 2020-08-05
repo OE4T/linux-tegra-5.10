@@ -205,8 +205,8 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 
 	mm->pmu.vm = nvgpu_vm_init(g, big_page_size,
 				   low_hole,
+				   0ULL,
 				   nvgpu_safe_sub_u64(aperture_size, low_hole),
-				   aperture_size,
 				   true,
 				   false,
 				   false,
@@ -249,10 +249,11 @@ static int nvgpu_init_cde_vm(struct mm_gk20a *mm)
 	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	mm->cde.vm = nvgpu_vm_init(g, big_page_size,
-				   U64(big_page_size) << U64(10),
-				   NV_MM_DEFAULT_KERNEL_SIZE,
-				   NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
-				   false, false, false, "cde");
+				U64(big_page_size) << U64(10),
+				nvgpu_safe_sub_u64(NV_MM_DEFAULT_USER_SIZE,
+					U64(big_page_size) << U64(10)),
+				NV_MM_DEFAULT_KERNEL_SIZE,
+				false, false, false, "cde");
 	if (mm->cde.vm == NULL) {
 		return -ENOMEM;
 	}
@@ -265,10 +266,11 @@ static int nvgpu_init_ce_vm(struct mm_gk20a *mm)
 	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	mm->ce.vm = nvgpu_vm_init(g, big_page_size,
-				  U64(big_page_size) << U64(10),
-				  NV_MM_DEFAULT_KERNEL_SIZE,
-				  NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
-				  false, false, false, "ce");
+				U64(big_page_size) << U64(10),
+				nvgpu_safe_sub_u64(NV_MM_DEFAULT_USER_SIZE,
+					U64(big_page_size) << U64(10)),
+				NV_MM_DEFAULT_KERNEL_SIZE,
+				false, false, false, "ce");
 	if (mm->ce.vm == NULL) {
 		return -ENOMEM;
 	}
@@ -330,13 +332,13 @@ static int nvgpu_init_bar1_vm(struct mm_gk20a *mm)
 	mm->bar1.aperture_size = bar1_aperture_size_mb_gk20a() << 20;
 	nvgpu_log_info(g, "bar1 vm size = 0x%x", mm->bar1.aperture_size);
 	mm->bar1.vm = nvgpu_vm_init(g,
-				    big_page_size,
-				    SZ_64K,
-				    nvgpu_safe_sub_u64(mm->bar1.aperture_size,
-						       SZ_64K),
-				    mm->bar1.aperture_size,
-				    true, false, false,
-				    "bar1");
+				big_page_size,
+				SZ_64K,
+				0ULL,
+				nvgpu_safe_sub_u64(mm->bar1.aperture_size,
+					SZ_64K),
+				true, false, false,
+				"bar1");
 	if (mm->bar1.vm == NULL) {
 		return -ENOMEM;
 	}
@@ -367,8 +369,9 @@ static int nvgpu_init_engine_ucode_vm(struct gk20a *g,
 		ucode->aperture_size);
 
 	ucode->vm = nvgpu_vm_init(g, big_page_size, SZ_4K,
-		nvgpu_safe_sub_u64(ucode->aperture_size, SZ_4K),
-		ucode->aperture_size, false, false, false, address_space_name);
+		0ULL, nvgpu_safe_sub_u64(ucode->aperture_size, SZ_4K),
+		false, false, false,
+		address_space_name);
 	if (ucode->vm == NULL) {
 		return -ENOMEM;
 	}
@@ -504,8 +507,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	nvgpu_mutex_init(&mm->l2_op_lock);
 
 	/*TBD: make channel vm size configurable */
-	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE -
-		NV_MM_DEFAULT_KERNEL_SIZE;
+	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE;
 	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
 
 	nvgpu_log_info(g, "channel vm size: user %uMB  kernel %uMB",

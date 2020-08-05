@@ -144,6 +144,7 @@ int test_update_gmmu_pde3_locked(struct unit_module *m,
 	unit_assert(g->mm.pd_cache == NULL, goto done);
 
 	vm.mm = &g->mm;
+	vm.mm->g = g;
 	err = nvgpu_pd_cache_init(g);
 	unit_assert(err == 0, goto done);
 

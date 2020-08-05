@@ -188,16 +188,15 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	low_hole = SZ_4K * 16UL;
 	aperture_size = GK20A_PMU_VA_SIZE;
 	mm->pmu.aperture_size = GK20A_PMU_VA_SIZE;
-	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE -
-					NV_MM_DEFAULT_KERNEL_SIZE;
+	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE;
 	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
 
 
 	mm->pmu.vm = nvgpu_vm_init(g,
 				   g->ops.mm.gmmu.get_default_big_page_size(),
 				   low_hole,
-				   aperture_size - low_hole,
-				   aperture_size,
+				   0ULL,
+				   nvgpu_safe_sub_u64(aperture_size, low_hole),
 				   true,
 				   false,
 				   false,
@@ -538,7 +537,7 @@ int test_mm_dma_alloc_map_fault_injection(struct unit_module *m,
 	 * nvgpu_dma_alloc_flags_sys function
 	 */
 	kmem_fi = nvgpu_kmem_get_fault_injection();
-	nvgpu_posix_enable_fault_injection(kmem_fi, true, 5);
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
 
 	err = nvgpu_dma_alloc_map(g->mm.pmu.vm, SZ_4K, mem);
 	if (err == 0) {
