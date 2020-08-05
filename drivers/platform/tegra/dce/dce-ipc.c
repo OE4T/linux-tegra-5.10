@@ -174,7 +174,7 @@ static void dce_ipc_signal_target(struct ivc *ivc)
 	ch->signal.notify(ch->d, &ch->signal.to_d);
 }
 
-static int dce_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
+static int _dce_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
 {
 	int ret = 0;
 	struct dce_ipc_channel *ch;
@@ -191,8 +191,6 @@ static int dce_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
 		goto out;
 	}
 
-	dce_mutex_lock(&ch->lock);
-
 	ch->w_type = w_type;
 
 	dce_mutex_unlock(&ch->lock);
@@ -207,7 +205,6 @@ static int dce_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
 	ch->w_type = DCE_IPC_WAIT_TYPE_INVALID;
 
 out:
-	dce_mutex_unlock(&ch->lock);
 	return ret;
 }
 
@@ -429,11 +426,7 @@ void dce_ipc_channel_reset(struct tegra_dce *d, u32 ch_type)
 
 	ch->flags &= ~DCE_IPC_CHANNEL_SYNCED;
 
-	dce_mutex_unlock(&ch->lock);
-
-	dce_ipc_wait(ch->d, DCE_IPC_WAIT_TYPE_SYNC, ch_type);
-
-	dce_mutex_lock(&ch->lock);
+	_dce_ipc_wait(ch->d, DCE_IPC_WAIT_TYPE_SYNC, ch_type);
 
 	ch->flags |= DCE_IPC_CHANNEL_SYNCED;
 
@@ -651,7 +644,9 @@ int dce_ipc_send_message_sync(struct tegra_dce *d, u32 ch_type,
 		goto done;
 	}
 
-	ret = dce_ipc_wait(ch->d, DCE_IPC_WAIT_TYPE_RPC, ch_type);
+	dce_mutex_lock(&ch->lock);
+	ret = _dce_ipc_wait(ch->d, DCE_IPC_WAIT_TYPE_RPC, ch_type);
+	dce_mutex_unlock(&ch->lock);
 	if (ret) {
 		dce_err(ch->d, "Error in waiting for ack");
 		goto done;

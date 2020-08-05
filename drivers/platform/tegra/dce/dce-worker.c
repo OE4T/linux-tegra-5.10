@@ -53,8 +53,12 @@ void dce_worker_thread_wait(struct tegra_dce *d,
 	enum dce_worker_state new_state;
 	struct dce_worker_info *w = &d->wrk_info;
 
+	dce_mutex_lock(&w->lock);
+
 	if (w->state_changed == true) {
+		w->state_changed = false;
 		dce_warn(d, "Unexpected state_changed value");
+		dce_mutex_unlock(&w->lock);
 		return;
 	}
 
@@ -81,12 +85,13 @@ void dce_worker_thread_wait(struct tegra_dce *d,
 		return;
 	}
 
-	dce_mutex_lock(&w->lock);
 	w->c_state = new_state;
 	dce_mutex_unlock(&w->lock);
 
 	if (new_state == STATE_DCE_WORKER_BOOT_WAIT)
 		timeout_val_ms = 1000;
+
+	dce_mutex_unlock(&w->lock);
 
 	ret = DCE_COND_WAIT_INTERRUPTIBLE(&w->cond,
 				dce_worker_wakeup_cond(d),
@@ -119,18 +124,16 @@ void dce_worker_thread_wakeup(struct tegra_dce *d,
 	struct dce_worker_info *w = &d->wrk_info;
 	enum dce_worker_state new_state = w->c_state;
 
-	if (w->state_changed == true) {
+	dce_mutex_lock(&w->lock);
+
+	if (w->state_changed == true)
 		dce_warn(d, "Unexpected state_changed value");
-		dce_mutex_unlock(&w->lock);
-		return;
-	}
 
 	switch (event) {
 	case EVENT_ID_DCE_IPC_SIGNAL_RECEIVED:
 		if (w->c_state != STATE_DCE_WORKER_WFI) {
 			dce_warn(d, "Unexpected wakeup event rcvd: [%d]. Cur State: [%d]",
 					event, w->c_state);
-			return;
 		}
 		new_state = STATE_DCE_WORKER_IDLE;
 		break;
@@ -160,7 +163,6 @@ void dce_worker_thread_wakeup(struct tegra_dce *d,
 		return;
 	}
 
-	dce_mutex_lock(&w->lock);
 	w->c_state = new_state;
 	w->state_changed = true;
 	dce_mutex_unlock(&w->lock);
