@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,8 +41,8 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 	u32 offset_in_segment = 0;
 	u32 num_pes_per_gpc = nvgpu_get_litter_value(g,
 				GPU_LIT_NUM_PES_PER_GPC);
-	u32 tpc_count = nvgpu_netlist_get_tpc_ctxsw_regs(g)->count;
-	u32 gpc_count = nvgpu_netlist_get_gpc_ctxsw_regs(g)->count;
+	u32 tpc_count = nvgpu_netlist_get_tpc_ctxsw_regs_count(g);
+	u32 gpc_count = nvgpu_netlist_get_gpc_ctxsw_regs_count(g);
 
 	if (addr_type == CTXSW_ADDR_TYPE_TPC) {
 		/*

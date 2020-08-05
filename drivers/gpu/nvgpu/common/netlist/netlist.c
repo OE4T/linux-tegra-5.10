@@ -901,6 +901,18 @@ u32 nvgpu_netlist_get_ppc_ctxsw_regs_count(struct gk20a *g)
 	return count;
 }
 
+u32 nvgpu_netlist_get_gpc_ctxsw_regs_count(struct gk20a *g)
+{
+	u32 count = nvgpu_netlist_get_gpc_ctxsw_regs(g)->count;
+
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (count == 0U) {
+		count = nvgpu_next_netlist_get_gpc_ctxsw_regs_count(g);
+	}
+#endif
+	return count;
+}
+
 u32 nvgpu_netlist_get_tpc_ctxsw_regs_count(struct gk20a *g)
 {
 	u32 count = nvgpu_netlist_get_tpc_ctxsw_regs(g)->count;
