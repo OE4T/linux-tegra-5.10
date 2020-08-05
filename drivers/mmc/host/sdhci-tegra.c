@@ -40,6 +40,9 @@
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 
+#include <linux/uaccess.h>
+#include <linux/fs.h>
+
 #include "sdhci-pltfm.h"
 #include "cqhci.h"
 
@@ -231,6 +234,10 @@ struct sdhci_tegra {
 	u8 uhs_mask;
 	bool force_non_rem_rescan;
 	int volt_switch_gpio;
+	unsigned int cd_irq;
+	int cd_gpio;
+	bool cd_wakeup_capable;
+	bool is_rail_enabled;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -1144,6 +1151,11 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 	tegra_host->force_non_rem_rescan =
 		device_property_read_bool(host->mmc->parent,
 		"force-non-removable-rescan");
+	tegra_host->cd_wakeup_capable = 
+			device_property_read_bool(host->mmc->parent,
+					"nvidia,cd-wakeup-capable");
+	host->mmc->cd_cap_invert = device_property_read_bool(host->mmc->parent,
+								"cd-inverted");
 }
 
 static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
@@ -2152,6 +2164,38 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 				"3.3V set initially by voltage switch gpio\n");
 	}
 
+	tegra_host->cd_gpio = of_get_named_gpio(np, "cd-gpios", 0);
+	if (gpio_is_valid(tegra_host->cd_gpio) &&
+			tegra_host->cd_wakeup_capable) {
+		tegra_host->cd_irq = gpio_to_irq(tegra_host->cd_gpio);
+		if (tegra_host->cd_irq <= 0) {
+			dev_err(mmc_dev(host->mmc),
+				"failed to get gpio irq %d\n",
+				tegra_host->cd_irq);
+			tegra_host->cd_irq = 0;
+		} else {
+			device_init_wakeup(&pdev->dev, 1);
+			dev_info(mmc_dev(host->mmc),
+				"wakeup init done, cdirq %d\n",
+				tegra_host->cd_irq);
+		}
+	}
+
+	/*
+	 * If there is no card detect gpio, assume that the
+	 * card is always present.
+	 */
+	if (!gpio_is_valid(tegra_host->cd_gpio)) {
+		host->mmc->rem_card_present = 1;
+	} else {
+		if (!host->mmc->cd_cap_invert)
+			host->mmc->rem_card_present =
+				(mmc_gpio_get_cd(host->mmc) == 0);
+		else
+			host->mmc->rem_card_present =
+				mmc_gpio_get_cd(host->mmc);
+	}
+
 	rc = sdhci_tegra_add_host(host);
 	if (rc)
 		goto err_add_host;
@@ -2243,6 +2287,132 @@ disable_clk:
 }
 #endif
 
+static int sdhci_tegra_card_detect(struct sdhci_host *host, bool req)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	bool card_present = false;
+	int err = 0;
+
+	if (!(host->mmc->caps & MMC_CAP_NONREMOVABLE))
+		if (host->mmc->rem_card_present)
+			card_present = true;
+	/* Check if card is inserted physically before performing */
+	if (gpio_is_valid(tegra_host->cd_gpio)) {
+		if ((mmc_gpio_get_cd(host->mmc)  == 1) &&
+			(!host->mmc->cd_cap_invert)) {
+			err = -ENXIO;
+			dev_err(mmc_dev(host->mmc),
+				"Card not inserted in slot\n");
+			goto err_config;
+		} else if ((mmc_gpio_get_cd(host->mmc)  == 0) &&
+				(host->mmc->cd_cap_invert)) {
+			err = -ENXIO;
+			dev_err(mmc_dev(host->mmc),
+				"Card not inserted in slot\n");
+			goto err_config;
+		}
+	}
+
+	/* Ignore the request if card already in requested state */
+	if (card_present == req) {
+		dev_info(mmc_dev(host->mmc),
+			"Card already in requested state\n");
+		goto err_config;
+	} else {
+		card_present = req;
+	}
+
+	if (card_present) {
+		/* Virtual card insertion */
+		host->mmc->rem_card_present = true;
+		host->mmc->rescan_disable = 0;
+		/* If vqmmc regulator and no 1.8V signalling,
+		 *  then there's no UHS
+		 */
+		if (!IS_ERR(host->mmc->supply.vqmmc)) {
+			err = regulator_enable(host->mmc->supply.vqmmc);
+			if (err) {
+				pr_warn("%s: Failed to enable vqmmc regulator: %d\n",
+					mmc_hostname(host->mmc), err);
+				host->mmc->supply.vqmmc = ERR_PTR(-EINVAL);
+				goto err_config;
+			}
+			tegra_host->is_rail_enabled = true;
+		}
+		/* If vmmc regulator and no 1.8V signalling,
+		 * then there's no UHS
+		 */
+		if (!IS_ERR(host->mmc->supply.vmmc)) {
+			err = regulator_enable(host->mmc->supply.vmmc);
+			if (err) {
+				pr_warn("%s: Failed to enable vmmc regulator; %d\n",
+					mmc_hostname(host->mmc), err);
+				host->mmc->supply.vmmc = ERR_PTR(-EINVAL);
+				goto err_config;
+			}
+			tegra_host->is_rail_enabled = true;
+		}
+	} else {
+		/* Virtual card removal */
+		host->mmc->rem_card_present = false;
+		host->mmc->rescan_disable = 0;
+		if (tegra_host->is_rail_enabled) {
+			if (!IS_ERR(host->mmc->supply.vqmmc))
+				regulator_disable(host->mmc->supply.vqmmc);
+			if (!IS_ERR(host->mmc->supply.vmmc))
+				regulator_disable(host->mmc->supply.vmmc);
+			tegra_host->is_rail_enabled = false;
+		}
+	}
+	host->mmc->trigger_card_event = true;
+	mmc_detect_change(host->mmc, msecs_to_jiffies(200));
+
+err_config:
+	return err;
+}
+
+static int get_card_insert(void *data, u64 *val)
+{
+	struct sdhci_host *host = data;
+
+	*val = host->mmc->rem_card_present;
+
+	return 0;
+}
+
+static int set_card_insert(void *data, u64 val)
+{
+	struct sdhci_host *host = data;
+	int err = 0;
+
+	if (val > 1) {
+		err = -EINVAL;
+		dev_err(mmc_dev(host->mmc),
+			"Usage error. Use 0 to remove, 1 to insert %d\n", err);
+		goto err_detect;
+	}
+
+	if (host->mmc->caps & MMC_CAP_NONREMOVABLE) {
+		err = -EINVAL;
+		dev_err(mmc_dev(host->mmc),
+			"usage error, Supports SDCARD hosts only %d\n", err);
+		goto err_detect;
+	}
+
+	err = sdhci_tegra_card_detect(host, val);
+
+err_detect:
+	return err;
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(sdhci_tegra_card_insert_fops, get_card_insert,
+	set_card_insert, "%llu\n");
+
+
+
+
+
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
@@ -2269,11 +2439,27 @@ static void sdhci_tegra_debugfs_init(struct sdhci_host *host)
 		&tegra_host->curr_clk_rate);
 	if (!retval)
 		goto err;
+	
+	/* backup original host timing capabilities as
+	 * debugfs may override it later
+	 */
+	host->caps_timing_orig = host->mmc->caps &
+				(MMC_CAP_SD_HIGHSPEED | MMC_CAP_UHS_DDR50
+				 | MMC_CAP_UHS_SDR12 | MMC_CAP_UHS_SDR25
+				 | MMC_CAP_UHS_SDR50 | MMC_CAP_UHS_SDR104);
+
+	retval = debugfs_create_file("card_insert", S_IRUSR | S_IWUSR,
+			sdhcidir, host, &sdhci_tegra_card_insert_fops);
+
+	if (!retval)
+		goto err;
 
 	return;
 err:
 	debugfs_remove_recursive(sdhcidir);
 	sdhcidir = NULL;
+	dev_err(mmc_dev(host->mmc), "%s %s\n"
+		, __func__, mmc_hostname(host->mmc));
 	return;
 }
 
