@@ -25,6 +25,9 @@
 #include <linux/types.h>
 #include "tegra23x_psc.h"
 
+/* EXT_CFG register offset */
+#define EXT_CFG_SIDTABLE 0x0
+#define EXT_CFG_SIDCONFIG 0x4
 
 #define MBOX_MSG_LEN 64
 
@@ -329,6 +332,42 @@ static void psc_chan_rx_callback(struct mbox_client *c, void *msg)
 	wake_up_interruptible(&dbg->read_wait);
 }
 
+#define NV(x) "nvidia," #x
+
+static int
+setup_extcfg(struct platform_device *pdev, struct psc_debug_dev *dbg,
+	struct dentry *root)
+{
+	struct device_node *np = pdev->dev.of_node;
+	struct resource *res;
+	void __iomem *base;
+	u32 value;
+
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "extcfg");
+	base = devm_ioremap_resource(&pdev->dev, res);
+	if (IS_ERR(base))
+		return -EINVAL;
+
+	dev_info(&pdev->dev, "ext_cfg base:%p\n", base);
+
+	if (!of_property_read_u8_array(np, NV(sidtable),
+				(u8 *)&value, sizeof(value))) {
+		dev_dbg(&pdev->dev, "sidtable:%08x\n", value);
+		writel(value, base + EXT_CFG_SIDTABLE);
+		debugfs_create_x32("sidtable", 0644, root,
+				(u32 *)(base + EXT_CFG_SIDTABLE));
+
+	}
+	if (!of_property_read_u32(np, NV(sidconfig), &value)) {
+		dev_dbg(&pdev->dev, "sidcfg:%08x\n", value);
+		writel(value, base + EXT_CFG_SIDCONFIG);
+		debugfs_create_x32("sidcfg", 0644, root,
+				(u32 *)(base + EXT_CFG_SIDCONFIG));
+	}
+
+	return 0;
+}
+
 int psc_debugfs_create(struct platform_device *pdev)
 {
 	struct psc_debug_dev *dbg = &psc_debug;
@@ -351,18 +390,23 @@ int psc_debugfs_create(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	debugfs_create_file("mbox_dbg", 0600, debugfs_root,
-			dbg, &psc_debug_fops);
-
 	dbg->cl.dev = dev;
 	dbg->cl.rx_callback = psc_chan_rx_callback;
 	dbg->cl.tx_block = true;
-	dbg->cl.tx_tout = 2000;
+	dbg->cl.tx_tout = DEFAULT_TX_TIMEOUT;
 	dbg->cl.knows_txdone = false;
 	dbg->pdev = pdev;
 
 	init_waitqueue_head(&dbg->read_wait);
 	mutex_init(&dbg->lock);
+
+	debugfs_create_x64("tx_timeout", 0644, debugfs_root,
+			(u64 *)&dbg->cl.tx_tout);
+	debugfs_create_file("mbox_dbg", 0600, debugfs_root,
+			dbg, &psc_debug_fops);
+
+	setup_extcfg(pdev, dbg, debugfs_root);
+
 
 	return 0;
 }
