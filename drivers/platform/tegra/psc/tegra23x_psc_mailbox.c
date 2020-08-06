@@ -70,7 +70,7 @@ static irqreturn_t  psc_mbox_rx_interrupt(int irq, void *p)
 	/* not a valid case but it does happen. */
 	if ((psc_ctrl & MBOX_OUT_VALID) == 0) {
 		ext_ctrl = readl(vm_chan->base + MBOX_CHAN_EXT_CTRL);
-		dev_err(dev, "invalid interrupt, psc_ctrl: 0x%08x ext_ctrl: 0x%08x\n",
+		dev_err_once(dev, "invalid interrupt, psc_ctrl: 0x%08x ext_ctrl: 0x%08x\n",
 			psc_ctrl, ext_ctrl);
 		return IRQ_HANDLED;
 	}
