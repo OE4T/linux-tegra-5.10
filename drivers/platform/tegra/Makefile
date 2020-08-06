@@ -59,9 +59,7 @@ ifeq ($(CONFIG_CPU_FREQ),y)
 obj-$(CONFIG_ARCH_TEGRA_21x_SOC) += cpu_emc.o
 endif
 
-ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_18x_SOC) $(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_186_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
-obj-y += cache/
-endif
+obj-$(CONFIG_TEGRA_CACHE) += cache/
 ifdef CONFIG_ARCH_TEGRA_19x_SOC
 obj-y += cvnas.o
 obj-$(CONFIG_ARCH_TEGRA_210_SOC) += mselect.o

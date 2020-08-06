@@ -122,6 +122,12 @@ config TEGRA_MCE
 	  Enable Tegra MCE driver for various power state and cache
 	  management support operations.
 
+config TEGRA_CACHE
+	bool "Enable Tegra Cache Driver"
+	default y if (ARCH_TEGRA_18x_SOC || ARCH_TEGRA_19x_SOC || ARCH_TEGRA_23x_SOC)
+	help
+	  Enable Tegra Cache driver for Various cache operations.
+
 config TEGRA_OF_MCERR
         bool "Tegra MCERR OF"
         default y

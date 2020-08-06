@@ -679,7 +679,8 @@ static int __init t19x_cache_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	int ret = 0;
 
-	if (!tegra_platform_is_silicon()) {
+	if (!tegra_platform_is_silicon() &&
+			!tegra_platform_is_fpga()) {
 		dev_err(dev, "is not supported on this platform\n");
 		return -EPERM;
 	}
