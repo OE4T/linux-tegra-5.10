@@ -1857,7 +1857,6 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			}
 			break;
 		case NVGPU_GR_ZBC_TYPE_DEPTH:
-		case NVGPU_GR_ZBC_TYPE_STENCIL:
 			nvgpu_gr_zbc_set_entry_depth(zbc_val,
 					set_table_args->depth);
 			break;
@@ -1898,7 +1897,6 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 				}
 				break;
 			case NVGPU_GR_ZBC_TYPE_DEPTH:
-			case NVGPU_GR_ZBC_TYPE_STENCIL:
 				query_table_args->depth = zbc_tbl->depth;
 				break;
 			case NVGPU_GR_ZBC_TYPE_INVALID:
