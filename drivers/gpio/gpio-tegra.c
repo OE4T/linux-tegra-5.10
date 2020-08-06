@@ -344,8 +344,11 @@ static int tegra_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 
 	spin_unlock_irqrestore(&bank->lvl_lock[port], flags);
 
-	tegra_gpio_mask_write(tgi, GPIO_MSK_OE(tgi, gpio), gpio, 0);
-	tegra_gpio_enable(tgi, gpio);
+	ret = tegra_gpio_direction_input(&tgi->gc, gpio);
+	if (ret) {
+		gpiochip_unlock_as_irq(&tgi->gc, gpio);
+		return ret;
+	}
 
 	ret = gpiochip_lock_as_irq(&tgi->gc, gpio);
 	if (ret) {
