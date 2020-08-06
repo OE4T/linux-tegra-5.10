@@ -88,6 +88,43 @@ void gv11b_perf_disable_membuf(struct gk20a *g)
 	nvgpu_writel(g, perf_pmasys_outsize_r(), 0);
 }
 
+void gv11b_perf_bind_mem_bytes_buffer_addr(struct gk20a *g, u64 buf_addr)
+{
+	u32 addr_lo;
+
+	buf_addr = buf_addr >> perf_pmasys_mem_bytes_addr_ptr_b();
+	addr_lo = nvgpu_safe_cast_u64_to_u32(buf_addr);
+
+	nvgpu_writel(g, perf_pmasys_mem_bytes_addr_r(),
+		perf_pmasys_mem_bytes_addr_ptr_f(addr_lo));
+}
+
+int gv11b_perf_update_get_put(struct gk20a *g, u64 bytes_consumed,
+		bool update_available_bytes, u64 *put_ptr,
+		bool *overflowed)
+{
+	u32 val;
+
+	nvgpu_writel(g, perf_pmasys_mem_bump_r(), bytes_consumed);
+
+	if (update_available_bytes) {
+		val = nvgpu_readl(g, perf_pmasys_control_r());
+		val = set_field(val, perf_pmasys_control_update_bytes_m(),
+				     perf_pmasys_control_update_bytes_doit_f());
+		nvgpu_writel(g, perf_pmasys_control_r(), val);
+	}
+
+	if (put_ptr) {
+		*put_ptr = (u64)nvgpu_readl(g, perf_pmasys_mem_head_r());
+	}
+
+	if (overflowed) {
+		*overflowed = g->ops.perf.get_membuf_overflow_status(g);
+	}
+
+	return 0;
+}
+
 void gv11b_perf_init_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
 {
 	u32 inst_block_ptr = nvgpu_inst_block_ptr(g, inst_block);

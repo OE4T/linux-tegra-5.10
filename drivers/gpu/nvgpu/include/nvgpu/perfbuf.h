@@ -38,5 +38,8 @@ void nvgpu_perfbuf_deinit_vm(struct gk20a *g);
 int nvgpu_perfbuf_init_inst_block(struct gk20a *g);
 void nvgpu_perfbuf_deinit_inst_block(struct gk20a *g);
 
+int nvgpu_perfbuf_update_get_put(struct gk20a *g, u64 bytes_consumed, u64 *bytes_available,
+		void *cpuva, bool wait, u64 *put_ptr, bool *overflowed);
+
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif

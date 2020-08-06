@@ -46,6 +46,7 @@ struct gops_debugger {
 struct gops_perf {
 	void (*enable_membuf)(struct gk20a *g, u32 size, u64 buf_addr);
 	void (*disable_membuf)(struct gk20a *g);
+	void (*bind_mem_bytes_buffer_addr)(struct gk20a *g, u64 buf_addr);
 	void (*init_inst_block)(struct gk20a *g,
 		struct nvgpu_mem *inst_block);
 	void (*deinit_inst_block)(struct gk20a *g);
@@ -57,12 +58,16 @@ struct gops_perf {
 	u32 (*get_pmmsys_per_chiplet_offset)(void);
 	u32 (*get_pmmgpc_per_chiplet_offset)(void);
 	u32 (*get_pmmfbp_per_chiplet_offset)(void);
+	int (*update_get_put)(struct gk20a *g, u64 bytes_consumed,
+		bool update_available_bytes, u64 *put_ptr, bool *overflowed);
 };
 struct gops_perfbuf {
 	int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);
 	int (*perfbuf_disable)(struct gk20a *g);
 	int (*init_inst_block)(struct gk20a *g);
 	void (*deinit_inst_block)(struct gk20a *g);
+	int (*update_get_put)(struct gk20a *g, u64 bytes_consumed, u64 *bytes_available,
+		void *cpuva, bool wait, u64 *put_ptr, bool *overflowed);
 };
 #endif
 

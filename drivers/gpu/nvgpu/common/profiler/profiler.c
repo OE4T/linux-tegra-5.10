@@ -345,6 +345,7 @@ static int nvgpu_profiler_bind_hwpm_streamout(struct nvgpu_profiler_object *prof
 		return err;
 	}
 
+	g->ops.perf.bind_mem_bytes_buffer_addr(g, prof->pma_bytes_available_buffer_va);
 	return 0;
 }
 
@@ -352,6 +353,8 @@ static int nvgpu_profiler_unbind_hwpm_streamout(struct nvgpu_profiler_object *pr
 {
 	struct gk20a *g = prof->g;
 	int err;
+
+	g->ops.perf.bind_mem_bytes_buffer_addr(g, 0ULL);
 
 	err = g->ops.perfbuf.perfbuf_disable(g);
 	if (err) {

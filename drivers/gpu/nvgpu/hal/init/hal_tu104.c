@@ -1282,6 +1282,7 @@ static const struct gops_debugger tu104_ops_debugger = {
 static const struct gops_perf tu104_ops_perf = {
 	.enable_membuf = gv11b_perf_enable_membuf,
 	.disable_membuf = gv11b_perf_disable_membuf,
+	.bind_mem_bytes_buffer_addr = gv11b_perf_bind_mem_bytes_buffer_addr,
 	.init_inst_block = gv11b_perf_init_inst_block,
 	.deinit_inst_block = gv11b_perf_deinit_inst_block,
 	.membuf_reset_streaming = gv11b_perf_membuf_reset_streaming,
@@ -1291,6 +1292,7 @@ static const struct gops_perf tu104_ops_perf = {
 	.get_pmmsys_per_chiplet_offset = gv11b_perf_get_pmmsys_per_chiplet_offset,
 	.get_pmmgpc_per_chiplet_offset = gv11b_perf_get_pmmgpc_per_chiplet_offset,
 	.get_pmmfbp_per_chiplet_offset = gv11b_perf_get_pmmfbp_per_chiplet_offset,
+	.update_get_put = gv11b_perf_update_get_put,
 };
 #endif
 
@@ -1300,6 +1302,7 @@ static const struct gops_perfbuf tu104_ops_perfbuf = {
 	.perfbuf_disable = nvgpu_perfbuf_disable_locked,
 	.init_inst_block = nvgpu_perfbuf_init_inst_block,
 	.deinit_inst_block = nvgpu_perfbuf_deinit_inst_block,
+	.update_get_put = nvgpu_perfbuf_update_get_put,
 };
 #endif
 

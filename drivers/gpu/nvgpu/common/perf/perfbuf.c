@@ -112,3 +112,47 @@ void nvgpu_perfbuf_deinit_vm(struct gk20a *g)
 	g->ops.perfbuf.deinit_inst_block(g);
 	nvgpu_vm_put(g->mm.perfbuf.vm);
 }
+
+int nvgpu_perfbuf_update_get_put(struct gk20a *g, u64 bytes_consumed,
+		u64 *bytes_available, void *cpuva, bool wait,
+		u64 *put_ptr, bool *overflowed)
+{
+	struct nvgpu_timeout timeout;
+	int err;
+	bool update_available_bytes = (bytes_available == NULL) ? false : true;
+	volatile u32 *available_bytes_va = (u32 *)cpuva;
+
+	if (update_available_bytes) {
+		*available_bytes_va = 0xffffffff;
+	}
+
+	err = g->ops.perf.update_get_put(g, bytes_consumed,
+			update_available_bytes, put_ptr, overflowed);
+	if (err != 0) {
+		return err;
+	}
+
+	if (update_available_bytes && wait) {
+		err = nvgpu_timeout_init(g, &timeout, 10000, NVGPU_TIMER_CPU_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
+			return err;
+		}
+
+		do {
+			if (*available_bytes_va != 0xffffffff) {
+				break;
+			}
+
+			nvgpu_msleep(10);
+		} while (nvgpu_timeout_expired(&timeout) == 0);
+
+		if (*available_bytes_va == 0xffffffff) {
+			return -ETIMEDOUT;
+		}
+
+		*bytes_available = *available_bytes_va;
+	}
+
+	return 0;
+}

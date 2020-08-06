@@ -648,6 +648,45 @@ static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv
 	return err;
 }
 
+static int nvgpu_prof_ioctl_pma_stream_update_get_put(struct nvgpu_profiler_object *prof,
+		struct nvgpu_profiler_pma_stream_update_get_put_args *args)
+{
+	bool update_bytes_available = args->flags &
+		NVGPU_PROFILER_PMA_STREAM_UPDATE_GET_PUT_ARG_FLAG_UPDATE_AVAILABLE_BYTES;
+	bool wait = args->flags &
+		NVGPU_PROFILER_PMA_STREAM_UPDATE_GET_PUT_ARG_FLAG_WAIT_FOR_UPDATE;
+	bool update_put_ptr = args->flags &
+		NVGPU_PROFILER_PMA_STREAM_UPDATE_GET_PUT_ARG_FLAG_RETURN_PUT_PTR;
+	struct gk20a *g = prof->g;
+	bool overflowed;
+	int err;
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"Update PMA stream request %u: flags = 0x%x bytes_consumed=%llu",
+		prof->prof_handle, args->flags, args->bytes_consumed);
+
+	err = nvgpu_perfbuf_update_get_put(prof->g, args->bytes_consumed,
+			update_bytes_available ? &args->bytes_available : NULL,
+			prof->pma_bytes_available_buffer_cpuva, wait,
+			update_put_ptr ? &args->put_ptr : NULL,
+			&overflowed);
+	if (err != 0) {
+		return err;
+	}
+
+	if (overflowed) {
+		args->flags |=
+			NVGPU_PROFILER_PMA_STREAM_UPDATE_GET_PUT_ARG_FLAG_OVERFLOW_TRIGGERED;
+	}
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"Update PMA stream request %u complete: flags = 0x%x"
+		"bytes_available=%llu put_ptr=%llu",
+		prof->prof_handle, args->flags, args->bytes_available, args->put_ptr);
+
+	return 0;
+}
+
 long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 		unsigned long arg)
 {
@@ -718,6 +757,11 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 	case NVGPU_PROFILER_IOCTL_EXEC_REG_OPS:
 		err = nvgpu_prof_ioctl_exec_reg_ops(prof_priv,
 			(struct nvgpu_profiler_exec_reg_ops_args *)buf);
+		break;
+
+	case NVGPU_PROFILER_IOCTL_PMA_STREAM_UPDATE_GET_PUT:
+		err = nvgpu_prof_ioctl_pma_stream_update_get_put(prof,
+			(struct nvgpu_profiler_pma_stream_update_get_put_args *)buf);
 		break;
 
 	default:

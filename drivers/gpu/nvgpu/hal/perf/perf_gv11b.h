@@ -40,6 +40,11 @@ void gv11b_perf_membuf_reset_streaming(struct gk20a *g);
 void gv11b_perf_enable_membuf(struct gk20a *g, u32 size, u64 buf_addr);
 void gv11b_perf_disable_membuf(struct gk20a *g);
 
+void gv11b_perf_bind_mem_bytes_buffer_addr(struct gk20a *g, u64 buf_addr);
+
+int gv11b_perf_update_get_put(struct gk20a *g, u64 bytes_consumed, bool update_available_bytes,
+		u64 *put_ptr, bool *overflowed);
+
 void gv11b_perf_init_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block);
 void gv11b_perf_deinit_inst_block(struct gk20a *g);
 
