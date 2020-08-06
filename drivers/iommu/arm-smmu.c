@@ -1114,6 +1114,10 @@ static bool arm_smmu_free_sme(struct arm_smmu_device *smmu, int idx)
 	return true;
 }
 
+void __weak platform_override_streamid(int streamid)
+{
+}
+
 static int arm_smmu_master_alloc_smes(struct device *dev)
 {
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
@@ -1150,6 +1154,10 @@ static int arm_smmu_master_alloc_smes(struct device *dev)
 	/* It worked! Now, poke the actual hardware */
 	for_each_cfg_sme(cfg, fwspec, i, idx)
 		arm_smmu_write_sme(smmu, idx);
+
+	/* Enable stream Id override, which enables SMMU translation for dev */
+	for (i = 0; i < fwspec->num_ids; i++)
+		platform_override_streamid(fwspec->ids[i] & smmu->streamid_mask);
 
 	mutex_unlock(&smmu->stream_map_mutex);
 	return 0;
