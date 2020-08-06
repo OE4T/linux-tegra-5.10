@@ -48,6 +48,9 @@
 #define ARI_REQUEST_VALID_BIT		(1U << 8U)
 #define ARI_REQUEST_NS_BIT		(1U << 31U)
 
+/* Write Enable bit */
+#define CACHE_WAYS_WRITE_EN_BIT		(1U << 15U)
+
 static void __iomem *ari_bar_array[MAX_CPUS];
 
 static inline void ari_mmio_write_32(void __iomem *ari_base,
@@ -176,14 +179,45 @@ static int tegra23x_mce_echo_data(u64 data, u64 *matched)
 
 static int tegra23x_mce_read_l4_cache_ways(u64 *value)
 {
-	pr_info("Stub supported: tegra23x_mce_read_l4_cache_ways\n");
+	int cpu_idx;
+	u64 out;
+	int32_t ret = 0;
+
+	preempt_disable();
+	cpu_idx = get_ari_address_index();
+	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
+                               (u32)TEGRA_ARI_CCPLEX_CACHE_CONTROL, 0U, 0U);
+	if (ret)
+		return ret;
+
+	out = (u64)ari_get_response_low(ari_bar_array[cpu_idx]);
+
+	*value = out;
+	preempt_enable();
 
 	return 0;
 }
 
 static int tegra23x_mce_write_l4_cache_ways(u64 data, u64 *value)
 {
-	pr_info("Stub supported: tegra23x_mce_write_l4_cache_ways\n");
+	int cpu_idx;
+	u32 input = (u32)(data & 0x00001F1F);
+	u64 out;
+	int32_t ret = 0;
+
+	if (IS_ERR_OR_NULL(value))
+		return -EINVAL;
+
+	preempt_disable();
+	cpu_idx = get_ari_address_index();
+	input |= CACHE_WAYS_WRITE_EN_BIT;
+	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
+			(u32)TEGRA_ARI_CCPLEX_CACHE_CONTROL, input, 0U);
+	if (ret)
+		return ret;
+	out = (u64)ari_get_response_low(ari_bar_array[cpu_idx]);
+	*value = out;
+	preempt_enable();
 
 	return 0;
 }
