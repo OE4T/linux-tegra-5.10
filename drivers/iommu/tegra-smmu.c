@@ -851,6 +851,7 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 	const struct tegra_smmu_group_soc *soc;
 	struct tegra_smmu_group *group;
 	struct tegra_smmu *smmu;
+	struct iommu_group *grp;
 	bool pci = dev_is_pci(dev);
 	unsigned int swgroup;
 
@@ -872,8 +873,9 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 	list_for_each_entry(group, &smmu->groups, list)
 		if ((group->swgroup == swgroup) ||
 		    (soc && group->soc == soc)) {
+			grp = iommu_group_ref_get(group->group);
 			mutex_unlock(&smmu->lock);
-			return group->group;
+			return grp;
 		}
 
 	group = devm_kzalloc(smmu->dev, sizeof(*group), GFP_KERNEL);
