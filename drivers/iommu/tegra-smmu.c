@@ -26,6 +26,7 @@
 
 struct tegra_smmu_group {
 	struct list_head list;
+	struct tegra_smmu *smmu;
 	const struct tegra_smmu_group_soc *soc;
 	struct iommu_group *group;
 	unsigned int swgroup;
@@ -845,6 +846,16 @@ tegra_smmu_find_group(struct tegra_smmu *smmu, unsigned int swgroup)
 	return NULL;
 }
 
+static void tegra_smmu_group_release(void *iommu_data)
+{
+	struct tegra_smmu_group *group = iommu_data;
+	struct tegra_smmu *smmu = group->smmu;
+
+	mutex_lock(&smmu->lock);
+	list_del(&group->list);
+	mutex_unlock(&smmu->lock);
+}
+
 static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 {
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
@@ -886,6 +897,7 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 
 	INIT_LIST_HEAD(&group->list);
 	group->swgroup = swgroup;
+	group->smmu = smmu;
 	group->soc = soc;
 
 	group->group = pci ? pci_device_group(dev) : iommu_group_alloc();
@@ -895,6 +907,7 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 		return NULL;
 	}
 
+	iommu_group_set_iommudata(group->group, group, tegra_smmu_group_release);
 	if (soc)
 		iommu_group_set_name(group->group, soc->name);
 	list_add_tail(&group->list, &smmu->groups);
