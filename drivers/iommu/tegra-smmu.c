@@ -893,6 +893,8 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 		return NULL;
 	}
 
+	if (soc)
+		iommu_group_set_name(group->group, soc->name);
 	list_add_tail(&group->list, &smmu->groups);
 	mutex_unlock(&smmu->lock);
 
