@@ -1464,6 +1464,81 @@ static int tegra_i2c_xfer_msg(struct tegra_i2c_dev *i2c_dev,
 	return -EIO;
 }
 
+static int tegra_i2c_change_clock_rate(struct tegra_i2c_dev *i2c_dev)
+{
+	u32 val;
+	int err;
+	u32 clk_divisor, clk_multiplier;
+	u32 tsu_thd;
+	u8 tlow, thigh;
+
+	val = I2C_CNFG_NEW_MASTER_FSM | I2C_CNFG_PACKET_MODE_EN;
+	if (i2c_dev->bus_clk_rate != I2C_HS_MODE)
+		val |= FIELD_PREP(I2C_CNFG_DEBOUNCE_CNT, 2);
+
+	if (i2c_dev->hw->has_multi_master_mode)
+		val |= I2C_CNFG_MULTI_MASTER_MODE;
+
+	i2c_writel(i2c_dev, val, I2C_CNFG);
+
+	/* Make sure clock divisor programmed correctly */
+	if (i2c_dev->bus_clk_rate == I2C_HS_MODE) {
+		i2c_dev->clk_divisor_hs_mode = i2c_dev->hw->clk_divisor_hs_mode;
+		clk_divisor = FIELD_PREP(I2C_CLK_DIVISOR_HSMODE,
+					 i2c_dev->hw->clk_divisor_hs_mode) |
+			      FIELD_PREP(I2C_CLK_DIVISOR_STD_FAST_MODE,
+					 i2c_dev->clk_divisor_non_hs_mode);
+	} else {
+		val = i2c_readl(i2c_dev, I2C_CLK_DIVISOR);
+		clk_divisor = FIELD_PREP(I2C_CLK_DIVISOR_HSMODE,
+					 val) |
+			      FIELD_PREP(I2C_CLK_DIVISOR_STD_FAST_MODE,
+					 i2c_dev->clk_divisor_non_hs_mode);
+	}
+
+	i2c_writel(i2c_dev, clk_divisor, I2C_CLK_DIVISOR);
+
+	if (i2c_dev->prod_list)
+		 tegra_i2c_config_prod_settings(i2c_dev);
+
+	if (i2c_dev->bus_clk_rate > I2C_MAX_STANDARD_MODE_FREQ &&
+	    i2c_dev->bus_clk_rate <= I2C_MAX_FAST_MODE_PLUS_FREQ) {
+		tlow = i2c_dev->hw->tlow_fast_fastplus_mode;
+		thigh = i2c_dev->hw->thigh_fast_fastplus_mode;
+		tsu_thd = i2c_dev->hw->setup_hold_time_fast_fast_plus_mode;
+	} else {
+		tlow = i2c_dev->hw->tlow_std_mode;
+		thigh = i2c_dev->hw->thigh_std_mode;
+		tsu_thd = i2c_dev->hw->setup_hold_time_std_mode;
+	}
+
+	if (i2c_dev->hw->has_interface_timing_reg) {
+		val = FIELD_PREP(I2C_INTERFACE_TIMING_THIGH, thigh) |
+		      FIELD_PREP(I2C_INTERFACE_TIMING_TLOW, tlow);
+		i2c_writel(i2c_dev, val, I2C_INTERFACE_TIMING_0);
+	}
+
+	/*
+	 * configure setup and hold times only when tsu_thd is non-zero.
+	 * otherwise, preserve the chip default values
+	 */
+	if (i2c_dev->hw->has_interface_timing_reg && tsu_thd)
+		i2c_writel(i2c_dev, tsu_thd, I2C_INTERFACE_TIMING_1);
+
+	if (i2c_dev->bus_clk_rate == I2C_HS_MODE)
+	{
+		clk_multiplier = i2c_dev->hw->clk_multiplier_hs_mode;
+		clk_multiplier *= (i2c_dev->clk_divisor_hs_mode + 1);
+	}
+	else {
+		clk_multiplier = (tlow + thigh + 2);
+		clk_multiplier *= (i2c_dev->clk_divisor_non_hs_mode + 1);
+	}
+	err = clk_set_rate(i2c_dev->div_clk,
+						i2c_dev->bus_clk_rate * clk_multiplier);
+	return err;
+}
+
 static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 			  int num)
 {
@@ -1483,6 +1558,16 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 			dev_err(i2c_dev->dev, "runtime get sync resume fail %d\n", ret);
 			return ret;
 		}
+	}
+
+	if (adap->bus_clk_rate != i2c_dev->bus_clk_rate) {
+		i2c_dev->bus_clk_rate = adap->bus_clk_rate;
+		 tegra_i2c_change_clock_rate(i2c_dev);
+		 if (ret) {
+			 dev_err(i2c_dev->dev,
+					 "failed changing clock rate: %d\n", ret);
+			 return ret;
+		 }
 	}
 
 	for (i = 0; i < num; i++) {
@@ -2003,6 +2088,7 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 	i2c_dev->adapter.dev.parent = &pdev->dev;
 	i2c_dev->adapter.nr = pdev->id;
 	i2c_dev->adapter.dev.of_node = pdev->dev.of_node;
+	i2c_dev->adapter.bus_clk_rate = i2c_dev->bus_clk_rate;
 
 	ret = i2c_add_numbered_adapter(&i2c_dev->adapter);
 	if (ret)
