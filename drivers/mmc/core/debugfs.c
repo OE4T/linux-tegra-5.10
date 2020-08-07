@@ -15,6 +15,7 @@
 
 #include <linux/mmc/card.h>
 #include <linux/mmc/host.h>
+#include <linux/mmc/mmc.h>
 
 #include "core.h"
 #include "card.h"
@@ -222,6 +223,17 @@ static int mmc_clock_opt_set(void *data, u64 val)
 DEFINE_DEBUGFS_ATTRIBUTE(mmc_clock_fops, mmc_clock_opt_get, mmc_clock_opt_set,
 	"%llu\n");
 
+static int mmc_dbg_card_speed_class_get(void *data, u64 *val)
+{
+		struct mmc_card	*card = data;
+
+		*val = card->speed_class;
+
+		return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(mmc_dbg_card_speed_class_fops,
+			mmc_dbg_card_speed_class_get, NULL, "%llu\n");
+
 void mmc_add_host_debugfs(struct mmc_host *host)
 {
 	struct dentry *root;
@@ -261,6 +273,18 @@ void mmc_add_card_debugfs(struct mmc_card *card)
 	card->debugfs_root = root;
 
 	debugfs_create_x32("state", S_IRUSR, root, &card->state);
+
+	if (mmc_card_sd(card))
+		if (!debugfs_create_file("speed_class", 0400, root, card,
+					&mmc_dbg_card_speed_class_fops))
+			goto err;
+
+	return;
+
+err:
+	debugfs_remove_recursive(root);
+	card->debugfs_root = NULL;
+	dev_err(&card->dev, "failed to initialize debugfs\n");
 }
 
 void mmc_remove_card_debugfs(struct mmc_card *card)
