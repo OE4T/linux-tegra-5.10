@@ -737,6 +737,28 @@ void i2c_shutdown_clear_adapter(struct i2c_adapter *adapter)
 }
 EXPORT_SYMBOL_GPL(i2c_shutdown_clear_adapter);
 
+int i2c_set_adapter_bus_clk_rate(struct i2c_adapter *adap, int bus_rate)
+{
+	i2c_lock_adapter(adap);
+	adap->bus_clk_rate = bus_rate;
+	i2c_unlock_adapter(adap);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(i2c_set_adapter_bus_clk_rate);
+
+int i2c_get_adapter_bus_clk_rate(struct i2c_adapter *adap)
+{
+	int bus_clk_rate;
+
+	i2c_lock_adapter(adap);
+	bus_clk_rate = adap->bus_clk_rate;
+	i2c_unlock_adapter(adap);
+
+	return bus_clk_rate;
+}
+EXPORT_SYMBOL_GPL(i2c_get_adapter_bus_clk_rate);
+
 /**
  * i2c_new_client_device - instantiate an i2c device
  * @adap: the adapter managing the device
