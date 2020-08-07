@@ -80,6 +80,7 @@
 		interrupt-names = "doorbell",
 				"shared0", "shared1", "shared2", "shared3",
 				"shared4", "shared5", "shared6", "shared7";
+		#mbox-cells = <2>;
 		nvidia,mbox-ie;
 		status = "disabled";
 	};
