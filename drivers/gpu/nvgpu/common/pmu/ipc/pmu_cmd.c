@@ -508,7 +508,10 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 	fbq_size_needed = ALIGN_UP(fbq_size_needed, 4U);
 
-	tmp = nvgpu_alloc(&pmu->dmem, fbq_size_needed);
+	/* Check for allocator pointer and proceed */
+	if (pmu->dmem.priv != NULL) {
+		tmp = nvgpu_alloc(&pmu->dmem, fbq_size_needed);
+	}
 	nvgpu_assert(tmp <= U32_MAX);
 	heap_offset = (u16) tmp;
 	if (heap_offset == 0U) {

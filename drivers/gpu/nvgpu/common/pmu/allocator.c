@@ -43,9 +43,13 @@ void nvgpu_pmu_allocator_dmem_init(struct gk20a *g,
 			~(PMU_DMEM_ALLOC_ALIGNMENT - 1U);
 		u32 size = end - start;
 
-		nvgpu_allocator_init(g, dmem, NULL, "gk20a_pmu_dmem", start,
-				size, PMU_DMEM_ALLOC_ALIGNMENT, 0ULL, 0ULL,
+		if (size != 0U) {
+			nvgpu_allocator_init(g, dmem, NULL, "gk20a_pmu_dmem",
+				start, size, PMU_DMEM_ALLOC_ALIGNMENT, 0ULL, 0ULL,
 				BITMAP_ALLOCATOR);
+		} else {
+			dmem->priv = NULL;
+		}
 	}
 }
 

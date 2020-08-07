@@ -90,7 +90,11 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 	nvgpu_log_fn(g, " ");
 
 	if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
-		nvgpu_free(&pmu->dmem, nvgpu_pmu_seq_get_fbq_heap_offset(seq));
+		/* Check for allocator pointer and proceed */
+		if (pmu->dmem.priv != NULL) {
+			nvgpu_free(&pmu->dmem,
+				nvgpu_pmu_seq_get_fbq_heap_offset(seq));
+		}
 
 		/*
 		 * free FBQ allocated work buffer
