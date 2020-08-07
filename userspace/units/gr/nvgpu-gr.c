@@ -138,6 +138,10 @@ int test_gr_init_setup_ready(struct unit_module *m,
 {
 	int err = 0;
 
+	g->fifo.g = g;
+	nvgpu_device_init(g);
+	nvgpu_fifo_setup_sw(g);
+
 	/* Allocate and Initialize GR */
 	err = test_gr_init_setup(m, g, args);
 	if (err != 0) {

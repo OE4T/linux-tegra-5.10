@@ -90,8 +90,6 @@ int test_gm20b_read_engine_status_info(struct unit_module *m,
 	char *ctxsw_status_label = NULL;
 
 	unit_assert(f->num_engines > 0, goto done);
-	unit_assert(f->engine_info[0].engine_enum == NVGPU_ENGINE_GR,
-		goto done);
 
 	nvgpu_writel(g, fifo_engine_status_r(engine_id), 0xbeef);
 	gm20b_read_engine_status_info(g, NVGPU_INVALID_ENG_ID, &status);

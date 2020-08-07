@@ -407,6 +407,7 @@ nvgpu_fifo_decode_pbdma_ch_eng_status
 nvgpu_fifo_init_support
 nvgpu_fifo_preempt_runlists_for_rc
 nvgpu_fifo_preempt_tsg
+nvgpu_fifo_setup_sw
 nvgpu_fifo_suspend
 nvgpu_fifo_sw_quiesce
 nvgpu_finalize_poweron

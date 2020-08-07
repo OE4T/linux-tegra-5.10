@@ -26,6 +26,8 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/therm.h>
+#include <nvgpu/device.h>
+#include <nvgpu/engines.h>
 #include <hal/therm/therm_gv11b.h>
 
 #include "nvgpu-therm.h"
@@ -85,14 +87,6 @@ int test_setup_env(struct unit_module *m,
 	}
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
 
-	/* setup HALs */
-
-	g->ops.therm.therm_max_fpdiv_factor = gv11b_therm_max_fpdiv_factor;
-	g->ops.therm.init_therm_support = nvgpu_init_therm_support;
-	g->ops.therm.init_therm_setup_hw = gv11b_init_therm_setup_hw;
-	g->ops.therm.init_elcg_mode = gv11b_therm_init_elcg_mode;
-	g->ops.therm.elcg_init_idle_filters = gv11b_elcg_init_idle_filters;
-
 	return UNIT_SUCCESS;
 }
 
@@ -108,6 +102,10 @@ int test_therm_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	int ret = UNIT_FAIL;
 	int err ;
 	int (*save_hal)(struct gk20a *g);
+
+	g->fifo.g = g;
+	nvgpu_device_init(g);
+	nvgpu_engine_setup_sw(g);
 
 	save_hal = g->ops.therm.init_therm_setup_hw;
 

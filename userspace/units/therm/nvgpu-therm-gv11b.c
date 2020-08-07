@@ -101,13 +101,6 @@ int test_elcg_init_idle_filters(struct unit_module *m, struct gk20a *g,
 			 therm_gate_ctrl_eng_delay_after__prod_f());
 
 	/* setup FIFO info & regs */
-	g->fifo.num_engines = NUM_ENGINES;
-	g->fifo.active_engines_list = (u32 *)calloc(sizeof(u32), NUM_ENGINES);
-	unit_assert(g->fifo.active_engines_list != NULL, return UNIT_FAIL);
-	for (i = 0U; i < NUM_ENGINES; i++) {
-		g->fifo.active_engines_list[i] = i;
-		nvgpu_posix_io_writel_reg_space(g, therm_gate_ctrl_r(i), 0U);
-	}
 	nvgpu_posix_io_writel_reg_space(g, therm_fecs_idle_filter_r(), 0U);
 	nvgpu_posix_io_writel_reg_space(g, therm_hubmmu_idle_filter_r(), 0U);
 
@@ -140,7 +133,5 @@ int test_elcg_init_idle_filters(struct unit_module *m, struct gk20a *g,
 	ret = UNIT_SUCCESS;
 
 done:
-	free(g->fifo.active_engines_list);
-
 	return ret;
 }

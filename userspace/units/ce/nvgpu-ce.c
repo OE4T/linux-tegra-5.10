@@ -25,6 +25,7 @@
 #include <nvgpu/posix/io.h>
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/device.h>
 #include <nvgpu/ce.h>
 #include <hal/ce/ce_gp10b.h>
 #include <hal/ce/ce_gv11b.h>
@@ -135,6 +136,8 @@ int test_ce_init_support(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
 	int err;
+
+	nvgpu_device_init(g);
 
 	g->fifo.num_engines = 0;
 	g->ops.ce.set_pce2lce_mapping = mock_void_return;

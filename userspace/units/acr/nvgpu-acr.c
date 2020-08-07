@@ -28,6 +28,7 @@
 #include <nvgpu/acr.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/device.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/hal_init.h>
 #include <nvgpu/lock.h>
@@ -861,6 +862,8 @@ int test_acr_init(struct unit_module *m,
 	u32 debug_mode_enable;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
+
+	nvgpu_device_init(g);
 
 	/*
 	 * initialize falcon
