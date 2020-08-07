@@ -2028,6 +2028,9 @@
 		resets = <&bpmp_resets TEGRA194_RESET_MIPI_CAL>;
 		reset-names = "mipi_cal";
 		status = "disabled";
+#if TEGRA_POWER_DOMAIN_DT_VERSION >= DT_VERSION_3
+		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DISP>;
+#endif
 	};
 
 	tnvlink_controller: tegra_nvlink_controller {
