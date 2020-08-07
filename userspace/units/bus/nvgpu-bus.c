@@ -208,7 +208,7 @@ done:
 int test_bar_bind(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_FAIL;
-	struct nvgpu_mem bar_inst;
+	struct nvgpu_mem bar_inst = {0};
 	struct nvgpu_posix_fault_inj *timer_fi =
 					nvgpu_timers_get_fault_injection();
 

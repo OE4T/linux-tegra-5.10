@@ -637,6 +637,7 @@ int test_mm_inst_block(struct unit_module *m, struct gk20a *g,
 	struct nvgpu_mem *block = malloc(sizeof(struct nvgpu_mem));
 	int ret = UNIT_FAIL;
 
+	memset(block, 0, sizeof(*block));
 	block->aperture = APERTURE_SYSMEM;
 	block->cpu_va = (void *) TEST_ADDRESS;
 

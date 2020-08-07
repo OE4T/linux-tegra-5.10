@@ -33,16 +33,63 @@
 #define DMA_ERROR_CODE	(~(u64)0x0)
 
 /*
- * These functions are somewhat meaningless.
+ * This function (and the get_addr() and get_phys_addr() functions are somewhat
+ * meaningless in userspace.
+ *
+ * There is no GPU in the loop here, so defining a "GPU physical" address is
+ * difficult. What we do here is simple but limited. We'll treat the GPU physical
+ * address as just the bottom 32 bits of the CPU virtual address. Since the driver
+ * shouldn't be dereferencing these pointers in the first place that's sufficient
+ * to make most tests work. The reason we truncate the CPU VA is because the
+ * address returned from this is programmed into the GMMU PTEs/PDEs. That code
+ * asserts that the address is a valid GPU physical address (i.e less than some
+ * number of bits, depending on chip).
+ *
+ * However, this does lead to some potential quirks: GPU addresses of different
+ * CPU virtual addresses could alias (e.g B and B + 4GB will both result in the
+ * same value when ANDing with 0xFFFFFFFF.
+ *
+ * If there is a buffer with an address range that crosses a 4GB boundary it'll
+ * be detected here. A more sophisticated buffer to GPU virtual address approach
+ * could be taken, but for now this is probably sufficient. At least for one run
+ * through the unit test framework, the CPU malloc() address range seemed to be
+ * 0x555555000000 - this is a long way away from any 4GB boundary.
+ *
+ * For invalid nvgpu_mems and nvgpu_mems with no cpu_va, just return NULL.
+ * There's little else we can do. In many cases in the unit test FW we wind up
+ * getting essentially uninitialized nvgpu_mems.
  */
+static u64 nvgpu_mem_userspace_get_addr(struct gk20a *g, struct nvgpu_mem *mem)
+{
+	u64 hi_front = ((u64)(uintptr_t)mem->cpu_va) & ~0xffffffffUL;
+	u64 hi_back  = ((u64)(uintptr_t)mem->cpu_va + mem->size - 1U) & ~0xffffffffUL;
+
+	if (!nvgpu_mem_is_valid(mem) || mem->cpu_va == NULL) {
+		return 0x0UL;
+	}
+
+	if (hi_front != hi_back) {
+		nvgpu_err(g, "Mismatching cpu_va calc.");
+		nvgpu_err(g, "  valid = %s", nvgpu_mem_is_valid(mem) ? "yes" : "no");
+		nvgpu_err(g, "  cpu_va = %p", mem->cpu_va);
+		nvgpu_err(g, "  size   = %lx", mem->size);
+		nvgpu_err(g, "  hi_front = 0x%llx", hi_front);
+		nvgpu_err(g, "  hi_back  = 0x%llx", hi_back);
+	}
+
+	nvgpu_assert(hi_front == hi_back);
+
+	return ((u64)(uintptr_t)mem->cpu_va) & 0xffffffffUL;
+}
+
 u64 nvgpu_mem_get_addr(struct gk20a *g, struct nvgpu_mem *mem)
 {
-	return (u64)(uintptr_t)mem->cpu_va;
+	return nvgpu_mem_userspace_get_addr(g, mem);
 }
 
 u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem)
 {
-	return (u64)(uintptr_t)mem->cpu_va;
+	return nvgpu_mem_userspace_get_addr(g, mem);
 }
 
 void *nvgpu_mem_sgl_next(void *sgl)
@@ -121,8 +168,8 @@ void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 static struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
 	.sgl_next	= nvgpu_mem_sgl_next,
 	.sgl_phys	= nvgpu_mem_sgl_phys,
-	.sgl_ipa    = nvgpu_mem_sgl_phys,
-	.sgl_ipa_to_pa = nvgpu_mem_sgl_ipa_to_pa,
+	.sgl_ipa	= nvgpu_mem_sgl_phys,
+	.sgl_ipa_to_pa	= nvgpu_mem_sgl_ipa_to_pa,
 	.sgl_dma	= nvgpu_mem_sgl_dma,
 	.sgl_length	= nvgpu_mem_sgl_length,
 	.sgl_gpu_addr	= nvgpu_mem_sgl_gpu_addr,

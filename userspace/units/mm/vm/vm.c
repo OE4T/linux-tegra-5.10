@@ -48,7 +48,7 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 
 /* Random CPU physical address for the buffers we'll map */
-#define BUF_CPU_PA		0xEFAD80000000ULL
+#define BUF_CPU_PA		0xEFAD0000ULL
 #define TEST_BATCH_NUM_BUFFERS	10
 #define PHYS_ADDR_BITS_HIGH	0x00FFFFFFU
 #define PHYS_ADDR_BITS_LOW	0xFFFFFF00U

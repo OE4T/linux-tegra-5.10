@@ -505,8 +505,7 @@ static int nvgpu_set_pd_level(struct vm_gk20a *vm,
 		 * target addr is the real physical address we are aiming for.
 		 */
 		target_addr = (next_pd != NULL) ?
-			nvgpu_pd_gpu_addr(g, next_pd) :
-			phys_addr;
+			nvgpu_pd_gpu_addr(g, next_pd) : phys_addr;
 
 		l->update_entry(vm, l,
 				pd, pd_idx,

@@ -42,7 +42,7 @@ int fb_gm20b_tlb_invalidate_test(struct unit_module *m, struct gk20a *g,
 	void *args)
 {
 	int err;
-	struct nvgpu_mem pdb;
+	struct nvgpu_mem pdb = {0};
 	struct nvgpu_posix_fault_inj *timer_fi =
 			nvgpu_timers_get_fault_injection();
 

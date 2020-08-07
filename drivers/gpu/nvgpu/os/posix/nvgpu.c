@@ -250,7 +250,7 @@ struct gk20a *nvgpu_posix_probe(void)
 	(void) memset(p, 0, sizeof(*p));
 
 	g = &p->g;
-	g->log_mask = 0;
+	g->log_mask = NVGPU_DEFAULT_DBG_MASK;
 	g->mm.g = g;
 
 	if (nvgpu_kmem_init(g) != 0) {
