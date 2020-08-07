@@ -1,7 +1,7 @@
 /*
  * util.c: Utility functions for tegradc ext interface.
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION, All rights reserved.
  *
  * Author: Robert Morell <rmorell@nvidia.com>
  *
@@ -19,10 +19,11 @@
 #include <linux/err.h>
 #include <linux/types.h>
 #include <linux/dma-buf.h>
+#include <linux/iommu.h>
 
 #include "../dc.h"
+#include "../dc_priv.h"
 #include "tegra_dc_ext_priv.h"
-
 
 int tegra_dc_ext_pin_window(struct tegra_dc_ext_user *user, u32 fd,
 			    struct tegra_dc_dmabuf **dc_buf,
@@ -55,7 +56,11 @@ int tegra_dc_ext_pin_window(struct tegra_dc_ext_user *user, u32 fd,
 	if (IS_ERR_OR_NULL(dc_dmabuf->sgt))
 		goto sgt_fail;
 
+#if KERNEL_VERSION(5, 4, 0) < LINUX_VERSION_CODE
+	if (!iommu_get_domain_for_dev(&ext->dc->ndev->dev)) {
+#else
 	if (parent->archdata.iommu == NULL) {
+#endif
 		if(sg_nents(dc_dmabuf->sgt->sgl) > 1) {
 			dev_err(ext->dev->parent,
 				"Cannot use non-contiguous buffer w/ IOMMU disabled\n");
