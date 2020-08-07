@@ -36,5 +36,7 @@ void nvgpu_gm20b_perfmon_sw_init(struct gk20a *g,
 	perfmon->stop_sampling =
 		nvgpu_pmu_perfmon_stop_sampling;
 	perfmon->get_samples_rpc = NULL;
+	perfmon->perfmon_event_handler =
+		nvgpu_pmu_handle_perfmon_event;
 }
 

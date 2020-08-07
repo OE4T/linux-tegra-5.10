@@ -71,6 +71,8 @@ struct pmu_msg {
 		} msg;
 		union {
 			struct pmu_nvgpu_rpc_struct_cmdmgmt_init cmdmgmt_init;
+			struct pmu_nvgpu_rpc_perfmon_init perfmon_init;
+			struct pmu_nvgpu_rpc_perfmon_change perfmon_change;
 		} event_rpc;
 	};
 };

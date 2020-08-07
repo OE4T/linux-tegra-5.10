@@ -190,7 +190,7 @@ static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 	switch (msg->hdr.unit_id) {
 	case PMU_UNIT_PERFMON:
 	case PMU_UNIT_PERFMON_T18X:
-		err = nvgpu_pmu_handle_perfmon_event(pmu, &msg->msg.perfmon);
+		err = nvgpu_pmu_perfmon_event_handler(g, pmu, msg);
 		break;
 	case PMU_UNIT_PERF:
 		if (g->ops.pmu_perf.handle_pmu_perf_event != NULL) {

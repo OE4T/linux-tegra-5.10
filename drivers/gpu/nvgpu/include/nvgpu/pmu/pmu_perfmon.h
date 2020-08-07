@@ -1,5 +1,5 @@
 /*                                                      |
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,9 @@
 
 struct gk20a;
 struct nvgpu_pmu;
-struct pmu_perfmon_msg;
 struct rpc_handler_payload;
 struct nv_pmu_rpc_header;
+struct pmu_msg;
 
 /* pmu load const defines */
 #define PMU_BUSY_CYCLES_NORM_MAX		(1000U)
@@ -52,6 +52,8 @@ struct nvgpu_pmu_perfmon {
 	int (*start_sampling)(struct nvgpu_pmu *pmu);
 	int (*stop_sampling)(struct nvgpu_pmu *pmu);
 	int (*get_samples_rpc)(struct nvgpu_pmu *pmu);
+	int (*perfmon_event_handler)(struct gk20a *g,
+		struct nvgpu_pmu *pmu, struct pmu_msg *msg);
 };
 
 /* perfmon */
@@ -67,8 +69,10 @@ int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu);
 int nvgpu_pmu_perfmon_start_sampling_rpc(struct nvgpu_pmu *pmu);
 int nvgpu_pmu_perfmon_stop_sampling_rpc(struct nvgpu_pmu *pmu);
 int nvgpu_pmu_perfmon_get_samples_rpc(struct nvgpu_pmu *pmu);
-int nvgpu_pmu_handle_perfmon_event(struct nvgpu_pmu *pmu,
-		struct pmu_perfmon_msg *msg);
+int nvgpu_pmu_handle_perfmon_event(struct gk20a *g,
+		struct nvgpu_pmu *pmu, struct pmu_msg *msg);
+int nvgpu_pmu_handle_perfmon_event_rpc(struct gk20a *g,
+		struct nvgpu_pmu *pmu, struct pmu_msg *msg);
 int nvgpu_pmu_init_perfmon_rpc(struct nvgpu_pmu *pmu);
 int nvgpu_pmu_load_norm(struct gk20a *g, u32 *load);
 int nvgpu_pmu_load_update(struct gk20a *g);
@@ -91,5 +95,7 @@ int nvgpu_pmu_perfmon_stop_sample(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon);
 int nvgpu_pmu_perfmon_get_sample(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_perfmon *perfmon);
+int nvgpu_pmu_perfmon_event_handler(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct pmu_msg *msg);
 
 #endif /* NVGPU_PMU_PERFMON_H */

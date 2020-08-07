@@ -28,6 +28,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmu/cmd.h>
+#include <nvgpu/pmu/msg.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
@@ -141,12 +142,13 @@ int nvgpu_pmu_initialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu,
 		break;
 
 	case NVGPU_GPUID_GV11B:
-#if defined(CONFIG_NVGPU_NEXT)
-	case NVGPU_NEXT_GPUID:
-#endif
 		nvgpu_gv11b_perfmon_sw_init(g, *perfmon_ptr);
 		break;
-
+#if defined(CONFIG_NVGPU_NEXT)
+	case NVGPU_NEXT_GPUID:
+		nvgpu_next_perfmon_sw_init(g, *perfmon_ptr);
+		break;
+#endif
 	default:
 		nvgpu_kfree(g, *perfmon_ptr);
 		err = -EINVAL;
@@ -457,24 +459,25 @@ void nvgpu_pmu_reset_load_counters(struct gk20a *g)
 	gk20a_idle(g);
 }
 
-int nvgpu_pmu_handle_perfmon_event(struct nvgpu_pmu *pmu,
-			struct pmu_perfmon_msg *msg)
+int nvgpu_pmu_handle_perfmon_event(struct gk20a *g,
+		struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 {
-	struct gk20a *g = pmu->g;
-
+	struct pmu_perfmon_msg *perfmon_msg = &msg->msg.perfmon;
 	nvgpu_log_fn(g, " ");
 
-	switch (msg->msg_type) {
+	switch (perfmon_msg->msg_type) {
 	case PMU_PERFMON_MSG_ID_INCREASE_EVENT:
 		nvgpu_pmu_dbg(g, "perfmon increase event: ");
 		nvgpu_pmu_dbg(g, "state_id %d, ground_id %d, pct %d",
-			msg->gen.state_id, msg->gen.group_id, msg->gen.data);
+			perfmon_msg->gen.state_id, perfmon_msg->gen.group_id,
+			perfmon_msg->gen.data);
 		(pmu->pmu_perfmon->perfmon_events_cnt)++;
 		break;
 	case PMU_PERFMON_MSG_ID_DECREASE_EVENT:
 		nvgpu_pmu_dbg(g, "perfmon decrease event: ");
 		nvgpu_pmu_dbg(g, "state_id %d, ground_id %d, pct %d",
-			msg->gen.state_id, msg->gen.group_id, msg->gen.data);
+			perfmon_msg->gen.state_id, perfmon_msg->gen.group_id,
+			perfmon_msg->gen.data);
 		(pmu->pmu_perfmon->perfmon_events_cnt)++;
 		break;
 	case PMU_PERFMON_MSG_ID_INIT_EVENT:
@@ -483,7 +486,45 @@ int nvgpu_pmu_handle_perfmon_event(struct nvgpu_pmu *pmu,
 		break;
 	default:
 		nvgpu_pmu_dbg(g, "Invalid msgtype:%u for %s",
-					msg->msg_type, __func__);
+				perfmon_msg->msg_type, __func__);
+		break;
+	}
+
+	/* restart sampling */
+	if (pmu->pmu_perfmon->perfmon_sampling_enabled) {
+		return nvgpu_pmu_perfmon_start_sample(g, pmu,
+					pmu->pmu_perfmon);
+	}
+
+	return 0;
+}
+
+int nvgpu_pmu_handle_perfmon_event_rpc(struct gk20a *g,
+		struct nvgpu_pmu *pmu, struct pmu_msg *msg)
+{
+	struct pmu_nvgpu_rpc_perfmon_init *perfmon_rpc =
+				&msg->event_rpc.perfmon_init;
+
+
+	nvgpu_log_fn(g, " ");
+
+	switch (perfmon_rpc->rpc_hdr.function) {
+	case PMU_RPC_ID_PERFMON_CHANGE_EVENT:
+		if (((struct pmu_nvgpu_rpc_perfmon_change *)
+				(void *)perfmon_rpc)->b_increase) {
+			nvgpu_pmu_dbg(g, "perfmon increase event");
+		} else {
+			nvgpu_pmu_dbg(g, "perfmon decrease event");
+		}
+		(pmu->pmu_perfmon->perfmon_events_cnt)++;
+		break;
+	case PMU_RPC_ID_PERFMON_INIT_EVENT:
+		nvgpu_pmu_dbg(g, "perfmon init event");
+		pmu->pmu_perfmon->perfmon_ready = true;
+		break;
+	default:
+		nvgpu_pmu_dbg(g, "invalid perfmon event %d",
+				perfmon_rpc->rpc_hdr.function);
 		break;
 	}
 
@@ -671,4 +712,10 @@ int nvgpu_pmu_perfmon_get_sample(struct gk20a *g,
 {
 
 	return perfmon->get_samples_rpc(pmu);
+}
+
+int nvgpu_pmu_perfmon_event_handler(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct pmu_msg *msg)
+{
+	return pmu->pmu_perfmon->perfmon_event_handler(g, pmu, msg);
 }

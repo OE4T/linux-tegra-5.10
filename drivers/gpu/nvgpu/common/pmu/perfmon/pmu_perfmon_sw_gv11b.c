@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,5 +36,7 @@ void nvgpu_gv11b_perfmon_sw_init(struct gk20a *g,
 		nvgpu_pmu_perfmon_stop_sampling_rpc;
 	perfmon->get_samples_rpc =
 		nvgpu_pmu_perfmon_get_samples_rpc;
+	perfmon->perfmon_event_handler =
+		nvgpu_pmu_handle_perfmon_event;
 }
 

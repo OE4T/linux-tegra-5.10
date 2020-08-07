@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,12 @@
 #define PMU_PERFMON_FLAG_CLEAR_PREV		BIT8(2)
 
 #define NV_PMU_PERFMON_MAX_COUNTERS     10U
+
+/*!
+* RPC Event calls serviced by PERFMON unit.
+*/
+#define PMU_RPC_ID_PERFMON_CHANGE_EVENT		0x00U
+#define PMU_RPC_ID_PERFMON_INIT_EVENT		0x01U
 
 enum pmu_perfmon_cmd_start_fields {
 	COUNTER_ALLOC
@@ -166,6 +172,24 @@ struct pmu_perfmon_msg {
 		u8 msg_type;
 		struct pmu_perfmon_msg_generic gen;
 	};
+};
+
+/*!
+ * Defines the structure that holds data used to execute CHANGE_EVENT RPC.
+ */
+struct pmu_nvgpu_rpc_perfmon_change {
+	struct pmu_nvgpu_rpc_header rpc_hdr;
+	bool b_increase;
+	u8 state_id;
+	u8 groupId;
+	u8 data;
+};
+
+/*!
+ * Defines the structure that holds data used to execute INIT_EVENT RPC.
+ */
+struct pmu_nvgpu_rpc_perfmon_init {
+	struct pmu_nvgpu_rpc_header rpc_hdr;
 };
 
 /* PFERMON RPC interface*/
