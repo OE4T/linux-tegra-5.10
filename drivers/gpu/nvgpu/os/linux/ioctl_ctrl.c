@@ -875,6 +875,10 @@ static int nvgpu_gpu_ioctl_clear_sm_errors(struct gk20a *g)
 {
 	int err;
 
+	if (g->ops.gr.clear_sm_errors == NULL) {
+		return -ENOSYS;
+	}
+
 	err = gk20a_busy(g);
 	if (err)
 		return err;
