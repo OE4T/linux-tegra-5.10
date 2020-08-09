@@ -117,11 +117,11 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/lock.h>
 
+struct gk20a;
+
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_mc.h"
 #endif
-
-struct gk20a;
 
 /**
  * @defgroup NVGPU_MC_UNIT_ENUMS
@@ -500,11 +500,5 @@ void nvgpu_mc_intr_nonstall_pause(struct gk20a *g);
  * - Release the spinlock g->mc.intr_lock.
  */
 void nvgpu_mc_intr_nonstall_resume(struct gk20a *g);
-
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-void nvgpu_mc_intr_unit_vectorid_init(struct gk20a *g, u32 unit,
-		u32 *vectorid, u32 num_entries);
-bool nvgpu_mc_intr_is_unit_info_valid(struct gk20a *g, u32 unit);
-#endif
 
 #endif
