@@ -29,6 +29,9 @@
 #define DEFAULT_CMD6_TIMEOUT_MS	500
 #define MIN_CACHE_EN_TIMEOUT_MS 1600
 
+static int mmc_select_hs400es(struct mmc_card *card);
+static int mmc_hs200_tuning(struct mmc_card *card);
+
 static const unsigned int tran_exp[] = {
 	10000,		100000,		1000000,	10000000,
 	0,		0,		0,		0
@@ -1248,7 +1251,23 @@ out_err:
 
 int mmc_hs200_to_hs400(struct mmc_card *card)
 {
-	return mmc_select_hs400(card);
+	int err = 0;
+
+	if ((card->host->caps2 & MMC_CAP2_HS400_ES) &&
+		(card->mmc_avail_type & EXT_CSD_CARD_TYPE_HS400ES)) {
+		err = mmc_select_hs400es(card);
+		mmc_set_bus_speed(card);
+	} else {
+		if (mmc_card_hs200(card)) {
+			err = mmc_hs200_tuning(card);
+			if (err)
+				return err;
+			err = mmc_select_hs400(card);
+			if (err)
+				return err;
+		}
+	}
+	return err;
 }
 
 int mmc_hs400_to_hs200(struct mmc_card *card)

@@ -92,6 +92,10 @@ void mmc_remove_card_debugfs(struct mmc_card *card);
 int mmc_execute_tuning(struct mmc_card *card);
 int mmc_hs200_to_hs400(struct mmc_card *card);
 int mmc_hs400_to_hs200(struct mmc_card *card);
+int mmc_hs400_to_ddr(struct mmc_card *card);
+int mmc_ddr_to_hs400(struct mmc_card *card);
+int mmc_hs200_to_ddr(struct mmc_card *card);
+int mmc_ddr_to_hs200(struct mmc_card *card);
 
 #ifdef CONFIG_PM_SLEEP
 void mmc_register_pm_notifier(struct mmc_host *host);
