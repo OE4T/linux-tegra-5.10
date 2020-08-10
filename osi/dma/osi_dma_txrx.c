@@ -756,9 +756,10 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 }
 
 /**
- * @brief dma_wmb- Helper function to add memory write barrier
+ * @brief dmb_oshst() - Data memory barrier operation that waits only
+ * for stores to complete, and only to the outer shareable domain.
  */
-static inline void dma_wmb(void)
+static inline void dmb_oshst(void)
 {
 	asm volatile("dmb oshst" : : : "memory");
 }
@@ -892,7 +893,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	 * We need to make sure Tx descriptor updated above is really updated
 	 * before setting up the DMA, hence add memory write barrier here.
 	 */
-	dma_wmb();
+	dmb_oshst();
 	ops->update_tx_tailptr(osi->base, chan, tailptr);
 }
 
