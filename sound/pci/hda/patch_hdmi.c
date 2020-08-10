@@ -3689,6 +3689,10 @@ static int patch_tegra_hdmi(struct hda_codec *codec)
 	spec->tegra_fixup = true;
 	codec->patch_ops.build_pcms = tegra_hdmi_build_pcms;
 
+	spec->chmap.ops.chmap_cea_alloc_validate_get_type =
+		nvhdmi_chmap_cea_alloc_validate_get_type;
+	spec->chmap.ops.chmap_validate = nvhdmi_chmap_validate;
+
 	return 0;
 }
 
