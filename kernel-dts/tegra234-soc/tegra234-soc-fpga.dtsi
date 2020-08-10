@@ -605,5 +605,14 @@
 			<0x0 0x0E1B0000 0x0 0x00010000>;
 		status = "okay";
 	};
+
+	psci {
+		compatible = "arm,psci-1.0";
+		method = "smc";
+		cpu_off = <0x84000002>;
+		cpu_on = <0xC4000003>;
+		cpu_suspend = <0xC4000001>;
+		status = "okay";
+	};
 };
 
