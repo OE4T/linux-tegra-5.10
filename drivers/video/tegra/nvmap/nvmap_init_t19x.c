@@ -307,8 +307,10 @@ static u8 *get_dev_name(const u8 *name)
 {
 	char *str = kstrdup(name, GFP_KERNEL);
 
-	strsep(&str, "/");
-	strsep(&str, "/");
+	if (strchr(str, '/') != NULL)
+		strsep(&str, "/");
+	if (strchr(str, '/') != NULL)
+		strsep(&str, "/");
 	strreplace(str, '@', '\0');
 	return str;
 }
