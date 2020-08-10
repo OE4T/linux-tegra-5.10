@@ -2540,6 +2540,12 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 
 	pr_debug("%s:%d process sha buffer\n", __func__, __LINE__);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	/* For SHAKE128/SHAKE256 where digest size can vary */
+	if (req->dst_size)
+		dst_len = req->dst_size;
+#endif
+
 	sg_init_one(&se_dev->sg, req->result, dst_len);
 
 	se_dev->sha_last = is_last;
