@@ -498,7 +498,6 @@ nvgpu_gr_global_ctx_desc_free
 nvgpu_gr_global_ctx_init_local_golden_image
 nvgpu_gr_global_ctx_load_local_golden_image
 nvgpu_gr_global_ctx_set_size
-nvgpu_gr_init
 nvgpu_gr_init_support
 nvgpu_gr_intr_init_support
 nvgpu_gr_intr_remove_support

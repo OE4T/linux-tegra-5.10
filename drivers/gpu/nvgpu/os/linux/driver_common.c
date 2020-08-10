@@ -109,10 +109,8 @@ static void nvgpu_init_vars(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, platform->has_syncpoints);
 }
 
-static void nvgpu_init_gr_vars(struct gk20a *g)
+static void nvgpu_init_max_comptag(struct gk20a *g)
 {
-	nvgpu_gr_init(g);
-
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 	nvgpu_log_info(g, "total ram pages : %lu", totalram_pages());
 #else
@@ -264,7 +262,7 @@ int nvgpu_probe(struct gk20a *g,
 	int err = 0;
 
 	nvgpu_init_vars(g);
-	nvgpu_init_gr_vars(g);
+	nvgpu_init_max_comptag(g);
 	nvgpu_init_timeout(g);
 	nvgpu_init_timeslice(g);
 	nvgpu_init_pm_vars(g);

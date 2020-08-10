@@ -161,12 +161,6 @@ static int vgpu_init_support(struct platform_device *pdev)
 		SZ_4K / sizeof(g->dbg_regops_tmp_buf[0]);
 #endif
 
-	err = nvgpu_gr_alloc(g);
-	if (err != 0) {
-		nvgpu_err(g, "couldn't allocate gr memory");
-		goto fail;
-	}
-
 	g->remove_support = vgpu_remove_support;
 	return 0;
 
@@ -480,7 +474,6 @@ int vgpu_probe(struct platform_device *pdev)
 	nvgpu_atomic_set(&gk20a->timeouts_disabled_refcount, 0);
 
 	vgpu_create_sysfs(dev);
-	nvgpu_gr_init(gk20a);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 	nvgpu_log_info(gk20a, "total ram pages : %lu", totalram_pages());

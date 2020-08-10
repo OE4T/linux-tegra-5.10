@@ -141,17 +141,6 @@ int nvgpu_gr_alloc(struct gk20a *g);
 void nvgpu_gr_free(struct gk20a *g);
 
 /**
- * @brief Initialize GR struct fields
- *
- * @param g [in]	Pointer to GPU driver struct.
- *
- * Calling this function ensures that various GR struct fields are
- * initialized before they are referenced by other units or before
- * GR initialization sequence is executed.
- */
-void nvgpu_gr_init(struct gk20a *g);
-
-/**
  * @brief Initialize the s/w required to enable h/w.
  *
  * @param g [in]	Pointer to GPU driver struct.

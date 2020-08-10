@@ -947,6 +947,7 @@ struct gk20a {
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 	u32 tpc_fs_mask_user;
+	u32 fecs_feature_override_ecc_val;
 #endif
 
 	u32 tpc_pg_mask;

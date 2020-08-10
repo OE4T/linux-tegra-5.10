@@ -846,8 +846,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 	unsigned long val = 0;
-	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image =
-					nvgpu_gr_get_golden_image_ptr(g);
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image = NULL;
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
 
@@ -860,6 +859,10 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 	if (val == g->tpc_pg_mask) {
 		nvgpu_info(g, "no value change, same mask already set");
 		goto exit;
+	}
+
+	if (g->gr != NULL) {
+		gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
 	}
 
 	if (gr_golden_image &&
@@ -892,17 +895,23 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 {
 #ifdef CONFIG_NVGPU_TEGRA_FUSE
 	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
-	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image =
-					nvgpu_gr_get_golden_image_ptr(g);
-	struct nvgpu_gr_falcon *gr_falcon =
-					nvgpu_gr_get_falcon_ptr(g);
+	struct nvgpu_gr_config *gr_config;
+	struct nvgpu_gr_obj_ctx_golden_image *gr_golden_image;
+	struct nvgpu_gr_falcon *gr_falcon;
 	unsigned long val = 0;
 
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (nvgpu_gr_config_get_gpc_tpc_mask_base(gr_config) != NULL)
+	if (g->gr == NULL) {
+		return -ENODEV;
+	}
+
+	gr_config = nvgpu_gr_get_config_ptr(g);
+	gr_golden_image = nvgpu_gr_get_golden_image_ptr(g);
+	gr_falcon = nvgpu_gr_get_falcon_ptr(g);
+
+	if (nvgpu_gr_config_get_gpc_tpc_mask_base(gr_config) == NULL)
 		return -ENODEV;
 
 	if (val && val != nvgpu_gr_config_get_gpc_tpc_mask(gr_config, 0) &&

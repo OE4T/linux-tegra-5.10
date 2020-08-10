@@ -1095,12 +1095,6 @@ static int gk20a_init_support(struct platform_device *pdev)
 	if (err)
 		goto fail_sim;
 
-	err = nvgpu_gr_alloc(g);
-	if (err != 0) {
-		nvgpu_err(g, "couldn't allocate gr memory");
-		goto fail_sim;
-	}
-
 	nvgpu_init_usermode_support(g);
 	return 0;
 
@@ -1568,7 +1562,7 @@ static int nvgpu_read_fuse_overrides(struct gk20a *g)
 			g->tpc_fs_mask_user = ~value;
 			break;
 		case GP10B_FUSE_OPT_ECC_EN:
-			nvgpu_gr_override_ecc_val(g, value);
+			g->fecs_feature_override_ecc_val = value;
 			break;
 		case GV11B_FUSE_OPT_TPC_DISABLE:
 			if (platform->set_tpc_pg_mask != NULL)

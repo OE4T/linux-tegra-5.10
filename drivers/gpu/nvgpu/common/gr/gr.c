@@ -35,6 +35,7 @@
 #endif
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/hwpm_map.h>
 #include <nvgpu/gr/obj_ctx.h>
@@ -157,11 +158,6 @@ u32 nvgpu_gr_rop_offset(struct gk20a *g, u32 rop)
 	u32 rop_offset = nvgpu_safe_mult_u32(rop_pri_stride, rop);
 
 	return rop_offset;
-}
-
-void nvgpu_gr_init(struct gk20a *g)
-{
-	(void)nvgpu_cond_init(&g->gr->init_wq);
 }
 
 static void disable_gr_interrupts(struct gk20a *g)
@@ -840,7 +836,13 @@ int nvgpu_gr_alloc(struct gk20a *g)
 	if (gr == NULL) {
 		return -ENOMEM;
 	}
+
 	g->gr = gr;
+
+	nvgpu_cond_init(&gr->init_wq);
+#ifdef CONFIG_NVGPU_NON_FUSA
+	nvgpu_gr_override_ecc_val(g, g->fecs_feature_override_ecc_val);
+#endif
 
 	return 0;
 }
@@ -950,14 +952,16 @@ ctxsw_already_enabled:
 
 void nvgpu_gr_remove_support(struct gk20a *g)
 {
-	if (g->gr->remove_support != NULL) {
+	if (g->gr != NULL && g->gr->remove_support != NULL) {
 		g->gr->remove_support(g);
 	}
 }
 
 void nvgpu_gr_sw_ready(struct gk20a *g, bool enable)
 {
-	g->gr->sw_ready = enable;
+	if (g->gr != NULL) {
+		g->gr->sw_ready = enable;
+	}
 }
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA

@@ -381,12 +381,6 @@ static int nvgpu_pci_init_support(struct pci_dev *pdev)
 	if (err)
 		goto fail_sim;
 
-	err = nvgpu_gr_alloc(g);
-	if (err != 0) {
-		nvgpu_err(g, "couldn't allocate gr memory");
-		goto fail_sim;
-	}
-
 	return 0;
 
  fail_sim:

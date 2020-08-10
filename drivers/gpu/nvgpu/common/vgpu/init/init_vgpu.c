@@ -215,6 +215,12 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 		return err;
 	}
 
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		nvgpu_err(g, "couldn't allocate gr memory");
+		return err;
+	}
+
 	err = vgpu_init_gr_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a gr");

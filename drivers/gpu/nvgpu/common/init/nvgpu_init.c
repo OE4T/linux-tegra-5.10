@@ -40,6 +40,7 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/fb.h>
 #include <nvgpu/device.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/pm_reservation.h>
 
 #ifdef CONFIG_NVGPU_LS_PMU
@@ -649,6 +650,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.grmgr.init_gr_manager, NO_FLAG),
 		/* prepare portion of sw required for enable hw */
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gr_alloc, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_prepare_sw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_enable_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_construct_execute,
