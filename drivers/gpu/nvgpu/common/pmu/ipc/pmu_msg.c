@@ -321,7 +321,8 @@ static int pmu_process_init_msg_fb(struct gk20a *g, struct nvgpu_pmu *pmu,
 	pmu_read_init_msg_fb(g, pmu, tail, PMU_MSG_HDR_SIZE,
 		(void *)&msg->hdr);
 
-	if (msg->hdr.unit_id != PMU_UNIT_INIT_DGPU) {
+	if (msg->hdr.unit_id != PMU_UNIT_INIT_DGPU &&
+			msg->hdr.unit_id != PMU_UNIT_CMDMGMT) {
 		nvgpu_err(g, "FB MSG Q: expecting init msg");
 		err = -EINVAL;
 		goto exit;
