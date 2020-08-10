@@ -86,77 +86,77 @@
 		cl0_1: cpu@1 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x1>;
+			reg = <0x0 0x100>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl0_2: cpu@2 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x2>;
+			reg = <0x0 0x200>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl0_3: cpu@3 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x3>;
+			reg = <0x0 0x300>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl1_0: cpu@4 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x100>;
+			reg = <0x0 0x10000>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl1_1: cpu@5 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x101>;
+			reg = <0x0 0x10100>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl1_2: cpu@6 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x102>;
+			reg = <0x0 0x10200>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl1_3: cpu@7 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x103>;
+			reg = <0x0 0x10300>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl2_0: cpu@8 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x200>;
+			reg = <0x0 0x20000>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl2_1: cpu@9 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x201>;
+			reg = <0x0 0x20100>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl2_2: cpu@10 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x202>;
+			reg = <0x0 0x20200>;
 			enable-method = "psci";
 			status = "disabled";
 		};
 		cl2_3: cpu@11 {
 			device_type = "cpu";
 			compatible = "arm,armv8";
-			reg = <0x0 0x203>;
+			reg = <0x0 0x20300>;
 			enable-method = "psci";
 			status = "disabled";
 		};
