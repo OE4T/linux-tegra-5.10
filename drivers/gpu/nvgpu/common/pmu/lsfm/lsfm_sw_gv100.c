@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -120,7 +120,7 @@ int gv100_update_lspmu_cmdline_args_copy(struct gk20a *g,
 
 	/*Copying pmu cmdline args*/
 	pmu->fw->ops.set_cmd_line_args_cpu_freq(pmu, 0U);
-	pmu->fw->ops.set_cmd_line_args_secure_mode(pmu, 1U);
+	pmu->fw->ops.set_cmd_line_args_secure_mode(pmu, 0U);
 	pmu->fw->ops.set_cmd_line_args_trace_size(
 		pmu, PMU_RTOS_TRACE_BUFSIZE);
 	pmu->fw->ops.set_cmd_line_args_trace_dma_base(pmu);

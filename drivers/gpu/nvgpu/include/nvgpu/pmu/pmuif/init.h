@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,6 +69,17 @@ struct pmu_cmdline_args_v6 {
 	struct flcn_mem_desc_v0 gc6_bsod_ctx;
 	struct flcn_mem_desc_v0 super_surface;
 	u32 flags;
+};
+
+struct pmu_cmdline_args_v7 {
+	u32 cpu_freq_hz;
+	struct flcn_mem_desc_v0 trace_buf;
+	bool raise_priv_sec;
+	struct flcn_mem_desc_v0 gc6_ctx;
+	struct flcn_mem_desc_v0 gc6_bsod_ctx;
+	struct flcn_mem_desc_v0 super_surface;
+	u32 flags;
+	u32 ctx_bind_addr;
 };
 
 /* PMU INIT MSG */

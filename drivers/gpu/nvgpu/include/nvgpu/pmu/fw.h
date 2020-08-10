@@ -186,6 +186,7 @@ struct pmu_rtos_fw {
 		struct pmu_cmdline_args_v4 args_v4;
 		struct pmu_cmdline_args_v5 args_v5;
 		struct pmu_cmdline_args_v6 args_v6;
+		struct pmu_cmdline_args_v7 args_v7;
 	};
 };
 

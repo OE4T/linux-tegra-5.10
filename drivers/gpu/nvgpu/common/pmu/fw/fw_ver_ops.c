@@ -122,6 +122,11 @@ static u32 pmu_cmd_line_size_v6(struct nvgpu_pmu *pmu)
 	return (u32)sizeof(struct pmu_cmdline_args_v6);
 }
 
+static u32 pmu_cmd_line_size_v7(struct nvgpu_pmu *pmu)
+{
+	return (u32)sizeof(struct pmu_cmdline_args_v7);
+}
+
 static void pmu_set_cmd_line_args_cpu_freq_v5(struct nvgpu_pmu *pmu, u32 freq)
 {
 	pmu->fw->args_v5.cpu_freq_hz = 204000000;
@@ -153,6 +158,17 @@ static void config_cmd_line_args_super_surface_v6(struct nvgpu_pmu *pmu)
 		nvgpu_pmu_allocator_surface_describe(g,
 			nvgpu_pmu_super_surface_mem(g, pmu, pmu->super_surface),
 			&pmu->fw->args_v6.super_surface);
+	}
+}
+
+static void config_cmd_line_args_super_surface_v7(struct nvgpu_pmu *pmu)
+{
+	struct gk20a *g = pmu->g;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		nvgpu_pmu_allocator_surface_describe(g,
+			nvgpu_pmu_super_surface_mem(g, pmu, pmu->super_surface),
+			&pmu->fw->args_v7.super_surface);
 	}
 }
 
@@ -1397,6 +1413,10 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 		if (app_version == APP_VERSION_NVGPU_NEXT) {
 			fw_ops->prepare_ns_ucode_blob =
 				pmu_prepare_ns_ucode_blob_v1;
+			fw_ops->get_cmd_line_args_size =
+				pmu_cmd_line_size_v7;
+			fw_ops->config_cmd_line_args_super_surface =
+				config_cmd_line_args_super_surface_v7;
 		} else {
 			fw_ops->prepare_ns_ucode_blob =
 				pmu_prepare_ns_ucode_blob;
