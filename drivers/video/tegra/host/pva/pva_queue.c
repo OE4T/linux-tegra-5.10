@@ -62,6 +62,7 @@
 #define ACTION_LIST_STATUS_OPERATION_SIZE 11
 #define ACTION_LIST_TERMINATION_SIZE 1
 #define ACTION_LIST_STATS_SIZE 9
+#define PVA_TSC_TICKS 32
 
 /*
  * The worst-case input action buffer size:
@@ -1286,6 +1287,12 @@ static void pva_task_update(struct pva_submit_task *task)
 	struct pva_task_statistics *stats = &hw_task->statistics;
 	struct pva_task_vpu_perf_counter *perf;
 	u32 idx;
+	u64 vpu_time = 0u;
+	u64 r5_overhead = 0u;
+
+	vpu_time = (stats->vpu_complete_time - stats->vpu_start_time);
+	r5_overhead = ((stats->complete_time - stats->queued_time) - vpu_time);
+	r5_overhead = ((r5_overhead * PVA_TSC_TICKS)/1000);
 
 	trace_nvhost_task_timestamp(dev_name(&pdev->dev),
 				    pdata->class,
@@ -1311,7 +1318,8 @@ static void pva_task_update(struct pva_submit_task *task)
 			stats->vpu_start_time,
 			stats->vpu_complete_time,
 			stats->complete_time,
-			stats->vpu_assigned);
+			stats->vpu_assigned,
+			r5_overhead);
 
 	nvhost_dbg_info("QueuedTime %llu, HeadTime 0x%llu, "
 			"InputActionComplete %llu, VpuAssignedTime %llu, "
