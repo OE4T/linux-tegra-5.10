@@ -41,14 +41,8 @@
 static bool is_lsfm_supported(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm)
 {
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY) &&
-			!nvgpu_is_enabled(g, NVGPU_IS_FMODEL) &&
-			(lsfm != NULL)) {
-#else
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY) &&
 			(lsfm != NULL)) {
-#endif
 		return true;
 	}
 
@@ -135,11 +129,6 @@ int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm)
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 	int err = 0;
 
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		return 0;
-	}
-#endif
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		return 0;
 	}

@@ -44,12 +44,6 @@
 bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 	u32 falcon_id)
 {
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		return false;
-	}
-#endif
-
 	if (acr == NULL) {
 		return false;
 	}
@@ -67,12 +61,6 @@ bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
 	size_t size)
 {
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		return 0;
-	}
-#endif
-
 	if (acr == NULL) {
 		return -EINVAL;
 	}
