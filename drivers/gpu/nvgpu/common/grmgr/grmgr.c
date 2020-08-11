@@ -110,7 +110,8 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 #if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 		/*
-		 * GR remap window enable/disable sequence:
+		 * GR remap window enable/disable sequence for a GR
+		 * SYSPIPE PGRAPH programming:
 		 * 1) Config_gr_remap_window (syspipe_index, enable).
 		 * 2) Acquire gr_syspipe_lock.
 		 * 3) HW write to enable the gr syspipe programming.
@@ -119,36 +120,78 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 		 * 6) Config_gr_remap_window (syspipe_index, disable).
 		 * 7) HW write to disable the gr syspipe programming.
 		 * 8) Release the gr_syspipe_lock.
+		 *
+		 * GR remap window disable/enable request for legacy
+		 * GR PGRAPH programming:
+		 * 1) Config_gr_remap_window (invalid_syspipe_index, disable).
+		 * 2) Acquire gr_syspipe_lock.
+		 * 3) HW write to enable the legacy gr syspipe programming.
+		 * 4) Return success.
+		 * 5) Do legacy GR PGRAPH programming.
+		 * 6) Config_gr_remap_window (invalid_syspipe_index, enable).
+		 * 7) HW write to disable the legacy gr syspipe programming.
+		 * 8) Release the gr_syspipe_lock.
 		 */
 		if (enable) {
-			nvgpu_mutex_acquire(&g->mig.gr_syspipe_lock);
+			if (gr_syspipe_id !=
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+				nvgpu_mutex_acquire(&g->mig.gr_syspipe_lock);
+			}
 		} else {
+			if (g->mig.current_gr_syspipe_id ==
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+				nvgpu_mutex_acquire(&g->mig.gr_syspipe_lock);
+			}
 			gr_syspipe_id = 0U;
 		}
 
 		nvgpu_log(g, gpu_dbg_mig,
 			"nvgpu_grmgr_config_gr_remap_window "
-				"current_gr_syspipe_id[%u] requested_gr_syspipe_id[%u] "
-				"enable[%d] ",
+				"current_gr_syspipe_id[%u] "
+				"requested_gr_syspipe_id[%u] enable[%d] ",
 				g->mig.current_gr_syspipe_id,
 				gr_syspipe_id,
 				enable);
 
-		if (((g->mig.current_gr_syspipe_id != gr_syspipe_id) &&
+		if (((g->mig.current_gr_syspipe_id ==
+				NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
 				(gr_syspipe_id <
 					g->ops.grmgr.get_max_sys_pipes(g))) ||
 				(enable == false)) {
 			err = g->ops.priv_ring.config_gr_remap_window(g,
 				gr_syspipe_id, enable);
+		} else if (gr_syspipe_id !=
+				NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+			nvgpu_warn(g,
+				"nvgpu_grmgr_config_gr_remap_window "
+					"Gr remap window enable called for %u "
+					"syspipe before previous %u syspipe "
+					"is disabled from the same thread ",
+				gr_syspipe_id,
+				g->mig.current_gr_syspipe_id);
+			nvgpu_mutex_release(&g->mig.gr_syspipe_lock);
+		} else {
+			nvgpu_log(g, gpu_dbg_mig,
+				"Legacy GR PGRAPH window enable[%d] called ",
+				enable);
 		}
 
 		if (err == 0) {
 			if (enable) {
 				g->mig.current_gr_syspipe_id = gr_syspipe_id;
+				if (g->mig.current_gr_syspipe_id ==
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+					nvgpu_mutex_release(
+						&g->mig.gr_syspipe_lock);
+				}
 			} else {
+				if (g->mig.current_gr_syspipe_id !=
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+					nvgpu_mutex_release(
+						&g->mig.gr_syspipe_lock);
+				}
 				g->mig.current_gr_syspipe_id =
 					NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
-				nvgpu_mutex_release(&g->mig.gr_syspipe_lock);
 			}
 		}
 	}
