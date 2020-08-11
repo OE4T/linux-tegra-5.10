@@ -410,56 +410,9 @@ done:
  */
 static bool _nvhost_syncpt_is_expired(
 	u32 current_val,
-	u32 future_val,
-	bool has_future_val,
 	u32 thresh)
 {
-	/* Note the use of unsigned arithmetic here (mod 1<<32).
-	 *
-	 * c = current_val = min_val	= the current value of the syncpoint.
-	 * t = thresh			= the value we are checking
-	 * f = future_val  = max_val	= the value c will reach when all
-	 *			   	  outstanding increments have completed.
-	 *
-	 * Note that c always chases f until it reaches f.
-	 *
-	 * Dtf = (f - t)
-	 * Dtc = (c - t)
-	 *
-	 *  Consider all cases:
-	 *
-	 *	A) .....c..t..f.....	Dtf < Dtc	need to wait
-	 *	B) .....c.....f..t..	Dtf > Dtc	expired
-	 *	C) ..t..c.....f.....	Dtf > Dtc	expired	   (Dct very large)
-	 *
-	 *  Any case where f==c: always expired (for any t).  	Dtf == Dcf
-	 *  Any case where t==c: always expired (for any f).  	Dtf >= Dtc (because Dtc==0)
-	 *  Any case where t==f!=c: always wait.	 	Dtf <  Dtc (because Dtf==0,
-	 *							Dtc!=0)
-	 *
-	 *  Other cases:
-	 *
-	 *	A) .....t..f..c.....	Dtf < Dtc	need to wait
-	 *	A) .....f..c..t.....	Dtf < Dtc	need to wait
-	 *	A) .....f..t..c.....	Dtf > Dtc	expired
-	 *
-	 *   So:
-	 *	   Dtf >= Dtc implies EXPIRED	(return true)
-	 *	   Dtf <  Dtc implies WAIT	(return false)
-	 *
-	 * Note: If t is expired then we *cannot* wait on it. We would wait
-	 * forever (hang the system).
-	 *
-	 * Note: do NOT get clever and remove the -thresh from both sides. It
-	 * is NOT the same.
-	 *
-	 * If future valueis zero, we have a client managed sync point. In that
-	 * case we do a direct comparison.
-	 */
-	if (has_future_val)
-		return future_val - thresh >= current_val - thresh;
-	else
-		return (s32)(current_val - thresh) >= 0;
+	return (s32)(current_val - thresh) >= 0;
 }
 
 /**
@@ -516,8 +469,6 @@ static int _nvhost_syncpt_compare_ref(
  */
 static int _nvhost_syncpt_compare(
 	u32 current_val,
-	u32 future_val,
-	bool has_future_val,
 	u32 a,
 	u32 b)
 {
@@ -528,10 +479,8 @@ static int _nvhost_syncpt_compare(
 	if (a == b)
 		return 0;
 
-	a_expired = _nvhost_syncpt_is_expired(current_val, future_val,
-					      has_future_val, a);
-	b_expired = _nvhost_syncpt_is_expired(current_val, future_val,
-					      has_future_val, b);
+	a_expired = _nvhost_syncpt_is_expired(current_val, a);
+	b_expired = _nvhost_syncpt_is_expired(current_val, b);
 	if (a_expired && !b_expired) {
 		/* Easy, a was earlier */
 		return -1;
@@ -556,10 +505,7 @@ bool nvhost_syncpt_is_expired(
 	u32 thresh)
 {
 	u32 current_val = (u32)atomic_read(&sp->min_val[id]);
-	u32 future_val = (u32)atomic_read(&sp->max_val[id]);
-	bool has_future_val = !nvhost_syncpt_client_managed(sp, id);
-	return _nvhost_syncpt_is_expired(current_val, future_val,
-					 has_future_val, thresh);
+	return _nvhost_syncpt_is_expired(current_val, thresh);
 }
 
 /**
@@ -574,13 +520,9 @@ int nvhost_syncpt_compare(
 	u32 thresh_b)
 {
 	u32 current_val;
-	u32 future_val;
-	bool has_future_val = !nvhost_syncpt_client_managed(sp, id);
 
 	current_val = (u32)atomic_read(&sp->min_val[id]);
-	future_val = (u32)atomic_read(&sp->max_val[id]);
-	return _nvhost_syncpt_compare(current_val, future_val,
-				      has_future_val, thresh_a, thresh_b);
+	return _nvhost_syncpt_compare(current_val, thresh_a, thresh_b);
 }
 
 int nvhost_mutex_try_lock(struct nvhost_syncpt *sp, int idx)
