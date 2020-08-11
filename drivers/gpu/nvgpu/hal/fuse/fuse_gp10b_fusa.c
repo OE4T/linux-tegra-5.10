@@ -1,7 +1,7 @@
 /*
  * GP10B FUSE
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,15 +39,6 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 	bool is_wpr_enabled = false;
 	bool is_auto_fetch_disable = false;
 
-#ifdef CONFIG_NVGPU_SIM
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
-		nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
-		nvgpu_log(g, gpu_dbg_info, "priv sec is disabled in fmodel");
-		return 0;
-	}
-#endif
-
 	if (g->ops.fuse.read_gcplex_config_fuse(g, &gcplex_config) != 0) {
 		nvgpu_err(g, "err reading gcplex config fuse, check fuse clk");
 		return -EINVAL;
@@ -62,6 +53,15 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 		 */
 		nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
 		nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+#ifdef CONFIG_NVGPU_SIM
+		if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+			/*
+			 * Do not check other fuses as they are not yet modeled
+                         * on FMODEL.
+			 */
+			return 0;
+		}
+#endif
 		is_wpr_enabled =
 			(gcplex_config & GCPLEX_CONFIG_WPR_ENABLED_MASK) != 0U;
 		is_auto_fetch_disable =
