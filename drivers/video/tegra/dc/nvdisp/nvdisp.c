@@ -2231,8 +2231,9 @@ int tegra_nvdisp_head_enable(struct tegra_dc *dc)
 	if (dc->out_ops && dc->out_ops->postpoweron)
 		dc->out_ops->postpoweron(dc);
 
-
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	tegra_log_resume_time();
+#endif
 	/*
 	 * We will need to reinitialize the display the next time panel
 	 * is enabled.

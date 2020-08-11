@@ -5644,7 +5644,9 @@ static bool _tegra_dc_controller_enable(struct tegra_dc *dc)
 	if (dc->out_ops && dc->out_ops->postpoweron)
 		dc->out_ops->postpoweron(dc);
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	tegra_log_resume_time();
+#endif
 
 	tegra_dc_put(dc);
 
@@ -6001,7 +6003,9 @@ static void _tegra_dc_disable(struct tegra_dc *dc)
 
 	pm_runtime_put(&dc->ndev->dev);
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	tegra_log_suspend_entry_time();
+#endif
 
 	tegra_dc_client_handle_event(dc, NOTIFY_DC_DISABLED_EVENT);
 }
