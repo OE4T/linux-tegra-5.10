@@ -203,8 +203,8 @@ static void tegra_udrm_postclose(struct drm_device *drm, struct drm_file *file)
 	idr_destroy(&fpriv->idr);
 
 	if (fpriv->efd_ctx_drop_master) {
-		eventfd_ctx_put(fpriv->efd_ctx_drop_master);
 		eventfd_signal(fpriv->efd_ctx_drop_master, 1);
+		eventfd_ctx_put(fpriv->efd_ctx_drop_master);
 		fpriv->efd_ctx_drop_master = NULL;
 	}
 
