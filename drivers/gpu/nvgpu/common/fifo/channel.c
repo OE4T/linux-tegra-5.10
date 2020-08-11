@@ -688,16 +688,16 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c)
 		bool completed;
 
 		nvgpu_channel_joblist_lock(c);
-		if (nvgpu_channel_joblist_is_empty(c)) {
+		job = channel_joblist_peek(c);
+		nvgpu_channel_joblist_unlock(c);
+
+		if (job == NULL) {
 			/*
 			 * No jobs in flight, timeout will remain stopped until
 			 * new jobs are submitted.
 			 */
-			nvgpu_channel_joblist_unlock(c);
 			break;
 		}
-		job = channel_joblist_peek(c);
-		nvgpu_channel_joblist_unlock(c);
 
 		completed = nvgpu_fence_is_expired(&job->post_fence);
 		if (!completed) {
@@ -787,12 +787,12 @@ void nvgpu_channel_clean_up_deterministic_job(struct nvgpu_channel *c)
 	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
 
 	nvgpu_channel_joblist_lock(c);
-	if (nvgpu_channel_joblist_is_empty(c)) {
-		nvgpu_channel_joblist_unlock(c);
-		goto out_unlock;
-	}
 	job = channel_joblist_peek(c);
 	nvgpu_channel_joblist_unlock(c);
+
+	if (job == NULL) {
+		goto out_unlock;
+	}
 
 	nvgpu_assert(job->num_mapped_buffers == 0U);
 
