@@ -76,7 +76,7 @@ void nvgpu_channel_joblist_unlock(struct nvgpu_channel *c)
 	nvgpu_mutex_release(&c->joblist.pre_alloc.read_lock);
 }
 
-struct nvgpu_channel_job *channel_joblist_peek(struct nvgpu_channel *c)
+struct nvgpu_channel_job *nvgpu_channel_joblist_peek(struct nvgpu_channel *c)
 {
 	unsigned int get = c->joblist.pre_alloc.get;
 	unsigned int put = c->joblist.pre_alloc.put;
@@ -85,21 +85,21 @@ struct nvgpu_channel_job *channel_joblist_peek(struct nvgpu_channel *c)
 	return empty ? NULL : &c->joblist.pre_alloc.jobs[get];
 }
 
-void channel_joblist_add(struct nvgpu_channel *c,
+void nvgpu_channel_joblist_add(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job)
 {
 	c->joblist.pre_alloc.put = (c->joblist.pre_alloc.put + 1U) %
 			(c->joblist.pre_alloc.length);
 }
 
-void channel_joblist_delete(struct nvgpu_channel *c,
+void nvgpu_channel_joblist_delete(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job)
 {
 	c->joblist.pre_alloc.get = (c->joblist.pre_alloc.get + 1U) %
 			(c->joblist.pre_alloc.length);
 }
 
-int channel_prealloc_resources(struct nvgpu_channel *c, u32 num_jobs)
+int nvgpu_channel_joblist_init(struct nvgpu_channel *c, u32 num_jobs)
 {
 	int err;
 	u32 size;
@@ -140,7 +140,7 @@ clean_up:
 	return err;
 }
 
-void channel_free_prealloc_resources(struct nvgpu_channel *c)
+void nvgpu_channel_joblist_deinit(struct nvgpu_channel *c)
 {
 	if (c->joblist.pre_alloc.jobs != NULL) {
 		nvgpu_vfree(c->g, c->joblist.pre_alloc.jobs);

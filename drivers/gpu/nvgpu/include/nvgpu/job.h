@@ -47,13 +47,13 @@ void nvgpu_channel_free_job(struct nvgpu_channel *c,
 
 void nvgpu_channel_joblist_lock(struct nvgpu_channel *c);
 void nvgpu_channel_joblist_unlock(struct nvgpu_channel *c);
-struct nvgpu_channel_job *channel_joblist_peek(struct nvgpu_channel *c);
-void channel_joblist_add(struct nvgpu_channel *c,
+struct nvgpu_channel_job *nvgpu_channel_joblist_peek(struct nvgpu_channel *c);
+void nvgpu_channel_joblist_add(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job);
-void channel_joblist_delete(struct nvgpu_channel *c,
+void nvgpu_channel_joblist_delete(struct nvgpu_channel *c,
 		struct nvgpu_channel_job *job);
 
-int channel_prealloc_resources(struct nvgpu_channel *c, u32 num_jobs);
-void channel_free_prealloc_resources(struct nvgpu_channel *c);
+int nvgpu_channel_joblist_init(struct nvgpu_channel *c, u32 num_jobs);
+void nvgpu_channel_joblist_deinit(struct nvgpu_channel *c);
 
 #endif

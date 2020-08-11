@@ -234,7 +234,7 @@ static void channel_kernelmode_deinit(struct nvgpu_channel *ch)
 		ch->priv_cmd_q = NULL;
 	}
 
-	channel_free_prealloc_resources(ch);
+	nvgpu_channel_joblist_deinit(ch);
 
 	/* sync must be destroyed before releasing channel vm */
 	nvgpu_mutex_acquire(&ch->sync_lock);
@@ -390,7 +390,7 @@ static int channel_setup_kernelmode(struct nvgpu_channel *c,
 		job_count = nvgpu_safe_add_u32(gpfifo_size, 2U) / 3U;
 	}
 
-	err = channel_prealloc_resources(c, job_count);
+	err = nvgpu_channel_joblist_init(c, job_count);
 	if (err != 0) {
 		goto clean_up_sync;
 	}
@@ -411,7 +411,7 @@ clean_up_priv_cmd:
 	nvgpu_priv_cmdbuf_queue_free(c->priv_cmd_q);
 	c->priv_cmd_q = NULL;
 clean_up_prealloc:
-	channel_free_prealloc_resources(c);
+	nvgpu_channel_joblist_deinit(c);
 clean_up_sync:
 	if (c->sync != NULL) {
 		nvgpu_channel_sync_destroy(c->sync);
@@ -638,7 +638,7 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 		nvgpu_channel_wdt_start(c->wdt, c);
 
 		nvgpu_channel_joblist_lock(c);
-		channel_joblist_add(c, job);
+		nvgpu_channel_joblist_add(c, job);
 		nvgpu_channel_joblist_unlock(c);
 	} else {
 		err = -ETIMEDOUT;
@@ -688,7 +688,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c)
 		bool completed;
 
 		nvgpu_channel_joblist_lock(c);
-		job = channel_joblist_peek(c);
+		job = nvgpu_channel_joblist_peek(c);
 		nvgpu_channel_joblist_unlock(c);
 
 		if (job == NULL) {
@@ -752,7 +752,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c)
 		nvgpu_channel_free_job(c, job);
 
 		nvgpu_channel_joblist_lock(c);
-		channel_joblist_delete(c, job);
+		nvgpu_channel_joblist_delete(c, job);
 		nvgpu_channel_joblist_unlock(c);
 
 		job_finished = true;
@@ -787,7 +787,7 @@ void nvgpu_channel_clean_up_deterministic_job(struct nvgpu_channel *c)
 	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
 
 	nvgpu_channel_joblist_lock(c);
-	job = channel_joblist_peek(c);
+	job = nvgpu_channel_joblist_peek(c);
 	nvgpu_channel_joblist_unlock(c);
 
 	if (job == NULL) {
@@ -817,7 +817,7 @@ void nvgpu_channel_clean_up_deterministic_job(struct nvgpu_channel *c)
 	nvgpu_channel_free_job(c, job);
 
 	nvgpu_channel_joblist_lock(c);
-	channel_joblist_delete(c, job);
+	nvgpu_channel_joblist_delete(c, job);
 	nvgpu_channel_joblist_unlock(c);
 
 out_unlock:
