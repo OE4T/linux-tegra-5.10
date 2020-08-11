@@ -423,7 +423,8 @@ static int trusty_irq_init_one(struct trusty_irq_state *is,
 	/* If the previous CPU is A57, and IPI is sent to Denver*/
 	/* There will be some memory coherence issue between A57 and Denver */
 	/* Before we implement MCE in trusty, we shouldn't register IPI*/
-	if (irq <= TRUSTY_IPI_CUSTOM_LAST
+	if (type != TRUSTY_IRQ_TYPE_DOORBELL
+		&& irq <= TRUSTY_IPI_CUSTOM_LAST
 		&& irq >= TRUSTY_IPI_CUSTOM_FIRST)
 		return irq + 1;
 
