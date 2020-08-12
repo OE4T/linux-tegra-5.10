@@ -1640,6 +1640,22 @@ static int channel_setup_bind_prechecks(struct nvgpu_channel *c,
 		err = -EINVAL;
 		goto fail;
 	}
+
+	/* FUSA build for now assumes that the deterministic flag is not useful */
+#ifdef CONFIG_NVGPU_IOCTL_NON_FUSA
+	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) != 0U &&
+	    (args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC) == 0U) {
+		/*
+		 * Usermode submit shares various preconditions with
+		 * deterministic mode. Require that it's explicitly set to
+		 * avoid surprises.
+		 */
+		nvgpu_err(g, "need deterministic for usermode submit");
+		err = -EINVAL;
+		goto fail;
+	}
+#endif
+
 fail:
 	return err;
 }

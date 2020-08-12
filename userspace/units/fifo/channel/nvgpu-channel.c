@@ -822,6 +822,8 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 				~NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT;
 		} else {
 			bind_args.flags |=
+				NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC;
+			bind_args.flags |=
 				NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT;
 		}
 
@@ -1705,6 +1707,7 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 	memset(&bind_args, 0, sizeof(bind_args));
 	bind_args.num_gpfifo_entries = 32;
 
+	bind_args.flags |= NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC;
 	bind_args.flags |= NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT;
 
 	err = nvgpu_channel_setup_bind(ch, &bind_args);
