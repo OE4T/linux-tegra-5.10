@@ -1,5 +1,5 @@
 /*
- * isc_pwm.c - ISC PWM driver.
+ * cdi_pwm.c - CDI PWM driver.
  *
  * Copyright (c) 2016-2020 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -22,7 +22,7 @@
 #include <linux/pwm.h>
 #include <linux/atomic.h>
 
-#include "isc-pwm-priv.h"
+#include "cdi-pwm-priv.h"
 
 /*
  * Below values are configured during suspend.
@@ -34,19 +34,19 @@
 #define PWM_SUSPEND_PERIOD		1
 #define PWM_SUSPEND_DUTY_RATIO		0
 
-static const struct of_device_id isc_pwm_of_match[] = {
-	{ .compatible = "nvidia, isc-pwm", .data = NULL },
+static const struct of_device_id cdi_pwm_of_match[] = {
+	{ .compatible = "nvidia,cdi-pwm", .data = NULL },
 	{},
 };
 
-static inline struct isc_pwm_info *to_isc_pwm_info(struct pwm_chip *chip)
+static inline struct cdi_pwm_info *to_cdi_pwm_info(struct pwm_chip *chip)
 {
-	return container_of(chip, struct isc_pwm_info, chip);
+	return container_of(chip, struct cdi_pwm_info, chip);
 }
 
-static int isc_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+static int cdi_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 {
-	struct isc_pwm_info *info = to_isc_pwm_info(chip);
+	struct cdi_pwm_info *info = to_cdi_pwm_info(chip);
 	int err = 0;
 
 	if (!chip || !pwm)
@@ -65,9 +65,9 @@ static int isc_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	return err;
 }
 
-static void isc_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
+static void cdi_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 {
-	struct isc_pwm_info *info = to_isc_pwm_info(chip);
+	struct cdi_pwm_info *info = to_cdi_pwm_info(chip);
 	int atomic_val;
 
 	mutex_lock(&info->mutex);
@@ -81,10 +81,10 @@ static void isc_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	mutex_unlock(&info->mutex);
 }
 
-static int isc_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+static int cdi_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 			int duty_ns, int period_ns)
 {
-	struct isc_pwm_info *info = to_isc_pwm_info(chip);
+	struct cdi_pwm_info *info = to_cdi_pwm_info(chip);
 	int err = 0;
 
 	if (info->force_on)
@@ -99,11 +99,11 @@ static int isc_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	return err;
 }
 
-static struct pwm_device *of_isc_pwm_xlate(struct pwm_chip *pc,
+static struct pwm_device *of_cdi_pwm_xlate(struct pwm_chip *pc,
 			const struct of_phandle_args *args)
 {
 	struct pwm_device *pwm;
-	struct isc_pwm_info *info = to_isc_pwm_info(pc);
+	struct cdi_pwm_info *info = to_cdi_pwm_info(pc);
 	int err = 0;
 
 	pwm = pwm_request_from_chip(pc, args->args[0], NULL);
@@ -135,23 +135,23 @@ static struct pwm_device *of_isc_pwm_xlate(struct pwm_chip *pc,
 	return pwm;
 }
 
-static const struct pwm_ops isc_pwm_ops = {
-	.config = isc_pwm_config,
-	.enable = isc_pwm_enable,
-	.disable = isc_pwm_disable,
+static const struct pwm_ops cdi_pwm_ops = {
+	.config = cdi_pwm_config,
+	.enable = cdi_pwm_enable,
+	.disable = cdi_pwm_disable,
 	.owner = THIS_MODULE,
 };
 
-static int isc_pwm_probe(struct platform_device *pdev)
+static int cdi_pwm_probe(struct platform_device *pdev)
 {
-	struct isc_pwm_info *info = NULL;
+	struct cdi_pwm_info *info = NULL;
 	int err = 0, npwm;
 	bool force_on = false;
 
 	dev_info(&pdev->dev, "%sing...\n", __func__);
 
 	info = devm_kzalloc(
-		&pdev->dev, sizeof(struct isc_pwm_info), GFP_KERNEL);
+		&pdev->dev, sizeof(struct cdi_pwm_info), GFP_KERNEL);
 	if (!info)
 		return -ENOMEM;
 
@@ -167,10 +167,10 @@ static int isc_pwm_probe(struct platform_device *pdev)
 	force_on = of_property_read_bool(pdev->dev.of_node, "force_on");
 
 	info->chip.dev = &pdev->dev;
-	info->chip.ops = &isc_pwm_ops;
+	info->chip.ops = &cdi_pwm_ops;
 	info->chip.base = -1;
 	info->chip.npwm = npwm;
-	info->chip.of_xlate = of_isc_pwm_xlate;
+	info->chip.of_xlate = of_cdi_pwm_xlate;
 	info->chip.of_pwm_n_cells = 2;
 	info->force_on = force_on;
 
@@ -197,17 +197,17 @@ static int isc_pwm_probe(struct platform_device *pdev)
 	return err;
 }
 
-static int isc_pwm_remove(struct platform_device *pdev)
+static int cdi_pwm_remove(struct platform_device *pdev)
 {
-	struct isc_pwm_info *info = platform_get_drvdata(pdev);
+	struct cdi_pwm_info *info = platform_get_drvdata(pdev);
 
 	return pwmchip_remove(&info->chip);
 }
 
-static int isc_pwm_suspend(struct device *dev)
+static int cdi_pwm_suspend(struct device *dev)
 {
 	int err = 0;
-	struct isc_pwm_info *info = dev_get_drvdata(dev);
+	struct cdi_pwm_info *info = dev_get_drvdata(dev);
 
 	if (info == NULL) {
 		dev_err(dev, "%s: fail to get info\n", __func__);
@@ -221,34 +221,34 @@ static int isc_pwm_suspend(struct device *dev)
 	return 0;
 }
 
-static int isc_pwm_resume(struct device *dev)
+static int cdi_pwm_resume(struct device *dev)
 {
 	/* Do nothing */
 	return 0;
 }
 
-static const struct dev_pm_ops isc_pwm_pm_ops = {
-	.suspend = isc_pwm_suspend,
-	.resume = isc_pwm_resume,
-	.runtime_suspend = isc_pwm_suspend,
-	.runtime_resume = isc_pwm_resume,
+static const struct dev_pm_ops cdi_pwm_pm_ops = {
+	.suspend = cdi_pwm_suspend,
+	.resume = cdi_pwm_resume,
+	.runtime_suspend = cdi_pwm_suspend,
+	.runtime_resume = cdi_pwm_resume,
 };
 
-static struct platform_driver isc_pwm_driver = {
+static struct platform_driver cdi_pwm_driver = {
 	.driver = {
-		.name = "isc-pwm",
+		.name = "cdi-pwm",
 		.owner = THIS_MODULE,
-		.of_match_table = isc_pwm_of_match,
-		.pm = &isc_pwm_pm_ops,
+		.of_match_table = cdi_pwm_of_match,
+		.pm = &cdi_pwm_pm_ops,
 	},
-	.probe = isc_pwm_probe,
-	.remove = isc_pwm_remove,
+	.probe = cdi_pwm_probe,
+	.remove = cdi_pwm_remove,
 };
 
-module_platform_driver(isc_pwm_driver);
+module_platform_driver(cdi_pwm_driver);
 
 MODULE_AUTHOR("Junghyun Kim <juskim@nvidia.com>");
-MODULE_DESCRIPTION("ISC PWM driver");
+MODULE_DESCRIPTION("CDI PWM driver");
 MODULE_LICENSE("GPL v2");
-MODULE_DEVICE_TABLE(of, isc_pwm_of_match);
-MODULE_SOFTDEP("pre: isc_dev");
+MODULE_DEVICE_TABLE(of, cdi_pwm_of_match);
+MODULE_SOFTDEP("pre: cdi_dev");

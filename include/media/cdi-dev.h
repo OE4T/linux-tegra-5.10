@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -11,15 +11,19 @@
  * more details.
  */
 
-#ifndef __ISC_PWM_PRIV_H__
-#define __ISC_PWM_PRIV_H__
+#ifndef __CDI_DEV_H__
+#define __CDI_DEV_H__
 
-struct isc_pwm_info {
-	struct pwm_chip chip;
-	struct pwm_device *pwm;
-	atomic_t in_use;
-	struct mutex mutex;
-	bool force_on;
+#include <uapi/media/cdi-dev.h>
+#include <linux/regmap.h>
+
+#define MAX_CDI_NAME_LENGTH	32
+
+struct cdi_dev_platform_data {
+	struct device *pdev; /* parent device of cdi_dev */
+	int reg_bits;
+	int val_bits;
+	char drv_name[MAX_CDI_NAME_LENGTH];
 };
 
-#endif  /* __ISC_PWM_PRIV_H__ */
+#endif  /* __CDI_DEV_H__ */

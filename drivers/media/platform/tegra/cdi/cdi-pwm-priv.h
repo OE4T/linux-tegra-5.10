@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -11,27 +11,15 @@
  * more details.
  */
 
-#ifndef __ISC_GPIO_PRIV_H__
-#define __ISC_GPIO_PRIV_H__
+#ifndef __CDI_PWM_PRIV_H__
+#define __CDI_PWM_PRIV_H__
 
-struct isc_gpio_plat_data {
-	const char *gpio_prnt_chip;
-	u32 max_gpio;
-};
-
-struct isc_gpio_desc {
-	u32 gpio;
-	atomic_t ref_cnt;
-};
-
-struct isc_gpio_priv {
-	struct device *pdev;
-	struct isc_gpio_plat_data pdata;
+struct cdi_pwm_info {
+	struct pwm_chip chip;
+	struct pwm_device *pwm;
+	atomic_t in_use;
 	struct mutex mutex;
-	struct gpio_chip gpio_chip;
-	struct gpio_chip *tgc;
-	struct isc_gpio_desc *gpios;
-	u32 num_gpio;
+	bool force_on;
 };
 
-#endif /* __ISC_GPIO_PRIV_H__ */
+#endif  /* __CDI_PWM_PRIV_H__ */

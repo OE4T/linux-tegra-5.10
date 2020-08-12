@@ -1,5 +1,5 @@
 /*
- * isc_dev.c - ISC generic i2c driver.
+ * cdi_dev.c - CDI generic i2c driver.
  *
  * Copyright (c) 2015-2020, NVIDIA Corporation. All Rights Reserved.
  *
@@ -27,21 +27,21 @@
 #include <linux/regmap.h>
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>
-#include <media/isc-dev.h>
-#include <uapi/media/isc-mgr.h>
+#include <media/cdi-dev.h>
+#include <uapi/media/cdi-mgr.h>
 
-#include "isc-dev-priv.h"
-#include "isc-mgr-priv.h"
+#include "cdi-dev-priv.h"
+#include "cdi-mgr-priv.h"
 
 /* i2c payload size is only 12 bit */
 #define MAX_MSG_SIZE	(0xFFF - 1)
 
 /*#define DEBUG_I2C_TRAFFIC*/
 
-/* ISC Dev Debugfs functions
+/* CDI Dev Debugfs functions
  *
- *    - isc_dev_debugfs_init
- *    - isc_dev_debugfs_remove
+ *    - cdi_dev_debugfs_init
+ *    - cdi_dev_debugfs_remove
  *    - i2c_oft_get
  *    - i2c_oft_set
  *    - i2c_val_get
@@ -49,11 +49,11 @@
  */
 static int i2c_val_get(void *data, u64 *val)
 {
-	struct isc_dev_info *isc_dev = data;
+	struct cdi_dev_info *cdi_dev = data;
 	u8 temp = 0;
 
-	if (isc_dev_raw_rd(isc_dev, isc_dev->reg_off, 0, &temp, 1)) {
-		dev_err(isc_dev->dev, "ERR:%s failed\n", __func__);
+	if (cdi_dev_raw_rd(cdi_dev, cdi_dev->reg_off, 0, &temp, 1)) {
+		dev_err(cdi_dev->dev, "ERR:%s failed\n", __func__);
 		return -EIO;
 	}
 	*val = (u64)temp;
@@ -62,86 +62,86 @@ static int i2c_val_get(void *data, u64 *val)
 
 static int i2c_val_set(void *data, u64 val)
 {
-	struct isc_dev_info *isc_dev = data;
+	struct cdi_dev_info *cdi_dev = data;
 	u8 temp[3];
 
 	temp[2] = val & 0xff;
-	if (isc_dev_raw_wr(isc_dev, isc_dev->reg_off, temp, 1)) {
-		dev_err(isc_dev->dev, "ERR:%s failed\n", __func__);
+	if (cdi_dev_raw_wr(cdi_dev, cdi_dev->reg_off, temp, 1)) {
+		dev_err(cdi_dev->dev, "ERR:%s failed\n", __func__);
 		return -EIO;
 	}
 	return 0;
 }
 
-DEFINE_SIMPLE_ATTRIBUTE(isc_val_fops, i2c_val_get, i2c_val_set, "0x%02llx\n");
+DEFINE_SIMPLE_ATTRIBUTE(cdi_val_fops, i2c_val_get, i2c_val_set, "0x%02llx\n");
 
 static int i2c_oft_get(void *data, u64 *val)
 {
-	struct isc_dev_info *isc_dev = data;
+	struct cdi_dev_info *cdi_dev = data;
 
-	*val = (u64)isc_dev->reg_off;
+	*val = (u64)cdi_dev->reg_off;
 	return 0;
 }
 
 static int i2c_oft_set(void *data, u64 val)
 {
-	struct isc_dev_info *isc_dev = data;
+	struct cdi_dev_info *cdi_dev = data;
 
-	isc_dev->reg_off = (typeof(isc_dev->reg_off))val;
+	cdi_dev->reg_off = (typeof(cdi_dev->reg_off))val;
 	return 0;
 }
 
-DEFINE_SIMPLE_ATTRIBUTE(isc_oft_fops, i2c_oft_get, i2c_oft_set, "0x%02llx\n");
+DEFINE_SIMPLE_ATTRIBUTE(cdi_oft_fops, i2c_oft_get, i2c_oft_set, "0x%02llx\n");
 
-int isc_dev_debugfs_init(struct isc_dev_info *isc_dev)
+int cdi_dev_debugfs_init(struct cdi_dev_info *cdi_dev)
 {
-	struct isc_mgr_priv *isc_mgr = NULL;
+	struct cdi_mgr_priv *cdi_mgr = NULL;
 	struct dentry *d;
 
-	dev_dbg(isc_dev->dev, "%s %s\n", __func__, isc_dev->devname);
+	dev_dbg(cdi_dev->dev, "%s %s\n", __func__, cdi_dev->devname);
 
-	if (isc_dev->pdata)
-		isc_mgr = dev_get_drvdata(isc_dev->pdata->pdev);
+	if (cdi_dev->pdata)
+		cdi_mgr = dev_get_drvdata(cdi_dev->pdata->pdev);
 
-	isc_dev->d_entry = debugfs_create_dir(
-		isc_dev->devname,
-		isc_mgr ? isc_mgr->d_entry : NULL);
-	if (isc_dev->d_entry == NULL) {
-		dev_err(isc_dev->dev, "%s: create dir failed\n", __func__);
+	cdi_dev->d_entry = debugfs_create_dir(
+		cdi_dev->devname,
+		cdi_mgr ? cdi_mgr->d_entry : NULL);
+	if (cdi_dev->d_entry == NULL) {
+		dev_err(cdi_dev->dev, "%s: create dir failed\n", __func__);
 		return -ENOMEM;
 	}
 
-	d = debugfs_create_file("val", S_IRUGO|S_IWUSR, isc_dev->d_entry,
-		(void *)isc_dev, &isc_val_fops);
+	d = debugfs_create_file("val", 0644, cdi_dev->d_entry,
+		(void *)cdi_dev, &cdi_val_fops);
 	if (!d) {
-		dev_err(isc_dev->dev, "%s: create file failed\n", __func__);
-		debugfs_remove_recursive(isc_dev->d_entry);
-		isc_dev->d_entry = NULL;
+		dev_err(cdi_dev->dev, "%s: create file failed\n", __func__);
+		debugfs_remove_recursive(cdi_dev->d_entry);
+		cdi_dev->d_entry = NULL;
 	}
 
-	d = debugfs_create_file("offset", S_IRUGO|S_IWUSR, isc_dev->d_entry,
-		(void *)isc_dev, &isc_oft_fops);
+	d = debugfs_create_file("offset", 0644, cdi_dev->d_entry,
+		(void *)cdi_dev, &cdi_oft_fops);
 	if (!d) {
-		dev_err(isc_dev->dev, "%s: create file failed\n", __func__);
-		debugfs_remove_recursive(isc_dev->d_entry);
-		isc_dev->d_entry = NULL;
+		dev_err(cdi_dev->dev, "%s: create file failed\n", __func__);
+		debugfs_remove_recursive(cdi_dev->d_entry);
+		cdi_dev->d_entry = NULL;
 	}
 
 	return 0;
 }
 
-int isc_dev_debugfs_remove(struct isc_dev_info *isc_dev)
+int cdi_dev_debugfs_remove(struct cdi_dev_info *cdi_dev)
 {
-	if (isc_dev->d_entry == NULL)
+	if (cdi_dev->d_entry == NULL)
 		return 0;
-	debugfs_remove_recursive(isc_dev->d_entry);
-	isc_dev->d_entry = NULL;
+	debugfs_remove_recursive(cdi_dev->d_entry);
+	cdi_dev->d_entry = NULL;
 	return 0;
 }
 
-static void isc_dev_dump(
+static void cdi_dev_dump(
 	const char *str,
-	struct isc_dev_info *info,
+	struct cdi_dev_info *info,
 	unsigned int offset,
 	u8 *buf, size_t size)
 {
@@ -171,8 +171,8 @@ static void isc_dev_dump(
    size   - number of bytes to be writen to device.
    offset - address in the device's register space to start with.
 */
-int isc_dev_raw_rd(
-	struct isc_dev_info *info, unsigned int offset,
+int cdi_dev_raw_rd(
+	struct cdi_dev_info *info, unsigned int offset,
 	unsigned int offset_len, u8 *val, size_t size)
 {
 	int ret = -ENODEV;
@@ -215,7 +215,7 @@ int isc_dev_raw_rd(
 	mutex_unlock(&info->mutex);
 
 	if (!ret)
-		isc_dev_dump(__func__, info, offset, val, size);
+		cdi_dev_dump(__func__, info, offset, val, size);
 
 	return ret;
 }
@@ -227,8 +227,8 @@ int isc_dev_raw_rd(
 		if offset == -1, it will be ignored and no offset
 		value will be integrated into the data buffer.
 */
-int isc_dev_raw_wr(
-	struct isc_dev_info *info, unsigned int offset, u8 *val, size_t size)
+int cdi_dev_raw_wr(
+	struct cdi_dev_info *info, unsigned int offset, u8 *val, size_t size)
 {
 	int ret = -ENODEV;
 	u8 *buf_start = NULL;
@@ -263,7 +263,7 @@ int isc_dev_raw_wr(
 			val += 2;
 	}
 
-	isc_dev_dump(__func__, info, offset, val, size);
+	cdi_dev_dump(__func__, info, offset, val, size);
 
 	num_msgs = size / MAX_MSG_SIZE;
 	num_msgs += (size % MAX_MSG_SIZE) ? 1 : 0;
@@ -311,9 +311,9 @@ int isc_dev_raw_wr(
 	return ret;
 }
 
-static int isc_dev_raw_rw(struct isc_dev_info *info)
+static int cdi_dev_raw_rw(struct cdi_dev_info *info)
 {
-	struct isc_dev_package *pkg = &info->rw_pkg;
+	struct cdi_dev_package *pkg = &info->rw_pkg;
 	void *u_ptr = (void *)pkg->buffer;
 	u8 *buf;
 	int ret = -ENODEV;
@@ -326,7 +326,7 @@ static int isc_dev_raw_rw(struct isc_dev_info *info)
 			__func__);
 		return -ENOMEM;
 	}
-	if (pkg->flags & ISC_DEV_PKG_FLAG_WR) {
+	if (pkg->flags & CDI_DEV_PKG_FLAG_WR) {
 		/* write to device */
 		if (copy_from_user(buf,
 			(const void __user *)u_ptr, pkg->size)) {
@@ -337,10 +337,10 @@ static int isc_dev_raw_rw(struct isc_dev_info *info)
 		}
 		/* in the user access case, the offset is integrated in the
 		   buffer to be transferred, so pass -1 as the offset */
-		ret = isc_dev_raw_wr(info, -1, buf, pkg->size);
+		ret = cdi_dev_raw_wr(info, -1, buf, pkg->size);
 	} else {
 		/* read from device */
-		ret = isc_dev_raw_rd(info, pkg->offset,
+		ret = cdi_dev_raw_rd(info, pkg->offset,
 				pkg->offset_len, buf, pkg->size);
 		if (!ret && copy_to_user(
 			(void __user *)u_ptr, buf, pkg->size)) {
@@ -354,11 +354,11 @@ static int isc_dev_raw_rw(struct isc_dev_info *info)
 	return ret;
 }
 
-static int isc_dev_get_package(
-	struct isc_dev_info *info, unsigned long arg, bool is_compat)
+static int cdi_dev_get_package(
+	struct cdi_dev_info *info, unsigned long arg, bool is_compat)
 {
 	if (is_compat) {
-		struct isc_dev_package32 pkg32;
+		struct cdi_dev_package32 pkg32;
 
 		if (copy_from_user(&pkg32,
 			(const void __user *)arg, sizeof(pkg32))) {
@@ -372,7 +372,7 @@ static int isc_dev_get_package(
 		info->rw_pkg.flags = pkg32.flags;
 		info->rw_pkg.buffer = (unsigned long)pkg32.buffer;
 	} else {
-		struct isc_dev_package pkg;
+		struct cdi_dev_package pkg;
 
 		if (copy_from_user(&pkg,
 			(const void __user *)arg, sizeof(pkg))) {
@@ -401,19 +401,19 @@ static int isc_dev_get_package(
 	return 0;
 }
 
-static long isc_dev_ioctl(struct file *file,
+static long cdi_dev_ioctl(struct file *file,
 			unsigned int cmd, unsigned long arg)
 {
-	struct isc_dev_info *info = file->private_data;
+	struct cdi_dev_info *info = file->private_data;
 	int err = 0;
 
 	switch (cmd) {
-	case ISC_DEV_IOCTL_RW:
-		err = isc_dev_get_package(info, arg, false);
+	case CDI_DEV_IOCTL_RW:
+		err = cdi_dev_get_package(info, arg, false);
 		if (err)
 			break;
 
-		err = isc_dev_raw_rw(info);
+		err = cdi_dev_raw_rw(info);
 		break;
 	default:
 		dev_dbg(info->dev, "%s: invalid cmd %x\n", __func__, cmd);
@@ -424,36 +424,36 @@ static long isc_dev_ioctl(struct file *file,
 }
 
 #ifdef CONFIG_COMPAT
-static long isc_dev_ioctl32(struct file *file,
+static long cdi_dev_ioctl32(struct file *file,
 			unsigned int cmd, unsigned long arg)
 {
-	struct isc_dev_info *info = file->private_data;
+	struct cdi_dev_info *info = file->private_data;
 	int err = 0;
 
 	switch (cmd) {
-	case ISC_DEV_IOCTL_RW32:
-		err = isc_dev_get_package(info, arg, true);
+	case CDI_DEV_IOCTL_RW32:
+		err = cdi_dev_get_package(info, arg, true);
 		if (err)
 			break;
 
-		err = isc_dev_raw_rw(info);
+		err = cdi_dev_raw_rw(info);
 		break;
 	default:
-		return isc_dev_ioctl(file, cmd, arg);
+		return cdi_dev_ioctl(file, cmd, arg);
 	}
 
 	return err;
 }
 #endif
 
-static int isc_dev_open(struct inode *inode, struct file *file)
+static int cdi_dev_open(struct inode *inode, struct file *file)
 {
-	struct isc_dev_info *info;
+	struct cdi_dev_info *info;
 
 	if (inode == NULL)
 		return -ENODEV;
 
-	info = container_of(inode->i_cdev, struct isc_dev_info, cdev);
+	info = container_of(inode->i_cdev, struct cdi_dev_info, cdev);
 
 	if (atomic_xchg(&info->in_use, 1))
 		return -EBUSY;
@@ -463,9 +463,9 @@ static int isc_dev_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static int isc_dev_release(struct inode *inode, struct file *file)
+static int cdi_dev_release(struct inode *inode, struct file *file)
 {
-	struct isc_dev_info *info = file->private_data;
+	struct cdi_dev_info *info = file->private_data;
 
 	dev_dbg(info->dev, "%s\n", __func__);
 	file->private_data = NULL;
@@ -473,20 +473,20 @@ static int isc_dev_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations isc_dev_fileops = {
+static const struct file_operations cdi_dev_fileops = {
 	.owner = THIS_MODULE,
-	.open = isc_dev_open,
-	.unlocked_ioctl = isc_dev_ioctl,
+	.open = cdi_dev_open,
+	.unlocked_ioctl = cdi_dev_ioctl,
 #ifdef CONFIG_COMPAT
-	.compat_ioctl = isc_dev_ioctl32,
+	.compat_ioctl = cdi_dev_ioctl32,
 #endif
-	.release = isc_dev_release,
+	.release = cdi_dev_release,
 };
 
-static int isc_dev_probe(struct i2c_client *client,
+static int cdi_dev_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
-	struct isc_dev_info *info;
+	struct cdi_dev_info *info;
 	struct device *pdev;
 	int err;
 
@@ -494,7 +494,7 @@ static int isc_dev_probe(struct i2c_client *client,
 		__func__, client->adapter->nr, client->addr);
 
 	info = devm_kzalloc(
-		&client->dev, sizeof(struct isc_dev_info), GFP_KERNEL);
+		&client->dev, sizeof(struct cdi_dev_info), GFP_KERNEL);
 	if (!info) {
 		pr_err("%s: Unable to allocate memory!\n", __func__);
 		return -ENOMEM;
@@ -529,12 +529,12 @@ static int isc_dev_probe(struct i2c_client *client,
 			"%s", info->pdata->drv_name);
 	else
 		snprintf(info->devname, sizeof(info->devname),
-			"isc-dev.%u.%02x", client->adapter->nr, client->addr);
+			"cdi-dev.%u.%02x", client->adapter->nr, client->addr);
 
 	if (info->pdata->pdev == NULL)
 		return -ENODEV;
 
-	cdev_init(&info->cdev, &isc_dev_fileops);
+	cdev_init(&info->cdev, &cdi_dev_fileops);
 	info->cdev.owner = THIS_MODULE;
 	pdev = info->pdata->pdev;
 
@@ -547,7 +547,7 @@ static int isc_dev_probe(struct i2c_client *client,
 		return err;
 	}
 
-	/* send uevents to udev, it will create /dev node for isc-mgr */
+	/* send uevents to udev, it will create /dev node for cdi-mgr */
 	info->dev = device_create(pdev->class, &client->dev,
 				  info->cdev.dev,
 				  info, info->devname);
@@ -560,19 +560,19 @@ static int isc_dev_probe(struct i2c_client *client,
 
 	info->power_is_on = 1;
 	i2c_set_clientdata(client, info);
-	isc_dev_debugfs_init(info);
+	cdi_dev_debugfs_init(info);
 	return 0;
 }
 
-static int isc_dev_remove(struct i2c_client *client)
+static int cdi_dev_remove(struct i2c_client *client)
 {
-	struct isc_dev_info *info = i2c_get_clientdata(client);
+	struct cdi_dev_info *info = i2c_get_clientdata(client);
 	struct device *pdev;
 
 	dev_dbg(&client->dev, "%s\n", __func__);
-	isc_dev_debugfs_remove(info);
+	cdi_dev_debugfs_remove(info);
 
-	/* remove only isc_dev_info not i2c_client itself */
+	/* remove only cdi_dev_info not i2c_client itself */
 	pdev = info->pdata->pdev;
 
 	if (info->dev)
@@ -585,57 +585,57 @@ static int isc_dev_remove(struct i2c_client *client)
 }
 
 #ifdef CONFIG_PM
-static int isc_dev_suspend(struct device *dev)
+static int cdi_dev_suspend(struct device *dev)
 {
-	struct isc_dev_info *isc = (struct isc_dev_info *)dev_get_drvdata(dev);
+	struct cdi_dev_info *cdi = (struct cdi_dev_info *)dev_get_drvdata(dev);
 
 	dev_info(dev, "Suspending\n");
-	mutex_lock(&isc->mutex);
-	isc->power_is_on = 0;
-	mutex_unlock(&isc->mutex);
+	mutex_lock(&cdi->mutex);
+	cdi->power_is_on = 0;
+	mutex_unlock(&cdi->mutex);
 
 	return 0;
 }
 
-static int isc_dev_resume(struct device *dev)
+static int cdi_dev_resume(struct device *dev)
 {
-	struct isc_dev_info *isc = (struct isc_dev_info *)dev_get_drvdata(dev);
+	struct cdi_dev_info *cdi = (struct cdi_dev_info *)dev_get_drvdata(dev);
 
 	dev_info(dev, "Resuming\n");
-	mutex_lock(&isc->mutex);
-	isc->power_is_on = 1;
-	mutex_unlock(&isc->mutex);
+	mutex_lock(&cdi->mutex);
+	cdi->power_is_on = 1;
+	mutex_unlock(&cdi->mutex);
 
 	return 0;
 }
 #endif
 
-static const struct i2c_device_id isc_dev_id[] = {
-	{ "isc-dev", 0 },
+static const struct i2c_device_id cdi_dev_id[] = {
+	{ "cdi-dev", 0 },
 	{ },
 };
 
-static const struct dev_pm_ops isc_dev_pm_ops = {
-	SET_RUNTIME_PM_OPS(isc_dev_suspend,
-			isc_dev_resume, NULL)
-	SET_SYSTEM_SLEEP_PM_OPS(isc_dev_suspend,
-			isc_dev_resume)
+static const struct dev_pm_ops cdi_dev_pm_ops = {
+	SET_RUNTIME_PM_OPS(cdi_dev_suspend,
+			cdi_dev_resume, NULL)
+	SET_SYSTEM_SLEEP_PM_OPS(cdi_dev_suspend,
+			cdi_dev_resume)
 };
 
-static struct i2c_driver isc_dev_drv = {
+static struct i2c_driver cdi_dev_drv = {
 	.driver = {
-		.name = "isc-dev",
+		.name = "cdi-dev",
 		.owner = THIS_MODULE,
-		.pm = &isc_dev_pm_ops,
+		.pm = &cdi_dev_pm_ops,
 	},
-	.id_table = isc_dev_id,
-	.probe = isc_dev_probe,
-	.remove = isc_dev_remove,
+	.id_table = cdi_dev_id,
+	.probe = cdi_dev_probe,
+	.remove = cdi_dev_remove,
 };
 
-module_i2c_driver(isc_dev_drv);
+module_i2c_driver(cdi_dev_drv);
 
-MODULE_DESCRIPTION("ISC Generic I2C driver");
+MODULE_DESCRIPTION("CDI Generic I2C driver");
 MODULE_AUTHOR("Charlie Huang <chahuang@nvidia.com>");
 MODULE_LICENSE("GPL v2");
-MODULE_SOFTDEP("pre: isc_gpio");
+MODULE_SOFTDEP("pre: cdi_gpio");
