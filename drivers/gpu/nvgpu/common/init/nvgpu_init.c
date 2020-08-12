@@ -845,15 +845,18 @@ int nvgpu_init_gpu_characteristics(struct gk20a *g)
 	}
 #endif
 
-	/*
-	 * In MIG mode, 2D, 3D, I2M and ZBC classes are not supported by
-	 * GR engine. Default values for legacy mode (non MIG).
-	 */
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_2D, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_3D, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPUTE, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_I2M, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC, true);
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/*
+		 * In MIG mode, 2D, 3D, I2M and ZBC classes are not supported
+		 * by GR engine. Default values for legacy mode (non MIG).
+		 */
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_2D, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_3D, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_I2M, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC, true);
+	}
 
 	return 0;
 }

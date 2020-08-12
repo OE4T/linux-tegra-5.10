@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -96,6 +96,47 @@ u32 tu104_gr_init_get_alpha_cb_default_size(struct gk20a *g)
 	return gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
 }
 
+static bool tu104_gr_init_is_allowed_sw_bundle64(struct gk20a *g,
+		u32 bundle_addr, u32 bundle_hi_value,
+		u32 bundle_lo_value, int *context)
+{
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_log(g, gpu_dbg_mig,
+			"Allowed bundle64 addr[%x] hi_value[%x] lo_value[%x] ",
+			bundle_addr, bundle_hi_value, bundle_lo_value);
+		return true;
+	}
+	/*
+	 * Capture whether the current bundle is compute or not.
+	 * Store in context.
+	 */
+	if (gr_pipe_bundle_address_value_v(bundle_addr) ==
+			GR_PIPE_MODE_BUNDLE) {
+		*context = ((bundle_hi_value == 0U) &&
+			(bundle_lo_value == GR_PIPE_MODE_MAJOR_COMPUTE));
+		nvgpu_log(g, gpu_dbg_mig, "(MIG) Bundle64 start "
+			"addr[%x] hi_value[%x] lo_value[%x] "
+				"is_compute_start[%d] ",
+			bundle_addr, bundle_hi_value, bundle_lo_value,
+			(*context != 0));
+		return *context != 0;
+	}
+
+	/* And now use context, only compute bundles allowed in MIG. */
+	if (*context == 0) {
+		nvgpu_log(g, gpu_dbg_mig, "(MIG) Skipped bundle "
+			"addr[%x] hi_value[%x] lo_value[%x] ",
+			bundle_addr, bundle_hi_value, bundle_lo_value);
+		return false;
+	}
+
+	nvgpu_log(g, gpu_dbg_mig, "(MIG) Compute bundle "
+		"addr[%x] hi_value[%x] lo_value[%x] ",
+		bundle_addr, bundle_hi_value, bundle_lo_value);
+
+	return true;
+}
+
 int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 		struct netlist_av64_list *sw_bundle64_init)
 {
@@ -103,8 +144,17 @@ int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 	u32 last_bundle_data_lo = 0;
 	u32 last_bundle_data_hi = 0;
 	int err = 0;
+	int context = 0;
 
 	for (i = 0U; i < sw_bundle64_init->count; i++) {
+		if (!tu104_gr_init_is_allowed_sw_bundle64(g,
+				sw_bundle64_init->l[i].addr,
+				sw_bundle64_init->l[i].value_hi,
+				sw_bundle64_init->l[i].value_lo,
+				&context)) {
+			continue;
+		}
+
 		if (i == 0U ||
 		   (last_bundle_data_lo != sw_bundle64_init->l[i].value_lo) ||
 		   (last_bundle_data_hi != sw_bundle64_init->l[i].value_hi)) {

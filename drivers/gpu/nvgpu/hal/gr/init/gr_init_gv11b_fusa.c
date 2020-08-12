@@ -810,9 +810,16 @@ int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 	u32 i;
 	int err = 0;
 	u32 last_bundle_data = 0;
+	int context = 0;
 
 	for (i = 0U; i < sw_veid_bundle_init->count; i++) {
 		nvgpu_log_fn(g, "veid bundle count: %d", i);
+		if (!g->ops.gr.init.is_allowed_sw_bundle(g,
+				sw_veid_bundle_init->l[i].addr,
+				sw_veid_bundle_init->l[i].value,
+				&context)) {
+			continue;
+		}
 
 		if ((i == 0U) || (last_bundle_data !=
 					sw_veid_bundle_init->l[i].value)) {
@@ -942,8 +949,16 @@ int gv11b_gr_init_load_sw_bundle_init(struct gk20a *g,
 	int err = 0;
 	u32 last_bundle_data = 0U;
 	u32 bundle_data = 0;
+	int context = 0;
 
 	for (i = 0U; i < sw_bundle_init->count; i++) {
+		if (!g->ops.gr.init.is_allowed_sw_bundle(g,
+				sw_bundle_init->l[i].addr,
+				sw_bundle_init->l[i].value,
+				&context)) {
+			continue;
+		}
+
 		if ((i == 0U) || (last_bundle_data !=
 					sw_bundle_init->l[i].value)) {
 			bundle_data = sw_bundle_init->l[i].value;

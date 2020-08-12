@@ -29,6 +29,9 @@
 #define GR_GO_IDLE_BUNDLE	0x0000e100U /* --V-B */
 #endif
 
+#define GR_PIPE_MODE_BUNDLE		0x1000U
+#define GR_PIPE_MODE_MAJOR_COMPUTE	0x00000008U
+
 struct gk20a;
 struct nvgpu_gr_ctx;
 struct nvgpu_gr_config;
@@ -66,6 +69,9 @@ void gm20b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 
 u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
 	struct nvgpu_gr_config *config);
+
+bool gm20b_gr_init_is_allowed_sw_bundle(struct gk20a *g,
+	u32 bundle_addr, u32 bundle_value, int *context);
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gm20b_gr_init_gpc_mmu(struct gk20a *g);

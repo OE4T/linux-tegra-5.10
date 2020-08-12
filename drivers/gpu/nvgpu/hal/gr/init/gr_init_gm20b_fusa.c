@@ -441,6 +441,43 @@ u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
 	return PATCH_CTX_SLOTS_PER_PAGE;
 }
 
+bool gm20b_gr_init_is_allowed_sw_bundle(struct gk20a *g,
+	u32 bundle_addr, u32 bundle_value, int *context)
+{
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_log(g, gpu_dbg_mig,
+			"Allowed bundle addr[%x] value[%x] ",
+			bundle_addr, bundle_value);
+		return true;
+	}
+	/*
+	 * Capture whether the current bundle is compute or not.
+	 * Store in context.
+	 */
+	if (gr_pipe_bundle_address_value_v(bundle_addr) ==
+			GR_PIPE_MODE_BUNDLE) {
+		*context = (bundle_value == GR_PIPE_MODE_MAJOR_COMPUTE);
+		nvgpu_log(g, gpu_dbg_mig, "(MIG) Bundle start "
+			"addr[%x] bundle_value[%x] is_compute_start[%d]",
+			bundle_addr, bundle_value, (*context != 0));
+		return *context != 0;
+	}
+
+	/* And now use context, only compute bundles allowed in MIG. */
+	if (*context == 0) {
+		nvgpu_log(g, gpu_dbg_mig, "(MIG) Skipped bundle "
+			"addr[%x] bundle_value[%x] ",
+			bundle_addr, bundle_value);
+		return false;
+	}
+
+	nvgpu_log(g, gpu_dbg_mig, "(MIG) Compute bundle "
+		"addr[%x] bundle_value[%x] ",
+		bundle_addr, bundle_value);
+
+	return true;
+}
+
 #ifndef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 int gm20b_gr_init_load_sw_bundle_init(struct gk20a *g,
 		struct netlist_av_list *sw_bundle_init)
@@ -448,8 +485,16 @@ int gm20b_gr_init_load_sw_bundle_init(struct gk20a *g,
 	u32 i;
 	int err = 0;
 	u32 last_bundle_data = 0U;
+	int context = 0;
 
 	for (i = 0U; i < sw_bundle_init->count; i++) {
+		if (!g->ops.gr.init.is_allowed_sw_bundle(g,
+				sw_bundle_init->l[i].addr,
+				sw_bundle_init->l[i].value,
+				&context)) {
+			continue;
+		}
+
 		if (i == 0U || last_bundle_data != sw_bundle_init->l[i].value) {
 			nvgpu_writel(g, gr_pipe_bundle_data_r(),
 				sw_bundle_init->l[i].value);

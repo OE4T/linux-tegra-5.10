@@ -769,6 +769,8 @@ struct gops_gr_init {
 	 */
 	void (*wait_initialized)(struct gk20a *g);
 #endif
+	bool (*is_allowed_sw_bundle)(struct gk20a *g,
+			u32 bundle_addr, u32 bundle_value, int *context);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_gops_gr_init.h"
 #endif

@@ -513,6 +513,8 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_init_get_supported_preemption_modes,
 			.get_default_preemption_modes =
 				gp10b_gr_init_get_default_preemption_modes,
+			.is_allowed_sw_bundle =
+				gm20b_gr_init_is_allowed_sw_bundle,
 #ifdef CONFIG_NVGPU_GRAPHICS
 			.get_ctx_attrib_cb_size =
 				gp10b_gr_init_get_ctx_attrib_cb_size,
