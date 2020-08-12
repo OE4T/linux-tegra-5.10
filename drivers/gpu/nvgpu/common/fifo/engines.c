@@ -240,6 +240,10 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	struct nvgpu_channel *ch = NULL;
 	struct nvgpu_engine_status_info engine_status;
 	struct nvgpu_pbdma_status_info pbdma_status;
+	unsigned long runlist_served_pbdmas;
+	unsigned long bit;
+	u32 pbdma_id;
+	struct nvgpu_fifo *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 
@@ -259,28 +263,34 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	nvgpu_runlist_set_state(g, BIT32(dev->runlist_id),
 			RUNLIST_DISABLED);
 
-	/* chid from pbdma status */
-	g->ops.pbdma_status.read_pbdma_status_info(g,
-		dev->pbdma_id,
-		&pbdma_status);
-	if (nvgpu_pbdma_status_is_chsw_valid(&pbdma_status) ||
-			nvgpu_pbdma_status_is_chsw_save(&pbdma_status)) {
-		pbdma_chid = pbdma_status.id;
-	} else if (nvgpu_pbdma_status_is_chsw_load(&pbdma_status) ||
-			nvgpu_pbdma_status_is_chsw_switch(&pbdma_status)) {
-		pbdma_chid = pbdma_status.next_id;
-	} else {
-		/* Nothing to do here */
-	}
+	runlist_served_pbdmas = f->runlist_info[dev->runlist_id]->pbdma_bitmask;
 
-	if (pbdma_chid != NVGPU_INVALID_CHANNEL_ID) {
-		ch = nvgpu_channel_from_id(g, pbdma_chid);
-		if (ch != NULL) {
-			err = g->ops.fifo.preempt_channel(g, ch);
-			nvgpu_channel_put(ch);
+	for_each_set_bit(bit, &runlist_served_pbdmas,
+			 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA)) {
+		pbdma_id = U32(bit);
+		/* chid from pbdma status */
+		g->ops.pbdma_status.read_pbdma_status_info(g,
+						pbdma_id,
+						&pbdma_status);
+		if (nvgpu_pbdma_status_is_chsw_valid(&pbdma_status) ||
+			nvgpu_pbdma_status_is_chsw_save(&pbdma_status)) {
+			pbdma_chid = pbdma_status.id;
+		} else if (nvgpu_pbdma_status_is_chsw_load(&pbdma_status) ||
+			nvgpu_pbdma_status_is_chsw_switch(&pbdma_status)) {
+			pbdma_chid = pbdma_status.next_id;
+		} else {
+			/* Nothing to do here */
 		}
-		if (err != 0) {
-			goto clean_up;
+
+		if (pbdma_chid != NVGPU_INVALID_CHANNEL_ID) {
+			ch = nvgpu_channel_from_id(g, pbdma_chid);
+			if (ch != NULL) {
+				err = g->ops.fifo.preempt_channel(g, ch);
+				nvgpu_channel_put(ch);
+			}
+			if (err != 0) {
+				goto clean_up;
+			}
 		}
 	}
 
