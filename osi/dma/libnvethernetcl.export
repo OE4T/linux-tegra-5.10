@@ -42,3 +42,4 @@ osi_validate_dma_regs
 osi_config_slot_function
 osi_clear_tx_pkt_err_stats
 osi_dma_get_systime_from_mac
+osi_is_mac_enabled
