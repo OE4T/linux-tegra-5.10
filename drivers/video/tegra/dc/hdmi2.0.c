@@ -234,11 +234,12 @@ static int tegra_hdmi_ddc_init(struct tegra_hdmi *hdmi)
 		hdmi->ddc_i2c_original_rate =
 			i2c_get_adapter_bus_clk_rate(i2c_adap);
 
-		hdmi->ddc_i2c_client = i2c_new_device(i2c_adap, &i2c_dev_info);
+		hdmi->ddc_i2c_client =
+			tegra_dc_i2c_new_device(i2c_adap, &i2c_dev_info);
 		i2c_put_adapter(i2c_adap);
-		if (!hdmi->ddc_i2c_client) {
+		if (IS_ERR(hdmi->ddc_i2c_client)) {
 			dev_err(&dc->ndev->dev, "hdmi: can't create new i2c device\n");
-			err = -EBUSY;
+			err = PTR_ERR(hdmi->ddc_i2c_client);
 			goto fail_edid_free;
 		}
 	} else if (hdmi->edid_src != EDID_SRC_DT) {
@@ -285,12 +286,13 @@ static int tegra_hdmi_scdc_init(struct tegra_hdmi *hdmi)
 		goto fail;
 	}
 
-	hdmi->scdc_i2c_client = i2c_new_device(i2c_adap, &i2c_dev_info);
+	hdmi->scdc_i2c_client =
+		tegra_dc_i2c_new_device(i2c_adap, &i2c_dev_info);
 	i2c_put_adapter(i2c_adap);
-	if (!hdmi->scdc_i2c_client) {
+	if (IS_ERR(hdmi->scdc_i2c_client)) {
 		dev_err(&dc->ndev->dev,
 			"hdmi: can't create scdc i2c device\n");
-		err = -EBUSY;
+		err = PTR_ERR(hdmi->scdc_i2c_client);
 		goto fail;
 	}
 

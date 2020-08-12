@@ -2472,12 +2472,12 @@ struct tegra_nvhdcp *tegra_nvhdcp_create(struct tegra_hdmi *hdmi,
 		goto free_nvhdcp;
 	}
 
-	nvhdcp->client = i2c_new_device(adapter, &nvhdcp->info);
+	nvhdcp->client = tegra_dc_i2c_new_device(adapter, &nvhdcp->info);
 	i2c_put_adapter(adapter);
 
-	if (!nvhdcp->client) {
+	if (IS_ERR(nvhdcp->client)) {
 		nvhdcp_err("can't create new device\n");
-		e = -EBUSY;
+		e = PTR_ERR(nvhdcp->client);
 		goto free_nvhdcp;
 	}
 

@@ -1006,4 +1006,6 @@ static inline u32 tegra_dc_reg_h32(dma_addr_t v)
 }
 #endif
 
+struct i2c_client *tegra_dc_i2c_new_device(struct i2c_adapter *adapter,
+				struct i2c_board_info const *p_data);
 #endif

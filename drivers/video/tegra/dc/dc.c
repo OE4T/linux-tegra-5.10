@@ -6278,6 +6278,21 @@ exit:
 	return ret;
 }
 
+struct i2c_client *tegra_dc_i2c_new_device(struct i2c_adapter *adapter,
+				struct i2c_board_info const *p_data)
+{
+	struct i2c_client *client = NULL;
+
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+	client = i2c_new_device(adapter, p_data);
+	if (client == NULL)
+		client = ERR_PTR(-EBUSY);
+#else
+	client = i2c_new_client_device(adapter, p_data);
+#endif
+	return client;
+}
+
 struct clk *tegra_disp_of_clk_get_by_name(struct device_node *np,
 						const char *name)
 {
