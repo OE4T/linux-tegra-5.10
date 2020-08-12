@@ -426,3 +426,12 @@ int osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
 
 	return 0;
 }
+
+unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
+{
+	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
+		return common_is_mac_enabled(osi_dma->base, osi_dma->mac);
+	} else {
+		return OSI_DISABLE;
+	}
+}

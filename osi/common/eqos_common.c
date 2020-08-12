@@ -56,3 +56,17 @@ unsigned long long eqos_get_systime_from_mac(void *addr)
 
 	return ns;
 }
+
+unsigned int eqos_is_mac_enabled(void *addr)
+{
+	unsigned int enable = OSI_DISABLE;
+	unsigned int reg;
+
+	reg = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
+	if ((reg & (EQOS_MCR_TE | EQOS_MCR_RE)) ==
+		(EQOS_MCR_TE | EQOS_MCR_RE)) {
+		enable = OSI_ENABLE;
+	}
+
+	return enable;
+}

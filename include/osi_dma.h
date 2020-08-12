@@ -940,4 +940,17 @@ int osi_dma_get_systime_from_mac(
 			     unsigned int *sec,
 			     unsigned int *nsec);
 
+/**
+ * @brief osi_is_mac_enabled - Checks if MAC is enabled.
+ *
+ * Algorithm: Reads MAC MCR register for Tx and Rx enabled bits.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval OSI_ENABLE if MAC enabled.
+ * @retval OSI_DISABLE otherwise.
+ */
+unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma);
 #endif /* OSI_DMA_H */

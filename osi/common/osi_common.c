@@ -191,3 +191,13 @@ void common_get_systime_from_mac(void *addr, unsigned int mac,
 		/* do nothing here */
 	}
 }
+
+unsigned int common_is_mac_enabled(void *addr, unsigned int mac)
+{
+	if (mac == OSI_MAC_HW_EQOS) {
+		return eqos_is_mac_enabled(addr);
+	} else {
+		/* Non EQOS HW is supported yet */
+		return OSI_DISABLE;
+	}
+}

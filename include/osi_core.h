@@ -333,7 +333,7 @@ struct osi_ptp_config {
 
 /**
  * @brief Max num of MAC core registers to backup. It should be max of or >=
- * (EQOS_MAX_BAK_IDX=380, MGBE_MAX_BAK_IDX, coreX,...etc) backup registers.
+ * (EQOS_MAX_BAK_IDX=380, coreX,...etc) backup registers.
  */
 #define CORE_MAX_BAK_IDX	700U
 
