@@ -472,7 +472,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 #endif
 
 	if (!chipid) {
-#ifdef CONFIG_NVMAP_COLOR_PAGES
+#if defined(CONFIG_NVMAP_COLOR_PAGES) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 		chipid = tegra_hidrev_get_chipid(tegra_read_chipid());
 #else
