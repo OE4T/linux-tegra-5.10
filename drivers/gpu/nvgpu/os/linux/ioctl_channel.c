@@ -322,7 +322,7 @@ static int gk20a_channel_set_wdt_status(struct nvgpu_channel *ch,
 	if (set_timeout)
 		nvgpu_channel_wdt_set_limit(ch->wdt, args->timeout_ms);
 
-	nvgpu_channel_wdt_set_debug_dump(ch->wdt, !disable_dump);
+	nvgpu_channel_set_wdt_debug_dump(ch, !disable_dump);
 
 	return 0;
 #else

@@ -377,6 +377,7 @@ struct nvgpu_channel {
 
 	/* kernel watchdog to kill stuck jobs */
 	struct nvgpu_channel_wdt *wdt;
+	bool wdt_debug_dump;
 
 	/** Fence allocator in case of deterministic submit. */
 	struct nvgpu_allocator fence_allocator;
@@ -1159,6 +1160,29 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 #ifdef CONFIG_NVGPU_DEBUGGER
 int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
 		struct nvgpu_channel *ch);
+#endif
+
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
+/**
+ * @brief Rewind the timeout on each non-dormant channel.
+ *
+ * Reschedule the timeout of each active channel for which timeouts are running
+ * as if something was happened on each channel right now. This should be
+ * called when a global hang is detected that could cause a false positive on
+ * other innocent channels.
+ */
+void nvgpu_channel_restart_all_wdts(struct gk20a *g);
+/**
+ * @brief Enable or disable full debug dump on wdt error.
+ *
+ * Set the policy on whether or not to do the verbose channel and gr debug dump
+ * when the channel gets recovered as a result of a watchdog timeout.
+ */
+void nvgpu_channel_set_wdt_debug_dump(struct nvgpu_channel *ch, bool dump);
+#else
+static inline void nvgpu_channel_restart_all_wdts(struct gk20a *g) {}
+static inline void nvgpu_channel_set_wdt_debug_dump(struct nvgpu_channel *ch,
+		bool dump) {}
 #endif
 
 #endif

@@ -23,14 +23,19 @@
 #ifndef NVGPU_WATCHDOG_H
 #define NVGPU_WATCHDOG_H
 
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
+#include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_channel;
-struct nvgpu_worker;
 struct nvgpu_channel_wdt;
 
-struct nvgpu_channel_wdt *nvgpu_channel_wdt_alloc(struct nvgpu_channel *ch);
+struct nvgpu_channel_wdt_state {
+	u64 gp_get;
+	u64 pb_get;
+};
+
+#ifdef CONFIG_NVGPU_CHANNEL_WDT
+
+struct nvgpu_channel_wdt *nvgpu_channel_wdt_alloc(struct gk20a *g);
 void nvgpu_channel_wdt_destroy(struct nvgpu_channel_wdt *wdt);
 
 void nvgpu_channel_wdt_enable(struct nvgpu_channel_wdt *wdt);
@@ -39,21 +44,21 @@ bool nvgpu_channel_wdt_enabled(struct nvgpu_channel_wdt *wdt);
 
 void nvgpu_channel_wdt_set_limit(struct nvgpu_channel_wdt *wdt, u32 limit_ms);
 u32 nvgpu_channel_wdt_limit(struct nvgpu_channel_wdt *wdt);
-void nvgpu_channel_wdt_set_debug_dump(struct nvgpu_channel_wdt *wdt, bool dump);
 
 void nvgpu_channel_wdt_start(struct nvgpu_channel_wdt *wdt,
-		struct nvgpu_channel *ch);
-void nvgpu_channel_wdt_continue(struct nvgpu_channel_wdt *wdt);
+		struct nvgpu_channel_wdt_state *state);
 bool nvgpu_channel_wdt_stop(struct nvgpu_channel_wdt *wdt);
-void nvgpu_channel_wdt_check(struct nvgpu_channel_wdt *wdt,
-		struct nvgpu_channel *ch);
-
-void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g);
+void nvgpu_channel_wdt_continue(struct nvgpu_channel_wdt *wdt);
+void nvgpu_channel_wdt_rewind(struct nvgpu_channel_wdt *wdt,
+		struct nvgpu_channel_wdt_state *state);
+bool nvgpu_channel_wdt_running(struct nvgpu_channel_wdt *wdt);
+bool nvgpu_channel_wdt_check(struct nvgpu_channel_wdt *wdt,
+		struct nvgpu_channel_wdt_state *state);
 
 #else /* CONFIG_NVGPU_CHANNEL_WDT */
 
 static inline struct nvgpu_channel_wdt *nvgpu_channel_wdt_alloc(
-		struct nvgpu_channel *ch)
+		struct gk20a *g)
 {
 	return NULL;
 }
@@ -71,21 +76,19 @@ static inline u32 nvgpu_channel_wdt_limit(struct nvgpu_channel_wdt *wdt)
 {
 	return 0U;
 }
-static inline void nvgpu_channel_wdt_set_debug_dump(
-		struct nvgpu_channel_wdt *wdt,
-		bool dump) {}
-
 static inline void nvgpu_channel_wdt_start(struct nvgpu_channel_wdt *wdt,
-		struct nvgpu_channel *ch) {}
-static inline void nvgpu_channel_wdt_continue(struct nvgpu_channel_wdt *wdt) {}
+		struct nvgpu_channel_wdt_state *state) {}
 static inline bool nvgpu_channel_wdt_stop(struct nvgpu_channel_wdt *wdt)
 {
 	return false;
 }
-static inline void nvgpu_channel_wdt_check(struct nvgpu_channel_wdt *wdt,
-		struct nvgpu_channel *ch) {}
-
-static inline void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g) {}
+static inline void nvgpu_channel_wdt_continue(struct nvgpu_channel_wdt *wdt) {}
+static inline void nvgpu_channel_wdt_rewind(struct nvgpu_channel_wdt *wdt,
+		struct nvgpu_channel_wdt_state *state) {}
+static inline bool nvgpu_channel_wdt_check(struct nvgpu_channel_wdt *wdt,
+		struct nvgpu_channel_wdt_state *state) {
+	return false;
+}
 
 #endif /* CONFIG_NVGPU_CHANNEL_WDT */
 

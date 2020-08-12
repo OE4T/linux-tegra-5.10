@@ -26,7 +26,6 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/watchdog.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/nvgpu_err.h>
@@ -71,10 +70,12 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 
 #ifdef CONFIG_NVGPU_RECOVERY
 	/*
-	 * Cancel all channels' wdt since ctxsw timeout might
-	 * trigger multiple watchdogs at a time
+	 * Cancel all channels' wdt since ctxsw timeout causes the runlist to
+	 * stuck and might falsely trigger multiple watchdogs at a time. We
+	 * won't detect proper wdt timeouts that would have happened, but if
+	 * they're stuck, they will trigger the wdt soon enough again.
 	 */
-	nvgpu_channel_wdt_restart_all_channels(g);
+	nvgpu_channel_restart_all_wdts(g);
 
 	nvgpu_rc_fifo_recover(g, eng_bitmask, tsg->tsgid, true, true, debug_dump,
 			RC_TYPE_CTXSW_TIMEOUT);

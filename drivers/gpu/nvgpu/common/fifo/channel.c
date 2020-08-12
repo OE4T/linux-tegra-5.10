@@ -459,6 +459,114 @@ nvgpu_channel_worker_from_worker(struct nvgpu_worker *worker)
 };
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
+void nvgpu_channel_set_wdt_debug_dump(struct nvgpu_channel *ch, bool dump)
+{
+	ch->wdt_debug_dump = dump;
+}
+
+static struct nvgpu_channel_wdt_state nvgpu_channel_collect_wdt_state(
+		struct nvgpu_channel *ch)
+{
+	struct gk20a *g = ch->g;
+	struct nvgpu_channel_wdt_state state = { 0, 0 };
+
+	/*
+	 * Note: just checking for nvgpu_channel_wdt_enabled() is not enough at
+	 * the moment because system suspend puts g->regs away but doesn't stop
+	 * the worker thread that runs the watchdog. This might need to be
+	 * cleared up in the future.
+	 */
+	if (nvgpu_channel_wdt_running(ch->wdt)) {
+		/*
+		 * Read the state only if the wdt is on to avoid unnecessary
+		 * accesses. The kernel mem for userd may not even exist; this
+		 * channel could be in usermode submit mode.
+		 */
+		state.gp_get = g->ops.userd.gp_get(g, ch);
+		state.pb_get = g->ops.userd.pb_get(g, ch);
+	}
+
+	return state;
+}
+
+static void nvgpu_channel_launch_wdt(struct nvgpu_channel *ch)
+{
+	struct nvgpu_channel_wdt_state state = nvgpu_channel_collect_wdt_state(ch);
+
+	/*
+	 * FIXME: channel recovery can race the submit path and can start even
+	 * after this, but this check is the best we can do for now.
+	 */
+	if (!nvgpu_channel_check_unserviceable(ch)) {
+		nvgpu_channel_wdt_start(ch->wdt, &state);
+	}
+}
+
+
+void nvgpu_channel_restart_all_wdts(struct gk20a *g)
+{
+	struct nvgpu_fifo *f = &g->fifo;
+	u32 chid;
+
+	for (chid = 0; chid < f->num_channels; chid++) {
+		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
+
+		if (ch != NULL) {
+			if ((ch->wdt != NULL) &&
+			    !nvgpu_channel_check_unserviceable(ch)) {
+				struct nvgpu_channel_wdt_state state =
+					nvgpu_channel_collect_wdt_state(ch);
+
+				nvgpu_channel_wdt_rewind(ch->wdt, &state);
+			}
+			nvgpu_channel_put(ch);
+		}
+	}
+}
+
+static void nvgpu_channel_recover_from_wdt(struct nvgpu_channel *ch)
+{
+	struct gk20a *g = ch->g;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_channel_check_unserviceable(ch)) {
+		/* channel is already recovered */
+		nvgpu_info(g, "chid: %d unserviceable but wdt was ON", ch->chid);
+		return;
+	}
+
+	nvgpu_err(g, "Job on channel %d timed out", ch->chid);
+
+	/* force reset calls gk20a_debug_dump but not this */
+	if (ch->wdt_debug_dump) {
+		gk20a_gr_debug_dump(g);
+	}
+
+#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
+	if (g->ops.tsg.force_reset(ch,
+	    NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT,
+	    ch->wdt_debug_dump) != 0) {
+		nvgpu_err(g, "failed tsg force reset for chid: %d", ch->chid);
+	}
+#endif
+}
+
+/*
+ * Test the watchdog progress. If the channel is stuck, reset it.
+ *
+ * The gpu is implicitly on at this point because the watchdog can only run on
+ * channels that have submitted jobs pending for cleanup.
+ */
+static void nvgpu_channel_check_wdt(struct nvgpu_channel *ch)
+{
+	struct nvgpu_channel_wdt_state state = nvgpu_channel_collect_wdt_state(ch);
+
+	if (nvgpu_channel_wdt_check(ch->wdt, &state)) {
+		nvgpu_channel_recover_from_wdt(ch);
+	}
+}
+
 static void nvgpu_channel_worker_poll_init(struct nvgpu_worker *worker)
 {
 	struct nvgpu_channel_worker *ch_worker =
@@ -486,7 +594,7 @@ static void nvgpu_channel_poll_wdt(struct gk20a *g)
 
 		if (ch != NULL) {
 			if (!nvgpu_channel_check_unserviceable(ch)) {
-				nvgpu_channel_wdt_check(ch->wdt, ch);
+				nvgpu_channel_check_wdt(ch);
 			}
 			nvgpu_channel_put(ch);
 		}
@@ -521,6 +629,8 @@ static u32 nvgpu_channel_worker_poll_wakeup_condition_get_timeout(
 
 	return ch_worker->watchdog_interval;
 }
+#else
+static void nvgpu_channel_launch_wdt(struct nvgpu_channel *ch) {}
 #endif /* CONFIG_NVGPU_CHANNEL_WDT */
 
 static inline struct nvgpu_channel *
@@ -635,7 +745,7 @@ int nvgpu_channel_add_job(struct nvgpu_channel *c,
 		job->num_mapped_buffers = num_mapped_buffers;
 		job->mapped_buffers = mapped_buffers;
 
-		nvgpu_channel_wdt_start(c->wdt, c);
+		nvgpu_channel_launch_wdt(c);
 
 		nvgpu_channel_joblist_lock(c);
 		nvgpu_channel_joblist_add(c, job);
@@ -1456,11 +1566,12 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	ch->unserviceable = true;
 
 #ifdef CONFIG_NVGPU_CHANNEL_WDT
-	ch->wdt = nvgpu_channel_wdt_alloc(ch);
+	ch->wdt = nvgpu_channel_wdt_alloc(g);
 	if (ch->wdt == NULL) {
 		nvgpu_err(g, "wdt alloc failed");
 		goto clean_up;
 	}
+	ch->wdt_debug_dump = true;
 #endif
 
 	ch->obj_class = 0;
