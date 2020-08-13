@@ -29,7 +29,7 @@ struct nvgpu_fence_type;
 struct nvgpu_fence_ops {
 	int (*wait)(struct nvgpu_fence_type *f, u32 timeout);
 	bool (*is_expired)(struct nvgpu_fence_type *f);
-	void (*free)(struct nvgpu_fence_type *f);
+	void (*release)(struct nvgpu_fence_type *f);
 };
 
 void nvgpu_fence_init(struct nvgpu_fence_type *f,

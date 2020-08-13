@@ -47,7 +47,7 @@ static bool nvgpu_fence_semaphore_is_expired(struct nvgpu_fence_type *f)
 	return !nvgpu_semaphore_is_acquired(pf->semaphore);
 }
 
-static void nvgpu_fence_semaphore_free(struct nvgpu_fence_type *f)
+static void nvgpu_fence_semaphore_release(struct nvgpu_fence_type *f)
 {
 	struct nvgpu_fence_type_priv *pf = &f->priv;
 
@@ -59,7 +59,7 @@ static void nvgpu_fence_semaphore_free(struct nvgpu_fence_type *f)
 static const struct nvgpu_fence_ops nvgpu_fence_semaphore_ops = {
 	.wait = nvgpu_fence_semaphore_wait,
 	.is_expired = nvgpu_fence_semaphore_is_expired,
-	.free = nvgpu_fence_semaphore_free,
+	.release = nvgpu_fence_semaphore_release,
 };
 
 /* This function takes ownership of the semaphore as well as the os_fence */

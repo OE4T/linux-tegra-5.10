@@ -38,7 +38,7 @@ struct nvgpu_os_fence_syncpt {
 #if defined(CONFIG_TEGRA_GK20A_NVHOST) && !defined(CONFIG_NVGPU_SYNCFD_NONE)
 
 int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
-	struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_dev,
+	struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_device,
 	u32 id, u32 thresh);
 
 /*
@@ -71,7 +71,7 @@ u32 nvgpu_os_fence_syncpt_get_num_syncpoints(
 
 static inline int nvgpu_os_fence_syncpt_create(
 	struct nvgpu_os_fence *fence_out, struct nvgpu_channel *c,
-	struct nvgpu_nvhost_dev *nvhost_dev,
+	struct nvgpu_nvhost_dev *nvhost_device,
 	u32 id, u32 thresh)
 {
 	return -ENOSYS;

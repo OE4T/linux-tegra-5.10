@@ -32,7 +32,7 @@ struct nvgpu_nvhost_dev;
 
 void nvgpu_fence_from_syncpt(
 		struct nvgpu_fence_type *f,
-		struct nvgpu_nvhost_dev *nvhost_dev,
+		struct nvgpu_nvhost_dev *nvhost_device,
 		u32 id, u32 value,
 		struct nvgpu_os_fence os_fence);
 

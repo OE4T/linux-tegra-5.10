@@ -33,7 +33,7 @@ static struct nvgpu_fence_type *nvgpu_fence_from_ref(struct nvgpu_ref *ref)
 				offsetof(struct nvgpu_fence_type, priv.ref));
 }
 
-static void nvgpu_fence_free(struct nvgpu_ref *ref)
+static void nvgpu_fence_release(struct nvgpu_ref *ref)
 {
 	struct nvgpu_fence_type *f = nvgpu_fence_from_ref(ref);
 	struct nvgpu_fence_type_priv *pf = &f->priv;
@@ -42,14 +42,14 @@ static void nvgpu_fence_free(struct nvgpu_ref *ref)
 		pf->os_fence.ops->drop_ref(&pf->os_fence);
 	}
 
-	pf->ops->free(f);
+	pf->ops->release(f);
 }
 
 void nvgpu_fence_put(struct nvgpu_fence_type *f)
 {
 	struct nvgpu_fence_type_priv *pf = &f->priv;
 
-	nvgpu_ref_put(&pf->ref, nvgpu_fence_free);
+	nvgpu_ref_put(&pf->ref, nvgpu_fence_release);
 }
 
 struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f)

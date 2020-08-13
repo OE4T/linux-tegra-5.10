@@ -51,7 +51,7 @@ struct nvgpu_fence_type_priv {
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	/* Valid for fences created from syncpoints: */
-	struct nvgpu_nvhost_dev *nvhost_dev;
+	struct nvgpu_nvhost_dev *nvhost_device;
 	u32 syncpt_id;
 	u32 syncpt_value;
 #endif

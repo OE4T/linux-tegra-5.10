@@ -56,7 +56,7 @@ static const struct nvgpu_os_fence_ops syncpt_ops = {
 };
 
 int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
-		struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_dev,
+		struct nvgpu_channel *c, struct nvgpu_nvhost_dev *nvhost_device,
 		u32 id, u32 thresh)
 {
 	struct nvhost_ctrl_sync_fence_info pt = {
@@ -64,7 +64,7 @@ int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
 		.thresh = thresh,
 	};
 	struct nvhost_fence *fence = nvhost_fence_create(
-		nvhost_dev->host1x_pdev, &pt, 1, "fence");
+		nvhost_device->host1x_pdev, &pt, 1, "fence");
 
 	if (IS_ERR(fence)) {
 		nvgpu_err(c->g, "error %d during construction of fence.",
