@@ -670,6 +670,7 @@
 
 				nvidia,dc-ctrlnum = <0>;
 				nvidia,cmu-enable = <0x1>;
+				nvidia,bpmp = <&bpmp>;
 
 				clock-names = "nvdisplay_disp", "pll_disphub",
 					      "nvdisplayhub", "nvdisplay_p0",
@@ -741,6 +742,7 @@
 
 				nvidia,dc-ctrlnum = <1>;
 				nvidia,cmu-enable = <0x1>;
+				nvidia,bpmp = <&bpmp>;
 
 				clock-names = "nvdisplay_disp", "pll_disphub",
 					      "nvdisplayhub", "nvdisplay_p0",
@@ -811,6 +813,7 @@
 
 				nvidia,dc-ctrlnum = <2>;
 				nvidia,cmu-enable = <0x1>;
+				nvidia,bpmp = <&bpmp>;
 
 				clock-names = "nvdisplay_disp", "pll_disphub",
 					      "nvdisplayhub", "nvdisplay_p0",
@@ -881,6 +884,7 @@
 
 				nvidia,dc-ctrlnum = <3>;
 				nvidia,cmu-enable = <0x1>;
+				nvidia,bpmp = <&bpmp>;
 
 				clock-names = "nvdisplay_disp", "pll_disphub",
 					      "nvdisplayhub", "nvdisplay_p0",
