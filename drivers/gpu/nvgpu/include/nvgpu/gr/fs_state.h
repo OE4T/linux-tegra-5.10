@@ -51,5 +51,10 @@ struct nvgpu_gr_config;
  *         structure.
  */
 int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config);
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/gr/nvgpu_next_fs_state.h"
+#endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* NVGPU_GR_FS_STATE_H */

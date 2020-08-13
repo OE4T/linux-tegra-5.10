@@ -513,11 +513,6 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = gr_init_config(g, gr);
-	if (err != 0) {
-		goto clean_up;
-	}
-
 #ifdef CONFIG_NVGPU_DEBUGGER
 	err = nvgpu_gr_hwpm_map_init(g, &g->gr->hwpm_map,
 			nvgpu_gr_falcon_get_pm_ctxsw_image_size(g->gr->falcon));
@@ -777,6 +772,27 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	g->gr->initialized = false;
+
+	/* This is prerequisite for calling sm_id_config_early hal. */
+	if (!g->gr->sw_ready) {
+		err = gr_init_config(g, g->gr);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+#if defined(CONFIG_NVGPU_NEXT)
+	/*
+	 * Move sm id programming before loading ctxsw and gpccs firmwares. This
+	 * is the actual sequence expected by ctxsw ucode.
+	 */
+	if (g->ops.gr.init.sm_id_config_early != NULL) {
+		err = g->ops.gr.init.sm_id_config_early(g, g->gr->config);
+		if (err != 0) {
+			return err;
+		}
+	}
+#endif
 
 	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
