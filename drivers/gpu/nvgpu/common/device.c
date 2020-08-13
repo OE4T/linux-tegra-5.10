@@ -236,6 +236,88 @@ u32 nvgpu_device_count(struct gk20a *g, u32 type)
 }
 
 /*
+ * Internal function to query copy engines; async_only specifies whether
+ * this function should or should not include the GR copy engines (CEs that
+ * share a runlist with the GR engine(s)).
+ *
+ * This function basically iterates over two distinct copy engine lists:
+ * first the COPY0-2 (the old way of describing copy engines) and the LCE
+ * list (the new in Pascal way of describing copy engines).
+ */
+static u32 nvgpu_device_do_get_copies(struct gk20a *g,
+				      bool async_only,
+				      const struct nvgpu_device **ces,
+				      u32 max)
+{
+	u32 i;
+	u32 copies = 0U;
+	const struct nvgpu_device *dev;
+	const struct nvgpu_device *gr_dev;
+
+	if (max == 0U) {
+		return 0U;
+	}
+
+	gr_dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0U);
+	nvgpu_assert(gr_dev != NULL);
+
+	/*
+	 * Start with the COPY0-2 engines. Note the awkward instance ID.
+	 */
+	for (i = NVGPU_DEVTYPE_COPY0; i <= NVGPU_DEVTYPE_COPY2; i++) {
+		dev = nvgpu_device_get(g, i, i - NVGPU_DEVTYPE_COPY0);
+		if (dev == NULL) {
+			continue;
+		}
+
+		if (async_only &&
+		    dev->runlist_id == gr_dev->runlist_id) {
+			/* It's a GRCE, skip it per async_only. */
+			continue;
+		}
+
+		ces[copies] = dev;
+		copies = nvgpu_safe_add_u32(copies, 1U);
+		if (copies == max) {
+			return copies;
+		}
+	}
+
+	for (i = 0; i < nvgpu_device_count(g, NVGPU_DEVTYPE_LCE); i++) {
+		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
+		nvgpu_assert(dev != NULL);
+
+		if (async_only &&
+		    dev->runlist_id == gr_dev->runlist_id) {
+			/* It's a GRCE, skip it per async_only. */
+			continue;
+		}
+
+		ces[copies] = dev;
+		copies = nvgpu_safe_add_u32(copies, 1U);
+		if (copies == max) {
+			return copies;
+		}
+	}
+
+	return copies;
+}
+
+u32 nvgpu_device_get_async_copies(struct gk20a *g,
+				  const struct nvgpu_device **ces,
+				  u32 max)
+{
+	return nvgpu_device_do_get_copies(g, true, ces, max);
+}
+
+u32 nvgpu_device_get_copies(struct gk20a *g,
+			    const struct nvgpu_device **ces,
+			    u32 max)
+{
+	return nvgpu_device_do_get_copies(g, false, ces, max);
+}
+
+/*
  * Note: this kind of bleeds HW details into the core code. Eventually this
  * should be handled by a translation table. However, for now, HW has kept the
  * device type values consistent across chips and nvgpu already has this present

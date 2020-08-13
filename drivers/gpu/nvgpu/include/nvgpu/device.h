@@ -221,7 +221,7 @@ u32 nvgpu_device_count(struct gk20a *g, u32 type);
  * @param g [in]	The GPU.
  * @param dev [in]	A device.
  *
- * Returns true if \a dev matches a copy engine device type. For pre-Pascal
+ * @return true if \a dev matches a copy engine device type. For pre-Pascal
  * chips this is COPY[0, 1, 2], for Pascal and onward this is LCE.
  */
 bool nvgpu_device_is_ce(struct gk20a *g, const struct nvgpu_device *dev);
@@ -232,9 +232,47 @@ bool nvgpu_device_is_ce(struct gk20a *g, const struct nvgpu_device *dev);
  * @param g [in]	The GPU.
  * @param dev [in]	A device.
  *
- * Returns true if \a dev matches the graphics device type.
+ * @return true if \a dev matches the graphics device type.
  */
 bool nvgpu_device_is_graphics(struct gk20a *g, const struct nvgpu_device *dev);
+
+/**
+ * @brief Get all the copy engine pointers for this chip.
+ *
+ * @param g [in]	The GPU.
+ * @param ces [out]	List to store CE pointers.
+ * @param max [in]	Length of the ces list.
+ *
+ * Due to the change from Maxwell to Pascal - the adddition of logical copy
+ * engines - the copy engine type changed from Maxwell to Pascal. For code that
+ * aims to be chip agnostic, often it's useful obtain the set of copy engines,
+ * regardless of type. This function does that by returning any COPY[0-2]
+ * egnines detected and then any LCEs detected. No chip has both LCEs and
+ * COPY[0-2], but by combining them, it's possible to avoid any chip specific
+ * checks.
+ *
+ * @return The number of copy engine pointers written to the \a ces array.
+ */
+u32 nvgpu_device_get_copies(struct gk20a *g,
+			    const struct nvgpu_device **ces,
+			    u32 max);
+
+/**
+ * @brief Query list of async copy engines in the chip.
+ *
+ * @param g [in]	The GPU.
+ * @param ces [out]	List to store CE pointers.
+ * @param max [in]	Length of the ces list.
+ *
+ * Like nvgpu_device_get_copies() only this returns only asynchronous copy
+ * engines. Async copy engines are engines that do not share a runlist with
+ * a GR engine.
+ *
+ * @return The number of copy engine pointers written to the \a ces array.
+ */
+u32 nvgpu_device_get_async_copies(struct gk20a *g,
+				  const struct nvgpu_device **ces,
+				  u32 max);
 
 /**
  * @brief Dubug dump for a device. Prints under the gpu_dbg_device log
