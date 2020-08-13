@@ -1,7 +1,7 @@
 /*
  * GK20A Address Spaces
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -96,11 +96,20 @@ int gk20a_vm_release_share(struct gk20a_as_share *as_share);
 /**
  * @brief Allocate an AS share.
  *
- * @param g [in]		The GPU
- * @param big_page_size [in]	Big page size to use for the VM
- * @param flags [in]		NVGPU_AS_ALLOC_* flags
- * @params out [out]		The resulting, allocated, gk20a_as_share
- *				structure
+ * @param g [in]			The GPU
+ * @param big_page_size [in]		Big page size to use for the VM,
+ *					set 0 for no big pages
+ * @param flags [in]			NVGPU_AS_ALLOC_* flags
+ * @param va_range_start [in]		Requested user managed memory start
+ *					address, used to map buffers, save data
+ *					should be aligned by PDE
+ * @param va_range_end [in]		Requested user managed va end address
+ *					should be aligned by PDE
+ * @param va_range_split [in]		Requested small/big page split
+ *					should be aligned by PDE,
+ *					ignored if UNIFIED_VA is set
+ * @params out [out]			The resulting, allocated, gk20a_as_share
+ *					structure
  *
  * Allocate the gk20a_as_share structure and the VM associated with it, based
  * on the provided \a big_page_size and NVGPU_AS_ALLOC_* \a flags.
@@ -110,7 +119,9 @@ int gk20a_vm_release_share(struct gk20a_as_share *as_share);
  * @return 0 in case of success, < 0 in case of failure.
  */
 int gk20a_as_alloc_share(struct gk20a *g, u32 big_page_size,
-			 u32 flags, struct gk20a_as_share **out);
+			u32 flags, u64 va_range_start,
+			u64 va_range_end, u64 va_range_split,
+			struct gk20a_as_share **out);
 
 /**
  * @brief Retrieve the instance of gk20a from a gk20a_as instance.

@@ -392,7 +392,7 @@ struct nvgpu_gpu_mark_compressible_write_args {
 };
 
 struct nvgpu_alloc_as_args {
-	__u32 big_page_size;
+	__u32 big_page_size;	/* zero for no big pages for this VA */
 	__s32 as_fd;
 
 /*
@@ -409,8 +409,12 @@ struct nvgpu_alloc_as_args {
 #define NVGPU_GPU_IOCTL_ALLOC_AS_FLAGS_USERSPACE_MANAGED	(1 << 0)
 #define NVGPU_GPU_IOCTL_ALLOC_AS_FLAGS_UNIFIED_VA	 	(1 << 1)
 	__u32 flags;
-
-	__u32 reserved;			/* must be zero */
+	__u32 reserved;		/* must be zero */
+	__u64 va_range_start;	/* in: starting VA (aligned by PDE) */
+	__u64 va_range_end;	/* in: ending VA (aligned by PDE) */
+	__u64 va_range_split;	/* in: small/big page split (aligned by PDE,
+				 * must be zero if UNIFIED_VA is set) */
+	__u32 padding[6];
 };
 
 struct nvgpu_gpu_open_tsg_args {
@@ -2037,14 +2041,14 @@ struct nvgpu32_as_alloc_space_args {
 };
 
 struct nvgpu_as_alloc_space_args {
-	__u32 pages;     /* in, pages */
+	__u64 pages;     /* in, pages */
 	__u32 page_size; /* in, bytes */
 	__u32 flags;     /* in */
-	__u32 padding;     /* in */
 	union {
 		__u64 offset; /* inout, byte address valid iff _FIXED_OFFSET */
 		__u64 align;  /* in, alignment multiple (0:={1 or n/a}) */
 	} o_a;
+	__u32 padding[2];     /* in */
 };
 
 /*
@@ -2055,8 +2059,9 @@ struct nvgpu_as_alloc_space_args {
  */
 struct nvgpu_as_free_space_args {
 	__u64 offset; /* in, byte address */
-	__u32 pages;     /* in, pages */
+	__u64 pages;     /* in, pages */
 	__u32 page_size; /* in, bytes */
+	__u32 padding[3];
 };
 
 /*

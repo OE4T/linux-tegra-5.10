@@ -50,7 +50,9 @@ static void release_as_share_id(struct gk20a_as_share *as_share)
 
 /* address space interfaces for the gk20a module */
 static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
-				u32 big_page_size, u32 flags)
+				u32 big_page_size, u32 flags,
+				u64 va_range_start, u64 va_range_end,
+				u64 va_range_split)
 {
 	struct gk20a_as *as = as_share->as;
 	struct gk20a *g = gk20a_from_as(as);
@@ -58,6 +60,10 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	struct vm_gk20a *vm;
 	char name[NVGPU_VM_NAME_LEN];
 	char *p;
+	u64 user_size;
+	u64 kernel_size = mm->channel.kernel_size;
+	u64 pde_size, pde_size_mask;
+	bool big_pages;
 	const bool userspace_managed =
 		(flags & NVGPU_AS_ALLOC_USERSPACE_MANAGED) != 0U;
 	const bool unified_va =
@@ -67,6 +73,7 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	nvgpu_log_fn(g, " ");
 
 	if (big_page_size == 0U) {
+		big_pages = false;
 		big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 	} else {
 		if (!is_power_of_2(big_page_size)) {
@@ -77,21 +84,60 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 		     nvgpu_mm_get_available_big_page_sizes(g)) == 0U) {
 			return -EINVAL;
 		}
+		big_pages = true;
 	}
+
+	pde_size = BIT64(nvgpu_vm_pde_coverage_bit_count(g, big_page_size));
+	pde_size_mask = nvgpu_safe_sub_u64(pde_size, U64(1));
+
+	if ((va_range_start == 0ULL) ||
+		((va_range_start & pde_size_mask) != 0ULL)) {
+		return -EINVAL;
+	}
+
+	if ((va_range_end == 0ULL) ||
+		((va_range_end & pde_size_mask) != 0ULL)) {
+		return -EINVAL;
+	}
+
+	if (va_range_start >= va_range_end) {
+		return -EINVAL;
+	}
+
+	user_size = nvgpu_safe_sub_u64(va_range_end, va_range_start);
+
+	if (unified_va || !big_pages) {
+		if (va_range_split != 0ULL) {
+			return -EINVAL;
+		}
+	} else {
+		/* non-unified VA: split required */
+		if ((va_range_split == 0ULL) ||
+			((va_range_split & pde_size_mask) != 0ULL)) {
+			return -EINVAL;
+		}
+
+		/* non-unified VA: split range checks */
+		if ((va_range_split <= va_range_start) ||
+		    (va_range_split >= va_range_end)) {
+			return -EINVAL;
+		}
+	}
+
+	nvgpu_log_info(g,
+		"vm: low_hole=0x%llx, user_size=0x%llx, kernel_size=0x%llx",
+		va_range_start, user_size, kernel_size);
 
 	p = strncpy(name, "as_", sizeof("as_"));
 	(void) nvgpu_strnadd_u32(p, nvgpu_safe_cast_s32_to_u32(as_share->id),
 					sizeof(name) - sizeof("as_"), 10U);
 
 	vm = nvgpu_vm_init(g, big_page_size,
-			U64(big_page_size) << U64(10),
-			nvgpu_safe_sub_u64(mm->channel.user_size,
-				nvgpu_safe_sub_u64(mm->channel.kernel_size,
-				U64(big_page_size) << U64(10))),
-			mm->channel.kernel_size,
-			nvgpu_gmmu_va_small_page_limit(),
-			!mm->disable_bigpage,
-			userspace_managed, unified_va, name);
+			   va_range_start,
+			   user_size,
+			   kernel_size,
+			   va_range_split,
+			   big_pages, userspace_managed, unified_va, name);
 	if (vm == NULL) {
 		return -ENOMEM;
 	}
@@ -104,8 +150,9 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 }
 
 int gk20a_as_alloc_share(struct gk20a *g,
-			 u32 big_page_size, u32 flags,
-			 struct gk20a_as_share **out)
+			u32 big_page_size, u32 flags, u64 va_range_start,
+			u64 va_range_end, u64 va_range_split,
+			struct gk20a_as_share **out)
 {
 	struct gk20a_as_share *as_share;
 	int err = 0;
@@ -130,7 +177,8 @@ int gk20a_as_alloc_share(struct gk20a *g,
 	if (err != 0) {
 		goto failed;
 	}
-	err = gk20a_vm_alloc_share(as_share, big_page_size, flags);
+	err = gk20a_vm_alloc_share(as_share, big_page_size, flags,
+		va_range_start, va_range_end, va_range_split);
 	gk20a_idle(g);
 
 	if (err != 0) {

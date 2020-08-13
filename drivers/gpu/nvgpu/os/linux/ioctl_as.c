@@ -21,6 +21,7 @@
 #include <uapi/linux/nvgpu.h>
 
 #include <nvgpu/gmmu.h>
+#include <nvgpu/mm.h>
 #include <nvgpu/vm_area.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/gk20a.h>
@@ -305,15 +306,24 @@ int gk20a_as_dev_open(struct inode *inode, struct file *filp)
 {
 	struct gk20a_as_share *as_share;
 	struct gk20a *g;
+	struct mm_gk20a *mm;
 	int err;
 	struct nvgpu_cdev *cdev;
+	u32 big_page_size;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
 	g = nvgpu_get_gk20a_from_cdev(cdev);
+	mm = &g->mm;
+	big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	nvgpu_log_fn(g, " ");
 
-	err = gk20a_as_alloc_share(g, 0, 0, &as_share);
+	err = gk20a_as_alloc_share(g,
+		big_page_size,
+		NVGPU_AS_ALLOC_UNIFIED_VA,
+		U64(big_page_size) << U64(10),
+		mm->channel.user_size,
+		0ULL, &as_share);
 	if (err) {
 		nvgpu_log_fn(g, "failed to alloc share");
 		return err;

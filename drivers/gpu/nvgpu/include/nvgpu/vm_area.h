@@ -117,7 +117,7 @@ nvgpu_vm_area_from_vm_area_list(struct nvgpu_list_node *node)
  * @return		Zero, for successful allocation.
  *			Suitable error code for failures.
  */
-int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
+int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u64 pages, u32 page_size,
 			u64 *addr, u32 flags);
 
 /**

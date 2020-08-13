@@ -58,24 +58,28 @@ static int global_id_count;
 /* Parameters to test standard cases of allocation */
 static struct test_parameters test_64k_user_managed = {
 	.big_page_size = SZ_64K,
+	.small_big_split = (SZ_1G * 56ULL),
 	.flags = NVGPU_AS_ALLOC_USERSPACE_MANAGED,
 	.expected_error = 0
 };
 
 static struct test_parameters test_0k_user_managed = {
 	.big_page_size = 0,
+	.small_big_split = 0,
 	.flags = NVGPU_AS_ALLOC_USERSPACE_MANAGED,
 	.expected_error = 0
 };
 
 static struct test_parameters test_64k_unified_va = {
 	.big_page_size = SZ_64K,
+	.small_big_split = 0,
 	.flags = NVGPU_AS_ALLOC_UNIFIED_VA,
 	.expected_error = 0
 };
 
 static struct test_parameters test_64k_unified_va_enabled = {
 	.big_page_size = SZ_64K,
+	.small_big_split = 0,
 	.flags = 0,
 	.expected_error = 0,
 	.unify_address_spaces_flag = true
@@ -83,12 +87,14 @@ static struct test_parameters test_64k_unified_va_enabled = {
 
 static struct test_parameters test_einval_user_managed = {
 	.big_page_size = 1,
+	.small_big_split = (SZ_1G * 56ULL),
 	.flags = NVGPU_AS_ALLOC_USERSPACE_MANAGED,
 	.expected_error = -EINVAL
 };
 
 static struct test_parameters test_notp2_user_managed = {
 	.big_page_size = SZ_64K-1,
+	.small_big_split = (SZ_1G * 56ULL),
 	.flags = NVGPU_AS_ALLOC_USERSPACE_MANAGED,
 	.expected_error = -EINVAL
 };
@@ -96,6 +102,7 @@ static struct test_parameters test_notp2_user_managed = {
 /* Parameters to test corner cases and error handling */
 static struct test_parameters test_64k_user_managed_as_fail = {
 	.big_page_size = SZ_64K,
+	.small_big_split = (SZ_1G * 56ULL),
 	.flags = 0,
 	.expected_error = -ENOMEM,
 	.special_case = SPECIAL_CASE_AS_MALLOC_FAIL
@@ -103,6 +110,7 @@ static struct test_parameters test_64k_user_managed_as_fail = {
 
 static struct test_parameters test_64k_user_managed_vm_fail = {
 	.big_page_size = SZ_64K,
+	.small_big_split = (SZ_1G * 56ULL),
 	.flags = 0,
 	.expected_error = -ENOMEM,
 	.special_case = SPECIAL_CASE_VM_INIT_FAIL
@@ -110,6 +118,7 @@ static struct test_parameters test_64k_user_managed_vm_fail = {
 
 static struct test_parameters test_64k_user_managed_busy_fail_1 = {
 	.big_page_size = SZ_64K,
+	.small_big_split = (SZ_1G * 56ULL),
 	.flags = 0,
 	.expected_error = -ENODEV,
 	.special_case = SPECIAL_CASE_GK20A_BUSY_ALLOC
@@ -117,6 +126,7 @@ static struct test_parameters test_64k_user_managed_busy_fail_1 = {
 
 static struct test_parameters test_64k_user_managed_busy_fail_2 = {
 	.big_page_size = SZ_64K,
+	.small_big_split = (SZ_1G * 56ULL),
 	.flags = 0,
 	.expected_error = 0,
 	.special_case = SPECIAL_CASE_GK20A_BUSY_RELEASE
@@ -173,7 +183,7 @@ int test_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 	 * Before ref_init calls to gk20a_as_alloc_share should immediately
 	 * fail.
 	 */
-	err = gk20a_as_alloc_share(g, 0, 0, NULL);
+	err = gk20a_as_alloc_share(g, 0, 0, 0, 0, 0, NULL);
 	if (err != -ENODEV) {
 		unit_return_fail(m, "gk20a_as_alloc_share did not fail as expected err=%d\n",
 				err);
@@ -213,7 +223,8 @@ int test_as_alloc_share(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	err = gk20a_as_alloc_share(g, params->big_page_size,
-			 params->flags, &out);
+			params->flags, (SZ_64K << 10), (1ULL << 37),
+			params->small_big_split, &out);
 
 	if (params->unify_address_spaces_flag) {
 		nvgpu_set_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES, false);
@@ -264,7 +275,8 @@ int test_gk20a_from_as(struct unit_module *m, struct gk20a *g, void *args)
 	int err;
 
 	err = gk20a_as_alloc_share(g, SZ_64K, NVGPU_AS_ALLOC_USERSPACE_MANAGED,
-			 &out);
+			(SZ_64K << 10), (1ULL << 37),
+			nvgpu_gmmu_va_small_page_limit(), &out);
 	if (err != 0) {
 		unit_return_fail(m, "gk20a_as_alloc_share failed err=%d\n",
 			err);

@@ -172,7 +172,10 @@ static int gr_test_setup_allocate_ch_tsg(struct unit_module *m,
 		goto ch_cleanup;
 	}
 
-	err = gk20a_as_alloc_share(g, 0, 0, &as_share);
+	err = gk20a_as_alloc_share(g,
+		0U, NVGPU_AS_ALLOC_UNIFIED_VA,
+		U64(SZ_4K) << U64(10),
+		(1ULL << 37), 0ULL, &as_share);
 	if (err != 0) {
 		unit_err(m, "failed vm memory alloc\n");
 		goto tsg_unbind;

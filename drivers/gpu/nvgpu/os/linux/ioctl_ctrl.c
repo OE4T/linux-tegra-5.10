@@ -594,6 +594,9 @@ static int gk20a_ctrl_alloc_as(
 	err = gk20a_as_alloc_share(g, args->big_page_size,
 				   gk20a_as_translate_as_alloc_flags(g,
 					   args->flags),
+				   args->va_range_start,
+				   args->va_range_end,
+				   args->va_range_split,
 				   &as_share);
 	if (err)
 		goto clean_up_file;

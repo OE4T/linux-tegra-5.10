@@ -56,6 +56,11 @@ struct test_parameters {
 	int big_page_size;
 
 	/**
+	 * Address for small big page vma split
+	 */
+	unsigned long long small_big_split;
+
+	/**
 	 * Flags to use when calling gk20a_as_alloc_share. Should be one of the
 	 * NVGPU_AS_ALLOC_* flag defined in as.h.
 	 */

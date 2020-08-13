@@ -133,19 +133,19 @@ static int nvgpu_vm_area_alloc_get_pagesize_index(struct vm_gk20a *vm,
 }
 
 static int nvgpu_vm_area_alloc_memory(struct nvgpu_allocator *vma, u64 our_addr,
-			u32 pages, u32 page_size, u32 flags,
+			u64 pages, u32 page_size, u32 flags,
 			u64 *vaddr_start_ptr)
 {
 	u64 vaddr_start = 0;
 
 	if ((flags & NVGPU_VM_AREA_ALLOC_FIXED_OFFSET) != 0U) {
 		vaddr_start = nvgpu_alloc_fixed(vma, our_addr,
-						(u64)pages *
+						pages *
 						(u64)page_size,
 						page_size);
 	} else {
 		vaddr_start = nvgpu_alloc_pte(vma,
-					      (u64)pages *
+					      pages *
 					      (u64)page_size,
 					      page_size);
 	}
@@ -190,7 +190,7 @@ static int nvgpu_vm_area_alloc_gmmu_map(struct vm_gk20a *vm,
 	return 0;
 }
 
-int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
+int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u64 pages, u32 page_size,
 			u64 *addr, u32 flags)
 {
 	struct gk20a *g = vm->mm->g;
@@ -211,7 +211,7 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 	}
 
 	nvgpu_log(g, gpu_dbg_map,
-		  "ADD vm_area: pgsz=%#-8x pages=%-9u a/o=%#-14llx flags=0x%x",
+		  "ADD vm_area: pgsz=%#-8x pages=%-9llu a/o=%#-14llx flags=0x%x",
 		  page_size, pages, our_addr, flags);
 
 	if (nvgpu_vm_area_alloc_get_pagesize_index(vm, &pgsz_idx,
@@ -232,7 +232,7 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 
 	vm_area->flags = flags;
 	vm_area->addr = vaddr_start;
-	vm_area->size = (u64)page_size * (u64)pages;
+	vm_area->size = (u64)page_size * pages;
 	vm_area->pgsz_idx = pgsz_idx;
 	nvgpu_init_list_node(&vm_area->buffer_list_head);
 	nvgpu_init_list_node(&vm_area->vm_area_list);
