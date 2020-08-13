@@ -742,4 +742,52 @@
 		dev-names = "mods_iso_smmu";
 		status = "disabled";
 	};
+
+	mods_pcie0: mods_pcie0 {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_PCIE0>;
+		dma-coherent;
+		dev-names = "mods_pcie0";
+		status = "disabled";
+	};
+
+        mods_pcie1: mods_pcie1 {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_PCIE1>;
+		dma-coherent;
+		dev-names = "mods_pcie1";
+		status = "disabled";
+	};
+
+	mods_pcie2: mods_pcie2 {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_PCIE2>;
+		dma-coherent;
+		dev-names = "mods_pcie2";
+		status = "disabled";
+	};
+
+	mods_pcie3: mods_pcie3 {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_PCIE3>;
+		dma-coherent;
+		dev-names = "mods_pcie3";
+		status = "disabled";
+	};
+
+	mods_pcie4: mods_pcie4 {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_PCIE4>;
+		dma-coherent;
+		dev-names = "mods_pcie4";
+		status = "disabled";
+	};
+
+	mods_pcie5: mods_pcie5 {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_PCIE5>;
+		dma-coherent;
+		dev-names = "mods_pcie5";
+		status = "disabled";
+	};
 };
