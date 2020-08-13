@@ -165,13 +165,6 @@ int nvgpu_nvhost_intr_register_notifier(
 	return -ENOSYS;
 }
 
-u32 nvgpu_nvhost_get_syncpt_host_managed(
-	struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 param, const char *syncpt_name)
-{
-	return 0;
-}
-
 int nvgpu_nvhost_syncpt_read_ext_check(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 *val)
 {

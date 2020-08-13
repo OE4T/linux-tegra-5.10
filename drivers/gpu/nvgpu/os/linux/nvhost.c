@@ -150,14 +150,6 @@ void nvgpu_nvhost_syncpt_put_ref_ext(
 	nvhost_syncpt_put_ref_ext(nvhost_dev->host1x_pdev, id);
 }
 
-u32 nvgpu_nvhost_get_syncpt_host_managed(
-	struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 param, const char *syncpt_name)
-{
-	return nvhost_get_syncpt_host_managed(nvhost_dev->host1x_pdev,
-			param, syncpt_name);
-}
-
 u32 nvgpu_nvhost_get_syncpt_client_managed(
 	struct nvgpu_nvhost_dev *nvhost_dev,
 	const char *syncpt_name)

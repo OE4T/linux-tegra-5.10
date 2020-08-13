@@ -108,10 +108,6 @@ u32 nvgpu_nvhost_syncpt_incr_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 int nvgpu_nvhost_syncpt_read_ext_check(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 *val);
 
-u32 nvgpu_nvhost_get_syncpt_host_managed(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 param,
-	const char *syncpt_name);
-
 int nvgpu_nvhost_create_symlink(struct gk20a *g);
 void nvgpu_nvhost_remove_symlink(struct gk20a *g);
 

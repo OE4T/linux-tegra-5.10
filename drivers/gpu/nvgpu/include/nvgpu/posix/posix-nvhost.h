@@ -74,10 +74,6 @@ int nvgpu_nvhost_intr_register_notifier(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh,
 	void (*callback)(void *, int), void *private_data);
 
-u32 nvgpu_nvhost_get_syncpt_host_managed(
-	struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 param, const char *syncpt_name);
-
 int nvgpu_nvhost_syncpt_wait_timeout_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id,
 	u32 thresh, u32 timeout, u32 waiter_index);
