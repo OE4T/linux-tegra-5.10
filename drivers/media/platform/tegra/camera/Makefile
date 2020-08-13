@@ -14,9 +14,7 @@ obj-$(CONFIG_TEGRA_CAMERA_RTCPU) += fusa-capture/
 
 obj-y += tests/
 
-ifdef CONFIG_ARCH_TEGRA_19x_SOC
-
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
 obj-y += slvs/
 obj-y += nvcsi/
-
 endif

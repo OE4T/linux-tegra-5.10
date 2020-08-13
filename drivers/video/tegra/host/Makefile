@@ -55,7 +55,9 @@ obj-$(CONFIG_TEGRA_GRHOST) += nvhost.o
 
 obj-$(CONFIG_TEGRA_GRHOST_ISP) += isp/
 obj-$(CONFIG_TEGRA_GRHOST_NVCSI) += nvcsi/
-obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += vi/
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_18x_SOC) $(CONFIG_ARCH_TEGRA_186_SOC)),)
+obj-y += vi/
+endif
 
 obj-$(CONFIG_TEGRA_GRHOST_CAPTURE_SUPPORT) += capture/
 obj-$(CONFIG_TEGRA_GRHOST_PVA) += pva/

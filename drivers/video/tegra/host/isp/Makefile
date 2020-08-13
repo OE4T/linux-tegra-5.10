@@ -10,7 +10,7 @@ nvhost-isp-objs  = \
 
 obj-$(CONFIG_TEGRA_GRHOST_ISP) += nvhost-isp.o
 
-ifeq ($(CONFIG_ARCH_TEGRA_18x_SOC),y)
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_18x_SOC) $(CONFIG_ARCH_TEGRA_186_SOC)),)
 nvhost-isp-t186-objs  = \
 		isp_isr_v2.o
 
