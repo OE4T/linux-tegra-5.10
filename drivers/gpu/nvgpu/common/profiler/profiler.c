@@ -210,8 +210,16 @@ int nvgpu_profiler_pm_resource_release(struct nvgpu_profiler_object *prof,
 	}
 
 	if (prof->bound) {
-		nvgpu_err(g, "PM resources are bound, cannot release reservation");
-		return -EINVAL;
+		nvgpu_log(g, gpu_dbg_prof,
+			"PM resources alredy bound with profiler handle %u,"
+			" unbinding for reservation release",
+			prof->prof_handle);
+		err = nvgpu_profiler_unbind_pm_resources(prof);
+		if (err != 0) {
+			nvgpu_err(g, "Profiler handle %u failed to unbound, err %d",
+				prof->prof_handle, err);
+			return err;
+		}
 	}
 
 	err = g->ops.pm_reservation.release(g, reservation_id, pm_resource, 0);
