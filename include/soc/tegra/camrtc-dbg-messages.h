@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -189,12 +189,14 @@ struct camrtc_dbg_test_mem {
 	uint64_t size;
 	uint64_t rtcpu_iova;
 	uint64_t vi_iova;
+	uint64_t vi2_iova;
 	uint64_t isp_iova;
 };
 
 struct camrtc_dbg_streamids {
 	uint8_t rtcpu;
 	uint8_t vi;
+	uint8_t vi2;
 	uint8_t isp;
 	uint8_t _pad;
 };
