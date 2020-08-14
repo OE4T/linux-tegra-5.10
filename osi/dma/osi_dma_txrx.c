@@ -244,6 +244,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	struct osi_rx_swcx *ptp_rx_swcx = OSI_NULL;
 	struct osi_rx_desc *context_desc = OSI_NULL;
 	int received = 0;
+	int received_resv = 0;
 	int ret = 0;
 
 	if (rx_ring->cur_rx_idx >= RX_DESC_CNT || more_data_avail == OSI_NULL) {
@@ -253,7 +254,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	/* Reset flag to indicate if more Rx frames available to OSD layer */
 	*more_data_avail = OSI_NONE;
 
-	while (received < budget) {
+	while (received < budget && received_resv < budget) {
 		osi_memset(rx_pkt_cx, 0U, sizeof(*rx_pkt_cx));
 		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 		rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
@@ -264,6 +265,19 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 		}
 
 		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
+
+		if (osi_unlikely(rx_swcx->buf_virt_addr ==
+		    osi->resv_buf_virt_addr)) {
+			rx_swcx->buf_virt_addr  = OSI_NULL;
+			rx_swcx->buf_phy_addr  = 0;
+			/* Reservered buffer used */
+			received_resv++;
+			if (osi->osd_ops.realloc_buf != OSI_NULL) {
+				osi->osd_ops.realloc_buf(osi->osd,
+							 rx_ring, chan);
+			}
+			continue;
+		}
 
 		/* packet already processed */
 		if ((rx_swcx->flags & OSI_RX_SWCX_PROCESSED) ==
@@ -336,22 +350,22 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 		osi->dstats.rx_pkt_n =
 			osi_update_stats_counter(osi->dstats.rx_pkt_n, 1UL);
 		received++;
+	}
 
-		/* If budget is done, check if HW ring still has unprocessed
-		 * Rx packets, so that the OSD layer can decide to schedule
-		 * this function again.
-		 */
-		if (received == budget) {
-			rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
-			rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
-			if (((rx_swcx->flags & OSI_RX_SWCX_PROCESSED) !=
-			    OSI_RX_SWCX_PROCESSED) &&
-			    ((rx_desc->rdes3 & RDES3_OWN) != RDES3_OWN)) {
-				/* Next desciptor has owned by SW
-				 * So set more data avail flag here.
-				 */
-				*more_data_avail = OSI_ENABLE;
-			}
+	/* If budget is done, check if HW ring still has unprocessed
+	 * Rx packets, so that the OSD layer can decide to schedule
+	 * this function again.
+	 */
+	if ((received + received_resv) >= budget) {
+		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
+		rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
+		if (((rx_swcx->flags & OSI_RX_SWCX_PROCESSED) !=
+		    OSI_RX_SWCX_PROCESSED) &&
+		    ((rx_desc->rdes3 & RDES3_OWN) != RDES3_OWN)) {
+			/* Next descriptor has owned by SW
+			 * So set more data avail flag here.
+			 */
+			*more_data_avail = OSI_ENABLE;
 		}
 	}
 
