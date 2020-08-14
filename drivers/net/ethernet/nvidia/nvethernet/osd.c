@@ -130,10 +130,12 @@ void osd_log(void *priv,
  */
 static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 				  struct osi_rx_swcx *rx_swcx,
-				  unsigned int dma_rx_buf_len)
+				  unsigned int dma_rx_buf_len,
+				  unsigned int chan)
 {
 	struct sk_buff *skb = NULL;
 	dma_addr_t dma_addr;
+	unsigned long val;
 
 	if ((rx_swcx->flags & OSI_RX_SWCX_REUSE) == OSI_RX_SWCX_REUSE) {
 		/* Skip buffer allocation and DMA mapping since
@@ -145,9 +147,16 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 	}
 
 	skb = netdev_alloc_skb_ip_align(pdata->ndev, dma_rx_buf_len);
+
 	if (unlikely(skb == NULL)) {
-		dev_err(pdata->dev, "RX skb allocation failed\n");
-		return -ENOMEM;
+		dev_err(pdata->dev, "RX skb allocation failed, using reserved buffer\n");
+		rx_swcx->buf_virt_addr = pdata->osi_dma->resv_buf_virt_addr;
+		rx_swcx->buf_phy_addr = pdata->osi_dma->resv_buf_phy_addr;
+		rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
+		val = pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan];
+		pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan] =
+			osi_update_stats_counter(val, 1UL);
+		return 0;
 	}
 
 	dma_addr = dma_map_single(pdata->dev, skb->data, dma_rx_buf_len,
@@ -183,10 +192,8 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 				 unsigned int chan)
 {
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_rx_swcx *rx_swcx = NULL;
 	struct osi_rx_desc *rx_desc = NULL;
-	unsigned long val;
 	unsigned int local_refill_idx = rx_ring->refill_idx;
 	int ret = 0;
 
@@ -195,11 +202,9 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 		rx_swcx = rx_ring->rx_swcx + local_refill_idx;
 		rx_desc = rx_ring->rx_desc + local_refill_idx;
 
-		ret = ether_alloc_skb(pdata, rx_swcx, osi_dma->rx_buf_len);
+		ret = ether_alloc_skb(pdata, rx_swcx, osi_dma->rx_buf_len,
+				      chan);
 		if (ret < 0) {
-			val = osi_core->xstats.re_alloc_rxbuf_failed[chan];
-			osi_core->xstats.re_alloc_rxbuf_failed[chan] =
-				osi_update_stats_counter(val, 1UL);
 			break;
 		}
 		INCR_RX_DESC_INDEX(local_refill_idx, 1U);
@@ -209,6 +214,24 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
 	if (ret < 0) {
 		dev_err(pdata->dev, "Failed to refill Rx ring %u\n", chan);
 	}
+}
+
+/**
+ * @brief osd_realloc_buf - Allocate RX sk_buffer
+ *
+ * Algorithm: call ether_realloc_rx_skb for re-allocation
+ *
+ * @param[in] priv: OSD private data structure.
+ * @param[in] rxring: Pointer to DMA channel Rx ring.
+ * @param[in] chan: DMA Rx channel number.
+ *
+ */
+void osd_realloc_buf(void *priv, void *rxring, unsigned int chan)
+{
+	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
+	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
+
+	ether_realloc_rx_skb(pdata, rx_ring, chan);
 }
 
 /**
