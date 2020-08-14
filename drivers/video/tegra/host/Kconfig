@@ -25,8 +25,8 @@ config TEGRA_GRHOST_PVA
 
 config TEGRA_GRHOST_SLVSEC
 	bool "Tegra SLVS-EC support"
-	depends on TEGRA_GRHOST && ARCH_TEGRA_19x_SOC
-	default y
+	depends on TEGRA_GRHOST && ( ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC )
+	default y if ARCH_TEGRA_19x_SOC
 	help
 	  Enables SLVS-EC Camera interface support under nvhost
 	  Say Y here if not sure.

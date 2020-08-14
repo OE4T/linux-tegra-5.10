@@ -58,9 +58,8 @@ config TEGRA_BWMGR
 
 config TEGRA_CAMERA_RTCPU
 	bool "Enable Tegra Camera RTCPU Driver"
-	depends on ARCH_TEGRA_18x_SOC
+	depends on (ARCH_TEGRA_18x_SOC || ARCH_TEGRA_186_SOC)
 	select NV_TEGRA_IVC
-	select TEGRA_HSP
 
 config TEGRA_CAMERA_HSP_MBOX_CLIENT
 	bool "Enable Mailbox Client Implementation of HSP Protocol for Camera"
