@@ -961,7 +961,7 @@ static void ether_napi_enable(struct ether_priv_data *pdata)
  * @param[in] rx_buf_len: Receive buffer length
  */
 static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
-			       unsigned int rx_buf_len)
+			       unsigned int rx_buf_len, void *resv_buf_virt_addr)
 {
 	struct osi_rx_swcx *prx_swcx = NULL;
 	unsigned int i;
@@ -970,9 +970,11 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
 		prx_swcx = rx_swcx + i;
 
 		if (prx_swcx->buf_virt_addr != NULL) {
-			dma_unmap_single(dev, prx_swcx->buf_phy_addr,
-					 rx_buf_len, DMA_FROM_DEVICE);
-			dev_kfree_skb_any(prx_swcx->buf_virt_addr);
+			if (resv_buf_virt_addr != prx_swcx->buf_virt_addr) {
+				dma_unmap_single(dev, prx_swcx->buf_phy_addr,
+						 rx_buf_len, DMA_FROM_DEVICE);
+				dev_kfree_skb_any(prx_swcx->buf_virt_addr);
+			}
 			prx_swcx->buf_virt_addr = NULL;
 			prx_swcx->buf_phy_addr = 0;
 		}
@@ -1000,7 +1002,8 @@ static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 		if (rx_ring != NULL) {
 			if (rx_ring->rx_swcx != NULL) {
 				ether_free_rx_skbs(rx_ring->rx_swcx, dev,
-						   osi_dma->rx_buf_len);
+						   osi_dma->rx_buf_len,
+						   osi_dma->resv_buf_virt_addr);
 				kfree(rx_ring->rx_swcx);
 			}
 
@@ -1339,23 +1342,41 @@ static void ether_init_invalid_chan_ring(struct osi_dma_priv_data *osi_dma)
  * @brief Frees allocated DMA resources.
  *
  * Algorithm: Frees all DMA resources which are allocates with
- * allocate_dma_resources() API.
+ * allocate_dma_resources() API. Unmap reserved DMA and free
+ * reserve sk buffer.
  *
- * @param[in] osi_dma: OSI private data structure.
- * @param[in] dev: device instance associated with driver.
+ * @param[in] pdata: OSD private data structure.
  */
-void free_dma_resources(struct osi_dma_priv_data *osi_dma, struct device *dev)
+void free_dma_resources(struct ether_priv_data *pdata)
 {
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct device *dev = pdata->dev;
+
 	free_tx_dma_resources(osi_dma, dev);
 	free_rx_dma_resources(osi_dma, dev);
+
+	/* unmap reserved DMA*/
+	if (osi_dma->resv_buf_phy_addr) {
+		dma_unmap_single(dev, osi_dma->resv_buf_phy_addr,
+				 osi_dma->rx_buf_len,
+				 DMA_FROM_DEVICE);
+		osi_dma->resv_buf_phy_addr = 0;
+	}
+
+	/* free reserve buffer */
+	if (osi_dma->resv_buf_virt_addr) {
+		dev_kfree_skb_any(osi_dma->resv_buf_virt_addr);
+		osi_dma->resv_buf_virt_addr = NULL;
+	}
 }
 
 /**
  * @brief Allocate DMA resources for Tx and Rx.
  *
  * Algorithm:
- * 1) Allocate Tx DMA resources.
- * 2) Allocate Rx DMA resources.
+ * 1) Allocate Reserved buffer memory
+ * 2) Allocate Tx DMA resources.
+ * 3) Allocate Rx DMA resources.
  *
  * @param[in] pdata: OSD private data structure.
  *
@@ -1365,20 +1386,51 @@ void free_dma_resources(struct osi_dma_priv_data *osi_dma, struct device *dev)
 static int ether_allocate_dma_resources(struct ether_priv_data *pdata)
 {
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct sk_buff *skb = NULL;
 	int ret = 0;
 
 	ether_init_invalid_chan_ring(osi_dma);
 
+	skb = __netdev_alloc_skb_ip_align(pdata->ndev, osi_dma->rx_buf_len,
+					  GFP_KERNEL);
+	if (unlikely(skb == NULL)) {
+		dev_err(pdata->dev, "Reserve RX skb allocation failed\n");
+		ret = -ENOMEM;
+		goto error_alloc;
+	}
+
+	osi_dma->resv_buf_phy_addr = dma_map_single(pdata->dev,
+						    skb->data,
+						    osi_dma->rx_buf_len,
+						    DMA_FROM_DEVICE);
+	if (unlikely(dma_mapping_error(pdata->dev, osi_dma->resv_buf_phy_addr)
+		     != 0)) {
+		dev_err(pdata->dev, "Reserve RX skb dma map failed\n");
+		ret = -ENOMEM;
+		goto error_alloc;
+	}
+
 	ret = ether_allocate_tx_dma_resources(osi_dma, pdata->dev);
 	if (ret != 0) {
-		return ret;
+		goto error_alloc;
 	}
 
 	ret = ether_allocate_rx_dma_resources(osi_dma, pdata);
 	if (ret != 0) {
 		free_tx_dma_resources(osi_dma, pdata->dev);
-		return ret;
+		goto error_alloc;
 	}
+
+	osi_dma->resv_buf_virt_addr = (void *)skb;
+
+	return ret;
+
+error_alloc:
+	if (skb != NULL) {
+		dev_kfree_skb_any(skb);
+	}
+	osi_dma->resv_buf_virt_addr = NULL;
+	osi_dma->resv_buf_phy_addr = 0;
 
 	return ret;
 }
@@ -1688,7 +1740,7 @@ err_hw_init:
 	thermal_cooling_device_unregister(pdata->tcd);
 err_therm:
 #endif /* THERMAL_CAL */
-	free_dma_resources(pdata->osi_dma, pdata->dev);
+	free_dma_resources(pdata);
 err_alloc:
 	if (pdata->phydev) {
 		phy_disconnect(pdata->phydev);
@@ -1802,7 +1854,7 @@ static int ether_close(struct net_device *ndev)
 #endif /* THERMAL_CAL */
 
 	/* free DMA resources after DMA stop */
-	free_dma_resources(pdata->osi_dma, pdata->dev);
+	free_dma_resources(pdata);
 
 	/* PTP de-init */
 	ether_ptp_remove(pdata);
@@ -4215,11 +4267,12 @@ static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core)
  * 1) Get the number of channels from DT.
  * 2) Allocate the network device for those many channels.
  * 3) Parse MAC and PHY DT.
- * 4) Get all required clks/reset/IRQ's.
- * 5) Register MDIO bus and network device.
- * 6) Initialize spinlock.
- * 7) Update filter value based on HW feature.
- * 8) Initialize Workqueue to read MMC counters periodically.
+ * 4) Update callback function for rx buffer reallocation
+ * 5) Get all required clks/reset/IRQ's.
+ * 6) Register MDIO bus and network device.
+ * 7) Initialize spinlock.
+ * 8) Update filter value based on HW feature.
+ * 9) Initialize Workqueue to read MMC counters periodically.
  *
  * @param[in] pdev: platform device associated with platform driver.
  *
@@ -4285,6 +4338,9 @@ static int ether_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to get osi_init_core_ops\n");
 		goto err_core_ops;
 	}
+
+	/* Define re-allocation routine */
+	osi_dma->osd_ops.realloc_buf = osd_realloc_buf;
 
 	if (osi_init_dma_ops(osi_dma) != 0) {
 		dev_err(&pdev->dev, "failed to get osi_init_dma_ops\n");
@@ -4497,7 +4553,7 @@ static int ether_suspend_noirq(struct device *dev)
 		osi_disable_chan_rx_intr(osi_dma, chan);
 	}
 
-	free_dma_resources(osi_dma, dev);
+	free_dma_resources(pdata);
 
 	/* disable MAC clocks */
 	ether_disable_clks(pdata);
@@ -4593,7 +4649,7 @@ static int ether_resume(struct ether_priv_data *pdata)
 err_dma:
 	osi_hw_core_deinit(osi_core);
 err_core:
-	free_dma_resources(osi_dma, dev);
+	free_dma_resources(pdata);
 
 	return ret;
 }

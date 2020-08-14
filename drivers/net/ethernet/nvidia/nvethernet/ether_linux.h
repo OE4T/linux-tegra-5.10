@@ -477,4 +477,16 @@ static inline int ether_selftest_get_count(struct ether_priv_data *pdata)
 	return -EOPNOTSUPP;
 }
 #endif /* CONFIG_NVETHERNET_SELFTESTS */
+
+/**
+ * @brief osd_realloc_buf - Allocate RX sk_buffer
+ *
+ * Algorithm: Call ether_realloc_rx_skb for re-allocation
+ *
+ * @param[in] priv: OSD private data structure.
+ * @param[in] rxring: Pointer to DMA channel Rx ring.
+ * @param[in] chan: DMA Rx channel number.
+ *
+ */
+void osd_realloc_buf(void *priv, void *rxring, unsigned int chan);
 #endif /* ETHER_LINUX_H */
