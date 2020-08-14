@@ -163,113 +163,7 @@ done:
 	return ret;
 }
 
-#define F_PBDMA_HANDLE_INTR_0_PENDING		BIT(0)
-#define F_PBDMA_HANDLE_INTR_0_RECOVER		BIT(1)
-#define F_PBDMA_HANDLE_INTR_1_PENDING		BIT(2)
-#define F_PBDMA_HANDLE_INTR_1_RECOVER		BIT(3)
-#define F_PBDMA_HANDLE_INTR_ERR_NOTIFIER	BIT(4)
-#define F_PBDMA_HANDLE_INTR_LAST		BIT(5)
-
 #define INVALID_ERR_NOTIFIER	U32_MAX
-
-static bool stub_pbdma_handle_intr_0(struct gk20a *g,
-		u32 pbdma_id, u32 pbdma_intr_0, u32 *error_notifier)
-{
-	u.stubs.pbdma_handle_intr_0.count++;
-
-	if (u.branches & F_PBDMA_HANDLE_INTR_0_RECOVER) {
-		return true;
-	}
-	return false;
-}
-
-static bool stub_pbdma_handle_intr_1(struct gk20a *g,
-		u32 pbdma_id, u32 pbdma_intr_1, u32 *error_notifier)
-{
-	u.stubs.pbdma_handle_intr_1.count++;
-	if (u.branches & F_PBDMA_HANDLE_INTR_1_RECOVER) {
-		return true;
-	}
-	return false;
-}
-
-int test_gm20b_pbdma_handle_intr(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	int ret = UNIT_FAIL;
-	struct gpu_ops gops = g->ops;
-	u32 branches;
-	const char *labels[] = {
-		"intr_0_pending",
-		"intr_0_recover",
-		"intr_1_pending",
-		"intr_1_recover",
-		"err_notifier",
-	};
-	u32 pbdma_id = 0;
-	u32 _err_notifier;
-	u32 *err_notifier;
-	struct nvgpu_pbdma_status_info pbdma_status;
-	bool recover;
-
-	g->ops.pbdma.handle_intr_0 = stub_pbdma_handle_intr_0;
-	g->ops.pbdma.handle_intr_1 = stub_pbdma_handle_intr_1;
-
-	for (branches = 0; branches < F_PBDMA_HANDLE_INTR_LAST; branches++) {
-
-		subtest_setup(m, branches);
-		unit_verbose(m, "%s branches=%s\n", __func__,
-			branches_str(branches, labels));
-
-		err_notifier = branches & F_PBDMA_HANDLE_INTR_ERR_NOTIFIER ?
-			&_err_notifier : NULL;
-		_err_notifier = INVALID_ERR_NOTIFIER;
-
-		nvgpu_writel(g, pbdma_intr_0_r(pbdma_id), 0);
-		nvgpu_writel(g, pbdma_intr_1_r(pbdma_id), 0);
-
-		if (branches & F_PBDMA_HANDLE_INTR_0_PENDING) {
-			nvgpu_writel(g, pbdma_intr_0_r(pbdma_id), BIT(0));
-		}
-
-		if (branches & F_PBDMA_HANDLE_INTR_1_PENDING) {
-			nvgpu_writel(g, pbdma_intr_1_r(pbdma_id), BIT(0));
-		}
-
-		recover = gm20b_pbdma_handle_intr(g, pbdma_id, err_notifier, &pbdma_status);
-
-		if (branches & F_PBDMA_HANDLE_INTR_0_PENDING) {
-			unit_assert(u.stubs.pbdma_handle_intr_0.count > 0,
-					goto done);
-			if (branches & F_PBDMA_HANDLE_INTR_0_RECOVER) {
-				unit_assert(recover, goto done);
-			}
-		}
-
-		if (branches & F_PBDMA_HANDLE_INTR_1_PENDING) {
-			unit_assert(u.stubs.pbdma_handle_intr_1.count > 0,
-					goto done);
-			if (branches & F_PBDMA_HANDLE_INTR_1_RECOVER) {
-				unit_assert(recover, goto done);
-			}
-		}
-
-		if (branches & F_PBDMA_HANDLE_INTR_ERR_NOTIFIER) {
-			unit_assert(*err_notifier != INVALID_ERR_NOTIFIER,
-					goto done);
-		}
-
-	}
-
-	ret = UNIT_SUCCESS;
-done:
-	if (ret != UNIT_SUCCESS) {
-		unit_err(m, "%s branches=%s\n", __func__,
-			branches_str(branches, labels));
-	}
-	g->ops = gops;
-	return ret;
-}
 
 #define PBDMA_NUM_INTRS	6
 
@@ -585,7 +479,6 @@ done:
 struct unit_module_test nvgpu_pbdma_gm20b_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, NULL, 0),
 	UNIT_TEST(pbdma_acquire_val, test_gm20b_pbdma_acquire_val, NULL, 0),
-	UNIT_TEST(pbdma_handle_intr, test_gm20b_pbdma_handle_intr, NULL, 0),
 	UNIT_TEST(pbdma_handle_intr_0, test_gm20b_pbdma_handle_intr_0, NULL, 0),
 	UNIT_TEST(pbdma_read_data, test_gm20b_pbdma_read_data, NULL, 0),
 	UNIT_TEST(pbdma_intr_descs, test_gm20b_pbdma_intr_descs, NULL, 0),

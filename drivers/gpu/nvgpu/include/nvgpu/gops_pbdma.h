@@ -50,9 +50,7 @@ struct gops_pbdma {
 	bool (*handle_intr_1)(struct gk20a *g,
 			u32 pbdma_id, u32 pbdma_intr_1,
 			u32 *error_notifier);
-	bool (*handle_intr)(struct gk20a *g, u32 pbdma_id,
-			u32 *error_notifier,
-			struct nvgpu_pbdma_status_info *pbdma_status);
+	void (*handle_intr)(struct gk20a *g, u32 pbdma_id, bool recover);
 	u32 (*set_clear_intr_offsets) (struct gk20a *g,
 			u32 set_clear_size);
 	u32 (*get_signature)(struct gk20a *g);

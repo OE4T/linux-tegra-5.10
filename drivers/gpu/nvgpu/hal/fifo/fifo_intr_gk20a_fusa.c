@@ -30,8 +30,6 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/error_notifier.h>
-#include <nvgpu/pbdma_status.h>
 #include <nvgpu/engines.h>
 
 #include <hal/fifo/fifo_intr_gk20a.h>
@@ -94,20 +92,12 @@ u32 gk20a_fifo_pbdma_isr(struct gk20a *g)
 	u32 pbdma_id;
 	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	u32 pbdma_pending_bitmask = nvgpu_readl(g, fifo_intr_pbdma_id_r());
-	u32 error_notifier;
-	bool recover;
-	struct nvgpu_pbdma_status_info pbdma_status;
 
 	for (pbdma_id = 0; pbdma_id < num_pbdma; pbdma_id++) {
 		if (fifo_intr_pbdma_id_status_v(pbdma_pending_bitmask, pbdma_id) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr, "pbdma id %d intr pending",
 				pbdma_id);
-			recover = g->ops.pbdma.handle_intr(g, pbdma_id,
-				&error_notifier, &pbdma_status);
-			if (recover) {
-				nvgpu_rc_pbdma_fault(g, pbdma_id,
-					error_notifier, &pbdma_status);
-			}
+			g->ops.pbdma.handle_intr(g, pbdma_id, true);
 		}
 	}
 	return fifo_intr_0_pbdma_intr_pending_f();

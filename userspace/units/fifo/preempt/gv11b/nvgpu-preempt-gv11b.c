@@ -75,12 +75,6 @@ struct preempt_gv11b_unit_ctx {
 
 static struct preempt_gv11b_unit_ctx unit_ctx;
 
-static void subtest_setup(u32 branches)
-{
-	unit_ctx.branches = branches;
-}
-
-
 #define F_PREEMPT_TRIGGER_TSG			BIT(0)
 #define F_PREEMPT_TRIGGER_LAST			BIT(1)
 
@@ -150,149 +144,8 @@ done:
 	return ret;
 }
 
-static bool stub_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
-			u32 *error_notifier,
-			struct nvgpu_pbdma_status_info *pbdma_status)
+static void stub_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id, bool recover)
 {
-	pbdma_status->chsw_status = stub.pbdma_st.chsw_status;
-	pbdma_status->id = stub.pbdma_st.id;
-	pbdma_status->next_id = stub.pbdma_st.next_id;
-
-	return false;
-}
-
-#define F_PREEMPT_POLL_PBDMA_TIMEOUT_INIT_FAIL		BIT(0)
-#define F_PREEMPT_POLL_PBDMA_PLATFORM_SILICON		BIT(1)
-#define F_PREEMPT_POLL_PBDMA_CHSW_IS_VALID		BIT(2)
-#define F_PREEMPT_POLL_PBDMA_CHSW_IS_SAVE		BIT(3)
-#define F_PREEMPT_POLL_PBDMA_CHSW_IS_LOAD		BIT(4)
-#define F_PREEMPT_POLL_PBDMA_CHSW_IS_SWITCH		BIT(5)
-#define F_PREEMPT_POLL_PBDMA_STATUS_ID_IS_TSGID		BIT(6)
-#define F_PREEMPT_POLL_PBDMA_STATUS_NEXT_ID_IS_TSGID	BIT(7)
-#define F_PREEMPT_POLL_PRE_SI_RETRIES			BIT(8)
-#define F_PREEMPT_POLL_PBDMA_LAST			BIT(9)
-
-static const char *f_preempt_poll_pbdma[] = {
-	"timeout_init_fail",
-	"platform_silicon",
-	"chsw_is_valid",
-	"chsw_is_save",
-	"chsw_is_load",
-	"chsw_is_switch",
-	"status_id_is_tsgid",
-	"status_next_id_is_tsgid",
-};
-
-int test_gv11b_fifo_preempt_poll_pbdma(struct unit_module *m, struct gk20a *g,
-								void *args)
-{
-	u32 tsgid = 0U;
-	int ret = UNIT_FAIL;
-	int err;
-	u32 branches = 0U;
-	u32 prune = F_PREEMPT_POLL_PBDMA_TIMEOUT_INIT_FAIL |
-			F_PREEMPT_POLL_PRE_SI_RETRIES;
-	struct gpu_ops gops = g->ops;
-	struct nvgpu_posix_fault_inj *timers_fi;
-	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
-
-	timers_fi = nvgpu_timers_get_fault_injection();
-	g->ops.pbdma.handle_intr = stub_pbdma_handle_intr;
-
-	for (branches = 0U; branches < F_PREEMPT_POLL_PBDMA_LAST; branches++) {
-		if (pruned(branches, prune)) {
-			unit_verbose(m, "%s branches=%s (pruned)\n", __func__,
-				branches_str(branches,
-					f_preempt_poll_pbdma));
-			continue;
-		}
-		subtest_setup(branches);
-		unit_verbose(m, "%s branches=%s\n",
-			__func__, branches_str(branches, f_preempt_poll_pbdma));
-
-		nvgpu_posix_enable_fault_injection(timers_fi,
-			branches & F_PREEMPT_POLL_PBDMA_TIMEOUT_INIT_FAIL ?
-			true : false, 0);
-
-		if (branches & F_PREEMPT_POLL_PRE_SI_RETRIES) {
-			/* Timeout should not expire */
-			nvgpu_posix_enable_fault_injection(timers_fi, true,
-				PREEMPT_PENDING_POLL_PRE_SI_RETRIES + 4U);
-
-			/* Force pbdma status = chsw_valid */
-			branches |= F_PREEMPT_POLL_PBDMA_CHSW_IS_VALID;
-			/* Force tsgid = pbdma_status id */
-			branches |= F_PREEMPT_POLL_PBDMA_STATUS_ID_IS_TSGID;
-		}
-
-		p->is_silicon =
-			branches & F_PREEMPT_POLL_PBDMA_PLATFORM_SILICON ?
-			true : false;
-
-		if (branches & F_PREEMPT_POLL_PBDMA_CHSW_IS_VALID) {
-			stub.pbdma_st.chsw_status =
-						NVGPU_PBDMA_CHSW_STATUS_VALID;
-		} else if (branches & F_PREEMPT_POLL_PBDMA_CHSW_IS_SAVE) {
-			stub.pbdma_st.chsw_status =
-						NVGPU_PBDMA_CHSW_STATUS_SAVE;
-		} else if (branches & F_PREEMPT_POLL_PBDMA_CHSW_IS_LOAD) {
-			stub.pbdma_st.chsw_status =
-						NVGPU_PBDMA_CHSW_STATUS_LOAD;
-		} else if (branches & F_PREEMPT_POLL_PBDMA_CHSW_IS_SWITCH) {
-			stub.pbdma_st.chsw_status =
-						NVGPU_PBDMA_CHSW_STATUS_SWITCH;
-		} else {
-			stub.pbdma_st.chsw_status =
-						NVGPU_PBDMA_CHSW_STATUS_INVALID;
-		}
-		stub.pbdma_st.id =
-			branches & F_PREEMPT_POLL_PBDMA_STATUS_ID_IS_TSGID ?
-			tsgid : tsgid + 1U;
-		stub.pbdma_st.next_id = branches &
-			F_PREEMPT_POLL_PBDMA_STATUS_NEXT_ID_IS_TSGID ?
-			tsgid : tsgid + 1U;
-
-		err = gv11b_fifo_preempt_poll_pbdma(g, tsgid, 0U);
-
-		if (branches & F_PREEMPT_POLL_PBDMA_TIMEOUT_INIT_FAIL) {
-			unit_assert(err == -ETIMEDOUT, goto done);
-		} else if ((branches & F_PREEMPT_POLL_PBDMA_CHSW_IS_VALID) ||
-			branches & F_PREEMPT_POLL_PBDMA_CHSW_IS_SAVE) {
-			if (branches &
-				F_PREEMPT_POLL_PBDMA_STATUS_ID_IS_TSGID) {
-				unit_assert(err == -EBUSY, goto done);
-			} else {
-				unit_assert(err == 0, goto done);
-			}
-		} else if (branches & F_PREEMPT_POLL_PBDMA_CHSW_IS_LOAD) {
-			if (branches &
-				F_PREEMPT_POLL_PBDMA_STATUS_NEXT_ID_IS_TSGID) {
-				unit_assert(err == -EBUSY, goto done);
-			} else {
-				unit_assert(err == 0, goto done);
-			}
-		} else if (branches & F_PREEMPT_POLL_PBDMA_CHSW_IS_SWITCH) {
-			if ((branches &
-				F_PREEMPT_POLL_PBDMA_STATUS_ID_IS_TSGID) ||
-				(branches &
-				F_PREEMPT_POLL_PBDMA_STATUS_NEXT_ID_IS_TSGID)) {
-				unit_assert(err == -EBUSY, goto done);
-			} else {
-				unit_assert(err == 0, goto done);
-			}
-		}
-		nvgpu_posix_enable_fault_injection(timers_fi, false, 0);
-	}
-
-	ret = UNIT_SUCCESS;
- done:
-	if (ret != UNIT_SUCCESS) {
-		unit_err(m, "%s branches=%s\n", __func__,
-				branches_str(branches, f_preempt_poll_pbdma));
-	}
-
-	g->ops = gops;
-	return ret;
 }
 
 static int stub_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
@@ -672,7 +525,6 @@ struct unit_module_test nvgpu_preempt_gv11b_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, &unit_ctx, 0),
 	UNIT_TEST(preempt_trigger, test_gv11b_fifo_preempt_trigger, NULL, 0),
 	UNIT_TEST(preempt_runlists_for_rc, test_gv11b_fifo_preempt_runlists_for_rc, NULL, 0),
-	UNIT_TEST(preempt_poll_pbdma, test_gv11b_fifo_preempt_poll_pbdma, NULL, 0),
 	UNIT_TEST(preempt_channel, test_gv11b_fifo_preempt_channel, NULL, 0),
 	UNIT_TEST(preempt_tsg, test_gv11b_fifo_preempt_tsg, NULL, 0),
 	UNIT_TEST(is_preempt_pending, test_gv11b_fifo_is_preempt_pending, NULL, 0),

@@ -171,17 +171,13 @@ done:
 	return ret;
 }
 
-static bool stub_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
-	u32 *error_notifier, struct nvgpu_pbdma_status_info *pbdma_status)
+static void stub_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id, bool recover)
 {
 	if (nvgpu_readl(g, fifo_intr_pbdma_id_r()) != BIT(pbdma_id)) {
 		u.fail = true;
 	}
 
-	pbdma_status->chsw_status = NVGPU_PBDMA_CHSW_STATUS_INVALID;
 	u.count++;
-
-	return u.recover;
 }
 
 int test_gk20a_fifo_pbdma_isr(struct unit_module *m,
@@ -189,7 +185,6 @@ int test_gk20a_fifo_pbdma_isr(struct unit_module *m,
 {
 	int ret = UNIT_FAIL;
 	u32 pending;
-	int i;
 	u32 pbdma_id;
 	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	struct gpu_ops gops = g->ops;
@@ -199,17 +194,14 @@ int test_gk20a_fifo_pbdma_isr(struct unit_module *m,
 	g->ops.pbdma.handle_intr = stub_pbdma_handle_intr;
 
 	u.fail = false;
-	for (i = 0; i < 2; i++) {
-		u.recover = (i > 0);
-		for (pbdma_id = 0; pbdma_id < num_pbdma; pbdma_id++) {
-			nvgpu_writel(g, fifo_intr_pbdma_id_r(), BIT(pbdma_id));
-			u.count = 0;
-			pending = gk20a_fifo_pbdma_isr(g);
-			unit_assert(pending ==
-				fifo_intr_0_pbdma_intr_pending_f(), goto done);
-			unit_assert(!u.fail, goto done);
-			unit_assert(u.count == 1, goto done);
-		}
+	for (pbdma_id = 0; pbdma_id < num_pbdma; pbdma_id++) {
+		nvgpu_writel(g, fifo_intr_pbdma_id_r(), BIT(pbdma_id));
+		u.count = 0;
+		pending = gk20a_fifo_pbdma_isr(g);
+		unit_assert(pending ==
+			fifo_intr_0_pbdma_intr_pending_f(), goto done);
+		unit_assert(!u.fail, goto done);
+		unit_assert(u.count == 1, goto done);
 	}
 	ret = UNIT_SUCCESS;
 

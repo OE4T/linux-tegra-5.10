@@ -34,6 +34,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pbdma_status.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/rc.h>
 
 #include <nvgpu/hw/gm20b/hw_pbdma_gm20b.h>
 
@@ -318,16 +319,13 @@ u32 gm20b_pbdma_restartable_0_intr_descs(void)
 	return restartable_0_intr_descs;
 }
 
-bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
-			u32 *error_notifier,
-			struct nvgpu_pbdma_status_info *pbdma_status)
+void gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id, bool recover)
 {
+	struct nvgpu_pbdma_status_info pbdma_status;
 	u32 intr_error_notifier = NVGPU_ERR_NOTIFIER_PBDMA_ERROR;
 
 	u32 pbdma_intr_0 = nvgpu_readl(g, pbdma_intr_0_r(pbdma_id));
 	u32 pbdma_intr_1 = nvgpu_readl(g, pbdma_intr_1_r(pbdma_id));
-
-	bool recover = false;
 
 	if (pbdma_intr_0 != 0U) {
 		nvgpu_log(g, gpu_dbg_info | gpu_dbg_intr,
@@ -337,8 +335,12 @@ bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 		if (g->ops.pbdma.handle_intr_0(g, pbdma_id, pbdma_intr_0,
 			&intr_error_notifier)) {
 			g->ops.pbdma_status.read_pbdma_status_info(g,
-				pbdma_id, pbdma_status);
-			recover = true;
+				pbdma_id, &pbdma_status);
+			if (recover) {
+				nvgpu_rc_pbdma_fault(g, pbdma_id,
+						intr_error_notifier,
+						&pbdma_status);
+			}
 		}
 		nvgpu_writel(g, pbdma_intr_0_r(pbdma_id), pbdma_intr_0);
 	}
@@ -351,17 +353,16 @@ bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 		if (g->ops.pbdma.handle_intr_1(g, pbdma_id, pbdma_intr_1,
 			&intr_error_notifier)) {
 			g->ops.pbdma_status.read_pbdma_status_info(g,
-				pbdma_id, pbdma_status);
-			recover = true;
+				pbdma_id, &pbdma_status);
+			if (recover) {
+				nvgpu_rc_pbdma_fault(g, pbdma_id,
+						intr_error_notifier,
+						&pbdma_status);
+			}
 		}
+
 		nvgpu_writel(g, pbdma_intr_1_r(pbdma_id), pbdma_intr_1);
 	}
-
-	if (error_notifier != NULL) {
-		*error_notifier = intr_error_notifier;
-	}
-
-	return recover;
 }
 
 u32 gm20b_pbdma_get_gp_base(u64 gpfifo_base)
