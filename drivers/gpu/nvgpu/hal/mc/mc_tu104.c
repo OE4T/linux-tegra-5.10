@@ -28,7 +28,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/device.h>
-#include <nvgpu/gops_mc.h>
 #include <nvgpu/power_features/pg.h>
 
 #include "hal/mc/mc_gp10b.h"

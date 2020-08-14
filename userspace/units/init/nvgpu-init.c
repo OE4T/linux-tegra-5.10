@@ -32,7 +32,6 @@
 #include <nvgpu/posix/posix-fault-injection.h>
 #include <os/posix/os_posix.h>
 #include <nvgpu/dma.h>
-#include <nvgpu/gops_mc.h>
 
 /* for get_litter testing */
 #include "hal/init/hal_gv11b_litter.h"

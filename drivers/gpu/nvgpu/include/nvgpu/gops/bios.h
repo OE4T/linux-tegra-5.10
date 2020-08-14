@@ -19,23 +19,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_GOPS_BIOS_H
+#define NVGPU_GOPS_BIOS_H
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/power_features/cg.h>
-#include <nvgpu/fb.h>
+struct gops_bios {
+	int (*bios_sw_init)(struct gk20a *g);
+	void (*bios_sw_deinit)(struct gk20a *g,
+				struct nvgpu_bios *bios);
+	u32 (*get_aon_secure_scratch_reg)(struct gk20a *g, u32 i);
+	bool (*wait_for_bios_init_done)(struct gk20a *g);
+};
 
-int nvgpu_init_fb_support(struct gk20a *g)
-{
-	if (g->ops.mc.fb_reset != NULL) {
-		g->ops.mc.fb_reset(g);
-	}
-
-	nvgpu_cg_slcg_fb_ltc_load_enable(g);
-
-	nvgpu_cg_blcg_fb_ltc_load_enable(g);
-
-	if (g->ops.fb.init_fs_state != NULL) {
-		g->ops.fb.init_fs_state(g);
-	}
-	return 0;
-}
+#endif /* NVGPU_GOPS_BIOS_H */

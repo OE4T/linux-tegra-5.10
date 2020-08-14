@@ -44,7 +44,6 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/hwpm_map.h>
 #include <nvgpu/preempt.h>
-#include <nvgpu/gops_mc.h>
 
 #include "gr_gk20a.h"
 #include "gr_pri_gk20a.h"

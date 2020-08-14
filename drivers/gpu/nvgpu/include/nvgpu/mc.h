@@ -88,7 +88,7 @@
  * -------------
  * Most of the static interfaces are HAL functions. They are documented
  * here.
- *   + include/nvgpu/gops_mc.h
+ *   + include/nvgpu/gops/mc.h
  *
  * Dynamic Design
  * ==============
@@ -105,7 +105,7 @@
  * -------------
  * Some of the dynamic interfaces are HAL functions. They are documented
  * here.
- *   + include/nvgpu/gops_mc.h
+ *   + include/nvgpu/gops/mc.h
  *
  * Following interface is common function.
  *   + nvgpu_wait_for_deferred_interrupts()

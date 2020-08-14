@@ -19,23 +19,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_GOPS_CLK_ARB_H
+#define NVGPU_GOPS_CLK_ARB_H
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/power_features/cg.h>
-#include <nvgpu/fb.h>
+#ifdef CONFIG_NVGPU_CLK_ARB
+struct gops_clk_arb {
+	int (*clk_arb_init_arbiter)(struct gk20a *g);
+	int (*arbiter_clk_init)(struct gk20a *g);
+	bool (*check_clk_arb_support)(struct gk20a *g);
+	u32 (*get_arbiter_clk_domains)(struct gk20a *g);
+	int (*get_arbiter_f_points)(struct gk20a *g, u32 api_domain,
+			u32 *num_points, u16 *freqs_in_mhz);
+	int (*get_arbiter_clk_range)(struct gk20a *g, u32 api_domain,
+			u16 *min_mhz, u16 *max_mhz);
+	int (*get_arbiter_clk_default)(struct gk20a *g, u32 api_domain,
+			u16 *default_mhz);
+	void (*clk_arb_run_arbiter_cb)(struct nvgpu_clk_arb *arb);
+	/* This function is inherently unsafe to call while
+	 *  arbiter is running arbiter must be blocked
+	 *  before calling this function
+	 */
+	u32 (*get_current_pstate)(struct gk20a *g);
+	void (*clk_arb_cleanup)(struct nvgpu_clk_arb *arb);
+	void (*stop_clk_arb_threads)(struct gk20a *g);
+};
+#endif
 
-int nvgpu_init_fb_support(struct gk20a *g)
-{
-	if (g->ops.mc.fb_reset != NULL) {
-		g->ops.mc.fb_reset(g);
-	}
-
-	nvgpu_cg_slcg_fb_ltc_load_enable(g);
-
-	nvgpu_cg_blcg_fb_ltc_load_enable(g);
-
-	if (g->ops.fb.init_fs_state != NULL) {
-		g->ops.fb.init_fs_state(g);
-	}
-	return 0;
-}
+#endif /* NVGPU_GOPS_CLK_ARB_H */

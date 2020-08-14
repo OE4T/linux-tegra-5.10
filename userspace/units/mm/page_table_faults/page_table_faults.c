@@ -35,7 +35,6 @@
 #include <nvgpu/vm.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/fifo.h>
-#include <nvgpu/gops_mc.h>
 
 #include "os/posix/os_posix.h"
 #include "hal/fifo/channel_gv11b.h"

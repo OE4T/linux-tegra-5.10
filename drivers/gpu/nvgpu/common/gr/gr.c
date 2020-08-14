@@ -45,7 +45,6 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/device.h>
-#include <nvgpu/gops_mc.h>
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include <nvgpu/engines.h>
 #endif

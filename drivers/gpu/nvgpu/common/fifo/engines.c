@@ -42,7 +42,6 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/static_analysis.h>
-#include <nvgpu/gops_mc.h>
 #include <nvgpu/swprofile.h>
 
 #include <nvgpu/fifo/swprofile.h>

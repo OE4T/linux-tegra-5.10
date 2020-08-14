@@ -17,7 +17,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/nvgpu_init.h>
-#include <nvgpu/gops_mc.h>
 
 #include <nvgpu/atomic.h>
 #include "os_linux.h"

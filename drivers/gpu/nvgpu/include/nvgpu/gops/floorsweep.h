@@ -19,23 +19,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_GOPS_FLOORSWEEP_H
+#define NVGPU_GOPS_FLOORSWEEP_H
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/power_features/cg.h>
-#include <nvgpu/fb.h>
+#ifdef CONFIG_NVGPU_TPC_POWERGATE
+struct gops_tpc {
+	int (*init_tpc_powergate)(struct gk20a *g, u32 fuse_status);
+	void (*tpc_gr_pg)(struct gk20a *g);
+};
+#endif
 
-int nvgpu_init_fb_support(struct gk20a *g)
-{
-	if (g->ops.mc.fb_reset != NULL) {
-		g->ops.mc.fb_reset(g);
-	}
-
-	nvgpu_cg_slcg_fb_ltc_load_enable(g);
-
-	nvgpu_cg_blcg_fb_ltc_load_enable(g);
-
-	if (g->ops.fb.init_fs_state != NULL) {
-		g->ops.fb.init_fs_state(g);
-	}
-	return 0;
-}
+#endif /* NVGPU_GOPS_FLOORSWEEP_H */

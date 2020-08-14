@@ -43,7 +43,6 @@
 #include <nvgpu/engine_status.h>
 #include <nvgpu/fbp.h>
 #include <nvgpu/nvgpu_err.h>
-#include <nvgpu/gops_mc.h>
 
 #include "gr_pri_gk20a.h"
 #include "gr_pri_gv11b.h"

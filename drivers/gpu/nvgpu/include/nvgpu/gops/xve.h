@@ -19,23 +19,26 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_GOPS_XVE_H
+#define NVGPU_GOPS_XVE_H
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/power_features/cg.h>
-#include <nvgpu/fb.h>
+#ifdef CONFIG_NVGPU_DGPU
+struct gops_xve {
+	int (*get_speed)(struct gk20a *g, u32 *xve_link_speed);
+	int (*set_speed)(struct gk20a *g, u32 xve_link_speed);
+	void (*available_speeds)(struct gk20a *g, u32 *speed_mask);
+	u32 (*xve_readl)(struct gk20a *g, u32 reg);
+	void (*xve_writel)(struct gk20a *g, u32 reg, u32 val);
+	void (*disable_aspm)(struct gk20a *g);
+	void (*reset_gpu)(struct gk20a *g);
+#if defined(CONFIG_PCI_MSI)
+	void (*rearm_msi)(struct gk20a *g);
+#endif
+	void (*enable_shadow_rom)(struct gk20a *g);
+	void (*disable_shadow_rom)(struct gk20a *g);
+	u32 (*get_link_control_status)(struct gk20a *g);
+	void (*devinit_deferred_settings)(struct gk20a *g);
+};
+#endif
 
-int nvgpu_init_fb_support(struct gk20a *g)
-{
-	if (g->ops.mc.fb_reset != NULL) {
-		g->ops.mc.fb_reset(g);
-	}
-
-	nvgpu_cg_slcg_fb_ltc_load_enable(g);
-
-	nvgpu_cg_blcg_fb_ltc_load_enable(g);
-
-	if (g->ops.fb.init_fs_state != NULL) {
-		g->ops.fb.init_fs_state(g);
-	}
-	return 0;
-}
+#endif /* NVGPU_GOPS_XVE_H */

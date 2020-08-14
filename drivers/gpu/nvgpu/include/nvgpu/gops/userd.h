@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,23 +19,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_GOPS_USERD_H
+#define NVGPU_GOPS_USERD_H
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/power_features/cg.h>
-#include <nvgpu/fb.h>
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#include <nvgpu/types.h>
 
-int nvgpu_init_fb_support(struct gk20a *g)
-{
-	if (g->ops.mc.fb_reset != NULL) {
-		g->ops.mc.fb_reset(g);
-	}
+struct gk20a;
+struct nvgpu_channel;
 
-	nvgpu_cg_slcg_fb_ltc_load_enable(g);
+struct gops_userd {
+	int (*setup_sw)(struct gk20a *g);
+	void (*cleanup_sw)(struct gk20a *g);
+	void (*init_mem)(struct gk20a *g, struct nvgpu_channel *c);
+	u32 (*entry_size)(struct gk20a *g);
 
-	nvgpu_cg_blcg_fb_ltc_load_enable(g);
+#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
+	u32 (*gp_get)(struct gk20a *g, struct nvgpu_channel *c);
+	void (*gp_put)(struct gk20a *g, struct nvgpu_channel *c);
+	u64 (*pb_get)(struct gk20a *g, struct nvgpu_channel *c);
+#endif
 
-	if (g->ops.fb.init_fs_state != NULL) {
-		g->ops.fb.init_fs_state(g);
-	}
-	return 0;
-}
+};
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
+
+#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,29 +19,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GOPS_RAMFC_H
-#define NVGPU_GOPS_RAMFC_H
+#ifndef NVGPU_GOPS_PRAMIN_H
+#define NVGPU_GOPS_PRAMIN_H
 
-#include <nvgpu/types.h>
-
-/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-
-struct gk20a;
-struct nvgpu_channel;
-struct nvgpu_channel_dump_info;
-
-struct gops_ramfc {
-	int (*setup)(struct nvgpu_channel *ch, u64 gpfifo_base,
-			u32 gpfifo_entries, u64 pbdma_acquire_timeout,
-			u32 flags);
-	void (*capture_ram_dump)(struct gk20a *g,
-			struct nvgpu_channel *ch,
-			struct nvgpu_channel_dump_info *info);
-	int (*commit_userd)(struct nvgpu_channel *ch);
-	u32 (*get_syncpt)(struct nvgpu_channel *ch);
-	void (*set_syncpt)(struct nvgpu_channel *ch, u32 syncpt);
+struct gops_pramin {
+	u32 (*data032_r)(u32 i);
 };
 
-/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
-
-#endif
+#endif /* NVGPU_GOPS_PRAMIN_H */

@@ -32,7 +32,6 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/device.h>
 #include <nvgpu/power_features/pg.h>
-#include <nvgpu/gops_mc.h>
 
 #include "mc_gm20b.h"
 

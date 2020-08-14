@@ -27,7 +27,6 @@
 
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/posix/io.h>
-#include <nvgpu/gops_mc.h>
 
 #include "os/posix/os_posix.h"
 

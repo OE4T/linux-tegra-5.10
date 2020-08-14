@@ -29,6 +29,10 @@ struct gk20a;
 struct nvgpu_pmu;
 struct nvgpu_hw_err_inject_info_desc;
 
+struct gops_pmu_perf {
+	int (*handle_pmu_perf_event)(struct gk20a *g, void *pmu_msg);
+};
+
 /**
  * PMU unit and engine HAL operations.
  *

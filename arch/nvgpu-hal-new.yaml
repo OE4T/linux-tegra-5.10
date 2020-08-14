@@ -6,7 +6,7 @@
 bus_fusa:
   safe: yes
   owner: Terje B
-  sources: [ include/nvgpu/gops_bus.h,
+  sources: [ include/nvgpu/gops/bus.h,
              hal/bus/bus_gk20a_fusa.c,
              hal/bus/bus_gk20a.h,
              hal/bus/bus_gm20b_fusa.c, hal/bus/bus_gm20b.h,
@@ -79,7 +79,7 @@ init:
 priv_ring_fusa:
   safe: yes
   owner: Seema K
-  sources: [ include/nvgpu/gops_priv_ring.h,
+  sources: [ include/nvgpu/gops/priv_ring.h,
              hal/priv_ring/priv_ring_gm20b_fusa.c,
              hal/priv_ring/priv_ring_gm20b.h,
              hal/priv_ring/priv_ring_gp10b_fusa.c,
@@ -635,7 +635,7 @@ mc:
 fb_fusa:
   safe: yes
   owner: Seshendra G
-  sources: [ include/nvgpu/gops_fb.h,
+  sources: [ include/nvgpu/gops/fb.h,
              hal/fb/fb_gm20b_fusa.c,
              hal/fb/fb_gm20b.h,
              hal/fb/fb_gv11b_fusa.c,
@@ -708,7 +708,7 @@ netlist_fusa:
   safe: yes
   owner: Seshendra G
   gpu: both
-  sources: [ include/nvgpu/gops_netlist.h,
+  sources: [ include/nvgpu/gops/netlist.h,
              hal/netlist/netlist_gv11b_fusa.c,
              hal/netlist/netlist_gv11b.h ]
 
@@ -778,7 +778,7 @@ func:
 top_fusa:
   safe: yes
   owner: Tejal K
-  sources: [ include/nvgpu/gops_top.h,
+  sources: [ include/nvgpu/gops/top.h,
              hal/top/top_gm20b_fusa.c,
              hal/top/top_gm20b.h,
              hal/top/top_gp10b.h,

@@ -19,23 +19,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_GOPS_CYCLESTATS_H
+#define NVGPU_GOPS_CYCLESTATS_H
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/power_features/cg.h>
-#include <nvgpu/fb.h>
+#ifdef CONFIG_NVGPU_CYCLESTATS
+struct gops_css {
+	int (*enable_snapshot)(struct nvgpu_channel *ch,
+			struct gk20a_cs_snapshot_client *client);
+	void (*disable_snapshot)(struct gk20a *g);
+	int (*check_data_available)(struct nvgpu_channel *ch,
+					u32 *pending,
+					bool *hw_overflow);
+	void (*set_handled_snapshots)(struct gk20a *g, u32 num);
+	u32 (*allocate_perfmon_ids)(struct gk20a_cs_snapshot *data,
+					u32 count);
+	u32 (*release_perfmon_ids)(struct gk20a_cs_snapshot *data,
+					u32 start,
+					u32 count);
+	int (*detach_snapshot)(struct nvgpu_channel *ch,
+			struct gk20a_cs_snapshot_client *client);
+	bool (*get_overflow_status)(struct gk20a *g);
+	u32 (*get_pending_snapshots)(struct gk20a *g);
+	u32 (*get_max_buffer_size)(struct gk20a *g);
+};
+#endif
 
-int nvgpu_init_fb_support(struct gk20a *g)
-{
-	if (g->ops.mc.fb_reset != NULL) {
-		g->ops.mc.fb_reset(g);
-	}
-
-	nvgpu_cg_slcg_fb_ltc_load_enable(g);
-
-	nvgpu_cg_blcg_fb_ltc_load_enable(g);
-
-	if (g->ops.fb.init_fs_state != NULL) {
-		g->ops.fb.init_fs_state(g);
-	}
-	return 0;
-}
+#endif /* NVGPU_GOPS_CYCLESTATS_H */

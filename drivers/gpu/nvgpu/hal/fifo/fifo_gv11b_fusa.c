@@ -30,7 +30,6 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/gops_mc.h>
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 

@@ -48,7 +48,7 @@
  * The FIFO unit TODO.
  *
  *   + include/nvgpu/fifo.h
- *   + include/nvgpu/gops_fifo.h
+ *   + include/nvgpu/gops/fifo.h
  *
  * Runlist
  * -------
@@ -56,7 +56,7 @@
  * TODO
  *
  *   + include/nvgpu/runlist.h
- *   + include/nvgpu/gops_runlist.h
+ *   + include/nvgpu/gops/runlist.h
  *
  * Pbdma
  * -------
@@ -73,7 +73,7 @@
  *
  *   + include/nvgpu/engines.h
  *   + include/nvgpu/engine_status.h
- *   + include/nvgpu/gops_engine.h
+ *   + include/nvgpu/gops/engine.h
  *
  * Preempt
  * -------
@@ -88,7 +88,7 @@
  * TODO
  *
  *   + include/nvgpu/channel.h
- *   + include/nvgpu/gops_channel.h
+ *   + include/nvgpu/gops/channel.h
  *
  * Tsg
  * -------
@@ -102,22 +102,22 @@
  *
  * TODO
  *
- *   + include/nvgpu/gops_ramin.h
- *   + include/nvgpu/gops_ramfc.h
+ *   + include/nvgpu/gops/ramin.h
+ *   + include/nvgpu/gops/ramfc.h
  *
  * Sync
  * ----
  *
  *   + include/nvgpu/channel_sync.h
  *   + include/nvgpu/channel_sync_syncpt.h
- *   + include/nvgpu/gops_sync.h
+ *   + include/nvgpu/gops/sync.h
  *
  * Usermode
  * --------
  *
  * TODO
  *
- *   + include/nvgpu/gops_usermode.h
+ *   + include/nvgpu/gops/usermode.h
  *
  *
  * Data Structures

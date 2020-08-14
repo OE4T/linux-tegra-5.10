@@ -28,14 +28,16 @@ bios:
              common/vbios/bios_sw_tu104.h,
              common/vbios/nvlink_bios.c,
              include/nvgpu/bios.h,
-             include/nvgpu/nvlink_bios.h]
+             include/nvgpu/nvlink_bios.h,
+             include/nvgpu/gops/bios.h,
+             include/nvgpu/gops/xve.h ]
 
 ce:
   safe: yes
   owner: Thomas F
   sources: [ common/ce/ce.c,
              include/nvgpu/ce.h,
-             include/nvgpu/gops_ce.h ]
+             include/nvgpu/gops/ce.h ]
   deps:
 
 ce_app:
@@ -56,7 +58,8 @@ debugger:
   safe: no
   owner: Deepak N
   sources: [ common/debugger.c,
-             include/nvgpu/debugger.h ]
+             include/nvgpu/debugger.h,
+             include/nvgpu/gops/debugger.h ]
   deps:
 
 profiler:
@@ -65,7 +68,8 @@ profiler:
   sources: [ common/profiler/profiler.c,
              include/nvgpu/profiler.h,
              common/profiler/pm_reservation.c,
-             include/nvgpu/pm_reservation.h ]
+             include/nvgpu/pm_reservation.h,
+             include/nvgpu/gops/profiler.h ]
 
 defaults:
   safe: yes
@@ -76,7 +80,7 @@ ecc:
   owner: Antony C
   sources: [ common/ecc.c,
              include/nvgpu/ecc.h,
-             include/nvgpu/gops_ecc.h ]
+             include/nvgpu/gops/ecc.h ]
   deps:
 
 log:
@@ -103,21 +107,23 @@ fence:
 io:
   safe: yes
   owner: Vinod G
-  sources: [ common/io/io.c ]
+  sources: [ common/io/io.c,
+             include/nvgpu/gops/func.h ]
   deps:
 
 ltc:
   safe: yes
   owner: Seshendra G
   sources: [ common/ltc/ltc.c,
-             include/nvgpu/gops_ltc.h,
+             include/nvgpu/gops/ltc.h,
              include/nvgpu/ltc.h ]
 
 cbc:
   safe: no
   owner: Seshendra G
   sources: [ common/cbc/cbc.c,
-             include/nvgpu/cbc.h ]
+             include/nvgpu/cbc.h,
+             include/nvgpu/gops/cbc.h ]
 
 regops:
   safe: no
@@ -130,12 +136,12 @@ mc:
   owner: Seema K
   sources: [ common/mc/mc.c,
              include/nvgpu/mc.h,
-             include/nvgpu/gops_mc.h ]
+             include/nvgpu/gops/mc.h ]
 class:
   safe: yes
   owner: Seshendra G
   sources: [ include/nvgpu/class.h,
-             include/nvgpu/gops_class.h ]
+             include/nvgpu/gops/class.h ]
 
 netlist:
   safe: yes
@@ -158,6 +164,7 @@ nvlink:
              common/nvlink/init/device_reginit_gv100.c,
              common/nvlink/init/device_reginit_gv100.h,
              include/nvgpu/nvlink.h,
+             include/nvgpu/gops/nvlink.h,
              include/nvgpu/nvlink_device_reginit.h,
              include/nvgpu/nvlink_link_mode_transitions.h,
              include/nvgpu/nvlink_minion.h,
@@ -173,7 +180,8 @@ pramin:
   gpu: dgpu
   owner: Terje B
   sources: [ common/pramin.c,
-             include/nvgpu/pramin.h ]
+             include/nvgpu/pramin.h,
+             include/nvgpu/gops/pramin.h ]
   deps:
 
 device:
@@ -187,7 +195,7 @@ ptimer:
   owner: Terje B
   sources: [ common/ptimer/ptimer.c,
              include/nvgpu/ptimer.h,
-             include/nvgpu/gops_ptimer.h ]
+             include/nvgpu/gops/ptimer.h ]
   deps:
 
 sched:
@@ -256,6 +264,7 @@ acr_fusa:
              common/acr/acr_sw_gv11b.c,
              common/acr/acr_sw_gv11b.h,
              common/acr/nvgpu_acr_interface.h,
+             include/nvgpu/gops/acr.h,
              include/nvgpu/acr.h ]
 
 acr:
@@ -276,7 +285,8 @@ sbr:
   gpu: dgpu
   sources: [ common/sbr/sbr.c,
              common/sbr/sbr.h,
-             include/nvgpu/sbr.h ]
+             include/nvgpu/sbr.h,
+             include/nvgpu/gops/sbr.h ]
 
 engine_queues:
   owner: Sagar K
@@ -322,7 +332,7 @@ falcon_fusa:
   sources: [ common/falcon/falcon.c,
              common/falcon/falcon_sw_gk20a.c,
              common/falcon/falcon_sw_gk20a.h,
-             include/nvgpu/gops_falcon.h,
+             include/nvgpu/gops/falcon.h,
              include/nvgpu/falcon.h,
              include/nvgpu/flcnif_cmn.h ]
   deps: [ ]
@@ -333,7 +343,9 @@ falcon:
   safe: no
   gpu: dgpu
   sources: [ common/falcon/falcon_sw_tu104.c,
-             common/falcon/falcon_sw_tu104.h ]
+             common/falcon/falcon_sw_tu104.h,
+             include/nvgpu/gops/gsp.h,
+             include/nvgpu/gops/nvdec.h ]
   deps: [ ]
   tags:
 
@@ -357,16 +369,16 @@ fifo:
                  common/fifo/channel_worker.h,
                  include/nvgpu/channel.h,
                  include/nvgpu/watchdog.h,
-                 include/nvgpu/gops_channel.h,
-                 include/nvgpu/gops_ramfc.h,
-                 include/nvgpu/gops_ramin.h,
-                 include/nvgpu/gops_sync.h,
+                 include/nvgpu/gops/channel.h,
+                 include/nvgpu/gops/ramfc.h,
+                 include/nvgpu/gops/ramin.h,
+                 include/nvgpu/gops/sync.h,
                  include/nvgpu/error_notifier.h ]
       deps: [ ]
     tsg:
       safe: yes
       sources: [ common/fifo/tsg.c,
-                 include/nvgpu/gops_tsg.h,
+                 include/nvgpu/gops/tsg.h,
                  include/nvgpu/tsg.h ]
       deps: [ ]
     submit:
@@ -380,19 +392,19 @@ fifo:
     runlist:
       safe: yes
       sources: [ common/fifo/runlist.c,
-                 include/nvgpu/gops_runlist.h,
+                 include/nvgpu/gops/runlist.h,
                  include/nvgpu/runlist.h ]
       deps: [ ]
     userd:
       safe: no
       sources: [ common/fifo/userd.c,
-                 include/nvgpu/gops_userd.h,
+                 include/nvgpu/gops/userd.h,
                  include/nvgpu/fifo/userd.h ]
       deps: [ ]
     pbdma:
       safe: yes
       sources: [ common/fifo/pbdma.c,
-                 include/nvgpu/gops_pbdma.h,
+                 include/nvgpu/gops/pbdma.h,
                  include/nvgpu/pbdma.h ]
       deps: [ ]
     pbdma_status:
@@ -408,7 +420,7 @@ fifo:
     engines:
       safe: yes
       sources: [ common/fifo/engines.c,
-                 include/nvgpu/gops_engine.h,
+                 include/nvgpu/gops/engine.h,
                  include/nvgpu/engines.h ]
       deps: []
 
@@ -421,12 +433,12 @@ fifo:
     fifo:
       safe: yes
       sources: [ common/fifo/fifo.c,
-                 include/nvgpu/gops_fifo.h,
+                 include/nvgpu/gops/fifo.h,
                  include/nvgpu/fifo.h ]
 
     usermode:
       safe: yes
-      sources: [ include/nvgpu/gops_usermode.h ]
+      sources: [ include/nvgpu/gops/usermode.h ]
 
 gr:
   safe: yes
@@ -438,7 +450,7 @@ gr:
                  common/gr/gr_priv.h,
                  common/gr/gr_utils.c,
                  include/nvgpu/gr/gr_utils.h,
-                 include/nvgpu/gops_gr.h,
+                 include/nvgpu/gops/gr.h,
                  include/nvgpu/gr/gr.h ]
     global_ctx:
       safe: yes
@@ -518,7 +530,8 @@ fbp:
   owner: Deepak N
   sources: [ common/fbp/fbp.c,
              common/fbp/fbp_priv.h,
-             include/nvgpu/fbp.h ]
+             include/nvgpu/fbp.h,
+             include/nvgpu/gops/fbp.h ]
 
 init:
   safe: yes
@@ -527,7 +540,8 @@ init:
     nvgpu:
       safe: yes
       sources: [ common/init/nvgpu_init.c,
-                 include/nvgpu/nvgpu_init.h ]
+                 include/nvgpu/nvgpu_init.h,
+                 include/nvgpu/gpu_ops.h ]
 
 mm:
   owner: Alex W
@@ -599,7 +613,7 @@ mm:
       safe: yes
       sources: [ common/mm/mm.c,
                  include/nvgpu/mm.h,
-                 include/nvgpu/gops_mm.h ]
+                 include/nvgpu/gops/mm.h ]
       deps: [ ]
     nvgpu_mem:
       safe: yes
@@ -634,7 +648,7 @@ mm:
 fuse:
   safe: yes
   owner: Seema K
-  sources: [ include/nvgpu/gops_fuse.h ]
+  sources: [ include/nvgpu/gops/fuse.h ]
 
 perf:
   safe: no
@@ -654,12 +668,14 @@ cyclestats:
   owner: Deepak N
   sources: [ common/cyclestats/cyclestats.c,
              common/cyclestats/cyclestats_priv.h,
-             include/nvgpu/cyclestats.h ]
+             include/nvgpu/cyclestats.h,
+             include/nvgpu/gops/cyclestats.h ]
 
 clk_arb:
   safe: yes
   gpu: dgpu
   sources: [ include/nvgpu/clk_arb.h,
+             include/nvgpu/gops/clk_arb.h,
              common/clk_arb/clk_arb.c,
              common/clk_arb/clk_arb_gp10b.c,
              common/clk_arb/clk_arb_gp10b.h,
@@ -671,7 +687,7 @@ therm:
   owner: Seshendra G
   sources: [ common/therm/therm.c,
              include/nvgpu/therm.h,
-             include/nvgpu/gops_therm.h ]
+             include/nvgpu/gops/therm.h ]
 
 pmu:
   children:
@@ -722,7 +738,7 @@ pmu:
       safe: yes
       owner: Mahantesh K
       sources: [ common/pmu/pmu.c,
-                 include/nvgpu/gops_pmu.h,
+                 include/nvgpu/gops/pmu.h,
                  include/nvgpu/pmu.h ]
 
     pmu_rtos_init:
@@ -814,6 +830,7 @@ pmu:
                      common/pmu/clk/clk_vin.c,
                      common/pmu/clk/clk_vin.h,
                      common/pmu/clk/clk.h,
+                     include/nvgpu/gops/clk.h,
                      include/nvgpu/pmu/clk/clk.h]
     ipc:
       safe: yes
@@ -937,7 +954,8 @@ sec2:
       gpu: dgpu
       sources: [ common/sec2/sec2.c,
                  include/nvgpu/sec2/sec2.h,
-                 include/nvgpu/sec2/sec2_cmn.h ]
+                 include/nvgpu/sec2/sec2_cmn.h,
+                 include/nvgpu/gops/sec2.h ]
     ipc:
       safe: yes
       owner: Sagar K
@@ -1001,11 +1019,16 @@ power_features:
       safe: yes
       sources: [ common/power_features/cg/cg.c,
                  include/nvgpu/power_features/cg.h,
-                 include/nvgpu/gops_cg.h ]
+                 include/nvgpu/gops/cg.h ]
     pg:
       safe: no
       sources: [ common/power_features/pg/pg.c,
                  include/nvgpu/power_features/pg.h ]
+
+floorsweep:
+  owner: Divya S
+  safe: no
+  sources: [ include/nvgpu/gops/floorsweep.h ]
 
 swdebug:
   owner: Alex W
@@ -1020,7 +1043,7 @@ grmgr:
   sources: [ common/grmgr/grmgr.c,
              include/nvgpu/grmgr.h,
              include/nvgpu/mig.h,
-             include/nvgpu/gops_grmgr.h ]
+             include/nvgpu/gops/grmgr.h ]
 
 ##
 ## HAL units. Currently they are under common but this needs to change.

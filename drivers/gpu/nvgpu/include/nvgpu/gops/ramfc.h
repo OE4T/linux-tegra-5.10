@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,32 +19,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GOPS_NETLIST_H
-#define NVGPU_GOPS_NETLIST_H
+#ifndef NVGPU_GOPS_RAMFC_H
+#define NVGPU_GOPS_RAMFC_H
 
 #include <nvgpu/types.h>
 
-/**
- * @file
- *
- * common.netlist interface.
- */
-struct gk20a;
-
-/**
- *
- * This structure stores common.netlist unit hal pointers.
- *
- * @see gpu_ops
- */
-struct gops_netlist {
-
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
-	int (*get_netlist_name)(struct gk20a *g, int index, char *name);
-	bool (*is_fw_defined)(void);
-/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
+struct gk20a;
+struct nvgpu_channel;
+struct nvgpu_channel_dump_info;
+
+struct gops_ramfc {
+	int (*setup)(struct nvgpu_channel *ch, u64 gpfifo_base,
+			u32 gpfifo_entries, u64 pbdma_acquire_timeout,
+			u32 flags);
+	void (*capture_ram_dump)(struct gk20a *g,
+			struct nvgpu_channel *ch,
+			struct nvgpu_channel_dump_info *info);
+	int (*commit_userd)(struct nvgpu_channel *ch);
+	u32 (*get_syncpt)(struct nvgpu_channel *ch);
+	void (*set_syncpt)(struct nvgpu_channel *ch, u32 syncpt);
 };
 
-#endif /* NVGPU_GOPS_NETLIST_H */
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
+#endif

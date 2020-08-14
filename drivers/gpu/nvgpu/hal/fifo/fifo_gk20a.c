@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics FIFO (gr host)
  *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/gops_mc.h>
 
 #include "hal/fifo/fifo_gk20a.h"
 

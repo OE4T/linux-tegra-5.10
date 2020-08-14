@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,28 +19,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GOPS_USERD_H
-#define NVGPU_GOPS_USERD_H
+#ifndef NVGPU_GOPS_FUNC_H
+#define NVGPU_GOPS_FUNC_H
 
-/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-#include <nvgpu/types.h>
-
-struct gk20a;
-struct nvgpu_channel;
-
-struct gops_userd {
-	int (*setup_sw)(struct gk20a *g);
-	void (*cleanup_sw)(struct gk20a *g);
-	void (*init_mem)(struct gk20a *g, struct nvgpu_channel *c);
-	u32 (*entry_size)(struct gk20a *g);
-
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-	u32 (*gp_get)(struct gk20a *g, struct nvgpu_channel *c);
-	void (*gp_put)(struct gk20a *g, struct nvgpu_channel *c);
-	u64 (*pb_get)(struct gk20a *g, struct nvgpu_channel *c);
-#endif
-
+struct gops_func {
+	u32 (*get_full_phys_offset)(struct gk20a *g);
 };
-/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
-#endif
+#endif /* NVGPU_GOPS_FUNC_H */

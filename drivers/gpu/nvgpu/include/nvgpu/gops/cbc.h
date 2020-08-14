@@ -19,23 +19,21 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_GOPS_CBC_H
+#define NVGPU_GOPS_CBC_H
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/power_features/cg.h>
-#include <nvgpu/fb.h>
+#ifdef CONFIG_NVGPU_COMPRESSION
+struct gops_cbc {
+	int (*cbc_init_support)(struct gk20a *g);
+	void (*cbc_remove_support)(struct gk20a *g);
+	void (*init)(struct gk20a *g, struct nvgpu_cbc *cbc);
+	u64 (*get_base_divisor)(struct gk20a *g);
+	int (*alloc_comptags)(struct gk20a *g,
+				struct nvgpu_cbc *cbc);
+	int (*ctrl)(struct gk20a *g, enum nvgpu_cbc_op op,
+			u32 min, u32 max);
+	u32 (*fix_config)(struct gk20a *g, int base);
+};
+#endif
 
-int nvgpu_init_fb_support(struct gk20a *g)
-{
-	if (g->ops.mc.fb_reset != NULL) {
-		g->ops.mc.fb_reset(g);
-	}
-
-	nvgpu_cg_slcg_fb_ltc_load_enable(g);
-
-	nvgpu_cg_blcg_fb_ltc_load_enable(g);
-
-	if (g->ops.fb.init_fs_state != NULL) {
-		g->ops.fb.init_fs_state(g);
-	}
-	return 0;
-}
+#endif /* NVGPU_GOPS_CBC_H */

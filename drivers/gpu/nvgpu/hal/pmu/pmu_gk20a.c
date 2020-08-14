@@ -30,7 +30,6 @@
 #include <nvgpu/pmu/debug.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/mc.h>
-#include <nvgpu/gops_mc.h>
 
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>
 
