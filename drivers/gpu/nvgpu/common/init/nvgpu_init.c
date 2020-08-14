@@ -61,8 +61,8 @@ bool is_nvgpu_gpu_state_valid(struct gk20a *g)
 void nvgpu_check_gpu_state(struct gk20a *g)
 {
 	if (!is_nvgpu_gpu_state_valid(g)) {
-		nvgpu_err(g, "Rebooting system!!");
-		nvgpu_kernel_restart(NULL);
+		nvgpu_err(g, "Entering SW Quiesce!!");
+		nvgpu_sw_quiesce(g);
 	}
 }
 
@@ -201,9 +201,15 @@ void nvgpu_sw_quiesce(struct gk20a *g)
 	g->sw_quiesce_pending = true;
 
 	nvgpu_cond_signal_interruptible(&g->sw_quiesce_cond);
-	gk20a_mask_interrupts(g);
 	nvgpu_start_gpu_idle(g);
-	nvgpu_fifo_sw_quiesce(g);
+	/*
+	 * Avoid register accesses when GPU had disappeared
+	 * from the bus.
+	 */
+	if (is_nvgpu_gpu_state_valid(g)) {
+		gk20a_mask_interrupts(g);
+		nvgpu_fifo_sw_quiesce(g);
+	}
 }
 
 /* init interface layer support for all falcons */

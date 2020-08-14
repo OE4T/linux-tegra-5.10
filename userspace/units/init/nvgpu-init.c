@@ -322,27 +322,6 @@ int test_get_put(struct unit_module *m,
 	return ret;
 }
 
-int test_check_gpu_state(struct unit_module *m,
-				struct gk20a *g, void *args)
-{
-	/* Valid state */
-	nvgpu_posix_io_writel_reg_space(g, mc_boot_0_r(), MC_BOOT_0_GV11B);
-	nvgpu_check_gpu_state(g);
-
-	/*
-	 * Test INVALID state. This should cause a kernel_restart() which
-	 * is a BUG() in posix, so verify we hit the BUG().
-	 */
-	nvgpu_posix_io_writel_reg_space(g, mc_boot_0_r(), U32_MAX);
-	if (!EXPECT_BUG(nvgpu_check_gpu_state(g))) {
-		unit_err(m, "%s: failed to detect INVALID state\n",
-			 __func__);
-		return UNIT_FAIL;
-	}
-
-	return UNIT_SUCCESS;
-}
-
 int test_hal_init(struct unit_module *m,
 			 struct gk20a *g, void *args)
 {
@@ -628,6 +607,42 @@ static void mock_runlist_write_state(struct gk20a *g, u32 runlist_mask,
 {
 }
 
+static u32 mock_get_chip_details(struct gk20a *g, u32 *arch, u32 *impl, u32 *rev)
+{
+	return 0;
+}
+
+int test_check_gpu_state(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	/* Valid state */
+	nvgpu_posix_io_writel_reg_space(g, mc_boot_0_r(), MC_BOOT_0_GV11B);
+	nvgpu_check_gpu_state(g);
+
+	/*
+	 * Test INVALID state. This should trigger entry into Quiesce
+	 * state. Verify g->sw_quiesce_pending = true.
+	 */
+	nvgpu_posix_io_writel_reg_space(g, mc_boot_0_r(), U32_MAX);
+	/* mock out HALs called during quiesce */
+	g->ops.mc.intr_mask = mock_intr_mask;
+	g->fifo.num_runlists = 0;
+	g->fifo.num_channels = 0;
+	g->ops.runlist.write_state = mock_runlist_write_state;
+
+	nvgpu_check_gpu_state(g);
+	if (!(g->sw_quiesce_pending)) {
+		unit_err(m, "%s: failed to detect INVALID state\n",
+			 __func__);
+		return UNIT_FAIL;
+	}
+
+	/* wait for quiesce thread to complete */
+	nvgpu_thread_join(&g->sw_quiesce_thread);
+
+	return UNIT_SUCCESS;
+}
+
 int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
@@ -638,7 +653,12 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 	int err;
 	unsigned long *save_enabled_ptr;
 
-	/* assume quiesce has been initalized already */
+	nvgpu_sw_quiesce_remove_support(g);
+	set_poweron_funcs_success(g);
+	err = nvgpu_finalize_poweron(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to re-enable quiesce\n");
+	}
 
 	/* make sure we're powered on */
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
@@ -648,6 +668,8 @@ int test_quiesce(struct unit_module *m, struct gk20a *g, void *args)
 
 	/* setup HAL for masking interrupts */
 	g->ops.mc.intr_mask = mock_intr_mask;
+	/* setup HAL for getting GPU state */
+	g->ops.mc.get_chip_details = mock_get_chip_details;
 
 	/*
 	 * quiesce will request fifo to quiesce, so make sure we don't have
@@ -782,10 +804,10 @@ struct unit_module_test init_tests[] = {
 	UNIT_TEST(init_can_busy,			test_can_busy,		NULL, 0),
 	UNIT_TEST(init_get_put,				test_get_put,		NULL, 0),
 	UNIT_TEST(init_hal_init,			test_hal_init,		NULL, 0),
-	UNIT_TEST(init_check_gpu_state,			test_check_gpu_state,	NULL, 0),
 	UNIT_TEST(init_poweron,				test_poweron,		NULL, 0),
 	UNIT_TEST(init_poweron_branches,		test_poweron_branches,	NULL, 0),
 	UNIT_TEST(init_poweroff,			test_poweroff,		NULL, 2),
+	UNIT_TEST(init_check_gpu_state,			test_check_gpu_state,	NULL, 0),
 	UNIT_TEST(init_quiesce,				test_quiesce,		NULL, 0),
 	UNIT_TEST(init_free_env,			test_free_env,		NULL, 0),
 };
