@@ -398,6 +398,8 @@ struct osd_dma_ops {
 	void (*receive_packet)(void *priv, void *rxring,
 			       unsigned int chan, unsigned int dma_buf_len,
 			       void *rxpkt_cx, void *rx_pkt_swcx);
+	/** RX buffer reallocation callback */
+	void (*realloc_buf)(void *priv, void *rxring, unsigned int chan);
 };
 
 /**
@@ -459,6 +461,10 @@ struct osi_dma_priv_data {
 	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
 	/** DMA callback ops structure */
 	struct osd_dma_ops osd_ops;
+	/** Virtual address of reserved DMA buffer */
+	void *resv_buf_virt_addr;
+	/** Physical address of reserved DMA buffer */
+	unsigned long resv_buf_phy_addr;
 };
 
 /**
@@ -742,9 +748,11 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
  * Algorithm: This routine will be invoked by OSD layer to get the
  *	  data from Rx descriptors and deliver the packet to the stack.
  *	  1) Checks descriptor owned by DMA or not.
- *	  2) Get the length from Rx descriptor
- *	  3) Invokes OSD layer to deliver the packet to network stack.
- *	  4) Re-allocate the receive buffers, populate Rx descriptor and
+ *	  2) If rx buffer is reserve buffer, reallocate receive buffer and
+	  read next descriptor.
+ *	  3) Get the length from Rx descriptor
+ *	  4) Invokes OSD layer to deliver the packet to network stack.
+ *	  5) Re-allocate the receive buffers, populate Rx descriptor and
  *	  handover to DMA.
  *
  * @param[in] osi: OSI private data structure.
