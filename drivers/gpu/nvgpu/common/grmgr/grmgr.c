@@ -27,6 +27,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/grmgr.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/device.h>
 
 int nvgpu_init_gr_manager(struct gk20a *g)
 {
@@ -45,8 +46,10 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 
 	gr_syspipe->gr_instance_id = 0U;
 	gr_syspipe->gr_syspipe_id = 0U;
-	gr_syspipe->engine_id = 0U;
 	gr_syspipe->num_gpc = g->mig.gpc_count;
+	gr_syspipe->gr_dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0U);
+	nvgpu_assert(gr_syspipe->gr_dev != NULL);
+
 	g->mig.gpcgrp_gpc_count[0] = gr_syspipe->num_gpc;
 	if (g->ops.gr.config.get_gpc_mask != NULL) {
 		gr_syspipe->gpc_mask = g->ops.gr.config.get_gpc_mask(g);
@@ -55,6 +58,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 			BIT32(gr_syspipe->num_gpc),
 			1U);
 	}
+
 	/* In Legacy mode, Local GPC Id = physical GPC Id = Logical GPC Id */
 	for (gpc_id = 0U; gpc_id < gr_syspipe->num_gpc; gpc_id++) {
 		gr_syspipe->gpcs[gpc_id].logical_id =
@@ -64,20 +68,9 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	gr_syspipe->max_veid_count_per_tsg = g->fifo.max_subctx_count;
 	gr_syspipe->veid_start_offset = 0U;
 
-	gpu_instance->num_lce = nvgpu_engine_get_ids(g,
-		gpu_instance->lce_engine_ids,
-		NVGPU_MIG_MAX_ENGINES, NVGPU_ENGINE_ASYNC_CE);
-
-	if (gpu_instance->num_lce == 0U) {
-		/* Fall back to GRCE */
-		gpu_instance->num_lce = nvgpu_engine_get_ids(g,
-			gpu_instance->lce_engine_ids,
-			NVGPU_MIG_MAX_ENGINES, NVGPU_ENGINE_GRCE);
-		if (gpu_instance->num_lce == 0U) {
-			nvgpu_warn(g,
-				"No GRCE engine available on this device!");
-		}
-	}
+	gpu_instance->num_lce = nvgpu_device_get_copies(g, gpu_instance->lce_devs,
+							NVGPU_MIG_MAX_ENGINES);
+	nvgpu_assert(gpu_instance->num_lce > 0U);
 
 	g->mig.max_gr_sys_pipes_supported = 1U;
 	g->mig.gr_syspipe_en_mask = 1U;
@@ -94,7 +87,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 		gr_syspipe->gr_instance_id,
 		gr_syspipe->gr_syspipe_id,
 		gr_syspipe->num_gpc,
-		gr_syspipe->engine_id,
+		gr_syspipe->gr_dev->engine_id,
 		gr_syspipe->max_veid_count_per_tsg,
 		gr_syspipe->veid_start_offset,
 		gpu_instance->is_memory_partition_supported,

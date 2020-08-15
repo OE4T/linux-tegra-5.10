@@ -70,11 +70,12 @@ struct nvgpu_gr_syspipe {
 	u32 gr_instance_id;
 	/** GR syspipe id which is used to set gr remap window */
 	u32 gr_syspipe_id;
+
 	/**
-	 * The unique per-device ID that host uses to identify any given engine.
+	 * GR device that belongs to this syspipe.
 	 */
-	u32 engine_id;
-	/** Number of GPC assigned to this gr syspipe. */
+	const struct nvgpu_device *gr_dev;
+
 	u32 num_gpc;
 
 	/** GPC Id information (logical, physical and gpcgrp Ids). */
@@ -104,7 +105,7 @@ struct nvgpu_gpu_instance {
 	/** Number of Logical CE engine associated to this gpu instances. */
 	u32 num_lce;
 	/** Memory area to store h/w CE engine ids. */
-	u32 lce_engine_ids[NVGPU_MIG_MAX_ENGINES];
+	const struct nvgpu_device *lce_devs[NVGPU_MIG_MAX_ENGINES];
 	/* Flag to indicate whether memory partition is supported or not. */
 	bool is_memory_partition_supported;
 };
