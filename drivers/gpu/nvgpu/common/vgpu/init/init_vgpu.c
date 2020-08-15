@@ -140,11 +140,20 @@ int vgpu_init_gpu_characteristics(struct gk20a *g)
 int vgpu_get_constants(struct gk20a *g)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
-	struct tegra_vgpu_constants_params *p = &msg.params.constants;
+	struct tegra_vgpu_constants_params *p;
+	void *oob_handle;
+	size_t oob_size;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 	int err;
 
 	nvgpu_log_fn(g, " ");
+
+	oob_handle = vgpu_ivc_oob_get_ptr(vgpu_ivc_get_server_vmid(),
+			TEGRA_VGPU_QUEUE_CMD,
+			(void **)&p, &oob_size);
+	if (!oob_handle || oob_size < sizeof(*p)) {
+		return -EINVAL;
+	}
 
 	msg.cmd = TEGRA_VGPU_CMD_GET_CONSTANTS;
 	msg.handle = vgpu_get_handle(g);
@@ -153,18 +162,23 @@ int vgpu_get_constants(struct gk20a *g)
 
 	if (unlikely(err)) {
 		nvgpu_err(g, "%s failed, err=%d", __func__, err);
-		return err;
+		goto fail;
 	}
+
+	nvgpu_smp_rmb();
 
 	if (unlikely(p->gpc_count > TEGRA_VGPU_MAX_GPC_COUNT ||
 		p->max_tpc_per_gpc_count > TEGRA_VGPU_MAX_TPC_COUNT_PER_GPC)) {
 		nvgpu_err(g, "gpc_count %d max_tpc_per_gpc %d overflow",
 			(int)p->gpc_count, (int)p->max_tpc_per_gpc_count);
-		return -EINVAL;
+		err = -EINVAL;
+		goto fail;
 	}
 
 	priv->constants = *p;
-	return 0;
+fail:
+	vgpu_ivc_oob_put_ptr(oob_handle);
+	return err;
 }
 
 int vgpu_finalize_poweron_common(struct gk20a *g)

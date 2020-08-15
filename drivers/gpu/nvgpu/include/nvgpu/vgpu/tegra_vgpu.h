@@ -462,7 +462,7 @@ struct tegra_vgpu_set_sm_exception_type_mask_params {
 };
 
 /* TEGRA_VGPU_MAX_ENGINES must be equal or greater than num_engines */
-#define TEGRA_VGPU_MAX_ENGINES			4
+#define TEGRA_VGPU_MAX_ENGINES			6
 struct tegra_vgpu_engines_info {
 	u32 num_engines;
 	struct engineinfo {
@@ -689,7 +689,6 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_read_ptimer_params read_ptimer;
 		struct tegra_vgpu_set_powergate_params set_powergate;
 		struct tegra_vgpu_gpu_clk_rate_params gpu_clk_rate;
-		struct tegra_vgpu_constants_params constants;
 		struct tegra_vgpu_channel_cyclestats_snapshot_params cyclestats_snapshot;
 		struct tegra_vgpu_gpu_load_params gpu_load;
 		struct tegra_vgpu_suspend_resume_contexts suspend_contexts;
