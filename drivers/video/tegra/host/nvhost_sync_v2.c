@@ -155,6 +155,7 @@ int nvhost_dma_fence_unpack(struct dma_fence *fence, u32 *id, u32 *threshold)
 
 	return 0;
 }
+EXPORT_SYMBOL(nvhost_dma_fence_unpack);
 
 static struct dma_fence *nvhost_dma_fence_create_single(
 			struct nvhost_syncpt *syncpt, u32 id, u32 threshold)
