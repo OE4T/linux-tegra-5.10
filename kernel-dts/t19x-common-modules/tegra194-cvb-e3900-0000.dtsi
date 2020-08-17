@@ -55,7 +55,11 @@
 
 	i2c@c240000 {
 		ucsi_ccg: ucsi_ccg@8 {
+#if TEGRA_XUSB_DT_VERSION >= DT_VERSION_3
+			compatible = "nvidia,ccgx-ucsi";
+#else
 			compatible = "nvidia,ucsi_ccg";
+#endif
 			reg = <0x08>;
 			ccg,irqflags = <IRQF_TRIGGER_LOW>;
 			interrupt-parent = <&tegra_aon_gpio>;
