@@ -2,11 +2,7 @@
 /*
  * tegra210_i2s.h - Definitions for Tegra210 I2S driver
  *
-<<<<<<< HEAD
- * Copyright (c) 2014-2020 NVIDIA CORPORATION. All rights reserved.
-=======
  * Copyright (c) 2020 NVIDIA CORPORATION. All rights reserved.
->>>>>>> v5.9-rc4
  *
  */
 
@@ -91,10 +87,7 @@
 
 #define I2S_BITS_8				1
 #define I2S_BITS_16				3
-<<<<<<< HEAD
 #define I2S_BITS_24				5
-=======
->>>>>>> v5.9-rc4
 #define I2S_BITS_32				7
 #define I2S_CTRL_BIT_SIZE_MASK			0x7
 
@@ -122,15 +115,12 @@ struct tegra210_i2s {
 	struct regmap *regmap;
 	unsigned int stereo_to_mono[I2S_PATHS];
 	unsigned int mono_to_stereo[I2S_PATHS];
-<<<<<<< HEAD
 	unsigned int audio_ch_override[I2S_PATHS];
 	unsigned int audio_fmt_override[I2S_PATHS];
 	/* Client overrides are common for TX and RX paths */
 	unsigned int client_ch_override;
 	unsigned int client_fmt_override;
 	unsigned int srate_override;
-=======
->>>>>>> v5.9-rc4
 	unsigned int dai_fmt;
 	unsigned int fsync_width;
 	unsigned int bclk_ratio;

@@ -1,17 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
-<<<<<<< HEAD
-/*
- * tegra210_admaif.c - Tegra ADMAIF driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
-=======
 //
 // tegra210_admaif.c - Tegra ADMAIF driver
 //
 // Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
->>>>>>> v5.9-rc4
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -24,10 +15,7 @@
 #include <sound/soc.h>
 #include "tegra210_admaif.h"
 #include "tegra_cif.h"
-<<<<<<< HEAD
 #include "tegra_isomgr_bw.h"
-=======
->>>>>>> v5.9-rc4
 #include "tegra_pcm.h"
 
 #define CH_REG(offset, reg, id)						       \
@@ -232,11 +220,7 @@ static const struct regmap_config tegra186_admaif_regmap_config = {
 	.cache_type		= REGCACHE_FLAT,
 };
 
-<<<<<<< HEAD
-static int tegra_admaif_runtime_suspend(struct device *dev)
-=======
 static int __maybe_unused tegra_admaif_runtime_suspend(struct device *dev)
->>>>>>> v5.9-rc4
 {
 	struct tegra_admaif *admaif = dev_get_drvdata(dev);
 
@@ -246,11 +230,7 @@ static int __maybe_unused tegra_admaif_runtime_suspend(struct device *dev)
 	return 0;
 }
 
-<<<<<<< HEAD
-static int tegra_admaif_runtime_resume(struct device *dev)
-=======
 static int __maybe_unused tegra_admaif_runtime_resume(struct device *dev)
->>>>>>> v5.9-rc4
 {
 	struct tegra_admaif *admaif = dev_get_drvdata(dev);
 
@@ -283,7 +263,6 @@ static int tegra_admaif_set_pack_mode(struct regmap *map, unsigned int reg,
 	return 0;
 }
 
-<<<<<<< HEAD
 static int tegra_admaif_prepare(struct snd_pcm_substream *substream,
 				struct snd_soc_dai *dai)
 {
@@ -304,8 +283,6 @@ static void tegra_admaif_shutdown(struct snd_pcm_substream *substream,
 		tegra_isomgr_adma_setbw(substream, false);
 }
 
-=======
->>>>>>> v5.9-rc4
 static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 				  struct snd_pcm_hw_params *params,
 				  struct snd_soc_dai *dai)
@@ -329,14 +306,11 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 		cif_conf.client_bits = TEGRA_ACIF_BITS_16;
 		valid_bit = DATA_16BIT;
 		break;
-<<<<<<< HEAD
 	case SNDRV_PCM_FORMAT_S24_LE:
 		cif_conf.audio_bits = TEGRA_ACIF_BITS_24;
 		cif_conf.client_bits = TEGRA_ACIF_BITS_24;
 		valid_bit = DATA_32BIT;
 		break;
-=======
->>>>>>> v5.9-rc4
 	case SNDRV_PCM_FORMAT_S32_LE:
 		cif_conf.audio_bits = TEGRA_ACIF_BITS_32;
 		cif_conf.client_bits = TEGRA_ACIF_BITS_32;
@@ -344,11 +318,7 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 		break;
 	default:
 		dev_err(dev, "unsupported format!\n");
-<<<<<<< HEAD
-		return -ENOTSUPP;
-=======
 		return -EOPNOTSUPP;
->>>>>>> v5.9-rc4
 	}
 
 	channels = params_channels(params);
@@ -363,15 +333,12 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 		reg = CH_RX_REG(TEGRA_ADMAIF_CH_ACIF_RX_CTRL, dai->id);
 	}
 
-<<<<<<< HEAD
 	if (admaif->audio_ch_override[path][dai->id])
 		cif_conf.audio_ch = admaif->audio_ch_override[path][dai->id];
 
 	if (admaif->client_ch_override[path][dai->id])
 		cif_conf.client_ch = admaif->client_ch_override[path][dai->id];
 
-=======
->>>>>>> v5.9-rc4
 	cif_conf.mono_conv = admaif->mono_to_stereo[path][dai->id];
 	cif_conf.stereo_conv = admaif->stereo_to_mono[path][dai->id];
 
@@ -487,7 +454,6 @@ static int tegra_admaif_trigger(struct snd_pcm_substream *substream, int cmd,
 static const struct snd_soc_dai_ops tegra_admaif_dai_ops = {
 	.hw_params	= tegra_admaif_hw_params,
 	.trigger	= tegra_admaif_trigger,
-<<<<<<< HEAD
 	.shutdown	= tegra_admaif_shutdown,
 	.prepare	= tegra_admaif_prepare,
 };
@@ -545,24 +511,16 @@ static void tegra_admaif_reg_dump(struct device *dev)
 	pm_runtime_put_sync(dev);
 }
 
-=======
-};
-
->>>>>>> v5.9-rc4
 static int tegra_admaif_get_control(struct snd_kcontrol *kcontrol,
 				    struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
-<<<<<<< HEAD
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-=======
->>>>>>> v5.9-rc4
 	struct soc_enum *ec = (struct soc_enum *)kcontrol->private_value;
 	struct tegra_admaif *admaif = snd_soc_component_get_drvdata(cmpnt);
 	long *uctl_val = &ucontrol->value.integer.value[0];
 
-<<<<<<< HEAD
 	if (strstr(kcontrol->id.name, "Playback Audio Channels"))
 		*uctl_val = admaif->audio_ch_override[ADMAIF_TX_PATH][mc->reg];
 	else if (strstr(kcontrol->id.name, "Capture Audio Channels"))
@@ -572,9 +530,6 @@ static int tegra_admaif_get_control(struct snd_kcontrol *kcontrol,
 	else if (strstr(kcontrol->id.name, "Capture Client Channels"))
 		*uctl_val = admaif->client_ch_override[ADMAIF_RX_PATH][mc->reg];
 	else if (strstr(kcontrol->id.name, "Playback Mono To Stereo"))
-=======
-	if (strstr(kcontrol->id.name, "Playback Mono To Stereo"))
->>>>>>> v5.9-rc4
 		*uctl_val = admaif->mono_to_stereo[ADMAIF_TX_PATH][ec->reg];
 	else if (strstr(kcontrol->id.name, "Capture Mono To Stereo"))
 		*uctl_val = admaif->mono_to_stereo[ADMAIF_RX_PATH][ec->reg];
@@ -582,11 +537,8 @@ static int tegra_admaif_get_control(struct snd_kcontrol *kcontrol,
 		*uctl_val = admaif->stereo_to_mono[ADMAIF_TX_PATH][ec->reg];
 	else if (strstr(kcontrol->id.name, "Capture Stereo To Mono"))
 		*uctl_val = admaif->stereo_to_mono[ADMAIF_RX_PATH][ec->reg];
-<<<<<<< HEAD
 	else if (strstr(kcontrol->id.name, "APE Reg Dump"))
 		*uctl_val = admaif->reg_dump_flag;
-=======
->>>>>>> v5.9-rc4
 
 	return 0;
 }
@@ -594,17 +546,13 @@ static int tegra_admaif_get_control(struct snd_kcontrol *kcontrol,
 static int tegra_admaif_put_control(struct snd_kcontrol *kcontrol,
 				    struct snd_ctl_elem_value *ucontrol)
 {
-<<<<<<< HEAD
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-=======
->>>>>>> v5.9-rc4
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct soc_enum *ec = (struct soc_enum *)kcontrol->private_value;
 	struct tegra_admaif *admaif = snd_soc_component_get_drvdata(cmpnt);
 	int value = ucontrol->value.integer.value[0];
 
-<<<<<<< HEAD
 	if (strstr(kcontrol->id.name, "Playback Audio Channels"))
 		admaif->audio_ch_override[ADMAIF_TX_PATH][mc->reg] = value;
 	else if (strstr(kcontrol->id.name, "Capture Audio Channels"))
@@ -614,9 +562,6 @@ static int tegra_admaif_put_control(struct snd_kcontrol *kcontrol,
 	else if (strstr(kcontrol->id.name, "Capture Client Channels"))
 		admaif->client_ch_override[ADMAIF_RX_PATH][mc->reg] = value;
 	else if (strstr(kcontrol->id.name, "Playback Mono To Stereo"))
-=======
-	if (strstr(kcontrol->id.name, "Playback Mono To Stereo"))
->>>>>>> v5.9-rc4
 		admaif->mono_to_stereo[ADMAIF_TX_PATH][ec->reg] = value;
 	else if (strstr(kcontrol->id.name, "Capture Mono To Stereo"))
 		admaif->mono_to_stereo[ADMAIF_RX_PATH][ec->reg] = value;
@@ -624,7 +569,6 @@ static int tegra_admaif_put_control(struct snd_kcontrol *kcontrol,
 		admaif->stereo_to_mono[ADMAIF_TX_PATH][ec->reg] = value;
 	else if (strstr(kcontrol->id.name, "Capture Stereo To Mono"))
 		admaif->stereo_to_mono[ADMAIF_RX_PATH][ec->reg] = value;
-<<<<<<< HEAD
 	else if (strstr(kcontrol->id.name, "APE Reg Dump")) {
 		admaif->reg_dump_flag = value;
 
@@ -635,8 +579,6 @@ static int tegra_admaif_put_control(struct snd_kcontrol *kcontrol,
 			tegra_admaif_reg_dump(cmpnt->dev);
 		}
 	}
-=======
->>>>>>> v5.9-rc4
 
 	return 0;
 }
@@ -651,53 +593,33 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 	return 0;
 }
 
-<<<<<<< HEAD
-#define ADMAIF_DAI(id)						\
-	{							\
-		.name = "ADMAIF" #id,				\
-		.probe = tegra_admaif_dai_probe,		\
-		.playback = {					\
-			.stream_name = "Playback " #id,		\
-=======
 #define DAI(dai_name)					\
 	{							\
 		.name = dai_name,				\
 		.probe = tegra_admaif_dai_probe,		\
 		.playback = {					\
 			.stream_name = dai_name " Playback",	\
->>>>>>> v5.9-rc4
 			.channels_min = 1,			\
 			.channels_max = 16,			\
 			.rates = SNDRV_PCM_RATE_8000_192000,	\
 			.formats = SNDRV_PCM_FMTBIT_S8 |	\
 				SNDRV_PCM_FMTBIT_S16_LE |	\
-<<<<<<< HEAD
 				SNDRV_PCM_FMTBIT_S24_LE |	\
-				SNDRV_PCM_FMTBIT_S32_LE,	\
-		},						\
-		.capture = {					\
-			.stream_name = "Capture " #id,		\
-=======
 				SNDRV_PCM_FMTBIT_S32_LE,	\
 		},						\
 		.capture = {					\
 			.stream_name = dai_name " Capture",	\
->>>>>>> v5.9-rc4
 			.channels_min = 1,			\
 			.channels_max = 16,			\
 			.rates = SNDRV_PCM_RATE_8000_192000,	\
 			.formats = SNDRV_PCM_FMTBIT_S8 |	\
 				SNDRV_PCM_FMTBIT_S16_LE |	\
-<<<<<<< HEAD
 				SNDRV_PCM_FMTBIT_S24_LE |	\
-=======
->>>>>>> v5.9-rc4
 				SNDRV_PCM_FMTBIT_S32_LE,	\
 		},						\
 		.ops = &tegra_admaif_dai_ops,			\
 	}
 
-<<<<<<< HEAD
 #define ADMAIF_CODEC_FIFO_DAI(id)                                       \
 	{								\
 		.name = "ADMAIF" #id " FIFO",				\
@@ -708,6 +630,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.capture = {						\
@@ -717,6 +640,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.ops = &tegra_admaif_dai_ops,				\
@@ -732,6 +656,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.capture = {						\
@@ -741,21 +666,22 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 	}
 
 static struct snd_soc_dai_driver tegra210_admaif_cmpnt_dais[] = {
-	ADMAIF_DAI(1),
-	ADMAIF_DAI(2),
-	ADMAIF_DAI(3),
-	ADMAIF_DAI(4),
-	ADMAIF_DAI(5),
-	ADMAIF_DAI(6),
-	ADMAIF_DAI(7),
-	ADMAIF_DAI(8),
-	ADMAIF_DAI(9),
-	ADMAIF_DAI(10),
+	DAI("ADMAIF1"),
+	DAI("ADMAIF2"),
+	DAI("ADMAIF3"),
+	DAI("ADMAIF4"),
+	DAI("ADMAIF5"),
+	DAI("ADMAIF6"),
+	DAI("ADMAIF7"),
+	DAI("ADMAIF8"),
+	DAI("ADMAIF9"),
+	DAI("ADMAIF10"),
 	ADMAIF_CODEC_FIFO_DAI(1),
 	ADMAIF_CODEC_FIFO_DAI(2),
 	ADMAIF_CODEC_FIFO_DAI(3),
@@ -779,26 +705,26 @@ static struct snd_soc_dai_driver tegra210_admaif_cmpnt_dais[] = {
 };
 
 static struct snd_soc_dai_driver tegra186_admaif_cmpnt_dais[] = {
-	ADMAIF_DAI(1),
-	ADMAIF_DAI(2),
-	ADMAIF_DAI(3),
-	ADMAIF_DAI(4),
-	ADMAIF_DAI(5),
-	ADMAIF_DAI(6),
-	ADMAIF_DAI(7),
-	ADMAIF_DAI(8),
-	ADMAIF_DAI(9),
-	ADMAIF_DAI(10),
-	ADMAIF_DAI(11),
-	ADMAIF_DAI(12),
-	ADMAIF_DAI(13),
-	ADMAIF_DAI(14),
-	ADMAIF_DAI(15),
-	ADMAIF_DAI(16),
-	ADMAIF_DAI(17),
-	ADMAIF_DAI(18),
-	ADMAIF_DAI(19),
-	ADMAIF_DAI(20),
+	DAI("ADMAIF1"),
+	DAI("ADMAIF2"),
+	DAI("ADMAIF3"),
+	DAI("ADMAIF4"),
+	DAI("ADMAIF5"),
+	DAI("ADMAIF6"),
+	DAI("ADMAIF7"),
+	DAI("ADMAIF8"),
+	DAI("ADMAIF9"),
+	DAI("ADMAIF10"),
+	DAI("ADMAIF11"),
+	DAI("ADMAIF12"),
+	DAI("ADMAIF13"),
+	DAI("ADMAIF14"),
+	DAI("ADMAIF15"),
+	DAI("ADMAIF16"),
+	DAI("ADMAIF17"),
+	DAI("ADMAIF18"),
+	DAI("ADMAIF19"),
+	DAI("ADMAIF20"),
 	ADMAIF_CODEC_FIFO_DAI(1),
 	ADMAIF_CODEC_FIFO_DAI(2),
 	ADMAIF_CODEC_FIFO_DAI(3),
@@ -903,42 +829,6 @@ static const struct snd_soc_dapm_route tegra_admaif_routes[] = {
 	ADMAIF_ROUTES(18),
 	ADMAIF_ROUTES(19),
 	ADMAIF_ROUTES(20)
-=======
-static struct snd_soc_dai_driver tegra210_admaif_cmpnt_dais[] = {
-	DAI("ADMAIF1"),
-	DAI("ADMAIF2"),
-	DAI("ADMAIF3"),
-	DAI("ADMAIF4"),
-	DAI("ADMAIF5"),
-	DAI("ADMAIF6"),
-	DAI("ADMAIF7"),
-	DAI("ADMAIF8"),
-	DAI("ADMAIF9"),
-	DAI("ADMAIF10"),
-};
-
-static struct snd_soc_dai_driver tegra186_admaif_cmpnt_dais[] = {
-	DAI("ADMAIF1"),
-	DAI("ADMAIF2"),
-	DAI("ADMAIF3"),
-	DAI("ADMAIF4"),
-	DAI("ADMAIF5"),
-	DAI("ADMAIF6"),
-	DAI("ADMAIF7"),
-	DAI("ADMAIF8"),
-	DAI("ADMAIF9"),
-	DAI("ADMAIF10"),
-	DAI("ADMAIF11"),
-	DAI("ADMAIF12"),
-	DAI("ADMAIF13"),
-	DAI("ADMAIF14"),
-	DAI("ADMAIF15"),
-	DAI("ADMAIF16"),
-	DAI("ADMAIF17"),
-	DAI("ADMAIF18"),
-	DAI("ADMAIF19"),
-	DAI("ADMAIF20"),
->>>>>>> v5.9-rc4
 };
 
 static const char * const tegra_admaif_stereo_conv_text[] = {
@@ -946,8 +836,7 @@ static const char * const tegra_admaif_stereo_conv_text[] = {
 };
 
 static const char * const tegra_admaif_mono_conv_text[] = {
-<<<<<<< HEAD
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 #define TEGRA_ADMAIF_CHANNEL_CTRL(reg)					  \
@@ -964,11 +853,6 @@ static const char * const tegra_admaif_mono_conv_text[] = {
 		       0, 16, 0, tegra_admaif_get_control,		  \
 		       tegra_admaif_put_control)
 
-=======
-	"Zero", "Copy",
-};
-
->>>>>>> v5.9-rc4
 /*
  * Below macro is added to avoid looping over all ADMAIFx controls related
  * to mono/stereo conversions in get()/put() callbacks.
@@ -999,7 +883,6 @@ static const char * const tegra_admaif_mono_conv_text[] = {
 			tegra_admaif_stereo_conv_text)
 
 static struct snd_kcontrol_new tegra210_admaif_controls[] = {
-<<<<<<< HEAD
 	TEGRA_ADMAIF_CHANNEL_CTRL(1),
 	TEGRA_ADMAIF_CHANNEL_CTRL(2),
 	TEGRA_ADMAIF_CHANNEL_CTRL(3),
@@ -1010,8 +893,6 @@ static struct snd_kcontrol_new tegra210_admaif_controls[] = {
 	TEGRA_ADMAIF_CHANNEL_CTRL(8),
 	TEGRA_ADMAIF_CHANNEL_CTRL(9),
 	TEGRA_ADMAIF_CHANNEL_CTRL(10),
-=======
->>>>>>> v5.9-rc4
 	TEGRA_ADMAIF_CIF_CTRL(1),
 	TEGRA_ADMAIF_CIF_CTRL(2),
 	TEGRA_ADMAIF_CIF_CTRL(3),
@@ -1022,7 +903,6 @@ static struct snd_kcontrol_new tegra210_admaif_controls[] = {
 	TEGRA_ADMAIF_CIF_CTRL(8),
 	TEGRA_ADMAIF_CIF_CTRL(9),
 	TEGRA_ADMAIF_CIF_CTRL(10),
-<<<<<<< HEAD
 	SOC_SINGLE_EXT("APE Reg Dump", SND_SOC_NOPM, 0, 1, 0,
 		       tegra_admaif_get_control, tegra_admaif_put_control),
 };
@@ -1048,11 +928,6 @@ static struct snd_kcontrol_new tegra186_admaif_controls[] = {
 	TEGRA_ADMAIF_CHANNEL_CTRL(18),
 	TEGRA_ADMAIF_CHANNEL_CTRL(19),
 	TEGRA_ADMAIF_CHANNEL_CTRL(20),
-=======
-};
-
-static struct snd_kcontrol_new tegra186_admaif_controls[] = {
->>>>>>> v5.9-rc4
 	TEGRA_ADMAIF_CIF_CTRL(1),
 	TEGRA_ADMAIF_CIF_CTRL(2),
 	TEGRA_ADMAIF_CIF_CTRL(3),
@@ -1073,7 +948,6 @@ static struct snd_kcontrol_new tegra186_admaif_controls[] = {
 	TEGRA_ADMAIF_CIF_CTRL(18),
 	TEGRA_ADMAIF_CIF_CTRL(19),
 	TEGRA_ADMAIF_CIF_CTRL(20),
-<<<<<<< HEAD
 	SOC_SINGLE_EXT("APE Reg Dump", SND_SOC_NOPM, 0, 1, 0,
 		       tegra_admaif_get_control, tegra_admaif_put_control),
 };
@@ -1083,11 +957,6 @@ static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
 	.num_dapm_widgets	= TEGRA210_ADMAIF_CHANNEL_COUNT * 4,
 	.dapm_routes		= tegra_admaif_routes,
 	.num_dapm_routes	= TEGRA210_ADMAIF_CHANNEL_COUNT * 6,
-=======
-};
-
-static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
->>>>>>> v5.9-rc4
 	.controls		= tegra210_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra210_admaif_controls),
 	.pcm_construct		= tegra_pcm_construct,
@@ -1101,13 +970,10 @@ static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
 };
 
 static const struct snd_soc_component_driver tegra186_admaif_cmpnt = {
-<<<<<<< HEAD
 	.dapm_widgets		= tegra_admaif_widgets,
 	.num_dapm_widgets	= TEGRA186_ADMAIF_CHANNEL_COUNT * 4,
 	.dapm_routes		= tegra_admaif_routes,
 	.num_dapm_routes        = TEGRA186_ADMAIF_CHANNEL_COUNT * 6,
-=======
->>>>>>> v5.9-rc4
 	.controls		= tegra186_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra186_admaif_controls),
 	.pcm_construct		= tegra_pcm_construct,
@@ -1128,10 +994,7 @@ static const struct tegra_admaif_soc_data soc_data_tegra210 = {
 	.global_base	= TEGRA210_ADMAIF_GLOBAL_BASE,
 	.tx_base	= TEGRA210_ADMAIF_TX_BASE,
 	.rx_base	= TEGRA210_ADMAIF_RX_BASE,
-<<<<<<< HEAD
 	.is_isomgr_client = false,
-=======
->>>>>>> v5.9-rc4
 };
 
 static const struct tegra_admaif_soc_data soc_data_tegra186 = {
@@ -1142,10 +1005,7 @@ static const struct tegra_admaif_soc_data soc_data_tegra186 = {
 	.global_base	= TEGRA186_ADMAIF_GLOBAL_BASE,
 	.tx_base	= TEGRA186_ADMAIF_TX_BASE,
 	.rx_base	= TEGRA186_ADMAIF_RX_BASE,
-<<<<<<< HEAD
 	.is_isomgr_client = true,
-=======
->>>>>>> v5.9-rc4
 };
 
 static const struct of_device_id tegra_admaif_of_match[] = {
@@ -1187,7 +1047,6 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	for (i = 0; i < ADMAIF_PATHS; i++) {
-<<<<<<< HEAD
 		admaif->audio_ch_override[i] =
 			devm_kcalloc(&pdev->dev, admaif->soc_data->num_ch,
 				     sizeof(unsigned int), GFP_KERNEL);
@@ -1200,8 +1059,6 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 		if (!admaif->client_ch_override[i])
 			return -ENOMEM;
 
-=======
->>>>>>> v5.9-rc4
 		admaif->mono_to_stereo[i] =
 			devm_kcalloc(&pdev->dev, admaif->soc_data->num_ch,
 				     sizeof(unsigned int), GFP_KERNEL);
@@ -1221,11 +1078,8 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
 
-<<<<<<< HEAD
 	admaif->base_addr = regs;
 
-=======
->>>>>>> v5.9-rc4
 	admaif->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
 					       admaif->soc_data->regmap_conf);
 	if (IS_ERR(admaif->regmap)) {
@@ -1235,12 +1089,9 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 
 	regcache_cache_only(admaif->regmap, true);
 
-<<<<<<< HEAD
 	if (admaif->soc_data->is_isomgr_client)
 		tegra_isomgr_adma_register();
 
-=======
->>>>>>> v5.9-rc4
 	regmap_update_bits(admaif->regmap, admaif->soc_data->global_base +
 			   TEGRA_ADMAIF_GLOBAL_ENABLE, 1, 1);
 
@@ -1252,10 +1103,7 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 			CH_RX_REG(TEGRA_ADMAIF_RX_FIFO_READ, i);
 
 		admaif->playback_dma_data[i].addr_width = 32;
-<<<<<<< HEAD
 		admaif->playback_dma_data[i].slave_id = i + 1;
-=======
->>>>>>> v5.9-rc4
 
 		if (of_property_read_string_index(pdev->dev.of_node,
 				"dma-names", (i * 2) + 1,
@@ -1267,10 +1115,7 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 		}
 
 		admaif->capture_dma_data[i].addr_width = 32;
-<<<<<<< HEAD
 		admaif->capture_dma_data[i].slave_id = i + 1;
-=======
->>>>>>> v5.9-rc4
 
 		if (of_property_read_string_index(pdev->dev.of_node,
 				"dma-names",
@@ -1286,11 +1131,7 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 	err = devm_snd_soc_register_component(&pdev->dev,
 					      admaif->soc_data->cmpnt,
 					      admaif->soc_data->dais,
-<<<<<<< HEAD
 					      admaif->soc_data->num_ch * 3);
-=======
-					      admaif->soc_data->num_ch);
->>>>>>> v5.9-rc4
 	if (err) {
 		dev_err(&pdev->dev,
 			"can't register ADMAIF component, err: %d\n", err);
@@ -1304,14 +1145,11 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 
 static int tegra_admaif_remove(struct platform_device *pdev)
 {
-<<<<<<< HEAD
 	struct tegra_admaif *admaif = dev_get_drvdata(&pdev->dev);
 
 	if (admaif->soc_data->is_isomgr_client)
 		tegra_isomgr_adma_unregister();
 
-=======
->>>>>>> v5.9-rc4
 	pm_runtime_disable(&pdev->dev);
 
 	return 0;
