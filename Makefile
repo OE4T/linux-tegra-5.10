@@ -12,6 +12,10 @@ BUILD_ENABLE=y
 endif
 
 dtb-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000.dtb
+dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-hdr40.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-adafruit-sph0645lm4h.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-fe-pi-audio.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-respeaker-4-mic-array.dtbo
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
