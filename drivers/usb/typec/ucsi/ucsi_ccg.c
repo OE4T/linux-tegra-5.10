@@ -2,7 +2,7 @@
 /*
  * UCSI driver for Cypress CCGx Type-C controller
  *
- * Copyright (C) 2017-2018 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2017-2020 NVIDIA Corporation. All rights reserved.
  * Author: Ajay Gupta <ajayg@nvidia.com>
  *
  * Some code borrowed from drivers/usb/typec/ucsi/ucsi_acpi.c
@@ -204,6 +204,7 @@ struct ucsi_ccg {
 	u8 cmd_resp;
 	int port_num;
 	int irq;
+	unsigned long irqflags;
 	struct work_struct work;
 	struct mutex lock; /* to sync between user and driver thread */
 
@@ -1251,8 +1252,7 @@ static int ccg_restart(struct ucsi_ccg *uc)
 	}
 
 	status = request_threaded_irq(uc->irq, NULL, ccg_irq_handler,
-				      IRQF_ONESHOT | IRQF_TRIGGER_HIGH,
-				      dev_name(dev), uc);
+				      uc->irqflags, dev_name(dev), uc);
 	if (status < 0) {
 		dev_err(dev, "request_threaded_irq failed - %d\n", status);
 		return status;
@@ -1324,6 +1324,7 @@ static int ucsi_ccg_probe(struct i2c_client *client,
 	struct device *dev = &client->dev;
 	struct ucsi_ccg *uc;
 	int status;
+	u32 irqflags;
 
 	uc = devm_kzalloc(dev, sizeof(*uc), GFP_KERNEL);
 	if (!uc)
@@ -1366,9 +1367,15 @@ static int ucsi_ccg_probe(struct i2c_client *client,
 
 	ucsi_set_drvdata(uc->ucsi, uc);
 
+	status = of_property_read_u32(dev->of_node, "ccg,irqflags", &irqflags);
+	if (status) {
+		dev_info(dev, "Default irqflags: IRQF_TRIGGER_HIGH\n");
+		irqflags = IRQF_TRIGGER_HIGH;
+	}
+	uc->irqflags = irqflags | IRQF_ONESHOT;
+
 	status = request_threaded_irq(client->irq, NULL, ccg_irq_handler,
-				      IRQF_ONESHOT | IRQF_TRIGGER_HIGH,
-				      dev_name(dev), uc);
+				      uc->irqflags, dev_name(dev), uc);
 	if (status < 0) {
 		dev_err(uc->dev, "request_threaded_irq failed - %d\n", status);
 		goto out_ucsi_destroy;
@@ -1411,6 +1418,12 @@ static int ucsi_ccg_remove(struct i2c_client *client)
 
 	return 0;
 }
+
+static const struct of_device_id ucsi_ccg_of_match_table[] = {
+		{ .compatible = "nvidia,ccgx-ucsi", },
+		{ /* sentinel */ }
+};
+MODULE_DEVICE_TABLE(of, ucsi_ccg_of_match_table);
 
 static const struct i2c_device_id ucsi_ccg_device_id[] = {
 	{"ccgx-ucsi", 0},
@@ -1459,6 +1472,7 @@ static struct i2c_driver ucsi_ccg_driver = {
 		.name = "ucsi_ccg",
 		.pm = &ucsi_ccg_pm,
 		.dev_groups = ucsi_ccg_groups,
+		.of_match_table = ucsi_ccg_of_match_table,
 	},
 	.probe = ucsi_ccg_probe,
 	.remove = ucsi_ccg_remove,
