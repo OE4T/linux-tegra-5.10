@@ -262,6 +262,24 @@ done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
+#ifdef CONFIG_NVGPU_PROFILER
+void nvgpu_cg_slcg_perf_load_enable(struct gk20a *g, bool enable)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&g->cg_pg_lock);
+	if (!g->slcg_enabled) {
+		goto done;
+	}
+
+	if (g->ops.cg.slcg_perf_load_gating_prod != NULL) {
+		g->ops.cg.slcg_perf_load_gating_prod(g, enable);
+	}
+done:
+	nvgpu_mutex_release(&g->cg_pg_lock);
+}
+#endif
+
 static void cg_init_gr_slcg_load_gating_prod(struct gk20a *g)
 {
 	if (g->ops.cg.slcg_bus_load_gating_prod != NULL) {

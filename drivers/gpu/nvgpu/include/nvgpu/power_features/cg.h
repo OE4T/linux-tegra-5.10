@@ -437,4 +437,8 @@ void nvgpu_cg_slcg_gr_perf_ltc_load_disable(struct gk20a *g);
 void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable);
 
 #endif
+
+#ifdef CONFIG_NVGPU_PROFILER
+void nvgpu_cg_slcg_perf_load_enable(struct gk20a *g, bool enable);
+#endif
 #endif /*NVGPU_POWER_FEATURES_CG_H*/

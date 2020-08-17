@@ -23,8 +23,45 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/log.h>
+#include <nvgpu/mc.h>
+#include <nvgpu/power_features/cg.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/lock.h>
+
+static void prepare_resource_reservation(struct gk20a *g,
+		enum nvgpu_profiler_pm_resource_type pm_resource, bool acquire)
+{
+	if ((pm_resource != NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY) &&
+	    (pm_resource != NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM)) {
+		return;
+	}
+
+	if (acquire) {
+		nvgpu_atomic_inc(&g->hwpm_refcount);
+		nvgpu_log(g, gpu_dbg_prof, "HWPM refcount acquired %u, resource %u",
+			nvgpu_atomic_read(&g->hwpm_refcount), pm_resource);
+
+		if (nvgpu_atomic_read(&g->hwpm_refcount) == 1) {
+			nvgpu_log(g, gpu_dbg_prof,
+				"Trigger HWPM system reset, disable perf SLCG");
+			g->ops.mc.reset(g, g->ops.mc.reset_mask(g,
+				NVGPU_UNIT_PERFMON));
+			nvgpu_cg_slcg_perf_load_enable(g, false);
+		}
+	} else {
+		nvgpu_atomic_dec(&g->hwpm_refcount);
+		nvgpu_log(g, gpu_dbg_prof, "HWPM refcount released %u, resource %u",
+			nvgpu_atomic_read(&g->hwpm_refcount), pm_resource);
+
+		if (nvgpu_atomic_read(&g->hwpm_refcount) == 0) {
+			nvgpu_log(g, gpu_dbg_prof,
+				"Trigger HWPM system reset, re-enable perf SLCG");
+			g->ops.mc.reset(g, g->ops.mc.reset_mask(g,
+				NVGPU_UNIT_PERFMON));
+			nvgpu_cg_slcg_perf_load_enable(g, true);
+		}
+	}
+}
 
 static bool check_pm_resource_existing_reservation_locked(
 		struct nvgpu_pm_resource_reservations *reservations,
@@ -130,6 +167,8 @@ int nvgpu_pm_reservation_acquire(struct gk20a *g, u32 reservation_id,
 	nvgpu_list_add(&reservation_entry->entry, &reservations->head);
 	reservations->count++;
 
+	prepare_resource_reservation(g, pm_resource, true);
+
 done:
 	nvgpu_mutex_release(&reservations->lock);
 
@@ -162,7 +201,9 @@ int nvgpu_pm_reservation_release(struct gk20a *g, u32 reservation_id,
 		}
 	}
 
-	if (!was_reserved) {
+	if (was_reserved) {
+		prepare_resource_reservation(g, pm_resource, false);
+	} else {
 		err = -EINVAL;
 	}
 
@@ -189,6 +230,7 @@ void nvgpu_pm_reservation_release_all_per_vmid(struct gk20a *g, u32 vmid)
 				nvgpu_list_del(&reservation_entry->entry);
 				reservations->count--;
 				nvgpu_kfree(g, reservation_entry);
+				prepare_resource_reservation(g, i, false);
 			}
 		}
 		nvgpu_mutex_release(&reservations->lock);
@@ -218,6 +260,8 @@ int nvgpu_pm_reservation_init(struct gk20a *g)
 	}
 
 	g->pm_reservations = reservations;
+
+	nvgpu_atomic_set(&g->hwpm_refcount, 0);
 
 	nvgpu_log(g, gpu_dbg_prof, "initialized");
 

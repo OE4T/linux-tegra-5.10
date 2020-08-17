@@ -858,6 +858,7 @@ struct gk20a {
 #ifdef CONFIG_NVGPU_PROFILER
 	struct nvgpu_list_node profiler_objects;
 	struct nvgpu_pm_resource_reservations *pm_reservations;
+	nvgpu_atomic_t hwpm_refcount;
 #endif
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
