@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,7 +16,7 @@
 
 #include <linux/dma-mapping.h>
 #include <linux/slab.h>
-#include <linux/version.h>
+#include <linux/iommu.h>
 
 #include <nvgpu/log.h>
 #include <nvgpu/dma.h>
@@ -604,7 +604,7 @@ bool nvgpu_iommuable(struct gk20a *g)
 	 * Check against the nvgpu device to see if it's been marked as
 	 * IOMMU'able.
 	 */
-	if (dev->archdata.iommu == NULL)
+	if (iommu_get_domain_for_dev(dev) == NULL)
 		return false;
 #endif
 

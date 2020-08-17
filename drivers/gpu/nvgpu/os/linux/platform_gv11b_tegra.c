@@ -22,6 +22,7 @@
 #include <linux/reset.h>
 #include <linux/hashtable.h>
 #include <linux/clk.h>
+#include <linux/iommu.h>
 #ifdef CONFIG_TEGRA_BWMGR
 #include <linux/platform/tegra/emc_bwmgr.h>
 #endif
@@ -94,7 +95,8 @@ static int gv11b_tegra_probe(struct device *dev)
 	if (err)
 		return err;
 
-	platform->disable_bigpage = !dev->archdata.iommu && (PAGE_SIZE < SZ_64K);
+	platform->disable_bigpage = !(iommu_get_domain_for_dev(dev)) &&
+					(PAGE_SIZE < SZ_64K);
 
 #ifdef CONFIG_OF
 	of_chosen = of_find_node_by_path("/chosen");
