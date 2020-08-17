@@ -273,12 +273,6 @@ static int test_gr_alloc_errors(struct gk20a *g)
 		nvgpu_kmem_get_fault_injection();
 	struct nvgpu_gr *local_gr = g->gr;
 
-	/*Set g to NULL */
-	err = nvgpu_gr_alloc(NULL);
-	if (err == 0) {
-		return UNIT_FAIL;
-	}
-
 	/* Free NULL gr */
 	g->gr = NULL;
 	nvgpu_gr_free(g);

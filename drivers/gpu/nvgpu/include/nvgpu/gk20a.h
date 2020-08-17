@@ -751,7 +751,10 @@ struct gk20a {
 	struct clk_gk20a clk;
 	struct nvgpu_fifo fifo;
 	struct nvgpu_nvlink_dev nvlink;
+
 	struct nvgpu_gr *gr;
+	u32 num_gr_instances;
+
 	struct nvgpu_fbp *fbp;
 #ifdef CONFIG_NVGPU_SIM
 	struct sim_nvgpu *sim;

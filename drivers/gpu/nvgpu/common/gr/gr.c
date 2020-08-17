@@ -49,8 +49,17 @@
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include <nvgpu/engines.h>
 #endif
+#include <nvgpu/grmgr.h>
 
 #include "gr_priv.h"
+
+/*
+ * Use this until common.gr is completely updated to support multiple
+ * GR instances. Once that is supported, nvgpu_grmgr_get_num_gr_instances()
+ * should be used to get number of GR instances.
+ * Set this to 0 for local MIG testing.
+ */
+#define NVGPU_GR_NUM_INSTANCES		1
 
 static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 {
@@ -838,28 +847,36 @@ int nvgpu_gr_init_support(struct gk20a *g)
 int nvgpu_gr_alloc(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = NULL;
-
-	if (g == NULL) {
-		return -EINVAL;
-	}
+	u32 i;
 
 	/* if gr exists return */
 	if (g->gr != NULL) {
 		return 0;
 	}
 
+	g->num_gr_instances = NVGPU_GR_NUM_INSTANCES;
+	if (g->num_gr_instances == 0U) {
+		g->num_gr_instances = nvgpu_grmgr_get_num_gr_instances(g);
+	}
+	if (g->num_gr_instances == 0U) {
+		nvgpu_err(g, "No GR engine enumerated");
+		return -EINVAL;
+	}
+
 	/* Allocate memory for gr struct */
-	gr = nvgpu_kzalloc(g, sizeof(*gr));
-	if (gr == NULL) {
+	g->gr = nvgpu_kzalloc(g, sizeof(*gr) * g->num_gr_instances);
+	if (g->gr == NULL) {
 		return -ENOMEM;
 	}
 
-	g->gr = gr;
+	for (i = 0U; i < g->num_gr_instances; i++) {
+		gr = &g->gr[i];
 
-	nvgpu_cond_init(&gr->init_wq);
+		nvgpu_cond_init(&gr->init_wq);
 #ifdef CONFIG_NVGPU_NON_FUSA
-	nvgpu_gr_override_ecc_val(g, g->fecs_feature_override_ecc_val);
+		nvgpu_gr_override_ecc_val(gr, g->fecs_feature_override_ecc_val);
 #endif
+	}
 
 	return 0;
 }

@@ -240,3 +240,12 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 #endif
 	return err;
 }
+
+u32 nvgpu_grmgr_get_num_gr_instances(struct gk20a *g)
+{
+	/*
+	 * There is only one gr engine instance per syspipe.
+	 * Hence just return number of syspipes here.
+	 */
+	return g->mig.num_gr_sys_pipes_enabled;
+}

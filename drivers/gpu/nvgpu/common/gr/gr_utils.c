@@ -54,9 +54,9 @@ u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g)
 	return g->gr->fecs_feature_override_ecc_val;
 }
 
-void nvgpu_gr_override_ecc_val(struct gk20a *g, u32 ecc_val)
+void nvgpu_gr_override_ecc_val(struct nvgpu_gr *gr, u32 ecc_val)
 {
-	g->gr->fecs_feature_override_ecc_val = ecc_val;
+	gr->fecs_feature_override_ecc_val = ecc_val;
 }
 #endif
 

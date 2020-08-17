@@ -32,6 +32,7 @@
  * common.gr.utils unit interface
  */
 struct gk20a;
+struct nvgpu_gr;
 struct nvgpu_gr_falcon;
 struct nvgpu_gr_config;
 struct nvgpu_gr_intr;
@@ -99,7 +100,7 @@ struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g);
 #ifdef CONFIG_NVGPU_NON_FUSA
 /* gr variables */
 u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g);
-void nvgpu_gr_override_ecc_val(struct gk20a *g, u32 ecc_val);
+void nvgpu_gr_override_ecc_val(struct nvgpu_gr *gr, u32 ecc_val);
 #endif
 #ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zcull *nvgpu_gr_get_zcull_ptr(struct gk20a *g);
