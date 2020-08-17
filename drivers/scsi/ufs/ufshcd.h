@@ -321,12 +321,9 @@ struct ufs_hba_variant_ops {
 	void	(*config_scaling_param)(struct ufs_hba *hba,
 					struct devfreq_dev_profile *profile,
 					void *data);
-<<<<<<< HEAD
 	int	(*set_ufs_mphy_clocks)(struct ufs_hba *, bool);
-=======
 	int	(*program_key)(struct ufs_hba *hba,
 			       const union ufs_crypto_cfg_entry *cfg, int slot);
->>>>>>> v5.9-rc4
 };
 
 /* clock gating state  */
@@ -790,9 +787,7 @@ struct ufs_hba {
 	bool wb_buf_flush_enabled;
 	bool wb_enabled;
 	struct delayed_work rpm_dev_flush_recheck_work;
-<<<<<<< HEAD
 	bool card_present;
-=======
 
 #ifdef CONFIG_SCSI_UFS_CRYPTO
 	union ufs_crypto_capabilities crypto_capabilities;
@@ -800,7 +795,6 @@ struct ufs_hba {
 	u32 crypto_cfg_register;
 	struct blk_keyslot_manager ksm;
 #endif
->>>>>>> v5.9-rc4
 };
 
 /* Returns true if clocks can be gated. Otherwise false */

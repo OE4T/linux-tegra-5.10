@@ -117,19 +117,16 @@ enum backlight_device_notification {
 struct backlight_device;
 struct fb_info;
 
-<<<<<<< HEAD
 struct backlight_device_brightness_info {
 	struct device *dev;
 	int brightness;
 };
 
-=======
 /**
  * struct backlight_ops - backlight operations
  *
  * The backlight operations are specified when the backlight device is registered.
  */
->>>>>>> v5.9-rc4
 struct backlight_ops {
 	/**
 	 * @options: Configure how operations are called from the core.
@@ -260,11 +257,9 @@ struct backlight_properties {
 	 * passed to devm_backlight_device_register().
 	 */
 	enum backlight_type type;
-<<<<<<< HEAD
 	/* Denotes if backlight supports low-persistence (read-only) */
 	bool low_persistence_capable;
 	/* Flags used to signal drivers of state changes */
-=======
 
 	/**
 	 * @state: The state of the backlight core.
@@ -279,7 +274,6 @@ struct backlight_properties {
 	 *
 	 * The state is maintained by the core and drivers may not modify it.
 	 */
->>>>>>> v5.9-rc4
 	unsigned int state;
 
 #define BL_CORE_SUSPENDED	(1 << 0)	/* backlight is suspended */
@@ -336,16 +330,13 @@ struct backlight_device {
 	 */
 	struct notifier_block fb_notif;
 
-<<<<<<< HEAD
 	/* Notifier for backlight status update */
 	struct blocking_notifier_head notifier;
 
 	/* list entry of all registered backlight devices */
-=======
 	/**
 	 * @entry: List entry of all registered backlight devices
 	 */
->>>>>>> v5.9-rc4
 	struct list_head entry;
 
 	/**

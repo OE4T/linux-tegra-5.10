@@ -2024,13 +2024,9 @@ static const struct sdhci_tegra_soc_data soc_data_tegra210 = {
 		    NVQUIRK_HAS_PADCALIB |
 		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
 		    NVQUIRK_ENABLE_SDR50 |
-<<<<<<< HEAD
 		    NVQUIRK_UPDATE_PIN_CNTRL_REG |
-		    NVQUIRK_ENABLE_SDR104,
-=======
 		    NVQUIRK_ENABLE_SDR104 |
 		    NVQUIRK_HAS_TMCLK,
->>>>>>> v5.9-rc4
 	.min_tap_delay = 106,
 	.max_tap_delay = 185,
 };
@@ -2070,11 +2066,8 @@ static const struct sdhci_tegra_soc_data soc_data_tegra186 = {
 		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
 		    NVQUIRK_ENABLE_SDR50 |
 		    NVQUIRK_ENABLE_SDR104 |
-<<<<<<< HEAD
 		    NVQUIRK_SDMMC_CLK_OVERRIDE |
-=======
 		    NVQUIRK_HAS_TMCLK |
->>>>>>> v5.9-rc4
 		    NVQUIRK_CQHCI_DCMD_R1B_CMD_TIMING,
 	.min_tap_delay = 84,
 	.max_tap_delay = 136,
@@ -2087,13 +2080,9 @@ static const struct sdhci_tegra_soc_data soc_data_tegra194 = {
 		    NVQUIRK_HAS_PADCALIB |
 		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
 		    NVQUIRK_ENABLE_SDR50 |
-<<<<<<< HEAD
 		    NVQUIRK_SDMMC_CLK_OVERRIDE |
-		    NVQUIRK_ENABLE_SDR104,
-=======
 		    NVQUIRK_ENABLE_SDR104 |
 		    NVQUIRK_HAS_TMCLK,
->>>>>>> v5.9-rc4
 	.min_tap_delay = 96,
 	.max_tap_delay = 139,
 };

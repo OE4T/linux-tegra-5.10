@@ -16,14 +16,11 @@
 #define TEGRA210	0x21
 #define TEGRA186	0x18
 #define TEGRA194	0x19
-<<<<<<< HEAD
 #define TEGRA234	0x23
 
 /* control read/write calls for below offsets */
 #define FUSE_FUSEBYPASS_0		0x24
 #define FUSE_WRITE_ACCESS_SW_0		0x30
-=======
->>>>>>> v5.9-rc4
 
 #define TEGRA_FUSE_SKU_CALIB_0	0xf0
 #define TEGRA30_FUSE_SATA_CALIB	0x124

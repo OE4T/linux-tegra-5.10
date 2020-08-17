@@ -3197,16 +3197,12 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 		test_mb_ahash_speed("streebog512", sec,
 				    generic_hash_speed_template, num_mb);
 		if (mode > 400 && mode < 500) break;
-<<<<<<< HEAD
-		/* fall through */
+		fallthrough;
 	case 428:
 		test_ahash_speed("cmac(aes)", sec, dsize,
 			generic_hash_speed_template);
 		if (mode > 400 && mode < 500) break;
-		/* fall through */
-=======
 		fallthrough;
->>>>>>> v5.9-rc4
 	case 499:
 		break;
 

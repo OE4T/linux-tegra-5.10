@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0
-<<<<<<< HEAD
 
 DTC_CPP_FLAGS += -DLINUX_VERSION=504 -DTEGRA_HOST1X_DT_VERSION=1
 
@@ -95,35 +94,3 @@ dtbs: $(DTB_OBJS) $(DTBO_OBJS) FORCE
 	fi
 
 clean-files := *.dtb *.dtbo *.tmp
-=======
-subdir-y += actions
-subdir-y += allwinner
-subdir-y += altera
-subdir-y += amazon
-subdir-y += amd
-subdir-y += amlogic
-subdir-y += apm
-subdir-y += arm
-subdir-y += bitmain
-subdir-y += broadcom
-subdir-y += cavium
-subdir-y += exynos
-subdir-y += freescale
-subdir-y += hisilicon
-subdir-y += intel
-subdir-y += lg
-subdir-y += marvell
-subdir-y += mediatek
-subdir-y += microchip
-subdir-y += nvidia
-subdir-y += qcom
-subdir-y += realtek
-subdir-y += renesas
-subdir-y += rockchip
-subdir-y += socionext
-subdir-y += sprd
-subdir-y += synaptics
-subdir-y += ti
-subdir-y += xilinx
-subdir-y += zte
->>>>>>> v5.9-rc4

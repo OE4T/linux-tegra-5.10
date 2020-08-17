@@ -4748,11 +4748,7 @@ int sdhci_setup_host(struct sdhci_host *host)
 	return 0;
 
 unreg:
-<<<<<<< HEAD
-	if (!IS_ERR_OR_NULL(mmc->supply.vqmmc))
-=======
 	if (host->sdhci_core_to_disable_vqmmc)
->>>>>>> v5.9-rc4
 		regulator_disable(mmc->supply.vqmmc);
 undma:
 	if (host->align_buffer)
@@ -4913,11 +4909,7 @@ void sdhci_remove_host(struct sdhci_host *host, int dead)
 
 	destroy_workqueue(host->complete_wq);
 
-<<<<<<< HEAD
-	if (!IS_ERR_OR_NULL(mmc->supply.vqmmc))
-=======
 	if (host->sdhci_core_to_disable_vqmmc)
->>>>>>> v5.9-rc4
 		regulator_disable(mmc->supply.vqmmc);
 
 	if (host->align_buffer)

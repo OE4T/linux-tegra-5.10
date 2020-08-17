@@ -190,13 +190,9 @@
 
 #define AFI_PEXBIAS_CTRL_0		0x168
 
-<<<<<<< HEAD
 #define RP_INTR_BCR	0x3c
 #define  RP_INTR_BCR_INTR_LINE		(0xff << 0)
 #define  RP_INTR_BCR_SB_RESET		(0x1 << 22)
-
-#define RP_PRIV_XP_DL		0x00000494
-#define  RP_PRIV_XP_DL_GEN2_UPD_FC_TSHOLD	(0x1ff << 1)
 
 #define RP_L1_PM_SUBSTATES_CTL		0xc00
 #define  RP_L1_PM_SUBSTATES_CTL_PCI_PM_L1_2		(0x1 << 0)
@@ -232,10 +228,6 @@
 
 #define RP_L1_2_ENTRY_COUNT		0xc18
 #define  RP_L1_2_ENTRY_COUNT_RESET	(1 << 31)
-
-#define RP_RX_HDR_LIMIT		0x00000e00
-#define  RP_RX_HDR_LIMIT_PW_MASK	(0xff << 8)
-#define  RP_RX_HDR_LIMIT_PW		(0x0e << 8)
 
 #define RP_ECTL_1_R1	0xe8a
 #define  RP_ECTL_1_R1_TX_DRV_AMP_1C_MASK	0x3f
@@ -279,8 +271,6 @@
 #define  LTSSM_TRACE_STATUS_WRITE_POINTER(reg)		(((reg) >> 1) & 0x1f)
 #define  LTSSM_TRACE_STATUS_RAM_FULL(reg)		(reg & 0x1)
 
-=======
->>>>>>> v5.9-rc4
 #define RP_ECTL_2_R1	0x00000e84
 #define  RP_ECTL_2_R1_RX_CTLE_1C_MASK		0xffff
 
@@ -4326,12 +4316,7 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct pci_host_bridge *host;
 	struct tegra_pcie *pcie;
-<<<<<<< HEAD
 	struct tegra_pcie_port *port = NULL;
-	struct pci_bus *child;
-	struct resource *bus;
-=======
->>>>>>> v5.9-rc4
 	int err;
 
 	host = devm_pci_alloc_host_bridge(dev, sizeof(*pcie));
@@ -4346,21 +4331,12 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&pcie->ports);
 	pcie->dev = dev;
 
-<<<<<<< HEAD
 #if IS_ENABLED(CONFIG_TEGRA_BWMGR)
 	pcie->emc_bwmgr = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_PCIE);
 	if (!pcie->emc_bwmgr)
 		dev_err(dev, "couldn't register with EMC BwMgr\n");
 #endif
 
-	err = pci_parse_request_of_pci_ranges(dev, &host->windows, NULL, &bus);
-	if (err) {
-		dev_err(dev, "Getting bridge resources failed\n");
-		return err;
-	}
-
-=======
->>>>>>> v5.9-rc4
 	err = tegra_pcie_parse_dt(pcie);
 	if (err < 0)
 		return err;
@@ -4389,7 +4365,6 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 		goto pm_runtime_put;
 	}
 
-<<<<<<< HEAD
 	/*
 	 * If all PCIe ports are down, power gate PCIe. This can happen if
 	 * no endpoints are connected, so don't fail probe.
@@ -4411,10 +4386,6 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 
 	pci_add_flags(PCI_REASSIGN_ALL_BUS);
 
-	host->busnr = bus->start;
-	host->dev.parent = &pdev->dev;
-=======
->>>>>>> v5.9-rc4
 	host->ops = &tegra_pcie_ops;
 	host->map_irq = tegra_pcie_map_irq;
 

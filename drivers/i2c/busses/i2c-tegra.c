@@ -448,7 +448,6 @@ static int tegra_i2c_init_dma(struct tegra_i2c_dev *i2c_dev)
 	dma_addr_t dma_phys;
 	int err;
 
-<<<<<<< HEAD
 	if (i2c_dev->hw->has_gpc_dma) {
 		if (!IS_ENABLED(CONFIG_TEGRA_GPC_DMA)) {
 			dev_dbg(i2c_dev->dev, "Support for GPC DMA not enabled!\n");
@@ -461,13 +460,12 @@ static int tegra_i2c_init_dma(struct tegra_i2c_dev *i2c_dev)
 		}
 	} else {
 		dev_dbg(i2c_dev->dev, "DMA is not enabled!\n");
-=======
-	if (!i2c_dev->hw->has_apb_dma || i2c_dev->is_vi)
-		return 0;
+		if (!i2c_dev->hw->has_apb_dma || i2c_dev->is_vi)
+			return 0;
+	}
 
 	if (!IS_ENABLED(CONFIG_TEGRA20_APB_DMA)) {
 		dev_dbg(i2c_dev->dev, "Support for APB DMA not enabled!\n");
->>>>>>> v5.9-rc4
 		return 0;
 	}
 

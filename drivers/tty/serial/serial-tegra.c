@@ -436,25 +436,7 @@ static char tegra_uart_decode_rx_error(struct tegra_uart_port *tup,
 	char flag = TTY_NORMAL;
 
 	if (unlikely(lsr & TEGRA_UART_LSR_ANY)) {
-<<<<<<< HEAD
 		if (lsr & UART_LSR_BI) {
-=======
-		if (lsr & UART_LSR_OE) {
-			/* Overrrun error */
-			flag = TTY_OVERRUN;
-			tup->uport.icount.overrun++;
-			dev_dbg(tup->uport.dev, "Got overrun errors\n");
-		} else if (lsr & UART_LSR_PE) {
-			/* Parity error */
-			flag = TTY_PARITY;
-			tup->uport.icount.parity++;
-			dev_dbg(tup->uport.dev, "Got Parity errors\n");
-		} else if (lsr & UART_LSR_FE) {
-			flag = TTY_FRAME;
-			tup->uport.icount.frame++;
-			dev_dbg(tup->uport.dev, "Got frame errors\n");
-		} else if (lsr & UART_LSR_BI) {
->>>>>>> v5.9-rc4
 			/*
 			 * Break error
 			 * If FIFO read error without any data, reset Rx FIFO

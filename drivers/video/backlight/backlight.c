@@ -690,7 +690,6 @@ int backlight_unregister_notifier(struct notifier_block *nb)
 EXPORT_SYMBOL(backlight_unregister_notifier);
 
 /**
-<<<<<<< HEAD
  * backlight_device_register_notifier - get notified of backlight (un)registration
  * @bl: backlight device
  * @nb: notifier block with the notifier to call on backlight (un)registration
@@ -733,10 +732,7 @@ int backlight_device_notifier_call_chain(struct backlight_device *bd,
 EXPORT_SYMBOL(backlight_device_notifier_call_chain);
 
 /**
- * devm_backlight_device_register - resource managed backlight_device_register()
-=======
  * devm_backlight_device_register - register a new backlight device
->>>>>>> v5.9-rc4
  * @dev: the device to register
  * @name: the name of the device
  * @parent: a pointer to the parent device (often the same as @dev)

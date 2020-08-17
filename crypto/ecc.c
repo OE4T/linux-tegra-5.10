@@ -1713,10 +1713,6 @@ int ecc_is_pubkey_valid_partial(const struct ecc_curve *curve,
 }
 EXPORT_SYMBOL(ecc_is_pubkey_valid_partial);
 
-<<<<<<< HEAD
-int ecc_is_pub_key_valid(unsigned int curve_id, unsigned int ndigits,
-			 const u8 *pub_key, unsigned int pub_key_len)
-=======
 /* SP800-56A section 5.6.2.3.3 full verification */
 int ecc_is_pubkey_valid_full(const struct ecc_curve *curve,
 			     struct ecc_point *pk)
@@ -1744,10 +1740,8 @@ int ecc_is_pubkey_valid_full(const struct ecc_curve *curve,
 }
 EXPORT_SYMBOL(ecc_is_pubkey_valid_full);
 
-int crypto_ecdh_shared_secret(unsigned int curve_id, unsigned int ndigits,
-			      const u64 *private_key, const u64 *public_key,
-			      u64 *secret)
->>>>>>> v5.9-rc4
+int ecc_is_pub_key_valid(unsigned int curve_id, unsigned int ndigits,
+			 const u8 *pub_key, unsigned int pub_key_len)
 {
 	const struct ecc_curve *curve = ecc_get_curve(curve_id);
 	int nbytes = ndigits << ECC_DIGITS_TO_BYTES_SHIFT;
@@ -1756,7 +1750,6 @@ int crypto_ecdh_shared_secret(unsigned int curve_id, unsigned int ndigits,
 	if (!pub_key || pub_key_len != 2 * nbytes)
 		return -EINVAL;
 
-<<<<<<< HEAD
 	p.x = (u64 *)pub_key;
 	p.y = (u64 *)(pub_key + ECC_MAX_DIGIT_BYTES);
 	p.ndigits = ndigits;
@@ -1765,23 +1758,6 @@ int crypto_ecdh_shared_secret(unsigned int curve_id, unsigned int ndigits,
 	    vli_cmp(curve->p, p.y, ndigits) != 1)
 
 	return 0;
-=======
-	if (ecc_point_is_zero(product)) {
-		ret = -EFAULT;
-		goto err_validity;
-	}
-
-	ecc_swap_digits(product->x, secret, ndigits);
-
-err_validity:
-	memzero_explicit(priv, sizeof(priv));
-	memzero_explicit(rand_z, sizeof(rand_z));
-	ecc_free_point(product);
-err_alloc_product:
-	ecc_free_point(pk);
-out:
-	return ret;
->>>>>>> v5.9-rc4
 }
 EXPORT_SYMBOL(ecc_is_pub_key_valid);
 

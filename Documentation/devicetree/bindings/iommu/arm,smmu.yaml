@@ -40,14 +40,6 @@ properties:
               - qcom,sm8150-smmu-500
               - qcom,sm8250-smmu-500
           - const: arm,mmu-500
-<<<<<<< HEAD
-      - description: NVIDIA SoCs implementing "arm,mmu-500"
-        items:
-	  - enum:
-	      - nvidia,tegra194-smmu
-          - const: arm,mmu-500
-
-=======
       - description: Marvell SoCs implementing "arm,mmu-500"
         items:
           - const: marvell,ap806-smmu-500
@@ -57,7 +49,6 @@ properties:
           - enum:
               - nvidia,tegra194-smmu
           - const: nvidia,smmu-500
->>>>>>> v5.9-rc4
       - items:
           - const: arm,mmu-500
           - const: arm,smmu-v2

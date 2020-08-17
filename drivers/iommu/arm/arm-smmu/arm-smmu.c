@@ -877,17 +877,12 @@ static int arm_smmu_init_domain_context(struct iommu_domain *domain,
 	 * handler seeing a half-initialised domain state.
 	 */
 	irq = smmu->irqs[smmu->num_global_irqs + cfg->irptndx];
-<<<<<<< HEAD:drivers/iommu/arm-smmu.c
-	context_fault = (smmu->impl && smmu->impl->context_fault) ?
-			 smmu->impl->context_fault : arm_smmu_context_fault;
-=======
 
 	if (smmu->impl && smmu->impl->context_fault)
 		context_fault = smmu->impl->context_fault;
 	else
 		context_fault = arm_smmu_context_fault;
 
->>>>>>> v5.9-rc4:drivers/iommu/arm/arm-smmu/arm-smmu.c
 	ret = devm_request_irq(smmu->dev, irq, context_fault,
 			       IRQF_SHARED, "arm-smmu-context-fault", domain);
 	if (ret < 0) {
@@ -1981,6 +1976,9 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 			smmu->features |= ARM_SMMU_FEAT_FMT_AARCH64_64K;
 	}
 
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	arm_smmu_debugfs_setup_cfg(smmu);
+#endif
 	if (smmu->impl && smmu->impl->cfg_probe) {
 		ret = smmu->impl->cfg_probe(smmu);
 		if (ret)
@@ -2014,15 +2012,6 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 		dev_notice(smmu->dev, "\tStage-2: %lu-bit IPA -> %lu-bit PA\n",
 			   smmu->ipa_size, smmu->pa_size);
 
-<<<<<<< HEAD:drivers/iommu/arm-smmu.c
-#ifdef CONFIG_ARM_SMMU_DEBUG
-	arm_smmu_debugfs_setup_cfg(smmu);
-#endif
-	if (smmu->impl && smmu->impl->cfg_probe)
-		return smmu->impl->cfg_probe(smmu);
-
-=======
->>>>>>> v5.9-rc4:drivers/iommu/arm/arm-smmu/arm-smmu.c
 	return 0;
 }
 
@@ -2297,15 +2286,10 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
 		smmu->num_context_irqs = smmu->num_context_banks;
 	}
 
-<<<<<<< HEAD:drivers/iommu/arm-smmu.c
-	global_fault = (smmu->impl && smmu->impl->global_fault) ?
-			smmu->impl->global_fault : arm_smmu_global_fault;
-=======
 	if (smmu->impl && smmu->impl->global_fault)
 		global_fault = smmu->impl->global_fault;
 	else
 		global_fault = arm_smmu_global_fault;
->>>>>>> v5.9-rc4:drivers/iommu/arm/arm-smmu/arm-smmu.c
 
 	for (i = 0; i < smmu->num_global_irqs; ++i) {
 		err = devm_request_irq(smmu->dev, smmu->irqs[i],

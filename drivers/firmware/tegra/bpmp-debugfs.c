@@ -737,14 +737,6 @@ free:
 
 int tegra_bpmp_init_debugfs(struct tegra_bpmp *bpmp)
 {
-<<<<<<< HEAD
-	dma_addr_t phys;
-	void *virt;
-	const size_t sz = SZ_512K;
-	size_t nbytes;
-	int ret;
-=======
->>>>>>> v5.9-rc4
 	struct dentry *root;
 	bool inband;
 	int err;
@@ -764,21 +756,11 @@ int tegra_bpmp_init_debugfs(struct tegra_bpmp *bpmp)
 		goto out;
 	}
 
-<<<<<<< HEAD
-	ret = mrq_debugfs_dumpdir(bpmp, phys, sz, &nbytes);
-	if (ret < 0)
-		goto free;
-	else if (nbytes > sz) {
-		ret = -EINVAL;
-		goto free;
-	}
-=======
 	if (inband)
 		err = bpmp_populate_debugfs_inband(bpmp, bpmp->debugfs_mirror,
 						   "/");
 	else
 		err = bpmp_populate_debugfs_shmem(bpmp);
->>>>>>> v5.9-rc4
 
 out:
 	if (err < 0)

@@ -12,20 +12,6 @@ obj-$(CONFIG_IOASID) += ioasid.o
 obj-$(CONFIG_IOMMU_IOVA) += iova.o
 obj-$(CONFIG_OF_IOMMU)	+= of_iommu.o
 obj-$(CONFIG_MSM_IOMMU) += msm_iommu.o
-<<<<<<< HEAD
-obj-$(CONFIG_AMD_IOMMU) += amd/iommu.o amd/init.o amd/quirks.o
-obj-$(CONFIG_AMD_IOMMU_DEBUGFS) += amd/debugfs.o
-obj-$(CONFIG_AMD_IOMMU_V2) += amd/iommu_v2.o
-obj-$(CONFIG_ARM_SMMU) += arm_smmu.o
-arm_smmu-objs += arm-smmu.o arm-smmu-impl.o arm-smmu-qcom.o arm-smmu-nvidia.o
-obj-$(CONFIG_ARM_SMMU_V3) += arm-smmu-v3.o
-obj-$(CONFIG_DMAR_TABLE) += intel/dmar.o
-obj-$(CONFIG_INTEL_IOMMU) += intel/iommu.o intel/pasid.o
-obj-$(CONFIG_INTEL_IOMMU) += intel/trace.o
-obj-$(CONFIG_INTEL_IOMMU_DEBUGFS) += intel/debugfs.o
-obj-$(CONFIG_INTEL_IOMMU_SVM) += intel/svm.o
-=======
->>>>>>> v5.9-rc4
 obj-$(CONFIG_IPMMU_VMSA) += ipmmu-vmsa.o
 obj-$(CONFIG_IRQ_REMAP) += irq_remapping.o
 obj-$(CONFIG_MTK_IOMMU) += mtk_iommu.o
