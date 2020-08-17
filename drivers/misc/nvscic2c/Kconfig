@@ -1,7 +1,7 @@
 config NVSCIC2C
 	tristate "Chip to Chip support"
 	default n
-	---help---
+	help
 	C2C support in tegra linux is achieved with C2C server.
 	This kernel module exposes C2C channels as device nodes
 	to user space. User space application can use these device
