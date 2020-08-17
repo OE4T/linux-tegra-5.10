@@ -47,7 +47,11 @@
 #include <crypto/internal/skcipher.h>
 #include <crypto/sha.h>
 #include <linux/pm_runtime.h>
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <linux/tegra_pm_domains.h>
+#endif
+
 #include <crypto/internal/kpp.h>
 #include <crypto/kpp.h>
 #include <crypto/dh.h>
@@ -3426,7 +3430,9 @@ static int tegra_se_probe(struct platform_device *pdev)
 	init_completion(&se_dev->complete);
 
 	sg_tegra_se_dev = se_dev;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	tegra_pd_add_device(se_dev->dev);
+#endif
 	pm_runtime_enable(se_dev->dev);
 	tegra_se_fill_se_dev_info(se_dev);
 	tegra_se_key_read_disable_all();
