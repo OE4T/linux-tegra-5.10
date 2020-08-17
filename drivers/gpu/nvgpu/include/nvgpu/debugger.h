@@ -69,6 +69,13 @@ struct dbg_session_gk20a {
 	bool broadcast_stop_trigger;
 
 	struct nvgpu_mutex ioctl_lock;
+
+	/*
+	 * Dummy profiler object for debug session to synchronize PMA
+	 * reservation and HWPM system reset with new context/device
+	 * profilers.
+	 */
+	struct nvgpu_profiler_object *prof;
 };
 
 struct dbg_session_data {

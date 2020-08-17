@@ -24,8 +24,6 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/mc.h>
-#include <nvgpu/gops_mc.h>
 
 #include "perf_gm20b.h"
 
@@ -54,8 +52,6 @@ void gm20b_perf_membuf_reset_streaming(struct gk20a *g)
 {
 	u32 engine_status;
 	u32 num_unread_bytes;
-
-	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
 	engine_status = nvgpu_readl(g, perf_pmasys_enginestatus_r());
 	WARN_ON(0U ==

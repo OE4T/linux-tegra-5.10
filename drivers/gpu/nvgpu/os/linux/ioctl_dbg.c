@@ -97,7 +97,8 @@ static int alloc_session(struct gk20a *g, struct dbg_session_gk20a_linux **_dbg_
 	return 0;
 }
 
-static int gk20a_perfbuf_release_locked(struct gk20a *g, u64 offset);
+static int gk20a_perfbuf_release_locked(struct gk20a *g,
+		struct dbg_session_gk20a *dbg_s, u64 offset);
 
 static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 				struct nvgpu_dbg_gpu_exec_reg_ops_args *args);
@@ -203,7 +204,7 @@ int gk20a_dbg_gpu_dev_release(struct inode *inode, struct file *filp)
 
 	/* If this session owned the perf buffer, release it */
 	if (g->perfbuf.owner == dbg_s)
-		gk20a_perfbuf_release_locked(g, g->perfbuf.offset);
+		gk20a_perfbuf_release_locked(g, dbg_s, g->perfbuf.offset);
 
 	/* Per-context profiler objects were released when we called
 	 * dbg_unbind_all_channels. We could still have global ones.
@@ -1433,6 +1434,44 @@ static int gk20a_dbg_gpu_events_ctrl(struct dbg_session_gk20a *dbg_s,
 	return ret;
 }
 
+static int nvgpu_perfbuf_reserve_pma(struct dbg_session_gk20a *dbg_s)
+{
+	struct gk20a *g = dbg_s->g;
+	int err;
+
+	/* Legacy profiler only supports global PMA stream */
+	err = nvgpu_profiler_alloc(g, &dbg_s->prof,
+			NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to allocate profiler object");
+		return err;
+	}
+
+	err = nvgpu_profiler_pm_resource_reserve(dbg_s->prof,
+			NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to reserve PMA stream");
+		nvgpu_profiler_free(dbg_s->prof);
+		return err;
+	}
+
+	return err;
+}
+
+static void nvgpu_perfbuf_release_pma(struct dbg_session_gk20a *dbg_s)
+{
+	struct gk20a *g = dbg_s->g;
+	int err;
+
+	err = nvgpu_profiler_pm_resource_release(dbg_s->prof,
+			NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to release PMA stream");
+	}
+
+	nvgpu_profiler_free(dbg_s->prof);
+}
+
 static int gk20a_perfbuf_map(struct dbg_session_gk20a *dbg_s,
 		struct nvgpu_dbg_gpu_perfbuf_map_args *args)
 {
@@ -1448,10 +1487,15 @@ static int gk20a_perfbuf_map(struct dbg_session_gk20a *dbg_s,
 		return -EBUSY;
 	}
 
-	err = nvgpu_perfbuf_init_vm(g);
-	if (err) {
+	err = nvgpu_perfbuf_reserve_pma(dbg_s);
+	if (err != 0) {
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
 		return err;
+	}
+
+	err = nvgpu_perfbuf_init_vm(g);
+	if (err != 0) {
+		goto err_release_pma;
 	}
 
 	err = nvgpu_vm_map_buffer(mm->perfbuf.vm,
@@ -1488,6 +1532,8 @@ err_unmap:
 	nvgpu_vm_unmap(mm->perfbuf.vm, args->offset, NULL);
 err_remove_vm:
 	nvgpu_perfbuf_deinit_vm(g);
+err_release_pma:
+	nvgpu_perfbuf_release_pma(dbg_s);
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	return err;
 }
@@ -1505,7 +1551,7 @@ static int gk20a_perfbuf_unmap(struct dbg_session_gk20a *dbg_s,
 		return -EINVAL;
 	}
 
-	err = gk20a_perfbuf_release_locked(g, args->offset);
+	err = gk20a_perfbuf_release_locked(g, dbg_s, args->offset);
 
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
@@ -1705,7 +1751,8 @@ static void nvgpu_dbg_gpu_ioctl_get_timeout(struct dbg_session_gk20a *dbg_s,
 		args->enable = NVGPU_DBG_GPU_IOCTL_TIMEOUT_DISABLE;
 }
 
-static int gk20a_perfbuf_release_locked(struct gk20a *g, u64 offset)
+static int gk20a_perfbuf_release_locked(struct gk20a *g,
+		struct dbg_session_gk20a *dbg_s, u64 offset)
 {
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->perfbuf.vm;
@@ -1716,6 +1763,8 @@ static int gk20a_perfbuf_release_locked(struct gk20a *g, u64 offset)
 	nvgpu_vm_unmap(vm, offset, NULL);
 
 	nvgpu_perfbuf_deinit_vm(g);
+
+	nvgpu_perfbuf_release_pma(dbg_s);
 
 	g->perfbuf.owner = NULL;
 	g->perfbuf.offset = 0;
