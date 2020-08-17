@@ -1605,7 +1605,9 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 		}
 		ret = process_crypt_req(ctx, &crypt_req);
 
-		if (copy_to_user((void __user *)arg, &crypt_req, sizeof(crypt_req))) {
+		/* Copy IV returned by VSE */
+		if (copy_to_user((void __user *)((struct tegra_crypt_req *)arg)->iv,
+					&crypt_req.iv, sizeof(crypt_req.iv))) {
 			pr_err("%s: copy_to_user fail(%d)\n", __func__, ret);
 			return -EFAULT;
 		}
