@@ -43,7 +43,6 @@
 #include <nvgpu/os_sched.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/ptimer.h>
-#include <nvgpu/worker.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/nvgpu_init.h>
@@ -66,12 +65,11 @@
 #include <nvgpu/job.h>
 #include <nvgpu/priv_cmdbuf.h>
 
+#include "channel_wdt.h"
+#include "channel_worker.h"
+
 static void free_channel(struct nvgpu_fifo *f, struct nvgpu_channel *ch);
 static void channel_dump_ref_actions(struct nvgpu_channel *ch);
-
-#ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-static const struct nvgpu_worker_ops channel_worker_ops;
-#endif
 
 static int channel_setup_ramfc(struct nvgpu_channel *c,
 		struct nvgpu_setup_bind_args *args,
@@ -446,279 +444,6 @@ u32 nvgpu_channel_update_gpfifo_get_and_get_free_count(struct nvgpu_channel *ch)
 	return nvgpu_channel_get_gpfifo_free_count(ch);
 }
 
-static inline struct nvgpu_channel_worker *
-nvgpu_channel_worker_from_worker(struct nvgpu_worker *worker)
-{
-	return (struct nvgpu_channel_worker *)
-	   ((uintptr_t)worker - offsetof(struct nvgpu_channel_worker, worker));
-};
-
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
-void nvgpu_channel_set_wdt_debug_dump(struct nvgpu_channel *ch, bool dump)
-{
-	ch->wdt_debug_dump = dump;
-}
-
-static struct nvgpu_channel_wdt_state nvgpu_channel_collect_wdt_state(
-		struct nvgpu_channel *ch)
-{
-	struct gk20a *g = ch->g;
-	struct nvgpu_channel_wdt_state state = { 0, 0 };
-
-	/*
-	 * Note: just checking for nvgpu_channel_wdt_enabled() is not enough at
-	 * the moment because system suspend puts g->regs away but doesn't stop
-	 * the worker thread that runs the watchdog. This might need to be
-	 * cleared up in the future.
-	 */
-	if (nvgpu_channel_wdt_running(ch->wdt)) {
-		/*
-		 * Read the state only if the wdt is on to avoid unnecessary
-		 * accesses. The kernel mem for userd may not even exist; this
-		 * channel could be in usermode submit mode.
-		 */
-		state.gp_get = g->ops.userd.gp_get(g, ch);
-		state.pb_get = g->ops.userd.pb_get(g, ch);
-	}
-
-	return state;
-}
-
-static void nvgpu_channel_launch_wdt(struct nvgpu_channel *ch)
-{
-	struct nvgpu_channel_wdt_state state = nvgpu_channel_collect_wdt_state(ch);
-
-	/*
-	 * FIXME: channel recovery can race the submit path and can start even
-	 * after this, but this check is the best we can do for now.
-	 */
-	if (!nvgpu_channel_check_unserviceable(ch)) {
-		nvgpu_channel_wdt_start(ch->wdt, &state);
-	}
-}
-
-
-void nvgpu_channel_restart_all_wdts(struct gk20a *g)
-{
-	struct nvgpu_fifo *f = &g->fifo;
-	u32 chid;
-
-	for (chid = 0; chid < f->num_channels; chid++) {
-		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
-
-		if (ch != NULL) {
-			if ((ch->wdt != NULL) &&
-			    !nvgpu_channel_check_unserviceable(ch)) {
-				struct nvgpu_channel_wdt_state state =
-					nvgpu_channel_collect_wdt_state(ch);
-
-				nvgpu_channel_wdt_rewind(ch->wdt, &state);
-			}
-			nvgpu_channel_put(ch);
-		}
-	}
-}
-
-static void nvgpu_channel_recover_from_wdt(struct nvgpu_channel *ch)
-{
-	struct gk20a *g = ch->g;
-
-	nvgpu_log_fn(g, " ");
-
-	if (nvgpu_channel_check_unserviceable(ch)) {
-		/* channel is already recovered */
-		nvgpu_info(g, "chid: %d unserviceable but wdt was ON", ch->chid);
-		return;
-	}
-
-	nvgpu_err(g, "Job on channel %d timed out", ch->chid);
-
-	/* force reset calls gk20a_debug_dump but not this */
-	if (ch->wdt_debug_dump) {
-		gk20a_gr_debug_dump(g);
-	}
-
-#ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
-	if (g->ops.tsg.force_reset(ch,
-	    NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT,
-	    ch->wdt_debug_dump) != 0) {
-		nvgpu_err(g, "failed tsg force reset for chid: %d", ch->chid);
-	}
-#endif
-}
-
-/*
- * Test the watchdog progress. If the channel is stuck, reset it.
- *
- * The gpu is implicitly on at this point because the watchdog can only run on
- * channels that have submitted jobs pending for cleanup.
- */
-static void nvgpu_channel_check_wdt(struct nvgpu_channel *ch)
-{
-	struct nvgpu_channel_wdt_state state = nvgpu_channel_collect_wdt_state(ch);
-
-	if (nvgpu_channel_wdt_check(ch->wdt, &state)) {
-		nvgpu_channel_recover_from_wdt(ch);
-	}
-}
-
-static void nvgpu_channel_worker_poll_init(struct nvgpu_worker *worker)
-{
-	struct nvgpu_channel_worker *ch_worker =
-		nvgpu_channel_worker_from_worker(worker);
-	int ret;
-
-	ch_worker->watchdog_interval = 100U;
-
-	ret = nvgpu_timeout_init(worker->g, &ch_worker->timeout,
-			ch_worker->watchdog_interval, NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		nvgpu_err(worker->g, "timeout_init failed: %d", ret);
-	}
-}
-
-/**
- * Loop every living channel, check timeouts and handle stuck channels.
- */
-static void nvgpu_channel_poll_wdt(struct gk20a *g)
-{
-	unsigned int chid;
-
-	for (chid = 0; chid < g->fifo.num_channels; chid++) {
-		struct nvgpu_channel *ch = nvgpu_channel_from_id(g, chid);
-
-		if (ch != NULL) {
-			if (!nvgpu_channel_check_unserviceable(ch)) {
-				nvgpu_channel_check_wdt(ch);
-			}
-			nvgpu_channel_put(ch);
-		}
-	}
-}
-
-static void nvgpu_channel_worker_poll_wakeup_post_process_item(
-		struct nvgpu_worker *worker)
-{
-	struct gk20a *g = worker->g;
-
-	struct nvgpu_channel_worker *ch_worker =
-		nvgpu_channel_worker_from_worker(worker);
-	int ret;
-
-	if (nvgpu_timeout_peek_expired(&ch_worker->timeout)) {
-		nvgpu_channel_poll_wdt(g);
-		ret = nvgpu_timeout_init(g, &ch_worker->timeout,
-				ch_worker->watchdog_interval,
-				NVGPU_TIMER_CPU_TIMER);
-		if (ret != 0) {
-			nvgpu_err(g, "timeout_init failed: %d", ret);
-		}
-	}
-}
-
-static u32 nvgpu_channel_worker_poll_wakeup_condition_get_timeout(
-		struct nvgpu_worker *worker)
-{
-	struct nvgpu_channel_worker *ch_worker =
-		nvgpu_channel_worker_from_worker(worker);
-
-	return ch_worker->watchdog_interval;
-}
-#else
-static void nvgpu_channel_launch_wdt(struct nvgpu_channel *ch) {}
-#endif /* CONFIG_NVGPU_CHANNEL_WDT */
-
-static inline struct nvgpu_channel *
-nvgpu_channel_from_worker_item(struct nvgpu_list_node *node)
-{
-	return (struct nvgpu_channel *)
-	   ((uintptr_t)node - offsetof(struct nvgpu_channel, worker_item));
-};
-
-static void nvgpu_channel_worker_poll_wakeup_process_item(
-		struct nvgpu_list_node *work_item)
-{
-	struct nvgpu_channel *ch = nvgpu_channel_from_worker_item(work_item);
-
-	nvgpu_assert(ch != NULL);
-
-	nvgpu_log_fn(ch->g, " ");
-
-	nvgpu_channel_clean_up_jobs(ch);
-
-	/* ref taken when enqueued */
-	nvgpu_channel_put(ch);
-}
-
-static const struct nvgpu_worker_ops channel_worker_ops = {
-#ifdef CONFIG_NVGPU_CHANNEL_WDT
-	.pre_process = nvgpu_channel_worker_poll_init,
-	.wakeup_post_process =
-		nvgpu_channel_worker_poll_wakeup_post_process_item,
-	.wakeup_timeout =
-		nvgpu_channel_worker_poll_wakeup_condition_get_timeout,
-#endif
-	.wakeup_early_exit = NULL,
-	.wakeup_process_item =
-		nvgpu_channel_worker_poll_wakeup_process_item,
-	.wakeup_condition = NULL,
-};
-
-/**
- * Initialize the channel worker's metadata and start the background thread.
- */
-int nvgpu_channel_worker_init(struct gk20a *g)
-{
-	struct nvgpu_worker *worker = &g->channel_worker.worker;
-
-	nvgpu_worker_init_name(worker, "nvgpu_channel_poll", g->name);
-
-	return nvgpu_worker_init(g, worker, &channel_worker_ops);
-}
-
-void nvgpu_channel_worker_deinit(struct gk20a *g)
-{
-	struct nvgpu_worker *worker = &g->channel_worker.worker;
-
-	nvgpu_worker_deinit(worker);
-}
-
-/**
- * Append a channel to the worker's list, if not there already.
- *
- * The worker thread processes work items (channels in its work list) and polls
- * for other things. This adds @ch to the end of the list and wakes the worker
- * up immediately. If the channel already existed in the list, it's not added,
- * because in that case it has been scheduled already but has not yet been
- * processed.
- */
-static void channel_worker_enqueue(struct nvgpu_channel *ch)
-{
-	struct gk20a *g = ch->g;
-	int ret;
-
-	nvgpu_log_fn(g, " ");
-
-	/*
-	 * Ref released when this item gets processed. The caller should hold
-	 * one ref already, so normally shouldn't fail, but the channel could
-	 * end up being freed between the time the caller got its reference and
-	 * the time we end up here (e.g., if the client got killed); if so, just
-	 * return.
-	 */
-	if (nvgpu_channel_get(ch) == NULL) {
-		nvgpu_info(g, "cannot get ch ref for worker!");
-		return;
-	}
-
-	ret = nvgpu_worker_enqueue(&g->channel_worker.worker,
-			&ch->worker_item);
-	if (ret != 0) {
-		nvgpu_channel_put(ch);
-		return;
-	}
-}
-
 int nvgpu_channel_add_job(struct nvgpu_channel *c,
 				 struct nvgpu_channel_job *job,
 				 bool skip_buffer_refcounting)
@@ -931,7 +656,7 @@ void nvgpu_channel_update(struct nvgpu_channel *c)
 	trace_nvgpu_channel_update(c->chid);
 #endif
 	/* A queued channel is always checked for job cleanup. */
-	channel_worker_enqueue(c);
+	nvgpu_channel_worker_enqueue(c);
 }
 
 bool nvgpu_channel_update_and_check_ctxsw_timeout(struct nvgpu_channel *ch,

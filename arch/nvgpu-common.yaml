@@ -351,6 +351,10 @@ fifo:
       safe: yes
       sources: [ common/fifo/channel.c,
                  common/fifo/watchdog.c,
+                 common/fifo/channel_wdt.c,
+                 common/fifo/channel_wdt.h,
+                 common/fifo/channel_worker.c,
+                 common/fifo/channel_worker.h,
                  include/nvgpu/channel.h,
                  include/nvgpu/watchdog.h,
                  include/nvgpu/gops_channel.h,

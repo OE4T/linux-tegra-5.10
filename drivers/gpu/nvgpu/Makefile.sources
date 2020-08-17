@@ -396,12 +396,14 @@ ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)
 srcs += common/fifo/submit.c \
         common/fifo/priv_cmdbuf.c \
         common/fifo/job.c \
+        common/fifo/channel_worker.c \
 	common/sync/channel_sync.c \
 	common/sync/channel_sync_syncpt.c
 endif
 
 ifeq ($(CONFIG_NVGPU_CHANNEL_WDT),1)
-srcs += common/fifo/watchdog.c
+srcs += common/fifo/watchdog.c \
+	common/fifo/channel_wdt.c
 endif
 
 ifeq ($(CONFIG_NVGPU_SW_SEMAPHORE),1)

@@ -535,6 +535,8 @@ nvgpu-y += \
 	common/fifo/fifo.o \
 	common/fifo/preempt.o \
 	common/fifo/channel.o \
+	common/fifo/channel_wdt.o \
+	common/fifo/channel_worker.o \
 	common/fifo/pbdma.o \
 	common/fifo/submit.o \
 	common/fifo/job.o \
