@@ -564,15 +564,15 @@ static int gk20a_lockout_registers(struct gk20a *g)
 
 int nvgpu_enable_irqs(struct gk20a *g)
 {
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	u32 i;
 
-	if (!g->mc.irqs_enabled) {
-		for (i = 0U; i < g->mc.irq_stall_count; i++) {
-			enable_irq(g->mc.irq_stall_lines[i]);
-		}
-		if (g->mc.irq_stall != g->mc.irq_nonstall)
-			enable_irq(g->mc.irq_nonstall);
-		g->mc.irqs_enabled = true;
+	for (i = 0U; i < l->interrupts.stall_size; i++) {
+		enable_irq(l->interrupts.stall_lines[i]);
+	}
+
+	if (l->interrupts.nonstall_size > 0) {
+		enable_irq(l->interrupts.nonstall_line);
 	}
 
 	return 0;
@@ -580,15 +580,15 @@ int nvgpu_enable_irqs(struct gk20a *g)
 
 void nvgpu_disable_irqs(struct gk20a *g)
 {
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	u32 i;
 
-	if (g->mc.irqs_enabled) {
-		for (i = 0U; i < g->mc.irq_stall_count; i++) {
-			disable_irq(g->mc.irq_stall_lines[i]);
-		}
-		if (g->mc.irq_stall != g->mc.irq_nonstall)
-			disable_irq(g->mc.irq_nonstall);
-		g->mc.irqs_enabled = false;
+	for (i = 0U; i < l->interrupts.stall_size; i++) {
+		disable_irq(l->interrupts.stall_lines[i]);
+	}
+
+	if (l->interrupts.nonstall_size > 0) {
+		disable_irq(l->interrupts.nonstall_line);
 	}
 }
 
@@ -660,8 +660,7 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 #endif
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
-	bool irqs_enabled;
-	int ret = 0, err = 0;
+	int ret = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -670,8 +669,6 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 	if (nvgpu_is_powered_off(g))
 		goto done;
 
-	/* disable IRQs and wait for completion */
-	irqs_enabled = g->mc.irqs_enabled;
 	nvgpu_disable_irqs(g);
 
 	gk20a_scale_suspend(dev);
@@ -699,13 +696,8 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 	return 0;
 
 error:
-	/* re-enabled IRQs if previously enabled */
-	if (irqs_enabled) {
-		err = nvgpu_enable_irqs(g);
-		if (err) {
-			nvgpu_err(g, "failed to enable irqs %d", err);
-		}
-	}
+	/* Re-enable IRQs on error. This doesn't fail on Linux. */
+	(void) nvgpu_enable_irqs(g);
 
 	gk20a_scale_resume(dev);
 done:
@@ -1191,13 +1183,15 @@ static int gk20a_pm_unrailgate(struct device *dev)
 void nvgpu_free_irq(struct gk20a *g)
 {
 	struct device *dev = dev_from_gk20a(g);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	u32 i;
 
-	for (i = 0U; i < g->mc.irq_stall_count; i++) {
-		devm_free_irq(dev, g->mc.irq_stall_lines[i], g);
+	for (i = 0U; i < l->interrupts.stall_size; i++) {
+		devm_free_irq(dev, l->interrupts.stall_lines[i], g);
 	}
-	if (g->mc.irq_stall != g->mc.irq_nonstall)
-		devm_free_irq(dev, g->mc.irq_nonstall, g);
+	if (l->interrupts.nonstall_size > 0) {
+		devm_free_irq(dev, l->interrupts.nonstall_line, g);
+	}
 }
 
 /*
@@ -1587,7 +1581,7 @@ static int gk20a_probe(struct platform_device *dev)
 	int err;
 	struct gk20a_platform *platform = NULL;
 	struct device_node *np;
-	u32 i;
+	u32 i, intr_size, irq_idx;
 
 	if (dev->dev.of_node) {
 		const struct of_device_id *match;
@@ -1640,56 +1634,62 @@ static int gk20a_probe(struct platform_device *dev)
 	if (nvgpu_platform_is_simulation(gk20a))
 		nvgpu_set_enabled(gk20a, NVGPU_IS_FMODEL, true);
 
-	/* Number of stall interrupt lines = total irq - 1 (for nonstall irq) */
-	gk20a->mc.irq_stall_count = platform_irq_count(dev) - 1;
+	intr_size = platform_irq_count(dev);
+	if (intr_size > 0U && intr_size <= NVGPU_MAX_INTERRUPTS) {
+		irq_idx = 0U;
 
-	gk20a->mc.irq_stall = platform_get_irq(dev, 0);
-	gk20a->mc.irq_stall_lines[0] = gk20a->mc.irq_stall;
+		/* Single interrupt line could be a stall line*/
+		l->interrupts.nonstall_size = intr_size == 1U ? 0U : 1U;
+		l->interrupts.stall_size = intr_size - l->interrupts.nonstall_size;
 
-	gk20a->mc.irq_nonstall = platform_get_irq(dev, 1);
-	if ((int)gk20a->mc.irq_stall < 0 || (int)gk20a->mc.irq_nonstall < 0) {
+		for (i = 0U; i < l->interrupts.stall_size; i++) {
+			l->interrupts.stall_lines[i] = platform_get_irq(dev, i);
+			if ((int)l->interrupts.stall_lines[i] < 0) {
+				err = -ENXIO;
+				goto return_err;
+			}
+		}
+		if (l->interrupts.nonstall_size > 0U) {
+			l->interrupts.nonstall_line = platform_get_irq(dev, i);
+			if ((int)l->interrupts.nonstall_line < 0) {
+				err = -ENXIO;
+				goto return_err;
+			}
+		}
+	} else {
+		dev_err(&dev->dev, "Invalid intr lines\n");
 		err = -ENXIO;
 		goto return_err;
 	}
 
-	if (gk20a->mc.irq_stall_count > 1) {
-		for (i = 1U; i < gk20a->mc.irq_stall_count; i++) {
-			gk20a->mc.irq_stall_lines[i] =
-					platform_get_irq(dev, i + 1);
-		}
-	}
-	for (i = 0U; i < gk20a->mc.irq_stall_count; i++) {
+	for (i = 0U; i < l->interrupts.stall_size; i++) {
 		err = devm_request_threaded_irq(&dev->dev,
-			gk20a->mc.irq_stall_lines[i],
+			l->interrupts.stall_lines[i],
 			gk20a_intr_isr_stall,
 			gk20a_intr_thread_stall,
 			0, "gk20a_stall", gk20a);
 		if (err) {
 			dev_err(&dev->dev,
 			"failed to request stall intr irq @ %d\n",
-				gk20a->mc.irq_stall_lines[i]);
+				l->interrupts.stall_lines[i]);
 			goto return_err;
 
 		}
 	}
-	if (gk20a->mc.irq_stall != gk20a->mc.irq_nonstall) {
+	if (l->interrupts.nonstall_size > 0) {
 		err = devm_request_irq(&dev->dev,
-				gk20a->mc.irq_nonstall,
+				l->interrupts.nonstall_line,
 				gk20a_intr_isr_nonstall,
 				0, "gk20a_nonstall", gk20a);
 		if (err) {
 			dev_err(&dev->dev,
 				"failed to request non-stall intr irq @ %d\n",
-					gk20a->mc.irq_nonstall);
+					l->interrupts.nonstall_line);
 			goto return_err;
 		}
 	}
 
-	for (i = 0U; i < gk20a->mc.irq_stall_count; i++) {
-		disable_irq(gk20a->mc.irq_stall_lines[i]);
-	}
-	if (gk20a->mc.irq_stall != gk20a->mc.irq_nonstall)
-		disable_irq(gk20a->mc.irq_nonstall);
+	nvgpu_disable_irqs(gk20a);
 
 	err = gk20a_init_support(dev);
 	if (err)

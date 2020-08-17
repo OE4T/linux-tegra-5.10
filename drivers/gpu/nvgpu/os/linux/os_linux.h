@@ -24,6 +24,7 @@
 #include <linux/version.h>
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/interrupts.h>
 
 #include "cde.h"
 #include "sched.h"
@@ -74,6 +75,7 @@ struct nvgpu_os_linux {
 	struct gk20a g;
 	struct device *dev;
 	struct dgpu_thermal_alert thermal_alert;
+	struct nvgpu_interrupts interrupts;
 	struct {
 		struct cdev cdev;
 		struct device *node;

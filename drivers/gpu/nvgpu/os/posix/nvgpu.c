@@ -100,13 +100,11 @@ void nvgpu_start_gpu_idle(struct gk20a *g)
 
 int nvgpu_enable_irqs(struct gk20a *g)
 {
-	g->mc.irqs_enabled = true;
 	return 0;
 }
 
 void nvgpu_disable_irqs(struct gk20a *g)
 {
-	g->mc.irqs_enabled = false;
 }
 
 void nvgpu_set_power_state(struct gk20a *g, u32 state)

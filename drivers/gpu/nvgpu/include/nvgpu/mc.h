@@ -276,27 +276,7 @@ struct nvgpu_mc {
 	 */
 	nvgpu_atomic_t sw_irq_nonstall_pending;
 
-	/** nvgpu interrupts enabled status from host OS perspective */
-	bool irqs_enabled;
-
-	/**
-	 * Interrupt line for stalling interrupts.
-	 * Can be same as irq_nonstall in case of PCI.
-	 */
-	u32 irq_stall;
-
-	/** Interrupt line for non-stalling interrupts. */
-	u32 irq_nonstall;
-
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-
-	/** Total number of stall interrupt lines */
-	u32 irq_stall_count;
-	/**
-	 * Array to store irq_stall interrupt number for upto 4
-	 * stall irq lines.
-	 */
-	u32 irq_stall_lines[4];
 
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	struct nvgpu_next_mc nvgpu_next;

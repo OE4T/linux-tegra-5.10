@@ -496,6 +496,7 @@ gr:
       safe: yes
       sources: [ common/gr/gr_intr.c,
                  common/gr/gr_intr_priv.h,
+                 include/nvgpu/interrupts.h,
                  include/nvgpu/gr/gr_intr.h ]
     setup:
       safe: yes
