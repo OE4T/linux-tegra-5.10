@@ -5,7 +5,7 @@ config NVETHERNET
 	select MII
 	depends on OF && HAS_DMA
 	default n
-	---help---
+	help
 	Say Y here if you have a NVIDIA Tegra Ethernet EQOS Adapter.
 
 	To compile this driver as a module, choose M here: the module
@@ -14,6 +14,6 @@ config NVETHERNET_SELFTESTS
 	bool "Support for NVETHERNET Selftests"
 	depends on NVETHERNET
 	default n
-	---help---
+	help
 	  This adds support for NVETHERNET Selftests using ethtool. Enable this
 	  feature if you are facing problems with your HW.
