@@ -38,6 +38,10 @@ int iommu_dma_prepare_msi(struct msi_desc *desc, phys_addr_t msi_addr);
 void iommu_dma_compose_msi_msg(struct msi_desc *desc,
 			       struct msi_msg *msg);
 
+void iommu_dma_map_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs);
+void iommu_dma_unmap_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs);
 void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list);
 
 #else /* CONFIG_IOMMU_DMA */
@@ -83,6 +87,16 @@ static inline int iommu_dma_prepare_msi(struct msi_desc *desc,
 
 static inline void iommu_dma_compose_msi_msg(struct msi_desc *desc,
 					     struct msi_msg *msg)
+{
+}
+
+static void iommu_dma_map_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs)
+{
+}
+
+static void iommu_dma_unmap_msi_pages(struct device *dev, phys_addr_t msi_base,
+		int irq, unsigned int nr_irqs)
 {
 }
 
