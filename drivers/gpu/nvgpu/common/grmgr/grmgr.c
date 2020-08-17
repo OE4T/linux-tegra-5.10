@@ -125,66 +125,115 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 		 * 7) HW write to disable the legacy gr syspipe programming.
 		 * 8) Release the gr_syspipe_lock.
 		 */
+
+		if ((gr_syspipe_id !=
+				NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
+				((g->mig.usable_gr_syspipe_mask & BIT32(
+					gr_syspipe_id)) == 0U)) {
+			nvgpu_err(g, "Invalid param syspipe_id[%x] en_mask[%x]",
+				gr_syspipe_id,
+				g->mig.usable_gr_syspipe_mask);
+			return -EINVAL;
+		}
+
+		if (enable && (g->mig.current_gr_syspipe_id ==
+				NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
+				(gr_syspipe_id ==
+				NVGPU_MIG_INVALID_GR_SYSPIPE_ID)) {
+			nvgpu_warn(g,
+				"Legacy GR PGRAPH window enable called before "
+					"disable sequence call ");
+			return -EPERM;
+		}
+
+		if (!enable && (gr_syspipe_id !=
+				NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
+				(g->mig.current_gr_syspipe_id ==
+				NVGPU_MIG_INVALID_GR_SYSPIPE_ID)) {
+			nvgpu_warn(g,
+				"Repeated GR remap window disable call[%x %x] ",
+				gr_syspipe_id,
+				g->mig.current_gr_syspipe_id);
+			return -EPERM;
+		}
+
 		if (enable) {
 			if (gr_syspipe_id !=
 					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
 				nvgpu_mutex_acquire(&g->mig.gr_syspipe_lock);
 			}
 		} else {
-			if (g->mig.current_gr_syspipe_id ==
+			if (gr_syspipe_id ==
 					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
 				nvgpu_mutex_acquire(&g->mig.gr_syspipe_lock);
+			} else {
+				gr_syspipe_id = 0U;
 			}
-			gr_syspipe_id = 0U;
 		}
 
 		nvgpu_log(g, gpu_dbg_mig,
-			"nvgpu_grmgr_config_gr_remap_window "
-				"current_gr_syspipe_id[%u] "
+			"current_gr_syspipe_id[%u] "
 				"requested_gr_syspipe_id[%u] enable[%d] ",
-				g->mig.current_gr_syspipe_id,
-				gr_syspipe_id,
-				enable);
+			g->mig.current_gr_syspipe_id,
+			gr_syspipe_id,
+			enable);
 
-		if (((g->mig.current_gr_syspipe_id ==
-				NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
-				(gr_syspipe_id <
-					g->ops.grmgr.get_max_sys_pipes(g))) ||
-				(enable == false)) {
-			err = g->ops.priv_ring.config_gr_remap_window(g,
-				gr_syspipe_id, enable);
-		} else if (gr_syspipe_id !=
-				NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
-			nvgpu_warn(g,
-				"nvgpu_grmgr_config_gr_remap_window "
-					"Gr remap window enable called for %u "
-					"syspipe before previous %u syspipe "
-					"is disabled from the same thread ",
-				gr_syspipe_id,
-				g->mig.current_gr_syspipe_id);
-			nvgpu_mutex_release(&g->mig.gr_syspipe_lock);
+		if (gr_syspipe_id != NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+			if ((g->mig.current_gr_syspipe_id ==
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) ||
+					(!enable)) {
+				err = g->ops.priv_ring.config_gr_remap_window(g,
+					gr_syspipe_id, enable);
+			} else {
+				nvgpu_warn(g,
+					"Gr remap window enable/disable call "
+						"from the same thread "
+						"requsted gr_syspipe_id[%u] "
+						"current_gr_syspipe_id[%u] ",
+					gr_syspipe_id,
+					g->mig.current_gr_syspipe_id);
+				err = -EPERM;
+			}
 		} else {
 			nvgpu_log(g, gpu_dbg_mig,
-				"Legacy GR PGRAPH window enable[%d] called ",
+				"Legacy GR PGRAPH window enable[%d] ",
 				enable);
 		}
 
-		if (err == 0) {
-			if (enable) {
-				g->mig.current_gr_syspipe_id = gr_syspipe_id;
-				if (g->mig.current_gr_syspipe_id ==
-					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
-					nvgpu_mutex_release(
-						&g->mig.gr_syspipe_lock);
-				}
-			} else {
-				if (g->mig.current_gr_syspipe_id !=
-					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
-					nvgpu_mutex_release(
-						&g->mig.gr_syspipe_lock);
-				}
+		if (err != 0) {
+			nvgpu_mutex_release(&g->mig.gr_syspipe_lock);
+			nvgpu_err(g, "Failed [%d]", err);
+			return err;
+		}
+
+		if (enable) {
+			if ((gr_syspipe_id ==
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
+					(g->mig.current_gr_syspipe_id == 0U)) {
 				g->mig.current_gr_syspipe_id =
 					NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
+				nvgpu_mutex_release(
+					&g->mig.gr_syspipe_lock);
+			} else {
+				g->mig.current_gr_syspipe_id = gr_syspipe_id;
+			}
+		} else {
+			if (g->mig.current_gr_syspipe_id !=
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+				g->mig.current_gr_syspipe_id =
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
+				nvgpu_mutex_release(
+					&g->mig.gr_syspipe_lock);
+			} else {
+				if (g->mig.current_gr_syspipe_id ==
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+					g->mig.current_gr_syspipe_id = 0U;
+				} else {
+					nvgpu_warn(g,
+						"Repeated Legacy GR remap "
+							"window disable call "
+							"from same thread ");
+				}
 			}
 		}
 	}
