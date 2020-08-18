@@ -705,17 +705,23 @@
 	};
 
 	hda@3510000 {
-		compatible = "nvidia,tegra234-hda", "nvidia,tegra30-hda";
-		hda,card-name = "tegra-hda-galen-t194";
+		compatible = "nvidia,tegra23x-hda", "nvidia,tegra30-hda";
+		hda,card-name = "tegra-hda-t23x";
+
+		/* Used for kernel v5.9 onward */
+		nvidia,model = "tegra-hda-t23x";
+
 		iommus = <&smmu TEGRA_SID_HDA>;
 		reg = <0x0 0x3510000 0x0 0x10000>;
-		clocks = <&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
-			 <&bpmp_clks TEGRA234_CLK_MAUD>,
-			 <&bpmp_clks TEGRA234_CLK_HDA>,
+		clocks = <&bpmp_clks TEGRA234_CLK_HDA>,
 			 <&bpmp_clks TEGRA234_CLK_HDA2CODEC_2X>,
 			 <&bpmp_clks TEGRA234_CLK_HDA2HDMICODEC>;
-		clock-names = "pllp_out0", "maud", "hda",
-				"hda2codec_2x",	"hda2hdmi";
+		clock-names = "hda", "hda2codec_2x", "hda2hdmi";
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA234_MEMORY_CLIENT_HDAR>,
+				<&mc TEGRA234_MEMORY_CLIENT_HDAW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 #if LINUX_VERSION >= 504
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_DISP>;
 #endif
