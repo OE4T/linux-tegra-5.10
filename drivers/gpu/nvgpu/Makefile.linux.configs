@@ -148,7 +148,6 @@ ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
 CONFIG_GK20A_DEVFREQ := n
 CONFIG_GK20A_PM_QOS := n
 else ifneq ($(findstring 5.9,$(NV_BUILD_KERNEL_OPTIONS)),)
-CONFIG_GK20A_DEVFREQ := n
 CONFIG_GK20A_PM_QOS := n
 endif
 
