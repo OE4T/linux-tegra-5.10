@@ -51,6 +51,7 @@ struct nvgpu_channel_sync_syncpt {
 	struct nvgpu_nvhost_dev *nvhost;
 	u32 id;
 	struct nvgpu_mem syncpt_buf;
+	u32 max_thresh;
 };
 
 static struct nvgpu_channel_sync_syncpt *
@@ -191,22 +192,22 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 		nvgpu_channel_sync_syncpt_from_base(s);
 	struct nvgpu_channel *c = sp->c;
 	struct nvgpu_os_fence os_fence = {0};
+	struct gk20a *g = c->g;
 
 	err = nvgpu_priv_cmdbuf_alloc(c->priv_cmd_q,
-			c->g->ops.sync.syncpt.get_incr_cmd_size(wfi_cmd),
+			g->ops.sync.syncpt.get_incr_cmd_size(wfi_cmd),
 			incr_cmd);
 	if (err != 0) {
 		return err;
 	}
 
-	nvgpu_log(c->g, gpu_dbg_info, "sp->id %d gpu va %llx",
+	nvgpu_log(g, gpu_dbg_info, "sp->id %d gpu va %llx",
 				sp->id, sp->syncpt_buf.gpu_va);
-	c->g->ops.sync.syncpt.add_incr_cmd(c->g, *incr_cmd,
+	g->ops.sync.syncpt.add_incr_cmd(g, *incr_cmd,
 			sp->id, sp->syncpt_buf.gpu_va, wfi_cmd);
 
-	thresh = nvgpu_wrapping_add_u32(
-			nvgpu_nvhost_syncpt_read_maxval(sp->nvhost, sp->id),
-			c->g->ops.sync.syncpt.get_incr_per_release());
+	thresh = nvgpu_wrapping_add_u32(sp->max_thresh,
+			g->ops.sync.syncpt.get_incr_per_release());
 
 	if (need_sync_fence) {
 		err = nvgpu_os_fence_syncpt_create(&os_fence, c, sp->nvhost,
@@ -256,9 +257,8 @@ static void channel_sync_syncpt_mark_progress(struct nvgpu_channel_sync *s,
 		nvgpu_channel_sync_syncpt_from_base(s);
 	struct nvgpu_channel *c = sp->c;
 	struct gk20a *g = c->g;
-	u32 thresh;
 
-	thresh = nvgpu_nvhost_syncpt_incr_max_ext(sp->nvhost, sp->id,
+	sp->max_thresh = nvgpu_wrapping_add_u32(sp->max_thresh,
 			g->ops.sync.syncpt.get_incr_per_release());
 
 	if (register_irq) {
@@ -275,7 +275,7 @@ static void channel_sync_syncpt_mark_progress(struct nvgpu_channel_sync *s,
 
 			int err = nvgpu_nvhost_intr_register_notifier(
 				sp->nvhost,
-				sp->id, thresh,
+				sp->id, sp->max_thresh,
 				channel_sync_syncpt_update, c);
 			if (err != 0) {
 				nvgpu_channel_put(referenced);
@@ -304,7 +304,8 @@ static void channel_sync_syncpt_set_min_eq_max(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
 		nvgpu_channel_sync_syncpt_from_base(s);
-	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost, sp->id);
+
+	nvgpu_nvhost_syncpt_set_minval(sp->nvhost, sp->id, sp->max_thresh);
 }
 
 static u32 channel_sync_syncpt_get_id(struct nvgpu_channel_sync_syncpt *sp)
@@ -320,7 +321,7 @@ static void channel_sync_syncpt_destroy(struct nvgpu_channel_sync *s)
 
 	sp->c->g->ops.sync.syncpt.free_buf(sp->c, &sp->syncpt_buf);
 
-	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost, sp->id);
+	channel_sync_syncpt_set_min_eq_max(s);
 	nvgpu_nvhost_syncpt_put_ref_ext(sp->nvhost, sp->id);
 	nvgpu_kfree(sp->c->g, sp);
 }
@@ -379,25 +380,35 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c)
 	 */
 	if ((sp->id == 0U) ||
 		(sp->id == NVGPU_INVALID_SYNCPT_ID)) {
-		nvgpu_kfree(c->g, sp);
 		nvgpu_err(c->g, "failed to get free syncpt");
-		return NULL;
+		goto err_free;
 	}
 
 	err = sp->c->g->ops.sync.syncpt.alloc_buf(sp->c, sp->id,
 				&sp->syncpt_buf);
 
 	if (err != 0) {
-		nvgpu_nvhost_syncpt_put_ref_ext(sp->nvhost, sp->id);
-		nvgpu_kfree(c->g, sp);
 		nvgpu_err(c->g, "failed to allocate syncpoint buffer");
-		return NULL;
+		goto err_put;
 	}
 
-	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost, sp->id);
+	err = nvgpu_nvhost_syncpt_read_ext_check(sp->nvhost, sp->id,
+			&sp->max_thresh);
+
+	if (err != 0) {
+		goto err_free_buf;
+	}
 
 	nvgpu_atomic_set(&sp->base.refcount, 0);
 	sp->base.ops = &channel_sync_syncpt_ops;
 
 	return &sp->base;
+
+err_free_buf:
+	sp->c->g->ops.sync.syncpt.free_buf(sp->c, &sp->syncpt_buf);
+err_put:
+	nvgpu_nvhost_syncpt_put_ref_ext(sp->nvhost, sp->id);
+err_free:
+	nvgpu_kfree(c->g, sp);
+	return NULL;
 }

@@ -105,8 +105,6 @@ nvgpu_channel_user_syncpt_create(struct nvgpu_channel *ch)
 		goto err_put;
 	}
 
-	nvgpu_nvhost_syncpt_set_min_eq_max_ext(s->nvhost, s->syncpt_id);
-
 	return s;
 err_put:
 	nvgpu_nvhost_syncpt_put_ref_ext(s->nvhost, s->syncpt_id);
@@ -136,7 +134,6 @@ void nvgpu_channel_user_syncpt_destroy(struct nvgpu_channel_user_syncpt *s)
 
 	g->ops.sync.syncpt.free_buf(s->ch, &s->syncpt_buf);
 
-	nvgpu_nvhost_syncpt_set_min_eq_max_ext(s->nvhost, s->syncpt_id);
 	nvgpu_nvhost_syncpt_put_ref_ext(s->nvhost, s->syncpt_id);
 	nvgpu_kfree(g, s);
 }

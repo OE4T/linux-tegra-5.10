@@ -144,6 +144,12 @@ void nvgpu_nvhost_syncpt_set_min_eq_max_ext(
 	nvhost_syncpt_set_min_eq_max_ext(nvhost_dev->host1x_pdev, id);
 }
 
+void nvgpu_nvhost_syncpt_set_minval(
+	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 val)
+{
+	nvhost_syncpt_set_minval(nvhost_dev->host1x_pdev, id, val);
+}
+
 void nvgpu_nvhost_syncpt_put_ref_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
 {
@@ -199,7 +205,6 @@ void nvgpu_nvhost_syncpt_set_safe_state(
 	} else {
 		val += 0x10000;
 		nvhost_syncpt_set_minval(nvhost_dev->host1x_pdev, id, val);
-		nvhost_syncpt_set_maxval(nvhost_dev->host1x_pdev, id, val);
 	}
 }
 

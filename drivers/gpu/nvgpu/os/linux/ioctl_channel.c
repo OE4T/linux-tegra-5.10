@@ -1087,6 +1087,7 @@ static int nvgpu_ioctl_channel_get_user_syncpoint(struct nvgpu_channel *ch,
 {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	struct gk20a *g = ch->g;
+	int err;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT)) {
 		nvgpu_err(g, "user syncpoints not supported");
@@ -1116,8 +1117,17 @@ static int nvgpu_ioctl_channel_get_user_syncpoint(struct nvgpu_channel *ch,
 	}
 
 	args->syncpoint_id = nvgpu_channel_user_syncpt_get_id(ch->user_sync);
-	args->syncpoint_max = nvgpu_nvhost_syncpt_read_maxval(g->nvhost,
-						args->syncpoint_id);
+
+	/* The current value is the max we're expecting at the moment */
+	err = nvgpu_nvhost_syncpt_read_ext_check(g->nvhost, args->syncpoint_id,
+			&args->syncpoint_max);
+	if (err != 0) {
+		nvgpu_mutex_acquire(&ch->sync_lock);
+		nvgpu_channel_user_syncpt_destroy(ch->user_sync);
+		nvgpu_mutex_release(&ch->sync_lock);
+		return err;
+	}
+
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS)) {
 		args->gpu_va =
 			nvgpu_channel_user_syncpt_get_address(ch->user_sync);

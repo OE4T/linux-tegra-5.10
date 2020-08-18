@@ -112,6 +112,11 @@ void nvgpu_nvhost_syncpt_set_min_eq_max_ext(
 {
 }
 
+void nvgpu_nvhost_syncpt_set_minval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+	u32 id, u32 val)
+{
+}
+
 void nvgpu_nvhost_syncpt_put_ref_ext(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
 {

@@ -105,13 +105,24 @@ int nvgpu_nvhost_syncpt_wait_timeout_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_d
 u32 nvgpu_nvhost_syncpt_incr_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 incrs);
 
-int nvgpu_nvhost_syncpt_read_ext_check(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 id, u32 *val);
-
 int nvgpu_nvhost_create_symlink(struct gk20a *g);
 void nvgpu_nvhost_remove_symlink(struct gk20a *g);
 
 #endif
+
+/**
+ * @brief Attempt to read the current value of given sync point id.
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param id [in]		Sync point id.
+ * @param val [out]		Sync point value.
+ *
+ * - Read the sync_pt value of the given sync point from hardware.
+ *
+ * @return			0 on success.
+ */
+int nvgpu_nvhost_syncpt_read_ext_check(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+	u32 id, u32 *val);
 
 /**
  * @brief Get the sync_pt name of given sync point id.
@@ -146,6 +157,28 @@ const char *nvgpu_nvhost_syncpt_get_name(
 void nvgpu_nvhost_syncpt_set_min_eq_max_ext(struct nvgpu_nvhost_dev
 	*nvgpu_syncpt_dev,
 	u32 id);
+
+/**
+ * @brief Increment the value of given sync point to the given value.
+ *
+ * @param nvgpu_syncpt_dev [in]	Sync point device.
+ * @param id [in]		Sync point id.
+ * @param val [in]		Final desired syncpt value.
+ *
+ * - Read the current value of the given sync point by calling
+ *   #NvRmHost1xSyncpointRead().
+ * - If val is less than current, increment the syncpoint
+ *   by the difference(val - current) by calling
+ *   #nvgpu_nvhost_syncptshim_map_increment().
+ *
+ * Note that this can race and cause the syncpt value to go over the desired
+ * value if some other entity (such as the gpu hardware) is incrementing the
+ * syncpoint concurrently.
+ *
+ * @return			None.
+ */
+void nvgpu_nvhost_syncpt_set_minval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
+	u32 id, u32 val);
 
 /**
  * @brief Read the maximum value of given sync point id.
