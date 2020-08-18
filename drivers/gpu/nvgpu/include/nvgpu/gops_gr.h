@@ -999,23 +999,6 @@ struct gops_gr_zcull {
  */
 struct gops_gr {
 	/**
-	 * @brief Prepare the s/w required to enable gr h/w.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 *
-	 * This HAL executes only a subset of s/w initialization sequence
-	 * that is required to enable GR engine h/w in #gr_enable_hw hal.
-	 * This HAL always maps to #nvgpu_gr_prepare_sw.
-	 *
-	 * @return 0 in case of success, < 0 in case of failure.
-	 * @retval -ENOMEM if memory allocation fails for any internal data
-	 *         structure.
-	 *
-	 * @see nvgpu_gr_prepare_sw
-	 */
-	int (*gr_prepare_sw)(struct gk20a *g);
-
-	/**
 	 * @brief Enable GR engine h/w.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.

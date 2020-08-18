@@ -124,6 +124,18 @@ struct nvgpu_gr_config;
  * @param g [in]	Pointer to GPU driver struct.
  *
  * This function allocates memory for GR struct (i.e. struct nvgpu_gr).
+ * Number of GR instances are queried from #nvgpu_grmgr_get_num_gr_instances()
+ * and size is allocated for each instance.
+ *
+ * This function executes only a subset of s/w initialization sequence
+ * that is required to enable GR engine h/w in #nvgpu_gr_enable_hw().
+ *
+ * This initialization includes allocating memory for internal data
+ * structures required to enable h/w. This function allocates memory
+ * for FECS ECC error counters and GR interrupt structure.
+ *
+ * Note that all rest of the s/w initialization is completed in
+ * #nvgpu_gr_init_support() function.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ENOMEM if memory allocation fails for GR struct.
@@ -139,28 +151,6 @@ int nvgpu_gr_alloc(struct gk20a *g);
  * during deinitialization.
  */
 void nvgpu_gr_free(struct gk20a *g);
-
-/**
- * @brief Initialize the s/w required to enable h/w.
- *
- * @param g [in]	Pointer to GPU driver struct.
- *
- * This function executes only a subset of s/w initialization sequence
- * that is required to enable GR engine h/w in #nvgpu_gr_enable_hw().
- *
- * This initialization includes reading netlist ucode and allocating
- * memory for internal data structures required to enable h/w. This
- * function allocates memory for FECS ECC error counters and GR
- * interrupt structure.
- *
- * Note that all rest of the s/w initialization is completed in
- * #nvgpu_gr_init_support() function.
- *
- * @return 0 in case of success, < 0 in case of failure.
- * @retval -ENOMEM if memory allocation fails for any internal data
- *         structure.
- */
-int nvgpu_gr_prepare_sw(struct gk20a *g);
 
 /**
  * @brief Enable GR engine h/w.
@@ -203,7 +193,7 @@ int nvgpu_gr_enable_hw(struct gk20a *g);
  *   after considering floorsweeping.
  *
  * This function must be called in this sequence:
- * - nvgpu_gr_prepare_sw()
+ * - nvgpu_gr_alloc()
  * - nvgpu_gr_enable_hw()
  * - nvgpu_gr_init_support()
  *

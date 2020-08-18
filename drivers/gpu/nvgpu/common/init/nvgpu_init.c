@@ -42,6 +42,7 @@
 #include <nvgpu/device.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/pm_reservation.h>
+#include <nvgpu/netlist.h>
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -655,9 +656,9 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate_gr, NO_FLAG),
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.grmgr.init_gr_manager, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_netlist_init_ctx_vars, NO_FLAG),
 		/* prepare portion of sw required for enable hw */
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gr_alloc, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_prepare_sw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_enable_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_construct_execute,
 				       NVGPU_SEC_PRIVSECURITY),

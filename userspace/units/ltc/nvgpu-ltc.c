@@ -36,6 +36,7 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/ecc.h>
+#include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr.h>
 #include <hal/ltc/intr/ltc_intr_gv11b.h>
 
@@ -249,6 +250,16 @@ int test_ltc_ecc_init_free(struct unit_module *m, struct gk20a *g, void *args)
 	struct nvgpu_ecc_stat **save_ded_ptr = g->ecc.ltc.ecc_ded_count;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 			nvgpu_kmem_get_fault_injection();
+
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
+	err = nvgpu_netlist_init_ctx_vars(g);
+	if (err != 0) {
+		unit_return_fail(m, "netlist init failed\n");
+	}
 
 	err = nvgpu_gr_alloc(g);
 	if (err != 0) {

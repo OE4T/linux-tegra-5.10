@@ -404,7 +404,6 @@ static void set_poweron_funcs_success(struct gk20a *g)
 	setup_simple_init_func_success(&g->ops.mm.init_mm_support, i++);
 	setup_simple_init_func_success(&g->ops.fifo.fifo_init_support, i++);
 	setup_simple_init_func_success(&g->ops.therm.elcg_init_idle_filters, i++);
-	setup_simple_init_func_success(&g->ops.gr.gr_prepare_sw, i++);
 	setup_simple_init_func_success(&g->ops.gr.gr_enable_hw, i++);
 	setup_simple_init_func_success(&g->ops.fbp.fbp_init_support, i++);
 	setup_simple_init_func_success(&g->ops.gr.gr_init_support, i++);
@@ -804,11 +803,11 @@ struct unit_module_test init_tests[] = {
 	UNIT_TEST(init_can_busy,			test_can_busy,		NULL, 0),
 	UNIT_TEST(init_get_put,				test_get_put,		NULL, 0),
 	UNIT_TEST(init_hal_init,			test_hal_init,		NULL, 0),
-	UNIT_TEST(init_poweron,				test_poweron,		NULL, 0),
-	UNIT_TEST(init_poweron_branches,		test_poweron_branches,	NULL, 0),
+	UNIT_TEST(init_poweron,				test_poweron,		NULL, 2),
+	UNIT_TEST(init_poweron_branches,		test_poweron_branches,	NULL, 2),
 	UNIT_TEST(init_poweroff,			test_poweroff,		NULL, 2),
-	UNIT_TEST(init_check_gpu_state,			test_check_gpu_state,	NULL, 0),
-	UNIT_TEST(init_quiesce,				test_quiesce,		NULL, 0),
+	UNIT_TEST(init_check_gpu_state,			test_check_gpu_state,	NULL, 2),
+	UNIT_TEST(init_quiesce,				test_quiesce,		NULL, 2),
 	UNIT_TEST(init_free_env,			test_free_env,		NULL, 0),
 };
 

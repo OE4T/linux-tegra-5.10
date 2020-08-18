@@ -83,8 +83,7 @@ int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_gr.gr_prepare_sw, nvgpu_gr_prepare_sw,
- *          gops_gr.gr_enable_hw, nvgpu_gr_enable_hw,
+ * Targets: gops_gr.gr_enable_hw, nvgpu_gr_enable_hw,
  *          gops_gr_intr.enable_hww_exceptions,
  *          gv11b_gr_intr_enable_hww_exceptions,
  *          gops_gr_intr.enable_interrupts,
@@ -97,8 +96,8 @@ int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
  * Input: test_gr_init_setup must have been executed successfully.
  *
  * Steps:
- * -  Call nvgpu_gr_prepare_sw and nvgpu_gr_enable_hw which helps
- *    to initialize the s/w and enable h/w for GR engine.
+ * -  Call nvgpu_gr_enable_hw which helps to initialize the s/w and
+ *    enable h/w for GR engine.
  *
  * Output: Returns PASS.
  */
@@ -229,7 +228,7 @@ int test_gr_init_ecc_features(struct unit_module *m,
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_gr_prepare_sw, nvgpu_gr_enable_hw,
+ * Targets: nvgpu_gr_enable_hw,
  *          nvgpu_gr_init_support, nvgpu_gr_sw_ready,
  *          gm20b_gr_init_lg_coalesce,
  *          gm20b_gr_init_su_coalesce,
@@ -260,7 +259,7 @@ int test_gr_init_setup_ready(struct unit_module *m,
  * Test Type: Feature, Error Injection
  *
  * Targets: gops_gr.gr_init_support, nvgpu_gr_init_support,
- *          gops_gr.gr_prepare_sw, nvgpu_gr_prepare_sw, gr_remove_support
+ *          gr_remove_support
  *
  * Input: #test_gr_setup_ready must have been executed successfully.
  *
@@ -269,10 +268,6 @@ int test_gr_init_setup_ready(struct unit_module *m,
  *    This includes failing of #nvgpu_gr_falcon_init_ctxsw,
  *    #nvgpu_gr_init_ctx_state,
  *    gr_init_setup_sw and gr_init_setup_hw functions.
- * -  Add various condition to cause failure in #nvgpu_gr_prepare_sw.
- *    This includes failing of #nvgpu_netlist_init_ctx_vars,
- *    #nvgpu_gr_falcon_init_support,
- *    #nvgpu_gr_intr_init_support and g->ops.gr.ecc.fecs_ecc_init functions.
  *
  * Output: Returns PASS if the steps above were executed successfully. FAIL
  * otherwise.

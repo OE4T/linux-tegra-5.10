@@ -695,7 +695,6 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 
 err_free_irq:
 	nvgpu_free_irq(g);
-	nvgpu_gr_free(g);
 err_disable_msi:
 #if defined(CONFIG_PCI_MSI)
 	if (g->msi_enabled)

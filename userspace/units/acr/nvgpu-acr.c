@@ -33,6 +33,7 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/firmware.h>
+#include <nvgpu/netlist.h>
 
 #include <nvgpu/gr/gr.h>
 
@@ -236,6 +237,16 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 		return -ENODEV;
 	}
 
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
+	err = nvgpu_netlist_init_ctx_vars(g);
+	if (err != 0) {
+		unit_return_fail(m, "netlist init failed\n");
+	}
+
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 	err = nvgpu_gr_alloc(g);
 	if (err != 0) {
@@ -295,16 +306,6 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 static int prepare_gr_hw_sw(struct unit_module *m, struct gk20a *g)
 {
 	int err;
-
-	/*
-	 * prepare portion of sw required
-	 * for enable hw
-	 */
-	err = nvgpu_gr_prepare_sw(g);
-	if (err != 0) {
-		nvgpu_mutex_release(&g->tpc_pg_lock);
-		unit_return_fail(m, "failed to prepare sw");
-	}
 
 	err = nvgpu_gr_enable_hw(g);
 	if (err != 0) {
@@ -878,11 +879,6 @@ int test_acr_init(struct unit_module *m,
 			pwr_pmu_scpctl_stat_r(), 0x4) != 0) {
 		unit_err(m, "Add pwr_pmu_scpctl_stat_r() reg space failed!\n");
 		return -ENOMEM;
-	}
-
-	err = g->ops.ecc.ecc_init_support(g);
-	if (err != 0) {
-		unit_return_fail(m, "ecc init failed\n");
 	}
 
 	/*

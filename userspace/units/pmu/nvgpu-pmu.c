@@ -28,6 +28,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/hal_init.h>
+#include <nvgpu/netlist.h>
 
 #include <nvgpu/gr/gr.h>
 
@@ -195,6 +196,16 @@ static int init_pmu_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	pmu_flcn = nvgpu_utf_falcon_init(m, g, FALCON_ID_PMU);
 	if (pmu_flcn == NULL) {
 		return -ENODEV;
+	}
+
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
+	err = nvgpu_netlist_init_ctx_vars(g);
+	if (err != 0) {
+		unit_return_fail(m, "netlist init failed\n");
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);

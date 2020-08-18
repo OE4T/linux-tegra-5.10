@@ -1731,7 +1731,6 @@ return_err:
 	 * Last since the above allocs may use data structures in here.
 	 */
 	nvgpu_kmem_fini(gk20a, NVGPU_KMEM_FINI_FORCE_CLEANUP);
-	nvgpu_gr_free(gk20a);
 	kfree(l);
 
 	return err;

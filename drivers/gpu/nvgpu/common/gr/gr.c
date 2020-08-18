@@ -339,18 +339,14 @@ static void gr_remove_support(struct gk20a *g)
 	nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
 #endif
 
-	nvgpu_gr_falcon_remove_support(g, gr->falcon);
-	gr->falcon = NULL;
-
-	nvgpu_gr_intr_remove_support(g, gr->intr);
-	gr->intr = NULL;
-
 #ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
 	nvgpu_gr_zcull_deinit(g, gr->zcull);
 #endif /* CONFIG_NVGPU_GRAPHICS */
 
 	nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
+
+	nvgpu_gr_free(g);
 }
 
 static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
@@ -611,57 +607,6 @@ out:
 	return err;
 }
 
-int nvgpu_gr_prepare_sw(struct gk20a *g)
-{
-	struct nvgpu_gr *gr = g->gr;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_netlist_init_ctx_vars(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to parse netlist");
-		return err;
-	}
-
-	if (gr->falcon == NULL) {
-		gr->falcon = nvgpu_gr_falcon_init_support(g);
-		if (gr->falcon == NULL) {
-			nvgpu_err(g, "failed to init gr falcon");
-			err = -ENOMEM;
-			goto exit;
-		}
-	}
-
-	if (gr->intr == NULL) {
-		gr->intr = nvgpu_gr_intr_init_support(g);
-		if (gr->intr == NULL) {
-			nvgpu_err(g, "failed to init gr intr support");
-			err = -ENOMEM;
-			goto exit;
-		}
-	}
-
-	/*
-	 * Initialize FECS ECC counters here before acr_construct_execute as the
-	 * FECS ECC errors during FECS load need to be handled and reported
-	 * using the ECC counters.
-	 */
-	if ((g->ops.gr.ecc.fecs_ecc_init != NULL) && !g->ecc.initialized) {
-		err = g->ops.gr.ecc.fecs_ecc_init(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init gr fecs ecc");
-
-			nvgpu_gr_intr_remove_support(g, gr->intr);
-			gr->intr = NULL;
-			goto exit;
-		}
-	}
-
-exit:
-	return err;
-}
-
 static int gr_init_prepare_hw(struct gk20a *g)
 {
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
@@ -847,6 +792,7 @@ int nvgpu_gr_init_support(struct gk20a *g)
 int nvgpu_gr_alloc(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = NULL;
+	int err;
 	u32 i;
 
 	/* if gr exists return */
@@ -872,10 +818,37 @@ int nvgpu_gr_alloc(struct gk20a *g)
 	for (i = 0U; i < g->num_gr_instances; i++) {
 		gr = &g->gr[i];
 
+		gr->falcon = nvgpu_gr_falcon_init_support(g);
+		if (gr->falcon == NULL) {
+			nvgpu_err(g, "failed to init gr falcon");
+			err = -ENOMEM;
+		}
+
+		gr->intr = nvgpu_gr_intr_init_support(g);
+		if (gr->intr == NULL) {
+			nvgpu_err(g, "failed to init gr intr support");
+			err = -ENOMEM;
+		}
+
 		nvgpu_cond_init(&gr->init_wq);
 #ifdef CONFIG_NVGPU_NON_FUSA
 		nvgpu_gr_override_ecc_val(gr, g->fecs_feature_override_ecc_val);
 #endif
+	}
+
+	/*
+	 * Initialize FECS ECC counters here before acr_construct_execute as the
+	 * FECS ECC errors during FECS load need to be handled and reported
+	 * using the ECC counters.
+	 */
+	if (g->ops.gr.ecc.fecs_ecc_init != NULL) {
+		err = g->ops.gr.ecc.fecs_ecc_init(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init gr fecs ecc");
+
+			nvgpu_gr_intr_remove_support(g, gr->intr);
+			gr->intr = NULL;
+		}
 	}
 
 	return 0;
@@ -883,10 +856,24 @@ int nvgpu_gr_alloc(struct gk20a *g)
 
 void nvgpu_gr_free(struct gk20a *g)
 {
-	/*Delete gr memory */
-	if (g->gr != NULL) {
-		nvgpu_kfree(g, g->gr);
+	struct nvgpu_gr *gr = NULL;
+	u32 i;
+
+	if (g->gr == NULL) {
+		return;
 	}
+
+	for (i = 0U; i < g->num_gr_instances; i++) {
+		gr = &g->gr[i];
+
+		nvgpu_gr_falcon_remove_support(g, gr->falcon);
+		gr->falcon = NULL;
+
+		nvgpu_gr_intr_remove_support(g, gr->intr);
+		gr->intr = NULL;
+	}
+
+	nvgpu_kfree(g, g->gr);
 	g->gr = NULL;
 }
 

@@ -301,55 +301,6 @@ static int test_gr_alloc_errors(struct gk20a *g)
 	return UNIT_SUCCESS;
 }
 
-static int test_gr_prepare_sw(struct gk20a *g)
-{
-	int err, j, locn = 0;
-	bool pass, result;
-	struct nvgpu_gr_falcon *gr_falcon = g->gr->falcon;
-	struct nvgpu_gr_intr *gr_intr = g->gr->intr;
-	struct nvgpu_netlist_vars *netlist_vars = g->netlist_vars;
-	struct nvgpu_posix_fault_inj *kmem_fi =
-		nvgpu_kmem_get_fault_injection();
-
-	for (j = 0; j < 4; j++) {
-		switch (j) {
-		case 0:
-			g->netlist_valid = false;
-			result = false;
-			break;
-		case 1:
-			g->netlist_valid = true;
-			g->gr->falcon = NULL;
-			result = false;
-			break;
-		case 2:
-			g->gr->falcon = gr_falcon;
-			g->netlist_vars = netlist_vars;
-			g->gr->intr = NULL;
-			result = false;
-			break;
-		case 3:
-			g->gr->intr = gr_intr;
-			result = false;
-			break;
-		}
-		nvgpu_posix_enable_fault_injection(kmem_fi, true, locn);
-		err = nvgpu_gr_prepare_sw(g);
-		if (err) {
-			pass = false;
-		} else {
-			pass = true;
-		}
-		if (result != pass) {
-			return UNIT_FAIL;
-		}
-		nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
-	}
-
-	return UNIT_SUCCESS;
-
-}
-
 static int test_gr_init_ctxsw_ucode_alloc_error(struct gk20a *g)
 {
 
@@ -462,7 +413,6 @@ static int test_gr_init_ecc_init_pass(struct gk20a *g)
 	int err;
 
 	g->ecc.initialized = 1;
-	err = nvgpu_gr_prepare_sw(g);
 	g->gr->falcon->sizes.golden_image_size = 0x10;
 
 	err = nvgpu_gr_init_support(g);
@@ -504,7 +454,6 @@ static int test_gr_init_setup_sw_error(struct gk20a *g)
 	for (j = 0; j < 16; j++) {
 		if (j > 0) {
 			g->ecc.initialized = 1;
-			err = nvgpu_gr_prepare_sw(g);
 			g->gr->falcon->sizes.golden_image_size = 0x10;
 		}
 
@@ -570,33 +519,13 @@ static int test_gr_init_support_alloc_error(struct gk20a *g)
 
 static int test_gr_init_support_errors(struct gk20a *g)
 {
-	int err, i;
-	bool pass = false, alloc_fail_init = false, alloc_fail_sw = false;
+	int err;
 
-	for (i = 0; i < 2; i++) {
-		switch (i) {
-		case 0:
-			alloc_fail_sw = true;
-			pass = true;
-			break;
-		case 1:
-			alloc_fail_init = true;
-			pass = true;
-			break;
-		}
-
-		if (alloc_fail_init) {
-			err = test_gr_init_support_alloc_error(g);
-		} else if (alloc_fail_sw) {
-			err = test_gr_prepare_sw(g);
-		}
-
-		if (pass && (err != 0)) {
-			return UNIT_FAIL;
-		} else if ((!pass) && (err == 0)) {
-			return UNIT_FAIL;
-		}
+	err = test_gr_init_support_alloc_error(g);
+	if (err) {
+		return UNIT_FAIL;
 	}
+
 	return UNIT_SUCCESS;
 }
 
@@ -635,7 +564,7 @@ struct unit_module_test nvgpu_gr_init_tests[] = {
 	UNIT_TEST(gr_init_hal_config_error_injection, test_gr_init_hal_config_error_injection, NULL, 0),
 	UNIT_TEST(gr_suspend, test_gr_suspend, NULL, 0),
 	UNIT_TEST(gr_ecc_features, test_gr_init_ecc_features, NULL, 0),
-	UNIT_TEST(gr_init_error_injections, test_gr_init_error_injections, NULL, 0),
+	UNIT_TEST(gr_init_error_injections, test_gr_init_error_injections, NULL, 2),
 	UNIT_TEST(gr_remove_support, test_gr_remove_support, NULL, 0),
 	UNIT_TEST(gr_remove_setup, test_gr_remove_setup, NULL, 0),
 };

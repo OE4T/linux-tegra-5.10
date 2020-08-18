@@ -305,7 +305,6 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 8_7))
 		.init_prod_values = gv11b_ce_init_prod_values,
 	},
 	.gr = {
-		.gr_prepare_sw = nvgpu_gr_prepare_sw,
 		.gr_enable_hw = nvgpu_gr_enable_hw,
 		.gr_init_support = nvgpu_gr_init_support,
 		.gr_suspend = nvgpu_gr_suspend,

@@ -35,6 +35,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/string.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_intr.h>
@@ -707,6 +708,8 @@ static void vgpu_remove_gr_support(struct gk20a *g)
 #ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_gr_zcull_deinit(gr->g, gr->zcull);
 #endif
+
+	nvgpu_gr_free(g);
 }
 
 static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
@@ -722,22 +725,6 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	}
 
 	gr->g = g;
-
-	if (gr->intr == NULL) {
-		gr->intr = nvgpu_gr_intr_init_support(g);
-		if (gr->intr == NULL) {
-			err = -ENOMEM;
-			goto clean_up;
-		}
-	}
-
-	if (gr->falcon == NULL) {
-		gr->falcon = nvgpu_gr_falcon_init_support(g);
-		if (gr->falcon == NULL) {
-			err = -ENOMEM;
-			goto clean_up;
-		}
-	}
 
 	err = g->ops.gr.falcon.init_ctx_state(g, &gr->falcon->sizes);
 	if (err) {

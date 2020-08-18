@@ -493,7 +493,6 @@ nvgpu_gr_obj_ctx_deinit
 nvgpu_gr_obj_ctx_init
 nvgpu_gr_obj_ctx_is_golden_image_ready
 nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode
-nvgpu_gr_prepare_sw
 nvgpu_gr_remove_support
 nvgpu_gr_subctx_alloc
 nvgpu_gr_subctx_free

@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hal_init.h>
 #include <nvgpu/device.h>
+#include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
 
@@ -50,6 +51,16 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	nvgpu_device_init(g);
+
+	err = g->ops.ecc.ecc_init_support(g);
+	if (err != 0) {
+		unit_return_fail(m, "ecc init failed\n");
+	}
+
+	err = nvgpu_netlist_init_ctx_vars(g);
+	if (err != 0) {
+		unit_return_fail(m, "netlist init failed\n");
+	}
 
 	/*
 	 * Allocate gr unit
@@ -81,16 +92,6 @@ static int test_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 int test_gr_init_prepare(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
-
-	err = g->ops.ecc.ecc_init_support(g);
-	if (err != 0) {
-		unit_return_fail(m, "ecc init failed\n");
-	}
-
-	err = nvgpu_gr_prepare_sw(g);
-	if (err != 0) {
-		unit_return_fail(m, "nvgpu_gr_prepare_sw returned fail\n");
-	}
 
 	err = nvgpu_gr_enable_hw(g);
 	if (err != 0) {

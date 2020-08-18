@@ -323,9 +323,6 @@ static void nvgpu_free_gk20a(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
-	/* free gr memory */
-	nvgpu_gr_free(g);
-
 	kfree(l);
 }
 
