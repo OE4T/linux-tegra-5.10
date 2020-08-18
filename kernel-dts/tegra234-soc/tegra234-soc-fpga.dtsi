@@ -484,10 +484,18 @@
         };
 
 	sdmmc4: sdhci@3460000 { /* Used for eMMC */
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		/delete-property/ iommus;
+		/delete-property/ dma-coherent;
+#endif
 		status = "okay";
 	};
 
 	sdmmc1: sdhci@3400000 {
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		/delete-property/ iommus;
+		/delete-property/ dma-coherent;
+#endif
 		/delete-property/ pinctrl-names;
 		/delete-property/ pinctrl-0;
 		/delete-property/ pinctrl-1;
