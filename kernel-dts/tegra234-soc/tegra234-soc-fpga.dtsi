@@ -54,6 +54,10 @@
 	};
 #endif
 
+	mc {
+		status = "okay";
+	};
+
 	miscreg@00100000 {
 		compatible = "nvidia,tegra194-misc", "nvidia,tegra186-miscreg";
 		reg = <0x0 0x00100000 0x0 0xf000>, /* Chipid */
