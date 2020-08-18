@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2015 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (C) 2015-2020 NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <dt-bindings/memory/tegra210-mc.h>
@@ -842,7 +842,7 @@ static const struct tegra_mc_client tegra210_mc_clients[] = {
 		},
 		.la = {
 			.reg = 0x3dc,
-			.shift = 0,
+			.shift = 16,
 			.mask = 0xff,
 			.def = 0x80,
 		},
