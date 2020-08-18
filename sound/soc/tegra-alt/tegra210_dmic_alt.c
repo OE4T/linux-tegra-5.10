@@ -380,7 +380,7 @@ static const struct soc_enum tegra210_dmic_ch_enum =
 			tegra210_dmic_ch_select);
 
 static const char * const tegra210_dmic_mono_conv_text[] = {
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 static const char * const tegra210_dmic_stereo_conv_text[] = {

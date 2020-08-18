@@ -856,7 +856,7 @@ static const char * const tegra_admaif_stereo_conv_text[] = {
 };
 
 static const char * const tegra_admaif_mono_conv_text[] = {
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 static const struct soc_enum tegra_admaif_mono_conv_enum =
