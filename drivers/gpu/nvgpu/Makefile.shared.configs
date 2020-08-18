@@ -203,8 +203,7 @@ NVGPU_COMMON_CFLAGS             += -DCONFIG_MSSNVLINK0_RST_CONTROL
 CONFIG_NVGPU_DGPU               := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_DGPU
 
-# Enable dgpu_next for normal build
-
+# Enable nvgpu_next for normal build
 ifneq ($(NV_BUILD_CONFIGURATION_IS_EXTERNAL), 1)
 CONFIG_NVGPU_NEXT               := 1
 NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_NEXT

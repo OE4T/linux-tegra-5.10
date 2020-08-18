@@ -389,7 +389,7 @@ endif
 
 ifeq ($(CONFIG_NVGPU_PROFILER),1)
 srcs += common/profiler/profiler.c \
-     += common/profiler/pm_reservation.c
+	common/profiler/pm_reservation.c
 endif
 
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)

@@ -48,7 +48,9 @@ endif
 NV_COMPONENT_INCLUDES 		+= \
 				$(NV_SOURCE)/kernel/nvgpu/userspace/units/mock-iospace/include \
 				$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu/include \
-				$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
+				$(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu \
+				$(NV_SOURCE)/kernel/nvgpu-next/drivers/gpu/nvgpu/include \
+				$(NV_SOURCE)/kernel/nvgpu-next/drivers/gpu/nvgpu
 
 ifdef NVGPU_CFLAGS
 NV_COMPONENT_CFLAGS		:= \
