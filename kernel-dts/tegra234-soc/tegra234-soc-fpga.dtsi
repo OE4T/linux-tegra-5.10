@@ -381,6 +381,19 @@
 		};
 	};
 
+        hda@3510000 {
+                compatible = "nvidia,tegra23x-hda", "nvidia,tegra30-hda";
+                hda,card-name = "tegra-hda-t23x";
+                iommus = <&smmu TEGRA_SID_HDA>;
+                reg = <0x0 0x3510000 0x0 0x10000>;
+                clocks = <&bpmp_clks TEGRA234_CLK_HDA>,
+                         <&bpmp_clks TEGRA234_CLK_HDA2CODEC_2X>,
+                         <&bpmp_clks TEGRA234_CLK_HDA2HDMICODEC>;
+                clock-names = "hda", "hda2codec_2x", "hda2hdmi";
+                interrupts = <0 60 0x04>;
+                status = "okay";
+        };
+
 	rce-en@BE00000 {
 		compatible = "nvidia,tegra234-RCE-EN";
 		status = "disabled";
