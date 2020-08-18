@@ -107,11 +107,6 @@ u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
 	return nvgpu_safe_mult_u32(syncpt_id, 0x1000U);
 }
 
-void nvgpu_nvhost_syncpt_set_min_eq_max_ext(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
-{
-}
-
 void nvgpu_nvhost_syncpt_set_minval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 val)
 {
@@ -163,12 +158,6 @@ bool nvgpu_nvhost_syncpt_is_valid_pt_ext(
 	return true;
 }
 
-u32 nvgpu_nvhost_syncpt_incr_max_ext(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 incrs)
-{
-	return 0;
-}
-
 int nvgpu_nvhost_intr_register_notifier(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 thresh,
 	void (*callback)(void *, int), void *private_data)
@@ -180,12 +169,6 @@ int nvgpu_nvhost_syncpt_read_ext_check(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id, u32 *val)
 {
 	return -ENOSYS;
-}
-
-u32 nvgpu_nvhost_syncpt_read_maxval(
-	struct nvgpu_nvhost_dev *nvhost_dev, u32 id)
-{
-	return 0U;
 }
 
 int nvgpu_nvhost_syncpt_wait_timeout_ext(

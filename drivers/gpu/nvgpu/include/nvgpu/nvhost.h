@@ -102,9 +102,6 @@ bool nvgpu_nvhost_syncpt_is_expired_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_de
 int nvgpu_nvhost_syncpt_wait_timeout_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 thresh, u32 timeout, u32 waiter_index);
 
-u32 nvgpu_nvhost_syncpt_incr_max_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 id, u32 incrs);
-
 int nvgpu_nvhost_create_symlink(struct gk20a *g);
 void nvgpu_nvhost_remove_symlink(struct gk20a *g);
 
@@ -139,26 +136,6 @@ const char *nvgpu_nvhost_syncpt_get_name(
 	struct nvgpu_nvhost_dev *nvgpu_syncpt_dev, int id);
 
 /**
- * @brief Increment the value of given sync point to the maximum value.
- *
- * @param nvgpu_syncpt_dev [in]	Sync point device.
- * @param id [in]		Sync point id.
- *
- * - Read the current value of the given sync point by calling
- *   #NvRmHost1xSyncpointRead().
- * - Read the max value of the sync point set at allocation of the
- *   sync point.
- * - If the max value is less than current, increment the syncpoint
- *   by the difference(max - current) by calling
- *   #nvgpu_nvhost_syncptshim_map_increment().
- *
- * @return			None.
- */
-void nvgpu_nvhost_syncpt_set_min_eq_max_ext(struct nvgpu_nvhost_dev
-	*nvgpu_syncpt_dev,
-	u32 id);
-
-/**
  * @brief Increment the value of given sync point to the given value.
  *
  * @param nvgpu_syncpt_dev [in]	Sync point device.
@@ -179,20 +156,6 @@ void nvgpu_nvhost_syncpt_set_min_eq_max_ext(struct nvgpu_nvhost_dev
  */
 void nvgpu_nvhost_syncpt_set_minval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 val);
-
-/**
- * @brief Read the maximum value of given sync point id.
- *
- * @param nvgpu_syncpt_dev [in]	Sync point device.
- * @param id [in]		Sync point id.
- *
- * - Read the max value of the given sync point by reading one of
- *   the max value array stored in nvhost sync point device structure.
- *
- * @return			Maximum value of the sync point.
- */
-u32 nvgpu_nvhost_syncpt_read_maxval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
-	u32 id);
 
 /**
  * @brief Set the value of given syncpoint to a value where all waiters of the
