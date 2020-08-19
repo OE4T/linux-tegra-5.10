@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * References are taken from "Bosch C_CAN controller" at
  * "drivers/net/can/c_can/c_can.c"
@@ -730,14 +730,17 @@ static int mttcan_poll_ir(struct napi_struct *napi, int quota)
 			if (((ir & MTT_IR_EP_MASK) && !(psr & MTT_PSR_EP_MASK))
 				|| ((ir & MTT_IR_EW_MASK) &&
 				!(psr & MTT_PSR_EW_MASK))) {
-				if (ir & MTT_IR_EP_MASK)
+				if (ir & MTT_IR_EP_MASK) {
 					netdev_dbg(dev,
 						"left error passive state\n");
-				else
+					priv->can.state =
+						CAN_STATE_ERROR_WARNING;
+				} else {
 					netdev_dbg(dev,
 						"left error warning state\n");
-
-				priv->can.state = CAN_STATE_ERROR_ACTIVE;
+					priv->can.state =
+						CAN_STATE_ERROR_ACTIVE;
+				}
 			}
 
 			/* Handle Bus error change */
