@@ -36,7 +36,9 @@
 #include <media/camera_version_utils.h>
 #include <media/nvc_focus.h>
 #include <media/sensor_common.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 #include <media/soc_camera.h>
+#endif
 #include <media/v4l2-device.h>
 #include <media/v4l2-subdev.h>
 #include <media/v4l2-ctrls.h>
