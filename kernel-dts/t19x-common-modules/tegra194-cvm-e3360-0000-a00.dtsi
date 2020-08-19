@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -91,6 +91,42 @@
 			};
 			override@6 {
 				target = <&mods_iso_smmu>;
+				_overlay_ {
+					status = "okay";
+				};
+			};
+			ovveride@7 {
+				target = <&mods_pcie0>;
+				_overlay_ {
+					status = "okay";
+				};
+			};
+			ovveride@8 {
+				target = <&mods_pcie1>;
+				_overlay_ {
+					status = "okay";
+				};
+			};
+			ovveride@9 {
+				target = <&mods_pcie2>;
+				_overlay_ {
+					status = "okay";
+				};
+			};
+			ovveride@10 {
+				target = <&mods_pcie3>;
+				_overlay_ {
+					status = "okay";
+				};
+			};
+			ovveride@11 {
+				target = <&mods_pcie4>;
+				_overlay_ {
+					status = "okay";
+				};
+			};
+			ovveride@12 {
+				target = <&mods_pcie5>;
 				_overlay_ {
 					status = "okay";
 				};
