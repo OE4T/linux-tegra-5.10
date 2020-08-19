@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (C) 2016-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,7 @@ static int nvdec_load_streamid_regs(struct tegra_drm_client *client)
 	struct nvdec *nvdec = to_nvdec(client);
 	int streamid = -EINVAL;
 
-	streamid = iommu_get_hwid(nvdec->dev->archdata.iommu, nvdec->dev, 0);
+	streamid = iommu_get_hwid(iommu_get_domain_for_dev(nvdec->dev), nvdec->dev, 0);
 
 	if (streamid >= 0) {
 		nvdec_writel(nvdec, streamid, NVDEC_THI_STREAMID0);

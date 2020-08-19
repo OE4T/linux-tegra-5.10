@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Virtual Memory
  *
- * Copyright (c) 2014-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,7 +21,7 @@
 #include <linux/list.h>
 #include <linux/slab.h>
 #include <linux/dma-buf.h>
-#include <linux/version.h>
+#include <linux/iommu.h>
 
 #include "chip_support.h"
 #include "nvhost_vm.h"
@@ -92,8 +92,8 @@ static inline bool nvhost_vm_can_be_reused(
 	void *identifier)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
-	bool pdev_iommu = pdev->dev.archdata.iommu != NULL;
-	bool vm_iommu = vm->pdev->dev.archdata.iommu != NULL;
+	bool pdev_iommu = (iommu_get_domain_for_dev(&pdev->dev) != NULL);
+	bool vm_iommu = (iommu_get_domain_for_dev(&vm->pdev->dev) != NULL);
 
 	return vm->identifier == identifier &&
 		vm->enable_hw == pdata->isolate_contexts &&

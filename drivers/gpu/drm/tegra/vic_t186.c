@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (C) 2016-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,7 +24,7 @@ static int vic_load_streamid_regs(struct tegra_drm_client *client)
 	struct vic *vic = to_vic(client);
 	int streamid = -EINVAL;
 
-	streamid = iommu_get_hwid(vic->dev->archdata.iommu, vic->dev, 0);
+	streamid = iommu_get_hwid(iommu_get_domain_for_dev(vic->dev), vic->dev, 0);
 
 	if (streamid >= 0) {
 		vic_writel(vic, streamid, VIC_THI_STREAMID0);

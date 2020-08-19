@@ -1772,7 +1772,7 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 		return -ENXIO;
 	}
 
-	if (dev->archdata.iommu) {
+	if (iommu_get_domain_for_dev(dev)) {
 		dev_err(dev, "already attached to IOMMU domain\n");
 		return -EEXIST;
 	}
@@ -1817,7 +1817,9 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 
 	ret = arm_smmu_domain_add_master(smmu_domain, cfg);
 	if (!ret) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 		dev->archdata.iommu = domain;
+#endif
 		add_smmu_master_debugfs(domain, dev,
 				find_smmu_master(smmu, dev_get_dev_node(dev)));
 	}
@@ -1859,7 +1861,9 @@ static void arm_smmu_detach_dev(struct iommu_domain *domain, struct device *dev)
 	if (!cfg)
 		return;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 	dev->archdata.iommu = NULL;
+#endif
 	arm_smmu_domain_remove_master(smmu_domain, cfg);
 }
 

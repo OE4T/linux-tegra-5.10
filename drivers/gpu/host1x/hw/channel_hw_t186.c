@@ -1,7 +1,7 @@
 /*
  * Tegra host1x Channel
  *
- * Copyright (C) 2016 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (C) 2016-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -214,7 +214,7 @@ static int channel_submit(struct host1x_job *job)
 		}
 	}
 
-	streamid = iommu_get_hwid(host->dev->archdata.iommu, host->dev, 0);
+	streamid = iommu_get_hwid(iommu_get_domain_for_dev(host->dev), host->dev, 0);
 	if (streamid >= 0)
 		host1x_ch_writel(ch, streamid, HOST1X_CHANNEL_SMMU_STREAMID);
 
