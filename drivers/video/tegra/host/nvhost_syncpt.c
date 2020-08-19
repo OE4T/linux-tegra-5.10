@@ -946,7 +946,22 @@ static void nvhost_free_syncpt(struct nvhost_syncpt *sp, u32 id)
 					sp->syncpt_names[id]);
 
 	/* set to default state */
-	nvhost_syncpt_set_min_eq_max(sp, id);
+	if (!nvhost_syncpt_client_managed(sp, id)) {
+		/*
+		 * We know the correct max value. Make sure to release any
+		 * pending waiters in case the syncpt is released abruptly.
+		 */
+		nvhost_syncpt_set_min_eq_max(sp, id);
+	} else {
+		/*
+		 * We don't know what the max value is for sure. Assume that
+		 * the client has forced any users of the syncpt to idle, so
+		 * that the min value has settled.
+		 */
+		u32 val = nvhost_syncpt_read(sp, id);
+
+		nvhost_syncpt_set_maxval(host->dev, id, val);
+	}
 	sp->assigned[id] = false;
 	sp->client_managed[id] = false;
 	kfree(sp->syncpt_names[id]);
