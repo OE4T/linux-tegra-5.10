@@ -52,7 +52,6 @@
 #include <linux/clk/tegra.h>
 #include <linux/platform/tegra/latency_allowance.h>
 #include <linux/platform/tegra/mc.h>
-#include <soc/tegra/common.h>
 #include <linux/version.h>
 
 #include "dc.h"
@@ -68,6 +67,7 @@
 #include "panel/tegra-board-id.h"
 #include "dc_common.h"
 #include "hdmivrr.h"
+#include "panel/board-id.h"
 
 /* #define OF_DC_DEBUG */
 
@@ -303,7 +303,7 @@ static struct device_node *tegra_dc_get_panel_from_disp_board_id(
 		return ERR_PTR(-EINVAL);
 	}
 
-	tegra_get_display_board_info(&display_board);
+	tegra_dc_get_display_board_info(&display_board);
 	pr_info("display board info: id 0x%x, fab 0x%x\n",
 		display_board.board_id, display_board.fab);
 
@@ -355,7 +355,7 @@ static struct device_node *tegra_dc_get_panel_from_disp_board_id(
 		is_dsi_a_1200_800_8_0 = true;
 		break;
 	case BOARD_P1761:
-		if (tegra_get_board_panel_id())
+		if (tegra_dc_get_board_panel_id())
 			is_dsi_a_1200_1920_8_0 = true;
 		else
 			is_dsi_a_1200_800_8_0 = true;

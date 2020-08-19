@@ -40,8 +40,8 @@
 #include "dc.h"
 #include "board-panel.h"
 #include "dc_priv.h"
+#include "board-id.h"
 #include <linux/platform_data/lp855x.h>
-#include <soc/tegra/common.h>
 
 __weak const struct disp_client *tegra_la_disp_clients_info;
 
