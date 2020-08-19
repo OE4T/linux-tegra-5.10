@@ -733,8 +733,8 @@ static void ufs_tegra_mphy_rx_sync_capability(struct ufs_tegra_host *ufs_tegra)
 	/* Update MPHY_RX_APB_CAPABILITY_8C_8F_0 */
 	val_8c_8f = mphy_readl(ufs_tegra->mphy_l0_base,
 			MPHY_RX_APB_CAPABILITY_8C_8F_0);
-	val_8c_8f &= ~RX_MIN_ACTIVATETIME_CAP(~0);
-	val_8c_8f |= RX_MIN_ACTIVATETIME_CAP(RX_MIN_ACTIVATETIME);
+	val_8c_8f &= ~RX_MIN_ACTIVATETIME_CAP_ARG(~0);
+	val_8c_8f |= RX_MIN_ACTIVATETIME_CAP_ARG(RX_MIN_ACTIVATETIME);
 
 	/* Update MPHY_RX_APB_CAPABILITY_98_9B_0 */
 	val_98_9b = mphy_readl(ufs_tegra->mphy_l0_base,

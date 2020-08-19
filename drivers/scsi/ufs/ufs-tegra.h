@@ -89,7 +89,7 @@
 #define RX_HS_G3_SYNC_LENGTH_CAPABILITY(x)	(((x) & 0x3f) << 8)
 
 #define MPHY_RX_APB_CAPABILITY_8C_8F_0		0x8c
-#define RX_MIN_ACTIVATETIME_CAP(x)		(((x) & 0xf) << 24)
+#define RX_MIN_ACTIVATETIME_CAP_ARG(x)		(((x) & 0xf) << 24)
 #define RX_MIN_ACTIVATETIME			0x5
 
 #define	MPHY_RX_APB_CAPABILITY_98_9B_0		0x98
