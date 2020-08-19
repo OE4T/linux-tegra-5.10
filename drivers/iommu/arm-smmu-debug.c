@@ -13,7 +13,13 @@
 #include <linux/err.h>
 #include <linux/device.h>
 #include <linux/uaccess.h>
+#include <linux/version.h>
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
+#include "arm/arm-smmu/arm-smmu.h"
+#else
+#include "arm-smmu.h"
+#endif
 #include <linux/arm-smmu-debug.h>
 
 static struct smmu_debugfs_info *smmu_handle;

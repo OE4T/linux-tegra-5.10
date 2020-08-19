@@ -9,7 +9,7 @@
 #ifndef _ARM_SMMU_DEBUG_H
 #define _ARM_SMMU_DEBUG_H
 
-#include "arm-smmu.h"
+struct arm_smmu_device;
 
 /* Identification registers */
 #define ARM_SMMU_GR0_nsCR0		0x400
