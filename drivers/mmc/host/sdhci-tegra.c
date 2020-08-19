@@ -225,7 +225,6 @@ struct sdhci_tegra {
 	struct clk *tmclk;
 	bool ddr_signaling;
 	bool pad_calib_required;
-	struct clk *tmclk;
 	bool pad_control_available;
 
 	struct reset_control *rst;

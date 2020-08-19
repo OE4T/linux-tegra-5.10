@@ -3115,7 +3115,6 @@ static const struct tegra_pcie_soc tegra210b01_pcie = {
 	.program_uphy = true,
 	.update_clamp_threshold = false,
 	.program_deskew_time = true,
-	.raw_violation_fixup = false,
 	.update_fc_timer = true,
 	.has_cache_bars = false,
 	.enable_wrap = false,

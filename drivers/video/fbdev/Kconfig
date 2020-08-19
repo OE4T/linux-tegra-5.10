@@ -204,7 +204,7 @@ config FB_MODE_PIXCLOCK_HZ
 	bool "Enable storing fb videomode pixel clock in Hz"
 	depends on FB && TEGRA_DC
 	default n
-	---help---
+	help
 	  This config helps in storing the pixclock of each mode in hz.
 	  Currently, framebuffer stores pixel clock of videomodes in
 	  pico seconds. This necessitates conversion to Hz during modeset.

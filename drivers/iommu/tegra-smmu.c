@@ -502,8 +502,8 @@ static int tegra_smmu_attach_dev(struct iommu_domain *domain,
 		return -ENXIO;
 	}
 
-	if (dev->archdata.iommu) {
-		if (dev->archdata.iommu == domain)
+	if (dev_iommu_priv_get(dev) != NULL) {
+		if (dev_iommu_priv_get(dev) != domain)
 			return 0;
 		dev_err(dev, "already attached to another IOMMU domain\n");
 		return -EEXIST;
@@ -518,7 +518,7 @@ static int tegra_smmu_attach_dev(struct iommu_domain *domain,
 	for (index = 0; index < fwspec->num_ids; index++)
 		tegra_smmu_enable(smmu, fwspec->ids[index], as->id);
 
-	dev->archdata.iommu = domain;
+	dev_iommu_priv_set(dev, domain);
 
 	return 0;
 }
@@ -530,10 +530,10 @@ static void tegra_smmu_detach_dev(struct iommu_domain *domain, struct device *de
 	struct tegra_smmu *smmu = as->smmu;
 	unsigned int index = 0;
 
-	if (!dev->archdata.iommu)
+	if (!dev_iommu_priv_get(dev))
 		return;
 
-	dev->archdata.iommu = NULL;
+	dev_iommu_priv_set(dev, NULL);
 
 	if (IS_ERR_OR_NULL(smmu))
 		return;
