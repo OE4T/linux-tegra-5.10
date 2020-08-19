@@ -15,6 +15,7 @@
  */
 
 #include <linux/version.h>
+#include <linux/iommu.h>
 #include "ether_linux.h"
 
 /**
@@ -3805,7 +3806,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	}
 
 	/* Check if IOMMU is enabled */
-	if (pdev->dev.archdata.iommu != NULL) {
+	if (iommu_get_domain_for_dev(&pdev->dev) != NULL) {
 		/* Read and set dma-mask from DT only if IOMMU is enabled*/
 		ret = of_property_read_u64(np, "dma-mask", &pdata->dma_mask);
 	}
