@@ -17,7 +17,7 @@
 #include <linux/pm.h>
 #include <linux/pm_runtime.h>
 #include <linux/usb/typec_dp.h>
-
+#include <linux/usb/role.h>
 #include <asm/unaligned.h>
 #include "ucsi.h"
 
@@ -28,6 +28,7 @@ enum enum_fw_mode {
 	FW_INVALID,
 };
 
+/* CCGx dev info registers */
 #define CCGX_RAB_DEVICE_MODE			0x0000
 #define CCGX_RAB_INTR_REG			0x0006
 #define  DEV_INT				BIT(0)
@@ -218,6 +219,8 @@ struct ucsi_ccg {
 	bool has_multiple_dp;
 	struct ucsi_ccg_altmode orig[UCSI_MAX_ALTMODES];
 	struct ucsi_ccg_altmode updated[UCSI_MAX_ALTMODES];
+
+	struct usb_role_switch **role_sw;
 };
 
 static int ccg_read(struct ucsi_ccg *uc, u16 rab, u8 *data, u32 len)
@@ -592,11 +595,85 @@ err_clear_bit:
 	return ret;
 }
 
+static int usb_set_role_sw(struct ucsi_connector *con, enum usb_role role)
+{
+	struct ucsi_ccg *uc = ucsi_get_drvdata(con->ucsi);
+	enum usb_role prev_role;
+	unsigned int port_num;
+
+	if (con->num < 1 || con->num > uc->port_num) {
+		dev_err(uc->dev, "Not supported con->num %d\n", con->num);
+		return -EINVAL;
+	}
+
+	/* con->num counts from 1 */
+	port_num = con->num - 1;
+
+	if (!uc->role_sw[port_num])
+		return -EINVAL;
+
+	prev_role = usb_role_switch_get_role(uc->role_sw[port_num]);
+	if (prev_role == role)
+		return 0;
+
+	return usb_role_switch_set_role(uc->role_sw[port_num], role);
+}
+
+static int ucsi_ccg_role_sw_get(struct ucsi_ccg *uc)
+{
+	int err;
+	unsigned int i;
+	struct fwnode_handle *typec;
+	struct fwnode_handle *child_node = NULL;
+
+	uc->role_sw = devm_kcalloc(uc->dev, uc->port_num,
+					   sizeof(*uc->role_sw), GFP_KERNEL);
+
+	if (!uc->role_sw)
+		return -ENOMEM;
+
+	typec = dev_fwnode(uc->dev);
+	if (!typec)
+		return -ENODEV;
+
+	for (i = 0; i < uc->port_num; i++) {
+		child_node = fwnode_get_named_child_node(typec, "connector");
+		if (!child_node)
+			break;
+
+		uc->role_sw[i] = fwnode_usb_role_switch_get(child_node);
+		if (IS_ERR_OR_NULL(uc->role_sw[i])) {
+			err = PTR_ERR(uc->role_sw[i]);
+			uc->role_sw[i] = NULL;
+			if (err == -EPROBE_DEFER)
+				return err;
+			dev_info(uc->dev, "Port-%d: no role switch found\n", i);
+			continue;
+		}
+	}
+
+	return 0;
+}
+
+static void ucsi_ccg_role_sw_put(struct ucsi_ccg *uc)
+{
+	unsigned int i;
+
+	if (!uc)
+		return;
+
+	for (i = 0; i < uc->port_num; i++) {
+		if (uc->role_sw[i])
+			usb_role_switch_put(uc->role_sw[i]);
+	}
+}
+
 static const struct ucsi_operations ucsi_ccg_ops = {
 	.read = ucsi_ccg_read,
 	.sync_write = ucsi_ccg_sync_write,
 	.async_write = ucsi_ccg_async_write,
-	.update_altmodes = ucsi_ccg_update_altmodes
+	.update_altmodes = ucsi_ccg_update_altmodes,
+	.set_data_role = usb_set_role_sw
 };
 
 static irqreturn_t ccg_irq_handler(int irq, void *data)
@@ -1280,6 +1357,7 @@ static void ccg_update_firmware(struct work_struct *work)
 
 	if (flash_mode != FLASH_NOT_NEEDED) {
 		ucsi_unregister(uc->ucsi);
+		ucsi_ccg_role_sw_put(uc);
 		pm_runtime_disable(uc->dev);
 		free_irq(uc->irq, uc);
 
@@ -1361,6 +1439,13 @@ static int ucsi_ccg_probe(struct i2c_client *client,
 	if (uc->info.mode & CCG_DEVINFO_PDPORTS_MASK)
 		uc->port_num++;
 
+	status = ucsi_ccg_role_sw_get(uc);
+	if (status) {
+		if (status != -EPROBE_DEFER)
+			dev_err(uc->dev, "ucsi_ccg_role_sw_get failed - %d\n", status);
+		return status;
+	}
+
 	uc->ucsi = ucsi_create(dev, &ucsi_ccg_ops);
 	if (IS_ERR(uc->ucsi))
 		return PTR_ERR(uc->ucsi);
@@ -1414,6 +1499,7 @@ static int ucsi_ccg_remove(struct i2c_client *client)
 	pm_runtime_disable(uc->dev);
 	ucsi_unregister(uc->ucsi);
 	ucsi_destroy(uc->ucsi);
+	ucsi_ccg_role_sw_put(uc);
 	free_irq(uc->irq, uc);
 
 	return 0;
