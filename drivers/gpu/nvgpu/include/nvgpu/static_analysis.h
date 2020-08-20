@@ -156,6 +156,52 @@ static inline u32 nvgpu_wrapping_add_u32(u32 ui_a, u32 ui_b)
 }
 
 /**
+ * @brief Subtract two u32 values with wraparound arithmetic
+ *
+ * @param ui_a [in]	Value of minuend.
+ * @param ui_b [in]	Value of subtrahend.
+ *
+ * Subtracts \a ui_b from \a ui_a. If the result would underflow an u32, wrap
+ * in modulo arithmetic as defined in the C standard (value mod (U32_MAX + 1)).
+ *
+ * @return wrapping sub of (\a ui_a - \a ui_b).
+ */
+static inline u32 nvgpu_wrapping_sub_u32(u32 ui_a, u32 ui_b)
+{
+	/* INT30-C */
+	u64 ul_a = (u64)ui_a;
+	u64 ul_b = (u64)ui_b;
+	u64 diff = (ul_a + 0xffffffff00000000ULL - ul_b) & 0xffffffffULL;
+	/*
+	 * Note how the borrow bit will be taken from the least significant bit
+	 * of the upper 32 bits; there is no way for an underflow to occur in
+	 * 64 bits, and an underflow in the lower 32 bits will be handled as
+	 * expected. For example, 0 - 1 becomes U32_MAX:
+	 *   0xffff ffff 0000 0000
+	 * - 0x                  1
+	 *   0xffff fffe ffff ffff
+	 *               ^^^^ ^^^^
+	 *
+	 * and 3 - (U32_MAX - 1) becomes 5:
+	 *   0xffff ffff 0000 0003
+	 * - 0x          ffff fffe
+	 *   0xffff fffe 0000 0005
+	 *               ^^^^ ^^^^
+	 *
+	 * If there is no underflow, this behaves as usual. 42 - 40:
+	 *   0xffff ffff 0000 002a
+	 * - 0x          0000 0028
+	 *   0xffff ffff 0000 0002
+	 *               ^^^^ ^^^^
+	 */
+
+	/* satisfy Coverity's CERT INT31-C checker */
+	nvgpu_assert(diff <= U32_MAX);
+
+	return (u32)diff;
+}
+
+/**
  * @brief Subtract two u8 values and check for underflow.
  *
  * @param uc_a [in]	Value of minuend.
