@@ -759,6 +759,34 @@ err_put_buffers:
 }
 
 /**
+ * Release preallocated job resources from a job that's known to be completed.
+ */
+static void nvgpu_channel_finalize_job(struct nvgpu_channel *c,
+		struct nvgpu_channel_job *job)
+{
+	/*
+	 * On deterministic channels, this fence is just backed by a raw
+	 * syncpoint. On nondeterministic channels the fence may be backed by a
+	 * semaphore or even a syncfd.
+	 */
+	nvgpu_fence_put(&job->post_fence);
+
+	/*
+	 * Free the private command buffers (in order of allocation)
+	 */
+	if (job->wait_cmd != NULL) {
+		nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->wait_cmd);
+	}
+	nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->incr_cmd);
+
+	nvgpu_channel_free_job(c, job);
+
+	nvgpu_channel_joblist_lock(c);
+	nvgpu_channel_joblist_delete(c, job);
+	nvgpu_channel_joblist_unlock(c);
+}
+
+/**
  * Clean up job resources for further jobs to use.
  *
  * Loop all jobs from the joblist until a pending job is found. Pending jobs
@@ -841,21 +869,7 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c)
 				job->num_mapped_buffers);
 		}
 
-		nvgpu_fence_put(&job->post_fence);
-
-		/*
-		 * Free the private command buffers (in order of allocation)
-		 */
-		if (job->wait_cmd != NULL) {
-			nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->wait_cmd);
-		}
-		nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->incr_cmd);
-
-		nvgpu_channel_free_job(c, job);
-
-		nvgpu_channel_joblist_lock(c);
-		nvgpu_channel_joblist_delete(c, job);
-		nvgpu_channel_joblist_unlock(c);
+		nvgpu_channel_finalize_job(c, job);
 
 		job_finished = true;
 
@@ -888,34 +902,15 @@ void nvgpu_channel_clean_up_deterministic_job(struct nvgpu_channel *c)
 	nvgpu_channel_joblist_unlock(c);
 
 	if (job == NULL) {
+		/* Nothing queued */
 		return;
 	}
 
 	nvgpu_assert(job->num_mapped_buffers == 0U);
 
-	if (!nvgpu_fence_is_expired(&job->post_fence)) {
-		return;
+	if (nvgpu_fence_is_expired(&job->post_fence)) {
+		nvgpu_channel_finalize_job(c, job);
 	}
-
-	/*
-	 * This fence is syncpoint-based, so cleanup doesn't do anything. Put
-	 * the ref back for consistency though.
-	 */
-	nvgpu_fence_put(&job->post_fence);
-
-	/*
-	 * Free the private command buffers (in order of allocation)
-	 */
-	if (job->wait_cmd != NULL) {
-		nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->wait_cmd);
-	}
-	nvgpu_priv_cmdbuf_free(c->priv_cmd_q, job->incr_cmd);
-
-	nvgpu_channel_free_job(c, job);
-
-	nvgpu_channel_joblist_lock(c);
-	nvgpu_channel_joblist_delete(c, job);
-	nvgpu_channel_joblist_unlock(c);
 }
 
 /**
