@@ -262,13 +262,6 @@ struct nvgpu_channel_joblist {
 		struct nvgpu_channel_job *jobs;
 		struct nvgpu_mutex read_lock;
 	} pre_alloc;
-
-	/**
-	 * Synchronize abort cleanup (when closing a channel) and job cleanup
-	 * (asynchronously from worker) - protect from concurrent access when
-	 * job resources are being freed.
-	 */
-	struct nvgpu_mutex cleanup_lock;
 };
 
 /**

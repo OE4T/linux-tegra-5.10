@@ -184,9 +184,6 @@ int nvgpu_channel_disable_tsg(struct gk20a *g, struct nvgpu_channel *ch)
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch)
 {
-	/* synchronize with actual job cleanup */
-	nvgpu_mutex_acquire(&ch->joblist.cleanup_lock);
-
 	/* ensure no fences are pending */
 	nvgpu_mutex_acquire(&ch->sync_lock);
 	if (ch->sync != NULL) {
@@ -199,8 +196,6 @@ void nvgpu_channel_abort_clean_up(struct nvgpu_channel *ch)
 	}
 #endif
 	nvgpu_mutex_release(&ch->sync_lock);
-
-	nvgpu_mutex_release(&ch->joblist.cleanup_lock);
 
 	/* The update to flush the job queue is only needed to process
 	 * nondeterministic resources and ch wdt timeouts. Any others are
@@ -791,9 +786,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c)
 
 	watchdog_on = nvgpu_channel_wdt_stop(c->wdt);
 
-	/* Synchronize with abort cleanup that needs the jobs. */
-	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
-
 	while (true) {
 		bool completed;
 
@@ -871,8 +863,6 @@ void nvgpu_channel_clean_up_jobs(struct nvgpu_channel *c)
 		gk20a_idle(g);
 	}
 
-	nvgpu_mutex_release(&c->joblist.cleanup_lock);
-
 	if ((job_finished) &&
 			(g->os_channel.work_completion_signal != NULL)) {
 		g->os_channel.work_completion_signal(c);
@@ -893,21 +883,18 @@ void nvgpu_channel_clean_up_deterministic_job(struct nvgpu_channel *c)
 
 	nvgpu_assert(nvgpu_channel_is_deterministic(c));
 
-	/* Synchronize with abort cleanup that needs the jobs. */
-	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
-
 	nvgpu_channel_joblist_lock(c);
 	job = nvgpu_channel_joblist_peek(c);
 	nvgpu_channel_joblist_unlock(c);
 
 	if (job == NULL) {
-		goto out_unlock;
+		return;
 	}
 
 	nvgpu_assert(job->num_mapped_buffers == 0U);
 
 	if (!nvgpu_fence_is_expired(&job->post_fence)) {
-		goto out_unlock;
+		return;
 	}
 
 	/*
@@ -929,9 +916,6 @@ void nvgpu_channel_clean_up_deterministic_job(struct nvgpu_channel *c)
 	nvgpu_channel_joblist_lock(c);
 	nvgpu_channel_joblist_delete(c, job);
 	nvgpu_channel_joblist_unlock(c);
-
-out_unlock:
-	nvgpu_mutex_release(&c->joblist.cleanup_lock);
 }
 
 /**
@@ -2018,7 +2002,6 @@ static void nvgpu_channel_destroy(struct nvgpu_channel *c)
 {
 	nvgpu_mutex_destroy(&c->ioctl_lock);
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
-	nvgpu_mutex_destroy(&c->joblist.cleanup_lock);
 	nvgpu_mutex_destroy(&c->joblist.pre_alloc.read_lock);
 #endif
 	nvgpu_mutex_destroy(&c->sync_lock);
@@ -2083,7 +2066,6 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid)
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	nvgpu_init_list_node(&c->worker_item);
 
-	nvgpu_mutex_init(&c->joblist.cleanup_lock);
 	nvgpu_mutex_init(&c->joblist.pre_alloc.read_lock);
 
 #endif /* CONFIG_NVGPU_KERNEL_MODE_SUBMIT */
