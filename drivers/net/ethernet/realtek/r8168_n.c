@@ -4,7 +4,7 @@
 # r8168 is the Linux device driver released for Realtek Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
-# Copyright(c) 2017-2019 Realtek Semiconductor Corp. All rights reserved.
+# Copyright(c) 2017-2020 Realtek Semiconductor Corp. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -413,8 +413,14 @@ MODULE_VERSION(RTL8168_VERSION);
 static void rtl8168_sleep_rx_enable(struct net_device *dev);
 static void rtl8168_dsm(struct net_device *dev, int dev_state);
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,14,0)
 static void rtl8168_esd_timer(unsigned long __opaque);
 static void rtl8168_link_timer(unsigned long __opaque);
+#else
+static void rtl8168_esd_timer(struct timer_list *t);
+static void rtl8168_link_timer(struct timer_list *t);
+#endif
+
 static void rtl8168_tx_clear(struct rtl8168_private *tp);
 static void rtl8168_rx_clear(struct rtl8168_private *tp);
 
@@ -431,7 +437,12 @@ static void rtl8168_hw_config(struct net_device *dev);
 static void rtl8168_hw_start(struct net_device *dev);
 static int rtl8168_close(struct net_device *dev);
 static void rtl8168_set_rx_mode(struct net_device *dev);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+static void
+rtl8168_tx_timeout(struct net_device *dev, unsigned int txqueue);
+#else
 static void rtl8168_tx_timeout(struct net_device *dev);
+#endif
 static struct net_device_stats *rtl8168_get_stats(struct net_device *dev);
 static int rtl8168_rx_interrupt(struct net_device *, struct rtl8168_private *, void __iomem *, napi_budget);
 static int rtl8168_change_mtu(struct net_device *dev, int new_mtu);
@@ -1569,12 +1580,22 @@ static int rtl8168_proc_open(struct inode *inode, struct file *file)
         return single_open(file, show, dev);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+static const struct proc_ops rtl8168_proc_fops = {
+        .proc_open           = rtl8168_proc_open,
+        .proc_read           = seq_read,
+        .proc_lseek          = seq_lseek,
+        .proc_release        = single_release,
+};
+#else
 static const struct file_operations rtl8168_proc_fops = {
         .open           = rtl8168_proc_open,
         .read           = seq_read,
         .llseek         = seq_lseek,
         .release        = single_release,
 };
+#endif
+
 #endif
 
 /*
@@ -23069,7 +23090,11 @@ static inline void rtl8168_request_esd_timer(struct net_device *dev)
         struct rtl8168_private *tp = netdev_priv(dev);
         struct timer_list *timer = &tp->esd_timer;
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,14,0)
         setup_timer(timer, rtl8168_esd_timer, (unsigned long)dev);
+#else
+        timer_setup(timer, rtl8168_esd_timer, 0);
+#endif
         mod_timer(timer, jiffies + RTL8168_ESD_TIMEOUT);
 }
 
@@ -23083,7 +23108,11 @@ static inline void rtl8168_request_link_timer(struct net_device *dev)
         struct rtl8168_private *tp = netdev_priv(dev);
         struct timer_list *timer = &tp->link_timer;
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,14,0)
         setup_timer(timer, rtl8168_link_timer, (unsigned long)dev);
+#else
+        timer_setup(timer, rtl8168_link_timer, 0);
+#endif
         mod_timer(timer, jiffies + RTL8168_LINK_TIMEOUT);
 }
 
@@ -24868,12 +24897,22 @@ err_out:
 #define PCI_DEVICE_SERIAL_NUMBER (0x0164)
 
 static void
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,14,0)
 rtl8168_esd_timer(unsigned long __opaque)
+#else
+rtl8168_esd_timer(struct timer_list *t)
+#endif
 {
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,14,0)
 	struct net_device *dev = (struct net_device *)__opaque;
 	struct rtl8168_private *tp = netdev_priv(dev);
-	struct pci_dev *pdev = tp->pci_dev;
 	struct timer_list *timer = &tp->esd_timer;
+#else
+	struct rtl8168_private *tp = from_timer(tp, t, esd_timer);
+	struct net_device *dev = tp->dev;
+	struct timer_list *timer = t;
+#endif
+	struct pci_dev *pdev = tp->pci_dev;
 	unsigned long timeout = RTL8168_ESD_TIMEOUT;
 	unsigned long flags;
 	u8 cmd;
@@ -25006,11 +25045,21 @@ rtl8168_esd_timer(unsigned long __opaque)
 }
 
 static void
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,14,0)
 rtl8168_link_timer(unsigned long __opaque)
+#else
+rtl8168_link_timer(struct timer_list *t)
+#endif
 {
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,14,0)
         struct net_device *dev = (struct net_device *)__opaque;
         struct rtl8168_private *tp = netdev_priv(dev);
         struct timer_list *timer = &tp->link_timer;
+#else
+        struct rtl8168_private *tp = from_timer(tp, t, link_timer);
+        struct net_device *dev = tp->dev;
+        struct timer_list *timer = t;
+#endif
         unsigned long flags;
 
         spin_lock_irqsave(&tp->lock, flags);
@@ -27075,8 +27124,13 @@ static void rtl8168_reset_task(struct work_struct *work)
         }
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+static void
+rtl8168_tx_timeout(struct net_device *dev, unsigned int txqueue)
+#else
 static void
 rtl8168_tx_timeout(struct net_device *dev)
+#endif
 {
         struct rtl8168_private *tp = netdev_priv(dev);
         unsigned long flags;
@@ -28046,7 +28100,7 @@ static void rtl8168_down(struct net_device *dev)
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,11)
         /* Give a racing hard_start_xmit a few cycles to complete. */
-        synchronize_sched();  /* FIXME: should this be synchronize_irq()? */
+        synchronize_rcu();  /* FIXME: should this be synchronize_irq()? */
 #endif
 
         spin_lock_irqsave(&tp->lock, flags);
