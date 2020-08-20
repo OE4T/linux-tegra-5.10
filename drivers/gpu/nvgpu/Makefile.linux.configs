@@ -75,7 +75,7 @@ CONFIG_NVGPU_FECS_TRACE := y
 # Enable support in GK20A for the nvhost (host1x) dma engine hardware
 # that includes things like hardware syncpts. This requires
 # TEGRA_GRHOST
-ifeq ($(CONFIG_TEGRA_GRHOST),y)
+ifdef CONFIG_TEGRA_GRHOST
 CONFIG_TEGRA_GK20A_NVHOST := y
 endif
 
