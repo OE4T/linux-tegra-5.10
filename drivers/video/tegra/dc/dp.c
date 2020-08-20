@@ -1753,8 +1753,18 @@ static void tegra_dp_wait_for_typec_connect(struct tegra_dc_dp_data *dp)
 		}
 	}
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+	/*
+	 * HACK: EXTCON_PROP_DISP_DP_LANE is not yet defined in K5.9 because
+	 * USB-C CCG driver hasn't yet added support to report the number of
+	 * usable DP lanes on USB-C port through extcon. Hence, skipping
+	 * calling this function in K5.9. DP will default to 4 Lanes.
+	 */
 	ret = extcon_get_property(typec_ecable->edev, EXTCON_DISP_DP,
 				EXTCON_PROP_DISP_DP_LANE, &lane_count);
+#else
+	ret = -EINVAL;
+#endif
 	if (ret) {
 		dev_err(&dc->ndev->dev,
 			"dp: extcon get lane prop error - ret=%d\n", ret);
@@ -1841,8 +1851,18 @@ static int tegra_dp_register_typec_ecable(struct tegra_dc_dp_data *dp)
 		dev_err(&dp->dc->ndev->dev,
 			"dp: failed to get initial cable state\n");
 	} else if (init_cable_state) { /* connected */
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+		/*
+		 * HACK: EXTCON_PROP_DISP_DP_LANE is not yet defined in K5.9
+		 * because USB-C CCG driver hasn't yet added support to report
+		 * the number of usable DP lanes on USB-C port through extcon.
+		 * Hence, skipping calling this function in K5.9.
+		 */
 		ret = extcon_get_property(typec_ecable->edev, EXTCON_DISP_DP,
 					EXTCON_PROP_DISP_DP_LANE, &lane_count);
+#else
+		ret = -EINVAL;
+#endif
 		if (ret) {
 			dev_err(&dp->dc->ndev->dev,
 				"dp: failed to get initial lane count\n");
