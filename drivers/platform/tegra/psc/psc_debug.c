@@ -197,6 +197,7 @@ static long xfer_data(struct file *file, char __user *data)
 	long ret = 0;
 	union mbox_msg msg = {0};
 	struct xfer_info info;
+	struct xfer_info __user *ptr_xfer = (struct xfer_info *)data;
 
 	if (copy_from_user(&info, data, sizeof(struct xfer_info))) {
 		dev_err(&pdev->dev, "failed to copy data.\n");
@@ -268,7 +269,11 @@ static long xfer_data(struct file *file, char __user *data)
 		dbg->rx_msg[0], dbg->rx_msg[1], dbg->rx_msg[2], dbg->rx_msg[3]);
 
 	/* copy mbox payload */
-	memcpy(&info.out[0], &dbg->rx_msg[0], sizeof(dbg->rx_msg));
+	if (copy_to_user(&ptr_xfer->out[0], &dbg->rx_msg[0], sizeof(dbg->rx_msg))) {
+		dev_err(dev, "failed to mbox out data.\n");
+		ret = -EFAULT;
+		goto free_rx;
+	}
 
 	if (rx_phys && info.rx_size > 0) {
 		dma_sync_single_for_cpu(dev, rx_phys,
