@@ -52,8 +52,8 @@ static inline u32 nvgpu_ce_get_valid_launch_flags(struct gk20a *g,
 
 int nvgpu_ce_execute_ops(struct gk20a *g,
 		u32 ce_ctx_id,
-		u64 src_buf,
-		u64 dst_buf,
+		u64 src_paddr,
+		u64 dst_paddr,
 		u64 size,
 		u32 payload,
 		u32 launch_flags,
@@ -86,6 +86,16 @@ int nvgpu_ce_execute_ops(struct gk20a *g,
 
 	if (request_operation != NVGPU_CE_PHYS_MODE_TRANSFER &&
 	    request_operation != NVGPU_CE_MEMSET) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	if (src_paddr > NVGPU_CE_MAX_ADDRESS) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	if (dst_paddr > NVGPU_CE_MAX_ADDRESS) {
 		ret = -EINVAL;
 		goto end;
 	}
@@ -140,8 +150,8 @@ int nvgpu_ce_execute_ops(struct gk20a *g,
 			(u64)(cmd_buf_read_offset * sizeof(u32)));
 
 	dma_copy_class = g->ops.get_litter_value(g, GPU_LIT_DMA_COPY_CLASS);
-	method_size = nvgpu_ce_prepare_submit(src_buf,
-			dst_buf,
+	method_size = nvgpu_ce_prepare_submit(src_paddr,
+			dst_paddr,
 			size,
 			&cmd_buf_cpu_va[cmd_buf_read_offset],
 			payload,
@@ -235,7 +245,7 @@ static void nvgpu_ce_delete_gpu_context_locked(struct nvgpu_ce_gpu_ctx *ce_ctx)
 }
 
 static u32 nvgpu_prepare_ce_op(u32 *cmd_buf_cpu_va,
-		u64 src_buf, u64 dst_buf,
+		u64 src_paddr, u64 dst_paddr,
 		u32 width, u32 height, u32 payload,
 		bool mode_transfer, u32 launch_flags)
 {
@@ -245,9 +255,9 @@ static u32 nvgpu_prepare_ce_op(u32 *cmd_buf_cpu_va,
 	if (mode_transfer) {
 		/* setup the source */
 		cmd_buf_cpu_va[methodSize++] = 0x20028100;
-		cmd_buf_cpu_va[methodSize++] = (u64_hi32(src_buf) &
+		cmd_buf_cpu_va[methodSize++] = (u64_hi32(src_paddr) &
 			NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK);
-		cmd_buf_cpu_va[methodSize++] = (u64_lo32(src_buf) &
+		cmd_buf_cpu_va[methodSize++] = (u64_lo32(src_paddr) &
 			NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK);
 
 		cmd_buf_cpu_va[methodSize++] = 0x20018098;
@@ -275,9 +285,9 @@ static u32 nvgpu_prepare_ce_op(u32 *cmd_buf_cpu_va,
 
 	/* setup the destination/output */
 	cmd_buf_cpu_va[methodSize++] = 0x20068102;
-	cmd_buf_cpu_va[methodSize++] = (u64_hi32(dst_buf) &
+	cmd_buf_cpu_va[methodSize++] = (u64_hi32(dst_paddr) &
 		NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK);
-	cmd_buf_cpu_va[methodSize++] = (u64_lo32(dst_buf) &
+	cmd_buf_cpu_va[methodSize++] = (u64_lo32(dst_paddr) &
 		NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK);
 	/* Pitch in/out */
 	cmd_buf_cpu_va[methodSize++] = width;
@@ -318,8 +328,8 @@ static u32 nvgpu_prepare_ce_op(u32 *cmd_buf_cpu_va,
 	return methodSize;
 }
 
-u32 nvgpu_ce_prepare_submit(u64 src_buf,
-		u64 dst_buf,
+u32 nvgpu_ce_prepare_submit(u64 src_paddr,
+		u64 dst_paddr,
 		u64 size,
 		u32 *cmd_buf_cpu_va,
 		u32 payload,
@@ -364,14 +374,14 @@ u32 nvgpu_ce_prepare_submit(u64 src_buf,
 	if (low != 0U) {
 		/* do the low bytes in one long line */
 		methodSize += nvgpu_prepare_ce_op(&cmd_buf_cpu_va[methodSize],
-				src_buf, dst_buf,
+				src_paddr, dst_paddr,
 				nvgpu_safe_cast_u64_to_u32(low), 1,
 				payload, mode_transfer, launch_flags);
 	}
 	if (hi != 0U) {
 		/* do the high bytes in many 2G lines */
 		methodSize += nvgpu_prepare_ce_op(&cmd_buf_cpu_va[methodSize],
-				src_buf + low, dst_buf + low,
+				src_paddr + low, dst_paddr + low,
 				0x80000000ULL, nvgpu_safe_cast_u64_to_u32(hi),
 				payload, mode_transfer, launch_flags);
 	}

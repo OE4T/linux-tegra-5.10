@@ -70,8 +70,8 @@ nvgpu_ce_gpu_ctx_from_list(struct nvgpu_list_node *node)
 		((uintptr_t)node - offsetof(struct nvgpu_ce_gpu_ctx, list));
 };
 
-u32 nvgpu_ce_prepare_submit(u64 src_buf,
-		u64 dst_buf,
+u32 nvgpu_ce_prepare_submit(u64 src_paddr,
+		u64 dst_paddr,
 		u64 size,
 		u32 *cmd_buf_cpu_va,
 		u32 payload,

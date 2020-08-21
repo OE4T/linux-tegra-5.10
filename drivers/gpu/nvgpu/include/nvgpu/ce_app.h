@@ -32,6 +32,9 @@ struct nvgpu_fence_type;
 /* CE command utility macros */
 #define NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK U32_MAX
 #define NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK 0xffU
+#define NVGPU_CE_MAX_ADDRESS \
+	((U64(NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK) << 32U) | \
+	 U64(NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK))
 
 #define NVGPU_CE_MAX_INFLIGHT_JOBS 32U
 
@@ -94,8 +97,8 @@ void nvgpu_ce_app_delete_context(struct gk20a *g,
 		u32 ce_ctx_id);
 int nvgpu_ce_execute_ops(struct gk20a *g,
 		u32 ce_ctx_id,
-		u64 src_buf,
-		u64 dst_buf,
+		u64 src_paddr,
+		u64 dst_paddr,
 		u64 size,
 		u32 payload,
 		u32 launch_flags,
