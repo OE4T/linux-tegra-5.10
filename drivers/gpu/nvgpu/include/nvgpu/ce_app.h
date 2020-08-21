@@ -34,11 +34,18 @@ struct nvgpu_fence_type;
 #define NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK 0xffU
 
 #define NVGPU_CE_MAX_INFLIGHT_JOBS 32U
+
 /*
- * A kickoff for any buffer size needs at most two operations; this is more
- * than enough.
+ * A copyengine job for any buffer size needs at most:
+ *
+ * - two u32 words for class header
+ * - two operations, both either 16 words (transfer) or 15 words (memset)
+ *
+ * The size does not need to be exact, so this uses the upper bound:
+ * 2 + 2 * 16 = 34 words, or 136 bytes.
  */
-#define NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF 256U
+#define NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_SUBMIT \
+	((2U + 2U * 16U) * sizeof(u32))
 
 /* dma launch_flags */
 	/* location */

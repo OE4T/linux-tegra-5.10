@@ -105,7 +105,7 @@ int nvgpu_ce_execute_ops(struct gk20a *g,
 	ce_ctx->cmd_buf_read_queue_offset %= NVGPU_CE_MAX_INFLIGHT_JOBS;
 
 	cmd_buf_read_offset = (ce_ctx->cmd_buf_read_queue_offset *
-			(NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF /
+			(NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_SUBMIT /
 			U32(sizeof(u32))));
 
 	cmd_buf_cpu_va = (u32 *)ce_ctx->cmd_buf_mem.cpu_va;
@@ -136,6 +136,7 @@ int nvgpu_ce_execute_ops(struct gk20a *g,
 			nvgpu_ce_get_valid_launch_flags(g, launch_flags),
 			request_operation,
 			dma_copy_class);
+	nvgpu_assert(method_size <= NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_SUBMIT);
 
 	if (method_size != 0U) {
 		/* store the element into gpfifo */
@@ -527,7 +528,7 @@ u32 nvgpu_ce_app_create_context(struct gk20a *g,
 	/* allocate command buffer from sysmem */
 	err = nvgpu_dma_alloc_map_sys(ce_ctx->vm,
 			NVGPU_CE_MAX_INFLIGHT_JOBS *
-			NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF,
+			NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_SUBMIT,
 			&ce_ctx->cmd_buf_mem);
 	if (err != 0) {
 		nvgpu_err(g,
