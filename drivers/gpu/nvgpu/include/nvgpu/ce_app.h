@@ -34,6 +34,10 @@ struct nvgpu_fence_type;
 #define NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK 0xffU
 
 #define NVGPU_CE_MAX_INFLIGHT_JOBS 32U
+/*
+ * A kickoff for any buffer size needs at most two operations; this is more
+ * than enough.
+ */
 #define NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF 256U
 
 /* dma launch_flags */

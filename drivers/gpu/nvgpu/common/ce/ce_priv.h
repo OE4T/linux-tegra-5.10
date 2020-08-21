@@ -27,13 +27,6 @@
 #include <nvgpu/list.h>
 #include <nvgpu/lock.h>
 
-/*
- * Copy engine defines line size in pixels
- */
-#define MAX_CE_SHIFT	31U	/* 4Gpixels -1 */
-#define MAX_CE_MASK	((u32) (~(~0U << MAX_CE_SHIFT)))
-#define MAX_CE_ALIGN(a)	((a) & MAX_CE_MASK)
-
 struct gk20a;
 
 /* ce context db */
@@ -81,7 +74,6 @@ u32 nvgpu_ce_prepare_submit(u64 src_buf,
 		u64 dst_buf,
 		u64 size,
 		u32 *cmd_buf_cpu_va,
-		u32 max_cmd_buf_size,
 		u32 payload,
 		u32 launch_flags,
 		u32 request_operation,
