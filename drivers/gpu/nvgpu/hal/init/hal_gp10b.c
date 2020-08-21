@@ -238,7 +238,6 @@ static const struct gpu_ops gp10b_ops = {
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 	},
 	.gr = {
-		.gr_enable_hw = nvgpu_gr_enable_hw,
 		.gr_init_support = nvgpu_gr_init_support,
 		.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_DEBUGGER

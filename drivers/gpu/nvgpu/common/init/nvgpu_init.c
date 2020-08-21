@@ -659,7 +659,7 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_netlist_init_ctx_vars, NO_FLAG),
 		/* prepare portion of sw required for enable hw */
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gr_alloc, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(g->ops.gr.gr_enable_hw, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gr_enable_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_construct_execute,
 				       NVGPU_SEC_PRIVSECURITY),
 #ifdef CONFIG_NVGPU_DGPU

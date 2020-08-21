@@ -175,7 +175,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_num_pce = vgpu_ce_get_num_pce,
 	},
 	.gr = {
-		.gr_enable_hw = nvgpu_gr_enable_hw,
 		.gr_init_support = nvgpu_gr_init_support,
 		.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_DEBUGGER

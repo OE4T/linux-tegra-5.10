@@ -350,7 +350,6 @@ static const struct gpu_ops tu104_ops = {
 		.init_prod_values = gv11b_ce_init_prod_values,
 	},
 	.gr = {
-		.gr_enable_hw = nvgpu_gr_enable_hw,
 		.gr_init_support = nvgpu_gr_init_support,
 		.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_DEBUGGER

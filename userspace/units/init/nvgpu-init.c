@@ -404,7 +404,6 @@ static void set_poweron_funcs_success(struct gk20a *g)
 	setup_simple_init_func_success(&g->ops.mm.init_mm_support, i++);
 	setup_simple_init_func_success(&g->ops.fifo.fifo_init_support, i++);
 	setup_simple_init_func_success(&g->ops.therm.elcg_init_idle_filters, i++);
-	setup_simple_init_func_success(&g->ops.gr.gr_enable_hw, i++);
 	setup_simple_init_func_success(&g->ops.fbp.fbp_init_support, i++);
 	setup_simple_init_func_success(&g->ops.gr.gr_init_support, i++);
 	setup_simple_init_func_success(&g->ops.ecc.ecc_finalize_support, i++);

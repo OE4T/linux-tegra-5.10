@@ -83,7 +83,7 @@ int test_gr_remove_setup(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_gr.gr_enable_hw, nvgpu_gr_enable_hw,
+ * Targets: nvgpu_gr_enable_hw,
  *          gops_gr_intr.enable_hww_exceptions,
  *          gv11b_gr_intr_enable_hww_exceptions,
  *          gops_gr_intr.enable_interrupts,

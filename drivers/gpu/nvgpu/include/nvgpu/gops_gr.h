@@ -999,22 +999,6 @@ struct gops_gr_zcull {
  */
 struct gops_gr {
 	/**
-	 * @brief Enable GR engine h/w.
-	 *
-	 * @param g [in]		Pointer to GPU driver struct.
-	 *
-	 * This HAL enables GR engine h/w.
-	 * This HAL always maps to #nvgpu_gr_enable_hw.
-	 *
-	 * @return 0 in case of success, < 0 in case of failure.
-	 * @retval -ETIMEDOUT if falcon mem scrubbing times out.
-	 * @retval -EAGAIN if GR engine idle wait times out.
-	 *
-	 * @see nvgpu_gr_enable_hw
-	 */
-	int (*gr_enable_hw)(struct gk20a *g);
-
-	/**
 	 * @brief Initialize GR engine support.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.

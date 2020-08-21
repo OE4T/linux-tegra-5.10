@@ -190,7 +190,6 @@ static const struct gpu_ops gm20b_ops = {
 		.isr_nonstall = gk20a_ce2_nonstall_isr,
 	},
 	.gr = {
-		.gr_enable_hw = nvgpu_gr_enable_hw,
 		.gr_init_support = nvgpu_gr_init_support,
 		.gr_suspend = nvgpu_gr_suspend,
 #ifdef CONFIG_NVGPU_DEBUGGER
