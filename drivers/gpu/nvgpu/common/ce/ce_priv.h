@@ -82,7 +82,7 @@ u32 nvgpu_ce_prepare_submit(u64 src_buf,
 		u64 size,
 		u32 *cmd_buf_cpu_va,
 		u32 max_cmd_buf_size,
-		unsigned int payload,
+		u32 payload,
 		u32 launch_flags,
 		u32 request_operation,
 		u32 dma_copy_class);
