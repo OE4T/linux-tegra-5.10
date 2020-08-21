@@ -569,6 +569,48 @@ static int nvhost_ioctl_ctrl_poll_fd_trigger_event(
 	return err;
 }
 
+static int nvhost_ioctl_ctrl_sync_file_extract(
+	struct nvhost_ctrl_userctx *ctx,
+	struct nvhost_ctrl_sync_file_extract *args)
+{
+	u32 __user *out_fences = u64_to_user_ptr(args->fences_ptr);
+	struct nvhost_fence *fence = nvhost_fence_get(args->fd);
+	u32 num_pts, i;
+	int err = 0;
+
+	if (!fence)
+		return -EINVAL;
+
+	num_pts = nvhost_fence_num_pts(fence);
+
+	for (i = 0; i < min(num_pts, args->num_fences); i++) {
+		u32 __user *ptr = out_fences + i*2;
+		unsigned long copy_err;
+		u32 id, thresh;
+
+		nvhost_fence_get_pt(fence, i, &id, &thresh);
+
+		copy_err = copy_to_user(ptr+0, &id, sizeof(id));
+		if (copy_err) {
+			err = -EFAULT;
+			goto put_fence;
+		}
+
+		copy_err = copy_to_user(ptr+1, &thresh, sizeof(thresh));
+		if (copy_err) {
+			err = -EFAULT;
+			goto put_fence;
+		}
+	}
+
+	args->num_fences = num_pts;
+
+put_fence:
+	nvhost_fence_put(fence);
+
+	return err;
+}
+
 static long nvhost_ctrlctl(struct file *filp,
 	unsigned int cmd, unsigned long arg)
 {
@@ -649,6 +691,9 @@ static long nvhost_ctrlctl(struct file *filp,
 		break;
 	case NVHOST_IOCTL_CTRL_ALLOC_SYNCPT:
 		err = nvhost_syncpt_fd_alloc(priv->dev, (void *)buf);
+		break;
+	case NVHOST_IOCTL_CTRL_SYNC_FILE_EXTRACT:
+		err = nvhost_ioctl_ctrl_sync_file_extract(priv, (void *)buf);
 		break;
 	default:
 		nvhost_err(&priv->dev->dev->dev, "invalid cmd 0x%x", cmd);

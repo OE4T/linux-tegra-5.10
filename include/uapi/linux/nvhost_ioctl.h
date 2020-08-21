@@ -469,6 +469,12 @@ struct nvhost_ctrl_alloc_syncpt_args {
 	__u32 padding;
 };
 
+struct nvhost_ctrl_sync_file_extract {
+	__s32 fd;
+	__u32 num_fences;
+	__u64 fences_ptr;
+};
+
 #define NVHOST_IOCTL_CTRL_SYNCPT_READ		\
 	_IOWR(NVHOST_IOCTL_MAGIC, 1, struct nvhost_ctrl_syncpt_read_args)
 #define NVHOST_IOCTL_CTRL_SYNCPT_INCR		\
@@ -512,8 +518,11 @@ struct nvhost_ctrl_alloc_syncpt_args {
 #define NVHOST_IOCTL_CTRL_ALLOC_SYNCPT		\
 	_IOWR(NVHOST_IOCTL_MAGIC, 18, struct nvhost_ctrl_alloc_syncpt_args)
 
+#define NVHOST_IOCTL_CTRL_SYNC_FILE_EXTRACT     \
+	_IOWR(NVHOST_IOCTL_MAGIC, 19, struct nvhost_ctrl_sync_file_extract)
+
 #define NVHOST_IOCTL_CTRL_LAST			\
-	_IOC_NR(NVHOST_IOCTL_CTRL_ALLOC_SYNCPT)
+	_IOC_NR(NVHOST_IOCTL_CTRL_SYNC_FILE_EXTRACT)
 #define NVHOST_IOCTL_CTRL_MAX_ARG_SIZE	\
 	sizeof(struct nvhost_ctrl_syncpt_waitmex_args)
 
