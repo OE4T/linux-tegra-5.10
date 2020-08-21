@@ -29,6 +29,7 @@
 #endif
 #include <linux/platform_device.h>
 #include <linux/io.h>
+#include <linux/slab.h>
 
 #include <linux/platform/tegra/tegra-mc-sid.h>
 #include <dt-bindings/memory/tegra-swgroup.h>
@@ -36,6 +37,14 @@
 #define TO_MC_SID_STREAMID_SECURITY_CONFIG(addr)	(addr + sizeof(u32))
 
 #define SMMU_BYPASS_SID		0x7f
+
+static LIST_HEAD(sid_override_list);
+
+struct tegra_mc_sid_override {
+	struct list_head list;
+	void __iomem *addr;
+	unsigned long sid;
+};
 
 struct tegra_mc_sid {
 	struct device *dev;
@@ -92,6 +101,7 @@ end:
 
 static void __mc_override_sid(int sid, int oid, enum mc_overrides ord)
 {
+	struct tegra_mc_sid_override *entry;
 	volatile void __iomem *addr;
 	u32 val;
 	int offs = mc_sid->soc_data->sid_override_reg[oid].offs;
@@ -110,6 +120,22 @@ static void __mc_override_sid(int sid, int oid, enum mc_overrides ord)
 
 	pr_debug("override sid=%d oid=%d ord=%d at offset=%x\n",
 		 sid, oid, ord, offs);
+
+	/* Check if this override exists in the list */
+	list_for_each_entry(entry, &sid_override_list, list) {
+		if (entry->addr != mc_sid->sid_base + offs)
+			continue;
+		/* Upon hit, Update existing list if mismatch */
+		if (entry->sid != sid)
+			entry->sid = sid;
+		return;
+	}
+
+	/* Add this override to the list for resume() */
+	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
+	entry->addr = mc_sid->sid_base + offs;
+	entry->sid = sid;
+	list_add_tail(&entry->list, &sid_override_list);
 }
 
 void platform_override_streamid(int sid)
@@ -240,11 +266,29 @@ EXPORT_SYMBOL_GPL(tegra_mc_sid_probe);
 
 int tegra_mc_sid_remove(struct platform_device *pdev)
 {
+	struct tegra_mc_sid_override *entry, *next;
+
 	tegra_mc_sid_remove_debugfs();
+	list_for_each_entry_safe(entry, next, &sid_override_list, list) {
+		list_del(&entry->list);
+		kfree(entry);
+	}
 
 	return 0;
 }
 EXPORT_SYMBOL_GPL(tegra_mc_sid_remove);
+
+int tegra_mc_sid_resume_early(struct device *dev)
+{
+	struct tegra_mc_sid_override *entry;
+
+	/* Restore all saved overrides */
+	list_for_each_entry(entry, &sid_override_list, list)
+		writel_relaxed(entry->sid, entry->addr);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_mc_sid_resume_early);
 
 MODULE_DESCRIPTION("MC StreamID configuration");
 MODULE_AUTHOR("Hiroshi DOYU <hdoyu@nvidia.com>, Pritesh Raithatha <praithatha@nvidia.com>");

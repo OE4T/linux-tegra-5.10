@@ -1,7 +1,7 @@
 /*
  * Tegra194 MC StreamID configuration
  *
- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -770,12 +770,17 @@ static const struct of_device_id tegra194_mc_sid_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tegra194_mc_sid_of_match);
 
+static const struct dev_pm_ops tegra194_mc_sid_pm_ops = {
+	.resume_early = tegra_mc_sid_resume_early,
+};
+
 static struct platform_driver tegra194_mc_sid_driver = {
 	.probe	= tegra194_mc_sid_probe,
 	.remove = tegra_mc_sid_remove,
 	.driver	= {
 		.owner	= THIS_MODULE,
 		.name	= "tegra194-mc-sid",
+		.pm     = &tegra194_mc_sid_pm_ops,
 		.of_match_table	= of_match_ptr(tegra194_mc_sid_of_match),
 	},
 };
