@@ -78,6 +78,18 @@ int nvgpu_ce_execute_ops(struct gk20a *g,
 		goto end;
 	}
 
+	/* This shouldn't happen */
+	if (size == 0ULL) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	if (request_operation != NVGPU_CE_PHYS_MODE_TRANSFER &&
+	    request_operation != NVGPU_CE_MEMSET) {
+		ret = -EINVAL;
+		goto end;
+	}
+
 	nvgpu_mutex_acquire(&ce_app->app_mutex);
 
 	nvgpu_list_for_each_entry_safe(ce_ctx, ce_ctx_save,
@@ -318,11 +330,6 @@ u32 nvgpu_ce_prepare_submit(u64 src_buf,
 	u32 methodSize = 0;
 	u64 low, hi;
 	bool mode_transfer = (request_operation == NVGPU_CE_PHYS_MODE_TRANSFER);
-
-	/* failure case handling */
-	if ((size == 0ULL) || (request_operation > NVGPU_CE_MEMSET)) {
-		return 0;
-	}
 
 	/* set the channel object */
 	cmd_buf_cpu_va[methodSize++] = 0x20018000;
