@@ -28,6 +28,43 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/ecc.h>
 
+int nvgpu_ecc_counter_init_per_gr(struct gk20a *g,
+		struct nvgpu_ecc_stat **stat, const char *name)
+{
+	struct nvgpu_ecc_stat *stats;
+	u32 i;
+	char gr_str[10] = {0};
+
+	stats = nvgpu_kzalloc(g, nvgpu_safe_mult_u64(sizeof(*stats),
+			g->num_gr_instances));
+	if (stats == NULL) {
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < g->num_gr_instances; i++) {
+		/**
+		 * Store stats name as below:
+		 * gr<gr_index>_<name_string>
+		 */
+		(void)strcpy(stats[i].name, "gr");
+		(void)nvgpu_strnadd_u32(gr_str, i, sizeof(gr_str), 10U);
+		(void)strncat(stats[i].name, gr_str,
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+		(void)strncat(stats[i].name, "_",
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+		(void)strncat(stats[i].name, name,
+					NVGPU_ECC_STAT_NAME_MAX_SIZE -
+					strlen(stats[i].name));
+
+		nvgpu_ecc_stat_add(g, &stats[i]);
+	}
+
+	*stat = stats;
+	return 0;
+}
+
 int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 		struct nvgpu_ecc_stat ***stat, const char *name)
 {

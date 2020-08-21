@@ -822,12 +822,14 @@ int nvgpu_gr_alloc(struct gk20a *g)
 		if (gr->falcon == NULL) {
 			nvgpu_err(g, "failed to init gr falcon");
 			err = -ENOMEM;
+			goto fail;
 		}
 
 		gr->intr = nvgpu_gr_intr_init_support(g);
 		if (gr->intr == NULL) {
 			nvgpu_err(g, "failed to init gr intr support");
 			err = -ENOMEM;
+			goto fail;
 		}
 
 		nvgpu_cond_init(&gr->init_wq);
@@ -845,13 +847,15 @@ int nvgpu_gr_alloc(struct gk20a *g)
 		err = g->ops.gr.ecc.fecs_ecc_init(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init gr fecs ecc");
-
-			nvgpu_gr_intr_remove_support(g, gr->intr);
-			gr->intr = NULL;
+			goto fail;
 		}
 	}
 
 	return 0;
+
+fail:
+	nvgpu_gr_free(g);
+	return err;
 }
 
 void nvgpu_gr_free(struct gk20a *g)
