@@ -9,7 +9,7 @@ config TEGRA_T23X_GRHOST
 
 config TEGRA_GRHOST_NVDLA
 	bool "Tegra NVDLA support"
-	depends on TEGRA_GRHOST && ARCH_TEGRA_19x_SOC
+	depends on TEGRA_GRHOST && (ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC)
 	default y
 	help
 	  Enables Deep Learning Accelerator engine support under nvhost
