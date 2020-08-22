@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -739,12 +739,6 @@ static int nvpps_remove(struct platform_device *pdev)
 	dev_info(&pdev->dev, "%s\n", __FUNCTION__);
 
 	if (pdev_data) {
-		if (pdev_data->irq_registered) {
-			/* unregister IRQ handler */
-			devm_free_irq(&pdev->dev, pdev_data->irq, pdev_data);
-			pdev_data->irq_registered = false;
-			dev_info(&pdev->dev, "removed IRQ %d for nvpps\n", pdev_data->irq);
-		}
 		if (pdev_data->timer_inited) {
 			pdev_data->timer_inited = false;
 			del_timer_sync(&pdev_data->timer);
