@@ -37,8 +37,8 @@
 /* Max block period in ms before TX is assumed failure. */
 #define DEFAULT_TX_TIMEOUT 2000
 
-/* 4MB max size to use for dma_alloc* */
-#define MAX_SHARED_MEM (4 * 1024 * 1024U)
+/* 256MB max size to use for dma_alloc* */
+#define MAX_SHARED_MEM (256 * 1024 * 1024U)
 
 struct xfer_info {
 	__u32 opcode[2];
