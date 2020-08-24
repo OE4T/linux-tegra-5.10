@@ -214,6 +214,58 @@ static struct uvc_format_desc uvc_fmts[] = {
 		.guid		= UVC_GUID_FORMAT_CNF4,
 		.fcc		= V4L2_PIX_FMT_CNF4,
 	},
+	{
+		.name		= "Depth data 16-bit (D16)",
+		.guid		= UVC_GUID_FORMAT_D16,
+		.fcc		= V4L2_PIX_FMT_Z16,
+	},
+	{
+		.name		= "Packed raw data 10-bit",
+		.guid		= UVC_GUID_FORMAT_W10,
+		.fcc		= V4L2_PIX_FMT_W10,
+	},
+	{
+		.name		= "Confidence data (C   )",
+		.guid		= UVC_GUID_FORMAT_CONFIDENCE_MAP,
+		.fcc		= V4L2_PIX_FMT_CONFIDENCE_MAP,
+	},
+	/* FishEye 8-bit monochrome */
+	{
+		.name		= "Raw data 8-bit (RAW8)",
+		.guid		= UVC_GUID_FORMAT_RAW8,
+		.fcc		= V4L2_PIX_FMT_GREY,
+	},
+	/* Legacy formats for backward-compatibility */
+	{
+		.name		= "Raw data 16-bit (RW16)",
+		.guid		= UVC_GUID_FORMAT_RW16,
+		.fcc		= V4L2_PIX_FMT_RW16,
+	},
+	{
+		.name		= "16-bit Bayer BGBG/GRGR",
+		.guid		= UVC_GUID_FORMAT_BAYER16,
+		.fcc		= V4L2_PIX_FMT_SBGGR16,
+	},
+	{
+		.name		= "Z16 Huffman Compression",
+		.guid		= UVC_GUID_FORMAT_Z16H,
+		.fcc		= V4L2_PIX_FMT_Z16H,
+	},
+	{
+		.name		= "Frame Grabber (FG  )",
+		.guid		= UVC_GUID_FORMAT_FG,
+		.fcc		= V4L2_PIX_FMT_FG,
+	},
+	{
+		.name		= "SR300 Depth/Confidence (INZC)",
+		.guid		= UVC_GUID_FORMAT_INZC,
+		.fcc		= V4L2_PIX_FMT_INZC,
+	},
+	{
+		.name		= "Relative IR (PAIR)",
+		.guid		= UVC_GUID_FORMAT_PAIR,
+		.fcc		= V4L2_PIX_FMT_PAIR,
+	},
 };
 
 /* ------------------------------------------------------------------------
