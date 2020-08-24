@@ -199,16 +199,7 @@ static int vblk_complete_single_query_io(struct vblk_dev *vblkdev,
 				struct vblk_ufs_ioc_query_req *vblk_req,
 				struct ufs_ioc_query_req *req)
 {
-	u8 *q_req_buf;
 	int err;
-
-	q_req_buf = (u8 *)vblk_req + sizeof(*vblk_req);
-
-	err = copy_to_user(req->buffer, q_req_buf, vblk_req->buf_size);
-	if (err) {
-		dev_err(vblkdev->device, "Failed copy_to_user query_req buffer\n");
-		goto out;
-	}
 
 	err = copy_to_user(&req->buf_size, &vblk_req->buf_size,
 				sizeof(vblk_req->buf_size));
@@ -234,9 +225,11 @@ int vblk_submit_combo_query_io(struct vblk_dev *vblkdev,
 	struct ufs_ioc_combo_query_req *combo_query_req, *usr_combo_query_req;
 	struct ufs_ioc_query_req *query_req;
 	struct vblk_ufs_ioc_query_req *vblk_ioctl_query_req;
+	struct ufs_ioc_query_req *usr_query_req;
 	int err, i;
 	struct request *rq;
 	u32 delay;
+	u8 *q_req_buf;
 
 	usr_combo_query_req = user;
 
@@ -303,10 +296,13 @@ int vblk_submit_combo_query_io(struct vblk_dev *vblkdev,
 							ioctl_req);
 		query_req[i].error_status = err;
 		if (err) {
+			usr_query_req =
+				(struct ufs_ioc_query_req *)
+				&usr_combo_query_req->query;
 			err = copy_to_user(
-				&usr_combo_query_req->query[i].error_status,
-				&query_req[i].error_status,
-				sizeof(query_req[i].error_status));
+					&usr_query_req[i].error_status,
+					&query_req[i].error_status,
+					sizeof(query_req[i].error_status));
 			kfree(ioctl_req->ioctl_buf);
 			memset(ioctl_req, 0x0, sizeof(*ioctl_req));
 			/*  Return if user wants to terminate on error */
@@ -349,10 +345,26 @@ int vblk_submit_combo_query_io(struct vblk_dev *vblkdev,
 		}
 
 		vblk_ioctl_query_req = ioctl_req->ioctl_buf;
+		usr_query_req = (struct ufs_ioc_query_req *)
+		    &usr_combo_query_req->query;
 		err = vblk_complete_single_query_io(vblkdev,
-						vblk_ioctl_query_req,
-						&usr_combo_query_req->query[i]);
-
+				vblk_ioctl_query_req,
+				(usr_query_req + i));
+		/*
+		 * FIXME:
+		 * Copying to user buffer stored in qeury_req[i] to avoid
+		 * crash saying "Internal error: Accessing user space memory
+		 * outside uaccess.h". Above Kernel Crash happens while copying
+		 * to user buffer variable stored in
+		 * usr_combo_query_req->query[i].buffer.
+		 */
+		q_req_buf = (u8 *)vblk_ioctl_query_req +
+		    sizeof(*vblk_ioctl_query_req);
+		err = copy_to_user(query_req[i].buffer, q_req_buf,
+				vblk_ioctl_query_req->buf_size);
+		if (err)
+			dev_err(vblkdev->device,
+				"Failed copy_to_user query_req buffer\n");
 		kfree(ioctl_req->ioctl_buf);
 		memzero_explicit(ioctl_req, sizeof(*ioctl_req));
 	}
