@@ -1,7 +1,7 @@
 /*
  * tegra_virt_ref_alt.c - Tegra reference virtual machine driver
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,7 +24,6 @@
 #include <sound/soc.h>
 #include <linux/of_platform.h>
 #include <linux/pm_runtime.h>
-#include <linux/tegra_pm_domains.h>
 
 #include "tegra_asoc_metadata_util_alt.h"
 #include "tegra210_virt_alt_admaif.h"
@@ -246,7 +245,6 @@ static int tegra_virt_machine_driver_probe(struct platform_device *pdev)
 	}
 
 	tegra_metadata_setup(pdev, &meta, card);
-	tegra_pd_add_device(&pdev->dev);
 	pm_runtime_forbid(&pdev->dev);
 
 	return 0;

@@ -1,7 +1,7 @@
 /*
  * tegra_asoc_machine_virt_alt.c - Tegra xbar dai link for machine drivers
  *
- * Copyright (c) 2017-2018 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,7 +26,6 @@
 #include <sound/soc.h>
 #include <linux/of_platform.h>
 #include <linux/pm_runtime.h>
-#include <linux/tegra_pm_domains.h>
 
 
 #include "tegra_asoc_machine_virt_alt.h"

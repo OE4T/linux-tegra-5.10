@@ -32,7 +32,6 @@
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/pm_runtime.h>
-#include <linux/tegra_pm_domains.h>
 #include <linux/slab.h>
 #include <linux/platform_device.h>
 #include <linux/firmware.h>
@@ -5631,7 +5630,6 @@ static int tegra210_adsp_audio_platform_probe(struct platform_device *pdev)
 	pdev->dev.dma_mask = &tegra_dma_mask;
 	pdev->dev.coherent_dma_mask = tegra_dma_mask;
 
-	tegra_pd_add_device(&pdev->dev);
 
 	pm_runtime_enable(&pdev->dev);
 	if (!pm_runtime_enabled(&pdev->dev))
@@ -5887,7 +5885,6 @@ static int tegra210_adsp_audio_platform_remove(struct platform_device *pdev)
 	snd_soc_unregister_codec(&pdev->dev);
 	snd_soc_unregister_component(&pdev->dev);
 	pm_runtime_disable(&pdev->dev);
-	tegra_pd_remove_device(&pdev->dev);
 	snd_soc_unregister_platform(&pdev->dev);
 	return 0;
 }
