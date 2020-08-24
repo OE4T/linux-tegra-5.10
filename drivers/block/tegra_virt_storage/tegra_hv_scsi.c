@@ -26,6 +26,7 @@
 #include "tegra_vblk.h"
 
 int vblk_prep_sg_io(struct vblk_dev *vblkdev,
+		struct vblk_ioctl_req *ioctl_req,
 		void __user *user)
 {
 	int err = 0;
@@ -42,8 +43,7 @@ int vblk_prep_sg_io(struct vblk_dev *vblkdev,
 	void *data_buf;
 	uint32_t data_buf_size_aligned;
 	uint32_t ioctl_len;
-	void *ioctl_buf;
-	struct vblk_ioctl_req *ioctl_req;
+	void *ioctl_buf = NULL;
 
 	hp = kmalloc(header_len, GFP_KERNEL);
 	if (hp == NULL) {
@@ -95,20 +95,18 @@ int vblk_prep_sg_io(struct vblk_dev *vblkdev,
 		goto free_hp;
 	}
 
-	if (ioctl_len > VBLK_MAX_IOCTL_SIZE) {
+	ioctl_buf = kmalloc(ioctl_len, GFP_KERNEL);
+	if (ioctl_buf == NULL) {
 		err = -ENOMEM;
 		goto free_hp;
 	}
-
-	ioctl_req = &vblkdev->ioctl_req;
-	ioctl_buf = &ioctl_req->ioctl_buf;
 
 	vblk_hp = (struct vblk_sg_io_hdr *)(ioctl_buf);
 	sbp = (ioctl_buf + sbp_offset);
 	cmnd = (ioctl_buf + cmnd_offset);
 	if (copy_from_user(cmnd, hp->cmdp, hp->cmd_len)) {
 		err = -EFAULT;
-		goto free_hp;
+		goto free_ioctl_buf;
 	}
 
 	data_buf = (ioctl_buf + data_buf_offset_aligned);
@@ -128,14 +126,14 @@ int vblk_prep_sg_io(struct vblk_dev *vblkdev,
 		break;
 	default:
 		err = -EBADMSG;
-		goto free_hp;
+		goto free_ioctl_buf;
 	}
 
 	if ((vblk_hp->data_direction == SCSI_TO_DEVICE) ||
 		(vblk_hp->data_direction == SCSI_BIDIRECTIONAL)) {
 		if (copy_from_user(data_buf, hp->dxferp, hp->dxfer_len)) {
 			err = -EFAULT;
-			goto free_hp;
+			goto free_ioctl_buf;
 		}
 	}
 
@@ -155,7 +153,12 @@ int vblk_prep_sg_io(struct vblk_dev *vblkdev,
 	vblk_hp->cmdp_arg_offset = cmnd_offset;
 	vblk_hp->sbp_arg_offset = sbp_offset;
 	ioctl_req->ioctl_id = VBLK_SG_IO_ID;
+	ioctl_req->ioctl_buf = ioctl_buf;
 	ioctl_req->ioctl_len = ioctl_len;
+
+free_ioctl_buf:
+	if (err && ioctl_buf)
+		kfree(ioctl_buf);
 
 free_hp:
 	if (hp)
@@ -165,6 +168,7 @@ free_hp:
 }
 
 int vblk_complete_sg_io(struct vblk_dev *vblkdev,
+		struct vblk_ioctl_req *ioctl_req,
 		void __user *user)
 {
 	sg_io_hdr_t *hp = NULL;
@@ -172,7 +176,6 @@ int vblk_complete_sg_io(struct vblk_dev *vblkdev,
 	struct vblk_sg_io_hdr *vblk_hp;
 	void *sbp;
 	void *data_buf;
-	struct vblk_ioctl_req *ioctl_req;
 	int err = 0;
 
 	hp = kmalloc(header_len, GFP_KERNEL);
@@ -185,7 +188,6 @@ int vblk_complete_sg_io(struct vblk_dev *vblkdev,
 		goto free_hp;
 	}
 
-	ioctl_req = &vblkdev->ioctl_req;
 	vblk_hp = (struct vblk_sg_io_hdr *)(ioctl_req->ioctl_buf);
 	hp->status = 0xff & vblk_hp->status;
 	hp->masked_status = status_byte(vblk_hp->status);
@@ -220,6 +222,9 @@ int vblk_complete_sg_io(struct vblk_dev *vblkdev,
 	}
 
 free_hp:
+	if (ioctl_req->ioctl_buf)
+		kfree(ioctl_req->ioctl_buf);
+
 	if (hp)
 		kfree(hp);
 

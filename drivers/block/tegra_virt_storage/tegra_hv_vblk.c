@@ -281,12 +281,20 @@ static bool complete_bio_req(struct vblk_dev *vblkdev)
 #else
 		if (bio_req->cmd_type == REQ_TYPE_DRV_PRIV) {
 #endif
-			vblk_complete_ioctl_req(vblkdev,
-				vsc_req,
-				req_resp->blkdev_resp.ioctl_resp.status);
-			if (blk_end_request(bio_req, 0, 0)) {
+			if (req_resp->blkdev_resp.ioctl_resp.status != 0) {
 				dev_err(vblkdev->device,
-					"Error completing private request!\n");
+					"IOCTL request failed!\n");
+				req_error_handler(vblkdev, bio_req);
+				goto put_req;
+			}
+
+			if (vblk_complete_ioctl_req(vblkdev, vsc_req)) {
+				req_error_handler(vblkdev, bio_req);
+			} else {
+				if (blk_end_request(bio_req, 0, 0)) {
+					dev_err(vblkdev->device,
+						"Error completing private request!\n");
+				}
 			}
 		} else {
 			if (req_resp->blkdev_resp.blk_resp.status != 0) {
@@ -501,7 +509,9 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 			}
 		}
 	} else {
-		if (vblk_prep_ioctl_req(vblkdev, vsc_req)) {
+		if (vblk_prep_ioctl_req(vblkdev,
+			(struct vblk_ioctl_req *)bio_req->special,
+			vsc_req)) {
 			dev_err(vblkdev->device,
 				"Failed to prepare ioctl request!\n");
 			goto bio_exit;
