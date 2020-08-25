@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -60,7 +60,7 @@ void nvgpu_init_usermode_support(struct gk20a *g)
 	}
 
 	if (l->usermode_regs == NULL) {
-		l->usermode_regs = l->regs + g->ops.usermode.base(g);
+		l->usermode_regs = l->regs + g->ops.usermode.bus_base(g);
 		l->usermode_regs_saved = l->usermode_regs;
 	}
 
