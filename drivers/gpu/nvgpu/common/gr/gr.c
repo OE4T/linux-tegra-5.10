@@ -27,6 +27,7 @@
 #include <nvgpu/errno.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_intr.h>
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -571,6 +572,9 @@ static int gr_init_reset_enable_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
+	/* enable fifo access */
+	g->ops.gr.init.fifo_access(g, true);
+
 	enable_gr_interrupts(g);
 
 	/* load non_ctx init */
@@ -606,14 +610,16 @@ out:
 	return err;
 }
 
-static int gr_init_prepare_hw(struct gk20a *g)
+static int gr_reset_engine(struct gk20a *g)
 {
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	struct nvgpu_gr *gr = &g->gr[g->cur_gr_instance];
 	int err;
 
 	if (g->ops.gr.init.reset_gpcs != NULL) {
 		const struct nvgpu_device *dev =
-			nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
+			nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
+					 nvgpu_gr_get_syspipe_id(gr));
 
 		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
@@ -637,21 +643,31 @@ static int gr_init_prepare_hw(struct gk20a *g)
 		}
 	} else {
 #endif
-	/* reset gr engine */
-	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_GRAPH) |
-			g->ops.mc.reset_mask(g, NVGPU_UNIT_BLG) |
-			g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
+		/* reset gr engine */
+		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_GRAPH) |
+				g->ops.mc.reset_mask(g, NVGPU_UNIT_BLG) |
+				g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	}
 #endif
-	nvgpu_cg_init_gr_load_gating_prod(g);
+	return 0;
+}
+
+static int gr_reset_hw_and_load_prod(struct gk20a *g)
+{
+	int err;
+
+	err = nvgpu_gr_exec_with_ret_for_each_instance(g, gr_reset_engine(g));
+	if (err != 0) {
+		return err;
+	}
+
+	nvgpu_gr_exec_for_all_instances(g, nvgpu_cg_init_gr_load_gating_prod(g));
 
 	/* Disable elcg until it gets enabled later in the init*/
 	nvgpu_cg_elcg_disable_no_wait(g);
 
-	/* enable fifo access */
-	g->ops.gr.init.fifo_access(g, true);
 	return 0;
 }
 
@@ -661,7 +677,7 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = gr_init_prepare_hw(g);
+	err = gr_reset_hw_and_load_prod(g);
 	if (err != 0) {
 		return err;
 	}
@@ -830,8 +846,17 @@ int nvgpu_gr_alloc(struct gk20a *g)
 		return -ENOMEM;
 	}
 
+	g->cur_gr_instance = 0U; /* default */
+
 	for (i = 0U; i < g->num_gr_instances; i++) {
 		gr = &g->gr[i];
+
+		gr->syspipe_id = nvgpu_grmgr_get_gr_syspipe_id(g, i);
+		if (gr->syspipe_id == U32_MAX) {
+			nvgpu_err(g, "failed to get syspipe id");
+			err = -EINVAL;
+			goto fail;
+		}
 
 		gr->falcon = nvgpu_gr_falcon_init_support(g);
 		if (gr->falcon == NULL) {
@@ -894,6 +919,11 @@ void nvgpu_gr_free(struct gk20a *g)
 
 	nvgpu_kfree(g, g->gr);
 	g->gr = NULL;
+}
+
+u32 nvgpu_gr_get_syspipe_id(struct nvgpu_gr *gr)
+{
+	return gr->syspipe_id;
 }
 
 #if defined(CONFIG_NVGPU_RECOVERY) || defined(CONFIG_NVGPU_DEBUGGER)

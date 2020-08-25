@@ -41,6 +41,16 @@
 #include "nvgpu-gr.h"
 #include "nvgpu-gr-gv11b.h"
 
+static void nvgpu_init_gr_manager(struct gk20a *g)
+{
+	struct nvgpu_gpu_instance *gpu_instance = &g->mig.gpu_instance[0];
+	struct nvgpu_gr_syspipe *gr_syspipe = &gpu_instance->gr_syspipe;
+
+	g->mig.num_gpu_instances = 1;
+	gr_syspipe->gr_instance_id = 0U;
+	gr_syspipe->gr_syspipe_id = 0U;
+}
+
 int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
@@ -61,6 +71,8 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 	if (err != 0) {
 		unit_return_fail(m, "netlist init failed\n");
 	}
+
+	nvgpu_init_gr_manager(g);
 
 	/*
 	 * Allocate gr unit

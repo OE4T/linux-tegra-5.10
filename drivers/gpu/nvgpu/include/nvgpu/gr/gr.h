@@ -116,6 +116,7 @@
  *
  */
 struct gk20a;
+struct nvgpu_gr;
 struct nvgpu_gr_config;
 
 /**
@@ -309,6 +310,8 @@ u32 nvgpu_gr_sm_offset(struct gk20a *g, u32 sm);
  * @return base register offset of a given ROP.
  */
 u32 nvgpu_gr_rop_offset(struct gk20a *g, u32 rop);
+
+u32 nvgpu_gr_get_syspipe_id(struct nvgpu_gr *gr);
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 /**

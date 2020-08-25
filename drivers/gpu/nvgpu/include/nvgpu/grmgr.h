@@ -34,5 +34,6 @@ int nvgpu_init_gr_manager(struct gk20a *g);
 int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 		u32 gr_syspipe_id, bool enable);
 u32 nvgpu_grmgr_get_num_gr_instances(struct gk20a *g);
+u32 nvgpu_grmgr_get_gr_syspipe_id(struct gk20a *g, u32 gr_instance_id);
 
 #endif /* NVGPU_GRMGR_H */

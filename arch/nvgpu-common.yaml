@@ -449,6 +449,7 @@ gr:
       sources: [ common/gr/gr.c,
                  common/gr/gr_priv.h,
                  common/gr/gr_utils.c,
+                 include/nvgpu/gr/gr_instances.h,
                  include/nvgpu/gr/gr_utils.h,
                  include/nvgpu/gops/gr.h,
                  include/nvgpu/gr/gr.h ]

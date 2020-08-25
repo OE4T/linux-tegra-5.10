@@ -174,6 +174,16 @@ static void utf_falcon_register_io(struct gk20a *g)
 	nvgpu_posix_register_io(g, &utf_falcon_reg_callbacks);
 }
 
+static void nvgpu_init_gr_manager(struct gk20a *g)
+{
+	struct nvgpu_gpu_instance *gpu_instance = &g->mig.gpu_instance[0];
+	struct nvgpu_gr_syspipe *gr_syspipe = &gpu_instance->gr_syspipe;
+
+	g->mig.num_gpu_instances = 1;
+	gr_syspipe->gr_instance_id = 0U;
+	gr_syspipe->gr_syspipe_id = 0U;
+}
+
 static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 {
 	int err = 0;
@@ -246,6 +256,8 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	if (err != 0) {
 		unit_return_fail(m, "netlist init failed\n");
 	}
+
+	nvgpu_init_gr_manager(g);
 
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 	err = nvgpu_gr_alloc(g);

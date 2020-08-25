@@ -335,6 +335,7 @@ struct gk20a {
 
 	struct nvgpu_gr *gr;
 	u32 num_gr_instances;
+	u32 cur_gr_instance;
 
 	struct nvgpu_fbp *fbp;
 #ifdef CONFIG_NVGPU_SIM
