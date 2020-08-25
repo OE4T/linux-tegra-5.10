@@ -901,6 +901,9 @@ struct gops_gr_ctxsw_prog {
 				  struct nvgpu_mem *ctx_mem, u64 addr,
 				  u32 aperture_mask);
 #endif
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_gr_ctxsw_prog.h"
+#endif
 };
 /** @endcond */
 
@@ -1165,6 +1168,10 @@ struct gops_gr {
 					u32 max_offsets,
 					u32 *offsets, u32 *offset_addrs,
 					u32 *num_offsets);
+	int (*find_priv_offset_in_buffer)(struct gk20a *g, u32 addr,
+					u32 *context_buffer,
+					u32 context_buffer_size,
+					u32 *priv_offset);
 	int (*process_context_buffer_priv_segment)(struct gk20a *g,
 					     enum ctxsw_addr_type addr_type,
 					     u32 pri_addr,

@@ -116,6 +116,19 @@ gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
 					     u32 gpc_num, u32 num_tpcs,
 					     u32 num_ppcs, u32 ppc_mask,
 					     u32 *priv_offset);
-
+int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
+					       u32 addr,
+					       u32 *context_buffer,
+					       u32 context_buffer_size,
+					       u32 *priv_offset);
+int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
+						u32 addr,
+						u32 *context_buffer,
+						u32 context_buffer_size,
+						u32 *priv_offset);
+int gr_gk20a_determine_ppc_configuration(struct gk20a *g,
+					u32 *context,
+					u32 *num_ppcs, u32 *ppc_mask,
+					u32 *reg_ppc_count);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /*__GR_GK20A_H__*/

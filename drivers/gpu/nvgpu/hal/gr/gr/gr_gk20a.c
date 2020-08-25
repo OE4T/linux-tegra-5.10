@@ -188,12 +188,6 @@ bool gk20a_gr_sm_debugger_attached(struct gk20a *g)
 	return false;
 }
 
-static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
-					       u32 addr,
-					       u32 *context_buffer,
-					       u32 context_buffer_size,
-					       u32 *priv_offset);
-
 /* This function will decode a priv address and return the partition type and numbers. */
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 			      enum ctxsw_addr_type *addr_type,
@@ -486,7 +480,7 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 	}
 
 	for (i = 0; i < num_registers; i++) {
-		err = gr_gk20a_find_priv_offset_in_buffer(g,
+		err = g->ops.gr.find_priv_offset_in_buffer(g,
 			  priv_registers[i],
 			  nvgpu_gr_obj_ctx_get_local_golden_image_ptr(
 				g->gr->golden_image),
@@ -683,11 +677,11 @@ void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 	*ovr_perf_regs = _ovr_perf_regs;
 }
 
-static int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
-						   u32 addr,
-						   u32 *context_buffer,
-						   u32 context_buffer_size,
-						   u32 *priv_offset)
+int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
+						u32 addr,
+						u32 *context_buffer,
+						u32 context_buffer_size,
+						u32 *priv_offset)
 {
 	u32 i;
 	u32 gpc_num, tpc_num;
@@ -1059,10 +1053,10 @@ gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
 	return -EINVAL;
 }
 
-static int gr_gk20a_determine_ppc_configuration(struct gk20a *g,
-					       u32 *context,
-					       u32 *num_ppcs, u32 *ppc_mask,
-					       u32 *reg_ppc_count)
+int gr_gk20a_determine_ppc_configuration(struct gk20a *g,
+					u32 *context,
+					u32 *num_ppcs, u32 *ppc_mask,
+					u32 *reg_ppc_count)
 {
 	u32 num_pes_per_gpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_PES_PER_GPC);
 	u32 ppc_count = nvgpu_netlist_get_ppc_ctxsw_regs_count(g);
@@ -1142,7 +1136,7 @@ int gr_gk20a_get_offset_in_gpccs_segment(struct gk20a *g,
  *  This function will return the 32 bit offset for a priv register if it is
  *  present in the context buffer. The context buffer is in CPU memory.
  */
-static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
+int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 					       u32 addr,
 					       u32 *context_buffer,
 					       u32 context_buffer_size,

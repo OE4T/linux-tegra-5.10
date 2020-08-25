@@ -564,6 +564,8 @@ static const struct gops_gr gp10b_ops_gr = {
 	.get_offset_in_gpccs_segment = gr_gk20a_get_offset_in_gpccs_segment,
 	.process_context_buffer_priv_segment = gr_gk20a_process_context_buffer_priv_segment,
 	.get_ctx_buffer_offsets = gr_gk20a_get_ctx_buffer_offsets,
+	.find_priv_offset_in_buffer =
+		gr_gk20a_find_priv_offset_in_buffer,
 	.set_debug_mode = gm20b_gr_set_debug_mode,
 	.esr_bpt_pending_events = gm20b_gr_esr_bpt_pending_events,
 #endif /* CONFIG_NVGPU_DEBUGGER */
