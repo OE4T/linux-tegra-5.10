@@ -57,7 +57,7 @@ typedef struct syncpoint_info {
 } syncpoint_info_t CAPTURE_IVC_ALIGN;
 
 /**
- * @defgroup StatsSize Statistics data size defines
+ * @defgroup StatsSize Statistics data size defines for ISP5
  *
  * The size for each unit includes the standard ISP5 HW stats
  * header size.
@@ -137,6 +137,97 @@ typedef struct syncpoint_info {
 /** Total statistics data size in bytes */
 #define ISP5_STATS_TOTAL_SIZE \
 	(ISP5_STATS_LTM_OFFSET + ISP5_STATS_LTM_MAX_SIZE)
+/**@}*/
+
+/**
+ * @defgroup StatsSize Statistics data size defines for ISP6
+ *
+ * The size for each unit includes the standard ISP6 HW stats
+ * header size.
+ *
+ * Size break down for each unit.
+ *  FB = 32 byte header + (512 x 4) bytes. FB has 512 windows with 4 bytes
+ *       of stats data per window.
+ *  FM = 32 byte header + (64 x 64 x 2 x 4) bytes. FM can have 64 x 64 windows
+ *       with each windows having 2 bytes of data for each color channel.
+ *  AFM = 32 byte header + 8 byte statistics data per ROI.
+ *  LAC = 32 byte header + ( (32 x 32) x ((4 + 2 + 2) x 4) )
+ *        Each ROI has 32x32 windows with each window containing 8
+ *        bytes of data per color channel.
+ *  Hist = Header + (256 x 4 x 4) bytes since Hist unit has 256 bins and
+ *         each bin collects 4 byte data for each color channel + 4 Dwords for
+ *         excluded pixel count due to elliptical mask per color channel.
+ *  OR  = 32 byte header + (8 x 4) bytes for bad pixel count and accumulated
+ *        pixel adjustment for pixels both inside and outside the ROI.
+ *  PRU hist = Header + (256 x 4 x 4) bytes since Hist unit has 256 bins and
+ *         each bin collects 4 byte data for each color channel + 4 Dwords for
+ *         excluded pixel count due to elliptical mask per color channel.
+ *  LTM = 32 byte header + (128 x 4) bytes for histogram data + (8 x 8 x 4 x 2)
+ *        bytes for soft key average and count. Soft key statistics are
+ *        collected by dividing the frame into a 8x8 array region.
+ * @{
+ */
+/** Statistics unit hardware header size in bytes */
+#define ISP6_STATS_HW_HEADER_SIZE	MK_SIZE(32)
+/** Flicker band (FB) unit statistics data size in bytes */
+#define ISP6_STATS_FB_MAX_SIZE		MK_SIZE(2080)
+/** Focus Metrics (FM) unit statistics data size in bytes */
+#define ISP6_STATS_FM_MAX_SIZE		MK_SIZE(32800)
+/** Auto Focus Metrics (AFM) unit statistics data size in bytes */
+#define ISP6_STATS_AFM_ROI_MAX_SIZE	MK_SIZE(40)
+/** Local Average Clipping (LAC) unit statistics data size in bytes */
+#define ISP6_STATS_LAC_ROI_MAX_SIZE	MK_SIZE(32800)
+/** Histogram unit statistics data size in bytes */
+#define ISP6_STATS_HIST_MAX_SIZE	MK_SIZE(4144)
+/** Pixel Replacement Unit (PRU) unit statistics data size in bytes */
+#define ISP6_STATS_OR_MAX_SIZE		MK_SIZE(64)
+/** PRU histogram (HIST_RAW24) unit statistics data size in bytes */
+#define ISP6_STATS_HIST_RAW24_MAX_SIZE	MK_SIZE(1056)
+/** Local Tone Mapping (LTM) unit statistics data size in bytes */
+#define ISP6_STATS_LTM_MAX_SIZE		MK_SIZE(1056)
+/* Stats buffer addresses muse be aligned to 64 byte (ATOM) boundaries */
+#define ISP6_ALIGN_STAT_OFFSET(_offset) \
+	(((uint32_t)(_offset) + MK_U32(63)) & ~(MK_U32(63)))
+
+/** Flicker band (FB) unit statistics data offset */
+#define ISP6_STATS_FB_OFFSET		MK_SIZE(0)
+/** Focus Metrics (FM) unit statistics data offset */
+#define ISP6_STATS_FM_OFFSET \
+	(ISP6_STATS_FB_OFFSET + ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_FB_MAX_SIZE))
+/** Auto Focus Metrics (AFM) unit statistics data offset */
+#define ISP6_STATS_AFM_OFFSET \
+	(ISP6_STATS_FM_OFFSET + ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_FM_MAX_SIZE))
+/** Local Average Clipping (LAC0) unit statistics data offset */
+#define ISP6_STATS_LAC0_OFFSET \
+	(ISP6_STATS_AFM_OFFSET + \
+	(ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_AFM_ROI_MAX_SIZE) * MK_SIZE(8)))
+/** Local Average Clipping (LAC1) unit statistics data offset */
+#define ISP6_STATS_LAC1_OFFSET \
+	(ISP6_STATS_LAC0_OFFSET + \
+	(ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_LAC_ROI_MAX_SIZE) * MK_SIZE(4)))
+/** Histogram unit (H0) statistics data offset */
+#define ISP6_STATS_HIST0_OFFSET \
+	(ISP6_STATS_LAC1_OFFSET + \
+	(ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_LAC_ROI_MAX_SIZE) * MK_SIZE(4)))
+/** Histogram unit (H1) statistics data offset */
+#define ISP6_STATS_HIST1_OFFSET \
+	(ISP6_STATS_HIST0_OFFSET + \
+	ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_HIST_MAX_SIZE))
+/** Outlier replacement (OR) unit statistics data offset */
+#define ISP6_STATS_OR_OFFSET \
+	(ISP6_STATS_HIST1_OFFSET + \
+	ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_HIST_MAX_SIZE))
+/** Raw data 24 bit histogram (HIST_RAW24) unit statistics data offset */
+#define ISP6_STATS_HIST_RAW24_OFFSET \
+	(ISP6_STATS_OR_OFFSET + \
+	ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_OR_MAX_SIZE))
+/** Local Tone Mapping (LTM) unit statistics data offset */
+#define ISP6_STATS_LTM_OFFSET \
+	(ISP6_STATS_HIST_RAW24_OFFSET + \
+	ISP6_ALIGN_STAT_OFFSET(ISP6_STATS_HIST_RAW24_MAX_SIZE))
+/** Total statistics data size in bytes */
+#define ISP6_STATS_TOTAL_SIZE \
+	(ISP6_STATS_LTM_OFFSET + ISP6_STATS_LTM_MAX_SIZE)
 /**@}*/
 
 #define ISP_NUM_GOS_TABLES	MK_U32(8)
