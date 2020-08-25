@@ -846,13 +846,23 @@ tegra_smmu_find_group(struct tegra_smmu *smmu, unsigned int swgroup)
 	return NULL;
 }
 
-static struct iommu_group *tegra_smmu_group_get(struct device *dev,
-						struct tegra_smmu *smmu,
-						unsigned int swgroup)
+static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 {
+	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
 	const struct tegra_smmu_group_soc *soc;
 	struct tegra_smmu_group *group;
+	struct tegra_smmu *smmu;
 	bool pci = dev_is_pci(dev);
+	unsigned int swgroup;
+
+	if (!fwspec || fwspec->ops != &tegra_smmu_ops)
+		return NULL;
+
+	smmu = dev_iommu_priv_get(dev);
+	if (!smmu)
+		return NULL;
+
+	swgroup = fwspec->ids[0];
 
 	/* Find group_soc associating with swgroup */
 	soc = tegra_smmu_find_group(smmu, swgroup);
@@ -888,27 +898,6 @@ static struct iommu_group *tegra_smmu_group_get(struct device *dev,
 	mutex_unlock(&smmu->lock);
 
 	return group->group;
-}
-
-static struct iommu_group *tegra_smmu_device_group(struct device *dev)
-{
-	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
-	struct tegra_smmu *smmu;
-	struct iommu_group *group;
-	bool pci = dev_is_pci(dev);
-
-	if (!fwspec || fwspec->ops != &tegra_smmu_ops)
-		return NULL;
-
-	smmu = dev_iommu_priv_get(dev);
-	if (!smmu)
-		return NULL;
-
-	group = tegra_smmu_group_get(dev, smmu, fwspec->ids[0]);
-	if (!group)
-		group = pci ? pci_device_group(dev) : generic_device_group(dev);
-
-	return group;
 }
 
 static int tegra_smmu_of_xlate(struct device *dev,
