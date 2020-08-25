@@ -502,8 +502,10 @@ static int tegra_smmu_attach_dev(struct iommu_domain *domain,
 		return -ENXIO;
 	}
 
-	if (dev->archdata.iommu != NULL) {
-		dev_err(dev, "already attached to IOMMU domain\n");
+	if (dev->archdata.iommu) {
+		if (dev->archdata.iommu == domain)
+			return 0;
+		dev_err(dev, "already attached to another IOMMU domain\n");
 		return -EEXIST;
 	}
 
@@ -527,6 +529,9 @@ static void tegra_smmu_detach_dev(struct iommu_domain *domain, struct device *de
 	struct tegra_smmu_as *as = to_smmu_as(domain);
 	struct tegra_smmu *smmu = as->smmu;
 	unsigned int index = 0;
+
+	if (!dev->archdata.iommu)
+		return;
 
 	dev->archdata.iommu = NULL;
 
