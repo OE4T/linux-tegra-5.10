@@ -611,12 +611,28 @@ static int gr_init_prepare_hw(struct gk20a *g)
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	int err;
 
-	if (g->ops.mc.reset_engine != NULL) {
+	if (g->ops.gr.init.reset_gpcs != NULL) {
+		const struct nvgpu_device *dev =
+			nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
+
 		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
-		err = nvgpu_next_mc_reset_engine(g, NVGPU_DEVTYPE_GRAPHICS);
+		err = g->ops.mc.reset_engine_enable(g, dev->reset_id, false);
 		if (err != 0) {
-			nvgpu_err(g, "NVGPU_ENGINE_GR reset failed");
+			nvgpu_err(g, "GR reset disable failed");
+			return err;
+		}
+
+		err = g->ops.gr.init.reset_gpcs(g);
+		if (err != 0) {
+			nvgpu_err(g, "GR reset GPCs failed");
+			g->ops.mc.reset_engine_enable(g, dev->reset_id, true);
+			return err;
+		}
+
+		err = g->ops.mc.reset_engine_enable(g, dev->reset_id, true);
+		if (err != 0) {
+			nvgpu_err(g, "GR reset enable failed");
 			return err;
 		}
 	} else {
