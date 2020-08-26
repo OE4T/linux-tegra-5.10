@@ -4881,6 +4881,9 @@ static int tegra_pcie_dw_suspend_late(struct device *dev)
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	u32 val;
 
+	if (pcie->mode == DW_PCIE_EP_TYPE)
+		return 0;
+
 	if (!pcie->link_state && pcie->power_down_en)
 		return 0;
 
@@ -4900,6 +4903,9 @@ static int tegra_pcie_dw_suspend_noirq(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	int ret = 0;
+
+	if (pcie->mode == DW_PCIE_EP_TYPE)
+		return 0;
 
 	if (!pcie->link_state && pcie->power_down_en)
 		return 0;
@@ -4946,6 +4952,9 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	int ret;
 	u32 val;
+
+	if (pcie->mode == DW_PCIE_EP_TYPE)
+		return 0;
 
 	if (!pcie->link_state && pcie->power_down_en)
 		return 0;
@@ -5089,6 +5098,9 @@ static int tegra_pcie_dw_resume_early(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	u32 val;
+
+	if (pcie->mode == DW_PCIE_EP_TYPE)
+		return 0;
 
 	if (!pcie->link_state && pcie->power_down_en)
 		return 0;
