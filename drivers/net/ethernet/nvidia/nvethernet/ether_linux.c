@@ -910,7 +910,10 @@ err_chan_irq:
 /**
  * @brief Disable NAPI.
  *
- * Algorithm: Disable Tx and Rx NAPI for the channels which are enabled.
+ * Algorithm:
+ *	1) Wait for scheduled Tx and Rx NAPI to be completed.
+ *	2) Disable Tx and Rx NAPI for the channels which
+ *	are enabled.
  *
  * @param[in] pdata: OSD private data structure.
  *
@@ -924,8 +927,9 @@ static void ether_napi_disable(struct ether_priv_data *pdata)
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
-
+		napi_synchronize(&pdata->tx_napi[chan]->napi);
 		napi_disable(&pdata->tx_napi[chan]->napi);
+		napi_synchronize(&pdata->rx_napi[chan]->napi);
 		napi_disable(&pdata->rx_napi[chan]->napi);
 	}
 }
@@ -1853,6 +1857,8 @@ static int ether_close(struct net_device *ndev)
 	thermal_cooling_device_unregister(pdata->tcd);
 #endif /* THERMAL_CAL */
 
+	ether_napi_disable(pdata);
+
 	/* free DMA resources after DMA stop */
 	free_dma_resources(pdata);
 
@@ -1861,8 +1867,6 @@ static int ether_close(struct net_device *ndev)
 
 	/* MAC deinit which inturn stop MAC Tx,Rx */
 	osi_hw_core_deinit(pdata->osi_core);
-
-	ether_napi_disable(pdata);
 
 	/* Assert MAC RST gpio */
 	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
