@@ -123,7 +123,7 @@ struct version_format {
  * Firmware version 3.1.10 or earlier, built for NVIDIA has known issue
  * of missing interrupt when a device is connected for runtime resume
  */
-#define CCG_FW_BUILD_NVIDIA	(('n' << 8) | 'v')
+#define CCG_FW_BUILD_NVIDIA_RTX	(('n' << 8) | 'v')
 #define CCG_OLD_FW_VERSION	(CCG_VERSION(0x31) | CCG_VERSION_PATCH(10))
 
 /* Altmode offset for NVIDIA Function Test Board (FTB) */
@@ -1402,7 +1402,6 @@ static int ucsi_ccg_probe(struct i2c_client *client,
 	struct device *dev = &client->dev;
 	struct ucsi_ccg *uc;
 	int status;
-	u32 irqflags;
 
 	uc = devm_kzalloc(dev, sizeof(*uc), GFP_KERNEL);
 	if (!uc)
@@ -1452,12 +1451,9 @@ static int ucsi_ccg_probe(struct i2c_client *client,
 
 	ucsi_set_drvdata(uc->ucsi, uc);
 
-	status = of_property_read_u32(dev->of_node, "ccg,irqflags", &irqflags);
-	if (status) {
-		dev_info(dev, "Default irqflags: IRQF_TRIGGER_HIGH\n");
-		irqflags = IRQF_TRIGGER_HIGH;
-	}
-	uc->irqflags = irqflags | IRQF_ONESHOT;
+	uc->irqflags = IRQF_ONESHOT;
+	if (uc->fw_build == CCG_FW_BUILD_NVIDIA_RTX)
+		uc->irqflags |= IRQF_TRIGGER_HIGH;
 
 	status = request_threaded_irq(client->irq, NULL, ccg_irq_handler,
 				      uc->irqflags, dev_name(dev), uc);
@@ -1540,7 +1536,7 @@ static int ucsi_ccg_runtime_resume(struct device *dev)
 	 * of missing interrupt when a device is connected for runtime resume.
 	 * Schedule a work to call ISR as a workaround.
 	 */
-	if (uc->fw_build == CCG_FW_BUILD_NVIDIA &&
+	if (uc->fw_build == CCG_FW_BUILD_NVIDIA_RTX &&
 	    uc->fw_version <= CCG_OLD_FW_VERSION)
 		schedule_work(&uc->pm_work);
 
