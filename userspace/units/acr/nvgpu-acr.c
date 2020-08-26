@@ -308,6 +308,11 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 		unit_return_fail(m, "ecc init failed\n");
 	}
 
+	err = nvgpu_pd_cache_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "failed to init pd cache");
+	}
+
 	err = g->ops.mm.init_mm_support(g);
 	if (err != 0) {
 		unit_return_fail(m, "failed to init gk20a mm");

@@ -126,6 +126,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	u64 low_hole, aperture_size;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 	struct mm_gk20a *mm = &g->mm;
+	int err;
 
 	p->mm_is_iommuable = true;
 
@@ -191,6 +192,11 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 		false, false, false, "bar2");
 	if (mm->bar2.vm == NULL) {
 		unit_return_fail(m, "'bar2' nvgpu_vm_init failed\n");
+	}
+
+	err = nvgpu_pd_cache_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "PD cache init failed\n");
 	}
 
 	/*

@@ -204,6 +204,10 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 		unit_return_fail(m, "nvgpu_vm_init failed\n");
 	}
 
+	if (nvgpu_pd_cache_init(g) != 0) {
+		unit_return_fail(m, "pd cache initialization failed\n");
+	}
+
 	return UNIT_SUCCESS;
 }
 

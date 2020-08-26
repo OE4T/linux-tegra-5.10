@@ -84,6 +84,12 @@ int test_gr_init_setup(struct unit_module *m, struct gk20a *g, void *args)
 		return -ENOMEM;
 	}
 
+	err = nvgpu_pd_cache_init(g);
+	if (err != 0) {
+		unit_err(m, "PD cache initialization failed\n");
+		return -ENOMEM;
+	}
+
 	return UNIT_SUCCESS;
 
 fail:

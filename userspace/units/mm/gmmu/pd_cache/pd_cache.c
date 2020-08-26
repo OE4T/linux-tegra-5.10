@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -321,7 +321,7 @@ int test_pd_free_empty_pd(struct unit_module *m, struct gk20a *g,
 
 	/* And now direct frees. */
 	memset(&pd, 0U, sizeof(pd));
-	err = nvgpu_pd_alloc(&vm, &pd, PAGE_SIZE);
+	err = nvgpu_pd_alloc(&vm, &pd, NVGPU_PD_CACHE_SIZE);
 	if (err != 0) {
 		unit_return_fail(m, "PD alloc failed");
 	}
@@ -610,7 +610,7 @@ static int do_test_pd_cache_packing_size(struct unit_module *m, struct gk20a *g,
 {
 	int err;
 	u32 i;
-	u32 n = PAGE_SIZE / pd_size;
+	u32 n = NVGPU_PD_CACHE_SIZE / pd_size;
 	struct nvgpu_gmmu_pd pds[n], pd;
 	struct nvgpu_posix_fault_inj *dma_fi =
 		nvgpu_dma_alloc_get_fault_injection();
@@ -667,7 +667,7 @@ static int do_test_pd_reusability(struct unit_module *m, struct gk20a *g,
 {
 	int err = UNIT_SUCCESS;
 	u32 i;
-	u32 n = PAGE_SIZE / pd_size;
+	u32 n = NVGPU_PD_CACHE_SIZE / pd_size;
 	struct nvgpu_gmmu_pd pds[n];
 	struct nvgpu_posix_fault_inj *dma_fi =
 		nvgpu_dma_alloc_get_fault_injection();

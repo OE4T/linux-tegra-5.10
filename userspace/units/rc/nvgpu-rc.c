@@ -89,6 +89,11 @@ int test_rc_init(struct unit_module *m, struct gk20a *g, void *args)
 		unit_return_fail(m, "fifo reg_space failure");
 	}
 
+	ret = nvgpu_pd_cache_init(g);
+	if (ret != 0) {
+		unit_return_fail(m, "PD cache initialization failure");
+	}
+
 	nvgpu_device_init(g);
 
 	g->ops.gr.init.get_no_of_sm = stub_gv11b_gr_init_get_no_of_sm;

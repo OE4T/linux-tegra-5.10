@@ -98,6 +98,10 @@ static int init_channel_vm(struct unit_module *m, struct nvgpu_channel *ch)
 
 	ch->vm = mm->pmu.vm;
 
+	if (nvgpu_pd_cache_init(g) != 0) {
+		unit_return_fail(m, "pd cache initialization failed\n");
+	}
+
 	return UNIT_SUCCESS;
 }
 

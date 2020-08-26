@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -189,4 +189,6 @@ void nvgpu_pd_write(struct gk20a *g, struct nvgpu_gmmu_pd *pd,
  */
 u64  nvgpu_pd_gpu_addr(struct gk20a *g, struct nvgpu_gmmu_pd *pd);
 
+int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
+				struct nvgpu_gmmu_pd *pd, u32 bytes);
 #endif

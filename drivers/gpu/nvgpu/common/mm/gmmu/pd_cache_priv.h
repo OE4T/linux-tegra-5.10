@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -80,22 +80,36 @@
  * Minimum size of a cache. The number of different caches in the nvgpu_pd_cache
  * structure is of course depending on this.
  */
-#define NVGPU_PD_CACHE_MIN		256U
+#define NVGPU_PD_CACHE_MIN		256UL
 /**
  * MIN_SHIFT is the right number of bits to shift to determine
  * which list to use in the array of lists.
  */
-#define NVGPU_PD_CACHE_MIN_SHIFT	9U
+#define NVGPU_PD_CACHE_MIN_SHIFT	9UL
+
 /**
- * Maximum PD cache count. This value varies depending on PAGE_SIZE.
+ * Maximum PD cache count. This specifies the number of slabs; since each
+ * slab represents a PO2 increase in size a count of 8 leads to:
+ *
+ *   NVGPU_PD_CACHE_SIZE = 256B * 2^8 = 64KB
+ *
+ * For Linux with 4K pages, if the cache size is larger than 4KB then we
+ * need to allocate from CMA. This puts a lot of pressure on the CMA space.
+ * For kernel with a PAGE_SIZE of 64K this isn't the case, so allow the
+ * PD cache size to be 64K if PAGE_SIZE > 4K (i.e PAGE_SIZE == 64K).
  */
-#if PAGE_SIZE == 4096
-#define NVGPU_PD_CACHE_COUNT		4U
-#elif PAGE_SIZE == 65536
-#define NVGPU_PD_CACHE_COUNT		8U
+#ifdef __KERNEL__
+#  if PAGE_SIZE > 4096
+#    define NVGPU_PD_CACHE_COUNT	8UL
+#  else
+#    define NVGPU_PD_CACHE_COUNT	4UL
+#  endif
 #else
-#error "Unsupported page size."
+#define NVGPU_PD_CACHE_COUNT		8UL
 #endif
+
+#define NVGPU_PD_CACHE_SIZE		(NVGPU_PD_CACHE_MIN * \
+						(1UL << NVGPU_PD_CACHE_COUNT))
 
 /**
  * This structure describes a slab within the slab allocator.
@@ -115,7 +129,7 @@ struct nvgpu_pd_mem_entry {
 	 * The size of mem will always
 	 * be one page. pd_size will always be a power of 2.
 	 */
-	DECLARE_BITMAP(alloc_map, PAGE_SIZE / NVGPU_PD_CACHE_MIN);
+	DECLARE_BITMAP(alloc_map, NVGPU_PD_CACHE_SIZE / NVGPU_PD_CACHE_MIN);
 	/**
 	 * Total number of allocations in this PD.
 	 */

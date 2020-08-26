@@ -62,7 +62,8 @@ static u32 nvgpu_pd_cache_get_nr_entries(struct nvgpu_pd_mem_entry *pentry)
 {
 	BUG_ON(pentry->pd_size == 0);
 
-	return PAGE_SIZE / pentry->pd_size;
+	return (nvgpu_safe_cast_u64_to_u32(NVGPU_PD_CACHE_SIZE)) /
+			pentry->pd_size;
 }
 
 /*
@@ -155,7 +156,7 @@ void nvgpu_pd_cache_fini(struct gk20a *g)
  * Note: this does not need the cache lock since it does not modify any of the
  * PD cache data structures.
  */
-static int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
+int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
 				       struct nvgpu_gmmu_pd *pd, u32 bytes)
 {
 	int err;
@@ -206,6 +207,8 @@ static int nvgpu_pd_cache_alloc_new(struct gk20a *g,
 				    u32 bytes)
 {
 	struct nvgpu_pd_mem_entry *pentry;
+	u64 flags = 0UL;
+	int32_t err;
 
 	pd_dbg(g, "PD-Alloc [C]   New: offs=0");
 
@@ -215,8 +218,21 @@ static int nvgpu_pd_cache_alloc_new(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	if (nvgpu_dma_alloc(g, PAGE_SIZE, &pentry->mem) != 0) {
+	if (!nvgpu_iommuable(g) && (NVGPU_PD_CACHE_SIZE > PAGE_SIZE)) {
+		flags = NVGPU_DMA_PHYSICALLY_ADDRESSED;
+	}
+
+	err = nvgpu_dma_alloc_flags(g, flags,
+				  NVGPU_PD_CACHE_SIZE, &pentry->mem);
+	if (err != 0) {
 		nvgpu_kfree(g, pentry);
+
+		/* Not enough contiguous space, but a direct
+		 * allocation may work
+		 */
+		if (err == -ENOMEM) {
+			return nvgpu_pd_cache_alloc_direct(g, pd, bytes);
+		}
 		nvgpu_err(g, "Unable to DMA alloc!");
 		return -ENOMEM;
 	}
@@ -330,7 +346,7 @@ static int nvgpu_pd_cache_alloc(struct gk20a *g, struct nvgpu_pd_cache *cache,
 		return -EINVAL;
 	}
 
-	nvgpu_assert(bytes < PAGE_SIZE);
+	nvgpu_assert(bytes < NVGPU_PD_CACHE_SIZE);
 
 	pentry = nvgpu_pd_cache_get_partial(cache, bytes);
 	if (pentry == NULL) {
@@ -360,7 +376,7 @@ int nvgpu_pd_alloc(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd, u32 bytes)
 	 * Simple case: PD is bigger than a page so just do a regular DMA
 	 * alloc.
 	 */
-	if (bytes >= PAGE_SIZE) {
+	if (bytes >= NVGPU_PD_CACHE_SIZE) {
 		err = nvgpu_pd_cache_alloc_direct(g, pd, bytes);
 		if (err != 0) {
 			return err;
@@ -424,7 +440,21 @@ static void nvgpu_pd_cache_do_free(struct gk20a *g,
 		/*
 		 * Partially full still. If it was already on the partial list
 		 * this just re-adds it.
+		 *
+		 * Since the memory used for the entries is still mapped, if
+		 * igpu make sure the entries are invalidated so that the hw
+		 * doesn't acccidentally try to prefetch non-existent fb memory.
+		 *
+		 * As IOMMU prefetching of invalid pd entries cause the IOMMU fault,
+		 * fill them with zero.
 		 */
+		if ((nvgpu_iommuable(g)) &&
+			(NVGPU_PD_CACHE_SIZE > PAGE_SIZE) &&
+			(pd->mem->cpu_va != NULL)) {
+			(void)memset(((u8 *)pd->mem->cpu_va + pd->mem_offs), 0,
+					pd->pd_size);
+		}
+
 		nvgpu_list_del(&pentry->list_entry);
 		nvgpu_list_add(&pentry->list_entry,
 			&cache->partial[nvgpu_pd_cache_nr(pentry->pd_size)]);

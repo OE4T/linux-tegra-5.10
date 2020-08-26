@@ -383,6 +383,10 @@ int test_nvgpu_gmmu_init(struct unit_module *m, struct gk20a *g, void *args)
 
 	init_platform(m, g, true);
 
+	if (nvgpu_pd_cache_init(g) != 0) {
+		unit_return_fail(m, "PD cache initialization failed\n");
+	}
+
 	if (init_mm(m, g) != 0) {
 		unit_return_fail(m, "nvgpu_init_mm_support failed\n");
 	}

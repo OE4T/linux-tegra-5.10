@@ -174,6 +174,10 @@ int test_fifo_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.userd.setup_sw = stub_userd_setup_sw;
 #endif
 	g->ops.ecc.ecc_init_support(g);
+
+	/* PD cache must be initialized prior to mm init */
+	err = nvgpu_pd_cache_init(g);
+
 	g->ops.mm.init_mm_support(g);
 
 	nvgpu_device_init(g);

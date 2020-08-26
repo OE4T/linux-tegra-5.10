@@ -111,7 +111,7 @@ static void nvgpu_dma_print_err(struct gk20a *g, size_t size,
 
 	nvgpu_dma_flags_to_str(g, flags, flags_str);
 
-	nvgpu_err(g,
+	nvgpu_info(g,
 		  "DMA %s FAILED: [%s] size=%-7zu "
 		  "aligned=%-7zu flags:%s",
 		  what, type,

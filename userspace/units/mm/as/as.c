@@ -158,6 +158,11 @@ int test_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.fb.intr.enable = gv11b_fb_intr_enable;
 	g->ops.fb.ecc.init = NULL;
 
+	err = nvgpu_pd_cache_init(g);
+	if (err != 0) {
+		unit_return_fail(m, "pd cache initialization failed\n");
+	}
+
 	err = nvgpu_init_mm_support(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_init_mm_support failed err=%d\n",

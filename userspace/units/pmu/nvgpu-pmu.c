@@ -229,6 +229,12 @@ static int init_pmu_falcon_test_env(struct unit_module *m, struct gk20a *g)
 		return -ENOMEM;
 	}
 
+	err = nvgpu_pd_cache_init(g);
+	if (err != 0) {
+		unit_err(m, " PD cache allocation failed!\n");
+		return -ENOMEM;
+	}
+
 	return 0;
 }
 
