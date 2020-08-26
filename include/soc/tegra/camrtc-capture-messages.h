@@ -530,6 +530,41 @@ struct CAPTURE_CSI_STREAM_TPG_START_RATE_RESP_MSG {
 	uint32_t __pad32;
 } CAPTURE_IVC_ALIGN;
 
+#define CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_EIGHT_TO_ONE		MK_U32(0) /* 8:1 gain */
+#define CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_FOUR_TO_ONE		MK_U32(1) /* 4:1 gain */
+#define CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_TWO_TO_ONE		MK_U32(2) /* 2:1 gain */
+#define CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_NONE			MK_U32(3) /* 1:1 gain */
+#define CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_HALF			MK_U32(4) /* 0.5:1 gain */
+#define CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_ONE_FOURTH		MK_U32(5) /* 0.25:1 gain */
+#define CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_ONE_EIGHTH		MK_U32(6) /* 0.125:1 gain */
+
+/**
+ * @brief Apply gain ratio on specified VC of the desired CSI stream.
+ *
+ * This message is request to apply gain on specified vc, and it be
+ * applied on next frame.
+ */
+struct CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_REQ_MSG {
+	/** NVCSI stream Id */
+	uint32_t stream_id;
+	/** NVCSI stream virtual channel id */
+	uint32_t virtual_channel_id;
+	/** Gain ratio */
+	uint32_t gain_ratio;
+	/** Reserved */
+	uint32_t __pad32;
+} CAPTURE_IVC_ALIGN;
+
+/**
+ * @brief NVCSI TPG stream start at a specified frame rate response message.
+ */
+struct CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_RESP_MSG {
+	/** TPG apply gain request status. See @ref CapErrorCodes "Return values". */
+	uint32_t result;
+	/** Reserved */
+	uint32_t __pad32;
+} CAPTURE_IVC_ALIGN;
+
 /**
  * @brief Stop NVCSI TPG streaming request message.
  */
@@ -624,6 +659,8 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 #define CAPTURE_CSI_STREAM_TPG_STOP_RESP	MK_U32(0x49)
 #define CAPTURE_CSI_STREAM_TPG_START_RATE_REQ	MK_U32(0x4A)
 #define CAPTURE_CSI_STREAM_TPG_START_RATE_RESP	MK_U32(0x4B)
+#define CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_REQ	MK_U32(0x4C)
+#define CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_RESP	MK_U32(0x4D)
 /** @} */
 
 /**
@@ -791,6 +828,12 @@ struct CAPTURE_CONTROL_MSG {
 		/** @anon_union_member */
 		struct CAPTURE_CSI_STREAM_TPG_START_RATE_RESP_MSG
 			csi_stream_tpg_start_rate_resp;
+		/** @anon_union_member */
+		struct CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_REQ_MSG
+			csi_stream_tpg_apply_gain_req;
+		/** @anon_union_member */
+		struct CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_RESP_MSG
+			csi_stream_tpg_apply_gain_resp;
 
 		/** @anon_union_member */
 		struct CAPTURE_CHANNEL_EI_REQ_MSG ei_req;
