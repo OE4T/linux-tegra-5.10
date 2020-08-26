@@ -19,7 +19,7 @@
 #ifndef __TEGRA_ISOMGR_BW_H__
 #define __TEGRA_ISOMGR_BW_H__
 
-#if defined(CONFIG_TEGRA_ISOMGR)
+#if defined(CONFIG_TEGRA_ISOMGR) && defined(CONFIG_NV_TEGRA_MC)
 void tegra_isomgr_adma_register(void);
 void tegra_isomgr_adma_unregister(void);
 void tegra_isomgr_adma_setbw(struct snd_pcm_substream *substream,

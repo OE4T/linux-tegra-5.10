@@ -22,7 +22,7 @@
 #include <linux/platform/tegra/latency_allowance.h>
 #include "tegra_isomgr_bw.h"
 
-#if defined(CONFIG_TEGRA_ISOMGR)
+#if defined(CONFIG_TEGRA_ISOMGR) && defined(CONFIG_NV_TEGRA_MC)
 
 #define MAX_BW	393216 /*Maximum KiloByte*/
 #define MAX_DEV_NUM 256
