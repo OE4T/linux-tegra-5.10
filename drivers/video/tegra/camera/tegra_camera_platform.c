@@ -377,6 +377,7 @@ int tegra_camera_update_isobw(void)
 	if (info->bypass_mode_isobw > 0)
 		info->num_active_streams++;
 
+#if defined(CONFIG_TEGRA_ISOMGR)
 	/* Bug 200323801 consider iso bw of both vi mode and vi-bypass mode */
 	if (bw >= info->max_bw) {
 		dev_info(info->dev,
@@ -387,6 +388,7 @@ int tegra_camera_update_isobw(void)
 
 	if (info->pg_mode)
 		bw = info->max_bw;
+#endif
 	if (info->num_active_streams == 0)
 		bw = 0;
 
