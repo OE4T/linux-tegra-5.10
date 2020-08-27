@@ -198,7 +198,9 @@ static int tegra210_admaif_trigger(struct snd_pcm_substream *substream, int cmd,
 				 struct snd_soc_dai *dai)
 {
 	int err;
-	pr_info("Pcm trigger for admaif %d : cmd_id %d\n", dai->id + 1, cmd);
+	pr_info("Pcm trigger for admaif%d %s: cmd_id %d\n", dai->id+1,
+		(substream->stream == SNDRV_PCM_STREAM_PLAYBACK) ?
+		"playback":"capture", cmd);
 
 	err = snd_dmaengine_pcm_trigger(substream, cmd);
 	if (err)
