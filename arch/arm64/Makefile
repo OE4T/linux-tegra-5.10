@@ -145,7 +145,7 @@ KBUILD_IMAGE	:= $(boot)/Image.gz
 
 all:	Image.gz zImage
 
-Image zImage: vmlinux
+Image : vmlinux
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 
 zImage: Image
