@@ -120,13 +120,20 @@ u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 engine_id)
 u32 nvgpu_gr_engine_interrupt_mask(struct gk20a *g)
 {
 	const struct nvgpu_device *dev;
+	u32 intr_mask = 0U;
+	u32 i;
 
-	dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
-	if (dev == NULL) {
-		return 0U;
+	for (i = 0U; i < g->num_gr_instances; i++) {
+		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
+				nvgpu_gr_get_syspipe_id(g, i));
+		if (dev == NULL) {
+			continue;
+		}
+
+		intr_mask |= BIT32(dev->intr_id);
 	}
 
-	return BIT32(dev->intr_id);
+	return intr_mask;
 }
 
 u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g)

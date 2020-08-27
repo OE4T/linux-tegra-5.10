@@ -609,13 +609,12 @@ static int gr_init_prepare_hw(struct gk20a *g)
 static int gr_reset_engine(struct gk20a *g)
 {
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-	struct nvgpu_gr *gr = &g->gr[g->cur_gr_instance];
 	int err;
 
 	if (g->ops.gr.init.reset_gpcs != NULL) {
 		const struct nvgpu_device *dev =
 			nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
-					 nvgpu_gr_get_syspipe_id(gr));
+				 nvgpu_gr_get_syspipe_id(g, g->cur_gr_instance));
 
 		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
@@ -917,9 +916,9 @@ void nvgpu_gr_free(struct gk20a *g)
 	g->gr = NULL;
 }
 
-u32 nvgpu_gr_get_syspipe_id(struct nvgpu_gr *gr)
+u32 nvgpu_gr_get_syspipe_id(struct gk20a *g, u32 gr_instance_id)
 {
-	return gr->syspipe_id;
+	return g->gr[gr_instance_id].syspipe_id;
 }
 
 #if defined(CONFIG_NVGPU_RECOVERY) || defined(CONFIG_NVGPU_DEBUGGER)

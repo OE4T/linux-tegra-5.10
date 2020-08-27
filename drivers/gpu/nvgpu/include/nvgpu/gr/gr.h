@@ -311,7 +311,7 @@ u32 nvgpu_gr_sm_offset(struct gk20a *g, u32 sm);
  */
 u32 nvgpu_gr_rop_offset(struct gk20a *g, u32 rop);
 
-u32 nvgpu_gr_get_syspipe_id(struct nvgpu_gr *gr);
+u32 nvgpu_gr_get_syspipe_id(struct gk20a *g, u32 gr_instance_id);
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
 /**
