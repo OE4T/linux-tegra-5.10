@@ -209,16 +209,6 @@ int nvgpu_gr_suspend(struct gk20a *g)
 	return ret;
 }
 
-static void enable_gr_interrupts(struct gk20a *g)
-{
-	/** Enable interrupts at MC level */
-	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
-	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
-
-	/** Enable interrupts */
-	g->ops.gr.intr.enable_interrupts(g, true);
-}
-
 static int gr_init_setup_hw(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = g->gr;
@@ -247,13 +237,6 @@ static int gr_init_setup_hw(struct gk20a *g)
 	if (g->ops.priv_ring.set_ppriv_timeout_settings != NULL) {
 		g->ops.priv_ring.set_ppriv_timeout_settings(g);
 	}
-
-	/* enable fifo access */
-	g->ops.gr.init.fifo_access(g, true);
-
-	/* TBD: reload gr ucode when needed */
-
-	enable_gr_interrupts(g);
 
 	/** Enable fecs error interrupts */
 	g->ops.gr.falcon.fecs_host_int_enable(g);
@@ -563,7 +546,7 @@ clean_up:
 	return err;
 }
 
-static int gr_init_reset_enable_hw(struct gk20a *g)
+static int gr_init_prepare_hw_impl(struct gk20a *g)
 {
 	struct netlist_av_list *sw_non_ctx_load =
 		nvgpu_netlist_get_sw_non_ctx_load_av_list(g);
@@ -572,10 +555,11 @@ static int gr_init_reset_enable_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
+	/** Enable interrupts */
+	g->ops.gr.intr.enable_interrupts(g, true);
+
 	/* enable fifo access */
 	g->ops.gr.init.fifo_access(g, true);
-
-	enable_gr_interrupts(g);
 
 	/* load non_ctx init */
 	nvgpu_log_info(g, "begin: netlist: sw_non_ctx_load: register writes");
@@ -608,6 +592,18 @@ out:
 	}
 
 	return err;
+}
+
+static int gr_init_prepare_hw(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	/** Enable interrupts at MC level */
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
+	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
+
+	return nvgpu_gr_exec_with_ret_for_each_instance(g,
+			gr_init_prepare_hw_impl(g));
 }
 
 static int gr_reset_engine(struct gk20a *g)
@@ -682,7 +678,7 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 		return err;
 	}
 
-	err = gr_init_reset_enable_hw(g);
+	err = gr_init_prepare_hw(g);
 	if (err != 0) {
 		return err;
 	}
