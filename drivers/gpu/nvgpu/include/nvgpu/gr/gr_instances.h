@@ -45,7 +45,7 @@
 		} \
 	})
 #else
-#define nvgpu_gr_for_each_gr_instance(g, func)	(func)
+#define nvgpu_gr_exec_for_each_instance(g, func)	(func)
 #endif
 
 #ifdef CONFIG_NVGPU_MIG
@@ -88,6 +88,44 @@
 	})
 #else
 #define nvgpu_gr_exec_for_all_instances(g, func)	(func)
+#endif
+
+#ifdef CONFIG_NVGPU_MIG
+#define nvgpu_gr_exec_for_instance(g, gr_instance_id, func) \
+	({ \
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+			struct nvgpu_gr *gr = &g->gr[gr_instance_id]; \
+			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(gr); \
+			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
+			g->cur_gr_instance = gr_instance_id; \
+			(func); \
+			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, false); \
+		} else { \
+			(func); \
+		} \
+	})
+#else
+#define nvgpu_gr_exec_for_instance(g, gr_instance_id, func)	(func)
+#endif
+
+#ifdef CONFIG_NVGPU_MIG
+#define nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, func) \
+	({ \
+		int err = 0; \
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+			struct nvgpu_gr *gr = &g->gr[gr_instance_id]; \
+			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(gr); \
+			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
+			g->cur_gr_instance = gr_instance_id; \
+			err = (func); \
+			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, false); \
+		} else { \
+			err = (func); \
+		} \
+		err; \
+	})
+#else
+#define nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, func)	(func)
 #endif
 
 #endif /* NVGPU_GR_INSTANCES_H */
