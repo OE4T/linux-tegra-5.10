@@ -32,14 +32,6 @@
 		nvgpu_log(g, gpu_dbg_device, fmt, ##args);		\
 	} while (0)
 
-static inline struct nvgpu_device *
-nvgpu_device_from_dev_list_node(struct nvgpu_list_node *node)
-{
-	return (struct nvgpu_device *)
-		((uintptr_t)node - offsetof(struct nvgpu_device,
-					    dev_list_node));
-};
-
 static inline const char *nvgpu_device_type_to_str(const struct nvgpu_device *dev)
 {
 	const char *str = "Unknown";

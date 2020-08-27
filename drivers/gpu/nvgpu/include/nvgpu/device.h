@@ -174,6 +174,36 @@ struct nvgpu_device_list {
 	u32 dev_counts[NVGPU_MAX_DEVTYPE];
 };
 
+/*
+ * Internal function: this shouldn't be necessary to directly call.
+ * But in any event it converts a list_node pointer to the parent
+ * nvgpu_device pointer.
+ */
+static inline struct nvgpu_device *
+nvgpu_device_from_dev_list_node(struct nvgpu_list_node *node)
+{
+	return (struct nvgpu_device *)
+		((uintptr_t)node - offsetof(struct nvgpu_device,
+					    dev_list_node));
+};
+
+/**
+ * @brief Iterate over each device of the specified type.
+ *
+ * @param g        [in] The GPU.
+ * @param dev      [in] Device pointer to visit each device with.
+ * @param dev_type [in] Device type to iterate over.
+ *
+ * Visit each device of the specified type; _do_not_ modify this device
+ * list. It is immutable. Although it's' not type checked the dev pointer
+ * should be a const struct device *.
+ */
+#define nvgpu_device_for_each(g, dev, dev_type)				\
+	nvgpu_list_for_each_entry(dev,					\
+				  &g->devs->devlist_heads[dev_type],	\
+				  nvgpu_device,				\
+				  dev_list_node)
+
 /**
  * @brief Initialize the SW device list from the HW device list.
  *

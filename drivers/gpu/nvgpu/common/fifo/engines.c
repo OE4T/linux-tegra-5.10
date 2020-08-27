@@ -779,9 +779,9 @@ static int nvgpu_engine_init_one_dev(struct nvgpu_fifo *f,
 
 int nvgpu_engine_init_info(struct nvgpu_fifo *f)
 {
-	u32 i;
 	int err;
 	struct gk20a *g = f->g;
+	const struct nvgpu_device *dev;
 
 	f->num_engines = 0;
 
@@ -789,15 +789,7 @@ int nvgpu_engine_init_info(struct nvgpu_fifo *f)
 	nvgpu_log(g, gpu_dbg_device, "  GFX devices: %u",
 		  nvgpu_device_count(g, NVGPU_DEVTYPE_GRAPHICS));
 
-	for (i = 0U; i < nvgpu_device_count(g, NVGPU_DEVTYPE_GRAPHICS); i++) {
-		const struct nvgpu_device *dev =
-			nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, i);
-
-		if (dev == NULL) {
-			nvgpu_err(g, "Failed to get graphics engine %d", i);
-			return -EINVAL;
-		}
-
+	nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_GRAPHICS) {
 		err = nvgpu_engine_init_one_dev(f, dev);
 		if (err != 0) {
 			return err;
