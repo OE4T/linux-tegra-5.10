@@ -219,9 +219,6 @@ static void submit_setstreamid(struct nvhost_job *job)
 	int streamid = get_streamid(job);
 	int i;
 
-	if (!pdata->isolate_contexts)
-		return;
-
 	for (i = 0; i < ARRAY_SIZE(pdata->vm_regs); i++) {
 		if (!pdata->vm_regs[i].addr)
 			return;
