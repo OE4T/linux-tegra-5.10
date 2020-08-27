@@ -1540,6 +1540,7 @@ static int ufs_tegra_init(struct ufs_hba *hba)
 		err = PTR_ERR(ufs_tegra->ufs_pinctrl);
 		ufs_tegra->ufs_pinctrl = NULL;
 		dev_err(dev, "pad control get failed, error:%d\n", err);
+		goto out;
 	}
 
 	ufs_tegra->dpd_enable = pinctrl_lookup_state(ufs_tegra->ufs_pinctrl,
