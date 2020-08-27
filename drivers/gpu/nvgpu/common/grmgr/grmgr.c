@@ -254,14 +254,12 @@ u32 nvgpu_grmgr_get_gr_syspipe_id(struct gk20a *g, u32 gr_instance_id)
 {
 	struct nvgpu_gpu_instance *gpu_instance;
 	struct nvgpu_gr_syspipe *gr_syspipe;
-	u32 i;
 
-	for (i = 0U; i < g->mig.num_gpu_instances; i++) {
-		gpu_instance = &g->mig.gpu_instance[i];
+	if (gr_instance_id < g->mig.num_gpu_instances) {
+		gpu_instance = &g->mig.gpu_instance[gr_instance_id];
 		gr_syspipe = &gpu_instance->gr_syspipe;
-		if (gr_instance_id == gr_syspipe->gr_instance_id) {
-			return gr_syspipe->gr_syspipe_id;
-		}
+
+		return gr_syspipe->gr_syspipe_id;
 	}
 
 	return U32_MAX;
