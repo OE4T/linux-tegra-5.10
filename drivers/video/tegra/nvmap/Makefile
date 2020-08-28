@@ -15,6 +15,10 @@ ifeq ($(CONFIG_ARM64),y)
 ccflags-y += -Iarch/arm/mach-tegra/include
 endif
 
+ifeq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+ccflags-y += -DNVMAP_PROCRANK
+endif
+
 ccflags-y += -Iarch/arm/mach-tegra
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/nvmap/
 ccflags-y += -I$(srctree.nvidia)/include/

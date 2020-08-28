@@ -1050,6 +1050,7 @@ static int nvmap_debug_lru_allocations_show(struct seq_file *s, void *unused)
 
 DEBUGFS_OPEN_FOPS(lru_allocations);
 
+#ifdef NVMAP_PROCRANK
 struct procrank_stats {
 	struct vm_area_struct *vma;
 	u64 pss;
@@ -1237,6 +1238,7 @@ static int nvmap_debug_iovmm_procrank_show(struct seq_file *s, void *unused)
 }
 
 DEBUGFS_OPEN_FOPS(iovmm_procrank);
+#endif /* NVMAP_PROCRANK */
 
 ulong nvmap_iovmm_get_used_pages(void)
 {
@@ -1267,8 +1269,10 @@ static void nvmap_iovmm_debugfs_init(void)
 			debugfs_create_file("maps", S_IRUGO, iovmm_root,
 				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_maps_fops);
+#ifdef NVMAP_PROCRANK
 			debugfs_create_file("procrank", S_IRUGO, iovmm_root,
 				nvmap_dev, &debug_iovmm_procrank_fops);
+#endif
 		}
 	}
 }
