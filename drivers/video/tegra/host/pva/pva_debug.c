@@ -1,7 +1,7 @@
 /*
  * PVA Debug Information file
  *
- * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -202,7 +202,6 @@ DEFINE_DEBUGFS_ATTRIBUTE(log_level_fops, get_log_level, set_log_level, "%llu");
 
 void pva_debugfs_init(struct platform_device *pdev)
 {
-	struct dentry *ret;
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct pva *pva = pdata->private_data;
 	struct dentry *de = pdata->debugfs;
@@ -214,64 +213,27 @@ void pva_debugfs_init(struct platform_device *pdev)
 	pva->debugfs_entry_vpu0.pva = pva;
 	pva->debugfs_entry_vpu1.pva = pva;
 
-	ret = debugfs_create_file("r5_crashdump", S_IRUGO, de,
+	debugfs_create_file("r5_crashdump", S_IRUGO, de,
 				&pva->debugfs_entry_r5, &pva_crashdump_fops);
-	if (!ret)
-		nvhost_dbg_info("Failed R5_crashdump file creation");
-
-	ret = debugfs_create_file("vpu0_crashdump", S_IRUGO, de,
+	debugfs_create_file("vpu0_crashdump", S_IRUGO, de,
 				&pva->debugfs_entry_vpu0, &pva_crashdump_fops);
-	if (!ret)
-		nvhost_dbg_info("Failed VPU0_crashdump file creation");
-
-
-	ret = debugfs_create_file("vpu1_crashdump", S_IRUGO, de,
+	debugfs_create_file("vpu1_crashdump", S_IRUGO, de,
 				&pva->debugfs_entry_vpu1, &pva_crashdump_fops);
-	if (!ret)
-		nvhost_dbg_info("Failed VPU1_crashdump file creation");
-
-	ret = debugfs_create_u32("submit_task_mode", S_IRUGO | S_IWUSR, de,
+	debugfs_create_u32("submit_task_mode", S_IRUGO | S_IWUSR, de,
 				 &pva->submit_task_mode);
-	if (!ret)
-		nvhost_dbg_info("Failed to create submit mode selection file");
-
-	ret = debugfs_create_file("vpu_function_table", S_IRUGO, de,
-				pva, &pva_vpu_function_table_fops);
-	if (!ret)
-		nvhost_dbg_info("Failed to create vpu function table file");
-
-	ret = debugfs_create_u32("vpu_app_id", S_IRUGO | S_IWUSR, de,
-				 &pva->dbg_vpu_app_id);
-	if (!ret)
-		nvhost_dbg_info("Failed to create vpu_app id debug file");
-
-	ret = debugfs_create_u32("r5_dbg_wait", 0644, de,
-				 &pva->r5_dbg_wait);
-	if (!ret)
-		nvhost_dbg_info("Failed to create r5_dbg_wait file");
-
-	ret = debugfs_create_bool("r5_timeout_enable", 0644, de,
-				 &pva->timeout_enabled);
-	if (!ret)
-		nvhost_dbg_info("Failed to create r5_timeout_enable node");
-
-	ret = debugfs_create_file("firmware_version", S_IRUGO, de,
-				pva, &print_version_fops);
-	if (!ret)
-		nvhost_dbg_info("Failed to create PVA version file");
-
-	ret = debugfs_create_u32("cg_disable", 0644, de,
-				 &pva->slcg_disable);
-	if (!ret)
-		nvhost_dbg_info("Failed to create cg_disable node");
-
-	ret = debugfs_create_bool("vpu_perf_counters_enable", 0644, de,
-				  &pva->vpu_perf_counters_enable);
-	if (!ret)
-		nvhost_dbg_info("Failed to create vpu_perf_counters_enable node");
-
-	ret = debugfs_create_file("log_level", 0644, de,
-				  pva, &log_level_fops);
-	if (!ret)
-		nvhost_dbg_info("Failed to create log_lovel node");
+	debugfs_create_file("vpu_function_table", S_IRUGO, de, pva,
+			    &pva_vpu_function_table_fops);
+	debugfs_create_u32("vpu_app_id", S_IRUGO | S_IWUSR, de,
+			   &pva->dbg_vpu_app_id);
+	debugfs_create_u32("r5_dbg_wait", 0644, de,
+			   &pva->r5_dbg_wait);
+	debugfs_create_bool("r5_timeout_enable", 0644, de,
+			    &pva->timeout_enabled);
+	debugfs_create_file("firmware_version", S_IRUGO, de, pva,
+			    &print_version_fops);
+	debugfs_create_u32("cg_disable", 0644, de, &pva->slcg_disable);
+	debugfs_create_bool("vpu_perf_counters_enable", 0644, de,
+			    &pva->vpu_perf_counters_enable);
+	debugfs_create_file("log_level", 0644, de, pva,
+			    &log_level_fops);
 }

@@ -326,7 +326,7 @@ static int pva_read_ucode(struct platform_device *pdev,
 			/* Total 2GB of contiguous memory for cache
 			 * Set the DRAM CACHE physical addr as iova start
 			 */
-			if (pdev->dev.archdata.iommu)
+			if (iommu_get_domain_for_dev(&pdev->dev))
 				useg->phys_addr = DRAM_PVA_IOVA_START_ADDRESS;
 			else
 				useg->phys_addr = DRAM_PVA_NO_IOMMU_START_ADDRESS;
@@ -685,7 +685,13 @@ int pva_prepare_poweroff(struct platform_device *pdev)
 		disable_irq(pva->irq[i]);
 
 	/* Put PVA to reset to ensure that the firmware doesn't get accessed */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+	reset_control_acquire(pdata->reset_control);
+#endif
 	reset_control_assert(pdata->reset_control);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+	reset_control_release(pdata->reset_control);
+#endif
 	pva->booted = false;
 
 	pva_free_fw(pdev, pva);

@@ -44,7 +44,7 @@
 
 #include "nvhost_syncpt_unit_interface.h"
 #include "nvhost_gos.h"
-#include "../drivers/staging/android/sync.h"
+#include <linux/seq_file.h>
 #include "pva.h"
 #include "pva-task.h"
 #include "nvhost_buffer.h"
@@ -571,8 +571,7 @@ static int pva_task_write_preactions(struct pva_submit_task *task,
 		case NVDEV_FENCE_TYPE_SYNC_FD: {
 			int thresh, id;
 			dma_addr_t syncpt_addr;
-			struct sync_fence *syncfd_fence;
-			struct sync_pt *pt;
+			struct nvhost_fence *syncfd_fence;
 			struct nvhost_master *host = nvhost_get_host(
 							task->pva->pdev);
 			struct nvhost_syncpt *sp = &host->syncpt;
@@ -580,23 +579,17 @@ static int pva_task_write_preactions(struct pva_submit_task *task,
 			if (!fence->sync_fd)
 				break;
 
-			syncfd_fence = nvhost_sync_fdget(fence->sync_fd);
+			syncfd_fence = nvhost_fence_get(fence->sync_fd);
 			if (!syncfd_fence)
 				break;
 
-			for (j = 0; j < syncfd_fence->num_fences; j++) {
-				pt = sync_pt_from_fence(
-					syncfd_fence->cbs[j].sync_pt);
-				if (!pt)
-					break;
-
-				id = nvhost_sync_pt_id(pt);
-				thresh = nvhost_sync_pt_thresh(pt);
+			for (j = 0; j < nvhost_fence_num_pts(syncfd_fence); j++) {
+				nvhost_fence_get_pt(syncfd_fence, j, &id, &thresh);
 
 				/* validate the synpt ids */
 				if (!id ||
 				!nvhost_syncpt_is_valid_hw_pt(sp, id)) {
-					sync_fence_put(syncfd_fence);
+					nvhost_fence_put(syncfd_fence);
 					break;
 				}
 
@@ -1609,7 +1602,11 @@ static int pva_task_submit(struct pva_submit_task *task,
 	 * TSC timestamp is same as CNTVCT. Task statistics are being
 	 * reported in TSC ticks.
 	 */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	timestamp = arch_timer_read_counter();
+#else
 	timestamp = arch_counter_get_cntvct();
+#endif
 
 	/* Choose the submit policy based on the mode */
 	switch (task->pva->submit_task_mode) {

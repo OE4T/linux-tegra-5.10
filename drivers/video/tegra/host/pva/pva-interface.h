@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1047,8 +1047,6 @@ pva_cmd_set_region(struct pva_cmd * const cmd,
 {
 	cmd->mbox[0] = PVA_CMD_GO | flags
 		       | PVA_SET_COMMAND(CMD_SET_REGION)
-		       | PVA_INSERT(PVA_EXTRACT64(addr, 39, 40, uint32_t),
-				    23, 16)
 		       | PVA_INSERT(region, 15, 8);
 	cmd->mbox[1] = PVA_LOW32(addr);
 	cmd->mbox[2] = length;
@@ -1203,9 +1201,7 @@ pva_cmd_get_vpu_func_table(struct pva_cmd * const cmd,
 			   const uint32_t flags)
 {
 	cmd->mbox[0] = PVA_CMD_GO | flags
-		       | PVA_SET_COMMAND(CMD_GET_VPU_FUNC_TABLE)
-		       | PVA_INSERT(PVA_EXTRACT64(addr, 39, 40, uint32_t),
-				    23, 16);
+		       | PVA_SET_COMMAND(CMD_GET_VPU_FUNC_TABLE);
 	cmd->mbox[1] = PVA_LOW32(addr);
 	cmd->mbox[2] = length;
 	return 3U;

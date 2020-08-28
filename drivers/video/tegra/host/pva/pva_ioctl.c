@@ -1,7 +1,7 @@
 /*
  * PVA Ioctl Handling for T194
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -319,7 +319,7 @@ static int pva_submit(struct pva_private *priv, void *arg)
 					pts.id = priv->queue->syncpt_id;
 					pts.thresh = threshold;
 					threshold += increment;
-					err = nvhost_sync_create_fence_fd(
+					err = nvhost_fence_create_fd(
 						host1x_pdev,
 						&pts, 1,
 						"fence_pva",

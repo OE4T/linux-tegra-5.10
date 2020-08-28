@@ -17,7 +17,7 @@ config TEGRA_GRHOST_NVDLA
 
 config TEGRA_GRHOST_PVA
 	bool "Tegra PVA support"
-	depends on TEGRA_GRHOST && ARCH_TEGRA_19x_SOC
+	depends on TEGRA_GRHOST && (ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC)
 	default y
 	help
 	  Enables Programmable Vision Accelerator engine support under nvhost
