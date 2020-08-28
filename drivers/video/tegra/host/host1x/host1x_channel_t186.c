@@ -239,22 +239,18 @@ static void submit_setstreamid(struct nvhost_job *job)
 static void submit_work(struct nvhost_job *job)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(job->ch->dev);
-	bool use_locking =
-		pdata->resource_policy == RESOURCE_PER_CHANNEL_INSTANCE;
 	void *cpuva = NULL;
-	u32 cur_class = 0;
 	int i;
 
 	/* First, move us into host class */
-	if (use_locking) {
-		cur_class = NV_HOST1X_CLASS_ID;
-		nvhost_cdma_push(&job->ch->cdma,
-				 nvhost_opcode_acquire_mlock(cur_class),
-				 nvhost_opcode_setclass(cur_class, 0, 0));
+	u32 cur_class = NV_HOST1X_CLASS_ID;
+
+	nvhost_cdma_push(&job->ch->cdma,
+			 nvhost_opcode_acquire_mlock(cur_class),
+			 nvhost_opcode_setclass(cur_class, 0, 0));
 #ifdef NVHOST_HAS_SUBMIT_HOST1XSTREAMID
-		submit_host1xstreamid(job);
+	submit_host1xstreamid(job);
 #endif
-	}
 
 	/* make all waits in the beginning */
 	push_waits(job);
@@ -266,10 +262,9 @@ static void submit_work(struct nvhost_job *job)
 		u32 op2 = NVHOST_OPCODE_NOOP;
 
 		/* handle class changing */
-		if (!cur_class || cur_class != g->class_id) {
+		if (cur_class != g->class_id) {
 			/* first, release current class */
-			if (use_locking && cur_class)
-				nvhost_cdma_push(&job->ch->cdma,
+			nvhost_cdma_push(&job->ch->cdma,
 					NVHOST_OPCODE_NOOP,
 					nvhost_opcode_release_mlock(cur_class));
 
@@ -282,13 +277,8 @@ static void submit_work(struct nvhost_job *job)
 			 */
 
 			/* acquire lock of the new class */
-			if (use_locking) {
-				op1 = nvhost_opcode_acquire_mlock(g->class_id);
-				op2 = nvhost_opcode_setclass(g->class_id, 0, 0);
-			} else {
-				op1 = nvhost_opcode_setclass(g->class_id, 0, 0);
-			}
-
+			op1 = nvhost_opcode_acquire_mlock(g->class_id);
+			op2 = nvhost_opcode_setclass(g->class_id, 0, 0);
 
 			/* ..and finally, push opcode pair to hardware */
 			nvhost_cdma_push(&job->ch->cdma, op1, op2);
@@ -336,8 +326,7 @@ static void submit_work(struct nvhost_job *job)
 	submit_work_done_increment(job);
 
 	/* release the engine */
-	if (use_locking && cur_class)
-		nvhost_cdma_push(&job->ch->cdma,
+	nvhost_cdma_push(&job->ch->cdma,
 			NVHOST_OPCODE_NOOP,
 			nvhost_opcode_release_mlock(cur_class));
 }
