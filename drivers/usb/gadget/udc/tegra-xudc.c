@@ -532,6 +532,8 @@ struct tegra_xudc {
 
 	struct delayed_work port_reset_war_work;
 	bool wait_for_sec_prc;
+
+	struct work_struct pullup_work;
 };
 
 #define XUDC_TRB_MAX_BUFFER_SIZE 65536
@@ -2068,9 +2070,10 @@ unlock:
 	return ret;
 }
 
-static int tegra_xudc_gadget_pullup(struct usb_gadget *gadget, int is_on)
+static void tegra_xudc_gadget_pullup_work(struct work_struct *work)
 {
-	struct tegra_xudc *xudc = to_xudc(gadget);
+	struct tegra_xudc *xudc = container_of(work, struct tegra_xudc,
+						pullup_work);
 	unsigned long flags;
 	u32 val;
 
@@ -2078,21 +2081,32 @@ static int tegra_xudc_gadget_pullup(struct usb_gadget *gadget, int is_on)
 
 	spin_lock_irqsave(&xudc->lock, flags);
 
-	if (is_on != xudc->pullup) {
-		val = xudc_readl(xudc, CTRL);
-		if (is_on)
-			val |= CTRL_ENABLE;
-		else
-			val &= ~CTRL_ENABLE;
-		xudc_writel(xudc, val, CTRL);
-	}
-
-	xudc->pullup = is_on;
-	dev_dbg(xudc->dev, "%s: pullup:%d", __func__, is_on);
+	val = xudc_readl(xudc, CTRL);
+	if (xudc->pullup)
+		val |= CTRL_ENABLE;
+	else
+		val &= ~CTRL_ENABLE;
+	xudc_writel(xudc, val, CTRL);
 
 	spin_unlock_irqrestore(&xudc->lock, flags);
 
 	pm_runtime_put(xudc->dev);
+
+}
+
+static int tegra_xudc_gadget_pullup(struct usb_gadget *gadget, int is_on)
+{
+	struct tegra_xudc *xudc = to_xudc(gadget);
+	unsigned long flags;
+
+	spin_lock_irqsave(&xudc->lock, flags);
+
+	if (is_on != xudc->pullup) {
+		xudc->pullup = is_on;
+		schedule_work(&xudc->pullup_work);
+	}
+
+	spin_unlock_irqrestore(&xudc->lock, flags);
 
 	return 0;
 }
@@ -2110,6 +2124,7 @@ static int tegra_xudc_gadget_start(struct usb_gadget *gadget,
 		return -EINVAL;
 
 	pm_runtime_get_sync(xudc->dev);
+	cancel_work_sync(&xudc->pullup_work);
 
 	spin_lock_irqsave(&xudc->lock, flags);
 
@@ -2162,6 +2177,7 @@ static int tegra_xudc_gadget_stop(struct usb_gadget *gadget)
 	unsigned int i;
 
 	pm_runtime_get_sync(xudc->dev);
+	cancel_work_sync(&xudc->pullup_work);
 
 	spin_lock_irqsave(&xudc->lock, flags);
 
@@ -3889,6 +3905,8 @@ static int tegra_xudc_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&xudc->port_reset_war_work,
 				tegra_xudc_port_reset_war_work);
 
+	INIT_WORK(&xudc->pullup_work, tegra_xudc_gadget_pullup_work);
+
 	pm_runtime_enable(&pdev->dev);
 
 	xudc->gadget.ops = &tegra_xudc_gadget_ops;
@@ -3929,6 +3947,7 @@ static int tegra_xudc_remove(struct platform_device *pdev)
 
 	cancel_delayed_work(&xudc->plc_reset_work);
 	cancel_work_sync(&xudc->usb_role_sw_work);
+	cancel_work_sync(&xudc->pullup_work);
 
 	usb_del_gadget_udc(&xudc->gadget);
 
@@ -3959,6 +3978,8 @@ static int __maybe_unused tegra_xudc_powergate(struct tegra_xudc *xudc)
 	unsigned long flags;
 
 	dev_dbg(xudc->dev, "entering ELPG\n");
+
+	cancel_work_sync(&xudc->pullup_work);
 
 	spin_lock_irqsave(&xudc->lock, flags);
 
