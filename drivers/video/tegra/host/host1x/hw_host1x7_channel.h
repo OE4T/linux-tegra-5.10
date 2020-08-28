@@ -158,16 +158,6 @@ static inline u32 host1x_channel_ch_vm_0_r(void)
 	/* arhost: hyp: HOST1X_THOST_COMMON_CH_VM_0 */
 	return 0x7f8;
 }
-static inline u32 host1x_channel_mlock_en_0_r(void)
-{
-	/* HOST1X_THOST_COMMON_CH_MLOCK_EN_0 */
-	return 0x1710u;
-}
-static inline u32 host1x_channel_mlock_en_1_r(void)
-{
-	/* HOST1X_THOST_COMMON_CH_MLOCK_EN_1 */
-	return 0x1714u;
-}
 static inline u32 host1x_channel_ch_strmid_0_offset_base_v(void)
 {
 	/* arhost: hyp: HOST1X_THOST_COMMON_THOST_CH_STRMID_0_OFFSET_BASE_0 */

@@ -720,14 +720,6 @@ static void t23x_init_map_regs(struct platform_device *pdev)
 		host1x_hypervisor_writel(pdev, host1x_mmio_vm_r[i],
 					0x1);
 	}
-
-	/*
-	 * Disabling the requirement of using MLOCKs for channels.
-	 * So for engines like SE, where we were not programming MLOCKs,
-	 * it should allow things to work.
-	 */
-	host1x_hypervisor_writel(pdev, host1x_channel_mlock_en_0_r(), 0x0);
-	host1x_hypervisor_writel(pdev, host1x_channel_mlock_en_0_r(), 0x0);
 }
 
 #include "host1x/host1x_cdma_t186.c"
