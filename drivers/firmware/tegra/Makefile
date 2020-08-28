@@ -11,4 +11,7 @@ bpmp-objs := \
 bpmp-$(CONFIG_DEBUG_FS)		+= bpmp_t210.o
 bpmp-$(CONFIG_DEBUG_FS)		+= fwdebug.o
 
+obj-$(CONFIG_ARCH_TEGRA_186_SOC)	+= bpmp-tegra186-hv.o
+obj-$(CONFIG_ARCH_TEGRA_194_SOC)	+= bpmp-tegra186-hv.o
+
 GCOV_PROFILE				:= y
