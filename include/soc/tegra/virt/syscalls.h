@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2014-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Hypervisor interfaces
  *
@@ -156,6 +156,10 @@ struct hyp_server_page {
 	/* hypervisor trace log */
 	uint64_t log_ipa;
 	uint32_t log_size;
+
+	/* secure-hypervisor trace log */
+	uint64_t secure_log_ipa;
+	uint32_t secure_log_size;
 
 	/* PCT data */
 	uint64_t pct_ipa;
