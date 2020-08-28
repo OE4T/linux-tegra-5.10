@@ -537,6 +537,7 @@ clean_up:
 		nvgpu_kfree(g, netlist_vars->ucode.gpccs.data.l);
 		nvgpu_kfree(g, netlist_vars->sw_bundle_init.l);
 		nvgpu_kfree(g, netlist_vars->sw_bundle64_init.l);
+		nvgpu_kfree(g, netlist_vars->sw_veid_bundle_init.l);
 		nvgpu_kfree(g, netlist_vars->sw_method_init.l);
 		nvgpu_kfree(g, netlist_vars->sw_ctx_load.l);
 		nvgpu_kfree(g, netlist_vars->sw_non_ctx_load.l);
@@ -662,6 +663,13 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.gpc_router.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ltc.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_fbpa.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_sys_router.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_pma.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_rop.l);
+	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_ucgpc.l);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	nvgpu_next_netlist_deinit_ctxsw_regs(g);
+#endif
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.pm_cau.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_sys_control.l);
 	nvgpu_kfree(g, netlist_vars->ctxsw_regs.perf_fbp_control.l);
