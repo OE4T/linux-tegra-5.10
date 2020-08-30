@@ -51,13 +51,21 @@ struct xfer_info {
 	__u8  out[MBOX_MSG_LEN];
 };
 
+#define PSC_MBOX_OIST_AUTH_CMD 0x4F495354
+
 union mbox_msg {
 	struct {
 		u32 opcode[2];
-		uint64_t tx_iova;
-		uint64_t rx_iova;
+		u64 tx_iova;
+		u64 rx_iova;
 		u32 tx_size;
 		u32 rx_size;
+	};
+	/* for PSC_MBOX_OIST_AUTH_CMD command */
+	struct {
+		u32 cmd;
+		u64 iova;
+		u32 length;
 	};
 	u32 data[16];
 };
@@ -243,12 +251,18 @@ static long xfer_data(struct file *file, char __user *data)
 	dev_dbg(dev, "tx_virt:%p, tx_phys: %p\n", tx_virt, (void *)tx_phys);
 	dev_dbg(dev, "rx_virt:%p, rx_phys: %p\n", rx_virt, (void *)rx_phys);
 
-	msg.opcode[0] = info.opcode[0];
-	msg.opcode[1] = info.opcode[1];
-	msg.tx_iova = tx_phys;
-	msg.rx_iova = rx_phys;
-	msg.tx_size = info.tx_size;
-	msg.rx_size = info.rx_size;
+	if (info.opcode[0] == PSC_MBOX_OIST_AUTH_CMD) {
+		msg.cmd = info.opcode[0];
+		msg.iova = tx_phys;
+		msg.length = info.tx_size;
+	} else {
+		msg.opcode[0] = info.opcode[0];
+		msg.opcode[1] = info.opcode[1];
+		msg.tx_iova = tx_phys;
+		msg.rx_iova = rx_phys;
+		msg.tx_size = info.tx_size;
+		msg.rx_size = info.rx_size;
+	}
 
 	ret = mbox_send_message(dbg->chan, &msg);
 	if (ret < 0) {
@@ -269,7 +283,8 @@ static long xfer_data(struct file *file, char __user *data)
 		dbg->rx_msg[0], dbg->rx_msg[1], dbg->rx_msg[2], dbg->rx_msg[3]);
 
 	/* copy mbox payload */
-	if (copy_to_user(&ptr_xfer->out[0], &dbg->rx_msg[0], sizeof(dbg->rx_msg))) {
+	if (copy_to_user(&ptr_xfer->out[0],
+			&dbg->rx_msg[0], sizeof(dbg->rx_msg))) {
 		dev_err(dev, "failed to mbox out data.\n");
 		ret = -EFAULT;
 		goto free_rx;
