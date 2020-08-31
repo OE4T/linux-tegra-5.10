@@ -264,3 +264,33 @@ u32 nvgpu_grmgr_get_gr_syspipe_id(struct gk20a *g, u32 gr_instance_id)
 
 	return U32_MAX;
 }
+
+u32 nvgpu_grmgr_get_gr_num_gpcs(struct gk20a *g, u32 gr_instance_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+	struct nvgpu_gr_syspipe *gr_syspipe;
+
+	if (gr_instance_id < g->mig.num_gpu_instances) {
+		gpu_instance = &g->mig.gpu_instance[gr_instance_id];
+		gr_syspipe = &gpu_instance->gr_syspipe;
+
+		return gr_syspipe->num_gpc;
+	}
+
+	return U32_MAX;
+}
+
+u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id, u32 gpc_local_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+	struct nvgpu_gr_syspipe *gr_syspipe;
+
+	if (gr_instance_id < g->mig.num_gpu_instances) {
+		gpu_instance = &g->mig.gpu_instance[gr_instance_id];
+		gr_syspipe = &gpu_instance->gr_syspipe;
+
+		return gr_syspipe->gpcs[gpc_local_id].physical_id;
+	}
+
+	return U32_MAX;
+}

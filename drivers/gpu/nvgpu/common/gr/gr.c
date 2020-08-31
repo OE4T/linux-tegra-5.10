@@ -373,8 +373,10 @@ static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 	return 0;
 }
 
-static int gr_init_config(struct gk20a *g, struct nvgpu_gr *gr)
+static int gr_init_config(struct gk20a *g)
 {
+	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
+
 	gr->config = nvgpu_gr_config_init(g);
 	if (gr->config == NULL) {
 		return -ENOMEM;
@@ -755,7 +757,7 @@ int nvgpu_gr_init_support(struct gk20a *g)
 
 	/* This is prerequisite for calling sm_id_config_early hal. */
 	if (!g->gr->sw_ready) {
-		err = gr_init_config(g, g->gr);
+		err = nvgpu_gr_exec_with_ret_for_each_instance(g, gr_init_config(g));
 		if (err != 0) {
 			return err;
 		}
