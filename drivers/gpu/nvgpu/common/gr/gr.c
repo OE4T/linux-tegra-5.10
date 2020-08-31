@@ -614,7 +614,7 @@ static int gr_reset_engine(struct gk20a *g)
 	if (g->ops.gr.init.reset_gpcs != NULL) {
 		const struct nvgpu_device *dev =
 			nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
-				 nvgpu_gr_get_syspipe_id(g, g->cur_gr_instance));
+				 nvgpu_gr_get_syspipe_id(g, g->mig.cur_gr_instance));
 
 		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
@@ -841,7 +841,7 @@ int nvgpu_gr_alloc(struct gk20a *g)
 		return -ENOMEM;
 	}
 
-	g->cur_gr_instance = 0U; /* default */
+	g->mig.cur_gr_instance = 0U; /* default */
 
 	for (i = 0U; i < g->num_gr_instances; i++) {
 		gr = &g->gr[i];

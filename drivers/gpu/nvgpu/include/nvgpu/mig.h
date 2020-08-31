@@ -196,6 +196,12 @@ struct nvgpu_mig {
 	 * It is valid if num_gr_sys_pipes_enabled > 1.
 	 */
 	u32 current_gr_syspipe_id;
+	/*
+	 * Current GR instance being programmed.
+	 * Defaults to zero for non-MIG cases. Respective GR instance id in
+	 * case MIG support is enabled.
+	 */
+	u32 cur_gr_instance;
 	/**
 	 * GR syspipe acquire lock.
 	 * It is valid lock if num_gr_sys_pipes_enabled > 1.

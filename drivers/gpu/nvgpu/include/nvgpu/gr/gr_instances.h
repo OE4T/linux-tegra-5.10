@@ -35,7 +35,7 @@
 			while (gr_instance_id < g->num_gr_instances) { \
 				u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
 				nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
-				g->cur_gr_instance = gr_instance_id; \
+				g->mig.cur_gr_instance = gr_instance_id; \
 				(func); \
 				nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, false); \
 			} \
@@ -56,7 +56,7 @@
 			while (gr_instance_id < g->num_gr_instances) { \
 				u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
 				nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
-				g->cur_gr_instance = gr_instance_id; \
+				g->mig.cur_gr_instance = gr_instance_id; \
 				err = (func); \
 				if (err != 0) { \
 					break; \
@@ -77,7 +77,7 @@
 	({ \
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
 			nvgpu_grmgr_config_gr_remap_window(g, NVGPU_MIG_INVALID_GR_SYSPIPE_ID, false); \
-			g->cur_gr_instance = 0; \
+			g->mig.cur_gr_instance = 0; \
 			(func); \
 			nvgpu_grmgr_config_gr_remap_window(g, NVGPU_MIG_INVALID_GR_SYSPIPE_ID, true); \
 		} else { \
@@ -94,7 +94,7 @@
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
 			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
 			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
-			g->cur_gr_instance = gr_instance_id; \
+			g->mig.cur_gr_instance = gr_instance_id; \
 			(func); \
 			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, false); \
 		} else { \
@@ -112,7 +112,7 @@
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
 			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
 			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
-			g->cur_gr_instance = gr_instance_id; \
+			g->mig.cur_gr_instance = gr_instance_id; \
 			err = (func); \
 			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, false); \
 		} else { \
