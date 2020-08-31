@@ -610,7 +610,6 @@ int nvgpu_netlist_init_ctx_vars(struct gk20a *g)
 		if (err != 0) {
 			nvgpu_err(g, "nvgpu_init_sim_netlist_ctx_vars failed!");
 		}
-		return err;
 	} else
 #endif
 	{
@@ -618,8 +617,12 @@ int nvgpu_netlist_init_ctx_vars(struct gk20a *g)
 		if (err != 0) {
 			nvgpu_err(g, "nvgpu_netlist_init_ctx_vars_fw failed!");
 		}
-		return err;
 	}
+#ifdef CONFIG_NVGPU_DEBUGGER
+	nvgpu_netlist_print_ctxsw_reg_info(g);
+#endif
+
+	return err;
 }
 
 void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
@@ -944,6 +947,67 @@ u32 nvgpu_netlist_get_etpc_ctxsw_regs_count(struct gk20a *g)
 #endif
 	return count;
 }
+
+void nvgpu_netlist_print_ctxsw_reg_info(struct gk20a *g)
+{
+	nvgpu_log_info(g, "<<<<---------- CTXSW'ed register info ---------->>>>");
+	nvgpu_log_info(g, "GRCTX_REG_LIST_SYS_COUNT                     :%d",
+			nvgpu_netlist_get_sys_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_GPC_COUNT                     :%d",
+			nvgpu_netlist_get_gpc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_TPC_COUNT                     :%d",
+			nvgpu_netlist_get_tpc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_ZCULL_GPC_COUNT               :%d",
+			nvgpu_netlist_get_zcull_gpc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_SYS_COUNT                  :%d",
+			nvgpu_netlist_get_pm_sys_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_GPC_COUNT                  :%d",
+			nvgpu_netlist_get_pm_gpc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_TPC_COUNT                  :%d",
+			nvgpu_netlist_get_pm_tpc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PPC_COUNT                     :%d",
+			nvgpu_netlist_get_ppc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_ETPC_COUNT                    :%d",
+			nvgpu_netlist_get_etpc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_PPC_COUNT                  :%d",
+			nvgpu_netlist_get_pm_ppc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_SYS_COUNT                :%d",
+			nvgpu_netlist_get_perf_sys_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_SYSROUTER_COUNT          :%d",
+			nvgpu_netlist_get_perf_sys_router_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_SYS_CONTROL_COUNT        :%d",
+			nvgpu_netlist_get_perf_sys_control_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_PMA_COUNT                :%d",
+			nvgpu_netlist_get_perf_pma_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_FBP_COUNT                :%d",
+			nvgpu_netlist_get_fbp_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_FBPROUTER_COUNT          :%d",
+			nvgpu_netlist_get_fbp_router_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_GPC_COUNT                :%d",
+			nvgpu_netlist_get_perf_gpc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_GPCROUTER_COUNT          :%d",
+			nvgpu_netlist_get_gpc_router_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_LTC_COUNT                  :%d",
+			nvgpu_netlist_get_pm_ltc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_ROP_COUNT                  :%d",
+			nvgpu_netlist_get_pm_rop_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_UNICAST_GPC_COUNT          :%d",
+			nvgpu_netlist_get_pm_ucgpc_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_CAU_COUNT                  :%d",
+			nvgpu_netlist_get_pm_cau_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PM_FBPA_COUNT                 :%d",
+			nvgpu_netlist_get_pm_fbpa_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_FBP_CONTROL_COUNT        :%d",
+			nvgpu_netlist_get_perf_fbp_control_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_GPC_CONTROL_COUNT        :%d",
+			nvgpu_netlist_get_perf_gpc_control_ctxsw_regs(g)->count);
+	nvgpu_log_info(g, "GRCTX_REG_LIST_PERF_PMA_CONTROL_COUNT        :%d",
+			nvgpu_netlist_get_perf_pma_control_ctxsw_regs(g)->count);
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	nvgpu_next_netlist_print_ctxsw_reg_info(g);
+#endif
+}
+
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 #ifdef CONFIG_NVGPU_NON_FUSA

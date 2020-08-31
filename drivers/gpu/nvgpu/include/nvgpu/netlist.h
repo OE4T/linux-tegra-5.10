@@ -392,6 +392,7 @@ u32 nvgpu_netlist_get_ppc_ctxsw_regs_count(struct gk20a *g);
 u32 nvgpu_netlist_get_gpc_ctxsw_regs_count(struct gk20a *g);
 u32 nvgpu_netlist_get_tpc_ctxsw_regs_count(struct gk20a *g);
 u32 nvgpu_netlist_get_etpc_ctxsw_regs_count(struct gk20a *g);
+void nvgpu_netlist_print_ctxsw_reg_info(struct gk20a *g);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 
 #ifdef CONFIG_NVGPU_NON_FUSA
