@@ -689,6 +689,8 @@ int nvgpu_gr_reset(struct gk20a *g)
 
 	g->gr->initialized = false;
 
+	nvgpu_log(g, gpu_dbg_rec, "Resetting GR");
+
 	nvgpu_mutex_acquire(fecs_mutex);
 
 	err = nvgpu_gr_enable_hw(g);

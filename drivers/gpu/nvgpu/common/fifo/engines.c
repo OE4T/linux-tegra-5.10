@@ -450,6 +450,7 @@ void nvgpu_engine_cleanup_sw(struct gk20a *g)
 static void nvgpu_engine_gr_reset(struct gk20a *g)
 {
 	struct nvgpu_swprofiler *prof = &g->fifo.eng_reset_profiler;
+	int err = 0;
 
 	nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_PREAMBLE);
 
@@ -474,32 +475,27 @@ static void nvgpu_engine_gr_reset(struct gk20a *g)
 
 	nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_FECS_TRACE_RESET);
 
-	if (!nvgpu_platform_is_simulation(g)) {
-		int err = 0;
+	/*
+	 * HALT_PIPELINE method and gr reset during recovery is supported
+	 * starting nvgpu-next simulation.
+	 */
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_HALT_PIPELINE, 0U, NULL);
+	if (err != 0) {
+		nvgpu_err(g, "failed to halt gr pipe");
+	}
 
-		/*HALT_PIPELINE method, halt GR engine*/
-		err = g->ops.gr.falcon.ctrl_ctxsw(g,
-				NVGPU_GR_FALCON_METHOD_HALT_PIPELINE, 0U, NULL);
-		if (err != 0) {
-			nvgpu_err(g, "failed to halt gr pipe");
-		}
+	nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_HALT_PIPELINE);
 
-		nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_HALT_PIPELINE);
+	/*
+	 * resetting only engine is not
+	 * enough, we do full init sequence
+	 */
+	nvgpu_log(g, gpu_dbg_rec, "resetting gr engine");
 
-		/*
-		 * resetting engine using mc_enable_r() is not
-		 * enough, we do full init sequence
-		 */
-		nvgpu_log(g, gpu_dbg_info, "resetting gr engine");
-
-		err = nvgpu_gr_reset(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to reset gr engine");
-		}
-	} else {
-		nvgpu_log(g, gpu_dbg_info,
-			  "HALT gr pipe not supported and "
-			  "gr cannot be reset without halting gr pipe");
+	err = nvgpu_gr_reset(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to reset gr engine");
 	}
 
 #ifdef CONFIG_NVGPU_POWER_PG
