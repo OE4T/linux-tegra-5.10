@@ -46,18 +46,18 @@ typedef uint32_t				hsp_sema_t;
 /*
  * Bits set by the R5 and examined by the OS
  */
-#define DCE_BOOT_TCM_COPY	DCE_BIT(15)	// uCode has copied to TCM
-#define DCE_BOOT_HW_INIT	DCE_BIT(14)	// hardware init complete
-#define DCE_BOOT_MPU_INIT	DCE_BIT(13)	// MPU initialized
-#define DCE_BOOT_CACHE_INIT	DCE_BIT(12)	// cache initialized
-#define DCE_BOOT_R5_INIT	DCE_BIT(11)	// R5 initialized
-#define DCE_BOOT_DRIVER_INIT	DCE_BIT(10)	// driver init complete
-#define DCE_BOOT_MAIN_STARTED	DCE_BIT(9)	// main started
-#define DCE_BOOT_TASK_INIT_START  DCE_BIT(8)	// task initialization started
-#define DCE_BOOT_TASK_INIT_DONE DCE_BIT(7)	// task initialization complete
+#define DCE_BOOT_TCM_COPY		DCE_BIT(15)	// uCode has copied to TCM
+#define DCE_BOOT_HW_INIT		DCE_BIT(14)	// hardware init complete
+#define DCE_BOOT_MPU_INIT		DCE_BIT(13)	// MPU initialized
+#define DCE_BOOT_CACHE_INIT		DCE_BIT(12)	// cache initialized
+#define DCE_BOOT_R5_INIT		DCE_BIT(11)	// R5 initialized
+#define DCE_BOOT_DRIVER_INIT		DCE_BIT(10)	// driver init complete
+#define DCE_BOOT_MAIN_STARTED		DCE_BIT(9)	// main started
+#define DCE_BOOT_TASK_INIT_START	DCE_BIT(8)	// task initialization started
+#define DCE_BOOT_TASK_INIT_DONE		DCE_BIT(7)	// task initialization complete
 
-#define DCE_HALTED		DCE_BIT(1)	// uCode has halted
-#define DCE_BOOT_COMPLETE	DCE_BIT(0)	// uCode boot has completed
+#define DCE_HALTED			DCE_BIT(1)	// uCode has halted
+#define DCE_BOOT_COMPLETE		DCE_BIT(0)	// uCode boot has completed
 
 /*
  * Symbolic definitions of the doorbell registers
@@ -69,14 +69,14 @@ typedef uint32_t				hsp_sema_t;
  */
 typedef uint32_t				hsp_mbox_t;
 
-#define DCE_MBOX_FROM_DCE_RM	(hsp_mbox_t)0U	// signal from RM IPC
-#define DCE_MBOX_TO_DCE_RM	(hsp_mbox_t)1U	// signal to RM IPC
-#define DCE_MBOX_FROM_BPMP	(hsp_mbox_t)2U	// signal from BPMP IPC
-#define DCE_MBOX_TO_BPMP	(hsp_mbox_t)3U	// signal to BPMP IPC
-#define DCE_MBOX_FROM_DCE_ADMIN (hsp_mbox_t)4U	// signal from DCE ADMIN IPC
-#define DCE_MBOX_TO_DCE_ADMIN	(hsp_mbox_t)5U	// signal to ADMIN IPC
-#define DCE_MBOX_BOOT_CMD	(hsp_mbox_t)6U	// boot commands
-#define DCE_MBOX_IRQ		(hsp_mbox_t)7U	// general interrupt/status
+#define DCE_MBOX_FROM_DCE_RM			(hsp_mbox_t)0U	// signal from RM IPC
+#define DCE_MBOX_TO_DCE_RM			(hsp_mbox_t)1U	// signal to RM IPC
+#define DCE_MBOX_FROM_DCE_RM_EVENT_NOTIFY	(hsp_mbox_t)2U	// signal to DCE for event notification
+#define DCE_MBOX_TO_DCE_RM_EVENT_NOTIFY		(hsp_mbox_t)3U	// signal from DCE for event notification IPC
+#define DCE_MBOX_FROM_DCE_ADMIN			(hsp_mbox_t)4U	// signal from DCE ADMIN IPC
+#define DCE_MBOX_TO_DCE_ADMIN			(hsp_mbox_t)5U	// signal to ADMIN IPC
+#define DCE_MBOX_BOOT_CMD			(hsp_mbox_t)6U	// boot commands
+#define DCE_MBOX_IRQ				(hsp_mbox_t)7U	// general interrupt/status
 /*
  * Generic interrupts & status from the DCE are reported in DCE_MBOX_IRQ
  */

@@ -25,6 +25,7 @@ struct tegra_dce_client_ipc client_handles[DCE_CLIENT_IPC_TYPE_MAX];
 static uint32_t dce_interface_type_map[DCE_CLIENT_IPC_TYPE_MAX] = {
 	[DCE_CLIENT_IPC_TYPE_CPU_RM] = DCE_IPC_TYPE_DISPRM,
 	[DCE_CLIENT_IPC_TYPE_HDCP_KMD] = DCE_IPC_TYPE_HDCP,
+	[DCE_CLIENT_IPC_TYPE_RM_EVENT] = DCE_IPC_TYPE_RM_NOTIFY,
 };
 
 static inline uint32_t dce_client_get_type(uint32_t int_type)
@@ -146,6 +147,7 @@ int tegra_dce_register_ipc_client(u32 type,
 	cl->d = d;
 	cl->type = type;
 	cl->data = data;
+	cl->handle = handle;
 	cl->int_type = int_type;
 	cl->callback_fn = callback_fn;
 	atomic_set(&cl->complete, 0);
@@ -251,6 +253,39 @@ int dce_client_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
 	return ret;
 }
 
+static void dce_client_process_event_ipc(struct tegra_dce *d,
+					 struct tegra_dce_client_ipc *cl)
+{
+	void *msg_data = NULL;
+	u32 msg_length;
+	int ret = 0;
+
+	if ((cl == NULL) || (cl->callback_fn == NULL) ||
+	    (cl->type != DCE_CLIENT_IPC_TYPE_RM_EVENT)) {
+		dce_err(d, "Invalid arg for DCE_CLIENT_IPC_TYPE_RM_EVENT type:[%u]", cl->type);
+		return;
+	}
+
+	msg_data = dce_kzalloc(d, DCE_CLIENT_MAX_IPC_MSG_SIZE, false);
+	if (msg_data == NULL) {
+		dce_err(d, "Could not allocate msg read buffer");
+		goto done;
+	}
+	msg_length = DCE_CLIENT_MAX_IPC_MSG_SIZE;
+
+	ret = dce_ipc_read_message(d, cl->int_type, msg_data, msg_length);
+	if (ret) {
+		dce_err(d, "Error in reading DCE msg for ch_type [%d]",
+			cl->int_type);
+		goto done;
+	}
+
+	cl->callback_fn(cl->handle, cl->type, msg_length, msg_data, cl->data);
+done:
+	if (msg_data)
+		dce_kfree(d, msg_data);
+}
+
 void dce_client_ipc_wakeup(struct tegra_dce *d, u32 ch_type)
 {
 	uint32_t type;
@@ -269,6 +304,9 @@ void dce_client_ipc_wakeup(struct tegra_dce *d, u32 ch_type)
 			ch_type);
 		return;
 	}
+
+	if (type == DCE_CLIENT_IPC_TYPE_RM_EVENT)
+		return dce_client_process_event_ipc(d, cl);
 
 	atomic_set(&cl->complete, 1);
 	dce_cond_signal_interruptible(&cl->recv_wait);

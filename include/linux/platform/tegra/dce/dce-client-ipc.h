@@ -15,8 +15,11 @@
 #define TEGRA_DCE_CLIENT_IPC_H
 
 #define DCE_CLIENT_IPC_TYPE_CPU_RM		0U
-#define DCE_CLIENT_IPC_TYPE_HDCP_KMD	1U
-#define DCE_CLIENT_IPC_TYPE_MAX			2U
+#define DCE_CLIENT_IPC_TYPE_HDCP_KMD		1U
+#define DCE_CLIENT_IPC_TYPE_RM_EVENT		2U
+#define DCE_CLIENT_IPC_TYPE_MAX			3U
+
+#define DCE_CLIENT_MAX_IPC_MSG_SIZE		4096
 
 /**
  * struct dce_ipc_message - Contains necessary info for an ipc msg.

@@ -95,6 +95,43 @@ struct dce_ipc_channel ivc_channels[DCE_IPC_CH_KMD_TYPE_MAX] = {
 			.frame_sz = DCE_DISPRM_CMD_MAX_FSIZE,
 		},
 	},
+	[DCE_IPC_CH_KMD_TYPE_RM_NOTIFY] = {
+		.flags = DCE_IPC_CHANNEL_VALID,
+		.ch_type = DCE_IPC_CH_KMD_TYPE_RM_NOTIFY,
+		.ipc_type = DCE_IPC_TYPE_RM_NOTIFY,
+		.signal = {
+			.to_d = {
+				.type = DCE_IPC_SIGNAL_MAILBOX,
+				.sema_num = DCE_NUM_SEMA_REGS,
+				.sema_bit = 0U,
+				.form = {
+					.mbox = {
+						.mb_type = DCE_MAILBOX_DISPRM_NOTIFY_INTERFACE,
+						.mb_num = DCE_MBOX_FROM_DCE_RM_EVENT_NOTIFY,
+					},
+				},
+				.signal = NULL,
+				.next = NULL,
+			},
+			.from_d = {
+				.type = DCE_IPC_SIGNAL_MAILBOX,
+				.sema_num = DCE_NUM_SEMA_REGS,
+				.sema_bit = 0U,
+				.form = {
+					.mbox = {
+						.mb_type = DCE_MAILBOX_DISPRM_NOTIFY_INTERFACE,
+						.mb_num = DCE_MBOX_TO_DCE_RM_EVENT_NOTIFY,
+					},
+				},
+				.signal = NULL,
+				.next = NULL,
+			},
+		},
+		.q_info = {
+			.nframes = DCE_DISPRM_EVENT_NOTIFY_CMD_MAX_NFRAMES,
+			.frame_sz = DCE_DISPRM_EVENT_NOTIFY_CMD_MAX_FSIZE,
+		},
+	},
 };
 
 /**

@@ -24,6 +24,7 @@
  * @data : Pointer to any specific data passed by client during registration
  *         for corresponding IPC type
  * @type : Corresponding IPC type as defined in CPU driver
+ * @handle : Corresponding handle allocated for client during registration
  * @int_type : IPC interface type for above IPC type as defined in CPU driver
  * @d : pointer to OS agnostic dce struct. Stores all runtime info for dce
  *      cluster elements
@@ -36,6 +37,7 @@ struct tegra_dce_client_ipc {
 	bool valid;
 	void *data;
 	uint32_t type;
+	uint32_t handle;
 	uint32_t int_type;
 	struct tegra_dce *d;
 	struct dce_cond recv_wait;

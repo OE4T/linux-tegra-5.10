@@ -19,7 +19,8 @@ struct tegra_dce;
 #define DCE_MAILBOX_BOOT_INTERFACE 0U
 #define DCE_MAILBOX_ADMIN_INTERFACE 1U
 #define DCE_MAILBOX_DISPRM_INTERFACE 2U
-#define DCE_MAILBOX_MAX_INTERFACES 3U
+#define DCE_MAILBOX_DISPRM_NOTIFY_INTERFACE 3U
+#define DCE_MAILBOX_MAX_INTERFACES 4U
 
 /**
  * struct dce_mailbox_interface - Contains dce mailbox interface state info

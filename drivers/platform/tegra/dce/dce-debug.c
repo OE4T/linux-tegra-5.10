@@ -438,10 +438,10 @@ int dump_hsp_regs_show(struct seq_file *s, void *unused)
 				dce_smb_read(d, DCE_MBOX_FROM_DCE_RM));
 	dce_info(d, "DCE_MBOX_TO_DCE_RM: 0x%x",
 				dce_smb_read(d, DCE_MBOX_TO_DCE_RM));
-	dce_info(d, "DCE_MBOX_FROM_BPMP: 0x%x",
-				dce_smb_read(d, DCE_MBOX_FROM_BPMP));
-	dce_info(d, "DCE_MBOX_TO_BPMP: 0x%x",
-				dce_smb_read(d, DCE_MBOX_TO_BPMP));
+	dce_info(d, "DCE_MBOX_FROM_DCE_RM_EVENT_NOTIFY: 0x%x",
+				dce_smb_read(d, DCE_MBOX_FROM_DCE_RM_EVENT_NOTIFY));
+	dce_info(d, "DCE_MBOX_TO_DCE_RM_EVENT_NOTIFY: 0x%x",
+				dce_smb_read(d, DCE_MBOX_TO_DCE_RM_EVENT_NOTIFY));
 	dce_info(d, "DCE_MBOX_FROM_DCE_ADMIN: 0x%x",
 				dce_smb_read(d, DCE_MBOX_FROM_DCE_ADMIN));
 	dce_info(d, "DCE_MBOX_BOOT_CMD: 0x%x",
