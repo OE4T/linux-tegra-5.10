@@ -178,6 +178,7 @@ struct tegra_gpio_soc {
 	const char *name;
 	unsigned int instance;
 	bool multi_ints;
+	bool is_hw_ts_sup;
 
 	const struct tegra186_pin_range *pin_ranges;
 	unsigned int num_pin_ranges;
@@ -978,6 +979,8 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	char **names;
 	int err;
 	int ret;
+	int value;
+	void __iomem *base;
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
 	if (!gpio)
@@ -1139,6 +1142,27 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	err = devm_gpiochip_add_data(&pdev->dev, &gpio->gpio, gpio);
 	if (err < 0)
 		return err;
+
+	if (gpio->soc->is_hw_ts_sup) {
+		for (i = 0, offset = 0; i < gpio->soc->num_ports; i++) {
+			const struct tegra_gpio_port *port =
+							&gpio->soc->ports[i];
+
+			for (j = 0; j < port->pins; j++) {
+				base = tegra186_gpio_get_base(gpio, offset + j);
+				if (WARN_ON(base == NULL))
+					return -EINVAL;
+
+				value = readl(base +
+					      TEGRA186_GPIO_ENABLE_CONFIG);
+				value |=
+				TEGRA186_GPIO_ENABLE_CONFIG_TIMESTAMP_FUNC;
+				writel(value,
+				       base + TEGRA186_GPIO_ENABLE_CONFIG);
+			}
+			offset += port->pins;
+		}
+	}
 
 	if (gpio->use_timestamp)
 		tegra_gte_setup(gpio);
@@ -1343,6 +1367,7 @@ static const struct tegra_gpio_soc tegra194_aon_soc = {
 	.gte_npins = ARRAY_SIZE(tegra194_gte_info),
 	.instance = 1,
 	.multi_ints = true,
+	.is_hw_ts_sup = true,
 };
 
 static const struct of_device_id tegra186_gpio_of_match[] = {
