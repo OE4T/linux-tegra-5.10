@@ -415,6 +415,12 @@ static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv
 		return -EINVAL;
 	}
 
+	err = gk20a_busy(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to poweron");
+		return -EINVAL;
+	}
+
 	if (args->mode == NVGPU_PROFILER_EXEC_REG_OPS_ARG_MODE_CONTINUE_ON_ERROR) {
 		flags |= NVGPU_REG_OP_FLAG_MODE_CONTINUE_ON_ERROR;
 	} else {
@@ -493,6 +499,8 @@ static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv
 	nvgpu_log(g, gpu_dbg_prof,
 		"REG_OPS for handle %u complete: count=%u mode=%u flags=0x%x err=%d",
 		prof->prof_handle, args->count, args->mode, args->flags, err);
+
+	gk20a_idle(g);
 
 	return err;
 }
