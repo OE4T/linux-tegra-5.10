@@ -108,7 +108,6 @@ int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu)
 	nvgpu_pmu_lsfm_clean(g, pmu, pmu->lsfm);
 	pmu->pmu_perfmon->perfmon_ready = false;
 
-	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 
 	nvgpu_log_fn(g, "done");
 	return 0;

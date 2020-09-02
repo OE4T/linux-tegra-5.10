@@ -121,8 +121,6 @@ struct gk20a;
 		"perfmon enabled or disabled for PMU"),			\
 	DEFINE_FLAG(NVGPU_PMU_PSTATE, "PMU Pstates"),			\
 	DEFINE_FLAG(NVGPU_PMU_ZBC_SAVE, "Save ZBC reglist"),		\
-	DEFINE_FLAG(NVGPU_PMU_FECS_BOOTSTRAP_DONE,			\
-		"Completed booting FECS"),				\
 	DEFINE_FLAG(NVGPU_GPU_CAN_BLCG,					\
 		"Supports Block Level Clock Gating"),			\
 	DEFINE_FLAG(NVGPU_GPU_CAN_SLCG,					\

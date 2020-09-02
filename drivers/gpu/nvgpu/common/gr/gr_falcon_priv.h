@@ -197,6 +197,12 @@ struct nvgpu_gr_falcon {
 	bool skip_ucode_init;
 
 	/**
+	 * Flag to trigger recovery bootstrap in case coldboot bootstrap
+	 * was already done.
+	 */
+	bool coldboot_bootstrap_done;
+
+	/**
 	 * Structure to hold various sizes that are queried from FECS
 	 * microcontroller.
 	 */

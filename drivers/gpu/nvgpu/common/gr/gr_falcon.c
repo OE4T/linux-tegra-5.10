@@ -58,6 +58,7 @@ struct nvgpu_gr_falcon *nvgpu_gr_falcon_init_support(struct gk20a *g)
 	}
 
 	nvgpu_mutex_init(&falcon->fecs_mutex);
+	falcon->coldboot_bootstrap_done = false;
 
 	return falcon;
 }
@@ -682,7 +683,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 	}
 #endif
 
-	if (nvgpu_is_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE)) {
+	if (falcon->coldboot_bootstrap_done) {
 		/* this must be recovery so bootstrap fecs and gpccs */
 		err = gr_falcon_recovery_bootstrap(g, falcon);
 		if (err != 0) {
@@ -692,7 +693,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 
 	} else {
 		/* cold boot or rg exit */
-		nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, true);
+		falcon->coldboot_bootstrap_done = true;
 		gr_falcon_coldboot_bootstrap(g, falcon);
 #if defined(CONFIG_NVGPU_DGPU) || defined(CONFIG_NVGPU_LS_PMU)
 		err = gr_falcon_sec2_or_ls_pmu_coldboot_bootstrap(g);

@@ -1660,7 +1660,6 @@ int tu104_init_hal(struct gk20a *g)
 
 	nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
-	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, true);
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
