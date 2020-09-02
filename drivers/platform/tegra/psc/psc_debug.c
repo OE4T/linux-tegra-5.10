@@ -56,16 +56,16 @@ struct xfer_info {
 union mbox_msg {
 	struct {
 		u32 opcode[2];
-		u64 tx_iova;
-		u64 rx_iova;
 		u32 tx_size;
 		u32 rx_size;
+		u64 tx_iova;
+		u64 rx_iova;
 	};
 	/* for PSC_MBOX_OIST_AUTH_CMD command */
 	struct {
 		u32 cmd;
-		u64 iova;
 		u32 length;
+		u64 iova;
 	};
 	u32 data[16];
 };
