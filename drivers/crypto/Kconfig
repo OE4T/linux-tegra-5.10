@@ -37,4 +37,9 @@ config CRYPTO_DEV_TEGRA_VIRTUAL_SE_INTERFACE
         help
           This allows you to use Virtual SE interface for Tegra Crypto algorithms.
 
+config CRYPTO_DEV_TEGRA_SE_NVRNG
+	tristate "Tegra SE NVRNG engine error handling support"
+	help
+	  This option enables the error recovery support for NVRNG engine.
+
 endif
