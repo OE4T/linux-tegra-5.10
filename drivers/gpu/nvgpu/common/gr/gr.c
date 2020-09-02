@@ -747,6 +747,23 @@ int nvgpu_gr_reset(struct gk20a *g)
 }
 #endif
 
+#if defined(CONFIG_NVGPU_NEXT)
+static int gr_init_sm_id_config_early(struct gk20a *g)
+{
+	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
+	int err;
+
+	if (g->ops.gr.init.sm_id_config_early != NULL) {
+		err = g->ops.gr.init.sm_id_config_early(g, gr->config);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	return 0;
+}
+#endif
+
 int nvgpu_gr_init_support(struct gk20a *g)
 {
 	int err = 0;
@@ -768,11 +785,10 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	 * Move sm id programming before loading ctxsw and gpccs firmwares. This
 	 * is the actual sequence expected by ctxsw ucode.
 	 */
-	if (g->ops.gr.init.sm_id_config_early != NULL) {
-		err = g->ops.gr.init.sm_id_config_early(g, g->gr->config);
-		if (err != 0) {
-			return err;
-		}
+	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
+			gr_init_sm_id_config_early(g));
+	if (err != 0) {
+		return err;
 	}
 #endif
 
