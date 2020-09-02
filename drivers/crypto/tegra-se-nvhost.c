@@ -595,13 +595,14 @@ static void tegra_se_free_ll_buf(struct tegra_se_dev *se_dev)
 
 static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 			       enum tegra_se_aes_op_mode mode, bool encrypt,
-			       u32 key_len)
+			       u32 data)
 {
-	u32 val = 0;
+	u32 val = 0, key_len, is_last;
 
 	switch (mode) {
 	case SE_AES_OP_MODE_CBC:
 	case SE_AES_OP_MODE_CMAC:
+		key_len = data;
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
 			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
@@ -637,6 +638,7 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 		break;
 
 	case SE_AES_OP_MODE_ECB:
+		key_len = data;
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
 			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
@@ -661,6 +663,7 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 		val |= SE_CONFIG_DST(DST_MEMORY);
 		break;
 	case SE_AES_OP_MODE_CTR:
+		key_len = data;
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
 			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
@@ -675,16 +678,17 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 			val = SE_CONFIG_DEC_ALG(ALG_AES_DEC);
 			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
 				if (key_len == TEGRA_SE_KEY_256_SIZE)
-					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY256);
 				else if (key_len == TEGRA_SE_KEY_192_SIZE)
-					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY192);
 				else
-					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY128);
 			}
 		}
 		val |= SE_CONFIG_DST(DST_MEMORY);
 		break;
 	case SE_AES_OP_MODE_OFB:
+		key_len = data;
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
 			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
@@ -699,107 +703,153 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 			val = SE_CONFIG_DEC_ALG(ALG_AES_DEC);
 			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
 				if (key_len == TEGRA_SE_KEY_256_SIZE)
-					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY256);
 				else if (key_len == TEGRA_SE_KEY_192_SIZE)
-					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY192);
 				else
-					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+					val |= SE_CONFIG_DEC_MODE(MODE_KEY128);
 			}
 		}
 		val |= SE_CONFIG_DST(DST_MEMORY);
 		break;
 
 	case SE_AES_OP_MODE_SHA1:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA1) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHA224:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA224) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHA256:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA256) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHA384:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA384) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHA512:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA512) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHA3_224:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA3_224) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHA3_256:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA3_256) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHA3_384:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA3_384) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHA3_512:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHA3_512) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHAKE128:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHAKE128) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_SHAKE256:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_SHA) |
 			SE_CONFIG_ENC_MODE(MODE_SHAKE256) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_HMAC_SHA224:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_HMAC) |
 			SE_CONFIG_ENC_MODE(MODE_SHA224) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_HMAC_SHA256:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_HMAC) |
 			SE_CONFIG_ENC_MODE(MODE_SHA256) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_HMAC_SHA384:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_HMAC) |
 			SE_CONFIG_ENC_MODE(MODE_SHA384) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_HMAC_SHA512:
+		is_last = data;
 		val = SE_CONFIG_DEC_ALG(ALG_NOP) |
 			SE_CONFIG_ENC_ALG(ALG_HMAC) |
 			SE_CONFIG_ENC_MODE(MODE_SHA512) |
 			SE_CONFIG_DST(DST_MEMORY);
+		if (!is_last)
+			val |= SE_CONFIG_DST(DST_HASHREG);
 		break;
 	case SE_AES_OP_MODE_XTS:
+		key_len = data;
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
 			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
@@ -2669,7 +2719,7 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 	}
 
 	req_ctx->config = tegra_se_get_config(se_dev, sha_ctx->op_mode,
-					      false, 0);
+					      false, is_last);
 	err = tegra_se_send_sha_data(se_dev, req_ctx, sha_ctx,
 				     current_total, is_last);
 	if (err) {
@@ -2840,6 +2890,8 @@ static int tegra_se_sha_init(struct ahash_request *req)
 	struct tegra_se_sha_context *sha_ctx;
 	struct tegra_se_dev *se_dev = se_devices[SE_SHA];
 
+	pr_debug("%s:%d start\n", __func__, __LINE__);
+
 	if (!req) {
 		dev_err(se_dev->dev, "SHA request not valid\n");
 		return -EINVAL;
@@ -2871,6 +2923,8 @@ static int tegra_se_sha_init(struct ahash_request *req)
 	sha_ctx->residual_bytes = 0;
 	mutex_unlock(&se_dev->mtx);
 
+	pr_debug("%s:%d end\n", __func__, __LINE__);
+
 	return 0;
 }
 
@@ -2878,6 +2932,8 @@ static int tegra_se_sha_update(struct ahash_request *req)
 {
 	struct tegra_se_dev *se_dev = se_devices[SE_SHA];
 	int ret = 0;
+
+	pr_debug("%s:%d start\n", __func__, __LINE__);
 
 	if (!req) {
 		dev_err(se_dev->dev, "SHA request not valid\n");
@@ -2894,6 +2950,9 @@ static int tegra_se_sha_update(struct ahash_request *req)
 		ret = -EBUSY;
 
 	mutex_unlock(&se_dev->mtx);
+
+	pr_debug("%s:%d end\n", __func__, __LINE__);
+
 	return ret;
 }
 
@@ -2901,6 +2960,8 @@ static int tegra_se_sha_finup(struct ahash_request *req)
 {
 	struct tegra_se_dev *se_dev = se_devices[SE_SHA];
 	int ret = 0;
+
+	pr_debug("%s:%d start\n", __func__, __LINE__);
 
 	if (!req) {
 		dev_err(se_dev->dev, "SHA request not valid\n");
@@ -2917,6 +2978,9 @@ static int tegra_se_sha_finup(struct ahash_request *req)
 		ret = -EBUSY;
 
 	mutex_unlock(&se_dev->mtx);
+
+	pr_debug("%s:%d end\n", __func__, __LINE__);
+
 	return ret;
 }
 
@@ -2924,6 +2988,8 @@ static int tegra_se_sha_final(struct ahash_request *req)
 {
 	struct tegra_se_dev *se_dev = se_devices[SE_SHA];
 	int ret = 0;
+
+	pr_debug("%s:%d start\n", __func__, __LINE__);
 
 	if (!req) {
 		dev_err(se_dev->dev, "SHA request not valid\n");
@@ -2941,6 +3007,9 @@ static int tegra_se_sha_final(struct ahash_request *req)
 		ret = -EBUSY;
 
 	mutex_unlock(&se_dev->mtx);
+
+	pr_debug("%s:%d end\n", __func__, __LINE__);
+
 	return ret;
 }
 
@@ -2948,6 +3017,8 @@ static int tegra_se_sha_digest(struct ahash_request *req)
 {
 	struct tegra_se_dev *se_dev = se_devices[SE_SHA];
 	int ret = 0;
+
+	pr_debug("%s:%d start\n", __func__, __LINE__);
 
 	ret = tegra_se_sha_init(req);
 	if (ret)
@@ -2963,6 +3034,9 @@ static int tegra_se_sha_digest(struct ahash_request *req)
 		ret = -EBUSY;
 
 	mutex_unlock(&se_dev->mtx);
+
+	pr_debug("%s:%d end\n", __func__, __LINE__);
+
 	return ret;
 }
 
