@@ -319,7 +319,72 @@ enum dram_types tegra_dram_types(void)
 }
 EXPORT_SYMBOL(tegra_dram_types);
 
+/*
+ * Return emc rate in Hz
+ */
+unsigned long tegra_get_emc_rate(void)
+{
+	struct clk *emc_clk;
+
+	emc_clk = clk_get_sys(NULL, "emc");
+	if (!IS_ERR_OR_NULL(emc_clk))
+		return clk_get_rate(emc_clk);
+
+	pr_err("EMC clock is not found\n");
+	return 0;
+}
+EXPORT_SYMBOL(tegra_get_emc_rate);
+
+/*
+ * Return max emc rate in Hz
+ */
+unsigned long tegra_get_emc_max_rate(void)
+{
+	struct clk *emc_clk;
+	long round_rate;
+
+	emc_clk = clk_get_sys(NULL, "emc");
+	if (emc_clk) {
+		round_rate = clk_round_rate(emc_clk, LONG_MAX);
+		if (round_rate < 0) {
+			pr_err("mc_utils: couldn't get emc clock max rate.\n");
+			return 0;
+		} else
+			return round_rate;
+	}
+
+	pr_err("EMC clock is not found\n");
+	return 0;
+}
+EXPORT_SYMBOL(tegra_get_emc_max_rate);
+
 #if defined(CONFIG_DEBUG_FS)
+static int bw_disruption_latency_show(struct seq_file *s, void *data)
+{
+	unsigned long dram_freq_khz = tegra_get_emc_rate();
+	unsigned long mc_freq_khz = dram_clk_to_mc_clk(dram_freq_khz / 1000)
+			 * 1000;
+	unsigned long bw_dis_latency;
+
+	bw_dis_latency = bw_disruption_latency(dram_freq_khz, mc_freq_khz,
+				emc_param.dram);
+
+	seq_printf(s, "BW disruption latency: %lu (Khz)\n",
+				 bw_dis_latency);
+	return 0;
+}
+static int bw_disruption_latency_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, bw_disruption_latency_show, inode->i_private);
+}
+
+static const struct file_operations fops_debugfs_bw_disruption_latency = {
+	.open = bw_disruption_latency_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
 static void tegra_mc_utils_debugfs_init(void)
 {
 	struct dentry *tegra_mc_debug_root = NULL;
@@ -330,8 +395,12 @@ static void tegra_mc_utils_debugfs_init(void)
 		return;
 	}
 
-	debugfs_create_u32("dram_type", S_IRUGO, tegra_mc_debug_root, &dram_type);
+	debugfs_create_u32("dram_type", 0444, tegra_mc_debug_root,
+			&dram_type);
 
+	debugfs_create_file("bw_disruption_latency", 0444,
+			tegra_mc_debug_root, NULL,
+			&fops_debugfs_bw_disruption_latency);
 }
 #endif
 
@@ -376,41 +445,3 @@ void tegra_mc_utils_init(void)
 #endif
 }
 
-/*
- * Return emc rate in Hz
- */
-unsigned long tegra_get_emc_rate(void)
-{
-	struct clk *emc_clk;
-
-	emc_clk = clk_get_sys(NULL, "emc");
-	if (!IS_ERR_OR_NULL(emc_clk))
-		return clk_get_rate(emc_clk);
-
-	pr_err("EMC clock is not found\n");
-	return 0;
-}
-EXPORT_SYMBOL(tegra_get_emc_rate);
-
-/*
- * Return max emc rate in Hz
- */
-unsigned long tegra_get_emc_max_rate(void)
-{
-	struct clk *emc_clk;
-	long round_rate;
-
-	emc_clk = clk_get_sys(NULL, "emc");
-	if (emc_clk) {
-		round_rate = clk_round_rate(emc_clk, LONG_MAX);
-		if (round_rate < 0) {
-			pr_err("mc_utils: couldn't get emc clock max rate.\n");
-			return 0;
-		} else
-			return round_rate;
-	}
-
-	pr_err("EMC clock is not found\n");
-	return 0;
-}
-EXPORT_SYMBOL(tegra_get_emc_max_rate);
