@@ -1566,7 +1566,7 @@ static int nvdla_queue_submit_op(struct nvdla_queue *queue, void *in_task)
 	method_data = ALIGNED_DMA(task->task_desc_pa);
 
 	/* Report timestamp in TSC ticks. */
-	timestamp = arch_counter_get_cntvct();
+	timestamp = arch_timer_read_counter();
 
 	/* get pm refcount */
 	if (nvhost_module_busy(pdev))
