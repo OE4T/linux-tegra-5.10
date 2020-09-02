@@ -704,4 +704,8 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
 void gr_intr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		u32 mailbox_value);
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_err.h"
+#endif
+
 #endif /* NVGPU_NVGPU_ERR_H */

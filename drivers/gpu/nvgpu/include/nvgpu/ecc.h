@@ -172,6 +172,9 @@ struct nvgpu_ecc {
 		struct nvgpu_ecc_stat **sm_icache_ecc_corrected_err_count;
 		/** SM icache uncorrected error count. */
 		struct nvgpu_ecc_stat **sm_icache_ecc_uncorrected_err_count;
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/gr/nvgpu_next_gr_ecc.h"
+#endif
 
 		/** GCC l1.5-cache corrected error count. */
 		struct nvgpu_ecc_stat *gcc_l15_ecc_corrected_err_count;
