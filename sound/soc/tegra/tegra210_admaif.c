@@ -952,9 +952,9 @@ static struct snd_kcontrol_new tegra186_admaif_controls[] = {
 
 static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
 	.dapm_widgets		= tegra_admaif_widgets,
-	.num_dapm_widgets	= ARRAY_SIZE(tegra_admaif_widgets),
+	.num_dapm_widgets	= TEGRA210_ADMAIF_CHANNEL_COUNT * 4,
 	.dapm_routes		= tegra_admaif_routes,
-	.num_dapm_routes	= ARRAY_SIZE(tegra_admaif_routes),
+	.num_dapm_routes	= TEGRA210_ADMAIF_CHANNEL_COUNT * 6,
 	.controls		= tegra210_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra210_admaif_controls),
 	.pcm_construct		= tegra_pcm_construct,
@@ -969,9 +969,9 @@ static const struct snd_soc_component_driver tegra210_admaif_cmpnt = {
 
 static const struct snd_soc_component_driver tegra186_admaif_cmpnt = {
 	.dapm_widgets		= tegra_admaif_widgets,
-	.num_dapm_widgets	= ARRAY_SIZE(tegra_admaif_widgets),
+	.num_dapm_widgets	= TEGRA186_ADMAIF_CHANNEL_COUNT * 4,
 	.dapm_routes		= tegra_admaif_routes,
-	.num_dapm_routes        = ARRAY_SIZE(tegra_admaif_routes),
+	.num_dapm_routes        = TEGRA186_ADMAIF_CHANNEL_COUNT * 6,
 	.controls		= tegra186_admaif_controls,
 	.num_controls		= ARRAY_SIZE(tegra186_admaif_controls),
 	.pcm_construct		= tegra_pcm_construct,
