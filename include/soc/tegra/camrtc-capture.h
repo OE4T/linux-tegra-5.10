@@ -1889,6 +1889,8 @@ struct nvcsi_tpg_config_t186 {
 #define NVCSI_TPG_FLAG_PHASE_INCREMENT			MK_U16(2)
 #define NVCSI_TPG_FLAG_AUTO_STOP			MK_U16(4)
 #define NVCSI_TPG_FLAG_EMBEDDED_PATTERN_CONFIG_INFO	MK_U16(8)
+/** Next gen TPG LS/LE packet generation enable flag */
+#define NVCSI_TPG_FLAG_ENABLE_LS_LE			MK_U16(16)
 /** @} */
 
 /**
