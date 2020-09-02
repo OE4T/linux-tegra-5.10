@@ -760,6 +760,20 @@ static int gr_init_sm_id_config_early(struct gk20a *g)
 }
 #endif
 
+static int gr_init_ctxsw_falcon_support(struct gk20a *g)
+{
+	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
+	int err;
+
+	err = nvgpu_gr_falcon_init_ctxsw(g, gr->falcon);
+	if (err != 0) {
+		gr_intr_report_ctxsw_error(g, GPU_FECS_CTXSW_INIT_ERROR, 0, 0);
+		return err;
+	}
+
+	return 0;
+}
+
 int nvgpu_gr_init_support(struct gk20a *g)
 {
 	int err = 0;
@@ -788,9 +802,9 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	}
 #endif
 
-	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr->falcon);
+	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
+			gr_init_ctxsw_falcon_support(g));
 	if (err != 0) {
-		gr_intr_report_ctxsw_error(g, GPU_FECS_CTXSW_INIT_ERROR, 0, 0);
 		return err;
 	}
 
