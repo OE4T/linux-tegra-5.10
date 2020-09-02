@@ -33,7 +33,13 @@
 
 int nvgpu_alloc_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem)
 {
-	return nvgpu_dma_alloc_sys(g, PAGE_SIZE, mem);
+	int err = 0;
+
+	if (!nvgpu_mem_is_valid(mem)) {
+		err = nvgpu_dma_alloc_sys(g, PAGE_SIZE, mem);
+	}
+
+	return err;
 }
 
 void nvgpu_free_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem)
