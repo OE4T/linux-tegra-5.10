@@ -242,6 +242,9 @@ struct sdhci_tegra {
 	bool cd_wakeup_capable;
 	bool is_rail_enabled;
 	bool en_periodic_cflush;
+	struct sdhci_host *host;
+	struct delayed_work detect_delay;
+	u32 boot_detect_delay;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -1183,6 +1186,8 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 			tegra_host->en_periodic_cflush = false;
 		}
 	}
+	device_property_read_u32(host->mmc->parent, "nvidia,boot-detect-delay",
+					&tegra_host->boot_detect_delay);
 }
 
 static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
@@ -2141,6 +2146,30 @@ cleanup:
 	return ret;
 }
 
+static void sdhci_delayed_detect(struct work_struct *work)
+{
+	struct sdhci_tegra *tegra_host;
+	struct sdhci_host *host;
+	struct sdhci_pltfm_host *pltfm_host;
+
+	tegra_host = container_of(work, struct sdhci_tegra, detect_delay.work);
+	host = tegra_host->host;
+	pltfm_host = sdhci_priv(host);
+
+	if (sdhci_tegra_add_host(host))
+		goto err_add_host;
+
+	/* Initialize debugfs */
+	sdhci_tegra_debugfs_init(host);
+
+	return;
+
+err_add_host:
+        clk_disable_unprepare(tegra_host->tmclk);
+        reset_control_assert(tegra_host->rst);
+        clk_disable_unprepare(pltfm_host->clk);
+}
+
 static int sdhci_tegra_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
@@ -2167,6 +2196,9 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	tegra_host->pad_calib_required = false;
 	tegra_host->pad_control_available = false;
 	tegra_host->soc_data = soc_data;
+	tegra_host->host = host;
+
+	INIT_DELAYED_WORK(&tegra_host->detect_delay, sdhci_delayed_detect);
 
 	if (soc_data->nvquirks & NVQUIRK_NEEDS_PAD_CONTROL) {
 		rc = tegra_sdhci_init_pinctrl_info(&pdev->dev, tegra_host);
@@ -2306,18 +2338,11 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 				mmc_gpio_get_cd(host->mmc);
 	}
 
-	rc = sdhci_tegra_add_host(host);
-	if (rc)
-		goto err_add_host;
-
-	/* Initialize debugfs */
-	sdhci_tegra_debugfs_init(host);
+	schedule_delayed_work(&tegra_host->detect_delay,
+			      msecs_to_jiffies(tegra_host->boot_detect_delay));
 
 	return 0;
 
-err_add_host:
-	clk_disable_unprepare(tegra_host->tmclk);
-	reset_control_assert(tegra_host->rst);
 err_rst_get:
 	clk_disable_unprepare(pltfm_host->clk);
 err_clk_get:
