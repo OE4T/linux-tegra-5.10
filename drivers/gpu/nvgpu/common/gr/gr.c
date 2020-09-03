@@ -61,9 +61,8 @@
  */
 #define NVGPU_GR_NUM_INSTANCES		1
 
-static int gr_alloc_global_ctx_buffers(struct gk20a *g)
+static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 {
-	struct nvgpu_gr *gr = g->gr;
 	int err;
 	u32 size;
 
@@ -89,8 +88,8 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR, size);
 #endif
 	size = g->ops.gr.init.get_global_attr_cb_size(g,
-			nvgpu_gr_config_get_tpc_count(g->gr->config),
-			nvgpu_gr_config_get_max_tpc_count(g->gr->config));
+			nvgpu_gr_config_get_tpc_count(gr->config),
+			nvgpu_gr_config_get_max_tpc_count(gr->config));
 	nvgpu_log_info(g, "attr_buffer_size : %u", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
@@ -415,9 +414,8 @@ static int nvgpu_gr_init_ctx_state(struct gk20a *g, struct nvgpu_gr *gr)
 	return err;
 }
 
-static int gr_init_ctx_and_map_zbc(struct gk20a *g)
+static int gr_init_ctx_bufs(struct gk20a *g, struct nvgpu_gr *gr)
 {
-	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
 
 	gr->gr_ctx_desc = nvgpu_gr_ctx_desc_alloc(g);
@@ -427,16 +425,17 @@ static int gr_init_ctx_and_map_zbc(struct gk20a *g)
 	}
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
-			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
+	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
+			nvgpu_gr_falcon_get_preempt_image_size(gr->falcon));
 #endif
+
 	gr->global_ctx_buffer = nvgpu_gr_global_ctx_desc_alloc(g);
 	if (gr->global_ctx_buffer == NULL) {
 		err = -ENOMEM;
 		goto clean_up;
 	}
 
-	err = gr_alloc_global_ctx_buffers(g);
+	err = gr_alloc_global_ctx_buffers(g, gr);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -445,13 +444,6 @@ static int gr_init_ctx_and_map_zbc(struct gk20a *g)
 	if (err != 0) {
 		goto clean_up;
 	}
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_zbc_init(g, &gr->zbc);
-	if (err != 0) {
-		goto clean_up;
-	}
-#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	return 0;
 
@@ -476,7 +468,7 @@ static int gr_init_ecc_init(struct gk20a *g)
 
 static int gr_init_setup_sw(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -486,22 +478,15 @@ static int gr_init_setup_sw(struct gk20a *g)
 		return 0;
 	}
 
-	gr->g = g;
-
-#if defined(CONFIG_NVGPU_RECOVERY) || defined(CONFIG_NVGPU_DEBUGGER)
-	nvgpu_mutex_init(&gr->ctxsw_disable_mutex);
-	gr->ctxsw_disable_count = 0;
-#endif
-
 	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,
-			nvgpu_gr_falcon_get_golden_image_size(g->gr->falcon));
+			nvgpu_gr_falcon_get_golden_image_size(gr->falcon));
 	if (err != 0) {
 		goto clean_up;
 	}
 
 #ifdef CONFIG_NVGPU_DEBUGGER
-	err = nvgpu_gr_hwpm_map_init(g, &g->gr->hwpm_map,
-			nvgpu_gr_falcon_get_pm_ctxsw_image_size(g->gr->falcon));
+	err = nvgpu_gr_hwpm_map_init(g, &gr->hwpm_map,
+			nvgpu_gr_falcon_get_pm_ctxsw_image_size(gr->falcon));
 	if (err != 0) {
 		nvgpu_err(g, "hwpm_map init failed");
 		goto clean_up;
@@ -515,22 +500,24 @@ static int gr_init_setup_sw(struct gk20a *g)
 	}
 
 	err = nvgpu_gr_zcull_init(g, &gr->zcull,
-			nvgpu_gr_falcon_get_zcull_image_size(g->gr->falcon),
-			g->gr->config);
+			nvgpu_gr_falcon_get_zcull_image_size(gr->falcon),
+			gr->config);
 	if (err != 0) {
 		goto clean_up;
 	}
 #endif /* CONFIG_NVGPU_GRAPHICS */
 
-	err = gr_init_ctx_and_map_zbc(g);
+	err = gr_init_ctx_bufs(g, gr);
 	if (err != 0) {
 		goto clean_up;
 	}
 
-	err = gr_init_ecc_init(g);
+#ifdef CONFIG_NVGPU_GRAPHICS
+	err = nvgpu_gr_zbc_init(g, &gr->zbc);
 	if (err != 0) {
 		goto clean_up;
 	}
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 	gr->remove_support = gr_remove_support;
 	gr->sw_ready = true;
@@ -830,7 +817,13 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	}
 #endif
 
-	err = gr_init_setup_sw(g);
+	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
+			gr_init_setup_sw(g));
+	if (err != 0) {
+		return err;
+	}
+
+	err = gr_init_ecc_init(g);
 	if (err != 0) {
 		return err;
 	}
@@ -901,9 +894,14 @@ int nvgpu_gr_alloc(struct gk20a *g)
 			goto fail;
 		}
 
+		gr->g = g;
 		nvgpu_cond_init(&gr->init_wq);
 #ifdef CONFIG_NVGPU_NON_FUSA
 		nvgpu_gr_override_ecc_val(gr, g->fecs_feature_override_ecc_val);
+#endif
+#if defined(CONFIG_NVGPU_RECOVERY) || defined(CONFIG_NVGPU_DEBUGGER)
+		nvgpu_mutex_init(&gr->ctxsw_disable_mutex);
+		gr->ctxsw_disable_count = 0;
 #endif
 	}
 
