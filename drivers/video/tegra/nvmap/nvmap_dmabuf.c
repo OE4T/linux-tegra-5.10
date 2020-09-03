@@ -143,7 +143,7 @@ static void __nvmap_dmabuf_del_stash(struct nvmap_handle_sgt *nvmap_sgt)
 
 static inline bool access_vpr_phys(struct device *dev)
 {
-	if (!dev->archdata.iommu)
+	if (!iommu_get_domain_for_dev(dev))
 		return true;
 
 	/*
