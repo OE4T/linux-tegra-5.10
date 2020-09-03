@@ -35,17 +35,17 @@ u32 nvgpu_gr_checksum_u32(u32 a, u32 b)
 
 struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g)
 {
-	return g->gr->falcon;
+	return g->gr[g->mig.cur_gr_instance].falcon;
 }
 
 struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
 {
-	return g->gr->config;
+	return g->gr[g->mig.cur_gr_instance].config;
 }
 
 struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)
 {
-	return g->gr->intr;
+	return g->gr[g->mig.cur_gr_instance].intr;
 }
 
 #ifdef CONFIG_NVGPU_NON_FUSA
