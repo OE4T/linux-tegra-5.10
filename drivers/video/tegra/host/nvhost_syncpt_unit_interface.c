@@ -147,7 +147,7 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev)
 	}
 
 	/* If IOMMU is enabled, map it into the device memory */
-	if (engine_pdev->dev.archdata.iommu) {
+	if (iommu_get_domain_for_dev(&engine_pdev->dev)) {
 		struct scatterlist sg;
 
 		/* Initialize the scatterlist to cover the whole range */
