@@ -632,9 +632,15 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 		break;
 
 	case SE_AES_OP_MODE_RNG_DRBG:
-		val = SE_CONFIG_ENC_ALG(ALG_RNG) |
-			SE_CONFIG_ENC_MODE(MODE_KEY192) |
-			SE_CONFIG_DST(DST_MEMORY);
+		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+			val = SE_CONFIG_ENC_ALG(ALG_RNG) |
+				SE_CONFIG_DEC_ALG(ALG_NOP) |
+				SE_CONFIG_DST(DST_MEMORY);
+		} else {
+			val = SE_CONFIG_ENC_ALG(ALG_RNG) |
+				SE_CONFIG_ENC_MODE(MODE_KEY192) |
+				SE_CONFIG_DST(DST_MEMORY);
+		}
 		break;
 
 	case SE_AES_OP_MODE_ECB:
@@ -2481,7 +2487,9 @@ static int tegra_se_rng_drbg_get_random(struct crypto_rng *tfm, const u8 *src,
 
 	req_ctx->config = tegra_se_get_config(se_dev, req_ctx->op_mode, true,
 					      TEGRA_SE_KEY_128_SIZE);
-	req_ctx->crypto_config = tegra_se_get_crypto_config(se_dev,
+
+	if (se_dev->chipdata->kac_type != SE_KAC_T23X)
+		req_ctx->crypto_config = tegra_se_get_crypto_config(se_dev,
 							    req_ctx->op_mode,
 							    true, 0, 0, true);
 	for (j = 0; j <= num_blocks; j++) {
