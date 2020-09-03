@@ -215,6 +215,8 @@ struct nvgpu_falcon {
 	u32 flcn_id;
 	/** Base address to access falcon registers */
 	u32 flcn_base;
+	/** Base address to access nextcore registers */
+	u32 flcn2_base;
 	/** Indicates if the falcon is supported and initialized for use. */
 	bool is_falcon_supported;
 	/** Indicates if the falcon interrupts are enabled. */

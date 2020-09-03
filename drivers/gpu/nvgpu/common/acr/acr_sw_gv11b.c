@@ -154,7 +154,7 @@ static u32 gv11b_acr_lsf_gpccs(struct gk20a *g,
 	return BIT32(lsf->falcon_id);
 }
 
-static u32 gv11b_acr_lsf_conifg(struct gk20a *g,
+u32 gv11b_acr_lsf_config(struct gk20a *g,
 	struct nvgpu_acr *acr)
 {
 	u32 lsf_enable_mask = 0;
@@ -195,7 +195,7 @@ void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	acr->bootstrap_owner = FALCON_ID_PMU;
 
-	acr->lsf_enable_mask = gv11b_acr_lsf_conifg(g, acr);
+	acr->lsf_enable_mask = gv11b_acr_lsf_config(g, acr);
 
 	gv11b_acr_default_sw_init(g, &acr->acr);
 

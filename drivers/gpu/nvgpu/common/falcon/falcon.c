@@ -438,7 +438,7 @@ static int falcon_sw_chip_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 		break;
 #if defined(CONFIG_NVGPU_NEXT)
 	case NVGPU_NEXT_GPUID:
-		gk20a_falcon_sw_init(flcn);
+		nvgpu_next_falcon_sw_init(flcn);
 		break;
 #endif
 #endif

@@ -28,6 +28,7 @@ struct gk20a;
 
 struct gops_gsp {
 	u32 (*falcon_base_addr)(void);
+	u32 (*falcon2_base_addr)(void);
 	void (*falcon_setup_boot_config)(struct gk20a *g);
 	int (*gsp_reset)(struct gk20a *g);
 };

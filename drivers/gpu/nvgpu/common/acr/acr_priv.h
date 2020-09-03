@@ -140,6 +140,10 @@ struct nvgpu_acr {
 	struct hs_acr acr_ahesasc;
 	struct hs_acr acr_asb;
 
+	/* ACR load split feature support for iGPU*/
+	struct hs_acr acr_alsb;
+	struct hs_acr acr_asc;
+
 	int (*prepare_ucode_blob)(struct gk20a *g);
 	int (*alloc_blob_space)(struct gk20a *g, size_t size,
 		struct nvgpu_mem *mem);

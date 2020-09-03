@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,9 @@
 #define ACR_BOOTSTRAP_H
 
 #include "nvgpu_acr_interface.h"
+#ifdef CONFIG_NVGPU_NEXT
+#include "common/acr/nvgpu_next_acr_bootstrap.h"
+#endif
 
 struct gk20a;
 struct nvgpu_acr;
@@ -99,6 +102,12 @@ struct hs_acr {
 
 	/* ACR ucode */
 	const char *acr_fw_name;
+	const char *acr_code_name;
+	const char *acr_data_name;
+	const char *acr_manifest_name;
+	struct nvgpu_firmware *code_fw;
+	struct nvgpu_firmware *data_fw;
+	struct nvgpu_firmware *manifest_fw;
 	struct nvgpu_firmware *acr_fw;
 
 	union{

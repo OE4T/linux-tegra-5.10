@@ -142,11 +142,13 @@ int nvgpu_acr_init(struct gk20a *g)
 		break;
 #endif
 	case NVGPU_GPUID_GV11B:
-#if defined(CONFIG_NVGPU_NEXT)
-	case NVGPU_NEXT_GPUID:
-#endif
 		nvgpu_gv11b_acr_sw_init(g, g->acr);
 		break;
+#if defined(CONFIG_NVGPU_NEXT)
+	case NVGPU_NEXT_GPUID:
+		nvgpu_next_acr_sw_init(g, g->acr);
+		break;
+#endif
 #ifdef CONFIG_NVGPU_DGPU
 	case NVGPU_GPUID_TU104:
 #if defined(CONFIG_NVGPU_NEXT)

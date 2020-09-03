@@ -210,6 +210,16 @@ struct gops_pmu {
 	u32 (*falcon_base_addr)(void);
 
 	/**
+	 * @brief Fetch base address of PMU Engine Falcon2.
+	 *
+	 * @param void
+	 *
+	 * @return Chip specific PMU Engine Falcon2 base address.
+	 *         For NEXT_GPUID, NEXT_GPUID PMU Engine Falcon2 base address
+	 *         will be returned.
+	 */
+	u32 (*falcon2_base_addr)(void);
+	/**
 	 * @brief Checks if PMU DEBUG fuse is blown or not
 	 *
 	 * @param g   [in] The GPU driver struct.

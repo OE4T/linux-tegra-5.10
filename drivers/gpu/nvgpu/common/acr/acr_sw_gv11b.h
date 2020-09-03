@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@ struct nvgpu_acr;
 struct hs_acr;
 
 void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
+u32 gv11b_acr_lsf_config(struct gk20a *g, struct nvgpu_acr *acr);
 
 #endif /* ACR_SW_GV11B_H */
 

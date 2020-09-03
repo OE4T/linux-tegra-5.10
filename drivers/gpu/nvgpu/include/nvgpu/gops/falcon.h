@@ -50,7 +50,11 @@ struct gops_falcon {
 	int (*copy_to_imem)(struct nvgpu_falcon *flcn,
 			    u32 dst, u8 *src, u32 size, u8 port,
 			    bool sec, u32 tag);
+	void (*set_bcr)(struct nvgpu_falcon *flcn);
+	void (*dump_brom_stats)(struct nvgpu_falcon *flcn);
+	u32  (*get_brom_retcode)(struct nvgpu_falcon *flcn);
 	u32 (*dmemc_blk_mask)(void);
+	bool (*check_brom_passed)(u32 retcode);
 	u32 (*imemc_blk_field)(u32 blk);
 	void (*bootstrap)(struct nvgpu_falcon *flcn,
 			 u32 boot_vector);
