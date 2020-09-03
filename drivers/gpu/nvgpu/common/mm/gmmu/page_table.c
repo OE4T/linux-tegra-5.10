@@ -726,6 +726,8 @@ static int nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 		 * This is considered an unmap. Just pass in 0 as the physical
 		 * address for the entire GPU range.
 		 */
+		nvgpu_assert(virt_addr != 0ULL);
+
 		err = nvgpu_set_pd_level(vm, &vm->pdb,
 					 0U,
 					 0,

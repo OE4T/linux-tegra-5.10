@@ -182,8 +182,10 @@ static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	for (i = 0U; i < NVGPU_GR_CTX_VA_COUNT; i++) {
-		nvgpu_gr_global_ctx_buffer_unmap(global_ctx_buffer,
-			g_bfr_index[i], vm, g_bfr_va[i]);
+		if (g_bfr_va[i] != 0ULL) {
+			nvgpu_gr_global_ctx_buffer_unmap(global_ctx_buffer,
+				g_bfr_index[i], vm, g_bfr_va[i]);
+		}
 	}
 
 	(void) memset(g_bfr_va, 0, sizeof(gr_ctx->global_ctx_buffer_va));
