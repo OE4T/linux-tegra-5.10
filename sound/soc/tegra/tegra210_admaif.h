@@ -148,7 +148,6 @@ struct tegra_admaif_soc_data {
 	unsigned int tx_base;
 	unsigned int rx_base;
 	unsigned int num_ch;
-	bool is_isomgr_client;
 };
 
 struct tegra_admaif {

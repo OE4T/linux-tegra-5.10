@@ -15,19 +15,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <linux/module.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
 #include <linux/platform/tegra/isomgr.h>
 #include <linux/platform/tegra/latency_allowance.h>
 #include "tegra_isomgr_bw.h"
-
-#if defined(CONFIG_TEGRA_ISOMGR) && defined(CONFIG_NV_TEGRA_MC)
+#include <soc/tegra/fuse.h>
+#include <linux/interconnect.h>
+#include <dt-bindings/interconnect/tegra_icc_id.h>
 
 #define MAX_BW	393216 /*Maximum KiloByte*/
 #define MAX_DEV_NUM 256
-
-static long tegra_adma_calc_min_bandwidth(void);
 
 static struct adma_isomgr {
 	int current_bandwidth;
@@ -36,8 +36,11 @@ static struct adma_isomgr {
 	struct mutex mutex;
 	/* iso manager handle */
 	tegra_isomgr_handle isomgr_handle;
+	/* icc_path handle handle */
+	struct icc_path *icc_path_handle;
 } *adma;
 
+#if IS_ENABLED(CONFIG_TEGRA_ISOMGR) && IS_ENABLED(CONFIG_NV_TEGRA_MC)
 static long tegra_adma_calc_min_bandwidth(void)
 {
 	int max_srate = 192; /*Khz*/
@@ -49,6 +52,15 @@ static long tegra_adma_calc_min_bandwidth(void)
 	min_bw = max_srate * max_bpp * slot * num_streams;
 
 	return min_bw;
+}
+
+void tegra_isomgr_adma_renegotiate(void *p, u32 avail_bw)
+{
+	/* For Audio usecase there is no possibility of renegotiation
+	 * as it may lead to glitches. So currently dummy renegotiate call
+	 * is added to support bandwidth request more than registered bw which
+	 * got initialized during register call
+	 */
 }
 
 static int adma_isomgr_request(uint adma_bw, uint lt)
@@ -78,12 +90,12 @@ static int adma_isomgr_request(uint adma_bw, uint lt)
 
 	return 0;
 }
+#endif
 
 void tegra_isomgr_adma_setbw(struct snd_pcm_substream *substream,
 				bool is_running)
 {
 	int bandwidth, sample_bytes;
-	int ret;
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct snd_pcm *pcm = substream->pcm;
 
@@ -132,28 +144,31 @@ void tegra_isomgr_adma_setbw(struct snd_pcm_substream *substream,
 		adma->current_bandwidth = MAX_BW;
 	}
 
-	ret = adma_isomgr_request(adma->current_bandwidth, 1000);
-	if (!ret) {
-		/* Call LA/PTSA driver which will configure the Memory
-		controller to support APEDMA's new BW requirement in MBps*/
-		ret = tegra_set_latency_allowance(TEGRA_LA_APEDMAW,
-				((adma->current_bandwidth + 999)/1000));
-		if (ret)
-			pr_err("%s: LA/PTSA setting Failed\n", __func__);
+	if (adma->icc_path_handle)
+		icc_set_bw(adma->icc_path_handle, adma->current_bandwidth,
+			   adma->current_bandwidth);
+
+#if IS_ENABLED(CONFIG_TEGRA_ISOMGR) && IS_ENABLED(CONFIG_NV_TEGRA_MC)
+	if (adma->isomgr_handle) {
+		int ret;
+
+		ret = adma_isomgr_request(adma->current_bandwidth, 1000);
+		if (!ret) {
+			/* Call LA/PTSA driver which will configure the
+			 * Memory controller to support APEDMA's new BW
+			 * requirement in MBps
+			 */
+			ret = tegra_set_latency_allowance(TEGRA_LA_APEDMAW,
+					((adma->current_bandwidth + 999)/1000));
+			if (ret)
+				pr_err("%s: LA/PTSA config Failed\n", __func__);
+		}
 	}
+#endif
 }
 EXPORT_SYMBOL(tegra_isomgr_adma_setbw);
 
-void tegra_isomgr_adma_renegotiate(void *p, u32 avail_bw)
-{
-	/* For Audio usecase there is no possibility of renegotiation
-	as it may lead to glitches. So currently dummy renegotiate call
-	is added to support bandwidth request more than registered bw which
-	got initialized during register call */
-}
-EXPORT_SYMBOL(tegra_isomgr_adma_renegotiate);
-
-void tegra_isomgr_adma_register(void)
+void tegra_isomgr_adma_register(struct device *dev)
 {
 	adma = kzalloc(sizeof(struct adma_isomgr), GFP_KERNEL);
 	if (!adma) {
@@ -162,42 +177,72 @@ void tegra_isomgr_adma_register(void)
 	}
 
 	adma->current_bandwidth = 0;
+	adma->isomgr_handle = NULL;
+	adma->icc_path_handle = NULL;
 	memset(&adma->device_number, 0, sizeof(bool) * MAX_DEV_NUM);
 	memset(&adma->bw_per_device, 0, sizeof(int) * MAX_DEV_NUM);
 
 	mutex_init(&adma->mutex);
 
-	/* Register the required BW for adma usecases.*/
-	adma->isomgr_handle = tegra_isomgr_register(TEGRA_ISO_CLIENT_APE_ADMA,
+	switch (tegra_get_chip_id()) {
+	case TEGRA210:
+		/* No Support added for T210 */
+		tegra_isomgr_adma_unregister(dev);
+		break;
+	case TEGRA186:
+	case TEGRA194:
+#if IS_ENABLED(CONFIG_TEGRA_ISOMGR) && IS_ENABLED(CONFIG_NV_TEGRA_MC)
+		/* Register the required BW for adma usecases.*/
+		adma->isomgr_handle = tegra_isomgr_register(
+					TEGRA_ISO_CLIENT_APE_ADMA,
 					tegra_adma_calc_min_bandwidth(),
 					tegra_isomgr_adma_renegotiate,
 					adma);
-	if (IS_ERR(adma->isomgr_handle)) {
-		pr_err("%s: Failed to register adma isomgr client. err=%ld\n",
+		if (IS_ERR(adma->isomgr_handle)) {
+			pr_err(
+			"%s: Failed to register adma isomgr client. err=%ld\n",
 			__func__, PTR_ERR(adma->isomgr_handle));
-		adma->isomgr_handle = NULL;
-		mutex_destroy(&adma->mutex);
-		kfree(adma);
-		adma = NULL;
+			adma->isomgr_handle = NULL;
+			tegra_isomgr_adma_unregister(dev);
+		}
+#endif
+		break;
+	default:
+		adma->icc_path_handle = icc_get(dev, TEGRA_ICC_APEDMA,
+						TEGRA_ICC_PRIMARY);
+		if (IS_ERR(adma->icc_path_handle)) {
+			pr_err("%s: Failed to register Interconnect. err=%ld\n",
+			__func__, PTR_ERR(adma->icc_path_handle));
+			adma->icc_path_handle = NULL;
+			tegra_isomgr_adma_unregister(dev);
+		}
 	}
 }
 EXPORT_SYMBOL(tegra_isomgr_adma_register);
-void tegra_isomgr_adma_unregister(void)
+
+void tegra_isomgr_adma_unregister(struct device *dev)
 {
 	if (!adma)
 		return;
 
 	mutex_destroy(&adma->mutex);
 
+	if (adma->icc_path_handle) {
+		icc_put(adma->icc_path_handle);
+		adma->icc_path_handle = NULL;
+	}
+
+#if IS_ENABLED(CONFIG_TEGRA_ISOMGR) && IS_ENABLED(CONFIG_NV_TEGRA_MC)
 	if (adma->isomgr_handle) {
 		tegra_isomgr_unregister(adma->isomgr_handle);
 		adma->isomgr_handle = NULL;
 	}
+#endif
 
 	kfree(adma);
 	adma = NULL;
 }
 EXPORT_SYMBOL(tegra_isomgr_adma_unregister);
-#endif
-
+MODULE_AUTHOR("Mohan Kumar <mkumard@nvidia.com>");
+MODULE_DESCRIPTION("Tegra ADMA Bandwidth Request driver");
 MODULE_LICENSE("GPL");
