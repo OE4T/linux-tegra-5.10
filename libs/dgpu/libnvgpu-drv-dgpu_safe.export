@@ -348,7 +348,6 @@ nvgpu_engine_check_valid_id
 nvgpu_engine_cleanup_sw
 nvgpu_engine_find_busy_doing_ctxsw
 nvgpu_engine_get_active_eng_info
-nvgpu_engine_get_all_ce_reset_mask
 nvgpu_engine_get_fast_ce_runlist_id
 nvgpu_engine_get_gr_id
 nvgpu_engine_get_gr_runlist_id
@@ -534,6 +533,9 @@ nvgpu_mc_intr_nonstall_unit_config
 nvgpu_mc_intr_stall_pause
 nvgpu_mc_intr_stall_resume
 nvgpu_mc_intr_stall_unit_config
+nvgpu_mc_reset_dev
+nvgpu_mc_reset_devtype
+nvgpu_mc_reset_units
 nvgpu_memcmp
 nvgpu_memcpy
 nvgpu_memset

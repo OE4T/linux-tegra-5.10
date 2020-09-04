@@ -22,104 +22,63 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/bug.h>
+#include <nvgpu/device.h>
+#include <nvgpu/mc.h>
 
-void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
+int nvgpu_mc_reset_units(struct gk20a *g, u32 units)
 {
-	/* wait until all stalling irqs are handled */
-	NVGPU_COND_WAIT(&g->mc.sw_irq_stall_last_handled_cond,
-			nvgpu_atomic_read(&g->mc.sw_irq_stall_pending) == 0,
-			0U);
+	int err;
 
-	/* wait until all non-stalling irqs are handled */
-	NVGPU_COND_WAIT(&g->mc.sw_irq_nonstall_last_handled_cond,
-			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_pending) == 0,
-			0U);
-}
-
-void nvgpu_mc_intr_mask(struct gk20a *g)
-{
-	unsigned long flags = 0;
-
-	if (g->ops.mc.intr_mask != NULL) {
-		nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-		g->ops.mc.intr_mask(g);
-		nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+	err = g->ops.mc.enable_units(g, units, false);
+	if (err != 0) {
+		nvgpu_log(g, gpu_dbg_info, "Unit disable failed");
+		return err;
 	}
-}
 
-#ifdef CONFIG_NVGPU_NON_FUSA
-void nvgpu_mc_log_pending_intrs(struct gk20a *g)
-{
-	if (g->ops.mc.log_pending_intrs != NULL) {
-		g->ops.mc.log_pending_intrs(g);
+	err = g->ops.mc.enable_units(g, units, true);
+	if (err != 0) {
+		nvgpu_log(g, gpu_dbg_info, "Unit disable failed");
+		return err;
 	}
+	return 0;
 }
 
-void nvgpu_mc_intr_enable(struct gk20a *g)
+int nvgpu_mc_reset_dev(struct gk20a *g, const struct nvgpu_device *dev)
 {
-	unsigned long flags = 0;
+	int err;
 
-	if (g->ops.mc.intr_enable != NULL) {
-		nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-		g->ops.mc.intr_enable(g);
-		nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+	err = g->ops.mc.enable_dev(g, dev, false);
+	if (err != 0) {
+		nvgpu_device_dump_dev(g, dev);
+		return err;
 	}
-}
-#endif
 
-void nvgpu_mc_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable)
+	err = g->ops.mc.enable_dev(g, dev, true);
+	if (err != 0) {
+		nvgpu_device_dump_dev(g, dev);
+		return err;
+	}
+	return 0;
+}
+
+int nvgpu_mc_reset_devtype(struct gk20a *g, u32 devtype)
 {
-	unsigned long flags = 0;
+	int err;
 
-	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-	g->ops.mc.intr_stall_unit_config(g, unit, enable);
-	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
+	err = g->ops.mc.enable_devtype(g, devtype, false);
+	if (err != 0) {
+		nvgpu_log(g, gpu_dbg_info, "Devtype:%u disable failed",
+			devtype);
+		return err;
+	}
+
+	err = g->ops.mc.enable_devtype(g, devtype, true);
+	if (err != 0) {
+		nvgpu_log(g, gpu_dbg_info, "Devtype:%u enable failed",
+			devtype);
+		return err;
+	}
+	return 0;
 }
 
-void nvgpu_mc_intr_nonstall_unit_config(struct gk20a *g, u32 unit, bool enable)
-{
-	unsigned long flags = 0;
-
-	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-	g->ops.mc.intr_nonstall_unit_config(g, unit, enable);
-	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
-}
-
-void nvgpu_mc_intr_stall_pause(struct gk20a *g)
-{
-	unsigned long flags = 0;
-
-	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-	g->ops.mc.intr_stall_pause(g);
-	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
-}
-
-void nvgpu_mc_intr_stall_resume(struct gk20a *g)
-{
-	unsigned long flags = 0;
-
-	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-	g->ops.mc.intr_stall_resume(g);
-	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
-}
-
-void nvgpu_mc_intr_nonstall_pause(struct gk20a *g)
-{
-	unsigned long flags = 0;
-
-	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-	g->ops.mc.intr_nonstall_pause(g);
-	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
-}
-
-void nvgpu_mc_intr_nonstall_resume(struct gk20a *g)
-{
-	unsigned long flags = 0;
-
-	nvgpu_spinlock_irqsave(&g->mc.intr_lock, flags);
-	g->ops.mc.intr_nonstall_resume(g);
-	nvgpu_spinunlock_irqrestore(&g->mc.intr_lock, flags);
-}

@@ -212,8 +212,7 @@ u32 gm20b_mc_intr_nonstall(struct gk20a *g)
 	return nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_NONSTALLING));
 }
 
-bool gm20b_mc_is_intr1_pending(struct gk20a *g,
-			       enum nvgpu_unit unit, u32 mc_intr_1)
+bool gm20b_mc_is_intr1_pending(struct gk20a *g, u32 unit, u32 mc_intr_1)
 {
 	u32 mask;
 	bool is_pending;

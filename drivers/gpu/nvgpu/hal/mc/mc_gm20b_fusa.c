@@ -96,47 +96,33 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 	return ops;
 }
 
-void gm20b_mc_disable(struct gk20a *g, u32 units)
+static int gm20b_mc_enable(struct gk20a *g, u32 mask, bool enable)
 {
-	u32 pmc;
-
-	nvgpu_log(g, gpu_dbg_info, "pmc disable: %08x", units);
+	u32 mc_enable_val = 0U;
+	u32 reg_val = 0U;
 
 	nvgpu_spinlock_acquire(&g->mc.enable_lock);
-	pmc = nvgpu_readl(g, mc_enable_r());
-	pmc &= ~units;
-	nvgpu_writel(g, mc_enable_r(), pmc);
-	nvgpu_spinlock_release(&g->mc.enable_lock);
-}
-
-void gm20b_mc_enable(struct gk20a *g, u32 units)
-{
-	u32 pmc;
-
-	nvgpu_log(g, gpu_dbg_info, "pmc enable: %08x", units);
-
-	nvgpu_spinlock_acquire(&g->mc.enable_lock);
-	pmc = nvgpu_readl(g, mc_enable_r());
-	pmc |= units;
-	nvgpu_writel(g, mc_enable_r(), pmc);
-	pmc = nvgpu_readl(g, mc_enable_r());
+	reg_val = nvgpu_readl(g, mc_enable_r());
+	if (enable) {
+		mc_enable_val = reg_val | mask;
+	} else {
+		mc_enable_val = reg_val & (~mask);
+	}
+	nvgpu_writel(g, mc_enable_r(), mc_enable_val);
+	reg_val = nvgpu_readl(g, mc_enable_r());
 	nvgpu_spinlock_release(&g->mc.enable_lock);
 
 	nvgpu_udelay(MC_ENABLE_DELAY_US);
-}
 
-void gm20b_mc_reset(struct gk20a *g, u32 units)
-{
-	g->ops.mc.disable(g, units);
-	if ((units & nvgpu_engine_get_all_ce_reset_mask(g)) != 0U) {
-		nvgpu_udelay(MC_RESET_CE_DELAY_US);
-	} else {
-		nvgpu_udelay(MC_RESET_DELAY_US);
+	if (reg_val != mc_enable_val) {
+		nvgpu_err(g, "Failed to %s mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), mask);
+		return -EINVAL;
 	}
-	g->ops.mc.enable(g, units);
+	return 0U;
 }
 
-u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
+static u32 gm20b_mc_unit_reset_mask(struct gk20a *g, u32 unit)
 {
 	u32 mask = 0U;
 
@@ -158,6 +144,12 @@ u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
 		mask = mc_enable_pwr_enabled_f();
 		break;
 #endif
+	case NVGPU_UNIT_NVLINK:
+		mask = BIT32(g->nvlink.ioctrl_table[0].reset_enum);
+		break;
+	case NVGPU_UNIT_CE2:
+		mask = mc_enable_ce2_enabled_f();
+		break;
 	default:
 		WARN(true, "unknown reset unit %d", unit);
 		break;
@@ -166,10 +158,105 @@ u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
 	return mask;
 }
 
-#ifdef CONFIG_NVGPU_LS_PMU
-bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit)
+static u32 gm20b_mc_get_unit_reset_mask(struct gk20a *g, u32 units)
 {
-	u32 mask = g->ops.mc.reset_mask(g, unit);
+	u32 mask = 0U;
+	unsigned long i = 0U;
+	unsigned long units_bitmask = units;
+
+	for_each_set_bit(i, &units_bitmask, 32U) {
+		mask |= gm20b_mc_unit_reset_mask(g, BIT32(i));
+	}
+	return mask;
+}
+
+int gm20b_mc_enable_units(struct gk20a *g, u32 units, bool enable)
+{
+	int err = 0;
+	u32 mask = gm20b_mc_get_unit_reset_mask(g, units);
+
+	nvgpu_log(g, gpu_dbg_info, "%s units: mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), mask);
+	if (enable) {
+		nvgpu_udelay(MC_RESET_DELAY_US);
+	}
+
+	err = gm20b_mc_enable(g, mask, enable);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to %s units: mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), mask);
+	}
+	return err;
+}
+
+int gm20b_mc_enable_dev(struct gk20a *g, const struct nvgpu_device *dev,
+			bool enable)
+{
+	int err = 0;
+
+	nvgpu_log(g, gpu_dbg_info, "%s device: mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), BIT32(dev->reset_id));
+	if (enable) {
+		nvgpu_udelay(MC_RESET_DELAY_US);
+	}
+
+	err = gm20b_mc_enable(g, BIT32(dev->reset_id), enable);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to %s device: mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), BIT32(dev->reset_id));
+	}
+	return err;
+}
+
+static u32 gm20b_mc_get_devtype_reset_mask(struct gk20a *g, u32 devtype)
+{
+	u32 mask = 0U;
+	const struct nvgpu_device *dev = NULL;
+
+	nvgpu_device_for_each(g, dev, devtype) {
+		mask |= BIT32(dev->reset_id);
+	}
+
+	if (devtype == NVGPU_DEVTYPE_LCE) {
+		nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_COPY0) {
+			mask |= BIT32(dev->reset_id);
+		}
+		nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_COPY1) {
+			mask |= BIT32(dev->reset_id);
+		}
+		nvgpu_device_for_each(g, dev, NVGPU_DEVTYPE_COPY2) {
+			mask |= BIT32(dev->reset_id);
+		}
+	}
+	return mask;
+}
+
+int gm20b_mc_enable_devtype(struct gk20a *g, u32 devtype, bool enable)
+{
+	int err = 0;
+	u32 mask = gm20b_mc_get_devtype_reset_mask(g, devtype);
+
+	nvgpu_log(g, gpu_dbg_info, "%s devtype %u: mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), devtype, mask);
+
+	if (enable && (devtype == NVGPU_DEVTYPE_LCE)) {
+		nvgpu_udelay(MC_RESET_CE_DELAY_US);
+	} else {
+		nvgpu_udelay(MC_RESET_DELAY_US);
+	}
+
+	err = gm20b_mc_enable(g, mask, enable);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to %s devtype %u: mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), devtype, mask);
+	}
+	return err;
+}
+
+#ifdef CONFIG_NVGPU_LS_PMU
+bool gm20b_mc_is_enabled(struct gk20a *g, u32 unit)
+{
+	u32 mask = gm20b_mc_unit_reset_mask(g, unit);
 
 	return (nvgpu_readl(g, mc_enable_r()) & mask) != 0U;
 }

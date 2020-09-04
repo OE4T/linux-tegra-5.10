@@ -49,11 +49,15 @@ static void enable_fifo_interrupts(struct gk20a *g)
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 {
 	u32 timeout;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
 	/* enable pmc pfifo */
-	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_FIFO));
+	err = nvgpu_mc_reset_units(g, NVGPU_UNIT_FIFO);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to reset FIFO unit");
+	}
 
 	nvgpu_cg_slcg_ce2_load_enable(g);
 

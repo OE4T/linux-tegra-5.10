@@ -31,6 +31,8 @@
 static void prepare_resource_reservation(struct gk20a *g,
 		enum nvgpu_profiler_pm_resource_type pm_resource, bool acquire)
 {
+	int err;
+
 	if ((pm_resource != NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY) &&
 	    (pm_resource != NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM)) {
 		return;
@@ -44,8 +46,10 @@ static void prepare_resource_reservation(struct gk20a *g,
 		if (nvgpu_atomic_read(&g->hwpm_refcount) == 1) {
 			nvgpu_log(g, gpu_dbg_prof,
 				"Trigger HWPM system reset, disable perf SLCG");
-			g->ops.mc.reset(g, g->ops.mc.reset_mask(g,
-				NVGPU_UNIT_PERFMON));
+			err = nvgpu_mc_reset_units(g, NVGPU_UNIT_PERFMON);
+			if (err != 0) {
+				nvgpu_err(g, "Failed to reset PERFMON unit");
+			}
 			nvgpu_cg_slcg_perf_load_enable(g, false);
 		}
 	} else {
@@ -56,8 +60,10 @@ static void prepare_resource_reservation(struct gk20a *g,
 		if (nvgpu_atomic_read(&g->hwpm_refcount) == 0) {
 			nvgpu_log(g, gpu_dbg_prof,
 				"Trigger HWPM system reset, re-enable perf SLCG");
-			g->ops.mc.reset(g, g->ops.mc.reset_mask(g,
-				NVGPU_UNIT_PERFMON));
+			err = nvgpu_mc_reset_units(g, NVGPU_UNIT_PERFMON);
+			if (err != 0) {
+				nvgpu_err(g, "Failed to reset PERFMON unit");
+			}
 			nvgpu_cg_slcg_perf_load_enable(g, true);
 		}
 	}

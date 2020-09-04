@@ -34,6 +34,7 @@
  * MC HAL interface.
  */
 struct gk20a;
+struct nvgpu_device;
 
 /**
  * MC HAL operations.
@@ -199,70 +200,7 @@ struct gops_mc {
 	bool (*is_stall_and_eng_intr_pending)(struct gk20a *g,
 				u32 engine_id, u32 *eng_intr_pending);
 
-	/**
-	 * @brief Reset the HW unit/engine.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 * @param units [in]	Bitmask of values designating GPU HW engines
-	 *			controlled by MC. This is used to update bits in
-	 *			the mc_enable_r register.
-	 *			- Supported values are:
-	 *			  - #NVGPU_UNIT_FIFO
-	 *			  - #NVGPU_UNIT_PERFMON
-	 *			  - #NVGPU_UNIT_GRAPH
-	 *			  - #NVGPU_UNIT_BLG
-	 *			  - Reset id of supported engines from the
-	 *                          device info. For e.g. GR engine has reset
-	 *                          id of 12. @see #nvgpu_device.
-	 *
-	 * This function is invoked to reset the engines while initializing
-	 * FIFO, GR and other engines during #nvgpu_finalize_poweron.
-	 *
-	 * Steps:
-	 * - Disable the HW unit/engine.
-	 *   - Acquire g->mc.enable_lock spinlock.
-	 *   - Read mc_enable_r register and clear the bits in the read value
-	 *     corresponding to HW unit to be disabled.
-	 *   - Write mc_enable_r with the updated value.
-	 *   - Release g->mc.enable_lock spinlock.
-	 * - Sleep/wait for 500us if resetting CE engines else sleep for 20us.
-	 * - Enable the HW unit/engine.
-	 *   - Acquire g->mc.enable_lock spinlock.
-	 *   - Read mc_enable_r register and set the bits in the read value
-	 *     corresponding to HW unit to be disabled.
-	 *   - Write mc_enable_r with the updated value.
-	 *   - Read back mc_enable_r.
-	 *   - Release g->mc.enable_lock spinlock.
-	 *   - Sleep/wait for 20us.
-	 */
-	void (*reset)(struct gk20a *g, u32 units);
 
-	/**
-	 * @brief Get the reset mask for the HW unit/engine.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 * @param unit [in]	Value designating the GPU HW unit/engine
-	 *                      controlled by MC. Supported values are:
-	 *			  - #NVGPU_UNIT_FIFO
-	 *			  - #NVGPU_UNIT_PERFMON
-	 *			  - #NVGPU_UNIT_GRAPH
-	 *			  - #NVGPU_UNIT_BLG
-	 *
-	 * This function is invoked to get the reset mask of the engines for
-	 * resetting CE, GR, FIFO during #nvgpu_finalize_poweron.
-	 *
-	 * Steps:
-	 * - If \a unit is #NVGPU_UNIT_FIFO, return mc_enable_pfifo_enabled_f.
-	 * - else if \a unit is #NVGPU_UNIT_PERFMON,
-	 *   return mc_enable_perfmon_enabled_f.
-	 * - else if \a unit is #NVGPU_UNIT_GRAPH,
-	 *   return mc_enable_pgraph_enabled_f.
-	 * - else if \a unit is #NVGPU_UNIT_BLG, return mc_enable_blg_enabled_f.
-	 * - else return 0.
-	 *
-	 * @return bitmask corresponding to supported engines, else 0.
-	 */
-	u32 (*reset_mask)(struct gk20a *g, enum nvgpu_unit unit);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
@@ -286,16 +224,18 @@ struct gops_mc {
 
 	void (*intr_nonstall_resume)(struct gk20a *g);
 
-	void (*enable)(struct gk20a *g, u32 units);
+	int (*enable_units)(struct gk20a *g, u32 units, bool enable);
 
-	void (*disable)(struct gk20a *g, u32 units);
+	int (*enable_dev)(struct gk20a *g, const struct nvgpu_device *dev,
+			bool enable);
+
+	int (*enable_devtype)(struct gk20a *g, u32 devtype, bool enable);
 
 #ifdef CONFIG_NVGPU_LS_PMU
-	bool (*is_enabled)(struct gk20a *g, enum nvgpu_unit unit);
+	bool (*is_enabled)(struct gk20a *g, u32 unit);
 #endif
 
-	bool (*is_intr1_pending)(struct gk20a *g, enum nvgpu_unit unit,
-				 u32 mc_intr_1);
+	bool (*is_intr1_pending)(struct gk20a *g, u32 unit, u32 mc_intr_1);
 
 	bool (*is_mmu_fault_pending)(struct gk20a *g);
 

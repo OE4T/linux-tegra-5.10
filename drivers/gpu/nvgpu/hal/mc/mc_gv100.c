@@ -62,7 +62,7 @@ bool gv100_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 engine_id,
 	return (mc_intr_0 & (eng_intr_mask | stall_intr)) != 0U;
 }
 
-u32 gv100_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
+static u32 gv100_mc_unit_reset_mask(struct gk20a *g, u32 unit)
 {
 	u32 mask = 0U;
 
@@ -87,10 +87,61 @@ u32 gv100_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit)
 	case NVGPU_UNIT_NVDEC:
 		mask = mc_enable_nvdec_enabled_f();
 		break;
+	case NVGPU_UNIT_NVLINK:
+		mask = BIT32(g->nvlink.ioctrl_table[0].reset_enum);
+		break;
+	case NVGPU_UNIT_CE2:
+		mask = mc_enable_ce2_enabled_f();
+		break;
 	default:
 		WARN(1, "unknown reset unit %d", unit);
 		break;
 	}
 
 	return mask;
+}
+
+static u32 gv100_mc_get_unit_reset_mask(struct gk20a *g, u32 units)
+{
+	u32 mask = 0U;
+	unsigned long i = 0U;
+	unsigned long units_bitmask = units;
+
+	for_each_set_bit(i, &units_bitmask, 32U) {
+		mask |= gv100_mc_unit_reset_mask(g, BIT32(i));
+	}
+	return mask;
+}
+
+int gv100_mc_enable_units(struct gk20a *g, u32 units, bool enable)
+{
+	u32 mc_enable_val = 0U;
+	u32 reg_val = 0U;
+	u32 mask = gv100_mc_get_unit_reset_mask(g, units);
+
+	nvgpu_log(g, gpu_dbg_info, "%s units: mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), mask);
+	if (enable) {
+		nvgpu_udelay(MC_RESET_DELAY_US);
+	}
+
+	nvgpu_spinlock_acquire(&g->mc.enable_lock);
+	reg_val = nvgpu_readl(g, mc_enable_r());
+	if (enable) {
+		mc_enable_val = reg_val | mask;
+	} else {
+		mc_enable_val = reg_val & (~mask);
+	}
+	nvgpu_writel(g, mc_enable_r(), mc_enable_val);
+	reg_val = nvgpu_readl(g, mc_enable_r());
+	nvgpu_spinlock_release(&g->mc.enable_lock);
+
+	nvgpu_udelay(MC_ENABLE_DELAY_US);
+
+	if (reg_val != mc_enable_val) {
+		nvgpu_err(g, "Failed to %s units: mc_enable mask = 0x%08x",
+			(enable ? "enable" : "disable"), mask);
+		return -EINVAL;
+	}
+	return 0U;
 }

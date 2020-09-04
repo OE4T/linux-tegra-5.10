@@ -1245,9 +1245,6 @@ static const struct gops_mc tu104_ops_mc = {
 	.intr_nonstall_pause = intr_tu104_nonstall_pause,
 	.intr_nonstall_resume = intr_tu104_nonstall_resume,
 	.isr_nonstall = intr_tu104_isr_nonstall,
-	.enable = gm20b_mc_enable,
-	.disable = gm20b_mc_disable,
-	.reset = gm20b_mc_reset,
 	.is_intr1_pending = NULL,
 #ifdef CONFIG_NVGPU_NON_FUSA
 	.log_pending_intrs = intr_tu104_log_pending_intrs,
@@ -1256,7 +1253,9 @@ static const struct gops_mc tu104_ops_mc = {
 	.is_intr_nvlink_pending = gv100_mc_is_intr_nvlink_pending,
 	.is_stall_and_eng_intr_pending = gv100_mc_is_stall_and_eng_intr_pending,
 	.fbpa_isr = mc_tu104_fbpa_isr,
-	.reset_mask = gv100_mc_reset_mask,
+	.enable_units = gv100_mc_enable_units,
+	.enable_dev = gm20b_mc_enable_dev,
+	.enable_devtype = gm20b_mc_enable_devtype,
 #ifdef CONFIG_NVGPU_LS_PMU
 	.is_enabled = gm20b_mc_is_enabled,
 #endif

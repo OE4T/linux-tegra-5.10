@@ -178,37 +178,6 @@ u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g)
 	return mask;
 }
 
-u32 nvgpu_engine_get_all_ce_reset_mask(struct gk20a *g)
-{
-	u32 mask = 0U;
-	const struct nvgpu_device *dev;
-	u32 i;
-
-	/*
-	 * Same principle as nvgpu_ce_engine_interrupt_mask.
-	 */
-	for (i = NVGPU_DEVTYPE_COPY0; i <= NVGPU_DEVTYPE_COPY2; i++) {
-		dev = nvgpu_device_get(g, i, i - NVGPU_DEVTYPE_COPY0);
-		if (dev == NULL) {
-			continue;
-		}
-
-		mask |= BIT32(dev->reset_id);
-	}
-
-	/*
-	 * Now take care of LCEs.
-	 */
-	for (i = 0U; i < nvgpu_device_count(g, NVGPU_DEVTYPE_LCE); i++) {
-		dev = nvgpu_device_get(g, NVGPU_DEVTYPE_LCE, i);
-		nvgpu_assert(dev != NULL);
-
-		mask |= BIT32(dev->reset_id);
-	}
-
-	return mask;
-}
-
 #ifdef CONFIG_NVGPU_FIFO_ENGINE_ACTIVITY
 
 static void nvgpu_engine_enable_activity(struct gk20a *g,
@@ -481,6 +450,7 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 {
 	struct nvgpu_swprofiler *prof = &g->fifo.eng_reset_profiler;
 	const struct nvgpu_device *dev;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -506,20 +476,11 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 	 * Simple case first: reset a copy engine.
 	 */
 	if (nvgpu_device_is_ce(g, dev)) {
-#if !defined(CONFIG_NVGPU_NON_FUSA) || !defined(CONFIG_NVGPU_NEXT)
-		g->ops.mc.reset(g, BIT32(dev->reset_id));
-#else
-		int err = 0;
-
-		if (g->ops.mc.reset_engine != NULL) {
-			err = g->ops.mc.reset_engine(g, dev->type);
-			if (err != 0) {
-				nvgpu_err(g, "failed to reset ce engine");
-			}
-		} else {
-			g->ops.mc.reset(g, BIT32(dev->reset_id));
+		err = nvgpu_mc_reset_dev(g, dev);
+		if (err != 0) {
+			nvgpu_log_info(g, "CE engine [id:%u] reset failed",
+				dev->engine_id);
 		}
-#endif
 		return;
 	}
 

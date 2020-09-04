@@ -135,6 +135,7 @@ mc:
   safe: yes
   owner: Seema K
   sources: [ common/mc/mc.c,
+             common/mc/mc_intr.c,
              include/nvgpu/mc.h,
              include/nvgpu/gops/mc.h ]
 class:

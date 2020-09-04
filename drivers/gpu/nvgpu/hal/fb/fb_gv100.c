@@ -152,7 +152,10 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	}
 
 	/* Enable nvdec */
-	g->ops.mc.enable(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_NVDEC));
+	err = nvgpu_mc_reset_units(g, NVGPU_UNIT_NVDEC);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to reset NVDEC unit");
+	}
 
 	hs_bin_hdr = (struct mem_unlock_bin_hdr *)(void *)mem_unlock_fw->data;
 	fw_hdr = (struct mem_unlock_fw_header *)(void *)(mem_unlock_fw->data +

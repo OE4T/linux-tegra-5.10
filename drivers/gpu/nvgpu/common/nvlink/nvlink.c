@@ -210,7 +210,6 @@ static int nvgpu_nvlink_discover_ioctrl(struct gk20a *g)
 int nvgpu_nvlink_early_init(struct gk20a *g)
 {
 	int err = 0;
-	u32 mc_reset_nvlink_mask;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {
 		return -EINVAL;
@@ -228,10 +227,12 @@ int nvgpu_nvlink_early_init(struct gk20a *g)
 	}
 
 	/* Enable NVLINK in MC */
-	mc_reset_nvlink_mask = BIT32(g->nvlink.ioctrl_table[0].reset_enum);
 	nvgpu_log(g, gpu_dbg_nvlink, "mc_reset_nvlink_mask: 0x%x",
-							mc_reset_nvlink_mask);
-	g->ops.mc.reset(g, mc_reset_nvlink_mask);
+			BIT32(g->nvlink.ioctrl_table[0].reset_enum));
+	err = nvgpu_mc_reset_units(g, NVGPU_UNIT_NVLINK);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to reset NVLINK unit");
+	}
 
 	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_NVLINK,
 					MC_INTR_ENABLE);

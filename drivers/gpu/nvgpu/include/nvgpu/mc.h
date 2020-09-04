@@ -116,15 +116,21 @@
 #include <nvgpu/cond.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/lock.h>
+#include <nvgpu/bitops.h>
 
 struct gk20a;
+struct nvgpu_device;
 
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_mc.h"
 #endif
 
+#define MC_ENABLE_DELAY_US	20U
+#define MC_RESET_DELAY_US	20U
+#define MC_RESET_CE_DELAY_US	500U
+
 /**
- * @defgroup NVGPU_MC_UNIT_ENUMS
+ * @defgroup NVGPU_MC_UNIT_DEFINES
  *
  * Enumeration of all units intended to be used by enabling/disabling HAL
  * that requires unit as parameter. Units are added to the enumeration as
@@ -132,24 +138,27 @@ struct gk20a;
  */
 
 /**
- * @ingroup NVGPU_MC_UNIT_ENUMS
+ * @ingroup NVGPU_MC_UNIT_DEFINES
  */
-enum nvgpu_unit {
-	/** FIFO Engine */
-	NVGPU_UNIT_FIFO,
-	/** Performance Monitoring unit */
-	NVGPU_UNIT_PERFMON,
-	/** Graphics Engine */
-	NVGPU_UNIT_GRAPH,
-	/** BLPG and BLCG controllers within Graphics Engine */
-	NVGPU_UNIT_BLG,
+
+/** FIFO Engine */
+#define NVGPU_UNIT_FIFO		BIT32(0)
+/** Performance Monitoring unit */
+#define NVGPU_UNIT_PERFMON	BIT32(1)
+/** Graphics Engine */
+#define NVGPU_UNIT_GRAPH	BIT32(2)
+/** BLPG and BLCG controllers within Graphics Engine */
+#define NVGPU_UNIT_BLG		BIT32(3)
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-	NVGPU_UNIT_PWR,
+#define NVGPU_UNIT_PWR		BIT32(4)
 #endif
 #ifdef CONFIG_NVGPU_DGPU
-	NVGPU_UNIT_NVDEC,
+#define NVGPU_UNIT_NVDEC	BIT32(5)
 #endif
-};
+/** CE2 unit */
+#define NVGPU_UNIT_CE2		BIT32(6)
+/** NVLINK unit */
+#define NVGPU_UNIT_NVLINK	BIT32(7)
 
 /** Bit offset of the Architecture field in the HW version register */
 #define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
@@ -480,5 +489,65 @@ void nvgpu_mc_intr_nonstall_pause(struct gk20a *g);
  * - Release the spinlock g->mc.intr_lock.
  */
 void nvgpu_mc_intr_nonstall_resume(struct gk20a *g);
+
+/**
+ * @brief Reset given HW unit(s).
+ *
+ * @param g [in]	The GPU driver struct.
+ * @param units [in]	Value designating the GPU HW unit(s)
+ *                      controlled by MC. Supported values are:
+ *			  - #NVGPU_UNIT_FIFO
+ *			  - #NVGPU_UNIT_PERFMON
+ *			  - #NVGPU_UNIT_GRAPH
+ *			  - #NVGPU_UNIT_BLG
+ *			The logical OR of the reset mask of each given units.
+ *
+ * This function is called to reset one or multiple units.
+ *
+ * Steps:
+ * - Compute bitmask of given unit or units.
+ * - Disable and enable given unit or units.
+ *
+ * @return -EINVAL if register write fails, else 0.
+ */
+int nvgpu_mc_reset_units(struct gk20a *g, u32 units);
+
+/**
+ * @brief Reset given HW engine.
+ *
+ * @param g [in]	The GPU driver struct.
+ * @param dev [in]	Nvgpu_device struct that
+ *                      contains info of engine to be reset.
+ *
+ * This function is called to reset a single engine.
+ * Note: Currently, this API is used to reset non-GR engines only.
+ *
+ * Steps:
+ * - Compute bitmask of given engine from reset_id.
+ * - Disable and enable given engine.
+ *
+ * @return -EINVAL if register write fails, else 0.
+ */
+int nvgpu_mc_reset_dev(struct gk20a *g, const struct nvgpu_device *dev);
+
+/**
+ * @brief Reset all engines of given devtype.
+ *
+ * @param g [in]	The GPU driver struct.
+ * @param devtype [in]	Type of device.
+ *                      Supported values are:
+ *			   - NVGPU_DEVTYPE_GRAPHICS
+ *			   - NVGPU_DEVTYPE_LCE
+ *
+ * This function is called to reset engines of given devtype.
+ * Note: Currently, this API is used to reset non-GR engines only.
+ *
+ * Steps:
+ * - Compute bitmask of all engines of given devtype.
+ * - Disable and enable given engines.
+ *
+ * @return -EINVAL if register write fails, else 0.
+ */
+int nvgpu_mc_reset_devtype(struct gk20a *g, u32 devtype);
 
 #endif

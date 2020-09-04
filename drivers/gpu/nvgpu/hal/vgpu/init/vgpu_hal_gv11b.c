@@ -848,16 +848,15 @@ static const struct gops_mc vgpu_gv11b_ops_mc = {
 	.intr_nonstall_pause = NULL,
 	.intr_nonstall_resume = NULL,
 	.isr_nonstall = NULL,
-	.enable = NULL,
-	.disable = NULL,
-	.reset = NULL,
 	.is_intr1_pending = NULL,
 	.is_intr_hub_pending = NULL,
 	.log_pending_intrs = NULL,
-	.reset_mask = NULL,
 	.is_enabled = NULL,
 	.fb_reset = NULL,
 	.is_mmu_fault_pending = NULL,
+	.enable_units = NULL,
+	.enable_dev = NULL,
+	.enable_devtype = NULL,
 };
 
 static const struct gops_debug vgpu_gv11b_ops_debug = {

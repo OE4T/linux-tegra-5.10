@@ -111,7 +111,6 @@ struct clk_domains_mon_status_params;
 enum nvgpu_flush_op;
 enum gk20a_mem_rw_flag;
 enum nvgpu_nvlink_minion_dlcmd;
-enum nvgpu_unit;
 enum nvgpu_profiler_pm_resource_type;
 enum nvgpu_profiler_pm_reservation_scope;
 

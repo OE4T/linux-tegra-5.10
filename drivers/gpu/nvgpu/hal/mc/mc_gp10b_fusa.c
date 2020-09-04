@@ -238,8 +238,7 @@ void mc_gp10b_intr_nonstall_resume(struct gk20a *g)
 			g->mc.intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
 }
 
-bool mc_gp10b_is_intr1_pending(struct gk20a *g,
-				      enum nvgpu_unit unit, u32 mc_intr_1)
+bool mc_gp10b_is_intr1_pending(struct gk20a *g, u32 unit, u32 mc_intr_1)
 {
 	u32 mask;
 	bool is_pending;

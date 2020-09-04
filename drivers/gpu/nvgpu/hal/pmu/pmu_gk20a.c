@@ -699,13 +699,7 @@ bool gk20a_pmu_is_engine_in_reset(struct gk20a *g)
 
 void gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset)
 {
-	u32 reset_mask = g->ops.mc.reset_mask(g, NVGPU_UNIT_PWR);
-
-	if (do_reset) {
-		g->ops.mc.enable(g, reset_mask);
-	} else {
-		g->ops.mc.disable(g, reset_mask);
-	}
+	g->ops.mc.enable_units(g, NVGPU_UNIT_PWR, do_reset);
 }
 #endif
 

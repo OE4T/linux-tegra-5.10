@@ -195,6 +195,7 @@ nvgpu-y += \
 	common/perf/perfbuf.o \
 	common/therm/therm.o \
 	common/mc/mc.o \
+	common/mc/mc_intr.o \
 	common/sync/channel_sync.o \
 	common/sync/channel_sync_semaphore.o \
 	common/semaphore/semaphore_sea.o \

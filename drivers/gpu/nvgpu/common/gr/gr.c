@@ -586,44 +586,42 @@ static int gr_init_prepare_hw(struct gk20a *g)
 
 static int gr_reset_engine(struct gk20a *g)
 {
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	int err;
+	const struct nvgpu_device *dev =
+		nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
+			nvgpu_gr_get_syspipe_id(g, g->mig.cur_gr_instance));
 
+	/* Reset GR engine: Disable then enable GR engine */
+	err = g->ops.mc.enable_dev(g, dev, false);
+	if (err != 0) {
+		nvgpu_log(g, gpu_dbg_info, "Device reset_id:%u disable failed",
+			dev->reset_id);
+		return err;
+	}
+
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	if (g->ops.gr.init.reset_gpcs != NULL) {
-		const struct nvgpu_device *dev =
-			nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
-				 nvgpu_gr_get_syspipe_id(g, g->mig.cur_gr_instance));
-
-		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
-
-		err = g->ops.mc.reset_engine_enable(g, dev->reset_id, false);
-		if (err != 0) {
-			nvgpu_err(g, "GR reset disable failed");
-			return err;
-		}
-
 		err = g->ops.gr.init.reset_gpcs(g);
 		if (err != 0) {
-			nvgpu_err(g, "GR reset GPCs failed");
-			g->ops.mc.reset_engine_enable(g, dev->reset_id, true);
+			nvgpu_err(g, "Reset gpcs failed");
 			return err;
 		}
-
-		err = g->ops.mc.reset_engine_enable(g, dev->reset_id, true);
-		if (err != 0) {
-			nvgpu_err(g, "GR reset enable failed");
-			return err;
-		}
-	} else {
-#endif
-		/* reset gr engine */
-		g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_GRAPH) |
-				g->ops.mc.reset_mask(g, NVGPU_UNIT_BLG) |
-				g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
-
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	}
 #endif
+
+	err = g->ops.mc.enable_dev(g, dev, true);
+	if (err != 0) {
+		nvgpu_log(g, gpu_dbg_info, "Device reset_id:%u enable failed",
+			dev->reset_id);
+		return err;
+	}
+
+	err = nvgpu_mc_reset_units(g, NVGPU_UNIT_PERFMON | NVGPU_UNIT_BLG);
+	if (err != 0) {
+		nvgpu_log_info(g, "PERMON | BLG unit reset failed");
+		return err;
+	}
+
 	return 0;
 }
 

@@ -30,30 +30,17 @@
 
 int nvgpu_ce_init_support(struct gk20a *g)
 {
-	u32 ce_reset_mask;
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	int err = 0;
-#endif
 
 	if (g->ops.ce.set_pce2lce_mapping != NULL) {
 		g->ops.ce.set_pce2lce_mapping(g);
 	}
 
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-	if (g->ops.mc.reset_engine != NULL) {
-		err = nvgpu_next_mc_reset_engine(g, NVGPU_DEVTYPE_LCE);
-		if (err != 0) {
-			nvgpu_err(g, "NVGPU_ENGINE_GRCE reset failed");
-			return err;
-		}
-	} else {
-#endif
-	ce_reset_mask = nvgpu_engine_get_all_ce_reset_mask(g);
-
-	g->ops.mc.reset(g, ce_reset_mask);
-#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	err = nvgpu_mc_reset_devtype(g, NVGPU_DEVTYPE_LCE);
+	if (err != 0) {
+		nvgpu_err(g, "NVGPU_DEVTYPE_LCE reset failed");
+		return err;
 	}
-#endif
 
 	nvgpu_cg_slcg_ce2_load_enable(g);
 

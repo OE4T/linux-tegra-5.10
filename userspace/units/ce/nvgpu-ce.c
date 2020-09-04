@@ -95,9 +95,14 @@ static void mock_void_return(struct gk20a *g)
 	/* noop */
 }
 
-static void mock_mc_reset(struct gk20a *g, u32 arg1)
+static int mock_mc_enable_units(struct gk20a *g, u32 units, bool enable)
 {
-	/* noop */
+	return 0;
+}
+static int mock_mc_enable_dev(struct gk20a *g, const struct nvgpu_device *dev,
+			bool enable)
+{
+	return 0;
 }
 
 static void mock_intr_unit_config(struct gk20a *g, u32 unit, bool enable)
@@ -142,7 +147,8 @@ int test_ce_init_support(struct unit_module *m, struct gk20a *g, void *args)
 	g->fifo.num_engines = 0;
 	g->ops.ce.set_pce2lce_mapping = mock_void_return;
 	g->ops.ce.init_prod_values = mock_void_return;
-	g->ops.mc.reset = mock_mc_reset;
+	g->ops.mc.enable_units = mock_mc_enable_units;
+	g->ops.mc.enable_dev = mock_mc_enable_dev;
 	g->ops.mc.intr_nonstall_unit_config = mock_intr_unit_config;
 	g->ops.mc.intr_stall_unit_config = mock_intr_unit_config;
 

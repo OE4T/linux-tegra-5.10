@@ -547,7 +547,7 @@ int test_isr_stall(struct unit_module *m, struct gk20a *g, void *args)
 int test_is_intr1_pending(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct match_struct {
-		enum nvgpu_unit unit;
+		u32 unit;
 		u32 mask;
 		bool expect;
 	};
@@ -617,22 +617,23 @@ int test_isr_nonstall(struct unit_module *m, struct gk20a *g, void *args)
 
 int test_enable_disable_reset(struct unit_module *m, struct gk20a *g, void *args)
 {
-	u32 units = (g->ops.mc.reset_mask(g, NVGPU_UNIT_FIFO) |
-		     g->ops.mc.reset_mask(g, NVGPU_UNIT_GRAPH) |
-		     g->ops.mc.reset_mask(g, NVGPU_UNIT_BLG) |
-			mc_enable_ce2_enabled_f());
+	u32 units = (mc_enable_pfifo_enabled_f() |
+		     mc_enable_pgraph_enabled_f() |
+		     mc_enable_blg_enabled_f() | mc_enable_ce2_enabled_f());
 	u32 val;
 
 	/* test enable */
 	nvgpu_posix_io_writel_reg_space(g, mc_enable_r(), 0);
-	g->ops.mc.enable(g, units);
+	g->ops.mc.enable_units(g, (NVGPU_UNIT_FIFO | NVGPU_UNIT_GRAPH |
+		     NVGPU_UNIT_BLG | NVGPU_UNIT_CE2), true);
 	val = nvgpu_posix_io_readl_reg_space(g, mc_enable_r());
 	if (val != units) {
 		unit_return_fail(m, "failed to reset units val=0x%08x\n", val);
 	}
 
 	/* test disable */
-	g->ops.mc.disable(g, units);
+	g->ops.mc.enable_units(g, (NVGPU_UNIT_FIFO | NVGPU_UNIT_GRAPH |
+		     NVGPU_UNIT_BLG | NVGPU_UNIT_CE2), false);
 	val = nvgpu_posix_io_readl_reg_space(g, mc_enable_r());
 	if (val != 0U) {
 		unit_return_fail(m, "failed to reset units val=0x%08x\n", val);
@@ -640,50 +641,11 @@ int test_enable_disable_reset(struct unit_module *m, struct gk20a *g, void *args
 
 	/* test reset */
 	nvgpu_posix_io_writel_reg_space(g, mc_enable_r(), units);
-	g->ops.mc.reset(g, units);
+	nvgpu_mc_reset_units(g, (NVGPU_UNIT_FIFO | NVGPU_UNIT_GRAPH |
+		     NVGPU_UNIT_BLG | NVGPU_UNIT_CE2));
 	val = nvgpu_posix_io_readl_reg_space(g, mc_enable_r());
 	if (val != units) {
 		unit_return_fail(m, "failed to reset units val=0x%08x\n", val);
-	}
-
-	/* for branch coverage, do not include CE's */
-	units = NVGPU_UNIT_FIFO | NVGPU_UNIT_GRAPH;
-	nvgpu_posix_io_writel_reg_space(g, mc_enable_r(), units);
-	g->ops.mc.reset(g, units);
-	val = nvgpu_posix_io_readl_reg_space(g, mc_enable_r());
-	if (val != units) {
-		unit_return_fail(m, "failed to reset units val=0x%08x\n", val);
-	}
-
-	return UNIT_SUCCESS;
-}
-
-int test_reset_mask(struct unit_module *m, struct gk20a *g, void *args)
-{
-	struct match_struct {
-		enum nvgpu_unit unit;
-		u32 mask;
-	};
-	const struct match_struct match_table[] = {
-		{ NVGPU_UNIT_FIFO, mc_enable_pfifo_enabled_f() },
-		{ NVGPU_UNIT_PERFMON, mc_enable_perfmon_enabled_f() },
-		{ NVGPU_UNIT_GRAPH, mc_enable_pgraph_enabled_f() },
-		{ NVGPU_UNIT_BLG, mc_enable_blg_enabled_f() },
-	};
-	unsigned int i;
-	u32 val;
-
-	for (i = 0U; i < ARRAY_SIZE(match_table); i++) {
-		val = g->ops.mc.reset_mask(g, match_table[i].unit);
-		if (val != match_table[i].mask) {
-			unit_return_fail(m, "incorrect mask returned\n");
-		}
-	}
-
-	/* pass invalid unit for branch coverage */
-	val = g->ops.mc.reset_mask(g, INVALID_UNIT);
-	if (val != 0U) {
-		unit_return_fail(m, "incorrect mask returned\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -731,7 +693,6 @@ struct unit_module_test mc_tests[] = {
 	UNIT_TEST(isr_nonstall,			test_isr_nonstall,			NULL, 2),
 	UNIT_TEST(is_intr1_pending,		test_is_intr1_pending,			NULL, 0),
 	UNIT_TEST(enable_disable_reset,		test_enable_disable_reset,		NULL, 0),
-	UNIT_TEST(reset_mask,			test_reset_mask,			NULL, 0),
 	UNIT_TEST(wait_for_deferred_interrupts,	test_wait_for_deferred_interrupts,	NULL, 0),
 	UNIT_TEST(mc_free_env,			test_free_env,				NULL, 0),
 };

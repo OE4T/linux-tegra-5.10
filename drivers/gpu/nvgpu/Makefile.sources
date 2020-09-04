@@ -148,6 +148,7 @@ srcs +=	common/device.c \
 	common/fifo/engines.c \
 	common/fifo/pbdma_status.c \
 	common/mc/mc.c \
+	common/mc/mc_intr.c \
 	common/rc/rc.c \
 	common/ce/ce.c \
 	common/grmgr/grmgr.c \

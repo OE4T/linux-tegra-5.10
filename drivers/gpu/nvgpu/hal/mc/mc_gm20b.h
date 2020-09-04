@@ -25,22 +25,19 @@
 
 #include <nvgpu/types.h>
 
-#define MC_ENABLE_DELAY_US	20U
-#define MC_RESET_DELAY_US	20U
-#define MC_RESET_CE_DELAY_US	500U
-
 struct gk20a;
-enum nvgpu_unit;
+struct nvgpu_device;
 
 u32 gm20b_get_chip_details(struct gk20a *g, u32 *arch, u32 *impl, u32 *rev);
 
 u32  gm20b_mc_isr_nonstall(struct gk20a *g);
-void gm20b_mc_enable(struct gk20a *g, u32 units);
-void gm20b_mc_disable(struct gk20a *g, u32 units);
-void gm20b_mc_reset(struct gk20a *g, u32 units);
-u32  gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
+int gm20b_mc_enable_units(struct gk20a *g, u32 units, bool enable);
+int gm20b_mc_enable_dev(struct gk20a *g, const struct nvgpu_device *dev,
+			bool enable);
+int gm20b_mc_enable_devtype(struct gk20a *g, u32 devtype, bool enable);
+
 #ifdef CONFIG_NVGPU_LS_PMU
-bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit);
+bool gm20b_mc_is_enabled(struct gk20a *g, u32 unit);
 #endif
 
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
@@ -57,8 +54,7 @@ void gm20b_mc_intr_stall_resume(struct gk20a *g);
 u32  gm20b_mc_intr_nonstall(struct gk20a *g);
 void gm20b_mc_intr_nonstall_pause(struct gk20a *g);
 void gm20b_mc_intr_nonstall_resume(struct gk20a *g);
-bool gm20b_mc_is_intr1_pending(struct gk20a *g,
-		enum nvgpu_unit unit, u32 mc_intr_1);
+bool gm20b_mc_is_intr1_pending(struct gk20a *g, u32 unit, u32 mc_intr_1);
 void gm20b_mc_log_pending_intrs(struct gk20a *g);
 void gm20b_mc_fb_reset(struct gk20a *g);
 void gm20b_mc_ltc_isr(struct gk20a *g);

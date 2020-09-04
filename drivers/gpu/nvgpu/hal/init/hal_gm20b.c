@@ -884,12 +884,11 @@ static const struct gops_mc gm20b_ops_mc = {
 	.intr_nonstall_pause = gm20b_mc_intr_nonstall_pause,
 	.intr_nonstall_resume = gm20b_mc_intr_nonstall_resume,
 	.isr_nonstall = gm20b_mc_isr_nonstall,
-	.enable = gm20b_mc_enable,
-	.disable = gm20b_mc_disable,
-	.reset = gm20b_mc_reset,
 	.is_intr1_pending = gm20b_mc_is_intr1_pending,
 	.log_pending_intrs = gm20b_mc_log_pending_intrs,
-	.reset_mask = gm20b_mc_reset_mask,
+	.enable_units = gm20b_mc_enable_units,
+	.enable_dev = gm20b_mc_enable_dev,
+	.enable_devtype = gm20b_mc_enable_devtype,
 #ifdef CONFIG_NVGPU_LS_PMU
 	.is_enabled = gm20b_mc_is_enabled,
 #endif

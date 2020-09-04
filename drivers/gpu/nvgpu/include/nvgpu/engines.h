@@ -162,14 +162,6 @@ u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g);
  */
 u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 engine_id);
 /**
- * @brief Get engine reset mask for CE engines.
- *
- * @param g [in]		The GPU driver struct.
- *
- * @return The logical OR of the reset mask of each CE present on the GPU.
- */
-u32 nvgpu_engine_get_all_ce_reset_mask(struct gk20a *g);
-/**
  * @brief Allocate and initialize s/w context for engine related info.
  *
  * @param g [in]		The GPU driver struct.
