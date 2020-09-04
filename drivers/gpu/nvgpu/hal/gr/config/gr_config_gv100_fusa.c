@@ -439,7 +439,7 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 		goto exit_build_table;
 	}
 
-	gv100_gr_config_set_sminfo(g, gr_config, num_sm,sm_per_tpc,
+	gv100_gr_config_set_sminfo(g, gr_config, num_sm, sm_per_tpc,
 					gpc_table, tpc_table);
 
 	nvgpu_gr_config_set_no_of_sm(gr_config, num_sm);

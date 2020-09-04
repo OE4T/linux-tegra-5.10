@@ -762,6 +762,9 @@ void nvgpu_gr_config_set_gpc_tpc_mask(struct nvgpu_gr_config *config,
 u32 nvgpu_gr_config_get_gpc_skip_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index)
 {
+	if (gpc_index >= config->gpc_count) {
+		return 0;
+	}
 	return config->gpc_skip_mask[gpc_index];
 }
 

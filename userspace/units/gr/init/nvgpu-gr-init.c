@@ -561,7 +561,7 @@ struct unit_module_test nvgpu_gr_init_tests[] = {
 	UNIT_TEST(gr_init_hal_wait_fe_idle, test_gr_init_hal_wait_fe_idle, NULL, 0),
 	UNIT_TEST(gr_init_hal_fe_pwr_mode, test_gr_init_hal_fe_pwr_mode, NULL, 0),
 	UNIT_TEST(gr_init_hal_ecc_scrub_reg, test_gr_init_hal_ecc_scrub_reg, NULL, 0),
-	UNIT_TEST(gr_init_hal_config_error_injection, test_gr_init_hal_config_error_injection, NULL, 0),
+	UNIT_TEST(gr_init_hal_config_error_injection, test_gr_init_hal_config_error_injection, NULL, 2),
 	UNIT_TEST(gr_suspend, test_gr_suspend, NULL, 0),
 	UNIT_TEST(gr_ecc_features, test_gr_init_ecc_features, NULL, 0),
 	UNIT_TEST(gr_init_error_injections, test_gr_init_error_injections, NULL, 2),

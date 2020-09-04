@@ -51,7 +51,7 @@ struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)
 #ifdef CONFIG_NVGPU_NON_FUSA
 u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g)
 {
-	return g->gr->fecs_feature_override_ecc_val;
+	return g->gr[g->mig.cur_gr_instance].fecs_feature_override_ecc_val;
 }
 
 void nvgpu_gr_override_ecc_val(struct nvgpu_gr *gr, u32 ecc_val)

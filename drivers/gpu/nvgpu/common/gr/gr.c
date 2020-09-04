@@ -210,7 +210,7 @@ int nvgpu_gr_suspend(struct gk20a *g)
 
 static int gr_init_setup_hw(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = g->gr;
+	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -223,7 +223,6 @@ static int gr_init_setup_hw(struct gk20a *g)
 
 	g->ops.gr.init.gpc_mmu(g);
 
-	/* load gr floorsweeping registers */
 	g->ops.gr.init.pes_vsc_stream(g);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -250,8 +249,6 @@ static int gr_init_setup_hw(struct gk20a *g)
 
 	/** Enable TPC exceptions per GPC */
 	g->ops.gr.intr.enable_gpc_exceptions(g, gr->config);
-
-	/** TBD: enable per BE exceptions */
 
 	/* enable ECC for L1/SM */
 	if (g->ops.gr.init.ecc_scrub_reg != NULL) {
@@ -828,7 +825,8 @@ int nvgpu_gr_init_support(struct gk20a *g)
 		return err;
 	}
 
-	err = gr_init_setup_hw(g);
+	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
+			gr_init_setup_hw(g));
 	if (err != 0) {
 		return err;
 	}

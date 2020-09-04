@@ -99,6 +99,7 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	u32 max_tpc_cnt;
 #endif
 	u32 gpc_cnt, tpc_cnt;
+	u32 num_sm;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -110,10 +111,10 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 		return err;
 	}
 
-	nvgpu_assert(g->ops.gr.init.get_no_of_sm(g) > 0U);
+	num_sm = nvgpu_gr_config_get_no_of_sm(config);
+	nvgpu_assert(num_sm > 0U);
 
-	for (sm_id = 0; sm_id < g->ops.gr.init.get_no_of_sm(g);
-	     sm_id++) {
+	for (sm_id = 0; sm_id < num_sm; sm_id++) {
 		struct nvgpu_sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(config, sm_id);
 		tpc_index = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);

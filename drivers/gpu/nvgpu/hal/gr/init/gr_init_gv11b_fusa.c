@@ -438,7 +438,7 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 	u32 tpc_index, gpc_index, tpc_id;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	u32 num_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
-	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr_config);
 	u32 tpc_cnt = nvgpu_safe_sub_u32(
 			nvgpu_gr_config_get_tpc_count(gr_config), 1U);
 
