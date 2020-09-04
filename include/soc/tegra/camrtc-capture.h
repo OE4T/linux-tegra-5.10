@@ -1998,8 +1998,12 @@ struct nvcsi_tpg_config_tpg_ng {
 	uint32_t blue_horizontal_freq_rate;
 	/** Rate of change of the vertical frequency for blue channel */
 	uint32_t blue_vertical_freq_rate;
+	/** NvCSI stream number */
+	uint8_t stream_id;
 	/** Reserved size */
-	uint32_t reserved[3];
+	uint8_t reserved2[3];
+	/** Reserved size */
+	uint32_t reserved[2];
 } CAPTURE_IVC_ALIGN;
 
 /**
