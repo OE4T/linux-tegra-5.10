@@ -84,6 +84,7 @@ static int dma_init_coherent_memory(phys_addr_t phys_addr,
 	dma_mem->device_base = device_addr;
 	dma_mem->pfn_base = PFN_DOWN(phys_addr);
 	dma_mem->size = pages;
+	dma_mem->flags = flags;
 	spin_lock_init(&dma_mem->spinlock);
 
 	*mem = dma_mem;
