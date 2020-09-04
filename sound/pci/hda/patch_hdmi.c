@@ -3696,6 +3696,37 @@ static int patch_tegra_hdmi(struct hda_codec *codec)
 	return 0;
 }
 
+static int patch_tegra_t23x_hdmi(struct hda_codec *codec)
+{
+	struct hdmi_spec *spec;
+	int err;
+
+	err = alloc_generic_hdmi(codec);
+	if (err < 0)
+		return err;
+
+	codec->dp_mst = true;
+	spec = codec->spec;
+	spec->tegra_fixup = true;
+	spec->dyn_pcm_assign = true;
+
+	err = hdmi_parse_codec(codec);
+	if (err < 0) {
+		generic_spec_free(codec);
+		return err;
+	}
+
+	generic_hdmi_init_per_pins(codec);
+
+	codec->patch_ops.build_pcms = tegra_hdmi_build_pcms;
+	spec->dyn_pin_out = true;
+	spec->chmap.ops.chmap_cea_alloc_validate_get_type =
+		nvhdmi_chmap_cea_alloc_validate_get_type;
+	spec->chmap.ops.chmap_validate = nvhdmi_chmap_validate;
+
+	return 0;
+}
+
 /*
  * ATI/AMD-specific implementations
  */
@@ -4149,6 +4180,7 @@ HDA_CODEC_ENTRY(0x10de002d, "Tegra186 HDMI/DP0", patch_tegra_hdmi),
 HDA_CODEC_ENTRY(0x10de002e, "Tegra186 HDMI/DP1", patch_tegra_hdmi),
 HDA_CODEC_ENTRY(0x10de002f, "Tegra194 HDMI/DP2", patch_tegra_hdmi),
 HDA_CODEC_ENTRY(0x10de0030, "Tegra194 HDMI/DP3", patch_tegra_hdmi),
+HDA_CODEC_ENTRY(0x10de0031, "Tegra23x HDMI/DP",	patch_tegra_t23x_hdmi),
 HDA_CODEC_ENTRY(0x10de0040, "GPU 40 HDMI/DP",	patch_nvhdmi),
 HDA_CODEC_ENTRY(0x10de0041, "GPU 41 HDMI/DP",	patch_nvhdmi),
 HDA_CODEC_ENTRY(0x10de0042, "GPU 42 HDMI/DP",	patch_nvhdmi),
