@@ -1,4 +1,7 @@
+ifdef CONFIG_ARCH_TEGRA_21x_SOC
 obj-$(CONFIG_I2C_TEGRA_VI)      += i2c-tegra-vi.o
+endif
+
 #CFLAGS_i2c-bpmp-tegra.o                 = -Werror
 ccflags-y += -I$(srctree.nvidia)/include
 obj-$(CONFIG_I2C_BPMP_TEGRA)     += i2c-bpmp-tegra.o
