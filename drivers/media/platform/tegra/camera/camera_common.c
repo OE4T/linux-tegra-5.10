@@ -877,8 +877,12 @@ void camera_common_dpd_disable(struct camera_common_data *s_data)
 		io_idx = s_data->csi_port + i;
 		if (atomic_inc_return(
 			&camera_common_csi_io_pads[io_idx].ref) == 1)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+			tegra_io_pad_power_enable(TEGRA_IO_PAD_CSIA + io_idx);
+#else
 			tegra_pmc_io_pad_low_power_disable(
 				camera_common_csi_io_pads[io_idx].name);
+#endif
 		dev_dbg(s_data->dev,
 			 "%s: csi %d\n", __func__, io_idx);
 	}
@@ -897,8 +901,12 @@ void camera_common_dpd_enable(struct camera_common_data *s_data)
 		io_idx = s_data->csi_port + i;
 		if (atomic_dec_return(
 			&camera_common_csi_io_pads[io_idx].ref) == 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+			tegra_io_pad_power_disable(TEGRA_IO_PAD_CSIA + io_idx);
+#else
 			tegra_pmc_io_pad_low_power_enable(
 				camera_common_csi_io_pads[io_idx].name);
+#endif
 		dev_dbg(s_data->dev,
 			 "%s: csi %d\n", __func__, io_idx);
 	}
