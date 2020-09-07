@@ -105,6 +105,7 @@ enum tegra_platform {
 	TEGRA_PLATFORM_LINSIM,
 	TEGRA_PLATFORM_FPGA,
 	TEGRA_PLATFORM_VDK,
+	TEGRA_PLATFORM_VSP,
 	TEGRA_PLATFORM_MAX,
 };
 
@@ -150,7 +151,11 @@ static inline bool tegra_platform_is_sim(void)
 {
 	return tegra_platform_is_vdk();
 }
-
+static inline bool tegra_platform_is_vsp(void)
+{
+	int plat = tegra_get_platform();
+	return plat == TEGRA_PLATFORM_VSP;
+}
 /*
  * end block - downstream declarations
  */

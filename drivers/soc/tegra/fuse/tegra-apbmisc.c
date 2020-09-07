@@ -40,6 +40,7 @@
 #define PRE_SI_ASIM_QT		3
 #define PRE_SI_ASIM_LINSIM	4
 #define PRE_SI_VDK		5
+#define PRE_SI_VSP		9
 
 struct apbmisc_data {
 	u32 emu_revid_offset;
@@ -328,6 +329,8 @@ static enum tegra_platform __tegra_get_platform(void)
 			return TEGRA_PLATFORM_LINSIM;
 		case PRE_SI_VDK:
 			return TEGRA_PLATFORM_VDK;
+		case PRE_SI_VSP:
+			return TEGRA_PLATFORM_VSP;
 		}
 	}
 
