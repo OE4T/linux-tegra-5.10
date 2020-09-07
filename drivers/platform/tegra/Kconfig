@@ -62,6 +62,11 @@ config TEGRA_CAMERA_RTCPU
 	select NV_TEGRA_IVC
 	select TEGRA_HSP
 
+config TEGRA_CAMERA_HSP_MBOX_CLIENT
+	bool "Enable Mailbox Client Implementation of HSP Protocol for Camera"
+	depends on TEGRA_CAMERA_RTCPU && ARCH_TEGRA_186_SOC && MAILBOX
+	default n
+
 config TEGRA_ISOMGR
         bool "Isochronous Bandwidth Manager "
         help

@@ -10,7 +10,11 @@ obj-y += debug.o
 obj-y += ivc-bus.o
 obj-y += tegra-sysfs-mbox.o
 obj-y += vi-notify.o
+ifeq ($(CONFIG_TEGRA_CAMERA_HSP_MBOX_CLIENT), y)
+obj-y += hsp-mailbox-client.o
+else
 obj-y += hsp-combo.o
+endif
 obj-y += tegra-rtcpu-trace.o
 obj-y += camchar.o
 obj-y += clk-group.o
