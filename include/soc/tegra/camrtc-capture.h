@@ -1896,6 +1896,19 @@ struct nvcsi_tpg_config_t186 {
 #define NVCSI_TPG_FLAG_ENABLE_LS_LE			MK_U16(32)
 /** TPG next gen feature to transmit CPHY packets. DPHY is default option */
 #define NVCSI_TPG_FLAG_PHY_MODE_CPHY			MK_U16(64)
+/* Enable CRC check.
+ * If this flag is set, NVCSI will do CRC check for CPHY packet
+ * headers and ECC check for DPHY packet headers.
+ * TPG doesn't support ECC generation for DPHY, so enabling this
+ * flag together with DPHY can be used to trigger NVCSI errors.
+ */
+#define NVCSI_TPG_FLAG_ENABLE_HEADER_CRC_ECC_CHECK	MK_U16(128)
+/* Enable CRC/ECC override.
+ * If this flag is set, NVCSI will use override registers instead of
+ * of packet headers/payload CRC fields.
+ */
+#define NVCSI_TPG_FLAG_ENABLE_CRC_ECC_OVERRIDE		MK_U16(256)
+
 /** @} */
 
 /**
@@ -2014,8 +2027,36 @@ struct nvcsi_tpg_config_tpg_ng {
 	uint8_t emb_data_spare_1;
 	/** NvCSI TPG output brightness gain */
 	uint8_t brightness_gain_ratio;
+
+	/** Fields below are used if NVCSI_TPG_FLAG_ENABLE_CRC_ECC_OVERRIDE flag is set.
+	 * Format of packet header fields override_crc_ph_*:
+	 * bits 0..15  - first header
+	 * bits 31..16 - second header */
+	/** This field is for the CPHY SOF packet first and second packet header CRC override */
+	uint32_t override_crc_ph_sof;
+	/** This field is for the CPHY EOF packet first and second packet header CRC override */
+	uint32_t override_crc_ph_eof;
+	/** This field is for the CPHY SOL packet first and second packet header CRC override */
+	uint32_t override_crc_ph_sol;
+	/** This field is for the CPHY EOL packet first and second packet header CRC override */
+	uint32_t override_crc_ph_eol;
+	/** This field is for the CPHY long packet packet first and second packet header CRC override */
+	uint32_t override_crc_ph_long_packet;
+	/** This field is for the long packet payload CRC override (both CPHY and DPHY) */
+	uint32_t override_crc_payload;
+	/** The TPG will not generate ECC for a packet. When using the TPG,
+	 * SW should set the PP to skip the ecc check. To verify the ecc logic for safety BIST,
+	 * SW can write a pre-calculated ECC for the TPG, when use with this mode,
+	 * the TPG should generate a grescale pattern.
+	 * 5:0		SOF_ECC		This field is for the SOF short packet ECC.
+	 * 11:6		EOF_ECC		This field is for the EOF short packet ECC.
+	 * 17:12	SOL_ECC		This field is for the SOL short packet ECC.
+	 * 23:18	EOL_ECC		This field is for the EOL short packet ECC.
+	 * 29:24	LINE_ECC	This field is for the long packet header ECC.
+	 * */
+	uint32_t override_ecc_ph;
 	/** Reserved size */
-	uint32_t reserved[2];
+	uint32_t reserved;
 } CAPTURE_IVC_ALIGN;
 
 /**
