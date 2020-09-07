@@ -64,12 +64,16 @@
 		__overlay__ {
 			nvidia-audio-card,widgets =
 				"Headphone",	"H40-SGTL Headphone",
-				"Microphone",	"H40-SGTL Mic";
+				"Microphone",	"H40-SGTL Mic",
+				"Line",		"H40-SGTL Line In",
+				"Line",		"H40-SGTL Line Out";
 
 			nvidia-audio-card,routing =
 				"H40-SGTL Headphone",	"H40-SGTL HP_OUT",
 				"H40-SGTL MIC_IN",	"H40-SGTL Mic",
-				"H40-SGTL ADC",		"H40-SGTL Mic Bias";
+				"H40-SGTL ADC",		"H40-SGTL Mic Bias",
+				"H40-SGTL LINE_IN",	"H40-SGTL Line In",
+				"H40-SGTL Line Out",	"H40-SGTL LINE_OUT";
 		};
 	};
 
