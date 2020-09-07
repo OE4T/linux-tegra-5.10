@@ -402,12 +402,12 @@ static int gr_init_config(struct gk20a *g)
 	return 0;
 }
 
-static int nvgpu_gr_init_ctx_state(struct gk20a *g)
+static int nvgpu_gr_init_ctx_state(struct gk20a *g, struct nvgpu_gr *gr)
 {
 	int err = 0;
 
 	/* Initialize ctx state during boot and recovery */
-	err = nvgpu_gr_falcon_init_ctx_state(g, g->gr->falcon);
+	err = nvgpu_gr_falcon_init_ctx_state(g, gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "gr ctx_state init failed");
 	}
@@ -716,9 +716,12 @@ int nvgpu_gr_reset(struct gk20a *g)
 
 	nvgpu_mutex_release(fecs_mutex);
 
-	/* this appears query for sw states but fecs actually init
-	   ramchain, etc so this is hw init */
-	err = nvgpu_gr_init_ctx_state(g);
+	/*
+	 * This appears query for sw states but fecs actually inits
+	 * ramchain, etc so this is hw init. Hence should be executed
+	 * for every GR engine HW initialization.
+	 */
+	err = nvgpu_gr_init_ctx_state(g, g->gr);
 	if (err != 0) {
 		return err;
 	}
@@ -771,6 +774,16 @@ static int gr_init_ctxsw_falcon_support(struct gk20a *g)
 		return err;
 	}
 
+	/*
+	 * This appears query for sw states but fecs actually inits
+	 * ramchain, etc so this is hw init. Hence should be executed
+	 * for every GR engine HW initialization.
+	 */
+	err = nvgpu_gr_init_ctx_state(g, gr);
+	if (err != 0) {
+		return err;
+	}
+
 	return 0;
 }
 
@@ -804,13 +817,6 @@ int nvgpu_gr_init_support(struct gk20a *g)
 
 	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
 			gr_init_ctxsw_falcon_support(g));
-	if (err != 0) {
-		return err;
-	}
-
-	/* this appears query for sw states but fecs actually init
-	   ramchain, etc so this is hw init */
-	err = nvgpu_gr_init_ctx_state(g);
 	if (err != 0) {
 		return err;
 	}
