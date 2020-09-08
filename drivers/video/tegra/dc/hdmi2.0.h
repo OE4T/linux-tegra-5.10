@@ -1,7 +1,7 @@
 /*
  * hdmi2.0.h: hdmi2.0 driver.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION, All rights reserved.
  * Author: Animesh Kishore <ankishore@nvidia.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -139,7 +139,7 @@ enum {
 
 enum {
 	HDMI_AVI_IT_CONTENT_FALSE = 0x0,
-	HDMI_AVI_IT_CONTENT_TRUE = 0x0,
+	HDMI_AVI_IT_CONTENT_TRUE = 0x1,
 };
 
 enum {
@@ -147,7 +147,6 @@ enum {
 };
 
 enum {
-	HDMI_AVI_IT_CONTENT_NONE = 0x0,
 	HDMI_AVI_IT_CONTENT_GRAPHICS = 0x0,
 	HDMI_AVI_IT_CONTENT_PHOTO = 0x1,
 	HDMI_AVI_IT_CONTENT_CINEMA = 0x2,
@@ -496,6 +495,7 @@ struct tegra_hdmi {
 	u8 avi_colorimetry;
 	u8 avi_color_components;
 	u8 avi_color_quant;
+	u8 avi_it_content;
 
 	struct tegra_edid *edid;
 	struct i2c_client *ddc_i2c_client;

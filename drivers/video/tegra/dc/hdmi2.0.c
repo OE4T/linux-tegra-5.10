@@ -2037,6 +2037,32 @@ static void tegra_hdmi_avi_infoframe_overrides(struct tegra_hdmi *hdmi)
 		break;
 	}
 
+	switch (hdmi->avi_it_content) {
+	case TEGRA_DC_EXT_AVI_IT_CONTENT_FALSE:
+		avi->it_content = HDMI_AVI_IT_CONTENT_FALSE;
+		avi->it_content_type = HDMI_AVI_IT_CONTENT_GRAPHICS;
+		break;
+	case TEGRA_DC_EXT_AVI_IT_CONTENT_GRAPHICS:
+		avi->it_content = HDMI_AVI_IT_CONTENT_TRUE;
+		avi->it_content_type = HDMI_AVI_IT_CONTENT_GRAPHICS;
+		break;
+	case TEGRA_DC_EXT_AVI_IT_CONTENT_PHOTO:
+		avi->it_content = HDMI_AVI_IT_CONTENT_TRUE;
+		avi->it_content_type = HDMI_AVI_IT_CONTENT_PHOTO;
+		break;
+	case TEGRA_DC_EXT_AVI_IT_CONTENT_CINEMA:
+		avi->it_content = HDMI_AVI_IT_CONTENT_TRUE;
+		avi->it_content_type = HDMI_AVI_IT_CONTENT_CINEMA;
+		break;
+	case TEGRA_DC_EXT_AVI_IT_CONTENT_GAME:
+		avi->it_content = HDMI_AVI_IT_CONTENT_TRUE;
+		avi->it_content_type = HDMI_AVI_IT_CONTENT_GAME;
+		break;
+	default:
+		/* Let default value as it is.*/
+		break;
+	}
+
 	switch (hdmi->avi_color_quant) {
 	case TEGRA_DC_EXT_AVI_COLOR_QUANT_LIMITED:
 		if (avi->rgb_ycc == HDMI_AVI_RGB)
@@ -2252,7 +2278,7 @@ static void tegra_hdmi_avi_infoframe_update(struct tegra_hdmi *hdmi)
 	}
 
 	avi->pix_rep = HDMI_AVI_NO_PIX_REPEAT;
-	avi->it_content_type = HDMI_AVI_IT_CONTENT_NONE;
+	avi->it_content_type = HDMI_AVI_IT_CONTENT_GRAPHICS;
 	avi->ycc_quant = tegra_hdmi_get_ycc_quant(hdmi);
 
 	avi->top_bar_end_line_low_byte = 0;
@@ -2306,10 +2332,12 @@ static int tegra_dc_hdmi_set_avi(struct tegra_dc *dc,
 
 	if (hdmi->avi_colorimetry != avi->avi_colorimetry ||
 	    hdmi->avi_color_components != avi->avi_color_components ||
-	    hdmi->avi_color_quant != avi->avi_color_quant) {
+	    hdmi->avi_color_quant != avi->avi_color_quant ||
+	    hdmi->avi_it_content != avi->avi_it_content) {
 		hdmi->avi_colorimetry = avi->avi_colorimetry;
 		hdmi->avi_color_components = avi->avi_color_components;
 		hdmi->avi_color_quant = avi->avi_color_quant;
+		hdmi->avi_it_content = avi->avi_it_content;
 		/* Setting AVI infoframe externally */
 		tegra_hdmi_avi_infoframe(hdmi);
 	}

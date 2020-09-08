@@ -370,17 +370,33 @@ enum tegra_dc_ext_avi_color_components_change {
 	TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV420,
 } __attribute__((__packed__));
 
+/*
+ * Client data used by tegra_dc to force color quantization range
+ */
 enum tegra_dc_ext_avi_color_quant_change {
 	TEGRA_DC_EXT_AVI_COLOR_QUANT_DEFAULT,
 	TEGRA_DC_EXT_AVI_COLOR_QUANT_LIMITED,
 	TEGRA_DC_EXT_AVI_COLOR_QUANT_FULL,
 } __attribute__((__packed__));
 
+/*
+ * Client data used by tegra_dc to force IT content type
+ */
+enum tegra_dc_ext_avi_it_content {
+	TEGRA_DC_EXT_AVI_IT_CONTENT_DEFAULT,
+	TEGRA_DC_EXT_AVI_IT_CONTENT_FALSE,
+	TEGRA_DC_EXT_AVI_IT_CONTENT_GRAPHICS,
+	TEGRA_DC_EXT_AVI_IT_CONTENT_PHOTO,
+	TEGRA_DC_EXT_AVI_IT_CONTENT_CINEMA,
+	TEGRA_DC_EXT_AVI_IT_CONTENT_GAME,
+} __attribute__((__packed__));
+
 struct tegra_dc_ext_avi {
 	__u8 avi_colorimetry;
 	__u8 avi_color_components;
 	__u8 avi_color_quant;
-	__u8 reserved[23];
+	__u8 avi_it_content;
+	__u8 reserved[22];
 };
 
 /*
