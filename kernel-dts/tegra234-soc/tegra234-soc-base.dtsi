@@ -216,9 +216,9 @@
 	};
 #endif
 
-	kfuse@3830000 {
+	kfuse@3828000 {
 		compatible = "nvidia,tegra194-kfuse";
-		reg = <0x0 0x3830000 0x0 0x10000>;
+		reg = <0x0 0x3828000 0x0 0x1000>;
 		clocks = <&bpmp_clks TEGRA234_CLK_KFUSE>;
 		clock-names = "kfuse";
 		status = "disabled";
