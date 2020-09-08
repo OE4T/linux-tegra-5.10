@@ -2557,7 +2557,7 @@ struct isp_overfetch {
  *
  * Settings needed by RCE ISP driver to generate config buffer.
  * Content and format of these fields is the same as corresponding ISP config buffer fields.
- * See T19X/T23X ISP_Microcode.docx for detailed description.
+ * See ISP_Microcode.docx for detailed description.
  */
 struct isp5_program {
 	/**
