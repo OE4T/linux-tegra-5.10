@@ -110,6 +110,9 @@ static void nsmmu_tlb_sync(struct arm_smmu_device *smmu, int page,
 	unsigned int i;
 	unsigned int spin_cnt, delay;
 
+	if (tegra_platform_is_sim())
+		nsmmu_write_reg64(smmu, page, ARM_SMMU_GR0_TLBIALLNSNH, 0);
+
 	arm_smmu_writel(smmu, page, sync, 0);
 
 	for (delay = 1; delay < TLB_LOOP_TIMEOUT; delay *= 2) {

@@ -41,6 +41,8 @@
 #include <linux/amba/bus.h>
 #include <linux/fsl/mc.h>
 
+#include <soc/tegra/fuse.h>
+
 #include "arm-smmu.h"
 
 #ifdef CONFIG_ARM_SMMU_DEBUG
@@ -306,10 +308,14 @@ static void arm_smmu_tlb_sync_context(struct arm_smmu_domain *smmu_domain)
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
 	unsigned long flags;
 
-	spin_lock_irqsave(&smmu_domain->cb_lock, flags);
-	__arm_smmu_tlb_sync(smmu, ARM_SMMU_CB(smmu, smmu_domain->cfg.cbndx),
-			    ARM_SMMU_CB_TLBSYNC, ARM_SMMU_CB_TLBSTATUS);
-	spin_unlock_irqrestore(&smmu_domain->cb_lock, flags);
+	if (tegra_platform_is_sim()) {
+		arm_smmu_tlb_sync_global(smmu);
+	} else {
+		spin_lock_irqsave(&smmu_domain->cb_lock, flags);
+		__arm_smmu_tlb_sync(smmu, ARM_SMMU_CB(smmu, smmu_domain->cfg.cbndx),
+				    ARM_SMMU_CB_TLBSYNC, ARM_SMMU_CB_TLBSTATUS);
+		spin_unlock_irqrestore(&smmu_domain->cb_lock, flags);
+	}
 }
 
 static void arm_smmu_tlb_inv_context_s1(void *cookie)
