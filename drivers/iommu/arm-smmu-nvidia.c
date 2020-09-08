@@ -9,6 +9,7 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
+#include <soc/tegra/fuse.h>
 
 #include "arm-smmu.h"
 
@@ -64,10 +65,33 @@ static void nsmmu_write_reg(struct arm_smmu_device *smmu,
 		writel_relaxed(val, nsmmu_page(smmu, i, page) + offset);
 }
 
+
+static inline u64 read64_relaxed(volatile void __iomem *virt_addr)
+{
+	u64 val;
+	if (tegra_platform_is_sim()) {
+		val = (u64)readl_relaxed(virt_addr);
+		val |= ((u64)readl_relaxed(virt_addr + 4) << 32);
+	} else {
+		val = readq_relaxed(virt_addr);
+	}
+	return val;
+}
+
+static inline void write64_relaxed(u64 val, volatile void __iomem *virt_addr)
+{
+	if (tegra_platform_is_sim()) {
+		writel_relaxed((u32)val, virt_addr);
+		writel_relaxed((u32)(val >> 32), virt_addr + 4);
+	} else {
+		writeq_relaxed(val, virt_addr);
+	}
+}
+
 static u64 nsmmu_read_reg64(struct arm_smmu_device *smmu,
 				int page, int offset)
 {
-	return readq_relaxed(nsmmu_page(smmu, 0, page) + offset);
+	return read64_relaxed(nsmmu_page(smmu, 0, page) + offset);
 }
 
 static void nsmmu_write_reg64(struct arm_smmu_device *smmu,
@@ -76,7 +100,7 @@ static void nsmmu_write_reg64(struct arm_smmu_device *smmu,
 	unsigned int i;
 
 	for (i = 0; i < to_nvidia_smmu(smmu)->num_inst; i++)
-		writeq_relaxed(val, nsmmu_page(smmu, i, page) + offset);
+		write64_relaxed(val, nsmmu_page(smmu, i, page) + offset);
 }
 
 static void nsmmu_tlb_sync(struct arm_smmu_device *smmu, int page,
