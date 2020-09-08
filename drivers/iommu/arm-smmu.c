@@ -1585,6 +1585,11 @@ __weak struct iommu_group *tegra_smmu_of_get_group(struct device *dev)
 	return NULL;
 }
 
+__weak void tegra_smmu_remove_iommu_groups(void)
+{
+	pr_warn("Warning: %s undefined\n", __func__);
+}
+
 static struct iommu_group *arm_smmu_device_group(struct device *dev)
 {
 	struct arm_smmu_master_cfg *cfg = dev_iommu_priv_get(dev);
@@ -2383,6 +2388,8 @@ static int arm_smmu_device_remove(struct platform_device *pdev)
 
 	if (!bitmap_empty(smmu->context_map, ARM_SMMU_MAX_CBS))
 		dev_notice(&pdev->dev, "disabling translation\n");
+
+	tegra_smmu_remove_iommu_groups();
 
 	arm_smmu_bus_init(NULL);
 	iommu_device_unregister(&smmu->iommu);
