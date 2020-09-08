@@ -1010,6 +1010,21 @@ static int m88e1318_config_init(struct phy_device *phydev)
 	return marvell_config_init(phydev);
 }
 
+static int m88e1510_enable_eee_adv(struct phy_device *phydev)
+{
+	int val;
+
+	val = phy_read_mmd(phydev, MDIO_MMD_AN, MDIO_AN_EEE_ADV);
+	if (val < 0)
+		return val;
+
+	val |= (MDIO_AN_EEE_ADV_100TX | MDIO_AN_EEE_ADV_1000T);
+
+	phy_write_mmd(phydev, MDIO_MMD_AN, MDIO_AN_EEE_ADV, val);
+
+	return 0;
+}
+
 static int m88e1510_config_init(struct phy_device *phydev)
 {
 	int err;
@@ -1039,6 +1054,10 @@ static int m88e1510_config_init(struct phy_device *phydev)
 		if (err < 0)
 			return err;
 	}
+
+	err = m88e1510_enable_eee_adv(phydev);
+	if (err < 0)
+		return err;
 
 	return m88e1318_config_init(phydev);
 }
