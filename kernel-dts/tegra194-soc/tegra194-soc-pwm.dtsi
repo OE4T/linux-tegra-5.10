@@ -55,8 +55,9 @@
 		compatible = "nvidia,tegra194-pwm", "nvidia,tegra186-pwm";
 		reg = <0x0 0xc340000 0x0 0x10000>;
 		nvidia,hw-instance-id = <0x3>;
-		clocks = <&bpmp_clks TEGRA194_CLK_PWM4>;
-		clock-names = "pwm";
+		clocks = <&bpmp_clks TEGRA194_CLK_PWM4>,
+			<&bpmp_clks TEGRA194_CLK_PLLAON>;
+		clock-names = "pwm", "pll_aon";
 		#pwm-cells = <2>;
 		resets = <&bpmp_resets TEGRA194_RESET_PWM4>;
 		reset-names = "pwm";
