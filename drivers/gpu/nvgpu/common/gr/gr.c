@@ -208,9 +208,8 @@ int nvgpu_gr_suspend(struct gk20a *g)
 	return ret;
 }
 
-static int gr_init_setup_hw(struct gk20a *g)
+static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 {
-	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -369,10 +368,8 @@ static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 	return 0;
 }
 
-static int gr_init_config(struct gk20a *g)
+static int gr_init_config(struct gk20a *g, struct nvgpu_gr *gr)
 {
-	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
-
 	gr->config = nvgpu_gr_config_init(g);
 	if (gr->config == NULL) {
 		return -ENOMEM;
@@ -463,9 +460,8 @@ static int gr_init_ecc_init(struct gk20a *g)
 	return err;
 }
 
-static int gr_init_setup_sw(struct gk20a *g)
+static int gr_init_setup_sw(struct gk20a *g, struct nvgpu_gr *gr)
 {
-	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -686,7 +682,7 @@ int nvgpu_gr_reset(struct gk20a *g)
 		return err;
 	}
 
-	err = gr_init_setup_hw(g);
+	err = gr_init_setup_hw(g, g->gr);
 	if (err != 0) {
 		nvgpu_mutex_release(fecs_mutex);
 		return err;
@@ -731,9 +727,8 @@ int nvgpu_gr_reset(struct gk20a *g)
 #endif
 
 #if defined(CONFIG_NVGPU_NEXT)
-static int gr_init_sm_id_config_early(struct gk20a *g)
+static int gr_init_sm_id_config_early(struct gk20a *g, struct nvgpu_gr *gr)
 {
-	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
 	int err;
 
 	if (g->ops.gr.init.sm_id_config_early != NULL) {
@@ -747,9 +742,8 @@ static int gr_init_sm_id_config_early(struct gk20a *g)
 }
 #endif
 
-static int gr_init_ctxsw_falcon_support(struct gk20a *g)
+static int gr_init_ctxsw_falcon_support(struct gk20a *g, struct nvgpu_gr *gr)
 {
-	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
 	int err;
 
 	err = nvgpu_gr_falcon_init_ctxsw(g, gr->falcon);
@@ -771,17 +765,18 @@ static int gr_init_ctxsw_falcon_support(struct gk20a *g)
 	return 0;
 }
 
-int nvgpu_gr_init_support(struct gk20a *g)
+static int gr_init_support_impl(struct gk20a *g)
 {
+	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	g->gr->initialized = false;
+	gr->initialized = false;
 
 	/* This is prerequisite for calling sm_id_config_early hal. */
-	if (!g->gr->sw_ready) {
-		err = nvgpu_gr_exec_with_ret_for_each_instance(g, gr_init_config(g));
+	if (!gr->sw_ready) {
+		err = gr_init_config(g, gr);
 		if (err != 0) {
 			return err;
 		}
@@ -792,15 +787,13 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	 * Move sm id programming before loading ctxsw and gpccs firmwares. This
 	 * is the actual sequence expected by ctxsw ucode.
 	 */
-	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
-			gr_init_sm_id_config_early(g));
+	err = gr_init_sm_id_config_early(g, gr);
 	if (err != 0) {
 		return err;
 	}
 #endif
 
-	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
-			gr_init_ctxsw_falcon_support(g));
+	err = gr_init_ctxsw_falcon_support(g, gr);
 	if (err != 0) {
 		return err;
 	}
@@ -814,8 +807,34 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	}
 #endif
 
-	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
-			gr_init_setup_sw(g));
+	err = gr_init_setup_sw(g, gr);
+	if (err != 0) {
+		return err;
+	}
+
+	err = gr_init_setup_hw(g, gr);
+	if (err != 0) {
+		return err;
+	}
+
+	return 0;
+}
+
+static void gr_init_support_finalize(struct gk20a *g)
+{
+	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
+
+	gr->initialized = true;
+	nvgpu_cond_signal(&gr->init_wq);
+}
+
+int nvgpu_gr_init_support(struct gk20a *g)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_gr_exec_with_ret_for_each_instance(g, gr_init_support_impl(g));
 	if (err != 0) {
 		return err;
 	}
@@ -825,17 +844,10 @@ int nvgpu_gr_init_support(struct gk20a *g)
 		return err;
 	}
 
-	err = nvgpu_gr_exec_with_ret_for_each_instance(g,
-			gr_init_setup_hw(g));
-	if (err != 0) {
-		return err;
-	}
-
 	nvgpu_cg_elcg_enable_no_wait(g);
 
 	/* GR is inialized, signal possible waiters */
-	g->gr->initialized = true;
-	nvgpu_cond_signal(&g->gr->init_wq);
+	nvgpu_gr_exec_for_each_instance(g, gr_init_support_finalize(g));
 
 	return 0;
 }
