@@ -14,6 +14,7 @@ snd-soc-tegra210-dmic-objs := tegra210_dmic.o
 snd-soc-tegra210-i2s-objs := tegra210_i2s.o
 snd-soc-tegra186-dspk-objs := tegra186_dspk.o
 snd-soc-tegra210-admaif-objs := tegra210_admaif.o
+<<<<<<< HEAD
 snd-soc-tegra210-amx-objs := tegra210_amx.o
 snd-soc-tegra210-adx-objs := tegra210_adx.o
 snd-soc-tegra210-mixer-objs := tegra210_mixer.o
@@ -25,6 +26,8 @@ snd-soc-tegra186-asrc-objs := tegra186_asrc.o
 snd-soc-tegra186-arad-objs := tegra186_arad.o
 snd-soc-tegra210-ope-objs := tegra210_ope.o tegra210_peq.o tegra210_mbdrc.o
 snd-soc-tegra210-adsp-objs := tegra210_adsp.o
+=======
+>>>>>>> v5.9-rc4
 
 obj-$(CONFIG_SND_SOC_TEGRA) += snd-soc-tegra-pcm.o
 obj-$(CONFIG_SND_SOC_TEGRA) += snd-soc-tegra-utils.o
@@ -39,6 +42,7 @@ obj-$(CONFIG_SND_SOC_TEGRA210_AHUB) += snd-soc-tegra210-ahub.o
 obj-$(CONFIG_SND_SOC_TEGRA210_I2S) += snd-soc-tegra210-i2s.o
 obj-$(CONFIG_SND_SOC_TEGRA186_DSPK) += snd-soc-tegra186-dspk.o
 obj-$(CONFIG_SND_SOC_TEGRA210_ADMAIF) += snd-soc-tegra210-admaif.o
+<<<<<<< HEAD
 obj-$(CONFIG_SND_SOC_TEGRA210_AMX) += snd-soc-tegra210-amx.o
 obj-$(CONFIG_SND_SOC_TEGRA210_ADX) += snd-soc-tegra210-adx.o
 obj-$(CONFIG_SND_SOC_TEGRA210_MIXER) += snd-soc-tegra210-mixer.o
@@ -50,6 +54,8 @@ obj-$(CONFIG_SND_SOC_TEGRA210_OPE) += snd-soc-tegra210-ope.o
 obj-$(CONFIG_SND_SOC_TEGRA186_ARAD) += snd-soc-tegra186-arad.o
 obj-$(CONFIG_SND_SOC_TEGRA186_ASRC) += snd-soc-tegra186-asrc.o
 obj-$(CONFIG_SND_SOC_TEGRA210_ADSP) += snd-soc-tegra210-adsp.o
+=======
+>>>>>>> v5.9-rc4
 
 # Tegra machine Support
 snd-soc-tegra-rt5640-objs := tegra_rt5640.o

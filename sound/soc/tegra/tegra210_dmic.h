@@ -2,7 +2,11 @@
 /*
  * tegra210_dmic.h - Definitions for Tegra210 DMIC driver
  *
+<<<<<<< HEAD
  * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
+=======
+ * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+>>>>>>> v5.9-rc4
  *
  */
 
@@ -71,9 +75,12 @@ enum tegra_dmic_lrsel {
 struct tegra210_dmic {
 	struct clk *clk_dmic;
 	struct regmap *regmap;
+<<<<<<< HEAD
 	unsigned int audio_ch_override;
 	unsigned int audio_bits_override;
 	unsigned int srate_override;
+=======
+>>>>>>> v5.9-rc4
 	unsigned int mono_to_stereo;
 	unsigned int stereo_to_mono;
 	unsigned int boost_gain;

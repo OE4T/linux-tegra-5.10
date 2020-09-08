@@ -1,10 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0-only
+<<<<<<< HEAD
 /*
  * tegra186_dspk.c - Tegra186 DSPK driver
  *
  * Copyright (c) 2015-2020 NVIDIA CORPORATION. All rights reserved.
  *
  */
+=======
+//
+// tegra186_dspk.c - Tegra186 DSPK driver
+//
+// Copyright (c) 2020 NVIDIA CORPORATION. All rights reserved.
+>>>>>>> v5.9-rc4
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -40,6 +47,7 @@ static int tegra186_dspk_get_control(struct snd_kcontrol *kcontrol,
 		ucontrol->value.integer.value[0] = dspk->osr_val;
 	else if (strstr(kcontrol->id.name, "LR Polarity Select"))
 		ucontrol->value.integer.value[0] = dspk->lrsel;
+<<<<<<< HEAD
 	else if (strstr(kcontrol->id.name, "Sample Rate"))
 		ucontrol->value.integer.value[0] = dspk->srate_override;
 	else if (strstr(kcontrol->id.name, "Audio Channels"))
@@ -48,6 +56,10 @@ static int tegra186_dspk_get_control(struct snd_kcontrol *kcontrol,
 		ucontrol->value.integer.value[0] = dspk->ch_sel;
 	else if (strstr(kcontrol->id.name, "Audio Bit Format"))
 		ucontrol->value.integer.value[0] = dspk->audio_fmt_override;
+=======
+	else if (strstr(kcontrol->id.name, "Channel Select"))
+		ucontrol->value.integer.value[0] = dspk->ch_sel;
+>>>>>>> v5.9-rc4
 	else if (strstr(kcontrol->id.name, "Mono To Stereo"))
 		ucontrol->value.integer.value[0] = dspk->mono_to_stereo;
 	else if (strstr(kcontrol->id.name, "Stereo To Mono"))
@@ -69,6 +81,7 @@ static int tegra186_dspk_put_control(struct snd_kcontrol *kcontrol,
 		dspk->osr_val = val;
 	else if (strstr(kcontrol->id.name, "LR Polarity Select"))
 		dspk->lrsel = val;
+<<<<<<< HEAD
 	else if (strstr(kcontrol->id.name, "Sample Rate"))
 		dspk->srate_override = val;
 	else if (strstr(kcontrol->id.name, "Audio Channels"))
@@ -77,6 +90,10 @@ static int tegra186_dspk_put_control(struct snd_kcontrol *kcontrol,
 		dspk->ch_sel = val;
 	else if (strstr(kcontrol->id.name, "Audio Bit Format"))
 		dspk->audio_fmt_override = val;
+=======
+	else if (strstr(kcontrol->id.name, "Channel Select"))
+		dspk->ch_sel = val;
+>>>>>>> v5.9-rc4
 	else if (strstr(kcontrol->id.name, "Mono To Stereo"))
 		dspk->mono_to_stereo = val;
 	else if (strstr(kcontrol->id.name, "Stereo To Mono"))
@@ -85,7 +102,11 @@ static int tegra186_dspk_put_control(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+<<<<<<< HEAD
 static int tegra186_dspk_runtime_suspend(struct device *dev)
+=======
+static int __maybe_unused tegra186_dspk_runtime_suspend(struct device *dev)
+>>>>>>> v5.9-rc4
 {
 	struct tegra186_dspk *dspk = dev_get_drvdata(dev);
 
@@ -97,7 +118,11 @@ static int tegra186_dspk_runtime_suspend(struct device *dev)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int tegra186_dspk_runtime_resume(struct device *dev)
+=======
+static int __maybe_unused tegra186_dspk_runtime_resume(struct device *dev)
+>>>>>>> v5.9-rc4
 {
 	struct tegra186_dspk *dspk = dev_get_drvdata(dev);
 	int err;
@@ -114,12 +139,15 @@ static int tegra186_dspk_runtime_resume(struct device *dev)
 	return 0;
 }
 
+<<<<<<< HEAD
 static const unsigned int tegra186_dspk_fmts[] = {
 	0,
 	TEGRA_ACIF_BITS_16,
 	TEGRA_ACIF_BITS_32,
 };
 
+=======
+>>>>>>> v5.9-rc4
 static int tegra186_dspk_hw_params(struct snd_pcm_substream *substream,
 				   struct snd_pcm_hw_params *params,
 				   struct snd_soc_dai *dai)
@@ -136,10 +164,13 @@ static int tegra186_dspk_hw_params(struct snd_pcm_substream *substream,
 	channels = params_channels(params);
 	cif_conf.audio_ch = channels;
 
+<<<<<<< HEAD
 	/* Override audio channel */
 	if (dspk->audio_ch_override)
 		cif_conf.audio_ch = dspk->audio_ch_override;
 
+=======
+>>>>>>> v5.9-rc4
 	/* Client channel */
 	switch (dspk->ch_sel) {
 	case DSPK_CH_SELECT_LEFT:
@@ -159,13 +190,17 @@ static int tegra186_dspk_hw_params(struct snd_pcm_substream *substream,
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		cif_conf.audio_bits = TEGRA_ACIF_BITS_16;
+<<<<<<< HEAD
 		cif_conf.client_bits = TEGRA_ACIF_BITS_16;
+=======
+>>>>>>> v5.9-rc4
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
 		cif_conf.audio_bits = TEGRA_ACIF_BITS_32;
 		break;
 	default:
 		dev_err(dev, "unsupported format!\n");
+<<<<<<< HEAD
 		return -ENOTSUPP;
 	}
 
@@ -178,6 +213,12 @@ static int tegra186_dspk_hw_params(struct snd_pcm_substream *substream,
 	/* Sample rate override */
 	if (dspk->srate_override)
 		srate = dspk->srate_override;
+=======
+		return -EOPNOTSUPP;
+	}
+
+	srate = params_rate(params);
+>>>>>>> v5.9-rc4
 
 	/* RX FIFO threshold in terms of frames */
 	max_th = (TEGRA186_DSPK_RX_FIFO_DEPTH / cif_conf.audio_ch) - 1;
@@ -227,6 +268,7 @@ static const struct snd_soc_dai_ops tegra186_dspk_dai_ops = {
 	.hw_params	= tegra186_dspk_hw_params,
 };
 
+<<<<<<< HEAD
 /*
  * Three DAIs are exposed
  * 1. "CIF" DAI for connecting with XBAR
@@ -253,12 +295,20 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	    .name = "DAP",
 	    .capture = {
 		.stream_name = "DAP Transmit",
+=======
+static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
+	{
+	    .name = "DSPK-CIF",
+	    .playback = {
+		.stream_name = "CIF-Playback",
+>>>>>>> v5.9-rc4
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_48000,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE |
 			   SNDRV_PCM_FMTBIT_S32_LE,
 	    },
+<<<<<<< HEAD
 	    .ops = &tegra186_dspk_dai_ops,
 	    .symmetric_rates = 1,
 	},
@@ -281,12 +331,20 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	    .name = "DAP2",
 	    .capture = {
 		.stream_name = "DAP2 Transmit",
+=======
+	},
+	{
+	    .name = "DSPK-DAP",
+	    .playback = {
+		.stream_name = "DAP-Playback",
+>>>>>>> v5.9-rc4
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_48000,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE |
 			   SNDRV_PCM_FMTBIT_S32_LE,
 	    },
+<<<<<<< HEAD
 	    .symmetric_rates = 1,
 	},
 	{
@@ -326,6 +384,26 @@ static const struct soc_enum tegra186_dspk_format_enum =
 	SOC_ENUM_SINGLE(SND_SOC_NOPM, 0, ARRAY_SIZE(tegra186_dspk_format_text),
 			tegra186_dspk_format_text);
 
+=======
+	    .ops = &tegra186_dspk_dai_ops,
+	    .symmetric_rates = 1,
+	},
+};
+
+static const struct snd_soc_dapm_widget tegra186_dspk_widgets[] = {
+	SND_SOC_DAPM_AIF_IN("RX", NULL, 0, TEGRA186_DSPK_ENABLE, 0, 0),
+	SND_SOC_DAPM_SPK("SPK", NULL),
+};
+
+static const struct snd_soc_dapm_route tegra186_dspk_routes[] = {
+	{ "XBAR-Playback",	NULL,	"XBAR-TX" },
+	{ "CIF-Playback",	NULL,	"XBAR-Playback" },
+	{ "RX",			NULL,	"CIF-Playback" },
+	{ "DAP-Playback",	NULL,	"RX" },
+	{ "SPK",		NULL,	"DAP-Playback" },
+};
+
+>>>>>>> v5.9-rc4
 static const char * const tegra186_dspk_ch_sel_text[] = {
 	"Left", "Right", "Stereo",
 };
@@ -347,7 +425,11 @@ static const char * const tegra186_dspk_lrsel_text[] = {
 };
 
 static const char * const tegra186_dspk_mono_conv_text[] = {
+<<<<<<< HEAD
 	"ZERO", "COPY",
+=======
+	"Zero", "Copy",
+>>>>>>> v5.9-rc4
 };
 
 static const struct soc_enum tegra186_dspk_mono_conv_enum =
@@ -376,6 +458,7 @@ static const struct snd_kcontrol_new tegrat186_dspk_controls[] = {
 		     tegra186_dspk_get_control, tegra186_dspk_put_control),
 	SOC_ENUM_EXT("LR Polarity Select", tegra186_dspk_lrsel_enum,
 		     tegra186_dspk_get_control, tegra186_dspk_put_control),
+<<<<<<< HEAD
 	SOC_SINGLE_EXT("Sample Rate", SND_SOC_NOPM, 0, 48000, 0,
 		       tegra186_dspk_get_control, tegra186_dspk_put_control),
 	SOC_SINGLE_EXT("Audio Channels", SND_SOC_NOPM, 0, 2, 0,
@@ -384,6 +467,10 @@ static const struct snd_kcontrol_new tegrat186_dspk_controls[] = {
 		     tegra186_dspk_get_control, tegra186_dspk_put_control),
 	SOC_ENUM_EXT("Audio Bit Format", tegra186_dspk_format_enum,
 		     tegra186_dspk_get_control, tegra186_dspk_put_control),
+=======
+	SOC_ENUM_EXT("Channel Select", tegra186_dspk_ch_sel_enum,
+		     tegra186_dspk_get_control, tegra186_dspk_put_control),
+>>>>>>> v5.9-rc4
 	SOC_ENUM_EXT("Mono To Stereo", tegra186_dspk_mono_conv_enum,
 		     tegra186_dspk_get_control, tegra186_dspk_put_control),
 	SOC_ENUM_EXT("Stereo To Mono", tegra186_dspk_stereo_conv_enum,
@@ -473,7 +560,11 @@ static int tegra186_dspk_platform_probe(struct platform_device *pdev)
 	dspk->osr_val = DSPK_OSR_64;
 	dspk->lrsel = DSPK_LRSEL_LEFT;
 	dspk->ch_sel = DSPK_CH_SELECT_STEREO;
+<<<<<<< HEAD
 	dspk->mono_to_stereo = 0; /* "ZERO" */
+=======
+	dspk->mono_to_stereo = 0; /* "Zero" */
+>>>>>>> v5.9-rc4
 
 	dev_set_drvdata(dev, dspk);
 

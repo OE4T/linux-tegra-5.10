@@ -1740,7 +1740,7 @@ out:
 	kfree(vec.plaintext);
 	kfree(vec.digest);
 	crypto_free_shash(generic_tfm);
-	kzfree(generic_desc);
+	kfree_sensitive(generic_desc);
 	return err;
 }
 #else /* !CONFIG_CRYPTO_MANAGER_EXTRA_TESTS */
@@ -3664,7 +3664,7 @@ static int drbg_cavs_test(const struct drbg_testvec *test, int pr,
 	if (IS_ERR(drng)) {
 		printk(KERN_ERR "alg: drbg: could not allocate DRNG handle for "
 		       "%s\n", driver);
-		kzfree(buf);
+		kfree_sensitive(buf);
 		return -ENOMEM;
 	}
 
@@ -3711,7 +3711,7 @@ static int drbg_cavs_test(const struct drbg_testvec *test, int pr,
 
 outbuf:
 	crypto_free_rng(drng);
-	kzfree(buf);
+	kfree_sensitive(buf);
 	return ret;
 }
 

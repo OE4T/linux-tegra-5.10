@@ -79,12 +79,20 @@ int tegra_pcm_open(struct snd_soc_component *component,
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_dmaengine_dai_dma_data *dmap;
 	struct dma_chan *chan;
+<<<<<<< HEAD
+=======
+	struct snd_soc_dai *cpu_dai = asoc_rtd_to_cpu(rtd, 0);
+>>>>>>> v5.9-rc4
 	int ret;
 
 	if (rtd->dai_link->no_pcm)
 		return 0;
 
+<<<<<<< HEAD
 	dmap = snd_soc_dai_get_dma_data(rtd->dais[0], substream);
+=======
+	dmap = snd_soc_dai_get_dma_data(cpu_dai, substream);
+>>>>>>> v5.9-rc4
 
 	/* Set HW params now that initialization is complete */
 	snd_soc_set_runtime_hwparams(substream, &tegra_pcm_hardware);
@@ -97,9 +105,15 @@ int tegra_pcm_open(struct snd_soc_component *component,
 		return ret;
 	}
 
+<<<<<<< HEAD
 	chan = dma_request_slave_channel(rtd->dais[0]->dev, dmap->chan_name);
 	if (!chan) {
 		dev_err(rtd->dais[0]->dev,
+=======
+	chan = dma_request_slave_channel(cpu_dai->dev, dmap->chan_name);
+	if (!chan) {
+		dev_err(cpu_dai->dev,
+>>>>>>> v5.9-rc4
 			"dmaengine request slave channel failed! (%s)\n",
 			dmap->chan_name);
 		return -ENODEV;
@@ -110,6 +124,12 @@ int tegra_pcm_open(struct snd_soc_component *component,
 		dev_err(rtd->dev,
 			"dmaengine pcm open failed with err %d (%s)\n", ret,
 			dmap->chan_name);
+<<<<<<< HEAD
+=======
+
+		dma_release_channel(chan);
+
+>>>>>>> v5.9-rc4
 		return ret;
 	}
 
@@ -144,7 +164,11 @@ int tegra_pcm_hw_params(struct snd_soc_component *component,
 	if (rtd->dai_link->no_pcm)
 		return 0;
 
+<<<<<<< HEAD
 	dmap = snd_soc_dai_get_dma_data(rtd->dais[0], substream);
+=======
+	dmap = snd_soc_dai_get_dma_data(asoc_rtd_to_cpu(rtd, 0), substream);
+>>>>>>> v5.9-rc4
 	if (!dmap)
 		return 0;
 
@@ -167,8 +191,11 @@ int tegra_pcm_hw_params(struct snd_soc_component *component,
 		slave_config.src_maxburst = 8;
 	}
 
+<<<<<<< HEAD
 	slave_config.slave_id = dmap->slave_id;
 
+=======
+>>>>>>> v5.9-rc4
 	ret = dmaengine_slave_config(chan, &slave_config);
 	if (ret < 0) {
 		dev_err(rtd->dev, "dma slave config failed with err %d\n", ret);
@@ -205,15 +232,21 @@ int tegra_pcm_mmap(struct snd_soc_component *component,
 	if (rtd->dai_link->no_pcm)
 		return 0;
 
+<<<<<<< HEAD
 	return dma_mmap_coherent(substream->pcm->card->dev, vma,
 				 runtime->dma_area, runtime->dma_addr,
 				 runtime->dma_bytes);
+=======
+	return dma_mmap_wc(substream->pcm->card->dev, vma, runtime->dma_area,
+			   runtime->dma_addr, runtime->dma_bytes);
+>>>>>>> v5.9-rc4
 }
 EXPORT_SYMBOL_GPL(tegra_pcm_mmap);
 
 snd_pcm_uframes_t tegra_pcm_pointer(struct snd_soc_component *component,
 				    struct snd_pcm_substream *substream)
 {
+<<<<<<< HEAD
 	snd_pcm_uframes_t appl_offset, pos = 0;
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	char *appl_ptr;
@@ -242,6 +275,9 @@ snd_pcm_uframes_t tegra_pcm_pointer(struct snd_soc_component *component,
 	}
 
 	return pos;
+=======
+	return snd_dmaengine_pcm_pointer(substream);
+>>>>>>> v5.9-rc4
 }
 EXPORT_SYMBOL_GPL(tegra_pcm_pointer);
 
@@ -251,8 +287,12 @@ static int tegra_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream,
 	struct snd_pcm_substream *substream = pcm->streams[stream].substream;
 	struct snd_dma_buffer *buf = &substream->dma_buffer;
 
+<<<<<<< HEAD
 	buf->area = dma_alloc_coherent(pcm->card->dev, size, &buf->addr,
 				       GFP_KERNEL);
+=======
+	buf->area = dma_alloc_wc(pcm->card->dev, size, &buf->addr, GFP_KERNEL);
+>>>>>>> v5.9-rc4
 	if (!buf->area)
 		return -ENOMEM;
 
@@ -277,6 +317,7 @@ static void tegra_pcm_deallocate_dma_buffer(struct snd_pcm *pcm, int stream)
 	if (!buf->area)
 		return;
 
+<<<<<<< HEAD
 	dma_free_coherent(pcm->card->dev, buf->bytes, buf->area, buf->addr);
 	buf->area = NULL;
 }
@@ -287,17 +328,35 @@ static u64 tegra_dma_mask = DMA_BIT_MASK(64);
 static u64 tegra_dma_mask = DMA_BIT_MASK(32);
 #endif
 
+=======
+	dma_free_wc(pcm->card->dev, buf->bytes, buf->area, buf->addr);
+	buf->area = NULL;
+}
+
+>>>>>>> v5.9-rc4
 static int tegra_pcm_dma_allocate(struct snd_soc_pcm_runtime *rtd,
 				  size_t size)
 {
 	struct snd_card *card = rtd->card->snd_card;
 	struct snd_pcm *pcm = rtd->pcm;
+<<<<<<< HEAD
 	int ret = 0;
 
 	if (!card->dev->dma_mask)
 		card->dev->dma_mask = &tegra_dma_mask;
 	if (!card->dev->coherent_dma_mask)
 		card->dev->coherent_dma_mask = tegra_dma_mask;
+=======
+	int ret;
+
+	ret = dma_set_mask(card->dev, DMA_BIT_MASK(32));
+	if (ret < 0)
+		return ret;
+
+	ret = dma_set_coherent_mask(card->dev, DMA_BIT_MASK(32));
+	if (ret < 0)
+		return ret;
+>>>>>>> v5.9-rc4
 
 	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {
 		ret = tegra_pcm_preallocate_dma_buffer(pcm,

@@ -2,7 +2,11 @@
 /*
  * tegra210_ahub.h - TEGRA210 AHUB
  *
+<<<<<<< HEAD
  * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
+=======
+ * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+>>>>>>> v5.9-rc4
  *
  */
 
@@ -28,6 +32,7 @@
 #define TEGRA186_XBAR_REG_MASK_3			0x3f0f00ff
 #define TEGRA186_XBAR_UPDATE_MAX_REG			4
 
+<<<<<<< HEAD
 /* Fields in *AHUBRAMCTL_CTRL; used by different AHUB modules */
 #define TEGRA210_AHUBRAMCTL_CTRL_RW_READ		0
 #define TEGRA210_AHUBRAMCTL_CTRL_RW_WRITE		(1 << 14)
@@ -35,6 +40,8 @@
 #define TEGRA210_AHUBRAMCTL_CTRL_SEQ_ACCESS_EN		(1 << 12)
 #define TEGRA210_AHUBRAMCTL_CTRL_RAM_ADDR_MASK		0x1ff
 
+=======
+>>>>>>> v5.9-rc4
 #define TEGRA_XBAR_UPDATE_MAX_REG (TEGRA186_XBAR_UPDATE_MAX_REG)
 
 #define TEGRA186_MAX_REGISTER_ADDR (TEGRA186_XBAR_PART3_RX +		\
@@ -47,6 +54,7 @@
 
 #define MUX_VALUE(npart, nbit) (1 + (nbit) + (npart) * 32)
 
+<<<<<<< HEAD
 #define DAI(sname)							\
 	{								\
 		.name = #sname,						\
@@ -72,6 +80,8 @@
 		},							\
 	}
 
+=======
+>>>>>>> v5.9-rc4
 #define SOC_VALUE_ENUM_WIDE(xreg, shift, xmax, xtexts, xvalues)		\
 	{								\
 		.reg = xreg,						\
@@ -106,6 +116,7 @@
 				  tegra_ahub_get_value_enum,		\
 				  tegra_ahub_put_value_enum)
 
+<<<<<<< HEAD
 #define WIDGETS(sname, ename)						\
 	SND_SOC_DAPM_AIF_IN(sname " RX", NULL, 0, SND_SOC_NOPM, 0, 0),	\
 	SND_SOC_DAPM_AIF_OUT(sname " TX", NULL, 0, SND_SOC_NOPM, 0, 0),	\
@@ -119,6 +130,43 @@
 #define IN_OUT_ROUTES(name)					\
 	{ name " RX",       NULL,	name " Receive" },	\
 	{ name " Transmit", NULL,       name " TX" },
+=======
+#define WIDGETS(sname, ename)						     \
+	SND_SOC_DAPM_AIF_IN(sname " XBAR-RX", NULL, 0, SND_SOC_NOPM, 0, 0),  \
+	SND_SOC_DAPM_AIF_OUT(sname " XBAR-TX", NULL, 0, SND_SOC_NOPM, 0, 0), \
+	SND_SOC_DAPM_MUX(sname " Mux", SND_SOC_NOPM, 0, 0,		     \
+			 &ename##_control)
+
+#define TX_WIDGETS(sname)						    \
+	SND_SOC_DAPM_AIF_IN(sname " XBAR-RX", NULL, 0, SND_SOC_NOPM, 0, 0), \
+	SND_SOC_DAPM_AIF_OUT(sname " XBAR-TX", NULL, 0, SND_SOC_NOPM, 0, 0)
+
+#define DAI(sname)							\
+	{								\
+		.name = "XBAR-" #sname,					\
+		.playback = {						\
+			.stream_name = #sname " XBAR-Playback",		\
+			.channels_min = 1,				\
+			.channels_max = 16,				\
+			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.formats = SNDRV_PCM_FMTBIT_S8 |		\
+				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
+				SNDRV_PCM_FMTBIT_S32_LE,		\
+		},							\
+		.capture = {						\
+			.stream_name = #sname " XBAR-Capture",		\
+			.channels_min = 1,				\
+			.channels_max = 16,				\
+			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.formats = SNDRV_PCM_FMTBIT_S8 |		\
+				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
+				SNDRV_PCM_FMTBIT_S32_LE,		\
+		},							\
+	}
+
+>>>>>>> v5.9-rc4
 struct tegra_ahub_soc_data {
 	const struct regmap_config *regmap_config;
 	const struct snd_soc_component_driver *cmpnt_drv;
@@ -134,6 +182,7 @@ struct tegra_ahub {
 	struct clk *clk;
 };
 
+<<<<<<< HEAD
 void tegra210_ahub_write_ram(struct regmap *regmap, unsigned int reg_ctrl,
 			     unsigned int reg_data, unsigned int ram_offset,
 			     unsigned int *data, size_t size);
@@ -141,4 +190,6 @@ void tegra210_ahub_read_ram(struct regmap *regmap, unsigned int reg_ctrl,
 			    unsigned int reg_data, unsigned int ram_offset,
 			    unsigned int *data, size_t size);
 
+=======
+>>>>>>> v5.9-rc4
 #endif

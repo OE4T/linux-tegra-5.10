@@ -577,6 +577,7 @@ struct sdhci_host {
 	bool read_caps;		/* Capability flags have been read */
 	u32 caps_timing_orig;	/* older timing capabilities */
 
+	bool sdhci_core_to_disable_vqmmc;  /* sdhci core can disable vqmmc */
 	unsigned int            ocr_avail_sdio;	/* OCR bit masks */
 	unsigned int            ocr_avail_sd;
 	unsigned int            ocr_avail_mmc;

@@ -132,7 +132,7 @@ static u64 *ecc_alloc_digits_space(unsigned int ndigits)
 
 static void ecc_free_digits_space(u64 *space)
 {
-	kzfree(space);
+	kfree_sensitive(space);
 }
 
 struct ecc_point *ecc_alloc_point(unsigned int ndigits)
@@ -167,9 +167,9 @@ void ecc_free_point(struct ecc_point *p)
 	if (!p)
 		return;
 
-	kzfree(p->x);
-	kzfree(p->y);
-	kzfree(p);
+	kfree_sensitive(p->x);
+	kfree_sensitive(p->y);
+	kfree_sensitive(p);
 }
 EXPORT_SYMBOL(ecc_free_point);
 
@@ -1141,7 +1141,7 @@ bool ecc_point_is_zero(const struct ecc_point *point)
 EXPORT_SYMBOL(ecc_point_is_zero);
 
 /* Point multiplication algorithm using Montgomery's ladder with co-Z
- * coordinates. From http://eprint.iacr.org/2011/338.pdf
+ * coordinates. From https://eprint.iacr.org/2011/338.pdf
  */
 
 /* Double in place */
@@ -1663,7 +1663,9 @@ int ecc_make_pub_key(unsigned int curve_id, unsigned int ndigits,
 	}
 
 	ecc_point_mult(pk, &curve->g, priv, NULL, curve, ndigits);
-	if (ecc_point_is_zero(pk)) {
+
+	/* SP800-56A rev 3 5.6.2.1.3 key check */
+	if (ecc_is_pubkey_valid_full(curve, pk)) {
 		ret = -EAGAIN;
 		goto err_free_point;
 	}
@@ -1711,8 +1713,41 @@ int ecc_is_pubkey_valid_partial(const struct ecc_curve *curve,
 }
 EXPORT_SYMBOL(ecc_is_pubkey_valid_partial);
 
+<<<<<<< HEAD
 int ecc_is_pub_key_valid(unsigned int curve_id, unsigned int ndigits,
 			 const u8 *pub_key, unsigned int pub_key_len)
+=======
+/* SP800-56A section 5.6.2.3.3 full verification */
+int ecc_is_pubkey_valid_full(const struct ecc_curve *curve,
+			     struct ecc_point *pk)
+{
+	struct ecc_point *nQ;
+
+	/* Checks 1 through 3 */
+	int ret = ecc_is_pubkey_valid_partial(curve, pk);
+
+	if (ret)
+		return ret;
+
+	/* Check 4: Verify that nQ is the zero point. */
+	nQ = ecc_alloc_point(pk->ndigits);
+	if (!nQ)
+		return -ENOMEM;
+
+	ecc_point_mult(nQ, pk, curve->n, NULL, curve, pk->ndigits);
+	if (!ecc_point_is_zero(nQ))
+		ret = -EINVAL;
+
+	ecc_free_point(nQ);
+
+	return ret;
+}
+EXPORT_SYMBOL(ecc_is_pubkey_valid_full);
+
+int crypto_ecdh_shared_secret(unsigned int curve_id, unsigned int ndigits,
+			      const u64 *private_key, const u64 *public_key,
+			      u64 *secret)
+>>>>>>> v5.9-rc4
 {
 	const struct ecc_curve *curve = ecc_get_curve(curve_id);
 	int nbytes = ndigits << ECC_DIGITS_TO_BYTES_SHIFT;
@@ -1721,6 +1756,7 @@ int ecc_is_pub_key_valid(unsigned int curve_id, unsigned int ndigits,
 	if (!pub_key || pub_key_len != 2 * nbytes)
 		return -EINVAL;
 
+<<<<<<< HEAD
 	p.x = (u64 *)pub_key;
 	p.y = (u64 *)(pub_key + ECC_MAX_DIGIT_BYTES);
 	p.ndigits = ndigits;
@@ -1729,6 +1765,23 @@ int ecc_is_pub_key_valid(unsigned int curve_id, unsigned int ndigits,
 	    vli_cmp(curve->p, p.y, ndigits) != 1)
 
 	return 0;
+=======
+	if (ecc_point_is_zero(product)) {
+		ret = -EFAULT;
+		goto err_validity;
+	}
+
+	ecc_swap_digits(product->x, secret, ndigits);
+
+err_validity:
+	memzero_explicit(priv, sizeof(priv));
+	memzero_explicit(rand_z, sizeof(rand_z));
+	ecc_free_point(product);
+err_alloc_product:
+	ecc_free_point(pk);
+out:
+	return ret;
+>>>>>>> v5.9-rc4
 }
 EXPORT_SYMBOL(ecc_is_pub_key_valid);
 

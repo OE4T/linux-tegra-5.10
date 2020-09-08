@@ -1,16 +1,25 @@
+<<<<<<< HEAD
 # SPDX-License-Identifier: (GPL-2.0)
+=======
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+>>>>>>> v5.9-rc4
 %YAML 1.2
 ---
 $id: http://devicetree.org/schemas/sound/nvidia,tegra210-admaif.yaml#
 $schema: http://devicetree.org/meta-schemas/core.yaml#
 
+<<<<<<< HEAD
 title: NVIDIA Tegra210 ADMAIF DT Bindings
+=======
+title: Tegra210 ADMAIF Device Tree Bindings
+>>>>>>> v5.9-rc4
 
 description: |
   ADMAIF is the interface between ADMA and AHUB. Each ADMA channel
   that sends/receives data to/from AHUB must interface through an
   ADMAIF channel. ADMA channel sending data to AHUB pairs with ADMAIF
   Tx channel and ADMA channel receiving data from AHUB pairs with
+<<<<<<< HEAD
   ADMAIF Rx channel. Buffer size is configurable for each ADMAIF
   channel.
 
@@ -38,29 +47,60 @@ properties:
     maxItems: 1
     description: Must contain physical base address and length of device's
       registers
+=======
+  ADMAIF Rx channel.
+
+maintainers:
+  - Jon Hunter <jonathanh@nvidia.com>
+  - Sameer Pujar <spujar@nvidia.com>
+
+properties:
+  $nodename:
+    pattern: "^admaif@[0-9a-f]*$"
+
+  compatible:
+    oneOf:
+      - enum:
+          - nvidia,tegra210-admaif
+          - nvidia,tegra186-admaif
+      - items:
+          - const: nvidia,tegra194-admaif
+          - const: nvidia,tegra186-admaif
+
+  reg:
+    maxItems: 1
+>>>>>>> v5.9-rc4
 
   dmas: true
 
   dma-names: true
 
+<<<<<<< HEAD
   "#sound-dai-cells":
     description: The cell specifies number of DAIs.
     const: 1
 
+=======
+>>>>>>> v5.9-rc4
 if:
   properties:
     compatible:
       contains:
+<<<<<<< HEAD
         oneOf:
           - items:
               const: nvidia,tegra186-admaif
           - items:
               const: nvidia,tegra194-admaif, nvidia,tegra186-admaif
+=======
+        const: nvidia,tegra210-admaif
+>>>>>>> v5.9-rc4
 
 then:
   properties:
     dmas:
       description:
+<<<<<<< HEAD
         Two or more DMA channel specifiers, equally divided for Tx and Rx.
       minItems: 2
       maxItems: 40
@@ -75,10 +115,25 @@ then:
       items:
         - const: tx1
         - const: rx1
+=======
+        DMA channel specifiers, equally divided for Tx and Rx.
+      minItems: 1
+      maxItems: 20
+    dma-names:
+      items:
+        pattern: "^[rt]x(10|[1-9])$"
+      description:
+        Should be "rx1", "rx2" ... "rx10" for DMA Rx channel
+        Should be "tx1", "tx2" ... "tx10" for DMA Tx channel
+      minItems: 1
+      maxItems: 20
+
+>>>>>>> v5.9-rc4
 else:
   properties:
     dmas:
       description:
+<<<<<<< HEAD
         Two or more DMA channel specifiers, equally divided for Tx and Rx.
       minItems: 2
       maxItems: 20
@@ -93,17 +148,37 @@ else:
       items:
         - const: tx1
         - const: rx1
+=======
+        DMA channel specifiers, equally divided for Tx and Rx.
+      minItems: 1
+      maxItems: 40
+    dma-names:
+      items:
+        pattern: "^[rt]x(1[0-9]|[1-9]|20)$"
+      description:
+        Should be "rx1", "rx2" ... "rx20" for DMA Rx channel
+        Should be "tx1", "tx2" ... "tx20" for DMA Tx channel
+      minItems: 1
+      maxItems: 40
+>>>>>>> v5.9-rc4
 
 required:
   - compatible
   - reg
   - dmas
   - dma-names
+<<<<<<< HEAD
   - "#sound-dai-cells"
 
 examples:
   - |
     tegra_admaif: admaif@0x702d0000 {
+=======
+
+examples:
+  - |
+    admaif@702d0000 {
+>>>>>>> v5.9-rc4
         compatible = "nvidia,tegra210-admaif";
         reg = <0x702d0000 0x800>;
         dmas = <&adma 1>,  <&adma 1>,
@@ -126,6 +201,7 @@ examples:
                     "rx8",  "tx8",
                     "rx9",  "tx9",
                     "rx10", "tx10";
+<<<<<<< HEAD
         #sound-dai-cells = <1>;
     };
 
@@ -174,6 +250,8 @@ examples:
                     "rx19", "tx19",
                     "rx20", "tx20";
         #sound-dai-cells = <1>;
+=======
+>>>>>>> v5.9-rc4
     };
 
 ...

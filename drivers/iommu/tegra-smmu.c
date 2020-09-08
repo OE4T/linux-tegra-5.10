@@ -487,7 +487,11 @@ static void tegra_smmu_as_unprepare(struct tegra_smmu *smmu,
 static int tegra_smmu_attach_dev(struct iommu_domain *domain,
 				 struct device *dev)
 {
+<<<<<<< HEAD
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
+=======
+	struct tegra_smmu *smmu = dev_iommu_priv_get(dev);
+>>>>>>> v5.9-rc4
 	struct tegra_smmu_as *as = to_smmu_as(domain);
 	struct tegra_smmu *smmu;
 	int index, err = 0;
@@ -805,6 +809,11 @@ static struct iommu_device *tegra_smmu_probe_device(struct device *dev)
 			 * supported by the Linux kernel, so abort after the
 			 * first match.
 			 */
+<<<<<<< HEAD
+=======
+			dev_iommu_priv_set(dev, smmu);
+
+>>>>>>> v5.9-rc4
 			break;
 		}
 
@@ -827,10 +836,14 @@ static struct iommu_device *tegra_smmu_probe_device(struct device *dev)
 
 static void tegra_smmu_release_device(struct device *dev)
 {
+<<<<<<< HEAD
 	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
 
 	if (fwspec && fwspec->ops == &tegra_smmu_ops)
 		dev_iommu_priv_set(dev, NULL);
+=======
+	dev_iommu_priv_set(dev, NULL);
+>>>>>>> v5.9-rc4
 }
 
 static const struct tegra_smmu_group_soc *
@@ -903,7 +916,13 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 static int tegra_smmu_of_xlate(struct device *dev,
 			       struct of_phandle_args *args)
 {
+<<<<<<< HEAD
 	u32 id = args->args[0];
+=======
+	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
+	struct tegra_smmu *smmu = dev_iommu_priv_get(dev);
+	struct iommu_group *group;
+>>>>>>> v5.9-rc4
 
 	return iommu_fwspec_add_ids(dev, &id, 1);
 }
