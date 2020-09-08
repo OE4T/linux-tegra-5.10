@@ -3,6 +3,7 @@
  * IOMMU API for ARM architected SMMU implementations.
  *
  * Copyright (C) 2013 ARM Limited
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Will Deacon <will.deacon@arm.com>
  *
@@ -1578,6 +1579,12 @@ static void arm_smmu_release_device(struct device *dev)
 	iommu_fwspec_free(dev);
 }
 
+__weak struct iommu_group *tegra_smmu_of_get_group(struct device *dev)
+{
+	dev_warn(dev, "Warning: %s undefined\n", __func__);
+	return NULL;
+}
+
 static struct iommu_group *arm_smmu_device_group(struct device *dev)
 {
 	struct arm_smmu_master_cfg *cfg = dev_iommu_priv_get(dev);
@@ -1585,6 +1592,10 @@ static struct iommu_group *arm_smmu_device_group(struct device *dev)
 	struct arm_smmu_device *smmu = cfg->smmu;
 	struct iommu_group *group = NULL;
 	int i, idx;
+
+	group = tegra_smmu_of_get_group(dev);
+	if (group)
+		return iommu_group_ref_get(group);
 
 	for_each_cfg_sme(cfg, fwspec, i, idx) {
 		if (group && smmu->s2crs[idx].group &&
