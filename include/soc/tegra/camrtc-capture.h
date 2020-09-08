@@ -1885,9 +1885,10 @@ struct nvcsi_tpg_config_t186 {
  * @brief NvCsiTpgFlag Test pattern generator (TPG) flags for t194
  * @{
  */
-#define NVCSI_TPG_FLAG_PATCH_MODE	MK_U16(1)
-#define NVCSI_TPG_FLAG_PHASE_INCREMENT	MK_U16(2)
-#define NVCSI_TPG_FLAG_AUTO_STOP	MK_U16(4)
+#define NVCSI_TPG_FLAG_PATCH_MODE			MK_U16(1)
+#define NVCSI_TPG_FLAG_PHASE_INCREMENT			MK_U16(2)
+#define NVCSI_TPG_FLAG_AUTO_STOP			MK_U16(4)
+#define NVCSI_TPG_FLAG_EMBEDDED_PATTERN_CONFIG_INFO	MK_U16(8)
 /** @} */
 
 /**
@@ -2000,8 +2001,12 @@ struct nvcsi_tpg_config_tpg_ng {
 	uint32_t blue_vertical_freq_rate;
 	/** NvCSI stream number */
 	uint8_t stream_id;
+	/** NvCSI tpg embedded data spare0 reg settings */
+	uint8_t emb_data_spare_0;
+	/** NvCSI tpg embedded data spare1 reg settings */
+	uint8_t emb_data_spare_1;
 	/** Reserved size */
-	uint8_t reserved2[3];
+	uint8_t reserved2[1];
 	/** Reserved size */
 	uint32_t reserved[2];
 } CAPTURE_IVC_ALIGN;
