@@ -329,7 +329,7 @@ static int tegra_hsp_doorbell_startup(struct mbox_chan *chan)
 	 * the doorbell as ringable by the CCPLEX, so we want to skip extra
 	 * checks here.
 	 */
-	if (!tegra_platform_is_silicon() && !tegra_hsp_doorbell_can_ring(db))
+	if (tegra_platform_is_silicon() && !tegra_hsp_doorbell_can_ring(db))
 		return -ENODEV;
 
 	spin_lock_irqsave(&hsp->lock, flags);
