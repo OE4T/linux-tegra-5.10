@@ -47,7 +47,8 @@ int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 		u64 *base, size_t *size);
 
-u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id);
+u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(struct gk20a *g,
+	u32 syncpt_id);
 
 void nvgpu_nvhost_syncpt_set_minval(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id, u32 val);

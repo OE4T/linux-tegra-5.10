@@ -67,7 +67,8 @@ int gv11b_vgpu_probe(struct device *dev)
 		nvgpu_err(g, "Failed to get syncpt interface");
 		return -ENOSYS;
 	}
-	g->syncpt_size = nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(1);
+	g->syncpt_size =
+		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(g, 1);
 	nvgpu_info(g, "syncpt_unit_base %llx syncpt_unit_size %zx size %x\n",
 		g->syncpt_unit_base, g->syncpt_unit_size, g->syncpt_size);
 #endif

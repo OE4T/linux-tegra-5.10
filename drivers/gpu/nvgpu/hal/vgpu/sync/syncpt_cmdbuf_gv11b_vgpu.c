@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -107,7 +107,8 @@ int vgpu_gv11b_syncpt_alloc_buf(struct nvgpu_channel *c,
 	p->gpu_va = syncpt_buf->gpu_va;
 	p->len = g->syncpt_size;
 	p->offset =
-		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(syncpt_id);
+		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(g,
+			syncpt_id);
 	p->prot = TEGRA_VGPU_MAP_PROT_NONE;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;

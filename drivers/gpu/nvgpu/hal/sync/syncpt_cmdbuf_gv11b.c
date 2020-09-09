@@ -34,7 +34,7 @@ void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
 		u32 id, u32 thresh, u64 gpu_va_base)
 {
 	u64 gpu_va = gpu_va_base +
-		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(id);
+		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(g, id);
 	u32 data[] = {
 		/* sema_addr_lo */
 		0x20010017,

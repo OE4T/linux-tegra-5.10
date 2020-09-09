@@ -224,7 +224,8 @@ int nvgpu_nvhost_get_syncpt_aperture(
 		nvhost_dev->host1x_pdev, (phys_addr_t *)base, size);
 }
 
-u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id)
+u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(struct gk20a *g,
+	u32 syncpt_id)
 {
 	return nvhost_syncpt_unit_interface_get_byte_offset(syncpt_id);
 }
@@ -293,7 +294,7 @@ int nvgpu_nvhost_syncpt_init(struct gk20a *g)
 	}
 
 	g->syncpt_size =
-			nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(1);
+		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(g, 1);
 	nvgpu_info(g, "syncpt_unit_base %llx syncpt_unit_size %zx size %x\n",
 			g->syncpt_unit_base, g->syncpt_unit_size,
 			g->syncpt_size);

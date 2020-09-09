@@ -251,13 +251,15 @@ int nvgpu_nvhost_get_syncpt_aperture(
 /**
  * @brief Get offset of the sync point from MSS aperture base.
  *
+ * @param g [in]	The GPU super structure.
  * @param syncpt_id [in]	Sync point id.
  *
  * - Multiply the id with 0x1000.
  *
  * @return			Sync point offset.
  */
-u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(u32 syncpt_id);
+u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(struct gk20a *g,
+		u32 syncpt_id);
 #ifdef __KERNEL__
 int nvgpu_nvhost_syncpt_init(struct gk20a *g);
 #endif
