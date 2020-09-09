@@ -24,9 +24,6 @@ OBJS += osi_dma_txrx.o
 OBJS += ./../common/osi_common.o
 OBJS += ./../common/eqos_common.o
 
-LDLIBS += -lnvethernetrm
-LDLIBS += -lnvos_s3_safety
-
 CFLAGS += -D_FILE_OFFSET_BITS=64
 
 $(TARGETS): $(OBJS)
