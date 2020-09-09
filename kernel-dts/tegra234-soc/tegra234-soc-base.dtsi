@@ -804,6 +804,15 @@
 		};
 	}; // host1x@13e00000
 
+	nvrng@3ae0000 {
+		compatible = "nvidia,tegra234-se-nvrng";
+		reg = <0x0 0x3ae0000 0x0 0x10000>;
+		interrupts = <0x0 284 0x4>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SE>;
+		clock-names = "se";
+		status = "disabled";
+	};
+
 	tegra_pinctrl: pinmux: pinmux@2430000 {
 		compatible = "nvidia,tegra194-pinmux";
 		reg = <0x0 0x2430000 0x0 0x17000
