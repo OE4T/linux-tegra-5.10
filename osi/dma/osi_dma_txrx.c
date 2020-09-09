@@ -291,7 +291,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			break;
 		}
 
-		/* WHen JE is set, HW will accept any valid packet on Rx upto
+		/* When JE is set, HW will accept any valid packet on Rx upto
 		 * 9K or 16K (depending on GPSCLE bit), irrespective of whether
 		 * MTU set is lower than these specific values. When Rx buf len
 		 * is allocated to be exactly same as MTU, HW will consume more
@@ -468,7 +468,7 @@ static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 					1UL);
 	}
 
-	/* Execessive Collision Error */
+	/* Excessive Collision Error */
 	if ((tx_desc->tdes3 & TDES3_EXCESSIVE_COL_ERR) ==
 	    TDES3_EXCESSIVE_COL_ERR) {
 		pkt_err_stats->excessive_collision_error =
@@ -494,6 +494,7 @@ static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 	}
 }
 
+#ifndef OSI_STRIPPED_LIB
 int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 {
 	int ret = -1;
@@ -538,6 +539,7 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 
 	return ret;
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			       unsigned int chan, int budget)
@@ -625,7 +627,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 
 		/* Don't wait to update tx_ring->clean-idx. It will
 		 * be used by OSD layer to determine the num. of available
-		 * descriptors in the ring, which will inturn be used to
+		 * descriptors in the ring, which will in turn be used to
 		 * wake the corresponding transmit queue in OS layer.
 		 */
 		tx_ring->clean_idx = entry;
@@ -814,7 +816,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 		return;
 	}
 
-	/* Context decriptor for VLAN/TSO */
+	/* Context descriptor for VLAN/TSO */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
 		osi->dstats.tx_vlan_pkt_n =
 			osi_update_stats_counter(osi->dstats.tx_vlan_pkt_n,

@@ -111,19 +111,6 @@ int osi_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 	return -1;
 }
 
-int osi_validate_core_regs(struct osi_core_priv_data *const osi_core)
-{
-	int ret = -1;
-
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->validate_regs != OSI_NULL) &&
-	    (osi_core->safety_config != OSI_NULL)) {
-		ret = osi_core->ops->validate_regs(osi_core);
-	}
-
-	return ret;
-}
-
 int osi_start_mac(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
@@ -190,60 +177,14 @@ int osi_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	return -1;
 }
 
-int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
-			   const unsigned int qinx)
-{
-        if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-            (osi_core->ops->flush_mtl_tx_queue != OSI_NULL)) {
-		return osi_core->ops->flush_mtl_tx_queue(osi_core->base, qinx);
-        }
-
-	return -1;
-}
-
 int osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 			    const unsigned int lb_mode)
 {
-	/* Configure MAC LoopBack */
+	/* Configure MAC loopback */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_mac_loopback != OSI_NULL)) {
 		return osi_core->ops->config_mac_loopback(osi_core->base,
 							  lb_mode);
-	}
-
-	return -1;
-}
-
-int osi_set_avb(struct osi_core_priv_data *const osi_core,
-		const struct osi_core_avb_algorithm *avb)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->set_avb_algorithm != OSI_NULL)) {
-		return osi_core->ops->set_avb_algorithm(osi_core, avb);
-	}
-
-	return -1;
-}
-
-int osi_get_avb(struct osi_core_priv_data *const osi_core,
-		struct osi_core_avb_algorithm *avb)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->get_avb_algorithm != OSI_NULL)) {
-		return osi_core->ops->get_avb_algorithm(osi_core, avb);
-	}
-
-	return -1;
-}
-
-int osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
-			   const unsigned int tx_status)
-{
-	/* Configure Drop Transmit Status */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_tx_status != OSI_NULL)) {
-		return osi_core->ops->config_tx_status(osi_core->base,
-						       tx_status);
 	}
 
 	return -1;
@@ -257,47 +198,6 @@ int osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
 	    (osi_core->ops->config_fw_err_pkts != OSI_NULL)) {
 		return osi_core->ops->config_fw_err_pkts(osi_core->base,
 							 qinx, fw_err);
-	}
-
-	return -1;
-}
-
-int osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
-			    const unsigned int crc_chk)
-{
-	/* Configure CRC Checking for Received Packets */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_rx_crc_check != OSI_NULL)) {
-		return osi_core->ops->config_rx_crc_check(osi_core->base,
-							  crc_chk);
-	}
-
-	return -1;
-}
-
-int osi_configure_flow_control(
-			       struct osi_core_priv_data *const osi_core,
-			       const unsigned int flw_ctrl)
-{
-	/* Configure Flow control settings */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_flow_control != OSI_NULL)) {
-		return osi_core->ops->config_flow_control(osi_core->base,
-							  flw_ctrl);
-	}
-
-	return -1;
-}
-
-int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
-			   const unsigned int flags,
-			   const unsigned char *ip_addr)
-{
-	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
-	    osi_core->ops->config_arp_offload != OSI_NULL) {
-		return osi_core->ops->config_arp_offload(osi_core->mac_ver,
-							 osi_core->base,
-							 flags, ip_addr);
 	}
 
 	return -1;
@@ -521,24 +421,6 @@ int osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
-int osi_config_vlan_filtering(
-			      struct osi_core_priv_data *const osi_core,
-			      const unsigned int filter_enb_dis,
-			      const unsigned int perfect_hash_filtering,
-			      const unsigned int perfect_inverse_match)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_vlan_filtering != OSI_NULL)) {
-		return osi_core->ops->config_vlan_filtering(
-							osi_core,
-							filter_enb_dis,
-							perfect_hash_filtering,
-							perfect_inverse_match);
-	}
-
-	return -1;
-}
-
 int osi_config_rxcsum_offload(
 			      struct osi_core_priv_data *const osi_core,
 			      const unsigned int enable)
@@ -547,18 +429,6 @@ int osi_config_rxcsum_offload(
 	    osi_core->ops->config_rxcsum_offload != OSI_NULL) {
 		return osi_core->ops->config_rxcsum_offload(osi_core->base,
 							    enable);
-	}
-
-	return -1;
-}
-
-int  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
-			const unsigned int vid)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->update_vlan_id != OSI_NULL)) {
-		return osi_core->ops->update_vlan_id(osi_core->base,
-						    vid);
 	}
 
 	return -1;
@@ -721,21 +591,6 @@ int osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	return ret;
 }
 
-int osi_get_systime_from_mac(
-			     struct osi_core_priv_data *const osi_core,
-			     unsigned int *sec,
-			     unsigned int *nsec)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->base != OSI_NULL)) {
-		common_get_systime_from_mac(osi_core->base, osi_core->mac, sec,
-					    nsec);
-	} else {
-		return -1;
-	}
-
-	return 0;
-}
-
 int osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 			  const unsigned int enable)
 {
@@ -814,6 +669,124 @@ int osi_read_mmc(struct osi_core_priv_data *const osi_core)
 	return -1;
 }
 
+#ifndef OSI_STRIPPED_LIB
+int osi_validate_core_regs(struct osi_core_priv_data *const osi_core)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->validate_regs != OSI_NULL) &&
+	    (osi_core->safety_config != OSI_NULL)) {
+		ret = osi_core->ops->validate_regs(osi_core);
+	}
+
+	return ret;
+}
+
+int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
+			   const unsigned int qinx)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->flush_mtl_tx_queue != OSI_NULL)) {
+		return osi_core->ops->flush_mtl_tx_queue(osi_core->base, qinx);
+	}
+
+	return -1;
+}
+
+int osi_set_avb(struct osi_core_priv_data *const osi_core,
+		const struct osi_core_avb_algorithm *avb)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->set_avb_algorithm != OSI_NULL)) {
+		return osi_core->ops->set_avb_algorithm(osi_core, avb);
+	}
+
+	return -1;
+}
+
+int osi_get_avb(struct osi_core_priv_data *const osi_core,
+		struct osi_core_avb_algorithm *avb)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->get_avb_algorithm != OSI_NULL)) {
+		return osi_core->ops->get_avb_algorithm(osi_core, avb);
+	}
+
+	return -1;
+}
+
+int osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
+			   const unsigned int tx_status)
+{
+	/* Configure Drop Transmit Status */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_tx_status != OSI_NULL)) {
+		return osi_core->ops->config_tx_status(osi_core->base,
+						       tx_status);
+	}
+
+	return -1;
+}
+
+int osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
+			    const unsigned int crc_chk)
+{
+	/* Configure CRC Checking for Received Packets */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_rx_crc_check != OSI_NULL)) {
+		return osi_core->ops->config_rx_crc_check(osi_core->base,
+							  crc_chk);
+	}
+
+	return -1;
+}
+
+int osi_config_vlan_filtering(
+			      struct osi_core_priv_data *const osi_core,
+			      const unsigned int filter_enb_dis,
+			      const unsigned int perfect_hash_filtering,
+			      const unsigned int perfect_inverse_match)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_vlan_filtering != OSI_NULL)) {
+		return osi_core->ops->config_vlan_filtering(
+							osi_core,
+							filter_enb_dis,
+							perfect_hash_filtering,
+							perfect_inverse_match);
+	}
+
+	return -1;
+}
+
+int  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
+			const unsigned int vid)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->update_vlan_id != OSI_NULL)) {
+		return osi_core->ops->update_vlan_id(osi_core->base,
+						    vid);
+	}
+
+	return -1;
+}
+
+int osi_get_systime_from_mac(
+			     struct osi_core_priv_data *const osi_core,
+			     unsigned int *sec,
+			     unsigned int *nsec)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->base != OSI_NULL)) {
+		common_get_systime_from_mac(osi_core->base, osi_core->mac, sec,
+					    nsec);
+	} else {
+		return -1;
+	}
+
+	return 0;
+}
+
 int osi_reset_mmc(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
@@ -862,3 +835,32 @@ int osi_restore_registers(struct osi_core_priv_data *const osi_core)
 
 	return -1;
 }
+
+int osi_configure_flow_control(
+			       struct osi_core_priv_data *const osi_core,
+			       const unsigned int flw_ctrl)
+{
+	/* Configure Flow control settings */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_flow_control != OSI_NULL)) {
+		return osi_core->ops->config_flow_control(osi_core->base,
+							  flw_ctrl);
+	}
+
+	return -1;
+}
+
+int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
+			   const unsigned int flags,
+			   const unsigned char *ip_addr)
+{
+	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
+	    osi_core->ops->config_arp_offload != OSI_NULL) {
+		return osi_core->ops->config_arp_offload(osi_core->mac_ver,
+							 osi_core->base,
+							 flags, ip_addr);
+	}
+
+	return -1;
+}
+#endif /* !OSI_STRIPPED_LIB */

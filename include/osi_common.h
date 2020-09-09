@@ -125,7 +125,7 @@
 /**
  * @addtogroup EQOS_PTP PTP Helper MACROS
  *
- * @brief EQOS PTP MAC Time stamp contorl reg bit fields
+ * @brief EQOS PTP MAC Time stamp control reg bit fields
  * @{
  */
 #define OSI_MAC_TCR_TSENA		OSI_BIT(0)
@@ -200,7 +200,7 @@
 			OSI_LOG_WARN, type, err, loga);	\
 	}
 
-/* Default maximum Gaint Packet Size Limit is 16K */
+/* Default maximum Giant Packet Size Limit is 16K */
 #define OSI_MAX_MTU_SIZE	16383U
 #define OSI_MTU_SIZE_9000	9000U
 #define OSI_DFLT_MTU_SIZE	1500U
@@ -609,7 +609,7 @@ struct osi_hw_features {
 	 * feature */
 	unsigned int auto_safety_pkg;
 	/** Tx Timestamp FIFO Depth
-	 * This value indicates the depth of the Tx Timetamp FIFO
+	 * This value indicates the depth of the Tx Timestamp FIFO
 	 * 3'b000: Reserved
 	 * 3'b001: 1
 	 * 3'b010: 2
@@ -746,7 +746,7 @@ static inline void osi_unlock_irq_enabled(unsigned int *lock)
  *
  * @param[in] addr: Memory mapped address.
  *
- * @pre Physical address has to be memmory mapped.
+ * @pre Physical address has to be memory mapped.
  *
  * @return Data from memory mapped register - success.
  */
@@ -761,7 +761,7 @@ static inline unsigned int osi_readl(void *addr)
  * @param[in] val:  Value to be written.
  * @param[in] addr: Memory mapped address.
  *
- * @pre Physical address has to be memmory mapped.
+ * @pre Physical address has to be memory mapped.
  */
 static inline void osi_writel(unsigned int val, void *addr)
 {
@@ -831,7 +831,7 @@ static inline unsigned long osi_update_stats_counter(unsigned long last_value,
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_020
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_015
  *
  * @note
  * Classification:
@@ -861,7 +861,7 @@ int osi_get_mac_version(void *addr, unsigned int *mac_ver);
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_021
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_016
  *
  * @note
  * Classification:

@@ -68,7 +68,7 @@ static inline void eqos_core_safety_writel(unsigned int val, void *addr,
  *  - Populate the list of safety critical registers and provide
  *    the address of the register
  *  - Register mask (to ignore reserved/self-critical bits in the reg).
- *    See eqos_validate_core_regs which can be ivoked periodically to compare
+ *    See eqos_validate_core_regs which can be invoked periodically to compare
  *    the last written value to this register vs the actual value read when
  *    eqos_validate_core_regs is scheduled.
  *
@@ -295,71 +295,6 @@ static void eqos_core_backup_init(struct osi_core_priv_data *const osi_core)
 }
 
 /**
- * @brief Read-validate HW registers for functional safety.
- *
- * @note
- * Algorithm:
- *  - Reads pre-configured list of MAC/MTL configuration registers
- *    and compares with last written value for any modifications.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre
- *  - MAC has to be out of reset.
- *  - osi_hw_core_init has to be called. Internally this would initialize
- *    the safety_config (see osi_core_priv_data) based on MAC version and
- *    which specific registers needs to be validated periodically.
- *  - Invoke this call iff (osi_core_priv_data->safety_config != OSI_NULL)
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_validate_core_regs(struct osi_core_priv_data *const osi_core)
-{
-	struct core_func_safety *config =
-		(struct core_func_safety *)osi_core->safety_config;
-	unsigned int cur_val;
-	unsigned int i;
-
-	osi_lock_irq_enabled(&config->core_safety_lock);
-	for (i = EQOS_MAC_MCR_IDX; i < EQOS_MAX_CORE_SAFETY_REGS; i++) {
-		if (config->reg_addr[i] == OSI_NULL) {
-			continue;
-		}
-		/* FIXME
-		 * QNX OSD currently overwrites following registers and
-		 * therefore validation fails using this API. Add an
-		 * exception for following registers until QNX OSD completely
-		 * moves to common library.
-		 */
-		if ((i == EQOS_MAC_PFR_IDX) || (i == EQOS_MAC_HTR0_IDX)
-			|| (i == EQOS_MAC_HTR1_IDX) || (i == EQOS_MAC_HTR2_IDX)
-			|| (i == EQOS_MAC_HTR3_IDX) || (i == EQOS_MAC_TCR_IDX)
-			|| (i == EQOS_MAC_SSIR_IDX) || (i == EQOS_MAC_TAR_IDX))
-		{
-			continue;
-		}
-
-		cur_val = osi_readl((unsigned char *)config->reg_addr[i]);
-		cur_val &= config->reg_mask[i];
-
-		if (cur_val == config->reg_val[i]) {
-			continue;
-		} else {
-			/* Register content differs from what was written.
-			 * Return error and let safety manager (NVGaurd etc.)
-			 * take care of corrective action.
-			 */
-			osi_unlock_irq_enabled(&config->core_safety_lock);
-			return -1;
-		}
-	}
-	osi_unlock_irq_enabled(&config->core_safety_lock);
-
-	return 0;
-}
-
-/**
  * @brief eqos_config_flow_control - Configure MAC flow control settings
  *
  * @param[in] addr: Base address indicating the start of
@@ -426,54 +361,6 @@ static int eqos_config_flow_control(void *addr,
 }
 
 /**
- * @brief eqos_config_rx_crc_check - Configure CRC Checking for Rx Packets
- *
- * @note
- * Algorithm:
- *  - When this bit is set, the MAC receiver does not check the CRC
- *    field in the received packets. When this bit is reset, the MAC receiver
- *    always checks the CRC field in the received packets.
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] crc_chk: Enable or disable checking of CRC field in received pkts
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- * 
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_config_rx_crc_check(void *addr,
-				    const unsigned int crc_chk)
-{
-	unsigned int val;
-
-	/* return on invalid argument */
-	if (crc_chk != OSI_ENABLE && crc_chk != OSI_DISABLE) {
-		return -1;
-	}
-
-	/* Read MAC Extension Register */
-	val = osi_readl((unsigned char *)addr + EQOS_MAC_EXTR);
-
-	/* crc_chk: 1 is for enable and 0 is for disable */
-	if (crc_chk == OSI_ENABLE) {
-		/* Enable Rx packets CRC check */
-		val &= ~EQOS_MAC_EXTR_DCRCC;
-	} else if (crc_chk == OSI_DISABLE) {
-		/* Disable Rx packets CRC check */
-		val |= EQOS_MAC_EXTR_DCRCC;
-	} else {
-		/* Nothing here */
-	}
-
-	/* Write to MAC Extension Register */
-	osi_writel(val, (unsigned char *)addr + EQOS_MAC_EXTR);
-
-	return 0;
-}
-
-/**
  * @brief eqos_config_fw_err_pkts - Configure forwarding of error packets
  *
  * @note
@@ -523,66 +410,12 @@ static int eqos_config_fw_err_pkts(void *addr,
 		/* Nothing here */
 	}
 
-	/* Write to FEP bit of MTL RXQ Operation Mode Register to enable or
+	/* Write to FEP bit of MTL RXQ operation Mode Register to enable or
 	 * disable the forwarding of error packets to DMA or application.
 	 */
 	eqos_core_safety_writel(val, (unsigned char *)addr +
 				EQOS_MTL_CHX_RX_OP_MODE(qinx),
 				EQOS_MTL_CH0_RX_OP_MODE_IDX + qinx);
-
-	return 0;
-}
-
-/**
- * @brief eqos_config_tx_status - Configure MAC to forward the tx pkt status
- *
- * @note
- * Algorithm:
- *  - When DTXSTS bit is reset, the Tx packet status received
- *    from the MAC is forwarded to the application.
- *    When DTXSTS bit is set, the Tx packet status received from the MAC
- *    are dropped in MTL.
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] tx_status: Enable or Disable the forwarding of tx pkt status
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_config_tx_status(void *addr,
-				 const unsigned int tx_status)
-{
-	unsigned int val;
-
-	/* don't allow if tx_status is other than 0 or 1 */
-	if (tx_status != OSI_ENABLE && tx_status != OSI_DISABLE) {
-		return -1;
-	}
-
-	/* Read MTL Operation Mode Register */
-	val = osi_readl((unsigned char *)addr + EQOS_MTL_OP_MODE);
-
-	if (tx_status == OSI_ENABLE) {
-		/* When DTXSTS bit is reset, the Tx packet status received
-		 * from the MAC are forwarded to the application.
-		 */
-		val &= ~EQOS_MTL_OP_MODE_DTXSTS;
-	} else if (tx_status == OSI_DISABLE) {
-		/* When DTXSTS bit is set, the Tx packet status received from
-		 * the MAC are dropped in the MTL
-		 */
-		val |= EQOS_MTL_OP_MODE_DTXSTS;
-	} else {
-		/* Nothing here */
-	}
-
-	/* Write to DTXSTS bit of MTL Operation Mode Register to enable or
-	 * disable the Tx packet status
-	 */
-	osi_writel(val, (unsigned char *)addr + EQOS_MTL_OP_MODE);
 
 	return 0;
 }
@@ -694,7 +527,7 @@ static int eqos_poll_for_swr(void *addr, unsigned int pre_si)
  *
  * @note
  * Algorithm:
- *  - MDC clock rate will be polulated OSI core private data structure
+ *  - MDC clock rate will be populated OSI core private data structure
  *    based on AXI_CBB clock rate.
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -1047,7 +880,7 @@ static int eqos_flush_mtl_tx_queue(void *addr,
  *
  * @note
  * Algorithm:
- *  - Calulates and stores the RSD (Threshold for Dectivating
+ *  - Caculates and stores the RSD (Threshold for Deactivating
  *    Flow control) and RSA (Threshold for Activating Flow Control) values
  *    based on the Rx FIFO size and also enables HW flow control
  *
@@ -1219,7 +1052,7 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
 }
 
 /**
- * @brief eqos_config_rxcsum_offload - Enable/Disale rx checksum offload in HW
+ * @brief eqos_config_rxcsum_offload - Enable/Disable rx checksum offload in HW
  *
  * @note
  * Algorithm:
@@ -1375,13 +1208,13 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 		/* if MTU greater 9K use GPSLCE */
 		value |= EQOS_MCR_JD | EQOS_MCR_WD;
 		value |= EQOS_MCR_GPSLCE;
-		/* Read MAC Extenstion Register */
+		/* Read MAC Extension Register */
 		mac_ext = osi_readl((unsigned char *)osi_core->base +
 				    EQOS_MAC_EXTR);
 		/* Configure GPSL */
 		mac_ext &= ~EQOS_MAC_EXTR_GPSL_MSK;
 		mac_ext |= OSI_MAX_MTU_SIZE & EQOS_MAC_EXTR_GPSL_MSK;
-		/* Write MAC Extenstion Register */
+		/* Write MAC Extension Register */
 		osi_writel(mac_ext, (unsigned char *)osi_core->base +
 			   EQOS_MAC_EXTR);
 	} else {
@@ -1827,122 +1660,6 @@ static void eqos_stop_mac(void *addr)
 }
 
 /**
- * @brief eqos_set_avb_algorithm - Set TxQ/TC avb config
- *
- * @note
- * Algorithm:
- *  - Check if queue index is valid
- *  - Update operation mode of TxQ/TC
- *   - Set TxQ operation mode
- *   - Set Algo and Credit contro
- *   - Set Send slope credit
- *   - Set Idle slope credit
- *   - Set Hi credit
- *   - Set low credit
- *  - Update register values
- *
- * @param[in] osi_core: osi core priv data structure
- * @param[in] avb: structure having configuration for avb algorithm
- *
- * @pre
- *  - MAC should be initialized and started. see osi_start_mac()
- *  - osi_core->osd should be populated.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_set_avb_algorithm(
-				struct osi_core_priv_data *const osi_core,
-				const struct osi_core_avb_algorithm *const avb)
-{
-	unsigned int value;
-	int ret = -1;
-	unsigned int qinx;
-
-	if (avb == OSI_NULL) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"avb structure is NULL\n",
-			0ULL);
-		return ret;
-	}
-
-	/* queue index in range */
-	if (avb->qindex >= OSI_EQOS_MAX_NUM_QUEUES) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid Queue index\n",
-			(unsigned long long)avb->qindex);
-		return ret;
-	}
-
-	/* queue oper_mode in range check*/
-	if (avb->oper_mode >= OSI_MTL_QUEUE_MODEMAX) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid Queue mode\n",
-			(unsigned long long)avb->qindex);
-		return ret;
-	}
-
-	/* can't set AVB mode for queue 0 */
-	if ((avb->qindex == 0U) && (avb->oper_mode == OSI_MTL_QUEUE_AVB)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
-			"Not allowed to set AVB for Q0\n",
-			(unsigned long long)avb->qindex);
-		return ret;
-	}
-
-	qinx = avb->qindex;
-	value = osi_readl((unsigned char *)osi_core->base +
-			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
-	value &= ~EQOS_MTL_TXQEN_MASK;
-	/* Set TxQ/TC mode as per input struct after masking 3 bit */
-	value |= (avb->oper_mode << EQOS_MTL_TXQEN_MASK_SHIFT) &
-		  EQOS_MTL_TXQEN_MASK;
-	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
-				EQOS_MTL_CHX_TX_OP_MODE(qinx),
-				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
-
-	/* Set Algo and Credit control */
-	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
-		value = (avb->credit_control << EQOS_MTL_TXQ_ETS_CR_CC_SHIFT) &
-			 EQOS_MTL_TXQ_ETS_CR_CC;
-	}
-	value |= (avb->algo << EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT) &
-		  EQOS_MTL_TXQ_ETS_CR_AVALG;
-	osi_writel(value, (unsigned char *)osi_core->base +
-		   EQOS_MTL_TXQ_ETS_CR(qinx));
-
-	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
-		/* Set Send slope credit */
-		value = avb->send_slope & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
-		osi_writel(value, (unsigned char *)osi_core->base +
-			   EQOS_MTL_TXQ_ETS_SSCR(qinx));
-
-		/* Set Idle slope credit*/
-		value = osi_readl((unsigned char *)osi_core->base +
-				  EQOS_MTL_TXQ_QW(qinx));
-		value &= ~EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
-		value |= avb->idle_slope & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
-		eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
-					EQOS_MTL_TXQ_QW(qinx),
-					EQOS_MTL_TXQ0_QW_IDX + qinx);
-
-		/* Set Hi credit */
-		value = avb->hi_credit & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
-		osi_writel(value, (unsigned char *)osi_core->base +
-			   EQOS_MTL_TXQ_ETS_HCR(qinx));
-
-		/* low credit  is -ve number, osi_write need a unsigned int
-		 * take only 28:0 bits from avb->low_credit
-		 */
-		value = avb->low_credit & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
-		osi_writel(value, (unsigned char *)osi_core->base +
-			   EQOS_MTL_TXQ_ETS_LCR(qinx));
-	}
-
-	return 0;
-}
-
-/**
  * @brief eqos_config_l2_da_perfect_inverse_match - configure register for
  *  inverse or perfect match.
  *
@@ -1980,7 +1697,7 @@ static inline int eqos_config_l2_da_perfect_inverse_match(void *base,
  *
  * @note
  * Algorithm:
- *  - This sequence is used to configure MAC in differnet pkt
+ *  - This sequence is used to configure MAC in different pkt
  *    processing modes like promiscuous, multicast, unicast,
  *    hash unicast/multicast.
  *
@@ -2050,7 +1767,7 @@ static int eqos_config_mac_pkt_filter_reg(
  *
  * @note
  * Algorithm:
- *  - This helper routine is to update passed prameter value
+ *  - This helper routine is to update passed parameter value
  *  based on DCS and MBC parameter. Validation of dma_chan as well as
  *  dsc_en status performed before updating DCS bits.
  *
@@ -2204,159 +1921,6 @@ static int eqos_update_mac_addr_low_high_reg(
 }
 
 /**
- * @brief eqos_get_avb_algorithm - Get TxQ/TC avb config
- *
- * @note
- * Algorithm:
- *  - Check if queue index is valid
- *  - read operation mode of TxQ/TC
- *   - read TxQ operation mode
- *   - read Algo and Credit contro
- *   - read Send slope credit
- *   - read Idle slope credit
- *   - read Hi credit
- *   - read low credit
- *  - updated pointer
- *
- * @param[in] osi_core: osi core priv data structure
- * @param[out] avb: structure pointer having configuration for avb algorithm
- *
- * @pre
- *  - MAC should be initialized and started. see osi_start_mac()
- *  - osi_core->osd should be populated.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_get_avb_algorithm(
-				  struct osi_core_priv_data *const osi_core,
-				  struct osi_core_avb_algorithm *const avb)
-{
-	unsigned int value;
-	int ret = -1;
-	unsigned int qinx = 0U;
-
-	if (avb == OSI_NULL) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"avb structure is NULL\n",
-			0ULL);
-		return ret;
-	}
-
-	if (avb->qindex >= OSI_EQOS_MAX_NUM_QUEUES) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid Queue index\n",
-			(unsigned long long)avb->qindex);
-		return ret;
-	}
-
-	qinx = avb->qindex;
-	value = osi_readl((unsigned char *)osi_core->base +
-			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
-
-	/* Get TxQ/TC mode as per input struct after masking 3:2 bit */
-	value = (value & EQOS_MTL_TXQEN_MASK) >> EQOS_MTL_TXQEN_MASK_SHIFT;
-	avb->oper_mode = value;
-
-	/* Get Algo and Credit control */
-	value = osi_readl((unsigned char *)osi_core->base +
-			  EQOS_MTL_TXQ_ETS_CR(qinx));
-	avb->credit_control = (value & EQOS_MTL_TXQ_ETS_CR_CC) >>
-		   EQOS_MTL_TXQ_ETS_CR_CC_SHIFT;
-	avb->algo = (value & EQOS_MTL_TXQ_ETS_CR_AVALG) >>
-		     EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT;
-
-	/* Get Send slope credit */
-	value = osi_readl((unsigned char *)osi_core->base +
-			  EQOS_MTL_TXQ_ETS_SSCR(qinx));
-	avb->send_slope = value & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
-
-	/* Get Idle slope credit*/
-	value = osi_readl((unsigned char *)osi_core->base +
-			  EQOS_MTL_TXQ_QW(qinx));
-	avb->idle_slope = value & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
-
-	/* Get Hi credit */
-	value = osi_readl((unsigned char *)osi_core->base +
-			  EQOS_MTL_TXQ_ETS_HCR(qinx));
-	avb->hi_credit = value & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
-
-	/* Get Low credit for which bit 31:29 are unknown
-	 * return 28:0 valid bits to application
-	 */
-	value = osi_readl((unsigned char *)osi_core->base +
-			  EQOS_MTL_TXQ_ETS_LCR(qinx));
-	avb->low_credit = value & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
-
-	return 0;
-}
-
-/**
- * @brief eqos_config_arp_offload - Enable/Disable ARP offload
- *
- * @note
- * Algorithm:
- *  - Read the MAC configuration register
- *  - If ARP offload is to be enabled, program the IP address in
- *    ARPPA register
- *  - Enable/disable the ARPEN bit in MCR and write back to the MCR.
- *
- * @param[in] mac_ver: MAC version number (different MAC HW version
- *        need different register offset/fields for ARP offload.
- * @param[in] addr: EQOS virtual base address.
- * @param[in] enable: Flag variable to enable/disable ARP offload
- * @param[in] ip_addr: IP address of device to be programmed in HW.
- *        HW will use this IP address to respond to ARP requests.
- *
- * @pre
- *  - MAC should be initialized and started. see osi_start_mac()
- *  - Valid 4 byte IP address as argument ip_addr
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_config_arp_offload(const unsigned int mac_ver, void *addr,
-				   const unsigned int enable,
-				   const unsigned char *ip_addr)
-{
-	unsigned int mac_mcr;
-	unsigned int val;
-
-	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
-		return -1;
-	}
-
-	mac_mcr = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
-
-	if (enable == OSI_ENABLE) {
-		val = (((unsigned int)ip_addr[0]) << 24) |
-		      (((unsigned int)ip_addr[1]) << 16) |
-		      (((unsigned int)ip_addr[2]) << 8) |
-		      (((unsigned int)ip_addr[3]));
-
-		if (mac_ver == OSI_EQOS_MAC_4_10) {
-			osi_writel(val, (unsigned char *)addr +
-				   EQOS_4_10_MAC_ARPPA);
-		} else if (mac_ver >= OSI_EQOS_MAC_5_00) {
-			osi_writel(val, (unsigned char *)addr +
-				   EQOS_5_00_MAC_ARPPA);
-		} else {
-			/* Unsupported MAC ver */
-			return -1;
-		}
-
-		mac_mcr |= EQOS_MCR_ARPEN;
-	} else {
-		mac_mcr &= ~EQOS_MCR_ARPEN;
-	}
-
-	eqos_core_safety_writel(mac_mcr, (unsigned char *)addr + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
-
-	return 0;
-}
-
-/**
  * @brief eqos_config_l3_l4_filter_enable - register write to enable L3/L4
  *  filters.
  *
@@ -2456,7 +2020,7 @@ static int eqos_update_ip4_addr(
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter_no: filter index
- * @param[in] addr: ipv6 adderss
+ * @param[in] addr: ipv6 address
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
@@ -2938,71 +2502,6 @@ static int eqos_config_l4_filters(
 }
 
 /**
- * @brief eqos_config_vlan_filter_reg - config vlan filter register
- *
- * @note
- * Algorithm:
- *  - This sequence is used to enable/disable VLAN filtering and
- *    also selects VLAN filtering mode- perfect/hash
- *
- * @param[in] osi_core: Base address  from OSI core private data structure.
- * @param[in] filter_enb_dis: vlan filter enable/disable
- * @param[in] perfect_hash_filtering: perfect or hash filter
- * @param[in] perfect_inverse_match: normal or inverse filter
- *
- * @pre
- *  - MAC should be initialized and started. see osi_start_mac()
- *  - osi_core->osd should be populated.
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_config_vlan_filtering(
-				struct osi_core_priv_data *const osi_core,
-				const unsigned int filter_enb_dis,
-				const unsigned int perfect_hash_filtering,
-				const unsigned int perfect_inverse_match)
-{
-	unsigned int value;
-	void *base = osi_core->base;
-
-	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
-	value &= ~(EQOS_MAC_PFR_VTFE);
-	value |= ((filter_enb_dis << EQOS_MAC_PFR_SHIFT) & EQOS_MAC_PFR_VTFE);
-	eqos_core_safety_writel(value, (unsigned char *)base + EQOS_MAC_PFR,
-				EQOS_MAC_PFR_IDX);
-
-	value = osi_readl((unsigned char *)base + EQOS_MAC_VLAN_TR);
-	value &= ~(EQOS_MAC_VLAN_TR_VTIM | EQOS_MAC_VLAN_TR_VTHM);
-	value |= ((perfect_inverse_match << EQOS_MAC_VLAN_TR_VTIM_SHIFT) &
-		  EQOS_MAC_VLAN_TR_VTIM);
-	if (perfect_hash_filtering == OSI_HASH_FILTER_MODE) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
-			"VLAN hash filter is not supported, no updat of VTHM\n",
-			0ULL);
-	}
-	osi_writel(value, (unsigned char *)base + EQOS_MAC_VLAN_TR);
-	return 0;
-}
-
-/**
- * @brief eqos_update_vlan_id - update VLAN ID in Tag register
- *
- * @param[in] base: Base address from OSI core private data structure.
- * @param[in] vid: VLAN ID to be programmed.
- *
- * @retval 0 always
- */
-static inline int eqos_update_vlan_id(void *base, unsigned int vid)
-{
-	/* Don't add VLAN ID to TR register which is eventually set TR
-	 * to 0x0 and allow all tagged packets
-	 */
-
-	return 0;
-}
-
-/**
  * @brief eqos_poll_for_tsinit_complete - Poll for time stamp init complete
  *
  * @note
@@ -3450,164 +2949,6 @@ static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 }
 
 /**
- * @brief eqos_disable_tx_lpi - Helper function to disable Tx LPI.
- *
- * @note
- * Algorithm:
- *  - Clear the bits to enable Tx LPI, Tx LPI automate, LPI Tx Timer and
- *    PHY Link status in the LPI control/status register
- *
- * @param[in] addr: base address of memory mapped register space of MAC.
- *
- * @pre MAC has to be out of reset, and clocks supplied.
- */
-static inline void eqos_disable_tx_lpi(void *addr)
-{
-	unsigned int lpi_csr = 0;
-
-	/* Disable LPI control bits */
-	lpi_csr = osi_readl((unsigned char *)addr + EQOS_MAC_LPI_CSR);
-	lpi_csr &= ~(EQOS_MAC_LPI_CSR_LPITE | EQOS_MAC_LPI_CSR_LPITXA |
-		     EQOS_MAC_LPI_CSR_PLS | EQOS_MAC_LPI_CSR_LPIEN);
-	osi_writel(lpi_csr, (unsigned char *)addr + EQOS_MAC_LPI_CSR);
-}
-
-/**
- * @brief eqos_configure_eee - Configure the EEE LPI mode
- *
- * @note
- * Algorithm:
- *  - This routine configures EEE LPI mode in the MAC.
- *  - The time (in microsecond) to wait before resuming transmission after
- *    exiting from LPI,
- *  - The time (in millisecond) to wait before LPI pattern can be
- *    transmitted after PHY link is up) are not configurable. Default values
- *    are used in this routine.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] tx_lpi_enabled: enable (1)/disable (0) flag for Tx lpi
- * @param[in] tx_lpi_timer: Tx LPI entry timer in usec. Valid upto
- *            OSI_MAX_TX_LPI_TIMER in steps of 8usec.
- *
- * @pre
- *  - Required clks and resets has to be enabled.
- *  - MAC/PHY should be initialized
- */
-static void eqos_configure_eee(
-			       struct osi_core_priv_data *const osi_core,
-			       const unsigned int tx_lpi_enabled,
-			       const unsigned int tx_lpi_timer)
-{
-	unsigned int lpi_csr = 0;
-	unsigned int lpi_timer_ctrl = 0;
-	unsigned int lpi_entry_timer = 0;
-	unsigned int lpi_1US_tic_counter = OSI_LPI_1US_TIC_COUNTER_DEFAULT;
-	unsigned char *addr =  (unsigned char *)osi_core->base;
-
-	if (tx_lpi_enabled != OSI_DISABLE) {
-		/* Configure the following timers.
-		 * 1. LPI LS timer - minimum time (in milliseconds) for
-		 * which the link status from PHY should be up before
-		 * the LPI pattern can be transmitted to the PHY.
-		 * Default 1sec
-		 * 2. LPI TW timer - minimum time (in microseconds) for
-		 * which MAC waits after it stops transmitting LPI
-		 * pattern before resuming normal tx. Default 21us
-		 * 3. LPI entry timer - Time in microseconds that MAC
-		 * will wait to enter LPI mode after all tx is complete.
-		 * Default 1sec
-		 */
-		lpi_timer_ctrl |= ((OSI_DEFAULT_LPI_LS_TIMER &
-				   OSI_LPI_LS_TIMER_MASK) <<
-				   OSI_LPI_LS_TIMER_SHIFT);
-		lpi_timer_ctrl |= (OSI_DEFAULT_LPI_TW_TIMER &
-				   OSI_LPI_TW_TIMER_MASK);
-		osi_writel(lpi_timer_ctrl, addr + EQOS_MAC_LPI_TIMER_CTRL);
-
-		lpi_entry_timer |= (tx_lpi_timer &
-				    OSI_LPI_ENTRY_TIMER_MASK);
-		osi_writel(lpi_entry_timer, addr + EQOS_MAC_LPI_EN_TIMER);
-		/* Program the MAC_1US_Tic_Counter as per the frequency of the
-		 * clock used for accessing the CSR slave
-		 */
-		/* fix cert error */
-		if (osi_core->csr_clk_speed > 1U) {
-			lpi_1US_tic_counter  = ((osi_core->csr_clk_speed - 1U) &
-						 OSI_LPI_1US_TIC_COUNTER_MASK);
-		}
-		osi_writel(lpi_1US_tic_counter, addr + EQOS_MAC_1US_TIC_CNTR);
-
-		/* Set LPI timer enable and LPI Tx automate, so that MAC
-		 * can enter/exit Tx LPI on its own using timers above.
-		 * Set LPI Enable & PHY links status (PLS) up.
-		 */
-		lpi_csr = osi_readl(addr + EQOS_MAC_LPI_CSR);
-		lpi_csr |= (EQOS_MAC_LPI_CSR_LPITE |
-			    EQOS_MAC_LPI_CSR_LPITXA |
-			    EQOS_MAC_LPI_CSR_PLS |
-			    EQOS_MAC_LPI_CSR_LPIEN);
-		osi_writel(lpi_csr, addr + EQOS_MAC_LPI_CSR);
-	} else {
-		/* Disable LPI control bits */
-		eqos_disable_tx_lpi(osi_core->base);
-	}
-}
-
-/**
- * @brief Function to store a backup of MAC register space during SOC suspend.
- *
- * @note
- * Algorithm:
- *  - Read registers to be backed up as per struct core_backup and
- *    store the register values in memory.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @retval 0 on Success
- */
-static inline int eqos_save_registers(
-				struct osi_core_priv_data *const osi_core)
-{
-	unsigned int i;
-	struct core_backup *config = &osi_core->backup_config;
-
-	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
-		if (config->reg_addr[i] != OSI_NULL) {
-			config->reg_val[i] = osi_readl(config->reg_addr[i]);
-		}
-	}
-
-	return 0;
-}
-
-/**
- * @brief Function to restore the backup of MAC registers during SOC resume.
- *
- * @note
- * Algorithm:
- *  - Restore the register values from the in memory backup taken using
- *    eqos_save_registers().
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @retval 0 on Success
- */
-static inline int eqos_restore_registers(
-				struct osi_core_priv_data *const osi_core)
-{
-	unsigned int i;
-	struct core_backup *config = &osi_core->backup_config;
-
-	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
-		if (config->reg_addr[i] != OSI_NULL) {
-			osi_writel(config->reg_val[i], config->reg_addr[i]);
-		}
-	}
-
-	return 0;
-}
-
-/**
  * @brief poll_for_mii_idle Query the status of an ongoing DMA transfer
  *
  * @param[in] osi_core: OSI Core private data structure.
@@ -3808,6 +3149,652 @@ static int eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
 	return (int)data;
 }
 
+#ifndef OSI_STRIPPED_LIB
+/**
+ * @brief eqos_disable_tx_lpi - Helper function to disable Tx LPI.
+ *
+ * @note
+ * Algorithm:
+ *  - Clear the bits to enable Tx LPI, Tx LPI automate, LPI Tx Timer and
+ *    PHY Link status in the LPI control/status register
+ *
+ * @param[in] addr: base address of memory mapped register space of MAC.
+ *
+ * @pre MAC has to be out of reset, and clocks supplied.
+ */
+static inline void eqos_disable_tx_lpi(void *addr)
+{
+	unsigned int lpi_csr = 0;
+
+	/* Disable LPI control bits */
+	lpi_csr = osi_readl((unsigned char *)addr + EQOS_MAC_LPI_CSR);
+	lpi_csr &= ~(EQOS_MAC_LPI_CSR_LPITE | EQOS_MAC_LPI_CSR_LPITXA |
+		     EQOS_MAC_LPI_CSR_PLS | EQOS_MAC_LPI_CSR_LPIEN);
+	osi_writel(lpi_csr, (unsigned char *)addr + EQOS_MAC_LPI_CSR);
+}
+
+/**
+ * @brief Read-validate HW registers for functional safety.
+ *
+ * @note
+ * Algorithm:
+ *  - Reads pre-configured list of MAC/MTL configuration registers
+ *    and compares with last written value for any modifications.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @pre
+ *  - MAC has to be out of reset.
+ *  - osi_hw_core_init has to be called. Internally this would initialize
+ *    the safety_config (see osi_core_priv_data) based on MAC version and
+ *    which specific registers needs to be validated periodically.
+ *  - Invoke this call if (osi_core_priv_data->safety_config != OSI_NULL)
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_validate_core_regs(struct osi_core_priv_data *const osi_core)
+{
+	struct core_func_safety *config =
+		(struct core_func_safety *)osi_core->safety_config;
+	unsigned int cur_val;
+	unsigned int i;
+
+	osi_lock_irq_enabled(&config->core_safety_lock);
+	for (i = EQOS_MAC_MCR_IDX; i < EQOS_MAX_CORE_SAFETY_REGS; i++) {
+		if (config->reg_addr[i] == OSI_NULL) {
+			continue;
+		}
+		cur_val = osi_readl((unsigned char *)config->reg_addr[i]);
+		cur_val &= config->reg_mask[i];
+
+		if (cur_val == config->reg_val[i]) {
+			continue;
+		} else {
+			/* Register content differs from what was written.
+			 * Return error and let safety manager (NVGaurd etc.)
+			 * take care of corrective action.
+			 */
+			osi_unlock_irq_enabled(&config->core_safety_lock);
+			return -1;
+		}
+	}
+	osi_unlock_irq_enabled(&config->core_safety_lock);
+
+	return 0;
+}
+
+/**
+ * @brief eqos_config_rx_crc_check - Configure CRC Checking for Rx Packets
+ *
+ * @note
+ * Algorithm:
+ *  - When this bit is set, the MAC receiver does not check the CRC
+ *    field in the received packets. When this bit is reset, the MAC receiver
+ *    always checks the CRC field in the received packets.
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] crc_chk: Enable or disable checking of CRC field in received pkts
+ *
+ * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_rx_crc_check(void *addr,
+				    const unsigned int crc_chk)
+{
+	unsigned int val;
+
+	/* return on invalid argument */
+	if (crc_chk != OSI_ENABLE && crc_chk != OSI_DISABLE) {
+		return -1;
+	}
+
+	/* Read MAC Extension Register */
+	val = osi_readl((unsigned char *)addr + EQOS_MAC_EXTR);
+
+	/* crc_chk: 1 is for enable and 0 is for disable */
+	if (crc_chk == OSI_ENABLE) {
+		/* Enable Rx packets CRC check */
+		val &= ~EQOS_MAC_EXTR_DCRCC;
+	} else if (crc_chk == OSI_DISABLE) {
+		/* Disable Rx packets CRC check */
+		val |= EQOS_MAC_EXTR_DCRCC;
+	} else {
+		/* Nothing here */
+	}
+
+	/* Write to MAC Extension Register */
+	osi_writel(val, (unsigned char *)addr + EQOS_MAC_EXTR);
+
+	return 0;
+}
+
+/**
+ * @brief eqos_config_tx_status - Configure MAC to forward the tx pkt status
+ *
+ * @note
+ * Algorithm:
+ *  - When DTXSTS bit is reset, the Tx packet status received
+ *    from the MAC is forwarded to the application.
+ *    When DTXSTS bit is set, the Tx packet status received from the MAC
+ *    are dropped in MTL.
+ *
+ * @param[in] addr: Base address indicating the start of
+ *	      memory mapped IO region of the MAC.
+ * @param[in] tx_status: Enable or Disable the forwarding of tx pkt status
+ *
+ * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_tx_status(void *addr,
+				 const unsigned int tx_status)
+{
+	unsigned int val;
+
+	/* don't allow if tx_status is other than 0 or 1 */
+	if (tx_status != OSI_ENABLE && tx_status != OSI_DISABLE) {
+		return -1;
+	}
+
+	/* Read MTL Operation Mode Register */
+	val = osi_readl((unsigned char *)addr + EQOS_MTL_OP_MODE);
+
+	if (tx_status == OSI_ENABLE) {
+		/* When DTXSTS bit is reset, the Tx packet status received
+		 * from the MAC are forwarded to the application.
+		 */
+		val &= ~EQOS_MTL_OP_MODE_DTXSTS;
+	} else if (tx_status == OSI_DISABLE) {
+		/* When DTXSTS bit is set, the Tx packet status received from
+		 * the MAC are dropped in the MTL
+		 */
+		val |= EQOS_MTL_OP_MODE_DTXSTS;
+	} else {
+		/* Nothing here */
+	}
+
+	/* Write to DTXSTS bit of MTL Operation Mode Register to enable or
+	 * disable the Tx packet status
+	 */
+	osi_writel(val, (unsigned char *)addr + EQOS_MTL_OP_MODE);
+
+	return 0;
+}
+
+/**
+ * @brief eqos_set_avb_algorithm - Set TxQ/TC avb config
+ *
+ * @note
+ * Algorithm:
+ *  - Check if queue index is valid
+ *  - Update operation mode of TxQ/TC
+ *   - Set TxQ operation mode
+ *   - Set Algo and Credit control
+ *   - Set Send slope credit
+ *   - Set Idle slope credit
+ *   - Set Hi credit
+ *   - Set low credit
+ *  - Update register values
+ *
+ * @param[in] osi_core: osi core priv data structure
+ * @param[in] avb: structure having configuration for avb algorithm
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_set_avb_algorithm(
+				struct osi_core_priv_data *const osi_core,
+				const struct osi_core_avb_algorithm *const avb)
+{
+	unsigned int value;
+	int ret = -1;
+	unsigned int qinx;
+
+	if (avb == OSI_NULL) {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"avb structure is NULL\n",
+			0ULL);
+		return ret;
+	}
+
+	/* queue index in range */
+	if (avb->qindex >= OSI_EQOS_MAX_NUM_QUEUES) {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue index\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
+	/* queue oper_mode in range check*/
+	if (avb->oper_mode >= OSI_MTL_QUEUE_MODEMAX) {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue mode\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
+	/* can't set AVB mode for queue 0 */
+	if ((avb->qindex == 0U) && (avb->oper_mode == OSI_MTL_QUEUE_AVB)) {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
+			"Not allowed to set AVB for Q0\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
+	qinx = avb->qindex;
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
+	value &= ~EQOS_MTL_TXQEN_MASK;
+	/* Set TxQ/TC mode as per input struct after masking 3 bit */
+	value |= (avb->oper_mode << EQOS_MTL_TXQEN_MASK_SHIFT) &
+		  EQOS_MTL_TXQEN_MASK;
+	eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+				EQOS_MTL_CHX_TX_OP_MODE(qinx),
+				EQOS_MTL_CH0_TX_OP_MODE_IDX + qinx);
+
+	/* Set Algo and Credit control */
+	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
+		value = (avb->credit_control << EQOS_MTL_TXQ_ETS_CR_CC_SHIFT) &
+			 EQOS_MTL_TXQ_ETS_CR_CC;
+	}
+	value |= (avb->algo << EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT) &
+		  EQOS_MTL_TXQ_ETS_CR_AVALG;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_TXQ_ETS_CR(qinx));
+
+	if (avb->algo == OSI_MTL_TXQ_AVALG_CBS) {
+		/* Set Send slope credit */
+		value = avb->send_slope & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   EQOS_MTL_TXQ_ETS_SSCR(qinx));
+
+		/* Set Idle slope credit*/
+		value = osi_readl((unsigned char *)osi_core->base +
+				  EQOS_MTL_TXQ_QW(qinx));
+		value &= ~EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
+		value |= avb->idle_slope & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
+		eqos_core_safety_writel(value, (unsigned char *)osi_core->base +
+					EQOS_MTL_TXQ_QW(qinx),
+					EQOS_MTL_TXQ0_QW_IDX + qinx);
+
+		/* Set Hi credit */
+		value = avb->hi_credit & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   EQOS_MTL_TXQ_ETS_HCR(qinx));
+
+		/* low credit  is -ve number, osi_write need a unsigned int
+		 * take only 28:0 bits from avb->low_credit
+		 */
+		value = avb->low_credit & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
+		osi_writel(value, (unsigned char *)osi_core->base +
+			   EQOS_MTL_TXQ_ETS_LCR(qinx));
+	}
+
+	return 0;
+}
+
+/**
+ * @brief eqos_get_avb_algorithm - Get TxQ/TC avb config
+ *
+ * @note
+ * Algorithm:
+ *  - Check if queue index is valid
+ *  - read operation mode of TxQ/TC
+ *   - read TxQ operation mode
+ *   - read Algo and Credit control
+ *   - read Send slope credit
+ *   - read Idle slope credit
+ *   - read Hi credit
+ *   - read low credit
+ *  - updated pointer
+ *
+ * @param[in] osi_core: osi core priv data structure
+ * @param[out] avb: structure pointer having configuration for avb algorithm
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
+				  struct osi_core_avb_algorithm *const avb)
+{
+	unsigned int value;
+	int ret = -1;
+	unsigned int qinx = 0U;
+
+	if (avb == OSI_NULL) {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"avb structure is NULL\n",
+			0ULL);
+		return ret;
+	}
+
+	if (avb->qindex >= OSI_EQOS_MAX_NUM_QUEUES) {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			"Invalid Queue index\n",
+			(unsigned long long)avb->qindex);
+		return ret;
+	}
+
+	qinx = avb->qindex;
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
+
+	/* Get TxQ/TC mode as per input struct after masking 3:2 bit */
+	value = (value & EQOS_MTL_TXQEN_MASK) >> EQOS_MTL_TXQEN_MASK_SHIFT;
+	avb->oper_mode = value;
+
+	/* Get Algo and Credit control */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_ETS_CR(qinx));
+	avb->credit_control = (value & EQOS_MTL_TXQ_ETS_CR_CC) >>
+		   EQOS_MTL_TXQ_ETS_CR_CC_SHIFT;
+	avb->algo = (value & EQOS_MTL_TXQ_ETS_CR_AVALG) >>
+		     EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT;
+
+	/* Get Send slope credit */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_ETS_SSCR(qinx));
+	avb->send_slope = value & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
+
+	/* Get Idle slope credit*/
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_QW(qinx));
+	avb->idle_slope = value & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
+
+	/* Get Hi credit */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_ETS_HCR(qinx));
+	avb->hi_credit = value & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
+
+	/* Get Low credit for which bit 31:29 are unknown
+	 * return 28:0 valid bits to application
+	 */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_ETS_LCR(qinx));
+	avb->low_credit = value & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
+
+	return 0;
+}
+
+/**
+ * @brief eqos_config_arp_offload - Enable/Disable ARP offload
+ *
+ * @note
+ * Algorithm:
+ *  - Read the MAC configuration register
+ *  - If ARP offload is to be enabled, program the IP address in
+ *    ARPPA register
+ *  - Enable/disable the ARPEN bit in MCR and write back to the MCR.
+ *
+ * @param[in] mac_ver: MAC version number (different MAC HW version
+ *        need different register offset/fields for ARP offload.
+ * @param[in] addr: EQOS virtual base address.
+ * @param[in] enable: Flag variable to enable/disable ARP offload
+ * @param[in] ip_addr: IP address of device to be programmed in HW.
+ *        HW will use this IP address to respond to ARP requests.
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - Valid 4 byte IP address as argument ip_addr
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_arp_offload(const unsigned int mac_ver, void *addr,
+				   const unsigned int enable,
+				   const unsigned char *ip_addr)
+{
+	unsigned int mac_mcr;
+	unsigned int val;
+
+	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+		return -1;
+	}
+
+	mac_mcr = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
+
+	if (enable == OSI_ENABLE) {
+		val = (((unsigned int)ip_addr[0]) << 24) |
+		      (((unsigned int)ip_addr[1]) << 16) |
+		      (((unsigned int)ip_addr[2]) << 8) |
+		      (((unsigned int)ip_addr[3]));
+
+		if (mac_ver == OSI_EQOS_MAC_4_10) {
+			osi_writel(val, (unsigned char *)addr +
+				   EQOS_4_10_MAC_ARPPA);
+		} else if (mac_ver == OSI_EQOS_MAC_5_00) {
+			osi_writel(val, (unsigned char *)addr +
+				   EQOS_5_00_MAC_ARPPA);
+		} else {
+			/* Unsupported MAC ver */
+			return -1;
+		}
+
+		mac_mcr |= EQOS_MCR_ARPEN;
+	} else {
+		mac_mcr &= ~EQOS_MCR_ARPEN;
+	}
+
+	eqos_core_safety_writel(mac_mcr, (unsigned char *)addr + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
+
+	return 0;
+}
+
+/**
+ * @brief eqos_config_vlan_filter_reg - config vlan filter register
+ *
+ * @note
+ * Algorithm:
+ *  - This sequence is used to enable/disable VLAN filtering and
+ *    also selects VLAN filtering mode- perfect/hash
+ *
+ * @param[in] osi_core: Base address  from OSI core private data structure.
+ * @param[in] filter_enb_dis: vlan filter enable/disable
+ * @param[in] perfect_hash_filtering: perfect or hash filter
+ * @param[in] perfect_inverse_match: normal or inverse filter
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_vlan_filtering(
+				struct osi_core_priv_data *const osi_core,
+				const unsigned int filter_enb_dis,
+				const unsigned int perfect_hash_filtering,
+				const unsigned int perfect_inverse_match)
+{
+	unsigned int value;
+	void *base = osi_core->base;
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
+	value &= ~(EQOS_MAC_PFR_VTFE);
+	value |= ((filter_enb_dis << EQOS_MAC_PFR_SHIFT) & EQOS_MAC_PFR_VTFE);
+	eqos_core_safety_writel(value, (unsigned char *)base + EQOS_MAC_PFR,
+				EQOS_MAC_PFR_IDX);
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_VLAN_TR);
+	value &= ~(EQOS_MAC_VLAN_TR_VTIM | EQOS_MAC_VLAN_TR_VTHM);
+	value |= ((perfect_inverse_match << EQOS_MAC_VLAN_TR_VTIM_SHIFT) &
+		  EQOS_MAC_VLAN_TR_VTIM);
+	if (perfect_hash_filtering == OSI_HASH_FILTER_MODE) {
+		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
+			"VLAN hash filter is not supported, no updat of VTHM\n",
+			0ULL);
+	}
+	osi_writel(value, (unsigned char *)base + EQOS_MAC_VLAN_TR);
+	return 0;
+}
+
+/**
+ * @brief eqos_update_vlan_id - update VLAN ID in Tag register
+ *
+ * @param[in] base: Base address from OSI core private data structure.
+ * @param[in] vid: VLAN ID to be programmed.
+ *
+ * @retval 0 always
+ */
+static inline int eqos_update_vlan_id(void *base, unsigned int vid)
+{
+	/* Don't add VLAN ID to TR register which is eventually set TR
+	 * to 0x0 and allow all tagged packets
+	 */
+
+	return 0;
+}
+
+/**
+ * @brief eqos_configure_eee - Configure the EEE LPI mode
+ *
+ * @note
+ * Algorithm:
+ *  - This routine configures EEE LPI mode in the MAC.
+ *  - The time (in microsecond) to wait before resuming transmission after
+ *    exiting from LPI,
+ *  - The time (in millisecond) to wait before LPI pattern can be
+ *    transmitted after PHY link is up) are not configurable. Default values
+ *    are used in this routine.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] tx_lpi_enabled: enable (1)/disable (0) flag for Tx lpi
+ * @param[in] tx_lpi_timer: Tx LPI entry timer in usec. Valid upto
+ *            OSI_MAX_TX_LPI_TIMER in steps of 8usec.
+ *
+ * @pre
+ *  - Required clks and resets has to be enabled.
+ *  - MAC/PHY should be initialized
+ */
+static void eqos_configure_eee(
+			       struct osi_core_priv_data *const osi_core,
+			       const unsigned int tx_lpi_enabled,
+			       const unsigned int tx_lpi_timer)
+{
+	unsigned int lpi_csr = 0;
+	unsigned int lpi_timer_ctrl = 0;
+	unsigned int lpi_entry_timer = 0;
+	unsigned int lpi_1US_tic_counter = OSI_LPI_1US_TIC_COUNTER_DEFAULT;
+	unsigned char *addr =  (unsigned char *)osi_core->base;
+
+	if (tx_lpi_enabled != OSI_DISABLE) {
+		/* Configure the following timers.
+		 * 1. LPI LS timer - minimum time (in milliseconds) for
+		 * which the link status from PHY should be up before
+		 * the LPI pattern can be transmitted to the PHY.
+		 * Default 1sec
+		 * 2. LPI TW timer - minimum time (in microseconds) for
+		 * which MAC waits after it stops transmitting LPI
+		 * pattern before resuming normal tx. Default 21us
+		 * 3. LPI entry timer - Time in microseconds that MAC
+		 * will wait to enter LPI mode after all tx is complete.
+		 * Default 1sec
+		 */
+		lpi_timer_ctrl |= ((OSI_DEFAULT_LPI_LS_TIMER &
+				   OSI_LPI_LS_TIMER_MASK) <<
+				   OSI_LPI_LS_TIMER_SHIFT);
+		lpi_timer_ctrl |= (OSI_DEFAULT_LPI_TW_TIMER &
+				   OSI_LPI_TW_TIMER_MASK);
+		osi_writel(lpi_timer_ctrl, addr + EQOS_MAC_LPI_TIMER_CTRL);
+
+		lpi_entry_timer |= (tx_lpi_timer &
+				    OSI_LPI_ENTRY_TIMER_MASK);
+		osi_writel(lpi_entry_timer, addr + EQOS_MAC_LPI_EN_TIMER);
+		/* Program the MAC_1US_Tic_Counter as per the frequency of the
+		 * clock used for accessing the CSR slave
+		 */
+		/* fix cert error */
+		if (osi_core->csr_clk_speed > 1U) {
+			lpi_1US_tic_counter  = ((osi_core->csr_clk_speed - 1U) &
+						 OSI_LPI_1US_TIC_COUNTER_MASK);
+		}
+		osi_writel(lpi_1US_tic_counter, addr + EQOS_MAC_1US_TIC_CNTR);
+
+		/* Set LPI timer enable and LPI Tx automate, so that MAC
+		 * can enter/exit Tx LPI on its own using timers above.
+		 * Set LPI Enable & PHY links status (PLS) up.
+		 */
+		lpi_csr = osi_readl(addr + EQOS_MAC_LPI_CSR);
+		lpi_csr |= (EQOS_MAC_LPI_CSR_LPITE |
+			    EQOS_MAC_LPI_CSR_LPITXA |
+			    EQOS_MAC_LPI_CSR_PLS |
+			    EQOS_MAC_LPI_CSR_LPIEN);
+		osi_writel(lpi_csr, addr + EQOS_MAC_LPI_CSR);
+	} else {
+		/* Disable LPI control bits */
+		eqos_disable_tx_lpi(osi_core->base);
+	}
+}
+
+/**
+ * @brief Function to store a backup of MAC register space during SOC suspend.
+ *
+ * @note
+ * Algorithm:
+ *  - Read registers to be backed up as per struct core_backup and
+ *    store the register values in memory.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval 0 on Success
+ */
+static inline int eqos_save_registers(
+				struct osi_core_priv_data *const osi_core)
+{
+	unsigned int i;
+	struct core_backup *config = &osi_core->backup_config;
+
+	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			config->reg_val[i] = osi_readl(config->reg_addr[i]);
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Function to restore the backup of MAC registers during SOC resume.
+ *
+ * @note
+ * Algorithm:
+ *  - Restore the register values from the in memory backup taken using
+ *    eqos_save_registers().
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval 0 on Success
+ */
+static inline int eqos_restore_registers(
+				struct osi_core_priv_data *const osi_core)
+{
+	unsigned int i;
+	struct core_backup *config = &osi_core->backup_config;
+
+	for (i = 0; i < EQOS_MAX_BAK_IDX; i++) {
+		if (config->reg_addr[i] != OSI_NULL) {
+			osi_writel(config->reg_val[i], config->reg_addr[i]);
+		}
+	}
+
+	return 0;
+}
+#endif /* !OSI_STRIPPED_LIB */
+
 /**
  * @brief eqos_core_ops - EQOS MAC core operations
  */
@@ -3815,7 +3802,6 @@ static struct osi_core_ops eqos_core_ops = {
 	.poll_for_swr = eqos_poll_for_swr,
 	.core_init = eqos_core_init,
 	.core_deinit = eqos_core_deinit,
-	.validate_regs = eqos_validate_core_regs,
 	.start_mac = eqos_start_mac,
 	.stop_mac = eqos_stop_mac,
 	.handle_common_intr = eqos_handle_common_intr,
@@ -3823,15 +3809,8 @@ static struct osi_core_ops eqos_core_ops = {
 	.set_speed = eqos_set_speed,
 	.pad_calibrate = eqos_pad_calibrate,
 	.set_mdc_clk_rate = eqos_set_mdc_clk_rate,
-	.flush_mtl_tx_queue = eqos_flush_mtl_tx_queue,
 	.config_mac_loopback = eqos_config_mac_loopback,
-	.set_avb_algorithm = eqos_set_avb_algorithm,
-	.get_avb_algorithm = eqos_get_avb_algorithm,
 	.config_fw_err_pkts = eqos_config_fw_err_pkts,
-	.config_tx_status = eqos_config_tx_status,
-	.config_rx_crc_check = eqos_config_rx_crc_check,
-	.config_flow_control = eqos_config_flow_control,
-	.config_arp_offload = eqos_config_arp_offload,
 	.config_rxcsum_offload = eqos_config_rxcsum_offload,
 	.config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg,
 	.update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg,
@@ -3841,20 +3820,30 @@ static struct osi_core_ops eqos_core_ops = {
 	.update_ip6_addr = eqos_update_ip6_addr,
 	.config_l4_filters = eqos_config_l4_filters,
 	.update_l4_port_no = eqos_update_l4_port_no,
-	.config_vlan_filtering = eqos_config_vlan_filtering,
-	.update_vlan_id = eqos_update_vlan_id,
 	.set_systime_to_mac = eqos_set_systime_to_mac,
 	.config_addend = eqos_config_addend,
 	.adjust_mactime = eqos_adjust_mactime,
 	.config_tscr = eqos_config_tscr,
 	.config_ssir = eqos_config_ssir,
 	.read_mmc = eqos_read_mmc,
+	.write_phy_reg = eqos_write_phy_reg,
+	.read_phy_reg = eqos_read_phy_reg,
+#ifndef OSI_STRIPPED_LIB
+	.config_tx_status = eqos_config_tx_status,
+	.config_rx_crc_check = eqos_config_rx_crc_check,
+	.config_flow_control = eqos_config_flow_control,
+	.config_arp_offload = eqos_config_arp_offload,
+	.validate_regs = eqos_validate_core_regs,
+	.flush_mtl_tx_queue = eqos_flush_mtl_tx_queue,
+	.set_avb_algorithm = eqos_set_avb_algorithm,
+	.get_avb_algorithm = eqos_get_avb_algorithm,
+	.config_vlan_filtering = eqos_config_vlan_filtering,
+	.update_vlan_id = eqos_update_vlan_id,
 	.reset_mmc = eqos_reset_mmc,
 	.configure_eee = eqos_configure_eee,
 	.save_registers = eqos_save_registers,
 	.restore_registers = eqos_restore_registers,
-	.write_phy_reg = eqos_write_phy_reg,
-	.read_phy_reg = eqos_read_phy_reg,
+#endif /* !OSI_STRIPPED_LIB */
 };
 
 /**
