@@ -379,6 +379,7 @@ struct mmc_host {
 #define MMC_CAP2_MERGE_CAPABLE	(1 << 26)	/* Host can merge a segment over the segment size */
 #define MMC_CAP2_ONLY_1V8_SIGNAL_VOLTAGE	(1 << 27)	/* Supports only 1V8 voltage */
 #define MMC_CAP2_FORCE_RESCAN	(1 << 28) /* Force rescan requests for the device if this cap is set */
+#define MMC_CAP2_PERIODIC_CACHE_FLUSH	(1 << 29) /* Periodic cache flush support */
 
 	int			fixed_drv_type;	/* fixed driver type for non-removable media */
 
@@ -474,6 +475,13 @@ struct mmc_host {
 	int			cqe_qdepth;
 	bool			cqe_enabled;
 	bool			cqe_on;
+
+
+	/* Periodic cache flush support */
+	bool			cache_flush_needed;
+	bool			en_periodic_cflush;
+	unsigned int		flush_timeout;
+	struct timer_list	flush_timer;
 
 	/* Host Software Queue support */
 	bool			hsq_enabled;

@@ -1749,6 +1749,14 @@ int mmc_hs400_to_ddr(struct mmc_card *card)
 
 }
 
+static void cache_flush_handler(struct timer_list *t)
+{
+	struct mmc_host *host;
+
+	host = from_timer(host, t, flush_timer);
+
+	host->cache_flush_needed = true;
+}
 
 /*
  * Handle the detection and initialisation of a card.
@@ -2090,6 +2098,15 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 	if (!oldcard)
 		host->card = card;
 
+	if (!oldcard && card->ext_csd.cache_ctrl &&
+			(host->caps2 & MMC_CAP2_PERIODIC_CACHE_FLUSH)) {
+		host->cache_flush_needed = true;
+		host->en_periodic_cflush = true;
+		timer_setup(&host->flush_timer, cache_flush_handler,
+				0);
+		pr_info("%s: periodic cache flush enabled\n",
+				mmc_hostname(host));
+	}
 	return 0;
 
 free_card:
@@ -2243,6 +2260,9 @@ static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
 	if (err)
 		goto out;
 
+	if (host->card->ext_csd.cache_ctrl && host->en_periodic_cflush)
+		del_timer(&host->flush_timer);
+
 	if (mmc_can_poweroff_notify(host->card) &&
 		((host->caps2 & MMC_CAP2_FULL_PWR_CYCLE) || !is_suspend))
 		err = mmc_poweroff_notify(host->card, notify_type);
@@ -2292,6 +2312,9 @@ static int _mmc_resume(struct mmc_host *host)
 	mmc_power_up(host, host->card->ocr);
 	err = mmc_init_card(host, host->card->ocr, host->card);
 	mmc_card_clr_suspended(host->card);
+
+	if (host->card->ext_csd.cache_ctrl && host->en_periodic_cflush)
+		mod_timer(&host->flush_timer, host->flush_timeout);
 
 out:
 	mmc_release_host(host);

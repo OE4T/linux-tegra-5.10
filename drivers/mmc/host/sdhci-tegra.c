@@ -241,6 +241,7 @@ struct sdhci_tegra {
 	int cd_gpio;
 	bool cd_wakeup_capable;
 	bool is_rail_enabled;
+	bool en_periodic_cflush;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -1150,6 +1151,7 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	int val = 0;
 
 	if (device_property_read_bool(host->mmc->parent, "supports-cqe"))
 		tegra_host->enable_hwcq = true;
@@ -1170,6 +1172,17 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 					"nvidia,cd-wakeup-capable");
 	host->mmc->cd_cap_invert = device_property_read_bool(host->mmc->parent,
 								"cd-inverted");
+
+	tegra_host->en_periodic_cflush = device_property_read_bool(host->mmc->parent,
+				"nvidia,en-periodic-cflush");
+	if (tegra_host->en_periodic_cflush) {
+		device_property_read_u32(host->mmc->parent,
+				"nvidia,periodic-cflush-to", &val);
+		host->mmc->flush_timeout = val;
+		if (val == 0) {
+			tegra_host->en_periodic_cflush = false;
+		}
+	}
 }
 
 static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
@@ -2239,6 +2252,9 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 
 	if (!en_boot_part_access)
 		host->mmc->caps2 |= MMC_CAP2_BOOTPART_NOACC;
+
+	if (tegra_host->en_periodic_cflush)
+		host->mmc->caps2 |= MMC_CAP2_PERIODIC_CACHE_FLUSH;
 
 	tegra_host->volt_switch_gpio = of_get_named_gpio(np,
 			"nvidia,voltage-switch-gpio", 0);

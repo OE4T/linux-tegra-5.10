@@ -1147,10 +1147,23 @@ static void mmc_blk_issue_flush(struct mmc_queue *mq, struct request *req)
 {
 	struct mmc_blk_data *md = mq->blkdata;
 	struct mmc_card *card = md->queue.card;
+	struct mmc_host *host = card->host;
 	int ret = 0;
+
+	if (host->en_periodic_cflush && host->flush_timeout &&
+			!host->cache_flush_needed) {
+		blk_mq_end_request(req, BLK_STS_OK);
+		return;
+	}
 
 	ret = mmc_flush_cache(card);
 	blk_mq_end_request(req, ret ? BLK_STS_IOERR : BLK_STS_OK);
+
+	if (host->en_periodic_cflush && host->flush_timeout && !ret) {
+		host->cache_flush_needed = false;
+		mod_timer(&host->flush_timer, jiffies +
+			msecs_to_jiffies(host->flush_timeout));
+	}
 }
 
 /*
@@ -2363,6 +2376,7 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
 	     card->ext_csd.rel_sectors)) {
 		md->flags |= MMC_BLK_REL_WR;
 		blk_queue_write_cache(md->queue.queue, true, true);
+		card->host->cache_flush_needed = true;
 	}
 
 	return md;
