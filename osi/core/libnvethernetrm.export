@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2019-2020, NVIDIA CORPORATION. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -36,28 +36,15 @@ osi_common_isr
 osi_set_mode
 osi_set_speed
 osi_pad_calibrate
-osi_flush_mtl_tx_queue
 osi_config_mac_loopback
-osi_set_avb
-osi_get_avb
-osi_configure_txstatus
-osi_config_rx_crc_check
 osi_get_mac_version
 osi_get_hw_features
-osi_config_arp_offload
 osi_config_rxcsum_offload
-osi_configure_flow_control
 osi_l2_filter
 osi_l3l4_filter
-osi_config_vlan_filtering
-osi_update_vlan_id
 osi_config_fw_err_pkts
 osi_ptp_configuration
-osi_get_systime_from_mac
 osi_adjust_time
 osi_adjust_freq
 osi_set_systime_to_mac
 osi_read_mmc
-osi_reset_mmc
-osi_validate_core_regs
-osi_configure_eee

@@ -107,6 +107,7 @@ struct osi_l2_da_filter {
 	unsigned int perfect_inverse_match;
 };
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief OSI Core avb data structure per queue.
  */
@@ -118,7 +119,7 @@ struct  osi_core_avb_algorithm {
 	/** When this bit is set, the accumulated credit parameter in the
 	 * credit-based shaper algorithm logic is not reset to zero when
 	 * there is positive credit and no packet to transmit in Channel.
-	 * 
+	 *
 	 * Expected values are enable(1) or disable(0) */
 	unsigned int credit_control;
 	/** idleSlopeCredit value required for CBS */
@@ -132,12 +133,13 @@ struct  osi_core_avb_algorithm {
 	/** Transmit queue operating mode
 	 *
 	 * 00: disable
-	 * 
-	 * 01: avb 
-	 * 
+	 *
+	 * 01: avb
+	 *
 	 * 10: enable */
 	unsigned int oper_mode;
 };
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief Initialize MAC & MTL core operations.
@@ -151,9 +153,6 @@ struct osi_core_ops {
 			 const unsigned int rx_fifo_size);
 	/** Called to deinitialize MAC and MTL registers */
 	void (*core_deinit)(struct osi_core_priv_data *const osi_core);
-	/** Called periodically to read and validate safety critical
-	 * registers against last written value */
-	int (*validate_regs)(struct osi_core_priv_data *const osi_core);
 	/**  Called to start MAC Tx and Rx engine */
 	void (*start_mac)(void *addr);
 	/** Called to stop MAC Tx and Rx engine */
@@ -169,29 +168,11 @@ struct osi_core_ops {
 	/** Called to set MDC clock rate for MDIO operation */
 	void (*set_mdc_clk_rate)(struct osi_core_priv_data *const osi_core,
 				 const unsigned long csr_clk_rate);
-	/** Called to flush MTL Tx queue */
-	int (*flush_mtl_tx_queue)(void *ioaddr, const unsigned int qinx);
 	/** Called to configure MAC in loopback mode */
 	int (*config_mac_loopback)(void *addr, const unsigned int lb_mode);
-	/** Called to set av parameter */
-	int (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
-			   const struct osi_core_avb_algorithm *const avb);
-	/** Called to get av parameter */
-	int (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
-				 struct osi_core_avb_algorithm *const avb);
 	/** Called to configure MTL RxQ to forward the err pkt */
 	int (*config_fw_err_pkts)(void *addr, const unsigned int qinx,
 				 const unsigned int fw_err);
-	/** Called to configure the MTL to forward/drop tx status */
-	int (*config_tx_status)(void *addr, const unsigned int tx_status);
-	/** Called to configure the MAC rx crc */
-	int (*config_rx_crc_check)(void *addr, const unsigned int crc_chk);
-	/** Called to configure the MAC flow control */
-	int (*config_flow_control)(void *addr, const unsigned int flw_ctrl);
-	/** Called to enable/disable HW ARP offload feature */
-	int (*config_arp_offload)(const unsigned int mac_ver, void *addr,
-				  const unsigned int enable,
-				  const unsigned char *ip_addr);
 	/** Called to configure Rx Checksum offload engine */
 	int (*config_rxcsum_offload)(void *addr, const unsigned int enabled);
 	/** Called to config mac packet filter */
@@ -237,17 +218,6 @@ struct osi_core_ops {
 				 const unsigned int filter_no,
 				 const unsigned short port_no,
 				 const unsigned int src_dst_port_match);
-
-	/** Called to configure VLAN filtering */
-	int (*config_vlan_filtering)(struct osi_core_priv_data *const osi_core,
-				     const unsigned int filter_enb_dis,
-				     const unsigned int perfect_hash_filtering,
-				     const unsigned int perfect_inverse_match);
-	/** called to update VLAN id */
-	int (*update_vlan_id)(void *base, const unsigned int vid);
-	/** Called to set current system time to MAC */
-	int (*set_systime_to_mac)(void *addr, const unsigned int sec,
-				  const unsigned int nsec);
 	/** Called to set the addend value to adjust the time */
 	int (*config_addend)(void *addr, const unsigned int addend);
 	/** Called to adjust the mac time */
@@ -255,14 +225,55 @@ struct osi_core_ops {
 			      const unsigned int nsec,
 			      const unsigned int neg_adj,
 			      const unsigned int one_nsec_accuracy);
-	/** Called to get the current time from MAC */
-	unsigned long long (*get_systime_from_mac)(void *addr);
+	/** Called to set current system time to MAC */
+	int (*set_systime_to_mac)(void *addr, const unsigned int sec,
+				  const unsigned int nsec);
 	/** Called to configure the TimeStampControl register */
 	void (*config_tscr)(void *addr, const unsigned int ptp_filter);
 	/** Called to configure the sub second increment register */
 	void (*config_ssir)(struct osi_core_priv_data *const osi_core);
 	/** Called to update MMC counter from HW register */
 	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
+	/** Called to write into a PHY reg over MDIO bus */
+	int (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
+			     const unsigned int phyaddr,
+			     const unsigned int phyreg,
+			     const unsigned short phydata);
+	/** Called to read from a PHY reg over MDIO bus */
+	int (*read_phy_reg)(struct osi_core_priv_data *const osi_core,
+			    const unsigned int phyaddr,
+			    const unsigned int phyreg);
+#ifndef OSI_STRIPPED_LIB
+	/** Called periodically to read and validate safety critical
+	 * registers against last written value */
+	int (*validate_regs)(struct osi_core_priv_data *const osi_core);
+	/** Called to flush MTL Tx queue */
+	int (*flush_mtl_tx_queue)(void *ioaddr, const unsigned int qinx);
+	/** Called to set av parameter */
+	int (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+			   const struct osi_core_avb_algorithm *const avb);
+	/** Called to get av parameter */
+	int (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+				 struct osi_core_avb_algorithm *const avb);
+	/** Called to configure the MTL to forward/drop tx status */
+	int (*config_tx_status)(void *addr, const unsigned int tx_status);
+	/** Called to configure the MAC rx crc */
+	int (*config_rx_crc_check)(void *addr, const unsigned int crc_chk);
+	/** Called to configure the MAC flow control */
+	int (*config_flow_control)(void *addr, const unsigned int flw_ctrl);
+	/** Called to enable/disable HW ARP offload feature */
+	int (*config_arp_offload)(const unsigned int mac_ver, void *addr,
+				  const unsigned int enable,
+				  const unsigned char *ip_addr);
+	/** Called to configure VLAN filtering */
+	int (*config_vlan_filtering)(struct osi_core_priv_data *const osi_core,
+				     const unsigned int filter_enb_dis,
+				     const unsigned int perfect_hash_filtering,
+				     const unsigned int perfect_inverse_match);
+	/** called to update VLAN id */
+	int (*update_vlan_id)(void *base, const unsigned int vid);
+	/** Called to get the current time from MAC */
+	unsigned long long (*get_systime_from_mac)(void *addr);
 	/** Called to reset MMC HW counter structure */
 	void (*reset_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure EEE Tx LPI */
@@ -273,15 +284,7 @@ struct osi_core_ops {
 	int (*save_registers)(struct osi_core_priv_data *const osi_core);
 	/** Called to restore MAC control registers during SoC resume */
 	int (*restore_registers)(struct osi_core_priv_data *const osi_core);
-	/** Called to write into a PHY reg over MDIO bus */
-	int (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
-			     const unsigned int phyaddr,
-			     const unsigned int phyreg,
-			     const unsigned short phydata);
-	/** Called to read from a PHY reg over MDIO bus */
-	int (*read_phy_reg)(struct osi_core_priv_data *const osi_core,
-			    const unsigned int phyaddr,
-			    const unsigned int phyreg);
+#endif /* !OSI_STRIPPED_LIB */
 };
 
 /**
@@ -290,7 +293,7 @@ struct osi_core_ops {
 struct osi_ptp_config {
 	/** PTP filter parameters bit fields.
 	 * 
-	 * Enable Time stamp,Fine Timestamp,1 nanosecond accuracy
+	 * Enable Timestamp, Fine Timestamp, 1 nanosecond accuracy
 	 * are enabled by default.
 	 * 
 	 * Need to set below bit fields accordingly as per the requirements.
@@ -317,7 +320,7 @@ struct osi_ptp_config {
 	 * 
 	 * AV 802.1AS Mode Enable				OSI_BIT(28)
 	 * 
-	 * if ptp_fitler is set to Zero then Time stamping is disabled */
+	 * if ptp_filter is set to Zero then Time stamping is disabled */
 	unsigned int ptp_filter;
 	/** seconds to be updated to MAC */
 	unsigned int sec;
@@ -558,45 +561,6 @@ int osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 int osi_hw_core_deinit(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief osi_validate_core_regs - Read-validate HW registers for func safety.
- *
- * @note
- * Algorithm:
- *  - Reads pre-configured list of MAC/MTL configuration registers
- *    and compares with last written value for any modifications.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre
- *  - MAC has to be out of reset.
- *  - osi_hw_core_init has to be called. Internally this would initialize
- *    the safety_config (see osi_core_priv_data) based on MAC version and
- *    which specific registers needs to be validated periodically.
- *  - Invoke this call iff (osi_core_priv_data->safety_config != OSI_NULL)
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_037
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_validate_core_regs(struct osi_core_priv_data *const osi_core);
-
-/**
  * @brief osi_start_mac - Start MAC Tx/Rx engine
  * 
  * @note
@@ -806,43 +770,6 @@ int osi_set_speed(struct osi_core_priv_data *const osi_core,
 int osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief osi_flush_mtl_tx_queue - Flushing a MTL Tx Queue.
- *
- * @note
- * Algorithm:
- *  - Invokes EQOS flush Tx queue routine.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] qinx: MTL queue index.
- *
- * @pre
- *  - MAC should out of reset and clocks enabled.
- *  - hw core initialized. see osi_hw_core_init().
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_014
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
-			   const unsigned int qinx);
-
-/**
  * @brief osi_config_mac_loopback - Configure MAC loopback
  *
  * @note
@@ -856,7 +783,7 @@ int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_015
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_014
  *
  * @note
  * Classification:
@@ -878,118 +805,6 @@ int osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 			    const unsigned int lb_mode);
 
 /**
- * @brief osi_set_avb - Set CBS algo and parameters
- *
- * @note
- * Algorithm:
- *  - Set AVB algo and  populated parameter from osi_core_avb
- *    structure for TC/TQ
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] avb: osi core avb data structure.
- *
- * @pre
- *  - MAC should be init and started. see osi_start_mac()
- *  - osi_core->osd should be populated.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_016
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_set_avb(struct osi_core_priv_data *const osi_core,
-		const struct osi_core_avb_algorithm *avb);
-
-/**
- * @brief osi_get_avb - Get CBS algo and parameters
- *
- * @note
- * Algorithm:
- *  - get AVB algo and  populated parameter from osi_core_avb
- *    structure for TC/TQ
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[out] avb: osi core avb data structure.
- *
- * @pre
- *  - MAC should be init and started. see osi_start_mac()
- *  - osi_core->osd should be populated.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_017
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_get_avb(struct osi_core_priv_data *const osi_core,
-		struct osi_core_avb_algorithm *avb);
-
-/**
- * @brief osi_configure_txstatus - Configure Tx packet status reporting
- *
- * @note
- * Algorithm:
- *  - Configure MAC to enable/disable Tx status error
- *    reporting.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] tx_status: Enable or disable tx packet status reporting
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_018
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
-			   const unsigned int tx_status);
-
-/**
  * @brief osi_config_fw_err_pkts - Configure forwarding of error packets
  *
  * @note
@@ -1004,7 +819,7 @@ int osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_029
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_020
  *
  * @note
  * Classification:
@@ -1026,120 +841,6 @@ int osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
 			   const unsigned int qinx, const unsigned int fw_err);
 
 /**
- * @brief osi_config_rx_crc_check - Configure CRC Checking for Received Packets
- *
- * @note
- * Algorithm:
- *  - When this bit is set, the MAC receiver does not check the CRC
- *    field in the received packets. When this bit is reset, the MAC receiver
- *    always checks the CRC field in the received packets.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] crc_chk: Enable or disable checking of CRC field in received pkts
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_019
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
-			    const unsigned int crc_chk);
-
-/**
- * @brief osi_configure_flow_ctrl - Configure flow control settings
- *
- * @note
- * Algorithm:
- *  - This will enable or disable the flow control.
- *    flw_ctrl BIT0 is for tx flow ctrl enable/disable
- *    flw_ctrl BIT1 is for rx flow ctrl enable/disable
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] flw_ctrl: Enable or disable flow control settings
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_024
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_configure_flow_control(
-			       struct osi_core_priv_data *const osi_core,
-			       const unsigned int flw_ctrl);
-
-/**
- * @brief osi_config_arp_offload - Configure ARP offload in MAC.
- *
- * @note
- * Algorithm:
- *  - Invokes EQOS config ARP offload routine.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] flags: Enable/disable flag.
- * @param[in] ip_addr: Char array representation of IP address
- *
- * @pre
- *  - MAC should be init and started. see osi_start_mac()
- *  - Valid 4 byte IP address as argument ip_addr
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_022
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
-			   const unsigned int flags,
-			   const unsigned char *ip_addr);
-
-/**
  * @brief osi_config_rxcsum_offload - Configure RX checksum offload in MAC.
  *
  * @note
@@ -1153,7 +854,7 @@ int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_023
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_017
  *
  * @note
  * Classification:
@@ -1192,7 +893,7 @@ int osi_config_rxcsum_offload(
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_025
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_018
  *
  * @note
  * Classification:
@@ -1212,84 +913,6 @@ int osi_config_rxcsum_offload(
  */
 int osi_l2_filter(struct osi_core_priv_data *const osi_core,
 		  const struct osi_filter *filter);
-
-/**
- * @brief osi_config_vlan_filtering - OSI call for configuring VLAN filter
- *
- * @note
- * Algorithm:
- *  - This sequence is used to enable/disable VLAN filtering and
- *    also selects VLAN filtering mode- perfect/hash
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] filter_enb_dis: vlan filter enable(1) disable(0)
- * @param[in] perfect_hash_filtering: perfect(0) or hash filter(1)
- * @param[in] perfect_inverse_match: normal(0) or inverse filter(1)
- *
- * @pre
- *  - MAC should be init and started. see osi_start_mac()
- *  - osi_core->osd should be populated
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_027
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_config_vlan_filtering(
-			      struct osi_core_priv_data *const osi_core,
-			      const unsigned int filter_enb_dis,
-			      const unsigned int perfect_hash_filtering,
-			      const unsigned int perfect_inverse_match);
-
-/**
- * @brief osi_update_vlan_id - invoke osi call to update VLAN ID
- *
- * @note
- * Algorithm:
- *  - return 16 bit VLAN ID
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] vid: VLAN ID
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_028
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
-			const unsigned int vid);
 
 /**
  * @brief osi_write_phy_reg - Write to a PHY register through MAC over MDIO bus.
@@ -1339,7 +962,7 @@ int osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
 /**
  * @brief osi_read_mmc - invoke function to read actual registers and update
  *	  structure variable mmc
- * 
+ *
  * @note
  * Algorithm:
  *  - Read the registers, mask reserve bits if required, update
@@ -1353,7 +976,7 @@ int osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_035
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_025
  *
  * @note
  * Classification:
@@ -1372,43 +995,6 @@ int osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure.
  */
 int osi_read_mmc(struct osi_core_priv_data *const osi_core);
-
-/**
- * @brief osi_reset_mmc - invoke function to reset MMC counter and data
- *	  structure
- *
- * @note
- * Algorithm:
- *  - Read the registers, mask reserve bits if required, update
- *    structure.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @pre
- *  - MAC should be init and started. see osi_start_mac()
- *  - osi_core->osd should be populated
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_036
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_reset_mmc(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_read_phy_reg - Read from a PHY register through MAC over MDIO bus.
@@ -1497,7 +1083,7 @@ int osi_init_core_ops(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_034
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_024
  *
  * @note
  * Classification:
@@ -1534,7 +1120,7 @@ int osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_033
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_023
  *
  * @note
  * Classification:
@@ -1571,7 +1157,7 @@ int osi_adjust_freq(struct osi_core_priv_data *const osi_core, int ppb);
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_032
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_022
  *
  * @note
  * Classification:
@@ -1592,43 +1178,6 @@ int osi_adjust_freq(struct osi_core_priv_data *const osi_core, int ppb);
 int osi_adjust_time(struct osi_core_priv_data *const osi_core,
 		    long long nsec_delta);
 
-/**
- * @brief osi_get_systime_from_mac - Get system time
- *
- * @note
- * Algorithm:
- *  - Gets the current system time
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[out] sec: Value read in Seconds
- * @param[out] nsec: Value read in Nano seconds
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_031
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_get_systime_from_mac(
-			     struct osi_core_priv_data *const osi_core,
-			     unsigned int *sec,
-			     unsigned int *nsec);
 /**
  * @brief osi_ptp_configuration - Configure PTP
  *
@@ -1654,7 +1203,7 @@ int osi_get_systime_from_mac(
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_030
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_021
  *
  * @note
  * Classification:
@@ -1712,7 +1261,7 @@ void *eqos_get_core_safety_config(void);
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_026
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_019
  *
  * @note
  * Classification:
@@ -1737,6 +1286,446 @@ int osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 		    const unsigned int dma_chan,
 		    const unsigned int is_l4_filter);
 
+#ifndef OSI_STRIPPED_LIB
+/**
+ * @brief osi_validate_core_regs - Read-validate HW registers for func safety.
+ *
+ * @note
+ * Algorithm:
+ *  - Reads pre-configured list of MAC/MTL configuration registers
+ *    and compares with last written value for any modifications.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @pre
+ *  - MAC has to be out of reset.
+ *  - osi_hw_core_init has to be called. Internally this would initialize
+ *    the safety_config (see osi_core_priv_data) based on MAC version and
+ *    which specific registers needs to be validated periodically.
+ *  - Invoke this call if (osi_core_priv_data->safety_config != OSI_NULL)
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_validate_core_regs(struct osi_core_priv_data *const osi_core);
+
+/**
+ * @brief osi_flush_mtl_tx_queue - Flushing a MTL Tx Queue.
+ *
+ * @note
+ * Algorithm:
+ *  - Invokes EQOS flush Tx queue routine.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] qinx: MTL queue index.
+ *
+ * @pre
+ *  - MAC should out of reset and clocks enabled.
+ *  - hw core initialized. see osi_hw_core_init().
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
+			   const unsigned int qinx);
+
+/**
+ * @brief osi_set_avb - Set CBS algo and parameters
+ *
+ * @note
+ * Algorithm:
+ *  - Set AVB algo and  populated parameter from osi_core_avb
+ *    structure for TC/TQ
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] avb: osi core avb data structure.
+ *
+ * @pre
+ *  - MAC should be init and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_set_avb(struct osi_core_priv_data *const osi_core,
+		const struct osi_core_avb_algorithm *avb);
+
+/**
+ * @brief osi_get_avb - Get CBS algo and parameters
+ *
+ * @note
+ * Algorithm:
+ *  - get AVB algo and  populated parameter from osi_core_avb
+ *    structure for TC/TQ
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[out] avb: osi core avb data structure.
+ *
+ * @pre
+ *  - MAC should be init and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_get_avb(struct osi_core_priv_data *const osi_core,
+		struct osi_core_avb_algorithm *avb);
+
+/**
+ * @brief osi_configure_txstatus - Configure Tx packet status reporting
+ *
+ * @note
+ * Algorithm:
+ *  - Configure MAC to enable/disable Tx status error
+ *    reporting.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] tx_status: Enable or disable tx packet status reporting
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
+			   const unsigned int tx_status);
+
+/**
+ * @brief osi_config_rx_crc_check - Configure CRC Checking for Received Packets
+ *
+ * @note
+ * Algorithm:
+ *  - When this bit is set, the MAC receiver does not check the CRC
+ *    field in the received packets. When this bit is reset, the MAC receiver
+ *    always checks the CRC field in the received packets.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] crc_chk: Enable or disable checking of CRC field in received pkts
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
+			    const unsigned int crc_chk);
+
+/**
+ * @brief osi_configure_flow_ctrl - Configure flow control settings
+ *
+ * @note
+ * Algorithm:
+ *  - This will enable or disable the flow control.
+ *    flw_ctrl BIT0 is for tx flow ctrl enable/disable
+ *    flw_ctrl BIT1 is for rx flow ctrl enable/disable
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] flw_ctrl: Enable or disable flow control settings
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
+			       const unsigned int flw_ctrl);
+
+/**
+ * @brief osi_config_arp_offload - Configure ARP offload in MAC.
+ *
+ * @note
+ * Algorithm:
+ *  - Invokes EQOS config ARP offload routine.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] flags: Enable/disable flag.
+ * @param[in] ip_addr: Char array representation of IP address
+ *
+ * @pre
+ *  - MAC should be init and started. see osi_start_mac()
+ *  - Valid 4 byte IP address as argument ip_addr
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
+			   const unsigned int flags,
+			   const unsigned char *ip_addr);
+/**
+ * @brief osi_config_vlan_filtering - OSI call for configuring VLAN filter
+ *
+ * @note
+ * Algorithm:
+ *  - This sequence is used to enable/disable VLAN filtering and
+ *    also selects VLAN filtering mode- perfect/hash
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] filter_enb_dis: vlan filter enable(1) disable(0)
+ * @param[in] perfect_hash_filtering: perfect(0) or hash filter(1)
+ * @param[in] perfect_inverse_match: normal(0) or inverse filter(1)
+ *
+ * @pre
+ *  - MAC should be init and started. see osi_start_mac()
+ *  - osi_core->osd should be populated
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
+			      const unsigned int filter_enb_dis,
+			      const unsigned int perfect_hash_filtering,
+			      const unsigned int perfect_inverse_match);
+
+/**
+ * @brief osi_update_vlan_id - invoke osi call to update VLAN ID
+ *
+ * @note
+ * Algorithm:
+ *  - return 16 bit VLAN ID
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] vid: VLAN ID
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
+			const unsigned int vid);
+
+/**
+ * @brief osi_reset_mmc - invoke function to reset MMC counter and data
+ *	  structure
+ *
+ * @note
+ * Algorithm:
+ *  - Read the registers, mask reserve bits if required, update
+ *    structure.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @pre
+ *  - MAC should be init and started. see osi_start_mac()
+ *  - osi_core->osd should be populated
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_reset_mmc(struct osi_core_priv_data *const osi_core);
+
+/**
+ * @brief osi_get_systime_from_mac - Get system time
+ *
+ * @note
+ * Algorithm:
+ *  - Gets the current system time
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[out] sec: Value read in Seconds
+ * @param[out] nsec: Value read in Nano seconds
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_get_systime_from_mac(struct osi_core_priv_data *const osi_core,
+			     unsigned int *sec,
+			     unsigned int *nsec);
+
 /**
  * @brief osi_configure_eee - Configure EEE LPI in MAC.
  *
@@ -1754,7 +1743,6 @@ int osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_038
  *
  * @note
  * Classification:
@@ -1803,4 +1791,5 @@ int osi_save_registers(struct osi_core_priv_data *const osi_core);
  * @retval -1 on failure.
  */
 int osi_restore_registers(struct osi_core_priv_data *const osi_core);
+#endif /* !OSI_STRIPPED_LIB */
 #endif /* OSI_CORE_H */

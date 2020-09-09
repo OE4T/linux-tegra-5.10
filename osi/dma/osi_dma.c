@@ -29,7 +29,7 @@ int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	/*
 	 * Currently these osd_ops are optional to be filled in the OSD layer.
 	 * If OSD updates these pointers, use the same. If not, fall back to the
-	 * exisitng way of using osd_* API's.
+	 * existing way of using osd_* API's.
 	 * TODO: Once These API's are mandatory, return errors instead of
 	 * default API usage.
 	 */
@@ -331,6 +331,7 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
+#ifndef OSI_STRIPPED_LIB
 int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 			     unsigned int set)
 {
@@ -346,7 +347,6 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	/* Configure slot Checking for Tranmit */
 	if (osi_dma == OSI_NULL || osi_dma->ops == OSI_NULL ||
 	    osi_dma->ops->config_slot == OSI_NULL) {
 		OSI_ERR(OSI_NULL,
@@ -363,7 +363,7 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 			/* Ignore 0 and invalid channels */
 			continue;
 		}
-		/* Check for slot enbale */
+		/* Check for slot enable */
 		if (osi_dma->slot_enabled[chan] == OSI_ENABLE) {
 			/* Get DMA slot interval and validate */
 			interval = osi_dma->slot_interval[chan];
@@ -412,6 +412,7 @@ int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan)
 
 	return (tx_ring->clean_idx == tx_ring->cur_tx_idx) ? 1 : 0;
 }
+#endif /* !OSI_STRIPPED_LIB */
 
 int osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
 				 unsigned int *sec,

@@ -68,7 +68,7 @@ static inline void eqos_dma_safety_writel(unsigned int val, void *addr,
  *  - Populate the list of safety critical registers and provide
  *  - the address of the register
  *  - Register mask (to ignore reserved/self-critical bits in the reg).
- *    See eqos_validate_dma_regs which can be ivoked periodically to compare
+ *    See eqos_validate_dma_regs which can be invoked periodically to compare
  *    the last written value to this register vs the actual value read when
  *    eqos_validate_dma_regs is scheduled.
  */
@@ -126,70 +126,6 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 	}
 
 	osi_lock_init(&config->dma_safety_lock);
-}
-
-/**
- * @brief Read-validate HW registers for functional safety.
- *
- * @note
- * Algorithm:
- *  - Reads pre-configured list of MAC/MTL configuration registers
- *    and compares with last written value for any modifications.
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- *
- * @pre
- *  - MAC has to be out of reset.
- *  - osi_hw_dma_init has to be called. Internally this would initialize
- *    the safety_config (see osi_dma_priv_data) based on MAC version and
- *    which specific registers needs to be validated periodically.
- *  - Invoke this call iff (osi_dma_priv_data->safety_config != OSI_NULL)
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
-{
-	struct dma_func_safety *config =
-		(struct dma_func_safety *)osi_dma->safety_config;
-	unsigned int cur_val;
-	unsigned int i;
-
-	osi_lock_irq_enabled(&config->dma_safety_lock);
-	for (i = EQOS_DMA_CH0_CTRL_IDX; i < EQOS_MAX_DMA_SAFETY_REGS; i++) {
-		if (config->reg_addr[i] == OSI_NULL) {
-			continue;
-		}
-
-		/* FIXME
-		 * QNX OSD currently overwrites following registers and
-		 * therefore validation fails using this API. Add an
-		 * exception for following registers until QNX OSD completely
-		 * moves to common library.
-		 */
-		if ((i == EQOS_DMA_CH0_TDRL_IDX) ||
-			(i == EQOS_DMA_CH0_RDRL_IDX))
-		{
-			continue;
-		}
-
-		cur_val = osi_readl((unsigned char *)config->reg_addr[i]);
-		cur_val &= config->reg_mask[i];
-
-		if (cur_val == config->reg_val[i]) {
-			continue;
-		} else {
-			/* Register content differs from what was written.
-			 * Return error and let safety manager (NVGaurd etc.)
-			 * take care of corrective action.
-			 */
-			osi_unlock_irq_enabled(&config->dma_safety_lock);
-			return -1;
-		}
-	}
-	osi_unlock_irq_enabled(&config->dma_safety_lock);
-
-	return 0;
 }
 
 /**
@@ -351,7 +287,7 @@ static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Tx channel number.
- * @param[in] tx_desc: Tx desc base addess.
+ * @param[in] tx_desc: Tx desc base address.
  */
 static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
 					unsigned long tx_desc)
@@ -560,56 +496,6 @@ static void eqos_stop_dma(void *addr, unsigned int chan)
 }
 
 /**
- * @brief eqos_config_slot - Configure slot Checking for DMA channel
- *
- * @note
- * Algorithm:
- *  - Set/Reset the slot function of DMA channel based on given inputs
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- * @param[in] chan: DMA channel number to enable slot function
- * @param[in] set: flag for set/reset with value OSI_ENABLE/OSI_DISABLE
- * @param[in] interval: slot interval from 0usec to 4095usec
- *
- * @pre
- &  - MAC should be init and started. see osi_start_mac()
- *  - OSD should be initialized
- *
- * @retval none
- */
-static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan,
-			     unsigned int set,
-			     unsigned int interval)
-{
-	unsigned int value;
-
-	CHECK_CHAN_BOUND(chan);
-
-	if (set == OSI_ENABLE) {
-		/* Program SLOT CTRL register SIV and set ESC bit */
-		value = osi_readl((unsigned char *)osi_dma->base +
-				  EQOS_DMA_CHX_SLOT_CTRL(chan));
-		value &= ~EQOS_DMA_CHX_SLOT_SIV_MASK;
-		/* remove overflow bits of interval */
-		interval &= EQOS_DMA_CHX_SLOT_SIV_MASK;
-		value |= (interval << EQOS_DMA_CHX_SLOT_SIV_SHIFT);
-		/* Set ESC bit */
-		value |= EQOS_DMA_CHX_SLOT_ESC;
-		osi_writel(value, (unsigned char *)osi_dma->base +
-			   EQOS_DMA_CHX_SLOT_CTRL(chan));
-
-	} else {
-		/* Clear ESC bit of SLOT CTRL register */
-		value = osi_readl((unsigned char *)osi_dma->base +
-				  EQOS_DMA_CHX_SLOT_CTRL(chan));
-		value &= ~EQOS_DMA_CHX_SLOT_ESC;
-		osi_writel(value, (unsigned char *)osi_dma->base +
-			   EQOS_DMA_CHX_SLOT_CTRL(chan));
-	}
-}
-
-/**
  * @brief eqos_configure_dma_channel - Configure DMA channel
  *
  * @note
@@ -700,7 +586,7 @@ static void eqos_configure_dma_channel(unsigned int chan,
 
 	/* Set Receive Interrupt Watchdog Timer Count */
 	/* conversion of usec to RWIT value
-	 * Eg:System clock is 125MHz, each clock cycle would then be 8ns
+	 * Eg: System clock is 125MHz, each clock cycle would then be 8ns
 	 * For value 0x1 in RWT, device would wait for 512 clk cycles with
 	 * RWTU as 0x1,
 	 * ie, (8ns x 512) => 4.096us (rounding off to 4us)
@@ -805,6 +691,110 @@ static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 			       ~(EQOS_AXI_BUS_WIDTH - 1U));
 }
 
+#ifndef OSI_STRIPPED_LIB
+/**
+ * @brief Read-validate HW registers for functional safety.
+ *
+ * @note
+ * Algorithm:
+ *  - Reads pre-configured list of MAC/MTL configuration registers
+ *    and compares with last written value for any modifications.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @pre
+ *  - MAC has to be out of reset.
+ *  - osi_hw_dma_init has to be called. Internally this would initialize
+ *    the safety_config (see osi_dma_priv_data) based on MAC version and
+ *    which specific registers needs to be validated periodically.
+ *  - Invoke this call if (osi_dma_priv_data->safety_config != OSI_NULL)
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
+{
+	struct dma_func_safety *config =
+		(struct dma_func_safety *)osi_dma->safety_config;
+	unsigned int cur_val;
+	unsigned int i;
+
+	osi_lock_irq_enabled(&config->dma_safety_lock);
+	for (i = EQOS_DMA_CH0_CTRL_IDX; i < EQOS_MAX_DMA_SAFETY_REGS; i++) {
+		if (config->reg_addr[i] == OSI_NULL) {
+			continue;
+		}
+
+		cur_val = osi_readl((unsigned char *)config->reg_addr[i]);
+		cur_val &= config->reg_mask[i];
+
+		if (cur_val == config->reg_val[i]) {
+			continue;
+		} else {
+			/* Register content differs from what was written.
+			 * Return error and let safety manager (NVGaurd etc.)
+			 * take care of corrective action.
+			 */
+			osi_unlock_irq_enabled(&config->dma_safety_lock);
+			return -1;
+		}
+	}
+	osi_unlock_irq_enabled(&config->dma_safety_lock);
+
+	return 0;
+}
+
+/**
+ * @brief eqos_config_slot - Configure slot Checking for DMA channel
+ *
+ * @note
+ * Algorithm:
+ *  - Set/Reset the slot function of DMA channel based on given inputs
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] chan: DMA channel number to enable slot function
+ * @param[in] set: flag for set/reset with value OSI_ENABLE/OSI_DISABLE
+ * @param[in] interval: slot interval from 0usec to 4095usec
+ *
+ * @pre
+ &  - MAC should be init and started. see osi_start_mac()
+ *  - OSD should be initialized
+ *
+ * @retval none
+ */
+static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan,
+			     unsigned int set,
+			     unsigned int interval)
+{
+	unsigned int value;
+
+	CHECK_CHAN_BOUND(chan);
+
+	if (set == OSI_ENABLE) {
+		/* Program SLOT CTRL register SIV and set ESC bit */
+		value = osi_readl((unsigned char *)osi_dma->base +
+				  EQOS_DMA_CHX_SLOT_CTRL(chan));
+		value &= ~EQOS_DMA_CHX_SLOT_SIV_MASK;
+		/* remove overflow bits of interval */
+		interval &= EQOS_DMA_CHX_SLOT_SIV_MASK;
+		value |= (interval << EQOS_DMA_CHX_SLOT_SIV_SHIFT);
+		/* Set ESC bit */
+		value |= EQOS_DMA_CHX_SLOT_ESC;
+		osi_writel(value, (unsigned char *)osi_dma->base +
+			   EQOS_DMA_CHX_SLOT_CTRL(chan));
+
+	} else {
+		/* Clear ESC bit of SLOT CTRL register */
+		value = osi_readl((unsigned char *)osi_dma->base +
+				  EQOS_DMA_CHX_SLOT_CTRL(chan));
+		value &= ~EQOS_DMA_CHX_SLOT_ESC;
+		osi_writel(value, (unsigned char *)osi_dma->base +
+			   EQOS_DMA_CHX_SLOT_CTRL(chan));
+	}
+}
+#endif /* !OSI_STRIPPED_LIB */
+
 /**
  * @brief eqos_get_global_dma_status - Gets DMA status.
  *
@@ -885,8 +875,10 @@ static struct osi_dma_chan_ops eqos_dma_chan_ops = {
 	.stop_dma = eqos_stop_dma,
 	.init_dma_channel = eqos_init_dma_channel,
 	.set_rx_buf_len = eqos_set_rx_buf_len,
+#ifndef OSI_STRIPPED_LIB
 	.validate_regs = eqos_validate_dma_regs,
 	.config_slot = eqos_config_slot,
+#endif /* !OSI_STRIPPED_LIB */
 	.get_global_dma_status = eqos_get_global_dma_status,
 	.clear_vm_tx_intr = eqos_clear_vm_tx_intr,
 	.clear_vm_rx_intr = eqos_clear_vm_rx_intr,
