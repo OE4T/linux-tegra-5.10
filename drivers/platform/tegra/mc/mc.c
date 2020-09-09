@@ -136,7 +136,11 @@ EXPORT_SYMBOL(mc_get_carveout_info);
  */
 unsigned long tegra_emc_bw_to_freq_req(unsigned long bw)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,4,0)
 	return bwmgr_bw_to_freq(bw);
+#else
+	return (bw + 16 - 1) / 16;
+#endif
 }
 EXPORT_SYMBOL_GPL(tegra_emc_bw_to_freq_req);
 
@@ -151,7 +155,11 @@ EXPORT_SYMBOL_GPL(tegra_emc_bw_to_freq_req);
  */
 unsigned long tegra_emc_freq_req_to_bw(unsigned long freq)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,4,0)
 	return bwmgr_freq_to_bw(freq);
+#else
+	return freq * 16;
+#endif
 }
 EXPORT_SYMBOL_GPL(tegra_emc_freq_req_to_bw);
 
