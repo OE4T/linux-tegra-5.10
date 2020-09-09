@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,10 +45,13 @@ void osd_udelay(unsigned long usec);
 /**
  * @brief osd_receive_packet - Handover received packet to network stack.
  *
+ * @note
  * Algorithm:
- *	  1) Unmap the DMA buffer address (not needed if buffers are allocated statically).
- *	  2) Refill the Rx ring based on threshold.
- *	  3) Consume the flag information and take decision to hand over the packet and related information to OS network stack.
+ *  - Unmap the DMA buffer address (not needed if buffers are
+ *    allocated statically).
+ *  - Refill the Rx ring based on threshold.
+ *  - Consume the flag information and take decision to hand over the packet
+ *    and related information to OS network stack.
  *
  * @param[in] priv: OSD private data structure.
  * @param[in] rxring: Pointer to DMA channel Rx ring.
@@ -57,7 +60,7 @@ void osd_udelay(unsigned long usec);
  * @param[in] rxpkt_cx: Received packet context.
  * @param[in] rx_pkt_swcx: Received packet sw context.
  *
- * @note Rx completion need to make sure that Rx descriptors processed properly.
+ * @pre Rx completion need to make sure that Rx descriptors processed properly.
  */
 void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 			unsigned int dma_buf_len, void *rxpkt_cx,
@@ -66,24 +69,26 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 /**
  * @brief osd_transmit_complete - Transmit completion routine.
  *
+ * @note
  * Algorithm:
- *	  1) Unmap and free the buffer DMA address and buffer (not needed if buffers are allocated statically).
- *	  2) Time stamp will be updated to stack if available.
+ *  - Unmap and free the buffer DMA address and buffer (not needed if buffers
+ *    are allocated statically).
+ *  - Time stamp will be updated to stack if available.
  *
  * @param[in] priv: OSD private data structure.
  * @param[in] buffer: Buffer address to free.
  * @param[in] dmaaddr: DMA address to unmap.
  * @param[in] len: Length of data.
  * @param[in] txdone_pkt_cx: Pointer to struct which has tx done status info.
- *		This struct has flags to indicate tx error, whether DMA address
- *		is mapped from paged/linear buffer, Time stamp availability,
- *		if TS available txdone_pkt_cx->ns stores the time stamp.
- *		Below are the valid bit maps set for txdone_pkt_cx->flags
- *		OSI_TXDONE_CX_PAGED_BUF         OSI_BIT(0)
- *		OSI_TXDONE_CX_ERROR             OSI_BIT(1)
- *		OSI_TXDONE_CX_TS                OSI_BIT(2)
+ *            This struct has flags to indicate tx error, whether DMA address
+ *            is mapped from paged/linear buffer, Time stamp availability,
+ *            if TS available txdone_pkt_cx->ns stores the time stamp.
+ *            Below are the valid bit maps set for txdone_pkt_cx->flags
+ *             OSI_TXDONE_CX_PAGED_BUF         OSI_BIT(0)
+ *             OSI_TXDONE_CX_ERROR             OSI_BIT(1)
+ *             OSI_TXDONE_CX_TS                OSI_BIT(2)
  *
- * @note Tx completion need to make sure that Tx descriptors processed properly.
+ * @pre Tx completion need to make sure that Tx descriptors processed properly.
  */
 void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 			   unsigned int len, void *txdone_pkt_cx);

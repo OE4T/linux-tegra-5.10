@@ -28,14 +28,12 @@
 /**
  * @brief common_get_systime_from_mac - Get system time
  *
- * Algorithm: Gets the current system time
- *
  * @param[in] addr: Address of base register.
  * @param[in] mac: MAC HW type.
  * @param[out] sec: Value read in Seconds.
  * @param[out] nsec: Value read in Nano seconds.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be init and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -46,12 +44,10 @@ void common_get_systime_from_mac(void *addr, unsigned int mac,
 /**
  * @brief common_is_mac_enabled - Checks if MAC is enabled or not.
  *
- * Algorithm: Reads MAC register for Tx and Rx enabled bits.
- *
  * @param[in] addr: Address of base register.
  * @param[in] mac: MAC HW type.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be init and started. see osi_start_mac()
  *
  * @retval OSI_ENABLE if MAC enabled.
  * @retval OSI_DISABLE otherwise.

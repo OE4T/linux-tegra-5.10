@@ -138,15 +138,17 @@ void osi_memset(void *s, unsigned int c, unsigned long count)
 /**
  *@brief div_u64_rem - updates remainder and returns Quotient
  *
- * Algorithm: Dividend will be divided by divisor and stores the
- *	 remainder value and returns quotient
+ * @note
+ * Algorithm:
+ *  - Dividend will be divided by divisor and stores the
+ *    remainder value and returns quotient
  *
  * @param[in] dividend: Dividend value
  * @param[in] divisor: Divisor value
  * @param[out] remain: Remainder
  *
- * @note MAC IP should be out of reset and need to be initialized as the
- *	 requirements
+ * @pre MAC IP should be out of reset and need to be initialized as the
+ *      requirements
  *
  * @returns Quotient
  */

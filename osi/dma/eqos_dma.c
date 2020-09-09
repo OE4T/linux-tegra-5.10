@@ -32,19 +32,20 @@ static struct dma_func_safety eqos_dma_safety_config;
 /**
  * @brief Write to safety critical register.
  *
+ * @note
  * Algorithm:
- *	1) Acquire RW lock, so that eqos_validate_dma_regs does not run while
- *	updating the safety critical register.
- *	2) call osi_writel() to actually update the memory mapped register.
- *	3) Store the same value in eqos_dma_safety_config->reg_val[idx], so that
- *	this latest value will be compared when eqos_validate_dma_regs is
- *	scheduled.
+ *  - Acquire RW lock, so that eqos_validate_dma_regs does not run while
+ *    updating the safety critical register.
+ *  - call osi_writel() to actually update the memory mapped register.
+ *  - Store the same value in eqos_dma_safety_config->reg_val[idx], so that
+ *    this latest value will be compared when eqos_validate_dma_regs is
+ *    scheduled.
  *
  * @param[in] val: Value to be written.
  * @param[in] addr: memory mapped register address to be written to.
  * @param[in] idx: Index of register corresponding to enum func_safety_dma_regs.
  *
- * @note MAC has to be out of reset, and clocks supplied.
+ * @pre MAC has to be out of reset, and clocks supplied.
  */
 static inline void eqos_dma_safety_writel(unsigned int val, void *addr,
 					  unsigned int idx)
@@ -62,12 +63,14 @@ static inline void eqos_dma_safety_writel(unsigned int val, void *addr,
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
- * Algorithm: Populate the list of safety critical registers and provide
- *	1) the address of the register
- *	2) Register mask (to ignore reserved/self-critical bits in the reg).
- *	See eqos_validate_dma_regs which can be ivoked periodically to compare
- *	the last written value to this register vs the actual value read when
- *	eqos_validate_dma_regs is scheduled.
+ * @note
+ * Algorithm:
+ *  - Populate the list of safety critical registers and provide
+ *  - the address of the register
+ *  - Register mask (to ignore reserved/self-critical bits in the reg).
+ *    See eqos_validate_dma_regs which can be ivoked periodically to compare
+ *    the last written value to this register vs the actual value read when
+ *    eqos_validate_dma_regs is scheduled.
  */
 static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 {
@@ -128,17 +131,19 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 /**
  * @brief Read-validate HW registers for functional safety.
  *
- * Algorithm: Reads pre-configured list of MAC/MTL configuration registers
- *	and compares with last written value for any modifications.
+ * @note
+ * Algorithm:
+ *  - Reads pre-configured list of MAC/MTL configuration registers
+ *    and compares with last written value for any modifications.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
- * @note
- *	1) MAC has to be out of reset.
- *	2) osi_hw_dma_init has to be called. Internally this would initialize
- *	the safety_config (see osi_dma_priv_data) based on MAC version and
- *	which specific registers needs to be validated periodically.
- *	3) Invoke this call iff (osi_dma_priv_data->safety_config != OSI_NULL)
+ * @pre
+ *  - MAC has to be out of reset.
+ *  - osi_hw_dma_init has to be called. Internally this would initialize
+ *    the safety_config (see osi_dma_priv_data) based on MAC version and
+ *    which specific registers needs to be validated periodically.
+ *  - Invoke this call iff (osi_dma_priv_data->safety_config != OSI_NULL)
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -191,13 +196,14 @@ static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
  * @brief eqos_disable_chan_tx_intr - Disables DMA Tx channel interrupts.
  *
  * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ *                  memory mapped IO region of the MAC.
  * @param[in] chan: DMA Tx channel number.
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	 3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	 OSDependent layer and pass corresponding channel number.
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - Mapping of physical IRQ line to DMA channel need to be maintained at
+ *    OSDependent layer and pass corresponding channel number.
  */
 static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
 {
@@ -232,10 +238,11 @@ static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Tx channel number.
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	 3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	 OSDependent layer and pass corresponding channel number.
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - Mapping of physical IRQ line to DMA channel need to be maintained at
+ *    OSDependent layer and pass corresponding channel number.
  */
 static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
 {
@@ -257,10 +264,11 @@ static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Rx channel number.
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	 3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	 OSDependent layer and pass corresponding channel number.
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - Mapping of physical IRQ line to DMA channel need to be maintained at
+ *    OSDependent layer and pass corresponding channel number.
  */
 static void eqos_disable_chan_rx_intr(void *addr, unsigned int chan)
 {
@@ -295,8 +303,9 @@ static void eqos_disable_chan_rx_intr(void *addr, unsigned int chan)
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Rx channel number.
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  */
 static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
 {
@@ -314,7 +323,9 @@ static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
 /**
  * @brief eqos_set_tx_ring_len - Set DMA Tx ring length.
  *
- * Algorithm: Set DMA Tx channel ring length for specific channel.
+ * @note
+ * Algorithm:
+ *  - Set DMA Tx channel ring length for specific channel.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
@@ -333,7 +344,9 @@ static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
 /**
  * @brief eqos_set_tx_ring_start_addr - Set DMA Tx ring base address.
  *
- * Algorithm: Sets DMA Tx ring base address for specific channel.
+ * @note
+ * Algorithm:
+ *  - Sets DMA Tx ring base address for specific channel.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
@@ -363,7 +376,9 @@ static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
 /**
  * @brief eqos_update_tx_tailptr - Updates DMA Tx ring tail pointer.
  *
- * Algorithm: Updates DMA Tx ring tail pointer for specific channel.
+ * @note
+ * Algorithm:
+ *  - Updates DMA Tx ring tail pointer for specific channel.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
@@ -371,8 +386,9 @@ static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
  * @param[in] tailptr: DMA Tx ring tail pointer.
  *
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  */
 static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
 				   unsigned long tailptr)
@@ -391,7 +407,9 @@ static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
 /**
  * @brief eqos_set_rx_ring_len - Set Rx channel ring length.
  *
- * Algorithm: Sets DMA Rx channel ring length for specific DMA channel.
+ * @note
+ * Algorithm:
+ *  - Sets DMA Rx channel ring length for specific DMA channel.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
@@ -410,7 +428,9 @@ static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
 /**
  * @brief eqos_set_rx_ring_start_addr - Set DMA Rx ring base address.
  *
- * Algorithm: Sets DMA Rx channel ring base address.
+ * @note
+ * Algorithm:
+ *  - Sets DMA Rx channel ring base address.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
@@ -440,15 +460,18 @@ static void eqos_set_rx_ring_start_addr(void *addr, unsigned int chan,
 /**
  * @brief eqos_update_rx_tailptr - Update Rx ring tail pointer
  *
- * Algorithm: Updates DMA Rx channel tail pointer for specific channel.
+ * @note
+ * Algorithm:
+ *  - Updates DMA Rx channel tail pointer for specific channel.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Rx channel number.
  * @param[in] tailptr: Tail pointer
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  */
 static void eqos_update_rx_tailptr(void *addr, unsigned int chan,
 				   unsigned long tailptr)
@@ -467,14 +490,17 @@ static void eqos_update_rx_tailptr(void *addr, unsigned int chan,
 /**
  * @brief eqos_start_dma - Start DMA.
  *
- * Algorithm: Start Tx and Rx DMA for specific channel.
+ * @note
+ * Algorithm:
+ *  - Start Tx and Rx DMA for specific channel.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Tx/Rx channel number.
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  */
 static void eqos_start_dma(void *addr, unsigned int chan)
 {
@@ -500,14 +526,17 @@ static void eqos_start_dma(void *addr, unsigned int chan)
 /**
  * @brief eqos_stop_dma - Stop DMA.
  *
- * Algorithm: Start Tx and Rx DMA for specific channel.
+ * @note
+ * Algorithm:
+ *  - Start Tx and Rx DMA for specific channel.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Tx/Rx channel number.
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  */
 static void eqos_stop_dma(void *addr, unsigned int chan)
 {
@@ -533,15 +562,18 @@ static void eqos_stop_dma(void *addr, unsigned int chan)
 /**
  * @brief eqos_config_slot - Configure slot Checking for DMA channel
  *
- * Algorithm: Set/Reset the slot function of DMA channel based on given inputs
+ * @note
+ * Algorithm:
+ *  - Set/Reset the slot function of DMA channel based on given inputs
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: DMA channel number to enable slot function
  * @param[in] set: flag for set/reset with value OSI_ENABLE/OSI_DISABLE
  * @param[in] interval: slot interval from 0usec to 4095usec
  *
- * @note 1)MAC should be init and started. see osi_start_mac()
- *	 2)OSD should be initialized
+ * @pre
+ &  - MAC should be init and started. see osi_start_mac()
+ *  - OSD should be initialized
  *
  * @retval none
  */
@@ -580,18 +612,20 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief eqos_configure_dma_channel - Configure DMA channel
  *
- * Algorithm: This takes care of configuring the  below
- *	parameters for the DMA channel
- *	1) Enabling DMA channel interrupts
- *	2) Enable 8xPBL mode
- *	3) Program Tx, Rx PBL
- *	4) Enable TSO if HW supports
- *	5) Program Rx Watchdog timer
+ * @note
+ * Algorithm:
+ *  - This takes care of configuring the  below
+ *    parameters for the DMA channel
+ *   - Enabling DMA channel interrupts
+ *   - Enable 8xPBL mode
+ *   - Program Tx, Rx PBL
+ *   - Enable TSO if HW supports
+ *   - Program Rx Watchdog timer
  *
  * @param[in] chan: DMA channel number that need to be configured.
  * @param[in] osi_dma: OSI DMA private data structure.
  *
- * @note MAC has to be out of reset.
+ * @pre MAC has to be out of reset.
  */
 static void eqos_configure_dma_channel(unsigned int chan,
 				       struct osi_dma_priv_data *osi_dma)
@@ -744,13 +778,14 @@ static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 
 /**
  * @brief eqos_set_rx_buf_len - Set Rx buffer length
- *	  Sets the Rx buffer length based on the new MTU size set.
+ *        Sets the Rx buffer length based on the new MTU size set.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
- * @note 1) MAC needs to be out of reset and proper clocks need to be configured
- *	 2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	 3) osi_dma->mtu need to be filled with current MTU size <= 9K
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - osi_dma->mtu need to be filled with current MTU size <= 9K
  */
 static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {

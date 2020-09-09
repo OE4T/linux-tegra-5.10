@@ -358,7 +358,7 @@ int osi_l2_filter(struct osi_core_priv_data *const osi_core,
  * @param[in] dma_routing_enable: dma routing enable (1) or disable (0)
  * @param[in] dma_chan: dma channel
  *
- * @note MAC needs to be out of reset and proper clock configured.
+ * @pre MAC needs to be out of reset and proper clock configured.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
@@ -411,7 +411,7 @@ static inline int helper_l4_filter(
  * @param[in] dma_routing_enable: dma routing enable (1) or disable (0)
  * @param[in] dma_chan: dma channel
  *
- * @note MAC needs to be out of reset and proper clock configured.
+ * @pre MAC needs to be out of reset and proper clock configured.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
@@ -580,15 +580,17 @@ int osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
 /**
  *@brief div_u64_rem - updates remainder and returns Quotient
  *
- * Algorithm: Dividend will be divided by divisor and stores the
- *	 remainder value and returns quotient
+ * @note
+ * Algorithm:
+ *  - Dividend will be divided by divisor and stores the
+ *    remainder value and returns quotient
  *
  * @param[in] dividend: Dividend value
  * @param[in] divisor: Divisor value
  * @param[out] remain: Remainder
  *
- * @note MAC IP should be out of reset and need to be initialized as the
- *	 requirements
+ * @pre MAC IP should be out of reset and need to be initialized as the
+ *      requirements
  *
  * @returns Quotient
  */
@@ -613,8 +615,8 @@ static inline unsigned long div_u64_rem(unsigned long dividend,
  * @param[in] dividend: Dividend
  * @param[in] divisor: Divisor
  *
- * @note MAC IP should be out of reset and need to be initialized as the
- *	requirements.
+ * @pre MAC IP should be out of reset and need to be initialized as the
+ *      requirements.
  *
  * @returns Quotient
  */

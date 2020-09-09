@@ -470,17 +470,36 @@ struct osi_dma_priv_data {
 /**
  * @brief - Read-validate HW registers for func safety.
  *
- * Algorithm: Reads pre-configured list of DMA configuration registers
- *	and compares with last written value for any modifications.
+ * @note
+ * Algorithm:
+ *  - Reads pre-configured list of DMA configuration registers
+ *    and compares with last written value for any modifications.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
+ * @pre
+ *  - MAC has to be out of reset.
+ *  - osi_hw_dma_init has to be called. Internally this would initialize
+ *    the safety_config (see osi_dma_priv_data) based on MAC version and
+ *    which specific registers needs to be validated periodically.
+ *  - Invoke this call iff (osi_dma_priv_data->safety_config != OSI_NULL)
+ *
  * @note
- *	1) MAC has to be out of reset.
- *	2) osi_hw_dma_init has to be called. Internally this would initialize
- *	the safety_config (see osi_dma_priv_data) based on MAC version and
- *	which specific registers needs to be validated periodically.
- *	3) Invoke this call iff (osi_dma_priv_data->safety_config != OSI_NULL)
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_016
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -490,16 +509,35 @@ int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_disable_chan_tx_intr - Disables DMA Tx channel interrupts.
  *
- * Algorithm: Disables Tx interrupts at wrapper level.
+ * @note
+ * Algorithm:
+ *  - Disables Tx interrupts at wrapper level.
  *
  * @param[in] osi_dma: DMA private data.
  * @param[in] chan: DMA Tx channel number.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - Mapping of physical IRQ line to DMA channel need to be maintained at
+ *    OS Dependent layer and pass corresponding channel number.
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	OS Dependent layer and pass corresponding channel number.
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_001
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -510,16 +548,35 @@ int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief osi_enable_chan_tx_intr - Enable DMA Tx channel interrupts.
  *
- * Algorithm: Enables Tx interrupts at wrapper level.
+ * @note
+ * Algorithm:
+ *  - Enables Tx interrupts at wrapper level.
  *
  * @param[in] osi_dma: DMA private data.
  * @param[in] chan: DMA Tx channel number.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - Mapping of physical IRQ line to DMA channel need to be maintained at
+ *    OS Dependent layer and pass corresponding channel number.
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	OS Dependent layer and pass corresponding channel number.
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_002
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -530,16 +587,35 @@ int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief osi_disable_chan_rx_intr - Disable DMA Rx channel interrupts.
  *
- * Algorithm: Disables Rx interrupts at wrapper level.
+ * @note
+ * Algorithm:
+ *  - Disables Rx interrupts at wrapper level.
  *
  * @param[in] osi_dma: DMA private data.
  * @param[in] chan: DMA rx channel number.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - Mapping of physical IRQ line to DMA channel need to be maintained at
+ *    OS Dependent layer and pass corresponding channel number.
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	OS Dependent layer and pass corresponding channel number.
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_003
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -550,16 +626,35 @@ int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief osi_enable_chan_rx_intr - Enable DMA Rx channel interrupts.
  *
- * Algorithm: Enables Rx interrupts at wrapper level.
+ * @note
+ * Algorithm:
+ *  - Enables Rx interrupts at wrapper level.
  *
  * @param[in] osi_dma: DMA private data.
  * @param[in] chan: DMA rx channel number.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - Mapping of physical IRQ line to DMA channel need to be maintained at
+ *    OS Dependent layer and pass corresponding channel number.
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) Mapping of physical IRQ line to DMA channel need to be maintained at
- *	OS Dependent layer and pass corresponding channel number.
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_004
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -608,14 +703,33 @@ int osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief Start DMA
  *
- * Algorithm: Start the DMA for specific MAC
+ * @note
+ * Algorithm:
+ *  - Start the DMA for specific MAC
  *
  * @param[in] osi_dma: DMA private data.
  * @param[in] chan: DMA Tx/Rx channel number
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_005
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -626,14 +740,33 @@ int osi_start_dma(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief osi_stop_dma - Stop DMA
  *
- * Algorithm: Stop the DMA for specific MAC
+ * @note
+ * Algorithm:
+ *  - Stop the DMA for specific MAC
  *
  * @param[in] osi_dma: DMA private data.
  * @param[in] chan: DMA Tx/Rx channel number
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_006
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: No
+ * - De-initialization: Yes
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -644,12 +777,29 @@ int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief osi_get_refill_rx_desc_cnt - Rx descriptors count that needs to refill
  *
- * Algorithm: subtract current index with fill (need to cleanup)
- *	  to get Rx descriptors count that needs to refill.
+ * @note
+ * Algorithm:
+ *  - subtract current index with fill (need to cleanup)
+ *    to get Rx descriptors count that needs to refill.
  *
  * @param[in] rx_ring: DMA channel Rx ring.
  *
- * @note None.
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_008
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval "Number of available free descriptors."
  */
@@ -658,16 +808,35 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
 /**
  * @brief osi_rx_dma_desc_init - DMA Rx descriptor init
  *
- * Algorithm: Initialise a Rx DMA descriptor.
+ * @note
+ * Algorithm:
+ *  - Initialise a Rx DMA descriptor.
  *
  * @param[in] osi_dma: OSI DMA private data struture.
  * @param[in] rx_ring: HW ring corresponding to Rx DMA channel.
  * @param[in] chan: Rx DMA channel number
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - rx_swcx->buf_phy_addr need to be filled with DMA mapped address
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) rx_swcx->buf_phy_addr need to be filled with DMA mapped address
- *	3) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_007
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -680,10 +849,27 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
  *
  * @param[in] osi_dma: OSI DMA private data struture.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - osi_dma->mtu need to be filled with current MTU size <= 9K
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) osi_dma->mtu need to be filled with current MTU size <= 9K
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_009
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -693,49 +879,87 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_hw_transmit - Initialize Tx DMA descriptors for a channel
  *
- * Algorithm: Initialize Transmit descriptors with DMA mappable buffers,
- *	  set OWN bit, Tx ring length and set starting address of Tx DMA channel
- *	  Tx ring base address in Tx DMA registers.
+ * @note
+ * Algorithm:
+ *  - Initialize Transmit descriptors with DMA mappable buffers,
+ *    set OWN bit, Tx ring length and set starting address of Tx DMA channel
+ *    Tx ring base address in Tx DMA registers.
  *
  * @param[in] osi: DMA private data.
  * @param[in] chan: DMA Tx channel number.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - DMA channel need to be started, see osi_start_dma
+ *  - Need to set update tx_pkt_cx->flags accordingly as per the
+ *    requirements
+ *    OSI_PKT_CX_VLAN                 OSI_BIT(0)
+ *    OSI_PKT_CX_CSUM                 OSI_BIT(1)
+ *    OSI_PKT_CX_TSO                  OSI_BIT(2)
+ *    OSI_PKT_CX_PTP                  OSI_BIT(3)
+ *  - tx_pkt_cx->desc_cnt need to be populated which holds the number
+ *    of swcx descriptors allocated for that packet
+ *  - tx_swcx structure need to be filled for per packet with the
+ *    buffer len, DMA mapped address of buffer for each descriptor
+ *    consumed by the packet
  *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) DMA channel need to be started, see osi_start_dma
- *	4) Need to set update tx_pkt_cx->flags accordingly as per the
- *	requirements
- *	OSI_PKT_CX_VLAN                 OSI_BIT(0)
- *	OSI_PKT_CX_CSUM                 OSI_BIT(1)
- *	OSI_PKT_CX_TSO                  OSI_BIT(2)
- *	OSI_PKT_CX_PTP                  OSI_BIT(3)
- *	5) tx_pkt_cx->desc_cnt need to be populated which holds the number
- *	of swcx descriptors allocated for that packet
- *	6) tx_swcx structure need to be filled for per packet with the
- *	buffer len, DMA mapped address of buffer for each descriptor
- *	consumed by the packet
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_010
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  */
 void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan);
 
 /**
  * @brief osi_process_tx_completions - Process Tx complete on DMA channel ring.
  *
- * Algorithm: This function will be invoked by OSD layer to process Tx
- *	  complete interrupt.
- *	  1) First checks whether descriptor owned by DMA or not.
- *	  2) Invokes OSD layer to release DMA address and Tx buffer which are
- *	  updated as part of transmit routine.
+ * @note
+ * Algorithm:
+ *  - This function will be invoked by OSD layer to process Tx
+ *    complete interrupt.
+ *    - First checks whether descriptor owned by DMA or not.
+ *    - Invokes OSD layer to release DMA address and Tx buffer which are
+ *      updated as part of transmit routine.
  *
  * @param[in] osi: OSI private data structure.
  * @param[in] chan: Channel number on which Tx complete need to be done.
  * @param[in] budget: Threshold for reading the packets at a time.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - DMA need to be started, see osi_start_dma
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) DMA need to be started, see osi_start_dma
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_011
+ *
+ * @note
+ * Classification:
+ * - Interrupt: Yes
+ * - Signal handler: Yes
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @returns Number of decriptors (buffers) proccessed.
  */
@@ -745,26 +969,45 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 /**
  * @brief osi_process_rx_completions - Read data from rx channel descriptors
  *
- * Algorithm: This routine will be invoked by OSD layer to get the
- *	  data from Rx descriptors and deliver the packet to the stack.
- *	  1) Checks descriptor owned by DMA or not.
- *	  2) If rx buffer is reserve buffer, reallocate receive buffer and
-	  read next descriptor.
- *	  3) Get the length from Rx descriptor
- *	  4) Invokes OSD layer to deliver the packet to network stack.
- *	  5) Re-allocate the receive buffers, populate Rx descriptor and
- *	  handover to DMA.
+ * @note
+ * Algorithm:
+ *  - This routine will be invoked by OSD layer to get the
+ *    data from Rx descriptors and deliver the packet to the stack.
+ *    - Checks descriptor owned by DMA or not.
+ *    - If rx buffer is reserve buffer, reallocate receive buffer and
+ *      read next descriptor.
+ *    - Get the length from Rx descriptor
+ *    - Invokes OSD layer to deliver the packet to network stack.
+ *    - Re-allocate the receive buffers, populate Rx descriptor and
+ *      handover to DMA.
  *
  * @param[in] osi: OSI private data structure.
  * @param[in] chan: Rx DMA channel number
  * @param[in] budget: Threshould for reading the packets at a time.
  * @param[in] more_data_avail: Pointer to more data available flag. OSI fills
- *	       this flag if more rx packets available to read(1) or not(0).
+ *         this flag if more rx packets available to read(1) or not(0).
+ *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - DMA need to be started, see osi_start_dma
  *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
- *	3) DMA need to be started, see osi_start_dma
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_012
+ *
+ * @note
+ * Classification:
+ * - Interrupt: Yes
+ * - Signal handler: Yes
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @returns Number of decriptors (buffers) proccessed.
  */
@@ -775,34 +1018,53 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 /**
  * @brief osi_hw_dma_init - Initialize DMA
  *
- * Algorithm: Takes care of initializing the tx, rx ring and descriptors
- *	  based on the number of channels selected.
+ * @note
+ * Algorithm:
+ *  - Takes care of initializing the tx, rx ring and descriptors
+ *    based on the number of channels selected.
  *
  * @param[in] osi_dma: DMA private data.
  *
  *
+ * @pre
+ *  - Allocate memory for osi_dma
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - Numer of dma channels osi_dma->num_dma_chans
+ *  - channel list osi_dma->dma_chan
+ *  - base address osi_dma->base
+ *  - allocate tx ring osi_dma->tx_ring[chan] for each channel
+ *    based on TX_DESC_CNT (256)
+ *  - allocate tx descriptors osi_dma->tx_ring[chan]->tx_desc for all
+ *    channels and dma map it.
+ *  - allocate tx sw descriptors osi_dma->tx_ring[chan]->tx_swcx for all
+ *    channels
+ *  - allocate rx ring osi_dma->rx_ring[chan] for each channel
+ *    based on RX_DESC_CNT (256)
+ *  - allocate rx descriptors osi_dma->rx_ring[chan]->rx_desc for all
+ *    channels and dma map it.
+ *  - allocate rx sw descriptors osi_dma->rx_ring[chan]->rx_swcx for all
+ *    channels
+ *  - osi_dma->use_riwt  ==> OSI_DISABLE/OSI_ENABLE
+ *  - osi_dma->rx_riwt  ===> Actual value read from DT
+ *  - osi_dma->use_rx_frames  ==> OSI_DISABLE/OSI_ENABLE
+ *  - osi_dma->rx_frames ===> Actual value read from DT
+ *
  * @note
- *	1) Allocate memory for osi_dma
- *	2) MAC needs to be out of reset and proper clocks need to be configured.
- *	3) Numer of dma channels osi_dma->num_dma_chans
- *	4) channel list osi_dma->dma_chan
- *	5) base address osi_dma->base
- *	6) allocate tx ring osi_dma->tx_ring[chan] for each channel
- *	based on TX_DESC_CNT (256)
- *	7) allocate tx descriptors osi_dma->tx_ring[chan]->tx_desc for all
- *	channels and dma map it.
- *	8) allocate tx sw descriptors osi_dma->tx_ring[chan]->tx_swcx for all
- *	channels
- *	9) allocate rx ring osi_dma->rx_ring[chan] for each channel
- *	based on RX_DESC_CNT (256)
- *	10) allocate rx descriptors osi_dma->rx_ring[chan]->rx_desc for all
- *	channels and dma map it.
- *	11) allocate rx sw descriptors osi_dma->rx_ring[chan]->rx_swcx for all
- *	channels
- *	12) osi_dma->use_riwt  ==> OSI_DISABLE/OSI_ENABLE
- *	13) osi_dma->rx_riwt  ===> Actual value read from DT
- *	14) osi_dma->use_rx_frames  ==> OSI_DISABLE/OSI_ENABLE
- *	15) osi_dma->rx_frames ===> Actual value read from DT
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_013
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -812,13 +1074,32 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_hw_dma_deinit - De initialize DMA
  *
- * Algorithm: Takes care of stopping the MAC
+ * @note
+ * Algorithm:
+ *  - Takes care of stopping the MAC
  *
  * @param[in] osi_dma: DMA private data.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_014
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: No
+ * - De-initialization: Yes
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -830,7 +1111,23 @@ int osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
  *
  * @param[in] osi_dma: DMA private data.
  *
- * @note None
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_015
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -840,14 +1137,33 @@ int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_clear_tx_pkt_err_stats - Clear tx packet error stats.
  *
- * Algorithm: This function will be invoked by OSD layer to clear the
- *	  tx stats mentioned in osi_dma->pkt_err_stats structure
+ * @note
+ * Algorithm:
+ *  - This function will be invoked by OSD layer to clear the
+ *    tx stats mentioned in osi_dma->pkt_err_stats structure
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
  * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_018
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -857,12 +1173,31 @@ int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_config_slot_function - Configure slot function
  *
- * Algorithm: Set or reset the slot function based on set input
+ * @note
+ * Algorithm:
+ *  - Set or reset the slot function based on set input
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] set: Flag to set with OSI_ENABLE and reset with OSI_DISABLE
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_017
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -873,15 +1208,17 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief osi_clear_rx_pkt_err_stats - Clear rx packet error stats.
  *
- * Algorithm: This function will be invoked by OSD layer to clear the
- *	  rx_crc_error mentioned in osi_dma->pkt_err_stats structure.
+ * @note
+ * Algorithm:
+ *  - This function will be invoked by OSD layer to clear the
+ *    rx_crc_error mentioned in osi_dma->pkt_err_stats structure.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
  *
- * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -891,15 +1228,17 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_txring_empty - Check if Txring is empty.
  *
- * Algorithm: This function will be invoked by OSD layer to check if the Tx ring
- *	is empty or still has outstanding packets to be processed for Tx done.
+ * @note
+ * Algorithm:
+ *  - This function will be invoked by OSD layer to check if the Tx ring
+ *    is empty or still has outstanding packets to be processed for Tx done.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: Channel number whose ring is to be checked.
  *
- * @note
- *	1) MAC needs to be out of reset and proper clocks need to be configured.
- *	2) DMA HW init need to be completed successfully, see osi_hw_dma_init
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
  * @retval 1 if ring is empty.
  * @retval 0 if ring has outstanding packets.
@@ -924,13 +1263,32 @@ unsigned int osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_dma_get_systime_from_mac - Get system time
  *
- * Algorithm: Gets the current system time
+ * @note
+ * Algorithm:
+ *  - Gets the current system time
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  * @param[out] sec: Value read in Seconds
  * @param[out] nsec: Value read in Nano seconds
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_019
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -943,11 +1301,30 @@ int osi_dma_get_systime_from_mac(
 /**
  * @brief osi_is_mac_enabled - Checks if MAC is enabled.
  *
- * Algorithm: Reads MAC MCR register for Tx and Rx enabled bits.
+ * @note
+ * Algorithm:
+ *  - Reads MAC MCR register for Tx and Rx enabled bits.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETCL_020
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval OSI_ENABLE if MAC enabled.
  * @retval OSI_DISABLE otherwise.
