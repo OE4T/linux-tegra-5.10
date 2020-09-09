@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,10 @@
 /**
  * @brief dma_desc_init - Initialize DMA Tx/Rx descriptors
  *
- * Algorithm: Transmit and Receive desctiptors will be initialized with
- *	required values so that MAC DMA can understand and act accordingly.
+ * @note
+ * Algorithm:
+ *  - Transmit and Receive descriptors will be initialized with
+ *    required values so that MAC DMA can understand and act accordingly.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *

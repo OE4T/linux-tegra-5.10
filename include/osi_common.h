@@ -683,7 +683,9 @@ struct osi_hw_features {
 /**
  * @brief osi_lock_init - Initialize lock to unlocked state.
  *
- * Algorithm: Set lock to unlocked state.
+ * @note
+ * Algorithm:
+ *  - Set lock to unlocked state.
  *
  * @param[in] lock - Pointer to lock to be initialized
  */
@@ -695,12 +697,15 @@ static inline void osi_lock_init(unsigned int *lock)
 /**
  * @brief osi_lock_irq_enabled - Spin lock. Busy loop till lock is acquired.
  *
- * Algorithm: Atomic compare and swap operation till lock is held.
+ * @note
+ * Algorithm:
+ *  - Atomic compare and swap operation till lock is held.
  *
  * @param[in] lock - Pointer to lock to be acquired.
  *
- * @note Does not disable irq. Do not call this API to acquire any
- *	lock that is shared between top/bottom half. It will result in deadlock.
+ * @note
+ *  - Does not disable irq. Do not call this API to acquire any
+ *    lock that is shared between top/bottom half. It will result in deadlock.
  */
 static inline void osi_lock_irq_enabled(unsigned int *lock)
 {
@@ -718,12 +723,15 @@ static inline void osi_lock_irq_enabled(unsigned int *lock)
 /**
  * @brief osi_unlock_irq_enabled - Release lock.
  *
- * Algorithm: Atomic compare and swap operation to release lock.
+ * @note
+ * Algorithm:
+ *  - Atomic compare and swap operation to release lock.
  *
  * @param[in] lock - Pointer to lock to be released.
  *
- * @note Does not disable irq. Do not call this API to release any
- *	lock that is shared between top/bottom half.
+ * @note
+ *  - Does not disable irq. Do not call this API to release any
+ *    lock that is shared between top/bottom half.
  */
 static inline void osi_unlock_irq_enabled(unsigned int *lock)
 {
@@ -738,7 +746,7 @@ static inline void osi_unlock_irq_enabled(unsigned int *lock)
  *
  * @param[in] addr: Memory mapped address.
  *
- * @note Physical address has to be memmory mapped.
+ * @pre Physical address has to be memmory mapped.
  *
  * @return Data from memory mapped register - success.
  */
@@ -753,7 +761,7 @@ static inline unsigned int osi_readl(void *addr)
  * @param[in] val:  Value to be written.
  * @param[in] addr: Memory mapped address.
  *
- * @note Physical address has to be memmory mapped.
+ * @pre Physical address has to be memmory mapped.
  */
 static inline void osi_writel(unsigned int val, void *addr)
 {
@@ -785,7 +793,9 @@ static inline int is_valid_mac_version(unsigned int mac_ver)
  * @brief osi_update_stats_counter - update value by increment passed
  *	as parameter
  *
- * Algorithm: Check for boundary and return sum
+ * @note
+ * Algorithm:
+ *  - Check for boundary and return sum
  *
  * @param[in] last_value: last value of stat counter
  * @param[in] incr: increment value
@@ -810,12 +820,31 @@ static inline unsigned long osi_update_stats_counter(unsigned long last_value,
 /**
  * @brief osi_get_mac_version - Reading MAC version
  *
- * Algorithm: Reads MAC version and check whether its valid or not.
+ * @note
+ * Algorithm:
+ *  - Reads MAC version and check whether its valid or not.
  *
  * @param[in] addr: io-remap MAC base address.
  * @param[in] mac_ver: holds mac version.
  *
- * @note MAC has to be out of reset.
+ * @pre MAC has to be out of reset.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_020
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -828,7 +857,25 @@ int osi_get_mac_version(void *addr, unsigned int *mac_ver);
  * @param[in] base: io-remap MAC base address.
  * @param[in] hw_feat: holds the supported features of the hardware.
  *
- * @note MAC has to be out of reset.
+ * @pre MAC has to be out of reset.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_021
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  */
 void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
 /**

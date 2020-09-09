@@ -34,19 +34,20 @@ static struct core_func_safety eqos_core_safety_config;
 /**
  * @brief eqos_core_safety_writel - Write to safety critical register.
  *
+ * @note
  * Algorithm:
- *	1) Acquire RW lock, so that eqos_validate_core_regs does not run while
- *	updating the safety critical register.
- *	2) call osi_writel() to actually update the memory mapped register.
- *	3) Store the same value in eqos_core_safety_config->reg_val[idx],
- *	so that this latest value will be compared when eqos_validate_core_regs
- *	is scheduled.
+ *  - Acquire RW lock, so that eqos_validate_core_regs does not run while
+ *    updating the safety critical register.
+ *  - call osi_writel() to actually update the memory mapped register.
+ *  - Store the same value in eqos_core_safety_config->reg_val[idx],
+ *    so that this latest value will be compared when eqos_validate_core_regs
+ *    is scheduled.
  *
  * @param[in] val: Value to be written.
  * @param[in] addr: memory mapped register address to be written to.
  * @param[in] idx: Index of register corresponding to enum func_safety_core_regs.
  *
- * @note MAC has to be out of reset, and clocks supplied.
+ * @pre MAC has to be out of reset, and clocks supplied.
  */
 static inline void eqos_core_safety_writel(unsigned int val, void *addr,
 					  unsigned int idx)
@@ -62,12 +63,14 @@ static inline void eqos_core_safety_writel(unsigned int val, void *addr,
 /**
  * @brief Initialize the eqos_core_safety_config.
  *
- * Algorithm: Populate the list of safety critical registers and provide
- *	1) the address of the register
- *	2) Register mask (to ignore reserved/self-critical bits in the reg).
- *	See eqos_validate_core_regs which can be ivoked periodically to compare
- *	the last written value to this register vs the actual value read when
- *	eqos_validate_core_regs is scheduled.
+ * @note
+ * Algorithm:
+ *  - Populate the list of safety critical registers and provide
+ *    the address of the register
+ *  - Register mask (to ignore reserved/self-critical bits in the reg).
+ *    See eqos_validate_core_regs which can be ivoked periodically to compare
+ *    the last written value to this register vs the actual value read when
+ *    eqos_validate_core_regs is scheduled.
  *
  * @param[in] osi_core: OSI core private data structure.
  */
@@ -176,8 +179,10 @@ static void eqos_core_safety_init(struct osi_core_priv_data *const osi_core)
 /**
  * @brief Initialize the OSI core private data backup config array
  *
- * Algorithm: Populate the list of core registers to be saved during suspend.
- *	Fill the address of each register in structure.
+ * @note
+ * Algorithm:
+ *  - Populate the list of core registers to be saved during suspend.
+ *    Fill the address of each register in structure.
  *
  * @param[in] osi_core: OSI core private data structure.
  *
@@ -292,17 +297,19 @@ static void eqos_core_backup_init(struct osi_core_priv_data *const osi_core)
 /**
  * @brief Read-validate HW registers for functional safety.
  *
- * Algorithm: Reads pre-configured list of MAC/MTL configuration registers
- *	and compares with last written value for any modifications.
+ * @note
+ * Algorithm:
+ *  - Reads pre-configured list of MAC/MTL configuration registers
+ *    and compares with last written value for any modifications.
  *
  * @param[in] osi_core: OSI core private data structure.
  *
- * @note
- *	1) MAC has to be out of reset.
- *	2) osi_hw_core_init has to be called. Internally this would initialize
- *	the safety_config (see osi_core_priv_data) based on MAC version and
- *	which specific registers needs to be validated periodically.
- *	3) Invoke this call iff (osi_core_priv_data->safety_config != OSI_NULL)
+ * @pre
+ *  - MAC has to be out of reset.
+ *  - osi_hw_core_init has to be called. Internally this would initialize
+ *    the safety_config (see osi_core_priv_data) based on MAC version and
+ *    which specific registers needs to be validated periodically.
+ *  - Invoke this call iff (osi_core_priv_data->safety_config != OSI_NULL)
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -359,7 +366,7 @@ static int eqos_validate_core_regs(struct osi_core_priv_data *const osi_core)
  * 	      memory mapped IO region of the MAC.
  * @param[in] flw_ctrl: flw_ctrl settings
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -421,15 +428,17 @@ static int eqos_config_flow_control(void *addr,
 /**
  * @brief eqos_config_rx_crc_check - Configure CRC Checking for Rx Packets
  *
- * Algorithm: When this bit is set, the MAC receiver does not check the CRC
- *	field in the received packets. When this bit is reset, the MAC receiver
- *	always checks the CRC field in the received packets.
+ * @note
+ * Algorithm:
+ *  - When this bit is set, the MAC receiver does not check the CRC
+ *    field in the received packets. When this bit is reset, the MAC receiver
+ *    always checks the CRC field in the received packets.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] crc_chk: Enable or disable checking of CRC field in received pkts
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  * 
  * @retval 0 on success
  * @retval -1 on failure.
@@ -467,17 +476,19 @@ static int eqos_config_rx_crc_check(void *addr,
 /**
  * @brief eqos_config_fw_err_pkts - Configure forwarding of error packets
  *
- * Algorithm: When this bit is reset, the Rx queue drops packets with
- *	  error status (CRC error, GMII_ER, watchdog timeout, or overflow).
- *	  When this bit is set, all packets except the runt error packets
- *	  are forwarded to the application or DMA.
+ * @note
+ * Algorithm:
+ *  - When this bit is reset, the Rx queue drops packets with
+ *    error status (CRC error, GMII_ER, watchdog timeout, or overflow).
+ *    When this bit is set, all packets except the runt error packets
+ *    are forwarded to the application or DMA.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] qinx: Q index
  * @param[in] fw_err: Enable or Disable the forwarding of error packets
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -525,16 +536,18 @@ static int eqos_config_fw_err_pkts(void *addr,
 /**
  * @brief eqos_config_tx_status - Configure MAC to forward the tx pkt status
  *
- * Algorithm: When DTXSTS bit is reset, the Tx packet status received
- *	  from the MAC is forwarded to the application.
- *	  When DTXSTS bit is set, the Tx packet status received from the MAC
- *	  are dropped in MTL.
+ * @note
+ * Algorithm:
+ *  - When DTXSTS bit is reset, the Tx packet status received
+ *    from the MAC is forwarded to the application.
+ *    When DTXSTS bit is set, the Tx packet status received from the MAC
+ *    are dropped in MTL.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] tx_status: Enable or Disable the forwarding of tx pkt status
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -581,7 +594,7 @@ static int eqos_config_tx_status(void *addr,
  * 	      memory mapped IO region of the MAC.
  * @param[in] lb_mode: Enable or Disable MAC loopback mode
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -630,13 +643,15 @@ static int eqos_config_mac_loopback(void *addr,
 /**
  * @brief eqos_poll_for_swr - Poll for software reset (SWR bit in DMA Mode)
  *
- * Algorithm: CAR reset will be issued through MAC reset pin.
- *	  Waits for SWR reset to be cleared in DMA Mode register.
+ * @note
+ * Algorithm:
+ *  - CAR reset will be issued through MAC reset pin.
+ *    Waits for SWR reset to be cleared in DMA Mode register.
  *
  * @param[in] addr: EQOS virtual base address.
  * @param[in] pre_si: Sets whether platform is Pre-silicon or not.
  *
- * @note MAC needs to be out of reset and proper clock configured.
+ * @pre MAC needs to be out of reset and proper clock configured.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -677,14 +692,16 @@ static int eqos_poll_for_swr(void *addr, unsigned int pre_si)
 /**
  * @brief eqos_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk
  *
- * Algorithm: MDC clock rate will be polulated OSI core private data structure
- *	  based on AXI_CBB clock rate.
+ * @note
+ * Algorithm:
+ *  - MDC clock rate will be polulated OSI core private data structure
+ *    based on AXI_CBB clock rate.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] csr_clk_rate: CSR (AXI CBB) clock rate.
  *
- * @note OSD layer needs get the AXI CBB clock rate with OSD clock API
- *	 (ex - clk_get_rate())
+ * @pre OSD layer needs get the AXI CBB clock rate with OSD clock API
+ *   (ex - clk_get_rate())
  */
 static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 				  const unsigned long csr_clk_rate)
@@ -720,13 +737,15 @@ static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 /**
  * @brief eqos_set_speed - Set operating speed
  *
- * Algorithm: Based on the speed (10/100/1000Mbps) MAC will be configured
- *	  accordingly.
+ * @note
+ * Algorithm:
+ *  - Based on the speed (10/100/1000Mbps) MAC will be configured
+ *    accordingly.
  *
  * @param[in] base: EQOS virtual base address.
  * @param[in] speed:	Operating speed.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  */
 static void eqos_set_speed(void *base, const int speed)
 {
@@ -759,13 +778,15 @@ static void eqos_set_speed(void *base, const int speed)
 /**
  * @brief eqos_set_mode - Set operating mode
  *
- * Algorithm: Based on the mode (HALF/FULL Duplex) MAC will be configured
- *	  accordingly.
+ * @note
+ * Algorithm:
+ *  - Based on the mode (HALF/FULL Duplex) MAC will be configured
+ *    accordingly.
  *
  * @param[in] base: EQOS virtual base address
  * @param[in] mode:	Operating mode.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  */
 static void eqos_set_mode(void *base, const int mode)
 {
@@ -790,14 +811,16 @@ static void eqos_set_mode(void *base, const int mode)
 /**
  * @brief eqos_calculate_per_queue_fifo - Calculate per queue FIFO size
  *
- * Algorithm: Total Tx/Rx FIFO size which is read from
- *	MAC HW is being shared equally among the queues that are
- *	configured.
+ * @note
+ * Algorithm:
+ *  - Total Tx/Rx FIFO size which is read from
+ *    MAC HW is being shared equally among the queues that are
+ *    configured.
  *
  * @param[in] fifo_size: Total Tx/RX HW FIFO size.
  * @param[in] queue_count: Total number of Queues configured.
  *
- * @note MAC has to be out of reset.
+ * @pre MAC has to be out of reset.
  *
  * @retval Queue size that need to be programmed.
  */
@@ -886,20 +909,22 @@ static unsigned int eqos_calculate_per_queue_fifo(unsigned int fifo_size,
 /**
  * @brief eqos_pad_calibrate - PAD calibration
  *
+ * @note
  * Algorithm:
- *	1) Set field PAD_E_INPUT_OR_E_PWRD in reg ETHER_QOS_SDMEMCOMPPADCTRL_0
- *	2) Delay for 1 usec.
- *	3)Set AUTO_CAL_ENABLE and AUTO_CAL_START in reg
- *	ETHER_QOS_AUTO_CAL_CONFIG_0
- *	4) Wait on AUTO_CAL_ACTIVE until it is 0
- *	5) Re-program the value PAD_E_INPUT_OR_E_PWRD in
- *	ETHER_QOS_SDMEMCOMPPADCTRL_0 to save power
+ *  - Set field PAD_E_INPUT_OR_E_PWRD in reg ETHER_QOS_SDMEMCOMPPADCTRL_0
+ *  - Delay for 1 usec.
+ *  - Set AUTO_CAL_ENABLE and AUTO_CAL_START in reg
+ *    ETHER_QOS_AUTO_CAL_CONFIG_0
+ *  - Wait on AUTO_CAL_ACTIVE until it is 0
+ *  - Re-program the value PAD_E_INPUT_OR_E_PWRD in
+ *    ETHER_QOS_SDMEMCOMPPADCTRL_0 to save power
  *
  * @param[in] ioaddr:	Base address of the MAC HW.
  *
- * @note 1) MAC should out of reset and clocks enabled.
- *	 2) RGMII and MDIO interface needs to be IDLE before performing PAD
- *	 calibration.
+ * @note
+ *  - MAC should out of reset and clocks enabled.
+ *  - RGMII and MDIO interface needs to be IDLE before performing PAD
+ *    calibration.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -969,9 +994,10 @@ calibration_failed:
  * @param[in] addr: OSI core private data structure.
  * @param[in] qinx: MTL queue index.
  *
- * @note 1) MAC should out of reset and clocks enabled.
- *	 2) hw core initialized. see osi_hw_core_init().
- * 
+ * @note
+ *  - MAC should out of reset and clocks enabled.
+ *  - hw core initialized. see osi_hw_core_init().
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -1019,9 +1045,11 @@ static int eqos_flush_mtl_tx_queue(void *addr,
 /**
  * @brief update_ehfc_rfa_rfd - Update EHFC, RFD and RSA values
  *
- * Algorithm: Calulates and stores the RSD (Threshold for Dectivating
- *	  Flow control) and RSA (Threshold for Activating Flow Control) values
- *	  based on the Rx FIFO size and also enables HW flow control
+ * @note
+ * Algorithm:
+ *  - Calulates and stores the RSD (Threshold for Dectivating
+ *    Flow control) and RSA (Threshold for Activating Flow Control) values
+ *    based on the Rx FIFO size and also enables HW flow control
  *
  * @param[in] rx_fifo: Rx FIFO size.
  * @param[in] value: Stores RFD and RSA values
@@ -1113,21 +1141,23 @@ void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
 /**
  * @brief eqos_configure_mtl_queue - Configure MTL Queue
  *
- * Algorithm: This takes care of configuring the  below
- *	parameters for the MTL Queue
- *	1) Mapping MTL Rx queue and DMA Rx channel
- *	2) Flush TxQ
- *	3) Enable Store and Forward mode for Tx, Rx
- *	4) Configure Tx and Rx MTL Queue sizes
- *	5) Configure TxQ weight
- *	6) Enable Rx Queues
+ * @note
+ * Algorithm:
+ *  - This takes care of configuring the  below
+ *    parameters for the MTL Queue
+ *    - Mapping MTL Rx queue and DMA Rx channel
+ *    - Flush TxQ
+ *    - Enable Store and Forward mode for Tx, Rx
+ *    - Configure Tx and Rx MTL Queue sizes
+ *    - Configure TxQ weight
+ *    - Enable Rx Queues
  *
  * @param[in] qinx:	Queue number that need to be configured.
  * @param[in] osi_core: OSI core private data.
  * @param[in] tx_fifo: MTL TX queue size for a MTL queue.
  * @param[in] rx_fifo: MTL RX queue size for a MTL queue.
- * 
- * @note MAC has to be out of reset.
+ *
+ * @pre MAC has to be out of reset.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1191,15 +1221,16 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
 /**
  * @brief eqos_config_rxcsum_offload - Enable/Disale rx checksum offload in HW
  *
+ * @note
  * Algorithm:
- *	1) Read the MAC configuration register.
- *	2) Enable the IP checksum offload engine COE in MAC receiver.
- *	3) Update the MAC configuration register.
+ *  - Read the MAC configuration register.
+ *  - Enable the IP checksum offload engine COE in MAC receiver.
+ *  - Update the MAC configuration register.
  *
  * @param[in] addr: EQOS virtual base address.
  * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1229,18 +1260,20 @@ static int eqos_config_rxcsum_offload(void *addr,
 
 /**
  * @brief eqos_configure_rxq_priority - Configure Priorities Selected in
- *	  the Receive Queue
+ *    the Receive Queue
  *
- * Algorithm: This takes care of mapping user priority to Rx queue.
- *	User provided priority mask updated to register. Valid input can have
- *	all TC(0xFF) in one queue to None(0x00) in rx queue.
- *	The software must ensure that the content of this field is mutually
- *	exclusive to the PSRQ fields for other queues, that is, the same
- *	priority is not mapped to multiple Rx queues.
+ * @note
+ * Algorithm:
+ *  - This takes care of mapping user priority to Rx queue.
+ *    User provided priority mask updated to register. Valid input can have
+ *    all TC(0xFF) in one queue to None(0x00) in rx queue.
+ *    The software must ensure that the content of this field is mutually
+ *    exclusive to the PSRQ fields for other queues, that is, the same
+ *    priority is not mapped to multiple Rx queues.
  *
  * @param[in] osi_core: OSI core private data structure.
  *
- * @note MAC has to be out of reset.
+ * @pre MAC has to be out of reset.
  */
 static void eqos_configure_rxq_priority(
 			struct osi_core_priv_data *const osi_core)
@@ -1291,18 +1324,20 @@ static void eqos_configure_rxq_priority(
 /**
  * @brief eqos_configure_mac - Configure MAC
  *
- * Algorithm: This takes care of configuring the  below
- *	parameters for the MAC
- *	1) Programming the MAC address
- *	2) Enable required MAC control fields in MCR
- *	3) Enable JE/JD/WD/GPSLCE based on the MTU size
- *	4) Enable Multicast and Broadcast Queue
- *	5) Disable MMC interrupts and Configure the MMC counters
- *	6) Enable required MAC interrupts
+ * @note
+ * Algorithm:
+ *  - This takes care of configuring the  below
+ *  parameters for the MAC
+ *    - Programming the MAC address
+ *    - Enable required MAC control fields in MCR
+ *    - Enable JE/JD/WD/GPSLCE based on the MTU size
+ *    - Enable Multicast and Broadcast Queue
+ *    - Disable MMC interrupts and Configure the MMC counters
+ *    - Enable required MAC interrupts
  *
  * @param[in] osi_core: OSI core private data structure.
  *
- * @note MAC has to be out of reset.
+ * @pre MAC has to be out of reset.
  */
 static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 {
@@ -1432,15 +1467,17 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 /**
  * @brief eqos_configure_dma - Configure DMA
  *
- * Algorithm: This takes care of configuring the  below
- *	parameters for the DMA
- *	1) Programming different burst length for the DMA
- *	2) Enable enhanced Address mode
- *	3) Programming max read outstanding request limit
+ * @note
+ * Algorithm:
+ *  - This takes care of configuring the  below
+ *  parameters for the DMA
+ *    - Programming different burst length for the DMA
+ *    - Enable enhanced Address mode
+ *    - Programming max read outstanding request limit
  *
  * @param[in] base: EQOS virtual base address.
  *
- * @note MAC has to be out of reset.
+ * @pre MAC has to be out of reset.
  */
 static void eqos_configure_dma(void *base)
 {
@@ -1468,18 +1505,21 @@ static void eqos_configure_dma(void *base)
 /**
  * @brief eqos_core_init - EQOS MAC, MTL and common DMA Initialization
  *
- * Algorithm: This function will take care of initializing MAC, MTL and
- *	common DMA registers.
+ * @note
+ * Algorithm:
+ *  - This function will take care of initializing MAC, MTL and
+ *    common DMA registers.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] tx_fifo_size: MTL TX FIFO size
  * @param[in] rx_fifo_size: MTL RX FIFO size
  *
- * @note 1) MAC should be out of reset. See osi_poll_for_mac_reset_complete()
+ * @pre
+ *  - MAC should be out of reset. See osi_poll_for_mac_reset_complete()
  *          for details.
- *	 2) osi_core->base needs to be filled based on ioremap.
- *	 3) osi_core->num_mtl_queues needs to be filled.
- *	 4) osi_core->mtl_queues[qinx] need to be filled.
+ *  - osi_core->base needs to be filled based on ioremap.
+ *  - osi_core->num_mtl_queues needs to be filled.
+ *  - osi_core->mtl_queues[qinx] need to be filled.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1564,13 +1604,15 @@ static int eqos_core_init(struct osi_core_priv_data *const osi_core,
 /**
  * @brief eqos_handle_mac_intrs - Handle MAC interrupts
  *
- * Algorithm: This function takes care of handling the
- *	MAC interrupts which includes speed, mode detection.
+ * @note
+ * Algorithm:
+ *  - This function takes care of handling the
+ *    MAC interrupts which includes speed, mode detection.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] dma_isr: DMA ISR register read value.
  *
- * @note MAC interrupts need to be enabled
+ * @pre MAC interrupts need to be enabled
  */
 static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 				  unsigned int dma_isr)
@@ -1626,7 +1668,9 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 /**
  * @brief update_dma_sr_stats - stats for dma_status error
  *
- * Algorithm: increament error stats based on corresponding bit filed.
+ * @note
+ * Algorithm:
+ *  - increment error stats based on corresponding bit filed.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] dma_sr: Dma status register read value
@@ -1673,11 +1717,13 @@ static inline void update_dma_sr_stats(
 /**
  * @brief eqos_handle_common_intr - Handles common interrupt.
  *
- * Algorithm: Clear common interrupt source.
+ * @note
+ * Algorithm:
+ *  - Clear common interrupt source.
  *
  * @param[in] osi_core: OSI core private data structure.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  */
 static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 {
@@ -1734,12 +1780,15 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 /**
  * @brief eqos_start_mac - Start MAC Tx/Rx engine
  *
- * Algorithm: Enable MAC Transmitter and Receiver
+ * @note
+ * Algorithm:
+ *  - Enable MAC Transmitter and Receiver
  *
  * @param[in] addr: EQOS virtual base address.
  *
- * @note 1) MAC init should be complete. See osi_hw_core_init() and
- *	 osi_hw_dma_init()
+ * @pre
+ *  - MAC init should be complete. See osi_hw_core_init() and
+ *    osi_hw_dma_init()
  */
 static void eqos_start_mac(void *addr)
 {
@@ -1756,11 +1805,13 @@ static void eqos_start_mac(void *addr)
 /**
  * @brief eqos_stop_mac - Stop MAC Tx/Rx engine
  *
- * Algorithm: Disables MAC Transmitter and Receiver
+ * @note
+ * Algorithm:
+ *  - Disables MAC Transmitter and Receiver
  *
  * @param[in] addr: EQOS virtual base address.
  *
- * @note MAC DMA deinit should be complete. See osi_hw_dma_deinit()
+ * @pre MAC DMA deinit should be complete. See osi_hw_dma_deinit()
  */
 static void eqos_stop_mac(void *addr)
 {
@@ -1778,22 +1829,24 @@ static void eqos_stop_mac(void *addr)
 /**
  * @brief eqos_set_avb_algorithm - Set TxQ/TC avb config
  *
+ * @note
  * Algorithm:
- *	1) Check if queue index is valid
- *	2) Update operation mode of TxQ/TC
- *	 2a) Set TxQ operation mode
- *	 2b) Set Algo and Credit contro
- *	 2c) Set Send slope credit
- *	 2d) Set Idle slope credit
- *	 2e) Set Hi credit
- *	 2f) Set low credit
- *	3) Update register values
+ *  - Check if queue index is valid
+ *  - Update operation mode of TxQ/TC
+ *   - Set TxQ operation mode
+ *   - Set Algo and Credit contro
+ *   - Set Send slope credit
+ *   - Set Idle slope credit
+ *   - Set Hi credit
+ *   - Set low credit
+ *  - Update register values
  *
  * @param[in] osi_core: osi core priv data structure
  * @param[in] avb: structure having configuration for avb algorithm
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->osd should be populated.
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1891,15 +1944,17 @@ static int eqos_set_avb_algorithm(
 
 /**
  * @brief eqos_config_l2_da_perfect_inverse_match - configure register for
- *	inverse or perfect match.
+ *  inverse or perfect match.
  *
- * Algorithm: This sequence is used to select perfect/inverse matching
- *	for L2 DA
+ * @note
+ * Algorithm:
+ *  - This sequence is used to select perfect/inverse matching
+ *    for L2 DA
  *
  * @param[in] base: Base address  from OSI core private data structure.
  * @param[in] perfect_inverse_match: 1 - inverse mode 0- perfect mode
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 always
  */
@@ -1923,14 +1978,16 @@ static inline int eqos_config_l2_da_perfect_inverse_match(void *base,
 /**
  * @brief eqos_config_mac_pkt_filter_reg - configure mac filter register.
  *
- * Algorithm: This sequence is used to configure MAC in differnet pkt
- *	processing modes like promiscuous, multicast, unicast,
- *	hash unicast/multicast.
+ * @note
+ * Algorithm:
+ *  - This sequence is used to configure MAC in differnet pkt
+ *    processing modes like promiscuous, multicast, unicast,
+ *    hash unicast/multicast.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter: OSI filter structure.
  *
- * @note 1) MAC should be initialized and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 always
  */
@@ -1991,9 +2048,11 @@ static int eqos_config_mac_pkt_filter_reg(
 /**
  * @brief eqos_update_mac_addr_helper - Function to update DCS and MBC
  *
- * Algorithm: This helper routine is to update passed prameter value
- *	based on DCS and MBC parameter. Validation of dma_chan as well as
- *	dsc_en status performed before updating DCS bits.
+ * @note
+ * Algorithm:
+ *  - This helper routine is to update passed prameter value
+ *  based on DCS and MBC parameter. Validation of dma_chan as well as
+ *  dsc_en status performed before updating DCS bits.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[out] value: unsigned int pointer which has value read from register.
@@ -2001,14 +2060,15 @@ static int eqos_config_mac_pkt_filter_reg(
  * @param[in] dma_routing_enable: dma channel routing enable(1)
  * @param[in] dma_chan: dma channel number
  * @param[in] addr_mask: filter will not consider byte in comparison
- *	      Bit 5: MAC_Address${i}_High[15:8]
- *	      Bit 4: MAC_Address${i}_High[7:0]
- *	      Bit 3: MAC_Address${i}_Low[31:24]
- *	      ..
- *	      Bit 0: MAC_Address${i}_Low[7:0]
+ *            Bit 5: MAC_Address${i}_High[15:8]
+ *            Bit 4: MAC_Address${i}_High[7:0]
+ *            Bit 3: MAC_Address${i}_Low[31:24]
+ *            ..
+ *            Bit 0: MAC_Address${i}_Low[7:0]
  *
- * @note 1) MAC should be initialized and stated. see osi_start_mac()
- *	 2) osi_core->osd should be populated.
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2061,18 +2121,21 @@ err_dma_chan:
 
 /**
  * @brief eqos_update_mac_addr_low_high_reg- Update L2 address in filter
- *	  register
+ *    register
  *
- * Algorithm: This routine update MAC address to register for filtering
- *	based on dma_routing_enable, addr_mask and src_dest. Validation of
- *	dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
- *	performed before updating DCS bits.
+ * @note
+ * Algorithm:
+ *  - This routine update MAC address to register for filtering
+ *    based on dma_routing_enable, addr_mask and src_dest. Validation of
+ *    dma_chan as well as DCS bit enabled in RXQ to DMA mapping register
+ *    performed before updating DCS bits.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter: OSI filter structure.
  *
- * @note 1) MAC should be initialized and stated. see osi_start_mac()
- *	 2) osi_core->osd should be populated.
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2143,22 +2206,24 @@ static int eqos_update_mac_addr_low_high_reg(
 /**
  * @brief eqos_get_avb_algorithm - Get TxQ/TC avb config
  *
+ * @note
  * Algorithm:
- *	1) Check if queue index is valid
- *	2) read operation mode of TxQ/TC
- *	 2a) read TxQ operation mode
- *	 2b) read Algo and Credit contro
- *	 2c) read Send slope credit
- *	 2d) read Idle slope credit
- *	 2e) read Hi credit
- *	 2f) read low credit
- *	3) updated pointer
+ *  - Check if queue index is valid
+ *  - read operation mode of TxQ/TC
+ *   - read TxQ operation mode
+ *   - read Algo and Credit contro
+ *   - read Send slope credit
+ *   - read Idle slope credit
+ *   - read Hi credit
+ *   - read low credit
+ *  - updated pointer
  *
  * @param[in] osi_core: osi core priv data structure
  * @param[out] avb: structure pointer having configuration for avb algorithm
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->osd should be populated.
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2229,21 +2294,23 @@ static int eqos_get_avb_algorithm(
 /**
  * @brief eqos_config_arp_offload - Enable/Disable ARP offload
  *
+ * @note
  * Algorithm:
- *	1) Read the MAC configuration register
- *	2) If ARP offload is to be enabled, program the IP address in
- *	ARPPA register
- *	3) Enable/disable the ARPEN bit in MCR and write back to the MCR.
+ *  - Read the MAC configuration register
+ *  - If ARP offload is to be enabled, program the IP address in
+ *    ARPPA register
+ *  - Enable/disable the ARPEN bit in MCR and write back to the MCR.
  *
  * @param[in] mac_ver: MAC version number (different MAC HW version
- *	      need different register offset/fields for ARP offload.
+ *        need different register offset/fields for ARP offload.
  * @param[in] addr: EQOS virtual base address.
  * @param[in] enable: Flag variable to enable/disable ARP offload
  * @param[in] ip_addr: IP address of device to be programmed in HW.
- *	      HW will use this IP address to respond to ARP requests.
+ *        HW will use this IP address to respond to ARP requests.
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) Valid 4 byte IP address as argument ip_addr
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - Valid 4 byte IP address as argument ip_addr
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2291,14 +2358,16 @@ static int eqos_config_arp_offload(const unsigned int mac_ver, void *addr,
 
 /**
  * @brief eqos_config_l3_l4_filter_enable - register write to enable L3/L4
- *	filters.
+ *  filters.
  *
- * Algorithm: This routine to enable/disable L4/l4 filter
+ * @note
+ * Algorithm:
+ *  - This routine to enable/disable L4/l4 filter
  *
  * @param[in] base: Base address  from OSI core private data structure.
  * @param[in] filter_enb_dis: enable/disable
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2320,15 +2389,17 @@ static int eqos_config_l3_l4_filter_enable(void *base,
 /**
  * @brief eqos_update_ip4_addr - configure register for IPV4 address filtering
  *
- * Algorithm:  This sequence is used to update IPv4 source/destination
- *	Address for L3 layer filtering
+ * @note
+ * Algorithm:
+ *  - This sequence is used to update IPv4 source/destination
+ *    Address for L3 layer filtering
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter_no: filter index
  * @param[in] addr: ipv4 address
  * @param[in] src_dst_addr_match: 0 - source addr otherwise - dest addr
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
+ * @pre 1) MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2378,14 +2449,16 @@ static int eqos_update_ip4_addr(
 /**
  * @brief eqos_update_ip6_addr - add ipv6 address in register
  *
- * Algorithm: This sequence is used to update IPv6 source/destination
- *	      Address for L3 layer filtering
+ * @note
+ * Algorithm:
+ *  - This sequence is used to update IPv6 source/destination
+ *    Address for L3 layer filtering
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter_no: filter index
  * @param[in] addr: ipv6 adderss
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2444,17 +2517,20 @@ static int eqos_update_ip6_addr(
 /**
  * @brief eqos_update_l4_port_no -program source  port no
  *
- * Algorithm: sequence is used to update Source Port Number for
- *	L4(TCP/UDP) layer filtering.
+ * @note
+ * Algorithm:
+ *  - sequence is used to update Source Port Number for
+ *    L4(TCP/UDP) layer filtering.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter_no: filter index
  * @param[in] port_no: port number
  * @param[in] src_dst_port_match: 0 - source port, otherwise - dest port
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->osd should be populated
- *	 3) DCS bits should be enabled in RXQ to DMA mapping register
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *  - DCS bits should be enabled in RXQ to DMA mapping register
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2493,19 +2569,21 @@ static int eqos_update_l4_port_no(
 /**
  * @brief eqos_set_dcs - check and update dma routing register
  *
- * Algorithm: Check for request for DCS_enable as well as validate chan
- *	number and dcs_enable is set. After validation, this sequence is used
- *	to configure L3((IPv4/IPv6) filters for address matching.
+ * @note
+ * Algorithm:
+ *  - Check for request for DCS_enable as well as validate chan
+ *    number and dcs_enable is set. After validation, this sequence is used
+ *    to configure L3((IPv4/IPv6) filters for address matching.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] value: unsigned int value for caller
  * @param[in] dma_routing_enable: filter based dma routing enable(1)
  * @param[in] dma_chan: dma channel for routing based on filter
  *
- * @note 1) MAC IP should be out of reset and need to be initialized
- *	 as the requirements.
- *	 2) DCS bit of RxQ should be enabled for dynamic channel selection
- *	    in filter support
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - DCS bit of RxQ should be enabled for dynamic channel selection
+ *    in filter support
  *
  *@return updated unsigned int value
  */
@@ -2533,13 +2611,15 @@ static inline unsigned int eqos_set_dcs(
  * @brief eqos_helper_l3l4_bitmask - helper function to set L3L4
  * bitmask.
  *
- * Algorithm: set bit corresponding to L3l4 filter index
+ * @note
+ * Algorithm:
+ *  - set bit corresponding to L3l4 filter index
  *
  * @param[in] bitmask: bit mask OSI core private data structure.
  * @param[in] filter_no: filter index
  * @param[in] value:  0 - disable  otherwise - l3/l4 filter enabled
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  */
 static inline void eqos_helper_l3l4_bitmask(unsigned int *bitmask,
@@ -2562,10 +2642,12 @@ static inline void eqos_helper_l3l4_bitmask(unsigned int *bitmask,
 /**
  * @brief eqos_config_l3_filters - config L3 filters.
  *
- * Algorithm: Check for DCS_enable as well as validate channel
- *	number and if dcs_enable is set. After validation, code flow
- *	is used to configure L3((IPv4/IPv6) filters resister
- *	for address matching.
+ * @note
+ * Algorithm:
+ *  - Check for DCS_enable as well as validate channel
+ *    number and if dcs_enable is set. After validation, code flow
+ *    is used to configure L3((IPv4/IPv6) filters resister
+ *    for address matching.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter_no: filter index
@@ -2576,10 +2658,11 @@ static inline void eqos_helper_l3l4_bitmask(unsigned int *bitmask,
  * @param[in] dma_routing_enable: filter based dma routing enable(1)
  * @param[in] dma_chan: dma channel for routing based on filter
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->osd should be populated
- *	 3) DCS bit of RxQ should be enabled for dynamic channel selection
- *	    in filter support
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *  - DCS bit of RxQ should be enabled for dynamic channel selection
+ *    in filter support
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2739,8 +2822,10 @@ static int eqos_config_l3_filters(
 /**
  * @brief eqos_config_l4_filters - Config L4 filters.
  *
- * Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
- *	SA and DA Port Number matching
+ * @note
+ * Algorithm:
+ *  - This sequence is used to configure L4(TCP/UDP) filters for
+ *    SA and DA Port Number matching
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter_no: filter index
@@ -2751,8 +2836,9 @@ static int eqos_config_l3_filters(
  * @param[in] dma_routing_enable: filter based dma routing enable(1)
  * @param[in] dma_chan: dma channel for routing based on filter
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->osd should be populated
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2854,16 +2940,19 @@ static int eqos_config_l4_filters(
 /**
  * @brief eqos_config_vlan_filter_reg - config vlan filter register
  *
- * Algorithm: This sequence is used to enable/disable VLAN filtering and
- *	also selects VLAN filtering mode- perfect/hash
+ * @note
+ * Algorithm:
+ *  - This sequence is used to enable/disable VLAN filtering and
+ *    also selects VLAN filtering mode- perfect/hash
  *
  * @param[in] osi_core: Base address  from OSI core private data structure.
  * @param[in] filter_enb_dis: vlan filter enable/disable
  * @param[in] perfect_hash_filtering: perfect or hash filter
  * @param[in] perfect_inverse_match: normal or inverse filter
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->osd should be populated
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2916,14 +3005,16 @@ static inline int eqos_update_vlan_id(void *base, unsigned int vid)
 /**
  * @brief eqos_poll_for_tsinit_complete - Poll for time stamp init complete
  *
- * Algorithm: Read TSINIT value from MAC TCR register until it is
- *	equal to zero.
+ * @note
+ * Algorithm:
+ *  - Read TSINIT value from MAC TCR register until it is
+ *    equal to zero.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] mac_tcr: Address to store time stamp control register read value
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2958,15 +3049,17 @@ static inline int eqos_poll_for_tsinit_complete(void *addr,
 /**
  * @brief eqos_set_systime - Set system time
  *
- * Algorithm: Updates system time (seconds and nano seconds)
- *	in hardware registers
+ * @note
+ * Algorithm:
+ *  - Updates system time (seconds and nano seconds)
+ *    in hardware registers
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] sec: Seconds to be configured
  * @param[in] nsec: Nano Seconds to be configured
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3006,14 +3099,16 @@ static int eqos_set_systime_to_mac(void *addr, const unsigned int sec,
 /**
  * @brief eqos_poll_for_tsinit_complete - Poll for addend value write complete
  *
- * Algorithm: Read TSADDREG value from MAC TCR register until it is
- *	equal to zero.
+ * @note
+ * Algorithm:
+ *  - Read TSADDREG value from MAC TCR register until it is
+ *    equal to zero.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] mac_tcr: Address to store time stamp control register read value
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3047,13 +3142,15 @@ static inline int eqos_poll_for_addend_complete(void *addr,
 /**
  * @brief eqos_config_addend - Configure addend
  *
- * Algorithm: Updates the Addend value in HW register
+ * @note
+ * Algorithm:
+ *  - Updates the Addend value in HW register
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] addend: Addend value to be configured
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3088,14 +3185,16 @@ static int eqos_config_addend(void *addr, const unsigned int addend)
 /**
  * @brief eqos_poll_for_update_ts_complete - Poll for update time stamp
  *
- * Algorithm: Read time stamp update value from TCR register until it is
- *	equal to zero.
+ * @note
+ * Algorithm:
+ *  - Read time stamp update value from TCR register until it is
+ *    equal to zero.
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] mac_tcr: Address to store time stamp control register read value
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3129,7 +3228,9 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
 /**
  * @brief eqos_adjust_mactime - Adjust MAC time with system time
  *
- * Algorithm: Update MAC time with system time
+ * @note
+ * Algorithm:
+ *  - Update MAC time with system time
  *
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
@@ -3138,8 +3239,9 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
  * @param[in] add_sub: To decide on add/sub with system time
  * @param[in] one_nsec_accuracy: One nano second accuracy
  *
- * @note 1) MAC should be init and started. see osi_start_mac()
- *	 2) osi_core->ptp_config.one_nsec_accuracy need to be set to 1
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->ptp_config.one_nsec_accuracy need to be set to 1
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3219,7 +3321,7 @@ static int eqos_adjust_mactime(void *addr, unsigned int sec, unsigned int nsec,
  * 	      memory mapped IO region of the MAC.
  * @param[in] ptp_filter: PTP rx filter parameters
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  */
 static void eqos_config_tscr(void *addr, const unsigned int ptp_filter)
 {
@@ -3288,7 +3390,7 @@ static void eqos_config_tscr(void *addr, const unsigned int ptp_filter)
  *
  * @param[in] osi_core: OSI core private data structure.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  */
 static void eqos_config_ssir(struct osi_core_priv_data *const osi_core)
 {
@@ -3333,11 +3435,13 @@ static void eqos_config_ssir(struct osi_core_priv_data *const osi_core)
 /**
  * @brief eqos_core_deinit - EQOS MAC core deinitialization
  *
- * Algorithm: This function will take care of deinitializing MAC
+ * @note
+ * Algorithm:
+ *  - This function will take care of deinitializing MAC
  *
  * @param[in] osi_core: OSI core private data structure.
  *
- * @note Required clks and resets has to be enabled
+ * @pre Required clks and resets has to be enabled
  */
 static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 {
@@ -3348,13 +3452,14 @@ static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 /**
  * @brief eqos_disable_tx_lpi - Helper function to disable Tx LPI.
  *
+ * @note
  * Algorithm:
- *	1) Clear the bits to enable Tx LPI, Tx LPI automate, LPI Tx Timer and
- *	PHY Link status in the LPI control/status register
+ *  - Clear the bits to enable Tx LPI, Tx LPI automate, LPI Tx Timer and
+ *    PHY Link status in the LPI control/status register
  *
  * @param[in] addr: base address of memory mapped register space of MAC.
  *
- * @note MAC has to be out of reset, and clocks supplied.
+ * @pre MAC has to be out of reset, and clocks supplied.
  */
 static inline void eqos_disable_tx_lpi(void *addr)
 {
@@ -3370,21 +3475,23 @@ static inline void eqos_disable_tx_lpi(void *addr)
 /**
  * @brief eqos_configure_eee - Configure the EEE LPI mode
  *
- * Algorithm: This routine configures EEE LPI mode in the MAC.
- * 	1) The time (in microsecond) to wait before resuming transmission after
- *	exiting from LPI,
- *	2) The time (in millisecond) to wait before LPI pattern can be
- *	transmitted after PHY link is up) are not configurable. Default values
- *	are used in this routine.
+ * @note
+ * Algorithm:
+ *  - This routine configures EEE LPI mode in the MAC.
+ *  - The time (in microsecond) to wait before resuming transmission after
+ *    exiting from LPI,
+ *  - The time (in millisecond) to wait before LPI pattern can be
+ *    transmitted after PHY link is up) are not configurable. Default values
+ *    are used in this routine.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] tx_lpi_enabled: enable (1)/disable (0) flag for Tx lpi
  * @param[in] tx_lpi_timer: Tx LPI entry timer in usec. Valid upto
- *	      OSI_MAX_TX_LPI_TIMER in steps of 8usec.
+ *            OSI_MAX_TX_LPI_TIMER in steps of 8usec.
  *
- * @note
- *	Required clks and resets has to be enabled.
- *	MAC/PHY should be initialized
+ * @pre
+ *  - Required clks and resets has to be enabled.
+ *  - MAC/PHY should be initialized
  */
 static void eqos_configure_eee(
 			       struct osi_core_priv_data *const osi_core,
@@ -3446,11 +3553,13 @@ static void eqos_configure_eee(
 	}
 }
 
-/*
+/**
  * @brief Function to store a backup of MAC register space during SOC suspend.
  *
- * Algorithm: Read registers to be backed up as per struct core_backup and
- * store the register values in memory.
+ * @note
+ * Algorithm:
+ *  - Read registers to be backed up as per struct core_backup and
+ *    store the register values in memory.
  *
  * @param[in] osi_core: OSI core private data structure.
  *
@@ -3474,8 +3583,10 @@ static inline int eqos_save_registers(
 /**
  * @brief Function to restore the backup of MAC registers during SOC resume.
  *
- * Algorithm: Restore the register values from the in memory backup taken using
- * eqos_save_registers().
+ * @note
+ * Algorithm:
+ *  - Restore the register values from the in memory backup taken using
+ *    eqos_save_registers().
  *
  * @param[in] osi_core: OSI core private data structure.
  *
@@ -3501,7 +3612,7 @@ static inline int eqos_restore_registers(
  *
  * @param[in] osi_core: OSI Core private data structure.
  *
- * @note MAC needs to be out of reset and proper clock configured.
+ * @pre MAC needs to be out of reset and proper clock configured.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
@@ -3542,22 +3653,23 @@ static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 /**
  * @brief eqos_write_phy_reg - Write to a PHY register through MAC over MDIO bus
  *
+ * @note
  * Algorithm:
- * 1) Before proceeding for reading for PHY register check whether any MII
+ *  - Before proceeding for reading for PHY register check whether any MII
  *    operation going on MDIO bus by polling MAC_GMII_BUSY bit.
- * 2) Program data into MAC MDIO data register.
- * 3) Populate required parameters like phy address, phy register etc,,
- *	in MAC MDIO Address register. write and GMII busy bits needs to be set
- *	in this operation.
- * 4) Write into MAC MDIO address register poll for GMII busy for MDIO
- *	operation to complete.
+ *  - Program data into MAC MDIO data register.
+ *  - Populate required parameters like phy address, phy register etc,,
+ *    in MAC MDIO Address register. write and GMII busy bits needs to be set
+ *    in this operation.
+ *  - Write into MAC MDIO address register poll for GMII busy for MDIO
+ *  operation to complete.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
  * @param[in] phyreg: Register which needs to be write to PHY.
  * @param[in] phydata: Data to write to a PHY register.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3623,21 +3735,22 @@ static int eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 /**
  * @brief eqos_read_phy_reg - Read from a PHY register through MAC over MDIO bus
  *
+ * @note
  * Algorithm:
- *	1) Before proceeding for reading for PHY register check whether any MII
- *	operation going on MDIO bus by polling MAC_GMII_BUSY bit.
- *	2) Populate required parameters like phy address, phy register etc,,
- *	in program it in MAC MDIO Address register. Read and GMII busy bits
- *	needs to be set in this operation.
- *	3) Write into MAC MDIO address register poll for GMII busy for MDIO
- *	operation to complete. After this data will be available at MAC MDIO
- *	data register.
+ *  -  Before proceeding for reading for PHY register check whether any MII
+ *    operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ *  - Populate required parameters like phy address, phy register etc,,
+ *    in program it in MAC MDIO Address register. Read and GMII busy bits
+ *    needs to be set in this operation.
+ *  - Write into MAC MDIO address register poll for GMII busy for MDIO
+ *    operation to complete. After this data will be available at MAC MDIO
+ *    data register.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
  * @param[in] phyreg: Register which needs to be read from PHY.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be initialized and started. see osi_start_mac()
  *
  * @retval data from PHY register on success
  * @retval -1 on failure

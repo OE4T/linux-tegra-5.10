@@ -162,16 +162,12 @@ struct dma_func_safety {
 /**
  * @brief eqos_get_dma_safety_config - EQOS get DMA safety configuration
  *
- * Algorithm: Returns pointer DMA safety configuration.
- *
  * @returns Pointer to DMA safety configuration
  */
 void *eqos_get_dma_safety_config(void);
 
 /**
  * @brief eqos_get_dma_chan_ops - EQOS get DMA channel operations
- *
- * Algorithm: Returns pointer DMA channel operations structure.
  *
  * @returns Pointer to DMA channel operations structure
  */

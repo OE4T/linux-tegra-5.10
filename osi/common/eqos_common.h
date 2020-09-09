@@ -46,12 +46,10 @@
 /**
  * @brief eqos_get_systime - Get system time from MAC
  *
- * Algorithm: Get current system time
- *
  * @param[in] addr: Base address indicating the start of
- *		    memory mapped IO region of the MAC.
+ *                  memory mapped IO region of the MAC.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be init and started. see osi_start_mac()
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -61,12 +59,10 @@ unsigned long long eqos_get_systime_from_mac(void *addr);
 /**
  * @brief eqos_is_mac_enabled - Checks if MAC is enabled or not.
  *
- * Algorithm: Reads MAC MCR register for Tx and Rx enabled bits.
- *
  * @param[in] addr: Base address indicating the start of
- *		    memory mapped IO region of the MAC.
+ *                  memory mapped IO region of the MAC.
  *
- * @note MAC should be init and started. see osi_start_mac()
+ * @pre MAC should be init and started. see osi_start_mac()
  *
  * @retval OSI_ENABLE if MAC enabled.
  * @retval OSI_DISABLE otherwise.

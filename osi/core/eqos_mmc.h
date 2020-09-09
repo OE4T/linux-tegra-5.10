@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -115,30 +115,6 @@
 #define MMC_RXICMP_ERR_OCTETS		0x00884
 /** @} */
 
-/**
- * @brief eqos_read_mmc - To read MMC registers and ether_mmc_counter structure
- *	   variable
- *
- * Algorithm: Pass register offset and old value to helper function and
- *	   update structure.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @note
- *	1) MAC should be init and started. see osi_start_mac()
- *	2) osi_core->osd should be populated
- */
 void eqos_read_mmc(struct osi_core_priv_data *osi_core);
-
-/**
- * @brief eqos_reset_mmc - To reset MMC registers and ether_mmc_counter
- *	  structure variable
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @note
- *	1) MAC should be init and started. see osi_start_mac()
- *	2) osi_core->osd should be populated
- */
 void eqos_reset_mmc(struct osi_core_priv_data *osi_core);
 #endif

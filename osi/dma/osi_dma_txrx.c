@@ -27,13 +27,14 @@
 /**
  * @brief get_rx_csum - Get the Rx checksum from descriptor if valid
  *
+ * @note
  * Algorithm:
- *	1) Check if the descriptor has any checksum validation errors.
- *	2) If none, set a per packet context flag indicating no err in
- *		Rx checksum
- *	3) The OSD layer will mark the packet appropriately to skip
- *		IP/TCP/UDP checksum validation in software based on whether
- *		COE is enabled for the device.
+ *  - Check if the descriptor has any checksum validation errors.
+ *  - If none, set a per packet context flag indicating no err in
+ *    Rx checksum
+ *  - The OSD layer will mark the packet appropriately to skip
+ *    IP/TCP/UDP checksum validation in software based on whether
+ *    COE is enabled for the device.
  *
  * @param[in] rx_desc: Rx descriptor
  * @param[in] rx_pkt_cx: Per-Rx packet context structure
@@ -92,11 +93,12 @@ static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
 /**
  * @brief get_rx_vlan_from_desc - Get Rx VLAN from descriptor
  *
+ * @note
  * Algorithm:
- *	1) Check if the descriptor has any type set.
- *	2) If set, set a per packet context flag indicating packet is VLAN
- *	tagged.
- *	3) Extract VLAN tag ID from the descriptor
+ *  - Check if the descriptor has any type set.
+ *  - If set, set a per packet context flag indicating packet is VLAN
+ *    tagged.
+ *  - Extract VLAN tag ID from the descriptor
  *
  * @param[in] rx_desc: Rx descriptor
  * @param[in] rx_pkt_cx: Per-Rx packet context structure
@@ -120,9 +122,10 @@ static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 /**
  * @brief get_rx_tstamp_status - Get Tx Time stamp status
  *
+ * @note
  * Algorithm:
- *	1) Check if the received descriptor is a context descriptor.
- *	2) If yes, check whether the time stamp is valid or not.
+ *  - Check if the received descriptor is a context descriptor.
+ *  - If yes, check whether the time stamp is valid or not.
  *
  * @param[in] context_desc: Rx context descriptor
  *
@@ -148,11 +151,12 @@ static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
 /**
  * @brief get_rx_hwstamp - Get Rx HW Time stamp
  *
+ * @note
  * Algorithm:
- *	1) Check for TS availability.
- *	2) call get_tx_tstamp_status if TS is valid or not.
- *	3) If yes, set a bit and update nano seconds in rx_pkt_cx so that OSD
- *	layer can extract the time by checking this bit.
+ *  - Check for TS availability.
+ *  - call get_tx_tstamp_status if TS is valid or not.
+ *  - If yes, set a bit and update nano seconds in rx_pkt_cx so that OSD
+ *    layer can extract the time by checking this bit.
  *
  * @param[in] rx_desc: Rx descriptor
  * @param[in] context_desc: Rx context descriptor
@@ -206,9 +210,11 @@ static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
 /**
  * @brief get_rx_err_stats - Detect Errors from Rx Descriptor
  *
- * Algorithm: This routine will be invoked by OSI layer itself which
- *	checks for the Last Descriptor and updates the receive status errors
- *	accordingly.
+ * @note
+ * Algorithm:
+ *  - This routine will be invoked by OSI layer itself which
+ *    checks for the Last Descriptor and updates the receive status errors
+ *    accordingly.
  *
  * @param[in] rx_desc: Rx Descriptor.
  * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
@@ -375,8 +381,10 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 /**
  * @brief inc_tx_pkt_stats - Increment Tx packet count Stats
  *
- * Algorithm: This routine will be invoked by OSI layer internally to increment
- *	stats for successfully transmitted packets on certain DMA channel.
+ * @note
+ * Algorithm:
+ *  - This routine will be invoked by OSI layer internally to increment
+ *    stats for successfully transmitted packets on certain DMA channel.
  *
  * @param[in] osi: Pointer to OSI DMA private data structure.
  * @param[in] chan: DMA channel number for which stats should be incremented.
@@ -393,12 +401,14 @@ static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi,
 /**
  * @brief get_tx_err_stats - Detect Errors from Tx Status
  *
- * Algorithm: This routine will be invoked by OSI layer itself which
- *	checks for the Last Descriptor and updates the transmit status errors
- *	accordingly.
+ * @note
+ * Algorithm:
+ *  - This routine will be invoked by OSI layer itself which
+ *    checks for the Last Descriptor and updates the transmit status errors
+ *    accordingly.
  *
  * @param[in] tx_desc: Tx Descriptor.
- * @param[in] pkt_err_stats: Pakcet error stats which stores the errors reported
+ * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
  */
 static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 				    struct osi_pkt_err_stats *pkt_err_stats)
@@ -627,13 +637,14 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 /**
  * @brief need_cntx_desc - Helper function to check if context desc is needed.
  *
+ * @note
  * Algorithm:
- *	1) Check if transmit packet context flags are set
- *	2) If set, set the context descriptor bit along
- *	with other context information in the transmit descriptor.
+ *  - Check if transmit packet context flags are set
+ *  - If set, set the context descriptor bit along
+ *    with other context information in the transmit descriptor.
  *
  * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
- * @param[in] tx_desc: Pointer to tranmit descriptor to be filled.
+ * @param[in] tx_desc: Pointer to transmit descriptor to be filled.
  *
  * @retval 0 - cntx desc not used
  * @retval 1 - cntx desc used.
@@ -676,15 +687,16 @@ static inline int need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
  * @brief fill_first_desc - Helper function to fill the first transmit
  *	descriptor.
  *
+ * @note
  * Algorithm:
- *	  1) Update the buffer address and length of buffer in first desc.
- *	  2) Check if any features like HW checksum offload, TSO, VLAN insertion
- *	  etc. are flagged in transmit packet context. If so, set the fiels in
- *	  first desc corresponding to those features.
+ *  - Update the buffer address and length of buffer in first desc.
+ *  - Check if any features like HW checksum offload, TSO, VLAN insertion
+ *    etc. are flagged in transmit packet context. If so, set the fields in
+ *    first desc corresponding to those features.
  *
  * @param[in] tx_ring: DMA channel TX ring.
  * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
- * @param[in] tx_desc: Pointer to tranmit descriptor to be filled.
+ * @param[in] tx_desc: Pointer to transmit descriptor to be filled.
  * @param[in] tx_swcx: Pointer to corresponding tx descriptor software context.
  */
 static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
@@ -914,9 +926,11 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 /**
  * @brief rx_dma_desc_initialization - Initialize DMA Receive descriptors for Rx
  *
- * Algorithm: Initialize Receive descriptors with DMA mappable buffers,
- *	set OWN bit, Rx ring length and set starting address of Rx DMA channel.
- *	Tx ring base address in Tx DMA registers.
+ * @note
+ * Algorithm:
+ *  - Initialize Receive descriptors with DMA mappable buffers,
+ *    set OWN bit, Rx ring length and set starting address of Rx DMA channel.
+ *    Tx ring base address in Tx DMA registers.
  *
  * @param[in] osi:	OSI private data structure.
  * @param[in] chan:	Rx channel number.
@@ -994,9 +1008,11 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 /**
  * @brief rx_dma_desc_init - Initialize DMA Receive descriptors for Rx channel.
  *
- * Algorithm: Initialize Receive descriptors with DMA mappabled buffers,
- *	set OWN bit, Rx ring length and set starting address of Rx DMA channel.
- *	Tx ring base address in Tx DMA registers.
+ * @note
+ * Algorithm:
+ *  - Initialize Receive descriptors with DMA mappable buffers,
+ *    set OWN bit, Rx ring length and set starting address of Rx DMA channel.
+ *    Tx ring base address in Tx DMA registers.
  *
  * @param[in] osi: OSI private data structure.
  *
@@ -1024,8 +1040,10 @@ static int rx_dma_desc_init(struct osi_dma_priv_data *osi)
 /**
  * @brief tx_dma_desc_init - Initialize DMA Transmit descriptors.
  *
- * Algorithm: Initialize Trannsmit descriptors and set Tx ring length,
- *	Tx ring base address in Tx DMA registers.
+ * @note
+ * Algorithm:
+ *  - Initialize Transmit descriptors and set Tx ring length,
+ *    Tx ring base address in Tx DMA registers.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  */
