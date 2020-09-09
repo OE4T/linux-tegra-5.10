@@ -43,6 +43,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 
 	gpu_instance->gpu_instance_id = 0U;
 	gpu_instance->is_memory_partition_supported = false;
+	gpu_instance->gpu_instance_type = NVGPU_MIG_TYPE_PHYSICAL;
 
 	gr_syspipe->gr_instance_id = 0U;
 	gr_syspipe->gr_syspipe_id = 0U;
@@ -79,7 +80,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	g->mig.current_gr_syspipe_id = NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
 
 	nvgpu_log(g, gpu_dbg_mig,
-		"[non MIG boot] gpu_instance_id[%u] gr_instance_id[%u] "
+		"[Physical device] gpu_instance_id[%u] gr_instance_id[%u] "
 			"gr_syspipe_id[%u] num_gpc[%u] gr_engine_id[%u] "
 			"max_veid_count_per_tsg[%u] veid_start_offset[%u] "
 			"is_memory_partition_support[%d] num_lce[%u] ",
@@ -250,47 +251,66 @@ u32 nvgpu_grmgr_get_num_gr_instances(struct gk20a *g)
 	return g->mig.num_gr_sys_pipes_enabled;
 }
 
+static inline u32 nvgpu_grmgr_get_gpu_instance_id(struct gk20a *g,
+		u32 gr_instance_id)
+{
+	u32 gpu_instance_id = 0U;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/* 0th entry is physical device gpu instance */
+		gpu_instance_id = nvgpu_safe_add_u32(gr_instance_id, 1U);
+
+		if (gpu_instance_id >= g->mig.num_gpu_instances) {
+			nvgpu_err(g,
+				"gpu_instance_id[%u] > num_gpu_instances[%u]",
+				gpu_instance_id, g->mig.num_gpu_instances);
+			nvgpu_assert(
+				gpu_instance_id < g->mig.num_gpu_instances);
+			gpu_instance_id = 0U;
+		}
+	}
+
+	nvgpu_log(g, gpu_dbg_mig, "gr_instance_id[%u] gpu_instance_id[%u]",
+		gr_instance_id, gpu_instance_id);
+
+	return gpu_instance_id;
+}
+
 u32 nvgpu_grmgr_get_gr_syspipe_id(struct gk20a *g, u32 gr_instance_id)
 {
 	struct nvgpu_gpu_instance *gpu_instance;
 	struct nvgpu_gr_syspipe *gr_syspipe;
+	u32 gpu_instance_id = nvgpu_grmgr_get_gpu_instance_id(
+		g, gr_instance_id);
 
-	if (gr_instance_id < g->mig.num_gpu_instances) {
-		gpu_instance = &g->mig.gpu_instance[gr_instance_id];
-		gr_syspipe = &gpu_instance->gr_syspipe;
+	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+	gr_syspipe = &gpu_instance->gr_syspipe;
 
-		return gr_syspipe->gr_syspipe_id;
-	}
-
-	return U32_MAX;
+	return gr_syspipe->gr_syspipe_id;
 }
 
 u32 nvgpu_grmgr_get_gr_num_gpcs(struct gk20a *g, u32 gr_instance_id)
 {
 	struct nvgpu_gpu_instance *gpu_instance;
 	struct nvgpu_gr_syspipe *gr_syspipe;
+	u32 gpu_instance_id = nvgpu_grmgr_get_gpu_instance_id(
+		g, gr_instance_id);
 
-	if (gr_instance_id < g->mig.num_gpu_instances) {
-		gpu_instance = &g->mig.gpu_instance[gr_instance_id];
-		gr_syspipe = &gpu_instance->gr_syspipe;
+	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+	gr_syspipe = &gpu_instance->gr_syspipe;
 
-		return gr_syspipe->num_gpc;
-	}
-
-	return U32_MAX;
+	return gr_syspipe->num_gpc;
 }
 
 u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id, u32 gpc_local_id)
 {
 	struct nvgpu_gpu_instance *gpu_instance;
 	struct nvgpu_gr_syspipe *gr_syspipe;
+	u32 gpu_instance_id = nvgpu_grmgr_get_gpu_instance_id(
+		g, gr_instance_id);
 
-	if (gr_instance_id < g->mig.num_gpu_instances) {
-		gpu_instance = &g->mig.gpu_instance[gr_instance_id];
-		gr_syspipe = &gpu_instance->gr_syspipe;
+	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+	gr_syspipe = &gpu_instance->gr_syspipe;
 
-		return gr_syspipe->gpcs[gpc_local_id].physical_id;
-	}
-
-	return U32_MAX;
+	return gr_syspipe->gpcs[gpc_local_id].physical_id;
 }

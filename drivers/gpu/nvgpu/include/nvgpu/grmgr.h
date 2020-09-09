@@ -26,6 +26,7 @@
 #define NVGPU_GRMGR_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/mig.h>
 
 struct gk20a;
 
@@ -37,5 +38,11 @@ u32 nvgpu_grmgr_get_num_gr_instances(struct gk20a *g);
 u32 nvgpu_grmgr_get_gr_syspipe_id(struct gk20a *g, u32 gr_instance_id);
 u32 nvgpu_grmgr_get_gr_num_gpcs(struct gk20a *g, u32 gr_instance_id);
 u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id, u32 gpc_local_id);
+
+static inline bool nvgpu_grmgr_is_mig_type_gpu_instance(
+		struct nvgpu_gpu_instance *gpu_instance)
+{
+	return (gpu_instance->gpu_instance_type == NVGPU_MIG_TYPE_MIG);
+}
 
 #endif /* NVGPU_GRMGR_H */

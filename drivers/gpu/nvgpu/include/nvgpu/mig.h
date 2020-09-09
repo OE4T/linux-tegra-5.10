@@ -29,8 +29,8 @@
 /** Maximum GPC group supported by HW. */
 #define NVGPU_MIG_MAX_GPCGRP				2U
 
-/** Maximum gpu instances count. */
-#define NVGPU_MIG_MAX_GPU_INSTANCES			8U
+/** Maximum gpu instances count (1 Physical + 8 MIGs). */
+#define NVGPU_MIG_MAX_GPU_INSTANCES			9U
 
 /** Maximum mig config count. */
 #define NVGPU_MIG_MAX_MIG_CONFIG_COUNT			16U
@@ -46,6 +46,12 @@
 
 /** Maximum number of GPC count. */
 #define NVGPU_MIG_MAX_GPCS				32U
+
+/** Enumerated type used to identify various gpu instance types */
+enum nvgpu_mig_gpu_instance_type {
+	NVGPU_MIG_TYPE_PHYSICAL = 0,
+	NVGPU_MIG_TYPE_MIG
+};
 
 /**
  * @brief GPC Id information.
@@ -108,6 +114,8 @@ struct nvgpu_gpu_instance {
 	const struct nvgpu_device *lce_devs[NVGPU_MIG_MAX_ENGINES];
 	/* Flag to indicate whether memory partition is supported or not. */
 	bool is_memory_partition_supported;
+	/** Enumerated type used to identify various gpu instance types */
+	enum nvgpu_mig_gpu_instance_type gpu_instance_type;
 };
 
 /**
