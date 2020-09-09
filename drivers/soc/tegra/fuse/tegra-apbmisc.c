@@ -32,14 +32,18 @@
 #define MINOR_FPGA		1
 #define MINOR_ASIM_QT		2
 #define MINOR_ASIM_LINSIM	3
-#define MINOR_VDK		4
+#define MINOR_DSIM_ASIM_LINSIM  4
+#define MINOR_UNIT_FPGA         5
+#define MINOR_VDK		6
 
 /* platform macros used in pre-silicon */
 #define PRE_SI_QT		1
 #define PRE_SI_FPGA		2
-#define PRE_SI_ASIM_QT		3
-#define PRE_SI_ASIM_LINSIM	4
-#define PRE_SI_VDK		5
+#define PRE_SI_UNIT_FPGA        3
+#define PRE_SI_ASIM_QT		4
+#define PRE_SI_ASIM_LINSIM	5
+#define PRE_SI_DSIM_ASIM_LINSIM 6
+#define PRE_SI_VDK		8
 #define PRE_SI_VSP		9
 
 struct apbmisc_data {
@@ -63,7 +67,7 @@ static u32 chipid;
 
 u32 tegra_read_chipid(void)
 {
-	WARN(!chipid, "Tegra ABP MISC not yet available\n");
+	WARN(!chipid, "Tegra APB MISC not yet available\n");
 
 	return chipid;
 }
