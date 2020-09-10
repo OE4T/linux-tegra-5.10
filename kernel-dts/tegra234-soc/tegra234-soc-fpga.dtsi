@@ -111,21 +111,21 @@
 	* between BPMP and kernel. In future, this will need to move. */
 	sysram@40000000 {
 		compatible = "nvidia,tegra194-sysram", "mmio-sram";
-		reg = <0x0 0x40000000 0x0 0x50000>;
+		reg = <0x0 0x40000000 0x0 0x72000>;
 		#address-cells = <1>;
 		#size-cells = <1>;
-		ranges = <0x0 0x0 0x40000000 0x50000>;
+		ranges = <0x0 0x0 0x40000000 0x72000>;
 
-		cpu_bpmp_tx: shmem@4e000 {
+		cpu_bpmp_tx: shmem@70000 {
 			compatible = "nvidia,tegra194-bpmp-shmem";
-			reg = <0x4e000 0x1000>;
+			reg = <0x70000 0x1000>;
 			label = "cpu-bpmp-tx";
 			pool;
 		};
 
-		cpu_bpmp_rx: shmem@4f000 {
+		cpu_bpmp_rx: shmem@71000 {
 			compatible = "nvidia,tegra194-bpmp-shmem";
-			reg = <0x4f000 0x1000>;
+			reg = <0x71000 0x1000>;
 			label = "cpu-bpmp-rx";
 			pool;
 		};
@@ -163,8 +163,8 @@
 #endif
 		dma-coherent;
 		reg = <0x0 0x0d000000 0x0 0x00800000>,
-		      <0x0 0x4004e000 0x0 0x00001000>,
-		      <0x0 0x4004f000 0x0 0x00001000>;
+		      <0x0 0x40070000 0x0 0x00001000>,
+		      <0x0 0x40071000 0x0 0x00001000>;
 		status = "disabled";
 		#power-domain-cells = <1>;
 		#strap-cells = <1>;
