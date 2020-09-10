@@ -66,10 +66,10 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 	int err;
 	u32 size;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	size = g->ops.gr.init.get_global_ctx_cb_buffer_size(g);
-	nvgpu_log_info(g, "cb_buffer_size : %d", size);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "cb_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR, size);
@@ -79,7 +79,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 #endif
 
 	size = g->ops.gr.init.get_global_ctx_pagepool_buffer_size(g);
-	nvgpu_log_info(g, "pagepool_buffer_size : %d", size);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "pagepool_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL, size);
@@ -90,7 +90,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 	size = g->ops.gr.init.get_global_attr_cb_size(g,
 			nvgpu_gr_config_get_tpc_count(gr->config),
 			nvgpu_gr_config_get_max_tpc_count(gr->config));
-	nvgpu_log_info(g, "attr_buffer_size : %u", size);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "attr_buffer_size : %u", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE, size);
@@ -99,14 +99,14 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
 #endif
 	size = NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE;
-	nvgpu_log_info(g, "priv_access_map_size : %d", size);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "priv_access_map_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP, size);
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	size = nvgpu_gr_fecs_trace_buffer_size(g);
-	nvgpu_log_info(g, "fecs_trace_buffer_size : %d", size);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "fecs_trace_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER, size);
@@ -115,7 +115,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 #ifdef CONFIG_NVGPU_DGPU
 	if (g->ops.gr.init.get_rtv_cb_size != NULL) {
 		size = g->ops.gr.init.get_rtv_cb_size(g);
-		nvgpu_log_info(g, "rtv_circular_buffer_size : %u", size);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "rtv_circular_buffer_size : %u", size);
 
 		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER, size);
@@ -127,7 +127,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 		return err;
 	}
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
 }
 
@@ -212,7 +212,7 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 {
 	int err;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	if (g->ops.gr.init.eng_config != NULL) {
@@ -224,30 +224,23 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 
 	g->ops.gr.init.pes_vsc_stream(g);
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_zcull_init_hw(g, gr->zcull, gr->config);
-	if (err != 0) {
-		goto out;
-	}
-#endif /* CONFIG_NVGPU_GRAPHICS */
-
 	if (g->ops.priv_ring.set_ppriv_timeout_settings != NULL) {
 		g->ops.priv_ring.set_ppriv_timeout_settings(g);
 	}
 
 	/** Enable fecs error interrupts */
 	g->ops.gr.falcon.fecs_host_int_enable(g);
-
 	g->ops.gr.intr.enable_hww_exceptions(g);
+	/** Enable TPC exceptions per GPC */
+	g->ops.gr.intr.enable_gpc_exceptions(g, gr->config);
+	/** Reset and enable exceptions */
+	g->ops.gr.intr.enable_exceptions(g, gr->config, true);
 
 	/*
 	 * SM HWWs are enabled during golden context creation, which happens
 	 * at the time of first context creation i.e. first GPU job submission.
 	 * Hence, injection of SM HWWs should only be attempted afterwards.
 	 */
-
-	/** Enable TPC exceptions per GPC */
-	g->ops.gr.intr.enable_gpc_exceptions(g, gr->config);
 
 	/* enable ECC for L1/SM */
 	if (g->ops.gr.init.ecc_scrub_reg != NULL) {
@@ -257,8 +250,12 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 		}
 	}
 
-	/** Reset and enable exceptions */
-	g->ops.gr.intr.enable_exceptions(g, gr->config, true);
+#ifdef CONFIG_NVGPU_GRAPHICS
+	err = nvgpu_gr_zcull_init_hw(g, gr->zcull, gr->config);
+	if (err != 0) {
+		goto out;
+	}
+#endif /* CONFIG_NVGPU_GRAPHICS */
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	err = nvgpu_gr_zbc_load_table(g, gr->zbc);
@@ -294,7 +291,7 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 
 	err = g->ops.gr.init.wait_idle(g);
 out:
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return err;
 }
 
@@ -339,6 +336,8 @@ static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 	u32 w, num_entries = 0U;
 #endif
 
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
 	mem = nvgpu_gr_global_ctx_buffer_get_mem(gr->global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP);
 	if (mem == NULL) {
@@ -375,20 +374,20 @@ static int gr_init_config(struct gk20a *g, struct nvgpu_gr *gr)
 		return -ENOMEM;
 	}
 
-	nvgpu_log_info(g, "bundle_cb_default_size: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "bundle_cb_default_size: %d",
 		g->ops.gr.init.get_bundle_cb_default_size(g));
-	nvgpu_log_info(g, "min_gpm_fifo_depth: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "min_gpm_fifo_depth: %d",
 		g->ops.gr.init.get_min_gpm_fifo_depth(g));
-	nvgpu_log_info(g, "bundle_cb_token_limit: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "bundle_cb_token_limit: %d",
 		g->ops.gr.init.get_bundle_cb_token_limit(g));
-	nvgpu_log_info(g, "attrib_cb_default_size: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "attrib_cb_default_size: %d",
 		g->ops.gr.init.get_attrib_cb_default_size(g));
-	nvgpu_log_info(g, "attrib_cb_size: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "attrib_cb_size: %d",
 		g->ops.gr.init.get_attrib_cb_size(g,
 			nvgpu_gr_config_get_tpc_count(gr->config)));
-	nvgpu_log_info(g, "alpha_cb_default_size: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "alpha_cb_default_size: %d",
 		g->ops.gr.init.get_alpha_cb_default_size(g));
-	nvgpu_log_info(g, "alpha_cb_size: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "alpha_cb_size: %d",
 		g->ops.gr.init.get_alpha_cb_size(g,
 			nvgpu_gr_config_get_tpc_count(gr->config)));
 
@@ -449,6 +448,8 @@ static int gr_init_ecc_init(struct gk20a *g)
 {
 	int err = 0;
 
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
 	if ((g->ops.gr.ecc.gpc_tpc_ecc_init != NULL) && !g->ecc.initialized) {
 		err = g->ops.gr.ecc.gpc_tpc_ecc_init(g);
 		if (err != 0) {
@@ -457,6 +458,7 @@ static int gr_init_ecc_init(struct gk20a *g)
 		}
 	}
 
+	nvgpu_log(g, gpu_dbg_gr, "done");
 	return err;
 }
 
@@ -464,10 +466,10 @@ static int gr_init_setup_sw(struct gk20a *g, struct nvgpu_gr *gr)
 {
 	int err = 0;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	if (gr->sw_ready) {
-		nvgpu_log_fn(g, "skip init");
+		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "skip init");
 		return 0;
 	}
 
@@ -515,7 +517,7 @@ static int gr_init_setup_sw(struct gk20a *g, struct nvgpu_gr *gr)
 	gr->remove_support = gr_remove_support;
 	gr->sw_ready = true;
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
 
 clean_up:
@@ -531,7 +533,7 @@ static int gr_init_prepare_hw_impl(struct gk20a *g)
 	u32 i;
 	int err = 0;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Prepare GR%u HW", g->mig.cur_gr_instance);
 
 	/** Enable interrupts */
 	g->ops.gr.intr.enable_interrupts(g, true);
@@ -566,7 +568,7 @@ out:
 	if (err != 0) {
 		nvgpu_err(g, "fail");
 	} else {
-		nvgpu_log_fn(g, "done");
+		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	}
 
 	return err;
@@ -574,7 +576,7 @@ out:
 
 static int gr_init_prepare_hw(struct gk20a *g)
 {
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	/** Enable interrupts at MC level */
 	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
@@ -590,6 +592,8 @@ static int gr_reset_engine(struct gk20a *g)
 	const struct nvgpu_device *dev =
 		nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
 			nvgpu_gr_get_syspipe_id(g, g->mig.cur_gr_instance));
+
+	nvgpu_log(g, gpu_dbg_gr, "Reset GR%u", g->mig.cur_gr_instance);
 
 	/* Reset GR engine: Disable then enable GR engine */
 	err = g->ops.mc.enable_dev(g, dev, false);
@@ -622,6 +626,7 @@ static int gr_reset_engine(struct gk20a *g)
 		return err;
 	}
 
+	nvgpu_log(g, gpu_dbg_gr, "done");
 	return 0;
 }
 
@@ -646,7 +651,7 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 {
 	int err;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	err = gr_reset_hw_and_load_prod(g);
 	if (err != 0) {
@@ -658,7 +663,7 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 		return err;
 	}
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 
 	return 0;
 }
@@ -768,7 +773,7 @@ static int gr_init_support_impl(struct gk20a *g)
 	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
 	int err = 0;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Init support for GR%u", g->mig.cur_gr_instance);
 
 	gr->initialized = false;
 
@@ -815,12 +820,17 @@ static int gr_init_support_impl(struct gk20a *g)
 		return err;
 	}
 
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
+
 	return 0;
 }
 
 static void gr_init_support_finalize(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Finalize support for GR%u",
+		g->mig.cur_gr_instance);
 
 	gr->initialized = true;
 	nvgpu_cond_signal(&gr->init_wq);
@@ -830,7 +840,7 @@ int nvgpu_gr_init_support(struct gk20a *g)
 {
 	int err = 0;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	err = nvgpu_gr_exec_with_ret_for_each_instance(g, gr_init_support_impl(g));
 	if (err != 0) {
@@ -847,6 +857,8 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	/* GR is inialized, signal possible waiters */
 	nvgpu_gr_exec_for_each_instance(g, gr_init_support_finalize(g));
 
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
+
 	return 0;
 }
 
@@ -855,6 +867,8 @@ int nvgpu_gr_alloc(struct gk20a *g)
 	struct nvgpu_gr *gr = NULL;
 	int err;
 	u32 i;
+
+	nvgpu_log(g, gpu_dbg_gr, " ");
 
 	/* if gr exists return */
 	if (g->gr != NULL) {
@@ -887,6 +901,9 @@ int nvgpu_gr_alloc(struct gk20a *g)
 			err = -EINVAL;
 			goto fail;
 		}
+
+		nvgpu_log(g, gpu_dbg_gr, "GR instance %u attached to GR syspipe %u",
+				i, gr->syspipe_id);
 
 		gr->falcon = nvgpu_gr_falcon_init_support(g);
 		if (gr->falcon == NULL) {
@@ -925,6 +942,9 @@ int nvgpu_gr_alloc(struct gk20a *g)
 			goto fail;
 		}
 	}
+
+	nvgpu_log(g, gpu_dbg_gr, "Initialized %u GR engine instances",
+		g->num_gr_instances);
 
 	return 0;
 

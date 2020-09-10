@@ -83,6 +83,7 @@ int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 		nvgpu_err(g, "ACR bootstrap failed");
 	}
 
+	nvgpu_log(g, gpu_dbg_gr, "ACR bootstrap Done");
 	return err;
 }
 

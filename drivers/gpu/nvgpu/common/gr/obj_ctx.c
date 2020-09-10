@@ -902,6 +902,8 @@ int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 {
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image;
 
+	nvgpu_log(g, gpu_dbg_gr, "size = %u", size);
+
 	golden_image = nvgpu_kzalloc(g, sizeof(*golden_image));
 	if (golden_image == NULL) {
 		return -ENOMEM;

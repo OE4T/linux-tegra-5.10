@@ -277,6 +277,8 @@ int gv11b_gr_fecs_ecc_init(struct gk20a *g)
 {
 	int err;
 
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
 	err = NVGPU_ECC_COUNTER_INIT_GR(fecs_ecc_uncorrected_err_count);
 	if (err != 0) {
 		goto done;

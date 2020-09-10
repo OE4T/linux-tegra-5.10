@@ -60,7 +60,7 @@ static void nvgpu_cg_set_mode(struct gk20a *g, u32 cgmode, u32 mode_config)
 
 void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g)
 {
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->elcg_enabled) {
@@ -72,7 +72,7 @@ void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g)
 
 void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g)
 {
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->elcg_enabled) {
@@ -320,7 +320,7 @@ static void cg_init_gr_blcg_load_gating_prod(struct gk20a *g)
 
 void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g)
 {
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 

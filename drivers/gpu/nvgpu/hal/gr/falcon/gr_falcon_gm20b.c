@@ -195,7 +195,7 @@ void gm20b_gr_falcon_load_fecs_imem(struct gk20a *g,
 
 void gm20b_gr_falcon_start_ucode(struct gk20a *g)
 {
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	g->ops.gr.falcon.fecs_ctxsw_clear_mailbox(g, 0U, (~U32(0U)));
 
@@ -205,7 +205,7 @@ void gm20b_gr_falcon_start_ucode(struct gk20a *g)
 	nvgpu_writel(g, gr_gpccs_cpuctl_r(), gr_gpccs_cpuctl_startcpu_f(1U));
 	nvgpu_writel(g, gr_fecs_cpuctl_r(), gr_fecs_cpuctl_startcpu_f(1U));
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 }
 #endif
 

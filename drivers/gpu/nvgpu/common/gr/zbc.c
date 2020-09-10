@@ -290,6 +290,8 @@ int nvgpu_gr_zbc_load_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc)
 	unsigned int i;
 	int ret;
 
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
 	for (i = 0; i < zbc->max_used_color_index; i++) {
 		struct zbc_color_table *c_tbl = &zbc->zbc_col_tbl[i];
 		struct nvgpu_gr_zbc_entry zbc_val;
@@ -328,6 +330,7 @@ int nvgpu_gr_zbc_load_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc)
 		}
 	}
 
+	nvgpu_log(g, gpu_dbg_gr, "done");
 	return 0;
 }
 
@@ -576,6 +579,8 @@ int nvgpu_gr_zbc_init(struct gk20a *g, struct nvgpu_gr_zbc **zbc)
 	int ret = -ENOMEM;
 	struct nvgpu_gr_zbc *gr_zbc = NULL;
 
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
 	*zbc = NULL;
 
 	gr_zbc = nvgpu_kzalloc(g, sizeof(*gr_zbc));
@@ -594,6 +599,8 @@ int nvgpu_gr_zbc_init(struct gk20a *g, struct nvgpu_gr_zbc **zbc)
 	}
 
 	*zbc = gr_zbc;
+
+	nvgpu_log(g, gpu_dbg_gr, "done");
 	return ret;
 
 alloc_err:

@@ -343,7 +343,7 @@ static void gv100_gr_config_set_redex_sminfo(struct gk20a *g,
 			nvgpu_gr_config_set_sm_info_global_tpc_index(
 				sm_info, glboal_index);
 
-			nvgpu_log_info(g,
+			nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr,
 				"gpc : %d tpc %d sm_index %d global_index: %d",
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
 				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
@@ -377,7 +377,7 @@ static void gv100_gr_config_set_sminfo(struct gk20a *g,
 			nvgpu_gr_config_set_sm_info_sm_index(sm_info, sm);
 			nvgpu_gr_config_set_sm_info_global_tpc_index(sm_info, tpc);
 
-			nvgpu_log_info(g,
+			nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr,
 				"gpc : %d tpc %d sm_index %d global_index: %d",
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
 				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
@@ -439,11 +439,11 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g,
 		goto exit_build_table;
 	}
 
+	nvgpu_gr_config_set_no_of_sm(gr_config, num_sm);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "total number of sm = %d", num_sm);
+
 	gv100_gr_config_set_sminfo(g, gr_config, num_sm, sm_per_tpc,
 					gpc_table, tpc_table);
-
-	nvgpu_gr_config_set_no_of_sm(gr_config, num_sm);
-	nvgpu_log_info(g, " total number of sm = %d", num_sm);
 
 exit_build_table:
 	nvgpu_kfree(g, gpc_table);

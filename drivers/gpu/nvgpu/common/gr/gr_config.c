@@ -94,50 +94,56 @@ static void gr_config_log_info(struct gk20a *g,
 {
 	u32 gpc_index, pes_index;
 
-	nvgpu_log_info(g, "max_gpc_count: %d", config->max_gpc_count);
-	nvgpu_log_info(g, "max_tpc_per_gpc_count: %d", config->max_tpc_per_gpc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "max_gpc_count: %d", config->max_gpc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "gpc_count: %d", config->gpc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "gpc_mask: 0x%x", config->gpc_mask);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "max_tpc_per_gpc_count: %d", config->max_tpc_per_gpc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "max_tpc_count: %d", config->max_tpc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "tpc_count: %d", config->tpc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "sm_count_per_tpc: %d", config->sm_count_per_tpc);
 #ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_log_info(g, "max_zcull_per_gpc_count: %d", config->max_zcull_per_gpc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "max_zcull_per_gpc_count: %d", config->max_zcull_per_gpc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "zcb_count: %d", config->zcb_count);
 #endif
-	nvgpu_log_info(g, "max_tpc_count: %d", config->max_tpc_count);
-	nvgpu_log_info(g, "gpc_count: %d", config->gpc_count);
-	nvgpu_log_info(g, "pe_count_per_gpc: %d", config->pe_count_per_gpc);
-	nvgpu_log_info(g, "tpc_count: %d", config->tpc_count);
-	nvgpu_log_info(g, "ppc_count: %d", config->ppc_count);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "pe_count_per_gpc: %d", config->pe_count_per_gpc);
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "ppc_count: %d", config->ppc_count);
 
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
-		nvgpu_log_info(g, "gpc_tpc_count[%d] : %d",
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "gpc_tpc_count[%d] : %d",
 			   gpc_index, config->gpc_tpc_count[gpc_index]);
+	}
+	for (gpc_index = 0; gpc_index < config->max_gpc_count; gpc_index++) {
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "gpc_tpc_mask[%d] : 0x%x",
+			   gpc_index, config->gpc_tpc_mask[gpc_index]);
 	}
 #ifdef CONFIG_NVGPU_GRAPHICS
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
-		nvgpu_log_info(g, "gpc_zcb_count[%d] : %d",
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "gpc_zcb_count[%d] : %d",
 			   gpc_index, config->gpc_zcb_count[gpc_index]);
 	}
 #endif
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
-		nvgpu_log_info(g, "gpc_ppc_count[%d] : %d",
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "gpc_ppc_count[%d] : %d",
 			   gpc_index, config->gpc_ppc_count[gpc_index]);
 	}
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
-		nvgpu_log_info(g, "gpc_skip_mask[%d] : %d",
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "gpc_skip_mask[%d] : 0x%x",
 			   gpc_index, config->gpc_skip_mask[gpc_index]);
 	}
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
 		for (pes_index = 0;
 		     pes_index < config->pe_count_per_gpc;
 		     pes_index++) {
-			nvgpu_log_info(g, "pes_tpc_count[%d][%d] : %d",
+			nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "pes_tpc_count[%d][%d] : %d",
 				   pes_index, gpc_index,
 				   config->pes_tpc_count[pes_index][gpc_index]);
 		}
 	}
-
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
 		for (pes_index = 0;
 		     pes_index < config->pe_count_per_gpc;
 		     pes_index++) {
-			nvgpu_log_info(g, "pes_tpc_mask[%d][%d] : %d",
+			nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "pes_tpc_mask[%d][%d] : 0x%x",
 				   pes_index, gpc_index,
 				   config->pes_tpc_mask[pes_index][gpc_index]);
 		}
@@ -471,6 +477,8 @@ int nvgpu_gr_config_init_map_tiles(struct gk20a *g,
 	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_TPC_PER_GPC);
 	u32 map_tile_count = num_gpcs * num_tpc_per_gpc;
 
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
 	init_frac = nvgpu_kzalloc(g, num_gpcs * sizeof(s32));
 	init_err = nvgpu_kzalloc(g, num_gpcs * sizeof(s32));
 	run_err = nvgpu_kzalloc(g, num_gpcs * sizeof(s32));
@@ -529,7 +537,7 @@ int nvgpu_gr_config_init_map_tiles(struct gk20a *g,
 		config->map_row_offset = 1;
 		break;
 	default:
-		nvgpu_log_info(g, "unsupported tpc count = %d=u",
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "unsupported tpc count = %u",
 				config->tpc_count);
 		break;
 	}
@@ -634,7 +642,7 @@ clean_up:
 	if (ret != 0) {
 		nvgpu_err(g, "fail");
 	} else {
-		nvgpu_log_fn(g, "done");
+		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	}
 
 	return ret;

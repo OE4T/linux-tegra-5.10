@@ -295,7 +295,7 @@ int gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 {
 	int err;
 
-	nvgpu_log_fn(g, "ecc srub start");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "ecc srub start");
 
 	err = gr_gv11b_ecc_scrub_sm_lrf(g, gr_config);
 	if (err != 0) {
@@ -321,6 +321,8 @@ int gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 	if (err != 0) {
 		return err;
 	}
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "ecc srub done");
 
 	return err;
 }
@@ -348,7 +350,6 @@ u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,
 	temp = (u32)hweight32(temp);
 	tpc_new = nvgpu_safe_add_u32(tpc_new, temp);
 
-	nvgpu_log_info(g, "tpc: %d -> new tpc: %d", tpc, tpc_new);
 	return tpc_new;
 }
 
@@ -525,7 +526,7 @@ void gv11b_gr_init_fs_state(struct gk20a *g)
 #endif
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	data = nvgpu_readl(g, gr_gpcs_tpcs_sm_texio_control_r());
 	data = set_field(data,

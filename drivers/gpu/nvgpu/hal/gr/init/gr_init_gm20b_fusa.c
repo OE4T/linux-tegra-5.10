@@ -187,7 +187,7 @@ int gm20b_gr_init_wait_idle(struct gk20a *g)
 	struct nvgpu_engine_status_info engine_status;
 	struct nvgpu_timeout timeout;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	gr_engine_id = nvgpu_engine_get_gr_id(g);
 
@@ -216,7 +216,7 @@ int gm20b_gr_init_wait_idle(struct gk20a *g)
 				gr_engine_status_value_busy_f()) != 0U;
 
 		if (ctx_status_invalid || (!gr_busy && !ctxsw_active)) {
-			nvgpu_log_fn(g, "done");
+			nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 			return 0;
 		}
 

@@ -32,6 +32,8 @@ static int gr_load_sm_id_config(struct gk20a *g, struct nvgpu_gr_config *config)
 	u32 *tpc_sm_id;
 	u32 sm_id_size = g->ops.gr.init.get_sm_id_size();
 
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
+
 	tpc_sm_id = nvgpu_kcalloc(g, sm_id_size, sizeof(u32));
 	if (tpc_sm_id == NULL) {
 		return -ENOMEM;
@@ -41,6 +43,7 @@ static int gr_load_sm_id_config(struct gk20a *g, struct nvgpu_gr_config *config)
 
 	nvgpu_kfree(g, tpc_sm_id);
 
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return err;
 }
 
@@ -102,7 +105,7 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	u32 num_sm;
 	int err = 0;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	g->ops.gr.init.fs_state(g);
 
@@ -158,6 +161,7 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 		nvgpu_err(g, "load_smid_config failed err=%d", err);
 	}
 
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return err;
 }
 

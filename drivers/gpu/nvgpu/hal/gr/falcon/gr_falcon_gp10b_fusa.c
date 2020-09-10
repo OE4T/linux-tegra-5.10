@@ -34,7 +34,7 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 {
 	int err;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	err = gm20b_gr_falcon_init_ctx_state(g, sizes);
 
@@ -50,9 +50,11 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 		nvgpu_err(g, "query preempt image size failed");
 		return err;
 	}
-	nvgpu_log_info(g, "preempt image size: %u", sizes->preempt_image_size);
+
+	nvgpu_log(g, gpu_dbg_gr, "Preempt image size = %u", sizes->preempt_image_size);
 #endif
-	nvgpu_log_fn(g, "done");
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 
 	return err;
 }

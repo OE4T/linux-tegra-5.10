@@ -43,6 +43,8 @@ int nvgpu_gr_hwpm_map_init(struct gk20a *g, struct nvgpu_gr_hwpm_map **hwpm_map,
 {
 	struct nvgpu_gr_hwpm_map *tmp_map;
 
+	nvgpu_log(g, gpu_dbg_gr, "size = %u", size);
+
 	if (size == 0U) {
 		return -EINVAL;
 	}

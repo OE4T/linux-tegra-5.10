@@ -490,7 +490,7 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 	unsigned long sysclk_freq_mhz = 0UL;
 #endif
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	ret = gm20b_gr_falcon_ctx_wait_ucode(g, 0, NULL,
 				      GR_IS_UCODE_OP_EQUAL,
@@ -533,7 +533,7 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 		return ret;
 	}
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
 }
 
@@ -542,7 +542,7 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 {
 	int ret;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	ret = g->ops.gr.falcon.ctrl_ctxsw(g,
 		NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE,
@@ -552,6 +552,8 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
 			   "query golden image size failed");
 		return ret;
 	}
+
+	nvgpu_log(g, gpu_dbg_gr, "Golden image size = %u", sizes->golden_image_size);
 
 #if defined(CONFIG_NVGPU_DEBUGGER) || \
 defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
@@ -569,6 +571,8 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 		return ret;
 #endif
 	}
+
+	nvgpu_log(g, gpu_dbg_gr, "PM CTXSW image size = %u", sizes->pm_ctxsw_image_size);
 #endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
@@ -580,9 +584,11 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 			"query zcull ctx image size failed");
 		return ret;
 	}
+
+	nvgpu_log(g, gpu_dbg_gr, "ZCULL image size = %u", sizes->zcull_image_size);
 #endif
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
 }
 
@@ -1045,6 +1051,8 @@ void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g, u32 reg_offset,
 			u32 boot_entry, u32 addr_load32, u32 blocks, u32 dst)
 {
 	u32 b;
+
+	nvgpu_log(g, gpu_dbg_gr, " ");
 
 	/*
 	 * Set the base FB address for the DMA transfer. Subtract off the 256

@@ -36,6 +36,8 @@ int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull,
 	struct nvgpu_gr_zcull *zcull;
 	int err = 0;
 
+	nvgpu_log(g, gpu_dbg_gr, "size = %u", size);
+
 	zcull = nvgpu_kzalloc(g, sizeof(*zcull));
 	if (zcull == NULL) {
 		err = -ENOMEM;
@@ -93,6 +95,8 @@ int nvgpu_gr_zcull_init_hw(struct gk20a *g,
 	u32 map_tile_count;
 	int ret = 0;
 
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
 	if (nvgpu_gr_config_get_map_tiles(gr_config) == NULL) {
 		return -1;
 	}
@@ -145,6 +149,7 @@ int nvgpu_gr_zcull_init_hw(struct gk20a *g,
 		}
 	}
 
+	nvgpu_log(g, gpu_dbg_gr, "done");
 	return 0;
 }
 
