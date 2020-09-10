@@ -1,7 +1,7 @@
 /*
  * imx268.c - imx268 sensor driver
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -678,6 +678,7 @@ static int imx268_probe(struct i2c_client *client,
 
 	err = imx268_board_setup(priv);
 	if (err) {
+		tegracam_device_unregister(tc_dev);
 		dev_err(dev, "board setup failed\n");
 		return err;
 	}

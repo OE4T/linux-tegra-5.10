@@ -1200,6 +1200,7 @@ static int ov5693_probe(struct i2c_client *client,
 
 	err = ov5693_board_setup(priv);
 		if (err) {
+			tegracam_device_unregister(tc_dev);
 			dev_err(dev, "board setup failed\n");
 			return err;
 	}
