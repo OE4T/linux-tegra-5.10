@@ -40,10 +40,6 @@ u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
 			    u32 vidmem_mask)
 {
 	u32 ret_mask = 0;
-	if ((aperture == APERTURE_INVALID) || (aperture >= APERTURE_MAX_ENUM)) {
-		nvgpu_do_assert_print(g, "Bad aperture");
-		return 0;
-	}
 
 	/*
 	 * Some iGPUs treat sysmem (i.e SoC DRAM) as vidmem. In these cases the
@@ -64,7 +60,13 @@ u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
 		ret_mask = vidmem_mask;
 		break;
 	case APERTURE_INVALID:
+		nvgpu_do_assert_print(g, "Bad aperture");
+		ret_mask = 0;
+		break;
 	case APERTURE_MAX_ENUM:
+		nvgpu_do_assert_print(g, "Bad aperture");
+		ret_mask = 0;
+		break;
 	default:
 		nvgpu_do_assert_print(g, "Bad aperture");
 		ret_mask = 0;
