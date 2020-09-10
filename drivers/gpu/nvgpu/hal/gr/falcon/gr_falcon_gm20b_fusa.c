@@ -576,13 +576,15 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 #endif
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	ret = g->ops.gr.falcon.ctrl_ctxsw(g,
-		NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
-		0, &sizes->zcull_image_size);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"query zcull ctx image size failed");
-		return ret;
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		ret = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
+			0, &sizes->zcull_image_size);
+		if (ret != 0) {
+			nvgpu_err(g,
+				"query zcull ctx image size failed");
+			return ret;
+		}
 	}
 
 	nvgpu_log(g, gpu_dbg_gr, "ZCULL image size = %u", sizes->zcull_image_size);

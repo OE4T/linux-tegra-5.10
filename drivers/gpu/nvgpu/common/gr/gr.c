@@ -251,16 +251,23 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 	}
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_zcull_init_hw(g, gr->zcull, gr->config);
-	if (err != 0) {
-		goto out;
-	}
-#endif /* CONFIG_NVGPU_GRAPHICS */
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		err = nvgpu_gr_zcull_init_hw(g, gr->zcull, gr->config);
+		if (err != 0) {
+			goto out;
+		}
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_zbc_load_table(g, gr->zbc);
-	if (err != 0) {
-		goto out;
+		err = nvgpu_gr_zbc_load_table(g, gr->zbc);
+		if (err != 0) {
+			goto out;
+		}
+
+		if (g->ops.gr.init.preemption_state != NULL) {
+			err = g->ops.gr.init.preemption_state(g);
+			if (err != 0) {
+				goto out;
+			}
+		}
 	}
 #endif /* CONFIG_NVGPU_GRAPHICS */
 
@@ -273,15 +280,6 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 	if (g->ops.gr.init.lg_coalesce != NULL) {
 		g->ops.gr.init.lg_coalesce(g, 0);
 	}
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-	if (g->ops.gr.init.preemption_state != NULL) {
-		err = g->ops.gr.init.preemption_state(g);
-		if (err != 0) {
-			goto out;
-		}
-	}
-#endif
 
 	/* floorsweep anything left */
 	err = nvgpu_gr_fs_state_init(g, gr->config);
@@ -488,29 +486,29 @@ static int gr_init_setup_sw(struct gk20a *g, struct nvgpu_gr *gr)
 	}
 #endif
 
-#ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_config_init_map_tiles(g, gr->config);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	err = nvgpu_gr_zcull_init(g, &gr->zcull,
-			nvgpu_gr_falcon_get_zcull_image_size(gr->falcon),
-			gr->config);
-	if (err != 0) {
-		goto clean_up;
-	}
-#endif /* CONFIG_NVGPU_GRAPHICS */
-
 	err = gr_init_ctx_bufs(g, gr);
 	if (err != 0) {
 		goto clean_up;
 	}
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_zbc_init(g, &gr->zbc);
-	if (err != 0) {
-		goto clean_up;
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		err = nvgpu_gr_config_init_map_tiles(g, gr->config);
+		if (err != 0) {
+			goto clean_up;
+		}
+
+		err = nvgpu_gr_zcull_init(g, &gr->zcull,
+				nvgpu_gr_falcon_get_zcull_image_size(gr->falcon),
+				gr->config);
+		if (err != 0) {
+			goto clean_up;
+		}
+
+		err = nvgpu_gr_zbc_init(g, &gr->zbc);
+		if (err != 0) {
+			goto clean_up;
+		}
 	}
 #endif /* CONFIG_NVGPU_GRAPHICS */
 

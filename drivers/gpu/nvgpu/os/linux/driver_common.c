@@ -205,6 +205,9 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 			nvgpu_platform_is_silicon(g) ? platform->enable_mscg : false;
 		g->can_elpg =
 			nvgpu_platform_is_silicon(g) ? platform->can_elpg_init : false;
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+			g->can_elpg = false;
+		}
 
 		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, platform->enable_perfmon);
 	}

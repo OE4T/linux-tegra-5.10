@@ -43,12 +43,14 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 		return err;
 	}
 
-	err = g->ops.gr.falcon.ctrl_ctxsw(g,
-		NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
-		&sizes->preempt_image_size);
-	if (err != 0) {
-		nvgpu_err(g, "query preempt image size failed");
-		return err;
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		err = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
+			&sizes->preempt_image_size);
+		if (err != 0) {
+			nvgpu_err(g, "query preempt image size failed");
+			return err;
+		}
 	}
 
 	nvgpu_log(g, gpu_dbg_gr, "Preempt image size = %u", sizes->preempt_image_size);

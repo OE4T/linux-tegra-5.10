@@ -73,19 +73,21 @@ static void gr_load_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config)
 	nvgpu_log_info(g, "pes_tpc_mask %u\n", pes_tpc_mask);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
-	if ((g->tpc_fs_mask_user != 0U) &&
-				(g->tpc_fs_mask_user != fuse_tpc_mask)) {
-		if (fuse_tpc_mask == nvgpu_safe_sub_u32(BIT32(max_tpc_count),
-								U32(1))) {
-			val = g->tpc_fs_mask_user;
-			val &= nvgpu_safe_sub_u32(BIT32(max_tpc_count), U32(1));
-			/*
-			 * skip tpc to disable the other tpc cause channel
-			 * timeout
-			 */
-			val = nvgpu_safe_sub_u32(BIT32(hweight32(val)), U32(1));
-			pes_tpc_mask = val;
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
+		if ((g->tpc_fs_mask_user != 0U) &&
+					(g->tpc_fs_mask_user != fuse_tpc_mask)) {
+			if (fuse_tpc_mask == nvgpu_safe_sub_u32(BIT32(max_tpc_count),
+									U32(1))) {
+				val = g->tpc_fs_mask_user;
+				val &= nvgpu_safe_sub_u32(BIT32(max_tpc_count), U32(1));
+				/*
+				 * skip tpc to disable the other tpc cause channel
+				 * timeout
+				 */
+				val = nvgpu_safe_sub_u32(BIT32(hweight32(val)), U32(1));
+				pes_tpc_mask = val;
+			}
 		}
 	}
 #endif
@@ -130,8 +132,10 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	g->ops.gr.init.pd_tpc_per_gpc(g, config);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	/* gr__setup_pd_mapping */
-	g->ops.gr.init.rop_mapping(g, config);
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/* gr__setup_pd_mapping */
+		g->ops.gr.init.rop_mapping(g, config);
+	}
 #endif
 
 	g->ops.gr.init.pd_skip_table_gpc(g, config);
@@ -140,15 +144,17 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	tpc_cnt = nvgpu_gr_config_get_tpc_count(config);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
-	max_tpc_cnt = nvgpu_gr_config_get_max_tpc_count(config);
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
+		max_tpc_cnt = nvgpu_gr_config_get_max_tpc_count(config);
 
-	if ((g->tpc_fs_mask_user != 0U) &&
-		(fuse_tpc_mask ==
-			nvgpu_safe_sub_u32(BIT32(max_tpc_cnt), U32(1)))) {
-		u32 val = g->tpc_fs_mask_user;
-		val &= nvgpu_safe_sub_u32(BIT32(max_tpc_cnt), U32(1));
-		tpc_cnt = (u32)hweight32(val);
+		if ((g->tpc_fs_mask_user != 0U) &&
+			(fuse_tpc_mask ==
+				nvgpu_safe_sub_u32(BIT32(max_tpc_cnt), U32(1)))) {
+			u32 val = g->tpc_fs_mask_user;
+			val &= nvgpu_safe_sub_u32(BIT32(max_tpc_cnt), U32(1));
+			tpc_cnt = (u32)hweight32(val);
+		}
 	}
 #endif
 

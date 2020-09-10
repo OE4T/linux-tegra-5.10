@@ -234,10 +234,12 @@ static bool gr_config_alloc_struct_mem(struct gk20a *g,
 	gpc_size = nvgpu_safe_mult_u64((size_t)config->gpc_count, sizeof(u32));
 	config->gpc_tpc_count = nvgpu_kzalloc(g, gpc_size);
 #ifdef CONFIG_NVGPU_GRAPHICS
-	config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
-		GPU_LIT_NUM_ZCULL_BANKS);
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
+			GPU_LIT_NUM_ZCULL_BANKS);
 
-	config->gpc_zcb_count = nvgpu_kzalloc(g, gpc_size);
+		config->gpc_zcb_count = nvgpu_kzalloc(g, gpc_size);
+	}
 #endif
 	config->gpc_ppc_count = nvgpu_kzalloc(g, gpc_size);
 
@@ -403,11 +405,13 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 					config->gpc_tpc_count[gpc_index]);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-		config->gpc_zcb_count[gpc_index] =
-			g->ops.gr.config.get_zcull_count_in_gpc(g, config,
-				gpc_index);
-		config->zcb_count = nvgpu_safe_add_u32(config->zcb_count,
-					config->gpc_zcb_count[gpc_index]);
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+			config->gpc_zcb_count[gpc_index] =
+				g->ops.gr.config.get_zcull_count_in_gpc(g, config,
+					gpc_index);
+			config->zcb_count = nvgpu_safe_add_u32(config->zcb_count,
+						config->gpc_zcb_count[gpc_index]);
+		}
 #endif
 
 		gr_config_init_pes_tpc(g, config, gpc_index);
