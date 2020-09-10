@@ -14,11 +14,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <drm/drmP.h>
 #include <linux/dma-buf.h>
 #include <linux/shmem_fs.h>
 #include <linux/version.h>
 #include <linux/extcon.h>
+
+#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE
+#include <linux/platform_device.h>
+#include <linux/of.h>
+#include <drm/drm_file.h>
+#include <drm/drm_drv.h>
+#include <drm/drm_ioctl.h>
+#include <drm/drm_vblank.h>
+#include <drm/drm_sysfs.h>
+#include <drm/drm_print.h>
+#else
+#include <drm/drmP.h>
+#endif
 
 #include <uapi/drm/tegra_udrm.h>
 
@@ -326,10 +338,17 @@ static int tegra_udrm_send_vblank_event_ioctl(struct drm_device *drm,
 #endif
 	e->event.base.type = args->vblank.base.type;
 	e->event.base.length = sizeof(e->event);
+#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE
+	e->event.vbl.user_data = args->vblank.user_data;
+	e->event.vbl.sequence = args->vblank.sequence;
+	e->event.vbl.tv_sec = args->vblank.tv_sec;
+	e->event.vbl.tv_usec = args->vblank.tv_usec;
+#else
 	e->event.user_data = args->vblank.user_data;
 	e->event.sequence = args->vblank.sequence;
 	e->event.tv_sec = args->vblank.tv_sec;
 	e->event.tv_usec = args->vblank.tv_usec;
+#endif
 
 	ret = drm_event_reserve_init(drm, file, &e->base, &e->event.base);
 	if (ret) {
@@ -624,7 +643,11 @@ err_unload:
 	tegra_udrm_unload(drm);
 
 err_unref:
+#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE
+	drm_dev_put(drm);
+#else
 	drm_dev_unref(drm);
+#endif
 
 	return ret;
 }
@@ -635,7 +658,11 @@ static int tegra_udrm_remove(struct platform_device *pdev)
 
 	drm_dev_unregister(drm);
 	tegra_udrm_unload(drm);
+#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE
+	drm_dev_put(drm);
+#else
 	drm_dev_unref(drm);
+#endif
 
 	return 0;
 }
