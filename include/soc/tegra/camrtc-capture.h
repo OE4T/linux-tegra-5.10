@@ -2005,8 +2005,8 @@ struct nvcsi_tpg_config_tpg_ng {
 	uint8_t emb_data_spare_0;
 	/** NvCSI tpg embedded data spare1 reg settings */
 	uint8_t emb_data_spare_1;
-	/** Reserved size */
-	uint8_t reserved2[1];
+	/** NvCSI TPG output brightness gain */
+	uint8_t brightness_gain_ratio;
 	/** Reserved size */
 	uint32_t reserved[2];
 } CAPTURE_IVC_ALIGN;
