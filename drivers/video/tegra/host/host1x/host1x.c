@@ -575,15 +575,26 @@ static int nvhost_ioctl_ctrl_sync_file_extract(
 {
 	u32 __user *out_fences = u64_to_user_ptr(args->fences_ptr);
 	struct nvhost_fence *fence = nvhost_fence_get(args->fd);
-	u32 num_pts, i;
+	u32 num_pts, i, limit;
 	int err = 0;
 
 	if (!fence)
 		return -EINVAL;
 
 	num_pts = nvhost_fence_num_pts(fence);
+	limit = min(num_pts, args->num_fences);
 
-	for (i = 0; i < min(num_pts, args->num_fences); i++) {
+	/*
+	 * prevent speculative access to fences, by making sure
+	 * that the limit is within bounds before entering loop
+	 */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	spec_bar();
+#else
+	speculation_barrier();
+#endif
+
+	for (i = 0; i < limit; i++) {
 		u32 __user *ptr = out_fences + i*2;
 		unsigned long copy_err;
 		u32 id, thresh;

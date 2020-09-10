@@ -89,6 +89,13 @@ static int validate_reg(struct platform_device *ndev, u32 offset, int count)
 		err = -EPERM;
 	}
 
+	/* prevent speculative access to mod's aperture + offset */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	spec_bar();
+#else
+	speculation_barrier();
+#endif
+
 	return err;
 }
 
@@ -202,13 +209,6 @@ int nvhost_read_module_regs(struct platform_device *ndev,
 	err = nvhost_module_busy(ndev);
 	if (err)
 		return err;
-
-	/* prevent speculative access to mod's aperture + offset */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-	spec_bar();
-#else
-	speculation_barrier();
-#endif
 
 	while (count--) {
 		*(values++) = host1x_readl(ndev, offset);
