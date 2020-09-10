@@ -40,6 +40,7 @@
 #include <nvgpu/pmu/seq.h>
 
 /* PMU F/W version */
+#define APP_VERSION_NVGPU_NEXT_CORE	3U
 #define APP_VERSION_NVGPU_NEXT	28917870U
 #define APP_VERSION_TU10X	28084434U
 #define APP_VERSION_GV11B	25005711U
@@ -1153,19 +1154,59 @@ static int pmu_prepare_ns_ucode_blob_v1(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	desc = (struct pmu_ucode_desc_v1 *)(void *)rtos_fw->fw_desc->data;
 	ucode_image = (u32 *)(void *)rtos_fw->fw_image->data;
 
-	if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
-		err = nvgpu_dma_alloc_map_sys(vm, PMU_RTOS_UCODE_SIZE_MAX,
-				&rtos_fw->ucode);
-		if (err != 0) {
-			goto exit;
+	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+		if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
+			err = nvgpu_dma_alloc_flags_sys(g,
+					NVGPU_DMA_PHYSICALLY_ADDRESSED,
+					PMU_RTOS_UCODE_SIZE_MAX,
+					&rtos_fw->ucode);
+			if (err != 0) {
+				goto exit;
+			}
 		}
-	}
 
-	nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
-		(desc->app_start_offset + desc->app_size));
+		nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
+				rtos_fw->fw_image->size);
+
+		/* alloc boot args */
+		if (!nvgpu_mem_is_valid(&rtos_fw->ucode_boot_args)) {
+			err = nvgpu_dma_alloc_flags_sys(g,
+					NVGPU_DMA_PHYSICALLY_ADDRESSED,
+					sizeof(struct nv_pmu_boot_params),
+					&rtos_fw->ucode_boot_args);
+			if (err != 0) {
+				goto exit;
+			}
+		}
+
+		/* alloc core dump */
+		if (!nvgpu_mem_is_valid(&rtos_fw->ucode_core_dump)) {
+			err = nvgpu_dma_alloc_flags_sys(g,
+					NVGPU_DMA_PHYSICALLY_ADDRESSED,
+					NV_REG_STR_NEXT_CORE_DUMP_SIZE_DEFAULT,
+					&rtos_fw->ucode_core_dump);
+			if (err != 0) {
+				goto exit;
+			}
+		}
+	} else {
+		desc = (struct pmu_ucode_desc_v1 *)(void *)
+					rtos_fw->fw_desc->data;
+
+		if (!nvgpu_mem_is_valid(&rtos_fw->ucode)) {
+			err = nvgpu_dma_alloc_map_sys(vm,
+					PMU_RTOS_UCODE_SIZE_MAX,
+					&rtos_fw->ucode);
+			if (err != 0) {
+				goto exit;
+			}
+		}
+
+		nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
+				(desc->app_start_offset + desc->app_size));
+	}
 
 exit:
 	return err;
@@ -1288,6 +1329,7 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 	case APP_VERSION_GV10X:
 	case APP_VERSION_TU10X:
 	case APP_VERSION_NVGPU_NEXT:
+	case APP_VERSION_NVGPU_NEXT_CORE:
 		fw_ops->pg_cmd_eng_buf_load_size =
 			pmu_pg_cmd_eng_buf_load_size_v2;
 		fw_ops->pg_cmd_eng_buf_load_set_cmd_type =
@@ -1354,7 +1396,8 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 			pmu_allocation_get_fb_size_v3;
 		if (app_version == APP_VERSION_GV10X ||
 			app_version == APP_VERSION_TU10X ||
-			app_version == APP_VERSION_NVGPU_NEXT) {
+			app_version == APP_VERSION_NVGPU_NEXT ||
+			app_version == APP_VERSION_NVGPU_NEXT_CORE) {
 			fw_ops->get_init_msg_ptr =
 				pmu_get_init_msg_ptr_v5;
 			fw_ops->get_init_msg_sw_mngd_area_off =
@@ -1410,7 +1453,8 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 			pmu_get_sequence_in_alloc_ptr_v3;
 		fw_ops->get_seq_out_alloc_ptr =
 			pmu_get_sequence_out_alloc_ptr_v3;
-		if (app_version == APP_VERSION_NVGPU_NEXT) {
+		if (app_version == APP_VERSION_NVGPU_NEXT ||
+			app_version == APP_VERSION_NVGPU_NEXT_CORE) {
 			fw_ops->prepare_ns_ucode_blob =
 				pmu_prepare_ns_ucode_blob_v1;
 			fw_ops->get_cmd_line_args_size =

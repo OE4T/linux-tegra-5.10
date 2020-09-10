@@ -37,6 +37,8 @@
 #define NVGPU_PMU_UCODE_IMAGE "gpmu_ucode_image.bin"
 #define NVGPU_PMU_UCODE_DESC "gpmu_ucode_desc.bin"
 #define NVGPU_PMU_UCODE_SIG "pmu_sig.bin"
+#define NVGPU_PMU_UCODE_NEXT_IMAGE "gpmu_ucode_next_image.bin"
+#define NVGPU_PMU_UCODE_NEXT_DESC "gpmu_ucode_next_desc.bin"
 
 void nvgpu_pmu_fw_get_cmd_line_args_offset(struct gk20a *g,
 	u32 *args_offset)
@@ -181,6 +183,14 @@ static void pmu_fw_release(struct gk20a *g, struct pmu_rtos_fw *rtos_fw)
 	if (nvgpu_mem_is_valid(&rtos_fw->ucode)) {
 		nvgpu_dma_unmap_free(vm, &rtos_fw->ucode);
 	}
+
+	if (nvgpu_mem_is_valid(&rtos_fw->ucode_boot_args)) {
+		nvgpu_dma_unmap_free(vm, &rtos_fw->ucode_boot_args);
+	}
+
+	if (nvgpu_mem_is_valid(&rtos_fw->ucode_core_dump)) {
+		nvgpu_dma_unmap_free(vm, &rtos_fw->ucode_core_dump);
+	}
 }
 
 struct nvgpu_firmware *nvgpu_pmu_fw_sig_desc(struct gk20a *g,
@@ -201,19 +211,17 @@ struct nvgpu_firmware *nvgpu_pmu_fw_image_desc(struct gk20a *g,
 	return pmu->fw->fw_image;
 }
 
-static int pmu_fw_read_and_init_ops(struct gk20a *g, struct nvgpu_pmu *pmu,
-	struct pmu_rtos_fw *rtos_fw)
+static int pmu_fw_read(struct gk20a *g, const char *ucode,
+		const char *desc, const char *sig)
 {
-	struct pmu_ucode_desc *desc;
+	struct pmu_rtos_fw *rtos_fw = g->pmu->fw;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	/* secure boot ucodes's */
 	nvgpu_pmu_dbg(g, "requesting PMU ucode image");
-	rtos_fw->fw_image =
-		nvgpu_request_firmware(g,
-			NVGPU_PMU_UCODE_IMAGE, 0);
+	rtos_fw->fw_image = nvgpu_request_firmware(g, ucode, 0);
 	if (rtos_fw->fw_image == NULL) {
 		nvgpu_err(g, "failed to load pmu ucode!!");
 		err = -ENOENT;
@@ -221,45 +229,55 @@ static int pmu_fw_read_and_init_ops(struct gk20a *g, struct nvgpu_pmu *pmu,
 	}
 
 	nvgpu_pmu_dbg(g, "requesting PMU ucode desc");
-	rtos_fw->fw_desc =
-		nvgpu_request_firmware(g,
-			NVGPU_PMU_UCODE_DESC, 0);
+	rtos_fw->fw_desc = nvgpu_request_firmware(g, desc, 0);
 	if (rtos_fw->fw_desc == NULL) {
 		nvgpu_err(g, "failed to load pmu ucode desc!!");
 		err = -ENOENT;
-		goto release_img_fw;
+		goto exit;
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		nvgpu_pmu_dbg(g, "requesting PMU ucode sign");
 		rtos_fw->fw_sig =
-			nvgpu_request_firmware(g,
-				NVGPU_PMU_UCODE_SIG, 0);
+			nvgpu_request_firmware(g, sig, 0);
 		if (rtos_fw->fw_sig == NULL) {
 			nvgpu_err(g, "failed to load pmu sig!!");
 			err = -ENOENT;
-			goto release_desc;
+			goto exit;
 		}
 	}
 
-	desc = (struct pmu_ucode_desc *)(void *)
-				rtos_fw->fw_desc->data;
-
-	err = nvgpu_pmu_init_fw_ver_ops(g, pmu, desc->app_version);
-	if (err != 0) {
-		nvgpu_err(g, "failed to set function pointers");
-		goto release_sig;
+exit:
+	if (err) {
+		pmu_fw_release(g, rtos_fw);
 	}
 
-	goto exit;
+	return err;
+}
 
-release_sig:
-	nvgpu_release_firmware(g, rtos_fw->fw_sig);
-release_desc:
-	nvgpu_release_firmware(g, rtos_fw->fw_desc);
-release_img_fw:
-	nvgpu_release_firmware(g, rtos_fw->fw_image);
-exit:
+static int pmu_fw_init_ops(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	struct pmu_rtos_fw *rtos_fw = g->pmu->fw;
+	struct falcon_next_core_ucode_desc *ncore_desc;
+	struct pmu_ucode_desc *desc;
+	u32 app_version = 0;
+	int err;
+
+
+	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+		ncore_desc = (struct falcon_next_core_ucode_desc *)(void *)
+						rtos_fw->fw_desc->data;
+		app_version = ncore_desc->version;
+	} else {
+		desc = (struct pmu_ucode_desc *)(void *)rtos_fw->fw_desc->data;
+		app_version = desc->app_version;
+	}
+
+	err = nvgpu_pmu_init_fw_ver_ops(g, pmu, app_version);
+	if (err != 0) {
+		nvgpu_err(g, "failed to set function pointers");
+	}
+
 	return err;
 }
 
@@ -284,9 +302,25 @@ int nvgpu_pmu_init_pmu_fw(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	*rtos_fw_p = rtos_fw;
 
-	err = pmu_fw_read_and_init_ops(g, pmu, rtos_fw);
+	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+		err = pmu_fw_read(g, NVGPU_PMU_UCODE_NEXT_IMAGE,
+				NVGPU_PMU_UCODE_NEXT_DESC, NVGPU_PMU_UCODE_SIG);
+
+	} else {
+		err = pmu_fw_read(g, NVGPU_PMU_UCODE_IMAGE,
+				NVGPU_PMU_UCODE_DESC, NVGPU_PMU_UCODE_SIG);
+	}
+
+	if (err) {
+		goto exit;
+	}
+
+	err = pmu_fw_init_ops(g, pmu);
 
 exit:
+	if (err) {
+		pmu_fw_release(g, rtos_fw);
+	}
 	return err;
 }
 

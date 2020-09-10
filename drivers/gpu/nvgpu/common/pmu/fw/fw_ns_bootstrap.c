@@ -26,6 +26,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/pmu/fw.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/string.h>
 
 static void pmu_free_ns_ucode_blob(struct gk20a *g)
 {
@@ -39,6 +40,52 @@ static void pmu_free_ns_ucode_blob(struct gk20a *g)
 	if (nvgpu_mem_is_valid(&rtos_fw->ucode)) {
 		nvgpu_dma_unmap_free(vm, &rtos_fw->ucode);
 	}
+}
+
+static void pmu_next_core_ucode_setup(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	struct nv_pmu_boot_params boot_params;
+	struct nv_next_core_bootldr_params *btldr_params;
+	struct nv_next_core_rtos_params *rtos_params;
+	struct pmu_cmdline_args_v7 *cmd_line_args;
+	u64 phyadr = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	btldr_params = &boot_params.boot_params.bl;
+	rtos_params = &boot_params.boot_params.rtos;
+	cmd_line_args = &boot_params.cmd_line_args;
+
+	/* setup core dump */
+	rtos_params->core_dump_size = NV_REG_STR_NEXT_CORE_DUMP_SIZE_DEFAULT;
+	rtos_params->core_dump_phys = nvgpu_mem_get_addr(g,
+			&pmu->fw->ucode_core_dump);
+
+	/* copy cmd line args to pmu->boot_params.cmd_line_args */
+	nvgpu_memcpy((u8 *)cmd_line_args,
+			(u8 *) (pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
+			pmu->fw->ops.get_cmd_line_args_size(pmu));
+
+	cmd_line_args->ctx_bind_addr = g->ops.pmu.get_inst_block_config(g);
+
+	/* setup boot loader args */
+	btldr_params->boot_type = NV_NEXT_CORE_BOOTLDR_BOOT_TYPE_RM;
+	btldr_params->size = sizeof(struct nv_pmu_boot_params);
+	btldr_params->version = NV_NEXT_CORE_BOOTLDR_VERSION;
+
+	/* copy to boot_args phyadr */
+	nvgpu_mem_wr_n(g, &pmu->fw->ucode_boot_args, 0,
+			(u32 *)&boot_params.boot_params.bl,
+			sizeof(struct nv_pmu_boot_params));
+
+	/* copy boot args phyadr to mailbox 0/1 */
+	phyadr = NV_NEXT_CORE_AMAP_EXTMEM2_START +
+			nvgpu_mem_get_addr(g, &pmu->fw->ucode_boot_args);
+
+	nvgpu_falcon_mailbox_write(g->pmu->flcn, FALCON_MAILBOX_0,
+			u64_lo32(phyadr));
+	nvgpu_falcon_mailbox_write(g->pmu->flcn, FALCON_MAILBOX_1,
+			u64_hi32(phyadr));
 }
 
 int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
@@ -62,6 +109,8 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 		return err;
 	}
 
+	nvgpu_pmu_enable_irq(g, true);
+
 	nvgpu_mutex_acquire(&pmu->isr_mutex);
 	pmu->isr_enabled = true;
 	nvgpu_mutex_release(&pmu->isr_mutex);
@@ -81,14 +130,18 @@ int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 		pmu->fw->ops.config_cmd_line_args_super_surface(pmu);
 	}
 
-	nvgpu_pmu_fw_get_cmd_line_args_offset(g, &args_offset);
+	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+		pmu_next_core_ucode_setup(g, pmu);
+	} else {
+		nvgpu_pmu_fw_get_cmd_line_args_offset(g, &args_offset);
 
-	err = nvgpu_falcon_copy_to_dmem(pmu->flcn, args_offset,
-		(u8 *)(pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
-		pmu->fw->ops.get_cmd_line_args_size(pmu), 0);
-	if (err != 0) {
-		nvgpu_err(g, "cmd line args copy failed");
-		return err;
+		err = nvgpu_falcon_copy_to_dmem(pmu->flcn, args_offset,
+			(u8 *)(pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
+			pmu->fw->ops.get_cmd_line_args_size(pmu), 0);
+		if (err != 0) {
+			nvgpu_err(g, "NS PMU ucode setup failed");
+			return err;
+		}
 	}
 
 	return g->ops.pmu.pmu_ns_bootstrap(g, pmu, args_offset);

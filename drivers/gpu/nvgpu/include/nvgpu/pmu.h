@@ -311,6 +311,82 @@ struct pmu_ucode_desc_v1 {
 	u32 nb_overlays;
 	struct {u32 start; u32 size; } load_ovl[PMU_UCODE_NB_MAX_OVERLAY];
 };
+
+/*
+ * configuration for bootloader
+ */
+struct nv_next_core_bootldr_params {
+	/*
+	 *                   *** warning ***
+	 * first 3 fields must be frozen like that always. should never
+	 * be reordered or changed.
+	 */
+	/* set to 'nvrm' if booting from rm. */
+	u32 boot_type;
+	/* size of boot params.*/
+	u16 size;
+	/* version of boot params. */
+	u8  version;
+	/*
+	 * you can reorder or change below this point but update version.
+	 */
+};
+
+/*
+ * Version of bootloader struct, increment on struct changes (while on prod).
+ */
+/* Macro to build and u32 from four bytes, listed from msb to lsb */
+#define U32_BUILD(a, b, c, d) (((a) << 24U) | ((b) << 16U) | ((c) << 8U) | (d))
+
+#define NV_NEXT_CORE_BOOTLDR_VERSION            1U
+#define NV_NEXT_CORE_BOOTLDR_BOOT_TYPE_UNKNOWN  0U
+#define NV_NEXT_CORE_BOOTLDR_BOOT_TYPE_RM       U32_BUILD('N', 'V', 'R', 'M')
+
+#define NV_REG_STR_NEXT_CORE_DUMP_SIZE_DEFAULT  8192U
+
+#define NV_NEXT_CORE_AMAP_EXTMEM2_START		0x8060000000000000ull
+
+/*
+ * configuration for rtos
+ */
+struct nv_next_core_rtos_params {
+	/* address (next-core pa) of ucode core dump buffer */
+	u64 core_dump_phys;
+	/* size of ucode core dump buffer */
+	u32 core_dump_size;
+};
+
+struct nv_next_core_boot_params {
+	struct nv_next_core_bootldr_params bl;
+	/* rtos specific configuration should be added here. */
+	struct nv_next_core_rtos_params rtos;
+};
+
+struct nv_pmu_boot_params {
+	struct nv_next_core_boot_params boot_params;
+	struct pmu_cmdline_args_v7 cmd_line_args;
+};
+
+struct falcon_next_core_ucode_desc {
+	u32 version;
+	u32 bootloader_offset;
+	u32 bootloader_size;
+	u32 bootloader_param_offset;
+	u32 bootloader_param_size;
+	u32 next_core_elf_offset;
+	u32 next_core_elf_size;
+	u32 app_version;
+	/* manifest contains information about monitor and it is input to br */
+	u32 manifest_offset;
+	u32 manifest_size;
+	/* monitor data offset within next_core image and size */
+	u32 monitor_data_offset;
+	u32 monitor_data_size;
+	/* monitor code offset withtin next_core image and size */
+	u32 monitor_code_offset;
+	u32 monitor_code_size;
+	bool is_monitor_enabled;
+};
 #endif
 
 /**

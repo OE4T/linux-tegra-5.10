@@ -177,6 +177,8 @@ struct pmu_rtos_fw {
 	struct nvgpu_firmware *fw_sig;
 
 	struct nvgpu_mem ucode;
+	struct nvgpu_mem ucode_boot_args;
+	struct nvgpu_mem ucode_core_dump;
 
 	u32 state;
 	bool ready;
