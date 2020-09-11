@@ -43,6 +43,7 @@
 #include <linux/uaccess.h>
 #include <linux/fs.h>
 #include <soc/tegra/fuse.h>
+#include <linux/pm_runtime.h>
 
 #include "sdhci-pltfm.h"
 #include "cqhci.h"
@@ -82,8 +83,8 @@
 #define SDHCI_MISC_CTRL_2_CLK_OVR_ON		0x40000000
 
 
-#define SDMMC_VNDR_IO_TRIM_CTRL_0		0x1AC
-#define SDMMC_VNDR_IO_TRIM_CTRL_0_SEL_VREG_MASK	0x4
+#define SDHCI_TEGRA_VENDOR_IO_TRIM_CTRL_0		0x1AC
+#define SDHCI_TEGRA_IO_TRIM_CTRL_0_SEL_VREG_MASK	0x4
 
 #define SDHCI_TEGRA_VENDOR_DLLCAL_CFG			0x1b0
 #define SDHCI_TEGRA_DLLCAL_CALIBRATE			BIT(31)
@@ -152,6 +153,7 @@
 #define NVQUIRK_HW_TAP_CONFIG				BIT(10)
 #define NVQUIRK_SDMMC_CLK_OVERRIDE			BIT(11)
 #define NVQUIRK_UPDATE_PIN_CNTRL_REG			BIT(12)
+#define NVQUIRK_CONTROL_TRIMMER_SUPPLY			BIT(13)
 
 #define MAX_TAP_VALUE		256
 
@@ -188,7 +190,9 @@ static char prod_device_states[MMC_TIMING_COUNTER][20] = {
  * NVQUIRK_HAS_TMCLK is for SoC's having separate timeout clock for Tegra
  * SDMMC hardware data timeout.
  */
-#define NVQUIRK_HAS_TMCLK				BIT(10)
+#define NVQUIRK_HAS_TMCLK				BIT(14)
+#define SDHCI_TEGRA_FALLBACK_CLK_HZ			400000
+#define SDHCI_TEGRA_RTPM_TIMEOUT_MS			10
 
 /* SDMMC CQE Base Address for Tegra Host Ver 4.1 and Higher */
 #define SDHCI_TEGRA_CQE_BASE_ADDR			0xF000
@@ -384,7 +388,7 @@ static void tegra_sdhci_dump_vendor_regs(struct sdhci_host *host)
 	pr_debug("Vendor Misc ctrl_2: %#x\n",
 		sdhci_readl(host, SDHCI_TEGRA_VENDOR_MISC_CTRL_2));
 	pr_debug("Vendor IO trim ctrl: %#x\n",
-		sdhci_readl(host, SDMMC_VNDR_IO_TRIM_CTRL_0));
+		sdhci_readl(host, SDHCI_TEGRA_VENDOR_IO_TRIM_CTRL_0));
 	pr_debug("Vendor Tuning ctrl: %#x\n",
 		sdhci_readl(host, SDHCI_VNDR_TUN_CTRL0_0));
 	pr_debug("SDMEM comp padctrl: %#x\n",
@@ -467,7 +471,7 @@ static bool tegra_sdhci_is_pad_and_regulator_valid(struct sdhci_host *host)
 	if (!(tegra_host->soc_data->nvquirks & NVQUIRK_NEEDS_PAD_CONTROL))
 		return true;
 
-	if (IS_ERR(host->mmc->supply.vqmmc))
+	if (IS_ERR_OR_NULL(host->mmc->supply.vqmmc))
 		return false;
 
 	has_1v8 = regulator_is_supported_voltage(host->mmc->supply.vqmmc,
@@ -1165,6 +1169,30 @@ static void tegra_sdhci_parse_tap_and_trim(struct sdhci_host *host)
 		tegra_host->dqs_trim = 0x11;
 }
 
+static void tegra_sdhci_set_bg_trimmer_supply(struct sdhci_host *host,
+					      bool enable)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
+	unsigned int misc_ctrl;
+
+	if (!(soc_data->nvquirks & NVQUIRK_CONTROL_TRIMMER_SUPPLY))
+		return;
+
+	misc_ctrl = sdhci_readl(host, SDHCI_TEGRA_VENDOR_IO_TRIM_CTRL_0);
+	if (enable) {
+		misc_ctrl &= ~(SDHCI_TEGRA_IO_TRIM_CTRL_0_SEL_VREG_MASK);
+		sdhci_writel(host, misc_ctrl, SDHCI_TEGRA_VENDOR_IO_TRIM_CTRL_0);
+		udelay(3);
+		sdhci_reset(host, SDHCI_RESET_CMD | SDHCI_RESET_DATA);
+	} else {
+		misc_ctrl |= (SDHCI_TEGRA_IO_TRIM_CTRL_0_SEL_VREG_MASK);
+		sdhci_writel(host, misc_ctrl, SDHCI_TEGRA_VENDOR_IO_TRIM_CTRL_0);
+		udelay(1);
+	}
+}
+
 static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
@@ -1245,6 +1273,56 @@ static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 		tegra_sdhci_pad_autocalib(host);
 		tegra_host->pad_calib_required = false;
 	}
+}
+
+static int tegra_sdhci_set_host_clock(struct sdhci_host *host, bool enable)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	u8 vndr_ctrl;
+	int err;
+
+	if (!enable) {
+		dev_dbg(mmc_dev(host->mmc), "Disabling clk\n");
+
+		/*
+		 * Power down BG trimmer supply(VREG).
+		 * Ensure SDMMC host internal clocks are
+		 * turned off before calling this function.
+		 */
+		tegra_sdhci_set_bg_trimmer_supply(host, false);
+
+		/* Update SDMMC host CAR clock status */
+		vndr_ctrl = sdhci_readb(host, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
+		vndr_ctrl &= ~SDHCI_CLOCK_CTRL_SDMMC_CLK;
+		sdhci_writeb(host, vndr_ctrl, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
+
+		/* Disable SDMMC host CAR clock */
+		clk_disable_unprepare(pltfm_host->clk);
+	} else {
+		dev_dbg(mmc_dev(host->mmc), "Enabling clk\n");
+
+		/* Enable SDMMC host CAR clock */
+		err = clk_prepare_enable(pltfm_host->clk);
+		if (err) {
+			dev_err(mmc_dev(host->mmc),
+				"clk enable failed %d\n", err);
+			return err;
+		}
+
+		/* Reset SDMMC host CAR clock status */
+		vndr_ctrl = sdhci_readb(host, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
+		vndr_ctrl |= SDHCI_CLOCK_CTRL_SDMMC_CLK;
+		sdhci_writeb(host, vndr_ctrl, SDHCI_TEGRA_VENDOR_CLOCK_CTRL);
+
+		/*
+		 * Power up BG trimmer supply(VREG).
+		 * Ensure SDMMC host internal clocks are
+		 * turned off before calling this function.
+		 */
+		tegra_sdhci_set_bg_trimmer_supply(host, true);
+	}
+
+	return 0;
 }
 
 static unsigned int tegra_sdhci_get_max_clock(struct sdhci_host *host)
@@ -2043,6 +2121,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra210 = {
 		    NVQUIRK_ENABLE_SDR50 |
 		    NVQUIRK_UPDATE_PIN_CNTRL_REG |
 		    NVQUIRK_ENABLE_SDR104 |
+		    NVQUIRK_CONTROL_TRIMMER_SUPPLY |
 		    NVQUIRK_HAS_TMCLK,
 	.min_tap_delay = 106,
 	.max_tap_delay = 185,
@@ -2085,6 +2164,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra186 = {
 		    NVQUIRK_ENABLE_SDR104 |
 		    NVQUIRK_SDMMC_CLK_OVERRIDE |
 		    NVQUIRK_HAS_TMCLK |
+		    NVQUIRK_CONTROL_TRIMMER_SUPPLY |
 		    NVQUIRK_CQHCI_DCMD_R1B_CMD_TIMING,
 	.min_tap_delay = 84,
 	.max_tap_delay = 136,
@@ -2096,6 +2176,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra194 = {
 	.nvquirks = NVQUIRK_NEEDS_PAD_CONTROL |
 		    NVQUIRK_HAS_PADCALIB |
 		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
+		    NVQUIRK_CONTROL_TRIMMER_SUPPLY |
 		    NVQUIRK_ENABLE_SDR50 |
 		    NVQUIRK_SDMMC_CLK_OVERRIDE |
 		    NVQUIRK_ENABLE_SDR104 |
@@ -2180,12 +2261,18 @@ static void sdhci_delayed_detect(struct work_struct *work)
 	/* Initialize debugfs */
 	sdhci_tegra_debugfs_init(host);
 
+	pm_runtime_set_active(mmc_dev(host->mmc));
+	pm_runtime_set_autosuspend_delay(mmc_dev(host->mmc), SDHCI_TEGRA_RTPM_TIMEOUT_MS);
+	pm_runtime_use_autosuspend(mmc_dev(host->mmc));
+	pm_suspend_ignore_children(mmc_dev(host->mmc), true);
+	pm_runtime_enable(mmc_dev(host->mmc));
+
 	return;
 
 err_add_host:
-        clk_disable_unprepare(tegra_host->tmclk);
+	clk_disable_unprepare(tegra_host->tmclk);
         reset_control_assert(tegra_host->rst);
-        clk_disable_unprepare(pltfm_host->clk);
+	clk_disable_unprepare(pltfm_host->clk);
 }
 
 static int sdhci_tegra_probe(struct platform_device *pdev)
@@ -2303,18 +2390,6 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	clk_prepare_enable(clk);
 	pltfm_host->clk = clk;
 
-	tegra_host->tmclk = devm_clk_get(&pdev->dev, "sdmmc_legacy_tm");
-	if (IS_ERR(tegra_host->tmclk)) {
-		rc = PTR_ERR(tegra_host->tmclk);
-
-		if (rc != -EPROBE_DEFER)
-			dev_err(mmc_dev(host->mmc), "timeout clk error\n");
-
-		goto err_rst_get;
-	};
-	clk_prepare_enable(tegra_host->tmclk);
-	clk_set_rate(tegra_host->tmclk, SDMMC_TIMEOUT_CLK_FREQ_HZ);
-
 	tegra_host->rst = devm_reset_control_get_exclusive(&pdev->dev,
 							   "sdhci");
 	if (IS_ERR(tegra_host->rst)) {
@@ -2426,12 +2501,75 @@ static int sdhci_tegra_remove(struct platform_device *pdev)
 	return 0;
 }
 
+static int sdhci_tegra_runtime_suspend(struct device *dev)
+{
+	struct sdhci_host *host = dev_get_drvdata(dev);
+	int ret;
+
+	if (host->mmc->caps2 & MMC_CAP2_CQE) {
+		ret = cqhci_suspend(host->mmc);
+		if (ret)
+			return ret;
+	}
+
+	ret = sdhci_runtime_suspend_host(host);
+	if (ret < 0)
+		return ret;
+
+	if (host->tuning_mode != SDHCI_TUNING_MODE_3)
+		mmc_retune_needed(host->mmc);
+
+	/* Disable SDMMC internal clock */
+	sdhci_set_clock(host, 0);
+
+	/* Disable SDMMC host CAR clock and BG trimmer supply */
+	return tegra_sdhci_set_host_clock(host, false);
+}
+
+static int sdhci_tegra_runtime_resume(struct device *dev)
+{
+	struct sdhci_host *host = dev_get_drvdata(dev);
+	unsigned int clk;
+	int ret = 0;
+
+	/* Clock enable should be invoked with a non-zero freq */
+	if (host->clock)
+		clk = host->clock;
+	else if (host->mmc->ios.clock)
+		clk = host->mmc->ios.clock;
+	else
+		clk = SDHCI_TEGRA_FALLBACK_CLK_HZ;
+
+	/* Enable SDMMC host CAR clock and BG trimmer supply */
+	ret = tegra_sdhci_set_host_clock(host, true);
+
+	/* Enable SDMMC internal clocks */
+	sdhci_set_clock(host, clk);
+
+	ret = sdhci_runtime_resume_host(host, true);
+	if (ret)
+		goto disable_car_clk;
+
+	if (host->mmc->caps2 & MMC_CAP2_CQE)
+		ret = cqhci_resume(host->mmc);
+
+	return ret;
+
+disable_car_clk:
+	return tegra_sdhci_set_host_clock(host, false);
+}
+
 #ifdef CONFIG_PM_SLEEP
 static int __maybe_unused sdhci_tegra_suspend(struct device *dev)
 {
 	struct sdhci_host *host = dev_get_drvdata(dev);
-	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	int ret;
+
+	if (pm_runtime_status_suspended(dev)) {
+		ret = tegra_sdhci_set_host_clock(host, true);
+		if (ret)
+			return ret;
+	}
 
 	if (host->mmc->caps2 & MMC_CAP2_CQE) {
 		ret = cqhci_suspend(host->mmc);
@@ -2441,21 +2579,20 @@ static int __maybe_unused sdhci_tegra_suspend(struct device *dev)
 
 	ret = sdhci_suspend_host(host);
 	if (ret) {
-		cqhci_resume(host->mmc);
+		if (host->mmc->caps2 & MMC_CAP2_CQE)
+			cqhci_resume(host->mmc);
 		return ret;
 	}
 
-	clk_disable_unprepare(pltfm_host->clk);
-	return 0;
+	return tegra_sdhci_set_host_clock(host, false);
 }
 
 static int __maybe_unused sdhci_tegra_resume(struct device *dev)
 {
 	struct sdhci_host *host = dev_get_drvdata(dev);
-	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	int ret;
 
-	ret = clk_prepare_enable(pltfm_host->clk);
+	ret = tegra_sdhci_set_host_clock(host, true);
 	if (ret)
 		return ret;
 
@@ -2474,7 +2611,7 @@ static int __maybe_unused sdhci_tegra_resume(struct device *dev)
 suspend_host:
 	sdhci_suspend_host(host);
 disable_clk:
-	clk_disable_unprepare(pltfm_host->clk);
+	tegra_sdhci_set_host_clock(host, false);
 	return ret;
 }
 #endif
@@ -2655,8 +2792,11 @@ err:
 	return;
 }
 
-static SIMPLE_DEV_PM_OPS(sdhci_tegra_dev_pm_ops, sdhci_tegra_suspend,
-			 sdhci_tegra_resume);
+const struct dev_pm_ops sdhci_tegra_dev_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(sdhci_tegra_suspend, sdhci_tegra_resume)
+	SET_RUNTIME_PM_OPS(sdhci_tegra_runtime_suspend,
+			   sdhci_tegra_runtime_resume, NULL)
+};
 
 static struct platform_driver sdhci_tegra_driver = {
 	.driver		= {
