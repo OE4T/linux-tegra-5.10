@@ -54,7 +54,9 @@ struct gops_perf {
 	void (*set_membuf_handled_bytes)(struct gk20a *g,
 		u32 entries, u32 entry_size);
 	bool (*get_membuf_overflow_status)(struct gk20a *g);
-	u32 (*get_pmm_per_chiplet_offset)(void);
+	u32 (*get_pmmsys_per_chiplet_offset)(void);
+	u32 (*get_pmmgpc_per_chiplet_offset)(void);
+	u32 (*get_pmmfbp_per_chiplet_offset)(void);
 };
 struct gops_perfbuf {
 	int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);

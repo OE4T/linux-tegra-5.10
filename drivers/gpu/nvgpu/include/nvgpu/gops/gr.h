@@ -1085,7 +1085,7 @@ struct gops_gr {
 				     u32 *num_fbp_perfmon,
 				     u32 *num_gpc_perfmon);
 	void (*set_pmm_register)(struct gk20a *g, u32 offset, u32 val,
-				 u32 num_chiplets, u32 num_perfmons);
+			 u32 num_chiplets, u32 chiplet_stride, u32 num_perfmons);
 	int (*dump_gr_regs)(struct gk20a *g,
 			    struct nvgpu_debug_context *o);
 	int (*update_pc_sampling)(struct nvgpu_channel *ch,

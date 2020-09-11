@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -66,6 +66,7 @@
 #define perf_pmmsys_base_v()                                       (0x00240000U)
 #define perf_pmmsys_extent_v()                                     (0x00243fffU)
 #define perf_pmmfbp_base_v()                                       (0x00200000U)
+#define perf_pmmfbp_extent_v()                                     (0x00203fffU)
 #define perf_pmasys_control_r()                                    (0x0024a000U)
 #define perf_pmasys_control_membuf_status_v(r)              (((r) >> 4U) & 0x1U)
 #define perf_pmasys_control_membuf_status_overflowed_v()           (0x00000001U)

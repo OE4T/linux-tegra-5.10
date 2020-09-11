@@ -760,7 +760,9 @@ static const struct gops_debugger vgpu_gp10b_ops_debugger = {
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 static const struct gops_perf vgpu_gp10b_ops_perf = {
-	.get_pmm_per_chiplet_offset = gm20b_perf_get_pmm_per_chiplet_offset,
+	.get_pmmsys_per_chiplet_offset = gm20b_perf_get_pmmsys_per_chiplet_offset,
+	.get_pmmgpc_per_chiplet_offset = gm20b_perf_get_pmmgpc_per_chiplet_offset,
+	.get_pmmfbp_per_chiplet_offset = gm20b_perf_get_pmmfbp_per_chiplet_offset,
 };
 #endif
 

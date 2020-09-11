@@ -84,12 +84,11 @@ void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 }
 
 void gr_gv100_set_pmm_register(struct gk20a *g, u32 offset, u32 val,
-				u32 num_chiplets, u32 num_perfmons)
+		u32 num_chiplets, u32 chiplet_stride, u32 num_perfmons)
 {
 	u32 perfmon_index = 0;
 	u32 chiplet_index = 0;
 	u32 reg_offset = 0;
-	u32 chiplet_stride = g->ops.perf.get_pmm_per_chiplet_offset();
 
 	for (chiplet_index = 0; chiplet_index < num_chiplets; chiplet_index++) {
 		for (perfmon_index = 0; perfmon_index < num_perfmons;
@@ -157,18 +156,20 @@ void gr_gv100_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
 
 void gr_gv100_init_hwpm_pmm_register(struct gk20a *g)
 {
-	u32 num_sys_perfmon = 0;
-	u32 num_fbp_perfmon = 0;
-	u32 num_gpc_perfmon = 0;
+	if (g->num_sys_perfmon == 0U) {
+		g->ops.gr.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
+				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
+	}
 
-	g->ops.gr.get_num_hwpm_perfmon(g, &num_sys_perfmon,
-				&num_fbp_perfmon, &num_gpc_perfmon);
-
-	g->ops.gr.set_pmm_register(g, perf_pmmsys_engine_sel_r(0),
-		0xFFFFFFFFU, 1U, num_sys_perfmon);
-	g->ops.gr.set_pmm_register(g, perf_pmmfbp_engine_sel_r(0),
-		0xFFFFFFFFU, nvgpu_fbp_get_num_fbps(g->fbp), num_fbp_perfmon);
-	g->ops.gr.set_pmm_register(g, perf_pmmgpc_engine_sel_r(0),
-		0xFFFFFFFFU, nvgpu_gr_config_get_gpc_count(g->gr->config),
-		num_gpc_perfmon);
+	g->ops.gr.set_pmm_register(g, perf_pmmsys_engine_sel_r(0), 0xFFFFFFFFU,
+		1U, g->ops.perf.get_pmmsys_per_chiplet_offset(),
+		g->num_sys_perfmon);
+	g->ops.gr.set_pmm_register(g, perf_pmmfbp_engine_sel_r(0), 0xFFFFFFFFU,
+		nvgpu_fbp_get_num_fbps(g->fbp),
+		g->ops.perf.get_pmmfbp_per_chiplet_offset(),
+		g->num_fbp_perfmon);
+	g->ops.gr.set_pmm_register(g, perf_pmmgpc_engine_sel_r(0), 0xFFFFFFFFU,
+		nvgpu_gr_config_get_gpc_count(g->gr->config),
+		g->ops.perf.get_pmmgpc_per_chiplet_offset(),
+		g->num_gpc_perfmon);
 }

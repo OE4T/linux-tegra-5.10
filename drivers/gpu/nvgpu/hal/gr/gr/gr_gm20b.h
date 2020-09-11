@@ -59,7 +59,6 @@ void gr_gm20b_init_cyclestats(struct gk20a *g);
 void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state);
 int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 		struct nvgpu_channel *ch, u32 sm_id);
-u32 gr_gm20b_get_pmm_per_chiplet_offset(void);
 void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable);
 int gm20b_gr_set_mmu_debug_mode(struct gk20a *g,
 		struct nvgpu_channel *ch, bool enable);

@@ -442,6 +442,10 @@ struct gk20a {
 	struct nvgpu_list_node profiler_objects;
 	struct nvgpu_pm_resource_reservations *pm_reservations;
 	nvgpu_atomic_t hwpm_refcount;
+
+	u32 num_sys_perfmon;
+	u32 num_gpc_perfmon;
+	u32 num_fbp_perfmon;
 #endif
 
 #ifdef CONFIG_NVGPU_FECS_TRACE

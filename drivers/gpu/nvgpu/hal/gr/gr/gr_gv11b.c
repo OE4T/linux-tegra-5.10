@@ -1856,7 +1856,7 @@ static u32 gr_gv11b_pri_pmmgpc_addr(struct gk20a *g, u32 gpc_num,
 	u32 domain_idx, u32 offset)
 {
 	return perf_pmmgpc_base_v() +
-		(gpc_num * g->ops.perf.get_pmm_per_chiplet_offset()) +
+		(gpc_num * g->ops.perf.get_pmmgpc_per_chiplet_offset()) +
 		(domain_idx * perf_pmmgpc_perdomain_offset_v()) +
 		offset;
 }
@@ -1871,7 +1871,7 @@ static void gr_gv11b_split_pmm_fbp_broadcast_address(struct gk20a *g,
 
 	for (fbp_num = 0; fbp_num < nvgpu_fbp_get_num_fbps(g->fbp); fbp_num++) {
 		base = perf_pmmfbp_base_v() +
-			(fbp_num * g->ops.perf.get_pmm_per_chiplet_offset());
+			(fbp_num * g->ops.perf.get_pmmfbp_per_chiplet_offset());
 
 		for (domain_idx = domain_start;
 		     domain_idx < (domain_start + num_domains);

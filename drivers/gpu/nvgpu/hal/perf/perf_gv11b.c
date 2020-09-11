@@ -109,7 +109,17 @@ void gv11b_perf_deinit_inst_block(struct gk20a *g)
 			perf_pmasys_mem_block_target_f(0));
 }
 
-u32 gv11b_perf_get_pmm_per_chiplet_offset(void)
+u32 gv11b_perf_get_pmmsys_per_chiplet_offset(void)
 {
 	return (perf_pmmsys_extent_v() - perf_pmmsys_base_v() + 1U);
+}
+
+u32 gv11b_perf_get_pmmgpc_per_chiplet_offset(void)
+{
+	return (perf_pmmgpc_extent_v() - perf_pmmgpc_base_v() + 1U);
+}
+
+u32 gv11b_perf_get_pmmfbp_per_chiplet_offset(void)
+{
+	return (perf_pmmfbp_extent_v() - perf_pmmfbp_base_v() + 1U);
 }

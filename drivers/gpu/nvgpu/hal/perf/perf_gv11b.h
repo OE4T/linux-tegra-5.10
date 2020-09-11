@@ -43,7 +43,9 @@ void gv11b_perf_disable_membuf(struct gk20a *g);
 void gv11b_perf_init_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block);
 void gv11b_perf_deinit_inst_block(struct gk20a *g);
 
-u32 gv11b_perf_get_pmm_per_chiplet_offset(void);
+u32 gv11b_perf_get_pmmsys_per_chiplet_offset(void);
+u32 gv11b_perf_get_pmmgpc_per_chiplet_offset(void);
+u32 gv11b_perf_get_pmmfbp_per_chiplet_offset(void);
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif

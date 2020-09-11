@@ -1220,7 +1220,9 @@ static const struct gops_perf gv11b_ops_perf = {
 	.get_membuf_pending_bytes = gv11b_perf_get_membuf_pending_bytes,
 	.set_membuf_handled_bytes = gv11b_perf_set_membuf_handled_bytes,
 	.get_membuf_overflow_status = gv11b_perf_get_membuf_overflow_status,
-	.get_pmm_per_chiplet_offset = gv11b_perf_get_pmm_per_chiplet_offset,
+	.get_pmmsys_per_chiplet_offset = gv11b_perf_get_pmmsys_per_chiplet_offset,
+	.get_pmmgpc_per_chiplet_offset = gv11b_perf_get_pmmgpc_per_chiplet_offset,
+	.get_pmmfbp_per_chiplet_offset = gv11b_perf_get_pmmfbp_per_chiplet_offset,
 };
 #endif
 
