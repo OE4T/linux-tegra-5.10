@@ -251,8 +251,8 @@ int tegra_mcerr_init(struct dentry *mc_parent, struct platform_device *pdev)
 		goto done;
 	}
 
-	if (request_threaded_irq(irq, tegra_mcerr_hard_irq,
-				 tegra_mcerr_thread, 0, "mc_status", NULL)) {
+	if (request_threaded_irq(irq, tegra_mcerr_hard_irq, tegra_mcerr_thread,
+				 IRQF_SHARED, "mc_status", pdev)) {
 		pr_err("Unable to register MC error interrupt\n");
 		goto done;
 	}
