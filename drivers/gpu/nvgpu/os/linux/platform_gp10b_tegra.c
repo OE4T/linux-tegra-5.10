@@ -33,7 +33,7 @@
 #include <soc/tegra/tegra-bpmp-dvfs.h>
 #endif /* CONFIG_NV_TEGRA_BPMP */
 
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#ifdef CONFIG_NV_TEGRA_MC
 #include <dt-bindings/memory/tegra-swgroup.h>
 #endif
 
@@ -584,7 +584,7 @@ struct gk20a_platform gp10b_tegra_platform = {
 	.unify_address_spaces = true,
 	.dma_mask = DMA_BIT_MASK(36),
 
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#ifdef CONFIG_NV_TEGRA_MC
 	.ltc_streamid = TEGRA_SID_GPUB,
 #endif
 
