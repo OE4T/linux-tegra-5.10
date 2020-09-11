@@ -30,6 +30,7 @@
 #define T23x_OIST_STATE			8
 #define C7_PSCI_PARAM			0x40000007
 #define POWER_STATE_TYPE_MASK		(0x1 << 30)
+#define TIMER_CTL_CTX			0x3U
 
 static u64 forced_idle_state;
 
@@ -158,6 +159,36 @@ err_out:
 	return -ENOMEM;
 }
 
+#ifdef CONFIG_CPU_PM
+static DEFINE_PER_CPU(uint32_t, saved_timer_ctl_reg);
+static int t23x_cpuidle_cpu_pm_notify(struct notifier_block *self,
+				    unsigned long action, void *hcpu)
+{
+	if (action == CPU_PM_ENTER)
+		__this_cpu_write(saved_timer_ctl_reg,
+			read_sysreg(cnthp_ctl_el2) & TIMER_CTL_CTX);
+	else if (action == CPU_PM_ENTER_FAILED || action == CPU_PM_EXIT)
+		write_sysreg(__this_cpu_read(saved_timer_ctl_reg),
+							cnthp_ctl_el2);
+
+	return NOTIFY_OK;
+}
+
+static struct notifier_block t23x_cpuidle_cpu_pm_notifier = {
+	.notifier_call = t23x_cpuidle_cpu_pm_notify,
+};
+
+static int __init t23x_cpuidle_cpu_pm_init(void)
+{
+	return cpu_pm_register_notifier(&t23x_cpuidle_cpu_pm_notifier);
+}
+#else
+static int __init t23x_cpuidle_cpu_pm_init(void)
+{
+	return 0;
+}
+#endif
+
 static int tegra23x_cpuidle_debug_probe(struct platform_device *pdev)
 {
 	int ret;
@@ -165,6 +196,12 @@ static int tegra23x_cpuidle_debug_probe(struct platform_device *pdev)
 	if (!check_mce_version()) {
 		pr_err("Incompatible MCE version\n");
 		return -ENODEV;
+	}
+
+	ret = t23x_cpuidle_cpu_pm_init();
+	if (ret) {
+		pr_err("Error registering PM notifiers\n");
+		return ret;
 	}
 
 	ret = cpuidle_debugfs_init();
@@ -180,6 +217,7 @@ static int tegra23x_cpuidle_debug_probe(struct platform_device *pdev)
 static int tegra23x_cpuidle_debug_remove(struct platform_device *pdev)
 {
 	debugfs_remove_recursive(cpuidle_debugfs_node);
+	cpu_pm_unregister_notifier(&t23x_cpuidle_cpu_pm_notifier);
 	return 0;
 }
 
