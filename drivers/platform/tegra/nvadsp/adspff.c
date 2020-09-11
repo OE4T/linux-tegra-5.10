@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,7 +14,6 @@
 #define pr_fmt(fmt) "adspff: " fmt
 
 #include <linux/fs.h>
-#include <asm/segment.h>
 #include <asm/uaccess.h>
 
 #include <linux/slab.h>
@@ -22,13 +21,13 @@
 #include <linux/sched.h>
 #include <linux/sched/rt.h>
 #include <linux/sched/task.h>
-#include <linux/sched/types.h>
 #include <linux/semaphore.h>
 #include <linux/debugfs.h>
 #include <linux/platform_device.h>
 #include <linux/list.h>
 
 #include <linux/tegra_nvadsp.h>
+#include <uapi/linux/sched/types.h>
 
 #include "adspff.h"
 #include "dev.h"
@@ -60,7 +59,7 @@ struct file *file_open(const char *path, int flags, int rights)
 	int err = 0;
 
 	oldfs = get_fs();
-	set_fs(get_ds());
+	set_fs(KERNEL_DS);
 	filp = filp_open(path, flags, rights);
 	set_fs(oldfs);
 	if (IS_ERR(filp)) {
@@ -82,7 +81,7 @@ int file_write(struct file *file, unsigned long long *offset,
 	int ret = 0;
 
 	oldfs = get_fs();
-	set_fs(get_ds());
+	set_fs(KERNEL_DS);
 
 	ret = vfs_write(file, data, size, offset);
 
@@ -97,7 +96,7 @@ uint32_t file_read(struct file *file, unsigned long long *offset,
 	uint32_t ret = 0;
 
 	oldfs = get_fs();
-	set_fs(get_ds());
+	set_fs(KERNEL_DS);
 
 	ret = vfs_read(file, data, size, offset);
 
@@ -112,7 +111,7 @@ uint32_t file_size(struct file *file)
 	uint32_t size = 0;
 
 	oldfs = get_fs();
-	set_fs(get_ds());
+	set_fs(KERNEL_DS);
 
 	size = vfs_llseek(file, 0, SEEK_END);
 
