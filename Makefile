@@ -4,7 +4,17 @@ dtb-y :=
 dtbo-y :=
 makefile-path := platform/t19x/galen-industrial/kernel-dts
 
-dtb-$(CONFIG_ARCH_TEGRA_19x_SOC) += tegra194-p2888-0008-p2822-0000.dtb
+BUILD_19x_ENABLE=n
+BUILD_18x_ENABLE=n
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
+BUILD_19x_ENABLE=y
+endif
+ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_18x_SOC) $(CONFIG_ARCH_TEGRA_186_SOC)),)
+BUILD_18x_ENABLE=y
+endif
+
+dtb-$(BUILD_19x_ENABLE) += tegra194-p2888-0008-e3366-1199.dtb
+dtb-$(BUILD_19x_ENABLE) += tegra194-p2888-0008-p2822-0000.dtb
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
