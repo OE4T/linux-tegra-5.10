@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/grmgr.h>
 
 #include "gr_config_priv.h"
@@ -287,7 +288,7 @@ alloc_err:
 static int gr_config_init_mig_gpcs(struct nvgpu_gr_config *config)
 {
 	struct gk20a *g = config->g;
-	u32 cur_gr_instance = g->mig.cur_gr_instance;
+	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
 	u32 gpc_phys_id;
 	u32 gpc_id;
 

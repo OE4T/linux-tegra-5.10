@@ -531,7 +531,8 @@ static int gr_init_prepare_hw_impl(struct gk20a *g)
 	u32 i;
 	int err = 0;
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Prepare GR%u HW", g->mig.cur_gr_instance);
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Prepare GR%u HW",
+		nvgpu_gr_get_cur_instance_id(g));
 
 	/** Enable interrupts */
 	g->ops.gr.intr.enable_interrupts(g, true);
@@ -586,12 +587,13 @@ static int gr_init_prepare_hw(struct gk20a *g)
 
 static int gr_reset_engine(struct gk20a *g)
 {
+	u32 cur_gr_instance_id = nvgpu_gr_get_cur_instance_id(g);
 	int err;
 	const struct nvgpu_device *dev =
 		nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS,
 			nvgpu_gr_get_syspipe_id(g, g->mig.cur_gr_instance));
 
-	nvgpu_log(g, gpu_dbg_gr, "Reset GR%u", g->mig.cur_gr_instance);
+	nvgpu_log(g, gpu_dbg_gr, "Reset GR%u", cur_gr_instance_id);
 
 	/* Reset GR engine: Disable then enable GR engine */
 	err = g->ops.mc.enable_dev(g, dev, false);
@@ -768,10 +770,10 @@ static int gr_init_ctxsw_falcon_support(struct gk20a *g, struct nvgpu_gr *gr)
 
 static int gr_init_support_impl(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	int err = 0;
 
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Init support for GR%u", g->mig.cur_gr_instance);
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Init support for GR%u", gr->instance_id);
 
 	gr->initialized = false;
 
@@ -825,10 +827,10 @@ static int gr_init_support_impl(struct gk20a *g)
 
 static void gr_init_support_finalize(struct gk20a *g)
 {
-	struct nvgpu_gr *gr = &g->gr[g->mig.cur_gr_instance];
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Finalize support for GR%u",
-		g->mig.cur_gr_instance);
+		gr->instance_id);
 
 	gr->initialized = true;
 	nvgpu_cond_signal(&gr->init_wq);
@@ -892,6 +894,7 @@ int nvgpu_gr_alloc(struct gk20a *g)
 
 	for (i = 0U; i < g->num_gr_instances; i++) {
 		gr = &g->gr[i];
+		gr->instance_id = i;
 
 		gr->syspipe_id = nvgpu_grmgr_get_gr_syspipe_id(g, i);
 		if (gr->syspipe_id == U32_MAX) {

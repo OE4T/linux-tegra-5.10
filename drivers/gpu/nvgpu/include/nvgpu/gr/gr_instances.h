@@ -26,6 +26,30 @@
 #include <nvgpu/types.h>
 #include <nvgpu/grmgr.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/lock.h>
+
+#ifdef CONFIG_NVGPU_MIG
+#define nvgpu_gr_get_cur_instance_id(g) \
+	({ \
+		u32 current_gr_instance_id = 0U; \
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+			if (nvgpu_mutex_tryacquire(&g->mig.gr_syspipe_lock) == 0) { \
+				current_gr_instance_id = g->mig.cur_gr_instance; \
+			} else { \
+				nvgpu_mutex_release(&g->mig.gr_syspipe_lock); \
+			} \
+		} \
+		current_gr_instance_id; \
+	})
+#else
+#define nvgpu_gr_get_cur_instance_id(g)		(0U)
+#endif
+
+#define nvgpu_gr_get_cur_instance_ptr(g) \
+	({ \
+		u32 current_gr_instance_id = nvgpu_gr_get_cur_instance_id(g); \
+		&g->gr[current_gr_instance_id]; \
+	})
 
 #ifdef CONFIG_NVGPU_MIG
 #define nvgpu_gr_exec_for_each_instance(g, func) \

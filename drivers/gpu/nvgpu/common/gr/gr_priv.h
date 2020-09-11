@@ -54,6 +54,11 @@ struct nvgpu_gr {
 	struct gk20a *g;
 
 	/**
+	 * Instance ID of GR engine.
+	 */
+	u32 instance_id;
+
+	/**
 	 * Condition variable for GR initialization.
 	 * Waiters shall wait on this condition to ensure GR engine
 	 * is initialized.

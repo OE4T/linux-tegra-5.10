@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/types.h>
 #include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/gr_instances.h>
 
 #include <nvgpu/gr/config.h>
 
@@ -35,23 +36,27 @@ u32 nvgpu_gr_checksum_u32(u32 a, u32 b)
 
 struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g)
 {
-	return g->gr[g->mig.cur_gr_instance].falcon;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	return gr->falcon;
 }
 
 struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
 {
-	return g->gr[g->mig.cur_gr_instance].config;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	return gr->config;
 }
 
 struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)
 {
-	return g->gr[g->mig.cur_gr_instance].intr;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	return gr->intr;
 }
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 u32 nvgpu_gr_get_override_ecc_val(struct gk20a *g)
 {
-	return g->gr[g->mig.cur_gr_instance].fecs_feature_override_ecc_val;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	return gr->fecs_feature_override_ecc_val;
 }
 
 void nvgpu_gr_override_ecc_val(struct nvgpu_gr *gr, u32 ecc_val)
