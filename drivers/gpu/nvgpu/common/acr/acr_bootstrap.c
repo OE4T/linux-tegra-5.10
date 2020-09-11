@@ -161,7 +161,11 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	nvgpu_acr_dbg(g, "ACR TYPE %x ", acr_desc->acr_type);
 
 	if (acr_fw != NULL) {
-		acr->patch_wpr_info_to_ucode(g, acr, acr_desc, true);
+		err = acr->patch_wpr_info_to_ucode(g, acr, acr_desc, true);
+		if (err != 0) {
+			nvgpu_err(g, "Falcon ucode patch wpr info failed");
+			return err;
+                }
 	} else {
 		/* Firmware is stored in soc specific path in FMODEL
 		 * Hence NVGPU_REQUEST_FIRMWARE_NO_WARN is used instead
@@ -187,7 +191,11 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 
 		acr_desc->acr_fw = acr_fw;
 
-		acr->patch_wpr_info_to_ucode(g, acr, acr_desc, false);
+		err = acr->patch_wpr_info_to_ucode(g, acr, acr_desc, false);
+		if (err != 0) {
+			nvgpu_err(g, "Falcon ucode patch wpr info failed");
+			goto err_free_ucode;
+                }
 	}
 
 

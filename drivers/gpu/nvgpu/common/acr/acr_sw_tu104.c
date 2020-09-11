@@ -55,7 +55,7 @@ exit:
 }
 
 /* WPR info update */
-static void tu104_acr_patch_wpr_info_to_ucode(struct gk20a *g,
+static int tu104_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
 	bool is_recovery)
 {
@@ -103,6 +103,8 @@ static void tu104_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 	acr_dmem_desc->regions.region_props[0U].shadowmMem_startaddress =
 		U32(tmp_addr);
+
+	return 0;
 }
 
 /* LSF init */

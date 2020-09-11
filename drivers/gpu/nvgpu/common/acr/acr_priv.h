@@ -147,7 +147,7 @@ struct nvgpu_acr {
 	int (*prepare_ucode_blob)(struct gk20a *g);
 	int (*alloc_blob_space)(struct gk20a *g, size_t size,
 		struct nvgpu_mem *mem);
-	void (*patch_wpr_info_to_ucode)(struct gk20a *g, struct nvgpu_acr *acr,
+	int (*patch_wpr_info_to_ucode)(struct gk20a *g, struct nvgpu_acr *acr,
 		struct hs_acr *acr_desc, bool is_recovery);
 	int (*bootstrap_hs_acr)(struct gk20a *g, struct nvgpu_acr *acr);
 

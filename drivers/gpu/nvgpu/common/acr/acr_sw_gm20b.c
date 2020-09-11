@@ -48,7 +48,7 @@ static int gm20b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 	return err;
 }
 
-static void gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
+static int gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc, bool is_recovery)
 {
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
@@ -87,6 +87,8 @@ static void gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		acr_dmem_desc->regions.no_regions = 1U;
 		acr_dmem_desc->wpr_offset = 0U;
 	}
+
+	return 0;
 }
 
 /* LSF static config functions */

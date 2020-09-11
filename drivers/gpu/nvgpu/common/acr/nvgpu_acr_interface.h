@@ -567,6 +567,38 @@ struct flcn_acr_desc {
 	u32 dummy[4];
 };
 
+struct flcn2_acr_desc {
+	/**
+	 * WPR Region ID holding the WPR header and its details
+	 *
+	 * on GPUID_NEXT, wpr_region_id set to 0x0 by default to indicate
+	 * to ACR HS ucode to fetch WPR region details from H/W &
+	 * updating WPR start_addr, end_addr, read_mask & write_mask
+	 * of struct #flcn_acr_region_prop.
+	 */
+	u32 wpr_region_id;
+	/** Offset from the non-WPR base holding the wpr header */
+	u32 wpr_offset;
+	/**
+	 * WPR Region descriptors to provide info about WPR.
+	 * on GPUID_NEXT, no_regions set to 1 & region properties value to 0x0
+	 * to indicate to ACR HS ucode to fetch WPR region details from H/W.
+	 */
+	struct flcn_acr_regions regions;
+	/**
+	 * stores the size of the ucode blob.
+	 *
+	 * On GPUID_NEXT, size is calculated at runtime & aligned to 256 bytes.
+	 * Size varies based on number of LS falcon supports.
+	 */
+	u32 nonwpr_ucode_blob_size;
+	/**
+	 * stores sysmem(iGPU)/FB's(dGPU) non-WPR start address where
+	 * kernel stores ucode blob
+	 */
+	u64 nonwpr_ucode_blob_start;
+};
+
 /** @} */
 
 #endif /* NVGPU_ACR_INTERFACE_H */
