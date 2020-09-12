@@ -66,7 +66,6 @@ endif
 obj-$(CONFIG_TEGRA_CACHE) += cache/
 ifdef CONFIG_ARCH_TEGRA_19x_SOC
 obj-y += cvnas.o
-obj-$(CONFIG_ARCH_TEGRA_210_SOC) += mselect.o
 obj-$(CONFIG_TEGRA_19X_RAS) += carmel_ras.o
 ifeq ($(CONFIG_HW_PERF_EVENTS), y)
 obj-$(CONFIG_ARCH_TEGRA_19x_SOC) += tegra19_perf_uncore.o
@@ -74,6 +73,7 @@ endif
 
 endif
 
+obj-$(CONFIG_ARCH_TEGRA_210_SOC) += mselect.o
 obj-$(CONFIG_TEGRA_HSP) += tegra-hsp.o
 obj-$(CONFIG_TEGRA_HSP) += tegra186-hsp.o
 obj-$(CONFIG_TEGRA_WAKEUP) += tegra-wakeups.o
