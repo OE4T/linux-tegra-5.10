@@ -31,6 +31,10 @@
 #include <linux/io.h>
 #include <linux/slab.h>
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#include <soc/tegra/tegra-sid-override.h>
+#endif
+
 #include <linux/platform/tegra/tegra-mc-sid.h>
 #include <dt-bindings/memory/tegra-swgroup.h>
 
