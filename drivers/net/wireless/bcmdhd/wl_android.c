@@ -2043,7 +2043,7 @@ static int wl_android_get_iovar(struct net_device *dev, char *command,
 				__func__, bytes_written));
 		bytes_written = 0;
 	} else {
-		snprintf(command, total_len, iovbuf);
+		snprintf(command, total_len, "%s", iovbuf);
 		bytes_written = snprintf(command, total_len,
 					"%d:%s", dtoh32(param), iovbuf);
 		DHD_INFO(("%s: param:%d iovbuf:%s strlen(iovbuf):%zd"

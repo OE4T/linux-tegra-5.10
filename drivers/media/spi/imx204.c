@@ -154,7 +154,7 @@ static inline void imx204_get_svr_regs(imx204_reg *regs,
 	regs->addr = (IMX204_CHIP_ID << 16) | IMX204_SVR_ADDR_LSB;
 	regs->val = svr & 0xFF;
 	(regs + 1)->addr = (IMX204_CHIP_ID << 16) | IMX204_SVR_ADDR_MSB;
-	(regs + 1)->val = (svr >> 8) && 0xFF;
+	(regs + 1)->val = (svr >> 8) & 0xFF;
 }
 
 static inline void imx204_get_frame_length_regs(imx204_reg *regs,

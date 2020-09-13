@@ -2330,7 +2330,7 @@ bcm_bprintf(struct bcmstrbuf *b, const char *fmt, ...)
 
 	r = vsnprintf(b->buf, b->size, fmt, ap);
 	if (bcm_bprintf_bypass == TRUE) {
-		printf(b->buf);
+		printf("%s", b->buf);
 		goto exit;
 	}
 
