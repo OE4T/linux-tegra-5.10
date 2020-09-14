@@ -32,12 +32,26 @@
 					iovdd-supply = <&p2822_vdd_3v3_cvb>;
                                 };
 			};
+
+			i2c@3 {
+				rt5659.12-001a@1a {
+					/* Codec IRQ output */
+					interrupt-parent = <&tegra_main_gpio>;
+					interrupts = <TEGRA194_MAIN_GPIO(R, 0) GPIO_ACTIVE_HIGH>;
+				};
+			};
 		};
 
                 icm20628@68 {
 			vdd-supply = <&p2822_vdd_3v3_cvb>;
 			vlogic-supply = <&p2822_vdd_3v3_cvb>;
                 };
+
+		rt5659.1-001a@1a {
+			/* Codec IRQ output */
+			interrupt-parent = <&tegra_main_gpio>;
+			interrupts = <TEGRA194_MAIN_GPIO(R, 0) GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	plugin-manager {

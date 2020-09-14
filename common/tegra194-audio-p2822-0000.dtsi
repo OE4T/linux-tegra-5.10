@@ -22,7 +22,6 @@
 #include <audio/tegra186-audio-dai-links.dtsi>
 #include <dt-bindings/gpio/tegra194-gpio.h>
 #include <dt-bindings/audio/tegra194-audio.h>
-#include <dt-bindings/sound/rt5659.h>
 #include <audio/tegra-platforms-audio-dmic3-5-switch.dtsi>
 
 / {
@@ -44,11 +43,15 @@
 			compatible = "realtek,rt5658";
 			reg = <0x1a>;
 
-			realtek,jd-src = <RT5659_JD_NULL>;
-			realtek,dmic1-data-pin = <RT5659_DMIC1_NULL>;
-			realtek,dmic2-data-pin = <RT5659_DMIC2_NULL>;
+			/* refer include/sound/rt5659.h for the values to be used */
+			realtek,jd-src = <2>; /* RT5659_JD_HDA_HEADER */
+			realtek,dmic1-data-pin = <0>; /* RT5659_DMIC1_NULL */
+			realtek,dmic2-data-pin = <0>; /* RT5659_DMIC2_NULL */
 
-			gpios = <&tegra_main_gpio TEGRA194_MAIN_GPIO(S, 5) 0>;
+			/* Codec IRQ output */
+			interrupt-parent = <&tegra_main_gpio>;
+			interrupts = <TEGRA194_MAIN_GPIO(S, 5) GPIO_ACTIVE_HIGH>;
+
 			#sound-dai-cells = <1>;
 
 			status = "okay";
