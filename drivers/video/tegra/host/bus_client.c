@@ -1750,6 +1750,9 @@ int nvhost_device_get_resources(struct platform_device *dev)
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
 	int ret;
 
+	if (!nvhost_get_host_nowarn(dev))
+		return -EPROBE_DEFER;
+
 	for (i = 0; i < dev->num_resources; i++) {
 		struct resource *r = NULL;
 
