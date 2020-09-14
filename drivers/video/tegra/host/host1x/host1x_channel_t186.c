@@ -236,6 +236,26 @@ static void submit_setstreamid(struct nvhost_job *job)
 #include "host1x/submit_host1x_streamid.h"
 #endif
 
+static void submit_check_alignment(struct nvhost_cdma *cdma)
+{
+	/*
+	 * Ensure that there is always space for two contiguous slots after
+	 * the next pushed slot.
+	 *
+	 * This is used before a RELEASE_MLOCK slot to ensure that after
+	 * the RELEASE_MLOCK slot, there is contiguous space for the
+	 * following ACQUIRE_MLOCK-SETCLASS-SETPAYLOAD-SETSTREAMID
+	 * sequence.
+	 *
+	 * Otherwise we can get into a situation, where (there being
+	 * 16 bytes = 2 slots left in the pushbuffer before wraparound),
+	 * after the RELEASE_MLOCK there is only one slot, and the
+	 * successive ACQUIRE_MLOCK sequence will be split.
+	 */
+	if (cdma->push_buffer.cur == PUSH_BUFFER_SIZE-16)
+		nvhost_cdma_push(cdma, NVHOST_OPCODE_NOOP, NVHOST_OPCODE_NOOP);
+}
+
 static void submit_work(struct nvhost_job *job)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(job->ch->dev);
@@ -263,6 +283,8 @@ static void submit_work(struct nvhost_job *job)
 
 		/* handle class changing */
 		if (cur_class != g->class_id) {
+			submit_check_alignment(&job->ch->cdma);
+
 			/* first, release current class */
 			nvhost_cdma_push(&job->ch->cdma,
 					NVHOST_OPCODE_NOOP,
@@ -324,6 +346,8 @@ static void submit_work(struct nvhost_job *job)
 
 	/* make final increment */
 	submit_work_done_increment(job);
+
+	submit_check_alignment(&job->ch->cdma);
 
 	/* release the engine */
 	nvhost_cdma_push(&job->ch->cdma,
