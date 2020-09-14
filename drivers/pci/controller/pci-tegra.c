@@ -236,9 +236,6 @@
 #define  RP_RX_HDR_LIMIT_PW_MASK	(0xff << 8)
 #define  RP_RX_HDR_LIMIT_PW		(0x0e << 8)
 
-#define RP_ECTL_1_R1	0xe8a
-#define  RP_ECTL_1_R1_TX_DRV_AMP_1C_MASK	0x3f
-
 #define RP_TIMEOUT0		0xe24
 #define  RP_TIMEOUT0_PAD_PWRUP_MASK		0xff
 #define  RP_TIMEOUT0_PAD_PWRUP			0xa
@@ -278,6 +275,9 @@
 #define  LTSSM_TRACE_STATUS_WRITE_POINTER(reg)		(((reg) >> 1) & 0x1f)
 #define  LTSSM_TRACE_STATUS_RAM_FULL(reg)		(reg & 0x1)
 
+#define RP_ECTL_1_R1	0x00000e80
+#define  RP_ECTL_1_R1_TX_DRV_AMP_1C_MASK	0x3f
+
 #define RP_ECTL_2_R1	0x00000e84
 #define  RP_ECTL_2_R1_RX_CTLE_1C_MASK		0xffff
 
@@ -291,7 +291,7 @@
 #define RP_ECTL_6_R1	0x00000e94
 #define  RP_ECTL_6_R1_RX_EQ_CTRL_H_1C_MASK	0xffffffff
 
-#define RP_ECTL_1_R2	0xea0
+#define RP_ECTL_1_R2	0x00000ea0
 #define  RP_ECTL_1_R2_TX_DRV_AMP_1C_MASK	0x3f
 
 #define RP_ECTL_2_R2	0x00000ea4
