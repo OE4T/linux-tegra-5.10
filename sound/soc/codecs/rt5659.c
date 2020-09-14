@@ -1371,7 +1371,7 @@ static irqreturn_t rt5659_irq(int irq, void *data)
 	struct rt5659_priv *rt5659 = data;
 
 	if (rt5659->pdata.jd_src == RT5659_JD3 ||
-	    rt5659->pdata.jd_src == RT5659_JD_NULL)
+	    rt5659->pdata.jd_src == RT5659_JD_HDA_HEADER)
 		queue_delayed_work(system_power_efficient_wq,
 				   &rt5659->jack_detect_work,
 				   msecs_to_jiffies(250));
@@ -3731,7 +3731,7 @@ static int rt5659_suspend(struct device *dev)
 	}
 
 	if (rt5659->pdata.jd_src == RT5659_JD3 ||
-	    rt5659->pdata.jd_src == RT5659_JD_NULL)
+	    rt5659->pdata.jd_src == RT5659_JD_HDA_HEADER)
 		cancel_delayed_work_sync(&rt5659->jack_detect_work);
 
 	regcache_cache_only(rt5659->regmap, true);
@@ -3750,7 +3750,7 @@ static int rt5659_resume(struct device *dev)
 		enable_irq(rt5659->i2c->irq);
 
 	if (rt5659->pdata.jd_src == RT5659_JD3 ||
-	    rt5659->pdata.jd_src == RT5659_JD_NULL)
+	    rt5659->pdata.jd_src == RT5659_JD_HDA_HEADER)
 		queue_delayed_work(system_power_efficient_wq,
 				   &rt5659->jack_detect_work, 0);
 
@@ -4325,7 +4325,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 		INIT_DELAYED_WORK(&rt5659->jack_detect_work,
 			rt5659_jack_detect_work);
 		break;
-	case RT5659_JD_NULL:
+	case RT5659_JD_HDA_HEADER:
 		regmap_write(rt5659->regmap, RT5659_GPIO_CTRL_3, 0x8000);
 		regmap_write(rt5659->regmap, RT5659_RC_CLK_CTRL, 0x0900);
 		regmap_write(rt5659->regmap, RT5659_EJD_CTRL_1,  0x70c0);
@@ -4366,7 +4366,7 @@ static int rt5659_i2c_remove(struct i2c_client *i2c)
 	}
 
 	if (rt5659->pdata.jd_src == RT5659_JD3 ||
-	    rt5659->pdata.jd_src == RT5659_JD_NULL)
+	    rt5659->pdata.jd_src == RT5659_JD_HDA_HEADER)
 		cancel_delayed_work_sync(&rt5659->jack_detect_work);
 
 	return 0;
