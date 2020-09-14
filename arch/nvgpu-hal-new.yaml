@@ -738,7 +738,9 @@ perf:
   sources: [ hal/perf/perf_gm20b.c,
              hal/perf/perf_gm20b.h,
              hal/perf/perf_gv11b.c,
-             hal/perf/perf_gv11b.h ]
+             hal/perf/perf_gv11b.h,
+             hal/perf/perf_tu104.c,
+             hal/perf/perf_tu104.h ]
 
 pramin:
   safe: yes

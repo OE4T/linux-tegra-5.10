@@ -154,6 +154,47 @@ void gr_gv100_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
 	*num_gpc_perfmon = perfmon_index;
 }
 
+void gr_gv100_reset_hwpm_pmm_registers(struct gk20a *g)
+{
+	u32 count;
+	const u32 *perfmon_regs;
+	u32 i;
+
+	if (g->num_sys_perfmon == 0U) {
+		g->ops.gr.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
+				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
+	}
+
+	perfmon_regs = g->ops.perf.get_hwpm_sys_perfmon_regs(&count);
+
+	for (i = 0U; i < count; i++) {
+		g->ops.gr.set_pmm_register(g, perfmon_regs[i], 0U, 1U,
+			g->ops.perf.get_pmmsys_per_chiplet_offset(),
+			g->num_sys_perfmon);
+	}
+
+	/*
+	 * All the registers are broadcast ones so trigger
+	 * g->ops.gr.set_pmm_register() only with 1 chiplet even for
+	 * GPC and FBP chiplets.
+	 */
+	perfmon_regs = g->ops.perf.get_hwpm_fbp_perfmon_regs(&count);
+
+	for (i = 0U; i < count; i++) {
+		g->ops.gr.set_pmm_register(g, perfmon_regs[i], 0U, 1U,
+			g->ops.perf.get_pmmfbp_per_chiplet_offset(),
+			g->num_fbp_perfmon);
+	}
+
+	perfmon_regs = g->ops.perf.get_hwpm_gpc_perfmon_regs(&count);
+
+	for (i = 0U; i < count; i++) {
+		g->ops.gr.set_pmm_register(g, perfmon_regs[i], 0U, 1U,
+			g->ops.perf.get_pmmgpc_per_chiplet_offset(),
+			g->num_gpc_perfmon);
+	}
+}
+
 void gr_gv100_init_hwpm_pmm_register(struct gk20a *g)
 {
 	if (g->num_sys_perfmon == 0U) {

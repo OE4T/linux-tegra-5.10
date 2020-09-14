@@ -60,6 +60,9 @@ struct gops_perf {
 	u32 (*get_pmmfbp_per_chiplet_offset)(void);
 	int (*update_get_put)(struct gk20a *g, u64 bytes_consumed,
 		bool update_available_bytes, u64 *put_ptr, bool *overflowed);
+	const u32 *(*get_hwpm_sys_perfmon_regs)(u32 *count);
+	const u32 *(*get_hwpm_fbp_perfmon_regs)(u32 *count);
+	const u32 *(*get_hwpm_gpc_perfmon_regs)(u32 *count);
 };
 struct gops_perfbuf {
 	int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);

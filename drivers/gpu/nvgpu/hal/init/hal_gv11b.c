@@ -654,6 +654,7 @@ static const struct gops_gr gv11b_ops_gr = {
 	.set_pmm_register = gr_gv100_set_pmm_register,
 	.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
 	.init_hwpm_pmm_register = gr_gv100_init_hwpm_pmm_register,
+	.reset_hwpm_pmm_registers = gr_gv100_reset_hwpm_pmm_registers,
 	.clear_sm_error_state = gv11b_gr_clear_sm_error_state,
 	.suspend_contexts = gr_gp10b_suspend_contexts,
 	.resume_contexts = gr_gk20a_resume_contexts,
@@ -1227,6 +1228,9 @@ static const struct gops_perf gv11b_ops_perf = {
 	.get_pmmgpc_per_chiplet_offset = gv11b_perf_get_pmmgpc_per_chiplet_offset,
 	.get_pmmfbp_per_chiplet_offset = gv11b_perf_get_pmmfbp_per_chiplet_offset,
 	.update_get_put = gv11b_perf_update_get_put,
+	.get_hwpm_sys_perfmon_regs = gv11b_perf_get_hwpm_sys_perfmon_regs,
+	.get_hwpm_gpc_perfmon_regs = gv11b_perf_get_hwpm_gpc_perfmon_regs,
+	.get_hwpm_fbp_perfmon_regs = gv11b_perf_get_hwpm_fbp_perfmon_regs,
 };
 #endif
 

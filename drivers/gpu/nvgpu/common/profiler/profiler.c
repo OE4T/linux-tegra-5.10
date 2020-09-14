@@ -303,6 +303,9 @@ static int nvgpu_profiler_bind_hwpm(struct nvgpu_profiler_object *prof, bool str
 		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
 			err = g->ops.gr.update_hwpm_ctxsw_mode(g, prof->tsg, 0, mode);
 		} else {
+			if (g->ops.gr.reset_hwpm_pmm_registers != NULL) {
+				g->ops.gr.reset_hwpm_pmm_registers(g);
+			}
 			g->ops.gr.init_hwpm_pmm_register(g);
 		}
 	} else {

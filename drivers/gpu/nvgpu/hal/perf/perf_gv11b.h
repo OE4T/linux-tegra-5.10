@@ -52,5 +52,9 @@ u32 gv11b_perf_get_pmmsys_per_chiplet_offset(void);
 u32 gv11b_perf_get_pmmgpc_per_chiplet_offset(void);
 u32 gv11b_perf_get_pmmfbp_per_chiplet_offset(void);
 
+const u32 *gv11b_perf_get_hwpm_sys_perfmon_regs(u32 *count);
+const u32 *gv11b_perf_get_hwpm_gpc_perfmon_regs(u32 *count);
+const u32 *gv11b_perf_get_hwpm_fbp_perfmon_regs(u32 *count);
+
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif

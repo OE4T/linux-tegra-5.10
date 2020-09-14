@@ -374,6 +374,7 @@ srcs += common/debugger.c \
 	hal/ltc/ltc_gm20b_dbg.c \
 	hal/ptimer/ptimer_gp10b.c \
 	hal/perf/perf_gv11b.c \
+	hal/perf/perf_tu104.c \
 	hal/gr/gr/gr_gk20a.c \
 	hal/gr/gr/gr_gm20b.c \
 	hal/gr/gr/gr_gp10b.c \

@@ -1,7 +1,5 @@
 /*
- * GV100 GPU GR
- *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,26 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_GV100_H
-#define NVGPU_GR_GV100_H
+#ifndef NVGPU_TU104_PERF
+#define NVGPU_TU104_PERF
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 
 #include <nvgpu/types.h>
 
-struct gk20a;
+const u32 *tu104_perf_get_hwpm_sys_perfmon_regs(u32 *count);
+const u32 *tu104_perf_get_hwpm_gpc_perfmon_regs(u32 *count);
+const u32 *tu104_perf_get_hwpm_fbp_perfmon_regs(u32 *count);
 
-#ifdef CONFIG_NVGPU_TEGRA_FUSE
-void gr_gv100_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
-#endif
-void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
-	u32 num_fbpas,
-	u32 *priv_addr_table, u32 *t);
-void gr_gv100_init_hwpm_pmm_register(struct gk20a *g);
-void gr_gv100_reset_hwpm_pmm_registers(struct gk20a *g);
-void gr_gv100_set_pmm_register(struct gk20a *g, u32 offset, u32 val,
-		u32 num_chiplets, u32 chiplet_stride, u32 num_perfmons);
-void gr_gv100_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
-				u32 *num_fbp_perfmon, u32 *num_gpc_perfmon);
 #endif /* CONFIG_NVGPU_DEBUGGER */
-#endif /* NVGPU_GR_GV100_H */
+#endif
