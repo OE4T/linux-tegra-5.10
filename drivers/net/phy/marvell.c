@@ -10,6 +10,18 @@
  *
  * Copyright (c) 2013 Michael Stapelberg <michael@stapelberg.de>
  */
+/*
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ */
 #include <linux/kernel.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
@@ -163,6 +175,7 @@
 #define MII_88E1510_GEN_CTRL_REG_1		0x14
 #define MII_88E1510_GEN_CTRL_REG_1_MODE_MASK	0x7
 #define MII_88E1510_GEN_CTRL_REG_1_MODE_SGMII	0x1	/* SGMII to copper */
+#define MII_88E1510_GEN_CTRL_REG_1_MODE_RGMII_TO_SGMII	0x4	/* RGMII to SGMII */
 #define MII_88E1510_GEN_CTRL_REG_1_RESET	0x8000	/* Soft reset */
 
 #define MII_VCT5_TX_RX_MDI0_COUPLING	0x10
@@ -280,6 +293,7 @@ struct marvell_priv {
 	u32 last;
 	u32 step;
 	s8 pair;
+	bool fiber_mode;
 };
 
 static int marvell_read_page(struct phy_device *phydev)
@@ -641,7 +655,12 @@ static int marvell_config_aneg_fiber(struct phy_device *phydev)
 
 static int m88e1510_config_aneg(struct phy_device *phydev)
 {
+	struct marvell_priv *priv = phydev->priv;
 	int err;
+
+	/* Autoneg not required for fixed link case */
+	if (priv->fiber_mode)
+		return 0;
 
 	err = marvell_set_page(phydev, MII_MARVELL_COPPER_PAGE);
 	if (err < 0)
@@ -1035,9 +1054,43 @@ static int m88e1510_enable_eee_adv(struct phy_device *phydev)
 	return 0;
 }
 
+static int marvell_config_rgmii_to_sgmii(struct phy_device *phydev)
+{
+	int ret = 0;
+	int temp;
+
+	/* select page 18 */
+	ret = marvell_set_page(phydev, 18);
+	if (ret < 0)
+		return ret;
+
+	/* In reg 20, write MODE[2:0] = 0x4 (RGMII to SGMII) */
+	temp = phy_read(phydev, MII_88E1510_GEN_CTRL_REG_1);
+	temp &= ~MII_88E1510_GEN_CTRL_REG_1_MODE_MASK;
+	temp |= MII_88E1510_GEN_CTRL_REG_1_MODE_RGMII_TO_SGMII;
+	ret = phy_write(phydev, MII_88E1510_GEN_CTRL_REG_1, temp);
+	if (ret < 0)
+		return ret;
+
+	/* PHY reset is necessary after changing MODE[2:0] */
+	temp |= MII_88E1510_GEN_CTRL_REG_1_RESET;
+	ret = phy_write(phydev, MII_88E1510_GEN_CTRL_REG_1, temp);
+	if (ret < 0)
+		return ret;
+
+	/* No need of autonegotiation since the link is fixed */
+	phydev->autoneg = AUTONEG_DISABLE;
+
+	return 0;
+}
+
 static int m88e1510_config_init(struct phy_device *phydev)
 {
 	int err;
+	struct marvell_priv *priv = phydev->priv;
+
+	if (priv->fiber_mode)
+		return marvell_config_rgmii_to_sgmii(phydev);
 
 	/* SGMII-to-Copper mode initialization */
 	if (phydev->interface == PHY_INTERFACE_MODE_SGMII) {
@@ -2621,11 +2674,24 @@ static int m88e1121_probe(struct phy_device *phydev)
 
 static int m88e1510_probe(struct phy_device *phydev)
 {
+	struct device_node *of_node = phydev->mdio.dev.of_node;
+	struct marvell_priv *priv;
 	int err;
 
 	err = marvell_probe(phydev);
 	if (err)
 		return err;
+
+	priv = phydev->priv;
+
+	/* Get fiber mode from DT */
+	if (of_node)
+		priv->fiber_mode = of_property_read_bool(of_node,
+							 "marvell-fiber-mode");
+
+	/* Disable PHY interrupts for fiber mode */
+	if (priv->fiber_mode)
+		phydev->irq = PHY_POLL;
 
 	return m88e1510_hwmon_probe(phydev);
 }
