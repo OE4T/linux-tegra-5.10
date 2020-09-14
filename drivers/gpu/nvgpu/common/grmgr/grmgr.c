@@ -262,7 +262,7 @@ static inline u32 nvgpu_grmgr_get_gpu_instance_id(struct gk20a *g,
 
 		if (gpu_instance_id >= g->mig.num_gpu_instances) {
 			nvgpu_err(g,
-				"gpu_instance_id[%u] > num_gpu_instances[%u]",
+				"gpu_instance_id[%u] >= num_gpu_instances[%u]",
 				gpu_instance_id, g->mig.num_gpu_instances);
 			nvgpu_assert(
 				gpu_instance_id < g->mig.num_gpu_instances);
@@ -313,4 +313,30 @@ u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id, u32 gpc_
 	gr_syspipe = &gpu_instance->gr_syspipe;
 
 	return gr_syspipe->gpcs[gpc_local_id].physical_id;
+}
+
+u32 nvgpu_grmgr_get_gr_instance_id(struct gk20a *g, u32 gpu_instance_id)
+{
+	u32 gr_instance_id = 0U;
+
+	/* TODO : Add gr_instance_id for physical device when MIG is enabled. */
+	if ((nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) &&
+			(gpu_instance_id != 0U)) {
+		if (gpu_instance_id < g->mig.num_gpu_instances) {
+			/* 0th entry is physical device gpu instance */
+			gr_instance_id = nvgpu_safe_sub_u32(
+				gpu_instance_id, 1U);
+		} else {
+			nvgpu_err(g,
+				"gpu_instance_id[%u] >= num_gpu_instances[%u]",
+				gpu_instance_id, g->mig.num_gpu_instances);
+			nvgpu_assert(
+				gpu_instance_id < g->mig.num_gpu_instances);
+		}
+	}
+
+	nvgpu_log(g, gpu_dbg_mig, "gpu_instance_id[%u] gr_instance_id[%u]",
+		gpu_instance_id, gr_instance_id);
+
+	return gr_instance_id;
 }

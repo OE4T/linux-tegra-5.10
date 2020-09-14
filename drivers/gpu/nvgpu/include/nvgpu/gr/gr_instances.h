@@ -116,11 +116,14 @@
 #define nvgpu_gr_exec_for_instance(g, gr_instance_id, func) \
 	({ \
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
-			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
-			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
+			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, \
+				gr_instance_id); \
+			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, \
+				true); \
 			g->mig.cur_gr_instance = gr_instance_id; \
 			(func); \
-			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, false); \
+			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, \
+				false); \
 		} else { \
 			(func); \
 		} \
@@ -130,22 +133,61 @@
 #endif
 
 #ifdef CONFIG_NVGPU_MIG
-#define nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, func) \
+#define nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, func, type) \
 	({ \
-		int err = 0; \
+		typeof(type) ret; \
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
 			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
 			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
 			g->mig.cur_gr_instance = gr_instance_id; \
-			err = (func); \
+			ret = (func); \
 			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, false); \
 		} else { \
-			err = (func); \
+			ret = (func); \
 		} \
+		ret; \
+	})
+#else
+#define nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, func, type) \
+		(func)
+#endif
+
+#ifdef CONFIG_NVGPU_MIG
+#define nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id, func) \
+	({ \
+		int err; \
+		err = nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, \
+				func, err); \
 		err; \
 	})
 #else
-#define nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, func)	(func)
+#define nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id, func)	(func)
+#endif
+
+#ifdef CONFIG_NVGPU_MIG
+#define nvgpu_gr_get_gpu_instance_config_ptr(g, gpu_instance_id) \
+	({ \
+		struct nvgpu_gr_config *gr_config = NULL; \
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+			u32 gr_instance_id = nvgpu_grmgr_get_gr_instance_id(g, \
+				gpu_instance_id); \
+			if (gr_instance_id < g->num_gr_instances) { \
+				gr_config = \
+					nvgpu_gr_get_gr_instance_config_ptr(g, \
+					gr_instance_id); \
+			} \
+		} else { \
+			gr_config = nvgpu_gr_get_config_ptr(g); \
+		} \
+		gr_config; \
+	})
+#else
+#define nvgpu_gr_get_gpu_instance_config_ptr(g, gr_instance_id) \
+	({ \
+		struct nvgpu_gr_config *gr_instance_gr_config = \
+			nvgpu_gr_get_config_ptr(g); \
+		gr_instance_gr_config; \
+	})
 #endif
 
 #endif /* NVGPU_GR_INSTANCES_H */

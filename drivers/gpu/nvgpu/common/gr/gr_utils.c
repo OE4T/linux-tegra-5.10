@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,6 +44,12 @@ struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	return gr->config;
+}
+
+struct nvgpu_gr_config *nvgpu_gr_get_gr_instance_config_ptr(struct gk20a *g,
+		u32 gr_instance_id)
+{
+	return g->gr[gr_instance_id].config;
 }
 
 struct nvgpu_gr_intr *nvgpu_gr_get_intr_ptr(struct gk20a *g)

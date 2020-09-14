@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -85,6 +85,19 @@ struct nvgpu_gr_falcon *nvgpu_gr_get_falcon_ptr(struct gk20a *g);
  * @return Pointer to GR configuration struct.
  */
 struct nvgpu_gr_config *nvgpu_gr_get_config_ptr(struct gk20a *g);
+
+/**
+ * @brief Get GR configuration struct pointer.
+ *
+ * @param g [in]		Pointer to GPU driver struct.
+ * @param gr_instance_id [in]	Gr instance Id.
+ *
+ * This function returns pointer to #nvgpu_gr_config structure.
+ *
+ * @return Pointer to GR configuration struct.
+ */
+struct nvgpu_gr_config *nvgpu_gr_get_gr_instance_config_ptr(struct gk20a *g,
+		u32 gr_instance_id);
 
 /**
  * @brief Get GR interrupt data struct pointer.
