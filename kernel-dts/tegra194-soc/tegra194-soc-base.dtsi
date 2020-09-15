@@ -1204,17 +1204,11 @@
 			reg = <0x0 0x15c10000 0x0 0x00230000>,
 				<0x0 0x15f00000 0x0 0x00100000>;
 			resets = <&bpmp_resets TEGRA194_RESET_VI>,
-				 <&bpmp_resets TEGRA194_RESET_TSCTNVI>,
-				 <&bpmp_resets TEGRA194_RESET_MIPI_CAL>;
-			reset-names = "vi", "tsctnvi", "mipi_cal";
+				 <&bpmp_resets TEGRA194_RESET_TSCTNVI>;
+			reset-names = "vi", "tsctnvi";
 			clocks = <&bpmp_clks TEGRA194_CLK_VI>,
-				 <&bpmp_clks TEGRA194_CLK_VI_CONST>,
-				 <&bpmp_clks TEGRA194_CLK_NVCSI>,
-				 <&bpmp_clks TEGRA194_CLK_NVCSILP>,
-				 <&bpmp_clks TEGRA194_CLK_MIPI_CAL>,
-				 <&bpmp_clks TEGRA194_CLK_UART_FST_MIPI_CAL>;
-			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp",
-				      "mipi_cal", "uart_fs_mipi_cal";
+				 <&bpmp_clks TEGRA194_CLK_VI_CONST>;
+			clock-names = "vi", "vi-const";
 			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VE>;
 
 			nvidia,vi-falcon-device = <&vi_thi>;
@@ -1230,17 +1224,10 @@
 
 		vi_thi: vi-thi@15f00000 {
 			compatible = "nvidia,tegra194-vi-thi";
-
-			/* vi-thi host1x is used for pixel injection tests */
-			clocks = <&bpmp_clks TEGRA194_CLK_VI>,
-			         <&bpmp_clks TEGRA194_CLK_VI_CONST>;
-			clock-names = "vi", "vi-const";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VE>;
 		};
 
 		isp: isp@14800000 {
 			compatible = "nvidia,tegra194-isp";
-			reg = <0x0 0x14800000 0x0 0x00010000>;
 
 			resets = <&bpmp_resets TEGRA194_RESET_ISP>;
 			reset-names = "isp";
@@ -1256,19 +1243,19 @@
 
 		isp_thi: isp-thi@14b00000 {
 			compatible = "nvidia,tegra194-isp-thi";
-                        reg = <0x0 0x14b00000 0x0 0x00100000>;
 		};
 
 		nvcsi: nvcsi@15a00000 {
 			compatible = "nvidia,tegra194-nvcsi";
-			reg = <0x0 0x15a00000 0x0 0x00050000>;
 			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VE>;
-			resets = <&bpmp_resets TEGRA194_RESET_NVCSI>;
+			resets = <&bpmp_resets TEGRA194_RESET_NVCSI>,
+				 <&bpmp_resets TEGRA194_RESET_MIPI_CAL>;
 			clocks = <&bpmp_clks TEGRA194_CLK_NVCSI>,
-				 <&bpmp_clks TEGRA194_CLK_NVCSILP>;
-			clock-names = "nvcsi", "nvcsilp";
-			interrupts = <0 119 0x04>;
-			num-ports = <6>;
+				 <&bpmp_clks TEGRA194_CLK_NVCSILP>,
+				 <&bpmp_clks TEGRA194_CLK_MIPI_CAL>,
+				 <&bpmp_clks TEGRA194_CLK_UART_FST_MIPI_CAL>;
+			clock-names = "nvcsi", "nvcsilp",
+				      "mipi_cal", "uart_fs_mipi_cal";
 		};
 
 		slvs_ec: slvs-ec@15ac0000 {
