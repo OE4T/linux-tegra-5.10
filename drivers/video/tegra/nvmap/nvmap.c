@@ -161,18 +161,14 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 		if (!pages)
 			goto out;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-		vaddr = vm_map_ram(pages, h->size >> PAGE_SHIFT, -1, prot);
-#else
-		vaddr = vm_map_ram(pages, h->size >> PAGE_SHIFT, -1);
-#endif
+		vaddr = vmap(pages, h->size >> PAGE_SHIFT, VM_MAP, prot);
 		nvmap_altfree(pages, (h->size >> PAGE_SHIFT) * sizeof(*pages));
 		if (!vaddr && !h->vaddr)
 			goto out;
 
 		if (vaddr && atomic_long_cmpxchg((atomic_long_t *)&h->vaddr, 0, (long)vaddr)) {
 			nvmap_kmaps_dec(h);
-			vm_unmap_ram(vaddr, h->size >> PAGE_SHIFT);
+			vunmap(vaddr);
 		}
 		return h->vaddr;
 	}

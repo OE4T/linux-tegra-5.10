@@ -955,8 +955,8 @@ void _nvmap_handle_free(struct nvmap_handle *h)
 
 	if (h->vaddr) {
 		nvmap_kmaps_dec(h);
+		vunmap(h->vaddr);
 
-		vm_unmap_ram(h->vaddr, h->size >> PAGE_SHIFT);
 		h->vaddr = NULL;
 	}
 
