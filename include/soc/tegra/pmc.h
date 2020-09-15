@@ -149,6 +149,12 @@ enum tegra_io_pad {
 	TEGRA_IO_PAD_AO_HV,
 };
 
+/* Define reboot-reset mode */
+#define RECOVERY_MODE           BIT(31)
+#define BOOTLOADER_MODE         BIT(30)
+#define UPDATE_MODE             BIT(29)
+#define FORCED_RECOVERY_MODE    BIT(1)
+
 /* deprecated, use TEGRA_IO_PAD_{HDMI,LVDS} instead */
 #define TEGRA_IO_RAIL_HDMI	TEGRA_IO_PAD_HDMI
 #define TEGRA_IO_RAIL_LVDS	TEGRA_IO_PAD_LVDS
