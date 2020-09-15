@@ -302,7 +302,8 @@ u32 nvgpu_grmgr_get_gr_num_gpcs(struct gk20a *g, u32 gr_instance_id)
 	return gr_syspipe->num_gpc;
 }
 
-u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id, u32 gpc_local_id)
+u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id,
+		u32 gpc_local_id)
 {
 	struct nvgpu_gpu_instance *gpu_instance;
 	struct nvgpu_gr_syspipe *gr_syspipe;
@@ -339,4 +340,59 @@ u32 nvgpu_grmgr_get_gr_instance_id(struct gk20a *g, u32 gpu_instance_id)
 		gpu_instance_id, gr_instance_id);
 
 	return gr_instance_id;
+}
+
+bool nvgpu_grmgr_is_valid_runlist_id(struct gk20a *g,
+		u32 gpu_instance_id, u32 runlist_id)
+{
+	if (gpu_instance_id < g->mig.num_gpu_instances) {
+		struct nvgpu_gpu_instance *gpu_instance =
+			&g->mig.gpu_instance[gpu_instance_id];
+		struct nvgpu_gr_syspipe *gr_syspipe =
+			&gpu_instance->gr_syspipe;
+		const struct nvgpu_device *gr_dev = gr_syspipe->gr_dev;
+		u32 id;
+
+		if (gr_dev->runlist_id == runlist_id) {
+			nvgpu_log(g, gpu_dbg_mig, "gr runlist found[%u]",
+				runlist_id);
+			return true;
+		}
+
+		for (id = 0U; id < gpu_instance->num_lce; id++) {
+			const struct nvgpu_device *lce_dev =
+				gpu_instance->lce_devs[id];
+			if (lce_dev->runlist_id == runlist_id) {
+				nvgpu_log(g, gpu_dbg_mig,
+					"lce/ce runlist found[%u]",
+					runlist_id);
+				return true;
+			}
+		}
+	}
+
+	nvgpu_err(g,
+		"gpu_instance_id[%u] >= num_gpu_instances[%u]",
+		gpu_instance_id, g->mig.num_gpu_instances);
+
+	return false;
+}
+
+u32 nvgpu_grmgr_get_gr_runlist_id(struct gk20a *g, u32 gpu_instance_id)
+{
+	if (gpu_instance_id < g->mig.num_gpu_instances) {
+		struct nvgpu_gpu_instance *gpu_instance =
+			&g->mig.gpu_instance[gpu_instance_id];
+		struct nvgpu_gr_syspipe *gr_syspipe =
+			&gpu_instance->gr_syspipe;
+		const struct nvgpu_device *gr_dev = gr_syspipe->gr_dev;
+
+		return gr_dev->runlist_id;
+	}
+
+	nvgpu_err(g,
+		"gpu_instance_id[%u] >= num_gpu_instances[%u]",
+		gpu_instance_id, g->mig.num_gpu_instances);
+
+	return U32_MAX;
 }
