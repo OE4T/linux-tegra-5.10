@@ -119,7 +119,8 @@ static void gr_config_log_info(struct gk20a *g,
 #ifdef CONFIG_NVGPU_GRAPHICS
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
 		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "gpc_zcb_count[%d] : %d",
-			   gpc_index, config->gpc_zcb_count[gpc_index]);
+			   gpc_index, config->gpc_zcb_count != NULL ?
+				      config->gpc_zcb_count[gpc_index] : 0U);
 	}
 #endif
 	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
@@ -167,13 +168,17 @@ static void gr_config_set_gpc_mask(struct gk20a *g,
 static bool gr_config_alloc_valid(struct nvgpu_gr_config *config)
 {
 	if ((config->gpc_tpc_count == NULL) || (config->gpc_tpc_mask == NULL) ||
-#ifdef CONFIG_NVGPU_GRAPHICS
-	    (config->gpc_zcb_count == NULL) ||
-#endif
 	    (config->gpc_ppc_count == NULL) ||
 	    (config->gpc_skip_mask == NULL)) {
 		return false;
 	}
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+	if (!nvgpu_is_enabled(config->g, NVGPU_SUPPORT_MIG) &&
+			(config->gpc_zcb_count == NULL)) {
+		return false;
+	}
+#endif
 
 	return true;
 }
