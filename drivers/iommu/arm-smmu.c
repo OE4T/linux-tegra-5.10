@@ -43,8 +43,10 @@
 #include <linux/fsl/mc.h>
 
 #include <soc/tegra/fuse.h>
+#include <soc/tegra/tegra-sid-override.h>
 
 #include "arm-smmu.h"
+#include "of-tegra-smmu.h"
 
 #ifdef CONFIG_ARM_SMMU_DEBUG
 #include <linux/arm-smmu-debug.h>
