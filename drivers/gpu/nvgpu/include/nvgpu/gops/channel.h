@@ -141,6 +141,7 @@ struct gops_channel {
 	void (*abort_clean_up)(struct nvgpu_channel *ch);
 	void (*reset_faulted)(struct gk20a *g, struct nvgpu_channel *ch,
 			bool eng, bool pbdma);
+	void (*clear)(struct nvgpu_channel *ch);
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 	int (*set_syncpt)(struct nvgpu_channel *ch);

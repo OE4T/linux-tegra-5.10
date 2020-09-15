@@ -178,6 +178,10 @@ static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 		}
 	}
 
+	if (g->ops.channel.clear != NULL) {
+		g->ops.channel.clear(ch);
+	}
+
 	/* Channel should be seen as TSG channel while updating runlist */
 	err = nvgpu_channel_update_runlist(ch, false);
 	if (err != 0) {
@@ -296,12 +300,21 @@ int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
 	struct gk20a *g = ch->g;
 	struct nvgpu_channel_hw_state hw_state;
 
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	g->ops.channel.read_state(g, ch, &hw_state);
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
 	if (hw_state.next) {
-		nvgpu_err(g, "Channel %d to be removed from TSG %d has NEXT set!",
+		if (g->ops.channel.clear != NULL) {
+			nvgpu_log_info(g, "Channel %d to be removed "
+				"from TSG %d has NEXT set!",
 				ch->chid, ch->tsgid);
-		return -EINVAL;
+		} else {
+			nvgpu_err(g, "Channel %d to be removed "
+				"from TSG %d has NEXT set!",
+				ch->chid, ch->tsgid);
+			return -EINVAL;
+		}
 	}
 
 	if (g->ops.tsg.unbind_channel_check_ctx_reload != NULL) {
