@@ -1254,7 +1254,7 @@ int tegra_edid_underscan_supported(struct tegra_edid *edid)
 
 int tegra_edid_get_eld(struct tegra_edid *edid, struct tegra_edid_hdmi_eld *elddata)
 {
-	if (!elddata || !edid->data)
+	if (!elddata || !edid || !edid->data)
 		return -EFAULT;
 
 	memcpy(elddata,&edid->data->eld,sizeof(struct tegra_edid_hdmi_eld));

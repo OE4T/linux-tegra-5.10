@@ -255,6 +255,8 @@ static int tegra_hdmi_ddc_init(struct tegra_hdmi *hdmi)
 	return 0;
 fail_edid_free:
 	tegra_edid_destroy(hdmi->edid);
+	hdmi->edid = NULL;
+	dc->edid = NULL;
 	return err;
 }
 
@@ -416,9 +418,16 @@ static int tegra_hdmi_get_mon_spec(struct tegra_hdmi *hdmi)
 	int err = 0;
 	struct i2c_adapter *i2c_adap = i2c_get_adapter(hdmi->dc->out->ddc_bus);
 
+	if (IS_ERR_OR_NULL(i2c_adap)) {
+		dev_err(&hdmi->dc->ndev->dev,
+			"tegra_hdmi_get_mon_spec:i2c adpater err, ddc bus %d\n",
+			hdmi->dc->out->ddc_bus);
+		return -EINVAL;
+	}
+
 	if (IS_ERR_OR_NULL(hdmi->edid)) {
 		dev_err(&hdmi->dc->ndev->dev, "hdmi: edid not initialized\n");
-		return PTR_ERR(hdmi->edid);
+		return -EINVAL;
 	}
 
 	tegra_edid_i2c_adap_change_rate(i2c_adap, hdmi->ddc_i2c_original_rate);
@@ -1768,6 +1777,8 @@ static void tegra_dc_hdmi_destroy(struct tegra_dc *dc)
 	tegra_dc_sor_destroy(hdmi->sor);
 
 	tegra_edid_destroy(hdmi->edid);
+	hdmi->edid = NULL;
+	dc->edid = NULL;
 
 	kfree(hdmi->tmds_range);
 	hdmi->tmds_range = NULL;
@@ -2630,6 +2641,13 @@ static int tegra_hdmi_scdc_read(struct tegra_hdmi *hdmi,
 			.buf = NULL,
 		},
 	};
+
+	if (IS_ERR_OR_NULL(i2c_adap)) {
+		dev_err(&hdmi->dc->ndev->dev,
+			"tegra_hdmi_scdc_read: i2c adapter err, ddc bus %d\n",
+			hdmi->dc->out->ddc_bus);
+		return -EINVAL;
+	}
 
 	_tegra_hdmi_ddc_enable(hdmi);
 
