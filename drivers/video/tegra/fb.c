@@ -928,6 +928,9 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 	fb_set_suspend(fb_info->info, true);
 
 	if (specs == NULL) {
+		struct fb_event __maybe_unused event;
+
+		event.info = fb_info->info;
 		memset(&fb_info->info->monspecs, 0x0,
 		       sizeof(fb_info->info->monspecs));
 
@@ -953,7 +956,11 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 			 */
 			fb_add_videomode(&fb_info->mode,
 						&fb_info->info->modelist);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+			fb_notifier_call_chain(FB_EVENT_NEW_MODELIST, &event);
+#else
 			fb_new_modelist(fb_info->info);
+#endif
 		} else {
 			/* For L4T - After the next hotplug, framebuffer console will
 			 * use the old variable screeninfo by default, only video-mode
