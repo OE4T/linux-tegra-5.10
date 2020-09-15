@@ -527,6 +527,7 @@ void arm_smmu_debugfs_setup_cfg(struct arm_smmu_device *smmu)
 			return;
 		}
 		info->num_smmus = 1;
+		smmu->debug_info = info;
 	}
 	info->base = smmu->base;
 	info->bases[0] = smmu->base;
