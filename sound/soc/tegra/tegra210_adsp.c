@@ -1303,6 +1303,12 @@ static int tegra210_adsp_pcm_ack(struct snd_pcm_substream *substream)
 	return ret;
 }
 
+static int tegra210_adsp_component_pcm_ack(struct snd_soc_component *component,
+					   struct snd_pcm_substream *substream)
+{
+	return tegra210_adsp_pcm_ack(substream);
+}
+
 static int tegra210_adsp_pcm_msg_handler(struct tegra210_adsp_app *app,
 					apm_msg_t *apm_msg)
 {
@@ -4409,6 +4415,7 @@ static struct snd_soc_component_driver tegra210_adsp_cmpnt = {
 	.prepare		= tegra210_adsp_pcm_prepare,
 	.trigger		= tegra210_adsp_pcm_trigger,
 	.pointer		= tegra210_adsp_pcm_pointer,
+	.ack			= tegra210_adsp_component_pcm_ack,
 
 	.compress_ops		= &tegra210_adsp_compress_ops,
 	.read			= tegra210_adsp_read,
