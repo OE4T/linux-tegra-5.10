@@ -55,6 +55,8 @@ struct gops_falcon {
 	u32  (*get_brom_retcode)(struct nvgpu_falcon *flcn);
 	u32 (*dmemc_blk_mask)(void);
 	bool (*check_brom_passed)(u32 retcode);
+	void (*brom_config)(struct nvgpu_falcon *flcn, u64 fmc_code_addr,
+			u64 fmc_data_addr, u64 manifest_addr);
 	u32 (*imemc_blk_field)(u32 blk);
 	void (*bootstrap)(struct nvgpu_falcon *flcn,
 			 u32 boot_vector);

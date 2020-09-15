@@ -219,6 +219,8 @@ struct nvgpu_falcon {
 	u32 flcn2_base;
 	/** Indicates if the falcon is supported and initialized for use. */
 	bool is_falcon_supported;
+	/** Indicates if the falcon2 is enabled or not. */
+	bool is_falcon2_enabled;
 	/** Indicates if the falcon interrupts are enabled. */
 	bool is_interrupt_enabled;
 	/** Lock to access the falcon's IMEM. */
