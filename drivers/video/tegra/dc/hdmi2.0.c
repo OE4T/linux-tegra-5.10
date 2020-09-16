@@ -2037,6 +2037,21 @@ static void tegra_hdmi_avi_infoframe_overrides(struct tegra_hdmi *hdmi)
 		break;
 	}
 
+	switch (hdmi->avi_scan) {
+	case TEGRA_DC_EXT_AVI_SCAN_NO_DATA:
+		avi->scan = HDMI_AVI_SCAN_NO_DATA;
+		break;
+	case TEGRA_DC_EXT_AVI_SCAN_OVERSCAN:
+		avi->scan = HDMI_AVI_OVERSCAN;
+		break;
+	case TEGRA_DC_EXT_AVI_SCAN_UNDERSCAN:
+		avi->scan = HDMI_AVI_UNDERSCAN;
+		break;
+	default:
+		/* Let default value as it is.*/
+		break;
+	}
+
 	switch (hdmi->avi_it_content) {
 	case TEGRA_DC_EXT_AVI_IT_CONTENT_FALSE:
 		avi->it_content = HDMI_AVI_IT_CONTENT_FALSE;
@@ -2330,10 +2345,12 @@ static int tegra_dc_hdmi_set_avi(struct tegra_dc *dc,
 {
 	struct tegra_hdmi *hdmi = tegra_dc_get_outdata(dc);
 
-	if (hdmi->avi_colorimetry != avi->avi_colorimetry ||
+	if (hdmi->avi_scan != avi->avi_scan ||
+	    hdmi->avi_colorimetry != avi->avi_colorimetry ||
 	    hdmi->avi_color_components != avi->avi_color_components ||
 	    hdmi->avi_color_quant != avi->avi_color_quant ||
 	    hdmi->avi_it_content != avi->avi_it_content) {
+		hdmi->avi_scan = avi->avi_scan;
 		hdmi->avi_colorimetry = avi->avi_colorimetry;
 		hdmi->avi_color_components = avi->avi_color_components;
 		hdmi->avi_color_quant = avi->avi_color_quant;

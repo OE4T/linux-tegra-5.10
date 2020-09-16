@@ -1778,6 +1778,7 @@ static int tegra_dc_ext_read_user_data(struct tegra_dc_ext_flip_data *data,
 				= udata->avi_color_components;
 			kdata->avi_color_quant = udata->avi_color_quant;
 			kdata->avi_it_content = udata->avi_it_content;
+			kdata->avi_scan = udata->avi_scan;
 			data->avi_cache_dirty = true;
 			break;
 		}

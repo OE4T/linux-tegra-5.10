@@ -348,6 +348,16 @@ struct tegra_dc_ext_hdr {
 } __attribute__((__packed__));
 
 /*
+ * Client data used by tegra_dc to force overscan/underscan
+ */
+enum tegra_dc_ext_avi_scan {
+	TEGRA_DC_EXT_AVI_SCAN_DEFAULT,
+	TEGRA_DC_EXT_AVI_SCAN_NO_DATA,
+	TEGRA_DC_EXT_AVI_SCAN_OVERSCAN,
+	TEGRA_DC_EXT_AVI_SCAN_UNDERSCAN,
+} __attribute__((__packed__));
+
+/*
  * Client data used by tegra_dc to force colorimetry
  */
 enum tegra_dc_ext_avi_colorimetry {
@@ -396,7 +406,8 @@ struct tegra_dc_ext_avi {
 	__u8 avi_color_components;
 	__u8 avi_color_quant;
 	__u8 avi_it_content;
-	__u8 reserved[22];
+	__u8 avi_scan;
+	__u8 reserved[21];
 };
 
 /*

@@ -69,7 +69,7 @@ enum {
 };
 
 enum {
-	HDMI_AVI_SCAN_NO_INFO = 0x0,
+	HDMI_AVI_SCAN_NO_DATA = 0x0,
 	HDMI_AVI_OVERSCAN = 0x1,
 	HDMI_AVI_UNDERSCAN = 0x2,
 };
@@ -496,6 +496,7 @@ struct tegra_hdmi {
 	u8 avi_color_components;
 	u8 avi_color_quant;
 	u8 avi_it_content;
+	u8 avi_scan;
 
 	struct tegra_edid *edid;
 	struct i2c_client *ddc_i2c_client;
