@@ -136,6 +136,73 @@ uint64_t nvadsp_get_timestamp_counter(void)
 }
 EXPORT_SYMBOL(nvadsp_get_timestamp_counter);
 
+int nvadsp_set_bw(struct nvadsp_drv_data *drv_data, u32 efreq)
+{
+	int ret = -EINVAL;
+
+	if (drv_data->bwmgr)
+		ret = tegra_bwmgr_set_emc(drv_data->bwmgr, efreq * 1000,
+					  TEGRA_BWMGR_SET_EMC_FLOOR);
+#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
+	else if (drv_data->icc_path_handle)
+		ret = icc_set_bw(drv_data->icc_path_handle, 0,
+				(unsigned long)FREQ2ICC(efreq * 1000));
+#endif
+	if (ret)
+		dev_err(&drv_data->pdev->dev,
+			"failed to set emc freq rate:%d\n", ret);
+
+	return ret;
+}
+
+static void nvadsp_bw_register(struct nvadsp_drv_data *drv_data)
+{
+	struct device *dev = &drv_data->pdev->dev;
+
+	switch (tegra_get_chip_id()) {
+	case TEGRA210:
+	case TEGRA186:
+	case TEGRA194:
+		drv_data->bwmgr = tegra_bwmgr_register(
+				TEGRA_BWMGR_CLIENT_APE_ADSP);
+		if (IS_ERR(drv_data->bwmgr)) {
+			dev_err(dev, "unable to register bwmgr\n");
+			drv_data->bwmgr = NULL;
+		}
+		break;
+	default:
+#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
+		/* Interconnect Support */
+		drv_data->icc_path_handle = icc_get(dev, TEGRA_ICC_APE,
+							TEGRA_ICC_PRIMARY);
+		if (IS_ERR(drv_data->icc_path_handle)) {
+			dev_err(dev,
+			"%s: Failed to register Interconnect. err=%ld\n",
+			__func__, PTR_ERR(drv_data->icc_path_handle));
+			drv_data->icc_path_handle = NULL;
+		}
+#endif
+		break;
+	}
+}
+
+static void nvadsp_bw_unregister(struct nvadsp_drv_data *drv_data)
+{
+	nvadsp_set_bw(drv_data, 0);
+
+	if (drv_data->bwmgr) {
+		tegra_bwmgr_unregister(drv_data->bwmgr);
+		drv_data->bwmgr = NULL;
+	}
+
+#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
+	if (drv_data->icc_path_handle) {
+		icc_put(drv_data->icc_path_handle);
+		drv_data->icc_path_handle = NULL;
+	}
+#endif
+}
+
 static void __init nvadsp_parse_clk_entries(struct platform_device *pdev)
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
@@ -376,10 +443,7 @@ static int __init nvadsp_probe(struct platform_device *pdev)
 	if (ret)
 		dev_err(dev, "Failed to init aram\n");
 
-	drv_data->bwmgr = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_APE_ADSP);
-	ret = IS_ERR_OR_NULL(drv_data->bwmgr);
-	if (ret)
-		dev_err(&pdev->dev, "unable to register bwmgr\n");
+	nvadsp_bw_register(drv_data);
 err:
 #ifdef CONFIG_PM
 	ret = pm_runtime_put_sync(dev);
@@ -393,17 +457,9 @@ out:
 static int nvadsp_remove(struct platform_device *pdev)
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
-	int err;
 
-	if (drv_data->bwmgr) {
-		err = tegra_bwmgr_set_emc(drv_data->bwmgr, 0,
-					  TEGRA_BWMGR_SET_EMC_FLOOR);
-		if (err) {
-			dev_err(&pdev->dev, "failed to set emc freq rate:%d\n",
-				err);
-		}
-		tegra_bwmgr_unregister(drv_data->bwmgr);
-	}
+	nvadsp_bw_unregister(drv_data);
+
 	nvadsp_aram_exit();
 
 	pm_runtime_disable(&pdev->dev);

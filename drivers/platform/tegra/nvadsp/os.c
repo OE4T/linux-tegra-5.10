@@ -936,10 +936,7 @@ static int nvadsp_set_ape_emc_freq(struct nvadsp_drv_data *drv_data)
 	if (!ape_emc_freq)
 		return 0;
 
-	ret = tegra_bwmgr_set_emc(drv_data->bwmgr, ape_emc_freq * 1000,
-				  TEGRA_BWMGR_SET_EMC_FLOOR);
-	if (ret)
-		dev_err(dev, "failed to set emc freq rate:%d\n", ret);
+	ret = nvadsp_set_bw(drv_data, ape_emc_freq);
 	dev_dbg(dev, "ape.emc freq %luKHz\n",
 		tegra_bwmgr_get_emc_rate() / 1000);
 
