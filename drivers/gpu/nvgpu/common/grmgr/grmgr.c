@@ -396,3 +396,30 @@ u32 nvgpu_grmgr_get_gr_runlist_id(struct gk20a *g, u32 gpu_instance_id)
 
 	return U32_MAX;
 }
+
+u32 nvgpu_grmgr_get_gr_instance_id_for_syspipe(struct gk20a *g,
+		u32 gr_syspipe_id)
+{
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		u32 gr_instance_id = 0U;
+		u32 index;
+		/* 0th entry is physical device gpu instance. */
+		for (index = 1U; index < g->mig.num_gpu_instances; ++index) {
+			struct nvgpu_gpu_instance *gpu_instance =
+				&g->mig.gpu_instance[index];
+			struct nvgpu_gr_syspipe *gr_syspipe =
+				&gpu_instance->gr_syspipe;
+
+			if (gr_syspipe->gr_syspipe_id == gr_syspipe_id) {
+				nvgpu_log(g, gpu_dbg_mig,
+					"gr_instance_id[%u] gr_syspipe_id[%u]",
+					gr_instance_id, gr_syspipe_id);
+				return gr_instance_id;
+			}
+			++gr_instance_id;
+		}
+	}
+
+	/* Default gr_instance_id is 0U for legacy mode. */
+	return 0U;
+}
