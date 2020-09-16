@@ -1,7 +1,7 @@
 /*
  * tegra194-super-module-e2614.dtsi DTSI file.
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,17 @@
 		i2cmux@70 {
 			i2c@3 {
 				rt5659.12-001a@1a {
-					/* gpio for jack detection */
-					gpios = <&tegra_main_gpio TEGRA194_MAIN_GPIO(Y, 0) 0>;
+					/* Codec IRQ output */
+					interrupt-parent = <&tegra_main_gpio>;
+					interrupts = <TEGRA194_MAIN_GPIO(Y, 0) GPIO_ACTIVE_HIGH>;
 				};
 			};
 		};
 
 		rt5659.1-001a@1a {
-			/* gpio for jack detection */
-			gpios = <&tegra_main_gpio TEGRA194_MAIN_GPIO(Y, 0) 0>;
+			/* Codec IRQ output */
+			interrupt-parent = <&tegra_main_gpio>;
+			interrupts = <TEGRA194_MAIN_GPIO(Y, 0) GPIO_ACTIVE_HIGH>;
 		};
 	};
 
