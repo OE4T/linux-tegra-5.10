@@ -994,6 +994,7 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 	}
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
+	nvgpu_mutex_destroy(&vm->update_gmmu_lock);
 
 	nvgpu_mutex_destroy(&vm->syncpt_ro_map_lock);
 	nvgpu_kfree(g, vm);

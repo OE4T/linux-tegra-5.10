@@ -1031,6 +1031,9 @@ unbind:
 	ch->ref_actions_put = 0;
 #endif
 
+	nvgpu_cond_destroy(&ch->notifier_wq);
+	nvgpu_cond_destroy(&ch->semaphore_wq);
+
 	/* make sure we catch accesses of unopened channels in case
 	 * there's non-refcounted channel pointers hanging around */
 	ch->g = NULL;
