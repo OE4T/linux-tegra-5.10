@@ -38,15 +38,6 @@ CONFIG_NVGPU_SUPPORT_CDE := y
 endif
 
 ifeq ($(CONFIG_COMMON_CLK),y)
-ifeq ($(CONFIG_TEGRA_KFUSE),y)
-# Enable noise aware (NA) mode of GM20b GPCPLL. In this mode PLL output
-# frequency is automatically adjusted when GM20b voltage is fluctuating
-# because of transient PMIC or power distribution tree noise.
-CONFIG_TEGRA_USE_NA_GPCPLL := y
-endif
-endif
-
-ifeq ($(CONFIG_COMMON_CLK),y)
 ifeq ($(CONFIG_PM_DEVFREQ),y)
 # Select this entry to enable gk20a scaling
 CONFIG_GK20A_DEVFREQ := y
@@ -182,9 +173,6 @@ ccflags-y += -DCONFIG_NVGPU_COMPRESSION
 endif
 ifeq ($(CONFIG_NVGPU_SUPPORT_CDE),y)
 ccflags-y += -DCONFIG_NVGPU_SUPPORT_CDE
-endif
-ifeq ($(CONFIG_TEGRA_USE_NA_GPCPLL),y)
-ccflags-y += -DCONFIG_TEGRA_USE_NA_GPCPLL
 endif
 ifeq ($(CONFIG_GK20A_DEVFREQ),y)
 ccflags-y += -DCONFIG_GK20A_DEVFREQ
