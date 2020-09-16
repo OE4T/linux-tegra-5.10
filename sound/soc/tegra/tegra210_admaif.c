@@ -266,8 +266,6 @@ static int tegra_admaif_set_pack_mode(struct regmap *map, unsigned int reg,
 static int tegra_admaif_prepare(struct snd_pcm_substream *substream,
 				struct snd_soc_dai *dai)
 {
-	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
-
 	tegra_isomgr_adma_setbw(substream, true);
 
 	return 0;
@@ -276,8 +274,6 @@ static int tegra_admaif_prepare(struct snd_pcm_substream *substream,
 static void tegra_admaif_shutdown(struct snd_pcm_substream *substream,
 				struct snd_soc_dai *dai)
 {
-	struct tegra_admaif *admaif = snd_soc_dai_get_drvdata(dai);
-
 	tegra_isomgr_adma_setbw(substream, false);
 }
 
@@ -1140,8 +1136,6 @@ static int tegra_admaif_probe(struct platform_device *pdev)
 
 static int tegra_admaif_remove(struct platform_device *pdev)
 {
-	struct tegra_admaif *admaif = dev_get_drvdata(&pdev->dev);
-
 	tegra_isomgr_adma_unregister(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
