@@ -2012,6 +2012,10 @@ static void tegra_hdmi_avi_infoframe_overrides(struct tegra_hdmi *hdmi)
 	}
 
 	switch (hdmi->avi_colorimetry) {
+	/* default colorimetry for the current mode  */
+	case TEGRA_DC_EXT_AVI_COLORIMETRY_NO_DATA:
+		avi->colorimetry = HDMI_AVI_COLORIMETRY_DEFAULT;
+		break;
 	/* base colorimetry */
 	case TEGRA_DC_EXT_AVI_COLORIMETRY_SMPTE170M_ITU601:
 		avi->colorimetry = HDMI_AVI_COLORIMETRY_SMPTE170M_ITU601;
