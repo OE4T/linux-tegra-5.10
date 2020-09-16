@@ -443,16 +443,24 @@ static int tegra_udrm_open(struct drm_device *drm, struct drm_file *filp)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 static int tegra_udrm_master_set(struct drm_device *dev,
 		struct drm_file *file_priv,
 		bool from_open)
+#else
+static void tegra_udrm_master_set(struct drm_device *dev,
+		struct drm_file *file_priv,
+		bool from_open)
+#endif
 {
 	struct tegra_udrm_file *fpriv = file_priv->driver_priv;
 
 	if (fpriv->efd_ctx_set_master != NULL)
 		eventfd_signal(fpriv->efd_ctx_set_master, 1);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 	return 0;
+#endif
 }
 
 static void tegra_udrm_master_drop(struct drm_device *dev,
