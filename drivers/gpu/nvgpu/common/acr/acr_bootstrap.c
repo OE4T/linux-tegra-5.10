@@ -35,8 +35,8 @@
 #include "acr_bootstrap.h"
 #include "acr_priv.h"
 
-static int acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
-	unsigned int timeout)
+int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
+	u32 timeout)
 {
 	u32 flcn_id;
 #ifdef CONFIG_NVGPU_FALCON_NON_FUSA
@@ -53,7 +53,8 @@ static int acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
 
 	completion = nvgpu_falcon_wait_for_halt(acr_desc->acr_flcn, timeout);
 	if (completion != 0) {
-		nvgpu_err(g, "flcn-%d: HS ucode boot timed out", flcn_id);
+		nvgpu_err(g, "flcn-%d: HS ucode boot timed out, limit: %d ms",
+				flcn_id, timeout);
 		error_type = ACR_BOOT_TIMEDOUT;
 		goto exit;
 	}
@@ -154,6 +155,7 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	struct acr_fw_header *fw_hdr = NULL;
 	u32 *ucode_header = NULL;
 	u32 *ucode = NULL;
+	u32 timeout = 0;
 	int err = 0;
 
 	nvgpu_acr_dbg(g, "ACR TYPE %x ", acr_desc->acr_type);
@@ -212,12 +214,11 @@ int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 
 	/* wait for complete & halt */
 	if (nvgpu_platform_is_silicon(g)) {
-		err = acr_wait_for_completion(g, acr_desc,
-					ACR_COMPLETION_TIMEOUT_SILICON_MS);
+		timeout = ACR_COMPLETION_TIMEOUT_SILICON_MS;
 	} else {
-		err = acr_wait_for_completion(g, acr_desc,
-					ACR_COMPLETION_TIMEOUT_NON_SILICON_MS);
+		timeout = ACR_COMPLETION_TIMEOUT_NON_SILICON_MS;
 	}
+	err = nvgpu_acr_wait_for_completion(g, acr_desc, timeout);
 
 	if (err != 0) {
 		nvgpu_err(g, "HS ucode completion err %d", err);

@@ -125,6 +125,8 @@ struct hs_acr {
 	bool (*acr_validate_mem_integrity)(struct gk20a *g);
 };
 
+int nvgpu_acr_wait_for_completion(struct gk20a *g, struct hs_acr *acr_desc,
+	u32 timeout);
 int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_desc);
 
