@@ -156,19 +156,7 @@ struct nvhost_device_data t19_host1xb_info = {
 #if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
 struct nvhost_device_data t19_vi_thi_info = {
 	.devfs_name		= "vi-thi",
-	.exclusive		= true,
-	.class			= NV_VIDEO_STREAMING_VI_FALCON_CLASS_ID,
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_VI},
-	.keepalive		= true,
-	.autosuspend_delay      = 500,
 	.moduleid		= NVHOST_MODULE_VI,
-	.clocks = {
-		{"vi", UINT_MAX},
-		{"vi-const", UINT_MAX},
-	},
-	.num_channels		= 1,
-	.can_powergate		= true,
-	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_VI,
 };
 
 struct nvhost_device_data t19_vi5_info = {
@@ -181,10 +169,6 @@ struct nvhost_device_data t19_vi5_info = {
 	.clocks = {
 		{"vi", UINT_MAX},
 		{"vi-const", UINT_MAX},
-		{"nvcsi", 400000000},
-		{"nvcsilp", 204000000},
-		{"mipi_cal", UINT_MAX},
-		{"uart_fs_mipi_cal", UINT_MAX},
 		{"emc", 0,
 		 NVHOST_MODULE_ID_EXTERNAL_MEMORY_CONTROLLER,
 		 TEGRA_SET_EMC_FLOOR, false, UINT_MAX}
@@ -206,6 +190,8 @@ struct nvhost_device_data t19_nvcsi_info = {
 	.clocks			= {
 		{"nvcsi", 400000000},
 		{"nvcsilp", 204000000},
+		{"mipi_cal", UINT_MAX},
+		{"uart_fs_mipi_cal", UINT_MAX},
 	},
 	.devfs_name		= "nvcsi",
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVCSI},
@@ -226,7 +212,6 @@ struct nvhost_device_data t19_nvcsi_info = {
 struct nvhost_device_data t19_isp_thi_info = {
 	.devfs_name		= "isp-thi",
 	.moduleid		= NVHOST_MODULE_ISP,
-	.can_powergate		= true,
 };
 
 struct nvhost_device_data t19_isp5_info = {
