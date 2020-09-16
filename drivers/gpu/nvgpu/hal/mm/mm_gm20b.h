@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,5 +28,7 @@
 struct gk20a;
 
 bool gm20b_mm_is_bar1_supported(struct gk20a *g);
+void gm20b_mm_get_default_va_sizes(u64 *aperture_size,
+			u64 *user_size, u64 *kernel_size);
 
 #endif

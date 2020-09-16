@@ -645,6 +645,7 @@ static const struct gops_mm vgpu_gp10b_ops_mm = {
 	.bar1_map_userd = vgpu_mm_bar1_map_userd,
 	.vm_as_alloc_share = vgpu_vm_as_alloc_share,
 	.vm_as_free_share = vgpu_vm_as_free_share,
+	.get_default_va_sizes = gp10b_mm_get_default_va_sizes,
 };
 
 #ifdef CONFIG_NVGPU_DGPU

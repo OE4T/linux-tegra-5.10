@@ -1056,6 +1056,7 @@ static const struct gops_mm gv11b_ops_mm = {
 	.init_inst_block_for_subctxs = gv11b_mm_init_inst_block_for_subctxs,
 	.init_bar2_vm = gp10b_mm_init_bar2_vm,
 	.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
+	.get_default_va_sizes = gp10b_mm_get_default_va_sizes,
 	.bar1_map_userd = NULL,
 };
 

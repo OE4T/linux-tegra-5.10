@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU Memory Management
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,8 +52,8 @@ static int vgpu_init_mm_setup_sw(struct gk20a *g)
 	mm->g = g;
 
 	/*TBD: make channel vm size configurable */
-	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE;
-	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
+	g->ops.mm.get_default_va_sizes(NULL, &mm->channel.user_size,
+		&mm->channel.kernel_size);
 
 	nvgpu_log_info(g, "channel vm size: user %dMB  kernel %dMB",
 		       (int)(mm->channel.user_size >> 20),

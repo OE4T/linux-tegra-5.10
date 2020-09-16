@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bitops.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/vm.h>
 
@@ -66,4 +67,30 @@ void gp10b_mm_remove_bar2_vm(struct gk20a *g)
 
 	nvgpu_free_inst_block(g, &mm->bar2.inst_block);
 	nvgpu_vm_put(mm->bar2.vm);
+}
+
+void gp10b_mm_get_default_va_sizes(u64 *aperture_size,
+			u64 *user_size, u64 *kernel_size)
+{
+	/*
+	 * The maximum GPU VA range supported.
+	 * Max VA Bits = 49, refer dev_mmu.ref.
+	 */
+	if (aperture_size != NULL) {
+		*aperture_size = BIT64(49);
+	}
+
+	/*
+	 * The default userspace-visible GPU VA size.
+	 */
+	if (user_size != NULL) {
+		*user_size = BIT64(37);
+	}
+
+	/*
+	 * The default kernel-reserved GPU VA size.
+	 */
+	if (kernel_size != NULL) {
+		*kernel_size = BIT64(32);
+	}
 }

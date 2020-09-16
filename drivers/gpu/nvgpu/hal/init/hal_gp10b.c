@@ -871,6 +871,7 @@ static const struct gops_mm gp10b_ops_mm = {
 	.init_inst_block = gk20a_mm_init_inst_block,
 	.init_bar2_vm = gp10b_mm_init_bar2_vm,
 	.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
+	.get_default_va_sizes = gp10b_mm_get_default_va_sizes,
 #ifdef CONFIG_NVGPU_USERD
 	.bar1_map_userd = gk20a_mm_bar1_map_userd,
 #endif

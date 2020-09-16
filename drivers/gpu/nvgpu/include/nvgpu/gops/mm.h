@@ -575,6 +575,19 @@ struct gops_mm {
 	 */
 	u32 (*get_flush_retries)(struct gk20a *g, enum nvgpu_flush_op op);
 
+	/**
+	 * @brief HAL to get default virtual memory sizes.
+	 *
+	 * @param aperture_size [in]	Pointer to aperture size.
+	 * @param user_size [in]	Pointer to user size.
+	 * @param kernel_size [in]	Pointer to kernel size.
+	 *
+	 * Number of bits for virtual address space can vary. This HAL is used
+	 * to get default values for virtual address spaces.
+	 */
+	void (*get_default_va_sizes)(u64 *aperture_size,
+			u64 *user_size, u64 *kernel_size);
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u64 (*bar1_map_userd)(struct gk20a *g, struct nvgpu_mem *mem,
 								u32 offset);

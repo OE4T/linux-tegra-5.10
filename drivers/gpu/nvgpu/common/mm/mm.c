@@ -246,14 +246,16 @@ static int nvgpu_init_hwpm(struct mm_gk20a *mm)
 static int nvgpu_init_cde_vm(struct mm_gk20a *mm)
 {
 	struct gk20a *g = gk20a_from_mm(mm);
+	u64 user_size, kernel_size;
 	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
+
+	g->ops.mm.get_default_va_sizes(NULL, &user_size, &kernel_size);
 
 	mm->cde.vm = nvgpu_vm_init(g, big_page_size,
 				U64(big_page_size) << U64(10),
-				nvgpu_safe_sub_u64(NV_MM_DEFAULT_USER_SIZE,
+				nvgpu_safe_sub_u64(user_size,
 					U64(big_page_size) << U64(10)),
-				NV_MM_DEFAULT_KERNEL_SIZE,
-				false, false, false, "cde");
+				kernel_size, false, false, false, "cde");
 	if (mm->cde.vm == NULL) {
 		return -ENOMEM;
 	}
@@ -263,14 +265,16 @@ static int nvgpu_init_cde_vm(struct mm_gk20a *mm)
 static int nvgpu_init_ce_vm(struct mm_gk20a *mm)
 {
 	struct gk20a *g = gk20a_from_mm(mm);
+	u64 user_size, kernel_size;
 	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
+
+	g->ops.mm.get_default_va_sizes(NULL, &user_size, &kernel_size);
 
 	mm->ce.vm = nvgpu_vm_init(g, big_page_size,
 				U64(big_page_size) << U64(10),
-				nvgpu_safe_sub_u64(NV_MM_DEFAULT_USER_SIZE,
+				nvgpu_safe_sub_u64(user_size,
 					U64(big_page_size) << U64(10)),
-				NV_MM_DEFAULT_KERNEL_SIZE,
-				false, false, false, "ce");
+				kernel_size, false, false, false, "ce");
 	if (mm->ce.vm == NULL) {
 		return -ENOMEM;
 	}
@@ -507,8 +511,8 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	nvgpu_mutex_init(&mm->l2_op_lock);
 
 	/*TBD: make channel vm size configurable */
-	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE;
-	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
+	g->ops.mm.get_default_va_sizes(NULL, &mm->channel.user_size,
+		&mm->channel.kernel_size);
 
 	nvgpu_log_info(g, "channel vm size: user %uMB  kernel %uMB",
 		nvgpu_safe_cast_u64_to_u32(mm->channel.user_size >> U64(20)),

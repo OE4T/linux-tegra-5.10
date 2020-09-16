@@ -488,17 +488,6 @@ static inline u32 bar1_aperture_size_mb_gk20a(void)
 	return 16U;
 }
 
-/** The maximum GPU VA range supported */
-#define NV_GMMU_VA_RANGE          38U
-
-#define NV_MM_DEFAULT_APERTURE_SIZE	(1ULL << NV_GMMU_VA_RANGE)
-
-/** The default userspace-visible GPU VA size */
-#define NV_MM_DEFAULT_USER_SIZE   (1ULL << 37)
-
-/** The default kernel-reserved GPU VA size */
-#define NV_MM_DEFAULT_KERNEL_SIZE (1ULL << 32)
-
  /**
  * @brief Get small page bottom GPU VA address range.
  *

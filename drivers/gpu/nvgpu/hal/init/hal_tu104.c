@@ -1108,6 +1108,7 @@ static const struct gops_mm tu104_ops_mm = {
 	.init_bar2_vm = gp10b_mm_init_bar2_vm,
 	.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
 	.get_flush_retries = tu104_mm_get_flush_retries,
+	.get_default_va_sizes = gp10b_mm_get_default_va_sizes,
 	.bar1_map_userd = NULL,
 };
 

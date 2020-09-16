@@ -39,6 +39,7 @@
 #include <hal/mm/cache/flush_gv11b.h>
 #include <hal/mm/gmmu/gmmu_gp10b.h>
 #include <hal/mm/gmmu/gmmu_gv11b.h>
+#include <hal/mm/mm_gp10b.h>
 #include <hal/fb/fb_gp10b.h>
 #include <hal/fb/fb_gm20b.h>
 
@@ -192,6 +193,7 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
+	g->ops.mm.get_default_va_sizes = gp10b_mm_get_default_va_sizes,
 	g->ops.mm.init_inst_block = hal_mm_init_inst_block;
 	g->ops.mm.vm_as_free_share = hal_vm_as_free_share;
 	g->ops.mm.vm_bind_channel = nvgpu_vm_bind_channel;
@@ -899,6 +901,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	bool big_pages = true;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
+	u64 default_aperture_size;
 
 	/* Initialize test environment */
 	ret = init_test_env(m, g);
@@ -907,6 +910,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	}
 
 	/* Set VM parameters */
+	g->ops.mm.get_default_va_sizes(&default_aperture_size, NULL, NULL);
 	big_pages = true;
 	low_hole = SZ_1M * 64;
 	aperture_size = 128 * SZ_1G;
@@ -940,7 +944,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 			g->ops.mm.gmmu.get_default_big_page_size(),
 			low_hole,
 			user_vma,
-			NV_MM_DEFAULT_APERTURE_SIZE, /* invalid aperture size */
+			default_aperture_size, /* invalid aperture size */
 			big_pages,
 			false,
 			true,

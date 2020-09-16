@@ -710,22 +710,15 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 		     const char *name)
 {
 	struct gk20a *g = gk20a_from_mm(mm);
-	u64 low_hole_size, user_va_size;
 	u64 aperture_size;
-	u64 pde_align = (U64(big_page_size) << U64(10));
+	u64 default_aperture_size;
 
-	if (user_reserved == 0ULL) {
-		low_hole_size = low_hole;
-		user_va_size = user_reserved;
-	} else {
-		low_hole_size = ALIGN(low_hole, pde_align);
-		user_va_size = ALIGN(user_reserved, pde_align);
-	}
+	g->ops.mm.get_default_va_sizes(&default_aperture_size, NULL, NULL);
 
 	aperture_size = nvgpu_safe_add_u64(kernel_reserved,
-		nvgpu_safe_add_u64(user_va_size, low_hole_size));
+		nvgpu_safe_add_u64(user_reserved, low_hole));
 
-	if (aperture_size > NV_MM_DEFAULT_APERTURE_SIZE) {
+	if (aperture_size > default_aperture_size) {
 		nvgpu_do_assert_print(g,
 			"Overlap between user and kernel spaces");
 		return -ENOMEM;
@@ -758,7 +751,7 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 		vm->vma[GMMU_PAGE_SIZE_BIG] = &vm->user_lp;
 	}
 
-	vm->va_start = low_hole_size;
+	vm->va_start = low_hole;
 	vm->va_limit = aperture_size;
 
 	vm->big_page_size     = vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG];
@@ -777,7 +770,7 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 }
 
 /*
- * Initialize a preallocated vm
+ * Initialize a preallocated vm.
  */
 int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		     struct vm_gk20a *vm,

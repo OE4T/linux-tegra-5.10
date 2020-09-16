@@ -188,9 +188,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	low_hole = SZ_4K * 16UL;
 	aperture_size = GK20A_PMU_VA_SIZE;
 	mm->pmu.aperture_size = GK20A_PMU_VA_SIZE;
-	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE;
-	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
-
+	g->ops.mm.get_default_va_sizes(NULL, &mm->channel.user_size,
+		&mm->channel.kernel_size);
 
 	mm->pmu.vm = nvgpu_vm_init(g,
 				   g->ops.mm.gmmu.get_default_big_page_size(),

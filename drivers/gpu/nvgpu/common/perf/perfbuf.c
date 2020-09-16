@@ -81,11 +81,13 @@ int nvgpu_perfbuf_init_vm(struct gk20a *g)
 	struct mm_gk20a *mm = &g->mm;
 	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 	int err;
+	u64 user_size, kernel_size;
+
+	g->ops.mm.get_default_va_sizes(NULL, &user_size, &kernel_size);
 
 	mm->perfbuf.vm = nvgpu_vm_init(g, big_page_size, SZ_4K,
-			nvgpu_safe_sub_u64(NV_MM_DEFAULT_USER_SIZE, SZ_4K),
-			NV_MM_DEFAULT_KERNEL_SIZE,
-			false, false, false, "perfbuf");
+			nvgpu_safe_sub_u64(user_size, SZ_4K),
+			kernel_size, false, false, false, "perfbuf");
 	if (mm->perfbuf.vm == NULL) {
 		return -ENOMEM;
 	}

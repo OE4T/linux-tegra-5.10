@@ -84,6 +84,7 @@ gm20b_bus_bar1_bind
 gp10b_bus_bar2_bind
 gp10b_ce_nonstall_isr
 gp10b_get_max_page_table_levels
+gp10b_mm_get_default_va_sizes
 gp10b_mm_get_iommu_bit
 gp10b_mm_get_mmu_levels
 gp10b_mm_init_bar2_vm

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -236,7 +236,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 }
 
 const struct gk20a_mmu_level gk20a_mm_levels_64k[] = {
-	{.hi_bit = {NV_GMMU_VA_RANGE-1, NV_GMMU_VA_RANGE-1},
+	{.hi_bit = {37, 37},
 	 .lo_bit = {26, 26},
 	 .update_entry = update_gmmu_pde_locked,
 	 .entry_size = 8,
@@ -250,7 +250,7 @@ const struct gk20a_mmu_level gk20a_mm_levels_64k[] = {
 };
 
 const struct gk20a_mmu_level gk20a_mm_levels_128k[] = {
-	{.hi_bit = {NV_GMMU_VA_RANGE-1, NV_GMMU_VA_RANGE-1},
+	{.hi_bit = {37, 37},
 	 .lo_bit = {27, 27},
 	 .update_entry = update_gmmu_pde_locked,
 	 .entry_size = 8,

@@ -762,6 +762,7 @@ static const struct gops_mm vgpu_gv11b_ops_mm = {
 	.bar1_map_userd = vgpu_mm_bar1_map_userd,
 	.vm_as_alloc_share = vgpu_vm_as_alloc_share,
 	.vm_as_free_share = vgpu_vm_as_free_share,
+	.get_default_va_sizes = gp10b_mm_get_default_va_sizes,
 };
 
 static const struct gops_therm vgpu_gv11b_ops_therm = {

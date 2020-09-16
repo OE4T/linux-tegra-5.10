@@ -781,6 +781,7 @@ static const struct gops_mm gm20b_ops_mm = {
 	.setup_hw = nvgpu_mm_setup_hw,
 	.is_bar1_supported = gm20b_mm_is_bar1_supported,
 	.init_inst_block = gk20a_mm_init_inst_block,
+	.get_default_va_sizes = gm20b_mm_get_default_va_sizes,
 #ifdef CONFIG_NVGPU_USERD
 	.bar1_map_userd = gk20a_mm_bar1_map_userd,
 #endif
