@@ -523,6 +523,9 @@ int nvhost_flcn_finalize_poweron(struct platform_device *pdev)
 	nvhost_flcn_ctxtsw_init(pdev);
 	err = nvhost_flcn_start(pdev, 0);
 
+	if (tegra_platform_is_sim())
+		host1x_writel(pdev, sec_intf_crc_ctrl_r(), 1u);
+
 	return err;
 }
 

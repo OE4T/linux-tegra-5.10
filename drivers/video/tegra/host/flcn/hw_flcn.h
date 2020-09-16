@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -281,5 +281,9 @@ static inline u32 flcn_cg_idle_cg_en_f(u32 v)
 static inline u32 flcn_cg_wakeup_dly_cnt_f(u32 v)
 {
 	return (v & 0xf) << 16;
+}
+static inline u32 sec_intf_crc_ctrl_r(void)
+{
+	return 0x0000e000;
 }
 #endif
