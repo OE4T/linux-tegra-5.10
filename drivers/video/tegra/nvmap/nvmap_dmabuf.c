@@ -717,7 +717,7 @@ int __nvmap_dmabuf_fd(struct nvmap_client *client,
 	 * __FD_SETSIZE limitation issue for select(),
 	 * pselect() syscalls.
 	 */
-	return __alloc_fd(current->files, start_fd, sysctl_nr_open, flags);
+	return tegra_alloc_fd(current->files, start_fd, flags);
 }
 
 int nvmap_get_dmabuf_fd(struct nvmap_client *client, struct nvmap_handle *h)
