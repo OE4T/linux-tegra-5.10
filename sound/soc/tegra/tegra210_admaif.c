@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_admaif.c - Tegra ADMAIF driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_admaif.c - Tegra ADMAIF driver
+//
+// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -222,7 +220,7 @@ static const struct regmap_config tegra186_admaif_regmap_config = {
 	.cache_type		= REGCACHE_FLAT,
 };
 
-static int tegra_admaif_runtime_suspend(struct device *dev)
+static int __maybe_unused tegra_admaif_runtime_suspend(struct device *dev)
 {
 	struct tegra_admaif *admaif = dev_get_drvdata(dev);
 
@@ -232,7 +230,7 @@ static int tegra_admaif_runtime_suspend(struct device *dev)
 	return 0;
 }
 
-static int tegra_admaif_runtime_resume(struct device *dev)
+static int __maybe_unused tegra_admaif_runtime_resume(struct device *dev)
 {
 	struct tegra_admaif *admaif = dev_get_drvdata(dev);
 
@@ -318,7 +316,7 @@ static int tegra_admaif_hw_params(struct snd_pcm_substream *substream,
 		break;
 	default:
 		dev_err(dev, "unsupported format!\n");
-		return -ENOTSUPP;
+		return -EOPNOTSUPP;
 	}
 
 	channels = params_channels(params);
@@ -593,12 +591,12 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 	return 0;
 }
 
-#define ADMAIF_DAI(id)						\
+#define DAI(dai_name)					\
 	{							\
-		.name = "ADMAIF" #id,				\
+		.name = dai_name,				\
 		.probe = tegra_admaif_dai_probe,		\
 		.playback = {					\
-			.stream_name = "Playback " #id,		\
+			.stream_name = dai_name " Playback",	\
 			.channels_min = 1,			\
 			.channels_max = 16,			\
 			.rates = SNDRV_PCM_RATE_8000_192000,	\
@@ -608,7 +606,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 				SNDRV_PCM_FMTBIT_S32_LE,	\
 		},						\
 		.capture = {					\
-			.stream_name = "Capture " #id,		\
+			.stream_name = dai_name " Capture",	\
 			.channels_min = 1,			\
 			.channels_max = 16,			\
 			.rates = SNDRV_PCM_RATE_8000_192000,	\
@@ -630,6 +628,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.capture = {						\
@@ -639,6 +638,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.ops = &tegra_admaif_dai_ops,				\
@@ -654,6 +654,7 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 		.capture = {						\
@@ -663,21 +664,22 @@ static int tegra_admaif_dai_probe(struct snd_soc_dai *dai)
 			.rates = SNDRV_PCM_RATE_8000_192000,		\
 			.formats = SNDRV_PCM_FMTBIT_S8 |		\
 				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
 				SNDRV_PCM_FMTBIT_S32_LE,		\
 		},							\
 	}
 
 static struct snd_soc_dai_driver tegra210_admaif_cmpnt_dais[] = {
-	ADMAIF_DAI(1),
-	ADMAIF_DAI(2),
-	ADMAIF_DAI(3),
-	ADMAIF_DAI(4),
-	ADMAIF_DAI(5),
-	ADMAIF_DAI(6),
-	ADMAIF_DAI(7),
-	ADMAIF_DAI(8),
-	ADMAIF_DAI(9),
-	ADMAIF_DAI(10),
+	DAI("ADMAIF1"),
+	DAI("ADMAIF2"),
+	DAI("ADMAIF3"),
+	DAI("ADMAIF4"),
+	DAI("ADMAIF5"),
+	DAI("ADMAIF6"),
+	DAI("ADMAIF7"),
+	DAI("ADMAIF8"),
+	DAI("ADMAIF9"),
+	DAI("ADMAIF10"),
 	ADMAIF_CODEC_FIFO_DAI(1),
 	ADMAIF_CODEC_FIFO_DAI(2),
 	ADMAIF_CODEC_FIFO_DAI(3),
@@ -701,26 +703,26 @@ static struct snd_soc_dai_driver tegra210_admaif_cmpnt_dais[] = {
 };
 
 static struct snd_soc_dai_driver tegra186_admaif_cmpnt_dais[] = {
-	ADMAIF_DAI(1),
-	ADMAIF_DAI(2),
-	ADMAIF_DAI(3),
-	ADMAIF_DAI(4),
-	ADMAIF_DAI(5),
-	ADMAIF_DAI(6),
-	ADMAIF_DAI(7),
-	ADMAIF_DAI(8),
-	ADMAIF_DAI(9),
-	ADMAIF_DAI(10),
-	ADMAIF_DAI(11),
-	ADMAIF_DAI(12),
-	ADMAIF_DAI(13),
-	ADMAIF_DAI(14),
-	ADMAIF_DAI(15),
-	ADMAIF_DAI(16),
-	ADMAIF_DAI(17),
-	ADMAIF_DAI(18),
-	ADMAIF_DAI(19),
-	ADMAIF_DAI(20),
+	DAI("ADMAIF1"),
+	DAI("ADMAIF2"),
+	DAI("ADMAIF3"),
+	DAI("ADMAIF4"),
+	DAI("ADMAIF5"),
+	DAI("ADMAIF6"),
+	DAI("ADMAIF7"),
+	DAI("ADMAIF8"),
+	DAI("ADMAIF9"),
+	DAI("ADMAIF10"),
+	DAI("ADMAIF11"),
+	DAI("ADMAIF12"),
+	DAI("ADMAIF13"),
+	DAI("ADMAIF14"),
+	DAI("ADMAIF15"),
+	DAI("ADMAIF16"),
+	DAI("ADMAIF17"),
+	DAI("ADMAIF18"),
+	DAI("ADMAIF19"),
+	DAI("ADMAIF20"),
 	ADMAIF_CODEC_FIFO_DAI(1),
 	ADMAIF_CODEC_FIFO_DAI(2),
 	ADMAIF_CODEC_FIFO_DAI(3),
@@ -832,7 +834,7 @@ static const char * const tegra_admaif_stereo_conv_text[] = {
 };
 
 static const char * const tegra_admaif_mono_conv_text[] = {
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 #define TEGRA_ADMAIF_CHANNEL_CTRL(reg)					  \

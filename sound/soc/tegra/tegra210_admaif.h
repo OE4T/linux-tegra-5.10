@@ -2,7 +2,7 @@
 /*
  * tegra210_admaif.h - Tegra ADMAIF registers
  *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 
@@ -156,11 +156,11 @@ struct tegra_admaif {
 	const struct tegra_admaif_soc_data *soc_data;
 	unsigned int *audio_ch_override[ADMAIF_PATHS];
 	unsigned int *client_ch_override[ADMAIF_PATHS];
+	int reg_dump_flag;
+	void __iomem *base_addr;
 	unsigned int *mono_to_stereo[ADMAIF_PATHS];
 	unsigned int *stereo_to_mono[ADMAIF_PATHS];
 	struct regmap *regmap;
-	int reg_dump_flag;
-	void __iomem *base_addr;
 };
 
 extern void tegra_adma_dump_ch_reg(void);

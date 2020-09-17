@@ -2,7 +2,7 @@
 /*
  * tegra210_i2s.h - Definitions for Tegra210 I2S driver
  *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020 NVIDIA CORPORATION. All rights reserved.
  *
  */
 

@@ -9,6 +9,8 @@
 #ifndef __TEGRA_CIF_H__
 #define __TEGRA_CIF_H__
 
+#include <linux/regmap.h>
+
 #define TEGRA_ACIF_CTRL_FIFO_TH_SHIFT		24
 #define TEGRA_ACIF_CTRL_AUDIO_CH_SHIFT		20
 #define TEGRA_ACIF_CTRL_CLIENT_CH_SHIFT		16

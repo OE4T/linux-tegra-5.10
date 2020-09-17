@@ -2,7 +2,7 @@
 /*
  * tegra186_dspk.h - Definitions for Tegra186 DSPK driver
  *
- * Copyright (c) 2015-2020 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020 NVIDIA CORPORATION. All rights reserved.
  *
  */
 
@@ -62,8 +62,8 @@ struct tegra186_dspk {
 	unsigned int lrsel;
 	unsigned int srate_override;
 	unsigned int audio_ch_override;
-	unsigned int ch_sel; /* Used for client channel override */
 	unsigned int audio_fmt_override;
+	unsigned int ch_sel;
 	unsigned int mono_to_stereo;
 	unsigned int stereo_to_mono;
 	struct clk *clk_dspk;

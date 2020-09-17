@@ -1,87 +1,53 @@
-# SPDX-License-Identifier: (GPL-2.0)
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
 %YAML 1.2
 ---
 $id: http://devicetree.org/schemas/sound/nvidia,tegra210-ahub.yaml#
 $schema: http://devicetree.org/meta-schemas/core.yaml#
 
-title: NVIDIA Tegra210 AHUB DT Bindings
+title: Tegra210 AHUB Device Tree Bindings
 
 description: |
   The Audio Hub (AHUB) comprises a collection of hardware accelerators
   for audio pre-processing, post-processing and a programmable full
-  crossbar for routing audio data across these accelerators. The AHUB
-  consists of following key modules.
-    * Inter-IC Sound Controller (I2S)
-    * Digital MIC Controller (DMIC)
-    * Mixer
-    * Audio Multiplexer (AMX)
-    * Audio De-Multiplexer (ADX)
-    * Sampling Frequency Converter (SFC)
-    * Audio Flow Controller (AFC)
-    * Output Processing Engine (OPE)
-    * Master Volume Controller (MVC)
-    * Audio Direct Memory Access Interface (ADMAIF)
-    * Arbitrary Sample Rate Conversion (ASRC)
-    * Digital Speaker (DSPK)
-    * Audio Ratio Detector (ARAD)
-
-  ASRC, ARAD and DSPK are available from Tegra186 onwards. The number of
-  instances of above modules may differ between Tegra210 and later SoCs.
+  crossbar for routing audio data across these accelerators. It has
+  external interfaces such as I2S, DMIC, DSPK. It interfaces with ADMA
+  engine through ADMAIF.
 
 maintainers:
-  - Jonathan Hunter <jonathanh@nvidia.com>
+  - Jon Hunter <jonathanh@nvidia.com>
   - Sameer Pujar <spujar@nvidia.com>
   - Mohan Kumar D <mkumard@nvidia.com>
 
 properties:
+  $nodename:
+    pattern: "^ahub@[0-9a-f]*$"
+
   compatible:
     oneOf:
+      - enum:
+          - nvidia,tegra210-ahub
+          - nvidia,tegra186-ahub
       - items:
-          description: for Tegra210 based platforms
-          const: "nvidia,tegra210-axbar"
-      - items:
-          description: for Tegra186 based platforms
-          const: "nvidia,tegra186-axbar"
-      - items:
-          description: for Tegra194 based platforms
-          const: "nvidia,tegra194-axbar", "nvidia,tegra186-axbar"
+          - const: nvidia,tegra194-ahub
+          - const: nvidia,tegra186-ahub
 
   reg:
     maxItems: 1
-    description: Must contain physical base address and length of device's
-      registers
 
   clocks:
-    - items:
-        description: AHUB module clock
-    - items:
-        description: Parent clock for module
-    - items:
-        description: APE clock
-    - items:
-        description: APB2APE clock
+    maxItems: 1
 
   clock-names:
-    - items:
-        const: ahub
-    - items:
-        const: parent
-    - items:
-        const: xbar.ape
-    - items:
-        const: apb2ape
+    const: ahub
 
   assigned-clocks:
-    - items:
-        description: AHUB module clock
+    maxItems: 1
 
   assigned-clock-parents:
-    - items:
-        description: Assigned parent for module clock
+    maxItems: 1
 
   assigned-clock-rates:
-    - items:
-        description: Initial assigned rate for module clock
+    maxItems: 1
 
   "#address-cells":
     const: 1
@@ -89,9 +55,7 @@ properties:
   "#size-cells":
     const: 1
 
-  ranges:
-    description: specify address range for the node and its children
-    maxItems: 1
+  ranges: true
 
   "#sound-dai-cells":
     description: The cell specifies number of DAIs.
@@ -110,75 +74,73 @@ required:
   - "#sound-dai-cells"
 
 examples:
-
   - |
-    ahub {
-        compatible = "nvidia,tegra210-axbar";
-        reg = <0x0 0x702d0800 0x0 0x800>;
-        clocks = <&tegra_car TEGRA210_CLK_D_AUDIO>,
-		 <&tegra_car TEGRA210_CLK_PLL_A_OUT0>,
-                 <&tegra_car TEGRA210_CLK_APE>,
-                 <&tegra_car TEGRA210_CLK_APB2APE>;
-        clock-names = "ahub", "parent", "xbar.ape", "apb2ape";
+    #include<dt-bindings/clock/tegra210-car.h>
+
+    ahub@702d0800 {
+        compatible = "nvidia,tegra210-ahub";
+        reg = <0x702d0800 0x800>;
+        clocks = <&tegra_car TEGRA210_CLK_D_AUDIO>;
+        clock-names = "ahub";
         assigned-clocks = <&tegra_car TEGRA210_CLK_D_AUDIO>;
-        assigned-parent-clocks = <&tegra_car TEGRA210_CLK_PLL_A_OUT0>;
+        assigned-clock-parents = <&tegra_car TEGRA210_CLK_PLL_A_OUT0>;
         #address-cells = <1>;
         #size-cells = <1>;
-        ranges = <0x702d0000 0x0 0x702d0000 0x00010000>;
+        ranges = <0x702d0000 0x702d0000 0x0000e400>;
         #sound-dai-cells = <1>;
 
-        . . .
-
-        /* AHUB child nodes to follow */
-
-    };
-
-  - |
-    ahub {
-        compatible = "nvidia,tegra186-axbar";
-        reg = <0x0 0x02900800 0x0 0x800>;
-        clocks = <&tegra_car TEGRA186_CLK_AHUB>,
-                 <&tegra_car TEGRA186_CLK_PLL_A_OUT0>,
-                 <&tegra_car TEGRA186_CLK_APB2APE>,
-                 <&tegra_car TEGRA186_CLK_APE>;
-        clock-names = "ahub", "parent", "apb2ape", "xbar.ape";
-        assigned-clocks = <&tegra_car TEGRA186_CLK_AHUB>;
-        assigned-clock-parents = <&tegra_car TEGRA186_CLK_PLL_A_OUT0>;
-        #address-cells = <2>;
-        #size-cells = <2>;
-        ranges;
-        #sound-dai-cells = <1>;
-
-        . . .
-
-        /* AHUB child nodes to follow */
-
-    };
-
-  - |
-    ahub {
-        compatible = "nvidia,tegra194-axbar", "nvidia,tegra186-axbar";
-        reg = <0x0 0x02900800 0x0 0x800>;
-        clocks = <&bpmp_clks TEGRA194_CLK_AHUB>,
-                 <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>,
-                 <&bpmp_clks TEGRA194_CLK_APB2APE>,
-                 <&bpmp_clks TEGRA194_CLK_APE>;
-        clock-names = "ahub", "parent", "apb2ape", "xbar.ape";
-        assigned-clocks = <&bpmp_clks TEGRA194_CLK_AHUB>;
-        assigned-clock-parents = <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>;
-        #address-cells = <2>;
-        #size-cells = <2>;
-        ranges;
-        #sound-dai-cells = <1>;
-
-        /* AHUB child nodes to follow */
-        child1 {
-            ...
+        // All AHUB child nodes below
+        admaif@702d0000 {
+            compatible = "nvidia,tegra210-admaif";
+            reg = <0x702d0000 0x800>;
+            dmas = <&adma 1>,  <&adma 1>,
+               <&adma 2>,  <&adma 2>,
+               <&adma 3>,  <&adma 3>,
+               <&adma 4>,  <&adma 4>,
+               <&adma 5>,  <&adma 5>,
+               <&adma 6>,  <&adma 6>,
+               <&adma 7>,  <&adma 7>,
+               <&adma 8>,  <&adma 8>,
+               <&adma 9>,  <&adma 9>,
+               <&adma 10>, <&adma 10>;
+            dma-names = "rx1",  "tx1",
+                    "rx2",  "tx2",
+                    "rx3",  "tx3",
+                    "rx4",  "tx4",
+                    "rx5",  "tx5",
+                    "rx6",  "tx6",
+                    "rx7",  "tx7",
+                    "rx8",  "tx8",
+                    "rx9",  "tx9",
+                    "rx10", "tx10";
+            #sound-dai-cells = <1>;
         };
 
-        child2 {
-            ...
+        i2s@702d1000 {
+            compatible = "nvidia,tegra210-i2s";
+            reg = <0x702d1000 0x100>;
+            clocks = <&tegra_car TEGRA210_CLK_I2S0>;
+            clock-names = "i2s";
+            assigned-clocks = <&tegra_car TEGRA210_CLK_I2S0>;
+            assigned-clock-parents = <&tegra_car TEGRA210_CLK_PLL_A_OUT0>;
+            assigned-clock-rates = <1536000>;
+            sound-name-prefix = "I2S1";
+            #sound-dai-cells = <1>;
         };
+
+        dmic@702d4000 {
+            compatible = "nvidia,tegra210-dmic";
+            reg = <0x702d4000 0x100>;
+            clocks = <&tegra_car TEGRA210_CLK_DMIC1>;
+            clock-names = "dmic";
+            assigned-clocks = <&tegra_car TEGRA210_CLK_DMIC1>;
+            assigned-clock-parents = <&tegra_car TEGRA210_CLK_PLL_A_OUT0>;
+            assigned-clock-rates = <3072000>;
+            sound-name-prefix = "DMIC1";
+            #sound-dai-cells = <1>;
+        };
+
+        // More child nodes to follow
     };
 
 ...

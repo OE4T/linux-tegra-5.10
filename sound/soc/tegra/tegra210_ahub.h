@@ -2,7 +2,7 @@
 /*
  * tegra210_ahub.h - TEGRA210 AHUB
  *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
  *
  */
 
@@ -47,31 +47,6 @@
 
 #define MUX_VALUE(npart, nbit) (1 + (nbit) + (npart) * 32)
 
-#define DAI(sname)							\
-	{								\
-		.name = #sname,						\
-		.playback = {						\
-			.stream_name = #sname " Receive",		\
-			.channels_min = 1,				\
-			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
-			.formats = SNDRV_PCM_FMTBIT_S8 |		\
-				SNDRV_PCM_FMTBIT_S16_LE |		\
-				SNDRV_PCM_FMTBIT_S24_LE |		\
-				SNDRV_PCM_FMTBIT_S32_LE,		\
-		},							\
-		.capture = {						\
-			.stream_name = #sname " Transmit",		\
-			.channels_min = 1,				\
-			.channels_max = 16,				\
-			.rates = SNDRV_PCM_RATE_8000_192000,		\
-			.formats = SNDRV_PCM_FMTBIT_S8 |		\
-				SNDRV_PCM_FMTBIT_S16_LE |		\
-				SNDRV_PCM_FMTBIT_S24_LE |		\
-				SNDRV_PCM_FMTBIT_S32_LE,		\
-		},							\
-	}
-
 #define SOC_VALUE_ENUM_WIDE(xreg, shift, xmax, xtexts, xvalues)		\
 	{								\
 		.reg = xreg,						\
@@ -106,19 +81,45 @@
 				  tegra_ahub_get_value_enum,		\
 				  tegra_ahub_put_value_enum)
 
-#define WIDGETS(sname, ename)						\
-	SND_SOC_DAPM_AIF_IN(sname " RX", NULL, 0, SND_SOC_NOPM, 0, 0),	\
-	SND_SOC_DAPM_AIF_OUT(sname " TX", NULL, 0, SND_SOC_NOPM, 0, 0),	\
-	SND_SOC_DAPM_MUX(sname " Mux", SND_SOC_NOPM, 0, 0,		\
+#define IN_OUT_ROUTES(name)						\
+	{ name " XBAR-RX",	NULL,	name " XBAR-Playback" },	\
+	{ name " XBAR-Capture",	NULL,	name " XBAR-TX" },
+
+#define WIDGETS(sname, ename)						     \
+	SND_SOC_DAPM_AIF_IN(sname " XBAR-RX", NULL, 0, SND_SOC_NOPM, 0, 0),  \
+	SND_SOC_DAPM_AIF_OUT(sname " XBAR-TX", NULL, 0, SND_SOC_NOPM, 0, 0), \
+	SND_SOC_DAPM_MUX(sname " Mux", SND_SOC_NOPM, 0, 0,		     \
 			 &ename##_control)
 
-#define TX_WIDGETS(sname)						\
-	SND_SOC_DAPM_AIF_IN(sname " RX", NULL, 0, SND_SOC_NOPM, 0, 0),	\
-	SND_SOC_DAPM_AIF_OUT(sname " TX", NULL, 0, SND_SOC_NOPM, 0, 0)
+#define TX_WIDGETS(sname)						    \
+	SND_SOC_DAPM_AIF_IN(sname " XBAR-RX", NULL, 0, SND_SOC_NOPM, 0, 0), \
+	SND_SOC_DAPM_AIF_OUT(sname " XBAR-TX", NULL, 0, SND_SOC_NOPM, 0, 0)
 
-#define IN_OUT_ROUTES(name)					\
-	{ name " RX",       NULL,	name " Receive" },	\
-	{ name " Transmit", NULL,       name " TX" },
+#define DAI(sname)							\
+	{								\
+		.name = "XBAR-" #sname,					\
+		.playback = {						\
+			.stream_name = #sname " XBAR-Playback",		\
+			.channels_min = 1,				\
+			.channels_max = 16,				\
+			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.formats = SNDRV_PCM_FMTBIT_S8 |		\
+				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
+				SNDRV_PCM_FMTBIT_S32_LE,		\
+		},							\
+		.capture = {						\
+			.stream_name = #sname " XBAR-Capture",		\
+			.channels_min = 1,				\
+			.channels_max = 16,				\
+			.rates = SNDRV_PCM_RATE_8000_192000,		\
+			.formats = SNDRV_PCM_FMTBIT_S8 |		\
+				SNDRV_PCM_FMTBIT_S16_LE |		\
+				SNDRV_PCM_FMTBIT_S24_LE |		\
+				SNDRV_PCM_FMTBIT_S32_LE,		\
+		},							\
+	}
+
 struct tegra_ahub_soc_data {
 	const struct regmap_config *regmap_config;
 	const struct snd_soc_component_driver *cmpnt_drv;

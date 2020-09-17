@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_ahub.c - Tegra210 AHUB driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_ahub.c - Tegra210 AHUB driver
+//
+// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -32,7 +30,7 @@ static int tegra_ahub_get_value_enum(struct snd_kcontrol *kctl,
 		unsigned int reg_val;
 
 		reg = e->reg + (TEGRA210_XBAR_PART1_RX * i);
-		snd_soc_component_read(cmpnt, reg, &reg_val);
+		reg_val = snd_soc_component_read(cmpnt, reg);
 		reg_val &= ahub->soc_data->mask[i];
 
 		if (reg_val) {
@@ -932,158 +930,173 @@ static const struct snd_soc_dapm_widget tegra186_ahub_widgets[] = {
 	TX_WIDGETS("ARAD1"),
 };
 
-#define TEGRA_COMMON_ROUTES(name)					\
-	{ name " RX",       NULL,		name " Receive"},	\
-	{ name " Transmit", NULL,		name " TX"},		\
-	{ name " TX",       NULL,		name " Mux"},		\
-	{ name " Mux",      "ADMAIF1",		"ADMAIF1 RX" },		\
-	{ name " Mux",      "ADMAIF2",		"ADMAIF2 RX" },		\
-	{ name " Mux",      "ADMAIF3",		"ADMAIF3 RX" },		\
-	{ name " Mux",      "ADMAIF4",		"ADMAIF4 RX" },		\
-	{ name " Mux",      "ADMAIF5",		"ADMAIF5 RX" },		\
-	{ name " Mux",      "ADMAIF6",		"ADMAIF6 RX" },		\
-	{ name " Mux",      "ADMAIF7",		"ADMAIF7 RX" },		\
-	{ name " Mux",      "ADMAIF8",		"ADMAIF8 RX" },		\
-	{ name " Mux",      "ADMAIF9",		"ADMAIF9 RX" },		\
-	{ name " Mux",      "ADMAIF10",		"ADMAIF10 RX" },	\
-	{ name " Mux",      "I2S1",		"I2S1 RX" },		\
-	{ name " Mux",      "I2S2",		"I2S2 RX" },		\
-	{ name " Mux",      "I2S3",		"I2S3 RX" },		\
-	{ name " Mux",      "I2S4",		"I2S4 RX" },		\
-	{ name " Mux",      "I2S5",		"I2S5 RX" },		\
-	{ name " Mux",      "SFC1",		"SFC1 RX" },		\
-	{ name " Mux",      "SFC2",		"SFC2 RX" },		\
-	{ name " Mux",      "SFC3",		"SFC3 RX" },		\
-	{ name " Mux",      "SFC4",		"SFC4 RX" },		\
-	{ name " Mux",      "MIXER1-1",		"MIXER1-1 RX" },	\
-	{ name " Mux",      "MIXER1-2",		"MIXER1-2 RX" },	\
-	{ name " Mux",      "MIXER1-3",		"MIXER1-3 RX" },	\
-	{ name " Mux",      "MIXER1-4",		"MIXER1-4 RX" },	\
-	{ name " Mux",      "MIXER1-5",		"MIXER1-5 RX" },	\
-	{ name " Mux",      "AFC1",		"AFC1 RX" },		\
-	{ name " Mux",      "AFC2",		"AFC2 RX" },		\
-	{ name " Mux",      "AFC3",		"AFC3 RX" },		\
-	{ name " Mux",      "AFC4",		"AFC4 RX" },		\
-	{ name " Mux",      "AFC5",		"AFC5 RX" },		\
-	{ name " Mux",      "AFC6",		"AFC6 RX" },		\
-	{ name " Mux",      "OPE1",		"OPE1 RX" },		\
-	{ name " Mux",      "MVC1",		"MVC1 RX" },		\
-	{ name " Mux",      "MVC2",		"MVC2 RX" },		\
-	{ name " Mux",      "IQC1-1",		"IQC1-1 RX" },		\
-	{ name " Mux",      "IQC1-2",		"IQC1-2 RX" },		\
-	{ name " Mux",      "IQC2-1",		"IQC2-1 RX" },		\
-	{ name " Mux",      "IQC2-2",		"IQC2-2 RX" },		\
-	{ name " Mux",      "DMIC1",		"DMIC1 RX" },		\
-	{ name " Mux",      "DMIC2",		"DMIC2 RX" },		\
-	{ name " Mux",      "DMIC3",		"DMIC3 RX" },		\
-	{ name " Mux",      "AMX1",		"AMX1 RX" },		\
-	{ name " Mux",      "ADX1-1",		"ADX1-1 RX" },		\
-	{ name " Mux",      "ADX1-2",		"ADX1-2 RX" },		\
-	{ name " Mux",      "ADX1-3",		"ADX1-3 RX" },		\
-	{ name " Mux",      "ADX1-4",		"ADX1-4 RX" },		\
-	{ name " Mux",      "AMX2",		"AMX2 RX" },		\
-	{ name " Mux",      "ADX2-1",		"ADX2-1 RX" },		\
-	{ name " Mux",      "ADX2-2",		"ADX2-2 RX" },		\
-	{ name " Mux",      "ADX2-3",		"ADX2-3 RX" },		\
-	{ name " Mux",      "ADX2-4",		"ADX2-4 RX" },
+#define TEGRA_COMMON_MUX_ROUTES(name)					\
+	{ name " XBAR-RX",  	NULL,		name " XBAR-Playback"},	\
+	{ name " XBAR-Capture",	NULL,		name " XBAR-TX"},	\
+	{ name " XBAR-TX",	NULL,		name " Mux"},		\
+	{ name " Mux",      "ADMAIF1",		"ADMAIF1 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF2",		"ADMAIF2 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF3",		"ADMAIF3 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF4",		"ADMAIF4 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF5",		"ADMAIF5 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF6",		"ADMAIF6 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF7",		"ADMAIF7 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF8",		"ADMAIF8 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF9",		"ADMAIF9 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF10",		"ADMAIF10 XBAR-RX" },	\
+	{ name " Mux",      "I2S1",		"I2S1 XBAR-RX" },	\
+	{ name " Mux",      "I2S2",		"I2S2 XBAR-RX" },	\
+	{ name " Mux",      "I2S3",		"I2S3 XBAR-RX" },	\
+	{ name " Mux",      "I2S4",		"I2S4 XBAR-RX" },	\
+	{ name " Mux",      "I2S5",		"I2S5 XBAR-RX" },	\
+	{ name " Mux",      "SFC1",		"SFC1 XBAR-RX" },	\
+	{ name " Mux",      "SFC2",		"SFC2 XBAR-RX" },	\
+	{ name " Mux",      "SFC3",		"SFC3 XBAR-RX" },	\
+	{ name " Mux",      "SFC4",		"SFC4 XBAR-RX" },	\
+	{ name " Mux",      "MIXER1-1",		"MIXER1-1 XBAR-RX" },	\
+	{ name " Mux",      "MIXER1-2",		"MIXER1-2 XBAR-RX" },	\
+	{ name " Mux",      "MIXER1-3",		"MIXER1-3 XBAR-RX" },	\
+	{ name " Mux",      "MIXER1-4",		"MIXER1-4 XBAR-RX" },	\
+	{ name " Mux",      "MIXER1-5",		"MIXER1-5 XBAR-RX" },	\
+	{ name " Mux",      "AFC1",		"AFC1 XBAR-RX" },	\
+	{ name " Mux",      "AFC2",		"AFC2 XBAR-RX" },	\
+	{ name " Mux",      "AFC3",		"AFC3 XBAR-RX" },	\
+	{ name " Mux",      "AFC4",		"AFC4 XBAR-RX" },	\
+	{ name " Mux",      "AFC5",		"AFC5 XBAR-RX" },	\
+	{ name " Mux",      "AFC6",		"AFC6 XBAR-RX" },	\
+	{ name " Mux",      "OPE1",		"OPE1 XBAR-RX" },	\
+	{ name " Mux",      "MVC1",		"MVC1 XBAR-RX" },	\
+	{ name " Mux",      "MVC2",		"MVC2 XBAR-RX" },	\
+	{ name " Mux",      "IQC1-1",		"IQC1-1 XBAR-RX" },	\
+	{ name " Mux",      "IQC1-2",		"IQC1-2 XBAR-RX" },	\
+	{ name " Mux",      "IQC2-1",		"IQC2-1 XBAR-RX" },	\
+	{ name " Mux",      "IQC2-2",		"IQC2-2 XBAR-RX" },	\
+	{ name " Mux",      "DMIC1",		"DMIC1 XBAR-RX" },	\
+	{ name " Mux",      "DMIC2",		"DMIC2 XBAR-RX" },	\
+	{ name " Mux",      "DMIC3",		"DMIC3 XBAR-RX" },	\
+	{ name " Mux",      "AMX1",		"AMX1 XBAR-RX" },	\
+	{ name " Mux",      "ADX1-1",		"ADX1-1 XBAR-RX" },	\
+	{ name " Mux",      "ADX1-2",		"ADX1-2 XBAR-RX" },	\
+	{ name " Mux",      "ADX1-3",		"ADX1-3 XBAR-RX" },	\
+	{ name " Mux",      "ADX1-4",		"ADX1-4 XBAR-RX" },	\
+	{ name " Mux",      "AMX2",		"AMX2 XBAR-RX" },	\
+	{ name " Mux",      "ADX2-1",		"ADX2-1 XBAR-RX" },	\
+	{ name " Mux",      "ADX2-2",		"ADX2-2 XBAR-RX" },	\
+	{ name " Mux",      "ADX2-3",		"ADX2-3 XBAR-RX" },	\
+	{ name " Mux",      "ADX2-4",		"ADX2-4 XBAR-RX" },
 
-#define TEGRA210_ONLY_ROUTES(name)					\
-	{ name " Mux",      "OPE2",		"OPE2 RX" },
+#define TEGRA210_ONLY_MUX_ROUTES(name)					\
+	{ name " Mux",      "OPE2",		"OPE2 XBAR-RX" },
 
-#define TEGRA186_ONLY_ROUTES(name)					\
-	{ name " Mux",      "ADMAIF11",		"ADMAIF11 RX" },	\
-	{ name " Mux",      "ADMAIF12",		"ADMAIF12 RX" },	\
-	{ name " Mux",      "ADMAIF13",		"ADMAIF13 RX" },	\
-	{ name " Mux",      "ADMAIF14",		"ADMAIF14 RX" },	\
-	{ name " Mux",      "ADMAIF15",		"ADMAIF15 RX" },	\
-	{ name " Mux",      "ADMAIF16",		"ADMAIF16 RX" },	\
-	{ name " Mux",      "ADMAIF17",		"ADMAIF17 RX" },	\
-	{ name " Mux",      "ADMAIF18",		"ADMAIF18 RX" },	\
-	{ name " Mux",      "ADMAIF19",		"ADMAIF19 RX" },	\
-	{ name " Mux",      "ADMAIF20",		"ADMAIF20 RX" },	\
-	{ name " Mux",      "DMIC4",		"DMIC4 RX" },		\
-	{ name " Mux",      "I2S6",		"I2S6 RX" },		\
-	{ name " Mux",      "ASRC1-1",		"ASRC1-1 RX" },		\
-	{ name " Mux",      "ASRC1-2",		"ASRC1-2 RX" },		\
-	{ name " Mux",      "ASRC1-3",		"ASRC1-3 RX" },		\
-	{ name " Mux",      "ASRC1-4",		"ASRC1-4 RX" },		\
-	{ name " Mux",      "ASRC1-5",		"ASRC1-5 RX" },		\
-	{ name " Mux",      "ASRC1-6",		"ASRC1-6 RX" },		\
-	{ name " Mux",      "AMX3",		"AMX3 RX" },		\
-	{ name " Mux",      "ADX3-1",		"ADX3-1 RX" },		\
-	{ name " Mux",      "ADX3-2",		"ADX3-2 RX" },		\
-	{ name " Mux",      "ADX3-3",		"ADX3-3 RX" },		\
-	{ name " Mux",      "ADX3-4",		"ADX3-4 RX" },		\
-	{ name " Mux",      "AMX4",		"AMX4 RX" },		\
-	{ name " Mux",      "ADX4-1",		"ADX4-1 RX" },		\
-	{ name " Mux",      "ADX4-2",		"ADX4-2 RX" },		\
-	{ name " Mux",      "ADX4-3",		"ADX4-3 RX" },		\
-	{ name " Mux",      "ADX4-4",		"ADX4-4 RX" },		\
-	{ name " Mux",      "ARAD1",		"ARAD1 RX" },
+#define TEGRA186_ONLY_MUX_ROUTES(name)					\
+	{ name " Mux",      "ADMAIF11",		"ADMAIF11 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF12",		"ADMAIF12 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF13",		"ADMAIF13 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF14",		"ADMAIF14 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF15",		"ADMAIF15 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF16",		"ADMAIF16 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF17",		"ADMAIF17 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF18",		"ADMAIF18 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF19",		"ADMAIF19 XBAR-RX" },	\
+	{ name " Mux",      "ADMAIF20",		"ADMAIF20 XBAR-RX" },	\
+	{ name " Mux",      "DMIC4",		"DMIC4 XBAR-RX" },	\
+	{ name " Mux",      "I2S6",		"I2S6 XBAR-RX" },	\
+	{ name " Mux",      "ASRC1-1",		"ASRC1-1 XBAR-RX" },	\
+	{ name " Mux",      "ASRC1-2",		"ASRC1-2 XBAR-RX" },	\
+	{ name " Mux",      "ASRC1-3",		"ASRC1-3 XBAR-RX" },	\
+	{ name " Mux",      "ASRC1-4",		"ASRC1-4 XBAR-RX" },	\
+	{ name " Mux",      "ASRC1-5",		"ASRC1-5 XBAR-RX" },	\
+	{ name " Mux",      "ASRC1-6",		"ASRC1-6 XBAR-RX" },	\
+	{ name " Mux",      "AMX3",		"AMX3 XBAR-RX" },	\
+	{ name " Mux",      "ADX3-1",		"ADX3-1 XBAR-RX" },	\
+	{ name " Mux",      "ADX3-2",		"ADX3-2 XBAR-RX" },	\
+	{ name " Mux",      "ADX3-3",		"ADX3-3 XBAR-RX" },	\
+	{ name " Mux",      "ADX3-4",		"ADX3-4 XBAR-RX" },	\
+	{ name " Mux",      "AMX4",		"AMX4 XBAR-RX" },	\
+	{ name " Mux",      "ADX4-1",		"ADX4-1 XBAR-RX" },	\
+	{ name " Mux",      "ADX4-2",		"ADX4-2 XBAR-RX" },	\
+	{ name " Mux",      "ADX4-3",		"ADX4-3 XBAR-RX" },	\
+	{ name " Mux",      "ADX4-4",		"ADX4-4 XBAR-RX" },	\
+	{ name " Mux",      "ARAD1",		"ARAD1 XBAR-RX" },
 
-#define TEGRA210_ROUTES(name)						\
-	TEGRA_COMMON_ROUTES(name)					\
-	TEGRA210_ONLY_ROUTES(name)
+#define TEGRA210_MUX_ROUTES(name)					\
+	TEGRA_COMMON_MUX_ROUTES(name)					\
+	TEGRA210_ONLY_MUX_ROUTES(name)
 
-#define TEGRA186_ROUTES(name)						\
-	TEGRA_COMMON_ROUTES(name)					\
-	TEGRA186_ONLY_ROUTES(name)
-/*
- * The number of entries in, and order of, this array is closely tied to the
- * calculation of tegra210_ahub_codec.num_dapm_routes near the end of
- * tegra210_ahub_probe()
- */
+#define TEGRA186_MUX_ROUTES(name)					\
+	TEGRA_COMMON_MUX_ROUTES(name)					\
+	TEGRA186_ONLY_MUX_ROUTES(name)
+
+/* Connect FEs with XBAR */
+#define TEGRA_FE_ROUTES(name) \
+	{ name " XBAR-Playback",NULL,	name " Playback" },	\
+	{ name " XBAR-RX",	NULL,	name " XBAR-Playback"},	\
+	{ name " XBAR-Capture",	NULL,	name " XBAR-TX" },      \
+	{ name " Capture",	NULL,	name " XBAR-Capture" },
+
 static const struct snd_soc_dapm_route tegra210_ahub_routes[] = {
-	TEGRA210_ROUTES("ADMAIF1")
-	TEGRA210_ROUTES("ADMAIF2")
-	TEGRA210_ROUTES("ADMAIF3")
-	TEGRA210_ROUTES("ADMAIF4")
-	TEGRA210_ROUTES("ADMAIF5")
-	TEGRA210_ROUTES("ADMAIF6")
-	TEGRA210_ROUTES("ADMAIF7")
-	TEGRA210_ROUTES("ADMAIF8")
-	TEGRA210_ROUTES("ADMAIF9")
-	TEGRA210_ROUTES("ADMAIF10")
-	TEGRA210_ROUTES("I2S1")
-	TEGRA210_ROUTES("I2S2")
-	TEGRA210_ROUTES("I2S3")
-	TEGRA210_ROUTES("I2S4")
-	TEGRA210_ROUTES("I2S5")
-	TEGRA210_ROUTES("SFC1")
-	TEGRA210_ROUTES("SFC2")
-	TEGRA210_ROUTES("SFC3")
-	TEGRA210_ROUTES("SFC4")
-	TEGRA210_ROUTES("MIXER1-1")
-	TEGRA210_ROUTES("MIXER1-2")
-	TEGRA210_ROUTES("MIXER1-3")
-	TEGRA210_ROUTES("MIXER1-4")
-	TEGRA210_ROUTES("MIXER1-5")
-	TEGRA210_ROUTES("MIXER1-6")
-	TEGRA210_ROUTES("MIXER1-7")
-	TEGRA210_ROUTES("MIXER1-8")
-	TEGRA210_ROUTES("MIXER1-9")
-	TEGRA210_ROUTES("MIXER1-10")
-	TEGRA210_ROUTES("AFC1")
-	TEGRA210_ROUTES("AFC2")
-	TEGRA210_ROUTES("AFC3")
-	TEGRA210_ROUTES("AFC4")
-	TEGRA210_ROUTES("AFC5")
-	TEGRA210_ROUTES("AFC6")
-	TEGRA210_ROUTES("OPE1")
-	TEGRA210_ROUTES("OPE2")
-	TEGRA210_ROUTES("SPKPROT1")
-	TEGRA210_ROUTES("MVC1")
-	TEGRA210_ROUTES("MVC2")
-	TEGRA210_ROUTES("AMX1-1")
-	TEGRA210_ROUTES("AMX1-2")
-	TEGRA210_ROUTES("AMX1-3")
-	TEGRA210_ROUTES("AMX1-4")
-	TEGRA210_ROUTES("AMX2-1")
-	TEGRA210_ROUTES("AMX2-2")
-	TEGRA210_ROUTES("AMX2-3")
-	TEGRA210_ROUTES("AMX2-4")
-	TEGRA210_ROUTES("ADX1")
-	TEGRA210_ROUTES("ADX2")
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+	TEGRA_FE_ROUTES("ADMAIF1")
+	TEGRA_FE_ROUTES("ADMAIF2")
+	TEGRA_FE_ROUTES("ADMAIF3")
+	TEGRA_FE_ROUTES("ADMAIF4")
+	TEGRA_FE_ROUTES("ADMAIF5")
+	TEGRA_FE_ROUTES("ADMAIF6")
+	TEGRA_FE_ROUTES("ADMAIF7")
+	TEGRA_FE_ROUTES("ADMAIF8")
+	TEGRA_FE_ROUTES("ADMAIF9")
+	TEGRA_FE_ROUTES("ADMAIF10")
+#endif
+	TEGRA210_MUX_ROUTES("ADMAIF1")
+	TEGRA210_MUX_ROUTES("ADMAIF2")
+	TEGRA210_MUX_ROUTES("ADMAIF3")
+	TEGRA210_MUX_ROUTES("ADMAIF4")
+	TEGRA210_MUX_ROUTES("ADMAIF5")
+	TEGRA210_MUX_ROUTES("ADMAIF6")
+	TEGRA210_MUX_ROUTES("ADMAIF7")
+	TEGRA210_MUX_ROUTES("ADMAIF8")
+	TEGRA210_MUX_ROUTES("ADMAIF9")
+	TEGRA210_MUX_ROUTES("ADMAIF10")
+	TEGRA210_MUX_ROUTES("I2S1")
+	TEGRA210_MUX_ROUTES("I2S2")
+	TEGRA210_MUX_ROUTES("I2S3")
+	TEGRA210_MUX_ROUTES("I2S4")
+	TEGRA210_MUX_ROUTES("I2S5")
+	TEGRA210_MUX_ROUTES("SFC1")
+	TEGRA210_MUX_ROUTES("SFC2")
+	TEGRA210_MUX_ROUTES("SFC3")
+	TEGRA210_MUX_ROUTES("SFC4")
+	TEGRA210_MUX_ROUTES("MIXER1-1")
+	TEGRA210_MUX_ROUTES("MIXER1-2")
+	TEGRA210_MUX_ROUTES("MIXER1-3")
+	TEGRA210_MUX_ROUTES("MIXER1-4")
+	TEGRA210_MUX_ROUTES("MIXER1-5")
+	TEGRA210_MUX_ROUTES("MIXER1-6")
+	TEGRA210_MUX_ROUTES("MIXER1-7")
+	TEGRA210_MUX_ROUTES("MIXER1-8")
+	TEGRA210_MUX_ROUTES("MIXER1-9")
+	TEGRA210_MUX_ROUTES("MIXER1-10")
+	TEGRA210_MUX_ROUTES("AFC1")
+	TEGRA210_MUX_ROUTES("AFC2")
+	TEGRA210_MUX_ROUTES("AFC3")
+	TEGRA210_MUX_ROUTES("AFC4")
+	TEGRA210_MUX_ROUTES("AFC5")
+	TEGRA210_MUX_ROUTES("AFC6")
+	TEGRA210_MUX_ROUTES("OPE1")
+	TEGRA210_MUX_ROUTES("OPE2")
+	TEGRA210_MUX_ROUTES("SPKPROT1")
+	TEGRA210_MUX_ROUTES("MVC1")
+	TEGRA210_MUX_ROUTES("MVC2")
+	TEGRA210_MUX_ROUTES("AMX1-1")
+	TEGRA210_MUX_ROUTES("AMX1-2")
+	TEGRA210_MUX_ROUTES("AMX1-3")
+	TEGRA210_MUX_ROUTES("AMX1-4")
+	TEGRA210_MUX_ROUTES("AMX2-1")
+	TEGRA210_MUX_ROUTES("AMX2-2")
+	TEGRA210_MUX_ROUTES("AMX2-3")
+	TEGRA210_MUX_ROUTES("AMX2-4")
+	TEGRA210_MUX_ROUTES("ADX1")
+	TEGRA210_MUX_ROUTES("ADX2")
 	IN_OUT_ROUTES("IQC1-1")
 	IN_OUT_ROUTES("IQC1-2")
 	IN_OUT_ROUTES("IQC2-1")
@@ -1104,55 +1117,77 @@ static const struct snd_soc_dapm_route tegra210_ahub_routes[] = {
 };
 
 static const struct snd_soc_dapm_route tegra186_ahub_routes[] = {
-	TEGRA186_ROUTES("ADMAIF1")
-	TEGRA186_ROUTES("ADMAIF2")
-	TEGRA186_ROUTES("ADMAIF3")
-	TEGRA186_ROUTES("ADMAIF4")
-	TEGRA186_ROUTES("ADMAIF5")
-	TEGRA186_ROUTES("ADMAIF6")
-	TEGRA186_ROUTES("ADMAIF7")
-	TEGRA186_ROUTES("ADMAIF8")
-	TEGRA186_ROUTES("ADMAIF9")
-	TEGRA186_ROUTES("ADMAIF10")
-	TEGRA186_ROUTES("I2S1")
-	TEGRA186_ROUTES("I2S2")
-	TEGRA186_ROUTES("I2S3")
-	TEGRA186_ROUTES("I2S4")
-	TEGRA186_ROUTES("I2S5")
-	TEGRA186_ROUTES("SFC1")
-	TEGRA186_ROUTES("SFC2")
-	TEGRA186_ROUTES("SFC3")
-	TEGRA186_ROUTES("SFC4")
-	TEGRA186_ROUTES("MIXER1-1")
-	TEGRA186_ROUTES("MIXER1-2")
-	TEGRA186_ROUTES("MIXER1-3")
-	TEGRA186_ROUTES("MIXER1-4")
-	TEGRA186_ROUTES("MIXER1-5")
-	TEGRA186_ROUTES("MIXER1-6")
-	TEGRA186_ROUTES("MIXER1-7")
-	TEGRA186_ROUTES("MIXER1-8")
-	TEGRA186_ROUTES("MIXER1-9")
-	TEGRA186_ROUTES("MIXER1-10")
-	TEGRA186_ROUTES("AFC1")
-	TEGRA186_ROUTES("AFC2")
-	TEGRA186_ROUTES("AFC3")
-	TEGRA186_ROUTES("AFC4")
-	TEGRA186_ROUTES("AFC5")
-	TEGRA186_ROUTES("AFC6")
-	TEGRA186_ROUTES("OPE1")
-	TEGRA186_ROUTES("SPKPROT1")
-	TEGRA186_ROUTES("MVC1")
-	TEGRA186_ROUTES("MVC2")
-	TEGRA186_ROUTES("AMX1-1")
-	TEGRA186_ROUTES("AMX1-2")
-	TEGRA186_ROUTES("AMX1-3")
-	TEGRA186_ROUTES("AMX1-4")
-	TEGRA186_ROUTES("AMX2-1")
-	TEGRA186_ROUTES("AMX2-2")
-	TEGRA186_ROUTES("AMX2-3")
-	TEGRA186_ROUTES("AMX2-4")
-	TEGRA186_ROUTES("ADX1")
-	TEGRA186_ROUTES("ADX2")
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+	TEGRA_FE_ROUTES("ADMAIF1")
+	TEGRA_FE_ROUTES("ADMAIF2")
+	TEGRA_FE_ROUTES("ADMAIF3")
+	TEGRA_FE_ROUTES("ADMAIF4")
+	TEGRA_FE_ROUTES("ADMAIF5")
+	TEGRA_FE_ROUTES("ADMAIF6")
+	TEGRA_FE_ROUTES("ADMAIF7")
+	TEGRA_FE_ROUTES("ADMAIF8")
+	TEGRA_FE_ROUTES("ADMAIF9")
+	TEGRA_FE_ROUTES("ADMAIF10")
+	TEGRA_FE_ROUTES("ADMAIF11")
+	TEGRA_FE_ROUTES("ADMAIF12")
+	TEGRA_FE_ROUTES("ADMAIF13")
+	TEGRA_FE_ROUTES("ADMAIF14")
+	TEGRA_FE_ROUTES("ADMAIF15")
+	TEGRA_FE_ROUTES("ADMAIF16")
+	TEGRA_FE_ROUTES("ADMAIF17")
+	TEGRA_FE_ROUTES("ADMAIF18")
+	TEGRA_FE_ROUTES("ADMAIF19")
+	TEGRA_FE_ROUTES("ADMAIF20")
+#endif
+	TEGRA186_MUX_ROUTES("ADMAIF1")
+	TEGRA186_MUX_ROUTES("ADMAIF2")
+	TEGRA186_MUX_ROUTES("ADMAIF3")
+	TEGRA186_MUX_ROUTES("ADMAIF4")
+	TEGRA186_MUX_ROUTES("ADMAIF5")
+	TEGRA186_MUX_ROUTES("ADMAIF6")
+	TEGRA186_MUX_ROUTES("ADMAIF7")
+	TEGRA186_MUX_ROUTES("ADMAIF8")
+	TEGRA186_MUX_ROUTES("ADMAIF9")
+	TEGRA186_MUX_ROUTES("ADMAIF10")
+	TEGRA186_MUX_ROUTES("I2S1")
+	TEGRA186_MUX_ROUTES("I2S2")
+	TEGRA186_MUX_ROUTES("I2S3")
+	TEGRA186_MUX_ROUTES("I2S4")
+	TEGRA186_MUX_ROUTES("I2S5")
+	TEGRA186_MUX_ROUTES("SFC1")
+	TEGRA186_MUX_ROUTES("SFC2")
+	TEGRA186_MUX_ROUTES("SFC3")
+	TEGRA186_MUX_ROUTES("SFC4")
+	TEGRA186_MUX_ROUTES("MIXER1-1")
+	TEGRA186_MUX_ROUTES("MIXER1-2")
+	TEGRA186_MUX_ROUTES("MIXER1-3")
+	TEGRA186_MUX_ROUTES("MIXER1-4")
+	TEGRA186_MUX_ROUTES("MIXER1-5")
+	TEGRA186_MUX_ROUTES("MIXER1-6")
+	TEGRA186_MUX_ROUTES("MIXER1-7")
+	TEGRA186_MUX_ROUTES("MIXER1-8")
+	TEGRA186_MUX_ROUTES("MIXER1-9")
+	TEGRA186_MUX_ROUTES("MIXER1-10")
+	TEGRA186_MUX_ROUTES("AFC1")
+	TEGRA186_MUX_ROUTES("AFC2")
+	TEGRA186_MUX_ROUTES("AFC3")
+	TEGRA186_MUX_ROUTES("AFC4")
+	TEGRA186_MUX_ROUTES("AFC5")
+	TEGRA186_MUX_ROUTES("AFC6")
+	TEGRA186_MUX_ROUTES("OPE1")
+	TEGRA186_MUX_ROUTES("SPKPROT1")
+	TEGRA186_MUX_ROUTES("MVC1")
+	TEGRA186_MUX_ROUTES("MVC2")
+	TEGRA186_MUX_ROUTES("AMX1-1")
+	TEGRA186_MUX_ROUTES("AMX1-2")
+	TEGRA186_MUX_ROUTES("AMX1-3")
+	TEGRA186_MUX_ROUTES("AMX1-4")
+	TEGRA186_MUX_ROUTES("AMX2-1")
+	TEGRA186_MUX_ROUTES("AMX2-2")
+	TEGRA186_MUX_ROUTES("AMX2-3")
+	TEGRA186_MUX_ROUTES("AMX2-4")
+	TEGRA186_MUX_ROUTES("ADX1")
+	TEGRA186_MUX_ROUTES("ADX2")
 	IN_OUT_ROUTES("IQC1-1")
 	IN_OUT_ROUTES("IQC1-2")
 	IN_OUT_ROUTES("IQC2-1")
@@ -1170,36 +1205,36 @@ static const struct snd_soc_dapm_route tegra186_ahub_routes[] = {
 	IN_OUT_ROUTES("ADX2-2")
 	IN_OUT_ROUTES("ADX2-3")
 	IN_OUT_ROUTES("ADX2-4")
-	TEGRA186_ROUTES("ADMAIF11")
-	TEGRA186_ROUTES("ADMAIF12")
-	TEGRA186_ROUTES("ADMAIF13")
-	TEGRA186_ROUTES("ADMAIF14")
-	TEGRA186_ROUTES("ADMAIF15")
-	TEGRA186_ROUTES("ADMAIF16")
-	TEGRA186_ROUTES("ADMAIF17")
-	TEGRA186_ROUTES("ADMAIF18")
-	TEGRA186_ROUTES("ADMAIF19")
-	TEGRA186_ROUTES("ADMAIF20")
-	TEGRA186_ROUTES("AMX3-1")
-	TEGRA186_ROUTES("AMX3-2")
-	TEGRA186_ROUTES("AMX3-3")
-	TEGRA186_ROUTES("AMX3-4")
-	TEGRA186_ROUTES("AMX4-1")
-	TEGRA186_ROUTES("AMX4-2")
-	TEGRA186_ROUTES("AMX4-3")
-	TEGRA186_ROUTES("AMX4-4")
-	TEGRA186_ROUTES("ADX3")
-	TEGRA186_ROUTES("ADX4")
-	TEGRA186_ROUTES("I2S6")
-	TEGRA186_ROUTES("ASRC1-1")
-	TEGRA186_ROUTES("ASRC1-2")
-	TEGRA186_ROUTES("ASRC1-3")
-	TEGRA186_ROUTES("ASRC1-4")
-	TEGRA186_ROUTES("ASRC1-5")
-	TEGRA186_ROUTES("ASRC1-6")
-	TEGRA186_ROUTES("ASRC1-7")
-	TEGRA186_ROUTES("DSPK1")
-	TEGRA186_ROUTES("DSPK2")
+	TEGRA186_MUX_ROUTES("ADMAIF11")
+	TEGRA186_MUX_ROUTES("ADMAIF12")
+	TEGRA186_MUX_ROUTES("ADMAIF13")
+	TEGRA186_MUX_ROUTES("ADMAIF14")
+	TEGRA186_MUX_ROUTES("ADMAIF15")
+	TEGRA186_MUX_ROUTES("ADMAIF16")
+	TEGRA186_MUX_ROUTES("ADMAIF17")
+	TEGRA186_MUX_ROUTES("ADMAIF18")
+	TEGRA186_MUX_ROUTES("ADMAIF19")
+	TEGRA186_MUX_ROUTES("ADMAIF20")
+	TEGRA186_MUX_ROUTES("AMX3-1")
+	TEGRA186_MUX_ROUTES("AMX3-2")
+	TEGRA186_MUX_ROUTES("AMX3-3")
+	TEGRA186_MUX_ROUTES("AMX3-4")
+	TEGRA186_MUX_ROUTES("AMX4-1")
+	TEGRA186_MUX_ROUTES("AMX4-2")
+	TEGRA186_MUX_ROUTES("AMX4-3")
+	TEGRA186_MUX_ROUTES("AMX4-4")
+	TEGRA186_MUX_ROUTES("ADX3")
+	TEGRA186_MUX_ROUTES("ADX4")
+	TEGRA186_MUX_ROUTES("I2S6")
+	TEGRA186_MUX_ROUTES("ASRC1-1")
+	TEGRA186_MUX_ROUTES("ASRC1-2")
+	TEGRA186_MUX_ROUTES("ASRC1-3")
+	TEGRA186_MUX_ROUTES("ASRC1-4")
+	TEGRA186_MUX_ROUTES("ASRC1-5")
+	TEGRA186_MUX_ROUTES("ASRC1-6")
+	TEGRA186_MUX_ROUTES("ASRC1-7")
+	TEGRA186_MUX_ROUTES("DSPK1")
+	TEGRA186_MUX_ROUTES("DSPK2")
 	IN_OUT_ROUTES("DMIC4")
 	IN_OUT_ROUTES("AMX3")
 	IN_OUT_ROUTES("AMX4")
@@ -1275,7 +1310,7 @@ static const struct of_device_id tegra_ahub_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tegra_ahub_of_match);
 
-static int tegra_ahub_runtime_suspend(struct device *dev)
+static int __maybe_unused tegra_ahub_runtime_suspend(struct device *dev)
 {
 	struct tegra_ahub *ahub = dev_get_drvdata(dev);
 
@@ -1287,7 +1322,7 @@ static int tegra_ahub_runtime_suspend(struct device *dev)
 	return 0;
 }
 
-static int tegra_ahub_runtime_resume(struct device *dev)
+static int __maybe_unused tegra_ahub_runtime_resume(struct device *dev)
 {
 	struct tegra_ahub *ahub = dev_get_drvdata(dev);
 	int err;

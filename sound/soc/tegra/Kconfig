@@ -99,7 +99,7 @@ config SND_SOC_TEGRA186_DSPK
 	help
 	  Config to enable the Digital Speaker Controller (DSPK) which
 	  converts the multi-bit Pulse Code Modulation (PCM) audio input to
-	  oversampled 1-bit Pulse Desnity Modulation (PDM) output. From the
+	  oversampled 1-bit Pulse Density Modulation (PDM) output. From the
 	  signal flow perspective DSPK can be viewed as a PDM transmitter
 	  that up-samples the input to the desired sampling rate by
 	  interpolation and then converts the oversampled PCM input to
@@ -115,7 +115,7 @@ config SND_SOC_TEGRA210_ADMAIF
 	  from AHUB must interface through an ADMAIF channel. ADMA channel
 	  sending data to AHUB pairs with an ADMAIF Tx channel, where as
 	  ADMA channel receiving data from AHUB pairs with an ADMAIF Rx
-	  channel. Buffer size is confiigurable for each ADMAIIF channel.
+	  channel. Buffer size is configurable for each ADMAIIF channel.
 	  Say Y or M if you want to add support for Tegra210 ADMAIF module.
 
 config SND_SOC_TEGRA186_ARAD

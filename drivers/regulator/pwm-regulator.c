@@ -51,7 +51,7 @@ struct pwm_voltages {
 	unsigned int dutycycle;
 };
 
-/**
+/*
  * Voltage table call-backs
  */
 static void pwm_regulator_init_state(struct regulator_dev *rdev)

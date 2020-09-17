@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_i2s.c - Tegra210 I2S driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_i2s.c - Tegra210 I2S driver
+//
+// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -18,6 +16,12 @@
 #include <sound/soc.h>
 #include "tegra210_i2s.h"
 #include "tegra_cif.h"
+
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+#define TEGRA_PLAYBACK_STREAM	SNDRV_PCM_STREAM_PLAYBACK
+#else
+#define TEGRA_PLAYBACK_STREAM	SNDRV_PCM_STREAM_CAPTURE
+#endif
 
 static const struct reg_default tegra210_i2s_reg_defaults[] = {
 	{ TEGRA210_I2S_RX_INT_MASK, 0x00000003 },
@@ -166,7 +170,7 @@ static int tegra210_i2s_init(struct snd_soc_dapm_widget *w,
 	return tegra210_i2s_sw_reset(compnt, is_playback);
 }
 
-static int tegra210_i2s_runtime_suspend(struct device *dev)
+static int __maybe_unused tegra210_i2s_runtime_suspend(struct device *dev)
 {
 	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
 
@@ -178,7 +182,7 @@ static int tegra210_i2s_runtime_suspend(struct device *dev)
 	return 0;
 }
 
-static int tegra210_i2s_runtime_resume(struct device *dev)
+static int __maybe_unused tegra210_i2s_runtime_resume(struct device *dev)
 {
 	struct tegra210_i2s *i2s = dev_get_drvdata(dev);
 	int err;
@@ -198,15 +202,15 @@ static int tegra210_i2s_runtime_resume(struct device *dev)
 static void tegra210_i2s_set_data_offset(struct tegra210_i2s *i2s,
 					 unsigned int data_offset)
 {
-	unsigned int mask = I2S_CTRL_DATA_OFFSET_MASK;
-	unsigned int shift = I2S_DATA_SHIFT;
-	unsigned int reg;
+	/* Capture path */
+	regmap_update_bits(i2s->regmap, TEGRA210_I2S_TX_CTRL,
+			   I2S_CTRL_DATA_OFFSET_MASK,
+			   data_offset << I2S_DATA_SHIFT);
 
-	reg = TEGRA210_I2S_TX_CTRL;
-	regmap_update_bits(i2s->regmap, reg, mask, data_offset << shift);
-
-	reg = TEGRA210_I2S_RX_CTRL;
-	regmap_update_bits(i2s->regmap, reg, mask, data_offset << shift);
+	/* Playback path */
+	regmap_update_bits(i2s->regmap, TEGRA210_I2S_RX_CTRL,
+			   I2S_CTRL_DATA_OFFSET_MASK,
+			   data_offset << I2S_DATA_SHIFT);
 }
 
 static int tegra210_i2s_set_fmt(struct snd_soc_dai *dai,
@@ -325,8 +329,6 @@ static int tegra210_i2s_get_control(struct snd_kcontrol *kcontrol,
 		*uctl_val = i2s->loopback;
 	else if (strstr(kcontrol->id.name, "Sample Rate"))
 		*uctl_val = i2s->srate_override;
-	else if (strstr(kcontrol->id.name, "FSYNC Width"))
-		*uctl_val = i2s->fsync_width;
 	else if (strstr(kcontrol->id.name, "Playback Audio Bit Format"))
 		*uctl_val = i2s->audio_fmt_override[I2S_RX_PATH];
 	else if (strstr(kcontrol->id.name, "Capture Audio Bit Format"))
@@ -339,6 +341,8 @@ static int tegra210_i2s_get_control(struct snd_kcontrol *kcontrol,
 		*uctl_val = i2s->audio_ch_override[I2S_TX_PATH];
 	else if (strstr(kcontrol->id.name, "Client Channels"))
 		*uctl_val = i2s->client_ch_override;
+	else if (strstr(kcontrol->id.name, "FSYNC Width"))
+		*uctl_val = i2s->fsync_width;
 	else if (strstr(kcontrol->id.name, "Capture Stereo To Mono"))
 		*uctl_val = i2s->stereo_to_mono[I2S_TX_PATH];
 	else if (strstr(kcontrol->id.name, "Capture Mono To Stereo"))
@@ -561,7 +565,7 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 		break;
 	default:
 		dev_err(dev, "unsupported format!\n");
-		return -ENOTSUPP;
+		return -EOPNOTSUPP;
 	}
 
 	if (i2s->client_fmt_override) {
@@ -582,14 +586,6 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 	if (i2s->srate_override)
 		srate = i2s->srate_override;
 
-	/*
-	 * For playback I2S RX-CIF and for capture TX-CIF is used.
-	 * With reference to AHUB, for I2S, SNDRV_PCM_STREAM_CAPTURE stream is
-	 * actually for playback.
-	 */
-	path = (substream->stream == SNDRV_PCM_STREAM_CAPTURE) ?
-	       I2S_RX_PATH : I2S_TX_PATH;
-
 	if (i2s->audio_ch_override[path])
 		cif_conf.audio_ch = i2s->audio_ch_override[path];
 
@@ -600,7 +596,13 @@ static int tegra210_i2s_hw_params(struct snd_pcm_substream *substream,
 		cif_conf.audio_bits =
 			tegra210_cif_fmt[i2s->audio_fmt_override[path]];
 
-	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
+	/* For playback I2S RX-CIF and for capture TX-CIF is used */
+	if (substream->stream == TEGRA_PLAYBACK_STREAM)
+		path = I2S_RX_PATH;
+	else
+		path = I2S_TX_PATH;
+
+	if (substream->stream == TEGRA_PLAYBACK_STREAM) {
 		unsigned int max_th;
 
 		/* FIFO threshold in terms of frames */
@@ -642,77 +644,77 @@ static const struct snd_soc_dai_ops tegra210_i2s_dai_ops = {
  * to these DAIs depending on the index.
  */
 static struct snd_soc_dai_driver tegra210_i2s_dais[] = {
+        {
+                .name = "I2S-CIF",
+                .playback = {
+                        .stream_name = "CIF-Playback",
+                        .channels_min = 1,
+                        .channels_max = 16,
+                        .rates = SNDRV_PCM_RATE_8000_192000,
+                        .formats = SNDRV_PCM_FMTBIT_S8 |
+                                SNDRV_PCM_FMTBIT_S16_LE |
+				SNDRV_PCM_FMTBIT_S24_LE |
+                                SNDRV_PCM_FMTBIT_S32_LE,
+                },
+                .capture = {
+                        .stream_name = "CIF-Capture",
+                        .channels_min = 1,
+                        .channels_max = 16,
+                        .rates = SNDRV_PCM_RATE_8000_192000,
+                        .formats = SNDRV_PCM_FMTBIT_S8 |
+                                SNDRV_PCM_FMTBIT_S16_LE |
+				SNDRV_PCM_FMTBIT_S24_LE |
+                                SNDRV_PCM_FMTBIT_S32_LE,
+                },
+        },
 	{
-		.name = "CIF",
-		.playback = {
-			.stream_name = "CIF Receive",
-			.channels_min = 1,
-			.channels_max = 16,
-			.rates = SNDRV_PCM_RATE_8000_192000,
-			.formats = SNDRV_PCM_FMTBIT_S8 |
-				SNDRV_PCM_FMTBIT_S16_LE |
+                .name = "I2S-DAP",
+                .playback = {
+                        .stream_name = "DAP-Playback",
+                        .channels_min = 1,
+                        .channels_max = 16,
+                        .rates = SNDRV_PCM_RATE_8000_192000,
+                        .formats = SNDRV_PCM_FMTBIT_S8 |
+                                SNDRV_PCM_FMTBIT_S16_LE |
 				SNDRV_PCM_FMTBIT_S24_LE |
-				SNDRV_PCM_FMTBIT_S32_LE,
-		},
-		.capture = {
-			.stream_name = "CIF Transmit",
-			.channels_min = 1,
-			.channels_max = 16,
-			.rates = SNDRV_PCM_RATE_8000_192000,
-			.formats = SNDRV_PCM_FMTBIT_S8 |
-				SNDRV_PCM_FMTBIT_S16_LE |
+                                SNDRV_PCM_FMTBIT_S32_LE,
+                },
+                .capture = {
+                        .stream_name = "DAP-Capture",
+                        .channels_min = 1,
+                        .channels_max = 16,
+                        .rates = SNDRV_PCM_RATE_8000_192000,
+                        .formats = SNDRV_PCM_FMTBIT_S8 |
+                                SNDRV_PCM_FMTBIT_S16_LE |
 				SNDRV_PCM_FMTBIT_S24_LE |
-				SNDRV_PCM_FMTBIT_S32_LE,
-		},
-	},
+                                SNDRV_PCM_FMTBIT_S32_LE,
+                },
+                .ops = &tegra210_i2s_dai_ops,
+                .symmetric_rates = 1,
+        },
 	{
-		.name = "DAP",
-		.playback = {
-			.stream_name = "DAP Receive",
-			.channels_min = 1,
-			.channels_max = 16,
-			.rates = SNDRV_PCM_RATE_8000_192000,
-			.formats = SNDRV_PCM_FMTBIT_S8 |
-				SNDRV_PCM_FMTBIT_S16_LE |
-				SNDRV_PCM_FMTBIT_S24_LE |
-				SNDRV_PCM_FMTBIT_S32_LE,
-		},
-		.capture = {
-			.stream_name = "DAP Transmit",
-			.channels_min = 1,
-			.channels_max = 16,
-			.rates = SNDRV_PCM_RATE_8000_192000,
-			.formats = SNDRV_PCM_FMTBIT_S8 |
-				SNDRV_PCM_FMTBIT_S16_LE |
-				SNDRV_PCM_FMTBIT_S24_LE |
-				SNDRV_PCM_FMTBIT_S32_LE,
-		},
-		.ops = &tegra210_i2s_dai_ops,
-		.symmetric_rates = 1,
-	},
-	{
-		.name = "DUMMY",
-		.playback = {
-			.stream_name = "Dummy Playback",
-			.channels_min = 1,
-			.channels_max = 16,
-			.rates = SNDRV_PCM_RATE_8000_192000,
-			.formats = SNDRV_PCM_FMTBIT_S8 |
-				SNDRV_PCM_FMTBIT_S16_LE |
-				SNDRV_PCM_FMTBIT_S24_LE |
-				SNDRV_PCM_FMTBIT_S32_LE,
-		},
-		.capture = {
-			.stream_name = "Dummy Capture",
-			.channels_min = 1,
-			.channels_max = 16,
-			.rates = SNDRV_PCM_RATE_8000_192000,
-			.formats = SNDRV_PCM_FMTBIT_S8 |
-				SNDRV_PCM_FMTBIT_S16_LE |
-				SNDRV_PCM_FMTBIT_S24_LE |
-				SNDRV_PCM_FMTBIT_S32_LE,
-		},
-	},
+                .name = "DUMMY",
+                .playback = {
+                        .stream_name = "Dummy-Playback",
+                        .channels_min = 1,
+                        .channels_max = 16,
+                        .rates = SNDRV_PCM_RATE_8000_192000,
+                        .formats = SNDRV_PCM_FMTBIT_S8 |
+                                SNDRV_PCM_FMTBIT_S16_LE |
+                                SNDRV_PCM_FMTBIT_S24_LE |
+                                SNDRV_PCM_FMTBIT_S32_LE,
+                },
+                .capture = {
+                        .stream_name = "Dummy-Capture",
+                        .channels_min = 1,
+                        .channels_max = 16,
+                        .rates = SNDRV_PCM_RATE_8000_192000,
+                        .formats = SNDRV_PCM_FMTBIT_S8 |
+                                SNDRV_PCM_FMTBIT_S16_LE |
+                                SNDRV_PCM_FMTBIT_S24_LE |
+                                SNDRV_PCM_FMTBIT_S32_LE,
+                },
+        },
 };
 
 static const char * const tegra210_i2s_stereo_conv_text[] = {
@@ -720,7 +722,7 @@ static const char * const tegra210_i2s_stereo_conv_text[] = {
 };
 
 static const char * const tegra210_i2s_mono_conv_text[] = {
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 static const struct soc_enum tegra210_i2s_mono_conv_enum =
@@ -765,37 +767,48 @@ static const struct snd_kcontrol_new tegra210_i2s_controls[] = {
 };
 
 static const struct snd_soc_dapm_widget tegra210_i2s_widgets[] = {
-	SND_SOC_DAPM_AIF_IN("CIF RX", NULL, 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_AIF_OUT("CIF TX", NULL, 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_AIF_IN_E("DAP RX", NULL, 0, TEGRA210_I2S_TX_ENABLE,
+	SND_SOC_DAPM_AIF_IN_E("RX", NULL, 0, TEGRA210_I2S_RX_ENABLE,
 			      0, 0, tegra210_i2s_init, SND_SOC_DAPM_PRE_PMU),
-	SND_SOC_DAPM_AIF_OUT_E("DAP TX", NULL, 0, TEGRA210_I2S_RX_ENABLE,
+	SND_SOC_DAPM_AIF_OUT_E("TX", NULL, 0, TEGRA210_I2S_TX_ENABLE,
 			       0, 0, tegra210_i2s_init, SND_SOC_DAPM_PRE_PMU),
-	SND_SOC_DAPM_MIC("Dummy Input", NULL),
-	SND_SOC_DAPM_SPK("Dummy Output", NULL),
+	SND_SOC_DAPM_MIC("MIC", NULL),
+	SND_SOC_DAPM_SPK("SPK", NULL),
+
 };
 
 static const struct snd_soc_dapm_route tegra210_i2s_routes[] = {
-	{ "CIF RX",	  NULL, "CIF Receive" },
-	{ "DAP TX",	  NULL, "CIF RX" },
-	{ "DAP Transmit", NULL, "DAP TX" },
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+	/* Playback route from XBAR */
+	{ "XBAR-Playback",	NULL,	"XBAR-TX" },
+	{ "CIF-Playback",	NULL,	"XBAR-Playback" },
+	/* Capture route to XBAR */
+	{ "XBAR-RX",		NULL,	"XBAR-Capture" },
+	{ "XBAR-Capture",	NULL,	"CIF-Capture" },
 
-	{ "DAP RX",	  NULL, "DAP Receive" },
-	{ "CIF TX",	  NULL, "DAP RX" },
-	{ "CIF Transmit", NULL, "CIF TX" },
-
-	{ "Dummy Capture", NULL, "Dummy Input" },
-	{ "Dummy Output", NULL, "Dummy Playback" },
+	{ "RX",			NULL,	"CIF-Playback" },
+	{ "DAP-Playback",	NULL,	"RX" },
+	{ "SPK",		NULL,	"DAP-Playback" },
+	{ "CIF-Capture",	NULL,	"TX" },
+	{ "TX",			NULL,	"DAP-Capture" },
+	{ "DAP-Capture",	NULL,	"MIC" },
+#else
+	{ "RX",			NULL,	"CIF-Playback" },
+	{ "DAP-Capture",	NULL,	"RX" },
+	{ "CIF-Capture",	NULL,	"TX" },
+	{ "TX",			NULL,	"DAP-Playback" },
+	{ "Dummy-Capture",	NULL,	"MIC" },
+	{ "SPK",		NULL,	"Dummy-Playback" },
+#endif
 };
 
 static const struct snd_soc_component_driver tegra210_i2s_cmpnt = {
-	.dapm_widgets = tegra210_i2s_widgets,
-	.num_dapm_widgets = ARRAY_SIZE(tegra210_i2s_widgets),
-	.dapm_routes = tegra210_i2s_routes,
-	.num_dapm_routes = ARRAY_SIZE(tegra210_i2s_routes),
-	.controls = tegra210_i2s_controls,
-	.num_controls = ARRAY_SIZE(tegra210_i2s_controls),
-	.non_legacy_dai_naming = 1,
+	.dapm_widgets		= tegra210_i2s_widgets,
+	.num_dapm_widgets	= ARRAY_SIZE(tegra210_i2s_widgets),
+	.dapm_routes		= tegra210_i2s_routes,
+	.num_dapm_routes	= ARRAY_SIZE(tegra210_i2s_routes),
+	.controls		= tegra210_i2s_controls,
+	.num_controls		= ARRAY_SIZE(tegra210_i2s_controls),
+	.non_legacy_dai_naming	= 1,
 };
 
 static bool tegra210_i2s_wr_reg(struct device *dev, unsigned int reg)
@@ -864,12 +877,6 @@ static const struct regmap_config tegra210_i2s_regmap_config = {
 	.num_reg_defaults	= ARRAY_SIZE(tegra210_i2s_reg_defaults),
 	.cache_type		= REGCACHE_FLAT,
 };
-
-static const struct of_device_id tegra210_i2s_of_match[] = {
-	{ .compatible = "nvidia,tegra210-i2s" },
-	{},
-};
-MODULE_DEVICE_TABLE(of, tegra210_i2s_of_match);
 
 static int tegra210_i2s_probe(struct platform_device *pdev)
 {
@@ -943,6 +950,12 @@ static const struct dev_pm_ops tegra210_i2s_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
 				pm_runtime_force_resume)
 };
+
+static const struct of_device_id tegra210_i2s_of_match[] = {
+	{ .compatible = "nvidia,tegra210-i2s" },
+	{},
+};
+MODULE_DEVICE_TABLE(of, tegra210_i2s_of_match);
 
 static struct platform_driver tegra210_i2s_driver = {
 	.driver = {

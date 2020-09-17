@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_dmic.c - Tegra210 DMIC driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_dmic.c - Tegra210 DMIC driver
+//
+// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+
 #include <linux/clk.h>
 #include <linux/device.h>
+#include <linux/math64.h>
 #include <linux/module.h>
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
@@ -40,7 +40,7 @@ static const struct reg_default tegra210_dmic_reg_defaults[] = {
 	{ TEGRA210_DMIC_LP_BIQUAD_1_COEF_4, 0x0 },
 };
 
-static int tegra210_dmic_runtime_suspend(struct device *dev)
+static int __maybe_unused tegra210_dmic_runtime_suspend(struct device *dev)
 {
 	struct tegra210_dmic *dmic = dev_get_drvdata(dev);
 
@@ -52,7 +52,7 @@ static int tegra210_dmic_runtime_suspend(struct device *dev)
 	return 0;
 }
 
-static int tegra210_dmic_runtime_resume(struct device *dev)
+static int __maybe_unused tegra210_dmic_runtime_resume(struct device *dev)
 {
 	struct tegra210_dmic *dmic = dev_get_drvdata(dev);
 	int err;
@@ -137,10 +137,10 @@ static int tegra210_dmic_hw_params(struct snd_pcm_substream *substream,
 
 	/*
 	 * Use LP filter gain register to apply boost.
-	 * Boost Gain control has 100x factor.
+	 * Boost Gain Volume control has 100x factor.
 	 */
 	if (dmic->boost_gain)
-		gain_q23 = (gain_q23 * dmic->boost_gain) / 100;
+		gain_q23 = div_u64(gain_q23 * dmic->boost_gain, 100);
 
 	regmap_write(dmic->regmap, TEGRA210_DMIC_LP_FILTER_GAIN,
 		     (unsigned int)gain_q23);
@@ -154,7 +154,7 @@ static int tegra210_dmic_hw_params(struct snd_pcm_substream *substream,
 		break;
 	default:
 		dev_err(dai->dev, "unsupported format!\n");
-		return -ENOTSUPP;
+		return -EOPNOTSUPP;
 	}
 
 	if (dmic->audio_bits_override)
@@ -176,7 +176,7 @@ static int tegra210_dmic_get_control(struct snd_kcontrol *kcontrol,
 	struct snd_soc_component *comp = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_dmic *dmic = snd_soc_component_get_drvdata(comp);
 
-	if (strstr(kcontrol->id.name, "Boost Gain"))
+	if (strstr(kcontrol->id.name, "Boost Gain Volume"))
 		ucontrol->value.integer.value[0] = dmic->boost_gain;
 	else if (strstr(kcontrol->id.name, "Channel Select"))
 		ucontrol->value.integer.value[0] = dmic->ch_select;
@@ -205,7 +205,7 @@ static int tegra210_dmic_put_control(struct snd_kcontrol *kcontrol,
 	struct tegra210_dmic *dmic = snd_soc_component_get_drvdata(comp);
 	int value = ucontrol->value.integer.value[0];
 
-	if (strstr(kcontrol->id.name, "Boost Gain"))
+	if (strstr(kcontrol->id.name, "Boost Gain Volume"))
 		dmic->boost_gain = value;
 	else if (strstr(kcontrol->id.name, "Channel Select"))
 		dmic->ch_select = ucontrol->value.integer.value[0];
@@ -241,9 +241,25 @@ static const struct snd_soc_dai_ops tegra210_dmic_dai_ops = {
  */
 static struct snd_soc_dai_driver tegra210_dmic_dais[] = {
 	{
-		.name = "CIF",
+		.name = "DMIC-CIF",
 		.capture = {
-			.stream_name = "DMIC Transmit",
+			.stream_name = "CIF-Capture",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_8000_48000,
+			.formats = SNDRV_PCM_FMTBIT_S16_LE |
+				   SNDRV_PCM_FMTBIT_S32_LE,
+		},
+	},
+	{
+		.name = "DMIC-DAP",
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+		.capture = {
+			.stream_name = "DAP-Capture",
+#else
+		.playback = {
+			.stream_name = "DAP-Playback",
+#endif
 			.channels_min = 1,
 			.channels_max = 2,
 			.rates = SNDRV_PCM_RATE_8000_48000,
@@ -254,9 +270,9 @@ static struct snd_soc_dai_driver tegra210_dmic_dais[] = {
 		.symmetric_rates = 1,
 	},
 	{
-		.name = "DAP",
-		.playback = {
-			.stream_name = "DMIC Receive",
+		.name = "DUMMY_SOURCE",
+		.capture = {
+			.stream_name = "Dummy-Capture",
 			.channels_min = 1,
 			.channels_max = 2,
 			.rates = SNDRV_PCM_RATE_8000_48000,
@@ -264,28 +280,25 @@ static struct snd_soc_dai_driver tegra210_dmic_dais[] = {
 				   SNDRV_PCM_FMTBIT_S32_LE,
 		},
 	},
-	{
-		.name = "DUMMY_SOURCE",
-		.capture = {
-			.stream_name = "Dummy Capture",
-			.channels_min = 1,
-			.channels_max = 2,
-			.rates = SNDRV_PCM_RATE_8000_48000,
-			.formats = SNDRV_PCM_FMTBIT_S16_LE |
-				   SNDRV_PCM_FMTBIT_S32_LE,
-		},
-	}
 };
 
 static const struct snd_soc_dapm_widget tegra210_dmic_widgets[] = {
-	SND_SOC_DAPM_AIF_IN("DMIC TX", NULL, 0, TEGRA210_DMIC_ENABLE, 0, 0),
-	SND_SOC_DAPM_MIC("Dummy Input", NULL),
+	SND_SOC_DAPM_AIF_OUT("TX", NULL, 0, TEGRA210_DMIC_ENABLE, 0, 0),
+	SND_SOC_DAPM_MIC("MIC", NULL),
 };
 
 static const struct snd_soc_dapm_route tegra210_dmic_routes[] = {
-	{ "DMIC TX",	   NULL, "DMIC Receive" },
-	{ "DMIC Transmit", NULL, "DMIC TX" },
-	{ "Dummy Capture", NULL, "Dummy Input" },
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+	{ "XBAR-RX",		NULL,	"XBAR-Capture" },
+	{ "XBAR-Capture",	NULL,	"CIF-Capture" },
+	{ "CIF-Capture",	NULL,	"TX" },
+	{ "TX",			NULL,	"DAP-Capture" },
+	{ "DAP-Capture",	NULL,	"MIC" },
+#else
+	{ "CIF-Capture",	NULL, "TX" },
+	{ "TX",			NULL, "DAP-Playback" },
+	{ "Dummy-Capture",	NULL, "MIC" },
+#endif
 };
 
 static const char * const tegra210_dmic_ch_select[] = {
@@ -297,7 +310,7 @@ static const struct soc_enum tegra210_dmic_ch_enum =
 			tegra210_dmic_ch_select);
 
 static const char * const tegra210_dmic_mono_conv_text[] = {
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 static const char * const tegra210_dmic_stereo_conv_text[] = {
@@ -339,7 +352,7 @@ static const struct soc_enum tegra210_dmic_lrsel_enum =
 			tegra210_dmic_lrsel_text);
 
 static const struct snd_kcontrol_new tegra210_dmic_controls[] = {
-	SOC_SINGLE_EXT("Boost Gain", 0, 0, MAX_BOOST_GAIN, 0,
+	SOC_SINGLE_EXT("Boost Gain Volume", 0, 0, MAX_BOOST_GAIN, 0,
 		       tegra210_dmic_get_control, tegra210_dmic_put_control),
 	SOC_ENUM_EXT("Channel Select", tegra210_dmic_ch_enum,
 		     tegra210_dmic_get_control, tegra210_dmic_put_control),
@@ -428,12 +441,6 @@ static const struct regmap_config tegra210_dmic_regmap_config = {
 	.cache_type = REGCACHE_FLAT,
 };
 
-static const struct of_device_id tegra210_dmic_of_match[] = {
-	{ .compatible = "nvidia,tegra210-dmic" },
-	{},
-};
-MODULE_DEVICE_TABLE(of, tegra210_dmic_of_match);
-
 static int tegra210_dmic_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -498,6 +505,12 @@ static const struct dev_pm_ops tegra210_dmic_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
 				pm_runtime_force_resume)
 };
+
+static const struct of_device_id tegra210_dmic_of_match[] = {
+	{ .compatible = "nvidia,tegra210-dmic" },
+	{},
+};
+MODULE_DEVICE_TABLE(of, tegra210_dmic_of_match);
 
 static struct platform_driver tegra210_dmic_driver = {
 	.driver = {

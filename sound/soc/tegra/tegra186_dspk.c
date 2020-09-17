@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra186_dspk.c - Tegra186 DSPK driver
- *
- * Copyright (c) 2015-2020 NVIDIA CORPORATION. All rights reserved.
- *
- */
+//
+// tegra186_dspk.c - Tegra186 DSPK driver
+//
+// Copyright (c) 2020 NVIDIA CORPORATION. All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -44,10 +42,10 @@ static int tegra186_dspk_get_control(struct snd_kcontrol *kcontrol,
 		ucontrol->value.integer.value[0] = dspk->srate_override;
 	else if (strstr(kcontrol->id.name, "Audio Channels"))
 		ucontrol->value.integer.value[0] = dspk->audio_ch_override;
-	else if (strstr(kcontrol->id.name, "Channel Select"))
-		ucontrol->value.integer.value[0] = dspk->ch_sel;
 	else if (strstr(kcontrol->id.name, "Audio Bit Format"))
 		ucontrol->value.integer.value[0] = dspk->audio_fmt_override;
+	else if (strstr(kcontrol->id.name, "Channel Select"))
+		ucontrol->value.integer.value[0] = dspk->ch_sel;
 	else if (strstr(kcontrol->id.name, "Mono To Stereo"))
 		ucontrol->value.integer.value[0] = dspk->mono_to_stereo;
 	else if (strstr(kcontrol->id.name, "Stereo To Mono"))
@@ -73,10 +71,10 @@ static int tegra186_dspk_put_control(struct snd_kcontrol *kcontrol,
 		dspk->srate_override = val;
 	else if (strstr(kcontrol->id.name, "Audio Channels"))
 		dspk->audio_ch_override = val;
-	else if (strstr(kcontrol->id.name, "Channel Select"))
-		dspk->ch_sel = val;
 	else if (strstr(kcontrol->id.name, "Audio Bit Format"))
 		dspk->audio_fmt_override = val;
+	else if (strstr(kcontrol->id.name, "Channel Select"))
+		dspk->ch_sel = val;
 	else if (strstr(kcontrol->id.name, "Mono To Stereo"))
 		dspk->mono_to_stereo = val;
 	else if (strstr(kcontrol->id.name, "Stereo To Mono"))
@@ -85,7 +83,7 @@ static int tegra186_dspk_put_control(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int tegra186_dspk_runtime_suspend(struct device *dev)
+static int __maybe_unused tegra186_dspk_runtime_suspend(struct device *dev)
 {
 	struct tegra186_dspk *dspk = dev_get_drvdata(dev);
 
@@ -97,7 +95,7 @@ static int tegra186_dspk_runtime_suspend(struct device *dev)
 	return 0;
 }
 
-static int tegra186_dspk_runtime_resume(struct device *dev)
+static int __maybe_unused tegra186_dspk_runtime_resume(struct device *dev)
 {
 	struct tegra186_dspk *dspk = dev_get_drvdata(dev);
 	int err;
@@ -239,9 +237,9 @@ static const struct snd_soc_dai_ops tegra186_dspk_dai_ops = {
  */
 static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	{
-	    .name = "CIF",
+	    .name = "DSPK-CIF",
 	    .playback = {
-		.stream_name = "CIF Receive",
+		.stream_name = "CIF-Playback",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_48000,
@@ -250,9 +248,14 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	    },
 	},
 	{
-	    .name = "DAP",
+	    .name = "DSPK-DAP",
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+	    .playback = {
+		.stream_name = "DAP-Playback",
+#else
 	    .capture = {
-		.stream_name = "DAP Transmit",
+		.stream_name = "DAP-Capture",
+#endif
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_48000,
@@ -269,7 +272,7 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	{
 	    .name = "CIF2",
 	    .playback = {
-		.stream_name = "CIF2 Receive",
+		.stream_name = "CIF2-Playback",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_48000,
@@ -279,8 +282,13 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	},
 	{
 	    .name = "DAP2",
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+	    .playback = {
+		.stream_name = "DAP2-Playback",
+#else
 	    .capture = {
-		.stream_name = "DAP2 Transmit",
+		.stream_name = "DAP2-Capture",
+#endif
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_48000,
@@ -292,7 +300,7 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 	{
 	    .name = "DUMMY_SINK",
 	    .playback = {
-		.stream_name = "Dummy Playback",
+		.stream_name = "Dummy-Playback",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_48000,
@@ -303,17 +311,25 @@ static struct snd_soc_dai_driver tegra186_dspk_dais[] = {
 };
 
 static const struct snd_soc_dapm_widget tegra186_dspk_widgets[] = {
-	SND_SOC_DAPM_AIF_OUT("DAP TX", NULL, 0, TEGRA186_DSPK_ENABLE, 0, 0),
+	SND_SOC_DAPM_AIF_IN("RX", NULL, 0, TEGRA186_DSPK_ENABLE, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("DAP2 TX", NULL, 0, 0, 0, 0),
-	SND_SOC_DAPM_SPK("Dummy Output", NULL),
+	SND_SOC_DAPM_SPK("SPK", NULL),
 };
 
 static const struct snd_soc_dapm_route tegra186_dspk_routes[] = {
-	{ "DAP TX",	  NULL, "CIF Receive" },
-	{ "DAP Transmit", NULL, "DAP TX" },
-	{ "DAP2 TX", NULL, "CIF2 Receive" },
-	{ "DAP2 Transmit", NULL, "DAP2 TX" },
-	{ "Dummy Output",  NULL, "Dummy Playback" },
+#if IS_ENABLED(CONFIG_TEGRA_DPCM)
+	{ "XBAR-Playback",	NULL,	"XBAR-TX" },
+	{ "CIF-Playback",	NULL,	"XBAR-Playback" },
+	{ "RX",			NULL,	"CIF-Playback" },
+	{ "DAP-Playback",	NULL,	"RX" },
+	{ "SPK",		NULL,	"DAP-Playback" },
+#else
+	{ "RX",			NULL, "CIF-Playback" },
+	{ "DAP-Capture",	NULL, "RX" },
+	{ "DAP2 TX",		NULL, "CIF2-Playback" },
+	{ "DAP2-Capture",	NULL, "DAP2 TX" },
+	{ "SPK",		NULL, "Dummy-Playback" },
+#endif
 };
 
 static const char * const tegra186_dspk_format_text[] = {
@@ -347,7 +363,7 @@ static const char * const tegra186_dspk_lrsel_text[] = {
 };
 
 static const char * const tegra186_dspk_mono_conv_text[] = {
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 static const struct soc_enum tegra186_dspk_mono_conv_enum =
@@ -380,9 +396,9 @@ static const struct snd_kcontrol_new tegrat186_dspk_controls[] = {
 		       tegra186_dspk_get_control, tegra186_dspk_put_control),
 	SOC_SINGLE_EXT("Audio Channels", SND_SOC_NOPM, 0, 2, 0,
 		       tegra186_dspk_get_control, tegra186_dspk_put_control),
-	SOC_ENUM_EXT("Channel Select", tegra186_dspk_ch_sel_enum,
-		     tegra186_dspk_get_control, tegra186_dspk_put_control),
 	SOC_ENUM_EXT("Audio Bit Format", tegra186_dspk_format_enum,
+		     tegra186_dspk_get_control, tegra186_dspk_put_control),
+	SOC_ENUM_EXT("Channel Select", tegra186_dspk_ch_sel_enum,
 		     tegra186_dspk_get_control, tegra186_dspk_put_control),
 	SOC_ENUM_EXT("Mono To Stereo", tegra186_dspk_mono_conv_enum,
 		     tegra186_dspk_get_control, tegra186_dspk_put_control),
@@ -473,7 +489,7 @@ static int tegra186_dspk_platform_probe(struct platform_device *pdev)
 	dspk->osr_val = DSPK_OSR_64;
 	dspk->lrsel = DSPK_LRSEL_LEFT;
 	dspk->ch_sel = DSPK_CH_SELECT_STEREO;
-	dspk->mono_to_stereo = 0; /* "ZERO" */
+	dspk->mono_to_stereo = 0; /* "Zero" */
 
 	dev_set_drvdata(dev, dspk);
 
