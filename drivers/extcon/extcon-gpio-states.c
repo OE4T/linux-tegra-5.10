@@ -3,7 +3,7 @@
  *
  * Multiple GPIO state based based on extcon class driver.
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION. All rights reserved.
  * Author: Laxman Dewangan <ldewangan@nvidia.com>
  *
  * Based on extcon-gpio driver by
@@ -75,7 +75,7 @@ struct gpio_extcon_info {
 	spinlock_t lock;
 	int *gpio_curr_state;
 	struct gpio_extcon_platform_data *pdata;
-	struct wakeup_source wake_lock;
+	struct wakeup_source *ws;
 	bool wakeup_source;
 	int last_cstate;
 	unsigned int wakeup_cables;
@@ -163,8 +163,8 @@ static void gpio_extcon_notifier_timer(struct timer_list *t)
 	struct gpio_extcon_info *gpex = from_timer(gpex, t, timer);
 
 	/*take wakelock to complete cable detection */
-	if (!(gpex->wake_lock.active))
-		__pm_wakeup_event(&gpex->wake_lock,
+	if ((gpex->ws) && (!(gpex->ws->active)))
+		__pm_wakeup_event(gpex->ws,
 				  gpex->pdata->cable_detect_delay);
 
 	schedule_delayed_work(&gpex->work, gpex->gpio_scan_work_jiffies);
@@ -358,6 +358,12 @@ static int gpio_extcon_probe(struct platform_device *pdev)
 	if (ret < 0)
 		return ret;
 
+	gpex->ws = wakeup_source_register(NULL, "extcon-suspend-lock");
+	if (!gpex->ws) {
+		dev_err(&pdev->dev, "could not allocate wakeup source\n");
+		return -ENOMEM;
+	}
+
 	INIT_DELAYED_WORK(&gpex->work, gpio_extcon_scan_work);
 	timer_setup(&gpex->timer, gpio_extcon_notifier_timer, 0);
 
@@ -408,6 +414,8 @@ static int gpio_extcon_remove(struct platform_device *pdev)
 
 	del_timer_sync(&gpex->timer);
 	cancel_delayed_work_sync(&gpex->work);
+	if (gpex->ws)
+		wakeup_source_unregister(gpex->ws);
 	return 0;
 }
 
