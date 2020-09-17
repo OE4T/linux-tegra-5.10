@@ -444,9 +444,7 @@ int test_gm20b_pbdma_get_userd(struct unit_module *m,
 			pbdma_userd_hi_addr_f(addr_hi), goto done);
 
 	mem.aperture = APERTURE_INVALID;
-	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, true);
 	err = EXPECT_BUG(mask = gm20b_pbdma_get_userd_aperture_mask(g, &mem));
-	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, false);
 	unit_assert(err != 0, goto done);
 	unit_assert(mask == 0xaaaa, goto done);
 

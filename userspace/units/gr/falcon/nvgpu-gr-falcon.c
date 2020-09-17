@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -177,12 +177,10 @@ static int gr_falcon_bind_instblk(struct unit_module *m, struct gk20a *g)
 	/* Generate expected bug with hi32 instr value */
 	mem = &ucode_info->inst_blk_desc;
 	mem->cpu_va = (void *)0xFFFFFFFFFFFFFFFF;
-	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, true);
 	if (!EXPECT_BUG(nvgpu_gr_falcon_init_ctxsw(g, unit_gr_falcon))) {
 		unit_return_fail(m,
 			"falcon_init_ctxsw test1 failed\n");
 	}
-	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, false);
 	mem->cpu_va = NULL;
 
 	err = nvgpu_alloc_inst_block(g, &ucode_info->inst_blk_desc);

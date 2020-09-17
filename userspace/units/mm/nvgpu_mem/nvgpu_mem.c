@@ -256,8 +256,6 @@ int test_nvgpu_aperture_mask(struct unit_module *m,
 	}
 #endif
 
-	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, true);
-
 	/* Case: APERTURE_INVALID */
 	test_mem->aperture = APERTURE_INVALID;
 	if (!EXPECT_BUG(nvgpu_aperture_mask(g, test_mem, sysmem_mask,
@@ -273,8 +271,6 @@ int test_nvgpu_aperture_mask(struct unit_module *m,
 		unit_return_fail(m, "MM_HONORS disabled: Aperture_mask"
 			"did not BUG() for junk aperture as expected\n");
 	}
-
-	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE, false);
 
 	/* Reset attributes */
 	test_mem->aperture = APERTURE_SYSMEM;
