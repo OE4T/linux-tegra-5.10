@@ -87,7 +87,8 @@ struct nvgpu_gr_zbc *nvgpu_gr_get_zbc_ptr(struct gk20a *g)
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_get_global_ctx_buffer_ptr(
 							struct gk20a *g)
 {
-	return g->gr->global_ctx_buffer;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	return gr->global_ctx_buffer;
 }
 #endif
 

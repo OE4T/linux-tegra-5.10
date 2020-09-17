@@ -194,7 +194,7 @@ int gv11b_gr_init_preemption_state(struct gk20a *g)
 {
 	u32 debug_2;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	debug_2 = nvgpu_readl(g, gr_debug_2_r());
 	debug_2 = set_field(debug_2,

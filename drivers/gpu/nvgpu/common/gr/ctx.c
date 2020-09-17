@@ -144,7 +144,7 @@ int nvgpu_gr_ctx_alloc_patch_ctx(struct gk20a *g,
 	struct patch_desc *patch_ctx = &gr_ctx->patch_ctx;
 	int err = 0;
 
-	nvgpu_log(g, gpu_dbg_info, "patch buffer size in entries: %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "patch_ctx size = %u",
 		gr_ctx_desc->size[NVGPU_GR_CTX_PATCH_CTX]);
 
 	err = nvgpu_dma_alloc_map_sys(vm, gr_ctx_desc->size[NVGPU_GR_CTX_PATCH_CTX],
@@ -353,7 +353,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 {
 	int err;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	/* Circular Buffer */
 	err = nvgpu_gr_ctx_map_ctx_circular_buffer(g, gr_ctx,
@@ -420,6 +420,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 
 	gr_ctx->global_ctx_buffer_mapped = true;
 
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
 
 fail:
@@ -473,7 +474,7 @@ void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	u64 virt_addr = 0;
 #endif
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	mem = &gr_ctx->mem;
 
@@ -506,7 +507,7 @@ void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	}
 #endif
 
-	nvgpu_log(g, gpu_dbg_info, "write patch count = %d",
+	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "write patch count = %d",
 			gr_ctx->patch_ctx.data_count);
 	g->ops.gr.ctxsw_prog.set_patch_count(g, mem,
 		gr_ctx->patch_ctx.data_count);
@@ -522,6 +523,8 @@ void nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_pm_mode(g, mem, gr_ctx->pm_ctx.pm_mode);
 	g->ops.gr.ctxsw_prog.set_pm_ptr(g, mem, virt_addr);
 #endif
+
+	nvgpu_log(g, gpu_dbg_gr, "done");
 }
 
 /*
@@ -723,6 +726,8 @@ u64 nvgpu_gr_ctx_get_zcull_ctx_va(struct nvgpu_gr_ctx *gr_ctx)
 int nvgpu_gr_ctx_init_zcull(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 {
 	int err;
+
+	nvgpu_log(g, gpu_dbg_gr, " ");
 
 	err = g->ops.mm.cache.l2_flush(g, true);
 	if (err != 0) {

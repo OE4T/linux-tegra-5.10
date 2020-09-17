@@ -52,7 +52,7 @@ void nvgpu_gr_obj_ctx_commit_inst(struct gk20a *g, struct nvgpu_mem *inst_block,
 {
 	struct nvgpu_mem *ctxheader;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
 		nvgpu_gr_subctx_load_ctx_header(g, subctx, gr_ctx, gpu_va);
@@ -63,6 +63,8 @@ void nvgpu_gr_obj_ctx_commit_inst(struct gk20a *g, struct nvgpu_mem *inst_block,
 	} else {
 		nvgpu_gr_obj_ctx_commit_inst_gpu_va(g, inst_block, gpu_va);
 	}
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 }
 
 #if defined(CONFIG_NVGPU_GRAPHICS) || defined(CONFIG_NVGPU_CILP)
@@ -75,7 +77,7 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	u32 graphics_preempt_mode = 0U;
 	u32 compute_preempt_mode = 0U;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP)) {
@@ -107,7 +109,7 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 		}
 	}
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 
 	return 0;
 }
@@ -255,18 +257,18 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_mem *mem;
 #endif
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	nvgpu_gr_ctx_set_preemption_modes(g, gr_ctx);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP)) {
-		return;
+		goto done;
 	}
 
 	if (!nvgpu_mem_is_valid(
 			nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx))) {
-		return;
+		goto done;
 	}
 
 	if (subctx != NULL) {
@@ -311,8 +313,9 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 
 	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 
+done:
 #endif
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 }
 
 void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
@@ -322,7 +325,7 @@ void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	u64 addr;
 	u32 size;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	if (patch) {
 		nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
@@ -382,6 +385,8 @@ void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 	if (patch) {
 		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, false);
 	}
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 }
 
 static int nvgpu_gr_obj_ctx_alloc_sw_bundle(struct gk20a *g)
@@ -445,6 +450,8 @@ static int nvgpu_gr_obj_ctx_init_hw_state(struct gk20a *g,
 	struct netlist_aiv_list *sw_ctx_load =
 				nvgpu_netlist_get_sw_ctx_load_aiv_list(g);
 
+	nvgpu_log(g, gpu_dbg_gr, " ");
+
 	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);
 	if (err != 0) {
 		goto clean_up;
@@ -491,6 +498,9 @@ static int nvgpu_gr_obj_ctx_init_hw_state(struct gk20a *g,
 	err = g->ops.gr.init.wait_idle(g);
 
 clean_up:
+	if (err == 0) {
+		nvgpu_log(g, gpu_dbg_gr, "done");
+	}
 	return err;
 }
 
@@ -505,6 +515,8 @@ static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
 	struct netlist_av_list *sw_bundle_init =
 			nvgpu_netlist_get_sw_bundle_init_av_list(g);
 #endif
+
+	nvgpu_log(g, gpu_dbg_gr, " ");
 
 	/* disable fe_go_idle */
 	g->ops.gr.init.fe_go_idle_timeout(g, false);
@@ -560,6 +572,7 @@ static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
 		goto clean_up;
 	}
 
+	nvgpu_log(g, gpu_dbg_gr, "done");
 	return 0;
 
 restore_fe_go_idle:
@@ -587,6 +600,8 @@ static int nvgpu_gr_obj_ctx_save_golden_ctx(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image_temp =
 									NULL;
 #endif
+
+	nvgpu_log(g, gpu_dbg_gr, " ");
 
 	gr_mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
 
@@ -666,6 +681,10 @@ clean_up:
 						local_golden_image_temp);
 	}
 #endif
+
+	if (err == 0) {
+		nvgpu_log(g, gpu_dbg_gr, "golden image saved with size = %llu", size);
+	}
 	return err;
 }
 
@@ -682,8 +701,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 {
 	int err = 0;
 
-	nvgpu_log_fn(g, " ");
-
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	/*
 	 * golden ctx is global to all channels. Although only the first
@@ -693,6 +711,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	nvgpu_mutex_acquire(&golden_image->ctx_mutex);
 
 	if (golden_image->ready) {
+		nvgpu_log(g, gpu_dbg_gr, "golden image already saved");
 		goto clean_up;
 	}
 
@@ -708,14 +727,16 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	}
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	err = nvgpu_gr_ctx_init_zcull(g, gr_ctx);
-	if (err != 0) {
-		goto clean_up;
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		err = nvgpu_gr_ctx_init_zcull(g, gr_ctx);
+		if (err != 0) {
+			goto clean_up;
+		}
 	}
 #endif
 
 	err = nvgpu_gr_obj_ctx_save_golden_ctx(g, golden_image,
-							gr_ctx, inst_block);
+			gr_ctx, inst_block);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -730,7 +751,7 @@ clean_up:
 	if (err != 0) {
 		nvgpu_err(g, "fail");
 	} else {
-		nvgpu_log_fn(g, "done");
+		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	}
 
 	nvgpu_mutex_release(&golden_image->ctx_mutex);
@@ -751,6 +772,7 @@ static int nvgpu_gr_obj_ctx_gr_ctx_alloc(struct gk20a *g,
 	nvgpu_gr_ctx_set_size(gr_ctx_desc, NVGPU_GR_CTX_CTX,
 		nvgpu_safe_cast_u64_to_u32(size));
 
+	nvgpu_log(g, gpu_dbg_gr, "gr_ctx size = %llu", size);
 	err = nvgpu_gr_ctx_alloc(g, gr_ctx, gr_ctx_desc, vm);
 	if (err != 0) {
 		return err;
@@ -773,7 +795,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 {
 	int err = 0;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 	err = nvgpu_gr_obj_ctx_gr_ctx_alloc(g, golden_image, gr_ctx_desc,
 		gr_ctx, vm);
@@ -830,6 +852,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		nvgpu_err(g, "fail to init golden ctx image");
 		goto out;
 	}
+
 #ifdef CONFIG_NVGPU_POWER_PG
 	/* Re-enable ELPG now that golden image has been initialized.
 	 * The PMU PG init code may already have tried to enable elpg, but
@@ -850,7 +873,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, config, gr_ctx,
 		subctx);
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
 out:
 	/*

@@ -29,6 +29,7 @@
 #include <nvgpu/gr/zcull.h>
 #endif
 #include <nvgpu/gr/setup.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/preempt.h>
 
@@ -144,8 +145,11 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct nvgpu_tsg *tsg = NULL;
 	int err = 0;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr,
+		"GR%u: allocate object context for channel %u",
+		gr->instance_id, c->chid);
 
 	err = nvgpu_gr_setup_validate_channel_and_class(g, c, class_num);
 	if (err != 0) {
@@ -172,7 +176,6 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 
 	gr_ctx = tsg->gr_ctx;
 
-
 	err = nvgpu_gr_setup_alloc_subctx(g, c);
 	if (err != 0) {
 		nvgpu_err(g, "failed to allocate gr subctx buffer");
@@ -183,9 +186,9 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
 
-		err = nvgpu_gr_obj_ctx_alloc(g, g->gr->golden_image,
-				g->gr->global_ctx_buffer, g->gr->gr_ctx_desc,
-				g->gr->config, gr_ctx, c->subctx,
+		err = nvgpu_gr_obj_ctx_alloc(g, gr->golden_image,
+				gr->global_ctx_buffer, gr->gr_ctx_desc,
+				gr->config, gr_ctx, c->subctx,
 				tsg->vm, &c->inst_block, class_num, flags,
 				c->cde, c->vpr);
 		if (err != 0) {
@@ -214,7 +217,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 	}
 #endif
 
-	nvgpu_log_fn(g, "done");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
 out:
 	if (c->subctx != NULL) {

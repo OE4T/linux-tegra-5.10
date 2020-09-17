@@ -426,6 +426,8 @@ void nvgpu_gr_global_ctx_load_local_golden_image(struct gk20a *g,
 
 	nvgpu_mem_wr_n(g, target_mem, 0, local_golden_image->context,
 		nvgpu_safe_cast_u64_to_u32(local_golden_image->size));
+
+	nvgpu_log(g, gpu_dbg_gr, "loaded saved golden image into gr_ctx");
 }
 
 void nvgpu_gr_global_ctx_deinit_local_golden_image(struct gk20a *g,
