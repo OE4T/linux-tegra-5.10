@@ -3,14 +3,6 @@ GCOV_PROFILE := y
 
 subdir-ccflags-y := -Werror
 
-USE_NV2 := n
-
-ifeq ($(CONFIG_TEGRA_NVMAP_V2),y)
-
-obj-y += nv2/
-
-else
-
 ifeq ($(CONFIG_ARM64),y)
 ccflags-y += -Iarch/arm/mach-tegra/include
 endif
@@ -53,4 +45,3 @@ obj-y += nvmap_cache_t19x.o
 endif
 
 KASAN_SANITIZE_nvmap_kasan_wrapper.o := n
-endif
