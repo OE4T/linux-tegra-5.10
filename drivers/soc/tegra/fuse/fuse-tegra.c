@@ -356,9 +356,27 @@ static ssize_t minor_show(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR_RO(minor);
 
+static ssize_t production_show(struct device *dev, struct device_attribute *attr,
+			     char *buf)
+{
+	u32 reg = 0;
+	int ret;
+
+	if (tegra_get_platform() == TEGRA_PLATFORM_SILICON) {
+		ret = tegra_fuse_readl(TEGRA_FUSE_PRODUCTION_MODE, &reg);
+		if (ret)
+			reg = 0;
+	}
+
+	return sprintf(buf, "%d\n", reg);
+}
+
+static DEVICE_ATTR_RO(production);
+
 static struct attribute *tegra_soc_attr[] = {
 	&dev_attr_major.attr,
 	&dev_attr_minor.attr,
+	&dev_attr_production.attr,
 	NULL,
 };
 
@@ -384,6 +402,7 @@ static DEVICE_ATTR_RO(platform);
 static struct attribute *tegra194_soc_attr[] = {
 	&dev_attr_major.attr,
 	&dev_attr_minor.attr,
+	&dev_attr_production.attr,
 	&dev_attr_platform.attr,
 	NULL,
 };

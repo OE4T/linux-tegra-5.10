@@ -18,6 +18,9 @@
 #define TEGRA194	0x19
 #define TEGRA234	0x23
 
+/* production mode */
+#define TEGRA_FUSE_PRODUCTION_MODE      0x0
+
 /* control read/write calls for below offsets */
 #define FUSE_FUSEBYPASS_0		0x24
 #define FUSE_WRITE_ACCESS_SW_0		0x30
