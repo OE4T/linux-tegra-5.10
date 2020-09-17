@@ -6,7 +6,7 @@
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
-include ../../../../../../../../../drive-t186ref-qnx/make/nvdefs.mk
+include $(PDK_TOP)/drive-t186ref-qnx/make/nvdefs.mk
 
 TARGETS = libnvethernetcl.so
 
