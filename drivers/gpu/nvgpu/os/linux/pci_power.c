@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -382,7 +382,10 @@ static const struct file_operations debug_power_stats_fops = {
 };
 
 #if (!IS_ENABLED(CONFIG_PCIE_TEGRA_DW) && !IS_ENABLED(CONFIG_PCIE_TEGRA)) || \
-	!IS_ENABLED(CONFIG_ARCH_TEGRA_19x_SOC) ||	\
+	((LINUX_VERSION_CODE <= KERNEL_VERSION(4, 14, 0)) &&	\
+	 !IS_ENABLED(CONFIG_ARCH_TEGRA_19x_SOC)) ||	\
+	((LINUX_VERSION_CODE > KERNEL_VERSION(4, 14, 0)) &&	\
+	 !IS_ENABLED(CONFIG_ARCH_TEGRA_194_SOC)) ||	\
 	LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
 void *tegra_pcie_detach_controller(struct pci_dev *pdev)
 {

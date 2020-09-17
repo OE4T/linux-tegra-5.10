@@ -82,13 +82,11 @@ int nvgpu_init_hal(struct gk20a *g)
 		break;
 
 #if defined(CONFIG_NVGPU_DGPU) && defined(CONFIG_NVGPU_HAL_NON_FUSA)
-#if defined(CONFIG_NVGPU_SUPPORT_TURING)
 	case NVGPU_GPUID_TU104:
 		if (tu104_init_hal(g) != 0) {
 			return -ENODEV;
 		}
 		break;
-#endif
 #if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_DGPU)
 	case NVGPU_NEXT_DGPU_GPUID:
 		if (NVGPU_NEXT_DGPU_INIT_HAL(g) != 0) {

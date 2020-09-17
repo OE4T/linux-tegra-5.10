@@ -54,7 +54,6 @@ NVGPU_FORCE_DEBUG_PROFILE	:= 1
 endif
 NV_COMPONENT_CFLAGS		+=    \
 	-D__NVGPU_POSIX__             \
-	-DCONFIG_NVGPU_SUPPORT_TURING \
 	-D__NVGPU_UNIT_TEST__
 
 -include $(NVGPU_SOURCE)/Makefile.shared.configs

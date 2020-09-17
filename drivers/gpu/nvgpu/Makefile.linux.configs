@@ -91,11 +91,6 @@ ifeq ($(CONFIG_NV_TEGRA_MC),y)
 CONFIG_NVGPU_USE_TEGRA_ALLOC_FD := y
 endif
 
-# Support for NVIDIA Turing family of GPU
-ifeq ($(CONFIG_ARCH_TEGRA_19x_SOC),y)
-CONFIG_NVGPU_SUPPORT_TURING := y
-endif
-
 # Support Nvlink
 ifeq ($(CONFIG_TEGRA_NVLINK),y)
 CONFIG_NVGPU_NVLINK := y
@@ -203,9 +198,6 @@ ccflags-y += -DCONFIG_GK20A_TRACE_PRINTK
 endif
 ifeq ($(CONFIG_NVGPU_USE_TEGRA_ALLOC_FD),y)
 ccflags-y += -DCONFIG_NVGPU_USE_TEGRA_ALLOC_FD
-endif
-ifeq ($(CONFIG_NVGPU_SUPPORT_TURING),y)
-ccflags-y += -DCONFIG_NVGPU_SUPPORT_TURING
 endif
 ifeq ($(CONFIG_NVGPU_NVLINK),y)
 ccflags-y += -DCONFIG_NVGPU_NVLINK
