@@ -130,8 +130,8 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 	struct iommu_ctx *ctx;
 
 	if (!nvhost_get_chip_ops()) {
-		dev_err(&pdev->dev, "nvhost was not initialized. aborting.");
-		return -ENODEV;
+		dev_warn(&pdev->dev, "nvhost was not initialized, deferring probe.");
+		return -EPROBE_DEFER;
 	}
 
 	if (!iommu_get_domain_for_dev(&pdev->dev)) {
