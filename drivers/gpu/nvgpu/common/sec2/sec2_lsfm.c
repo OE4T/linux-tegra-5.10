@@ -47,6 +47,16 @@ static void sec2_handle_lsfm_boot_acr_msg(struct gk20a *g,
 	*command_ack = true;
 }
 
+static u32 get_gpc_falcon_idx_mask(struct gk20a *g)
+{
+	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	u32 gpc_fs_mask = 0;
+
+	gpc_fs_mask = nvgpu_gr_config_get_gpc_mask(gr_config);
+
+	return nvgpu_safe_sub_u32((1U << hweight32(gpc_fs_mask)), 1U);
+}
+
 static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 	u32 falcon_id, u32 flags)
 {
@@ -76,7 +86,7 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 
 	if (falcon_id == FALCON_ID_GPCCS) {
 		cmd.cmd.acr.bootstrap_falcon.falcon_index_mask =
-			nvgpu_gr_config_get_gpc_mask(nvgpu_gr_get_config_ptr(g));
+				get_gpc_falcon_idx_mask(g);
 	}
 
 	nvgpu_sec2_dbg(g, "NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON : %x",
