@@ -1325,7 +1325,6 @@ int __init nvmap_probe(struct platform_device *pdev)
 				"no-cache-maint-by-set-ways"))
 		nvmap_cache_maint_by_set_ways = 0;
 
-	nvmap_override_cache_ops();
 #ifdef CONFIG_NVMAP_PAGE_POOLS
 	e = nvmap_page_pool_init(dev);
 	if (e)

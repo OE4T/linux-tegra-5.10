@@ -42,91 +42,6 @@ size_t cache_maint_inner_threshold = 8 * SZ_2M;
 
 static struct static_key nvmap_disable_vaddr_for_cache_maint;
 
-inline static void nvmap_flush_dcache_all(void *dummy)
-{
-#if defined(CONFIG_DENVER_CPU)
-	u64 id_afr0;
-	u64 midr;
-
-	asm volatile ("mrs %0, MIDR_EL1" : "=r"(midr));
-	/* check if current core is a Denver processor */
-	if ((midr & 0xFF8FFFF0) == 0x4e0f0000) {
-		asm volatile ("mrs %0, ID_AFR0_EL1" : "=r"(id_afr0));
-		/* check if complete cache flush through msr is supported */
-		if (likely((id_afr0 & 0xf00) == 0x100)) {
-			asm volatile ("msr s3_0_c15_c13_0, %0" : : "r" (0));
-			asm volatile ("dsb sy");
-			return;
-		}
-	}
-#endif
-	tegra_flush_dcache_all(NULL);
-}
-
-static void nvmap_inner_flush_cache_all(void)
-{
-	nvmap_flush_dcache_all(NULL);
-}
-void (*inner_flush_cache_all)(void) = nvmap_inner_flush_cache_all;
-
-extern void __clean_dcache_louis(void *);
-static void nvmap_inner_clean_cache_all(void)
-{
-#ifdef CONFIG_ARCH_TEGRA_210_SOC
-	on_each_cpu(__clean_dcache_louis, NULL, 1);
-#endif
-	tegra_clean_dcache_all(NULL);
-}
-void (*inner_clean_cache_all)(void) = nvmap_inner_clean_cache_all;
-
-static void nvmap_cache_of_setup(struct nvmap_chip_cache_op *op)
-{
-	op->inner_clean_cache_all = nvmap_inner_clean_cache_all;
-	op->inner_flush_cache_all = nvmap_inner_flush_cache_all;
-	op->name = kstrdup("set/ways", GFP_KERNEL);
-	BUG_ON(!op->name);
-}
-NVMAP_CACHE_OF_DECLARE("nvidia,carveouts", nvmap_cache_of_setup);
-
-void nvmap_select_cache_ops(struct device *dev)
-{
-	struct nvmap_chip_cache_op op;
-	bool match_found = false;
-	const struct of_device_id *matches = &__nvmapcache_of_table;
-
-	memset(&op, 0, sizeof(op));
-
-	for (; matches; matches++) {
-		if (of_device_is_compatible(dev->of_node,
-					    matches->compatible)) {
-			const nvmap_setup_chip_cache_fn init_fn = matches->data;
-			init_fn(&op);
-			match_found = true;
-			break;
-		}
-	}
-
-	if (WARN_ON(match_found == false)) {
-		pr_err("%s: no cache ops found\n",__func__);
-		return;
-	}
-	inner_flush_cache_all = op.inner_flush_cache_all;
-	inner_clean_cache_all = op.inner_clean_cache_all;
-	pr_info("nvmap cache ops set to %s\n", op.name);
-	kfree(op.name);
-
-	if (inner_clean_cache_all && (op.flags & CALL_CLEAN_CACHE_ON_INIT)) {
-		pr_info("calling cache operation %pF\n",
-					inner_clean_cache_all);
-		inner_clean_cache_all();
-	}
-
-	if (inner_flush_cache_all && (op.flags & CALL_FLUSH_CACHE_ON_INIT)) {
-		pr_info("calling cache operation %pF\n",
-					inner_flush_cache_all);
-		inner_flush_cache_all();
-	}
-}
 
 /*
  * FIXME:
@@ -152,11 +67,6 @@ void nvmap_clean_cache(struct page **pages, int numpages)
 
 	for (i = 0; i < numpages; i++)
 		nvmap_clean_cache_page(pages[i]);
-}
-
-__weak void nvmap_override_cache_ops(void)
-{
-	nvmap_select_cache_ops(nvmap_dev->dev_user.parent);
 }
 
 void inner_cache_maint(unsigned int op, void *vaddr, size_t size)
@@ -223,39 +133,6 @@ per_page_cache_maint:
 	}
 }
 
-static inline bool can_fast_cache_maint(unsigned long start,
-			unsigned long end, unsigned int op)
-{
-	if (!nvmap_cache_maint_by_set_ways)
-		return false;
-
-	if ((op == NVMAP_CACHE_OP_INV) ||
-		((end - start) < cache_maint_inner_threshold))
-		return false;
-	return true;
-}
-
-static bool fast_cache_maint(struct nvmap_handle *h,
-	unsigned long start,
-	unsigned long end, unsigned int op,
-	bool clean_only_dirty)
-{
-	if (!can_fast_cache_maint(start, end, op))
-		return false;
-
-	if (h->userflags & NVMAP_HANDLE_CACHE_SYNC) {
-		nvmap_handle_mkclean(h, 0, h->size);
-		nvmap_zap_handle(h, 0, h->size);
-	}
-
-	if (op == NVMAP_CACHE_OP_WB_INV)
-		inner_flush_cache_all();
-	else if (op == NVMAP_CACHE_OP_WB)
-		inner_clean_cache_all();
-
-	return true;
-}
-
 struct cache_maint_op {
 	phys_addr_t start;
 	phys_addr_t end;
@@ -275,15 +152,6 @@ int nvmap_cache_maint_phys_range(unsigned int op, phys_addr_t pstart,
 
 	if (!inner)
 		goto do_outer;
-
-	if (can_fast_cache_maint((unsigned long)pstart,
-				 (unsigned long)pend, op)) {
-		if (op == NVMAP_CACHE_OP_WB_INV)
-			inner_flush_cache_all();
-		else if (op == NVMAP_CACHE_OP_WB)
-			inner_clean_cache_all();
-		goto do_outer;
-	}
 
 	area = alloc_vm_area(PAGE_SIZE, NULL);
 	if (!area)
@@ -331,9 +199,6 @@ static int do_cache_maint(struct cache_maint_op *cache_work)
 		goto out;
 	}
 
-	if (fast_cache_maint(h, pstart, pend, op, cache_work->clean_only_dirty))
-		goto out;
-
 	if (h->heap_pgalloc) {
 		heap_page_cache_maint(h, pstart, pend, op, true,
 			(h->flags == NVMAP_HANDLE_INNER_CACHEABLE) ?
@@ -349,11 +214,7 @@ static int do_cache_maint(struct cache_maint_op *cache_work)
 
 out:
 	if (!err) {
-		if (can_fast_cache_maint(pstart, pend, op))
-			nvmap_stats_inc(NS_CFLUSH_DONE,
-					cache_maint_inner_threshold);
-		else
-			nvmap_stats_inc(NS_CFLUSH_DONE, pend - pstart);
+		nvmap_stats_inc(NS_CFLUSH_DONE, pend - pstart);
 	}
 
 	trace_nvmap_cache_flush(pend - pstart,
@@ -536,10 +397,6 @@ static int __nvmap_do_cache_maint_list(struct nvmap_handle **handles,
 			}
 		}
 
-		if (op == NVMAP_CACHE_OP_WB)
-			inner_clean_cache_all();
-		else
-			inner_flush_cache_all();
 		nvmap_stats_inc(NS_CFLUSH_RQ, total);
 		nvmap_stats_inc(NS_CFLUSH_DONE, thresh);
 		trace_nvmap_cache_flush(total,

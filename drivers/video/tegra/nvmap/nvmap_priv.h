@@ -465,9 +465,6 @@ extern int nvmap_cache_maint_by_set_ways;
 extern void v7_flush_kern_cache_all(void);
 extern void v7_clean_kern_cache_all(void *);
 
-extern void (*inner_flush_cache_all)(void);
-extern void (*inner_clean_cache_all)(void);
-void nvmap_override_cache_ops(void);
 void nvmap_clean_cache(struct page **pages, int numpages);
 void nvmap_clean_cache_page(struct page *page);
 void nvmap_flush_cache(struct page **pages, int numpages);
@@ -747,20 +744,6 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 
 #define device_node_from_iter(iter) \
 	iter.node
-
-#define CALL_CLEAN_CACHE_ON_INIT 1
-#define CALL_FLUSH_CACHE_ON_INIT 2
-
-struct nvmap_chip_cache_op {
-	void (*inner_clean_cache_all)(void);
-	void (*inner_flush_cache_all)(void);
-	const char *name;
-	int flags;
-};
-
-void nvmap_select_cache_ops(struct device *dev);
-
-typedef void (*nvmap_setup_chip_cache_fn)(struct nvmap_chip_cache_op *);
 
 extern struct of_device_id __nvmapcache_of_table;
 
