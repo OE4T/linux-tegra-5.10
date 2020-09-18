@@ -180,10 +180,10 @@
 		status = "disabled";
 	};
 
-	se: se_ahb@3ae0000 {
+	se: se_ahb@3ac0000 {
 		compatible = "nvidia,tegra234-se-ahb";
-		reg = <0x0 0x03ae0000 0x0 0x10000>;
-		interrupts = <0 283 0x04>;
+		reg = <0x0 0x03ac0000 0x0 0x10000>;
+		interrupts = <0 281 0x04>;
 		clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 		clock-names = "se";
 		status = "disabled";
