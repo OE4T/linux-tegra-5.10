@@ -17,6 +17,7 @@
 #ifndef _TEGRA_INTERCONNECT_H_
 #define _TEGRA_INTERCONNECT_H_
 
+#include <linux/version.h>
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/interconnect-provider.h>
@@ -54,7 +55,11 @@ struct tegra_icc_node {
 
 struct tegra_icc_ops {
 	int (*plat_icc_set)(struct icc_node *, struct icc_node *);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 7, 0)
+	int (*plat_icc_aggregate)(struct icc_node *, u32, u32, u32, u32 *, u32 *);
+#else
 	int (*plat_icc_aggregate)(struct icc_node *, u32, u32, u32 *, u32 *);
+#endif
 };
 
 #define DEFINE_TNODE(_name, _id, _type)				\

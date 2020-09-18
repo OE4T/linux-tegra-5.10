@@ -14,8 +14,13 @@
 #include <linux/interconnect-provider.h>
 #include "tegra_icc.h"
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 7, 0)
+static int tegra23x_icc_aggregate(struct icc_node *node, u32 tag, u32 avg_bw,
+			u32 peak_bw, u32 *agg_avg, u32 *agg_peak)
+#else
 static int tegra23x_icc_aggregate(struct icc_node *node, u32 avg_bw,
 			u32 peak_bw, u32 *agg_avg, u32 *agg_peak)
+#endif
 {
 	return 0;
 }
