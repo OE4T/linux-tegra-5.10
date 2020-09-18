@@ -1882,15 +1882,18 @@ struct nvcsi_tpg_config_t186 {
 } CAPTURE_IVC_ALIGN;
 
 /**
- * @brief NvCsiTpgFlag Test pattern generator (TPG) flags for t194
+ * @brief NvCsiTpgFlag Test pattern generator (TPG) flags for t194, tpg-ng
  * @{
  */
 #define NVCSI_TPG_FLAG_PATCH_MODE			MK_U16(1)
 #define NVCSI_TPG_FLAG_PHASE_INCREMENT			MK_U16(2)
 #define NVCSI_TPG_FLAG_AUTO_STOP			MK_U16(4)
+/** TPG next gen feature to generate embedded data with config settings */
 #define NVCSI_TPG_FLAG_EMBEDDED_PATTERN_CONFIG_INFO	MK_U16(8)
 /** Next gen TPG LS/LE packet generation enable flag */
 #define NVCSI_TPG_FLAG_ENABLE_LS_LE			MK_U16(16)
+/** TPG next gen feature to transmit CPHY packets. DPHY is default option */
+#define NVCSI_TPG_FLAG_PHY_MODE_CPHY			MK_U16(32)
 /** @} */
 
 /**
