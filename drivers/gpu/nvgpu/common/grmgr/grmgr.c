@@ -60,11 +60,23 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 			1U);
 	}
 
-	/* In Legacy mode, Local GPC Id = physical GPC Id = Logical GPC Id */
-	for (gpc_id = 0U; gpc_id < gr_syspipe->num_gpc; gpc_id++) {
-		gr_syspipe->gpcs[gpc_id].logical_id =
-			gr_syspipe->gpcs[gpc_id].physical_id = gpc_id;
-		gr_syspipe->gpcs[gpc_id].gpcgrp_id = 0U;
+	if (g->ops.grmgr.discover_gpc_ids != NULL) {
+		if (g->ops.grmgr.discover_gpc_ids(g,
+				gr_syspipe->num_gpc,
+				gr_syspipe->gpcs) != 0) {
+			nvgpu_err(g, "discover_gpc_ids -failed");
+			return -EINVAL;
+		}
+	} else {
+		/*
+		 * For Legacy gpu,
+		 * Local GPC Id = physical GPC Id = Logical GPC Id.
+		 */
+		for (gpc_id = 0U; gpc_id < gr_syspipe->num_gpc; gpc_id++) {
+			gr_syspipe->gpcs[gpc_id].logical_id =
+				gr_syspipe->gpcs[gpc_id].physical_id = gpc_id;
+			gr_syspipe->gpcs[gpc_id].gpcgrp_id = 0U;
+		}
 	}
 	gr_syspipe->max_veid_count_per_tsg = g->fifo.max_subctx_count;
 	gr_syspipe->veid_start_offset = 0U;

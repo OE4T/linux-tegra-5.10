@@ -48,6 +48,18 @@ struct gops_grmgr {
 	int (*init_gr_manager)(struct gk20a *g);
 
 	/**
+	 * @brief Query GPU physical->logical gpc ids.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param num_gpc [in]		Number of GPCs.
+	 * @param gpcs [out]		Pointer to GPC Id information struct.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*discover_gpc_ids)(struct gk20a *g, u32 num_gpc,
+		struct nvgpu_gpc *gpcs);
+
+	/**
 	 * @brief Remove GR Manager unit.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
