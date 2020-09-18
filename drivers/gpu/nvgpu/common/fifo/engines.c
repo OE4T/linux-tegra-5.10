@@ -40,6 +40,7 @@
 #include <nvgpu/device.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/swprofile.h>
@@ -446,49 +447,12 @@ void nvgpu_engine_cleanup_sw(struct gk20a *g)
 }
 
 #ifdef CONFIG_NVGPU_ENGINE_RESET
-void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
+static void nvgpu_engine_gr_reset(struct gk20a *g)
 {
 	struct nvgpu_swprofiler *prof = &g->fifo.eng_reset_profiler;
-	const struct nvgpu_device *dev;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	if (g == NULL) {
-		return;
-	}
-
-	nvgpu_swprofile_begin_sample(prof);
-
-	dev = nvgpu_engine_get_active_eng_info(g, engine_id);
-	if (dev == NULL) {
-		nvgpu_err(g, "unsupported engine_id %d", engine_id);
-		return;
-	}
-
-	if (!nvgpu_device_is_ce(g, dev) &&
-	    !nvgpu_device_is_graphics(g, dev)) {
-		nvgpu_warn(g, "Ignoring reset for non-host engine.");
-		return;
-	}
-
-	/*
-	 * Simple case first: reset a copy engine.
-	 */
-	if (nvgpu_device_is_ce(g, dev)) {
-		err = nvgpu_mc_reset_dev(g, dev);
-		if (err != 0) {
-			nvgpu_log_info(g, "CE engine [id:%u] reset failed",
-				dev->engine_id);
-		}
-		return;
-	}
 
 	nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_PREAMBLE);
 
-	/*
-	 * Now reset a GR engine.
-	 */
 #ifdef CONFIG_NVGPU_POWER_PG
 	if (nvgpu_pg_elpg_disable(g) != 0 ) {
 		nvgpu_err(g, "failed to set disable elpg");
@@ -544,6 +508,56 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 	}
 	nvgpu_swprofile_snapshot(prof, PROF_ENG_RESET_ELPG_REENABLE);
 #endif
+}
+
+void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
+{
+	struct nvgpu_swprofiler *prof = &g->fifo.eng_reset_profiler;
+	const struct nvgpu_device *dev;
+	int err = 0;
+	u32 gr_instance_id;
+
+	nvgpu_log_fn(g, " ");
+
+	if (g == NULL) {
+		return;
+	}
+
+	nvgpu_swprofile_begin_sample(prof);
+
+	dev = nvgpu_engine_get_active_eng_info(g, engine_id);
+	if (dev == NULL) {
+		nvgpu_err(g, "unsupported engine_id %d", engine_id);
+		return;
+	}
+
+	if (!nvgpu_device_is_ce(g, dev) &&
+	    !nvgpu_device_is_graphics(g, dev)) {
+		nvgpu_warn(g, "Ignoring reset for non-host engine.");
+		return;
+	}
+
+	/*
+	 * Simple case first: reset a copy engine.
+	 */
+	if (nvgpu_device_is_ce(g, dev)) {
+		err = nvgpu_mc_reset_dev(g, dev);
+		if (err != 0) {
+			nvgpu_log_info(g, "CE engine [id:%u] reset failed",
+				dev->engine_id);
+		}
+		return;
+	}
+
+	/*
+	 * Now reset a GR engine.
+	 */
+	gr_instance_id =
+		nvgpu_grmgr_get_gr_instance_id_for_syspipe(
+			g, dev->inst_id);
+
+	nvgpu_gr_exec_for_instance(g,
+		gr_instance_id, nvgpu_engine_gr_reset(g));
 }
 #endif
 
