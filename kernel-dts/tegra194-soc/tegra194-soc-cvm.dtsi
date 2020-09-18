@@ -248,6 +248,10 @@
 		status = "okay";
 	};
 
+	gpio-keys {
+		status = "okay";
+	};
+
 	/* L3 cache */
 	tegra-cache {
 		status = "okay";

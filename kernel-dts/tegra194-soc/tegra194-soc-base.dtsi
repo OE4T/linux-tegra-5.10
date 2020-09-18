@@ -54,6 +54,7 @@
 #include "tegra194-soc-thermal.dtsi"
 #include "tegra194-soc-memory.dtsi"
 #include "dt-bindings/soc/tegra-io-pads.h"
+#include "dt-bindings/input/input.h"
 
 / {
 	compatible = "nvidia,tegra186";
@@ -1738,6 +1739,23 @@
 	};
 #endif
 
+	gpio-keys {
+		compatible = "gpio-keys";
+		gpio-keys,name = "gpio-keys";
+		status = "disabled";
+
+		sw_wake {
+			label = "sw-wake";
+			linux,code = <KEY_POWER>;
+			wakeup-source;
+#if TEGRA_PMC_VERSION >= DT_VERSION_2
+			/* TODO: Intr binding to PMC driver */
+#else
+			interrupt-parent = <&tegra_pm_irq>;
+			interrupts = <0 179 IRQ_TYPE_LEVEL_HIGH>;
+#endif
+		};
+	};
 
 	xusb_padctl: xusb_padctl@3520000 {
 #if defined(LINUX_VERSION) && LINUX_VERSION > 414
