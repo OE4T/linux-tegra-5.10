@@ -398,6 +398,9 @@ static void tegra_mc_utils_debugfs_init(void)
 	debugfs_create_u32("dram_type", 0444, tegra_mc_debug_root,
 			&dram_type);
 
+	debugfs_create_u32("num_channel", 0444, tegra_mc_debug_root,
+			&ch_num);
+
 	debugfs_create_file("bw_disruption_latency", 0444,
 			tegra_mc_debug_root, NULL,
 			&fops_debugfs_bw_disruption_latency);
