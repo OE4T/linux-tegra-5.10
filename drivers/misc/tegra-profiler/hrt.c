@@ -26,6 +26,9 @@
 #include <linux/rculist.h>
 #include <linux/random.h>
 #include <linux/version.h>
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0))
+#include <linux/sched/task_stack.h>
+#endif
 #include <clocksource/arm_arch_timer.h>
 
 #include <asm/cputype.h>
@@ -130,14 +133,10 @@ static inline u32 get_task_state(struct task_struct *task)
 
 static inline u64 get_posix_clock_monotonic_time(void)
 {
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
-	struct timespec ts;
-#else
 	struct timespec64 ts;
-#endif
 
-	ktime_get_ts(&ts);
-	return timespec_to_ns(&ts);
+	ktime_get_ts64(&ts);
+	return timespec64_to_ns(&ts);
 }
 
 static inline u64 get_arch_time(struct timecounter *tc)
