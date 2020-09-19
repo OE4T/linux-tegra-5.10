@@ -1,0 +1,48 @@
+From 720921d2c4b124d5e48c5dc03920cf6861bc85db Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Fri, 14 Aug 2020 17:09:00 +0200
+Subject: [PATCH 083/214] softirq: Move the per-CPU hardirq definition
+
+Move the per-CPU hardirq definition so that is available also in RT
+case.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/softirq.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/kernel/softirq.c b/kernel/softirq.c
+index 3949d8c..544501b 100644
+--- a/kernel/softirq.c
++++ b/kernel/softirq.c
+@@ -95,6 +95,15 @@ static bool ksoftirqd_running(unsigned long pending)
+ 		!__kthread_should_park(tsk);
+ }
+ 
++#ifdef CONFIG_TRACE_IRQFLAGS
++
++DEFINE_PER_CPU(int, hardirqs_enabled);
++DEFINE_PER_CPU(int, hardirq_context);
++EXPORT_PER_CPU_SYMBOL_GPL(hardirqs_enabled);
++EXPORT_PER_CPU_SYMBOL_GPL(hardirq_context);
++
++#endif
++
+ /*
+  * preempt_count and SOFTIRQ_OFFSET usage:
+  * - preempt_count is changed by SOFTIRQ_OFFSET on entering or leaving
+@@ -216,11 +225,6 @@ static void _local_bh_enable_rt(void) { }
+  */
+ #ifdef CONFIG_TRACE_IRQFLAGS
+ 
+-DEFINE_PER_CPU(int, hardirqs_enabled);
+-DEFINE_PER_CPU(int, hardirq_context);
+-EXPORT_PER_CPU_SYMBOL_GPL(hardirqs_enabled);
+-EXPORT_PER_CPU_SYMBOL_GPL(hardirq_context);
+-
+ void __local_bh_disable_ip(unsigned long ip, unsigned int cnt)
+ {
+ 	unsigned long flags;
+-- 
+2.7.4
+

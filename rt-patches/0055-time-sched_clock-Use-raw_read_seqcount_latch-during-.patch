@@ -1,0 +1,45 @@
+From 7b4d0415d658797e41612d0c1ae6382d041e0be3 Mon Sep 17 00:00:00 2001
+From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
+Date: Thu, 27 Aug 2020 13:40:37 +0200
+Subject: [PATCH 055/214] time/sched_clock: Use raw_read_seqcount_latch()
+ during suspend
+
+sched_clock uses seqcount_t latching to switch between two storage
+places protected by the sequence counter. This allows it to have
+interruptible, NMI-safe, seqcount_t write side critical sections.
+
+Since 7fc26327b756 ("seqlock: Introduce raw_read_seqcount_latch()"),
+raw_read_seqcount_latch() became the standardized way for seqcount_t
+latch read paths. Due to the dependent load, it has one read memory
+barrier less than the currently used raw_read_seqcount() API.
+
+Use raw_read_seqcount_latch() for the suspend path.
+
+Commit aadd6e5caaac ("time/sched_clock: Use raw_read_seqcount_latch()")
+missed changing that instance of raw_read_seqcount().
+
+References: 1809bfa44e10 ("timers, sched/clock: Avoid deadlock during read from NMI")
+Signed-off-by: Ahmed S. Darwish <a.darwish@linutronix.de>
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20200715092345.GA231464@debian-buster-darwi.lab.linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/time/sched_clock.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/time/sched_clock.c b/kernel/time/sched_clock.c
+index 1c03eec..8c6b5fe 100644
+--- a/kernel/time/sched_clock.c
++++ b/kernel/time/sched_clock.c
+@@ -258,7 +258,7 @@ void __init generic_sched_clock_init(void)
+  */
+ static u64 notrace suspended_sched_clock_read(void)
+ {
+-	unsigned int seq = raw_read_seqcount(&cd.seq);
++	unsigned int seq = raw_read_seqcount_latch(&cd.seq);
+ 
+ 	return cd.read_data[seq & 1].epoch_cyc;
+ }
+-- 
+2.7.4
+

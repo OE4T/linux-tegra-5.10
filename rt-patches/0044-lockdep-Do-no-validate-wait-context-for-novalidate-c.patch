@@ -1,0 +1,47 @@
+From 32306b3cc306cfcc8269d8452a0aed6d98ba820e Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Mon, 29 Jun 2020 17:27:10 +0200
+Subject: [PATCH 044/214] lockdep: Do no validate wait context for novalidate
+ class
+
+The novalidate class is ignored in the lockchain validation but is
+considered in the wait context validation.
+If a mutex and a spinlock_t is ignored by using
+lockdep_set_novalidate_class() then both locks will share the same lock
+class. From the wait validation point of view the mutex will then appear
+like a spinlock_t and the validator will complain if another mutex will
+be acquired.
+
+Ignore the nonvalidate locks from wait context checking.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/locking/lockdep.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/locking/lockdep.c b/kernel/locking/lockdep.c
+index 54b74fa..c0a2774 100644
+--- a/kernel/locking/lockdep.c
++++ b/kernel/locking/lockdep.c
+@@ -4113,7 +4113,7 @@ static int check_wait_context(struct task_struct *curr, struct held_lock *next)
+ 	 */
+ 	for (depth = curr->lockdep_depth - 1; depth >= 0; depth--) {
+ 		struct held_lock *prev = curr->held_locks + depth;
+-		if (prev->irq_context != next->irq_context)
++		if (prev->check && prev->irq_context != next->irq_context)
+ 			break;
+ 	}
+ 	depth++;
+@@ -4124,6 +4124,9 @@ static int check_wait_context(struct task_struct *curr, struct held_lock *next)
+ 		struct held_lock *prev = curr->held_locks + depth;
+ 		short prev_inner = hlock_class(prev)->wait_type_inner;
+ 
++		if (!prev->check)
++			continue;
++
+ 		if (prev_inner) {
+ 			/*
+ 			 * We can have a bigger inner than a previous one
+-- 
+2.7.4
+

@@ -1,0 +1,51 @@
+From 2f33203a1b1698afaeb4dacdf22f97091f24a520 Mon Sep 17 00:00:00 2001
+From: John Ogness <john.ogness@linutronix.de>
+Date: Fri, 22 Feb 2019 23:02:44 +0100
+Subject: [PATCH 032/214] printk: devkmsg: llseek: reset clear if it is lost
+
+SEEK_DATA will seek to the last clear record. If this clear record
+is no longer in the ring buffer, devkmsg_llseek() will go into an
+infinite loop. Fix that by resetting the clear sequence if the old
+clear record is no longer in the ring buffer.
+
+Signed-off-by: John Ogness <john.ogness@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/printk/printk.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
+index 03b3583..c9b3889 100644
+--- a/kernel/printk/printk.c
++++ b/kernel/printk/printk.c
+@@ -769,6 +769,7 @@ static loff_t devkmsg_llseek(struct file *file, loff_t offset, int whence)
+ {
+ 	struct devkmsg_user *user = file->private_data;
+ 	loff_t ret;
++	u64 seq;
+ 
+ 	if (!user)
+ 		return -EBADF;
+@@ -791,7 +792,7 @@ static loff_t devkmsg_llseek(struct file *file, loff_t offset, int whence)
+ 		 * changes no global state, and does not clear anything.
+ 		 */
+ 		for (;;) {
+-			prb_iter_init(&user->iter, &printk_rb, NULL);
++			prb_iter_init(&user->iter, &printk_rb, &seq);
+ 			ret = prb_iter_seek(&user->iter, clear_seq);
+ 			if (ret > 0) {
+ 				/* seeked to clear seq */
+@@ -808,6 +809,10 @@ static loff_t devkmsg_llseek(struct file *file, loff_t offset, int whence)
+ 				break;
+ 			}
+ 			/* iterator invalid, start over */
++
++			/* reset clear_seq if it is no longer available */
++			if (seq > clear_seq)
++				clear_seq = 0;
+ 		}
+ 		ret = 0;
+ 		break;
+-- 
+2.7.4
+
