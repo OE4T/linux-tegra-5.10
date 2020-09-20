@@ -131,6 +131,10 @@ int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num);
 extern int i2c_set_adapter_bus_clk_rate(struct i2c_adapter *adap, int bus_rate);
 extern int i2c_get_adapter_bus_clk_rate(struct i2c_adapter *adap);
 
+/* Return I2C SCL, SDA line status */
+extern int i2c_bus_status(struct i2c_adapter *adap, int *scl_status,
+			int *sda_status);
+
 /* This is the very generalized SMBus access routine. You probably do not
    want to use this, though; one of the functions below may be much easier,
    and probably just as fast.
@@ -740,6 +744,7 @@ struct i2c_adapter {
 
 	struct irq_domain *host_notify_domain;
 	unsigned long bus_clk_rate;
+	int (*i2c_bus_status)(void *data, int *scl_status, int *sda_status);
 };
 #define to_i2c_adapter(d) container_of(d, struct i2c_adapter, dev)
 

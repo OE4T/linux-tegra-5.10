@@ -885,6 +885,26 @@ int i2c_get_adapter_bus_clk_rate(struct i2c_adapter *adap)
 }
 EXPORT_SYMBOL_GPL(i2c_get_adapter_bus_clk_rate);
 
+int i2c_bus_status(struct i2c_adapter *adap, int *scl_status, int *sda_status)
+{
+	int ret;
+
+	i2c_lock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
+
+	if (!adap->i2c_bus_status) {
+		dev_err(&adap->dev, "Invalid i2c bus status fn pointer\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = adap->i2c_bus_status(adap, scl_status, sda_status);
+
+out:
+	i2c_unlock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(i2c_bus_status);
+
 /**
  * i2c_new_client_device - instantiate an i2c device
  * @adap: the adapter managing the device

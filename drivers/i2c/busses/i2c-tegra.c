@@ -4,6 +4,8 @@
  *
  * Copyright (C) 2010 Google, Inc.
  * Author: Colin Cross <ccross@android.com>
+ *
+ * Copyright (C) 2020 NVIDIA Corporation. All rights reserved.
  */
 
 #include <linux/bitfield.h>
@@ -138,6 +140,14 @@
 #define I2C_MST_FIFO_STATUS			0x0b8
 #define I2C_MST_FIFO_STATUS_TX			GENMASK(23, 16)
 #define I2C_MST_FIFO_STATUS_RX			GENMASK(7, 0)
+
+#define I2C_BUS_STATUS				0xd0
+#define I2C_BUS_STATUS_SDA			BIT(1)
+#define I2C_BUS_STATUS_SDA_LOW			0
+#define I2C_BUS_STATUS_SDA_HIGH			1
+#define I2C_BUS_STATUS_SCL			BIT(2)
+#define I2C_BUS_STATUS_SCL_LOW			0
+#define I2C_BUS_STATUS_SCL_HIGH			1
 
 /* configuration load timeout in microseconds */
 #define I2C_CONFIG_LOAD_TIMEOUT			1000000
@@ -1660,6 +1670,27 @@ static void tegra_i2c_parse_dt(struct tegra_i2c_dev *i2c_dev)
 			"nvidia,clock-always-on");
 }
 
+static int tegra_i2c_bus_status(void *data, int *scl_status, int *sda_status)
+{
+	struct i2c_adapter *adap = (struct i2c_adapter *)data;
+	struct tegra_i2c_dev *i2c_dev = i2c_get_adapdata(adap);
+	u32 status;
+
+	status = i2c_readl(i2c_dev, I2C_BUS_STATUS);
+
+	if (status & I2C_BUS_STATUS_SDA)
+		*sda_status = I2C_BUS_STATUS_SDA_HIGH;
+	else
+		*sda_status = I2C_BUS_STATUS_SDA_LOW;
+
+	if (status & I2C_BUS_STATUS_SCL)
+		*scl_status = I2C_BUS_STATUS_SCL_HIGH;
+	else
+		*scl_status = I2C_BUS_STATUS_SCL_LOW;
+
+	return 0;
+}
+
 static const struct i2c_algorithm tegra_i2c_algo = {
 	.master_xfer		= tegra_i2c_xfer,
 	.master_xfer_atomic	= tegra_i2c_xfer_atomic,
@@ -2114,6 +2145,7 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 	i2c_dev->adapter.nr = pdev->id;
 	i2c_dev->adapter.dev.of_node = pdev->dev.of_node;
 	i2c_dev->adapter.bus_clk_rate = i2c_dev->bus_clk_rate;
+	i2c_dev->adapter.i2c_bus_status = tegra_i2c_bus_status;
 
 	ret = i2c_add_numbered_adapter(&i2c_dev->adapter);
 	if (ret)
