@@ -666,8 +666,11 @@ void tegra_bpmp_handle_rx(struct tegra_bpmp *bpmp)
 	count = bpmp->soc->channels.thread.count;
 	busy = bpmp->threaded.busy;
 
-	if (tegra_bpmp_is_request_ready(channel))
-		tegra_bpmp_handle_mrq(bpmp, channel->ib->code, channel);
+	/* If supported incoming channel */
+	if (bpmp->soc->channels.cpu_rx.count != 0) {
+		if (tegra_bpmp_is_request_ready(channel))
+			tegra_bpmp_handle_mrq(bpmp, channel->ib->code, channel);
+	}
 
 	spin_lock(&bpmp->lock);
 
@@ -814,6 +817,7 @@ static const struct tegra_bpmp_soc tegra186_soc = {
 	.channels = {
 		.cpu_tx = {
 			.offset = 3,
+			.count = 1,
 			.timeout = 60 * USEC_PER_SEC,
 		},
 		.thread = {
@@ -823,10 +827,50 @@ static const struct tegra_bpmp_soc tegra186_soc = {
 		},
 		.cpu_rx = {
 			.offset = 13,
+			.count = 1,
 			.timeout = 0,
 		},
 	},
 	.ops = &tegra186_bpmp_ops,
+	.num_resets = 193,
+};
+
+static const struct tegra_bpmp_soc tegra186_hv_soc = {
+	.channels = {
+		.cpu_tx = {
+			.offset = 3,
+			.count = 1,
+			.timeout = 60 * USEC_PER_SEC,
+		},
+		.thread = {
+			.offset = 0,
+			.count = 3,
+			.timeout = 600 * USEC_PER_SEC,
+		},
+		.cpu_rx = {
+			.offset = 13,
+			.count = 1,
+			.timeout = 0,
+		},
+	},
+	.ops = &tegra186_bpmp_hv_ops,
+	.num_resets = 193,
+};
+
+static const struct tegra_bpmp_soc t194_safe_hv_soc = {
+	.channels = {
+		.cpu_tx = {
+			.offset = 3,
+			.count = 1,
+			.timeout = 60 * USEC_PER_SEC,
+		},
+		.thread = {
+			.offset = 0,
+			.count = 3,
+			.timeout = 600 * USEC_PER_SEC,
+		},
+	},
+	.ops = &tegra186_bpmp_hv_ops,
 	.num_resets = 193,
 };
 #endif
@@ -858,6 +902,8 @@ static const struct of_device_id tegra_bpmp_match[] = {
 #if IS_ENABLED(CONFIG_ARCH_TEGRA_186_SOC) || \
     IS_ENABLED(CONFIG_ARCH_TEGRA_194_SOC)
 	{ .compatible = "nvidia,tegra186-bpmp", .data = &tegra186_soc },
+	{ .compatible = "nvidia,tegra186-bpmp-hv", .data = &tegra186_hv_soc },
+	{ .compatible = "nvidia,tegra194-safe-bpmp-hv", .data = &t194_safe_hv_soc },
 #endif
 #if IS_ENABLED(CONFIG_ARCH_TEGRA_210_SOC)
 	{ .compatible = "nvidia,tegra210-bpmp", .data = &tegra210_soc },

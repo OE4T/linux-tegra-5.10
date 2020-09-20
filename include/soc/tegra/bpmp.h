@@ -42,6 +42,7 @@ struct tegra_bpmp_channel {
 	struct tegra_bpmp_mb_data *ob;
 	struct completion completion;
 	struct tegra_ivc *ivc;
+	struct tegra_hv_ivc_cookie *hv_ivc;
 	unsigned int index;
 };
 

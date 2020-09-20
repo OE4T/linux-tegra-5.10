@@ -26,6 +26,7 @@ struct tegra_bpmp_ops {
 #if IS_ENABLED(CONFIG_ARCH_TEGRA_186_SOC) || \
     IS_ENABLED(CONFIG_ARCH_TEGRA_194_SOC)
 extern const struct tegra_bpmp_ops tegra186_bpmp_ops;
+extern const struct tegra_bpmp_ops tegra186_bpmp_hv_ops;
 #endif
 #if IS_ENABLED(CONFIG_ARCH_TEGRA_210_SOC)
 extern const struct tegra_bpmp_ops tegra210_bpmp_ops;
