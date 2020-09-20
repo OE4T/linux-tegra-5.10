@@ -2348,6 +2348,8 @@ struct isp_capture_descriptor {
 	struct stats_surface h1_surface;
 	/** Pixel Replacement Unit (PRU) statistics buffer */
 	struct stats_surface pru_bad_surface;
+	/** RAW24 Histogram Unit statistics buffer */
+	struct stats_surface hist_raw24_surface;
 	/** Local Tone Mapping statistics buffer */
 	struct stats_surface ltm_surface;
 
@@ -2435,7 +2437,7 @@ struct isp_capture_descriptor {
 	uint32_t program_buffer_index;
 
 	/** Reserved */
-	uint32_t __pad[3];
+	uint32_t __pad[1];
 } CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
@@ -2497,6 +2499,7 @@ struct isp5_downscaler_configbuf {
 #define ISP5BLOCK_ENABLED_PRU_OUTLIER_REJECTION		MK_BIT32(0)
 #define	ISP5BLOCK_ENABLED_PRU_STATS			MK_BIT32(1)
 #define	ISP5BLOCK_ENABLED_PRU_HDR			MK_BIT32(2)
+#define	ISP6BLOCK_ENABLED_PRU_RAW24_HIST		MK_BIT32(3) /* ISP6 */
 #define	ISP5BLOCK_ENABLED_AP_DEMOSAIC			MK_BIT32(4)
 #define	ISP5BLOCK_ENABLED_AP_CAR			MK_BIT32(5)
 #define	ISP5BLOCK_ENABLED_AP_LTM_MODIFY			MK_BIT32(6)
