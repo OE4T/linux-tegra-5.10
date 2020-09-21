@@ -1201,6 +1201,7 @@
 #define gr_gpcs_swdx_tc_beta_cb_size_v_m()                (U32(0x3fffffU) << 0U)
 #define gr_gpcs_swdx_dss_zbc_color_r_r(i)\
 		(nvgpu_safe_add_u32(0x00418010U, nvgpu_safe_mult_u32((i), 4U)))
+#define gr_gpcs_swdx_dss_zbc_color_r__size_1_v()                   (0x0000000fU)
 #define gr_gpcs_swdx_dss_zbc_color_r_val_f(v)     ((U32(v) & 0xffffffffU) << 0U)
 #define gr_gpcs_swdx_dss_zbc_color_g_r(i)\
 		(nvgpu_safe_add_u32(0x0041804cU, nvgpu_safe_mult_u32((i), 4U)))
@@ -1214,10 +1215,12 @@
 #define gr_gpcs_swdx_dss_zbc_c_01_to_04_format_r()                 (0x00418100U)
 #define gr_gpcs_swdx_dss_zbc_z_r(i)\
 		(nvgpu_safe_add_u32(0x00418110U, nvgpu_safe_mult_u32((i), 4U)))
+#define gr_gpcs_swdx_dss_zbc_z__size_1_v()                         (0x0000000fU)
 #define gr_gpcs_swdx_dss_zbc_z_val_f(v)           ((U32(v) & 0xffffffffU) << 0U)
 #define gr_gpcs_swdx_dss_zbc_z_01_to_04_format_r()                 (0x0041814cU)
 #define gr_gpcs_swdx_dss_zbc_s_r(i)\
 		(nvgpu_safe_add_u32(0x0041815cU, nvgpu_safe_mult_u32((i), 4U)))
+#define gr_gpcs_swdx_dss_zbc_s__size_1_v()                         (0x0000000fU)
 #define gr_gpcs_swdx_dss_zbc_s_val_f(v)                 ((U32(v) & 0xffU) << 0U)
 #define gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r()                 (0x00418198U)
 #define gr_gpcs_swdx_spill_unit_r()                                (0x00418e9cU)

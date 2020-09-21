@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,7 @@ struct zbc_depth_table {
 	u32 ref_cnt;
 };
 
-struct zbc_s_table {
+struct zbc_stencil_table {
 	u32 stencil;
 	u32 format;
 	u32 ref_cnt;
@@ -60,21 +60,29 @@ struct nvgpu_gr_zbc_entry {
 	u32 color_ds[NVGPU_GR_ZBC_COLOR_VALUE_SIZE];
 	u32 color_l2[NVGPU_GR_ZBC_COLOR_VALUE_SIZE];
 	u32 depth;
-	u32 type;	/* color or depth */
+	u32 stencil;
+	u32 type;
 	u32 format;
 };
 
+/*
+ * HW ZBC table valid entries start at index 1.
+ * Entry 0 is reserved to mean "no matching entry found, do not use ZBC"
+ */
 struct nvgpu_gr_zbc {
-	struct nvgpu_mutex zbc_lock;
-	struct zbc_color_table *zbc_col_tbl;
-	struct zbc_depth_table *zbc_dep_tbl;
-	struct zbc_s_table *zbc_s_tbl;
-	s32 max_default_color_index;
-	s32 max_default_depth_index;
-	s32 max_default_s_index;
-	u32 max_used_color_index;
-	u32 max_used_depth_index;
-	u32 max_used_s_index;
+	struct nvgpu_mutex zbc_lock;	/* Lock to access zbc table */
+	struct zbc_color_table *zbc_col_tbl; /* SW zbc color table pointer */
+	struct zbc_depth_table *zbc_dep_tbl; /* SW zbc depth table pointer */
+	struct zbc_stencil_table *zbc_s_tbl; /* SW zbc stencil table pointer */
+	u32 min_color_index;	/* Minimum valid color table index */
+	u32 min_depth_index;	/* Minimum valid depth table index */
+	u32 min_stencil_index;	/* Minimum valid stencil table index */
+	u32 max_color_index;	/* Maximum valid color table index */
+	u32 max_depth_index;	/* Maximum valid depth table index */
+	u32 max_stencil_index;	/* Maximum valid stencil table index */
+	u32 max_used_color_index; /* Max used color table index */
+	u32 max_used_depth_index; /* Max used depth table index */
+	u32 max_used_stencil_index; /* Max used stencil table index */
 };
 
 #endif /* GR_ZBC_H */

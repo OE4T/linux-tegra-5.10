@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,8 +28,24 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
-int gm20b_gr_zbc_add_color(struct gk20a *g,
-			   struct nvgpu_gr_zbc_entry *color_val, u32 index)
+void gm20b_gr_zbc_init_table_indices(struct gk20a *g,
+			struct nvgpu_gr_zbc_table_indices *zbc_indices)
+{
+	/* Color indices */
+	zbc_indices->min_color_index = NVGPU_GR_ZBC_STARTOF_TABLE;
+	zbc_indices->max_color_index = 15U;
+
+	/* Depth indices */
+	zbc_indices->min_depth_index = NVGPU_GR_ZBC_STARTOF_TABLE;
+	zbc_indices->max_depth_index = 15U;
+
+	/* Stencil indices */
+	zbc_indices->min_stencil_index = 0U;
+	zbc_indices->max_stencil_index = 0U;
+}
+
+void gm20b_gr_zbc_add_color(struct gk20a *g,
+			struct nvgpu_gr_zbc_entry *color_val, u32 index)
 {
 	/* update ds table */
 	nvgpu_writel(g, gr_ds_zbc_color_r_r(),
@@ -50,7 +66,7 @@ int gm20b_gr_zbc_add_color(struct gk20a *g,
 			nvgpu_gr_zbc_get_entry_format(color_val)));
 
 	nvgpu_writel(g, gr_ds_zbc_tbl_index_r(),
-		gr_ds_zbc_tbl_index_val_f(index + NVGPU_GR_ZBC_STARTOF_TABLE));
+		gr_ds_zbc_tbl_index_val_f(index));
 
 	/* trigger the write */
 	nvgpu_writel(g, gr_ds_zbc_tbl_ld_r(),
@@ -58,10 +74,9 @@ int gm20b_gr_zbc_add_color(struct gk20a *g,
 		gr_ds_zbc_tbl_ld_action_write_f() |
 		gr_ds_zbc_tbl_ld_trigger_active_f());
 
-	return 0;
 }
 
-int gm20b_gr_zbc_add_depth(struct gk20a *g,
+void gm20b_gr_zbc_add_depth(struct gk20a *g,
 			   struct nvgpu_gr_zbc_entry *depth_val, u32 index)
 {
 	/* update ds table */
@@ -74,7 +89,7 @@ int gm20b_gr_zbc_add_depth(struct gk20a *g,
 			nvgpu_gr_zbc_get_entry_format(depth_val)));
 
 	nvgpu_writel(g, gr_ds_zbc_tbl_index_r(),
-		gr_ds_zbc_tbl_index_val_f(index + NVGPU_GR_ZBC_STARTOF_TABLE));
+		gr_ds_zbc_tbl_index_val_f(index));
 
 	/* trigger the write */
 	nvgpu_writel(g, gr_ds_zbc_tbl_ld_r(),
@@ -82,5 +97,4 @@ int gm20b_gr_zbc_add_depth(struct gk20a *g,
 		gr_ds_zbc_tbl_ld_action_write_f() |
 		gr_ds_zbc_tbl_ld_trigger_active_f());
 
-	return 0;
 }

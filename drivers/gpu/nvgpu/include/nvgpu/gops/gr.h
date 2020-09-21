@@ -46,6 +46,7 @@ struct nvgpu_fecs_host_intr_status;
 struct netlist_av_list;
 struct nvgpu_hw_err_inject_info_desc;
 struct nvgpu_gr_sm_ecc_status;
+struct nvgpu_gr_zbc_table_indices;
 
 enum nvgpu_gr_sm_ecc_error_types;
 
@@ -958,10 +959,10 @@ struct gops_gr_fecs_trace {
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #ifdef CONFIG_NVGPU_GRAPHICS
 struct gops_gr_zbc {
-	int (*add_color)(struct gk20a *g,
+	void (*add_color)(struct gk20a *g,
 		struct nvgpu_gr_zbc_entry *color_val,
 		u32 index);
-	int (*add_depth)(struct gk20a *g,
+	void (*add_depth)(struct gk20a *g,
 		struct nvgpu_gr_zbc_entry *depth_val,
 		u32 index);
 	int (*set_table)(struct gk20a *g,
@@ -970,13 +971,12 @@ struct gops_gr_zbc {
 	int (*query_table)(struct gk20a *g,
 		struct nvgpu_gr_zbc *zbc,
 		struct nvgpu_gr_zbc_query_params *query_params);
-	int (*add_stencil)(struct gk20a *g,
+	void (*add_stencil)(struct gk20a *g,
 		struct nvgpu_gr_zbc_entry *s_val, u32 index);
 	u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(struct gk20a *g);
 	u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(struct gk20a *g);
-#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-#include "include/nvgpu/nvgpu_next_gops_gr_zbc.h"
-#endif
+	void (*init_table_indices)(struct gk20a *g,
+			struct nvgpu_gr_zbc_table_indices *zbc_indices);
 };
 struct gops_gr_zcull {
 	int (*init_zcull_hw)(struct gk20a *g,

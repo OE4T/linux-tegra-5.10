@@ -43,10 +43,20 @@ struct zbc_s_table;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc;
 
+struct nvgpu_gr_zbc_table_indices {
+	u32 min_color_index;
+	u32 min_depth_index;
+	u32 min_stencil_index;
+	u32 max_color_index;
+	u32 max_depth_index;
+	u32 max_stencil_index;
+};
+
 struct nvgpu_gr_zbc_query_params {
 	u32 color_ds[NVGPU_GR_ZBC_COLOR_VALUE_SIZE];
 	u32 color_l2[NVGPU_GR_ZBC_COLOR_VALUE_SIZE];
 	u32 depth;
+	u32 stencil;
 	u32 ref_cnt;
 	u32 format;
 	u32 type;	/* color or depth */
@@ -55,40 +65,27 @@ struct nvgpu_gr_zbc_query_params {
 
 int nvgpu_gr_zbc_init(struct gk20a *g, struct nvgpu_gr_zbc **zbc);
 void nvgpu_gr_zbc_deinit(struct gk20a *g, struct nvgpu_gr_zbc *zbc);
-int nvgpu_gr_zbc_load_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc);
-int nvgpu_gr_zbc_add_depth(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
-			   struct nvgpu_gr_zbc_entry *depth_val, u32 index);
-int nvgpu_gr_zbc_add_color(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
-			   struct nvgpu_gr_zbc_entry *color_val, u32 index);
+void nvgpu_gr_zbc_load_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc);
 int nvgpu_gr_zbc_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			     struct nvgpu_gr_zbc_query_params *query_params);
 int nvgpu_gr_zbc_set_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			   struct nvgpu_gr_zbc_entry *zbc_val);
-int nvgpu_gr_zbc_stencil_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
-				struct nvgpu_gr_zbc_query_params *query_params);
-bool nvgpu_gr_zbc_add_type_stencil(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
-				   struct nvgpu_gr_zbc_entry *zbc_val,
-				   int *ret_val);
-int nvgpu_gr_zbc_load_stencil_default_tbl(struct gk20a *g,
-					  struct nvgpu_gr_zbc *zbc);
-int nvgpu_gr_zbc_load_stencil_tbl(struct gk20a *g, struct nvgpu_gr_zbc *zbc);
 
 struct nvgpu_gr_zbc_entry *nvgpu_gr_zbc_entry_alloc(struct gk20a *g);
 void nvgpu_gr_zbc_entry_free(struct gk20a *g, struct nvgpu_gr_zbc_entry *entry);
-u32 nvgpu_gr_zbc_get_entry_color_ds(struct nvgpu_gr_zbc_entry *entry,
-		int idx);
+u32 nvgpu_gr_zbc_get_entry_color_ds(struct nvgpu_gr_zbc_entry *entry, int idx);
 void nvgpu_gr_zbc_set_entry_color_ds(struct nvgpu_gr_zbc_entry *entry,
 		int idx, u32 ds);
-u32 nvgpu_gr_zbc_get_entry_color_l2(struct nvgpu_gr_zbc_entry *entry,
-		int idx);
+u32 nvgpu_gr_zbc_get_entry_color_l2(struct nvgpu_gr_zbc_entry *entry, int idx);
 void nvgpu_gr_zbc_set_entry_color_l2(struct nvgpu_gr_zbc_entry *entry,
 		int idx, u32 l2);
 u32 nvgpu_gr_zbc_get_entry_depth(struct nvgpu_gr_zbc_entry *entry);
-void nvgpu_gr_zbc_set_entry_depth(struct nvgpu_gr_zbc_entry *entry,
-		u32 depth);
+void nvgpu_gr_zbc_set_entry_depth(struct nvgpu_gr_zbc_entry *entry, u32 depth);
+u32 nvgpu_gr_zbc_get_entry_stencil(struct nvgpu_gr_zbc_entry *entry);
+void nvgpu_gr_zbc_set_entry_stencil(struct nvgpu_gr_zbc_entry *entry,
+		u32 stencil);
 u32 nvgpu_gr_zbc_get_entry_type(struct nvgpu_gr_zbc_entry *entry);
-void nvgpu_gr_zbc_set_entry_type(struct nvgpu_gr_zbc_entry *entry,
-		u32 type);
+void nvgpu_gr_zbc_set_entry_type(struct nvgpu_gr_zbc_entry *entry, u32 type);
 u32 nvgpu_gr_zbc_get_entry_format(struct nvgpu_gr_zbc_entry *entry);
 void nvgpu_gr_zbc_set_entry_format(struct nvgpu_gr_zbc_entry *entry,
 		u32 format);

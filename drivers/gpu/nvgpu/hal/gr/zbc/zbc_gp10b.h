@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,16 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gr_zbc_table_indices;
 struct nvgpu_gr_zbc_entry;
 
+void gp10b_gr_zbc_init_table_indices(struct gk20a *g,
+			struct nvgpu_gr_zbc_table_indices *zbc_indices);
 u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g);
 u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g);
-int gp10b_gr_zbc_add_color(struct gk20a *g,
+void gp10b_gr_zbc_add_color(struct gk20a *g,
 			   struct nvgpu_gr_zbc_entry *color_val, u32 index);
-int gp10b_gr_zbc_add_depth(struct gk20a *g,
+void gp10b_gr_zbc_add_depth(struct gk20a *g,
 			   struct nvgpu_gr_zbc_entry *depth_val, u32 index);
 
 #endif /* NVGPU_GR_ZBC_GP10B_H */

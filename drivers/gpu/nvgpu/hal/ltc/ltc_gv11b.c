@@ -43,8 +43,7 @@ void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 					  u32 index)
 {
 	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
-		ltc_ltcs_ltss_dstg_zbc_index_address_f(
-			nvgpu_safe_add_u32(index, NVGPU_GR_ZBC_STARTOF_TABLE)));
+		ltc_ltcs_ltss_dstg_zbc_index_address_f(index));
 
 	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_r(),
 			stencil_depth);

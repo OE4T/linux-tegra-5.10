@@ -249,10 +249,7 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 			goto out;
 		}
 
-		err = nvgpu_gr_zbc_load_table(g, gr->zbc);
-		if (err != 0) {
-			goto out;
-		}
+		nvgpu_gr_zbc_load_table(g, gr->zbc);
 
 		if (g->ops.gr.init.preemption_state != NULL) {
 			err = g->ops.gr.init.preemption_state(g);

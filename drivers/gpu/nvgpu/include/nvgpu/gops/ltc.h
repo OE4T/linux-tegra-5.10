@@ -144,7 +144,6 @@ struct gops_ltc {
 					u32 depth_val, u32 index);
 	void (*set_zbc_s_entry)(struct gk20a *g,
 					u32 s_val, u32 index);
-	u32 (*zbc_table_size)(struct gk20a *g);
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	bool (*pri_is_ltc_addr)(struct gk20a *g, u32 addr);
