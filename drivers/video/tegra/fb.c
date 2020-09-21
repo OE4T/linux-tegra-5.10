@@ -35,6 +35,9 @@
 #include <linux/console.h>
 #include <linux/nvhost.h>
 #include <linux/nvmap.h>
+#if KERNEL_VERSION(5, 4, 0) < LINUX_VERSION_CODE
+#include <linux/fbcon.h>
+#endif
 
 #include <linux/iommu.h>
 
@@ -863,25 +866,32 @@ void tegra_fbcon_set_fb_mode(struct tegra_fb_info *fb_info,
 {
 	struct fb_var_screeninfo var;
 	struct tegra_dc *dc = fb_info->win.dc;
-
-	/*
-	 * Disable DC and blank console before modeset.
-	 * Set MISC_USEREVENT flag to indicate user requested blank and to
-	 * update consoles in fb_set_var() below.
-	 */
-	fb_info->info->flags |= FBINFO_MISC_USEREVENT;
-	fb_blank(fb_info->info, FB_BLANK_POWERDOWN);
+	int __maybe_unused err = 0;
 
 	fb_videomode_to_var(&var, fb_mode);
 	var.bits_per_pixel = dc->pdata->fb->bits_per_pixel;
+
+	/* Disable DC and blank consoles before modeset */
+	fb_blank(fb_info->info, FB_BLANK_POWERDOWN);
+
 	/* Set flags to update all available TTYs immediately */
 	var.activate = FB_ACTIVATE_NOW | FB_ACTIVATE_ALL;
-
-	/* Set var_screeninfo */
-	fb_set_var(fb_info->info, &var);
-
-	/* Enable DC and unblank console */
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+	/*
+	 * Set MISC_USEREVENT flag to indicate user requested blank and to
+	 * update consoles in fb_set_var().
+	 */
 	fb_info->info->flags |= FBINFO_MISC_USEREVENT;
+	fb_set_var(fb_info->info, &var);
+	fb_info->info->flags |= FBINFO_MISC_USEREVENT;
+#else
+	err = fb_set_var(fb_info->info, &var);
+	/* Update mode on all consoles with FB_ACTIVATE_ALL */
+	if (!err)
+		fbcon_update_vcs(fb_info->info,
+				((var.activate & FB_ACTIVATE_ALL) != 0));
+#endif
+	/* Enable DC and unblank consoles */
 	fb_blank(fb_info->info, FB_BLANK_UNBLANK);
 }
 
@@ -941,11 +951,14 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 		fb_info->info->mode = (struct fb_videomode*) NULL;
 
 		if (IS_ENABLED(CONFIG_FRAMEBUFFER_CONSOLE)) {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			/*
-			 * Disable DC and blank console. Set MISC_USEREVENT
-			 * flag to indicate user requested blank.
+			 * FBINFO_MISC_USEREVENT flag to indicate user
+			 * requested blank.
 			 */
 			fb_info->info->flags |= FBINFO_MISC_USEREVENT;
+#endif
+			/* Disable DC and blank console */
 			fb_blank(fb_info->info, FB_BLANK_POWERDOWN);
 			/*
 			 * fbconsole needs at least one mode in modelist. Add
