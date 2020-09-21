@@ -317,7 +317,11 @@ static netdev_tx_t tegra_hv_net_xmit(struct sk_buff *skb,
 	struct tegra_hv_net *hvn = netdev_priv(ndev);
 
 	skb_orphan(skb);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+	nf_reset_ct(skb);
+#else
 	nf_reset(skb);
+#endif
 	skb_queue_tail(&hvn->tx_q, skb);
 	queue_work_on(WORK_CPU_UNBOUND, hvn->xmit_wq, &hvn->xmit_work);
 
@@ -363,10 +367,17 @@ static void tegra_hv_net_set_rx_mode(struct net_device *ndev)
 	/* we don't do any kind of filtering */
 }
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+static void tegra_hv_net_tx_timeout(struct net_device *ndev, unsigned int txqueue)
+{
+	netdev_err(ndev, "%s\n", __func__);
+}
+#else
 static void tegra_hv_net_tx_timeout(struct net_device *ndev)
 {
 	netdev_err(ndev, "%s\n", __func__);
 }
+#endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0)
 void
@@ -723,7 +734,11 @@ static int tegra_hv_net_probe(struct platform_device *pdev)
 	/* get mac address from the DT */
 
 	hvn->mac_address = of_get_mac_address(dev->of_node);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+	if (IS_ERR_OR_NULL(hvn->mac_address)) {
+#else
 	if (hvn->mac_address == NULL) {
+#endif
 		if (of_property_read_bool(dev->of_node, "use-random-mac-addr"))
 			eth_hw_addr_random(ndev);
 		else {
