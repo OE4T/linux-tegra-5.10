@@ -46,7 +46,6 @@ struct tegra_smmu {
 
 	unsigned long *asids;
 	struct mutex lock;
-	spinlock_t as_lock;
 
 	struct list_head list;
 
@@ -59,6 +58,7 @@ struct tegra_smmu_as {
 	struct iommu_domain domain;
 	struct tegra_smmu *smmu;
 	unsigned int use_count;
+	spinlock_t lock;
 	u32 *count;
 	struct page **pts;
 	struct page *pd;
@@ -318,6 +318,8 @@ static struct iommu_domain *tegra_smmu_domain_alloc(unsigned type)
 	as->pts = kcalloc(SMMU_NUM_PDE, sizeof(*as->pts), GFP_KERNEL);
 	if (!as->pts)
 		goto free_pts;
+
+	spin_lock_init(&as->lock);
 
 	/* setup aperture */
 	as->domain.geometry.aperture_start = 0;
@@ -593,18 +595,13 @@ static u32 *tegra_smmu_pte_lookup(struct tegra_smmu_as *as, unsigned long iova,
 }
 
 static u32 *as_get_pte(struct tegra_smmu_as *as, dma_addr_t iova,
-		       dma_addr_t *dmap)
+		       dma_addr_t *dmap, struct page *page)
 {
 	unsigned int pde = iova_pd_index(iova);
 	struct tegra_smmu *smmu = as->smmu;
 
 	if (!as->pts[pde]) {
-		struct page *page;
 		dma_addr_t dma;
-
-		page = alloc_page(GFP_KERNEL | __GFP_DMA | __GFP_ZERO);
-		if (!page)
-			return NULL;
 
 		dma = dma_map_page(smmu->dev, page, 0, SMMU_SIZE_PT,
 				   DMA_TO_DEVICE);
@@ -649,28 +646,67 @@ static void tegra_smmu_pte_put_use(struct tegra_smmu_as *as, unsigned long iova)
 	as->count[pde]--;
 }
 
-static int tegra_smmu_map(struct iommu_domain *domain, unsigned long iova,
-			  phys_addr_t paddr, size_t size, int prot, gfp_t gfp,
-			  struct iommu_iotlb_gather *gather)
+static struct page *as_get_pde_page(struct tegra_smmu_as *as,
+				    unsigned long iova, gfp_t gfp,
+				    unsigned long *flags)
+{
+	unsigned int pde = iova_pd_index(iova);
+	struct page *page = as->pts[pde];
+
+	/* at first check whether allocation needs to be done at all */
+	if (page)
+		return page;
+
+	/*
+	 * In order to prevent exhaustion of the atomic memory pool, we
+	 * allocate page in a sleeping context if GFP flags permit. Hence
+	 * spinlock needs to be unlocked and re-locked after allocation.
+	 */
+	if (!(gfp & __GFP_ATOMIC))
+		spin_unlock_irqrestore(&as->lock, *flags);
+
+	page = alloc_page(gfp | __GFP_DMA | __GFP_ZERO);
+
+	if (!(gfp & __GFP_ATOMIC))
+		spin_lock_irqsave(&as->lock, *flags);
+
+	/*
+	 * In a case of blocking allocation, a concurrent mapping may win
+	 * the PDE allocation. In this case the allocated page isn't needed
+	 * if allocation succeeded and the allocation failure isn't fatal.
+	 */
+	if (as->pts[pde]) {
+		if (page)
+			__free_page(page);
+
+		page = as->pts[pde];
+	}
+
+	return page;
+}
+
+static int
+__tegra_smmu_map(struct iommu_domain *domain, unsigned long iova,
+		 phys_addr_t paddr, size_t size, int prot, gfp_t gfp,
+		 struct iommu_iotlb_gather *gather, unsigned long *flags)
 {
 	struct tegra_smmu_as *as = to_smmu_as(domain);
-	struct tegra_smmu *smmu = as->smmu;
-	unsigned long flags;
 	dma_addr_t pte_dma;
+	struct page *page;
 	u32 pte_attrs;
 	u32 *pte;
 
-	spin_lock_irqsave(&smmu->as_lock, flags);
-	pte = as_get_pte(as, iova, &pte_dma);
-	if (!pte) {
-		spin_unlock_irqrestore(&smmu->as_lock, flags);
+	page = as_get_pde_page(as, iova, gfp, flags);
+	if (!page)
 		return -ENOMEM;
-	}
+
+	pte = as_get_pte(as, iova, &pte_dma, page);
+	if (!pte)
+		return -ENOMEM;
 
 	/* If we aren't overwriting a pre-existing entry, increment use */
 	if (*pte == 0)
 		tegra_smmu_pte_get_use(as, iova);
-	spin_unlock_irqrestore(&smmu->as_lock, flags);
 
 	pte_attrs = SMMU_PTE_NONSECURE;
 
@@ -687,12 +723,11 @@ static int tegra_smmu_map(struct iommu_domain *domain, unsigned long iova,
 	return 0;
 }
 
-static size_t tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
-			       size_t size, struct iommu_iotlb_gather *gather)
+static size_t
+__tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
+		   size_t size, struct iommu_iotlb_gather *gather)
 {
 	struct tegra_smmu_as *as = to_smmu_as(domain);
-	struct tegra_smmu *smmu = as->smmu;
-	unsigned long flags;
 	dma_addr_t pte_dma;
 	u32 *pte;
 
@@ -702,11 +737,37 @@ static size_t tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 
 	*pte = 0;
 
-	spin_lock_irqsave(&smmu->as_lock, flags);
 	tegra_smmu_pte_put_use(as, iova);
-	spin_unlock_irqrestore(&smmu->as_lock, flags);
 
 	iommu_iotlb_gather_add_page(domain, gather, iova, size);
+
+	return size;
+}
+
+static int tegra_smmu_map(struct iommu_domain *domain, unsigned long iova,
+			  phys_addr_t paddr, size_t size, int prot, gfp_t gfp,
+			  struct iommu_iotlb_gather *gather)
+{
+	struct tegra_smmu_as *as = to_smmu_as(domain);
+	unsigned long flags;
+	int ret;
+
+	spin_lock_irqsave(&as->lock, flags);
+	ret = __tegra_smmu_map(domain, iova, paddr, size, prot, gfp, gather, &flags);
+	spin_unlock_irqrestore(&as->lock, flags);
+
+	return ret;
+}
+
+static size_t tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
+			       size_t size, struct iommu_iotlb_gather *gather)
+{
+	struct tegra_smmu_as *as = to_smmu_as(domain);
+	unsigned long flags;
+
+	spin_lock_irqsave(&as->lock, flags);
+	size = __tegra_smmu_unmap(domain, iova, size, gather);
+	spin_unlock_irqrestore(&as->lock, flags);
 
 	return size;
 }
@@ -931,12 +992,15 @@ static void tegra_smmu_iotlb_sync(struct iommu_domain *domain,
 	struct tegra_smmu_as *as = to_smmu_as(domain);
 	struct tegra_smmu *smmu = as->smmu;
 	unsigned int total = size >> SMMU_PTE_SHIFT;
+	unsigned long flags;
 	unsigned int len;
+
+	spin_lock_irqsave(&as->lock, flags);
 
 	for (;total; total -= len, iova += len << SMMU_PTE_SHIFT) {
 		unsigned int pt_index = iova_pt_index(iova);
 		unsigned int pd_index = iova_pd_index(iova);
-		unsigned long offset, flags;
+		unsigned long offset;
 		dma_addr_t pte_dma;
 		u32 *pte;
 
@@ -956,8 +1020,6 @@ static void tegra_smmu_iotlb_sync(struct iommu_domain *domain,
 		smmu_flush_tlb_group(smmu, as->id, iova);
 		smmu_flush(smmu);
 
-		spin_lock_irqsave(&smmu->as_lock, flags);
-
 		/*
 		 * When no entries in this page table are used anymore, return the
 		 * memory page to the system.
@@ -973,9 +1035,9 @@ static void tegra_smmu_iotlb_sync(struct iommu_domain *domain,
 			__free_page(page);
 			as->pts[pd_index] = NULL;
 		}
-
-		spin_unlock_irqrestore(&smmu->as_lock, flags);
 	}
+
+	spin_unlock_irqrestore(&as->lock, flags);
 }
 
 static void tegra_smmu_get_resv_regions(struct device *dev,
@@ -1149,7 +1211,6 @@ struct tegra_smmu *tegra_smmu_probe(struct device *dev,
 
 	INIT_LIST_HEAD(&smmu->groups);
 	mutex_init(&smmu->lock);
-	spin_lock_init(&smmu->as_lock);
 
 	smmu->regs = mc->regs;
 	smmu->soc = soc;
