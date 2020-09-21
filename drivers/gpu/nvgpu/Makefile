@@ -363,7 +363,8 @@ nvgpu-y += \
 	hal/pmu/pmu_tu104.o \
 	hal/top/top_gp106.o \
 	hal/top/top_gp10b.o \
-	hal/tpc/tpc_gv11b.o
+	hal/tpc/tpc_gv11b.o \
+	hal/priv_ring/priv_ring_gv11b.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \

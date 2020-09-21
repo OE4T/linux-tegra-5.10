@@ -141,6 +141,9 @@ struct gops_priv_ring {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	void (*decode_error_code)(struct gk20a *g, u32 error_code);
+#ifdef CONFIG_NVGPU_PROFILER
+	void (*read_pri_fence)(struct gk20a *g);
+#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #if defined(CONFIG_NVGPU_NEXT)

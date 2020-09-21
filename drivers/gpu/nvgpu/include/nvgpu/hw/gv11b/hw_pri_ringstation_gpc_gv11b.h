@@ -69,4 +69,5 @@
 #define pri_ringstation_gpc_gpc0_priv_error_info_priv_level_v(r)\
 				(((r) >> 20U) & 0x3U)
 #define pri_ringstation_gpc_gpc0_priv_error_code_r()               (0x0012812cU)
+#define pri_ringstation_gpc_pri_fence_r()                          (0x001281fcU)
 #endif

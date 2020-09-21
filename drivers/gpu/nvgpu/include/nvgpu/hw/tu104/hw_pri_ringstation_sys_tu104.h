@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -67,4 +67,5 @@
 #define pri_ringstation_sys_priv_error_wrdat_r()                   (0x00122124U)
 #define pri_ringstation_sys_priv_error_info_r()                    (0x00122128U)
 #define pri_ringstation_sys_priv_error_code_r()                    (0x0012212cU)
+#define pri_ringstation_sys_pri_fence_r()                          (0x001221fcU)
 #endif

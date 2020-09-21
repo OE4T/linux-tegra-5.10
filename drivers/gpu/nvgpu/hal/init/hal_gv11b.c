@@ -62,6 +62,7 @@
 #include "hal/class/class_gv11b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
+#include "hal/priv_ring/priv_ring_gv11b.h"
 #include "hal/gr/config/gr_config_gv100.h"
 #include "hal/power_features/cg/gv11b_gating_reglist.h"
 #ifdef CONFIG_NVGPU_COMPRESSION
@@ -1335,6 +1336,9 @@ static const struct gops_priv_ring gv11b_ops_priv_ring = {
 	.enum_ltc = gm20b_priv_ring_enum_ltc,
 	.get_gpc_count = gm20b_priv_ring_get_gpc_count,
 	.get_fbp_count = gm20b_priv_ring_get_fbp_count,
+#ifdef CONFIG_NVGPU_PROFILER
+	.read_pri_fence = gv11b_priv_ring_read_pri_fence,
+#endif
 };
 
 static const struct gops_fuse gv11b_ops_fuse = {

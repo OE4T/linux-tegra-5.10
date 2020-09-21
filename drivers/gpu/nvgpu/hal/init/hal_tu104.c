@@ -48,6 +48,7 @@
 #include "hal/class/class_tu104.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
+#include "hal/priv_ring/priv_ring_gv11b.h"
 #include "hal/power_features/cg/tu104_gating_reglist.h"
 #include "hal/cbc/cbc_gm20b.h"
 #include "hal/cbc/cbc_tu104.h"
@@ -1428,6 +1429,9 @@ static const struct gops_priv_ring tu104_ops_priv_ring = {
 	.enum_ltc = gm20b_priv_ring_enum_ltc,
 	.get_gpc_count = gm20b_priv_ring_get_gpc_count,
 	.get_fbp_count = gm20b_priv_ring_get_fbp_count,
+#ifdef CONFIG_NVGPU_PROFILER
+	.read_pri_fence = gv11b_priv_ring_read_pri_fence,
+#endif
 };
 #endif
 

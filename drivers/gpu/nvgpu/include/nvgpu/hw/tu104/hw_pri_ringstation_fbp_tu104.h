@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,24 +53,11 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef NVGPU_HW_PRI_RINGSTATION_SYS_GV11B_H
-#define NVGPU_HW_PRI_RINGSTATION_SYS_GV11B_H
+#ifndef NVGPU_HW_PRI_RINGSTATION_FBP_TU104_H
+#define NVGPU_HW_PRI_RINGSTATION_FBP_TU104_H
 
 #include <nvgpu/types.h>
 #include <nvgpu/static_analysis.h>
 
-#define pri_ringstation_sys_master_config_r(i)\
-		(nvgpu_safe_add_u32(0x00122300U, nvgpu_safe_mult_u32((i), 4U)))
-#define pri_ringstation_sys_decode_config_r()                      (0x00122204U)
-#define pri_ringstation_sys_decode_config_ring_m()             (U32(0x7U) << 0U)
-#define pri_ringstation_sys_decode_config_ring_drop_on_ring_not_started_f()\
-				(0x1U)
-#define pri_ringstation_sys_priv_error_adr_r()                     (0x00122120U)
-#define pri_ringstation_sys_priv_error_wrdat_r()                   (0x00122124U)
-#define pri_ringstation_sys_priv_error_info_r()                    (0x00122128U)
-#define pri_ringstation_sys_priv_error_info_subid_v(r)    (((r) >> 24U) & 0x3fU)
-#define pri_ringstation_sys_priv_error_info_priv_level_v(r)\
-				(((r) >> 20U) & 0x3U)
-#define pri_ringstation_sys_priv_error_code_r()                    (0x0012212cU)
-#define pri_ringstation_sys_pri_fence_r()                          (0x001221fcU)
+#define pri_ringstation_fbp_pri_fence_r()                          (0x001241fcU)
 #endif

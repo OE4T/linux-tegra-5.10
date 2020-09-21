@@ -472,6 +472,10 @@ void gv11b_perf_reset_hwpm_pmm_registers(struct gk20a *g)
 			g->ops.perf.get_pmmgpc_per_chiplet_offset(),
 			g->num_gpc_perfmon);
 	}
+
+	if (g->ops.priv_ring.read_pri_fence != NULL) {
+		g->ops.priv_ring.read_pri_fence(g);
+	}
 }
 
 void gv11b_perf_init_hwpm_pmm_register(struct gk20a *g)

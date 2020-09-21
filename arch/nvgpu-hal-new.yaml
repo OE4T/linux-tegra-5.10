@@ -88,7 +88,9 @@ priv_ring_fusa:
 priv_ring:
   safe: no
   owner: Seema K
-  sources: [ hal/priv_ring/priv_ring_gm20b.c ]
+  sources: [ hal/priv_ring/priv_ring_gm20b.c,
+             hal/priv_ring/priv_ring_gv11b.c,
+             hal/priv_ring/priv_ring_gv11b.h ]
 
 ptimer_fusa:
   safe: yes
