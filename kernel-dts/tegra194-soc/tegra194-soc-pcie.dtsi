@@ -550,8 +550,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE0R &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE0W &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE0R>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE0W>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 #if LINUX_VERSION >= 500
@@ -633,8 +633,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE4R &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE4W &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE4R>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE4W>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 #if LINUX_VERSION >= 500
@@ -723,8 +723,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE5R &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE5W &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE5R>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE5W>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 #if LINUX_VERSION >= 500
@@ -782,8 +782,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE0R &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE0W &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE0R>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE0W>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -872,8 +872,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE1R &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE1W &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE1R>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE1W>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -965,8 +965,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE2AR &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE2AW &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE2AR>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE2AW>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -1056,8 +1056,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE3R &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE3W &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE3R>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE3W>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -1147,8 +1147,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE4R &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE4W &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE4R>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE4W>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -1247,8 +1247,8 @@
 		iommu-map-mask = <0x0>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE5R &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_PCIE5W &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_PCIE5R>,
+				<&mc TEGRA194_MEMORY_CLIENT_PCIE5W>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 

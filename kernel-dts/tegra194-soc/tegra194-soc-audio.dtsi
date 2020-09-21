@@ -745,8 +745,8 @@
 				"hda2codec_2x",	"hda2hdmi";
 		interrupts = <0 161 0x04>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_HDAR &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_HDAW &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_HDAR>,
+				<&mc TEGRA194_MEMORY_CLIENT_HDAW>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 #if LINUX_VERSION >= 504

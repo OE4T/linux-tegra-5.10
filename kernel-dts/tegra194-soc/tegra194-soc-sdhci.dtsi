@@ -33,8 +33,8 @@
 		interrupts = < 0 TEGRA194_IRQ_SDMMC4 0x04>;
 		iommus = <&smmu TEGRA_SID_SDMMC4A>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_SDMMCRAB &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_SDMMCWAB &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_SDMMCRAB>,
+				<&mc TEGRA194_MEMORY_CLIENT_SDMMCWAB>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 		dma-coherent;
@@ -91,8 +91,8 @@
 		interrupts = < 0 TEGRA194_IRQ_SDMMC3 0x04>;
 		iommus = <&smmu TEGRA_SID_SDMMC3A>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_SDMMCR &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_SDMMCW &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_SDMMCR>,
+				<&mc TEGRA194_MEMORY_CLIENT_SDMMCW>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 		dma-coherent;
@@ -157,8 +157,8 @@
 		interrupts = < 0 TEGRA194_IRQ_SDMMC1 0x04>;
 		iommus = <&smmu TEGRA_SID_SDMMC1A>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_SDMMCRA &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_SDMMCWA &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_SDMMCRA>,
+				<&mc TEGRA194_MEMORY_CLIENT_SDMMCWA>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 		dma-coherent;

@@ -41,8 +41,8 @@
 		interrupts = < 0 44 0x04 >;
 		iommus = <&smmu TEGRA_SID_UFSHC>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_UFSHCR &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_UFSHCW &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_UFSHCR>,
+				<&mc TEGRA194_MEMORY_CLIENT_UFSHCW>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 		dma-coherent;

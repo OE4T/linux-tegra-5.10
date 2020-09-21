@@ -30,8 +30,8 @@
 		dma-coherent;
 		iommus = <&smmu TEGRA_SID_SATA2>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_SATAR &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_SATAW &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_SATAR>,
+				<&mc TEGRA194_MEMORY_CLIENT_SATAW>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_SAX>;

@@ -34,7 +34,7 @@
 		compatible = "nvidia,tegra186-hsuart";
 		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_HOST1XDMAR &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_HOST1XDMAR>;
 		interconnect-names = "dma-mem";
 #endif
 		dma-coherent;

@@ -94,7 +94,7 @@
 		status = "disabled";
 	};
 
-	mc {
+	mc: mc {
 		#address-cells = <2>;
 		#size-cells = <2>;
 		compatible = "nvidia,tegra-t19x-mc";
@@ -142,43 +142,8 @@
 		channels   = <16>;
 		ranges;
 		status = "disabled";
-
-		mssnvlink@1f20000 {
-			reg = <0x0 0x1f20000 0x0 0x20000   /* MSSNVLINK 1: igpu0 link */
-			       0x0 0x1f40000 0x0 0x20000   /* MSSNVLINK 2: igpu1 link */
-			       0x0 0x1f60000 0x0 0x20000   /* MSSNVLINK 3: igpu2 link */
-			       0x0 0x1f80000 0x0 0x20000>; /* MSSNVLINK 4: igpu3 link */
-			mssnvlink_hubs = <4>;
-		};
-	};
-
-#if TEGRA_IOMMU_DT_VERSION < DT_VERSION_2
-	mc: mc_sid@2c00000 {
-		status = "disabled";
-		compatible = "nvidia,tegra194-mc-sid";
-		reg = <0x0 0x02c00000 0x0 0x00010000>; /* MC_SID_BASE */
-	};
-#else
-	/* control backbone */
-	cbb@0 {
-		compatible = "simple-bus";
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges = <0x0 0x0 0x0 0x40000000>;
-
-		mc: mc_sid@2c00000 {
-			compatible = "nvidia,tegra194-mc";
-			reg = <0x0 0x02c00000 0x0 0x100000>,
-			      <0x0 0x02b80000 0x0 0x040000>,
-			      <0x0 0x01700000 0x0 0x100000>;
-			#interconnect-cells = <1>;
-
-			#address-cells = <2>;
-			#size-cells = <2>;
-
-			ranges = <0x01700000 0x0 0x01700000 0x0 0x100000>,
-				 <0x02b80000 0x0 0x02b80000 0x0 0x040000>,
-				 <0x02c00000 0x0 0x02c00000 0x0 0x100000>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		#interconnect-cells = <1>;
 
 			/*
 			 * Bit 39 of addresses passing through the memory
@@ -195,22 +160,23 @@
 			 *
 			 * Limit the DMA range for memory clients to [38:0].
 			 */
-			dma-ranges = <0x0 0x0 0x0 0x80 0x0>;
+		dma-ranges = <0x0 0x0 0x0 0x0 0x80 0x0>;
+#endif
 
-			emc: external-memory-controller@2c60000 {
-				compatible = "nvidia,tegra194-emc";
-				reg = <0x0 0x02c60000 0x0 0x90000>,
-				      <0x0 0x01780000 0x0 0x80000>;
-				clocks = <&bpmp TEGRA194_CLK_EMC>;
-				clock-names = "emc";
-
-				#interconnect-cells = <0>;
-
-				nvidia,bpmp = <&bpmp>;
-			};
+		mssnvlink@1f20000 {
+			reg = <0x0 0x1f20000 0x0 0x20000   /* MSSNVLINK 1: igpu0 link */
+			       0x0 0x1f40000 0x0 0x20000   /* MSSNVLINK 2: igpu1 link */
+			       0x0 0x1f60000 0x0 0x20000   /* MSSNVLINK 3: igpu2 link */
+			       0x0 0x1f80000 0x0 0x20000>; /* MSSNVLINK 4: igpu3 link */
+			mssnvlink_hubs = <4>;
 		};
 	};
-#endif
+
+	mc_sid@2c00000 {
+		status = "disabled";
+		compatible = "nvidia,tegra194-mc-sid";
+		reg = <0x0 0x02c00000 0x0 0x00010000>; /* MC_SID_BASE */
+	};
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 	smmu_iso: iommu@10000000{

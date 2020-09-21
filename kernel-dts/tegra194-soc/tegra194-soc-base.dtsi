@@ -351,10 +351,10 @@
 		#reset-cells = <1>;
 		#power-domain-cells = <1>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_BPMPR &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_BPMPW &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_BPMPDMAR &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_BPMPDMAW &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_BPMPR>,
+				<&mc TEGRA194_MEMORY_CLIENT_BPMPW>,
+				<&mc TEGRA194_MEMORY_CLIENT_BPMPDMAR>,
+				<&mc TEGRA194_MEMORY_CLIENT_BPMPDMAW>;
 		interconnect-names = "dma-mem", "dma-mem", "dma-mem", "dma-mem";
 #endif
 
@@ -432,7 +432,7 @@
 		dma-coherent;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_HOST1XDMAR &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_HOST1XDMAR>;
 		interconnect-names = "dma-mem";
 #else
 		dma-ranges = <0x0 0x0 0x0 0x0 0x7f 0xffff0000>;
@@ -712,8 +712,8 @@
 				iommu-direct-regions = <&fb0_reserved &fb1_reserved
 							&fb2_reserved &fb3_reserved>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
-						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
+				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR>,
+						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1>;
 				interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -792,8 +792,8 @@
 				iommu-direct-regions = <&fb0_reserved &fb1_reserved
 							&fb2_reserved &fb3_reserved>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
-						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
+				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR>,
+						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1>;
 				interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -871,8 +871,8 @@
 				iommu-direct-regions = <&fb0_reserved &fb1_reserved
 							&fb2_reserved &fb3_reserved>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
-						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
+				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR>,
+						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1>;
 				interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -950,8 +950,8 @@
 				iommu-direct-regions = <&fb0_reserved &fb1_reserved
 							&fb2_reserved &fb3_reserved>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR &emc>,
-						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1 &emc>;
+				interconnects = <&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR>,
+						<&mc TEGRA194_MEMORY_CLIENT_NVDISPLAYR1>;
 				interconnect-names = "dma-mem", "dma-mem";
 #endif
 
@@ -1885,8 +1885,8 @@
 		interrupt-parent = <&tegra_pm_irq>;
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTR &emc>,
-				<&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTW &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTW>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 		clocks = <&bpmp_clks TEGRA194_CLK_XUSB_CORE_MUX>,

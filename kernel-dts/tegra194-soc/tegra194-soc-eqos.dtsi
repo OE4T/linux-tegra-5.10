@@ -63,8 +63,8 @@
 		resets = <&bpmp_resets TEGRA194_RESET_EQOS>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		interconnects = <&mc TEGRA194_MEMORY_CLIENT_EQOSR &emc>,
-			        <&mc TEGRA194_MEMORY_CLIENT_EQOSW &emc>;
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_EQOSR>,
+			        <&mc TEGRA194_MEMORY_CLIENT_EQOSW>;
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 
