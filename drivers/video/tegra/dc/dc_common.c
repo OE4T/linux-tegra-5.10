@@ -1171,7 +1171,7 @@ static int tegra_dc_common_probe(struct platform_device *pdev)
 	return 0;
 
 err_free_upd_val:
-	kfree(dc_common->upd_val);
+	devm_kfree(&pdev->dev, dc_common->upd_val);
 err_syncpt_drop:
 	nvhost_syncpt_put_ref_ext(pdev, dc_common->syncpt_id);
 err_drop_channel:
@@ -1179,9 +1179,9 @@ err_drop_channel:
 err_iounmap_reg:
 	iounmap(dc_common->base);
 err_free:
-	kfree(pdata);
+	devm_kfree(&pdev->dev, pdata);
 err_free_dc_common:
-	kfree(dc_common);
+	devm_kfree(&pdev->dev, dc_common);
 	return ret;
 }
 
