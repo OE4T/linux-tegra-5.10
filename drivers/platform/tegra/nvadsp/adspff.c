@@ -14,7 +14,7 @@
 #define pr_fmt(fmt) "adspff: " fmt
 
 #include <linux/fs.h>
-#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 #include <linux/slab.h>
 #include <linux/kthread.h>

@@ -11,7 +11,7 @@
  * more details.
  */
 
-#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 #include <linux/fs.h>
 #include <linux/slab.h>

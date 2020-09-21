@@ -47,7 +47,7 @@
 #include <linux/reset.h>
 #include <linux/poll.h>
 
-#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 #include "ape_actmon.h"
 #include "os.h"
