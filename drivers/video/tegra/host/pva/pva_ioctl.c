@@ -574,6 +574,42 @@ err_check_characteristics_ptr:
 	return err;
 }
 
+static int pva_get_statistics(struct pva_private *priv,
+		void *arg)
+{
+	struct pva_statistics pva_stats;
+	struct pva_statistics_req *in_pva_stats =
+			(struct pva_statistics_req *)arg;
+	u64 size = sizeof(struct pva_statistics);
+	struct pva *pva = priv->pva;
+	int err = 0;
+
+	/* check whether the statistics has NULL pointer */
+	if (!in_pva_stats->statistics) {
+		err = -EINVAL;
+		goto err_check_statistics;
+	}
+
+	memset(&pva_stats, 0, size);
+
+	err = pva_boot_kpi(pva, &(pva_stats.r5_boot_time));
+	if (err < 0)
+		goto err_check_statistics;
+
+	if (copy_to_user((void __user *)in_pva_stats->statistics,
+			&pva_stats,
+			size)) {
+		err = -EFAULT;
+		nvhost_dbg_info("error in copying to user\n");
+		goto err_check_statistics;
+	}
+
+	in_pva_stats->statistics_size = size;
+
+err_check_statistics:
+	return err;
+}
+
 static int pva_copy_function_table(struct pva_private *priv,
 		void *arg)
 {
@@ -715,6 +751,11 @@ static long pva_ioctl(struct file *file, unsigned int cmd,
 	case PVA_IOCTL_CHARACTERISTICS:
 	{
 		err = pva_get_characteristics(priv, buf);
+		break;
+	}
+	case PVA_IOCTL_STATISTICS:
+	{
+		err = pva_get_statistics(priv, buf);
 		break;
 	}
 	case PVA_IOCTL_PIN:

@@ -3,7 +3,7 @@
  *
  * Tegra PVA header
  *
- * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -408,6 +408,18 @@ int pva_get_firmware_version(struct pva *pva,
  *
  * @return	0 on success, otherwise a negative error code
  */
+
+/**
+ * @brief	Get PVA Boot KPI
+ *
+ * @param pva	Pointer to a PVA device node
+ * @param r5_boot_time	Pointer to a variable, where r5 boot time will be filled
+ *
+ * @return	0 on success, otherwise a negative error code
+ */
+int pva_boot_kpi(struct pva *pva,
+			     u64 *r5_boot_time);
+
 int pva_set_log_level(struct pva *pva,
 			     u32 log_level);
 #endif
