@@ -167,11 +167,6 @@ void dce_ipc_free_region(struct tegra_dce *d)
  */
 static void dce_ipc_signal_target(struct ivc *ivc)
 {
-	struct dce_ipc_channel *ch;
-
-	ch = container_of(ivc, struct dce_ipc_channel, d_ivc);
-
-	ch->signal.notify(ch->d, &ch->signal.to_d);
 }
 
 static int _dce_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type)
@@ -400,6 +395,9 @@ bool dce_ipc_channel_is_ready(struct tegra_dce *d, u32 ch_type)
 
 	ret = (tegra_ivc_channel_notified(&ch->d_ivc) ? false : true);
 
+	if (ret)
+		ch->signal.notify(d, &ch->signal.to_d);
+
 	dce_mutex_unlock(&ch->lock);
 
 	return ret;
@@ -425,6 +423,8 @@ void dce_ipc_channel_reset(struct tegra_dce *d, u32 ch_type)
 	trace_ivc_channel_reset_triggered(d, ch);
 
 	ch->flags &= ~DCE_IPC_CHANNEL_SYNCED;
+
+	ch->signal.notify(d, &ch->signal.to_d);
 
 	_dce_ipc_wait(ch->d, DCE_IPC_WAIT_TYPE_SYNC, ch_type);
 
