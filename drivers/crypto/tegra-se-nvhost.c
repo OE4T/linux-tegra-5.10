@@ -1569,7 +1569,7 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 }
 
 static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
-				  struct tegra_se_req_context *req_ctx,
+				  struct ahash_request *req,
 				  struct tegra_se_sha_context *sha_ctx,
 				  u32 count, bool last)
 {
@@ -1577,6 +1577,7 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 	u32 cmdbuf_num_words = 0, i = 0;
 	u32 *cmdbuf_cpuvaddr = NULL;
 	dma_addr_t cmdbuf_iova = 0;
+	struct tegra_se_req_context *req_ctx = ahash_request_ctx(req);
 	struct tegra_se_ll *src_ll = se_dev->src_ll;
 	struct tegra_se_ll *dst_ll = se_dev->dst_ll;
 	unsigned int total = count, val, index;
@@ -1606,7 +1607,12 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 						SE_SHA_MSG_LENGTH_OFFSET);
 
 			/* Program message length in next 4 four registers */
-			msg_len = (count * 8);
+			if (sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE128
+			|| sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE256) {
+				/* Reduce 4 extra bits in padded 8 bits */
+				msg_len = (count * 8) - 4;
+			} else
+				msg_len = (count * 8);
 			cmdbuf_cpuvaddr[i++] =
 					(sha_ctx->total_count * 8);
 			cmdbuf_cpuvaddr[i++] = (u32)(msg_len >> 32);
@@ -1653,6 +1659,17 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 		cmdbuf_cpuvaddr[i++] = (u32)(SE_ADDR_HI_MSB(MSB(dst_ll->addr)) |
 					SE_ADDR_HI_SZ(dst_ll->data_len));
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+		/* For SHAKE128/SHAKE256 program digest size */
+		if (sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE128
+			|| sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE256) {
+			cmdbuf_cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+			cmdbuf_cpuvaddr[i++] = __nvhost_opcode_nonincr_w(
+						se_dev->opcode_addr +
+						SE_SHA_HASH_LENGTH);
+			cmdbuf_cpuvaddr[i++] = (req->dst_size * 8) << 2;
+		}
+#endif
 		cmdbuf_cpuvaddr[i++] = nvhost_opcode_setpayload(1);
 		cmdbuf_cpuvaddr[i++] = __nvhost_opcode_nonincr_w(
 						se_dev->opcode_addr +
@@ -2598,9 +2615,16 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 
 	pr_debug("%s:%d process sha buffer\n", __func__, __LINE__);
 
+	num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
+	if (num_sgs > SE_MAX_SRC_SG_COUNT) {
+		dev_err(se_dev->dev, "num of SG buffers are more\n");
+		return -ENOTSUPP;
+	}
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-	/* For SHAKE128/SHAKE256 where digest size can vary */
-	if (req->dst_size)
+	/* For SHAKE128/SHAKE256, digest size can vary */
+	if (sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE128
+			|| sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE256)
 		dst_len = req->dst_size;
 #endif
 
@@ -2659,6 +2683,20 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 			se_dev->dst_bytes_mapped = dst_len;
 			se_dev->sha_dst_mapped = true;
 		}
+
+		/* Pad last byte to be 0xff for SHAKE128/256 */
+		if (sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE128
+			|| sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE256) {
+			while (num_sgs && process_cur_req) {
+				src_ll++;
+				num_sgs--;
+			}
+			sha_ctx->sha_buf[1][0] = 0xff;
+			src_ll->addr = sha_ctx->sha_buf_addr[1];
+			src_ll->data_len = 1;
+			src_ll++;
+			current_total += 1;
+		}
 	} else {
 		current_total = req->nbytes + sha_ctx->residual_bytes;
 		num_blks = current_total / sha_ctx->blk_size;
@@ -2667,7 +2705,6 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 		 * copy to residual and return.
 		 */
 		if (num_blks <= 1) {
-			num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
 			sg_copy_to_buffer(req->src, num_sgs,
 					  sha_ctx->sha_buf[0] +
 					  sha_ctx->residual_bytes, req->nbytes);
@@ -2728,7 +2765,7 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 
 	req_ctx->config = tegra_se_get_config(se_dev, sha_ctx->op_mode,
 					      false, is_last);
-	err = tegra_se_send_sha_data(se_dev, req_ctx, sha_ctx,
+	err = tegra_se_send_sha_data(se_dev, req, sha_ctx,
 				     current_total, is_last);
 	if (err) {
 		if (se_dev->sha_src_mapped)
