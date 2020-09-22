@@ -511,10 +511,11 @@ send_ack:
 	kfree(msg_recv);
 }
 
-
+#if KERNEL_VERSION(5, 9, 0) > LINUX_VERSION_CODE
 static const struct sched_param param = {
 	.sched_priority = 1,
 };
+#endif
 static struct task_struct *adspff_kthread;
 static struct list_head adspff_kthread_msgq_head;
 static wait_queue_head_t  wait_queue;
@@ -678,7 +679,13 @@ int adspff_init(struct platform_device *pdev)
 	init_waitqueue_head(&wait_queue);
 	adspff_kthread = kthread_create(adspff_kthread_fn,
 		NULL, "adspp_kthread");
+
+#if KERNEL_VERSION(5, 9, 0) > LINUX_VERSION_CODE
 	sched_setscheduler(adspff_kthread, SCHED_FIFO, &param);
+#else
+	sched_set_fifo_low(adspff_kthread);
+#endif
+
 	get_task_struct(adspff_kthread);
 	wake_up_process(adspff_kthread);
 
