@@ -28,6 +28,8 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/gr_instances.h>
+#include <nvgpu/grmgr.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
@@ -947,6 +949,8 @@ static ssize_t tpc_fs_mask_read(struct device *dev,
 	u32 gpc_index;
 	u32 tpc_fs_mask = 0;
 	int err = 0;
+	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
+	u32 gpc_phys_id;
 
 	err = gk20a_busy(g);
 	if (err)
@@ -955,9 +959,11 @@ static ssize_t tpc_fs_mask_read(struct device *dev,
 	for (gpc_index = 0;
 	     gpc_index < nvgpu_gr_config_get_gpc_count(gr_config);
 	     gpc_index++) {
+		gpc_phys_id = nvgpu_grmgr_get_gr_gpc_phys_id(g,
+				cur_gr_instance, gpc_index);
 		if (g->ops.gr.config.get_gpc_tpc_mask)
 			tpc_fs_mask |=
-				g->ops.gr.config.get_gpc_tpc_mask(g, gr_config, gpc_index) <<
+				g->ops.gr.config.get_gpc_tpc_mask(g, gr_config, gpc_phys_id) <<
 				(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config) * gpc_index);
 	}
 

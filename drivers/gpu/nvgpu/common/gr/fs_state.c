@@ -25,6 +25,8 @@
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/fs_state.h>
+#include <nvgpu/gr/gr_instances.h>
+#include <nvgpu/grmgr.h>
 
 static int gr_load_sm_id_config(struct gk20a *g, struct nvgpu_gr_config *config)
 {
@@ -57,6 +59,8 @@ static void gr_load_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config)
 	u32 max_tpc_count = nvgpu_gr_config_get_max_tpc_count(config);
 	u32 fuse_tpc_mask;
 	u32 val;
+	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
+	u32 gpc_phys_id;
 #endif
 
 	/* gv11b has 1 GPC and 4 TPC/GPC, so mask will not overflow u32 */
@@ -74,7 +78,15 @@ static void gr_load_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config)
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
-		fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
+		/*
+		 * Fuse registers must be queried with physical gpc-id and not
+		 * the logical ones. For tu104 and before chips logical gpc-id
+		 * is same as physical gpc-id for non-floorswept config but for
+		 * chips after tu104 it may not be true.
+		 */
+		gpc_phys_id = nvgpu_grmgr_get_gr_gpc_phys_id(g,
+				cur_gr_instance, 0U);
+		fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
 		if ((g->tpc_fs_mask_user != 0U) &&
 					(g->tpc_fs_mask_user != fuse_tpc_mask)) {
 			if (fuse_tpc_mask == nvgpu_safe_sub_u32(BIT32(max_tpc_count),
@@ -102,6 +114,8 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 #ifdef CONFIG_NVGPU_NON_FUSA
 	u32 fuse_tpc_mask;
 	u32 max_tpc_cnt;
+	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
+	u32 gpc_phys_id;
 #endif
 	u32 gpc_cnt, tpc_cnt;
 	u32 num_sm;
@@ -145,7 +159,15 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 
 #ifdef CONFIG_NVGPU_NON_FUSA
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
-		fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
+		/*
+		 * Fuse registers must be queried with physical gpc-id and not
+		 * the logical ones. For tu104 and before chips logical gpc-id
+		 * is same as physical gpc-id for non-floorswept config but for
+		 * chips after tu104 it may not be true.
+		 */
+		gpc_phys_id = nvgpu_grmgr_get_gr_gpc_phys_id(g,
+				cur_gr_instance, 0U);
+		fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
 		max_tpc_cnt = nvgpu_gr_config_get_max_tpc_count(config);
 
 		if ((g->tpc_fs_mask_user != 0U) &&

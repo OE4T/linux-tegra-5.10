@@ -34,6 +34,8 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	u32 gpc_id;
 	struct nvgpu_gpu_instance *gpu_instance = &g->mig.gpu_instance[0];
 	struct nvgpu_gr_syspipe *gr_syspipe = &gpu_instance->gr_syspipe;
+	u32 local_gpc_mask;
+	u32 ffs_bit = 0U;
 
 	/* Number of gpu instance is 1 for legacy mode */
 	g->mig.gpc_count = g->ops.priv_ring.get_gpc_count(g);
@@ -69,14 +71,21 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 		}
 	} else {
 		/*
-		 * For Legacy gpu,
-		 * Local GPC Id = physical GPC Id = Logical GPC Id.
+		 * For tu104 and before chips,
+		 * Local GPC Id = physical GPC Id = Logical GPC Id for
+		 * non-floorswept config else physical gpcs are assigned
+		 * serially and floorswept gpcs are skipped.
 		 */
+		local_gpc_mask = gr_syspipe->gpc_mask;
 		for (gpc_id = 0U; gpc_id < gr_syspipe->num_gpc; gpc_id++) {
-			gr_syspipe->gpcs[gpc_id].logical_id =
-				gr_syspipe->gpcs[gpc_id].physical_id = gpc_id;
+			gr_syspipe->gpcs[gpc_id].logical_id = gpc_id;
+			nvgpu_assert(local_gpc_mask != 0U);
+			ffs_bit = nvgpu_ffs(local_gpc_mask) - 1U;
+			local_gpc_mask &= ~(1U << ffs_bit);
+			gr_syspipe->gpcs[gpc_id].physical_id = ffs_bit;
 			gr_syspipe->gpcs[gpc_id].gpcgrp_id = 0U;
 		}
+		nvgpu_assert(local_gpc_mask == 0U);
 	}
 	gr_syspipe->max_veid_count_per_tsg = g->fifo.max_subctx_count;
 	gr_syspipe->veid_start_offset = 0U;

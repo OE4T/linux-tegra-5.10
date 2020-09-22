@@ -209,7 +209,7 @@ static bool gr_config_alloc_struct_mem(struct gk20a *g,
 	u32 pes_index;
 	u32 total_tpc_cnt;
 	size_t sm_info_size;
-	size_t gpc_size, sm_size;
+	size_t gpc_size, sm_size, max_gpc_cnt;
 	size_t pd_tbl_size;
 
 	total_tpc_cnt = nvgpu_safe_mult_u32(config->gpc_count,
@@ -238,7 +238,9 @@ static bool gr_config_alloc_struct_mem(struct gk20a *g,
 	config->no_of_sm = 0;
 
 	gpc_size = nvgpu_safe_mult_u64((size_t)config->gpc_count, sizeof(u32));
+	max_gpc_cnt = nvgpu_safe_mult_u64((size_t)config->max_gpc_count, sizeof(u32));
 	config->gpc_tpc_count = nvgpu_kzalloc(g, gpc_size);
+	config->gpc_tpc_mask = nvgpu_kzalloc(g, max_gpc_cnt);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 		config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
@@ -289,8 +291,6 @@ static int gr_config_init_mig_gpcs(struct nvgpu_gr_config *config)
 {
 	struct gk20a *g = config->g;
 	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
-	u32 gpc_phys_id;
-	u32 gpc_id;
 
 	config->max_gpc_count = nvgpu_grmgr_get_gr_num_gpcs(g, cur_gr_instance);
 	config->gpc_count = nvgpu_grmgr_get_gr_num_gpcs(g, cur_gr_instance);
@@ -301,29 +301,12 @@ static int gr_config_init_mig_gpcs(struct nvgpu_gr_config *config)
 
 	config->gpc_mask = nvgpu_safe_sub_u32(BIT32(config->gpc_count), 1U);
 
-	config->gpc_tpc_mask = nvgpu_kzalloc(g, config->max_gpc_count * sizeof(u32));
-	if (config->gpc_tpc_mask == NULL) {
-		return -ENOMEM;
-	}
-
-	/* Required to read gpc_tpc_mask below */
-	config->max_tpc_per_gpc_count = g->ops.top.get_max_tpc_per_gpc_count(g);
-
-	/* Fuse regsiters index GPCs by physical ID */
-	for (gpc_id = 0; gpc_id < config->gpc_count; gpc_id++) {
-		gpc_phys_id = nvgpu_grmgr_get_gr_gpc_phys_id(g,
-				cur_gr_instance, gpc_id);
-		config->gpc_tpc_mask[gpc_id] =
-		     g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
-	}
-
 	return 0;
 }
 
 static int gr_config_init_gpcs(struct nvgpu_gr_config *config)
 {
 	struct gk20a *g = config->g;
-	u32 gpc_index;
 
 	config->max_gpc_count = g->ops.top.get_max_gpc_count(g);
 	config->gpc_count = g->ops.priv_ring.get_gpc_count(g);
@@ -334,26 +317,15 @@ static int gr_config_init_gpcs(struct nvgpu_gr_config *config)
 
 	gr_config_set_gpc_mask(g, config);
 
-	config->gpc_tpc_mask = nvgpu_kzalloc(g, config->max_gpc_count * sizeof(u32));
-	if (config->gpc_tpc_mask == NULL) {
-		return -ENOMEM;
-	}
-
-	/* Required to read gpc_tpc_mask below */
-	config->max_tpc_per_gpc_count = g->ops.top.get_max_tpc_per_gpc_count(g);
-
-	for (gpc_index = 0; gpc_index < config->max_gpc_count; gpc_index++) {
-		config->gpc_tpc_mask[gpc_index] =
-		     g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_index);
-	}
-
 	return 0;
 }
 
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 {
 	struct nvgpu_gr_config *config;
+	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
 	u32 gpc_index;
+	u32 gpc_phys_id;
 	int err;
 
 	config = nvgpu_kzalloc(g, sizeof(*config));
@@ -367,15 +339,20 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		err = gr_config_init_mig_gpcs(config);
 		if (err < 0) {
 			nvgpu_err(g, "MIG GPC config init failed");
+			nvgpu_kfree(g, config);
 			return NULL;
 		}
 	} else {
 		err = gr_config_init_gpcs(config);
 		if (err < 0) {
 			nvgpu_err(g, "GPC config init failed");
+			nvgpu_kfree(g, config);
 			return NULL;
 		}
 	}
+
+	/* Required to read gpc_tpc_mask below */
+	config->max_tpc_per_gpc_count = g->ops.top.get_max_tpc_per_gpc_count(g);
 
 	config->max_tpc_count = nvgpu_safe_mult_u32(config->max_gpc_count,
 				config->max_tpc_per_gpc_count);
@@ -396,6 +373,19 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 
 	if (gr_config_alloc_struct_mem(g, config) == false) {
 		goto clean_up_init;
+	}
+
+	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
+		/*
+		 * Fuse registers must be queried with physical gpc-id and not
+		 * the logical ones. For tu104 and before chips logical gpc-id
+		 * is same as physical gpc-id for non-floorswept config but for
+		 * chips after tu104 it may not be true.
+		 */
+		gpc_phys_id = nvgpu_grmgr_get_gr_gpc_phys_id(g,
+				cur_gr_instance, gpc_index);
+		config->gpc_tpc_mask[gpc_index] =
+		     g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
 	}
 
 	config->ppc_count = 0;
