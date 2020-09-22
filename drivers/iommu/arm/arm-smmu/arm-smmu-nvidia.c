@@ -6,6 +6,7 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
+#include <soc/tegra/fuse.h>
 
 #include "arm-smmu.h"
 
@@ -56,12 +57,34 @@ static void nvidia_smmu_write_reg(struct arm_smmu_device *smmu,
 	}
 }
 
+static inline u64 read64_relaxed(volatile void __iomem *virt_addr)
+{
+	u64 val;
+	if (tegra_platform_is_sim()) {
+		val = (u64)readl_relaxed(virt_addr);
+		val |= ((u64)readl_relaxed(virt_addr + 4) << 32);
+	} else {
+		val = readq_relaxed(virt_addr);
+	}
+	return val;
+}
+
+static inline void write64_relaxed(u64 val, volatile void __iomem *virt_addr)
+{
+	if (tegra_platform_is_sim()) {
+		writel_relaxed((u32)val, virt_addr);
+		writel_relaxed((u32)(val >> 32), virt_addr + 4);
+	} else {
+		writeq_relaxed(val, virt_addr);
+	}
+}
+
 static u64 nvidia_smmu_read_reg64(struct arm_smmu_device *smmu,
 				  int page, int offset)
 {
 	void __iomem *reg = nvidia_smmu_page(smmu, 0, page) + offset;
 
-	return readq_relaxed(reg);
+	return read64_relaxed(reg);
 }
 
 static void nvidia_smmu_write_reg64(struct arm_smmu_device *smmu,
@@ -72,7 +95,7 @@ static void nvidia_smmu_write_reg64(struct arm_smmu_device *smmu,
 	for (i = 0; i < NUM_SMMU_INSTANCES; i++) {
 		void __iomem *reg = nvidia_smmu_page(smmu, i, page) + offset;
 
-		writeq_relaxed(val, reg);
+		write64_relaxed(val, reg);
 	}
 }
 
