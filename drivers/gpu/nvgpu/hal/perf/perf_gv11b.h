@@ -56,5 +56,11 @@ const u32 *gv11b_perf_get_hwpm_sys_perfmon_regs(u32 *count);
 const u32 *gv11b_perf_get_hwpm_gpc_perfmon_regs(u32 *count);
 const u32 *gv11b_perf_get_hwpm_fbp_perfmon_regs(u32 *count);
 
+void gv11b_perf_set_pmm_register(struct gk20a *g, u32 offset, u32 val,
+		u32 num_chiplets, u32 chiplet_stride, u32 num_perfmons);
+void gv11b_perf_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
+		u32 *num_fbp_perfmon, u32 *num_gpc_perfmon);
+void gv11b_perf_reset_hwpm_pmm_registers(struct gk20a *g);
+void gv11b_perf_init_hwpm_pmm_register(struct gk20a *g);
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif

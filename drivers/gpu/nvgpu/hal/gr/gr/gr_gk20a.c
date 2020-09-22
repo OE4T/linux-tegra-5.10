@@ -105,8 +105,8 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 		}
 
 		if ((mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
-			(g->ops.gr.init_hwpm_pmm_register != NULL)) {
-			g->ops.gr.init_hwpm_pmm_register(g);
+			(g->ops.perf.init_hwpm_pmm_register != NULL)) {
+			g->ops.perf.init_hwpm_pmm_register(g);
 		}
 	}
 

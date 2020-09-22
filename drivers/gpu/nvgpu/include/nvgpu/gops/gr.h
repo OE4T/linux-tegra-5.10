@@ -1083,13 +1083,6 @@ struct gops_gr {
 	int (*ctx_patch_smpc)(struct gk20a *g,
 			    u32 addr, u32 data,
 			    struct nvgpu_gr_ctx *gr_ctx);
-	void (*init_hwpm_pmm_register)(struct gk20a *g);
-	void (*get_num_hwpm_perfmon)(struct gk20a *g, u32 *num_sys_perfmon,
-				     u32 *num_fbp_perfmon,
-				     u32 *num_gpc_perfmon);
-	void (*set_pmm_register)(struct gk20a *g, u32 offset, u32 val,
-			 u32 num_chiplets, u32 chiplet_stride, u32 num_perfmons);
-	void (*reset_hwpm_pmm_registers)(struct gk20a *g);
 	int (*dump_gr_regs)(struct gk20a *g,
 			    struct nvgpu_debug_context *o);
 	int (*update_pc_sampling)(struct nvgpu_channel *ch,
@@ -1169,6 +1162,11 @@ struct gops_gr {
 					u32 max_offsets,
 					u32 *offsets, u32 *offset_addrs,
 					u32 *num_offsets);
+	int (*get_pm_ctx_buffer_offsets)(struct gk20a *g,
+				       u32 addr,
+				       u32 max_offsets,
+				       u32 *offsets, u32 *offset_addrs,
+				       u32 *num_offsets);
 	int (*find_priv_offset_in_buffer)(struct gk20a *g, u32 addr,
 					u32 *context_buffer,
 					u32 context_buffer_size,

@@ -22,6 +22,9 @@
 
 #include <nvgpu/io.h>
 #include <nvgpu/mm.h>
+#include <nvgpu/fbp.h>
+#include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 
@@ -357,4 +360,136 @@ const u32 *gv11b_perf_get_hwpm_fbp_perfmon_regs(u32 *count)
 {
 	*count = sizeof(hwpm_fbp_perfmon_regs) / sizeof(hwpm_fbp_perfmon_regs[0]);
 	return hwpm_fbp_perfmon_regs;
+}
+
+void gv11b_perf_set_pmm_register(struct gk20a *g, u32 offset, u32 val,
+		u32 num_chiplets, u32 chiplet_stride, u32 num_perfmons)
+{
+	u32 perfmon_index = 0;
+	u32 chiplet_index = 0;
+	u32 reg_offset = 0;
+
+	for (chiplet_index = 0; chiplet_index < num_chiplets; chiplet_index++) {
+		for (perfmon_index = 0; perfmon_index < num_perfmons;
+						perfmon_index++) {
+			reg_offset = offset + perfmon_index *
+				perf_pmmsys_perdomain_offset_v() +
+				chiplet_index * chiplet_stride;
+			nvgpu_writel(g, reg_offset, val);
+		}
+	}
+}
+
+void gv11b_perf_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
+				u32 *num_fbp_perfmon, u32 *num_gpc_perfmon)
+{
+	int err;
+	u32 buf_offset_lo, buf_offset_addr, num_offsets;
+	u32 perfmon_index = 0;
+
+	for (perfmon_index = 0; perfmon_index <
+			perf_pmmsys_engine_sel__size_1_v();
+			perfmon_index++) {
+		err = g->ops.gr.get_pm_ctx_buffer_offsets(g,
+				perf_pmmsys_engine_sel_r(perfmon_index),
+				1,
+				&buf_offset_lo,
+				&buf_offset_addr,
+				&num_offsets);
+		if (err != 0) {
+			break;
+		}
+	}
+	*num_sys_perfmon = perfmon_index;
+
+	for (perfmon_index = 0; perfmon_index <
+			perf_pmmfbp_engine_sel__size_1_v();
+			perfmon_index++) {
+		err = g->ops.gr.get_pm_ctx_buffer_offsets(g,
+				perf_pmmfbp_engine_sel_r(perfmon_index),
+				1,
+				&buf_offset_lo,
+				&buf_offset_addr,
+				&num_offsets);
+		if (err != 0) {
+			break;
+		}
+	}
+	*num_fbp_perfmon = perfmon_index;
+
+	for (perfmon_index = 0; perfmon_index <
+			perf_pmmgpc_engine_sel__size_1_v();
+			perfmon_index++) {
+		err = g->ops.gr.get_pm_ctx_buffer_offsets(g,
+				perf_pmmgpc_engine_sel_r(perfmon_index),
+				1,
+				&buf_offset_lo,
+				&buf_offset_addr,
+				&num_offsets);
+		if (err != 0) {
+			break;
+		}
+	}
+	*num_gpc_perfmon = perfmon_index;
+}
+
+void gv11b_perf_reset_hwpm_pmm_registers(struct gk20a *g)
+{
+	u32 count;
+	const u32 *perfmon_regs;
+	u32 i;
+
+	if (g->num_sys_perfmon == 0U) {
+		g->ops.perf.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
+				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
+	}
+
+	perfmon_regs = g->ops.perf.get_hwpm_sys_perfmon_regs(&count);
+
+	for (i = 0U; i < count; i++) {
+		g->ops.perf.set_pmm_register(g, perfmon_regs[i], 0U, 1U,
+			g->ops.perf.get_pmmsys_per_chiplet_offset(),
+			g->num_sys_perfmon);
+	}
+
+	/*
+	 * All the registers are broadcast ones so trigger
+	 * g->ops.gr.set_pmm_register() only with 1 chiplet even for
+	 * GPC and FBP chiplets.
+	 */
+	perfmon_regs = g->ops.perf.get_hwpm_fbp_perfmon_regs(&count);
+
+	for (i = 0U; i < count; i++) {
+		g->ops.perf.set_pmm_register(g, perfmon_regs[i], 0U, 1U,
+			g->ops.perf.get_pmmfbp_per_chiplet_offset(),
+			g->num_fbp_perfmon);
+	}
+
+	perfmon_regs = g->ops.perf.get_hwpm_gpc_perfmon_regs(&count);
+
+	for (i = 0U; i < count; i++) {
+		g->ops.perf.set_pmm_register(g, perfmon_regs[i], 0U, 1U,
+			g->ops.perf.get_pmmgpc_per_chiplet_offset(),
+			g->num_gpc_perfmon);
+	}
+}
+
+void gv11b_perf_init_hwpm_pmm_register(struct gk20a *g)
+{
+	if (g->num_sys_perfmon == 0U) {
+		g->ops.perf.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
+				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
+	}
+
+	g->ops.perf.set_pmm_register(g, perf_pmmsys_engine_sel_r(0), 0xFFFFFFFFU,
+		1U, g->ops.perf.get_pmmsys_per_chiplet_offset(),
+		g->num_sys_perfmon);
+	g->ops.perf.set_pmm_register(g, perf_pmmfbp_engine_sel_r(0), 0xFFFFFFFFU,
+		nvgpu_fbp_get_num_fbps(g->fbp),
+		g->ops.perf.get_pmmfbp_per_chiplet_offset(),
+		g->num_fbp_perfmon);
+	g->ops.perf.set_pmm_register(g, perf_pmmgpc_engine_sel_r(0), 0xFFFFFFFFU,
+		nvgpu_gr_config_get_gpc_count(nvgpu_gr_get_config_ptr(g)),
+		g->ops.perf.get_pmmgpc_per_chiplet_offset(),
+		g->num_gpc_perfmon);
 }

@@ -693,12 +693,8 @@ static const struct gops_gr tu104_ops_gr = {
 	.bpt_reg_info = gv11b_gr_bpt_reg_info,
 	.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 	.update_smpc_global_mode = tu104_gr_update_smpc_global_mode,
-	.get_num_hwpm_perfmon = gr_gv100_get_num_hwpm_perfmon,
-	.set_pmm_register = gr_gv100_set_pmm_register,
 	.set_mmu_debug_mode = gm20b_gr_set_mmu_debug_mode,
 	.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
-	.init_hwpm_pmm_register = gr_gv100_init_hwpm_pmm_register,
-	.reset_hwpm_pmm_registers = gr_gv100_reset_hwpm_pmm_registers,
 	.clear_sm_error_state = gv11b_gr_clear_sm_error_state,
 	.suspend_contexts = gr_gp10b_suspend_contexts,
 	.resume_contexts = gr_gk20a_resume_contexts,
@@ -733,6 +729,7 @@ static const struct gops_gr tu104_ops_gr = {
 	.get_offset_in_gpccs_segment = gr_tu104_get_offset_in_gpccs_segment,
 	.process_context_buffer_priv_segment = gr_gk20a_process_context_buffer_priv_segment,
 	.get_ctx_buffer_offsets = gr_gk20a_get_ctx_buffer_offsets,
+	.get_pm_ctx_buffer_offsets = gr_gk20a_get_pm_ctx_buffer_offsets,
 	.find_priv_offset_in_buffer =
 		gr_gk20a_find_priv_offset_in_buffer,
 	.set_debug_mode = gm20b_gr_set_debug_mode,
@@ -1300,6 +1297,10 @@ static const struct gops_perf tu104_ops_perf = {
 	.get_hwpm_sys_perfmon_regs = tu104_perf_get_hwpm_sys_perfmon_regs,
 	.get_hwpm_gpc_perfmon_regs = tu104_perf_get_hwpm_gpc_perfmon_regs,
 	.get_hwpm_fbp_perfmon_regs = tu104_perf_get_hwpm_fbp_perfmon_regs,
+	.set_pmm_register = gv11b_perf_set_pmm_register,
+	.get_num_hwpm_perfmon = gv11b_perf_get_num_hwpm_perfmon,
+	.init_hwpm_pmm_register = gv11b_perf_init_hwpm_pmm_register,
+	.reset_hwpm_pmm_registers = gv11b_perf_reset_hwpm_pmm_registers,
 };
 #endif
 

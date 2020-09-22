@@ -63,6 +63,13 @@ struct gops_perf {
 	const u32 *(*get_hwpm_sys_perfmon_regs)(u32 *count);
 	const u32 *(*get_hwpm_fbp_perfmon_regs)(u32 *count);
 	const u32 *(*get_hwpm_gpc_perfmon_regs)(u32 *count);
+	void (*init_hwpm_pmm_register)(struct gk20a *g);
+	void (*get_num_hwpm_perfmon)(struct gk20a *g, u32 *num_sys_perfmon,
+				     u32 *num_fbp_perfmon,
+				     u32 *num_gpc_perfmon);
+	void (*set_pmm_register)(struct gk20a *g, u32 offset, u32 val,
+			 u32 num_chiplets, u32 chiplet_stride, u32 num_perfmons);
+	void (*reset_hwpm_pmm_registers)(struct gk20a *g);
 };
 struct gops_perfbuf {
 	int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);
