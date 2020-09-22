@@ -1630,7 +1630,7 @@ static void tegra_channel_free_sensor_properties(
 	if (sensor_sd == NULL)
 		return;
 
-	s_data = container_of(sensor_sd, struct camera_common_data, subdev);
+	s_data = to_camera_common_data(sensor_sd->dev);
 	if (s_data == NULL)
 		return;
 
