@@ -53,7 +53,7 @@
 	({													\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")	\
 		NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")	\
-		BUG_ON(!(cond));										\
+		BUG_ON((cond) == ((bool)(0 != 0)));										\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))						\
 		NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))						\
 	})
@@ -66,7 +66,7 @@
  */
 #define nvgpu_do_assert()						\
 NVGPU_COV_WHITELIST(false_positive, NVGPU_MISRA(Rule, 10_3), "Bug 2623654") \
-	nvgpu_assert(false)
+	nvgpu_assert((bool)(0 != 0))
 
 /*
  * Define compile-time assert check.
