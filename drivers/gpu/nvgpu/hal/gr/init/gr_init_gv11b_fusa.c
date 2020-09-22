@@ -32,6 +32,7 @@
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/gr_instances.h>
 
 #include "gr_init_gm20b.h"
 #include "gr_init_gv11b.h"
@@ -788,10 +789,9 @@ static int gv11b_gr_init_write_bundle_veid_state(struct gk20a *g, u32 index,
 	struct netlist_av_list *sw_veid_bundle_init)
 {
 	u32 j;
-	u32  num_subctx;
 	int err = 0;
-
-	num_subctx = g->ops.gr.init.get_max_subctx_count();
+	u32  num_subctx = nvgpu_grmgr_get_gr_max_veid_count(g,
+		nvgpu_gr_get_cur_instance_id(g));
 
 	for (j = 0U; j < num_subctx; j++) {
 		nvgpu_log_fn(g, "write bundle_address_r for subctx: %d", j);
@@ -861,6 +861,8 @@ u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 {
 	u32 size = 0U;
 	u32 slot_size = PATCH_CTX_SLOTS_PER_PAGE;
+	u32  num_subctx = nvgpu_grmgr_get_gr_max_veid_count(g,
+		nvgpu_gr_get_cur_instance_id(g));
 
 	/*
 	 * CMD to update PE table
@@ -884,8 +886,7 @@ u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 	/*
 	 * We need this for all subcontexts
 	 */
-	size = nvgpu_safe_mult_u32(size,
-			g->ops.gr.init.get_max_subctx_count());
+	size = nvgpu_safe_mult_u32(size, num_subctx);
 
 	/*
 	 * Add space for a partition mode change as well

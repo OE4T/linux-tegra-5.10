@@ -435,3 +435,40 @@ u32 nvgpu_grmgr_get_gr_instance_id_for_syspipe(struct gk20a *g,
 	/* Default gr_instance_id is 0U for legacy mode. */
 	return 0U;
 }
+
+static u32 nvgpu_grmgr_get_max_veid_count(struct gk20a *g, u32 gpu_instance_id)
+{
+	struct nvgpu_gpu_instance *gpu_instance;
+	struct nvgpu_gr_syspipe *gr_syspipe;
+
+	if (gpu_instance_id < g->mig.num_gpu_instances) {
+		gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
+		gr_syspipe = &gpu_instance->gr_syspipe;
+
+		nvgpu_log(g, gpu_dbg_mig,
+			"gpu_instance_id[%u] max_veid_count_per_tsg[%u]",
+			gpu_instance_id, gr_syspipe->max_veid_count_per_tsg);
+
+		return gr_syspipe->max_veid_count_per_tsg;
+	}
+
+	nvgpu_err(g,
+		"gpu_instance_id[%u] >= num_gpu_instances[%u]",
+		gpu_instance_id, g->mig.num_gpu_instances);
+
+	return U32_MAX;
+}
+
+u32 nvgpu_grmgr_get_gpu_instance_max_veid_count(struct gk20a *g,
+		u32 gpu_instance_id)
+{
+	return nvgpu_grmgr_get_max_veid_count(g, gpu_instance_id);
+}
+
+u32 nvgpu_grmgr_get_gr_max_veid_count(struct gk20a *g, u32 gr_instance_id)
+{
+	u32 gpu_instance_id = nvgpu_grmgr_get_gpu_instance_id(
+		g, gr_instance_id);
+
+	return nvgpu_grmgr_get_max_veid_count(g, gpu_instance_id);
+}
