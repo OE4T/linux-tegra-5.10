@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION. All rights reserved
  */
 
 #include <linux/cpufreq.h>
@@ -11,6 +11,8 @@
 
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
+/* FIXME: check if header should be part of k5.9 and not kernel/nvidia */
+#include <linux/platform/tegra/emc_bwmgr.h>
 
 #define EDVD_CORE_VOLT_FREQ(core)		(0x20 + (core) * 0x4)
 #define EDVD_CORE_VOLT_FREQ_F_SHIFT		0
@@ -52,8 +54,24 @@ struct tegra186_cpufreq_data {
 
 static int tegra186_cpufreq_init(struct cpufreq_policy *policy)
 {
+#ifdef CONFIG_TEGRA_BWMGR
+	struct tegra_bwmgr_client *dbg;
+	static int is_first = 1;
+#endif
 	struct tegra186_cpufreq_data *data = cpufreq_get_driver_data();
 	unsigned int i;
+
+#ifdef CONFIG_TEGRA_BWMGR
+	/*
+	 * FIXME: bug 200661612 - Remove below TEMP emc boost
+	 * and bwmgr one-time registration.
+	 */
+	if (is_first == 1) {
+		dbg = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_CPU_CLUSTER_0);
+		tegra_bwmgr_set_emc(dbg, 1600000000, TEGRA_BWMGR_SET_EMC_FLOOR);
+		is_first = 0;
+	}
+#endif
 
 	for (i = 0; i < data->num_clusters; i++) {
 		struct tegra186_cpufreq_cluster *cluster = &data->clusters[i];
