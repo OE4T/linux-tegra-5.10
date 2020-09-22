@@ -1989,6 +1989,69 @@ static int tegra_hdmi_find_cea_vic(struct tegra_hdmi *hdmi)
 	return best;
 }
 
+static void tegra_hdmi_avi_infoframe_overrides(struct tegra_hdmi *hdmi)
+{
+	struct hdmi_avi_infoframe *avi = &hdmi->avi;
+
+	switch (hdmi->avi_color_components) {
+	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_RGB:
+		avi->rgb_ycc = HDMI_AVI_RGB;
+		break;
+	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV422:
+		avi->rgb_ycc = HDMI_AVI_YCC_422;
+		break;
+	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV444:
+		avi->rgb_ycc = HDMI_AVI_YCC_444;
+		break;
+	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV420:
+		avi->rgb_ycc = HDMI_AVI_YCC_420;
+		break;
+	default:
+		/* Let default value as it is.*/
+		break;
+	}
+
+	switch (hdmi->avi_colorimetry) {
+	/* base colorimetry */
+	case TEGRA_DC_EXT_AVI_COLORIMETRY_SMPTE170M_ITU601:
+		avi->colorimetry = HDMI_AVI_COLORIMETRY_SMPTE170M_ITU601;
+		break;
+	case TEGRA_DC_EXT_AVI_COLORIMETRY_ITU709:
+		avi->colorimetry = HDMI_AVI_COLORIMETRY_ITU709;
+		break;
+	/* extended colorimetry */
+	case TEGRA_DC_EXT_AVI_COLORIMETRY_xvYCC709:
+		avi->colorimetry = HDMI_AVI_COLORIMETRY_EXTENDED_VALID;
+		avi->ext_colorimetry = HDMI_AVI_EXT_COLORIMETRY_xvYCC709;
+		break;
+	case TEGRA_DC_EXT_AVI_COLORIMETRY_BT2020_YCC_RGB:
+		avi->colorimetry = HDMI_AVI_COLORIMETRY_EXTENDED_VALID;
+		avi->ext_colorimetry = HDMI_AVI_EXT_COLORIMETRY_BT2020_YCC_RGB;
+		break;
+	default:
+		/* Let default value as it is.*/
+		break;
+	}
+
+	switch (hdmi->avi_color_quant) {
+	case TEGRA_DC_EXT_AVI_COLOR_QUANT_LIMITED:
+		if (avi->rgb_ycc == HDMI_AVI_RGB)
+			avi->rgb_quant = HDMI_AVI_RGB_QUANT_LIMITED;
+		else
+			avi->ycc_quant = HDMI_AVI_YCC_QUANT_LIMITED;
+		break;
+	case TEGRA_DC_EXT_AVI_COLOR_QUANT_FULL:
+		if (avi->rgb_ycc == HDMI_AVI_RGB)
+			avi->rgb_quant = HDMI_AVI_RGB_QUANT_FULL;
+		else
+			avi->ycc_quant = HDMI_AVI_YCC_QUANT_FULL;
+		break;
+	default:
+		/* Let default value as it is.*/
+		break;
+	}
+}
+
 static u32 tegra_hdmi_get_aspect_ratio(struct tegra_hdmi *hdmi)
 {
 	u32 aspect_ratio;
@@ -2160,24 +2223,6 @@ static void tegra_hdmi_avi_infoframe_update(struct tegra_hdmi *hdmi)
 	avi->act_fmt_valid = HDMI_AVI_ACTIVE_FORMAT_INVALID;
 	avi->rgb_ycc = tegra_hdmi_get_rgb_ycc(hdmi);
 
-	switch (hdmi->avi_color_components) {
-	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_RGB:
-		avi->rgb_ycc = HDMI_AVI_RGB;
-		break;
-	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV422:
-		avi->rgb_ycc = HDMI_AVI_YCC_422;
-		break;
-	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV444:
-		avi->rgb_ycc = HDMI_AVI_YCC_444;
-		break;
-	case TEGRA_DC_EXT_AVI_COLOR_COMPONENTS_YUV420:
-		avi->rgb_ycc = HDMI_AVI_YCC_420;
-		break;
-	default:
-		/* Let default value as it is.*/
-		break;
-	}
-
 	avi->act_format = HDMI_AVI_ACTIVE_FORMAT_SAME;
 	avi->aspect_ratio = tegra_hdmi_get_aspect_ratio(hdmi);
 	avi->colorimetry = tegra_hdmi_is_ex_colorimetry(hdmi) ?
@@ -2187,28 +2232,6 @@ static void tegra_hdmi_avi_infoframe_update(struct tegra_hdmi *hdmi)
 	avi->scaling = HDMI_AVI_SCALING_UNKNOWN;
 	avi->rgb_quant = tegra_hdmi_get_rgb_quant(hdmi);
 	avi->ext_colorimetry = tegra_hdmi_get_ex_colorimetry(hdmi);
-
-	switch (hdmi->avi_colorimetry) {
-	/* base colorimetry */
-	case TEGRA_DC_EXT_AVI_COLORIMETRY_SMPTE170M_ITU601:
-		avi->colorimetry = HDMI_AVI_COLORIMETRY_SMPTE170M_ITU601;
-		break;
-	case TEGRA_DC_EXT_AVI_COLORIMETRY_ITU709:
-		avi->colorimetry = HDMI_AVI_COLORIMETRY_ITU709;
-		break;
-	/* extended colorimetry */
-	case TEGRA_DC_EXT_AVI_COLORIMETRY_xvYCC709:
-		avi->colorimetry = HDMI_AVI_COLORIMETRY_EXTENDED_VALID;
-		avi->ext_colorimetry = HDMI_AVI_EXT_COLORIMETRY_xvYCC709;
-		break;
-	case TEGRA_DC_EXT_AVI_COLORIMETRY_BT2020_YCC_RGB:
-		avi->colorimetry = HDMI_AVI_COLORIMETRY_EXTENDED_VALID;
-		avi->ext_colorimetry = HDMI_AVI_EXT_COLORIMETRY_BT2020_YCC_RGB;
-		break;
-	default:
-		/* Let default value as it is.*/
-		break;
-	}
 
 	avi->it_content = HDMI_AVI_IT_CONTENT_FALSE;
 
@@ -2228,24 +2251,6 @@ static void tegra_hdmi_avi_infoframe_update(struct tegra_hdmi *hdmi)
 	avi->it_content_type = HDMI_AVI_IT_CONTENT_NONE;
 	avi->ycc_quant = tegra_hdmi_get_ycc_quant(hdmi);
 
-	switch (hdmi->avi_color_quant) {
-	case TEGRA_DC_EXT_AVI_COLOR_QUANT_LIMITED:
-		if (avi->rgb_ycc == HDMI_AVI_RGB)
-			avi->rgb_quant = HDMI_AVI_RGB_QUANT_LIMITED;
-		else
-			avi->ycc_quant = HDMI_AVI_YCC_QUANT_LIMITED;
-		break;
-	case TEGRA_DC_EXT_AVI_COLOR_QUANT_FULL:
-		if (avi->rgb_ycc == HDMI_AVI_RGB)
-			avi->rgb_quant = HDMI_AVI_RGB_QUANT_FULL;
-		else
-			avi->ycc_quant = HDMI_AVI_YCC_QUANT_FULL;
-		break;
-	default:
-		/* Let default value as it is.*/
-		break;
-	}
-
 	avi->top_bar_end_line_low_byte = 0;
 	avi->top_bar_end_line_high_byte = 0;
 
@@ -2257,6 +2262,9 @@ static void tegra_hdmi_avi_infoframe_update(struct tegra_hdmi *hdmi)
 
 	avi->right_bar_start_pixel_low_byte = 0;
 	avi->right_bar_start_pixel_high_byte = 0;
+
+	/* Apply override values from user space set in the latest flip call */
+	tegra_hdmi_avi_infoframe_overrides(hdmi);
 }
 
 static void tegra_hdmi_avi_infoframe(struct tegra_hdmi *hdmi)
