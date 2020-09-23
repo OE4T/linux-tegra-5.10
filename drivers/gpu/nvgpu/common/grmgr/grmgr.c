@@ -390,7 +390,8 @@ bool nvgpu_grmgr_is_valid_runlist_id(struct gk20a *g,
 	return false;
 }
 
-u32 nvgpu_grmgr_get_gr_runlist_id(struct gk20a *g, u32 gpu_instance_id)
+u32 nvgpu_grmgr_get_gpu_instance_runlist_id(struct gk20a *g,
+		u32 gpu_instance_id)
 {
 	if (gpu_instance_id < g->mig.num_gpu_instances) {
 		struct nvgpu_gpu_instance *gpu_instance =

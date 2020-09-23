@@ -42,7 +42,8 @@ u32 nvgpu_grmgr_get_gr_gpc_phys_id(struct gk20a *g, u32 gr_instance_id,
 u32 nvgpu_grmgr_get_gr_instance_id(struct gk20a *g, u32 gpu_instance_id);
 bool nvgpu_grmgr_is_valid_runlist_id(struct gk20a *g,
 		u32 gpu_instance_id, u32 runlist_id);
-u32 nvgpu_grmgr_get_gr_runlist_id(struct gk20a *g, u32 gpu_instance_id);
+u32 nvgpu_grmgr_get_gpu_instance_runlist_id(struct gk20a *g,
+		u32 gpu_instance_id);
 u32 nvgpu_grmgr_get_gr_instance_id_for_syspipe(struct gk20a *g,
 		u32 gr_syspipe_id);
 u32 nvgpu_grmgr_get_gpu_instance_max_veid_count(struct gk20a *g,

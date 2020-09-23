@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,8 @@ struct vm_gk20a;
 
 void gv11b_mm_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 			      u32 big_page_size);
+void gv11b_mm_init_inst_block_for_subctxs(struct nvgpu_mem *inst_block,
+		struct vm_gk20a *vm, u32 big_page_size, u32 max_subctx_count);
 bool gv11b_mm_is_bar1_supported(struct gk20a *g);
 
 #endif

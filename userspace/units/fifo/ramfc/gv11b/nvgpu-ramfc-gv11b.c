@@ -133,7 +133,7 @@ static int stub_ramfc_commit_userd(struct nvgpu_channel *ch)
 
 static void stub_ramin_init_subctx_pdb(struct gk20a *g,
 			struct nvgpu_mem *inst_block, struct nvgpu_mem *pdb_mem,
-			bool replayable)
+			bool replayable, u32 max_subctx_count)
 {
 	global_count++;
 }

@@ -1178,4 +1178,11 @@ static inline void nvgpu_channel_set_wdt_debug_dump(struct nvgpu_channel *ch,
 		bool dump) {}
 #endif
 
+/**
+ * @brief Get maximum sub context count.
+ *
+ * @param ch [in]	Channel pointer.
+ */
+u32 nvgpu_channel_get_max_subctx_count(struct nvgpu_channel *ch);
+
 #endif

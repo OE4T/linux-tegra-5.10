@@ -98,6 +98,7 @@ struct gops_ramin {
 	 * @param pdb_mem [in]		Memory descriptor of PDB.
 	 * @param replayable [in]	Indicates if errors are replayable
 	 * 				for this Instance Block.
+	 * @param max_subctx_count [in] Max number of sub context.
 	 *
 	 * This HAL configures PDB for all sub-contexts of Instance Block:
 	 * - Get max number of sub-contexts from HW.
@@ -116,7 +117,7 @@ struct gops_ramin {
 	void (*init_subctx_pdb)(struct gk20a *g,
 			struct nvgpu_mem *inst_block,
 			struct nvgpu_mem *pdb_mem,
-			bool replayable);
+			bool replayable, u32 max_subctx_count);
 
 	/**
 	 * @brief Instance Block shift.

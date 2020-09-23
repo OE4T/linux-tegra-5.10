@@ -1979,7 +1979,7 @@ struct unit_module_test nvgpu_channel_tests[] = {
 	UNIT_TEST(channel_put_warn, test_channel_put_warn, &unit_ctx, 0),
 	UNIT_TEST(referenceable_cleanup, test_ch_referenceable_cleanup, &unit_ctx, 0),
 	UNIT_TEST(abort_cleanup, test_channel_abort_cleanup, &unit_ctx, 0),
-	UNIT_TEST(channel_commit_va, test_nvgpu_channel_commit_va, &unit_ctx, 0),
+	UNIT_TEST(channel_commit_va, test_nvgpu_channel_commit_va, &unit_ctx, 2),
 	UNIT_TEST(get_gpfifo_entry_size, test_nvgpu_get_gpfifo_entry_size, &unit_ctx, 0),
 	UNIT_TEST(trace_write_pushbuffers, test_trace_write_pushbuffers, &unit_ctx, 0),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),

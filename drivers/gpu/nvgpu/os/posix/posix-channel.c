@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,4 +29,9 @@ u32 nvgpu_get_gpfifo_entry_size(void)
 	 * defined in userspace this is how big it will be.
 	 */
 	return 8;
+}
+
+u32 nvgpu_channel_get_max_subctx_count(struct nvgpu_channel *ch)
+{
+	return 64;
 }

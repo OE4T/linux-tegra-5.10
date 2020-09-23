@@ -2076,7 +2076,7 @@ struct unit_module_test vm_tests[] = {
 	UNIT_TEST(init_error_paths, test_init_error_paths, NULL, 0),
 	UNIT_TEST(map_buffer_error_cases, test_map_buffer_error_cases, NULL, 0),
 	UNIT_TEST(nvgpu_vm_alloc_va, test_nvgpu_vm_alloc_va, NULL, 0),
-	UNIT_TEST(vm_bind, test_vm_bind, NULL, 0),
+	UNIT_TEST(vm_bind, test_vm_bind, NULL, 2),
 	UNIT_TEST(vm_aspace_id, test_vm_aspace_id, NULL, 0),
 	UNIT_TEST(vm_area_error_cases, test_vm_area_error_cases, NULL, 0),
 	UNIT_TEST_REQ("NVGPU-RQCD-45.C2",

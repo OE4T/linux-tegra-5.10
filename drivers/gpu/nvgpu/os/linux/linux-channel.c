@@ -22,6 +22,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/grmgr.h>
 
 /*
  * This is required for nvgpu_vm_find_buf() which is used in the tracing
@@ -626,6 +627,14 @@ void nvgpu_channel_remove_support_linux(struct nvgpu_os_linux *l)
 u32 nvgpu_get_gpfifo_entry_size(void)
 {
 	return sizeof(struct nvgpu_gpfifo_entry);
+}
+
+u32 nvgpu_channel_get_max_subctx_count(struct nvgpu_channel *ch)
+{
+	struct gk20a *g = ch->g;
+
+	return nvgpu_grmgr_get_gpu_instance_max_veid_count(g,
+		0U);
 }
 
 #ifdef CONFIG_DEBUG_FS

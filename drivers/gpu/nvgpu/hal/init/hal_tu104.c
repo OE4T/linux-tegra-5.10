@@ -1104,6 +1104,7 @@ static const struct gops_mm tu104_ops_mm = {
 	.setup_hw = nvgpu_mm_setup_hw,
 	.is_bar1_supported = gv11b_mm_is_bar1_supported,
 	.init_inst_block = gv11b_mm_init_inst_block,
+	.init_inst_block_for_subctxs = gv11b_mm_init_inst_block_for_subctxs,
 	.init_bar2_vm = gp10b_mm_init_bar2_vm,
 	.remove_bar2_vm = gp10b_mm_remove_bar2_vm,
 	.get_flush_retries = tu104_mm_get_flush_retries,

@@ -141,8 +141,19 @@ void nvgpu_channel_commit_va(struct nvgpu_channel *c)
 
 	nvgpu_log_fn(g, " ");
 
-	g->ops.mm.init_inst_block(&c->inst_block, c->vm,
-			c->vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]);
+	if (g->ops.mm.init_inst_block_for_subctxs != NULL) {
+		u32 subctx_count = nvgpu_channel_get_max_subctx_count(c);
+
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_mig,
+			"chid: %d max_subctx_count[%u] ",
+			c->chid, subctx_count);
+		g->ops.mm.init_inst_block_for_subctxs(&c->inst_block, c->vm,
+				c->vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG],
+				subctx_count);
+	} else {
+		g->ops.mm.init_inst_block(&c->inst_block, c->vm,
+				c->vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]);
+	}
 }
 
 int nvgpu_channel_update_runlist(struct nvgpu_channel *c, bool add)

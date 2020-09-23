@@ -147,7 +147,7 @@ int test_gv11b_ramin_init_subctx_pdb(struct unit_module *m, struct gk20a *g,
 		}
 
 		gv11b_ramin_init_subctx_pdb(g, &inst_block, &pdb_mem,
-								replayable);
+								replayable, 64);
 
 		for (subctx_id = 0; subctx_id < max_subctx_count; subctx_id++) {
 			addr_lo = ram_in_sc_page_dir_base_vol_w(subctx_id);
@@ -215,7 +215,7 @@ done:
 
 struct unit_module_test ramin_gv11b_fusa_tests[] = {
 	UNIT_TEST(set_gr_ptr, test_gv11b_ramin_set_gr_ptr, NULL, 0),
-	UNIT_TEST(init_subctx_pdb, test_gv11b_ramin_init_subctx_pdb, NULL, 0),
+	UNIT_TEST(init_subctx_pdb, test_gv11b_ramin_init_subctx_pdb, NULL, 2),
 	UNIT_TEST(set_eng_method_buf, test_gv11b_ramin_set_eng_method_buffer, NULL, 0),
 };
 

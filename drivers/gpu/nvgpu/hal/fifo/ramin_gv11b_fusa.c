@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,27 +46,45 @@ void gv11b_ramin_set_gr_ptr(struct gk20a *g,
 }
 
 static void gv11b_subctx_commit_valid_mask(struct gk20a *g,
-		struct nvgpu_mem *inst_block)
+		struct nvgpu_mem *inst_block, u32 max_subctx_count)
 {
 	u32 id;
+	u32 subctx_count = max_subctx_count;
 
-	/* Make all subctx pdbs valid */
-	for (id = 0U; id < ram_in_sc_pdb_valid__size_1_v(); id += 32U) {
+	for (id = 0U; id < max_subctx_count; id += 32U) {
+		u32 subctx_mask_max_bit = ((subctx_count < 32U) ?
+			(subctx_count % 32U) : 0U);
+		u32 subctx_mask = U32_MAX;
+
+		if (subctx_mask_max_bit != 0U) {
+			subctx_mask = nvgpu_safe_sub_u32(
+				BIT32(subctx_mask_max_bit), 1U);
+		}
+
 		nvgpu_mem_wr32(g, inst_block,
-				ram_in_sc_pdb_valid_long_w(id), U32_MAX);
+				ram_in_sc_pdb_valid_long_w(id), subctx_mask);
+
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_mig,
+			"id[%d] max_subctx_count[%u] subctx_mask_max_bit[%u] "
+				"subctx_count[%u] subctx_mask[%x] ",
+			id, max_subctx_count, subctx_mask_max_bit,
+			subctx_count, subctx_mask);
+
+		if (subctx_count > 32U) {
+			subctx_count = nvgpu_safe_sub_u32(subctx_count, 32U);
+		}
 	}
 }
 
 static void gv11b_subctx_commit_pdb(struct gk20a *g,
 		struct nvgpu_mem *inst_block, struct nvgpu_mem *pdb_mem,
-		bool replayable)
+		bool replayable, u32 max_subctx_count)
 {
 	u32 lo, hi;
 	u32 subctx_id = 0;
 	u32 format_word;
 	u32 pdb_addr_lo, pdb_addr_hi;
 	u64 pdb_addr;
-	u32 max_subctx_count = ram_in_sc_page_dir_base_target__size_1_v();
 	u32 aperture = nvgpu_aperture_mask(g, pdb_mem,
 				ram_in_sc_page_dir_base_target_sys_mem_ncoh_v(),
 				ram_in_sc_page_dir_base_target_sys_mem_coh_v(),
@@ -100,10 +118,11 @@ static void gv11b_subctx_commit_pdb(struct gk20a *g,
 
 void gv11b_ramin_init_subctx_pdb(struct gk20a *g,
 		struct nvgpu_mem *inst_block, struct nvgpu_mem *pdb_mem,
-		bool replayable)
+		bool replayable, u32 max_subctx_count)
 {
-	gv11b_subctx_commit_pdb(g, inst_block, pdb_mem, replayable);
-	gv11b_subctx_commit_valid_mask(g, inst_block);
+	gv11b_subctx_commit_pdb(g, inst_block, pdb_mem, replayable,
+		max_subctx_count);
+	gv11b_subctx_commit_valid_mask(g, inst_block, max_subctx_count);
 
 }
 
