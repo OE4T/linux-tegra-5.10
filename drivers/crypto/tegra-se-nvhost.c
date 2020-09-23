@@ -107,7 +107,8 @@ enum tegra_se_key_table_type {
 	SE_KEY_TABLE_TYPE_XTS_KEY1,	/* XTS Key1 */
 	SE_KEY_TABLE_TYPE_XTS_KEY2,	/* XTS Key2 */
 	SE_KEY_TABLE_TYPE_XTS_KEY1_IN_MEM,	/* XTS Key1 in Memory */
-	SE_KEY_TABLE_TYPE_XTS_KEY2_IN_MEM	/* XTS Key2 in Memory */
+	SE_KEY_TABLE_TYPE_XTS_KEY2_IN_MEM,	/* XTS Key2 in Memory */
+	SE_KEY_TABLE_TYPE_CMAC
 };
 
 /* Key access control type */
@@ -605,14 +606,22 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 		key_len = data;
 		if (encrypt) {
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
-			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+			switch (se_dev->chipdata->kac_type) {
+			case SE_KAC_T23X:
+				val |= SE_CONFIG_ENC_MODE(MODE_CMAC);
+				break;
+			case SE_KAC_T18X:
 				if (key_len == TEGRA_SE_KEY_256_SIZE)
 					val |= SE_CONFIG_ENC_MODE(MODE_KEY256);
 				else if (key_len == TEGRA_SE_KEY_192_SIZE)
 					val |= SE_CONFIG_ENC_MODE(MODE_KEY192);
 				else
 					val |= SE_CONFIG_ENC_MODE(MODE_KEY128);
+				break;
+			default:
+				break;
 			}
+
 			val |= SE_CONFIG_DEC_ALG(ALG_NOP);
 		} else {
 			val = SE_CONFIG_DEC_ALG(ALG_AES_DEC);
@@ -1211,8 +1220,9 @@ static void tegra_se_send_ctr_seed(struct tegra_se_dev *se_dev, u32 *pdata,
 	cpuvaddr[i++] = __nvhost_opcode_nonincr(opcode_addr +
 						SE_AES_CRYPTO_CTR_SPARE, 1);
 	cpuvaddr[i++] = SE_AES_CTR_LITTLE_ENDIAN;
-	cpuvaddr[i++] = __nvhost_opcode_incr(opcode_addr +
-					     SE_AES_CRYPTO_LINEAR_CTR, 4);
+	cpuvaddr[i++] = nvhost_opcode_setpayload(4);
+	cpuvaddr[i++] = __nvhost_opcode_incr_w(opcode_addr +
+					     SE_AES_CRYPTO_LINEAR_CTR);
 	for (j = 0; j < SE_CRYPTO_CTR_REG_COUNT; j++)
 		cpuvaddr[i++] = pdata[j];
 
@@ -1253,11 +1263,18 @@ static int tegra_se_aes_ins_op(struct tegra_se_dev *se_dev, u8 *pdata,
 	/* user */
 	val = SE_KEYMANIFEST_USER(NS);
 	/* purpose */
-	if (type == SE_KEY_TABLE_TYPE_XTS_KEY1
-			|| type == SE_KEY_TABLE_TYPE_XTS_KEY2)
+	switch (type) {
+	case SE_KEY_TABLE_TYPE_XTS_KEY1:
+	case SE_KEY_TABLE_TYPE_XTS_KEY2:
 		val |= SE_KEYMANIFEST_PURPOSE(XTS);
-	else
+		break;
+	case SE_KEY_TABLE_TYPE_CMAC:
+		val |= SE_KEYMANIFEST_PURPOSE(CMAC);
+		break;
+	default:
 		val |= SE_KEYMANIFEST_PURPOSE(ENC);
+		break;
+	}
 	/* size */
 	if (data_len == 16)
 		val |= SE_KEYMANIFEST_SIZE(KEY128);
@@ -1468,10 +1485,12 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 	case SE_AES_OP_MODE_CMAC:
 	case SE_AES_OP_MODE_CBC:
 		if (encrypt) {
-			val = SE_CRYPTO_INPUT_SEL(INPUT_MEMORY) |
-				SE_CRYPTO_VCTRAM_SEL(VCTRAM_AESOUT) |
-				SE_CRYPTO_XOR_POS(XOR_TOP) |
-				SE_CRYPTO_CORE_SEL(CORE_ENCRYPT);
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+				val = SE_CRYPTO_INPUT_SEL(INPUT_MEMORY) |
+					SE_CRYPTO_VCTRAM_SEL(VCTRAM_AESOUT) |
+					SE_CRYPTO_XOR_POS(XOR_TOP) |
+					SE_CRYPTO_CORE_SEL(CORE_ENCRYPT);
+			}
 		} else {
 			val = SE_CRYPTO_INPUT_SEL(INPUT_MEMORY) |
 				SE_CRYPTO_VCTRAM_SEL(VCTRAM_PREVAHB) |
@@ -1526,7 +1545,8 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 		val |= SE_CRYPTO_HASH(HASH_DISABLE) |
 			SE_CRYPTO_KEY_INDEX(slot_num);
 		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
-			if (mode != SE_AES_OP_MODE_ECB)
+			if (mode != SE_AES_OP_MODE_ECB &&
+			    mode != SE_AES_OP_MODE_CMAC)
 				val |= SE_CRYPTO_IV_SEL(IV_REG);
 		} else {
 			val |= (org_iv ? SE_CRYPTO_IV_SEL(IV_ORIGINAL) :
@@ -1534,8 +1554,9 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 		}
 	}
 
-	/* enable hash for CMAC */
-	if (mode == SE_AES_OP_MODE_CMAC)
+	/* Enable hash for CMAC if running on T18X. */
+	if (mode == SE_AES_OP_MODE_CMAC &&
+		se_dev->chipdata->kac_type == SE_KAC_T18X)
 		val |= SE_CRYPTO_HASH(HASH_ENABLE);
 
 	if (mode == SE_AES_OP_MODE_RNG_DRBG) {
@@ -1720,11 +1741,30 @@ static void tegra_se_read_cmac_result(struct tegra_se_dev *se_dev, u8 *pdata,
 	nvhost_module_busy(se_dev->pdev);
 
 	for (i = 0; i < nbytes / 4; i++) {
-		result[i] = se_readl(se_dev, SE_CMAC_RESULT_REG_OFFSET +
-				     (i * sizeof(u32)));
+		if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+			result[i] = se_readl(se_dev,
+					     T234_SE_CMAC_RESULT_REG_OFFSET +
+					     (i * sizeof(u32)));
+		} else  {
+			result[i] = se_readl(se_dev, SE_CMAC_RESULT_REG_OFFSET +
+					     (i * sizeof(u32)));
+		}
 		if (swap32)
 			result[i] = be32_to_cpu(result[i]);
 	}
+
+	nvhost_module_idle(se_dev->pdev);
+}
+
+static void tegra_se_clear_cmac_result(struct tegra_se_dev *se_dev, u32 nbytes)
+{
+	u32 i;
+
+	nvhost_module_busy(se_dev->pdev);
+
+	for (i = 0; i < nbytes / 4; i++)
+		se_writel(se_dev, 0x0, T234_SE_CMAC_RESULT_REG_OFFSET +
+			  (i * sizeof(u32)));
 
 	nvhost_module_idle(se_dev->pdev);
 }
@@ -3342,6 +3382,11 @@ static int tegra_se_aes_cmac_final(struct ahash_request *req)
 		goto out;
 	tegra_se_read_cmac_result(se_dev, req->result,
 				  TEGRA_SE_AES_CMAC_DIGEST_SIZE, false);
+
+	if (se_dev->chipdata->kac_type == SE_KAC_T23X)
+		tegra_se_clear_cmac_result(se_dev,
+					   TEGRA_SE_AES_CMAC_DIGEST_SIZE);
+
 out:
 	if (cmac_ctx->buffer)
 		dma_free_coherent(se_dev->dev, TEGRA_SE_AES_BLOCK_SIZE,
@@ -3426,10 +3471,19 @@ static int tegra_se_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 	se_dev->dst_ll->data_len = TEGRA_SE_AES_BLOCK_SIZE;
 
 	/* load the key */
-	ret = tegra_se_send_key_data(
-		se_dev, (u8 *)key, keylen, ctx->slot->slot_num,
-		SE_KEY_TABLE_TYPE_KEY, se_dev->opcode_addr,
-		se_dev->aes_cmdbuf_cpuvaddr, se_dev->aes_cmdbuf_iova, NONE);
+	if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+		ret = tegra_se_send_key_data(
+			se_dev, (u8 *)key, keylen, ctx->slot->slot_num,
+			SE_KEY_TABLE_TYPE_CMAC, se_dev->opcode_addr,
+			se_dev->aes_cmdbuf_cpuvaddr, se_dev->aes_cmdbuf_iova,
+			NONE);
+	} else {
+		ret = tegra_se_send_key_data(
+			se_dev, (u8 *)key, keylen, ctx->slot->slot_num,
+			SE_KEY_TABLE_TYPE_KEY, se_dev->opcode_addr,
+			se_dev->aes_cmdbuf_cpuvaddr, se_dev->aes_cmdbuf_iova,
+			NONE);
+	}
 	if (ret) {
 		dev_err(se_dev->dev,
 			"tegra_se_send_key_data for loading cmac key failed\n");
@@ -4425,7 +4479,7 @@ static struct ahash_alg hash_algs[] = {
 		.halg.base = {
 			.cra_name = "cmac(aes)",
 			.cra_driver_name = "tegra-se-cmac(aes)",
-			.cra_priority = 300,
+			.cra_priority = 500,
 			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
 			.cra_blocksize = TEGRA_SE_AES_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct tegra_se_aes_cmac_context),
