@@ -1886,14 +1886,16 @@ struct nvcsi_tpg_config_t186 {
  * @{
  */
 #define NVCSI_TPG_FLAG_PATCH_MODE			MK_U16(1)
-#define NVCSI_TPG_FLAG_PHASE_INCREMENT			MK_U16(2)
-#define NVCSI_TPG_FLAG_AUTO_STOP			MK_U16(4)
+/** Next gen TPG sine LUT mode */
+#define NVCSI_TPG_FLAG_SINE_MODE			MK_U16(2)
+#define NVCSI_TPG_FLAG_PHASE_INCREMENT			MK_U16(4)
+#define NVCSI_TPG_FLAG_AUTO_STOP			MK_U16(8)
 /** TPG next gen feature to generate embedded data with config settings */
-#define NVCSI_TPG_FLAG_EMBEDDED_PATTERN_CONFIG_INFO	MK_U16(8)
+#define NVCSI_TPG_FLAG_EMBEDDED_PATTERN_CONFIG_INFO	MK_U16(16)
 /** Next gen TPG LS/LE packet generation enable flag */
-#define NVCSI_TPG_FLAG_ENABLE_LS_LE			MK_U16(16)
+#define NVCSI_TPG_FLAG_ENABLE_LS_LE			MK_U16(32)
 /** TPG next gen feature to transmit CPHY packets. DPHY is default option */
-#define NVCSI_TPG_FLAG_PHY_MODE_CPHY			MK_U16(32)
+#define NVCSI_TPG_FLAG_PHY_MODE_CPHY			MK_U16(64)
 /** @} */
 
 /**
