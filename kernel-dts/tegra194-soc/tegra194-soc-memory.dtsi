@@ -180,7 +180,7 @@
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 	smmu_iso: iommu@10000000{
-		compatible = "arm,mmu-500","nvidia,tegra194-smmu";
+		compatible = "arm,mmu-500","nvidia,tegra194-smmu","nvidia,smmu-500";
 		reg = <0 0x10000000 0 0x800000>;
 		#global-interrupts = <1>;
 		interrupts = <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>,
