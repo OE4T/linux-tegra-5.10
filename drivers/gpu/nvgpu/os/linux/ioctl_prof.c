@@ -363,6 +363,14 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 		return err;
 	}
 
+	err = nvgpu_vm_map_buffer(mm->perfbuf.vm, args->pma_bytes_available_buffer_fd,
+			&pma_bytes_available_buffer_offset, 0, SZ_4K, 0, 0,
+			0, 0, NULL);
+	if (err != 0) {
+		nvgpu_err(g, "failed to map available bytes buffer");
+		goto err_put_vm;
+	}
+
 	/*
 	 * Size register is 32-bit in HW, ensure requested size does
 	 * not violate that.
@@ -374,22 +382,14 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 			0, 0, NULL);
 	if (err != 0) {
 		nvgpu_err(g, "failed to map PMA buffer");
-		goto err_put_vm;
-	}
-
-	err = nvgpu_vm_map_buffer(mm->perfbuf.vm, args->pma_bytes_available_buffer_fd,
-			&pma_bytes_available_buffer_offset, 0, SZ_4K, 0, 0,
-			0, 0, NULL);
-	if (err != 0) {
-		nvgpu_err(g, "failed to map available bytes buffer");
-		goto err_unmap_pma;
+		goto err_unmap_bytes_available;
 	}
 
 	dmabuf = dma_buf_get(args->pma_bytes_available_buffer_fd);
 	if (IS_ERR(dmabuf)) {
 		err = -EINVAL;
 		nvgpu_err(g, "failed to get available bytes buffer FD");
-		goto err_unmap_bytes_available;
+		goto err_unmap_pma;
 	}
 
 	cpuva = dma_buf_vmap(dmabuf);
@@ -415,10 +415,10 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 
 err_dma_buf_put:
 	dma_buf_put(dmabuf);
-err_unmap_bytes_available:
-	nvgpu_vm_unmap(mm->perfbuf.vm, pma_bytes_available_buffer_offset, NULL);
 err_unmap_pma:
 	nvgpu_vm_unmap(mm->perfbuf.vm, args->pma_buffer_offset, NULL);
+err_unmap_bytes_available:
+	nvgpu_vm_unmap(mm->perfbuf.vm, pma_bytes_available_buffer_offset, NULL);
 err_put_vm:
 	nvgpu_perfbuf_deinit_vm(g);
 	nvgpu_profiler_pm_resource_release(prof,
