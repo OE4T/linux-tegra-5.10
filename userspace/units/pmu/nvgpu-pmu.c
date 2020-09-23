@@ -168,6 +168,7 @@ static void nvgpu_init_gr_manager(struct gk20a *g)
 	struct nvgpu_gr_syspipe *gr_syspipe = &gpu_instance->gr_syspipe;
 
 	g->mig.num_gpu_instances = 1;
+	g->mig.num_gr_sys_pipes_enabled = 1;
 	gr_syspipe->gr_instance_id = 0U;
 	gr_syspipe->gr_syspipe_id = 0U;
 }

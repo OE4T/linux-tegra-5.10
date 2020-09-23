@@ -53,14 +53,6 @@
 
 #include "gr_priv.h"
 
-/*
- * Use this until common.gr is completely updated to support multiple
- * GR instances. Once that is supported, nvgpu_grmgr_get_num_gr_instances()
- * should be used to get number of GR instances.
- * Set this to 0 for local MIG testing.
- */
-#define NVGPU_GR_NUM_INSTANCES		1
-
 static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 {
 	int err;
@@ -875,10 +867,7 @@ int nvgpu_gr_alloc(struct gk20a *g)
 		return 0;
 	}
 
-	g->num_gr_instances = NVGPU_GR_NUM_INSTANCES;
-	if (g->num_gr_instances == 0U) {
-		g->num_gr_instances = nvgpu_grmgr_get_num_gr_instances(g);
-	}
+	g->num_gr_instances = nvgpu_grmgr_get_num_gr_instances(g);
 	if (g->num_gr_instances == 0U) {
 		nvgpu_err(g, "No GR engine enumerated");
 		return -EINVAL;
