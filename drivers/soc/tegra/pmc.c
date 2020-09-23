@@ -44,6 +44,7 @@
 #include <linux/seq_file.h>
 #include <linux/slab.h>
 #include <linux/spinlock.h>
+#include <linux/regmap.h>
 #include <linux/notifier.h>
 #include <linux/regulator/consumer.h>
 #include <linux/tegra_prod.h>
@@ -163,6 +164,12 @@
 #define GPU_RG_CNTRL			0x2d4
 
 #define PMC_IMPL_HALT_IN_FIQ_MASK	BIT(28)
+
+#define PMC_UTMIP_BIAS_MASTER_CNTRL	0x270
+#define PMC_UTMIP_UHSIC2_TRIGGERS	0x27c
+#define PMC_UTMIP_MASTER2_CONFIG	0x29c
+#define PMC_UTMIP_PAD_CFG0		0x4c0
+#define PMC_UTMIP_SLEEPWALK_P3		0x4e0
 
 /* Tegra186 and later */
 #define WAKE_AOWAKE_CNTRL(x) (0x000 + ((x) << 2))
@@ -591,6 +598,7 @@ struct tegra_pmc_soc {
 	int misc_base_reg_index;
 	bool skip_fuse_mirroring_logic;
 	bool has_reorg_hw_dpd_reg_impl;
+	bool has_usb_sleepwalk;
 };
 
 struct tegra_io_pad_regulator {
@@ -4064,6 +4072,67 @@ static void tegra_pmc_clock_register(struct tegra_pmc *pmc,
 			 err);
 }
 
+static const struct regmap_range pmc_usb_sleepwalk_ranges[] = {
+	regmap_reg_range(PMC_USB_DEBOUNCE_DEL, PMC_USB_AO),
+	regmap_reg_range(PMC_UTMIP_UHSIC_TRIGGERS, PMC_UHSIC_SAVED_STATE),
+	regmap_reg_range(PMC_UTMIP_TERM_PAD_CFG, PMC_UHSIC_FAKE),
+	regmap_reg_range(PMC_UTMIP_UHSIC_LINE_WAKEUP, PMC_UTMIP_UHSIC_LINE_WAKEUP),
+	regmap_reg_range(PMC_UTMIP_BIAS_MASTER_CNTRL, PMC_UTMIP_MASTER_CONFIG),
+	regmap_reg_range(PMC_UTMIP_UHSIC2_TRIGGERS, PMC_UTMIP_MASTER2_CONFIG),
+	regmap_reg_range(PMC_UTMIP_PAD_CFG0, PMC_UTMIP_UHSIC_SLEEP_CFG1),
+	regmap_reg_range(PMC_UTMIP_SLEEPWALK_P3, PMC_UTMIP_SLEEPWALK_P3),
+};
+
+static const struct regmap_access_table pmc_usb_sleepwalk_table = {
+	.yes_ranges = pmc_usb_sleepwalk_ranges,
+	.n_yes_ranges = ARRAY_SIZE(pmc_usb_sleepwalk_ranges),
+};
+
+static int tegra_pmc_regmap_readl(void *context, unsigned int offset, unsigned int *value)
+{
+	struct tegra_pmc *pmc = context;
+
+	*value = tegra_pmc_readl(pmc, offset);
+	return 0;
+}
+
+static int tegra_pmc_regmap_writel(void *context, unsigned int offset, unsigned int value)
+{
+	struct tegra_pmc *pmc = context;
+
+	tegra_pmc_writel(pmc, value, offset);
+	return 0;
+}
+
+static const struct regmap_config usb_sleepwalk_regmap_config = {
+	.name = "usb_sleepwalk",
+	.reg_bits = 32,
+	.val_bits = 32,
+	.reg_stride = 4,
+	.fast_io = true,
+	.rd_table = &pmc_usb_sleepwalk_table,
+	.wr_table = &pmc_usb_sleepwalk_table,
+	.reg_read = tegra_pmc_regmap_readl,
+	.reg_write = tegra_pmc_regmap_writel,
+};
+
+static int tegra_pmc_regmap_init(struct tegra_pmc *pmc)
+{
+	struct regmap *regmap;
+	int err;
+
+	if (pmc->soc->has_usb_sleepwalk) {
+		regmap = devm_regmap_init(pmc->dev, NULL, pmc, &usb_sleepwalk_regmap_config);
+		if (IS_ERR(regmap)) {
+			err = PTR_ERR(regmap);
+			dev_err(pmc->dev, "failed to allocate register map (%d)\n", err);
+			return err;
+		}
+	}
+
+	return 0;
+}
+
 static int tegra_pmc_probe(struct platform_device *pdev)
 {
 	void __iomem *base;
@@ -4210,6 +4279,10 @@ static int tegra_pmc_probe(struct platform_device *pdev)
 
 	err = tegra_pmc_pinctrl_init(pmc);
 	if (err)
+		goto cleanup_restart_handler;
+
+	err = tegra_pmc_regmap_init(pmc);
+	if (err < 0)
 		goto cleanup_restart_handler;
 
 	err = tegra_powergate_init(pmc, pdev->dev.of_node);
@@ -4387,6 +4460,7 @@ static const struct tegra_pmc_soc tegra20_pmc_soc = {
 	.has_bootrom_command = false,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
+	.has_usb_sleepwalk = false,
 };
 
 static const char * const tegra30_powergates[] = {
@@ -4440,6 +4514,7 @@ static const struct tegra_pmc_soc tegra30_pmc_soc = {
 	.has_bootrom_command = false,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
+	.has_usb_sleepwalk = false,
 };
 
 static const char * const tegra114_powergates[] = {
@@ -4497,6 +4572,7 @@ static const struct tegra_pmc_soc tegra114_pmc_soc = {
 	.has_bootrom_command = false,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
+	.has_usb_sleepwalk = false,
 };
 
 static const char * const tegra124_powergates[] = {
@@ -4616,6 +4692,7 @@ static const struct tegra_pmc_soc tegra124_pmc_soc = {
 	.has_bootrom_command = false,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
+	.has_usb_sleepwalk = true,
 };
 
 static const char * const tegra210_powergates[] = {
@@ -4885,6 +4962,7 @@ static const struct tegra_pmc_soc tegra210b01_pmc_soc = {
 	.misc_base_reg_index = -1,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
+	.has_usb_sleepwalk = true,
 };
 
 #define TEGRA186_IO_PAD(_id, _dpd, _voltage, _v_reg,  _name, _iopower, _bds) \
@@ -5087,6 +5165,7 @@ static const struct tegra_pmc_soc tegra186_pmc_soc = {
 	.misc_base_reg_index = -1,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
+	.has_usb_sleepwalk = false,
 };
 
 #define TEGRA194_IO_PAD(_id, _dpd, _voltage, _name)             \
@@ -5248,6 +5327,7 @@ static const struct tegra_pmc_soc tegra194_pmc_soc = {
 	.misc_base_reg_index = 4,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
+	.has_usb_sleepwalk = false,
 };
 
 #define TEGRA234_IO_PAD(_id, _dpd, _voltage, _name, _dpd_reg_index)	\
@@ -5382,6 +5462,7 @@ static const struct tegra_pmc_soc tegra234_pmc_soc = {
 	.misc_base_reg_index = 3,
 	.skip_fuse_mirroring_logic = true,
 	.has_reorg_hw_dpd_reg_impl = true,
+	.has_usb_sleepwalk = false,
 };
 
 static const struct of_device_id tegra_pmc_match[] = {
