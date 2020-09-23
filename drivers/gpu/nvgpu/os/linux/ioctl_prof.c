@@ -665,6 +665,11 @@ static int nvgpu_prof_ioctl_pma_stream_update_get_put(struct nvgpu_profiler_obje
 		"Update PMA stream request %u: flags = 0x%x bytes_consumed=%llu",
 		prof->prof_handle, args->flags, args->bytes_consumed);
 
+	if (!prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM]) {
+		nvgpu_err(g, "PMA stream resource not reserved");
+		return -EINVAL;
+	}
+
 	err = nvgpu_perfbuf_update_get_put(prof->g, args->bytes_consumed,
 			update_bytes_available ? &args->bytes_available : NULL,
 			prof->pma_bytes_available_buffer_cpuva, wait,
