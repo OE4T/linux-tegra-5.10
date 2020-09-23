@@ -234,7 +234,7 @@ int nvhost_channel_map_with_vm(struct nvhost_device_data *pdata,
 		return -EINVAL;
 	}
 
-	host = nvhost_get_host(pdata->pdev);
+	host = nvhost_get_host_nowarn(pdata->pdev);
 	if (!host)
 		return -EPROBE_DEFER;
 	max_channels = nvhost_channel_nb_channels(host);
