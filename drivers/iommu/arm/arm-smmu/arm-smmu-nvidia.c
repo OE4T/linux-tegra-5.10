@@ -10,6 +10,10 @@
 
 #include "arm-smmu.h"
 
+#ifdef CONFIG_ARM_SMMU_DEBUG
+#include <linux/arm-smmu-debug.h>
+#endif
+
 /*
  * Tegra194 has three ARM MMU-500 Instances.
  * Two of them are used together and must be programmed identically for
@@ -300,6 +304,11 @@ struct arm_smmu_device *nvidia_smmu_impl_init(struct arm_smmu_device *smmu)
 	 * allocated as part of struct nvidia_smmu.
 	 */
 	devm_kfree(dev, smmu);
+
+#ifdef CONFIG_ARM_SMMU_DEBUG
+	arm_smmu_debugfs_setup_bases(&nvidia_smmu->smmu, NUM_SMMU_INSTANCES,
+					nvidia_smmu->bases);
+#endif
 
 	return &nvidia_smmu->smmu;
 }
