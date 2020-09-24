@@ -169,6 +169,9 @@ static int tegra_camera_isomgr_register(struct tegra_camera_info *info,
 					NULL);	/* *priv */
 
 	if (IS_ERR(info->isomgr_handle)) {
+		/* Defer probe if isomgr is not up */
+		if (info->isomgr_handle == ERR_PTR(-EAGAIN))
+			return -EPROBE_DEFER;
 		dev_err(info->dev,
 			"%s: unable to register to isomgr\n",
 				__func__);
@@ -569,6 +572,7 @@ static const struct file_operations tegra_camera_ops = {
 static int tegra_camera_probe(struct platform_device *pdev)
 {
 	int ret;
+	static bool misc_registered = false;
 	struct tegra_camera_info *info;
 
 	dev_info(&pdev->dev, "%s:camera_platform_driver probe\n", __func__);
@@ -578,13 +582,17 @@ static int tegra_camera_probe(struct platform_device *pdev)
 	tegra_camera_misc.fops = &tegra_camera_ops;
 	tegra_camera_misc.parent = &pdev->dev;
 
-	ret = misc_register(&tegra_camera_misc);
-	if (ret) {
-		dev_err(tegra_camera_misc.this_device,
-			"register failed for %s\n",
-			tegra_camera_misc.name);
-		return ret;
+	if (!misc_registered) {
+		ret = misc_register(&tegra_camera_misc);
+		if (ret) {
+			dev_err(tegra_camera_misc.this_device,
+				"register failed for %s\n",
+				tegra_camera_misc.name);
+			return ret;
+		}
+		misc_registered = true;
 	}
+
 	info = devm_kzalloc(tegra_camera_misc.this_device,
 		sizeof(struct tegra_camera_info), GFP_KERNEL);
 	if (!info)
@@ -611,6 +619,8 @@ static int tegra_camera_probe(struct platform_device *pdev)
 	/* Register Camera as isomgr client. */
 	ret = tegra_camera_isomgr_register(info, &pdev->dev);
 	if (ret) {
+		if (ret == -EPROBE_DEFER)
+			return ret;
 		dev_err(info->dev,
 		"%s: failed to register CAMERA as isomgr client\n",
 		__func__);
