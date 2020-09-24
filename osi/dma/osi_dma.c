@@ -39,6 +39,12 @@ int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	if (osi_dma->osd_ops.receive_packet == OSI_NULL) {
 		osi_dma->osd_ops.receive_packet = osd_receive_packet;
 	}
+	if (osi_dma->osd_ops.ops_log == OSI_NULL) {
+		osi_dma->osd_ops.ops_log = osd_log;
+	}
+	if (osi_dma->osd_ops.udelay == OSI_NULL) {
+		osi_dma->osd_ops.udelay = osd_udelay;
+	}
 
 	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
 		/* Get EQOS HW ops */

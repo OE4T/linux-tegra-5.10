@@ -158,6 +158,7 @@ static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
  *  - If yes, set a bit and update nano seconds in rx_pkt_cx so that OSD
  *    layer can extract the time by checking this bit.
  *
+ * @param[in] osi: OSI private data structure.
  * @param[in] rx_desc: Rx descriptor
  * @param[in] context_desc: Rx context descriptor
  * @param[in] rx_pkt_cx: Rx packet context
@@ -165,7 +166,8 @@ static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
  * @retval -1 if TimeStamp is not available
  * @retval 0 if TimeStamp is available.
  */
-static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
+static int get_rx_hwstamp(struct osi_dma_priv_data *osi,
+			  struct osi_rx_desc *rx_desc,
 			  struct osi_rx_desc *context_desc,
 			  struct osi_rx_pkt_cx *rx_pkt_cx)
 {
@@ -189,7 +191,7 @@ static int get_rx_hwstamp(struct osi_rx_desc *rx_desc,
 				/* Do nothing here */
 			}
 			/* TS not available yet, so retrying */
-			osd_udelay(1U);
+			osi->osd_ops.udelay(1U);
 		}
 		if (ret != 0) {
 			/* Timed out waiting for Rx timestamp */
@@ -330,7 +332,8 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			get_rx_vlan_from_desc(rx_desc, rx_pkt_cx);
 			context_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 			/* Get rx time stamp */
-			ret = get_rx_hwstamp(rx_desc, context_desc, rx_pkt_cx);
+			ret = get_rx_hwstamp(osi, rx_desc, context_desc,
+					     rx_pkt_cx);
 			if (ret == 0) {
 				ptp_rx_swcx = rx_ring->rx_swcx +
 					      rx_ring->cur_rx_idx;

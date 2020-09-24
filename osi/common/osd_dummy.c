@@ -19,38 +19,38 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifdef OSD_DUMMY
+#include <osd.h>
 
-#ifndef LOCAL_COMMON_H
-#define LOCAL_COMMON_H
+void osd_usleep_range(unsigned long umin, unsigned long umax)
+{
+}
 
-#include <osi_common.h>
+void osd_msleep(unsigned int msec)
+{
+}
 
-/**
- * @brief common_get_systime_from_mac - Get system time
- *
- * @param[in] addr: Address of base register.
- * @param[in] mac: MAC HW type.
- * @param[out] sec: Value read in Seconds.
- * @param[out] nsec: Value read in Nano seconds.
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-void common_get_systime_from_mac(void *addr, unsigned int mac,
-				 unsigned int *sec, unsigned int *nsec);
+void osd_udelay(unsigned long usec)
+{
+}
 
-/**
- * @brief common_is_mac_enabled - Checks if MAC is enabled or not.
- *
- * @param[in] addr: Address of base register.
- * @param[in] mac: MAC HW type.
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @retval OSI_ENABLE if MAC enabled.
- * @retval OSI_DISABLE otherwise.
- */
-unsigned int common_is_mac_enabled(void *addr, unsigned int mac);
-#endif /* LOCAL_COMMON_H */
+void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
+			unsigned int dma_buf_len, void *rxpkt_cx,
+			void *rx_pkt_swcx)
+{
+}
+void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
+			   unsigned int len, void *txdone_pkt_cx)
+{
+}
+
+void osd_log(void *priv,
+	     const char *func,
+	     unsigned int line,
+	     unsigned int level,
+	     unsigned int type,
+	     const char *err,
+	     unsigned long long loga)
+{
+}
+#endif

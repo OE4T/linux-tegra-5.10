@@ -36,6 +36,36 @@
 #define OSI_PTP_SSINC_4		4U
 /** @} */
 
+/* to avoid re definition when both core and dma headers are included */
+#undef OSI_ERR
+#undef OSI_INFO
+
+/**
+ * @brief OSI error macro definition,
+ * @param[in] priv: OSD private data OR NULL
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ */
+#define OSI_ERR(priv, type, err, loga)				\
+{								\
+	osi_core->osd_ops.ops_log(priv, __func__, __LINE__,	\
+				  OSI_LOG_ERR, type, err, loga);\
+}
+
+/**
+ * @brief OSI info macro definition
+ * @param[in] priv: OSD private data OR NULL
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ */
+#define OSI_INFO(priv, type, err, loga)					\
+{									\
+	osi_core->osd_ops.ops_log(priv, __func__, __LINE__,		\
+				  OSI_LOG_INFO, type, err, loga);	\
+}
+
 struct osi_core_priv_data;
 
 /**
@@ -146,7 +176,8 @@ struct  osi_core_avb_algorithm {
  */
 struct osi_core_ops {
 	/** Called to poll for software reset bit */
-	int (*poll_for_swr)(void *ioaddr, unsigned int pre_si);
+	int (*poll_for_swr)(struct osi_core_priv_data *const osi_core,
+			    unsigned int pre_si);
 	/** Called to initialize MAC and MTL registers */
 	int (*core_init)(struct osi_core_priv_data *const osi_core,
 			 const unsigned int tx_fifo_size,
@@ -164,7 +195,7 @@ struct osi_core_ops {
 	/** Called to set the speed (10/100/1000) at MAC */
 	void (*set_speed)(void *ioaddr, const int speed);
 	/** Called to do pad caliberation */
-	int (*pad_calibrate)(void *ioaddr);
+	int (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
 	/** Called to set MDC clock rate for MDIO operation */
 	void (*set_mdc_clk_rate)(struct osi_core_priv_data *const osi_core,
 				 const unsigned long csr_clk_rate);
@@ -219,14 +250,17 @@ struct osi_core_ops {
 				 const unsigned short port_no,
 				 const unsigned int src_dst_port_match);
 	/** Called to set the addend value to adjust the time */
-	int (*config_addend)(void *addr, const unsigned int addend);
+	int (*config_addend)(struct osi_core_priv_data *const osi_core,
+			     const unsigned int addend);
 	/** Called to adjust the mac time */
-	int (*adjust_mactime)(void *addr, const unsigned int sec,
+	int (*adjust_mactime)(struct osi_core_priv_data *const osi_core,
+			      const unsigned int sec,
 			      const unsigned int nsec,
 			      const unsigned int neg_adj,
 			      const unsigned int one_nsec_accuracy);
 	/** Called to set current system time to MAC */
-	int (*set_systime_to_mac)(void *addr, const unsigned int sec,
+	int (*set_systime_to_mac)(struct osi_core_priv_data *const osi_core,
+				  const unsigned int sec,
 				  const unsigned int nsec);
 	/** Called to configure the TimeStampControl register */
 	void (*config_tscr)(void *addr, const unsigned int ptp_filter);
@@ -248,7 +282,8 @@ struct osi_core_ops {
 	 * registers against last written value */
 	int (*validate_regs)(struct osi_core_priv_data *const osi_core);
 	/** Called to flush MTL Tx queue */
-	int (*flush_mtl_tx_queue)(void *ioaddr, const unsigned int qinx);
+	int (*flush_mtl_tx_queue)(struct osi_core_priv_data *const osi_core,
+				const unsigned int qinx);
 	/** Called to set av parameter */
 	int (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
 			   const struct osi_core_avb_algorithm *const avb);
@@ -351,6 +386,22 @@ struct core_backup {
 };
 
 /**
+ *@brief OSD Core callbacks
+ */
+struct osd_core_ops {
+	/** logging callback */
+	void (*ops_log)(void *priv, const char *func, unsigned int line,
+			unsigned int level, unsigned int type, const char *err,
+			unsigned long long loga);
+	/** udelay callback */
+	void (*udelay)(unsigned long usec);
+	/** usleep range callback */
+	void (*usleep_range)(unsigned long umin, unsigned long umax);
+	/** msleep callback */
+	void (*msleep)(unsigned int msec);
+};
+
+/**
  * @brief The OSI Core (MAC & MTL) private data structure.
  */
 struct osi_core_priv_data {
@@ -362,6 +413,8 @@ struct osi_core_priv_data {
 	void *osd;
 	/** Address of HW Core operations structure */
 	struct osi_core_ops *ops;
+	/** OSD callback ops structure */
+	struct osd_core_ops osd_ops;
 	/** Number of MTL queues enabled in MAC */
 	unsigned int num_mtl_queues;
 	/** Array of MTL queues */

@@ -481,7 +481,7 @@ static int eqos_config_mac_loopback(void *addr,
  *  - CAR reset will be issued through MAC reset pin.
  *    Waits for SWR reset to be cleared in DMA Mode register.
  *
- * @param[in] addr: EQOS virtual base address.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] pre_si: Sets whether platform is Pre-silicon or not.
  *
  * @pre MAC needs to be out of reset and proper clock configured.
@@ -489,8 +489,10 @@ static int eqos_config_mac_loopback(void *addr,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_poll_for_swr(void *addr, unsigned int pre_si)
+static int eqos_poll_for_swr(struct osi_core_priv_data *const osi_core,
+			     unsigned int pre_si)
 {
+	void *addr = osi_core->base;
 	unsigned int retry = 1000;
 	unsigned int count;
 	unsigned int dma_bmr = 0;
@@ -500,7 +502,7 @@ static int eqos_poll_for_swr(void *addr, unsigned int pre_si)
 		osi_writel(0x1U, (unsigned char *)addr + EQOS_DMA_BMR);
 	}
 	/* add delay of 10 usec */
-	osd_usleep_range(9, 11);
+	osi_core->osd_ops.usleep_range(9, 11);
 
 	/* Poll Until Poll Condition */
 	count = 0;
@@ -515,7 +517,7 @@ static int eqos_poll_for_swr(void *addr, unsigned int pre_si)
 		if ((dma_bmr & EQOS_DMA_BMR_SWR) == 0U) {
 			cond = 0;
 		} else {
-			osd_msleep(1U);
+			osi_core->osd_ops.msleep(1U);
 		}
 	}
 
@@ -752,7 +754,7 @@ static unsigned int eqos_calculate_per_queue_fifo(unsigned int fifo_size,
  *  - Re-program the value PAD_E_INPUT_OR_E_PWRD in
  *    ETHER_QOS_SDMEMCOMPPADCTRL_0 to save power
  *
- * @param[in] ioaddr:	Base address of the MAC HW.
+ * @param[in] osi_core: OSI core private data structure.
  *
  * @note
  *  - MAC should out of reset and clocks enabled.
@@ -762,8 +764,9 @@ static unsigned int eqos_calculate_per_queue_fifo(unsigned int fifo_size,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_pad_calibrate(void *ioaddr)
+static int eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 {
+	void *ioaddr = osi_core->base;
 	unsigned int retry = 1000;
 	unsigned int count;
 	int cond = 1, ret = 0;
@@ -777,7 +780,7 @@ static int eqos_pad_calibrate(void *ioaddr)
 	osi_writel(value, (unsigned char *)ioaddr + EQOS_PAD_CRTL);
 
 	/* 2. delay for 1 usec */
-	osd_usleep_range(1, 3);
+	osi_core->osd_ops.usleep_range(1, 3);
 
 	/* 3. Set AUTO_CAL_ENABLE and AUTO_CAL_START in
 	 * reg ETHER_QOS_AUTO_CAL_CONFIG_0.
@@ -801,7 +804,7 @@ static int eqos_pad_calibrate(void *ioaddr)
 			goto calibration_failed;
 		}
 		count++;
-		osd_usleep_range(10, 12);
+		osi_core->osd_ops.usleep_range(10, 12);
 		value = osi_readl((unsigned char *)ioaddr +
 				  EQOS_PAD_AUTO_CAL_STAT);
 		/* calibration done when CAL_STAT_ACTIVE is zero */
@@ -824,7 +827,7 @@ calibration_failed:
 /**
  * @brief eqos_flush_mtl_tx_queue - Flush MTL Tx queue
  *
- * @param[in] addr: OSI core private data structure.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] qinx: MTL queue index.
  *
  * @note
@@ -834,9 +837,10 @@ calibration_failed:
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_flush_mtl_tx_queue(void *addr,
+static int eqos_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
 				   const unsigned int qinx)
 {
+	void *addr = osi_core->base;
 	unsigned int retry = 1000;
 	unsigned int count;
 	unsigned int value;
@@ -862,7 +866,7 @@ static int eqos_flush_mtl_tx_queue(void *addr,
 		}
 
 		count++;
-		osd_msleep(1);
+		osi_core->osd_ops.msleep(1);
 
 		value = osi_readl((unsigned char *)addr +
 				  EQOS_MTL_CHX_TX_OP_MODE(qinx));
@@ -1003,7 +1007,7 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
 	unsigned int value = 0;
 	int ret = 0;
 
-	ret = eqos_flush_mtl_tx_queue(osi_core->base, qinx);
+	ret = eqos_flush_mtl_tx_queue(osi_core, qinx);
 	if (ret < 0) {
 		return ret;
 	}
@@ -1371,7 +1375,7 @@ static int eqos_core_init(struct osi_core_priv_data *const osi_core,
 	eqos_core_backup_init(osi_core);
 
 	/* PAD calibration */
-	ret = eqos_pad_calibrate(osi_core->base);
+	ret = eqos_pad_calibrate(osi_core);
 	if (ret < 0) {
 		return ret;
 	}
@@ -2509,8 +2513,7 @@ static int eqos_config_l4_filters(
  *  - Read TSINIT value from MAC TCR register until it is
  *    equal to zero.
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] mac_tcr: Address to store time stamp control register read value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
@@ -2518,9 +2521,11 @@ static int eqos_config_l4_filters(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int eqos_poll_for_tsinit_complete(void *addr,
-						unsigned int *mac_tcr)
+static inline int eqos_poll_for_tsinit_complete(
+		  struct osi_core_priv_data *const osi_core,
+		  unsigned int *mac_tcr)
 {
+	void *addr = osi_core->base;
 	unsigned int retry = 1000;
 	unsigned int count;
 	int cond = 1;
@@ -2539,7 +2544,7 @@ static inline int eqos_poll_for_tsinit_complete(void *addr,
 			cond = 0;
 		}
 		count++;
-		osd_udelay(1000U);
+		osi_core->osd_ops.udelay(1000U);
 	}
 
 	return 0;
@@ -2553,8 +2558,7 @@ static inline int eqos_poll_for_tsinit_complete(void *addr,
  *  - Updates system time (seconds and nano seconds)
  *    in hardware registers
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] sec: Seconds to be configured
  * @param[in] nsec: Nano Seconds to be configured
  *
@@ -2563,13 +2567,15 @@ static inline int eqos_poll_for_tsinit_complete(void *addr,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_set_systime_to_mac(void *addr, const unsigned int sec,
+static int eqos_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
+				   const unsigned int sec,
 				   const unsigned int nsec)
 {
+	void *addr = osi_core->base;
 	unsigned int mac_tcr;
 	int ret;
 
-	ret = eqos_poll_for_tsinit_complete(addr, &mac_tcr);
+	ret = eqos_poll_for_tsinit_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
 	}
@@ -2587,7 +2593,7 @@ static int eqos_set_systime_to_mac(void *addr, const unsigned int sec,
 	eqos_core_safety_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR,
 				EQOS_MAC_TCR_IDX);
 
-	ret = eqos_poll_for_tsinit_complete(addr, &mac_tcr);
+	ret = eqos_poll_for_tsinit_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
 	}
@@ -2603,8 +2609,7 @@ static int eqos_set_systime_to_mac(void *addr, const unsigned int sec,
  *  - Read TSADDREG value from MAC TCR register until it is
  *    equal to zero.
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] mac_tcr: Address to store time stamp control register read value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
@@ -2612,9 +2617,11 @@ static int eqos_set_systime_to_mac(void *addr, const unsigned int sec,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int eqos_poll_for_addend_complete(void *addr,
-						unsigned int *mac_tcr)
+static inline int eqos_poll_for_addend_complete(
+		  struct osi_core_priv_data *const osi_core,
+		  unsigned int *mac_tcr)
 {
+	void *addr = osi_core->base;
 	unsigned int retry = 1000;
 	unsigned int count;
 	int cond = 1;
@@ -2632,7 +2639,7 @@ static inline int eqos_poll_for_addend_complete(void *addr,
 			cond = 0;
 		}
 		count++;
-		osd_udelay(1000U);
+		osi_core->osd_ops.udelay(1000U);
 	}
 
 	return 0;
@@ -2645,8 +2652,7 @@ static inline int eqos_poll_for_addend_complete(void *addr,
  * Algorithm:
  *  - Updates the Addend value in HW register
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] addend: Addend value to be configured
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
@@ -2654,12 +2660,14 @@ static inline int eqos_poll_for_addend_complete(void *addr,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_config_addend(void *addr, const unsigned int addend)
+static int eqos_config_addend(struct osi_core_priv_data *const osi_core,
+			      const unsigned int addend)
 {
+	void *addr = osi_core->base;
 	unsigned int mac_tcr;
 	int ret;
 
-	ret = eqos_poll_for_addend_complete(addr, &mac_tcr);
+	ret = eqos_poll_for_addend_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
 	}
@@ -2673,7 +2681,7 @@ static int eqos_config_addend(void *addr, const unsigned int addend)
 	eqos_core_safety_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR,
 				EQOS_MAC_TCR_IDX);
 
-	ret = eqos_poll_for_addend_complete(addr, &mac_tcr);
+	ret = eqos_poll_for_addend_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
 	}
@@ -2689,8 +2697,7 @@ static int eqos_config_addend(void *addr, const unsigned int addend)
  *  - Read time stamp update value from TCR register until it is
  *    equal to zero.
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] mac_tcr: Address to store time stamp control register read value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
@@ -2698,9 +2705,11 @@ static int eqos_config_addend(void *addr, const unsigned int addend)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int eqos_poll_for_update_ts_complete(void *addr,
-						   unsigned int *mac_tcr)
+static inline int eqos_poll_for_update_ts_complete(
+		  struct osi_core_priv_data *const osi_core,
+		  unsigned int *mac_tcr)
 {
+	void *addr = osi_core->base;
 	unsigned int retry = 1000;
 	unsigned int count;
 	int cond = 1;
@@ -2717,7 +2726,7 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
 			cond = 0;
 		}
 		count++;
-		osd_udelay(1000U);
+		osi_core->osd_ops.udelay(1000U);
 	}
 
 	return 0;
@@ -2731,8 +2740,7 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
  * Algorithm:
  *  - Update MAC time with system time
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] sec: Seconds to be configured
  * @param[in] nsec: Nano seconds to be configured
  * @param[in] add_sub: To decide on add/sub with system time
@@ -2745,16 +2753,18 @@ static inline int eqos_poll_for_update_ts_complete(void *addr,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_adjust_mactime(void *addr, unsigned int sec, unsigned int nsec,
+static int eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
+			       unsigned int sec, unsigned int nsec,
 			       unsigned int add_sub,
 			       unsigned int one_nsec_accuracy)
 {
+	void *addr = osi_core->base;
 	unsigned int mac_tcr;
 	unsigned int value = 0;
 	unsigned long long temp = 0;
 	int ret;
 
-	ret = eqos_poll_for_update_ts_complete(addr, &mac_tcr);
+	ret = eqos_poll_for_update_ts_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
 	}
@@ -2805,7 +2815,7 @@ static int eqos_adjust_mactime(void *addr, unsigned int sec, unsigned int nsec,
 	eqos_core_safety_writel(mac_tcr, (unsigned char *)addr + EQOS_MAC_TCR,
 				EQOS_MAC_TCR_IDX);
 
-	ret = eqos_poll_for_update_ts_complete(addr, &mac_tcr);
+	ret = eqos_poll_for_update_ts_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
 		return -1;
 	}
@@ -2984,7 +2994,7 @@ static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 			cond = 0;
 		} else {
 			/* wait on GMII Busy set */
-			osd_udelay(10U);
+			osi_core->osd_ops.udelay(10U);
 		}
 	}
 
@@ -3023,12 +3033,6 @@ static int eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 	unsigned int mac_gmiiar;
 	unsigned int mac_gmiidr;
 	int ret = 0;
-
-	if (osi_core == OSI_NULL) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "osi_core is NULL\n",
-			0ULL);
-		return -1;
-	}
 
 	/* Wait for any previous MII read/write operation to complete */
 	ret = poll_for_mii_idle(osi_core);
@@ -3104,12 +3108,6 @@ static int eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
 	unsigned int mac_gmiidr;
 	unsigned int data;
 	int ret = 0;
-
-	if (osi_core == OSI_NULL) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "osi_core is NULL\n",
-			0ULL);
-		return -1;
-	}
 
 	/* wait for any previous MII read/write operation to complete */
 	ret = poll_for_mii_idle(osi_core);

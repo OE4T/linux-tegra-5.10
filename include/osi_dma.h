@@ -27,6 +27,35 @@
 #include "osi_dma_txrx.h"
 #include "mmc.h"
 
+/* to avoid re definition when both core and dma headers are included */
+#undef OSI_ERR
+#undef OSI_INFO
+
+/**
+ * OSI error macro definition,
+ * @param[in] priv: OSD private data OR NULL
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ */
+#define OSI_ERR(priv, type, err, loga)				\
+{								\
+	osi_dma->osd_ops.ops_log(priv, __func__, __LINE__,	\
+				 OSI_LOG_ERR, type, err, loga);	\
+}
+/**
+ * OSI info macro definition
+ * @param[in] priv: OSD private data OR NULL
+ * @param[in] type: error type
+ * @param[in] err:  error string
+ * @param[in] loga: error additional information
+ */
+#define OSI_INFO(priv, type, err, loga)				\
+{								\
+	osi_dma->osd_ops.ops_log(priv, __func__, __LINE__,	\
+				 OSI_LOG_INFO, type, err, loga);\
+}
+
 /**
  * @addtogroup EQOS-PKT Packet context fields
  *
@@ -402,6 +431,12 @@ struct osd_dma_ops {
 			       void *rxpkt_cx, void *rx_pkt_swcx);
 	/** RX buffer reallocation callback */
 	void (*realloc_buf)(void *priv, void *rxring, unsigned int chan);
+	/**.ops_log function callback */
+	void (*ops_log)(void *priv, const char *func, unsigned int line,
+			unsigned int level, unsigned int type, const char *err,
+			unsigned long long loga);
+	/**.ops_log function callback */
+	void (*udelay)(unsigned long usec);
 };
 
 /**
