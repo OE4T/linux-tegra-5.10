@@ -437,6 +437,7 @@ u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
 /**
  * @brief Check if given preemption modes are valid.
  *
+ * @param g [in]			Pointer to GPU driver struct.
  * @param gr_ctx [in]			Pointer to graphics context struct.
  * @param graphics_preempt_mode		Requested graphics preemption mode.
  * @param compute_preempt_mode		Requested compute preemption mode.
@@ -455,7 +456,8 @@ u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
  *
  * @return true if requested preemption modes are valid, false otherwise.
  */
-bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+bool nvgpu_gr_ctx_check_valid_preemption_mode(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
 	u32 graphics_preempt_mode, u32 compute_preempt_mode);
 
 /**

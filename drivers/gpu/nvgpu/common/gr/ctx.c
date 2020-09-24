@@ -614,51 +614,50 @@ u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
 	return gr_ctx->compute_preempt_mode;
 }
 
-bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
-	u32 graphics_preempt_mode, u32 compute_preempt_mode)
+bool nvgpu_gr_ctx_check_valid_preemption_mode(struct gk20a *g,
+		struct nvgpu_gr_ctx *gr_ctx,
+		u32 graphics_preempt_mode, u32 compute_preempt_mode)
 {
-#ifdef CONFIG_NVGPU_GRAPHICS
+	u32 supported_graphics_preempt_mode = 0U;
+	u32 supported_compute_preempt_mode = 0U;
+
 	if ((graphics_preempt_mode == 0U) && (compute_preempt_mode == 0U)) {
 		return false;
 	}
-#else
-	if (graphics_preempt_mode != 0U) {
-		return false;
-	}
-#endif
 
-#ifdef CONFIG_NVGPU_CILP
-	if (compute_preempt_mode > NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
-		return false;
+	g->ops.gr.init.get_supported__preemption_modes(
+			&supported_graphics_preempt_mode,
+			&supported_compute_preempt_mode);
+
+	if (graphics_preempt_mode != 0U) {
+		if ((graphics_preempt_mode & supported_graphics_preempt_mode) == 0U) {
+			return false;
+		}
+
+		/* Do not allow lower preemption modes than current ones */
+		if (graphics_preempt_mode < gr_ctx->graphics_preempt_mode) {
+			return false;
+		}
 	}
-#else
-	if (compute_preempt_mode > NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
-		return false;
+
+	if (compute_preempt_mode != 0U) {
+		if ((compute_preempt_mode & supported_compute_preempt_mode) == 0U) {
+			return false;
+		}
+
+		/* Do not allow lower preemption modes than current ones */
+		if (compute_preempt_mode < gr_ctx->compute_preempt_mode) {
+			return false;
+		}
 	}
-#endif
 
 #if defined(CONFIG_NVGPU_CILP) && defined(CONFIG_NVGPU_GRAPHICS)
+	/* Invalid combination */
 	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
 		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
 		return false;
 	}
 #endif
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-	/* Do not allow lower preemption modes than current ones */
-	if ((graphics_preempt_mode != 0U) &&
-	    (graphics_preempt_mode < gr_ctx->graphics_preempt_mode)) {
-		return false;
-	}
-#endif
-
-	if (
-#ifdef CONFIG_NVGPU_GRAPHICS
-	    (compute_preempt_mode != 0U) &&
-#endif
-	    (compute_preempt_mode < gr_ctx->compute_preempt_mode)) {
-		return false;
-	}
 
 	return true;
 }

@@ -691,7 +691,7 @@ struct unit_module_test nvgpu_gr_setup_tests[] = {
 	UNIT_TEST(gr_setup_set_preemption_mode,
 			test_gr_setup_set_preemption_mode, NULL, 0),
 	UNIT_TEST(gr_setup_preemption_mode_errors,
-			test_gr_setup_preemption_mode_errors, NULL, 0),
+			test_gr_setup_preemption_mode_errors, NULL, 2),
 	UNIT_TEST(gr_setup_free_obj_ctx, test_gr_setup_free_obj_ctx, NULL, 0),
 	UNIT_TEST(gr_setup_alloc_obj_ctx_error_injections,
 			test_gr_setup_alloc_obj_ctx_error_injections, NULL, 0),
