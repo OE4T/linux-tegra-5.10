@@ -89,37 +89,71 @@
 		};
 #endif
 
-		ctx0 {
+		niso0_ctx0 {
 			status = "okay";
 		};
 
-		ctx1 {
+		niso0_ctx1 {
 			status = "okay";
 		};
 
-		ctx2 {
+		niso0_ctx2 {
 			status = "okay";
 		};
 
-		ctx3 {
+		niso0_ctx3 {
 			status = "okay";
 		};
 
-		ctx4 {
+		niso0_ctx4 {
 			status = "okay";
 		};
 
-		ctx5 {
+		niso0_ctx5 {
 			status = "okay";
 		};
 
-		ctx6 {
+		niso0_ctx6 {
 			status = "okay";
 		};
 
-		ctx7 {
+		niso0_ctx7 {
 			status = "okay";
 		};
+
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		niso1_ctx0 {
+			status = "okay";
+		};
+
+		niso1_ctx1 {
+			status = "okay";
+		};
+
+		niso1_ctx2 {
+			status = "okay";
+		};
+
+		niso1_ctx3 {
+			status = "okay";
+		};
+
+		niso1_ctx4 {
+			status = "okay";
+		};
+
+		niso1_ctx5 {
+			status = "okay";
+		};
+
+		niso1_ctx6 {
+			status = "okay";
+		};
+
+		niso1_ctx7 {
+			status = "okay";
+		};
+#endif
 	};
 
 	psci {
