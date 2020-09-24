@@ -27,6 +27,7 @@
 #include <nvgpu/sec2/cmd.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/gr_instances.h>
 
 /* Add code below to handle SEC2 RTOS commands */
 /* LSF's bootstrap command */
@@ -49,12 +50,22 @@ static void sec2_handle_lsfm_boot_acr_msg(struct gk20a *g,
 
 static u32 get_gpc_falcon_idx_mask(struct gk20a *g)
 {
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
-	u32 gpc_fs_mask = 0;
+	u32 gpc_falcon_idx_mask = 0U;
 
-	gpc_fs_mask = nvgpu_gr_config_get_gpc_mask(gr_config);
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		gpc_falcon_idx_mask = nvgpu_grmgr_get_gr_physical_gpc_mask(g,
+			nvgpu_gr_get_cur_instance_id(g));
+	} else {
+		u32 gpc_fs_mask;
+		struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 
-	return nvgpu_safe_sub_u32((1U << hweight32(gpc_fs_mask)), 1U);
+		gpc_fs_mask = nvgpu_gr_config_get_gpc_mask(gr_config);
+		gpc_falcon_idx_mask =
+			nvgpu_safe_sub_u32(
+			(1U << U32(hweight32(gpc_fs_mask))), 1U);
+	}
+
+	return gpc_falcon_idx_mask;
 }
 
 static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
@@ -80,7 +91,8 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 	cmd.cmd.acr.bootstrap_falcon.flags = flags;
 	cmd.cmd.acr.bootstrap_falcon.falcon_id = falcon_id;
 	cmd.cmd.acr.bootstrap_falcon.falcon_instance =
-		LSF_FALCON_INSTANCE_DEFAULT;
+		nvgpu_grmgr_get_gr_syspipe_id(g,
+			nvgpu_gr_get_cur_instance_id(g));
 	cmd.cmd.acr.bootstrap_falcon.falcon_index_mask =
 		LSF_FALCON_INDEX_MASK_DEFAULT;
 
@@ -89,8 +101,11 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 				get_gpc_falcon_idx_mask(g);
 	}
 
-	nvgpu_sec2_dbg(g, "NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON : %x",
-		falcon_id);
+	nvgpu_sec2_dbg(g, "NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON : %d "
+		"falcon_instance : %u falcon_index_mask : %x",
+		falcon_id,
+		cmd.cmd.acr.bootstrap_falcon.falcon_instance,
+		cmd.cmd.acr.bootstrap_falcon.falcon_index_mask);
 
 	command_ack = false;
 	err = nvgpu_sec2_cmd_post(g, &cmd, PMU_COMMAND_QUEUE_HPQ,
