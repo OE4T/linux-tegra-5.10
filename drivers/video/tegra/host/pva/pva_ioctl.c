@@ -522,7 +522,6 @@ pva_buffer_cpy_err:
 static int pva_get_characteristics(struct pva_private *priv,
 		void *arg)
 {
-	struct pva_characteristics_req pva_char_req;
 	struct pva_characteristics pva_char;
 	struct pva_characteristics_req *in_pva_char =
 			(struct pva_characteristics_req *)arg;
@@ -560,7 +559,9 @@ static int pva_get_characteristics(struct pva_private *priv,
 		in_size = out_size;
 
 	/* copy input_size of data to output*/
-	pva_char_req.characteristics_filled = in_size;
+	in_pva_char->characteristics_size = in_size;
+	/* reserved field*/
+	in_pva_char->characteristics_filled = 0;
 
 	err = copy_to_user((void __user *)in_pva_char->characteristics,
 			&pva_char,
