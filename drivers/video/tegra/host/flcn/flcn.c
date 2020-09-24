@@ -146,7 +146,6 @@ static int flcn_dma_pa_to_internal_256b(struct platform_device *pdev,
 					phys_addr_t pa, u32 internal_offset,
 					bool imem)
 {
-	struct nvhost_device_data *pdata = nvhost_get_devdata(pdev);
 	u32 cmd = flcn_dmatrfcmd_size_256b_f();
 	u32 pa_offset =  flcn_dmatrffboffs_offs_f(pa);
 	u32 i_offset = flcn_dmatrfmoffs_offs_f(internal_offset);
@@ -154,8 +153,7 @@ static int flcn_dma_pa_to_internal_256b(struct platform_device *pdev,
 	if (imem)
 		cmd |= flcn_dmatrfcmd_imem_true_f();
 
-	if (pdata->isolate_contexts)
-		cmd |= flcn_dmatrfcmd_dmactx_f(1);
+	cmd |= flcn_dmatrfcmd_dmactx_f(1);
 
 	host1x_writel(pdev, flcn_dmatrfmoffs_r(), i_offset);
 	host1x_writel(pdev, flcn_dmatrffboffs_r(), pa_offset);
