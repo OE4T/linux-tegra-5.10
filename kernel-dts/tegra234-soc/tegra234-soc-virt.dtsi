@@ -89,6 +89,7 @@
 		reg = <0x0 0x12000000 0x0 0x01000000>, /* SMMU0 16MB */
 			  <0x0 0x11000000 0x0 0x01000000>; /* SMMU1 16MB */
 		/delete-property/ iso-smmu-id;
+		/delete-property/ stream-match-mask;
 	};
 
 	xhci@3610000 {
