@@ -452,6 +452,7 @@ static int actmon_debugfs_create_dev(struct actmon_dev *dev)
 	if (!d)
 		return -ENOMEM;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 	d = debugfs_create_u32(
 		"boost_rate_dec", RW_MODE, dir, (u32 *)&dev->boost_down_coef);
 	if (!d)
@@ -461,7 +462,13 @@ static int actmon_debugfs_create_dev(struct actmon_dev *dev)
 		"boost_rate_inc", RW_MODE, dir, (u32 *)&dev->boost_up_coef);
 	if (!d)
 		return -ENOMEM;
+#else
+	debugfs_create_u32(
+		"boost_rate_dec", RW_MODE, dir, (u32 *)&dev->boost_down_coef);
 
+	debugfs_create_u32(
+		"boost_rate_inc", RW_MODE, dir, (u32 *)&dev->boost_up_coef);
+#endif
 	d = debugfs_create_file(
 		"boost_threshold_dn", RW_MODE, dir, dev, &down_threshold_fops);
 	if (!d)
