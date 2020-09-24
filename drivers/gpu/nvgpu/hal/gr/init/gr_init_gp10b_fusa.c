@@ -213,7 +213,7 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
 	u32 num_pes_per_gpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_PES_PER_GPC);
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx)
