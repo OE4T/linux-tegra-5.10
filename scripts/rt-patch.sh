@@ -11,7 +11,7 @@
 any_failure=0
 apply_rt_patches()
 {
-	if [ -f $PWD/../arch/arm64/configs/.orig.defconfig ]; then
+	if [ -f $PWD/../arch/arm64/configs/.orig.defconfig ] && [ -f $PWD/../arch/arm64/configs/.orig.early_defconfig ]; then
 		echo "The PREEMPT RT patches are already applied to the kernel!"
 	else
 		file_list=`find $PWD/../rt-patches -name \*.patch -type f | sort`
@@ -22,6 +22,8 @@ apply_rt_patches()
 		#make temporary copy of the defconfig file
 		cp -f "$PWD/../arch/arm64/configs/defconfig"\
 			"$PWD/../arch/arm64/configs/.updated.defconfig"
+		cp -f "$PWD/../arch/arm64/configs/tegra_early_boot_defconfig"\
+			"$PWD/../arch/arm64/configs/.updated.early_defconfig"
 
 		$PWD/config --file "$PWD/../arch/arm64/configs/.updated.defconfig"\
 			--enable PREEMPT_RT  --disable DEBUG_PREEMPT\
@@ -31,12 +33,23 @@ apply_rt_patches()
 			--disable CPU_FREQ_TIMES \
 			--disable FAIR_GROUP_SCHED || any_failure=1
 
+		$PWD/config --file "$PWD/../arch/arm64/configs/.updated.early_defconfig"\
+			--enable PREEMPT_RT  --disable DEBUG_PREEMPT\
+			--disable KVM\
+			--disable CPU_IDLE_TEGRA18X\
+			--disable CPU_FREQ_GOV_INTERACTIVE\
+			--disable CPU_FREQ_TIMES \
+			--disable FAIR_GROUP_SCHED || any_failure=1
+
 		rm "$PWD/../arch/arm64/configs/defconfig"
 		rm "$PWD/../arch/arm64/configs/tegra_defconfig"
+		rm "$PWD/../arch/arm64/configs/tegra_early_boot_defconfig"
 		cp -fnrs "$PWD/../arch/arm64/configs/.updated.defconfig"\
 				"$PWD/../arch/arm64/configs/defconfig"
 		ln -s "$PWD/../arch/arm64/configs/defconfig"\
 				"$PWD/../arch/arm64/configs/tegra_defconfig"
+		cp -fnrs "$PWD/../arch/arm64/configs/.updated.early_defconfig"\
+				"$PWD/../arch/arm64/configs/tegra_early_boot_defconfig"
 
 		echo "The PREEMPT RT patches have been successfully applied!"
 	fi
