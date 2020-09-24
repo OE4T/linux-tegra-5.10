@@ -50,6 +50,26 @@ int osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
 
 int osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
+	/*
+	 * Currently these osd_ops are optional to be filled in the OSD layer.
+	 * If OSD updates these pointers, use the same. If not, fall back to the
+	 * existing way of using osd_* API's.
+	 * TODO: Once These API's are mandatory, return errors instead of
+	 * default API usage.
+	 */
+	if (osi_core->osd_ops.ops_log == OSI_NULL) {
+		osi_core->osd_ops.ops_log = osd_log;
+	}
+	if (osi_core->osd_ops.udelay == OSI_NULL) {
+		osi_core->osd_ops.udelay = osd_udelay;
+	}
+	if (osi_core->osd_ops.msleep == OSI_NULL) {
+		osi_core->osd_ops.msleep = osd_msleep;
+	}
+	if (osi_core->osd_ops.usleep_range == OSI_NULL) {
+		osi_core->osd_ops.usleep_range = osd_usleep_range;
+	}
+
 	if (osi_core->mac == OSI_MAC_HW_EQOS) {
 		/* Get EQOS HW ops */
 		osi_core->ops = eqos_get_hw_core_ops();
@@ -69,7 +89,7 @@ int osi_poll_for_mac_reset_complete(
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->poll_for_swr != OSI_NULL)) {
-		return osi_core->ops->poll_for_swr(osi_core->base,
+		return osi_core->ops->poll_for_swr(osi_core,
 						   osi_core->pre_si);
 	}
 	return -1;
@@ -171,7 +191,7 @@ int osi_pad_calibrate(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->pad_calibrate != OSI_NULL)) {
-		return osi_core->ops->pad_calibrate(osi_core->base);
+		return osi_core->ops->pad_calibrate(osi_core);
 	}
 
 	return -1;
@@ -439,7 +459,7 @@ int osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->set_systime_to_mac != OSI_NULL)) {
-		return osi_core->ops->set_systime_to_mac(osi_core->base,
+		return osi_core->ops->set_systime_to_mac(osi_core,
 							 sec,
 							 nsec);
 	}
@@ -548,7 +568,7 @@ int osi_adjust_freq(struct osi_core_priv_data *const osi_core, int ppb)
 
 	if ((osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_addend != OSI_NULL)) {
-		ret = osi_core->ops->config_addend(osi_core->base, addend);
+		ret = osi_core->ops->config_addend(osi_core, addend);
 	}
 
 	return ret;
@@ -583,7 +603,7 @@ int osi_adjust_time(struct osi_core_priv_data *const osi_core,
 
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->adjust_mactime != OSI_NULL)) {
-		ret = osi_core->ops->adjust_mactime(osi_core->base, sec, nsec,
+		ret = osi_core->ops->adjust_mactime(osi_core, sec, nsec,
 					neg_adj,
 					osi_core->ptp_config.one_nsec_accuracy);
 	}
@@ -646,11 +666,11 @@ int osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		}
 
 		/* Program addend value */
-		ret = osi_core->ops->config_addend(osi_core->base,
+		ret = osi_core->ops->config_addend(osi_core,
 					osi_core->default_addend);
 
 		/* Set current time */
-		ret = osi_core->ops->set_systime_to_mac(osi_core->base,
+		ret = osi_core->ops->set_systime_to_mac(osi_core,
 						osi_core->ptp_config.sec,
 						osi_core->ptp_config.nsec);
 	}
@@ -688,7 +708,7 @@ int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->flush_mtl_tx_queue != OSI_NULL)) {
-		return osi_core->ops->flush_mtl_tx_queue(osi_core->base, qinx);
+		return osi_core->ops->flush_mtl_tx_queue(osi_core, qinx);
 	}
 
 	return -1;
