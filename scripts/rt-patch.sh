@@ -24,15 +24,19 @@ apply_rt_patches()
 			"$PWD/../arch/arm64/configs/.updated.defconfig"
 
 		$PWD/config --file "$PWD/../arch/arm64/configs/.updated.defconfig"\
-			--enable PREEMPT_RT_FULL  --disable DEBUG_PREEMPT\
+			--enable PREEMPT_RT  --disable DEBUG_PREEMPT\
+			--disable KVM\
 			--disable CPU_IDLE_TEGRA18X\
 			--disable CPU_FREQ_GOV_INTERACTIVE\
 			--disable CPU_FREQ_TIMES \
 			--disable FAIR_GROUP_SCHED || any_failure=1
 
 		rm "$PWD/../arch/arm64/configs/defconfig"
+		rm "$PWD/../arch/arm64/configs/tegra_defconfig"
 		cp -fnrs "$PWD/../arch/arm64/configs/.updated.defconfig"\
 				"$PWD/../arch/arm64/configs/defconfig"
+		ln -s "$PWD/../arch/arm64/configs/defconfig"\
+				"$PWD/../arch/arm64/configs/tegra_defconfig"
 
 		echo "The PREEMPT RT patches have been successfully applied!"
 	fi
@@ -48,8 +52,11 @@ revert_rt_patches()
 		done
 
 		rm "$PWD/../arch/arm64/configs/defconfig"
+		rm "$PWD/../arch/arm64/configs/tegra_defconfig"
 		cp $PWD/../arch/arm64/configs/.orig.defconfig\
 			$PWD/../arch/arm64/configs/defconfig
+		ln -s "$PWD/../arch/arm64/configs/defconfig"\
+			"$PWD/../arch/arm64/configs/tegra_defconfig"
 
 		rm -rf $PWD/../arch/arm64/configs/.orig.defconfig
 		rm -rf $PWD/../arch/arm64/configs/.updated.defconfig
