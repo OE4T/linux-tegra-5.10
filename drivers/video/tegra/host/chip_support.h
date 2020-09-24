@@ -65,7 +65,7 @@ struct nvhost_cdma_ops {
 };
 
 struct nvhost_vm_ops {
-	int (*init)(struct nvhost_vm *vm, void *identifier);
+	int (*init)(struct nvhost_vm *vm, void *identifier, struct device *dev);
 	void (*deinit)(struct nvhost_vm *vm);
 	int (*get_id)(struct nvhost_vm *vm);
 	int (*init_device)(struct platform_device *pdev);

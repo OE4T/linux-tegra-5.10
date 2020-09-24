@@ -58,7 +58,24 @@ struct iommu_ctx {
 static LIST_HEAD(iommu_ctx_list);
 static DEFINE_MUTEX(iommu_ctx_list_mutex);
 
-struct platform_device *iommu_context_dev_allocate(void *identifier)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
+static struct device *dev_get_iommu(struct device *dev)
+{
+	return dev->iommu->iommu_dev->dev;
+}
+
+static bool iommu_match(struct device *a, struct device *b)
+{
+	return dev_get_iommu(a) == dev_get_iommu(b);
+}
+#else
+static bool iommu_match(struct device *a, struct device *b)
+{
+	return true;
+}
+#endif
+
+struct platform_device *iommu_context_dev_allocate(void *identifier, struct device *dev)
 {
 	struct iommu_ctx *ctx, *ctx_new = NULL;
 	bool dirty = false;
@@ -71,7 +88,7 @@ struct platform_device *iommu_context_dev_allocate(void *identifier)
 	 * the mappings stashed too
 	 */
 	list_for_each_entry(ctx, &iommu_ctx_list, list) {
-		if (!ctx->allocated && identifier == ctx->prev_identifier) {
+		if (!ctx->allocated && identifier == ctx->prev_identifier && iommu_match(dev, &ctx->pdev->dev)) {
 			ctx->allocated = true;
 			mutex_unlock(&iommu_ctx_list_mutex);
 			return ctx->pdev;
@@ -84,11 +101,11 @@ struct platform_device *iommu_context_dev_allocate(void *identifier)
 	 * the free device and explicitly remove all the stashings from it
 	 */
 	list_for_each_entry(ctx, &iommu_ctx_list, list) {
-		if (!ctx->allocated && !ctx_new) {
+		if (!ctx->allocated && !ctx_new && iommu_match(dev, &ctx->pdev->dev)) {
 			ctx_new = ctx;
 			dirty = true;
 		}
-		if (!ctx->allocated && !ctx->prev_identifier) {
+		if (!ctx->allocated && !ctx->prev_identifier && iommu_match(dev, &ctx->pdev->dev)) {
 			ctx_new = ctx;
 			dirty = false;
 			break;
@@ -171,8 +188,12 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 	pdev->dev.context_dev = true;
 #endif
 
-	dev_info(&pdev->dev, "initialized (streamid=%d)",
-		 nvhost_vm_get_hwid(pdev, 0));
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5,0,0)
+	dev_info(&pdev->dev, "initialized (streamid=%d, iommu=%s)",
+		 nvhost_vm_get_hwid(pdev, 0), dev_name(pdev->dev.iommu->iommu_dev->dev));
+#else
+	dev_info(&pdev->dev, "initialized (streamid=%d)",  nvhost_vm_get_hwid(pdev, 0));
+#endif
 
 	if (vm_op().init_syncpt_interface)
 		vm_op().init_syncpt_interface(pdev);

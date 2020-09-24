@@ -25,14 +25,14 @@
 /* 5 second timeout */
 #define NVHOST_VM_WAIT_TIMEOUT (5000)
 
-static int host1x_vm_init(struct nvhost_vm *vm, void *identifier)
+static int host1x_vm_init(struct nvhost_vm *vm, void *identifier, struct device *dev)
 {
 	struct platform_device *pdev;
 	unsigned int i = 0;
 
 	/* wait until we have a context device */
 	do {
-		pdev = iommu_context_dev_allocate(identifier);
+		pdev = iommu_context_dev_allocate(identifier, dev);
 		if (!pdev) {
 			++i;
 			mdelay(1);
