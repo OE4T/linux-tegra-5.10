@@ -65,8 +65,9 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_SDMMC4>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
 			<&bpmp_clks TEGRA234_CLK_PLLC4>,
+			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>,
 			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>;
-		clock-names = "sdmmc", "pll_p", "pll_c4_out0_lj", "sdmmc_legacy_tm";
+		clock-names = "sdmmc", "pll_p", "pll_c4_out0_lj", "sdmmc_legacy_tm" , "tmclk";
 		status = "disabled";
 	};
 
@@ -110,8 +111,9 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_SDMMC1>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
 			<&bpmp_clks TEGRA234_CLK_PLLC4_MUXED>,
+			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>,
 			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>;
-		clock-names = "sdmmc", "pll_p", "pll_c4_muxed", "sdmmc_legacy_tm";
+		clock-names = "sdmmc", "pll_p", "pll_c4_muxed", "sdmmc_legacy_tm", "tmclk";
 		uhs-mask = <0x08>;
 		nvidia,en-periodic-calib;
 		status = "disabled";
