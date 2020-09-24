@@ -230,6 +230,10 @@
 		};
 	};
 
+	nvrng@3ae0000 {
+		status = "disabled";
+	};
+
 	vgpu {
 		compatible = "nvidia,gv11b-vgpu";
 		reg = <0x0 0x17810000 0x0 0x10000>;
