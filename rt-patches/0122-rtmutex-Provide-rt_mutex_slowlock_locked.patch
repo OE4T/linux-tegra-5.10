@@ -1,7 +1,7 @@
-From 2ca32f300eb0a427499767e07850836bc7cf5a20 Mon Sep 17 00:00:00 2001
+From 2d7a7f3355b3363f2c8eaa131daa82ab6ac8de7c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 16:14:22 +0200
-Subject: [PATCH 122/214] rtmutex: Provide rt_mutex_slowlock_locked()
+Subject: [PATCH 122/216] rtmutex: Provide rt_mutex_slowlock_locked()
 
 This is the inner-part of rt_mutex_slowlock(), required for rwsem-rt.
 

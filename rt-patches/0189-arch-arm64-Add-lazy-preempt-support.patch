@@ -1,7 +1,7 @@
-From 2c2f29a4e8df51368b9b496844d42df7cbca5d46 Mon Sep 17 00:00:00 2001
+From cd121322350a82cac1cdae0a315fd56af034ae7b Mon Sep 17 00:00:00 2001
 From: Anders Roxell <anders.roxell@linaro.org>
 Date: Thu, 14 May 2015 17:52:17 +0200
-Subject: [PATCH 189/214] arch/arm64: Add lazy preempt support
+Subject: [PATCH 189/216] arch/arm64: Add lazy preempt support
 
 arm64 is missing support for PREEMPT_RT. The main feature which is
 lacking is support for lazy preemption. The arch-specific entry code,
@@ -75,7 +75,7 @@ index 80e946b..3b19db2 100644
  
  #ifdef CONFIG_PREEMPTION
 diff --git a/arch/arm64/include/asm/thread_info.h b/arch/arm64/include/asm/thread_info.h
-index 5e784e1..5d9f16f 100644
+index e5ad002..d9b662e 100644
 --- a/arch/arm64/include/asm/thread_info.h
 +++ b/arch/arm64/include/asm/thread_info.h
 @@ -29,6 +29,7 @@ struct thread_info {
@@ -94,7 +94,7 @@ index 5e784e1..5d9f16f 100644
  #define TIF_SYSCALL_TRACE	8	/* syscall trace active */
  #define TIF_SYSCALL_AUDIT	9	/* syscall auditing */
  #define TIF_SYSCALL_TRACEPOINT	10	/* syscall tracepoint for ftrace */
-@@ -93,14 +95,16 @@ void arch_release_task_struct(struct task_struct *tsk);
+@@ -95,14 +97,16 @@ void arch_release_task_struct(struct task_struct *tsk);
  #define _TIF_SYSCALL_EMU	(1 << TIF_SYSCALL_EMU)
  #define _TIF_UPROBE		(1 << TIF_UPROBE)
  #define _TIF_FSCHECK		(1 << TIF_FSCHECK)

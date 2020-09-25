@@ -1,7 +1,7 @@
-From 6006f4b8def7a23faa7cdaf689e74c050215344e Mon Sep 17 00:00:00 2001
+From 98c833fe65878d1e9858dd5dcab468591cce748a Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Fri, 4 Sep 2020 17:32:27 +0200
-Subject: [PATCH 063/214] seqlock: seqcount_LOCKNAME_t: Standardize naming
+Subject: [PATCH 063/216] seqlock: seqcount_LOCKNAME_t: Standardize naming
  convention
 
 At seqlock.h, sequence counters with associated locks are either called

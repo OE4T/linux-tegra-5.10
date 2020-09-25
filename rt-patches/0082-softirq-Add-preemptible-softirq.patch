@@ -1,7 +1,7 @@
-From 15be3b0b6bdbfb44fdfc5f6d44d3f831e86091a2 Mon Sep 17 00:00:00 2001
+From 04b70fd55461d64a90d2f77ac08b665297333b8e Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 20 May 2019 13:09:08 +0200
-Subject: [PATCH 082/214] softirq: Add preemptible softirq
+Subject: [PATCH 082/216] softirq: Add preemptible softirq
 
 Add preemptible softirq for RT's needs. By removing the softirq count
 from the preempt counter, the softirq becomes preemptible. A per-CPU

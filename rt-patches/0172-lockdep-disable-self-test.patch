@@ -1,7 +1,7 @@
-From 3a7c55b6c96545199ec178bd8a4d46ded7615eef Mon Sep 17 00:00:00 2001
+From 2c3cdff205664dda29f4a7b22f414d873fd0dbb4 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 17 Oct 2017 16:36:18 +0200
-Subject: [PATCH 172/214] lockdep: disable self-test
+Subject: [PATCH 172/216] lockdep: disable self-test
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -17,7 +17,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index b9a0d66..da8ae42 100644
+index 7d552d8..cd5f144 100644
 --- a/lib/Kconfig.debug
 +++ b/lib/Kconfig.debug
 @@ -1349,7 +1349,7 @@ config DEBUG_ATOMIC_SLEEP

@@ -1,7 +1,7 @@
-From 6d4a6f6eceb4a68e26fe6a2508b4dd6c7aa4af3a Mon Sep 17 00:00:00 2001
+From 0c38697e4b0e1cfd1a4eb199c4a43a00d26730df Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:49 +0100
-Subject: [PATCH 012/214] printk_safe: remove printk safe code
+Subject: [PATCH 012/216] printk_safe: remove printk safe code
 
 vprintk variants are now NMI-safe so there is no longer a need for
 the "safe" calls.

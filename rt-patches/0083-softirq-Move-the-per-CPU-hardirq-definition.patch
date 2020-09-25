@@ -1,7 +1,7 @@
-From 720921d2c4b124d5e48c5dc03920cf6861bc85db Mon Sep 17 00:00:00 2001
+From 100395f19f2d49237d9d903c7453615c0477a549 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 14 Aug 2020 17:09:00 +0200
-Subject: [PATCH 083/214] softirq: Move the per-CPU hardirq definition
+Subject: [PATCH 083/216] softirq: Move the per-CPU hardirq definition
 
 Move the per-CPU hardirq definition so that is available also in RT
 case.

@@ -1,7 +1,7 @@
-From 1c996f016cbe2b4d890fac3083f19a1ecbe0039e Mon Sep 17 00:00:00 2001
+From 5725f781f7a23bcc44f707dc30dd9d252a4bccef Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:59 +0100
-Subject: [PATCH 022/214] printk: implement KERN_CONT
+Subject: [PATCH 022/216] printk: implement KERN_CONT
 
 Implement KERN_CONT based on the printing CPU rather than on the
 printing task. As long as the KERN_CONT messages are coming from the

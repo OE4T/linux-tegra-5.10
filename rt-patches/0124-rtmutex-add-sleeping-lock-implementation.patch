@@ -1,7 +1,7 @@
-From 5d274b18b63f116d8b52e91091d5af1de146c998 Mon Sep 17 00:00:00 2001
+From 0946135102b27fdc45b569b77e67748c3bec0d1b Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:11:19 +0200
-Subject: [PATCH 124/214] rtmutex: add sleeping lock implementation
+Subject: [PATCH 124/216] rtmutex: add sleeping lock implementation
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>

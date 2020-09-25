@@ -1,7 +1,7 @@
-From 2f33203a1b1698afaeb4dacdf22f97091f24a520 Mon Sep 17 00:00:00 2001
+From 783f815c062f8de018fdebec473b59ffd3505bef Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Fri, 22 Feb 2019 23:02:44 +0100
-Subject: [PATCH 032/214] printk: devkmsg: llseek: reset clear if it is lost
+Subject: [PATCH 032/216] printk: devkmsg: llseek: reset clear if it is lost
 
 SEEK_DATA will seek to the last clear record. If this clear record
 is no longer in the ring buffer, devkmsg_llseek() will go into an

@@ -1,7 +1,7 @@
-From 0a2885d6014a95f9295976373e917cb8b54d58ce Mon Sep 17 00:00:00 2001
+From ac88e6c89bfc6bb6ddad0f6f938c45c073b4d241 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 3 Dec 2019 09:14:57 +0100
-Subject: [PATCH 037/214] printk: hack out emergency loglevel usage
+Subject: [PATCH 037/216] printk: hack out emergency loglevel usage
 
 Instead of using an emergency loglevel to determine if atomic
 messages should be printed, use oops_in_progress. This conforms

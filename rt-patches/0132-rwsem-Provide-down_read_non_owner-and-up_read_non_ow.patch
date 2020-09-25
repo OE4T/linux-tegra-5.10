@@ -1,7 +1,7 @@
-From 2674c858ccff75dbb0f417a4e879edf0b0e35162 Mon Sep 17 00:00:00 2001
+From 5122b2bc55970863d9c6544a9ae841f1629fb035 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 12 Jun 2020 16:51:50 +0200
-Subject: [PATCH 132/214] rwsem: Provide down_read_non_owner() and
+Subject: [PATCH 132/216] rwsem: Provide down_read_non_owner() and
  up_read_non_owner() for -RT
 
 The rwsem implementation on -RT allows multiple reader and there is no

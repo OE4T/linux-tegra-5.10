@@ -1,7 +1,7 @@
-From 97b71cc05fb5564dc09004c522633dfb8d47e9fd Mon Sep 17 00:00:00 2001
+From 81b1f937eb11e2545b36384456dd518034536f4c Mon Sep 17 00:00:00 2001
 From: Josh Cartwright <joshc@ni.com>
 Date: Thu, 11 Feb 2016 11:54:01 -0600
-Subject: [PATCH 196/214] KVM: arm/arm64: downgrade preempt_disable()d region
+Subject: [PATCH 196/216] KVM: arm/arm64: downgrade preempt_disable()d region
  to migrate_disable()
 
 kvm_arch_vcpu_ioctl_run() disables the use of preemption when updating
@@ -23,10 +23,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm64/kvm/arm.c b/arch/arm64/kvm/arm.c
-index 46dc3d7..04dc03b 100644
+index b588c3b..19cb5b1 100644
 --- a/arch/arm64/kvm/arm.c
 +++ b/arch/arm64/kvm/arm.c
-@@ -678,7 +678,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu)
+@@ -681,7 +681,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu)
  		 * involves poking the GIC, which must be done in a
  		 * non-preemptible context.
  		 */
@@ -35,7 +35,7 @@ index 46dc3d7..04dc03b 100644
  
  		kvm_pmu_flush_hwstate(vcpu);
  
-@@ -727,7 +727,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu)
+@@ -730,7 +730,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu)
  				kvm_timer_sync_user(vcpu);
  			kvm_vgic_sync_hwstate(vcpu);
  			local_irq_enable();
@@ -44,7 +44,7 @@ index 46dc3d7..04dc03b 100644
  			continue;
  		}
  
-@@ -799,7 +799,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu)
+@@ -802,7 +802,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu)
  		/* Exit types that need handling before we can be preempted */
  		handle_exit_early(vcpu, ret);
  

@@ -1,7 +1,7 @@
-From 754bda9b306efd02011d55a1fffe02995e52700c Mon Sep 17 00:00:00 2001
+From 2e019db3d7797920a919aeea4442a07ee831ffa0 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 26 Jul 2019 11:30:49 +0200
-Subject: [PATCH 043/214] Use CONFIG_PREEMPTION
+Subject: [PATCH 043/216] Use CONFIG_PREEMPTION
 
 Thisi is an all-in-one patch of the current `PREEMPTION' branch.
 

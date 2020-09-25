@@ -1,7 +1,7 @@
-From 0840f24d7ad7aefd4f5e7d68afd24e36f685b3f5 Mon Sep 17 00:00:00 2001
+From f14b47c84446c495a8454951e147273cdc27d5ad Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 11 Oct 2019 13:14:35 +0200
-Subject: [PATCH 200/214] ARM64: Allow to enable RT
+Subject: [PATCH 200/216] ARM64: Allow to enable RT
 
 Allow to select RT.
 

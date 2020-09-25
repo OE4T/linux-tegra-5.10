@@ -1,7 +1,7 @@
-From 3b7194e2b5b177ac0f3f0c95ea2b8e4f0dd3102e Mon Sep 17 00:00:00 2001
+From 30074f20b37d7034b98689b414815de78201b53c Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:39 +0200
-Subject: [PATCH 057/214] seqlock: Introduce seqcount_latch_t
+Subject: [PATCH 057/216] seqlock: Introduce seqcount_latch_t
 
 Latch sequence counters are a multiversion concurrency control mechanism
 where the seqcount_t counter even/odd value is used to switch between

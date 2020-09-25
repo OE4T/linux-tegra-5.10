@@ -1,7 +1,7 @@
-From 1511f3fb404c8f0f81c13272d591ffd018fc903d Mon Sep 17 00:00:00 2001
+From db34404f3a22571f8cad17072671e25870f81c3a Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Fri, 24 Jan 2020 06:11:46 -0500
-Subject: [PATCH 140/214] sched: migrate_enable: Use per-cpu cpu_stop_work
+Subject: [PATCH 140/216] sched: migrate_enable: Use per-cpu cpu_stop_work
 
 Commit e6c287b1512d ("sched: migrate_enable: Use stop_one_cpu_nowait()")
 adds a busy wait to deal with an edge case where the migrated thread

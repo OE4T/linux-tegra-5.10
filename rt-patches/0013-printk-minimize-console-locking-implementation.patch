@@ -1,7 +1,7 @@
-From a4314dd5bf2dafa8ada91ae151b72daac22947fd Mon Sep 17 00:00:00 2001
+From b95fd4bfcd0ee7858ebb2aea1ae2979fd0e2315b Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:50 +0100
-Subject: [PATCH 013/214] printk: minimize console locking implementation
+Subject: [PATCH 013/216] printk: minimize console locking implementation
 
 Since printing of the printk buffer is now handled by the printk
 kthread, minimize the console locking functions to just handle

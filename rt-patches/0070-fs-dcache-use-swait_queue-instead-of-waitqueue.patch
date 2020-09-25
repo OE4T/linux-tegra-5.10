@@ -1,7 +1,7 @@
-From 99853c2d10bbac221a0cfa181a5daf28317322d5 Mon Sep 17 00:00:00 2001
+From b33a6a10a018619c19b3011a38712afac9e6d301 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 14 Sep 2016 14:35:49 +0200
-Subject: [PATCH 070/214] fs/dcache: use swait_queue instead of waitqueue
+Subject: [PATCH 070/216] fs/dcache: use swait_queue instead of waitqueue
 
 __d_lookup_done() invokes wake_up_all() while holding a hlist_bl_lock()
 which disables preemption. As a workaround convert it to swait.

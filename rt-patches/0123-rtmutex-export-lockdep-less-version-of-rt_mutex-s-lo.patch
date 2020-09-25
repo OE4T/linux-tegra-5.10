@@ -1,7 +1,7 @@
-From b7a19993eb0ec278f7ad1ff8935a446cb7e71bed Mon Sep 17 00:00:00 2001
+From 40b7d612fec102fc6d673ef5d1582597e672914c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 16:36:39 +0200
-Subject: [PATCH 123/214] rtmutex: export lockdep-less version of rt_mutex's
+Subject: [PATCH 123/216] rtmutex: export lockdep-less version of rt_mutex's
  lock, trylock and unlock
 
 Required for lock implementation ontop of rtmutex.

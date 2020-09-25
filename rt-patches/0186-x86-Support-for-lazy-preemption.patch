@@ -1,7 +1,7 @@
-From 9437461fc568c585cd25b0151d46ed6f2e3fb482 Mon Sep 17 00:00:00 2001
+From 63fe22729a201bef31b07179ca05b8f7de9a0db0 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 1 Nov 2012 11:03:47 +0100
-Subject: [PATCH 186/214] x86: Support for lazy preemption
+Subject: [PATCH 186/216] x86: Support for lazy preemption
 
 Implement the x86 pieces for lazy preempt.
 
@@ -148,10 +148,10 @@ index 159c747..7f5b22e 100644
  
  /**
 diff --git a/kernel/entry/common.c b/kernel/entry/common.c
-index 936a919..cf7fe1b 100644
+index 650cffa..adbfcef 100644
 --- a/kernel/entry/common.c
 +++ b/kernel/entry/common.c
-@@ -146,7 +146,7 @@ static unsigned long exit_to_user_mode_loop(struct pt_regs *regs,
+@@ -148,7 +148,7 @@ static unsigned long exit_to_user_mode_loop(struct pt_regs *regs,
  
  		local_irq_enable_exit_to_user(ti_work);
  

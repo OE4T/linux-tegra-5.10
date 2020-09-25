@@ -1,7 +1,7 @@
-From 03bcb1e6ebb062fc7e8ec72758bddc9e1c28f2b4 Mon Sep 17 00:00:00 2001
+From c3958bef9776b986a3514ad84d9ea171e804e158 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:42 +0100
-Subject: [PATCH 004/214] printk-rb: add writer interface
+Subject: [PATCH 004/216] printk-rb: add writer interface
 
 Add the writer functions prb_reserve() and prb_commit(). These make
 use of processor-reentrant spin locks to limit the number of possible

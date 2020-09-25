@@ -1,7 +1,7 @@
-From 892f117416bf724293ec7b46e9c4f325529ab445 Mon Sep 17 00:00:00 2001
+From bb3ec9302cd31ab95fe3e826d16ead84f909dfa0 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:38 +0200
-Subject: [PATCH 056/214] mm/swap: Do not abuse the seqcount_t latching API
+Subject: [PATCH 056/216] mm/swap: Do not abuse the seqcount_t latching API
 
 Commit eef1a429f234 ("mm/swap.c: piggyback lru_add_drain_all() calls")
 implemented an optimization mechanism to exit the to-be-started LRU
@@ -46,7 +46,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 54 insertions(+), 11 deletions(-)
 
 diff --git a/mm/swap.c b/mm/swap.c
-index d16d65d..a1ec807 100644
+index e7bdf09..65ef7e3 100644
 --- a/mm/swap.c
 +++ b/mm/swap.c
 @@ -763,10 +763,20 @@ static void lru_add_drain_per_cpu(struct work_struct *dummy)

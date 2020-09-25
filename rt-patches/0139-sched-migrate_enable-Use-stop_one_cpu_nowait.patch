@@ -1,7 +1,7 @@
-From c7b31329d70523a62cbfa08420365ac5b5253cae Mon Sep 17 00:00:00 2001
+From b16731f5d3da4f32e287b4d9b6ed4b19831e23ec Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Sat, 12 Oct 2019 01:52:14 -0500
-Subject: [PATCH 139/214] sched: migrate_enable: Use stop_one_cpu_nowait()
+Subject: [PATCH 139/216] sched: migrate_enable: Use stop_one_cpu_nowait()
 
 migrate_enable() can be called with current->state != TASK_RUNNING.
 Avoid clobbering the existing state by using stop_one_cpu_nowait().

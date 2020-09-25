@@ -1,7 +1,7 @@
-From a439b6d2a6c69454b1906527647bd7baa8fe92dc Mon Sep 17 00:00:00 2001
+From 157044c93b3613ec275c08ff9cd5446665b8bacd Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 18 Jul 2011 17:10:12 +0200
-Subject: [PATCH 206/214] mips: Disable highmem on RT
+Subject: [PATCH 206/216] mips: Disable highmem on RT
 
 The current highmem handling on -RT is not compatible and needs fixups.
 
@@ -11,10 +11,10 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index c95fa3a..bef168c 100644
+index 8f32829..7624e08 100644
 --- a/arch/mips/Kconfig
 +++ b/arch/mips/Kconfig
-@@ -2652,7 +2652,7 @@ config MIPS_CRC_SUPPORT
+@@ -2653,7 +2653,7 @@ config MIPS_CRC_SUPPORT
  #
  config HIGHMEM
  	bool "High Memory Support"

@@ -1,7 +1,7 @@
-From c85d60a31769520d095b513aa9a24cdd44cb0e2c Mon Sep 17 00:00:00 2001
+From 9419ac560636e3798260d9576cf5536f7d1283e5 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Thu, 28 Jul 2011 10:43:51 +0200
-Subject: [PATCH 180/214] mm, rt: kmap_atomic scheduling
+Subject: [PATCH 180/216] mm, rt: kmap_atomic scheduling
 
 In fact, with migrate_disable() existing one could play games with
 kmap_atomic. You could save/restore the kmap_atomic slots on context

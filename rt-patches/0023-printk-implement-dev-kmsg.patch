@@ -1,7 +1,7 @@
-From 185770bfbf3559c92c2510953786c64932414ef1 Mon Sep 17 00:00:00 2001
+From 16d9996092a879983c8127d3940ba418b3b87ae1 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:30:00 +0100
-Subject: [PATCH 023/214] printk: implement /dev/kmsg
+Subject: [PATCH 023/216] printk: implement /dev/kmsg
 
 Since printk messages are now logged to a new ring buffer, update
 the /dev/kmsg functions to pull the messages from there.

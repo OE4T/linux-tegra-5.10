@@ -1,7 +1,7 @@
-From d7f08c3e7f0a38f95448a27a99f7eba80e5ee65e Mon Sep 17 00:00:00 2001
+From 737379e2d5aa8b91002e636a78583bd76b2419ff Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?=E6=B1=AA=E5=8B=8710269566?= <wang.yong12@zte.com.cn>
 Date: Thu, 21 May 2020 09:37:44 +0800
-Subject: [PATCH 038/214] printk: Force a line break on pr_cont(" ")
+Subject: [PATCH 038/216] printk: Force a line break on pr_cont(" ")
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

@@ -1,7 +1,7 @@
-From 052936ec9fe98cb0ab3903effbdf8af8c5eecae0 Mon Sep 17 00:00:00 2001
+From d709dab4493db4c546c01acc6ea990fd20c78cea Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 16 Jul 2020 18:47:50 +0200
-Subject: [PATCH 092/214] mm/slub: Make object_map_lock a raw_spinlock_t
+Subject: [PATCH 092/216] mm/slub: Make object_map_lock a raw_spinlock_t
 
 The variable object_map is protected by object_map_lock. The lock is always
 acquired in debug code and within already atomic context

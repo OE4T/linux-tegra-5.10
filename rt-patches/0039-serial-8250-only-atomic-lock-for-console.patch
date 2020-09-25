@@ -1,7 +1,7 @@
-From 1c27e52fbd4cc283967e8f4f4b65b65c51f521cc Mon Sep 17 00:00:00 2001
+From 9f0f843e69528b645b618cfd68f58e6a4b1d00f5 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Fri, 10 Jan 2020 16:45:31 +0106
-Subject: [PATCH 039/214] serial: 8250: only atomic lock for console
+Subject: [PATCH 039/216] serial: 8250: only atomic lock for console
 
 The atomic console implementation requires that IER is synchronized
 between atomic and non-atomic usage. However, it was implemented such

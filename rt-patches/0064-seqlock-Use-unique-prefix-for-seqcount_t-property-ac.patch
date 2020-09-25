@@ -1,7 +1,7 @@
-From 46fa7c358610341d8c792a11b77fca5d1c192256 Mon Sep 17 00:00:00 2001
+From c1f36d71cc15dffc2a165141ae12624921a28da1 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Fri, 4 Sep 2020 17:32:28 +0200
-Subject: [PATCH 064/214] seqlock: Use unique prefix for seqcount_t property
+Subject: [PATCH 064/216] seqlock: Use unique prefix for seqcount_t property
  accessors
 
 At seqlock.h, the following set of functions:

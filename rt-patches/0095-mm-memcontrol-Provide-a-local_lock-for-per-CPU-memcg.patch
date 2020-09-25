@@ -1,7 +1,7 @@
-From 2b7c2d30d326e309694dbc09321b23993b6b2139 Mon Sep 17 00:00:00 2001
+From 3e18d57c23b6ce1d48fda3721e21e9186c4d777a Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 18 Aug 2020 10:30:00 +0200
-Subject: [PATCH 095/214] mm: memcontrol: Provide a local_lock for per-CPU
+Subject: [PATCH 095/216] mm: memcontrol: Provide a local_lock for per-CPU
  memcg_stock
 
 The interrupts are disabled to ensure CPU-local access to the per-CPU

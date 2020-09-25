@@ -1,7 +1,7 @@
-From 1848f4d01e25fc632898f1193ec5e42b4e2daeee Mon Sep 17 00:00:00 2001
+From ade2c41e1f501a2a50156f647e2c9f0e3ce97d3e Mon Sep 17 00:00:00 2001
 From: Randy Dunlap <rdunlap@infradead.org>
 Date: Sun, 16 Aug 2020 17:02:00 -0700
-Subject: [PATCH 054/214] seqlock: Fix multiple kernel-doc warnings
+Subject: [PATCH 054/216] seqlock: Fix multiple kernel-doc warnings
 
 Fix kernel-doc warnings in <linux/seqlock.h>.
 

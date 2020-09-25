@@ -1,7 +1,7 @@
-From e184eee07949d3b116d8dddeb76ec16646e07f4f Mon Sep 17 00:00:00 2001
+From 5abe69ac71a23178d34747dd3e8f2997ade4c854 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:58 +0100
-Subject: [PATCH 021/214] serial: 8250: implement write_atomic
+Subject: [PATCH 021/216] serial: 8250: implement write_atomic
 
 Implement a non-sleeping NMI-safe write_atomic console function in
 order to support emergency printk messages.

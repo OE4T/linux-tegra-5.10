@@ -1,7 +1,7 @@
-From 64e0043ba8baa4dae1fa171d9d3e07f37991e8d6 Mon Sep 17 00:00:00 2001
+From 6f54ad7dc82f4e477ead7838b9074861f4890dad Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Fri, 4 Sep 2020 17:32:30 +0200
-Subject: [PATCH 066/214] seqlock: seqcount_LOCKNAME_t: Introduce PREEMPT_RT
+Subject: [PATCH 066/216] seqlock: seqcount_LOCKNAME_t: Introduce PREEMPT_RT
  support
 
 Preemption must be disabled before entering a sequence counter write

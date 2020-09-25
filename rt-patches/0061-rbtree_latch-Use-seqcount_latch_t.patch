@@ -1,7 +1,7 @@
-From 208c481b92ff77f2fda4c125848d29c650d9bcd9 Mon Sep 17 00:00:00 2001
+From 446bde583911b236bf9cbb3a278bc709f10af0d2 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:43 +0200
-Subject: [PATCH 061/214] rbtree_latch: Use seqcount_latch_t
+Subject: [PATCH 061/216] rbtree_latch: Use seqcount_latch_t
 
 Latch sequence counters have unique read and write APIs, and thus
 seqcount_latch_t was recently introduced at seqlock.h.

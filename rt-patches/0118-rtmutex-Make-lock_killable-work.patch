@@ -1,7 +1,7 @@
-From 5d9949d02dfc5425a7ea34975bc733d2175bfc9d Mon Sep 17 00:00:00 2001
+From 09a2dcf52385cf8803e92d05a0537f3e2e2712ce Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sat, 1 Apr 2017 12:50:59 +0200
-Subject: [PATCH 118/214] rtmutex: Make lock_killable work
+Subject: [PATCH 118/216] rtmutex: Make lock_killable work
 
 Locking an rt mutex killable does not work because signal handling is
 restricted to TASK_INTERRUPTIBLE.

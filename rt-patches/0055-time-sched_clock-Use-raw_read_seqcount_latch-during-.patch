@@ -1,7 +1,7 @@
-From 7b4d0415d658797e41612d0c1ae6382d041e0be3 Mon Sep 17 00:00:00 2001
+From 724bbb0d4e2310b9736b1c2e07b6f4d255eff87a Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:37 +0200
-Subject: [PATCH 055/214] time/sched_clock: Use raw_read_seqcount_latch()
+Subject: [PATCH 055/216] time/sched_clock: Use raw_read_seqcount_latch()
  during suspend
 
 sched_clock uses seqcount_t latching to switch between two storage

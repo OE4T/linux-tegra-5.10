@@ -1,7 +1,7 @@
-From a1c0c8cddf064b2823b70d49317cb8144dea49f5 Mon Sep 17 00:00:00 2001
+From 68b28d673559a751353f59e59b29ecfa1c9341ec Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 11 Oct 2019 13:14:29 +0200
-Subject: [PATCH 199/214] ARM: Allow to enable RT
+Subject: [PATCH 199/216] ARM: Allow to enable RT
 
 Allow to select RT.
 

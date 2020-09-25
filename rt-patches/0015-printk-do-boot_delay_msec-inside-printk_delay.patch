@@ -1,7 +1,7 @@
-From ad36a5d9afeae5fce556c3dc328fdbfe481f8909 Mon Sep 17 00:00:00 2001
+From ceb2b7db29edcd9cd7e86b9d6df38227d03183aa Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:52 +0100
-Subject: [PATCH 015/214] printk: do boot_delay_msec inside printk_delay
+Subject: [PATCH 015/216] printk: do boot_delay_msec inside printk_delay
 
 Both functions needed to be called one after the other, so just
 integrate boot_delay_msec into printk_delay for simplification.

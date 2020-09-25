@@ -1,7 +1,7 @@
-From befc50a268e54d3919ec721bba9e3aa4f166f555 Mon Sep 17 00:00:00 2001
+From 4ff90a378b6a1ce237620a2715bd882937e342af Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Fri, 24 Jan 2020 06:11:47 -0500
-Subject: [PATCH 141/214] sched: migrate_enable: Remove __schedule() call
+Subject: [PATCH 141/216] sched: migrate_enable: Remove __schedule() call
 
 We can rely on preempt_enable() to schedule.  Besides simplifying the
 code, this potentially allows sequences such as the following to be

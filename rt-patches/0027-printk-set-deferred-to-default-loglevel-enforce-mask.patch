@@ -1,7 +1,7 @@
-From 06b232ea5ed20ea2058b146ae9b25796b465f40b Mon Sep 17 00:00:00 2001
+From 3aa97619d9354ed4072779c00ef010b7dedac278 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Thu, 14 Feb 2019 23:13:30 +0100
-Subject: [PATCH 027/214] printk: set deferred to default loglevel, enforce
+Subject: [PATCH 027/216] printk: set deferred to default loglevel, enforce
  mask
 
 All messages printed via vpritnk_deferred() were being

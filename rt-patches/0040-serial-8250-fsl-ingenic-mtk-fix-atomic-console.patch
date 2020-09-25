@@ -1,7 +1,7 @@
-From 4f58e41923885204e111ed4fd8aaabb029e236de Mon Sep 17 00:00:00 2001
+From 2b55f54e7d879a13bfb852d090a3495564a24401 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Fri, 10 Jan 2020 16:45:32 +0106
-Subject: [PATCH 040/214] serial: 8250: fsl/ingenic/mtk: fix atomic console
+Subject: [PATCH 040/216] serial: 8250: fsl/ingenic/mtk: fix atomic console
 
 A few 8250 implementations have their own IER access. If the port
 is a console, wrap the accesses with console_atomic_lock.

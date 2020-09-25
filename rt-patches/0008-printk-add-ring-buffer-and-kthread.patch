@@ -1,7 +1,7 @@
-From 2e881ee119a7f36c4af738a7850d5cfa0b07c47e Mon Sep 17 00:00:00 2001
+From 00422b0863a3bfc5c72e46b39703aadaf911df6f Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:46 +0100
-Subject: [PATCH 008/214] printk: add ring buffer and kthread
+Subject: [PATCH 008/216] printk: add ring buffer and kthread
 
 The printk ring buffer provides an NMI-safe interface for writing
 messages to a ring buffer. Using such a buffer for alleviates printk

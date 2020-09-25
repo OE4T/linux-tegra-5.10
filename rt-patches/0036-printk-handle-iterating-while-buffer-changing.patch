@@ -1,7 +1,7 @@
-From 7ab75c4261ab209a88989054b4d4d4b31978fa9a Mon Sep 17 00:00:00 2001
+From e63b7c1671a85220d83fd02cea0b565c0380f708 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 7 Oct 2019 16:20:39 +0200
-Subject: [PATCH 036/214] printk: handle iterating while buffer changing
+Subject: [PATCH 036/216] printk: handle iterating while buffer changing
 
 The syslog and kmsg_dump readers are provided buffers to fill.
 Both try to maximize the provided buffer usage by calculating the

@@ -1,7 +1,7 @@
-From 46b3dac162f4fa90f0c41458ab35d7f2cb87afcf Mon Sep 17 00:00:00 2001
+From f3452e845860445eda0d2dd29866748680187642 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 17 Aug 2020 12:28:10 +0200
-Subject: [PATCH 069/214] u64_stats: Disable preemption on 32bit-UP/SMP with RT
+Subject: [PATCH 069/216] u64_stats: Disable preemption on 32bit-UP/SMP with RT
  during updates
 
 On RT the seqcount_t is required even on UP because the softirq can be

@@ -1,7 +1,7 @@
-From f94e58b13d525aa0f81576e4282e4d8682168034 Mon Sep 17 00:00:00 2001
+From 3de7dfa0cd19020b8ebe2f290d5c4f181da181d4 Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Wed, 11 Sep 2019 17:57:28 +0100
-Subject: [PATCH 146/214] rcu: Use rcuc threads on PREEMPT_RT as we did
+Subject: [PATCH 146/216] rcu: Use rcuc threads on PREEMPT_RT as we did
 
 While switching to the reworked RCU-thread code, it has been forgotten
 to enable the thread processing on -RT.

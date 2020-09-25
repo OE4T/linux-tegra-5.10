@@ -1,7 +1,7 @@
-From a531ebd9d76f40872dc8c6760cb0b982ac723600 Mon Sep 17 00:00:00 2001
+From bc86e7b6447e3f3301dcc768dd6cdd297c329050 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 14 Aug 2020 16:51:58 +0200
-Subject: [PATCH 134/214] mutex: Move the ww_mutext definition back to
+Subject: [PATCH 134/216] mutex: Move the ww_mutext definition back to
  ww_mutex.h
 
 PREEMPT_RT does not include `mutex.h' and provides another `mutex' based

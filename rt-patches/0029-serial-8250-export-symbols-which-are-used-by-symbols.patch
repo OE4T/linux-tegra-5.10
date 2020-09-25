@@ -1,7 +1,7 @@
-From 316abbdbb65fe745c1783d6df66fe930726ea669 Mon Sep 17 00:00:00 2001
+From ff97f063cf0e44e4da1ac11b75a7756a8b039589 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 16 Feb 2019 09:02:00 +0100
-Subject: [PATCH 029/214] serial: 8250: export symbols which are used by
+Subject: [PATCH 029/216] serial: 8250: export symbols which are used by
  symbols
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>

@@ -1,7 +1,7 @@
-From 7ad66ccabb3ea6d215425b1aa3ac5894a73adfe9 Mon Sep 17 00:00:00 2001
+From 8f45abc84c96f44d38ce1b4756ad06c7c2cd7aef Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 1 Nov 2012 10:14:11 +0100
-Subject: [PATCH 188/214] powerpc: Add support for lazy preemption
+Subject: [PATCH 188/216] powerpc: Add support for lazy preemption
 
 Implement the powerpc pieces for lazy preempt.
 
@@ -16,10 +16,10 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  6 files changed, 48 insertions(+), 18 deletions(-)
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 65bed1f..ec03e05 100644
+index 787e829..1705a12 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
-@@ -226,6 +226,7 @@ config PPC
+@@ -225,6 +225,7 @@ config PPC
  	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI && !HAVE_HARDLOCKUP_DETECTOR_ARCH
  	select HAVE_PERF_REGS
  	select HAVE_PERF_USER_STACK_DUMP

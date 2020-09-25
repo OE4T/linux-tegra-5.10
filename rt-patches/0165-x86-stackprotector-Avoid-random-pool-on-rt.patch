@@ -1,7 +1,7 @@
-From fe793e290a556409567c2e9da3095165a0606ac1 Mon Sep 17 00:00:00 2001
+From f556e9ed2272de61dd648137fffa5d7445309fca Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 16 Dec 2010 14:25:18 +0100
-Subject: [PATCH 165/214] x86: stackprotector: Avoid random pool on rt
+Subject: [PATCH 165/216] x86: stackprotector: Avoid random pool on rt
 
 CPU bringup calls into the random pool to initialize the stack
 canary. During boot that works nicely even on RT as the might sleep

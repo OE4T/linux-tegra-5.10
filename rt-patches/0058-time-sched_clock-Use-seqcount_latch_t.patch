@@ -1,7 +1,7 @@
-From ab35f02a2a171259be45113546a58f14b826ba41 Mon Sep 17 00:00:00 2001
+From 213429d00a78b042ad88cf105869578c07d02982 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:40 +0200
-Subject: [PATCH 058/214] time/sched_clock: Use seqcount_latch_t
+Subject: [PATCH 058/216] time/sched_clock: Use seqcount_latch_t
 
 Latch sequence counters have unique read and write APIs, and thus
 seqcount_latch_t was recently introduced at seqlock.h.

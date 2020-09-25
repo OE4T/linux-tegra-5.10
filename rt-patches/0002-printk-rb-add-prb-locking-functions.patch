@@ -1,7 +1,7 @@
-From d2ce8e525da45740c08a759f6851db0d4f1302e9 Mon Sep 17 00:00:00 2001
+From bea726ca9259145dec287c8a1d1ff767280ad109 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:40 +0100
-Subject: [PATCH 002/214] printk-rb: add prb locking functions
+Subject: [PATCH 002/216] printk-rb: add prb locking functions
 
 Add processor-reentrant spin locking functions. These allow
 restricting the number of possible contexts to 2, which can simplify

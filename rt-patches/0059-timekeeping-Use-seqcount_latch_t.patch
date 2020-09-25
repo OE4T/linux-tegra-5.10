@@ -1,7 +1,7 @@
-From 236d4f6308116f3633a9f8bb49059a3ca26d8892 Mon Sep 17 00:00:00 2001
+From 2408786880bd9440c26161701a14c6ccc58faca2 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:41 +0200
-Subject: [PATCH 059/214] timekeeping: Use seqcount_latch_t
+Subject: [PATCH 059/216] timekeeping: Use seqcount_latch_t
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

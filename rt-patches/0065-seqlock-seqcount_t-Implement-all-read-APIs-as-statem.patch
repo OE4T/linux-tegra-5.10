@@ -1,7 +1,7 @@
-From 9b976c6884d249ad04574f4832d1cd19da283aac Mon Sep 17 00:00:00 2001
+From bea2ebc4936eb0c1402bea21630d9bfcf089032c Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Fri, 4 Sep 2020 17:32:29 +0200
-Subject: [PATCH 065/214] seqlock: seqcount_t: Implement all read APIs as
+Subject: [PATCH 065/216] seqlock: seqcount_t: Implement all read APIs as
  statement expressions
 
 The sequence counters read APIs are implemented as CPP macros, so they

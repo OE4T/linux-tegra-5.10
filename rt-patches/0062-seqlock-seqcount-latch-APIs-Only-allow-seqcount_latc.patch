@@ -1,7 +1,7 @@
-From 5cd4d9062c81e73dbf2c299bc70274273db3061c Mon Sep 17 00:00:00 2001
+From f7c57d5d2766577e34bf82b90bd919ccefa742ff Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:44 +0200
-Subject: [PATCH 062/214] seqlock: seqcount latch APIs: Only allow
+Subject: [PATCH 062/216] seqlock: seqcount latch APIs: Only allow
  seqcount_latch_t
 
 All latch sequence counter call-sites have now been converted from plain

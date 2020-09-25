@@ -1,7 +1,7 @@
-From fadf01770fc832f0cee5f19c921954ddf8e9e99e Mon Sep 17 00:00:00 2001
+From 809aba37690a4a0d8345595a4573901f8ec74d27 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:47 +0100
-Subject: [PATCH 009/214] printk: remove exclusive console hack
+Subject: [PATCH 009/216] printk: remove exclusive console hack
 
 In order to support printing the printk log history when new
 consoles are registered, a global exclusive_console variable is

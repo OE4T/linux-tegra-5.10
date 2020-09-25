@@ -1,7 +1,7 @@
-From dd95b76d01c08dbfc77f01eb78b50fb4af2ccb9a Mon Sep 17 00:00:00 2001
+From 3fa8f4de20a12201c427d379f3cf911776edaf7f Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 30 Nov 2017 13:40:10 +0100
-Subject: [PATCH 162/214] crypto: limit more FPU-enabled sections
+Subject: [PATCH 162/216] crypto: limit more FPU-enabled sections
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

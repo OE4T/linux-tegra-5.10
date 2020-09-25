@@ -1,7 +1,7 @@
-From 1ab7ad7180212f999ca765aa93683cd6e6747de8 Mon Sep 17 00:00:00 2001
+From 8e16b1b018004a23bc535df6e3919faccecc3afe Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:57 +0100
-Subject: [PATCH 020/214] printk: introduce emergency messages
+Subject: [PATCH 020/216] printk: introduce emergency messages
 
 Console messages are generally either critical or non-critical.
 Critical messages are messages such as crashes or sysrq output.
@@ -250,7 +250,7 @@ index 77cd984..6876dd6 100644
  
  void console_atomic_lock(unsigned int *flags)
 diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index e068c3c..b9a0d66 100644
+index 0c781f9..7d552d8 100644
 --- a/lib/Kconfig.debug
 +++ b/lib/Kconfig.debug
 @@ -61,6 +61,23 @@ config CONSOLE_LOGLEVEL_QUIET

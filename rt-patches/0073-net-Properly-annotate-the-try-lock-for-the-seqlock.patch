@@ -1,7 +1,7 @@
-From 8cb5e502bf14ae47758c0fbcb6f13b9c33b35847 Mon Sep 17 00:00:00 2001
+From e42937e3f4439175b2931dd6984a51fadaf996c2 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 8 Sep 2020 16:57:11 +0200
-Subject: [PATCH 073/214] net: Properly annotate the try-lock for the seqlock
+Subject: [PATCH 073/216] net: Properly annotate the try-lock for the seqlock
 
 In patch
    ("net/Qdisc: use a seqlock instead seqcount")

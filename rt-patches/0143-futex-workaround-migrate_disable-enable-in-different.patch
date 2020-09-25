@@ -1,7 +1,7 @@
-From 260c49298658399a31bfab0f684ee45b0919c5e6 Mon Sep 17 00:00:00 2001
+From 91fdcc0eefe1bf72448dda95f33702d07d78cb43 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 8 Mar 2017 14:23:35 +0100
-Subject: [PATCH 143/214] futex: workaround migrate_disable/enable in different
+Subject: [PATCH 143/216] futex: workaround migrate_disable/enable in different
  context
 
 migrate_enable() invokes __schedule() and it expects a preempt count of one.

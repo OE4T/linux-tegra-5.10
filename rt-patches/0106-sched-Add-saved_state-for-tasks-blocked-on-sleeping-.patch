@@ -1,7 +1,7 @@
-From 236ffc51271a7ec761a0ccd515835cbb03a450b4 Mon Sep 17 00:00:00 2001
+From 5c09bf058334dcccb44bf127efb6ffaa55fed7f3 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sat, 25 Jun 2011 09:21:04 +0200
-Subject: [PATCH 106/214] sched: Add saved_state for tasks blocked on sleeping
+Subject: [PATCH 106/216] sched: Add saved_state for tasks blocked on sleeping
  locks
 
 Spinlocks are state preserving in !RT. RT changes the state when a
