@@ -4184,9 +4184,15 @@ bypass_init_check:
 		if (err < 0) {
 			dc->out = NULL;
 			dc->out_ops = NULL;
-			dev_err(&dc->ndev->dev,
-				"Error: out->type:%d out_ops->init() failed. err=%d\n",
-				out->type, err);
+			if (err == -EPROBE_DEFER) {
+				dev_info(&dc->ndev->dev,
+					"out->type:%d out_ops->init err = %d\n",
+					out->type, err);
+			} else {
+				dev_err(&dc->ndev->dev,
+					"out->type:%d out_ops->init err = %d\n",
+					out->type, err);
+			}
 			return err;
 		}
 	}
@@ -6665,10 +6671,8 @@ static int tegra_dc_probe(struct platform_device *ndev)
 			}
 		}
 		ret = tegra_dc_set_out(dc, dc->pdata->default_out, false);
-		if (ret < 0) {
-			dev_err(&dc->ndev->dev, "failed to initialize DC out ops\n");
+		if (ret < 0)
 			goto err_put_clk;
-		}
 	} else {
 		dev_err(&ndev->dev,
 			"No default output specified.  Leaving output disabled.\n");

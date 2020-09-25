@@ -615,18 +615,19 @@ static int parse_disp_default_out(struct platform_device *ndev,
 	if (hotplug_gpio >= 0) {
 		pdata->default_out->hotplug_gpio = hotplug_gpio;
 	} else {
-		if (hotplug_gpio == -ENOENT) {
+		if (hotplug_gpio == -EPROBE_DEFER) {
+			dev_info(&ndev->dev,
+				"hpd-gpio failed with EPROBE_DEFER %d\n",
+				hotplug_gpio);
+			err = -EPROBE_DEFER;
+			goto parse_disp_defout_fail;
+		} else if (hotplug_gpio == -ENOENT) {
 			pdata->default_out->hotplug_gpio = hotplug_gpio;
 			dev_info(&ndev->dev, "No hpd-gpio in DT\n");
 		} else {
 			pdata->default_out->hotplug_gpio = -EINVAL;
 			dev_warn(&ndev->dev, "invalid hpd-gpio %d\n",
 					hotplug_gpio);
-		}
-
-		if (hotplug_gpio == -EPROBE_DEFER) {
-			err = -EPROBE_DEFER;
-			goto parse_disp_defout_fail;
 		}
 	}
 
@@ -3154,8 +3155,10 @@ struct tegra_dc_platform_data *of_dc_parse_platform_data(
 
 	err = parse_disp_default_out(ndev, pdata);
 	if (err) {
-		dev_err(&ndev->dev, "failed to parse disp_default_out,%d\n",
-				err);
+		if (err != -EPROBE_DEFER) {
+			dev_err(&ndev->dev,
+				"failed to parse disp_default_out,%d\n", err);
+		}
 		goto fail_parse;
 	}
 

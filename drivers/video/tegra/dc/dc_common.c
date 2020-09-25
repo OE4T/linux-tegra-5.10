@@ -1116,7 +1116,11 @@ static int tegra_dc_common_probe(struct platform_device *pdev)
 
 	ret = nvhost_channel_map(pdata, &dc_common->channel, pdata);
 	if (ret) {
-		dev_err(&pdev->dev, "Nvhost Channel map failed\n");
+		if (ret == -EPROBE_DEFER) {
+			dev_info(&pdev->dev, "Nvhost Channel map failed\n");
+		} else {
+			dev_err(&pdev->dev, "Nvhost Channel map failed\n");
+		}
 		goto err_iounmap_reg;
 	}
 	dev_info(&pdev->dev, "host1x channel mapped\n");
