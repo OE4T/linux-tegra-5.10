@@ -31,6 +31,10 @@
 
 #include "xhci.h"
 
+static bool max_burst_war_enable = true;
+module_param(max_burst_war_enable, bool, 0644);
+MODULE_PARM_DESC(max_burst_war_enable, "Max burst WAR");
+
 #define TEGRA_XHCI_SS_HIGH_SPEED 120000000
 #define TEGRA_XHCI_SS_LOW_SPEED   12000000
 
@@ -1860,6 +1864,26 @@ disable_clk:
 	return err;
 }
 
+static int tegra_xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
+				struct usb_host_endpoint *ep)
+{
+	struct usb_endpoint_descriptor *desc = &ep->desc;
+
+	if ((udev->speed >= USB_SPEED_SUPER) &&
+		((desc->bEndpointAddress & USB_ENDPOINT_DIR_MASK) ==
+			USB_DIR_OUT) && usb_endpoint_xfer_bulk(desc) &&
+			max_burst_war_enable) {
+		if (ep->ss_ep_comp.bMaxBurst != 15) {
+			dev_dbg(&udev->dev, "change ep %02x bMaxBurst (%d) to 15\n",
+				ep->ss_ep_comp.bMaxBurst,
+				desc->bEndpointAddress);
+			ep->ss_ep_comp.bMaxBurst = 15;
+		}
+	}
+
+	return xhci_add_endpoint(hcd, udev, ep);
+}
+
 static int tegra_xusb_suspend(struct device *dev)
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
@@ -2120,6 +2144,7 @@ static int __init tegra_xusb_init(void)
 {
 	xhci_init_driver(&tegra_xhci_hc_driver, &tegra_xhci_overrides);
 
+	tegra_xhci_hc_driver.add_endpoint = tegra_xhci_add_endpoint;
 	return platform_driver_register(&tegra_xusb_driver);
 }
 module_init(tegra_xusb_init);

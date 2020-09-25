@@ -1815,7 +1815,7 @@ static int xhci_drop_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
  * configuration or alt setting is installed in the device, so there's no need
  * for mutual exclusion to protect the xhci->devs[slot_id] structure.
  */
-static int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
+int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
 		struct usb_host_endpoint *ep)
 {
 	struct xhci_hcd *xhci;
@@ -1925,6 +1925,7 @@ static int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
 			(unsigned int) new_add_flags);
 	return 0;
 }
+EXPORT_SYMBOL_GPL(xhci_add_endpoint);
 
 static void xhci_zero_in_ctx(struct xhci_hcd *xhci, struct xhci_virt_device *virt_dev)
 {
