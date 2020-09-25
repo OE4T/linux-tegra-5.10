@@ -2023,6 +2023,12 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 	if (smmu->features & ARM_SMMU_FEAT_FMT_AARCH64_64K)
 		smmu->pgsize_bitmap |= SZ_64K | SZ_512M;
 
+	/*
+	 * FIXME: There is some issue with large page size, until it is fixed,
+         * restricting it to 4K, once it is fixed below fix has to be removed.
+	 */
+	smmu->pgsize_bitmap = SZ_4K;
+
 	if (arm_smmu_ops.pgsize_bitmap == -1UL)
 		arm_smmu_ops.pgsize_bitmap = smmu->pgsize_bitmap;
 	else
