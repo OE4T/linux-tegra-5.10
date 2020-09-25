@@ -461,6 +461,200 @@ void mmc_remove_host_debugfs(struct mmc_host *host)
 	debugfs_remove_recursive(host->debugfs_root);
 }
 
+static int mmc_dbg_card_status_get(void *data, u64 *val)
+{
+	struct mmc_card	*card = data;
+	u32		status;
+	int		ret;
+	struct mmc_ctx ctx;
+
+	mmc_get_card(card, &ctx);
+
+	ret = mmc_send_status(data, &status);
+	if (!ret)
+		*val = status;
+
+	mmc_put_card(card, &ctx);
+
+	return ret;
+}
+DEFINE_SIMPLE_ATTRIBUTE(mmc_dbg_card_status_fops, mmc_dbg_card_status_get,
+		NULL, "%08llx\n");
+
+static int mmc_get_ext_csd_byte_val(struct mmc_card *card, u64 *val,
+		unsigned int ext_csd_byte)
+{
+	u8 *ext_csd = NULL;
+	int err = 0;
+	bool reenable_cqe = false;
+
+	mmc_claim_host(card->host);
+	if (card->host->cqe_on) {
+		reenable_cqe = true;
+		card->host->cqe_ops->cqe_off(card->host);
+		card->host->cqe_ops->cqe_mode_disable(card->host);
+	}
+
+	err = mmc_get_ext_csd(card, &ext_csd);
+	if (reenable_cqe)
+		card->host->cqe_ops->cqe_mode_enable(card->host);
+	mmc_release_host(card->host);
+
+	if (!err) {
+		*val = ext_csd[ext_csd_byte];
+		kfree(ext_csd);
+	}
+
+	return err;
+}
+
+static int mmc_dbg_ext_csd_life_time_type_a(void *data, u64 *val)
+{
+	struct mmc_card *card = data;
+
+	return mmc_get_ext_csd_byte_val(card, val,
+			EXT_CSD_DEVICE_LIFE_TIME_EST_TYP_A);
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(mmc_dbg_ext_csd_life_time_type_a_fops,
+		mmc_dbg_ext_csd_life_time_type_a, NULL, "%llu\n");
+
+
+static int mmc_dbg_ext_csd_life_time_type_b(void *data, u64 *val)
+{
+	struct mmc_card *card = data;
+
+	return mmc_get_ext_csd_byte_val(card, val,
+			EXT_CSD_DEVICE_LIFE_TIME_EST_TYP_B);
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(mmc_dbg_ext_csd_life_time_type_b_fops,
+		mmc_dbg_ext_csd_life_time_type_b, NULL, "%llu\n");
+
+static int mmc_dbg_ext_csd_device_type(void *data, u64 *val)
+{
+	struct mmc_card *card = data;
+	return mmc_get_ext_csd_byte_val(card, val, EXT_CSD_CARD_TYPE);
+}
+DEFINE_SIMPLE_ATTRIBUTE(mmc_dbg_ext_csd_device_type_fops,
+			mmc_dbg_ext_csd_device_type, NULL, "%llu\n");
+
+#define EXT_CSD_STR_LEN 1025
+
+/* Here index starts with zero*/
+static char *mmc_ext_csd_read_by_index(int start, int end,
+		int strlen, struct inode *inode)
+{
+	struct mmc_card *card = inode->i_private;
+	char *buf;
+	ssize_t n = 0;
+	u8 *ext_csd = NULL;
+	int err = 0, i = 0;
+	bool reenable_cqe = false;
+
+	buf = kmalloc(strlen + 1, GFP_KERNEL);
+	if (!buf)
+		return ERR_PTR(-ENOMEM);
+
+	mmc_claim_host(card->host);
+	if (card->host->cqe_on) {
+		reenable_cqe = true;
+		card->host->cqe_ops->cqe_off(card->host);
+		card->host->cqe_ops->cqe_mode_disable(card->host);
+	}
+
+	err = mmc_get_ext_csd(card, &ext_csd);
+
+	if (reenable_cqe)
+		card->host->cqe_ops->cqe_mode_enable(card->host);
+
+	mmc_release_host(card->host);
+	if (err)
+		goto out_free;
+
+	for (i = start; i <= end; i++)
+		n += sprintf(buf + n, "%02x", ext_csd[i]);
+	n += sprintf(buf + n, "\n");
+
+	kfree(ext_csd);
+	return buf;
+
+out_free:
+	kfree(ext_csd);
+	kfree(buf);
+	return NULL;
+}
+
+static int mmc_dbg_ext_csd_eol_get(void *data, u64 *val)
+{
+	struct mmc_card *card = data;
+
+	return mmc_get_ext_csd_byte_val(card, val, EXT_CSD_PRE_EOL_INFO);
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(mmc_dbg_ext_csd_eol_fops,
+			mmc_dbg_ext_csd_eol_get, NULL, "%llu\n");
+
+#define EXT_CSD_FW_V_STR_LEN 17
+static int mmc_ext_csd_fw_v_open(struct inode *inode, struct file *filp)
+{
+	/*Firmware Version ext_csd 254:261 */
+	filp->private_data = mmc_ext_csd_read_by_index(254, 261,
+				EXT_CSD_FW_V_STR_LEN, inode);
+	return 0;
+}
+
+static ssize_t mmc_ext_csd_fw_v_read(struct file *filp, char __user *ubuf,
+				size_t cnt, loff_t *ppos)
+{
+	char *buf = filp->private_data;
+
+	return simple_read_from_buffer(ubuf, cnt, ppos,
+				       buf, EXT_CSD_FW_V_STR_LEN);
+}
+
+static int mmc_ext_csd_fw_v_release(struct inode *inode, struct file *file)
+{
+	kfree(file->private_data);
+	return 0;
+}
+
+static const struct file_operations mmc_dbg_ext_csd_fw_v_fops = {
+	.open		= mmc_ext_csd_fw_v_open,
+	.read		= mmc_ext_csd_fw_v_read,
+	.release	= mmc_ext_csd_fw_v_release,
+	.llseek		= default_llseek,
+};
+
+static int mmc_ext_csd_open(struct inode *inode, struct file *filp)
+{
+	filp->private_data = mmc_ext_csd_read_by_index(0, 511,
+				EXT_CSD_STR_LEN, inode);
+	return 0;
+}
+
+static ssize_t mmc_ext_csd_read(struct file *filp, char __user *ubuf,
+				size_t cnt, loff_t *ppos)
+{
+	char *buf = filp->private_data;
+
+	return simple_read_from_buffer(ubuf, cnt, ppos,
+				       buf, EXT_CSD_STR_LEN);
+}
+
+static int mmc_ext_csd_release(struct inode *inode, struct file *file)
+{
+	kfree(file->private_data);
+	return 0;
+}
+
+static const struct file_operations mmc_dbg_ext_csd_fops = {
+	.open		= mmc_ext_csd_open,
+	.read		= mmc_ext_csd_read,
+	.release	= mmc_ext_csd_release,
+	.llseek		= default_llseek,
+};
+
 void mmc_add_card_debugfs(struct mmc_card *card)
 {
 	struct mmc_host	*host = card->host;
@@ -473,6 +667,32 @@ void mmc_add_card_debugfs(struct mmc_card *card)
 	card->debugfs_root = root;
 
 	debugfs_create_x32("state", S_IRUSR, root, &card->state);
+
+	if (mmc_card_mmc(card) || mmc_card_sd(card))
+		if (!debugfs_create_file("status", S_IRUSR, root, card,
+					&mmc_dbg_card_status_fops))
+			goto err;
+
+	if (mmc_card_mmc(card)) {
+		if (!debugfs_create_file("ext_csd", S_IRUSR, root, card,
+					&mmc_dbg_ext_csd_fops))
+			goto err;
+		if (!debugfs_create_file("eol_status", S_IRUSR, root, card,
+					&mmc_dbg_ext_csd_eol_fops))
+			goto err;
+		if (!debugfs_create_file("firmware_version", S_IRUSR, root,
+					card, &mmc_dbg_ext_csd_fw_v_fops))
+			goto err;
+		if (!debugfs_create_file("dhs_type_a", 0400, root, card,
+					&mmc_dbg_ext_csd_life_time_type_a_fops))
+			goto err;
+		if (!debugfs_create_file("dhs_type_b", 0400, root, card,
+					&mmc_dbg_ext_csd_life_time_type_b_fops))
+			goto err;
+		if (!debugfs_create_file("emmc_device_type", S_IRUSR, root, card,
+					&mmc_dbg_ext_csd_device_type_fops))
+			goto err;
+	}
 
 	if (mmc_card_sd(card))
 		if (!debugfs_create_file("speed_class", 0400, root, card,

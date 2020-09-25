@@ -219,6 +219,10 @@ struct mmc_cqe_ops {
 	 * will have zero data bytes transferred.
 	 */
 	void	(*cqe_recovery_finish)(struct mmc_host *host);
+	/* Set CMDQ_EN bit in the CQE_CFG register */
+	void	(*cqe_mode_enable)(struct mmc_host *host);
+	/* Clear CMDQ_EN bit in the CQE_CFG register */
+	void	(*cqe_mode_disable)(struct mmc_host *host);
 };
 
 struct mmc_async_req {

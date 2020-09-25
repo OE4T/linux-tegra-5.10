@@ -1057,6 +1057,26 @@ static void cqhci_recovery_finish(struct mmc_host *mmc)
 	pr_debug("%s: cqhci: recovery done\n", mmc_hostname(mmc));
 }
 
+static void cqhci_mode_disable(struct mmc_host *mmc)
+{
+	struct cqhci_host *cq_host = mmc->cqe_private;
+	u32 cqcfg;
+
+	cqcfg = cqhci_readl(cq_host, CQHCI_CFG);
+	cqcfg &= ~CQHCI_ENABLE;
+	cqhci_writel(cq_host, cqcfg, CQHCI_CFG);
+}
+
+static void cqhci_mode_enable(struct mmc_host *mmc)
+{
+	struct cqhci_host *cq_host = mmc->cqe_private;
+	u32 cqcfg;
+
+	cqcfg = cqhci_readl(cq_host, CQHCI_CFG);
+	cqcfg |= CQHCI_ENABLE;
+	cqhci_writel(cq_host, cqcfg, CQHCI_CFG);
+}
+
 static const struct mmc_cqe_ops cqhci_cqe_ops = {
 	.cqe_enable = cqhci_enable,
 	.cqe_disable = cqhci_disable,
@@ -1067,6 +1087,8 @@ static const struct mmc_cqe_ops cqhci_cqe_ops = {
 	.cqe_timeout = cqhci_timeout,
 	.cqe_recovery_start = cqhci_recovery_start,
 	.cqe_recovery_finish = cqhci_recovery_finish,
+	.cqe_mode_enable = cqhci_mode_enable,
+	.cqe_mode_disable = cqhci_mode_disable,
 };
 
 struct cqhci_host *cqhci_pltfm_init(struct platform_device *pdev)
