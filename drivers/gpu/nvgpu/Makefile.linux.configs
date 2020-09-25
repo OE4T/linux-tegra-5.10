@@ -72,8 +72,6 @@ endif
 
 # Enable support for GPUs on PCIe bus.
 ifeq ($(CONFIG_PCI),y)
-CONFIG_GK20A_PCI := y
-
 # Support for NVGPU DGPU
 CONFIG_NVGPU_DGPU := y
 endif
@@ -186,9 +184,6 @@ ccflags-y += -DCONFIG_NVGPU_FECS_TRACE
 endif
 ifeq ($(CONFIG_TEGRA_GK20A_NVHOST),y)
 ccflags-y += -DCONFIG_TEGRA_GK20A_NVHOST
-endif
-ifeq ($(CONFIG_GK20A_PCI),y)
-ccflags-y += -DCONFIG_GK20A_PCI
 endif
 ifeq ($(CONFIG_NVGPU_DGPU),y)
 ccflags-y += -DCONFIG_NVGPU_DGPU

@@ -81,6 +81,8 @@ obj-$(CONFIG_GK20A) := nvgpu.o
 
 ifeq ($(CONFIG_NVGPU_DGPU),y)
 nvgpu-$(CONFIG_NVGPU_DGPU) += \
+	os/linux/pci.o \
+	os/linux/pci_power.o \
 	os/linux/dmabuf_vidmem.o \
 	os/linux/os_ops_gv100.o \
 	os/linux/os_ops_tu104.o \
@@ -179,10 +181,6 @@ nvgpu-y += \
 	hal/nvlink/intr_and_err_handling_tu104.o \
 	hal/nvlink/link_mode_transitions_gv100.o \
 	hal/nvlink/link_mode_transitions_tu104.o
-
-nvgpu-$(CONFIG_GK20A_PCI) += \
-	os/linux/pci.o \
-	os/linux/pci_power.o
 
 nvgpu-y += \
 	common/device.o \
