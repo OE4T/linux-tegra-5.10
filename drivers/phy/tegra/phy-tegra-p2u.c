@@ -20,6 +20,7 @@
 #include <linux/interrupt.h>
 #include <linux/delay.h>
 #include <linux/of_platform.h>
+#include <linux/version.h>
 #include <soc/tegra/bpmp_abi.h>
 #include <soc/tegra/tegra_bpmp.h>
 
@@ -263,6 +264,9 @@ void rx_margin_work_fn(struct work_struct *work)
 				continue;
 			}
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0))
+			fallthrough;
+#endif
 		case RX_MARGIN_GET_MARGIN:
 			if (state != RX_MARGIN_STOP) {
 				ret = get_margin_status(phy->id, &val);
