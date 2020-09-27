@@ -29,6 +29,9 @@
 #include <linux/version.h>
 #include <linux/string.h>
 #include <linux/nospec.h>
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 15, 0)
+#include <linux/compat.h>
+#endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #include <linux/types.h>
 #include <uapi/linux/sched/types.h>
