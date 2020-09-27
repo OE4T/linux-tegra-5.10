@@ -542,6 +542,15 @@ static int nvgpu_init_syncpt_mem(struct gk20a *g)
 	return 0;
 }
 
+static int nvgpu_init_slcg_acb_load_gating_prod(struct gk20a *g)
+{
+	if (g->ops.cg.slcg_acb_load_gating_prod != NULL) {
+		g->ops.cg.slcg_acb_load_gating_prod(g, true);
+	}
+
+	return 0;
+}
+
 static int nvgpu_init_interrupt_setup(struct gk20a *g)
 {
 	/**
@@ -584,6 +593,8 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	 * and static variables require constant literals for initializers.
 	 */
 	const struct nvgpu_init_table_t nvgpu_init_table[] = {
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_slcg_acb_load_gating_prod,
+					NO_FLAG),
 		/*
 		 * ECC support initialization is split into generic init
 		 * followed by per unit initialization and ends with sysfs

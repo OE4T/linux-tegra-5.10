@@ -785,6 +785,7 @@ static const struct gops_cg gv11b_ops_cg = {
 	.slcg_therm_load_gating_prod = gv11b_slcg_therm_load_gating_prod,
 	.slcg_xbar_load_gating_prod = gv11b_slcg_xbar_load_gating_prod,
 	.slcg_hshub_load_gating_prod = gv11b_slcg_hshub_load_gating_prod,
+	.slcg_acb_load_gating_prod = gv11b_slcg_acb_load_gating_prod,
 	.blcg_bus_load_gating_prod = gv11b_blcg_bus_load_gating_prod,
 	.blcg_ce_load_gating_prod = gv11b_blcg_ce_load_gating_prod,
 	.blcg_fb_load_gating_prod = gv11b_blcg_fb_load_gating_prod,

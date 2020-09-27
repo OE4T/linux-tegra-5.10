@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -154,6 +154,11 @@ static const struct gating_desc gv11b_slcg_hshub[] = {
 	{.addr = 0x001fb3f4U, .prod = 0x00000000U, .disable = 0xfffffffeU},
 	{.addr = 0x001fb7f4U, .prod = 0x00000000U, .disable = 0xfffffffeU},
 	{.addr = 0x001fbbf4U, .prod = 0x00000000U, .disable = 0xfffffffeU},
+};
+
+/* slcg Acb */
+static const struct gating_desc gv11b_slcg_acb[] = {
+	{.addr = 0x0010e48cU, .prod = 0x00000038U, .disable = 0x0000003eU},
 };
 
 /* blcg bus */
@@ -612,6 +617,33 @@ u32 gv11b_slcg_hshub_gating_prod_size(void)
 const struct gating_desc *gv11b_slcg_hshub_get_gating_prod(void)
 {
 	return gv11b_slcg_hshub;
+}
+
+void gv11b_slcg_acb_load_gating_prod(struct gk20a *g,
+	bool prod)
+{
+	u32 i;
+	u32 size = nvgpu_safe_cast_u64_to_u32(sizeof(gv11b_slcg_acb)
+							/ GATING_DESC_SIZE);
+
+	if (nvgpu_is_enabled(g, NVGPU_GPU_CAN_SLCG)) {
+		for (i = 0; i < size; i++) {
+			u32 reg = gv11b_slcg_acb[i].addr;
+			u32 val = prod ? gv11b_slcg_acb[i].prod :
+					 gv11b_slcg_acb[i].disable;
+			nvgpu_writel(g, reg, val);
+		}
+	}
+}
+
+u32 gv11b_slcg_acb_gating_prod_size(void)
+{
+	return nvgpu_safe_cast_u64_to_u32(ARRAY_SIZE(gv11b_slcg_acb));
+}
+
+const struct gating_desc *gv11b_slcg_acb_get_gating_prod(void)
+{
+	return gv11b_slcg_acb;
 }
 
 void gv11b_blcg_bus_load_gating_prod(struct gk20a *g,
