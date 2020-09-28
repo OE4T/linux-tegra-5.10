@@ -152,12 +152,14 @@ static void nvgpu_init_timeout(struct gk20a *g)
 
 	if (nvgpu_platform_is_silicon(g)) {
 		g->poll_timeout_default = NVGPU_DEFAULT_POLL_TIMEOUT_MS;
+		g->ch_wdt_init_limit_ms = platform->ch_wdt_init_limit_ms;
 	} else if (nvgpu_platform_is_fpga(g)) {
 		g->poll_timeout_default = NVGPU_DEFAULT_FPGA_TIMEOUT_MS;
+		g->ch_wdt_init_limit_ms = 100U * platform->ch_wdt_init_limit_ms;
 	} else {
 		g->poll_timeout_default = (u32)ULONG_MAX;
+		g->ch_wdt_init_limit_ms = 100U * platform->ch_wdt_init_limit_ms;
 	}
-	g->ch_wdt_init_limit_ms = platform->ch_wdt_init_limit_ms;
 	g->ctxsw_timeout_period_ms = CTXSW_TIMEOUT_PERIOD_MS;
 }
 
