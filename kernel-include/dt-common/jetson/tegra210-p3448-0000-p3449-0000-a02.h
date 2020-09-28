@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,6 +32,13 @@
 #define HDR40_SPI	"spi1"
 /* SoC function name for UART interface on 40-pin header pins 8, 10, 11 and 36 */
 #define HDR40_UART	"uartb"
+
+/* Pin labels for I2S pins */
+#define HDR40_I2S_PIN_GRP	"i2s4"
+#define HDR40_I2S_SCLK		"i2s4b_sclk"
+#define HDR40_I2S_FS		"i2s4b_fs"
+#define HDR40_I2S_DIN		"i2s4b_din"
+#define HDR40_I2S_DOUT		"i2s4b_dout"
 
 /* SoC pin name definitions for 40-pin header */
 #define HDR40_PIN7	"aud_mclk_pbb0"
