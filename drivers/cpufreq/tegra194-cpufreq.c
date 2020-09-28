@@ -11,12 +11,14 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
+#include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/slab.h>
 
 #include <asm/smp_plat.h>
 
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/cpufreq_cpu_emc_table.h>
 
 #define KHZ                     1000
 #define REF_CLK_MHZ             408 /* 408 MHz */
@@ -27,6 +29,9 @@
 
 /* cpufreq transisition latency */
 #define TEGRA_CPUFREQ_TRANSITION_LATENCY (300 * 1000) /* unit in nanoseconds */
+
+#define LOOP_FOR_EACH_CLUSTER(cl)       for (cl = 0; \
+					cl < MAX_CLUSTERS; cl++)
 
 enum cluster {
 	CLUSTER0,
@@ -39,6 +44,7 @@ enum cluster {
 struct tegra194_cpufreq_data {
 	void __iomem *regs;
 	size_t num_clusters;
+	struct tegra_bwmgr_client *bwmgr;
 	struct cpufreq_frequency_table **tables;
 };
 
@@ -55,6 +61,17 @@ struct read_counters_work {
 };
 
 static struct workqueue_struct *read_counters_wq;
+
+struct tegra_bwmgr_client {
+	unsigned long bw;
+	unsigned long iso_bw;
+	unsigned long cap;
+	unsigned long iso_cap;
+	unsigned long floor;
+	int refcount;
+};
+
+static struct cpu_emc_mapping *cpu_emc_map_ptr;
 
 static void get_cpu_cluster(void *cluster)
 {
@@ -206,6 +223,13 @@ static int tegra194_cpufreq_init(struct cpufreq_policy *policy)
 	policy->freq_table = data->tables[cl];
 	policy->cpuinfo.transition_latency = TEGRA_CPUFREQ_TRANSITION_LATENCY;
 
+	data->bwmgr = tegra_bwmgr_register(cl);
+	if (IS_ERR_OR_NULL(data->bwmgr)) {
+		pr_warn("cpufreq: fail to register with emc bw manager");
+		pr_warn(" for cluster %d\n", cl);
+		return -ENODEV;
+	}
+
 	return 0;
 }
 
@@ -217,10 +241,25 @@ static void set_cpu_ndiv(void *data)
 	asm volatile("msr s3_0_c15_c0_4, %0" : : "r" (ndiv_val));
 }
 
+/* Set emc clock by referring cpu_to_emc freq mapping */
+static void set_cpufreq_to_emcfreq(enum cluster cl, uint32_t cluster_freq)
+{
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+	unsigned long emc_freq;
+
+	emc_freq = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
+
+	tegra_bwmgr_set_emc(&data->bwmgr[cl], emc_freq * KHZ,
+			    TEGRA_BWMGR_SET_EMC_FLOOR);
+	pr_debug("cluster %d, emc freq(KHz): %lu cluster_freq(KHz): %u\n",
+		 cl, emc_freq, cluster_freq);
+}
+
 static int tegra194_cpufreq_set_target(struct cpufreq_policy *policy,
 				       unsigned int index)
 {
 	struct cpufreq_frequency_table *tbl = policy->freq_table + index;
+	u32 cl;
 
 	/*
 	 * Each core writes frequency in per core register. Then both cores
@@ -228,6 +267,11 @@ static int tegra194_cpufreq_set_target(struct cpufreq_policy *policy,
 	 * request out of the values requested by both cores in that cluster.
 	 */
 	on_each_cpu_mask(policy->cpus, set_cpu_ndiv, tbl, true);
+
+	if (cpu_emc_map_ptr) {
+		get_cpu_cluster(&cl);
+		set_cpufreq_to_emcfreq(cl, tbl->frequency);
+	}
 
 	return 0;
 }
@@ -245,7 +289,17 @@ static struct cpufreq_driver tegra194_cpufreq_driver = {
 
 static void tegra194_cpufreq_free_resources(void)
 {
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+	enum cluster cl;
+
 	destroy_workqueue(read_counters_wq);
+
+	LOOP_FOR_EACH_CLUSTER(cl) {
+		if (!data->bwmgr) {
+			/* unregister from emc bw manager */
+			tegra_bwmgr_unregister(&data->bwmgr[cl]);
+		}
+	}
 }
 
 static struct cpufreq_frequency_table *
@@ -318,7 +372,13 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 {
 	struct tegra194_cpufreq_data *data;
 	struct tegra_bpmp *bpmp;
+	struct device_node *dn;
 	int err, i;
+
+	dn = pdev->dev.of_node;
+	cpu_emc_map_ptr = tegra_cpufreq_cpu_emc_map_dt_init(dn);
+	if (!cpu_emc_map_ptr)
+		dev_info(&pdev->dev, "cpu_emc_map not present\n");
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
@@ -349,6 +409,12 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 			err = PTR_ERR(data->tables[i]);
 			goto err_free_res;
 		}
+
+		data->bwmgr = devm_kzalloc(&pdev->dev,
+					   sizeof(struct tegra_bwmgr_client),
+					   GFP_KERNEL);
+		if (!data->bwmgr)
+			goto err_free_res;
 	}
 
 	tegra194_cpufreq_driver.driver_data = data;
