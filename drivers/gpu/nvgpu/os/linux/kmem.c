@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -40,7 +40,7 @@ void *nvgpu_big_alloc_impl(struct gk20a *g, size_t size, bool clear)
 {
 	void *p;
 
-	if (size > PAGE_SIZE) {
+	if (size > NVGPU_CPU_PAGE_SIZE) {
 		if (clear)
 			p = nvgpu_vzalloc(g, size);
 		else
@@ -314,12 +314,12 @@ static int __nvgpu_free_kmem_alloc(struct nvgpu_mem_alloc_tracker *tracker,
 
 static void __nvgpu_check_valloc_size(unsigned long size)
 {
-	WARN(size < PAGE_SIZE, "Alloc smaller than page size! (%lu)!\n", size);
+	WARN(size < NVGPU_CPU_PAGE_SIZE, "Alloc smaller than page size! (%lu)!\n", size);
 }
 
 static void __nvgpu_check_kalloc_size(size_t size)
 {
-	WARN(size > PAGE_SIZE, "Alloc larger than page size! (%zu)!\n", size);
+	WARN(size > NVGPU_CPU_PAGE_SIZE, "Alloc larger than page size! (%zu)!\n", size);
 }
 
 void *__nvgpu_track_vmalloc(struct gk20a *g, unsigned long size,
@@ -570,7 +570,7 @@ int nvgpu_kmem_init(struct gk20a *g)
 	nvgpu_mutex_init(&g->vmallocs->lock);
 	nvgpu_mutex_init(&g->kmallocs->lock);
 
-	g->vmallocs->min_alloc = PAGE_SIZE;
+	g->vmallocs->min_alloc = NVGPU_CPU_PAGE_SIZE;
 	g->kmallocs->min_alloc = KMALLOC_MIN_SIZE;
 
 	/*

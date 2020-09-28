@@ -32,6 +32,16 @@
 #endif
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
+/*
+ * Size of SIM ring buffers.
+ *
+ * Although, each buffer is allocated with NVGPU_CPU_PAGE_SIZE bytes.
+ * The send and receive interface can only be configured to work with buffers of
+ * sizes: 4K, 8K, 12K and 16K. Furthermore, this size should match with size
+ * configured in the fmodel chiplib. At present, the agreed buffer size is 4K.
+ */
+#define SIM_BFR_SIZE	(SZ_4K)
+
 struct sim_nvgpu {
 	struct gk20a *g;
 	u32 send_ring_put;

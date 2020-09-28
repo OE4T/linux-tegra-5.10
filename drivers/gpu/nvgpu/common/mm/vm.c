@@ -373,7 +373,7 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 	nvgpu_semaphore_sea_allocate_gpu_va(sema_sea, &vm->kernel,
 					nvgpu_safe_sub_u64(vm->va_limit,
 						mm->channel.kernel_size),
-					512U * PAGE_SIZE,
+					512U * NVGPU_CPU_PAGE_SIZE,
 					nvgpu_safe_cast_u64_to_u32(SZ_4K));
 	if (nvgpu_semaphore_sea_get_gpu_va(sema_sea) == 0ULL) {
 		nvgpu_free(&vm->kernel,
@@ -741,7 +741,7 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 					nvgpu_safe_cast_u64_to_u32(SZ_4K);
 	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]    = big_page_size;
 	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_KERNEL] =
-					nvgpu_safe_cast_u64_to_u32(PAGE_SIZE);
+					nvgpu_safe_cast_u64_to_u32(NVGPU_CPU_PAGE_SIZE);
 
 	/* Set up vma pointers. */
 	vm->vma[GMMU_PAGE_SIZE_SMALL]  = &vm->user;

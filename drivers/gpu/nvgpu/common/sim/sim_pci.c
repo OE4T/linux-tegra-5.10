@@ -83,7 +83,7 @@ static int rpc_send_message(struct gk20a *g)
 	*sim_msg_hdr(g, sim_msg_sequence_r()) = g->sim->sequence_base++;
 
 	g->sim->send_ring_put = (g->sim->send_ring_put + 2 * sizeof(u32)) %
-		PAGE_SIZE;
+		SIM_BFR_SIZE;
 
 	/* Update the put pointer. This will trap into the host. */
 	sim_writel(g->sim, sim_send_put_r(), g->sim->send_ring_put);
@@ -131,7 +131,7 @@ static int rpc_recv_poll(struct gk20a *g)
 
 		/* Update GET pointer */
 		g->sim->recv_ring_get = (g->sim->recv_ring_get + 2*sizeof(u32))
-			% PAGE_SIZE;
+			% SIM_BFR_SIZE;
 
 		sim_writel(g->sim, sim_recv_get_r(), g->sim->recv_ring_get);
 

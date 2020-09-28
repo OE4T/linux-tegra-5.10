@@ -529,7 +529,7 @@ static int nvgpu_init_syncpt_mem(struct gk20a *g)
 	if (nvgpu_has_syncpoints(g) && (g->syncpt_unit_size != 0UL)) {
 		if (!nvgpu_mem_is_valid(&g->syncpt_mem)) {
 			nr_pages = U64(DIV_ROUND_UP(g->syncpt_unit_size,
-						    PAGE_SIZE));
+						    NVGPU_CPU_PAGE_SIZE));
 			err = nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
 					g->syncpt_unit_base, nr_pages);
 			if (err != 0) {

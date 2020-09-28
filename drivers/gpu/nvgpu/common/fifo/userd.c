@@ -37,7 +37,7 @@ int nvgpu_userd_init_slabs(struct gk20a *g)
 
 	nvgpu_mutex_init(&f->userd_mutex);
 
-	f->num_channels_per_slab = PAGE_SIZE /  g->ops.userd.entry_size(g);
+	f->num_channels_per_slab = NVGPU_CPU_PAGE_SIZE /  g->ops.userd.entry_size(g);
 	f->num_userd_slabs =
 		DIV_ROUND_UP(f->num_channels, f->num_channels_per_slab);
 
@@ -88,7 +88,7 @@ int nvgpu_userd_init_channel(struct gk20a *g, struct nvgpu_channel *c)
 
 	nvgpu_mutex_acquire(&f->userd_mutex);
 	if (!nvgpu_mem_is_valid(mem)) {
-		err = nvgpu_dma_alloc_sys(g, PAGE_SIZE, mem);
+		err = nvgpu_dma_alloc_sys(g, NVGPU_CPU_PAGE_SIZE, mem);
 		if (err != 0) {
 			nvgpu_err(g, "userd allocation failed, err=%d", err);
 			goto done;
@@ -96,7 +96,7 @@ int nvgpu_userd_init_channel(struct gk20a *g, struct nvgpu_channel *c)
 
 		if (g->ops.mm.is_bar1_supported(g)) {
 			mem->gpu_va = g->ops.mm.bar1_map_userd(g, mem,
-							 slab * PAGE_SIZE);
+							 slab * NVGPU_CPU_PAGE_SIZE);
 		}
 	}
 	c->userd_mem = mem;
@@ -128,9 +128,9 @@ int nvgpu_userd_setup_sw(struct gk20a *g)
 	}
 
 	size = f->num_channels * g->ops.userd.entry_size(g);
-	num_pages = DIV_ROUND_UP(size, PAGE_SIZE);
+	num_pages = DIV_ROUND_UP(size, NVGPU_CPU_PAGE_SIZE);
 	err = nvgpu_vm_area_alloc(g->mm.bar1.vm,
-			num_pages, PAGE_SIZE, &f->userd_gpu_va, 0);
+			num_pages, NVGPU_CPU_PAGE_SIZE, &f->userd_gpu_va, 0);
 	if (err != 0) {
 		nvgpu_err(g, "userd gpu va allocation failed, err=%d", err);
 		goto clean_up;

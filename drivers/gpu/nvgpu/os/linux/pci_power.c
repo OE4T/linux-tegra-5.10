@@ -117,7 +117,7 @@ static ssize_t probed_gpus_show(struct device_driver *drv, char *buf)
 	ssize_t count = 0;
 
 	list_for_each_entry_safe(pp, tmp_pp, &nvgpu_pci_power_devs, list) {
-		count += snprintf(buf, PAGE_SIZE - count, "pci-%s\t%s\n",
+		count += snprintf(buf, NVGPU_CPU_PAGE_SIZE - count, "pci-%s\t%s\n",
 				  pp->pci_dev_name,
 				  pp->pci_dev ? "PoweredOn" : "PoweredOff");
 	}

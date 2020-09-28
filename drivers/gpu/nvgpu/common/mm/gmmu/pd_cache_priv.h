@@ -99,7 +99,7 @@
  * PD cache size to be 64K if PAGE_SIZE > 4K (i.e PAGE_SIZE == 64K).
  */
 #ifdef __KERNEL__
-#  if PAGE_SIZE > 4096
+#  if NVGPU_CPU_PAGE_SIZE > 4096
 #    define NVGPU_PD_CACHE_COUNT	8UL
 #  else
 #    define NVGPU_PD_CACHE_COUNT	4UL

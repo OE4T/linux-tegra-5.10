@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@ u64 gk20a_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 	u64 gpu_va = f->userd_gpu_va + offset;
 
 	return nvgpu_gmmu_map_fixed(g->mm.bar1.vm, mem, gpu_va,
-				    PAGE_SIZE, 0,
+				    NVGPU_CPU_PAGE_SIZE, 0,
 				    gk20a_mem_flag_none, false,
 				    mem->aperture);
 }

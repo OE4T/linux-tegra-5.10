@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,21 +50,21 @@ static int semaphore_sea_grow(struct nvgpu_semaphore_sea *sea)
 	nvgpu_semaphore_sea_lock(sea);
 
 	ret = nvgpu_dma_alloc_sys(g,
-				  PAGE_SIZE * SEMAPHORE_POOL_COUNT,
+				  NVGPU_CPU_PAGE_SIZE * SEMAPHORE_POOL_COUNT,
 				  &sea->sea_mem);
 	if (ret != 0) {
 		goto out;
 	}
 
 	sea->size = SEMAPHORE_POOL_COUNT;
-	sea->map_size = SEMAPHORE_POOL_COUNT * PAGE_SIZE;
+	sea->map_size = SEMAPHORE_POOL_COUNT * NVGPU_CPU_PAGE_SIZE;
 
 	/*
 	 * Start the semaphores at values that will soon overflow the 32-bit
 	 * integer range. This way any buggy comparisons would start to fail
 	 * sooner rather than later.
 	 */
-	for (i = 0U; i < PAGE_SIZE * SEMAPHORE_POOL_COUNT; i += 4U) {
+	for (i = 0U; i < NVGPU_CPU_PAGE_SIZE * SEMAPHORE_POOL_COUNT; i += 4U) {
 		nvgpu_mem_wr(g, &sea->sea_mem, i, 0xfffffff0U);
 	}
 

@@ -206,7 +206,7 @@ static int gp10b_tegra_probe(struct device *dev)
 		return ret;
 
 	platform->disable_bigpage = !iommu_get_domain_for_dev(dev) &&
-					(PAGE_SIZE < SZ_64K);
+					(NVGPU_CPU_PAGE_SIZE < SZ_64K);
 
 #ifdef CONFIG_OF
 	of_chosen = of_find_node_by_path("/chosen");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 
 int tu104_ramin_init_pdb_cache_war(struct gk20a *g)
 {
-	u32 size = PAGE_SIZE * 258U;
+	u32 size = NVGPU_CPU_PAGE_SIZE * 258U;
 	u64 last_bind_pdb_addr;
 	u64 pdb_addr;
 	u32 pdb_addr_lo, pdb_addr_hi;
@@ -57,9 +57,9 @@ int tu104_ramin_init_pdb_cache_war(struct gk20a *g)
 	 * valid memory
 	 * First 256 binds can happen to dummy addresses
 	 */
-	pdb_addr = PAGE_SIZE;
+	pdb_addr = NVGPU_CPU_PAGE_SIZE;
 	last_bind_pdb_addr = nvgpu_mem_get_addr(g, &g->pdb_cache_war_mem) +
-			     (257U * PAGE_SIZE);
+			     (257U * NVGPU_CPU_PAGE_SIZE);
 
 	/* Setup first 256 instance blocks */
 	for (i = 0U; i < 256U; i++) {
@@ -67,7 +67,7 @@ int tu104_ramin_init_pdb_cache_war(struct gk20a *g)
 		pdb_addr_hi = u64_hi32(pdb_addr);
 
 		nvgpu_mem_wr32(g, &g->pdb_cache_war_mem,
-			ram_in_page_dir_base_lo_w() + (i * PAGE_SIZE / 4U),
+			ram_in_page_dir_base_lo_w() + (i * NVGPU_CPU_PAGE_SIZE / 4U),
 			nvgpu_aperture_mask(g, &g->pdb_cache_war_mem,
 				ram_in_page_dir_base_target_sys_mem_ncoh_f(),
 				ram_in_page_dir_base_target_sys_mem_coh_f(),
@@ -78,10 +78,10 @@ int tu104_ramin_init_pdb_cache_war(struct gk20a *g)
 			ram_in_use_ver2_pt_format_true_f());
 
 		nvgpu_mem_wr32(g, &g->pdb_cache_war_mem,
-			ram_in_page_dir_base_hi_w() + (i * PAGE_SIZE / 4U),
+			ram_in_page_dir_base_hi_w() + (i * NVGPU_CPU_PAGE_SIZE / 4U),
 			ram_in_page_dir_base_hi_f(pdb_addr_hi));
 
-		pdb_addr += PAGE_SIZE;
+		pdb_addr += NVGPU_CPU_PAGE_SIZE;
 	}
 
 	/* Setup 257th instance block */
@@ -89,7 +89,7 @@ int tu104_ramin_init_pdb_cache_war(struct gk20a *g)
 	pdb_addr_hi = u64_hi32(last_bind_pdb_addr);
 
 	nvgpu_mem_wr32(g, &g->pdb_cache_war_mem,
-		ram_in_page_dir_base_lo_w() + (256U * PAGE_SIZE / 4U),
+		ram_in_page_dir_base_lo_w() + (256U * NVGPU_CPU_PAGE_SIZE / 4U),
 		nvgpu_aperture_mask(g, &g->pdb_cache_war_mem,
 			ram_in_page_dir_base_target_sys_mem_ncoh_f(),
 			ram_in_page_dir_base_target_sys_mem_coh_f(),
@@ -100,7 +100,7 @@ int tu104_ramin_init_pdb_cache_war(struct gk20a *g)
 		ram_in_use_ver2_pt_format_true_f());
 
 	nvgpu_mem_wr32(g, &g->pdb_cache_war_mem,
-		ram_in_page_dir_base_hi_w() + (256U * PAGE_SIZE / 4U),
+		ram_in_page_dir_base_hi_w() + (256U * NVGPU_CPU_PAGE_SIZE / 4U),
 		ram_in_page_dir_base_hi_f(pdb_addr_hi));
 
 	return 0;

@@ -93,7 +93,7 @@ struct nvgpu_semaphore_pool {
 	u64 gpu_va_ro;				/* GPU access to the pool. */
 	u64 page_idx;				/* Index into sea bitmap. */
 
-	DECLARE_BITMAP(semas_alloced, PAGE_SIZE / SEMAPHORE_SIZE);
+	DECLARE_BITMAP(semas_alloced, NVGPU_CPU_PAGE_SIZE / SEMAPHORE_SIZE);
 
 	struct nvgpu_semaphore_sea *sema_sea;	/* Sea that owns this pool. */
 

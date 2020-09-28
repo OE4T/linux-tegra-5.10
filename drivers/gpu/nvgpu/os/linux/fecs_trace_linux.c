@@ -200,7 +200,7 @@ int nvgpu_gr_fecs_trace_ring_alloc(struct gk20a *g,
 {
 	struct nvgpu_ctxsw_ring_header *hdr;
 
-	*size = round_up(*size, PAGE_SIZE);
+	*size = round_up(*size, NVGPU_CPU_PAGE_SIZE);
 	hdr = vmalloc_user(*size);
 	if (!hdr)
 		return -ENOMEM;
@@ -531,7 +531,7 @@ int gk20a_ctxsw_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 		unsigned long vsize = vma->vm_end - vma->vm_start;
 
 		size = min(mmapsize, vsize);
-		size = round_up(size, PAGE_SIZE);
+		size = round_up(size, NVGPU_CPU_PAGE_SIZE);
 
 		ret = remap_pfn_range(vma, vma->vm_start,
 			(unsigned long) mmapaddr,

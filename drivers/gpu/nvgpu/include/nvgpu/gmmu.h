@@ -239,7 +239,7 @@ static inline const char *nvgpu_gmmu_perm_str(enum gk20a_mem_rw_flag p)
  * aligned. Although lower PDE tables can be aligned at 256B boundaries
  * the PDB must be 4K aligned.
  *
- * Currently PAGE_SIZE is used, even when 64K, to work around an issue
+ * Currently NVGPU_CPU_PAGE_SIZE is used, even when 64K, to work around an issue
  * with the PDB TLB invalidate code not being pd_cache aware yet.
  *
  * @return 0 in case of success.

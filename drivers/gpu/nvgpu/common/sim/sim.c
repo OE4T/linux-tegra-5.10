@@ -36,7 +36,7 @@ int nvgpu_alloc_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem)
 	int err = 0;
 
 	if (!nvgpu_mem_is_valid(mem)) {
-		err = nvgpu_dma_alloc_sys(g, PAGE_SIZE, mem);
+		err = nvgpu_dma_alloc_sys(g, NVGPU_CPU_PAGE_SIZE, mem);
 	}
 
 	return err;
@@ -67,7 +67,7 @@ void nvgpu_remove_sim_support(struct gk20a *g)
 
 void sim_write_hdr(struct gk20a *g, u32 func, u32 size)
 {
-	/*memset(g->sim->msg_bfr.kvaddr,0,min(PAGE_SIZE,size));*/
+	/*memset(g->sim->msg_bfr.kvaddr,0,min(NVGPU_CPU_PAGE_SIZE,size));*/
 	*sim_msg_hdr(g, sim_msg_signature_r()) = sim_msg_signature_valid_v();
 	*sim_msg_hdr(g, sim_msg_result_r())    = sim_msg_result_rpc_pending_v();
 	*sim_msg_hdr(g, sim_msg_spare_r())     = sim_msg_spare__init_v();
@@ -104,7 +104,7 @@ static int rpc_send_message(struct gk20a *g)
 	*sim_msg_hdr(g, sim_msg_sequence_r()) = g->sim->sequence_base++;
 
 	g->sim->send_ring_put = (g->sim->send_ring_put + 2 * sizeof(u32))
-		% PAGE_SIZE;
+		% SIM_BFR_SIZE;
 
 	/* Update the put pointer. This will trap into the host. */
 	sim_writel(g->sim, sim_send_put_r(), g->sim->send_ring_put);
@@ -156,7 +156,7 @@ static int rpc_recv_poll(struct gk20a *g)
 
 		/* Update GET pointer */
 		g->sim->recv_ring_get = (g->sim->recv_ring_get + 2*sizeof(u32))
-			% PAGE_SIZE;
+			% SIM_BFR_SIZE;
 
 		sim_writel(g->sim, sim_recv_get_r(), g->sim->recv_ring_get);
 

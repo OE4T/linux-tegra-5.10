@@ -180,7 +180,7 @@ static void *nvgpu_dma_alloc_no_iommu(struct device *dev, size_t size,
 	struct page **pages;
 	int i = 0;
 
-	if (array_size <= PAGE_SIZE)
+	if (array_size <= NVGPU_CPU_PAGE_SIZE)
 		pages = kzalloc(array_size, GFP_KERNEL);
 	else
 		pages = vzalloc(array_size);
@@ -205,7 +205,7 @@ static void *nvgpu_dma_alloc_no_iommu(struct device *dev, size_t size,
 				pages[i + j] = pages[i] + j;
 		}
 
-		memset(page_address(pages[i]), 0, PAGE_SIZE << order);
+		memset(page_address(pages[i]), 0, NVGPU_CPU_PAGE_SIZE << order);
 
 		i += 1 << order;
 		count -= 1 << order;
@@ -216,7 +216,7 @@ static void *nvgpu_dma_alloc_no_iommu(struct device *dev, size_t size,
 	return (void *)pages;
 
 error:
-	__nvgpu_dma_free_no_iommu(pages, i, array_size > PAGE_SIZE);
+	__nvgpu_dma_free_no_iommu(pages, i, array_size > NVGPU_CPU_PAGE_SIZE);
 	return NULL;
 }
 
@@ -228,7 +228,7 @@ static void nvgpu_dma_free_no_iommu(size_t size, void *vaddr)
 
 	WARN_ON(!pages);
 
-	__nvgpu_dma_free_no_iommu(pages, count, array_size > PAGE_SIZE);
+	__nvgpu_dma_free_no_iommu(pages, count, array_size > NVGPU_CPU_PAGE_SIZE);
 }
 
 /* Check if IOMMU is available and if GPU uses it */
@@ -570,7 +570,7 @@ int nvgpu_get_sgtable_from_pages(struct gk20a *g, struct sg_table **sgt,
 	}
 
 	err = sg_alloc_table_from_pages(tbl, pages,
-					DIV_ROUND_UP(size, PAGE_SIZE),
+					DIV_ROUND_UP(size, NVGPU_CPU_PAGE_SIZE),
 					0, size, GFP_KERNEL);
 	if (err)
 		goto fail;

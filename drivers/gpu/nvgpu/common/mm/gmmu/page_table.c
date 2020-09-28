@@ -195,14 +195,14 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 	 * aligned. Although lower PDE tables can be aligned at 256B boundaries
 	 * the PDB must be 4K aligned.
 	 *
-	 * Currently PAGE_SIZE is used, even when 64K, to work around an issue
+	 * Currently NVGPU_CPU_PAGE_SIZE is used, even when 64K, to work around an issue
 	 * with the PDB TLB invalidate code not being pd_cache aware yet.
 	 *
 	 * Similarly, we can't use nvgpu_pd_alloc() here, because the top-level
 	 * PD must have mem_offs be 0 for the invalidate code to work, so we
 	 * can't use the PD cache.
 	 */
-	pdb_size = ALIGN(pd_get_size(&vm->mmu_levels[0], &attrs), PAGE_SIZE);
+	pdb_size = ALIGN(pd_get_size(&vm->mmu_levels[0], &attrs), NVGPU_CPU_PAGE_SIZE);
 
 	err = nvgpu_pd_cache_alloc_direct(vm->mm->g, &vm->pdb, pdb_size);
 	if (err != 0) {

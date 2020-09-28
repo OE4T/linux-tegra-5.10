@@ -46,7 +46,7 @@ int nvgpu_hw_semaphore_init(struct vm_gk20a *vm, u32 chid,
 
 	/* Find an available HW semaphore. */
 	hw_sema_idx = semaphore_bitmap_alloc(p->semas_alloced,
-					       PAGE_SIZE / SEMAPHORE_SIZE);
+					       NVGPU_CPU_PAGE_SIZE / SEMAPHORE_SIZE);
 	if (hw_sema_idx < 0) {
 		ret = hw_sema_idx;
 		goto fail;

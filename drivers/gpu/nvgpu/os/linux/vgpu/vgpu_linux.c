@@ -111,7 +111,7 @@ static void vgpu_init_vars(struct gk20a *g, struct gk20a_platform *platform)
 	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, platform->can_railgate_init);
 	g->railgate_delay = platform->railgate_delay_init;
 
-	g->mm.disable_bigpage = PAGE_SIZE < SZ_64K;
+	g->mm.disable_bigpage = NVGPU_CPU_PAGE_SIZE < SZ_64K;
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY,
 			    platform->unified_memory);
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES,

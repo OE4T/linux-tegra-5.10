@@ -171,7 +171,7 @@ int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
 	}
 
 	/*
-	 * If bytes == PAGE_SIZE then it's impossible to get a discontiguous DMA
+	 * If bytes == NVGPU_CPU_PAGE_SIZE then it's impossible to get a discontiguous DMA
 	 * allocation. Some DMA implementations may, despite this fact, still
 	 * use the contiguous pool for page sized allocations. As such only
 	 * request explicitly contiguous allocs if the page directory is larger
@@ -180,7 +180,7 @@ int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
 	 * going to be virtually contiguous and we don't have to force the
 	 * underlying allocations to be physically contiguous as well.
 	 */
-	if (!nvgpu_iommuable(g) && (bytes > PAGE_SIZE)) {
+	if (!nvgpu_iommuable(g) && (bytes > NVGPU_CPU_PAGE_SIZE)) {
 		flags = NVGPU_DMA_PHYSICALLY_ADDRESSED;
 	}
 
@@ -218,7 +218,7 @@ static int nvgpu_pd_cache_alloc_new(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	if (!nvgpu_iommuable(g) && (NVGPU_PD_CACHE_SIZE > PAGE_SIZE)) {
+	if (!nvgpu_iommuable(g) && (NVGPU_PD_CACHE_SIZE > NVGPU_CPU_PAGE_SIZE)) {
 		flags = NVGPU_DMA_PHYSICALLY_ADDRESSED;
 	}
 

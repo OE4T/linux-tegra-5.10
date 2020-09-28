@@ -158,8 +158,8 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 			      u64 start_page, size_t nr_pages)
 {
 	int ret;
-	u64 start = start_page * PAGE_SIZE;
-	u64 size = nr_pages * PAGE_SIZE;
+	u64 start = start_page * NVGPU_CPU_PAGE_SIZE;
+	u64 size = nr_pages * NVGPU_CPU_PAGE_SIZE;
 	dma_addr_t new_iova;
 
 	if (src->aperture != APERTURE_SYSMEM)
@@ -178,7 +178,7 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 
 	/* Re-use the CPU mapping only if the mapping was made by the DMA API */
 	if (!(src->priv.flags & NVGPU_DMA_NO_KERNEL_MAPPING))
-		dest->cpu_va = src->cpu_va + (PAGE_SIZE * start_page);
+		dest->cpu_va = src->cpu_va + (NVGPU_CPU_PAGE_SIZE * start_page);
 
 	dest->priv.pages = src->priv.pages + start_page;
 	dest->priv.flags = src->priv.flags;

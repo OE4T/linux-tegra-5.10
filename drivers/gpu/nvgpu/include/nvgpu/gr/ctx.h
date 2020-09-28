@@ -55,9 +55,9 @@ struct zcull_ctx_desc;
  */
 /** Number of slots required in patch buffer per entry. */
 #define PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY	2U
-/** Number of slots per PAGE_SIZE. */
+/** Number of slots per NVGPU_CPU_PAGE_SIZE. */
 #define PATCH_CTX_SLOTS_PER_PAGE \
-	(PAGE_SIZE/(PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY * (u32)sizeof(u32)))
+	(NVGPU_CPU_PAGE_SIZE/(PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY * (u32)sizeof(u32)))
 /** Get number of entries in patch buffer given the size of buffer. */
 #define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
 

@@ -32,6 +32,12 @@
 #include <nvgpu/posix/utils.h>
 #endif
 
+/*
+ * PAGE_SIZE is OS specific and can vary across OSes. Depending on the OS it maybe
+ * defined to 4K or 64K.
+ */
+#define NVGPU_CPU_PAGE_SIZE	PAGE_SIZE
+
 /**
  * @file
  *

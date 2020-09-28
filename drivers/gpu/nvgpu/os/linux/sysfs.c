@@ -79,7 +79,7 @@ static ssize_t elcg_enable_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->elcg_enabled ? 1 : 0);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->elcg_enabled ? 1 : 0);
 }
 
 static DEVICE_ATTR(elcg_enable, ROOTRW, elcg_enable_read, elcg_enable_store);
@@ -119,7 +119,7 @@ static ssize_t blcg_enable_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->blcg_enabled ? 1 : 0);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->blcg_enabled ? 1 : 0);
 }
 
 
@@ -165,7 +165,7 @@ static ssize_t slcg_enable_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->slcg_enabled ? 1 : 0);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->slcg_enabled ? 1 : 0);
 }
 
 static DEVICE_ATTR(slcg_enable, ROOTRW, slcg_enable_read, slcg_enable_store);
@@ -189,7 +189,7 @@ static ssize_t ptimer_scale_factor_show(struct device *dev,
 				((u32)(src_freq_hz) /
 				(u32)(PTIMER_FP_FACTOR));
 	res = snprintf(buf,
-				PAGE_SIZE,
+				NVGPU_CPU_PAGE_SIZE,
 				"%u.%u\n",
 				scaling_factor_fp / PTIMER_FP_FACTOR,
 				scaling_factor_fp % PTIMER_FP_FACTOR);
@@ -217,7 +217,7 @@ static ssize_t ptimer_ref_freq_show(struct device *dev,
 		return -EINVAL;
 	}
 
-	res = snprintf(buf, PAGE_SIZE, "%u\n", PTIMER_REF_FREQ_HZ);
+	res = snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%u\n", PTIMER_REF_FREQ_HZ);
 
 	return res;
 
@@ -242,7 +242,7 @@ static ssize_t ptimer_src_freq_show(struct device *dev,
 		return -EINVAL;
 	}
 
-	res = snprintf(buf, PAGE_SIZE, "%u\n", src_freq_hz);
+	res = snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%u\n", src_freq_hz);
 
 	return res;
 
@@ -260,7 +260,7 @@ static ssize_t gpu_powered_on_show(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%s\n", nvgpu_get_power_state(g));
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%s\n", nvgpu_get_power_state(g));
 }
 
 static DEVICE_ATTR(gpu_powered_on, S_IRUGO, gpu_powered_on_show, NULL);
@@ -318,7 +318,7 @@ static ssize_t railgate_enable_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n",
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n",
 			nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) ? 1 : 0);
 }
 
@@ -360,7 +360,7 @@ static ssize_t railgate_delay_show(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->railgate_delay);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->railgate_delay);
 }
 static DEVICE_ATTR(railgate_delay, ROOTRW, railgate_delay_show,
 		   railgate_delay_store);
@@ -374,7 +374,7 @@ static ssize_t is_railgated_show(struct device *dev,
 	if (platform->is_railgated)
 		is_railgated = platform->is_railgated(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%s\n", is_railgated ? "yes" : "no");
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%s\n", is_railgated ? "yes" : "no");
 }
 static DEVICE_ATTR(is_railgated, S_IRUGO, is_railgated_show, NULL);
 
@@ -387,7 +387,7 @@ static ssize_t counters_show(struct device *dev,
 
 	nvgpu_pmu_get_load_counters(g, &busy_cycles, &total_cycles);
 
-	res = snprintf(buf, PAGE_SIZE, "%u %u\n", busy_cycles, total_cycles);
+	res = snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%u %u\n", busy_cycles, total_cycles);
 
 	return res;
 }
@@ -427,7 +427,7 @@ static ssize_t gk20a_load_show(struct device *dev,
 		gk20a_idle(g);
 	}
 
-	res = snprintf(buf, PAGE_SIZE, "%u\n", busy_time);
+	res = snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%u\n", busy_time);
 
 	return res;
 }
@@ -468,7 +468,7 @@ static ssize_t elpg_enable_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n",
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n",
 			nvgpu_pg_elpg_is_enabled(g) ? 1 : 0);
 }
 
@@ -521,7 +521,7 @@ static ssize_t ldiv_slowdown_factor_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->ldiv_slowdown_factor);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->ldiv_slowdown_factor);
 }
 
 static DEVICE_ATTR(ldiv_slowdown_factor, ROOTRW,
@@ -588,7 +588,7 @@ static ssize_t mscg_enable_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->mscg_enabled ? 1 : 0);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->mscg_enabled ? 1 : 0);
 }
 
 static DEVICE_ATTR(mscg_enable, ROOTRW, mscg_enable_read, mscg_enable_store);
@@ -641,7 +641,7 @@ static ssize_t aelpg_param_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE,
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE,
 		"%d %d %d %d %d\n", g->pmu->pg->aelpg_param[0],
 		g->pmu->pg->aelpg_param[1], g->pmu->pg->aelpg_param[2],
 		g->pmu->pg->aelpg_param[3], g->pmu->pg->aelpg_param[4]);
@@ -697,7 +697,7 @@ static ssize_t aelpg_enable_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->aelpg_enabled ? 1 : 0);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->aelpg_enabled ? 1 : 0);
 }
 
 static DEVICE_ATTR(aelpg_enable, ROOTRW,
@@ -709,7 +709,7 @@ static ssize_t allow_all_enable_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->allow_all ? 1 : 0);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->allow_all ? 1 : 0);
 }
 
 static ssize_t allow_all_enable_store(struct device *dev,
@@ -751,7 +751,7 @@ static ssize_t emc3d_ratio_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->emc3d_ratio);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->emc3d_ratio);
 }
 
 static DEVICE_ATTR(emc3d_ratio, ROOTRW, emc3d_ratio_read, emc3d_ratio_store);
@@ -765,7 +765,7 @@ static ssize_t fmax_at_vmin_safe_read(struct device *dev,
 	if (g->ops.clk.get_fmax_at_vmin_safe)
 		gpu_fmax_at_vmin_hz = g->ops.clk.get_fmax_at_vmin_safe(g);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", (int)(gpu_fmax_at_vmin_hz));
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", (int)(gpu_fmax_at_vmin_hz));
 }
 
 static DEVICE_ATTR(fmax_at_vmin_safe, S_IRUGO, fmax_at_vmin_safe_read, NULL);
@@ -813,7 +813,7 @@ static ssize_t force_idle_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->forced_idle ? 1 : 0);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->forced_idle ? 1 : 0);
 }
 
 static DEVICE_ATTR(force_idle, ROOTRW, force_idle_read, force_idle_store);
@@ -824,7 +824,7 @@ static ssize_t tpc_pg_mask_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", g->tpc_pg_mask);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%d\n", g->tpc_pg_mask);
 }
 
 static bool is_tpc_mask_valid(struct gk20a *g, u32 tpc_mask)
@@ -963,7 +963,7 @@ static ssize_t tpc_fs_mask_read(struct device *dev,
 
 	gk20a_idle(g);
 
-	return snprintf(buf, PAGE_SIZE, "0x%x\n", tpc_fs_mask);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "0x%x\n", tpc_fs_mask);
 }
 
 static DEVICE_ATTR(tpc_fs_mask, ROOTRW, tpc_fs_mask_read, tpc_fs_mask_store);
@@ -973,7 +973,7 @@ static ssize_t tsg_timeslice_min_us_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%u\n", g->tsg_timeslice_min_us);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%u\n", g->tsg_timeslice_min_us);
 }
 
 static ssize_t tsg_timeslice_min_us_store(struct device *dev,
@@ -1001,7 +1001,7 @@ static ssize_t tsg_timeslice_max_us_read(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%u\n", g->tsg_timeslice_max_us);
+	return snprintf(buf, NVGPU_CPU_PAGE_SIZE, "%u\n", g->tsg_timeslice_max_us);
 }
 
 static ssize_t tsg_timeslice_max_us_store(struct device *dev,

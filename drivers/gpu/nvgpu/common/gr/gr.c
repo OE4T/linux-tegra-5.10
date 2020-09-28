@@ -328,8 +328,8 @@ static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 	struct nvgpu_mem *mem;
 	u32 nr_pages =
 		DIV_ROUND_UP(NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE,
-			     PAGE_SIZE);
-	u32 nr_pages_size = nvgpu_safe_mult_u32(PAGE_SIZE, nr_pages);
+			     NVGPU_CPU_PAGE_SIZE);
+	u32 nr_pages_size = nvgpu_safe_mult_u32(NVGPU_CPU_PAGE_SIZE, nr_pages);
 #ifdef CONFIG_NVGPU_SET_FALCON_ACCESS_MAP
 	u32 *whitelist = NULL;
 	u32 w, num_entries = 0U;

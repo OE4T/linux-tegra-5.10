@@ -118,7 +118,7 @@ int vgpu_init_fifo_setup_hw(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	/* allocate and map first userd slab for bar1 test. */
-	err = nvgpu_dma_alloc_sys(g, PAGE_SIZE, mem);
+	err = nvgpu_dma_alloc_sys(g, NVGPU_CPU_PAGE_SIZE, mem);
 	if (err != 0) {
 		nvgpu_err(g, "userd allocation failed, err=%d", err);
 		return err;

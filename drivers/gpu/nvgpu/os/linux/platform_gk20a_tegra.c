@@ -666,7 +666,7 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 		return 0;
 	}
 
-#if PAGE_SIZE > 4096
+#if NVGPU_CPU_PAGE_SIZE > 4096
 	platform->secure_buffer_size += SZ_64K;
 #endif
 	(void)dma_alloc_attrs(&tegra_vpr_dev, platform->secure_buffer_size, &iova,

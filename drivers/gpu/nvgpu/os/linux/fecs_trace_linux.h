@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,7 +20,7 @@
 #include <nvgpu/types.h>
 
 #define GK20A_CTXSW_TRACE_NUM_DEVS			1
-#define GK20A_CTXSW_TRACE_MAX_VM_RING_SIZE	(128*PAGE_SIZE)
+#define GK20A_CTXSW_TRACE_MAX_VM_RING_SIZE	(128*NVGPU_CPU_PAGE_SIZE)
 
 struct file;
 struct inode;

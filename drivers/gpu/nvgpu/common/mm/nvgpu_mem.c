@@ -402,7 +402,8 @@ int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
 	(void) memset(dest, 0, sizeof(*dest));
 
 	dest->aperture     = APERTURE_SYSMEM;
-	dest->size         = nvgpu_safe_mult_u64(nr_pages, (u64)SZ_4K);
+	dest->size         = nvgpu_safe_mult_u64(nr_pages,
+			(u64)NVGPU_CPU_PAGE_SIZE);
 	dest->aligned_size = dest->size;
 	dest->mem_flags    = NVGPU_MEM_FLAG_NO_DMA;
 	dest->phys_sgt     = sgt;

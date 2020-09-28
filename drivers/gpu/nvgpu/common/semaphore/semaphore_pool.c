@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -244,7 +244,7 @@ u64 nvgpu_semaphore_pool_gpu_va(struct nvgpu_semaphore_pool *p, bool global)
 		return p->gpu_va;
 	}
 
-	return p->gpu_va_ro + (PAGE_SIZE * p->page_idx);
+	return p->gpu_va_ro + (NVGPU_CPU_PAGE_SIZE * p->page_idx);
 }
 
 /*
