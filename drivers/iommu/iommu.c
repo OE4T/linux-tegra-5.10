@@ -90,8 +90,6 @@ static int __iommu_attach_group(struct iommu_domain *domain,
 				struct iommu_group *group);
 static void __iommu_detach_group(struct iommu_domain *domain,
 				 struct iommu_group *group);
-static int iommu_create_device_direct_mappings(struct iommu_group *group,
-					       struct device *dev);
 static struct iommu_group *iommu_group_get_for_dev(struct device *dev);
 
 #define IOMMU_GROUP_ATTR(_name, _mode, _show, _store)		\
@@ -266,8 +264,6 @@ int iommu_probe_device(struct device *dev)
 
 	if (group->default_domain)
 		ret = __iommu_attach_device(group->default_domain, dev);
-
-	iommu_create_device_direct_mappings(group, dev);
 
 	iommu_group_put(group);
 
@@ -715,10 +711,9 @@ int iommu_group_set_name(struct iommu_group *group, const char *name)
 }
 EXPORT_SYMBOL_GPL(iommu_group_set_name);
 
-static int iommu_create_device_direct_mappings(struct iommu_group *group,
+int iommu_create_device_direct_mappings(struct iommu_domain *domain,
 					       struct device *dev)
 {
-	struct iommu_domain *domain = group->default_domain;
 	struct iommu_resv_region *entry;
 	struct list_head mappings;
 	unsigned long pg_size;
@@ -1723,16 +1718,16 @@ static void __iommu_group_dma_finalize(struct iommu_group *group)
 
 static int iommu_do_create_direct_mappings(struct device *dev, void *data)
 {
-	struct iommu_group *group = data;
+	struct iommu_domain *domain = data;
 
-	iommu_create_device_direct_mappings(group, dev);
+	iommu_create_device_direct_mappings(domain, dev);
 
 	return 0;
 }
 
 static int iommu_group_create_direct_mappings(struct iommu_group *group)
 {
-	return __iommu_group_for_each_dev(group, group,
+	return __iommu_group_for_each_dev(group, group->default_domain,
 					  iommu_do_create_direct_mappings);
 }
 

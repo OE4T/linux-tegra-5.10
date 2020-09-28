@@ -465,7 +465,8 @@ iommu_alloc_resv_region(phys_addr_t start, size_t length, int prot,
 			enum iommu_resv_type type);
 extern int iommu_get_group_resv_regions(struct iommu_group *group,
 					struct list_head *head);
-
+int iommu_create_device_direct_mappings(struct iommu_domain *domain,
+					       struct device *dev);
 extern int iommu_attach_group(struct iommu_domain *domain,
 			      struct iommu_group *group);
 extern void iommu_detach_group(struct iommu_domain *domain,
