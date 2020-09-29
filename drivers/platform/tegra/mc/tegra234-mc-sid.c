@@ -951,8 +951,14 @@ static const struct tegra_mc_sid_soc_data tegra234_mc_soc_data = {
 
 static int tegra234_mc_sid_probe(struct platform_device *pdev)
 {
-	printk("\n%s %d\n", __func__, __LINE__);
-	return tegra_mc_sid_probe(pdev, &tegra234_mc_soc_data);
+	int err = 0;
+
+	err = tegra_mc_sid_probe(pdev, &tegra234_mc_soc_data);
+	if (err != 0)
+		pr_err("tegra234 mc-sid probe failed\n");
+	else
+		pr_info("tegra234 mc-sid probe successful\n");
+	return err;
 }
 
 static const struct of_device_id tegra234_mc_sid_of_match[] = {
