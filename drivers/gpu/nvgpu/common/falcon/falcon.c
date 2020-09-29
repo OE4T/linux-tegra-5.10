@@ -22,6 +22,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/io.h>
 #include <nvgpu/static_analysis.h>
 
 #include "falcon_sw_gk20a.h"
@@ -45,6 +46,18 @@ static bool is_falcon_valid(struct nvgpu_falcon *flcn)
 	}
 
 	return true;
+}
+
+u32 nvgpu_falcon_readl(struct nvgpu_falcon *flcn, u32 offset)
+{
+	return nvgpu_readl(flcn->g,
+			   nvgpu_safe_add_u32(flcn->flcn_base, offset));
+}
+
+void nvgpu_falcon_writel(struct nvgpu_falcon *flcn,
+				       u32 offset, u32 val)
+{
+	nvgpu_writel(flcn->g, nvgpu_safe_add_u32(flcn->flcn_base, offset), val);
 }
 
 int nvgpu_falcon_reset(struct nvgpu_falcon *flcn)

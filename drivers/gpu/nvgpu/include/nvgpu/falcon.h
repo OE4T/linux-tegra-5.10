@@ -238,6 +238,37 @@ struct nvgpu_falcon {
 };
 
 /**
+ * @brief Read the falcon register.
+ *
+ * @param flcn [in] The falcon.
+ * @param offset [in] offset of the register.
+ *
+ * This function is called to read a register with common falcon offset.
+ *
+ * Steps:
+ * - Read and return data from register at \a offset from the base of
+ *   \a flcn.
+ *
+ * @return register data.
+ */
+u32 nvgpu_falcon_readl(struct nvgpu_falcon *flcn, u32 offset);
+
+/**
+ * @brief Write the falcon register.
+ *
+ * @param flcn [in] The falcon.
+ * @param offset [in] Index of the register.
+ * @param data [in] Data to be written to the register.
+ *
+ * This function is called to write to a register with common falcon offset.
+ *
+ * Steps:
+ * - Write \a data to register at \a offet from the base of the \a flcn.
+ */
+void nvgpu_falcon_writel(struct nvgpu_falcon *flcn,
+                                       u32 offset, u32 val);
+
+/**
  * @brief Reset the falcon CPU or Engine.
  *
  * @param flcn [in] The falcon.
