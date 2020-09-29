@@ -1,7 +1,7 @@
-From c7e8462b6e55301db9cd97955629d9fd0bc8afd6 Mon Sep 17 00:00:00 2001
+From 5f2f205cdb3bf30fc2e491acfc3441441bd0a72c Mon Sep 17 00:00:00 2001
 From: He Zhe <zhe.he@windriver.com>
 Date: Tue, 24 Sep 2019 15:26:39 +0800
-Subject: [PATCH 035/216] printk: devkmsg: read: Return EPIPE when the first
+Subject: [PATCH 035/220] printk: devkmsg: read: Return EPIPE when the first
  message user-space wants has gone
 
 When user-space wants to read the first message, that is when user->seq

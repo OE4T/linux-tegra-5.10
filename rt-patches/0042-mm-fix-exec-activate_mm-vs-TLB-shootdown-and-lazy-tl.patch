@@ -1,7 +1,7 @@
-From 2de6886ef38ea55109f23b7322041e2b08629fca Mon Sep 17 00:00:00 2001
+From 2819965a9ff293c0f66fea2e21580e4f2751940a Mon Sep 17 00:00:00 2001
 From: Nicholas Piggin <npiggin@gmail.com>
 Date: Fri, 28 Aug 2020 20:00:19 +1000
-Subject: [PATCH 042/216] mm: fix exec activate_mm vs TLB shootdown and lazy
+Subject: [PATCH 042/220] mm: fix exec activate_mm vs TLB shootdown and lazy
  tlb switching race
 
 Reading and modifying current->mm and current->active_mm and switching
@@ -75,10 +75,10 @@ index af14a56..94821e3 100644
  	bool
  
 diff --git a/fs/exec.c b/fs/exec.c
-index a91003e..d4fb18b 100644
+index 42316b2..d5a06b3 100644
 --- a/fs/exec.c
 +++ b/fs/exec.c
-@@ -1130,11 +1130,24 @@ static int exec_mmap(struct mm_struct *mm)
+@@ -1131,11 +1131,24 @@ static int exec_mmap(struct mm_struct *mm)
  	}
  
  	task_lock(tsk);

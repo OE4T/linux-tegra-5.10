@@ -1,7 +1,7 @@
-From 27889e2fdccee035105eed99a8efa1bb25434ec8 Mon Sep 17 00:00:00 2001
+From 06bf665d084ab38fc86492a289aeecaed3fd3f2a Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 22 Feb 2019 12:47:13 +0100
-Subject: [PATCH 033/216] printk: print "rate-limitted" message as info
+Subject: [PATCH 033/220] printk: print "rate-limitted" message as info
 
 If messages which are injected via kmsg are dropped then they don't need
 to be printed as warnings. This is to avoid latency spikes if the

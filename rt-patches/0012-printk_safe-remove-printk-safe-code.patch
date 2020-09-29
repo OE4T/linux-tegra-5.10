@@ -1,7 +1,7 @@
-From 0c38697e4b0e1cfd1a4eb199c4a43a00d26730df Mon Sep 17 00:00:00 2001
+From 50f92180b6b1f5824ccdee96bccaa664e9b47947 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:49 +0100
-Subject: [PATCH 012/216] printk_safe: remove printk safe code
+Subject: [PATCH 012/220] printk_safe: remove printk safe code
 
 vprintk variants are now NMI-safe so there is no longer a need for
 the "safe" calls.
@@ -323,7 +323,7 @@ index 3f1530b..f9b51fe 100644
  #endif
 diff --git a/kernel/printk/printk_safe.c b/kernel/printk/printk_safe.c
 deleted file mode 100644
-index 50aeae7..0000000
+index 50aeae7..00000000
 --- a/kernel/printk/printk_safe.c
 +++ /dev/null
 @@ -1,414 +0,0 @@
@@ -742,7 +742,7 @@ index 50aeae7..0000000
 -	printk_safe_flush();
 -}
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 1780515..0f9ebc4 100644
+index bb34e23..9ca6664e 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -9246,7 +9246,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
