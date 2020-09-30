@@ -264,6 +264,8 @@ struct sdhci_tegra {
 	struct sdhci_host *host;
 	struct delayed_work detect_delay;
 	u32 boot_detect_delay;
+	unsigned long max_clk_limit;
+	unsigned long max_ddr_clk_limit;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -1231,6 +1233,38 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 	}
 	device_property_read_u32(host->mmc->parent, "nvidia,boot-detect-delay",
 					&tegra_host->boot_detect_delay);
+	device_property_read_u32(host->mmc->parent, "max-clk-limit",
+		(u32 *)&tegra_host->max_clk_limit);
+	device_property_read_u32(host->mmc->parent, "ddr-clk-limit",
+		(u32 *)&tegra_host->max_ddr_clk_limit);
+
+	host->ocr_mask = MMC_VDD_27_36 | MMC_VDD_165_195;
+	if (!device_property_read_u32(host->mmc->parent, "mmc-ocr-mask", &val)) {
+		if (val == 1)
+			host->ocr_mask &= ~(MMC_VDD_26_27 | MMC_VDD_27_28);
+		else if (val == 2)
+			host->ocr_mask &= (MMC_VDD_32_33 | MMC_VDD_165_195);
+		else if (val == 3)
+			host->ocr_mask &= (MMC_VDD_33_34 | MMC_VDD_165_195);
+	}
+}
+
+static unsigned long tegra_sdhci_apply_clk_limits(struct sdhci_host *host,
+	unsigned int clock)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	unsigned long host_clk;
+
+	if (tegra_host->ddr_signaling)
+		host_clk = (tegra_host->max_ddr_clk_limit) ?
+			tegra_host->max_ddr_clk_limit * 2 : clock * 2;
+	else
+		host_clk = (clock > tegra_host->max_clk_limit) ?
+			tegra_host->max_clk_limit : clock;
+
+	dev_dbg(mmc_dev(host->mmc), "Setting clk limit %lu\n", host_clk);
+	return host_clk;
 }
 
 static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
@@ -1259,7 +1293,7 @@ static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	 * regardless of clock rate rounding, which may happen if the value
 	 * from clk_get_rate() is used.
 	 */
-	host_clk = tegra_host->ddr_signaling ? clock * 2 : clock;
+	host_clk = tegra_sdhci_apply_clk_limits(host, clock);
 	clk_set_rate(pltfm_host->clk, host_clk);
 	tegra_host->curr_clk_rate = host_clk;
 	if (tegra_host->ddr_signaling)
