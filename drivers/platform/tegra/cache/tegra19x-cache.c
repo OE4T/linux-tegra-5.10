@@ -771,7 +771,7 @@ static int __exit t19x_cache_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id cache_of_match[] = {
+__attribute__((weak)) struct of_device_id cache_of_match[] = {
 	{ .compatible = "nvidia,t19x-cache", .data = NULL, },
 	{},
 };
