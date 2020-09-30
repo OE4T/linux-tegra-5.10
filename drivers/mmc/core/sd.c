@@ -66,6 +66,32 @@ static const unsigned int sd_au_size[] = {
 		__res & __mask;						\
 	})
 
+static int voltage_switch_uhs_failure;
+static ssize_t error_stats_show(struct device *dev,
+				struct device_attribute *attr, char *buf)
+{
+	int bytes_written = 0;
+
+	bytes_written += sprintf(buf + bytes_written,
+				"%d\n", voltage_switch_uhs_failure);
+	return bytes_written;
+}
+
+static ssize_t error_stats_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	int ret, error_stats = 0;
+
+	ret = kstrtoint(buf, 10, &error_stats);
+	if (ret != 0 || error_stats != 0)
+		return -EINVAL;
+
+	voltage_switch_uhs_failure = error_stats;
+	return count;
+}
+
+static DEVICE_ATTR(error_stats, 0644, error_stats_show, error_stats_store);
+
 /*
  * Given the decoded CSD structure, decode the raw CID to our CID structure.
  */
@@ -731,6 +757,7 @@ static struct attribute *sd_std_attrs[] = {
 	&dev_attr_ocr.attr,
 	&dev_attr_rca.attr,
 	&dev_attr_dsr.attr,
+	&dev_attr_error_stats.attr,
 	NULL,
 };
 
