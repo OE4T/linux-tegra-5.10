@@ -1,17 +1,11 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * NVIDIA CORPORATION and its licensors retain all intellectual property
+ * and proprietary rights in and to this software, related documentation
+ * and any modifications thereto.  Any use, reproduction, disclosure or
+ * distribution of this software and related documentation without an express
+ * license agreement from NVIDIA CORPORATION is strictly prohibited.
  */
 
 #ifndef BPMP_ABI_MACH_T234_RESET_H
@@ -25,7 +19,7 @@
  */
 #define TEGRA234_RESET_ACTMON			1U
 #define TEGRA234_RESET_ADSP_ALL			2U
-#define TEGRA234_RESET_AFI			3U
+#define TEGRA234_RESET_RSVD3			3U
 #define TEGRA234_RESET_CAN1			4U
 #define TEGRA234_RESET_CAN2			5U
 #define TEGRA234_RESET_DLA0			6U
@@ -43,7 +37,7 @@
 #define TEGRA234_RESET_GPCDMA			18U
 #define TEGRA234_RESET_GPU			19U
 #define TEGRA234_RESET_HDA			20U
-#define TEGRA234_RESET_HDA2CODEC_2X		21U
+#define TEGRA234_RESET_HDACODEC			21U
 #define TEGRA234_RESET_EQOS_MACSEC		22U
 #define TEGRA234_RESET_EQOS_MACSEC_SECURE	23U
 #define TEGRA234_RESET_I2C1			24U
@@ -121,14 +115,14 @@
 #define TEGRA234_RESET_TACH1			96U
 #define TEGRA234_RESET_RSVD_97			97U
 #define TEGRA234_RESET_TSEC			98U
-#define TEGRA234_RESET_RSVD_99			99U
+#define TEGRA234_RESET_UARTI			99U
 #define TEGRA234_RESET_UARTA			100U
 #define TEGRA234_RESET_UARTB			101U
 #define TEGRA234_RESET_UARTC			102U
 #define TEGRA234_RESET_UARTD			103U
 #define TEGRA234_RESET_UARTE			104U
 #define TEGRA234_RESET_UARTF			105U
-#define TEGRA234_RESET_RSVD_106			106U
+#define TEGRA234_RESET_UARTJ			106U
 #define TEGRA234_RESET_UARTH			107U
 #define TEGRA234_RESET_UFSHC			108U
 #define TEGRA234_RESET_UFSHC_AXI_M		109U
@@ -150,7 +144,7 @@
 #define TEGRA234_RESET_PEX0_CORE_4_APB		125U
 #define TEGRA234_RESET_PEX0_COMMON_APB		126U
 #define TEGRA234_RESET_RSVD_127			127U
-#define TEGRA234_RESET_NVLINK			128U
+#define TEGRA234_RESET_RSVD_128			128U
 #define TEGRA234_RESET_PEX1_CORE_5		129U
 #define TEGRA234_RESET_PEX1_CORE_5_APB		130U
 #define TEGRA234_RESET_GBE_UPHY			131U
@@ -196,8 +190,6 @@
 #define TEGRA234_RESET_GBE_UPHY_PLL0		171U
 #define TEGRA234_RESET_GBE_UPHY_PLL1		172U
 #define TEGRA234_RESET_GBE_UPHY_PLL2		173U
-
-#define TEGRA234_RESET_MSSNVL			180U
 
 #define TEGRA234_MAX_PUBLIC_RESET_ID		180U
 
