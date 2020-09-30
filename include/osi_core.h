@@ -191,16 +191,19 @@ struct osi_core_ops {
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to set the mode at MAC (full/duplex) */
-	void (*set_mode)(void *ioaddr, const int mode);
+	int (*set_mode)(struct osi_core_priv_data *const osi_core,
+			const int mode);
 	/** Called to set the speed (10/100/1000) at MAC */
 	void (*set_speed)(void *ioaddr, const int speed);
 	/** Called to do pad caliberation */
 	int (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure MTL RxQ to forward the err pkt */
-	int (*config_fw_err_pkts)(void *addr, const unsigned int qinx,
-				 const unsigned int fw_err);
+	int (*config_fw_err_pkts)(struct osi_core_priv_data *const osi_core,
+				  const unsigned int qinx,
+				  const unsigned int fw_err);
 	/** Called to configure Rx Checksum offload engine */
-	int (*config_rxcsum_offload)(void *addr, const unsigned int enabled);
+	int (*config_rxcsum_offload)(struct osi_core_priv_data *const osi_core,
+				     const unsigned int enabled);
 	/** Called to config mac packet filter */
 	int (*config_mac_pkt_filter_reg)(
 				struct osi_core_priv_data *const osi_core,
@@ -286,13 +289,17 @@ struct osi_core_ops {
 	int (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
 				 struct osi_core_avb_algorithm *const avb);
 	/** Called to configure the MTL to forward/drop tx status */
-	int (*config_tx_status)(void *addr, const unsigned int tx_status);
+	int (*config_tx_status)(struct osi_core_priv_data *const osi_core,
+				const unsigned int tx_status);
 	/** Called to configure the MAC rx crc */
-	int (*config_rx_crc_check)(void *addr, const unsigned int crc_chk);
+	int (*config_rx_crc_check)(struct osi_core_priv_data *const osi_core,
+				   const unsigned int crc_chk);
 	/** Called to configure the MAC flow control */
-	int (*config_flow_control)(void *addr, const unsigned int flw_ctrl);
+	int (*config_flow_control)(struct osi_core_priv_data *const osi_core,
+				   const unsigned int flw_ctrl);
 	/** Called to enable/disable HW ARP offload feature */
-	int (*config_arp_offload)(const unsigned int mac_ver, void *addr,
+	int (*config_arp_offload)(const unsigned int mac_ver,
+				  struct osi_core_priv_data *const osi_core,
 				  const unsigned int enable,
 				  const unsigned char *ip_addr);
 	/** Called to configure VLAN filtering */
@@ -302,8 +309,6 @@ struct osi_core_ops {
 				     const unsigned int perfect_inverse_match);
 	/** called to update VLAN id */
 	int (*update_vlan_id)(void *base, const unsigned int vid);
-	/** Called to get the current time from MAC */
-	unsigned long long (*get_systime_from_mac)(void *addr);
 	/** Called to reset MMC HW counter structure */
 	void (*reset_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure EEE Tx LPI */

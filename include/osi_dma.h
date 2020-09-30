@@ -386,7 +386,7 @@ struct osi_dma_chan_ops {
 	/** Called to stop the Tx/Rx DMA */
 	void (*stop_dma)(void *addr, unsigned int chan);
 	/** Called to initialize the DMA channel */
-	void (*init_dma_channel) (struct osi_dma_priv_data *osi_dma);
+	int (*init_dma_channel)(struct osi_dma_priv_data *osi_dma);
 	/** Called to set Rx buffer length */
 	void (*set_rx_buf_len)(struct osi_dma_priv_data *osi_dma);
 #ifndef OSI_STRIPPED_LIB
@@ -512,7 +512,7 @@ struct osi_dma_priv_data {
  * Algorithm:
  *  - Disables Tx interrupts at wrapper level.
  *
- * @param[in] osi_dma: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  * @param[in] chan: DMA Tx channel number.
  *
  * @pre
@@ -551,7 +551,7 @@ int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  * Algorithm:
  *  - Enables Tx interrupts at wrapper level.
  *
- * @param[in] osi_dma: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  * @param[in] chan: DMA Tx channel number.
  *
  * @pre
@@ -590,7 +590,7 @@ int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  * Algorithm:
  *  - Disables Rx interrupts at wrapper level.
  *
- * @param[in] osi_dma: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  * @param[in] chan: DMA rx channel number.
  *
  * @pre
@@ -629,7 +629,7 @@ int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  * Algorithm:
  *  - Enables Rx interrupts at wrapper level.
  *
- * @param[in] osi_dma: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  * @param[in] chan: DMA rx channel number.
  *
  * @pre
@@ -722,7 +722,7 @@ int osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
  * Algorithm:
  *  - Start the DMA for specific MAC
  *
- * @param[in] osi_dma: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  * @param[in] chan: DMA Tx/Rx channel number
  *
  * @pre
@@ -759,7 +759,7 @@ int osi_start_dma(struct osi_dma_priv_data *osi_dma,
  * Algorithm:
  *  - Stop the DMA for specific MAC
  *
- * @param[in] osi_dma: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  * @param[in] chan: DMA Tx/Rx channel number
  *
  * @pre
@@ -900,7 +900,7 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
  *    set OWN bit, Tx ring length and set starting address of Tx DMA channel
  *    Tx ring base address in Tx DMA registers.
  *
- * @param[in] osi: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  * @param[in] chan: DMA Tx channel number.
  *
  * @pre
@@ -937,7 +937,7 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
  * - De-initialization: No
  *
  */
-void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan);
+void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, unsigned int chan);
 
 /**
  * @brief osi_process_tx_completions - Process Tx complete on DMA channel ring.
@@ -950,7 +950,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan);
  *    - Invokes OSD layer to release DMA address and Tx buffer which are
  *      updated as part of transmit routine.
  *
- * @param[in] osi: OSI private data structure.
+ * @param[in] osi_dma: OSI dma private data structure.
  * @param[in] chan: Channel number on which Tx complete need to be done.
  * @param[in] budget: Threshold for reading the packets at a time.
  *
@@ -978,7 +978,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan);
  *
  * @returns Number of descriptors (buffers) processed.
  */
-int osi_process_tx_completions(struct osi_dma_priv_data *osi,
+int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 			       unsigned int chan, int budget);
 
 /**
@@ -996,7 +996,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
  *    - Re-allocate the receive buffers, populate Rx descriptor and
  *      handover to DMA.
  *
- * @param[in] osi: OSI private data structure.
+ * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: Rx DMA channel number
  * @param[in] budget: Threshold for reading the packets at a time.
  * @param[in] more_data_avail: Pointer to more data available flag. OSI fills
@@ -1026,7 +1026,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
  *
  * @returns Number of descriptors (buffers) processed.
  */
-int osi_process_rx_completions(struct osi_dma_priv_data *osi,
+int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 			       unsigned int chan, int budget,
 			       unsigned int *more_data_avail);
 
@@ -1038,8 +1038,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
  *  - Takes care of initializing the tx, rx ring and descriptors
  *    based on the number of channels selected.
  *
- * @param[in] osi_dma: DMA private data.
- *
+ * @param[in] osi_dma: OSI DMA private data.
  *
  * @pre
  *  - Allocate memory for osi_dma
@@ -1093,7 +1092,7 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
  * Algorithm:
  *  - Takes care of stopping the MAC
  *
- * @param[in] osi_dma: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -1124,7 +1123,7 @@ int osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_init_dma_ops - Initialize DMA operations
  *
- * @param[in] osi_dma: DMA private data.
+ * @param[in] osi_dma: OSI DMA private data.
  *
  * @note
  * Traceability Details:

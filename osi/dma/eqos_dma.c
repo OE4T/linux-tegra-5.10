@@ -371,22 +371,22 @@ static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
  * @param[in] addr: Base address indicating the start of
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Rx channel number.
- * @param[in] tx_desc: DMA Rx desc base address.
+ * @param[in] rx_desc: DMA Rx desc base address.
  */
 static void eqos_set_rx_ring_start_addr(void *addr, unsigned int chan,
-					unsigned long tx_desc)
+					unsigned long rx_desc)
 {
 	unsigned long tmp;
 
 	CHECK_CHAN_BOUND(chan);
 
-	tmp = H32(tx_desc);
+	tmp = H32(rx_desc);
 	if (tmp < UINT_MAX) {
 		osi_writel((unsigned int)tmp, (unsigned char *)addr +
 			   EQOS_DMA_CHX_RDLH(chan));
 	}
 
-	tmp = L32(tx_desc);
+	tmp = L32(rx_desc);
 	if (tmp < UINT_MAX) {
 		osi_writel((unsigned int)tmp, (unsigned char *)addr +
 			   EQOS_DMA_CHX_RDLA(chan));
@@ -518,8 +518,6 @@ static void eqos_configure_dma_channel(unsigned int chan,
 {
 	unsigned int value;
 
-	CHECK_CHAN_BOUND(chan);
-
 	/* enable DMA channel interrupts */
 	/* Enable TIE and TBUE */
 	/* TIE - Transmit Interrupt Enable */
@@ -647,8 +645,11 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
  * @brief eqos_init_dma_channel - DMA channel INIT
  *
  * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
+static int eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int chinx;
 
@@ -656,10 +657,17 @@ static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 
 	/* configure EQOS DMA channels */
 	for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
+		if (osi_dma->dma_chans[chinx] >= OSI_EQOS_MAX_NUM_CHANS) {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma: invalid channel number\n", 0ULL);
+			return -1;
+		}
 		eqos_configure_dma_channel(osi_dma->dma_chans[chinx], osi_dma);
 	}
 
 	eqos_dma_chan_to_vmirq_map(osi_dma);
+
+	return 0;
 }
 
 /**
