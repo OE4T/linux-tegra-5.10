@@ -2537,9 +2537,10 @@ struct cmd_uphy_ep_controller_pll_off_request {
  * @ingroup UPHY
  * @brief Request with #MRQ_UPHY
  *
- * Used by the sender of an #MRQ_UPHY message to control UPHY Lane RX margining.
- * The uphy_request is split into several sub-commands. Some sub-commands
- * require no additional data. Others have a sub-command specific payload
+ * Used by the sender of an #MRQ_UPHY message to control UPHY.
+ * The uphy_request is split into several sub-commands. CMD_UPHY_PCIE_LANE_MARGIN_STATUS
+ * requires no additional data. Others have a sub-command specific payload. Below table
+ * shows sub-commands with their corresponding payload data.
  *
  * |sub-command                          |payload                                 |
  * |------------------------------------ |----------------------------------------|
