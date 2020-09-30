@@ -972,7 +972,7 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 			fb_notifier_call_chain(FB_EVENT_NEW_MODELIST, &event);
 #else
-			fb_new_modelist(fb_info->info);
+			fbcon_new_modelist(fb_info->info);
 #endif
 		} else {
 			/* For L4T - After the next hotplug, framebuffer console will
