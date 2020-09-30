@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -52,10 +52,6 @@
 
 #define get_noc_errlog_subfield(_x_, _msb_, _lsb_) \
 	CBB_EXTRACT(_x_, _msb_, _lsb_)
-
-extern int tegra_cbb_axi2apb_bridge_data(struct platform_device *pdev,
-					int *apb_bridge_cnt,
-					void __iomem ***axi2abp_bases);
 
 static struct tegra_noc_errors tegra194_noc_errors[] = {
 	{.errcode = "SLV",
@@ -119,6 +115,30 @@ static char *t194_master_id[] = {
 	"NVDEC",                                /* 0xd */
 	"RCE",                                  /* 0xe */
 	"NVDEC1"                                /* 0xf */
+};
+
+static char *tegra194_axi2apb_errors[] = {
+	"SFIFONE - Status FIFO Not Empty interrupt",
+	"SFIFOF - Status FIFO Full interrupt",
+	"TIM - Timer(Timeout) interrupt",
+	"SLV - SLVERR interrupt",
+	"NULL",
+	"ERBF - Early response buffer Full interrupt",
+	"NULL",
+	"RDFIFOF - Read Response FIFO Full interrupt",
+	"WRFIFOF - Write Response FIFO Full interrupt",
+	"CH0DFIFOF - Ch0 Data FIFO Full interrupt",
+	"CH1DFIFOF - Ch1 Data FIFO Full interrupt",
+	"CH2DFIFOF - Ch2 Data FIFO Full interrupt",
+	"UAT - Unsupported alignment type error",
+	"UBS - Unsupported burst size error",
+	"UBE - Unsupported Byte Enable error",
+	"UBT - Unsupported burst type error",
+	"BFS - Block Firewall security error",
+	"ARFS - Address Range Firewall security error",
+	"CH0RFIFOF - Ch0 Request FIFO Full interrupt",
+	"CH1RFIFOF - Ch1 Request FIFO Full interrupt",
+	"CH2RFIFOF - Ch2 Request FIFO Full interrupt"
 };
 
 /*

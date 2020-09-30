@@ -36,33 +36,8 @@
 #endif
 #include <linux/platform/tegra/tegra_cbb.h>
 
-static void __iomem **axi2apb_bases;
 static struct tegra_cbberr_ops *cbberr_ops;
 static bool is_cbb_core_probed;
-
-static char *tegra_axi2apb_errors[] = {
-	"SFIFONE - Status FIFO Not Empty interrupt",
-	"SFIFOF - Status FIFO Full interrupt",
-	"TIM - Timer(Timeout) interrupt",
-	"SLV - SLVERR interrupt",
-	"NULL",
-	"ERBF - Early response buffer Full interrupt",
-	"NULL",
-	"RDFIFOF - Read Response FIFO Full interrupt",
-	"WRFIFOF - Write Response FIFO Full interrupt",
-	"CH0DFIFOF - Ch0 Data FIFO Full interrupt",
-	"CH1DFIFOF - Ch1 Data FIFO Full interrupt",
-	"CH2DFIFOF - Ch2 Data FIFO Full interrupt",
-	"UAT - Unsupported alignment type error",
-	"UBS - Unsupported burst size error",
-	"UBE - Unsupported Byte Enable error",
-	"UBT - Unsupported burst type error",
-	"BFS - Block Firewall security error",
-	"ARFS - Address Range Firewall security error",
-	"CH0RFIFOF - Ch0 Request FIFO Full interrupt",
-	"CH1RFIFOF - Ch1 Request FIFO Full interrupt",
-	"CH2RFIFOF - Ch2 Request FIFO Full interrupt"
-};
 
 void print_cbb_err(struct seq_file *file, const char *fmt, ...)
 {
@@ -195,71 +170,6 @@ void tegra_cbberr_set_ops(struct tegra_cbberr_ops *tegra_cbb_err_ops)
 	cbberr_ops = tegra_cbb_err_ops;
 }
 
-static const struct of_device_id axi2apb_match[] = {
-	{ .compatible = "nvidia,tegra194-AXI2APB-bridge", },
-	{},
-};
-
-int tegra_cbb_axi2apb_bridge_data(struct platform_device *pdev,
-		int *apb_bridge_cnt,
-		void __iomem ***bases)
-{
-	struct device_node *np;
-	int ret = 0, i = 0;
-
-	if (axi2apb_bases == NULL) {
-		np = of_find_matching_node(NULL, axi2apb_match);
-		if (np == NULL) {
-			dev_info(&pdev->dev, "No match found for axi2apb\n");
-			return -ENOENT;
-		}
-		*apb_bridge_cnt = (of_property_count_elems_of_size
-					(np, "reg", sizeof(u32)))/4;
-
-		axi2apb_bases = devm_kzalloc(&pdev->dev,
-				sizeof(void *) * (*apb_bridge_cnt), GFP_KERNEL);
-		if (axi2apb_bases == NULL)
-			return -ENOMEM;
-
-		for (i = 0; i < *apb_bridge_cnt; i++) {
-			void __iomem *base = of_iomap(np, i);
-
-			if (base == NULL) {
-				dev_err(&pdev->dev,
-					"failed to map axi2apb range\n");
-				return -ENOENT;
-			}
-			axi2apb_bases[i] = base;
-		}
-	}
-	*bases = axi2apb_bases;
-
-	return ret;
-}
-
-
-unsigned int tegra_axi2apb_errstatus(void __iomem *addr)
-{
-	unsigned int error_status;
-
-	error_status = readl(addr+DMAAPB_X_RAW_INTERRUPT_STATUS);
-	writel(0xFFFFFFFF, addr+DMAAPB_X_RAW_INTERRUPT_STATUS);
-	return error_status;
-}
-
-void tegra_axi2apb_err(struct seq_file *file, int bridge, u32 bus_status)
-{
-	int max_axi2apb_err = ARRAY_SIZE(tegra_axi2apb_errors);
-	int j = 0;
-
-	for (j = 0; j < max_axi2apb_err; j++) {
-		if (bus_status & (1<<j))
-			print_cbb_err(file, "\t  "
-				"AXI2APB_%d bridge error: %s\n"
-				, bridge, tegra_axi2apb_errors[j]);
-	}
-}
-
 int tegra_cbb_err_getirq(struct platform_device *pdev,
 		int *nonsecure_irq, int *secure_irq, int *num_intr)
 {
@@ -314,7 +224,8 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 	}
 
 	/* register SError handler for CBB errors due to CCPLEX master */
-	register_serr_hook(callback);
+	if (callback)
+		register_serr_hook(callback);
 
 	/* register interrupt handler for CBB errors due to different masters.
 	 * If ERD bit is set then CBB NOC error will not generate SErrors for

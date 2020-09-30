@@ -26,15 +26,9 @@
 #define DMAAPB_X_RAW_INTERRUPT_STATUS   0x2ec
 
 
-extern unsigned int tegra_axi2apb_errstatus(void __iomem *addr);
-
-
 extern void print_cbb_err(struct seq_file *file, const char *fmt, ...);
 extern void print_cache(struct seq_file *file, u32 cache);
 extern void print_prot(struct seq_file *file, u32 prot);
-
-extern void tegra_axi2apb_err(struct seq_file *file,
-				int bridge, u32 bus_status);
 
 extern int tegra_cbb_err_getirq(struct platform_device *pdev,
 				int *nonsecure_irq,

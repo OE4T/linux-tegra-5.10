@@ -121,14 +121,12 @@ static void tegra194_cbb_errlogger_faulten(void __iomem *addr)
 	writel(1, addr+OFF_ERRLOGGER_2_FAULTEN_0);
 }
 
-
 static void tegra194_cbb_errlogger_stallen(void __iomem *addr)
 {
 	writel(1, addr+OFF_ERRLOGGER_0_STALLEN_0);
 	writel(1, addr+OFF_ERRLOGGER_1_STALLEN_0);
 	writel(1, addr+OFF_ERRLOGGER_2_STALLEN_0);
 }
-
 
 static void tegra194_cbb_errlogger_errclr(void __iomem *addr)
 {
@@ -137,7 +135,6 @@ static void tegra194_cbb_errlogger_errclr(void __iomem *addr)
 	writel(1, addr+OFF_ERRLOGGER_2_ERRCLR_0);
 	dsb(sy);
 }
-
 
 static unsigned int tegra194_cbb_errlogger_errvld(void __iomem *addr)
 {
@@ -149,6 +146,28 @@ static unsigned int tegra194_cbb_errlogger_errvld(void __iomem *addr)
 
 	dsb(sy);
 	return errvld_status;
+}
+
+static unsigned int tegra194_axi2apb_errstatus(void __iomem *addr)
+{
+	unsigned int error_status;
+
+	error_status = readl(addr + DMAAPB_X_RAW_INTERRUPT_STATUS);
+	writel(0xFFFFFFFF, addr + DMAAPB_X_RAW_INTERRUPT_STATUS);
+	return error_status;
+}
+
+static void tegra194_axi2apb_err(struct seq_file *file, int bridge,
+		u32 bus_status)
+{
+	int max_axi2apb_err = ARRAY_SIZE(tegra194_axi2apb_errors);
+	int j = 0;
+
+	for (j = 0; j < max_axi2apb_err; j++) {
+		if (bus_status & (1 << j))
+			print_cbb_err(file, "\t  AXI2APB_%d bridge error: %s\n",
+					bridge, tegra194_axi2apb_errors[j]);
+	}
 }
 
 /*
@@ -323,11 +342,11 @@ static void print_errlog0(struct seq_file *file,
 		 */
 
 		for (i = 0; i < errlog->apb_bridge_cnt; i++) {
-			bus_status = tegra_axi2apb_errstatus(
-					errlog->axi2abp_bases[i]);
+			bus_status = tegra194_axi2apb_errstatus
+					(errlog->axi2abp_bases[i]);
 
 			if (bus_status)
-				tegra_axi2apb_err(file, i, bus_status);
+				tegra194_axi2apb_err(file, i, bus_status);
 		}
 	}
 	print_cbb_err(file, "\t  Packet header Lock\t: %d\n", hdr.lock);
@@ -752,6 +771,50 @@ static void tegra194_cbb_noc_set_clk_en_ops(
 	}
 }
 
+static const struct of_device_id axi2apb_match[] = {
+	{ .compatible = "nvidia,tegra194-AXI2APB-bridge", },
+	{},
+};
+
+static int tegra194_cbb_get_axi2apb_data(struct platform_device *pdev,
+		int *apb_bridge_cnt,
+		void __iomem ***bases)
+{
+	static void __iomem **axi2apb_bases;
+	struct device_node *np;
+	int ret = 0, i = 0;
+
+	if (!axi2apb_bases) {
+		np = of_find_matching_node(NULL, axi2apb_match);
+		if (!np) {
+			dev_info(&pdev->dev, "No match found for axi2apb\n");
+			return -ENOENT;
+		}
+		*apb_bridge_cnt = (of_property_count_elems_of_size
+				(np, "reg", sizeof(u32))) / 4;
+
+		axi2apb_bases = devm_kzalloc(&pdev->dev,
+				sizeof(void *) * (*apb_bridge_cnt),
+				GFP_KERNEL);
+		if (!axi2apb_bases)
+			return -ENOMEM;
+
+		for (i = 0; i < *apb_bridge_cnt; i++) {
+			void __iomem *base = of_iomap(np, i);
+
+			if (!base) {
+				dev_err(&pdev->dev,
+					"failed to map axi2apb range\n");
+				return -ENOENT;
+			}
+			axi2apb_bases[i] = base;
+		}
+	}
+	*bases = axi2apb_bases;
+
+	return ret;
+}
+
 static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 		struct serr_hook *callback,
 		const struct tegra_cbb_noc_data *bdata,
@@ -785,7 +848,7 @@ static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 	}
 
 	if (bdata->is_ax2apb_bridge_connected) {
-		err = tegra_cbb_axi2apb_bridge_data(pdev,
+		err = tegra194_cbb_get_axi2apb_data(pdev,
 				&(errlog->apb_bridge_cnt),
 				&(errlog->axi2abp_bases));
 		if (err) {
