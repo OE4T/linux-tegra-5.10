@@ -789,9 +789,9 @@
 				     <0 438 0x04>,
 				     <0 439 0x04>;
 			resets = <&bpmp_resets TEGRA234_RESET_PVA0_ALL>;
-			clocks = <&bpmp_clks TEGRA234_CLK_PVA0_AXI>,
-				 <&bpmp_clks TEGRA234_CLK_PVA0_VPS0>,
-				 <&bpmp_clks TEGRA234_CLK_PVA0_VPS1>;
+			clocks = <&bpmp_clks TEGRA234_CLK_PVA0_CPU_AXI>,
+				 <&bpmp_clks TEGRA234_CLK_NAFLL_PVA_VPS>,
+				 <&bpmp_clks TEGRA234_CLK_PVA0_VPS>;
 			clock-names = "axi", "vps0", "vps1";
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
