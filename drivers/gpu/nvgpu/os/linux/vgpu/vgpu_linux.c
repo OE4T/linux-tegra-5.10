@@ -234,6 +234,8 @@ done:
 	return err;
 }
 
+#ifdef CONFIG_GK20A_PM_QOS
+
 static int vgpu_qos_notify(struct notifier_block *nb,
 			  unsigned long n, void *data)
 {
@@ -286,13 +288,11 @@ static void vgpu_pm_qos_remove(struct device *dev)
 	g->scale_profile = NULL;
 }
 
+#endif
+
 static int vgpu_pm_init(struct device *dev)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct gk20a_platform *platform = gk20a_get_platform(dev);
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-	unsigned long *freqs;
-	int num_freqs;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -305,22 +305,11 @@ static int vgpu_pm_init(struct device *dev)
 	if (IS_ENABLED(CONFIG_GK20A_DEVFREQ))
 		gk20a_scale_init(dev);
 
-	if (l->devfreq) {
-		/* set min/max frequency based on frequency table */
-		err = platform->get_clk_freqs(dev, &freqs, &num_freqs);
-		if (err)
-			return err;
-
-		if (num_freqs < 1)
-			return -EINVAL;
-
-		l->devfreq->min_freq = freqs[0];
-		l->devfreq->max_freq = freqs[num_freqs - 1];
-	}
-
+#ifdef CONFIG_GK20A_PM_QOS
 	err = vgpu_pm_qos_init(dev);
 	if (err)
 		return err;
+#endif
 
 	return err;
 }
@@ -494,7 +483,9 @@ int vgpu_remove(struct platform_device *pdev)
 	gk20a_dma_buf_priv_list_clear(l);
 	nvgpu_mutex_destroy(&l->dmabuf_priv_list_lock);
 
+#ifdef CONFIG_GK20A_PM_QOS
 	vgpu_pm_qos_remove(dev);
+#endif
 	if (g->remove_support)
 		g->remove_support(g);
 
