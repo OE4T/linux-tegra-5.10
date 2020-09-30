@@ -166,7 +166,7 @@ static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
  * @retval -1 if TimeStamp is not available
  * @retval 0 if TimeStamp is available.
  */
-static int get_rx_hwstamp(struct osi_dma_priv_data *osi,
+static int get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
 			  struct osi_rx_desc *rx_desc,
 			  struct osi_rx_desc *context_desc,
 			  struct osi_rx_pkt_cx *rx_pkt_cx)
@@ -191,7 +191,7 @@ static int get_rx_hwstamp(struct osi_dma_priv_data *osi,
 				/* Do nothing here */
 			}
 			/* TS not available yet, so retrying */
-			osi->osd_ops.udelay(1U);
+			osi_dma->osd_ops.udelay(1U);
 		}
 		if (ret != 0) {
 			/* Timed out waiting for Rx timestamp */
@@ -207,7 +207,6 @@ static int get_rx_hwstamp(struct osi_dma_priv_data *osi,
 	}
 	return ret;
 }
-
 
 /**
  * @brief get_rx_err_stats - Detect Errors from Rx Descriptor
@@ -241,12 +240,59 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
 	}
 }
 
-int osi_process_rx_completions(struct osi_dma_priv_data *osi,
+/**
+ * @brief validate_rx_completions_arg- Validate input argument of rx_completions
+ *
+ * @note
+ * Algorithm:
+ *  - This routine validate input arguments to osi_process_rx_completions()
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] chan: Rx DMA channel number
+ * @param[in] more_data_avail: Pointer to more data available flag. OSI fills
+ *         this flag if more rx packets available to read(1) or not(0).
+ * @param[in] rx_ring: OSI DMA channel Rx ring
+ * @param[in] rx_pkt_cx: OSI DMA receive packet context
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int validate_rx_completions_arg(struct osi_dma_priv_data *osi_dma,
+					      unsigned int chan,
+					      unsigned int *more_data_avail,
+					      struct osi_rx_ring **rx_ring,
+					      struct osi_rx_pkt_cx **rx_pkt_cx)
+{
+	if (osi_unlikely(osi_dma == OSI_NULL || more_data_avail == OSI_NULL ||
+			 chan >= OSI_EQOS_MAX_NUM_CHANS)) {
+		return -1;
+	}
+
+	*rx_ring = osi_dma->rx_ring[chan];
+	if (osi_unlikely(*rx_ring == OSI_NULL)) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"validate_input_rx_completions: Invalid pointers\n",
+			0ULL);
+		return -1;
+	}
+	*rx_pkt_cx = &(*rx_ring)->rx_pkt_cx;
+	if (osi_unlikely(*rx_pkt_cx == OSI_NULL ||
+			 (*rx_ring)->cur_rx_idx >= RX_DESC_CNT)) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"validate_input_rx_completions: Invalid pointers\n",
+			0ULL);
+		return -1;
+	}
+
+	return 0;
+}
+
+int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 			       unsigned int chan, int budget,
 			       unsigned int *more_data_avail)
 {
-	struct osi_rx_ring *rx_ring = osi->rx_ring[chan];
-	struct osi_rx_pkt_cx *rx_pkt_cx = &rx_ring->rx_pkt_cx;
+	struct osi_rx_ring *rx_ring = OSI_NULL;
+	struct osi_rx_pkt_cx *rx_pkt_cx = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	struct osi_rx_swcx *ptp_rx_swcx = OSI_NULL;
@@ -255,8 +301,10 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	int received_resv = 0;
 	int ret = 0;
 
-	if (rx_ring->cur_rx_idx >= RX_DESC_CNT || more_data_avail == OSI_NULL) {
-		return -1;
+	ret = validate_rx_completions_arg(osi_dma, chan, more_data_avail,
+					  &rx_ring, &rx_pkt_cx);
+	if (osi_unlikely(ret < 0)) {
+		return ret;
 	}
 
 	/* Reset flag to indicate if more Rx frames available to OSD layer */
@@ -275,14 +323,14 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 		INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
 
 		if (osi_unlikely(rx_swcx->buf_virt_addr ==
-		    osi->resv_buf_virt_addr)) {
+		    osi_dma->resv_buf_virt_addr)) {
 			rx_swcx->buf_virt_addr  = OSI_NULL;
 			rx_swcx->buf_phy_addr  = 0;
 			/* Reservered buffer used */
 			received_resv++;
-			if (osi->osd_ops.realloc_buf != OSI_NULL) {
-				osi->osd_ops.realloc_buf(osi->osd,
-							 rx_ring, chan);
+			if (osi_dma->osd_ops.realloc_buf != OSI_NULL) {
+				osi_dma->osd_ops.realloc_buf(osi_dma->osd,
+							     rx_ring, chan);
 			}
 			continue;
 		}
@@ -323,7 +371,8 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 				 * are set
 				 */
 				rx_pkt_cx->flags &= ~OSI_PKT_CX_VALID;
-				get_rx_err_stats(rx_desc, &osi->pkt_err_stats);
+				get_rx_err_stats(rx_desc,
+						 &osi_dma->pkt_err_stats);
 			}
 
 			/* Check if COE Rx checksum is valid */
@@ -332,7 +381,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			get_rx_vlan_from_desc(rx_desc, rx_pkt_cx);
 			context_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 			/* Get rx time stamp */
-			ret = get_rx_hwstamp(osi, rx_desc, context_desc,
+			ret = get_rx_hwstamp(osi_dma, rx_desc, context_desc,
 					     rx_pkt_cx);
 			if (ret == 0) {
 				ptp_rx_swcx = rx_ring->rx_swcx +
@@ -349,15 +398,25 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 				 */
 				INCR_RX_DESC_INDEX(rx_ring->cur_rx_idx, 1U);
 			}
-			osi->osd_ops.receive_packet(osi->osd, rx_ring, chan,
-						    osi->rx_buf_len, rx_pkt_cx,
-						    rx_swcx);
+			if (osi_likely(osi_dma->osd_ops.receive_packet !=
+				       OSI_NULL)) {
+				osi_dma->osd_ops.receive_packet(osi_dma->osd,
+							    rx_ring, chan,
+							    osi_dma->rx_buf_len,
+							    rx_pkt_cx, rx_swcx);
+			} else {
+				OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+					"dma_txrx: Invalid function pointer\n",
+					0ULL);
+				return -1;
+			}
 		}
-		osi->dstats.q_rx_pkt_n[chan] =
-			osi_update_stats_counter(osi->dstats.q_rx_pkt_n[chan],
-						 1UL);
-		osi->dstats.rx_pkt_n =
-			osi_update_stats_counter(osi->dstats.rx_pkt_n, 1UL);
+		osi_dma->dstats.q_rx_pkt_n[chan] =
+			osi_update_stats_counter(
+					osi_dma->dstats.q_rx_pkt_n[chan],
+					1UL);
+		osi_dma->dstats.rx_pkt_n =
+			osi_update_stats_counter(osi_dma->dstats.rx_pkt_n, 1UL);
 		received++;
 	}
 
@@ -389,16 +448,16 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
  *  - This routine will be invoked by OSI layer internally to increment
  *    stats for successfully transmitted packets on certain DMA channel.
  *
- * @param[in] osi: Pointer to OSI DMA private data structure.
+ * @param[in] osi_dma: Pointer to OSI DMA private data structure.
  * @param[in] chan: DMA channel number for which stats should be incremented.
  */
-static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi,
+static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi_dma,
 				    unsigned int chan)
 {
-	osi->dstats.q_tx_pkt_n[chan] =
-		osi_update_stats_counter(osi->dstats.q_tx_pkt_n[chan], 1UL);
-	osi->dstats.tx_pkt_n =
-		osi_update_stats_counter(osi->dstats.tx_pkt_n, 1UL);
+	osi_dma->dstats.q_tx_pkt_n[chan] =
+		osi_update_stats_counter(osi_dma->dstats.q_tx_pkt_n[chan], 1UL);
+	osi_dma->dstats.tx_pkt_n =
+		osi_update_stats_counter(osi_dma->dstats.tx_pkt_n, 1UL);
 }
 
 /**
@@ -544,20 +603,64 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 }
 #endif /* !OSI_STRIPPED_LIB */
 
-int osi_process_tx_completions(struct osi_dma_priv_data *osi,
+/**
+ * @brief validate_tx_completions_arg- Validate input argument of tx_completions
+ *
+ * @note
+ * Algorithm:
+ *  - This routine validate input arguments to osi_process_tx_completions()
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] chan: Tx DMA channel number
+ * @param[in] tx_ring: OSI DMA channel Rx ring
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int validate_tx_completions_arg(struct osi_dma_priv_data *osi_dma,
+					      unsigned int chan,
+					      struct osi_tx_ring **tx_ring)
+{
+	if (osi_unlikely(osi_dma == OSI_NULL ||
+			 chan >= OSI_EQOS_MAX_NUM_CHANS)) {
+		return -1;
+	}
+
+	*tx_ring = osi_dma->tx_ring[chan];
+
+	if (osi_unlikely(*tx_ring == OSI_NULL)) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"validate_tx_completions_arg: Invalid pointers\n",
+			0ULL);
+		return -1;
+	}
+
+	return 0;
+}
+
+int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 			       unsigned int chan, int budget)
 {
-	struct osi_tx_ring *tx_ring = osi->tx_ring[chan];
-	struct osi_txdone_pkt_cx *txdone_pkt_cx = &tx_ring->txdone_pkt_cx;
+	struct osi_tx_ring *tx_ring = OSI_NULL;
+	struct osi_txdone_pkt_cx *txdone_pkt_cx = OSI_NULL;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
-	unsigned int entry = tx_ring->clean_idx;
+	unsigned int entry = 0U;
 	unsigned long vartdes1;
 	unsigned long long ns;
 	int processed = 0;
+	int ret;
 
-	osi->dstats.tx_clean_n[chan] =
-		osi_update_stats_counter(osi->dstats.tx_clean_n[chan], 1U);
+	ret = validate_tx_completions_arg(osi_dma, chan, &tx_ring);
+	if (osi_unlikely(ret < 0)) {
+		return ret;
+	}
+
+	txdone_pkt_cx = &tx_ring->txdone_pkt_cx;
+	entry = tx_ring->clean_idx;
+
+	osi_dma->dstats.tx_clean_n[chan] =
+		osi_update_stats_counter(osi_dma->dstats.tx_clean_n[chan], 1U);
 
 	while (entry != tx_ring->cur_tx_idx && entry < TX_DESC_CNT &&
 	       processed < budget) {
@@ -575,9 +678,10 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			if ((tx_desc->tdes3 & TDES3_ES_BITS) != 0U) {
 				txdone_pkt_cx->flags |= OSI_TXDONE_CX_ERROR;
 				/* fill packet error stats */
-				get_tx_err_stats(tx_desc, &osi->pkt_err_stats);
+				get_tx_err_stats(tx_desc,
+						 &osi_dma->pkt_err_stats);
 			} else {
-				inc_tx_pkt_stats(osi, chan);
+				inc_tx_pkt_stats(osi_dma, chan);
 			}
 
 			if (processed < INT_MAX) {
@@ -613,9 +717,18 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			txdone_pkt_cx->flags |= OSI_TXDONE_CX_PAGED_BUF;
 		}
 
-		osi->osd_ops.transmit_complete(osi->osd, tx_swcx->buf_virt_addr,
-					       tx_swcx->buf_phy_addr,
-					       tx_swcx->len, txdone_pkt_cx);
+		if (osi_likely(osi_dma->osd_ops.transmit_complete !=
+			       OSI_NULL)) {
+			osi_dma->osd_ops.transmit_complete(osi_dma->osd,
+						       tx_swcx->buf_virt_addr,
+						       tx_swcx->buf_phy_addr,
+						       tx_swcx->len,
+						       txdone_pkt_cx);
+		} else {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma_txrx: Invalid function pointer\n", 0ULL);
+			return -1;
+		}
 
 		tx_desc->tdes3 = 0;
 		tx_desc->tdes2 = 0;
@@ -795,40 +908,94 @@ static inline void dmb_oshst(void)
 	asm volatile("dmb oshst" : : : "memory");
 }
 
-void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
+/**
+ * @brief validate_hw_transmit_arg- Validate input argument of hw_transmit
+ *
+ * @note
+ * Algorithm:
+ *  - This routine validate input arguments to osi_hw_transmit()
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] chan: Tx DMA channel number
+ * @param[in] ops: OSI DMA Channel operations
+ * @param[in] tx_ring: OSI DMA channel Tx ring
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int validate_hw_transmit_arg(struct osi_dma_priv_data *osi_dma,
+					   unsigned int chan,
+					   struct osi_dma_chan_ops **ops,
+					   struct osi_tx_ring **tx_ring)
 {
-	struct osi_tx_ring *tx_ring = osi->tx_ring[chan];
-	struct osi_dma_chan_ops *ops = osi->ops;
-	unsigned int entry = tx_ring->cur_tx_idx;
-	struct osi_tx_desc *tx_desc = tx_ring->tx_desc + entry;
-	struct osi_tx_swcx *tx_swcx = tx_ring->tx_swcx + entry;
-	struct osi_tx_pkt_cx *tx_pkt_cx = &tx_ring->tx_pkt_cx;
-	unsigned int desc_cnt = tx_pkt_cx->desc_cnt;
+	if (osi_unlikely(osi_dma == OSI_NULL ||
+			 chan >= OSI_EQOS_MAX_NUM_CHANS)) {
+		return -1;
+	}
+
+	*tx_ring = osi_dma->tx_ring[chan];
+	*ops = osi_dma->ops;
+
+	if (osi_unlikely(*tx_ring == OSI_NULL || *ops == OSI_NULL)) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"validate_hw_transmit_arg: Invalid pointers\n", 0ULL);
+		return -1;
+	}
+
+	return 0;
+}
+
+void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, unsigned int chan)
+{
+	struct osi_tx_ring *tx_ring = OSI_NULL;
+	struct osi_dma_chan_ops *ops = OSI_NULL;
+	unsigned int entry = 0U;
+	struct osi_tx_desc *tx_desc = OSI_NULL;
+	struct osi_tx_swcx *tx_swcx = OSI_NULL;
+	struct osi_tx_pkt_cx *tx_pkt_cx = OSI_NULL;
+	unsigned int desc_cnt = 0U;
 	struct osi_tx_desc *last_desc = OSI_NULL;
 	struct osi_tx_desc *first_desc = OSI_NULL;
 	struct osi_tx_desc *cx_desc = OSI_NULL;
 	unsigned long tailptr, tmp;
-	unsigned int i;
 	int cntx_desc_consumed;
+	unsigned int i;
+	int ret = 0;
 
+	ret = validate_hw_transmit_arg(osi_dma, chan, &ops, &tx_ring);
+	if (osi_unlikely(ret < 0)) {
+		return;
+	}
+
+	entry = tx_ring->cur_tx_idx;
 	if (entry >= TX_DESC_CNT) {
-		return;
-	}
-	if (desc_cnt == 0U) {
-		/* Will not hit this case */
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma_txrx: Invalid pointers\n", 0ULL);
 		return;
 	}
 
+	tx_desc = tx_ring->tx_desc + entry;
+	tx_swcx = tx_ring->tx_swcx + entry;
+	tx_pkt_cx = &tx_ring->tx_pkt_cx;
+
+	desc_cnt = tx_pkt_cx->desc_cnt;
+	if (osi_unlikely(desc_cnt == 0U)) {
+		/* Will not hit this case */
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma_txrx: Invalid value\n", 0ULL);
+		return;
+	}
 	/* Context descriptor for VLAN/TSO */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
-		osi->dstats.tx_vlan_pkt_n =
-			osi_update_stats_counter(osi->dstats.tx_vlan_pkt_n,
+		osi_dma->dstats.tx_vlan_pkt_n =
+			osi_update_stats_counter(osi_dma->dstats.tx_vlan_pkt_n,
 						 1UL);
 	}
 
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
-		osi->dstats.tx_tso_pkt_n =
-			osi_update_stats_counter(osi->dstats.tx_tso_pkt_n, 1UL);
+		osi_dma->dstats.tx_tso_pkt_n =
+			osi_update_stats_counter(osi_dma->dstats.tx_tso_pkt_n,
+						 1UL);
 	}
 
 	cntx_desc_consumed = need_cntx_desc(tx_pkt_cx, tx_desc);
@@ -881,24 +1048,25 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 
 	if (tx_ring->frame_cnt < UINT_MAX) {
 		tx_ring->frame_cnt++;
-	} else if (osi->use_tx_frames == OSI_ENABLE &&
-		   (tx_ring->frame_cnt % osi->tx_frames) < UINT_MAX) {
+	} else if (osi_dma->use_tx_frames == OSI_ENABLE &&
+		   (tx_ring->frame_cnt % osi_dma->tx_frames) < UINT_MAX) {
 		/* make sure count for tx_frame interrupt logic is retained */
-		tx_ring->frame_cnt = (tx_ring->frame_cnt % osi->tx_frames)
+		tx_ring->frame_cnt = (tx_ring->frame_cnt % osi_dma->tx_frames)
 					+ 1U;
 	} else {
 		tx_ring->frame_cnt = 1U;
 	}
 
 	/* clear IOC bit if tx SW timer based coalescing is enabled */
-	if (osi->use_tx_usecs == OSI_ENABLE) {
+	if (osi_dma->use_tx_usecs == OSI_ENABLE) {
 		last_desc->tdes2 &= ~TDES2_IOC;
 
 		/* update IOC bit if tx_frames is enabled. Tx_frames
 		 * can be enabled only along with tx_usecs.
 		 */
-		if (osi->use_tx_frames == OSI_ENABLE) {
-			if ((tx_ring->frame_cnt % osi->tx_frames) == OSI_NONE) {
+		if (osi_dma->use_tx_frames == OSI_ENABLE) {
+			if ((tx_ring->frame_cnt % osi_dma->tx_frames) ==
+			    OSI_NONE) {
 				last_desc->tdes2 |= TDES2_IOC;
 			}
 		}
@@ -913,8 +1081,10 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 
 	tailptr = tx_ring->tx_desc_phy_addr +
 		  (entry * sizeof(struct osi_tx_desc));
-	if (tailptr < tx_ring->tx_desc_phy_addr) {
+	if (osi_unlikely(tailptr < tx_ring->tx_desc_phy_addr)) {
 		/* Will not hit this case */
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma_txrx: Invalid argument\n", 0ULL);
 		return;
 	}
 
@@ -925,7 +1095,12 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	 * before setting up the DMA, hence add memory write barrier here.
 	 */
 	dmb_oshst();
-	ops->update_tx_tailptr(osi->base, chan, tailptr);
+	if (osi_unlikely(ops->update_tx_tailptr == OSI_NULL)) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma_txrx: Invalid argument\n", 0ULL);
+		return;
+	}
+	ops->update_tx_tailptr(osi_dma->base, chan, tailptr);
 }
 
 /**
@@ -937,22 +1112,29 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
  *    set OWN bit, Rx ring length and set starting address of Rx DMA channel.
  *    Tx ring base address in Tx DMA registers.
  *
- * @param[in] osi:	OSI private data structure.
+ * @param[in] osi_dma:	OSI private data structure.
  * @param[in] chan:	Rx channel number.
  *
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
+static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 				      unsigned int chan)
 {
-	struct osi_rx_ring *rx_ring = osi->rx_ring[chan];
+	struct osi_rx_ring *rx_ring = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
-	struct osi_dma_chan_ops *ops = osi->ops;
+	struct osi_dma_chan_ops *ops = osi_dma->ops;
 	unsigned long tailptr = 0, tmp;
 	unsigned int i;
 	int ret = 0;
+
+	rx_ring = osi_dma->rx_ring[chan];
+	if (osi_unlikely(rx_ring == OSI_NULL)) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma_txrx: Invalid argument\n", 0ULL);
+		return -1;
+	};
 
 	rx_ring->cur_rx_idx = 0;
 	rx_ring->refill_idx = 0;
@@ -970,20 +1152,28 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 		tmp = L32(rx_swcx->buf_phy_addr);
 		if (tmp < UINT_MAX) {
 			rx_desc->rdes0 = (unsigned int)tmp;
+		} else {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma_txrx: Invalid buf_phy_addr\n", 0ULL);
+			return -1;
 		}
 
 		tmp = H32(rx_swcx->buf_phy_addr);
 		if (tmp < UINT_MAX) {
 			rx_desc->rdes1 = (unsigned int)tmp;
+		} else {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma_txrx: Invalid buf_phy_addr\n", 0ULL);
+			return -1;
 		}
 
 		rx_desc->rdes2 = 0;
 		rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
 		/* reconfigure INTE bit if RX watchdog timer is enabled */
-		if (osi->use_riwt == OSI_ENABLE) {
+		if (osi_dma->use_riwt == OSI_ENABLE) {
 			rx_desc->rdes3 &= ~RDES3_IOC;
-			if (osi->use_rx_frames == OSI_ENABLE) {
-				if ((i % osi->rx_frames) == OSI_NONE) {
+			if (osi_dma->use_rx_frames == OSI_ENABLE) {
+				if ((i % osi_dma->rx_frames) == OSI_NONE) {
 					/* update IOC bit if rx_frames is
 					 * enabled. Rx_frames can be enabled
 					 * only along with RWIT.
@@ -998,14 +1188,21 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
 
 	tailptr = rx_ring->rx_desc_phy_addr +
 		  sizeof(struct osi_rx_desc) * (RX_DESC_CNT);
-	if (tailptr < rx_ring->rx_desc_phy_addr) {
+
+	if (osi_unlikely(tailptr < rx_ring->rx_desc_phy_addr ||
+			 ops->set_rx_ring_len == OSI_NULL ||
+			 ops->update_rx_tailptr == OSI_NULL ||
+			 ops->set_rx_ring_start_addr == OSI_NULL)) {
 		/* Will not hit this case */
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma_txrx: Invalid pointers\n", 0ULL);
 		return -1;
 	}
 
-	ops->set_rx_ring_len(osi->base, chan, (RX_DESC_CNT - 1U));
-	ops->update_rx_tailptr(osi->base, chan, tailptr);
-	ops->set_rx_ring_start_addr(osi->base, chan, rx_ring->rx_desc_phy_addr);
+	ops->set_rx_ring_len(osi_dma->base, chan, (RX_DESC_CNT - 1U));
+	ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
+	ops->set_rx_ring_start_addr(osi_dma->base, chan,
+				    rx_ring->rx_desc_phy_addr);
 
 	return ret;
 }
@@ -1019,21 +1216,21 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi,
  *    set OWN bit, Rx ring length and set starting address of Rx DMA channel.
  *    Tx ring base address in Tx DMA registers.
  *
- * @param[in] osi: OSI private data structure.
+ * @param[in] osi_dma: OSI private data structure.
  *
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int rx_dma_desc_init(struct osi_dma_priv_data *osi)
+static int rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int chan = 0;
 	unsigned int i;
 	int ret = 0;
 
-	for (i = 0; i < osi->num_dma_chans; i++) {
-		chan = osi->dma_chans[i];
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		chan = osi_dma->dma_chans[i];
 
-		ret = rx_dma_desc_initialization(osi, chan);
+		ret = rx_dma_desc_initialization(osi_dma, chan);
 		if (ret != 0) {
 			return ret;
 		}
@@ -1051,8 +1248,11 @@ static int rx_dma_desc_init(struct osi_dma_priv_data *osi)
  *    Tx ring base address in Tx DMA registers.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
+static int tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
@@ -1063,7 +1263,13 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
+
 		tx_ring = osi_dma->tx_ring[chan];
+		if (osi_unlikely(tx_ring == OSI_NULL)) {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma_txrx: Invalid pointers\n", 0ULL);
+			return -1;
+		}
 
 		for (j = 0; j < TX_DESC_CNT; j++) {
 			tx_desc = tx_ring->tx_desc + j;
@@ -1087,18 +1293,30 @@ static void tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 		tx_ring->slot_number = 0U;
 		tx_ring->slot_check = OSI_DISABLE;
 
-		ops->set_tx_ring_len(osi_dma->base, chan,
-				(TX_DESC_CNT - 1U));
-		ops->set_tx_ring_start_addr(osi_dma->base, chan,
-				tx_ring->tx_desc_phy_addr);
+		if (osi_likely(ops->set_tx_ring_len != OSI_NULL ||
+			       ops->set_tx_ring_start_addr != OSI_NULL)) {
+			ops->set_tx_ring_len(osi_dma->base, chan,
+					     (TX_DESC_CNT - 1U));
+			ops->set_tx_ring_start_addr(osi_dma->base, chan,
+						    tx_ring->tx_desc_phy_addr);
+		} else {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma_txrx: Invalid pointers\n", 0ULL);
+			return -1;
+		}
 	}
+
+	return 0;
 }
 
 int dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	int ret = 0;
 
-	tx_dma_desc_init(osi_dma);
+	ret = tx_dma_desc_init(osi_dma);
+	if (ret != 0) {
+		return ret;
+	}
 
 	ret = rx_dma_desc_init(osi_dma);
 	if (ret != 0) {

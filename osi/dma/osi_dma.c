@@ -26,6 +26,9 @@
 
 int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
+	if (osi_dma == OSI_NULL) {
+		return -1;
+	}
 	/*
 	 * Currently these osd_ops are optional to be filled in the OSD layer.
 	 * If OSD updates these pointers, use the same. If not, fall back to the
@@ -57,17 +60,26 @@ int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		return 0;
 	}
 
+	OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "dma: Invalid argument\n",
+		0ULL);
 	return -1;
 }
 
 int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 {
 	unsigned int i, chan;
-	int ret;
+	int ret = -1;
 
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    osi_dma->ops->init_dma_channel != OSI_NULL) {
-		osi_dma->ops->init_dma_channel(osi_dma);
+	    (osi_dma->base != OSI_NULL) &&
+	    (osi_dma->ops->init_dma_channel != OSI_NULL) &&
+	    (osi_dma->num_dma_chans <= OSI_EQOS_MAX_NUM_CHANS)) {
+		ret = osi_dma->ops->init_dma_channel(osi_dma);
+		if (ret < 0) {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma: init dma channel failed\n", 0ULL);
+			return ret;
+		}
 	} else {
 		return -1;
 	}
@@ -83,16 +95,22 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 
 		ret = osi_enable_chan_tx_intr(osi_dma, chan);
 		if (ret != 0) {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma: enable tx intr failed\n", 0ULL);
 			return ret;
 		}
 
 		ret = osi_enable_chan_rx_intr(osi_dma, chan);
 		if (ret != 0) {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma: enable rx intr failed\n", 0ULL);
 			return ret;
 		}
 
 		ret = osi_start_dma(osi_dma, chan);
 		if (ret != 0) {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma: start dma failed\n", 0ULL);
 			return ret;
 		}
 	}
@@ -105,7 +123,8 @@ int  osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 	unsigned int i;
 	int ret = 0;
 
-	if (osi_dma == OSI_NULL) {
+	if ((osi_dma == OSI_NULL) ||
+	    (osi_dma->num_dma_chans > OSI_EQOS_MAX_NUM_CHANS)) {
 		return -1;
 	}
 
@@ -123,6 +142,7 @@ int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 			     unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
 	    (osi_dma->ops->disable_chan_tx_intr != OSI_NULL)) {
 		osi_dma->ops->disable_chan_tx_intr(osi_dma->base, chan);
 		return 0;
@@ -135,6 +155,7 @@ int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 			    unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
 	    (osi_dma->ops->enable_chan_tx_intr != OSI_NULL)) {
 		osi_dma->ops->enable_chan_tx_intr(osi_dma->base, chan);
 		return 0;
@@ -147,6 +168,7 @@ int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 			     unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
 	    (osi_dma->ops->disable_chan_rx_intr != OSI_NULL)) {
 		osi_dma->ops->disable_chan_rx_intr(osi_dma->base, chan);
 		return 0;
@@ -159,6 +181,7 @@ int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 			    unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
 	    (osi_dma->ops->enable_chan_rx_intr != OSI_NULL)) {
 		osi_dma->ops->enable_chan_rx_intr(osi_dma->base, chan);
 		return 0;
@@ -205,6 +228,7 @@ int  osi_start_dma(struct osi_dma_priv_data *osi_dma,
 		   unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
 	    (osi_dma->ops->start_dma != OSI_NULL)) {
 		osi_dma->ops->start_dma(osi_dma->base, chan);
 		return 0;
@@ -217,6 +241,7 @@ int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 		 unsigned int chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
 	    (osi_dma->ops->stop_dma != OSI_NULL)) {
 		osi_dma->ops->stop_dma(osi_dma->base, chan);
 		return 0;
@@ -259,10 +284,14 @@ static inline int rx_dma_desc_validate_args(struct osi_dma_priv_data *osi_dma,
 
 	if (!(rx_ring != OSI_NULL && rx_ring->rx_swcx != OSI_NULL &&
 	    rx_ring->rx_desc != OSI_NULL)) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma: Invalid pointers\n", 0ULL);
 		return -1;
 	}
 
 	if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "dma: Invalid channel\n",
+			0ULL);
 		return -1;
 	}
 
@@ -330,6 +359,8 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		/* Populate the newly allocated buffer address */
 		temp = L32(rx_swcx->buf_phy_addr);
 		if (temp > UINT_MAX) {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma: Invalid buf_phy_addr\n", 0ULL);
 			/* error case do nothing */
 		} else {
 			/* Store Receive Descriptor 0 */
@@ -338,8 +369,10 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 
 		temp = H32(rx_swcx->buf_phy_addr);
 		if (temp <= UINT_MAX) {
-			/* Store Receive Descriptor 1 */
 			rx_desc->rdes1 = (unsigned int)temp;
+		} else {
+			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				"dma: Invalid buf_phy_addr\n", 0ULL);
 		}
 
 		rx_desc->rdes2 = 0;
@@ -359,8 +392,10 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	tailptr = rx_ring->rx_desc_phy_addr +
 		  (sizeof(struct osi_rx_desc) * (RX_DESC_CNT));
 
-	if (tailptr < rx_ring->rx_desc_phy_addr) {
+	if (osi_unlikely(tailptr < rx_ring->rx_desc_phy_addr)) {
 		/* Will not hit this case, used for CERT-C compliance */
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "dma: Invalid tailptr\n",
+			0ULL);
 		return -1;
 	}
 
@@ -381,27 +416,78 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
+int osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
+				 unsigned int *sec, unsigned int *nsec)
+{
+	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
+		common_get_systime_from_mac(osi_dma->base, osi_dma->mac, sec,
+					    nsec);
+	} else {
+		return -1;
+	}
+
+	return 0;
+}
+
+unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
+{
+	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
+		return common_is_mac_enabled(osi_dma->base, osi_dma->mac);
+	} else {
+		return OSI_DISABLE;
+	}
+}
 #ifndef OSI_STRIPPED_LIB
+
+/**
+ * @brief osi_slot_args_validate - Validate slot function arguments
+ *
+ * @note
+ * Algorithm:
+ *  - Check set argument and return error.
+ *  - Validate osi_dma structure pointers.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] set: Flag to set with OSI_ENABLE and reset with OSI_DISABLE
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static inline int osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
+					 unsigned int set)
+{
+	if (osi_dma == OSI_NULL) {
+		return -1;
+	}
+
+	/* return on invalid set argument */
+	if ((set != OSI_ENABLE) && (set != OSI_DISABLE)) {
+		OSI_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
+			"dma: Invalid set argument\n",
+			set);
+		return -1;
+	}
+
+	/* NULL check for osi_dma, osi_dma->ops and osi_dma->ops->config_slot */
+	if (osi_dma->ops == OSI_NULL || osi_dma->ops->config_slot == OSI_NULL) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma: Invalid set argument\n", 0ULL);
+		return -1;
+	}
+
+	return 0;
+}
+
 int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 			     unsigned int set)
 {
 	unsigned int i = 0U, chan = 0U, interval = 0U;
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 
-	/* return on invalid set argument */
-	if ((set != OSI_ENABLE) && (set != OSI_DISABLE)) {
-		OSI_ERR(osi_dma->osd,
-			OSI_LOG_ARG_INVALID,
-			"Invalid set argument\n",
-			set);
-		return -1;
-	}
-
-	if (osi_dma == OSI_NULL || osi_dma->ops == OSI_NULL ||
-	    osi_dma->ops->config_slot == OSI_NULL) {
-		OSI_ERR(OSI_NULL,
-			OSI_LOG_ARG_INVALID,
-			"Invalid set argument\n", 0ULL);
+	/* Validate arguments */
+	if (osi_slot_args_validate(osi_dma, set) < 0) {
 		return -1;
 	}
 
@@ -420,7 +506,7 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 			if (interval > OSI_SLOT_INTVL_MAX) {
 				OSI_ERR(osi_dma->osd,
 					OSI_LOG_ARG_INVALID,
-					"Invalid interval arguments\n",
+					"dma: Invalid interval arguments\n",
 					interval);
 				return -1;
 			}
@@ -463,26 +549,3 @@ int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan)
 	return (tx_ring->clean_idx == tx_ring->cur_tx_idx) ? 1 : 0;
 }
 #endif /* !OSI_STRIPPED_LIB */
-
-int osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
-				 unsigned int *sec,
-				 unsigned int *nsec)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
-		common_get_systime_from_mac(osi_dma->base, osi_dma->mac, sec,
-					    nsec);
-	} else {
-		return -1;
-	}
-
-	return 0;
-}
-
-unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
-		return common_is_mac_enabled(osi_dma->base, osi_dma->mac);
-	} else {
-		return OSI_DISABLE;
-	}
-}
