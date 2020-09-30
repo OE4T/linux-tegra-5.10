@@ -554,16 +554,6 @@ static int tegra234_cbb_errmon_init(struct platform_device *pdev,
 		return -EINVAL;
 	}
 
-	if (bdata->is_ax2apb_bridge_connected) {
-		err = tegra_cbb_axi2apb_bridge_data(pdev,
-				&(errmon->apb_bridge_cnt),
-				&(errmon->axi2abp_bases));
-		if (err) {
-			dev_err(&pdev->dev, "axi2apb bridge read failed\n");
-			return -EINVAL;
-		}
-	}
-
 	err = tegra_cbb_err_getirq(pdev,
 				&errmon->errmon_nonsecure_irq,
 				&errmon->errmon_secure_irq, &errmon->num_intr);

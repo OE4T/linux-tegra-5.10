@@ -33,10 +33,37 @@
 
 #define get_em_el_subfield(_x_, _msb_, _lsb_) CBB_EXTRACT(_x_, _msb_, _lsb_)
 
-
-extern int tegra_cbb_axi2apb_bridge_data(struct platform_device *pdev,
-		int *apb_bridge_cnt,
-		void __iomem ***axi2abp_bases);
+struct tegra_cbb_errmon_record {
+	struct list_head node;
+	struct serr_hook *callback;
+	char *name;
+	int errmon_no;
+	int err_type;
+	phys_addr_t start;
+	phys_addr_t err_notifier_base;
+	void __iomem *vaddr;
+	void __iomem *addr_errmon;
+	void __iomem *addr_access;
+	u32 attr0;
+	u32 attr1;
+	u32 attr2;
+	u32 user_bits;
+	int num_intr;
+	int errmon_secure_irq;
+	int errmon_nonsecure_irq;
+	char **tegra_cbb_master_id;
+	bool is_ax2apb_bridge_connected;
+	void __iomem **axi2abp_bases;
+	int apb_bridge_cnt;
+	bool erd_mask_inband_err;
+	bool is_clk_rst;
+	int (*is_cluster_probed)(void);
+	int (*is_clk_enabled)(void);
+	int (*tegra_errmon_en_clk_rpm)(void);
+	int (*tegra_errmon_dis_clk_rpm)(void);
+	int (*tegra_errmon_en_clk_no_rpm)(void);
+	int (*tegra_errmon_dis_clk_no_rpm)(void);
+};
 
 static struct tegra_noc_errors tegra234_errmon_errors[] = {
 	{.errcode = "SLAVE_ERR",
