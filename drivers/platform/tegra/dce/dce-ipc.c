@@ -22,7 +22,8 @@
 
 struct dce_ipc_channel ivc_channels[DCE_IPC_CH_KMD_TYPE_MAX] = {
 	[DCE_IPC_CH_KMD_TYPE_ADMIN] = {
-		.flags = DCE_IPC_CHANNEL_VALID,
+		.flags = DCE_IPC_CHANNEL_VALID
+			 | DCE_IPC_CHANNEL_MSG_HEADER,
 		.ch_type = DCE_IPC_CH_KMD_TYPE_ADMIN,
 		.ipc_type = DCE_IPC_TYPE_ADMIN,
 		.signal = {
@@ -59,7 +60,8 @@ struct dce_ipc_channel ivc_channels[DCE_IPC_CH_KMD_TYPE_MAX] = {
 		},
 	},
 	[DCE_IPC_CH_KMD_TYPE_RM] = {
-		.flags = DCE_IPC_CHANNEL_VALID,
+		.flags = DCE_IPC_CHANNEL_VALID
+			 | DCE_IPC_CHANNEL_MSG_HEADER,
 		.ch_type = DCE_IPC_CH_KMD_TYPE_RM,
 		.ipc_type = DCE_IPC_TYPE_DISPRM,
 		.signal = {
