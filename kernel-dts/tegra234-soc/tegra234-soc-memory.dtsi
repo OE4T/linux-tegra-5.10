@@ -23,11 +23,11 @@
 
 		generic_reserved: generic_carveout {
 			compatible = "nvidia,generic_carveout";
-			size = <0 0x10000000>;
+			size = <0 0>;
 			alignment = <0 0x200000>;
 			alloc-ranges = <0 0 0x1 0>;
 			no-map;
-			status = "okay";
+			status = "disabled";
 		};
 
 		gos_reserved: grid-of-semaphores {
@@ -58,7 +58,6 @@
 		 * "memory-region" before the zero sized ones.
 		 */
 		memory-region = <&generic_reserved &gos_reserved>;
-		dont-convert-iovmm-to-carveout;
 		status = "okay";
 	};
 
