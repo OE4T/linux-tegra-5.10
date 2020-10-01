@@ -796,14 +796,10 @@ int nvhost_init_t23x_support(struct nvhost_master *host,
 	op->syncpt.alloc = nvhost_syncpt_alloc_gos_backing;
 	op->syncpt.release = nvhost_syncpt_release_gos_backing;
 
-	/* WAR to bugs 200094901 and 200082771: enable protection
-	 * only on silicon/emulation */
+	op->syncpt.reset = t186_syncpt_reset;
+	op->syncpt.mark_used = t186_syncpt_mark_used;
+	op->syncpt.mark_unused = t186_syncpt_mark_unused;
 
-	if (!tegra_platform_is_vdk()) {
-		op->syncpt.reset = t186_syncpt_reset;
-		op->syncpt.mark_used = t186_syncpt_mark_used;
-		op->syncpt.mark_unused = t186_syncpt_mark_unused;
-	}
 	op->syncpt.mutex_owner = t186_syncpt_mutex_owner;
 
 	op->remove_support = t23x_remove_support;
