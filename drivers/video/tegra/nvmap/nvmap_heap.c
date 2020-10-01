@@ -495,7 +495,7 @@ struct nvmap_heap *nvmap_heap_create(struct device *parent,
 	if (co->no_cpu_access)
 		nvmap_dev->cpu_access_mask &= ~co->usage_mask;
 
-	dev_info(parent, "created heap %s base 0x%p size (%zuKiB)\n",
+	dev_info(parent, "created heap %s base 0x%px size (%zuKiB)\n",
 		co->name, (void *)(uintptr_t)base, len/1024);
 	return h;
 fail:
