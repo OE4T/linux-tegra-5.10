@@ -34,72 +34,10 @@ extern int tegra_cbb_err_getirq(struct platform_device *pdev,
 				int *nonsecure_irq,
 				int *secure_irq, int *num_intr);
 
-struct tegra_cbb_errmon_record {
-	struct list_head node;
-	struct serr_hook *callback;
-	char *name;
-	int errmon_no;
-	int err_type;
-	phys_addr_t start;
-	phys_addr_t err_notifier_base;
-	void __iomem *vaddr;
-	void __iomem *addr_errmon;
-	void __iomem *addr_access;
-	u32 attr0;
-	u32 attr1;
-	u32 attr2;
-	u32 user_bits;
-	int num_intr;
-	int errmon_secure_irq;
-	int errmon_nonsecure_irq;
-	char **tegra_cbb_master_id;
-	bool is_ax2apb_bridge_connected;
-	void __iomem **axi2abp_bases;
-	int apb_bridge_cnt;
-	bool erd_mask_inband_err;
-	bool is_clk_rst;
-	int (*is_cluster_probed)(void);
-	int (*is_clk_enabled)(void);
-	int (*tegra_errmon_en_clk_rpm)(void);
-	int (*tegra_errmon_dis_clk_rpm)(void);
-	int (*tegra_errmon_en_clk_no_rpm)(void);
-	int (*tegra_errmon_dis_clk_no_rpm)(void);
-};
-
 struct tegra_noc_errors {
 	char *errcode;
 	char *src;
 	char *type;
-};
-
-struct tegra_noc_packet_header {
-	bool lock;   // [0]
-	u8   opc;    // [4:1]
-	u8   errcode;// [10:8]= RD, RDW, RDL, RDX, WR, WRW, WRC, PRE, URG
-	u16  len1;   // [27:16]
-	bool format; // [31]  = 1 -> FlexNoC versions 2.7 & above
-};
-
-struct tegra_lookup_noc_aperture {
-	u8  initflow;
-	u8  targflow;
-	u8  targ_subrange;
-	u8  init_mapping;
-	u32 init_localaddress;
-	u8  targ_mapping;
-	u32 targ_localaddress;
-	u16 seqid;
-};
-
-struct tegra_noc_userbits {
-	u8  axcache;
-	u8  non_mod;
-	u8  axprot;
-	u8  falconsec;
-	u8  grpsec;
-	u8  vqc;
-	u8  mstr_id;
-	u8  axi_id;
 };
 
 struct tegra_cbb_noc_data {
@@ -145,52 +83,6 @@ struct tegra_cbberr_ops {
 	void (*faulten)(void __iomem *addr);
 	void (*stallen)(void __iomem *addr);
 };
-
-struct tegra_cbb_errlog_record {
-	struct list_head node;
-	struct serr_hook *callback;
-	char *name;
-	phys_addr_t start;
-	void __iomem *vaddr;
-	int num_intr;
-	int noc_secure_irq;
-	int noc_nonsecure_irq;
-	u32 errlog0;
-	u32 errlog1;
-	u32 errlog2;
-	u32 errlog3;
-	u32 errlog4;
-	u32 errlog5;
-	u32 errlog6;        //RESERVED
-	u32 errlog7;        //RESERVED
-	u32 errlog8;        //RESERVED
-	void (*tegra_noc_parse_routeid)
-	             (struct tegra_lookup_noc_aperture *, u64);
-	void (*tegra_noc_parse_userbits) (struct tegra_noc_userbits *, u64);
-	struct tegra_lookup_noc_aperture *noc_aperture;
-	int  max_noc_aperture;
-	char **tegra_noc_routeid_initflow;
-	char **tegra_noc_routeid_targflow;
-	char **tegra_cbb_master_id;
-	bool is_ax2apb_bridge_connected;
-	void __iomem **axi2abp_bases;
-	int  apb_bridge_cnt;
-	bool erd_mask_inband_err;
-	bool is_clk_rst;
-	int (*is_cluster_probed)(void);
-	int (*is_clk_enabled)(void);
-	int (*tegra_noc_en_clk_rpm)(void);
-	int (*tegra_noc_dis_clk_rpm)(void);
-	int (*tegra_noc_en_clk_no_rpm)(void);
-	int (*tegra_noc_dis_clk_no_rpm)(void);
-};
-
-extern int nvcvnas_busy(void);
-extern int nvcvnas_idle(void);
-extern int is_nvcvnas_probed(void);
-extern int nvcvnas_busy_no_rpm(void);
-extern int nvcvnas_idle_no_rpm(void);
-extern int is_nvcvnas_clk_enabled(void);
 
 void tegra_cbb_stallen(void __iomem *addr);
 void tegra_cbb_faulten(void __iomem *addr);
