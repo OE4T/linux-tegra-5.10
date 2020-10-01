@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -212,6 +212,8 @@
 		(nvgpu_safe_add_u32(0x0010a504U, nvgpu_safe_mult_u32((i), 16U)))
 #define pwr_pmu_idle_mask_gr_enabled_f()                                  (0x1U)
 #define pwr_pmu_idle_mask_ce_2_enabled_f()                           (0x200000U)
+#define pwr_pmu_idle_mask_1_r(i)\
+		(nvgpu_safe_add_u32(0x0010aa34U, nvgpu_safe_mult_u32((i), 8U)))
 #define pwr_pmu_idle_count_r(i)\
 		(nvgpu_safe_add_u32(0x0010a508U, nvgpu_safe_mult_u32((i), 16U)))
 #define pwr_pmu_idle_count_value_f(v)             ((U32(v) & 0x7fffffffU) << 0U)
