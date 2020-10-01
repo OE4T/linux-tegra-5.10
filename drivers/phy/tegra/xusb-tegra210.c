@@ -197,6 +197,17 @@
 #define XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_RX_IDLE_MODE_VAL 0x1
 #define XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_RX_TERM_EN BIT(18)
 #define XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_RX_MODE_OVRD BIT(13)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_TERM_EN BIT(2)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_RDET_EN BIT(4)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_RDET_BYP BIT(5)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_RDET_CLK_EN BIT(6)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_MODE_OVRD BIT(12)
+
+#define XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL2(x) (0x464 + (x) * 0x40)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL2_RX_IDDQ_OVRD BIT(9)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL2_RX_IDDQ BIT(8)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL2_TX_IDDQ_OVRD BIT(1)
+#define XUSB_PADCTL_UPHY_MISC_PAD_CTL2_TX_IDDQ BIT(0)
 
 #define XUSB_PADCTL_UPHY_PLL_S0_CTL1 0x860
 
@@ -237,6 +248,9 @@
 #define XUSB_PADCTL_USB2_VBUS_ID_OVERRIDE_MASK 0xf
 #define XUSB_PADCTL_USB2_VBUS_ID_OVERRIDE_FLOATING 8
 #define XUSB_PADCTL_USB2_VBUS_ID_OVERRIDE_GROUNDED 0
+
+static int
+tegra210_usb3_lane_map(struct tegra_xusb_lane *lane);
 
 struct tegra210_xusb_fuse_calibration {
 	u32 hs_curr_level[4];
@@ -2129,6 +2143,32 @@ static const struct tegra_xusb_port_ops tegra210_usb3_port_ops = {
 	.map = tegra210_usb3_port_map,
 };
 
+static int
+tegra210_usb3_lane_find_port_index(struct tegra_xusb_lane *lane,
+				const struct tegra_xusb_lane_map *map,
+				const char *function)
+{
+	for (map = map; map->type; map++) {
+		if (map->index == lane->index &&
+			strcmp(map->type, lane->pad->soc->name) == 0) {
+			dev_dbg(lane->pad->padctl->dev,
+				"lane = %s map to port = usb3-%d\n",
+				lane->pad->soc->lanes[lane->index].name,
+				map->port);
+			return map->port;
+		}
+	}
+
+	return -1;
+}
+
+static int
+tegra210_usb3_lane_map(struct tegra_xusb_lane *lane)
+{
+	return tegra210_usb3_lane_find_port_index(lane,
+				tegra210_usb3_map, "xusb");
+}
+
 static int tegra210_utmi_port_reset(struct phy *phy)
 {
 	struct tegra_xusb_padctl *padctl;
@@ -2208,6 +2248,124 @@ static void tegra210_xusb_padctl_remove(struct tegra_xusb_padctl *padctl)
 {
 }
 
+void tegra210_clamp_en_early(struct phy *phy, bool on)
+{
+	struct tegra_xusb_lane *lane;
+	struct tegra_xusb_padctl *padctl;
+	struct tegra_xusb_usb3_port *port;
+	unsigned int index;
+	u32 value;
+
+	if (!phy)
+		return;
+
+	lane = phy_get_drvdata(phy);
+	padctl = lane->pad->padctl;
+	index = tegra210_usb3_lane_map(lane);
+
+	port = tegra_xusb_find_usb3_port(padctl, index);
+
+	if (!port) {
+		dev_err(&phy->dev, "no port found for USB3 lane %u\n", index);
+		return;
+	}
+
+	if ((on && port->clamp_en_early_enabled) ||
+		(!on && !port->clamp_en_early_enabled))
+		return;
+
+	port->clamp_en_early_enabled = on;
+
+	if (on) {
+		value = padctl_readl(padctl, XUSB_PADCTL_ELPG_PROGRAM1);
+		value |= XUSB_PADCTL_ELPG_PROGRAM1_SSPX_ELPG_CLAMP_EN_EARLY(index);
+		padctl_writel(padctl, value, XUSB_PADCTL_ELPG_PROGRAM1);
+	} else {
+		value = padctl_readl(padctl, XUSB_PADCTL_ELPG_PROGRAM1);
+		value &= ~XUSB_PADCTL_ELPG_PROGRAM1_SSPX_ELPG_CLAMP_EN_EARLY(index);
+		padctl_writel(padctl, value, XUSB_PADCTL_ELPG_PROGRAM1);
+	}
+}
+
+void tegra210_receiver_detector(struct phy *phy, bool on)
+{
+	struct tegra_xusb_lane *lane;
+	struct tegra_xusb_padctl *padctl;
+	struct tegra_xusb_usb3_port *port;
+	u32 mask, reg;
+
+	if (!phy)
+		return;
+
+	lane = phy_get_drvdata(phy);
+	padctl = lane->pad->padctl;
+
+	port = tegra_xusb_find_usb3_port(padctl,
+				tegra210_usb3_lane_map(lane));
+
+	if (!port) {
+		dev_err(&phy->dev, "no port found for USB3 lane %u\n",
+			lane->index);
+		return;
+	}
+
+	if ((on && !port->receiver_detector_disabled) ||
+		(!on && port->receiver_detector_disabled))
+		return;
+
+	port->receiver_detector_disabled = !on;
+
+	if (!on) {
+		mask = XUSB_PADCTL_UPHY_MISC_PAD_CTL2_TX_IDDQ |
+			   XUSB_PADCTL_UPHY_MISC_PAD_CTL2_RX_IDDQ;
+		reg = padctl_readl(padctl,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL2(lane->index));
+		reg &= ~mask;
+		padctl_writel(padctl, reg,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL2(lane->index));
+
+		mask = XUSB_PADCTL_UPHY_MISC_PAD_CTL2_TX_IDDQ_OVRD |
+			   XUSB_PADCTL_UPHY_MISC_PAD_CTL2_RX_IDDQ_OVRD;
+		reg = padctl_readl(padctl,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL2(lane->index));
+		reg |= mask;
+		padctl_writel(padctl, reg,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL2(lane->index));
+
+		mask = (XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_RDET_CLK_EN |
+				XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_RDET_BYP |
+				XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_RDET_EN |
+				XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_TERM_EN);
+		reg = padctl_readl(padctl,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL1(lane->index));
+		reg &= ~mask;
+		padctl_writel(padctl, reg,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL1(lane->index));
+
+		mask = XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_MODE_OVRD;
+		reg = padctl_readl(padctl,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL1(lane->index));
+		reg |= mask;
+		padctl_writel(padctl, reg,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL1(lane->index));
+	} else {
+		mask = XUSB_PADCTL_UPHY_MISC_PAD_CTL1_AUX_TX_MODE_OVRD;
+		reg = padctl_readl(padctl,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL1(lane->index));
+		reg &= ~mask;
+		padctl_writel(padctl, reg,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL1(lane->index));
+
+		mask = XUSB_PADCTL_UPHY_MISC_PAD_CTL2_TX_IDDQ_OVRD |
+			   XUSB_PADCTL_UPHY_MISC_PAD_CTL2_RX_IDDQ_OVRD;
+		reg = padctl_readl(padctl,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL2(lane->index));
+		reg &= ~mask;
+		padctl_writel(padctl, reg,
+			XUSB_PADCTL_UPHY_MISC_PAD_PX_CTL2(lane->index));
+	}
+}
+
 static const struct tegra_xusb_padctl_ops tegra210_xusb_padctl_ops = {
 	.probe = tegra210_xusb_padctl_probe,
 	.remove = tegra210_xusb_padctl_remove,
@@ -2215,6 +2373,8 @@ static const struct tegra_xusb_padctl_ops tegra210_xusb_padctl_ops = {
 	.hsic_set_idle = tegra210_hsic_set_idle,
 	.vbus_override = tegra210_xusb_padctl_vbus_override,
 	.utmi_port_reset = tegra210_utmi_port_reset,
+	.receiver_detector = tegra210_receiver_detector,
+	.clamp_en_early = tegra210_clamp_en_early,
 };
 
 static const char * const tegra210_xusb_padctl_supply_names[] = {

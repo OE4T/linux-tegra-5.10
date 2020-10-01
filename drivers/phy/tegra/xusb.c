@@ -1406,6 +1406,38 @@ int tegra_xusb_padctl_get_usb3_companion(struct tegra_xusb_padctl *padctl,
 }
 EXPORT_SYMBOL_GPL(tegra_xusb_padctl_get_usb3_companion);
 
+void tegra_xusb_padctl_enable_receiver_detector(struct tegra_xusb_padctl
+					*padctl, struct phy *phy)
+{
+	if (padctl->soc->ops->receiver_detector)
+		padctl->soc->ops->receiver_detector(phy, true);
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_enable_receiver_detector);
+
+void tegra_xusb_padctl_disable_receiver_detector(struct tegra_xusb_padctl
+					*padctl, struct phy *phy)
+{
+	if (padctl->soc->ops->receiver_detector)
+		padctl->soc->ops->receiver_detector(phy, false);
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_disable_receiver_detector);
+
+void tegra_xusb_padctl_enable_clamp_en_early(struct tegra_xusb_padctl
+					*padctl, struct phy *phy)
+{
+	if (padctl->soc->ops->clamp_en_early)
+		padctl->soc->ops->clamp_en_early(phy, true);
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_enable_clamp_en_early);
+
+void tegra_xusb_padctl_disable_clamp_en_early(struct tegra_xusb_padctl
+					*padctl, struct phy *phy)
+{
+	if (padctl->soc->ops->clamp_en_early)
+		padctl->soc->ops->clamp_en_early(phy, false);
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_disable_clamp_en_early);
+
 MODULE_AUTHOR("Thierry Reding <treding@nvidia.com>");
 MODULE_DESCRIPTION("Tegra XUSB Pad Controller driver");
 MODULE_LICENSE("GPL v2");

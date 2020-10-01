@@ -350,6 +350,8 @@ struct tegra_xusb_usb3_port {
 	unsigned int port;
 	bool internal;
 	bool disable_gen2;
+	bool clamp_en_early_enabled;
+	bool receiver_detector_disabled;
 
 	u32 tap1;
 	u32 amp;
@@ -396,6 +398,8 @@ struct tegra_xusb_padctl_ops {
 				    unsigned int index, bool enable);
 	int (*vbus_override)(struct tegra_xusb_padctl *padctl, bool set);
 	int (*utmi_port_reset)(struct phy *phy);
+	void (*receiver_detector)(struct phy *phy, bool on);
+	void (*clamp_en_early)(struct phy *phy, bool on);
 };
 
 struct tegra_xusb_padctl_soc {
