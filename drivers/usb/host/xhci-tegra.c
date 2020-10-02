@@ -2585,10 +2585,8 @@ static int tegra_xhci_hub_status_data(struct usb_hcd *hcd, char *buf)
 			tegra_xusb_padctl_disable_receiver_detector(
 							tegra->padctl, phy);
 		else {
-			if ((portsc & PORT_PLS_MASK) == XDEV_RXDETECT)
-				tegra_xusb_padctl_disable_clamp_en_early(
+			tegra_xusb_padctl_disable_clamp_en_early(
 							tegra->padctl, phy);
-
 			tegra_xusb_padctl_enable_receiver_detector(
 							tegra->padctl, phy);
 		}
@@ -2617,6 +2615,7 @@ static void tegra_xhci_endpoint_soft_retry(struct usb_hcd *hcd,
 	u32 portsc;
 
 	if (!udev || udev->speed != USB_SPEED_SUPER ||
+					!(ep->desc.bEndpointAddress & USB_DIR_IN) ||
 			!tegra->soc->disable_u0_ts1_detect)
 		return;
 
