@@ -34,6 +34,7 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/fuse.h>
 
 #include <nvgpu/gr/gr.h>
 
@@ -54,8 +55,6 @@
 #include <nvgpu/hw/gv11b/hw_flush_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_falcon_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
-
-#include "hal/fuse/fuse_gm20b.h"
 
 #include "nvgpu-acr.h"
 #include "../falcon/falcon_utf.h"

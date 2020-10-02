@@ -26,8 +26,6 @@
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/soc_fuse.h>
 
-#include "hal/fuse/fuse_gm20b.h"
-
 #ifdef CONFIG_NVGPU_NON_FUSA
 int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g, int *id)
 {

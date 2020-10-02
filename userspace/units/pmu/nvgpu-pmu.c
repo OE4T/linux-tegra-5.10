@@ -29,6 +29,7 @@
 #include <nvgpu/falcon.h>
 #include <nvgpu/hal_init.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/fuse.h>
 
 #include <nvgpu/gr/gr.h>
 
@@ -42,7 +43,6 @@
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
-#include "hal/fuse/fuse_gm20b.h"
 #include "hal/pmu/pmu_gk20a.h"
 
 #include "../falcon/falcon_utf.h"

@@ -28,7 +28,6 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
-#include "fuse_gm20b.h"
 #include "fuse_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_fuse_gp10b.h>

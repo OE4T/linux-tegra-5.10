@@ -23,11 +23,10 @@
 #include <unit/module.h>
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/fuse.h>
 
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/soc_fuse.h>
-
-#include "hal/fuse/fuse_gm20b.h"
 
 #include "nvgpu-fifo-gv11b.h"
 

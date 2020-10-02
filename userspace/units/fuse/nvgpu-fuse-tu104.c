@@ -29,8 +29,6 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/pmu/clk/clk.h>
 
-#include "hal/fuse/fuse_gm20b.h"
-
 #include "nvgpu-fuse-priv.h"
 #include "nvgpu-fuse-tu104.h"
 

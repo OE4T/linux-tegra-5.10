@@ -36,6 +36,10 @@ struct gk20a;
 #include "include/nvgpu/nvgpu_next_fuse.h"
 #endif
 
+#define GCPLEX_CONFIG_VPR_AUTO_FETCH_DISABLE_MASK	BIT32(0)
+#define GCPLEX_CONFIG_VPR_ENABLED_MASK			BIT32(1)
+#define GCPLEX_CONFIG_WPR_ENABLED_MASK			BIT32(2)
+
 #ifdef CONFIG_NVGPU_NON_FUSA
 int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g, int *id);
 int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val);
