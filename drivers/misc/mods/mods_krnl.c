@@ -446,8 +446,8 @@ static int __init mods_init_module(void)
 		return -EBUSY;
 #endif
 
-#if defined(CONFIG_COMMON_CLK) && defined(CONFIG_OF_RESOLVE) && \
-		defined(CONFIG_OF_DYNAMIC)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_COMMON_CLK) && \
+	defined(CONFIG_OF_RESOLVE) && defined(CONFIG_OF_DYNAMIC)
 	mods_init_clock_api();
 #endif
 
@@ -500,8 +500,8 @@ static void __exit mods_exit_module(void)
 
 	misc_deregister(&mods_dev);
 
-#if defined(CONFIG_COMMON_CLK) && defined(CONFIG_OF_RESOLVE) && \
-		defined(CONFIG_OF_DYNAMIC)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_COMMON_CLK) && \
+	defined(CONFIG_OF_RESOLVE) && defined(CONFIG_OF_DYNAMIC)
 	mods_shutdown_clock_api();
 #endif
 
@@ -1525,17 +1525,19 @@ static int esc_mods_verify_access_token(struct mods_client       *client,
 	return err;
 }
 
-struct mods_sysfs_work {
-	struct work_struct      work;
-	struct MODS_SYSFS_NODE *pdata;
-	int                     err;
+struct mods_file_work {
+	struct work_struct work;
+	const char        *path;
+	const char        *data;
+	__u32              data_size;
+	int                err;
 };
 
 static void sysfs_write_task(struct work_struct *w)
 {
-	struct mods_sysfs_work *task = container_of(w,
-						    struct mods_sysfs_work,
-						    work);
+	struct mods_file_work *task = container_of(w,
+						   struct mods_file_work,
+						   work);
 	struct file *f;
 	mm_segment_t old_fs;
 
@@ -1546,16 +1548,15 @@ static void sysfs_write_task(struct work_struct *w)
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
 
-	f = filp_open(task->pdata->path, O_WRONLY, 0);
+	f = filp_open(task->path, O_WRONLY, 0);
 	if (IS_ERR(f))
 		task->err = PTR_ERR(f);
 	else {
 		f->f_pos = 0;
-		if (task->pdata->size <= MODS_MAX_SYSFS_FILE_SIZE)
-			task->err = f->f_op->write(f,
-						   task->pdata->contents,
-						   task->pdata->size,
-						   &f->f_pos);
+		task->err = f->f_op->write(f,
+					   task->data,
+					   task->data_size,
+					   &f->f_pos);
 		filp_close(f, NULL);
 	}
 
@@ -1564,35 +1565,82 @@ static void sysfs_write_task(struct work_struct *w)
 	LOG_EXT();
 }
 
-static int esc_mods_write_sysfs_node(struct mods_client     *client,
-				     struct MODS_SYSFS_NODE *pdata)
+static int run_write_task(struct mods_client    *client,
+			  struct mods_file_work *task)
 {
-	int err = -EINVAL;
-	struct mods_sysfs_work task;
 	struct workqueue_struct *wq;
 
-	LOG_ENT();
-
-	memmove(&pdata->path[5], pdata->path, MODS_MAX_SYSFS_PATH_LEN);
-	memcpy(pdata->path, "/sys/", 5);
-	pdata->path[MODS_MAX_SYSFS_PATH_BUF_SIZE - 1] = 0;
-
-	task.pdata = pdata;
-
-	wq = create_singlethread_workqueue("mods_sysfs_write");
+	wq = create_singlethread_workqueue("mods_file_write");
 	if (!wq) {
-		LOG_EXT();
-		return err;
+		cl_error("failed to create work queue\n");
+		return -ENOMEM;
 	}
 
-	INIT_WORK(&task.work, sysfs_write_task);
-	queue_work(wq, &task.work);
+	cl_info("write %.*s to %s\n", task->data_size, task->data, task->path);
+
+	INIT_WORK(&task->work, sysfs_write_task);
+	queue_work(wq, &task->work);
 	flush_workqueue(wq);
 	destroy_workqueue(wq);
 
-	err = task.err;
-	if (err > 0)
-		err = OK;
+	if (task->err < 0)
+		cl_error("failed to write %.*s to %s\n",
+			 task->data_size, task->data, task->path);
+
+	return (task->err > 0) ? 0 : task->err;
+}
+
+static int esc_mods_write_sysfs_node(struct mods_client     *client,
+				     struct MODS_SYSFS_NODE *pdata)
+{
+	int                   err;
+	struct mods_file_work task;
+
+	LOG_ENT();
+
+	if (pdata->size > MODS_MAX_SYSFS_FILE_SIZE) {
+		cl_error("invalid data size %u, max allowed is %u\n",
+			 pdata->size, MODS_MAX_SYSFS_FILE_SIZE);
+		LOG_EXT();
+		return -EINVAL;
+	}
+
+	memmove(&pdata->path[5], pdata->path, sizeof(pdata->path) - 5);
+	memcpy(pdata->path, "/sys/", 5);
+	pdata->path[sizeof(pdata->path) - 1] = 0;
+
+	task.path      = pdata->path;
+	task.data      = pdata->contents;
+	task.data_size = pdata->size;
+
+	err = run_write_task(client, &task);
+
+	LOG_EXT();
+	return err;
+}
+
+static int esc_mods_sysctl_write_int(struct mods_client     *client,
+				     struct MODS_SYSCTL_INT *pdata)
+{
+	int                   err;
+	struct mods_file_work task;
+	char                  data[21];
+	int                   data_size;
+
+	LOG_ENT();
+
+	memmove(&pdata->path[10], pdata->path, sizeof(pdata->path)  - 10);
+	memcpy(pdata->path, "/proc/sys/", 10);
+	pdata->path[sizeof(pdata->path) - 1] = 0;
+
+	data_size = snprintf(data, sizeof(data),
+			     "%lld", (long long)pdata->value);
+
+	task.path      = pdata->path;
+	task.data      = data;
+	task.data_size = data_size;
+
+	err = run_write_task(client, &task);
 
 	LOG_EXT();
 	return err;
@@ -1862,6 +1910,12 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_pci_set_dma_mask,
 			   MODS_PCI_DMA_MASK);
 		break;
+
+	case MODS_ESC_PCI_RESET_FUNCTION:
+		MODS_IOCTL(MODS_ESC_PCI_RESET_FUNCTION,
+			   esc_mods_pci_reset_function,
+			   mods_pci_dev_2);
+		break;
 #endif
 
 	case MODS_ESC_ALLOC_PAGES:
@@ -2114,8 +2168,8 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_get_kernel_version, MODS_GET_VERSION);
 		break;
 
-#if defined(CONFIG_COMMON_CLK) && defined(CONFIG_OF_RESOLVE) && \
-		defined(CONFIG_OF_DYNAMIC)
+#if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_COMMON_CLK) && \
+	defined(CONFIG_OF_RESOLVE) && defined(CONFIG_OF_DYNAMIC)
 	case MODS_ESC_GET_CLOCK_HANDLE:
 		MODS_IOCTL(MODS_ESC_GET_CLOCK_HANDLE,
 			   esc_mods_get_clock_handle, MODS_GET_CLOCK_HANDLE);
@@ -2396,6 +2450,12 @@ static long mods_krnl_ioctl(struct file  *fp,
 		MODS_IOCTL_NORETVAL(MODS_ESC_WRITE_SYSFS_NODE,
 				    esc_mods_write_sysfs_node,
 				    MODS_SYSFS_NODE);
+		break;
+
+	case MODS_ESC_SYSCTL_WRITE_INT:
+		MODS_IOCTL_NORETVAL(MODS_ESC_SYSCTL_WRITE_INT,
+				    esc_mods_sysctl_write_int,
+				    MODS_SYSCTL_INT);
 		break;
 
 	case MODS_ESC_REGISTER_IRQ_4:

@@ -543,6 +543,8 @@ int esc_mods_get_iommu_state_2(struct mods_client          *client,
 			       struct MODS_GET_IOMMU_STATE *state);
 int esc_mods_pci_set_dma_mask(struct mods_client      *client,
 			     struct MODS_PCI_DMA_MASK *dma_mask);
+int esc_mods_pci_reset_function(struct mods_client    *client,
+				struct mods_pci_dev_2 *pcidev);
 #endif
 /* irq */
 #if defined(CONFIG_ARCH_TEGRA) && defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)

@@ -151,6 +151,17 @@ static int mods_extract_acpi_object(struct mods_client *client,
 		}
 		break;
 
+	case ACPI_TYPE_LOCAL_REFERENCE:
+		if (obj->reference.actual_type == ACPI_TYPE_POWER) {
+			memcpy(*buf, &obj->reference.handle,
+					sizeof(obj->reference.handle));
+			*buf += sizeof(obj->reference.handle);
+		} else {
+			cl_error("Unsupported ACPI reference type\n");
+			err = -EINVAL;
+		}
+		break;
+
 	default:
 		cl_error("unsupported ACPI output type 0x%02x from method %s\n",
 			 (unsigned int)obj->type,
@@ -269,6 +280,9 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 		return -EINVAL;
 	}
 
+	input.count = p->argument_count;
+	input.pointer = acpi_params;
+
 	for (i = 0; i < p->argument_count; i++) {
 		switch (p->argument[i].type) {
 		case ACPI_MODS_TYPE_INTEGER: {
@@ -285,6 +299,28 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 				= p->in_buffer + p->argument[i].buffer.offset;
 			break;
 		}
+		case ACPI_MODS_TYPE_METHOD: {
+			memcpy(&acpi_method_handler,
+					&p->argument[i].method.handle,
+					sizeof(acpi_method_handler));
+
+			if (!acpi_method_handler) {
+				cl_error("ACPI: Invalid reference handle 0\n");
+				pci_dev_put(dev);
+				LOG_EXT();
+				return -EINVAL;
+			}
+
+			if (i != p->argument_count - 1) {
+				cl_error("ACPI: Invalid argument count\n");
+				pci_dev_put(dev);
+				LOG_EXT();
+				return -EINVAL;
+			}
+
+			--input.count;
+			break;
+		}
 		default: {
 			cl_error("unsupported ACPI argument type\n");
 			pci_dev_put(dev);
@@ -293,9 +329,6 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 		}
 		}
 	}
-
-	input.count   = p->argument_count;
-	input.pointer = acpi_params;
 
 	status = acpi_evaluate_object(acpi_method_handler,
 				      pdevice ? p->method_name : NULL,

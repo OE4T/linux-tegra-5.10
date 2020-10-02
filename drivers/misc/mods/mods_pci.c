@@ -917,3 +917,35 @@ int esc_mods_pci_set_dma_mask(struct mods_client       *client,
 	LOG_EXT();
 	return err;
 }
+
+int esc_mods_pci_reset_function(struct mods_client    *client,
+				struct mods_pci_dev_2 *pcidev)
+{
+	int             err;
+	struct pci_dev *dev;
+
+	LOG_ENT();
+
+	err = mods_find_pci_dev(client, pcidev, &dev);
+	if (unlikely(err)) {
+		if (err == -ENODEV)
+			cl_error("dev %04x:%02x:%02x.%x not found\n",
+				 pcidev->domain,
+				 pcidev->bus,
+				 pcidev->device,
+				 pcidev->function);
+		LOG_EXT();
+		return err;
+	}
+
+	err = pci_reset_function(dev);
+	if (unlikely(err))
+		cl_error("pci_reset_function failed on dev %04x:%02x:%02x.%x\n",
+			 pcidev->domain,
+			 pcidev->bus,
+			 pcidev->device,
+			 pcidev->function);
+	pci_dev_put(dev);
+	LOG_EXT();
+	return err;
+}

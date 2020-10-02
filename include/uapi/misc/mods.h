@@ -25,7 +25,7 @@
 
 /* Driver version */
 #define MODS_DRIVER_VERSION_MAJOR 3
-#define MODS_DRIVER_VERSION_MINOR 97
+#define MODS_DRIVER_VERSION_MINOR 99
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR / 10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR % 10))
@@ -1024,11 +1024,17 @@ union ACPI_ARGUMENT {
 		__u32 length; /* Number of bytes */
 		__u32 offset; /* Offset in in_buffer or out_buffer */
 	} buffer;
+
+	struct {
+		__u32 type;
+		__u64 handle;
+	} method;
 };
 
 /* Argument type (for the type field above) */
 #define ACPI_MODS_TYPE_INTEGER   1
 #define ACPI_MODS_TYPE_BUFFER    2
+#define ACPI_MODS_TYPE_METHOD    3
 
 #define ACPI_MAX_BUFFER_LENGTH   4096
 #define ACPI_MAX_METHOD_LENGTH   12
@@ -1353,18 +1359,31 @@ struct MODS_GET_NVLINK_LINE_RATE {
 };
 
 #define MODS_MAX_SYSFS_PATH_BUF_SIZE 512
-#define MODS_MAX_SYSFS_PATH_LEN (512 - 6)
 #define MODS_MAX_SYSFS_FILE_SIZE 4096
 
 /* Used by MODS_ESC_WRITE_SYSFS_NODE ioctl.
  *
  * Writes specified contents to the given sysfs node.
+ *
+ * 'path' parameter is relative to /sys/.
  */
 struct MODS_SYSFS_NODE {
 	/* IN */
 	char path[MODS_MAX_SYSFS_PATH_BUF_SIZE];
 	char contents[MODS_MAX_SYSFS_FILE_SIZE];
 	__u32 size; /* Size of the contents buffer, in bytes */
+};
+
+/* Used by MODS_ESC_SYSCTL_WRITE_INT ioctl.
+ *
+ * Writes specified integer value into a node under /proc/sys/.
+ *
+ * 'path' parameter is relative to /proc/sys/.
+ */
+struct MODS_SYSCTL_INT {
+	/* IN */
+	char  path[MODS_MAX_SYSFS_PATH_BUF_SIZE];
+	__s64 value;
 };
 
 #define MAX_CLOCK_HANDLE_NAME 64
@@ -1923,5 +1942,7 @@ struct MODS_IOMMU_DMA_MAP_MEMORY {
 					       MODS_IOMMU_DMA_MAP_MEMORY)
 #define MODS_ESC_RESET_ASSERT MODSIO(W, 131, MODS_RESET_HANDLE)
 #define MODS_ESC_GET_RESET_HANDLE MODSIO(WR, 132, MODS_GET_RESET_HANDLE)
+#define MODS_ESC_SYSCTL_WRITE_INT MODSIO(W, 133, MODS_SYSCTL_INT)
+#define MODS_ESC_PCI_RESET_FUNCTION MODSIO(W, 134, mods_pci_dev_2)
 
 #endif /* _UAPI_MODS_H_  */
