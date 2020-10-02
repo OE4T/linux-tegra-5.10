@@ -42,6 +42,8 @@
 
 #define get_mstr_id(userbits) get_em_el_subfield(errmon->user_bits, 29, 24)
 
+#define MAX_TMO_CLR_RETRY 2
+
 static LIST_HEAD(cbb_errmon_list);
 static DEFINE_SPINLOCK(cbb_errmon_lock);
 
@@ -66,6 +68,133 @@ static unsigned int tegra234_cbb_errmon_errvld(void __iomem *addr)
 
 	dsb(sy);
 	return errvld_status;
+}
+
+static unsigned int tegra234_cbb_get_tmo_slv(void __iomem *addr)
+{
+	unsigned int timeout_status;
+
+	timeout_status = readl(addr);
+	return timeout_status;
+}
+
+static void tegra234_cbb_reset_slv(void __iomem *addr, u32 val)
+{
+	writel(val, addr);
+	dsb(sy);
+}
+
+static void tegra234_cbb_reset_tmo_slv(struct seq_file *file, char *slv_name,
+				       void __iomem *addr, u32 tmo_status)
+{
+	int i = 0;
+
+	while (tmo_status && (i < MAX_TMO_CLR_RETRY)) {
+		print_cbb_err(file, "\t  %s : 0x%x\n", slv_name, tmo_status);
+		print_cbb_err(file, "\t  Resetting timed-out client 0x%x\n",
+			      tmo_status);
+		tegra234_cbb_reset_slv((void __iomem *)addr, tmo_status);
+
+		tmo_status = tegra234_cbb_get_tmo_slv((void __iomem *)addr);
+		print_cbb_err(file, "\t  Readback %s: 0x%x\n", slv_name,
+			      tmo_status);
+		i++;
+	}
+	if (tmo_status && (i == MAX_TMO_CLR_RETRY)) {
+		print_cbb_err(file, "\t  Timeout flag didn't reset twice.\n");
+		BUG();
+	}
+}
+
+static void tegra234_cbb_lookup_apbslv
+	(struct seq_file *file, char *slave_name, u64 addr) {
+
+	unsigned int blockno_tmo_status, tmo_status;
+	unsigned int reset_client, client_id;
+	char slv_name[40];
+	int block_num = 0;
+
+	tmo_status = tegra234_cbb_get_tmo_slv((void __iomem *)addr);
+	if (tmo_status)
+		print_cbb_err(file, "\t  %s_BLOCK_TMO_STATUS : 0x%x\n",
+			      slave_name, tmo_status);
+
+	while (tmo_status) {
+		if (tmo_status & BIT(0)) {
+			addr =  addr + APB_BLOCK_NUM_TMO_OFFSET +
+							(block_num * 4);
+			blockno_tmo_status =
+				tegra234_cbb_get_tmo_slv((void __iomem *)addr);
+			reset_client = blockno_tmo_status;
+
+			if (blockno_tmo_status) {
+				client_id = 1;
+				while (blockno_tmo_status) {
+					if (blockno_tmo_status & 0x1) {
+						if (reset_client != 0xffffffff)
+							reset_client &=
+								client_id;
+						sprintf(slv_name,
+							"%s_BLOCK%d_TMO",
+							slave_name, block_num);
+						tegra234_cbb_reset_tmo_slv
+						(file, slv_name,
+						 (void __iomem *)addr,
+						 reset_client);
+					}
+					blockno_tmo_status >>= 1;
+					client_id <<= 1;
+				}
+			}
+			tmo_status >>= 1;
+			block_num++;
+		}
+	}
+}
+
+static void tegra234_lookup_slave_timeout
+	(struct seq_file *file, struct tegra_lookup_fab_sn *sn_lookup,
+	 u8 slave_id, void __iomem *base_addr) {
+
+	unsigned int tmo_status;
+	char slv_name[40];
+	int i = slave_id;
+	u64 addr = 0;
+
+	/*
+	 * 1) Get slave node name and address mapping using slave_id.
+	 * 2) Check if the timed out slave node is APB or AXI.
+	 * 3) If AXI, then print timeout register and reset axi slave
+	 *    using <FABRIC>_SN_<>_SLV_TIMEOUT_STATUS_0_0 register.
+	 * 4) If APB, then perform an additional lookup to find the client
+	 *    which timed out.
+	 *	a) Get block number from the index of set bit in
+	 *	   <FABRIC>_SN_AXI2APB_<>_BLOCK_TMO_STATUS_0 register.
+	 *	b) Get address of register repective to block number i.e.
+	 *	   <FABRIC>_SN_AXI2APB_<>_BLOCK<index-set-bit>_TMO_0.
+	 *	c) Read the register in above step to get client_id which
+	 *	   timed out as per the set bits.
+	 *      d) Reset the timedout client and print details.
+	 *	e) Goto step-a till all bits are set.
+	 */
+
+	addr = (u64)base_addr + sn_lookup[i].off_slave;
+
+	if (strstr(sn_lookup[i].slave_name, "AXI2APB")) {
+
+		addr = addr + APB_BLOCK_TMO_STATUS_0;
+		tegra234_cbb_lookup_apbslv(file, sn_lookup[i].slave_name, addr);
+	} else {
+		addr = addr + AXI_SLV_TIMEOUT_STATUS_0_0;
+
+		tmo_status = tegra234_cbb_get_tmo_slv((void __iomem *)addr);
+		if (tmo_status) {
+			sprintf(slv_name, "%s_SLV_TIMEOUT_STATUS",
+				sn_lookup[i].slave_name);
+			tegra234_cbb_reset_tmo_slv
+			(file, slv_name, (void __iomem *)addr, tmo_status);
+		}
+	}
 }
 
 static void print_errmon_err(struct seq_file *file,
@@ -102,7 +231,7 @@ static void print_errlog_err(struct seq_file *file,
 	u8 cache_type = 0, prot_type = 0, burst_length = 0;
 	u8 beat_size = 0, access_type = 0, access_id = 0;
 	u8 mstr_id = 0, grpsec = 0, vqc = 0, falconsec = 0;
-	u8 slave_id = 0, fabric_id = 0, burst_type = 0;
+	u8 slave_id = 0, fab_id = 0, burst_type = 0;
 
 	cache_type = get_em_el_subfield(errmon->attr0, 27, 24);
 	prot_type = get_em_el_subfield(errmon->attr0, 22, 20);
@@ -113,12 +242,12 @@ static void print_errlog_err(struct seq_file *file,
 
 	access_id = get_em_el_subfield(errmon->attr1, 7, 0);
 
-	fabric_id = get_em_el_subfield(errmon->attr2, 20, 16);
+	fab_id = get_em_el_subfield(errmon->attr2, 20, 16);
 	slave_id = get_em_el_subfield(errmon->attr2, 7, 0);
 
 	mstr_id = get_em_el_subfield(errmon->user_bits, 29, 24);
-	grpsec = get_em_el_subfield(errmon->user_bits, 17, 16);
-	vqc = get_em_el_subfield(errmon->user_bits, 14, 8);
+	vqc = get_em_el_subfield(errmon->user_bits, 17, 16);
+	grpsec = get_em_el_subfield(errmon->user_bits, 14, 8);
 	falconsec = get_em_el_subfield(errmon->user_bits, 1, 0);
 
 	print_cbb_err(file, "\t  First logged Err Code : %s\n",
@@ -134,7 +263,7 @@ static void print_errlog_err(struct seq_file *file,
 
 	print_cbb_err(file, "\t  Access_Type\t\t: %s",
 			(access_type) ? "Write\n" : "Read");
-	print_cbb_err(file, "\t  Fabric_Id\t\t: %d\n", fabric_id);
+	print_cbb_err(file, "\t  Fabric\t\t: %s\n", t234_fabric_ids[fab_id]);
 	print_cbb_err(file, "\t  Slave_Id\t\t: %d\n", slave_id);
 	print_cbb_err(file, "\t  Burst_length\t\t: %d\n", burst_length);
 	print_cbb_err(file, "\t  Burst_type\t\t: %d\n", burst_type);
@@ -143,6 +272,11 @@ static void print_errlog_err(struct seq_file *file,
 	print_cbb_err(file, "\t  GRPSEC\t\t: %d\n", grpsec);
 	print_cbb_err(file, "\t  FALCONSEC\t\t: %d\n", falconsec);
 
+	if (!strcmp(tegra234_errmon_errors[errmon->err_type].errcode,
+		    "TIMEOUT_ERR")) {
+		tegra234_lookup_slave_timeout(file, errmon->sn_lookup,
+					      slave_id, errmon->vaddr);
+	}
 }
 
 static void print_errmonX_info(
@@ -178,7 +312,7 @@ static void print_errmonX_info(
 	}
 
 	while (errlog_err_status) {
-		if (errlog_err_status & 0x1) {
+		if (errlog_err_status & BIT(0)) {
 			addr = readl(errmon->addr_errmon+
 					FABRIC_MN_MASTER_LOG_ADDR_HIGH_0);
 			addr = (addr<<32) | readl(errmon->addr_errmon+
@@ -217,7 +351,7 @@ static void print_err_notifier(struct seq_file *file,
 	pr_crit("CPU:%d, Error:%s, Errmon:%d\n", smp_processor_id(),
 					errmon->name, err_notifier_status);
 	while (err_notifier_status) {
-		if (err_notifier_status & 0x1) {
+		if (err_notifier_status & BIT(0)) {
 			writel(errmon_no, errmon->vaddr+
 					errmon->err_notifier_base+
 					FABRIC_EN_CFG_ADDR_INDEX_0_0);
@@ -333,8 +467,7 @@ static irqreturn_t tegra234_cbb_error_isr(int irq, void *dev_id)
 	}
 	spin_unlock_irqrestore(&cbb_errmon_lock, flags);
 
-	if (is_inband_err)
-		BUG();
+	WARN_ON(is_inband_err);
 
 	return IRQ_HANDLED;
 }
@@ -491,8 +624,22 @@ static int tegra234_cbb_errmon_set_data(struct tegra_cbb_errmon_record *errmon)
 {
 	if (strlen(errmon->name) > 0)
 		errmon->tegra_cbb_master_id = t234_master_id;
-	else
+
+	if (!strcmp(errmon->name, "AON-EN")) {
+		errmon->sn_lookup = tegra23x_aon_sn_lookup;
+	} else if (!strcmp(errmon->name, "BPMP-EN")) {
+		errmon->sn_lookup = tegra23x_bpmp_sn_lookup;
+	} else if (!strcmp(errmon->name, "CBB-EN")) {
+		errmon->sn_lookup = tegra23x_cbb_sn_lookup;
+	} else if (!strcmp(errmon->name, "SCE-EN")) {
+		errmon->sn_lookup = tegra23x_sce_sn_lookup;
+	} else if (!strcmp(errmon->name, "RCE-EN")) {
+		errmon->sn_lookup = tegra23x_rce_sn_lookup;
+	} else if (!strcmp(errmon->name, "DCE-EN")) {
+		errmon->sn_lookup = tegra23x_dce_sn_lookup;
+	} else
 		return -EINVAL;
+
 	return 0;
 }
 
