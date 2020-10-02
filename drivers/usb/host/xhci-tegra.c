@@ -33,6 +33,9 @@
 #include <linux/usb/role.h>
 #include <soc/tegra/pmc.h>
 
+#include <linux/platform/tegra/emc_bwmgr.h>
+#include <linux/platform/tegra/bwmgr_mc.h>
+
 #include "xhci.h"
 
 static bool max_burst_war_enable = true;
@@ -164,6 +167,8 @@ MODULE_PARM_DESC(max_burst_war_enable, "Max burst WAR");
 
 #define FW_MAJOR_VERSION(x)             (((x) >> 24) & 0xff)
 #define FW_MINOR_VERSION(x)             (((x) >> 16) & 0xff)
+
+#define EMC_RESTORE_DELAY       msecs_to_jiffies(2*1000) /* 2 sec */
 
 enum build_info_log {
 	LOG_NONE = 0,
@@ -405,9 +410,129 @@ struct tegra_xusb {
 	struct tegra_xhci_firmware_log log;
 
 	struct tegra_xusb_context context;
+
+	struct tegra_bwmgr_client *bwmgr; /* bandwidth manager handle */
+	struct work_struct boost_emcfreq_work;
+	struct delayed_work restore_emcfreq_work;
+	unsigned int boost_emc_freq;
+	unsigned long emcfreq_last_boosted;
+	bool emc_boost_enabled;
+	bool emc_boosted;
+	bool restore_emc_work_scheduled;
 };
 
 static struct hc_driver __read_mostly tegra_xhci_hc_driver;
+
+static inline struct tegra_xusb *hcd_to_tegra_xusb(struct usb_hcd *hcd)
+{
+	return (struct tegra_xusb *) dev_get_drvdata(hcd->self.controller);
+}
+
+static void tegra_xusb_parse_dt(struct platform_device *pdev,
+				struct tegra_xusb *tegra)
+{
+	struct device_node *node = pdev->dev.of_node;
+
+	of_property_read_u32(node, "nvidia,boost_emc_freq",
+					&tegra->boost_emc_freq);
+}
+
+static void tegra_xusb_boost_emc_freq_fn(struct work_struct *work)
+{
+	struct tegra_xusb *tegra = container_of(work, struct tegra_xusb,
+				boost_emcfreq_work);
+	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
+	unsigned long flags;
+	int err = 0;
+
+	spin_lock_irqsave(&xhci->lock, flags);
+	if (tegra->bwmgr && !tegra->emc_boosted) {
+		spin_unlock_irqrestore(&xhci->lock, flags);
+		dev_dbg(tegra->dev, "boost EMC freq %d MHz\n",
+				tegra->boost_emc_freq);
+		err = tegra_bwmgr_set_emc(tegra->bwmgr,
+				tegra->boost_emc_freq * 1000000,
+				TEGRA_BWMGR_SET_EMC_SHARED_BW);
+		if (err)
+			dev_warn(tegra->dev, "failed to boost EMC freq %d MHz, err=%d\n",
+				tegra->boost_emc_freq, err);
+		spin_lock_irqsave(&xhci->lock, flags);
+		tegra->emc_boosted = true;
+	}
+
+	if (!tegra->restore_emc_work_scheduled) {
+		schedule_delayed_work(&tegra->restore_emcfreq_work,
+			EMC_RESTORE_DELAY);
+		tegra->restore_emc_work_scheduled = true;
+	}
+
+	tegra->emcfreq_last_boosted = jiffies;
+	spin_unlock_irqrestore(&xhci->lock, flags);
+}
+
+static void tegra_xusb_restore_emc_freq_fn(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct tegra_xusb *tegra = container_of(dwork, struct tegra_xusb,
+				restore_emcfreq_work);
+	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
+	unsigned long flags;
+
+	if (time_is_after_jiffies(
+			tegra->emcfreq_last_boosted + EMC_RESTORE_DELAY)) {
+		dev_dbg(tegra->dev, "schedule restore EMC work\n");
+		schedule_delayed_work(&tegra->restore_emcfreq_work,
+			EMC_RESTORE_DELAY);
+		return;
+	}
+
+	spin_lock_irqsave(&xhci->lock, flags);
+	if (tegra->bwmgr && tegra->emc_boosted) {
+		spin_unlock_irqrestore(&xhci->lock, flags);
+		tegra_bwmgr_set_emc(tegra->bwmgr, 0,
+			TEGRA_BWMGR_SET_EMC_SHARED_BW);
+		dev_dbg(tegra->dev, "restore EMC freq\n");
+		spin_lock_irqsave(&xhci->lock, flags);
+		tegra->emc_boosted = false;
+		tegra->restore_emc_work_scheduled = false;
+	}
+
+	spin_unlock_irqrestore(&xhci->lock, flags);
+}
+
+static void tegra_xusb_boost_emc_init(struct tegra_xusb *tegra)
+{
+	int err = 0;
+
+	tegra->bwmgr = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_XHCI);
+	if (IS_ERR_OR_NULL(tegra->bwmgr)) {
+		err = IS_ERR(tegra->bwmgr) ?
+				PTR_ERR(tegra->bwmgr) : -ENODEV;
+		dev_err(tegra->dev, "can't register EMC bwmgr (%d)\n", err);
+		tegra->emc_boost_enabled = false;
+		return;
+	}
+
+	tegra->emc_boosted = false;
+	tegra->restore_emc_work_scheduled = false;
+
+	INIT_WORK(&tegra->boost_emcfreq_work, tegra_xusb_boost_emc_freq_fn);
+	INIT_DELAYED_WORK(&tegra->restore_emcfreq_work,
+		tegra_xusb_restore_emc_freq_fn);
+}
+
+static void tegra_xusb_boost_emc_deinit(struct tegra_xusb *tegra)
+{
+	if (IS_ERR_OR_NULL(tegra->bwmgr))
+		return;
+
+	tegra_bwmgr_set_emc(tegra->bwmgr, 0,
+		TEGRA_BWMGR_SET_EMC_SHARED_BW);
+	tegra_bwmgr_unregister(tegra->bwmgr);
+
+	cancel_work_sync(&tegra->boost_emcfreq_work);
+	cancel_delayed_work_sync(&tegra->restore_emcfreq_work);
+}
 
 static inline u32 fpci_readl(struct tegra_xusb *tegra, unsigned int offset)
 {
@@ -1950,6 +2075,13 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 	mutex_init(&tegra->lock);
 	tegra->dev = &pdev->dev;
 
+	tegra_xusb_parse_dt(pdev, tegra);
+
+	if (tegra->boost_emc_freq > 0) {
+		dev_dbg(&pdev->dev, "BWMGR EMC freq boost enabled\n");
+		tegra->emc_boost_enabled = true;
+	}
+
 	err = tegra_xusb_init_context(tegra);
 	if (err < 0)
 		return err;
@@ -2251,6 +2383,10 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 
 	tegra_xusb_enable_eu3s(tegra);
 
+	/* Init BWMGR for EMC boost */
+	if (tegra->emc_boost_enabled)
+		tegra_xusb_boost_emc_init(tegra);
+
 	return 0;
 
 remove_usb3:
@@ -2324,6 +2460,9 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 	struct tegra_xusb *tegra = platform_get_drvdata(pdev);
 	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
 
+	if (tegra->emc_boost_enabled)
+		tegra_xusb_boost_emc_deinit(tegra);
+
 	tegra_xusb_deinit_usb_phy(tegra);
 
 	usb_remove_hcd(xhci->shared_hcd);
@@ -2346,6 +2485,28 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 	tegra_xusb_debugfs_deinit(tegra);
 
 	return 0;
+}
+
+static int tegra_xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb,
+						gfp_t mem_flags)
+{
+	int xfertype;
+	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
+
+	xfertype = usb_endpoint_type(&urb->ep->desc);
+	switch (xfertype) {
+	case USB_ENDPOINT_XFER_ISOC:
+	case USB_ENDPOINT_XFER_BULK:
+		if (tegra->emc_boost_enabled)
+			schedule_work(&tegra->boost_emcfreq_work);
+		break;
+	case USB_ENDPOINT_XFER_INT:
+	case USB_ENDPOINT_XFER_CONTROL:
+	default:
+		/* Do nothing special here */
+		break;
+	}
+	return xhci_urb_enqueue(hcd, urb, mem_flags);
 }
 
 #ifdef CONFIG_PM_SLEEP
@@ -2866,6 +3027,8 @@ static int __init tegra_xusb_init(void)
 	tegra_xhci_hc_driver.add_endpoint = tegra_xhci_add_endpoint;
 	tegra_xhci_hc_driver.enable_usb3_lpm_timeout =
 		tegra_xhci_enable_usb3_lpm_timeout;
+	tegra_xhci_hc_driver.urb_enqueue = tegra_xhci_urb_enqueue;
+
 	return platform_driver_register(&tegra_xusb_driver);
 }
 module_init(tegra_xusb_init);

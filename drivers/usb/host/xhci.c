@@ -1456,7 +1456,7 @@ command_cleanup:
  * non-error returns are a promise to giveback() the urb later
  * we drop ownership so next owner (or urb unlink) can get it
  */
-static int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
+int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 {
 	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
 	unsigned long flags;
