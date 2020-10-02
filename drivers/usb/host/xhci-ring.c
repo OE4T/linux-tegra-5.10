@@ -2394,7 +2394,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		goto err_out;
 	}
 
-	if (xhci->shared_hcd->driver->is_u0_ts1_detect_disabled)
+	if (xhci->shared_hcd && xhci->shared_hcd->driver->is_u0_ts1_detect_disabled)
 		disable_u0_ts1_detect =
 			xhci->shared_hcd->driver->is_u0_ts1_detect_disabled(
 				xhci->shared_hcd);
