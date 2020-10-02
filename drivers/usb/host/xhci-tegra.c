@@ -326,6 +326,7 @@ struct tegra_xusb_soc {
 	bool lpm_support;
 	bool otg_reset_sspi;
 	bool disable_hsic_wake;
+	bool disable_u0_ts1_detect;
 };
 
 struct tegra_xusb_context {
@@ -1380,6 +1381,13 @@ static void tegra_xusb_mbox_handle(struct tegra_xusb *tegra,
 			rsp.cmd = MBOX_CMD_NAK;
 		} else {
 			rsp.cmd = MBOX_CMD_ACK;
+		}
+
+		for_each_set_bit(port, &mask, soc->ports.usb3.count) {
+			if (enable && tegra->soc->disable_u0_ts1_detect)
+				tegra_xusb_padctl_enable_receiver_detector(
+					padctl,
+					tegra->phys[port]);
 		}
 
 		rsp.data = msg->data;
@@ -2546,6 +2554,103 @@ static int tegra_xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb,
 	return xhci_urb_enqueue(hcd, urb, mem_flags);
 }
 
+static inline u32 read_portsc(struct tegra_xusb *tegra, unsigned int port)
+{
+	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
+
+	return readl(&xhci->op_regs->port_status_base + NUM_PORT_REGS * port);
+}
+
+static int tegra_xhci_hub_status_data(struct usb_hcd *hcd, char *buf)
+{
+	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
+	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
+	unsigned long flags;
+	int port;
+
+	if ((hcd->speed != HCD_USB3) ||
+		!tegra->soc->disable_u0_ts1_detect)
+		goto no_rx_control;
+
+	for (port = 0; port < tegra->soc->phy_types[0].num; port++) {
+		u32 portsc = read_portsc(tegra, port);
+		struct phy *phy;
+
+		if (portsc == 0xffffffff)
+			break;
+
+		spin_lock_irqsave(&xhci->lock, flags);
+		phy = tegra->phys[port];
+		if ((portsc & PORT_PLS_MASK) == XDEV_U0)
+			tegra_xusb_padctl_disable_receiver_detector(
+							tegra->padctl, phy);
+		else {
+			if ((portsc & PORT_PLS_MASK) == XDEV_RXDETECT)
+				tegra_xusb_padctl_disable_clamp_en_early(
+							tegra->padctl, phy);
+
+			tegra_xusb_padctl_enable_receiver_detector(
+							tegra->padctl, phy);
+		}
+		spin_unlock_irqrestore(&xhci->lock, flags);
+	}
+
+no_rx_control:
+	return xhci_hub_status_data(hcd, buf);
+}
+
+static bool tegra_xhci_is_u0_ts1_detect_disabled(struct usb_hcd *hcd)
+{
+	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
+
+	return tegra->soc->disable_u0_ts1_detect;
+}
+
+static void tegra_xhci_endpoint_soft_retry(struct usb_hcd *hcd,
+		struct usb_host_endpoint *ep, bool on)
+{
+	struct usb_device *udev = (struct usb_device *) ep->hcpriv;
+	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
+	struct phy *phy;
+	int port = -1;
+	int delay = 0;
+	u32 portsc;
+
+	if (!udev || udev->speed != USB_SPEED_SUPER ||
+			!tegra->soc->disable_u0_ts1_detect)
+		return;
+
+	/* trace back to roothub port */
+	while (udev->parent) {
+		if (udev->parent == udev->bus->root_hub) {
+			port = udev->portnum - 1;
+			break;
+		}
+		udev = udev->parent;
+	}
+
+	if (port < 0 || port >= tegra->soc->phy_types[0].num)
+		return;
+
+	portsc = read_portsc(tegra, port);
+	phy = tegra->phys[port];
+
+	if (on) {
+		while ((portsc & PORT_PLS_MASK) != XDEV_U0 && delay++ < 6) {
+			udelay(50);
+			portsc = read_portsc(tegra, port);
+		}
+
+		if ((portsc & PORT_PLS_MASK) != XDEV_U0) {
+			dev_info(tegra->dev, "%s port %d doesn't reach U0 in 300us, portsc 0x%x\n",
+				__func__, port, portsc);
+		}
+		tegra_xusb_padctl_disable_receiver_detector(tegra->padctl, phy);
+		tegra_xusb_padctl_enable_clamp_en_early(tegra->padctl, phy);
+	} else
+		tegra_xusb_padctl_disable_clamp_en_early(tegra->padctl, phy);
+}
+
 #ifdef CONFIG_PM_SLEEP
 static bool xhci_hub_ports_suspended(struct xhci_hub *hub)
 {
@@ -2900,6 +3005,7 @@ static const struct tegra_xusb_soc tegra210_soc = {
 		.data_out = 0xec,
 		.owner = 0xf0,
 	},
+	.disable_u0_ts1_detect = true,
 };
 MODULE_FIRMWARE("nvidia/tegra210/xusb.bin");
 
@@ -2982,6 +3088,7 @@ static const struct tegra_xusb_soc tegra186_soc = {
 		.owner = 0xf0,
 	},
 	.lpm_support = true,
+	.disable_u0_ts1_detect = false,
 };
 
 static const char * const tegra194_supply_names[] = {
@@ -3014,6 +3121,7 @@ static const struct tegra_xusb_soc tegra194_soc = {
 		.owner = 0x74,
 	},
 	.lpm_support = true,
+	.disable_u0_ts1_detect = false,
 };
 MODULE_FIRMWARE("nvidia/tegra194/xusb.bin");
 
@@ -3087,6 +3195,11 @@ static bool device_has_isoch_ep_and_interval_one(struct usb_device *udev)
 static int tegra_xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
 			struct usb_device *udev, enum usb3_link_state state)
 {
+	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
+
+	if (tegra->soc->disable_u0_ts1_detect)
+		return USB3_LPM_DISABLED;
+
 	if ((state == USB3_LPM_U1 || state == USB3_LPM_U2) &&
 		device_has_isoch_ep_and_interval_one(udev))
 		return USB3_LPM_DISABLED;
@@ -3113,6 +3226,11 @@ static int __init tegra_xusb_init(void)
 		tegra_xhci_enable_usb3_lpm_timeout;
 	tegra_xhci_hc_driver.urb_enqueue = tegra_xhci_urb_enqueue;
 	tegra_xhci_hc_driver.irq = tegra_xhci_irq;
+	tegra_xhci_hc_driver.hub_status_data = tegra_xhci_hub_status_data;
+	tegra_xhci_hc_driver.endpoint_soft_retry =
+			tegra_xhci_endpoint_soft_retry;
+	tegra_xhci_hc_driver.is_u0_ts1_detect_disabled =
+			tegra_xhci_is_u0_ts1_detect_disabled;
 
 	return platform_driver_register(&tegra_xusb_driver);
 }
