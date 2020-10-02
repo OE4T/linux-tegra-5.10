@@ -2332,6 +2332,31 @@ finish_td:
 	return finish_td(xhci, td, event, ep, status);
 }
 
+static void xhci_endpoint_soft_retry(struct xhci_hcd *xhci,
+			unsigned int slot_id,
+			unsigned int dci, bool on)
+{
+	struct xhci_virt_device *xdev = xhci->devs[slot_id];
+	struct usb_host_endpoint *ep;
+
+	if (!xhci->shared_hcd || !xhci->shared_hcd->driver ||
+			!xhci->shared_hcd->driver->endpoint_soft_retry)
+		return;
+
+	if (xdev->udev->speed != USB_SPEED_SUPER)
+		return;
+
+	if (dci & 0x1)
+		ep = xdev->udev->ep_in[(dci - 1)/2];
+	else
+		ep = xdev->udev->ep_out[dci/2];
+
+	if (!ep)
+		return;
+
+	xhci->shared_hcd->driver->endpoint_soft_retry(xhci->shared_hcd, ep, on);
+}
+
 /*
  * If this function returns an error condition, it means it got a Transfer
  * event with a corrupted Slot ID, Endpoint ID, or TRB DMA address.
@@ -2355,6 +2380,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 	u32 trb_comp_code;
 	int td_num = 0;
 	bool handling_skipped_tds = false;
+	bool disable_u0_ts1_detect = false;
 
 	slot_id = TRB_TO_SLOT_ID(le32_to_cpu(event->flags));
 	ep_index = TRB_TO_EP_ID(le32_to_cpu(event->flags)) - 1;
@@ -2367,6 +2393,11 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 			 slot_id);
 		goto err_out;
 	}
+
+	if (xhci->shared_hcd->driver->is_u0_ts1_detect_disabled)
+		disable_u0_ts1_detect =
+			xhci->shared_hcd->driver->is_u0_ts1_detect_disabled(
+				xhci->shared_hcd);
 
 	ep = &xdev->eps[ep_index];
 	ep_ring = xhci_dma_to_transfer_ring(ep, ep_trb_dma);
@@ -2412,8 +2443,12 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 	 * transfer type
 	 */
 	case COMP_SUCCESS:
-		if (EVENT_TRB_LEN(le32_to_cpu(event->transfer_len)) == 0)
-			break;
+		if (EVENT_TRB_LEN(le32_to_cpu(event->transfer_len)) == 0) {
+			if (disable_u0_ts1_detect)
+				goto check_soft_try;
+			else
+				break;
+		}
 		if (xhci->quirks & XHCI_TRUST_TX_LENGTH ||
 		    ep_ring->last_td_was_short)
 			trb_comp_code = COMP_SHORT_PACKET;
@@ -2421,7 +2456,15 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 			xhci_warn_ratelimited(xhci,
 					      "WARN Successful completion on short TX for slot %u ep %u: needs XHCI_TRUST_TX_LENGTH quirk?\n",
 					      slot_id, ep_index);
+		fallthrough;
 	case COMP_SHORT_PACKET:
+check_soft_try:
+		if (disable_u0_ts1_detect && ep_ring->soft_try) {
+			xhci_dbg(xhci, "soft retry completed successfully\n");
+			ep_ring->soft_try = false;
+			xhci_endpoint_soft_retry(xhci,
+						slot_id, ep_index + 1, false);
+		}
 		break;
 	/* Completion codes for endpoint stopped state */
 	case COMP_STOPPED:
@@ -2451,6 +2494,26 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		status = -EPROTO;
 		break;
 	case COMP_USB_TRANSACTION_ERROR:
+		if (disable_u0_ts1_detect &&
+				xdev->udev->speed == USB_SPEED_SUPER &&
+				ep_ring->type != TYPE_ISOC) {
+			if (!ep_ring->soft_try) {
+				xhci_dbg(xhci, "SuperSpeed transfer error, do soft retry\n");
+				if (!xhci_queue_soft_retry(xhci,
+						slot_id, ep_index)) {
+					xhci_endpoint_soft_retry(xhci,
+						slot_id, ep_index + 1, true);
+					xhci_ring_cmd_db(xhci);
+					ep_ring->soft_try = true;
+					goto cleanup;
+				}
+			} else {
+				xhci_dbg(xhci, "soft retry complete but transfer still failed\n");
+				ep_ring->soft_try = false;
+			}
+			xhci_endpoint_soft_retry(xhci,
+						slot_id, ep_index + 1, false);
+		}
 		xhci_dbg(xhci, "Transfer error for slot %u ep %u on endpoint\n",
 			 slot_id, ep_index);
 		status = -EPROTO;
@@ -4220,5 +4283,21 @@ int xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		type |= TRB_TSP;
 
 	return queue_command(xhci, cmd, 0, 0, 0,
+			trb_slot_id | trb_ep_index | type, false);
+}
+
+int xhci_queue_soft_retry(struct xhci_hcd *xhci, int slot_id,
+		unsigned int ep_index)
+{
+	struct xhci_command *command;
+	u32 trb_slot_id = SLOT_ID_FOR_TRB(slot_id);
+	u32 trb_ep_index = EP_ID_FOR_TRB(ep_index);
+	u32 type = TRB_TYPE(TRB_RESET_EP) | TRB_TSP;
+
+	command = xhci_alloc_command(xhci, false, GFP_ATOMIC);
+	if (!command)
+		return -EINVAL;
+
+	return queue_command(xhci, command, 0, 0, 0,
 			trb_slot_id | trb_ep_index | type, false);
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2001-2002 by David Brownell
+ * Copyright (c) 2017-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -409,6 +410,13 @@ struct hc_driver {
 	int	(*find_raw_port_number)(struct usb_hcd *, int);
 	/* Call for power on/off the port if necessary */
 	int	(*port_power)(struct usb_hcd *hcd, int portnum, bool enable);
+	/* (optional) called from xhci ISR before (on=1) and after (on=0)
+	 * soft retry. It gives HCD driver a chance to configure it hardware to
+	 * deal with intermittent SuperSpeed transfer errors.
+	 */
+	void (*endpoint_soft_retry)(struct usb_hcd *,
+			struct usb_host_endpoint *, bool);
+	bool (*is_u0_ts1_detect_disabled)(struct usb_hcd *);
 
 };
 

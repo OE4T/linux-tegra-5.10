@@ -1615,6 +1615,7 @@ struct xhci_ring {
 	enum xhci_ring_type	type;
 	bool			last_td_was_short;
 	struct radix_tree_root	*trb_address_map;
+	bool			soft_try;
 };
 
 struct xhci_erst_entry {
@@ -2116,6 +2117,8 @@ int xhci_queue_evaluate_context(struct xhci_hcd *xhci, struct xhci_command *cmd,
 int xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		int slot_id, unsigned int ep_index,
 		enum xhci_ep_reset_type reset_type);
+int xhci_queue_soft_retry(struct xhci_hcd *xhci, int slot_id,
+		unsigned int ep_index);
 int xhci_queue_reset_device(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		u32 slot_id);
 void xhci_find_new_dequeue_state(struct xhci_hcd *xhci,
