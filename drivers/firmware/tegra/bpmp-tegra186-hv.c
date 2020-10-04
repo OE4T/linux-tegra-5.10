@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.
+ * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
  */
 #include <linux/io.h>
 #include <linux/dma-mapping.h>
@@ -10,6 +10,9 @@
 #include <soc/tegra/bpmp.h>
 
 #include "bpmp-private.h"
+
+#define MAX_POSSIBLE_RX_CHANNEL 1
+#define TX_CHANNEL_EXACT_COUNT  1
 
 struct tegra186_hv_bpmp {
 	struct tegra_bpmp *parent;
@@ -32,7 +35,6 @@ static int tegra186_hv_bpmp_channel_init(struct tegra_bpmp_channel *channel,
 	int err;
 
 	channel->hv_ivc = tegra_hv_ivc_reserve(hv_of_node, queue_id, NULL);
-	hv_bpmp_ivc_cookies[cookie_idx++] = channel->hv_ivc;
 
 	if (IS_ERR_OR_NULL(channel->hv_ivc)) {
 		pr_err("%s: Failed to reserve ivc queue @index %d\n",
@@ -44,6 +46,8 @@ static int tegra186_hv_bpmp_channel_init(struct tegra_bpmp_channel *channel,
 		pr_err("%s: Frame size is too small\n", __func__);
 		goto request_cleanup;
 	}
+
+	hv_bpmp_ivc_cookies[cookie_idx++] = channel->hv_ivc;
 
 	/* init completion */
 	init_completion(&channel->completion);
@@ -126,8 +130,15 @@ static int tegra186_hv_bpmp_resume(struct tegra_bpmp *bpmp)
 	unsigned int i;
 
 	/* reset message channels */
-	tegra186_hv_bpmp_channel_reset(bpmp->tx_channel);
-	tegra186_hv_bpmp_channel_reset(bpmp->rx_channel);
+	if (bpmp->soc->channels.cpu_tx.count == TX_CHANNEL_EXACT_COUNT) {
+		tegra186_hv_bpmp_channel_reset(bpmp->tx_channel);
+	} else {
+		pr_err("%s: Error: driver should have single tx channel mandatory\n", __func__);
+		return -1;
+	}
+
+	if (bpmp->soc->channels.cpu_rx.count == MAX_POSSIBLE_RX_CHANNEL)
+		tegra186_hv_bpmp_channel_reset(bpmp->rx_channel);
 
 	for (i = 0; i < bpmp->threaded.count; i++)
 		tegra186_hv_bpmp_channel_reset(&bpmp->threaded_channels[i]);
@@ -200,19 +211,26 @@ static int tegra186_hv_bpmp_init(struct tegra_bpmp *bpmp)
 	}
 
 	/* init tx channel */
-	err = tegra186_hv_bpmp_channel_init(bpmp->tx_channel, bpmp,
+	if (bpmp->soc->channels.cpu_tx.count == TX_CHANNEL_EXACT_COUNT) {
+		err = tegra186_hv_bpmp_channel_init(bpmp->tx_channel, bpmp,
 					 bpmp->soc->channels.cpu_tx.offset + first_ivc_queue, false);
-	if (err < 0) {
-		pr_err("%s: Failed initialize tx channel\n", __func__);
+		if (err < 0) {
+			pr_err("%s: Failed initialize tx channel\n", __func__);
+			goto cleanup;
+		}
+	} else {
+		pr_err("%s: Error: driver should have single tx channel mandatory\n", __func__);
 		goto cleanup;
 	}
 
 	/* init rx channel */
-	err = tegra186_hv_bpmp_channel_init(bpmp->rx_channel, bpmp,
+	if (bpmp->soc->channels.cpu_rx.count == MAX_POSSIBLE_RX_CHANNEL) {
+		err = tegra186_hv_bpmp_channel_init(bpmp->rx_channel, bpmp,
 					 bpmp->soc->channels.cpu_rx.offset + first_ivc_queue, true);
-	if (err < 0) {
-		pr_err("%s: Failed initialize rx channel\n", __func__);
-		goto cleanup;
+		if (err < 0) {
+			pr_err("%s: Failed initialize rx channel\n", __func__);
+			goto cleanup;
+		}
 	}
 
 	for (index = 0; index < bpmp->threaded.count; index++) {
