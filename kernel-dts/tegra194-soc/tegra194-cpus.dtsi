@@ -260,4 +260,12 @@
 		interrupt-affinity = <&{/cpus/cpu@0}>;
 		status = "okay";
 	};
+
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+	ccplex {
+		compatible = "nvidia,tegra194-ccplex";
+		nvidia,bpmp = <&bpmp>;
+	};
+#endif
+
 };
