@@ -129,7 +129,8 @@ regops:
   safe: no
   owner: Deepak N
   sources: [ common/regops/regops.c,
-             include/nvgpu/regops.h ]
+             include/nvgpu/regops.h,
+             include/nvgpu/regops_allowlist.h ]
 
 mc:
   safe: yes

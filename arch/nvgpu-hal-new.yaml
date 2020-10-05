@@ -602,7 +602,11 @@ regops:
              hal/regops/regops_gv11b.c,
              hal/regops/regops_gv11b.h,
              hal/regops/regops_tu104.c,
-             hal/regops/regops_tu104.h ]
+             hal/regops/regops_tu104.h,
+             hal/regops/allowlist_gv11b.c,
+             hal/regops/allowlist_gv11b.h,
+             hal/regops/allowlist_tu104.c,
+             hal/regops/allowlist_tu104.h ]
 
 falcon_fusa:
   safe: yes

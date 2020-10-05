@@ -369,6 +369,7 @@ srcs += common/debugger.c \
 	common/gr/hwpm_map.c \
 	common/perf/perfbuf.c \
 	hal/regops/regops_gv11b.c \
+	hal/regops/allowlist_gv11b.c \
 	hal/gr/ctxsw_prog/ctxsw_prog_gm20b_dbg.c \
 	hal/gr/hwpm_map/hwpm_map_gv100.c \
 	hal/ltc/ltc_gm20b_dbg.c \
@@ -385,6 +386,7 @@ ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 srcs += hal/regops/regops_gm20b.c \
 	hal/regops/regops_gp10b.c \
 	hal/regops/regops_tu104.c \
+	hal/regops/allowlist_tu104.c \
 	hal/perf/perf_gm20b.c
 endif
 endif
