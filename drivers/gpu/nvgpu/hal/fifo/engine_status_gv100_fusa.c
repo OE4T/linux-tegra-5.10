@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engine_status.h>
+#include <nvgpu/engines.h>
 
 #include <nvgpu/hw/gv100/hw_fifo_gv100.h>
 
@@ -52,6 +53,11 @@ void gv100_dump_engine_status(struct gk20a *g, struct nvgpu_debug_context *o)
 	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
 	for (i = 0; i < host_num_engines; i++) {
+		if (!nvgpu_engine_check_valid_id(g, i)) {
+			/* Skip invalid engines */
+			continue;
+		}
+
 		g->ops.engine_status.read_engine_status_info(g, i, &engine_status);
 
 		gk20a_debug_output(o, "%s eng %d: ", g->name, i);

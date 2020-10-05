@@ -170,7 +170,7 @@ done:
 struct unit_module_test nvgpu_engine_gv100_tests[] = {
 	UNIT_TEST(init_support, test_fifo_init_support, NULL, 0),
 	UNIT_TEST(read_engine_status_info, test_gv100_read_engine_status_info, NULL, 0),
-	UNIT_TEST(dump_engine_status_info, test_gv100_dump_engine_status, NULL, 0),
+	UNIT_TEST(dump_engine_status_info, test_gv100_dump_engine_status, NULL, 1),
 	UNIT_TEST(remove_support, test_fifo_remove_support, NULL, 0),
 };
 
