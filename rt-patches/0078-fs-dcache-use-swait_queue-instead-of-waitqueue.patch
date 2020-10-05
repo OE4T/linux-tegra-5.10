@@ -1,4 +1,4 @@
-From ffb31ac3f89bc13a113cdb0e6116f43d9e168cb7 Mon Sep 17 00:00:00 2001
+From 8446005ce4ed719e84a65a50d033d48c6bc13983 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 14 Sep 2016 14:35:49 +0200
 Subject: [PATCH 078/220] fs/dcache: use swait_queue instead of waitqueue
@@ -133,7 +133,7 @@ index e99e2a9..8b7cbca 100644
  	if (unlikely(IS_DEADDIR(dir_inode)))
  		return ERR_PTR(-ENOENT);
 diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
-index e732580..4e7e32a 100644
+index cb52db9..b5703ca 100644
 --- a/fs/nfs/dir.c
 +++ b/fs/nfs/dir.c
 @@ -484,7 +484,7 @@ void nfs_prime_dcache(struct dentry *parent, struct nfs_entry *entry,
@@ -145,7 +145,7 @@ index e732580..4e7e32a 100644
  	struct dentry *dentry;
  	struct dentry *alias;
  	struct inode *inode;
-@@ -1662,7 +1662,7 @@ int nfs_atomic_open(struct inode *dir, struct dentry *dentry,
+@@ -1665,7 +1665,7 @@ int nfs_atomic_open(struct inode *dir, struct dentry *dentry,
  		    struct file *file, unsigned open_flags,
  		    umode_t mode)
  {
@@ -233,7 +233,7 @@ index 65d975b..1e23dd0 100644
  extern struct dentry * d_add_ci(struct dentry *, struct inode *, struct qstr *);
  extern struct dentry * d_exact_alias(struct dentry *, struct inode *);
 diff --git a/include/linux/nfs_xdr.h b/include/linux/nfs_xdr.h
-index 9408f32..c49bb41 100644
+index 69cb46f..fc682ad 100644
 --- a/include/linux/nfs_xdr.h
 +++ b/include/linux/nfs_xdr.h
 @@ -1670,7 +1670,7 @@ struct nfs_unlinkdata {

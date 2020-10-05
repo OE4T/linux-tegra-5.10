@@ -1,4 +1,4 @@
-From ca148631e196c2b6da48aefe6be179cb9eead99d Mon Sep 17 00:00:00 2001
+From abf74a08c5e2ffa7085a772ed130d7cb6d04e4cf Mon Sep 17 00:00:00 2001
 From: Scott Wood <swood@redhat.com>
 Date: Sat, 12 Oct 2019 01:52:14 -0500
 Subject: [PATCH 144/220] sched: migrate_enable: Use stop_one_cpu_nowait()

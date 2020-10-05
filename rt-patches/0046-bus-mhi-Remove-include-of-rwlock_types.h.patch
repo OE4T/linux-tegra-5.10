@@ -1,4 +1,4 @@
-From 58bd077538a34687cdd2fbd4f4b439de0d7d3fe3 Mon Sep 17 00:00:00 2001
+From 36838db9e38cd80b7dee31445cdeb36d89abfc5c Mon Sep 17 00:00:00 2001
 From: Clark Williams <clark.williams@gmail.com>
 Date: Sat, 12 Sep 2020 14:48:26 -0500
 Subject: [PATCH 046/220] bus: mhi: Remove include of rwlock_types.h

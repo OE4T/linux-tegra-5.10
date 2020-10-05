@@ -1,4 +1,4 @@
-From db74451b3f08a859da1c9c9b47ce2361796368e1 Mon Sep 17 00:00:00 2001
+From bc681bc97b2a3e2d5c8fa238e746672aaefe798b Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sun, 24 Jul 2011 12:11:43 +0200
 Subject: [PATCH 082/220] kconfig: Disable config options which are not RT

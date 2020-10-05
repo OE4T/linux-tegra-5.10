@@ -1,4 +1,4 @@
-From e0b6782c12a22cd13777bfe49e476f7a3a9cfb5b Mon Sep 17 00:00:00 2001
+From 6d48217814567398211e3ceea31c2ca1c7cad53f Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:43 +0200
 Subject: [PATCH 069/220] rbtree_latch: Use seqcount_latch_t

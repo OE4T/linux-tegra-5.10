@@ -1,4 +1,4 @@
-From 8784492dc9e7cd7dce66afc8579e6d1b88faa1fc Mon Sep 17 00:00:00 2001
+From 71dd12673d7056ca6ed92fd34c7382a07e2bd9f0 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 2 Jul 2020 14:27:23 +0200
 Subject: [PATCH 096/220] mm/page_alloc: Use migrate_disable() in
@@ -18,7 +18,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index b2d43a3..35fb261 100644
+index 357d2fb..6aefb12 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -2986,9 +2986,9 @@ static void drain_local_pages_wq(struct work_struct *work)

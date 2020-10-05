@@ -1,4 +1,4 @@
-From de8af370f3d63b4073db0a21f2f4f7b460ce3c51 Mon Sep 17 00:00:00 2001
+From f3da61cb07b7e5059afcecabb5572be6e96425ea Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 17 Aug 2020 12:28:10 +0200
 Subject: [PATCH 077/220] u64_stats: Disable preemption on 32bit-UP/SMP with RT

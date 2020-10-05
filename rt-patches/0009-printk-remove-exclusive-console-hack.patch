@@ -1,4 +1,4 @@
-From 3a9ccfbde2c98fe0064095a77fe9783b4a0b2ffa Mon Sep 17 00:00:00 2001
+From cad75d9252a93d2d0345df8f11883e178d6af0df Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:47 +0100
 Subject: [PATCH 009/220] printk: remove exclusive console hack

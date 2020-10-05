@@ -1,4 +1,4 @@
-From bc042517f7880a102244a2e45ae962e51c7ac718 Mon Sep 17 00:00:00 2001
+From 4db56f8b66d0a5a74ea0b5bdffdfd3a8b74ef8fb Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:50 +0100
 Subject: [PATCH 013/220] printk: minimize console locking implementation

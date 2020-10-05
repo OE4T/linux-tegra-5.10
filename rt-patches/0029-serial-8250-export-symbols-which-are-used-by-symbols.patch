@@ -1,4 +1,4 @@
-From 805314c0873beb5137d05e8fe994b591fb95f0b4 Mon Sep 17 00:00:00 2001
+From d12f12afd2df4c56b26fd89a478b52d19203d95f Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 16 Feb 2019 09:02:00 +0100
 Subject: [PATCH 029/220] serial: 8250: export symbols which are used by

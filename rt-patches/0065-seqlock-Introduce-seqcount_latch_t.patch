@@ -1,4 +1,4 @@
-From 099dcae221f614918a6cd28e6d25ab869d7fbd88 Mon Sep 17 00:00:00 2001
+From c28c1ad6c9308f1964f76ad1ebb0e0a9ad1bd652 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:39 +0200
 Subject: [PATCH 065/220] seqlock: Introduce seqcount_latch_t

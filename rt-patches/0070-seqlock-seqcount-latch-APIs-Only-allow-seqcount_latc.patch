@@ -1,4 +1,4 @@
-From 83aa4e4dbcecfd262a8b0a5c905a98f11ca185a0 Mon Sep 17 00:00:00 2001
+From 72424ada33b757ed9bb552d2e3070421bb40023c Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:44 +0200
 Subject: [PATCH 070/220] seqlock: seqcount latch APIs: Only allow

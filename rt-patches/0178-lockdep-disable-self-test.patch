@@ -1,4 +1,4 @@
-From 6acb32f03acb695559c77ae6336f0b610271a431 Mon Sep 17 00:00:00 2001
+From 98efb002e2bd3c61697d3a6be634ec6e8611abf4 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 17 Oct 2017 16:36:18 +0200
 Subject: [PATCH 178/220] lockdep: disable self-test

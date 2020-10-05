@@ -1,4 +1,4 @@
-From 18c3f025a267a8741107c7f321997aba17259755 Mon Sep 17 00:00:00 2001
+From 5e88ab451ebaa5b5227d079aed4ebcbb4dc39e01 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:53 +0100
 Subject: [PATCH 016/220] printk: print history for new consoles

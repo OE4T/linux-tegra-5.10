@@ -1,4 +1,4 @@
-From a20bf4293288986e4f4da4bc2f0039fb6ebb01d8 Mon Sep 17 00:00:00 2001
+From cb1777918ce705e274c7069c13e5818d66619d14 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 27 May 2017 19:02:06 +0200
 Subject: [PATCH 086/220] net/core: disable NET_RX_BUSY_POLL on RT

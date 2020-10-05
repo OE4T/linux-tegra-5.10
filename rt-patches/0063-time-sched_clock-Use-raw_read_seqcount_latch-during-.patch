@@ -1,4 +1,4 @@
-From f8037efb52e394d1fb312153ca08ebc735661edd Mon Sep 17 00:00:00 2001
+From 8c1a295420912d428aa4416958b52a4c2a67bb2c Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:37 +0200
 Subject: [PATCH 063/220] time/sched_clock: Use raw_read_seqcount_latch()

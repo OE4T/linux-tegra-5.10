@@ -1,4 +1,4 @@
-From 50f92180b6b1f5824ccdee96bccaa664e9b47947 Mon Sep 17 00:00:00 2001
+From 4095beb59da821ad9962d1e3686487436d7d16e8 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:49 +0100
 Subject: [PATCH 012/220] printk_safe: remove printk safe code
@@ -742,10 +742,10 @@ index 50aeae7..00000000
 -	printk_safe_flush();
 -}
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index bb34e23..9ca6664e 100644
+index 4278b88..2f3e833 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
-@@ -9246,7 +9246,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
+@@ -9248,7 +9248,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
  	tracing_off();
  
  	local_irq_save(flags);
@@ -753,7 +753,7 @@ index bb34e23..9ca6664e 100644
  
  	/* Simulate the iterator */
  	trace_init_global_iter(&iter);
-@@ -9326,7 +9325,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
+@@ -9328,7 +9327,6 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
  		atomic_dec(&per_cpu_ptr(iter.array_buffer->data, cpu)->disabled);
  	}
  	atomic_dec(&dump_running);

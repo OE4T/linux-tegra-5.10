@@ -1,4 +1,4 @@
-From ac5645cb9eb48d53bc6db854eef0a69fe59d6761 Mon Sep 17 00:00:00 2001
+From c57ff929137f6601dd1d9a512a9104262267528e Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:30:03 +0100
 Subject: [PATCH 026/220] printk: remove unused code

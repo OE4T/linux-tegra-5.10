@@ -1,4 +1,4 @@
-From d77002c8b9e7a7eaa82e07a1847f4b9b88962024 Mon Sep 17 00:00:00 2001
+From f3dd034355242427efe1c80b41119732cab08ecf Mon Sep 17 00:00:00 2001
 From: Julia Cartwright <julia@ni.com>
 Date: Wed, 12 Oct 2016 11:21:14 -0500
 Subject: [PATCH 152/220] rcu: enable rcu_normal_after_boot by default for RT

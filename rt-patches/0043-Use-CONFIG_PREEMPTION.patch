@@ -1,4 +1,4 @@
-From 99076c69c4f9ccb62ad837de4d422cb3f5d53d4b Mon Sep 17 00:00:00 2001
+From 42f70a0b9f134802dd51732f561928689b459ce1 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 26 Jul 2019 11:30:49 +0200
 Subject: [PATCH 043/220] Use CONFIG_PREEMPTION

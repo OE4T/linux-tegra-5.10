@@ -1,4 +1,4 @@
-From 3f362074811f33c586ec59cb0c38b5ae6da4b7e0 Mon Sep 17 00:00:00 2001
+From f11807be87b199006d2e0655aa7c6d21061fa0f9 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Mon, 28 May 2018 15:24:21 +0200
 Subject: [PATCH 092/220] Split IRQ-off and zone->lock while freeing pages from
@@ -17,7 +17,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 50 insertions(+), 10 deletions(-)
 
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index f00d1d9..b2d43a3 100644
+index bf7712a..357d2fb 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -1292,8 +1292,8 @@ static inline void prefetch_buddy(struct page *page)

@@ -1,4 +1,4 @@
-From 993e127074d18aac23601d70aedbe32fefd8fb76 Mon Sep 17 00:00:00 2001
+From bc58b86358348dca120fec620e353656436c19d7 Mon Sep 17 00:00:00 2001
 From: Ingo Molnar <mingo@elte.hu>
 Date: Fri, 3 Jul 2009 08:30:13 -0500
 Subject: [PATCH 061/220] mm/vmstat: Protect per cpu variables with preempt
@@ -16,7 +16,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  2 files changed, 16 insertions(+)
 
 diff --git a/include/linux/vmstat.h b/include/linux/vmstat.h
-index 91220ac..d6bb3ce 100644
+index 7557c10..ed4b631 100644
 --- a/include/linux/vmstat.h
 +++ b/include/linux/vmstat.h
 @@ -63,7 +63,9 @@ DECLARE_PER_CPU(struct vm_event_state, vm_event_states);

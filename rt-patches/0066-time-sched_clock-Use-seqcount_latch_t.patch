@@ -1,4 +1,4 @@
-From b36dd6bc3b3e04d25b92238c9d796c71c01f6a47 Mon Sep 17 00:00:00 2001
+From c84bd8f172622dd3973f1d34f27de9ae22b49c87 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:40 +0200
 Subject: [PATCH 066/220] time/sched_clock: Use seqcount_latch_t

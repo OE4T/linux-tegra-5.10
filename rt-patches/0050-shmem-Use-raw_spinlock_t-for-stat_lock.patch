@@ -1,4 +1,4 @@
-From cc00a49320a126f99b5f49b05d7be861662256c7 Mon Sep 17 00:00:00 2001
+From 78063413400ce67a403d5598ab1cb24c207f9068 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 14 Aug 2020 18:53:34 +0200
 Subject: [PATCH 050/220] shmem: Use raw_spinlock_t for ->stat_lock

@@ -1,4 +1,4 @@
-From c7416d0d9eaf95a5cd00117558bddcd832e3f51b Mon Sep 17 00:00:00 2001
+From 29570337af014681808ddf7c70f15d86f9840667 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 26 Jul 2018 15:06:10 +0200
 Subject: [PATCH 088/220] efi: Allow efi=runtime

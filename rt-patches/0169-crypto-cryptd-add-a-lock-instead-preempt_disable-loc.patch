@@ -1,4 +1,4 @@
-From 5219ca12cf62b164fefe771baf2f5640552e9929 Mon Sep 17 00:00:00 2001
+From 4e7b15c14ce0918d6768bcf0661c19eef586fdf4 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 26 Jul 2018 18:52:00 +0200
 Subject: [PATCH 169/220] crypto: cryptd - add a lock instead

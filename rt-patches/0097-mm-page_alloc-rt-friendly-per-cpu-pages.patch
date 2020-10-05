@@ -1,4 +1,4 @@
-From 301c6e8504789a958b9968219be408e0368c3154 Mon Sep 17 00:00:00 2001
+From 92973163e84592cab4712e2d40ea952fae3c3d9b Mon Sep 17 00:00:00 2001
 From: Ingo Molnar <mingo@elte.hu>
 Date: Fri, 3 Jul 2009 08:29:37 -0500
 Subject: [PATCH 097/220] mm: page_alloc: rt-friendly per-cpu pages
@@ -17,7 +17,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 28 insertions(+), 19 deletions(-)
 
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 35fb261..d7e2436 100644
+index 6aefb12..6b5c336 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -61,6 +61,7 @@
@@ -144,7 +144,7 @@ index 35fb261..d7e2436 100644
  	return page;
  }
  
-@@ -3438,7 +3446,8 @@ struct page *rmqueue(struct zone *preferred_zone,
+@@ -3445,7 +3453,8 @@ struct page *rmqueue(struct zone *preferred_zone,
  	 * allocate greater than order-1 page units with __GFP_NOFAIL.
  	 */
  	WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
@@ -154,7 +154,7 @@ index 35fb261..d7e2436 100644
  
  	do {
  		page = NULL;
-@@ -3458,7 +3467,7 @@ struct page *rmqueue(struct zone *preferred_zone,
+@@ -3471,7 +3480,7 @@ struct page *rmqueue(struct zone *preferred_zone,
  
  	__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
  	zone_statistics(preferred_zone, zone);
@@ -163,7 +163,7 @@ index 35fb261..d7e2436 100644
  
  out:
  	/* Separate test+clear to avoid unnecessary atomics */
-@@ -3471,7 +3480,7 @@ struct page *rmqueue(struct zone *preferred_zone,
+@@ -3484,7 +3493,7 @@ struct page *rmqueue(struct zone *preferred_zone,
  	return page;
  
  failed:
@@ -172,7 +172,7 @@ index 35fb261..d7e2436 100644
  	return NULL;
  }
  
-@@ -8742,7 +8751,7 @@ void zone_pcp_reset(struct zone *zone)
+@@ -8755,7 +8764,7 @@ void zone_pcp_reset(struct zone *zone)
  	struct per_cpu_pageset *pset;
  
  	/* avoid races with drain_pages()  */
@@ -181,7 +181,7 @@ index 35fb261..d7e2436 100644
  	if (zone->pageset != &boot_pageset) {
  		for_each_online_cpu(cpu) {
  			pset = per_cpu_ptr(zone->pageset, cpu);
-@@ -8751,7 +8760,7 @@ void zone_pcp_reset(struct zone *zone)
+@@ -8764,7 +8773,7 @@ void zone_pcp_reset(struct zone *zone)
  		free_percpu(zone->pageset);
  		zone->pageset = &boot_pageset;
  	}

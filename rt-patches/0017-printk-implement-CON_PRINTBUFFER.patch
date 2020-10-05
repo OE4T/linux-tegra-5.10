@@ -1,4 +1,4 @@
-From ccb1e0833d4cbe5d6aecd53aa0fb1eb457e660af Mon Sep 17 00:00:00 2001
+From f4e8b70f664dfe756280bfe932c4109c445d78e0 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:54 +0100
 Subject: [PATCH 017/220] printk: implement CON_PRINTBUFFER

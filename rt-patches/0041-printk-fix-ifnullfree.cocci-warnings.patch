@@ -1,4 +1,4 @@
-From 0c8fbff6c0643c483451d4b7855515cceac34e8b Mon Sep 17 00:00:00 2001
+From d0f380aa1749e90acaf1a095b237d7c230bbd671 Mon Sep 17 00:00:00 2001
 From: Julia Lawall <julia.lawall@inria.fr>
 Date: Fri, 24 Jul 2020 12:05:31 +0200
 Subject: [PATCH 041/220] printk: fix ifnullfree.cocci warnings

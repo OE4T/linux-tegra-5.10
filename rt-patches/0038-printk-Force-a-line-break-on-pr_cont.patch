@@ -1,4 +1,4 @@
-From b0d1662b37c8f5a79cc8f38c617450cd9fd403ed Mon Sep 17 00:00:00 2001
+From 9414c43e4de62cb342ffbd09708513ef66c0a4f2 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?=E6=B1=AA=E5=8B=8710269566?= <wang.yong12@zte.com.cn>
 Date: Thu, 21 May 2020 09:37:44 +0800
 Subject: [PATCH 038/220] printk: Force a line break on pr_cont(" ")

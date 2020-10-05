@@ -1,4 +1,4 @@
-From 761d51cf273319e2d52ac0ab8564f117304582f1 Mon Sep 17 00:00:00 2001
+From 69f9edd8977ca83166b209ea7110302df06dbaab Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Fri, 4 Sep 2020 17:32:29 +0200
 Subject: [PATCH 073/220] seqlock: seqcount_t: Implement all read APIs as

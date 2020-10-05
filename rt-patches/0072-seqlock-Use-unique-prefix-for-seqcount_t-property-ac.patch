@@ -1,4 +1,4 @@
-From 46e68e5da0d45636dc0969abffb75509de56e0a5 Mon Sep 17 00:00:00 2001
+From 410e89d57ec9657e7e0118e7bd1f6266e3fb0947 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Fri, 4 Sep 2020 17:32:28 +0200
 Subject: [PATCH 072/220] seqlock: Use unique prefix for seqcount_t property

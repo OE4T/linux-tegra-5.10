@@ -1,4 +1,4 @@
-From 6a87c965edd83a7b9d667724ab9322eac34a78a7 Mon Sep 17 00:00:00 2001
+From 75ad6e8eb89d1358d133999f0412d4c3aaa9e0ae Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 27 May 2017 19:02:06 +0200
 Subject: [PATCH 143/220] kernel/sched/core: add migrate_disable()

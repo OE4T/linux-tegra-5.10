@@ -1,4 +1,4 @@
-From 11aab284e088cd3d57b36fdd5389cf96087a45cb Mon Sep 17 00:00:00 2001
+From 04d41d1027ea449b5587cb7f62e1c931093ace72 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 14 Aug 2020 16:51:58 +0200
 Subject: [PATCH 139/220] mutex: Move the ww_mutext definition back to

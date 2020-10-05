@@ -1,4 +1,4 @@
-From ae5f9bfd013f5a1447653d2ba52ab9863dd09fdd Mon Sep 17 00:00:00 2001
+From 0f8b4788b6a13bda4b7d25fb4a1641b810585986 Mon Sep 17 00:00:00 2001
 From: Mike Galbraith <umgwanakikbuti@gmail.com>
 Date: Wed, 18 Feb 2015 16:05:28 +0100
 Subject: [PATCH 158/220] sunrpc: Make svc_xprt_do_enqueue() use

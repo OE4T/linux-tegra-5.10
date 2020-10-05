@@ -1,4 +1,4 @@
-From 881cf5cac9f7245b06f036bacb48a7188d97b204 Mon Sep 17 00:00:00 2001
+From 301a2198ae7b2e81ab0f9a27317d39430ecca2b7 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Fri, 4 Sep 2020 17:32:27 +0200
 Subject: [PATCH 071/220] seqlock: seqcount_LOCKNAME_t: Standardize naming

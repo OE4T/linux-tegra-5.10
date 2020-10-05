@@ -1,4 +1,4 @@
-From 5cea10d8fc66de7530ba0c18a03f3e1b790c6bf2 Mon Sep 17 00:00:00 2001
+From 04d8d3a87c066fda7e636be767693c810916a3c4 Mon Sep 17 00:00:00 2001
 From: Mike Galbraith <umgwanakikbuti@gmail.com>
 Date: Thu, 20 Oct 2016 11:15:22 +0200
 Subject: [PATCH 214/220] drivers/zram: Don't disable preemption in

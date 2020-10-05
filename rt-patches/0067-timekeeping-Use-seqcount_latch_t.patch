@@ -1,4 +1,4 @@
-From 2dad8c850f3ebaba1bfd6c7bb65d49a779c9ea8c Mon Sep 17 00:00:00 2001
+From dd83139fad239c74a4885b33459ac6a02a8a4bc1 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:41 +0200
 Subject: [PATCH 067/220] timekeeping: Use seqcount_latch_t
@@ -41,7 +41,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
-index 4c47f38..999c981 100644
+index cdbbf0c..0c40084 100644
 --- a/kernel/time/timekeeping.c
 +++ b/kernel/time/timekeeping.c
 @@ -64,7 +64,7 @@ static struct timekeeper shadow_timekeeper;
@@ -69,7 +69,7 @@ index 4c47f38..999c981 100644
  	.base[0] = { .clock = &dummy_clock, },
  	.base[1] = { .clock = &dummy_clock, },
  };
-@@ -467,7 +467,7 @@ static __always_inline u64 __ktime_get_fast_ns(struct tk_fast *tkf)
+@@ -473,7 +473,7 @@ static __always_inline u64 __ktime_get_fast_ns(struct tk_fast *tkf)
  					tk_clock_read(tkr),
  					tkr->cycle_last,
  					tkr->mask));
@@ -78,7 +78,7 @@ index 4c47f38..999c981 100644
  
  	return now;
  }
-@@ -533,7 +533,7 @@ static __always_inline u64 __ktime_get_real_fast_ns(struct tk_fast *tkf)
+@@ -539,7 +539,7 @@ static __always_inline u64 __ktime_get_real_fast_ns(struct tk_fast *tkf)
  					tk_clock_read(tkr),
  					tkr->cycle_last,
  					tkr->mask));

@@ -1,4 +1,4 @@
-From ae0611a24db03c491d499ac866e19b9c3e743cd8 Mon Sep 17 00:00:00 2001
+From 5b25274cd02e4260dc9b91866644600db5e5a270 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sun, 13 Nov 2011 17:17:09 +0100
 Subject: [PATCH 115/220] softirq: Check preemption after reenabling interrupts
@@ -21,7 +21,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  4 files changed, 17 insertions(+)
 
 diff --git a/block/blk-mq.c b/block/blk-mq.c
-index b3d2785..907a982 100644
+index cb6b122a..394bb67 100644
 --- a/block/blk-mq.c
 +++ b/block/blk-mq.c
 @@ -604,6 +604,7 @@ static void blk_mq_trigger_softirq(struct request *rq)

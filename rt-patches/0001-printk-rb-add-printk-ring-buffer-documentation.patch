@@ -1,4 +1,4 @@
-From 1a8e18bf5fbb605660983aed1f3d538f2d404bff Mon Sep 17 00:00:00 2001
+From cbbec0c1a358eebe372ca809b4cf254c9f31f4f2 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:39 +0100
 Subject: [PATCH 001/220] printk-rb: add printk ring buffer documentation

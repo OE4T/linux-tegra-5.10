@@ -1,4 +1,4 @@
-From 94672971699b7d67e38bc30bd1098f12bc35c4a0 Mon Sep 17 00:00:00 2001
+From cea51f7193abc24726815e0c83f5d1b1f97bcb10 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Fri, 4 Sep 2020 17:32:30 +0200
 Subject: [PATCH 074/220] seqlock: seqcount_LOCKNAME_t: Introduce PREEMPT_RT

@@ -1,4 +1,4 @@
-From 4a51817c7fd495bfe1c8bd1c6e2b2559f570c482 Mon Sep 17 00:00:00 2001
+From c6f987b1424a953b53a7d6d646043b8dda82295c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sun, 17 Jul 2011 21:56:42 +0200
 Subject: [PATCH 147/220] trace: Add migrate-disabled counter to tracing output
@@ -24,7 +24,7 @@ index 5c69433..1a9cb91 100644
  
  #define TRACE_EVENT_TYPE_MAX						\
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 9ca6664e..27de572 100644
+index 2f3e833..799fe05 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -2457,6 +2457,8 @@ tracing_generic_entry_update(struct trace_entry *entry, unsigned short type,
@@ -36,7 +36,7 @@ index 9ca6664e..27de572 100644
  }
  EXPORT_SYMBOL_GPL(tracing_generic_entry_update);
  
-@@ -3786,9 +3788,10 @@ static void print_lat_help_header(struct seq_file *m)
+@@ -3788,9 +3790,10 @@ static void print_lat_help_header(struct seq_file *m)
  		    "#                  | / _----=> need-resched    \n"
  		    "#                  || / _---=> hardirq/softirq \n"
  		    "#                  ||| / _--=> preempt-depth   \n"
@@ -50,7 +50,7 @@ index 9ca6664e..27de572 100644
  }
  
  static void print_event_info(struct array_buffer *buf, struct seq_file *m)
-@@ -3826,9 +3829,10 @@ static void print_func_help_header_irq(struct array_buffer *buf, struct seq_file
+@@ -3828,9 +3831,10 @@ static void print_func_help_header_irq(struct array_buffer *buf, struct seq_file
  	seq_printf(m, "#                            %.*s / _----=> need-resched\n", prec, space);
  	seq_printf(m, "#                            %.*s| / _---=> hardirq/softirq\n", prec, space);
  	seq_printf(m, "#                            %.*s|| / _--=> preempt-depth\n", prec, space);

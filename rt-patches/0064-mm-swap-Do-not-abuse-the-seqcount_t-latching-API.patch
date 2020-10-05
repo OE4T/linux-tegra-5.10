@@ -1,4 +1,4 @@
-From a2115517365f0d8c5e15b6290620f856b7942b06 Mon Sep 17 00:00:00 2001
+From 389483d7d79892aa169cd3f604cfd534c0e21855 Mon Sep 17 00:00:00 2001
 From: "Ahmed S. Darwish" <a.darwish@linutronix.de>
 Date: Thu, 27 Aug 2020 13:40:38 +0200
 Subject: [PATCH 064/220] mm/swap: Do not abuse the seqcount_t latching API

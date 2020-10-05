@@ -1,4 +1,4 @@
-From fe37518bb4f61adab61ad41738ec63fa6a9cb9d6 Mon Sep 17 00:00:00 2001
+From 242ed68cc380653eadf654dfc4d7724330cdf615 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 15 Apr 2015 19:00:47 +0200
 Subject: [PATCH 100/220] slub: Disable SLUB_CPU_PARTIAL

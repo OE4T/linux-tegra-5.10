@@ -1,4 +1,4 @@
-From da51de2847aead0a77d10c8748d27e5c381e30b2 Mon Sep 17 00:00:00 2001
+From 3678b0f45b76bedfeb07556b96a77b2191fa33dc Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 18 Jul 2011 17:08:34 +0200
 Subject: [PATCH 209/220] powerpc: Disable highmem on RT

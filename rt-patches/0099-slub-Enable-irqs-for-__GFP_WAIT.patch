@@ -1,4 +1,4 @@
-From b1c2af7cfdb5d7b363dbf71998a07baa291db38f Mon Sep 17 00:00:00 2001
+From 95fb5297b6e88875eaa3301051d0c776d495be93 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Wed, 9 Jan 2013 12:08:15 +0100
 Subject: [PATCH 099/220] slub: Enable irqs for __GFP_WAIT
@@ -17,10 +17,10 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/mm/slub.c b/mm/slub.c
-index 756c07c..48bd12d 100644
+index 2e7925d..795b9a3 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
-@@ -1749,10 +1749,18 @@ static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
+@@ -1745,10 +1745,18 @@ static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
  	void *start, *p, *next;
  	int idx;
  	bool shuffle;
@@ -39,7 +39,7 @@ index 756c07c..48bd12d 100644
  		local_irq_enable();
  
  	flags |= s->allocflags;
-@@ -1811,7 +1819,7 @@ static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
+@@ -1807,7 +1815,7 @@ static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
  	page->frozen = 1;
  
  out:
@@ -48,7 +48,7 @@ index 756c07c..48bd12d 100644
  		local_irq_disable();
  	if (!page)
  		return NULL;
-@@ -2865,6 +2873,10 @@ static __always_inline void *slab_alloc_node(struct kmem_cache *s,
+@@ -2861,6 +2869,10 @@ static __always_inline void *slab_alloc_node(struct kmem_cache *s,
  	unsigned long tid;
  	struct obj_cgroup *objcg = NULL;
  
@@ -59,7 +59,7 @@ index 756c07c..48bd12d 100644
  	s = slab_pre_alloc_hook(s, &objcg, 1, gfpflags);
  	if (!s)
  		return NULL;
-@@ -3330,6 +3342,10 @@ int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
+@@ -3326,6 +3338,10 @@ int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
  	int i;
  	struct obj_cgroup *objcg = NULL;
  

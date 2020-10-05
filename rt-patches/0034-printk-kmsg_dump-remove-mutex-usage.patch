@@ -1,4 +1,4 @@
-From 322215b28c242c7e35dbdf3bedc7238eaafd59c6 Mon Sep 17 00:00:00 2001
+From 3343bd7c35a95799bc07d635c78c9476c4304142 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Wed, 24 Apr 2019 16:36:04 +0200
 Subject: [PATCH 034/220] printk: kmsg_dump: remove mutex usage

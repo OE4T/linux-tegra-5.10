@@ -1,4 +1,4 @@
-From ae991a47174a78932ffc2d8d0d88d00c8d9e612d Mon Sep 17 00:00:00 2001
+From fe8249d3ad62f325497db3856034daaffac1b041 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 12 Jun 2020 16:51:50 +0200
 Subject: [PATCH 137/220] rwsem: Provide down_read_non_owner() and

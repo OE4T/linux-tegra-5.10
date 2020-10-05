@@ -1,4 +1,4 @@
-From 06690c560cfd22c3bfc04d62375ccd4bf5fe8533 Mon Sep 17 00:00:00 2001
+From 7ea173aadbd6ce4bda27abadb7a1d627759cd96b Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Fri, 22 Feb 2019 23:02:44 +0100
 Subject: [PATCH 032/220] printk: devkmsg: llseek: reset clear if it is lost

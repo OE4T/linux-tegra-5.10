@@ -1,4 +1,4 @@
-From 5e09067021e5bc5ff995fa47640692f1d995b373 Mon Sep 17 00:00:00 2001
+From 01e496599461dbcc5e4358e68b44ac84b3eb4dd3 Mon Sep 17 00:00:00 2001
 From: "Luis Claudio R. Goncalves" <lgoncalv@redhat.com>
 Date: Tue, 25 Jun 2019 11:28:04 -0300
 Subject: [PATCH 105/220] mm/zswap: Use local lock to protect per-CPU data

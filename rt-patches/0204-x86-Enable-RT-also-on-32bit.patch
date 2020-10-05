@@ -1,4 +1,4 @@
-From e5a363ba9789aebb84c3a965ef22e2963f99f5cd Mon Sep 17 00:00:00 2001
+From bea66d5232b07ea410c02bbbb7b7721dd7c88369 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 7 Nov 2019 17:49:20 +0100
 Subject: [PATCH 204/220] x86: Enable RT also on 32bit

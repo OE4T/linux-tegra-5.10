@@ -1,4 +1,4 @@
-From b58c077a29158166a1e6e3f487189ad9d09376c3 Mon Sep 17 00:00:00 2001
+From 30881bc151943a717ce7a9f459470c781016f0e1 Mon Sep 17 00:00:00 2001
 From: Josh Cartwright <joshc@ni.com>
 Date: Thu, 11 Feb 2016 11:54:00 -0600
 Subject: [PATCH 201/220] genirq: update irq_set_irqchip_state documentation

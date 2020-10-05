@@ -1,4 +1,4 @@
-From 47a67a354f6c0820840774770f74e2605c3b0494 Mon Sep 17 00:00:00 2001
+From 7eb0d6377568773e9809834460e50972ae9521ab Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 30 Nov 2017 13:40:10 +0100
 Subject: [PATCH 168/220] crypto: limit more FPU-enabled sections

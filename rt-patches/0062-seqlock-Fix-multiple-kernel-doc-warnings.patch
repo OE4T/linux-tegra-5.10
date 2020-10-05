@@ -1,4 +1,4 @@
-From 54605d1a2fa5321973ed60e3136c39635ba590bb Mon Sep 17 00:00:00 2001
+From 346da4678f7e1deb461df54cd8c2f5b55605db7f Mon Sep 17 00:00:00 2001
 From: Randy Dunlap <rdunlap@infradead.org>
 Date: Sun, 16 Aug 2020 17:02:00 -0700
 Subject: [PATCH 062/220] seqlock: Fix multiple kernel-doc warnings

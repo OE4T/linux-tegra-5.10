@@ -1,4 +1,4 @@
-From a7a625f971d8a90306085b97d48a5cb3dd7f1c2d Mon Sep 17 00:00:00 2001
+From ef459eaf1ef080334b727a88de2b819a377f3c40 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 14 Jul 2015 14:26:34 +0200
 Subject: [PATCH 155/220] block/mq: do not invoke preempt_disable()
@@ -13,10 +13,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/block/blk-mq.c b/block/blk-mq.c
-index 907a982..f7f6601 100644
+index 394bb67..dd1f2cb 100644
 --- a/block/blk-mq.c
 +++ b/block/blk-mq.c
-@@ -1608,14 +1608,14 @@ static void __blk_mq_delay_run_hw_queue(struct blk_mq_hw_ctx *hctx, bool async,
+@@ -1605,14 +1605,14 @@ static void __blk_mq_delay_run_hw_queue(struct blk_mq_hw_ctx *hctx, bool async,
  		return;
  
  	if (!async && !(hctx->flags & BLK_MQ_F_BLOCKING)) {

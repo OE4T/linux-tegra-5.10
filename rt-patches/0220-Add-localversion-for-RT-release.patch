@@ -1,4 +1,4 @@
-From 921b240ff27602eaaa698435c6bfe762bc3bfbc0 Mon Sep 17 00:00:00 2001
+From 97742260cdf415b6e868ba6b629afc86d37d83a3 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 8 Jul 2011 20:25:16 +0200
 Subject: [PATCH 220/220] Add localversion for -RT release
@@ -11,11 +11,11 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 
 diff --git a/localversion-rt b/localversion-rt
 new file mode 100644
-index 00000000..d79dde6
+index 00000000..05c35cb
 --- /dev/null
 +++ b/localversion-rt
 @@ -0,0 +1 @@
-+-rt10
++-rt11
 -- 
 2.7.4
 

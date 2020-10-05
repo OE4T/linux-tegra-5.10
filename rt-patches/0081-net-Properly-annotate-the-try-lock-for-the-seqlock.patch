@@ -1,4 +1,4 @@
-From 700ff24e72a4117c02e19ee1336e12527eb418a7 Mon Sep 17 00:00:00 2001
+From a0ba406ea1ae4dc820c6029bdc81f0fca109f936 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 8 Sep 2020 16:57:11 +0200
 Subject: [PATCH 081/220] net: Properly annotate the try-lock for the seqlock
