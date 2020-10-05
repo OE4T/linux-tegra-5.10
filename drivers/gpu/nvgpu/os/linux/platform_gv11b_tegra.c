@@ -166,16 +166,21 @@ static bool gv11b_tegra_is_railgated(struct device *dev)
 static int gv11b_tegra_railgate(struct device *dev)
 {
 #ifdef TEGRA194_POWER_DOMAIN_GPU
+	struct gk20a *g = get_gk20a(dev);
+#endif
+
+#ifdef CONFIG_TEGRA_BWMGR
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
-	struct gk20a *g = get_gk20a(dev);
 
 	/* remove emc frequency floor */
 	if (profile)
 		tegra_bwmgr_set_emc(
 			(struct tegra_bwmgr_client *)profile->private_data,
 			0, TEGRA_BWMGR_SET_EMC_FLOOR);
+#endif
 
+#ifdef TEGRA194_POWER_DOMAIN_GPU
 	if (tegra_bpmp_running()) {
 		nvgpu_log(g, gpu_dbg_info, "bpmp running");
 		if (!tegra_powergate_is_powered(TEGRA194_POWER_DOMAIN_GPU)) {
@@ -197,10 +202,12 @@ static int gv11b_tegra_railgate(struct device *dev)
 static int gv11b_tegra_unrailgate(struct device *dev)
 {
 	int ret = 0;
-#ifdef TEGRA194_POWER_DOMAIN_GPU
+#ifdef CONFIG_TEGRA_BWMGR
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
-	struct gk20a *g = get_gk20a(dev);
 	struct gk20a_scale_profile *profile = platform->g->scale_profile;
+#endif
+#ifdef TEGRA194_POWER_DOMAIN_GPU
+	struct gk20a *g = get_gk20a(dev);
 
 	if (tegra_bpmp_running()) {
 		nvgpu_log(g, gpu_dbg_info, "bpmp running");
@@ -214,16 +221,19 @@ static int gv11b_tegra_unrailgate(struct device *dev)
 	} else {
 		nvgpu_log(g, gpu_dbg_info, "bpmp not running");
 	}
+#else
+	gp10b_tegra_clks_control(dev, true);
+#endif
 
+#ifdef CONFIG_TEGRA_BWMGR
 	/* to start with set emc frequency floor to max rate*/
 	if (profile)
 		tegra_bwmgr_set_emc(
 			(struct tegra_bwmgr_client *)profile->private_data,
 			tegra_bwmgr_get_max_emc_rate(),
 			TEGRA_BWMGR_SET_EMC_FLOOR);
-#else
-	gp10b_tegra_clks_control(dev, true);
 #endif
+
 	return ret;
 }
 
