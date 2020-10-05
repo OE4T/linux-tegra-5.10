@@ -770,8 +770,11 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	}
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_gr_ctx_set_size(gr->gr_ctx_desc,
+			NVGPU_GR_CTX_PREEMPT_CTXSW,
 			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
+	}
 #endif
 
 	nvgpu_spinlock_init(&g->gr->intr->ch_tlb_lock);

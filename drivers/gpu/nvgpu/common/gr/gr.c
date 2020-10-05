@@ -60,36 +60,58 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
-	size = g->ops.gr.init.get_global_ctx_cb_buffer_size(g);
-	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "cb_buffer_size : %d", size);
+	/*
+	 * MIG supports only compute class.
+	 * Allocate BUNDLE_CB, PAGEPOOL, ATTRIBUTE_CB and RTV_CB
+	 * if 2D/3D/I2M classes(graphics) are supported.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		size = g->ops.gr.init.get_global_ctx_cb_buffer_size(g);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr,
+			"cb_buffer_size : %d", size);
 
-	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_CIRCULAR, size);
+		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_CIRCULAR, size);
 #ifdef CONFIG_NVGPU_VPR
-	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR, size);
+		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR, size);
 #endif
 
-	size = g->ops.gr.init.get_global_ctx_pagepool_buffer_size(g);
-	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "pagepool_buffer_size : %d", size);
+		size = g->ops.gr.init.get_global_ctx_pagepool_buffer_size(g);
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr,
+			"pagepool_buffer_size : %d", size);
 
-	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_PAGEPOOL, size);
+		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_PAGEPOOL, size);
 #ifdef CONFIG_NVGPU_VPR
-	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR, size);
+		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR, size);
 #endif
-	size = g->ops.gr.init.get_global_attr_cb_size(g,
-			nvgpu_gr_config_get_tpc_count(gr->config),
-			nvgpu_gr_config_get_max_tpc_count(gr->config));
-	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "attr_buffer_size : %u", size);
+		size = g->ops.gr.init.get_global_attr_cb_size(g,
+				nvgpu_gr_config_get_tpc_count(gr->config),
+				nvgpu_gr_config_get_max_tpc_count(gr->config));
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr,
+			"attr_buffer_size : %u", size);
 
-	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE, size);
+		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_ATTRIBUTE, size);
 #ifdef CONFIG_NVGPU_VPR
-	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
+		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
 #endif
+
+#ifdef CONFIG_NVGPU_DGPU
+		if (g->ops.gr.init.get_rtv_cb_size != NULL) {
+			size = g->ops.gr.init.get_rtv_cb_size(g);
+			nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr,
+				"rtv_circular_buffer_size : %u", size);
+
+			nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER, size);
+		}
+#endif
+	}
+
 	size = NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE;
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "priv_access_map_size : %d", size);
 
@@ -102,16 +124,6 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER, size);
-#endif
-
-#ifdef CONFIG_NVGPU_DGPU
-	if (g->ops.gr.init.get_rtv_cb_size != NULL) {
-		size = g->ops.gr.init.get_rtv_cb_size(g);
-		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr, "rtv_circular_buffer_size : %u", size);
-
-		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER, size);
-	}
 #endif
 
 	err = nvgpu_gr_global_ctx_buffer_alloc(g, gr->global_ctx_buffer);
@@ -405,8 +417,11 @@ static int gr_init_ctx_bufs(struct gk20a *g, struct nvgpu_gr *gr)
 	}
 
 #ifdef CONFIG_NVGPU_GRAPHICS
-	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_gr_ctx_set_size(gr->gr_ctx_desc,
+			NVGPU_GR_CTX_PREEMPT_CTXSW,
 			nvgpu_gr_falcon_get_preempt_image_size(gr->falcon));
+	}
 #endif
 
 	gr->global_ctx_buffer = nvgpu_gr_global_ctx_desc_alloc(g);

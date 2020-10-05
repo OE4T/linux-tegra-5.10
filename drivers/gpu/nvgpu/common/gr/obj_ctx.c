@@ -336,40 +336,52 @@ void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 		nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
 	}
 
-	/* global pagepool buffer */
-	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_PAGEPOOL_VA);
-	size = nvgpu_safe_cast_u64_to_u32(nvgpu_gr_global_ctx_get_size(
-			global_ctx_buffer, NVGPU_GR_GLOBAL_CTX_PAGEPOOL));
+	/*
+	 * MIG supports only compute class.
+	 * Skip BUNDLE_CB, PAGEPOOL, ATTRIBUTE_CB and RTV_CB
+	 * if 2D/3D/I2M classes(graphics) are not supported.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/* global pagepool buffer */
+		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+			NVGPU_GR_CTX_PAGEPOOL_VA);
+		size = nvgpu_safe_cast_u64_to_u32(nvgpu_gr_global_ctx_get_size(
+				global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_PAGEPOOL));
 
-	g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size, patch,
-		true);
+		g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size,
+			patch, true);
 
-	/* global bundle cb */
-	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_CIRCULAR_VA);
-	size = nvgpu_safe_cast_u64_to_u32(
-			g->ops.gr.init.get_bundle_cb_default_size(g));
+		/* global bundle cb */
+		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+			NVGPU_GR_CTX_CIRCULAR_VA);
+		size = nvgpu_safe_cast_u64_to_u32(
+				g->ops.gr.init.get_bundle_cb_default_size(g));
 
-	g->ops.gr.init.commit_global_bundle_cb(g, gr_ctx, addr, size, patch);
+		g->ops.gr.init.commit_global_bundle_cb(g, gr_ctx, addr, size,
+			patch);
 
-	/* global attrib cb */
-	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
-			NVGPU_GR_CTX_ATTRIBUTE_VA);
+		/* global attrib cb */
+		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+				NVGPU_GR_CTX_ATTRIBUTE_VA);
 
-	g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
-		nvgpu_gr_config_get_tpc_count(config),
-		nvgpu_gr_config_get_max_tpc_count(config), addr, patch);
+		g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
+			nvgpu_gr_config_get_tpc_count(config),
+			nvgpu_gr_config_get_max_tpc_count(config), addr, patch);
 
-	g->ops.gr.init.commit_global_cb_manager(g, config, gr_ctx, patch);
+		g->ops.gr.init.commit_global_cb_manager(g, config, gr_ctx,
+			patch);
 
 #ifdef CONFIG_NVGPU_DGPU
-	if (g->ops.gr.init.commit_rtv_cb != NULL) {
-		/* RTV circular buffer */
-		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
-			NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA);
+		if (g->ops.gr.init.commit_rtv_cb != NULL) {
+			/* RTV circular buffer */
+			addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+				NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA);
 
-		g->ops.gr.init.commit_rtv_cb(g, addr, gr_ctx, patch);
-	}
+			g->ops.gr.init.commit_rtv_cb(g, addr, gr_ctx, patch);
+		}
 #endif
+	}
 
 #ifdef CONFIG_NVGPU_SM_DIVERSITY
 	if ((nvgpu_is_enabled(g, NVGPU_SUPPORT_SM_DIVERSITY)) &&

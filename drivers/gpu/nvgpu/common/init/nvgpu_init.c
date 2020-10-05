@@ -856,6 +856,9 @@ int nvgpu_init_gpu_characteristics(struct gk20a *g)
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_3D, true);
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_I2M, true);
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC, true);
+	} else {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, false);
 	}
 
 	return 0;

@@ -257,37 +257,44 @@ int vgpu_gr_map_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	g_bfr_va = gr_ctx->global_ctx_buffer_va;
 
-	/* Circular Buffer */
-	gpu_va = nvgpu_vm_alloc_va(ch_vm,
-			nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_CIRCULAR),
-			GMMU_PAGE_SIZE_KERNEL);
+	/*
+	 * MIG supports only compute class.
+	 * Allocate BUNDLE_CB, PAGEPOOL, ATTRIBUTE_CB and RTV_CB
+	 * if 2D/3D/I2M classes(graphics) are supported.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/* Circular Buffer */
+		gpu_va = nvgpu_vm_alloc_va(ch_vm,
+				nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_CIRCULAR),
+				GMMU_PAGE_SIZE_KERNEL);
 
-	if (!gpu_va) {
-		goto clean_up;
+		if (!gpu_va) {
+			goto clean_up;
+		}
+		g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA] = gpu_va;
+
+		/* Attribute Buffer */
+		gpu_va = nvgpu_vm_alloc_va(ch_vm,
+				nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_ATTRIBUTE),
+				GMMU_PAGE_SIZE_KERNEL);
+
+		if (!gpu_va) {
+			goto clean_up;
+		}
+		g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA] = gpu_va;
+
+		/* Page Pool */
+		gpu_va = nvgpu_vm_alloc_va(ch_vm,
+				nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_PAGEPOOL),
+				GMMU_PAGE_SIZE_KERNEL);
+		if (!gpu_va) {
+			goto clean_up;
+		}
+		g_bfr_va[NVGPU_GR_CTX_PAGEPOOL_VA] = gpu_va;
 	}
-	g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA] = gpu_va;
-
-	/* Attribute Buffer */
-	gpu_va = nvgpu_vm_alloc_va(ch_vm,
-			nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_ATTRIBUTE),
-			GMMU_PAGE_SIZE_KERNEL);
-
-	if (!gpu_va) {
-		goto clean_up;
-	}
-	g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA] = gpu_va;
-
-	/* Page Pool */
-	gpu_va = nvgpu_vm_alloc_va(ch_vm,
-			nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
-				NVGPU_GR_GLOBAL_CTX_PAGEPOOL),
-			GMMU_PAGE_SIZE_KERNEL);
-	if (!gpu_va) {
-		goto clean_up;
-	}
-	g_bfr_va[NVGPU_GR_CTX_PAGEPOOL_VA] = gpu_va;
 
 	/* Priv register Access Map */
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,

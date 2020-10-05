@@ -355,10 +355,12 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, gr->config, gr_ctx,
 		ch->subctx);
 
-	nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
-	g->ops.gr.init.commit_global_cb_manager(g, gr->config, gr_ctx,
-		true);
-	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
+		g->ops.gr.init.commit_global_cb_manager(g, gr->config, gr_ctx,
+			true);
+		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
+	}
 
 	g->ops.tsg.enable(tsg);
 

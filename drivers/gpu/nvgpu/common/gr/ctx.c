@@ -355,28 +355,50 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
 
-	/* Circular Buffer */
-	err = nvgpu_gr_ctx_map_ctx_circular_buffer(g, gr_ctx,
-					global_ctx_buffer, vm, vpr);
-	if (err != 0) {
-		nvgpu_err(g, "cannot map ctx circular buffer");
-		goto fail;
-	}
+	/*
+	 * MIG supports only compute class.
+	 * Allocate BUNDLE_CB, PAGEPOOL, ATTRIBUTE_CB and RTV_CB
+	 * if 2D/3D/I2M classes(graphics) are supported.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/* Circular Buffer */
+		err = nvgpu_gr_ctx_map_ctx_circular_buffer(g, gr_ctx,
+						global_ctx_buffer, vm, vpr);
+		if (err != 0) {
+			nvgpu_err(g, "cannot map ctx circular buffer");
+			goto fail;
+		}
 
-	/* Attribute Buffer */
-	err = nvgpu_gr_ctx_map_ctx_attribute_buffer(g, gr_ctx,
-					global_ctx_buffer, vm, vpr);
-	if (err != 0) {
-		nvgpu_err(g, "cannot map ctx attribute buffer");
-		goto fail;
-	}
+		/* Attribute Buffer */
+		err = nvgpu_gr_ctx_map_ctx_attribute_buffer(g, gr_ctx,
+						global_ctx_buffer, vm, vpr);
+		if (err != 0) {
+			nvgpu_err(g, "cannot map ctx attribute buffer");
+			goto fail;
+		}
 
-	/* Page Pool */
-	err = nvgpu_gr_ctx_map_ctx_pagepool_buffer(g, gr_ctx,
-					global_ctx_buffer, vm, vpr);
-	if (err != 0) {
-		nvgpu_err(g, "cannot map ctx pagepool buffer");
-		goto fail;
+		/* Page Pool */
+		err = nvgpu_gr_ctx_map_ctx_pagepool_buffer(g, gr_ctx,
+						global_ctx_buffer, vm, vpr);
+		if (err != 0) {
+			nvgpu_err(g, "cannot map ctx pagepool buffer");
+			goto fail;
+		}
+#ifdef CONFIG_NVGPU_DGPU
+		/* RTV circular buffer */
+		if (nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER)) {
+			err  = nvgpu_gr_ctx_map_ctx_buffer(g,
+					NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
+					NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA,
+					gr_ctx, global_ctx_buffer, vm);
+			if (err != 0) {
+				nvgpu_err(g,
+					"cannot map ctx rtv circular buffer");
+				goto fail;
+			}
+		}
+#endif
 	}
 
 	/* Priv register Access Map */
@@ -398,21 +420,6 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 			gr_ctx, global_ctx_buffer, vm);
 		if (err != 0) {
 			nvgpu_err(g, "cannot map ctx fecs trace buffer");
-			goto fail;
-		}
-	}
-#endif
-
-#ifdef CONFIG_NVGPU_DGPU
-	/* RTV circular buffer */
-	if (nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER)) {
-		err  = nvgpu_gr_ctx_map_ctx_buffer(g,
-				NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
-				NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA,
-				gr_ctx, global_ctx_buffer, vm);
-		if (err != 0) {
-			nvgpu_err(g, "cannot map ctx rtv circular buffer");
 			goto fail;
 		}
 	}

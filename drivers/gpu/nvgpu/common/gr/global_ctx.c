@@ -160,16 +160,24 @@ static int nvgpu_gr_global_ctx_buffer_alloc_vpr(struct gk20a *g,
 static bool nvgpu_gr_global_ctx_buffer_sizes_are_valid(struct gk20a *g,
 				struct nvgpu_gr_global_ctx_buffer_desc *desc)
 {
-	if ((desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR].size == 0U) ||
-		(desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL].size == 0U) ||
-		(desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE].size == 0U) ||
-#ifdef CONFIG_NVGPU_VPR
-		(desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR].size == 0U) ||
-		(desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR].size == 0U) ||
-		(desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR].size == 0U) ||
-#endif
-		(desc[NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP].size == 0U)) {
+
+	if (desc[NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP].size == 0U) {
 		return false;
+	}
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		if ((desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR].size == 0U) ||
+			(desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL].size == 0U) ||
+			(desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE].size == 0U)) {
+			return false;
+		}
+#ifdef CONFIG_NVGPU_VPR
+		if ((desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR].size == 0U) ||
+			(desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR].size == 0U) ||
+			(desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR].size == 0U)) {
+			return false;
+		}
+#endif
 	}
 
 	return true;
@@ -180,6 +188,19 @@ static int nvgpu_gr_global_ctx_buffer_vpr_alloc(struct gk20a *g,
 				struct nvgpu_gr_global_ctx_buffer_desc *desc)
 {
 	int err = 0;
+
+	/*
+	 * MIG supports only compute class.
+	 * Allocate BUNDLE_CB, PAGEPOOL, ATTRIBUTE_CB and RTV_CB
+	 * if 2D/3D/I2M classes(graphics) are supported.
+	 */
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_log(g, gpu_dbg_gr | gpu_dbg_mig,
+			"2D class is not supported "
+				"skip BUNDLE_CB, PAGEPOOL, ATTRIBUTE_CB "
+				"and RTV_CB");
+		return 0;
+	}
 
 	err = nvgpu_gr_global_ctx_buffer_alloc_vpr(g, desc,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR);
@@ -208,22 +229,29 @@ static int nvgpu_gr_global_ctx_buffer_sys_alloc(struct gk20a *g,
 {
 	int err = 0;
 
-	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
-		NVGPU_GR_GLOBAL_CTX_CIRCULAR);
-	if (err != 0) {
-		goto fail;
-	}
+	/*
+	 * MIG supports only compute class.
+	 * Allocate BUNDLE_CB, PAGEPOOL, ATTRIBUTE_CB and RTV_CB
+	 * if 2D/3D/I2M classes(graphics) are supported.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
+			NVGPU_GR_GLOBAL_CTX_CIRCULAR);
+		if (err != 0) {
+			goto fail;
+		}
 
-	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
-		NVGPU_GR_GLOBAL_CTX_PAGEPOOL);
-	if (err != 0) {
-		goto fail;
-	}
+		err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
+			NVGPU_GR_GLOBAL_CTX_PAGEPOOL);
+		if (err != 0) {
+			goto fail;
+		}
 
-	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
-		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE);
-	if (err != 0) {
-		goto fail;
+		err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
+			NVGPU_GR_GLOBAL_CTX_ATTRIBUTE);
+		if (err != 0) {
+			goto fail;
+		}
 	}
 
 	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
@@ -261,11 +289,13 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 #endif
 
 #ifdef CONFIG_NVGPU_DGPU
-	if (desc[NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER].size != 0U) {
-		err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
-			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER);
-		if (err != 0) {
-			goto clean_up;
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		if (desc[NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER].size != 0U) {
+			err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
+				NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER);
+			if (err != 0) {
+				goto clean_up;
+			}
 		}
 	}
 #endif
