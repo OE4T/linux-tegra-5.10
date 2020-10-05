@@ -3020,6 +3020,16 @@ static int tegra_xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
 	return xhci_enable_usb3_lpm_timeout(hcd, udev, state);
 }
 
+static irqreturn_t tegra_xhci_irq(struct usb_hcd *hcd)
+{
+	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
+
+	if (test_bit(FW_LOG_CONTEXT_VALID, &tegra->log.flags))
+		wake_up_interruptible(&tegra->log.intr_wait);
+
+	return xhci_irq(hcd);
+}
+
 static int __init tegra_xusb_init(void)
 {
 	xhci_init_driver(&tegra_xhci_hc_driver, &tegra_xhci_overrides);
@@ -3028,6 +3038,7 @@ static int __init tegra_xusb_init(void)
 	tegra_xhci_hc_driver.enable_usb3_lpm_timeout =
 		tegra_xhci_enable_usb3_lpm_timeout;
 	tegra_xhci_hc_driver.urb_enqueue = tegra_xhci_urb_enqueue;
+	tegra_xhci_hc_driver.irq = tegra_xhci_irq;
 
 	return platform_driver_register(&tegra_xusb_driver);
 }
