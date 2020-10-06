@@ -780,6 +780,7 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
 	u32 misc_ctrl, clk_ctrl, pad_ctrl, misc_ctrl_2;
 	int err;
+	bool clear_ddr_signalling = true;
 
 	sdhci_reset(host, mask);
 
@@ -843,7 +844,14 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 		tegra_host->pad_calib_required = true;
 	}
 
-	tegra_host->ddr_signaling = false;
+	/* ddr signalling post resume */
+	if ((host->mmc->pm_flags & MMC_PM_KEEP_POWER) &&
+		((host->mmc->ios.timing == MMC_TIMING_MMC_DDR52) ||
+		(host->mmc->ios.timing == MMC_TIMING_UHS_DDR50)))
+		clear_ddr_signalling = false;
+
+	if (clear_ddr_signalling)
+		tegra_host->ddr_signaling = false;
 	tegra_sdhci_mask_host_caps(host, tegra_host->uhs_mask);
 }
 
