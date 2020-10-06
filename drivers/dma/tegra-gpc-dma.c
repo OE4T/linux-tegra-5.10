@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * DMA driver for Nvidia's Tegra186 and Tegra194 GPC DMA controller.
+ * DMA driver for Nvidia's Tegra186, Tegra194 and Tegra234 GPC DMA controller.
  *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/bitops.h>
@@ -25,6 +25,9 @@
 #include <linux/version.h>
 #include <dt-bindings/memory/tegra186-mc.h>
 #include "virt-dma.h"
+
+/* Common space stream_idx mask register */
+#define TEGRA_GPCDMA_COMMON_STREAM_IDx_MASK(i)	(0x180 + (i * 0x80))
 
 /* CSR register */
 #define TEGRA_GPCDMA_CHAN_CSR			0x00
@@ -159,12 +162,14 @@ struct tegra_dma;
  * @channel_reg_size: Channel register size.
  * @max_dma_count: Maximum DMA transfer count supported by DMA controller.
  * @hw_support_pause: DMA HW engine support pause of the channel.
+ * @hw_sid_check_enabled: Flag to indicate if the Stream ID check enabled in HW.
  */
 struct tegra_dma_chip_data {
 	int nr_channels;
 	int channel_reg_size;
 	int max_dma_count;
 	bool hw_support_pause;
+	bool hw_sid_check_enabled;
 };
 
 /* DMA channel registers */
@@ -258,6 +263,11 @@ struct tegra_dma {
 	/* Last member of the structure */
 	struct tegra_dma_channel channels[0];
 };
+
+static inline void tdma_write(struct tegra_dma *tdma, u32 reg, u32 val)
+{
+	writel(val, tdma->base_addr + reg);
+}
 
 static inline void tdc_write(struct tegra_dma_channel *tdc,
 		u32 reg, u32 val)
@@ -447,8 +457,11 @@ static int tegra_dma_slave_config(struct dma_chan *dc,
 static int tegra_dma_pause(struct tegra_dma_channel *tdc)
 {
 	int timeout = TEGRA_GPCDMA_BURST_COMPLETION_TIMEOUT;
+	u32 val;
 
-	tdc_write(tdc, TEGRA_GPCDMA_CHAN_CSRE, TEGRA_GPCDMA_CHAN_CSRE_PAUSE);
+	val = tdc_read(tdc, TEGRA_GPCDMA_CHAN_CSRE);
+	val |= TEGRA_GPCDMA_CHAN_CSRE_PAUSE;
+	tdc_write(tdc, TEGRA_GPCDMA_CHAN_CSRE, val);
 
 	/* Wait until busy bit is de-asserted */
 	do {
@@ -494,6 +507,7 @@ static void tegra_dma_start(struct tegra_dma_channel *tdc,
 		struct tegra_dma_sg_req *sg_req)
 {
 	struct tegra_dma_channel_regs *ch_regs = &sg_req->ch_regs;
+	u32 val;
 
 	tdc_write(tdc, TEGRA_GPCDMA_CHAN_WCOUNT, ch_regs->wcount);
 
@@ -504,7 +518,11 @@ static void tegra_dma_start(struct tegra_dma_channel *tdc,
 	tdc_write(tdc, TEGRA_GPCDMA_CHAN_FIXED_PATTERN, ch_regs->fixed_pattern);
 	tdc_write(tdc, TEGRA_GPCDMA_CHAN_MMIOSEQ, ch_regs->mmio_seq);
 	tdc_write(tdc, TEGRA_GPCDMA_CHAN_MCSEQ, ch_regs->mc_seq);
-	tdc_write(tdc, TEGRA_GPCDMA_CHAN_CSRE, 0);
+
+	val = tdc_read(tdc, TEGRA_GPCDMA_CHAN_CSRE);
+	val &= ~TEGRA_GPCDMA_CHAN_CSRE_PAUSE;
+	tdc_write(tdc, TEGRA_GPCDMA_CHAN_CSRE, val);
+
 	tdc_write(tdc, TEGRA_GPCDMA_CHAN_CSR, ch_regs->csr);
 
 	/* Start DMA */
@@ -1306,6 +1324,7 @@ static const struct tegra_dma_chip_data tegra186_dma_chip_data = {
 	.channel_reg_size = 0x10000,
 	.max_dma_count = 1024UL * 1024UL * 1024UL,
 	.hw_support_pause = false,
+	.hw_sid_check_enabled = false,
 };
 
 static const struct tegra_dma_chip_data tegra194_dma_chip_data = {
@@ -1313,6 +1332,15 @@ static const struct tegra_dma_chip_data tegra194_dma_chip_data = {
 	.channel_reg_size = 0x10000,
 	.max_dma_count = 1024UL * 1024UL * 1024UL,
 	.hw_support_pause = true,
+	.hw_sid_check_enabled = false,
+};
+
+static const struct tegra_dma_chip_data tegra234_dma_chip_data = {
+	.nr_channels = 32,
+	.channel_reg_size = 0x10000,
+	.max_dma_count = 1024UL * 1024UL * 1024UL,
+	.hw_support_pause = true,
+	.hw_sid_check_enabled = true,
 };
 
 static const struct of_device_id tegra_dma_of_match[] = {
@@ -1322,6 +1350,9 @@ static const struct of_device_id tegra_dma_of_match[] = {
 	}, {
 		.compatible = "nvidia,tegra19x-gpcdma",
 		.data = &tegra194_dma_chip_data,
+	}, {
+		.compatible = "nvidia,tegra234-gpcdma",
+		.data = &tegra234_dma_chip_data,
 	}, {
 	},
 };
@@ -1342,6 +1373,31 @@ static int tegra_dma_program_sid(struct tegra_dma_channel *tdc,
 
 	tdc_write(tdc, TEGRA_GPCDMA_CHAN_MCSEQ, reg_val);
 	return 0;
+}
+
+static void tegra_dma_program_common_stream_id_mask(struct tegra_dma *tdma,
+					int start_chan_idx, int nr_chans,
+					int stream_id)
+{
+	int sid_bucket, i;
+	u32 sid_mask_reg, sid_mask_val;
+
+	/*
+	 * For each channel, enable nth bit(where n = stream_id) in common space
+	 * COMMON_CHx_STREAM_ID*_MASK registers. Each register can support upto
+	 * 32 stream ids and we choose appropriate register based on stream_id
+	 * value.
+	 */
+
+	sid_bucket = stream_id / 32;
+	sid_mask_val = BIT(stream_id) >> (sid_bucket * 32);
+
+	for (i = 0; i < nr_chans; i++) {
+		sid_mask_reg = TEGRA_GPCDMA_COMMON_STREAM_IDx_MASK(sid_bucket) +
+				(start_chan_idx * 0x4) + (i * 0x4);
+
+		tdma_write(tdma, sid_mask_reg, sid_mask_val);
+	}
 }
 
 static int tegra_dma_probe(struct platform_device *pdev)
@@ -1491,6 +1547,16 @@ static int tegra_dma_probe(struct platform_device *pdev)
 				break;
 		/* program stream-id for this channel */
 		tegra_dma_program_sid(tdc, i, stream_id);
+	}
+
+	if (tdma->chip_data->hw_sid_check_enabled) {
+		/*
+		 * For each channel, the channel space streamId will be compared
+		 * with the common space stream_idx_mask in HW. The streamIDs
+		 * must match for the DMA transfers to work.
+		 */
+		tegra_dma_program_common_stream_id_mask(tdma, start_chan_idx,
+						cdata->nr_channels, stream_id);
 	}
 
 	dma_cap_set(DMA_SLAVE, tdma->dma_dev.cap_mask);
