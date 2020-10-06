@@ -410,8 +410,7 @@ void ether_selftest_run(struct net_device *dev,
 			if (pdata->osi_core)
 				ret = osi_config_mac_loopback(pdata->osi_core,
 							      OSI_ENABLE);
-			if (!ret)
-				break;
+			break;
 		default:
 			ret = -EOPNOTSUPP;
 			break;
