@@ -439,7 +439,7 @@ int test_align_macros(struct unit_module *m,
 
 	test1 = PAGE_ALIGN_TEST_VALUE;
 	result = PAGE_ALIGN(test1);
-	if (result & (PAGE_SIZE - 1)) {
+	if (result & (NVGPU_CPU_PAGE_SIZE - 1)) {
 		unit_return_fail(m,
 			"PAGE_ALIGN failure %x\n", result);
 	}

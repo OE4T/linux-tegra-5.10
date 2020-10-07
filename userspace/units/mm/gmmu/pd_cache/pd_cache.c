@@ -54,41 +54,41 @@ struct pd_cache_alloc_direct_gen {
  * Direct alloc testing: i.e larger than a page allocs.
  */
 static struct pd_cache_alloc_direct_gen alloc_direct_1xPAGE = {
-	.bytes = PAGE_SIZE,
+	.bytes = NVGPU_CPU_PAGE_SIZE,
 	.nr    = 1U,
 };
 static struct pd_cache_alloc_direct_gen alloc_direct_1024xPAGE = {
-	.bytes = PAGE_SIZE,
+	.bytes = NVGPU_CPU_PAGE_SIZE,
 	.nr    = 1024U,
 };
 static struct pd_cache_alloc_direct_gen alloc_direct_1x16PAGE = {
-	.bytes = 16U * PAGE_SIZE,
+	.bytes = 16U * NVGPU_CPU_PAGE_SIZE,
 	.nr    = 1U,
 };
 static struct pd_cache_alloc_direct_gen alloc_direct_1024x16PAGE = {
-	.bytes = 16U * PAGE_SIZE,
+	.bytes = 16U * NVGPU_CPU_PAGE_SIZE,
 	.nr    = 1024U,
 };
 static struct pd_cache_alloc_direct_gen alloc_direct_1024xPAGE_x32x24 = {
-	.bytes = PAGE_SIZE,
+	.bytes = NVGPU_CPU_PAGE_SIZE,
 	.nr    = 1024U,
 	.nr_allocs_before_free = 32U,
 	.nr_frees_before_alloc = 24U
 };
 static struct pd_cache_alloc_direct_gen alloc_direct_1024xPAGE_x16x4 = {
-	.bytes = PAGE_SIZE,
+	.bytes = NVGPU_CPU_PAGE_SIZE,
 	.nr    = 1024U,
 	.nr_allocs_before_free = 16U,
 	.nr_frees_before_alloc = 4U
 };
 static struct pd_cache_alloc_direct_gen alloc_direct_1024xPAGE_x16x15 = {
-	.bytes = PAGE_SIZE,
+	.bytes = NVGPU_CPU_PAGE_SIZE,
 	.nr    = 1024U,
 	.nr_allocs_before_free = 16U,
 	.nr_frees_before_alloc = 15U
 };
 static struct pd_cache_alloc_direct_gen alloc_direct_1024xPAGE_x16x1 = {
-	.bytes = PAGE_SIZE,
+	.bytes = NVGPU_CPU_PAGE_SIZE,
 	.nr    = 1024U,
 	.nr_allocs_before_free = 16U,
 	.nr_frees_before_alloc = 1U
@@ -404,14 +404,14 @@ int test_pd_alloc_direct_fi(struct unit_module *m, struct gk20a *g, void *args)
 	 */
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	err = nvgpu_pd_alloc(&vm, &pd, PAGE_SIZE);
+	err = nvgpu_pd_alloc(&vm, &pd, NVGPU_CPU_PAGE_SIZE);
 	if (err == 0) {
 		unit_return_fail(m, "pd_alloc() success with kmem OOM\n");
 	}
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
 	nvgpu_posix_enable_fault_injection(dma_fi, true, 0);
-	err = nvgpu_pd_alloc(&vm, &pd, PAGE_SIZE);
+	err = nvgpu_pd_alloc(&vm, &pd, NVGPU_CPU_PAGE_SIZE);
 	if (err == 0) {
 		unit_return_fail(m, "pd_alloc() success with DMA OOM\n");
 	}
@@ -558,7 +558,7 @@ int test_pd_cache_valid_alloc(struct unit_module *m, struct gk20a *g,
 	 * This covers the VCs 1 and 2.
 	 */
 	bytes = 256; /* 256 bytes is the min PD size. */
-	while (bytes <= PAGE_SIZE) {
+	while (bytes <= NVGPU_CPU_PAGE_SIZE) {
 
 		err = nvgpu_pd_alloc(&vm, &pd, bytes);
 		if (err) {
@@ -722,7 +722,7 @@ int test_per_pd_size(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	pd_size = 256U; /* 256 bytes is the min PD size. */
-	while (pd_size < PAGE_SIZE) {
+	while (pd_size < NVGPU_CPU_PAGE_SIZE) {
 		err = fn(m, g, &vm, pd_size);
 		if (err) {
 			err = UNIT_FAIL;

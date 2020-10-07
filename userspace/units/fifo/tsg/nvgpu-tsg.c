@@ -696,7 +696,7 @@ int test_tsg_release(struct unit_module *m,
 		}
 
 		if (branches & F_TSG_RELEASE_MEM) {
-			nvgpu_dma_alloc(g, PAGE_SIZE, &mem);
+			nvgpu_dma_alloc(g, NVGPU_CPU_PAGE_SIZE, &mem);
 			tsg->gr_ctx->mem = mem;
 		}
 

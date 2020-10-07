@@ -657,12 +657,12 @@ static int stub_os_channel_alloc_usermode_buffers(struct nvgpu_channel *ch,
 	int err;
 	struct gk20a *g = ch->g;
 
-	err = nvgpu_dma_alloc(g, PAGE_SIZE, &ch->usermode_userd);
+	err = nvgpu_dma_alloc(g, NVGPU_CPU_PAGE_SIZE, &ch->usermode_userd);
 	if (err != 0) {
 		return err;
 	}
 
-	err = nvgpu_dma_alloc(g, PAGE_SIZE, &ch->usermode_gpfifo);
+	err = nvgpu_dma_alloc(g, NVGPU_CPU_PAGE_SIZE, &ch->usermode_gpfifo);
 	if (err != 0) {
 		return err;
 	}
@@ -759,7 +759,7 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 	mm.g = g;
 	vm.mm = &mm;
 	ch->vm = &vm;
-	err = nvgpu_dma_alloc(g, PAGE_SIZE, &pdb_mem);
+	err = nvgpu_dma_alloc(g, NVGPU_CPU_PAGE_SIZE, &pdb_mem);
 	unit_assert(err == 0, goto done);
 	vm.pdb.mem = &pdb_mem;
 
@@ -1330,7 +1330,7 @@ int test_channel_deterministic_idle_unidle(struct unit_module *m,
 	mm.g = g;
 	vm.mm = &mm;
 	ch->vm = &vm;
-	err = nvgpu_dma_alloc(g, PAGE_SIZE, &pdb_mem);
+	err = nvgpu_dma_alloc(g, NVGPU_CPU_PAGE_SIZE, &pdb_mem);
 	unit_assert(err == 0, goto done);
 	vm.pdb.mem = &pdb_mem;
 
@@ -1693,7 +1693,7 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 	mm.g = g;
 	vm.mm = &mm;
 	ch->vm = &vm;
-	err = nvgpu_dma_alloc(g, PAGE_SIZE, &pdb_mem);
+	err = nvgpu_dma_alloc(g, NVGPU_CPU_PAGE_SIZE, &pdb_mem);
 	unit_assert(err == 0, goto done);
 	vm.pdb.mem = &pdb_mem;
 

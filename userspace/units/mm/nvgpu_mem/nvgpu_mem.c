@@ -683,7 +683,7 @@ int test_nvgpu_mem_create_from_mem(struct unit_module *m, struct gk20a *g,
 	nvgpu_mem_create_from_mem(g, &dest_mem, test_mem, 0, 2);
 
 	unit_assert(dest_mem.cpu_va == test_mem->cpu_va, goto done);
-	unit_assert(dest_mem.size == (2 * PAGE_SIZE), goto done);
+	unit_assert(dest_mem.size == (2 * NVGPU_CPU_PAGE_SIZE), goto done);
 	unit_assert((dest_mem.mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY) == true,
 			goto done);
 	unit_assert(dest_mem.aperture == APERTURE_SYSMEM, goto done);
