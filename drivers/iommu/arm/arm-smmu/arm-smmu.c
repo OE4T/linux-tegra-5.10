@@ -1914,9 +1914,9 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 		size = 1 << FIELD_GET(ARM_SMMU_ID0_NUMSIDB, id);
 	}
 	smmu->streamid_mask = size - 1;
-	size = FIELD_GET(ARM_SMMU_ID0_NUMSMRG, id);
 	if (id & ARM_SMMU_ID0_SMS) {
 		smmu->features |= ARM_SMMU_FEAT_STREAM_MATCH;
+		size = FIELD_GET(ARM_SMMU_ID0_NUMSMRG, id);
 		if (size == 0) {
 			dev_err(smmu->dev,
 				"stream-matching supported, but no SMRs present!\n");
