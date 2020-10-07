@@ -1,6 +1,6 @@
 # -*- mode: makefile -*-
 #
-# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -80,12 +80,15 @@ srcs += os/posix/bug.c \
 	os/posix/cond.c \
 	os/posix/lock.c \
 	os/posix/thread.c \
-	os/posix/bsearch.c \
 	os/posix/os_sched.c \
 	os/posix/bitmap.c \
 	os/posix/kmem.c \
 	os/posix/file_ops.c \
 	os/posix/queue.c
+
+ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),0)
+srcs += os/posix/bsearch.c
+endif
 
 srcs +=	common/device.c \
 	common/utils/enabled.c \

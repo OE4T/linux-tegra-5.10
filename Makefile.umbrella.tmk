@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,6 @@ NV_REPOSITORY_COMPONENTS += userspace/units/posix/queue
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/utils
 NV_REPOSITORY_COMPONENTS += userspace/units/posix/circ_buf
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/bit-utils
-NV_REPOSITORY_COMPONENTS += userspace/units/interface/bsearch
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/lock
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/nvgpu_gk20a
 NV_REPOSITORY_COMPONENTS += userspace/units/interface/atomic

@@ -1,6 +1,6 @@
 # -*- mode: makefile -*-
 #
-# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,6 @@ UNITS :=				\
 	$(UNIT_SRC)/priv_ring		\
 	$(UNIT_SRC)/init		\
 	$(UNIT_SRC)/interface/bit-utils	\
-	$(UNIT_SRC)/interface/bsearch	\
 	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/interface/nvgpu_gk20a	\
 	$(UNIT_SRC)/interface/atomic	\

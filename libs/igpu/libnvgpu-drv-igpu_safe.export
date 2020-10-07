@@ -277,7 +277,6 @@ nvgpu_big_free
 nvgpu_big_pages_possible
 nvgpu_bitmap_clear
 nvgpu_bitmap_set
-nvgpu_bsearch
 nvgpu_bug_cb_longjmp
 nvgpu_bug_register_cb
 nvgpu_bug_unregister_cb
