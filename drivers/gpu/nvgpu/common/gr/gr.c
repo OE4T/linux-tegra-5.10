@@ -624,10 +624,18 @@ static int gr_reset_engine(struct gk20a *g)
 		return err;
 	}
 
-	err = nvgpu_mc_reset_units(g, NVGPU_UNIT_PERFMON | NVGPU_UNIT_BLG);
-	if (err != 0) {
-		nvgpu_log_info(g, "PERMON | BLG unit reset failed");
-		return err;
+	/*
+	 * Do not reset PERFMON and BLG when MIG is enabled as PERFMON is a
+	 * global engine which is shared by all syspipes. Individual PERF
+	 * counters can be reset during gr syspipe reset.
+	 */
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		err = nvgpu_mc_reset_units(g,
+			NVGPU_UNIT_PERFMON | NVGPU_UNIT_BLG);
+		if (err != 0) {
+			nvgpu_log_info(g, "PERMON | BLG unit reset failed");
+			return err;
+		}
 	}
 
 	nvgpu_log(g, gpu_dbg_gr, "done");
