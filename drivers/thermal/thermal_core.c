@@ -1523,8 +1523,6 @@ thermal_zone_device_register(const char *type, int trips, u64 mask,
 	if (atomic_cmpxchg(&tz->need_update, 1, 0))
 		thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
 
-	dev_info(&tz->device, "Registering thermal zone %s for type %s\n",
-			dev_name(&tz->device), type);
 	thermal_notify_tz_create(tz->id, tz->type);
 
 	return tz;
