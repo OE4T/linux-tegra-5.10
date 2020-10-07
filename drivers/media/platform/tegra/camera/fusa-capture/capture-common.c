@@ -29,10 +29,6 @@
 
 #include <media/fusa-capture/capture-common.h>
 
-/**
- * @brief Debug print macro to prepend function name and line in code.
- */
-#define fmt(_f) "%s:%d:" _f "\n", __func__, __LINE__
 
 /**
  * @brief Capture buffer management table.
@@ -249,8 +245,8 @@ struct capture_mapping *get_mapping(
 
 	buf = dma_buf_get((int)fd);
 	if (IS_ERR(buf)) {
-		dev_err(tab->dev, fmt("invalid memfd %u; errno %ld"),
-			fd, PTR_ERR(buf));
+		dev_err(tab->dev, "%s:%d: invalid memfd %u; errno %ld \n",
+			 __func__, __LINE__, fd, PTR_ERR(buf));
 		return ERR_CAST(buf);
 	}
 
@@ -294,8 +290,8 @@ err1:
 	kmem_cache_free(tab->cache, pin);
 err0:
 	dma_buf_put(buf);
-	dev_err(tab->dev, fmt("memfd %u, flag %u; errno %ld"),
-		fd, flag, PTR_ERR(buf));
+	dev_err(tab->dev, "%s:%d: memfd %u, flag %u; errno %ld \n",
+		__func__, __LINE__,fd, flag, PTR_ERR(buf));
 	return err;
 }
 
@@ -364,15 +360,15 @@ int capture_buffer_request(
 		pin = get_mapping(tab, memfd, flag_access_mode(flag));
 		if (IS_ERR(pin)) {
 			err = PTR_ERR_OR_ZERO(pin);
-			dev_err(tab->dev, fmt("memfd %u, flag %u; errno %d"),
-				memfd, flag, err);
+			dev_err(tab->dev, "%s:%d: memfd %u, flag %u; errno %d",
+				__func__, __LINE__,memfd, flag, err);
 			goto end;
 		}
 
 		if (mapping_preserved(pin)) {
 			err = -EEXIST;
-			dev_err(tab->dev, fmt("memfd %u exists; errno %d"),
-				memfd, err);
+			dev_err(tab->dev, "%s:%d: memfd %u exists; errno %d",
+				__func__, __LINE__,memfd, err);
 			put_mapping(tab, pin);
 			goto end;
 		}
@@ -380,16 +376,16 @@ int capture_buffer_request(
 		buf = dma_buf_get((int)memfd);
 		if (IS_ERR(buf)) {
 			err = PTR_ERR_OR_ZERO(buf);
-			dev_err(tab->dev, fmt("invalid memfd %u; errno %d"),
-				memfd, err);
+			dev_err(tab->dev, "%s:%d: invalid memfd %u; errno %d",
+				__func__, __LINE__, memfd, err);
 			goto end;
 		}
 
 		pin = find_mapping(tab, buf, BUFFER_ADD);
 		if (pin == NULL) {
 			err = -ENOENT;
-			dev_err(tab->dev, fmt("memfd %u not exists; errno %d"),
-				memfd, err);
+			dev_err(tab->dev, "%s:%d: memfd %u not exists; errno %d",
+				__func__, __LINE__,memfd, err);
 			dma_buf_put(buf);
 			goto end;
 		}
@@ -420,8 +416,8 @@ void put_mapping(
 	zero = atomic_dec_and_test(&pin->refcnt);
 	if (zero) {
 		if (unlikely(mapping_preserved(pin))) {
-			dev_err(t->dev,
-				fmt("unexpected put for a preserved mapping"));
+			dev_err(t->dev, "%s:%d: unexpected put for a preserved mapping",
+				__func__, __LINE__);
 			atomic_inc(&pin->refcnt);
 			return;
 		}
