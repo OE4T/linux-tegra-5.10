@@ -1204,9 +1204,15 @@
 		prod-settings {
 			#prod-cells = <4>;
 			prod {
+#if TEGRA_PMC_VERSION >= DT_VERSION_2
+				prod = <
+					2 0x0000202c 0x80000000 0x80000000              //SCRATCH_SCRATCH0_ECO_0
+					3 0x00000010 0x00000001 0x00000001>;            //PMC_MISC_FUSE_CONTROL_0
+#else
 				prod = <
 					1 0x0000202c 0x80000000 0x80000000              //SCRATCH_SCRATCH0_ECO_0
 					2 0x00000010 0x00000001 0x00000001>;            //PMC_MISC_FUSE_CONTROL_0
+#endif
 			};
 		};
 	};
