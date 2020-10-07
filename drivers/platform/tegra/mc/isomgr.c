@@ -94,6 +94,9 @@ do {							\
 static bool test_mode;
 static bool isomgr_disable = false;
 
+/* Flag to check if isomgr is initialized */
+static bool is_isomgr_up = false;
+
 char *cname[] = {
 	"disp_0",
 	"disp_1",
@@ -429,6 +432,8 @@ tegra_isomgr_handle tegra_isomgr_register(enum tegra_iso_client client,
 					  tegra_isomgr_renegotiate renegotiate,
 					  void *priv)
 {
+	if(!is_isomgr_up)
+		return ERR_PTR(-EAGAIN);
 	IS_ISOMGR_SUPPORTED(isomgr_disable, ERR_PTR(-EINVAL));
 
 	if (test_mode)
@@ -1071,6 +1076,7 @@ int __init isomgr_init(void)
 	}
 
 	isomgr_create_sysfs();
+	is_isomgr_up = true;
 	return 0;
 }
 #ifdef CONFIG_COMMON_CLK
