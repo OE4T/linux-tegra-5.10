@@ -179,6 +179,14 @@
 	};
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+	smmu_suspend {
+		compatible = "nvidia,smmu_suspend";
+		reg = <0 0x12000000 0 0x800000>,
+		      <0 0x11000000 0 0x800000>,
+		      <0 0x10000000 0 0x800000>;
+		suspend-save-reg = <0x0c3902ac>; /* SCRATCH_SECURE_RSV73_SCRATCH_0 */
+	};
+
 	smmu_iso: iommu@10000000{
 		compatible = "arm,mmu-500","nvidia,smmu-500";
 		reg = <0 0x10000000 0 0x800000>;
