@@ -538,21 +538,10 @@ int nvgpu_profiler_alloc_pma_stream(struct nvgpu_profiler_object *prof)
 void nvgpu_profiler_free_pma_stream(struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
-	struct mm_gk20a *mm = &g->mm;
 
-	if (prof->pma_buffer_va == 0U) {
-		return;
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM]) {
+		nvgpu_perfbuf_deinit_vm(g);
+		nvgpu_profiler_pm_resource_release(prof,
+				NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
 	}
-
-	nvgpu_vm_unmap(mm->perfbuf.vm, prof->pma_bytes_available_buffer_va, NULL);
-	prof->pma_bytes_available_buffer_va = 0U;
-
-	nvgpu_vm_unmap(mm->perfbuf.vm, prof->pma_buffer_va, NULL);
-	prof->pma_buffer_va = 0U;
-	prof->pma_buffer_size = 0U;
-
-	nvgpu_perfbuf_deinit_vm(g);
-
-	nvgpu_profiler_pm_resource_release(prof,
-			NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
 }

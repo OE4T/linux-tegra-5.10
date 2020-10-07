@@ -294,6 +294,7 @@ struct mm_gk20a {
 	struct {
 		struct vm_gk20a *vm;
 		struct nvgpu_mem inst_block;
+		u64 pma_bytes_available_buffer_gpu_va;
 	} perfbuf;
 
 	/**

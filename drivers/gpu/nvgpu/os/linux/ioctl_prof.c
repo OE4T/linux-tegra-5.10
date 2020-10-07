@@ -189,9 +189,9 @@ int nvgpu_prof_fops_release(struct inode *inode, struct file *filp)
 		"Request to close profiler session with scope %u and profiler handle %u",
 		prof->scope, prof->prof_handle);
 
-	nvgpu_profiler_free(prof);
-
 	nvgpu_prof_free_pma_stream_priv_data(prof_priv);
+
+	nvgpu_profiler_free(prof);
 
 	nvgpu_kfree(g, prof_priv->regops_umd_copy_buf);
 	nvgpu_kfree(g, prof_priv->regops_staging_buf);
@@ -343,7 +343,7 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 	struct nvgpu_profiler_object *prof = priv->prof;
 	struct gk20a *g = prof->g;
 	struct mm_gk20a *mm = &g->mm;
-	u64 pma_bytes_available_buffer_offset = 0ULL;
+	u64 pma_bytes_available_buffer_offset;
 	struct dma_buf *dmabuf;
 	void *cpuva;
 	u32 pma_buffer_size;
@@ -363,8 +363,15 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 		return err;
 	}
 
+	/*
+	 * PMA available byte buffer GPU_VA needs to fit in 32 bit
+	 * register, hence use a fixed GPU_VA to map it.
+	 */
+	pma_bytes_available_buffer_offset = mm->perfbuf.pma_bytes_available_buffer_gpu_va;
+
 	err = nvgpu_vm_map_buffer(mm->perfbuf.vm, args->pma_bytes_available_buffer_fd,
-			&pma_bytes_available_buffer_offset, 0, SZ_4K, 0, 0,
+			&pma_bytes_available_buffer_offset,
+			NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET, SZ_4K, 0, 0,
 			0, 0, NULL);
 	if (err != 0) {
 		nvgpu_err(g, "failed to map available bytes buffer");
@@ -429,10 +436,19 @@ err_put_vm:
 static void nvgpu_prof_free_pma_stream_priv_data(struct nvgpu_profiler_object_priv *priv)
 {
 	struct nvgpu_profiler_object *prof = priv->prof;
+	struct gk20a *g = prof->g;
+	struct mm_gk20a *mm = &g->mm;
 
 	if (priv->pma_bytes_available_buffer_dmabuf == NULL) {
 		return;
 	}
+
+	nvgpu_vm_unmap(mm->perfbuf.vm, prof->pma_bytes_available_buffer_va, NULL);
+	prof->pma_bytes_available_buffer_va = 0U;
+
+	nvgpu_vm_unmap(mm->perfbuf.vm, prof->pma_buffer_va, NULL);
+	prof->pma_buffer_va = 0U;
+	prof->pma_buffer_size = 0U;
 
 	dma_buf_vunmap(priv->pma_bytes_available_buffer_dmabuf,
 		prof->pma_bytes_available_buffer_cpuva);
@@ -459,8 +475,8 @@ static int nvgpu_prof_ioctl_free_pma_stream(struct nvgpu_profiler_object_priv *p
 		return -EINVAL;
 	}
 
-	nvgpu_profiler_free_pma_stream(prof);
 	nvgpu_prof_free_pma_stream_priv_data(priv);
+	nvgpu_profiler_free_pma_stream(prof);
 
 	nvgpu_log(g, gpu_dbg_prof, "Request to free PMA stream for handle %u completed",
 		prof->prof_handle);
