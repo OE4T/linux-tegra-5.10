@@ -1462,19 +1462,8 @@ thermal_zone_device_register(const char *type, int trips, u64 mask,
 	/* Update 'this' zone's governor information */
 	mutex_lock(&thermal_governor_lock);
 
-	if (tz->tzp) {
+	if (tz->tzp)
 		governor = thermal_find_governor(tz->tzp->governor_name);
-		/*
-		 * This situation can arise if a governor is not enabled from a config
-		 * file but is used in the device tree
-		 */
-		if (!governor) {
-			dev_info(&tz->device,
-					"%s gov not in list. using default\n",
-					tz->tzp->governor_name);
-			governor = def_governor;
-		}
-	}
 	else
 		governor = def_governor;
 
