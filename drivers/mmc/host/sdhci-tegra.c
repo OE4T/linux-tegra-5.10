@@ -1238,8 +1238,9 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 	device_property_read_u32(host->mmc->parent, "ddr-clk-limit",
 		(u32 *)&tegra_host->max_ddr_clk_limit);
 
-	host->ocr_mask = MMC_VDD_27_36 | MMC_VDD_165_195;
+	host->ocr_mask = 0;
 	if (!device_property_read_u32(host->mmc->parent, "mmc-ocr-mask", &val)) {
+		host->ocr_mask = MMC_VDD_27_36 | MMC_VDD_165_195;
 		if (val == 1)
 			host->ocr_mask &= ~(MMC_VDD_26_27 | MMC_VDD_27_28);
 		else if (val == 2)
