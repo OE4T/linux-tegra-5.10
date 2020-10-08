@@ -623,7 +623,7 @@
 		ofa@15a50000 {
 			compatible = "nvidia,tegra234-ofa";
 			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_OFA>;
-			reg = <0x0 0x15a50000 0x0 0x00004000>;
+			reg = <0x0 0x15a50000 0x0 0x00010000>;
 			resets = <&bpmp_resets TEGRA234_RESET_OFA>;
 			clocks = <&bpmp_clks TEGRA234_CLK_OFA>;
 			clock-names = "ofa";
