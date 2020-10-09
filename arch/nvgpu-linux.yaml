@@ -137,6 +137,7 @@ nvgpu_mem:
 
 nvhost:
   sources: [ os/linux/nvhost.c,
+             os/linux/nvhost_common.c,
              os/linux/nvhost_priv.h ]
 
 nvlink:

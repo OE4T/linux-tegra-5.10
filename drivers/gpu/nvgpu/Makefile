@@ -472,6 +472,7 @@ endif
 
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/nvhost.o \
+	os/linux/nvhost_common.o \
 	hal/sync/syncpt_cmdbuf_gk20a.o \
 	hal/sync/syncpt_cmdbuf_gv11b.o \
 	hal/sync/syncpt_cmdbuf_gv11b_fusa.o \
