@@ -682,6 +682,10 @@ int vi_capture_setup(
 	capture->request_size = setup->request_size;
 	capture->request_buf_size = setup->request_size * setup->queue_depth;
 
+	capture->stream_id = setup->csi_stream_id;
+	capture->csi_port = setup->csi_port;
+	capture->virtual_channel_id = setup->virtual_channel_id;
+
 	err = vi_capture_setup_syncpts(chan, setup->channel_flags);
 	if (err < 0) {
 		dev_err(chan->dev, "failed to setup syncpts\n");
@@ -968,7 +972,84 @@ int csi_stream_release(
 	return err;
 }
 
-int vi_capture_control_message(
+static int vi_capture_control_send_message(
+	struct tegra_vi_channel *chan,
+	const struct CAPTURE_CONTROL_MSG *msg_cpy,
+	size_t size)
+{
+	struct vi_capture *capture = chan->capture_data;
+	struct CAPTURE_MSG_HEADER *header;
+	uint32_t resp_id;
+
+	header = (struct CAPTURE_MSG_HEADER *)msg_cpy;
+	header->channel_id = capture->channel_id;
+
+	switch (header->msg_id) {
+	case CAPTURE_COMPAND_CONFIG_REQ:
+		resp_id = CAPTURE_COMPAND_CONFIG_RESP;
+		break;
+	case CAPTURE_PDAF_CONFIG_REQ:
+		resp_id = CAPTURE_PDAF_CONFIG_RESP;
+		break;
+	case CAPTURE_SYNCGEN_ENABLE_REQ:
+		resp_id = CAPTURE_SYNCGEN_ENABLE_RESP;
+		break;
+	case CAPTURE_SYNCGEN_DISABLE_REQ:
+		resp_id = CAPTURE_SYNCGEN_DISABLE_RESP;
+		break;
+	case CAPTURE_PHY_STREAM_OPEN_REQ:
+		resp_id = CAPTURE_PHY_STREAM_OPEN_RESP;
+		capture->stream_id = msg_cpy->phy_stream_open_req.stream_id;
+		capture->csi_port = msg_cpy->phy_stream_open_req.csi_port;
+		break;
+	case CAPTURE_PHY_STREAM_CLOSE_REQ:
+		resp_id = CAPTURE_PHY_STREAM_CLOSE_RESP;
+		capture->stream_id = NVCSI_STREAM_INVALID_ID;
+		capture->csi_port = NVCSI_PORT_UNSPECIFIED;
+		break;
+	case CAPTURE_PHY_STREAM_DUMPREGS_REQ:
+		resp_id = CAPTURE_PHY_STREAM_DUMPREGS_RESP;
+		break;
+	case CAPTURE_CSI_STREAM_SET_CONFIG_REQ:
+		resp_id = CAPTURE_CSI_STREAM_SET_CONFIG_RESP;
+		break;
+	case CAPTURE_CSI_STREAM_SET_PARAM_REQ:
+		resp_id = CAPTURE_CSI_STREAM_SET_PARAM_RESP;
+		break;
+	case CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ:
+		resp_id = CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP;
+		break;
+	case CAPTURE_CSI_STREAM_TPG_START_REQ:
+		resp_id = CAPTURE_CSI_STREAM_TPG_START_RESP;
+		capture->virtual_channel_id =
+			msg_cpy->csi_stream_tpg_start_req.virtual_channel_id;
+		break;
+	case CAPTURE_CSI_STREAM_TPG_START_RATE_REQ:
+		resp_id = CAPTURE_CSI_STREAM_TPG_START_RATE_RESP;
+		capture->virtual_channel_id = msg_cpy->
+			csi_stream_tpg_start_rate_req.virtual_channel_id;
+		break;
+	case CAPTURE_CSI_STREAM_TPG_STOP_REQ:
+		resp_id = CAPTURE_CSI_STREAM_TPG_STOP_RESP;
+		capture->virtual_channel_id = NVCSI_STREAM_INVALID_TPG_VC_ID;
+		break;
+	case CAPTURE_CHANNEL_EI_REQ:
+		resp_id = CAPTURE_CHANNEL_EI_RESP;
+		break;
+	case CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ:
+		resp_id = CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP;
+		break;
+	default:
+		dev_err(chan->dev,
+				"%s: unknown capture control req %x", __func__,
+				header->msg_id);
+		return -EINVAL;
+	}
+
+	return vi_capture_ivc_send_control(chan, msg_cpy, size, resp_id);
+}
+
+int vi_capture_control_message_from_user(
 	struct tegra_vi_channel *chan,
 	struct vi_capture_control_msg *msg)
 {
@@ -976,9 +1057,6 @@ int vi_capture_control_message(
 	const void __user *msg_ptr;
 	void __user *response;
 	void *msg_cpy;
-	struct CAPTURE_MSG_HEADER *header;
-	uint32_t resp_id;
-	struct CAPTURE_CONTROL_MSG *req_msg = NULL;
 	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
 	int err = 0;
 
@@ -1011,80 +1089,63 @@ int vi_capture_control_message(
 	err = copy_from_user(msg_cpy, msg_ptr, msg->size) ? -EFAULT : 0;
 	if (err < 0)
 		goto fail;
-	header = (struct CAPTURE_MSG_HEADER *)msg_cpy;
-	header->channel_id = capture->channel_id;
 
-	req_msg = (struct CAPTURE_CONTROL_MSG *)msg_cpy;
 
-	switch (header->msg_id) {
-	case CAPTURE_COMPAND_CONFIG_REQ:
-		resp_id = CAPTURE_COMPAND_CONFIG_RESP;
-		break;
-	case CAPTURE_PDAF_CONFIG_REQ:
-		resp_id = CAPTURE_PDAF_CONFIG_RESP;
-		break;
-	case CAPTURE_SYNCGEN_ENABLE_REQ:
-		resp_id = CAPTURE_SYNCGEN_ENABLE_RESP;
-		break;
-	case CAPTURE_SYNCGEN_DISABLE_REQ:
-		resp_id = CAPTURE_SYNCGEN_DISABLE_RESP;
-		break;
-	case CAPTURE_PHY_STREAM_OPEN_REQ:
-		resp_id = CAPTURE_PHY_STREAM_OPEN_RESP;
-		capture->stream_id = req_msg->phy_stream_open_req.stream_id;
-		capture->csi_port = req_msg->phy_stream_open_req.csi_port;
-		break;
-	case CAPTURE_PHY_STREAM_CLOSE_REQ:
-		resp_id = CAPTURE_PHY_STREAM_CLOSE_RESP;
-		capture->stream_id = NVCSI_STREAM_INVALID_ID;
-		capture->csi_port = NVCSI_PORT_UNSPECIFIED;
-		break;
-	case CAPTURE_PHY_STREAM_DUMPREGS_REQ:
-		resp_id = CAPTURE_PHY_STREAM_DUMPREGS_RESP;
-		break;
-	case CAPTURE_CSI_STREAM_SET_CONFIG_REQ:
-		resp_id = CAPTURE_CSI_STREAM_SET_CONFIG_RESP;
-		break;
-	case CAPTURE_CSI_STREAM_SET_PARAM_REQ:
-		resp_id = CAPTURE_CSI_STREAM_SET_PARAM_RESP;
-		break;
-	case CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ:
-		resp_id = CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP;
-		break;
-	case CAPTURE_CSI_STREAM_TPG_START_REQ:
-		resp_id = CAPTURE_CSI_STREAM_TPG_START_RESP;
-		capture->virtual_channel_id =
-			req_msg->csi_stream_tpg_start_req.virtual_channel_id;
-		break;
-	case CAPTURE_CSI_STREAM_TPG_START_RATE_REQ:
-		resp_id = CAPTURE_CSI_STREAM_TPG_START_RATE_RESP;
-		capture->virtual_channel_id = req_msg->
-			csi_stream_tpg_start_rate_req.virtual_channel_id;
-		break;
-	case CAPTURE_CSI_STREAM_TPG_STOP_REQ:
-		resp_id = CAPTURE_CSI_STREAM_TPG_STOP_RESP;
-		capture->virtual_channel_id = NVCSI_STREAM_INVALID_TPG_VC_ID;
-		break;
-	case CAPTURE_CHANNEL_EI_REQ:
-		resp_id = CAPTURE_CHANNEL_EI_RESP;
-		break;
-	case CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ:
-		resp_id = CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP;
-		break;
-	default:
-		dev_err(chan->dev,
-				"%s: unknown capture control req %x", __func__,
-				header->msg_id);
-		err = -EINVAL;
-		goto fail;
-	}
-
-	err = vi_capture_ivc_send_control(chan, msg_cpy, msg->size, resp_id);
+	err = vi_capture_control_send_message(chan, msg_cpy, msg->size);
 	if (err < 0)
 		goto fail;
 
 	err = copy_to_user(response, resp_msg,
-			sizeof(*resp_msg)) ? -EFAULT : 0;
+		sizeof(*resp_msg)) ? -EFAULT : 0;
+	if (err < 0)
+		goto fail;
+
+fail:
+	kfree(msg_cpy);
+	return err;
+}
+
+int vi_capture_control_message(
+	struct tegra_vi_channel *chan,
+	struct vi_capture_control_msg *msg)
+{
+	struct vi_capture *capture = chan->capture_data;
+	void *msg_cpy;
+	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
+	int err = 0;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG);
+#else
+	nv_camera_log(chan->ndev,
+		__arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG);
+#endif
+
+	if (capture == NULL) {
+		dev_err(chan->dev,
+			 "%s: vi capture uninitialized\n", __func__);
+		return -ENODEV;
+	}
+
+	if (msg->ptr == 0ull || msg->response == 0ull || msg->size == 0)
+		return -EINVAL;
+
+	msg_cpy = kzalloc(msg->size, GFP_KERNEL);
+	if (unlikely(msg_cpy == NULL))
+		return -ENOMEM;
+
+	memcpy(msg_cpy, (const void *)(uintptr_t)msg->ptr,
+						msg->size);
+
+	err = vi_capture_control_send_message(chan, msg_cpy, msg->size);
+	if (err < 0)
+		goto fail;
+
+	memcpy((void *)(uintptr_t)msg->response, resp_msg,
+						sizeof(*resp_msg));
 
 fail:
 	kfree(msg_cpy);

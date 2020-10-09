@@ -353,6 +353,21 @@ int vi_capture_control_message(
 	struct vi_capture_control_msg *msg);
 
 /**
+ * @brief Send a capture-control IVC message which is received from
+ * userspace to RCE and wait for a response.
+ *
+ * This is a blocking call, with the possibility of timeout.
+ *
+ * @param[in]		chan	VI channel context
+ * @param[in,out]	msg	capture-control IVC container w/ req./resp. pair
+ *
+ * @returns		0 (success), neg. errno (failure)
+ */
+int vi_capture_control_message_from_user(
+	struct tegra_vi_channel *chan,
+	struct vi_capture_control_msg *msg);
+
+/**
  * @brief Query a VI channel's syncpt ids and values, and retrieve the
  * RCE-assigned VI FW channel id and mask.
  *

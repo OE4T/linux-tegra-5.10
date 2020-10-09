@@ -480,7 +480,7 @@ static long vi_channel_ioctl(
 
 		if (copy_from_user(&msg, ptr, sizeof(msg)))
 			break;
-		err = vi_capture_control_message(chan, &msg);
+		err = vi_capture_control_message_from_user(chan, &msg);
 		if (err < 0)
 			dev_err(chan->dev, "vi capture set config failed\n");
 		break;
