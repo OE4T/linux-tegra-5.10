@@ -54,6 +54,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/user_fence.h>
+#include <nvgpu/nvgpu_init.h>
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
@@ -700,12 +701,23 @@ static int nvgpu_gpu_ioctl_l2_fb_ops(struct gk20a *g,
 	    (!args->l2_flush && args->l2_invalidate))
 		return -EINVAL;
 
+	/* In case of railgating enabled, exit if nvgpu is powered off */
+	if (nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE) && nvgpu_is_powered_off(g)) {
+		return 0;
+	}
+
+	err = gk20a_busy(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to take power ref");
+		return err;
+	}
+
 	if (args->l2_flush) {
 		err = g->ops.mm.cache.l2_flush(g, args->l2_invalidate ?
 								true : false);
 		if (err != 0) {
 			nvgpu_err(g, "l2_flush failed");
-			return err;
+			goto out;
 		}
 	}
 
@@ -713,9 +725,12 @@ static int nvgpu_gpu_ioctl_l2_fb_ops(struct gk20a *g,
 		err = g->ops.mm.cache.fb_flush(g);
 		if (err != 0) {
 			nvgpu_err(g, "mm.cache.fb_flush() failed err=%d", err);
-			return err;
+			goto out;
 		}
 	}
+
+out:
+	gk20a_idle(g);
 
 	return err;
 }
