@@ -1,7 +1,7 @@
-From 093d59df956fefdfa6ff996b8375f8012033dcee Mon Sep 17 00:00:00 2001
+From 82b285a1f8dca02e3edb72b4f8dd20e7ee07386c Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:55 +0100
-Subject: [PATCH 018/220] printk: add processor number to output
+Subject: [PATCH 018/232] printk: add processor number to output
 
 It can be difficult to sort printk out if multiple processors are
 printing simultaneously. Add the processor number to the printk

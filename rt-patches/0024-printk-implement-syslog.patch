@@ -1,7 +1,7 @@
-From 060a5abe26ec0d92f61ea83d9286ccfd4cc2010e Mon Sep 17 00:00:00 2001
+From 13dd1cab45efb8a80a5adc3f556266fb238e7715 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:30:01 +0100
-Subject: [PATCH 024/220] printk: implement syslog
+Subject: [PATCH 024/232] printk: implement syslog
 
 Since printk messages are now logged to a new ring buffer, update
 the syslog functions to pull the messages from there.

@@ -1,7 +1,7 @@
-From fa8d346addaae02613825e571765be627b162342 Mon Sep 17 00:00:00 2001
+From 9ffab1ab2bc6bf22671ae14db0ee737bc3171f85 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Tue, 12 Feb 2019 15:29:56 +0100
-Subject: [PATCH 019/220] console: add write_atomic interface
+Subject: [PATCH 019/232] console: add write_atomic interface
 
 Add a write_atomic callback to the console. This is an optional
 function for console drivers. The function must be atomic (including

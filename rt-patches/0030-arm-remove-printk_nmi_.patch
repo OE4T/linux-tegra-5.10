@@ -1,7 +1,7 @@
-From c3257e9c8c751e4bce444de8c8199f94f5c20ed2 Mon Sep 17 00:00:00 2001
+From 90d71a2d277b04f0c2e08905d16bb44f6fa408e9 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 15 Feb 2019 14:34:20 +0100
-Subject: [PATCH 030/220] arm: remove printk_nmi_.*()
+Subject: [PATCH 030/232] arm: remove printk_nmi_.*()
 
 It is no longer provided by the printk core code.
 
