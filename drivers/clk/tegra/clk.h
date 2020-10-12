@@ -925,4 +925,7 @@ struct clk *tegra20_clk_register_emc(void __iomem *ioaddr, bool low_jitter);
 struct clk *tegra210_clk_register_emc(struct device_node *np,
 				      void __iomem *regs);
 
+/* Include downstream header at the end as it quotes func or struct above */
+#include "clk-tegra.h"
+
 #endif /* TEGRA_CLK_H */
