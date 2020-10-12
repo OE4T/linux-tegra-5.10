@@ -17,6 +17,7 @@
 #include <linux/device.h>
 #include <linux/pm_runtime.h>
 #include <linux/fb.h>
+#include <linux/version.h>
 
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvhost.h>
@@ -1109,6 +1110,13 @@ void nvgpu_remove_sysfs(struct device *dev)
 		struct device *parent = container_of((kobj->parent),
 				struct device, kobj);
 		sysfs_remove_link(&parent->kobj, "gpu.0");
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 14, 0)
+		kobj = &parent->kobj;
+		parent = container_of((kobj->parent),
+				struct device, kobj);
+		sysfs_remove_link(&parent->kobj, "gpu.0");
+#endif
 	}
 }
 
@@ -1161,6 +1169,19 @@ int nvgpu_create_sysfs(struct device *dev)
 					struct device, kobj);
 		error |= sysfs_create_link(&parent->kobj,
 				   &dev->kobj, "gpu.0");
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 14, 0)
+		/*
+		 * Create symbolic link under /sys/devices/ as various tests
+		 * expect it to be there. Above sysfs_create_link creates
+		 * it under /sys/devices/platform/ from kernels after v4.14.
+		 */
+		kobj = &parent->kobj;
+		parent = container_of((kobj->parent),
+					struct device, kobj);
+		error |= sysfs_create_link(&parent->kobj,
+				   &dev->kobj, "gpu.0");
+#endif
 	}
 
 	if (error)
