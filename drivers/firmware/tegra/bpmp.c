@@ -17,6 +17,7 @@
 
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/fuse.h>
 #include <soc/tegra/ivc.h>
 
 #include "bpmp-private.h"
@@ -782,9 +783,11 @@ static int tegra_bpmp_probe(struct platform_device *pdev)
 			goto free_mrq;
 	}
 
-	err = tegra_bpmp_init_debugfs(bpmp);
-	if (err < 0)
-		dev_err(&pdev->dev, "debugfs initialization failed: %d\n", err);
+	if (!tegra_platform_is_vdk()) {
+		err = tegra_bpmp_init_debugfs(bpmp);
+		if (err < 0)
+			dev_err(&pdev->dev, "debugfs initialization failed: %d\n", err);
+	}
 
 	return 0;
 
