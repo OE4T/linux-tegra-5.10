@@ -396,14 +396,59 @@ static DEVICE_ATTR(l3_gpu_only_ways, 0644,
 static DEVICE_ATTR(l3_gpu_cpu_ways, 0644,
 	gpu_cpu_ways_show, gpu_cpu_ways_store);
 
+static int t19x_cache_sysfs_symlink_create(struct device *dev)
+{
+	int err = 0;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 14, 0)
+	struct kobject *kobj = &dev->kobj;
+	/* Here parent is /sys/devices/platform/ */
+	struct device *parent = container_of((kobj->parent),
+					struct device, kobj);
+
+	kobj = &parent->kobj;
+	/* Here parent is /sys/devices/ */
+	parent = container_of((kobj->parent),
+					struct device, kobj);
+
+	err = sysfs_create_link(&parent->kobj,
+			&dev->kobj, dev_name(dev));
+#endif
+	return err;
+}
+
+static void t19x_cache_sysfs_symlink_remove(struct device *dev)
+{
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 14, 0)
+	struct kobject *kobj = &dev->kobj;
+	/* Here parent is /sys/devices/platform/ */
+	struct device *parent = container_of((kobj->parent),
+					struct device, kobj);
+
+	kobj = &parent->kobj;
+	/* Here parent is /sys/devices/ */
+	parent = container_of((kobj->parent),
+					struct device, kobj);
+
+	sysfs_remove_link(&parent->kobj, dev_name(dev));
+#endif
+}
+
 static int t19x_cache_sysfs_create(struct device *dev)
 {
 	int err;
+
+	err = t19x_cache_sysfs_symlink_create(dev);
+	if (err) {
+		dev_warn(dev, "Couldn't create sysfs link under /sys/devices/ err%d\n",
+			err);
+		return err;
+	}
 
 	err = device_create_file(dev, &dev_attr_l3_gpu_only_ways);
 	if (err) {
 		dev_warn(dev, "Couldn't create gpu_only_ways attribute err%d\n",
 			err);
+		t19x_cache_sysfs_symlink_remove(dev);
 		return err;
 	}
 
@@ -412,15 +457,18 @@ static int t19x_cache_sysfs_create(struct device *dev)
 		dev_warn(dev, "Couldn't create gpu_cpu_ways attribute err%d\n",
 			err);
 		device_remove_file(dev, &dev_attr_l3_gpu_only_ways);
+		t19x_cache_sysfs_symlink_remove(dev);
 		return err;
 	}
 
 	return 0;
 }
+
 static void t19x_cache_sysfs_remove(struct device *dev)
 {
 	device_remove_file(dev, &dev_attr_l3_gpu_only_ways);
 	device_remove_file(dev, &dev_attr_l3_gpu_cpu_ways);
+	t19x_cache_sysfs_symlink_remove(dev);
 }
 
 static int t19x_parse_dt(void)
