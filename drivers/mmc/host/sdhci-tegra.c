@@ -27,6 +27,7 @@
 #include <linux/of_device.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/regulator/consumer.h>
+#include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/reset.h>
 #include <linux/mmc/card.h>
 #include <linux/mmc/host.h>
@@ -193,9 +194,17 @@ static char prod_device_states[MMC_TIMING_COUNTER][20] = {
 #define NVQUIRK_HAS_TMCLK				BIT(14)
 #define SDHCI_TEGRA_FALLBACK_CLK_HZ			400000
 #define SDHCI_TEGRA_RTPM_TIMEOUT_MS			10
+#define SDMMC_EMC_MAX_FREQ      			150000000
 
 /* SDMMC CQE Base Address for Tegra Host Ver 4.1 and Higher */
 #define SDHCI_TEGRA_CQE_BASE_ADDR			0xF000
+
+static unsigned int sdmmc_emc_client_id[] = {
+	TEGRA_BWMGR_CLIENT_SDMMC1,
+	TEGRA_BWMGR_CLIENT_SDMMC2,
+	TEGRA_BWMGR_CLIENT_SDMMC3,
+	TEGRA_BWMGR_CLIENT_SDMMC4
+};
 
 struct sdhci_tegra_soc_data {
 	const struct sdhci_pltfm_data *pdata;
@@ -243,7 +252,7 @@ struct sdhci_tegra {
 	#define TUNING_STATUS_RETUNE	2
 	struct sdhci_tegra_autocal_offsets autocal_offsets;
 	ktime_t last_calib;
-
+	struct tegra_bwmgr_client *emc_clk;
 	u32 default_tap;
 	u32 default_trim;
 	u32 dqs_trim;
@@ -266,6 +275,7 @@ struct sdhci_tegra {
 	u32 boot_detect_delay;
 	unsigned long max_clk_limit;
 	unsigned long max_ddr_clk_limit;
+	unsigned int instance;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -2367,6 +2377,8 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	if (rc)
 		goto err_parse_dt;
 
+	tegra_host->instance = of_alias_get_id(pdev->dev.of_node, "sdhci");
+
 	host->mmc->caps |= MMC_CAP_WAIT_WHILE_BUSY;
 
 	if (tegra_host->soc_data->nvquirks & NVQUIRK_ENABLE_DDR50)
@@ -2432,6 +2444,16 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	}
 	clk_prepare_enable(clk);
 	pltfm_host->clk = clk;
+
+	tegra_host->emc_clk =
+		tegra_bwmgr_register(sdmmc_emc_client_id[tegra_host->instance]);
+
+	if (IS_ERR_OR_NULL(tegra_host->emc_clk))
+		dev_err(mmc_dev(host->mmc),
+			"Client registration for eMC failed\n");
+	else
+		dev_info(mmc_dev(host->mmc),
+			"Client registration for eMC Successful\n");
 
 	tegra_host->rst = devm_reset_control_get_exclusive(&pdev->dev,
 							   "sdhci");
@@ -2547,7 +2569,9 @@ static int sdhci_tegra_remove(struct platform_device *pdev)
 static int sdhci_tegra_runtime_suspend(struct device *dev)
 {
 	struct sdhci_host *host = dev_get_drvdata(dev);
-	int ret;
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	int ret, rc;
 
 	if (host->mmc->caps2 & MMC_CAP2_CQE) {
 		ret = cqhci_suspend(host->mmc);
@@ -2565,6 +2589,23 @@ static int sdhci_tegra_runtime_suspend(struct device *dev)
 	/* Disable SDMMC internal clock */
 	sdhci_set_clock(host, 0);
 
+	if (tegra_host->emc_clk) {
+		ret = tegra_bwmgr_set_emc(tegra_host->emc_clk, 0,
+						TEGRA_BWMGR_SET_EMC_SHARED_BW);
+		if (ret) {
+			dev_err(mmc_dev(host->mmc),
+				"disabling eMC clock failed, err: %d\n",
+				ret);
+			rc = sdhci_runtime_resume_host(host, true);
+			if (rc) {
+				dev_err(mmc_dev(host->mmc),
+				"Failed to runtime resume the host err: %d\n",
+				rc);
+			}
+			return ret;
+		}
+	}
+
 	/* Disable SDMMC host CAR clock and BG trimmer supply */
 	return tegra_sdhci_set_host_clock(host, false);
 }
@@ -2572,6 +2613,8 @@ static int sdhci_tegra_runtime_suspend(struct device *dev)
 static int sdhci_tegra_runtime_resume(struct device *dev)
 {
 	struct sdhci_host *host = dev_get_drvdata(dev);
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 	unsigned int clk;
 	int ret = 0;
 
@@ -2595,6 +2638,15 @@ static int sdhci_tegra_runtime_resume(struct device *dev)
 
 	if (host->mmc->caps2 & MMC_CAP2_CQE)
 		ret = cqhci_resume(host->mmc);
+
+	if (tegra_host->emc_clk) {
+		ret = tegra_bwmgr_set_emc(tegra_host->emc_clk, SDMMC_EMC_MAX_FREQ,
+					TEGRA_BWMGR_SET_EMC_SHARED_BW);
+		if (ret)
+			dev_err(mmc_dev(host->mmc),
+				"Boosting eMC clock failed, err: %d\n",
+				ret);
+	}
 
 	return ret;
 
