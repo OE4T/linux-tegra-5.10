@@ -4273,20 +4273,24 @@ static inline void netif_tx_disable(struct net_device *dev)
 
 static inline void netif_addr_lock(struct net_device *dev)
 {
-	unsigned char nest_level = 0;
+	unsigned char nest_level;
 
 #ifdef CONFIG_LOCKDEP
 	nest_level = dev->nested_level;
+#else
+	nest_level = 0;
 #endif
 	spin_lock_nested(&dev->addr_list_lock, nest_level);
 }
 
 static inline void netif_addr_lock_bh(struct net_device *dev)
 {
-	unsigned char nest_level = 0;
+	unsigned char nest_level;
 
 #ifdef CONFIG_LOCKDEP
 	nest_level = dev->nested_level;
+#else
+	nest_level = 0;
 #endif
 	local_bh_disable();
 	spin_lock_nested(&dev->addr_list_lock, nest_level);
