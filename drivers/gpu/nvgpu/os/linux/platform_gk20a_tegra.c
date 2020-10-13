@@ -24,7 +24,7 @@
 #if defined(CONFIG_TEGRA_DVFS)
 #include <linux/tegra_soctherm.h>
 #endif
-#ifdef CONFIG_NVGPU_TEGRA_FUSE
+#if defined(CONFIG_NVGPU_TEGRA_FUSE) || defined(CONFIG_NVGPU_VPR)
 #include <linux/platform/tegra/common.h>
 #endif
 
@@ -662,6 +662,7 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 
 	/* VPR is not supported on pre-silicon platforms - Jira NVGPU-5302 */
 	if (!tegra_platform_is_silicon()) {
+		tegra_unregister_idle_unidle(gk20a_do_idle);
 		nvgpu_log_info(g, "VPR is not supported on pre-si platform");
 		return 0;
 	}
@@ -673,8 +674,10 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 				      GFP_KERNEL, DMA_ATTR_NO_KERNEL_MAPPING);
 	/* Some platforms disable VPR. In that case VPR allocations always
 	 * fail. Just disable VPR usage in nvgpu in that case. */
-	if (dma_mapping_error(&tegra_vpr_dev, iova))
+	if (dma_mapping_error(&tegra_vpr_dev, iova)) {
+		tegra_unregister_idle_unidle(gk20a_do_idle);
 		return 0;
+	}
 
 	secure_buffer->size = platform->secure_buffer_size;
 	secure_buffer->phys = iova;

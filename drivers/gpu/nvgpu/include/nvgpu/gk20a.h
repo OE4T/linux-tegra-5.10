@@ -672,6 +672,11 @@ static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 /** IO Resource in the device tree for SIM mem */
 #define GK20A_SIM_IORESOURCE_MEM	2U
 
+#ifdef CONFIG_NVGPU_VPR
+int gk20a_do_idle(void *_g);
+int gk20a_do_unidle(void *_g);
+#endif
+
 #ifdef CONFIG_PM
 int gk20a_do_idle_impl(struct gk20a *g, bool force_reset);
 int gk20a_do_unidle_impl(struct gk20a *g);

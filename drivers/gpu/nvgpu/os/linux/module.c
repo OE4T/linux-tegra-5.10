@@ -884,7 +884,7 @@ fail_timeout:
  *
  * In success, this call MUST be balanced by caller with gk20a_do_unidle()
  */
-static int gk20a_do_idle(void *_g)
+int gk20a_do_idle(void *_g)
 {
 	struct gk20a *g = (struct gk20a *)_g;
 
@@ -934,7 +934,7 @@ int gk20a_do_unidle_impl(struct gk20a *g)
 /**
  * gk20a_do_unidle() - wrap up for gk20a_do_unidle_impl()
  */
-static int gk20a_do_unidle(void *_g)
+int gk20a_do_unidle(void *_g)
 {
 	struct gk20a *g = (struct gk20a *)_g;
 
@@ -998,7 +998,9 @@ void gk20a_remove_support(struct gk20a *g)
 	struct sim_nvgpu_linux *sim_linux;
 
 #ifdef CONFIG_NVGPU_VPR
-	tegra_unregister_idle_unidle(gk20a_do_idle);
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_VPR)) {
+		tegra_unregister_idle_unidle(gk20a_do_idle);
+	}
 #endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
