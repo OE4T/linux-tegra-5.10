@@ -11,7 +11,9 @@
 #include <linux/clk-provider.h>
 #include <linux/clk.h>
 #include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <soc/tegra/tegra-dvfs.h>
+#endif
 
 #include "clk.h"
 
@@ -210,6 +212,8 @@ static long clk_cbus_round_rate(struct clk_hw *hw, unsigned long rate,
 		return *parent_rate;
 	}
 
+	/* FIXME Drop this check once dvfs feature is added to K59 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	if (!pass_through) {
 		dvfs_rate = tegra_dvfs_round_rate(hw->clk, rate);
 		if (IS_ERR_VALUE(dvfs_rate))
@@ -217,6 +221,7 @@ static long clk_cbus_round_rate(struct clk_hw *hw, unsigned long rate,
 	}
 
 	if (pass_through)
+#endif
 		dvfs_rate = rate;
 
 	new_rate = clk_round_rate(parent, dvfs_rate);
@@ -271,22 +276,33 @@ static unsigned long _clk_cap_shared_bus(struct clk *c, unsigned long rate,
 
 static int clk_cbus_prepare(struct clk_hw *hw)
 {
+	/* FIXME Drop this check once dvfs feature is added to K59 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	return tegra_dvfs_set_rate(hw->clk, clk_get_rate(hw->clk));
+#else
+	return -ENOTSUPP;
+#endif
 }
 
 static void clk_cbus_unprepare(struct clk_hw *hw)
 {
+	/* FIXME Drop this check once dvfs feature is added to K59 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	tegra_dvfs_set_rate(hw->clk, 0);
+#endif
 }
 
 static bool bus_user_is_slower(struct tegra_clk_cbus_shared *a,
 			       struct tegra_clk_cbus_shared *b)
 {
+	/* FIXME Drop this check once dvfs feature is added to K59 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	if (!a->max_rate)
 		a->max_rate = tegra_dvfs_get_maxrate(a->hw.clk);
 
 	if (!b->max_rate)
 		b->max_rate = tegra_dvfs_get_maxrate(b->hw.clk);
+#endif
 
 	return a->max_rate < b->max_rate;
 }
@@ -547,7 +563,12 @@ static unsigned long clk_shared_recalc_rate(struct clk_hw *hw,
 
 static int clk_gbus_prepare(struct clk_hw *hw)
 {
+	/* FIXME Drop this check once dvfs feature is added to K59 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	return tegra_dvfs_set_rate(hw->clk, clk_get_rate(hw->clk));
+#else
+	return -ENOTSUPP;
+#endif
 }
 
 static void clk_gbus_unprepare(struct clk_hw *hw)
@@ -802,7 +823,14 @@ static void sbus_build_round_table(struct clk_hw *hw)
 	 * If no dvfs specified, just add maximum rate entry. Othrwise, add
 	 * entries for all dvfs rates.
 	 */
+
+	/* FIXME Drop this check once dvfs feature is added to K59 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	err = tegra_dvfs_get_freqs(hw->clk, &freqs, &num_freqs);
+#else
+	err= -ENOTSUPP;
+	num_freqs = 0;
+#endif
 	if (err < 0 || num_freqs == 0) {
 		if (sbus->u.system.fallback)
 			return;
