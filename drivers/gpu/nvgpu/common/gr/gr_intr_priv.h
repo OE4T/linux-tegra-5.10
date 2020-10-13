@@ -87,6 +87,19 @@ struct nvgpu_gr_intr_info {
 	 * Same value is used to clear the interrupt.
 	 */
 	u32 exception;
+	/*
+	 * This value is set when the FE receives a valid method and it
+	 * matches with the value configured in PRI_FE_DEBUG_METHOD_* pri
+	 * registers; In case of a match, FE proceeds to drop that method.
+	 * This provides a way to the SW to turn off HW decoding of this
+	 * method and convert it to a SW method.
+	 */
+	u32 debug_method;
+	/*
+	 * This value is set on the completion of a LaunchDma method with
+	 * InterruptType field configured to INTERRUPT.
+	 */
+	u32 buffer_notify;
 };
 
 /**

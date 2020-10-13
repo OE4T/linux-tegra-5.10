@@ -954,6 +954,22 @@ static void gr_intr_handle_pending_interrupts(struct gk20a *g,
 		g->ops.gr.intr.handle_semaphore_pending(g, isr_data);
 		*clear_intr &= ~intr_info->semaphore;
 	}
+
+	if (intr_info->buffer_notify != 0U) {
+		/*
+		 * This notifier event is ignored at present as there is no
+		 * real usecase.
+		 */
+		nvgpu_log(g, gpu_dbg_intr, "buffer notify interrupt");
+		*clear_intr &= ~intr_info->buffer_notify;
+	}
+
+	if (intr_info->debug_method != 0U) {
+		nvgpu_warn(g, "dropping method(0x%x) on subchannel(%d)",
+				isr_data->offset, isr_data->sub_chan);
+
+		*clear_intr &= ~intr_info->debug_method;
+	}
 }
 
 static struct nvgpu_tsg *gr_intr_get_channel_from_ctx(struct gk20a *g,
