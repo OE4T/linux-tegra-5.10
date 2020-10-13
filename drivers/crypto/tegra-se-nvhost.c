@@ -108,7 +108,8 @@ enum tegra_se_key_table_type {
 	SE_KEY_TABLE_TYPE_XTS_KEY2,	/* XTS Key2 */
 	SE_KEY_TABLE_TYPE_XTS_KEY1_IN_MEM,	/* XTS Key1 in Memory */
 	SE_KEY_TABLE_TYPE_XTS_KEY2_IN_MEM,	/* XTS Key2 in Memory */
-	SE_KEY_TABLE_TYPE_CMAC
+	SE_KEY_TABLE_TYPE_CMAC,
+	SE_KEY_TABLE_TYPE_HMAC
 };
 
 /* Key access control type */
@@ -276,6 +277,10 @@ struct tegra_se_sha_context {
 	u32 total_count; /* Total bytes in all the requests */
 	u32 residual_bytes; /* Residual byte count */
 	u32 blk_size; /* SHA block size */
+
+	/* HMAC Support*/
+	struct tegra_se_slot *slot;	/* Security Engine key slot */
+	u32 keylen;	/* key length in bits */
 };
 
 struct tegra_se_sha_zero_length_vector {
@@ -1242,6 +1247,14 @@ static int tegra_se_aes_ins_op(struct tegra_se_dev *se_dev, u8 *pdata,
 	u32 cmdbuf_num_words = 0, i = 0;
 	int err = 0;
 
+	struct {
+		u32 OPERATION;
+		u32 CRYPTO_KEYTABLE_KEYMANIFEST;
+		u32 CRYPTO_KEYTABLE_DST;
+		u32 CRYPTO_KEYTABLE_ADDR;
+		u32 CRYPTO_KEYTABLE_DATA;
+	} OFFSETS;
+
 	if (!pdata_buf) {
 		dev_err(se_dev->dev, "No key data available\n");
 		return -ENODATA;
@@ -1250,11 +1263,37 @@ static int tegra_se_aes_ins_op(struct tegra_se_dev *se_dev, u8 *pdata,
 	pr_debug("%s(%d) data_len = %d slot_num = %d\n", __func__, __LINE__,
 						data_len, slot_num);
 
+	/* Initialize register offsets based on SHA/AES operation. */
+	switch (type) {
+	case SE_KEY_TABLE_TYPE_HMAC:
+		OFFSETS.OPERATION = SE_SHA_OPERATION_OFFSET;
+		OFFSETS.CRYPTO_KEYTABLE_KEYMANIFEST =
+				SE_SHA_CRYPTO_KEYTABLE_KEYMANIFEST_OFFSET;
+		OFFSETS.CRYPTO_KEYTABLE_DST = SE_SHA_CRYPTO_KEYTABLE_DST_OFFSET;
+		OFFSETS.CRYPTO_KEYTABLE_ADDR =
+				SE_SHA_CRYPTO_KEYTABLE_ADDR_OFFSET;
+		OFFSETS.CRYPTO_KEYTABLE_DATA =
+				SE_SHA_CRYPTO_KEYTABLE_DATA_OFFSET;
+		break;
+	default:
+		/* Use default case for AES operations. */
+		OFFSETS.OPERATION = SE_AES_OPERATION_OFFSET;
+		OFFSETS.CRYPTO_KEYTABLE_KEYMANIFEST =
+				SE_AES_CRYPTO_KEYTABLE_KEYMANIFEST_OFFSET;
+		OFFSETS.CRYPTO_KEYTABLE_DST = SE_AES_CRYPTO_KEYTABLE_DST_OFFSET;
+		OFFSETS.CRYPTO_KEYTABLE_ADDR =
+				SE_AES_CRYPTO_KEYTABLE_ADDR_OFFSET;
+		OFFSETS.CRYPTO_KEYTABLE_DATA =
+				SE_AES_CRYPTO_KEYTABLE_DATA_OFFSET;
+		break;
+	}
+
 	i = se_dev->cmdbuf_cnt;
 
 	if (!se_dev->cmdbuf_cnt) {
-		cpuvaddr[i++] = __nvhost_opcode_nonincr(
-				opcode_addr + SE_AES_OPERATION_OFFSET, 1);
+		cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+		cpuvaddr[i++] = __nvhost_opcode_incr_w(
+				opcode_addr + OFFSETS.OPERATION);
 		cpuvaddr[i++] = SE_OPERATION_WRSTALL(WRSTALL_TRUE) |
 				SE_OPERATION_OP(OP_DUMMY);
 	}
@@ -1271,6 +1310,9 @@ static int tegra_se_aes_ins_op(struct tegra_se_dev *se_dev, u8 *pdata,
 	case SE_KEY_TABLE_TYPE_CMAC:
 		val |= SE_KEYMANIFEST_PURPOSE(CMAC);
 		break;
+	case SE_KEY_TABLE_TYPE_HMAC:
+		val |= SE_KEYMANIFEST_PURPOSE(HMAC);
+		break;
 	default:
 		val |= SE_KEYMANIFEST_PURPOSE(ENC);
 		break;
@@ -1285,40 +1327,48 @@ static int tegra_se_aes_ins_op(struct tegra_se_dev *se_dev, u8 *pdata,
 	/* exportable */
 	val |= SE_KEYMANIFEST_EX(false);
 
-	cpuvaddr[i++] = __nvhost_opcode_nonincr(opcode_addr +
-				SE_AES_CRYPTO_KEYTABLE_KEYMANIFEST_OFFSET, 1);
+	cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+	cpuvaddr[i++] = __nvhost_opcode_incr_w(opcode_addr +
+				OFFSETS.CRYPTO_KEYTABLE_KEYMANIFEST);
 	cpuvaddr[i++] = val;
 
 	pr_debug("%s(%d) key manifest = 0x%x\n", __func__, __LINE__, val);
 
-	/* configure slot number */
-	cpuvaddr[i++] = __nvhost_opcode_nonincr(
-			opcode_addr + SE_AES_CRYPTO_KEYTABLE_DST_OFFSET, 1);
-	cpuvaddr[i++] = SE_AES_KEY_INDEX(slot_num);
+	if (type != SE_KEY_TABLE_TYPE_HMAC) {
+		/* configure slot number */
+		cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+		cpuvaddr[i++] = __nvhost_opcode_incr_w(
+				opcode_addr + OFFSETS.CRYPTO_KEYTABLE_DST);
+		cpuvaddr[i++] = SE_AES_KEY_INDEX(slot_num);
+	}
 
 	/* write key data */
 	for (j = 0; j < data_len; j += 4) {
 		pr_debug("%s(%d) data_len = %d j = %d\n", __func__,
 						__LINE__, data_len, j);
-		cpuvaddr[i++] = __nvhost_opcode_nonincr(
+		cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+		cpuvaddr[i++] = __nvhost_opcode_incr_w(
 				opcode_addr +
-				SE_AES_CRYPTO_KEYTABLE_ADDR_OFFSET, 1);
+				OFFSETS.CRYPTO_KEYTABLE_ADDR);
 		val = (j / 4); /* program quad */
 		cpuvaddr[i++] = val;
 
-		cpuvaddr[i++] = __nvhost_opcode_nonincr(
+		cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+		cpuvaddr[i++] = __nvhost_opcode_incr_w(
 				opcode_addr +
-				SE_AES_CRYPTO_KEYTABLE_DATA_OFFSET, 1);
+				OFFSETS.CRYPTO_KEYTABLE_DATA);
 		cpuvaddr[i++] = *pdata_buf++;
 	}
 
 	/* configure INS operation */
-	cpuvaddr[i++] = __nvhost_opcode_nonincr(opcode_addr, 1);
+	cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+	cpuvaddr[i++] = __nvhost_opcode_incr_w(opcode_addr);
 	cpuvaddr[i++] = tegra_se_get_config(se_dev, SE_AES_OP_MODE_INS, 0, 0);
 
 	/* initiate key write operation to key slot */
-	cpuvaddr[i++] = __nvhost_opcode_nonincr(
-			opcode_addr + SE_AES_OPERATION_OFFSET, 1);
+	cpuvaddr[i++] = nvhost_opcode_setpayload(1);
+	cpuvaddr[i++] = __nvhost_opcode_incr_w(
+			opcode_addr + OFFSETS.OPERATION);
 	cpuvaddr[i++] = SE_OPERATION_WRSTALL(WRSTALL_TRUE) |
 				SE_OPERATION_OP(OP_START);
 
@@ -3574,6 +3624,89 @@ static void tegra_se_aes_cmac_cra_exit(struct crypto_tfm *tfm)
 	ctx->slot = NULL;
 }
 
+static int tegra_se_sha_hmac_setkey(struct crypto_ahash *tfm, const u8 *key,
+				    unsigned int keylen)
+{
+	struct tegra_se_sha_context *ctx = crypto_ahash_ctx(tfm);
+	struct tegra_se_req_context *req_ctx = NULL;
+	struct tegra_se_dev *se_dev;
+	unsigned int index;
+	dma_addr_t iova;
+	u32 *cpuvaddr;
+	u8 _key[TEGRA_SE_KEY_256_SIZE] = { 0 };
+	int ret = 0;
+
+	se_dev = se_devices[SE_SHA];
+	mutex_lock(&se_dev->mtx);
+
+	req_ctx = devm_kzalloc(se_dev->dev,
+			       sizeof(struct tegra_se_req_context),
+			       GFP_KERNEL);
+	if (!req_ctx) {
+		ret = -ENOMEM;
+		goto out_mutex;
+	}
+
+	if (keylen > TEGRA_SE_KEY_256_SIZE) {
+		dev_err(se_dev->dev, "invalid key size");
+		ret = -EINVAL;
+		goto free_req_ctx;
+	}
+
+	/* If keylen < TEGRA_SE_KEY_256_SIZE. Appened 0's to the end of key.
+	 * This will allow the key to be stored in the keyslot.
+	 * Since, TEGRA_SE_KEY_256_SIZE < 512-bits which is the minimum sha
+	 * block size.
+	 */
+	memcpy(_key, key, keylen);
+
+	if (!key) {
+		ret = -EINVAL;
+		goto free_req_ctx;
+	}
+
+	if (!ctx->slot) {
+		ctx->slot = tegra_se_alloc_key_slot();
+		if (!ctx->slot) {
+			dev_err(se_dev->dev, "no free key slot\n");
+			ret = -ENOMEM;
+			goto free_req_ctx;
+		}
+	}
+
+	ctx->keylen = keylen;
+
+	index = tegra_se_get_free_cmdbuf(se_dev);
+	if (index < 0) {
+		ret = index;
+		dev_err(se_dev->dev, "Couldn't get free cmdbuf\n");
+		goto free_keyslot;
+	}
+
+	cpuvaddr = se_dev->cmdbuf_addr_list[index].cmdbuf_addr;
+	iova = se_dev->cmdbuf_addr_list[index].iova;
+	atomic_set(&se_dev->cmdbuf_addr_list[index].free, 0);
+	se_dev->cmdbuf_list_entry = index;
+
+	ret = tegra_se_send_key_data(se_dev, _key, TEGRA_SE_KEY_256_SIZE,
+		ctx->slot->slot_num, SE_KEY_TABLE_TYPE_HMAC,
+		se_dev->opcode_addr, cpuvaddr, iova, NONE);
+
+	if (ret)
+		dev_err(se_dev->dev,
+			"tegra_se_send_key_data for loading HMAC key failed\n");
+
+free_keyslot:
+	if (ret)
+		tegra_se_free_key_slot(ctx->slot);
+free_req_ctx:
+	devm_kfree(se_dev->dev, req_ctx);
+out_mutex:
+	mutex_unlock(&se_dev->mtx);
+
+	return ret;
+}
+
 /* Security Engine rsa key slot */
 struct tegra_se_rsa_slot {
 	struct list_head node;
@@ -4738,12 +4871,13 @@ static struct ahash_alg hash_algs[] = {
 		.digest = tegra_se_sha_digest,
 		.export = tegra_se_sha_export,
 		.import = tegra_se_sha_import,
+		.setkey = tegra_se_sha_hmac_setkey,
 		.halg.digestsize = SHA224_DIGEST_SIZE,
 		.halg.statesize = SHA224_STATE_SIZE,
 		.halg.base = {
 			.cra_name = "hmac(sha224)",
 			.cra_driver_name = "tegra-se-hmac-sha224",
-			.cra_priority = 300,
+			.cra_priority = 500,
 			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
 			.cra_blocksize = SHA224_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
@@ -4760,12 +4894,13 @@ static struct ahash_alg hash_algs[] = {
 		.digest = tegra_se_sha_digest,
 		.export = tegra_se_sha_export,
 		.import = tegra_se_sha_import,
+		.setkey = tegra_se_sha_hmac_setkey,
 		.halg.digestsize = SHA256_DIGEST_SIZE,
 		.halg.statesize = SHA256_STATE_SIZE,
 		.halg.base = {
 			.cra_name = "hmac(sha256)",
 			.cra_driver_name = "tegra-se-hmac-sha256",
-			.cra_priority = 300,
+			.cra_priority = 500,
 			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
 			.cra_blocksize = SHA256_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
@@ -4782,12 +4917,13 @@ static struct ahash_alg hash_algs[] = {
 		.digest = tegra_se_sha_digest,
 		.export = tegra_se_sha_export,
 		.import = tegra_se_sha_import,
+		.setkey = tegra_se_sha_hmac_setkey,
 		.halg.digestsize = SHA384_DIGEST_SIZE,
 		.halg.statesize = SHA384_STATE_SIZE,
 		.halg.base = {
 			.cra_name = "hmac(sha384)",
 			.cra_driver_name = "tegra-se-hmac-sha384",
-			.cra_priority = 300,
+			.cra_priority = 500,
 			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
 			.cra_blocksize = SHA384_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
@@ -4804,12 +4940,13 @@ static struct ahash_alg hash_algs[] = {
 		.digest = tegra_se_sha_digest,
 		.export = tegra_se_sha_export,
 		.import = tegra_se_sha_import,
+		.setkey = tegra_se_sha_hmac_setkey,
 		.halg.digestsize = SHA512_DIGEST_SIZE,
 		.halg.statesize = SHA512_STATE_SIZE,
 		.halg.base = {
 			.cra_name = "hmac(sha512)",
 			.cra_driver_name = "tegra-se-hmac-sha512",
-			.cra_priority = 300,
+			.cra_priority = 500,
 			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
 			.cra_blocksize = SHA512_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct tegra_se_sha_context),
