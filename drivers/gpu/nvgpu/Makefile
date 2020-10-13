@@ -470,8 +470,15 @@ nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/os_fence_syncpt.o
 endif
 
+ifeq ($(CONFIG_TEGRA_GK20A_NVHOST_HOST1X),y)
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
-	os/linux/nvhost.o \
+	os/linux/nvhost_host1x.o
+else
+nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
+	os/linux/nvhost.o
+endif
+
+nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/nvhost_common.o \
 	hal/sync/syncpt_cmdbuf_gk20a.o \
 	hal/sync/syncpt_cmdbuf_gv11b.o \

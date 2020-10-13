@@ -14,7 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if !defined(CONFIG_TEGRA_GK20A_NVHOST_HOST1X)
 #include <uapi/linux/nvhost_ioctl.h>
+#endif
 
 #include <linux/err.h>
 #include <nvgpu/errno.h>

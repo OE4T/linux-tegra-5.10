@@ -22,7 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef CONFIG_NVGPU_SYNCFD_NONE
+#if !defined(CONFIG_NVGPU_SYNCFD_NONE) && !defined(CONFIG_TEGRA_GK20A_NVHOST_HOST1X)
 #include <uapi/linux/nvhost_ioctl.h>
 #endif
 

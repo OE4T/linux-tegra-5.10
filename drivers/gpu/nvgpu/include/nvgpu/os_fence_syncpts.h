@@ -25,15 +25,27 @@
 #ifndef NVGPU_OS_FENCE_SYNCPT_H
 #define NVGPU_OS_FENCE_SYNCPT_H
 
+#if defined(CONFIG_TEGRA_GK20A_NVHOST_HOST1X)
+#include <linux/types.h>
+#endif
+
 #include <nvgpu/errno.h>
 
 struct nvgpu_os_fence;
-struct nvhost_ctrl_sync_fence_info;
 struct nvgpu_nvhost_dev;
 
 struct nvgpu_os_fence_syncpt {
 	struct nvgpu_os_fence *fence;
 };
+
+#if defined(CONFIG_TEGRA_GK20A_NVHOST_HOST1X)
+struct nvhost_ctrl_sync_fence_info {
+	__u32 id;
+	__u32 thresh;
+};
+#else
+struct nvhost_ctrl_sync_fence_info;
+#endif
 
 #if defined(CONFIG_TEGRA_GK20A_NVHOST) && !defined(CONFIG_NVGPU_SYNCFD_NONE)
 
