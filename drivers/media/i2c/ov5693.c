@@ -1,7 +1,7 @@
 /*
  * ov5693_v4l2.c - ov5693 sensor driver
  *
- * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -661,8 +661,13 @@ static int ov5693_eeprom_device_init(struct ov5693 *priv)
 		strncpy(priv->eeprom[i].brd.type, dev_name,
 				sizeof(priv->eeprom[i].brd.type));
 		priv->eeprom[i].brd.addr = OV5693_EEPROM_ADDRESS + i;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		priv->eeprom[i].i2c_client = i2c_new_device(
 				priv->eeprom[i].adap, &priv->eeprom[i].brd);
+#else
+		priv->eeprom[i].i2c_client = i2c_new_client_device(
+				priv->eeprom[i].adap, &priv->eeprom[i].brd);
+#endif
 
 		priv->eeprom[i].regmap = devm_regmap_init_i2c(
 			priv->eeprom[i].i2c_client, &eeprom_regmap_config);
