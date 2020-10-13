@@ -1320,7 +1320,7 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 	arm_smmu_rpm_put(smmu);
 
 	if (time_before)
-		trace_arm_smmu_handle_mapping(time_before,
+		trace_arm_smmu_handle_mapping(dev_name(smmu->dev), time_before,
 				to_smmu_domain(domain)->cfg.cbndx, iova, paddr,
 				size, prot);
 
@@ -1354,7 +1354,7 @@ static size_t arm_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 	arm_smmu_rpm_put(smmu);
 
 	if (time_before)
-		trace_arm_smmu_handle_mapping(time_before,
+		trace_arm_smmu_handle_mapping(dev_name(smmu->dev), time_before,
 				to_smmu_domain(domain)->cfg.cbndx, iova, 0,
 				size, 0);
 	return ret;

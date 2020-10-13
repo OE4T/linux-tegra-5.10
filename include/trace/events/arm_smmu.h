@@ -72,13 +72,14 @@ TRACE_EVENT(arm_smmu_tlb_inv_range,
 
 TRACE_EVENT(arm_smmu_handle_mapping,
 
-	TP_PROTO(u64 time_before, int cbndx,
+	TP_PROTO(const char *dev_name, u64 time_before, int cbndx,
 		dma_addr_t iova, phys_addr_t phys, size_t bytes, int prot),
 
-	TP_ARGS(time_before, cbndx, iova,
+	TP_ARGS(dev_name, time_before, cbndx, iova,
 		phys, bytes, prot),
 
 	TP_STRUCT__entry(
+		__string(dev_name, dev_name)
 		__field(u64, time_diff)
 		__field(int, cbndx)
 		__field(dma_addr_t, iova)
@@ -88,6 +89,7 @@ TRACE_EVENT(arm_smmu_handle_mapping,
 	),
 
 	TP_fast_assign(
+		__assign_str(dev_name, dev_name);
 		__entry->time_diff = local_clock() - time_before;
 		__entry->cbndx = cbndx;
 		__entry->iova = iova;
@@ -96,8 +98,8 @@ TRACE_EVENT(arm_smmu_handle_mapping,
 		__entry->prot = prot;
 	),
 
-	TP_printk("time taken=%llu ns, cbndx=%d, iova=%pad, phys=%pap, size=0x%zx, prot=0x%x",
-		__entry->time_diff, __entry->cbndx, &__entry->iova,
+	TP_printk("%s:time taken=%llu ns, cbndx=%d, iova=%pad, phys=%pap, size=0x%zx, prot=0x%x",
+		__get_str(dev_name), __entry->time_diff, __entry->cbndx, &__entry->iova,
 		&__entry->phys,	__entry->bytes, __entry->prot)
 );
 
