@@ -98,5 +98,4 @@ struct gk20a_platform vgpu_tegra_platform = {
 	.resume = vgpu_tegra_resume,
 
 	.unified_memory = true,
-	.unify_address_spaces = true,
 };

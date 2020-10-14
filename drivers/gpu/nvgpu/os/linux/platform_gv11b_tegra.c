@@ -335,7 +335,6 @@ struct gk20a_platform gv11b_tegra_platform = {
 
 	.honors_aperture = true,
 	.unified_memory = true,
-	.unify_address_spaces = true,
 	.dma_mask = DMA_BIT_MASK(36),
 
 	.reset_assert = gp10b_tegra_reset_assert,

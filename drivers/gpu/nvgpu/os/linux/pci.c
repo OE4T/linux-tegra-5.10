@@ -107,7 +107,6 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		 */
 		.ch_wdt_init_limit_ms = 30000,
 
-		.unify_address_spaces = true,
 		.honors_aperture = true,
 		.dma_mask = DMA_BIT_MASK(40),
 		.hardcode_sw_threshold = false,
@@ -147,7 +146,6 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 		.ch_wdt_init_limit_ms = 7000,
 
-		.unify_address_spaces = true,
 		.honors_aperture = true,
 		.dma_mask = DMA_BIT_MASK(40),
 		.hardcode_sw_threshold = false,
@@ -187,7 +185,6 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 		.ch_wdt_init_limit_ms = 7000,
 
-		.unify_address_spaces = true,
 		.honors_aperture = true,
 		.dma_mask = DMA_BIT_MASK(40),
 		.hardcode_sw_threshold = false,
@@ -227,7 +224,6 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 		.ch_wdt_init_limit_ms = 7000,
 
-		.unify_address_spaces = true,
 		.honors_aperture = true,
 		.dma_mask = DMA_BIT_MASK(40),
 		.hardcode_sw_threshold = false,
