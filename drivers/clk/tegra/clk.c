@@ -472,11 +472,6 @@ void tegra_clk_debugfs_add(struct clk *clk)
 				   &state_fops);
 	if ((IS_ERR(d) && PTR_ERR(d) != -EAGAIN) || !d)
 		pr_err("debugfs clk_state failed %s\n", name);
-
-	d = __clk_debugfs_add_file(clk, "clk_parent", 0644, clk,
-				   &parent_fops);
-	if ((IS_ERR(d) && PTR_ERR(d) != -EAGAIN) || !d)
-		pr_err("debugfs clk_parent failed %s\n", name);
 #endif
 }
 
