@@ -510,7 +510,6 @@
 			clock-names = "vic";
 
 			iommus = <&smmu TEGRA_SID_VIC>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
 			dma-coherent;
 		};
 
@@ -522,8 +521,7 @@
 			clocks = <&bpmp_clks TEGRA194_CLK_NVJPG>;
 			clock-names = "nvjpg";
 
-			iommus = <&smmu TEGRA_SID_NVJPG>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
+			iommus = <&smmu TEGRA_SID_VIC>;
 			dma-coherent;
 		};
 
@@ -536,7 +534,6 @@
 			clock-names = "tsec", "efuse";
 
 			iommus = <&smmu TEGRA_SID_TSEC>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
 			dma-coherent;
 		};
 
@@ -549,7 +546,6 @@
 			clock-names = "tsecb", "efuse";
 
 			iommus = <&smmu TEGRA_SID_TSECB>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
 			dma-coherent;
 		};
 
@@ -563,8 +559,7 @@
 				 <&bpmp_clks TEGRA194_CLK_FUSE>;
 			clock-names = "nvdec", "kfuse", "efuse";
 
-			iommus = <&smmu TEGRA_SID_NVDEC>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
+			iommus = <&smmu TEGRA_SID_VIC>;
 			dma-coherent;
 		};
 
@@ -578,8 +573,7 @@
 				 <&bpmp_clks TEGRA194_CLK_FUSE>;
 			clock-names = "nvdec", "kfuse", "efuse";
 
-			iommus = <&smmu TEGRA_SID_NVDEC1>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
+			iommus = <&smmu TEGRA_SID_VIC>;
 			dma-coherent;
 		};
 
@@ -591,8 +585,7 @@
 			clocks = <&bpmp_clks TEGRA194_CLK_NVENC>;
 			clock-names = "nvenc";
 
-			iommus = <&smmu TEGRA_SID_NVENC>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
+			iommus = <&smmu TEGRA_SID_VIC>;
 			dma-coherent;
 		};
 
@@ -604,8 +597,7 @@
 			clocks = <&bpmp_clks TEGRA194_CLK_NVENC1>;
 			clock-names = "nvenc";
 
-			iommus = <&smmu TEGRA_SID_NVENC1>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
+			iommus = <&smmu TEGRA_SID_VIC>;
 			dma-coherent;
 		};
 
@@ -621,7 +613,6 @@
 			clock-names = "nvdla0", "nvdla0_flcn";
 
 			iommus = <&smmu TEGRA_SID_NVDLA0>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
 			dma-coherent;
 		};
 
@@ -637,7 +628,6 @@
 			clock-names = "nvdla1", "nvdla1_flcn";
 
 			iommus = <&smmu TEGRA_SID_NVDLA1>;
-			iommu-group-id = <TEGRA_IOMMU_GROUP_HOST1X>;
 			dma-coherent;
 		};
 
