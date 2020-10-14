@@ -72,6 +72,9 @@
 	(u32) ((a * 0x10C8ULL) >> 32) : (u16) ((u32) a/MHZ))
 #define MHZ_TO_HZ(a) ((u64)a * MHZ)
 
+extern const struct file_operations gk20a_as_ops;
+extern const struct file_operations gk20a_tsg_ops;
+
 struct gk20a_ctrl_priv {
 	struct device *dev;
 	struct gk20a *g;
@@ -110,12 +113,16 @@ int gk20a_ctrl_dev_open(struct inode *inode, struct file *filp)
 	struct gk20a *g;
 	struct gk20a_ctrl_priv *priv;
 	int err = 0;
+	struct nvgpu_cdev *cdev;
 
-	l = container_of(inode->i_cdev,
-			 struct nvgpu_os_linux, ctrl.cdev);
-	g = nvgpu_get(&l->g);
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
+
+	g = nvgpu_get(g);
 	if (!g)
 		return -ENODEV;
+
+	l = nvgpu_os_linux_from_gk20a(g);
 
 	nvgpu_log_fn(g, " ");
 
@@ -562,7 +569,6 @@ static int gk20a_ctrl_alloc_as(
 		struct gk20a *g,
 		struct nvgpu_alloc_as_args *args)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct gk20a_as_share *as_share;
 	int err;
 	int fd;
@@ -576,7 +582,7 @@ static int gk20a_ctrl_alloc_as(
 
 	(void) snprintf(name, sizeof(name), "nvhost-%s-fd%d", g->name, fd);
 
-	file = anon_inode_getfile(name, l->as_dev.cdev.ops, NULL, O_RDWR);
+	file = anon_inode_getfile(name, &gk20a_as_ops, NULL, O_RDWR);
 	if (IS_ERR(file)) {
 		err = PTR_ERR(file);
 		goto clean_up;
@@ -605,7 +611,6 @@ clean_up:
 static int gk20a_ctrl_open_tsg(struct gk20a *g,
 			       struct nvgpu_gpu_open_tsg_args *args)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	int err;
 	int fd;
 	struct file *file;
@@ -618,7 +623,7 @@ static int gk20a_ctrl_open_tsg(struct gk20a *g,
 
 	(void) snprintf(name, sizeof(name), "nvgpu-%s-tsg%d", g->name, fd);
 
-	file = anon_inode_getfile(name, l->tsg.cdev.ops, NULL, O_RDWR);
+	file = anon_inode_getfile(name, &gk20a_tsg_ops, NULL, O_RDWR);
 	if (IS_ERR(file)) {
 		err = PTR_ERR(file);
 		goto clean_up;

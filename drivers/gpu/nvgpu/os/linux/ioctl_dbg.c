@@ -150,7 +150,7 @@ static int nvgpu_profiler_reserve_release(struct dbg_session_gk20a *dbg_s,
 
 static int dbg_unbind_all_channels_gk20a(struct dbg_session_gk20a *dbg_s);
 
-static int gk20a_dbg_gpu_do_dev_open(struct inode *inode,
+static int gk20a_dbg_gpu_do_dev_open(struct gk20a *g,
 		struct file *filp, bool is_profiler);
 
 unsigned int gk20a_dbg_gpu_dev_poll(struct file *filep, poll_table *wait)
@@ -230,12 +230,14 @@ int gk20a_dbg_gpu_dev_release(struct inode *inode, struct file *filp)
 
 int gk20a_prof_gpu_dev_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l = container_of(inode->i_cdev,
-			 struct nvgpu_os_linux, prof.cdev);
-	struct gk20a *g = &l->g;
+	struct gk20a *g;
+	struct nvgpu_cdev *cdev;
+
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
-	return gk20a_dbg_gpu_do_dev_open(inode, filp, true /* is profiler */);
+	return gk20a_dbg_gpu_do_dev_open(g, filp, true /* is profiler */);
 }
 
 static int nvgpu_dbg_gpu_ioctl_timeout(struct dbg_session_gk20a *dbg_s,
@@ -380,25 +382,15 @@ static int nvgpu_dbg_timeout_enable(struct dbg_session_gk20a *dbg_s,
 	return err;
 }
 
-static int gk20a_dbg_gpu_do_dev_open(struct inode *inode,
+static int gk20a_dbg_gpu_do_dev_open(struct gk20a *g,
 		struct file *filp, bool is_profiler)
 {
-	struct nvgpu_os_linux *l;
 	struct dbg_session_gk20a_linux *dbg_session_linux;
 	struct dbg_session_gk20a *dbg_s;
-	struct gk20a *g;
-
 	struct device *dev;
-
 	int err;
 
-	if (!is_profiler)
-		l = container_of(inode->i_cdev,
-				 struct nvgpu_os_linux, dbg.cdev);
-	else
-		l = container_of(inode->i_cdev,
-				 struct nvgpu_os_linux, prof.cdev);
-	g = nvgpu_get(&l->g);
+	g = nvgpu_get(g);
 	if (!g)
 		return -ENODEV;
 
@@ -2015,12 +2007,14 @@ static int nvgpu_dbg_gpu_cycle_stats_snapshot(struct dbg_session_gk20a *dbg_s,
 
 int gk20a_dbg_gpu_dev_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l = container_of(inode->i_cdev,
-				 struct nvgpu_os_linux, dbg.cdev);
-	struct gk20a *g = &l->g;
+	struct gk20a *g;
+	struct nvgpu_cdev *cdev;
+
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
-	return gk20a_dbg_gpu_do_dev_open(inode, filp, false /* not profiler */);
+	return gk20a_dbg_gpu_do_dev_open(g, filp, false /* not profiler */);
 }
 
 long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,

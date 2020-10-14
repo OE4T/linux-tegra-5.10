@@ -73,6 +73,19 @@ struct dgpu_thermal_alert {
         u32 event_delay;
 };
 
+struct nvgpu_cdev {
+	struct cdev cdev;
+	struct device *node;
+	struct nvgpu_list_node list_entry;
+};
+
+static inline struct nvgpu_cdev *
+nvgpu_cdev_from_list_entry(struct nvgpu_list_node *node)
+{
+	return (struct nvgpu_cdev *)
+		((uintptr_t)node - offsetof(struct nvgpu_cdev, list_entry));
+};
+
 struct nvgpu_os_linux {
 	struct gk20a g;
 	struct device *dev;
@@ -80,55 +93,8 @@ struct nvgpu_os_linux {
 	struct nvgpu_interrupts interrupts;
 	struct class *devnode_class;
 
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} channel;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} ctrl;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} as_dev;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} dbg;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} prof;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} prof_dev;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} prof_ctx;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} tsg;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} ctxsw;
-
-	struct {
-		struct cdev cdev;
-		struct device *node;
-	} sched;
+	struct nvgpu_list_node cdev_list_head;
+	u32 num_cdevs;
 
 	dev_t cdev_region;
 

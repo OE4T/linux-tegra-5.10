@@ -310,24 +310,25 @@ static int gk20a_ctxsw_dev_ioctl_poll(struct gk20a_ctxsw_dev *dev)
 
 int gk20a_ctxsw_dev_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l;
 	struct gk20a *g;
 	struct gk20a_ctxsw_trace *trace;
 	struct gk20a_ctxsw_dev *dev;
 	int err;
 	size_t size;
 	u32 n;
-
 	/* only one VM for now */
 	const int vmid = 0;
+	struct nvgpu_cdev *cdev;
 
-	l = container_of(inode->i_cdev, struct nvgpu_os_linux, ctxsw.cdev);
-	g = nvgpu_get(&l->g);
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
+
+	g = nvgpu_get(g);
 	if (!g)
 		return -ENODEV;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE)) {
-		nvgpu_put(&l->g);
+		nvgpu_put(g);
 		return -ENODEV;
 	}
 

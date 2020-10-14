@@ -33,8 +33,6 @@
 #include "fecs_trace_linux.h"
 #include "platform_gk20a.h"
 
-#define GK20A_NUM_CDEVS 10
-
 const struct file_operations gk20a_channel_ops = {
 	.owner = THIS_MODULE,
 	.release = gk20a_channel_release,
@@ -67,7 +65,7 @@ static const struct file_operations gk20a_dbg_ops = {
 #endif
 };
 
-static const struct file_operations gk20a_as_ops = {
+const struct file_operations gk20a_as_ops = {
 	.owner = THIS_MODULE,
 	.release = gk20a_as_dev_release,
 	.open = gk20a_as_dev_open,
@@ -150,6 +148,26 @@ static const struct file_operations gk20a_sched_ops = {
 	.read = gk20a_sched_dev_read,
 };
 
+struct nvgpu_dev_node {
+	char name[20];
+	const struct file_operations *fops;
+};
+
+static const struct nvgpu_dev_node dev_node_list[] = {
+	{"as",		&gk20a_as_ops},
+	{"channel",	&gk20a_channel_ops},
+	{"ctrl",	&gk20a_ctrl_ops},
+#if defined(CONFIG_NVGPU_FECS_TRACE)
+	{"ctxsw",	&gk20a_ctxsw_ops},
+#endif
+	{"dbg",		&gk20a_dbg_ops},
+	{"prof",	&gk20a_prof_ops},
+	{"prof-ctx",	&gk20a_prof_ctx_ops},
+	{"prof-dev",	&gk20a_prof_dev_ops},
+	{"sched",	&gk20a_sched_ops},
+	{"tsg",		&gk20a_tsg_ops},
+};
+
 static char *nvgpu_devnode(const char *cdev_name)
 {
 	/* Special case to maintain legacy names */
@@ -226,66 +244,28 @@ void gk20a_user_deinit(struct device *dev)
 	struct gk20a *g = gk20a_from_dev(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct class *class = l->devnode_class;
+	struct nvgpu_cdev *cdev, *n;
 
 	if (class == NULL) {
 		return;
 	}
 
-	if (l->channel.node) {
-		device_destroy(class, l->channel.cdev.dev);
-		cdev_del(&l->channel.cdev);
+	nvgpu_list_for_each_entry_safe(cdev, n, &l->cdev_list_head, nvgpu_cdev, list_entry) {
+		nvgpu_list_del(&cdev->list_entry);
+
+		device_destroy(class, cdev->cdev.dev);
+		cdev_del(&cdev->cdev);
+
+		nvgpu_kfree(g, cdev);
 	}
 
-	if (l->as_dev.node) {
-		device_destroy(class, l->as_dev.cdev.dev);
-		cdev_del(&l->as_dev.cdev);
+	if (l->cdev_region) {
+		unregister_chrdev_region(l->cdev_region, l->num_cdevs);
 	}
-
-	if (l->ctrl.node) {
-		device_destroy(class, l->ctrl.cdev.dev);
-		cdev_del(&l->ctrl.cdev);
-	}
-
-	if (l->dbg.node) {
-		device_destroy(class, l->dbg.cdev.dev);
-		cdev_del(&l->dbg.cdev);
-	}
-
-	if (l->prof.node) {
-		device_destroy(class, l->prof.cdev.dev);
-		cdev_del(&l->prof.cdev);
-	}
-
-	if (l->prof_dev.node) {
-		device_destroy(class, l->prof_dev.cdev.dev);
-		cdev_del(&l->prof_dev.cdev);
-	}
-
-	if (l->prof_ctx.node) {
-		device_destroy(class, l->prof_ctx.cdev.dev);
-		cdev_del(&l->prof_ctx.cdev);
-	}
-
-	if (l->tsg.node) {
-		device_destroy(class, l->tsg.cdev.dev);
-		cdev_del(&l->tsg.cdev);
-	}
-
-	if (l->ctxsw.node) {
-		device_destroy(class, l->ctxsw.cdev.dev);
-		cdev_del(&l->ctxsw.cdev);
-	}
-
-	if (l->sched.node) {
-		device_destroy(class, l->sched.cdev.dev);
-		cdev_del(&l->sched.cdev);
-	}
-
-	if (l->cdev_region)
-		unregister_chrdev_region(l->cdev_region, GK20A_NUM_CDEVS);
 
 	class_destroy(class);
 	l->devnode_class = NULL;
+	l->num_cdevs = 0;
 }
 
 int gk20a_user_init(struct device *dev)
@@ -295,6 +275,9 @@ int gk20a_user_init(struct device *dev)
 	struct gk20a *g = gk20a_from_dev(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct class *class;
+	u32 num_cdevs;
+	struct nvgpu_cdev *cdev;
+	u32 cdev_index;
 
 	if (g->pci_class != 0U) {
 		class = class_create(THIS_MODULE, "nvidia-pci-gpu");
@@ -312,86 +295,38 @@ int gk20a_user_init(struct device *dev)
 		class->devnode = NULL;
 	}
 
-	err = alloc_chrdev_region(&devno, 0, GK20A_NUM_CDEVS, dev_name(dev));
+	num_cdevs = sizeof(dev_node_list) / sizeof(dev_node_list[0]);
+	err = alloc_chrdev_region(&devno, 0, num_cdevs, dev_name(dev));
 	if (err) {
 		dev_err(dev, "failed to allocate devno\n");
 		goto fail;
 	}
 	l->cdev_region = devno;
 
-	err = gk20a_create_device(dev, devno++, "channel",
-				  &l->channel.cdev, &l->channel.node,
-				  &gk20a_channel_ops,
-				  class);
-	if (err)
-		goto fail;
+	nvgpu_init_list_node(&l->cdev_list_head);
 
-	err = gk20a_create_device(dev, devno++, "as",
-				  &l->as_dev.cdev, &l->as_dev.node,
-				  &gk20a_as_ops,
-				  class);
-	if (err)
-		goto fail;
+	for (cdev_index = 0; cdev_index < num_cdevs; cdev_index++) {
+		cdev = nvgpu_kzalloc(g, sizeof(*cdev));
+		if (cdev == NULL) {
+			dev_err(dev, "failed to allocate cdev\n");
+			goto fail;
+		}
 
-	err = gk20a_create_device(dev, devno++, "ctrl",
-				  &l->ctrl.cdev, &l->ctrl.node,
-				  &gk20a_ctrl_ops,
-				  class);
-	if (err)
-		goto fail;
+		err = gk20a_create_device(dev, devno++, dev_node_list[cdev_index].name,
+					  &cdev->cdev, &cdev->node,
+					  dev_node_list[cdev_index].fops,
+					  class);
+		if (err) {
+			goto fail;
+		}
 
-	err = gk20a_create_device(dev, devno++, "dbg",
-				  &l->dbg.cdev, &l->dbg.node,
-				  &gk20a_dbg_ops,
-				  class);
-	if (err)
-		goto fail;
+		nvgpu_init_list_node(&cdev->list_entry);
+		nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
+	}
 
-	err = gk20a_create_device(dev, devno++, "prof",
-				  &l->prof.cdev, &l->prof.node,
-				  &gk20a_prof_ops,
-				  class);
-	if (err)
-		goto fail;
-
-	err = gk20a_create_device(dev, devno++, "prof-dev",
-				  &l->prof_dev.cdev, &l->prof_dev.node,
-				  &gk20a_prof_dev_ops,
-				  class);
-	if (err)
-		goto fail;
-
-	err = gk20a_create_device(dev, devno++, "prof-ctx",
-				  &l->prof_ctx.cdev, &l->prof_ctx.node,
-				  &gk20a_prof_ctx_ops,
-				  class);
-	if (err)
-		goto fail;
-
-	err = gk20a_create_device(dev, devno++, "tsg",
-				  &l->tsg.cdev, &l->tsg.node,
-				  &gk20a_tsg_ops,
-				  class);
-	if (err)
-		goto fail;
-
-#if defined(CONFIG_NVGPU_FECS_TRACE)
-	err = gk20a_create_device(dev, devno++, "ctxsw",
-				  &l->ctxsw.cdev, &l->ctxsw.node,
-				  &gk20a_ctxsw_ops,
-				  class);
-	if (err)
-		goto fail;
-#endif
-
-	err = gk20a_create_device(dev, devno++, "sched",
-				  &l->sched.cdev, &l->sched.node,
-				  &gk20a_sched_ops,
-				  class);
-	if (err)
-		goto fail;
-
+	l->num_cdevs = num_cdevs;
 	l->devnode_class = class;
+
 	return 0;
 fail:
 	gk20a_user_deinit(dev);

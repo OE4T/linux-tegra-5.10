@@ -28,6 +28,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/nvgpu_init.h>
 
+#include "platform_gk20a.h"
 #include "sched.h"
 #include "os_linux.h"
 #include "ioctl_tsg.h"
@@ -387,13 +388,15 @@ static int gk20a_sched_dev_ioctl_put_tsg(struct gk20a *g,
 
 int gk20a_sched_dev_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l = container_of(inode->i_cdev,
-				struct nvgpu_os_linux, sched.cdev);
 	struct gk20a *g;
 	struct nvgpu_sched_ctrl *sched;
 	int err = 0;
+	struct nvgpu_cdev *cdev;
 
-	g = nvgpu_get(&l->g);
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
+
+	g = nvgpu_get(g);
 	if (!g)
 		return -ENODEV;
 	sched = &g->sched_ctrl;

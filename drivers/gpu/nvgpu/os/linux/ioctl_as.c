@@ -302,13 +302,13 @@ static int nvgpu_as_ioctl_get_sync_ro_map(
 
 int gk20a_as_dev_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l;
 	struct gk20a_as_share *as_share;
 	struct gk20a *g;
 	int err;
+	struct nvgpu_cdev *cdev;
 
-	l = container_of(inode->i_cdev, struct nvgpu_os_linux, as_dev.cdev);
-	g = &l->g;
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
 
 	nvgpu_log_fn(g, " ");
 

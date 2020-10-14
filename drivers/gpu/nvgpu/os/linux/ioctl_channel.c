@@ -529,10 +529,12 @@ free_ref:
 
 int gk20a_channel_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l = container_of(inode->i_cdev,
-			struct nvgpu_os_linux, channel.cdev);
-	struct gk20a *g = &l->g;
+	struct gk20a *g;
 	int ret;
+	struct nvgpu_cdev *cdev;
+
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
 
 	nvgpu_log_fn(g, "start");
 	ret = __gk20a_channel_open(g, filp, -1);
@@ -549,7 +551,6 @@ int gk20a_channel_open_ioctl(struct gk20a *g,
 	struct file *file;
 	char name[64];
 	s32 runlist_id = args->in.runlist_id;
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
 	err = get_unused_fd_flags(O_RDWR);
 	if (err < 0)
@@ -559,7 +560,7 @@ int gk20a_channel_open_ioctl(struct gk20a *g,
 	(void) snprintf(name, sizeof(name), "nvhost-%s-fd%d",
 		 dev_name(dev_from_gk20a(g)), fd);
 
-	file = anon_inode_getfile(name, l->channel.cdev.ops, NULL, O_RDWR);
+	file = anon_inode_getfile(name, &gk20a_channel_ops, NULL, O_RDWR);
 	if (IS_ERR(file)) {
 		err = PTR_ERR(file);
 		goto clean_up;

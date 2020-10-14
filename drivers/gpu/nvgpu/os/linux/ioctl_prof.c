@@ -31,6 +31,7 @@
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/tsg.h>
 
+#include "platform_gk20a.h"
 #include "os_linux.h"
 #include "ioctl_prof.h"
 #include "ioctl_dbg.h"
@@ -129,12 +130,14 @@ free_priv:
 
 int nvgpu_prof_dev_fops_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l = container_of(inode->i_cdev,
-			 struct nvgpu_os_linux, prof_dev.cdev);
 	struct gk20a *g;
 	int err;
+	struct nvgpu_cdev *cdev;
 
-	g = nvgpu_get(&l->g);
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
+
+	g = nvgpu_get(g);
 	if (!g) {
 		return -ENODEV;
 	}
@@ -155,12 +158,14 @@ int nvgpu_prof_dev_fops_open(struct inode *inode, struct file *filp)
 
 int nvgpu_prof_ctx_fops_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l = container_of(inode->i_cdev,
-			 struct nvgpu_os_linux, prof_ctx.cdev);
 	struct gk20a *g;
 	int err;
+	struct nvgpu_cdev *cdev;
 
-	g = nvgpu_get(&l->g);
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
+
+	g = nvgpu_get(g);
 	if (!g) {
 		return -ENODEV;
 	}

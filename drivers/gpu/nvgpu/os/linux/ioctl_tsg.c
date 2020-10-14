@@ -466,13 +466,12 @@ free_ref:
 
 int nvgpu_ioctl_tsg_dev_open(struct inode *inode, struct file *filp)
 {
-	struct nvgpu_os_linux *l;
 	struct gk20a *g;
 	int ret;
+	struct nvgpu_cdev *cdev;
 
-	l = container_of(inode->i_cdev,
-			 struct nvgpu_os_linux, tsg.cdev);
-	g = &l->g;
+	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
+	g = get_gk20a(cdev->node->parent);
 
 	nvgpu_log_fn(g, " ");
 
@@ -482,7 +481,7 @@ int nvgpu_ioctl_tsg_dev_open(struct inode *inode, struct file *filp)
 		return ret;
 	}
 
-	ret = nvgpu_ioctl_tsg_open(&l->g, filp);
+	ret = nvgpu_ioctl_tsg_open(g, filp);
 
 	gk20a_idle(g);
 	nvgpu_log_fn(g, "done");
