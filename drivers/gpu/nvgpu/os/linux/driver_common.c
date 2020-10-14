@@ -78,8 +78,8 @@ static void nvgpu_init_vars(struct gk20a *g)
 	/* Init the clock req count to 0 */
 	nvgpu_atomic_set(&g->clk_arb_global_nr, 0);
 
-	nvgpu_mutex_init(&l->ctrl.privs_lock);
-	nvgpu_init_list_node(&l->ctrl.privs);
+	nvgpu_mutex_init(&l->ctrl_privs_lock);
+	nvgpu_init_list_node(&l->ctrl_privs);
 
 	l->regs_saved = l->regs;
 	l->bar1_saved = l->bar1;

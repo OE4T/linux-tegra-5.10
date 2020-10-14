@@ -147,9 +147,9 @@ free_ref:
 		if (priv)
 			nvgpu_kfree(g, priv);
 	} else {
-		nvgpu_mutex_acquire(&l->ctrl.privs_lock);
-		nvgpu_list_add(&priv->list, &l->ctrl.privs);
-		nvgpu_mutex_release(&l->ctrl.privs_lock);
+		nvgpu_mutex_acquire(&l->ctrl_privs_lock);
+		nvgpu_list_add(&priv->list, &l->ctrl_privs);
+		nvgpu_mutex_release(&l->ctrl_privs_lock);
 	}
 
 	return err;
@@ -162,9 +162,9 @@ int gk20a_ctrl_dev_release(struct inode *inode, struct file *filp)
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_mutex_acquire(&l->ctrl.privs_lock);
+	nvgpu_mutex_acquire(&l->ctrl_privs_lock);
 	nvgpu_list_del(&priv->list);
-	nvgpu_mutex_release(&l->ctrl.privs_lock);
+	nvgpu_mutex_release(&l->ctrl_privs_lock);
 
 	if (priv->clk_session)
 		nvgpu_clk_arb_release_session(g, priv->clk_session);
@@ -2108,10 +2108,10 @@ static void usermode_vma_close(struct vm_area_struct *vma)
 	struct gk20a *g = priv->g;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
-	nvgpu_mutex_acquire(&l->ctrl.privs_lock);
+	nvgpu_mutex_acquire(&l->ctrl_privs_lock);
 	priv->usermode_vma.vma = NULL;
 	priv->usermode_vma.vma_mapped = false;
-	nvgpu_mutex_release(&l->ctrl.privs_lock);
+	nvgpu_mutex_release(&l->ctrl_privs_lock);
 }
 
 struct vm_operations_struct usermode_vma_ops = {
@@ -2144,7 +2144,7 @@ int gk20a_ctrl_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 		return err;
 	}
 
-	nvgpu_mutex_acquire(&l->ctrl.privs_lock);
+	nvgpu_mutex_acquire(&l->ctrl_privs_lock);
 
 	vma->vm_flags |= VM_IO | VM_DONTCOPY | VM_DONTEXPAND | VM_NORESERVE |
 		VM_DONTDUMP | VM_PFNMAP;
@@ -2160,7 +2160,7 @@ int gk20a_ctrl_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 		vma->vm_private_data = priv;
 		priv->usermode_vma.vma_mapped = true;
 	}
-	nvgpu_mutex_release(&l->ctrl.privs_lock);
+	nvgpu_mutex_release(&l->ctrl_privs_lock);
 
 	gk20a_idle(g);
 
@@ -2231,12 +2231,12 @@ static void alter_usermode_mappings(struct gk20a *g, bool poweroff)
 	struct gk20a_ctrl_priv *priv;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
-	nvgpu_mutex_acquire(&l->ctrl.privs_lock);
-	nvgpu_list_for_each_entry(priv, &l->ctrl.privs,
+	nvgpu_mutex_acquire(&l->ctrl_privs_lock);
+	nvgpu_list_for_each_entry(priv, &l->ctrl_privs,
 			gk20a_ctrl_priv, list) {
 		alter_usermode_mapping(g, priv, poweroff);
 	}
-	nvgpu_mutex_release(&l->ctrl.privs_lock);
+	nvgpu_mutex_release(&l->ctrl_privs_lock);
 }
 
 void nvgpu_hide_usermode_for_poweroff(struct gk20a *g)

@@ -88,10 +88,6 @@ struct nvgpu_os_linux {
 	struct {
 		struct cdev cdev;
 		struct device *node;
-		/* see gk20a_ctrl_priv */
-		struct nvgpu_list_node privs;
-		/* guards modifications to the list and its contents */
-		struct nvgpu_mutex privs_lock;
 	} ctrl;
 
 	struct {
@@ -135,6 +131,11 @@ struct nvgpu_os_linux {
 	} sched;
 
 	dev_t cdev_region;
+
+	/* see gk20a_ctrl_priv */
+	struct nvgpu_list_node ctrl_privs;
+	/* guards modifications to the list and its contents */
+	struct nvgpu_mutex ctrl_privs_lock;
 
 	struct devfreq *devfreq;
 
