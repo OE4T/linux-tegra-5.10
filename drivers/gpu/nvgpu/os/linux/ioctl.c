@@ -17,6 +17,7 @@
  */
 
 #include <linux/file.h>
+#include <linux/slab.h>
 
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/gk20a.h>
@@ -32,7 +33,7 @@
 #include "fecs_trace_linux.h"
 #include "platform_gk20a.h"
 
-#define GK20A_NUM_CDEVS 7
+#define GK20A_NUM_CDEVS 10
 
 const struct file_operations gk20a_channel_ops = {
 	.owner = THIS_MODULE,
@@ -149,9 +150,35 @@ static const struct file_operations gk20a_sched_ops = {
 	.read = gk20a_sched_dev_read,
 };
 
+static char *nvgpu_devnode(const char *cdev_name)
+{
+	/* Special case to maintain legacy names */
+	if (strcmp(cdev_name, "channel") == 0) {
+		return kasprintf(GFP_KERNEL, "nvhost-gpu");
+	}
+
+	return kasprintf(GFP_KERNEL, "nvhost-%s-gpu", cdev_name);
+}
+
+static char *nvgpu_pci_devnode(struct device *dev, umode_t *mode)
+{
+	if (mode) {
+		*mode = S_IRUSR | S_IWUSR;
+	}
+
+	/* Special case to maintain legacy names */
+	if (strcmp(dev_name(dev), "channel") == 0) {
+		return kasprintf(GFP_KERNEL, "nvgpu-pci/card-%s",
+			dev_name(dev->parent));
+	}
+
+	return kasprintf(GFP_KERNEL, "nvgpu-pci/card-%s-%s",
+			dev_name(dev->parent), dev_name(dev));
+}
+
 static int gk20a_create_device(
 	struct device *dev, int devno,
-	const char *interface_name, const char *cdev_name,
+	const char *cdev_name,
 	struct cdev *cdev, struct device **out,
 	const struct file_operations *ops,
 	struct class *class)
@@ -159,6 +186,7 @@ static int gk20a_create_device(
 	struct device *subdev;
 	int err;
 	struct gk20a *g = gk20a_from_dev(dev);
+	const char *device_name = NULL;
 
 	nvgpu_log_fn(g, " ");
 
@@ -171,9 +199,12 @@ static int gk20a_create_device(
 		return err;
 	}
 
-	subdev = device_create(class, NULL, devno, NULL,
-		interface_name, cdev_name);
+	if (class->devnode == NULL) {
+		device_name = nvgpu_devnode(cdev_name);
+	}
 
+	subdev = device_create(class, dev, devno, NULL,
+			device_name ? device_name : cdev_name);
 	if (IS_ERR(subdev)) {
 		err = PTR_ERR(dev);
 		cdev_del(cdev);
@@ -182,14 +213,23 @@ static int gk20a_create_device(
 		return err;
 	}
 
+	if (device_name != NULL) {
+		kfree(device_name);
+	}
+
 	*out = subdev;
 	return 0;
 }
 
-void gk20a_user_deinit(struct device *dev, struct class *class)
+void gk20a_user_deinit(struct device *dev)
 {
 	struct gk20a *g = gk20a_from_dev(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct class *class = l->devnode_class;
+
+	if (class == NULL) {
+		return;
+	}
 
 	if (l->channel.node) {
 		device_destroy(class, l->channel.cdev.dev);
@@ -243,15 +283,34 @@ void gk20a_user_deinit(struct device *dev, struct class *class)
 
 	if (l->cdev_region)
 		unregister_chrdev_region(l->cdev_region, GK20A_NUM_CDEVS);
+
+	class_destroy(class);
+	l->devnode_class = NULL;
 }
 
-int gk20a_user_init(struct device *dev, const char *interface_name,
-		    struct class *class)
+int gk20a_user_init(struct device *dev)
 {
 	int err;
 	dev_t devno;
 	struct gk20a *g = gk20a_from_dev(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct class *class;
+
+	if (g->pci_class != 0U) {
+		class = class_create(THIS_MODULE, "nvidia-pci-gpu");
+		if (IS_ERR(class)) {
+			dev_err(dev, "failed to create class");
+			return PTR_ERR(class);
+		}
+		class->devnode = nvgpu_pci_devnode;
+	} else {
+		class = class_create(THIS_MODULE, "nvidia-gpu");
+		if (IS_ERR(class)) {
+			dev_err(dev, "failed to create class");
+			return PTR_ERR(class);
+		}
+		class->devnode = NULL;
+	}
 
 	err = alloc_chrdev_region(&devno, 0, GK20A_NUM_CDEVS, dev_name(dev));
 	if (err) {
@@ -260,56 +319,56 @@ int gk20a_user_init(struct device *dev, const char *interface_name,
 	}
 	l->cdev_region = devno;
 
-	err = gk20a_create_device(dev, devno++, interface_name, "",
+	err = gk20a_create_device(dev, devno++, "channel",
 				  &l->channel.cdev, &l->channel.node,
 				  &gk20a_channel_ops,
 				  class);
 	if (err)
 		goto fail;
 
-	err = gk20a_create_device(dev, devno++, interface_name, "-as",
+	err = gk20a_create_device(dev, devno++, "as",
 				  &l->as_dev.cdev, &l->as_dev.node,
 				  &gk20a_as_ops,
 				  class);
 	if (err)
 		goto fail;
 
-	err = gk20a_create_device(dev, devno++, interface_name, "-ctrl",
+	err = gk20a_create_device(dev, devno++, "ctrl",
 				  &l->ctrl.cdev, &l->ctrl.node,
 				  &gk20a_ctrl_ops,
 				  class);
 	if (err)
 		goto fail;
 
-	err = gk20a_create_device(dev, devno++, interface_name, "-dbg",
+	err = gk20a_create_device(dev, devno++, "dbg",
 				  &l->dbg.cdev, &l->dbg.node,
 				  &gk20a_dbg_ops,
 				  class);
 	if (err)
 		goto fail;
 
-	err = gk20a_create_device(dev, devno++, interface_name, "-prof",
+	err = gk20a_create_device(dev, devno++, "prof",
 				  &l->prof.cdev, &l->prof.node,
 				  &gk20a_prof_ops,
 				  class);
 	if (err)
 		goto fail;
 
-	err = gk20a_create_device(dev, devno++, interface_name, "-prof-dev",
+	err = gk20a_create_device(dev, devno++, "prof-dev",
 				  &l->prof_dev.cdev, &l->prof_dev.node,
 				  &gk20a_prof_dev_ops,
 				  class);
 	if (err)
 		goto fail;
 
-	err = gk20a_create_device(dev, devno++, interface_name, "-prof-ctx",
+	err = gk20a_create_device(dev, devno++, "prof-ctx",
 				  &l->prof_ctx.cdev, &l->prof_ctx.node,
 				  &gk20a_prof_ctx_ops,
 				  class);
 	if (err)
 		goto fail;
 
-	err = gk20a_create_device(dev, devno++, interface_name, "-tsg",
+	err = gk20a_create_device(dev, devno++, "tsg",
 				  &l->tsg.cdev, &l->tsg.node,
 				  &gk20a_tsg_ops,
 				  class);
@@ -317,7 +376,7 @@ int gk20a_user_init(struct device *dev, const char *interface_name,
 		goto fail;
 
 #if defined(CONFIG_NVGPU_FECS_TRACE)
-	err = gk20a_create_device(dev, devno++, interface_name, "-ctxsw",
+	err = gk20a_create_device(dev, devno++, "ctxsw",
 				  &l->ctxsw.cdev, &l->ctxsw.node,
 				  &gk20a_ctxsw_ops,
 				  class);
@@ -325,15 +384,16 @@ int gk20a_user_init(struct device *dev, const char *interface_name,
 		goto fail;
 #endif
 
-	err = gk20a_create_device(dev, devno++, interface_name, "-sched",
+	err = gk20a_create_device(dev, devno++, "sched",
 				  &l->sched.cdev, &l->sched.node,
 				  &gk20a_sched_ops,
 				  class);
 	if (err)
 		goto fail;
 
+	l->devnode_class = class;
 	return 0;
 fail:
-	gk20a_user_deinit(dev, &nvgpu_class);
+	gk20a_user_deinit(dev);
 	return err;
 }

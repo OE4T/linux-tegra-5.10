@@ -46,7 +46,6 @@
 #include "dmabuf_priv.h"
 
 #define BOOT_GPC2CLK_MHZ	2581U
-#define PCI_INTERFACE_NAME	"card-%s%%s"
 
 static int nvgpu_pci_tegra_probe(struct device *dev)
 {
@@ -395,19 +394,6 @@ static int nvgpu_pci_init_support(struct pci_dev *pdev)
 	return err;
 }
 
-static char *nvgpu_pci_devnode(struct device *dev, umode_t *mode)
-{
-	if (mode)
-		*mode = S_IRUGO | S_IWUGO;
-	return kasprintf(GFP_KERNEL, "nvgpu-pci/%s", dev_name(dev));
-}
-
-static struct class nvgpu_pci_class = {
-	.owner = THIS_MODULE,
-	.name = "nvidia-pci-gpu",
-	.devnode = nvgpu_pci_devnode,
-};
-
 #ifdef CONFIG_PM
 static int nvgpu_pci_pm_runtime_resume(struct device *dev)
 {
@@ -506,7 +492,6 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 	struct nvgpu_os_linux *l;
 	struct gk20a *g;
 	int err;
-	char nodefmt[64];
 	struct device_node *np;
 	u32 device_index = PCI_DEVICE_INDEX(pent->driver_data);
 	u32 device_flags = PCI_DEVICE_FLAGS(pent->driver_data);
@@ -636,10 +621,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		goto err_free_irq;
 	}
 
-	(void) snprintf(nodefmt, sizeof(nodefmt),
-		 PCI_INTERFACE_NAME, dev_name(&pdev->dev));
-
-	err = nvgpu_probe(g, "gpu_pci", nodefmt, &nvgpu_pci_class);
+	err = nvgpu_probe(g, "gpu_pci");
 	if (err)
 		goto err_free_irq;
 
@@ -756,7 +738,7 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 
 	nvgpu_free_irq(g);
 
-	nvgpu_remove(dev, &nvgpu_pci_class);
+	nvgpu_remove(dev);
 
 #if defined(CONFIG_PCI_MSI)
 	if (g->msi_enabled)
@@ -830,13 +812,9 @@ int __init nvgpu_pci_init(void)
 {
 	int ret;
 
-	ret = class_register(&nvgpu_pci_class);
-	if (ret)
-		return ret;
-
 	ret = pci_register_driver(&nvgpu_pci_driver);
 	if (ret)
-		goto driver_fail;
+		return ret;
 
 	ret = nvgpu_pci_power_init(&nvgpu_pci_driver);
 	if (ret)
@@ -846,8 +824,6 @@ int __init nvgpu_pci_init(void)
 
 power_init_fail:
 	pci_unregister_driver(&nvgpu_pci_driver);
-driver_fail:
-	class_unregister(&nvgpu_pci_class);
 	return ret;
 }
 
@@ -855,6 +831,5 @@ void __exit nvgpu_pci_exit(void)
 {
 	nvgpu_pci_power_exit(&nvgpu_pci_driver);
 	pci_unregister_driver(&nvgpu_pci_driver);
-	class_unregister(&nvgpu_pci_class);
 	nvgpu_pci_power_cleanup();
 }

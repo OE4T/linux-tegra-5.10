@@ -14,10 +14,8 @@
 #define __NVGPU_IOCTL_H__
 
 struct device;
-struct class;
 
-int gk20a_user_init(struct device *dev, const char *interface_name,
-		    struct class *class);
-void gk20a_user_deinit(struct device *dev, struct class *class);
+int gk20a_user_init(struct device *dev);
+void gk20a_user_deinit(struct device *dev);
 
 #endif

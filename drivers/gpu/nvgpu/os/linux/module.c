@@ -90,9 +90,6 @@
 #include "nvgpu_next_gpuid.h"
 #endif
 
-#define CLASS_NAME "nvidia-gpu"
-/* TODO: Change to e.g. "nvidia-gpu%s" once we have symlinks in place. */
-
 #define GK20A_WAIT_FOR_IDLE_MS	2000
 
 #define CREATE_TRACE_POINTS
@@ -1709,7 +1706,7 @@ static int gk20a_probe(struct platform_device *dev)
 		platform->reset_control = NULL;
 #endif
 
-	err = nvgpu_probe(gk20a, "gpu.0", INTERFACE_NAME, &nvgpu_class);
+	err = nvgpu_probe(gk20a, "gpu.0");
 	if (err)
 		goto return_err;
 
@@ -1742,7 +1739,7 @@ return_err:
 	return err;
 }
 
-int nvgpu_remove(struct device *dev, struct class *class)
+int nvgpu_remove(struct device *dev)
 {
 	struct gk20a *g = get_gk20a(dev);
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
@@ -1775,7 +1772,7 @@ int nvgpu_remove(struct device *dev, struct class *class)
 
 	nvgpu_clk_arb_cleanup_arbiter(g);
 
-	gk20a_user_deinit(dev, class);
+	gk20a_user_deinit(dev);
 
 	gk20a_debug_deinit(g);
 
@@ -1805,7 +1802,7 @@ static int __exit gk20a_remove(struct platform_device *pdev)
 	if (gk20a_gpu_is_virtual(dev))
 		return vgpu_remove(pdev);
 
-	err = nvgpu_remove(dev, &nvgpu_class);
+	err = nvgpu_remove(dev);
 
 	gk20a_dma_buf_priv_list_clear(l);
 	nvgpu_mutex_destroy(&l->dmabuf_priv_list_lock);
@@ -1839,19 +1836,10 @@ static struct platform_driver gk20a_driver = {
 	}
 };
 
-struct class nvgpu_class = {
-	.owner = THIS_MODULE,
-	.name = CLASS_NAME,
-};
-
 static int __init gk20a_init(void)
 {
 
 	int ret;
-
-	ret = class_register(&nvgpu_class);
-	if (ret)
-		return ret;
 
 	ret = nvgpu_pci_init();
 	if (ret)
@@ -1864,7 +1852,6 @@ static void __exit gk20a_exit(void)
 {
 	nvgpu_pci_exit();
 	platform_driver_unregister(&gk20a_driver);
-	class_unregister(&nvgpu_class);
 }
 
 MODULE_LICENSE("GPL v2");

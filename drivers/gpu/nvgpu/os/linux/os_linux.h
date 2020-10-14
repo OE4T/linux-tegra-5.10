@@ -29,6 +29,8 @@
 #include "cde.h"
 #include "sched.h"
 
+struct class;
+
 struct nvgpu_os_linux_ops {
 	struct {
 		void (*get_program_numbers)(struct gk20a *g,
@@ -76,6 +78,8 @@ struct nvgpu_os_linux {
 	struct device *dev;
 	struct dgpu_thermal_alert thermal_alert;
 	struct nvgpu_interrupts interrupts;
+	struct class *devnode_class;
+
 	struct {
 		struct cdev cdev;
 		struct device *node;
@@ -201,8 +205,6 @@ static inline struct device *dev_from_gk20a(struct gk20a *g)
 {
 	return nvgpu_os_linux_from_gk20a(g)->dev;
 }
-
-#define INTERFACE_NAME "nvhost%s-gpu"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 #define totalram_size_in_mb (totalram_pages() >> (10 - (PAGE_SHIFT - 10)))
