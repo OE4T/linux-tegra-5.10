@@ -1116,6 +1116,7 @@ void nvgpu_remove_sysfs(struct device *dev)
 		parent = container_of((kobj->parent),
 				struct device, kobj);
 		sysfs_remove_link(&parent->kobj, "gpu.0");
+		sysfs_remove_link(&parent->kobj, dev_name(dev));
 #endif
 	}
 }
@@ -1181,6 +1182,8 @@ int nvgpu_create_sysfs(struct device *dev)
 					struct device, kobj);
 		error |= sysfs_create_link(&parent->kobj,
 				   &dev->kobj, "gpu.0");
+		error |= sysfs_create_link(&parent->kobj,
+				   &dev->kobj, dev_name(dev));
 #endif
 	}
 
