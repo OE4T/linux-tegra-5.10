@@ -148,9 +148,16 @@ int tegra_dce_register_ipc_client(u32 type,
 	cl->data = data;
 	cl->int_type = int_type;
 	cl->callback_fn = callback_fn;
+	atomic_set(&cl->complete, 0);
+
+	ret = dce_cond_init(&cl->recv_wait);
+	if (ret) {
+		dce_err(d, "dce condition initialization failed for int_type: [%u]",
+			int_type);
+		goto out;
+	}
 
 	d->d_clients[type] = cl;
-	init_completion(&cl->recv_wait);
 
 out:
 	if (ret != 0) {
@@ -166,6 +173,11 @@ EXPORT_SYMBOL(tegra_dce_register_ipc_client);
 
 int tegra_dce_unregister_ipc_client(u32 handle)
 {
+	struct tegra_dce_client_ipc *cl;
+
+	cl = &client_handles[client_handle_to_index(handle)];
+	dce_cond_destroy(&cl->recv_wait);
+
 	return dce_client_ipc_handle_free(handle);
 }
 EXPORT_SYMBOL(tegra_dce_unregister_ipc_client);
@@ -212,7 +224,10 @@ static int dce_client_ipc_wait_rpc(struct tegra_dce *d, u32 int_type)
 		return -EINVAL;
 	}
 
-	wait_for_completion(&cl->recv_wait);
+	DCE_COND_WAIT_INTERRUPTIBLE(&cl->recv_wait,
+			atomic_read(&cl->complete) == 1,
+			0);
+	atomic_set(&cl->complete, 0);
 
 	return 0;
 }
@@ -255,5 +270,6 @@ void dce_client_ipc_wakeup(struct tegra_dce *d, u32 ch_type)
 		return;
 	}
 
-	complete(&cl->recv_wait);
+	atomic_set(&cl->complete, 1);
+	dce_cond_signal_interruptible(&cl->recv_wait);
 }

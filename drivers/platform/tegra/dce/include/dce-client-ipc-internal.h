@@ -16,14 +16,30 @@
 
 #include <linux/platform/tegra/dce/dce-client-ipc.h>
 
+/**
+ * struct tegra_dce_client_ipc - Data Structure to hold client specific ipc
+ *				data pertaining to IPC type
+ *
+ * @valid : Tells if the client ipc data held by data structure is valid
+ * @data : Pointer to any specific data passed by client during registration
+ *         for corresponding IPC type
+ * @type : Corresponding IPC type as defined in CPU driver
+ * @int_type : IPC interface type for above IPC type as defined in CPU driver
+ * @d : pointer to OS agnostic dce struct. Stores all runtime info for dce
+ *      cluster elements
+ * @recv_wait : condition variable used for IPC synchronization
+ * @complete : atomic variable used for IPC synchronization
+ * @callback_fn : function pointer to the callback function passed by the
+ *                client during registration
+ */
 struct tegra_dce_client_ipc {
 	bool valid;
 	void *data;
 	uint32_t type;
 	uint32_t int_type;
 	struct tegra_dce *d;
-	struct dce_ivc_channel *ch;
-	struct completion recv_wait;
+	struct dce_cond recv_wait;
+	atomic_t complete;
 	tegra_dce_client_ipc_callback_t callback_fn;
 };
 
