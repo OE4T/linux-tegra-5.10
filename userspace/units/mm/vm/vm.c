@@ -2058,7 +2058,7 @@ int test_vm_pde_coverage_bit_count(struct unit_module *m, struct gk20a *g,
 	int ret = UNIT_FAIL;
 	struct vm_gk20a *vm = create_test_vm(m, g);
 
-	bit_count = nvgpu_vm_pde_coverage_bit_count(vm);
+	bit_count = nvgpu_vm_pde_coverage_bit_count(g, vm->big_page_size);
 
 	if (bit_count != GP10B_PDE_BIT_COUNT) {
 		unit_err(m, "invalid PDE bit count\n");

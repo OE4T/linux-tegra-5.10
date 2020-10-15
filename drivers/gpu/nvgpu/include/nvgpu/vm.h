@@ -414,14 +414,15 @@ bool nvgpu_big_pages_possible(struct vm_gk20a *vm, u64 base, u64 size);
  * @brief Determine how many bits of the address space is covered by
  *  last level PDE.
  *
- * @param vm [in]	Pointer to virtual memory context.
+ * @param g [in]		The GPU.
+ * @param big_page_size [in]	Big page size supported by GMMU.
  *
  * - Go to the last level before page table entry level and return
  *   the mmu_levels[x].lo_bit.
  *
  * @return              number of bits with last level of entry.
  */
-u32 nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm);
+u32 nvgpu_vm_pde_coverage_bit_count(struct gk20a *g, u64 big_page_size);
 
 /**
  * @brief Eliminates redundant cache flushes and invalidates.

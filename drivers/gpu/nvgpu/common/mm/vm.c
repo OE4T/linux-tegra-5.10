@@ -170,20 +170,22 @@ int nvgpu_vm_bind_channel(struct vm_gk20a *vm, struct nvgpu_channel *ch)
  * example, for gp10b, with a last level address bit PDE range of 28 to 21 the
  * amount of memory each last level PDE addresses is 21 bits - i.e 2MB.
  */
-u32 nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm)
+u32 nvgpu_vm_pde_coverage_bit_count(struct gk20a *g, u64 big_page_size)
 {
 	int final_pde_level = 0;
+	const struct gk20a_mmu_level *mmu_levels =
+		g->ops.mm.gmmu.get_mmu_levels(g, big_page_size);
 
 	/*
 	 * Find the second to last level of the page table programming
 	 * heirarchy: the last level is PTEs so we really want the level
 	 * before that which is the last level of PDEs.
 	 */
-	while (vm->mmu_levels[final_pde_level + 2].update_entry != NULL) {
+	while (mmu_levels[final_pde_level + 2].update_entry != NULL) {
 		final_pde_level++;
 	}
 
-	return vm->mmu_levels[final_pde_level].lo_bit[0];
+	return mmu_levels[final_pde_level].lo_bit[0];
 }
 
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 17_2), "TID-278")
@@ -320,7 +322,9 @@ void nvgpu_vm_mapping_batch_finish(struct vm_gk20a *vm,
  */
 bool nvgpu_big_pages_possible(struct vm_gk20a *vm, u64 base, u64 size)
 {
-	u64 mask = nvgpu_safe_sub_u64((u64)vm->big_page_size << 10ULL, 1ULL);
+	u64 pde_size = BIT64(nvgpu_vm_pde_coverage_bit_count(
+				gk20a_from_vm(vm), vm->big_page_size));
+	u64 mask = nvgpu_safe_sub_u64(pde_size, 1ULL);
 	u64 base_big_page = base & mask;
 	u64 size_big_page = size & mask;
 

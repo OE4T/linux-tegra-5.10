@@ -1389,8 +1389,6 @@ static int nvgpu_buddy_set_attributes(struct nvgpu_buddy_allocator *a,
 				u64 base, u64 size, u64 blk_size, u64 max_order,
 				u64 flags)
 {
-	u64 pde_size;
-	u64 base_big_page, size_big_page;
 	bool is_gva_space = (flags & GPU_ALLOC_GVA_SPACE) != 0ULL;
 
 	a->base = base;
@@ -1410,24 +1408,23 @@ static int nvgpu_buddy_set_attributes(struct nvgpu_buddy_allocator *a,
 
 	a->vm = vm;
 	if (is_gva_space) {
-		pde_size = BIT64(nvgpu_vm_pde_coverage_bit_count(vm));
+		u64 pde_size_mask, base_pde_align, size_pde_align;
+		u64 pde_size = BIT64(nvgpu_vm_pde_coverage_bit_count(
+				gk20a_from_vm(vm), vm->big_page_size));
 		a->pte_blk_order = balloc_get_order(a, pde_size);
-	}
 
-	/*
-	 * When we have a GVA space with big_pages enabled the size and base
-	 * must be PDE aligned. If big_pages are not enabled then this
-	 * requirement is not necessary.
-	 */
-	if (is_gva_space) {
-		u64 big_page_mask;
+		/*
+		 * When we have a GVA space with big_pages enabled the size and
+		 * base must be PDE aligned. If big_pages are not enabled then
+		 * this requirement is not necessary.
+		 */
 
-		big_page_mask = (U64(vm->big_page_size) << U64(10));
-		big_page_mask = nvgpu_safe_sub_u64(big_page_mask, U64(1));
-		base_big_page = a->base & big_page_mask;
-		size_big_page = a->length & big_page_mask;
+		pde_size_mask = nvgpu_safe_sub_u64(pde_size, U64(1));
+		base_pde_align = a->base & pde_size_mask;
+		size_pde_align = a->length & pde_size_mask;
 		if (vm->big_pages &&
-			((base_big_page != 0ULL) || (size_big_page != 0ULL))) {
+			((base_pde_align != 0ULL) ||
+				(size_pde_align != 0ULL))) {
 			return -EINVAL;
 		}
 	}
