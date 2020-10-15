@@ -414,6 +414,11 @@
 		status = "okay";
 	};
 
+	nvsciipc-kernel {
+		compatible = "nvidia,nvsciipc";
+		status = "okay";
+	};
+
 	clocks-init {
 		compatible = "nvidia,clocks-config";
 		status = "okay";
