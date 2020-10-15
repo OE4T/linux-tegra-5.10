@@ -225,6 +225,7 @@ static struct vm_gk20a *create_test_vm(struct unit_module *m, struct gk20a *g)
 			   low_hole,
 			   user_vma,
 			   kernel_reserved,
+			   nvgpu_gmmu_va_small_page_limit(),
 			   true,
 			   false,
 			   true,
@@ -924,6 +925,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 			   low_hole,
 			   user_vma,
 			   kernel_reserved,
+			   nvgpu_gmmu_va_small_page_limit(),
 			   big_pages,
 			   false,
 			   true,
@@ -945,6 +947,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 			low_hole,
 			user_vma,
 			default_aperture_size, /* invalid aperture size */
+			nvgpu_gmmu_va_small_page_limit(),
 			big_pages,
 			false,
 			true,
@@ -962,6 +965,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 		nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, false, true, __func__)
 	)) {
 		unit_err(m, "BUG() was not called but it was expected (3).\n");
@@ -975,6 +979,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, true, true, __func__);
 	g->is_virtual = false;
 	if (ret != -ENOSYS) {
@@ -988,6 +993,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, true, true, __func__);
 	g->ops.mm.vm_as_alloc_share = hal_vm_as_alloc_share_success;
 	if (ret != -1) {
@@ -996,18 +1002,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 		goto exit;
 	}
 
-	/* Invalid VM configuration */
-	low_hole += nvgpu_gmmu_va_small_page_limit();
-	if (!EXPECT_BUG(
-		nvgpu_vm_do_init(&g->mm, vm,
-				g->ops.mm.gmmu.get_default_big_page_size(),
-				low_hole, user_vma, kernel_reserved,
-				big_pages, false, false, __func__)
-	)) {
-		unit_err(m, "BUG() was not called but it was expected (6).\n");
-		ret = UNIT_FAIL;
-		goto exit;
-	}
+	/* Invalid VM configuration - This scenario is not feasible */
 	low_hole = SZ_1M * 64;
 
 	/* Cause nvgpu_gmmu_init_page_table to fail */
@@ -1015,6 +1010,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, false, true, __func__);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
@@ -1028,6 +1024,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, false, true, __func__);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
@@ -1041,6 +1038,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, false, false, __func__);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
@@ -1054,6 +1052,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, false, false, __func__);
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 	if (ret != -ENOMEM) {
@@ -1067,8 +1066,9 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				nvgpu_gmmu_va_small_page_limit(),
-				((u64)SZ_1G * 200U), 0, big_pages, false, false,
-				__func__);
+				((u64)SZ_1G * 200U), 0,
+				nvgpu_gmmu_va_small_page_limit(), big_pages,
+				false, false, __func__);
 	vm->guest_managed = false;
 	if (ret != -EINVAL) {
 		unit_err(m, "nvgpu_vm_do_init didn't fail as expected (11).\n");
@@ -1080,6 +1080,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, false, false,
 				"very_long_vm_name_to_fail_vm_init");
 	if (ret != -EINVAL) {
@@ -1092,6 +1093,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				big_pages, false, false, __func__);
 	if (ret != 0) {
 		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (B).\n");
@@ -1103,6 +1105,7 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				low_hole, user_vma, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(),
 				false, false, false, __func__);
 	if (ret != 0) {
 		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (C).\n");
@@ -1114,7 +1117,8 @@ int test_init_error_paths(struct unit_module *m, struct gk20a *g, void *__args)
 	ret = nvgpu_vm_do_init(&g->mm, vm,
 				g->ops.mm.gmmu.get_default_big_page_size(),
 				nvgpu_gmmu_va_small_page_limit(),
-				0ULL, kernel_reserved, big_pages,
+				0ULL, kernel_reserved,
+				nvgpu_gmmu_va_small_page_limit(), big_pages,
 				false, false, __func__);
 	if (ret != 0) {
 		unit_err(m, "nvgpu_vm_do_init did not succeed as expected (D).\n");
@@ -1200,6 +1204,7 @@ int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 			   low_hole,
 			   user_vma,
 			   kernel_reserved,
+			   nvgpu_gmmu_va_small_page_limit(),
 			   big_pages,
 			   false,
 			   true,
@@ -1445,6 +1450,7 @@ int test_map_buf_gpu_va(struct unit_module *m,
 			   low_hole,
 			   user_vma,
 			   kernel_reserved,
+			   nvgpu_gmmu_va_small_page_limit(),
 			   big_pages,
 			   false,
 			   true,
@@ -1717,6 +1723,7 @@ int test_batch(struct unit_module *m, struct gk20a *g, void *__args)
 			   low_hole,
 			   user_vma,
 			   kernel_reserved,
+			   nvgpu_gmmu_va_small_page_limit(),
 			   big_pages,
 			   false,
 			   true,

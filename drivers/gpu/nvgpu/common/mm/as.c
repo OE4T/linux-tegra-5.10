@@ -89,6 +89,7 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 				nvgpu_safe_sub_u64(mm->channel.kernel_size,
 				U64(big_page_size) << U64(10))),
 			mm->channel.kernel_size,
+			nvgpu_gmmu_va_small_page_limit(),
 			!mm->disable_bigpage,
 			userspace_managed, unified_va, name);
 	if (vm == NULL) {

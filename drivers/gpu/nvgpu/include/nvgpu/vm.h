@@ -735,6 +735,7 @@ void nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
  *				the address space).
  * @param user_reserved [in]	Space reserved for user allocations.
  * @param kernel_reserved [in]	Space reserved for kernel only allocations.
+ * @param small_big_split [in]	Specifies small big page address split.
  * @param big_pages [in]	If true then big pages are possible in the
  *				VM. Note this does not guarantee that big
  *				pages will be possible.
@@ -763,6 +764,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		     u64 low_hole,
 		     u64 user_reserved,
 		     u64 kernel_reserved,
+		     u64 small_big_split,
 		     bool big_pages,
 		     bool userspace_managed,
 		     bool unified_va,
@@ -779,6 +781,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
  *				the address space).
  * @param user_reserved [in]	Space reserved for user allocations.
  * @param kernel_reserved [in]	Space reserved for kernel only allocations.
+ * @param small_big_split [in]	Specifies small big page address split.
  * @param big_pages [in]	If true then big pages are possible in the
  *				VM. Note this does not guarantee that big
  *				pages will be possible.
@@ -792,11 +795,11 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
  *     |  |
  *     +--+ @low_hole
  *     |  |
- *     ~  ~   This is the "user" section.
+ *     ~  ~   This is the "user" section, @user_reserved.
  *     |  |
  *     +--+ @aperture_size - @kernel_reserved
  *     |  |
- *     ~  ~   This is the "kernel" section.
+ *     ~  ~   This is the "kernel" section, @kernel_reserved.
  *     |  |
  *     +--+ @aperture_size
  *
@@ -819,6 +822,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u64 low_hole,
 			       u64 user_reserved,
 			       u64 kernel_reserved,
+			       u64 small_big_split,
 			       bool big_pages,
 			       bool userspace_managed,
 			       bool unified_va,

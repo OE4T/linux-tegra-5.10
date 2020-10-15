@@ -196,6 +196,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 				   low_hole,
 				   0ULL,
 				   nvgpu_safe_sub_u64(aperture_size, low_hole),
+				   0ULL,
 				   true,
 				   false,
 				   false,

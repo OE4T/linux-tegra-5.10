@@ -617,9 +617,9 @@ static int nvgpu_vm_init_check_vma_limits(struct gk20a *g, struct vm_gk20a *vm,
 }
 
 static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
-		     u64 low_hole,
 		     u64 user_reserved,
 		     u64 kernel_reserved,
+		     u64 small_big_split,
 		     bool big_pages,
 		     bool unified_va,
 		     const char *name)
@@ -645,9 +645,20 @@ static int nvgpu_vm_init_vma(struct gk20a *g, struct vm_gk20a *vm,
 			user_lp_vma_start = user_vma_limit;
 			user_lp_vma_limit = user_vma_limit;
 		} else {
+			/*
+			 * Ensure small_big_split falls between user vma
+			 * start and end.
+			 */
+			if ((small_big_split <= vm->va_start) ||
+				(small_big_split >=
+					nvgpu_safe_sub_u64(vm->va_limit,
+							kernel_reserved))) {
+				return -EINVAL;
+			}
+
 			user_vma_start = vm->va_start;
-			user_vma_limit = nvgpu_gmmu_va_small_page_limit();
-			user_lp_vma_start = nvgpu_gmmu_va_small_page_limit();
+			user_vma_limit = small_big_split;
+			user_lp_vma_start = small_big_split;
 			user_lp_vma_limit = nvgpu_safe_sub_u64(vm->va_limit,
 							kernel_reserved);
 		}
@@ -741,7 +752,7 @@ static int nvgpu_vm_init_attributes(struct mm_gk20a *mm,
 					nvgpu_safe_cast_u64_to_u32(SZ_4K);
 	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]    = big_page_size;
 	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_KERNEL] =
-					nvgpu_safe_cast_u64_to_u32(NVGPU_CPU_PAGE_SIZE);
+			nvgpu_safe_cast_u64_to_u32(NVGPU_CPU_PAGE_SIZE);
 
 	/* Set up vma pointers. */
 	vm->vma[GMMU_PAGE_SIZE_SMALL]  = &vm->user;
@@ -778,6 +789,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		     u64 low_hole,
 		     u64 user_reserved,
 		     u64 kernel_reserved,
+		     u64 small_big_split,
 		     bool big_pages,
 		     bool userspace_managed,
 		     bool unified_va,
@@ -809,8 +821,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		goto clean_up_gpu_vm;
 	}
 
-	err = nvgpu_vm_init_vma(g, vm, low_hole, user_reserved, kernel_reserved,
-					big_pages, unified_va, name);
+	err = nvgpu_vm_init_vma(g, vm, user_reserved, kernel_reserved,
+				small_big_split, big_pages, unified_va, name);
 	if (err != 0) {
 		goto clean_up_gpu_vm;
 	}
@@ -893,6 +905,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u64 low_hole,
 			       u64 user_reserved,
 			       u64 kernel_reserved,
+			       u64 small_big_split,
 			       bool big_pages,
 			       bool userspace_managed,
 			       bool unified_va,
@@ -906,8 +919,8 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 	}
 
 	err = nvgpu_vm_do_init(&g->mm, vm, big_page_size, low_hole,
-			     user_reserved, kernel_reserved, big_pages,
-			     userspace_managed, unified_va, name);
+			     user_reserved, kernel_reserved, small_big_split,
+			     big_pages, userspace_managed, unified_va, name);
 	if (err != 0) {
 		nvgpu_kfree(g, vm);
 		return NULL;

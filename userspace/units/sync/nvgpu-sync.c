@@ -88,6 +88,7 @@ static int init_channel_vm(struct unit_module *m, struct nvgpu_channel *ch)
 				   low_hole,
 				   0ULL,
 				   nvgpu_safe_sub_u64(aperture_size, low_hole),
+				   0ULL,
 				   true,
 				   false,
 				   false,

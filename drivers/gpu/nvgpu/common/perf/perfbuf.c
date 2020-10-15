@@ -92,7 +92,9 @@ int nvgpu_perfbuf_init_vm(struct gk20a *g)
 
 	mm->perfbuf.vm = nvgpu_vm_init(g, big_page_size, SZ_4K,
 			nvgpu_safe_sub_u64(user_size, SZ_4K),
-			kernel_size, false, false, false, "perfbuf");
+			kernel_size,
+			0ULL,
+			false, false, false, "perfbuf");
 	if (mm->perfbuf.vm == NULL) {
 		return -ENOMEM;
 	}
