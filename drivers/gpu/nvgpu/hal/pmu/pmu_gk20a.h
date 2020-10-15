@@ -33,6 +33,7 @@ struct pmu_mutexes;
 #define PMU_MODE_MISMATCH_STATUS_VAL        0xDEADDEADU
 
 void gk20a_pmu_isr(struct gk20a *g);
+u32 gk20a_pmu_get_irqmask(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_LS_PMU
 void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);

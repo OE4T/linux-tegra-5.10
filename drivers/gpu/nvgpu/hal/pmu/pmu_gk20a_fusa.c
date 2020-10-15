@@ -28,32 +28,40 @@
 
 #include "pmu_gk20a.h"
 
-void gk20a_pmu_isr(struct gk20a *g)
+u32 gk20a_pmu_get_irqmask(struct gk20a *g)
 {
-	struct nvgpu_pmu *pmu = g->pmu;
-	u32 intr, mask;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	if (!pmu->isr_enabled) {
-		nvgpu_mutex_release(&pmu->isr_mutex);
-		return;
-	}
+	u32 mask = 0U;
 
 	mask = nvgpu_readl(g, pwr_falcon_irqmask_r());
 	mask &= nvgpu_readl(g, pwr_falcon_irqdest_r());
 
+	return mask;
+}
+
+void gk20a_pmu_isr(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = g->pmu;
+	u32 intr = 0U;
+	u32 mask = 0U;
+
+	nvgpu_log_fn(g, " ");
+
 	intr = nvgpu_readl(g, pwr_falcon_irqstat_r());
+	mask = g->ops.pmu.get_irqmask(g);
+	nvgpu_pmu_dbg(g, "received PMU interrupt: stat:0x%08x mask:0x%08x",
+			intr, mask);
 
-	nvgpu_pmu_dbg(g, "received falcon interrupt: 0x%08x", intr);
-
-	intr = nvgpu_readl(g, pwr_falcon_irqstat_r()) & mask;
-
-	if (intr == 0U) {
+	nvgpu_mutex_acquire(&pmu->isr_mutex);
+	if (!pmu->isr_enabled || !(intr & mask)) {
+		nvgpu_log_info(g,
+			"clearing unhandled interrupt: stat:0x%08x mask:0x%08x",
+			intr, mask);
+		nvgpu_writel(g, pwr_falcon_irqsclr_r(), intr);
 		nvgpu_mutex_release(&pmu->isr_mutex);
 		return;
 	}
+
+	intr = intr & mask;
 
 	if (g->ops.pmu.handle_ext_irq != NULL) {
 		g->ops.pmu.handle_ext_irq(g, intr);
