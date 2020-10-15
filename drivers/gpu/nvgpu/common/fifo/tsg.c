@@ -34,6 +34,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/static_analysis.h>
+#include <nvgpu/nvgpu_init.h>
 #ifdef CONFIG_NVGPU_PROFILER
 #include <nvgpu/profiler.h>
 #endif
@@ -854,6 +855,13 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 {
 	struct nvgpu_tsg *tsg = tsg_gk20a_from_ref(ref);
 	struct gk20a *g = tsg->g;
+	int err;
+
+	err = gk20a_busy(g);
+	if (err != 0) {
+		nvgpu_err(g, "cannot busy() err=%d!", err);
+		return;
+	}
 
 	if ((tsg->gr_ctx != NULL) &&
 		nvgpu_mem_is_valid(nvgpu_gr_ctx_get_ctx_mem(tsg->gr_ctx)) &&
@@ -874,6 +882,8 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 	nvgpu_tsg_release_used_tsg(&g->fifo, tsg);
 
 	nvgpu_log(g, gpu_dbg_fn, "tsg released %d", tsg->tsgid);
+
+	gk20a_idle(g);
 }
 
 struct nvgpu_tsg *nvgpu_tsg_from_ch(struct nvgpu_channel *ch)
