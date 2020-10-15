@@ -76,6 +76,7 @@ struct dgpu_thermal_alert {
 struct nvgpu_cdev {
 	struct cdev cdev;
 	struct device *node;
+	struct class *class;
 	struct nvgpu_list_node list_entry;
 };
 
@@ -86,13 +87,25 @@ nvgpu_cdev_from_list_entry(struct nvgpu_list_node *node)
 		((uintptr_t)node - offsetof(struct nvgpu_cdev, list_entry));
 };
 
+struct nvgpu_class {
+	struct class *class;
+	struct nvgpu_list_node list_entry;
+};
+
+static inline struct nvgpu_class *
+nvgpu_class_from_list_entry(struct nvgpu_list_node *node)
+{
+	return (struct nvgpu_class *)
+		((uintptr_t)node - offsetof(struct nvgpu_class, list_entry));
+};
+
 struct nvgpu_os_linux {
 	struct gk20a g;
 	struct device *dev;
 	struct dgpu_thermal_alert thermal_alert;
 	struct nvgpu_interrupts interrupts;
-	struct class *devnode_class;
 
+	struct nvgpu_list_node class_list_head;
 	struct nvgpu_list_node cdev_list_head;
 	u32 num_cdevs;
 

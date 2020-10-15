@@ -243,17 +243,13 @@ void gk20a_user_deinit(struct device *dev)
 {
 	struct gk20a *g = gk20a_from_dev(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-	struct class *class = l->devnode_class;
 	struct nvgpu_cdev *cdev, *n;
-
-	if (class == NULL) {
-		return;
-	}
+	struct nvgpu_class *class, *p;
 
 	nvgpu_list_for_each_entry_safe(cdev, n, &l->cdev_list_head, nvgpu_cdev, list_entry) {
 		nvgpu_list_del(&cdev->list_entry);
 
-		device_destroy(class, cdev->cdev.dev);
+		device_destroy(cdev->class, cdev->cdev.dev);
 		cdev_del(&cdev->cdev);
 
 		nvgpu_kfree(g, cdev);
@@ -261,11 +257,63 @@ void gk20a_user_deinit(struct device *dev)
 
 	if (l->cdev_region) {
 		unregister_chrdev_region(l->cdev_region, l->num_cdevs);
+		l->num_cdevs = 0;
 	}
 
-	class_destroy(class);
-	l->devnode_class = NULL;
-	l->num_cdevs = 0;
+	nvgpu_list_for_each_entry_safe(class, p, &l->class_list_head, nvgpu_class, list_entry) {
+		nvgpu_list_del(&class->list_entry);
+
+		class_destroy(class->class);
+		nvgpu_kfree(g, class);
+	}
+}
+
+struct nvgpu_class *nvgpu_create_class(struct gk20a *g, const char *class_name)
+{
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct nvgpu_class *class;
+
+	class = nvgpu_kzalloc(g, sizeof(*class));
+	if (class == NULL) {
+		return NULL;
+	}
+
+	class->class = class_create(THIS_MODULE, class_name);
+	if (IS_ERR(class->class)) {
+		nvgpu_err(g, "failed to create class");
+		nvgpu_kfree(g, class);
+		return NULL;
+	}
+
+	nvgpu_init_list_node(&class->list_entry);
+	nvgpu_list_add_tail(&class->list_entry, &l->class_list_head);
+
+	return class;
+}
+
+int nvgpu_prepare_dev_node_class_list(struct gk20a *g, u32 *num_classes)
+{
+	struct nvgpu_class *class;
+	u32 count = 0U;
+
+	if (g->pci_class != 0U) {
+		class = nvgpu_create_class(g, "nvidia-pci-gpu");
+		if (class == NULL) {
+			return -ENOMEM;
+		}
+		class->class->devnode = nvgpu_pci_devnode;
+		count++;
+	} else {
+		class = nvgpu_create_class(g, "nvidia-gpu");
+		if (class == NULL) {
+			return -ENOMEM;
+		}
+		class->class->devnode = NULL;
+		count++;
+	}
+
+	*num_classes = count;
+	return 0;
 }
 
 int gk20a_user_init(struct device *dev)
@@ -274,58 +322,54 @@ int gk20a_user_init(struct device *dev)
 	dev_t devno;
 	struct gk20a *g = gk20a_from_dev(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-	struct class *class;
-	u32 num_cdevs;
+	struct nvgpu_class *class;
+	u32 num_cdevs, total_cdevs;
+	u32 num_classes;
 	struct nvgpu_cdev *cdev;
 	u32 cdev_index;
 
-	if (g->pci_class != 0U) {
-		class = class_create(THIS_MODULE, "nvidia-pci-gpu");
-		if (IS_ERR(class)) {
-			dev_err(dev, "failed to create class");
-			return PTR_ERR(class);
-		}
-		class->devnode = nvgpu_pci_devnode;
-	} else {
-		class = class_create(THIS_MODULE, "nvidia-gpu");
-		if (IS_ERR(class)) {
-			dev_err(dev, "failed to create class");
-			return PTR_ERR(class);
-		}
-		class->devnode = NULL;
+	nvgpu_init_list_node(&l->cdev_list_head);
+	nvgpu_init_list_node(&l->class_list_head);
+
+	err = nvgpu_prepare_dev_node_class_list(g, &num_classes);
+	if (err != 0) {
+		return err;
 	}
 
 	num_cdevs = sizeof(dev_node_list) / sizeof(dev_node_list[0]);
-	err = alloc_chrdev_region(&devno, 0, num_cdevs, dev_name(dev));
+	total_cdevs = num_cdevs * num_classes;
+
+	err = alloc_chrdev_region(&devno, 0, total_cdevs, dev_name(dev));
 	if (err) {
 		dev_err(dev, "failed to allocate devno\n");
 		goto fail;
 	}
 	l->cdev_region = devno;
 
-	nvgpu_init_list_node(&l->cdev_list_head);
+	nvgpu_list_for_each_entry(class, &l->class_list_head, nvgpu_class, list_entry) {
+		for (cdev_index = 0; cdev_index < num_cdevs; cdev_index++) {
+			cdev = nvgpu_kzalloc(g, sizeof(*cdev));
+			if (cdev == NULL) {
+				dev_err(dev, "failed to allocate cdev\n");
+				goto fail;
+			}
 
-	for (cdev_index = 0; cdev_index < num_cdevs; cdev_index++) {
-		cdev = nvgpu_kzalloc(g, sizeof(*cdev));
-		if (cdev == NULL) {
-			dev_err(dev, "failed to allocate cdev\n");
-			goto fail;
+			err = gk20a_create_device(dev, devno++,
+					dev_node_list[cdev_index].name,
+					&cdev->cdev, &cdev->node,
+					dev_node_list[cdev_index].fops,
+					class->class);
+			if (err) {
+				goto fail;
+			}
+
+			cdev->class = class->class;
+			nvgpu_init_list_node(&cdev->list_entry);
+			nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
 		}
-
-		err = gk20a_create_device(dev, devno++, dev_node_list[cdev_index].name,
-					  &cdev->cdev, &cdev->node,
-					  dev_node_list[cdev_index].fops,
-					  class);
-		if (err) {
-			goto fail;
-		}
-
-		nvgpu_init_list_node(&cdev->list_entry);
-		nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
 	}
 
-	l->num_cdevs = num_cdevs;
-	l->devnode_class = class;
+	l->num_cdevs = total_cdevs;
 
 	return 0;
 fail:
