@@ -1100,6 +1100,7 @@ static const struct gops_pmu gv11b_ops_pmu = {
 	.validate_mem_integrity = gv11b_pmu_validate_mem_integrity,
 	.pmu_enable_irq = gv11b_pmu_enable_irq,
 	.get_irqdest = gv11b_pmu_get_irqdest,
+	.get_irqmask = gk20a_pmu_get_irqmask,
 	.pmu_isr = gk20a_pmu_isr,
 	.handle_ext_irq = gv11b_pmu_handle_ext_irq,
 #ifdef CONFIG_NVGPU_LS_PMU

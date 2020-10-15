@@ -311,6 +311,7 @@ struct gops_pmu {
 
 	void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
 	u32 (*get_irqdest)(struct gk20a *g);
+	u32 (*get_irqmask)(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_LS_PMU
 	u32 (*get_inst_block_config)(struct gk20a *g);
