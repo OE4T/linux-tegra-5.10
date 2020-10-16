@@ -15,7 +15,7 @@
  */
 
 #ifndef __PVA_INTERFACE_REGS_T19X_H__
-#define __PVA_INTERFACE_REGS_T19x_H__
+#define __PVA_INTERFACE_REGS_T19X_H__
 
 #include "pva.h"
 #include "pva_mailbox.h"
