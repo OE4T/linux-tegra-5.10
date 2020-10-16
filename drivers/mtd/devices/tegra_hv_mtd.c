@@ -339,6 +339,9 @@ static int vmtd_erase(struct mtd_info *mtd, struct erase_info *instr)
 	}
 	mutex_unlock(&vmtddev->lock);
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+fail:
+#else
 	mtd_erase_callback(instr);
 
 fail:
@@ -346,6 +349,7 @@ fail:
 		instr->state = MTD_ERASE_FAILED;
 	else
 		instr->state = MTD_ERASE_DONE;
+#endif
 	return ret;
 }
 
