@@ -45,7 +45,7 @@ do {					\
 		ktime_get_ts64(&(nvts)->ts);			\
 		(nvts)->clock = NVHOST_CLOCK_MONOTONIC;	\
 	} else {						\
-		(nvts)->ts = ns_to_timespec(time_ns);		\
+		(nvts)->ts = ns_to_timespec64(time_ns);		\
 		(nvts)->clock = NVHOST_CLOCK_PTP;		\
 	}							\
 } while (0)
