@@ -73,7 +73,6 @@ struct gops_ce {
 	 * Steps:
 	 * - Read ce_intr_status_r corresponding to \a inst_id.
 	 * - If nonblocking pipe interrupt is pending,
-	 *   - Report the error to the SDL framework.
 	 *   - Clear the interrupt.
 	 *   - Return bitmask #NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
 	 *     #NVGPU_NONSTALL_OPS_POST_EVENTS.
