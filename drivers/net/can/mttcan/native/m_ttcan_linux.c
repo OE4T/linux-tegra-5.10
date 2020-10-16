@@ -28,7 +28,7 @@ static void mttcan_start(struct net_device *dev);
  * And we only wants to ensure that counter is read after CAN HW
  * captures the timestamp and not before.
  */
-static inline u64 __arch_counter_get_cntvct(void)
+static inline u64 _arch_counter_get_cntvct(void)
 {
 	u64 cval;
 
@@ -321,7 +321,7 @@ static void mttcan_rx_hwtstamp(struct mttcan_priv *priv,
 		/* Read the current TSC and calculate the MSB of captured
 		 * CAN TSC timestamp. Finally convert it to nsec.
 		 */
-		tsc = __arch_counter_get_cntvct();
+		tsc = _arch_counter_get_cntvct();
 		extended_tsc = mttcan_extend_timestamp(msg->tstamp, tsc,
 						       TSC_REF_CLK_SHIFT);
 		ns = extended_tsc << 5;
@@ -1057,12 +1057,20 @@ static void mttcan_controller_config(struct net_device *dev)
 }
 
 /* Adjust the timer by resetting the timecounter structure periodically */
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+static void mttcan_timer_cb(struct timer_list *timer)
+#else
 static void mttcan_timer_cb(unsigned long data)
+#endif
 {
 	unsigned long flags;
 	u64 tref;
 	int ret = 0;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+	struct mttcan_priv *priv = container_of(timer, struct mttcan_priv, timer);
+#else
 	struct mttcan_priv *priv = (struct mttcan_priv *)data;
+#endif
 
 	raw_spin_lock_irqsave(&priv->tc_lock, flags);
 	ret = get_ptp_hwtime(&tref);
@@ -1868,7 +1876,11 @@ static int mttcan_probe(struct platform_device *pdev)
 	if (ret)
 		goto exit_unreg_candev;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+	timer_setup(&priv->timer, mttcan_timer_cb, 0);
+#else
 	setup_timer(&priv->timer, mttcan_timer_cb, (unsigned long)priv);
+#endif
 
 	dev_info(&dev->dev, "%s device registered (regs=%p, irq=%d)\n",
 		 KBUILD_MODNAME, priv->ttcan->base, dev->irq);
