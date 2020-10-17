@@ -327,6 +327,8 @@ static enum tegra_platform __tegra_get_platform(void)
 			return TEGRA_PLATFORM_QT;
 		case PRE_SI_FPGA:
 			return TEGRA_PLATFORM_FPGA;
+		case PRE_SI_UNIT_FPGA:
+			return TEGRA_PLATFORM_UNIT_FPGA;
 		case PRE_SI_ASIM_QT:
 			return TEGRA_PLATFORM_QT;
 		case PRE_SI_ASIM_LINSIM:
@@ -377,6 +379,7 @@ bool tegra_cpu_is_asim(void)
 		case PRE_SI_QT:
 		case PRE_SI_FPGA:
 			return false;
+		case PRE_SI_UNIT_FPGA:
 		case PRE_SI_ASIM_QT:
 		case PRE_SI_ASIM_LINSIM:
 		case PRE_SI_VDK:
