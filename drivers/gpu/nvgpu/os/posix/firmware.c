@@ -30,7 +30,12 @@
 #include <nvgpu/gk20a.h>
 
 #define FW_MAX_PATH_SIZE 2048U
+
+#if defined(__QNX__)
+#define NVGPU_UNITTEST_UCODE_PATH "/gv11b/"
+#else
 #define NVGPU_UNITTEST_UCODE_PATH "/firmware/gv11b/"
+#endif
 
 static int nvgpu_ucode_load(struct gk20a *g, const char *path,
 	struct nvgpu_firmware *ucode)
@@ -115,7 +120,12 @@ struct nvgpu_firmware *nvgpu_request_firmware(struct gk20a *g,
 		return NULL;
 	}
 
+#if defined(__QNX__)
+	strcpy(full_path, "/proc/boot/");
+#else
 	getcwd(full_path, FW_MAX_PATH_SIZE);
+#endif
+
 	full_path_len = strlen(full_path);
 	full_path_len += strlen(fw_name);
 	full_path_len += strlen(NVGPU_UNITTEST_UCODE_PATH);
