@@ -3881,6 +3881,7 @@ static int patch_tegra_t23x_hdmi(struct hda_codec *codec)
 		return err;
 
 	codec->dp_mst = true;
+	codec->mst_no_extra_pcms = true;
 	spec = codec->spec;
 	spec->dyn_pin_out = true;
 	spec->dyn_pcm_assign = true;
