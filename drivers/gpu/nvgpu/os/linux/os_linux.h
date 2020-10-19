@@ -87,9 +87,21 @@ nvgpu_cdev_from_list_entry(struct nvgpu_list_node *node)
 		((uintptr_t)node - offsetof(struct nvgpu_cdev, list_entry));
 };
 
+struct nvgpu_cdev_class_priv_data {
+	char class_name[64];
+	u32 local_instance_id;
+	u32 major_instance_id;
+	u32 minor_instance_id;
+	bool pci;
+};
+
 struct nvgpu_class {
 	struct class *class;
 	struct nvgpu_list_node list_entry;
+
+	struct nvgpu_cdev_class_priv_data *priv_data;
+
+	enum nvgpu_mig_gpu_instance_type instance_type;
 };
 
 static inline struct nvgpu_class *
