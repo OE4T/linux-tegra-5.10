@@ -276,6 +276,7 @@ struct sdhci_tegra {
 	unsigned long max_clk_limit;
 	unsigned long max_ddr_clk_limit;
 	unsigned int instance;
+	bool skip_clk_rst;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -1266,6 +1267,9 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 		else if (val == 3)
 			host->ocr_mask &= (MMC_VDD_33_34 | MMC_VDD_165_195);
 	}
+
+	tegra_host->skip_clk_rst = device_property_read_bool(host->mmc->parent,
+							"nvidia,skip-clk-rst");
 }
 
 static unsigned long tegra_sdhci_apply_clk_limits(struct sdhci_host *host,
@@ -1312,14 +1316,15 @@ static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	 * regardless of clock rate rounding, which may happen if the value
 	 * from clk_get_rate() is used.
 	 */
-	host_clk = tegra_sdhci_apply_clk_limits(host, clock);
-	clk_set_rate(pltfm_host->clk, host_clk);
-	tegra_host->curr_clk_rate = host_clk;
-	if (tegra_host->ddr_signaling)
-		host->max_clk = host_clk;
-	else
-		host->max_clk = clk_get_rate(pltfm_host->clk);
-
+	if (!tegra_host->skip_clk_rst) {
+		host_clk = tegra_sdhci_apply_clk_limits(host, clock);
+		clk_set_rate(pltfm_host->clk, host_clk);
+		tegra_host->curr_clk_rate = host_clk;
+		if (tegra_host->ddr_signaling)
+			host->max_clk = host_clk;
+		else
+			host->max_clk = clk_get_rate(pltfm_host->clk);
+	}
 	sdhci_set_clock(host, clock);
 
 	if (tegra_host->pad_calib_required) {
@@ -1331,8 +1336,12 @@ static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 static int tegra_sdhci_set_host_clock(struct sdhci_host *host, bool enable)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 	u8 vndr_ctrl;
 	int err;
+
+	if (tegra_host->skip_clk_rst)
+		return 0;
 
 	if (!enable) {
 		dev_dbg(mmc_dev(host->mmc), "Disabling clk\n");
@@ -2314,18 +2323,21 @@ static void sdhci_delayed_detect(struct work_struct *work)
 	/* Initialize debugfs */
 	sdhci_tegra_debugfs_init(host);
 
-	pm_runtime_set_active(mmc_dev(host->mmc));
-	pm_runtime_set_autosuspend_delay(mmc_dev(host->mmc), SDHCI_TEGRA_RTPM_TIMEOUT_MS);
-	pm_runtime_use_autosuspend(mmc_dev(host->mmc));
-	pm_suspend_ignore_children(mmc_dev(host->mmc), true);
-	pm_runtime_enable(mmc_dev(host->mmc));
-
+	if (!tegra_host->skip_clk_rst) {
+		pm_runtime_set_active(mmc_dev(host->mmc));
+		pm_runtime_set_autosuspend_delay(mmc_dev(host->mmc), SDHCI_TEGRA_RTPM_TIMEOUT_MS);
+		pm_runtime_use_autosuspend(mmc_dev(host->mmc));
+		pm_suspend_ignore_children(mmc_dev(host->mmc), true);
+		pm_runtime_enable(mmc_dev(host->mmc));
+	}
 	return;
 
 err_add_host:
-	clk_disable_unprepare(tegra_host->tmclk);
-        reset_control_assert(tegra_host->rst);
-	clk_disable_unprepare(pltfm_host->clk);
+	if (!tegra_host->skip_clk_rst) {
+		clk_disable_unprepare(tegra_host->tmclk);
+		reset_control_assert(tegra_host->rst);
+		clk_disable_unprepare(pltfm_host->clk);
+	}
 }
 
 static int sdhci_tegra_probe(struct platform_device *pdev)
@@ -2411,7 +2423,7 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	 * supporting separate TMCLK.
 	 */
 
-	if (soc_data->nvquirks & NVQUIRK_HAS_TMCLK) {
+	if (soc_data->nvquirks & NVQUIRK_HAS_TMCLK && !tegra_host->skip_clk_rst) {
 		clk = devm_clk_get(&pdev->dev, "tmclk");
 		if (IS_ERR(clk)) {
 			rc = PTR_ERR(clk);
@@ -2433,47 +2445,49 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 		tegra_host->tmclk = clk;
 	}
 
-	clk = devm_clk_get(mmc_dev(host->mmc), NULL);
-	if (IS_ERR(clk)) {
-		rc = PTR_ERR(clk);
+	if (!tegra_host->skip_clk_rst) {
+		clk = devm_clk_get(mmc_dev(host->mmc), NULL);
+		if (IS_ERR(clk)) {
+			rc = PTR_ERR(clk);
 
-		if (rc != -EPROBE_DEFER)
-			dev_err(&pdev->dev, "failed to get clock: %d\n", rc);
+			if (rc != -EPROBE_DEFER)
+				dev_err(&pdev->dev, "failed to get clock: %d\n", rc);
 
-		goto err_clk_get;
-	}
-	clk_prepare_enable(clk);
-	pltfm_host->clk = clk;
+			goto err_clk_get;
+		}
+		clk_prepare_enable(clk);
+		pltfm_host->clk = clk;
 
-	tegra_host->emc_clk =
-		tegra_bwmgr_register(sdmmc_emc_client_id[tegra_host->instance]);
+		tegra_host->emc_clk =
+			tegra_bwmgr_register(sdmmc_emc_client_id[tegra_host->instance]);
 
-	if (IS_ERR_OR_NULL(tegra_host->emc_clk))
-		dev_err(mmc_dev(host->mmc),
-			"Client registration for eMC failed\n");
-	else
-		dev_info(mmc_dev(host->mmc),
-			"Client registration for eMC Successful\n");
+		if (IS_ERR_OR_NULL(tegra_host->emc_clk))
+			dev_err(mmc_dev(host->mmc),
+				"Client registration for eMC failed\n");
+		else
+			dev_info(mmc_dev(host->mmc),
+				"Client registration for eMC Successful\n");
 
-	tegra_host->rst = devm_reset_control_get_exclusive(&pdev->dev,
+		tegra_host->rst = devm_reset_control_get_exclusive(&pdev->dev,
 							   "sdhci");
-	if (IS_ERR(tegra_host->rst)) {
-		rc = PTR_ERR(tegra_host->rst);
-		dev_err(&pdev->dev, "failed to get reset control: %d\n", rc);
-		goto err_rst_get;
+		if (IS_ERR(tegra_host->rst)) {
+			rc = PTR_ERR(tegra_host->rst);
+			dev_err(&pdev->dev, "failed to get reset control: %d\n", rc);
+			goto err_rst_get;
+		}
+
+		rc = reset_control_assert(tegra_host->rst);
+		if (rc)
+			goto err_rst_get;
+
+		usleep_range(2000, 4000);
+
+		rc = reset_control_deassert(tegra_host->rst);
+		if (rc)
+			goto err_rst_get;
+
+		usleep_range(2000, 4000);
 	}
-
-	rc = reset_control_assert(tegra_host->rst);
-	if (rc)
-		goto err_rst_get;
-
-	usleep_range(2000, 4000);
-
-	rc = reset_control_deassert(tegra_host->rst);
-	if (rc)
-		goto err_rst_get;
-
-	usleep_range(2000, 4000);
 	if (tegra_host->force_non_rem_rescan)
 		host->mmc->caps2 |= MMC_CAP2_FORCE_RESCAN;
 
@@ -2539,9 +2553,11 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	return 0;
 
 err_rst_get:
-	clk_disable_unprepare(pltfm_host->clk);
+	if (!tegra_host->skip_clk_rst)
+		clk_disable_unprepare(pltfm_host->clk);
 err_clk_get:
-	clk_disable_unprepare(tegra_host->tmclk);
+	if (!tegra_host->skip_clk_rst)
+		clk_disable_unprepare(tegra_host->tmclk);
 err_power_req:
 err_parse_dt:
 	sdhci_pltfm_free(pdev);
@@ -2556,10 +2572,12 @@ static int sdhci_tegra_remove(struct platform_device *pdev)
 
 	sdhci_remove_host(host, 0);
 
-	reset_control_assert(tegra_host->rst);
-	usleep_range(2000, 4000);
-	clk_disable_unprepare(pltfm_host->clk);
-	clk_disable_unprepare(tegra_host->tmclk);
+	if (!tegra_host->skip_clk_rst) {
+		reset_control_assert(tegra_host->rst);
+		usleep_range(2000, 4000);
+		clk_disable_unprepare(pltfm_host->clk);
+		clk_disable_unprepare(tegra_host->tmclk);
+	}
 
 	sdhci_pltfm_free(pdev);
 
@@ -2589,7 +2607,7 @@ static int sdhci_tegra_runtime_suspend(struct device *dev)
 	/* Disable SDMMC internal clock */
 	sdhci_set_clock(host, 0);
 
-	if (tegra_host->emc_clk) {
+	if (tegra_host->emc_clk && !tegra_host->skip_clk_rst) {
 		ret = tegra_bwmgr_set_emc(tegra_host->emc_clk, 0,
 						TEGRA_BWMGR_SET_EMC_SHARED_BW);
 		if (ret) {
@@ -2639,7 +2657,7 @@ static int sdhci_tegra_runtime_resume(struct device *dev)
 	if (host->mmc->caps2 & MMC_CAP2_CQE)
 		ret = cqhci_resume(host->mmc);
 
-	if (tegra_host->emc_clk) {
+	if (tegra_host->emc_clk && !tegra_host->skip_clk_rst) {
 		ret = tegra_bwmgr_set_emc(tegra_host->emc_clk, SDMMC_EMC_MAX_FREQ,
 					TEGRA_BWMGR_SET_EMC_SHARED_BW);
 		if (ret)
