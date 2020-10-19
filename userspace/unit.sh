@@ -31,7 +31,29 @@ options=$(getopt -o t: --long test-level: -- "$@")
 this_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd )"
 pushd $this_script_dir
 
+FIRMWARES=("/gpu-firmware-private/t19x/gr/net/safety/NETD_img.bin"
+	"/gpu-firmware-private/t19x/gr/net/safety/fecs_sig.bin"
+	"/gpu-firmware-private/t19x/gr/net/safety/gpccs_sig.bin"
+	"/gpu-firmware-private/t19x/gr/fecs/safety/fecs.bin"
+	"/gpu-firmware-private/t19x/gr/gpccs/safety/gpccs.bin"
+	"/gpu-firmware-private/t19x/gr/pmu/safety/acr_ucode_prod.bin"
+	"/gpu-firmware-private/t19x/gr/pmu/safety/acr_ucode_dbg.bin")
+
+FIRMWARE_TARGET_PATH="/lib/firmware/gv11b/"
+
+CUR_DIR=`pwd`
+DEST_DIR=${CUR_DIR}/firmware/gv11b/
+mkdir -p ${DEST_DIR}
+
 if [ -f nvgpu_unit ]; then
+	if [ -d  ${FIRMWARE_TARGET_PATH} ]
+	then
+		cp -rf ${FIRMWARE_TARGET_PATH}/* ${DEST_DIR}
+	else
+		echo "${FIRMWARE_TARGET_PATH} doesn't exist\n"
+		exit 1
+	fi
+
         # if the executable is in the current directory, we are running on
         # target, so use that dir structure
         LD_LIBRARY_PATH=".:units/igpu"
@@ -42,8 +64,27 @@ if [ -f nvgpu_unit ]; then
 	# actual computing time.
         NVGPU_UNIT="./nvgpu_unit --nvtest --unit-load-path units/igpu --no-color \
                  --num-threads 1"
+
 else
-        # running on host
+	# running on host
+	if [ "x$TEGRA_TOP" == "x" ]
+	then
+		echo "\$TEGRA_TOP must be set!"
+		exit 1
+	fi
+
+	for i in "${FIRMWARES[@]}"
+	do
+		if [ -f ${TEGRA_TOP}/${i} ]
+		then
+			cp -f ${TEGRA_TOP}/${i} ${DEST_DIR}
+		else
+			echo "firmware file \"${TEGRA_TOP}/${i}\" doesn't exist\n"
+			exit 1
+		fi
+
+	done
+
         LD_LIBRARY_PATH="build:build/units"
         # On host, must run single-threaded to avoid high VAs
         NVGPU_UNIT="./build/nvgpu_unit --num-threads 1 -r required_tests.ini"
@@ -71,5 +112,7 @@ if [ $rc -eq "0" ]; then
                 shift
         done
 fi
+
+rm -rf ${CUR_DIR}/firmware
 popd
 exit $rc
