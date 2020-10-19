@@ -173,28 +173,28 @@ static inline u32 pri_becs_addr_mask(u32 addr)
 {
 	return addr & (BIT32(pri_becs_addr_width()) - 1U);
 }
-static inline bool pri_is_be_addr_shared(struct gk20a *g, u32 addr)
+static inline bool pri_is_rop_addr_shared(struct gk20a *g, u32 addr)
 {
 	u32 rop_shared_base = nvgpu_get_litter_value(g, GPU_LIT_ROP_SHARED_BASE);
 	u32 rop_stride = nvgpu_get_litter_value(g, GPU_LIT_ROP_STRIDE);
 	return (addr >= rop_shared_base) &&
 		(addr < rop_shared_base + rop_stride);
 }
-static inline u32 pri_be_shared_addr(struct gk20a *g, u32 addr)
+static inline u32 pri_rop_shared_addr(struct gk20a *g, u32 addr)
 {
 	u32 rop_shared_base = nvgpu_get_litter_value(g, GPU_LIT_ROP_SHARED_BASE);
 	return rop_shared_base + pri_becs_addr_mask(addr);
 }
-static inline bool pri_is_be_addr(struct gk20a *g, u32 addr)
+static inline bool pri_is_rop_addr(struct gk20a *g, u32 addr)
 {
 	u32 rop_base = nvgpu_get_litter_value(g, GPU_LIT_ROP_BASE);
 	u32 rop_stride = nvgpu_get_litter_value(g, GPU_LIT_ROP_STRIDE);
 	return	((addr >= rop_base) &&
 		 (addr < rop_base + nvgpu_ltc_get_ltc_count(g) * rop_stride)) ||
-		pri_is_be_addr_shared(g, addr);
+		pri_is_rop_addr_shared(g, addr);
 }
 
-static inline u32 pri_get_be_num(struct gk20a *g, u32 addr)
+static inline u32 pri_get_rop_num(struct gk20a *g, u32 addr)
 {
 	u32 i, start;
 	u32 num_fbps = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPS);
@@ -234,13 +234,13 @@ enum ctxsw_addr_type {
 	CTXSW_ADDR_TYPE_SYS  = 0,
 	CTXSW_ADDR_TYPE_GPC  = 1,
 	CTXSW_ADDR_TYPE_TPC  = 2,
-	CTXSW_ADDR_TYPE_BE   = 3,
+	CTXSW_ADDR_TYPE_ROP   = 3,
 	CTXSW_ADDR_TYPE_PPC  = 4,
 	CTXSW_ADDR_TYPE_LTCS = 5,
 	CTXSW_ADDR_TYPE_FBPA = 6,
 	CTXSW_ADDR_TYPE_EGPC = 7,
 	CTXSW_ADDR_TYPE_ETPC = 8,
-	CTXSW_ADDR_TYPE_ROP  = 9,
+	CTXSW_ADDR_TYPE_PMM_FBPGS_ROP  = 9,
 	CTXSW_ADDR_TYPE_FBP  = 10,
 	CTXSW_ADDR_TYPE_LTS_MAIN  = 11,
 };
@@ -248,7 +248,7 @@ enum ctxsw_addr_type {
 #define PRI_BROADCAST_FLAGS_NONE		0U
 #define PRI_BROADCAST_FLAGS_GPC			BIT32(0)
 #define PRI_BROADCAST_FLAGS_TPC			BIT32(1)
-#define PRI_BROADCAST_FLAGS_BE			BIT32(2)
+#define PRI_BROADCAST_FLAGS_ROP			BIT32(2)
 #define PRI_BROADCAST_FLAGS_PPC			BIT32(3)
 #define PRI_BROADCAST_FLAGS_LTCS		BIT32(4)
 #define PRI_BROADCAST_FLAGS_LTSS		BIT32(5)

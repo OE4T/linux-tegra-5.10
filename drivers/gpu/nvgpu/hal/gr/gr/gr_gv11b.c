@@ -1740,7 +1740,7 @@ u32 gv11b_gr_get_egpc_base(struct gk20a *g)
  */
 int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 	enum ctxsw_addr_type *addr_type,
-	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,
+	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *rop_num,
 	u32 *broadcast_flags)
 {
 	u32 gpc_addr, tpc_addr;
@@ -1753,7 +1753,7 @@ int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 	*gpc_num = 0;
 	*tpc_num = 0;
 	*ppc_num = 0;
-	*be_num  = 0;
+	*rop_num  = 0;
 
 	if (pri_is_gpc_addr(g, addr)) {
 		*addr_type = CTXSW_ADDR_TYPE_GPC;
@@ -1786,13 +1786,13 @@ int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 			}
 		}
 		return 0;
-	} else if (pri_is_be_addr(g, addr)) {
-		*addr_type = CTXSW_ADDR_TYPE_BE;
-		if (pri_is_be_addr_shared(g, addr)) {
-			*broadcast_flags |= PRI_BROADCAST_FLAGS_BE;
+	} else if (pri_is_rop_addr(g, addr)) {
+		*addr_type = CTXSW_ADDR_TYPE_ROP;
+		if (pri_is_rop_addr_shared(g, addr)) {
+			*broadcast_flags |= PRI_BROADCAST_FLAGS_ROP;
 			return 0;
 		}
-		*be_num = pri_get_be_num(g, addr);
+		*rop_num = pri_get_rop_num(g, addr);
 		return 0;
 	} else if (g->ops.ltc.pri_is_ltc_addr(g, addr)) {
 		*addr_type = CTXSW_ADDR_TYPE_LTCS;
@@ -1834,7 +1834,7 @@ int gr_gv11b_decode_priv_addr(struct gk20a *g, u32 addr,
 	} else if (PRI_PMMGS_BASE_ADDR_MASK(addr) == NV_PERF_PMMFBP_FBPGS_ROP) {
 		*broadcast_flags |= (PRI_BROADCAST_FLAGS_PMM_FBPGS_ROP |
 				     PRI_BROADCAST_FLAGS_PMMFBP);
-		*addr_type = CTXSW_ADDR_TYPE_ROP;
+		*addr_type = CTXSW_ADDR_TYPE_PMM_FBPGS_ROP;
 		return 0;
 	} else if (PRI_PMMS_BASE_ADDR_MASK(addr) == NV_PERF_PMMGPC_GPCS) {
 		*broadcast_flags |= (PRI_BROADCAST_FLAGS_PMM_GPCS |
@@ -1890,7 +1890,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 					   u32 *num_registers)
 {
 	enum ctxsw_addr_type addr_type;
-	u32 gpc_num, tpc_num, ppc_num, be_num, sm_num;
+	u32 gpc_num, tpc_num, ppc_num, rop_num, sm_num;
 	u32 priv_addr, gpc_addr;
 	u32 broadcast_flags;
 	u32 t;
@@ -1902,7 +1902,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
 
 	err = g->ops.gr.decode_priv_addr(g, addr, &addr_type,
-					&gpc_num, &tpc_num, &ppc_num, &be_num,
+					&gpc_num, &tpc_num, &ppc_num, &rop_num,
 					&broadcast_flags);
 	nvgpu_log(g, gpu_dbg_gpu_dbg, "addr_type = %d", addr_type);
 	if (err != 0) {
@@ -1910,15 +1910,15 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	}
 
 	if ((addr_type == CTXSW_ADDR_TYPE_SYS) ||
-	    (addr_type == CTXSW_ADDR_TYPE_BE)) {
+	    (addr_type == CTXSW_ADDR_TYPE_ROP)) {
 		/*
-		 * The BE broadcast registers are included in the compressed PRI
-		 * table. Convert a BE unicast address to a broadcast address
+		 * The ROP broadcast registers are included in the compressed PRI
+		 * table. Convert a ROP unicast address to a broadcast address
 		 * so that we can look up the offset
 		 */
-		if ((addr_type == CTXSW_ADDR_TYPE_BE) &&
-		    (broadcast_flags & PRI_BROADCAST_FLAGS_BE) == 0U) {
-			priv_addr_table[t++] = pri_be_shared_addr(g, addr);
+		if ((addr_type == CTXSW_ADDR_TYPE_ROP) &&
+		    (broadcast_flags & PRI_BROADCAST_FLAGS_ROP) == 0U) {
+			priv_addr_table[t++] = pri_rop_shared_addr(g, addr);
 		} else {
 			priv_addr_table[t++] = addr;
 		}
@@ -2043,7 +2043,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 			priv_addr_table, &t,
 			nvgpu_get_litter_value(g, GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_START),
 			nvgpu_get_litter_value(g, GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_COUNT));
-	} else if ((addr_type == CTXSW_ADDR_TYPE_ROP) &&
+	} else if ((addr_type == CTXSW_ADDR_TYPE_PMM_FBPGS_ROP) &&
 		   ((broadcast_flags & PRI_BROADCAST_FLAGS_PMM_FBPGS_ROP) != 0U)) {
 		gr_gv11b_split_pmm_fbp_broadcast_address(g,
 			PRI_PMMGS_OFFSET_MASK(addr),

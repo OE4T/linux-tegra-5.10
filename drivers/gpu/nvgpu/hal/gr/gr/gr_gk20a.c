@@ -191,7 +191,7 @@ bool gk20a_gr_sm_debugger_attached(struct gk20a *g)
 /* This function will decode a priv address and return the partition type and numbers. */
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 			      enum ctxsw_addr_type *addr_type,
-			      u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,
+			      u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *rop_num,
 			      u32 *broadcast_flags)
 {
 	u32 gpc_addr;
@@ -204,7 +204,7 @@ int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 	*gpc_num = 0;
 	*tpc_num = 0;
 	*ppc_num = 0;
-	*be_num  = 0;
+	*rop_num  = 0;
 
 	if (pri_is_gpc_addr(g, addr)) {
 		*addr_type = CTXSW_ADDR_TYPE_GPC;
@@ -232,13 +232,13 @@ int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 			*tpc_num = nvgpu_gr_get_tpc_num(g, gpc_addr);
 		}
 		return 0;
-	} else if (pri_is_be_addr(g, addr)) {
-		*addr_type = CTXSW_ADDR_TYPE_BE;
-		if (pri_is_be_addr_shared(g, addr)) {
-			*broadcast_flags |= PRI_BROADCAST_FLAGS_BE;
+	} else if (pri_is_rop_addr(g, addr)) {
+		*addr_type = CTXSW_ADDR_TYPE_ROP;
+		if (pri_is_rop_addr_shared(g, addr)) {
+			*broadcast_flags |= PRI_BROADCAST_FLAGS_ROP;
 			return 0;
 		}
-		*be_num = pri_get_be_num(g, addr);
+		*rop_num = pri_get_rop_num(g, addr);
 		return 0;
 	} else if (g->ops.ltc.pri_is_ltc_addr(g, addr)) {
 		*addr_type = CTXSW_ADDR_TYPE_LTCS;
@@ -313,7 +313,7 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 					   u32 *num_registers)
 {
 	enum ctxsw_addr_type addr_type;
-	u32 gpc_num, tpc_num, ppc_num, be_num;
+	u32 gpc_num, tpc_num, ppc_num, rop_num;
 	u32 priv_addr, gpc_addr;
 	u32 broadcast_flags;
 	u32 t;
@@ -326,7 +326,7 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
 
 	err = g->ops.gr.decode_priv_addr(g, addr, &addr_type,
-					&gpc_num, &tpc_num, &ppc_num, &be_num,
+					&gpc_num, &tpc_num, &ppc_num, &rop_num,
 					&broadcast_flags);
 	nvgpu_log(g, gpu_dbg_gpu_dbg, "addr_type = %d", addr_type);
 	if (err != 0) {
@@ -334,13 +334,15 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 	}
 
 	if ((addr_type == CTXSW_ADDR_TYPE_SYS) ||
-	    (addr_type == CTXSW_ADDR_TYPE_BE)) {
-		/* The BE broadcast registers are included in the compressed PRI
-		 * table. Convert a BE unicast address to a broadcast address
-		 * so that we can look up the offset. */
-		if ((addr_type == CTXSW_ADDR_TYPE_BE) &&
-		    ((broadcast_flags & PRI_BROADCAST_FLAGS_BE) == 0U)) {
-			priv_addr_table[t++] = pri_be_shared_addr(g, addr);
+	    (addr_type == CTXSW_ADDR_TYPE_ROP)) {
+		/*
+		 * The ROP broadcast registers are included in the compressed
+		 * PRI table. Convert a ROP unicast address to a broadcast
+		 * address so that we can look up the offset.
+		 */
+		if ((addr_type == CTXSW_ADDR_TYPE_ROP) &&
+		    ((broadcast_flags & PRI_BROADCAST_FLAGS_ROP) == 0U)) {
+			priv_addr_table[t++] = pri_rop_shared_addr(g, addr);
 		} else {
 			priv_addr_table[t++] = addr;
 		}
@@ -922,7 +924,7 @@ gr_gk20a_process_context_buffer_priv_segment(struct gk20a *g,
 
 	/* Process the SYS/BE segment. */
 	if ((addr_type == CTXSW_ADDR_TYPE_SYS) ||
-	    (addr_type == CTXSW_ADDR_TYPE_BE)) {
+	    (addr_type == CTXSW_ADDR_TYPE_ROP)) {
 		list = nvgpu_netlist_get_sys_ctxsw_regs(g);
 		for (i = 0; i < list->count; i++) {
 			reg = &list->l[i];
@@ -1146,7 +1148,7 @@ int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	int err;
 	enum ctxsw_addr_type addr_type;
 	u32 broadcast_flags;
-	u32 gpc_num, tpc_num, ppc_num, be_num;
+	u32 gpc_num, tpc_num, ppc_num, rop_num;
 	u32 num_gpcs, num_tpcs, num_ppcs;
 	u32 offset;
 	u32 sys_priv_offset, gpc_priv_offset;
@@ -1157,7 +1159,7 @@ int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
 
 	err = g->ops.gr.decode_priv_addr(g, addr, &addr_type,
-					&gpc_num, &tpc_num, &ppc_num, &be_num,
+					&gpc_num, &tpc_num, &ppc_num, &rop_num,
 					&broadcast_flags);
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 			"addr_type = %d, broadcast_flags: %08x",
@@ -1197,7 +1199,7 @@ int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 	}
 
 	if ((addr_type == CTXSW_ADDR_TYPE_SYS) ||
-	    (addr_type == CTXSW_ADDR_TYPE_BE) ||
+	    (addr_type == CTXSW_ADDR_TYPE_ROP) ||
 	    (addr_type == CTXSW_ADDR_TYPE_LTS_MAIN)) {
 		/* Find the offset in the FECS segment. */
 		offset_to_segment = sys_priv_offset * 256U;
