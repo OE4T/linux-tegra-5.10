@@ -60,6 +60,10 @@ void gv11b_gr_zbc_add_stencil(struct gk20a *g,
 	u32 zbc_s;
 	u32 hw_index = nvgpu_safe_sub_u32(index, NVGPU_GR_ZBC_STARTOF_TABLE);
 
+	nvgpu_log(g, gpu_dbg_zbc, "adding stencil at index %u", index);
+	nvgpu_log(g, gpu_dbg_zbc, "stencil: 0x%08x",
+		nvgpu_gr_zbc_get_entry_stencil(stencil_val));
+
 	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_s_r(hw_index),
 		nvgpu_gr_zbc_get_entry_stencil(stencil_val));
 

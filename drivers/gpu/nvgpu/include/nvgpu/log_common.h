@@ -73,5 +73,6 @@ enum nvgpu_log_type {
                                            querying. */
 #define gpu_dbg_mig		BIT(33) /* MIG info */
 #define gpu_dbg_rec		BIT(34) /* Recovery sequence debugging. */
+#define gpu_dbg_zbc		BIT(35) /* Gr ZBC */
 
 #endif

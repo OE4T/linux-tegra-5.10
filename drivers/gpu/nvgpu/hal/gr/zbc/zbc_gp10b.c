@@ -61,6 +61,13 @@ void gp10b_gr_zbc_add_color(struct gk20a *g,
 	u32 zbc_c_format_reg;
 	u32 hw_index = nvgpu_safe_sub_u32(index, NVGPU_GR_ZBC_STARTOF_TABLE);
 
+	nvgpu_log(g, gpu_dbg_zbc, "adding color at index %u", index);
+	nvgpu_log(g, gpu_dbg_zbc, "color[0-3]: 0x%08x 0x%08x 0x%08x 0x%08x",
+		nvgpu_gr_zbc_get_entry_color_ds(color_val, 0),
+		nvgpu_gr_zbc_get_entry_color_ds(color_val, 1),
+		nvgpu_gr_zbc_get_entry_color_ds(color_val, 2),
+		nvgpu_gr_zbc_get_entry_color_ds(color_val, 3));
+
 	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_r_r(hw_index),
 			nvgpu_gr_zbc_get_entry_color_ds(color_val, 0));
 	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_g_r(hw_index),
@@ -85,6 +92,10 @@ void gp10b_gr_zbc_add_depth(struct gk20a *g,
 	u32 zbc_z;
 	u32 zbc_z_format_reg;
 	u32 hw_index = nvgpu_safe_sub_u32(index, NVGPU_GR_ZBC_STARTOF_TABLE);
+
+	nvgpu_log(g, gpu_dbg_zbc, "adding depth at index %u", index);
+	nvgpu_log(g, gpu_dbg_zbc, "depth: 0x%08x",
+		nvgpu_gr_zbc_get_entry_depth(depth_val));
 
 	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_z_r(hw_index),
 		nvgpu_gr_zbc_get_entry_depth(depth_val));

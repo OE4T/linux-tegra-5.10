@@ -277,7 +277,7 @@ err_mutex:
 int nvgpu_gr_zbc_set_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			   struct nvgpu_gr_zbc_entry *zbc_val)
 {
-	nvgpu_log_fn(g, " zbc_val->type %u", zbc_val->type);
+	nvgpu_log(g, gpu_dbg_zbc, " zbc_val->type %u", zbc_val->type);
 
 	return nvgpu_pg_elpg_protected_call(g,
 		nvgpu_gr_zbc_add(g, zbc, zbc_val));
@@ -294,6 +294,7 @@ int nvgpu_gr_zbc_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 	nvgpu_speculation_barrier();
 	switch (query_params->type) {
 	case NVGPU_GR_ZBC_TYPE_INVALID:
+		nvgpu_log(g, gpu_dbg_zbc, "Query zbc size");
 		query_params->index_size = nvgpu_safe_add_u32(
 			nvgpu_safe_sub_u32(zbc->max_color_index,
 				zbc->min_color_index), 1U);
@@ -304,6 +305,7 @@ int nvgpu_gr_zbc_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			nvgpu_err(g, "invalid zbc color table index %u", index);
 			return -EINVAL;
 		}
+		nvgpu_log(g, gpu_dbg_zbc, "Query zbc color at index %u", index);
 
 		nvgpu_speculation_barrier();
 		for (i = 0; i < NVGPU_GR_ZBC_COLOR_VALUE_SIZE; i++) {
@@ -322,6 +324,7 @@ int nvgpu_gr_zbc_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			nvgpu_err(g, "invalid zbc depth table index %u", index);
 			return -EINVAL;
 		}
+		nvgpu_log(g, gpu_dbg_zbc, "Query zbc depth at index %u", index);
 
 		nvgpu_speculation_barrier();
 		query_params->depth = zbc->zbc_dep_tbl[index].depth;
@@ -337,6 +340,8 @@ int nvgpu_gr_zbc_query_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 					index);
 				return -EINVAL;
 			}
+			nvgpu_log(g, gpu_dbg_zbc,
+				"Query zbc stencil at index %u", index);
 
 			nvgpu_speculation_barrier();
 			query_params->stencil = zbc->zbc_s_tbl[index].stencil;
@@ -498,12 +503,18 @@ static void nvgpu_gr_zbc_init_indices(struct gk20a *g, struct nvgpu_gr_zbc *zbc)
 	zbc->min_stencil_index = zbc_indices.min_stencil_index;
 	zbc->max_stencil_index = zbc_indices.max_stencil_index;
 
-	nvgpu_log_info(g, "zbc->min_color_index %u", zbc->min_color_index);
-	nvgpu_log_info(g, "zbc->max_color_index %u", zbc->max_color_index);
-	nvgpu_log_info(g, "zbc->min_depth_index %u", zbc->min_depth_index);
-	nvgpu_log_info(g, "zbc->max_depth_index %u", zbc->max_depth_index);
-	nvgpu_log_info(g, "zbc->min_stencil_index %u", zbc->min_stencil_index);
-	nvgpu_log_info(g, "zbc->max_stencil_index %u", zbc->max_stencil_index);
+	nvgpu_log(g, gpu_dbg_zbc, "zbc->min_color_index %u",
+		zbc->min_color_index);
+	nvgpu_log(g, gpu_dbg_zbc, "zbc->max_color_index %u",
+		zbc->max_color_index);
+	nvgpu_log(g, gpu_dbg_zbc, "zbc->min_depth_index %u",
+		zbc->min_depth_index);
+	nvgpu_log(g, gpu_dbg_zbc, "zbc->max_depth_index %u",
+		zbc->max_depth_index);
+	nvgpu_log(g, gpu_dbg_zbc, "zbc->min_stencil_index %u",
+		zbc->min_stencil_index);
+	nvgpu_log(g, gpu_dbg_zbc, "zbc->max_stencil_index %u",
+		zbc->max_stencil_index);
 }
 
 static void nvgpu_gr_zbc_load_default_sw_table(struct gk20a *g,
