@@ -35,6 +35,7 @@
 #include "pcie-designware.h"
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/fuse.h>
 #include "../../pci.h"
 
 #define APPL_PINMUX				0x0
@@ -43,6 +44,7 @@
 #define APPL_PINMUX_CLKREQ_OVERRIDE		BIT(3)
 #define APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE_EN	BIT(4)
 #define APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE	BIT(5)
+#define APPL_PINMUX_PEX_RST_IN_OVERRIDE_EN	BIT(11)
 
 #define APPL_CTRL				0x4
 #define APPL_CTRL_SYS_PRE_DET_STATE		BIT(6)
@@ -57,6 +59,7 @@
 #define APPL_INTR_EN_L0_0_MSI_RCV_INT_EN	BIT(4)
 #define APPL_INTR_EN_L0_0_INT_INT_EN		BIT(8)
 #define APPL_INTR_EN_L0_0_PCI_CMD_EN_INT_EN	BIT(15)
+#define APPL_INTR_EN_L0_0_PEX_RST_INT_EN	BIT(16)
 #define APPL_INTR_EN_L0_0_CDM_REG_CHK_INT_EN	BIT(19)
 #define APPL_INTR_EN_L0_0_SYS_INTR_EN		BIT(30)
 #define APPL_INTR_EN_L0_0_SYS_MSI_INTR_EN	BIT(31)
@@ -163,6 +166,12 @@
 #define APPL_CAR_RESET_OVRD				0x12C
 #define APPL_CAR_RESET_OVRD_CYA_OVERRIDE_CORE_RST_N	BIT(0)
 
+#define APPL_GTH_PHY				0x138
+#define APPL_GTH_PHY_PHY_RST			BIT(0)
+#define APPL_GTH_PHY_L1SS_PHY_RST_OVERRIDE	BIT(1)
+#define APPL_GTH_PHY_L1SS_WAKE_COUNT_MASK	GENMASK(15, 2)
+#define APPL_GTH_PHY_L1SS_WAKE_COUNT_SHIFT	2
+
 #define IO_BASE_IO_DECODE				BIT(0)
 #define IO_BASE_IO_DECODE_BIT8				BIT(8)
 
@@ -228,6 +237,8 @@
 #define MSIX_ADDR_MATCH_HIGH_OFF_MASK		GENMASK(31, 0)
 
 #define PORT_LOGIC_MSIX_DOORBELL			0x948
+
+#define AUX_CLK_FREQ				0xB40
 
 #define CAP_SPCIE_CAP_OFF			0x154
 #define CAP_SPCIE_CAP_OFF_DSP_TX_PRESET0_MASK	GENMASK(3, 0)
@@ -943,7 +954,8 @@ static void tegra_pcie_prepare_host(struct pcie_port *pp)
 	val |= (pcie->num_lanes << PCI_EXP_LNKSTA_NLW_SHIFT);
 	dw_pcie_writel_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCAP, val);
 
-	config_gen3_gen4_eq_presets(pcie);
+	if (!tegra_platform_is_fpga())
+		config_gen3_gen4_eq_presets(pcie);
 
 	init_host_aspm(pcie);
 
@@ -1154,13 +1166,15 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		return ret;
 	}
 
-	ret = of_property_count_strings(np, "phy-names");
-	if (ret < 0) {
-		dev_err(pcie->dev, "Failed to find PHY entries: %d\n",
-			ret);
-		return ret;
+	if (tegra_platform_is_silicon()) {
+		ret = of_property_count_strings(np, "phy-names");
+		if (ret < 0) {
+			dev_err(pcie->dev, "Failed to find PHY entries: %d\n",
+				ret);
+			return ret;
+		}
+		pcie->phy_count = ret;
 	}
-	pcie->phy_count = ret;
 
 	if (of_property_read_bool(np, "nvidia,update-fc-fixup"))
 		pcie->update_fc_fixup = true;
@@ -1375,21 +1389,25 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 	int ret;
 	u32 val;
 
-	ret = tegra_pcie_bpmp_set_ctrl_state(pcie, true);
-	if (ret) {
-		dev_err(pcie->dev,
-			"Failed to enable controller %u: %d\n", pcie->cid, ret);
-		return ret;
-	}
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_bpmp_set_ctrl_state(pcie, true);
+		if (ret) {
+			dev_err(pcie->dev,
+				"Failed to enable controller %u: %d\n",
+				pcie->cid, ret);
+			return ret;
+		}
 
-	ret = tegra_pcie_enable_slot_regulators(pcie);
-	if (ret < 0)
-		goto fail_slot_reg_en;
+		ret = tegra_pcie_enable_slot_regulators(pcie);
+		if (ret < 0)
+			goto fail_slot_reg_en;
 
-	ret = regulator_enable(pcie->pex_ctl_supply);
-	if (ret < 0) {
-		dev_err(pcie->dev, "Failed to enable regulator: %d\n", ret);
-		goto fail_reg_en;
+		ret = regulator_enable(pcie->pex_ctl_supply);
+		if (ret < 0) {
+			dev_err(pcie->dev, "Failed to enable regulator: %d\n",
+				ret);
+			goto fail_reg_en;
+		}
 	}
 
 	ret = clk_prepare_enable(pcie->core_clk);
@@ -1414,10 +1432,12 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 		appl_writel(pcie, val, APPL_CTRL);
 	}
 
-	ret = tegra_pcie_enable_phy(pcie);
-	if (ret) {
-		dev_err(pcie->dev, "Failed to enable PHY: %d\n", ret);
-		goto fail_phy;
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_enable_phy(pcie);
+		if (ret) {
+			dev_err(pcie->dev, "Failed to enable PHY: %d\n", ret);
+			goto fail_phy;
+		}
 	}
 
 	/* Update CFG base address */
@@ -1450,6 +1470,20 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 
 	reset_control_deassert(pcie->core_rst);
 
+	if (tegra_platform_is_fpga()) {
+		val = readl(pcie->appl_base + APPL_GTH_PHY);
+		val &= ~APPL_GTH_PHY_L1SS_WAKE_COUNT_MASK;
+		val |= (0x1e4 << APPL_GTH_PHY_L1SS_WAKE_COUNT_SHIFT);
+		/* FPGA PHY initialization */
+		val |= APPL_GTH_PHY_PHY_RST;
+		writel(val, pcie->appl_base + APPL_GTH_PHY);
+
+		val = dw_pcie_readl_dbi(&pcie->pci, AUX_CLK_FREQ);
+		val &= ~(0x3FF);
+		val |= 0x6;
+		dw_pcie_writel_dbi(&pcie->pci, AUX_CLK_FREQ, val);
+	}
+
 	pcie->pcie_cap_base = dw_pcie_find_capability(&pcie->pci,
 						      PCI_CAP_ID_EXP);
 
@@ -1466,11 +1500,14 @@ fail_phy:
 fail_core_apb_rst:
 	clk_disable_unprepare(pcie->core_clk);
 fail_core_clk:
-	regulator_disable(pcie->pex_ctl_supply);
+	if (tegra_platform_is_silicon())
+		regulator_disable(pcie->pex_ctl_supply);
 fail_reg_en:
-	tegra_pcie_disable_slot_regulators(pcie);
+	if (tegra_platform_is_silicon())
+		tegra_pcie_disable_slot_regulators(pcie);
 fail_slot_reg_en:
-	tegra_pcie_bpmp_set_ctrl_state(pcie, false);
+	if (tegra_platform_is_silicon())
+		tegra_pcie_bpmp_set_ctrl_state(pcie, false);
 
 	return ret;
 }
@@ -1486,7 +1523,8 @@ static int __deinit_controller(struct tegra_pcie_dw *pcie)
 		return ret;
 	}
 
-	tegra_pcie_disable_phy(pcie);
+	if (tegra_platform_is_silicon())
+		tegra_pcie_disable_phy(pcie);
 
 	ret = reset_control_assert(pcie->core_apb_rst);
 	if (ret) {
@@ -1496,19 +1534,22 @@ static int __deinit_controller(struct tegra_pcie_dw *pcie)
 
 	clk_disable_unprepare(pcie->core_clk);
 
-	ret = regulator_disable(pcie->pex_ctl_supply);
-	if (ret) {
-		dev_err(pcie->dev, "Failed to disable regulator: %d\n", ret);
-		return ret;
-	}
+	if (tegra_platform_is_silicon()) {
+		ret = regulator_disable(pcie->pex_ctl_supply);
+		if (ret) {
+			dev_err(pcie->dev, "Failed to disable regulator: %d\n",
+				ret);
+			return ret;
+		}
 
-	tegra_pcie_disable_slot_regulators(pcie);
+		tegra_pcie_disable_slot_regulators(pcie);
 
-	ret = tegra_pcie_bpmp_set_ctrl_state(pcie, false);
-	if (ret) {
-		dev_err(pcie->dev, "Failed to disable controller %d: %d\n",
-			pcie->cid, ret);
-		return ret;
+		ret = tegra_pcie_bpmp_set_ctrl_state(pcie, false);
+		if (ret) {
+			dev_err(pcie->dev, "Failed to disable controller %d: %d\n",
+				pcie->cid, ret);
+			return ret;
+		}
 	}
 
 	return ret;
@@ -1696,7 +1737,8 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 
 	reset_control_assert(pcie->core_rst);
 
-	tegra_pcie_disable_phy(pcie);
+	if (tegra_platform_is_silicon())
+		tegra_pcie_disable_phy(pcie);
 
 	reset_control_assert(pcie->core_apb_rst);
 
@@ -1748,10 +1790,12 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		goto fail_core_apb_rst;
 	}
 
-	ret = tegra_pcie_enable_phy(pcie);
-	if (ret) {
-		dev_err(dev, "Failed to enable PHY: %d\n", ret);
-		goto fail_phy;
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_enable_phy(pcie);
+		if (ret) {
+			dev_err(dev, "Failed to enable PHY: %d\n", ret);
+			goto fail_phy;
+		}
 	}
 
 	/* Clear any stale interrupt statuses */
@@ -1792,6 +1836,8 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	val = appl_readl(pcie, APPL_PINMUX);
 	val |= APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE_EN;
 	val |= APPL_PINMUX_CLK_OUTPUT_IN_OVERRIDE;
+	if (tegra_platform_is_fpga())
+		val &= ~APPL_PINMUX_PEX_RST_IN_OVERRIDE_EN;
 	appl_writel(pcie, val, APPL_PINMUX);
 
 	appl_writel(pcie, pcie->dbi_res->start & APPL_CFG_BASE_ADDR_MASK,
@@ -1805,6 +1851,8 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 	val |= APPL_INTR_EN_L0_0_SYS_INTR_EN;
 	val |= APPL_INTR_EN_L0_0_LINK_STATE_INT_EN;
 	val |= APPL_INTR_EN_L0_0_PCI_CMD_EN_INT_EN;
+	if (tegra_platform_is_fpga())
+		val |= APPL_INTR_EN_L0_0_PEX_RST_INT_EN;
 	appl_writel(pcie, val, APPL_INTR_EN_L0_0);
 
 	val = appl_readl(pcie, APPL_INTR_EN_L1_0_0);
@@ -1814,13 +1862,36 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 
 	reset_control_deassert(pcie->core_rst);
 
+	/* FPGA specific PHY initialization */
+	if (tegra_platform_is_fpga()) {
+		val = readl(pcie->appl_base + APPL_GTH_PHY);
+		val &= ~APPL_GTH_PHY_PHY_RST;
+		writel(val, pcie->appl_base + APPL_GTH_PHY);
+
+		usleep_range(900, 1100);
+
+		val = readl(pcie->appl_base + APPL_GTH_PHY);
+		val &= ~APPL_GTH_PHY_L1SS_WAKE_COUNT_MASK;
+		val |= (0x1e4 << APPL_GTH_PHY_L1SS_WAKE_COUNT_SHIFT);
+		val |= APPL_GTH_PHY_PHY_RST;
+		writel(val, pcie->appl_base + APPL_GTH_PHY);
+
+		usleep_range(900, 1100);
+
+		val = dw_pcie_readl_dbi(pci, AUX_CLK_FREQ);
+		val &= ~(0x3FF);
+		val |= 0x6;
+		dw_pcie_writel_dbi(pci, AUX_CLK_FREQ, val);
+	}
+
 	if (pcie->update_fc_fixup) {
 		val = dw_pcie_readl_dbi(pci, CFG_TIMER_CTRL_MAX_FUNC_NUM_OFF);
 		val |= 0x1 << CFG_TIMER_CTRL_ACK_NAK_SHIFT;
 		dw_pcie_writel_dbi(pci, CFG_TIMER_CTRL_MAX_FUNC_NUM_OFF, val);
 	}
 
-	config_gen3_gen4_eq_presets(pcie);
+	if (!tegra_platform_is_fpga())
+		config_gen3_gen4_eq_presets(pcie);
 
 	init_host_aspm(pcie);
 
@@ -1885,7 +1956,8 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 
 fail_init_complete:
 	reset_control_assert(pcie->core_rst);
-	tegra_pcie_disable_phy(pcie);
+	if (tegra_platform_is_silicon())
+		tegra_pcie_disable_phy(pcie);
 fail_phy:
 	reset_control_assert(pcie->core_apb_rst);
 fail_core_apb_rst:
@@ -2116,13 +2188,15 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	if (pcie->pex_refclk_sel_gpiod)
 		gpiod_set_value(pcie->pex_refclk_sel_gpiod, 1);
 
-	pcie->pex_ctl_supply = devm_regulator_get(dev, "vddio-pex-ctl");
-	if (IS_ERR(pcie->pex_ctl_supply)) {
-		ret = PTR_ERR(pcie->pex_ctl_supply);
-		if (ret != -EPROBE_DEFER)
-			dev_err(dev, "Failed to get regulator: %ld\n",
-				PTR_ERR(pcie->pex_ctl_supply));
-		return ret;
+	if (tegra_platform_is_silicon()) {
+		pcie->pex_ctl_supply = devm_regulator_get(dev, "vddio-pex-ctl");
+		if (IS_ERR(pcie->pex_ctl_supply)) {
+			ret = PTR_ERR(pcie->pex_ctl_supply);
+			if (ret != -EPROBE_DEFER)
+				dev_err(dev, "Failed to get regulator: %ld\n",
+					PTR_ERR(pcie->pex_ctl_supply));
+			return ret;
+		}
 	}
 
 	pcie->core_clk = devm_clk_get(dev, "core");
@@ -2154,23 +2228,26 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	if (!phys)
 		return -ENOMEM;
 
-	for (i = 0; i < pcie->phy_count; i++) {
-		name = kasprintf(GFP_KERNEL, "p2u-%u", i);
-		if (!name) {
-			dev_err(dev, "Failed to create P2U string\n");
-			return -ENOMEM;
+	if (tegra_platform_is_silicon()) {
+		for (i = 0; i < pcie->phy_count; i++) {
+			name = kasprintf(GFP_KERNEL, "p2u-%u", i);
+			if (!name) {
+				dev_err(dev, "Failed to create P2U string\n");
+				return -ENOMEM;
+			}
+			phys[i] = devm_phy_get(dev, name);
+			kfree(name);
+			if (IS_ERR(phys[i])) {
+				ret = PTR_ERR(phys[i]);
+				if (ret != -EPROBE_DEFER)
+					dev_err(dev, "Failed to get PHY: %d\n",
+						ret);
+				return ret;
+			}
 		}
-		phys[i] = devm_phy_get(dev, name);
-		kfree(name);
-		if (IS_ERR(phys[i])) {
-			ret = PTR_ERR(phys[i]);
-			if (ret != -EPROBE_DEFER)
-				dev_err(dev, "Failed to get PHY: %d\n", ret);
-			return ret;
-		}
-	}
 
-	pcie->phys = phys;
+		pcie->phys = phys;
+	}
 
 	dbi_res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbi");
 	if (!dbi_res) {
