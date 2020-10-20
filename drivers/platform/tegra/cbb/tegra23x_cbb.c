@@ -379,26 +379,6 @@ static void print_err_notifier(struct seq_file *file,
 	print_cbb_err(file, "\t**************************************\n");
 }
 
-static int tegra234_cbb_serr_callback(struct pt_regs *regs, int reason,
-		unsigned int esr, void *priv)
-{
-	unsigned int errvld_status = 0;
-	struct tegra_cbb_errmon_record *errmon = priv;
-	int retval = 1;
-
-	if ((!errmon->is_clk_rst) ||
-		(errmon->is_clk_rst && errmon->is_clk_enabled())) {
-		errvld_status = tegra_cbb_errvld(errmon->vaddr+
-						errmon->err_notifier_base);
-
-		if (errvld_status) {
-			print_err_notifier(NULL, errmon, errvld_status);
-			retval = 0;
-		}
-	}
-	return retval;
-}
-
 #ifdef CONFIG_DEBUG_FS
 static DEFINE_MUTEX(cbb_err_mutex);
 
@@ -428,7 +408,7 @@ static int tegra234_cbb_err_show(struct seq_file *file, void *data)
 #endif
 
 /*
- * Handler for CBB errors from masters other than CCPLEX
+ * Handler for CBB errors
  */
 static irqreturn_t tegra234_cbb_error_isr(int irq, void *dev_id)
 {
@@ -520,24 +500,6 @@ static void tegra234_cbb_error_enable(void __iomem *vaddr)
 
 static int tegra234_cbb_remove(struct platform_device *pdev)
 {
-	struct resource *res_base;
-	struct tegra_cbb_errmon_record *errmon;
-	unsigned long flags;
-
-	res_base = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res_base)
-		return -EINVAL;
-
-	spin_lock_irqsave(&cbb_errmon_lock, flags);
-	list_for_each_entry(errmon, &cbb_errmon_list, node) {
-		if (errmon->start == res_base->start) {
-			unregister_serr_hook(errmon->callback);
-			list_del(&errmon->node);
-			break;
-		}
-	}
-	spin_unlock_irqrestore(&cbb_errmon_lock, flags);
-
 	return 0;
 }
 
@@ -561,21 +523,18 @@ static int tegra234_cbb_mn_mask_erd(u64 mask_erd)
 
 static struct tegra_cbb_noc_data tegra234_aon_en_data = {
 	.name   = "AON-EN",
-	.is_ax2apb_bridge_connected = 0,
 	.is_clk_rst = false,
 	.erd_mask_inband_err = false
 };
 
 static struct tegra_cbb_noc_data tegra234_bpmp_en_data = {
 	.name   = "BPMP-EN",
-	.is_ax2apb_bridge_connected = 0,
 	.is_clk_rst = false,
 	.erd_mask_inband_err = false
 };
 
 static struct tegra_cbb_noc_data tegra234_cbb_en_data = {
 	.name   = "CBB-EN",
-	.is_ax2apb_bridge_connected = 0,
 	.is_clk_rst = false,
 	.erd_mask_inband_err = true,
 	.off_mask_erd = 0x3a004,
@@ -584,21 +543,18 @@ static struct tegra_cbb_noc_data tegra234_cbb_en_data = {
 
 static struct tegra_cbb_noc_data tegra234_dce_en_data = {
 	.name   = "DCE-EN",
-	.is_ax2apb_bridge_connected = 0,
 	.is_clk_rst = false,
 	.erd_mask_inband_err = false
 };
 
 static struct tegra_cbb_noc_data tegra234_rce_en_data = {
 	.name   = "RCE-EN",
-	.is_ax2apb_bridge_connected = 0,
 	.is_clk_rst = false,
 	.erd_mask_inband_err = false
 };
 
 static struct tegra_cbb_noc_data tegra234_sce_en_data = {
 	.name   = "SCE-EN",
-	.is_ax2apb_bridge_connected = 0,
 	.is_clk_rst = false,
 	.erd_mask_inband_err = false
 };
@@ -682,7 +638,6 @@ static int tegra234_cbb_errmon_init(struct platform_device *pdev,
 
 	errmon->name      = bdata->name;
 	errmon->tegra_cbb_master_id = bdata->tegra_cbb_master_id;
-	errmon->is_ax2apb_bridge_connected = bdata->is_ax2apb_bridge_connected;
 	errmon->erd_mask_inband_err = bdata->erd_mask_inband_err;
 
 	np = of_node_get(pdev->dev.of_node);
@@ -715,12 +670,6 @@ static int tegra234_cbb_errmon_init(struct platform_device *pdev,
 
 	platform_set_drvdata(pdev, errmon);
 
-	if (callback) {
-		errmon->callback = callback;
-		callback->fn = tegra234_cbb_serr_callback;
-		callback->priv = errmon;
-	}
-
 	spin_lock_irqsave(&cbb_errmon_lock, flags);
 	list_add(&errmon->node, &cbb_errmon_list);
 	spin_unlock_irqrestore(&cbb_errmon_lock, flags);
@@ -731,15 +680,12 @@ static int tegra234_cbb_errmon_init(struct platform_device *pdev,
 static int tegra234_cbb_probe(struct platform_device *pdev)
 {
 	const struct tegra_cbb_noc_data *bdata;
-	struct serr_hook *callback;
 	struct resource *res_base;
 	struct tegra_cbb_init_data cbb_init_data;
 	int err = 0;
 
-	if ((tegra_get_chipid() != TEGRA_CHIPID_TEGRA23)
-			|| !tegra_cbb_core_probed()) {
-		dev_err(&pdev->dev,
-		"Wrong SOC or tegra_cbb core driver not initialized\n");
+	if (!of_machine_is_compatible("nvidia,tegra234")) {
+		dev_err(&pdev->dev, "Wrong SOC\n");
 		return -EINVAL;
 	}
 
@@ -768,17 +714,13 @@ static int tegra234_cbb_probe(struct platform_device *pdev)
 	memset(&cbb_init_data, 0, sizeof(cbb_init_data));
 	cbb_init_data.res_base = res_base;
 
-	callback = devm_kzalloc(&pdev->dev, sizeof(*callback), GFP_KERNEL);
-	if (callback == NULL)
-		return -ENOMEM;
-
-	err = tegra234_cbb_errmon_init(pdev, callback, bdata, &cbb_init_data);
+	err = tegra234_cbb_errmon_init(pdev, NULL, bdata, &cbb_init_data);
 	if (err) {
 		dev_err(&pdev->dev, "cbberr init for soc failing\n");
 		return -EINVAL;
 	}
 
-	err = tegra_cbberr_register_hook_en(pdev, bdata, callback,
+	err = tegra_cbberr_register_hook_en(pdev, bdata, NULL,
 							cbb_init_data);
 	if (err)
 		return err;
@@ -849,6 +791,8 @@ static void __exit tegra234_cbb_exit(void)
 	platform_driver_unregister(&tegra234_cbb_driver);
 }
 
-
 pure_initcall(tegra234_cbb_init);
 module_exit(tegra234_cbb_exit);
+
+MODULE_LICENSE("GPL v2");
+MODULE_DESCRIPTION("Control Backbone error handling driver for Tegra234");

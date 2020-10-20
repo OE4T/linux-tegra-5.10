@@ -34,7 +34,6 @@
 
 struct tegra_cbb_errmon_record {
 	struct list_head node;
-	struct serr_hook *callback;
 	char *name;
 	int errmon_no;
 	int err_type;
@@ -51,9 +50,6 @@ struct tegra_cbb_errmon_record {
 	int errmon_secure_irq;
 	int errmon_nonsecure_irq;
 	char **tegra_cbb_master_id;
-	bool is_ax2apb_bridge_connected;
-	void __iomem **axi2abp_bases;
-	int apb_bridge_cnt;
 	bool erd_mask_inband_err;
 	struct tegra_lookup_fab_sn *sn_lookup;
 	bool is_clk_rst;
