@@ -87,7 +87,7 @@ else
 
         LD_LIBRARY_PATH="build:build/units"
         # On host, must run single-threaded to avoid high VAs
-        NVGPU_UNIT="./build/nvgpu_unit --num-threads 1 -r required_tests.ini"
+        NVGPU_UNIT="./build/nvgpu_unit --num-threads 1"
 fi
 export LD_LIBRARY_PATH
 
