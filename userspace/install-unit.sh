@@ -120,7 +120,6 @@ jcp $nvgpu_bins/libs/igpu-l4t_64/libnvgpu-drv-igpu.so nvgpu_unit/libnvgpu-drv-ig
 jcp $TOP/kernel/nvgpu/userspace/unit.sh                  nvgpu_unit/unit.sh
 jcp $TOP/kernel/nvgpu/userspace/gcov.sh                  nvgpu_unit/gcov.sh
 jcp $TOP/kernel/nvgpu/userspace/testlist.py              nvgpu_unit/testlist.py
-jcp $TOP/kernel/nvgpu/userspace/firmware/gv11b           nvgpu_unit/firmware/
 
 find $nvgpu_bins/userspace/units -name "*.so" -not -path "*unit.so" \
     -not -path "*drv.so" -exec du -b {} \; | sort -n | while read size unit_so ; do
