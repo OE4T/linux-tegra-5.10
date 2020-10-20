@@ -37,7 +37,6 @@
 #include <linux/platform/tegra/tegra_cbb.h>
 
 static struct tegra_cbberr_ops *cbberr_ops;
-static bool is_cbb_core_probed;
 
 void print_cbb_err(struct seq_file *file, const char *fmt, ...)
 {
@@ -119,7 +118,8 @@ static const struct file_operations cbb_err_fops = {
 	.llseek = seq_lseek,
 	.release = single_release
 };
-static int cbb_noc_dbgfs_init(void)
+
+static int tegra_cbb_noc_dbgfs_init(void)
 {
 	struct dentry *d;
 	if (!created_root) {
@@ -136,7 +136,7 @@ static int cbb_noc_dbgfs_init(void)
 }
 
 #else
-static int cbb_noc_dbgfs_init(void) { return 0; }
+static int tegra_cbb_noc_dbgfs_init(void) { return 0; }
 #endif
 
 void tegra_cbb_stallen(void __iomem *addr)
@@ -214,6 +214,12 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 {
 	int ret = 0;
 
+	ret = tegra_cbb_noc_dbgfs_init();
+	if (ret) {
+		dev_err(&pdev->dev, "failed to create debugfs\n");
+		return ret;
+	}
+
 	if (bdata->erd_mask_inband_err) {
 		/* set Error Response Disable to mask SError/inband errors */
 		ret = bdata->tegra_cbb_noc_set_erd(cbb_init_data.addr_mask_erd);
@@ -243,44 +249,3 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 
 	return ret;
 }
-
-int tegra_cbb_core_probed(void)
-{
-	return is_cbb_core_probed;
-}
-EXPORT_SYMBOL(tegra_cbb_core_probed);
-
-static int __init tegra_cbb_init(void)
-{
-	int err = 0;
-
-	/*
-	 * CBB don't exist on the simulator
-	 */
-	if (tegra_cpu_is_asim() &&
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-		(tegra_get_chipid() != TEGRA_CHIPID_TEGRA19) &&
-		(tegra_get_chipid() != TEGRA_CHIPID_TEGRA23))
-#else
-		(tegra_get_chip_id() != TEGRA194) &&
-		(tegra_get_chip_id() != TEGRA234))
-#endif
-		return -EINVAL;
-
-	err = cbb_noc_dbgfs_init();
-	if (err)
-		return err;
-
-	is_cbb_core_probed = 1;
-	return err;
-}
-
-static void __exit tegra_cbb_exit(void)
-{
-}
-
-pure_initcall(tegra_cbb_init);
-module_exit(tegra_cbb_exit);
-
-MODULE_LICENSE("GPL v2");
-MODULE_DESCRIPTION("SError handler for errors within Control Backbone");

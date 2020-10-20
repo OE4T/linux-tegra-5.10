@@ -894,9 +894,8 @@ static int tegra194_cbb_probe(struct platform_device *pdev)
 	/*
 	 * CBB don't exist on the simulator
 	 */
-	if (tegra_cpu_is_asim() || !tegra_cbb_core_probed()) {
-		dev_err(&pdev->dev,
-				"Running on asim or tegra_cbb core driver not initialized\n");
+	if (tegra_cpu_is_asim()) {
+		dev_err(&pdev->dev, "Running on asim\n");
 		return -EINVAL;
 	}
 
@@ -1009,3 +1008,6 @@ static void __exit tegra194_cbb_exit(void)
 
 pure_initcall(tegra194_cbb_init);
 module_exit(tegra194_cbb_exit);
+
+MODULE_LICENSE("GPL v2");
+MODULE_DESCRIPTION("Control Backbone error handling driver for Tegra194");
