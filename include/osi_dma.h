@@ -527,8 +527,8 @@ struct osi_dma_priv_data {
  *
  * @note
  * Classification:
- * - Interrupt: No
- * - Signal handler: No
+ * - Interrupt: Yes
+ * - Signal handler: Yes
  * - Thread safe: No
  * - Required Privileges: None
  *
@@ -566,8 +566,8 @@ int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: No
- * - Signal handler: No
+ * - Interrupt: Yes
+ * - Signal handler: Yes
  * - Thread safe: No
  * - Required Privileges: None
  *
@@ -605,8 +605,8 @@ int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: No
- * - Signal handler: No
+ * - Interrupt: Yes
+ * - Signal handler: Yes
  * - Thread safe: No
  * - Required Privileges: None
  *
@@ -644,8 +644,8 @@ int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: No
- * - Signal handler: No
+ * - Interrupt: Yes
+ * - Signal handler: Yes
  * - Thread safe: No
  * - Required Privileges: None
  *
@@ -805,8 +805,8 @@ int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * Classification:
- * - Interrupt: No
- * - Signal handler: No
+ * - Interrupt: Yes
+ * - Signal handler: Yes
  * - Thread safe: No
  * - Required Privileges: None
  *
@@ -842,8 +842,8 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *
  * @note
  * Classification:
- * - Interrupt: No
- * - Signal handler: No
+ * - Interrupt: Yes
+ * - Signal handler: Yes
  * - Thread safe: No
  * - Required Privileges: None
  *
