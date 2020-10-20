@@ -456,9 +456,8 @@ static void nvgpu_gr_zbc_load_default_sw_color_table(struct gk20a *g,
 	zbc->zbc_col_tbl[index].format = GR_ZBC_SOLID_BLACK_COLOR_FMT;
 	for (i = 0U; i < NVGPU_GR_ZBC_COLOR_VALUE_SIZE; i++) {
 		zbc->zbc_col_tbl[index].color_ds[i] = 0U;
-		zbc->zbc_col_tbl[index].color_l2[i] = 0U;
+		zbc->zbc_col_tbl[index].color_l2[i] = 0xff000000U;
 	}
-	zbc->zbc_col_tbl[index].color_l2[0] = 0xff000000U;
 	zbc->zbc_col_tbl[index].color_ds[3] = 0x3f800000U;
 	zbc->zbc_col_tbl[index].ref_cnt =
 		nvgpu_safe_add_u32(zbc->zbc_col_tbl[index].ref_cnt, 1U);
