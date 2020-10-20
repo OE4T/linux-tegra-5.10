@@ -20,6 +20,7 @@
 #include <linux/moduleparam.h>
 #include <linux/random.h>
 #include <linux/version.h>
+#include <linux/io.h>
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
 #else
@@ -631,6 +632,15 @@ static int nvmap_heap_pgfree(struct nvmap_handle *h)
 	h->pgalloc.pages = NULL;
 	return 0;
 }
+
+static bool nvmap_cpu_map_is_allowed(struct nvmap_handle *handle)
+{
+	if (handle->heap_type & NVMAP_HEAP_CARVEOUT_VPR)
+		return false;
+	else
+		return handle->heap_type & nvmap_dev->dynamic_dma_map_mask;
+}
+
 static void alloc_handle(struct nvmap_client *client,
 			 struct nvmap_handle *h, unsigned int type)
 {
@@ -663,6 +673,20 @@ static void alloc_handle(struct nvmap_client *client,
 			 */
 			mb();
 			h->alloc = true;
+
+			/* Clear the allocated buffer */
+			if (nvmap_cpu_map_is_allowed(h)) {
+				void *cpu_addr;
+
+				cpu_addr = memremap(b->base, h->size,
+						MEMREMAP_WB);
+				if (cpu_addr != NULL) {
+					memset(cpu_addr, 0, h->size);
+					__dma_flush_area(cpu_addr, h->size);
+					memunmap(cpu_addr);
+				}
+			}
+
 			return;
 		}
 		ret = nvmap_heap_pgalloc(client, h, type);
