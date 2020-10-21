@@ -473,11 +473,6 @@
 		status = "disabled";
 	};
 
-	sce-en@B600000 {
-		compatible = "nvidia,tegra234-SCE-EN";
-		status = "disabled";
-	};
-
         reserved-memory {
                 grid-of-semaphores {
                         /delete-property/ cvdevs;

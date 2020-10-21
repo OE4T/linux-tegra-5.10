@@ -15,7 +15,7 @@
  */
 
 / {
-	cbb-en@2300000 {
+	cbb-en@1300000 {
 		compatible = "nvidia,tegra234-CBB-EN";
 		reg = <0x0 0x13A00000 0x0 0x400000>;
 		interrupts = <0 231 4>;

@@ -190,7 +190,7 @@
 		status = "disabled";
 	};
 
-	cbb-en@2300000 {
+	cbb-en@1300000 {
 		status = "disabled";
 	};
 
