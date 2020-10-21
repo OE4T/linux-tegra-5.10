@@ -40,6 +40,11 @@
 		status = "okay";
 	};
 
+	/* L4 cache */
+	tegra-cache {
+		status = "okay";
+	};
+
 	power-domain {
 		status = "okay";
 	};
