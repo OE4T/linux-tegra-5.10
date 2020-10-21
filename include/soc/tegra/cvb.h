@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Utility functions for parsing Tegra CVB voltage tables
+ *
+ * Copyright (C) 2012-2020 NVIDIA Corporation.  All rights reserved.
  */
 
 #ifndef __DRIVERS_CLK_TEGRA_CVB_H

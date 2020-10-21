@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * clk-dfll.h - prototypes and macros for the Tegra DFLL clocksource driver
- * Copyright (C) 2013-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2013-2020 NVIDIA Corporation.  All rights reserved.
  *
  * Aleksandr Frid <afrid@nvidia.com>
  * Paul Walmsley <pwalmsley@nvidia.com>
@@ -14,7 +14,7 @@
 #include <linux/reset.h>
 #include <linux/types.h>
 
-#include "cvb.h"
+#include <soc/tegra/cvb.h>
 
 /**
  * struct tegra_dfll_soc_data - SoC-specific hooks/integration for the DFLL driver

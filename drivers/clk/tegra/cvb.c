@@ -2,13 +2,13 @@
 /*
  * Utility functions for parsing Tegra CVB voltage tables
  *
- * Copyright (C) 2012-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2012-2020 NVIDIA Corporation.  All rights reserved.
  */
 #include <linux/err.h>
 #include <linux/kernel.h>
 #include <linux/pm_opp.h>
 
-#include "cvb.h"
+#include <soc/tegra/cvb.h>
 
 /* cvb_mv = ((c2 * speedo / s_scale + c1) * speedo / s_scale + c0) */
 static inline int get_cvb_voltage(int speedo, int s_scale,

@@ -2,7 +2,7 @@
 /*
  * clk-dfll.c - Tegra DFLL clock source common code
  *
- * Copyright (C) 2012-2019 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2012-2020 NVIDIA Corporation. All rights reserved.
  *
  * Aleksandr Frid <afrid@nvidia.com>
  * Paul Walmsley <pwalmsley@nvidia.com>
@@ -47,7 +47,6 @@
 #include <linux/seq_file.h>
 
 #include "clk-dfll.h"
-#include "cvb.h"
 
 /*
  * DFLL control registers - access via dfll_{readl,writel}

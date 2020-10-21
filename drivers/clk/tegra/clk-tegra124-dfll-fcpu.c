@@ -2,7 +2,7 @@
 /*
  * Tegra124 DFLL FCPU clock source driver
  *
- * Copyright (C) 2012-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2012-2020 NVIDIA Corporation.  All rights reserved.
  *
  * Aleksandr Frid <afrid@nvidia.com>
  * Paul Walmsley <pwalmsley@nvidia.com>
@@ -19,7 +19,6 @@
 
 #include "clk.h"
 #include "clk-dfll.h"
-#include "cvb.h"
 
 struct dfll_fcpu_data {
 	const unsigned long *cpu_max_freq_table;
