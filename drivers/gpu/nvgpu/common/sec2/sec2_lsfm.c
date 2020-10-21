@@ -53,7 +53,7 @@ static u32 get_gpc_falcon_idx_mask(struct gk20a *g)
 	u32 gpc_falcon_idx_mask = 0U;
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
-		gpc_falcon_idx_mask = nvgpu_grmgr_get_gr_physical_gpc_mask(g,
+		gpc_falcon_idx_mask = nvgpu_grmgr_get_gr_logical_gpc_mask(g,
 			nvgpu_gr_get_cur_instance_id(g));
 	} else {
 		u32 gpc_fs_mask;

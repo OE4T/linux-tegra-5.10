@@ -483,9 +483,9 @@ u32 nvgpu_grmgr_get_gr_max_veid_count(struct gk20a *g, u32 gr_instance_id)
 	return nvgpu_grmgr_get_max_veid_count(g, gpu_instance_id);
 }
 
-u32 nvgpu_grmgr_get_gr_physical_gpc_mask(struct gk20a *g, u32 gr_instance_id)
+u32 nvgpu_grmgr_get_gr_logical_gpc_mask(struct gk20a *g, u32 gr_instance_id)
 {
-	u32 physical_gpc_mask = 0U;
+	u32 logical_gpc_mask = 0U;
 	u32 gpc_indx;
 	struct nvgpu_gpu_instance *gpu_instance;
 	struct nvgpu_gr_syspipe *gr_syspipe;
@@ -496,16 +496,16 @@ u32 nvgpu_grmgr_get_gr_physical_gpc_mask(struct gk20a *g, u32 gr_instance_id)
 	gr_syspipe = &gpu_instance->gr_syspipe;
 
 	for (gpc_indx = 0U; gpc_indx < gr_syspipe->num_gpc; gpc_indx++) {
-		physical_gpc_mask |= BIT32(
-			gr_syspipe->gpcs[gpc_indx].physical_id);
+		logical_gpc_mask |= BIT32(
+			gr_syspipe->gpcs[gpc_indx].logical_id);
 
 		nvgpu_log(g, gpu_dbg_mig,
 			"gpu_instance_id[%u] gr_instance_id[%u] gpc_indx[%u] "
-				"physical_gpc_id[%u] physical_gpc_mask[%x]",
+				"logical_gpc_id[%u] logical_gpc_mask[%x]",
 			gpu_instance_id, gr_instance_id, gpc_indx,
-			gr_syspipe->gpcs[gpc_indx].physical_id,
-			physical_gpc_mask);
+			gr_syspipe->gpcs[gpc_indx].logical_id,
+			logical_gpc_mask);
 	}
 
-	return physical_gpc_mask;
+	return logical_gpc_mask;
 }

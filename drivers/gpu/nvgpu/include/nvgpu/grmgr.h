@@ -49,7 +49,7 @@ u32 nvgpu_grmgr_get_gr_instance_id_for_syspipe(struct gk20a *g,
 u32 nvgpu_grmgr_get_gpu_instance_max_veid_count(struct gk20a *g,
 		u32 gpu_instance_id);
 u32 nvgpu_grmgr_get_gr_max_veid_count(struct gk20a *g, u32 gr_instance_id);
-u32 nvgpu_grmgr_get_gr_physical_gpc_mask(struct gk20a *g, u32 gr_instance_id);
+u32 nvgpu_grmgr_get_gr_logical_gpc_mask(struct gk20a *g, u32 gr_instance_id);
 
 static inline bool nvgpu_grmgr_is_mig_type_gpu_instance(
 		struct nvgpu_gpu_instance *gpu_instance)
