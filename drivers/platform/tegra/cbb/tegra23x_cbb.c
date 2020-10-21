@@ -47,6 +47,7 @@
 static LIST_HEAD(cbb_errmon_list);
 static DEFINE_SPINLOCK(cbb_errmon_lock);
 
+static struct tegra23x_cbb_fabric_sn_map fabric_sn_map[MAX_FAB_ID];
 
 static void tegra234_cbb_errmon_faulten(void __iomem *addr)
 {
@@ -152,10 +153,10 @@ static void tegra234_cbb_lookup_apbslv
 	}
 }
 
-static void tegra234_lookup_slave_timeout
-	(struct seq_file *file, struct tegra_lookup_fab_sn *sn_lookup,
-	 u8 slave_id, void __iomem *base_addr) {
-
+static void tegra234_lookup_slave_timeout(struct seq_file *file, u8 slave_id,
+					  u8 fab_id) {
+	struct tegra_sn_addr_map *sn_lookup = fabric_sn_map[fab_id].sn_lookup;
+	void __iomem *base_addr = fabric_sn_map[fab_id].fab_base_vaddr;
 	unsigned int tmo_status;
 	char slv_name[40];
 	int i = slave_id;
@@ -263,7 +264,9 @@ static void print_errlog_err(struct seq_file *file,
 
 	print_cbb_err(file, "\t  Access_Type\t\t: %s",
 			(access_type) ? "Write\n" : "Read");
-	print_cbb_err(file, "\t  Fabric\t\t: %s\n", t234_fabric_ids[fab_id]);
+
+	print_cbb_err(file, "\t  Fabric\t\t: %s\n",
+		      fabric_sn_map[fab_id].fab_name);
 	print_cbb_err(file, "\t  Slave_Id\t\t: %d\n", slave_id);
 	print_cbb_err(file, "\t  Burst_length\t\t: %d\n", burst_length);
 	print_cbb_err(file, "\t  Burst_type\t\t: %d\n", burst_type);
@@ -274,8 +277,7 @@ static void print_errlog_err(struct seq_file *file,
 
 	if (!strcmp(tegra234_errmon_errors[errmon->err_type].errcode,
 		    "TIMEOUT_ERR")) {
-		tegra234_lookup_slave_timeout(file, errmon->sn_lookup,
-					      slave_id, errmon->vaddr);
+		tegra234_lookup_slave_timeout(file, slave_id, fab_id);
 	}
 }
 
@@ -581,18 +583,30 @@ static int tegra234_cbb_errmon_set_data(struct tegra_cbb_errmon_record *errmon)
 	if (strlen(errmon->name) > 0)
 		errmon->tegra_cbb_master_id = t234_master_id;
 
-	if (!strcmp(errmon->name, "AON-EN")) {
-		errmon->sn_lookup = tegra23x_aon_sn_lookup;
-	} else if (!strcmp(errmon->name, "BPMP-EN")) {
-		errmon->sn_lookup = tegra23x_bpmp_sn_lookup;
-	} else if (!strcmp(errmon->name, "CBB-EN")) {
-		errmon->sn_lookup = tegra23x_cbb_sn_lookup;
+	if (!strcmp(errmon->name, "CBB-EN")) {
+		fabric_sn_map[CBB_FAB_ID].fab_name = "CBB";
+		fabric_sn_map[CBB_FAB_ID].fab_base_vaddr = errmon->vaddr;
+		fabric_sn_map[CBB_FAB_ID].sn_lookup = tegra23x_cbb_sn_lookup;
 	} else if (!strcmp(errmon->name, "SCE-EN")) {
-		errmon->sn_lookup = tegra23x_sce_sn_lookup;
+		fabric_sn_map[SCE_FAB_ID].fab_name = "SCE";
+		fabric_sn_map[SCE_FAB_ID].fab_base_vaddr = errmon->vaddr;
+		fabric_sn_map[SCE_FAB_ID].sn_lookup = tegra23x_sce_sn_lookup;
 	} else if (!strcmp(errmon->name, "RCE-EN")) {
-		errmon->sn_lookup = tegra23x_rce_sn_lookup;
+		fabric_sn_map[RCE_FAB_ID].fab_name = "RCE";
+		fabric_sn_map[RCE_FAB_ID].fab_base_vaddr = errmon->vaddr;
+		fabric_sn_map[RCE_FAB_ID].sn_lookup = tegra23x_rce_sn_lookup;
 	} else if (!strcmp(errmon->name, "DCE-EN")) {
-		errmon->sn_lookup = tegra23x_dce_sn_lookup;
+		fabric_sn_map[DCE_FAB_ID].fab_name = "DCE";
+		fabric_sn_map[DCE_FAB_ID].fab_base_vaddr = errmon->vaddr;
+		fabric_sn_map[DCE_FAB_ID].sn_lookup = tegra23x_dce_sn_lookup;
+	} else if (!strcmp(errmon->name, "AON-EN")) {
+		fabric_sn_map[AON_FAB_ID].fab_name = "AON";
+		fabric_sn_map[AON_FAB_ID].fab_base_vaddr = errmon->vaddr;
+		fabric_sn_map[AON_FAB_ID].sn_lookup = tegra23x_aon_sn_lookup;
+	} else if (!strcmp(errmon->name, "BPMP-EN")) {
+		fabric_sn_map[BPMP_FAB_ID].fab_name = "BPMP";
+		fabric_sn_map[BPMP_FAB_ID].fab_base_vaddr = errmon->vaddr;
+		fabric_sn_map[BPMP_FAB_ID].sn_lookup = tegra23x_bpmp_sn_lookup;
 	} else
 		return -EINVAL;
 

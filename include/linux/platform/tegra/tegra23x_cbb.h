@@ -11,26 +11,42 @@
  * more details.
  */
 
-#define FABRIC_EN_CFG_INTERRUPT_ENABLE_0_0		0x0
-#define FABRIC_EN_CFG_STATUS_0_0			0x40
-#define FABRIC_EN_CFG_ADDR_INDEX_0_0			0x60
-#define FABRIC_EN_CFG_ADDR_LOW_0			0x80
-#define FABRIC_EN_CFG_ADDR_HI_0				0x84
+#define FABRIC_EN_CFG_INTERRUPT_ENABLE_0_0	0x0
+#define FABRIC_EN_CFG_STATUS_0_0		0x40
+#define FABRIC_EN_CFG_ADDR_INDEX_0_0		0x60
+#define FABRIC_EN_CFG_ADDR_LOW_0		0x80
+#define FABRIC_EN_CFG_ADDR_HI_0			0x84
 
-#define FABRIC_MN_MASTER_ERR_EN_0			0x200
-#define FABRIC_MN_MASTER_ERR_FORCE_0			0x204
-#define FABRIC_MN_MASTER_ERR_STATUS_0			0x208
-#define FABRIC_MN_MASTER_ERR_OVERFLOW_STATUS_0		0x20c
+#define FABRIC_MN_MASTER_ERR_EN_0		0x200
+#define FABRIC_MN_MASTER_ERR_FORCE_0		0x204
+#define FABRIC_MN_MASTER_ERR_STATUS_0		0x208
+#define FABRIC_MN_MASTER_ERR_OVERFLOW_STATUS_0	0x20c
 
-#define FABRIC_MN_MASTER_LOG_ERR_STATUS_0		0x300
-#define FABRIC_MN_MASTER_LOG_ADDR_LOW_0			0x304
-#define FABRIC_MN_MASTER_LOG_ADDR_HIGH_0		0x308
-#define FABRIC_MN_MASTER_LOG_ATTRIBUTES0_0		0x30c
-#define FABRIC_MN_MASTER_LOG_ATTRIBUTES1_0		0x310
-#define FABRIC_MN_MASTER_LOG_ATTRIBUTES2_0		0x314
-#define FABRIC_MN_MASTER_LOG_USER_BITS0_0		0x318
+#define FABRIC_MN_MASTER_LOG_ERR_STATUS_0	0x300
+#define FABRIC_MN_MASTER_LOG_ADDR_LOW_0		0x304
+#define FABRIC_MN_MASTER_LOG_ADDR_HIGH_0	0x308
+#define FABRIC_MN_MASTER_LOG_ATTRIBUTES0_0	0x30c
+#define FABRIC_MN_MASTER_LOG_ATTRIBUTES1_0	0x310
+#define FABRIC_MN_MASTER_LOG_ATTRIBUTES2_0	0x314
+#define FABRIC_MN_MASTER_LOG_USER_BITS0_0	0x318
+
+#define AXI_SLV_TIMEOUT_STATUS_0_0      	0x8
+#define APB_BLOCK_TMO_STATUS_0          	0xC00
+#define APB_BLOCK_NUM_TMO_OFFSET        	0x20
 
 #define get_em_el_subfield(_x_, _msb_, _lsb_) CBB_EXTRACT(_x_, _msb_, _lsb_)
+
+enum fabric{
+	CBB_FAB_ID,
+	SCE_FAB_ID,
+	RCE_FAB_ID,
+	DCE_FAB_ID,
+	AON_FAB_ID,
+	PSC_FAB_ID,
+	BPMP_FAB_ID,
+	FSI_FAB_ID,
+	MAX_FAB_ID,
+};
 
 struct tegra_cbb_errmon_record {
 	struct list_head node;
@@ -51,7 +67,6 @@ struct tegra_cbb_errmon_record {
 	int errmon_nonsecure_irq;
 	char **tegra_cbb_master_id;
 	bool erd_mask_inband_err;
-	struct tegra_lookup_fab_sn *sn_lookup;
 	bool is_clk_rst;
 	int (*is_cluster_probed)(void);
 	int (*is_clk_enabled)(void);
@@ -61,33 +76,15 @@ struct tegra_cbb_errmon_record {
 	int (*tegra_errmon_dis_clk_no_rpm)(void);
 };
 
-struct tegra_lookup_fab_sn {
+struct tegra_sn_addr_map {
 	char *slave_name;
 	u32 off_slave;
 };
 
-static struct tegra_noc_errors tegra234_errmon_errors[] = {
-	{.errcode = "SLAVE_ERR",
-	 .type = "Slave being accessed responded with an error. \
-			Can be due to Unsupported access, power gated, \
-			firewall(SCR), address hole within the slave, etc"
-	},
-	{.errcode = "DECODE_ERR",
-	 .type = "Attempt to access an address hole or Reserved region of \
-			memory or AXI Slave"
-	},
-	{.errcode = "FIREWALL_ERR",
-	 .type = "Attempt to access a region which is firewalled"
-	},
-	{.errcode = "TIMEOUT_ERR",
-	 .type = "No response returned by slave"
-	},
-	{.errcode = "PWRDOWN_ERR",
-	 .type = "Attempt to access a portion of fabric that is powered down"
-	},
-	{.errcode = "UNSUPPORTED_ERR",
-	 .type = "Attempt to access a slave through an unsupported access"
-	}
+struct tegra23x_cbb_fabric_sn_map {
+	char *fab_name;
+	void __iomem *fab_base_vaddr;
+	struct tegra_sn_addr_map *sn_lookup;
 };
 
 static char *t234_master_id[] = {
@@ -119,20 +116,26 @@ static char *t234_master_id[] = {
 	"RSVD"				/* 0x3F */
 };
 
-static char *t234_fabric_ids[] = {
-	"CBB",	/* 0 */
-	"SCE",	/* 1 */
-	"RCE",	/* 2 */
-	"DCE",	/* 3 */
-	"AON",	/* 4 */
-	"PSC",	/* 5 */
-	"BPMP",	/* 6 */
-	"FSI"	/* 7 */
+static struct tegra_noc_errors tegra234_errmon_errors[] = {
+	{.errcode = "SLAVE_ERR",
+	 .type = "Slave being accessed responded with an error"
+	},
+	{.errcode = "DECODE_ERR",
+	 .type = "Attempt to access an address hole"
+	},
+	{.errcode = "FIREWALL_ERR",
+	 .type = "Attempt to access a region which is firewall protected"
+	},
+	{.errcode = "TIMEOUT_ERR",
+	 .type = "No response returned by slave"
+	},
+	{.errcode = "PWRDOWN_ERR",
+	 .type = "Attempt to access a portion of fabric that is powered down"
+	},
+	{.errcode = "UNSUPPORTED_ERR",
+	 .type = "Attempt to access a slave through an unsupported access"
+	}
 };
-
-#define AXI_SLV_TIMEOUT_STATUS_0_0      0x8
-#define APB_BLOCK_TMO_STATUS_0          0xC00
-#define APB_BLOCK_NUM_TMO_OFFSET        0x20
 
 #define AON_SN_AXI2APB_1	0x00000
 #define AON_SN_AST1_T 		0x14000
@@ -225,14 +228,14 @@ static char *t234_fabric_ids[] = {
 
 #define SLAVE_LOOKUP(sn) #sn, sn
 
-static struct tegra_lookup_fab_sn tegra23x_aon_sn_lookup[] = {
+static struct tegra_sn_addr_map tegra23x_aon_sn_lookup[] = {
 	{ SLAVE_LOOKUP(AON_SN_AXI2APB_1) },
 	{ SLAVE_LOOKUP(AON_SN_AST1_T) },
 	{ SLAVE_LOOKUP(AON_SN_CBB_T) },
 	{ SLAVE_LOOKUP(AON_SN_CPU_T) }
 };
 
-static struct tegra_lookup_fab_sn tegra23x_bpmp_sn_lookup[] = {
+static struct tegra_sn_addr_map tegra23x_bpmp_sn_lookup[] = {
 	{ SLAVE_LOOKUP(BPMP_SN_AXI2APB_1) },
 	{ SLAVE_LOOKUP(BPMP_SN_AST0_T) },
 	{ SLAVE_LOOKUP(BPMP_SN_AST1_T) },
@@ -240,7 +243,7 @@ static struct tegra_lookup_fab_sn tegra23x_bpmp_sn_lookup[] = {
 	{ SLAVE_LOOKUP(BPMP_SN_CPU_T) },
 };
 
-static struct tegra_lookup_fab_sn tegra23x_sce_sn_lookup[] = {
+static struct tegra_sn_addr_map tegra23x_sce_sn_lookup[] = {
 	{ SLAVE_LOOKUP(SCE_SN_AXI2APB_1) },
 	{ SLAVE_LOOKUP(SCE_SN_AST0_T) },
 	{ SLAVE_LOOKUP(SCE_SN_AST1_T) },
@@ -248,21 +251,21 @@ static struct tegra_lookup_fab_sn tegra23x_sce_sn_lookup[] = {
 	{ SLAVE_LOOKUP(SCE_SN_CPU_T) }
 };
 
-static struct tegra_lookup_fab_sn tegra23x_dce_sn_lookup[] = {
+static struct tegra_sn_addr_map tegra23x_dce_sn_lookup[] = {
 	{ SLAVE_LOOKUP(DCE_SN_AXI2APB_1) },
 	{ SLAVE_LOOKUP(DCE_SN_AST0_T) },
 	{ SLAVE_LOOKUP(DCE_SN_AST1_T) },
 	{ SLAVE_LOOKUP(DCE_SN_CPU_T) }
 };
 
-static struct tegra_lookup_fab_sn tegra23x_rce_sn_lookup[] = {
+static struct tegra_sn_addr_map tegra23x_rce_sn_lookup[] = {
 	{ SLAVE_LOOKUP(RCE_SN_AXI2APB_1) },
 	{ SLAVE_LOOKUP(RCE_SN_AST0_T) },
 	{ SLAVE_LOOKUP(RCE_SN_AST1_T) },
 	{ SLAVE_LOOKUP(RCE_SN_CPU_T) }
 };
 
-static struct tegra_lookup_fab_sn tegra23x_cbb_sn_lookup[] = {
+static struct tegra_sn_addr_map tegra23x_cbb_sn_lookup[] = {
 	{ SLAVE_LOOKUP(CBB_SN_AON_SLAVE) },
 	{ SLAVE_LOOKUP(CBB_SN_BPMP_SLAVE) },
 	{ SLAVE_LOOKUP(CBB_SN_CBB_CENTRAL) },
