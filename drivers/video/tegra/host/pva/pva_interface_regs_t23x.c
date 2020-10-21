@@ -125,10 +125,10 @@ void read_status_interface_t23x(struct pva *pva,
 	u32 valid_status = PVA_VALID_STATUS3;
 	uint32_t *status_registers;
 	status_registers = t23x_status_regs[interface_id].registers;
-	if (isr_status && PVA_CMD_ERROR) {
+	if (isr_status & PVA_CMD_ERROR) {
 		status_output->error = PVA_GET_ERROR_CODE(isr_status);
 	}
-	if (isr_status && PVA_VALID_STATUS3) {
+	if (isr_status & PVA_VALID_STATUS3) {
 		status_output->status[0] = PVA_GET_ERROR_CODE(isr_status);
 	}
 	for (i = 1; i < NUM_STATUS_REGS; i++) {
