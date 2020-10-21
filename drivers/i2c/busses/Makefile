@@ -7,6 +7,7 @@ ccflags-y += -I$(srctree.nvidia)/include
 obj-$(CONFIG_I2C_BPMP_TEGRA)     += i2c-bpmp-tegra.o
 obj-$(CONFIG_I2C_TEGRA_CAMRTC) += i2c-ivc-single.o i2c-ivc-multi.o i2c-rtcpu.o i2c-rtcpu-clk-config.o
 obj-$(CONFIG_I2C_TEGRA_HV)	+= i2c-tegra-hv-common.o i2c-tegra-hv.o
+obj-$(CONFIG_I2C_TEGRA_SLAVE)	+= i2c-tegra-slave.o
 
 ifdef CONFIG_ARCH_TEGRA_19x_SOC
 
