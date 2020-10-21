@@ -2634,7 +2634,7 @@ static int tegra_nvdisp_update_pd_ref_cnts(struct tegra_dc *dc, bool enable)
 			ret = tegra_nvdisp_handle_pd_disable(pd,
 								ref_cnt_update);
 
-		if (ret)
+		if (ret < 0)
 			break;
 	}
 
