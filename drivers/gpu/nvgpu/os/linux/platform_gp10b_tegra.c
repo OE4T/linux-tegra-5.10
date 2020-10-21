@@ -1,7 +1,7 @@
 /*
  * GP10B Tegra Platform Interface
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -41,6 +41,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvhost.h>
+#include <nvgpu/soc.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 
 #include "os_linux.h"
@@ -92,6 +93,11 @@ static int acquire_platform_clocks(struct device *dev,
 	struct device_node *np = nvgpu_get_node(g);
 	unsigned int i, num_clks_dt;
 	int err = 0;
+
+	/* Get clocks only on supported platforms(silicon and fpga) */
+	if (!nvgpu_platform_is_silicon(g) && !nvgpu_platform_is_fpga(g)) {
+		return 0;
+	}
 
 #ifdef TEGRA186_POWER_DOMAIN_GPU
 	if (!tegra_bpmp_running()) {
