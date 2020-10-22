@@ -44,16 +44,19 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/obj_ctx.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/fence.h>
 #include <nvgpu/preempt.h>
 #include <nvgpu/swprofile.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/user_fence.h>
+#include <nvgpu/grmgr.h>
 
 #include <nvgpu/fifo/swprofile.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_channel.h"
+#include "ioctl.h"
 #include "channel.h"
 #include "os_linux.h"
 
@@ -121,6 +124,7 @@ static void gk20a_channel_trace_sched_param(
 struct channel_priv {
 	struct gk20a *g;
 	struct nvgpu_channel *c;
+	struct nvgpu_cdev *cdev;
 };
 
 #if defined(CONFIG_NVGPU_CYCLESTATS)
@@ -462,8 +466,8 @@ channel_release:
 }
 
 /* note: runlist_id -1 is synonym for the NVGPU_ENGINE_GR runlist id */
-static int __gk20a_channel_open(struct gk20a *g,
-				struct file *filp, s32 runlist_id)
+static int __gk20a_channel_open(struct gk20a *g, struct nvgpu_cdev *cdev,
+		struct file *filp, s32 runlist_id)
 {
 	int err;
 	struct nvgpu_channel *ch;
@@ -516,6 +520,7 @@ static int __gk20a_channel_open(struct gk20a *g,
 
 	priv->g = g;
 	priv->c = ch;
+	priv->cdev = cdev;
 
 	filp->private_data = priv;
 	return 0;
@@ -537,13 +542,13 @@ int gk20a_channel_open(struct inode *inode, struct file *filp)
 	g = get_gk20a(cdev->node->parent);
 
 	nvgpu_log_fn(g, "start");
-	ret = __gk20a_channel_open(g, filp, -1);
+	ret = __gk20a_channel_open(g, cdev, filp, -1);
 
 	nvgpu_log_fn(g, "end");
 	return ret;
 }
 
-int gk20a_channel_open_ioctl(struct gk20a *g,
+int gk20a_channel_open_ioctl(struct gk20a *g, struct nvgpu_cdev *cdev,
 		struct nvgpu_channel_open_args *args)
 {
 	int err;
@@ -566,7 +571,7 @@ int gk20a_channel_open_ioctl(struct gk20a *g,
 		goto clean_up;
 	}
 
-	err = __gk20a_channel_open(g, file, runlist_id);
+	err = __gk20a_channel_open(g, cdev, file, runlist_id);
 	if (err)
 		goto clean_up_file;
 
@@ -1151,6 +1156,7 @@ long gk20a_channel_ioctl(struct file *filp,
 	u8 buf[NVGPU_IOCTL_CHANNEL_MAX_ARG_SIZE] = {0};
 	int err = 0;
 	struct gk20a *g = ch->g;
+	u32 gpu_instance_id, gr_instance_id;
 
 	nvgpu_log_fn(g, "start %d", _IOC_NR(cmd));
 
@@ -1170,6 +1176,12 @@ long gk20a_channel_ioctl(struct file *filp,
 	if (!ch)
 		return -ETIMEDOUT;
 
+	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, priv->cdev);
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+
+	gr_instance_id = nvgpu_grmgr_get_gr_instance_id(g, gpu_instance_id);
+	nvgpu_assert(gr_instance_id < g->num_gr_instances);
+
 	/* protect our sanity for threaded userspace - most of the channel is
 	 * not thread safe */
 	nvgpu_mutex_acquire(&ch->ioctl_lock);
@@ -1180,7 +1192,7 @@ long gk20a_channel_ioctl(struct file *filp,
 	nvgpu_speculation_barrier();
 	switch (cmd) {
 	case NVGPU_IOCTL_CHANNEL_OPEN:
-		err = gk20a_channel_open_ioctl(ch->g,
+		err = gk20a_channel_open_ioctl(ch->g, priv->cdev,
 			(struct nvgpu_channel_open_args *)buf);
 		break;
 	case NVGPU_IOCTL_CHANNEL_SET_NVMAP_FD:
@@ -1215,7 +1227,9 @@ long gk20a_channel_ioctl(struct file *filp,
 	}
 #endif
 
-		err = nvgpu_ioctl_channel_alloc_obj_ctx(ch, args->class_num, args->flags);
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+				nvgpu_ioctl_channel_alloc_obj_ctx(ch, args->class_num,
+					args->flags));
 		gk20a_idle(ch->g);
 		break;
 	}

@@ -14,8 +14,11 @@
 #define __NVGPU_IOCTL_H__
 
 struct device;
+struct nvgpu_cdev;
 
 int gk20a_user_init(struct device *dev);
 void gk20a_user_deinit(struct device *dev);
+
+u32 nvgpu_get_gpu_instance_id_from_cdev(struct gk20a *g, struct nvgpu_cdev *cdev);
 
 #endif

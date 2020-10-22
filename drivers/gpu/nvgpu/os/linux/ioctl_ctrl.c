@@ -79,6 +79,7 @@ struct gk20a_ctrl_priv {
 	struct device *dev;
 	struct gk20a *g;
 	struct nvgpu_clk_session *clk_session;
+	struct nvgpu_cdev *cdev;
 
 	struct nvgpu_list_node list;
 	struct {
@@ -133,6 +134,7 @@ int gk20a_ctrl_dev_open(struct inode *inode, struct file *filp)
 	}
 	filp->private_data = priv;
 	priv->dev = dev_from_gk20a(g);
+	priv->cdev = cdev;
 	/*
 	 * We dont close the arbiter fd's after driver teardown to support
 	 * GPU_LOST events, so we store g here, instead of dereferencing the
@@ -1964,7 +1966,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_OPEN_CHANNEL:
 		/* this arg type here, but ..gpu_open_channel_args in nvgpu.h
 		 * for consistency - they are the same */
-		err = gk20a_channel_open_ioctl(g,
+		err = gk20a_channel_open_ioctl(g, priv->cdev,
 			(struct nvgpu_channel_open_args *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_FLUSH_L2:

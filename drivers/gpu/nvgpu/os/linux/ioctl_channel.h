@@ -22,6 +22,7 @@ struct file;
 struct gk20a;
 struct nvgpu_channel_open_args;
 struct nvgpu_channel;
+struct nvgpu_cdev;
 
 struct gk20a_cs_snapshot_client_linux {
 	struct gk20a_cs_snapshot_client cs_client;
@@ -36,7 +37,7 @@ int gk20a_channel_open(struct inode *inode, struct file *filp);
 int gk20a_channel_release(struct inode *inode, struct file *filp);
 long gk20a_channel_ioctl(struct file *filp,
 	unsigned int cmd, unsigned long arg);
-int gk20a_channel_open_ioctl(struct gk20a *g,
+int gk20a_channel_open_ioctl(struct gk20a *g, struct nvgpu_cdev *cdev,
 		struct nvgpu_channel_open_args *args);
 
 int gk20a_channel_cycle_stats(struct nvgpu_channel *ch, int dmabuf_fd);

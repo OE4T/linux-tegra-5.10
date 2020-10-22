@@ -558,3 +558,15 @@ fail:
 	gk20a_user_deinit(dev);
 	return err;
 }
+
+u32 nvgpu_get_gpu_instance_id_from_cdev(struct gk20a *g, struct nvgpu_cdev *cdev)
+{
+	struct nvgpu_cdev_class_priv_data *priv_data;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		priv_data = dev_get_drvdata(cdev->node);
+		return priv_data->local_instance_id;
+	}
+
+	return 0;
+}
