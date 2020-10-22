@@ -15,6 +15,8 @@
 #include "fuse.h"
 
 #define FUSE_SKU_INFO	0x10
+
+#define ERD_ERR_CONFIG 0x120c
 #define ERD_MASK_INBAND_ERR 0x1
 
 #define TEGRA_APBMISC_EMU_REVID 0x60
@@ -206,6 +208,28 @@ int tegra_miscreg_set_erd(u64 err_config)
 	return err;
 }
 EXPORT_SYMBOL(tegra_miscreg_set_erd);
+
+/*
+ * The function sets ERD(Error Response Disable) bit.
+ * This allows to mask inband errors and always send an
+ * OKAY response from CBB to the master which caused error.
+ */
+int tegra194_miscreg_mask_serror(void)
+{
+	if (!apbmisc_base)
+		return -EPROBE_DEFER;
+
+	if (!of_machine_is_compatible("nvidia,tegra194")) {
+		WARN(1, "Only supported for Tegra194 devices!\n");
+		return -EOPNOTSUPP;
+	}
+
+	writel_relaxed(ERD_MASK_INBAND_ERR,
+		       apbmisc_base + ERD_ERR_CONFIG);
+
+	return 0;
+}
+EXPORT_SYMBOL(tegra194_miscreg_mask_serror);
 
 static const struct of_device_id apbmisc_match[] __initconst = {
 	{ .compatible = "nvidia,tegra20-apbmisc",

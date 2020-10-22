@@ -75,6 +75,7 @@ u8 tegra_get_minor_rev(void);
 int tegra_miscreg_set_erd(u64 err_config);
 u8 tegra_get_platform(void);
 bool tegra_is_silicon(void);
+int tegra194_miscreg_mask_serror(void);
 
 enum tegra_revision {
 	TEGRA_REVISION_UNKNOWN = 0,
