@@ -421,59 +421,6 @@ static int eqos_config_fw_err_pkts(void *addr,
 }
 
 /**
- * @brief eqos_config_mac_loopback - Configure MAC to support loopback
- *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
- * @param[in] lb_mode: Enable or Disable MAC loopback mode
- *
- * @pre MAC should be initialized and started. see osi_start_mac()
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static int eqos_config_mac_loopback(void *addr,
-				    const unsigned int lb_mode)
-{
-	unsigned int clk_ctrl_val;
-	unsigned int mcr_val;
-
-	/* don't allow only if loopback mode is other than 0 or 1 */
-	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
-		return -1;
-	}
-
-	/* Read MAC Configuration Register */
-	mcr_val = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
-
-	/* Read EQOS wrapper clock control 0 register */
-	clk_ctrl_val = osi_readl((unsigned char *)addr + EQOS_CLOCK_CTRL_0);
-
-	if (lb_mode == OSI_ENABLE) {
-		/* Enable Loopback Mode */
-		mcr_val |= EQOS_MAC_ENABLE_LM;
-		/* Enable RX_CLK_SEL so that TX Clock is fed to RX domain */
-		clk_ctrl_val |= EQOS_RX_CLK_SEL;
-	} else if (lb_mode == OSI_DISABLE){
-		/* Disable Loopback Mode */
-		mcr_val &= ~EQOS_MAC_ENABLE_LM;
-		/* Disable RX_CLK_SEL so that TX Clock is fed to RX domain */
-		clk_ctrl_val &= ~EQOS_RX_CLK_SEL;
-	} else {
-		/* Nothing here */
-	}
-
-	/* Write to EQOS wrapper clock control 0 register */
-	osi_writel(clk_ctrl_val, (unsigned char *)addr + EQOS_CLOCK_CTRL_0);
-
-	/* Write to MAC Configuration Register */
-	eqos_core_safety_writel(mcr_val, (unsigned char *)addr + EQOS_MAC_MCR,
-				EQOS_MAC_MCR_IDX);
-
-	return 0;
-}
-
-/**
  * @brief eqos_poll_for_swr - Poll for software reset (SWR bit in DMA Mode)
  *
  * @note
@@ -522,51 +469,6 @@ static int eqos_poll_for_swr(struct osi_core_priv_data *const osi_core,
 	}
 
 	return 0;
-}
-
-/**
- * @brief eqos_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk
- *
- * @note
- * Algorithm:
- *  - MDC clock rate will be populated OSI core private data structure
- *    based on AXI_CBB clock rate.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] csr_clk_rate: CSR (AXI CBB) clock rate.
- *
- * @pre OSD layer needs get the AXI CBB clock rate with OSD clock API
- *   (ex - clk_get_rate())
- */
-static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
-				  const unsigned long csr_clk_rate)
-{
-	unsigned long csr_clk_speed = csr_clk_rate / 1000000UL;
-
-	/* store csr clock speed used in programming
-	 * LPI 1us tick timer register
-	 */
-	if (csr_clk_speed <= UINT_MAX) {
-		osi_core->csr_clk_speed = (unsigned int)csr_clk_speed;
-	}
-	if (csr_clk_speed > 500UL) {
-		osi_core->mdc_cr = EQOS_CSR_500_800M;
-	} else if (csr_clk_speed > 300UL) {
-		osi_core->mdc_cr = EQOS_CSR_300_500M;
-	} else if (csr_clk_speed > 250UL) {
-		osi_core->mdc_cr = EQOS_CSR_250_300M;
-	} else if (csr_clk_speed > 150UL) {
-		osi_core->mdc_cr = EQOS_CSR_150_250M;
-	} else if (csr_clk_speed > 100UL) {
-		osi_core->mdc_cr = EQOS_CSR_100_150M;
-	} else if (csr_clk_speed > 60UL) {
-		osi_core->mdc_cr = EQOS_CSR_60_100M;
-	} else if (csr_clk_speed > 35UL) {
-		osi_core->mdc_cr = EQOS_CSR_35_60M;
-	} else {
-		/* for CSR < 35mhz */
-		osi_core->mdc_cr = EQOS_CSR_20_35M;
-	}
 }
 
 /**
@@ -3794,6 +3696,104 @@ static inline int eqos_restore_registers(
 
 	return 0;
 }
+
+/**
+ * @brief eqos_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk
+ *
+ * @note
+ * Algorithm:
+ *  - MDC clock rate will be populated OSI core private data structure
+ *    based on AXI_CBB clock rate.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] csr_clk_rate: CSR (AXI CBB) clock rate.
+ *
+ * @pre OSD layer needs get the AXI CBB clock rate with OSD clock API
+ *   (ex - clk_get_rate())
+ */
+static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
+				  const unsigned long csr_clk_rate)
+{
+	unsigned long csr_clk_speed = csr_clk_rate / 1000000UL;
+
+	/* store csr clock speed used in programming
+	 * LPI 1us tick timer register
+	 */
+	if (csr_clk_speed <= UINT_MAX) {
+		osi_core->csr_clk_speed = (unsigned int)csr_clk_speed;
+	}
+	if (csr_clk_speed > 500UL) {
+		osi_core->mdc_cr = EQOS_CSR_500_800M;
+	} else if (csr_clk_speed > 300UL) {
+		osi_core->mdc_cr = EQOS_CSR_300_500M;
+	} else if (csr_clk_speed > 250UL) {
+		osi_core->mdc_cr = EQOS_CSR_250_300M;
+	} else if (csr_clk_speed > 150UL) {
+		osi_core->mdc_cr = EQOS_CSR_150_250M;
+	} else if (csr_clk_speed > 100UL) {
+		osi_core->mdc_cr = EQOS_CSR_100_150M;
+	} else if (csr_clk_speed > 60UL) {
+		osi_core->mdc_cr = EQOS_CSR_60_100M;
+	} else if (csr_clk_speed > 35UL) {
+		osi_core->mdc_cr = EQOS_CSR_35_60M;
+	} else {
+		/* for CSR < 35mhz */
+		osi_core->mdc_cr = EQOS_CSR_20_35M;
+	}
+}
+
+/**
+ * @brief eqos_config_mac_loopback - Configure MAC to support loopback
+ *
+ * @param[in] addr: Base address indicating the start of
+ * 	      memory mapped IO region of the MAC.
+ * @param[in] lb_mode: Enable or Disable MAC loopback mode
+ *
+ * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int eqos_config_mac_loopback(void *addr,
+				    const unsigned int lb_mode)
+{
+	unsigned int clk_ctrl_val;
+	unsigned int mcr_val;
+
+	/* don't allow only if loopback mode is other than 0 or 1 */
+	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
+		return -1;
+	}
+
+	/* Read MAC Configuration Register */
+	mcr_val = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
+
+	/* Read EQOS wrapper clock control 0 register */
+	clk_ctrl_val = osi_readl((unsigned char *)addr + EQOS_CLOCK_CTRL_0);
+
+	if (lb_mode == OSI_ENABLE) {
+		/* Enable Loopback Mode */
+		mcr_val |= EQOS_MAC_ENABLE_LM;
+		/* Enable RX_CLK_SEL so that TX Clock is fed to RX domain */
+		clk_ctrl_val |= EQOS_RX_CLK_SEL;
+	} else if (lb_mode == OSI_DISABLE){
+		/* Disable Loopback Mode */
+		mcr_val &= ~EQOS_MAC_ENABLE_LM;
+		/* Disable RX_CLK_SEL so that TX Clock is fed to RX domain */
+		clk_ctrl_val &= ~EQOS_RX_CLK_SEL;
+	} else {
+		/* Nothing here */
+	}
+
+	/* Write to EQOS wrapper clock control 0 register */
+	osi_writel(clk_ctrl_val, (unsigned char *)addr + EQOS_CLOCK_CTRL_0);
+
+	/* Write to MAC Configuration Register */
+	eqos_core_safety_writel(mcr_val, (unsigned char *)addr + EQOS_MAC_MCR,
+				EQOS_MAC_MCR_IDX);
+
+	return 0;
+}
 #endif /* !OSI_STRIPPED_LIB */
 
 /**
@@ -3809,8 +3809,6 @@ static struct osi_core_ops eqos_core_ops = {
 	.set_mode = eqos_set_mode,
 	.set_speed = eqos_set_speed,
 	.pad_calibrate = eqos_pad_calibrate,
-	.set_mdc_clk_rate = eqos_set_mdc_clk_rate,
-	.config_mac_loopback = eqos_config_mac_loopback,
 	.config_fw_err_pkts = eqos_config_fw_err_pkts,
 	.config_rxcsum_offload = eqos_config_rxcsum_offload,
 	.config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg,
@@ -3844,6 +3842,8 @@ static struct osi_core_ops eqos_core_ops = {
 	.configure_eee = eqos_configure_eee,
 	.save_registers = eqos_save_registers,
 	.restore_registers = eqos_restore_registers,
+	.set_mdc_clk_rate = eqos_set_mdc_clk_rate,
+	.config_mac_loopback = eqos_config_mac_loopback,
 #endif /* !OSI_STRIPPED_LIB */
 };
 
