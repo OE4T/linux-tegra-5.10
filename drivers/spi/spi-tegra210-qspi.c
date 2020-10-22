@@ -1798,8 +1798,6 @@ static const struct dev_pm_ops tegra_qspi_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(tegra_qspi_suspend, tegra_qspi_resume)
 };
 
-MODULE_DEVICE_TABLE(of, tegra_qspi_of_match);
-
 static const struct of_device_id tegra_qspi_of_match[] = {
 	{ .compatible = "nvidia,tegra186-qspi", },
 	{ .compatible = "nvidia,tegra210-qspi", },
