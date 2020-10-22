@@ -130,10 +130,6 @@ struct nvgpu_gpu_instance_static_config {
 	u32 gr_syspipe_id;
 	/** Number of GPC assigned to this config. */
 	u32 num_gpc;
-	/** Maximum veid allocated to this gr syspipe. */
-	u32 max_veid_count_per_tsg;
-	/** VEID start offset. */
-	u32 veid_start_offset;
 };
 
 /**
