@@ -44,6 +44,7 @@
 #endif
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/warpstate.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
@@ -55,6 +56,7 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/user_fence.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/grmgr.h>
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
@@ -338,14 +340,13 @@ static void nvgpu_set_preemption_mode_flags(struct gk20a *g,
 			default_compute_preempt_mode);
 }
 
-static long
-gk20a_ctrl_ioctl_gpu_characteristics(
-	struct gk20a *g,
-	struct nvgpu_gpu_get_characteristics *request)
+static long gk20a_ctrl_ioctl_gpu_characteristics(
+		struct gk20a *g, u32 gpu_instance_id, struct nvgpu_gr_config *gr_config,
+		struct nvgpu_gpu_get_characteristics *request)
 {
 	struct nvgpu_gpu_characteristics gpu;
 	long err = 0;
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	struct nvgpu_gpu_instance *gpu_instance;
 
 	if (gk20a_busy(g)) {
 		nvgpu_err(g, "failed to power on gpu");
@@ -353,6 +354,7 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	}
 
 	(void) memset(&gpu, 0, sizeof(gpu));
+	gpu_instance = &g->mig.gpu_instance[gpu_instance_id];
 
 	gpu.L2_cache_size = g->ops.ltc.determine_L2_size_bytes(g);
 	gpu.on_board_video_memory_size = 0; /* integrated GPU */
@@ -365,7 +367,8 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 
 	gpu.num_ppc_per_gpc = nvgpu_gr_config_get_pe_count_per_gpc(gr_config);
 
-	gpu.max_veid_count_per_tsg = g->fifo.max_subctx_count;
+	gpu.max_veid_count_per_tsg =
+		gpu_instance->gr_syspipe.max_veid_count_per_tsg;
 
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
@@ -377,7 +380,22 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.cbc_comptags_per_line = g->cbc->comptags_per_cacheline;
 #endif
 
-	gpu.flags = nvgpu_ctrl_ioctl_gpu_characteristics_flags(g);
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) || (gpu_instance_id != 0U)) {
+		gpu.flags = nvgpu_ctrl_ioctl_gpu_characteristics_flags(g);
+		nvgpu_set_preemption_mode_flags(g, &gpu);
+	} else {
+		gpu.flags = (NVGPU_GPU_FLAGS_SUPPORT_CLOCK_CONTROLS |
+			NVGPU_GPU_FLAGS_SUPPORT_GET_VOLTAGE |
+			NVGPU_GPU_FLAGS_SUPPORT_GET_CURRENT |
+			NVGPU_GPU_FLAGS_SUPPORT_GET_POWER |
+			NVGPU_GPU_FLAGS_SUPPORT_GET_TEMPERATURE |
+			NVGPU_GPU_FLAGS_SUPPORT_SET_THERM_ALERT_LIMIT |
+			NVGPU_GPU_FLAGS_SUPPORT_DEVICE_EVENTS |
+			NVGPU_GPU_FLAGS_SUPPORT_SM_TTU |
+			NVGPU_GPU_FLAGS_SUPPORT_PROFILER_V2_DEVICE |
+			NVGPU_GPU_FLAGS_SUPPORT_PROFILER_V2_CONTEXT |
+			NVGPU_GPU_FLAGS_SUPPORT_SMPC_GLOBAL_MODE);
+	}
 
 	gpu.arch = g->params.gpu_arch;
 	gpu.impl = g->params.gpu_impl;
@@ -385,16 +403,26 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.reg_ops_limit = NVGPU_IOCTL_DBG_REG_OPS_LIMIT;
 	gpu.map_buffer_batch_limit = nvgpu_is_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH) ?
 		NVGPU_IOCTL_AS_MAP_BUFFER_BATCH_LIMIT : 0;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		if (gpu_instance_id != 0U) {
+			gpu.compute_class = g->ops.get_litter_value(g, GPU_LIT_COMPUTE_CLASS);
+			gpu.gpfifo_class = g->ops.get_litter_value(g, GPU_LIT_GPFIFO_CLASS);
+			gpu.dma_copy_class =
+				g->ops.get_litter_value(g, GPU_LIT_DMA_COPY_CLASS);
+		}
+	} else {
 #ifdef CONFIG_NVGPU_GRAPHICS
-	gpu.twod_class = g->ops.get_litter_value(g, GPU_LIT_TWOD_CLASS);
-	gpu.threed_class = g->ops.get_litter_value(g, GPU_LIT_THREED_CLASS);
+		gpu.twod_class = g->ops.get_litter_value(g, GPU_LIT_TWOD_CLASS);
+		gpu.threed_class = g->ops.get_litter_value(g, GPU_LIT_THREED_CLASS);
 #endif
-	gpu.compute_class = g->ops.get_litter_value(g, GPU_LIT_COMPUTE_CLASS);
-	gpu.gpfifo_class = g->ops.get_litter_value(g, GPU_LIT_GPFIFO_CLASS);
-	gpu.inline_to_memory_class =
-		g->ops.get_litter_value(g, GPU_LIT_I2M_CLASS);
-	gpu.dma_copy_class =
-		g->ops.get_litter_value(g, GPU_LIT_DMA_COPY_CLASS);
+		gpu.compute_class = g->ops.get_litter_value(g, GPU_LIT_COMPUTE_CLASS);
+		gpu.gpfifo_class = g->ops.get_litter_value(g, GPU_LIT_GPFIFO_CLASS);
+		gpu.inline_to_memory_class =
+			g->ops.get_litter_value(g, GPU_LIT_I2M_CLASS);
+		gpu.dma_copy_class =
+			g->ops.get_litter_value(g, GPU_LIT_DMA_COPY_CLASS);
+	}
 
 #ifdef CONFIG_NVGPU_DGPU
 	gpu.vbios_version = nvgpu_bios_get_vbios_version(g);
@@ -458,12 +486,9 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 
 	gpu.per_device_identifier = g->per_device_identifier;
 
-	nvgpu_set_preemption_mode_flags(g, &gpu);
-
-	/* Default values for legacy mode (non MIG) */
-	gpu.gpu_instance_id = 0x0;
-	gpu.gr_sys_pipe_id = 0x0;
-	gpu.gr_instance_id = 0x0;
+	gpu.gpu_instance_id = gpu_instance->gpu_instance_id;
+	gpu.gr_sys_pipe_id = gpu_instance->gr_syspipe.gr_syspipe_id;
+	gpu.gr_instance_id = gpu_instance->gr_syspipe.gr_instance_id;
 
 	if (request->gpu_characteristics_buf_size > 0) {
 		size_t write_size = sizeof(gpu);
@@ -1783,7 +1808,8 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct gk20a_ctrl_priv *priv = filp->private_data;
 	struct gk20a *g = priv->g;
 	u8 buf[NVGPU_GPU_IOCTL_MAX_ARG_SIZE];
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	u32 gpu_instance_id, gr_instance_id;
+	struct nvgpu_gr_config *gr_config;
 #ifdef CONFIG_NVGPU_GRAPHICS
 	struct nvgpu_gpu_zcull_get_ctx_size_args *get_ctx_size_args;
 	struct nvgpu_gpu_zcull_get_info_args *get_info_args;
@@ -1819,6 +1845,14 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 		gk20a_idle(g);
 	}
+
+	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, priv->cdev);
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+
+	gr_instance_id = nvgpu_grmgr_get_gr_instance_id(g, gpu_instance_id);
+	nvgpu_assert(gr_instance_id < g->num_gr_instances);
+
+	gr_config = nvgpu_gr_get_gpu_instance_config_ptr(g, gpu_instance_id);
 
 	nvgpu_speculation_barrier();
 	switch (cmd) {
@@ -1939,8 +1973,8 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		break;
 #endif /* CONFIG_NVGPU_GRAPHICS */
 	case NVGPU_GPU_IOCTL_GET_CHARACTERISTICS:
-		err = gk20a_ctrl_ioctl_gpu_characteristics(
-			g, (struct nvgpu_gpu_get_characteristics *)buf);
+		err = gk20a_ctrl_ioctl_gpu_characteristics(g, gpu_instance_id, gr_config,
+			(struct nvgpu_gpu_get_characteristics *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_PREPARE_COMPRESSIBLE_READ:
 		err = gk20a_ctrl_prepare_compressible_read(g,

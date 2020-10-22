@@ -74,12 +74,14 @@ void nvgpu_gr_override_ecc_val(struct nvgpu_gr *gr, u32 ecc_val)
 #ifdef CONFIG_NVGPU_GRAPHICS
 struct nvgpu_gr_zcull *nvgpu_gr_get_zcull_ptr(struct gk20a *g)
 {
-	return g->gr->zcull;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	return gr->zcull;
 }
 
 struct nvgpu_gr_zbc *nvgpu_gr_get_zbc_ptr(struct gk20a *g)
 {
-	return g->gr->zbc;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
+	return gr->zbc;
 }
 #endif
 
