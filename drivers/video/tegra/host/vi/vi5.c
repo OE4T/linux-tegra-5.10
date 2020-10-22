@@ -81,7 +81,6 @@ struct host_vi5 {
 	/* WAR: Adding a temp flags to avoid registering to V4L2 and
 	 * tegra camera platform device.
 	 */
-	bool skip_isobw_init;
 	bool skip_v4l2_init;
 };
 
@@ -199,8 +198,6 @@ int vi5_priv_early_probe(struct platform_device *pdev)
 
 	vi5->skip_v4l2_init = of_property_read_bool(dev->of_node,
 					"nvidia,skip-v4l2-init");
-	vi5->skip_isobw_init = of_property_read_bool(dev->of_node,
-					"nvidia,skip-isobw-init");
 	vi5->vi_thi = thi;
 	vi5->pdev = pdev;
 	info->pdev = pdev;
@@ -235,11 +232,9 @@ int vi5_priv_late_probe(struct platform_device *pdev)
 	vi_info.ppc = NUM_PPC;
 	vi_info.overhead = VI_OVERHEAD;
 
-	if (!vi5->skip_isobw_init) {
-		err = tegra_camera_device_register(&vi_info, vi5);
-		if (err)
-			goto device_release;
-	}
+	err = tegra_camera_device_register(&vi_info, vi5);
+	if (err)
+		goto device_release;
 
 	vi5_init_debugfs(vi5);
 
@@ -268,7 +263,7 @@ static int vi5_probe(struct platform_device *pdev)
 	struct nvhost_device_data *pdata;
 	struct host_vi5 *vi5;
 
-	dev_dbg(&pdev->dev, "%s: probe\n", __func__);
+	dev_dbg(&pdev->dev, "%s: probe %s\n", __func__, pdev->name);
 
 	err = vi5_priv_early_probe(pdev);
 	if (err)
