@@ -473,14 +473,22 @@ static int __gk20a_channel_open(struct gk20a *g, struct nvgpu_cdev *cdev,
 	struct nvgpu_channel *ch;
 	struct channel_priv *priv;
 	u32 tmp_runlist_id;
+	u32 gpu_instance_id;
 
 	nvgpu_log_fn(g, " ");
 
+	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, cdev);
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+
 	nvgpu_assert(runlist_id >= -1);
 	if (runlist_id == -1) {
-		tmp_runlist_id = NVGPU_ENGINE_GR;
+		tmp_runlist_id = nvgpu_grmgr_get_gpu_instance_runlist_id(g, gpu_instance_id);
 	} else {
-		tmp_runlist_id = runlist_id;
+		if (nvgpu_grmgr_is_valid_runlist_id(g, gpu_instance_id, runlist_id)) {
+			tmp_runlist_id = runlist_id;
+		} else {
+			return -EINVAL;
+		}
 	}
 
 	g = nvgpu_get(g);
