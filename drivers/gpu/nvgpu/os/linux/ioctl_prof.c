@@ -36,6 +36,7 @@
 #include "ioctl_prof.h"
 #include "ioctl_dbg.h"
 #include "ioctl_tsg.h"
+#include "ioctl.h"
 
 #define NVGPU_PROF_UMD_COPY_WINDOW_SIZE		SZ_4K
 
@@ -135,7 +136,7 @@ int nvgpu_prof_dev_fops_open(struct inode *inode, struct file *filp)
 	struct nvgpu_cdev *cdev;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
-	g = get_gk20a(cdev->node->parent);
+	g = nvgpu_get_gk20a_from_cdev(cdev);
 
 	g = nvgpu_get(g);
 	if (!g) {
@@ -163,7 +164,7 @@ int nvgpu_prof_ctx_fops_open(struct inode *inode, struct file *filp)
 	struct nvgpu_cdev *cdev;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
-	g = get_gk20a(cdev->node->parent);
+	g = nvgpu_get_gk20a_from_cdev(cdev);
 
 	g = nvgpu_get(g);
 	if (!g) {

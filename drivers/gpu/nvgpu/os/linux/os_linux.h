@@ -17,7 +17,6 @@
 #ifndef NVGPU_OS_LINUX_H
 #define NVGPU_OS_LINUX_H
 
-#include <linux/cdev.h>
 #include <linux/iommu.h>
 #include <linux/hashtable.h>
 #include <linux/notifier.h>
@@ -28,8 +27,6 @@
 
 #include "cde.h"
 #include "sched.h"
-
-struct class;
 
 struct nvgpu_os_linux_ops {
 	struct {
@@ -71,44 +68,6 @@ struct dgpu_thermal_alert {
         struct work_struct work;
         u32 therm_alert_irq;
         u32 event_delay;
-};
-
-struct nvgpu_cdev {
-	struct cdev cdev;
-	struct device *node;
-	struct class *class;
-	struct nvgpu_list_node list_entry;
-};
-
-static inline struct nvgpu_cdev *
-nvgpu_cdev_from_list_entry(struct nvgpu_list_node *node)
-{
-	return (struct nvgpu_cdev *)
-		((uintptr_t)node - offsetof(struct nvgpu_cdev, list_entry));
-};
-
-struct nvgpu_cdev_class_priv_data {
-	char class_name[64];
-	u32 local_instance_id;
-	u32 major_instance_id;
-	u32 minor_instance_id;
-	bool pci;
-};
-
-struct nvgpu_class {
-	struct class *class;
-	struct nvgpu_list_node list_entry;
-
-	struct nvgpu_cdev_class_priv_data *priv_data;
-
-	enum nvgpu_mig_gpu_instance_type instance_type;
-};
-
-static inline struct nvgpu_class *
-nvgpu_class_from_list_entry(struct nvgpu_list_node *node)
-{
-	return (struct nvgpu_class *)
-		((uintptr_t)node - offsetof(struct nvgpu_class, list_entry));
 };
 
 struct nvgpu_os_linux {

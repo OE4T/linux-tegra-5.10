@@ -30,6 +30,7 @@
 #include "ioctl_tsg.h"
 #include "ioctl_dbg.h"
 #include "ioctl_prof.h"
+#include "ioctl.h"
 #include "module.h"
 #include "os_linux.h"
 #include "fecs_trace_linux.h"
@@ -557,6 +558,11 @@ int gk20a_user_init(struct device *dev)
 fail:
 	gk20a_user_deinit(dev);
 	return err;
+}
+
+struct gk20a *nvgpu_get_gk20a_from_cdev(struct nvgpu_cdev *cdev)
+{
+	return get_gk20a(cdev->node->parent);
 }
 
 u32 nvgpu_get_gpu_instance_id_from_cdev(struct gk20a *g, struct nvgpu_cdev *cdev)

@@ -32,6 +32,7 @@
 #include "sched.h"
 #include "os_linux.h"
 #include "ioctl_tsg.h"
+#include "ioctl.h"
 
 ssize_t gk20a_sched_dev_read(struct file *filp, char __user *buf,
 	size_t size, loff_t *off)
@@ -394,7 +395,7 @@ int gk20a_sched_dev_open(struct inode *inode, struct file *filp)
 	struct nvgpu_cdev *cdev;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
-	g = get_gk20a(cdev->node->parent);
+	g = nvgpu_get_gk20a_from_cdev(cdev);
 
 	g = nvgpu_get(g);
 	if (!g)

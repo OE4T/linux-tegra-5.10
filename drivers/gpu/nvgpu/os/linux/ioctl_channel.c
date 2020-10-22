@@ -539,7 +539,7 @@ int gk20a_channel_open(struct inode *inode, struct file *filp)
 	struct nvgpu_cdev *cdev;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
-	g = get_gk20a(cdev->node->parent);
+	g = nvgpu_get_gk20a_from_cdev(cdev);
 
 	nvgpu_log_fn(g, "start");
 	ret = __gk20a_channel_open(g, cdev, filp, -1);

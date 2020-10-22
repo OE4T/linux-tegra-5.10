@@ -34,6 +34,7 @@
 #include "platform_gk20a.h"
 #include "os_linux.h"
 #include "fecs_trace_linux.h"
+#include "ioctl.h"
 
 /* Userland-facing FIFO (one global + eventually one per VM) */
 struct gk20a_ctxsw_dev {
@@ -321,7 +322,7 @@ int gk20a_ctxsw_dev_open(struct inode *inode, struct file *filp)
 	struct nvgpu_cdev *cdev;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
-	g = get_gk20a(cdev->node->parent);
+	g = nvgpu_get_gk20a_from_cdev(cdev);
 
 	g = nvgpu_get(g);
 	if (!g)

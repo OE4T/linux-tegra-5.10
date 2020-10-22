@@ -53,6 +53,7 @@
 #include "platform_gk20a.h"
 #include "ioctl_dbg.h"
 #include "ioctl_channel.h"
+#include "ioctl.h"
 #include "dmabuf_vidmem.h"
 
 struct dbg_session_gk20a_linux {
@@ -234,7 +235,7 @@ int gk20a_prof_gpu_dev_open(struct inode *inode, struct file *filp)
 	struct nvgpu_cdev *cdev;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
-	g = get_gk20a(cdev->node->parent);
+	g = nvgpu_get_gk20a_from_cdev(cdev);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 	return gk20a_dbg_gpu_do_dev_open(g, filp, true /* is profiler */);
@@ -2011,7 +2012,7 @@ int gk20a_dbg_gpu_dev_open(struct inode *inode, struct file *filp)
 	struct nvgpu_cdev *cdev;
 
 	cdev = container_of(inode->i_cdev, struct nvgpu_cdev, cdev);
-	g = get_gk20a(cdev->node->parent);
+	g = nvgpu_get_gk20a_from_cdev(cdev);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 	return gk20a_dbg_gpu_do_dev_open(g, filp, false /* not profiler */);
