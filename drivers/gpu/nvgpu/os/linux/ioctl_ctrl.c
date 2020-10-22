@@ -934,21 +934,20 @@ static int nvgpu_gpu_ioctl_has_any_exception(
 }
 
 static int gk20a_ctrl_get_num_vsms(struct gk20a *g,
-				    struct nvgpu_gpu_num_vsms *args)
+		struct nvgpu_gr_config *gr_config, struct nvgpu_gpu_num_vsms *args)
 {
-	args->num_vsms = g->ops.gr.init.get_no_of_sm(g);
+	args->num_vsms = nvgpu_gr_config_get_no_of_sm(gr_config);
 	return 0;
 }
 
 static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
-				    struct nvgpu_gpu_vsms_mapping *args)
+		struct nvgpu_gr_config *gr_config, struct nvgpu_gpu_vsms_mapping *args)
 {
 	int err = 0;
-	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr_config);
 	size_t write_size = no_of_sm *
 		sizeof(struct nvgpu_gpu_vsms_mapping_entry);
 	struct nvgpu_gpu_vsms_mapping_entry *vsms_buf;
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	u32 i;
 
 	vsms_buf = nvgpu_kzalloc(g, write_size);
@@ -2011,11 +2010,11 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		break;
 
 	case NVGPU_GPU_IOCTL_NUM_VSMS:
-		err = gk20a_ctrl_get_num_vsms(g,
+		err = gk20a_ctrl_get_num_vsms(g, gr_config,
 			(struct nvgpu_gpu_num_vsms *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_VSMS_MAPPING:
-		err = gk20a_ctrl_vsm_mapping(g,
+		err = gk20a_ctrl_vsm_mapping(g, gr_config,
 			(struct nvgpu_gpu_vsms_mapping *)buf);
 		break;
 
