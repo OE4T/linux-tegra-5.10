@@ -2327,10 +2327,6 @@ static int generic_hdmi_init_per_pins(struct hda_codec *codec)
 	struct hdmi_spec *spec = codec->spec;
 	int pin_idx;
 
-	if (spec->tegra_fixup)
-		snd_hda_codec_write(codec, 4, 0,
-				    AC_VERB_SET_DIGI_CONVERT_1, 0x11);
-
 	for (pin_idx = 0; pin_idx < spec->num_pins; pin_idx++) {
 		struct hdmi_spec_per_pin *per_pin = get_pin(spec, pin_idx);
 
@@ -3755,19 +3751,27 @@ static int tegra_hdmi_build_pcms(struct hda_codec *codec)
 	return 0;
 }
 
-static int patch_tegra_hdmi(struct hda_codec *codec)
+static int tegra_hdmi_init(struct hda_codec *codec)
 {
-	struct hdmi_spec *spec;
-	int err;
+	struct hdmi_spec *spec = codec->spec;
+	int i, err;
 
-	err = patch_generic_hdmi(codec);
-	if (err)
-		return err;
-
-	spec = codec->spec;
 	spec->tegra_fixup = true;
+
+	err = hdmi_parse_codec(codec);
+	if (err < 0) {
+		generic_spec_free(codec);
+		return err;
+	}
+
+	for (i = 0; i < spec->num_cvts; i++)
+		snd_hda_codec_write(codec, spec->cvt_nids[i], 0,
+					AC_VERB_SET_DIGI_CONVERT_1,
+					AC_DIG1_ENABLE);
+
+	generic_hdmi_init_per_pins(codec);
+
 	codec->patch_ops.build_pcms = tegra_hdmi_build_pcms;
-	spec = codec->spec;
 	spec->chmap.ops.chmap_cea_alloc_validate_get_type =
 		nvhdmi_chmap_cea_alloc_validate_get_type;
 	spec->chmap.ops.chmap_validate = nvhdmi_chmap_validate;
@@ -3777,6 +3781,17 @@ static int patch_tegra_hdmi(struct hda_codec *codec)
 	spec->chmap.ops.chmap_validate = nvhdmi_chmap_validate;
 
 	return 0;
+}
+
+static int patch_tegra_hdmi(struct hda_codec *codec)
+{
+	int err;
+
+	err = alloc_generic_hdmi(codec);
+	if (err < 0)
+		return err;
+
+	return tegra_hdmi_init(codec);
 }
 
 static int patch_tegra_t23x_hdmi(struct hda_codec *codec)
@@ -3790,24 +3805,10 @@ static int patch_tegra_t23x_hdmi(struct hda_codec *codec)
 
 	codec->dp_mst = true;
 	spec = codec->spec;
-	spec->tegra_fixup = true;
+	spec->dyn_pin_out = true;
 	spec->dyn_pcm_assign = true;
 
-	err = hdmi_parse_codec(codec);
-	if (err < 0) {
-		generic_spec_free(codec);
-		return err;
-	}
-
-	generic_hdmi_init_per_pins(codec);
-
-	codec->patch_ops.build_pcms = tegra_hdmi_build_pcms;
-	spec->dyn_pin_out = true;
-	spec->chmap.ops.chmap_cea_alloc_validate_get_type =
-		nvhdmi_chmap_cea_alloc_validate_get_type;
-	spec->chmap.ops.chmap_validate = nvhdmi_chmap_validate;
-
-	return 0;
+	return tegra_hdmi_init(codec);
 }
 
 /*
