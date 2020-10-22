@@ -27,7 +27,6 @@ osi_init_core_ops
 osi_write_phy_reg
 osi_read_phy_reg
 osi_poll_for_mac_reset_complete
-osi_set_mdc_clk_rate
 osi_hw_core_init
 osi_hw_core_deinit
 osi_start_mac
@@ -36,7 +35,6 @@ osi_common_isr
 osi_set_mode
 osi_set_speed
 osi_pad_calibrate
-osi_config_mac_loopback
 osi_get_mac_version
 osi_get_hw_features
 osi_config_rxcsum_offload

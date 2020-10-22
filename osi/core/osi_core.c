@@ -95,18 +95,6 @@ int osi_poll_for_mac_reset_complete(
 	return -1;
 }
 
-int osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
-			 const unsigned long csr_clk_rate)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->set_mdc_clk_rate != OSI_NULL)) {
-		osi_core->ops->set_mdc_clk_rate(osi_core, csr_clk_rate);
-		return 0;
-	}
-
-	return -1;
-}
-
 int osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 		     unsigned int tx_fifo_size,
 		     unsigned int rx_fifo_size)
@@ -192,19 +180,6 @@ int osi_pad_calibrate(struct osi_core_priv_data *const osi_core)
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->pad_calibrate != OSI_NULL)) {
 		return osi_core->ops->pad_calibrate(osi_core);
-	}
-
-	return -1;
-}
-
-int osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
-			    const unsigned int lb_mode)
-{
-	/* Configure MAC loopback */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_mac_loopback != OSI_NULL)) {
-		return osi_core->ops->config_mac_loopback(osi_core->base,
-							  lb_mode);
 	}
 
 	return -1;
@@ -879,6 +854,31 @@ int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
 		return osi_core->ops->config_arp_offload(osi_core->mac_ver,
 							 osi_core->base,
 							 flags, ip_addr);
+	}
+
+	return -1;
+}
+
+int osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
+			 const unsigned long csr_clk_rate)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->set_mdc_clk_rate != OSI_NULL)) {
+		osi_core->ops->set_mdc_clk_rate(osi_core, csr_clk_rate);
+		return 0;
+	}
+
+	return -1;
+}
+
+int osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
+			    const unsigned int lb_mode)
+{
+	/* Configure MAC loopback */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_mac_loopback != OSI_NULL)) {
+		return osi_core->ops->config_mac_loopback(osi_core->base,
+							  lb_mode);
 	}
 
 	return -1;

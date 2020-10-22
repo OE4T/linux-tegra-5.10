@@ -196,11 +196,6 @@ struct osi_core_ops {
 	void (*set_speed)(void *ioaddr, const int speed);
 	/** Called to do pad caliberation */
 	int (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
-	/** Called to set MDC clock rate for MDIO operation */
-	void (*set_mdc_clk_rate)(struct osi_core_priv_data *const osi_core,
-				 const unsigned long csr_clk_rate);
-	/** Called to configure MAC in loopback mode */
-	int (*config_mac_loopback)(void *addr, const unsigned int lb_mode);
 	/** Called to configure MTL RxQ to forward the err pkt */
 	int (*config_fw_err_pkts)(void *addr, const unsigned int qinx,
 				 const unsigned int fw_err);
@@ -319,6 +314,11 @@ struct osi_core_ops {
 	int (*save_registers)(struct osi_core_priv_data *const osi_core);
 	/** Called to restore MAC control registers during SoC resume */
 	int (*restore_registers)(struct osi_core_priv_data *const osi_core);
+	/** Called to set MDC clock rate for MDIO operation */
+	void (*set_mdc_clk_rate)(struct osi_core_priv_data *const osi_core,
+				 const unsigned long csr_clk_rate);
+	/** Called to configure MAC in loopback mode */
+	int (*config_mac_loopback)(void *addr, const unsigned int lb_mode);
 #endif /* !OSI_STRIPPED_LIB */
 };
 
@@ -500,43 +500,6 @@ struct osi_core_priv_data {
 
 int osi_poll_for_mac_reset_complete(
 			struct osi_core_priv_data *const osi_core);
-
-/**
- * @brief osi_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk.
- *
- * @note
- * Algorithm:
- *  - MDC clock rate will be populated in OSI core private data
- *    structure based on AXI_CBB clock rate.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] csr_clk_rate: CSR (AXI CBB) clock rate.
- *
- * @note OSD layer needs get the AXI CBB clock rate with OSD clock API
- *	(ex - clk_get_rate())
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_005
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
-			 const unsigned long csr_clk_rate);
 
 /**
  * @brief osi_hw_core_init - EQOS MAC, MTL and common DMA initialization.
@@ -823,41 +786,6 @@ int osi_set_speed(struct osi_core_priv_data *const osi_core,
 int osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
 
 /**
- * @brief osi_config_mac_loopback - Configure MAC loopback
- *
- * @note
- * Algorithm:
- *  - Configure the MAC to support the loopback.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] lb_mode: Enable or disable MAC loopback
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_014
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-int osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
-			    const unsigned int lb_mode);
-
-/**
  * @brief osi_config_fw_err_pkts - Configure forwarding of error packets
  *
  * @note
@@ -1029,7 +957,7 @@ int osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_025
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_014
  *
  * @note
  * Classification:
@@ -1136,7 +1064,7 @@ int osi_init_core_ops(struct osi_core_priv_data *const osi_core);
  *
  * @note
  * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_024
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_005
  *
  * @note
  * Classification:
@@ -1844,5 +1772,75 @@ int osi_save_registers(struct osi_core_priv_data *const osi_core);
  * @retval -1 on failure.
  */
 int osi_restore_registers(struct osi_core_priv_data *const osi_core);
+
+/**
+ * @brief osi_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk.
+ *
+ * @note
+ * Algorithm:
+ *  - MDC clock rate will be populated in OSI core private data
+ *    structure based on AXI_CBB clock rate.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] csr_clk_rate: CSR (AXI CBB) clock rate.
+ *
+ * @note OSD layer needs get the AXI CBB clock rate with OSD clock API
+ *	(ex - clk_get_rate())
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
+			 const unsigned long csr_clk_rate);
+
+/**
+ * @brief osi_config_mac_loopback - Configure MAC loopback
+ *
+ * @note
+ * Algorithm:
+ *  - Configure the MAC to support the loopback.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] lb_mode: Enable or disable MAC loopback
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
+			    const unsigned int lb_mode);
 #endif /* !OSI_STRIPPED_LIB */
 #endif /* OSI_CORE_H */
