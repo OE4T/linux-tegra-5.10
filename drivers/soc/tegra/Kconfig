@@ -174,7 +174,7 @@ config TEGRA_USE_NA_GPCPLL
 
 config SOC_TEGRA_CBB
 	tristate "Tegra driver to handle error from CBB"
-	depends on ARCH_TEGRA_194_SOC
+	depends on ARCH_TEGRA_194_SOC || ARCH_TEGRA_234_SOC
 	default y
 	help
 	  Support for handling error from Tegra Control Backbone(CBB).
