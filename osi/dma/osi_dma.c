@@ -231,7 +231,7 @@ nve32_t  osi_start_dma(struct osi_dma_priv_data *osi_dma,
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
 	    (osi_dma->ops->start_dma != OSI_NULL)) {
-		osi_dma->ops->start_dma(osi_dma->base, chan);
+		osi_dma->ops->start_dma(osi_dma, chan);
 		return 0;
 	}
 
@@ -244,7 +244,7 @@ nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
 	    (osi_dma->ops->stop_dma != OSI_NULL)) {
-		osi_dma->ops->stop_dma(osi_dma->base, chan);
+		osi_dma->ops->stop_dma(osi_dma, chan);
 		return 0;
 	}
 

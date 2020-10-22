@@ -94,6 +94,7 @@
 #define EQOS_MAC_MCR			0x0000
 #define EQOS_MAC_EXTR			0x0004
 #define EQOS_MAC_PFR			0x0008U
+#define EQOS_MAC_WATCH			0x000CU
 #define EQOS_MAC_HTR_REG(x)		((0x0004U * (x)) + 0x0010U)
 #define EQOS_MAC_VLAN_TAG		0x0050
 #define EQOS_MAC_VLANTIR		0x0060
@@ -167,6 +168,7 @@
  * @{
  */
 #define EQOS_CLOCK_CTRL_0		0x8000U
+#define EQOS_APB_ERR_STATUS	 	0x8214U
 #define EQOS_AXI_ASID_CTRL		0x8400U
 #define EQOS_AXI_ASID1_CTRL		0x8404U
 #define EQOS_PAD_CRTL			0x8800U

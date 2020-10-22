@@ -183,7 +183,7 @@ struct osi_filter {
 	 * Filter index must be between 0 - 127 */
 	nveu32_t index;
 	/** Ethernet MAC address to be added */
-	const nveu8_t *mac_address;
+	nveu8_t mac_address[OSI_ETH_ALEN];
 	/** Indicates dma channel routing enable(1) disable (0) */
 	nveu32_t dma_routing;
 	/**  indicates dma channel number to program */
@@ -281,8 +281,7 @@ struct  osi_core_avb_algorithm {
  */
 struct osi_core_ops {
 	/** Called to poll for software reset bit */
-	nve32_t (*poll_for_swr)(struct osi_core_priv_data *const osi_core,
-				nve32_t pre_si);
+	nve32_t (*poll_for_swr)(struct osi_core_priv_data *const osi_core);
 	/** Called to initialize MAC and MTL registers */
 	nve32_t (*core_init)(struct osi_core_priv_data *const osi_core,
 			     const nveu32_t tx_fifo_size,
@@ -290,16 +289,17 @@ struct osi_core_ops {
 	/** Called to deinitialize MAC and MTL registers */
 	void (*core_deinit)(struct osi_core_priv_data *const osi_core);
 	/**  Called to start MAC Tx and Rx engine */
-	void (*start_mac)(void *addr);
+	void (*start_mac)(struct osi_core_priv_data *const osi_core);
 	/** Called to stop MAC Tx and Rx engine */
-	void (*stop_mac)(void *addr);
+	void (*stop_mac)(struct osi_core_priv_data *const osi_core);
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to set the mode at MAC (full/duplex) */
 	nve32_t (*set_mode)(struct osi_core_priv_data *const osi_core,
 			    const nve32_t mode);
 	/** Called to set the speed (10/100/1000) at MAC */
-	void (*set_speed)(void *ioaddr, const nve32_t speed);
+	void (*set_speed)(struct osi_core_priv_data *const osi_core,
+			  const nve32_t speed);
 	/** Called to do pad caliberation */
 	nve32_t (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure MTL RxQ to forward the err pkt */
@@ -319,8 +319,9 @@ struct osi_core_ops {
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter);
 	/** Called to configure l3/L4 filter */
-	nve32_t (*config_l3_l4_filter_enable)(void *base,
-					      const nveu32_t enable);
+	nve32_t (*config_l3_l4_filter_enable)(
+				struct osi_core_priv_data *const osi_core,
+				const nveu32_t enable);
 	/** Called to configure L3 filter */
 	nve32_t (*config_l3_filters)(struct osi_core_priv_data *const osi_core,
 				     const nveu32_t filter_no,
@@ -367,7 +368,8 @@ struct osi_core_ops {
 				      const nveu32_t sec,
 				      const nveu32_t nsec);
 	/** Called to configure the TimeStampControl register */
-	void (*config_tscr)(void *addr, const nveu32_t ptp_filter);
+	void (*config_tscr)(struct osi_core_priv_data *const osi_core,
+			    const nveu32_t ptp_filter);
 	/** Called to configure the sub second increment register */
 	void (*config_ssir)(struct osi_core_priv_data *const osi_core);
 	/** Called to update MMC counter from HW register */
@@ -381,6 +383,13 @@ struct osi_core_ops {
 	nve32_t (*read_phy_reg)(struct osi_core_priv_data *const osi_core,
 				const nveu32_t phyaddr,
 				const nveu32_t phyreg);
+	/** Called to read reg */
+	nveu32_t (*read_reg)(struct osi_core_priv_data *const osi_core,
+			     const nve32_t reg);
+	/** Called to write reg */
+	nveu32_t (*write_reg)(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t val,
+			      const nve32_t reg);
 #ifndef OSI_STRIPPED_LIB
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */
@@ -406,8 +415,7 @@ struct osi_core_ops {
 				     struct osi_core_priv_data *const osi_core,
 				     const nveu32_t flw_ctrl);
 	/** Called to enable/disable HW ARP offload feature */
-	nve32_t (*config_arp_offload)(const nveu32_t mac_ver,
-				      struct osi_core_priv_data *const osi_core,
+	nve32_t (*config_arp_offload)(struct osi_core_priv_data *const osi_core,
 				      const nveu32_t enable,
 				      const nveu8_t *ip_addr);
 	/** Called to configure VLAN filtering */
@@ -417,7 +425,8 @@ struct osi_core_ops {
 				     const nveu32_t perfect_hash_filtering,
 				     const nveu32_t perfect_inverse_match);
 	/** called to update VLAN id */
-	nve32_t (*update_vlan_id)(void *base, const nveu32_t vid);
+	nve32_t (*update_vlan_id)(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t vid);
 	/** Called to reset MMC HW counter structure */
 	void (*reset_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure EEE Tx LPI */
@@ -432,7 +441,9 @@ struct osi_core_ops {
 	void (*set_mdc_clk_rate)(struct osi_core_priv_data *const osi_core,
 				 const nveu64_t csr_clk_rate);
 	/** Called to configure MAC in loopback mode */
-	nve32_t (*config_mac_loopback)(void *addr, const nveu32_t lb_mode);
+	nve32_t (*config_mac_loopback)(
+				struct osi_core_priv_data *const osi_core,
+				const nveu32_t lb_mode);
 #endif /* !OSI_STRIPPED_LIB */
 };
 
@@ -513,6 +524,8 @@ struct osd_core_ops {
 	void (*usleep_range)(nveu64_t umin, nveu64_t umax);
 	/** msleep callback */
 	void (*msleep)(nveu32_t msec);
+	/** ivcsend callback*/
+	nve32_t (*ivc_send)(void *priv, void *data, nveu32_t len);
 };
 
 /**
@@ -576,7 +589,9 @@ struct osi_core_priv_data {
 	 */
 	nveu32_t csr_clk_speed;
 	/** Tegra Pre-si platform info */
-	nve32_t pre_si;
+	nveu32_t pre_si;
+	/** Flag which decides virtualization is enabled(1) or disabled(0) */
+	nveu32_t use_virtualization;
 };
 
 /**
@@ -1386,7 +1401,7 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
  * Algorithm:
  *  - Reads MAC version and check whether its valid or not.
  *
- * @param[in] addr: io-remap MAC base address.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[out] mac_ver: holds mac version.
  *
  * @pre MAC has to be out of reset.
@@ -1411,12 +1426,13 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-nve32_t osi_get_mac_version(void *addr, nveu32_t *mac_ver);
+nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
+			    nveu32_t *mac_ver);
 
 /**
  * @brief osi_get_hw_features - Reading MAC HW features
  *
- * @param[in] base: io-remap MAC base address.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[out] hw_feat: holds the supported features of the hardware.
  *
  * @pre MAC has to be out of reset.
@@ -1439,7 +1455,8 @@ nve32_t osi_get_mac_version(void *addr, nveu32_t *mac_ver);
  * - De-initialization: No
  *
  */
-void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
+void osi_get_hw_features(struct osi_core_priv_data *const osi_core,
+			 struct osi_hw_features *hw_feat);
 
 #ifndef OSI_STRIPPED_LIB
 /**
