@@ -14,6 +14,7 @@
 #include "fuse.h"
 
 #define FUSE_SKU_INFO	0x10
+#define ERD_MASK_INBAND_ERR 0x1
 
 #define TEGRA_APBMISC_EMU_REVID 0x60
 #define TEGRA_MISCREG_EMU_REVID 0x3160
@@ -61,6 +62,7 @@ static const struct apbmisc_data tegra186_apbmisc_data = {
 	.emu_revid_offset = TEGRA_MISCREG_EMU_REVID
 };
 
+static void __iomem *apbmisc_base;
 static bool long_ram_code;
 static u32 strapping;
 static u32 chipid;
@@ -113,18 +115,19 @@ u32 tegra_read_ram_code(void)
  * This allows to mask inband errors and always send an
  * OKAY response from CBB to the master which caused error.
  */
-int tegra_set_erd(u64 err_config)
+int tegra_miscreg_set_erd(u64 err_config)
 {
 	int err = 0;
 
-	if (!apbmisc_base) {
-		WARN(1, "Tegra Chip ID not yet available\n");
+	if (of_machine_is_compatible("nvidia,tegra194") && apbmisc_base) {
+		writel_relaxed(ERD_MASK_INBAND_ERR, apbmisc_base + err_config);
+	} else {
+		WARN(1, "Tegra ABP MISC not yet available\n");
 		return -ENODEV;
 	}
-	writel_relaxed(ERD_MASK_INBAND_ERR, apbmisc_base + err_config);
 	return err;
 }
-EXPORT_SYMBOL(tegra_set_erd);
+EXPORT_SYMBOL(tegra_miscreg_set_erd);
 
 static const struct of_device_id apbmisc_match[] __initconst = {
 	{ .compatible = "nvidia,tegra20-apbmisc",
@@ -235,7 +238,9 @@ void __init tegra_init_apbmisc(void)
 		pr_err("failed to map APBMISC registers\n");
 	} else {
 		chipid = readl_relaxed(apbmisc_base + 4);
-		iounmap(apbmisc_base);
+		if (!of_machine_is_compatible("nvidia,tegra194")) {
+			iounmap(apbmisc_base);
+		}
 	}
 
 	strapping_base = ioremap(straps.start, resource_size(&straps));

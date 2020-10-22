@@ -27,6 +27,7 @@
 
 u32 tegra_read_chipid(void);
 u8 tegra_get_chip_id(void);
+int tegra_miscreg_set_erd(u64);
 
 enum tegra_revision {
 	TEGRA_REVISION_UNKNOWN = 0,
