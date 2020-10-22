@@ -718,10 +718,10 @@ struct gops_gr_init {
 #ifdef CONFIG_NVGPU_DGPU
 	int (*load_sw_bundle64)(struct gk20a *g,
 			struct netlist_av64_list *sw_bundle64_init);
+#endif
 	u32 (*get_rtv_cb_size)(struct gk20a *g);
 	void (*commit_rtv_cb)(struct gk20a *g, u64 addr,
 			      struct nvgpu_gr_ctx *gr_ctx, bool patch);
-#endif
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 	void (*restore_stats_counter_bundle_data)(struct gk20a *g,
 			struct netlist_av_list *sw_bundle_init);

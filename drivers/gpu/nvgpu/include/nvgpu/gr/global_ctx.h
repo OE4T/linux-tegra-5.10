@@ -76,10 +76,10 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
  * accesses via firmware methods.
  */
 #define NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP		6U
-#ifdef CONFIG_NVGPU_DGPU
+
 /** S/W defined index for RTV circular global context buffer. */
 #define NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER		7U
-#endif
+
 #ifdef CONFIG_NVGPU_FECS_TRACE
 /** S/W defined index for global FECS trace buffer. */
 #define NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER		8U
