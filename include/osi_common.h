@@ -567,44 +567,6 @@ struct osi_hw_features {
 };
 
 /**
- * @brief common_get_mac_version - Reading MAC version
- *
- * @note
- * Algorithm:
- *  - Reads MAC version and check whether its valid or not.
- *
- * @param[in] addr: io-remap MAC base address.
- * @param[out] mac_ver: holds mac version.
- *
- * @pre MAC has to be out of reset.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t common_get_mac_version(void *addr, nveu32_t *mac_ver);
-
-/**
- * @brief comon_get_hw_features - Reading MAC HW features
- *
- * @param[in] base: io-remap MAC base address.
- * @param[out] hw_feat: holds the supported features of the hardware.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- *
- * @pre MAC has to be out of reset.
- */
-void common_get_hw_features(void *base, struct osi_hw_features *hw_feat);
-/**
  * @brief osi_memset - osi memset
  *
  * @param[out] s: source that need to be set
@@ -618,4 +580,19 @@ void common_get_hw_features(void *base, struct osi_hw_features *hw_feat);
  * - De-initialization: No
  */
 void osi_memset(void *s, nveu32_t c, nveu64_t count);
-#endif /* INCLUDED_OSI_COMMON_H */
+
+/**
+ * @brief osi_memcpy - osi memcpy
+ *
+ * @param[out] dest: destination pointer
+ * @param[in] src: source pointer
+ * @param[in] n: number bytes of source
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ */
+void osi_memcpy(void *dest, void *src, int n);
+#endif /* OSI_COMMON_H */

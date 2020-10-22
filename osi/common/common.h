@@ -24,6 +24,8 @@
 
 #include <osi_common.h>
 
+struct osi_core_priv_data;
+
 /**
  * @brief osi_lock_init - Initialize lock to unlocked state.
  *
@@ -141,6 +143,108 @@ static inline void osi_writel(nveu32_t val, void *addr)
 {
 	*(volatile nveu32_t *)addr = val;
 }
+
+/**
+ * @brief osi_read_reg - Read a MAC register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] addr: MAC register
+ *
+ * @note
+ * Traceability Details: TODO
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ *
+ * @retval data from MAC register on success
+ * @retval -1 on failure
+ */
+nveu32_t osi_read_reg(struct osi_core_priv_data *const osi_core,
+		      const nve32_t addr);
+
+/**
+ * @brief osi_write_reg - Write a MAC register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] val: MAC register value
+ * @param[in] addr: MAC register
+ *
+ * @note
+ * Traceability Details: TODO
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval data from MAC register on success
+ * @retval -1 on failure
+ */
+nveu32_t osi_write_reg(struct osi_core_priv_data *const osi_core,
+		       const nveu32_t val, const nve32_t addr);
+
+#ifdef ETHERNET_SERVER
+nveu32_t osi_readla(void *priv, void *addr);
+
+void osi_writela(void *priv, nveu32_t val, void *addr);
+#else
+/**
+ * @brief osi_readla - Read a memory mapped register.
+ *
+ * @ note
+ * The difference between osi_readla & osi_readl is osi_core argument.
+ * In case of ethernet server, osi_core used to define policy for each VM.
+ * In case of non virtualization osi_core argument is ignored.
+ *
+ * @param[in] priv: Priv address.
+ * @param[in] addr: Memory mapped address.
+ *
+ * @note Physical address has to be memmory mapped.
+ *
+ * @return Data from memory mapped register - success.
+ */
+static inline nveu32_t osi_readla(void *priv, void *addr)
+{
+	return *(volatile nveu32_t *)addr;
+}
+
+/**
+ *
+ * @ note
+ * @brief osi_writela - Write to a memory mapped register.
+ * The difference between osi_writela & osi_writel is osi_core argument.
+ * In case of ethernet server, osi_core used to define policy for each VM.
+ * In case of non virtualization osi_core argument is ignored.
+ *
+ * @param[in] priv: Priv address.
+ * @param[in] val:  Value to be written.
+ * @param[in] addr: Memory mapped address.
+ *
+ * @note Physical address has to be memmory mapped.
+ */
+static inline void osi_writela(void *priv, nveu32_t val, void *addr)
+{
+	*(volatile nveu32_t *)addr = val;
+}
+#endif
 
 /**
  * @brief is_valid_mac_version - Check if read MAC IP is valid or not.

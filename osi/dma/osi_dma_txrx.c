@@ -1308,7 +1308,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops->set_rx_ring_len(osi_dma->base, chan, (RX_DESC_CNT - 1U));
+	ops->set_rx_ring_len(osi_dma, chan, (RX_DESC_CNT - 1U));
 	ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
 	ops->set_rx_ring_start_addr(osi_dma->base, chan,
 				    rx_ring->rx_desc_phy_addr);
@@ -1415,8 +1415,8 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 		tx_ring->slot_check = OSI_DISABLE;
 
 		if (osi_likely((ops->set_tx_ring_len != OSI_NULL) ||
-			       (ops->set_tx_ring_start_addr != OSI_NULL))) {
-			ops->set_tx_ring_len(osi_dma->base, chan,
+			       ops->set_tx_ring_start_addr != OSI_NULL)) {
+			ops->set_tx_ring_len(osi_dma, chan,
 					     (TX_DESC_CNT - 1U));
 			ops->set_tx_ring_start_addr(osi_dma->base, chan,
 						    tx_ring->tx_desc_phy_addr);

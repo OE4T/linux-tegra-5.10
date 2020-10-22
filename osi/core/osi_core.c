@@ -23,6 +23,7 @@
 #include <osi_core.h>
 #include <osd.h>
 #include <local_common.h>
+#include <ivc_core.h>
 
 nve32_t osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
 			  const nveu32_t phyaddr, const nveu32_t phyreg,
@@ -75,13 +76,27 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	}
 
 	if (osi_core->mac == OSI_MAC_HW_EQOS) {
-		/* Get EQOS HW ops */
-		osi_core->ops = eqos_get_hw_core_ops();
-		/* Explicitly set osi_core->safety_config = OSI_NULL if
-		 * a particular MAC version does not need SW safety mechanisms
-		 * like periodic read-verify.
-		 */
-		osi_core->safety_config = (void *)eqos_get_core_safety_config();
+		if (osi_core->use_virtualization == OSI_DISABLE) {
+			/* Get EQOS HW ops */
+			osi_core->ops = eqos_get_hw_core_ops();
+			/* Explicitly set osi_core->safety_config = OSI_NULL if
+			 * a particular MAC version does not need SW safety
+			 * mechanisms like periodic read-verify.
+			 */
+			osi_core->safety_config =
+					(void *)eqos_get_core_safety_config();
+		} else {
+#ifdef LINUX_IVC
+			/* Get IVC HW ops */
+			osi_core->ops = ivc_get_hw_core_ops();
+			/* Explicitly set osi_core->safety_config = OSI_NULL if
+			 * a particular MAC version does not need SW safety
+			 * mechanisms like periodic read-verify.
+			 */
+			osi_core->safety_config =
+					(void *)ivc_get_core_safety_config();
+#endif
+		}
 		return 0;
 	}
 
@@ -94,8 +109,7 @@ nve32_t osi_poll_for_mac_reset_complete(
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->base != OSI_NULL) &&
 	    (osi_core->ops->poll_for_swr != OSI_NULL)) {
-		return osi_core->ops->poll_for_swr(osi_core,
-						   osi_core->pre_si);
+		return osi_core->ops->poll_for_swr(osi_core);
 	}
 
 	return -1;
@@ -131,7 +145,7 @@ nve32_t osi_start_mac(struct osi_core_priv_data *const osi_core)
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->base != OSI_NULL) &&
 	    (osi_core->ops->start_mac != OSI_NULL)) {
-		osi_core->ops->start_mac(osi_core->base);
+		osi_core->ops->start_mac(osi_core);
 		return 0;
 	}
 
@@ -143,7 +157,7 @@ nve32_t osi_stop_mac(struct osi_core_priv_data *const osi_core)
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->base != OSI_NULL) &&
 	    (osi_core->ops->stop_mac != OSI_NULL)) {
-		osi_core->ops->stop_mac(osi_core->base);
+		osi_core->ops->stop_mac(osi_core);
 		return 0;
 	}
 
@@ -180,7 +194,7 @@ nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->base != OSI_NULL) &&
 	    (osi_core->ops->set_speed != OSI_NULL)) {
-		osi_core->ops->set_speed(osi_core->base, speed);
+		osi_core->ops->set_speed(osi_core, speed);
 		return 0;
 	}
 
@@ -425,11 +439,11 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 	if (osi_core->ops->config_l3_l4_filter_enable != OSI_NULL) {
 		if (osi_core->l3l4_filter_bitmask != OSI_DISABLE) {
 			ret = osi_core->ops->config_l3_l4_filter_enable(
-								osi_core->base,
+								osi_core,
 								OSI_ENABLE);
 		} else {
 			ret = osi_core->ops->config_l3_l4_filter_enable(
-								osi_core->base,
+								osi_core,
 								OSI_DISABLE);
 		}
 
@@ -631,10 +645,10 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 	if (enable == OSI_DISABLE) {
 		/* disable hw time stamping */
 		/* Program MAC_Timestamp_Control Register */
-		osi_core->ops->config_tscr(osi_core->base, OSI_DISABLE);
+		osi_core->ops->config_tscr(osi_core, OSI_DISABLE);
 	} else {
 		/* Program MAC_Timestamp_Control Register */
-		osi_core->ops->config_tscr(osi_core->base,
+		osi_core->ops->config_tscr(osi_core,
 					   osi_core->ptp_config.ptp_filter);
 
 		/* Program Sub Second Increment Register */
@@ -694,24 +708,132 @@ nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core)
 	return -1;
 }
 
-void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
+nveu32_t osi_read_reg(struct osi_core_priv_data *const osi_core,
+		     const nve32_t addr)
 {
-	if ((base != OSI_NULL) && (hw_feat != OSI_NULL)) {
-		common_get_hw_features(base, hw_feat);
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->read_reg != OSI_NULL) &&
+	    (osi_core->base != OSI_NULL)) {
+		return osi_core->ops->read_reg(osi_core, addr);
 	}
 
-	return;
+	return 0;
 }
 
-nve32_t osi_get_mac_version(void *addr, nveu32_t *mac_ver)
-{
-	nve32_t ret = -1;
 
-	if ((addr != OSI_NULL) && (mac_ver != OSI_NULL)) {
-		return common_get_mac_version(addr, mac_ver);
+nveu32_t osi_write_reg(struct osi_core_priv_data *const osi_core,
+		      const nveu32_t val, const nve32_t addr)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->write_reg != OSI_NULL) &&
+	    (osi_core->base != OSI_NULL)) {
+		return osi_core->ops->write_reg(osi_core, val, addr);
 	}
 
-	return ret;
+	return 0;
+}
+
+nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
+		            nveu32_t *mac_ver)
+{
+	nveu32_t macver;
+
+	macver = osi_read_reg(osi_core, (nve32_t) MAC_VERSION) &
+			      MAC_VERSION_SNVER_MASK;
+	if (is_valid_mac_version(macver) == 0) {
+		return -1;
+	}
+
+	*mac_ver = macver;
+	return 0;
+}
+
+void osi_get_hw_features(struct osi_core_priv_data *const osi_core,
+		      struct osi_hw_features *hw_feat)
+{
+	nveu32_t mac_hfr0;
+	nveu32_t mac_hfr1;
+	nveu32_t mac_hfr2;
+
+	if (hw_feat != OSI_NULL) {
+		/* TODO: need to add HFR3 */
+		mac_hfr0 = osi_read_reg(osi_core, EQOS_MAC_HFR0);
+		mac_hfr1 = osi_read_reg(osi_core, EQOS_MAC_HFR1);
+		mac_hfr2 = osi_read_reg(osi_core, EQOS_MAC_HFR2);
+
+		hw_feat->mii_sel =
+			((mac_hfr0 >> 0) & EQOS_MAC_HFR0_MIISEL_MASK);
+		hw_feat->gmii_sel =
+			((mac_hfr0 >> 1U) & EQOS_MAC_HFR0_GMIISEL_MASK);
+		hw_feat->hd_sel =
+			((mac_hfr0 >> 2U) & EQOS_MAC_HFR0_HDSEL_MASK);
+		hw_feat->pcs_sel =
+			((mac_hfr0 >> 3U) & EQOS_MAC_HFR0_PCSSEL_MASK);
+		hw_feat->sma_sel =
+			((mac_hfr0 >> 5U) & EQOS_MAC_HFR0_SMASEL_MASK);
+		hw_feat->rwk_sel =
+			((mac_hfr0 >> 6U) & EQOS_MAC_HFR0_RWKSEL_MASK);
+		hw_feat->mgk_sel =
+			((mac_hfr0 >> 7U) & EQOS_MAC_HFR0_MGKSEL_MASK);
+		hw_feat->mmc_sel =
+			((mac_hfr0 >> 8U) & EQOS_MAC_HFR0_MMCSEL_MASK);
+		hw_feat->arp_offld_en =
+			((mac_hfr0 >> 9U) & EQOS_MAC_HFR0_ARPOFFLDEN_MASK);
+		hw_feat->ts_sel =
+			((mac_hfr0 >> 12U) & EQOS_MAC_HFR0_TSSSEL_MASK);
+		hw_feat->eee_sel =
+			((mac_hfr0 >> 13U) & EQOS_MAC_HFR0_EEESEL_MASK);
+		hw_feat->tx_coe_sel =
+			((mac_hfr0 >> 14U) & EQOS_MAC_HFR0_TXCOESEL_MASK);
+		hw_feat->rx_coe_sel =
+			((mac_hfr0 >> 16U) & EQOS_MAC_HFR0_RXCOE_MASK);
+		hw_feat->mac_addr_sel =
+			((mac_hfr0 >> 18U) & EQOS_MAC_HFR0_ADDMACADRSEL_MASK);
+		hw_feat->mac_addr32_sel =
+			((mac_hfr0 >> 23U) & EQOS_MAC_HFR0_MACADR32SEL_MASK);
+		hw_feat->mac_addr64_sel =
+			((mac_hfr0 >> 24U) & EQOS_MAC_HFR0_MACADR64SEL_MASK);
+		hw_feat->tsstssel =
+			((mac_hfr0 >> 25U) & EQOS_MAC_HFR0_TSINTSEL_MASK);
+		hw_feat->sa_vlan_ins =
+			((mac_hfr0 >> 27U) & EQOS_MAC_HFR0_SAVLANINS_MASK);
+		hw_feat->act_phy_sel =
+			((mac_hfr0 >> 28U) & EQOS_MAC_HFR0_ACTPHYSEL_MASK);
+		hw_feat->rx_fifo_size =
+			((mac_hfr1 >> 0) & EQOS_MAC_HFR1_RXFIFOSIZE_MASK);
+		hw_feat->tx_fifo_size =
+			((mac_hfr1 >> 6U) & EQOS_MAC_HFR1_TXFIFOSIZE_MASK);
+		hw_feat->adv_ts_hword =
+			((mac_hfr1 >> 13U) & EQOS_MAC_HFR1_ADVTHWORD_MASK);
+		hw_feat->addr_64 =
+			((mac_hfr1 >> 14U) & EQOS_MAC_HFR1_ADDR64_MASK);
+		hw_feat->dcb_en =
+			((mac_hfr1 >> 16U) & EQOS_MAC_HFR1_DCBEN_MASK);
+		hw_feat->sph_en =
+			((mac_hfr1 >> 17U) & EQOS_MAC_HFR1_SPHEN_MASK);
+		hw_feat->tso_en =
+			((mac_hfr1 >> 18U) & EQOS_MAC_HFR1_TSOEN_MASK);
+		hw_feat->dma_debug_gen =
+			((mac_hfr1 >> 19U) & EQOS_MAC_HFR1_DMADEBUGEN_MASK);
+		hw_feat->av_sel =
+			((mac_hfr1 >> 20U) & EQOS_MAC_HFR1_AVSEL_MASK);
+		hw_feat->hash_tbl_sz =
+			((mac_hfr1 >> 24U) & EQOS_MAC_HFR1_HASHTBLSZ_MASK);
+		hw_feat->l3l4_filter_num =
+			((mac_hfr1 >> 27U) & EQOS_MAC_HFR1_L3L4FILTERNUM_MASK);
+		hw_feat->rx_q_cnt =
+			((mac_hfr2 >> 0) & EQOS_MAC_HFR2_RXQCNT_MASK);
+		hw_feat->tx_q_cnt =
+			((mac_hfr2 >> 6U) & EQOS_MAC_HFR2_TXQCNT_MASK);
+		hw_feat->rx_ch_cnt =
+			((mac_hfr2 >> 12U) & EQOS_MAC_HFR2_RXCHCNT_MASK);
+		hw_feat->tx_ch_cnt =
+			((mac_hfr2 >> 18U) & EQOS_MAC_HFR2_TXCHCNT_MASK);
+		hw_feat->pps_out_num =
+			((mac_hfr2 >> 24U) & EQOS_MAC_HFR2_PPSOUTNUM_MASK);
+		hw_feat->aux_snap_num =
+			((mac_hfr2 >> 28U) & EQOS_MAC_HFR2_AUXSNAPNUM_MASK);
+	}
 }
 
 #ifndef OSI_STRIPPED_LIB
@@ -817,8 +939,8 @@ nve32_t  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->update_vlan_id != OSI_NULL)) {
-		return osi_core->ops->update_vlan_id(osi_core->base,
-						    vid);
+		return osi_core->ops->update_vlan_id(osi_core,
+						     vid);
 	}
 
 	return -1;
@@ -828,8 +950,9 @@ nve32_t osi_get_systime_from_mac(struct osi_core_priv_data *const osi_core,
 				 nveu32_t *sec,
 				 nveu32_t *nsec)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->base != OSI_NULL)) {
-		common_get_systime_from_mac(osi_core->base, osi_core->mac, sec,
+	if ((osi_core != OSI_NULL) && (osi_core->dma_base != OSI_NULL)) {
+		common_get_systime_from_mac(osi_core->dma_base,
+					    osi_core->mac, sec,
 					    nsec);
 	} else {
 		return -1;
@@ -912,8 +1035,7 @@ nve32_t osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
 	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
 	    (osi_core->base != OSI_NULL) && (ip_addr != OSI_NULL) &&
 	    (osi_core->ops->config_arp_offload != OSI_NULL)) {
-		return osi_core->ops->config_arp_offload(osi_core->mac_ver,
-							 osi_core,
+		return osi_core->ops->config_arp_offload(osi_core,
 							 flags, ip_addr);
 	}
 
@@ -938,7 +1060,7 @@ nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 	/* Configure MAC loopback */
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
 	    (osi_core->ops->config_mac_loopback != OSI_NULL)) {
-		return osi_core->ops->config_mac_loopback(osi_core->base,
+		return osi_core->ops->config_mac_loopback(osi_core,
 							  lb_mode);
 	}
 

@@ -42,6 +42,7 @@ static struct dma_func_safety eqos_dma_safety_config;
  *    this latest value will be compared when eqos_validate_dma_regs is
  *    scheduled.
  *
+ * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] val: Value to be written.
  * @param[in] addr: memory mapped register address to be written to.
  * @param[in] idx: Index of register corresponding to enum func_safety_dma_regs.
@@ -54,13 +55,14 @@ static struct dma_func_safety eqos_dma_safety_config;
  * - Run time: Yes
  * - De-initialization: Yes
  */
-static inline void eqos_dma_safety_writel(nveu32_t val, void *addr,
+static inline void eqos_dma_safety_writel(struct osi_dma_priv_data *osi_dma,
+					  nveu32_t val, void *addr,
 					  nveu32_t idx)
 {
 	struct dma_func_safety *config = &eqos_dma_safety_config;
 
 	osi_lock_irq_enabled(&config->dma_safety_lock);
-	osi_writel(val, addr);
+	osi_writela(osi_dma->osd, val, addr);
 	config->reg_val[idx] = (val & config->reg_mask[idx]);
 	osi_unlock_irq_enabled(&config->dma_safety_lock);
 }
@@ -300,8 +302,7 @@ static void eqos_enable_chan_rx_intr(void *addr, nveu32_t chan)
  * Algorithm:
  *  - Set DMA Tx channel ring length for specific channel.
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: DMA Tx channel number.
  * @param[in] len: Length.
  *
@@ -311,11 +312,13 @@ static void eqos_enable_chan_rx_intr(void *addr, nveu32_t chan)
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_set_tx_ring_len(void *addr, nveu32_t chan,
+static void eqos_set_tx_ring_len(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t chan,
 				 nveu32_t len)
 {
+	void *addr = osi_dma->base;
 	CHECK_CHAN_BOUND(chan);
-	eqos_dma_safety_writel(len, (nveu8_t *)addr +
+	eqos_dma_safety_writel(osi_dma, len, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_TDRL(chan),
 			       EQOS_DMA_CH0_TDRL_IDX + chan);
 }
@@ -402,8 +405,7 @@ static void eqos_update_tx_tailptr(void *addr, nveu32_t chan,
  * Algorithm:
  *  - Sets DMA Rx channel ring length for specific DMA channel.
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: DMA Rx channel number.
  * @param[in] len: Length
  *
@@ -413,11 +415,13 @@ static void eqos_update_tx_tailptr(void *addr, nveu32_t chan,
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_set_rx_ring_len(void *addr, nveu32_t chan,
+static void eqos_set_rx_ring_len(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t chan,
 				 nveu32_t len)
 {
+	void *addr = osi_dma->base;
 	CHECK_CHAN_BOUND(chan);
-	eqos_dma_safety_writel(len, (nveu8_t *)addr +
+	eqos_dma_safety_writel(osi_dma, len, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_RDRL(chan),
 			       EQOS_DMA_CH0_RDRL_IDX + chan);
 }
@@ -503,8 +507,7 @@ static void eqos_update_rx_tailptr(void *addr, nveu32_t chan,
  * Algorithm:
  *  - Start Tx and Rx DMA for specific channel.
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: DMA Tx/Rx channel number.
  *
  * @pre
@@ -517,23 +520,26 @@ static void eqos_update_rx_tailptr(void *addr, nveu32_t chan,
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_start_dma(void *addr, nveu32_t chan)
+static void eqos_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 {
 	nveu32_t val;
+	void *addr = osi_dma->base;
 
 	CHECK_CHAN_BOUND(chan);
 
 	/* start Tx DMA */
-	val = osi_readl((nveu8_t *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
+	val = osi_readla(osi_dma->osd,
+			 (nveu8_t *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
 	val |= OSI_BIT(0);
-	eqos_dma_safety_writel(val, (nveu8_t *)addr +
+	eqos_dma_safety_writel(osi_dma, val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_TX_CTRL(chan),
 			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
 	/* start Rx DMA */
-	val = osi_readl((nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
+	val = osi_readla(osi_dma->osd,
+			 (nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
 	val |= OSI_BIT(0);
-	eqos_dma_safety_writel(val, (nveu8_t *)addr +
+	eqos_dma_safety_writel(osi_dma, val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_RX_CTRL(chan),
 			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 }
@@ -545,8 +551,7 @@ static void eqos_start_dma(void *addr, nveu32_t chan)
  * Algorithm:
  *  - Start Tx and Rx DMA for specific channel.
  *
- * @param[in] addr: Base address indicating the start of
- * 	      memory mapped IO region of the MAC.
+ * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: DMA Tx/Rx channel number.
  *
  * @pre
@@ -559,23 +564,26 @@ static void eqos_start_dma(void *addr, nveu32_t chan)
  * - Run time: No
  * - De-initialization: Yes
  */
-static void eqos_stop_dma(void *addr, nveu32_t chan)
+static void eqos_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 {
 	nveu32_t val;
+	void *addr = osi_dma->base;
 
 	CHECK_CHAN_BOUND(chan);
 
 	/* stop Tx DMA */
-	val = osi_readl((nveu8_t *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
+	val = osi_readla(osi_dma->osd,
+			 (nveu8_t *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
 	val &= ~OSI_BIT(0);
-	eqos_dma_safety_writel(val, (nveu8_t *)addr +
+	eqos_dma_safety_writel(osi_dma, val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_TX_CTRL(chan),
 			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
 	/* stop Rx DMA */
-	val = osi_readl((nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
+	val = osi_readla(osi_dma->osd,
+			 (nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
 	val &= ~OSI_BIT(0);
-	eqos_dma_safety_writel(val, (nveu8_t *)addr +
+	eqos_dma_safety_writel(osi_dma, val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_RX_CTRL(chan),
 			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 }
@@ -632,7 +640,7 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 		 EQOS_DMA_CHX_INTR_NIE;
 	/* For multi-irqs to work nie needs to be disabled */
 	value &= ~(EQOS_DMA_CHX_INTR_NIE);
-	eqos_dma_safety_writel(value, (nveu8_t *)osi_dma->base +
+	eqos_dma_safety_writel(osi_dma, value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_INTR_ENA(chan),
 			       EQOS_DMA_CH0_INTR_ENA_IDX + chan);
 
@@ -640,7 +648,7 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 	value = osi_readl((nveu8_t *)osi_dma->base +
 			  EQOS_DMA_CHX_CTRL(chan));
 	value |= EQOS_DMA_CHX_CTRL_PBLX8;
-	eqos_dma_safety_writel(value, (nveu8_t *)osi_dma->base +
+	eqos_dma_safety_writel(osi_dma, value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_CTRL(chan),
 			       EQOS_DMA_CH0_CTRL_IDX + chan);
 
@@ -654,7 +662,7 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 	/* enable TSO by default if HW supports */
 	value |= EQOS_DMA_CHX_TX_CTRL_TSE;
 
-	eqos_dma_safety_writel(value, (nveu8_t *)osi_dma->base +
+	eqos_dma_safety_writel(osi_dma, value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_TX_CTRL(chan),
 			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
@@ -671,7 +679,7 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 	value |= (osi_dma->rx_buf_len << EQOS_DMA_CHX_RBSZ_SHIFT);
 	/* RXPBL = 12 */
 	value |= EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED;
-	eqos_dma_safety_writel(value, (nveu8_t *)osi_dma->base +
+	eqos_dma_safety_writel(osi_dma, value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_RX_CTRL(chan),
 			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 

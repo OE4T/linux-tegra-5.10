@@ -398,7 +398,8 @@ struct osi_dma_priv_data;
  */
 struct osi_dma_chan_ops {
 	/** Called to set Transmit Ring length */
-	void (*set_tx_ring_len)(void *addr, nveu32_t chan,
+	void (*set_tx_ring_len)(struct osi_dma_priv_data *osi_dma,
+				nveu32_t chan,
 				nveu32_t len);
 	/** Called to set Transmit Ring Base address */
 	void (*set_tx_ring_start_addr)(void *addr, nveu32_t chan,
@@ -407,7 +408,8 @@ struct osi_dma_chan_ops {
 	void (*update_tx_tailptr)(void *addr, nveu32_t chan,
 				  nveu64_t tailptr);
 	/** Called to set Receive channel ring length */
-	void (*set_rx_ring_len)(void *addr, nveu32_t chan,
+	void (*set_rx_ring_len)(struct osi_dma_priv_data *osi_dma,
+				nveu32_t chan,
 				nveu32_t len);
 	/** Called to set receive channel ring base address */
 	void (*set_rx_ring_start_addr)(void *addr, nveu32_t chan,
@@ -424,9 +426,9 @@ struct osi_dma_chan_ops {
 	/** Called to enable DMA Rx channel interrupts at wrapper level */
 	void (*enable_chan_rx_intr)(void *addr, nveu32_t chan);
 	/** Called to start the Tx/Rx DMA */
-	void (*start_dma)(void *addr, nveu32_t chan);
+	void (*start_dma)(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 	/** Called to stop the Tx/Rx DMA */
-	void (*stop_dma)(void *addr, nveu32_t chan);
+	void (*stop_dma)(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 	/** Called to initialize the DMA channel */
 	nve32_t (*init_dma_channel)(struct osi_dma_priv_data *osi_dma);
 	/** Called to set Rx buffer length */
