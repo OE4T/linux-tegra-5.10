@@ -782,7 +782,7 @@ static inline unsigned long osi_update_stats_counter(unsigned long last_value,
 }
 
 /**
- * @brief osi_get_mac_version - Reading MAC version
+ * @brief common_get_mac_version - Reading MAC version
  *
  * @note
  * Algorithm:
@@ -793,55 +793,20 @@ static inline unsigned long osi_update_stats_counter(unsigned long last_value,
  *
  * @pre MAC has to be out of reset.
  *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_015
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_get_mac_version(void *addr, unsigned int *mac_ver);
+int common_get_mac_version(void *addr, unsigned int *mac_ver);
 
 /**
- * @brief osi_get_hw_features - Reading MAC HW features
+ * @brief comon_get_hw_features - Reading MAC HW features
  *
  * @param[in] base: io-remap MAC base address.
  * @param[in] hw_feat: holds the supported features of the hardware.
  *
  * @pre MAC has to be out of reset.
- *
- * @note
- * Traceability Details:
- * - SWUD_ID: ETHERNET_NVETHERNETRM_016
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
  */
-void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
+void common_get_hw_features(void *base, struct osi_hw_features *hw_feat);
 /**
  * @brief osi_memset - osi memset
  *

@@ -23,7 +23,7 @@
 #include <osd.h>
 #include "eqos_common.h"
 
-void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
+void common_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 {
 	unsigned int mac_hfr0;
 	unsigned int mac_hfr1;
@@ -108,7 +108,7 @@ void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 		((mac_hfr2 >> 28U) & EQOS_MAC_HFR2_AUXSNAPNUM_MASK);
 }
 
-int osi_get_mac_version(void *addr, unsigned int *mac_ver)
+int common_get_mac_version(void *addr, unsigned int *mac_ver)
 {
 	unsigned int macver;
 	int ret = 0;
