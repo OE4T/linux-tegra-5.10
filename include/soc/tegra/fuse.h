@@ -61,11 +61,40 @@ enum tegra_revision {
 	TEGRA_REVISION_A01,
 	TEGRA_REVISION_A01q,
 	TEGRA_REVISION_A02,
+	TEGRA_REVISION_A02p,
 	TEGRA_REVISION_A03,
 	TEGRA_REVISION_A03p,
 	TEGRA_REVISION_A04,
 	TEGRA_REVISION_A04p,
+	TEGRA210_REVISION_A01,
+	TEGRA210_REVISION_A01q,
+	TEGRA210_REVISION_A02,
+	TEGRA210_REVISION_A02p,
+	TEGRA210_REVISION_A03,
+	TEGRA210_REVISION_A03p,
+	TEGRA210_REVISION_A04,
+	TEGRA210_REVISION_A04p,
+	TEGRA210_REVISION_B01,
+	TEGRA210B01_REVISION_A01,
+	TEGRA186_REVISION_A01,
+	TEGRA186_REVISION_A01q,
+	TEGRA186_REVISION_A02,
+	TEGRA186_REVISION_A02p,
+	TEGRA186_REVISION_A03,
+	TEGRA186_REVISION_A03p,
+	TEGRA186_REVISION_A04,
+	TEGRA186_REVISION_A04p,
+	TEGRA194_REVISION_A01,
+	TEGRA194_REVISION_A02,
+	TEGRA194_REVISION_A02p,
+	TEGRA_REVISION_QT,
+	TEGRA_REVISION_SIM,
 	TEGRA_REVISION_MAX,
+};
+
+enum tegra_ucm {
+	TEGRA_UCM1 = 0,
+	TEGRA_UCM2,
 };
 
 struct tegra_sku_info {
@@ -74,13 +103,18 @@ struct tegra_sku_info {
 	int cpu_speedo_id;
 	int cpu_speedo_value;
 	int cpu_iddq_value;
+	int core_process_id;
 	int soc_process_id;
 	int soc_speedo_id;
 	int soc_speedo_value;
+	int soc_iddq_value;
 	int gpu_process_id;
 	int gpu_speedo_id;
+	int gpu_iddq_value;
 	int gpu_speedo_value;
 	enum tegra_revision revision;
+	enum tegra_ucm ucm;
+	int speedo_rev;
 };
 
 u32 tegra_read_straps(void);
