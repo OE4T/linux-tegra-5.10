@@ -23,6 +23,9 @@ struct cvb_coefficients {
 	int c0;
 	int c1;
 	int c2;
+	int c3;
+	int c4;
+	int c5;
 };
 
 struct cvb_table_freq_entry {
@@ -58,5 +61,12 @@ tegra_cvb_add_opp_table(struct device *dev, const struct cvb_table *cvb_tables,
 void tegra_cvb_remove_opp_table(struct device *dev,
 				const struct cvb_table *table,
 				unsigned long max_freq);
+int tegra_get_cvb_voltage(int speedo, int s_scale,
+			  const struct cvb_coefficients *cvb);
+int tegra_round_cvb_voltage(int mv, int v_scale,
+			    const struct rail_alignment *align);
+int tegra_round_voltage(int mv, const struct rail_alignment *align, int up);
+int tegra_get_cvb_t_voltage(int speedo, int s_scale, int t, int t_scale,
+			    struct cvb_coefficients *cvb);
 
 #endif

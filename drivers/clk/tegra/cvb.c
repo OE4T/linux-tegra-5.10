@@ -22,6 +22,25 @@ static inline int get_cvb_voltage(int speedo, int s_scale,
 	return mv;
 }
 
+int tegra_get_cvb_voltage(int speedo, int s_scale,
+			  const struct cvb_coefficients *cvb)
+{
+	return get_cvb_voltage(speedo, s_scale, cvb);
+}
+
+/* cvb_t_mv = ((c3 * speedo / s_scale + c4 + c5 * T / t_scale) * T / t_scale) / v_scale */
+int tegra_get_cvb_t_voltage(int speedo, int s_scale, int t, int t_scale,
+			    struct cvb_coefficients *cvb)
+{
+	/* apply speedo & temperature scales: output mv = cvb_t_mv * v_scale */
+	int mv;
+
+	mv = DIV_ROUND_CLOSEST(cvb->c3 * speedo, s_scale) + cvb->c4 +
+		DIV_ROUND_CLOSEST(cvb->c5 * t, t_scale);
+	mv = DIV_ROUND_CLOSEST(mv * t, t_scale);
+	return mv;
+}
+
 static int round_cvb_voltage(int mv, int v_scale,
 			     const struct rail_alignment *align)
 {
@@ -33,6 +52,12 @@ static int round_cvb_voltage(int mv, int v_scale,
 	uv = max(mv * 1000, offset) - offset;
 	uv = DIV_ROUND_UP(uv, step) * align->step_uv + align->offset_uv;
 	return uv / 1000;
+}
+
+int tegra_round_cvb_voltage(int mv, int v_scale,
+			    const struct rail_alignment *align)
+{
+	return round_cvb_voltage(mv, v_scale, align);
 }
 
 enum {
@@ -50,6 +75,11 @@ static int round_voltage(int mv, const struct rail_alignment *align, int up)
 		return (uv * align->step_uv + align->offset_uv) / 1000;
 	}
 	return mv;
+}
+
+int tegra_round_voltage(int mv, const struct rail_alignment *align, int up)
+{
+	return round_voltage(mv, align, up);
 }
 
 static int build_opp_table(struct device *dev, const struct cvb_table *table,
