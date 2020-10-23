@@ -664,6 +664,26 @@ int osi_read_mmc(struct osi_core_priv_data *const osi_core)
 	return -1;
 }
 
+void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
+{
+	if ((base != OSI_NULL) && (hw_feat != OSI_NULL)) {
+		common_get_hw_features(base, hw_feat);
+	}
+
+	return;
+}
+
+int osi_get_mac_version(void *addr, unsigned int *mac_ver)
+{
+	int ret = -1;
+
+	if ((addr != OSI_NULL) && (mac_ver != OSI_NULL)) {
+		return common_get_mac_version(addr, mac_ver);
+	}
+
+	return ret;
+}
+
 #ifndef OSI_STRIPPED_LIB
 int osi_validate_core_regs(struct osi_core_priv_data *const osi_core)
 {

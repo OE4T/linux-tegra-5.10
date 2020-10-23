@@ -1267,6 +1267,68 @@ int osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 		    const unsigned int dma_chan,
 		    const unsigned int is_l4_filter);
 
+/**
+ * @brief osi_get_mac_version - Reading MAC version
+ *
+ * @note
+ * Algorithm:
+ *  - Reads MAC version and check whether its valid or not.
+ *
+ * @param[in] addr: io-remap MAC base address.
+ * @param[in] mac_ver: holds mac version.
+ *
+ * @pre MAC has to be out of reset.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_015
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+int osi_get_mac_version(void *addr, unsigned int *mac_ver);
+
+/**
+ * @brief osi_get_hw_features - Reading MAC HW features
+ *
+ * @param[in] base: io-remap MAC base address.
+ * @param[in] hw_feat: holds the supported features of the hardware.
+ *
+ * @pre MAC has to be out of reset.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_016
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ */
+void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief osi_validate_core_regs - Read-validate HW registers for func safety.
