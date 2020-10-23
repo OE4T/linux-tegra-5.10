@@ -46,6 +46,7 @@
 		status = "disabled";
 
 		gic_v2m: v2m@f400000 {
+			compatible = "arm,gic-v2m-frame";
 			msi-controller;
 			#msi-cells = <1>;
 			reg = <0x0 0x0f410000 0x0 0x00010000	/* GICA */
