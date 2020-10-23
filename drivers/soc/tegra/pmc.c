@@ -951,6 +951,20 @@ out:
 	return 0;
 }
 
+u32 tegra_pmc_gpu_clamp_enable(void)
+{
+	tegra_pmc_writel(pmc, 1, GPU_RG_CNTRL);
+	return tegra_pmc_readl(pmc, GPU_RG_CNTRL);
+}
+EXPORT_SYMBOL(tegra_pmc_gpu_clamp_enable);
+
+u32 tegra_pmc_gpu_clamp_disable(void)
+{
+	tegra_pmc_writel(pmc, 0, GPU_RG_CNTRL);
+	return tegra_pmc_readl(pmc, GPU_RG_CNTRL);
+}
+EXPORT_SYMBOL(tegra_pmc_gpu_clamp_disable);
+
 static void tegra_powergate_disable_clocks(struct tegra_powergate *pg)
 {
 	unsigned int i;

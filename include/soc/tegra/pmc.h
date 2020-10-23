@@ -194,6 +194,9 @@ int tegra_pmc_hsic_phy_disable_sleepwalk(int port);
 int tegra_pmc_set_reboot_reason(u32 reboot_reason);
 int tegra_pmc_clear_reboot_reason(u32 reboot_reason);
 
+u32 tegra_pmc_gpu_clamp_enable(void);
+u32 tegra_pmc_gpu_clamp_disable(void);
+
 #else
 static inline int tegra_powergate_power_on(unsigned int id)
 {
@@ -258,6 +261,15 @@ static inline int tegra_pmc_set_reboot_reason(u32 reboot_reason)
 static inline int tegra_pmc_clear_reboot_reason(u32 reboot_reason)
 {
 	return -ENOTSUPP;
+}
+
+static inline u32 tegra_pmc_gpu_clamp_enable(void)
+{
+	return 0;
+}
+static inline u32 tegra_pmc_gpu_clamp_disable(void)
+{
+	return 0;
 }
 
 #endif /* CONFIG_SOC_TEGRA_PMC */
