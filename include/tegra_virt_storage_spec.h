@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -76,6 +76,11 @@ struct vs_blk_request {
 	uint32_t num_blks;		/* Total Block number to transfer */
 	uint32_t data_offset;		/* Offset into mempool for data region
 						*/
+	/* IOVA address of the buffer. In case of read request, VSC will get
+	 * the response to this address. In case of write request, VSC will
+	 * get the data from this address.
+	 */
+	uint64_t iova_addr;
 };
 
 struct vs_mtd_request {
@@ -149,6 +154,13 @@ struct vs_blk_dev_config {
 	uint32_t max_erase_blks_per_io; /* Limit number of Blocks per I/O */
 	uint32_t req_ops_supported;	/* Allowed operations by requests */
 	uint64_t num_blks;		/* Total number of blks */
+
+	/*
+	 * If true, then VM need to provide local IOVA address for read and
+	 * write requests. For IOCTL requests, mempool will be used
+	 * irrespective of this flag.
+	 */
+	uint32_t use_vm_address;
 };
 
 struct vs_mtd_dev_config {

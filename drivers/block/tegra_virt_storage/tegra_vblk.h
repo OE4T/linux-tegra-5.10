@@ -67,6 +67,9 @@ struct vsc_request {
 	uint32_t mempool_len;
 	uint32_t id;
 	struct vblk_dev* vblkdev;
+	/* Scatter list for maping IOVA address */
+	struct scatterlist *sg_lst;
+	int sg_num_ents;
 };
 
 enum vblk_queue_state {

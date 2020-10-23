@@ -237,6 +237,93 @@ static void req_error_handler(struct vblk_dev *vblkdev, struct request *breq)
 #endif
 }
 
+
+
+static void handle_non_ioctl_resp(struct vblk_dev *vblkdev,
+		struct vsc_request *vsc_req,
+		struct vs_blk_response *blk_resp)
+{
+	struct bio_vec bvec;
+	void *buffer;
+	size_t size;
+	size_t total_size = 0;
+	bool invoke_req_err_hand = false;
+	struct request *const bio_req = vsc_req->req;
+	struct vs_blk_request *const blk_req =
+		&(vsc_req->vs_req.blkdev_req.blk_req);
+
+	if (blk_resp->status != 0) {
+		invoke_req_err_hand = true;
+		goto end;
+	}
+
+	if (req_op(bio_req) != REQ_OP_FLUSH) {
+		if (blk_req->num_blks !=
+		    blk_resp->num_blks) {
+			invoke_req_err_hand = true;
+			goto end;
+		}
+	}
+
+	if (req_op(bio_req) == REQ_OP_READ) {
+		rq_for_each_segment(bvec, bio_req, vsc_req->iter) {
+			size = bvec.bv_len;
+			buffer = page_address(bvec.bv_page) +
+				bvec.bv_offset;
+
+			if ((total_size + size) >
+				(blk_req->num_blks *
+				vblkdev->config.blk_config.hardblk_size)) {
+				size =
+				(blk_req->num_blks *
+				vblkdev->config.blk_config.hardblk_size) -
+					total_size;
+			}
+
+			if (!vblkdev->config.blk_config.use_vm_address) {
+				memcpy(buffer,
+					vsc_req->mempool_virt +
+					total_size,
+					size);
+			}
+
+			total_size += size;
+			if (total_size ==
+				(blk_req->num_blks *
+				vblkdev->config.blk_config.hardblk_size))
+				break;
+		}
+	}
+
+end:
+	if (vblkdev->config.blk_config.use_vm_address) {
+		if ((req_op(bio_req) == REQ_OP_READ) ||
+			(req_op(bio_req) == REQ_OP_WRITE)) {
+			dma_unmap_sg(vblkdev->device,
+				vsc_req->sg_lst,
+				vsc_req->sg_num_ents,
+				DMA_BIDIRECTIONAL);
+		}
+		devm_kfree(vblkdev->device, vsc_req->sg_lst);
+	}
+
+	if (!invoke_req_err_hand) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
+			blk_mq_end_request(bio_req, BLK_STS_OK);
+#else
+			if (blk_end_request(bio_req, 0,
+				blk_req->num_blks *
+				vblkdev->config.blk_config.hardblk_size)) {
+				dev_err(vblkdev->device,
+					"Error completing fs request!\n");
+			}
+#endif
+	} else {
+
+		req_error_handler(vblkdev, bio_req);
+	}
+}
+
 /**
  * complete_bio_req: Complete a bio request after server is
  *		done processing the request.
@@ -245,14 +332,10 @@ static void req_error_handler(struct vblk_dev *vblkdev, struct request *breq)
 static bool complete_bio_req(struct vblk_dev *vblkdev)
 {
 	int status = 0;
-	struct bio_vec bvec;
-	size_t size;
-	size_t total_size = 0;
 	struct vsc_request *vsc_req = NULL;
 	struct vs_request *vs_req;
 	struct vs_request req_resp;
 	struct request *bio_req;
-	void *buffer;
 
 	/* First check if ivc read queue is empty */
 	if (!tegra_hv_ivc_can_read(vblkdev->ivck))
@@ -299,60 +382,11 @@ static bool complete_bio_req(struct vblk_dev *vblkdev)
 						"Error completing private request!\n");
 				}
 #endif
-		} else {
-			if (req_resp.blkdev_resp.blk_resp.status != 0) {
-				req_error_handler(vblkdev, bio_req);
-				goto put_req;
-			}
-
-			if (req_op(bio_req) != REQ_OP_FLUSH) {
-				if (vs_req->blkdev_req.blk_req.num_blks !=
-				    req_resp.blkdev_resp.blk_resp.num_blks) {
-					req_error_handler(vblkdev, bio_req);
-					goto put_req;
-				}
-			}
-
-			if (req_op(bio_req) == REQ_OP_READ) {
-				rq_for_each_segment(bvec, bio_req,
-					vsc_req->iter) {
-					size = bvec.bv_len;
-					buffer = page_address(bvec.bv_page) +
-						bvec.bv_offset;
-
-					if ((total_size + size) >
-						(vs_req->blkdev_req.blk_req.num_blks *
-						vblkdev->config.blk_config.hardblk_size))
-					{
-						size =
-						(vs_req->blkdev_req.blk_req.num_blks *
-						vblkdev->config.blk_config.hardblk_size) -
-							total_size;
-					}
-					memcpy(buffer,
-						vsc_req->mempool_virt +
-						total_size,
-						size);
-
-					total_size += size;
-					if (total_size ==
-						(vs_req->blkdev_req.blk_req.num_blks *
-						vblkdev->config.blk_config.hardblk_size))
-						break;
-				}
-			}
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
-			blk_mq_end_request(bio_req, BLK_STS_OK);
-#else
-			if (blk_end_request(bio_req, 0,
-				vs_req->blkdev_req.blk_req.num_blks *
-					vblkdev->config.blk_config.hardblk_size)) {
-				dev_err(vblkdev->device,
-					"Error completing fs request!\n");
-			}
-#endif
+		}  else {
+			handle_non_ioctl_resp(vblkdev, vsc_req,
+				&(req_resp.blkdev_resp.blk_resp));
 		}
+
 	} else if ((bio_req != NULL) && (status != 0)) {
 		req_error_handler(vblkdev, bio_req);
 	} else {
@@ -361,7 +395,6 @@ static bool complete_bio_req(struct vblk_dev *vblkdev)
 			vsc_req->id);
 	}
 
-put_req:
 	vblk_put_req(vsc_req);
 
 complete_bio_exit:
@@ -426,6 +459,9 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
 	struct req_entry *entry = NULL;
 #endif
+	size_t sz;
+	uint32_t sg_cnt;
+	dma_addr_t  sg_dma_addr = 0;
 
 	/* Check if ivc queue is full */
 	if (!tegra_hv_ivc_can_write(vblkdev->ivck))
@@ -441,7 +477,8 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
 	spin_lock(&vblkdev->queue_lock);
 	if(!list_empty(&vblkdev->req_list)) {
-		entry = list_first_entry(&vblkdev->req_list, struct req_entry, list_entry);
+		entry = list_first_entry(&vblkdev->req_list, struct req_entry,
+						list_entry);
 		list_del(&entry->list_entry);
 		bio_req = entry->req;
 		kfree(entry);
@@ -455,6 +492,31 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 
 	if (bio_req == NULL)
 		goto bio_exit;
+
+	if ((vblkdev->config.blk_config.use_vm_address) &&
+		((req_op(bio_req) == REQ_OP_READ) ||
+		(req_op(bio_req) == REQ_OP_WRITE))) {
+		sz = (sizeof(struct scatterlist)
+			* bio_req->nr_phys_segments);
+		vsc_req->sg_lst =  devm_kzalloc(vblkdev->device, sz,
+					GFP_KERNEL);
+		if (vsc_req->sg_lst == NULL) {
+			dev_err(vblkdev->device,
+				"SG mem allocation failed\n");
+			goto bio_exit;
+		}
+		sg_init_table(vsc_req->sg_lst,
+			bio_req->nr_phys_segments);
+		sg_cnt = blk_rq_map_sg(vblkdev->queue, bio_req,
+				vsc_req->sg_lst);
+		vsc_req->sg_num_ents = sg_nents(vsc_req->sg_lst);
+		if (dma_map_sg(vblkdev->device, vsc_req->sg_lst,
+			vsc_req->sg_num_ents, DMA_BIDIRECTIONAL) == 0) {
+			dev_err(vblkdev->device, "dma_map_sg failed\n");
+			goto bio_exit;
+		}
+		sg_dma_addr = sg_dma_address(vsc_req->sg_lst);
+	}
 
 	vsc_req->req = bio_req;
 	vs_req = &vsc_req->vs_req;
@@ -498,7 +560,15 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 				SECTOR_SIZE) /
 				vblkdev->config.blk_config.hardblk_size);
 
-			vs_req->blkdev_req.blk_req.data_offset = vsc_req->mempool_offset;
+			if (!vblkdev->config.blk_config.use_vm_address) {
+				vs_req->blkdev_req.blk_req.data_offset =
+							vsc_req->mempool_offset;
+			} else {
+				vs_req->blkdev_req.blk_req.data_offset = 0;
+				/* Provide IOVA  as part of request */
+				vs_req->blkdev_req.blk_req.iova_addr =
+							(uint64_t)sg_dma_addr;
+			}
 		}
 
 		if (req_op(bio_req) == REQ_OP_WRITE) {
@@ -516,8 +586,15 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 						total_size;
 				}
 
-				memcpy(vsc_req->mempool_virt + total_size,
+				/* memcpy to mempool not needed as VM IOVA is
+				 * provided
+				 */
+				if (!vblkdev->config.blk_config.use_vm_address) {
+					memcpy(
+					vsc_req->mempool_virt + total_size,
 					buffer, size);
+				}
+
 				total_size += size;
 				if (total_size == (vs_req->blkdev_req.blk_req.num_blks *
 					vblkdev->config.blk_config.hardblk_size)) {
