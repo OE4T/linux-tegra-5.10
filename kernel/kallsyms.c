@@ -176,6 +176,8 @@ unsigned long kallsyms_lookup_name(const char *name)
 	}
 	return module_kallsyms_lookup_name(name);
 }
+/* Export to allow fault injection tests to invoke driver internals */
+EXPORT_SYMBOL_GPL(kallsyms_lookup_name);
 
 int kallsyms_on_each_symbol(int (*fn)(void *, const char *, struct module *,
 				      unsigned long),
