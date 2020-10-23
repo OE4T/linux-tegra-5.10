@@ -19,6 +19,7 @@
 #include <linux/kthread.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
@@ -172,6 +173,13 @@
 #define APPL_GTH_PHY_L1SS_WAKE_COUNT_MASK	GENMASK(15, 2)
 #define APPL_GTH_PHY_L1SS_WAKE_COUNT_SHIFT	2
 
+#define APPL_SEC_EXTERNAL_MSI_ADDR_H	0x10100
+#define APPL_SEC_EXTERNAL_MSI_ADDR_L	0x10104
+#define APPL_SEC_INTERNAL_MSI_ADDR_H	0x10108
+#define APPL_SEC_INTERNAL_MSI_ADDR_L	0x1010c
+
+#define V2M_MSI_SETSPI_NS		0x040
+
 #define IO_BASE_IO_DECODE				BIT(0)
 #define IO_BASE_IO_DECODE_BIT8				BIT(8)
 
@@ -305,6 +313,8 @@ struct tegra_pcie_dw {
 	struct resource *appl_res;
 	struct resource *dbi_res;
 	struct resource *atu_dma_res;
+	struct resource gic_base;
+	struct resource msi_base;
 	void __iomem *appl_base;
 	struct clk *core_clk;
 	struct reset_control *core_apb_rst;
@@ -357,6 +367,8 @@ struct tegra_pcie_of_data {
 	bool sbr_reset_fixup;
 	/* Bug 200390637 */
 	bool l1ss_exit_fixup;
+	/* GIC V2M support available */
+	bool gic_v2m;
 };
 
 static inline struct tegra_pcie_dw *to_tegra_pcie(struct dw_pcie *pci)
@@ -1563,6 +1575,52 @@ static int __deinit_controller(struct tegra_pcie_dw *pcie)
 	return ret;
 }
 
+static int tegra_pcie_msi_host_init(struct pcie_port *pp)
+{
+	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	struct tegra_pcie_dw *pcie = to_tegra_pcie(pci);
+	struct device *dev = pcie->dev;
+	struct device_node *np = dev->of_node;
+	struct device_node *msi_node;
+	int ret;
+
+	/*
+	 * The MSI domain is set by the generic of_msi_configure().  This
+	 * .msi_host_init() function keeps us from doing the default MSI
+	 * domain setup in dw_pcie_host_init() and also enforces the
+	 * requirement that "msi-parent" exists.
+	 */
+	msi_node = of_parse_phandle(np, "msi-parent", 0);
+	if (!msi_node) {
+		dev_err(dev, "failed to find msi-parent\n");
+		return -EINVAL;
+	}
+
+	ret = of_address_to_resource(msi_node, 0, &pcie->gic_base);
+	if (ret) {
+		dev_err(dev, "Failed to allocate gic_base resource.\n");
+		return ret;
+	}
+
+	ret = of_address_to_resource(msi_node, 1, &pcie->msi_base);
+	if (ret) {
+		dev_err(dev, "Failed to allocate msi_base resource.\n");
+		return ret;
+	}
+
+	writel(lower_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
+	       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_L);
+	writel(upper_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
+	       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_H);
+
+	writel(lower_32_bits(pcie->msi_base.start),
+	       pcie->appl_base + APPL_SEC_INTERNAL_MSI_ADDR_L);
+	writel(upper_32_bits(pcie->msi_base.start),
+	       pcie->appl_base + APPL_SEC_INTERNAL_MSI_ADDR_H);
+
+	return 0;
+}
+
 static int tegra_pcie_init_controller(struct tegra_pcie_dw *pcie)
 {
 	struct dw_pcie *pci = &pcie->pci;
@@ -1572,6 +1630,9 @@ static int tegra_pcie_init_controller(struct tegra_pcie_dw *pcie)
 	ret = tegra_pcie_config_controller(pcie, false);
 	if (ret < 0)
 		return ret;
+
+	if (pcie->of_data->gic_v2m)
+		tegra_pcie_dw_host_ops.msi_host_init = tegra_pcie_msi_host_init;
 
 	pp->ops = &tegra_pcie_dw_host_ops;
 
@@ -2422,6 +2483,18 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 	if (ret < 0)
 		return ret;
 
+	if (pcie->of_data->gic_v2m) {
+		writel(lower_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
+		       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_L);
+		writel(upper_32_bits(pcie->gic_base.start + V2M_MSI_SETSPI_NS),
+		       pcie->appl_base + APPL_SEC_EXTERNAL_MSI_ADDR_H);
+
+		writel(lower_32_bits(pcie->msi_base.start),
+		       pcie->appl_base + APPL_SEC_INTERNAL_MSI_ADDR_L);
+		writel(upper_32_bits(pcie->msi_base.start),
+		       pcie->appl_base + APPL_SEC_INTERNAL_MSI_ADDR_H);
+	}
+
 	ret = tegra_pcie_dw_host_init(&pcie->pci.pp);
 	if (ret < 0) {
 		dev_err(dev, "Failed to init host: %d\n", ret);
@@ -2483,6 +2556,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 	.msix_doorbell_access_fixup = true,
 	.sbr_reset_fixup = true,
 	.l1ss_exit_fixup = true,
+	.gic_v2m = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
@@ -2490,6 +2564,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = true,
+	.gic_v2m = false,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
@@ -2497,6 +2572,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
+	.gic_v2m = true,
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
@@ -2504,6 +2580,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
 	.l1ss_exit_fixup = false,
+	.gic_v2m = false,
 };
 
 static const struct of_device_id tegra_pcie_dw_of_match[] = {
