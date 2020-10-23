@@ -1055,6 +1055,32 @@ static int nvgpu_gpu_get_gpu_time(
 	return err;
 }
 
+static void nvgpu_gpu_fetch_engine_info_item(struct gk20a *g,
+		struct nvgpu_gpu_get_engine_info_item *dst_info,
+		const struct nvgpu_device *dev, u32 dev_inst_id, u32 gr_runlist_id)
+{
+	(void) memset(dst_info, 0, sizeof(*dst_info));
+
+	if (nvgpu_device_is_graphics(g, dev)) {
+		dst_info->engine_id = NVGPU_GPU_ENGINE_ID_GR;
+	} else if (nvgpu_device_is_ce(g, dev)) {
+		/*
+		 * There's two types of CE userpsace is interested in:
+		 * ASYNC_CEs which are copy engines with their own
+		 * runlists and GRCEs which are CEs that share a runlist
+		 * with GR.
+		 */
+		if (dev->runlist_id == gr_runlist_id) {
+			dst_info->engine_id = NVGPU_GPU_ENGINE_ID_GR_COPY;
+		} else {
+			dst_info->engine_id = NVGPU_GPU_ENGINE_ID_ASYNC_COPY;
+		}
+	}
+
+	dst_info->engine_instance = dev_inst_id;
+	dst_info->runlist_id = dev->runlist_id;
+}
+
 static int nvgpu_gpu_get_engine_info(
 	struct gk20a *g,
 	struct nvgpu_gpu_get_engine_info_args *args)
@@ -1075,28 +1101,60 @@ static int nvgpu_gpu_get_engine_info(
 		const struct nvgpu_device *dev = g->fifo.active_engines[i];
 		struct nvgpu_gpu_get_engine_info_item dst_info;
 
-		(void) memset(&dst_info, 0, sizeof(dst_info));
+		nvgpu_gpu_fetch_engine_info_item(g, &dst_info, dev,
+			dev->inst_id, gr_dev->runlist_id);
 
-		if (nvgpu_device_is_graphics(g, dev)) {
-			dst_info.engine_id = NVGPU_GPU_ENGINE_ID_GR;
-		} else if (nvgpu_device_is_ce(g, dev)) {
-			/*
-			 * There's two types of CE userpsace is interested in:
-			 * ASYNC_CEs which are copy engines with their own
-			 * runlists and GRCEs which are CEs that share a runlist
-			 * with GR.
-			 */
-			if (dev->runlist_id == gr_dev->runlist_id) {
-				dst_info.engine_id =
-					NVGPU_GPU_ENGINE_ID_GR_COPY;
-			} else {
-				dst_info.engine_id =
-					NVGPU_GPU_ENGINE_ID_ASYNC_COPY;
-			}
+		if (report_index < max_buffer_engines) {
+			err = copy_to_user(&dst_item_list[report_index],
+					   &dst_info, sizeof(dst_info));
+			if (err)
+				goto clean_up;
 		}
 
-		dst_info.engine_instance = dev->inst_id;
-		dst_info.runlist_id = dev->runlist_id;
+		++report_index;
+	}
+
+	args->engine_info_buf_size =
+		report_index * sizeof(struct nvgpu_gpu_get_engine_info_item);
+
+clean_up:
+	return err;
+}
+
+static int nvgpu_gpu_get_gpu_instance_engine_info(
+		struct gk20a *g, u32 gpu_instance_id,
+		struct nvgpu_gpu_get_engine_info_args *args)
+{
+	int err = 0;
+	u32 report_index = 0U;
+	u32 i;
+	const struct nvgpu_device *gr_dev;
+	const u32 max_buffer_engines = args->engine_info_buf_size /
+		sizeof(struct nvgpu_gpu_get_engine_info_item);
+	struct nvgpu_gpu_get_engine_info_item __user *dst_item_list =
+		(void __user *)(uintptr_t)args->engine_info_buf_addr;
+	struct nvgpu_gpu_get_engine_info_item dst_info;
+	struct nvgpu_gpu_instance *gpu_instance =
+		&g->mig.gpu_instance[gpu_instance_id];
+
+	gr_dev = gpu_instance->gr_syspipe.gr_dev;
+	nvgpu_assert(gr_dev != NULL);
+
+	nvgpu_gpu_fetch_engine_info_item(g, &dst_info, gr_dev, 0U, gr_dev->runlist_id);
+
+	if (report_index < max_buffer_engines) {
+		err = copy_to_user(&dst_item_list[report_index],
+				   &dst_info, sizeof(dst_info));
+		if (err)
+			goto clean_up;
+	}
+
+	++report_index;
+
+	for (i = 0U; i < gpu_instance->num_lce; i++) {
+		const struct nvgpu_device *dev = gpu_instance->lce_devs[i];
+
+		nvgpu_gpu_fetch_engine_info_item(g, &dst_info, dev, i, gr_dev->runlist_id);
 
 		if (report_index < max_buffer_engines) {
 			err = copy_to_user(&dst_item_list[report_index],
@@ -2063,8 +2121,13 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		break;
 
         case NVGPU_GPU_IOCTL_GET_ENGINE_INFO:
-		err = nvgpu_gpu_get_engine_info(g,
-			(struct nvgpu_gpu_get_engine_info_args *)buf);
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) && (gpu_instance_id != 0U)) {
+			err = nvgpu_gpu_get_gpu_instance_engine_info(g, gpu_instance_id,
+				(struct nvgpu_gpu_get_engine_info_args *)buf);
+		} else {
+			err = nvgpu_gpu_get_engine_info(g,
+				(struct nvgpu_gpu_get_engine_info_args *)buf);
+		}
 		break;
 
 #ifdef CONFIG_NVGPU_DGPU
