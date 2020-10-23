@@ -133,6 +133,8 @@ struct vi_capture_setup {
 	uint16_t __pad_slvsec1;
 
 	uint32_t csi_stream_id; /**< NVCSI PixelParser index [0-5] */
+	uint32_t virtual_channel_id; /**< Virtual Channel index [0-15] */
+	uint32_t csi_port; /**< NVCSI Port [0-7], not valid for TPG */
 	uint32_t __pad_csi; /**< Reserved */
 
 	uint32_t error_mask_uncorrectable;

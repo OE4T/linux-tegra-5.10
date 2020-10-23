@@ -707,6 +707,10 @@ int vi_capture_setup(
 
 	config->vi_unit_id = vi_inst;
 
+	config->csi_stream.stream_id = setup->csi_stream_id;
+	config->csi_stream.csi_port = setup->csi_port;
+	config->csi_stream.virtual_channel = setup->virtual_channel_id;
+
 	config->queue_depth = setup->queue_depth;
 	config->request_size = setup->request_size;
 	config->requests = setup->iova;
