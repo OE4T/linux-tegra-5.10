@@ -42,7 +42,6 @@ void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
 void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
 					  u32 depth_val,
 					  u32 index);
-u32 gm20b_ltc_zbc_table_size(struct gk20a *g);
 #endif /* CONFIG_NVGPU_GRAPHICS */
 #ifdef CONFIG_NVGPU_DEBUGGER
 bool gm20b_ltc_pri_is_ltc_addr(struct gk20a *g, u32 addr);

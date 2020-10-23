@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,6 +73,8 @@
 #define fb_mmu_ctrl_atomic_capability_mode_rmw_f()                  (0x2000000U)
 #define fb_mmu_ctrl_atomic_capability_sys_ncoh_mode_m()       (U32(0x1U) << 27U)
 #define fb_mmu_ctrl_atomic_capability_sys_ncoh_mode_l2_f()                (0x0U)
+#define fb_mmu_ctrl_use_full_comp_tag_line_v(r)            (((r) >> 12U) & 0x1U)
+#define fb_mmu_ctrl_use_full_comp_tag_line_true_f()                    (0x1000U)
 #define fb_hshub_num_active_ltcs_r()                               (0x001fbc20U)
 #define fb_hshub_num_active_ltcs_hub_sys_atomic_mode_m()      (U32(0x1U) << 25U)
 #define fb_hshub_num_active_ltcs_hub_sys_atomic_mode_use_read_f()         (0x0U)
@@ -165,11 +167,21 @@
 #define fb_mmu_debug_ctrl_debug_v(r)                       (((r) >> 16U) & 0x1U)
 #define fb_mmu_debug_ctrl_debug_m()                           (U32(0x1U) << 16U)
 #define fb_mmu_debug_ctrl_debug_enabled_v()                        (0x00000001U)
+#define fb_mmu_debug_ctrl_debug_enabled_f()                           (0x10000U)
 #define fb_mmu_debug_ctrl_debug_disabled_v()                       (0x00000000U)
+#define fb_mmu_debug_ctrl_debug_disabled_f()                              (0x0U)
 #define fb_mmu_vpr_info_r()                                        (0x00100cd0U)
 #define fb_mmu_vpr_info_fetch_v(r)                          (((r) >> 2U) & 0x1U)
 #define fb_mmu_vpr_info_fetch_false_v()                            (0x00000000U)
 #define fb_mmu_vpr_info_fetch_true_v()                             (0x00000001U)
+#define fb_mmu_vpr_info_index_f(v)                       ((U32(v) & 0x3U) << 0U)
+#define fb_mmu_vpr_info_index_v(r)                          (((r) >> 0U) & 0x3U)
+#define fb_mmu_vpr_info_index_addr_lo_v()                          (0x00000000U)
+#define fb_mmu_wpr_info_r()                                        (0x00100cd4U)
+#define fb_mmu_wpr_info_index_f(v)                       ((U32(v) & 0xfU) << 0U)
+#define fb_mmu_wpr_info_index_allow_read_v()                       (0x00000000U)
+#define fb_mmu_wpr_info_index_wpr1_addr_lo_v()                     (0x00000002U)
+#define fb_mmu_wpr_info_index_wpr1_addr_hi_v()                     (0x00000003U)
 #define fb_mmu_l2tlb_ecc_control_r()                               (0x00100e6cU)
 #define fb_mmu_l2tlb_ecc_control_inject_uncorrected_err_f(v)\
 				((U32(v) & 0x1U) << 5U)

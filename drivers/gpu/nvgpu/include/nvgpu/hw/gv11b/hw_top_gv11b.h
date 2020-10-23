@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -101,6 +101,7 @@
 #define top_device_info_entry_v(r)                          (((r) >> 0U) & 0x3U)
 #define top_device_info_entry_not_valid_v()                        (0x00000000U)
 #define top_device_info_entry_enum_v()                             (0x00000002U)
+#define top_device_info_entry_engine_type_v()                      (0x00000003U)
 #define top_device_info_entry_data_v()                             (0x00000001U)
 #define top_device_info_data_type_v(r)                     (((r) >> 30U) & 0x1U)
 #define top_device_info_data_type_enum2_v()                        (0x00000000U)

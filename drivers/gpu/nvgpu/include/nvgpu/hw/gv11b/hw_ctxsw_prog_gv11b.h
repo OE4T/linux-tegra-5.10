@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -182,4 +182,26 @@
 				((U32(v) & 0x3U) << 0U)
 #define ctxsw_prog_main_image_compute_preemption_options_control_cta_f()  (0x1U)
 #define ctxsw_prog_main_image_compute_preemption_options_control_cilp_f() (0x2U)
+#define ctxsw_prog_main_image_context_timestamp_buffer_control_o() (0x000000acU)
+#define ctxsw_prog_main_image_context_timestamp_buffer_control_num_records_f(v)\
+				((U32(v) & 0xffffU) << 0U)
+#define ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_o()  (0x000000b0U)
+#define ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_v_m()\
+				(U32(0x1ffffU) << 0U)
+#define ctxsw_prog_main_image_context_timestamp_buffer_ptr_o()     (0x000000b4U)
+#define ctxsw_prog_main_image_context_timestamp_buffer_ptr_v_f(v)\
+				((U32(v) & 0xffffffffU) << 0U)
+#define ctxsw_prog_record_timestamp_record_size_in_bytes_v()       (0x00000080U)
+#define ctxsw_prog_record_timestamp_record_size_in_words_v()       (0x00000020U)
+#define ctxsw_prog_record_timestamp_magic_value_hi_o()             (0x00000004U)
+#define ctxsw_prog_record_timestamp_magic_value_hi_v_value_v()     (0x600dbeefU)
+#define ctxsw_prog_record_timestamp_timestamp_hi_o()               (0x0000001cU)
+#define ctxsw_prog_record_timestamp_timestamp_hi_v_f(v)\
+				((U32(v) & 0xffffffU) << 0U)
+#define ctxsw_prog_record_timestamp_timestamp_hi_v_v(r)\
+				(((r) >> 0U) & 0xffffffU)
+#define ctxsw_prog_record_timestamp_timestamp_hi_tag_f(v)\
+				((U32(v) & 0xffU) << 24U)
+#define ctxsw_prog_record_timestamp_timestamp_hi_tag_m()     (U32(0xffU) << 24U)
+#define ctxsw_prog_record_timestamp_timestamp_hi_tag_v(r) (((r) >> 24U) & 0xffU)
 #endif

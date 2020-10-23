@@ -362,7 +362,7 @@ static const struct gops_gr_ctxsw_prog gv11b_ops_gr_ctxsw_prog = {
 	.get_extended_buffer_size_offset = gm20b_ctxsw_prog_get_extended_buffer_size_offset,
 	.get_ppc_info = gm20b_ctxsw_prog_get_ppc_info,
 	.get_local_priv_register_ctl_offset = gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
-	.set_pmu_options_boost_clock_frequencies = gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies,
+	.set_pmu_options_boost_clock_frequencies = NULL,
 	.hw_get_perf_counter_register_stride = gv11b_ctxsw_prog_hw_get_perf_counter_register_stride,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #ifdef CONFIG_DEBUG_FS
@@ -374,7 +374,7 @@ static const struct gops_gr_ctxsw_prog gv11b_ops_gr_ctxsw_prog = {
 	.hw_record_ts_timestamp = gm20b_ctxsw_prog_hw_record_ts_timestamp,
 	.hw_get_ts_record_size_in_bytes = gm20b_ctxsw_prog_hw_get_ts_record_size_in_bytes,
 	.is_ts_valid_record = gm20b_ctxsw_prog_is_ts_valid_record,
-	.get_ts_buffer_aperture_mask = gm20b_ctxsw_prog_get_ts_buffer_aperture_mask,
+	.get_ts_buffer_aperture_mask = NULL,
 	.set_ts_num_records = gm20b_ctxsw_prog_set_ts_num_records,
 	.set_ts_buffer_ptr = gm20b_ctxsw_prog_set_ts_buffer_ptr,
 #endif
@@ -455,6 +455,8 @@ static const struct gops_gr_init gv11b_ops_gr_init = {
 	.get_no_of_sm = nvgpu_gr_get_no_of_sm,
 	.get_nonpes_aware_tpc = gv11b_gr_init_get_nonpes_aware_tpc,
 	.ecc_scrub_reg = gv11b_gr_init_ecc_scrub_reg,
+	.lg_coalesce = NULL,
+	.su_coalesce = NULL,
 	.pes_vsc_stream = gm20b_gr_init_pes_vsc_stream,
 	.gpc_mmu = gv11b_gr_init_gpc_mmu,
 	.fifo_access = gm20b_gr_init_fifo_access,
@@ -829,7 +831,7 @@ static const struct gops_fifo gv11b_ops_fifo = {
 	.get_mmu_fault_desc = NULL,
 	.get_mmu_fault_client_desc = NULL,
 	.get_mmu_fault_gpc_desc = NULL,
-	.get_runlist_timeslice = gk20a_fifo_get_runlist_timeslice,
+	.get_runlist_timeslice = NULL,
 	.get_pb_timeslice = gk20a_fifo_get_pb_timeslice,
 	.mmu_fault_id_to_pbdma_id = gv11b_fifo_mmu_fault_id_to_pbdma_id,
 	.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,6 +73,7 @@
 #define mc_intr_ltc_pending_f()                                     (0x2000000U)
 #define mc_intr_priv_ring_pending_f()                              (0x40000000U)
 #define mc_intr_pbus_pending_f()                                   (0x10000000U)
+#define mc_intr_pfb_pending_f()                                        (0x2000U)
 #define mc_intr_en_r(i)\
 		(nvgpu_safe_add_u32(0x00000140U, nvgpu_safe_mult_u32((i), 4U)))
 #define mc_intr_en_set_r(i)\
