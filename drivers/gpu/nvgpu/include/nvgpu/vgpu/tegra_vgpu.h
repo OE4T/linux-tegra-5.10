@@ -522,6 +522,7 @@ struct tegra_vgpu_constants_params {
 	u32 hwpm_ctx_size;
 	u8 force_preempt_mode;
 	u8 can_set_clkrate;
+	u8 support_sm_ttu;
 	u32 default_timeslice_us;
 	u32 preempt_ctx_size;
 	u32 channel_base;

@@ -128,6 +128,7 @@ int vgpu_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SET_CTX_MMU_DEBUG_MODE, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SM_TTU, priv->constants.support_sm_ttu != 0U);
 
 	/* per-device identifier */
 	g->per_device_identifier = priv->constants.per_device_identifier;
