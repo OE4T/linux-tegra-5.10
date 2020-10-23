@@ -375,11 +375,19 @@
 		nvidia,controller-id = <&bpmp 0x5>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>;
+#if LINUX_VERSION >= 500
+		clock-names = "core";
+#else
 		clock-names = "core_clk";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_5_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX1_CORE_5>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 53 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
@@ -434,11 +442,19 @@
 		nvidia,controller-id = <&bpmp 0x6>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>;
+#if LINUX_VERSION >= 500
+		clock-names = "core";
+#else
 		clock-names = "core_clk";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 352 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
@@ -492,11 +508,19 @@
 		nvidia,controller-id = <&bpmp 0x7>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>;
+#if LINUX_VERSION >= 500
+		clock-names = "core";
+#else
 		clock-names = "core_clk";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 354 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
@@ -550,11 +574,19 @@
 		nvidia,controller-id = <&bpmp 0xa>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>;
+#if LINUX_VERSION >= 500
+		clock-names = "core";
+#else
 		clock-names = "core_clk";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 360 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
@@ -596,8 +628,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4B0>;
 		reg = <0x00 0x14180000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x38000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x38040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x38040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x38080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -607,12 +640,21 @@
 		num-lanes = <4>;
 		linux,pci-domain = <0>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_0_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_0>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 72 0x04>,	/* controller interrupt */
 			     <0 73 0x04>;	/* MSI interrupt */
@@ -655,6 +697,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 0>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x38100000 0x0 0x38100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -676,8 +722,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX1A>;
 		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x30040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x30040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x30080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -687,12 +734,21 @@
 		num-lanes = <1>;
 		linux,pci-domain = <1>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 45 0x04>,	/* controller interrupt */
 			     <0 46 0x04>;	/* MSI interrupt */
@@ -737,6 +793,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 1>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x30100000 0x0 0x30100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -758,8 +818,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX1A>;
 		reg = <0x00 0x14120000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x32000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x32040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x32040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x32080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -769,12 +830,21 @@
 		num-lanes = <1>;
 		linux,pci-domain = <2>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_2>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_2>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_2M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_2_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_2>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 47 0x04>,	/* controller interrupt */
 			     <0 48 0x04>;	/* MSI interrupt */
@@ -817,6 +887,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 2>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x32100000 0x0 0x32100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -838,8 +912,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX1A>;
 		reg = <0x00 0x14140000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x34000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x34040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x34040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x34080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -849,12 +924,21 @@
 		num-lanes = <1>;
 		linux,pci-domain = <3>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_3>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_3>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_3M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_3_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_3>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 49 0x04>,	/* controller interrupt */
 			     <0 50 0x04>;	/* MSI interrupt */
@@ -896,6 +980,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 3>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x34100000 0x0 0x34100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -917,8 +1005,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4B1>;
 		reg = <0x00 0x14160000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x36000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x36040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x36040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x36080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -928,12 +1017,21 @@
 		num-lanes = <4>;
 		linux,pci-domain = <4>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_4_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_4>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 51 0x04>,	/* controller interrupt */
 			     <0 52 0x04>;	/* MSI interrupt */
@@ -975,6 +1073,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 4>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x36100000 0x0 0x36100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -996,8 +1098,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX8A>;
 		reg = <0x00 0x141a0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x3a000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x3a040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x3a040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x3a080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -1007,12 +1110,21 @@
 		num-lanes = <8>;
 		linux,pci-domain = <5>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>,
+			 <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_5_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX1_CORE_5>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 53 0x04>,	/* controller interrupt */
 			     <0 54 0x04>;	/* MSI interrupt */
@@ -1055,6 +1167,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 5>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x3a100000 0x0 0x3a100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -1076,8 +1192,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4A>;
 		reg = <0x00 0x141c0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x3c000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x3c040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x3c040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x3c080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -1087,12 +1204,21 @@
 		num-lanes = <4>;
 		linux,pci-domain = <6>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>,
+			 <&bpmp_clks TEGRA234_CLK_PEX1_C6_CORE_M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 352 0x04>,	/* controller interrupt */
 			     <0 353 0x04>;	/* MSI interrupt */
@@ -1135,6 +1261,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 6>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x3c100000 0x0 0x3c100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -1156,8 +1286,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX8B>;
 		reg = <0x00 0x141e0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x28000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x28040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x28040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x28080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -1167,12 +1298,21 @@
 		num-lanes = <8>;
 		linux,pci-domain = <7>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>,
+			 <&bpmp_clks TEGRA234_CLK_PEX2_C7_CORE_M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 354 0x04>,	/* controller interrupt */
 			     <0 355 0x04>;	/* MSI interrupt */
@@ -1215,6 +1355,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 7>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x28100000 0x0 0x28100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -1236,8 +1380,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4D>;
 		reg = <0x00 0x140a0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x2a000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x2a040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x2a040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x2a080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -1247,12 +1392,21 @@
 		num-lanes = <4>;
 		linux,pci-domain = <8>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_8>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_8>,
+			 <&bpmp_clks TEGRA234_CLK_PEX2_C8_CORE_M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_8_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_8>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 356 0x04>,	/* controller interrupt */
 			     <0 357 0x04>;	/* MSI interrupt */
@@ -1295,6 +1449,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 8>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x2a100000 0x0 0x2a100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -1316,8 +1474,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4E>;
 		reg = <0x00 0x140c0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x2c000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x2c040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x2c040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x2c080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -1327,12 +1486,21 @@
 		num-lanes = <4>;
 		linux,pci-domain = <9>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_9>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_9>,
+			 <&bpmp_clks TEGRA234_CLK_PEX2_C9_CORE_M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_9_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_9>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 358 0x04>,	/* controller interrupt */
 			     <0 359 0x04>;	/* MSI interrupt */
@@ -1375,6 +1543,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 9>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x2c100000 0x0 0x2c100000 0x0 0x00100000      /* downstream I/O (1MB) */
@@ -1396,8 +1568,9 @@
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4F>;
 		reg = <0x00 0x140e0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x2e000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x2e040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+		       0x00 0x2e040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x2e080000 0x0 0x00040000>; /* DBI reg space (256K)       */
+		reg-names = "appl", "config", "atu_dma", "dbi";
 
 		status = "disabled";
 
@@ -1407,12 +1580,21 @@
 		num-lanes = <4>;
 		linux,pci-domain = <10>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>;
-		clock-names = "core_clk";
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>,
+			 <&bpmp_clks TEGRA234_CLK_PEX2_C10_CORE_M>;
+#if LINUX_VERSION >= 500
+		clock-names = "core", "core_m";
+#else
+		clock-names = "core_clk", "core_clk_m";
+#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10>;
+#if LINUX_VERSION >= 500
+		reset-names = "apb", "core";
+#else
 		reset-names = "core_apb_rst", "core_rst";
+#endif
 
 		interrupts = <0 360 0x04>,	/* controller interrupt */
 			     <0 361 0x04>;	/* MSI interrupt */
@@ -1455,6 +1637,10 @@
 		nvidia,aspm-cmrt = <0x3C>;
 		nvidia,aspm-pwr-on-t = <0x14>;
 		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,bpmp = <&bpmp 10>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
 
 		bus-range = <0x0 0xff>;
 		ranges = <0x81000000 0x0 0x2e100000 0x0 0x2e100000 0x0 0x00100000      /* downstream I/O (1MB) */
