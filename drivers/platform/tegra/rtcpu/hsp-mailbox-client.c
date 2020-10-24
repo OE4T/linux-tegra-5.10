@@ -84,8 +84,8 @@ static int camrtc_hsp_send(struct camrtc_hsp *camhsp,
 			"request 0x%08x: no space left in mbox msg queue\n", request);
 	}
 	else
-		dev_err(&camhsp->dev,
-			"request 0x%08x: unknown error\n", request);
+		dev_dbg(&camhsp->dev,
+			"request sent: 0x%08x\n", request);
 
 	return ret;
 }
@@ -625,8 +625,6 @@ struct camrtc_hsp *camrtc_hsp_create(
 	camhsp->tx.client.tx_done = camrtc_hsp_tx_empty_notify;
 	camhsp->rx.client.dev = camhsp->tx.client.dev = &(camhsp->dev);
 
-	dev_set_drvdata(&camhsp->dev, camhsp);
-
 	ret = camrtc_hsp_probe(camhsp);
 	if (ret < 0)
 		goto fail;
@@ -634,6 +632,8 @@ struct camrtc_hsp *camrtc_hsp_create(
 	ret = device_add(&camhsp->dev);
 	if (ret < 0)
 		goto fail;
+
+	dev_set_drvdata(&camhsp->dev, camhsp);
 
 	return camhsp;
 
