@@ -362,10 +362,9 @@
 #define TEGRA234_CLK_VIC			167U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_CSITE switch divider output */
 #define TEGRA234_CLK_CSITE			168U
-/** @brief PVA0_vps0_clk */
-#define TEGRA234_CLK_PVA0_VPS0			169U
-/** @brief PVA0_vps1_clk */
-#define TEGRA234_CLK_PVA0_VPS1			170U
+
+/* free: 169-170 */
+
 /** @brief output of gate CLK_ENB_PEX2_CORE_7 */
 #define TEGRA234_CLK_PEX2_C7_CORE		171U
 /** @brief output of gate CLK_ENB_PEX2_CORE_8 */
@@ -857,7 +856,7 @@
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2S7 */
 #define TEGRA234_CLK_I2S7			420U
 /** @brief Monitored output of I2S7 pad macro mux */
-#define TEGRA234_CLK_I2S7M			421U
+#define TEGRA234_CLK_I2S7_PAD_M			421U
 /** @brief clock recovered from I2S8 input */
 #define TEGRA234_CLK_I2S8_SYNC_INPUT		422U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_AUDIO_SYNC_CLK_I2S8 */
@@ -865,7 +864,7 @@
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2S8 */
 #define TEGRA234_CLK_I2S8			424U
 /** @brief Monitored output of I2S8 pad macro mux */
-#define TEGRA234_CLK_I2S8M			425U
+#define TEGRA234_CLK_I2S8_PAD_M			425U
 /** @brief NAFLL clock source for GPU GPC0 */
 #define TEGRA234_CLK_NAFLL_GPC0			426U
 /** @brief NAFLL clock source for GPU GPC1 */
@@ -942,6 +941,22 @@
 #define TEGRA234_CLK_PRE_SOR1			462U
 /** @brief CLK_RST_CONTROLLER_LINK_REFCLK_CFG__0 output */
 #define TEGRA234_CLK_DP_LINK_REF		463U
+/** @brief Link clock input from DP macro brick PLL */
+#define TEGRA234_CLK_SOR_LINKA_INPUT		464U
+/** @brief SOR AFIFO clock outut */
+#define TEGRA234_CLK_SOR_LINKA_AFIFO		465U
+/** @brief Monitored branch of linka_afifo_clk */
+#define TEGRA234_CLK_SOR_LINKA_AFIFO_M		466U
+/** @brief Monitored branch of rg0_pclk */
+#define TEGRA234_CLK_RG0_M			467U
+/** @brief Monitored branch of rg1_pclk */
+#define TEGRA234_CLK_RG1_M			468U
+/** @brief Monitored branch of sor0_clk */
+#define TEGRA234_CLK_SOR0_M			469U
+/** @brief Monitored branch of sor1_clk */
+#define TEGRA234_CLK_SOR1_M			470U
+/** @brief EMC PLLHUB output */
+#define TEGRA234_CLK_PLLHUB			471U
 
 #define TEGRA234_MAX_PUBLIC_CLK_ID		500U
 
@@ -1018,5 +1033,9 @@
 #define TEGRA234_CLK_SDMMC4_AXICIF_M		TEGRA234_CLK_SDMMC4_AXICIF
 #define TEGRA234_CLK_UTMIPLL			TEGRA234_CLK_UTMIP_PLL
 #define TEGRA234_CLK_UTMIPLL_HPS		TEGRA234_CLK_UTMIP_PLL
+#define TEGRA234_CLK_PVA0_VPS0			TEGRA234_CLK_PVA0_VPS
+#define TEGRA234_CLK_PVA0_VPS1			TEGRA234_CLK_PVA0_VPS
+#define TEGRA234_CLK_I2S7M			TEGRA234_CLK_I2S7_PAD_M
+#define TEGRA234_CLK_I2S8M			TEGRA234_CLK_I2S8_PAD_M
 
 #endif
