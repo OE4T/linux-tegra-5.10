@@ -394,7 +394,16 @@ int gr_gm20b_update_pc_sampling(struct nvgpu_channel *c,
 		return -EINVAL;
 	}
 
-	c->g->ops.gr.ctxsw_prog.set_pc_sampling(c->g, mem, enable);
+	/* Pascal+ chips do not support updating PC sampling using register
+	 * NV_CTXSW_MAIN_IMAGE_PM. We are setting the set_pc_sampling HAL
+	 * to NULL. We need to make sure devtools also does not call into
+	 * these APIs. Until the devtools team updates their code, we would
+	 * return success(0) from update_pc_sampling API even if the HAL is
+	 * set to NULL. Filed http://nvbugs/200671026 for devtools team.
+	 */
+	if (c->g->ops.gr.ctxsw_prog.set_pc_sampling) {
+		c->g->ops.gr.ctxsw_prog.set_pc_sampling(c->g, mem, enable);
+	}
 
 	nvgpu_log_fn(c->g, "done");
 
