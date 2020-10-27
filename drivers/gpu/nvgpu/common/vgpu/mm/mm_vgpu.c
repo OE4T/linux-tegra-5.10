@@ -358,16 +358,7 @@ u64 vgpu_locked_gmmu_map(struct vm_gk20a *vm,
 	}
 
 	if (pgsz_idx == GMMU_PAGE_SIZE_KERNEL) {
-		if (page_size == vm->gmmu_page_sizes[GMMU_PAGE_SIZE_SMALL]) {
-			pgsz_idx = GMMU_PAGE_SIZE_SMALL;
-		} else if (page_size ==
-				vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]) {
-			pgsz_idx = GMMU_PAGE_SIZE_BIG;
-		} else {
-			nvgpu_err(g, "invalid kernel page size %d",
-				page_size);
-			goto fail;
-		}
+		pgsz_idx = GMMU_PAGE_SIZE_SMALL;
 	}
 
 	msg.cmd = TEGRA_VGPU_CMD_AS_MAP_EX;
