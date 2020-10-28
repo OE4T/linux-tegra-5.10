@@ -204,4 +204,8 @@
 				((U32(v) & 0xffU) << 24U)
 #define ctxsw_prog_record_timestamp_timestamp_hi_tag_m()     (U32(0xffU) << 24U)
 #define ctxsw_prog_record_timestamp_timestamp_hi_tag_v(r) (((r) >> 24U) & 0xffU)
+#define ctxsw_prog_record_timestamp_timestamp_hi_tag_invalid_timestamp_v()\
+				(0x000000ffU)
+#define ctxsw_prog_record_timestamp_timestamp_hi_tag_invalid_timestamp_f()\
+				(0xff000000U)
 #endif
