@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/version.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
@@ -455,6 +456,10 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 		g->ops.clk.change_host_clk_source(g);
 		g->ops.xve.devinit_deferred_settings(g);
 	}
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT, false);
+#endif
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_DGPU_THERMAL_ALERT) &&
 		nvgpu_platform_is_silicon(g)) {
