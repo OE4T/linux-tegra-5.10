@@ -74,37 +74,6 @@
 	};
 
 	host1x@13e00000 {
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_HC>,
-			 <&smmu_niso0 TEGRA_SID_HC_VM0>,
-			 <&smmu_niso0 TEGRA_SID_HC_VM1>,
-			 <&smmu_niso0 TEGRA_SID_HC_VM2>,
-			 <&smmu_niso0 TEGRA_SID_HC_VM3>,
-			 <&smmu_niso0 TEGRA_SID_HC_VM4>,
-			 <&smmu_niso0 TEGRA_SID_HC_VM5>,
-			 <&smmu_niso0 TEGRA_SID_HC_VM6>,
-			 <&smmu_niso0 TEGRA_SID_HC_VM7>;
-
-		vic@15340000 {
-			iommus = <&smmu_niso0 TEGRA_SID_VIC>;
-			status = "okay";
-		};
-
-		nvjpg@15380000 {
-			iommus = <&smmu_niso0 TEGRA_SID_NVJPG>;
-			status = "okay";
-		};
-
-		tsec@15500000 {
-			iommus = <&smmu_niso0 TEGRA_SID_TSEC>;
-			status = "okay";
-		};
-
-		nvdec@15480000 {
-			iommus = <&smmu_niso0 TEGRA_SID_NVDEC>;
-			status = "okay";
-		};
-#else
 		vic@15340000 {
 			status = "okay";
 		};
@@ -120,7 +89,7 @@
 		nvdec@15480000 {
 			status = "okay";
 		};
-#endif
+
 		nvenc@154c0000 {
 			status = "okay";
 		};
