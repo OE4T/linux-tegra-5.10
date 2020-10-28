@@ -305,6 +305,9 @@ static enum tegra_platform __tegra_get_platform(void)
 	major = tegra_get_major_rev();
 	pre_si_plat = tegra_get_pre_si_plat();
 
+	if (pre_si_plat == PRE_SI_VSP)
+		return TEGRA_PLATFORM_VSP;
+
 	if (!major) {
 		u32 minor;
 
