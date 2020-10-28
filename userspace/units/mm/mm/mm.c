@@ -45,7 +45,7 @@
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"
 #include "hal/fifo/ramin_gk20a.h"
-#include "hal/fifo/ramin_gp10b.h"
+#include "hal/fifo/ramin_gv11b.h"
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_flush_gv11b.h>
 
@@ -473,7 +473,7 @@ int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
 #endif
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
-	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
+	g->ops.ramin.init_pdb = gv11b_ramin_init_pdb;
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 	g->ops.fb.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled;
 	g->ops.fb.read_mmu_fault_buffer_size =

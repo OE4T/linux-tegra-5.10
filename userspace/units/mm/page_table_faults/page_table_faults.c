@@ -53,7 +53,7 @@
 #include "hal/fb/intr/fb_intr_gv11b.h"
 #include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
-#include "hal/fifo/ramin_gp10b.h"
+#include "hal/fifo/ramin_gv11b.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
@@ -133,7 +133,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 #endif
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 
-	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
+	g->ops.ramin.init_pdb = gv11b_ramin_init_pdb;
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 
 	g->ops.mm.init_inst_block = gv11b_mm_init_inst_block;

@@ -213,7 +213,7 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			gp10b_gr_intr_set_go_idle_timeout(g, data);
 			return 0;
 		case NVC097_SET_COALESCE_BUFFER_SIZE:
-			gp10b_gr_intr_set_coalesce_buffer_size(g, data);
+			gv11b_gr_intr_set_coalesce_buffer_size(g, data);
 			return 0;
 		case NVC397_SET_TEX_IN_DBG:
 			gv11b_gr_intr_set_tex_in_dbg(g, data);
@@ -2042,5 +2042,19 @@ void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data)
 	val = set_field(val, gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_st_m(),
 			gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_st_f(flag));
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r(), val);
+}
+
+void gv11b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data)
+{
+	u32 val;
+
+	nvgpu_log_fn(g, " ");
+
+	val = nvgpu_readl(g, gr_gpcs_tc_debug0_r());
+	val = set_field(val, gr_gpcs_tc_debug0_limit_coalesce_buffer_size_m(),
+			gr_gpcs_tc_debug0_limit_coalesce_buffer_size_f(data));
+	nvgpu_writel(g, gr_gpcs_tc_debug0_r(), val);
+
+	nvgpu_log_fn(g, "done");
 }
 #endif

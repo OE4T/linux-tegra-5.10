@@ -100,6 +100,27 @@ int test_gv11b_ramin_set_eng_method_buffer(struct unit_module *m,
 						struct gk20a *g, void *args);
 
 /**
+ * Test specification for: test_gv11b_ramin_init_pdb
+ *
+ * Description: Initialize instance block's PDB
+ *
+ * Test Type: Feature
+ *
+ * Targets: gops_ramin.init_pdb, gv11b_ramin_init_pdb
+ *
+ * Input: None
+ *
+ * Steps:
+ * - Configure PDB aperture, big page size, pdb address, PT format and default
+ *   attribute.
+ * - Check page directory base values stored in instance block are correct.
+ *
+ * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
+ */
+int test_gv11b_ramin_init_pdb(struct unit_module *m, struct gk20a *g,
+								void *args);
+
+/**
  * @}
  */
 

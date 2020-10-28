@@ -98,7 +98,6 @@
 #include "hal/fifo/ramfc_tu104.h"
 #include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
-#include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/ramin_gv11b.h"
 #include "hal/fifo/ramin_tu104.h"
 #include "hal/fifo/runlist_ram_gk20a.h"
@@ -521,7 +520,7 @@ static const struct gops_gr_init tu104_ops_gr_init = {
 #endif
 	.fe_pwr_mode_force_on = gm20b_gr_init_fe_pwr_mode_force_on,
 	.override_context_reset = gm20b_gr_init_override_context_reset,
-	.fe_go_idle_timeout = gm20b_gr_init_fe_go_idle_timeout,
+	.fe_go_idle_timeout = gv11b_gr_init_fe_go_idle_timeout,
 	.load_method_init = gm20b_gr_init_load_method_init,
 	.commit_global_timeslice = gv11b_gr_init_commit_global_timeslice,
 #ifdef CONFIG_NVGPU_DGPU
@@ -975,7 +974,7 @@ static const struct gops_ramfc tu104_ops_ramfc = {
 static const struct gops_ramin tu104_ops_ramin = {
 	.set_gr_ptr = gv11b_ramin_set_gr_ptr,
 	.set_big_page_size = gm20b_ramin_set_big_page_size,
-	.init_pdb = gp10b_ramin_init_pdb,
+	.init_pdb = gv11b_ramin_init_pdb,
 	.init_subctx_pdb = gv11b_ramin_init_subctx_pdb,
 	.set_adr_limit = NULL,
 	.base_shift = gk20a_ramin_base_shift,

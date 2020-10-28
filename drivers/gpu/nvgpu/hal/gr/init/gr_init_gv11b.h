@@ -71,6 +71,7 @@ u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
 	bool patch);
+void gv11b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable);
 
 #ifdef CONFIG_NVGPU_SM_DIVERSITY
 int gv11b_gr_init_commit_sm_id_programming(struct gk20a *g,

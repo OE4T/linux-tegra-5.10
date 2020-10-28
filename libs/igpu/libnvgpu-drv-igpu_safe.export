@@ -92,7 +92,6 @@ gp10b_mm_remove_bar2_vm
 gp10b_pbdma_get_config_auth_level_privileged
 gp10b_pbdma_get_fc_runlist_timeslice
 gp10b_pbdma_get_signature
-gp10b_ramin_init_pdb
 gp10b_engine_init_ce_info
 gp10b_priv_ring_isr
 gp10b_priv_ring_decode_error_code
@@ -186,6 +185,7 @@ gv11b_pbdma_setup_hw
 gv11b_ramfc_capture_ram_dump
 gv11b_ramfc_setup
 gv11b_ramin_init_subctx_pdb
+gv11b_ramin_init_pdb
 gv11b_ramin_set_eng_method_buffer
 gv11b_ramin_set_gr_ptr
 gv11b_runlist_count_max

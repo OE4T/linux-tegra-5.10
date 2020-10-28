@@ -150,6 +150,7 @@ void gv11b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data);
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 void gv11b_gr_intr_set_tex_in_dbg(struct gk20a *g, u32 data);
+void gv11b_gr_intr_set_coalesce_buffer_size(struct gk20a *g, u32 data);
 #endif
 
 #endif /* NVGPU_GR_INTR_GV11B_H */

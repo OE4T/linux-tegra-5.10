@@ -184,17 +184,17 @@ fifo:
 
     ramin_fusa:
       safe: yes
-      sources: [ hal/fifo/ramin_gp10b.h,
-                 hal/fifo/ramin_gv11b.h,
+      sources: [ hal/fifo/ramin_gv11b.h,
                  hal/fifo/ramin_gm20b.h,
                  hal/fifo/ramin_gv11b_fusa.c,
-                 hal/fifo/ramin_gp10b_fusa.c,
                  hal/fifo/ramin_gm20b_fusa.c ]
 
     ramin:
       safe: no
       sources: [ hal/fifo/ramin_gk20a.h,
+                 hal/fifo/ramin_gp10b.h,
                  hal/fifo/ramin_gk20a.c,
+                 hal/fifo/ramin_gp10b.c,
                  hal/fifo/ramin_tu104.c,
                  hal/fifo/ramin_tu104.h ]
 

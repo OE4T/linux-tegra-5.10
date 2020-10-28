@@ -55,6 +55,17 @@
 
 #define GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT 100U
 
+void gv11b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable)
+{
+	if (enable) {
+		nvgpu_writel(g, gr_fe_go_idle_timeout_r(),
+			gr_fe_go_idle_timeout_count_prod_f());
+	} else {
+		nvgpu_writel(g, gr_fe_go_idle_timeout_r(),
+			gr_fe_go_idle_timeout_count_disabled_f());
+	}
+}
+
 static int gr_gv11b_ecc_scrub_is_done(struct gk20a *g,
 			struct nvgpu_gr_config *gr_config,
 			u32 scrub_reg, u32 scrub_mask, u32 scrub_done)
@@ -1035,5 +1046,4 @@ void gv11b_gr_init_restore_stats_counter_bundle_data(struct gk20a *g,
 		 gr_pri_mme_shadow_ram_index_write_trigger_f());
 
 }
-
 #endif

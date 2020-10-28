@@ -45,7 +45,6 @@ INPUT += ../../../userspace/units/fifo/ramfc/gp10b/nvgpu-ramfc-gp10b.h
 INPUT += ../../../userspace/units/fifo/ramfc/gv11b/nvgpu-ramfc-gv11b.h
 INPUT += ../../../userspace/units/fifo/ramin/gk20a/ramin-gk20a-fusa.h
 INPUT += ../../../userspace/units/fifo/ramin/gm20b/ramin-gm20b-fusa.h
-INPUT += ../../../userspace/units/fifo/ramin/gp10b/ramin-gp10b-fusa.h
 INPUT += ../../../userspace/units/fifo/ramin/gv11b/ramin-gv11b-fusa.h
 INPUT += ../../../userspace/units/fifo/runlist/nvgpu-runlist.h
 INPUT += ../../../userspace/units/fifo/runlist/gk20a/nvgpu-runlist-gk20a.h

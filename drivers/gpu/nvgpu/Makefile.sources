@@ -207,7 +207,6 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/fifo/ramfc_gv11b_fusa.c \
 	hal/fifo/ramin_gk20a_fusa.c \
 	hal/fifo/ramin_gm20b_fusa.c \
-	hal/fifo/ramin_gp10b_fusa.c \
 	hal/fifo/ramin_gv11b_fusa.c \
 	hal/fifo/runlist_fifo_gk20a_fusa.c \
 	hal/fifo/runlist_fifo_gv11b_fusa.c \
@@ -301,6 +300,7 @@ srcs += hal/init/hal_gp10b.c \
 	hal/fifo/ramfc_gk20a.c  \
 	hal/fifo/ramfc_gp10b.c  \
 	hal/fifo/ramin_gk20a.c \
+	hal/fifo/ramin_gp10b.c \
 	hal/fifo/channel_gk20a.c \
 	hal/fifo/channel_gm20b.c \
 	hal/fifo/tsg_gk20a.c \

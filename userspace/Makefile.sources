@@ -125,7 +125,6 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/ramfc/gv11b	\
 	$(UNIT_SRC)/fifo/ramin/gk20a	\
 	$(UNIT_SRC)/fifo/ramin/gm20b	\
-	$(UNIT_SRC)/fifo/ramin/gp10b	\
 	$(UNIT_SRC)/fifo/ramin/gv11b	\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/fifo/runlist/gk20a	\

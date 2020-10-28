@@ -35,5 +35,7 @@ void gv11b_ramin_init_subctx_pdb(struct gk20a *g,
 		bool replayable, u32 max_subctx_count);
 void gv11b_ramin_set_eng_method_buffer(struct gk20a *g,
 		struct nvgpu_mem *inst_block, u64 gpu_va);
+void gv11b_ramin_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
+		u64 pdb_addr, struct nvgpu_mem *pdb_mem);
 
 #endif /* NVGPU_RAMIN_GV11B_H */

@@ -732,3 +732,14 @@ void gm20b_gr_init_get_default_preemption_modes(
 	*default_graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
 	*default_compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CTA;
 }
+
+void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable)
+{
+	if (enable) {
+		nvgpu_writel(g, gr_fe_go_idle_timeout_r(),
+			gr_fe_go_idle_timeout_count_prod_f());
+	} else {
+		nvgpu_writel(g, gr_fe_go_idle_timeout_r(),
+			gr_fe_go_idle_timeout_count_disabled_f());
+	}
+}

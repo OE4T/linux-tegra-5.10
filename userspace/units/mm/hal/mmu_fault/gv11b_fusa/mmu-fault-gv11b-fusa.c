@@ -54,7 +54,7 @@
 #include "hal/fifo/channel_gv11b.h"
 #include "hal/fifo/preempt_gv11b.h"
 #include "hal/fifo/ramin_gk20a.h"
-#include "hal/fifo/ramin_gp10b.h"
+#include "hal/fifo/ramin_gv11b.h"
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/gmmu/gmmu_gp10b.h"
 #include "hal/mm/gmmu/gmmu_gv11b.h"
@@ -135,7 +135,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 					nvgpu_gmmu_default_big_page_size;
 	g->ops.mm.init_inst_block = gv11b_mm_init_inst_block;
 	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
-	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
+	g->ops.ramin.init_pdb = gv11b_ramin_init_pdb;
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 	g->ops.mm.setup_hw = nvgpu_mm_setup_hw;
 	g->ops.fb.init_hw = gv11b_fb_init_hw;

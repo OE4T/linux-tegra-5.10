@@ -57,7 +57,7 @@ struct unit_module;
  *          gv11b_gr_init_commit_global_timeslice,
  *          gv11b_gr_init_restore_stats_counter_bundle_data,
  *          gv11b_gr_init_commit_cbes_reserve,
- *          gm20b_gr_init_fe_go_idle_timeout,
+ *          gv11b_gr_init_fe_go_idle_timeout,
  *          gm20b_gr_init_override_context_reset,
  *          gm20b_gr_init_pipe_mode_override,
  *          gp10b_gr_init_commit_global_bundle_cb,

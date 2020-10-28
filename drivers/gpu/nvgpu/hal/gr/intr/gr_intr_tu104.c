@@ -101,7 +101,7 @@ int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			gp10b_gr_intr_set_go_idle_timeout(g, data);
 			return 0;
 		case NVC097_SET_COALESCE_BUFFER_SIZE:
-			gp10b_gr_intr_set_coalesce_buffer_size(g, data);
+			gv11b_gr_intr_set_coalesce_buffer_size(g, data);
 			return 0;
 		case NVC597_SET_TEX_IN_DBG:
 			gv11b_gr_intr_set_tex_in_dbg(g, data);

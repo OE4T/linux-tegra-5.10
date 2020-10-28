@@ -344,6 +344,7 @@ nvgpu-y += \
 	hal/fifo/ramfc_gk20a.o \
 	hal/fifo/ramfc_gp10b.o \
 	hal/fifo/ramin_gk20a.o \
+	hal/fifo/ramin_gp10b.o \
 	hal/fifo/runlist_fifo_gv11b.o \
 	hal/fifo/channel_gk20a.o \
 	hal/fifo/channel_gm20b.o \
@@ -657,7 +658,6 @@ nvgpu-y += \
 	hal/fifo/ramfc_gv11b_fusa.o \
 	hal/fifo/ramin_gk20a_fusa.o \
 	hal/fifo/ramin_gm20b_fusa.o \
-	hal/fifo/ramin_gp10b_fusa.o \
 	hal/fifo/ramin_gv11b_fusa.o \
 	hal/fifo/runlist_fifo_gk20a_fusa.o \
 	hal/fifo/runlist_fifo_gv11b_fusa.o \
