@@ -1825,7 +1825,7 @@ static void tegra_se_send_data(struct tegra_se_dev *se_dev,
 			       unsigned int opcode_addr, u32 *cpuvaddr)
 {
 	u32 cmdbuf_num_words = 0, i = 0;
-	u32 total, val;
+	u32 total, val, rbits;
 	unsigned int restart_op;
 	struct tegra_se_ll *src_ll;
 	struct tegra_se_ll *dst_ll;
@@ -1851,9 +1851,19 @@ static void tegra_se_send_data(struct tegra_se_dev *se_dev,
 			cpuvaddr[i++] = __nvhost_opcode_nonincr(
 					opcode_addr +
 					SE_AES_CRYPTO_LAST_BLOCK_OFFSET, 1);
-			cpuvaddr[i++] = ((nbytes /
-					 TEGRA_SE_AES_BLOCK_SIZE) - 1);
+			val = ((nbytes / TEGRA_SE_AES_BLOCK_SIZE)) - 1;
 
+			if (req_ctx->op_mode == SE_AES_OP_MODE_CMAC &&
+			    se_dev->chipdata->kac_type == SE_KAC_T23X) {
+				rbits = (nbytes % TEGRA_SE_AES_BLOCK_SIZE) * 8;
+				if (rbits) {
+					val++;
+					val |=
+					SE_LAST_BLOCK_RESIDUAL_BITS(rbits);
+				}
+			}
+
+			cpuvaddr[i++] = val;
 			cpuvaddr[i++] = __nvhost_opcode_incr(opcode_addr, 6);
 			cpuvaddr[i++] = req_ctx->config;
 			cpuvaddr[i++] = req_ctx->crypto_config;
@@ -1881,19 +1891,29 @@ static void tegra_se_send_data(struct tegra_se_dev *se_dev,
 
 		val = SE_OPERATION_WRSTALL(WRSTALL_TRUE);
 		if (total == nbytes) {
-			if (total == src_ll->data_len)
+			if (total == src_ll->data_len) {
 				val |= SE_OPERATION_LASTBUF(LASTBUF_TRUE) |
 					SE_OPERATION_OP(OP_START);
-			else
+
+				if (req_ctx->op_mode == SE_AES_OP_MODE_CMAC &&
+				    se_dev->chipdata->kac_type == SE_KAC_T23X)
+					val |= SE_OPERATION_FINAL(FINAL_TRUE);
+			} else {
 				val |= SE_OPERATION_LASTBUF(LASTBUF_FALSE) |
 					SE_OPERATION_OP(OP_START);
+			}
 		} else {
-			if (total == src_ll->data_len)
+			if (total == src_ll->data_len) {
 				val |= SE_OPERATION_LASTBUF(LASTBUF_TRUE) |
 					SE_OPERATION_OP(restart_op);
-			else
+
+				if (req_ctx->op_mode == SE_AES_OP_MODE_CMAC &&
+				    se_dev->chipdata->kac_type == SE_KAC_T23X)
+					val |= SE_OPERATION_FINAL(FINAL_TRUE);
+			} else {
 				val |= SE_OPERATION_LASTBUF(LASTBUF_FALSE) |
 					SE_OPERATION_OP(restart_op);
+			}
 		}
 		cpuvaddr[i++] = val;
 		total -= src_ll->data_len;
@@ -3251,6 +3271,76 @@ static int tegra_se_aes_cmac_update(struct ahash_request *req)
 	return 0;
 }
 
+static int tegra_t23x_se_aes_cmac_final(struct ahash_request *req)
+{
+	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
+	struct tegra_se_aes_cmac_context *cmac_ctx = crypto_ahash_ctx(tfm);
+	struct tegra_se_req_context *req_ctx = ahash_request_ctx(req);
+	struct tegra_se_dev *se_dev;
+	struct scatterlist *src_sg;
+	u32 num_sgs;
+	int ret = 0;
+
+	se_dev = se_devices[SE_CMAC];
+
+	mutex_lock(&se_dev->mtx);
+
+	/*
+	 * SE doesn't support CMAC input where message length is 0 bytes.
+	 * See Bug 200472457.
+	 */
+	if (!req->nbytes) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
+	if (num_sgs > SE_MAX_SRC_SG_COUNT) {
+		dev_err(se_dev->dev, "num of SG buffers are more\n");
+		ret = -EDOM;
+		goto out;
+	}
+
+	src_sg = req->src;
+	se_dev->src_ll = (struct tegra_se_ll *)(se_dev->src_ll_buf);
+	ret = tegra_map_sg(se_dev->dev, src_sg, 1, DMA_TO_DEVICE,
+			   se_dev->src_ll, req->nbytes);
+	if (!ret) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	req_ctx->op_mode = SE_AES_OP_MODE_CMAC;
+	req_ctx->config = tegra_se_get_config(se_dev, req_ctx->op_mode,
+					      true, cmac_ctx->keylen);
+	req_ctx->crypto_config = tegra_se_get_crypto_config(
+			se_dev, req_ctx->op_mode, true,
+			cmac_ctx->slot->slot_num, 0, true);
+
+	tegra_se_send_data(se_dev, req_ctx, NULL, req->nbytes,
+			   se_dev->opcode_addr,
+			   se_dev->aes_cmdbuf_cpuvaddr);
+	ret = tegra_se_channel_submit_gather(
+		se_dev, se_dev->aes_cmdbuf_cpuvaddr,
+		se_dev->aes_cmdbuf_iova, 0, se_dev->cmdbuf_cnt, NONE);
+	if (ret)
+		goto out;
+
+	tegra_se_read_cmac_result(se_dev, req->result,
+				  TEGRA_SE_AES_CMAC_DIGEST_SIZE, false);
+
+	tegra_se_clear_cmac_result(se_dev,
+				   TEGRA_SE_AES_CMAC_DIGEST_SIZE);
+
+	src_sg = req->src;
+	tegra_unmap_sg(se_dev->dev, src_sg,  DMA_TO_DEVICE, req->nbytes);
+
+out:
+	mutex_unlock(&se_dev->mtx);
+
+	return ret;
+}
+
 static int tegra_se_aes_cmac_final(struct ahash_request *req)
 {
 	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
@@ -3270,6 +3360,9 @@ static int tegra_se_aes_cmac_final(struct ahash_request *req)
 	bool use_orig_iv = true;
 
 	se_dev = se_devices[SE_CMAC];
+
+	if (se_dev->chipdata->kac_type == SE_KAC_T23X)
+		return tegra_t23x_se_aes_cmac_final(req);
 
 	mutex_lock(&se_dev->mtx);
 
@@ -3433,9 +3526,6 @@ static int tegra_se_aes_cmac_final(struct ahash_request *req)
 	tegra_se_read_cmac_result(se_dev, req->result,
 				  TEGRA_SE_AES_CMAC_DIGEST_SIZE, false);
 
-	if (se_dev->chipdata->kac_type == SE_KAC_T23X)
-		tegra_se_clear_cmac_result(se_dev,
-					   TEGRA_SE_AES_CMAC_DIGEST_SIZE);
 
 out:
 	if (cmac_ctx->buffer)
@@ -3554,36 +3644,46 @@ static int tegra_se_aes_cmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 		goto out;
 	}
 
-	/* config crypto algo */
-	req_ctx->config = tegra_se_get_config(se_dev, SE_AES_OP_MODE_CBC,
-					      true, keylen);
-	req_ctx->crypto_config = tegra_se_get_crypto_config(
-				se_dev, SE_AES_OP_MODE_CBC, true,
-				ctx->slot->slot_num, 0, true);
+	if (se_dev->chipdata->kac_type == SE_KAC_T23X) {
+		tegra_se_clear_cmac_result(se_dev,
+					   TEGRA_SE_AES_CMAC_DIGEST_SIZE);
+	} else {
+		/* config crypto algo */
+		req_ctx->config = tegra_se_get_config(se_dev,
+						      SE_AES_OP_MODE_CBC, true,
+						      keylen);
+		req_ctx->crypto_config = tegra_se_get_crypto_config(
+					se_dev, SE_AES_OP_MODE_CBC, true,
+					ctx->slot->slot_num, 0, true);
 
-	tegra_se_send_data(se_dev, req_ctx, NULL, TEGRA_SE_AES_BLOCK_SIZE,
-			   se_dev->opcode_addr, se_dev->aes_cmdbuf_cpuvaddr);
-	ret = tegra_se_channel_submit_gather(
-		se_dev, se_dev->aes_cmdbuf_cpuvaddr, se_dev->aes_cmdbuf_iova,
-		0, se_dev->cmdbuf_cnt, NONE);
-	if (ret) {
-		dev_err(se_dev->dev,
-			"tegra_se_aes_cmac_setkey:: start op failed\n");
-		goto out;
+		tegra_se_send_data(se_dev, req_ctx, NULL,
+				   TEGRA_SE_AES_BLOCK_SIZE, se_dev->opcode_addr,
+				   se_dev->aes_cmdbuf_cpuvaddr);
+		ret = tegra_se_channel_submit_gather(
+			se_dev, se_dev->aes_cmdbuf_cpuvaddr,
+			se_dev->aes_cmdbuf_iova,
+			0, se_dev->cmdbuf_cnt, NONE);
+		if (ret) {
+			dev_err(se_dev->dev,
+				"tegra_se_aes_cmac_setkey:: start op failed\n");
+			goto out;
+		}
+
+		/* compute K1 subkey */
+		memcpy(ctx->K1, pbuf, TEGRA_SE_AES_BLOCK_SIZE);
+		tegra_se_leftshift_onebit(ctx->K1, TEGRA_SE_AES_BLOCK_SIZE,
+					  &msb);
+		if (msb)
+			ctx->K1[TEGRA_SE_AES_BLOCK_SIZE - 1] ^= rb;
+
+		/* compute K2 subkey */
+		memcpy(ctx->K2, ctx->K1, TEGRA_SE_AES_BLOCK_SIZE);
+		tegra_se_leftshift_onebit(ctx->K2, TEGRA_SE_AES_BLOCK_SIZE,
+					  &msb);
+
+		if (msb)
+			ctx->K2[TEGRA_SE_AES_BLOCK_SIZE - 1] ^= rb;
 	}
-
-	/* compute K1 subkey */
-	memcpy(ctx->K1, pbuf, TEGRA_SE_AES_BLOCK_SIZE);
-	tegra_se_leftshift_onebit(ctx->K1, TEGRA_SE_AES_BLOCK_SIZE, &msb);
-	if (msb)
-		ctx->K1[TEGRA_SE_AES_BLOCK_SIZE - 1] ^= rb;
-
-	/* compute K2 subkey */
-	memcpy(ctx->K2, ctx->K1, TEGRA_SE_AES_BLOCK_SIZE);
-	tegra_se_leftshift_onebit(ctx->K2, TEGRA_SE_AES_BLOCK_SIZE, &msb);
-
-	if (msb)
-		ctx->K2[TEGRA_SE_AES_BLOCK_SIZE - 1] ^= rb;
 out:
 	if (pbuf)
 		dma_free_coherent(se_dev->dev, TEGRA_SE_AES_BLOCK_SIZE,
