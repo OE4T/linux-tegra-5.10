@@ -81,6 +81,7 @@ int vgpu_channel_alloc_inst(struct gk20a *g, struct nvgpu_channel *ch)
 	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_ALLOC_HWCTX;
 	msg.handle = vgpu_get_handle(g);
 	p->id = ch->chid;
+	p->runlist_id = ch->runlist_id;
 	p->pid = (u64)ch->pid;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	if (err || msg.ret) {
