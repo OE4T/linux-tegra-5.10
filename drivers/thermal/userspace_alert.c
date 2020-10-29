@@ -93,6 +93,9 @@ static int userspace_alert_cdev_set_state(struct thermal_cooling_device *tcd,
 	if (state == alert_data->cur_state)
 		return 0;
 
+	pr_notice("%s cooling state: %ld -> %lu\n",
+		tcd->type, alert_data->cur_state, state);
+
 	mutex_lock(&alert_data->alert_lock);
 	alert_data->cur_state = state;
 
