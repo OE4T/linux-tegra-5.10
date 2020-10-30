@@ -3189,9 +3189,9 @@ tegra210_xusb_padctl_probe(struct device *dev,
 	if (err < 0)
 		return ERR_PTR(err);
 
-	np = of_parse_phandle(dev->of_node, "nvidia,pmc", 0);
+	np = of_find_compatible_node(NULL, NULL, "nvidia,tegra210-pmc");
 	if (!np) {
-		dev_warn(dev, "nvidia,pmc property is missing\n");
+		dev_warn(dev, "PMC node is missing\n");
 		goto out;
 	}
 
