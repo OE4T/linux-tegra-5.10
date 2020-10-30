@@ -5042,6 +5042,7 @@ static const struct tegra_pmc_soc tegra210_pmc_soc = {
 	.sata_power_gate_in_misc = false,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
+	.has_usb_sleepwalk = true,
 };
 
 #define TEGRA210B01_IO_PAD(_id, _dpd, _voltage, _name, _iopower, _bds)	\
