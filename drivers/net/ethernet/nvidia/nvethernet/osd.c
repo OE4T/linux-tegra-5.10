@@ -16,6 +16,9 @@
 
 #include "ether_linux.h"
 #include <osd.h>
+#include <ivc_core.h>
+
+#define IVC_WAIT_TIMEOUT (msecs_to_jiffies(1000))
 
 /**
  * @brief Adds delay in micro seconds.
@@ -397,4 +400,77 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 		ndev->stats.tx_packets++;
 		dev_consume_skb_any(skb);
 	}
+}
+
+/**
+ * @brief osd_send_cmd - OSD ivc send cmd
+ *
+ * @param[in] priv: OSD private data
+ * @param[in] func: data
+ * @param[in] line: len
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ */
+int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
+{
+	int ret = -1;
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
+	unsigned long flags = 0;
+	static int cnt  = 0;
+	struct osi_core_priv_data *core = (struct osi_core_priv_data *)priv;
+	ivc_msg_common *ivc_buf = (ivc_msg_common *) data;
+	struct ether_priv_data *pdata = (struct ether_priv_data *)core->osd;
+	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
+	struct tegra_hv_ivc_cookie *ivck =
+				  (struct tegra_hv_ivc_cookie *) ictxt->ivck;
+	int dcnt = 50;
+	int is_atomic = 0;
+	if (len > ETHER_MAX_IVC_BUF) {
+		dev_err(pdata->dev, "Invalid IVC len\n");
+		return -1;
+	}
+
+	ivc_buf->status = -1;
+	spin_lock_irqsave(&ictxt->ivck_lock, flags);
+	if (in_atomic()) {
+		preempt_enable();
+		is_atomic = 1;
+	}
+	ivc_buf->count = cnt++;
+	/* Waiting for the channel to be ready */
+	while (tegra_hv_ivc_channel_notified(ivck) != 0){
+		osd_msleep(1);
+		dcnt--;
+		if (!dcnt) {
+			pr_err("IVC recv timeout\n");
+			goto fail;
+		}
+	}
+
+	/* Write the current message for the ethernet server */
+	ret = tegra_hv_ivc_write(ivck, ivc_buf, len);
+	if (ret != len) {
+		dev_err(pdata->dev, "IVC write len %d ret %d cmd %d failed\n",
+			  len, ret, ivc_buf->cmd);
+		goto fail;
+	}
+	while (!tegra_hv_ivc_can_read(ictxt->ivck)) {
+		wait_for_completion_timeout(&ictxt->msg_complete, IVC_WAIT_TIMEOUT);
+	}
+
+	ret = tegra_hv_ivc_read(ivck, ivc_buf, len);
+	if (ret < 0) {
+		dev_err(pdata->dev, "IVC read failed: %d\n", ret);
+	}
+	if (is_atomic) {
+		preempt_disable();
+	}
+	ret = ivc_buf->status;
+fail:
+	spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
+#endif
+	return ret;
 }

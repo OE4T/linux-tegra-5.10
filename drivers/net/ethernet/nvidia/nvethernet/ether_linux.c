@@ -647,13 +647,6 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 		devm_free_irq(pdata->dev, pdata->common_irq, pdata);
 		pdata->common_irq_alloc_mask = 0U;
 	}
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
-	if (pdata->ivck != NULL) {
-		cancel_work_sync(&pdata->ivc_work);
-		tegra_hv_ivc_unreserve(pdata->ivck);
-		devm_free_irq(pdata->dev, pdata->ivck->irq, pdata);
-	}
-#endif
 
 	if (pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
 		for (i = 0; i < pdata->osi_dma->num_vm_irqs; i++) {
@@ -682,7 +675,7 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 	}
 }
 
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
 /**
  * @brief IVC ISR Routine
  *
@@ -701,52 +694,60 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
  */
 static irqreturn_t ether_ivc_irq(int irq, void *data)
 {
-	struct ether_priv_data *pdata = data;
-	int ret;
+	struct ether_priv_data *pdata = (struct ether_priv_data *)data;
+	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
 
-	if (tegra_hv_ivc_channel_notified(pdata->ivck) != 0) {
-		dev_err(pdata->dev, "ivc channel not usable\n");
-		return IRQ_HANDLED;
-	}
+	complete(&ictxt->msg_complete);
 
-	if (tegra_hv_ivc_can_read(pdata->ivck)) {
-		dev_info(pdata->dev, "ivc read done\n");
-		/* Read the current message for the ethernet server to be
-		 * able to send further messages on next  interrupt
-		 */
-		ret = tegra_hv_ivc_read(pdata->ivck, pdata->ivc_rx,
-					ETHER_MAX_IVC_BUF);
-		if (ret < 0) {
-			dev_err(pdata->dev, "IVC read failed: %d\n", ret);
-		} else {
-			/* Schedule work to execute the common IRQ Function
-			 * which takes the appropriate action.
-			 */
-			schedule_work(&pdata->ivc_work);
-		}
-	} else {
-		dev_info(pdata->dev, "Can not read ivc channel: %d\n",
-			 pdata->ivck->irq);
-	}
 	return IRQ_HANDLED;
 }
 
 /**
- * @brief IVC work
+ * @brief Start IVC, initializes IVC.
  *
- * Algorithm: Invoke OSI layer to handle common interrupt.
- *
- * @param[in] work: work structure.
- *
+ * @param[in]: Priv data.
  *
  * @retval void
  */
 
-static void ether_ivc_work(struct work_struct *work)
+static void ether_start_ivc(struct ether_priv_data *pdata)
 {
-	struct ether_priv_data *pdata =
-		container_of(work, struct ether_priv_data, ivc_work);
-	osi_common_isr(pdata->osi_core);
+	int ret;
+	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
+	if (ictxt->ivck != NULL && !ictxt->ivc_state) {
+		tegra_hv_ivc_channel_reset(ictxt->ivck);
+
+		ret = devm_request_irq(pdata->dev, ictxt->ivck->irq,
+				       ether_ivc_irq,
+				       0, dev_name(pdata->dev), pdata);
+		if (ret) {
+			dev_err(pdata->dev,
+				"Unable to request irq(%d)\n", ictxt->ivck->irq);
+			tegra_hv_ivc_unreserve(ictxt->ivck);
+			return;
+		}
+		ictxt->ivc_state = 1;
+		// initialize
+		spin_lock_init(&ictxt->ivck_lock);
+	}
+}
+
+/**
+ * @brief Stop IVC, de initializes IVC
+ *
+ * @param[in]: Priv data.
+ *
+ * @retval void
+ */
+
+static void ether_stop_ivc(struct ether_priv_data *pdata)
+{
+	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
+	if (ictxt->ivck != NULL) {
+		tegra_hv_ivc_unreserve(ictxt->ivck);
+		devm_free_irq(pdata->dev, ictxt->ivck->irq, pdata);
+		ictxt->ivc_state = 0;
+	}
 }
 
 /**
@@ -763,6 +764,8 @@ static void ether_ivc_work(struct work_struct *work)
  */
 static int ether_init_ivc(struct ether_priv_data *pdata)
 {
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
 	struct device *dev = pdata->dev;
 	struct device_node *np, *hv_np;
 	uint32_t id;
@@ -770,6 +773,7 @@ static int ether_init_ivc(struct ether_priv_data *pdata)
 
 	np = dev->of_node;
 	if (!np) {
+		ictxt->ivck = NULL;
 		return -EINVAL;
 	}
 
@@ -785,29 +789,22 @@ static int ether_init_ivc(struct ether_priv_data *pdata)
 		return -EINVAL;
 	}
 
-	pdata->ivck = tegra_hv_ivc_reserve(hv_np, id, NULL);
+	ictxt->ivck = tegra_hv_ivc_reserve(hv_np, id, NULL);
 	of_node_put(hv_np);
-	if (IS_ERR_OR_NULL(pdata->ivck)) {
+	if (IS_ERR_OR_NULL(ictxt->ivck)) {
 		dev_err(dev, "Failed to reserve ivc channel:%u\n", id);
-		ret = PTR_ERR(pdata->ivck);
-		pdata->ivck = NULL;
+		ret = PTR_ERR(ictxt->ivck);
+		ictxt->ivck = NULL;
 		return ret;
 	}
 
 	dev_info(dev, "Reserved IVC channel #%u - frame_size=%d irq %d\n",
-                 id, pdata->ivck->frame_size, pdata->ivck->irq);
-
-	tegra_hv_ivc_channel_reset(pdata->ivck);
-
-	INIT_WORK(&pdata->ivc_work, ether_ivc_work);
-
-	ret = devm_request_irq(dev, pdata->ivck->irq, ether_ivc_irq,
-			       0, dev_name(dev), pdata);
-	if (ret) {
-		dev_err(dev, "Unable to request irq(%d)\n", pdata->ivck->irq);
-		tegra_hv_ivc_unreserve(pdata->ivck);
-		return ret;
-	}
+                 id, ictxt->ivck->frame_size, ictxt->ivck->irq);
+	osi_core->osd_ops.ivc_send = osd_ivc_send_cmd;
+	init_completion(&ictxt->msg_complete);
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
+	ether_start_ivc(pdata);
+#endif
 	return 0;
 }
 #endif
@@ -1628,6 +1625,10 @@ static int ether_open(struct net_device *dev)
 		gpio_set_value(pdata->phy_reset, 1);
 	}
 
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
+	ether_start_ivc(pdata);
+#endif
+
 	ret = ether_enable_clks(pdata);
 	if (ret < 0) {
 		dev_err(&dev->dev, "failed to enable clks\n");
@@ -1868,6 +1869,10 @@ static int ether_close(struct net_device *ndev)
 
 	/* MAC deinit which inturn stop MAC Tx,Rx */
 	osi_hw_core_deinit(pdata->osi_core);
+
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
+	ether_stop_ivc(pdata);
+#endif
 
 	/* Assert MAC RST gpio */
 	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
@@ -2317,7 +2322,7 @@ static int ether_prepare_mc_list(struct net_device *dev,
 				i, ha->addr[0], ha->addr[1], ha->addr[2],
 				ha->addr[3], ha->addr[4], ha->addr[5]);
 			filter->index = i;
-			filter->mac_address = ha->addr;
+			memcpy(filter->mac_address, ha->addr, ETH_ALEN);
 			filter->dma_routing = OSI_DISABLE;
 			filter->dma_chan = 0x0;
 			filter->addr_mask = OSI_AMASK_DISABLE;
@@ -2405,7 +2410,7 @@ static int ether_prepare_uc_list(struct net_device *dev,
 				i, ha->addr[0], ha->addr[1], ha->addr[2],
 				ha->addr[3], ha->addr[4], ha->addr[5]);
 			filter->index = i;
-			filter->mac_address = ha->addr;
+			memcpy(filter->mac_address, ha->addr, ETH_ALEN);
 			filter->dma_routing = OSI_DISABLE;
 			filter->dma_chan = 0x0;
 			filter->addr_mask = OSI_AMASK_DISABLE;
@@ -2498,7 +2503,6 @@ static void ether_set_rx_mode(struct net_device *dev)
 	for (i = pdata->last_filter_index + 1; i <= last_index; i++) {
 		filter.oper_mode = OSI_OPER_ADDR_UPDATE;
 		filter.index = i;
-		filter.mac_address = NULL;
 		filter.dma_routing = OSI_DISABLE;
 		filter.dma_chan = OSI_CHAN_ANY;
 		filter.addr_mask = OSI_AMASK_DISABLE;
@@ -3850,6 +3854,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	/* Allow to set non zero DMA channel for virtualization */
 	if (!ether_init_ivc(pdata)) {
 		osi_dma->use_virtualization = OSI_ENABLE;
+		osi_core->use_virtualization = OSI_ENABLE;
 		/* read mac management flag and set use_stats */
 		of_property_read_u32(np, "nvidia,mmc_daemon",
 				     &pdata->use_stats);
@@ -4289,6 +4294,13 @@ static int ether_probe(struct platform_device *pdev)
 
 	tegra_pre_si_platform(osi_core);
 
+	/* Parse the ethernet DT node */
+	ret = ether_parse_dt(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to parse DT\n");
+		goto err_parse_dt;
+	}
+
 	/* Initialize core and DMA ops based on MAC type */
 	if (osi_init_core_ops(osi_core) != 0) {
 		dev_err(&pdev->dev, "failed to get osi_init_core_ops\n");
@@ -4303,13 +4315,6 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_dma_ops;
 	}
 
-	/* Parse the ethernet DT node */
-	ret = ether_parse_dt(pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to parse DT\n");
-		goto err_parse_dt;
-	}
-
 	ndev->max_mtu = pdata->max_platform_mtu;
 
 	/* get base address, clks, reset ID's and MAC address*/
@@ -4319,17 +4324,17 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_init_res;
 	}
 
-	osi_get_hw_features(osi_core->base, &pdata->hw_feat);
-
-	/* Set netdev features based on hw features */
-	ether_set_ndev_features(ndev, pdata);
-
-	ret = osi_get_mac_version(osi_core->base, &osi_core->mac_ver);
+	ret = osi_get_mac_version(osi_core, &osi_core->mac_ver);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get MAC version (%u)\n",
 			osi_core->mac_ver);
 		goto err_dma_mask;
 	}
+
+	osi_get_hw_features(osi_core, &pdata->hw_feat);
+
+	/* Set netdev features based on hw features */
+	ether_set_ndev_features(ndev, pdata);
 
 	ret = ether_get_irqs(pdev, pdata, num_dma_chans);
 	if (ret < 0) {
