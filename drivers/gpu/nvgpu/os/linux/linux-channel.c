@@ -33,6 +33,7 @@
 
 #include "channel.h"
 #include "ioctl_channel.h"
+#include "ioctl.h"
 #include "os_linux.h"
 #include "dmabuf_priv.h"
 
@@ -631,10 +632,19 @@ u32 nvgpu_get_gpfifo_entry_size(void)
 
 u32 nvgpu_channel_get_max_subctx_count(struct nvgpu_channel *ch)
 {
+	struct nvgpu_channel_linux *priv = ch->os_priv;
 	struct gk20a *g = ch->g;
+	u32 gpu_instance_id;
 
-	return nvgpu_grmgr_get_gpu_instance_max_veid_count(g,
-		0U);
+	if (priv->cdev == NULL) {
+		/* CE channels reserved by nvgpu do not have cdev pointer */
+		return nvgpu_grmgr_get_gpu_instance_max_veid_count(g, 0U);
+	}
+
+	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, priv->cdev);
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+
+	return nvgpu_grmgr_get_gpu_instance_max_veid_count(g, gpu_instance_id);
 }
 
 #ifdef CONFIG_DEBUG_FS

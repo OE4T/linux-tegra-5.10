@@ -28,6 +28,7 @@ struct nvgpu_channel_fence;
 struct nvgpu_fence_type;
 struct nvgpu_swprofile;
 struct nvgpu_os_linux;
+struct nvgpu_cdev;
 
 struct sync_fence;
 struct sync_timeline;
@@ -92,6 +93,8 @@ struct nvgpu_channel_linux {
 	struct dma_buf *cyclestate_buffer_handler;
 
 	struct nvgpu_usermode_bufs_linux usermode;
+
+	struct nvgpu_cdev *cdev;
 };
 
 u32 nvgpu_submit_gpfifo_user_flags_to_common_flags(u32 user_flags);

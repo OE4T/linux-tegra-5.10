@@ -429,6 +429,7 @@ struct nvgpu_channel *nvgpu_channel_get_from_file(int fd)
 int gk20a_channel_release(struct inode *inode, struct file *filp)
 {
 	struct channel_priv *priv = filp->private_data;
+	struct nvgpu_channel_linux *os_priv;
 	struct nvgpu_channel *ch;
 	struct gk20a *g;
 
@@ -442,6 +443,9 @@ int gk20a_channel_release(struct inode *inode, struct file *filp)
 
 	ch = priv->c;
 	g = priv->g;
+
+	os_priv = ch->os_priv;
+	os_priv->cdev = NULL;
 
 	err = gk20a_busy(g);
 	if (err) {
@@ -472,10 +476,15 @@ static int __gk20a_channel_open(struct gk20a *g, struct nvgpu_cdev *cdev,
 	int err;
 	struct nvgpu_channel *ch;
 	struct channel_priv *priv;
+	struct nvgpu_channel_linux *os_priv;
 	u32 tmp_runlist_id;
 	u32 gpu_instance_id;
 
 	nvgpu_log_fn(g, " ");
+
+	g = nvgpu_get(g);
+	if (!g)
+		return -ENODEV;
 
 	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, cdev);
 	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
@@ -490,10 +499,6 @@ static int __gk20a_channel_open(struct gk20a *g, struct nvgpu_cdev *cdev,
 			return -EINVAL;
 		}
 	}
-
-	g = nvgpu_get(g);
-	if (!g)
-		return -ENODEV;
 
 #ifdef CONFIG_NVGPU_TRACE
 	trace_gk20a_channel_open(dev_name(dev_from_gk20a(g)));
@@ -529,6 +534,12 @@ static int __gk20a_channel_open(struct gk20a *g, struct nvgpu_cdev *cdev,
 	priv->g = g;
 	priv->c = ch;
 	priv->cdev = cdev;
+
+	os_priv = ch->os_priv;
+	os_priv->cdev = cdev;
+
+	nvgpu_log(g, gpu_dbg_mig, "Use runlist %u for channel %u on GPU instance %u",
+		tmp_runlist_id, ch->chid, gpu_instance_id);
 
 	filp->private_data = priv;
 	return 0;
