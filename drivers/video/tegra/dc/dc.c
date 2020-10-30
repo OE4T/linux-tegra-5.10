@@ -6963,6 +6963,8 @@ err_put_clk:
 		switch_dev_unregister(&dc->modeset_switch);
 #endif
 	tegra_disp_clk_put(&ndev->dev, clk);
+	if (tegra_dc_is_nvdisplay())
+		tegra_nvdisp_init_once_cleanup(dc);
 err_iounmap_reg:
 	iounmap(base);
 	kfree(fb_mem);

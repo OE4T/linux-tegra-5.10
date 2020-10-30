@@ -336,6 +336,7 @@ int tegra_nvdisp_get_imp_user_info(struct tegra_dc_ext_imp_user_info *info);
 int nvdisp_register_backlight_notifier(struct tegra_dc *dc);
 void tegra_nvdisp_stop_display(struct tegra_dc *dc);
 void tegra_nvdisp_vrr_work(struct work_struct *work);
+void tegra_nvdisp_init_once_cleanup(struct tegra_dc *dc);
 
 int tegra_dc_hw_init(void);
 bool tegra_dc_is_t21x(void);

@@ -1378,6 +1378,58 @@ INIT_EXIT:
 
 }
 
+void tegra_nvdisp_init_once_cleanup(struct tegra_dc *dc)
+{
+	int i = 0;
+	unsigned long valid_wins = 0x0;
+
+	if (nvdisp_common_init_done == false)
+		return;
+
+	/*
+	 * Cleanup allocations from _tegra_nvdisp_init_once() only
+	 * if no other dc is active.
+	 */
+	if (tegra_dc_get_numof_reg_disps() > 1)
+		return;
+
+#ifdef CONFIG_TEGRA_ISOMGR
+	tegra_nvdisp_bandwidth_unregister();
+#endif
+	_tegra_nvdisp_destroy_pd_table(dc);
+
+	/* Input LUT was initialized on all windows forcefully */
+	valid_wins = dc->valid_windows;
+	dc->valid_windows = 0x3f;
+	for (i = 0; i < tegra_dc_get_numof_dispwindows(); ++i) {
+		struct tegra_dc_nvdisp_lut *nvdisp_lut;
+		struct tegra_dc_win *win = tegra_dc_get_window(dc, i);
+
+		if (win == NULL) {
+			dev_warn(&dc->ndev->dev,
+				"%s: unexpected invalid win.%d\n", __func__, i);
+			continue;
+		}
+
+		nvdisp_lut = &win->nvdisp_lut;
+		if (nvdisp_lut && nvdisp_lut->rgb)
+			dma_free_coherent(&dc->ndev->dev, nvdisp_lut->size,
+				(void *)nvdisp_lut->rgb, nvdisp_lut->phy_addr);
+
+		if (win->syncpt.id != 0)
+			nvhost_syncpt_put_ref_ext(dc->ndev, win->syncpt.id);
+	}
+	dc->valid_windows = valid_wins;
+
+	if (!IS_ERR_OR_NULL(hubclk))
+		tegra_disp_clk_put(&dc->ndev->dev, hubclk);
+
+	if (!IS_ERR_OR_NULL(compclk))
+		tegra_disp_clk_put(&dc->ndev->dev, compclk);
+
+	nvdisp_common_init_done = false;
+}
+
 static inline bool tegra_nvdisp_is_lpf_required(struct tegra_dc *dc)
 {
 	if (dc->mode.vmode & FB_VMODE_BYPASS)
