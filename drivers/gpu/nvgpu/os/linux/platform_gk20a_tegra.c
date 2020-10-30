@@ -60,6 +60,7 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/linux/dma.h>
+#include <nvgpu/soc.h>
 
 #include "hal/clk/clk_gm20b.h"
 
@@ -657,10 +658,14 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 	struct secure_page_buffer *secure_buffer = &platform->secure_buffer;
 	dma_addr_t iova;
 
-	/* VPR is not supported on pre-silicon platforms - Jira NVGPU-5302 */
-	if (!tegra_platform_is_silicon()) {
+	if (nvgpu_platform_is_simulation(g)) {
+		/*
+		 * On simulation platform, VPR is only supported with
+		 * vdk frontdoor boot and gpu frontdoor mode.
+		 */
 		tegra_unregister_idle_unidle(gk20a_do_idle);
-		nvgpu_log_info(g, "VPR is not supported on pre-si platform");
+		nvgpu_log_info(g,
+			"VPR is not supported on simulation platform");
 		return 0;
 	}
 
