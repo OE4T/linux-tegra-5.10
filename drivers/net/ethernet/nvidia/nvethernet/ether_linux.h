@@ -128,13 +128,6 @@
  */
 #define ETHER_TX_MAX_FRAME_SIZE	GSO_MAX_SIZE
 
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
-/**
- * @brief Ethernet Maximum IVC BUF
- */
-#define ETHER_MAX_IVC_BUF		128
-#endif
-
 /**
  * @brief Check if Tx data buffer length is within bounds.
  *
@@ -239,6 +232,22 @@ struct ether_vm_irq_data {
 	unsigned int chan_mask;
 	/** OSD private data */
 	struct ether_priv_data *pdata;
+};
+
+/**
+ * @brief Ethernet IVC context
+ */
+struct ether_ivc_ctxt {
+	/** ivc cookie */
+	struct tegra_hv_ivc_cookie *ivck;
+	/** ivc lock */
+	spinlock_t ivck_lock;
+	/** ivc work */
+	struct work_struct ivc_work;
+	/** wait for event */
+	struct completion msg_complete;
+	/** Flag to indicate ivc started or stopped */
+	unsigned int ivc_state;
 };
 
 /**
@@ -363,16 +372,10 @@ struct ether_priv_data {
 	unsigned int tx_lpi_enabled;
 	/** Time (usec) MAC waits to enter LPI after Tx complete */
 	unsigned int tx_lpi_timer;
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
-	/** ivc cookie */
-	struct tegra_hv_ivc_cookie *ivck;
-	/** Buffer to receive pad ivc message */
-	char ivc_rx[ETHER_MAX_IVC_BUF];
-	/** ivc work */
-	struct work_struct ivc_work;
 	/** Flag which decides stats is enabled(1) or disabled(0) */
 	unsigned int use_stats;
-#endif
+	/** ivc context */
+	struct ether_ivc_ctxt ictxt;
 	/** VM channel info data associated with VM IRQ */
 	struct ether_vm_irq_data *vm_irq_data;
 #ifdef CONFIG_DEBUG_FS
@@ -491,4 +494,18 @@ static inline int ether_selftest_get_count(struct ether_priv_data *pdata)
  *
  */
 void osd_realloc_buf(void *priv, void *rxring, unsigned int chan);
+
+/**
+ * @brief osd_send_cmd - OSD ivc send cmd
+ *
+ * @param[in] priv: OSD private data
+ * @param[in] func: data
+ * @param[in] len: length of the data
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ */
+int osd_ivc_send_cmd(void *priv, void *data, unsigned int len);
 #endif /* ETHER_LINUX_H */
