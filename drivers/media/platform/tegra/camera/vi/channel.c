@@ -2367,6 +2367,8 @@ int tegra_channel_init_video(struct tegra_channel *chan)
 	chan->video->vfl_type = VFL_TYPE_GRABBER;
 #else
 	chan->video->vfl_type = VFL_TYPE_VIDEO;
+	chan->video->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+	chan->video->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
 #endif
 	chan->video->vfl_dir = VFL_DIR_RX;
 	chan->video->release = video_device_release_empty;

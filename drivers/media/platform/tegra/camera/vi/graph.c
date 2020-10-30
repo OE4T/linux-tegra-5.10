@@ -862,8 +862,8 @@ int tegra_vi_graph_init(struct tegra_mc_vi *vi)
 		chan->notifier.unbind = tegra_vi_graph_notify_unbind;
 		chan->notifier.complete = tegra_vi_graph_notify_complete;
 #else
-		list_for_each_entry(entity, &chan->entities, list)
-			list_add_tail(&entity->asd.asd_list , &chan->notifier.asd_list);
+		v4l2_async_notifier_init(&chan->notifier);
+		v4l2_async_notifier_add_subdev(&chan->notifier, &entity->asd);
 #endif
 
 		chan->link_status = 0;
