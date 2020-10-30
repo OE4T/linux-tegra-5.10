@@ -33,6 +33,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/grmgr.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_tsg.h"
@@ -43,6 +44,7 @@
 struct tsg_private {
 	struct gk20a *g;
 	struct nvgpu_tsg *tsg;
+	struct nvgpu_cdev *cdev;
 };
 
 extern const struct file_operations gk20a_tsg_ops;
@@ -84,11 +86,14 @@ static int nvgpu_tsg_bind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 }
 
 static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
-	struct nvgpu_tsg *tsg, struct nvgpu_tsg_bind_channel_ex_args *arg)
+	struct tsg_private *priv, struct nvgpu_tsg_bind_channel_ex_args *arg)
 {
+	struct nvgpu_tsg *tsg = priv->tsg;
 	struct nvgpu_sched_ctrl *sched = &g->sched_ctrl;
 	struct nvgpu_channel *ch;
 	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
+	u32 max_subctx_count;
+	u32 gpu_instance_id;
 	int err = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_sched, "tsgid=%u", tsg->tsgid);
@@ -125,7 +130,12 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 		tsg->tpc_pg_enabled = false; nvgpu_log(g, gpu_dbg_info, "dynamic TPC-PG not enabled");
 	}
 
-	if (arg->subcontext_id < g->fifo.max_subctx_count) {
+	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, priv->cdev);
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+
+	max_subctx_count = nvgpu_grmgr_get_gpu_instance_max_veid_count(g, gpu_instance_id);
+
+	if (arg->subcontext_id < max_subctx_count) {
 		ch->subctx_id = arg->subcontext_id;
 	} else {
 		err = -EINVAL;
@@ -416,7 +426,8 @@ static int gk20a_tsg_event_id_ctrl(struct gk20a *g, struct nvgpu_tsg *tsg,
 }
 #endif /* CONFIG_NVGPU_CHANNEL_TSG_CONTROL */
 
-int nvgpu_ioctl_tsg_open(struct gk20a *g, struct file *filp)
+int nvgpu_ioctl_tsg_open(struct gk20a *g, struct nvgpu_cdev *cdev,
+		struct file *filp)
 {
 	struct tsg_private *priv;
 	struct nvgpu_tsg *tsg;
@@ -452,6 +463,7 @@ int nvgpu_ioctl_tsg_open(struct gk20a *g, struct file *filp)
 
 	priv->g = g;
 	priv->tsg = tsg;
+	priv->cdev = cdev;
 	filp->private_data = priv;
 
 	gk20a_sched_ctrl_tsg_added(g, tsg);
@@ -482,7 +494,7 @@ int nvgpu_ioctl_tsg_dev_open(struct inode *inode, struct file *filp)
 		return ret;
 	}
 
-	ret = nvgpu_ioctl_tsg_open(g, filp);
+	ret = nvgpu_ioctl_tsg_open(g, cdev, filp);
 
 	gk20a_idle(g);
 	nvgpu_log_fn(g, "done");
@@ -675,7 +687,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 
 	case NVGPU_TSG_IOCTL_BIND_CHANNEL_EX:
 	{
-		err = gk20a_tsg_ioctl_bind_channel_ex(g, tsg,
+		err = gk20a_tsg_ioctl_bind_channel_ex(g, priv,
 			(struct nvgpu_tsg_bind_channel_ex_args *)buf);
 		break;
 	}

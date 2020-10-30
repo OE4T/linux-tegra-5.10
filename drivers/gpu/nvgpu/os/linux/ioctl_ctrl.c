@@ -639,7 +639,7 @@ clean_up:
 	return err;
 }
 
-static int gk20a_ctrl_open_tsg(struct gk20a *g,
+static int gk20a_ctrl_open_tsg(struct gk20a *g, struct nvgpu_cdev *cdev,
 			       struct nvgpu_gpu_open_tsg_args *args)
 {
 	int err;
@@ -660,7 +660,7 @@ static int gk20a_ctrl_open_tsg(struct gk20a *g,
 		goto clean_up;
 	}
 
-	err = nvgpu_ioctl_tsg_open(g, file);
+	err = nvgpu_ioctl_tsg_open(g, cdev, file);
 	if (err)
 		goto clean_up_file;
 
@@ -2047,7 +2047,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			(struct nvgpu_alloc_as_args *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_OPEN_TSG:
-		err = gk20a_ctrl_open_tsg(g,
+		err = gk20a_ctrl_open_tsg(g, priv->cdev,
 			(struct nvgpu_gpu_open_tsg_args *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_GET_TPC_MASKS:
