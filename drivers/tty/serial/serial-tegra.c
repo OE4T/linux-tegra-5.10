@@ -913,45 +913,28 @@ done:
 	spin_unlock_irqrestore(&u->lock, flags);
 }
 
-static int tegra_uart_terminate_rx_dma(struct tegra_uart_port *tup)
+static void tegra_uart_terminate_rx_dma(struct tegra_uart_port *tup)
 {
 	struct dma_tx_state state;
-	struct dma_async_tx_descriptor *prev_rx_dma_desc;
-	int ret = 0;
 
-	if (!tup->rx_dma_chan) {
-		dev_err(tup->uport.dev, "No rx dma channel\n");
-		goto end;
-	}
-
-	if (!tup->rx_dma_active && tup->is_hw_flow_enabled) {
+	if (!tup->rx_dma_active) {
 		do_handle_rx_pio(tup);
-		goto end;
+		return;
 	}
 
 	dmaengine_terminate_all(tup->rx_dma_chan);
 	dmaengine_tx_status(tup->rx_dma_chan, tup->rx_cookie, &state);
-	prev_rx_dma_desc = tup->rx_dma_desc;
 	tegra_uart_rx_buffer_push(tup, state.residue);
-	async_tx_ack(prev_rx_dma_desc);
 	tup->rx_dma_active = false;
-	ret = tegra_uart_rx_buffer_push(tup, state.residue);
-	return ret;
-end:
-	return 0;
 }
 
-static int tegra_uart_handle_rx_dma(struct tegra_uart_port *tup)
+static void tegra_uart_handle_rx_dma(struct tegra_uart_port *tup)
 {
-	int ret = 0;
-
 	/* Deactivate flow control to stop sender */
 	if (tup->rts_active  && tup->is_hw_flow_enabled)
 		set_rts(tup, false);
 
-	ret = tegra_uart_terminate_rx_dma(tup);
-
-	return ret;
+	tegra_uart_terminate_rx_dma(tup);
 }
 
 static int tegra_uart_start_rx_dma(struct tegra_uart_port *tup)
@@ -1010,18 +993,13 @@ static irqreturn_t tegra_uart_isr(int irq, void *data)
 	unsigned long flags;
 	struct tty_port *port = &tup->uport.state->port;
 	int rx_level = 0;
-	int ret;
 
 	spin_lock_irqsave(&u->lock, flags);
 	while (1) {
 		iir = tegra_uart_read(tup, UART_IIR);
 		if (iir & UART_IIR_NO_INT) {
 			if (!tup->use_rx_pio && is_rx_int) {
-				ret = tegra_uart_handle_rx_dma(tup);
-				if (ret) {
-					spin_unlock_irqrestore(&u->lock, flags);
-					return IRQ_HANDLED;
-				}
+				tegra_uart_handle_rx_dma(tup);
 				if (tup->rx_in_progress) {
 					ier = tup->ier_shadow;
 					ier |= (UART_IER_RLSI | UART_IER_RTOIE |
