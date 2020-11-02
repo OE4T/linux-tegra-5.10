@@ -26,6 +26,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/device.h>
 
 #include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h>
 
@@ -263,9 +264,9 @@ u32 gv11b_pbdma_get_fc_pb_header(void)
 		pbdma_pb_header_type_inc_f());
 }
 
-u32 gv11b_pbdma_get_fc_target(void)
+u32 gv11b_pbdma_get_fc_target(const struct nvgpu_device *dev)
 {
-	return (gm20b_pbdma_get_fc_target() |
+	return (gm20b_pbdma_get_fc_target(dev) |
 			pbdma_target_eng_ctx_valid_true_f() |
 			pbdma_target_ce_ctx_valid_true_f());
 }

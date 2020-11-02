@@ -35,6 +35,7 @@
 #include <nvgpu/pbdma_status.h>
 #include <nvgpu/static_analysis.h>
 #include <nvgpu/rc.h>
+#include <nvgpu/device.h>
 
 #include <nvgpu/hw/gm20b/hw_pbdma_gm20b.h>
 
@@ -385,7 +386,7 @@ u32 gm20b_pbdma_get_fc_subdevice(void)
 		pbdma_subdevice_channel_dma_enable_f());
 }
 
-u32 gm20b_pbdma_get_fc_target(void)
+u32 gm20b_pbdma_get_fc_target(const struct nvgpu_device *dev)
 {
 	return pbdma_target_engine_sw_f();
 }

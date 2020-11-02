@@ -27,6 +27,7 @@
 struct gk20a;
 struct nvgpu_gpfifo_entry;
 struct nvgpu_pbdma_status_info;
+struct nvgpu_device;
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
@@ -68,7 +69,7 @@ struct gops_pbdma {
 	u32 (*get_fc_formats)(void);
 	u32 (*get_fc_pb_header)(void);
 	u32 (*get_fc_subdevice)(void);
-	u32 (*get_fc_target)(void);
+	u32 (*get_fc_target)(const struct nvgpu_device *dev);
 	u32 (*get_ctrl_hce_priv_mode_yes)(void);
 	u32 (*get_userd_aperture_mask)(struct gk20a *g,
 			struct nvgpu_mem *mem);

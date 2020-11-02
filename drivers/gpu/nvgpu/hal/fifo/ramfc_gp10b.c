@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,7 @@ int gp10b_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		g->ops.pbdma.get_fc_subdevice());
 
 	nvgpu_mem_wr32(g, mem, ram_fc_target_w(),
-		g->ops.pbdma.get_fc_target());
+		g->ops.pbdma.get_fc_target(NULL));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_acquire_w(),
 		g->ops.pbdma.acquire_val(pbdma_acquire_timeout));

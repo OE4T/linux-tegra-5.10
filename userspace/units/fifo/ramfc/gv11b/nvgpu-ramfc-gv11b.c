@@ -89,7 +89,7 @@ static u32 stub_pbdma_get_fc_subdevice(void)
 	return 0U;
 }
 
-static u32 stub_pbdma_get_fc_target(void)
+static u32 stub_pbdma_get_fc_target(const struct nvgpu_device *dev)
 {
 	global_count++;
 	return 0U;

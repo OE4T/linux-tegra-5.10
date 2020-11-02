@@ -338,7 +338,7 @@ int test_gv11b_pbdma_get_fc(struct unit_module *m,
 		 pbdma_pb_header_first_true_f() |
 		 pbdma_pb_header_type_inc_f()), goto done);
 
-	unit_assert(gv11b_pbdma_get_fc_target() ==
+	unit_assert(gv11b_pbdma_get_fc_target(NULL) ==
 		(pbdma_target_engine_sw_f() |
 		 pbdma_target_eng_ctx_valid_true_f() |
 		 pbdma_target_ce_ctx_valid_true_f()), goto done);

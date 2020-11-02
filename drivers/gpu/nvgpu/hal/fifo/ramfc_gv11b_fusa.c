@@ -72,7 +72,7 @@ int gv11b_ramfc_setup(struct nvgpu_channel *ch, u64 gpfifo_base,
 		g->ops.pbdma.get_fc_subdevice());
 
 	nvgpu_mem_wr32(g, mem, ram_fc_target_w(),
-		g->ops.pbdma.get_fc_target());
+		g->ops.pbdma.get_fc_target(NULL));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_acquire_w(),
 		g->ops.pbdma.acquire_val(pbdma_acquire_timeout));

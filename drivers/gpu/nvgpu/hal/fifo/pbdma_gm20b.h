@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@ struct nvgpu_debug_context;
 struct nvgpu_channel_dump_info;
 struct nvgpu_gpfifo_entry;
 struct nvgpu_pbdma_status_info;
+struct nvgpu_device;
 
 bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_intr_0, u32 *error_notifier);
@@ -55,7 +56,7 @@ u32 gm20b_pbdma_get_gp_base(u64 gpfifo_base);
 u32 gm20b_pbdma_get_gp_base_hi(u64 gpfifo_base, u32 gpfifo_entry);
 
 u32 gm20b_pbdma_get_fc_subdevice(void);
-u32 gm20b_pbdma_get_fc_target(void);
+u32 gm20b_pbdma_get_fc_target(const struct nvgpu_device *dev);
 u32 gm20b_pbdma_get_ctrl_hce_priv_mode_yes(void);
 u32 gm20b_pbdma_get_userd_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem);
 u32 gm20b_pbdma_get_userd_addr(u32 addr_lo);
