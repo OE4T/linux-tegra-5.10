@@ -495,6 +495,17 @@ static bool check_valid_dev_node(struct gk20a *g, struct nvgpu_class *class,
 	return true;
 }
 
+static bool check_valid_class(struct gk20a *g, struct nvgpu_class *class)
+{
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		if (class->instance_type == NVGPU_MIG_TYPE_PHYSICAL) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 int gk20a_user_init(struct device *dev)
 {
 	int err;
@@ -526,6 +537,10 @@ int gk20a_user_init(struct device *dev)
 	l->cdev_region = devno;
 
 	nvgpu_list_for_each_entry(class, &l->class_list_head, nvgpu_class, list_entry) {
+		if (!check_valid_class(g, class)) {
+			continue;
+		}
+
 		for (cdev_index = 0; cdev_index < num_cdevs; cdev_index++) {
 			if (!check_valid_dev_node(g, class, &dev_node_list[cdev_index])) {
 				continue;
