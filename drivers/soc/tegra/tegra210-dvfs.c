@@ -10,6 +10,7 @@
 #include <linux/of_address.h>
 #include <linux/thermal.h>
 #include <linux/regulator/consumer.h>
+#include <linux/version.h>
 
 #include <soc/tegra/cvb.h>
 #include <soc/tegra/tegra-dfll.h>
@@ -1511,8 +1512,13 @@ static int init_cpu_lp_dvfs_table(int *cpu_lp_max_freq_index)
 	int cpu_lp_process_id = tegra_sku_info.cpu_process_id;
 	unsigned long max_freq;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+	/* Quick fixing Bug 3166866, by aligning with older K4.9 code */
+	if (cpu_lp_speedo_id >= ARRAY_SIZE(cpu_lp_max_freq))
+#else
 	if (cpu_lp_process_id < 1 ||
 		cpu_lp_process_id >= ARRAY_SIZE(cpu_lp_max_freq))
+#endif
 		max_freq = cpu_lp_max_freq[0];
 	else
 		max_freq = cpu_lp_max_freq[cpu_lp_speedo_id];
@@ -2259,6 +2265,11 @@ static int tegra210x_init_dvfs(struct device *dev, bool cpu_lp_init)
 		}
 
 		ret = regulator_get_constraint_voltages(reg, &min_uV, &max_uV);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+		/* Quick fixing Bug 3166866, by aligning with older K4.9 code */
+		if (!ret)
+			vdd_dvfs_rails[i]->alignment.offset_uv = min_uV;
+#else
 		if (ret || (!min_uV && !max_uV))
 		{
 			pr_info("tegra_dvfs: Unable to get rail constraints of %s rail, defering probe\n",
@@ -2267,6 +2278,7 @@ static int tegra210x_init_dvfs(struct device *dev, bool cpu_lp_init)
 		}
 
 		vdd_dvfs_rails[i]->alignment.offset_uv = min_uV;
+#endif
 
 		step_uv = regulator_get_linear_step(reg); /* 1st try get step */
 		if (!step_uv && !ret) {    /* if no step, try to calculate it */
