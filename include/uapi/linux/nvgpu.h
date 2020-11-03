@@ -708,6 +708,50 @@ struct nvgpu_profiler_exec_reg_ops_args {
 	__u32 reserved[3];
 };
 
+struct nvgpu_profiler_vab_range_checker {
+
+	/*
+	 * in: starting physical address. Must be aligned by
+	 *     1 << (granularity_shift + bitmask_size_shift) where
+	 *     bitmask_size_shift is a HW specific constant.
+	 */
+	__u64 start_phys_addr;
+
+	/* in: log2 of coverage granularity per bit */
+	__u8  granularity_shift;
+
+	__u8  reserved[7];
+};
+
+/* Range checkers track all accesses (read and write) */
+#define NVGPU_PROFILER_VAB_RANGE_CHECKER_MODE_ACCESS  1U
+/* Range checkers track writes (writes and read-modify-writes) */
+#define NVGPU_PROFILER_VAB_RANGE_CHECKER_MODE_DIRTY   2U
+
+struct nvgpu_profiler_vab_reserve_args {
+
+	/* in: range checker mode */
+	__u8 vab_mode;
+
+	__u8 reserved[3];
+
+	/* in: number of range checkers, must match with the HW */
+	__u32 num_range_checkers;
+
+	/*
+	 * in: range checker parameters. Pointer to array of
+	 *     nvgpu_profiler_vab_range_checker elements
+	 */
+	__u64 range_checkers_ptr;
+};
+
+struct nvgpu_profiler_vab_flush_state_args {
+	__u64 buffer_ptr;	/* in: usermode pointer to receive the
+				 * VAB state buffer */
+	__u64 buffer_size;	/* in: VAB buffer size. Must match
+				 * with the hardware VAB state size */
+};
+
 #define NVGPU_PROFILER_IOCTL_BIND_CONTEXT \
 	_IOW(NVGPU_PROFILER_IOCTL_MAGIC, 1, struct nvgpu_profiler_bind_context_args)
 #define NVGPU_PROFILER_IOCTL_RESERVE_PM_RESOURCE \
@@ -728,10 +772,16 @@ struct nvgpu_profiler_exec_reg_ops_args {
 	_IOWR(NVGPU_PROFILER_IOCTL_MAGIC, 9, struct nvgpu_profiler_exec_reg_ops_args)
 #define NVGPU_PROFILER_IOCTL_UNBIND_CONTEXT \
 	_IO(NVGPU_PROFILER_IOCTL_MAGIC, 10)
+#define NVGPU_PROFILER_IOCTL_VAB_RESERVE \
+	_IOW(NVGPU_PROFILER_IOCTL_MAGIC, 11, struct nvgpu_profiler_vab_reserve_args)
+#define NVGPU_PROFILER_IOCTL_VAB_RELEASE \
+	_IO(NVGPU_PROFILER_IOCTL_MAGIC, 12)
+#define NVGPU_PROFILER_IOCTL_VAB_FLUSH_STATE \
+	_IOW(NVGPU_PROFILER_IOCTL_MAGIC, 13, struct nvgpu_profiler_vab_flush_state_args)
 #define NVGPU_PROFILER_IOCTL_MAX_ARG_SIZE	\
 		sizeof(struct nvgpu_profiler_alloc_pma_stream_args)
 #define NVGPU_PROFILER_IOCTL_LAST		\
-	_IOC_NR(NVGPU_PROFILER_IOCTL_UNBIND_CONTEXT)
+	_IOC_NR(NVGPU_PROFILER_IOCTL_VAB_FLUSH_STATE)
 
 
 /*

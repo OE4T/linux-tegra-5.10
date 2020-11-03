@@ -454,7 +454,7 @@ struct gops_gr_intr {
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
-#include "include/nvgpu/nvgpu_next_gops_gr.h"
+#include "include/nvgpu/nvgpu_next_gops_gr_intr.h"
 #endif
 	int (*handle_fecs_error)(struct gk20a *g,
 				 struct nvgpu_channel *ch,
@@ -1277,6 +1277,9 @@ struct gops_gr {
 	struct gops_gr_zbc		zbc;
 	struct gops_gr_zcull		zcull;
 #endif /* CONFIG_NVGPU_GRAPHICS */
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_gr.h"
+#endif
 	/** @endcond */
 };
 

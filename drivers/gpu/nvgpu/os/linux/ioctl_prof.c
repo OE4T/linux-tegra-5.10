@@ -30,6 +30,7 @@
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/fb.h>
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
@@ -37,6 +38,12 @@
 #include "ioctl_dbg.h"
 #include "ioctl_tsg.h"
 #include "ioctl.h"
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "os/linux/nvgpu_next_ioctl_prof.h"
+#endif
+/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 #define NVGPU_PROF_UMD_COPY_WINDOW_SIZE		SZ_4K
 
@@ -144,6 +151,7 @@ int nvgpu_prof_dev_fops_open(struct inode *inode, struct file *filp)
 	}
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_PROFILER_V2_DEVICE)) {
+		nvgpu_err(g, "Profiler V2 not supported");
 		nvgpu_put(g);
 		return -EINVAL;
 	}
@@ -793,8 +801,12 @@ long nvgpu_prof_fops_ioctl(struct file *filp, unsigned int cmd,
 		break;
 
 	default:
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+		err = nvgpu_next_prof_fops_ioctl(prof, cmd, (void *)buf);
+#else
 		nvgpu_err(g, "unrecognized profiler ioctl cmd: 0x%x", cmd);
 		err = -ENOTTY;
+#endif
 		break;
 	}
 

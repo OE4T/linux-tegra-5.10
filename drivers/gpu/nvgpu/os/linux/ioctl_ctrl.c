@@ -295,6 +295,8 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 		NVGPU_SUPPORT_GET_GR_CONTEXT},
 	{NVGPU_GPU_FLAGS_L2_MAX_WAYS_EVICT_LAST_ENABLED,
 		NVGPU_L2_MAX_WAYS_EVICT_LAST_ENABLED},
+	{NVGPU_GPU_FLAGS_SUPPORT_VAB,
+		NVGPU_SUPPORT_VAB_ENABLED},
 };
 
 static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)

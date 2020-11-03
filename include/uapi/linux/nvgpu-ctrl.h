@@ -188,6 +188,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_BUFFER_METADATA		(1ULL << 50)
 /* Flag to indicate whether configuring L2_MAXEVICTLAST_WAYS is supported */
 #define NVGPU_GPU_FLAGS_L2_MAX_WAYS_EVICT_LAST_ENABLED	(1ULL << 51)
+/* Vidmem access bits feature is supported */
+#define NVGPU_GPU_FLAGS_SUPPORT_VAB		(1ULL << 52)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */

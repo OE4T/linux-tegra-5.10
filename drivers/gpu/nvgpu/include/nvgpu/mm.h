@@ -166,6 +166,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/sizes.h>
 #include <nvgpu/mmu_fault.h>
+#include <nvgpu/fb.h>
 
 struct gk20a;
 struct vm_gk20a;
@@ -454,6 +455,10 @@ struct mm_gk20a {
 	struct nvgpu_mem mmu_wr_mem;
 	/** GMMU debug read buffer. */
 	struct nvgpu_mem mmu_rd_mem;
+
+#if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_mm.h"
+#endif
 };
 
 /**

@@ -161,6 +161,10 @@ struct gops_fb_ecc {
 			u32 *uncorrected_error_mask);
 };
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "include/nvgpu/nvgpu_next_gops_fb_vab.h"
+#endif
+
 /**
  * common.fb unit hal operations.
  *
