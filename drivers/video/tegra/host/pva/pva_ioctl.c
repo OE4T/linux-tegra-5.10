@@ -725,6 +725,37 @@ static int pva_get_rate(struct pva_private *priv, void *arg)
 
 	return err;
 }
+/**
+ * pva_abort_req() - Request an abort
+ *
+ * @priv: PVA Private data
+ * @arg: ioctl data
+ *
+ * This function requests a PVA abort
+ */
+static int pva_abort_req(struct pva_private *priv, void *arg)
+{
+	struct pva_ioctl_abort_req *ioctl_abort = (struct pva_ioctl_abort_req *)arg;
+	int err = 0;
+	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
+	struct pva_cmd_status_regs status;
+	struct pva_cmd cmd;
+	u32 nregs;
+
+	nregs = pva_cmd_abort(&cmd, ioctl_abort->queue_id, flags);
+
+	/* Submit request to PVA and wait for response */
+	err = priv->pva->version_config->submit_cmd_sync(priv->pva, &cmd,
+			nregs, &status);
+
+	if (err < 0) {
+		nvhost_warn(&priv->pva->pdev->dev,
+			"mbox abort cmd failed: %d\n", err);
+		return err;
+	}
+
+	return status.error;
+}
 
 static long pva_ioctl(struct file *file, unsigned int cmd,
 			unsigned long arg)
@@ -791,6 +822,11 @@ static long pva_ioctl(struct file *file, unsigned int cmd,
 	case PVA_IOCTL_GET_RATE:
 	{
 		err = pva_get_rate(priv, buf);
+		break;
+	}
+	case PVA_IOCTL_ABORT_REQ:
+	{
+		err = pva_abort_req(priv, buf);
 		break;
 	}
 	default:

@@ -366,6 +366,17 @@ struct pva_ioctl_rate {
 	__u32 reserved;
 };
 
+
+/**
+ * struct pva_ioctl_abort_req - Request an abort
+ *
+ * @param queue_id: Queue ID to abort
+ */
+
+struct pva_ioctl_abort_req {
+	__u32 queue_id;
+};
+
 #define PVA_IOCTL_CHARACTERISTICS	\
 	_IOWR(NVHOST_PVA_IOCTL_MAGIC, 1, struct pva_characteristics_req)
 #define PVA_IOCTL_PIN	\
@@ -384,9 +395,11 @@ struct pva_ioctl_rate {
 	_IOWR(NVHOST_PVA_IOCTL_MAGIC, 8, struct pva_ioctl_rate)
 #define PVA_IOCTL_STATISTICS	\
 	_IOWR(NVHOST_PVA_IOCTL_MAGIC, 9, struct pva_statistics_req)
+#define PVA_IOCTL_ABORT_REQ	\
+	_IOWR(NVHOST_PVA_IOCTL_MAGIC, 10, struct pva_ioctl_abort_req)
 
 
-#define NVHOST_PVA_IOCTL_LAST _IOC_NR(PVA_IOCTL_STATISTICS)
+#define NVHOST_PVA_IOCTL_LAST _IOC_NR(PVA_IOCTL_ABORT_REQ)
 #define NVHOST_PVA_IOCTL_MAX_ARG_SIZE sizeof(struct pva_characteristics_req)
 
 #endif /* __LINUX_NVHOST_PVA_IOCTL_H */

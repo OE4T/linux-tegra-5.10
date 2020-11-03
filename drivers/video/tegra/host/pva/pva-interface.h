@@ -148,7 +148,10 @@ enum pva_cmds {
 	CMD_SET_SYNC_POLLING = 16,
 	CMD_SET_SCHEDULER = 17,
 	CMD_SET_SCHED_ATTR = 18,
-	CMD_NEXT = 19,		/* Must be last */
+	CMD_SW_BIST = 19,
+	CMD_LOAD_IMG = 20,
+	CMD_ABORT_TASK = 21,
+	CMD_NEXT = 22,		/* Must be last */
 };
 
 /*
@@ -1340,6 +1343,17 @@ pva_cmd_set_sched_attr(struct pva_cmd * const cmd,
 	cmd->mbox[1] = attrs->attr_a;
 	cmd->mbox[2] = attrs->attr_b;
 	return 3U;
+}
+
+static inline uint32_t
+pva_cmd_abort(struct pva_cmd * const cmd,
+		const uint8_t queue_id,
+		const uint32_t flags)
+{
+	cmd->mbox[0] = PVA_CMD_GO | flags
+		       | PVA_SET_COMMAND(CMD_ABORT_TASK)
+		       | PVA_SET_SUBCOMMAND(queue_id);
+	return 1U;
 }
 
 #endif
