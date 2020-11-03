@@ -191,9 +191,6 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_I2M			(1ULL << 43)
 /* Flag to indicate whether zbc classes are supported */
 #define NVGPU_GPU_FLAGS_SUPPORT_ZBC			(1ULL << 44)
-/* Flag to indicate whether Multi Instance Gpu per GPU physical device
-   is enabled/disabled. */
-#define NVGPU_GPU_FLAGS_SUPPORT_MIG			(1ULL << 45)
 /* Profiler V2 device objects are supported */
 #define NVGPU_GPU_FLAGS_SUPPORT_PROFILER_V2_DEVICE	(1ULL << 46)
 /* Profiler V2 context objects are supported */
@@ -329,8 +326,8 @@ struct nvgpu_gpu_characteristics {
 	__u32 num_sub_partition_per_fbpa;
 	__u32 gpu_instance_id;
 
-	__u32 gr_sys_pipe_id;
 	__u32 gr_instance_id;
+	__u32 reserved4;
 
 	/* Notes:
 	   - This struct can be safely appended with new fields. However, always

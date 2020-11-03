@@ -386,7 +386,7 @@ static const struct nvgpu_mig_static_info nvgpu_default_pci_mig_static_info[] =
 	{
 		.instance_type = NVGPU_MIG_TYPE_MIG,
 		.major_instance_id = 2,
-		.minor_instance_id = 0,
+		.minor_instance_id = 4,
 	},
 };
 

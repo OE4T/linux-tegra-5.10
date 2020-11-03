@@ -283,8 +283,6 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 		NVGPU_SUPPORT_I2M},
 	{NVGPU_GPU_FLAGS_SUPPORT_ZBC,
 		NVGPU_SUPPORT_ZBC},
-	{NVGPU_GPU_FLAGS_SUPPORT_MIG,
-		NVGPU_SUPPORT_MIG},
 	{NVGPU_GPU_FLAGS_SUPPORT_PROFILER_V2_DEVICE,
 		NVGPU_SUPPORT_PROFILER_V2_DEVICE},
 	{NVGPU_GPU_FLAGS_SUPPORT_PROFILER_V2_CONTEXT,
@@ -487,8 +485,7 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.per_device_identifier = g->per_device_identifier;
 
 	gpu.gpu_instance_id = gpu_instance->gpu_instance_id;
-	gpu.gr_sys_pipe_id = gpu_instance->gr_syspipe.gr_syspipe_id;
-	gpu.gr_instance_id = gpu_instance->gr_syspipe.gr_instance_id;
+	gpu.gr_instance_id = gpu_instance->gr_syspipe.gr_syspipe_id;
 
 	if (request->gpu_characteristics_buf_size > 0) {
 		size_t write_size = sizeof(gpu);
