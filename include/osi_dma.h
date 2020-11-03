@@ -60,7 +60,7 @@
  * @addtogroup EQOS-PKT Packet context fields
  *
  * @brief These flags are used to convey context information about a packet
- * between HW and SW. The context information includes
+ * between OSI and OSD. The context information includes
  * whether a VLAN tag is to be inserted for a packet,
  * whether a received packet is valid,
  * whether checksum offload is to be enabled for the packet upon transmit,
