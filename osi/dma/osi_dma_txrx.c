@@ -158,7 +158,7 @@ static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
  *  - If yes, set a bit and update nano seconds in rx_pkt_cx so that OSD
  *    layer can extract the time by checking this bit.
  *
- * @param[in] osi: OSI private data structure.
+ * @param[in] osi_dma: OSI private data structure.
  * @param[in] rx_desc: Rx descriptor
  * @param[in] context_desc: Rx context descriptor
  * @param[in] rx_pkt_cx: Rx packet context
