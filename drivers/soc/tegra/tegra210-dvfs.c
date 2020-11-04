@@ -1232,7 +1232,7 @@ static int update_emc_override_dvb_dvfs(struct tegra_dvfs_data *dvfs_data)
 	struct dvb_dvfs *dvbd;
 	const u32 freq_cnt = EMC_DVFS_TABLE_ROWS;
 	const u32 arr_sz = freq_cnt * EMC_DVFS_TABLE_COLUMNS;
-	u32 val[arr_sz];
+	u32 val[EMC_DVFS_TABLE_ROWS * EMC_DVFS_TABLE_COLUMNS];
 	int i, j, k, err;
 
 	node = of_find_matching_node(NULL, emcb01_dvb_dvfs_match);
