@@ -61,6 +61,7 @@ DEFINE_TNODE(apedma, TEGRA_ICC_APEDMA, TEGRA_ICC_ISO_OTHER);
 DEFINE_TNODE(se, TEGRA_ICC_SE, TEGRA_ICC_NISO);
 DEFINE_TNODE(gpu, TEGRA_ICC_GPU, TEGRA_ICC_NISO);
 DEFINE_TNODE(cactmon, TEGRA_ICC_CACTMON, TEGRA_ICC_NISO);
+DEFINE_TNODE(isp, TEGRA_ICC_ISP, TEGRA_ICC_NISO); /* non ISO camera */
 
 static struct tegra_icc_node *tegra_icc_nodes[] = {
 	[TEGRA_ICC_PRIMARY] = &icc_primary,
@@ -102,6 +103,7 @@ static struct tegra_icc_node *tegra_icc_nodes[] = {
 	[TEGRA_ICC_SE] = &se,
 	[TEGRA_ICC_GPU] = &gpu,
 	[TEGRA_ICC_CACTMON] = &cactmon,
+	[TEGRA_ICC_ISP] = &isp,
 };
 
 static int tegra_icc_probe(struct platform_device *pdev)

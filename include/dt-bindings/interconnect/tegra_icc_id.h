@@ -57,6 +57,7 @@
 #define TEGRA_ICC_APE				36
 #define TEGRA_ICC_APEDMA			37
 #define TEGRA_ICC_SE				38
+#define TEGRA_ICC_ISP				39
 
 /* remove later */
 #define NV_NVDISPLAYR2MC_SR_ID			TEGRA_ICC_DISPLAY
