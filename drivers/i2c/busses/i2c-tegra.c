@@ -325,6 +325,7 @@ struct tegra_i2c_dev {
 	u32 low_clock_count;
 	u32 high_clock_count;
 	struct tegra_prod *prod_list;
+	bool disable_dma_mode;
 	bool is_clkon_always;
 };
 
@@ -1666,6 +1667,7 @@ static void tegra_i2c_parse_dt(struct tegra_i2c_dev *i2c_dev)
 	if (!ret)
 		i2c_dev->hs_master_code = prop;
 
+	i2c_dev->disable_dma_mode = !of_property_read_bool(np, "dmas");
 	i2c_dev->is_clkon_always = of_property_read_bool(np,
 			"nvidia,clock-always-on");
 }
@@ -2117,9 +2119,11 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 	if (i2c_dev->hw->supports_bus_clear)
 		i2c_dev->adapter.bus_recovery_info = &tegra_i2c_recovery_info;
 
-	ret = tegra_i2c_init_dma(i2c_dev);
-	if (ret < 0)
-		goto disable_div_clk;
+	if (!i2c_dev->disable_dma_mode) {
+		ret = tegra_i2c_init_dma(i2c_dev);
+		if (ret < 0)
+			goto disable_div_clk;
+	}
 
 	ret = tegra_i2c_init(i2c_dev, false);
 	if (ret) {
