@@ -342,9 +342,7 @@ static int gm20b_tegra_railgate(struct device *dev)
 
 	udelay(10);
 
-	/* enable clamp */
-	tegra_pmc_writel_relaxed(0x1, PMC_GPU_RG_CNTRL_0);
-	tegra_pmc_readl(PMC_GPU_RG_CNTRL_0);
+	tegra_pmc_gpu_clamp_enable();
 
 	udelay(10);
 
@@ -458,8 +456,7 @@ static int gm20b_tegra_unrailgate(struct device *dev)
 
 	udelay(10);
 
-	tegra_pmc_writel_relaxed(0, PMC_GPU_RG_CNTRL_0);
-	tegra_pmc_readl(PMC_GPU_RG_CNTRL_0);
+	tegra_pmc_gpu_clamp_disable();
 
 	udelay(10);
 
