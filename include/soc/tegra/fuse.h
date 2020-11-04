@@ -55,6 +55,8 @@
 
 extern u32 tegra_read_chipid(void);
 extern u8 tegra_get_chip_id(void);
+u8 tegra_get_platform(void);
+bool tegra_is_silicon(void);
 
 enum tegra_revision {
 	TEGRA_REVISION_UNKNOWN = 0,
