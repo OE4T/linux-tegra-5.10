@@ -32,6 +32,8 @@
 struct gk20a;
 struct nvgpu_channel;
 struct nvgpu_tsg;
+struct nvgpu_pm_resource_register_range_map;
+enum nvgpu_pm_resource_hwpm_register_type;
 
 struct nvgpu_profiler_object {
 	struct gk20a *g;
@@ -106,6 +108,15 @@ struct nvgpu_profiler_object {
 	 * (if PMA stream resource is reserved successfully).
 	 */
 	void *pma_bytes_available_buffer_cpuva;
+
+	/*
+	 * Dynamic map of HWPM register ranges that can be accessed
+	 * through regops.
+	 */
+	struct nvgpu_pm_resource_register_range_map *map;
+
+	/* Number of range entries in map above */
+	u32 map_count;
 };
 
 static inline struct nvgpu_profiler_object *
@@ -134,6 +145,9 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof);
 
 int nvgpu_profiler_alloc_pma_stream(struct nvgpu_profiler_object *prof);
 void nvgpu_profiler_free_pma_stream(struct nvgpu_profiler_object *prof);
+
+bool nvgpu_profiler_validate_regops_allowlist(struct nvgpu_profiler_object *prof,
+		u32 offset, enum nvgpu_pm_resource_hwpm_register_type *type);
 
 #endif /* CONFIG_NVGPU_PROFILER */
 #endif /* NVGPU_PROFILER_H */

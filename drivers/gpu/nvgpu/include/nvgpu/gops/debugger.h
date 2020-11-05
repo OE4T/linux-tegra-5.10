@@ -26,6 +26,7 @@
 struct gops_regops {
 	int (*exec_regops)(struct gk20a *g,
 				struct nvgpu_tsg *tsg,
+				struct nvgpu_profiler_object *prof,
 				struct nvgpu_dbg_reg_op *ops,
 				u32 num_ops,
 				u32 *flags);
@@ -37,6 +38,32 @@ struct gops_regops {
 	u64 (*get_context_whitelist_ranges_count)(void);
 	const u32* (*get_runcontrol_whitelist)(void);
 	u64 (*get_runcontrol_whitelist_count)(void);
+	u32 (*get_hwpm_perfmon_register_stride)(void);
+	u32 (*get_hwpm_router_register_stride)(void);
+	u32 (*get_hwpm_pma_channel_register_stride)(void);
+	u32 (*get_hwpm_pma_trigger_register_stride)(void);
+	u32 (*get_smpc_register_stride)(void);
+	u32 (*get_cau_register_stride)(void);
+	const u32 *(*get_hwpm_perfmon_register_offset_allowlist)(u32 *count);
+	const u32 *(*get_hwpm_router_register_offset_allowlist)(u32 *count);
+	const u32 *(*get_hwpm_pma_channel_register_offset_allowlist)(u32 *count);
+	const u32 *(*get_hwpm_pma_trigger_register_offset_allowlist)(u32 *count);
+	const u32 *(*get_smpc_register_offset_allowlist)(u32 *count);
+	const u32 *(*get_cau_register_offset_allowlist)(u32 *count);
+	const struct nvgpu_pm_resource_register_range *
+		(*get_hwpm_perfmon_register_ranges)(u32 *count);
+	const struct nvgpu_pm_resource_register_range *
+		(*get_hwpm_router_register_ranges)(u32 *count);
+	const struct nvgpu_pm_resource_register_range *
+		(*get_hwpm_pma_channel_register_ranges)(u32 *count);
+	const struct nvgpu_pm_resource_register_range *
+		(*get_hwpm_pma_trigger_register_ranges)(u32 *count);
+	const struct nvgpu_pm_resource_register_range *
+		(*get_smpc_register_ranges)(u32 *count);
+	const struct nvgpu_pm_resource_register_range *
+		(*get_cau_register_ranges)(u32 *count);
+	const struct nvgpu_pm_resource_register_range *
+		(*get_hwpm_perfmux_register_ranges)(u32 *count);
 };
 struct gops_debugger {
 	void (*post_events)(struct nvgpu_channel *ch);

@@ -30,4 +30,20 @@ struct nvgpu_pm_resource_register_range {
 	u32 end;
 };
 
+enum nvgpu_pm_resource_hwpm_register_type {
+	NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMON,
+	NVGPU_HWPM_REGISTER_TYPE_HWPM_ROUTER,
+	NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_TRIGGER,
+	NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX,
+	NVGPU_HWPM_REGISTER_TYPE_SMPC,
+	NVGPU_HWPM_REGISTER_TYPE_CAU,
+	NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL,
+};
+
+struct nvgpu_pm_resource_register_range_map {
+	u32 start;
+	u32 end;
+	enum nvgpu_pm_resource_hwpm_register_type type;
+};
+
 #endif /* NVGPU_REGOPS_ALLOWLIST_H */

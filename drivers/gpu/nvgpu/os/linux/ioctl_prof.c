@@ -620,7 +620,7 @@ static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv
 			flags &= ~NVGPU_REG_OP_FLAG_ALL_PASSED;
 		}
 
-		err = g->ops.regops.exec_regops(g, tsg,
+		err = g->ops.regops.exec_regops(g, tsg, prof,
 			priv->regops_staging_buf, num_ops,
 			&flags);
 		if (err) {

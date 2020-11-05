@@ -74,6 +74,7 @@
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
 #include "hal/regops/regops_tu104.h"
+#include "hal/regops/allowlist_tu104.h"
 #include "hal/func/func_tu104.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
@@ -1232,6 +1233,29 @@ static const struct gops_regops tu104_ops_regops = {
 	.get_context_whitelist_ranges_count = tu104_get_context_whitelist_ranges_count,
 	.get_runcontrol_whitelist = tu104_get_runcontrol_whitelist,
 	.get_runcontrol_whitelist_count = tu104_get_runcontrol_whitelist_count,
+	.get_hwpm_perfmon_register_stride = tu104_get_hwpm_perfmon_register_stride,
+	.get_hwpm_router_register_stride = tu104_get_hwpm_router_register_stride,
+	.get_hwpm_pma_channel_register_stride = tu104_get_hwpm_pma_channel_register_stride,
+	.get_hwpm_pma_trigger_register_stride = tu104_get_hwpm_pma_trigger_register_stride,
+	.get_smpc_register_stride = tu104_get_smpc_register_stride,
+	.get_cau_register_stride = tu104_get_cau_register_stride,
+	.get_hwpm_perfmon_register_offset_allowlist =
+		tu104_get_hwpm_perfmon_register_offset_allowlist,
+	.get_hwpm_router_register_offset_allowlist =
+		tu104_get_hwpm_router_register_offset_allowlist,
+	.get_hwpm_pma_channel_register_offset_allowlist =
+		tu104_get_hwpm_pma_channel_register_offset_allowlist,
+	.get_hwpm_pma_trigger_register_offset_allowlist =
+		tu104_get_hwpm_pma_trigger_register_offset_allowlist,
+	.get_smpc_register_offset_allowlist = tu104_get_smpc_register_offset_allowlist,
+	.get_cau_register_offset_allowlist = tu104_get_cau_register_offset_allowlist,
+	.get_hwpm_perfmon_register_ranges = tu104_get_hwpm_perfmon_register_ranges,
+	.get_hwpm_router_register_ranges = tu104_get_hwpm_router_register_ranges,
+	.get_hwpm_pma_channel_register_ranges = tu104_get_hwpm_pma_channel_register_ranges,
+	.get_hwpm_pma_trigger_register_ranges = tu104_get_hwpm_pma_trigger_register_ranges,
+	.get_smpc_register_ranges = tu104_get_smpc_register_ranges,
+	.get_cau_register_ranges = tu104_get_cau_register_ranges,
+	.get_hwpm_perfmux_register_ranges = tu104_get_hwpm_perfmux_register_ranges,
 };
 #endif
 

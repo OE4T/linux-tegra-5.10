@@ -30,6 +30,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/gr_utils.h>
+#include <nvgpu/profiler.h>
 
 /* Access ctx buffer offset functions in gr_gk20a.h */
 #include "hal/gr/gr/gr_gk20a.h"
@@ -78,6 +79,7 @@ static bool gr_context_info_available(struct gk20a *g)
 }
 
 static bool validate_reg_ops(struct gk20a *g,
+			    struct nvgpu_profiler_object *prof,
 			    u32 *ctx_rd_count, u32 *ctx_wr_count,
 			    struct nvgpu_dbg_reg_op *ops,
 			    u32 op_count,
@@ -86,6 +88,7 @@ static bool validate_reg_ops(struct gk20a *g,
 
 int exec_regops_gk20a(struct gk20a *g,
 		      struct nvgpu_tsg *tsg,
+		      struct nvgpu_profiler_object *prof,
 		      struct nvgpu_dbg_reg_op *ops,
 		      u32 num_ops,
 		      u32 *flags)
@@ -99,7 +102,7 @@ int exec_regops_gk20a(struct gk20a *g,
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
-	ok = validate_reg_ops(g, &ctx_rd_count, &ctx_wr_count,
+	ok = validate_reg_ops(g, prof, &ctx_rd_count, &ctx_wr_count,
 		ops, num_ops, tsg != NULL, flags);
 	if (!ok) {
 		nvgpu_err(g, "invalid op(s)");
@@ -318,6 +321,36 @@ static bool check_whitelists(struct gk20a *g,
 	return valid;
 }
 
+static int profiler_obj_validate_reg_op_offset(struct nvgpu_profiler_object *prof,
+		struct nvgpu_dbg_reg_op *op)
+{
+	struct gk20a *g = prof->g;
+	bool valid = false;
+	u32 offset;
+
+	op->status = 0;
+	offset = op->offset;
+
+	/* support only 24-bit 4-byte aligned offsets */
+	if ((offset & 0xFF000003U) != 0U) {
+		nvgpu_err(g, "invalid regop offset: 0x%x", offset);
+		op->status |= REGOP(STATUS_INVALID_OFFSET);
+		return -EINVAL;
+	}
+
+	valid = nvgpu_profiler_validate_regops_allowlist(prof, offset, NULL);
+	if ((op->op == REGOP(READ_64) || op->op == REGOP(WRITE_64)) && valid) {
+		valid = nvgpu_profiler_validate_regops_allowlist(prof, offset + 4U, NULL);
+	}
+
+	if (!valid) {
+		op->status |= REGOP(STATUS_INVALID_OFFSET);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 /* note: the op here has already been through validate_reg_op_info */
 static int validate_reg_op_offset(struct gk20a *g,
 				  struct nvgpu_dbg_reg_op *op,
@@ -377,6 +410,7 @@ static int validate_reg_op_offset(struct gk20a *g,
 }
 
 static bool validate_reg_ops(struct gk20a *g,
+			    struct nvgpu_profiler_object *prof,
 			    u32 *ctx_rd_count, u32 *ctx_wr_count,
 			    struct nvgpu_dbg_reg_op *ops,
 			    u32 op_count,
@@ -419,10 +453,19 @@ static bool validate_reg_ops(struct gk20a *g,
 
 		/* if "allow_all" flag enabled, dont validate offset */
 		if (!g->allow_all) {
-			if (validate_reg_op_offset(g, &ops[i], valid_ctx) != 0) {
-				op_failed = true;
-				if (all_or_none) {
-					break;
+			if (prof != NULL) {
+				if (profiler_obj_validate_reg_op_offset(prof, &ops[i]) != 0) {
+					op_failed = true;
+					if (all_or_none) {
+						break;
+					}
+				}
+			} else {
+				if (validate_reg_op_offset(g, &ops[i], valid_ctx) != 0) {
+					op_failed = true;
+					if (all_or_none) {
+						break;
+					}
 				}
 			}
 		}

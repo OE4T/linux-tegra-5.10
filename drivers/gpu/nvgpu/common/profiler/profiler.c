@@ -32,6 +32,11 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/regops_allowlist.h>
+#include <nvgpu/sort.h>
+
+static int nvgpu_profiler_build_regops_allowlist(struct nvgpu_profiler_object *prof);
+static void nvgpu_profiler_destroy_regops_allowlist(struct nvgpu_profiler_object *prof);
 
 static nvgpu_atomic_t unique_id = NVGPU_ATOMIC_INIT(0);
 static int generate_unique_id(void)
@@ -576,8 +581,19 @@ int nvgpu_profiler_bind_pm_resources(struct nvgpu_profiler_object *prof)
 			"SMPC bound with profiler handle %u", prof->prof_handle);
 	}
 
+	err = nvgpu_profiler_build_regops_allowlist(prof);
+	if (err != 0) {
+		nvgpu_err(g, "failed to build allowlist");
+		goto fail_unbind;
+	}
+
 	prof->bound = true;
 
+	gk20a_idle(g);
+	return 0;
+
+fail_unbind:
+	nvgpu_profiler_unbind_pm_resources(prof);
 fail:
 	gk20a_idle(g);
 	return err;
@@ -593,6 +609,8 @@ int nvgpu_profiler_unbind_pm_resources(struct nvgpu_profiler_object *prof)
 			prof->prof_handle);
 		return -EINVAL;
 	}
+
+	nvgpu_profiler_destroy_regops_allowlist(prof);
 
 	err = gk20a_busy(g);
 	if (err) {
@@ -680,4 +698,290 @@ void nvgpu_profiler_free_pma_stream(struct nvgpu_profiler_object *prof)
 		nvgpu_profiler_pm_resource_release(prof,
 				NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM);
 	}
+}
+
+static int map_cmp(const void *a, const void *b)
+{
+	const struct nvgpu_pm_resource_register_range_map *e1;
+	const struct nvgpu_pm_resource_register_range_map *e2;
+
+	e1 = (const struct nvgpu_pm_resource_register_range_map *)a;
+	e2 = (const struct nvgpu_pm_resource_register_range_map *)b;
+
+	if (e1->start < e2->start) {
+		return -1;
+	}
+
+	if (e1->start > e2->start) {
+		return 1;
+	}
+
+	return 0;
+}
+
+static u32 get_pm_resource_register_range_map_entry_count(struct nvgpu_profiler_object *prof)
+{
+	struct gk20a *g = prof->g;
+	u32 count = 0U;
+	u32 range_count;
+
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
+		g->ops.regops.get_smpc_register_ranges(&range_count);
+		count += range_count;
+	}
+
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
+		g->ops.regops.get_hwpm_perfmon_register_ranges(&range_count);
+		count += range_count;
+
+		g->ops.regops.get_hwpm_router_register_ranges(&range_count);
+		count += range_count;
+
+		g->ops.regops.get_hwpm_pma_trigger_register_ranges(&range_count);
+		count += range_count;
+
+		g->ops.regops.get_hwpm_perfmux_register_ranges(&range_count);
+		count += range_count;
+
+		if (g->ops.regops.get_cau_register_ranges != NULL) {
+			g->ops.regops.get_cau_register_ranges(&range_count);
+			count += range_count;
+		}
+	}
+
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM]) {
+		g->ops.regops.get_hwpm_pma_channel_register_ranges(&range_count);
+		count += range_count;
+	}
+
+	return count;
+}
+
+static void add_range_to_map(const struct nvgpu_pm_resource_register_range *range,
+		u32 range_count, struct nvgpu_pm_resource_register_range_map *map,
+		u32 *map_index, enum nvgpu_pm_resource_hwpm_register_type type)
+{
+	u32 index = *map_index;
+	u32 i;
+
+	for (i = 0U; i < range_count; i++) {
+		map[index].start = range[i].start;
+		map[index].end = range[i].end;
+		map[index].type = type;
+		index++;
+	}
+
+	*map_index = index;
+}
+
+static int nvgpu_profiler_build_regops_allowlist(struct nvgpu_profiler_object *prof)
+{
+	struct nvgpu_pm_resource_register_range_map *map;
+	const struct nvgpu_pm_resource_register_range *range;
+	u32 map_count, map_index = 0U;
+	u32 range_count;
+	struct gk20a *g = prof->g;
+	u32 i;
+
+	map_count = get_pm_resource_register_range_map_entry_count(prof);
+	if (map_count == 0U) {
+		return -EINVAL;
+	}
+
+	nvgpu_log(g, gpu_dbg_prof, "Allowlist map number of entries %u for handle %u",
+		map_count, prof->prof_handle);
+
+	map = nvgpu_kzalloc(g, sizeof(*map) * map_count);
+	if (map == NULL) {
+		return -ENOMEM;
+	}
+
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
+		range = g->ops.regops.get_smpc_register_ranges(&range_count);
+		add_range_to_map(range, range_count, map, &map_index,
+			NVGPU_HWPM_REGISTER_TYPE_SMPC);
+	}
+
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
+		range = g->ops.regops.get_hwpm_perfmon_register_ranges(&range_count);
+		add_range_to_map(range, range_count, map, &map_index,
+			NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMON);
+
+		range = g->ops.regops.get_hwpm_router_register_ranges(&range_count);
+		add_range_to_map(range, range_count, map, &map_index,
+			NVGPU_HWPM_REGISTER_TYPE_HWPM_ROUTER);
+
+		range = g->ops.regops.get_hwpm_pma_trigger_register_ranges(&range_count);
+		add_range_to_map(range, range_count, map, &map_index,
+			NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_TRIGGER);
+
+		range = g->ops.regops.get_hwpm_perfmux_register_ranges(&range_count);
+		add_range_to_map(range, range_count, map, &map_index,
+			NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX);
+
+		if (g->ops.regops.get_cau_register_ranges != NULL) {
+			range = g->ops.regops.get_cau_register_ranges(&range_count);
+			add_range_to_map(range, range_count, map, &map_index,
+				NVGPU_HWPM_REGISTER_TYPE_CAU);
+		}
+	}
+
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM]) {
+		range = g->ops.regops.get_hwpm_pma_channel_register_ranges(&range_count);
+		add_range_to_map(range, range_count, map, &map_index,
+			NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL);
+	}
+
+	nvgpu_log(g, gpu_dbg_prof, "Allowlist map created successfully for handle %u",
+		prof->prof_handle);
+
+	nvgpu_assert(map_count == map_index);
+
+	sort(map, map_count, sizeof(*map), map_cmp, NULL);
+
+	for (i = 0; i < map_count; i++) {
+		nvgpu_log(g, gpu_dbg_prof, "allowlist[%u]: 0x%x-0x%x : type %u",
+			i, map[i].start, map[i].end, map[i].type);
+	}
+
+	prof->map = map;
+	prof->map_count = map_count;
+	return 0;
+}
+
+static void nvgpu_profiler_destroy_regops_allowlist(struct nvgpu_profiler_object *prof)
+{
+	nvgpu_log(prof->g, gpu_dbg_prof, "Allowlist map destroy for handle %u",
+		prof->prof_handle);
+
+	nvgpu_kfree(prof->g, prof->map);
+}
+
+static bool allowlist_range_search(struct gk20a *g,
+		struct nvgpu_pm_resource_register_range_map *map,
+		u32 map_count, u32 offset,
+		enum nvgpu_pm_resource_hwpm_register_type *type)
+{
+	u32 start = 0U;
+	u32 mid = 0U;
+	u32 end = map_count - 1U;
+	bool found = false;
+
+	while (start <= end) {
+		mid = (start + end) / 2U;
+
+		if (offset < map[mid].start) {
+			end = mid - 1U;
+		} else if (offset > map[mid].end) {
+			start = mid + 1U;
+		} else {
+			found = true;
+			break;
+		}
+	}
+
+	if (found) {
+		*type = map[mid].type;
+		nvgpu_log(g, gpu_dbg_prof, "Offset 0x%x found in range 0x%x-0x%x, type: %u",
+			offset, map[mid].start, map[mid].end, map[mid].type);
+	} else {
+		nvgpu_log(g, gpu_dbg_prof, "Offset 0x%x not found in range search", offset);
+	}
+
+	return found;
+}
+
+static bool allowlist_offset_search(struct gk20a *g,
+		const u32 *offset_allowlist, u32 count, u32 offset)
+{
+	u32 start = 0U;
+	u32 mid = 0U;
+	u32 end = count - 1U;
+	bool found = false;
+
+	while (start <= end) {
+		mid = (start + end) / 2U;
+		if (offset_allowlist[mid] == offset) {
+			found = true;
+			break;
+		}
+
+		if (offset < offset_allowlist[mid]) {
+			end = mid - 1U;
+		} else {
+			start = mid + 1U;
+		}
+	}
+
+	if (found) {
+		nvgpu_log(g, gpu_dbg_prof, "Offset 0x%x found in offset allowlist",
+			offset);
+	} else {
+		nvgpu_log(g, gpu_dbg_prof, "Offset 0x%x not found in offset allowlist",
+			offset);
+	}
+
+	return found;
+}
+
+bool nvgpu_profiler_validate_regops_allowlist(struct nvgpu_profiler_object *prof,
+		u32 offset, enum nvgpu_pm_resource_hwpm_register_type *type)
+{
+	enum nvgpu_pm_resource_hwpm_register_type reg_type;
+	struct gk20a *g = prof->g;
+	const u32 *offset_allowlist;
+	u32 count;
+	u32 stride;
+	bool found;
+
+	found = allowlist_range_search(g, prof->map, prof->map_count, offset, &reg_type);
+	if (!found) {
+		return found;
+	}
+
+	if (type != NULL) {
+		*type = reg_type;
+	}
+
+	if (reg_type == NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX) {
+		return found;
+	}
+
+	switch ((u32)reg_type) {
+	case NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMON:
+		offset_allowlist = g->ops.regops.get_hwpm_perfmon_register_offset_allowlist(&count);
+		stride = g->ops.regops.get_hwpm_perfmon_register_stride();
+		break;
+
+	case NVGPU_HWPM_REGISTER_TYPE_HWPM_ROUTER:
+		offset_allowlist = g->ops.regops.get_hwpm_router_register_offset_allowlist(&count);
+		stride = g->ops.regops.get_hwpm_router_register_stride();
+		break;
+
+	case NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_TRIGGER:
+		offset_allowlist = g->ops.regops.get_hwpm_pma_trigger_register_offset_allowlist(&count);
+		stride = g->ops.regops.get_hwpm_pma_trigger_register_stride();
+		break;
+
+	case NVGPU_HWPM_REGISTER_TYPE_SMPC:
+		offset_allowlist = g->ops.regops.get_smpc_register_offset_allowlist(&count);
+		stride = g->ops.regops.get_smpc_register_stride();
+		break;
+
+	case NVGPU_HWPM_REGISTER_TYPE_CAU:
+		offset_allowlist = g->ops.regops.get_cau_register_offset_allowlist(&count);
+		stride = g->ops.regops.get_cau_register_stride();
+		break;
+
+	case NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL:
+		offset_allowlist = g->ops.regops.get_hwpm_pma_channel_register_offset_allowlist(&count);
+		stride = g->ops.regops.get_hwpm_pma_channel_register_stride();
+		break;
+
+	default:
+		return false;
+	}
+
+	offset = offset & (stride - 1U);
+	return allowlist_offset_search(g, offset_allowlist, count, offset);
 }

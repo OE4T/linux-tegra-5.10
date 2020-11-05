@@ -89,6 +89,7 @@
 #include "hal/ptimer/ptimer_gp10b.h"
 #ifdef CONFIG_NVGPU_DEBUGGER
 #include "hal/regops/regops_gv11b.h"
+#include "hal/regops/allowlist_gv11b.h"
 #endif
 #ifdef CONFIG_NVGPU_RECOVERY
 #include "hal/rc/rc_gv11b.h"
@@ -1169,6 +1170,29 @@ static const struct gops_regops gv11b_ops_regops = {
 	.get_context_whitelist_ranges_count = gv11b_get_context_whitelist_ranges_count,
 	.get_runcontrol_whitelist = gv11b_get_runcontrol_whitelist,
 	.get_runcontrol_whitelist_count = gv11b_get_runcontrol_whitelist_count,
+	.get_hwpm_perfmon_register_stride = gv11b_get_hwpm_perfmon_register_stride,
+	.get_hwpm_router_register_stride = gv11b_get_hwpm_router_register_stride,
+	.get_hwpm_pma_channel_register_stride = gv11b_get_hwpm_pma_channel_register_stride,
+	.get_hwpm_pma_trigger_register_stride = gv11b_get_hwpm_pma_trigger_register_stride,
+	.get_smpc_register_stride = gv11b_get_smpc_register_stride,
+	.get_cau_register_stride = NULL,
+	.get_hwpm_perfmon_register_offset_allowlist =
+		gv11b_get_hwpm_perfmon_register_offset_allowlist,
+	.get_hwpm_router_register_offset_allowlist =
+		gv11b_get_hwpm_router_register_offset_allowlist,
+	.get_hwpm_pma_channel_register_offset_allowlist =
+		gv11b_get_hwpm_pma_channel_register_offset_allowlist,
+	.get_hwpm_pma_trigger_register_offset_allowlist =
+		gv11b_get_hwpm_pma_trigger_register_offset_allowlist,
+	.get_smpc_register_offset_allowlist = gv11b_get_smpc_register_offset_allowlist,
+	.get_cau_register_offset_allowlist = NULL,
+	.get_hwpm_perfmon_register_ranges = gv11b_get_hwpm_perfmon_register_ranges,
+	.get_hwpm_router_register_ranges = gv11b_get_hwpm_router_register_ranges,
+	.get_hwpm_pma_channel_register_ranges = gv11b_get_hwpm_pma_channel_register_ranges,
+	.get_hwpm_pma_trigger_register_ranges = gv11b_get_hwpm_pma_trigger_register_ranges,
+	.get_smpc_register_ranges = gv11b_get_smpc_register_ranges,
+	.get_cau_register_ranges = NULL,
+	.get_hwpm_perfmux_register_ranges = gv11b_get_hwpm_perfmux_register_ranges,
 };
 #endif
 

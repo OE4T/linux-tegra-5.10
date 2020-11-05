@@ -30,6 +30,7 @@
 
 struct gk20a;
 struct nvgpu_tsg;
+struct nvgpu_profiler_object;
 
 /*
  * Register operations
@@ -88,6 +89,7 @@ struct regop_offset_range {
 
 int exec_regops_gk20a(struct gk20a *g,
 		      struct nvgpu_tsg *tsg,
+		      struct nvgpu_profiler_object *prof,
 		      struct nvgpu_dbg_reg_op *ops,
 		      u32 num_ops,
 		      u32 *flags);

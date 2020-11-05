@@ -36,6 +36,7 @@
 
 int vgpu_exec_regops(struct gk20a *g,
 		      struct nvgpu_tsg *tsg,
+		      struct nvgpu_profiler_object *prof,
 		      struct nvgpu_dbg_reg_op *ops,
 		      u32 num_ops,
 		      u32 *flags)
