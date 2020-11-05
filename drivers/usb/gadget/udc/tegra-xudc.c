@@ -3979,8 +3979,6 @@ static int __maybe_unused tegra_xudc_powergate(struct tegra_xudc *xudc)
 
 	dev_dbg(xudc->dev, "entering ELPG\n");
 
-	cancel_work_sync(&xudc->pullup_work);
-
 	spin_lock_irqsave(&xudc->lock, flags);
 
 	xudc->powergated = true;
