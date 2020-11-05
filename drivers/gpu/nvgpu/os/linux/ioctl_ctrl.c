@@ -672,11 +672,10 @@ clean_up:
 	return err;
 }
 
-static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
+static int gk20a_ctrl_get_tpc_masks(struct gk20a *g, struct nvgpu_gr_config *gr_config,
 				    struct nvgpu_gpu_get_tpc_masks_args *args)
 {
 	int err = 0;
-	struct nvgpu_gr_config *gr_config = nvgpu_gr_get_config_ptr(g);
 	const u32 gpc_tpc_mask_size = sizeof(u32) *
 		nvgpu_gr_config_get_max_gpc_count(gr_config);
 
@@ -2048,7 +2047,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 			(struct nvgpu_gpu_open_tsg_args *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_GET_TPC_MASKS:
-		err = gk20a_ctrl_get_tpc_masks(g,
+		err = gk20a_ctrl_get_tpc_masks(g, gr_config,
 			(struct nvgpu_gpu_get_tpc_masks_args *)buf);
 		break;
 	case NVGPU_GPU_IOCTL_GET_FBP_L2_MASKS:
