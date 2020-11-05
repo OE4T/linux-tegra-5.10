@@ -26,6 +26,9 @@ struct device;
 struct dma_buf;
 struct dma_buf_attachment;
 
+#define DMABUF_CAN_DEFER_UNMAP		BIT(0)
+#define DMABUF_SKIP_CACHE_SYNC		BIT(1)
+
 /**
  * struct dma_buf_ops - operations possible on struct dma_buf
  * @vmap: [optional] creates a virtual mapping for the buffer into kernel
@@ -310,6 +313,7 @@ struct dma_buf {
 	unsigned vmapping_counter;
 	void *vmap_ptr;
 	const char *exp_name;
+	unsigned long flags;
 	const char *name;
 	spinlock_t name_lock; /* spinlock to protect name access */
 	struct module *owner;
@@ -395,6 +399,8 @@ struct dma_buf_attachment {
 	const struct dma_buf_attach_ops *importer_ops;
 	void *importer_priv;
 	void *priv;
+	atomic_t ref;
+	atomic_t maps;
 };
 
 /**
@@ -416,6 +422,7 @@ struct dma_buf_export_info {
 	const struct dma_buf_ops *ops;
 	size_t size;
 	int flags;
+	int exp_flags;
 	struct dma_resv *resv;
 	void *priv;
 };
