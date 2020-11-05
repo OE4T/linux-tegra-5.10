@@ -572,21 +572,16 @@
 
 	sdmmc4: sdhci@3460000 { /* Used for eMMC */
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		/delete-property/ iommus;
-		/delete-property/ dma-coherent;
+		supports-cqe;
 #endif
 		status = "okay";
 	};
 
 	sdmmc1: sdhci@3400000 {
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		/delete-property/ iommus;
-		/delete-property/ dma-coherent;
-#endif
 		/delete-property/ pinctrl-names;
 		/delete-property/ pinctrl-0;
 		/delete-property/ pinctrl-1;
-		nvidia,voltage-switch-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(Q, 7) 0>;
+		nvidia,voltage-switch-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(G, 6) 0>;
 		cd-gpios = <&tegra_main_gpio TEGRA234_MAIN_GPIO(G, 7) 0>;
 		status = "okay";
 	 };
