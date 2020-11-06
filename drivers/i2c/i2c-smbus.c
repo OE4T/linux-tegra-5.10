@@ -205,7 +205,7 @@ struct i2c_slave_host_notify_status {
 };
 
 static int i2c_slave_host_notify_cb(struct i2c_client *client,
-				    enum i2c_slave_event event, u8 *val)
+				    enum i2c_slave_event event, void *val)
 {
 	struct i2c_slave_host_notify_status *status = client->dev.platform_data;
 
@@ -216,7 +216,7 @@ static int i2c_slave_host_notify_cb(struct i2c_client *client,
 		 * parameter from the client.
 		 */
 		if (status->index == 0)
-			status->addr = *val;
+			status->addr = *(u8 *)val;
 		if (status->index < U8_MAX)
 			status->index++;
 		break;
@@ -230,7 +230,9 @@ static int i2c_slave_host_notify_cb(struct i2c_client *client,
 		break;
 	case I2C_SLAVE_READ_REQUESTED:
 	case I2C_SLAVE_READ_PROCESSED:
-		*val = 0xff;
+		*(u8 *)val = 0xff;
+		break;
+	default:
 		break;
 	}
 

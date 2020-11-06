@@ -789,33 +789,6 @@ static size_t tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 	return size;
 }
 
-static int tegra_smmu_map(struct iommu_domain *domain, unsigned long iova,
-			  phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
-{
-	struct tegra_smmu_as *as = to_smmu_as(domain);
-	unsigned long flags;
-	int ret;
-
-	spin_lock_irqsave(&as->lock, flags);
-	ret = __tegra_smmu_map(domain, iova, paddr, size, prot, gfp, &flags);
-	spin_unlock_irqrestore(&as->lock, flags);
-
-	return ret;
-}
-
-static size_t tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
-			       size_t size, struct iommu_iotlb_gather *gather)
-{
-	struct tegra_smmu_as *as = to_smmu_as(domain);
-	unsigned long flags;
-
-	spin_lock_irqsave(&as->lock, flags);
-	size = __tegra_smmu_unmap(domain, iova, size, gather);
-	spin_unlock_irqrestore(&as->lock, flags);
-
-	return size;
-}
-
 static phys_addr_t tegra_smmu_iova_to_phys(struct iommu_domain *domain,
 					   dma_addr_t iova)
 {

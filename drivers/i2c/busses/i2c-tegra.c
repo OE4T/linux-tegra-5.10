@@ -332,6 +332,9 @@ struct tegra_i2c_dev {
 	bool is_vi;
 };
 
+static int __maybe_unused tegra_i2c_runtime_resume(struct device *dev);
+static int __maybe_unused tegra_i2c_runtime_suspend(struct device *dev);
+
 static void dvc_writel(struct tegra_i2c_dev *i2c_dev, u32 val,
 		       unsigned int reg)
 {
@@ -1926,8 +1929,8 @@ static void tegra_i2c_parse_dt(struct tegra_i2c_dev *i2c_dev)
 	if (of_device_is_compatible(np, "nvidia,tegra210-i2c-vi"))
 		i2c_dev->is_vi = true;
 
-	ret = of_property_read_u32(np, "nvidia,hs-master-code", &prop);
-	if (!ret)
+	err = of_property_read_u32(np, "nvidia,hs-master-code", &prop);
+	if (!err)
 		i2c_dev->hs_master_code = prop;
 
 	i2c_dev->is_clkon_always = of_property_read_bool(np,

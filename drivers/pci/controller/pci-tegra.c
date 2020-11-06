@@ -4197,7 +4197,7 @@ static void tegra_pcie_debugfs_exit(struct tegra_pcie *pcie)
 	pcie->debugfs = NULL;
 }
 
-static void tegra_pcie_debugfs_init(struct tegra_pcie *pcie)
+static int tegra_pcie_debugfs_init(struct tegra_pcie *pcie)
 {
 	struct dentry *d;
 	struct tegra_pcie_port *port;

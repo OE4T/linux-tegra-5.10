@@ -101,23 +101,12 @@
 
 #define DMA_MASK_NONE	0x0ULL
 
-static inline int valid_dma_direction(int dma_direction)
-{
-	return ((dma_direction == DMA_BIDIRECTIONAL) ||
-		(dma_direction == DMA_TO_DEVICE) ||
-		(dma_direction == DMA_FROM_DEVICE));
-}
-
 #ifdef CONFIG_DMA_DECLARE_COHERENT
 int dma_alloc_from_dev_coherent_attr(struct device *dev, ssize_t size,
 					dma_addr_t *dma_handle, void **ret,
 					unsigned long attrs);
 int dma_release_from_dev_coherent_attr(struct device *dev, ssize_t size,
 					void *vaddr, unsigned long attrs);
-#define dma_alloc_from_dev_coherent(d, s, h, r) \
-	 dma_alloc_from_dev_coherent_attr(d, s, h, r, 0)
-#define dma_release_from_dev_coherent(d, s, v) \
-	 dma_release_from_dev_coherent_attr(d, s, v, 0)
 #endif
 
 #ifdef CONFIG_DMA_API_DEBUG

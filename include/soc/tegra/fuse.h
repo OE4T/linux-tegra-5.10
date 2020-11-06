@@ -133,7 +133,6 @@ bool is_tegra_hypervisor_mode(void);
 bool is_tegra_safety_build(void);
 
 /* tegra-platform.c declarations */
-extern enum tegra_platform tegra_get_platform(void);
 extern bool tegra_cpu_is_asim(void);
 
 static inline bool tegra_platform_is_silicon(void)
