@@ -73,6 +73,7 @@
 #include "hal/fb/intr/fb_intr_tu104.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/ptimer/ptimer_gp10b.h"
+#include "hal/ptimer/ptimer_gv11b.h"
 #include "hal/regops/regops_tu104.h"
 #include "hal/regops/allowlist_tu104.h"
 #include "hal/func/func_tu104.h"
@@ -1380,6 +1381,9 @@ static const struct gops_ptimer tu104_ops_ptimer = {
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 	.config_gr_tick_freq = gp10b_ptimer_config_gr_tick_freq,
+#endif
+#ifdef CONFIG_NVGPU_PROFILER
+	.get_timer_reg_offsets = gv11b_ptimer_get_timer_reg_offsets,
 #endif
 };
 #endif

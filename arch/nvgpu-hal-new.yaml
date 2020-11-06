@@ -102,7 +102,9 @@ ptimer:
   safe: no
   owner: Deepak N
   sources: [ hal/ptimer/ptimer_gp10b.c,
-             hal/ptimer/ptimer_gp10b.h ]
+             hal/ptimer/ptimer_gp10b.h,
+             hal/ptimer/ptimer_gv11b.c,
+             hal/ptimer/ptimer_gv11b.h ]
 
 cg_fusa:
   safe: yes

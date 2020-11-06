@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,31 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_REGOPS_ALLOWLIST_H
-#define NVGPU_REGOPS_ALLOWLIST_H
+#include <nvgpu/gk20a.h>
 
-#include <nvgpu/types.h>
+#include "ptimer_gv11b.h"
 
-struct nvgpu_pm_resource_register_range {
-	u32 start;
-	u32 end;
-};
+#include <nvgpu/hw/gv11b/hw_timer_gv11b.h>
 
-enum nvgpu_pm_resource_hwpm_register_type {
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMON,
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_ROUTER,
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_TRIGGER,
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX,
-	NVGPU_HWPM_REGISTER_TYPE_SMPC,
-	NVGPU_HWPM_REGISTER_TYPE_CAU,
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL,
-	NVGPU_HWPM_REGISTER_TYPE_TEST,
-};
-
-struct nvgpu_pm_resource_register_range_map {
-	u32 start;
-	u32 end;
-	enum nvgpu_pm_resource_hwpm_register_type type;
-};
-
-#endif /* NVGPU_REGOPS_ALLOWLIST_H */
+void gv11b_ptimer_get_timer_reg_offsets(u32 *timer0_offset, u32 *timer1_offset)
+{
+	if (timer0_offset != NULL) {
+		*timer0_offset = timer_time_0_r();
+	}
+	if (timer1_offset != NULL) {
+		*timer1_offset = timer_time_1_r();
+	}
+}

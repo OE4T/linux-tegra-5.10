@@ -704,6 +704,7 @@ nvgpu-y += \
 	hal/priv_ring/priv_ring_gp10b_fusa.o \
 	hal/ptimer/ptimer_gk20a_fusa.o \
 	hal/ptimer/ptimer_gp10b.o \
+	hal/ptimer/ptimer_gv11b.o \
 	hal/therm/therm_gv11b_fusa.o \
 	hal/top/top_gm20b_fusa.o \
 	hal/top/top_gv11b_fusa.o

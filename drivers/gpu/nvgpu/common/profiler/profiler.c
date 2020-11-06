@@ -725,6 +725,9 @@ static u32 get_pm_resource_register_range_map_entry_count(struct nvgpu_profiler_
 	u32 count = 0U;
 	u32 range_count;
 
+	/* Account for TYPE_TEST entries added in add_test_range_to_map() */
+	count += 2U;
+
 	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
 		g->ops.regops.get_smpc_register_ranges(&range_count);
 		count += range_count;
@@ -770,6 +773,28 @@ static void add_range_to_map(const struct nvgpu_pm_resource_register_range *rang
 		map[index].type = type;
 		index++;
 	}
+
+	*map_index = index;
+}
+
+static void add_test_range_to_map(struct gk20a *g,
+		struct nvgpu_pm_resource_register_range_map *map,
+		u32 *map_index, enum nvgpu_pm_resource_hwpm_register_type type)
+{
+	u32 index = *map_index;
+	u32 timer0_offset, timer1_offset;
+
+	g->ops.ptimer.get_timer_reg_offsets(&timer0_offset, &timer1_offset);
+
+	map[index].start = timer0_offset;
+	map[index].end = timer0_offset;
+	map[index].type = type;
+	index++;
+
+	map[index].start = timer1_offset;
+	map[index].end = timer1_offset;
+	map[index].type = type;
+	index++;
 
 	*map_index = index;
 }
@@ -831,6 +856,8 @@ static int nvgpu_profiler_build_regops_allowlist(struct nvgpu_profiler_object *p
 		add_range_to_map(range, range_count, map, &map_index,
 			NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL);
 	}
+
+	add_test_range_to_map(g, map, &map_index, NVGPU_HWPM_REGISTER_TYPE_TEST);
 
 	nvgpu_log(g, gpu_dbg_prof, "Allowlist map created successfully for handle %u",
 		prof->prof_handle);
@@ -943,7 +970,8 @@ bool nvgpu_profiler_validate_regops_allowlist(struct nvgpu_profiler_object *prof
 		*type = reg_type;
 	}
 
-	if (reg_type == NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX) {
+	if ((reg_type == NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX) ||
+	    (reg_type == NVGPU_HWPM_REGISTER_TYPE_TEST)) {
 		return found;
 	}
 

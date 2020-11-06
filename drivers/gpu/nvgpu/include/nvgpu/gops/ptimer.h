@@ -93,6 +93,9 @@ struct gops_ptimer {
 #ifdef CONFIG_NVGPU_DEBUGGER
 	int (*config_gr_tick_freq)(struct gk20a *g);
 #endif
+#ifdef CONFIG_NVGPU_PROFILER
+	void (*get_timer_reg_offsets)(u32 *timer0_offset, u32 *timer1_offset);
+#endif
 
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };

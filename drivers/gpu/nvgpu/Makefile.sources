@@ -394,7 +394,8 @@ endif
 ifeq ($(CONFIG_NVGPU_PROFILER),1)
 srcs += common/profiler/profiler.c \
 	common/profiler/pm_reservation.c \
-	hal/priv_ring/priv_ring_gv11b.c
+	hal/priv_ring/priv_ring_gv11b.c \
+	hal/ptimer/ptimer_gv11b.c
 endif
 
 ifeq ($(CONFIG_NVGPU_KERNEL_MODE_SUBMIT),1)

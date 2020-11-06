@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,32 +19,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef PTIMER_GV11B_H
+#define PTIMER_GV11B_H
 
-#ifndef NVGPU_REGOPS_ALLOWLIST_H
-#define NVGPU_REGOPS_ALLOWLIST_H
+#ifdef CONFIG_NVGPU_PROFILER
 
 #include <nvgpu/types.h>
 
-struct nvgpu_pm_resource_register_range {
-	u32 start;
-	u32 end;
-};
+void gv11b_ptimer_get_timer_reg_offsets(u32 *timer0_offset, u32 *timer1_offset);
 
-enum nvgpu_pm_resource_hwpm_register_type {
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMON,
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_ROUTER,
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_TRIGGER,
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX,
-	NVGPU_HWPM_REGISTER_TYPE_SMPC,
-	NVGPU_HWPM_REGISTER_TYPE_CAU,
-	NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL,
-	NVGPU_HWPM_REGISTER_TYPE_TEST,
-};
-
-struct nvgpu_pm_resource_register_range_map {
-	u32 start;
-	u32 end;
-	enum nvgpu_pm_resource_hwpm_register_type type;
-};
-
-#endif /* NVGPU_REGOPS_ALLOWLIST_H */
+#endif /* CONFIG_NVGPU_PROFILER */
+#endif /* PTIMER_GV11B_H */
