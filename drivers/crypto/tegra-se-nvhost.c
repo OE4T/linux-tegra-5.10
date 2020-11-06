@@ -656,7 +656,8 @@ static u32 tegra_se_get_config(struct tegra_se_dev *se_dev,
 			val = SE_CONFIG_ENC_ALG(ALG_AES_ENC);
 			switch (se_dev->chipdata->kac_type) {
 			case SE_KAC_T23X:
-				val |= SE_CONFIG_ENC_MODE(MODE_CMAC);
+				if (mode == SE_AES_OP_MODE_CMAC)
+					val |= SE_CONFIG_ENC_MODE(MODE_CMAC);
 				break;
 			case SE_KAC_T18X:
 				if (key_len == TEGRA_SE_KEY_256_SIZE)
@@ -1624,7 +1625,9 @@ static u32 tegra_se_get_crypto_config(struct tegra_se_dev *se_dev,
 	case SE_AES_OP_MODE_CMAC:
 	case SE_AES_OP_MODE_CBC:
 		if (encrypt) {
-			if (se_dev->chipdata->kac_type == SE_KAC_T18X) {
+			if (se_dev->chipdata->kac_type == SE_KAC_T18X ||
+			   (se_dev->chipdata->kac_type == SE_KAC_T23X &&
+			    mode == SE_AES_OP_MODE_CBC)) {
 				val = SE_CRYPTO_INPUT_SEL(INPUT_MEMORY) |
 					SE_CRYPTO_VCTRAM_SEL(VCTRAM_AESOUT) |
 					SE_CRYPTO_XOR_POS(XOR_TOP) |
