@@ -992,6 +992,9 @@ static void tegra_sdhci_pad_autocalib(struct sdhci_host *host)
 	u32 reg;
 	int ret;
 
+	if (tegra_platform_is_vsp())
+		return;
+
 	switch (ios->timing) {
 	case MMC_TIMING_UHS_SDR104:
 		pdpu = offsets.pull_down_sdr104 << 8 | offsets.pull_up_sdr104;
