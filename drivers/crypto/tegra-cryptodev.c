@@ -31,6 +31,7 @@
 #include <linux/scatterlist.h>
 #include <linux/uaccess.h>
 #include <linux/nospec.h>
+#include <linux/version.h>
 #include <crypto/rng.h>
 #include <crypto/hash.h>
 #include <linux/platform/tegra/common.h>
@@ -112,7 +113,11 @@ static inline struct shash_desc *shash_request_alloc(
 
 static inline void shash_request_free(struct shash_desc *desc)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	kzfree(desc);
+#else
+	kfree_sensitive(desc);
+#endif
 }
 
 static int alloc_bufs(unsigned long *buf[NBUFS])

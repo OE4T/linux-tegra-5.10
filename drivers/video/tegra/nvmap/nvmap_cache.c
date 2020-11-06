@@ -153,9 +153,14 @@ int nvmap_cache_maint_phys_range(unsigned int op, phys_addr_t pstart,
 	if (!inner)
 		goto do_outer;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	area = alloc_vm_area(PAGE_SIZE, NULL);
+#else
+	area = get_vm_area(PAGE_SIZE, 0);
+#endif
 	if (!area)
 		return -ENOMEM;
+
 	kaddr = (ulong)area->addr;
 
 	loop = pstart;

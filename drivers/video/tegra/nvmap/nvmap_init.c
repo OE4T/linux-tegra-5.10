@@ -18,7 +18,6 @@
 #include <linux/of_fdt.h>
 #include <linux/of_platform.h>
 #include <linux/nvmap.h>
-#include <linux/dma-contiguous.h>
 #include <linux/version.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
@@ -26,7 +25,12 @@
 #endif
 
 #include <linux/cma.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#include <linux/dma-map-ops.h>
+#else
+#include <linux/dma-contiguous.h>
 #include <asm/dma-contiguous.h>
+#endif
 
 #include "nvmap_priv.h"
 #include <linux/platform/tegra/common.h>
@@ -394,7 +398,12 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 	}
 
 	dma_contiguous_early_fixup(rmem->base, rmem->size);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	if (co->cma_dev)
+		co->cma_dev->cma_area = cma;
+#else
 	dev_set_cma_area(co->cma_dev, cma);
+#endif
 	pr_debug("tegra-carveouts carveout=%s %pa@%pa\n",
 		 rmem->name, &rmem->size, &rmem->base);
 	goto finish;

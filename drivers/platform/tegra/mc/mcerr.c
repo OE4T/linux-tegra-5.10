@@ -38,8 +38,6 @@
 #include <linux/platform/tegra/mc-regs-t18x.h>
 #include <linux/platform/tegra/mc-regs-t19x.h>
 
-static const struct of_device_id __mcerr_of_table_sentinel
-	__used __section(__mcerr_of_table_end);
 extern struct of_device_id __mcerr_of_table;
 
 static bool mcerr_throttle_enabled = true;

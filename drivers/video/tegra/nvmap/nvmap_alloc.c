@@ -940,7 +940,11 @@ void _nvmap_handle_free(struct nvmap_handle *h)
 	list_for_each_entry_safe(curr, next, &h->dmabuf_priv, list) {
 		curr->priv_release(curr->priv);
 		list_del(&curr->list);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		kzfree(curr);
+#else
+		kfree_sensitive(curr);
+#endif
 	}
 
 	if (nvmap_handle_remove(nvmap_dev, h) != 0)

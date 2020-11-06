@@ -69,9 +69,14 @@ void *__nvmap_kmap(struct nvmap_handle *h, unsigned int pagenum)
 		kaddr = (unsigned long)h->vaddr + pagenum * PAGE_SIZE;
 	} else {
 		prot = nvmap_pgprot(h, PG_PROT_KERNEL);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		area = alloc_vm_area(PAGE_SIZE, NULL);
+#else
+		area = get_vm_area(PAGE_SIZE, 0);
+#endif
 		if (!area)
 			goto out;
+
 		kaddr = (ulong)area->addr;
 
 		if (h->heap_pgalloc)
@@ -178,7 +183,11 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 	adj_size += h->size;
 	adj_size = PAGE_ALIGN(adj_size);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	v = alloc_vm_area(adj_size, NULL);
+#else
+	v = get_vm_area(adj_size, 0);
+#endif
 	if (!v)
 		goto out;
 

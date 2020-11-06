@@ -37,7 +37,11 @@
 
 #include <linux/nvmap.h>
 #include <linux/dma-mapping.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#include <linux/dma-map-ops.h>
+#else
 #include <linux/dma-contiguous.h>
+#endif
 
 #include "nvmap_priv.h"
 #include "nvmap_heap.h"
