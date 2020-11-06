@@ -480,6 +480,7 @@ static int tegra_dc_parse_panel_ops(struct platform_device *ndev,
 	}
 
 	pdata->panel_np = panel_np;
+	return ret;
 
 exit:
 	of_node_put(panel_np);
