@@ -38,6 +38,8 @@ struct dma_buf_list {
 
 static struct dma_buf_list db_list;
 
+static struct mutex context_dev_lock;
+
 static bool dmabuf_can_defer_unmap(struct dma_buf *dmabuf,
 		struct device *device)
 {
@@ -49,6 +51,68 @@ static bool dmabuf_can_defer_unmap(struct dma_buf *dmabuf,
 
 	return true;
 }
+
+static void dma_buf_release_attachment(struct dma_buf_attachment *attach)
+{
+	struct dma_buf *dmabuf = attach->dmabuf;
+
+	if (WARN_ON(atomic_read(&attach->ref) != 1) ||
+		WARN_ON(atomic_read(&attach->maps))) {
+		pr_err("%s: %d: Error in releasing dmabuf attached mappings\n",
+			__func__, __LINE__);
+		return;
+	}
+
+	if (attach->dev->context_dev)
+		list_del(&attach->dev_node);
+
+	list_del(&attach->node);
+	if (dmabuf_can_defer_unmap(dmabuf, attach->dev)) {
+		/* sg_table is -ENOMEM if map fails before release */
+		if (!IS_ERR_OR_NULL(attach->sgt))
+			dmabuf->ops->unmap_dma_buf(attach,
+				attach->sgt, DMA_BIDIRECTIONAL);
+		if (dmabuf->ops->detach)
+			dmabuf->ops->detach(dmabuf, attach);
+		kzfree(attach);
+	}
+}
+
+void dma_buf_release_stash(struct device *dev)
+{
+	struct dma_buf_attachment *attach, *next;
+	struct dma_buf_attachment *attach_inner, *next_inner;
+	struct dma_buf *dmabuf;
+	bool other_context_dev_attached = false;
+
+	if (!dev->context_dev)
+		return;
+
+	mutex_lock(&context_dev_lock);
+
+	list_for_each_entry_safe(attach, next, &dev->attachments, dev_node) {
+		dmabuf = attach->dmabuf;
+
+		dma_resv_lock(dmabuf->resv, NULL);
+		dma_buf_release_attachment(attach);
+
+		list_for_each_entry_safe(attach_inner, next_inner,
+			&dmabuf->attachments, node) {
+			if (attach_inner->dev->context_dev) {
+				other_context_dev_attached = true;
+				break;
+			}
+		}
+
+		if (!other_context_dev_attached)
+			dmabuf->context_dev = false;
+
+		dma_resv_unlock(dmabuf->resv);
+	}
+
+	mutex_unlock(&context_dev_lock);
+}
+EXPORT_SYMBOL(dma_buf_release_stash);
 
 static char *dmabuffs_dname(struct dentry *dentry, char *buffer, int buflen)
 {
@@ -69,6 +133,7 @@ static char *dmabuffs_dname(struct dentry *dentry, char *buffer, int buflen)
 static void dma_buf_release(struct dentry *dentry)
 {
 	struct dma_buf_attachment *attach, *next;
+	bool context_dev_locked = false;
 	struct dma_buf *dmabuf;
 
 	dmabuf = dentry->d_fsdata;
@@ -77,25 +142,18 @@ static void dma_buf_release(struct dentry *dentry)
 
 	BUG_ON(dmabuf->vmapping_counter);
 
-	dma_resv_lock(dmabuf->resv, NULL);
-	list_for_each_entry_safe(attach, next, &dmabuf->attachments, node) {
-		BUG_ON(atomic_read(&attach->ref) != 1);
-		BUG_ON(atomic_read(&attach->maps));
-
-		list_del(&attach->node);
-		if (dmabuf_can_defer_unmap(dmabuf, attach->dev)) {
-			/* sg_table is -ENOMEM if map fails before release */
-			if (!IS_ERR_OR_NULL(attach->sgt))
-				attach->dmabuf->ops->unmap_dma_buf(attach,
-					attach->sgt, DMA_BIDIRECTIONAL);
-			if (dmabuf->ops->detach)
-				dmabuf->ops->detach(dmabuf, attach);
-			kzfree(attach);
-		}
-
+	if (dmabuf->context_dev) {
+		mutex_lock(&context_dev_lock);
+		context_dev_locked = true;
 	}
+
+	dma_resv_lock(dmabuf->resv, NULL);
+	list_for_each_entry_safe(attach, next, &dmabuf->attachments, node)
+		dma_buf_release_attachment(attach);
 	dma_resv_unlock(dmabuf->resv);
 
+	if (context_dev_locked)
+		mutex_unlock(&context_dev_lock);
 	/*
 	 * Any fences that a dma-buf poll can wait on should be signaled
 	 * before releasing dma-buf. This is the responsibility of each
@@ -719,6 +777,9 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
 	if (WARN_ON(importer_ops && !importer_ops->move_notify))
 		return ERR_PTR(-EINVAL);
 
+	if (dev->context_dev)
+		mutex_lock(&context_dev_lock);
+
 	dma_resv_lock(dmabuf->resv, NULL);
 	if (dmabuf_can_defer_unmap(dmabuf, dev)) {
 		/* Don't allow multiple attachments for a device */
@@ -735,6 +796,8 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
 				continue;
 
 			dma_resv_unlock(dmabuf->resv);
+			if (dev->context_dev)
+				mutex_unlock(&context_dev_lock);
 			return attach;
 		}
 	}
@@ -742,6 +805,8 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
 
 	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
 	if (!attach) {
+		if (dev->context_dev)
+			mutex_unlock(&context_dev_lock);
 		return ERR_PTR(-ENOMEM);
 	}
 	attach->dev = dev;
@@ -773,9 +838,17 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
 			goto err_attach;
 	}
 	dma_resv_lock(dmabuf->resv, NULL);
-	list_add(&attach->node, &dmabuf->attachments);
+	if (dev->context_dev) {
+		dmabuf->context_dev = true;
+		list_add(&attach->dev_node, &dev->attachments);
+		list_add(&attach->node, &dmabuf->attachments);
+	} else {
+		list_add(&attach->node, &dmabuf->attachments);
+	}
 	dma_resv_unlock(dmabuf->resv);
 
+	if (dev->context_dev)
+		mutex_unlock(&context_dev_lock);
 	/* When either the importer or the exporter can't handle dynamic
 	 * mappings we cache the mapping here to avoid issues with the
 	 * reservation object lock.
@@ -808,6 +881,8 @@ dma_buf_dynamic_attach(struct dma_buf *dmabuf, struct device *dev,
 
 err_attach:
 	kfree(attach);
+	if (dev->context_dev)
+		mutex_unlock(&context_dev_lock);
 	return ERR_PTR(ret);
 
 err_unpin:
@@ -819,6 +894,8 @@ err_unlock:
 		dma_resv_unlock(attach->dmabuf->resv);
 
 	dma_buf_detach(dmabuf, attach);
+	if (dev->context_dev)
+		mutex_unlock(&context_dev_lock);
 	return ERR_PTR(ret);
 }
 EXPORT_SYMBOL_GPL(dma_buf_dynamic_attach);
@@ -848,6 +925,8 @@ EXPORT_SYMBOL_GPL(dma_buf_attach);
  */
 void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
 {
+	bool is_locked = false;
+
 	if (WARN_ON(!dmabuf || !attach))
 		return;
 
@@ -859,6 +938,11 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
 
 	if (dmabuf_can_defer_unmap(dmabuf, attach->dev))
 		return;
+
+	if (dmabuf->context_dev) {
+		mutex_lock(&context_dev_lock);
+		is_locked = true;
+	}
 
 	if (attach->sgt) {
 		if (dma_buf_is_dynamic(attach->dmabuf))
@@ -877,6 +961,9 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
 	dma_resv_unlock(dmabuf->resv);
 	if (dmabuf->ops->detach)
 		dmabuf->ops->detach(dmabuf, attach);
+
+	if (is_locked)
+		mutex_unlock(&context_dev_lock);
 
 	kzfree(attach);
 }
@@ -1517,6 +1604,7 @@ static int __init dma_buf_init(void)
 		return PTR_ERR(dma_buf_mnt);
 
 	mutex_init(&db_list.lock);
+	mutex_init(&context_dev_lock);
 	INIT_LIST_HEAD(&db_list.head);
 	dma_buf_init_debugfs();
 	return 0;

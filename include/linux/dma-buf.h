@@ -321,6 +321,11 @@ struct dma_buf {
 	void *priv;
 	struct dma_resv *resv;
 
+	/* dma-buf stashing is optimized for host1x context device. Adding flag
+	 * to find out whether dma_buf is attached to any context device or not.
+	 */
+	bool context_dev;
+
 	/* poll support */
 	wait_queue_head_t poll;
 
@@ -393,6 +398,8 @@ struct dma_buf_attachment {
 	struct dma_buf *dmabuf;
 	struct device *dev;
 	struct list_head node;
+	/* Adding list node for device attachments. */
+	struct list_head dev_node;
 	struct sg_table *sgt;
 	enum dma_data_direction dir;
 	bool peer2peer;
@@ -495,6 +502,8 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info);
 int dma_buf_fd(struct dma_buf *dmabuf, int flags);
 struct dma_buf *dma_buf_get(int fd);
 void dma_buf_put(struct dma_buf *dmabuf);
+
+void dma_buf_release_stash(struct device *dev);
 
 struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
 					enum dma_data_direction);
