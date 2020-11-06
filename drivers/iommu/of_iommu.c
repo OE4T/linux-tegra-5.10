@@ -21,9 +21,6 @@
 
 #define NO_IOMMU	1
 
-static const struct of_device_id __iommu_of_table_sentinel
-	__used __section(__iommu_of_table_end);
-
 /*
  * Parses &prop_name from the DT node &resv_node, then
  * creates and adds a resv regions with a &type and &prot
