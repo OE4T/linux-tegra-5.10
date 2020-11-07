@@ -358,7 +358,7 @@
 		se@15820000 {
 			compatible = "nvidia,tegra234-se2-nvhost";
 			reg = <0x0 0x15820000 0x0 0x10000>;
-			supported-algos = "aes", "cmac", "xts";
+			supported-algos = "aes", "cmac", "xts", "aead";
 			nvidia,io-coherent;
 			opcode_addr = <0x2004>;
 			resets = <&bpmp_resets TEGRA234_RESET_SE>;
