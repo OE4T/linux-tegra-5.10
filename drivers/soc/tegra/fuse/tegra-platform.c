@@ -3,6 +3,7 @@
  * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
+#include <linux/version.h>
 #include <soc/tegra/chip-id.h>
 
 #define MINOR_QT		0
@@ -66,8 +67,11 @@ static enum tegra_platform __tegra_get_platform(void)
 			return TEGRA_PLATFORM_LINSIM;
 		case PRE_SI_VDK:
 			return TEGRA_PLATFORM_VDK;
+	/* Having VSP defined only since K4.14 */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		case PRE_SI_VSP:
 			return TEGRA_PLATFORM_VSP;
+#endif
 		}
 	}
 

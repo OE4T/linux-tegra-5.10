@@ -19,6 +19,7 @@
 #include <linux/slab.h>
 #include <linux/sysfs.h>
 #include <linux/thermal.h>
+#include <linux/version.h>
 
 #include <soc/tegra/pmc.h>
 #include <soc/tegra/tegra_bpmp.h>
@@ -249,6 +250,7 @@ static int tegra_fuse_form_burn_data(struct fuse_burn_data *data,
 	return offset;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 static int tegra_fuse_get_shutdown_limit(struct tegra_fuse_burn_dev *fuse_dev,
 					 int *shutdown_limit)
 {
@@ -269,14 +271,23 @@ static int tegra_fuse_get_shutdown_limit(struct tegra_fuse_burn_dev *fuse_dev,
 out:
 	return err;
 }
+#endif
 
 static int tegra_fuse_is_temp_under_range(struct tegra_fuse_burn_dev *fuse_dev)
 {
 	int temp, ret = 0;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	int shutdown_limit = 0;
+#endif
 
 	/* Check if temperature is under permissible range */
 	ret = thermal_zone_get_temp(fuse_dev->tz, &temp);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+	if (!ret && (temp < fuse_dev->min_temp || temp > fuse_dev->max_temp)) {
+		dev_err(fuse_dev->dev, "temp-%d is not under range\n", temp);
+		return -EPERM;
+	}
+#else
 	if (ret)
 		goto out;
 
@@ -306,6 +317,7 @@ static int tegra_fuse_is_temp_under_range(struct tegra_fuse_burn_dev *fuse_dev)
 		ret = -EPERM;
 	}
 out:
+#endif
 	return ret;
 }
 
@@ -651,12 +663,14 @@ static ssize_t tegra_fuse_calc_h2_code(struct device *dev,
 	return strlen(buf);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 static ssize_t tegra_fuse_read_ecid(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	sprintf(buf, "%llu\n", tegra_chip_uid());
 	return strlen(buf);
 }
+#endif
 
 static ssize_t tegra_fuse_read_opt_tpc_disable(struct device *dev,
 			struct device_attribute *attr, char *buf)
@@ -725,7 +739,9 @@ static struct tegra_fuse_hw_feature tegra210_fuse_chip_data = {
 		FUSE_BURN_DATA(pkc_disable, 0x52, 7, 1, 0x168, true, false),
 		FUSE_BURN_DATA(debug_authentication, 0x5a, 19, 5, 0x1e4, true, false),
 		FUSE_BURN_DATA(aid, 0x67, 2, 32, 0x1f8, false, false),
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		FUSE_SYSFS_DATA(ecid, tegra_fuse_read_ecid, NULL, FPERM_R),
+#endif
 		{},
 	},
 };
@@ -759,7 +775,9 @@ static struct tegra_fuse_hw_feature tegra186_fuse_chip_data = {
 		FUSE_BURN_DATA(odm_h2, 0x67, 31, 14, 0x33c, false, false),
 		FUSE_SYSFS_DATA(calc_h2, tegra_fuse_calc_h2_code, NULL,
 				FPERM_RW),
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		FUSE_SYSFS_DATA(ecid, tegra_fuse_read_ecid, NULL, FPERM_R),
+#endif
 		{},
 	},
 };
@@ -791,7 +809,9 @@ static struct tegra_fuse_hw_feature tegra210b01_fuse_chip_data = {
 		FUSE_BURN_DATA(kek, 0x1e, 0, 128, 0xd0, true, false),
 		FUSE_BURN_DATA(bek, 0x26, 0, 128, 0xe0, true, false),
 		FUSE_BURN_DATA(aid, 0xa5, 2, 32, 0x1f8, false, false),
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		FUSE_SYSFS_DATA(ecid, tegra_fuse_read_ecid, NULL, FPERM_R),
+#endif
 		{},
 	},
 };
@@ -815,6 +835,9 @@ static struct tegra_fuse_hw_feature tegra194_fuse_chip_data = {
 		FUSE_BURN_DATA(reserved_odm9, 0x18, 26, 32, 0x424, true, false),
 		FUSE_BURN_DATA(reserved_odm10, 0x1a, 26, 32, 0x428, true, false),
 		FUSE_BURN_DATA(reserved_odm11, 0x1c, 26, 32, 0x42c, true, false),
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+		FUSE_BURN_DATA(reserved_sw, 0x65, 25, 24, 0xc0, false, false),
+#endif
 		FUSE_BURN_DATA(odm_lock, 0, 6, 4, 0x8, true, false),
 		FUSE_BURN_DATA(arm_jtag_disable, 0x0, 12, 1, 0xb8, true, false),
 		FUSE_BURN_DATA(odm_production_mode, 0, 11, 1, 0xa0, true, false),
@@ -824,13 +847,17 @@ static struct tegra_fuse_hw_feature tegra194_fuse_chip_data = {
 		FUSE_BURN_DATA(debug_authentication, 0, 20, 5, 0x1e4, true, false),
 		FUSE_BURN_DATA(odm_info, 0x67, 5, 16, 0x19c, false, false),
 		FUSE_BURN_DATA(pdi, 0x40, 17, 64, 0x300, false, false),
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		FUSE_BURN_DATA(opt_customer_optin_fuse, 0x7e, 6, 1, 0x4a8,
 			       false, false),
 		FUSE_BURN_DATA(odmid, 0x7b, 30, 64, 0x308, false, false),
+#endif
 		FUSE_BURN_DATA(kek0, 0x6f, 30, 128, 0x2c0, false, true),
 		FUSE_BURN_DATA(kek1, 0x73, 30, 128, 0x2d0, false, true),
 		FUSE_BURN_DATA(kek2, 0x77, 30, 128, 0x2e0, false, true),
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		FUSE_SYSFS_DATA(ecid, tegra_fuse_read_ecid, NULL, FPERM_R),
+#endif
 		FUSE_SYSFS_DATA(opt_tpc_disable,
 				tegra_fuse_read_opt_tpc_disable, NULL, FPERM_R),
 		{},
