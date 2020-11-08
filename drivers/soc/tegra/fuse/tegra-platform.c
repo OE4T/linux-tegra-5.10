@@ -31,6 +31,12 @@ static enum tegra_platform __tegra_get_platform(void)
 	major = tegra_hidrev_get_majorrev(chipid);
 	pre_si_plat = tegra_hidrev_get_pre_si_plat(chipid);
 
+	/* Having VSP defined only since K4.14 */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	if (pre_si_plat == PRE_SI_VSP)
+		return TEGRA_PLATFORM_VSP;
+#endif
+
 	if (!major) {
 		u32 minor;
 
