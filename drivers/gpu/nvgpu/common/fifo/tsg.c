@@ -150,6 +150,22 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	return err;
 }
 
+static bool nvgpu_tsg_is_multi_channel(struct nvgpu_tsg *tsg)
+{
+	bool ret = false;
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	if (nvgpu_list_first_entry(&tsg->ch_list, nvgpu_channel,
+				   ch_entry) !=
+	    nvgpu_list_last_entry(&tsg->ch_list, nvgpu_channel,
+				   ch_entry)) {
+		ret = true;
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+
+	return ret;
+}
+
 static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch)
 {
@@ -170,7 +186,11 @@ static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 		goto fail_enable_tsg;
 	}
 
-	if (!tsg_timedout &&
+	/*
+	 * State validation is only necessary if there are multiple channels in
+         * the TSG.
+	 */
+	if (nvgpu_tsg_is_multi_channel(tsg) && !tsg_timedout &&
 	    (g->ops.tsg.unbind_channel_check_hw_state != NULL)) {
 		err = g->ops.tsg.unbind_channel_check_hw_state(tsg, ch);
 		if (err != 0) {
