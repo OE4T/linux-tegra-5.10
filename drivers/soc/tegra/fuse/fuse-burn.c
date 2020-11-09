@@ -24,8 +24,6 @@
 #include <soc/tegra/tegra_bpmp.h>
 #include <soc/tegra/bpmp_abi.h>
 
-#include "fuse.h"
-
 #define TEGRA_FUSE_CTRL				0x0
 #define TEGRA_FUSE_CTRL_CMD_READ		0x1
 #define TEGRA_FUSE_CTRL_CMD_WRITE		0x2
