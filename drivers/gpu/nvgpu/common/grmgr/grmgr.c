@@ -24,6 +24,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/grmgr.h>
 #include <nvgpu/engines.h>
@@ -97,6 +98,8 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	g->mig.max_gr_sys_pipes_supported = 1U;
 	g->mig.gr_syspipe_en_mask = 1U;
 	g->mig.num_gr_sys_pipes_enabled = 1U;
+	g->mig.recursive_ref_count = 0U;
+	g->mig.cur_tid = -1;
 
 	g->mig.current_gr_syspipe_id = NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
 
@@ -117,6 +120,50 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 
 	return 0;
 }
+
+#if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
+static void nvgpu_grmgr_acquire_gr_syspipe(struct gk20a *g, u32 gr_syspipe_id)
+{
+	g->mig.recursive_ref_count = nvgpu_safe_add_u32(
+		g->mig.recursive_ref_count, 1U);
+
+	if (g->mig.cur_tid == -1) {
+		g->mig.current_gr_syspipe_id = gr_syspipe_id;
+		g->mig.cur_tid = nvgpu_current_tid(g);
+	} else {
+		nvgpu_log(g, gpu_dbg_mig,
+			"Repeated gr remap window acquire call from same "
+				"thread tid[%d] requsted gr_syspipe_id[%u] "
+				"current_gr_syspipe_id[%u] "
+				"recursive_ref_count[%u]",
+			g->mig.cur_tid, gr_syspipe_id,
+			g->mig.current_gr_syspipe_id,
+			g->mig.recursive_ref_count);
+		nvgpu_assert((g->mig.cur_tid == nvgpu_current_tid(g)) &&
+			(g->mig.current_gr_syspipe_id == gr_syspipe_id));
+	}
+}
+
+static void nvgpu_grmgr_release_gr_syspipe(struct gk20a *g)
+{
+	g->mig.recursive_ref_count = nvgpu_safe_sub_u32(
+		g->mig.recursive_ref_count, 1U);
+
+	if (g->mig.recursive_ref_count == 0U) {
+		g->mig.current_gr_syspipe_id = NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
+		g->mig.cur_tid = -1;
+		nvgpu_mutex_release(&g->mig.gr_syspipe_lock);
+	} else {
+		nvgpu_log(g, gpu_dbg_mig,
+			"Repeated gr remap window release call from same "
+				"thread tid[%d] current_gr_syspipe_id[%u] "
+				"recursive_ref_count[%u]",
+			g->mig.cur_tid, g->mig.current_gr_syspipe_id,
+			g->mig.recursive_ref_count);
+		nvgpu_assert(g->mig.cur_tid == nvgpu_current_tid(g));
+	}
+}
+#endif
 
 int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 		u32 gr_syspipe_id, bool enable)
@@ -168,25 +215,16 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 			return -EPERM;
 		}
 
-		if (!enable && (gr_syspipe_id !=
-				NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
-				(g->mig.current_gr_syspipe_id ==
-				NVGPU_MIG_INVALID_GR_SYSPIPE_ID)) {
-			nvgpu_warn(g,
-				"Repeated GR remap window disable call[%x %x] ",
-				gr_syspipe_id,
-				g->mig.current_gr_syspipe_id);
-			return -EPERM;
-		}
-
 		if (enable) {
-			if (gr_syspipe_id !=
-					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+			if ((gr_syspipe_id !=
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
+				(g->mig.cur_tid != nvgpu_current_tid(g))) {
 				nvgpu_mutex_acquire(&g->mig.gr_syspipe_lock);
 			}
 		} else {
-			if (gr_syspipe_id ==
-					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
+			if ((gr_syspipe_id ==
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
+				(g->mig.cur_tid != nvgpu_current_tid(g))) {
 				nvgpu_mutex_acquire(&g->mig.gr_syspipe_lock);
 			} else {
 				gr_syspipe_id = 0U;
@@ -194,27 +232,20 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 		}
 
 		nvgpu_log(g, gpu_dbg_mig,
-			"current_gr_syspipe_id[%u] "
-				"requested_gr_syspipe_id[%u] enable[%d] ",
-			g->mig.current_gr_syspipe_id,
-			gr_syspipe_id,
-			enable);
+			"[start]tid[%d] current_gr_syspipe_id[%u] "
+				"requested_gr_syspipe_id[%u] enable[%d] "
+				"recursive_ref_count[%u] ",
+			g->mig.cur_tid, g->mig.current_gr_syspipe_id,
+			gr_syspipe_id, enable, g->mig.recursive_ref_count);
 
 		if (gr_syspipe_id != NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
-			if ((g->mig.current_gr_syspipe_id ==
-					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) ||
-					(!enable)) {
+			if (((g->mig.current_gr_syspipe_id ==
+					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
+					(g->mig.recursive_ref_count == 0U)) ||
+					(!enable &&
+					(g->mig.recursive_ref_count == 1U))) {
 				err = g->ops.priv_ring.config_gr_remap_window(g,
 					gr_syspipe_id, enable);
-			} else {
-				nvgpu_warn(g,
-					"Gr remap window enable/disable call "
-						"from the same thread "
-						"requsted gr_syspipe_id[%u] "
-						"current_gr_syspipe_id[%u] ",
-					gr_syspipe_id,
-					g->mig.current_gr_syspipe_id);
-				err = -EPERM;
 			}
 		} else {
 			nvgpu_log(g, gpu_dbg_mig,
@@ -232,32 +263,25 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 			if ((gr_syspipe_id ==
 					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) &&
 					(g->mig.current_gr_syspipe_id == 0U)) {
-				g->mig.current_gr_syspipe_id =
-					NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
-				nvgpu_mutex_release(
-					&g->mig.gr_syspipe_lock);
+				nvgpu_grmgr_release_gr_syspipe(g);
 			} else {
-				g->mig.current_gr_syspipe_id = gr_syspipe_id;
+				nvgpu_grmgr_acquire_gr_syspipe(g,
+					gr_syspipe_id);
 			}
 		} else {
 			if (g->mig.current_gr_syspipe_id !=
 					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
-				g->mig.current_gr_syspipe_id =
-					NVGPU_MIG_INVALID_GR_SYSPIPE_ID;
-				nvgpu_mutex_release(
-					&g->mig.gr_syspipe_lock);
+				nvgpu_grmgr_release_gr_syspipe(g);
 			} else {
-				if (g->mig.current_gr_syspipe_id ==
-					NVGPU_MIG_INVALID_GR_SYSPIPE_ID) {
-					g->mig.current_gr_syspipe_id = 0U;
-				} else {
-					nvgpu_warn(g,
-						"Repeated Legacy GR remap "
-							"window disable call "
-							"from same thread ");
-				}
+				nvgpu_grmgr_acquire_gr_syspipe(g, 0U);
 			}
 		}
+		nvgpu_log(g, gpu_dbg_mig,
+			"[end]tid[%d] current_gr_syspipe_id[%u] "
+				"requested_gr_syspipe_id[%u] enable[%d] "
+				"recursive_ref_count[%u] ",
+			g->mig.cur_tid, g->mig.current_gr_syspipe_id,
+			gr_syspipe_id, enable, g->mig.recursive_ref_count);
 	}
 #endif
 	return err;

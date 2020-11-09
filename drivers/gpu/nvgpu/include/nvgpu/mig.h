@@ -206,6 +206,14 @@ struct nvgpu_mig {
 	 * case MIG support is enabled.
 	 */
 	u32 cur_gr_instance;
+	/*
+	 * Current thread Id which holds gr_syspipe_lock.
+	 */
+	int cur_tid;
+	/*
+	 * Recursive gr_syspipe_lock count.
+	 */
+	u32 recursive_ref_count;
 	/**
 	 * GR syspipe acquire lock.
 	 * It is valid lock if num_gr_sys_pipes_enabled > 1.
