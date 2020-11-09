@@ -28,6 +28,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/pm_reservation.h>
+#include <nvgpu/regops_allowlist.h>
 
 struct gk20a;
 struct nvgpu_channel;
@@ -117,6 +118,9 @@ struct nvgpu_profiler_object {
 
 	/* Number of range entries in map above */
 	u32 map_count;
+
+	/* NVGPU_DBG_REG_OP_TYPE_* for each HWPM resource */
+	u32 reg_op_type[NVGPU_HWPM_REGISTER_TYPE_COUNT];
 };
 
 static inline struct nvgpu_profiler_object *

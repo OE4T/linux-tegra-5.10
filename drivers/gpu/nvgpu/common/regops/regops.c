@@ -231,8 +231,6 @@ static int validate_reg_op_info(struct nvgpu_dbg_reg_op *op)
 {
 	int err = 0;
 
-	op->status = REGOP(STATUS_SUCCESS);
-
 	switch (op->op) {
 	case REGOP(READ_32):
 	case REGOP(READ_64):
@@ -327,8 +325,8 @@ static int profiler_obj_validate_reg_op_offset(struct nvgpu_profiler_object *pro
 	struct gk20a *g = prof->g;
 	bool valid = false;
 	u32 offset;
+	enum nvgpu_pm_resource_hwpm_register_type type, type64;
 
-	op->status = 0;
 	offset = op->offset;
 
 	/* support only 24-bit 4-byte aligned offsets */
@@ -338,15 +336,21 @@ static int profiler_obj_validate_reg_op_offset(struct nvgpu_profiler_object *pro
 		return -EINVAL;
 	}
 
-	valid = nvgpu_profiler_validate_regops_allowlist(prof, offset, NULL);
+	valid = nvgpu_profiler_validate_regops_allowlist(prof, offset, &type);
 	if ((op->op == REGOP(READ_64) || op->op == REGOP(WRITE_64)) && valid) {
-		valid = nvgpu_profiler_validate_regops_allowlist(prof, offset + 4U, NULL);
+		valid = nvgpu_profiler_validate_regops_allowlist(prof, offset + 4U, &type64);
 	}
 
 	if (!valid) {
 		op->status |= REGOP(STATUS_INVALID_OFFSET);
 		return -EINVAL;
 	}
+
+	if (op->op == REGOP(READ_64) || op->op == REGOP(WRITE_64)) {
+		nvgpu_assert(type == type64);
+	}
+
+	op->type = prof->reg_op_type[type];
 
 	return 0;
 }
@@ -360,7 +364,6 @@ static int validate_reg_op_offset(struct gk20a *g,
 	u32 buf_offset_lo, buf_offset_addr, num_offsets, offset;
 	bool valid = false;
 
-	op->status = 0;
 	offset = op->offset;
 
 	/* support only 24-bit 4-byte aligned offsets */
@@ -425,6 +428,26 @@ static bool validate_reg_ops(struct gk20a *g,
 	/* keep going until the end so every op can get
 	 * a separate error code if needed */
 	for (i = 0; i < op_count; i++) {
+		ops[i].status = 0U;
+
+		/* if "allow_all" flag enabled, dont validate offset */
+		if (!g->allow_all) {
+			if (prof != NULL) {
+				if (profiler_obj_validate_reg_op_offset(prof, &ops[i]) != 0) {
+					op_failed = true;
+					if (all_or_none) {
+						break;
+					}
+				}
+			} else {
+				if (validate_reg_op_offset(g, &ops[i], valid_ctx) != 0) {
+					op_failed = true;
+					if (all_or_none) {
+						break;
+					}
+				}
+			}
+		}
 
 		if (validate_reg_op_info(&ops[i]) != 0) {
 			op_failed = true;
@@ -451,23 +474,8 @@ static bool validate_reg_ops(struct gk20a *g,
 			}
 		}
 
-		/* if "allow_all" flag enabled, dont validate offset */
-		if (!g->allow_all) {
-			if (prof != NULL) {
-				if (profiler_obj_validate_reg_op_offset(prof, &ops[i]) != 0) {
-					op_failed = true;
-					if (all_or_none) {
-						break;
-					}
-				}
-			} else {
-				if (validate_reg_op_offset(g, &ops[i], valid_ctx) != 0) {
-					op_failed = true;
-					if (all_or_none) {
-						break;
-					}
-				}
-			}
+		if (ops[i].status == 0U) {
+			ops[i].status = REGOP(STATUS_SUCCESS);
 		}
 	}
 

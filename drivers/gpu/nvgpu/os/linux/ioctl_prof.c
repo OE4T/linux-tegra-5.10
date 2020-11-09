@@ -500,29 +500,14 @@ static int nvgpu_prof_ioctl_unbind_pm_resources(struct nvgpu_profiler_object *pr
 	return nvgpu_profiler_unbind_pm_resources(prof);
 }
 
-static void nvgpu_prof_get_regops_staging_data(struct nvgpu_profiler_object *prof,
-		struct nvgpu_profiler_reg_op *in,
+static void nvgpu_prof_get_regops_staging_data(struct nvgpu_profiler_reg_op *in,
 		struct nvgpu_dbg_reg_op *out, u32 num_ops)
 {
 	u32 i;
-	u8 reg_op_type = 0U;
-
-	switch (prof->scope) {
-	case NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE:
-		if (prof->tsg != NULL) {
-			reg_op_type = NVGPU_DBG_REG_OP_TYPE_GR_CTX;
-		} else {
-			reg_op_type = NVGPU_DBG_REG_OP_TYPE_GLOBAL;
-		}
-		break;
-	case NVGPU_PROFILER_PM_RESERVATION_SCOPE_CONTEXT:
-		reg_op_type = NVGPU_DBG_REG_OP_TYPE_GR_CTX;
-		break;
-	}
 
 	for (i = 0; i < num_ops; i++) {
 		out[i].op = nvgpu_get_regops_op_values_common(in[i].op);
-		out[i].type = reg_op_type;
+		out[i].type = 0U; /* Selected based on per-resource ctxsw flags */
 		out[i].status = nvgpu_get_regops_status_values_common(in[i].status);
 		out[i].quad = 0U;
 		out[i].group_mask = 0U;
@@ -612,7 +597,7 @@ static int nvgpu_prof_ioctl_exec_reg_ops(struct nvgpu_profiler_object_priv *priv
 			break;
 		}
 
-		nvgpu_prof_get_regops_staging_data(prof,
+		nvgpu_prof_get_regops_staging_data(
 			priv->regops_umd_copy_buf,
 			priv->regops_staging_buf, num_ops);
 

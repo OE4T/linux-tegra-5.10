@@ -39,6 +39,7 @@ enum nvgpu_pm_resource_hwpm_register_type {
 	NVGPU_HWPM_REGISTER_TYPE_CAU,
 	NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL,
 	NVGPU_HWPM_REGISTER_TYPE_TEST,
+	NVGPU_HWPM_REGISTER_TYPE_COUNT,
 };
 
 struct nvgpu_pm_resource_register_range_map {

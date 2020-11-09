@@ -33,6 +33,7 @@
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/regops_allowlist.h>
+#include <nvgpu/regops.h>
 #include <nvgpu/sort.h>
 
 static int nvgpu_profiler_build_regops_allowlist(struct nvgpu_profiler_object *prof);
@@ -191,6 +192,47 @@ int nvgpu_profiler_pm_resource_reserve(struct nvgpu_profiler_object *prof,
 	}
 
 	prof->reserved[pm_resource] = true;
+
+	if (pm_resource == NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC) {
+		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC]) {
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_SMPC] =
+				NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+		} else {
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_SMPC] =
+				NVGPU_DBG_REG_OP_TYPE_GLOBAL;
+		}
+	}
+
+	if (pm_resource == NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY) {
+		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMON] =
+				NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_ROUTER] =
+				NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_TRIGGER] =
+				NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX] =
+				NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_CAU] =
+				NVGPU_DBG_REG_OP_TYPE_GR_CTX;
+		} else {
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMON] =
+				NVGPU_DBG_REG_OP_TYPE_GLOBAL;
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_ROUTER] =
+				NVGPU_DBG_REG_OP_TYPE_GLOBAL;
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_TRIGGER] =
+				NVGPU_DBG_REG_OP_TYPE_GLOBAL;
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_PERFMUX] =
+				NVGPU_DBG_REG_OP_TYPE_GLOBAL;
+			prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_CAU] =
+				NVGPU_DBG_REG_OP_TYPE_GLOBAL;
+		}
+	}
+
+	if (pm_resource == NVGPU_PROFILER_PM_RESOURCE_TYPE_PMA_STREAM) {
+		prof->reg_op_type[NVGPU_HWPM_REGISTER_TYPE_HWPM_PMA_CHANNEL] =
+			NVGPU_DBG_REG_OP_TYPE_GLOBAL;
+	}
 
 	nvgpu_log(g, gpu_dbg_prof,
 		"Granted reservation for profiler handle %u, resource %u, scope %u",
