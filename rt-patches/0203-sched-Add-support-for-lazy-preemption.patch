@@ -1,7 +1,7 @@
-From 2983e99b6b1c05270b4ff53678c9435687b9f801 Mon Sep 17 00:00:00 2001
+From c3fcb03e530b3d863422d45a1f2232c600bd2f6b Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 26 Oct 2012 18:50:54 +0100
-Subject: [PATCH 203/232] sched: Add support for lazy preemption
+Subject: [PATCH 203/230] sched: Add support for lazy preemption
 
 It has become an obsession to mitigate the determinism vs. throughput
 loss of RT. Looking at the mainline semantics of preemption points
@@ -53,7 +53,7 @@ performance.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- include/linux/preempt.h      | 35 ++++++++++++++++++-
+ include/linux/preempt.h      | 54 +++++++++++++++++++++++++++--
  include/linux/sched.h        | 38 ++++++++++++++++++++
  include/linux/thread_info.h  | 12 ++++++-
  include/linux/trace_events.h |  1 +
@@ -66,10 +66,10 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  kernel/trace/trace.h         |  2 ++
  kernel/trace/trace_events.c  |  1 +
  kernel/trace/trace_output.c  | 14 ++++++--
- 13 files changed, 229 insertions(+), 32 deletions(-)
+ 13 files changed, 246 insertions(+), 34 deletions(-)
 
 diff --git a/include/linux/preempt.h b/include/linux/preempt.h
-index 96c2c15..e72b67e 100644
+index d2805fd..83b34cb 100644
 --- a/include/linux/preempt.h
 +++ b/include/linux/preempt.h
 @@ -171,6 +171,20 @@ extern void preempt_count_sub(int val);
@@ -106,21 +106,26 @@ index 96c2c15..e72b67e 100644
  #define sched_preempt_enable_no_resched() \
  do { \
  	barrier(); \
-@@ -216,6 +236,13 @@ do { \
+@@ -216,6 +236,18 @@ do { \
  		__preempt_schedule(); \
  } while (0)
  
++/*
++ * open code preempt_check_resched() because it is not exported to modules and
++ * used by local_unlock() or bpf_enable_instrumentation().
++ */
 +#define preempt_lazy_enable() \
 +do { \
 +	dec_preempt_lazy_count(); \
 +	barrier(); \
-+	preempt_check_resched(); \
++	if (should_resched(0)) \
++		__preempt_schedule(); \
 +} while (0)
 +
  #else /* !CONFIG_PREEMPTION */
  #define preempt_enable() \
  do { \
-@@ -223,6 +250,12 @@ do { \
+@@ -223,6 +255,12 @@ do { \
  	preempt_count_dec(); \
  } while (0)
  
@@ -133,7 +138,17 @@ index 96c2c15..e72b67e 100644
  #define preempt_enable_notrace() \
  do { \
  	barrier(); \
-@@ -282,7 +315,7 @@ do { \
+@@ -264,6 +302,9 @@ do { \
+ #define preempt_check_resched_rt()		barrier()
+ #define preemptible()				0
+ 
++#define preempt_lazy_disable()			barrier()
++#define preempt_lazy_enable()			barrier()
++
+ #endif /* CONFIG_PREEMPT_COUNT */
+ 
+ #ifdef MODULE
+@@ -282,7 +323,7 @@ do { \
  } while (0)
  #define preempt_fold_need_resched() \
  do { \
@@ -142,11 +157,29 @@ index 96c2c15..e72b67e 100644
  		set_preempt_need_resched(); \
  } while (0)
  
+@@ -410,8 +451,15 @@ extern void migrate_enable(void);
+ 
+ #else
+ 
+-static inline void migrate_disable(void) { }
+-static inline void migrate_enable(void) { }
++static inline void migrate_disable(void)
++{
++	preempt_lazy_disable();
++}
++
++static inline void migrate_enable(void)
++{
++	preempt_lazy_enable();
++}
+ 
+ #endif /* CONFIG_SMP */
+ 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index a703e9d..a6b33afe 100644
+index 667040c..f1bd008 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -1837,6 +1837,44 @@ static inline int test_tsk_need_resched(struct task_struct *tsk)
+@@ -1850,6 +1850,44 @@ static inline int test_tsk_need_resched(struct task_struct *tsk)
  	return unlikely(test_tsk_thread_flag(tsk,TIF_NEED_RESCHED));
  }
  
@@ -215,7 +248,7 @@ index e93e249..c88b9ce 100644
  #ifndef CONFIG_HAVE_ARCH_WITHIN_STACK_FRAMES
  static inline int arch_within_stack_frames(const void * const stack,
 diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
-index 1a9cb91..75e3acd 100644
+index 5ee82ce..79b122d6 100644
 --- a/include/linux/trace_events.h
 +++ b/include/linux/trace_events.h
 @@ -68,6 +68,7 @@ struct trace_entry {
@@ -243,10 +276,10 @@ index bf82259..c1203c1 100644
  	prompt "Preemption Model"
  	default PREEMPT_NONE
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index ba1b0d2..b84ad19 100644
+index 311b1f5..4d50142 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -656,6 +656,48 @@ void resched_curr(struct rq *rq)
+@@ -657,6 +657,48 @@ void resched_curr(struct rq *rq)
  		trace_sched_wake_idle_without_ipi(cpu);
  }
  
@@ -295,7 +328,7 @@ index ba1b0d2..b84ad19 100644
  void resched_cpu(int cpu)
  {
  	struct rq *rq = cpu_rq(cpu);
-@@ -1764,6 +1806,7 @@ void migrate_disable(void)
+@@ -1758,6 +1800,7 @@ void migrate_disable(void)
  	preempt_disable();
  	this_rq()->nr_pinned++;
  	p->migration_disabled = 1;
@@ -303,7 +336,7 @@ index ba1b0d2..b84ad19 100644
  	preempt_enable();
  }
  EXPORT_SYMBOL_GPL(migrate_disable);
-@@ -1792,6 +1835,7 @@ void migrate_enable(void)
+@@ -1786,6 +1829,7 @@ void migrate_enable(void)
  	barrier();
  	p->migration_disabled = 0;
  	this_rq()->nr_pinned--;
@@ -311,7 +344,7 @@ index ba1b0d2..b84ad19 100644
  	preempt_enable();
  
  	trace_sched_migrate_enable_tp(p);
-@@ -3671,6 +3715,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
+@@ -3804,6 +3848,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
  	p->on_cpu = 0;
  #endif
  	init_task_preempt_count(p);
@@ -321,7 +354,7 @@ index ba1b0d2..b84ad19 100644
  #ifdef CONFIG_SMP
  	plist_node_init(&p->pushable_tasks, MAX_PRIO);
  	RB_CLEAR_NODE(&p->pushable_dl_tasks);
-@@ -4915,6 +4962,7 @@ static void __sched notrace __schedule(bool preempt, bool spinning_lock)
+@@ -5065,6 +5112,7 @@ static void __sched notrace __schedule(bool preempt, bool spinning_lock)
  
  	next = pick_next_task(rq, prev, &rf);
  	clear_tsk_need_resched(prev);
@@ -329,7 +362,7 @@ index ba1b0d2..b84ad19 100644
  	clear_preempt_need_resched();
  
  	if (likely(prev != next)) {
-@@ -5111,6 +5159,30 @@ static void __sched notrace preempt_schedule_common(void)
+@@ -5264,6 +5312,30 @@ static void __sched notrace preempt_schedule_common(void)
  	} while (need_resched());
  }
  
@@ -360,7 +393,7 @@ index ba1b0d2..b84ad19 100644
  #ifdef CONFIG_PREEMPTION
  /*
   * This is the entry point to schedule() from in-kernel preemption
-@@ -5124,7 +5196,8 @@ asmlinkage __visible void __sched notrace preempt_schedule(void)
+@@ -5277,7 +5349,8 @@ asmlinkage __visible void __sched notrace preempt_schedule(void)
  	 */
  	if (likely(!preemptible()))
  		return;
@@ -370,7 +403,7 @@ index ba1b0d2..b84ad19 100644
  	preempt_schedule_common();
  }
  NOKPROBE_SYMBOL(preempt_schedule);
-@@ -5164,6 +5237,9 @@ asmlinkage __visible void __sched notrace preempt_schedule_notrace(void)
+@@ -5317,6 +5390,9 @@ asmlinkage __visible void __sched notrace preempt_schedule_notrace(void)
  	if (likely(!preemptible()))
  		return;
  
@@ -380,7 +413,7 @@ index ba1b0d2..b84ad19 100644
  	do {
  		/*
  		 * Because the function tracer can trace preempt_count_sub()
-@@ -7002,7 +7078,9 @@ void init_idle(struct task_struct *idle, int cpu)
+@@ -7155,7 +7231,9 @@ void init_idle(struct task_struct *idle, int cpu)
  
  	/* Set the preempt count _outside_ the spinlocks! */
  	init_idle_preempt_count(idle, cpu);
@@ -392,10 +425,10 @@ index ba1b0d2..b84ad19 100644
  	 * The idle tasks have their own, simple scheduling class:
  	 */
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 1a68a05..d31aab1 100644
+index 290f9e3..a6a82d5 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -4357,7 +4357,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
+@@ -4361,7 +4361,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
  	ideal_runtime = sched_slice(cfs_rq, curr);
  	delta_exec = curr->sum_exec_runtime - curr->prev_sum_exec_runtime;
  	if (delta_exec > ideal_runtime) {
@@ -404,7 +437,7 @@ index 1a68a05..d31aab1 100644
  		/*
  		 * The current task ran long enough, ensure it doesn't get
  		 * re-elected due to buddy favours.
-@@ -4381,7 +4381,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
+@@ -4385,7 +4385,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
  		return;
  
  	if (delta > ideal_runtime)
@@ -413,7 +446,7 @@ index 1a68a05..d31aab1 100644
  }
  
  static void
-@@ -4524,7 +4524,7 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
+@@ -4528,7 +4528,7 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
  	 * validating it and just reschedule.
  	 */
  	if (queued) {
@@ -422,7 +455,7 @@ index 1a68a05..d31aab1 100644
  		return;
  	}
  	/*
-@@ -4661,7 +4661,7 @@ static void __account_cfs_rq_runtime(struct cfs_rq *cfs_rq, u64 delta_exec)
+@@ -4665,7 +4665,7 @@ static void __account_cfs_rq_runtime(struct cfs_rq *cfs_rq, u64 delta_exec)
  	 * hierarchy can be throttled
  	 */
  	if (!assign_cfs_rq_runtime(cfs_rq) && likely(cfs_rq->curr))
@@ -431,7 +464,7 @@ index 1a68a05..d31aab1 100644
  }
  
  static __always_inline
-@@ -5396,7 +5396,7 @@ static void hrtick_start_fair(struct rq *rq, struct task_struct *p)
+@@ -5400,7 +5400,7 @@ static void hrtick_start_fair(struct rq *rq, struct task_struct *p)
  
  		if (delta < 0) {
  			if (rq->curr == p)
@@ -440,7 +473,7 @@ index 1a68a05..d31aab1 100644
  			return;
  		}
  		hrtick_start(rq, delta);
-@@ -6953,7 +6953,7 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
+@@ -6959,7 +6959,7 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
  	return;
  
  preempt:
@@ -449,7 +482,7 @@ index 1a68a05..d31aab1 100644
  	/*
  	 * Only set the backward buddy when the current task is still
  	 * on the rq. This can happen when a wakeup gets interleaved
-@@ -10694,7 +10694,7 @@ static void task_fork_fair(struct task_struct *p)
+@@ -10715,7 +10715,7 @@ static void task_fork_fair(struct task_struct *p)
  		 * 'current' within the tree based on its new key value.
  		 */
  		swap(curr->vruntime, se->vruntime);
@@ -458,7 +491,7 @@ index 1a68a05..d31aab1 100644
  	}
  
  	se->vruntime -= cfs_rq->min_vruntime;
-@@ -10721,7 +10721,7 @@ prio_changed_fair(struct rq *rq, struct task_struct *p, int oldprio)
+@@ -10742,7 +10742,7 @@ prio_changed_fair(struct rq *rq, struct task_struct *p, int oldprio)
  	 */
  	if (rq->curr == p) {
  		if (p->prio > oldprio)
@@ -468,7 +501,7 @@ index 1a68a05..d31aab1 100644
  		check_preempt_curr(rq, p, 0);
  }
 diff --git a/kernel/sched/features.h b/kernel/sched/features.h
-index 59d6bf2..862e8b3 100644
+index 296aea5..5a2e272 100644
 --- a/kernel/sched/features.h
 +++ b/kernel/sched/features.h
 @@ -47,6 +47,9 @@ SCHED_FEAT(NONTASK_CAPACITY, true)
@@ -482,10 +515,10 @@ index 59d6bf2..862e8b3 100644
  
  /*
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index e6e40c8..a1228c3 100644
+index f5af072..752ea51 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1987,6 +1987,15 @@ extern void reweight_task(struct task_struct *p, int prio);
+@@ -1994,6 +1994,15 @@ extern void reweight_task(struct task_struct *p, int prio);
  extern void resched_curr(struct rq *rq);
  extern void resched_cpu(int cpu);
  
@@ -502,10 +535,10 @@ index e6e40c8..a1228c3 100644
  extern void init_rt_bandwidth(struct rt_bandwidth *rt_b, u64 period, u64 runtime);
  
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index d113fc1..930b1e1 100644
+index 8788f39..676f23a 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
-@@ -2444,6 +2444,7 @@ tracing_generic_entry_update(struct trace_entry *entry, unsigned short type,
+@@ -2592,6 +2592,7 @@ tracing_generic_entry_update(struct trace_entry *entry, unsigned short type,
  	struct task_struct *tsk = current;
  
  	entry->preempt_count		= pc & 0xff;
@@ -513,7 +546,7 @@ index d113fc1..930b1e1 100644
  	entry->pid			= (tsk) ? tsk->pid : 0;
  	entry->type			= type;
  	entry->flags =
-@@ -2455,7 +2456,8 @@ tracing_generic_entry_update(struct trace_entry *entry, unsigned short type,
+@@ -2603,7 +2604,8 @@ tracing_generic_entry_update(struct trace_entry *entry, unsigned short type,
  		((pc & NMI_MASK    ) ? TRACE_FLAG_NMI     : 0) |
  		((pc & HARDIRQ_MASK) ? TRACE_FLAG_HARDIRQ : 0) |
  		((pc & SOFTIRQ_OFFSET) ? TRACE_FLAG_SOFTIRQ : 0) |
@@ -522,8 +555,8 @@ index d113fc1..930b1e1 100644
 +		(need_resched_lazy() ? TRACE_FLAG_NEED_RESCHED_LAZY : 0) |
  		(test_preempt_need_resched() ? TRACE_FLAG_PREEMPT_RESCHED : 0);
  
- 	entry->migrate_disable = (tsk) ? tsk->migration_disabled & 0xFF : 0;
-@@ -3785,15 +3787,17 @@ unsigned long trace_total_entries(struct trace_array *tr)
+ 	entry->migrate_disable = migration_disable_value(tsk);
+@@ -3812,15 +3814,17 @@ unsigned long trace_total_entries(struct trace_array *tr)
  
  static void print_lat_help_header(struct seq_file *m)
  {
@@ -550,7 +583,7 @@ index d113fc1..930b1e1 100644
  }
  
  static void print_event_info(struct array_buffer *buf, struct seq_file *m)
-@@ -3827,14 +3831,16 @@ static void print_func_help_header_irq(struct array_buffer *buf, struct seq_file
+@@ -3854,14 +3858,16 @@ static void print_func_help_header_irq(struct array_buffer *buf, struct seq_file
  
  	print_event_info(buf, m);
  
@@ -576,10 +609,10 @@ index d113fc1..930b1e1 100644
  
  void
 diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
-index 610d213..580f235 100644
+index f3f5e77..6e1a279 100644
 --- a/kernel/trace/trace.h
 +++ b/kernel/trace/trace.h
-@@ -143,6 +143,7 @@ struct kretprobe_trace_entry_head {
+@@ -144,6 +144,7 @@ struct kretprobe_trace_entry_head {
   *  NEED_RESCHED	- reschedule is requested
   *  HARDIRQ		- inside an interrupt handler
   *  SOFTIRQ		- inside a softirq handler
@@ -587,7 +620,7 @@ index 610d213..580f235 100644
   */
  enum trace_flag_type {
  	TRACE_FLAG_IRQS_OFF		= 0x01,
-@@ -152,6 +153,7 @@ enum trace_flag_type {
+@@ -153,6 +154,7 @@ enum trace_flag_type {
  	TRACE_FLAG_SOFTIRQ		= 0x10,
  	TRACE_FLAG_PREEMPT_RESCHED	= 0x20,
  	TRACE_FLAG_NMI			= 0x40,
@@ -596,10 +629,10 @@ index 610d213..580f235 100644
  
  #define TRACE_BUF_SIZE		1024
 diff --git a/kernel/trace/trace_events.c b/kernel/trace/trace_events.c
-index 9f6f8b9..a88a78c2 100644
+index 66270fb..8049624 100644
 --- a/kernel/trace/trace_events.c
 +++ b/kernel/trace/trace_events.c
-@@ -183,6 +183,7 @@ static int trace_define_common_fields(void)
+@@ -184,6 +184,7 @@ static int trace_define_common_fields(void)
  	__common_field(unsigned char, preempt_count);
  	__common_field(int, pid);
  	__common_field(unsigned char, migrate_disable);
