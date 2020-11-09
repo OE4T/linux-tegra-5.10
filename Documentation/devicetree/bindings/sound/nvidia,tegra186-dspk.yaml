@@ -72,6 +72,8 @@ required:
   - assigned-clock-parents
   - "#sound-dai-cells"
 
+additionalProperties: false
+
 examples:
   - |
     #include<dt-bindings/clock/tegra186-clock.h>

@@ -73,6 +73,9 @@ required:
   - ranges
   - "#sound-dai-cells"
 
+additionalProperties:
+  type: object
+
 examples:
   - |
     #include<dt-bindings/clock/tegra210-car.h>

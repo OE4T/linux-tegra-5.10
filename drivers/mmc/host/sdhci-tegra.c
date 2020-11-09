@@ -2468,11 +2468,8 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	if (!tegra_host->skip_clk_rst) {
 		clk = devm_clk_get(mmc_dev(host->mmc), NULL);
 		if (IS_ERR(clk)) {
-			rc = PTR_ERR(clk);
-
-			if (rc != -EPROBE_DEFER)
-				dev_err(&pdev->dev, "failed to get clock: %d\n", rc);
-
+			rc = dev_err_probe(&pdev->dev, PTR_ERR(clk),
+					   "failed to get clock\n");
 			goto err_clk_get;
 		}
 		clk_prepare_enable(clk);
@@ -2934,6 +2931,7 @@ const struct dev_pm_ops sdhci_tegra_dev_pm_ops = {
 static struct platform_driver sdhci_tegra_driver = {
 	.driver		= {
 		.name	= "sdhci-tegra",
+		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
 		.of_match_table = sdhci_tegra_dt_match,
 		.pm	= &sdhci_tegra_dev_pm_ops,
 	},

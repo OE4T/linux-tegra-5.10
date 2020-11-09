@@ -87,6 +87,8 @@ required:
   - dma-names
   - "#sound-dai-cells"
 
+additionalProperties: false
+
 examples:
   - |
     admaif@702d0000 {
