@@ -25,6 +25,9 @@
 	aliases {
 		sdhci3 = &sdmmc4;
 		sdhci0 = &sdmmc1;
+#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
+		mmc0 = "/sdhci@3460000";
+#endif
 	};
 
 	sdmmc4: sdhci@3460000 { /* Used for eMMC */
