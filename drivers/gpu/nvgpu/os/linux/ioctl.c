@@ -201,6 +201,25 @@ static char *nvgpu_pci_devnode(struct device *dev, umode_t *mode)
 			dev_name(dev->parent), dev_name(dev));
 }
 
+static char *nvgpu_devnode_v2(struct device *dev, umode_t *mode)
+{
+	if (mode) {
+		*mode = S_IRUSR | S_IWUSR;
+	}
+
+	return kasprintf(GFP_KERNEL, "nvgpu/igpu0/%s", dev_name(dev));
+}
+
+static char *nvgpu_pci_devnode_v2(struct device *dev, umode_t *mode)
+{
+	if (mode) {
+		*mode = S_IRUSR | S_IWUSR;
+	}
+
+	return kasprintf(GFP_KERNEL, "nvgpu/dgpu-%s/%s", dev_name(dev->parent),
+			dev_name(dev));
+}
+
 static char *nvgpu_mig_phys_devnode(struct device *dev, umode_t *mode)
 {
 	struct nvgpu_cdev_class_priv_data *priv_data;
@@ -462,6 +481,27 @@ static int nvgpu_prepare_default_dev_node_class_list(struct gk20a *g, u32 *num_c
 			return -ENOMEM;
 		}
 		class->class->devnode = NULL;
+		count++;
+	}
+
+	/*
+	 * V2 device node names hierarchy.
+	 * This hierarchy will replace above hierarchy in second phase.
+	 * Both legacy and V2 device node hierarchies will co-exist until then.
+	 */
+	if (g->pci_class != 0U) {
+		class = nvgpu_create_class(g, "nvidia-pci-gpu-v2");
+		if (class == NULL) {
+			return -ENOMEM;
+		}
+		class->class->devnode = nvgpu_pci_devnode_v2;
+		count++;
+	} else {
+		class = nvgpu_create_class(g, "nvidia-gpu-v2");
+		if (class == NULL) {
+			return -ENOMEM;
+		}
+		class->class->devnode = nvgpu_devnode_v2;
 		count++;
 	}
 
