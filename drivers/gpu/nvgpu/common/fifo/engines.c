@@ -92,18 +92,24 @@ bool nvgpu_engine_check_valid_id(struct gk20a *g, u32 engine_id)
 	return f->host_engines[engine_id] != NULL;
 }
 
-u32 nvgpu_engine_get_gr_id(struct gk20a *g)
+u32 nvgpu_engine_get_gr_id_for_inst(struct gk20a *g, u32 inst_id)
 {
 	const struct nvgpu_device *dev;
-	/* Consider 1st available GR engine */
 
-	dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, 0);
+	dev = nvgpu_device_get(g, NVGPU_DEVTYPE_GRAPHICS, inst_id);
 	if (dev == NULL) {
-		nvgpu_warn(g, "No GR devices on this GPU?!");
+		nvgpu_warn(g, "No GR devices on this GPU for inst[%u]?!",
+			inst_id);
 		return NVGPU_INVALID_ENG_ID;
 	}
 
 	return dev->engine_id;
+}
+
+u32 nvgpu_engine_get_gr_id(struct gk20a *g)
+{
+	/* Consider 1st available GR engine */
+	return nvgpu_engine_get_gr_id_for_inst(g, 0U);
 }
 
 u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 engine_id)

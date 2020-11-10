@@ -33,6 +33,7 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/rc.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 
 void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 			u32 hw_id, bool id_is_tsg,
@@ -181,8 +182,13 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
 #ifdef CONFIG_NVGPU_RECOVERY
 	u32 gr_engine_id;
 	u32 gr_eng_bitmask = 0U;
+	u32 cur_gr_instance_id = nvgpu_gr_get_cur_instance_id(g);
+	u32 inst_id = nvgpu_gr_get_syspipe_id(g, cur_gr_instance_id);
 
-	gr_engine_id = nvgpu_engine_get_gr_id(g);
+	nvgpu_log(g, gpu_dbg_gr, "RC GR%u inst_id%u",
+		cur_gr_instance_id, inst_id);
+
+	gr_engine_id = nvgpu_engine_get_gr_id_for_inst(g, inst_id);
 	if (gr_engine_id != NVGPU_INVALID_ENG_ID) {
 		gr_eng_bitmask = BIT32(gr_engine_id);
 	} else {
@@ -203,6 +209,7 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct nvgpu_tsg *tsg,
 #else
 	WARN_ON(!g->sw_quiesce_pending);
 #endif
+	nvgpu_log(g, gpu_dbg_gr, "done");
 }
 
 void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g)

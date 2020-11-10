@@ -681,32 +681,70 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 }
 
 #ifdef CONFIG_NVGPU_ENGINE_RESET
+static int nvgpu_gr_enable_hw_for_instance(struct gk20a *g)
+{
+	int err;
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "Enable GR%u HW",
+		nvgpu_gr_get_cur_instance_id(g));
+
+	err = gr_reset_engine(g);
+	if (err != 0) {
+		nvgpu_err(g, "Gr Reset failed");
+		return err;
+	}
+
+	nvgpu_cg_init_gr_load_gating_prod(g);
+
+	/* Disable elcg until it gets enabled later in the init*/
+	nvgpu_cg_elcg_disable_no_wait(g);
+
+	/** Enable interrupts at MC level */
+	nvgpu_mc_intr_stall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
+	nvgpu_mc_intr_nonstall_unit_config(g, MC_INTR_UNIT_GR, MC_INTR_ENABLE);
+
+	err = gr_init_prepare_hw_impl(g);
+	if (err != 0) {
+		nvgpu_err(g, "gr_init_prepare_hw_impl failed");
+		return err;
+	}
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
+
+	return 0;
+}
+
 int nvgpu_gr_reset(struct gk20a *g)
 {
 	int err;
+	struct nvgpu_gr *gr = nvgpu_gr_get_cur_instance_ptr(g);
 	struct nvgpu_mutex *fecs_mutex =
-		nvgpu_gr_falcon_get_fecs_mutex(g->gr->falcon);
+		nvgpu_gr_falcon_get_fecs_mutex(gr->falcon);
 
 	g->gr->initialized = false;
 
-	nvgpu_log(g, gpu_dbg_rec, "Resetting GR");
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr | gpu_dbg_rec, "Resetting GR%u HW",
+		nvgpu_gr_get_cur_instance_id(g));
 
 	nvgpu_mutex_acquire(fecs_mutex);
 
-	err = nvgpu_gr_enable_hw(g);
+	err = nvgpu_gr_enable_hw_for_instance(g);
 	if (err != 0) {
+		nvgpu_err(g, "nvgpu_gr_enable_hw_for_instance failed");
 		nvgpu_mutex_release(fecs_mutex);
 		return err;
 	}
 
-	err = gr_init_setup_hw(g, g->gr);
+	err = gr_init_setup_hw(g, gr);
 	if (err != 0) {
+		nvgpu_err(g, "gr_init_setup_hw failed");
 		nvgpu_mutex_release(fecs_mutex);
 		return err;
 	}
 
-	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr->falcon);
+	err = nvgpu_gr_falcon_init_ctxsw(g, gr->falcon);
 	if (err != 0) {
+		nvgpu_err(g, "nvgpu_gr_falcon_init_ctxsw failed");
 		nvgpu_mutex_release(fecs_mutex);
 		return err;
 	}
@@ -718,8 +756,9 @@ int nvgpu_gr_reset(struct gk20a *g)
 	 * ramchain, etc so this is hw init. Hence should be executed
 	 * for every GR engine HW initialization.
 	 */
-	err = nvgpu_gr_init_ctx_state(g, g->gr);
+	err = nvgpu_gr_init_ctx_state(g, gr);
 	if (err != 0) {
+		nvgpu_err(g, "nvgpu_gr_init_ctx_state failed");
 		return err;
 	}
 
@@ -727,6 +766,7 @@ int nvgpu_gr_reset(struct gk20a *g)
 	if (g->can_elpg) {
 		err = nvgpu_gr_falcon_bind_fecs_elpg(g);
 		if (err != 0) {
+			nvgpu_err(g, "nvgpu_gr_falcon_bind_fecs_elpg failed");
 			return err;
 		}
 	}
@@ -738,7 +778,9 @@ int nvgpu_gr_reset(struct gk20a *g)
 
 	/* GR is inialized, signal possible waiters */
 	g->gr->initialized = true;
-	nvgpu_cond_signal(&g->gr->init_wq);
+	nvgpu_cond_signal(&gr->init_wq);
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return err;
 }
 #endif

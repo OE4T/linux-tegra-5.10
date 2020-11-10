@@ -114,6 +114,18 @@ const struct nvgpu_device *nvgpu_engine_get_active_eng_info(
  */
 bool nvgpu_engine_check_valid_id(struct gk20a *g, u32 engine_id);
 /**
+ * @brief Get h/w engine id based on engine's instance identification number
+ *        #NVGPU_ENGINE_GR engine enum type.
+ *
+ * @param g [in]		The GPU driver struct.
+ * @param inst_id [in]		Engine's instance identification number.
+ *
+ * @return H/W engine id for #NVGPU_ENGINE_GR engine enum type.
+ * @retval #NVGPU_INVALID_ENG_ID if #NVGPU_ENGINE_GR engine enum type could not
+ *         be found in the set of available h/w engine ids.
+ */
+u32 nvgpu_engine_get_gr_id_for_inst(struct gk20a *g, u32 inst_id);
+/**
  * @brief Get instance count and first available h/w engine id for
  *        #NVGPU_ENGINE_GR engine enum type.
  *
