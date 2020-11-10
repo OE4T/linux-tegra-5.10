@@ -786,7 +786,8 @@ static int nvgpu_gpu_ioctl_set_mmu_debug_mode(
 
 static int nvgpu_gpu_ioctl_set_debug_mode(
 		struct gk20a *g,
-		struct nvgpu_gpu_sm_debug_mode_args *args)
+		struct nvgpu_gpu_sm_debug_mode_args *args,
+		u32 gr_instance_id)
 {
 	struct nvgpu_channel *ch;
 	int err;
@@ -797,8 +798,9 @@ static int nvgpu_gpu_ioctl_set_debug_mode(
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	if (g->ops.gr.set_sm_debug_mode)
-		err = g->ops.gr.set_sm_debug_mode(g, ch,
-				args->sms, !!args->enable);
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
+			g->ops.gr.set_sm_debug_mode(g, ch,
+				args->sms, !!args->enable));
 	else
 		err = -ENOSYS;
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
@@ -807,7 +809,7 @@ static int nvgpu_gpu_ioctl_set_debug_mode(
 	return err;
 }
 
-static int nvgpu_gpu_ioctl_trigger_suspend(struct gk20a *g)
+static int nvgpu_gpu_ioctl_trigger_suspend(struct gk20a *g, u32 gr_instance_id)
 {
 	int err;
 
@@ -817,7 +819,7 @@ static int nvgpu_gpu_ioctl_trigger_suspend(struct gk20a *g)
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	if (g->ops.gr.trigger_suspend != NULL) {
-		err = nvgpu_pg_elpg_protected_call(g,
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
 			g->ops.gr.trigger_suspend(g));
 	} else {
 		err = -ENOSYS;
@@ -830,7 +832,7 @@ static int nvgpu_gpu_ioctl_trigger_suspend(struct gk20a *g)
 }
 
 static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
-		struct nvgpu_gpu_wait_pause_args *args)
+		struct nvgpu_gpu_wait_pause_args *args, u32 gr_instance_id)
 {
 	int err;
 	struct warpstate *ioctl_w_state;
@@ -859,7 +861,7 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	if (g->ops.gr.wait_for_pause != NULL) {
-		err = nvgpu_pg_elpg_protected_call(g,
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
 			g->ops.gr.wait_for_pause(g, w_state));
 
 		for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
@@ -897,7 +899,7 @@ out_free:
 	return err;
 }
 
-static int nvgpu_gpu_ioctl_resume_from_pause(struct gk20a *g)
+static int nvgpu_gpu_ioctl_resume_from_pause(struct gk20a *g, u32 gr_instance_id)
 {
 	int err;
 
@@ -907,7 +909,7 @@ static int nvgpu_gpu_ioctl_resume_from_pause(struct gk20a *g)
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	if (g->ops.gr.resume_from_pause != NULL) {
-		err = nvgpu_pg_elpg_protected_call(g,
+		err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
 			g->ops.gr.resume_from_pause(g));
 	} else {
 		err = -ENOSYS;
@@ -919,7 +921,7 @@ static int nvgpu_gpu_ioctl_resume_from_pause(struct gk20a *g)
 	return err;
 }
 
-static int nvgpu_gpu_ioctl_clear_sm_errors(struct gk20a *g)
+static int nvgpu_gpu_ioctl_clear_sm_errors(struct gk20a *g, u32 gr_instance_id)
 {
 	int err;
 
@@ -931,7 +933,7 @@ static int nvgpu_gpu_ioctl_clear_sm_errors(struct gk20a *g)
 	if (err)
 		return err;
 
-	err = nvgpu_pg_elpg_protected_call(g,
+	err = nvgpu_gr_exec_with_err_for_instance(g, gr_instance_id,
 			g->ops.gr.clear_sm_errors(g));
 
 	gk20a_idle(g);
@@ -2072,24 +2074,31 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 	case NVGPU_GPU_IOCTL_SET_SM_DEBUG_MODE:
 		err = nvgpu_pg_elpg_protected_call(g,
-				nvgpu_gpu_ioctl_set_debug_mode(g, (struct nvgpu_gpu_sm_debug_mode_args *)buf));
+			nvgpu_gpu_ioctl_set_debug_mode(g,
+				(struct nvgpu_gpu_sm_debug_mode_args *)buf,
+				gr_instance_id));
 		break;
 
 	case NVGPU_GPU_IOCTL_TRIGGER_SUSPEND:
-		err = nvgpu_gpu_ioctl_trigger_suspend(g);
+		err = nvgpu_pg_elpg_protected_call(g,
+			nvgpu_gpu_ioctl_trigger_suspend(g, gr_instance_id));
 		break;
 
 	case NVGPU_GPU_IOCTL_WAIT_FOR_PAUSE:
-		err = nvgpu_gpu_ioctl_wait_for_pause(g,
-				(struct nvgpu_gpu_wait_pause_args *)buf);
+		err = nvgpu_pg_elpg_protected_call(g,
+			nvgpu_gpu_ioctl_wait_for_pause(g,
+				(struct nvgpu_gpu_wait_pause_args *)buf,
+				gr_instance_id));
 		break;
 
 	case NVGPU_GPU_IOCTL_RESUME_FROM_PAUSE:
-		err = nvgpu_gpu_ioctl_resume_from_pause(g);
+		err = nvgpu_pg_elpg_protected_call(g,
+			nvgpu_gpu_ioctl_resume_from_pause(g, gr_instance_id));
 		break;
 
 	case NVGPU_GPU_IOCTL_CLEAR_SM_ERRORS:
-		err = nvgpu_gpu_ioctl_clear_sm_errors(g);
+		err = nvgpu_pg_elpg_protected_call(g,
+			nvgpu_gpu_ioctl_clear_sm_errors(g, gr_instance_id));
 		break;
 
 	case NVGPU_GPU_IOCTL_GET_TPC_EXCEPTION_EN_STATUS:
