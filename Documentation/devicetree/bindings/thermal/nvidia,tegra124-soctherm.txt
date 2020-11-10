@@ -45,7 +45,7 @@ Required properties :
   incorrect.
 - throttle-cfgs: A sub-node which is a container of configuration for each
     hardware throttle events. These events can be set as cooling devices.
-  * throttle events: Sub-nodes must be named as "light" or "heavy".
+  * throttle events: Sub-nodes must be named as "light", "heavy", "oc1" - "oc5".
       Properties:
       - nvidia,priority: Each throttles has its own throttle settings, so the
         SW need to set priorities for various throttle, the HW arbiter can select

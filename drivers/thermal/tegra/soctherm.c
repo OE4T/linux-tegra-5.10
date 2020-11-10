@@ -1007,6 +1007,9 @@ static void soctherm_oc_intr_enable(struct tegra_soctherm *ts,
 	case THROTTLE_OC4:
 		r = REG_SET_MASK(r, OC_INTR_OC4_MASK, 1);
 		break;
+	case THROTTLE_OC5:
+		r = REG_SET_MASK(r, OC_INTR_OC5_MASK, 1);
+		break;
 	default:
 		r = 0;
 		break;
@@ -1048,6 +1051,12 @@ static int soctherm_handle_alarm(enum soctherm_throttle_id alarm)
 		rv = 0;
 		break;
 
+	case THROTTLE_OC5:
+		pr_debug("soctherm: Successfully handled OC5 alarm\n");
+		/* TODO: add OC5 alarm handling code here */
+		rv = 0;
+		break;
+
 	default:
 		break;
 	}
@@ -1075,7 +1084,7 @@ static int soctherm_handle_alarm(enum soctherm_throttle_id alarm)
 static irqreturn_t soctherm_edp_isr_thread(int irq, void *arg)
 {
 	struct tegra_soctherm *ts = arg;
-	u32 st, ex, oc1, oc2, oc3, oc4;
+	u32 st, ex, oc1, oc2, oc3, oc4, oc5;
 	static unsigned long j;
 
 	st = readl(ts->regs + OC_INTR_STATUS);
@@ -1085,6 +1094,7 @@ static irqreturn_t soctherm_edp_isr_thread(int irq, void *arg)
 	oc2 = st & OC_INTR_OC2_MASK;
 	oc3 = st & OC_INTR_OC3_MASK;
 	oc4 = st & OC_INTR_OC4_MASK;
+	oc5 = st & OC_INTR_OC5_MASK;
 	ex = oc1 | oc2 | oc3 | oc4;
 
 	/* rate limiting irq message to every one second */
@@ -1106,6 +1116,9 @@ static irqreturn_t soctherm_edp_isr_thread(int irq, void *arg)
 
 		if (oc4 && !soctherm_handle_alarm(THROTTLE_OC4))
 			soctherm_oc_intr_enable(ts, THROTTLE_OC4, true);
+
+		if (oc5 && !soctherm_handle_alarm(THROTTLE_OC5))
+			soctherm_oc_intr_enable(ts, THROTTLE_OC5, true);
 
 		if (oc1 && soc_irq_cdata.irq_enable & BIT(0))
 			handle_nested_irq(
