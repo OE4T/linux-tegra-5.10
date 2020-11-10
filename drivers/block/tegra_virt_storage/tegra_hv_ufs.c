@@ -343,6 +343,12 @@ int vblk_submit_combo_query_io(struct vblk_dev *vblkdev,
 			else
 				usleep_range(delay, delay + 10);
 		}
+		if (ioctl_req->status) {
+			err = ioctl_req->status;
+			if (ioctl_req->ioctl_buf)
+				kfree(ioctl_req->ioctl_buf);
+			goto free_query_req;
+		}
 
 		vblk_ioctl_query_req = ioctl_req->ioctl_buf;
 		usr_query_req = (struct ufs_ioc_query_req *)

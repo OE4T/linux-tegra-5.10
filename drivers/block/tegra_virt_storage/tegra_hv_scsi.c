@@ -178,6 +178,13 @@ int vblk_complete_sg_io(struct vblk_dev *vblkdev,
 	void *data_buf;
 	int err = 0;
 
+	if (ioctl_req->status) {
+		err = ioctl_req->status;
+		if (ioctl_req->ioctl_buf)
+			kfree(ioctl_req->ioctl_buf);
+		goto exit;
+	}
+
 	hp = kmalloc(header_len, GFP_KERNEL);
 	if (hp == NULL) {
 		return -ENOMEM;
@@ -227,6 +234,6 @@ free_hp:
 
 	if (hp)
 		kfree(hp);
-
+exit:
 	return err;
 }

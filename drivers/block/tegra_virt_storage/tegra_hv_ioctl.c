@@ -28,7 +28,7 @@
 #include "tegra_vblk.h"
 
 int vblk_complete_ioctl_req(struct vblk_dev *vblkdev,
-	struct vsc_request *vsc_req)
+	struct vsc_request *vsc_req, int status)
 {
 	struct vblk_ioctl_req *ioctl_req = vsc_req->ioctl_req;
 	int32_t ret = 0;
@@ -40,6 +40,7 @@ int vblk_complete_ioctl_req(struct vblk_dev *vblkdev,
 		goto comp_exit;
 	}
 
+	ioctl_req->status = status;
 	memcpy(ioctl_req->ioctl_buf, vsc_req->mempool_virt,
 			ioctl_req->ioctl_len);
 comp_exit:

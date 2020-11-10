@@ -41,6 +41,7 @@ struct vblk_ioctl_req {
 	uint32_t ioctl_id;
 	void *ioctl_buf;
 	uint32_t ioctl_len;
+	int32_t status;
 };
 
 struct vsc_request {
@@ -95,7 +96,7 @@ struct vblk_dev {
 };
 
 int vblk_complete_ioctl_req(struct vblk_dev *vblkdev,
-		struct vsc_request *vsc_req);
+		struct vsc_request *vsc_req, int32_t status);
 
 int vblk_prep_ioctl_req(struct vblk_dev *vblkdev,
 		struct vblk_ioctl_req *ioctl_req,

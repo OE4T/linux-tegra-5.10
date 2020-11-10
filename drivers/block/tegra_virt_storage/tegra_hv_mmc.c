@@ -152,6 +152,12 @@ int vblk_complete_mmc_multi_ioc(struct vblk_dev *vblkdev,
 	int err = 0;
 	void *ioctl_buf = ioctl_req->ioctl_buf;
 
+	if (ioctl_req->status) {
+		err = ioctl_req->status;
+		if (ioctl_req->ioctl_buf)
+			vfree(ioctl_req->ioctl_buf);
+		goto exit;
+	}
 
 	if (cmd == MMC_IOC_MULTI_CMD) {
 		user_cmd = (struct mmc_ioc_multi_cmd __user *)user;
@@ -208,5 +214,6 @@ free_ioc_buf:
 	if (ioctl_buf)
 		vfree(ioctl_buf);
 
+exit:
 	return err;
 }
