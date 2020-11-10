@@ -182,9 +182,10 @@ static int tegra_camera_isomgr_register(struct tegra_camera_info *info,
 			info->icc_iso_path_handle =
 				icc_get(dev, info->icc_iso_id, TEGRA_ICC_PRIMARY);
 			if (IS_ERR_OR_NULL(info->icc_iso_path_handle)) {
-				dev_warn(info->dev,
+				dev_err(info->dev,
 					"%s unable to get icc path (err=%ld)\n",
 					__func__, PTR_ERR(info->icc_iso_path_handle));
+				return -ENOMEM;
 			}
 		}
 		return 0;
@@ -243,14 +244,15 @@ static int tegra_camera_isomgr_request(
 
 #if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
 	if (tegra_get_chip_id() == TEGRA234) {
-		ret = icc_set_bw(info->icc_iso_path_handle, iso_bw, (u32)info->max_bw);
-		if (!ret) {
+		ret = icc_set_bw(info->icc_iso_path_handle,
+			iso_bw, (u32)info->max_bw);
+		if (ret) {
 			dev_err(info->dev,
-			"%s: ICC failed to reserve %u KBps\n", __func__, iso_bw);
-			return -ENOMEM;
+			"%s: ICC failed to reserve %u KBps\n",
+			__func__, iso_bw);
 		}
 
-		return 0;
+		return ret;
 	}
 #endif
 
@@ -344,6 +346,26 @@ static int tegra_camera_open(struct inode *inode, struct file *file)
 	mdev = file->private_data;
 	info = dev_get_drvdata(mdev->parent);
 	file->private_data = info;
+
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	/* For T194 and earlier chips Interconnect is not supported. */
+	if (tegra_get_chip_id() == TEGRA234) {
+		info->icc_noniso_id = TEGRA_ICC_ISP;
+		info->icc_noniso_path_handle =
+			icc_get(info->dev,
+				info->icc_noniso_id, TEGRA_ICC_PRIMARY);
+		if (IS_ERR_OR_NULL(info->icc_noniso_path_handle)) {
+			dev_err(info->dev,
+			"%s unable to get icc path (err=%ld)\n",
+			__func__, PTR_ERR(info->icc_noniso_path_handle));
+
+			return -ENOMEM;
+		}
+
+		return 0;
+	}
+#endif
+
 #if defined(CONFIG_TEGRA_BWMGR)
 	/* get bandwidth manager handle if needed */
 	info->bwmgr_handle =
@@ -368,6 +390,13 @@ static int tegra_camera_release(struct inode *inode, struct file *file)
 	struct tegra_camera_info *info;
 
 	info = file->private_data;
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	if (tegra_get_chip_id() == TEGRA234) {
+		icc_put(info->icc_noniso_path_handle);
+		info->icc_noniso_path_handle = NULL;
+		return 0;
+	}
+#endif
 #if defined(CONFIG_TEGRA_BWMGR)
 	tegra_bwmgr_unregister(info->bwmgr_handle);
 #else
@@ -545,6 +574,20 @@ static long tegra_camera_ioctl(struct file *file,
 		} else {
 			dev_dbg(info->dev, "%s:Set bw %llu at %lu KHz\n",
 				__func__, kcopy.bw, mc_khz);
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+			if (tegra_get_chip_id() == TEGRA234) {
+				ret = icc_set_bw(info->icc_noniso_path_handle,
+						(u32)(kcopy.bw & 0xFFFFFFFF),
+						(u32)(kcopy.bw & 0xFFFFFFFF));
+				if (ret) {
+					dev_err(info->dev,
+					"%s: ICC failed to reserve %u KBps\n",
+					__func__, (u32)(kcopy.bw & 0xFFFFFFFF));
+				}
+				break;
+			}
+#endif
+
 #if defined(CONFIG_TEGRA_BWMGR)
 			ret = tegra_bwmgr_set_emc(info->bwmgr_handle,
 				mc_khz*1000, TEGRA_BWMGR_SET_EMC_SHARED_BW);
@@ -559,6 +602,15 @@ static long tegra_camera_ioctl(struct file *file,
 	{
 		unsigned long mc_hz = 0;
 		u64 bw = 0;
+#if IS_ENABLED(CONFIG_INTERCONNECT) && IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+		if (tegra_get_chip_id() == TEGRA234) {
+			dev_err(info->dev,
+			"%s:ioctl TEGRA_CAMERA_IOCTL_GET_BW not supported\n",
+			__func__);
+			return -EFAULT;
+
+		}
+#endif
 
 #if defined(CONFIG_TEGRA_BWMGR)
 		ret = tegra_bwmgr_get_client_info(info->bwmgr_handle, &mc_hz,
@@ -629,7 +681,7 @@ static int tegra_camera_probe(struct platform_device *pdev)
 	static bool misc_registered = false;
 	struct tegra_camera_info *info;
 
-	dev_info(&pdev->dev, "%s:camera_platform_driver probe\n", __func__);
+	dev_dbg(&pdev->dev, "%s:camera_platform_driver probe\n", __func__);
 
 	tegra_camera_misc.minor = MISC_DYNAMIC_MINOR;
 	tegra_camera_misc.name = CAMDEV_NAME;
@@ -720,7 +772,6 @@ static int tegra_camera_probe(struct platform_device *pdev)
 	if (ret)
 		dev_err(info->dev, "Fail to create debugfs");
 #endif
-	dev_info(&pdev->dev, "%s:camera_platform_driver probe--\n", __func__);
 	return 0;
 }
 
