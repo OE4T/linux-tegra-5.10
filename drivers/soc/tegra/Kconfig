@@ -6,6 +6,21 @@ config TEGRA_KFUSE
 	  Enable Tegra kfuse support. The kfuse block stores downstream and
 	  upstream HDCP keys for use by the HDMI module.
 
+config TEGRA_FUSE_DOWNSTREAM
+	bool "Downstream Tegra Fuse Support"
+	depends on ARCH_TEGRA
+	help
+	  This option enables support for downstream TEGRA efuse and platform
+	  level helper code.
+
+config TEGRA_FUSE_BURN
+	bool "Downstream Tegra Fuse Burn Support"
+	depends on ARCH_TEGRA_2x_SOC || ARCH_TEGRA_3x_SOC || ARCH_TEGRA_114_SOC || \
+		   ARCH_TEGRA_124_SOC || ARCH_TEGRA_132_SOC || ARCH_TEGRA_210_SOC || \
+		   SOC_TEGRA_PMC
+	help
+	  This option enables support for downstream TEGRA fuse-burn feature.
+
 config TEGRA_PROC_POWER_MODEL
 	bool "Tegra process power model support"
 	depends on ARCH_TEGRA
