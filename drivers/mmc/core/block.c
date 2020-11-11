@@ -440,7 +440,7 @@ static int card_busy_detect(struct mmc_card *card, unsigned int timeout_ms,
 				 __func__, status);
 			return -ETIMEDOUT;
 		}
-	} while (!mmc_ready_for_data(status));
+	} while (!mmc_broken_ready_for_data(card, status));
 
 	return err;
 }
@@ -1651,7 +1651,7 @@ static void mmc_blk_read_single(struct mmc_queue *mq, struct request *req)
 			goto error_exit;
 
 		if (!mmc_host_is_spi(host) &&
-		    !mmc_ready_for_data(status)) {
+		    !mmc_broken_ready_for_data(card, status)) {
 			err = mmc_blk_fix_state(card, req);
 			if (err)
 				goto error_exit;
@@ -1701,6 +1701,7 @@ static bool mmc_blk_status_error(struct request *req, u32 status)
 	struct mmc_queue_req *mqrq = req_to_mmc_queue_req(req);
 	struct mmc_blk_request *brq = &mqrq->brq;
 	struct mmc_queue *mq = req->q->queuedata;
+	struct mmc_card *card = mq->card;
 	u32 stop_err_bits;
 
 	if (mmc_host_is_spi(mq->card->host))
@@ -1711,7 +1712,8 @@ static bool mmc_blk_status_error(struct request *req, u32 status)
 	return brq->cmd.resp[0]  & CMD_ERRORS    ||
 	       brq->stop.resp[0] & stop_err_bits ||
 	       status            & stop_err_bits ||
-	       (rq_data_dir(req) == WRITE && !mmc_ready_for_data(status));
+	       (rq_data_dir(req) == WRITE &&
+		!mmc_broken_ready_for_data(card, status));
 }
 
 static inline bool mmc_blk_cmd_started(struct mmc_blk_request *brq)

@@ -390,6 +390,7 @@ struct mmc_host {
 #define MMC_CAP2_ONLY_1V8_SIGNAL_VOLTAGE	(1 << 27)	/* Supports only 1V8 voltage */
 #define MMC_CAP2_FORCE_RESCAN	(1 << 28) /* Force rescan requests for the device if this cap is set */
 #define MMC_CAP2_PERIODIC_CACHE_FLUSH	(1 << 29) /* Periodic cache flush support */
+#define MMC_CAP2_BROKEN_CARD_BUSY_DETECT (1 << 30) /* Broken card busy status detection */
 
 	int			fixed_drv_type;	/* fixed driver type for non-removable media */
 

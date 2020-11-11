@@ -10,6 +10,7 @@
 
 #include <linux/delay.h>
 #include <linux/sched.h>
+#include <linux/mmc/mmc.h>
 
 struct mmc_host;
 struct mmc_card;
@@ -175,6 +176,17 @@ static inline void mmc_post_req(struct mmc_host *host, struct mmc_request *mrq,
 {
 	if (host->ops->post_req)
 		host->ops->post_req(host, mrq, err);
+}
+
+static inline bool mmc_broken_ready_for_data(struct mmc_card *card, u32 status)
+{
+	struct mmc_host *host = card->host;
+
+	if (host->caps2 & MMC_CAP2_BROKEN_CARD_BUSY_DETECT)
+		return (status & R1_READY_FOR_DATA) ||
+			(R1_CURRENT_STATE(status) == R1_STATE_TRAN);
+	else
+		return mmc_ready_for_data(status);
 }
 
 #endif

@@ -2550,6 +2550,7 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 
 	if (tegra_platform_is_vsp()) {
 		host->quirks2 |= SDHCI_QUIRK2_BROKEN_64_BIT_DMA;
+		host->mmc->caps2 |= MMC_CAP2_BROKEN_CARD_BUSY_DETECT;
 	}
 
 	/*
