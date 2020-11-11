@@ -971,7 +971,7 @@ static int ucsi_register_port(struct ucsi *ucsi, int index)
 
 	/* Alternate modes */
 	ret = ucsi_register_altmodes(con, UCSI_RECIPIENT_CON);
-	if (ret && ret != -ETIMEDOUT) {
+	if (ret) {
 		dev_err(ucsi->dev, "con%d: failed to register alt modes\n",
 			con->num);
 		goto out;
