@@ -29,8 +29,8 @@
  * @brief Helper macros for defining Tx/Rx descriptor count
  * @{
  */
-#define TX_DESC_CNT	256U
-#define RX_DESC_CNT	256U
+#define TX_DESC_CNT	1024U
+#define RX_DESC_CNT	1024U
 /** @} */
 
 /** TSO Header length divisor */
