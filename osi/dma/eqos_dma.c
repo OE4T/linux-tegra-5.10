@@ -518,6 +518,8 @@ static void eqos_configure_dma_channel(unsigned int chan,
 {
 	unsigned int value;
 
+	CHECK_CHAN_BOUND(chan);
+
 	/* enable DMA channel interrupts */
 	/* Enable TIE and TBUE */
 	/* TIE - Transmit Interrupt Enable */

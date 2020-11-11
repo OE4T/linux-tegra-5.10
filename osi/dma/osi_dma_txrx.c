@@ -276,8 +276,7 @@ static inline int validate_rx_completions_arg(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 	*rx_pkt_cx = &(*rx_ring)->rx_pkt_cx;
-	if (osi_unlikely(*rx_pkt_cx == OSI_NULL ||
-			 (*rx_ring)->cur_rx_idx >= RX_DESC_CNT)) {
+	if (osi_unlikely(*rx_pkt_cx == OSI_NULL)) {
 		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"validate_input_rx_completions: Invalid pointers\n",
 			0ULL);
@@ -305,6 +304,12 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 					  &rx_ring, &rx_pkt_cx);
 	if (osi_unlikely(ret < 0)) {
 		return ret;
+	}
+
+	if (rx_ring->cur_rx_idx >= RX_DESC_CNT) {
+		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			"dma_txrx: Invalid cur_rx_idx\n", 0ULL);
+		return -1;
 	}
 
 	/* Reset flag to indicate if more Rx frames available to OSD layer */
