@@ -295,8 +295,8 @@ static bool nvgpu_gr_setup_validate_preemption_mode(u32 *graphics_preempt_mode,
 
 
 int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
-					u32 graphics_preempt_mode,
-					u32 compute_preempt_mode)
+		u32 graphics_preempt_mode, u32 compute_preempt_mode,
+		u32 gr_instance_id)
 {
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct gk20a *g = ch->g;
@@ -306,7 +306,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 	u32 class_num;
 	int err = 0;
 
-	gr = nvgpu_gr_get_cur_instance_ptr(g);
+	gr = &g->gr[gr_instance_id];
 
 	class_num = ch->obj_class;
 	if (class_num == 0U) {

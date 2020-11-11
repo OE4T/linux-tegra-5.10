@@ -1470,8 +1470,8 @@ fail:
 }
 
 int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode)
+		u32 graphics_preempt_mode, u32 compute_preempt_mode,
+		u32 gr_instance_id)
 {
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct gk20a *g = ch->g;

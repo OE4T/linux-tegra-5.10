@@ -86,8 +86,8 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g,
 int vgpu_gr_update_pc_sampling(struct nvgpu_channel *ch, bool enable);
 void vgpu_gr_init_cyclestats(struct gk20a *g);
 int vgpu_gr_set_preemption_mode(struct nvgpu_channel *ch,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
+		u32 graphics_preempt_mode, u32 compute_preempt_mode,
+		u32 gr_instance_id);
 int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info);
 void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 			struct tegra_vgpu_sm_esr_info *info);

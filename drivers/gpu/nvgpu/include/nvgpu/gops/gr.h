@@ -204,6 +204,8 @@ struct gops_gr_setup {
 	 *					preemption mode.
 	 * @param compute_preempt_mode [in]	Requested compute
 	 *					preemption mode.
+	 * @param gr_instance_id[in]		Instance ID of
+	 * 					graphics engine.
 	 *
 	 * This function will program newly requested preemption modes
 	 * into GR engine context image.
@@ -223,7 +225,8 @@ struct gops_gr_setup {
 	 */
 	int (*set_preemption_mode)(struct nvgpu_channel *ch,
 				   u32 graphics_preempt_mode,
-				   u32 compute_preempt_mode);
+				   u32 compute_preempt_mode,
+				   u32 gr_instance_id);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #ifdef CONFIG_NVGPU_GRAPHICS

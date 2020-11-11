@@ -288,7 +288,7 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
 	for (i = 0; i < arry_cnt; i++) {
 		err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch,
 				preemp_mode_types[i].graphics_mode,
-				preemp_mode_types[i].compute_mode);
+				preemp_mode_types[i].compute_mode, 0);
 		if (err != preemp_mode_types[i].result) {
 			unit_return_fail(m, "Fail Preemp_mode Error Test-1\n");
 		}
@@ -299,7 +299,7 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
 			NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
 	g->ops.fifo.preempt_tsg = stub_gr_fifo_preempt_tsg;
 	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0,
-				NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
+				NVGPU_PREEMPTION_MODE_COMPUTE_CTA, 0);
 	if (err == 0) {
 		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
 	}
@@ -308,7 +308,7 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
 	tsgid = gr_setup_ch->tsgid;
 	/* Unset the tsgid */
 	gr_setup_ch->tsgid = NVGPU_INVALID_TSG_ID;
-	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0);
+	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0, 0);
 	if (err == 0) {
 		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
 	}
@@ -316,14 +316,14 @@ int test_gr_setup_preemption_mode_errors(struct unit_module *m,
 	gr_setup_ch->tsgid = tsgid;
 	/* Unset the valid Class*/
 	gr_setup_ch->obj_class = 0;
-	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0);
+	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0, 0);
 	if (err == 0) {
 		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
 	}
 
 	/* Set invalid Class*/
 	gr_setup_ch->obj_class = 0x1234;
-	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0);
+	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0, 0, 0);
 	if (err == 0) {
 		unit_return_fail(m, "Fail Preemp_mode Error Test-2\n");
 	}
@@ -606,7 +606,7 @@ int test_gr_setup_set_preemption_mode(struct unit_module *m,
 						&compute_mode);
 
 	err = g->ops.gr.setup.set_preemption_mode(gr_setup_ch, 0,
-		(compute_mode & NVGPU_PREEMPTION_MODE_COMPUTE_CTA));
+		(compute_mode & NVGPU_PREEMPTION_MODE_COMPUTE_CTA), 0);
 	if (err != 0) {
 		unit_return_fail(m, "setup preemption_mode failed\n");
 	}

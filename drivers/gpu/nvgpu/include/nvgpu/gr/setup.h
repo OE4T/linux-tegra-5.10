@@ -108,6 +108,7 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
  * @param ch [in]			Pointer to GPU channel.
  * @param graphics_preempt_mode [in]	Requested graphics preemption mode.
  * @param compute_preempt_mode [in]	Requested compute preemption mode.
+ * @param gr_instance_id [in]		Instance ID of the graphics engine.
  *
  * This function will program newly requested preemption modes into
  * GR engine context image. This function is typically needed if user
@@ -122,8 +123,8 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
  * @retval -EINVAL if invalid GPU channel pointer is provided.
  */
 int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
-					u32 graphics_preempt_mode,
-					u32 compute_preempt_mode);
+		u32 graphics_preempt_mode, u32 compute_preempt_mode,
+		u32 gr_instance_id);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct nvgpu_channel *c,

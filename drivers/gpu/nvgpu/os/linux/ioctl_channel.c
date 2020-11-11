@@ -1086,7 +1086,8 @@ static u32 nvgpu_get_common_compute_preempt_mode(u32 compute_preempt_mode)
 }
 
 static int nvgpu_ioctl_channel_set_preemption_mode(struct nvgpu_channel *ch,
-	u32 graphics_preempt_mode, u32 compute_preempt_mode)
+		u32 graphics_preempt_mode, u32 compute_preempt_mode,
+		u32 gr_instance_id)
 {
 	int err;
 
@@ -1098,7 +1099,8 @@ static int nvgpu_ioctl_channel_set_preemption_mode(struct nvgpu_channel *ch,
 		}
 		err = ch->g->ops.gr.setup.set_preemption_mode(ch,
 			nvgpu_get_common_graphics_preempt_mode(graphics_preempt_mode),
-			nvgpu_get_common_compute_preempt_mode(compute_preempt_mode));
+			nvgpu_get_common_compute_preempt_mode(compute_preempt_mode),
+			gr_instance_id);
 		gk20a_idle(ch->g);
 	} else {
 		err = -EINVAL;
@@ -1468,7 +1470,8 @@ long gk20a_channel_ioctl(struct file *filp,
 	case NVGPU_IOCTL_CHANNEL_SET_PREEMPTION_MODE:
 		err = nvgpu_ioctl_channel_set_preemption_mode(ch,
 		     ((struct nvgpu_preemption_mode_args *)buf)->graphics_preempt_mode,
-		     ((struct nvgpu_preemption_mode_args *)buf)->compute_preempt_mode);
+		     ((struct nvgpu_preemption_mode_args *)buf)->compute_preempt_mode,
+			gr_instance_id);
 		break;
 	case NVGPU_IOCTL_CHANNEL_SET_BOOSTED_CTX:
 		if (ch->g->ops.gr.set_boosted_ctx) {
