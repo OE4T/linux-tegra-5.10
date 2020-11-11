@@ -203,7 +203,7 @@ static long xfer_data(struct file *file, char __user *data)
 	dma_addr_t tx_phys = 0;
 	dma_addr_t rx_phys = 0;
 	long ret = 0;
-	union mbox_msg msg = {0};
+	union mbox_msg msg = {};
 	struct xfer_info info;
 	struct xfer_info __user *ptr_xfer = (struct xfer_info *)data;
 
