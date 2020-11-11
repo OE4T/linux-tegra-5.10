@@ -272,33 +272,6 @@ static bool nvgpu_netlist_handle_debugger_region_id(struct gk20a *g,
 	bool handled = true;
 
 	switch (region_id) {
-	case NETLIST_REGIONID_CTXREG_SYS:
-		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_SYS");
-		err = nvgpu_netlist_alloc_load_aiv_list(g,
-			src, size, &netlist_vars->ctxsw_regs.sys);
-		break;
-	case NETLIST_REGIONID_CTXREG_GPC:
-		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_GPC");
-		err = nvgpu_netlist_alloc_load_aiv_list(g,
-			src, size, &netlist_vars->ctxsw_regs.gpc);
-		break;
-	case NETLIST_REGIONID_CTXREG_TPC:
-		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_TPC");
-		err = nvgpu_netlist_alloc_load_aiv_list(g,
-			src, size, &netlist_vars->ctxsw_regs.tpc);
-		break;
-#ifdef CONFIG_NVGPU_GRAPHICS
-	case NETLIST_REGIONID_CTXREG_ZCULL_GPC:
-		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_ZCULL_GPC");
-		err = nvgpu_netlist_alloc_load_aiv_list(g,
-			src, size, &netlist_vars->ctxsw_regs.zcull_gpc);
-		break;
-#endif
-	case NETLIST_REGIONID_CTXREG_PPC:
-		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_PPC");
-		err = nvgpu_netlist_alloc_load_aiv_list(g,
-			src, size, &netlist_vars->ctxsw_regs.ppc);
-		break;
 	case NETLIST_REGIONID_CTXREG_PM_SYS:
 		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_PM_SYS");
 		err = nvgpu_netlist_alloc_load_aiv_list(g,
@@ -364,20 +337,10 @@ static bool nvgpu_netlist_handle_debugger_region_id(struct gk20a *g,
 		err = nvgpu_netlist_alloc_load_aiv_list(g,
 			src, size, &netlist_vars->ctxsw_regs.perf_pma);
 		break;
-	case NETLIST_REGIONID_CTXREG_PMROP:
-		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_PMROP");
-		err = nvgpu_netlist_alloc_load_aiv_list(g,
-			src, size, &netlist_vars->ctxsw_regs.pm_rop);
-		break;
 	case NETLIST_REGIONID_CTXREG_PMUCGPC:
 		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_PMUCGPC");
 		err = nvgpu_netlist_alloc_load_aiv_list(g,
 			src, size, &netlist_vars->ctxsw_regs.pm_ucgpc);
-		break;
-	case NETLIST_REGIONID_CTXREG_ETPC:
-		nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_ETPC");
-		err = nvgpu_netlist_alloc_load_aiv_list(g,
-			src, size, &netlist_vars->ctxsw_regs.etpc);
 		break;
 	case NETLIST_REGIONID_NVPERF_PMCAU:
 		nvgpu_log_info(g, "NETLIST_REGIONID_NVPERF_PMCAU");
@@ -413,6 +376,51 @@ static bool nvgpu_netlist_handle_debugger_region_id(struct gk20a *g,
 		break;
 	}
 
+	if ((handled == false) && (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG))) {
+		handled = true;
+		switch (region_id) {
+		case NETLIST_REGIONID_CTXREG_SYS:
+			nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_SYS");
+			err = nvgpu_netlist_alloc_load_aiv_list(g,
+				src, size, &netlist_vars->ctxsw_regs.sys);
+			break;
+		case NETLIST_REGIONID_CTXREG_GPC:
+			nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_GPC");
+			err = nvgpu_netlist_alloc_load_aiv_list(g,
+				src, size, &netlist_vars->ctxsw_regs.gpc);
+			break;
+		case NETLIST_REGIONID_CTXREG_TPC:
+			nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_TPC");
+			err = nvgpu_netlist_alloc_load_aiv_list(g,
+				src, size, &netlist_vars->ctxsw_regs.tpc);
+			break;
+#ifdef CONFIG_NVGPU_GRAPHICS
+		case NETLIST_REGIONID_CTXREG_ZCULL_GPC:
+			nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_ZCULL_GPC");
+			err = nvgpu_netlist_alloc_load_aiv_list(g,
+				src, size, &netlist_vars->ctxsw_regs.zcull_gpc);
+			break;
+#endif
+		case NETLIST_REGIONID_CTXREG_PPC:
+			nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_PPC");
+			err = nvgpu_netlist_alloc_load_aiv_list(g,
+				src, size, &netlist_vars->ctxsw_regs.ppc);
+			break;
+		case NETLIST_REGIONID_CTXREG_PMROP:
+			nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_PMROP");
+			err = nvgpu_netlist_alloc_load_aiv_list(g,
+				src, size, &netlist_vars->ctxsw_regs.pm_rop);
+			break;
+		case NETLIST_REGIONID_CTXREG_ETPC:
+			nvgpu_log_info(g, "NETLIST_REGIONID_CTXREG_ETPC");
+			err = nvgpu_netlist_alloc_load_aiv_list(g,
+				src, size, &netlist_vars->ctxsw_regs.etpc);
+			break;
+		default:
+			handled = false;
+			break;
+		}
+	}
 	*err_code = err;
 
 	return handled;

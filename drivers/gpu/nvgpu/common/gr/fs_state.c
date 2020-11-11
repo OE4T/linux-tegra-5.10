@@ -149,10 +149,9 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 		/* gr__setup_pd_mapping */
 		g->ops.gr.init.rop_mapping(g, config);
+		g->ops.gr.init.pd_skip_table_gpc(g, config);
 	}
 #endif
-
-	g->ops.gr.init.pd_skip_table_gpc(g, config);
 
 	gpc_cnt = nvgpu_gr_config_get_gpc_count(config);
 	tpc_cnt = nvgpu_gr_config_get_tpc_count(config);

@@ -65,6 +65,11 @@ void gv11b_gr_init_rop_mapping(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_log_fn(g, " MIG is enabled, skipped rop mapping");
+		return;
+	}
+
 	nvgpu_writel(g, gr_crstr_map_table_cfg_r(),
 		gr_crstr_map_table_cfg_row_offset_f(
 			nvgpu_gr_config_get_map_row_offset(gr_config)) |
@@ -168,6 +173,12 @@ u32 gv11b_gr_init_get_ctx_betacb_size(struct gk20a *g)
 void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch)
 {
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_log_fn(g, " MIG is enabled, skipped commit ctxsw spill");
+		return;
+	}
+
 	addr = addr >> gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v();
 
 	size /=	gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
@@ -186,6 +197,12 @@ void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_log_fn(g, " MIG is enabled, skipped gfxp wfi timeout");
+		return;
+	}
+
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_fe_gfxp_wfi_timeout_r(),
 		GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT, patch);
 }
@@ -195,6 +212,12 @@ int gv11b_gr_init_preemption_state(struct gk20a *g)
 	u32 debug_2;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, " ");
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_log_fn(g,
+			" MIG is enabled, skipped init gfxp wfi timeout");
+		return 0;
+	}
 
 	debug_2 = nvgpu_readl(g, gr_debug_2_r());
 	debug_2 = set_field(debug_2,
