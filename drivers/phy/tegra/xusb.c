@@ -1258,8 +1258,8 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 				padctl->soc->num_supplies,
 				padctl->supplies);
 			if (err < 0) {
-				dev_err(&pdev->dev,
-					"failed to get regulators: %d\n", err);
+				dev_err_probe(&pdev->dev, err,
+					"failed to get regulators\n");
 				goto remove;
 			}
 		}
