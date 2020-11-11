@@ -25,8 +25,8 @@
 		irq {
 			compatible = "android,trusty-irq-v1";
 			interrupt-templates = <&IPI 0>,
-					      <&intc 1 GIC_PPI 0>,
-					      <&intc 1 GIC_SPI 0>;
+					      <&intc 1 GIC_PPI IRQ_TYPE_LEVEL_LOW>,
+					      <&intc 1 GIC_SPI IRQ_TYPE_EDGE_RISING>;
 			interrupt-ranges = < 0  15 0>,
 					   <16  31 1>,
 					   <32 450 2>;
