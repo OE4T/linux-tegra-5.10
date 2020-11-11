@@ -575,7 +575,7 @@ static const struct file_operations smmu_master_fops = {
 void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[])
 {
 	struct smmu_debugfs_master *master;
-	struct dentry *dent;
+	struct dentry *dent = NULL;
 	char name[] = "cb000";
 	char target[] = "../../cb000";
 
@@ -583,6 +583,10 @@ void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[])
 		pr_warn("Debugfs setup not complete\n");
 		return;
 	}
+
+	dent = debugfs_lookup(dev_name(dev), smmu_handle->masters_root);
+	if (dent)
+		return;
 
 	dent = debugfs_create_dir(dev_name(dev), smmu_handle->masters_root);
 	if (!dent) {
