@@ -269,5 +269,10 @@ static int __init tegra186_timer_init(struct device_node *np)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 CLOCKSOURCE_OF_DECLARE(tegra186_timer, "nvidia,tegra186-timer",
 		       tegra186_timer_init);
+#else
+TIMER_OF_DECLARE(tegra186_timer, "nvidia,tegra186-timer",
+		       tegra186_timer_init);
+#endif
