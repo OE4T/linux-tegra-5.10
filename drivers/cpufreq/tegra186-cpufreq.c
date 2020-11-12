@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION. All rights reserved
  */
 
 #include <linux/cpufreq.h>
@@ -8,10 +8,13 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
+#include <linux/platform/tegra/emc_bwmgr.h>
 
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
+#include <soc/tegra/cpufreq_cpu_emc_table.h>
 
+#define KHZ                     		1000
 #define EDVD_CORE_VOLT_FREQ(core)		(0x20 + (core) * 0x4)
 #define EDVD_CORE_VOLT_FREQ_F_SHIFT		0
 #define EDVD_CORE_VOLT_FREQ_V_SHIFT		16
@@ -41,6 +44,7 @@ static const struct tegra186_cpufreq_cluster_info tegra186_clusters[] = {
 struct tegra186_cpufreq_cluster {
 	const struct tegra186_cpufreq_cluster_info *info;
 	struct cpufreq_frequency_table *table;
+	struct tegra_bwmgr_client *bwmgr;
 };
 
 struct tegra186_cpufreq_data {
@@ -49,6 +53,15 @@ struct tegra186_cpufreq_data {
 	size_t num_clusters;
 	struct tegra186_cpufreq_cluster *clusters;
 };
+
+static struct cpu_emc_mapping dflt_t186_cpu_emc_mapping[] = {
+	{ 450000,   408000},
+	{ 800000,   660000},
+	{1400000, UINT_MAX},
+	{}, /* termination entry */
+};
+
+static struct cpu_emc_mapping *cpu_emc_mapping_dt;
 
 static int tegra186_cpufreq_init(struct cpufreq_policy *policy)
 {
@@ -71,6 +84,15 @@ static int tegra186_cpufreq_init(struct cpufreq_policy *policy)
 		policy->driver_data =
 			data->regs + info->offset + EDVD_CORE_VOLT_FREQ(core);
 		policy->freq_table = cluster->table;
+
+		if (!cluster->bwmgr) {
+			cluster->bwmgr = tegra_bwmgr_register(i);
+			if (IS_ERR_OR_NULL(cluster->bwmgr)) {
+				pr_warn("cpufreq: fail to register with bwmgr");
+				pr_warn("for cluster %d\n", i);
+				return -ENODEV;
+			}
+		}
 		break;
 	}
 
@@ -79,14 +101,47 @@ static int tegra186_cpufreq_init(struct cpufreq_policy *policy)
 	return 0;
 }
 
+/* Set emc clock by referring cpu_to_emc freq mapping */
+static void tegra186_set_cpufreq_to_emcfreq(u32 cl, uint32_t cluster_freq)
+{
+	struct tegra186_cpufreq_data *data = cpufreq_get_driver_data();
+	unsigned long emc_freq;
+
+	emc_freq = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_mapping_dt);
+	if (!emc_freq)
+		return;
+
+	tegra_bwmgr_set_emc(data->clusters[cl].bwmgr, emc_freq * KHZ,
+			    TEGRA_BWMGR_SET_EMC_FLOOR);
+	pr_debug("cluster %d, emc freq(KHz): %lu cluster_freq(KHz): %u\n",
+		 cl, emc_freq, cluster_freq);
+}
+
 static int tegra186_cpufreq_set_target(struct cpufreq_policy *policy,
 				       unsigned int index)
 {
 	struct cpufreq_frequency_table *tbl = policy->freq_table + index;
+	struct tegra186_cpufreq_data *data = cpufreq_get_driver_data();
 	void __iomem *edvd_reg = policy->driver_data;
 	u32 edvd_val = tbl->driver_data;
+	int i;
 
 	writel(edvd_val, edvd_reg);
+
+	for (i = 0; i < data->num_clusters; i++) {
+		struct tegra186_cpufreq_cluster *cluster = &data->clusters[i];
+		int core;
+
+		for (core = 0; core < ARRAY_SIZE(cluster->info->cpus); core++) {
+			if (cluster->info->cpus[core] != policy->cpu)
+				continue;
+			if (!cluster->bwmgr)
+				continue;
+
+			tegra186_set_cpufreq_to_emcfreq(i, tbl->frequency);
+			return 0;
+		}
+	}
 
 	return 0;
 }
@@ -187,9 +242,11 @@ free:
 static int tegra186_cpufreq_probe(struct platform_device *pdev)
 {
 	struct tegra186_cpufreq_data *data;
+	struct device_node *dn = NULL;
 	struct tegra_bpmp *bpmp;
 	unsigned int i = 0, err;
 
+	dn = pdev->dev.of_node;
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
 		return -ENOMEM;
@@ -209,6 +266,12 @@ static int tegra186_cpufreq_probe(struct platform_device *pdev)
 	if (IS_ERR(data->regs)) {
 		err = PTR_ERR(data->regs);
 		goto put_bpmp;
+	}
+
+	cpu_emc_mapping_dt = tegra_cpufreq_cpu_emc_map_dt_init(dn);
+	if (!cpu_emc_mapping_dt) {
+		cpu_emc_mapping_dt = dflt_t186_cpu_emc_mapping;
+		pr_info("CPU EMC frequency map table from default setting\n");
 	}
 
 	for (i = 0; i < data->num_clusters; i++) {
