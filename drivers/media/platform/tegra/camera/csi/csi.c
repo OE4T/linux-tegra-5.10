@@ -1,7 +1,7 @@
 /*
  * NVIDIA Tegra CSI Device
  *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Bryan Wu <pengw@nvidia.com>
  *
@@ -268,6 +268,21 @@ void tegra_csi_stop_streaming(struct tegra_csi_channel *chan, int port_idx)
 	csi->fops->csi_stop_streaming(chan, port_idx);
 }
 EXPORT_SYMBOL(tegra_csi_stop_streaming);
+
+int tegra_csi_tpg_set_gain(struct v4l2_subdev *sd, void *arg)
+{
+	struct tegra_csi_channel *chan = to_csi_chan(sd);
+	struct tegra_csi_device *csi = to_csi(sd);
+	int *val = arg;
+
+	if (!chan->pg_mode) {
+		dev_err(chan->csi->dev, "CSI is not in TPG mode\n");
+		return -EINVAL;
+	}
+
+	return csi->fops->tpg_set_gain(chan, *val);
+}
+EXPORT_SYMBOL(tegra_csi_tpg_set_gain);
 
 static int update_video_source(struct tegra_csi_device *csi, int on, int is_tpg)
 {

@@ -3,7 +3,7 @@
  *
  * Tegra VI test pattern generator driver
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -274,11 +274,13 @@ static int __init tpg_probe_t19x(void)
 	if (!mc_vi || !mc_csi)
 		return -EINVAL;
 
-	if (chip_id == TEGRA194)
+	if (chip_id == TEGRA194) {
 		mc_csi->get_tpg_settings = get_tpg_settings_t19x;
-	else if (chip_id == TEGRA234)
+		mc_csi->tpg_gain_ctrl = false;
+	} else if (chip_id == TEGRA234) {
 		mc_csi->get_tpg_settings = get_tpg_settings_t23x;
-	else {
+		mc_csi->tpg_gain_ctrl = true;
+	} else {
 		dev_err(mc_csi->dev, "%s invalid chip-id : %d\n",
 				__func__, chip_id);
 		return -EINVAL;

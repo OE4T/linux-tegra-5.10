@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -432,6 +432,7 @@ static void vi_capture_ivc_control_callback(
 	case CAPTURE_CSI_STREAM_TPG_SET_CONFIG_RESP:
 	case CAPTURE_CSI_STREAM_TPG_START_RESP:
 	case CAPTURE_CSI_STREAM_TPG_START_RATE_RESP:
+	case CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_RESP:
 	case CAPTURE_CSI_STREAM_TPG_STOP_RESP:
 	case CAPTURE_CHANNEL_EI_RESP:
 	case CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP:
@@ -1080,6 +1081,9 @@ static int vi_capture_control_send_message(
 		capture->virtual_channel_id = msg_cpy->
 			csi_stream_tpg_start_rate_req.virtual_channel_id;
 		break;
+	case CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_REQ:
+		resp_id = CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_RESP;
+		break;
 	case CAPTURE_CSI_STREAM_TPG_STOP_REQ:
 		resp_id = CAPTURE_CSI_STREAM_TPG_STOP_RESP;
 		break;
@@ -1090,9 +1094,8 @@ static int vi_capture_control_send_message(
 		resp_id = CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP;
 		break;
 	default:
-		dev_err(chan->dev,
-				"%s: unknown capture control req %x", __func__,
-				header->msg_id);
+		dev_err(chan->dev, "%s: unknown capture control req 0x%x",
+			__func__, header->msg_id);
 		return -EINVAL;
 	}
 

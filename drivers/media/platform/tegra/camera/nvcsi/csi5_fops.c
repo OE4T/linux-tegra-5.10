@@ -1,7 +1,7 @@
 /*
  * Tegra CSI5 device common APIs
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Frank Chen <frankc@nvidia.com>
  *
@@ -9,6 +9,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#include <linux/log2.h>
 #include <media/csi.h>
 #include <media/mc_common.h>
 #include <media/csi5_registers.h>
@@ -31,8 +32,6 @@
 #define TOTAL_CHANNELS (NUM_CAPTURE_CHANNELS + NUM_CAPTURE_TRANSACTION_IDS)
 
 #define NVCSI_CIL_CLOCK_RATE 204000
-
-#define TEMP_CHANNEL_ID (NUM_CAPTURE_CHANNELS + 1)
 
 static void csi5_phy_write(struct tegra_csi_channel *chan,
 		unsigned int index, unsigned int addr, u32 val)
@@ -290,6 +289,8 @@ static int csi5_stream_tpg_start(struct tegra_csi_channel *chan, u32 stream_id,
 	struct tegra_csi_device *csi = chan->csi;
 	struct tegra_csi_port *port = &chan->ports[0];
 	unsigned long csi_rate = 0;
+	struct tegra_channel *tegra_chan =
+		v4l2_get_subdev_hostdata(&chan->subdev);
 
 	struct CAPTURE_CONTROL_MSG msg;
 	union nvcsi_tpg_config *tpg_config = NULL;
@@ -300,17 +301,20 @@ static int csi5_stream_tpg_start(struct tegra_csi_channel *chan, u32 stream_id,
 	/* Set TPG config for a virtual channel */
 	memset(&msg, 0, sizeof(msg));
 	msg.header.msg_id = CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ;
-	msg.header.channel_id = TEMP_CHANNEL_ID;
 
 	tpg_config = &(msg.csi_stream_tpg_set_config_req.tpg_config);
 
 	csi->get_tpg_settings(port, tpg_config);
-	tegra_capture_ivc_control_submit(&msg, sizeof(msg));
+	err = csi5_send_control_message(tegra_chan->tegra_vi_channel, &msg,
+			&msg.csi_stream_tpg_set_config_resp.result);
+	if (err < 0) {
+		dev_err(csi->dev, "%s: Error in TPG set config stream_id=%u, csi_port=%u\n",
+			__func__, port->stream_id, port->csi_port);
+	}
 
 	/* Enable TPG on a stream */
 	memset(&msg, 0, sizeof(msg));
 	msg.header.msg_id = CAPTURE_CSI_STREAM_TPG_START_RATE_REQ;
-	msg.header.channel_id = TEMP_CHANNEL_ID;
 
 	msg.csi_stream_tpg_start_req.stream_id = stream_id;
 	msg.csi_stream_tpg_start_req.virtual_channel_id = virtual_channel_id;
@@ -320,7 +324,13 @@ static int csi5_stream_tpg_start(struct tegra_csi_channel *chan, u32 stream_id,
 		return err;
 
 	msg.csi_stream_tpg_start_rate_req.csi_clk_rate = csi_rate / 1000;
-	tegra_capture_ivc_control_submit(&msg, sizeof(msg));
+
+	err = csi5_send_control_message(tegra_chan->tegra_vi_channel, &msg,
+			&msg.csi_stream_tpg_start_resp.result);
+	if (err < 0) {
+		dev_err(csi->dev, "%s: Error in TPG start stream_id=%u, csi_port=%u\n",
+			__func__, port->stream_id, port->csi_port);
+	}
 
 	return err;
 }
@@ -329,6 +339,9 @@ static void csi5_stream_tpg_stop(struct tegra_csi_channel *chan, u32 stream_id,
 	u32 virtual_channel_id)
 {
 	struct tegra_csi_device *csi = chan->csi;
+	struct tegra_channel *tegra_chan =
+		v4l2_get_subdev_hostdata(&chan->subdev);
+	int err = 0;
 
 	struct CAPTURE_CONTROL_MSG msg;
 
@@ -338,12 +351,75 @@ static void csi5_stream_tpg_stop(struct tegra_csi_channel *chan, u32 stream_id,
 	/* Disable TPG on a stream */
 	memset(&msg, 0, sizeof(msg));
 	msg.header.msg_id = CAPTURE_CSI_STREAM_TPG_STOP_REQ;
-	msg.header.channel_id = TEMP_CHANNEL_ID;
 
 	msg.csi_stream_tpg_stop_req.stream_id = stream_id;
 	msg.csi_stream_tpg_stop_req.virtual_channel_id = virtual_channel_id;
 
-	tegra_capture_ivc_control_submit(&msg, sizeof(msg));
+	err = csi5_send_control_message(tegra_chan->tegra_vi_channel, &msg,
+			&msg.csi_stream_tpg_stop_resp.result);
+	if (err < 0) {
+		dev_err(csi->dev, "%s: Error in TPG stop stream_id=%u\n",
+			__func__, stream_id);
+	}
+}
+
+/* Transform the user mode setting to TPG recoginzable equivalent. Gain ratio
+ * supported by TPG is in range of 0.125 to 8. From userspace we multiply the
+ * gain setting by 8, before v4l2 ioctl call. It is tranformed before
+ * IVC message
+ */
+static uint32_t get_tpg_gain_ratio_setting(int gain_ratio_tpg)
+{
+	const uint32_t tpg_gain_ratio_settings[] = {
+		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_ONE_EIGHTH,
+		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_ONE_FOURTH,
+		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_HALF,
+		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_NONE,
+		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_TWO_TO_ONE,
+		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_FOUR_TO_ONE,
+		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_EIGHT_TO_ONE};
+
+	return tpg_gain_ratio_settings[order_base_2(gain_ratio_tpg)];
+}
+
+int csi5_tpg_set_gain(struct tegra_csi_channel *chan, int gain_ratio_tpg)
+{
+	struct tegra_csi_device *csi = chan->csi;
+	struct tegra_csi_port *port = &chan->ports[0];
+	struct tegra_channel *tegra_chan =
+		v4l2_get_subdev_hostdata(&chan->subdev);
+	int err = 0;
+	struct CAPTURE_CONTROL_MSG msg;
+
+	if (!chan->pg_mode) {
+		dev_err(csi->dev, "Gain to be set only in TPG mode\n");
+		return -EINVAL;
+	}
+
+	if (tegra_chan->tegra_vi_channel == NULL) {
+		/* We come here during initial v4l2 ctrl setup during TPG LKM
+		 * loading
+		 */
+		dev_dbg(csi->dev, "VI channel is not setup yet\n");
+		return 0;
+	}
+
+	(void)memset(&msg, 0, sizeof(msg));
+	msg.header.msg_id = CAPTURE_CSI_STREAM_TPG_APPLY_GAIN_REQ;
+	msg.csi_stream_tpg_apply_gain_req.stream_id = port->stream_id;
+	msg.csi_stream_tpg_apply_gain_req.virtual_channel_id =
+		port->virtual_channel_id;
+	msg.csi_stream_tpg_apply_gain_req.gain_ratio =
+		get_tpg_gain_ratio_setting(gain_ratio_tpg);
+
+	err = csi5_send_control_message(tegra_chan->tegra_vi_channel, &msg,
+			&msg.csi_stream_tpg_apply_gain_resp.result);
+	if (err < 0) {
+		dev_err(csi->dev, "%s: Error in setting TPG gain stream_id=%u, csi_port=%u\n",
+			__func__, port->stream_id, port->csi_port);
+	}
+
+	return err;
 }
 
 static int csi5_start_streaming(struct tegra_csi_channel *chan, int port_idx)
@@ -528,4 +604,5 @@ struct tegra_csi_fops csi5_fops = {
 	.csi_error_recover = csi5_error_recover,
 	.mipical = csi5_mipi_cal,
 	.hw_init = csi5_hw_init,
+	.tpg_set_gain = csi5_tpg_set_gain,
 };

@@ -1268,8 +1268,19 @@ int tegra_channel_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct tegra_channel *chan = container_of(ctrl->handler,
 				struct tegra_channel, ctrl_handler);
+	int err = 0;
 
 	switch (ctrl->id) {
+	case TEGRA_CAMERA_CID_GAIN_TPG:
+		{
+			if (chan->vi->csi != NULL &&
+				chan->vi->csi->tpg_gain_ctrl) {
+				struct v4l2_subdev *sd = chan->subdev_on_csi;
+
+				err = tegra_csi_tpg_set_gain(sd, &(ctrl->val));
+			}
+		}
+		break;
 	case TEGRA_CAMERA_CID_VI_BYPASS_MODE:
 		if (switch_ctrl_qmenu[ctrl->val] == SWITCH_ON)
 			chan->bypass = true;
@@ -1329,10 +1340,10 @@ int tegra_channel_s_ctrl(struct v4l2_ctrl *ctrl)
 	default:
 		dev_err(&chan->video->dev, "%s: Invalid ctrl %u\n",
 			__func__, ctrl->id);
-		return -EINVAL;
+		err = -EINVAL;
 	}
 
-	return 0;
+	return err;
 }
 
 static const struct v4l2_ctrl_ops channel_ctrl_ops = {
@@ -1340,6 +1351,16 @@ static const struct v4l2_ctrl_ops channel_ctrl_ops = {
 };
 
 static const struct v4l2_ctrl_config common_custom_ctrls[] = {
+	{
+		.ops = &channel_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_GAIN_TPG,
+		.name = "TPG Gain Ctrl",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.min = 1,
+		.max = 64,
+		.step = 1,
+		.def = 1,
+	},
 	{
 		.ops = &channel_ctrl_ops,
 		.id = TEGRA_CAMERA_CID_VI_BYPASS_MODE,
@@ -1565,7 +1586,7 @@ static int tegra_channel_setup_controls(struct tegra_channel *chan)
 	int i;
 	int ret = 0;
 
-    /* Clear and reinit control handler - Bug 1956853 */
+	/* Clear and reinit control handler - Bug 1956853 */
 	v4l2_ctrl_handler_free(&chan->ctrl_handler);
 	v4l2_ctrl_handler_init(&chan->ctrl_handler, MAX_CID_CONTROLS);
 
@@ -1593,6 +1614,16 @@ static int tegra_channel_setup_controls(struct tegra_channel *chan)
 		if (common_custom_ctrls[i].id ==
 			TEGRA_CAMERA_CID_OVERRIDE_ENABLE && chan->pg_mode)
 			continue;
+		/* Create gain control only if hw supports */
+		if (common_custom_ctrls[i].id == TEGRA_CAMERA_CID_GAIN_TPG) {
+			/* Skip the custom control for sensor and
+			 * for TPG which doesn't support gain control
+			 */
+			if ((vi->csi == NULL) ||
+				(chan->pg_mode && !vi->csi->tpg_gain_ctrl))
+				continue;
+
+		}
 		ctrl = v4l2_ctrl_new_custom(&chan->ctrl_handler,
 			&common_custom_ctrls[i], NULL);
 

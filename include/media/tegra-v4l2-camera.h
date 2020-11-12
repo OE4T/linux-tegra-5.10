@@ -1,7 +1,7 @@
 /**
  * TEGRA_V4L2_CAMERA.h - utilities for tegra camera driver
  *
- * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -42,6 +42,8 @@
 #define TEGRA_CAMERA_CID_SENSOR_CONFIG		(TEGRA_CAMERA_CID_BASE+50)
 #define TEGRA_CAMERA_CID_SENSOR_MODE_BLOB	(TEGRA_CAMERA_CID_BASE+51)
 #define TEGRA_CAMERA_CID_SENSOR_CONTROL_BLOB	(TEGRA_CAMERA_CID_BASE+52)
+
+#define TEGRA_CAMERA_CID_GAIN_TPG		(TEGRA_CAMERA_CID_BASE+70)
 
 #define TEGRA_CAMERA_CID_VI_BYPASS_MODE		(TEGRA_CAMERA_CID_BASE+100)
 #define TEGRA_CAMERA_CID_OVERRIDE_ENABLE	(TEGRA_CAMERA_CID_BASE+101)

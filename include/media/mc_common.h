@@ -3,7 +3,7 @@
  *
  * Tegra Media controller common APIs
  *
- * Copyright (c) 2012-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2012-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -445,6 +445,7 @@ struct tegra_csi_fops {
 	int (*csi_error_recover)(struct tegra_csi_channel *chan, int port_idx);
 	int (*mipical)(struct tegra_csi_channel *chan);
 	int (*hw_init)(struct tegra_csi_device *csi);
+	int (*tpg_set_gain)(struct tegra_csi_channel *chan, int gain_ratio_tpg);
 };
 
 struct tegra_t210_vi_data {
