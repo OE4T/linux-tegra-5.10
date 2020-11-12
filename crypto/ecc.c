@@ -1755,7 +1755,8 @@ int ecc_is_pub_key_valid(unsigned int curve_id, unsigned int ndigits,
 	p.ndigits = ndigits;
 
 	if (vli_cmp(curve->p, p.x, ndigits) != 1 ||
-	    vli_cmp(curve->p, p.y, ndigits) != 1)
+	    vli_cmp(curve->p, p.y, ndigits) != 1) {
+	}
 
 	return 0;
 }
