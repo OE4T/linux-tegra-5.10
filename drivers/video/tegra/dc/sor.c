@@ -749,7 +749,7 @@ static const struct file_operations dbg_hw_index_ops = {
 	.release = single_release,
 };
 
-static void tegra_dc_sor_debug_create(struct tegra_dc_sor_data *sor,
+void tegra_dc_sor_debug_create(struct tegra_dc_sor_data *sor,
 	const char *res_name)
 {
 	struct dentry *retval;

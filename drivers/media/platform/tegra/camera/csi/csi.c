@@ -180,7 +180,7 @@ void set_csi_portinfo(struct tegra_csi_device *csi,
 }
 EXPORT_SYMBOL(set_csi_portinfo);
 
-static int tegra_csi_power(struct tegra_csi_device *csi,
+int tegra_csi_power(struct tegra_csi_device *csi,
 			struct tegra_csi_channel *chan, int enable)
 {
 	int err = 0;
@@ -199,7 +199,7 @@ static int tegra_csi_power(struct tegra_csi_device *csi,
 }
 EXPORT_SYMBOL(tegra_csi_power);
 
-static int tegra_csi_error_recovery(struct tegra_channel *chan,
+int tegra_csi_error_recovery(struct tegra_channel *chan,
 	struct tegra_csi_device *csi, struct tegra_csi_channel *csi_chan)
 {
 	int err = 0;
