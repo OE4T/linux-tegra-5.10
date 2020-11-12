@@ -2407,8 +2407,6 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 
 	case 35:
 		ret += tcrypt_test("gcm(aes)");
-		ret += tcrypt_test("lrw(aes)");
-		ret += tcrypt_test("rfc3686(ctr(aes))");
 		break;
 
 	case 36:

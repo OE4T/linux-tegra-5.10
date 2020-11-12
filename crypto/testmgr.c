@@ -2123,6 +2123,9 @@ static int test_aead_vec_cfg(const char *driver, int enc,
 		pr_err("alg: aead: %s %s test failed (wrong result) on test vector %s, cfg=\"%s\"\n",
 		       driver, op, vec_name, cfg->name);
 		return err;
+	} else {
+		pr_err("alg: aead: %s %s test passed on test vector %s, cfg=\"%s\"\n",
+		       driver, op, vec_name, cfg->name);
 	}
 
 	return 0;
@@ -2585,6 +2588,7 @@ static int alg_test_aead(const struct alg_test_desc *desc, const char *driver,
 	struct aead_request *req = NULL;
 	struct cipher_test_sglists *tsgls = NULL;
 	int err;
+	const char *driver_name;
 
 	if (suite->count <= 0) {
 		pr_err("alg: aead: empty test suite for %s\n", driver);
@@ -2597,6 +2601,7 @@ static int alg_test_aead(const struct alg_test_desc *desc, const char *driver,
 		       driver, PTR_ERR(tfm));
 		return PTR_ERR(tfm);
 	}
+	driver_name = crypto_tfm_alg_driver_name(crypto_aead_tfm(tfm));
 
 	req = aead_request_alloc(tfm, GFP_KERNEL);
 	if (!req) {
@@ -2614,15 +2619,15 @@ static int alg_test_aead(const struct alg_test_desc *desc, const char *driver,
 		goto out;
 	}
 
-	err = test_aead(driver, ENCRYPT, suite, req, tsgls);
+	err = test_aead(driver_name, ENCRYPT, suite, req, tsgls);
 	if (err)
 		goto out;
 
-	err = test_aead(driver, DECRYPT, suite, req, tsgls);
+	err = test_aead(driver_name, DECRYPT, suite, req, tsgls);
 	if (err)
 		goto out;
 
-	err = test_aead_extra(driver, desc, req, tsgls);
+	err = test_aead_extra(driver_name, desc, req, tsgls);
 out:
 	free_cipher_test_sglists(tsgls);
 	aead_request_free(req);
