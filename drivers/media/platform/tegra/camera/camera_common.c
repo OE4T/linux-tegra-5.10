@@ -948,8 +948,14 @@ int camera_common_s_power(struct v4l2_subdev *sd, int on)
 }
 EXPORT_SYMBOL_GPL(camera_common_s_power);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 int camera_common_g_mbus_config(struct v4l2_subdev *sd,
 				struct v4l2_mbus_config *cfg)
+#else
+int camera_common_get_mbus_config(struct v4l2_subdev *sd,
+				unsigned int pad,
+				struct v4l2_mbus_config *cfg)
+#endif
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	cfg->type = V4L2_MBUS_CSI2;
@@ -966,7 +972,11 @@ int camera_common_g_mbus_config(struct v4l2_subdev *sd,
 
 	return 0;
 }
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 EXPORT_SYMBOL_GPL(camera_common_g_mbus_config);
+#else
+EXPORT_SYMBOL_GPL(camera_common_get_mbus_config);
+#endif
 
 int camera_common_get_framesync(struct v4l2_subdev *sd,
 			struct camera_common_framesync *fs)

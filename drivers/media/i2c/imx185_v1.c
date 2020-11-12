@@ -20,6 +20,7 @@
 #include <linux/uaccess.h>
 #include <linux/gpio.h>
 #include <linux/module.h>
+#include <linux/version.h>
 
 #include <linux/seq_file.h>
 #include <linux/of.h>
@@ -459,7 +460,9 @@ static int imx185_g_input_status(struct v4l2_subdev *sd, u32 *status)
 
 static struct v4l2_subdev_video_ops imx185_subdev_video_ops = {
 	.s_stream	= imx185_s_stream,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	.g_mbus_config	= camera_common_g_mbus_config,
+#endif
 	.g_input_status = imx185_g_input_status,
 };
 
@@ -494,6 +497,9 @@ static struct v4l2_subdev_pad_ops imx185_subdev_pad_ops = {
 	.enum_mbus_code = camera_common_enum_mbus_code,
 	.enum_frame_size	= camera_common_enum_framesizes,
 	.enum_frame_interval	= camera_common_enum_frameintervals,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	.get_mbus_config	= camera_common_get_mbus_config,
+#endif
 };
 
 static struct v4l2_subdev_ops imx185_subdev_ops = {

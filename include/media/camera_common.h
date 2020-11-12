@@ -342,8 +342,14 @@ int camera_common_set_power(struct camera_common_data *data, int on);
 int camera_common_s_power(struct v4l2_subdev *sd, int on);
 void camera_common_dpd_disable(struct camera_common_data *s_data);
 void camera_common_dpd_enable(struct camera_common_data *s_data);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 int camera_common_g_mbus_config(struct v4l2_subdev *sd,
 			      struct v4l2_mbus_config *cfg);
+#else
+int camera_common_get_mbus_config(struct v4l2_subdev *sd,
+			      unsigned int pad,
+			      struct v4l2_mbus_config *cfg);
+#endif
 int camera_common_get_framesync(struct v4l2_subdev *sd,
 		struct camera_common_framesync *vshs);
 
