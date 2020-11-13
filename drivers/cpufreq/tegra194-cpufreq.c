@@ -44,7 +44,7 @@ enum cluster {
 struct tegra194_cpufreq_data {
 	void __iomem *regs;
 	size_t num_clusters;
-	struct tegra_bwmgr_client *bwmgr;
+	struct tegra_bwmgr_client **bwmgr;
 	struct cpufreq_frequency_table **tables;
 };
 
@@ -223,8 +223,8 @@ static int tegra194_cpufreq_init(struct cpufreq_policy *policy)
 	policy->freq_table = data->tables[cl];
 	policy->cpuinfo.transition_latency = TEGRA_CPUFREQ_TRANSITION_LATENCY;
 
-	data->bwmgr = tegra_bwmgr_register(cl);
-	if (IS_ERR_OR_NULL(data->bwmgr)) {
+	data->bwmgr[cl] = tegra_bwmgr_register(cl);
+	if (IS_ERR_OR_NULL(data->bwmgr[cl])) {
 		pr_warn("cpufreq: fail to register with emc bw manager");
 		pr_warn(" for cluster %d\n", cl);
 		return -ENODEV;
@@ -247,9 +247,14 @@ static void set_cpufreq_to_emcfreq(enum cluster cl, uint32_t cluster_freq)
 	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
 	unsigned long emc_freq;
 
-	emc_freq = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
+	if (!data->bwmgr[cl])
+		return;
 
-	tegra_bwmgr_set_emc(&data->bwmgr[cl], emc_freq * KHZ,
+	emc_freq = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
+	if (!emc_freq)
+		return;
+
+	tegra_bwmgr_set_emc(data->bwmgr[cl], emc_freq * KHZ,
 			    TEGRA_BWMGR_SET_EMC_FLOOR);
 	pr_debug("cluster %d, emc freq(KHz): %lu cluster_freq(KHz): %u\n",
 		 cl, emc_freq, cluster_freq);
@@ -295,9 +300,9 @@ static void tegra194_cpufreq_free_resources(void)
 	destroy_workqueue(read_counters_wq);
 
 	LOOP_FOR_EACH_CLUSTER(cl) {
-		if (!data->bwmgr) {
+		if (!data->bwmgr[cl]) {
 			/* unregister from emc bw manager */
-			tegra_bwmgr_unregister(&data->bwmgr[cl]);
+			tegra_bwmgr_unregister(data->bwmgr[cl]);
 		}
 	}
 }
@@ -390,6 +395,12 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	if (!data->tables)
 		return -ENOMEM;
 
+	data->bwmgr = devm_kcalloc(&pdev->dev, data->num_clusters,
+				   sizeof(struct tegra_bwmgr_client),
+				   GFP_KERNEL);
+	if (!data->bwmgr)
+		return -ENOMEM;
+
 	platform_set_drvdata(pdev, data);
 
 	bpmp = tegra_bpmp_get(&pdev->dev);
@@ -409,12 +420,6 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 			err = PTR_ERR(data->tables[i]);
 			goto err_free_res;
 		}
-
-		data->bwmgr = devm_kzalloc(&pdev->dev,
-					   sizeof(struct tegra_bwmgr_client),
-					   GFP_KERNEL);
-		if (!data->bwmgr)
-			goto err_free_res;
 	}
 
 	tegra194_cpufreq_driver.driver_data = data;
