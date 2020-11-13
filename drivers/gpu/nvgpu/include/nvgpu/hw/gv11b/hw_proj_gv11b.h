@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,6 +89,8 @@
 #define proj_scal_litter_num_tpcs_per_pes_v()                      (0x00000002U)
 #define proj_scal_litter_num_zcull_banks_v()                       (0x00000004U)
 #define proj_scal_litter_num_sm_per_tpc_v()                        (0x00000002U)
+#define proj_scal_litter_num_ltc_lts_sets_v()                      (0x00000040U)
+#define proj_scal_litter_num_ltc_lts_ways_v()                      (0x00000010U)
 #define proj_scal_max_gpcs_v()                                     (0x00000020U)
 #define proj_scal_max_tpc_per_gpc_v()                              (0x00000008U)
 #define proj_sm_unique_base_v()                                    (0x00000700U)

@@ -265,6 +265,8 @@ struct railgate_stats {
 #define GPU_LIT_GPC_ADDR_WIDTH			47
 #define GPU_LIT_TPC_ADDR_WIDTH			48
 #define GPU_LIT_MAX_RUNLISTS_SUPPORTED		49
+#define GPU_LIT_NUM_LTC_LTS_SETS		50
+#define GPU_LIT_NUM_LTC_LTS_WAYS		51
 /** @endcond */
 
 /** Macro to get litter values corresponding to the litter defines. */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -155,6 +155,10 @@ struct gops_ltc {
 	void (*split_ltc_broadcast_addr)(struct gk20a *g, u32 addr,
 						u32 *priv_addr_table,
 						u32 *priv_addr_table_index);
+	int (*set_l2_max_ways_evict_last)(struct gk20a *g, struct nvgpu_tsg *tsg,
+				u32 num_ways);
+	int (*get_l2_max_ways_evict_last)(struct gk20a *g, struct nvgpu_tsg *tsg,
+			u32 *num_ways);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_gops_ltc.h"
 #endif

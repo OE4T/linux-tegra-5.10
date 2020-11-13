@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -131,6 +131,12 @@ u32 gv11b_get_litter_value(struct gk20a *g, int value)
 	 */
 	case GPU_LIT_NUM_FBPAS:
 		ret = proj_scal_litter_num_fbpas_v();
+		break;
+	case GPU_LIT_NUM_LTC_LTS_SETS:
+		ret = proj_scal_litter_num_ltc_lts_sets_v();
+		break;
+	case GPU_LIT_NUM_LTC_LTS_WAYS:
+		ret = proj_scal_litter_num_ltc_lts_ways_v();
 		break;
 	/* Hardcode FBPA values other than NUM_FBPAS to 0. */
 	case GPU_LIT_FBPA_STRIDE:

@@ -645,6 +645,42 @@ static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
 	return 0;
 }
 
+static int nvgpu_gpu_ioctl_set_l2_max_ways_evict_last(
+		struct gk20a *g, struct nvgpu_tsg *tsg,
+		struct nvgpu_tsg_l2_max_ways_evict_last_args *args)
+{
+	int err;
+
+	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+	if (g->ops.ltc.set_l2_max_ways_evict_last) {
+		err = g->ops.ltc.set_l2_max_ways_evict_last(g, tsg,
+				args->max_ways);
+	} else {
+		err = -ENOSYS;
+	}
+	nvgpu_mutex_release(&g->dbg_sessions_lock);
+
+	return err;
+}
+
+static int nvgpu_gpu_ioctl_get_l2_max_ways_evict_last(
+		struct gk20a *g, struct nvgpu_tsg *tsg,
+		struct nvgpu_tsg_l2_max_ways_evict_last_args *args)
+{
+	int err;
+
+	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+	if (g->ops.ltc.get_l2_max_ways_evict_last) {
+		err = g->ops.ltc.get_l2_max_ways_evict_last(g, tsg,
+				&args->max_ways);
+	} else {
+		err = -ENOSYS;
+	}
+	nvgpu_mutex_release(&g->dbg_sessions_lock);
+
+	return err;
+}
+
 long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 			     unsigned long arg)
 {
@@ -785,6 +821,20 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 		{
 		err = gk20a_tsg_ioctl_read_single_sm_error_state(g, tsg,
 			(struct nvgpu_tsg_read_single_sm_error_state_args *)buf);
+		break;
+		}
+
+	case NVGPU_TSG_IOCTL_SET_L2_MAX_WAYS_EVICT_LAST:
+		{
+		err = nvgpu_gpu_ioctl_set_l2_max_ways_evict_last(g, tsg,
+			(struct nvgpu_tsg_l2_max_ways_evict_last_args *)buf);
+		break;
+		}
+
+	case NVGPU_TSG_IOCTL_GET_L2_MAX_WAYS_EVICT_LAST:
+		{
+		err = nvgpu_gpu_ioctl_get_l2_max_ways_evict_last(g, tsg,
+			(struct nvgpu_tsg_l2_max_ways_evict_last_args *)buf);
 		break;
 		}
 

@@ -72,6 +72,18 @@ struct nvgpu_tsg_read_single_sm_error_state_args {
 	__u64 record_size;
 };
 
+/*
+ * This struct is used to read and configure l2 max evict_last
+ * setting.
+ */
+struct nvgpu_tsg_l2_max_ways_evict_last_args {
+	/*
+	 * Maximum number of ways in a l2 cache set that can be allocated
+	 * with eviction_policy=EVICT_LAST
+	 */
+	__u32 max_ways;
+};
+
 #define NVGPU_TSG_IOCTL_BIND_CHANNEL \
 	_IOW(NVGPU_TSG_IOCTL_MAGIC, 1, int)
 #define NVGPU_TSG_IOCTL_UNBIND_CHANNEL \
@@ -95,10 +107,17 @@ struct nvgpu_tsg_read_single_sm_error_state_args {
 #define NVGPU_TSG_IOCTL_READ_SINGLE_SM_ERROR_STATE \
 	_IOWR(NVGPU_TSG_IOCTL_MAGIC, 12, \
 			struct nvgpu_tsg_read_single_sm_error_state_args)
+#define NVGPU_TSG_IOCTL_SET_L2_MAX_WAYS_EVICT_LAST \
+	_IOW(NVGPU_TSG_IOCTL_MAGIC, 13, \
+			struct nvgpu_tsg_l2_max_ways_evict_last_args)
+#define NVGPU_TSG_IOCTL_GET_L2_MAX_WAYS_EVICT_LAST \
+	_IOR(NVGPU_TSG_IOCTL_MAGIC, 14, \
+			struct nvgpu_tsg_l2_max_ways_evict_last_args)
 #define NVGPU_TSG_IOCTL_MAX_ARG_SIZE	\
 		sizeof(struct nvgpu_tsg_bind_channel_ex_args)
+
 #define NVGPU_TSG_IOCTL_LAST		\
-	_IOC_NR(NVGPU_TSG_IOCTL_READ_SINGLE_SM_ERROR_STATE)
+	_IOC_NR(NVGPU_TSG_IOCTL_GET_L2_MAX_WAYS_EVICT_LAST)
 
 /*
  * /dev/nvhost-dbg-gpu device
