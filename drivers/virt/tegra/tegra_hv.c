@@ -3,7 +3,7 @@
  *
  * Instantiates virtualization-related resources.
  *
- * Copyright (C) 2014-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2014-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This file is licensed under the terms of the GNU General Public License
  * version 2.  This program is licensed "as is" without any warranty of any
@@ -38,6 +38,10 @@
 #include <soc/tegra/virt/syscalls.h>
 #include "tegra_hv.h"
 #include <linux/tegra-ivc-instance.h>
+
+#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE
+#define SUPPORTS_TRAP_MSI_NOTIFICATION
+#endif
 
 #define ERR(...) pr_err("tegra_hv: " __VA_ARGS__)
 #define INFO(...) pr_info("tegra_hv: " __VA_ARGS__)
@@ -116,10 +120,33 @@ struct tegra_hv_data {
  */
 static const struct tegra_hv_data *tegra_hv_data;
 
+#ifdef SUPPORTS_TRAP_MSI_NOTIFICATION
+struct ivc_notify_info {
+	// Trap based notification
+	uintptr_t trap_region_base_va;
+	uintptr_t trap_region_base_ipa;
+	uintptr_t trap_region_end_ipa;
+	uint64_t trap_region_size;
+	// MSI based notification
+	uintptr_t msi_region_base_va;
+	uintptr_t msi_region_base_ipa;
+	uintptr_t msi_region_end_ipa;
+	uint64_t msi_region_size;
+};
+
+static struct ivc_notify_info ivc_notify;
+#endif
+
 static void ivc_raise_irq(struct ivc *ivc_channel)
 {
 	struct hv_ivc *ivc = container_of(ivc_channel, struct hv_ivc, ivc);
+#ifdef SUPPORTS_TRAP_MSI_NOTIFICATION
+	if (WARN_ON(!ivc->cookie.notify_va))
+		return;
+	*ivc->cookie.notify_va = ivc->qd->raise_irq;
+#else
 	hyp_raise_irq(ivc->qd->raise_irq, ivc->other_guestid);
+#endif
 }
 
 static const struct tegra_hv_data *get_hvd(void)
@@ -198,6 +225,9 @@ static int tegra_hv_add_ivc(struct tegra_hv_data *hvd,
 	uintptr_t rx_base, tx_base;
 	uint32_t i;
 	struct irq_data *d;
+#ifdef SUPPORTS_TRAP_MSI_NOTIFICATION
+	uint64_t va_offset;
+#endif
 
 	ivc = &hvd->ivc_devs[qd->id];
 	BUG_ON(ivc->valid);
@@ -264,6 +294,35 @@ static int tegra_hv_add_ivc(struct tegra_hv_data *hvd,
 				qd->id);
 		return -ENODEV;
 	}
+
+#ifdef SUPPORTS_TRAP_MSI_NOTIFICATION
+	if (qd->msi_ipa != 0U) {
+		if (WARN_ON(ivc_notify.msi_region_size == 0UL))
+			return -EINVAL;
+		if (WARN_ON(!(qd->msi_ipa >= ivc_notify.msi_region_base_ipa &&
+			qd->msi_ipa <= ivc_notify.msi_region_end_ipa))) {
+			return -EINVAL;
+		}
+		va_offset = qd->msi_ipa - ivc_notify.msi_region_base_ipa;
+		ivc->cookie.notify_va =
+			(uint32_t *)(ivc_notify.msi_region_base_va +
+			va_offset);
+	} else if (qd->trap_ipa != 0U) {
+		if (WARN_ON(ivc_notify.trap_region_size == 0UL))
+			return -EINVAL;
+		if (WARN_ON(!(qd->trap_ipa >= ivc_notify.trap_region_base_ipa &&
+			qd->trap_ipa <= ivc_notify.trap_region_end_ipa))) {
+			return -EINVAL;
+		}
+		va_offset = qd->trap_ipa - ivc_notify.trap_region_base_ipa;
+		ivc->cookie.notify_va =
+			(uint32_t *)(ivc_notify.trap_region_base_va +
+			va_offset);
+	} else {
+		if (WARN_ON(ivc->cookie.notify_va == NULL))
+			return -EINVAL;
+	}
+#endif
 
 	INFO("adding ivc%u: rx_base=%lx tx_base = %lx size=%x irq = %d (%lu)\n",
 			qd->id, rx_base, tx_base, qd->size, ivc->irq, d->hwirq);
@@ -392,6 +451,58 @@ static int __init tegra_hv_setup(struct tegra_hv_data *hvd)
 		ERR("failed to map IVC info page (%llx)\n", info_page);
 		return -ENOMEM;
 	}
+
+#ifdef SUPPORTS_TRAP_MSI_NOTIFICATION
+	/*
+	 *  Map IVC Trap MMIO Notification region
+	 */
+	ivc_notify.trap_region_base_ipa = hvd->info->trap_region_base_ipa;
+	ivc_notify.trap_region_size = hvd->info->trap_region_size;
+	if (ivc_notify.trap_region_size != 0UL) {
+		INFO("trap_region_base_ipa %lx: trap_region_size=%llx\n",
+			ivc_notify.trap_region_base_ipa,
+			ivc_notify.trap_region_size);
+		if (WARN_ON(ivc_notify.trap_region_base_ipa == 0UL))
+			return -EINVAL;
+		if (WARN_ON(ivc_notify.trap_region_base_va != 0UL))
+			return -EINVAL;
+		ivc_notify.trap_region_end_ipa =
+			ivc_notify.trap_region_base_ipa +
+			ivc_notify.trap_region_size - 1UL;
+		ivc_notify.trap_region_base_va =
+			(uintptr_t)ioremap_cache(
+				ivc_notify.trap_region_base_ipa,
+				ivc_notify.trap_region_size);
+		if (ivc_notify.trap_region_base_va == 0UL) {
+			ERR("failed to map trap ipa notification page\n");
+			return -ENOMEM;
+		}
+	}
+
+	/*
+	 *  Map IVC MSI Notification region
+	 */
+	ivc_notify.msi_region_base_ipa = hvd->info->msi_region_base_ipa;
+	ivc_notify.msi_region_size = hvd->info->msi_region_size;
+	if (ivc_notify.msi_region_size != 0UL) {
+		INFO("msi_region_base_ipa %lx: msi_region_size=%llx\n",
+			ivc_notify.msi_region_base_ipa,
+			ivc_notify.msi_region_size);
+		if (WARN_ON(ivc_notify.msi_region_base_ipa == 0UL))
+			return -EINVAL;
+		if (WARN_ON(ivc_notify.msi_region_base_va != 0UL))
+			return -EINVAL;
+		ivc_notify.msi_region_end_ipa = ivc_notify.msi_region_base_ipa +
+				ivc_notify.msi_region_size - 1UL;
+		ivc_notify.msi_region_base_va =
+			(uintptr_t)ioremap_cache(ivc_notify.msi_region_base_ipa,
+			ivc_notify.msi_region_size);
+		if (ivc_notify.msi_region_base_va == 0UL) {
+			ERR("failed to map msi ipa notification page\n");
+			return -ENOMEM;
+		}
+	}
+#endif
 
 	hvd->guest_ivc_info = kzalloc(hvd->info->nr_areas *
 			sizeof(*hvd->guest_ivc_info), GFP_KERNEL);
@@ -602,8 +713,13 @@ void tegra_hv_ivc_notify(struct tegra_hv_ivc_cookie *ivck)
 		return;
 
 	ivc = cookie_to_ivc_dev(ivck);
+#ifdef SUPPORTS_TRAP_MSI_NOTIFICATION
+	if (WARN_ON(!ivc->cookie.notify_va))
+		return;
+	*ivc->cookie.notify_va = ivc->qd->raise_irq;
+#else
 	hyp_raise_irq(ivc->qd->raise_irq, ivc->other_guestid);
-
+#endif
 }
 EXPORT_SYMBOL(tegra_hv_ivc_notify);
 
