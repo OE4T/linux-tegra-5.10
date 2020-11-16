@@ -872,6 +872,8 @@ int nvgpu_init_gpu_characteristics(struct gk20a *g)
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, false);
 	}
 
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_GET_GR_CONTEXT, true);
+
 	return 0;
 }
 

@@ -43,6 +43,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/preempt.h>
 
 #include <nvgpu/linux/vm.h>
 
@@ -55,6 +56,8 @@
 #include "ioctl_channel.h"
 #include "ioctl.h"
 #include "dmabuf_vidmem.h"
+
+#include "common/gr/ctx_priv.h"
 
 struct dbg_session_gk20a_linux {
 	struct device	*dev;
@@ -153,6 +156,9 @@ static int dbg_unbind_all_channels_gk20a(struct dbg_session_gk20a *dbg_s);
 
 static int gk20a_dbg_gpu_do_dev_open(struct gk20a *g,
 		struct file *filp, bool is_profiler);
+
+static int nvgpu_dbg_get_context_buffer(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+		void __user *ctx_buf, u32 ctx_buf_size);
 
 unsigned int gk20a_dbg_gpu_dev_poll(struct file *filep, poll_table *wait)
 {
@@ -1744,6 +1750,183 @@ static void nvgpu_dbg_gpu_ioctl_get_timeout(struct dbg_session_gk20a *dbg_s,
 		args->enable = NVGPU_DBG_GPU_IOCTL_TIMEOUT_DISABLE;
 }
 
+static int nvgpu_dbg_gpu_ioctl_get_gr_context_size(struct dbg_session_gk20a *dbg_s,
+			 struct nvgpu_dbg_gpu_get_gr_context_size_args *args)
+{
+	struct gk20a *g = dbg_s->g;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
+	struct nvgpu_mem *ctx_mem;
+
+	nvgpu_log_fn(g, " ");
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_GET_GR_CONTEXT)) {
+		nvgpu_err(g, "get_gr_context is not supported on current config");
+		return -EINVAL;
+	}
+
+	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	if (ch == NULL) {
+		nvgpu_err(g, "no bound channel");
+		return -EINVAL;
+	}
+
+	tsg = nvgpu_tsg_from_ch(ch);
+	if (tsg == NULL) {
+		nvgpu_err(ch->g, "chid: %d is not bound to tsg", ch->chid);
+		return -EINVAL;
+	}
+
+	ctx_mem = nvgpu_gr_ctx_get_ctx_mem(tsg->gr_ctx);
+	if (ctx_mem == NULL || !nvgpu_mem_is_valid(ctx_mem)) {
+		nvgpu_err(g, "invalid context mem");
+		return -EINVAL;
+	}
+
+	if (ctx_mem->size > (u64)UINT_MAX) {
+		nvgpu_err(ch->g, "ctx size is larger than expected");
+		return -EINVAL;
+	}
+
+	args->size = (u32)ctx_mem->size;
+
+	return 0;
+}
+
+static int nvgpu_dbg_gpu_ioctl_get_gr_context(struct dbg_session_gk20a *dbg_s,
+			struct nvgpu_dbg_gpu_get_gr_context_args *args)
+{
+	struct gk20a *g = dbg_s->g;
+	struct nvgpu_channel *ch;
+	struct nvgpu_tsg *tsg;
+	struct nvgpu_mem *ctx_mem;
+	void __user *user_buffer = (void __user *)(uintptr_t)args->buffer;
+	u32 size;
+	int err = 0, enable_err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_GET_GR_CONTEXT)) {
+		nvgpu_err(g, "get_gr_context is not supported on current config");
+		return -EINVAL;
+	}
+
+	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	if (ch == NULL) {
+		nvgpu_err(g, "no bound channel");
+		return -EINVAL;
+	}
+
+	tsg = nvgpu_tsg_from_ch(ch);
+	if (tsg == NULL) {
+		nvgpu_err(ch->g, "chid: %d is not bound to tsg", ch->chid);
+		return -EINVAL;
+	}
+
+	ctx_mem = nvgpu_gr_ctx_get_ctx_mem(tsg->gr_ctx);
+	if (ctx_mem == NULL || !nvgpu_mem_is_valid(ctx_mem)) {
+		nvgpu_err(g, "invalid context mem");
+		return -EINVAL;
+	}
+
+	if (ctx_mem->size > (u64)UINT_MAX) {
+		nvgpu_err(ch->g, "ctx size is larger than expected");
+		return -EINVAL;
+	}
+
+	/* Check if the input buffer size equals the gr context size */
+	size = (u32)ctx_mem->size;
+	if (args->size != size) {
+		nvgpu_err(g, "size mismatch: %d != %d", args->size, size);
+		return -EINVAL;
+	}
+
+	if (nvgpu_channel_disable_tsg(g, ch) != 0) {
+		nvgpu_err(g, "failed to disable channel/TSG");
+		return -EINVAL;
+	}
+
+	err = nvgpu_preempt_channel(g, ch);
+	if (err != 0) {
+		nvgpu_err(g, "failed to preempt channel/TSG");
+		goto done;
+	}
+
+	/* Channel gr_ctx buffer is gpu cacheable.
+	   Flush and invalidate before cpu update. */
+	err = g->ops.mm.cache.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		goto done;
+	}
+
+	err = nvgpu_dbg_get_context_buffer(g, ctx_mem, user_buffer, size);
+
+done:
+	enable_err = nvgpu_channel_enable_tsg(g, ch);
+	if (enable_err != 0) {
+		nvgpu_err(g, "failed to re-enable channel/TSG");
+		return (err != 0) ? err : enable_err;
+	}
+
+	return err;
+}
+
+static int nvgpu_dbg_get_context_buffer(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+			void __user *ctx_buf, u32 ctx_buf_size)
+{
+	int err = 0;
+#ifdef CONFIG_NVGPU_DGPU
+	void *buffer = NULL;
+	u32 size, access_size;
+	u32 access_limit_size = SZ_4K;
+	u32 offset = 0;
+#endif
+
+	if (ctx_mem->aperture == APERTURE_SYSMEM) {
+		if (ctx_mem->cpu_va == NULL) {
+			nvgpu_err(g, "CPU pointer is NULL. Note that this feature is currently \
+				not supported on virtual GPU.");
+			err = -EINVAL;
+		} else {
+			err = copy_to_user(ctx_buf, ctx_mem->cpu_va, ctx_buf_size);
+		}
+	}
+#ifdef CONFIG_NVGPU_DGPU
+	else {
+		/* We already checked nvgpu_mem_is_valid, so ctx_mem->aperture must be
+		   APERTURE_VIDMEM if we reach here */
+
+		buffer = nvgpu_big_zalloc(g, access_limit_size);
+		if (buffer == NULL) {
+			err = -ENOMEM;
+			goto done;
+		}
+
+		size = ctx_buf_size;
+		while (size > 0) {
+			/* Max access size of access_limit_size in one loop */
+			access_size = min(access_limit_size, size);
+
+			nvgpu_mem_rd_n(g, ctx_mem, offset, buffer, access_size);
+
+			err = copy_to_user(ctx_buf + offset, buffer, access_size);
+			if (err != 0)
+				goto done;
+
+			size -= access_size;
+			offset += access_size;
+		}
+done:
+		if (buffer != NULL) {
+			nvgpu_big_free(g, buffer);
+		}
+	}
+#endif
+
+	return err;
+}
+
 static int gk20a_perfbuf_release_locked(struct gk20a *g,
 		struct dbg_session_gk20a *dbg_s, u64 offset)
 {
@@ -2121,6 +2304,16 @@ long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,
 			   (struct nvgpu_dbg_gpu_timeout_args *)buf);
 		break;
 
+	case NVGPU_DBG_GPU_IOCTL_GET_GR_CONTEXT_SIZE:
+		err = nvgpu_dbg_gpu_ioctl_get_gr_context_size(dbg_s,
+			(struct nvgpu_dbg_gpu_get_gr_context_size_args *)buf);
+		break;
+
+	case NVGPU_DBG_GPU_IOCTL_GET_GR_CONTEXT:
+		err = nvgpu_dbg_gpu_ioctl_get_gr_context(dbg_s,
+			(struct nvgpu_dbg_gpu_get_gr_context_args *)buf);
+		break;
+
 	case NVGPU_DBG_GPU_IOCTL_READ_SINGLE_SM_ERROR_STATE:
 		err = nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(dbg_s,
 		   (struct nvgpu_dbg_gpu_read_single_sm_error_state_args *)buf);
@@ -2183,7 +2376,6 @@ long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,
 		err = nvgpu_dbg_gpu_ioctl_set_mmu_debug_mode(dbg_s,
 		   (struct nvgpu_dbg_gpu_set_ctx_mmu_debug_mode_args *)buf);
 		break;
-
 
 	default:
 		nvgpu_err(g,

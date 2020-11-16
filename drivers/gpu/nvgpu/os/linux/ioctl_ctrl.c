@@ -289,6 +289,8 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 		NVGPU_SUPPORT_PROFILER_V2_CONTEXT},
 	{NVGPU_GPU_FLAGS_SUPPORT_SMPC_GLOBAL_MODE,
 		NVGPU_SUPPORT_SMPC_GLOBAL_MODE},
+	{NVGPU_GPU_FLAGS_SUPPORT_GET_GR_CONTEXT,
+		NVGPU_SUPPORT_GET_GR_CONTEXT},
 };
 
 static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)

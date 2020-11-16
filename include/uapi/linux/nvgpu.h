@@ -197,6 +197,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_PROFILER_V2_CONTEXT	(1ULL << 47)
 /* Profiling SMPC in global mode is supported */
 #define NVGPU_GPU_FLAGS_SUPPORT_SMPC_GLOBAL_MODE	(1ULL << 48)
+/* Retrieving contents of graphics context is supported */
+#define NVGPU_GPU_FLAGS_SUPPORT_GET_GR_CONTEXT	    (1ULL << 49)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
@@ -1505,8 +1507,30 @@ struct nvgpu_dbg_gpu_set_ctx_mmu_debug_mode_args {
 	_IOW(NVGPU_DBG_GPU_IOCTL_MAGIC, 26, \
 	struct nvgpu_dbg_gpu_set_ctx_mmu_debug_mode_args)
 
+/* Get gr context size */
+struct nvgpu_dbg_gpu_get_gr_context_size_args {
+	__u32 size;
+	__u32 reserved;
+};
+
+#define NVGPU_DBG_GPU_IOCTL_GET_GR_CONTEXT_SIZE \
+	_IOR(NVGPU_DBG_GPU_IOCTL_MAGIC, 27, \
+	struct nvgpu_dbg_gpu_get_gr_context_size_args)
+
+/* Get gr context */
+struct nvgpu_dbg_gpu_get_gr_context_args {
+	__u64 buffer;    /* in/out: the output buffer containing contents of the gr context.
+						buffer address is given by the user */
+	__u32 size;      /* in: size of the context buffer */
+	__u32 reserved;
+};
+
+#define NVGPU_DBG_GPU_IOCTL_GET_GR_CONTEXT \
+	_IOW(NVGPU_DBG_GPU_IOCTL_MAGIC, 28, \
+	struct nvgpu_dbg_gpu_get_gr_context_args)
+
 #define NVGPU_DBG_GPU_IOCTL_LAST		\
-	_IOC_NR(NVGPU_DBG_GPU_IOCTL_SET_CTX_MMU_DEBUG_MODE)
+	_IOC_NR(NVGPU_DBG_GPU_IOCTL_GET_GR_CONTEXT)
 
 #define NVGPU_DBG_GPU_IOCTL_MAX_ARG_SIZE		\
 	sizeof(struct nvgpu_dbg_gpu_access_fb_memory_args)

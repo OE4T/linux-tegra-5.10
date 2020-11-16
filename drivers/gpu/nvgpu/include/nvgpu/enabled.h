@@ -199,6 +199,8 @@ struct gk20a;
 		"Profiler V2 context object support"),			\
 	DEFINE_FLAG(NVGPU_SUPPORT_SMPC_GLOBAL_MODE,			\
 		"SMPC in global mode support"),				\
+	DEFINE_FLAG(NVGPU_SUPPORT_GET_GR_CONTEXT,			\
+		"Get gr context support"),				\
 	DEFINE_FLAG(NVGPU_PMU_NEXT_CORE_ENABLED, "PMU NEXT CORE enabled"), \
 	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
