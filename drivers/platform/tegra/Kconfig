@@ -5,3 +5,7 @@ config TEGRA_DCE
 config TEGRA_SPE
 	bool "Tegra SPE driver"
 	depends on ARCH_TEGRA_23x_SOC
+	select NV_TEGRA_IVC
+	select TEGRA_HSP
+	help
+	  This enables communication between CCPLEX and SPE over IVC channel.
