@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -49,7 +49,7 @@
 			     <0 188 0x4>, /* vm2 */
 			     <0 189 0x4>; /* vm3 */
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_EQOS>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_EQOS>;
 #else
 		iommus = <&smmu TEGRA_SID_EQOS>;
 #endif

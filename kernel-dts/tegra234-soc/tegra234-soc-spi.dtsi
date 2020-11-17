@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,7 +30,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_GPCDMA_0>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 #else
 		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
 #endif
@@ -55,7 +55,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_GPCDMA_0>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 #else
 		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
 #endif
@@ -80,7 +80,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_GPCDMA_0>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_GPCDMA_0>;
 #else
 		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
 #endif
@@ -105,7 +105,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_XSPI0>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_QSPI0>;
 #else
 		iommus = <&smmu TEGRA_SID_XSPI0>;
 #endif
@@ -130,7 +130,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_XSPI1>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_QSPI1>;
 #else
 		iommus = <&smmu TEGRA_SID_XSPI1>;
 #endif

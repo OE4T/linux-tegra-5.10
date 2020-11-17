@@ -19,7 +19,7 @@
 / {
 	sound {
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_APE>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;
 #else
 		iommus = <&smmu TEGRA_SID_APE>;
 #endif
@@ -28,7 +28,7 @@
 
 	sound_ref {
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_APE>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;
 #else
 		iommus = <&smmu TEGRA_SID_APE>;
 #endif
@@ -134,7 +134,7 @@
 			resets = <&bpmp_resets TEGRA194_RESET_ADSP_ALL>;
 			reset-names = "adspall";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_APE>;
+			iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;
 #else
 			iommus = <&smmu TEGRA_SID_APE>;
 #endif
@@ -678,7 +678,7 @@
 			nvidia,adma_ch_start = <16>;
 			nvidia,adma_ch_cnt = <16>;
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_APE>;
+			iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;
 #else
 			iommus = <&smmu TEGRA_SID_APE>;
 #endif
@@ -728,7 +728,7 @@
 		nvidia,model = "tegra-hda-t23x";
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_HDA>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_HDA>;
 #else
 		iommus = <&smmu TEGRA_SID_HDA>;
 #endif

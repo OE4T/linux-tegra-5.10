@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -296,7 +296,7 @@
 	bpmp: bpmp {
 		compatible = "nvidia,tegra186-bpmp";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_BPMP>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_BPMP>;
 #else
 		iommus = <&smmu TEGRA_SID_BPMP>;
 #endif
@@ -629,7 +629,7 @@
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_XUSB_DEV>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_DEV>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_DEV>;
 #endif
@@ -668,7 +668,7 @@
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_XUSB_HOST>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_HOST>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_HOST>;
 #endif
@@ -685,7 +685,7 @@
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_XUSB_VF0>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_VF0>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_VF0>;
 #endif
@@ -702,7 +702,7 @@
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_XUSB_VF1>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_VF1>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_VF1>;
 #endif
@@ -719,7 +719,7 @@
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_XUSB_VF2>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_VF2>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_VF2>;
 #endif
@@ -736,7 +736,7 @@
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_XUSB_VF3>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_XUSB_VF3>;
 #else
 		iommus = <&smmu TEGRA_SID_XUSB_VF3>;
 #endif
@@ -1040,7 +1040,7 @@
 #endif
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_iso TEGRA_SID_NVDISPLAY>;
+		iommus = <&smmu_iso TEGRA_SID_ISO_NVDISPLAY>;
 #else
 		iommus = <&smmu TEGRA_SID_NVDISPLAY>;
 		iso-smmu;
@@ -1049,7 +1049,7 @@
 		nvdisplay-niso {
 			compatible = "nvidia,tegra234-display-niso";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_NVDISPLAY_NISO>;
+			iommus = <&smmu_niso0 TEGRA_SID_NISO0_NVDISPLAY>;
 #else
 			iommus = <&smmu TEGRA_SID_NVDISPLAY_NISO>;
 #endif
@@ -1091,7 +1091,7 @@
 		interrupt-names = "wdt-remote",
 			"dce-sm0";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_DCE>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_DCE>;
 #else
 		iommus = <&smmu TEGRA_SID_DCE>;
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -40,7 +40,7 @@
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_SDMMC4A>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_SDMMC4A>;
 #else
 		iommus = <&smmu TEGRA_SID_SDMMC4A>;
 #endif
@@ -102,7 +102,7 @@
 		interconnect-names = "dma-mem", "dma-mem";
 #endif
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_SDMMC1A>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_SDMMC1A>;
 #else
 		iommus = <&smmu TEGRA_SID_SDMMC1A>;
 #endif

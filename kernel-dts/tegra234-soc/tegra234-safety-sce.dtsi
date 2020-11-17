@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -59,7 +59,7 @@
 		reg-names = "ast-cpu", "ast-dma";
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso0 TEGRA_SID_SCE>;
+		iommus = <&smmu_niso0 TEGRA_SID_NISO0_SCE>;
 #else
 		iommus = <&smmu TEGRA_SID_SCE>;
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -91,8 +91,8 @@
 		nvidia,ptm-cap-off = <0x29c>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_PCIE1>;
-		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_PCIE1 0x1000>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE1>;
+		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE1 0x1000>;
 #else
 		iommus = <&smmu TEGRA_SID_PCIE1>;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE1 0x1000>;
@@ -188,17 +188,18 @@
 		nvidia,ptm-cap-off = <0x29c>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_PCIE1>;
-		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_PCIE1 0x1000>;
+		iommus = <&smmu_niso1 TEGRA_SID_NISO1_PCIE1>;
+		iommu-map = <0x0 &smmu_niso1 TEGRA_SID_NISO1_PCIE1 0x1000>;
+		msi-parent = <&gic_v2m TEGRA_SID_NISO1_PCIE1>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_NISO1_PCIE1 0x1000>;
 #else
 		iommus = <&smmu TEGRA_SID_PCIE1>;
 		iommu-map = <0x0 &smmu TEGRA_SID_PCIE1 0x1000>;
+		msi-parent = <&gic_v2m TEGRA_SID_PCIE1>;
+		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE1 0x1000>;
 #endif
 		dma-coherent;
 		iommu-map-mask = <0x0>;
-
-		msi-parent = <&gic_v2m TEGRA_SID_PCIE1>;
-		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE1 0x1000>;
 
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_1 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
