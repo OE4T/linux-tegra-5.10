@@ -52,9 +52,9 @@ static int user_sync_build_debug_name(struct nvgpu_channel *ch,
 		nvgpu_err(g, "strnadd failed!");
 		return -EINVAL;
 	}
-	capacity = nvgpu_safe_sub_u64(capacity, n);
+	capacity = nvgpu_safe_sub_u64(capacity, nvgpu_safe_cast_s32_to_u64(n));
 	/* nul byte */
-	capacity = nvgpu_safe_sub_u64(capacity, 1);
+	capacity = nvgpu_safe_sub_u64(capacity, 1UL);
 
 	(void)strncat(buf, "_user", capacity);
 	/* make sure it didn't get truncated */
@@ -80,7 +80,7 @@ nvgpu_channel_user_syncpt_create(struct nvgpu_channel *ch)
 	s->nvhost = g->nvhost;
 
 	err = user_sync_build_debug_name(ch, syncpt_name,
-			sizeof(syncpt_name) - 1);
+			sizeof(syncpt_name) - 1UL);
 	if (err < 0) {
 		goto err_free;
 	}
