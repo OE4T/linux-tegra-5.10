@@ -73,6 +73,8 @@ required:
   - assigned-clock-parents
   - "#sound-dai-cells"
 
+additionalProperties: false
+
 examples:
   - |
     #include<dt-bindings/clock/tegra210-car.h>

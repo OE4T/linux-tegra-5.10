@@ -151,6 +151,8 @@ static const struct of_device_id apbmisc_match[] __initconst = {
 		.data = &tegra186_apbmisc_data, },
 	{ .compatible = "nvidia,tegra194-misc",
 		.data = &tegra186_apbmisc_data, },
+	{ .compatible = "nvidia,tegra234-misc",
+		.data = &tegra186_apbmisc_data, },
 	{},
 };
 
