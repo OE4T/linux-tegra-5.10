@@ -5546,6 +5546,7 @@ static const struct tegra_wake_event tegra194_wake_events[] = {
 	TEGRA_WAKE_IRQ("pmu", 24, 209),
 	TEGRA_WAKE_GPIO("power", 29, 1, TEGRA194_AON_GPIO(EE, 4)),
 	TEGRA_WAKE_IRQ("rtc", 73, 10),
+	TEGRA_WAKE_IRQ("sw_wake", 83, 179),
 };
 
 static const struct tegra_pmc_soc tegra194_pmc_soc = {
