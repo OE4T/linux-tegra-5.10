@@ -1001,7 +1001,7 @@ static int camrtc_run_mem_test(struct seq_file *file,
 			goto unmap;
 
 		dma_sync_single_for_device(mem_dev, mem->iova, mem->used,
-				DMA_TO_DEVICE);
+				DMA_BIDIRECTIONAL);
 	}
 
 	if (crd->parameters.test_bw != 0)
@@ -1039,8 +1039,8 @@ static int camrtc_run_mem_test(struct seq_file *file,
 		if (!WARN_ON(testmem->size > mem->size))
 			mem->used = testmem->size;
 
-		dma_sync_single_for_device(mem_dev, mem->iova, mem->used,
-					DMA_FROM_DEVICE);
+		dma_sync_single_for_cpu(mem_dev, mem->iova, mem->used,
+					DMA_BIDIRECTIONAL);
 	}
 
 unmap:
@@ -1215,8 +1215,8 @@ static ssize_t camrtc_read_falcon_coverage(struct file *file,
 
 		cov->mem.used = resp.data.coverage_stat.bytes_written;
 
-		dma_sync_single_for_device(cov->mem_dev, cov->mem.iova,
-				cov->mem.size, DMA_FROM_DEVICE);
+		dma_sync_single_for_cpu(cov->mem_dev, cov->mem.iova,
+				cov->mem.size, DMA_BIDIRECTIONAL);
 	}
 
 	ret = simple_read_from_buffer(buf, count, f_pos,
