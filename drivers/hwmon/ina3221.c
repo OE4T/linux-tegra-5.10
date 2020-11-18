@@ -655,7 +655,7 @@ static umode_t ina3221_is_visible(const void *drvdata,
 		switch (attr) {
 		case hwmon_chip_samples:
 		case hwmon_chip_update_interval:
-			return 0644;
+			return 0600;
 		default:
 			return 0;
 		}
@@ -669,13 +669,13 @@ static umode_t ina3221_is_visible(const void *drvdata,
 			if (channel - 1 <= INA3221_CHANNEL3)
 				input = &ina->inputs[channel - 1];
 			else if (channel == 7)
-				return 0444;
+				return 0400;
 			/* Hide label node if label is not provided */
-			return (input && input->label) ? 0444 : 0;
+			return (input && input->label) ? 0400 : 0;
 		case hwmon_in_input:
-			return 0444;
+			return 0400;
 		case hwmon_in_enable:
-			return 0644;
+			return 0600;
 		default:
 			return 0;
 		}
@@ -684,10 +684,10 @@ static umode_t ina3221_is_visible(const void *drvdata,
 		case hwmon_curr_input:
 		case hwmon_curr_crit_alarm:
 		case hwmon_curr_max_alarm:
-			return 0444;
+			return 0400;
 		case hwmon_curr_crit:
 		case hwmon_curr_max:
-			return 0644;
+			return 0600;
 		default:
 			return 0;
 		}
