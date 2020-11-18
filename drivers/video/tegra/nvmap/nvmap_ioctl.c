@@ -347,7 +347,7 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 		return -EINVAL;
 
 	h = nvmap_handle_get_from_fd(handle);
-	if (!h)
+	if (IS_ERR_OR_NULL(h))
 		return -EINVAL;
 
 	if (is_read && h->heap_type == NVMAP_HEAP_CARVEOUT_VPR) {
@@ -533,7 +533,7 @@ int nvmap_ioctl_get_ivcid(struct file *filp, void __user *arg)
 		return -EFAULT;
 
 	h = nvmap_handle_get_from_fd(op.ivm_handle);
-	if (!h)
+	if (IS_ERR_OR_NULL(h))
 		return -EINVAL;
 
 	if (!h->alloc) { /* || !h->ivm_id) { */
