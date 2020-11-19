@@ -42,9 +42,6 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx *gr_ctx,
 	bool patch);
 
-u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
-	u32 tpc_count, u32 max_tpc);
-
 void gp10b_gr_init_get_supported_preemption_modes(
 	u32 *graphics_preemption_mode_flags, u32 *compute_preemption_mode_flags);
 void gp10b_gr_init_get_default_preemption_modes(
@@ -77,6 +74,8 @@ void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
+u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
+	u32 tpc_count, u32 max_tpc);
 u32 gp10b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
 u32 gp10b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
 

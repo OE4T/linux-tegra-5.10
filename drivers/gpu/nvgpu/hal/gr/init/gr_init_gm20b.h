@@ -57,8 +57,11 @@ void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable);
 void gm20b_gr_init_pipe_mode_override(struct gk20a *g, bool enable);
 void gm20b_gr_init_load_method_init(struct gk20a *g,
 		struct netlist_av_list *sw_method_init);
+
+#ifndef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 int gm20b_gr_init_load_sw_bundle_init(struct gk20a *g,
 		struct netlist_av_list *sw_bundle_init);
+#endif
 
 u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g);
 u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g);
