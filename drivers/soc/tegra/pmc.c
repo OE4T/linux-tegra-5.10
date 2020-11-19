@@ -608,46 +608,6 @@ struct tegra_io_pad_regulator {
 	struct notifier_block nb;
 };
 
-static const char * const tegra186_reset_sources[] = {
-	"SYS_RESET",
-	"AOWDT",
-	"MCCPLEXWDT",
-	"BPMPWDT",
-	"SCEWDT",
-	"SPEWDT",
-	"APEWDT",
-	"BCCPLEXWDT",
-	"SENSOR",
-	"AOTAG",
-	"VFSENSOR",
-	"SWREST",
-	"SC7",
-	"HSM",
-	"CORESIGHT"
-};
-
-static const char * const tegra186_reset_levels[] = {
-	"L0", "L1", "L2", "WARM"
-};
-
-static const char * const tegra30_reset_sources[] = {
-	"POWER_ON_RESET",
-	"WATCHDOG",
-	"SENSOR",
-	"SW_MAIN",
-	"LP0"
-};
-
-static const char * const tegra210_reset_sources[] = {
-	"POWER_ON_RESET",
-	"WATCHDOG",
-	"SENSOR",
-	"SW_MAIN",
-	"LP0",
-	"AOTAG"
-	"PMIC_WATCHDOG_POR",
-};
-
 /**
  * struct tegra_pmc - NVIDIA Tegra PMC
  * @dev: pointer to PMC device structure
@@ -3801,44 +3761,17 @@ static int tegra_pmc_irq_alloc(struct irq_domain *domain, unsigned int virq,
 							    event->id,
 							    &pmc->irq, pmc);
 
-			/*
-			 * GPIOs don't have an equivalent interrupt in the
-			 * parent controller (GIC). However some code, such
-			 * as the one in irq_get_irqchip_state(), require a
-			 * valid IRQ chip to be set. Make sure that's the
-			 * case by passing NULL here, which will install a
-			 * dummy IRQ chip for the interrupt in the parent
-			 * domain.
-			 */
-			if (domain->parent)
-				irq_domain_set_hwirq_and_chip(domain->parent,
-							      virq, 0, NULL,
-							      NULL);
-
+			/* GPIO hierarchies stop at the PMC level */
+			if (!err && domain->parent)
+ 				err = irq_domain_disconnect_hierarchy(domain->parent,
+								      virq);
 			break;
 		}
 	}
 
-	/*
-	 * For interrupts that don't have associated wake events, assign a
-	 * dummy hardware IRQ number. This is used in the ->irq_set_type()
-	 * and ->irq_set_wake() callbacks to return early for these IRQs.
-	 */
-	if (i == soc->num_wake_events) {
-		err = irq_domain_set_hwirq_and_chip(domain, virq, ULONG_MAX,
-						    &pmc->irq, pmc);
-
-		/*
-		 * Interrupts without a wake event don't have a corresponding
-		 * interrupt in the parent controller (GIC). Pass NULL for the
-		 * chip here, which causes a dummy IRQ chip to be installed
-		 * for the interrupt in the parent domain, to make this
-		 * explicit.
-		 */
-		if (domain->parent)
-			irq_domain_set_hwirq_and_chip(domain->parent, virq, 0,
-						      NULL, NULL);
-	}
+	/* If there is no wake-up event, there is no PMC mapping */
+	if (i == soc->num_wake_events)
+		err = irq_domain_disconnect_hierarchy(domain, virq);
 
 	return err;
 }
@@ -3853,9 +3786,6 @@ static int tegra210_pmc_irq_set_wake(struct irq_data *data, unsigned int on)
 	struct tegra_pmc *pmc = irq_data_get_irq_chip_data(data);
 	unsigned int offset, bit;
 	u32 value;
-
-	if (data->hwirq == ULONG_MAX)
-		return 0;
 
 	offset = data->hwirq / 32;
 	bit = data->hwirq % 32;
@@ -3890,9 +3820,6 @@ static int tegra210_pmc_irq_set_type(struct irq_data *data, unsigned int type)
 	struct tegra_pmc *pmc = irq_data_get_irq_chip_data(data);
 	unsigned int offset, bit;
 	u32 value;
-
-	if (data->hwirq == ULONG_MAX)
-		return 0;
 
 	offset = data->hwirq / 32;
 	bit = data->hwirq % 32;
@@ -3934,10 +3861,6 @@ static int tegra186_pmc_irq_set_wake(struct irq_data *data, unsigned int on)
 	unsigned int offset, bit;
 	u32 value;
 
-	/* nothing to do if there's no associated wake event */
-	if (WARN_ON(data->hwirq == ULONG_MAX))
-		return 0;
-
 	offset = data->hwirq / 32;
 	bit = data->hwirq % 32;
 
@@ -3965,10 +3888,6 @@ static int tegra186_pmc_irq_set_type(struct irq_data *data, unsigned int type)
 	struct tegra_pmc *pmc = irq_data_get_irq_chip_data(data);
 	u32 value;
 
-	/* nothing to do if there's no associated wake event */
-	if (data->hwirq == ULONG_MAX)
-		return 0;
-
 	value = readl(pmc->wake + WAKE_AOWAKE_CNTRL(data->hwirq));
 
 	switch (type) {
@@ -3995,6 +3914,34 @@ static int tegra186_pmc_irq_set_type(struct irq_data *data, unsigned int type)
 	return 0;
 }
 
+static void tegra_irq_mask_parent(struct irq_data *data)
+{
+	if (data->parent_data)
+		irq_chip_mask_parent(data);
+}
+
+static void tegra_irq_unmask_parent(struct irq_data *data)
+{
+	if (data->parent_data)
+		irq_chip_unmask_parent(data);
+}
+
+static void tegra_irq_eoi_parent(struct irq_data *data)
+{
+	if (data->parent_data)
+		irq_chip_eoi_parent(data);
+}
+
+static int tegra_irq_set_affinity_parent(struct irq_data *data,
+					 const struct cpumask *dest,
+					 bool force)
+{
+	if (data->parent_data)
+		return irq_chip_set_affinity_parent(data, dest, force);
+
+	return -EINVAL;
+}
+
 static int tegra_pmc_irq_init(struct tegra_pmc *pmc)
 {
 	struct irq_domain *parent = NULL;
@@ -4010,10 +3957,10 @@ static int tegra_pmc_irq_init(struct tegra_pmc *pmc)
 		return 0;
 
 	pmc->irq.name = dev_name(pmc->dev);
-	pmc->irq.irq_mask = irq_chip_mask_parent;
-	pmc->irq.irq_unmask = irq_chip_unmask_parent;
-	pmc->irq.irq_eoi = irq_chip_eoi_parent;
-	pmc->irq.irq_set_affinity = irq_chip_set_affinity_parent;
+	pmc->irq.irq_mask = tegra_irq_mask_parent;
+	pmc->irq.irq_unmask = tegra_irq_unmask_parent;
+	pmc->irq.irq_eoi = tegra_irq_eoi_parent;
+	pmc->irq.irq_set_affinity = tegra_irq_set_affinity_parent;
 	pmc->irq.irq_set_type = pmc->soc->irq_set_type;
 	pmc->irq.irq_set_wake = pmc->soc->irq_set_wake;
 
@@ -4721,6 +4668,14 @@ static const u8 tegra30_cpu_powergates[] = {
 	TEGRA_POWERGATE_CPU3,
 };
 
+static const char * const tegra30_reset_sources[] = {
+	"POWER_ON_RESET",
+	"WATCHDOG",
+	"SENSOR",
+	"SW_MAIN",
+	"LP0"
+};
+
 static const struct tegra_pmc_soc tegra30_pmc_soc = {
 	.num_powergates = ARRAY_SIZE(tegra30_powergates),
 	.powergates = tegra30_powergates,
@@ -5011,6 +4966,16 @@ static const struct tegra_io_pad_soc tegra210_io_pads[] = {
 
 static const struct pinctrl_pin_desc tegra210_pin_descs[] = {
 	TEGRA210_IO_PAD_TABLE(TEGRA_IO_PIN_DESC)
+};
+
+static const char * const tegra210_reset_sources[] = {
+	"POWER_ON_RESET",
+	"WATCHDOG",
+	"SENSOR",
+	"SW_MAIN",
+	"LP0",
+	"AOTAG",
+	"PMIC_WATCHDOG_POR"
 };
 
 static const struct tegra_wake_event tegra210_wake_events[] = {
@@ -5361,6 +5326,28 @@ static void tegra186_pmc_setup_irq_polarity(struct tegra_pmc *pmc,
 	iounmap(wake);
 }
 
+static const char * const tegra186_reset_sources[] = {
+	"SYS_RESET",
+	"AOWDT",
+	"MCCPLEXWDT",
+	"BPMPWDT",
+	"SCEWDT",
+	"SPEWDT",
+	"APEWDT",
+	"BCCPLEXWDT",
+	"SENSOR",
+	"AOTAG",
+	"VFSENSOR",
+	"SWREST",
+	"SC7",
+	"HSM",
+	"CORESIGHT"
+};
+
+static const char * const tegra186_reset_levels[] = {
+	"L0", "L1", "L2", "WARM"
+};
+
 static const struct tegra_wake_event tegra186_wake_events[] = {
 	TEGRA_WAKE_IRQ("pmu", 24, 209),
 	TEGRA_WAKE_GPIO("power", 29, 1, TEGRA186_AON_GPIO(FF, 0)),
@@ -5663,6 +5650,30 @@ static const struct tegra_pmc_regs tegra234_pmc_regs = {
 	.reorg_dpd_status = tegra234_dpd_status_regs,
 };
 
+static const char * const tegra234_reset_sources[] = {
+	"SYS_RESET_N",
+	"AOWDT",
+	"BCCPLEXWDT",
+	"BPMPWDT",
+	"SCEWDT",
+	"SPEWDT",
+	"APEWDT",
+	"LCCPLEXWDT",
+	"SENSOR",
+	"AOTAG",
+	"VFSENSOR",
+	"MAINSWRST",
+	"SC7",
+	"HSM",
+	"CSITE",
+	"RCEWDT",
+	"PVA0WDT",
+	"PVA1WDT",
+	"L1A_ASYNC",
+	"BPMPBOOT",
+	"FUSECRC",
+};
+
 static const struct tegra_wake_event tegra234_wake_events[] = {
 };
 
@@ -5685,8 +5696,8 @@ static const struct tegra_pmc_soc tegra234_pmc_soc = {
 	.setup_irq_polarity = tegra186_pmc_setup_irq_polarity,
 	.irq_set_wake = tegra186_pmc_irq_set_wake,
 	.irq_set_type = tegra186_pmc_irq_set_type,
-	.reset_sources = tegra194_reset_sources,
-	.num_reset_sources = ARRAY_SIZE(tegra194_reset_sources),
+	.reset_sources = tegra234_reset_sources,
+	.num_reset_sources = ARRAY_SIZE(tegra234_reset_sources),
 	.reset_levels = tegra186_reset_levels,
 	.num_reset_levels = ARRAY_SIZE(tegra186_reset_levels),
 	.num_wake_events = ARRAY_SIZE(tegra234_wake_events),

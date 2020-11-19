@@ -13,7 +13,7 @@
 #include <linux/of_iommu.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
-#include <linux/dma-iommu.h>
+#include <linux/spinlock.h>
 #include <linux/dma-mapping.h>
 #include <linux/dma-iommu.h>
 #include <linux/pci.h>
@@ -321,6 +321,8 @@ static struct iommu_domain *tegra_smmu_domain_alloc(unsigned type)
 	as->pts = kcalloc(SMMU_NUM_PDE, sizeof(*as->pts), GFP_KERNEL);
 	if (!as->pts)
 		goto free_pts;
+
+	spin_lock_init(&as->lock);
 
 	spin_lock_init(&as->lock);
 
@@ -958,8 +960,7 @@ static struct iommu_group *tegra_smmu_device_group(struct device *dev)
 
 	/* Find existing iommu_group associating with swgroup or group_soc */
 	list_for_each_entry(group, &smmu->groups, list)
-		if ((group->swgroup == swgroup) ||
-		    (soc && group->soc == soc)) {
+		if ((group->swgroup == swgroup) || (soc && group->soc == soc)) {
 			grp = iommu_group_ref_get(group->group);
 			mutex_unlock(&smmu->lock);
 			return grp;
