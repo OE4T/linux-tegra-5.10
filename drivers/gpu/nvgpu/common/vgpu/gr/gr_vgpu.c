@@ -1365,6 +1365,7 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 			g->ops.gr.init.get_ctx_attrib_cb_size(g, betacb_size,
 				nvgpu_gr_config_get_tpc_count(g->gr->config),
 				nvgpu_gr_config_get_max_tpc_count(g->gr->config));
+		u32 rtv_cb_size;
 		struct nvgpu_mem *desc;
 
 		nvgpu_log_info(g, "gfxp context preempt size=%d",
@@ -1380,6 +1381,12 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 			NVGPU_GR_CTX_BETACB_CTXSW, attrib_cb_size);
 		nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
 			NVGPU_GR_CTX_PAGEPOOL_CTXSW, pagepool_size);
+
+		if (g->ops.gr.init.get_gfxp_rtv_cb_size != NULL) {
+			rtv_cb_size = g->ops.gr.init.get_gfxp_rtv_cb_size(g);
+			nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
+				NVGPU_GR_CTX_GFXP_RTVCB_CTXSW, rtv_cb_size);
+		}
 
 		err = nvgpu_gr_ctx_alloc_ctxsw_buffers(g, gr_ctx,
 			g->gr->gr_ctx_desc, vm);
@@ -1405,6 +1412,11 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_BETACB] =
 			desc->gpu_va;
 		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_BETACB] = desc->size;
+
+		desc = nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(gr_ctx);
+		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_RTVCB] =
+			desc->gpu_va;
+		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_RTVCB] = desc->size;
 
 		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
 			NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP);
