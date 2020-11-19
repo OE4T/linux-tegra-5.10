@@ -661,9 +661,7 @@ static int tegra_qspi_init_dma_param(struct tegra_qspi_data *tqspi,
 	int ret;
 	struct dma_slave_config dma_sconfig;
 
-	dma_chan = dma_request_slave_channel_reason(tqspi->dev,
-						    dma_to_memory ?
-							"rx" : "tx");
+	dma_chan = dma_request_chan(tqspi->dev, dma_to_memory ?  "rx" : "tx");
 	if (IS_ERR(dma_chan)) {
 		ret = PTR_ERR(dma_chan);
 		dev_err(tqspi->dev, "Failed to get DMA channel, will retryi: %d\n",
