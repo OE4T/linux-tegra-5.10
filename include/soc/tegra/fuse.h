@@ -172,6 +172,10 @@ static inline bool tegra_platform_is_silicon(void)
 {
 	return tegra_get_platform() == TEGRA_PLATFORM_SILICON;
 }
+static inline bool tegra_is_silicon(void)
+{
+	return tegra_platform_is_silicon();
+}
 static inline bool tegra_platform_is_qt(void)
 {
 	return tegra_get_platform() == TEGRA_PLATFORM_QT;
