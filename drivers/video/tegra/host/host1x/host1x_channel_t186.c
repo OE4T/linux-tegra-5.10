@@ -33,6 +33,10 @@
 #include "nvhost_vm.h"
 #include "class_ids.h"
 #include "debug.h"
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/chip-id.h>
+#endif
+#include <soc/tegra/fuse.h>
 
 #define MLOCK_TIMEOUT_MS (16)
 
@@ -361,6 +365,23 @@ static void set_mlock_timeout(struct nvhost_channel *ch)
 	struct nvhost_master *host = nvhost_get_host(ch->dev);
 	struct nvhost_device_data *pdata = platform_get_drvdata(ch->dev);
 	struct nvhost_device_data *host_pdata = platform_get_drvdata(host->dev);
+
+	if (nvhost_dev_is_virtual(host->dev)) {
+		/*
+		 * On T186 and T194, per channel Mlock timeout is provided.
+		 * So Nvhost driver configures Mlock timeout counter.
+		 * On T234, per engine Mlock timeout is provided. And per engine
+		 * Mlock timeout counter register is in HOST1X COMMON page.
+		 * So Nvhost server configures Mlock timeout counter.
+		 */
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+		if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA23) {
+#else
+		if (tegra_get_chip_id() == TEGRA234) {
+#endif
+			return;
+		}
+	}
 
 	/* set mlock timeout */
 	if (host->info.vmserver_owns_engines) {
