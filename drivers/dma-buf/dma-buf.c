@@ -25,6 +25,7 @@
 #include <linux/mm.h>
 #include <linux/mount.h>
 #include <linux/pseudo_fs.h>
+#include <linux/version.h>
 
 #include <uapi/linux/dma-buf.h>
 #include <uapi/linux/magic.h>
@@ -105,7 +106,11 @@ static void dma_buf_release_attachment(struct dma_buf_attachment *attach)
 				attach->sgt, DMA_BIDIRECTIONAL);
 		if (dmabuf->ops->detach)
 			dmabuf->ops->detach(dmabuf, attach);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		kzfree(attach);
+#else
+		kfree_sensitive(attach);
+#endif
 	}
 }
 
@@ -206,7 +211,11 @@ static void dma_buf_release(struct dentry *dentry)
 
 	module_put(dmabuf->owner);
 	kfree(dmabuf->name);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	kzfree(dmabuf);
+#else
+	kfree_sensitive(dmabuf);
+#endif
 }
 
 static const struct dentry_operations dma_buf_dentry_ops = {
@@ -998,7 +1007,11 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
 	if (is_locked)
 		mutex_unlock(&context_dev_lock);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	kzfree(attach);
+#else
+	kfree_sensitive(attach);
+#endif
 }
 EXPORT_SYMBOL_GPL(dma_buf_detach);
 
