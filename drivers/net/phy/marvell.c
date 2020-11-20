@@ -175,7 +175,7 @@
 #define MII_88E1510_GEN_CTRL_REG_1		0x14
 #define MII_88E1510_GEN_CTRL_REG_1_MODE_MASK	0x7
 #define MII_88E1510_GEN_CTRL_REG_1_MODE_SGMII	0x1	/* SGMII to copper */
-#define MII_88E1510_GEN_CTRL_REG_1_MODE_RGMII_TO_SGMII	0x4	/* RGMII to SGMII */
+#define MII_88E1510_GEN_CTRL_REG_1_MODE_RGMII_TO_1000BASE_X	0x2	/* RGMII to 1000BASE-X */
 #define MII_88E1510_GEN_CTRL_REG_1_RESET	0x8000	/* Soft reset */
 
 #define MII_VCT5_TX_RX_MDI0_COUPLING	0x10
@@ -1054,7 +1054,7 @@ static int m88e1510_enable_eee_adv(struct phy_device *phydev)
 	return 0;
 }
 
-static int marvell_config_rgmii_to_sgmii(struct phy_device *phydev)
+static int marvell_config_rgmii_to_1000basex(struct phy_device *phydev)
 {
 	int ret = 0;
 	int temp;
@@ -1064,10 +1064,10 @@ static int marvell_config_rgmii_to_sgmii(struct phy_device *phydev)
 	if (ret < 0)
 		return ret;
 
-	/* In reg 20, write MODE[2:0] = 0x4 (RGMII to SGMII) */
+	/* In reg 20, write MODE[2:0] = 0x2 (RGMII to 1000BASE-X) */
 	temp = phy_read(phydev, MII_88E1510_GEN_CTRL_REG_1);
 	temp &= ~MII_88E1510_GEN_CTRL_REG_1_MODE_MASK;
-	temp |= MII_88E1510_GEN_CTRL_REG_1_MODE_RGMII_TO_SGMII;
+	temp |= MII_88E1510_GEN_CTRL_REG_1_MODE_RGMII_TO_1000BASE_X;
 	ret = phy_write(phydev, MII_88E1510_GEN_CTRL_REG_1, temp);
 	if (ret < 0)
 		return ret;
@@ -1090,7 +1090,7 @@ static int m88e1510_config_init(struct phy_device *phydev)
 	struct marvell_priv *priv = phydev->priv;
 
 	if (priv->fiber_mode)
-		return marvell_config_rgmii_to_sgmii(phydev);
+		return marvell_config_rgmii_to_1000basex(phydev);
 
 	/* SGMII-to-Copper mode initialization */
 	if (phydev->interface == PHY_INTERFACE_MODE_SGMII) {
