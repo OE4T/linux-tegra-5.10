@@ -725,6 +725,15 @@ static void vi5_channel_stop_kthreads(struct tegra_channel *chan)
 	mutex_unlock(&chan->stop_kthread_lock);
 }
 
+static void vi5_get_device_inst_handle(struct platform_device *pdev,
+		uint32_t csi_stream_id, struct device **dev)
+{
+	if (dev)
+		*dev = vi_csi_stream_to_nvhost_device(pdev, csi_stream_id);
+	else
+		dev_err(&pdev->dev, "dev pointer is NULL\n");
+}
+
 static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 {
 	struct tegra_channel *chan = vb2_get_drv_priv(vq);
@@ -793,13 +802,17 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 
 			/* Allocate buffer for Embedded Data if need to*/
 			if (emb_buf_size > chan->vi->emb_buf_size) {
+				struct device *vi_dev_inst;
+
+				vi5_get_device_inst_handle(chan->vi->ndev,
+					chan->port[0], &vi_dev_inst);
 				/*
 				 * if old buffer is smaller than what we need,
 				 * release the old buffer and re-allocate a
 				 * bigger one below.
 				 */
 				if (chan->vi->emb_buf_size > 0) {
-					dma_free_coherent(chan->vi->dev,
+					dma_free_coherent(vi_dev_inst,
 						chan->vi->emb_buf_size,
 						chan->vi->emb_buf_addr,
 						chan->vi->emb_buf);
@@ -807,7 +820,7 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 				}
 
 				chan->vi->emb_buf_addr =
-					dma_alloc_coherent(chan->vi->dev,
+					dma_alloc_coherent(vi_dev_inst,
 						emb_buf_size,
 						&chan->vi->emb_buf, GFP_KERNEL);
 				if (!chan->vi->emb_buf_addr) {
@@ -902,15 +915,9 @@ static int vi5_channel_stop_streaming(struct vb2_queue *vq)
 	return 0;
 }
 
-int tegra_vi5_power_on(struct tegra_mc_vi *vi)
+int tegra_vi5_enable(struct tegra_mc_vi *vi)
 {
 	int ret;
-
-	ret = nvhost_module_busy(vi->ndev);
-	if (ret) {
-		dev_err(vi->dev, "%s:nvhost module is busy\n", __func__);
-		return ret;
-	}
 
 	ret = tegra_camera_emc_clk_enable();
 	if (ret)
@@ -919,16 +926,13 @@ int tegra_vi5_power_on(struct tegra_mc_vi *vi)
 	return 0;
 
 err_emc_enable:
-	nvhost_module_idle(vi->ndev);
-
 	return ret;
 }
 
-void tegra_vi5_power_off(struct tegra_mc_vi *vi)
+void tegra_vi5_disable(struct tegra_mc_vi *vi)
 {
 	tegra_channel_ec_close(vi);
 	tegra_camera_emc_clk_disable();
-	nvhost_module_idle(vi->ndev);
 }
 
 static int vi5_power_on(struct tegra_channel *chan)
@@ -940,14 +944,7 @@ static int vi5_power_on(struct tegra_channel *chan)
 	vi = chan->vi;
 	csi = vi->csi;
 
-	/* Use chan->video as identifier of vi5 nvhost_module client
-	 * since they are unique per channel
-	 */
-	ret = nvhost_module_add_client(vi->ndev, &chan->video);
-	if (ret < 0)
-		return ret;
-
-	ret = tegra_vi5_power_on(vi);
+	ret = tegra_vi5_enable(vi);
 	if (ret < 0)
 		return ret;
 
@@ -973,8 +970,7 @@ static void vi5_power_off(struct tegra_channel *chan)
 	if (ret < 0)
 		dev_err(vi->dev, "Failed to power off subdevices\n");
 
-	tegra_vi5_power_off(vi);
-	nvhost_module_remove_client(vi->ndev, &chan->video);
+	tegra_vi5_disable(vi);
 }
 
 struct tegra_vi_fops vi5_fops = {
@@ -986,4 +982,5 @@ struct tegra_vi_fops vi5_fops = {
 	.vi_error_recover = vi5_channel_error_recover,
 	.vi_add_ctrls = vi5_add_ctrls,
 	.vi_init_video_formats = vi5_init_video_formats,
+	.vi_get_device_inst_handle = vi5_get_device_inst_handle,
 };

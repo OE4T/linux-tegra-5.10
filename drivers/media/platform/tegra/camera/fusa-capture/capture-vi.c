@@ -33,6 +33,10 @@
 #include <media/fusa-capture/capture-common.h>
 
 #include <media/fusa-capture/capture-vi.h>
+#include <media/vi.h>
+#include <media/mc_common.h>
+#include <media/tegra_camera_platform.h>
+#include "camera/vi/vi5_fops.h"
 #include "nvhost_acm.h"
 
 /**
@@ -97,6 +101,7 @@ static const char * const vi_mapping_elements[] = {
  * @brief The Capture-VI standalone driver context.
  */
 struct tegra_capture_vi_data {
+	struct vi vi_common; /**< VI device context */
 	uint32_t num_vi_devices; /**< Number of available VI devices */
 	struct platform_device *vi_pdevices[MAX_VI_UNITS];
 		/**< VI nvhost client platform device for each VI instance */
@@ -602,6 +607,22 @@ void vi_get_nvhost_device(
 
 	chan->dev = &info->vi_pdevices[vi_inst]->dev;
 	chan->ndev = info->vi_pdevices[vi_inst];
+}
+
+struct device *vi_csi_stream_to_nvhost_device(
+	struct platform_device *pdev,
+	uint32_t csi_stream_id)
+{
+	struct tegra_capture_vi_data *info = platform_get_drvdata(pdev);
+	uint32_t vi_inst_id = 0;
+
+	if (csi_stream_id > MAX_NVCSI_STREAM_IDS) {
+		dev_err(&pdev->dev, "Invalid NVCSI stream Id\n");
+		return NULL;
+	}
+
+	vi_inst_id = info->vi_instance_table[csi_stream_id];
+	return &info->vi_pdevices[vi_inst_id]->dev;
 }
 
 int vi_capture_setup(
@@ -1646,7 +1667,17 @@ static int capture_vi_probe(struct platform_device *pdev)
 	if (err)
 		goto cleanup;
 
+	info->vi_common.mc_vi.vi = &info->vi_common;
+	info->vi_common.mc_vi.fops = &vi5_fops;
+	err = tegra_capture_vi_media_controller_init(
+			&info->vi_common.mc_vi, pdev);
+	if (err) {
+		dev_warn(&pdev->dev, "media controller init failed\n");
+		err = 0;
+	}
+
 	memset(channels, 0 , sizeof(channels));
+
 	return 0;
 
 cleanup:

@@ -276,6 +276,20 @@ void vi_get_nvhost_device(
 	struct vi_capture_setup *setup);
 
 /**
+ * @brief The function returns the corresponding NvHost VI client device
+ * pointer associated with the NVCSI stream Id. A NULL value is returned
+ * if invalid input parameters are passed.
+ *
+ * @param[in]	pdev	VI capture platform device pointer
+ * @param[in]	csi_stream_id	NVCSI stream Id
+ *
+ * @returns		reference to VI device (success), null (failure)
+ */
+struct device *vi_csi_stream_to_nvhost_device(
+	struct platform_device *pdev,
+	uint32_t csi_stream_id);
+
+/**
  * @brief Open a VI channel in RCE, sending channel configuration to request a
  * HW channel allocation. Syncpoints are allocated by the KMD in this
  * subroutine.

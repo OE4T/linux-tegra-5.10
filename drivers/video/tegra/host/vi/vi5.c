@@ -55,7 +55,6 @@
 #include <media/vi.h>
 #include <media/mc_common.h>
 #include <media/tegra_camera_platform.h>
-#include "camera/vi/vi5_fops.h"
 #include <uapi/linux/nvhost_vi_ioctl.h>
 #include <linux/platform/tegra/latency_allowance.h>
 
@@ -69,9 +68,6 @@ struct host_vi5 {
 	struct platform_device *pdev;
 	struct platform_device *vi_thi;
 	struct vi vi_common;
-
-	/* RCE RM area */
-	struct sg_table rm_sgt;
 
 	/* Debugfs */
 	struct vi5_debug {
@@ -238,17 +234,6 @@ int vi5_priv_late_probe(struct platform_device *pdev)
 
 	vi5_init_debugfs(vi5);
 
-	if (!vi5->skip_v4l2_init) {
-		vi5->vi_common.mc_vi.vi = &vi5->vi_common;
-		vi5->vi_common.mc_vi.fops = &vi5_fops;
-		err = tegra_vi_media_controller_init(
-			&vi5->vi_common.mc_vi, pdev);
-		if (err) {
-			dev_warn(&pdev->dev, "media controller init failed\n");
-			err = 0;
-		}
-	}
-
 	return 0;
 
 device_release:
@@ -314,12 +299,6 @@ static int vi5_remove(struct platform_device *pdev)
 	tegra_camera_device_unregister(vi5);
 	vi_channel_drv_unregister(&pdev->dev);
 	tegra_vi_media_controller_cleanup(&vi5->vi_common.mc_vi);
-
-	if (vi5->rm_sgt.sgl) {
-		dma_unmap_sg(&pdev->dev, vi5->rm_sgt.sgl,
-			vi5->rm_sgt.orig_nents, DMA_FROM_DEVICE);
-		sg_free_table(&vi5->rm_sgt);
-	}
 
 	vi5_remove_debugfs(vi5);
 	platform_device_put(vi5->vi_thi);

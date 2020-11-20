@@ -301,17 +301,10 @@ void tpg_vi_media_controller_cleanup(struct tegra_mc_vi *mc_vi)
 }
 EXPORT_SYMBOL(tpg_vi_media_controller_cleanup);
 
-int tegra_vi_media_controller_init(struct tegra_mc_vi *mc_vi,
-				   struct platform_device *pdev)
+static int tegra_vi_media_controller_init_int(struct tegra_mc_vi *mc_vi,
+				struct platform_device *pdev)
 {
 	int err = 0;
-	struct nvhost_device_data *pdata = (struct nvhost_device_data *)
-		platform_get_drvdata(pdev);
-
-	if (!pdata)
-		return -EINVAL;
-	set_vi_register_base(mc_vi, pdata->aperture[0]);
-
 	mc_vi->ndev = pdev;
 	mc_vi->dev = &pdev->dev;
 	INIT_LIST_HEAD(&mc_vi->vi_chans);
@@ -356,7 +349,27 @@ mc_init_fail:
 	dev_err(&pdev->dev, "%s: failed\n", __func__);
 	return err;
 }
+
+int tegra_vi_media_controller_init(struct tegra_mc_vi *mc_vi,
+				   struct platform_device *pdev)
+{
+	struct nvhost_device_data *pdata = (struct nvhost_device_data *)
+		platform_get_drvdata(pdev);
+
+	if (!pdata)
+		return -EINVAL;
+	set_vi_register_base(mc_vi, pdata->aperture[0]);
+
+	return tegra_vi_media_controller_init_int(mc_vi, pdev);
+}
 EXPORT_SYMBOL(tegra_vi_media_controller_init);
+
+int tegra_capture_vi_media_controller_init(struct tegra_mc_vi *mc_vi,
+				   struct platform_device *pdev)
+{
+	return tegra_vi_media_controller_init_int(mc_vi, pdev);
+}
+EXPORT_SYMBOL(tegra_capture_vi_media_controller_init);
 
 void tegra_vi_media_controller_cleanup(struct tegra_mc_vi *mc_vi)
 {

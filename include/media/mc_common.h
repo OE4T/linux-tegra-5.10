@@ -3,7 +3,7 @@
  *
  * Tegra Media controller common APIs
  *
- * Copyright (c) 2012-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -351,11 +351,13 @@ int tegra_vi2_power_on(struct tegra_mc_vi *vi);
 void tegra_vi2_power_off(struct tegra_mc_vi *vi);
 int tegra_vi4_power_on(struct tegra_mc_vi *vi);
 void tegra_vi4_power_off(struct tegra_mc_vi *vi);
-int tegra_vi5_power_on(struct tegra_mc_vi *vi);
-void tegra_vi5_power_off(struct tegra_mc_vi *vi);
+int tegra_vi5_enable(struct tegra_mc_vi *vi);
+void tegra_vi5_disable(struct tegra_mc_vi *vi);
 int tegra_clean_unlinked_channels(struct tegra_mc_vi *vi);
 int tegra_channel_s_ctrl(struct v4l2_ctrl *ctrl);
 int tegra_vi_media_controller_init(struct tegra_mc_vi *mc_vi,
+			struct platform_device *pdev);
+int tegra_capture_vi_media_controller_init(struct tegra_mc_vi *mc_vi,
 			struct platform_device *pdev);
 void tegra_vi_media_controller_cleanup(struct tegra_mc_vi *mc_vi);
 void tegra_channel_ec_close(struct tegra_mc_vi *mc_vi);
@@ -427,6 +429,8 @@ struct tegra_vi_fops {
 			bool use_prio, unsigned int cmd, void *arg);
 	int (*vi_mfi_work)(struct tegra_mc_vi *vi, int port);
 	void (*vi_stride_align)(unsigned int *bpl);
+	void (*vi_get_device_inst_handle)(struct platform_device *pdev,
+		uint32_t csi_steam_id, struct device **dev);
 };
 
 struct tegra_csi_fops {
