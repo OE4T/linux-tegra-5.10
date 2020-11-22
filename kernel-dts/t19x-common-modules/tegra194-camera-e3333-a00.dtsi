@@ -15,63 +15,63 @@
  */
 
 / {
-	host1x@13e00000 {
-		vi@15c10000 {
-			num-channels = <6>;
-			ports {
-				#address-cells = <1>;
-				#size-cells = <0>;
-				port@0 {
-					reg = <0>;
-					e3333_vi_in0: endpoint {
-						port-index = <0>;
-						bus-width = <2>;
-						remote-endpoint = <&e3333_csi_out0>;
-					};
+	tegra-capture-vi {
+		num-channels = <6>;
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				e3333_vi_in0: endpoint {
+					port-index = <0>;
+					bus-width = <2>;
+					remote-endpoint = <&e3333_csi_out0>;
 				};
-				port@1 {
-					reg = <1>;
-					e3333_vi_in1: endpoint {
-						port-index = <1>;
-						bus-width = <2>;
-						remote-endpoint = <&e3333_csi_out1>;
-					};
+			};
+			port@1 {
+				reg = <1>;
+				e3333_vi_in1: endpoint {
+					port-index = <1>;
+					bus-width = <2>;
+					remote-endpoint = <&e3333_csi_out1>;
 				};
-				port@2 {
-					reg = <2>;
-					e3333_vi_in2: endpoint {
-						port-index = <2>;
-						bus-width = <2>;
-						remote-endpoint = <&e3333_csi_out2>;
-					};
+			};
+			port@2 {
+				reg = <2>;
+				e3333_vi_in2: endpoint {
+					port-index = <2>;
+					bus-width = <2>;
+					remote-endpoint = <&e3333_csi_out2>;
 				};
-				port@3 {
-					reg = <3>;
-					e3333_vi_in3: endpoint {
-						port-index = <3>;
-						bus-width = <2>;
-						remote-endpoint = <&e3333_csi_out3>;
-					};
+			};
+			port@3 {
+				reg = <3>;
+				e3333_vi_in3: endpoint {
+					port-index = <3>;
+					bus-width = <2>;
+					remote-endpoint = <&e3333_csi_out3>;
 				};
-				port@4 {
-					reg = <4>;
-					e3333_vi_in4: endpoint {
-						port-index = <4>;
-						bus-width = <2>;
-						remote-endpoint = <&e3333_csi_out4>;
-					};
+			};
+			port@4 {
+				reg = <4>;
+				e3333_vi_in4: endpoint {
+					port-index = <4>;
+					bus-width = <2>;
+					remote-endpoint = <&e3333_csi_out4>;
 				};
-				port@5 {
-					reg = <5>;
-					e3333_vi_in5: endpoint {
-						port-index = <5>;
-						bus-width = <2>;
-						remote-endpoint = <&e3333_csi_out5>;
-					};
+			};
+			port@5 {
+				reg = <5>;
+				e3333_vi_in5: endpoint {
+					port-index = <5>;
+					bus-width = <2>;
+					remote-endpoint = <&e3333_csi_out5>;
 				};
 			};
 		};
+	};
 
+	host1x@13e00000 {
 		nvcsi@15a00000 {
 			num-channels = <6>;
 			#address-cells = <1>;

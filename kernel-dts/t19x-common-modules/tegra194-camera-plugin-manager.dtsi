@@ -91,7 +91,7 @@
 
 			/* Enable VI ports */
 			override@6 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<2>;
 				};
@@ -167,6 +167,7 @@
 				target = <&imx390_csi_out0>;
 				_overlay_ {
 					status = "okay";
+					remote-endpoint = <&imx390_vi_in0>;
 				};
 			};
 			override@17 {
@@ -200,6 +201,7 @@
 				target = <&imx390_csi_out1>;
 				_overlay_ {
 					status = "okay";
+					remote-endpoint = <&imx390_vi_in1>;
 				};
 			};
 
@@ -279,7 +281,7 @@
 
 			/* Enable VI ports */
 			override@4 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<1>;
 				};
@@ -412,7 +414,7 @@
 			};
 			/* Enable VI ports */
 			override@4 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<1>;
 				};
@@ -520,7 +522,7 @@
 			ids = "3333-*";
 			/* VI number of channels */
 			override@0 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<6>;
 				};
@@ -1158,7 +1160,7 @@
 			};
 			/* Enable VI ports */
 			override@4 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<1>;
 				};
@@ -1355,7 +1357,7 @@
 			};
 			/* Enable VI ports */
 			override@8 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<2>;
 				};
@@ -1428,6 +1430,7 @@
 				target = <&liimx274_csi_out0>;
 				_overlay_ {
 					status = "okay";
+					remote-endpoint = <&liimx274_vi_in0>;
 				};
 			};
 			override@19 {
@@ -1461,6 +1464,7 @@
 				target = <&liimx274_csi_out1>;
 				_overlay_ {
 					status = "okay";
+					remote-endpoint = <&liimx274_vi_in1>;
 				};
 			};
 			/* tegra-camera-platform settings */
@@ -1510,7 +1514,7 @@
 			ids = "3331-*";
 			/* VI number of channels */
 			override@0 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<1>;	 /* TODO change to 3 */
 				};
@@ -1672,7 +1676,7 @@
 			};
 			/* Enable VI ports */
 			override@4 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<1>;
 				};
@@ -1790,7 +1794,7 @@
 			};
 			/* Enable VI ports */
 			override@4 {
-				target = <&vi_base>;
+				target = <&capture_vi_base>;
 				_overlay_ {
 					num-channels=<1>;
 				};

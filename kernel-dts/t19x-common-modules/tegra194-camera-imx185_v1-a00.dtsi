@@ -15,23 +15,23 @@
  */
 
 / {
-	host1x@13e00000 {
-		vi@15c10000 {
-			num-channels = <1>;
-			ports {
-				#address-cells = <1>;
-				#size-cells = <0>;
-				port@0 {
-					reg = <0>;
-					liimx185_vi_in0: endpoint {
-						port-index = <0>;
-						bus-width = <4>;
-						remote-endpoint = <&liimx185_csi_out0>;
-					};
+	tegra-capture-vi {
+		num-channels = <1>;
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				liimx185_vi_in0: endpoint {
+					port-index = <0>;
+					bus-width = <4>;
+					remote-endpoint = <&liimx185_csi_out0>;
 				};
 			};
 		};
+	};
 
+	host1x@13e00000 {
 		nvcsi@15a00000 {
 			num-channels = <1>;
 			#address-cells = <1>;
