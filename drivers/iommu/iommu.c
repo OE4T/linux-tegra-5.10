@@ -2066,7 +2066,7 @@ EXPORT_SYMBOL_GPL(iommu_uapi_cache_invalidate);
 
 static int iommu_check_bind_data(struct iommu_gpasid_bind_data *data)
 {
-	u32 mask;
+	u64 mask;
 	int i;
 
 	if (data->version != IOMMU_GPASID_BIND_VERSION_1)
