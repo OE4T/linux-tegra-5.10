@@ -69,6 +69,8 @@ struct tegra_hv_queue_data {
 	uint32_t	frame_size;
 	uint32_t	offset;
 	uint16_t	irq, raise_irq;
+	uint64_t	trap_ipa; /** @brief IO address used to notify peer endpoint */
+	uint64_t	msi_ipa; /** @brief MSI address used to notify peer endpoint */
 };
 
 struct ivc_mempool {
@@ -90,6 +92,13 @@ struct ivc_info_page {
 	uint32_t nr_queues;
 	uint32_t nr_areas;
 	uint32_t nr_mempools;
+	uint32_t padding; /**< @brief reserved for internal use */
+			// IMPORTANT: Padding is needed to align
+			// sizeof(struct ivc_info_page ) to 64 bits
+	uint64_t trap_region_base_ipa; /**< @brief MMIO trap region start address */
+	uint64_t trap_region_size; /**< @brief MMIO trap region size */
+	uint64_t msi_region_base_ipa; /**< @brief MSI region start address */
+	uint64_t msi_region_size; /**< @brief MSI trap region size */
 
 	/* The actual length of this array is nr_areas. */
 	struct ivc_shared_area areas[];
