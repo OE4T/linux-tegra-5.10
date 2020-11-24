@@ -162,8 +162,20 @@ static int csi5_stream_open(struct tegra_csi_channel *chan, u32 stream_id,
 			v4l2_get_subdev_hostdata(&chan->subdev);
 	struct CAPTURE_CONTROL_MSG msg;
 
-	dev_dbg(csi->dev, "%s: stream_id=%u, csi_port=%u\n",
-		__func__, stream_id, csi_port);
+	/* If the tegra_vi_channel is NULL it means that is PCL TPG usecase where fusa UMD opens the
+	 * VI channel and sends channel messages but for CSI messages it uses this V4L2 path.
+	 * In such a case query fusacapture KMD for the tegra_vi_channel associated with the
+	 * current stream id/vc id combination.
+	 * If still NULL, we are in erroroneous state, exit with error.
+	 */
+	if (tegra_chan->tegra_vi_channel == NULL) {
+		tegra_chan->tegra_vi_channel = get_tegra_vi_channel(stream_id, tegra_chan->virtual_channel);
+		if (tegra_chan->tegra_vi_channel == NULL) {
+			dev_err(csi->dev, "%s: VI channel not found for stream- %d vc- %d\n",
+				__func__,stream_id,tegra_chan->virtual_channel);
+			return -EINVAL;
+		}
+	}
 
 	/* Open NVCSI stream */
 	memset(&msg, 0, sizeof(msg));
@@ -185,9 +197,6 @@ static void csi5_stream_close(struct tegra_csi_channel *chan, u32 stream_id,
 	int err = 0;
 
 	struct CAPTURE_CONTROL_MSG msg;
-
-	dev_dbg(csi->dev, "%s: stream_id=%u, csi_port=%u\n",
-		__func__, stream_id, csi_port);
 
 	/* Close NVCSI stream */
 	memset(&msg, 0, sizeof(msg));
@@ -222,7 +231,6 @@ static int csi5_stream_set_config(struct tegra_csi_channel *chan, u32 stream_id,
 	struct nvcsi_brick_config brick_config;
 	struct nvcsi_cil_config cil_config;
 	bool is_cphy = (csi_lanes == 3);
-
 	dev_dbg(csi->dev, "%s: stream_id=%u, csi_port=%u\n",
 		__func__, stream_id, csi_port);
 

@@ -77,6 +77,15 @@
 #define MAX_NVCSI_STREAM_IDS  U32_C(0x6)
 
 /**
+ * @brief Maximum number of virtual channel supported per stream.
+ */
+#define MAX_VIRTUAL_CHANNEL_PER_STREAM  U32_C(16)
+
+/**
+ * @brief A 2-D array for storing all possible tegra_vi_channel struct pointers.
+ */
+static struct tegra_vi_channel *channels[MAX_NVCSI_STREAM_IDS][MAX_VIRTUAL_CHANNEL_PER_STREAM];
+/**
  * @brief Names of VI-unit and CSI-stream mapping elements in device-tree node
  */
 static const char * const vi_mapping_elements[] = {
@@ -462,8 +471,6 @@ static int csi_stream_tpg_disable(
 				!= CAPTURE_OK))
 		return err;
 
-	capture->virtual_channel_id = NVCSI_STREAM_INVALID_TPG_VC_ID;
-
 	return 0;
 }
 
@@ -494,8 +501,6 @@ static int csi_stream_close(
 	if ((err < 0) ||
 			(resp_msg->phy_stream_close_resp.result != CAPTURE_OK))
 		return err;
-
-	capture->stream_id = NVCSI_STREAM_INVALID_ID;
 
 	return 0;
 }
@@ -775,6 +780,14 @@ int vi_capture_setup(
 		goto cb_fail;
 	}
 
+	if (setup->csi_stream_id >= MAX_NVCSI_STREAM_IDS ||
+		setup->virtual_channel_id >= MAX_VIRTUAL_CHANNEL_PER_STREAM) {
+		dev_err(chan->dev, "Invalid stream id or virtual channel id\n");
+		err = -EINVAL;
+		goto cb_fail;
+	}
+	channels[setup->csi_stream_id][setup->virtual_channel_id] = chan;
+
 	return 0;
 
 cb_fail:
@@ -786,6 +799,16 @@ control_cb_fail:
 	vi_capture_release_syncpts(chan);
 syncpt_fail:
 	return err;
+}
+
+struct tegra_vi_channel *get_tegra_vi_channel(
+	unsigned int stream_id,
+	unsigned int virtual_channel_id)
+{
+	if (stream_id >= MAX_NVCSI_STREAM_IDS || virtual_channel_id >= MAX_VIRTUAL_CHANNEL_PER_STREAM)
+		return NULL;
+
+	return channels[stream_id][virtual_channel_id];
 }
 
 int vi_capture_reset(
@@ -933,7 +956,16 @@ int vi_capture_release(
 
 	vi_capture_release_syncpts(chan);
 
+	if (capture->stream_id < MAX_NVCSI_STREAM_IDS &&
+	    capture->virtual_channel_id < MAX_VIRTUAL_CHANNEL_PER_STREAM) {
+		channels[capture->stream_id][capture->virtual_channel_id] = NULL;
+	}
+
 	capture->channel_id = CAPTURE_CHANNEL_INVALID_ID;
+	capture->stream_id = NVCSI_STREAM_INVALID_ID;
+	capture->csi_port = NVCSI_PORT_UNSPECIFIED;
+	capture->virtual_channel_id = NVCSI_STREAM_INVALID_TPG_VC_ID;
+
 	if (capture->is_progress_status_notifier_set)
 		capture_common_release_progress_status_notifier(
 			&capture->progress_status_notifier);
@@ -1004,8 +1036,6 @@ static int vi_capture_control_send_message(
 		break;
 	case CAPTURE_PHY_STREAM_CLOSE_REQ:
 		resp_id = CAPTURE_PHY_STREAM_CLOSE_RESP;
-		capture->stream_id = NVCSI_STREAM_INVALID_ID;
-		capture->csi_port = NVCSI_PORT_UNSPECIFIED;
 		break;
 	case CAPTURE_PHY_STREAM_DUMPREGS_REQ:
 		resp_id = CAPTURE_PHY_STREAM_DUMPREGS_RESP;
@@ -1031,7 +1061,6 @@ static int vi_capture_control_send_message(
 		break;
 	case CAPTURE_CSI_STREAM_TPG_STOP_REQ:
 		resp_id = CAPTURE_CSI_STREAM_TPG_STOP_RESP;
-		capture->virtual_channel_id = NVCSI_STREAM_INVALID_TPG_VC_ID;
 		break;
 	case CAPTURE_CHANNEL_EI_REQ:
 		resp_id = CAPTURE_CHANNEL_EI_RESP;
@@ -1053,11 +1082,11 @@ int vi_capture_control_message_from_user(
 	struct tegra_vi_channel *chan,
 	struct vi_capture_control_msg *msg)
 {
-	struct vi_capture *capture = chan->capture_data;
+	struct vi_capture *capture;
 	const void __user *msg_ptr;
 	void __user *response;
 	void *msg_cpy;
-	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
+	struct CAPTURE_CONTROL_MSG *resp_msg;
 	int err = 0;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
@@ -1070,11 +1099,20 @@ int vi_capture_control_message_from_user(
 		NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG);
 #endif
 
+	if (chan == NULL) {
+		dev_err(NULL,"%s: NULL VI channel received\n", __func__);
+		return -ENODEV;
+	}
+
+	capture = chan->capture_data;
+
 	if (capture == NULL) {
 		dev_err(chan->dev,
 			 "%s: vi capture uninitialized\n", __func__);
 		return -ENODEV;
 	}
+
+	resp_msg = &capture->control_resp_msg;
 
 	if (msg->ptr == 0ull || msg->response == 0ull || msg->size == 0)
 		return -EINVAL;
@@ -1109,10 +1147,15 @@ int vi_capture_control_message(
 	struct tegra_vi_channel *chan,
 	struct vi_capture_control_msg *msg)
 {
-	struct vi_capture *capture = chan->capture_data;
+	struct vi_capture *capture;
 	void *msg_cpy;
-	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
+	struct CAPTURE_CONTROL_MSG *resp_msg;
 	int err = 0;
+
+	if (chan == NULL) {
+		dev_err(NULL,"%s: NULL VI channel received\n", __func__);
+		return -ENODEV;
+	}
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log(chan->ndev,
@@ -1124,12 +1167,15 @@ int vi_capture_control_message(
 		NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG);
 #endif
 
+	capture = chan->capture_data;
+
 	if (capture == NULL) {
 		dev_err(chan->dev,
 			 "%s: vi capture uninitialized\n", __func__);
 		return -ENODEV;
 	}
 
+	resp_msg = &capture->control_resp_msg;
 	if (msg->ptr == 0ull || msg->response == 0ull || msg->size == 0)
 		return -EINVAL;
 
@@ -1600,6 +1646,7 @@ static int capture_vi_probe(struct platform_device *pdev)
 	if (err)
 		goto cleanup;
 
+	memset(channels, 0 , sizeof(channels));
 	return 0;
 
 cleanup:

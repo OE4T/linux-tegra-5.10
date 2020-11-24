@@ -290,6 +290,21 @@ int vi_capture_setup(
 	struct vi_capture_setup *setup);
 
 /**
+ * @brief Get the pointer to tegra_vi_channel struct associated with the
+ * stream id and virtual id passed as function input params.
+ *
+ * If no valid tegra_vi_channel pointer is found associated with the given
+ * stream id/ VC id combo then NULL is returned.
+ *
+ * @param[in]	stream_id	CSI stream ID
+ * @param[in]	virtual_channel_id	CSI virtual channel ID
+ *
+ * @returns		pointer to tegra_vi_channel(success), NULL(failure)
+ */
+struct tegra_vi_channel *get_tegra_vi_channel(
+	unsigned int stream_id,
+	unsigned int virtual_channel_id);
+/**
  * @brief Reset an opened VI channel, all pending capture requests to RCE are
  * discarded.
  *
