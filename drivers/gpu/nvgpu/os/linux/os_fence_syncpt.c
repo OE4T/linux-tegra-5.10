@@ -17,7 +17,6 @@
 #include <uapi/linux/nvhost_ioctl.h>
 
 #include <linux/err.h>
-#include <linux/nvhost.h>
 #include <nvgpu/errno.h>
 
 #include <nvgpu/types.h>
@@ -35,18 +34,18 @@
 static int nvgpu_os_fence_syncpt_install_fd(struct nvgpu_os_fence *s,
 		int fd)
 {
-	return nvhost_fence_install(s->priv, fd);
+	return nvgpu_nvhost_fence_install(s->priv, fd);
 }
 
 static void nvgpu_os_fence_syncpt_drop_ref(struct nvgpu_os_fence *s)
 {
-	nvhost_fence_put(s->priv);
+	nvgpu_nvhost_fence_put(s->priv);
 	nvgpu_os_fence_clear(s);
 }
 
 static void nvgpu_os_fence_syncpt_dup(struct nvgpu_os_fence *s)
 {
-	nvhost_fence_dup(s->priv);
+	nvgpu_nvhost_fence_dup(s->priv);
 }
 
 static const struct nvgpu_os_fence_ops syncpt_ops = {
@@ -63,9 +62,10 @@ int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
 		.id = id,
 		.thresh = thresh,
 	};
-	struct nvhost_fence *fence = nvhost_fence_create(
-		nvhost_device->host1x_pdev, &pt, 1, "fence");
+	struct nvhost_fence *fence;
 
+	fence = nvgpu_nvhost_fence_create(nvhost_device->host1x_pdev, &pt, 1,
+					  "fence");
 	if (IS_ERR(fence)) {
 		nvgpu_err(c->g, "error %d during construction of fence.",
 			(int)PTR_ERR(fence));
@@ -80,7 +80,7 @@ int nvgpu_os_fence_syncpt_create(struct nvgpu_os_fence *fence_out,
 int nvgpu_os_fence_syncpt_fdget(struct nvgpu_os_fence *fence_out,
 	struct nvgpu_channel *c, int fd)
 {
-	struct nvhost_fence *fence = nvhost_fence_get(fd);
+	struct nvhost_fence *fence = nvgpu_nvhost_fence_get(fd);
 
 	if (fence == NULL) {
 		return -ENOMEM;
@@ -107,13 +107,12 @@ int nvgpu_os_fence_get_syncpts(
 u32 nvgpu_os_fence_syncpt_get_num_syncpoints(
 	struct nvgpu_os_fence_syncpt *fence)
 {
-	return nvhost_fence_num_pts(fence->fence->priv);
+	return nvgpu_nvhost_fence_num_pts(fence->fence->priv);
 }
 
-int nvgpu_os_fence_syncpt_foreach_pt(
-	struct nvgpu_os_fence_syncpt *fence,
-	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
-	void *data)
+int nvgpu_os_fence_syncpt_foreach_pt(struct nvgpu_os_fence_syncpt *fence,
+        int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
+        void *data)
 {
-	return nvhost_fence_foreach_pt(fence->fence->priv, iter, data);
+	return nvgpu_nvhost_fence_foreach_pt(fence->fence->priv, iter, data);
 }

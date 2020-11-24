@@ -183,3 +183,42 @@ u32 nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(struct gk20a *g,
 {
 	return nvhost_syncpt_unit_interface_get_byte_offset(syncpt_id);
 }
+
+int nvgpu_nvhost_fence_install(struct nvhost_fence *fence, int fd)
+{
+	return nvhost_fence_install(fence, fd);
+}
+
+struct nvhost_fence *nvgpu_nvhost_fence_get(int fd)
+{
+	return nvhost_fence_get(fd);
+}
+
+void nvgpu_nvhost_fence_put(struct nvhost_fence *fence)
+{
+	nvhost_fence_put(fence);
+}
+
+void nvgpu_nvhost_fence_dup(struct nvhost_fence *fence)
+{
+	nvhost_fence_dup(fence);
+}
+
+struct nvhost_fence *nvgpu_nvhost_fence_create(struct platform_device *pdev,
+					struct nvhost_ctrl_sync_fence_info *pts,
+					u32 num_pts, const char *name)
+{
+	return nvhost_fence_create(pdev, pts, num_pts, name);
+}
+
+u32 nvgpu_nvhost_fence_num_pts(struct nvhost_fence *fence)
+{
+	return nvhost_fence_num_pts(fence);
+}
+
+int nvgpu_nvhost_fence_foreach_pt(struct nvhost_fence *fence,
+        int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
+        void *data)
+{
+	return nvhost_fence_foreach_pt(fence, iter, data);
+}
