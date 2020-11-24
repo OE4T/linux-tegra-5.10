@@ -540,9 +540,7 @@ struct vi_channel_config {
 	/* Pixel formatter */
 	struct pixfmt_rec {
 		/** Pixel memory format for the VI channel */
-		uint16_t format;
-		/** Reserved */
-		uint16_t __pad;
+		uint32_t format;
 		struct pdaf_rec {
 			/** Within a line, X pixel position at which PDAF separation begins */
 			uint16_t crop_left;
