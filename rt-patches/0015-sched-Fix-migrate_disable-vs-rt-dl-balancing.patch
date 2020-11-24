@@ -1,7 +1,7 @@
-From 4841906b29833d25bbfa46f916b5fd1cbec372cc Mon Sep 17 00:00:00 2001
+From fc2f09203a79aca41e0b6fc1a38fe786f5354320 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:13 +0200
-Subject: [PATCH 015/230] sched: Fix migrate_disable() vs rt/dl balancing
+Subject: [PATCH 015/247] sched: Fix migrate_disable() vs rt/dl balancing
 
 In order to minimize the interference of migrate_disable() on lower
 priority tasks, which can be deprived of runtime due to being stuck
@@ -85,10 +85,10 @@ index 97ba7c9..8b43922 100644
   *
   * The reason we have it anyway.
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 90a0c92..3af9d52 100644
+index 71accd9..b47c446 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -716,8 +716,9 @@ struct task_struct {
+@@ -724,8 +724,9 @@ struct task_struct {
  	cpumask_t			cpus_mask;
  	void				*migration_pending;
  #if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
@@ -100,7 +100,7 @@ index 90a0c92..3af9d52 100644
  #ifdef CONFIG_PREEMPT_RCU
  	int				rcu_read_lock_nesting;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 63c6112..61326b9 100644
+index e3922ec..6c7f7e1 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1763,11 +1763,6 @@ void migrate_enable(void)
@@ -213,10 +213,10 @@ index 63c6112..61326b9 100644
  {
  	return false;
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index 3d3fd83..eed2e44 100644
+index 8b516c3..24c54de 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
-@@ -2129,6 +2129,9 @@ static int push_dl_task(struct rq *rq)
+@@ -2135,6 +2135,9 @@ static int push_dl_task(struct rq *rq)
  		return 0;
  
  retry:
@@ -226,7 +226,7 @@ index 3d3fd83..eed2e44 100644
  	if (WARN_ON(next_task == rq->curr))
  		return 0;
  
-@@ -2206,7 +2209,7 @@ static void push_dl_tasks(struct rq *rq)
+@@ -2212,7 +2215,7 @@ static void push_dl_tasks(struct rq *rq)
  static void pull_dl_task(struct rq *this_rq)
  {
  	int this_cpu = this_rq->cpu, cpu;
@@ -235,7 +235,7 @@ index 3d3fd83..eed2e44 100644
  	bool resched = false;
  	struct rq *src_rq;
  	u64 dmin = LONG_MAX;
-@@ -2236,6 +2239,7 @@ static void pull_dl_task(struct rq *this_rq)
+@@ -2242,6 +2245,7 @@ static void pull_dl_task(struct rq *this_rq)
  			continue;
  
  		/* Might drop this_rq->lock */
@@ -243,7 +243,7 @@ index 3d3fd83..eed2e44 100644
  		double_lock_balance(this_rq, src_rq);
  
  		/*
-@@ -2267,17 +2271,27 @@ static void pull_dl_task(struct rq *this_rq)
+@@ -2273,17 +2277,27 @@ static void pull_dl_task(struct rq *this_rq)
  					   src_rq->curr->dl.deadline))
  				goto skip;
  
@@ -277,7 +277,7 @@ index 3d3fd83..eed2e44 100644
  	}
  
  	if (resched)
-@@ -2524,6 +2538,7 @@ const struct sched_class dl_sched_class
+@@ -2530,6 +2544,7 @@ const struct sched_class dl_sched_class
  	.rq_online              = rq_online_dl,
  	.rq_offline             = rq_offline_dl,
  	.task_woken		= task_woken_dl,

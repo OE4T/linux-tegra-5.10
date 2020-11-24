@@ -1,7 +1,7 @@
-From d87160827ef26f0d64f7d68b7f1a58c1fdceabd0 Mon Sep 17 00:00:00 2001
+From 27752fdaae925e7b37c97366adef2fd47fc34a3f Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:10 +0200
-Subject: [PATCH 012/230] sched,rt: Use cpumask_any*_distribute()
+Subject: [PATCH 012/247] sched,rt: Use cpumask_any*_distribute()
 
 Replace a bunch of cpumask_any*() instances with
 cpumask_any*_distribute(), by injecting this little bit of random in
@@ -42,10 +42,10 @@ index f0d895d..383684e 100644
  /**
   * for_each_cpu - iterate over every cpu in a mask
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index e97c7c2..206a070 100644
+index 3e369b3..9b784ab 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
-@@ -2002,8 +2002,8 @@ static int find_later_rq(struct task_struct *task)
+@@ -2008,8 +2008,8 @@ static int find_later_rq(struct task_struct *task)
  				return this_cpu;
  			}
  
@@ -56,7 +56,7 @@ index e97c7c2..206a070 100644
  			/*
  			 * Last chance: if a CPU being in both later_mask
  			 * and current sd span is valid, that becomes our
-@@ -2025,7 +2025,7 @@ static int find_later_rq(struct task_struct *task)
+@@ -2031,7 +2031,7 @@ static int find_later_rq(struct task_struct *task)
  	if (this_cpu != -1)
  		return this_cpu;
  

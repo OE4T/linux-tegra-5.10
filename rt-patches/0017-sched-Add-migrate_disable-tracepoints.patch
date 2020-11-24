@@ -1,7 +1,7 @@
-From 5f1a074e353e68ce25f64f7783d7ada289abe5ab Mon Sep 17 00:00:00 2001
+From c109ff0629798e8fdab322c7c99cb31e23ff746a Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:15 +0200
-Subject: [PATCH 017/230] sched: Add migrate_disable() tracepoints
+Subject: [PATCH 017/247] sched: Add migrate_disable() tracepoints
 
 XXX write a tracer:
 
@@ -45,7 +45,7 @@ index c96a433..e48f584 100644
  
  /* This part must be outside protection */
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 61326b9..c7a590d 100644
+index 6c7f7e1..9aa0688 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1728,6 +1728,8 @@ void migrate_disable(void)
@@ -67,10 +67,10 @@ index 61326b9..c7a590d 100644
  EXPORT_SYMBOL_GPL(migrate_enable);
  
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index eed2e44..3133863 100644
+index 24c54de..d331512 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
-@@ -2272,6 +2272,7 @@ static void pull_dl_task(struct rq *this_rq)
+@@ -2278,6 +2278,7 @@ static void pull_dl_task(struct rq *this_rq)
  				goto skip;
  
  			if (is_migration_disabled(p)) {

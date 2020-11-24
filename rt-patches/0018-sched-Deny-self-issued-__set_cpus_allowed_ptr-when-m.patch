@@ -1,7 +1,7 @@
-From 1858bb01e2286e67a413f58cc8ee95d51e9c57e4 Mon Sep 17 00:00:00 2001
+From dae8f905d4d108f3b78807253e101ce8764d9060 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Fri, 23 Oct 2020 12:12:16 +0200
-Subject: [PATCH 018/230] sched: Deny self-issued __set_cpus_allowed_ptr() when
+Subject: [PATCH 018/247] sched: Deny self-issued __set_cpus_allowed_ptr() when
  migrate_disable()
 
   migrate_disable();
@@ -17,7 +17,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index c7a590d..95a2143 100644
+index 9aa0688..225fe14 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2240,8 +2240,17 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,

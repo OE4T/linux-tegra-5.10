@@ -1,7 +1,7 @@
-From b9813c40f78042296cee0dca7be557be8c2d1395 Mon Sep 17 00:00:00 2001
+From 1254af031b11fba407edb3b8592fb6c16223c293 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:07 +0200
-Subject: [PATCH 009/230] sched: Add migrate_disable()
+Subject: [PATCH 009/247] sched: Add migrate_disable()
 
 Add the base migrate_disable() support (under protest).
 
@@ -104,10 +104,10 @@ index 7d9c1c0..97ba7c9 100644
 +
  #endif /* __LINUX_PREEMPT_H */
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 063cd12..0732356 100644
+index 76cd21f..8efed58 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -714,6 +714,9 @@ struct task_struct {
+@@ -722,6 +722,9 @@ struct task_struct {
  	int				nr_cpus_allowed;
  	const cpumask_t			*cpus_ptr;
  	cpumask_t			cpus_mask;
@@ -118,7 +118,7 @@ index 063cd12..0732356 100644
  #ifdef CONFIG_PREEMPT_RCU
  	int				rcu_read_lock_nesting;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 9cd859a..ead3d80 100644
+index aea425f..56a46fa 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1696,6 +1696,61 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
@@ -303,7 +303,7 @@ index 9cd859a..ead3d80 100644
  static void
  ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
  {
-@@ -4572,6 +4671,7 @@ static void __sched notrace __schedule(bool preempt)
+@@ -4577,6 +4676,7 @@ static void __sched notrace __schedule(bool preempt)
  		 */
  		++*switch_count;
  

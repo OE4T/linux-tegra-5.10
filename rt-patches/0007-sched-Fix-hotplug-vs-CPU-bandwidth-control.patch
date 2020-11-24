@@ -1,7 +1,7 @@
-From eff6dc81f1d7a4ea628778cf4c8c5371e5cc374e Mon Sep 17 00:00:00 2001
+From cbe5fdfe573752b1045aed193fd68a4d8a30b05c Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:05 +0200
-Subject: [PATCH 007/230] sched: Fix hotplug vs CPU bandwidth control
+Subject: [PATCH 007/247] sched: Fix hotplug vs CPU bandwidth control
 
 Since we now migrate tasks away before DYING, we should also move
 bandwidth unthrottle, otherwise we can gain tasks from unthrottle
@@ -24,10 +24,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  3 files changed, 12 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index ee85545..8b9898b 100644
+index 1b43955..49770fa 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -6978,6 +6978,8 @@ int sched_cpu_activate(unsigned int cpu)
+@@ -6984,6 +6984,8 @@ int sched_cpu_activate(unsigned int cpu)
  
  int sched_cpu_deactivate(unsigned int cpu)
  {
@@ -36,7 +36,7 @@ index ee85545..8b9898b 100644
  	int ret;
  
  	set_cpu_active(cpu, false);
-@@ -6992,6 +6994,14 @@ int sched_cpu_deactivate(unsigned int cpu)
+@@ -6998,6 +7000,14 @@ int sched_cpu_deactivate(unsigned int cpu)
  
  	balance_push_set(cpu, true);
  
@@ -51,7 +51,7 @@ index ee85545..8b9898b 100644
  #ifdef CONFIG_SCHED_SMT
  	/*
  	 * When going down, decrement the number of cores with SMT present.
-@@ -7073,10 +7083,6 @@ int sched_cpu_dying(unsigned int cpu)
+@@ -7079,10 +7089,6 @@ int sched_cpu_dying(unsigned int cpu)
  	sched_tick_stop(cpu);
  
  	rq_lock_irqsave(rq, &rf);
@@ -63,10 +63,10 @@ index ee85545..8b9898b 100644
  	rq_unlock_irqrestore(rq, &rf);
  
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index f232305..77880fe 100644
+index 1d3c972..4cb0f9f 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
-@@ -543,7 +543,7 @@ static int push_dl_task(struct rq *rq);
+@@ -565,7 +565,7 @@ static int push_dl_task(struct rq *rq);
  
  static inline bool need_pull_dl_task(struct rq *rq, struct task_struct *prev)
  {

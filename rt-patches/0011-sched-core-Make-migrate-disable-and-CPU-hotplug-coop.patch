@@ -1,7 +1,7 @@
-From 13d45c687faf1fa2f9ee6ccd25c111fb427045e9 Mon Sep 17 00:00:00 2001
+From a34549edf15017f0c1d2a965ef598b93f3f7af95 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:09 +0200
-Subject: [PATCH 011/230] sched/core: Make migrate disable and CPU hotplug
+Subject: [PATCH 011/247] sched/core: Make migrate disable and CPU hotplug
  cooperative
 
 On CPU unplug tasks which are in a migrate disabled region cannot be pushed
@@ -19,7 +19,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 34 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 3efa337..4388e88 100644
+index c95d319..9ce004b 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1721,10 +1721,17 @@ static void migrate_disable_switch(struct rq *rq, struct task_struct *p)
@@ -74,7 +74,7 @@ index 3efa337..4388e88 100644
  #endif
  
  static void
-@@ -7065,15 +7083,20 @@ static void balance_push(struct rq *rq)
+@@ -7071,15 +7089,20 @@ static void balance_push(struct rq *rq)
  	 * Both the cpu-hotplug and stop task are in this case and are
  	 * required to complete the hotplug process.
  	 */
@@ -97,7 +97,7 @@ index 3efa337..4388e88 100644
  			raw_spin_unlock(&rq->lock);
  			rcuwait_wake_up(&rq->hotplug_wait);
  			raw_spin_lock(&rq->lock);
-@@ -7120,7 +7143,8 @@ static void balance_hotplug_wait(void)
+@@ -7126,7 +7149,8 @@ static void balance_hotplug_wait(void)
  {
  	struct rq *rq = this_rq();
  
@@ -107,7 +107,7 @@ index 3efa337..4388e88 100644
  			   TASK_UNINTERRUPTIBLE);
  }
  
-@@ -7365,7 +7389,7 @@ int sched_cpu_dying(unsigned int cpu)
+@@ -7371,7 +7395,7 @@ int sched_cpu_dying(unsigned int cpu)
  	sched_tick_stop(cpu);
  
  	rq_lock_irqsave(rq, &rf);

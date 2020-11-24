@@ -1,7 +1,7 @@
-From 23c2812247e8d325ad3203e0598f30d3c7259761 Mon Sep 17 00:00:00 2001
+From a533640f3180cc40d14d6c7c0e6b08da2d67f5f0 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:08 +0200
-Subject: [PATCH 010/230] sched: Fix migrate_disable() vs
+Subject: [PATCH 010/247] sched: Fix migrate_disable() vs
  set_cpus_allowed_ptr()
 
 Concurrent migrate_disable() and set_cpus_allowed_ptr() has
@@ -43,10 +43,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 205 insertions(+), 30 deletions(-)
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 0732356..90a0c92 100644
+index 8efed58..71accd9 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -714,6 +714,7 @@ struct task_struct {
+@@ -722,6 +722,7 @@ struct task_struct {
  	int				nr_cpus_allowed;
  	const cpumask_t			*cpus_ptr;
  	cpumask_t			cpus_mask;
@@ -55,7 +55,7 @@ index 0732356..90a0c92 100644
  	int				migration_disabled;
  #endif
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index ead3d80..3efa337 100644
+index 56a46fa..c95d319 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1732,15 +1732,26 @@ void migrate_enable(void)
@@ -356,7 +356,7 @@ index ead3d80..3efa337 100644
  out:
  	task_rq_unlock(rq, p, &rf);
  
-@@ -3205,6 +3378,7 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
+@@ -3210,6 +3383,7 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
  	init_numa_balancing(clone_flags, p);
  #ifdef CONFIG_SMP
  	p->wake_entry.u_flags = CSD_TYPE_TTWU;

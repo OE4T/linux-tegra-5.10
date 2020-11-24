@@ -1,7 +1,7 @@
-From e2dea494dabb7ea388a3349ca62fd7aea28157d0 Mon Sep 17 00:00:00 2001
+From 7d9f0505dbc1ec7ac0840eb3408fef58eab9da36 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:02 +0200
-Subject: [PATCH 004/230] sched/core: Wait for tasks being pushed away on
+Subject: [PATCH 004/247] sched/core: Wait for tasks being pushed away on
  hotplug
 
 RT kernels need to ensure that all tasks which are not per CPU kthreads
@@ -24,10 +24,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 43 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 703a6d4..ecbe324 100644
+index caa566a..690e8a2 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -6897,8 +6897,21 @@ static void balance_push(struct rq *rq)
+@@ -6903,8 +6903,21 @@ static void balance_push(struct rq *rq)
  	 * Both the cpu-hotplug and stop task are in this case and are
  	 * required to complete the hotplug process.
  	 */
@@ -50,7 +50,7 @@ index 703a6d4..ecbe324 100644
  
  	get_task_struct(push_task);
  	/*
-@@ -6929,6 +6942,20 @@ static void balance_push_set(int cpu, bool on)
+@@ -6935,6 +6948,20 @@ static void balance_push_set(int cpu, bool on)
  	rq_unlock_irqrestore(rq, &rf);
  }
  
@@ -71,7 +71,7 @@ index 703a6d4..ecbe324 100644
  #else
  
  static inline void balance_push(struct rq *rq)
-@@ -6939,6 +6966,10 @@ static inline void balance_push_set(int cpu, bool on)
+@@ -6945,6 +6972,10 @@ static inline void balance_push_set(int cpu, bool on)
  {
  }
  
@@ -82,7 +82,7 @@ index 703a6d4..ecbe324 100644
  #endif /* CONFIG_HOTPLUG_CPU */
  
  void set_rq_online(struct rq *rq)
-@@ -7093,6 +7124,10 @@ int sched_cpu_deactivate(unsigned int cpu)
+@@ -7099,6 +7130,10 @@ int sched_cpu_deactivate(unsigned int cpu)
  		return ret;
  	}
  	sched_domains_numa_masks_clear(cpu);
@@ -93,7 +93,7 @@ index 703a6d4..ecbe324 100644
  	return 0;
  }
  
-@@ -7333,6 +7368,9 @@ void __init sched_init(void)
+@@ -7339,6 +7374,9 @@ void __init sched_init(void)
  
  		rq_csd_init(rq, &rq->nohz_csd, nohz_csd_func);
  #endif
