@@ -325,7 +325,11 @@ int vblk_submit_combo_query_io(struct vblk_dev *vblkdev,
 			goto free_query_req;
 		}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+		rq->completion_data = ioctl_req;
+#else
 		rq->special = ioctl_req;
+#endif
 
 #if KERNEL_VERSION(4, 14, 0) <= LINUX_VERSION_CODE
 		blk_execute_rq(vblkdev->queue, vblkdev->gd, rq, 0);

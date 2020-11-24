@@ -140,7 +140,11 @@ int vblk_submit_ioctl_req(struct block_device *bdev,
 		goto free_ioctl_req;
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+	rq->completion_data = (void *)ioctl_req;
+#else
 	rq->special = (void *)ioctl_req;
+#endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0)
 	blk_execute_rq(vblkdev->queue, vblkdev->gd, rq, 0);

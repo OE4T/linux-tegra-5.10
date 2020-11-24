@@ -15,8 +15,12 @@
 #ifndef _TEGRA_VBLK_H_
 #define _TEGRA_VBLK_H_
 
+#include <linux/version.h>
 #include <linux/genhd.h>
 #include <linux/blkdev.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+#include <linux/blk-mq.h>
+#endif
 #include <linux/bio.h>
 #include <linux/tegra-ivc.h>
 #include <linux/workqueue.h>
@@ -33,7 +37,9 @@
 #define VS_LOG_HEADS 4
 #define VS_LOG_SECTS 16
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0)
 #define SECTOR_SIZE 512
+#endif
 
 #define MAX_VSC_REQS 32
 
@@ -43,6 +49,13 @@ struct vblk_ioctl_req {
 	uint32_t ioctl_len;
 	int32_t status;
 };
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+struct req_entry {
+	struct list_head list_entry;
+	struct request *req;
+};
+#endif
 
 struct vsc_request {
 	struct vs_request vs_req;
@@ -73,6 +86,10 @@ struct vblk_dev {
 	spinlock_t lock;                 /* For mutual exclusion */
 	struct request_queue *queue;     /* The device request queue */
 	struct gendisk *gd;              /* The gendisk structure */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+	struct blk_mq_tag_set tag_set;
+	struct list_head req_list;	/* List containing req */
+#endif
 	uint32_t ivc_id;
 	uint32_t ivm_id;
 	struct tegra_hv_ivc_cookie *ivck;
