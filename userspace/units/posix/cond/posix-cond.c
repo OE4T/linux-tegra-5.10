@@ -186,6 +186,8 @@ static int test_cond_write_thread(void *args)
 		test_code[i] = 0x55;
 	}
 
+	usleep(50);
+
 	read_wait = false;
 
 	if (data->use_broadcast) {
@@ -228,8 +230,6 @@ static int test_cond_read_thread(void *args)
 
 	data = (struct unit_test_cond_data *)args;
 
-	read_wait = true;
-
 	if (data->use_timedwait) {
 		timeout = 50;
 	} else {
@@ -237,6 +237,7 @@ static int test_cond_read_thread(void *args)
 	}
 
 	if (data->use_condition) {
+		read_wait = true;
 		if (data->use_wait_int) {
 			ret = NVGPU_COND_WAIT_INTERRUPTIBLE(&test_cond,
 				test_code[3] == 0x55, 0);
@@ -256,6 +257,7 @@ static int test_cond_read_thread(void *args)
 	} else {
 		nvgpu_cond_lock(&test_cond);
 
+		read_wait = true;
 		ret = nvgpu_cond_timedwait(&test_cond, &timeout);
 		if (ret != 0) {
 			read_status = ret;
@@ -285,8 +287,6 @@ static int test_cond_bcst_read_thread(void *args)
 
 	data = (struct unit_test_cond_data *)args;
 
-	bcst_read_wait = true;
-
 	if (data->use_timedwait) {
 		timeout = 50;
 	} else {
@@ -295,6 +295,7 @@ static int test_cond_bcst_read_thread(void *args)
 
 	nvgpu_cond_lock(&test_cond);
 
+	bcst_read_wait = true;
 	ret = nvgpu_cond_timedwait(&test_cond, &timeout);
 	if (ret != 0) {
 		bcst_read_status = ret;
