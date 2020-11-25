@@ -267,6 +267,7 @@ struct combo_info_t {
 
 #define VBLK_SG_IO_ID	(0x1001 | SCSI_IOCTL_FLAG)
 #define VBLK_UFS_IO_ID	(0x1002 | UFS_IOCTL_FLAG)
+#define VBLK_UFS_COMBO_IO_ID	(0x1003 | UFS_IOCTL_FLAG)
 
 #define VBLK_SG_MAX_CMD_LEN 16
 
@@ -301,22 +302,42 @@ struct vblk_ufs_ioc_query_req {
 	uint8_t index;
 	/* index - optional in some cases */
 	uint8_t selector;
-	/* buf_size - buffer size in bytes pointed by buffer. */
-	uint16_t buf_size;
-	/*
-	 * user buffer pointer for query data.
+	/* buf_size - buffer size in bytes pointed by buffer.
 	 * Note:
 	 * For Read/Write Attribute this should be of 4 bytes
 	 * For Read Flag this should be of 1 byte
 	 * For Descriptor Read/Write size depends on the type of the descriptor
 	 */
-	uint8_t *buffer;
-	/* delay after query command completion */
+	uint16_t buf_size;
+	/*
+	 * User buffer offset for query data. The offset should be within the
+	 * bounds of the mempool memory region.
+	 */
+	uint32_t buffer_offset;
+	/* Delay after each query command completion in micro seconds. */
 	uint32_t delay;
 	/* error status for the query operation */
 	int32_t error_status;
 
 };
+
+/** @brief Meta data of UFS Native ioctl Combo Command */
+typedef struct vblk_ufs_combo_info {
+	/** Count of commands in combo command */
+	uint32_t count;
+	/** Status of combo command */
+	int32_t result;
+	/** Flag to specify whether to empty the command queue before
+	  * processing the combo request.
+	  * If user wants to ensure that there are no requests in the UFS device
+	  * command queue before executing a query command, this flag has to be
+	  * set to 1.
+	  * For Example, in case of refresh for Samsung UFS Device, the
+	  * command queue should be emptied before setting the attribute for
+	  * refresh.
+	  */
+	uint8_t need_cq_empty;
+}vblk_ufs_combo_info_t;
 
 #pragma pack(pop)
 

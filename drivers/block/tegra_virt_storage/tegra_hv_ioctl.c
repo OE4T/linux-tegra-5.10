@@ -119,6 +119,10 @@ int vblk_submit_ioctl_req(struct block_device *bdev,
 		err = vblk_prep_mmc_multi_ioc(vblkdev, ioctl_req,
 			user, cmd);
 		break;
+	case UFS_IOCTL_COMBO_QUERY:
+		err = vblk_prep_ufs_combo_ioc(vblkdev, ioctl_req,
+			user, cmd);
+		break;
 	default:
 		dev_err(vblkdev->device, "unsupported command %x!\n", cmd);
 		err = -EINVAL;
@@ -170,6 +174,10 @@ int vblk_submit_ioctl_req(struct block_device *bdev,
 		err = vblk_complete_mmc_multi_ioc(vblkdev, ioctl_req,
 			user, cmd);
 		break;
+	case UFS_IOCTL_COMBO_QUERY:
+		err = vblk_complete_ufs_combo_ioc(vblkdev, ioctl_req,
+			user, cmd);
+		break;
 	default:
 		dev_err(vblkdev->device, "unsupported command %x!\n", cmd);
 		err = -EINVAL;
@@ -181,22 +189,6 @@ free_ioctl_req:
 		kfree(ioctl_req);
 
 	return err;
-}
-
-static int vblk_submit_combo_ioctl_req(struct block_device *bdev,
-		unsigned int cmd, void __user *user)
-{
-	struct vblk_dev *vblkdev = bdev->bd_disk->private_data;
-
-	/*
-	 * The caller must have CAP_SYS_RAWIO, and must be calling this on the
-	 * whole block device, not on a partition.  This prevents overspray
-	 * between sibling partitions.
-	 */
-	if (!capable(CAP_SYS_RAWIO) || (bdev != bdev->bd_contains))
-		return -EPERM;
-
-	return vblk_submit_combo_query_io(vblkdev, cmd, user);
 }
 
 /* The ioctl() implementation */
@@ -211,11 +203,8 @@ int vblk_ioctl(struct block_device *bdev, fmode_t mode,
 	case MMC_IOC_MULTI_CMD:
 	case MMC_IOC_CMD:
 	case SG_IO:
-		ret = vblk_submit_ioctl_req(bdev, cmd,
-			(void __user *)arg);
-		break;
 	case UFS_IOCTL_COMBO_QUERY:
-		ret = vblk_submit_combo_ioctl_req(bdev, cmd,
+		ret = vblk_submit_ioctl_req(bdev, cmd,
 			(void __user *)arg);
 		break;
 	default:  /* unknown command */

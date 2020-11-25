@@ -127,15 +127,21 @@ int vblk_complete_sg_io(struct vblk_dev *vblkdev,
 		struct vblk_ioctl_req *ioctl_req,
 		void __user *user);
 
-int vblk_submit_combo_query_io(struct vblk_dev *vblkdev,
-		unsigned int cmd, void __user *user);
-
 int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
 		struct vblk_ioctl_req *ioctl_req,
 		void __user *user,
 		uint32_t cmd);
 
 int vblk_complete_mmc_multi_ioc(struct vblk_dev *vblkdev,
+		struct vblk_ioctl_req *ioctl_req,
+		void __user *user,
+		uint32_t cmd);
+
+int vblk_prep_ufs_combo_ioc(struct vblk_dev *vblkdev,
+	struct vblk_ioctl_req *ioctl_req,
+	void __user *user, uint32_t cmd);
+
+int vblk_complete_ufs_combo_ioc(struct vblk_dev *vblkdev,
 		struct vblk_ioctl_req *ioctl_req,
 		void __user *user,
 		uint32_t cmd);
