@@ -128,7 +128,9 @@ int vblk_submit_ioctl_req(struct block_device *bdev,
 	if (err)
 		goto free_ioctl_req;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+	rq = blk_get_request(vblkdev->queue, REQ_OP_DRV_IN, BLK_MQ_REQ_NOWAIT);
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0)
 	rq = blk_get_request(vblkdev->queue, REQ_OP_DRV_IN, GFP_KERNEL);
 #else
 	rq = blk_get_request(vblkdev->queue, READ, GFP_KERNEL);
