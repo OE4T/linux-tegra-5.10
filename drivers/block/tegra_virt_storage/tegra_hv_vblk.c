@@ -625,12 +625,15 @@ static int vblk_open(struct block_device *device, fmode_t mode)
 	struct vblk_dev *vblkdev = device->bd_disk->private_data;
 
 	spin_lock(&vblkdev->lock);
-	if (!vblkdev->users)
+	if (!vblkdev->users) {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0)
 		check_disk_change(device);
 #else
+		spin_unlock(&vblkdev->lock);
 		bdev_disk_changed(device, false);
+		spin_lock(&vblkdev->lock);
 #endif
+	}
 	vblkdev->users++;
 
 	spin_unlock(&vblkdev->lock);
