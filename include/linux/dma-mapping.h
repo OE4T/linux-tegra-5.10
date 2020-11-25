@@ -546,6 +546,22 @@ static inline int dma_get_cache_alignment(void)
 #define DMA_MEMORY_EXCLUSIVE		0x01
 #define DMA_MEMORY_NOMAP		0x02
 
+#ifdef CONFIG_DMA_DECLARE_COHERENT
+int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+				dma_addr_t device_addr, size_t size, int flags);
+struct dma_resize_notifier_ops {
+	int (*resize)(phys_addr_t, size_t);
+};
+
+#else
+static inline int
+dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+			    dma_addr_t device_addr, size_t size, int flags)
+{
+	return -ENOSYS;
+}
+#endif /* CONFIG_DMA_DECLARE_COHERENT */
+
 static inline void *dmam_alloc_coherent(struct device *dev, size_t size,
 		dma_addr_t *dma_handle, gfp_t gfp)
 {
