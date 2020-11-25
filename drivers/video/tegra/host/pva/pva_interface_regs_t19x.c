@@ -50,14 +50,12 @@ void read_status_interface_t19x(struct pva *pva,
 				struct pva_cmd_status_regs *status_output)
 {
 	int i;
-	u32 valid_status = PVA_VALID_STATUS3;
 	uint32_t *status_registers;
 
 	status_registers = t19x_status_regs[interface_id].registers;
 
 	for (i = 0; i < NUM_STATUS_REGS; i++) {
-		valid_status = valid_status << 1;
-		if (isr_status & valid_status) {
+		if (isr_status & (PVA_VALID_STATUS3 << i)) {
 			status_output->status[i] = host1x_readl(pva->pdev,
 						    status_registers[i]);
 			if ((i == 0) && (isr_status & PVA_CMD_ERROR)) {
@@ -67,9 +65,4 @@ void read_status_interface_t19x(struct pva *pva,
 			}
 		}
 	}
-	if (isr_status & PVA_CMD_ERROR) {
-		status_output->error =
-			PVA_GET_ERROR_CODE(status_output->status[3]);
-	}
-
 }
