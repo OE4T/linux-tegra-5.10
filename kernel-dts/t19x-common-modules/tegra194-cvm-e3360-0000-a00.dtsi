@@ -131,6 +131,12 @@
 					status = "okay";
 				};
 			};
+			ovveride@13 {
+				target = <&mods_isp>;
+				_overlay_ {
+					status = "okay";
+				};
+			};
 		};
 		fragment-e3360-a00-xusb {
 			ids = "3360-1099-000", "3360-1098-000";
