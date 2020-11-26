@@ -76,10 +76,12 @@ void nvgpu_writel(struct gk20a *g, u32 r, u32 v)
 	callbacks->writel(g, &access);
 }
 
+#ifdef CONFIG_NVGPU_DGPU
 void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v)
 {
 	nvgpu_writel(g, r, v);
 }
+#endif
 
 u32 nvgpu_readl(struct gk20a *g, u32 r)
 {
@@ -107,10 +109,12 @@ u32 nvgpu_readl(struct gk20a *g, u32 r)
 	return access.value;
 }
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v)
 {
 	BUG();
 }
+#endif
 
 u32 nvgpu_readl_impl(struct gk20a *g, u32 r)
 {
