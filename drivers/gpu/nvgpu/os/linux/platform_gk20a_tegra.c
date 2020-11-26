@@ -672,6 +672,9 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 #if NVGPU_CPU_PAGE_SIZE > 4096
 	platform->secure_buffer_size += SZ_64K;
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+	tegra_vpr_dev.coherent_dma_mask = DMA_BIT_MASK(32);
+#endif
 	(void)dma_alloc_attrs(&tegra_vpr_dev, platform->secure_buffer_size, &iova,
 				      GFP_KERNEL, DMA_ATTR_NO_KERNEL_MAPPING);
 	/* Some platforms disable VPR. In that case VPR allocations always
