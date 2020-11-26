@@ -1635,13 +1635,9 @@
 		reg = <0x0 0x0d800000 0x0 0x00800000>;
 		interrupts =
 			<0 376 0x4>,
-			<0 377 0x4>,
-			<0 378 0x4>,
-			<0 379 0x4>,
-			<0 380 0x4>;
+			<0 377 0x4>;
 		interrupt-names = "wdt-remote",
-			"dce-sm0", "dce-sm1",
-			"dce-sm2", "dce-sm3";
+			"dce-sm0";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_DCE>;
 #else
