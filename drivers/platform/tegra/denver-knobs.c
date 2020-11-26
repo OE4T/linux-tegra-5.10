@@ -544,12 +544,21 @@ static int mts_version_open(struct inode *inode, struct file *file)
 	return single_open(file, mts_version_show, NULL);
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 static const struct file_operations mts_version_fops = {
 	.open		= mts_version_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
+#else
+static const struct proc_ops mts_version_proc_ops = {
+	.proc_open	= mts_version_open,
+	.proc_read	= seq_read,
+	.proc_lseek	= seq_lseek,
+	.proc_release	= single_release,
+};
+#endif
 
 static int __init denver_knobs_init(void)
 {
@@ -591,7 +600,13 @@ static int __init denver_knobs_init(void)
 	if (mts_version)
 		pr_info("%s:MTS_VERSION:%d\n", __func__, mts_version);
 
-	if (mts_version && !proc_create("mts_version", 0, NULL, &mts_version_fops)) {
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+	if (mts_version && !proc_create("mts_version", 0, NULL,
+	    &mts_version_fops)) {
+#else
+	if (mts_version && !proc_create("mts_version", 0, NULL,
+	    &mts_version_proc_ops)) {
+#endif
 		pr_err("Failed to create /proc/mts_version!\n");
 		return -1;
 	}
