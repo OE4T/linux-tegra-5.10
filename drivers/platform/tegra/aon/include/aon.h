@@ -100,6 +100,12 @@ struct aon_firmware {
 };
 
 /**
+ * Declaration for struct aon_hsp that allows other structs to have a pointer
+ * to it without having to define it
+ */
+struct aon_hsp;
+
+/**
  * struct tegra_aon - Primary OS independent tegra aon structure to hold aon
  * cluster's and it's element's runtime info.
  * Also encapsulates linux device aoncific info.
@@ -109,6 +115,10 @@ struct tegra_aon {
 	 * @dev : Pointer to AON Cluster's Linux device struct.
 	 */
 	struct device *dev;
+	/**
+	 * @hsp : Pointer to HSP instance used for communication with AON FW.
+	 */
+	struct aon_hsp *hsp;
 	/**
 	 * @regs : Stores the cpu-mapped base address of AON Cluster. Will be
 	 * used for MMIO transactions to AON elements.

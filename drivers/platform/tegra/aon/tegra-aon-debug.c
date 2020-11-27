@@ -29,7 +29,6 @@
 #include <linux/jiffies.h>
 #include <linux/firmware.h>
 #include <linux/tegra-firmwares.h>
-#include <linux/tegra-hsp.h>
 
 #include <asm/cacheflush.h>
 

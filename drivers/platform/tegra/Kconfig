@@ -6,6 +6,10 @@ config TEGRA_SPE
 	bool "Tegra SPE driver"
 	depends on ARCH_TEGRA_23x_SOC
 	select NV_TEGRA_IVC
-	select TEGRA_HSP
 	help
 	  This enables communication between CCPLEX and SPE over IVC channel.
+
+config TEGRA_SPE_HSP_MBOX_CLIENT
+	bool "Enable Mailbox Client Implementation of HSP Protocol for Camera"
+	depends on TEGRA_SPE && ARCH_TEGRA_23x_SOC && MAILBOX
+	default n

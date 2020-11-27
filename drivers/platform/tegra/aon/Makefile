@@ -10,10 +10,15 @@ ccflags-y += -Werror
 
 obj-$(CONFIG_TEGRA_SPE) += tegra234-aon.o
 
-tegra234-aon-y += \
-	tegra-aon-reset.o \
-	tegra-aon-hsp.o \
-	tegra-aon-ast.o \
-	tegra-aon-mail.o \
-	tegra-aon-debug.o \
-	tegra-aon-module.o
+tegra234-aon-y += tegra-aon-reset.o
+tegra234-aon-y += tegra-aon-reset.o
+tegra234-aon-y += tegra-aon-hsp.o
+tegra234-aon-y += tegra-aon-ast.o
+ifeq ($(CONFIG_TEGRA_SPE_HSP_MBOX_CLIENT), y)
+tegra234-aon-y += aon-hsp-mbox-client.o
+else
+tegra234-aon-y += aon-hsp-combo.o
+endif
+tegra234-aon-y += tegra-aon-mail.o
+tegra234-aon-y += tegra-aon-debug.o
+tegra234-aon-y += tegra-aon-module.o

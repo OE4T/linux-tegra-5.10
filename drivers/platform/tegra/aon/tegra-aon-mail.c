@@ -13,7 +13,6 @@
 
 #include <linux/device.h>
 #include <linux/dma-mapping.h>
-#include <linux/tegra-hsp.h>
 #include <linux/mailbox_controller.h>
 #include <linux/of_address.h>
 #include <linux/slab.h>
@@ -23,13 +22,13 @@
 #include <linux/tegra-aon.h>
 #include <linux/cache.h>
 
+#include <aon-hsp-combo.h>
 #include <aon.h>
 
 #define IVC_INIT_TIMEOUT_US (200000)
 
 struct tegra_aon_ivc {
 	struct mbox_controller mbox;
-	struct tegra_hsp_sm_pair *hsp_sm_pair;
 };
 
 struct tegra_aon_ivc_chan {
@@ -50,7 +49,6 @@ static inline int ivc_min_frame_size(void)
 
 int tegra_aon_ipc_init(struct tegra_aon *aon)
 {
-	struct tegra_aon_ivc *aonivc = &aon_ivc;
 	ktime_t tstart;
 	int ret = 0;
 
@@ -58,12 +56,16 @@ int tegra_aon_ipc_init(struct tegra_aon *aon)
 					(u32)aon->ipcbuf_dma);
 	tegra_aon_hsp_ss_set(aon, aon->ivc_carveout_size_ss,
 					(u32)aon->ipcbuf_size);
-	tegra_hsp_sm_pair_write(aonivc->hsp_sm_pair, SMBOX_IVC_READY_MSG);
+	ret = tegra_aon_hsp_sm_tx_write(aon, SMBOX_IVC_READY_MSG);
+	if (ret) {
+		dev_err(aon->dev, "aon hsp sm tx write failed: %d\n", ret);
+		return ret;
+	}
 
 	tstart = ktime_get();
-	while (!tegra_hsp_sm_pair_is_empty(aonivc->hsp_sm_pair)) {
+	while (!tegra_aon_hsp_sm_tx_is_empty(aon)) {
 		if (ktime_us_delta(ktime_get(), tstart) > IVC_INIT_TIMEOUT_US) {
-			tegra_hsp_sm_pair_free(aonivc->hsp_sm_pair);
+			tegra_aon_hsp_sm_pair_free(aon);
 			ret = -ETIMEDOUT;
 			break;
 		}
@@ -138,7 +140,7 @@ static void tegra_aon_notify_remote(struct ivc *ivc)
 	ivc_chan = container_of(ivc, struct tegra_aon_ivc_chan, ivc);
 	tegra_aon_hsp_ss_set(ivc_chan->aon, ivc_chan->aon->ivc_tx_ss,
 				BIT(ivc_chan->chan_id));
-	tegra_hsp_sm_pair_write(aon_ivc.hsp_sm_pair, SMBOX_IVC_NOTIFY);
+	tegra_aon_hsp_sm_tx_write(ivc_chan->aon, SMBOX_IVC_NOTIFY);
 }
 
 static void tegra_aon_rx_handler(u32 ivc_chans)
@@ -256,12 +258,12 @@ static int tegra_aon_parse_channel(struct tegra_aon *aon,
 
 	/* Allocate the IVC links */
 	ret = tegra_ivc_init_with_dma_handle(&ivc_chan->ivc,
-			     (unsigned long)aon->ipcbuf + start.rx,
-			     (u64)aon->ipcbuf_dma + start.rx,
-			     (unsigned long)aon->ipcbuf + start.tx,
-			     (u64)aon->ipcbuf_dma + start.tx,
-			     nframes, frame_size, dev,
-			     tegra_aon_notify_remote);
+				 (unsigned long)aon->ipcbuf + start.rx,
+				 (u64)aon->ipcbuf_dma + start.rx,
+				 (unsigned long)aon->ipcbuf + start.tx,
+				 (u64)aon->ipcbuf_dma + start.tx,
+				 nframes, frame_size, dev,
+				 tegra_aon_notify_remote);
 	if (ret) {
 		dev_err(dev, "failed to instantiate IVC.\n");
 		return ret;
@@ -324,8 +326,7 @@ static int tegra_aon_validate_channels(struct device *dev)
 			j_chan = aon_ivc.mbox.chans[j].con_priv;
 
 			ret = tegra_aon_check_channels_overlap(aon->dev,
-							       i_chan,
-							       j_chan);
+							i_chan, j_chan);
 			if (ret)
 				return ret;
 		}
@@ -415,21 +416,17 @@ int tegra_aon_mail_init(struct tegra_aon *aon)
 	}
 
 	/* Fetch the shared mailbox pair associated with IVC tx and rx */
-	aonivc->hsp_sm_pair = of_tegra_hsp_sm_pair_by_name(dn, "ivc-pair",
-						tegra_aon_hsp_sm_full_notify,
-						NULL, aon);
-	if (IS_ERR(aonivc->hsp_sm_pair)) {
-		ret = PTR_ERR(aonivc->hsp_sm_pair);
-		if (ret != -EPROBE_DEFER)
-			dev_err(dev, "failed to fetch mailbox pair : %d\n",
-				ret);
+	ret = tegra_aon_hsp_sm_pair_request(aon, tegra_aon_hsp_sm_full_notify,
+					    aon);
+	if (ret) {
+		dev_err(dev, "aon hsp sm pair request failed: %d\n", ret);
 		goto exit;
 	}
 
 	ret = mbox_controller_register(&aonivc->mbox);
 	if (ret) {
 		dev_err(dev, "failed to register mailbox: %d\n", ret);
-		tegra_hsp_sm_pair_free(aonivc->hsp_sm_pair);
+		tegra_aon_hsp_sm_pair_free(aon);
 		goto exit;
 	}
 
@@ -440,5 +437,5 @@ exit:
 void tegra_aon_mail_deinit(struct tegra_aon *aon)
 {
 	mbox_controller_unregister(&aon_ivc.mbox);
-	tegra_hsp_sm_pair_free(aon_ivc.hsp_sm_pair);
+	tegra_aon_hsp_sm_pair_free(aon);
 }
