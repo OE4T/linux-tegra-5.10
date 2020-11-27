@@ -33,18 +33,6 @@
 #define NVCSI_CIL_CLOCK_RATE 204000
 
 #define TEMP_CHANNEL_ID (NUM_CAPTURE_CHANNELS + 1)
-#define TPG_HBLANK 0
-#define TPG_VBLANK 40800
-
-/*
- * T19x TPG is generating 64 bits per cycle
- * it will insert (TPG_LANE_NUM-8) * nvcsi_clock cycles between
- * two 64bit pixel_packages to reduce framerate
- * TPG_LANE_NUM=8 means no blank insertion.
- * 7 means insert 1 clock between two 64bit pixel packages,
- * 6 means 2 clocks blank, …, 1 means 7 blank clocks.
- */
-#define TPG_BLANK 6
 
 static void csi5_phy_write(struct tegra_csi_channel *chan,
 		unsigned int index, unsigned int addr, u32 val)
@@ -303,12 +291,6 @@ static int csi5_stream_tpg_start(struct tegra_csi_channel *chan, u32 stream_id,
 	struct tegra_csi_port *port = &chan->ports[0];
 	unsigned long csi_rate = 0;
 
-	/* TPG native resolution */
-	const size_t px_max = 0x4000;
-	const size_t py_max = 0x2000;
-	size_t hfreq = 0;
-	size_t vfreq = 0;
-
 	struct CAPTURE_CONTROL_MSG msg;
 	union nvcsi_tpg_config *tpg_config = NULL;
 
@@ -320,31 +302,9 @@ static int csi5_stream_tpg_start(struct tegra_csi_channel *chan, u32 stream_id,
 	msg.header.msg_id = CAPTURE_CSI_STREAM_TPG_SET_CONFIG_REQ;
 	msg.header.channel_id = TEMP_CHANNEL_ID;
 
-	hfreq = px_max / port->format.width;
-	vfreq = py_max / port->format.height;
-
 	tpg_config = &(msg.csi_stream_tpg_set_config_req.tpg_config);
 
-	tpg_config->t194.virtual_channel_id = virtual_channel_id;
-	tpg_config->t194.datatype = port->core_format->img_dt;
-
-	tpg_config->t194.lane_count = TPG_BLANK;
-	tpg_config->t194.flags = NVCSI_TPG_FLAG_PATCH_MODE;
-
-	tpg_config->t194.initial_frame_number = 1;
-	tpg_config->t194.maximum_frame_number = 32768;
-	tpg_config->t194.image_width = port->format.width;
-	tpg_config->t194.image_height = port->format.height;
-
-	tpg_config->t194.red_horizontal_init_freq = hfreq;
-	tpg_config->t194.red_vertical_init_freq = vfreq;
-
-	tpg_config->t194.green_horizontal_init_freq = hfreq;
-	tpg_config->t194.green_vertical_init_freq = vfreq;
-
-	tpg_config->t194.blue_horizontal_init_freq = hfreq;
-	tpg_config->t194.blue_vertical_init_freq = vfreq;
-
+	csi->get_tpg_settings(port, tpg_config);
 	tegra_capture_ivc_control_submit(&msg, sizeof(msg));
 
 	/* Enable TPG on a stream */

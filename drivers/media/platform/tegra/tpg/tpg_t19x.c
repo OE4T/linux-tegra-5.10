@@ -27,6 +27,25 @@
 
 #include "nvcsi/nvcsi.h"
 #include "host1x/host1x.h"
+#include "soc/tegra/camrtc-capture-messages.h"
+
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
+/*
+ * T19x TPG is generating 64 bits per cycle
+ * it will insert (TPG_LANE_NUM-8) * nvcsi_clock cycles between
+ * two 64bit pixel_packages to reduce framerate
+ * TPG_LANE_NUM=8 means no blank insertion.
+ * 7 means insert 1 clock between two 64bit pixel packages,
+ * 6 means 2 clocks blank, …, 1 means 7 blank clocks.
+ */
+#define TPG_BLANK 6
+
+#define TPG_HBLANK 0
+#define TPG_VBLANK 40800
 
 static struct tpg_frmfmt *frmfmt_table;
 
@@ -132,6 +151,48 @@ error:
 	return -ENOMEM;
 }
 
+static int get_tpg_settings_t19x(struct tegra_csi_port *port,
+				union nvcsi_tpg_config *const tpg_config)
+{
+	/* TPG native resolution */
+	const size_t px_max = 0x4000;
+	const size_t py_max = 0x2000;
+	size_t hfreq = 0;
+	size_t vfreq = 0;
+
+	hfreq = px_max / port->format.width;
+	vfreq = py_max / port->format.height;
+
+	tpg_config->t194.virtual_channel_id = port->virtual_channel_id;
+	tpg_config->t194.datatype = port->core_format->img_dt;
+
+	tpg_config->t194.lane_count = TPG_BLANK;
+	tpg_config->t194.flags = NVCSI_TPG_FLAG_PATCH_MODE;
+
+	tpg_config->t194.initial_frame_number = 1;
+	tpg_config->t194.maximum_frame_number = 32768;
+	tpg_config->t194.image_width = port->format.width;
+	tpg_config->t194.image_height = port->format.height;
+
+	tpg_config->t194.red_horizontal_init_freq = hfreq;
+	tpg_config->t194.red_vertical_init_freq = vfreq;
+
+	tpg_config->t194.green_horizontal_init_freq = hfreq;
+	tpg_config->t194.green_vertical_init_freq = vfreq;
+
+	tpg_config->t194.blue_horizontal_init_freq = hfreq;
+	tpg_config->t194.blue_vertical_init_freq = vfreq;
+
+	return 0;
+}
+
+static int get_tpg_settings_t23x(struct tegra_csi_port *port,
+				union nvcsi_tpg_config *const tpg_config)
+{
+	// TODO : Add Orin tpg support
+	return 0;
+}
+
 static int __init tpg_probe_t19x(void)
 {
 	struct tegra_csi_device *mc_csi = tegra_get_mc_csi();
@@ -139,9 +200,20 @@ static int __init tpg_probe_t19x(void)
 	int err = 0;
 	int i = 0;
 	unsigned int table_size = ARRAY_SIZE(tegra19x_csi_tpg_frmfmt);
+	const u8 chip_id = tegra_get_chip_id();
 
 	if (!mc_vi || !mc_csi)
 		return -EINVAL;
+
+	if (chip_id == TEGRA194)
+		mc_csi->get_tpg_settings = get_tpg_settings_t19x;
+	else if (chip_id == TEGRA234)
+		mc_csi->get_tpg_settings = get_tpg_settings_t23x;
+	else {
+		dev_err(mc_csi->dev, "%s invalid chip-id : %d\n",
+				__func__, chip_id);
+		return -EINVAL;
+	}
 
 	dev_info(mc_csi->dev, "%s\n", __func__);
 	mc_vi->csi = mc_csi;
