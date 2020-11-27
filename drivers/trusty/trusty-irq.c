@@ -27,7 +27,7 @@
 #include <linux/trusty/sm_err.h>
 #include <linux/trusty/trusty.h>
 
-#define TRUSTY_IPI_CUSTOM_FIRST 7
+#define TRUSTY_IPI_CUSTOM_FIRST 8
 #define TRUSTY_IPI_CUSTOM_LAST  15
 
 struct trusty_irq {
