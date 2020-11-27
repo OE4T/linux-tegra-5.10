@@ -366,7 +366,7 @@ int tegra_ivc_bus_boot_sync(struct tegra_ivc_bus *bus)
 		int ret = tegra_camrtc_iovm_setup(bus->dev.parent,
 				bus->regions[i].iova);
 		if (ret != 0) {
-			dev_err(&bus->dev, "IOVM setup error: %d\n", ret);
+			dev_info(&bus->dev, "IOVM setup error: %d\n", ret);
 			return -EIO;
 		}
 	}

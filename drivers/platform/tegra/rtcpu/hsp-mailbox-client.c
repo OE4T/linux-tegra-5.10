@@ -453,7 +453,7 @@ int camrtc_hsp_suspend(struct camrtc_hsp *camhsp)
 	mutex_unlock(&camhsp->mutex);
 
 	if (response != 0)
-		dev_WARN(&camhsp->dev, "PM_SUSPEND failed: 0x%08x\n",
+		dev_info(&camhsp->dev, "PM_SUSPEND failed: 0x%08x\n",
 			response);
 
 	return response <= 0 ? response : -EIO;
@@ -546,7 +546,7 @@ int camrtc_hsp_get_fw_hash(struct camrtc_hsp *camhsp,
 		int value = camhsp->op->get_fw_hash(camhsp, i, &timeout);
 
 		if (value < 0 || value > 255) {
-			dev_warn(&camhsp->dev,
+			dev_info(&camhsp->dev,
 				"FW_HASH failed: 0x%08x\n", value);
 			ret = value < 0 ? value : -EIO;
 			goto fail;
