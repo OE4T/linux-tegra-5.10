@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms and conditions of the GNU General Public License,
@@ -21,13 +21,17 @@ obj-$(CONFIG_NVETHERNET) += nvethernet.o
 ccflags-y += -DTHERMAL_CAL -DLINUX_IVC -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include \
 	     -I$(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/osi/common/include
 
+ccflags-y += -DMACSEC_SUPPORT -DNET30 -DMACSEC_DEBUG
+
 nvethernet-objs:= ether_linux.o \
 		  osd.o \
 		  ethtool.o \
 		  sysfs.o \
 		  ioctl.o \
 		  ptp.o \
+		  macsec.o \
 		  $(OSI_CORE)/osi_core.o \
+		  $(OSI_CORE)/macsec.o \
 		  $(OSI_COMMON)/osi_common.o \
 		  $(OSI_COMMON)/eqos_common.o \
 		  $(OSI_COMMON)/mgbe_common.o \

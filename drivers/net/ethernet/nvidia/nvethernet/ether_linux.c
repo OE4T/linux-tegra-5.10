@@ -804,7 +804,7 @@ static int ether_init_ivc(struct ether_priv_data *pdata)
 	}
 
 	dev_info(dev, "Reserved IVC channel #%u - frame_size=%d irq %d\n",
-                 id, ictxt->ivck->frame_size, ictxt->ivck->irq);
+		 id, ictxt->ivck->frame_size, ictxt->ivck->irq);
 	osi_core->osd_ops.ivc_send = osd_ivc_send_cmd;
 	init_completion(&ictxt->msg_complete);
 	ether_start_ivc(pdata);
@@ -1603,6 +1603,14 @@ static void ether_reset(struct ether_priv_data *pdata)
 	unsigned int val;
 	void __iomem *addr = devm_ioremap(pdata->dev, 0x21460018, 0x4);
 
+#if 1 /* Rakesh WAR for AN 0 issue */
+	/* power ungate and ether_reset will be moved to bpmp fw so reset()
+	 * api should be called. TODO HACK by writing oxffff to
+	 * CLK_RST_CONTROLLER_RST_DEV_MGBE_0
+	 */
+	writel(0xffff, addr);
+#endif
+
 	val = readl(addr);
 	val &= ~BIT(0);
 	writel(val, addr);
@@ -1614,6 +1622,15 @@ static void ether_reset(struct ether_priv_data *pdata)
 	val = readl(addr);
 	val &= ~BIT(8);
 	writel(val, addr);
+
+#if 1
+	/* NET30 enables secure reset, WAR to reset macsec secure RST, this
+	 * should be moved to bbmp fw
+	 */
+	val = readl(addr);
+	val &= ~BIT(12);
+	writel(val, addr);
+#endif
 }
 
 static void power_ungate(struct ether_priv_data *pdata)
@@ -1776,6 +1793,17 @@ static int ether_open(struct net_device *dev)
 	/* Enable napi before requesting irq to be ready to handle it */
 	ether_napi_enable(pdata);
 
+#ifdef MACSEC_SUPPORT
+#ifdef DEBUG_MACSEC
+	ret = macsec_open(pdata->macsec_pdata);
+	if (ret < 0) {
+		dev_err(&dev->dev, "%s: failed to open macsec with reason %d\n",
+			__func__, ret);
+		goto err_macsec_open;
+	}
+#endif
+#endif /* MACSEC_SUPPORT */
+
 	/* request tx/rx/common irq */
 	ret = ether_request_irqs(pdata);
 	if (ret < 0) {
@@ -1802,6 +1830,11 @@ static int ether_open(struct net_device *dev)
 
 	return ret;
 
+#ifdef MACSEC_SUPPORT
+#ifdef DEBUG_MACSEC
+err_macsec_open:
+#endif
+#endif /* MACSEC_SUPPORT */
 err_r_irq:
 	ether_napi_disable(pdata);
 	ether_ptp_remove(pdata);
@@ -1943,6 +1976,15 @@ static int ether_close(struct net_device *ndev)
 
 	/* Disable clock */
 	ether_disable_clks(pdata);
+
+#ifdef MACSEC_SUPPORT
+#ifdef DEBUG_MACSEC
+	ret = macsec_close(pdata->macsec_pdata);
+	if (ret < 0) {
+		dev_err(pdata->dev, "Failed to close macsec");
+	}
+#endif
+#endif /* MACSEC_SUPPORT */
 
 	/* Reset stats since interface is going down */
 	ether_reset_stats(pdata);
@@ -4482,6 +4524,11 @@ static int ether_probe(struct platform_device *pdev)
 	struct net_device *ndev;
 	int ret = 0, i;
 
+#ifdef TEST
+	macsec_genl_register();
+	return 0;
+#endif /* TEST */
+
 	ether_get_num_dma_chan_mtl_q(pdev, &num_dma_chans,
 				     &mac, &num_mtl_queues);
 
@@ -4619,6 +4666,28 @@ static int ether_probe(struct platform_device *pdev)
 			ether_tx_usecs_hrtimer;
 	}
 
+#ifdef MACSEC_SUPPORT
+	ret = macsec_probe(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to setup macsec\n");
+		goto err_macsec;
+	} else if (ret == 0) {
+		/* Macsec is initialized, reduce MTU
+		 * TODO: MTU_ADDONS also to be reduced ?
+		 */
+		pdata->max_platform_mtu -= MACSEC_TAG_ICV_LEN;
+		ndev->max_mtu = pdata->max_platform_mtu;
+		osi_core->mtu -= MACSEC_TAG_ICV_LEN;
+		osi_dma->mtu = osi_core->mtu;
+		ndev->mtu = osi_core->mtu;
+		dev_info(&pdev->dev, "Macsec: Reduced MTU: %d Max: %d\n",
+			 ndev->mtu, ndev->max_mtu);
+	} else {
+		; //Nothing to do, macsec is not supported
+		dev_info(&pdev->dev, "Macsec not enabled - ignore\n");
+	}
+#endif /* MACSEC_SUPPORT */
+
 	ret = register_netdev(ndev);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to register netdev\n");
@@ -4656,6 +4725,9 @@ static int ether_probe(struct platform_device *pdev)
 err_sysfs:
 	unregister_netdev(ndev);
 err_netdev:
+#ifdef MACSEC_SUPPORT
+err_macsec:
+#endif /* MACSEC_SUPPORT */
 err_napi:
 	mdiobus_unregister(pdata->mii);
 err_dma_mask:
@@ -4687,6 +4759,14 @@ static int ether_remove(struct platform_device *pdev)
 {
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
+
+#ifdef MACSEC_SUPPORT
+#ifdef TEST
+	macsec_genl_unregister();
+	return 0;
+#endif /* TEST */
+	macsec_remove(pdata);
+#endif /* MACSEC_SUPPORT */
 
 	unregister_netdev(ndev);
 

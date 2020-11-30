@@ -52,7 +52,9 @@
 #include <osi_dma.h>
 #include <mmc.h>
 #include "ioctl.h"
-
+#ifdef MACSEC_SUPPORT
+#include "macsec.h"
+#endif
 /**
  * @brief Max number of Ethernet IRQs supported in HW
  */
@@ -271,7 +273,7 @@ struct ether_ivc_ctxt {
  * @brief Ethernet driver private data
  */
 struct ether_priv_data {
- 	/** OSI core private data */
+	/** OSI core private data */
 	struct osi_core_priv_data *osi_core;
 	/** OSI DMA private data */
 	struct osi_dma_priv_data *osi_dma;
@@ -342,7 +344,7 @@ struct ether_priv_data {
 	unsigned int txq_prio[OSI_MGBE_MAX_NUM_CHANS];
 
 #ifdef THERMAL_CAL
- 	/** Pointer to thermal cooling device which this driver registers
+	/** Pointer to thermal cooling device which this driver registers
 	 * with the kernel. Kernel will invoke the callback ops for this
 	 * cooling device when temperate in thermal zone defined in DT
 	 * binding for this driver is tripped */
@@ -405,6 +407,10 @@ struct ether_priv_data {
 	/** Register dump debug fs pointer */
 	struct dentry *dbgfs_reg_dump;
 #endif
+#ifdef MACSEC_SUPPORT
+	/** MACsec priv data */
+	struct macsec_priv_data *macsec_pdata;
+#endif /* MACSEC_SUPPORT */
 };
 
 /**
@@ -482,7 +488,7 @@ int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable);
 
 #if IS_ENABLED(CONFIG_NVETHERNET_SELFTESTS)
 void ether_selftest_run(struct net_device *dev,
-		        struct ethtool_test *etest, u64 *buf);
+			struct ethtool_test *etest, u64 *buf);
 void ether_selftest_get_strings(struct ether_priv_data *pdata, u8 *data);
 int ether_selftest_get_count(struct ether_priv_data *pdata);
 #else
