@@ -4,7 +4,7 @@
  *
  * Support for Tegra Virtual Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2019-2020, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2019-2021, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,12 +40,14 @@
 #include <crypto/internal/hash.h>
 #include <crypto/internal/skcipher.h>
 #include <crypto/sha.h>
+#include <crypto/sha3.h>
 #include <linux/delay.h>
 #include <linux/tegra-ivc.h>
 #include <linux/iommu.h>
 #include <linux/completion.h>
 #include <linux/interrupt.h>
 #include <linux/kthread.h>
+#include <linux/version.h>
 
 #define TEGRA_HV_VSE_SHA_MAX_LL_NUM_1				1
 #define TEGRA_HV_VSE_AES_CMAC_MAX_LL_NUM			1
@@ -69,7 +71,13 @@
 
 #define TEGRA_VIRTUAL_SE_CMD_SHA_HASH				16
 #define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT		(512 / 8)
-#define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT		(1024 / 8)
+#define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_576BIT		(576 / 8)
+#define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_832BIT		(832 / 8)
+#define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT	(1024 / 8)
+#define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1088BIT	(1088 / 8)
+#define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1344BIT	(1344 / 8)
+
+#define SHA3_STATE_SIZE	200
 
 #define TEGRA_VIRTUAL_SE_TIMEOUT_1S				1000000
 
@@ -199,19 +207,19 @@ union tegra_virtual_se_aes_args {
 		struct tegra_virtual_se_addr src_addr;
 		u32 key_length;
 	} op_cmac_s;
-};
+} __attribute__((__packed__));
 
 union tegra_virtual_se_sha_args {
 	struct hash {
 		u32 msg_total_length[4];
 		u32 msg_left_length[4];
-		u32 hash[16];
+		u32 hash[50];
 		u64 dst;
 		struct tegra_virtual_se_addr src_addr;
 		u32 mode;
-		u32 padding;
+		u32 hash_length;
 	} op_hash;
-};
+} __attribute__((__packed__));
 
 struct tegra_virtual_se_ivc_resp_msg_t {
 	u32 tag;
@@ -279,6 +287,16 @@ enum tegra_virtual_se_op_mode {
 	VIRTUAL_SE_OP_MODE_SHA384,
 	/* Secure Hash Algorithm-512  (SHA512) mode */
 	VIRTUAL_SE_OP_MODE_SHA512,
+	/* Secure Hash Algorithm-3  (SHA3-256) mode */
+	VIRTUAL_SE_OP_MODE_SHA3_256 = 10,
+	/* Secure Hash Algorithm-3  (SHA3-384) mode */
+	VIRTUAL_SE_OP_MODE_SHA3_384,
+	/* Secure Hash Algorithm-3  (SHA3-512) mode */
+	VIRTUAL_SE_OP_MODE_SHA3_512,
+	/* Secure Hash Algorithm-3  (SHAKE128) mode */
+	VIRTUAL_SE_OP_MODE_SHAKE128,
+	/* Secure Hash Algorithm-3  (SHAKE256) mode */
+	VIRTUAL_SE_OP_MODE_SHAKE256,
 };
 
 /* Security Engine AES context */
@@ -552,7 +570,9 @@ static int tegra_hv_vse_safety_send_sha_data(struct tegra_virtual_se_dev *se_dev
 	psha->op_hash.msg_left_length[1] = 0;
 	psha->op_hash.msg_left_length[2] = 0;
 	psha->op_hash.msg_left_length[3] = 0;
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	psha->op_hash.hash_length = req->dst_size;
+#endif
 	if (islast) {
 		psha->op_hash.msg_total_length[0] = total_count & 0xFFFFFFFF;
 		psha->op_hash.msg_total_length[1] = total_count >> 32;
@@ -623,6 +643,13 @@ static int tegra_hv_vse_safety_sha_send_one(struct ahash_request *req,
 	if (!ivc_req_msg)
 		return -ENOMEM;
 
+	if (islast == true &&
+			(req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE128 ||
+			req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE256)) {
+		req_ctx->sha_buf[nbytes] = 0xff;
+		nbytes++;
+		req_ctx->total_count++;
+	}
 	ivc_tx = &ivc_req_msg->tx[0];
 
 	ivc_tx->sha.op_hash.src_addr.lo = req_ctx->sha_buf_addr;
@@ -631,7 +658,6 @@ static int tegra_hv_vse_safety_sha_send_one(struct ahash_request *req,
 	ivc_tx->sha.op_hash.dst = (u64)req_ctx->hash_result_addr;
 	memcpy(ivc_tx->sha.op_hash.hash, req_ctx->hash_result,
 		req_ctx->intermediate_digest_size);
-
 	err = tegra_hv_vse_safety_send_sha_data(se_dev, req, ivc_req_msg,
 				nbytes, islast);
 	if (err) {
@@ -942,6 +968,30 @@ static int tegra_hv_vse_safety_sha_op(struct ahash_request *req, bool is_last,
 				  "\xff\x83\x18\xd2\x87\x7e\xec\x2f"
 				  "\x63\xb9\x31\xbd\x47\x41\x7a\x81"
 				  "\xa5\x38\x32\x7a\xf9\x27\xda\x3e",
+		}, {
+			.size = SHA3_256_DIGEST_SIZE,
+			.digest = "\xa7\xff\xc6\xf8\xbf\x1e\xd7\x66"
+				  "\x51\xc1\x47\x56\xa0\x61\xd6\x62"
+				  "\xf5\x80\xff\x4d\xe4\x3b\x49\xfa"
+				  "\x82\xd8\x0a\x4b\x80\xf8\x43\x4a",
+		}, {
+			.size = SHA3_384_DIGEST_SIZE,
+			.digest = "\x0c\x63\xa7\x5b\x84\x5e\x4f\x7d"
+				  "\x01\x10\x7d\x85\x2e\x4c\x24\x85"
+				  "\xc5\x1a\x50\xaa\xaa\x94\xfc\x61"
+				  "\x99\x5e\x71\xbb\xee\x98\x3a\x2a"
+				  "\xc3\x71\x38\x31\x26\x4a\xdb\x47"
+				  "\xfb\x6b\xd1\xe0\x58\xd5\xf0\x04",
+		}, {
+			.size = SHA3_512_DIGEST_SIZE,
+			.digest = "\xa6\x9f\x73\xcc\xa2\x3a\x9a\xc5"
+				   "\xc8\xb5\x67\xdc\x18\x5a\x75\x6e"
+				   "\x97\xc9\x82\x16\x4f\xe2\x58\x59"
+				  "\xe0\xd1\xdc\xc1\x47\x5c\x80\xa6"
+				  "\x15\xb2\x12\x3a\xf1\xf5\xf9\x4c"
+				  "\x11\xe3\xe9\x40\x2c\x3a\xc5\x58"
+				  "\xf5\x00\x19\x9d\x95\xb6\xd3\xe3"
+				  "\x01\x75\x85\x86\x28\x1d\xcd\x26",
 		}
 	};
 
@@ -971,16 +1021,38 @@ static int tegra_hv_vse_safety_sha_op(struct ahash_request *req, bool is_last,
 				dev_err(se_dev->dev,
 					"Invalid clinet result buffer\n");
 			}
+
 			return 0;
 		}
 
+		if (req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE128 ||
+				req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE256) {
+			ret = tegra_hv_vse_safety_sha_send_one(req,
+					0, true);
+			if (ret) {
+				dev_err(se_dev->dev, "%s: failed to send last data\n",
+						__func__);
+				return ret;
+			}
+
+			if (req->result) {
+				memcpy(req->result, req_ctx->hash_result,
+					req_ctx->digest_size);
+			} else {
+				dev_err(se_dev->dev, "Invalid clinet result buffer\n");
+			}
+
+			return 0;
+		}
 		/* If the request length is zero, SW WAR for zero length SHA
 		 * operation since SE HW can't accept zero length SHA operation
 		 */
 		if (req_ctx->mode == VIRTUAL_SE_OP_MODE_SHA1)
 			mode = VIRTUAL_SE_OP_MODE_SHA1;
-		else
+		else if (req_ctx->mode < VIRTUAL_SE_OP_MODE_SHA3_256)
 			mode = req_ctx->mode - VIRTUAL_SE_OP_MODE_SHA224 + 1;
+		else
+			mode = req_ctx->mode - VIRTUAL_SE_OP_MODE_SHA224 - 1;
 
 		if (req->result) {
 			memcpy(req->result,
@@ -1006,6 +1078,7 @@ static int tegra_hv_vse_safety_sha_init(struct ahash_request *req)
 	struct crypto_ahash *tfm;
 	struct tegra_virtual_se_req_context *req_ctx;
 	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_SHA];
+	u32 dst_len;
 
 	if (!req) {
 		dev_err(se_dev->dev, "SHA request not valid\n");
@@ -1029,13 +1102,11 @@ static int tegra_hv_vse_safety_sha_init(struct ahash_request *req)
 	}
 
 	req_ctx->digest_size = crypto_ahash_digestsize(tfm);
-	switch (req_ctx->digest_size) {
-	case SHA256_DIGEST_SIZE:
+	if (strcmp(crypto_ahash_alg_name(tfm), "sha256") == 0) {
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA256;
 		req_ctx->blk_size = TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT;
 		req_ctx->intermediate_digest_size = SHA256_DIGEST_SIZE;
-		break;
-	case SHA384_DIGEST_SIZE:
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha384") == 0) {
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA384;
 		req_ctx->blk_size =
 			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT;
@@ -1043,16 +1114,41 @@ static int tegra_hv_vse_safety_sha_init(struct ahash_request *req)
 		 * The intermediate digest size of SHA384 is same as SHA512
 		 */
 		req_ctx->intermediate_digest_size = SHA512_DIGEST_SIZE;
-		break;
-	case SHA512_DIGEST_SIZE:
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha512") == 0) {
 		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA512;
 		req_ctx->blk_size =
 			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT;
 		req_ctx->intermediate_digest_size = SHA512_DIGEST_SIZE;
-		break;
-	default:
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha3-256") == 0) {
+		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA3_256;
+		req_ctx->blk_size =
+			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1088BIT;
+		req_ctx->intermediate_digest_size = SHA3_STATE_SIZE;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha3-384") == 0) {
+		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA3_384;
+		req_ctx->blk_size =
+			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_832BIT;
+		req_ctx->intermediate_digest_size = SHA3_STATE_SIZE;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "sha3-512") == 0) {
+		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHA3_512;
+		req_ctx->blk_size =
+			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_576BIT;
+		req_ctx->intermediate_digest_size = SHA3_STATE_SIZE;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "shake128") == 0) {
+		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHAKE128;
+		req_ctx->blk_size =
+			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1344BIT;
+		req_ctx->intermediate_digest_size = SHA3_STATE_SIZE;
+	} else if (strcmp(crypto_ahash_alg_name(tfm), "shake256") == 0) {
+		req_ctx->mode = VIRTUAL_SE_OP_MODE_SHAKE256;
+		req_ctx->blk_size =
+			TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1088BIT;
+		req_ctx->intermediate_digest_size = SHA3_STATE_SIZE;
+	} else {
+		dev_err(se_dev->dev, "Invalid SHA Mode\n");
 		return -EINVAL;
 	}
+
 	req_ctx->sha_buf = dma_alloc_coherent(se_dev->dev, SZ_4M,
 					&req_ctx->sha_buf_addr, GFP_KERNEL);
 	if (!req_ctx->sha_buf) {
@@ -1060,8 +1156,19 @@ static int tegra_hv_vse_safety_sha_init(struct ahash_request *req)
 		return -ENOMEM;
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	if ((req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE128) ||
+			(req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE256)) {
+		dst_len = req->dst_size;
+	} else {
+		dst_len = req_ctx->intermediate_digest_size;
+	}
+#else
+	dst_len = req_ctx->intermediate_digest_size;
+#endif
+
 	req_ctx->hash_result = dma_alloc_coherent(
-			se_dev->dev, (TEGRA_HV_VSE_SHA_MAX_BLOCK_SIZE * 2),
+			se_dev->dev, dst_len,
 			&req_ctx->hash_result_addr, GFP_KERNEL);
 	if (!req_ctx->hash_result) {
 		dma_free_coherent(se_dev->dev, SZ_4M,
@@ -2495,6 +2602,121 @@ static struct ahash_alg sha_algs[] = {
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
 			.cra_blocksize = SHA512_BLOCK_SIZE,
+			.cra_ctxsize =
+				sizeof(struct tegra_virtual_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_hv_vse_safety_sha_cra_init,
+			.cra_exit = tegra_hv_vse_safety_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_hv_vse_safety_sha_init,
+		.update = tegra_hv_vse_safety_sha_update,
+		.final = tegra_hv_vse_safety_sha_final,
+		.finup = tegra_hv_vse_safety_sha_finup,
+		.digest = tegra_hv_vse_safety_sha_digest,
+		.export = tegra_hv_vse_safety_sha_export,
+		.import = tegra_hv_vse_safety_sha_import,
+		.halg.digestsize = SHA3_256_DIGEST_SIZE,
+		.halg.statesize = sizeof(struct tegra_virtual_se_req_context),
+		.halg.base = {
+			.cra_name = "sha3-256",
+			.cra_driver_name = "tegra-hv-vse-safety-sha3-256",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_256_BLOCK_SIZE,
+			.cra_ctxsize =
+				sizeof(struct tegra_virtual_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_hv_vse_safety_sha_cra_init,
+			.cra_exit = tegra_hv_vse_safety_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_hv_vse_safety_sha_init,
+		.update = tegra_hv_vse_safety_sha_update,
+		.final = tegra_hv_vse_safety_sha_final,
+		.finup = tegra_hv_vse_safety_sha_finup,
+		.digest = tegra_hv_vse_safety_sha_digest,
+		.export = tegra_hv_vse_safety_sha_export,
+		.import = tegra_hv_vse_safety_sha_import,
+		.halg.digestsize = SHA3_384_DIGEST_SIZE,
+		.halg.statesize = sizeof(struct tegra_virtual_se_req_context),
+		.halg.base = {
+			.cra_name = "sha3-384",
+			.cra_driver_name = "tegra-hv-vse-safety-sha3-384",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_384_BLOCK_SIZE,
+			.cra_ctxsize =
+				sizeof(struct tegra_virtual_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_hv_vse_safety_sha_cra_init,
+			.cra_exit = tegra_hv_vse_safety_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_hv_vse_safety_sha_init,
+		.update = tegra_hv_vse_safety_sha_update,
+		.final = tegra_hv_vse_safety_sha_final,
+		.finup = tegra_hv_vse_safety_sha_finup,
+		.digest = tegra_hv_vse_safety_sha_digest,
+		.export = tegra_hv_vse_safety_sha_export,
+		.import = tegra_hv_vse_safety_sha_import,
+		.halg.digestsize = SHA3_512_DIGEST_SIZE,
+		.halg.statesize = sizeof(struct tegra_virtual_se_req_context),
+		.halg.base = {
+			.cra_name = "sha3-512",
+			.cra_driver_name = "tegra-hv-vse-safety-sha3-512",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_512_BLOCK_SIZE,
+			.cra_ctxsize =
+				sizeof(struct tegra_virtual_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_hv_vse_safety_sha_cra_init,
+			.cra_exit = tegra_hv_vse_safety_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_hv_vse_safety_sha_init,
+		.update = tegra_hv_vse_safety_sha_update,
+		.final = tegra_hv_vse_safety_sha_final,
+		.finup = tegra_hv_vse_safety_sha_finup,
+		.digest = tegra_hv_vse_safety_sha_digest,
+		.export = tegra_hv_vse_safety_sha_export,
+		.import = tegra_hv_vse_safety_sha_import,
+		.halg.digestsize = SHA3_512_DIGEST_SIZE,
+		.halg.statesize = sizeof(struct tegra_virtual_se_req_context),
+		.halg.base = {
+			.cra_name = "shake128",
+			.cra_driver_name = "tegra-hv-vse-safety-shake128",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_512_BLOCK_SIZE,
+			.cra_ctxsize =
+				sizeof(struct tegra_virtual_se_sha_context),
+			.cra_alignmask = 0,
+			.cra_module = THIS_MODULE,
+			.cra_init = tegra_hv_vse_safety_sha_cra_init,
+			.cra_exit = tegra_hv_vse_safety_sha_cra_exit,
+		}
+	}, {
+		.init = tegra_hv_vse_safety_sha_init,
+		.update = tegra_hv_vse_safety_sha_update,
+		.final = tegra_hv_vse_safety_sha_final,
+		.finup = tegra_hv_vse_safety_sha_finup,
+		.digest = tegra_hv_vse_safety_sha_digest,
+		.export = tegra_hv_vse_safety_sha_export,
+		.import = tegra_hv_vse_safety_sha_import,
+		.halg.digestsize = SHA3_512_DIGEST_SIZE,
+		.halg.statesize = sizeof(struct tegra_virtual_se_req_context),
+		.halg.base = {
+			.cra_name = "shake256",
+			.cra_driver_name = "tegra-hv-vse-safety-shake256",
+			.cra_priority = 300,
+			.cra_flags = CRYPTO_ALG_TYPE_AHASH,
+			.cra_blocksize = SHA3_512_BLOCK_SIZE,
 			.cra_ctxsize =
 				sizeof(struct tegra_virtual_se_sha_context),
 			.cra_alignmask = 0,
