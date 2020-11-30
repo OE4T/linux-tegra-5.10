@@ -26,9 +26,10 @@
 #include <linux/trusty/smcall.h>
 #include <linux/trusty/sm_err.h>
 #include <linux/trusty/trusty.h>
+#include <linux/version.h>
 
 #define TRUSTY_IPI_CUSTOM_FIRST 8
-#define TRUSTY_IPI_CUSTOM_LAST  15
+#define TRUSTY_IPI_CUSTOM_LAST 15
 
 struct trusty_irq {
 	struct trusty_irq_state *is;
@@ -346,6 +347,53 @@ err_request_irq:
 	return ret;
 }
 
+static int trusty_irq_create_ipi_mapping(struct trusty_irq_state *is, int irq)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
+	static int ipi_base;
+	struct device_node *gic_node;
+	struct irq_domain *gic_domain;
+	struct irq_fwspec ipi_fwspec;
+
+	if ((irq < TRUSTY_IPI_CUSTOM_FIRST) || (irq > TRUSTY_IPI_CUSTOM_LAST))
+		return -EINVAL;
+
+	if (ipi_base == 0) {
+		gic_node = of_find_compatible_node(NULL, NULL, "arm,gic-v3");
+		if (!gic_node)
+			gic_node = of_find_compatible_node(
+					NULL, NULL, "arm,gic-400");
+
+		if (!gic_node)
+			return -EINVAL;
+
+		gic_domain = irq_find_matching_host(gic_node, DOMAIN_BUS_WIRED);
+		if ((!gic_domain) || (gic_domain->fwnode
+				!= of_node_to_fwnode(gic_node))) {
+			of_node_put(gic_node);
+			return -EINVAL;
+		}
+
+		ipi_fwspec.fwnode = gic_domain->fwnode;
+		ipi_fwspec.param_count = 1;
+		ipi_fwspec.param[0] = 0U;
+
+		/*
+		 * allocate all 16 non-secure/secure IPIs
+		 * to cover the whole IPI range
+		 */
+		ipi_base = irq_domain_alloc_irqs(
+				gic_domain, TRUSTY_IPI_CUSTOM_LAST + 1U,
+				NUMA_NO_NODE, &ipi_fwspec);
+		of_node_put(gic_node);
+	}
+
+	return ipi_base > 0 ? ipi_base + irq : -EINVAL;
+#else
+	return trusty_irq_create_irq_mapping(is, irq);
+#endif
+}
+
 static int trusty_irq_init_per_cpu_irq(struct trusty_irq_state *is, int tirq,
 				       unsigned int type)
 {
@@ -356,7 +404,11 @@ static int trusty_irq_init_per_cpu_irq(struct trusty_irq_state *is, int tirq,
 
 	dev_dbg(is->dev, "%s: irq %d\n", __func__, tirq);
 
-	irq = trusty_irq_create_irq_mapping(is, tirq);
+	if (tirq <= TRUSTY_IPI_CUSTOM_LAST)
+		irq = trusty_irq_create_ipi_mapping(is, tirq);
+	else
+		irq = trusty_irq_create_irq_mapping(is, tirq);
+
 	if (irq <= 0) {
 		dev_err(is->dev,
 			"trusty_irq_create_irq_mapping failed (%d)\n", irq);
@@ -418,14 +470,15 @@ static int trusty_irq_init_one(struct trusty_irq_state *is,
 	irq = trusty_smc_get_next_irq(is, irq, type);
 	if (irq < 0)
 		return irq;
+
 	/* Bug 200183103 */
 	/* Hack: System will randomly crash in trusty after enable IPI*/
 	/* If the previous CPU is A57, and IPI is sent to Denver*/
 	/* There will be some memory coherence issue between A57 and Denver */
 	/* Before we implement MCE in trusty, we shouldn't register IPI*/
 	if (type != TRUSTY_IRQ_TYPE_DOORBELL
-		&& irq <= TRUSTY_IPI_CUSTOM_LAST
-		&& irq >= TRUSTY_IPI_CUSTOM_FIRST)
+			&& irq <= TRUSTY_IPI_CUSTOM_LAST
+			&& irq >= TRUSTY_IPI_CUSTOM_FIRST)
 		return irq + 1;
 
 	if (type != TRUSTY_IRQ_TYPE_NORMAL)
