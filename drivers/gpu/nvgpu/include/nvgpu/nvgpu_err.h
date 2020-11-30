@@ -317,7 +317,9 @@ struct nvgpu_hw_err_inject_info_desc {
 };
 
 /**
- * @brief Report HOST (PFIFO/PBDMA/PBUS) related errors to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This function provides an interface to report errors from HOST
+ *        (FIFO/PBDMA/PBUS) unit to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit (HOST).
@@ -355,7 +357,9 @@ void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
 
 /**
- * @brief Report error in CE unit to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This function provides an interface to report errors from CE unit
+ *        to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit (CE).
@@ -393,7 +397,8 @@ void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
 	u32 inst, u32 err_id, u32 intr_info);
 
 /**
- * @brief Report ECC related errors to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This function provides an interface to report ECC erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit.
@@ -464,7 +469,8 @@ void nvgpu_report_ecc_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u64 err_addr, u64 err_count);
 
 /**
- * @brief Helper function to report FB MMU ECC errors to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This is a wrapper function to report ECC errors from HUBMMU to SDL.
  *
  * @param g [in]		- The GPU driver struct.
  * @param err_id [in]		- Error index.
@@ -487,7 +493,8 @@ static inline void nvgpu_report_fb_ecc_err(struct gk20a *g, u32 err_id, u64 err_
 }
 
 /**
- * @brief Report CTXSW error to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This function provides an interface to report CTXSW erros to SDL unit.
  *
  * @param g [in]	- The GPU driver struct.
  * @param hw_unit [in]	- Index of HW unit (FECS).
@@ -521,7 +528,9 @@ void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 		void *data);
 
 /**
- * @brief Report SM and PGRAPH related errors to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This function provides an interface to report SM and PGRAPH erros
+ *        to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit.
@@ -570,7 +579,8 @@ void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, struct gr_err_info *err_info, u32 sub_err_type);
 
 /**
- * @brief Report PMU related errors to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This function provides an interface to report PMU erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit (PMU).
@@ -605,7 +615,8 @@ void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
 	u32 sub_err_type, u32 status);
 
 /**
- * @brief Report PRI related errors to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This function provides an interface to report PRI erros to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit (PRI).
@@ -647,7 +658,8 @@ void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
 		u32 err_id, u32 err_addr, u32 err_code);
 
 /**
- * @brief Report MMU page fault error to 3LSS.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This function provides an interface to report HUBMMU erros to SDL.
  *
  * @param g [in]		- The GPU driver struct.
  * @param hw_unit [in]		- Index of HW unit (HUBMMU).
@@ -685,7 +697,8 @@ void nvgpu_report_mmu_err(struct gk20a *g, u32 hw_unit,
 		u32 status, u32 sub_err_type);
 
 /**
- * @brief Wrapper function to report ctxsw error.
+ * @brief GPU HW errors need to be reported to Safety_Services via SDL unit.
+ *        This is a wrapper function to report CTXSW errors to SDL unit.
  *
  * @param g [in]		- The GPU driver struct.
  * @param err_type [in]		- Error index.
