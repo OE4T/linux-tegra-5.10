@@ -301,17 +301,38 @@ static inline void osi_memset(void *s, nveu32_t c, nveu64_t count)
  * - Run time: Yes
  * - De-initialization: No
  */
-static inline void osi_memcpy(void *dest, void *src, nve32_t n)
+static inline nve32_t osi_memcpy(void *dest, void *src, int n)
 {
 	nve8_t *csrc = (nve8_t *)src;
 	nve8_t *cdest = (nve8_t *)dest;
 	nve32_t i = 0;
 
-	if ((src == OSI_NULL) || (dest == OSI_NULL)) {
-		return;
+	if (src == OSI_NULL || dest == OSI_NULL) {
+		return -1;
 	}
 	for (i = 0; i < n; i++) {
 		cdest[i] = csrc[i];
 	}
+
+	return 0;
+}
+
+static inline nve32_t osi_memcmp(void *dest, void *src, nve32_t n)
+{
+	nve32_t i;
+	nve8_t *csrc = (nve8_t *)src;
+	nve8_t *cdest = (nve8_t *)dest;
+
+	if (src == OSI_NULL || dest == OSI_NULL)
+		return -1;
+
+	for (i = 0; i < n; i++) {
+		if (csrc[i] < cdest[i]) {
+			return -1;
+		} else if (csrc[i] > cdest[i]) {
+			return 1;
+		}
+	}
+	return 0;
 }
 #endif

@@ -911,6 +911,52 @@ struct osd_core_ops {
 	nve32_t (*ivc_send)(void *priv, void *data, nveu32_t len);
 };
 
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief MACsec interrupt stats structure.
+ */
+struct osi_macsec_irq_stats {
+	/** Tx debug buffer capture done */
+	unsigned long tx_dbg_capture_done;
+	/** Tx MTU check failed */
+	unsigned long tx_mtu_check_fail;
+	/** Tx MAC CRC err */
+	unsigned long tx_mac_crc_error;
+	/** Tx SC AN not valid */
+	unsigned long tx_sc_an_not_valid;
+	/** Tx AES GCM buffer overflow */
+	unsigned long tx_aes_gcm_buf_ovf;
+	/** Tx LUT lookup miss */
+	unsigned long tx_lkup_miss;
+	/** Tx uninitialized key slot */
+	unsigned long tx_uninit_key_slot;
+	/** Tx PN threshold reached */
+	unsigned long tx_pn_threshold;
+	/** Tx PN exhausted */
+	unsigned long tx_pn_exhausted;
+	/** Tx debug buffer capture done */
+	unsigned long rx_dbg_capture_done;
+	/** Rx ICV error threshold */
+	unsigned long rx_icv_err_threshold;
+	/** Rx replay error */
+	unsigned long rx_replay_error;
+	/** Rx MTU check failed */
+	unsigned long rx_mtu_check_fail;
+	/** Rx MAC CRC err */
+	unsigned long rx_mac_crc_error;
+	/** Rx AES GCM buffer overflow */
+	unsigned long rx_aes_gcm_buf_ovf;
+	/** Rx LUT lookup miss */
+	unsigned long rx_lkup_miss;
+	/** Rx uninitialized key slot */
+	unsigned long rx_uninit_key_slot;
+	/** Rx PN exhausted */
+	unsigned long rx_pn_exhausted;
+	/** Secure reg violation */
+	unsigned long secure_reg_viol;
+};
+#endif /* MACSEC_SUPPORT */
+
 /**
  * @brief The OSI Core (MAC & MTL) private data structure.
  */
@@ -921,6 +967,20 @@ struct osi_core_priv_data {
 	void *dma_base;
 	/** Memory mapped base address of XPCS IP */
 	void *xpcs_base;
+#ifdef MACSEC_SUPPORT
+	/** Memory mapped base address of MACsec IP */
+	void *macsec_base;
+	/** Memory mapped base address of MACsec TZ page */
+	void *tz_base;
+	/** Address of MACsec HW operations structure */
+	struct macsec_core_ops *macsec_ops;
+	/** Instance of macsec interrupt stats structure */
+	struct osi_macsec_irq_stats macsec_irq_stats;
+	/** Instance of macsec HW controller Tx/Rx LUT status */
+	struct osi_macsec_lut_status *macsec_lut_status;
+	/** macsec mmc counters */
+	struct osi_macsec_mmc_counters macsec_mmc;
+#endif /* MACSEC_SUPPORT */
 	/** Pointer to OSD private data structure */
 	void *osd;
 	/** OSD callback ops structure */

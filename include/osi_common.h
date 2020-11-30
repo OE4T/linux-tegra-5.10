@@ -188,6 +188,9 @@
 #define OSI_MGBE_MAX_NUM_CHANS		10U
 #define OSI_MGBE_MAX_NUM_QUEUES		10U
 
+/* MACSEC max SC's supported 16*/
+#define OSI_MACSEC_SC_INDEX_MAX		16
+
 /* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
 #define OSI_EQOS_MAX_HASH_REGS		4U
 
@@ -294,7 +297,8 @@
  * - Run time: Yes
  * - De-initialization: No
  *
- * @return nveu64_t value
+ * @retval 0 on sucess
+ * @retval -1 on failure
  */
 static inline nveu64_t osi_update_stats_counter(nveu64_t last_value,
 						nveu64_t incr)
