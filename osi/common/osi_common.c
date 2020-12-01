@@ -154,7 +154,13 @@ void osi_memset(void *s, unsigned int c, unsigned long count)
  * @pre MAC IP should be out of reset and need to be initialized as the
  *      requirements
  *
- * @returns Quotient
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval Quotient
  */
 static inline unsigned long div_u64_rem(unsigned long dividend,
 					unsigned long divisor,

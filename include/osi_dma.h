@@ -534,7 +534,7 @@ struct osi_dma_priv_data {
  *
  * @note
  * API Group:
- * - Initialization: Yes
+ * - Initialization: No
  * - Run time: Yes
  * - De-initialization: Yes
  *
@@ -575,7 +575,7 @@ int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  * API Group:
  * - Initialization: Yes
  * - Run time: Yes
- * - De-initialization: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -612,7 +612,7 @@ int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @note
  * API Group:
- * - Initialization: Yes
+ * - Initialization: No
  * - Run time: Yes
  * - De-initialization: Yes
  *
@@ -653,7 +653,7 @@ int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  * API Group:
  * - Initialization: Yes
  * - Run time: Yes
- * - De-initialization: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1318,7 +1318,7 @@ int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  * @note
  * API Group:
  * - Initialization: Yes
- * - Run time: No
+ * - Run time: Yes
  * - De-initialization: No
  *
  * @retval 0 on success
@@ -1341,6 +1341,12 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
  *  - MAC needs to be out of reset and proper clocks need to be configured.
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -1360,6 +1366,12 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 1 if ring is empty.
  * @retval 0 if ring has outstanding packets.

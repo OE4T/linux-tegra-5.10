@@ -269,6 +269,12 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
  * @param[in] rx_ring: HW ring corresponding to Rx DMA channel.
  * @param[in] chan: Rx DMA channel number
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -308,6 +314,12 @@ static inline int rx_dma_desc_validate_args(struct osi_dma_priv_data *osi_dma,
  * @param[in] osi_dma: OSI DMA private data struture.
  * @param[in] rx_ring: HW ring corresponding to Rx DMA channel.
  * @param[in] rx_desc: Rx Rx descriptor.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  */
 static inline void rx_dma_handle_ioc(struct osi_dma_priv_data *osi_dma,
@@ -451,6 +463,12 @@ unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
  * @param[in] set: Flag to set with OSI_ENABLE and reset with OSI_DISABLE
  *
  * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.

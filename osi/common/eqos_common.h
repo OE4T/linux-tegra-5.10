@@ -51,6 +51,12 @@
  *
  * @pre MAC should be init and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -63,6 +69,12 @@ unsigned long long eqos_get_systime_from_mac(void *addr);
  *                  memory mapped IO region of the MAC.
  *
  * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval OSI_ENABLE if MAC enabled.
  * @retval OSI_DISABLE otherwise.

@@ -35,6 +35,12 @@
  *
  * @pre MAC should be init and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -48,6 +54,12 @@ void common_get_systime_from_mac(void *addr, unsigned int mac,
  * @param[in] mac: MAC HW type.
  *
  * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval OSI_ENABLE if MAC enabled.
  * @retval OSI_DISABLE otherwise.

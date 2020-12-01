@@ -269,6 +269,12 @@ int osi_l2_filter(struct osi_core_priv_data *const osi_core,
  *
  * @pre MAC needs to be out of reset and proper clock configured.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on Success
  * @retval -1 on Failure
  */
@@ -321,6 +327,12 @@ static inline int helper_l4_filter(
  * @param[in] dma_chan: dma channel
  *
  * @pre MAC needs to be out of reset and proper clock configured.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on Success
  * @retval -1 on Failure
@@ -474,6 +486,12 @@ int osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
  * @pre MAC IP should be out of reset and need to be initialized as the
  *      requirements
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @returns Quotient
  */
 static inline unsigned long div_u64_rem(unsigned long dividend,
@@ -500,6 +518,12 @@ static inline unsigned long div_u64_rem(unsigned long dividend,
  * @pre MAC IP should be out of reset and need to be initialized as the
  *      requirements.
  *
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  * @returns Quotient
  */
 static inline unsigned long div_u64(unsigned long dividend,

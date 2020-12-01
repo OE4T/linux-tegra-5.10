@@ -46,6 +46,12 @@ static struct dma_func_safety eqos_dma_safety_config;
  * @param[in] idx: Index of register corresponding to enum func_safety_dma_regs.
  *
  * @pre MAC has to be out of reset, and clocks supplied.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  */
 static inline void eqos_dma_safety_writel(unsigned int val, void *addr,
 					  unsigned int idx)
@@ -71,6 +77,12 @@ static inline void eqos_dma_safety_writel(unsigned int val, void *addr,
  *    See eqos_validate_dma_regs which can be invoked periodically to compare
  *    the last written value to this register vs the actual value read when
  *    eqos_validate_dma_regs is scheduled.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 {
@@ -140,6 +152,12 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  *  - Mapping of physical IRQ line to DMA channel need to be maintained at
  *    OSDependent layer and pass corresponding channel number.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: Yes
  */
 static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
 {
@@ -179,6 +197,12 @@ static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  *  - Mapping of physical IRQ line to DMA channel need to be maintained at
  *    OSDependent layer and pass corresponding channel number.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
 {
@@ -205,6 +229,12 @@ static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  *  - Mapping of physical IRQ line to DMA channel need to be maintained at
  *    OSDependent layer and pass corresponding channel number.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: Yes
  */
 static void eqos_disable_chan_rx_intr(void *addr, unsigned int chan)
 {
@@ -242,6 +272,12 @@ static void eqos_disable_chan_rx_intr(void *addr, unsigned int chan)
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
 {
@@ -267,6 +303,12 @@ static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Tx channel number.
  * @param[in] len: Length.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
 				 unsigned int len)
@@ -288,6 +330,12 @@ static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Tx channel number.
  * @param[in] tx_desc: Tx desc base address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
 					unsigned long tx_desc)
@@ -325,6 +373,12 @@ static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
 				   unsigned long tailptr)
@@ -351,6 +405,12 @@ static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Rx channel number.
  * @param[in] len: Length
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
 				 unsigned int len)
@@ -372,6 +432,12 @@ static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
  * 	      memory mapped IO region of the MAC.
  * @param[in] chan: DMA Rx channel number.
  * @param[in] rx_desc: DMA Rx desc base address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_set_rx_ring_start_addr(void *addr, unsigned int chan,
 					unsigned long rx_desc)
@@ -408,6 +474,12 @@ static void eqos_set_rx_ring_start_addr(void *addr, unsigned int chan,
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_update_rx_tailptr(void *addr, unsigned int chan,
 				   unsigned long tailptr)
@@ -437,6 +509,12 @@ static void eqos_update_rx_tailptr(void *addr, unsigned int chan,
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_start_dma(void *addr, unsigned int chan)
 {
@@ -473,6 +551,12 @@ static void eqos_start_dma(void *addr, unsigned int chan)
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: No
+ * - De-initialization: Yes
  */
 static void eqos_stop_dma(void *addr, unsigned int chan)
 {
@@ -512,6 +596,12 @@ static void eqos_stop_dma(void *addr, unsigned int chan)
  * @param[in] osi_dma: OSI DMA private data structure.
  *
  * @pre MAC has to be out of reset.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_configure_dma_channel(unsigned int chan,
 				       struct osi_dma_priv_data *osi_dma)
@@ -648,6 +738,12 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -682,6 +778,12 @@ static int eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
  *  - MAC needs to be out of reset and proper clocks need to be configured
  *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
  *  - osi_dma->mtu need to be filled with current MTU size <= 9K
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
@@ -718,6 +820,12 @@ static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
  *    the safety_config (see osi_dma_priv_data) based on MAC version and
  *    which specific registers needs to be validated periodically.
  *  - Invoke this call if (osi_dma_priv_data->safety_config != OSI_NULL)
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -767,8 +875,14 @@ static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
  * @param[in] interval: slot interval from 0usec to 4095usec
  *
  * @pre
- &  - MAC should be init and started. see osi_start_mac()
+ *  - MAC should be init and started. see osi_start_mac()
  *  - OSD should be initialized
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval none
  */
