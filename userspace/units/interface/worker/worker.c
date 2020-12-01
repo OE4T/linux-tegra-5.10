@@ -95,6 +95,7 @@ static u32 wakeup_timeout(struct nvgpu_worker *worker)
 }
 
 _Thread_local struct nvgpu_worker worker;
+_Thread_local struct nvgpu_worker worker_branch;
 _Thread_local struct nvgpu_worker_ops worker_ops = {
 	/* pre_process is NULL for branch testing for NULL when thread starts. */
 	.pre_process = NULL,
@@ -136,7 +137,9 @@ int test_init(struct unit_module *m, struct gk20a *g, void *args)
 	while (!nvgpu_thread_is_running(&worker.poll_task)) {
 		nvgpu_udelay(5);
 	}
-	err = nvgpu_worker_init(g, &worker, &worker_ops);
+
+	nvgpu_atomic_set(&worker_branch.poll_task.running, 1);
+	err = nvgpu_worker_init(g, &worker_branch, &worker_ops);
 	unit_assert(err == 0, return UNIT_FAIL);
 
 	return UNIT_SUCCESS;
