@@ -421,5 +421,6 @@ int pva_boot_kpi(struct pva *pva,
 			     u64 *r5_boot_time);
 
 int pva_set_log_level(struct pva *pva,
-			     u32 log_level);
+		      u32 log_level,
+		      bool mailbox_locked);
 #endif

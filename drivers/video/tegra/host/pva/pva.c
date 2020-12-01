@@ -597,7 +597,8 @@ err_alloc_vpu_function_table:
 }
 
 int pva_set_log_level(struct pva *pva,
-			     u32 log_level)
+		      u32 log_level,
+		      bool mailbox_locked)
 {
 	uint32_t flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status;
@@ -607,7 +608,16 @@ int pva_set_log_level(struct pva *pva,
 
 	nregs = pva_cmd_set_logging_level(&cmd, log_level, flags);
 
-	err = pva->version_config->submit_cmd_sync(pva, &cmd, nregs, &status);
+	if (mailbox_locked)
+		err = pva->version_config->submit_cmd_sync_locked(pva,
+								  &cmd,
+								  nregs,
+								  &status);
+	else
+		err = pva->version_config->submit_cmd_sync(pva, &cmd,
+							   nregs,
+							   &status);
+
 	if (err < 0)
 		nvhost_warn(&pva->pdev->dev,
 			"mbox set log level failed: %d\n", err);
@@ -681,7 +691,7 @@ int pva_finalize_poweron(struct platform_device *pdev)
 		goto err_poweron;
 	}
 
-	pva_set_log_level(pva, pva->log_level);
+	pva_set_log_level(pva, pva->log_level, true);
 
 	/* Restore the attributes */
 	pva_restore_attributes(pva);

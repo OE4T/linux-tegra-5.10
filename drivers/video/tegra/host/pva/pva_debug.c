@@ -193,7 +193,7 @@ static int set_log_level(void *data, u64 val)
 
 	pva->log_level = val;
 	if (pva->booted)
-		return pva_set_log_level(pva, val);
+		return pva_set_log_level(pva, val, false);
 	else
 		return 0;
 }
