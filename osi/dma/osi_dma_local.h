@@ -39,6 +39,12 @@
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */

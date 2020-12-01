@@ -28,18 +28,36 @@
  *
  * @param[in] umin: Minimum time in usecs to sleep
  * @param[in] umax: Maximum time in usecs to sleep
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  */
 void osd_usleep_range(unsigned long umin, unsigned long umax);
 /**
  * @brief osd_msleep - sleep in milli seconds
  *
  * @param[in] msec: time in milli seconds
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  */
 void osd_msleep(unsigned int msec);
 /**
  * @brief osd_udelay - delay in micro seconds
  *
  * @param[in] usec: time in usec
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  */
 void osd_udelay(unsigned long usec);
 /**
@@ -58,9 +76,15 @@ void osd_udelay(unsigned long usec);
  * @param[in] chan: DMA Rx channel number.
  * @param[in] dma_buf_len: Rx DMA buffer length.
  * @param[in] rxpkt_cx: Received packet context.
- * @param[in] rx_pkt_swcx: Received packet sw context.
+ * @param[out] rx_pkt_swcx: Received packet sw context.
  *
  * @pre Rx completion need to make sure that Rx descriptors processed properly.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
 			unsigned int dma_buf_len, void *rxpkt_cx,
@@ -79,7 +103,7 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  * @param[in] buffer: Buffer address to free.
  * @param[in] dmaaddr: DMA address to unmap.
  * @param[in] len: Length of data.
- * @param[in] txdone_pkt_cx: Pointer to struct which has tx done status info.
+ * @param[out] txdone_pkt_cx: Pointer to struct which has tx done status info.
  *            This struct has flags to indicate tx error, whether DMA address
  *            is mapped from paged/linear buffer, Time stamp availability,
  *            if TS available txdone_pkt_cx->ns stores the time stamp.
@@ -89,6 +113,12 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  *             OSI_TXDONE_CX_TS                OSI_BIT(2)
  *
  * @pre Tx completion need to make sure that Tx descriptors processed properly.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 			   unsigned int len, void *txdone_pkt_cx);
@@ -103,6 +133,11 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
  * @param[in] err:  error string
  * @param[in] loga: error additional information
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  */
 void osd_log(void *priv,
 	     const char *func,

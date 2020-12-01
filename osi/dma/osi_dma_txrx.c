@@ -36,6 +36,12 @@
  *    IP/TCP/UDP checksum validation in software based on whether
  *    COE is enabled for the device.
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @param[in] rx_desc: Rx descriptor
  * @param[in] rx_pkt_cx: Per-Rx packet context structure
  */
@@ -100,6 +106,12 @@ static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
  *    tagged.
  *  - Extract VLAN tag ID from the descriptor
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @param[in] rx_desc: Rx descriptor
  * @param[in] rx_pkt_cx: Per-Rx packet context structure
  */
@@ -128,6 +140,12 @@ static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
  *  - If yes, check whether the time stamp is valid or not.
  *
  * @param[in] context_desc: Rx context descriptor
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval -1 if TimeStamp is not valid
  * @retval 0 if TimeStamp is valid.
@@ -162,6 +180,12 @@ static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
  * @param[in] rx_desc: Rx descriptor
  * @param[in] context_desc: Rx context descriptor
  * @param[in] rx_pkt_cx: Rx packet context
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval -1 if TimeStamp is not available
  * @retval 0 if TimeStamp is available.
@@ -217,6 +241,12 @@ static int get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
  *    checks for the Last Descriptor and updates the receive status errors
  *    accordingly.
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @param[in] rx_desc: Rx Descriptor.
  * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
  */
@@ -253,6 +283,12 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
  *         this flag if more rx packets available to read(1) or not(0).
  * @param[in] rx_ring: OSI DMA channel Rx ring
  * @param[in] rx_pkt_cx: OSI DMA receive packet context
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -453,6 +489,12 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
  *  - This routine will be invoked by OSI layer internally to increment
  *    stats for successfully transmitted packets on certain DMA channel.
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @param[in] osi_dma: Pointer to OSI DMA private data structure.
  * @param[in] chan: DMA channel number for which stats should be incremented.
  */
@@ -473,6 +515,12 @@ static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi_dma,
  *  - This routine will be invoked by OSI layer itself which
  *    checks for the Last Descriptor and updates the transmit status errors
  *    accordingly.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @param[in] tx_desc: Tx Descriptor.
  * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
@@ -618,6 +666,12 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
  * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: Tx DMA channel number
  * @param[in] tx_ring: OSI DMA channel Rx ring
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -769,6 +823,12 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
  * @param[in] tx_desc: Pointer to transmit descriptor to be filled.
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 - cntx desc not used
  * @retval 1 - cntx desc used.
  */
@@ -816,6 +876,12 @@ static inline int need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
  *  - Check if any features like HW checksum offload, TSO, VLAN insertion
  *    etc. are flagged in transmit packet context. If so, set the fields in
  *    first desc corresponding to those features.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @param[in] tx_ring: DMA channel TX ring.
  * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
@@ -907,6 +973,12 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 /**
  * @brief dmb_oshst() - Data memory barrier operation that waits only
  * for stores to complete, and only to the outer shareable domain.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static inline void dmb_oshst(void)
 {
@@ -924,6 +996,12 @@ static inline void dmb_oshst(void)
  * @param[in] chan: Tx DMA channel number
  * @param[in] ops: OSI DMA Channel operations
  * @param[in] tx_ring: OSI DMA channel Tx ring
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1120,6 +1198,12 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, unsigned int chan)
  * @param[in] osi_dma:	OSI private data structure.
  * @param[in] chan:	Rx channel number.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -1223,6 +1307,12 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
  *
  * @param[in] osi_dma: OSI private data structure.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -1253,6 +1343,12 @@ static int rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
  *    Tx ring base address in Tx DMA registers.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.

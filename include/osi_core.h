@@ -1280,7 +1280,7 @@ int osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
  *  - Reads MAC version and check whether its valid or not.
  *
  * @param[in] addr: io-remap MAC base address.
- * @param[in] mac_ver: holds mac version.
+ * @param[out] mac_ver: holds mac version.
  *
  * @pre MAC has to be out of reset.
  *
@@ -1310,7 +1310,7 @@ int osi_get_mac_version(void *addr, unsigned int *mac_ver);
  * @brief osi_get_hw_features - Reading MAC HW features
  *
  * @param[in] base: io-remap MAC base address.
- * @param[in] hw_feat: holds the supported features of the hardware.
+ * @param[out] hw_feat: holds the supported features of the hardware.
  *
  * @pre MAC has to be out of reset.
  *
@@ -1617,7 +1617,7 @@ int osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * API Group:
- * - Initialization: Yes
+ * - Initialization: No
  * - Run time: Yes
  * - De-initialization: No
  *
@@ -1822,6 +1822,12 @@ int osi_configure_eee(struct osi_core_priv_data *const osi_core,
  *  - No further configuration change in MAC shall be done after invoking
  *    this API
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -1834,6 +1840,12 @@ int osi_save_registers(struct osi_core_priv_data *const osi_core);
  *
  * @pre
  *  - MAC and PHY should be init and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1867,7 +1879,7 @@ int osi_restore_registers(struct osi_core_priv_data *const osi_core);
  * @note
  * API Group:
  * - Initialization: Yes
- * - Run time: Yes
+ * - Run time: No
  * - De-initialization: No
  *
  * @retval 0 on success
@@ -1900,8 +1912,8 @@ int osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
  *
  * @note
  * API Group:
- * - Initialization: Yes
- * - Run time: No
+ * - Initialization: No
+ * - Run time: Yes
  * - De-initialization: No
  *
  * @retval 0 on success

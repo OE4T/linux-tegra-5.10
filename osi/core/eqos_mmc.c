@@ -42,6 +42,12 @@
  *  - MAC should be init and started. see osi_start_mac()
  *  - osi_core->osd should be populated
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure
  */
@@ -76,6 +82,12 @@ static inline unsigned long update_mmc_val(struct osi_core_priv_data *osi_core,
  * @pre
  *  - MAC should be init and started. see osi_start_mac()
  *  - osi_core->osd should be populated
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 void eqos_reset_mmc(struct osi_core_priv_data *osi_core)
 {
@@ -102,6 +114,12 @@ void eqos_reset_mmc(struct osi_core_priv_data *osi_core)
  * @pre
  *  - MAC should be init and started. see osi_start_mac()
  *  - osi_core->osd should be populated
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 void eqos_read_mmc(struct osi_core_priv_data *osi_core)
 {

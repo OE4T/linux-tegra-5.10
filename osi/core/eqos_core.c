@@ -48,6 +48,12 @@ static struct core_func_safety eqos_core_safety_config;
  * @param[in] idx: Index of register corresponding to enum func_safety_core_regs.
  *
  * @pre MAC has to be out of reset, and clocks supplied.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  */
 static inline void eqos_core_safety_writel(unsigned int val, void *addr,
 					  unsigned int idx)
@@ -73,6 +79,12 @@ static inline void eqos_core_safety_writel(unsigned int val, void *addr,
  *    eqos_validate_core_regs is scheduled.
  *
  * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_core_safety_init(struct osi_core_priv_data *const osi_core)
 {
@@ -182,6 +194,12 @@ static void eqos_core_safety_init(struct osi_core_priv_data *const osi_core)
  * Algorithm:
  *  - Populate the list of core registers to be saved during suspend.
  *    Fill the address of each register in structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @param[in] osi_core: OSI core private data structure.
  *
@@ -301,6 +319,12 @@ static void eqos_core_backup_init(struct osi_core_priv_data *const osi_core)
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -372,10 +396,16 @@ static int eqos_config_flow_control(struct osi_core_priv_data *const osi_core,
  *    are forwarded to the application or DMA.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] qinx: Q index
+ * @param[in] qinx: Queue index
  * @param[in] fw_err: Enable or Disable the forwarding of error packets
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -436,6 +466,12 @@ static int eqos_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
  *
  * @pre MAC needs to be out of reset and proper clock configured.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -487,6 +523,12 @@ static int eqos_poll_for_swr(struct osi_core_priv_data *const osi_core,
  * @param[in] base:	EQOS virtual base address.
  * @param[in] speed:	Operating speed.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @pre MAC should be initialized and started. see osi_start_mac()
  */
 static void eqos_set_speed(void *base, const int speed)
@@ -530,6 +572,12 @@ static void eqos_set_speed(void *base, const int speed)
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -572,6 +620,12 @@ static int eqos_set_mode(struct osi_core_priv_data *const osi_core,
  * @param[in] queue_count: Total number of Queues configured.
  *
  * @pre MAC has to be out of reset.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval Queue size that need to be programmed.
  */
@@ -677,6 +731,12 @@ static unsigned int eqos_calculate_per_queue_fifo(unsigned int fifo_size,
  *  - RGMII and MDIO interface needs to be IDLE before performing PAD
  *    calibration.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -750,6 +810,12 @@ calibration_failed:
  *  - MAC should out of reset and clocks enabled.
  *  - hw core initialized. see osi_hw_core_init().
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -808,8 +874,14 @@ static int eqos_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
  *    Flow control) and RSA (Threshold for Activating Flow Control) values
  *    based on the Rx FIFO size and also enables HW flow control
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @param[in] rx_fifo: Rx FIFO size.
- * @param[in] value: Stores RFD and RSA values
+ * @param[out] value: Stores RFD and RSA values
  */
 void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
 {
@@ -916,6 +988,12 @@ void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
  *
  * @pre MAC has to be out of reset.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -989,6 +1067,12 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -1034,6 +1118,12 @@ static int eqos_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
  * @param[in] osi_core: OSI core private data structure.
  *
  * @pre MAC has to be out of reset.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_configure_rxq_priority(
 			struct osi_core_priv_data *const osi_core)
@@ -1098,6 +1188,12 @@ static void eqos_configure_rxq_priority(
  * @param[in] osi_core: OSI core private data structure.
  *
  * @pre MAC has to be out of reset.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 {
@@ -1238,6 +1334,12 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
  * @param[in] base: EQOS virtual base address.
  *
  * @pre MAC has to be out of reset.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_configure_dma(void *base)
 {
@@ -1280,6 +1382,12 @@ static void eqos_configure_dma(void *base)
  *  - osi_core->base needs to be filled based on ioremap.
  *  - osi_core->num_mtl_queues needs to be filled.
  *  - osi_core->mtl_queues[qinx] need to be filled.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1385,6 +1493,12 @@ static int eqos_core_init(struct osi_core_priv_data *const osi_core,
  * @param[in] dma_isr: DMA ISR register read value.
  *
  * @pre MAC interrupts need to be enabled
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 				  unsigned int dma_isr)
@@ -1456,6 +1570,12 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] dma_sr: Dma status register read value
  * @param[in] qinx: Queue index
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static inline void update_dma_sr_stats(
 			struct osi_core_priv_data *const osi_core,
@@ -1505,6 +1625,12 @@ static inline void update_dma_sr_stats(
  * @param[in] osi_core: OSI core private data structure.
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 {
@@ -1570,6 +1696,12 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
  * @pre
  *  - MAC init should be complete. See osi_hw_core_init() and
  *    osi_hw_dma_init()
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_start_mac(void *addr)
 {
@@ -1593,6 +1725,12 @@ static void eqos_start_mac(void *addr)
  * @param[in] addr: EQOS virtual base address.
  *
  * @pre MAC DMA deinit should be complete. See osi_hw_dma_deinit()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: No
+ * - De-initialization: Yes
  */
 static void eqos_stop_mac(void *addr)
 {
@@ -1620,6 +1758,12 @@ static void eqos_stop_mac(void *addr)
  * @param[in] perfect_inverse_match: 1 - inverse mode 0- perfect mode
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 always
  */
@@ -1653,6 +1797,12 @@ static inline int eqos_config_l2_da_perfect_inverse_match(void *base,
  * @param[in] filter: OSI filter structure.
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 always
  */
@@ -1735,6 +1885,12 @@ static int eqos_config_mac_pkt_filter_reg(
  *  - MAC should be initialized and started. see osi_start_mac()
  *  - osi_core->osd should be populated.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -1801,6 +1957,12 @@ err_dma_chan:
  * @pre
  *  - MAC should be initialized and started. see osi_start_mac()
  *  - osi_core->osd should be populated.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1881,6 +2043,12 @@ static int eqos_update_mac_addr_low_high_reg(
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -1912,6 +2080,12 @@ static int eqos_config_l3_l4_filter_enable(void *base,
  * @param[in] src_dst_addr_match: 0 - source addr otherwise - dest addr
  *
  * @pre 1) MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -1969,6 +2143,12 @@ static int eqos_update_ip4_addr(struct osi_core_priv_data *const osi_core,
  * @param[in] addr: ipv6 address
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2040,6 +2220,12 @@ static int eqos_update_ip6_addr(struct osi_core_priv_data *const osi_core,
  *  - osi_core->osd should be populated.
  *  - DCS bits should be enabled in RXQ to DMA mapping register
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -2093,6 +2279,12 @@ static int eqos_update_l4_port_no(
  *  - DCS bit of RxQ should be enabled for dynamic channel selection
  *    in filter support
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  *@return updated unsigned int value
  */
 static inline unsigned int eqos_set_dcs(
@@ -2123,9 +2315,15 @@ static inline unsigned int eqos_set_dcs(
  * Algorithm:
  *  - set bit corresponding to L3l4 filter index
  *
- * @param[in] bitmask: bit mask OSI core private data structure.
+ * @param[out] bitmask: bit mask OSI core private data structure.
  * @param[in] filter_no: filter index
  * @param[in] value:  0 - disable  otherwise - l3/l4 filter enabled
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
@@ -2171,6 +2369,12 @@ static inline void eqos_helper_l3l4_bitmask(unsigned int *bitmask,
  *  - osi_core->osd should be populated.
  *  - DCS bit of RxQ should be enabled for dynamic channel selection
  *    in filter support
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2348,6 +2552,12 @@ static int eqos_config_l3_filters(
  *  - MAC should be initialized and started. see osi_start_mac()
  *  - osi_core->osd should be populated.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -2454,9 +2664,16 @@ static int eqos_config_l4_filters(
  *    equal to zero.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] mac_tcr: Address to store time stamp control register read value
+ * @param[inout] mac_tcr: Address to store time stamp control register read
+ *  value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2506,6 +2723,12 @@ static inline int eqos_poll_for_tsinit_complete(
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -2552,9 +2775,16 @@ static int eqos_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
  *    equal to zero.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] mac_tcr: Address to store time stamp control register read value
+ * @param[inout] mac_tcr: Address to store time stamp control register read
+ *  value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2601,6 +2831,12 @@ static inline int eqos_poll_for_addend_complete(
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -2642,9 +2878,16 @@ static int eqos_config_addend(struct osi_core_priv_data *const osi_core,
  *    equal to zero.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] mac_tcr: Address to store time stamp control register read value
+ * @param[inout] mac_tcr: Address to store time stamp control register read
+ *  value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2695,6 +2938,12 @@ static inline int eqos_poll_for_update_ts_complete(
  * @pre
  *  - MAC should be initialized and started. see osi_start_mac()
  *  - osi_core->ptp_config.one_nsec_accuracy need to be set to 1
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -2777,6 +3026,12 @@ static int eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
  * @param[in] ptp_filter: PTP rx filter parameters
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_config_tscr(void *addr, const unsigned int ptp_filter)
 {
@@ -2849,6 +3104,12 @@ static void eqos_config_tscr(void *addr, const unsigned int ptp_filter)
  * @param[in] osi_core: OSI core private data structure.
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_config_ssir(struct osi_core_priv_data *const osi_core)
 {
@@ -2900,6 +3161,12 @@ static void eqos_config_ssir(struct osi_core_priv_data *const osi_core)
  * @param[in] osi_core: OSI core private data structure.
  *
  * @pre Required clks and resets has to be enabled
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: No
+ * - De-initialization: Yes
  */
 static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 {
@@ -2913,6 +3180,12 @@ static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
  * @param[in] osi_core: OSI Core private data structure.
  *
  * @pre MAC needs to be out of reset and proper clock configured.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on Success
  * @retval -1 on Failure
@@ -2969,6 +3242,12 @@ static inline int poll_for_mii_idle(struct osi_core_priv_data *osi_core)
  * @param[in] phydata: Data to write to a PHY register.
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3045,6 +3324,12 @@ static int eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval data from PHY register on success
  * @retval -1 on failure
  */
@@ -3107,6 +3392,12 @@ static int eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
  * @param[in] addr: base address of memory mapped register space of MAC.
  *
  * @pre MAC has to be out of reset, and clocks supplied.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static inline void eqos_disable_tx_lpi(void *addr)
 {
@@ -3135,6 +3426,12 @@ static inline void eqos_disable_tx_lpi(void *addr)
  *    the safety_config (see osi_core_priv_data) based on MAC version and
  *    which specific registers needs to be validated periodically.
  *  - Invoke this call if (osi_core_priv_data->safety_config != OSI_NULL)
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3186,6 +3483,12 @@ static int eqos_validate_core_regs(struct osi_core_priv_data *const osi_core)
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -3236,6 +3539,12 @@ static int eqos_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
  * @param[in] tx_status: Enable or Disable the forwarding of tx pkt status
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3299,6 +3608,12 @@ static int eqos_config_tx_status(struct osi_core_priv_data *const osi_core,
  * @pre
  *  - MAC should be initialized and started. see osi_start_mac()
  *  - osi_core->osd should be populated.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3416,6 +3731,12 @@ static int eqos_set_avb_algorithm(
  *  - MAC should be initialized and started. see osi_start_mac()
  *  - osi_core->osd should be populated.
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -3502,6 +3823,12 @@ static int eqos_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
  *  - MAC should be initialized and started. see osi_start_mac()
  *  - Valid 4 byte IP address as argument ip_addr
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -3569,6 +3896,12 @@ static int eqos_config_arp_offload(const unsigned int mac_ver,
  *  - MAC should be initialized and started. see osi_start_mac()
  *  - osi_core->osd should be populated.
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on success
  * @retval -1 on failure.
  */
@@ -3626,6 +3959,12 @@ static int eqos_config_vlan_filtering(
  * @param[in] base: Base address from OSI core private data structure.
  * @param[in] vid: VLAN ID to be programmed.
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 always
  */
 static inline int eqos_update_vlan_id(void *base, unsigned int vid)
@@ -3657,6 +3996,12 @@ static inline int eqos_update_vlan_id(void *base, unsigned int vid)
  * @pre
  *  - Required clks and resets has to be enabled.
  *  - MAC/PHY should be initialized
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static void eqos_configure_eee(
 			       struct osi_core_priv_data *const osi_core,
@@ -3728,6 +4073,12 @@ static void eqos_configure_eee(
  *
  * @param[in] osi_core: OSI core private data structure.
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @retval 0 on Success
  */
 static inline int eqos_save_registers(
@@ -3754,6 +4105,12 @@ static inline int eqos_save_registers(
  *    eqos_save_registers().
  *
  * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 on Success
  */
@@ -3785,6 +4142,12 @@ static inline int eqos_restore_registers(
  *
  * @pre OSD layer needs get the AXI CBB clock rate with OSD clock API
  *   (ex - clk_get_rate())
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 				  const unsigned long csr_clk_rate)
@@ -3825,6 +4188,12 @@ static void eqos_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
  * @param[in] lb_mode: Enable or Disable MAC loopback mode
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -3924,6 +4293,12 @@ static struct osi_core_ops eqos_core_ops = {
 
 /**
  * @brief eqos_get_core_safety_config - EQOS MAC safety configuration
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 void *eqos_get_core_safety_config(void)
 {
@@ -3932,6 +4307,12 @@ void *eqos_get_core_safety_config(void)
 
 /**
  * @brief eqos_get_hw_core_ops - EQOS MAC get core operations
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 struct osi_core_ops *eqos_get_hw_core_ops(void)
 {

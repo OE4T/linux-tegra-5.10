@@ -162,12 +162,24 @@ struct dma_func_safety {
 /**
  * @brief eqos_get_dma_safety_config - EQOS get DMA safety configuration
  *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
  * @returns Pointer to DMA safety configuration
  */
 void *eqos_get_dma_safety_config(void);
 
 /**
  * @brief eqos_get_dma_chan_ops - EQOS get DMA channel operations
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @returns Pointer to DMA channel operations structure
  */

@@ -652,6 +652,12 @@ struct osi_hw_features {
  *  - Set lock to unlocked state.
  *
  * @param[in] lock - Pointer to lock to be initialized
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
 static inline void osi_lock_init(unsigned int *lock)
 {
@@ -670,6 +676,12 @@ static inline void osi_lock_init(unsigned int *lock)
  * @note
  *  - Does not disable irq. Do not call this API to acquire any
  *    lock that is shared between top/bottom half. It will result in deadlock.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static inline void osi_lock_irq_enabled(unsigned int *lock)
 {
@@ -696,6 +708,12 @@ static inline void osi_lock_irq_enabled(unsigned int *lock)
  * @note
  *  - Does not disable irq. Do not call this API to release any
  *    lock that is shared between top/bottom half.
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 static inline void osi_unlock_irq_enabled(unsigned int *lock)
 {
@@ -713,6 +731,12 @@ static inline void osi_unlock_irq_enabled(unsigned int *lock)
  * @pre Physical address has to be memory mapped.
  *
  * @return Data from memory mapped register - success.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  */
 static inline unsigned int osi_readl(void *addr)
 {
@@ -726,6 +750,12 @@ static inline unsigned int osi_readl(void *addr)
  * @param[in] addr: Memory mapped address.
  *
  * @pre Physical address has to be memory mapped.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
  */
 static inline void osi_writel(unsigned int val, void *addr)
 {
@@ -738,6 +768,12 @@ static inline void osi_writel(unsigned int val, void *addr)
  * @param[in] mac_ver: MAC version read.
  *
  * @note MAC has to be out of reset.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @retval 0 - for not Valid MAC
  * @retval 1 - for Valid MAC
@@ -766,6 +802,12 @@ static inline int is_valid_mac_version(unsigned int mac_ver)
  *
  * @note Input parameter should be only unsigned long type
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
  * @return unsigned long value
  */
 static inline unsigned long osi_update_stats_counter(unsigned long last_value,
@@ -789,9 +831,15 @@ static inline unsigned long osi_update_stats_counter(unsigned long last_value,
  *  - Reads MAC version and check whether its valid or not.
  *
  * @param[in] addr: io-remap MAC base address.
- * @param[in] mac_ver: holds mac version.
+ * @param[out] mac_ver: holds mac version.
  *
  * @pre MAC has to be out of reset.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -802,7 +850,13 @@ int common_get_mac_version(void *addr, unsigned int *mac_ver);
  * @brief comon_get_hw_features - Reading MAC HW features
  *
  * @param[in] base: io-remap MAC base address.
- * @param[in] hw_feat: holds the supported features of the hardware.
+ * @param[out] hw_feat: holds the supported features of the hardware.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  *
  * @pre MAC has to be out of reset.
  */
@@ -810,10 +864,15 @@ void common_get_hw_features(void *base, struct osi_hw_features *hw_feat);
 /**
  * @brief osi_memset - osi memset
  *
- * @param[in] s: source that need to be set
+ * @param[out] s: source that need to be set
  * @param[in] c: value to fill in source
  * @param[in] count: first n bytes of source
  *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
  */
 void osi_memset(void *s, unsigned int c, unsigned long count);
 #endif /* OSI_COMMON_H */
