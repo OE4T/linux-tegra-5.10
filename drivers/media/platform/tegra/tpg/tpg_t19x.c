@@ -56,6 +56,23 @@ MODULE_PARM_DESC(override_frmfmt, "override existing format table");
 static int framerate = 30;
 module_param(framerate, int, 0444);
 
+static bool ls_le = false;
+module_param(ls_le, bool, 0644);
+MODULE_PARM_DESC(ls_le, "Enable/disable LS/LE (line start and line end) in TPG. Default is OFF");
+
+static bool emb_data = true;
+module_param(emb_data, bool, 0644);
+MODULE_PARM_DESC(emb_data, "Embedded-data generation by TPG. Default is ON");
+
+static bool phy = 0; /* 0 - DPHY, 1 - CPHY */
+module_param(phy, bool, 0644);
+MODULE_PARM_DESC(phy, "PHY mode, CPHY or DPHY. 0 - DPHY (default), 1 - CPHY");
+
+static char *pattern = "PATCH";
+module_param(pattern, charp, 0644);
+MODULE_PARM_DESC(pattern, "Supported TPG patterns, PATCH, SINE. Default is PATCH mode");
+#define PARAM_STRING_LENGTH	10
+
 /* PG generate 32 bit per nvcsi_clk:
  * clks_per_line = width * bits_per_pixel / 32
  * ((clks_per_line + hblank) * height + vblank) * fps * lanes = nvcsi_clk_freq
@@ -189,7 +206,59 @@ static int get_tpg_settings_t19x(struct tegra_csi_port *port,
 static int get_tpg_settings_t23x(struct tegra_csi_port *port,
 				union nvcsi_tpg_config *const tpg_config)
 {
-	// TODO : Add Orin tpg support
+	/* TPG native resolution */
+	const size_t px_max = 0x4000;
+	const size_t py_max = 0x2000;
+	size_t hfreq = 0;
+	size_t vfreq = 0;
+	u16 flags = 0;
+	char param_name[PARAM_STRING_LENGTH];
+	char *temp = NULL;
+
+	dev_info(NULL, "pattern - %s cphy - %d ls-le - %d emb-data - %d\n",
+			pattern, phy, ls_le, emb_data);
+	hfreq = px_max / port->format.width;
+	vfreq = py_max / port->format.height;
+
+	tpg_config->tpg_ng.virtual_channel_id = port->virtual_channel_id;
+	tpg_config->tpg_ng.datatype = port->core_format->img_dt;
+
+	flags |= (ls_le == true) ? NVCSI_TPG_FLAG_ENABLE_LS_LE : 0;
+	flags |= (emb_data == true) ? NVCSI_TPG_FLAG_EMBEDDED_PATTERN_CONFIG_INFO : 0;
+	flags |= (phy == true) ? NVCSI_TPG_FLAG_PHY_MODE_CPHY : 0;
+	strncpy(param_name, pattern, PARAM_STRING_LENGTH);
+	param_name[PARAM_STRING_LENGTH - 1] = '\0';
+	temp = strstrip(param_name);
+	if (strcmp(temp, "PATCH") == 0) {
+		flags |= NVCSI_TPG_FLAG_PATCH_MODE;
+	} else if (strcmp(temp, "SINE") == 0) {
+		flags |= NVCSI_TPG_FLAG_SINE_MODE;
+	} else {
+		dev_err(NULL, "Error: Incorrect pattern - %s\n", pattern);
+		return -EINVAL;
+	}
+	tpg_config->tpg_ng.flags = flags;
+
+	tpg_config->tpg_ng.initial_frame_number = 1;
+	tpg_config->tpg_ng.maximum_frame_number = 32768;
+	tpg_config->tpg_ng.image_width = port->format.width;
+	tpg_config->tpg_ng.image_height = port->format.height;
+
+	tpg_config->tpg_ng.red_horizontal_init_freq = hfreq;
+	tpg_config->tpg_ng.red_vertical_init_freq = vfreq;
+	tpg_config->tpg_ng.initial_phase_red = 0U;
+
+	tpg_config->tpg_ng.green_horizontal_init_freq = hfreq;
+	tpg_config->tpg_ng.green_vertical_init_freq = vfreq;
+	tpg_config->tpg_ng.initial_phase_green = 0U;
+
+	tpg_config->tpg_ng.blue_horizontal_init_freq = hfreq;
+	tpg_config->tpg_ng.blue_vertical_init_freq = vfreq;
+	tpg_config->tpg_ng.initial_phase_blue = 0U;
+
+	tpg_config->tpg_ng.brightness_gain_ratio =
+		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_NONE;
+
 	return 0;
 }
 
