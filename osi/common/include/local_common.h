@@ -24,6 +24,7 @@
 #define LOCAL_COMMON_H
 
 #include <osi_common.h>
+#include "../osi/common/type.h"
 
 /**
  * @brief common_get_systime_from_mac - Get system time
@@ -44,8 +45,8 @@
  * @retval 0 on success
  * @retval -1 on failure.
  */
-void common_get_systime_from_mac(void *addr, unsigned int mac,
-				 unsigned int *sec, unsigned int *nsec);
+void common_get_systime_from_mac(void *addr, nveu32_t mac,
+				 nveu32_t *sec, nveu32_t *nsec);
 
 /**
  * @brief common_is_mac_enabled - Checks if MAC is enabled or not.
@@ -64,5 +65,5 @@ void common_get_systime_from_mac(void *addr, unsigned int mac,
  * @retval OSI_ENABLE if MAC enabled.
  * @retval OSI_DISABLE otherwise.
  */
-unsigned int common_is_mac_enabled(void *addr, unsigned int mac);
+nveu32_t common_is_mac_enabled(void *addr, nveu32_t mac);
 #endif /* LOCAL_COMMON_H */

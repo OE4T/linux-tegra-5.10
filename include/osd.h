@@ -23,6 +23,8 @@
 #ifndef OSD_H
 #define OSD_H
 
+#include "../osi/common/type.h"
+
 /**
  * @brief osd_usleep_range - sleep in micro seconds
  *
@@ -35,7 +37,7 @@
  * - Run time: Yes
  * - De-initialization: No
  */
-void osd_usleep_range(unsigned long umin, unsigned long umax);
+void osd_usleep_range(nveu64_t umin, nveu64_t umax);
 /**
  * @brief osd_msleep - sleep in milli seconds
  *
@@ -47,7 +49,7 @@ void osd_usleep_range(unsigned long umin, unsigned long umax);
  * - Run time: Yes
  * - De-initialization: No
  */
-void osd_msleep(unsigned int msec);
+void osd_msleep(nveu32_t msec);
 /**
  * @brief osd_udelay - delay in micro seconds
  *
@@ -59,7 +61,7 @@ void osd_msleep(unsigned int msec);
  * - Run time: Yes
  * - De-initialization: No
  */
-void osd_udelay(unsigned long usec);
+void osd_udelay(nveu64_t usec);
 /**
  * @brief osd_receive_packet - Handover received packet to network stack.
  *
@@ -86,8 +88,8 @@ void osd_udelay(unsigned long usec);
  * - Run time: Yes
  * - De-initialization: No
  */
-void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
-			unsigned int dma_buf_len, void *rxpkt_cx,
+void osd_receive_packet(void *priv, void *rxring, nveu32_t chan,
+			nveu32_t dma_buf_len, void *rxpkt_cx,
 			void *rx_pkt_swcx);
 
 /**
@@ -120,8 +122,8 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  * - Run time: Yes
  * - De-initialization: No
  */
-void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
-			   unsigned int len, void *txdone_pkt_cx);
+void osd_transmit_complete(void *priv, void *buffer, nveu64_t dmaaddr,
+			   nveu32_t len, void *txdone_pkt_cx);
 /**
  * @brief osd_log - OSD logging function
  *
@@ -140,10 +142,10 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
  * - De-initialization: Yes
  */
 void osd_log(void *priv,
-	     const char *func,
-	     unsigned int line,
-	     unsigned int level,
-	     unsigned int type,
-	     const char *err,
-	     unsigned long long loga);
+	     const nve8_t *func,
+	     nveu32_t line,
+	     nveu32_t level,
+	     nveu32_t type,
+	     const nve8_t *err,
+	     nveul64_t loga);
 #endif

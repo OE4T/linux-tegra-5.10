@@ -25,6 +25,7 @@
 
 #include "osi_common.h"
 #include "mmc.h"
+#include "../osi/common/type.h"
 
 /**
  * @addtogroup PTP related information
@@ -73,25 +74,25 @@ struct osi_core_priv_data;
  */
 struct osi_filter {
 	/** indicates operation needs to perform. refer to OSI_OPER_* */
-	unsigned int oper_mode;
+	nveu32_t oper_mode;
 	/** Indicates the index of the filter to be modified.
 	 * Filter index must be between 0 - 127 */
-	unsigned int index;
+	nveu32_t index;
 	/** Ethernet MAC address to be added */
-	const unsigned char *mac_address;
+	const nveu8_t *mac_address;
 	/** Indicates dma channel routing enable(1) disable (0) */
-	unsigned int dma_routing;
+	nveu32_t dma_routing;
 	/**  indicates dma channel number to program */
-	unsigned int dma_chan;
+	nveu32_t dma_chan;
 	/** filter will not consider byte in comparison
 	 *	Bit 5: MAC_Address${i}_High[15:8]
 	 *	Bit 4: MAC_Address${i}_High[7:0]
 	 *	Bit 3: MAC_Address${i}_Low[31:24]
 	 *	..
 	 *	Bit 0: MAC_Address${i}_Low[7:0] */
-	unsigned int addr_mask;
+	nveu32_t addr_mask;
 	/** src_dest: SA(1) or DA(0) */
-	unsigned int src_dest;
+	nveu32_t src_dest;
 };
 
 /**
@@ -100,19 +101,19 @@ struct osi_filter {
 struct osi_l3_l4_filter {
 	/** Indicates the index of the filter to be modified.
 	 * Filter index must be between 0 - 7 */
-	unsigned int filter_no;
+	nveu32_t filter_no;
 	/** filter enable(1) or disable(0) */
-	unsigned int filter_enb_dis;
+	nveu32_t filter_enb_dis;
 	/** source(0) or destination(1) */
-	unsigned int src_dst_addr_match;
+	nveu32_t src_dst_addr_match;
 	/** perfect(0) or inverse(1) */
-	unsigned int perfect_inverse_match;
+	nveu32_t perfect_inverse_match;
 	/** ipv4 address */
-	unsigned char ip4_addr[4];
+	nveu8_t ip4_addr[4];
 	/** ipv6 address */
-	unsigned short ip6_addr[8];
+	nveu16_t ip6_addr[8];
 	/** Port number */
-	unsigned short port_no;
+	nveu16_t port_no;
 };
 
 /**
@@ -120,11 +121,11 @@ struct osi_l3_l4_filter {
  */
 struct osi_vlan_filter {
 	/** vlan filter enable(1) or disable(0) */
-	unsigned int filter_enb_dis;
+	nveu32_t filter_enb_dis;
 	/** perfect(0) or hash(1) */
-	unsigned int perfect_hash;
+	nveu32_t perfect_hash;
 	/** perfect(0) or inverse(1) */
-	unsigned int perfect_inverse_match;
+	nveu32_t perfect_inverse_match;
 };
 
 /**
@@ -132,9 +133,9 @@ struct osi_vlan_filter {
  */
 struct osi_l2_da_filter {
 	/** perfect(0) or hash(1) */
-	unsigned int perfect_hash;
+	nveu32_t perfect_hash;
 	/** perfect(0) or inverse(1) */
-	unsigned int perfect_inverse_match;
+	nveu32_t perfect_inverse_match;
 };
 
 #ifndef OSI_STRIPPED_LIB
@@ -143,23 +144,23 @@ struct osi_l2_da_filter {
  */
 struct  osi_core_avb_algorithm {
 	/** TX Queue/TC index */
-	unsigned int qindex;
+	nveu32_t qindex;
 	/** CBS Algorithm enable(1) or disable(0) */
-	unsigned int algo;
+	nveu32_t algo;
 	/** When this bit is set, the accumulated credit parameter in the
 	 * credit-based shaper algorithm logic is not reset to zero when
 	 * there is positive credit and no packet to transmit in Channel.
 	 *
 	 * Expected values are enable(1) or disable(0) */
-	unsigned int credit_control;
+	nveu32_t credit_control;
 	/** idleSlopeCredit value required for CBS */
-	  unsigned int idle_slope;
+	  nveu32_t idle_slope;
 	/** sendSlopeCredit value required for CBS */
-	unsigned int send_slope;
+	nveu32_t send_slope;
 	/** hiCredit value required for CBS */
-	unsigned int hi_credit;
+	nveu32_t hi_credit;
 	/** lowCredit value required for CBS */
-	unsigned int low_credit;
+	nveu32_t low_credit;
 	/** Transmit queue operating mode
 	 *
 	 * 00: disable
@@ -167,7 +168,7 @@ struct  osi_core_avb_algorithm {
 	 * 01: avb
 	 *
 	 * 10: enable */
-	unsigned int oper_mode;
+	nveu32_t oper_mode;
 };
 #endif /* !OSI_STRIPPED_LIB */
 
@@ -176,12 +177,12 @@ struct  osi_core_avb_algorithm {
  */
 struct osi_core_ops {
 	/** Called to poll for software reset bit */
-	int (*poll_for_swr)(struct osi_core_priv_data *const osi_core,
-			    unsigned int pre_si);
+	nve32_t (*poll_for_swr)(struct osi_core_priv_data *const osi_core,
+				nve32_t pre_si);
 	/** Called to initialize MAC and MTL registers */
-	int (*core_init)(struct osi_core_priv_data *const osi_core,
-			 const unsigned int tx_fifo_size,
-			 const unsigned int rx_fifo_size);
+	nve32_t (*core_init)(struct osi_core_priv_data *const osi_core,
+			     const nveu32_t tx_fifo_size,
+			     const nveu32_t rx_fifo_size);
 	/** Called to deinitialize MAC and MTL registers */
 	void (*core_deinit)(struct osi_core_priv_data *const osi_core);
 	/**  Called to start MAC Tx and Rx engine */
@@ -191,139 +192,143 @@ struct osi_core_ops {
 	/** Called to handle common interrupt */
 	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
 	/** Called to set the mode at MAC (full/duplex) */
-	int (*set_mode)(struct osi_core_priv_data *const osi_core,
-			const int mode);
+	nve32_t (*set_mode)(struct osi_core_priv_data *const osi_core,
+			    const nve32_t mode);
 	/** Called to set the speed (10/100/1000) at MAC */
-	void (*set_speed)(void *ioaddr, const int speed);
+	void (*set_speed)(void *ioaddr, const nve32_t speed);
 	/** Called to do pad caliberation */
-	int (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
+	nve32_t (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure MTL RxQ to forward the err pkt */
-	int (*config_fw_err_pkts)(struct osi_core_priv_data *const osi_core,
-				  const unsigned int qinx,
-				  const unsigned int fw_err);
+	nve32_t (*config_fw_err_pkts)(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t qinx,
+				      const nveu32_t fw_err);
 	/** Called to configure Rx Checksum offload engine */
-	int (*config_rxcsum_offload)(struct osi_core_priv_data *const osi_core,
-				     const unsigned int enabled);
+	nve32_t (*config_rxcsum_offload)(
+				struct osi_core_priv_data *const osi_core,
+				const nveu32_t enabled);
 	/** Called to config mac packet filter */
-	int (*config_mac_pkt_filter_reg)(
+	nve32_t (*config_mac_pkt_filter_reg)(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter);
 	/** Called to update MAC address 1-127 */
-	int (*update_mac_addr_low_high_reg)(
+	nve32_t (*update_mac_addr_low_high_reg)(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter);
 	/** Called to configure l3/L4 filter */
-	int (*config_l3_l4_filter_enable)(void *base,
-					  const unsigned int enable);
+	nve32_t (*config_l3_l4_filter_enable)(void *base,
+					      const nveu32_t enable);
 	/** Called to configure L3 filter */
-	int (*config_l3_filters)(struct osi_core_priv_data *const osi_core,
-				 const unsigned int filter_no,
-				 const unsigned int enb_dis,
-				 const unsigned int ipv4_ipv6_match,
-				 const unsigned int src_dst_addr_match,
-				 const unsigned int perfect_inverse_match,
-				 const unsigned int dma_routing_enable,
-				 const unsigned int dma_chan);
+	nve32_t (*config_l3_filters)(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t filter_no,
+				     const nveu32_t enb_dis,
+				     const nveu32_t ipv4_ipv6_match,
+				     const nveu32_t src_dst_addr_match,
+				     const nveu32_t perfect_inverse_match,
+				     const nveu32_t dma_routing_enable,
+				     const nveu32_t dma_chan);
 	/** Called to update ip4 src or desc address */
-	int (*update_ip4_addr)(struct osi_core_priv_data *const osi_core,
-			       const unsigned int filter_no,
-			       const unsigned char addr[],
-			       const unsigned int src_dst_addr_match);
+	nve32_t (*update_ip4_addr)(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t filter_no,
+				   const nveu8_t addr[],
+				   const nveu32_t src_dst_addr_match);
 	/** Called to update ip6 address */
-	int (*update_ip6_addr)(struct osi_core_priv_data *const osi_core,
-			       const unsigned int filter_no,
-			       const unsigned short addr[]);
+	nve32_t (*update_ip6_addr)(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t filter_no,
+				   const nveu16_t addr[]);
 	/** Called to configure L4 filter */
-	int (*config_l4_filters)(struct osi_core_priv_data *const osi_core,
-				 const unsigned int filter_no,
-				 const unsigned int enb_dis,
-				 const unsigned int tcp_udp_match,
-				 const unsigned int src_dst_port_match,
-				 const unsigned int perfect_inverse_match,
-				 const unsigned int dma_routing_enable,
-				 const unsigned int dma_chan);
+	nve32_t (*config_l4_filters)(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t filter_no,
+				     const nveu32_t enb_dis,
+				     const nveu32_t tcp_udp_match,
+				     const nveu32_t src_dst_port_match,
+				     const nveu32_t perfect_inverse_match,
+				     const nveu32_t dma_routing_enable,
+				     const nveu32_t dma_chan);
 	/** Called to update L4 Port for filter packet */
-	int (*update_l4_port_no)(struct osi_core_priv_data *const osi_core,
-				 const unsigned int filter_no,
-				 const unsigned short port_no,
-				 const unsigned int src_dst_port_match);
+	nve32_t (*update_l4_port_no)(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t filter_no,
+				     const nveu16_t port_no,
+				     const nveu32_t src_dst_port_match);
 	/** Called to set the addend value to adjust the time */
-	int (*config_addend)(struct osi_core_priv_data *const osi_core,
-			     const unsigned int addend);
+	nve32_t (*config_addend)(struct osi_core_priv_data *const osi_core,
+				 const nveu32_t addend);
 	/** Called to adjust the mac time */
-	int (*adjust_mactime)(struct osi_core_priv_data *const osi_core,
-			      const unsigned int sec,
-			      const unsigned int nsec,
-			      const unsigned int neg_adj,
-			      const unsigned int one_nsec_accuracy);
+	nve32_t (*adjust_mactime)(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t sec,
+				  const nveu32_t nsec,
+				  const nveu32_t neg_adj,
+				  const nveu32_t one_nsec_accuracy);
 	/** Called to set current system time to MAC */
-	int (*set_systime_to_mac)(struct osi_core_priv_data *const osi_core,
-				  const unsigned int sec,
-				  const unsigned int nsec);
+	nve32_t (*set_systime_to_mac)(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t sec,
+				      const nveu32_t nsec);
 	/** Called to configure the TimeStampControl register */
-	void (*config_tscr)(void *addr, const unsigned int ptp_filter);
+	void (*config_tscr)(void *addr, const nveu32_t ptp_filter);
 	/** Called to configure the sub second increment register */
 	void (*config_ssir)(struct osi_core_priv_data *const osi_core);
 	/** Called to update MMC counter from HW register */
 	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to write into a PHY reg over MDIO bus */
-	int (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
-			     const unsigned int phyaddr,
-			     const unsigned int phyreg,
-			     const unsigned short phydata);
+	nve32_t (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
+				 const nveu32_t phyaddr,
+				 const nveu32_t phyreg,
+				 const nveu16_t phydata);
 	/** Called to read from a PHY reg over MDIO bus */
-	int (*read_phy_reg)(struct osi_core_priv_data *const osi_core,
-			    const unsigned int phyaddr,
-			    const unsigned int phyreg);
+	nve32_t (*read_phy_reg)(struct osi_core_priv_data *const osi_core,
+				const nveu32_t phyaddr,
+				const nveu32_t phyreg);
 #ifndef OSI_STRIPPED_LIB
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */
-	int (*validate_regs)(struct osi_core_priv_data *const osi_core);
+	nve32_t (*validate_regs)(struct osi_core_priv_data *const osi_core);
 	/** Called to flush MTL Tx queue */
-	int (*flush_mtl_tx_queue)(struct osi_core_priv_data *const osi_core,
-				const unsigned int qinx);
+	nve32_t (*flush_mtl_tx_queue)(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t qinx);
 	/** Called to set av parameter */
-	int (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+	nve32_t (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
 			   const struct osi_core_avb_algorithm *const avb);
 	/** Called to get av parameter */
-	int (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
-				 struct osi_core_avb_algorithm *const avb);
+	nve32_t (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+				     struct osi_core_avb_algorithm *const avb);
 	/** Called to configure the MTL to forward/drop tx status */
-	int (*config_tx_status)(struct osi_core_priv_data *const osi_core,
-				const unsigned int tx_status);
+	nve32_t (*config_tx_status)(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t tx_status);
 	/** Called to configure the MAC rx crc */
-	int (*config_rx_crc_check)(struct osi_core_priv_data *const osi_core,
-				   const unsigned int crc_chk);
+	nve32_t (*config_rx_crc_check)(
+				     struct osi_core_priv_data *const osi_core,
+				     const nveu32_t crc_chk);
 	/** Called to configure the MAC flow control */
-	int (*config_flow_control)(struct osi_core_priv_data *const osi_core,
-				   const unsigned int flw_ctrl);
+	nve32_t (*config_flow_control)(
+				     struct osi_core_priv_data *const osi_core,
+				     const nveu32_t flw_ctrl);
 	/** Called to enable/disable HW ARP offload feature */
-	int (*config_arp_offload)(const unsigned int mac_ver,
-				  struct osi_core_priv_data *const osi_core,
-				  const unsigned int enable,
-				  const unsigned char *ip_addr);
+	nve32_t (*config_arp_offload)(const nveu32_t mac_ver,
+				      struct osi_core_priv_data *const osi_core,
+				      const nveu32_t enable,
+				      const nveu8_t *ip_addr);
 	/** Called to configure VLAN filtering */
-	int (*config_vlan_filtering)(struct osi_core_priv_data *const osi_core,
-				     const unsigned int filter_enb_dis,
-				     const unsigned int perfect_hash_filtering,
-				     const unsigned int perfect_inverse_match);
+	nve32_t (*config_vlan_filtering)(
+				     struct osi_core_priv_data *const osi_core,
+				     const nveu32_t filter_enb_dis,
+				     const nveu32_t perfect_hash_filtering,
+				     const nveu32_t perfect_inverse_match);
 	/** called to update VLAN id */
-	int (*update_vlan_id)(void *base, const unsigned int vid);
+	nve32_t (*update_vlan_id)(void *base, const nveu32_t vid);
 	/** Called to reset MMC HW counter structure */
 	void (*reset_mmc)(struct osi_core_priv_data *const osi_core);
 	/** Called to configure EEE Tx LPI */
 	void (*configure_eee)(struct osi_core_priv_data *const osi_core,
-			      const unsigned int tx_lpi_enabled,
-			      const unsigned int tx_lpi_timer);
+			      const nveu32_t tx_lpi_enabled,
+			      const nveu32_t tx_lpi_timer);
 	/** Called to save MAC register space during SoC suspend */
-	int (*save_registers)(struct osi_core_priv_data *const osi_core);
+	nve32_t (*save_registers)(struct osi_core_priv_data *const osi_core);
 	/** Called to restore MAC control registers during SoC resume */
-	int (*restore_registers)(struct osi_core_priv_data *const osi_core);
+	nve32_t (*restore_registers)(struct osi_core_priv_data *const osi_core);
 	/** Called to set MDC clock rate for MDIO operation */
 	void (*set_mdc_clk_rate)(struct osi_core_priv_data *const osi_core,
-				 const unsigned long csr_clk_rate);
+				 const nveu64_t csr_clk_rate);
 	/** Called to configure MAC in loopback mode */
-	int (*config_mac_loopback)(void *addr, const unsigned int lb_mode);
+	nve32_t (*config_mac_loopback)(void *addr, const nveu32_t lb_mode);
 #endif /* !OSI_STRIPPED_LIB */
 };
 
@@ -361,17 +366,17 @@ struct osi_ptp_config {
 	 * AV 802.1AS Mode Enable				OSI_BIT(28)
 	 * 
 	 * if ptp_filter is set to Zero then Time stamping is disabled */
-	unsigned int ptp_filter;
+	nveu32_t ptp_filter;
 	/** seconds to be updated to MAC */
-	unsigned int sec;
+	nveu32_t sec;
 	/** nano seconds to be updated to MAC */
-	unsigned int nsec;
+	nveu32_t nsec;
 	/** PTP reference clock read from DT */
-	unsigned int ptp_ref_clk_rate;
+	nveu32_t ptp_ref_clk_rate;
 	/** Use one nsec accuracy (need to set 1) */
-	unsigned int one_nsec_accuracy;
+	nveu32_t one_nsec_accuracy;
 	/** PTP system clock which is 62500000Hz */
-	unsigned int ptp_clock;
+	nveu32_t ptp_clock;
 };
 
 /**
@@ -387,7 +392,7 @@ struct core_backup {
 	/** Array of reg MMIO addresses (base of MAC + offset of reg) */
 	void *reg_addr[CORE_MAX_BAK_IDX];
 	/** Array of value stored in each corresponding register */
-	unsigned int reg_val[CORE_MAX_BAK_IDX];
+	nveu32_t reg_val[CORE_MAX_BAK_IDX];
 };
 
 /**
@@ -395,15 +400,15 @@ struct core_backup {
  */
 struct osd_core_ops {
 	/** logging callback */
-	void (*ops_log)(void *priv, const char *func, unsigned int line,
-			unsigned int level, unsigned int type, const char *err,
-			unsigned long long loga);
+	void (*ops_log)(void *priv, const nve8_t *func, nveu32_t line,
+			nveu32_t level, nveu32_t type, const nve8_t *err,
+			nveul64_t loga);
 	/** udelay callback */
-	void (*udelay)(unsigned long usec);
+	void (*udelay)(nveu64_t usec);
 	/** usleep range callback */
-	void (*usleep_range)(unsigned long umin, unsigned long umax);
+	void (*usleep_range)(nveu64_t umin, nveu64_t umax);
 	/** msleep callback */
-	void (*msleep)(unsigned int msec);
+	void (*msleep)(nveu32_t msec);
 };
 
 /**
@@ -421,53 +426,53 @@ struct osi_core_priv_data {
 	/** OSD callback ops structure */
 	struct osd_core_ops osd_ops;
 	/** Number of MTL queues enabled in MAC */
-	unsigned int num_mtl_queues;
+	nveu32_t num_mtl_queues;
 	/** Array of MTL queues */
-	unsigned int mtl_queues[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t mtl_queues[OSI_EQOS_MAX_NUM_CHANS];
 	/** List of MTL Rx queue mode that need to be enabled */
-	unsigned int rxq_ctrl[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t rxq_ctrl[OSI_EQOS_MAX_NUM_CHANS];
 	/** Rx MTl Queue mapping based on User Priority field */
-	unsigned int rxq_prio[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t rxq_prio[OSI_EQOS_MAX_NUM_CHANS];
 	/** MAC HW type EQOS based on DT compatible */
-	unsigned int mac;
+	nveu32_t mac;
 	/** MAC version */
-	unsigned int mac_ver;
+	nveu32_t mac_ver;
 	/** MDC clock rate */
-	unsigned int mdc_cr;
+	nveu32_t mdc_cr;
 	/** MTU size */
-	unsigned int mtu;
+	nveu32_t mtu;
 	/** Ethernet MAC address */
-	unsigned char mac_addr[OSI_ETH_ALEN];
+	nveu8_t mac_addr[OSI_ETH_ALEN];
 	/** DT entry to enable(0) or disable(1) pause frame support */
-	unsigned int pause_frames;
+	nveu32_t pause_frames;
 	/** Current flow control settings */
-	unsigned int flow_ctrl;
+	nveu32_t flow_ctrl;
 	/** PTP configuration settings */
 	struct osi_ptp_config ptp_config;
 	/** Default addend value */
-	unsigned int default_addend;
+	nveu32_t default_addend;
 	/** mmc counter structure */
 	struct osi_mmc_counters mmc;
 	/** xtra sw error counters */
 	struct osi_xtra_stat_counters xstats;
 	/** DMA channel selection enable (1) */
-	unsigned int dcs_en;
+	nveu32_t dcs_en;
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical registers */
 	void *safety_config;
 	/** Backup config to save/restore registers during suspend/resume */
 	struct core_backup backup_config;
 	/** VLAN tag stripping enable(1) or disable(0) */
-	unsigned int strip_vlan_tag;
+	nveu32_t strip_vlan_tag;
 	/** L3L4 filter bit bask, set index corresponding bit for
 	 * filter if filter enabled */
-	unsigned int l3l4_filter_bitmask;
+	nveu32_t l3l4_filter_bitmask;
 	/** csr clock is to program LPI 1 us tick timer register.
 	 * Value stored in MHz
 	 */
-	unsigned int csr_clk_speed;
+	nveu32_t csr_clk_speed;
 	/** Tegra Pre-si platform info */
-	unsigned int pre_si;
+	nve32_t pre_si;
 };
 
 /**
@@ -503,7 +508,7 @@ struct osi_core_priv_data {
  * @retval -1 on failure.
  */
 
-int osi_poll_for_mac_reset_complete(
+nve32_t osi_poll_for_mac_reset_complete(
 			struct osi_core_priv_data *const osi_core);
 
 /**
@@ -544,9 +549,8 @@ int osi_poll_for_mac_reset_complete(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_hw_core_init(struct osi_core_priv_data *const osi_core,
-		     unsigned int tx_fifo_size,
-		     unsigned int rx_fifo_size);
+nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
+			 nveu32_t tx_fifo_size, nveu32_t rx_fifo_size);
 
 /**
  * @brief osi_hw_core_deinit - EQOS MAC deinitialization.
@@ -579,7 +583,7 @@ int osi_hw_core_init(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_hw_core_deinit(struct osi_core_priv_data *const osi_core);
+nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_start_mac - Start MAC Tx/Rx engine
@@ -613,7 +617,7 @@ int osi_hw_core_deinit(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_start_mac(struct osi_core_priv_data *const osi_core);
+nve32_t osi_start_mac(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_stop_mac - Stop MAC Tx/Rx engine
@@ -646,7 +650,7 @@ int osi_start_mac(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_stop_mac(struct osi_core_priv_data *const osi_core);
+nve32_t osi_stop_mac(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_common_isr - Common ISR.
@@ -680,7 +684,7 @@ int osi_stop_mac(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_common_isr(struct osi_core_priv_data *const osi_core);
+nve32_t osi_common_isr(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_set_mode - Set FD/HD mode.
@@ -714,8 +718,8 @@ int osi_common_isr(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_set_mode(struct osi_core_priv_data *const osi_core,
-		 const int mode);
+nve32_t osi_set_mode(struct osi_core_priv_data *const osi_core,
+		     const nve32_t mode);
 
 /**
  * @brief osi_set_speed - Set operating speed.
@@ -750,8 +754,8 @@ int osi_set_mode(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_set_speed(struct osi_core_priv_data *const osi_core,
-		  const int speed);
+nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
+		      const nve32_t speed);
 
 /**
  * @brief osi_pad_calibrate - PAD calibration
@@ -788,7 +792,7 @@ int osi_set_speed(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
+nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_config_fw_err_pkts - Configure forwarding of error packets
@@ -823,8 +827,8 @@ int osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
-			   const unsigned int qinx, const unsigned int fw_err);
+nve32_t osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t qinx, const nveu32_t fw_err);
 
 /**
  * @brief osi_config_rxcsum_offload - Configure RX checksum offload in MAC.
@@ -858,9 +862,8 @@ int osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_config_rxcsum_offload(
-			      struct osi_core_priv_data *const osi_core,
-			      const unsigned int enable);
+nve32_t osi_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t enable);
 
 /**
  * @brief osi_l2_filter - configure L2 mac filter.
@@ -897,8 +900,8 @@ int osi_config_rxcsum_offload(
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_l2_filter(struct osi_core_priv_data *const osi_core,
-		  const struct osi_filter *filter);
+nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
+		      const struct osi_filter *filter);
 
 /**
  * @brief osi_write_phy_reg - Write to a PHY register through MAC over MDIO bus.
@@ -941,9 +944,9 @@ int osi_l2_filter(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
-		      const unsigned int phyaddr, const unsigned int phyreg,
-		      const unsigned short phydata);
+nve32_t osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
+			  const nveu32_t phyaddr, const nveu32_t phyreg,
+			  const nveu16_t phydata);
 
 /**
  * @brief osi_read_mmc - invoke function to read actual registers and update
@@ -980,7 +983,7 @@ int osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_read_mmc(struct osi_core_priv_data *const osi_core);
+nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_read_phy_reg - Read from a PHY register through MAC over MDIO bus.
@@ -1022,9 +1025,9 @@ int osi_read_mmc(struct osi_core_priv_data *const osi_core);
  * @retval data from PHY register on success
  * @retval -1 on failure
  */
-int osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
-		     const unsigned int phyaddr,
-		     const unsigned int phyreg);
+nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
+			 const nveu32_t phyaddr,
+			 const nveu32_t phyreg);
 
 /**
  * @brief initializing the core operations
@@ -1052,7 +1055,7 @@ int osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
  * - De-initialization: No
  *
  */
-int osi_init_core_ops(struct osi_core_priv_data *const osi_core);
+nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_set_systime_to_mac - Handles setting of system time.
@@ -1087,8 +1090,8 @@ int osi_init_core_ops(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
-			   const unsigned int sec, const unsigned int nsec);
+nve32_t osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t sec, const nveu32_t nsec);
 
 /**
  * @brief osi_adjust_freq - Adjust frequency
@@ -1124,7 +1127,7 @@ int osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_adjust_freq(struct osi_core_priv_data *const osi_core, int ppb);
+nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb);
 
 /**
  * @brief osi_adjust_time - Adjust MAC time with system time
@@ -1161,8 +1164,8 @@ int osi_adjust_freq(struct osi_core_priv_data *const osi_core, int ppb);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_adjust_time(struct osi_core_priv_data *const osi_core,
-		    long long nsec_delta);
+nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
+			nvel64_t nsec_delta);
 
 /**
  * @brief osi_ptp_configuration - Configure PTP
@@ -1207,8 +1210,8 @@ int osi_adjust_time(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
-			  const unsigned int enable);
+nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t enable);
 
 /* MAC version specific implementation function prototypes added here
  * for misra compliance to have
@@ -1265,12 +1268,12 @@ void *eqos_get_core_safety_config(void);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
-		    const struct osi_l3_l4_filter l_filter,
-		    const unsigned int type,
-		    const unsigned int dma_routing_enable,
-		    const unsigned int dma_chan,
-		    const unsigned int is_l4_filter);
+nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
+			const struct osi_l3_l4_filter l_filter,
+			const nveu32_t type,
+			const nveu32_t dma_routing_enable,
+			const nveu32_t dma_chan,
+			const nveu32_t is_l4_filter);
 
 /**
  * @brief osi_get_mac_version - Reading MAC version
@@ -1304,7 +1307,7 @@ int osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_get_mac_version(void *addr, unsigned int *mac_ver);
+nve32_t osi_get_mac_version(void *addr, nveu32_t *mac_ver);
 
 /**
  * @brief osi_get_hw_features - Reading MAC HW features
@@ -1371,7 +1374,7 @@ void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_validate_core_regs(struct osi_core_priv_data *const osi_core);
+nve32_t osi_validate_core_regs(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_flush_mtl_tx_queue - Flushing a MTL Tx Queue.
@@ -1406,8 +1409,8 @@ int osi_validate_core_regs(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
-			   const unsigned int qinx);
+nve32_t osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t qinx);
 
 /**
  * @brief osi_set_avb - Set CBS algo and parameters
@@ -1443,8 +1446,8 @@ int osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_set_avb(struct osi_core_priv_data *const osi_core,
-		const struct osi_core_avb_algorithm *avb);
+nve32_t osi_set_avb(struct osi_core_priv_data *const osi_core,
+		    const struct osi_core_avb_algorithm *avb);
 
 /**
  * @brief osi_get_avb - Get CBS algo and parameters
@@ -1480,8 +1483,8 @@ int osi_set_avb(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_get_avb(struct osi_core_priv_data *const osi_core,
-		struct osi_core_avb_algorithm *avb);
+nve32_t osi_get_avb(struct osi_core_priv_data *const osi_core,
+		    struct osi_core_avb_algorithm *avb);
 
 /**
  * @brief osi_configure_txstatus - Configure Tx packet status reporting
@@ -1515,8 +1518,8 @@ int osi_get_avb(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
-			   const unsigned int tx_status);
+nve32_t osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t tx_status);
 
 /**
  * @brief osi_config_rx_crc_check - Configure CRC Checking for Received Packets
@@ -1551,8 +1554,8 @@ int osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
-			    const unsigned int crc_chk);
+nve32_t osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
+				const nveu32_t crc_chk);
 
 /**
  * @brief osi_configure_flow_ctrl - Configure flow control settings
@@ -1587,8 +1590,8 @@ int osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
-			       const unsigned int flw_ctrl);
+nve32_t osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t flw_ctrl);
 
 /**
  * @brief osi_config_arp_offload - Configure ARP offload in MAC.
@@ -1624,9 +1627,9 @@ int osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
-			   const unsigned int flags,
-			   const unsigned char *ip_addr);
+nve32_t osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t flags,
+			       const nveu8_t *ip_addr);
 /**
  * @brief osi_config_vlan_filtering - OSI call for configuring VLAN filter
  *
@@ -1663,10 +1666,10 @@ int osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
-			      const unsigned int filter_enb_dis,
-			      const unsigned int perfect_hash_filtering,
-			      const unsigned int perfect_inverse_match);
+nve32_t osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t filter_enb_dis,
+				  const nveu32_t perfect_hash_filtering,
+				  const nveu32_t perfect_inverse_match);
 
 /**
  * @brief osi_update_vlan_id - invoke osi call to update VLAN ID
@@ -1699,8 +1702,8 @@ int osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
-			const unsigned int vid);
+nve32_t  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
+			    const nveu32_t vid);
 
 /**
  * @brief osi_reset_mmc - invoke function to reset MMC counter and data
@@ -1736,7 +1739,7 @@ int  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_reset_mmc(struct osi_core_priv_data *const osi_core);
+nve32_t osi_reset_mmc(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_get_systime_from_mac - Get system time
@@ -1770,9 +1773,9 @@ int osi_reset_mmc(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_get_systime_from_mac(struct osi_core_priv_data *const osi_core,
-			     unsigned int *sec,
-			     unsigned int *nsec);
+nve32_t osi_get_systime_from_mac(struct osi_core_priv_data *const osi_core,
+				 nveu32_t *sec,
+				 nveu32_t *nsec);
 
 /**
  * @brief osi_configure_eee - Configure EEE LPI in MAC.
@@ -1808,9 +1811,9 @@ int osi_get_systime_from_mac(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_configure_eee(struct osi_core_priv_data *const osi_core,
-		      unsigned int tx_lpi_enabled,
-		      unsigned int tx_lpi_timer);
+nve32_t osi_configure_eee(struct osi_core_priv_data *const osi_core,
+			  nveu32_t tx_lpi_enabled,
+			  nveu32_t tx_lpi_timer);
 
 /**
  * @brief osi_save_registers - Take backup of MAC MMIO address space
@@ -1831,7 +1834,7 @@ int osi_configure_eee(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_save_registers(struct osi_core_priv_data *const osi_core);
+nve32_t osi_save_registers(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_restore_registers - Restore backup of MAC MMIO address space
@@ -1850,7 +1853,7 @@ int osi_save_registers(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_restore_registers(struct osi_core_priv_data *const osi_core);
+nve32_t osi_restore_registers(struct osi_core_priv_data *const osi_core);
 
 /**
  * @brief osi_set_mdc_clk_rate - Derive MDC clock based on provided AXI_CBB clk.
@@ -1885,8 +1888,8 @@ int osi_restore_registers(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
-			 const unsigned long csr_clk_rate);
+nve32_t osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
+			     const nveu64_t csr_clk_rate);
 
 /**
  * @brief osi_config_mac_loopback - Configure MAC loopback
@@ -1919,7 +1922,7 @@ int osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
-			    const unsigned int lb_mode);
+nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
+				const nveu32_t lb_mode);
 #endif /* !OSI_STRIPPED_LIB */
 #endif /* OSI_CORE_H */

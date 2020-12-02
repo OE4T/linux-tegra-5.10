@@ -22,27 +22,27 @@
 
 #include "eqos_common.h"
 
-unsigned long long eqos_get_systime_from_mac(void *addr)
+nveul64_t eqos_get_systime_from_mac(void *addr)
 {
-	unsigned long long ns1, ns2, ns = 0;
-	unsigned int varmac_stnsr, temp1;
-	unsigned int varmac_stsr;
+	nveul64_t ns1, ns2, ns = 0;
+	nveu32_t varmac_stnsr, temp1;
+	nveu32_t varmac_stsr;
 
-	varmac_stnsr = osi_readl((unsigned char *)addr + EQOS_MAC_STNSR);
+	varmac_stnsr = osi_readl((nveu8_t *)addr + EQOS_MAC_STNSR);
 	temp1 = (varmac_stnsr & EQOS_MAC_STNSR_TSSS_MASK);
-	ns1 = (unsigned long long)temp1;
+	ns1 = (nveul64_t)temp1;
 
-	varmac_stsr = osi_readl((unsigned char *)addr + EQOS_MAC_STSR);
+	varmac_stsr = osi_readl((nveu8_t *)addr + EQOS_MAC_STSR);
 
-	varmac_stnsr = osi_readl((unsigned char *)addr + EQOS_MAC_STNSR);
+	varmac_stnsr = osi_readl((nveu8_t *)addr + EQOS_MAC_STNSR);
 	temp1 = (varmac_stnsr & EQOS_MAC_STNSR_TSSS_MASK);
-	ns2 = (unsigned long long)temp1;
+	ns2 = (nveul64_t)temp1;
 
 	/* if ns1 is greater than ns2, it means nsec counter rollover
 	 * happened. In that case read the updated sec counter again
 	 */
 	if (ns1 >= ns2) {
-		varmac_stsr = osi_readl((unsigned char *)addr + EQOS_MAC_STSR);
+		varmac_stsr = osi_readl((nveu8_t *)addr + EQOS_MAC_STSR);
 		/* convert sec/high time value to nanosecond */
 		if (varmac_stsr < UINT_MAX) {
 			ns = ns2 + (varmac_stsr * OSI_NSEC_PER_SEC);
@@ -57,12 +57,12 @@ unsigned long long eqos_get_systime_from_mac(void *addr)
 	return ns;
 }
 
-unsigned int eqos_is_mac_enabled(void *addr)
+nveu32_t eqos_is_mac_enabled(void *addr)
 {
-	unsigned int enable = OSI_DISABLE;
-	unsigned int reg;
+	nveu32_t enable = OSI_DISABLE;
+	nveu32_t reg;
 
-	reg = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
+	reg = osi_readl((nveu8_t *)addr + EQOS_MAC_MCR);
 	if ((reg & (EQOS_MCR_TE | EQOS_MCR_RE)) ==
 		(EQOS_MCR_TE | EQOS_MCR_RE)) {
 		enable = OSI_ENABLE;

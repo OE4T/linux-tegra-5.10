@@ -151,12 +151,12 @@ struct dma_func_safety {
 	void *reg_addr[EQOS_MAX_DMA_SAFETY_REGS];
 	/** Array of bit-mask value of each corresponding reg
 	 * (used to ignore self-clearing/reserved bits in reg) */
-	unsigned int reg_mask[EQOS_MAX_DMA_SAFETY_REGS];
+	nveu32_t reg_mask[EQOS_MAX_DMA_SAFETY_REGS];
 	/** Array of value stored in each corresponding register */
-	unsigned int reg_val[EQOS_MAX_DMA_SAFETY_REGS];
+	nveu32_t reg_val[EQOS_MAX_DMA_SAFETY_REGS];
 	/** OSI lock variable used to protect writes to reg
 	 * while validation is in-progress */
-	unsigned int dma_safety_lock;
+	nveu32_t dma_safety_lock;
 };
 
 /**

@@ -23,6 +23,7 @@
 #include <osi_common.h>
 #include "osi_dma_local.h"
 #include "eqos_dma.h"
+#include "../osi/common/type.h"
 
 /**
  * @brief eqos_dma_safety_config - EQOS MAC DMA safety configuration
@@ -53,8 +54,8 @@ static struct dma_func_safety eqos_dma_safety_config;
  * - Run time: Yes
  * - De-initialization: Yes
  */
-static inline void eqos_dma_safety_writel(unsigned int val, void *addr,
-					  unsigned int idx)
+static inline void eqos_dma_safety_writel(nveu32_t val, void *addr,
+					  nveu32_t idx)
 {
 	struct dma_func_safety *config = &eqos_dma_safety_config;
 
@@ -87,9 +88,9 @@ static inline void eqos_dma_safety_writel(unsigned int val, void *addr,
 static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 {
 	struct dma_func_safety *config = &eqos_dma_safety_config;
-	unsigned char *base = (unsigned char *)osi_dma->base;
-	unsigned int val;
-	unsigned int i, idx;
+	nveu8_t *base = (nveu8_t *)osi_dma->base;
+	nveu32_t val;
+	nveu32_t i, idx;
 
 	/* Initialize all reg address to NULL, since we may not use
 	 * some regs depending on the number of DMA chans enabled.
@@ -133,7 +134,7 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
 		if (config->reg_addr[i] == OSI_NULL) {
 			continue;
 		}
-		val = osi_readl((unsigned char *)config->reg_addr[i]);
+		val = osi_readl((nveu8_t *)config->reg_addr[i]);
 		config->reg_val[i] = val & config->reg_mask[i];
 	}
 
@@ -159,29 +160,29 @@ static void eqos_dma_safety_init(struct osi_dma_priv_data *osi_dma)
  * - Run time: Yes
  * - De-initialization: Yes
  */
-static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
+static void eqos_disable_chan_tx_intr(void *addr, nveu32_t chan)
 {
-	unsigned int cntrl, status;
+	nveu32_t cntrl, status;
 
 	CHECK_CHAN_BOUND(chan);
 
 	/* Clear irq before disabling */
-	status = osi_readl((unsigned char *)addr +
+	status = osi_readl((nveu8_t *)addr +
 			   EQOS_VIRT_INTR_CHX_STATUS(chan));
 	if ((status & EQOS_VIRT_INTR_CHX_STATUS_TX) ==
 	    EQOS_VIRT_INTR_CHX_STATUS_TX) {
 		osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_TX,
-			   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
+			   (nveu8_t *)addr + EQOS_DMA_CHX_STATUS(chan));
 		osi_writel(EQOS_VIRT_INTR_CHX_STATUS_TX,
-			   (unsigned char *)addr +
+			   (nveu8_t *)addr +
 			   EQOS_VIRT_INTR_CHX_STATUS(chan));
 	}
 
 	/* Disable the irq */
-	cntrl = osi_readl((unsigned char *)addr +
+	cntrl = osi_readl((nveu8_t *)addr +
 			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl &= ~EQOS_VIRT_INTR_CHX_CNTRL_TX;
-	osi_writel(cntrl, (unsigned char *)addr +
+	osi_writel(cntrl, (nveu8_t *)addr +
 		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
 }
 
@@ -204,16 +205,16 @@ static void eqos_disable_chan_tx_intr(void *addr, unsigned int chan)
  * - Run time: Yes
  * - De-initialization: No
  */
-static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
+static void eqos_enable_chan_tx_intr(void *addr, nveu32_t chan)
 {
-	unsigned int cntrl;
+	nveu32_t cntrl;
 
 	CHECK_CHAN_BOUND(chan);
 
-	cntrl = osi_readl((unsigned char *)addr +
+	cntrl = osi_readl((nveu8_t *)addr +
 			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl |= EQOS_VIRT_INTR_CHX_CNTRL_TX;
-	osi_writel(cntrl, (unsigned char *)addr +
+	osi_writel(cntrl, (nveu8_t *)addr +
 		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
 }
 
@@ -236,29 +237,29 @@ static void eqos_enable_chan_tx_intr(void *addr, unsigned int chan)
  * - Run time: Yes
  * - De-initialization: Yes
  */
-static void eqos_disable_chan_rx_intr(void *addr, unsigned int chan)
+static void eqos_disable_chan_rx_intr(void *addr, nveu32_t chan)
 {
-	unsigned int cntrl, status;
+	nveu32_t cntrl, status;
 
 	CHECK_CHAN_BOUND(chan);
 
 	/* Clear irq before disabling */
-	status = osi_readl((unsigned char *)addr +
+	status = osi_readl((nveu8_t *)addr +
 			   EQOS_VIRT_INTR_CHX_STATUS(chan));
 	if ((status & EQOS_VIRT_INTR_CHX_STATUS_RX) ==
 	     EQOS_VIRT_INTR_CHX_STATUS_RX) {
 		osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_RX,
-			   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
+			   (nveu8_t *)addr + EQOS_DMA_CHX_STATUS(chan));
 		osi_writel(EQOS_VIRT_INTR_CHX_STATUS_RX,
-			   (unsigned char *)addr +
+			   (nveu8_t *)addr +
 			   EQOS_VIRT_INTR_CHX_STATUS(chan));
 	}
 
 	/* Disable irq */
-	cntrl = osi_readl((unsigned char *)addr +
+	cntrl = osi_readl((nveu8_t *)addr +
 			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl &= ~EQOS_VIRT_INTR_CHX_CNTRL_RX;
-	osi_writel(cntrl, (unsigned char *)addr +
+	osi_writel(cntrl, (nveu8_t *)addr +
 		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
 }
 
@@ -279,16 +280,16 @@ static void eqos_disable_chan_rx_intr(void *addr, unsigned int chan)
  * - Run time: Yes
  * - De-initialization: No
  */
-static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
+static void eqos_enable_chan_rx_intr(void *addr, nveu32_t chan)
 {
-	unsigned int cntrl;
+	nveu32_t cntrl;
 
 	CHECK_CHAN_BOUND(chan);
 
-	cntrl = osi_readl((unsigned char *)addr +
+	cntrl = osi_readl((nveu8_t *)addr +
 			  EQOS_VIRT_INTR_CHX_CNTRL(chan));
 	cntrl |= EQOS_VIRT_INTR_CHX_CNTRL_RX;
-	osi_writel(cntrl, (unsigned char *)addr +
+	osi_writel(cntrl, (nveu8_t *)addr +
 		   EQOS_VIRT_INTR_CHX_CNTRL(chan));
 }
 
@@ -310,11 +311,11 @@ static void eqos_enable_chan_rx_intr(void *addr, unsigned int chan)
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
-				 unsigned int len)
+static void eqos_set_tx_ring_len(void *addr, nveu32_t chan,
+				 nveu32_t len)
 {
 	CHECK_CHAN_BOUND(chan);
-	eqos_dma_safety_writel(len, (unsigned char *)addr +
+	eqos_dma_safety_writel(len, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_TDRL(chan),
 			       EQOS_DMA_CH0_TDRL_IDX + chan);
 }
@@ -337,22 +338,22 @@ static void eqos_set_tx_ring_len(void *addr, unsigned int chan,
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
-					unsigned long tx_desc)
+static void eqos_set_tx_ring_start_addr(void *addr, nveu32_t chan,
+					nveu64_t tx_desc)
 {
-	unsigned long tmp;
+	nveu64_t tmp;
 
 	CHECK_CHAN_BOUND(chan);
 
 	tmp = H32(tx_desc);
 	if (tmp < UINT_MAX) {
-		osi_writel((unsigned int)tmp, (unsigned char *)addr +
+		osi_writel((nveu32_t)tmp, (nveu8_t *)addr +
 			   EQOS_DMA_CHX_TDLH(chan));
 	}
 
 	tmp = L32(tx_desc);
 	if (tmp < UINT_MAX) {
-		osi_writel((unsigned int)tmp, (unsigned char *)addr +
+		osi_writel((nveu32_t)tmp, (nveu8_t *)addr +
 			   EQOS_DMA_CHX_TDLA(chan));
 	}
 }
@@ -380,16 +381,16 @@ static void eqos_set_tx_ring_start_addr(void *addr, unsigned int chan,
  * - Run time: Yes
  * - De-initialization: No
  */
-static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
-				   unsigned long tailptr)
+static void eqos_update_tx_tailptr(void *addr, nveu32_t chan,
+				   nveu64_t tailptr)
 {
-	unsigned long tmp;
+	nveu64_t tmp;
 
 	CHECK_CHAN_BOUND(chan);
 
 	tmp = L32(tailptr);
 	if (tmp < UINT_MAX) {
-		osi_writel((unsigned int)tmp, (unsigned char *)addr +
+		osi_writel((nveu32_t)tmp, (nveu8_t *)addr +
 			   EQOS_DMA_CHX_TDTP(chan));
 	}
 }
@@ -412,11 +413,11 @@ static void eqos_update_tx_tailptr(void *addr, unsigned int chan,
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
-				 unsigned int len)
+static void eqos_set_rx_ring_len(void *addr, nveu32_t chan,
+				 nveu32_t len)
 {
 	CHECK_CHAN_BOUND(chan);
-	eqos_dma_safety_writel(len, (unsigned char *)addr +
+	eqos_dma_safety_writel(len, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_RDRL(chan),
 			       EQOS_DMA_CH0_RDRL_IDX + chan);
 }
@@ -439,22 +440,22 @@ static void eqos_set_rx_ring_len(void *addr, unsigned int chan,
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_set_rx_ring_start_addr(void *addr, unsigned int chan,
-					unsigned long rx_desc)
+static void eqos_set_rx_ring_start_addr(void *addr, nveu32_t chan,
+					nveu64_t rx_desc)
 {
-	unsigned long tmp;
+	nveu64_t tmp;
 
 	CHECK_CHAN_BOUND(chan);
 
 	tmp = H32(rx_desc);
 	if (tmp < UINT_MAX) {
-		osi_writel((unsigned int)tmp, (unsigned char *)addr +
+		osi_writel((nveu32_t)tmp, (nveu8_t *)addr +
 			   EQOS_DMA_CHX_RDLH(chan));
 	}
 
 	tmp = L32(rx_desc);
 	if (tmp < UINT_MAX) {
-		osi_writel((unsigned int)tmp, (unsigned char *)addr +
+		osi_writel((nveu32_t)tmp, (nveu8_t *)addr +
 			   EQOS_DMA_CHX_RDLA(chan));
 	}
 }
@@ -481,16 +482,16 @@ static void eqos_set_rx_ring_start_addr(void *addr, unsigned int chan,
  * - Run time: Yes
  * - De-initialization: No
  */
-static void eqos_update_rx_tailptr(void *addr, unsigned int chan,
-				   unsigned long tailptr)
+static void eqos_update_rx_tailptr(void *addr, nveu32_t chan,
+				   nveu64_t tailptr)
 {
-	unsigned long tmp;
+	nveu64_t tmp;
 
 	CHECK_CHAN_BOUND(chan);
 
 	tmp = L32(tailptr);
 	if (tmp < UINT_MAX) {
-		osi_writel((unsigned int)tmp, (unsigned char *)addr +
+		osi_writel((nveu32_t)tmp, (nveu8_t *)addr +
 			   EQOS_DMA_CHX_RDTP(chan));
 	}
 }
@@ -516,23 +517,23 @@ static void eqos_update_rx_tailptr(void *addr, unsigned int chan,
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_start_dma(void *addr, unsigned int chan)
+static void eqos_start_dma(void *addr, nveu32_t chan)
 {
-	unsigned int val;
+	nveu32_t val;
 
 	CHECK_CHAN_BOUND(chan);
 
 	/* start Tx DMA */
-	val = osi_readl((unsigned char *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
+	val = osi_readl((nveu8_t *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
 	val |= OSI_BIT(0);
-	eqos_dma_safety_writel(val, (unsigned char *)addr +
+	eqos_dma_safety_writel(val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_TX_CTRL(chan),
 			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
 	/* start Rx DMA */
-	val = osi_readl((unsigned char *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
+	val = osi_readl((nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
 	val |= OSI_BIT(0);
-	eqos_dma_safety_writel(val, (unsigned char *)addr +
+	eqos_dma_safety_writel(val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_RX_CTRL(chan),
 			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 }
@@ -558,23 +559,23 @@ static void eqos_start_dma(void *addr, unsigned int chan)
  * - Run time: No
  * - De-initialization: Yes
  */
-static void eqos_stop_dma(void *addr, unsigned int chan)
+static void eqos_stop_dma(void *addr, nveu32_t chan)
 {
-	unsigned int val;
+	nveu32_t val;
 
 	CHECK_CHAN_BOUND(chan);
 
 	/* stop Tx DMA */
-	val = osi_readl((unsigned char *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
+	val = osi_readl((nveu8_t *)addr + EQOS_DMA_CHX_TX_CTRL(chan));
 	val &= ~OSI_BIT(0);
-	eqos_dma_safety_writel(val, (unsigned char *)addr +
+	eqos_dma_safety_writel(val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_TX_CTRL(chan),
 			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
 	/* stop Rx DMA */
-	val = osi_readl((unsigned char *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
+	val = osi_readl((nveu8_t *)addr + EQOS_DMA_CHX_RX_CTRL(chan));
 	val &= ~OSI_BIT(0);
-	eqos_dma_safety_writel(val, (unsigned char *)addr +
+	eqos_dma_safety_writel(val, (nveu8_t *)addr +
 			       EQOS_DMA_CHX_RX_CTRL(chan),
 			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 }
@@ -603,10 +604,10 @@ static void eqos_stop_dma(void *addr, unsigned int chan)
  * - Run time: No
  * - De-initialization: No
  */
-static void eqos_configure_dma_channel(unsigned int chan,
+static void eqos_configure_dma_channel(nveu32_t chan,
 				       struct osi_dma_priv_data *osi_dma)
 {
-	unsigned int value;
+	nveu32_t value;
 
 	CHECK_CHAN_BOUND(chan);
 
@@ -619,7 +620,7 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	/* AIE - Abnormal Interrupt Summary Enable */
 	/* NIE - Normal Interrupt Summary Enable */
 	/* FBE - Fatal Bus Error Enable */
-	value = osi_readl((unsigned char *)osi_dma->base +
+	value = osi_readl((nveu8_t *)osi_dma->base +
 			  EQOS_DMA_CHX_INTR_ENA(chan));
 	if (!osi_dma->use_virtualization) {
 		value |= EQOS_DMA_CHX_INTR_TBUE |
@@ -631,20 +632,20 @@ static void eqos_configure_dma_channel(unsigned int chan,
 		 EQOS_DMA_CHX_INTR_NIE;
 	/* For multi-irqs to work nie needs to be disabled */
 	value &= ~(EQOS_DMA_CHX_INTR_NIE);
-	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
+	eqos_dma_safety_writel(value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_INTR_ENA(chan),
 			       EQOS_DMA_CH0_INTR_ENA_IDX + chan);
 
 	/* Enable 8xPBL mode */
-	value = osi_readl((unsigned char *)osi_dma->base +
+	value = osi_readl((nveu8_t *)osi_dma->base +
 			  EQOS_DMA_CHX_CTRL(chan));
 	value |= EQOS_DMA_CHX_CTRL_PBLX8;
-	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
+	eqos_dma_safety_writel(value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_CTRL(chan),
 			       EQOS_DMA_CH0_CTRL_IDX + chan);
 
 	/* Configure DMA channel Transmit control register */
-	value = osi_readl((unsigned char *)osi_dma->base +
+	value = osi_readl((nveu8_t *)osi_dma->base +
 			  EQOS_DMA_CHX_TX_CTRL(chan));
 	/* Enable OSF mode */
 	value |= EQOS_DMA_CHX_TX_CTRL_OSF;
@@ -653,7 +654,7 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	/* enable TSO by default if HW supports */
 	value |= EQOS_DMA_CHX_TX_CTRL_TSE;
 
-	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
+	eqos_dma_safety_writel(value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_TX_CTRL(chan),
 			       EQOS_DMA_CH0_TX_CTRL_IDX + chan);
 
@@ -661,7 +662,7 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	/* Select Rx Buffer size.  Needs to be rounded up to next multiple of
 	 * bus width
 	 */
-	value = osi_readl((unsigned char *)osi_dma->base +
+	value = osi_readl((nveu8_t *)osi_dma->base +
 			  EQOS_DMA_CHX_RX_CTRL(chan));
 
 	/* clear previous Rx buffer size */
@@ -670,7 +671,7 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	value |= (osi_dma->rx_buf_len << EQOS_DMA_CHX_RBSZ_SHIFT);
 	/* RXPBL = 12 */
 	value |= EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED;
-	eqos_dma_safety_writel(value, (unsigned char *)osi_dma->base +
+	eqos_dma_safety_writel(value, (nveu8_t *)osi_dma->base +
 			       EQOS_DMA_CHX_RX_CTRL(chan),
 			       EQOS_DMA_CH0_RX_CTRL_IDX + chan);
 
@@ -683,7 +684,7 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	 * So formula with above values is,ret = usec/4
 	 */
 	if (osi_dma->use_riwt == OSI_ENABLE && osi_dma->rx_riwt < UINT_MAX) {
-		value = osi_readl((unsigned char *)osi_dma->base +
+		value = osi_readl((nveu8_t *)osi_dma->base +
 				  EQOS_DMA_CHX_RX_WDT(chan));
 		/* Mask the RWT and RWTU value */
 		value &= ~(EQOS_DMA_CHX_RX_WDT_RWT_MASK |
@@ -694,7 +695,7 @@ static void eqos_configure_dma_channel(unsigned int chan,
 			 EQOS_DMA_CHX_RX_WDT_RWTU) &
 			 EQOS_DMA_CHX_RX_WDT_RWT_MASK;
 		value |= EQOS_DMA_CHX_RX_WDT_RWTU_512_CYCLE;
-		osi_writel(value, (unsigned char *)osi_dma->base +
+		osi_writel(value, (nveu8_t *)osi_dma->base +
 			   EQOS_DMA_CHX_RX_WDT(chan));
 	}
 }
@@ -716,8 +717,8 @@ static void eqos_configure_dma_channel(unsigned int chan,
 static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
 {
 	struct osi_vm_irq_data *irq_data;
-	unsigned int i, j;
-	unsigned int chan;
+	nveu32_t i, j;
+	nveu32_t chan;
 
 	for (i = 0; i < osi_dma->num_vm_irqs; i++) {
 		irq_data = &osi_dma->irq_data[i];
@@ -727,7 +728,7 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
 				continue;
 			}
 			osi_writel(OSI_BIT(i),
-				   (unsigned char *)osi_dma->base +
+				   (nveu8_t *)osi_dma->base +
 				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
 		}
 	}
@@ -747,9 +748,9 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
+static nve32_t eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 {
-	unsigned int chinx;
+	nveu32_t chinx;
 
 	eqos_dma_safety_init(osi_dma);
 
@@ -787,7 +788,7 @@ static int eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
  */
 static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
-	unsigned int rx_buf_len = 0U;
+	nveu32_t rx_buf_len = 0U;
 
 	/* Add Ethernet header + VLAN header + NET IP align size to MTU */
 	if (osi_dma->mtu <= OSI_MAX_MTU_SIZE) {
@@ -830,12 +831,12 @@ static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
+static nve32_t eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 {
 	struct dma_func_safety *config =
 		(struct dma_func_safety *)osi_dma->safety_config;
-	unsigned int cur_val;
-	unsigned int i;
+	nveu32_t cur_val;
+	nveu32_t i;
 
 	osi_lock_irq_enabled(&config->dma_safety_lock);
 	for (i = EQOS_DMA_CH0_CTRL_IDX; i < EQOS_MAX_DMA_SAFETY_REGS; i++) {
@@ -843,7 +844,7 @@ static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 			continue;
 		}
 
-		cur_val = osi_readl((unsigned char *)config->reg_addr[i]);
+		cur_val = osi_readl((nveu8_t *)config->reg_addr[i]);
 		cur_val &= config->reg_mask[i];
 
 		if (cur_val == config->reg_val[i]) {
@@ -887,17 +888,17 @@ static int eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
  * @retval none
  */
 static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan,
-			     unsigned int set,
-			     unsigned int interval)
+			     nveu32_t chan,
+			     nveu32_t set,
+			     nveu32_t interval)
 {
-	unsigned int value;
+	nveu32_t value;
 
 	CHECK_CHAN_BOUND(chan);
 
 	if (set == OSI_ENABLE) {
 		/* Program SLOT CTRL register SIV and set ESC bit */
-		value = osi_readl((unsigned char *)osi_dma->base +
+		value = osi_readl((nveu8_t *)osi_dma->base +
 				  EQOS_DMA_CHX_SLOT_CTRL(chan));
 		value &= ~EQOS_DMA_CHX_SLOT_SIV_MASK;
 		/* remove overflow bits of interval */
@@ -905,15 +906,15 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 		value |= (interval << EQOS_DMA_CHX_SLOT_SIV_SHIFT);
 		/* Set ESC bit */
 		value |= EQOS_DMA_CHX_SLOT_ESC;
-		osi_writel(value, (unsigned char *)osi_dma->base +
+		osi_writel(value, (nveu8_t *)osi_dma->base +
 			   EQOS_DMA_CHX_SLOT_CTRL(chan));
 
 	} else {
 		/* Clear ESC bit of SLOT CTRL register */
-		value = osi_readl((unsigned char *)osi_dma->base +
+		value = osi_readl((nveu8_t *)osi_dma->base +
 				  EQOS_DMA_CHX_SLOT_CTRL(chan));
 		value &= ~EQOS_DMA_CHX_SLOT_ESC;
-		osi_writel(value, (unsigned char *)osi_dma->base +
+		osi_writel(value, (nveu8_t *)osi_dma->base +
 			   EQOS_DMA_CHX_SLOT_CTRL(chan));
 	}
 }
@@ -932,9 +933,9 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
  *
  * @retval status
  */
-static unsigned int eqos_get_global_dma_status(void *addr)
+static nveu32_t eqos_get_global_dma_status(void *addr)
 {
-	return osi_readl((unsigned char *)addr + EQOS_GLOBAL_DMA_STATUS);
+	return osi_readl((nveu8_t *)addr + EQOS_GLOBAL_DMA_STATUS);
 }
 
 /**
@@ -950,14 +951,14 @@ static unsigned int eqos_get_global_dma_status(void *addr)
  *	Protection: None.
  * @retval None.
  */
-static void eqos_clear_vm_tx_intr(void *addr, unsigned int chan)
+static void eqos_clear_vm_tx_intr(void *addr, nveu32_t chan)
 {
 	CHECK_CHAN_BOUND(chan);
 
 	osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_TX,
-		   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
+		   (nveu8_t *)addr + EQOS_DMA_CHX_STATUS(chan));
 	osi_writel(EQOS_VIRT_INTR_CHX_STATUS_TX,
-		   (unsigned char *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
+		   (nveu8_t *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
 }
 
 /**
@@ -974,14 +975,14 @@ static void eqos_clear_vm_tx_intr(void *addr, unsigned int chan)
  *
  * @retval None.
  */
-static void eqos_clear_vm_rx_intr(void *addr, unsigned int chan)
+static void eqos_clear_vm_rx_intr(void *addr, nveu32_t chan)
 {
 	CHECK_CHAN_BOUND(chan);
 
 	osi_writel(EQOS_DMA_CHX_STATUS_CLEAR_RX,
-		   (unsigned char *)addr + EQOS_DMA_CHX_STATUS(chan));
+		   (nveu8_t *)addr + EQOS_DMA_CHX_STATUS(chan));
 	osi_writel(EQOS_VIRT_INTR_CHX_STATUS_RX,
-		   (unsigned char *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
+		   (nveu8_t *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
 }
 
 static struct osi_dma_chan_ops eqos_dma_chan_ops = {

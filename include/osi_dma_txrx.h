@@ -137,8 +137,8 @@
 /* VTIR = 0x2 (Insert a VLAN tag with the tag value programmed in the
  * MAC_VLAN_Incl register or context descriptor.)
 */
-#define TDES2_VTIR		((unsigned int)0x2 << 14U)
-#define TDES2_TTSE		((unsigned int)0x1 << 30U)
+#define TDES2_VTIR		((nveu32_t)0x2 << 14U)
+#define TDES2_TTSE		((nveu32_t)0x1 << 30U)
 /** @} */
 
 /** Error Summary bits for Transmitted packet */

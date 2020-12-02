@@ -24,7 +24,7 @@
 #include <osd.h>
 #include <local_common.h>
 
-int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
+nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
 	if (osi_dma == OSI_NULL) {
 		return -1;
@@ -65,10 +65,10 @@ int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	return -1;
 }
 
-int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
+nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 {
-	unsigned int i, chan;
-	int ret = -1;
+	nveu32_t i, chan;
+	nve32_t ret = -1;
 
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) &&
@@ -118,10 +118,10 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	return ret;
 }
 
-int  osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
+nve32_t  osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 {
-	unsigned int i;
-	int ret = 0;
+	nveu32_t i;
+	nve32_t ret = 0;
 
 	if ((osi_dma == OSI_NULL) ||
 	    (osi_dma->num_dma_chans > OSI_EQOS_MAX_NUM_CHANS)) {
@@ -138,8 +138,8 @@ int  osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 	return ret;
 }
 
-int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan)
+nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
@@ -151,8 +151,8 @@ int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-			    unsigned int chan)
+nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+				nveu32_t chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
@@ -164,8 +164,8 @@ int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan)
+nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
@@ -177,8 +177,8 @@ int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-			    unsigned int chan)
+nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+				nveu32_t chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
@@ -190,8 +190,8 @@ int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-int osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
-			 unsigned int chan)
+nve32_t osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
+			     nveu32_t chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->clear_vm_tx_intr != OSI_NULL)) {
@@ -202,8 +202,8 @@ int osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-int osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
-			 unsigned int chan)
+nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
+			     nveu32_t chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->clear_vm_rx_intr != OSI_NULL)) {
@@ -214,7 +214,7 @@ int osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-unsigned int osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
+nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->ops->get_global_dma_status != OSI_NULL)) {
@@ -224,8 +224,8 @@ unsigned int osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
-int  osi_start_dma(struct osi_dma_priv_data *osi_dma,
-		   unsigned int chan)
+nve32_t  osi_start_dma(struct osi_dma_priv_data *osi_dma,
+		       nveu32_t chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
@@ -237,8 +237,8 @@ int  osi_start_dma(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
-		 unsigned int chan)
+nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
+		     nveu32_t chan)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
 	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
@@ -250,7 +250,7 @@ int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 	return -1;
 }
 
-unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
+nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
 {
 	if (rx_ring->cur_rx_idx >= RX_DESC_CNT ||
 	    rx_ring->refill_idx >= RX_DESC_CNT) {
@@ -278,9 +278,10 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int rx_dma_desc_validate_args(struct osi_dma_priv_data *osi_dma,
+static inline nve32_t rx_dma_desc_validate_args(
+					    struct osi_dma_priv_data *osi_dma,
 					    struct osi_rx_ring *rx_ring,
-					    unsigned int chan)
+					    nveu32_t chan)
 {
 	/* Validate args */
 	if (!(osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
@@ -341,12 +342,12 @@ static inline void rx_dma_handle_ioc(struct osi_dma_priv_data *osi_dma,
 	}
 }
 
-int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
-			 struct osi_rx_ring *rx_ring, unsigned int chan)
+nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
+			     struct osi_rx_ring *rx_ring, nveu32_t chan)
 {
 	/* for CERT-C error */
-	unsigned long temp;
-	unsigned long tailptr = 0;
+	nveu64_t temp;
+	nveu64_t tailptr = 0;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 
@@ -376,12 +377,13 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 			/* error case do nothing */
 		} else {
 			/* Store Receive Descriptor 0 */
-			rx_desc->rdes0 = (unsigned int)temp;
+			rx_desc->rdes0 = (nveu32_t)temp;
 		}
 
 		temp = H32(rx_swcx->buf_phy_addr);
 		if (temp <= UINT_MAX) {
-			rx_desc->rdes1 = (unsigned int)temp;
+			/* Store Receive Descriptor 1 */
+			rx_desc->rdes1 = (nveu32_t)temp;
 		} else {
 			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 				"dma: Invalid buf_phy_addr\n", 0ULL);
@@ -416,7 +418,7 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	return 0;
 }
 
-int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
+nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
 	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
 	    osi_dma->ops->set_rx_buf_len != OSI_NULL) {
@@ -428,8 +430,8 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
-int osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
-				 unsigned int *sec, unsigned int *nsec)
+nve32_t osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
+				     nveu32_t *sec, nveu32_t *nsec)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
 		common_get_systime_from_mac(osi_dma->base, osi_dma->mac, sec,
@@ -441,7 +443,7 @@ int osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
 	return 0;
 }
 
-unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
+nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
 {
 	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
 		return common_is_mac_enabled(osi_dma->base, osi_dma->mac);
@@ -473,8 +475,8 @@ unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
-					 unsigned int set)
+static inline nve32_t osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
+					     nveu32_t set)
 {
 	if (osi_dma == OSI_NULL) {
 		return -1;
@@ -498,10 +500,10 @@ static inline int osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
 	return 0;
 }
 
-int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
-			     unsigned int set)
+nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t set)
 {
-	unsigned int i = 0U, chan = 0U, interval = 0U;
+	nveu32_t i = 0U, chan = 0U, interval = 0U;
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 
 	/* Validate arguments */
@@ -548,9 +550,9 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 	return 0;
 }
 
-int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
+nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 {
-	int ret = -1;
+	nve32_t ret = -1;
 	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
 	    osi_dma->ops->validate_regs != OSI_NULL &&
 	    osi_dma->safety_config != OSI_NULL) {
@@ -560,7 +562,7 @@ int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 	return ret;
 }
 
-int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan)
+nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 {
 	struct osi_tx_ring *tx_ring = osi_dma->tx_ring[chan];
 
