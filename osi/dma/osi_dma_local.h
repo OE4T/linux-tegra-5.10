@@ -48,5 +48,5 @@
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int dma_desc_init(struct osi_dma_priv_data *osi_dma);
+nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma);
 #endif /* OSI_DMA_LOCAL_H */

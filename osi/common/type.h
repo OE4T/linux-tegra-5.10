@@ -19,40 +19,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifdef OSD_DUMMY
-#include <osd.h>
-#include "../osi/common/type.h"
 
-void osd_usleep_range(nveu64_t umin, nveu64_t umax)
-{
-}
+#ifndef INCLUDED_TYPE_H
+#define INCLUDED_TYPE_H
 
-void osd_msleep(nveu32_t msec)
-{
-}
+/* Following added to avoid misraC 4.6
+ * Here we are defining intermediate type
+ */
+typedef unsigned int		my_uint32_t;
+typedef int			my_int32_t;
+typedef char			my_int8_t;
+typedef unsigned char		my_uint8_t;
+typedef unsigned short		my_uint16_t;
+typedef unsigned long long 	my_ulint_64;
+typedef long long 		my_lint_64;
+typedef unsigned long		my_uint64_t;
 
-void osd_udelay(nveu64_t usec)
-{
-}
-
-void osd_receive_packet(void *priv, void *rxring, nveu32_t chan,
-			nveu32_t dma_buf_len, void *rxpkt_cx,
-			void *rx_pkt_swcx)
-{
-}
-
-void osd_transmit_complete(void *priv, void *buffer, nveu64_t dmaaddr,
-			   nveu32_t len, void *txdone_pkt_cx)
-{
-}
-
-void osd_log(void *priv,
-	     const nve8_t *func,
-	     nveu32_t line,
-	     nveu32_t level,
-	     nveu32_t type,
-	     const nve8_t *err,
-	     nveul64_t loga)
-{
-}
+/* Actual type used in code */
+typedef my_uint32_t		nveu32_t;
+typedef my_int32_t		nve32_t;
+typedef my_int8_t		nve8_t;
+typedef my_uint8_t		nveu8_t;
+typedef my_uint16_t		nveu16_t;
+typedef my_ulint_64		nveul64_t;
+typedef my_lint_64		nvel64_t;
+typedef my_uint64_t		nveu64_t;
 #endif

@@ -60,7 +60,7 @@
  * @retval 0 on success
  * @retval -1 on failure.
  */
-unsigned long long eqos_get_systime_from_mac(void *addr);
+nveul64_t eqos_get_systime_from_mac(void *addr);
 
 /**
  * @brief eqos_is_mac_enabled - Checks if MAC is enabled or not.
@@ -79,5 +79,5 @@ unsigned long long eqos_get_systime_from_mac(void *addr);
  * @retval OSI_ENABLE if MAC enabled.
  * @retval OSI_DISABLE otherwise.
  */
-unsigned int eqos_is_mac_enabled(void *addr);
+nveu32_t eqos_is_mac_enabled(void *addr);
 #endif /* EQOS_COMMON_H */

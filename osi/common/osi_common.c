@@ -25,14 +25,14 @@
 
 void common_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 {
-	unsigned int mac_hfr0;
-	unsigned int mac_hfr1;
-	unsigned int mac_hfr2;
+	nveu32_t mac_hfr0;
+	nveu32_t mac_hfr1;
+	nveu32_t mac_hfr2;
 
 	/* TODO: need to add HFR3 */
-	mac_hfr0 = osi_readl((unsigned char *)base + EQOS_MAC_HFR0);
-	mac_hfr1 = osi_readl((unsigned char *)base + EQOS_MAC_HFR1);
-	mac_hfr2 = osi_readl((unsigned char *)base + EQOS_MAC_HFR2);
+	mac_hfr0 = osi_readl((nveu8_t *)base + EQOS_MAC_HFR0);
+	mac_hfr1 = osi_readl((nveu8_t *)base + EQOS_MAC_HFR1);
+	mac_hfr2 = osi_readl((nveu8_t *)base + EQOS_MAC_HFR2);
 
 	hw_feat->mii_sel =
 		((mac_hfr0 >> 0) & EQOS_MAC_HFR0_MIISEL_MASK);
@@ -108,12 +108,12 @@ void common_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 		((mac_hfr2 >> 28U) & EQOS_MAC_HFR2_AUXSNAPNUM_MASK);
 }
 
-int common_get_mac_version(void *addr, unsigned int *mac_ver)
+nve32_t common_get_mac_version(void *addr, nveu32_t *mac_ver)
 {
-	unsigned int macver;
-	int ret = 0;
+	nveu32_t macver;
+	nve32_t ret = 0;
 
-	macver = osi_readl((unsigned char *)addr + MAC_VERSION) &
+	macver = osi_readl((nveu8_t *)addr + MAC_VERSION) &
 		MAC_VERSION_SNVER_MASK;
 	if (is_valid_mac_version(macver) == 0) {
 		return -1;
@@ -123,17 +123,17 @@ int common_get_mac_version(void *addr, unsigned int *mac_ver)
 	return ret;
 }
 
-void osi_memset(void *s, unsigned int c, unsigned long count)
+void osi_memset(void *s, nveu32_t c, nveu64_t count)
 {
-	unsigned char *xs = OSI_NULL;
+	nveu8_t *xs = OSI_NULL;
 
 	if (s == OSI_NULL) {
 		return;
 	}
-	xs = (unsigned char *)s;
+	xs = (nveu8_t *)s;
 	while (count != 0UL) {
 		if (c < OSI_UCHAR_MAX) {
-			*xs++ = (unsigned char)c;
+			*xs++ = (nveu8_t)c;
 		}
 		count--;
 	}
@@ -162,11 +162,10 @@ void osi_memset(void *s, unsigned int c, unsigned long count)
  *
  * @retval Quotient
  */
-static inline unsigned long div_u64_rem(unsigned long dividend,
-					unsigned long divisor,
-					unsigned long *remain)
+static inline nveu64_t div_u64_rem(nveu64_t dividend, nveu64_t divisor,
+				   nveu64_t *remain)
 {
-	unsigned long ret = 0;
+	nveu64_t ret = 0;
 
 	if (divisor != 0U) {
 		*remain = dividend % divisor;
@@ -177,12 +176,12 @@ static inline unsigned long div_u64_rem(unsigned long dividend,
 	return ret;
 }
 
-void common_get_systime_from_mac(void *addr, unsigned int mac,
-				 unsigned int *sec, unsigned int *nsec)
+void common_get_systime_from_mac(void *addr, nveu32_t mac, nveu32_t *sec,
+				 nveu32_t *nsec)
 {
-	unsigned long temp;
-	unsigned long remain;
-	unsigned long long ns;
+	nveu64_t temp;
+	nveu64_t remain;
+	nveul64_t ns;
 
 	if (mac == OSI_MAC_HW_EQOS) {
 		ns = eqos_get_systime_from_mac(addr);
@@ -191,20 +190,20 @@ void common_get_systime_from_mac(void *addr, unsigned int mac,
 		return;
 	}
 
-	temp = div_u64_rem((unsigned long)ns, OSI_NSEC_PER_SEC, &remain);
+	temp = div_u64_rem((nveu64_t)ns, OSI_NSEC_PER_SEC, &remain);
 	if (temp < UINT_MAX) {
-		*sec = (unsigned int) temp;
+		*sec = (nveu32_t)temp;
 	} else {
 		/* do nothing here */
 	}
 	if (remain < UINT_MAX) {
-		*nsec = (unsigned int)remain;
+		*nsec = (nveu32_t)remain;
 	} else {
 		/* do nothing here */
 	}
 }
 
-unsigned int common_is_mac_enabled(void *addr, unsigned int mac)
+nveu32_t common_is_mac_enabled(void *addr, nveu32_t mac)
 {
 	if (mac == OSI_MAC_HW_EQOS) {
 		return eqos_is_mac_enabled(addr);

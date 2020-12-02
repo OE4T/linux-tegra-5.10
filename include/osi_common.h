@@ -23,6 +23,7 @@
 #ifndef OSI_COMMON_H
 #define OSI_COMMON_H
 
+#include "../osi/common/type.h"
 /**
  * @addtogroup Helper Helper MACROS
  *
@@ -61,7 +62,7 @@
  * PHY should be up before the LPI pattern can be transmitted to the PHY.
  * Default 1sec.
  */
-#define OSI_DEFAULT_LPI_LS_TIMER	(unsigned int)1000
+#define OSI_DEFAULT_LPI_LS_TIMER	(nveu32_t)1000
 #define OSI_LPI_LS_TIMER_MASK		0x3FFU
 #define OSI_LPI_LS_TIMER_SHIFT		16U
 /* LPI TW timer - minimum time (in microseconds) for which MAC wait after it
@@ -235,7 +236,7 @@
 		}							\
 	}								\
 
-#define OSI_BIT(nr)             ((unsigned int)1 << (nr))
+#define OSI_BIT(nr)             ((nveu32_t)1 << (nr))
 
 #define OSI_EQOS_MAC_4_10       0x41U
 #define OSI_EQOS_MAC_5_00       0x50U
@@ -340,62 +341,62 @@
 struct osi_hw_features {
 	/** It is set to 1 when 10/100 Mbps is selected as the Mode of
 	 * Operation */
-	unsigned int mii_sel;
+	nveu32_t mii_sel;
 	/** It is set to 1 when the RGMII Interface option is selected */
-	unsigned int rgmii_sel;
+	nveu32_t rgmii_sel;
 	/** It is set to 1 when the RMII Interface option is selected */
-	unsigned int rmii_sel;
+	nveu32_t rmii_sel;
 	/** It sets to 1 when 1000 Mbps is selected as the Mode of Operation */
-	unsigned int gmii_sel;
+	nveu32_t gmii_sel;
 	/** It sets to 1 when the half-duplex mode is selected */
-	unsigned int hd_sel;
+	nveu32_t hd_sel;
 	/** It sets to 1 when the TBI, SGMII, or RTBI PHY interface
 	 * option is selected */
-	unsigned int pcs_sel;
+	nveu32_t pcs_sel;
 	/** It sets to 1 when the Enable VLAN Hash Table Based Filtering
 	 * option is selected */
-	unsigned int vlan_hash_en;
+	nveu32_t vlan_hash_en;
 	/** It sets to 1 when the Enable Station Management (MDIO Interface)
 	 * option is selected */
-	unsigned int sma_sel;
+	nveu32_t sma_sel;
 	/** It sets to 1 when the Enable Remote Wake-Up Packet Detection
 	 * option is selected */
-	unsigned int rwk_sel;
+	nveu32_t rwk_sel;
 	/** It sets to 1 when the Enable Magic Packet Detection option is
 	 * selected */
-	unsigned int mgk_sel;
+	nveu32_t mgk_sel;
 	/** It sets to 1 when the Enable MAC Management Counters (MMC) option
 	 * is selected */
-	unsigned int mmc_sel;
+	nveu32_t mmc_sel;
 	/** It sets to 1 when the Enable IPv4 ARP Offload option is selected */
-	unsigned int arp_offld_en;
+	nveu32_t arp_offld_en;
 	/** It sets to 1 when the Enable IEEE 1588 Timestamp Support option
 	 * is selected */
-	unsigned int ts_sel;
+	nveu32_t ts_sel;
 	/** It sets to 1 when the Enable Energy Efficient Ethernet (EEE) option
 	 * is selected */
-	unsigned int eee_sel;
+	nveu32_t eee_sel;
 	/** It sets to 1 when the Enable Transmit TCP/IP Checksum Insertion
 	 * option is selected */
-	unsigned int tx_coe_sel;
+	nveu32_t tx_coe_sel;
 	/** It sets to 1 when the Enable Receive TCP/IP Checksum Check option
 	 * is selected */
-	unsigned int rx_coe_sel;
+	nveu32_t rx_coe_sel;
 	/** It sets to 1 when the Enable Additional 1-31 MAC Address Registers
 	 * option is selected */
-	unsigned int mac_addr_sel;
+	nveu32_t mac_addr_sel;
 	/** It sets to 1 when the Enable Additional 32-63 MAC Address Registers
 	 * option is selected */
-	unsigned int mac_addr32_sel;
+	nveu32_t mac_addr32_sel;
 	/** It sets to 1 when the Enable Additional 64-127 MAC Address Registers
 	 * option is selected */
-	unsigned int mac_addr64_sel;
+	nveu32_t mac_addr64_sel;
 	/** It sets to 1 when the Enable IEEE 1588 Timestamp Support option
 	 * is selected */
-	unsigned int tsstssel;
+	nveu32_t tsstssel;
 	/** It sets to 1 when the Enable SA and VLAN Insertion on Tx option
 	 * is selected */
-	unsigned int sa_vlan_ins;
+	nveu32_t sa_vlan_ins;
 	/** Active PHY Selected
 	 * When you have multiple PHY interfaces in your configuration,
 	 * this field indicates the sampled value of phy_intf_sel_i during
@@ -409,7 +410,7 @@ struct osi_hw_features {
 	 * 110: SMII
 	 * 111: RevMII
 	 * All Others: Reserved */
-	unsigned int act_phy_sel;
+	nveu32_t act_phy_sel;
 	/** MTL Receive FIFO Size
 	 * This field contains the configured value of MTL Rx FIFO in bytes
 	 * expressed as Log to base 2 minus 7, that is, Log2(RXFIFO_SIZE) -7:
@@ -427,7 +428,7 @@ struct osi_hw_features {
 	 * 01010: 128 KB
 	 * 01011: 256 KB
 	 * 01100-11111: Reserved */
-	unsigned int rx_fifo_size;
+	nveu32_t rx_fifo_size;
 	/** MTL Transmit FIFO Size.
 	 * This field contains the configured value of MTL Tx FIFO in
 	 * bytes expressed as Log to base 2 minus 7, that is,
@@ -444,53 +445,53 @@ struct osi_hw_features {
 	 * 01001: 64 KB
 	 * 01010: 128 KB
 	 * 01011-11111: Reserved */
-	unsigned int tx_fifo_size;
+	nveu32_t tx_fifo_size;
 	/** It set to 1 when Advance timestamping High Word selected */
-	unsigned int adv_ts_hword;
+	nveu32_t adv_ts_hword;
 	/** Address Width.
 	 * This field indicates the configured address width:
 	 * 00: 32
 	 * 01: 40
 	 * 10: 48
 	 * 11: Reserved */
-	unsigned int addr_64;
+	nveu32_t addr_64;
 	/** It sets to 1 when DCB Feature Enable */
-	unsigned int dcb_en;
+	nveu32_t dcb_en;
 	/** It sets to 1 when Split Header Feature Enable */
-	unsigned int sph_en;
+	nveu32_t sph_en;
 	/** It sets to 1 when TCP Segmentation Offload Enable */
-	unsigned int tso_en;
+	nveu32_t tso_en;
 	/** It sets to 1 when DMA debug registers are enabled */
-	unsigned int dma_debug_gen;
+	nveu32_t dma_debug_gen;
 	/** It sets to 1 if AV Feature Enabled */
-	unsigned int av_sel;
+	nveu32_t av_sel;
 	/** It sets to 1 if Receive side AV Feature Enabled */
-	unsigned int rav_sel;
+	nveu32_t rav_sel;
 	/** This field indicates the size of the hash table:
 	 * 00: No hash table
 	 * 01: 64
 	 * 10: 128
 	 * 11: 256 */
-	unsigned int hash_tbl_sz;
+	nveu32_t hash_tbl_sz;
 	/** This field indicates the total number of L3 or L4 filters:
 	 * 0000: No L3 or L4 Filter
 	 * 0001: 1 L3 or L4 Filter
 	 * 0010: 2 L3 or L4 Filters
 	 * ..
 	 * 1000: 8 L3 or L4 */
-	unsigned int l3l4_filter_num;
+	nveu32_t l3l4_filter_num;
 	/** It holds number of MTL Receive Queues */
-	unsigned int rx_q_cnt;
+	nveu32_t rx_q_cnt;
 	/** It holds number of MTL Transmit Queues */
-	unsigned int tx_q_cnt;
+	nveu32_t tx_q_cnt;
 	/** It holds number of DMA Receive channels */
-	unsigned int rx_ch_cnt;
+	nveu32_t rx_ch_cnt;
 	/** This field indicates the number of DMA Transmit channels:
 	 * 0000: 1 DMA Tx Channel
 	 * 0001: 2 DMA Tx Channels
 	 * ..
 	 * 0111: 8 DMA Tx */
-	unsigned int tx_ch_cnt;
+	nveu32_t tx_ch_cnt;
 	/** This field indicates the number of PPS outputs:
 	 * 000: No PPS output
 	 * 001: 1 PPS output
@@ -498,7 +499,7 @@ struct osi_hw_features {
 	 * 011: 3 PPS outputs
 	 * 100: 4 PPS outputs
 	 * 101-111: Reserved */
-	unsigned int pps_out_num;
+	nveu32_t pps_out_num;
 	/** Number of Auxiliary Snapshot Inputs
 	 * This field indicates the number of auxiliary snapshot inputs:
 	 * 000: No auxiliary input
@@ -507,58 +508,58 @@ struct osi_hw_features {
 	 * 011: 3 auxiliary inputs
 	 * 100: 4 auxiliary inputs
 	 * 101-111: Reserved */
-	unsigned int aux_snap_num;
+	nveu32_t aux_snap_num;
 	/** VxLAN/NVGRE Support */
-	unsigned int vxn;
+	nveu32_t vxn;
 	/** Enhanced DMA.
 	 * This bit is set to 1 when the "Enhanced DMA" option is
 	 * selected. */
-	unsigned int edma;
+	nveu32_t edma;
 	/** Different Descriptor Cache
 	 * When set to 1, then EDMA mode Separate Memory is
 	 * selected for the Descriptor Cache.*/
-	unsigned int ediffc;
+	nveu32_t ediffc;
 	/** PFC Enable
 	 * This bit is set to 1 when the Enable PFC Feature is selected */
-	unsigned int pfc_en;
+	nveu32_t pfc_en;
 	/** One-Step Timestamping Enable */
-	unsigned int ost_en;
+	nveu32_t ost_en;
 	/** PTO Offload Enable */
-	unsigned int pto_en;
+	nveu32_t pto_en;
 	/** Receive Side Scaling Enable */
-	unsigned int rss_en;
+	nveu32_t rss_en;
 	/** Number of Traffic Classes */
-	unsigned int num_tc;
+	nveu32_t num_tc;
 	/** Number of Extended VLAN Tag Filters Enabled */
-	unsigned int num_vlan_filters;
+	nveu32_t num_vlan_filters;
 	/** Supported Flexible Receive Parser.
 	 * This bit is set to 1 when the Enable Flexible Programmable
 	 * Receive Parser option is selected */
-	unsigned int frp_sel;
+	nveu32_t frp_sel;
 	/** Queue/Channel based VLAN tag insertion on Tx Enable
 	 * This bit is set to 1 when the Enable Queue/Channel based
 	 * VLAN tag insertion on Tx Feature is selected. */
-	unsigned int cbti_sel;
+	nveu32_t cbti_sel;
 	/** Supported Parallel Instruction Processor Engines (PIPEs)
 	 * This field indicates the maximum number of Instruction
 	 * Processors supported by flexible receive parser. */
-	unsigned int num_frp_pipes;
+	nveu32_t num_frp_pipes;
 	/** One Step for PTP over UDP/IP Feature Enable
 	 * This bit is set to 1 when the Enable One step timestamp for
 	 * PTP over UDP/IP feature is selected */
-	unsigned int ost_over_udp;
+	nveu32_t ost_over_udp;
 	/** Supported Flexible Receive Parser Parsable Bytes
 	 * This field indicates the supported Max Number of bytes of the
 	 * packet data to be Parsed by Flexible Receive Parser */
-	unsigned int max_frp_bytes;
+	nveu32_t max_frp_bytes;
 	/** Supported Flexible Receive Parser Instructions
 	 * This field indicates the Max Number of Parser Instructions
 	 * supported by Flexible Receive Parser */
-	unsigned int max_frp_entries;
+	nveu32_t max_frp_entries;
 	/** Double VLAN Processing Enabled
 	 * This bit is set to 1 when the Enable Double VLAN Processing
 	 * feature is selected */
-	unsigned int double_vlan_en;
+	nveu32_t double_vlan_en;
 	/** Automotive Safety Package
 	 * Following are the encoding for the different Safety features
 	 * Values:
@@ -571,7 +572,7 @@ struct osi_hw_features {
 	 * 0x3 (AS_PPE): All the Automotive Safety features are
 	 * selected with the "Parity Port Enable for external interface"
 	 * feature */
-	unsigned int auto_safety_pkg;
+	nveu32_t auto_safety_pkg;
 	/** Tx Timestamp FIFO Depth
 	 * This value indicates the depth of the Tx Timestamp FIFO
 	 * 3'b000: Reserved
@@ -582,7 +583,7 @@ struct osi_hw_features {
 	 * 3'b101: 16
 	 * 3'b110: Reserved
 	 * 3'b111: Reserved */
-	unsigned int tts_fifo_depth;
+	nveu32_t tts_fifo_depth;
 	/** Enhancements to Scheduling Traffic Enable
 	 * This bit is set to 1 when the Enable Enhancements to
 	 * Scheduling Traffic feature is selected.
@@ -591,7 +592,7 @@ struct osi_hw_features {
 	 * Traffic feature is not selected
 	 * 0x1 (ACTIVE): Enable Enhancements to Scheduling
 	 * Traffic feature is selected */
-	unsigned int est_sel;
+	nveu32_t est_sel;
 	/** Depth of the Gate Control List
 	 * This field indicates the depth of Gate Control list expressed as
 	 * Log2(DWCXG_GCL_DEP)-5
@@ -603,7 +604,7 @@ struct osi_hw_features {
 	 * 0x4 (DEPTH512): 512
 	 * 0x5 (DEPTH1024): 1024
 	 * 0x6 (RSVD): Reserved */
-	unsigned int gcl_depth;
+	nveu32_t gcl_depth;
 	/** Width of the Time Interval field in the Gate Control List
 	 * This field indicates the width of the Configured Time Interval
 	 * Field
@@ -612,7 +613,7 @@ struct osi_hw_features {
 	 * 0x1 (WIDTH16): 16
 	 * 0x2 (WIDTH20): 20
 	 * 0x3 (WIDTH24): 24 */
-	unsigned int gcl_width;
+	nveu32_t gcl_width;
 	/** Frame Preemption Enable
 	 * This bit is set to 1 when the Enable Frame preemption feature
 	 * is selected.
@@ -621,7 +622,7 @@ struct osi_hw_features {
 	 * selected
 	 * 0x1 (ACTIVE): Frame Preemption Enable feature is
 	 * selected */
-	unsigned int fpe_sel;
+	nveu32_t fpe_sel;
 	/** Time Based Scheduling Enable
 	 * This bit is set to 1 when the Time Based Scheduling feature is
 	 * selected.
@@ -630,7 +631,7 @@ struct osi_hw_features {
 	 * not selected
 	 * 0x1 (ACTIVE): Time Based Scheduling Enable feature is
 	 * selected */
-	unsigned int tbs_sel;
+	nveu32_t tbs_sel;
 	/** The number of DMA channels enabled for TBS (starting from
 	 * the highest Tx Channel in descending order)
 	 * This field provides the number of DMA channels enabled for
@@ -641,7 +642,7 @@ struct osi_hw_features {
 	 * 0010: 3 DMA Tx Channels enabled for TBS
 	 * ...
 	 * 1111: 16 DMA Tx Channels enabled for TBS */
-	unsigned int num_tbs_ch;
+	nveu32_t num_tbs_ch;
 };
 
 /**
@@ -659,7 +660,7 @@ struct osi_hw_features {
  * - Run time: No
  * - De-initialization: No
  */
-static inline void osi_lock_init(unsigned int *lock)
+static inline void osi_lock_init(nveu32_t *lock)
 {
 	*lock = OSI_UNLOCKED;
 }
@@ -683,7 +684,7 @@ static inline void osi_lock_init(unsigned int *lock)
  * - Run time: Yes
  * - De-initialization: No
  */
-static inline void osi_lock_irq_enabled(unsigned int *lock)
+static inline void osi_lock_irq_enabled(nveu32_t *lock)
 {
 	/* __sync_val_compare_and_swap(lock, old value, new value) returns the
 	 * old value if successful.
@@ -715,7 +716,7 @@ static inline void osi_lock_irq_enabled(unsigned int *lock)
  * - Run time: Yes
  * - De-initialization: No
  */
-static inline void osi_unlock_irq_enabled(unsigned int *lock)
+static inline void osi_unlock_irq_enabled(nveu32_t *lock)
 {
 	if (__sync_val_compare_and_swap(lock, OSI_LOCKED, OSI_UNLOCKED) !=
 	    OSI_LOCKED) {
@@ -738,9 +739,9 @@ static inline void osi_unlock_irq_enabled(unsigned int *lock)
  * - Run time: Yes
  * - De-initialization: Yes
  */
-static inline unsigned int osi_readl(void *addr)
+static inline nveu32_t osi_readl(void *addr)
 {
-	return *(volatile unsigned int *)addr;
+	return *(volatile nveu32_t *)addr;
 }
 
 /**
@@ -757,9 +758,9 @@ static inline unsigned int osi_readl(void *addr)
  * - Run time: Yes
  * - De-initialization: Yes
  */
-static inline void osi_writel(unsigned int val, void *addr)
+static inline void osi_writel(nveu32_t val, void *addr)
 {
-	*(volatile unsigned int *)addr = val;
+	*(volatile nveu32_t *)addr = val;
 }
 
 /**
@@ -778,7 +779,7 @@ static inline void osi_writel(unsigned int val, void *addr)
  * @retval 0 - for not Valid MAC
  * @retval 1 - for Valid MAC
  */
-static inline int is_valid_mac_version(unsigned int mac_ver)
+static inline nve32_t is_valid_mac_version(nveu32_t mac_ver)
 {
 	if ((mac_ver == OSI_EQOS_MAC_4_10) ||
 	    (mac_ver == OSI_EQOS_MAC_5_00) ||
@@ -800,7 +801,7 @@ static inline int is_valid_mac_version(unsigned int mac_ver)
  * @param[in] last_value: last value of stat counter
  * @param[in] incr: increment value
  *
- * @note Input parameter should be only unsigned long type
+ * @note Input parameter should be only nveu64_t type
  *
  * @note
  * API Group:
@@ -808,12 +809,12 @@ static inline int is_valid_mac_version(unsigned int mac_ver)
  * - Run time: Yes
  * - De-initialization: No
  *
- * @return unsigned long value
+ * @return nveu64_t value
  */
-static inline unsigned long osi_update_stats_counter(unsigned long last_value,
-						     unsigned long incr)
+static inline nveu64_t osi_update_stats_counter(nveu64_t last_value,
+						nveu64_t incr)
 {
-	unsigned long temp = last_value + incr;
+	nveu64_t temp = last_value + incr;
 
 	if (temp < last_value) {
 		/* Stats overflow, so reset it to zero */
@@ -844,7 +845,7 @@ static inline unsigned long osi_update_stats_counter(unsigned long last_value,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int common_get_mac_version(void *addr, unsigned int *mac_ver);
+nve32_t common_get_mac_version(void *addr, nveu32_t *mac_ver);
 
 /**
  * @brief comon_get_hw_features - Reading MAC HW features
@@ -874,5 +875,5 @@ void common_get_hw_features(void *base, struct osi_hw_features *hw_feat);
  * - Run time: Yes
  * - De-initialization: No
  */
-void osi_memset(void *s, unsigned int c, unsigned long count);
+void osi_memset(void *s, nveu32_t c, nveu64_t count);
 #endif /* OSI_COMMON_H */

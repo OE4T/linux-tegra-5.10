@@ -30,14 +30,14 @@
  * the flow control is asserted or de-asserted
  * @{
  */
-#define FULL_MINUS_1_5K		(unsigned int)1
-#define FULL_MINUS_2_K		(unsigned int)2
-#define FULL_MINUS_2_5K		(unsigned int)3
-#define FULL_MINUS_3_K		(unsigned int)4
-#define FULL_MINUS_4_K		(unsigned int)6
-#define FULL_MINUS_6_K		(unsigned int)10
-#define FULL_MINUS_10_K		(unsigned int)18
-#define FULL_MINUS_16_K		(unsigned int)30
+#define FULL_MINUS_1_5K		(nveu32_t)1
+#define FULL_MINUS_2_K		(nveu32_t)2
+#define FULL_MINUS_2_5K		(nveu32_t)3
+#define FULL_MINUS_3_K		(nveu32_t)4
+#define FULL_MINUS_4_K		(nveu32_t)6
+#define FULL_MINUS_6_K		(nveu32_t)10
+#define FULL_MINUS_10_K		(nveu32_t)18
+#define FULL_MINUS_16_K		(nveu32_t)30
 /** @} */
 
 /**
@@ -218,7 +218,7 @@
 #define EQOS_MAC_PCS_LNKSPEED_100		OSI_BIT(17)
 #define EQOS_MAC_PCS_LNKSPEED_1000		OSI_BIT(18)
 #define EQOS_MAC_VLANTIR_VLTI			OSI_BIT(20)
-#define EQOS_MAC_VLANTR_EVLS_ALWAYS_STRIP	((unsigned int)0x3 << 21U)
+#define EQOS_MAC_VLANTR_EVLS_ALWAYS_STRIP	((nveu32_t)0x3 << 21U)
 #define EQOS_MAC_VLANTR_EVLRXS			OSI_BIT(24)
 #define EQOS_MAC_VLANTR_DOVLTC			OSI_BIT(20)
 #define EQOS_MAC_VLANTR_ERIVLT			OSI_BIT(27)
@@ -364,7 +364,7 @@
 #define EQOS_MAC_VLAN_TR_VTHM			OSI_BIT(25)
 #define EQOS_MAC_VLAN_TR_VL			0xFFFFU
 #define EQOS_MAC_VLAN_HTR_VLHT			0xFFFFU
-#define EQOS_MAC_RQC2_PSRQ_MASK			((unsigned int)0xFF)
+#define EQOS_MAC_RQC2_PSRQ_MASK			((nveu32_t)0xFF)
 #define EQOS_MAC_RQC2_PSRQ_SHIFT		8U
 #define EQOS_MAC_VLAN_TR_ETV_SHIFT		16U
 #define EQOS_MAC_MAX_HTR_REG_LEN		8U
@@ -399,7 +399,7 @@
 #define EQOS_ASID_CTRL_SHIFT_16			16U
 #define EQOS_ASID_CTRL_SHIFT_8			8U
 
-#define TEGRA_SID_EQOS		(unsigned int)20
+#define TEGRA_SID_EQOS		(nveu32_t)20
 #define TEGRA_SID_EQOS_CH3	((TEGRA_SID_EQOS) << EQOS_ASID_CTRL_SHIFT_24)
 #define TEGRA_SID_EQOS_CH2	((TEGRA_SID_EQOS) << EQOS_ASID_CTRL_SHIFT_16)
 #define TEGRA_SID_EQOS_CH1	((TEGRA_SID_EQOS) << EQOS_ASID_CTRL_SHIFT_8)
@@ -416,7 +416,7 @@
 				 (TEGRA_SID_EQOS))
 /** @} */
 
-void update_ehfc_rfa_rfd(unsigned int rx_fifo, unsigned int *value);
+void update_ehfc_rfa_rfd(nveu32_t rx_fifo, nveu32_t *value);
 
 /**
  * @addtogroup EQOS-Safety-Register EQOS Safety Register Mask
@@ -492,12 +492,12 @@ struct core_func_safety {
 	void *reg_addr[EQOS_MAX_CORE_SAFETY_REGS];
 	/** Array of bit-mask value of each corresponding reg
 	 * (used to ignore self-clearing/reserved bits in reg) */
-	unsigned int reg_mask[EQOS_MAX_CORE_SAFETY_REGS];
+	nveu32_t reg_mask[EQOS_MAX_CORE_SAFETY_REGS];
 	/** Array of value stored in each corresponding register */
-	unsigned int reg_val[EQOS_MAX_CORE_SAFETY_REGS];
+	nveu32_t reg_val[EQOS_MAX_CORE_SAFETY_REGS];
 	/** OSI lock variable used to protect writes to reg while
 	 * validation is in-progress */
-	unsigned int core_safety_lock;
+	nveu32_t core_safety_lock;
 };
 
 /**

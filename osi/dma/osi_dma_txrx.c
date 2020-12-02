@@ -23,6 +23,7 @@
 #include <osd.h>
 #include "osi_dma_local.h"
 #include <osi_dma_txrx.h>
+#include "../osi/common/type.h"
 
 /**
  * @brief get_rx_csum - Get the Rx checksum from descriptor if valid
@@ -118,7 +119,7 @@ static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
 static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 					 struct osi_rx_pkt_cx *rx_pkt_cx)
 {
-	unsigned int lt;
+	nveu32_t lt;
 
 	/* Check for Receive Status rdes0 */
 	if ((rx_desc->rdes3 & RDES3_RS0V) == RDES3_RS0V) {
@@ -150,7 +151,7 @@ static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
  * @retval -1 if TimeStamp is not valid
  * @retval 0 if TimeStamp is valid.
  */
-static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
+static inline nve32_t get_rx_tstamp_status(struct osi_rx_desc *context_desc)
 {
 	if (((context_desc->rdes3 & RDES3_OWN) == 0U) &&
 			((context_desc->rdes3 & RDES3_CTXT) == RDES3_CTXT)) {
@@ -190,12 +191,12 @@ static inline int get_rx_tstamp_status(struct osi_rx_desc *context_desc)
  * @retval -1 if TimeStamp is not available
  * @retval 0 if TimeStamp is available.
  */
-static int get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
-			  struct osi_rx_desc *rx_desc,
-			  struct osi_rx_desc *context_desc,
-			  struct osi_rx_pkt_cx *rx_pkt_cx)
+static nve32_t get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
+			      struct osi_rx_desc *rx_desc,
+			      struct osi_rx_desc *context_desc,
+			      struct osi_rx_pkt_cx *rx_pkt_cx)
 {
-	int retry, ret = -1;
+	nve32_t retry, ret = -1;
 
 	/* Check for RS1V/TSA/TD valid */
 	if (((rx_desc->rdes3 & RDES3_RS1V) == RDES3_RS1V) &&
@@ -293,9 +294,10 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int validate_rx_completions_arg(struct osi_dma_priv_data *osi_dma,
-					      unsigned int chan,
-					      unsigned int *more_data_avail,
+static inline nve32_t validate_rx_completions_arg(
+					      struct osi_dma_priv_data *osi_dma,
+					      nveu32_t chan,
+					      nveu32_t *more_data_avail,
 					      struct osi_rx_ring **rx_ring,
 					      struct osi_rx_pkt_cx **rx_pkt_cx)
 {
@@ -322,9 +324,9 @@ static inline int validate_rx_completions_arg(struct osi_dma_priv_data *osi_dma,
 	return 0;
 }
 
-int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
-			       unsigned int chan, int budget,
-			       unsigned int *more_data_avail)
+nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
+				   nveu32_t chan, nve32_t budget,
+				   nveu32_t *more_data_avail)
 {
 	struct osi_rx_ring *rx_ring = OSI_NULL;
 	struct osi_rx_pkt_cx *rx_pkt_cx = OSI_NULL;
@@ -332,9 +334,9 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	struct osi_rx_swcx *ptp_rx_swcx = OSI_NULL;
 	struct osi_rx_desc *context_desc = OSI_NULL;
-	int received = 0;
-	int received_resv = 0;
-	int ret = 0;
+	nve32_t received = 0;
+	nve32_t received_resv = 0;
+	nve32_t ret = 0;
 
 	ret = validate_rx_completions_arg(osi_dma, chan, more_data_avail,
 					  &rx_ring, &rx_pkt_cx);
@@ -499,7 +501,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
  * @param[in] chan: DMA channel number for which stats should be incremented.
  */
 static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi_dma,
-				    unsigned int chan)
+				    nveu32_t chan)
 {
 	osi_dma->dstats.q_tx_pkt_n[chan] =
 		osi_update_stats_counter(osi_dma->dstats.q_tx_pkt_n[chan], 1UL);
@@ -610,9 +612,9 @@ static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 }
 
 #ifndef OSI_STRIPPED_LIB
-int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
+nve32_t osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 {
-	int ret = -1;
+	nve32_t ret = -1;
 	struct osi_pkt_err_stats *pkt_err_stats;
 
 	if (osi_dma != OSI_NULL) {
@@ -637,9 +639,9 @@ int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 	return ret;
 }
 
-int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
+nve32_t osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
 {
-	int ret = -1;
+	nve32_t ret = -1;
 	struct osi_pkt_err_stats *pkt_err_stats;
 
 	if (osi_dma != OSI_NULL) {
@@ -676,8 +678,9 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int validate_tx_completions_arg(struct osi_dma_priv_data *osi_dma,
-					      unsigned int chan,
+static inline nve32_t validate_tx_completions_arg(
+					      struct osi_dma_priv_data *osi_dma,
+					      nveu32_t chan,
 					      struct osi_tx_ring **tx_ring)
 {
 	if (osi_unlikely(osi_dma == OSI_NULL ||
@@ -697,18 +700,18 @@ static inline int validate_tx_completions_arg(struct osi_dma_priv_data *osi_dma,
 	return 0;
 }
 
-int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
-			       unsigned int chan, int budget)
+nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
+				   nveu32_t chan, nve32_t budget)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_txdone_pkt_cx *txdone_pkt_cx = OSI_NULL;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
-	unsigned int entry = 0U;
-	unsigned long vartdes1;
-	unsigned long long ns;
-	int processed = 0;
-	int ret;
+	nveu32_t entry = 0U;
+	nveu64_t vartdes1;
+	nveul64_t ns;
+	nve32_t processed = 0;
+	nve32_t ret;
 
 	ret = validate_tx_completions_arg(osi_dma, chan, &tx_ring);
 	if (osi_unlikely(ret < 0)) {
@@ -832,10 +835,10 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  * @retval 0 - cntx desc not used
  * @retval 1 - cntx desc used.
  */
-static inline int need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
-				 struct osi_tx_desc *tx_desc)
+static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
+				     struct osi_tx_desc *tx_desc)
 {
-	int ret = 0;
+	nve32_t ret = 0;
 
 	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
 	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO)) {
@@ -893,17 +896,17 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
 				   struct osi_tx_desc *tx_desc,
 				   struct osi_tx_swcx *tx_swcx)
 {
-	unsigned long tmp;
+	nveu64_t tmp;
 
 	/* update the first buffer pointer and length */
 	tmp = L32(tx_swcx->buf_phy_addr);
 	if (tmp < UINT_MAX) {
-		tx_desc->tdes0 = (unsigned int)tmp;
+		tx_desc->tdes0 = (nveu32_t)tmp;
 	}
 
 	tmp = H32(tx_swcx->buf_phy_addr);
 	if (tmp < UINT_MAX) {
-		tx_desc->tdes1 = (unsigned int)tmp;
+		tx_desc->tdes1 = (nveu32_t)tmp;
 	}
 
 	tx_desc->tdes2 = tx_swcx->len;
@@ -1006,8 +1009,9 @@ static inline void dmb_oshst(void)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static inline int validate_hw_transmit_arg(struct osi_dma_priv_data *osi_dma,
-					   unsigned int chan,
+static inline nve32_t validate_hw_transmit_arg(
+					   struct osi_dma_priv_data *osi_dma,
+					   nveu32_t chan,
 					   struct osi_dma_chan_ops **ops,
 					   struct osi_tx_ring **tx_ring)
 {
@@ -1028,22 +1032,22 @@ static inline int validate_hw_transmit_arg(struct osi_dma_priv_data *osi_dma,
 	return 0;
 }
 
-void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, unsigned int chan)
+void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_dma_chan_ops *ops = OSI_NULL;
-	unsigned int entry = 0U;
+	nveu32_t entry = 0U;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_tx_pkt_cx *tx_pkt_cx = OSI_NULL;
-	unsigned int desc_cnt = 0U;
+	nveu32_t desc_cnt = 0U;
 	struct osi_tx_desc *last_desc = OSI_NULL;
 	struct osi_tx_desc *first_desc = OSI_NULL;
 	struct osi_tx_desc *cx_desc = OSI_NULL;
-	unsigned long tailptr, tmp;
-	int cntx_desc_consumed;
-	unsigned int i;
-	int ret = 0;
+	nveu64_t tailptr, tmp;
+	nve32_t cntx_desc_consumed;
+	nveu32_t i;
+	nve32_t ret = 0;
 
 	ret = validate_hw_transmit_arg(osi_dma, chan, &ops, &tx_ring);
 	if (osi_unlikely(ret < 0)) {
@@ -1107,12 +1111,12 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, unsigned int chan)
 	for (i = 0; i < desc_cnt; i++) {
 		tmp = L32(tx_swcx->buf_phy_addr);
 		if (tmp < UINT_MAX) {
-			tx_desc->tdes0 = (unsigned int)tmp;
+			tx_desc->tdes0 = (nveu32_t)tmp;
 		}
 
 		tmp = H32(tx_swcx->buf_phy_addr);
 		if (tmp < UINT_MAX) {
-			tx_desc->tdes1 = (unsigned int)tmp;
+			tx_desc->tdes1 = (nveu32_t)tmp;
 		}
 		tx_desc->tdes2 = tx_swcx->len;
 		/* set HW OWN bit for descriptor*/
@@ -1207,16 +1211,16 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, unsigned int chan)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
-				      unsigned int chan)
+static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
+					  nveu32_t chan)
 {
 	struct osi_rx_ring *rx_ring = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	struct osi_dma_chan_ops *ops = osi_dma->ops;
-	unsigned long tailptr = 0, tmp;
-	unsigned int i;
-	int ret = 0;
+	nveu64_t tailptr = 0, tmp;
+	nveu32_t i;
+	nve32_t ret = 0;
 
 	rx_ring = osi_dma->rx_ring[chan];
 	if (osi_unlikely(rx_ring == OSI_NULL)) {
@@ -1240,7 +1244,7 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 
 		tmp = L32(rx_swcx->buf_phy_addr);
 		if (tmp < UINT_MAX) {
-			rx_desc->rdes0 = (unsigned int)tmp;
+			rx_desc->rdes0 = (nveu32_t)tmp;
 		} else {
 			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 				"dma_txrx: Invalid buf_phy_addr\n", 0ULL);
@@ -1249,7 +1253,7 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 
 		tmp = H32(rx_swcx->buf_phy_addr);
 		if (tmp < UINT_MAX) {
-			rx_desc->rdes1 = (unsigned int)tmp;
+			rx_desc->rdes1 = (nveu32_t)tmp;
 		} else {
 			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 				"dma_txrx: Invalid buf_phy_addr\n", 0ULL);
@@ -1316,11 +1320,11 @@ static int rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
+static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
-	unsigned int chan = 0;
-	unsigned int i;
-	int ret = 0;
+	nveu32_t chan = 0;
+	nveu32_t i;
+	nve32_t ret = 0;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
@@ -1353,14 +1357,14 @@ static int rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static int tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
+static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_dma_chan_ops *ops = osi_dma->ops;
-	unsigned int chan = 0;
-	unsigned int i, j;
+	nveu32_t chan = 0;
+	nveu32_t i, j;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
@@ -1410,9 +1414,9 @@ static int tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 	return 0;
 }
 
-int dma_desc_init(struct osi_dma_priv_data *osi_dma)
+nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma)
 {
-	int ret = 0;
+	nve32_t ret = 0;
 
 	ret = tx_dma_desc_init(osi_dma);
 	if (ret != 0) {

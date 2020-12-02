@@ -167,33 +167,33 @@
  */
 struct osi_pkt_err_stats {
 	/** IP Header Error */
-	unsigned long ip_header_error;
+	nveu64_t ip_header_error;
 	/** Jabber time out Error */
-	unsigned long jabber_timeout_error;
+	nveu64_t jabber_timeout_error;
 	/** Packet Flush Error */
-	unsigned long pkt_flush_error;
+	nveu64_t pkt_flush_error;
 	/** Payload Checksum Error */
-	unsigned long payload_cs_error;
+	nveu64_t payload_cs_error;
 	/** Loss of Carrier Error */
-	unsigned long loss_of_carrier_error;
+	nveu64_t loss_of_carrier_error;
 	/** No Carrier Error */
-	unsigned long no_carrier_error;
+	nveu64_t no_carrier_error;
 	/** Late Collision Error */
-	unsigned long late_collision_error;
+	nveu64_t late_collision_error;
 	/** Excessive Collision Error */
-	unsigned long excessive_collision_error;
+	nveu64_t excessive_collision_error;
 	/** Excessive Deferal Error */
-	unsigned long excessive_deferal_error;
+	nveu64_t excessive_deferal_error;
 	/** Under Flow Error */
-	unsigned long underflow_error;
+	nveu64_t underflow_error;
 	/** Rx CRC Error */
-	unsigned long rx_crc_error;
+	nveu64_t rx_crc_error;
 	/** Rx Frame Error */
-	unsigned long rx_frame_error;
+	nveu64_t rx_frame_error;
 	/** clear_tx_pkt_err_stats() API invoked */
-	unsigned long clear_tx_err;
+	nveu64_t clear_tx_err;
 	/** clear_rx_pkt_err_stats() API invoked */
-	unsigned long clear_rx_err;
+	nveu64_t clear_rx_err;
 };
 
 /**
@@ -201,13 +201,13 @@ struct osi_pkt_err_stats {
  */
 struct osi_rx_desc {
 	/** Receive Descriptor 0 */
-	unsigned int rdes0;
+	nveu32_t rdes0;
 	/** Receive Descriptor 1 */
-	unsigned int rdes1;
+	nveu32_t rdes1;
 	/** Receive Descriptor 2 */
-	unsigned int rdes2;
+	nveu32_t rdes2;
 	/** Receive Descriptor 3 */
-	unsigned int rdes3;
+	nveu32_t rdes3;
 };
 
 /**
@@ -215,13 +215,13 @@ struct osi_rx_desc {
  */
 struct osi_rx_swcx {
 	/** DMA buffer physical address */
-	unsigned long buf_phy_addr;
+	nveu64_t buf_phy_addr;
 	/** DMA buffer virtual address */
 	void *buf_virt_addr;
 	/** Length of buffer */
-	unsigned int len;
+	nveu32_t len;
 	/** Flags to share info about Rx swcx between OSD and OSI */
-	unsigned int flags;
+	nveu32_t flags;
 };
 
 /**
@@ -230,15 +230,15 @@ struct osi_rx_swcx {
  */
 struct osi_rx_pkt_cx {
 	/** Bit map which holds the features that rx packets supports */
-	unsigned int flags;
+	nveu32_t flags;
 	/** Stores the Rx csum */
-	unsigned int rxcsum;
+	nveu32_t rxcsum;
 	/** Stores the VLAN tag ID in received packet */
-	unsigned int vlan_tag;
+	nveu32_t vlan_tag;
 	/** Length of received packet */
-	unsigned int pkt_len;
+	nveu32_t pkt_len;
 	/** TS in nsec for the received packet */
-	unsigned long long ns;
+	nveul64_t ns;
 };
 
 /**
@@ -251,11 +251,11 @@ struct osi_rx_ring {
 	/** Pointer to Rx DMA descriptor software context information */
 	struct osi_rx_swcx *rx_swcx;
 	/** Physical address of Rx DMA descriptor */
-	unsigned long rx_desc_phy_addr;
+	nveu64_t rx_desc_phy_addr;
 	/** Descriptor index current reception */
-	unsigned int cur_rx_idx;
+	nveu32_t cur_rx_idx;
 	/** Descriptor index for descriptor re-allocation */
-	unsigned int refill_idx;
+	nveu32_t refill_idx;
 	/** Receive packet context */
 	struct osi_rx_pkt_cx rx_pkt_cx;
 };
@@ -265,14 +265,14 @@ struct osi_rx_ring {
  */
 struct osi_tx_swcx {
 	/** Physical address of DMA mapped buffer */
-	unsigned long buf_phy_addr;
+	nveu64_t buf_phy_addr;
 	/** Virtual address of DMA buffer */
 	void *buf_virt_addr;
 	/** Length of buffer */
-	unsigned int len;
+	nveu32_t len;
 	/** Flag to keep track of whether buffer pointed by buf_phy_addr
 	 * is a paged buffer/linear buffer */
-	unsigned int is_paged_buf;
+	nveu32_t is_paged_buf;
 };
 
 /**
@@ -280,13 +280,13 @@ struct osi_tx_swcx {
  */
 struct osi_tx_desc {
 	/** Transmit descriptor 0 */
-	unsigned int tdes0;
+	nveu32_t tdes0;
 	/** Transmit descriptor 1 */
-	unsigned int tdes1;
+	nveu32_t tdes1;
 	/** Transmit descriptor 2 */
-	unsigned int tdes2;
+	nveu32_t tdes2;
 	/** Transmit descriptor 3 */
-	unsigned int tdes3;
+	nveu32_t tdes3;
 };
 
 /**
@@ -295,19 +295,19 @@ struct osi_tx_desc {
  */
 struct osi_tx_pkt_cx {
 	/** Holds the features which a Tx packets supports */
-	unsigned int flags;
+	nveu32_t flags;
 	/** Stores the VLAN tag ID */
-	unsigned int vtag_id;
+	nveu32_t vtag_id;
 	/** Descriptor count */
-	unsigned int desc_cnt;
+	nveu32_t desc_cnt;
 	/** Max. segment size for TSO/USO/GSO/LSO packet */
-	unsigned int mss;
+	nveu32_t mss;
 	/** Length of application payload */
-	unsigned int payload_len;
+	nveu32_t payload_len;
 	/** Length of transport layer tcp/udp header */
-	unsigned int tcp_udp_hdrlen;
+	nveu32_t tcp_udp_hdrlen;
 	/** Length of all headers (ethernet/ip/tcp/udp) */
-	unsigned int total_hdrlen;
+	nveu32_t total_hdrlen;
 };
 
 /**
@@ -316,10 +316,10 @@ struct osi_tx_pkt_cx {
 struct osi_txdone_pkt_cx {
 	/** Indicates status flags for Tx complete (tx error occurred, or
 	 * indicate whether desc had buf mapped from paged/linear memory etc) */
-	unsigned int flags;
+	nveu32_t flags;
 	/** TS captured for the tx packet and this is valid only when the PTP
 	 * bit is set in fields */
-	unsigned long long ns;
+	nveul64_t ns;
 };
 
 /**
@@ -332,21 +332,21 @@ struct osi_tx_ring {
 	/** Pointer to tx dma descriptor software context information */
 	struct osi_tx_swcx *tx_swcx;
 	/** Physical address of Tx descriptor */
-	unsigned long tx_desc_phy_addr;
+	nveu64_t tx_desc_phy_addr;
 	/** Descriptor index current transmission */
-	unsigned int cur_tx_idx;
+	nveu32_t cur_tx_idx;
 	/** Descriptor index for descriptor cleanup */
-	unsigned int clean_idx;
+	nveu32_t clean_idx;
 	/** Slot function check */
-	unsigned int slot_check;
+	nveu32_t slot_check;
 	/** Slot number */
-	unsigned int slot_number;
+	nveu32_t slot_number;
 	/** Transmit packet context */
 	struct osi_tx_pkt_cx tx_pkt_cx;
 	/** Transmit complete packet context information */
 	struct osi_txdone_pkt_cx txdone_pkt_cx;
 	/** Number of packets or frames transmitted */
-	unsigned int frame_cnt;
+	nveu32_t frame_cnt;
 };
 
 struct osi_dma_priv_data;
@@ -356,55 +356,55 @@ struct osi_dma_priv_data;
  */
 struct osi_dma_chan_ops {
 	/** Called to set Transmit Ring length */
-	void (*set_tx_ring_len)(void *addr, unsigned int chan,
-				unsigned int len);
+	void (*set_tx_ring_len)(void *addr, nveu32_t chan,
+				nveu32_t len);
 	/** Called to set Transmit Ring Base address */
-	void (*set_tx_ring_start_addr)(void *addr, unsigned int chan,
-				       unsigned long base_addr);
+	void (*set_tx_ring_start_addr)(void *addr, nveu32_t chan,
+				       nveu64_t base_addr);
 	/** Called to update Tx Ring tail pointer */
-	void (*update_tx_tailptr)(void *addr, unsigned int chan,
-				  unsigned long tailptr);
+	void (*update_tx_tailptr)(void *addr, nveu32_t chan,
+				  nveu64_t tailptr);
 	/** Called to set Receive channel ring length */
-	void (*set_rx_ring_len)(void *addr, unsigned int chan,
-				unsigned int len);
+	void (*set_rx_ring_len)(void *addr, nveu32_t chan,
+				nveu32_t len);
 	/** Called to set receive channel ring base address */
-	void (*set_rx_ring_start_addr)(void *addr, unsigned int chan,
-				       unsigned long base_addr);
+	void (*set_rx_ring_start_addr)(void *addr, nveu32_t chan,
+				       nveu64_t base_addr);
 	/** Called to update Rx ring tail pointer */
-	void (*update_rx_tailptr)(void *addr, unsigned int chan,
-				  unsigned long tailptr);
+	void (*update_rx_tailptr)(void *addr, nveu32_t chan,
+				  nveu64_t tailptr);
 	/** Called to disable DMA Tx channel interrupts at wrapper level */
-	void (*disable_chan_tx_intr)(void *addr, unsigned int chan);
+	void (*disable_chan_tx_intr)(void *addr, nveu32_t chan);
 	/** Called to enable DMA Tx channel interrupts at wrapper level */
-	void (*enable_chan_tx_intr)(void *addr, unsigned int chan);
+	void (*enable_chan_tx_intr)(void *addr, nveu32_t chan);
 	/** Called to disable DMA Rx channel interrupts at wrapper level */
-	void (*disable_chan_rx_intr)(void *addr, unsigned int chan);
+	void (*disable_chan_rx_intr)(void *addr, nveu32_t chan);
 	/** Called to enable DMA Rx channel interrupts at wrapper level */
-	void (*enable_chan_rx_intr)(void *addr, unsigned int chan);
+	void (*enable_chan_rx_intr)(void *addr, nveu32_t chan);
 	/** Called to start the Tx/Rx DMA */
-	void (*start_dma)(void *addr, unsigned int chan);
+	void (*start_dma)(void *addr, nveu32_t chan);
 	/** Called to stop the Tx/Rx DMA */
-	void (*stop_dma)(void *addr, unsigned int chan);
+	void (*stop_dma)(void *addr, nveu32_t chan);
 	/** Called to initialize the DMA channel */
-	int (*init_dma_channel)(struct osi_dma_priv_data *osi_dma);
+	nve32_t (*init_dma_channel)(struct osi_dma_priv_data *osi_dma);
 	/** Called to set Rx buffer length */
 	void (*set_rx_buf_len)(struct osi_dma_priv_data *osi_dma);
 #ifndef OSI_STRIPPED_LIB
 	/** Called periodically to read and validate safety critical
 	 * registers against last written value */
-	int (*validate_regs)(struct osi_dma_priv_data *osi_dma);
+	nve32_t (*validate_regs)(struct osi_dma_priv_data *osi_dma);
 	/** Called to configure the DMA channel slot function */
 	void (*config_slot)(struct osi_dma_priv_data *osi_dma,
-			    unsigned int chan,
-			    unsigned int set,
-			    unsigned int interval);
+			    nveu32_t chan,
+			    nveu32_t set,
+			    nveu32_t interval);
 #endif /* !OSI_STRIPPED_LIB */
 	/** Called to get Global DMA status */
-	unsigned int (*get_global_dma_status)(void *addr);
+	nveu32_t (*get_global_dma_status)(void *addr);
 	/** Called to clear VM Tx interrupt */
-	void (*clear_vm_tx_intr)(void *addr, unsigned int chan);
+	void (*clear_vm_tx_intr)(void *addr, nveu32_t chan);
 	/** Called to clear VM Rx interrupt */
-	void (*clear_vm_rx_intr)(void *addr, unsigned int chan);
+	void (*clear_vm_rx_intr)(void *addr, nveu32_t chan);
 };
 
 /**
@@ -412,9 +412,9 @@ struct osi_dma_chan_ops {
  */
 struct osi_vm_irq_data {
 	/** Number of VM channels per VM IRQ */
-	unsigned int num_vm_chans;
+	nveu32_t num_vm_chans;
 	/** Array of VM channel list */
-	unsigned int vm_chans[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t vm_chans[OSI_EQOS_MAX_NUM_CHANS];
 };
 
 /**
@@ -423,20 +423,20 @@ struct osi_vm_irq_data {
 struct osd_dma_ops {
 	/** DMA transmit complete callback */
 	void (*transmit_complete)(void *priv, void *buffer,
-				  unsigned long dmaaddr, unsigned int len,
+				  nveu64_t dmaaddr, nveu32_t len,
 				  void *txdone_pkt_cx);
 	/** DMA receive packet callback */
 	void (*receive_packet)(void *priv, void *rxring,
-			       unsigned int chan, unsigned int dma_buf_len,
+			       nveu32_t chan, nveu32_t dma_buf_len,
 			       void *rxpkt_cx, void *rx_pkt_swcx);
 	/** RX buffer reallocation callback */
-	void (*realloc_buf)(void *priv, void *rxring, unsigned int chan);
+	void (*realloc_buf)(void *priv, void *rxring, nveu32_t chan);
 	/**.ops_log function callback */
-	void (*ops_log)(void *priv, const char *func, unsigned int line,
-			unsigned int level, unsigned int type, const char *err,
-			unsigned long long loga);
+	void (*ops_log)(void *priv, const nve8_t *func, nveu32_t line,
+			nveu32_t level, nveu32_t type, const nve8_t *err,
+			nveul64_t loga);
 	/**.ops_log function callback */
-	void (*udelay)(unsigned long usec);
+	void (*udelay)(nveu64_t usec);
 };
 
 /**
@@ -454,46 +454,46 @@ struct osi_dma_priv_data {
 	/** Address of HW operations structure */
 	struct osi_dma_chan_ops *ops;
 	/** MAC HW type (EQOS) */
-	unsigned int mac;
+	nveu32_t mac;
 	/** Number of channels enabled in MAC */
-	unsigned int num_dma_chans;
+	nveu32_t num_dma_chans;
 	/** Array of supported DMA channels */
-	unsigned int dma_chans[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t dma_chans[OSI_EQOS_MAX_NUM_CHANS];
 	/** DMA Rx channel buffer length at HW level */
-	unsigned int rx_buf_len;
+	nveu32_t rx_buf_len;
 	/** MTU size */
-	unsigned int mtu;
+	nveu32_t mtu;
 	/** Packet error stats */
 	struct osi_pkt_err_stats pkt_err_stats;
 	/** Extra DMA stats */
 	struct osi_xtra_dma_stat_counters dstats;
 	/** Receive Interrupt Watchdog Timer Count Units */
-	unsigned int rx_riwt;
+	nveu32_t rx_riwt;
 	/** Flag which decides riwt is enabled(1) or disabled(0) */
-	unsigned int use_riwt;
+	nveu32_t use_riwt;
 	/** Max no of pkts to be received before triggering Rx interrupt */
-	unsigned int rx_frames;
+	nveu32_t rx_frames;
 	/** Flag which decides rx_frames is enabled(1) or disabled(0) */
-	unsigned int use_rx_frames;
+	nveu32_t use_rx_frames;
 	/** Transmit Interrupt Software Timer Count Units */
-	unsigned int tx_usecs;
+	nveu32_t tx_usecs;
 	/** Flag which decides Tx timer is enabled(1) or disabled(0) */
-	unsigned int use_tx_usecs;
+	nveu32_t use_tx_usecs;
 	/** Max no of pkts to transfer before triggering Tx interrupt */
-	unsigned int tx_frames;
+	nveu32_t tx_frames;
 	/** Flag which decides tx_frames is enabled(1) or disabled(0) */
-	unsigned int use_tx_frames;
+	nveu32_t use_tx_frames;
 	/** Flag which decides virtualization is enabled(1) or disabled(0) */
-	unsigned int use_virtualization;
+	nveu32_t use_virtualization;
 	/** Functional safety config to do periodic read-verify of
 	 * certain safety critical dma registers */
 	void *safety_config;
 	/** Array of DMA channel slot snterval value from DT */
-	unsigned int slot_interval[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t slot_interval[OSI_EQOS_MAX_NUM_CHANS];
 	/** Array of DMA channel slot enabled status from DT*/
-	unsigned int slot_enabled[OSI_EQOS_MAX_NUM_CHANS];
+	nveu32_t slot_enabled[OSI_EQOS_MAX_NUM_CHANS];
 	/** number of VM IRQ's */
-	unsigned int num_vm_irqs;
+	nveu32_t num_vm_irqs;
 	/** Array of VM IRQ's */
 	struct osi_vm_irq_data irq_data[OSI_MAX_VM_IRQS];
 	/** DMA callback ops structure */
@@ -501,7 +501,7 @@ struct osi_dma_priv_data {
 	/** Virtual address of reserved DMA buffer */
 	void *resv_buf_virt_addr;
 	/** Physical address of reserved DMA buffer */
-	unsigned long resv_buf_phy_addr;
+	nveu64_t resv_buf_phy_addr;
 };
 
 
@@ -541,8 +541,8 @@ struct osi_dma_priv_data {
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan);
+nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t chan);
 
 /**
  * @brief osi_enable_chan_tx_intr - Enable DMA Tx channel interrupts.
@@ -580,8 +580,8 @@ int osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-			    unsigned int chan);
+nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+				nveu32_t chan);
 
 /**
  * @brief osi_disable_chan_rx_intr - Disable DMA Rx channel interrupts.
@@ -619,8 +619,8 @@ int osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-			     unsigned int chan);
+nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t chan);
 
 /**
  * @brief osi_enable_chan_rx_intr - Enable DMA Rx channel interrupts.
@@ -658,8 +658,8 @@ int osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-			    unsigned int chan);
+nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+				nveu32_t chan);
 
 /**
  * @brief osi_get_global_dma_status - Gets DMA status.
@@ -675,7 +675,7 @@ int osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  * @retval status
  */
-unsigned int osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
+nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_clear_vm_tx_intr - Handles VM Tx interrupt source.
@@ -692,8 +692,8 @@ unsigned int osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
-			 unsigned int chan);
+nve32_t osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
+			     nveu32_t chan);
 
 /**
  * @brief osi_clear_vm_rx_intr - Handles VM Rx interrupt source.
@@ -712,8 +712,8 @@ int osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
-			 unsigned int chan);
+nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
+			     nveu32_t chan);
 
 /**
  * @brief Start DMA
@@ -749,8 +749,7 @@ int osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_start_dma(struct osi_dma_priv_data *osi_dma,
-		  unsigned int chan);
+nve32_t osi_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 
 /**
  * @brief osi_stop_dma - Stop DMA
@@ -786,8 +785,7 @@ int osi_start_dma(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
-		 unsigned int chan);
+nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 
 /**
  * @brief osi_get_refill_rx_desc_cnt - Rx descriptors count that needs to refill
@@ -818,7 +816,7 @@ int osi_stop_dma(struct osi_dma_priv_data *osi_dma,
  *
  * @retval "Number of available free descriptors."
  */
-unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
+nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
 
 /**
  * @brief osi_rx_dma_desc_init - DMA Rx descriptor init
@@ -856,8 +854,8 @@ unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
-			 struct osi_rx_ring *rx_ring, unsigned int chan);
+nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
+			     struct osi_rx_ring *rx_ring, nveu32_t chan);
 
 /**
  * @brief Updates rx buffer length.
@@ -889,7 +887,7 @@ int osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
+nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_hw_transmit - Initialize Tx DMA descriptors for a channel
@@ -937,7 +935,7 @@ int osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
  * - De-initialization: No
  *
  */
-void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, unsigned int chan);
+void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 
 /**
  * @brief osi_process_tx_completions - Process Tx complete on DMA channel ring.
@@ -978,8 +976,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, unsigned int chan);
  *
  * @returns Number of descriptors (buffers) processed.
  */
-int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
-			       unsigned int chan, int budget);
+nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
+				   nveu32_t chan, nve32_t budget);
 
 /**
  * @brief osi_process_rx_completions - Read data from rx channel descriptors
@@ -1026,9 +1024,9 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  *
  * @returns Number of descriptors (buffers) processed.
  */
-int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
-			       unsigned int chan, int budget,
-			       unsigned int *more_data_avail);
+nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
+				   nveu32_t chan, nve32_t budget,
+				   nveu32_t *more_data_avail);
 
 /**
  * @brief osi_hw_dma_init - Initialize DMA
@@ -1083,7 +1081,7 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
+nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_hw_dma_deinit - De initialize DMA
@@ -1118,7 +1116,7 @@ int osi_hw_dma_init(struct osi_dma_priv_data *osi_dma);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
+nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_init_dma_ops - Initialize DMA operations
@@ -1146,7 +1144,7 @@ int osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
+nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_dma_get_systime_from_mac - Get system time
@@ -1181,10 +1179,8 @@ int osi_init_dma_ops(struct osi_dma_priv_data *osi_dma);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_dma_get_systime_from_mac(
-			     struct osi_dma_priv_data *const osi_dma,
-			     unsigned int *sec,
-			     unsigned int *nsec);
+nve32_t osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
+				     nveu32_t *sec, nveu32_t *nsec);
 
 /**
  * @brief osi_is_mac_enabled - Checks if MAC is enabled.
@@ -1217,7 +1213,7 @@ int osi_dma_get_systime_from_mac(
  * @retval OSI_ENABLE if MAC enabled.
  * @retval OSI_DISABLE otherwise.
  */
-unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma);
+nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma);
 
 #ifndef OSI_STRIPPED_LIB
 /**
@@ -1256,7 +1252,7 @@ unsigned int osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma);
+nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_clear_tx_pkt_err_stats - Clear tx packet error stats.
@@ -1291,7 +1287,7 @@ int osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
+nve32_t osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_config_slot_function - Configure slot function
@@ -1324,8 +1320,8 @@ int osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
-			     unsigned int set);
+nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t set);
 /**
  * @brief osi_clear_rx_pkt_err_stats - Clear rx packet error stats.
  *
@@ -1350,7 +1346,7 @@ int osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
+nve32_t osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osi_txring_empty - Check if Txring is empty.
@@ -1376,6 +1372,6 @@ int osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  * @retval 1 if ring is empty.
  * @retval 0 if ring has outstanding packets.
  */
-int osi_txring_empty(struct osi_dma_priv_data *osi_dma, unsigned int chan);
+nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 #endif /* !OSI_STRIPPED_LIB */
 #endif /* OSI_DMA_H */
