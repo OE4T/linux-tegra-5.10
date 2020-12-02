@@ -13,9 +13,8 @@ config DENVER_MCA
 
 config TEGRA_AON
 	bool "Tegra AON driver"
-	depends on ARCH_TEGRA_18x_SOC
+	depends on (ARCH_TEGRA_18x_SOC || ARCH_TEGRA_186_SOC)
 	select NV_TEGRA_IVC
-	select TEGRA_HSP
 
 config TEGRA_ARI_MCA
 	tristate "Tegra Abstract Request Interface (ARI) Machine Check"
