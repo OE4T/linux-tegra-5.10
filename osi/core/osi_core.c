@@ -218,8 +218,8 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 	struct osi_core_ops *op;
 	nve32_t ret = -1;
 
-	if (osi_core == OSI_NULL || osi_core->ops == OSI_NULL ||
-	    osi_core->base == OSI_NULL || filter == OSI_NULL) {
+	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL) ||
+	    (osi_core->base == OSI_NULL) || (filter == OSI_NULL)) {
 		return ret;
 	}
 
@@ -396,8 +396,8 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 {
 	nve32_t ret = -1;
 
-	if (osi_core == OSI_NULL || osi_core->ops == OSI_NULL ||
-	    osi_core->base == OSI_NULL) {
+	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL) ||
+	    (osi_core->base == OSI_NULL)) {
 		return ret;
 	}
 
@@ -446,9 +446,9 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 nve32_t osi_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
 				  const nveu32_t enable)
 {
-	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
-	    osi_core->base != OSI_NULL &&
-	    osi_core->ops->config_rxcsum_offload != OSI_NULL) {
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->base != OSI_NULL) &&
+	    (osi_core->ops->config_rxcsum_offload != OSI_NULL)) {
 		return osi_core->ops->config_rxcsum_offload(osi_core,
 							    enable);
 	}
@@ -568,7 +568,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 	}
 
 	if (neg_adj == 0U) {
-		if (addend <= UINT_MAX - diff) {
+		if (addend <= (UINT_MAX - diff)) {
 			addend = (addend + diff);
 		} else {
 			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
@@ -587,7 +587,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		}
 	}
 
-	if (osi_core->ops != OSI_NULL && osi_core->base != OSI_NULL &&
+	if ((osi_core->ops != OSI_NULL) && (osi_core->base != OSI_NULL) &&
 	    (osi_core->ops->config_addend != OSI_NULL)) {
 		return osi_core->ops->config_addend(osi_core, addend);
 	}

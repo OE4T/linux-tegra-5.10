@@ -683,7 +683,8 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 	 * ie, (8ns x 512) => 4.096us (rounding off to 4us)
 	 * So formula with above values is,ret = usec/4
 	 */
-	if (osi_dma->use_riwt == OSI_ENABLE && osi_dma->rx_riwt < UINT_MAX) {
+	if ((osi_dma->use_riwt == OSI_ENABLE) &&
+	    (osi_dma->rx_riwt < UINT_MAX)) {
 		value = osi_readl((nveu8_t *)osi_dma->base +
 				  EQOS_DMA_CHX_RX_WDT(chan));
 		/* Mask the RWT and RWTU value */
