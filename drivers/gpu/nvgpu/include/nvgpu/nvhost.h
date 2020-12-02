@@ -38,7 +38,8 @@ struct nvgpu_nvhost_dev;
  */
 
 /**
- * @brief Initialzes the nvhost device for nvgpu.
+ * @brief Initialzes the nvhost device for nvgpu. This is required
+ *  for sync point shim read operations.
  *
  * @param g [in]	The GPU super structure.
  *
@@ -50,11 +51,19 @@ struct nvgpu_nvhost_dev;
  * - Allocate and initialize different fields associated with
  *   nvhost device by calling #nvgpu_nvhost_set_aperture().
  * - #nvgpu_nvhost_set_aperture() will do the following
- *
- *
+ *   - Open nvhost device and get the read only host1x full
+ *     handle by calling #NvRmHost1xSyncpointCreateFullReadOnlyMemHandle().
+ *   - Get the memory descriptors associated with the handle by calling
+ *     #nvgpu_nvrmmem_getphysinfo().
+ *   - Map the handle to nvgpu-igpu process in read mode by calling
+ *     #nvgpu_nvrmmem_map().
  *
  * @return		0, if success.
- *			-ENOMEM, if it fails.
+ *			<0, for failure.
+ *
+ * @retval		-EINVAL, for invlaid chip id.
+ * @retval		-ENOMEM, for any other reasons.
+ *
  */
 int nvgpu_get_nvhost_dev(struct gk20a *g);
 
@@ -75,7 +84,10 @@ void nvgpu_free_nvhost_dev(struct gk20a *g);
  *
  * @param g [in]	The GPU super structure.
  *
- * @return		whether syncpt access is available
+ * @return		whether syncpt access is available.
+ *
+ * @retval		TRUE/FALSE.
+ *
  */
 bool nvgpu_has_syncpoints(struct gk20a *g);
 
@@ -136,7 +148,9 @@ const char *nvgpu_nvhost_syncpt_get_name(
 	struct nvgpu_nvhost_dev *nvgpu_syncpt_dev, int id);
 
 /**
- * @brief Increment the value of given sync point to the given value.
+ * @brief Increment the value of given sync point to the maximum value.
+ * The function is needed to initialise the maximum value to the allocated
+ * sync point.
  *
  * @param nvgpu_syncpt_dev [in]	Sync point device.
  * @param id [in]		Sync point id.
@@ -180,7 +194,8 @@ void nvgpu_nvhost_syncpt_set_safe_state(
  * @param nvgpu_syncpt_dev [in]	Sync point device.
  * @param id [in]		Sync point id.
  *
- * - Validate the sync point id.
+ * - Validate the sync point id by checking the id with number of
+ *   syncpoints supported.
  *
  * @return			TRUE, If id is valid.
  *				FALSE, If id is not valid.
@@ -208,7 +223,8 @@ void nvgpu_nvhost_syncpt_put_ref_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
 	u32 id);
 
 /**
- * @brief Allocate a sync point managed by a client.
+ * @brief Allocate a sync point managed by a client. The function is
+ * needed to initialise the channel.
  *
  * @param nvgpu_syncpt_dev [in]	Sync point device.
  * @param name [in]		Name of the sync point.
@@ -226,14 +242,18 @@ void nvgpu_nvhost_syncpt_put_ref_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
  *        allocated id.
  *
  * @return			Sync point id allocated.
+ *
+ * @retval			valid id, for successful allocation.
+ *				NVGPU_NVSYNCPT_INVALID, for error.
+ *
  */
 u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev
 	*nvgpu_syncpt_dev,
 	const char *syncpt_name);
 
 /**
- * @brief Initializes the address and size of memory mapped
- * sync point unit region(MSS).
+ * @brief Initializes the address and size of memory mapped sync
+ * point unit region(MSS). This is needed for sync point manipulation.
  *
  * @param nvgpu_syncpt_dev [in]	Sync point device.
  * @param base [out]		Base address where it mapped.
@@ -242,7 +262,12 @@ u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev
  * - Retrieve the value of base and size from the given
  *   sync point device.
  *
- * @return			Zero.
+ * @return			Zero for success.
+ *				<0, for failure.
+ *
+ * @retval			-ENOSYS, if any of the input parameters
+ *				is NULL.
+ *
  */
 int nvgpu_nvhost_get_syncpt_aperture(
 		struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
@@ -250,6 +275,7 @@ int nvgpu_nvhost_get_syncpt_aperture(
 
 /**
  * @brief Get offset of the sync point from MSS aperture base.
+ * The function is needed for sync point manipulations.
  *
  * @param g [in]	The GPU super structure.
  * @param syncpt_id [in]	Sync point id.
