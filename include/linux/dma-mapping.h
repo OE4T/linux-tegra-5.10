@@ -14,6 +14,8 @@
 #include <linux/mem_encrypt.h>
 #include <linux/dma-attrs.h>
 
+#define DMA_ERROR_CODE	(~(dma_addr_t)0)
+
 /**
  * List of possible attributes associated with a DMA mapping. The semantics
  * of each attribute should be defined in Documentation/core-api/dma-attributes.rst.
@@ -106,6 +108,11 @@ int dma_alloc_from_dev_coherent_attr(struct device *dev, ssize_t size,
 					dma_addr_t *dma_handle, void **ret,
 					unsigned long attrs);
 int dma_release_from_dev_coherent_attr(struct device *dev, ssize_t size,
+					void *vaddr, unsigned long attrs);
+int dma_alloc_from_coherent_attr(struct device *dev, ssize_t size,
+					dma_addr_t *dma_handle, void **ret,
+					unsigned long attrs);
+int dma_release_from_coherent_attr(struct device *dev, ssize_t size,
 					void *vaddr, unsigned long attrs);
 #endif
 
@@ -547,19 +554,30 @@ static inline int dma_get_cache_alignment(void)
 #define DMA_MEMORY_NOMAP		0x02
 
 #ifdef CONFIG_DMA_DECLARE_COHERENT
-int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
-				dma_addr_t device_addr, size_t size, int flags);
 struct dma_resize_notifier_ops {
 	int (*resize)(phys_addr_t, size_t);
 };
 
-#else
-static inline int
-dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
-			    dma_addr_t device_addr, size_t size, int flags)
-{
-	return -ENOSYS;
-}
+struct dma_resize_notifier {
+	struct dma_resize_notifier_ops *ops;
+};
+
+struct dma_declare_info {
+	const char *name;
+	bool resize;
+	phys_addr_t base;
+	size_t size;
+	struct device *cma_dev;
+	struct dma_resize_notifier notifier;
+};
+
+struct dma_coherent_stats {
+	phys_addr_t base;
+	size_t size;
+	size_t used;
+	size_t max;
+};
+
 #endif /* CONFIG_DMA_DECLARE_COHERENT */
 
 static inline void *dmam_alloc_coherent(struct device *dev, size_t size,

@@ -426,7 +426,7 @@ void *dma_alloc_attrs(struct device *dev, size_t size, dma_addr_t *dma_handle,
 
 	WARN_ON_ONCE(!dev->coherent_dma_mask);
 
-	if (dma_alloc_from_dev_coherent_attr(dev, size, dma_handle, &cpu_addr,
+	if (dma_alloc_from_coherent_attr(dev, size, dma_handle, &cpu_addr,
 						attrs))
 		return cpu_addr;
 
@@ -450,7 +450,7 @@ void dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
 {
 	const struct dma_map_ops *ops = get_dma_ops(dev);
 
-	if (dma_release_from_dev_coherent_attr(dev, size, cpu_addr, attrs))
+	if (dma_release_from_coherent_attr(dev, size, cpu_addr, attrs))
 		return;
 	/*
 	 * On non-coherent platforms which implement DMA-coherent buffers via

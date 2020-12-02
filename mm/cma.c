@@ -33,6 +33,13 @@
 #include <linux/io.h>
 #include <linux/kmemleak.h>
 #include <trace/events/cma.h>
+#include <linux/dma-mapping.h>
+#include <linux/dma-map-ops.h>
+#include <linux/buffer_head.h>
+#include <linux/delay.h>
+
+#include <asm/tlbflush.h>
+#include <asm/cacheflush.h>
 
 #include "cma.h"
 
@@ -369,6 +376,54 @@ err:
 	return ret;
 }
 
+static int __dma_update_pte(pte_t *pte, unsigned long addr,
+			    void *data)
+{
+	struct page *page = virt_to_page(addr);
+	pgprot_t prot = *(pgprot_t *)data;
+
+	set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
+	return 0;
+}
+
+static void __dma_remap(struct page *page, size_t size, pgprot_t prot)
+{
+	unsigned long start = (unsigned long) page_address(page);
+	unsigned end = start + size;
+	int err;
+
+	err = apply_to_page_range(&init_mm, start,
+		size, __dma_update_pte, &prot);
+	if (err)
+		pr_err("***%s: error=%d, pfn=%lx\n", __func__,
+			err, page_to_pfn(page));
+	dsb(sy);
+	flush_tlb_kernel_range(start, end);
+}
+
+static void __dma_clear_buffer(struct page *page, size_t size)
+{
+	void *ptr;
+	/*
+	 * Ensure that the allocated pages are zeroed, and that any data
+	 * lurking in the kernel direct-mapped region is invalidated.
+	 * The zeroing can be skipped for VPR resize as it is not
+	 * accessible by cpu for either read or write. Since VPR's
+	 * coherent device is the only device that has heap resize notifier
+	 * and that too when resize is enabled, the API
+	 * dma_contiguous_should_replace_page() would return true
+	 * if and only if the cma is VPR and the resize is enabled.
+	 */
+	ptr = page_address(page);
+	if (ptr) {
+		if (!dma_contiguous_should_replace_page(page))
+			memset(ptr, 0, size);
+		__dma_flush_area(ptr, size);
+		/* comment out as not present for arm64 */
+		/* outer_flush_range(__pa(ptr), __pa(ptr) + size);*/
+	}
+}
+
 #ifdef CONFIG_CMA_DEBUG
 static void cma_debug_show_areas(struct cma *cma)
 {
@@ -411,15 +466,23 @@ static inline void cma_debug_show_areas(struct cma *cma) { }
 struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
 		       bool no_warn)
 {
+	return cma_alloc_at(cma, count, align, 0, no_warn, false);
+}
+
+struct page *cma_alloc_at(struct cma *cma, size_t count,
+				unsigned int align, phys_addr_t at_addr,
+				bool no_warn, bool map_non_cached)
+{
 	unsigned long mask, offset;
 	unsigned long pfn = -1;
 	unsigned long start = 0;
 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
-	size_t i;
 	struct page *page = NULL;
+	gfp_t gfp_mask = GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0);
 	int ret = -ENOMEM;
+	unsigned long start_pfn = __phys_to_pfn(at_addr);
 
-	if (!cma || !cma->count || !cma->bitmap)
+	if (!cma || !cma->count)
 		return NULL;
 
 	pr_debug("%s(cma %p, count %zu, align %d)\n", __func__, (void *)cma,
@@ -436,12 +499,20 @@ struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
 	if (bitmap_count > bitmap_maxno)
 		return NULL;
 
+	if (start_pfn && start_pfn < cma->base_pfn)
+		return NULL;
+	start = start_pfn ? start_pfn - cma->base_pfn : start;
+
 	for (;;) {
+		unsigned long timeout = jiffies + msecs_to_jiffies(8000);
+		int retries = 0;
+
 		mutex_lock(&cma->lock);
 		bitmap_no = bitmap_find_next_zero_area_off(cma->bitmap,
 				bitmap_maxno, start, bitmap_count, mask,
 				offset);
-		if (bitmap_no >= bitmap_maxno) {
+		if (bitmap_no >= bitmap_maxno ||
+			(start_pfn && start != bitmap_no)) {
 			mutex_unlock(&cma->lock);
 			break;
 		}
@@ -454,9 +525,10 @@ struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
 		mutex_unlock(&cma->lock);
 
 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
+retry:
 		mutex_lock(&cma_mutex);
 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
-				     GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0));
+					 gfp_mask);
 		mutex_unlock(&cma_mutex);
 		if (ret == 0) {
 			page = pfn_to_page(pfn);
@@ -464,8 +536,21 @@ struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
 		}
 
 		cma_clear_bitmap(cma, pfn, count);
-		if (ret != -EBUSY)
+		if (start_pfn && time_before(jiffies, timeout)) {
+			/* Possible migration contention from
+			 * __get_user_pages(). Retry after a bit of sleep.
+			 */
+			if (retries >= 5) {
+				msleep(retries > 10 ? 3 : 1);
+				invalidate_bh_lrus();
+			} else {
+				cond_resched();
+			}
+			retries++;
+			goto retry;
+		} else if (ret != -EBUSY || start_pfn) {
 			break;
+		}
 
 		pr_debug("%s(): memory range at %p is busy, retrying\n",
 			 __func__, pfn_to_page(pfn));
@@ -475,23 +560,23 @@ struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
 
 	trace_cma_alloc(pfn, page, count, align);
 
-	/*
-	 * CMA can allocate multiple page blocks, which results in different
-	 * blocks being marked with different tags. Reset the tags to ignore
-	 * those page blocks.
-	 */
-	if (page) {
-		for (i = 0; i < count; i++)
-			page_kasan_tag_reset(page + i);
-	}
-
-	if (ret && !no_warn) {
-		pr_err("%s: alloc failed, req-size: %zu pages, ret: %d\n",
+	if (ret && !(gfp_mask & __GFP_NOWARN)) {
+		pr_info("%s: alloc failed, req-size: %zu pages, ret: %d\n",
 			__func__, count, ret);
 		cma_debug_show_areas(cma);
 	}
 
 	pr_debug("%s(): returned %p\n", __func__, page);
+
+	if (page) {
+		__dma_remap(page, count << PAGE_SHIFT,
+			pgprot_writecombine(PAGE_KERNEL));
+		__dma_clear_buffer(page, count << PAGE_SHIFT);
+		if (map_non_cached)
+			__dma_remap(page, count << PAGE_SHIFT,
+				pgprot_noncached(PAGE_KERNEL));
+	}
+
 	return page;
 }
 
@@ -521,6 +606,8 @@ bool cma_release(struct cma *cma, const struct page *pages, unsigned int count)
 
 	VM_BUG_ON(pfn + count > cma->base_pfn + cma->count);
 
+	__dma_remap((struct page *)pages, count << PAGE_SHIFT, PAGE_KERNEL_EXEC);
+
 	free_contig_range(pfn, count);
 	cma_clear_bitmap(cma, pfn, count);
 	trace_cma_release(pfn, pages, count);
@@ -539,5 +626,83 @@ int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
 			return ret;
 	}
 
+	return 0;
+}
+
+int dma_get_contiguous_stats(struct device *dev,
+			struct dma_contiguous_stats *stats)
+{
+	struct cma *cma = NULL;
+
+	if ((!dev) || !stats)
+		return -EINVAL;
+
+	if (dev->cma_area)
+		cma = dev->cma_area;
+
+	if (!cma)
+		return -EINVAL;
+
+	stats->size = (cma->count) << PAGE_SHIFT;
+	stats->base = (cma->base_pfn) << PAGE_SHIFT;
+
+	return 0;
+}
+
+#define MAX_REPLACE_DEV 16
+static struct device *replace_dev_list[MAX_REPLACE_DEV];
+static atomic_t replace_dev_count;
+
+bool dma_contiguous_should_replace_page(struct page *page)
+{
+	int i;
+	ulong pfn;
+	struct cma *cma;
+	struct device *dev;
+	int count = atomic_read(&replace_dev_count);
+
+	if (!page)
+		return false;
+	pfn = page_to_pfn(page);
+
+	for (i = 0; i < count; i++) {
+		dev = replace_dev_list[i];
+		if (!dev)
+			continue;
+		cma = dev->cma_area;
+		if (!cma)
+			continue;
+		if (pfn >= cma->base_pfn &&
+		    pfn < cma->base_pfn + cma->count)
+			return true;
+	}
+
+	return false;
+}
+
+/* Enable replacing pages during get_user_pages.
+ * any ref count on CMA page from get_user_pages
+ * makes the page not migratable and can cause
+ * CMA allocation failure. Enabling replace
+ * would force replacing the CMA pages with non-CMA
+ * pages during get_user_pages
+ */
+int dma_contiguous_enable_replace_pages(struct device *dev)
+{
+	int idx;
+	struct cma *cma;
+
+	if (!dev)
+		return -EINVAL;
+
+	idx = atomic_inc_return(&replace_dev_count);
+	if (idx > MAX_REPLACE_DEV)
+		return -EINVAL;
+	replace_dev_list[idx - 1] = dev;
+	cma = dev->cma_area;
+	if (cma) {
+		pr_info("enabled page replacement for spfn=%lx, epfn=%lx\n",
+			cma->base_pfn, cma->base_pfn + cma->count);
+	}
 	return 0;
 }

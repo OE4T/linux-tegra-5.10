@@ -263,6 +263,17 @@ struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
 	return cma_alloc(dev_get_cma_area(dev), count, align, no_warn);
 }
 
+struct page *dma_alloc_at_from_contiguous(struct device *dev, int count,
+				unsigned int align, gfp_t gfp_mask,
+				phys_addr_t at_addr, bool map_non_cached)
+{
+	if (align > CONFIG_CMA_ALIGNMENT)
+		align = CONFIG_CMA_ALIGNMENT;
+
+	return cma_alloc_at(dev_get_cma_area(dev), count, align,
+				gfp_mask, at_addr, map_non_cached);
+}
+
 /**
  * dma_release_from_contiguous() - release allocated pages
  * @dev:   Pointer to device for which the pages were allocated.

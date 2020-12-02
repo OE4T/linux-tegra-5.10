@@ -98,7 +98,34 @@ static inline void set_dma_ops(struct device *dev,
 #endif /* CONFIG_DMA_OPS */
 
 #ifdef CONFIG_DMA_CMA
+
+struct dma_contiguous_stats {
+	phys_addr_t base;
+	size_t size;
+};
+
 extern struct cma *dma_contiguous_default_area;
+
+int dma_get_contiguous_stats(struct device *dev,
+			struct dma_contiguous_stats *stats);
+
+int dma_get_coherent_stats(struct device *dev,
+			struct dma_coherent_stats *stats);
+
+bool dma_is_coherent_dev(struct device *dev);
+
+bool dma_contiguous_should_replace_page(struct page *page);
+
+int dma_contiguous_enable_replace_pages(struct device *dev);
+
+int dma_set_resizable_heap_floor_size(struct device *dev, size_t floor_size);
+
+int dma_declare_coherent_resizable_cma_memory(struct device *dev,
+					struct dma_declare_info *dma_info);
+
+struct page *dma_alloc_at_from_contiguous(struct device *dev, int count,
+				unsigned int order, gfp_t gfp_mask,
+				phys_addr_t at_addr, bool map_non_cached);
 
 static inline struct cma *dev_get_cma_area(struct device *dev)
 {
