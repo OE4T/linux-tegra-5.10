@@ -110,16 +110,16 @@ void common_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 
 nve32_t common_get_mac_version(void *addr, nveu32_t *mac_ver)
 {
-	nveu32_t macver;
+	nveu32_t version;
 	nve32_t ret = 0;
 
-	macver = osi_readl((nveu8_t *)addr + MAC_VERSION) &
+	version = osi_readl((nveu8_t *)addr + MAC_VERSION) &
 		MAC_VERSION_SNVER_MASK;
-	if (is_valid_mac_version(macver) == 0) {
+	if (is_valid_mac_version(version) == 0) {
 		return -1;
 	}
 
-	*mac_ver = macver;
+	*mac_ver = version;
 	return ret;
 }
 
@@ -133,7 +133,8 @@ void osi_memset(void *s, nveu32_t c, nveu64_t count)
 	xs = (nveu8_t *)s;
 	while (count != 0UL) {
 		if (c < OSI_UCHAR_MAX) {
-			*xs++ = (nveu8_t)c;
+			*xs = (nveu8_t)c;
+			xs++;
 		}
 		count--;
 	}

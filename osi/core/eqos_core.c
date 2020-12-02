@@ -421,7 +421,7 @@ static nve32_t eqos_config_fw_err_pkts(
 	nveu32_t val;
 
 	/* Check for valid fw_err and qinx values */
-	if ((fw_err != OSI_ENABLE && fw_err != OSI_DISABLE) ||
+	if (((fw_err != OSI_ENABLE) && (fw_err != OSI_DISABLE)) ||
 	    (qinx >= OSI_EQOS_MAX_NUM_CHANS)) {
 		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"config_fw_err: invalid input\n", 0ULL);
@@ -1087,7 +1087,7 @@ static nve32_t eqos_config_rxcsum_offload(
 	void *addr = osi_core->base;
 	nveu32_t mac_mcr;
 
-	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+	if ((enabled != OSI_ENABLE) && (enabled != OSI_DISABLE)) {
 		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"rxsum_offload: invalid input\n", 0ULL);
 		return -1;
@@ -1227,8 +1227,8 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	/* Enable Rx checksum offload engine by default */
 	value |= EQOS_MCR_ACS | EQOS_MCR_CST | EQOS_MCR_DM | EQOS_MCR_IPC;
 
-	if (osi_core->mtu > OSI_DFLT_MTU_SIZE &&
-	    osi_core->mtu <= OSI_MTU_SIZE_9000) {
+	if ((osi_core->mtu > OSI_DFLT_MTU_SIZE) &&
+	    (osi_core->mtu <= OSI_MTU_SIZE_9000)) {
 		/* if MTU less than or equal to 9K use JE */
 		value |= EQOS_MCR_JE;
 		value |= EQOS_MCR_JD;
@@ -1916,7 +1916,7 @@ static inline nve32_t eqos_update_mac_addr_helper(
 		    (osi_core->dcs_en == OSI_ENABLE)) {
 			*value = ((dma_chan << EQOS_MAC_ADDRH_DCS_SHIFT) &
 				  EQOS_MAC_ADDRH_DCS);
-		} else if (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 0x1U) {
+		} else if (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 0x1U)) {
 			OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 				"invalid dma channel\n",
 				(nveul64_t)dma_chan);
@@ -1928,8 +1928,8 @@ static inline nve32_t eqos_update_mac_addr_helper(
 	}
 
 	/* Address mask is valid for address 1 to 31 index only */
-	if (addr_mask <= EQOS_MAX_MASK_BYTE && addr_mask > 0U) {
-		if (idx > 0U && idx < EQOS_MAX_MAC_ADDR_REG) {
+	if ((addr_mask <= EQOS_MAX_MASK_BYTE) && (addr_mask > 0U)) {
+		if ((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) {
 			*value = (*value |
 				  ((addr_mask << EQOS_MAC_ADDRH_MBC_SHIFT) &
 				   EQOS_MAC_ADDRH_MBC));
@@ -2011,8 +2011,8 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 	}
 
 	/* Setting Source/Destination Address match valid for 1 to 32 index */
-	if ((idx > 0U && idx < EQOS_MAX_MAC_ADDR_REG) &&
-	    (src_dest == OSI_SA_MATCH || src_dest == OSI_DA_MATCH)) {
+	if (((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) &&
+	    ((src_dest == OSI_SA_MATCH) || (src_dest == OSI_DA_MATCH))) {
 		value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
 			EQOS_MAC_ADDRH_SA));
 	}
@@ -2405,7 +2405,7 @@ static nve32_t eqos_config_l3_filters(
 	}
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 1U)) {
+	    (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 1U))) {
 		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 			"Wrong DMA channel\n",
 			(nveul64_t)dma_chan);
@@ -2430,8 +2430,8 @@ static nve32_t eqos_config_l3_filters(
 						  EQOS_MAC_L3L4_CTR(filter_no));
 				value &= ~EQOS_MAC_L3_IP6_CTRL_CLEAR;
 				value |= ((EQOS_MAC_L3L4_CTR_L3SAM0 |
-					  perfect_inverse_match <<
-					  EQOS_MAC_L3L4_CTR_L3SAI_SHIFT) &
+					  (perfect_inverse_match <<
+					   EQOS_MAC_L3L4_CTR_L3SAI_SHIFT)) &
 					  ((EQOS_MAC_L3L4_CTR_L3SAM0 |
 					  EQOS_MAC_L3L4_CTR_L3SAIM0)));
 				value |= eqos_set_dcs(osi_core, value,
@@ -2448,8 +2448,8 @@ static nve32_t eqos_config_l3_filters(
 						  EQOS_MAC_L3L4_CTR(filter_no));
 				value &= ~EQOS_MAC_L3_IP6_CTRL_CLEAR;
 				value |= ((EQOS_MAC_L3L4_CTR_L3DAM0 |
-					  perfect_inverse_match <<
-					  EQOS_MAC_L3L4_CTR_L3DAI_SHIFT) &
+					  (perfect_inverse_match <<
+					   EQOS_MAC_L3L4_CTR_L3DAI_SHIFT)) &
 					  ((EQOS_MAC_L3L4_CTR_L3DAM0 |
 					  EQOS_MAC_L3L4_CTR_L3DAIM0)));
 				value |= eqos_set_dcs(osi_core, value,
@@ -2479,8 +2479,8 @@ static nve32_t eqos_config_l3_filters(
 						  EQOS_MAC_L3L4_CTR(filter_no));
 				value &= ~EQOS_MAC_L3_IP4_SA_CTRL_CLEAR;
 				value |= ((EQOS_MAC_L3L4_CTR_L3SAM0 |
-					  perfect_inverse_match <<
-					  EQOS_MAC_L3L4_CTR_L3SAI_SHIFT) &
+					  (perfect_inverse_match <<
+					   EQOS_MAC_L3L4_CTR_L3SAI_SHIFT)) &
 					  ((EQOS_MAC_L3L4_CTR_L3SAM0 |
 					  EQOS_MAC_L3L4_CTR_L3SAIM0)));
 				value |= eqos_set_dcs(osi_core, value,
@@ -2507,8 +2507,8 @@ static nve32_t eqos_config_l3_filters(
 						  EQOS_MAC_L3L4_CTR(filter_no));
 				value &= ~EQOS_MAC_L3_IP4_DA_CTRL_CLEAR;
 				value |= ((EQOS_MAC_L3L4_CTR_L3DAM0 |
-					  perfect_inverse_match <<
-					  EQOS_MAC_L3L4_CTR_L3DAI_SHIFT) &
+					  (perfect_inverse_match <<
+					   EQOS_MAC_L3L4_CTR_L3DAI_SHIFT)) &
 					  ((EQOS_MAC_L3L4_CTR_L3DAM0 |
 					  EQOS_MAC_L3L4_CTR_L3DAIM0)));
 				value |= eqos_set_dcs(osi_core, value,
@@ -2587,7 +2587,7 @@ static nve32_t eqos_config_l4_filters(
 	}
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (dma_chan > OSI_EQOS_MAX_NUM_CHANS - 1U)) {
+	    (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 1U))) {
 		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 			"Wrong DMA channel\n",
 			(nveu32_t)dma_chan);
@@ -2607,8 +2607,8 @@ static nve32_t eqos_config_l4_filters(
 					  EQOS_MAC_L3L4_CTR(filter_no));
 			value &= ~EQOS_MAC_L4_SP_CTRL_CLEAR;
 			value |= ((EQOS_MAC_L3L4_CTR_L4SPM0 |
-				  perfect_inverse_match <<
-				  EQOS_MAC_L3L4_CTR_L4SPI_SHIFT) &
+				  (perfect_inverse_match <<
+				   EQOS_MAC_L3L4_CTR_L4SPI_SHIFT)) &
 				  (EQOS_MAC_L3L4_CTR_L4SPM0 |
 				  EQOS_MAC_L3L4_CTR_L4SPIM0));
 			value |= eqos_set_dcs(osi_core, value,
@@ -2633,8 +2633,8 @@ static nve32_t eqos_config_l4_filters(
 					  EQOS_MAC_L3L4_CTR(filter_no));
 			value &= ~EQOS_MAC_L4_DP_CTRL_CLEAR;
 			value |= ((EQOS_MAC_L3L4_CTR_L4DPM0 |
-				  perfect_inverse_match <<
-				  EQOS_MAC_L3L4_CTR_L4DPI_SHIFT) &
+				  (perfect_inverse_match <<
+				   EQOS_MAC_L3L4_CTR_L4DPI_SHIFT)) &
 				  (EQOS_MAC_L3L4_CTR_L4DPM0 |
 				  EQOS_MAC_L3L4_CTR_L4DPIM0));
 			value |= eqos_set_dcs(osi_core, value,
@@ -3367,7 +3367,7 @@ static nve32_t eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
 		      EQOS_MDIO_PHY_REG_C45E));
 	mac_gmiiar = mac_gmiiar | ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
 		     ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
-		     (osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF |
+		     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
 		     (EQOS_MDIO_PHY_REG_GOC_READ) | EQOS_MAC_GMII_BUSY;
 	osi_writel(mac_gmiiar, (nveu8_t *)osi_core->base +
 		   EQOS_MAC_MDIO_ADDRESS);

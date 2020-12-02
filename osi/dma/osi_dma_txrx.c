@@ -125,7 +125,7 @@ static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 	if ((rx_desc->rdes3 & RDES3_RS0V) == RDES3_RS0V) {
 		/* get length or type */
 		lt = rx_desc->rdes3 & RDES3_LT;
-		if (lt == RDES3_LT_VT || lt == RDES3_LT_DVT) {
+		if ((lt == RDES3_LT_VT) || (lt == RDES3_LT_DVT)) {
 			rx_pkt_cx->flags |= OSI_PKT_CX_VLAN;
 			rx_pkt_cx->vlan_tag = rx_desc->rdes0 & RDES0_OVT;
 		}
@@ -301,8 +301,9 @@ static inline nve32_t validate_rx_completions_arg(
 					      struct osi_rx_ring **rx_ring,
 					      struct osi_rx_pkt_cx **rx_pkt_cx)
 {
-	if (osi_unlikely(osi_dma == OSI_NULL || more_data_avail == OSI_NULL ||
-			 chan >= OSI_EQOS_MAX_NUM_CHANS)) {
+	if (osi_unlikely((osi_dma == OSI_NULL) ||
+			 (more_data_avail == OSI_NULL) ||
+			 (chan >= OSI_EQOS_MAX_NUM_CHANS))) {
 		return -1;
 	}
 
@@ -353,7 +354,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 	/* Reset flag to indicate if more Rx frames available to OSD layer */
 	*more_data_avail = OSI_NONE;
 
-	while (received < budget && received_resv < budget) {
+	while ((received < budget) && (received_resv < budget)) {
 		osi_memset(rx_pkt_cx, 0U, sizeof(*rx_pkt_cx));
 		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 		rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
@@ -397,7 +398,8 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 		 * If data is spread across multiple descriptors, drop packet
 		 */
 		if ((((rx_desc->rdes3 & RDES3_FD) == RDES3_FD) &&
-		    (rx_desc->rdes3 & RDES3_LD) == RDES3_LD) == BOOLEAN_FALSE) {
+		     ((rx_desc->rdes3 & RDES3_LD) == RDES3_LD)) ==
+		    BOOLEAN_FALSE) {
 			rx_swcx->flags |= OSI_RX_SWCX_REUSE;
 			continue;
 		}
@@ -683,8 +685,8 @@ static inline nve32_t validate_tx_completions_arg(
 					      nveu32_t chan,
 					      struct osi_tx_ring **tx_ring)
 {
-	if (osi_unlikely(osi_dma == OSI_NULL ||
-			 chan >= OSI_EQOS_MAX_NUM_CHANS)) {
+	if (osi_unlikely((osi_dma == OSI_NULL) ||
+			 (chan >= OSI_EQOS_MAX_NUM_CHANS))) {
 		return -1;
 	}
 
@@ -724,8 +726,8 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 	osi_dma->dstats.tx_clean_n[chan] =
 		osi_update_stats_counter(osi_dma->dstats.tx_clean_n[chan], 1U);
 
-	while (entry != tx_ring->cur_tx_idx && entry < TX_DESC_CNT &&
-	       processed < budget) {
+	while ((entry != tx_ring->cur_tx_idx) && (entry < TX_DESC_CNT) &&
+	       (processed < budget)) {
 		osi_memset(txdone_pkt_cx, 0U, sizeof(*txdone_pkt_cx));
 
 		tx_desc = tx_ring->tx_desc + entry;
@@ -761,8 +763,8 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 				if (OSI_NSEC_PER_SEC >
 						(OSI_ULLONG_MAX / vartdes1)) {
 					/* Will not hit this case */
-				} else if (OSI_ULLONG_MAX -
-					(vartdes1 * OSI_NSEC_PER_SEC) < ns) {
+				} else if ((OSI_ULLONG_MAX -
+					(vartdes1 * OSI_NSEC_PER_SEC)) < ns) {
 					/* Will not hit this case */
 				} else {
 					txdone_pkt_cx->flags |=
@@ -1015,15 +1017,15 @@ static inline nve32_t validate_hw_transmit_arg(
 					   struct osi_dma_chan_ops **ops,
 					   struct osi_tx_ring **tx_ring)
 {
-	if (osi_unlikely(osi_dma == OSI_NULL ||
-			 chan >= OSI_EQOS_MAX_NUM_CHANS)) {
+	if (osi_unlikely((osi_dma == OSI_NULL) ||
+			 (chan >= OSI_EQOS_MAX_NUM_CHANS))) {
 		return -1;
 	}
 
 	*tx_ring = osi_dma->tx_ring[chan];
 	*ops = osi_dma->ops;
 
-	if (osi_unlikely(*tx_ring == OSI_NULL || *ops == OSI_NULL)) {
+	if (osi_unlikely((*tx_ring == OSI_NULL) || (*ops == OSI_NULL))) {
 		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"validate_hw_transmit_arg: Invalid pointers\n", 0ULL);
 		return -1;
@@ -1135,8 +1137,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 
 	if (tx_ring->frame_cnt < UINT_MAX) {
 		tx_ring->frame_cnt++;
-	} else if (osi_dma->use_tx_frames == OSI_ENABLE &&
-		   (tx_ring->frame_cnt % osi_dma->tx_frames) < UINT_MAX) {
+	} else if ((osi_dma->use_tx_frames == OSI_ENABLE) &&
+		   ((tx_ring->frame_cnt % osi_dma->tx_frames) < UINT_MAX)) {
 		/* make sure count for tx_frame interrupt logic is retained */
 		tx_ring->frame_cnt = (tx_ring->frame_cnt % osi_dma->tx_frames)
 					+ 1U;
@@ -1280,12 +1282,12 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	}
 
 	tailptr = rx_ring->rx_desc_phy_addr +
-		  sizeof(struct osi_rx_desc) * (RX_DESC_CNT);
+		  (sizeof(struct osi_rx_desc) * (RX_DESC_CNT));
 
-	if (osi_unlikely(tailptr < rx_ring->rx_desc_phy_addr ||
-			 ops->set_rx_ring_len == OSI_NULL ||
-			 ops->update_rx_tailptr == OSI_NULL ||
-			 ops->set_rx_ring_start_addr == OSI_NULL)) {
+	if (osi_unlikely((tailptr < rx_ring->rx_desc_phy_addr) ||
+			 (ops->set_rx_ring_len == OSI_NULL) ||
+			 (ops->update_rx_tailptr == OSI_NULL) ||
+			 (ops->set_rx_ring_start_addr == OSI_NULL))) {
 		/* Will not hit this case */
 		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"dma_txrx: Invalid pointers\n", 0ULL);
@@ -1398,8 +1400,8 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 		tx_ring->slot_number = 0U;
 		tx_ring->slot_check = OSI_DISABLE;
 
-		if (osi_likely(ops->set_tx_ring_len != OSI_NULL ||
-			       ops->set_tx_ring_start_addr != OSI_NULL)) {
+		if (osi_likely((ops->set_tx_ring_len != OSI_NULL) ||
+			       (ops->set_tx_ring_start_addr != OSI_NULL))) {
 			ops->set_tx_ring_len(osi_dma->base, chan,
 					     (TX_DESC_CNT - 1U));
 			ops->set_tx_ring_start_addr(osi_dma->base, chan,

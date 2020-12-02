@@ -252,8 +252,8 @@ nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 
 nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
 {
-	if (rx_ring->cur_rx_idx >= RX_DESC_CNT ||
-	    rx_ring->refill_idx >= RX_DESC_CNT) {
+	if ((rx_ring->cur_rx_idx >= RX_DESC_CNT) ||
+	    (rx_ring->refill_idx >= RX_DESC_CNT)) {
 		return 0;
 	}
 
@@ -284,13 +284,13 @@ static inline nve32_t rx_dma_desc_validate_args(
 					    nveu32_t chan)
 {
 	/* Validate args */
-	if (!(osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
-	    osi_dma->ops->update_rx_tailptr != OSI_NULL)) {
+	if (!((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	      (osi_dma->ops->update_rx_tailptr != OSI_NULL))) {
 		return -1;
 	}
 
-	if (!(rx_ring != OSI_NULL && rx_ring->rx_swcx != OSI_NULL &&
-	    rx_ring->rx_desc != OSI_NULL)) {
+	if (!((rx_ring != OSI_NULL) && (rx_ring->rx_swcx != OSI_NULL) &&
+	      (rx_ring->rx_desc != OSI_NULL))) {
 		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"dma: Invalid pointers\n", 0ULL);
 		return -1;
@@ -357,8 +357,8 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 	}
 
 	/* Refill buffers */
-	while (rx_ring->refill_idx != rx_ring->cur_rx_idx &&
-	       rx_ring->refill_idx < RX_DESC_CNT) {
+	while ((rx_ring->refill_idx != rx_ring->cur_rx_idx) &&
+	       (rx_ring->refill_idx < RX_DESC_CNT)) {
 		rx_swcx = rx_ring->rx_swcx + rx_ring->refill_idx;
 		rx_desc = rx_ring->rx_desc + rx_ring->refill_idx;
 
@@ -420,8 +420,8 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 
 nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
-	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
-	    osi_dma->ops->set_rx_buf_len != OSI_NULL) {
+	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->ops->set_rx_buf_len != OSI_NULL)) {
 		osi_dma->ops->set_rx_buf_len(osi_dma);
 	} else {
 		return -1;
@@ -491,7 +491,8 @@ static inline nve32_t osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
 	}
 
 	/* NULL check for osi_dma, osi_dma->ops and osi_dma->ops->config_slot */
-	if (osi_dma->ops == OSI_NULL || osi_dma->ops->config_slot == OSI_NULL) {
+	if ((osi_dma->ops == OSI_NULL) ||
+	    (osi_dma->ops->config_slot == OSI_NULL)) {
 		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			"dma: Invalid set argument\n", 0ULL);
 		return -1;
@@ -553,9 +554,10 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 {
 	nve32_t ret = -1;
-	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
-	    osi_dma->ops->validate_regs != OSI_NULL &&
-	    osi_dma->safety_config != OSI_NULL) {
+
+	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
+	    (osi_dma->ops->validate_regs != OSI_NULL) &&
+	    (osi_dma->safety_config != OSI_NULL)) {
 		ret = osi_dma->ops->validate_regs(osi_dma);
 	}
 
