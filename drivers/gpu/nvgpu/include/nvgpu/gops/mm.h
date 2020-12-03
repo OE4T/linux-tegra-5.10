@@ -197,7 +197,7 @@ struct gops_mm_gmmu {
 	u32 (*get_max_page_table_levels)(struct gk20a *g);
 
 	/**
-	 * @brief HAL functions for GMMU Map.
+	 * @brief Map #sgt into the GPU address space described by #vm.
 	 *
 	 * @param vm            [in]	Pointer to virtual memory
 	 *                              structure.
@@ -269,7 +269,7 @@ struct gops_mm_gmmu {
 			enum nvgpu_aperture aperture);
 
 	/**
-	 * @brief HAL functions for GMMU Unmap.
+	 * @brief Unmap #vaddr into the GPU address space described by #vm.
 	 *
 	 * @param vm            [in]	Pointer to virtual memory
 	 *                              structure.
@@ -395,7 +395,8 @@ struct gops_mm {
 	int (*pd_cache_init)(struct gk20a *g);
 
 	/**
-	 * @brief HAL to initialize the Memory Management unit.
+	 * @brief This HAL function initializes the Memory Management unit.
+	 *        @sa #nvgpu_init_mm_support().
 	 *
 	 * @param g [in]	The GPU.
 	 *

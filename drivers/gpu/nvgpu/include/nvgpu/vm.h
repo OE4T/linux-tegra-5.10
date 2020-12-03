@@ -537,7 +537,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 
 
 /**
- * @brief Map a dma buffer in the given VM context.
+ * @brief Map #sgt into the GPU address space described by #vm.
  *
  * @param vm [in]			Pointer to virtual memory context.
  * @param os_buf [in]			Pointer to #nvgpu_os_buffer struct.
@@ -588,7 +588,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 
 
 /**
- * @brief Unmap a dma buffer from the given VM context.
+ * @brief Unmap #offset into the GPU address space described by #vm.
  *
  * @param vm [in]		Pointer to virtual memory context.
  * @param offset [in]		Offset of the mapping to unmap.
@@ -772,7 +772,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		     const char *name);
 
 /**
- * @brief Initialize an address space.
+ * @brief This function creates an address space for a specific vm.
+ *        @sa #nvgpu_init_mm_support().
  *
  * @param g [in]		The GPU super structure.
  * @param big_page_size [in]	Size of big pages associated with

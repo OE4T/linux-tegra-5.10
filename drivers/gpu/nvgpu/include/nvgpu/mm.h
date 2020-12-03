@@ -507,7 +507,14 @@ void nvgpu_init_mm_ce_context(struct gk20a *g);
 #endif
 
 /**
- * @brief Initializes the Memory Management unit.
+ * @brief All memory requests made by the GPU (with a few exceptions) are
+ *        translated by the GMMU (GPU Memory Management Unit).
+ *        Similar to how a CPU MMU works, a hierarchical page table structure
+ *        is used to convert from a virtual address to a physical address.
+ *        The GPU virtual memory management provided to applications consists of
+ *        address space creation, buffer mapping, and buffer unmapping.
+ *        This function initializes the GPU Memory Management unit
+ *        which is essential to achieve the GPU memory management services.
  *
  * @param g	[in]	The GPU.
  *
