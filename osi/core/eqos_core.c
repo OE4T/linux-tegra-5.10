@@ -2298,18 +2298,20 @@ static inline nveu32_t eqos_set_dcs(
 				nveu32_t dma_routing_enable,
 				nveu32_t dma_chan)
 {
+	nveu32_t t_val = value;
+
 	if ((dma_routing_enable == OSI_ENABLE) && (dma_chan <
 	    OSI_EQOS_MAX_NUM_CHANS) && (osi_core->dcs_en ==
 	    OSI_ENABLE)) {
-		value |= ((dma_routing_enable <<
+		t_val |= ((dma_routing_enable <<
 			  EQOS_MAC_L3L4_CTR_DMCHEN0_SHIFT) &
 			  EQOS_MAC_L3L4_CTR_DMCHEN0);
-		value |= ((dma_chan <<
+		t_val |= ((dma_chan <<
 			  EQOS_MAC_L3L4_CTR_DMCHN0_SHIFT) &
 			  EQOS_MAC_L3L4_CTR_DMCHN0);
 	}
 
-	return value;
+	return t_val;
 }
 
 /**
@@ -2963,6 +2965,8 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 	nveu32_t mac_tcr;
 	nveu32_t value = 0;
 	nveul64_t temp = 0;
+	nveu32_t sec1 = sec;
+	nveu32_t nsec1 = nsec;
 	nve32_t ret;
 
 	ret = eqos_poll_for_update_ts_complete(osi_core, &mac_tcr);
@@ -2975,9 +2979,9 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 		 * the system time, then MAC_STSUR reg should be
 		 * programmed with (2^32 – <new_sec_value>)
 		 */
-		temp = (TWO_POWER_32 - sec);
+		temp = (TWO_POWER_32 - sec1);
 		if (temp < UINT_MAX) {
-			sec = (nveu32_t)temp;
+			sec1 = (nveu32_t)temp;
 		} else {
 			/* do nothing here */
 		}
@@ -2989,23 +2993,23 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 		 * (2^32 - <new_nsec_value> if MAC_TCR.TSCTRLSSR is reset)
 		 */
 		if (one_nsec_accuracy == OSI_ENABLE) {
-			if (nsec < UINT_MAX) {
-				nsec = (TEN_POWER_9 - nsec);
+			if (nsec1 < UINT_MAX) {
+				nsec1 = (TEN_POWER_9 - nsec1);
 			}
 		} else {
-			if (nsec < UINT_MAX) {
-				nsec = (TWO_POWER_31 - nsec);
+			if (nsec1 < UINT_MAX) {
+				nsec1 = (TWO_POWER_31 - nsec1);
 			}
 		}
 	}
 
 	/* write seconds value to MAC_System_Time_Seconds_Update register */
-	osi_writel(sec, (nveu8_t *)addr + EQOS_MAC_STSUR);
+	osi_writel(sec1, (nveu8_t *)addr + EQOS_MAC_STSUR);
 
 	/* write nano seconds value and add_sub to
 	 * MAC_System_Time_Nanoseconds_Update register
 	 */
-	value |= nsec;
+	value |= nsec1;
 	value |= add_sub << EQOS_MAC_STNSUR_ADDSUB_SHIFT;
 	osi_writel(value, (nveu8_t *)addr + EQOS_MAC_STNSUR);
 

@@ -126,17 +126,18 @@ nve32_t common_get_mac_version(void *addr, nveu32_t *mac_ver)
 void osi_memset(void *s, nveu32_t c, nveu64_t count)
 {
 	nveu8_t *xs = OSI_NULL;
+	nveu64_t temp = count;
 
 	if (s == OSI_NULL) {
 		return;
 	}
 	xs = (nveu8_t *)s;
-	while (count != 0UL) {
+	while (temp != 0UL) {
 		if (c < OSI_UCHAR_MAX) {
 			*xs = (nveu8_t)c;
 			xs++;
 		}
-		count--;
+		temp--;
 	}
 }
 
