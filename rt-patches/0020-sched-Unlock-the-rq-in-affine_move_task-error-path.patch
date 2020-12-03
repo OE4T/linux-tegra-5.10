@@ -1,7 +1,7 @@
-From fa2cb30903c890a1db321470704720ae2ccdd474 Mon Sep 17 00:00:00 2001
+From dd4a406e48dc3a958ba6e29dea79d3c0f9b123bf Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 9 Nov 2020 15:54:03 +0100
-Subject: [PATCH 020/247] sched: Unlock the rq in affine_move_task() error path
+Subject: [PATCH 020/252] sched: Unlock the rq in affine_move_task() error path
 
 Unlock the rq if returned early in the error path.
 

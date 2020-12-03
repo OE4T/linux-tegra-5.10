@@ -1,7 +1,7 @@
-From 184aaa6aaa8576d512c2b92c3f152b7580a9af66 Mon Sep 17 00:00:00 2001
+From 6c232359b9a7c7d77ef194231c130c6e22afeffb Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:06 +0200
-Subject: [PATCH 008/247] sched: Massage set_cpus_allowed()
+Subject: [PATCH 008/252] sched: Massage set_cpus_allowed()
 
 Thread a u32 flags word through the *set_cpus_allowed*() callchain.
 This will allow adding behavioural tweaks for future users.

@@ -1,7 +1,7 @@
-From 27752fdaae925e7b37c97366adef2fd47fc34a3f Mon Sep 17 00:00:00 2001
+From 145313406703eda39b41488c427881d409a2a58b Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:10 +0200
-Subject: [PATCH 012/247] sched,rt: Use cpumask_any*_distribute()
+Subject: [PATCH 012/252] sched,rt: Use cpumask_any*_distribute()
 
 Replace a bunch of cpumask_any*() instances with
 cpumask_any*_distribute(), by injecting this little bit of random in

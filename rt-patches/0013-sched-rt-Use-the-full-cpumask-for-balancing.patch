@@ -1,7 +1,7 @@
-From 5cefc37c1b4c96334f0cf00cf56ad867feb1ebd4 Mon Sep 17 00:00:00 2001
+From 457a7c47457e67718a6b60cd1763f9ac82aa274f Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:11 +0200
-Subject: [PATCH 013/247] sched,rt: Use the full cpumask for balancing
+Subject: [PATCH 013/252] sched,rt: Use the full cpumask for balancing
 
 We want migrate_disable() tasks to get PULLs in order for them to PUSH
 away the higher priority task.
