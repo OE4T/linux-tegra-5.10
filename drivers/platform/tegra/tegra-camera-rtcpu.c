@@ -935,7 +935,10 @@ static int tegra_cam_rtcpu_runtime_suspend(struct device *dev)
 
 	err = tegra_camrtc_fw_suspend(dev);
 	/* Try full reset if an error occurred while suspending core. */
-	if (WARN(err < 0, "RTCPU suspend failed, resetting it")) {
+	if (err < 0) {
+
+		dev_info(dev, "RTCPU suspend failed, resetting it");
+
 		/* runtime_resume() powers RTCPU back on */
 		tegra_camrtc_poweroff(dev);
 
