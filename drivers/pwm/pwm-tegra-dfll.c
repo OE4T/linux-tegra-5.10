@@ -18,7 +18,6 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/pinctrl/consumer.h>
-#include <soc/tegra/pwm-tegra-dfll.h>
 
 /* DFLL_CTRL: DFLL control register */
 #define DFLL_CTRL			0x00
@@ -79,35 +78,6 @@ static inline void pwm_writel(u32 val, u32 offs)
 	pwm_readl(DFLL_CTRL);
 }
 
-static void dfll_pwm_enable(bool flag)
-{
-	u32 val;
-
-	val = pwm_readl(DFLL_OUTPUT_CFG);
-
-	if (flag)
-		val |= DFLL_OUTPUT_CFG_PWM_ENABLE;
-	else
-		val &= ~DFLL_OUTPUT_CFG_PWM_ENABLE;
-
-	pwm_writel(val, DFLL_OUTPUT_CFG);
-}
-
-/*
- * Calculate the DIV value and write into DFLL register
- */
-static void dfll_pwm_init(void)
-{
-	u32 div, val;
-
-	val = pwm_readl(DFLL_OUTPUT_CFG);
-
-	div = DIV_ROUND_UP(tdpc->ref_rate, tdpc->pwm_rate);
-	val |= (div << DFLL_OUTPUT_CFG_PWM_DIV_SHIFT) &
-	      DFLL_OUTPUT_CFG_PWM_DIV_MASK;
-	pwm_writel(val, DFLL_OUTPUT_CFG);
-}
-
 static int tegra_dfll_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 				int duty_ns, int period_ns)
 {
@@ -126,48 +96,6 @@ static void tegra_dfll_pwm_disable(struct pwm_chip *chip,
 {
 	dev_info(tdpc->dev, "DFLL_PWM is disabled\n");
 }
-
-/**
- * tegra_dfll_pwm_output_enable - enable DFLL PWM signals output
- *
- * Enable DFLL PWM signals output by changing related pinmux state
- */
-int tegra_dfll_pwm_output_enable(void)
-{
-	int ret;
-
-	dfll_pwm_init();
-	dfll_pwm_enable(true);
-
-	ret = pinctrl_select_state(tdpc->pwm_pin, tdpc->pwm_enable_state);
-	if (ret < 0) {
-		dev_err(tdpc->dev, "setting enable state failed\n");
-		return -EINVAL;
-	}
-
-	return 0;
-}
-EXPORT_SYMBOL(tegra_dfll_pwm_output_enable);
-
-/**
- * tegra_dfll_pwm_output_disable - disable DFLL PWM signals output
- *
- * Disable DFLL PWM signals output by changing related pinmux state
- */
-int tegra_dfll_pwm_output_disable(void)
-{
-	int ret;
-
-	ret = pinctrl_select_state(tdpc->pwm_pin, tdpc->pwm_disable_state);
-	if (ret < 0) {
-		dev_err(tdpc->dev, "setting enable state failed\n");
-		return -EINVAL;
-	}
-	dfll_pwm_enable(false);
-
-	return 0;
-}
-EXPORT_SYMBOL(tegra_dfll_pwm_output_disable);
 
 static const struct pwm_ops tegra_dfll_pwm_ops = {
 	.config = tegra_dfll_pwm_config,
