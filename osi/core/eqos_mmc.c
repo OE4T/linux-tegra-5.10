@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <osi_common.h>
+#include "../osi/common/common.h"
 #include <osi_core.h>
 #include <osd.h>
 #include "eqos_mmc.h"

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef EQOS_CORE_H_
-#define EQOS_CORE_H_
+#ifndef INCLUDED_EQOS_CORE_H
+#define INCLUDED_EQOS_CORE_H
 
 /**
  * @addtogroup EQOS-FC Flow Control Threshold Macros
@@ -622,4 +622,4 @@ struct core_func_safety {
 #define EQOS_MAX_BAK_IDX		((EQOS_PAD_AUTO_CAL_CFG_BAK_IDX + 1U))
 #endif /* !OSI_STRIPPED_LIB */
 /** @} */
-#endif
+#endif /* INCLUDED_EQOS_CORE_H */

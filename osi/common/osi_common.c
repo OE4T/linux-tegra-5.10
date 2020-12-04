@@ -22,7 +22,7 @@
 
 #include <osd.h>
 #include "eqos_common.h"
-#include "local_common.h"
+#include "../osi/common/common.h"
 
 void common_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 {

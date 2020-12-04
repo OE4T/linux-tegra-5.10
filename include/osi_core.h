@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef OSI_CORE_H
-#define OSI_CORE_H
+#ifndef INCLUDED_OSI_CORE_H
+#define INCLUDED_OSI_CORE_H
 
-#include "osi_common.h"
+#include "../osi/common/common.h"
 #include "mmc.h"
 #include "../osi/common/type.h"
 
@@ -2020,4 +2020,4 @@ nve32_t osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode);
 #endif /* !OSI_STRIPPED_LIB */
-#endif /* OSI_CORE_H */
+#endif /* INCLUDED_OSI_CORE_H */

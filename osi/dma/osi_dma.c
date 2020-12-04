@@ -23,6 +23,7 @@
 #include "osi_dma_local.h"
 #include <osd.h>
 #include <local_common.h>
+#include "hw_desc.h"
 
 nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {

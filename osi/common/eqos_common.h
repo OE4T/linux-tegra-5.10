@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef EQOS_COMMON_H
-#define EQOS_COMMON_H
+#ifndef INCLUDED_EQOS_COMMON_H
+#define INCLUDED_EQOS_COMMON_H
 
 #include <local_common.h>
 
@@ -80,4 +80,4 @@ nveul64_t eqos_get_systime_from_mac(void *addr);
  * @retval OSI_DISABLE otherwise.
  */
 nveu32_t eqos_is_mac_enabled(void *addr);
-#endif /* EQOS_COMMON_H */
+#endif /* INCLUDED_EQOS_COMMON_H */

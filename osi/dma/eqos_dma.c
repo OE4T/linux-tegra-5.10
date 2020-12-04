@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <osi_common.h>
+#include "../osi/common/common.h"
 #include "osi_dma_local.h"
 #include "eqos_dma.h"
 #include "../osi/common/type.h"

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MMC_H
-#define MMC_H
+#ifndef INCLUDED_MMC_H
+#define INCLUDED_MMC_H
 /**
  * @brief osi_mmc_counters - The structure to hold RMON counter values
  */

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef EQOS_MMC_H_
-#define EQOS_MMC_H_
+#ifndef INCLUDED_EQOS_MMC_H
+#define INCLUDED_EQOS_MMC_H
 
 /**
  * @addtogroup EQOS-MMC MMC HW register offsets
@@ -117,4 +117,4 @@
 
 void eqos_read_mmc(struct osi_core_priv_data *osi_core);
 void eqos_reset_mmc(struct osi_core_priv_data *osi_core);
-#endif
+#endif /* INCLUDED_EQOS_MMC_H */
