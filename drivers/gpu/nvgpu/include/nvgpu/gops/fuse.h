@@ -215,6 +215,9 @@ struct gops_fuse {
 	 */
 	int (*read_per_device_identifier)(struct gk20a *g, u64 *pdi);
 
+	int (*read_ucode_version)(struct gk20a *g, u32 falcon_id,
+			u32 *ucode_version);
+
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_gops_fuse.h"
 #endif

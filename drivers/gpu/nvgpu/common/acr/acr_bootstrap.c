@@ -122,6 +122,9 @@ static void acr_ucode_patch_sig(struct gk20a *g,
 	unsigned int *p_dbg_sig, unsigned int *p_patch_loc,
 	unsigned int *p_patch_ind, u32 sig_size)
 {
+#if defined(CONFIG_NVGPU_NEXT)
+	struct nvgpu_acr *acr = g->acr;
+#endif
 	unsigned int i, j, *p_sig;
 	nvgpu_acr_dbg(g, " ");
 
@@ -132,6 +135,12 @@ static void acr_ucode_patch_sig(struct gk20a *g,
 		p_sig = p_dbg_sig;
 		nvgpu_info(g, "DEBUG MODE\n");
 	}
+
+#if defined(CONFIG_NVGPU_NEXT)
+	if (acr->get_versioned_sig != NULL) {
+		p_sig = acr->get_versioned_sig(g, acr, p_sig, &sig_size);
+	}
+#endif
 
 	/* Patching logic:*/
 	sig_size = sig_size / 4U;

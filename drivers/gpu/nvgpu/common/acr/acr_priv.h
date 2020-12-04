@@ -116,6 +116,7 @@ struct nvgpu_acr {
 	struct gk20a *g;
 
 	u32 bootstrap_owner;
+	u32 num_of_sig;
 
 	/* LSF properties */
 	u64 lsf_enable_mask;
@@ -152,6 +153,8 @@ struct nvgpu_acr {
 	int (*bootstrap_hs_acr)(struct gk20a *g, struct nvgpu_acr *acr);
 
 	void (*get_wpr_info)(struct gk20a *g, struct wpr_carveout_info *inf);
+	u32* (*get_versioned_sig)(struct gk20a *g, struct nvgpu_acr *acr,
+		u32 *sig, u32 *sig_size);
 };
 
 #endif /* ACR_H */
