@@ -17,31 +17,31 @@
 #include <dt-bindings/media/camera.h>
 
 / {
-	host1x@13e00000 {
-		vi@15c10000  {
-			num-channels = <2>;
-			ports {
-				#address-cells = <1>;
-				#size-cells = <0>;
-				vi_port0: port@0 {
-					reg = <0>;
-					rbpcv2_imx219_vi_in0: endpoint {
-						port-index = <0>;
-						bus-width = <2>;
-						remote-endpoint = <&rbpcv2_imx219_csi_out0>;
-					};
+	tegra-capture-vi  {
+		num-channels = <2>;
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			vi_port0: port@0 {
+				reg = <0>;
+				rbpcv2_imx219_vi_in0: endpoint {
+					port-index = <0>;
+					bus-width = <2>;
+					remote-endpoint = <&rbpcv2_imx219_csi_out0>;
 				};
-				vi_port1: port@1 {
-					reg = <1>;
-					rbpcv2_imx219_vi_in1: endpoint {
-						port-index = <2>;
-						bus-width = <2>;
-						remote-endpoint = <&rbpcv2_imx219_csi_out1>;
-					};
+			};
+			vi_port1: port@1 {
+				reg = <1>;
+				rbpcv2_imx219_vi_in1: endpoint {
+					port-index = <2>;
+					bus-width = <2>;
+					remote-endpoint = <&rbpcv2_imx219_csi_out1>;
 				};
 			};
 		};
+	};
 
+	host1x@13e00000 {
 		nvcsi@15a00000 {
 			num-channels = <2>;
 			#address-cells = <1>;
