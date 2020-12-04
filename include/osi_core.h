@@ -613,7 +613,7 @@ nve32_t osi_poll_for_mac_reset_complete(
  * Algorithm:
  *  - Invokes EQOS MAC, MTL and common DMA register init code.
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] tx_fifo_size: OSI core private data structure.
  * @param[in] rx_fifo_size: OSI core private data structure.
  *
@@ -1330,7 +1330,7 @@ void *eqos_get_core_safety_config(void);
  *    destination Port Number for L4(TCP/UDP) layer
  *    filtering.
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] l_filter: L3L4 filter data structure.
  * @param[in] type: L3 filter (ipv4(0) or ipv6(1))
  *            or L4 filter (tcp(0) or udp(1))
@@ -1958,7 +1958,7 @@ nve32_t osi_restore_registers(struct osi_core_priv_data *const osi_core);
  *  - MDC clock rate will be populated in OSI core private data
  *    structure based on AXI_CBB clock rate.
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] csr_clk_rate: CSR (AXI CBB) clock rate.
  *
  * @note OSD layer needs get the AXI CBB clock rate with OSD clock API

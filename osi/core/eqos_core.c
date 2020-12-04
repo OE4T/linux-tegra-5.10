@@ -1190,7 +1190,7 @@ static void eqos_configure_rxq_priority(
  *    - Disable MMC interrupts and Configure the MMC counters
  *    - Enable required MAC interrupts
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  *
  * @pre MAC has to be out of reset.
  *
@@ -1572,7 +1572,7 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
  * Algorithm:
  *  - increment error stats based on corresponding bit filed.
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] dma_sr: Dma status register read value
  * @param[in] qinx: Queue index
  *
@@ -2364,7 +2364,7 @@ static inline void eqos_helper_l3l4_bitmask(nveu32_t *bitmask,
  *    is used to configure L3((IPv4/IPv6) filters resister
  *    for address matching.
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] filter_no: filter index
  * @param[in] enb_dis:  1 - enable otherwise - disable L3 filter
  * @param[in] ipv4_ipv6_match: 1 - IPv6, otherwise - IPv4
@@ -2548,7 +2548,7 @@ static nve32_t eqos_config_l3_filters(
  *  - This sequence is used to configure L4(TCP/UDP) filters for
  *    SA and DA Port Number matching
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] filter_no: filter index
  * @param[in] enb_dis: 1 - enable, otherwise - disable L4 filter
  * @param[in] tcp_udp_match: 1 - udp, 0 - tcp
@@ -4150,7 +4150,7 @@ static inline nve32_t eqos_restore_registers(
  *  - MDC clock rate will be populated OSI core private data structure
  *    based on AXI_CBB clock rate.
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] csr_clk_rate: CSR (AXI CBB) clock rate.
  *
  * @pre OSD layer needs get the AXI CBB clock rate with OSD clock API
