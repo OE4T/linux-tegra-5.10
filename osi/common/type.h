@@ -40,4 +40,4 @@ typedef my_int8_t		nve8_t;
 typedef my_uint8_t		nveu8_t;
 typedef my_ulint_64		nveul64_t;
 typedef my_uint64_t		nveu64_t;
-#endif
+#endif /* INCLUDED_TYPE_H */

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef OSD_H
-#define OSD_H
+#ifndef INCLUDED_OSD_H
+#define INCLUDED_OSD_H
 
 #include "../osi/common/type.h"
 
@@ -148,4 +148,4 @@ void osd_log(void *priv,
 	     nveu32_t type,
 	     const nve8_t *err,
 	     nveul64_t loga);
-#endif
+#endif /* INCLUDED_OSD_H */

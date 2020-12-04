@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef OSI_DMA_H
-#define OSI_DMA_H
+#ifndef INCLUDED_OSI_DMA_H
+#define INCLUDED_OSI_DMA_H
 
-#include "osi_common.h"
+#include "../osi/common/common.h"
 #include "osi_dma_txrx.h"
 
 /**
@@ -1419,4 +1419,4 @@ nve32_t osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  */
 nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 #endif /* !OSI_STRIPPED_LIB */
-#endif /* OSI_DMA_H */
+#endif /* INCLUDED_OSI_DMA_H */

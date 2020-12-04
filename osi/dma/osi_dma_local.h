@@ -21,8 +21,8 @@
  */
 
 
-#ifndef OSI_DMA_LOCAL_H
-#define OSI_DMA_LOCAL_H
+#ifndef INCLUDED_OSI_DMA_LOCAL_H
+#define INCLUDED_OSI_DMA_LOCAL_H
 
 #include <osi_dma.h>
 #include "eqos_dma.h"
@@ -65,4 +65,4 @@ nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma);
 #define BOOLEAN_FALSE		(0U != 0U)
 #define L32(data)       ((data) & 0xFFFFFFFFU)
 #define H32(data)       (((data) & 0xFFFFFFFF00000000UL) >> 32UL)
-#endif /* OSI_DMA_LOCAL_H */
+#endif /* INCLUDED_OSI_DMA_LOCAL_H */

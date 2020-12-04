@@ -24,6 +24,7 @@
 #include "osi_dma_local.h"
 #include <osi_dma_txrx.h>
 #include "../osi/common/type.h"
+#include "hw_desc.h"
 
 /**
  * @brief get_rx_csum - Get the Rx checksum from descriptor if valid
@@ -223,8 +224,17 @@ static nve32_t get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
 			return ret;
 		}
 
-		rx_pkt_cx->ns = context_desc->rdes0 +
+		if (OSI_NSEC_PER_SEC > (OSI_ULLONG_MAX / context_desc->rdes1)) {
+			/* Will not hit this case */
+		} else if ((OSI_ULLONG_MAX -
+			    (context_desc->rdes1 * OSI_NSEC_PER_SEC)) <
+			   context_desc->rdes0) {
+			/* Will not hit this case */
+		} else {
+			rx_pkt_cx->ns = context_desc->rdes0 +
 				(OSI_NSEC_PER_SEC * context_desc->rdes1);
+		}
+
 		if (rx_pkt_cx->ns < context_desc->rdes0) {
 			/* Will not hit this case */
 			return -1;

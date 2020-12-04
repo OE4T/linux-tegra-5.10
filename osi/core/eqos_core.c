@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <osi_common.h>
+#include "../osi/common/common.h"
 #include <osi_core.h>
 #include <osd.h>
 #include "eqos_core.h"
@@ -2673,7 +2673,7 @@ static nve32_t eqos_config_l4_filters(
  *    equal to zero.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[inout] mac_tcr: Address to store time stamp control register read
+ * @param[in, out] mac_tcr: Address to store time stamp control register read
  *  value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
@@ -2785,7 +2785,7 @@ static nve32_t eqos_set_systime_to_mac(
  *    equal to zero.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[inout] mac_tcr: Address to store time stamp control register read
+ * @param[in, out] mac_tcr: Address to store time stamp control register read
  *  value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()
@@ -2888,7 +2888,7 @@ static nve32_t eqos_config_addend(struct osi_core_priv_data *const osi_core,
  *    equal to zero.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[inout] mac_tcr: Address to store time stamp control register read
+ * @param[in, out] mac_tcr: Address to store time stamp control register read
  *  value
  *
  * @pre MAC should be initialized and started. see osi_start_mac()

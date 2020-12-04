@@ -21,6 +21,7 @@
  */
 
 #include "eqos_common.h"
+#include "../osi/common/common.h"
 
 nveul64_t eqos_get_systime_from_mac(void *addr)
 {

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef EQOS_DMA_H_
-#define EQOS_DMA_H_
+#ifndef INCLUDED_EQOS_DMA_H
+#define INCLUDED_EQOS_DMA_H
 
 /**
  * @addtogroup EQOS AXI Clock defines
@@ -189,4 +189,4 @@ void *eqos_get_dma_safety_config(void);
  * @returns Pointer to DMA channel operations structure
  */
 struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void);
-#endif
+#endif /* INCLUDED_EQOS_DMA_H */
