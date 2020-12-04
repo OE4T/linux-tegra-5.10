@@ -4121,53 +4121,6 @@ static void ether_get_num_dma_chan_mtl_q(struct platform_device *pdev,
 }
 
 /**
- * @brief Set DMA address mask.
- *
- * Algorithm:
- * Based on the addressing capability (address bit length) supported in the HW,
- * the dma mask is set accordingly.
- *
- * @param[in] pdata: OS dependent private data structure.
- *
- * @note MAC_HW_Feature1 register need to read and store the value of ADDR64.
- *
- * @retval 0 on success
- * @retval "negative value" on failure.
- */
-static int ether_set_dma_mask(struct ether_priv_data *pdata)
-{
-	int ret = 0;
-
-	/* Set DMA addressing limitations based on the value read from HW if
-	 * dma_mask is not defined in DT
-	 */
-	if (pdata->dma_mask == DMA_MASK_NONE) {
-		switch (pdata->hw_feat.addr_64) {
-		case OSI_ADDRESS_32BIT:
-			pdata->dma_mask = DMA_BIT_MASK(32);
-			break;
-		case OSI_ADDRESS_40BIT:
-			pdata->dma_mask = DMA_BIT_MASK(40);
-			break;
-		case OSI_ADDRESS_48BIT:
-			pdata->dma_mask = DMA_BIT_MASK(48);
-			break;
-		default:
-			pdata->dma_mask = DMA_BIT_MASK(40);
-			break;
-		}
-	}
-
-	ret = dma_set_mask_and_coherent(pdata->dev, pdata->dma_mask);
-	if (ret < 0) {
-		dev_err(pdata->dev, "dma_set_mask_and_coherent failed\n");
-		return ret;
-	}
-
-	return ret;
-}
-
-/**
  * @brief Set the network device feature flags
  *
  * Algorithm:
@@ -4257,11 +4210,9 @@ static void init_filter_values(struct ether_priv_data *pdata)
 static inline void tegra_pre_si_platform(struct osi_core_priv_data *osi_core)
 {
 	/* VDK set true for both VDK/uFPGA */
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 	if (tegra_platform_is_vdk())
 		osi_core->pre_si = 1;
 	else
-#endif
 		osi_core->pre_si = 0;
 }
 
@@ -4369,12 +4320,6 @@ static int ether_probe(struct platform_device *pdev)
 	}
 
 	osi_get_hw_features(osi_core->base, &pdata->hw_feat);
-
-	ret = ether_set_dma_mask(pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to set dma mask\n");
-		goto err_dma_mask;
-	}
 
 	/* Set netdev features based on hw features */
 	ether_set_ndev_features(ndev, pdata);
