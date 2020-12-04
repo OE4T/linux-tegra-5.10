@@ -315,7 +315,7 @@ static inline nve32_t rx_dma_desc_validate_args(
  *
  * @param[in] osi_dma: OSI DMA private data struture.
  * @param[in] rx_ring: HW ring corresponding to Rx DMA channel.
- * @param[in] rx_desc: Rx Rx descriptor.
+ * @param[in, out] rx_desc: Rx Rx descriptor.
  *
  * @note
  * API Group:

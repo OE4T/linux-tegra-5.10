@@ -37,7 +37,7 @@
  *  - Transmit and Receive descriptors will be initialized with
  *    required values so that MAC DMA can understand and act accordingly.
  *
- * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in, out] osi_dma: OSI DMA private data structure.
  *
  * @note
  * API Group:

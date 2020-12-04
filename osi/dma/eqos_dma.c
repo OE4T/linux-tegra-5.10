@@ -774,7 +774,7 @@ static nve32_t eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
  * @brief eqos_set_rx_buf_len - Set Rx buffer length
  *        Sets the Rx buffer length based on the new MTU size set.
  *
- * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in, out] osi_dma: OSI DMA private data structure.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured

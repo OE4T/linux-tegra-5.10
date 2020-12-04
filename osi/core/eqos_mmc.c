@@ -34,7 +34,7 @@
  *  - Read the registers, check for boundary, if more, reset
  *    counters else return same to caller.
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  * @param[in] last_value: previous value of stats variable.
  * @param[in] offset: HW register offset
  *
@@ -77,7 +77,7 @@ static inline nveu64_t update_mmc_val(struct osi_core_priv_data *osi_core,
  * @brief eqos_reset_mmc - To reset MMC registers and ether_mmc_counter
  *        structure variable
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  *
  * @pre
  *  - MAC should be init and started. see osi_start_mac()
@@ -109,7 +109,7 @@ void eqos_reset_mmc(struct osi_core_priv_data *osi_core)
  *  - Pass register offset and old value to helper function and
  *    update structure.
  *
- * @param[in] osi_core: OSI core private data structure.
+ * @param[in, out] osi_core: OSI core private data structure.
  *
  * @pre
  *  - MAC should be init and started. see osi_start_mac()

@@ -871,7 +871,7 @@ nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *  - Initialize a Rx DMA descriptor.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
- * @param[in] rx_ring: HW ring corresponding to Rx DMA channel.
+ * @param[in, out] rx_ring: HW ring corresponding to Rx DMA channel.
  * @param[in] chan: Rx DMA channel number
  *
  * @pre
@@ -905,7 +905,7 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 /**
  * @brief Updates rx buffer length.
  *
- * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in, out] osi_dma: OSI DMA private data structure.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -943,7 +943,7 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
  *    set OWN bit, Tx ring length and set starting address of Tx DMA channel
  *    Tx ring base address in Tx DMA registers.
  *
- * @param[in] osi_dma: OSI DMA private data.
+ * @param[in, out] osi_dma: OSI DMA private data.
  * @param[in] chan: DMA Tx channel number.
  *
  * @pre
@@ -993,7 +993,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *    - Invokes OSD layer to release DMA address and Tx buffer which are
  *      updated as part of transmit routine.
  *
- * @param[in] osi_dma: OSI dma private data structure.
+ * @param[in, out] osi_dma: OSI dma private data structure.
  * @param[in] chan: Channel number on which Tx complete need to be done.
  * @param[in] budget: Threshold for reading the packets at a time.
  *
@@ -1039,10 +1039,10 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  *    - Re-allocate the receive buffers, populate Rx descriptor and
  *      handover to DMA.
  *
- * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in, out] osi_dma: OSI DMA private data structure.
  * @param[in] chan: Rx DMA channel number
  * @param[in] budget: Threshold for reading the packets at a time.
- * @param[in] more_data_avail: Pointer to more data available flag. OSI fills
+ * @param[out] more_data_avail: Pointer to more data available flag. OSI fills
  *         this flag if more rx packets available to read(1) or not(0).
  *
  * @pre
@@ -1081,7 +1081,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
  *  - Takes care of initializing the tx, rx ring and descriptors
  *    based on the number of channels selected.
  *
- * @param[in] osi_dma: OSI DMA private data.
+ * @param[in, out] osi_dma: OSI DMA private data.
  *
  * @pre
  *  - Allocate memory for osi_dma
@@ -1166,7 +1166,7 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma);
 /**
  * @brief osi_init_dma_ops - Initialize DMA operations
  *
- * @param[in] osi_dma: OSI DMA private data.
+ * @param[in, out] osi_dma: OSI DMA private data.
  *
  * @note
  * Traceability Details:
@@ -1307,7 +1307,7 @@ nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma);
  *  - This function will be invoked by OSD layer to clear the
  *    tx stats mentioned in osi_dma->pkt_err_stats structure
  *
- * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in, out] osi_dma: OSI DMA private data structure.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -1341,7 +1341,7 @@ nve32_t osi_clear_tx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  * Algorithm:
  *  - Set or reset the slot function based on set input
  *
- * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in, out] osi_dma: OSI DMA private data structure.
  * @param[in] set: Flag to set with OSI_ENABLE and reset with OSI_DISABLE
  *
  * @pre MAC should be init and started. see osi_start_mac()
@@ -1375,7 +1375,7 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
  *  - This function will be invoked by OSD layer to clear the
  *    rx_crc_error mentioned in osi_dma->pkt_err_stats structure.
  *
- * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in, out] osi_dma: OSI DMA private data structure.
  *
  *
  * @pre

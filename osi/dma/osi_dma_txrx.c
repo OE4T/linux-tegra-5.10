@@ -44,8 +44,8 @@
  * - Run time: Yes
  * - De-initialization: No
  *
- * @param[in] rx_desc: Rx descriptor
- * @param[in] rx_pkt_cx: Per-Rx packet context structure
+ * @param[in, out] rx_desc: Rx descriptor
+ * @param[in, out] rx_pkt_cx: Per-Rx packet context structure
  */
 static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
 			       struct osi_rx_pkt_cx *rx_pkt_cx)
@@ -115,7 +115,7 @@ static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
  * - De-initialization: No
  *
  * @param[in] rx_desc: Rx descriptor
- * @param[in] rx_pkt_cx: Per-Rx packet context structure
+ * @param[in, out] rx_pkt_cx: Per-Rx packet context structure
  */
 static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 					 struct osi_rx_pkt_cx *rx_pkt_cx)
@@ -181,7 +181,7 @@ static inline nve32_t get_rx_tstamp_status(struct osi_rx_desc *context_desc)
  * @param[in] osi_dma: OSI private data structure.
  * @param[in] rx_desc: Rx descriptor
  * @param[in] context_desc: Rx context descriptor
- * @param[in] rx_pkt_cx: Rx packet context
+ * @param[in, out] rx_pkt_cx: Rx packet context
  *
  * @note
  * API Group:
@@ -259,7 +259,8 @@ static nve32_t get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
  * - De-initialization: No
  *
  * @param[in] rx_desc: Rx Descriptor.
- * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
+ * @param[in, out] pkt_err_stats: Packet error stats which stores the errors
+ *  reported
  */
 static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
 				    struct osi_pkt_err_stats *pkt_err_stats)
@@ -292,8 +293,8 @@ static inline void get_rx_err_stats(struct osi_rx_desc *rx_desc,
  * @param[in] chan: Rx DMA channel number
  * @param[in] more_data_avail: Pointer to more data available flag. OSI fills
  *         this flag if more rx packets available to read(1) or not(0).
- * @param[in] rx_ring: OSI DMA channel Rx ring
- * @param[in] rx_pkt_cx: OSI DMA receive packet context
+ * @param[out] rx_ring: OSI DMA channel Rx ring
+ * @param[out] rx_pkt_cx: OSI DMA receive packet context
  *
  * @note
  * API Group:
@@ -509,7 +510,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
  * - Run time: Yes
  * - De-initialization: No
  *
- * @param[in] osi_dma: Pointer to OSI DMA private data structure.
+ * @param[in, out] osi_dma: Pointer to OSI DMA private data structure.
  * @param[in] chan: DMA channel number for which stats should be incremented.
  */
 static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi_dma,
@@ -537,7 +538,8 @@ static inline void inc_tx_pkt_stats(struct osi_dma_priv_data *osi_dma,
  * - De-initialization: No
  *
  * @param[in] tx_desc: Tx Descriptor.
- * @param[in] pkt_err_stats: Packet error stats which stores the errors reported
+ * @param[in, out] pkt_err_stats: Packet error stats which stores the errors
+ *  reported
  */
 static inline void get_tx_err_stats(struct osi_tx_desc *tx_desc,
 				    struct osi_pkt_err_stats *pkt_err_stats)
@@ -679,7 +681,7 @@ nve32_t osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma)
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: Tx DMA channel number
- * @param[in] tx_ring: OSI DMA channel Rx ring
+ * @param[out] tx_ring: OSI DMA channel Rx ring
  *
  * @note
  * API Group:
@@ -835,8 +837,8 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  *  - If set, set the context descriptor bit along
  *    with other context information in the transmit descriptor.
  *
- * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
- * @param[in] tx_desc: Pointer to transmit descriptor to be filled.
+ * @param[in, out] tx_pkt_cx: Pointer to transmit packet context structure
+ * @param[in, out] tx_desc: Pointer to transmit descriptor to be filled.
  *
  * @note
  * API Group:
@@ -898,9 +900,9 @@ static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
  * - Run time: Yes
  * - De-initialization: No
  *
- * @param[in] tx_ring: DMA channel TX ring.
- * @param[in] tx_pkt_cx: Pointer to transmit packet context structure
- * @param[in] tx_desc: Pointer to transmit descriptor to be filled.
+ * @param[in, out] tx_ring: DMA channel TX ring.
+ * @param[in, out] tx_pkt_cx: Pointer to transmit packet context structure
+ * @param[in, out] tx_desc: Pointer to transmit descriptor to be filled.
  * @param[in] tx_swcx: Pointer to corresponding tx descriptor software context.
  */
 static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
@@ -1009,8 +1011,8 @@ static inline void dmb_oshst(void)
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in] chan: Tx DMA channel number
- * @param[in] ops: OSI DMA Channel operations
- * @param[in] tx_ring: OSI DMA channel Tx ring
+ * @param[out] ops: OSI DMA Channel operations
+ * @param[out] tx_ring: OSI DMA channel Tx ring
  *
  * @note
  * API Group:
@@ -1211,7 +1213,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
  *    set OWN bit, Rx ring length and set starting address of Rx DMA channel.
  *    Tx ring base address in Tx DMA registers.
  *
- * @param[in] osi_dma:	OSI private data structure.
+ * @param[in, out] osi_dma:	OSI private data structure.
  * @param[in] chan:	Rx channel number.
  *
  * @note
@@ -1321,7 +1323,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
  *    set OWN bit, Rx ring length and set starting address of Rx DMA channel.
  *    Tx ring base address in Tx DMA registers.
  *
- * @param[in] osi_dma: OSI private data structure.
+ * @param[in, out] osi_dma: OSI private data structure.
  *
  * @note
  * API Group:
@@ -1358,7 +1360,7 @@ static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
  *  - Initialize Transmit descriptors and set Tx ring length,
  *    Tx ring base address in Tx DMA registers.
  *
- * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in, out] osi_dma: OSI DMA private data structure.
  *
  * @note
  * API Group:
