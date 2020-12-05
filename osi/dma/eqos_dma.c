@@ -986,30 +986,6 @@ static void eqos_clear_vm_rx_intr(void *addr, nveu32_t chan)
 		   (nveu8_t *)addr + EQOS_VIRT_INTR_CHX_STATUS(chan));
 }
 
-static struct osi_dma_chan_ops eqos_dma_chan_ops = {
-	.set_tx_ring_len = eqos_set_tx_ring_len,
-	.set_rx_ring_len = eqos_set_rx_ring_len,
-	.set_tx_ring_start_addr = eqos_set_tx_ring_start_addr,
-	.set_rx_ring_start_addr = eqos_set_rx_ring_start_addr,
-	.update_tx_tailptr = eqos_update_tx_tailptr,
-	.update_rx_tailptr = eqos_update_rx_tailptr,
-	.disable_chan_tx_intr = eqos_disable_chan_tx_intr,
-	.enable_chan_tx_intr = eqos_enable_chan_tx_intr,
-	.disable_chan_rx_intr = eqos_disable_chan_rx_intr,
-	.enable_chan_rx_intr = eqos_enable_chan_rx_intr,
-	.start_dma = eqos_start_dma,
-	.stop_dma = eqos_stop_dma,
-	.init_dma_channel = eqos_init_dma_channel,
-	.set_rx_buf_len = eqos_set_rx_buf_len,
-#ifndef OSI_STRIPPED_LIB
-	.validate_regs = eqos_validate_dma_regs,
-	.config_slot = eqos_config_slot,
-#endif /* !OSI_STRIPPED_LIB */
-	.get_global_dma_status = eqos_get_global_dma_status,
-	.clear_vm_tx_intr = eqos_clear_vm_tx_intr,
-	.clear_vm_rx_intr = eqos_clear_vm_rx_intr,
-};
-
 /**
  * @brief eqos_get_dma_safety_config - EQOS get DMA safety configuration
  */
@@ -1023,5 +999,29 @@ void *eqos_get_dma_safety_config(void)
  */
 struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void)
 {
+	static struct osi_dma_chan_ops eqos_dma_chan_ops = {
+		.set_tx_ring_len = eqos_set_tx_ring_len,
+		.set_rx_ring_len = eqos_set_rx_ring_len,
+		.set_tx_ring_start_addr = eqos_set_tx_ring_start_addr,
+		.set_rx_ring_start_addr = eqos_set_rx_ring_start_addr,
+		.update_tx_tailptr = eqos_update_tx_tailptr,
+		.update_rx_tailptr = eqos_update_rx_tailptr,
+		.disable_chan_tx_intr = eqos_disable_chan_tx_intr,
+		.enable_chan_tx_intr = eqos_enable_chan_tx_intr,
+		.disable_chan_rx_intr = eqos_disable_chan_rx_intr,
+		.enable_chan_rx_intr = eqos_enable_chan_rx_intr,
+		.start_dma = eqos_start_dma,
+		.stop_dma = eqos_stop_dma,
+		.init_dma_channel = eqos_init_dma_channel,
+		.set_rx_buf_len = eqos_set_rx_buf_len,
+#ifndef OSI_STRIPPED_LIB
+		.validate_regs = eqos_validate_dma_regs,
+		.config_slot = eqos_config_slot,
+#endif /* !OSI_STRIPPED_LIB */
+		.get_global_dma_status = eqos_get_global_dma_status,
+		.clear_vm_tx_intr = eqos_clear_vm_tx_intr,
+		.clear_vm_rx_intr = eqos_clear_vm_rx_intr,
+	};
+
 	return &eqos_dma_chan_ops;
 }

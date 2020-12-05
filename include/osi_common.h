@@ -32,26 +32,22 @@
  */
 #define OSI_UNLOCKED		0x0U
 #define OSI_LOCKED		0x1U
-#define TEN_POWER_9		0x3B9ACA00U
-#define TWO_POWER_32		0x100000000ULL
-#define TWO_POWER_31		0x80000000U
 #define OSI_NSEC_PER_SEC	1000000000ULL
-#define OSI_INVALID_VALUE	0xFFFFFFFFU
 
-#define OSI_PTP_REQ_CLK_FREQ		250000000U
-#define OSI_ONE_MEGA_HZ			1000000U
+#ifndef OSI_STRIPPED_LIB
 #define OSI_MAX_RX_COALESCE_USEC	1020U
 #define OSI_MIN_RX_COALESCE_USEC	3U
 #define OSI_MIN_RX_COALESCE_FRAMES	1U
 #define OSI_MAX_TX_COALESCE_USEC	1020U
 #define OSI_MIN_TX_COALESCE_USEC	32U
 #define OSI_MIN_TX_COALESCE_FRAMES	1U
+#endif /* !OSI_STRIPPED_LIB */
 
 /* Compiler hints for branch prediction */
-#define osi_likely(x)			__builtin_expect(!!(x), 1)
 #define osi_unlikely(x)			__builtin_expect(!!(x), 0)
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup - LPI-Timers LPI configuration macros
  *
@@ -96,8 +92,8 @@
  */
 #define OSI_LPI_1US_TIC_COUNTER_DEFAULT	0xCBU
 #define OSI_LPI_1US_TIC_COUNTER_MASK	0xFFFU
-
 /** @} */
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @addtogroup Helper Helper MACROS
@@ -105,15 +101,15 @@
  * @brief EQOS generic helper MACROS.
  * @{
  */
+#ifndef OSI_STRIPPED_LIB
 #define OSI_PAUSE_FRAMES_ENABLE		0U
-#define OSI_PAUSE_FRAMES_DISABLE	1U
-#define OSI_FLOW_CTRL_TX		OSI_BIT(0)
-#define OSI_FLOW_CTRL_RX		OSI_BIT(1)
+#define OSI_PTP_REQ_CLK_FREQ		250000000U
 #define OSI_FLOW_CTRL_DISABLE		0U
 
 #define OSI_ADDRESS_32BIT		0
 #define OSI_ADDRESS_40BIT		1
 #define OSI_ADDRESS_48BIT		2
+#endif /* !OSI_STRIPPED_LIB */
 
 #ifndef UINT_MAX
 #define UINT_MAX			(~0U)
@@ -123,27 +119,6 @@
 #endif
 /** @} */
 
-/**
- * @addtogroup EQOS_PTP PTP Helper MACROS
- *
- * @brief EQOS PTP MAC Time stamp control reg bit fields
- * @{
- */
-#define OSI_MAC_TCR_TSENA		OSI_BIT(0)
-#define OSI_MAC_TCR_TSCFUPDT		OSI_BIT(1)
-#define OSI_MAC_TCR_TSENALL		OSI_BIT(8)
-#define OSI_MAC_TCR_TSCTRLSSR		OSI_BIT(9)
-#define OSI_MAC_TCR_TSVER2ENA		OSI_BIT(10)
-#define OSI_MAC_TCR_TSIPENA		OSI_BIT(11)
-#define OSI_MAC_TCR_TSIPV6ENA		OSI_BIT(12)
-#define OSI_MAC_TCR_TSIPV4ENA		OSI_BIT(13)
-#define OSI_MAC_TCR_TSEVENTENA		OSI_BIT(14)
-#define OSI_MAC_TCR_TSMASTERENA		OSI_BIT(15)
-#define OSI_MAC_TCR_SNAPTYPSEL_1	OSI_BIT(16)
-#define OSI_MAC_TCR_SNAPTYPSEL_2	OSI_BIT(17)
-#define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
-#define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
-/** @} */
 
 /**
  * @addtogroup Helper Helper MACROS
@@ -151,117 +126,60 @@
  * @brief EQOS generic helper MACROS.
  * @{
  */
-#define OSI_ULLONG_MAX			(~0ULL)
 #define OSI_UCHAR_MAX			(0xFFU)
+#define OSI_ULLONG_MAX			(~0ULL)
 
 /* Logging defines */
 /* log levels */
-#define OSI_LOG_INFO			1U
-#define OSI_LOG_WARN			2U
 #define OSI_LOG_ERR			3U
 /* Error types */
-#define OSI_LOG_ARG_OUTOFBOUND		1U
 #define OSI_LOG_ARG_INVALID		2U
+#ifndef OSI_STRIPPED_LIB
+#define OSI_LOG_WARN			2U
 #define OSI_LOG_ARG_OPNOTSUPP		3U
-#define OSI_LOG_ARG_HW_FAIL		4U
-
+#endif /* !OSI_STRIPPED_LIB */
 /* Default maximum Giant Packet Size Limit is 16K */
 #define OSI_MAX_MTU_SIZE	16383U
-#define OSI_MTU_SIZE_9000	9000U
-#define OSI_DFLT_MTU_SIZE	1500U
 
 #define EQOS_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x1160U)
-#define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 
 /* FIXME add logic based on HW version */
-#define EQOS_MAX_MAC_ADDRESS_FILTER	128U
-#define EQOS_MAX_L3_L4_FILTER		8U
-#define EQOS_MAX_HTR_REGS		8U
-#define OSI_EQOS_MAX_NUM_CHANS		8U
-#define OSI_EQOS_MAX_NUM_QUEUES		8U
-#define OSI_L2_FILTER_INDEX_ANY		127U
-#define OSI_CHAN_ANY			0xFFU
-
-/* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
-#define OSI_EQOS_MAX_HASH_REGS		4U
-
-/* L2 filter operations supported by OSI layer. These operation modes shall be
- * set by OSD driver as input to update registers accordingly.
- */
-#define OSI_OPER_EN_PROMISC	OSI_BIT(0)
-#define OSI_OPER_DIS_PROMISC	OSI_BIT(1)
-#define OSI_OPER_EN_ALLMULTI	OSI_BIT(2)
-#define OSI_OPER_DIS_ALLMULTI	OSI_BIT(3)
-#define OSI_OPER_EN_L2_DA_INV	OSI_BIT(4)
-#define OSI_OPER_DIS_L2_DA_INV	OSI_BIT(5)
-#define OSI_OPER_EN_PERFECT	OSI_BIT(6)
-#define OSI_OPER_DIS_PERFECT	OSI_BIT(7)
-#define OSI_OPER_ADDR_UPDATE	OSI_BIT(8)
-#define OSI_OPER_ADDR_DEL 	OSI_BIT(9)
+#define OSI_EQOS_MAX_NUM_CHANS		4U
+#define OSI_EQOS_MAX_NUM_QUEUES		4U
 
 #define MAC_VERSION		0x110
 #define MAC_VERSION_SNVER_MASK	0x7FU
 
 #define OSI_MAC_HW_EQOS		0U
-#define OSI_ETH_ALEN		6U
-#define OSI_MAX_VM_IRQS		5U
 
-#define BOOLEAN_FALSE		(0U != 0U)
 #define OSI_NULL                ((void *)0)
 #define OSI_ENABLE		1U
 #define OSI_NONE		0U
 #define OSI_DISABLE		0U
-#define OSI_AMASK_DISABLE	0U
 
-#define OSI_HASH_FILTER_MODE	1U
-#define OSI_PERFECT_FILTER_MODE	0U
-#define OSI_IPV6_MATCH		1U
-#define OSI_SOURCE_MATCH	0U
-#define OSI_INV_MATCH		1U
-#define OSI_PFT_MATCH		0U
-
-#define OSI_SA_MATCH		1U
-#define OSI_DA_MATCH		0U
-
-#define OSI_L4_FILTER_TCP	0U
-#define OSI_L4_FILTER_UDP	1U
-
-#define OSI_IP4_FILTER		0U
-#define OSI_IP6_FILTER		1U
-
-#define CHECK_CHAN_BOUND(chan)						\
-	{								\
-		if ((chan) >= OSI_EQOS_MAX_NUM_CHANS) {			\
-			return;						\
-		}							\
-	}								\
 
 #define OSI_BIT(nr)             ((nveu32_t)1 << (nr))
 
 #define OSI_EQOS_MAC_4_10       0x41U
 #define OSI_EQOS_MAC_5_00       0x50U
 #define OSI_EQOS_MAC_5_10       0x51U
+#define OSI_MAX_VM_IRQS              5U
 
-#define OSI_SPEED_10		10
-#define OSI_SPEED_100		100
-#define OSI_SPEED_1000		1000
+#ifndef OSI_STRIPPED_LIB
+#define OSI_L2_FILTER_INDEX_ANY		127U
+#define OSI_HASH_FILTER_MODE	1U
+#define OSI_L4_FILTER_TCP	0U
+#define OSI_L4_FILTER_UDP	1U
+#define OSI_PERFECT_FILTER_MODE	0U
 
-#define OSI_FULL_DUPLEX		1
-#define OSI_HALF_DUPLEX		0
-
-#define NV_ETH_FRAME_LEN	1514U
 #define NV_ETH_FCS_LEN		0x4U
-#define NV_VLAN_HLEN		0x4U
-#define OSI_ETH_HLEN		0xEU
-#define OSI_NET_IP_ALIGN	0x2U
+#define NV_ETH_FRAME_LEN	1514U
 
 #define MAX_ETH_FRAME_LEN_DEFAULT \
 	(NV_ETH_FRAME_LEN + NV_ETH_FCS_LEN + NV_VLAN_HLEN)
-
-#define L32(data)       ((data) & 0xFFFFFFFFU)
-#define H32(data)       (((data) & 0xFFFFFFFF00000000UL) >> 32UL)
-
 #define OSI_INVALID_CHAN_NUM    0xFFU
+#endif /* OSI_STRIPPED_LIB */
+
 /** @} */
 
 /**
@@ -302,7 +220,9 @@
 #define EQOS_MAC_HFR1_TSOEN_MASK	0x1U
 #define EQOS_MAC_HFR1_DMADEBUGEN_MASK	0x1U
 #define EQOS_MAC_HFR1_AVSEL_MASK	0x1U
+#ifndef OSI_STRIPPED_LIB
 #define EQOS_MAC_HFR1_LPMODEEN_MASK	0x1U
+#endif /* OSI_STRIPPED_LIB */
 #define EQOS_MAC_HFR1_HASHTBLSZ_MASK	0x3U
 #define EQOS_MAC_HFR1_L3L4FILTERNUM_MASK	0xfU
 #define EQOS_MAC_HFR2_RXQCNT_MASK	0xfU
@@ -313,6 +233,7 @@
 #define EQOS_MAC_HFR2_AUXSNAPNUM_MASK	0x7U
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @addtogroup MTL queue operation mode
  *
@@ -334,6 +255,7 @@
 #define OSI_MTL_TXQ_AVALG_CBS	1U
 #define OSI_MTL_TXQ_AVALG_SP	0U
 /** @} */
+#endif /* OSI_STRIPPED_LIB */
 
 /**
  * @brief struct osi_hw_features - MAC HW supported features.

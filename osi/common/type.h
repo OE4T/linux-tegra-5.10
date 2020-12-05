@@ -30,9 +30,7 @@ typedef unsigned int		my_uint32_t;
 typedef int			my_int32_t;
 typedef char			my_int8_t;
 typedef unsigned char		my_uint8_t;
-typedef unsigned short		my_uint16_t;
 typedef unsigned long long 	my_ulint_64;
-typedef long long 		my_lint_64;
 typedef unsigned long		my_uint64_t;
 
 /* Actual type used in code */
@@ -40,8 +38,6 @@ typedef my_uint32_t		nveu32_t;
 typedef my_int32_t		nve32_t;
 typedef my_int8_t		nve8_t;
 typedef my_uint8_t		nveu8_t;
-typedef my_uint16_t		nveu16_t;
 typedef my_ulint_64		nveul64_t;
-typedef my_lint_64		nvel64_t;
 typedef my_uint64_t		nveu64_t;
 #endif

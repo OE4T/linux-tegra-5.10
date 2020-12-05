@@ -22,6 +22,7 @@
 
 #include <osd.h>
 #include "eqos_common.h"
+#include "local_common.h"
 
 void common_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 {
@@ -141,42 +142,7 @@ void osi_memset(void *s, nveu32_t c, nveu64_t count)
 	}
 }
 
-/**
- *@brief div_u64_rem - updates remainder and returns Quotient
- *
- * @note
- * Algorithm:
- *  - Dividend will be divided by divisor and stores the
- *    remainder value and returns quotient
- *
- * @param[in] dividend: Dividend value
- * @param[in] divisor: Divisor value
- * @param[out] remain: Remainder
- *
- * @pre MAC IP should be out of reset and need to be initialized as the
- *      requirements
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval Quotient
- */
-static inline nveu64_t div_u64_rem(nveu64_t dividend, nveu64_t divisor,
-				   nveu64_t *remain)
-{
-	nveu64_t ret = 0;
 
-	if (divisor != 0U) {
-		*remain = dividend % divisor;
-		ret = dividend / divisor;
-	} else {
-		ret = 0;
-	}
-	return ret;
-}
 
 void common_get_systime_from_mac(void *addr, nveu32_t mac, nveu32_t *sec,
 				 nveu32_t *nsec)
@@ -213,4 +179,19 @@ nveu32_t common_is_mac_enabled(void *addr, nveu32_t mac)
 		/* Non EQOS HW is supported yet */
 		return OSI_DISABLE;
 	}
+}
+
+nveu64_t div_u64_rem(nveu64_t dividend, nveu64_t divisor,
+		     nveu64_t *remain)
+{
+	nveu64_t ret = 0;
+
+	if (divisor != 0U) {
+		*remain = dividend % divisor;
+		ret = dividend / divisor;
+	} else {
+		ret = 0;
+	}
+
+	return ret;
 }

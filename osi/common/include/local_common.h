@@ -27,6 +27,32 @@
 #include "../osi/common/type.h"
 
 /**
+ *@brief div_u64_rem - updates remainder and returns Quotient
+ *
+ * @note
+ * Algorithm:
+ *  - Dividend will be divided by divisor and stores the
+ *    remainder value and returns quotient
+ *
+ * @param[in] dividend: Dividend value
+ * @param[in] divisor: Divisor value
+ * @param[out] remain: Remainder
+ *
+ * @pre MAC IP should be out of reset and need to be initialized as the
+ *      requirements
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval Quotient
+ */
+nveu64_t div_u64_rem(nveu64_t dividend, nveu64_t divisor,
+		     nveu64_t *remain);
+
+/**
  * @brief common_get_systime_from_mac - Get system time
  *
  * @param[in] addr: Address of base register.

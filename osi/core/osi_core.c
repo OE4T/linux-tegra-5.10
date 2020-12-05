@@ -471,44 +471,6 @@ nve32_t osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
 }
 
 /**
- *@brief div_u64_rem - updates remainder and returns Quotient
- *
- * @note
- * Algorithm:
- *  - Dividend will be divided by divisor and stores the
- *    remainder value and returns quotient
- *
- * @param[in] dividend: Dividend value
- * @param[in] divisor: Divisor value
- * @param[out] remain: Remainder
- *
- * @pre MAC IP should be out of reset and need to be initialized as the
- *      requirements
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @returns Quotient
- */
-static inline nveu64_t div_u64_rem(nveu64_t dividend,
-				   nveu64_t divisor,
-				   nveu64_t *remain)
-{
-	nveu64_t ret = 0;
-
-	if (divisor != 0U) {
-		*remain = dividend % divisor;
-		ret = dividend / divisor;
-	} else {
-		ret = 0;
-	}
-	return ret;
-}
-
-/**
  * @brief div_u64 - Calls a function which returns quotient
  *
  * @param[in] dividend: Dividend

@@ -555,27 +555,4 @@ struct osi_xtra_stat_counters {
 	/** link disconnect count */
 	nveu64_t link_disconnect_count;
 };
-
-/**
- * @brief osi_xtra_dma_stat_counters -  OSI DMA extra stats counters
- */
-struct osi_xtra_dma_stat_counters {
-	/** Per Q TX packet count */
-	nveu64_t q_tx_pkt_n[OSI_EQOS_MAX_NUM_QUEUES];
-	/** Per Q RX packet count */
-	nveu64_t q_rx_pkt_n[OSI_EQOS_MAX_NUM_QUEUES];
-	/** Per Q TX complete call count */
-	nveu64_t tx_clean_n[OSI_EQOS_MAX_NUM_QUEUES];
-	/** Total number of tx packets count */
-	nveu64_t tx_pkt_n;
-	/** Total number of rx packet count */
-	nveu64_t rx_pkt_n;
-	/** Total number of VLAN RX packet count */
-	nveu64_t rx_vlan_pkt_n;
-	/** Total number of VLAN TX packet count */
-	nveu64_t tx_vlan_pkt_n;
-	/** Total number of TSO packet count */
-	nveu64_t tx_tso_pkt_n;
-};
-
 #endif
