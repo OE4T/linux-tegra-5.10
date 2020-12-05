@@ -43,7 +43,9 @@
 #define EQOS_DMA_CHX_RX_CTRL(x)			((0x0080U * (x)) + 0x1108U)
 #define EQOS_DMA_CHX_INTR_ENA(x)		((0x0080U * (x)) + 0x1134U)
 #define EQOS_DMA_CHX_RX_WDT(x)			((0x0080U * (x)) + 0x1138U)
+#ifndef OSI_STRIPPED_LIB
 #define EQOS_DMA_CHX_SLOT_CTRL(x)		((0x0080U * (x)) + 0x113CU)
+#endif /* !OSI_STRIPPED_LIB */
 
 #define EQOS_DMA_CHX_RDTP(x)			((0x0080U * (x)) + 0x1128U)
 #define EQOS_DMA_CHX_RDLH(x)			((0x0080U * (x)) + 0x1118U)
@@ -106,38 +108,41 @@
 #define EQOS_DMA_CHX_TDRL_MASK			0x3FFU
 #define EQOS_DMA_CHX_RDRL_MASK			0x3FFU
 #define EQOS_DMA_CHX_INTR_ENA_MASK		0xFFC7U
+#ifndef OSI_STRIPPED_LIB
 #define EQOS_DMA_CHX_SLOT_SIV_MASK		0xFFFU
 #define EQOS_DMA_CHX_SLOT_SIV_SHIFT		4U
 #define EQOS_DMA_CHX_SLOT_ESC			0x1U
-
+#endif /* !OSI_STRIPPED_LIB */
 /* To add new registers to validate,append at end of below macro list and
  * increment EQOS_MAX_DMA_SAFETY_REGS.
  * Using macros instead of enum due to misra error.
  */
 #define EQOS_DMA_CH0_CTRL_IDX			0U
+#define EQOS_DMA_CH0_TX_CTRL_IDX		4U
+#define EQOS_DMA_CH0_RX_CTRL_IDX		8U
+#define EQOS_DMA_CH0_RDRL_IDX			16U
+#define EQOS_DMA_CH0_TDRL_IDX			12U
+#define EQOS_DMA_CH0_INTR_ENA_IDX		20U
+#ifndef OSI_STRIPPED_LIB
 #define EQOS_DMA_CH1_CTRL_IDX			1U
 #define EQOS_DMA_CH2_CTRL_IDX			2U
 #define EQOS_DMA_CH3_CTRL_IDX			3U
-#define EQOS_DMA_CH0_TX_CTRL_IDX		4U
 #define EQOS_DMA_CH1_TX_CTRL_IDX		5U
 #define EQOS_DMA_CH2_TX_CTRL_IDX		6U
 #define EQOS_DMA_CH3_TX_CTRL_IDX		7U
-#define EQOS_DMA_CH0_RX_CTRL_IDX		8U
 #define EQOS_DMA_CH1_RX_CTRL_IDX		9U
 #define EQOS_DMA_CH2_RX_CTRL_IDX		10U
 #define EQOS_DMA_CH3_RX_CTRL_IDX		11U
-#define EQOS_DMA_CH0_TDRL_IDX			12U
 #define EQOS_DMA_CH1_TDRL_IDX			13U
 #define EQOS_DMA_CH2_TDRL_IDX			14U
 #define EQOS_DMA_CH3_TDRL_IDX			15U
-#define EQOS_DMA_CH0_RDRL_IDX			16U
 #define EQOS_DMA_CH1_RDRL_IDX			17U
 #define EQOS_DMA_CH2_RDRL_IDX			18U
 #define EQOS_DMA_CH3_RDRL_IDX			19U
-#define EQOS_DMA_CH0_INTR_ENA_IDX		20U
 #define EQOS_DMA_CH1_INTR_ENA_IDX		21U
 #define EQOS_DMA_CH2_INTR_ENA_IDX		22U
 #define EQOS_DMA_CH3_INTR_ENA_IDX		23U
+#endif /* OSI_STRIPPED_LIB */
 #define EQOS_MAX_DMA_SAFETY_REGS		24U
 #define EQOS_AXI_BUS_WIDTH			0x10U
 /** @} */

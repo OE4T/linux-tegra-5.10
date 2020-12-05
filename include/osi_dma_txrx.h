@@ -44,12 +44,14 @@
  */
 /** Increment the tx descriptor index */
 #define INCR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) + (i)) & (TX_DESC_CNT - 1U))
-/** Decrement the tx descriptor index */
-#define DECR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (TX_DESC_CNT - 1U))
 /** Increment the rx descriptor index */
 #define INCR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) + (i)) & (RX_DESC_CNT - 1U))
+#ifndef OSI_STRIPPED_LIB
+/** Decrement the tx descriptor index */
+#define DECR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (TX_DESC_CNT - 1U))
 /** Decrement the rx descriptor index */
 #define DECR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (RX_DESC_CNT - 1U))
+#endif /* !OSI_STRIPPED_LIB */
 /** @} */
 
 /**

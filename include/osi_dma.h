@@ -25,7 +25,24 @@
 
 #include "osi_common.h"
 #include "osi_dma_txrx.h"
-#include "mmc.h"
+
+/**
+ * @addtogroup Helper Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
+ * @{
+ */
+#define OSI_NET_IP_ALIGN	0x2U
+#define NV_VLAN_HLEN		0x4U
+#define OSI_ETH_HLEN		0xEU
+
+#define OSI_INVALID_VALUE	0xFFFFFFFFU
+
+#define OSI_ONE_MEGA_HZ			1000000U
+
+/* Compiler hints for branch prediction */
+#define osi_likely(x)			__builtin_expect(!!(x), 1)
+/** @} */
 
 /* to avoid re definition when both core and dma headers are included */
 #undef OSI_ERR
@@ -93,8 +110,10 @@
  * @brief These flags are used for DMA channel Slot context configuration
  * @{
  */
+#ifndef OSI_STRIPPED_LIB
 #define OSI_SLOT_INTVL_DEFAULT		125U
 #define OSI_SLOT_INTVL_MAX		4095U
+#endif /* !OSI_STRIPPED_LIB */
 #define OSI_SLOT_NUM_MAX		16U
 /** @} */
 
@@ -121,14 +140,18 @@
  *
  * @brief Flag to indicate the result from checksum offload engine
  * to SW network stack in receive path.
+#ifndef OSI_STRIPPED_LIB
  * OSI_CHECKSUM_NONE indicates that HW checksum offload
  * engine did not verify the checksum, SW network stack has to do it.
+#endif
  * OSI_CHECKSUM_UNNECESSARY indicates that HW validated the
  * checksum already, network stack can skip validation.
  * @{
  */
 /* Checksum offload result flags */
+#ifndef OSI_STRIPPED_LIB
 #define OSI_CHECKSUM_NONE		0x0U
+#endif /* OSI_STRIPPED_LIB */
 /* TCP header/payload */
 #define OSI_CHECKSUM_TCPv4		OSI_BIT(0)
 /* UDP header/payload */
@@ -347,6 +370,28 @@ struct osi_tx_ring {
 	struct osi_txdone_pkt_cx txdone_pkt_cx;
 	/** Number of packets or frames transmitted */
 	nveu32_t frame_cnt;
+};
+
+/**
+ * @brief osi_xtra_dma_stat_counters -  OSI DMA extra stats counters
+ */
+struct osi_xtra_dma_stat_counters {
+	/** Per Q TX packet count */
+	nveu64_t q_tx_pkt_n[OSI_EQOS_MAX_NUM_QUEUES];
+	/** Per Q RX packet count */
+	nveu64_t q_rx_pkt_n[OSI_EQOS_MAX_NUM_QUEUES];
+	/** Per Q TX complete call count */
+	nveu64_t tx_clean_n[OSI_EQOS_MAX_NUM_QUEUES];
+	/** Total number of tx packets count */
+	nveu64_t tx_pkt_n;
+	/** Total number of rx packet count */
+	nveu64_t rx_pkt_n;
+	/** Total number of VLAN RX packet count */
+	nveu64_t rx_vlan_pkt_n;
+	/** Total number of VLAN TX packet count */
+	nveu64_t tx_vlan_pkt_n;
+	/** Total number of TSO packet count */
+	nveu64_t tx_tso_pkt_n;
 };
 
 struct osi_dma_priv_data;

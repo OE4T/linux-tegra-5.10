@@ -1310,7 +1310,7 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	osi_writel(value, (nveu8_t *)osi_core->base + EQOS_MAC_VLANTIR);
 
 	/* Configure default flow control settings */
-	if (osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE) {
+	if (osi_core->pause_frames != OSI_PAUSE_FRAMES_DISABLE) {
 		osi_core->flow_ctrl = (OSI_FLOW_CTRL_TX | OSI_FLOW_CTRL_RX);
 		if (eqos_config_flow_control(osi_core, osi_core->flow_ctrl) !=
 		    0) {
@@ -1916,7 +1916,8 @@ static inline nve32_t eqos_update_mac_addr_helper(
 		    (osi_core->dcs_en == OSI_ENABLE)) {
 			*value = ((dma_chan << EQOS_MAC_ADDRH_DCS_SHIFT) &
 				  EQOS_MAC_ADDRH_DCS);
-		} else if (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 0x1U)) {
+		} else if ((dma_chan == OSI_CHAN_ANY) ||
+			   (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 0x1U))) {
 			OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 				"invalid dma channel\n",
 				(nveul64_t)dma_chan);
@@ -1928,7 +1929,8 @@ static inline nve32_t eqos_update_mac_addr_helper(
 	}
 
 	/* Address mask is valid for address 1 to 31 index only */
-	if ((addr_mask <= EQOS_MAX_MASK_BYTE) && (addr_mask > 0U)) {
+	if ((addr_mask <= EQOS_MAX_MASK_BYTE) &&
+	    (addr_mask > OSI_AMASK_DISABLE)) {
 		if ((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) {
 			*value = (*value |
 				  ((addr_mask << EQOS_MAC_ADDRH_MBC_SHIFT) &
@@ -4251,56 +4253,6 @@ static nve32_t eqos_config_mac_loopback(void *addr,
 }
 #endif /* !OSI_STRIPPED_LIB */
 
-/**
- * @brief eqos_core_ops - EQOS MAC core operations
- */
-static struct osi_core_ops eqos_core_ops = {
-	.poll_for_swr = eqos_poll_for_swr,
-	.core_init = eqos_core_init,
-	.core_deinit = eqos_core_deinit,
-	.start_mac = eqos_start_mac,
-	.stop_mac = eqos_stop_mac,
-	.handle_common_intr = eqos_handle_common_intr,
-	.set_mode = eqos_set_mode,
-	.set_speed = eqos_set_speed,
-	.pad_calibrate = eqos_pad_calibrate,
-	.config_fw_err_pkts = eqos_config_fw_err_pkts,
-	.config_rxcsum_offload = eqos_config_rxcsum_offload,
-	.config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg,
-	.update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg,
-	.config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable,
-	.config_l3_filters = eqos_config_l3_filters,
-	.update_ip4_addr = eqos_update_ip4_addr,
-	.update_ip6_addr = eqos_update_ip6_addr,
-	.config_l4_filters = eqos_config_l4_filters,
-	.update_l4_port_no = eqos_update_l4_port_no,
-	.set_systime_to_mac = eqos_set_systime_to_mac,
-	.config_addend = eqos_config_addend,
-	.adjust_mactime = eqos_adjust_mactime,
-	.config_tscr = eqos_config_tscr,
-	.config_ssir = eqos_config_ssir,
-	.read_mmc = eqos_read_mmc,
-	.write_phy_reg = eqos_write_phy_reg,
-	.read_phy_reg = eqos_read_phy_reg,
-#ifndef OSI_STRIPPED_LIB
-	.config_tx_status = eqos_config_tx_status,
-	.config_rx_crc_check = eqos_config_rx_crc_check,
-	.config_flow_control = eqos_config_flow_control,
-	.config_arp_offload = eqos_config_arp_offload,
-	.validate_regs = eqos_validate_core_regs,
-	.flush_mtl_tx_queue = eqos_flush_mtl_tx_queue,
-	.set_avb_algorithm = eqos_set_avb_algorithm,
-	.get_avb_algorithm = eqos_get_avb_algorithm,
-	.config_vlan_filtering = eqos_config_vlan_filtering,
-	.update_vlan_id = eqos_update_vlan_id,
-	.reset_mmc = eqos_reset_mmc,
-	.configure_eee = eqos_configure_eee,
-	.save_registers = eqos_save_registers,
-	.restore_registers = eqos_restore_registers,
-	.set_mdc_clk_rate = eqos_set_mdc_clk_rate,
-	.config_mac_loopback = eqos_config_mac_loopback,
-#endif /* !OSI_STRIPPED_LIB */
-};
 
 /**
  * @brief eqos_get_core_safety_config - EQOS MAC safety configuration
@@ -4327,5 +4279,54 @@ void *eqos_get_core_safety_config(void)
  */
 struct osi_core_ops *eqos_get_hw_core_ops(void)
 {
+	static struct osi_core_ops eqos_core_ops = {
+		.poll_for_swr = eqos_poll_for_swr,
+		.core_init = eqos_core_init,
+		.core_deinit = eqos_core_deinit,
+		.start_mac = eqos_start_mac,
+		.stop_mac = eqos_stop_mac,
+		.handle_common_intr = eqos_handle_common_intr,
+		.set_mode = eqos_set_mode,
+		.set_speed = eqos_set_speed,
+		.pad_calibrate = eqos_pad_calibrate,
+		.config_fw_err_pkts = eqos_config_fw_err_pkts,
+		.config_rxcsum_offload = eqos_config_rxcsum_offload,
+		.config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg,
+		.update_mac_addr_low_high_reg =
+					 eqos_update_mac_addr_low_high_reg,
+		.config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable,
+		.config_l3_filters = eqos_config_l3_filters,
+		.update_ip4_addr = eqos_update_ip4_addr,
+		.update_ip6_addr = eqos_update_ip6_addr,
+		.config_l4_filters = eqos_config_l4_filters,
+		.update_l4_port_no = eqos_update_l4_port_no,
+		.set_systime_to_mac = eqos_set_systime_to_mac,
+		.config_addend = eqos_config_addend,
+		.adjust_mactime = eqos_adjust_mactime,
+		.config_tscr = eqos_config_tscr,
+		.config_ssir = eqos_config_ssir,
+		.read_mmc = eqos_read_mmc,
+		.write_phy_reg = eqos_write_phy_reg,
+		.read_phy_reg = eqos_read_phy_reg,
+#ifndef OSI_STRIPPED_LIB
+		.config_tx_status = eqos_config_tx_status,
+		.config_rx_crc_check = eqos_config_rx_crc_check,
+		.config_flow_control = eqos_config_flow_control,
+		.config_arp_offload = eqos_config_arp_offload,
+		.validate_regs = eqos_validate_core_regs,
+		.flush_mtl_tx_queue = eqos_flush_mtl_tx_queue,
+		.set_avb_algorithm = eqos_set_avb_algorithm,
+		.get_avb_algorithm = eqos_get_avb_algorithm,
+		.config_vlan_filtering = eqos_config_vlan_filtering,
+		.update_vlan_id = eqos_update_vlan_id,
+		.reset_mmc = eqos_reset_mmc,
+		.configure_eee = eqos_configure_eee,
+		.save_registers = eqos_save_registers,
+		.restore_registers = eqos_restore_registers,
+		.set_mdc_clk_rate = eqos_set_mdc_clk_rate,
+		.config_mac_loopback = eqos_config_mac_loopback,
+#endif /* !OSI_STRIPPED_LIB */
+	};
+
 	return &eqos_core_ops;
 }

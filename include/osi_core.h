@@ -27,6 +27,16 @@
 #include "mmc.h"
 #include "../osi/common/type.h"
 
+/* Following added to avoid misraC 4.6
+ * Here we are defining intermediate type
+ */
+typedef unsigned short		my_uint16_t;
+typedef long long		my_lint_64;
+
+/* Actual type used in code */
+typedef my_uint16_t		nveu16_t;
+typedef my_lint_64		nvel64_t;
+
 /**
  * @addtogroup PTP related information
  *
@@ -35,6 +45,91 @@
  */
 #define OSI_PTP_SSINC_16	16U
 #define OSI_PTP_SSINC_4		4U
+
+/** @} */
+
+/**
+ * @addtogroup EQOS_PTP PTP Helper MACROS
+ *
+ * @brief EQOS PTP MAC Time stamp control reg bit fields
+ * @{
+ */
+#define OSI_MAC_TCR_TSENA		OSI_BIT(0)
+#define OSI_MAC_TCR_TSCFUPDT		OSI_BIT(1)
+#define OSI_MAC_TCR_TSENALL		OSI_BIT(8)
+#define OSI_MAC_TCR_TSCTRLSSR		OSI_BIT(9)
+#define OSI_MAC_TCR_TSVER2ENA		OSI_BIT(10)
+#define OSI_MAC_TCR_TSIPENA		OSI_BIT(11)
+#define OSI_MAC_TCR_TSIPV6ENA		OSI_BIT(12)
+#define OSI_MAC_TCR_TSIPV4ENA		OSI_BIT(13)
+#define OSI_MAC_TCR_TSEVENTENA		OSI_BIT(14)
+#define OSI_MAC_TCR_TSMASTERENA		OSI_BIT(15)
+#define OSI_MAC_TCR_SNAPTYPSEL_1	OSI_BIT(16)
+#define OSI_MAC_TCR_SNAPTYPSEL_2	OSI_BIT(17)
+#define OSI_MAC_TCR_SNAPTYPSEL_3	(OSI_BIT(16) | OSI_BIT(17))
+#define OSI_MAC_TCR_AV8021ASMEN		OSI_BIT(28)
+/** @} */
+
+/**
+ * @addtogroup Helper Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
+ * @{
+ */
+#define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
+#define EQOS_MAX_MAC_ADDRESS_FILTER	128U
+#define EQOS_MAX_L3_L4_FILTER		8U
+#define EQOS_MAX_HTR_REGS		8U
+#define OSI_DA_MATCH			0U
+#define OSI_INV_MATCH			1U
+#define OSI_AMASK_DISABLE		0U
+#define OSI_CHAN_ANY			0xFFU
+#define OSI_DFLT_MTU_SIZE		1500U
+#define OSI_MTU_SIZE_9000		9000U
+/* HW supports 8 Hash table regs, but eqos_validate_core_regs only checks 4 */
+#define OSI_EQOS_MAX_HASH_REGS		4U
+#define OSI_ETH_ALEN			6U
+
+#define OSI_FLOW_CTRL_TX		OSI_BIT(0)
+#define OSI_FLOW_CTRL_RX		OSI_BIT(1)
+
+#define OSI_FULL_DUPLEX			1
+#define OSI_HALF_DUPLEX			0
+
+#define OSI_IP4_FILTER			0U
+#define OSI_IP6_FILTER			1U
+#define OSI_IPV6_MATCH			1U
+
+#define OSI_LOG_INFO			1U
+#define OSI_LOG_ARG_HW_FAIL		4U
+#define OSI_LOG_ARG_OUTOFBOUND		1U
+
+/* L2 filter operations supported by OSI layer. These operation modes shall be
+ * set by OSD driver as input to update registers accordingly.
+ */
+#define OSI_OPER_EN_PROMISC		OSI_BIT(0)
+#define OSI_OPER_DIS_PROMISC		OSI_BIT(1)
+#define OSI_OPER_EN_ALLMULTI		OSI_BIT(2)
+#define OSI_OPER_DIS_ALLMULTI		OSI_BIT(3)
+#define OSI_OPER_EN_L2_DA_INV		OSI_BIT(4)
+#define OSI_OPER_DIS_L2_DA_INV		OSI_BIT(5)
+#define OSI_OPER_EN_PERFECT		OSI_BIT(6)
+#define OSI_OPER_DIS_PERFECT		OSI_BIT(7)
+#define OSI_OPER_ADDR_UPDATE		OSI_BIT(8)
+#define OSI_OPER_ADDR_DEL		OSI_BIT(9)
+
+#define OSI_PAUSE_FRAMES_DISABLE	1U
+#define OSI_PFT_MATCH		0U
+#define OSI_SOURCE_MATCH	0U
+#define OSI_SA_MATCH		1U
+
+#define OSI_SPEED_10		10
+#define OSI_SPEED_100		100
+#define OSI_SPEED_1000		1000
+
+#define TEN_POWER_9		0x3B9ACA00U
+#define TWO_POWER_32		0x100000000ULL
+#define TWO_POWER_31		0x80000000U
 /** @} */
 
 /* to avoid re definition when both core and dma headers are included */
@@ -116,6 +211,7 @@ struct osi_l3_l4_filter {
 	nveu16_t port_no;
 };
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief Vlan filter Function dependent parameter
  */
@@ -138,7 +234,6 @@ struct osi_l2_da_filter {
 	nveu32_t perfect_inverse_match;
 };
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief OSI Core avb data structure per queue.
  */
