@@ -33,8 +33,13 @@
 			compatible = "maxim,max20024";
 			reg = <0x3c>;
 
+#if TEGRA_BPMP_FW_DT_VERSION < DT_VERSION_2
 			interrupt-parent = <&tegra_pm_irq>;
 			interrupts = <0 TEGRA194_IRQ_PMIC_EXT_INTR IRQ_TYPE_NONE>;
+#else
+			interrupt-parent = <&intc>;
+			interrupts = <GIC_SPI 209 IRQ_TYPE_LEVEL_HIGH>;
+#endif
 
 			#interrupt-cells = <2>;
                         interrupt-controller;
