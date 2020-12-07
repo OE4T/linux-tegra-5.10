@@ -44,10 +44,6 @@
 #define osi_likely(x)			__builtin_expect(!!(x), 1)
 /** @} */
 
-/* to avoid re definition when both core and dma headers are included */
-#undef OSI_ERR
-#undef OSI_INFO
-
 /**
  * OSI error macro definition,
  * @param[in] priv: OSD private data OR NULL
@@ -55,11 +51,13 @@
  * @param[in] err:  error string
  * @param[in] loga: error additional information
  */
-#define OSI_ERR(priv, type, err, loga)				\
+#define OSI_DMA_ERR(priv, type, err, loga)				\
 {								\
 	osi_dma->osd_ops.ops_log(priv, __func__, __LINE__,	\
 				 OSI_LOG_ERR, type, err, loga);	\
 }
+
+#ifndef OSI_STRIPPED_LIB
 /**
  * OSI info macro definition
  * @param[in] priv: OSD private data OR NULL
@@ -67,12 +65,12 @@
  * @param[in] err:  error string
  * @param[in] loga: error additional information
  */
-#define OSI_INFO(priv, type, err, loga)				\
+#define OSI_DMA_INFO(priv, type, err, loga)				\
 {								\
 	osi_dma->osd_ops.ops_log(priv, __func__, __LINE__,	\
 				 OSI_LOG_INFO, type, err, loga);\
 }
-
+#endif /* !OSI_STRIPPED_LIB */
 /**
  * @addtogroup EQOS-PKT Packet context fields
  *

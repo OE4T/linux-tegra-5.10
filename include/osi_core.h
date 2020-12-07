@@ -132,10 +132,6 @@ typedef my_lint_64		nvel64_t;
 #define TWO_POWER_31		0x80000000U
 /** @} */
 
-/* to avoid re definition when both core and dma headers are included */
-#undef OSI_ERR
-#undef OSI_INFO
-
 /**
  * @brief OSI error macro definition,
  * @param[in] priv: OSD private data OR NULL
@@ -143,7 +139,7 @@ typedef my_lint_64		nvel64_t;
  * @param[in] err:  error string
  * @param[in] loga: error additional information
  */
-#define OSI_ERR(priv, type, err, loga)				\
+#define OSI_CORE_ERR(priv, type, err, loga)			\
 {								\
 	osi_core->osd_ops.ops_log(priv, __func__, __LINE__,	\
 				  OSI_LOG_ERR, type, err, loga);\
@@ -156,7 +152,7 @@ typedef my_lint_64		nvel64_t;
  * @param[in] err:  error string
  * @param[in] loga: error additional information
  */
-#define OSI_INFO(priv, type, err, loga)					\
+#define OSI_CORE_INFO(priv, type, err, loga)				\
 {									\
 	osi_core->osd_ops.ops_log(priv, __func__, __LINE__,		\
 				  OSI_LOG_INFO, type, err, loga);	\

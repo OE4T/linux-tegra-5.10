@@ -228,8 +228,8 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 	if ((op->config_mac_pkt_filter_reg != OSI_NULL)) {
 		ret = op->config_mac_pkt_filter_reg(osi_core, filter);
 	} else {
-		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			 "op->config_mac_pkt_filter_reg is null\n", 0ULL);
+		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			      "op->config_mac_pkt_filter_reg is null\n", 0ULL);
 		return ret;
 	}
 
@@ -239,9 +239,9 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 
 		if ((filter->dma_routing == OSI_ENABLE) &&
 		    (osi_core->dcs_en != OSI_ENABLE)) {
-			OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-				"DCS requested. Conflicts with DT config\n",
-				0ULL);
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "DCS requested. Conflicts with DT config\n",
+				     0ULL);
 			return ret;
 		}
 
@@ -249,9 +249,9 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 			ret = op->update_mac_addr_low_high_reg(osi_core,
 								filter);
 		} else {
-			OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-				 "op->update_mac_addr_low_high_reg is null\n",
-				 0ULL);
+			OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+				      "op->update_mac_addr_low_high_reg is null\n",
+				      0ULL);
 		}
 	}
 
@@ -299,8 +299,8 @@ static inline nve32_t helper_l4_filter(
 			return -1;
 		}
 	} else {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"op->config_l4_filters is NULL\n", 0ULL);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "op->config_l4_filters is NULL\n", 0ULL);
 		return -1;
 	}
 
@@ -310,8 +310,8 @@ static inline nve32_t helper_l4_filter(
 					     l_filter.port_no,
 					     l_filter.src_dst_addr_match);
 	} else {
-		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			 "op->update_l4_port_no is NULL\n", 0ULL);
+		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			      "op->update_l4_port_no is NULL\n", 0ULL);
 		return -1;
 	}
 
@@ -358,8 +358,8 @@ static inline nve32_t helper_l3_filter(
 			return -1;
 		}
 	} else {
-		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			 "op->config_l3_filters is NULL\n", 0ULL);
+		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			      "op->config_l3_filters is NULL\n", 0ULL);
 		return -1;
 	}
 
@@ -368,8 +368,8 @@ static inline nve32_t helper_l3_filter(
 			return op->update_ip6_addr(osi_core, l_filter.filter_no,
 					  l_filter.ip6_addr);
 		} else {
-			OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-				 "op->update_ip6_addr is NULL\n", 0ULL);
+			OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+				      "op->update_ip6_addr is NULL\n", 0ULL);
 			return -1;
 		}
 	} else if (type == OSI_IP4_FILTER) {
@@ -379,9 +379,8 @@ static inline nve32_t helper_l3_filter(
 						   l_filter.ip4_addr,
 						   l_filter.src_dst_addr_match);
 		} else {
-			OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-				 "op->update_ip4_addr is NULL\n",
-				 0ULL);
+			OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+				      "op->update_ip4_addr is NULL\n", 0ULL);
 			return -1;
 		}
 	} else {
@@ -403,9 +402,9 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (osi_core->dcs_en != OSI_ENABLE)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"dma routing enabled but dcs disabled in DT\n",
-			0ULL);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "dma routing enabled but dcs disabled in DT\n",
+			     0ULL);
 		return ret;
 	}
 
@@ -418,8 +417,8 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 	}
 
 	if (ret < 0) {
-		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			 "L3/L4 helper function failed\n", 0ULL);
+		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			      "L3/L4 helper function failed\n", 0ULL);
 		return ret;
 	}
 
@@ -435,8 +434,8 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 		}
 
 	} else {
-		OSI_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			 "op->config_l3_l4_filter_enable is NULL\n", 0ULL);
+		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
+			      "op->config_l3_l4_filter_enable is NULL\n", 0ULL);
 		ret = -1;
 	}
 
@@ -518,8 +517,8 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 	if ((UINT_MAX - ppb1) > 0) {
 		adj = (nveu64_t)addend * (nveu32_t)ppb1;
 	} else {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "ppb1 > UINT_MAX\n",
-			0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "ppb1 > UINT_MAX\n",
+			     0ULL);
 		return ret;
 	}
 
@@ -531,8 +530,8 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 	if (temp < UINT_MAX) {
 		diff = (nveu32_t)temp;
 	} else {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "temp > UINT_MAX\n",
-			0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "temp > UINT_MAX\n",
+			     0ULL);
 		return ret;
 	}
 
@@ -540,8 +539,8 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		if (addend <= (UINT_MAX - diff)) {
 			addend = (addend + diff);
 		} else {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"addend > UINT_MAX\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "addend > UINT_MAX\n", 0ULL);
 			return -1;
 		}
 	} else {
@@ -550,8 +549,8 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		} else if (addend < diff) {
 			addend = diff - addend;
 		} else {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"quotient > UINT_MAX\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "quotient > UINT_MAX\n", 0ULL);
 			return -1;
 		}
 	}
@@ -561,8 +560,8 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		return osi_core->ops->config_addend(osi_core, addend);
 	}
 
-	OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "core: Invalid argument\n",
-		0ULL);
+	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "core: Invalid argument\n",
+		     0ULL);
 
 	return ret;
 }
@@ -591,8 +590,8 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	    ((OSI_ULLONG_MAX - nsec_delta1) > 0)) {
 		udelta = (nveul64_t)nsec_delta1;
 	} else {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"nsec_delta1 > OSI_ULLONG_MAX\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "nsec_delta1 > OSI_ULLONG_MAX\n", 0ULL);
 		return ret;
 	}
 
@@ -600,15 +599,15 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	if (quotient <= UINT_MAX) {
 		sec = (nveu32_t)quotient;
 	} else {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "quotient > UINT_MAX\n",
-			0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "quotient > UINT_MAX\n", 0ULL);
 		return ret;
 	}
 	if (reminder <= UINT_MAX) {
 		nsec = (nveu32_t)reminder;
 	} else {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "reminder > UINT_MAX\n",
-			0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "reminder > UINT_MAX\n", 0ULL);
 		return ret;
 	}
 
@@ -619,8 +618,8 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 					osi_core->ptp_config.one_nsec_accuracy);
 	}
 
-	OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "core: Invalid argument\n",
-		0ULL);
+	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "core: Invalid argument\n",
+		     0ULL);
 
 	return ret;
 }
@@ -677,8 +676,8 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		if (temp2 < UINT_MAX) {
 			osi_core->default_addend = (nveu32_t)temp2;
 		} else {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"core: temp2 >= UINT_MAX\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "core: temp2 >= UINT_MAX\n", 0ULL);
 			return -1;
 		}
 

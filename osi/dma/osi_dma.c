@@ -61,8 +61,8 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		return 0;
 	}
 
-	OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "dma: Invalid argument\n",
-		0ULL);
+	OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "dma: Invalid argument\n",
+		    0ULL);
 	return -1;
 }
 
@@ -77,8 +77,8 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	    (osi_dma->num_dma_chans <= OSI_EQOS_MAX_NUM_CHANS)) {
 		ret = osi_dma->ops->init_dma_channel(osi_dma);
 		if (ret < 0) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma: init dma channel failed\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma: init dma channel failed\n", 0ULL);
 			return ret;
 		}
 	} else {
@@ -96,22 +96,22 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 
 		ret = osi_enable_chan_tx_intr(osi_dma, chan);
 		if (ret != 0) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma: enable tx intr failed\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma: enable tx intr failed\n", 0ULL);
 			return ret;
 		}
 
 		ret = osi_enable_chan_rx_intr(osi_dma, chan);
 		if (ret != 0) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma: enable rx intr failed\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma: enable rx intr failed\n", 0ULL);
 			return ret;
 		}
 
 		ret = osi_start_dma(osi_dma, chan);
 		if (ret != 0) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma: start dma failed\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma: start dma failed\n", 0ULL);
 			return ret;
 		}
 	}
@@ -292,14 +292,14 @@ static inline nve32_t rx_dma_desc_validate_args(
 
 	if (!((rx_ring != OSI_NULL) && (rx_ring->rx_swcx != OSI_NULL) &&
 	      (rx_ring->rx_desc != OSI_NULL))) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma: Invalid pointers\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma: Invalid pointers\n", 0ULL);
 		return -1;
 	}
 
 	if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "dma: Invalid channel\n",
-			0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma: Invalid channel\n", 0ULL);
 		return -1;
 	}
 
@@ -373,8 +373,8 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		/* Populate the newly allocated buffer address */
 		temp = L32(rx_swcx->buf_phy_addr);
 		if (temp > UINT_MAX) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma: Invalid buf_phy_addr\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma: Invalid buf_phy_addr\n", 0ULL);
 			/* error case do nothing */
 		} else {
 			/* Store Receive Descriptor 0 */
@@ -386,8 +386,8 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 			/* Store Receive Descriptor 1 */
 			rx_desc->rdes1 = (nveu32_t)temp;
 		} else {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma: Invalid buf_phy_addr\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma: Invalid buf_phy_addr\n", 0ULL);
 		}
 
 		rx_desc->rdes2 = 0;
@@ -409,8 +409,8 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 
 	if (osi_unlikely(tailptr < rx_ring->rx_desc_phy_addr)) {
 		/* Will not hit this case, used for CERT-C compliance */
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "dma: Invalid tailptr\n",
-			0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma: Invalid tailptr\n", 0ULL);
 		return -1;
 	}
 
@@ -485,17 +485,16 @@ static inline nve32_t osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
 
 	/* return on invalid set argument */
 	if ((set != OSI_ENABLE) && (set != OSI_DISABLE)) {
-		OSI_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
-			"dma: Invalid set argument\n",
-			set);
+		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
+			    "dma: Invalid set argument\n", set);
 		return -1;
 	}
 
 	/* NULL check for osi_dma, osi_dma->ops and osi_dma->ops->config_slot */
 	if ((osi_dma->ops == OSI_NULL) ||
 	    (osi_dma->ops->config_slot == OSI_NULL)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma: Invalid set argument\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma: Invalid set argument\n", 0ULL);
 		return -1;
 	}
 
@@ -526,19 +525,17 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 			/* Get DMA slot interval and validate */
 			interval = osi_dma->slot_interval[chan];
 			if (interval > OSI_SLOT_INTVL_MAX) {
-				OSI_ERR(osi_dma->osd,
-					OSI_LOG_ARG_INVALID,
-					"dma: Invalid interval arguments\n",
-					interval);
+				OSI_DMA_ERR(osi_dma->osd,
+					    OSI_LOG_ARG_INVALID,
+					    "dma: Invalid interval arguments\n",
+					    interval);
 				return -1;
 			}
 
 			tx_ring = osi_dma->tx_ring[chan];
 			if (tx_ring == OSI_NULL) {
-				OSI_ERR(osi_dma->osd,
-					OSI_LOG_ARG_INVALID,
-					"tx_ring is null\n",
-					chan);
+				OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
+					    "tx_ring is null\n", chan);
 				return -1;
 			}
 			tx_ring->slot_check = set;

@@ -338,8 +338,8 @@ static nve32_t eqos_config_flow_control(
 
 	/* return on invalid argument */
 	if (flw_ctrl > (OSI_FLOW_CTRL_RX | OSI_FLOW_CTRL_TX)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"flw_ctr: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "flw_ctr: invalid input\n", 0ULL);
 		return -1;
 	}
 
@@ -423,8 +423,8 @@ static nve32_t eqos_config_fw_err_pkts(
 	/* Check for valid fw_err and qinx values */
 	if (((fw_err != OSI_ENABLE) && (fw_err != OSI_DISABLE)) ||
 	    (qinx >= OSI_EQOS_MAX_NUM_CHANS)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"config_fw_err: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "config_fw_err: invalid input\n", 0ULL);
 		return -1;
 	}
 
@@ -497,8 +497,8 @@ static nve32_t eqos_poll_for_swr(struct osi_core_priv_data *const osi_core,
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				"poll_for_swr: timeout\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "poll_for_swr: timeout\n", 0ULL);
 			return -1;
 		}
 
@@ -600,8 +600,8 @@ static nve32_t eqos_set_mode(struct osi_core_priv_data *const osi_core,
 		/* Set DO (disable receive own) bit */
 		mcr_val |= EQOS_MCR_DO;
 	} else {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"set_mode: invalid mode\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "set_mode: invalid mode\n", 0ULL);
 		return -1;
 		/* Nothing here */
 	}
@@ -833,8 +833,8 @@ static nve32_t eqos_flush_mtl_tx_queue(
 	nve32_t cond = 1;
 
 	if (qinx >= OSI_EQOS_MAX_NUM_QUEUES) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"flush_mtl_tx_queue: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "flush_mtl_tx_queue: invalid input\n", 0ULL);
 		return -1;
 	}
 
@@ -850,8 +850,8 @@ static nve32_t eqos_flush_mtl_tx_queue(
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"Poll FTQ bit timeout\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "Poll FTQ bit timeout\n", 0ULL);
 				return -1;
 		}
 
@@ -1088,8 +1088,8 @@ static nve32_t eqos_config_rxcsum_offload(
 	nveu32_t mac_mcr;
 
 	if ((enabled != OSI_ENABLE) && (enabled != OSI_DISABLE)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"rxsum_offload: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "rxsum_offload: invalid input\n", 0ULL);
 		return -1;
 	}
 
@@ -1152,9 +1152,9 @@ static void eqos_configure_rxq_priority(
 			pmask |= osi_core->rxq_prio[mtlq];
 			temp = osi_core->rxq_prio[mtlq];
 		} else {
-			OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-				"Invalid rxq Priority for Q\n",
-				(nveul64_t)mtlq);
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "Invalid rxq Priority for Q\n",
+				     (nveul64_t)mtlq);
 			continue;
 
 		}
@@ -1314,9 +1314,9 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 		osi_core->flow_ctrl = (OSI_FLOW_CTRL_TX | OSI_FLOW_CTRL_RX);
 		if (eqos_config_flow_control(osi_core, osi_core->flow_ctrl) !=
 		    0) {
-			OSI_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-				"Failed to set flow control configuration\n",
-				0ULL);
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				     "Failed to set flow control configuration\n",
+				     0ULL);
 		}
 	}
 	/* USP (user Priority) to RxQ Mapping, only if DCS not enabled */
@@ -1413,9 +1413,8 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	/* PAD calibration */
 	ret = eqos_pad_calibrate(osi_core);
 	if (ret < 0) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-			"eqos pad calibration failed\n",
-			0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "eqos pad calibration failed\n", 0ULL);
 		return ret;
 	}
 
@@ -1447,8 +1446,8 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 				EQOS_MTL_RXQ_DMA_MAP0_IDX);
 
 	if (osi_unlikely(osi_core->num_mtl_queues > OSI_EQOS_MAX_NUM_QUEUES)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"Number of queues is incorrect\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Number of queues is incorrect\n", 0ULL);
 		return -1;
 	}
 
@@ -1463,8 +1462,8 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core,
 	for (qinx = 0; qinx < osi_core->num_mtl_queues; qinx++) {
 		if (osi_unlikely(osi_core->mtl_queues[qinx] >=
 				 OSI_EQOS_MAX_NUM_QUEUES)) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"Incorrect queues number\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "Incorrect queues number\n", 0ULL);
 			return -1;
 		}
 		ret = eqos_configure_mtl_queue(osi_core->mtl_queues[qinx],
@@ -1538,14 +1537,14 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 	if ((mac_pcs & EQOS_MAC_PCS_LNKMOD) == EQOS_MAC_PCS_LNKMOD) {
 		ret = eqos_set_mode(osi_core, OSI_FULL_DUPLEX);
 		if (osi_unlikely(ret < 0)) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				"set mode in full duplex failed\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "set mode in full duplex failed\n", 0ULL);
 		}
 	} else {
 		ret = eqos_set_mode(osi_core, OSI_HALF_DUPLEX);
 		if (osi_unlikely(ret < 0)) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				"set mode in half duplex failed\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "set mode in half duplex failed\n", 0ULL);
 		}
 	}
 
@@ -1918,9 +1917,9 @@ static inline nve32_t eqos_update_mac_addr_helper(
 				  EQOS_MAC_ADDRH_DCS);
 		} else if ((dma_chan == OSI_CHAN_ANY) ||
 			   (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 0x1U))) {
-			OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-				"invalid dma channel\n",
-				(nveul64_t)dma_chan);
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+				     "invalid dma channel\n",
+				     (nveul64_t)dma_chan);
 			ret = -1;
 			goto err_dma_chan;
 		} else {
@@ -1936,9 +1935,9 @@ static inline nve32_t eqos_update_mac_addr_helper(
 				  ((addr_mask << EQOS_MAC_ADDRH_MBC_SHIFT) &
 				   EQOS_MAC_ADDRH_MBC));
 		} else {
-			OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-				"invalid address index for MBC\n",
-				0ULL);
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "invalid address index for MBC\n",
+				     0ULL);
 			ret = -1;
 		}
 	}
@@ -1988,9 +1987,8 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 	nve32_t ret = 0;
 
 	if (idx > (EQOS_MAX_MAC_ADDRESS_FILTER -  0x1U)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"invalid MAC filter index\n",
-			0ULL);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "invalid MAC filter index\n", 0ULL);
 		return -1;
 	}
 
@@ -2107,15 +2105,15 @@ static nve32_t eqos_update_ip4_addr(struct osi_core_priv_data *const osi_core,
 	nveu32_t temp = 0U;
 
 	if (addr == OSI_NULL) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID, "invalid address\n",
-			0ULL);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "invalid address\n", 0ULL);
 		return -1;
 	}
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			     "invalid filter index for L3/L4 filter\n",
+			     (nveul64_t)filter_no);
 		return -1;
 	}
 
@@ -2169,15 +2167,15 @@ static nve32_t eqos_update_ip6_addr(struct osi_core_priv_data *const osi_core,
 	nveu32_t temp = 0U;
 
 	if (addr == OSI_NULL) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID, "invalid address\n",
-			0ULL);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "invalid address\n", 0ULL);
 		return -1;
 	}
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "invalid filter index for L3/L4 filter\n",
+			     (nveul64_t)filter_no);
 		return -1;
 	}
 
@@ -2247,9 +2245,9 @@ static nve32_t eqos_update_l4_port_no(
 	nveu32_t temp = 0U;
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			     "invalid filter index for L3/L4 filter\n",
+			     (nveul64_t)filter_no);
 		return -1;
 	}
 
@@ -2402,17 +2400,16 @@ static nve32_t eqos_config_l3_filters(
 	void *base = osi_core->base;
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			     "invalid filter index for L3/L4 filter\n",
+			     (nveul64_t)filter_no);
 		return -1;
 	}
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 1U))) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"Wrong DMA channel\n",
-			(nveul64_t)dma_chan);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			     "Wrong DMA channel\n", (nveul64_t)dma_chan);
 		return -1;
 	}
 
@@ -2584,17 +2581,16 @@ static nve32_t eqos_config_l4_filters(
 	nveu32_t value = 0U;
 
 	if (filter_no > (EQOS_MAX_L3_L4_FILTER - 0x1U)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"invalid filter index for L3/L4 filter\n",
-			(nveul64_t)filter_no);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			     "invalid filter index for L3/L4 filter\n",
+			     (nveul64_t)filter_no);
 		return -1;
 	}
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
 	    (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 1U))) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-			"Wrong DMA channel\n",
-			(nveu32_t)dma_chan);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
+			     "Wrong DMA channel\n", (nveu32_t)dma_chan);
 		return -1;
 	}
 
@@ -2702,8 +2698,8 @@ static inline nve32_t eqos_poll_for_tsinit_complete(
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				"poll_for_tsinit: timeout\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "poll_for_tsinit: timeout\n", 0ULL);
 			return -1;
 		}
 		/* Read and Check TSINIT in MAC_Timestamp_Control register */
@@ -2813,8 +2809,8 @@ static inline nve32_t eqos_poll_for_addend_complete(
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				"poll_for_addend: timeout\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "poll_for_addend: timeout\n", 0ULL);
 			return -1;
 		}
 		/* Read and Check TSADDREG in MAC_Timestamp_Control register */
@@ -2915,8 +2911,8 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
-				"poll_for_update_ts: timeout\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+				     "poll_for_update_ts: timeout\n", 0ULL);
 			return -1;
 		}
 		/* Read and Check TSUPDT in MAC_Timestamp_Control register */
@@ -3213,9 +3209,8 @@ static inline nve32_t poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			OSI_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-				"MII operation timed out\n",
-				0ULL);
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				     "MII operation timed out\n", 0ULL);
 			return -1;
 		}
 		count++;
@@ -3472,8 +3467,8 @@ static nve32_t eqos_validate_core_regs(
 			 * take care of corrective action.
 			 */
 			osi_unlock_irq_enabled(&config->core_safety_lock);
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"register mismatch\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "register mismatch\n", 0ULL);
 			return -1;
 		}
 	}
@@ -3514,8 +3509,8 @@ static nve32_t eqos_config_rx_crc_check(
 
 	/* return on invalid argument */
 	if (crc_chk != OSI_ENABLE && crc_chk != OSI_DISABLE) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"rx_crc: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "rx_crc: invalid input\n", 0ULL);
 		return -1;
 	}
 
@@ -3571,8 +3566,8 @@ static nve32_t eqos_config_tx_status(struct osi_core_priv_data *const osi_core,
 
 	/* don't allow if tx_status is other than 0 or 1 */
 	if (tx_status != OSI_ENABLE && tx_status != OSI_DISABLE) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"tx_status: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "tx_status: invalid input\n", 0ULL);
 		return -1;
 	}
 
@@ -3641,33 +3636,30 @@ static nve32_t eqos_set_avb_algorithm(
 	nveu32_t qinx;
 
 	if (avb == OSI_NULL) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"avb structure is NULL\n",
-			0ULL);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "avb structure is NULL\n",	0ULL);
 		return ret;
 	}
 
 	/* queue index in range */
 	if (avb->qindex >= OSI_EQOS_MAX_NUM_QUEUES) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid Queue index\n",
-			(nveul64_t)avb->qindex);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid Queue index\n", (nveul64_t)avb->qindex);
 		return ret;
 	}
 
 	/* queue oper_mode in range check*/
 	if (avb->oper_mode >= OSI_MTL_QUEUE_MODEMAX) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid Queue mode\n",
-			(nveul64_t)avb->qindex);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid Queue mode\n", (nveul64_t)avb->qindex);
 		return ret;
 	}
 
 	/* can't set AVB mode for queue 0 */
 	if ((avb->qindex == 0U) && (avb->oper_mode == OSI_MTL_QUEUE_AVB)) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
-			"Not allowed to set AVB for Q0\n",
-			(nveul64_t)avb->qindex);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
+			     "Not allowed to set AVB for Q0\n",
+			     (nveul64_t)avb->qindex);
 		return ret;
 	}
 
@@ -3762,16 +3754,14 @@ static nve32_t eqos_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
 	nveu32_t qinx = 0U;
 
 	if (avb == OSI_NULL) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"avb structure is NULL\n",
-			0ULL);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "avb structure is NULL\n", 0ULL);
 		return ret;
 	}
 
 	if (avb->qindex >= OSI_EQOS_MAX_NUM_QUEUES) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			"Invalid Queue index\n",
-			(nveul64_t)avb->qindex);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid Queue index\n", (nveul64_t)avb->qindex);
 		return ret;
 	}
 
@@ -3856,8 +3846,8 @@ static nve32_t eqos_config_arp_offload(const nveu32_t mac_ver,
 	nveu32_t val;
 
 	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"arp_offload: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "arp_offload: invalid input\n", 0ULL);
 		return -1;
 	}
 
@@ -3877,8 +3867,8 @@ static nve32_t eqos_config_arp_offload(const nveu32_t mac_ver,
 				   EQOS_5_00_MAC_ARPPA);
 		} else {
 			/* Unsupported MAC ver */
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"arp_offload: invalid HW\n", 0ULL);
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "arp_offload: invalid HW\n", 0ULL);
 			return -1;
 		}
 
@@ -3929,22 +3919,22 @@ static nve32_t eqos_config_vlan_filtering(
 	void *base = osi_core->base;
 
 	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"vlan_filter: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
 	if (perfect_hash_filtering != OSI_ENABLE &&
 	    perfect_hash_filtering != OSI_DISABLE) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"vlan_filter: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
 	if (perfect_inverse_match != OSI_ENABLE &&
 	    perfect_inverse_match != OSI_DISABLE) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"vlan_filter: invalid input\n", 0ULL);
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
@@ -3959,9 +3949,9 @@ static nve32_t eqos_config_vlan_filtering(
 	value |= ((perfect_inverse_match << EQOS_MAC_VLAN_TR_VTIM_SHIFT) &
 		  EQOS_MAC_VLAN_TR_VTIM);
 	if (perfect_hash_filtering == OSI_HASH_FILTER_MODE) {
-		OSI_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
-			"VLAN hash filter is not supported, no updat of VTHM\n",
-			0ULL);
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OPNOTSUPP,
+			     "VLAN hash filter is not supported, no update of VTHM\n",
+			     0ULL);
 	}
 	osi_writel(value, (nveu8_t *)base + EQOS_MAC_VLAN_TR);
 	return 0;
