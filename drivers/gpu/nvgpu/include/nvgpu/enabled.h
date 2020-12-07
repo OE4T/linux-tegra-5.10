@@ -202,6 +202,8 @@ struct gk20a;
 	DEFINE_FLAG(NVGPU_SUPPORT_GET_GR_CONTEXT,			\
 		"Get gr context support"),				\
 	DEFINE_FLAG(NVGPU_PMU_NEXT_CORE_ENABLED, "PMU NEXT CORE enabled"), \
+	DEFINE_FLAG(NVGPU_ACR_NEXT_CORE_ENABLED,                        \
+		"NEXT CORE availability for acr"),                      \
 	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
 /**
