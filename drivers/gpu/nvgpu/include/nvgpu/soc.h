@@ -111,7 +111,10 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g);
  * - Check if nvgpu_is_hypervisor_mode is enabled if yes then
  *   - If module is not virtual then set nvgpu_hv_ipa_pa to desc->phys_addr.
  *
- * @return Returns 0 on success or in case of failure, a suitable error code.
+ * @return 0 in case of success, <0 in case of call to NvHvGetOsVmId() gets fail.
+ * @retval ENODEV Get VM id fails to open device node.
+ * @retval EINVAL Invalid argument
+ * @retval EFAULT devctl call to nvhv device node returned failure
  */
 int nvgpu_init_soc_vars(struct gk20a *g);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -176,7 +176,18 @@ void nvgpu_start_gpu_idle(struct gk20a *g);
  *   - set r->irq_requested to true once all the irqs are enabled successfully.
  *   - In case of failure start cleanup in the reverse order of init.
  *
- *  @return 0 in case of success or error code for the respective failure.
+ *  @return 0 in case of success, <0 in case of failure.
+ *  @retval ENOMEM is returned if (1) Insufficient memory to initialize the
+ *  condition variable attribute object attr, (2) All kernel synchronization
+ *  objects are in use, or there wasn't enough memory to initialize the condvar.
+ *  @retval EBUSY is returned if the cond argument pointer to a previously
+ *  initialized condition variable that hasn't been destroyed.
+ *  @retval EINVAL is returned if invalid value attr passed.
+ *  @retval EFAULT is returned if (1) A fault occurred when the kernel tried to
+ *  access cond or attr, (2) An error occurred trying to access the buffers or
+ *  the start_routine provided.
+ *  @retval EAGAIN is returned if insufficient system resources to create thread.
+ *  @retval Other error codes if pthread_attr_destroy() fails.
  */
 int nvgpu_enable_irqs(struct gk20a *g);
 
