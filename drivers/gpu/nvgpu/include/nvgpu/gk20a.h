@@ -542,7 +542,9 @@ struct gk20a {
 	*/
 	u32 comptag_mem_deduct;
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	u32 max_comptag_mem; /* max memory size (MB) for comptag */
+#endif
 
 	u32 ltc_streamid;
 
