@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,6 +49,8 @@ struct nvgpu_fbp;
  * and exposed to other units through APIs.
  *
  * @return 0 for success and <0 value for failure.
+ * @retval -ENOMEM in case there is insufficient memory to allocate struct
+ *         nvgpu_fbp
  */
 int nvgpu_fbp_init_support(struct gk20a *g);
 
