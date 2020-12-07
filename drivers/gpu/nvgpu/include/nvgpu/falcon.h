@@ -130,6 +130,7 @@
 #define FALCON_ID_SEC2      (7U)
 /** Falcon ID for MINION engine */
 #define FALCON_ID_MINION    (10U)
+#define FALCON_ID_PMU_NEXT_CORE (13U)
 #define FALCON_ID_END	    (15U)
 #define FALCON_ID_INVALID   0xFFFFFFFFU
 

@@ -118,6 +118,7 @@ struct hs_acr {
 #if defined(CONFIG_NVGPU_NEXT)
 	struct nvgpu_mem acr_falcon2_sysmem_desc;
 	struct flcn2_acr_desc acr_sysmem_desc;
+	struct nvgpu_mem ls_pmu_desc;
 #endif
 
 	/* Falcon used to execute ACR ucode */

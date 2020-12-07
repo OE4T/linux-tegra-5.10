@@ -597,6 +597,8 @@ struct flcn2_acr_desc {
 	 * kernel stores ucode blob
 	 */
 	u64 nonwpr_ucode_blob_start;
+
+	u64 ls_pmu_desc;
 };
 
 /** @} */

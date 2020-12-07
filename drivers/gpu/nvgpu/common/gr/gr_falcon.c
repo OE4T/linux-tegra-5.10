@@ -573,7 +573,8 @@ static int gr_falcon_sec2_or_ls_pmu_bootstrap(struct gk20a *g,
 	} else
 #endif
 #ifdef CONFIG_NVGPU_LS_PMU
-	if (g->support_ls_pmu) {
+	if (g->support_ls_pmu &&
+		!nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 		bootstrap_set = true;
 		nvgpu_log(g, gpu_dbg_gr, "bootstrap by LS PMU");
 

@@ -25,6 +25,7 @@
 
 #include <nvgpu/falcon.h>
 #include <nvgpu/flcnif_cmn.h>
+#include <nvgpu/pmu.h>
 
 #include "nvgpu_acr_interface.h"
 
@@ -85,6 +86,10 @@ struct flcn_ucode_img {
 	struct ls_falcon_ucode_desc *desc;
 	u32 data_size;
 	struct lsf_ucode_desc *lsf_desc;
+	bool is_next_core_img;
+#if defined(CONFIG_NVGPU_NEXT)
+	struct falcon_next_core_ucode_desc *ndesc;
+#endif
 };
 
 struct lsfm_managed_ucode_img {
@@ -135,6 +140,9 @@ struct ls_flcn_mgr {
 int nvgpu_acr_prepare_ucode_blob(struct gk20a *g);
 #ifdef CONFIG_NVGPU_LS_PMU
 int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img);
+#if defined(CONFIG_NVGPU_NEXT)
+s32 nvgpu_acr_lsf_pmu_ncore_ucode_details(struct gk20a *g, void *lsf_ucode_img);
+#endif
 #endif
 int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img);
 int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img);

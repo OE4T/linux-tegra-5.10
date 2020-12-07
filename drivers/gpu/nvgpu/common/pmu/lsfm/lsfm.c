@@ -41,6 +41,12 @@
 static bool is_lsfm_supported(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm)
 {
+#if defined(CONFIG_NVGPU_NEXT)
+	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+		return false;
+	}
+#endif
+
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY) &&
 			(lsfm != NULL)) {
 		return true;

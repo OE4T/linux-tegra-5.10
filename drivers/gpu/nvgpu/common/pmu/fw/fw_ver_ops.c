@@ -1170,27 +1170,13 @@ static int pmu_prepare_ns_ucode_blob_v1(struct gk20a *g)
 		nvgpu_mem_wr_n(g, &pmu->fw->ucode, 0, ucode_image,
 				rtos_fw->fw_image->size);
 
+#if defined(CONFIG_NVGPU_NEXT)
 		/* alloc boot args */
-		if (!nvgpu_mem_is_valid(&rtos_fw->ucode_boot_args)) {
-			err = nvgpu_dma_alloc_flags_sys(g,
-					NVGPU_DMA_PHYSICALLY_ADDRESSED,
-					sizeof(struct nv_pmu_boot_params),
-					&rtos_fw->ucode_boot_args);
-			if (err != 0) {
-				goto exit;
-			}
+		err = nvgpu_pmu_next_core_rtos_args_allocate(g, pmu);
+		if (err != 0) {
+			goto exit;
 		}
-
-		/* alloc core dump */
-		if (!nvgpu_mem_is_valid(&rtos_fw->ucode_core_dump)) {
-			err = nvgpu_dma_alloc_flags_sys(g,
-					NVGPU_DMA_PHYSICALLY_ADDRESSED,
-					NV_REG_STR_NEXT_CORE_DUMP_SIZE_DEFAULT,
-					&rtos_fw->ucode_core_dump);
-			if (err != 0) {
-				goto exit;
-			}
-		}
+#endif
 	} else {
 		desc = (struct pmu_ucode_desc_v1 *)(void *)
 					rtos_fw->fw_desc->data;

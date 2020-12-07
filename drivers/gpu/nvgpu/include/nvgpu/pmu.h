@@ -445,6 +445,14 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 int nvgpu_pmu_rtos_early_init(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_rtos_init(struct gk20a *g);
 int nvgpu_pmu_destroy(struct gk20a *g, struct nvgpu_pmu *pmu);
+
+void nvgpu_pmu_rtos_cmdline_args_init(struct gk20a *g, struct nvgpu_pmu *pmu);
+#if defined(CONFIG_NVGPU_NEXT)
+void nvgpu_pmu_next_core_rtos_args_setup(struct gk20a *g,
+		struct nvgpu_pmu *pmu);
+s32 nvgpu_pmu_next_core_rtos_args_allocate(struct gk20a *g,
+		struct nvgpu_pmu *pmu);
+#endif
 #endif
 
 /**

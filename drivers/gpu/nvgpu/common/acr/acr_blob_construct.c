@@ -102,6 +102,44 @@ int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 exit:
 	return err;
 }
+#if defined(CONFIG_NVGPU_NEXT)
+s32 nvgpu_acr_lsf_pmu_ncore_ucode_details(struct gk20a *g, void *lsf_ucode_img)
+{
+	struct lsf_ucode_desc *lsf_desc;
+	struct nvgpu_firmware *fw_sig;
+	struct nvgpu_firmware *fw_desc;
+	struct nvgpu_firmware *fw_image;
+	struct flcn_ucode_img *p_img =
+		(struct flcn_ucode_img *)lsf_ucode_img;
+	s32 err = 0;
+
+	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
+	if (lsf_desc == NULL) {
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	fw_sig = nvgpu_pmu_fw_sig_desc(g, g->pmu);
+	fw_desc = nvgpu_pmu_fw_desc_desc(g, g->pmu);
+	fw_image = nvgpu_pmu_fw_image_desc(g, g->pmu);
+
+	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)fw_sig->data,
+		min_t(size_t, sizeof(*lsf_desc), fw_sig->size));
+
+	lsf_desc->falcon_id = FALCON_ID_PMU_NEXT_CORE;
+
+	p_img->ndesc = (struct falcon_next_core_ucode_desc *)(void *)fw_desc->data;
+
+	p_img->data = (u32 *)(void *)fw_image->data;
+	p_img->data_size = U32(fw_image->size);
+	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
+
+	p_img->is_next_core_img = true;
+
+exit:
+	return err;
+}
+#endif
 #endif
 
 int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
@@ -431,51 +469,60 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 			sizeof(struct lsf_ucode_desc));
 	}
 
-	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
+	if (!pnode->ucode_img.is_next_core_img) {
+		pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
 
-	/* Uses a loader. that is has a desc */
-	pnode->lsb_header.data_size = LSB_HDR_DATA_SIZE;
+		/* Uses a loader. that is has a desc */
+		pnode->lsb_header.data_size = LSB_HDR_DATA_SIZE;
 
-	/*
-	 * The loader code size is already aligned (padded) such that
-	 * the code following it is aligned, but the size in the image
-	 * desc is not, bloat it up to be on a 256 byte alignment.
-	 */
-	pnode->lsb_header.bl_code_size = ALIGN(
-		pnode->ucode_img.desc->bootloader_size,
-		LSF_BL_CODE_SIZE_ALIGNMENT);
-	full_app_size = nvgpu_safe_add_u32(
-			ALIGN(pnode->ucode_img.desc->app_size,
-				LSF_BL_CODE_SIZE_ALIGNMENT),
-			pnode->lsb_header.bl_code_size);
-
-	pnode->lsb_header.ucode_size = nvgpu_safe_add_u32(ALIGN(
-			pnode->ucode_img.desc->app_resident_data_offset,
-			LSF_BL_CODE_SIZE_ALIGNMENT),
+		/*
+		 * The loader code size is already aligned (padded) such that
+		 * the code following it is aligned, but the size in the image
+		 * desc is not, bloat it up to be on a 256 byte alignment.
+		 */
+		pnode->lsb_header.bl_code_size = ALIGN(
+			pnode->ucode_img.desc->bootloader_size,
+			LSF_BL_CODE_SIZE_ALIGNMENT);
+		full_app_size = nvgpu_safe_add_u32(
+				ALIGN(pnode->ucode_img.desc->app_size,
+					LSF_BL_CODE_SIZE_ALIGNMENT),
 				pnode->lsb_header.bl_code_size);
 
-	pnode->lsb_header.data_size = nvgpu_safe_sub_u32(full_app_size,
-					pnode->lsb_header.ucode_size);
-	/*
-	 * Though the BL is located at 0th offset of the image, the VA
-	 * is different to make sure that it doesn't collide the actual OS
-	 * VA range
-	 */
-	pnode->lsb_header.bl_imem_off =
-	pnode->ucode_img.desc->bootloader_imem_offset;
+		pnode->lsb_header.ucode_size = nvgpu_safe_add_u32(ALIGN(
+				pnode->ucode_img.desc->app_resident_data_offset,
+				LSF_BL_CODE_SIZE_ALIGNMENT),
+					pnode->lsb_header.bl_code_size);
 
-	pnode->lsb_header.flags = NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_FALSE;
+		pnode->lsb_header.data_size = nvgpu_safe_sub_u32(full_app_size,
+						pnode->lsb_header.ucode_size);
+		/*
+		 * Though the BL is located at 0th offset of the image, the VA
+		 * is different to make sure that it doesn't collide the actual OS
+		 * VA range
+		 */
+		pnode->lsb_header.bl_imem_off =
+		pnode->ucode_img.desc->bootloader_imem_offset;
 
-	if (falcon_id == FALCON_ID_PMU) {
-		data = NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE;
-		pnode->lsb_header.flags = data;
+		pnode->lsb_header.flags = NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_FALSE;
+
+		if (falcon_id == FALCON_ID_PMU) {
+			data = NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE;
+			pnode->lsb_header.flags = data;
+		}
+
+		if (g->acr->lsf[falcon_id].is_priv_load) {
+			pnode->lsb_header.flags |=
+				NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE;
+		}
+
+	} else {
+		pnode->lsb_header.ucode_size = 0;
+		pnode->lsb_header.data_size = 0;
+		pnode->lsb_header.bl_code_size = 0;
+		pnode->lsb_header.bl_imem_off = 0;
+		pnode->lsb_header.bl_data_size = 0;
+		pnode->lsb_header.bl_data_off = 0;
 	}
-
-	if (g->acr->lsf[falcon_id].is_priv_load) {
-		pnode->lsb_header.flags |=
-			NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE;
-	}
-
 }
 
 /* Adds a ucode image to the list of managed ucode images managed. */
@@ -710,7 +757,8 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 		/* Finally, update ucode surface size to include updates */
 		pnode->full_ucode_size = wpr_offset -
 			pnode->lsb_header.ucode_off;
-		if (pnode->wpr_header.falcon_id != FALCON_ID_PMU) {
+		if (pnode->wpr_header.falcon_id != FALCON_ID_PMU &&
+			pnode->wpr_header.falcon_id != FALCON_ID_PMU_NEXT_CORE) {
 			pnode->lsb_header.app_code_off =
 				pnode->lsb_header.bl_code_size;
 			pnode->lsb_header.app_code_size =
@@ -721,6 +769,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 			pnode->lsb_header.app_data_size =
 				pnode->lsb_header.data_size;
 		}
+
 		pnode = pnode->next;
 	}
 
@@ -942,22 +991,25 @@ static int lsfm_init_wpr_contents(struct gk20a *g,
 		nvgpu_acr_dbg(g, "flags :%x",
 				pnode->lsb_header.flags);
 
-		/*
-		 * If this falcon has a boot loader and related args,
-		 * flush them.
-		 */
-		/* Populate gen bl and flush to memory */
-		err = lsfm_fill_flcn_bl_gen_desc(g, pnode);
-		if (err != 0) {
-			nvgpu_err(g, "bl_gen_desc failed err=%d", err);
-			return err;
+		if (!pnode->ucode_img.is_next_core_img) {
+			/*
+			 * If this falcon has a boot loader and related args,
+			 * flush them.
+			 */
+			/* Populate gen bl and flush to memory */
+			err = lsfm_fill_flcn_bl_gen_desc(g, pnode);
+			if (err != 0) {
+				nvgpu_err(g, "bl_gen_desc failed err=%d", err);
+				return err;
+			}
+			nvgpu_mem_wr_n(g, ucode, pnode->lsb_header.bl_data_off,
+				&pnode->bl_gen_desc, pnode->bl_gen_desc_size);
 		}
-		nvgpu_mem_wr_n(g, ucode, pnode->lsb_header.bl_data_off,
-			&pnode->bl_gen_desc, pnode->bl_gen_desc_size);
 
 		/* Copying of ucode */
 		nvgpu_mem_wr_n(g, ucode, pnode->lsb_header.ucode_off,
 			pnode->ucode_img.data, pnode->ucode_img.data_size);
+
 		pnode = pnode->next;
 		i = nvgpu_safe_add_u32(i, 1U);
 	}

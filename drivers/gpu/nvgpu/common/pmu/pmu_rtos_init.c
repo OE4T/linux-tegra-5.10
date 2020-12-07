@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/dma.h>
 #include <nvgpu/log.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/bug.h>
@@ -29,6 +30,8 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/string.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/seq.h>
@@ -211,6 +214,107 @@ exit:
 	return err;
 }
 
+void nvgpu_pmu_rtos_cmdline_args_init(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	nvgpu_log_fn(g, " ");
+
+	pmu->fw->ops.set_cmd_line_args_trace_size(
+		pmu, PMU_RTOS_TRACE_BUFSIZE);
+	pmu->fw->ops.set_cmd_line_args_trace_dma_base(pmu);
+	pmu->fw->ops.set_cmd_line_args_trace_dma_idx(
+		pmu, GK20A_PMU_DMAIDX_VIRT);
+
+	pmu->fw->ops.set_cmd_line_args_cpu_freq(pmu,
+		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
+
+	if (pmu->fw->ops.config_cmd_line_args_super_surface != NULL) {
+		pmu->fw->ops.config_cmd_line_args_super_surface(pmu);
+	}
+}
+
+#if defined(CONFIG_NVGPU_NEXT)
+void nvgpu_pmu_next_core_rtos_args_setup(struct gk20a *g,
+		struct nvgpu_pmu *pmu)
+{
+	struct nv_pmu_boot_params boot_params;
+	struct nv_next_core_bootldr_params *btldr_params;
+	struct nv_next_core_rtos_params *rtos_params;
+	struct pmu_cmdline_args_v7 *cmd_line_args;
+	u64 phyadr = 0;
+
+	nvgpu_pmu_rtos_cmdline_args_init(g, pmu);
+
+	btldr_params = &boot_params.boot_params.bl;
+	rtos_params = &boot_params.boot_params.rtos;
+	cmd_line_args = &boot_params.cmd_line_args;
+
+	/* setup core dump */
+	rtos_params->core_dump_size = NV_REG_STR_NEXT_CORE_DUMP_SIZE_DEFAULT;
+	rtos_params->core_dump_phys = nvgpu_mem_get_addr(g,
+			&pmu->fw->ucode_core_dump);
+
+	/* copy cmd line args to pmu->boot_params.cmd_line_args */
+	nvgpu_memcpy((u8 *)cmd_line_args,
+			(u8 *) (pmu->fw->ops.get_cmd_line_args_ptr(pmu)),
+			pmu->fw->ops.get_cmd_line_args_size(pmu));
+
+	cmd_line_args->ctx_bind_addr = g->ops.pmu.get_inst_block_config(g);
+
+	/* setup boot loader args */
+	btldr_params->boot_type = NV_NEXT_CORE_BOOTLDR_BOOT_TYPE_RM;
+	btldr_params->size = U16(sizeof(struct nv_pmu_boot_params));
+	btldr_params->version = NV_NEXT_CORE_BOOTLDR_VERSION;
+
+	/* copy to boot_args phyadr */
+	nvgpu_mem_wr_n(g, &pmu->fw->ucode_boot_args, 0,
+			&boot_params.boot_params.bl,
+			sizeof(struct nv_pmu_boot_params));
+
+	/* copy boot args phyadr to mailbox 0/1 */
+	phyadr = nvgpu_safe_add_u64(NV_NEXT_CORE_AMAP_EXTMEM2_START,
+			nvgpu_mem_get_addr(g, &pmu->fw->ucode_boot_args));
+
+	nvgpu_falcon_mailbox_write(g->pmu->flcn, FALCON_MAILBOX_0,
+			u64_lo32(phyadr));
+	nvgpu_falcon_mailbox_write(g->pmu->flcn, FALCON_MAILBOX_1,
+			u64_hi32(phyadr));
+}
+
+s32 nvgpu_pmu_next_core_rtos_args_allocate(struct gk20a *g,
+		struct nvgpu_pmu *pmu)
+{
+	struct pmu_rtos_fw *rtos_fw = pmu->fw;
+	s32 err =0;
+
+	nvgpu_log_fn(g, " ");
+
+	/* alloc boot args */
+	if (!nvgpu_mem_is_valid(&rtos_fw->ucode_boot_args)) {
+		err = nvgpu_dma_alloc_flags_sys(g,
+				NVGPU_DMA_PHYSICALLY_ADDRESSED,
+				sizeof(struct nv_pmu_boot_params),
+				&rtos_fw->ucode_boot_args);
+		if (err != 0) {
+			goto exit;
+		}
+	}
+
+	/* alloc core dump */
+	if (!nvgpu_mem_is_valid(&rtos_fw->ucode_core_dump)) {
+		err = nvgpu_dma_alloc_flags_sys(g,
+				NVGPU_DMA_PHYSICALLY_ADDRESSED,
+				NV_REG_STR_NEXT_CORE_DUMP_SIZE_DEFAULT,
+				&rtos_fw->ucode_core_dump);
+		if (err != 0) {
+			goto exit;
+		}
+	}
+
+exit:
+	return err;
+}
+#endif
+
 int nvgpu_pmu_rtos_init(struct gk20a *g)
 {
 	int err = 0;
@@ -254,17 +358,36 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 			g->ops.pmu.setup_apertures(g);
 		}
 
-		err = nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(g, g->pmu,
-			g->pmu->lsfm);
-		if (err != 0) {
-			goto exit;
+#if defined(CONFIG_NVGPU_NEXT)
+		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+			err = nvgpu_pmu_next_core_rtos_args_allocate(g, g->pmu);
+			if (err != 0) {
+				goto exit;
+			}
+
+			nvgpu_pmu_next_core_rtos_args_setup(g, g->pmu);
+		} else
+#endif
+		{
+			err = nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(g, g->pmu,
+				g->pmu->lsfm);
+			if (err != 0) {
+				goto exit;
+			}
 		}
 
 		nvgpu_pmu_enable_irq(g, true);
 
-		/*Once in LS mode, cpuctl_alias is only accessible*/
-		if (g->ops.pmu.secured_pmu_start != NULL) {
-			g->ops.pmu.secured_pmu_start(g);
+#if defined(CONFIG_NVGPU_NEXT)
+		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+			g->ops.falcon.bootstrap(g->pmu->flcn, 0U);
+		} else
+#endif
+		{
+			/*Once in LS mode, cpuctl_alias is only accessible*/
+			if (g->ops.pmu.secured_pmu_start != NULL) {
+				g->ops.pmu.secured_pmu_start(g);
+			}
 		}
 	} else {
 		/* non-secure boot */
