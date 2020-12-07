@@ -39,7 +39,8 @@
 struct gops_class {
 	/**
 	 * @brief Checks if given class number is valid as per our GPU
-	 *        architechture.
+	 *        architechture. This API is used by common.gr unit to
+	 *        validate the class associated with the channel.
 	 *
 	 * List of valid class numbers:
 	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,7 +69,10 @@ struct gops_class {
 
 	/**
 	 * @brief Checks if given class number is valid compute class number
-	 * 	  as per our GPU architechture.
+	 * 	  as per our GPU architechture. This API is used by common.gr
+	 *        unit to set apart the compute class from other classes.
+	 *        This is needed when the preemption mode is selected based
+	 *        on the class type.
 	 *
 	 * List of valid compute class numbers:
 	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
