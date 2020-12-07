@@ -758,8 +758,8 @@ static nve32_t eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 	/* configure EQOS DMA channels */
 	for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
 		if (osi_dma->dma_chans[chinx] >= OSI_EQOS_MAX_NUM_CHANS) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma: invalid channel number\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma: invalid channel number\n", 0ULL);
 			return -1;
 		}
 		eqos_configure_dma_channel(osi_dma->dma_chans[chinx], osi_dma);

@@ -320,16 +320,16 @@ static inline nve32_t validate_rx_completions_arg(
 
 	*rx_ring = osi_dma->rx_ring[chan];
 	if (osi_unlikely(*rx_ring == OSI_NULL)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"validate_input_rx_completions: Invalid pointers\n",
-			0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "validate_input_rx_completions: Invalid pointers\n",
+			    0ULL);
 		return -1;
 	}
 	*rx_pkt_cx = &(*rx_ring)->rx_pkt_cx;
 	if (osi_unlikely(*rx_pkt_cx == OSI_NULL)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"validate_input_rx_completions: Invalid pointers\n",
-			0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "validate_input_rx_completions: Invalid pointers\n",
+			    0ULL);
 		return -1;
 	}
 
@@ -357,8 +357,8 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 	}
 
 	if (rx_ring->cur_rx_idx >= RX_DESC_CNT) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma_txrx: Invalid cur_rx_idx\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma_txrx: Invalid cur_rx_idx\n", 0ULL);
 		return -1;
 	}
 
@@ -461,9 +461,9 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 							    osi_dma->rx_buf_len,
 							    rx_pkt_cx, rx_swcx);
 			} else {
-				OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-					"dma_txrx: Invalid function pointer\n",
-					0ULL);
+				OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+					    "dma_txrx: Invalid function pointer\n",
+					    0ULL);
 				return -1;
 			}
 		}
@@ -705,9 +705,9 @@ static inline nve32_t validate_tx_completions_arg(
 	*tx_ring = osi_dma->tx_ring[chan];
 
 	if (osi_unlikely(*tx_ring == OSI_NULL)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"validate_tx_completions_arg: Invalid pointers\n",
-			0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "validate_tx_completions_arg: Invalid pointers\n",
+			    0ULL);
 		return -1;
 	}
 
@@ -801,8 +801,9 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 						       tx_swcx->len,
 						       txdone_pkt_cx);
 		} else {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma_txrx: Invalid function pointer\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid function pointer\n",
+				    0ULL);
 			return -1;
 		}
 
@@ -1038,8 +1039,9 @@ static inline nve32_t validate_hw_transmit_arg(
 	*ops = osi_dma->ops;
 
 	if (osi_unlikely((*tx_ring == OSI_NULL) || (*ops == OSI_NULL))) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"validate_hw_transmit_arg: Invalid pointers\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "validate_hw_transmit_arg: Invalid pointers\n",
+			    0ULL);
 		return -1;
 	}
 
@@ -1070,8 +1072,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 
 	entry = tx_ring->cur_tx_idx;
 	if (entry >= TX_DESC_CNT) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma_txrx: Invalid pointers\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma_txrx: Invalid pointers\n", 0ULL);
 		return;
 	}
 
@@ -1082,8 +1084,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	desc_cnt = tx_pkt_cx->desc_cnt;
 	if (osi_unlikely(desc_cnt == 0U)) {
 		/* Will not hit this case */
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma_txrx: Invalid value\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma_txrx: Invalid value\n", 0ULL);
 		return;
 	}
 	/* Context descriptor for VLAN/TSO */
@@ -1184,8 +1186,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 		  (entry * sizeof(struct osi_tx_desc));
 	if (osi_unlikely(tailptr < tx_ring->tx_desc_phy_addr)) {
 		/* Will not hit this case */
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma_txrx: Invalid argument\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma_txrx: Invalid argument\n", 0ULL);
 		return;
 	}
 
@@ -1197,8 +1199,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	 */
 	dmb_oshst();
 	if (osi_unlikely(ops->update_tx_tailptr == OSI_NULL)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma_txrx: Invalid argument\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma_txrx: Invalid argument\n", 0ULL);
 		return;
 	}
 	ops->update_tx_tailptr(osi_dma->base, chan, tailptr);
@@ -1238,8 +1240,8 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 
 	rx_ring = osi_dma->rx_ring[chan];
 	if (osi_unlikely(rx_ring == OSI_NULL)) {
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma_txrx: Invalid argument\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma_txrx: Invalid argument\n", 0ULL);
 		return -1;
 	};
 
@@ -1260,8 +1262,8 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		if (tmp < UINT_MAX) {
 			rx_desc->rdes0 = (nveu32_t)tmp;
 		} else {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma_txrx: Invalid buf_phy_addr\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid buf_phy_addr\n", 0ULL);
 			return -1;
 		}
 
@@ -1269,8 +1271,8 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		if (tmp < UINT_MAX) {
 			rx_desc->rdes1 = (nveu32_t)tmp;
 		} else {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma_txrx: Invalid buf_phy_addr\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid buf_phy_addr\n", 0ULL);
 			return -1;
 		}
 
@@ -1301,8 +1303,8 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 			 (ops->update_rx_tailptr == OSI_NULL) ||
 			 (ops->set_rx_ring_start_addr == OSI_NULL))) {
 		/* Will not hit this case */
-		OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			"dma_txrx: Invalid pointers\n", 0ULL);
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma_txrx: Invalid pointers\n", 0ULL);
 		return -1;
 	}
 
@@ -1385,8 +1387,8 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 
 		tx_ring = osi_dma->tx_ring[chan];
 		if (osi_unlikely(tx_ring == OSI_NULL)) {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma_txrx: Invalid pointers\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid pointers\n", 0ULL);
 			return -1;
 		}
 
@@ -1419,8 +1421,8 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 			ops->set_tx_ring_start_addr(osi_dma->base, chan,
 						    tx_ring->tx_desc_phy_addr);
 		} else {
-			OSI_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				"dma_txrx: Invalid pointers\n", 0ULL);
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma_txrx: Invalid pointers\n", 0ULL);
 			return -1;
 		}
 	}
