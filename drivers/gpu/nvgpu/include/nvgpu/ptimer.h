@@ -44,7 +44,9 @@ struct nvgpu_cpu_time_correlation_sample {
 #define PTIMER_REF_FREQ_HZ                      31250000U
 
 /**
- * @brief Computes the ptimer scaling factor
+ * @brief Computes the ptimer scaling factor. This API allows setting the ptimer
+ *        appropriately before using it to enforce different timeouts or
+ *        scheduling timeslices.
  *
  * @param ptimer_src_freq [in]		source frequency to ptimer
  *
@@ -84,7 +86,9 @@ static inline u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
 }
 
 /**
- * @brief Scales back the ptimer based timeout value as per the scale factor
+ * @brief Scales back the ptimer based timeout value as per the scale factor.
+ *        Units like common.fifo use this API to scale the timeouts and
+ *        scheduling timeslices enforced by it using the GPU ptimer.
  *
  * @param timeout [in]		Time value captured using ptimer reference clock
  * @param scale10x [in]		The scale factor multiplied by 10 to be used for
