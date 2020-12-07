@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
 #ifndef NVGPU_GOPS_BIOS_H
 #define NVGPU_GOPS_BIOS_H
 
+#ifdef CONFIG_NVGPU_DGPU
 struct gops_bios {
 	int (*bios_sw_init)(struct gk20a *g);
 	void (*bios_sw_deinit)(struct gk20a *g,
@@ -29,5 +30,6 @@ struct gops_bios {
 	u32 (*get_aon_secure_scratch_reg)(struct gk20a *g, u32 i);
 	bool (*wait_for_bios_init_done)(struct gk20a *g);
 };
+#endif
 
 #endif /* NVGPU_GOPS_BIOS_H */

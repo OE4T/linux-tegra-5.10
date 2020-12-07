@@ -176,11 +176,11 @@ struct gpu_ops {
 	struct gops_bus bus;
 	/** Ptimer hal ops. */
 	struct gops_ptimer ptimer;
-	struct gops_bios bios;
 #ifdef CONFIG_NVGPU_CYCLESTATS
 	struct gops_css css;
 #endif
 #ifdef CONFIG_NVGPU_DGPU
+	struct gops_bios bios;
 	struct gops_xve xve;
 #endif
 	/** Falcon hal ops. */

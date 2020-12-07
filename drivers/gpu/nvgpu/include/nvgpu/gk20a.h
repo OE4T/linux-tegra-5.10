@@ -135,7 +135,9 @@ enum nvgpu_profiler_pm_reservation_scope;
 #include <nvgpu/cbc.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/worker.h>
+#ifdef CONFIG_NVGPU_DGPU
 #include <nvgpu/bios.h>
+#endif
 #include <nvgpu/semaphore.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/sched.h>
