@@ -1156,6 +1156,7 @@ static int ov5693_probe(struct i2c_client *client,
 	struct ov5693 *priv;
 	int err;
 	const struct of_device_id *match;
+	int i;
 
 	dev_info(dev, "probing v4l2 sensor.\n");
 
@@ -1199,28 +1200,37 @@ static int ov5693_probe(struct i2c_client *client,
 	mutex_init(&priv->streaming_lock);
 
 	err = ov5693_board_setup(priv);
-		if (err) {
-			tegracam_device_unregister(tc_dev);
-			dev_err(dev, "board setup failed\n");
-			return err;
+	if (err) {
+		tegracam_device_unregister(tc_dev);
+		dev_err(dev, "board setup failed\n");
+		goto fail;
 	}
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err) {
 		dev_err(dev, "tegra camera subdev registration failed\n");
-		return err;
+		goto fail;
 	}
 
 	err = ov5693_debugfs_create(priv);
 	if (err) {
 		dev_err(dev, "error creating debugfs interface");
 		ov5693_debugfs_remove(priv);
-		return err;
+		goto fail;
 	}
 
 	dev_dbg(dev, "Detected OV5693 sensor\n");
 
 	return 0;
+
+fail:
+	for (i = 0; i < OV5693_EEPROM_NUM_BLOCKS; i++) {
+		if (priv->eeprom[i].i2c_client != NULL) {
+			i2c_unregister_device(priv->eeprom[i].i2c_client);
+			priv->eeprom[i].i2c_client = NULL;
+		}
+	}
+	return err;
 }
 
 static int
