@@ -1,7 +1,7 @@
 /*
 * Tegra flcn common driver
 *
-* Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms and conditions of the GNU General Public License,
@@ -607,14 +607,11 @@ static int nvhost_flcn_deinit_sw(struct platform_device *dev)
 
 int nvhost_vic_finalize_poweron(struct platform_device *pdev)
 {
-	struct flcn *v;
 	int err;
 
 	err = nvhost_flcn_finalize_poweron(pdev);
 	if (err)
 		return err;
-
-	v = get_flcn(pdev);
 
 	host1x_writel(pdev, FLCN_UCLASS_METHOD_OFFSET * 4,
 		      NVA0B6_VIDEO_COMPOSITOR_SET_APPLICATION_ID >> 2);
@@ -626,14 +623,11 @@ int nvhost_vic_finalize_poweron(struct platform_device *pdev)
 int nvhost_vic_init_context(struct platform_device *pdev,
 			    struct nvhost_cdma *cdma)
 {
-	struct flcn *v;
 	int err;
 
 	err = nvhost_flcn_init_sw(pdev);
 	if (err)
 		return err;
-
-	v = get_flcn(pdev);
 
 	/* load application id */
 	nvhost_cdma_push(cdma,
