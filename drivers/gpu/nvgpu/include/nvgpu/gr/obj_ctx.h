@@ -225,8 +225,8 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
  *   successful.
  *
  * @return 0 in case of success, < 0 in case of failure.
- * @return -ENOMEM if memory allocation fails during any step.
- * @return -ETIMEDOUT if GR engine idle times out.
+ * @retval -ENOMEM if memory allocation fails during any step.
+ * @retval -ETIMEDOUT if GR engine idle times out.
  */
 int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image,

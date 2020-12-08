@@ -164,9 +164,9 @@ void nvgpu_gr_free(struct gk20a *g);
  * - Disable elcg until GR engine gets enabled.
  * - Enable fifo access.
  * - Enabling GR engine interrupts.
- * - Load non_context init
+ * - Load non_context init.
  * - Ensure falcon memory is scrubbed.
- * - Wait Still GR engine status busy bit gets cleared.
+ * - Wait till GR engine status busy bit gets cleared.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ETIMEDOUT if falcon mem scrubbing times out.

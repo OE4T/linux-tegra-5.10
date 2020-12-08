@@ -65,7 +65,10 @@ struct nvgpu_gr_ctx;
  * - Committing the context image into channel instance block.
  *
  * Note that if requested class is a valid class but not a COMPUTE class, this
- * function will return 0.
+ * function will not do anything but just return success. All graphics classes
+ * are treated as invalid classes in safety.
+ *
+ * @see gops_class for list of valid classes.
  *
  * Only below classes are supported.
  * 1. VOLTA_COMPUTE_A
@@ -117,6 +120,11 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
  *
  * Note that if requested preemption modes are already set, this
  * function will return 0.
+ *
+ * The function supports NVGPU_PREEMTION_MODE_GRAPHICS_WFI graphics
+ * preemption mode and NVGPU_PREEMTION_MODE_COMPUTE_WFI,
+ * NVGPU_PREEMTION_MODE_COMPUTE_CTA compute preemption modes as
+ * valid preemption modes.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -EINVAL if invalid preemption modes are provided.
