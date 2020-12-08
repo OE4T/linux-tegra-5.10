@@ -1,5 +1,6 @@
 GCOV_PROFILE := y
 
+ccflags-y += -Wno-implicit-fallthrough
 ccflags-y += -I$(srctree)/drivers/video/tegra/host
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-y += -I$(srctree.nvidia)/include
