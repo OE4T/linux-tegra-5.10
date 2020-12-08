@@ -275,6 +275,7 @@ struct nvgpu_ecc {
  * of struct nvgpu_ecc.
  *
  * @return 0 in case of success, less than 0 for failure.
+ * @return -ENOMEM if there is not enough memory to allocate ecc stats.
  */
 int nvgpu_ecc_counter_init(struct gk20a *g,
 		struct nvgpu_ecc_stat **stat, const char *name);
@@ -325,6 +326,8 @@ void nvgpu_ecc_remove_support(struct gk20a *g);
  * @param g [in] The GPU driver struct.
  *
  * Sets ecc.initialized to true.
+ *
+ * @return 0 in all cases.
  */
 int nvgpu_ecc_finalize_support(struct gk20a *g);
 
