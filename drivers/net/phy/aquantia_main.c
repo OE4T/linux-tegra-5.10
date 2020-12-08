@@ -5,6 +5,7 @@
  * Author: Shaohui Xie <Shaohui.Xie@freescale.com>
  *
  * Copyright 2015 Freescale Semiconductor, Inc.
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -12,6 +13,7 @@
 #include <linux/delay.h>
 #include <linux/bitfield.h>
 #include <linux/phy.h>
+#include <soc/tegra/fuse.h>
 
 #include "aquantia.h"
 
@@ -70,6 +72,16 @@
 #define MDIO_AN_RX_VEND_STAT3			0xe832
 #define MDIO_AN_RX_VEND_STAT3_AFR		BIT(0)
 
+#define MDIO_AN_VEND_PROV1		0xC440
+#define MDIO_AN_VEND_PROV1_5G		BIT(11)
+#define MDIO_AN_VEND_PROV1_2_5G		BIT(10)
+#define MDIO_AN_10GBT_CTRL_5GBASET	BIT(8)
+#define MDIO_AN_10GBT_CTRL_10GBASET	BIT(12)
+#define MDIO_AN_10GBT_CTRL_2_5GBASET	BIT(7)
+
+#define MDIO_AN_PAUSE			BIT(10)
+#define MDIO_AN_ASYM_PAUSE		BIT(11)
+
 /* MDIO_MMD_C22EXT */
 #define MDIO_C22EXT_STAT_SGMII_RX_GOOD_FRAMES		0xd292
 #define MDIO_C22EXT_STAT_SGMII_RX_BAD_FRAMES		0xd294
@@ -120,6 +132,12 @@
 #define VEND1_GLOBAL_INT_VEND_MASK_GLOBAL1	BIT(2)
 #define VEND1_GLOBAL_INT_VEND_MASK_GLOBAL2	BIT(1)
 #define VEND1_GLOBAL_INT_VEND_MASK_GLOBAL3	BIT(0)
+
+#define VEND1_GLOBAL_MDIO_CTRL1			0x0
+#define VEND1_GLOBAL_MDIO_CTRL1_SOFT_RST	BIT(15)
+
+#define VEND1_GLOBAL_MDIO_PHYXS_PROV2		0xC441
+#define VEND1_GLOBAL_MDIO_PHYXS_PROV2_USX_AN	BIT(3)
 
 struct aqr107_hw_stat {
 	const char *name;
@@ -208,6 +226,48 @@ static int aqr_config_aneg(struct phy_device *phydev)
 	bool changed = false;
 	u16 reg;
 	int ret;
+	int err = 0;
+
+	if (tegra_platform_is_vdk()) {
+		linkmode_set_bit(ETHTOOL_LINK_MODE_Pause_BIT,
+				 phydev->supported);
+		linkmode_set_bit(ETHTOOL_LINK_MODE_Asym_Pause_BIT,
+				 phydev->supported);
+		linkmode_copy(phydev->advertising,
+			      phydev->supported);
+		reg = phy_read_mmd(phydev, MDIO_MMD_AN, MDIO_AN_10GBT_CTRL);
+		if (reg < 0)
+			return reg;
+
+		reg &= ~(MDIO_AN_10GBT_CTRL_5GBASET |
+			 MDIO_AN_10GBT_CTRL_10GBASET);
+		reg |= (MDIO_AN_10GBT_CTRL_2_5GBASET);
+
+		err = phy_write_mmd(phydev, MDIO_MMD_AN, MDIO_AN_10GBT_CTRL,
+				    reg);
+		if (err < 0)
+			return err;
+
+		reg = phy_read_mmd(phydev, MDIO_MMD_AN, MDIO_AN_VEND_PROV1);
+		if (reg < 0)
+			return reg;
+
+		reg &= ~MDIO_AN_VEND_PROV1_5G;
+		reg |= MDIO_AN_VEND_PROV1_2_5G;
+
+		err = phy_write_mmd(phydev, MDIO_MMD_AN, MDIO_AN_VEND_PROV1,
+				    reg);
+		if (err < 0)
+			return err;
+
+		/* Configure flow control */
+		reg = phy_read_mmd(phydev, MDIO_MMD_AN, 0x10);
+		reg |= MDIO_AN_PAUSE | MDIO_AN_ASYM_PAUSE;
+		phy_write_mmd(phydev, MDIO_MMD_AN, 0x10, reg);
+
+		/* restart auto-negotiation */
+		return genphy_c45_restart_aneg(phydev);
+	}
 
 	if (phydev->autoneg == AUTONEG_DISABLE)
 		return genphy_c45_pma_setup_forced(phydev);
@@ -441,6 +501,25 @@ static int aqr107_wait_reset_complete(struct phy_device *phydev)
 					 20000, 2000000, false);
 }
 
+static inline int wait_for_reset_complete(struct phy_device *phydev)
+{
+	unsigned int retries = 1000;
+	int ret = 0;
+
+	do {
+		ret = phy_read_mmd(phydev, MDIO_MMD_VEND1,
+				   VEND1_GLOBAL_MDIO_CTRL1);
+		if (ret < 0)
+			return ret;
+		msleep(1);
+	} while ((ret & VEND1_GLOBAL_MDIO_CTRL1_SOFT_RST) && --retries);
+
+	if (ret & VEND1_GLOBAL_MDIO_CTRL1_SOFT_RST)
+		return -ETIMEDOUT;
+
+	return 0;
+}
+
 static void aqr107_chip_info(struct phy_device *phydev)
 {
 	u8 fw_major, fw_minor, build_id, prov_id;
@@ -466,7 +545,35 @@ static void aqr107_chip_info(struct phy_device *phydev)
 
 static int aqr107_config_init(struct phy_device *phydev)
 {
-	int ret;
+	int ret, err;
+
+	if (tegra_platform_is_vdk()) {
+		ret = phy_read_mmd(phydev, MDIO_MMD_VEND1,
+				   VEND1_GLOBAL_MDIO_CTRL1);
+		if (ret < 0)
+			return ret;
+
+		ret |= VEND1_GLOBAL_MDIO_CTRL1_SOFT_RST;
+
+		err = phy_write_mmd(phydev, MDIO_MMD_VEND1,
+				    VEND1_GLOBAL_MDIO_CTRL1, ret);
+		if (err < 0)
+			return err;
+
+		err = wait_for_reset_complete(phydev);
+		if (err < 0)
+			return err;
+
+		/* Enable USX autoneg on system side */
+		ret = phy_read_mmd(phydev, MDIO_MMD_PHYXS,
+				   VEND1_GLOBAL_MDIO_PHYXS_PROV2);
+		if (ret < 0)
+			return ret;
+
+		ret |= VEND1_GLOBAL_MDIO_PHYXS_PROV2_USX_AN;
+		return phy_write_mmd(phydev, MDIO_MMD_PHYXS,
+				     VEND1_GLOBAL_MDIO_PHYXS_PROV2, ret);
+	}
 
 	/* Check that the PHY interface type is compatible */
 	if (phydev->interface != PHY_INTERFACE_MODE_SGMII &&
