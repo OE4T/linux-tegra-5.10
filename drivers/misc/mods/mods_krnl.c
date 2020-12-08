@@ -1310,12 +1310,53 @@ static int esc_mods_get_screen_info(struct mods_client      *client,
 static int esc_mods_get_screen_info_2(struct mods_client        *client,
 				      struct MODS_SCREEN_INFO_2 *p)
 {
+#if defined(CONFIG_FB)
+	unsigned int i;
+	bool         found = false;
+#endif
+
 	mods_get_screen_info(&p->info);
 
 #if defined(VIDEO_CAPABILITY_64BIT_BASE)
 	p->ext_lfb_base = screen_info.ext_lfb_base;
 #else
 	p->ext_lfb_base = 0;
+#endif
+
+#if defined(CONFIG_FB)
+	if (screen_info.orig_video_isVGA != VIDEO_TYPE_EFI)
+		return OK;
+
+	/* With pci=realloc on the kernel command line, GPU BAR1 can be
+	 * reassigned after the OS console is allocated.  When this
+	 * occurs the lfb_base variable is *not* updated for an EFI
+	 * console.  The incorrect lfb_base variable will prevent other
+	 * drivers or user space applications from identifying memory
+	 * in use by the console and potentially using it themselves.
+
+	 * For an EFI console, pull the FB base address from the FB
+	 * driver registered_fb data instead of screen_info
+	 */
+	for (i = 0; i < ARRAY_SIZE(registered_fb); i++) {
+		bool skipped = true;
+
+		if (!registered_fb[i])
+			continue;
+
+		if (!strcmp(registered_fb[i]->fix.id, "EFI VGA") && !found) {
+			p->info.lfb_base =
+			 registered_fb[i]->fix.smem_start & 0xFFFFFFFF;
+			p->ext_lfb_base =
+			 registered_fb[i]->fix.smem_start >> 32;
+			found = true;
+			skipped = false;
+		}
+
+		cl_info("%s fb%d '%s' @0x%llx\n",
+			skipped ? "skip" : "found",
+			i, registered_fb[i]->fix.id,
+			(u64)registered_fb[i]->fix.smem_start);
+	}
 #endif
 
 	return OK;
@@ -1352,6 +1393,9 @@ static int esc_mods_unlock_console(struct mods_client *client)
 static int esc_mods_suspend_console(struct mods_client *client)
 {
 	int err = -EINVAL;
+#if defined(CONFIG_FB)
+	unsigned int i;
+#endif
 
 	LOG_ENT();
 
@@ -1362,19 +1406,25 @@ static int esc_mods_suspend_console(struct mods_client *client)
 	}
 
 #if defined(CONFIG_FB)
-	if (num_registered_fb) {
-		/* tell the os to block fb accesses */
-		int i = 0;
+	/* tell the os to block fb accesses */
+	for (i = 0; i < ARRAY_SIZE(registered_fb); i++) {
+		bool suspended = false;
 
-		for (i = 0; i < num_registered_fb; i++) {
-			console_lock();
-			if (registered_fb[i]->state != FBINFO_STATE_SUSPENDED) {
-				fb_set_suspend(registered_fb[i], 1);
-				client->mods_fb_suspended[i] = 1;
-			}
-			console_unlock();
+		if (!registered_fb[i])
+			continue;
+
+		console_lock();
+		if (registered_fb[i]->state != FBINFO_STATE_SUSPENDED) {
+			fb_set_suspend(registered_fb[i], 1);
+			client->mods_fb_suspended[i] = 1;
+			suspended = true;
 		}
+		console_unlock();
 		err = OK;
+
+		if (suspended)
+			cl_info("suspended fb%u '%s'\n", i,
+				registered_fb[i]->fix.id);
 	}
 #endif
 
@@ -1387,8 +1437,13 @@ static int esc_mods_suspend_console(struct mods_client *client)
 		do_take_over_console(&dummy_con, 0, 0, 0);
 		console_unlock();
 		err = OK;
+
+		cl_info("switched console to dummy\n");
 	}
 #endif
+
+	if (err)
+		cl_warn("no methods to suspend console available\n");
 
 	atomic_set(&console_is_locked, 0);
 
@@ -1405,6 +1460,9 @@ static int esc_mods_resume_console(struct mods_client *client)
 static int mods_resume_console(struct mods_client *client)
 {
 	int err = -EINVAL;
+#if defined(CONFIG_FB)
+	unsigned int i;
+#endif
 
 	LOG_ENT();
 
@@ -1418,18 +1476,23 @@ static int mods_resume_console(struct mods_client *client)
 	}
 
 #if defined(CONFIG_FB)
-	if (num_registered_fb) {
-		int i = 0;
+	for (i = 0; i < ARRAY_SIZE(registered_fb); i++) {
+		bool resumed = false;
 
-		for (i = 0; i < num_registered_fb; i++) {
-			console_lock();
-			if (client->mods_fb_suspended[i]) {
-				fb_set_suspend(registered_fb[i], 0);
-				client->mods_fb_suspended[i] = 0;
-			}
-			console_unlock();
+		if (!registered_fb[i])
+			continue;
+
+		console_lock();
+		if (client->mods_fb_suspended[i]) {
+			fb_set_suspend(registered_fb[i], 0);
+			client->mods_fb_suspended[i] = 0;
+			resumed = true;
 		}
+		console_unlock();
 		err = OK;
+
+		if (resumed)
+			cl_info("resumed fb%u\n", i);
 	}
 #endif
 
@@ -1442,6 +1505,8 @@ static int mods_resume_console(struct mods_client *client)
 		do_unbind_con_driver(vc_cons[fg_console].d->vc_sw, 0, 0, 0);
 		console_unlock();
 		err = OK;
+
+		cl_info("restored vga console\n");
 	}
 #endif
 	atomic_set(&console_is_locked, 0);

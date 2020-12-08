@@ -24,8 +24,8 @@
 #include <linux/types.h>
 
 /* Driver version */
-#define MODS_DRIVER_VERSION_MAJOR 3
-#define MODS_DRIVER_VERSION_MINOR 99
+#define MODS_DRIVER_VERSION_MAJOR 4
+#define MODS_DRIVER_VERSION_MINOR 1
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR / 10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR % 10))
@@ -830,7 +830,7 @@ struct MODS_REGISTER_IRQ_3 {
 /* Used by ioctls:
  * - MODS_ESC_UNREGISTER_IRQ_2
  * - MODS_ESC_REGISTER_IRQ_2 (deprectated)
- * - MODS_ESC_IRQ_HANDLED_2 (deprectated)
+ * - MODS_ESC_IRQ_HANDLED_2 (only Tegra)
  *
  * MODS_ESC_UNREGISTER_IRQ_2 is used to unhook interrupt for the given device.
  */
@@ -1848,7 +1848,6 @@ struct MODS_IOMMU_DMA_MAP_MEMORY {
 /* Deprecated */
 #define MODS_ESC_REGISTER_IRQ_2 MODSIO(W, 64, MODS_REGISTER_IRQ_2)
 #define MODS_ESC_UNREGISTER_IRQ_2 MODSIO(W, 65, MODS_REGISTER_IRQ_2)
-/* Deprecated */
 #define MODS_ESC_IRQ_HANDLED_2 MODSIO(W, 66, MODS_REGISTER_IRQ_2)
 /* Deprecated */
 #define MODS_ESC_QUERY_IRQ_2 MODSIO(R, 67, MODS_QUERY_IRQ_2)

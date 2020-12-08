@@ -336,7 +336,7 @@ static int mods_eval_acpi_method(struct mods_client           *client,
 				      &output);
 
 	if (ACPI_FAILURE(status)) {
-		cl_error("ACPI method %s failed\n", p->method_name);
+		cl_info("ACPI method %s failed\n", p->method_name);
 		pci_dev_put(dev);
 		LOG_EXT();
 		return -EINVAL;

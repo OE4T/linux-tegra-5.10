@@ -127,7 +127,7 @@ void mods_disable_device(struct mods_client *client,
 	WARN_ON(!mutex_is_locked(&mp.mtx));
 
 #ifdef MODS_HAS_SRIOV
-	if (dpriv->num_vfs)
+	if (dpriv && dpriv->num_vfs)
 		pci_disable_sriov(dev);
 #endif
 

@@ -79,8 +79,16 @@
 #       define MODS_HAS_SET_MEMORY_HEADER 1
 #endif
 
+#if KERNEL_VERSION(4, 13, 0) <= MODS_KERNEL_VERSION
+#       define MODS_HAS_FLR_SUPPORT
+#if     KERNEL_VERSION(4, 17, 0) <= MODS_KERNEL_VERSION
+#              define MODS_PCIE_FLR_HAS_ERR
+#endif
+#endif
+
 #if KERNEL_VERSION(4, 16, 0) > MODS_KERNEL_VERSION && defined(CONFIG_X86)
 #       define MODS_HAS_MAP_SG_ATTRS
 #endif
+
 
 #endif /* _MODS_CONFIG_H_  */

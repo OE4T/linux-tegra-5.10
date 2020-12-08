@@ -20,8 +20,10 @@
 
 #include "mods_internal.h"
 
+#include <linux/device.h>
 #include <linux/io.h>
 #include <linux/fs.h>
+#include <linux/pci.h>
 #if defined(MODS_HAS_DMA_OPS)
 #include <linux/dma-mapping.h>
 #endif
@@ -921,8 +923,11 @@ int esc_mods_pci_set_dma_mask(struct mods_client       *client,
 int esc_mods_pci_reset_function(struct mods_client    *client,
 				struct mods_pci_dev_2 *pcidev)
 {
+#if defined(MODS_HAS_FLR_SUPPORT)
 	int             err;
 	struct pci_dev *dev;
+	u32             cap;
+	const struct pci_error_handlers *err_handler;
 
 	LOG_ENT();
 
@@ -938,14 +943,62 @@ int esc_mods_pci_reset_function(struct mods_client    *client,
 		return err;
 	}
 
-	err = pci_reset_function(dev);
-	if (unlikely(err))
-		cl_error("pci_reset_function failed on dev %04x:%02x:%02x.%x\n",
+	pcie_capability_read_dword(dev, PCI_EXP_DEVCAP, &cap);
+	if ((dev->dev_flags & PCI_DEV_FLAGS_NO_FLR_RESET) ||
+	    !(cap & PCI_EXP_DEVCAP_FLR)) {
+		cl_error(
+			 "function level reset not supported on dev %04x:%02x:%02x.%x\n",
 			 pcidev->domain,
 			 pcidev->bus,
 			 pcidev->device,
 			 pcidev->function);
+		err = -ENOTTY;
+		goto error;
+	}
+
+	pci_cfg_access_lock(dev);
+	device_lock(&dev->dev);
+
+	err_handler = dev->driver ? dev->driver->err_handler : NULL;
+	if (err_handler && err_handler->reset_prepare)
+		err_handler->reset_prepare(dev);
+
+	pci_set_power_state(dev, PCI_D0);
+	pci_save_state(dev);
+	pci_write_config_word(dev, PCI_COMMAND, PCI_COMMAND_INTX_DISABLE);
+
+#if defined(MODS_PCIE_FLR_HAS_ERR)
+	err = pcie_flr(dev);
+
+	if (unlikely(err))
+		cl_error("pcie_flr failed on dev %04x:%02x:%02x.%x\n",
+			 pcidev->domain,
+			 pcidev->bus,
+			 pcidev->device,
+			 pcidev->function);
+#else
+	pcie_flr(dev);
+#endif
+
+	if (!err)
+		cl_info("pcie_flr succeeded on dev %04x:%02x:%02x.%x\n",
+			pcidev->domain,
+			pcidev->bus,
+			pcidev->device,
+			pcidev->function);
+
+	pci_restore_state(dev);
+
+	if (err_handler && err_handler->reset_done)
+		err_handler->reset_done(dev);
+
+	device_unlock(&dev->dev);
+	pci_cfg_access_unlock(dev);
+error:
 	pci_dev_put(dev);
 	LOG_EXT();
 	return err;
+#else
+	return -EINVAL;
+#endif
 }
