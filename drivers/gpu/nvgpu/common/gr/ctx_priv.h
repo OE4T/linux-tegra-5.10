@@ -146,10 +146,6 @@ struct nvgpu_gr_ctx {
 	bool boosted_ctx;
 #endif
 
-#ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
-	u64 virt_ctx;
-#endif
-
 	/**
 	 * Array to store GPU virtual addresses of all global context
 	 * buffers.
