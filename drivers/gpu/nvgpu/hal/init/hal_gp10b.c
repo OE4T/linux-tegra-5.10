@@ -910,7 +910,6 @@ static const struct gops_pmu gp10b_ops_pmu = {
 	.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
 	.pmu_mutex_release = gk20a_pmu_mutex_release,
 	.pmu_is_interrupted = gk20a_pmu_is_interrupted,
-	.get_irqmask = gk20a_pmu_get_irqmask,
 	.pmu_isr = gk20a_pmu_isr,
 	.pmu_init_perfmon_counter = gk20a_pmu_init_perfmon_counter,
 	.pmu_pg_idle_counter_config = gk20a_pmu_pg_idle_counter_config,
