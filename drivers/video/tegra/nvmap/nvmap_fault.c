@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_fault.c
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -230,6 +230,9 @@ static int nvmap_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 		if (atomic_read(&priv->handle->pgalloc.reserved))
 			return VM_FAULT_SIGBUS;
 		page = nvmap_to_page(priv->handle->pgalloc.pages[offs]);
+
+		if (PageAnon(page) && (vma->vm_flags & VM_SHARED))
+			return VM_FAULT_SIGSEGV;
 
 		if (!nvmap_handle_track_dirty(priv->handle))
 			goto finish;
