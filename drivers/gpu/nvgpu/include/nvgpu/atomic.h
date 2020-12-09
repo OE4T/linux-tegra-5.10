@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -152,10 +152,14 @@ static inline int nvgpu_atomic_xchg(nvgpu_atomic_t *v, int new)
  *
  * @param v [in]	Structure holding atomic variable.
  *
- * Atomically increments the value stored in \a v and returns true if
- * the result is zero. Returns false in other cases.
+ * Atomically increments the value stored in \a v and compare the result with
+ * zero.
  *
- * @return TRUE if the operation results in zero, otherwise returns FALSE.
+ * @return Boolean value indicating the status of comparison operation done
+ * after incrementing the atomic variable.
+ *
+ * @retval TRUE if the increment operation results in zero.
+ * @retval FALSE if the increment operation results in a non-zero value.
  */
 static inline bool nvgpu_atomic_inc_and_test(nvgpu_atomic_t *v)
 {
@@ -167,10 +171,14 @@ static inline bool nvgpu_atomic_inc_and_test(nvgpu_atomic_t *v)
  *
  * @param v [in]	Structure holding atomic variable.
  *
- * Atomically decrements the value stored in \a v and returns true if
- * the result is zero. Returns false in other cases.
+ * Atomically decrements the value stored in \a v and compare the result with
+ * zero.
  *
- * @return TRUE if the operation results in zero, otherwise returns FALSE.
+ * @return Boolean value indicating the status of comparison operation done
+ * after decrementing the atomic variable.
+ *
+ * @retval TRUE if the decrement operation results in zero.
+ * @retval FALSE if the decrement operation results in a non-zero value.
  */
 static inline bool nvgpu_atomic_dec_and_test(nvgpu_atomic_t *v)
 {
@@ -183,10 +191,14 @@ static inline bool nvgpu_atomic_dec_and_test(nvgpu_atomic_t *v)
  * @param i [in]	Value to subtract.
  * @param v [in]	Structure holding atomic variable.
  *
- * Atomically subtracts \a i from the value stored in \a v and returns true if
- * the result is zero. Returns false in other cases.
+ * Atomically subtracts \a i from the value stored in \a v and compare the
+ * result with zero.
  *
- * @return TRUE if the subtraction results in zero, otherwise returns FALSE.
+ * @return Boolean value indicating the status of comparison operation done
+ * after the subtraction operation on atomic variable.
+ *
+ * @retval TRUE if the operation results in zero.
+ * @retval FALSE if the operation results in a non-zero value.
  */
 static inline bool nvgpu_atomic_sub_and_test(int i, nvgpu_atomic_t *v)
 {
@@ -442,11 +454,14 @@ static inline void nvgpu_atomic64_sub(long x, nvgpu_atomic64_t *v)
  *
  * @param v [in]	Structure holding atomic variable.
  *
- * Atomically increments the value stored in \a v and test. Returns true if
- * the incremented value is 0 else returns false.
+ * Atomically increments the value stored in \a v and compare the result with
+ * zero.
  *
- * @return TRUE if the result of the operation is equal to zero, otherwise
- * returns FALSE.
+ * @return Boolean value indicating the status of comparison operation done
+ * after incrementing the atomic variable.
+ *
+ * @retval TRUE if the operation results in zero.
+ * @retval FALSE if the operation results in a non-zero value.
  */
 static inline bool nvgpu_atomic64_inc_and_test(nvgpu_atomic64_t *v)
 {
@@ -458,11 +473,14 @@ static inline bool nvgpu_atomic64_inc_and_test(nvgpu_atomic64_t *v)
  *
  * @param v [in]	Structure holding atomic variable.
  *
- * Atomically decrements the value stored in \a v and test. Returns true if
- * the decremented value is 0 else returns false.
+ * Atomically decrements the value stored in \a v and compare the result with
+ * zero.
  *
- * @return TRUE if the result of the operation is equal to zero, otherwise
- * returns FALSE.
+ * @return Boolean value indicating the status of comparison operation done
+ * after decrementing the atomic variable.
+ *
+ * @retval TRUE if the operation results in zero.
+ * @retval FALSE if the operation results in a non-zero value.
  */
 static inline bool nvgpu_atomic64_dec_and_test(nvgpu_atomic64_t *v)
 {
@@ -475,11 +493,13 @@ static inline bool nvgpu_atomic64_dec_and_test(nvgpu_atomic64_t *v)
  * @param x [in]	Value to subtract.
  * @param v [in]	Structure holding atomic variable.
  *
- * Atomically subtracts \a x from \a v and returns true if the result is 0.
- * Else returns false.
+ * Atomically subtracts \a x from \a v and compare the result with zero.
  *
- * @return TRUE if the result of the operation is equal to zero, otherwise
- * returns FALSE.
+ * @return Boolean value indicating the status of comparison operation done
+ * after the subtraction operation on atomic variable.
+ *
+ * @retval TRUE if the operation results in zero.
+ * @retval FALSE if the operation results in a non-zero value.
  */
 static inline bool nvgpu_atomic64_sub_and_test(long x, nvgpu_atomic64_t *v)
 {

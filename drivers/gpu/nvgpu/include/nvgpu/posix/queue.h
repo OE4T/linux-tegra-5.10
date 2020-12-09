@@ -81,6 +81,9 @@ unsigned int nvgpu_queue_available(struct nvgpu_queue *queue);
  *
  * @return Return 0 on success, otherwise returns error number to indicate the
  * error.
+ *
+ * @retval -EINVAL for invalid input parameters.
+ * @retval -ENOMEM for memory allocation failure.
  */
 int nvgpu_queue_alloc(struct nvgpu_queue *queue, unsigned int size);
 
@@ -107,24 +110,32 @@ void nvgpu_queue_free(struct nvgpu_queue *queue);
  *
  * @return Returns \a len on success, otherwise returns error number to indicate
  * the error.
+ *
+ * @retval -ENOMEM if the message queue doesn't have enough free space to
+ * hold the message.
  */
 int nvgpu_queue_in(struct nvgpu_queue *queue, const void *buf,
 		unsigned int len);
 
 /**
- * @brief Enqueue message into message queue.
+ * @brief Enqueue message into message queue after acquiring the mutex lock.
  *
  * @param queue [in]	Queue structure to use.
  * @param buf [in]	Pointer to source message buffer.
  * @param len [in]	Size of the message to be enqueued.
  * @param lock [in]	Mutex lock for concurrency management.
  *
+ * Acquires the mutex lock pointed by \a lock before enqueue operation.
  * Enqueues the message pointed by \a buf into the message queue and advances
  * the "in" index of the message queue by \a len which is the size of the
- * enqueued message.
+ * enqueued message once the lock is acquired. The lock is released after the
+ * enqueue operation is completed.
  *
  * @return Returns \a len on success, otherwise returns error number to indicate
  * the error.
+ *
+ * @retval -ENOMEM if the message queue doesn't have enough free space to
+ * hold the message.
  */
 int nvgpu_queue_in_locked(struct nvgpu_queue *queue, const void *buf,
 		unsigned int len, struct nvgpu_mutex *lock);
@@ -141,23 +152,31 @@ int nvgpu_queue_in_locked(struct nvgpu_queue *queue, const void *buf,
  *
  * @return Returns \a len on success, otherwise returns error number to indicate
  * the error.
+ *
+ * @retval -ENOMEM if the length of the messages held by the message queue is
+ * less than \a len.
  */
 int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
 		unsigned int len);
 
 /**
- * @brief Dequeue message from message queue.
+ * @brief Dequeue message from message queue after acquiring the mutex lock.
  *
  * @param queue [in]	Queue structure to use.
  * @param buf [in]	Pointer to destination message buffer.
  * @param len [in]	Size of the message to be dequeued.
  * @param lock [in]	Mutex lock for concurrency management.
  *
+ * Acquires the mutex lock pointed by \a lock before dequeue operation.
  * Dequeues the message of size \a len from the message queue and copies the
  * same to \a buf. Also advances the "out" index of the queue by \a len.
+ * Releases the mutex after the dequeue operation is completed.
  *
  * @return Returns \a len on success, otherwise returns error number to indicate
  * the error.
+ *
+ * @retval -ENOMEM if the length of the messages held by the message queue is
+ * less than \a len.
  */
 int nvgpu_queue_out_locked(struct nvgpu_queue *queue, void *buf,
 		unsigned int len, struct nvgpu_mutex *lock);

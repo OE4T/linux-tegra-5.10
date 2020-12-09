@@ -476,10 +476,16 @@ static inline unsigned int nvgpu_posix_hweight64(uint64_t x)
 	return ret;
 }
 
-/** Hamming weight of 32 bit input value. */
+/**
+ * Hamming weight of 32 bit input value. Wrapper define for
+ * nvgpu_posix_hweight32.
+ */
 #define hweight32		nvgpu_posix_hweight32
 
-/** Hamming weight of 64 bit input value. */
+/**
+ * Hamming weight of 64 bit input value. Wrapper define for
+ * nvgpu_posix_hweight64.
+ */
 #define hweight_long		nvgpu_posix_hweight64
 
 /** Dummy macro to match kernel names. */

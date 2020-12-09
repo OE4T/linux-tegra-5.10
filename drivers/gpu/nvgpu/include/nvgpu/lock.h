@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -94,7 +94,11 @@ void nvgpu_mutex_release(struct nvgpu_mutex *mutex);
  * Attempts to lock the mutex object. If the mutex is already locked, this
  * function returns an error code and hence the calling thread is not blocked.
  *
- * @return Return 1 if the mutex is successfully acquired, else return 0.
+ * @return Integer value to indicate whether the mutex was successfully acquired
+ * or not.
+ *
+ * @retval 1 if mutex is acquired.
+ * @retval 0 if mutex is not acquired.
  */
 int nvgpu_mutex_tryacquire(struct nvgpu_mutex *mutex);
 

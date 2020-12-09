@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,11 @@
  *
  * @return Return 0 on success, otherwise returns error number to indicate the
  * error.
+ *
+ * @retval EINVAL invalid thread attribute object.
+ * @retval EAGAIN insufficient system resources to create thread.
+ * @retval EFAULT error occurred trying to access the buffers or the
+ * start routine provided for thread creation.
  */
 int nvgpu_thread_create(struct nvgpu_thread *thread,
 		void *data,
@@ -85,7 +90,10 @@ void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
  * Return true if thread should exit. Can be run only in the thread's own
  * context.
  *
- * @return TRUE if the thread has to stop, else FALSE.
+ * @return Boolean value which indicates if the thread has to stop or not.
+ *
+ * @retval TRUE if the thread should stop.
+ * @retval FALSE if the thread need not stop.
  */
 bool nvgpu_thread_should_stop(struct nvgpu_thread *thread);
 
@@ -97,6 +105,9 @@ bool nvgpu_thread_should_stop(struct nvgpu_thread *thread);
  * Returns a boolean value based on the current running status of the thread.
  *
  * @return TRUE if the current running status of the thread is 1, else FALSE.
+ *
+ * @retval TRUE if the thread is running.
+ * @retval FALSE if the thread is not running.
  */
 bool nvgpu_thread_is_running(struct nvgpu_thread *thread);
 

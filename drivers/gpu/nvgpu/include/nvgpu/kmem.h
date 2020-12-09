@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -88,8 +88,9 @@ struct nvgpu_mem_alloc_tracker;
  * routines can simply be passed on to nvgpu_kzalloc() if desired so packing
  * and alignment of the structs cannot be assumed.
  *
- * @return Pointer to #nvgpu_kmem_cache in case of success.
- * @return NULL in case of failure.
+ * @return Pointer to #nvgpu_kmem_cache in case of success, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size);
 
@@ -109,8 +110,9 @@ void nvgpu_kmem_cache_destroy(struct nvgpu_kmem_cache *cache);
  *
  * Allocate an object from a cache created using #nvgpu_kmem_cache_create().
  *
- * @return Pointer to an object in case of success.
- * @return NULL in case of failure.
+ * @return Pointer to an object in case of success, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 void *nvgpu_kmem_cache_alloc(struct nvgpu_kmem_cache *cache);
 
@@ -134,8 +136,9 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * This function may sleep so cannot be used in IRQs.
  *
- * @return Pointer to an object in case of success.
- * @return NULL in case of failure.
+ * @return Pointer to an object in case of success, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 #define nvgpu_kmalloc(g, size)	nvgpu_kmalloc_impl(g, size, NVGPU_GET_IP)
 
@@ -148,8 +151,9 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * Identical to nvgpu_kalloc() except the memory will be zeroed before being
  * returned.
  *
- * @return Pointer to an object in case of success.
- * @return NULL in case of failure.
+ * @return Pointer to an object in case of success, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 #define nvgpu_kzalloc(g, size)	nvgpu_kzalloc_impl(g, size, NVGPU_GET_IP)
 
@@ -163,8 +167,9 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  * Identical to nvgpu_kalloc() except the size of the memory chunk returned is
  * #n * #size.
  *
- * @return Pointer to an object in case of success.
- * @return NULL in case of failure.
+ * @return Pointer to an object in case of success, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 #define nvgpu_kcalloc(g, n, size)	\
 	nvgpu_kcalloc_impl(g, n, size, NVGPU_GET_IP)
@@ -183,8 +188,9 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * This function may sleep.
  *
- * @return Pointer to an object in case of success.
- * @return NULL in case of failure.
+ * @return Pointer to an object in case of success, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 #define nvgpu_vmalloc(g, size)	nvgpu_vmalloc_impl(g, size, NVGPU_GET_IP)
 
@@ -196,8 +202,9 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * Identical to nvgpu_vmalloc() except this will return zero'ed memory.
  *
- * @return Pointer to an object in case of success.
- * @return NULL in case of failure.
+ * @return Pointer to an object in case of success, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 #define nvgpu_vzalloc(g, size)	nvgpu_vzalloc_impl(g, size, NVGPU_GET_IP)
 
@@ -229,7 +236,10 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr);
  *
  * Internal implementation is specific to OS.
  *
- * @return 0 in case of success, non-zero in case of failure.
+ * @return 0 in case of success, non-zero in case of failure. Posix
+ * implementation is a dummy function which just returns 0.
+ *
+ * @retval 0 for posix implementation.
  */
 int nvgpu_kmem_init(struct gk20a *g);
 
@@ -287,8 +297,10 @@ void nvgpu_kmem_fini(struct gk20a *g, int flags);
  * buffer is going to be big or small so this does the check for you and
  * provides the right type of memory allocation.
  *
- * @return pointer to a virtual address range that the nvgpu can access.
- * @return NULL in case of failure.
+ * @return upon successful allocation a pointer to a virtual address range
+ * that the nvgpu can access is returned, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 void *nvgpu_big_alloc_impl(struct gk20a *g, size_t size, bool clear);
 
@@ -300,8 +312,10 @@ void *nvgpu_big_alloc_impl(struct gk20a *g, size_t size, bool clear);
  *
  * It is wrapper around nvgpu_big_alloc_impl()
  *
- * @return pointer to a virtual address range that the nvgpu can access.
- * @return NULL in case of failure.
+ * @return upon successful allocation a pointer to a virtual address range
+ * that the nvgpu can access is returned, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 static inline void *nvgpu_big_malloc(struct gk20a *g, size_t size)
 {
@@ -316,8 +330,10 @@ static inline void *nvgpu_big_malloc(struct gk20a *g, size_t size)
  *
  * Zeroed memory version of nvgpu_big_malloc().
  *
- * @return pointer to a virtual address range that the nvgpu can access.
- * @return NULL in case of failure.
+ * @return upon successful allocation a pointer to a virtual address range
+ * that the nvgpu can access is returned, else NULL.
+ *
+ * @retval NULL in case of failure.
  */
 static inline void *nvgpu_big_zalloc(struct gk20a *g, size_t size)
 {

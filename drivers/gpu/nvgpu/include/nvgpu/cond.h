@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,13 @@ struct nvgpu_cond;
  *
  * @return If successful, this function returns 0. Otherwise, an error number
  * is returned to indicate the error.
+ *
+ * @retval ENOMEM for insufficient memory.
+ * @retval EINVAL for invalid value.
+ * @retval EBUSY for a pthread condition variable pointer to a previously
+ * initialized condition variable that hasn't been destroyed.
+ * @retval EFAULT for any faults that occurred while trying to access the
+ * condition variable or attribute.
  */
 int nvgpu_cond_init(struct nvgpu_cond *cond);
 
@@ -83,6 +90,11 @@ void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond);
  *
  * @return If successful, this function returns 0. Otherwise, an error number
  * is returned to indicate the error.
+ *
+ * @retval -EINVAL if \a cond is NULL or not initialized.
+ * @retval EFAULT a fault occurred while trying to access the buffers provided.
+ * @retval EINVAL for invalid condition variable. This error value is generated
+ * by the OS API used inside this function, which is returned as it is.
  */
 int nvgpu_cond_broadcast(struct nvgpu_cond *cond);
 
@@ -99,6 +111,11 @@ int nvgpu_cond_broadcast(struct nvgpu_cond *cond);
  *
  * @return If successful, this function returns 0. Otherwise, an error number
  * is returned to indicate the error.
+ *
+ * @retval -EINVAL if \a cond is NULL or not initialized.
+ * @retval EFAULT a fault occurred while trying to access the buffers provided.
+ * @retval EINVAL for invalid condition variable. This error value is generated
+ * by the OS API used inside this function, which is returned as it is.
  */
 int nvgpu_cond_broadcast_interruptible(struct nvgpu_cond *cond);
 

@@ -43,6 +43,8 @@
  *
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.
+ *
+ * @retval -ETIMEDOUT for timeout.
  */
 #define nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt, arg...)	\
 ({									\
@@ -72,6 +74,8 @@
  *
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.
+ *
+ * @retval -ETIMEDOUT for timeout.
  */
 #define nvgpu_timeout_expired_msg_retry(timeout, caller, fmt, arg...)	\
 ({									\
@@ -102,6 +106,8 @@
  *
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.
+ *
+ * @retval -ETIMEDOUT for timeout.
  */
 #define nvgpu_timeout_expired_msg_impl(timeout, caller, fmt, arg...)	\
 ({									\

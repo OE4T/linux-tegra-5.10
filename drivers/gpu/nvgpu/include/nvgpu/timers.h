@@ -125,6 +125,8 @@ struct nvgpu_timeout {
  *
  * @return Shall return 0 on success; otherwise, return error number to indicate
  * the error type.
+ *
+ * @retval -EINVAL invalid input parameter.
  */
 int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 		       u32 duration, unsigned long flags);
@@ -137,8 +139,10 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
  * Checks the status of \a timeout and returns if the timeout has expired or
  * not.
  *
- * @return Shall return TRUE if the timeout has expired; otherwise, returns
- * FALSE.
+ * @return Boolean value to indicate the status of timeout.
+ *
+ * @retval TRUE if the timeout has expired.
+ * @retval FALSE if the timeout has not expired.
  */
 bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
 

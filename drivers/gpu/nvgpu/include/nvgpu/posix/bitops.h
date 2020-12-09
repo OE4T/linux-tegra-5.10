@@ -198,7 +198,10 @@ unsigned long find_first_zero_bit(const unsigned long *address,
  * Checks if the bit at position mentioned by \a bit in \a address is set
  * or not.
  *
- * @return Returns true if bit position \a bit is set, else returns false.
+ * @return Boolean value which indicates the status of the bit.
+ *
+ * @retval TRUE if the bit position is set.
+ * @retval FALSE if the bit position is not set.
  */
 bool nvgpu_test_bit(unsigned int bit, const volatile unsigned long *address);
 
@@ -210,7 +213,11 @@ bool nvgpu_test_bit(unsigned int bit, const volatile unsigned long *address);
  *
  * Tests and sets the bit at position \a bit in \a address.
  *
- * @return Returns true if the bit position was already set, else returns false.
+ * @return Boolean value which indicates the status of the bit before the set
+ * operation.
+ *
+ * @retval TRUE if the bit position was already set.
+ * @retval FALSE if the bit position was not set before.
  */
 bool nvgpu_test_and_set_bit(unsigned int bit, volatile unsigned long *address);
 
@@ -222,7 +229,11 @@ bool nvgpu_test_and_set_bit(unsigned int bit, volatile unsigned long *address);
  *
  * Tests and clears the bit at position \a bit in \a address.
  *
- * @return Returns true if the bit position was already set, else returns false.
+ * @return Boolean value which indicates the status of the bit before the clear
+ * operation.
+ *
+ * @retval TRUE if the bit position was already set.
+ * @retval FALSE if the bit position was not set before.
  */
 bool nvgpu_test_and_clear_bit(unsigned int bit,
 			      volatile unsigned long *address);
