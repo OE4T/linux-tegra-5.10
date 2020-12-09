@@ -87,20 +87,91 @@
 
 		vic@15340000 {
 			iommus = <&smmu_niso0 TEGRA_SID_VIC>;
+			status = "okay";
 		};
 
 		nvjpg@15380000 {
 			iommus = <&smmu_niso0 TEGRA_SID_NVJPG>;
+			status = "okay";
 		};
 
 		tsec@15500000 {
 			iommus = <&smmu_niso0 TEGRA_SID_TSEC>;
+			status = "okay";
 		};
 
 		nvdec@15480000 {
 			iommus = <&smmu_niso0 TEGRA_SID_NVDEC>;
+			status = "okay";
+		};
+#else
+		vic@15340000 {
+			status = "okay";
+		};
+
+		nvjpg@15380000 {
+			status = "okay";
+		};
+
+		tsec@15500000 {
+			status = "okay";
+		};
+
+		nvdec@15480000 {
+			status = "okay";
 		};
 #endif
+		nvenc@154c0000 {
+			status = "okay";
+		};
+
+		nvjpg1@15540000 {
+			status = "okay";
+		};
+
+		ofa@15a50000 {
+			status = "okay";
+		};
+
+		vi0@15c00000 {
+			status = "okay";
+		};
+
+		vi1@14c00000 {
+			status = "okay";
+		};
+
+		vi-thi@15f00000 {
+			status = "okay";
+		};
+
+		nvcsi@15a00000 {
+			status = "okay";
+		};
+
+		pva0 {
+			status = "okay";
+		};
+
+		nvdla0@15880000 {
+			status = "okay";
+		};
+
+		nvdla1@158c0000 {
+			status = "okay";
+		};
+
+		se@15810000 {
+			status = "okay";
+		};
+
+		se@15820000 {
+			status = "okay";
+		};
+
+		se@15840000 {
+			status = "okay";
+		};
 
 		niso0_ctx0 {
 			status = "okay";

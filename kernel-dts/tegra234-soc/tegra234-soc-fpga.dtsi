@@ -32,6 +32,7 @@
 #include "tegra234-soc-ufshc.dtsi"
 #include "tegra234-soc-spi.dtsi"
 #include "tegra234-psc.dtsi"
+#include "tegra234-soc-host1x.dtsi"
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 
 / {
@@ -196,279 +197,22 @@
 	};
 
 	host1x: host1x@13e00000 {
-		compatible = "nvidia,tegra234-host1x", "simple-bus";
-		reg = <0x0 0x13e40000 0x0 0x00010000>,
-		      <0x0 0x13e10000 0x0 0x00010000>,
-		      <0x0 0x13ef0000 0x0 0x00040000>,
-		      <0x0 0x60000000 0x0 0x04000000>,
-		      <0x0 0x13e00000 0x0 0x00010000>;
-		reg-names = "guest", "hypervisor", "actmon", "sem-syncpt-shim",
-			"common";
-		interrupts = <0 448 0x04>,
-			     <0 449 0x04>,
-			     <0 450 0x04>,
-			     <0 451 0x04>,
-			     <0 452 0x04>,
-			     <0 453 0x04>,
-			     <0 454 0x04>,
-			     <0 455 0x04>,
-			     <0 263 0x04>;
-		nvidia,ignore-dt-update;
-		wakeup_capable;
-		clocks = <&bpmp_clks TEGRA234_CLK_HOST1X>,
-			 <&bpmp_clks TEGRA234_CLK_ACTMON>;
-		clock-names = "host1x", "actmon";
-		nvidia,vmid = <1>;
-
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		iommus = <&smmu_niso1 TEGRA_SID_HC>,
-			 <&smmu_niso1 TEGRA_SID_HC_VM0>,
-			 <&smmu_niso1 TEGRA_SID_HC_VM1>,
-			 <&smmu_niso1 TEGRA_SID_HC_VM2>,
-			 <&smmu_niso1 TEGRA_SID_HC_VM3>,
-			 <&smmu_niso1 TEGRA_SID_HC_VM4>,
-			 <&smmu_niso1 TEGRA_SID_HC_VM5>,
-			 <&smmu_niso1 TEGRA_SID_HC_VM6>,
-			 <&smmu_niso1 TEGRA_SID_HC_VM7>;
-#else
-		iommus = <&smmu TEGRA_SID_HC>,
-			 <&smmu TEGRA_SID_HC_VM0>,
-			 <&smmu TEGRA_SID_HC_VM1>,
-			 <&smmu TEGRA_SID_HC_VM2>,
-			 <&smmu TEGRA_SID_HC_VM3>,
-			 <&smmu TEGRA_SID_HC_VM4>,
-			 <&smmu TEGRA_SID_HC_VM5>,
-			 <&smmu TEGRA_SID_HC_VM6>,
-			 <&smmu TEGRA_SID_HC_VM7>;
-#endif
-		dma-coherent;
-
-		#address-cells = <2>;
-		#size-cells = <2>;
-
-		ranges;
-
-		host1x_ctx0: niso0_ctx0 {
-			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_HOST1X_CTX0>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX0>;
-#endif
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx1: niso0_ctx1 {
-			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_HOST1X_CTX1>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX1>;
-#endif
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx2: niso0_ctx2 {
-			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_HOST1X_CTX2>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX2>;
-#endif
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx3: niso0_ctx3 {
-			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_HOST1X_CTX3>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX3>;
-#endif
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx4: niso0_ctx4 {
-			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_HOST1X_CTX4>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX4>;
-#endif
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx5: niso0_ctx5 {
-			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_HOST1X_CTX5>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX5>;
-#endif
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx6: niso0_ctx6 {
-			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_HOST1X_CTX6>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX6>;
-#endif
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx7: niso0_ctx7 {
-			compatible = "nvidia,tegra186-iommu-context";
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso0 TEGRA_SID_HOST1X_CTX7>;
-#else
-			iommus = <&smmu TEGRA_SID_HOST1X_CTX7>;
-#endif
-			dma-coherent;
-			status = "disabled";
-		};
-
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-		host1x_ctx0n1: niso1_ctx0 {
-			compatible = "nvidia,tegra186-iommu-context";
-			iommus = <&smmu_niso1 TEGRA_SID_HOST1X_CTX0>;
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx1n1: niso1_ctx1 {
-			compatible = "nvidia,tegra186-iommu-context";
-			iommus = <&smmu_niso1 TEGRA_SID_HOST1X_CTX1>;
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx2n1: niso1_ctx2 {
-			compatible = "nvidia,tegra186-iommu-context";
-			iommus = <&smmu_niso1 TEGRA_SID_HOST1X_CTX2>;
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx3n1: niso1_ctx3 {
-			compatible = "nvidia,tegra186-iommu-context";
-			iommus = <&smmu_niso1 TEGRA_SID_HOST1X_CTX3>;
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx4n1: niso1_ctx4 {
-			compatible = "nvidia,tegra186-iommu-context";
-			iommus = <&smmu_niso1 TEGRA_SID_HOST1X_CTX4>;
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx5n1: niso1_ctx5 {
-			compatible = "nvidia,tegra186-iommu-context";
-			iommus = <&smmu_niso1 TEGRA_SID_HOST1X_CTX5>;
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx6n1: niso1_ctx6 {
-			compatible = "nvidia,tegra186-iommu-context";
-			iommus = <&smmu_niso1 TEGRA_SID_HOST1X_CTX6>;
-			dma-coherent;
-			status = "disabled";
-		};
-
-		host1x_ctx7n1: niso1_ctx7 {
-			compatible = "nvidia,tegra186-iommu-context";
-			iommus = <&smmu_niso1 TEGRA_SID_HOST1X_CTX7>;
-			dma-coherent;
-			status = "disabled";
-		};
-#endif
-
 		tsec@15500000 {
-			compatible = "nvidia,tegra234-tsec";
-			reg = <0x0 0x15500000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA234_RESET_TSEC>;
-			clocks = <&bpmp_clks TEGRA234_CLK_TSEC>,
-				 <&bpmp_clks TEGRA234_CLK_FUSE>;
-			clock-names = "tsec", "efuse";
-
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso1 TEGRA_SID_TSEC>;
-#else
-			iommus = <&smmu TEGRA_SID_TSEC>;
-#endif
-			dma-coherent;
+			status = "okay";
 		};
 
 		se@15810000 {
-			compatible = "nvidia,tegra234-se1-nvhost";
-			reg = <0x0 0x15810000 0x0 0x10000>;
-			nvidia,io-coherent;
-			opcode_addr = <0x1004>;
-			resets = <&bpmp_resets TEGRA234_RESET_SE>;
-			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
-			clock-names = "se";
-
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso1 TEGRA_SID_SE>;
-#else
-			iommus = <&smmu TEGRA_SID_SE>;
-#endif
-			dma-coherent;
-
-			status = "disabled";
+			status = "okay";
 		};
 
 		se@15820000 {
-			compatible = "nvidia,tegra234-se2-nvhost";
-			reg = <0x0 0x15820000 0x0 0x10000>;
-			supported-algos = "aes", "cmac", "xts", "aead";
-			nvidia,io-coherent;
-			opcode_addr = <0x2004>;
-			resets = <&bpmp_resets TEGRA234_RESET_SE>;
-			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
-			clock-names = "se";
-
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso1 TEGRA_SID_SE1>;
-#else
-			iommus = <&smmu TEGRA_SID_SE1>;
-#endif
-			dma-coherent;
-
-			status = "disabled";
+			status = "okay";
 		};
 
 		se@15840000 {
-			compatible = "nvidia,tegra234-se4-nvhost";
-			reg = <0x0 0x15840000 0x0 0x10000>;
-			supported-algos = "sha", "sha3";
-			nvidia,io-coherent;
-			opcode_addr = <0x4004>;
-			resets = <&bpmp_resets TEGRA234_RESET_SE>;
-			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
-			clock-names = "se";
-
-#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
-			iommus = <&smmu_niso1 TEGRA_SID_SE2>;
-#else
-			iommus = <&smmu TEGRA_SID_SE2>;
-#endif
-			dma-coherent;
-
-			status = "disabled";
+			status = "okay";
 		};
-	}; // host1x@13e00000
+	};
 
 	nvrng@3ae0000 {
 		compatible = "nvidia,tegra234-se-nvrng";
