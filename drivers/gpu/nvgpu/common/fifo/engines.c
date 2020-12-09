@@ -936,15 +936,16 @@ static u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
 			*veid = nvgpu_engine_mmu_fault_id_to_veid(g,
 					mmu_fault_id, dev->fault_id);
 			if (*veid != INVAL_ID) {
+				engine_id = dev->engine_id;
 				break;
 			}
 		} else {
 			if (dev->fault_id == mmu_fault_id) {
+				engine_id = dev->engine_id;
 				*veid = INVAL_ID;
 				break;
 			}
 		}
-		engine_id = INVAL_ID;
 	}
 	return engine_id;
 }
