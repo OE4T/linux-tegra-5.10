@@ -266,6 +266,10 @@ struct gk20a {
 	 * have had the opportunity to free their private data.
 	 */
 	void (*gfree)(struct gk20a *g);
+
+	/**
+	 * Handle to access nvhost APIs.
+	 */
 	struct nvgpu_nvhost_dev *nvhost;
 
 	/**
@@ -273,8 +277,10 @@ struct gk20a {
 	 */
 	unsigned long *enabled_flags;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/** Used by Linux module to keep track of driver usage */
 	nvgpu_atomic_t usage_count;
+	/** @endcond */
 
 	/** Used by common.init unit to track users of the driver */
 	struct nvgpu_ref refcount;
@@ -294,21 +300,34 @@ struct gk20a {
 #ifdef CONFIG_PM
 	bool suspended;
 #endif
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	bool sw_ready;
+	/** @endcond */
 
+	/** Flag to indicate that quiesce framework is initialized. */
 	bool sw_quiesce_init_done;
+	/** Flag to indicate that system is transitioning to quiesce state. */
 	bool sw_quiesce_pending;
+	/** Condition variable on which quiesce thread waits. */
 	struct nvgpu_cond sw_quiesce_cond;
+	/** Quiesce thread id. */
 	struct nvgpu_thread sw_quiesce_thread;
+	/**
+	 * Struct having callback and it's arguments. The callback gets called
+	 * when BUG() is hit by the code.
+	 */
 	struct nvgpu_bug_cb sw_quiesce_bug_cb;
 
+	/** An entry into list of callbacks to be called when BUG() is hit. */
 	struct nvgpu_list_node bug_node;
 
 	/** Controls which messages are logged */
 	u64 log_mask;
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 log_trace;
 
 	struct nvgpu_mutex tpc_pg_lock;
+	/** @endcond */
 
 	/** Stored HW version info */
 	struct nvgpu_gpu_params params;
@@ -325,30 +344,44 @@ struct gk20a {
 	struct nvgpu_netlist_vars *netlist_vars;
 	bool netlist_valid;
 
+	/** Struct holding the pmu falcon software state. */
 	struct nvgpu_falcon pmu_flcn;
+	/** Struct holding the fecs falcon software state. */
 	struct nvgpu_falcon fecs_flcn;
+	/** Struct holding the gpccs falcon software state. */
 	struct nvgpu_falcon gpccs_flcn;
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_falcon nvdec_flcn;
 	struct nvgpu_falcon minion_flcn;
 	struct nvgpu_falcon gsp_flcn;
 	struct clk_gk20a clk;
+	/** @endcond */
+	/** Top level struct maintaining fifo unit's software state. */
 	struct nvgpu_fifo fifo;
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_nvlink_dev nvlink;
-
+	/** @endcond */
+	/** Pointer to struct maintaining GR unit's software state. */
 	struct nvgpu_gr *gr;
 	u32 num_gr_instances;
-
+	/** Pointer to struct maintaining fbp unit's software state. */
 	struct nvgpu_fbp *fbp;
 #ifdef CONFIG_NVGPU_SIM
 	struct sim_nvgpu *sim;
 #endif
 	struct nvgpu_device_list *devs;
+	/** Top level struct maintaining MM unit's software state. */
 	struct mm_gk20a mm;
+	/** Pointer to struct maintaining PMU unit's software state. */
 	struct nvgpu_pmu *pmu;
+	/** Pointer to struct maintaining ACR unit's software state. */
 	struct nvgpu_acr *acr;
+	/** Top level struct maintaining ECC unit's software state. */
 	struct nvgpu_ecc ecc;
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct pmgr_pmupstate *pmgr_pmu;
 	struct nvgpu_sec2 sec2;
+	/** @endcond */
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 	struct nvgpu_sched_ctrl sched_ctrl;
 #endif
@@ -361,14 +394,24 @@ struct gk20a {
 	/** User disabled timeouts */
 	bool timeouts_disabled_by_user;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	unsigned int ch_wdt_init_limit_ms;
+	/** @endcond */
+	/**
+	 * Timeout after which ctxsw timeout interrupt (if enabled by s/w) will
+	 * be triggered by h/w if context fails to context switch.
+	 */
 	u32 ctxsw_timeout_period_ms;
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 ctxsw_wdt_period_us;
 
 	struct nvgpu_mutex power_lock;
+	/** @endcond */
 
+	/** Lock to protect accessing \a power_on_state. */
 	struct nvgpu_spinlock power_spinlock;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/** Channel priorities */
 	u32 tsg_timeslice_low_priority_us;
 	u32 tsg_timeslice_medium_priority_us;
@@ -376,6 +419,7 @@ struct gk20a {
 	u32 tsg_timeslice_min_us;
 	u32 tsg_timeslice_max_us;
 	bool runlist_interleave;
+	/** @endcond */
 
 	/** Lock serializing CG an PG programming for various units */
 	struct nvgpu_mutex cg_pg_lock;
@@ -385,21 +429,24 @@ struct gk20a {
 	bool blcg_enabled;
 	/** ELCG setting read from the platform data */
 	bool elcg_enabled;
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	bool elpg_enabled;
 	bool aelpg_enabled;
 	bool can_elpg;
 	bool mscg_enabled;
 	bool forced_idle;
 	bool allow_all;
+	/** @endcond */
 
+	/** Ptimer source frequency. */
 	u32 ptimer_src_freq;
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	int railgate_delay;
-	/** @endcond */
 	u8 ldiv_slowdown_factor;
 	unsigned int aggressive_sync_destroy_thresh;
 	bool aggressive_sync_destroy;
+	/** @endcond */
 
 	/** Is LS PMU supported? */
 	bool support_ls_pmu;
@@ -407,9 +454,9 @@ struct gk20a {
 	/** Is this a virtual GPU? */
 	bool is_virtual;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	bool has_cde;
 
-	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 emc3d_ratio;
 	/** @endcond */
 
@@ -463,25 +510,32 @@ struct gk20a {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/* Called after all references to driver are gone. Unused in safety */
 	void (*remove_support)(struct gk20a *g);
-	/** @endcond */
 
 	u64 pg_ingating_time_us;
 	u64 pg_ungating_time_us;
 	u32 pg_gating_cnt;
+	/** @endcond */
 
+	/** GPU address-space identifier. */
 	struct gk20a_as as;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_mutex client_lock;
 	int client_refcount; /* open channels and ctrl nodes */
+	/** @endcond */
 
 	/** The HAL function pointers */
 	struct gpu_ops ops;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/*used for change of enum zbc update cmd id from ver 0 to ver1*/
 	u8 pmu_ver_cmd_id_zbc_table_update;
+	/** @endcond */
 
+	/** Top level struct managing interrupt handling. */
 	struct nvgpu_mc mc;
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/*
 	 * The deductible memory size for max_comptag_mem (in MBytes)
 	 * Usually close to memory size that running system is taking
@@ -494,7 +548,9 @@ struct gk20a {
 
 	struct nvgpu_cbc *cbc;
 	struct nvgpu_ltc *ltc;
+	/** @endcond */
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_channel_worker {
 		struct nvgpu_worker worker;
 
@@ -504,15 +560,18 @@ struct gk20a {
 #endif
 	} channel_worker;
 
-	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	struct nvgpu_clk_arb_worker {
 		struct nvgpu_worker worker;
 	} clk_arb_worker;
 	/** @endcond */
 
 	struct {
+		/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 		void (*open)(struct nvgpu_channel *ch);
+		/** @endcond */
+		/** Os specific callback called at channel closure. */
 		void (*close)(struct nvgpu_channel *ch, bool force);
+		/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 		void (*work_completion_signal)(struct nvgpu_channel *ch);
 		void (*work_completion_cancel_sync)(struct nvgpu_channel *ch);
 		bool (*os_fence_framework_inst_exists)(struct nvgpu_channel *ch);
@@ -524,8 +583,11 @@ struct gk20a {
 		int (*copy_user_gpfifo)(struct nvgpu_gpfifo_entry *dest,
 				struct nvgpu_gpfifo_userdata userdata,
 				u32 start, u32 length);
+		/** @endcond */
+		/** Os specific callback to allocate usermode buffers. */
 		int (*alloc_usermode_buffers)(struct nvgpu_channel *c,
 			struct nvgpu_setup_bind_args *args);
+		/** Os specific callback to free usermode buffers. */
 		void (*free_usermode_buffers)(struct nvgpu_channel *c);
 	} os_channel;
 
@@ -540,10 +602,10 @@ struct gk20a {
 	u32 fecs_feature_override_ecc_val;
 #endif
 
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 tpc_pg_mask;
 	bool can_tpc_powergate;
 
-	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 valid_tpc_mask[MAX_TPC_PG_CONFIGS];
 
 	struct nvgpu_bios *bios;
@@ -612,6 +674,7 @@ struct gk20a {
 	size_t		syncpt_unit_size;
 	u32		syncpt_size;
 #endif
+	/** Full syncpoint aperture. */
 	struct nvgpu_mem syncpt_mem;
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
