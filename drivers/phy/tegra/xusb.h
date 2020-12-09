@@ -456,6 +456,7 @@ struct tegra_xusb_padctl {
 	struct list_head pads;
 
 	unsigned int enable;
+	bool is_xhci_iov;
 
 	struct clk *clk;
 

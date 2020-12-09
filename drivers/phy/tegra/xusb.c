@@ -1188,6 +1188,14 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 	if (IS_ERR(padctl))
 		return PTR_ERR(padctl);
 
+	np = of_node_get(pdev->dev.of_node);
+	if (of_find_property(np, "is_xhci_iov", NULL))
+		padctl->is_xhci_iov = true;
+	else
+		padctl->is_xhci_iov = false;
+
+	of_node_put(np);
+
 	platform_set_drvdata(pdev, padctl);
 	INIT_LIST_HEAD(&padctl->ports);
 	INIT_LIST_HEAD(&padctl->lanes);
@@ -1201,39 +1209,45 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 		goto remove;
 	}
 
-	padctl->rst = devm_reset_control_get(&pdev->dev, NULL);
-	if (IS_ERR(padctl->rst)) {
-		err = PTR_ERR(padctl->rst);
-		goto remove;
-	}
+	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov) {
+		padctl->rst = devm_reset_control_get(&pdev->dev, NULL);
+		if (IS_ERR(padctl->rst)) {
+			err = PTR_ERR(padctl->rst);
+			goto remove;
+		}
 
-	padctl->supplies = devm_kcalloc(&pdev->dev, padctl->soc->num_supplies,
-					sizeof(*padctl->supplies), GFP_KERNEL);
-	if (!padctl->supplies) {
-		err = -ENOMEM;
-		goto remove;
-	}
+		padctl->supplies = devm_kcalloc(&pdev->dev,
+						padctl->soc->num_supplies,
+						sizeof(*padctl->supplies),
+						GFP_KERNEL);
+		if (!padctl->supplies) {
+			err = -ENOMEM;
+			goto remove;
+		}
 
-	regulator_bulk_set_supply_names(padctl->supplies,
-					padctl->soc->supply_names,
-					padctl->soc->num_supplies);
+		regulator_bulk_set_supply_names(padctl->supplies,
+						padctl->soc->supply_names,
+						padctl->soc->num_supplies);
 
-	err = devm_regulator_bulk_get(&pdev->dev, padctl->soc->num_supplies,
-				      padctl->supplies);
-	if (err < 0) {
-		dev_err(&pdev->dev, "failed to get regulators: %d\n", err);
-		goto remove;
-	}
+		err = devm_regulator_bulk_get(&pdev->dev,
+					      padctl->soc->num_supplies,
+					      padctl->supplies);
+		if (err < 0) {
+			dev_err(&pdev->dev, "failed to get regulators: %d\n",
+				err);
+			goto remove;
+		}
 
-	err = reset_control_deassert(padctl->rst);
-	if (err < 0)
-		goto remove;
+		err = reset_control_deassert(padctl->rst);
+		if (err < 0)
+			goto remove;
 
-	err = regulator_bulk_enable(padctl->soc->num_supplies,
-				    padctl->supplies);
-	if (err < 0) {
-		dev_err(&pdev->dev, "failed to enable supplies: %d\n", err);
-		goto reset;
+		err = regulator_bulk_enable(padctl->soc->num_supplies,
+					    padctl->supplies);
+		if (err < 0) {
+			dev_err(&pdev->dev, "failed to enable supplies: %d\n", err);
+			goto reset;
+		}
 	}
 
 	err = tegra_xusb_setup_pads(padctl);
@@ -1259,9 +1273,12 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 remove_pads:
 	tegra_xusb_remove_pads(padctl);
 power_down:
-	regulator_bulk_disable(padctl->soc->num_supplies, padctl->supplies);
+	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov)
+		regulator_bulk_disable(padctl->soc->num_supplies,
+				       padctl->supplies);
 reset:
-	reset_control_assert(padctl->rst);
+	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov)
+		reset_control_assert(padctl->rst);
 remove:
 	platform_set_drvdata(pdev, NULL);
 	soc->ops->remove(padctl);
@@ -1276,14 +1293,18 @@ static int tegra_xusb_padctl_remove(struct platform_device *pdev)
 	tegra_xusb_remove_ports(padctl);
 	tegra_xusb_remove_pads(padctl);
 
-	err = regulator_bulk_disable(padctl->soc->num_supplies,
-				     padctl->supplies);
-	if (err < 0)
-		dev_err(&pdev->dev, "failed to disable supplies: %d\n", err);
+	if (tegra_platform_is_silicon() && !padctl->is_xhci_iov) {
+		err = regulator_bulk_disable(padctl->soc->num_supplies,
+					     padctl->supplies);
+		if (err < 0)
+			dev_err(&pdev->dev, "failed to disable supplies: %d\n",
+				err);
 
-	err = reset_control_assert(padctl->rst);
-	if (err < 0)
-		dev_err(&pdev->dev, "failed to assert reset: %d\n", err);
+		err = reset_control_assert(padctl->rst);
+		if (err < 0)
+			dev_err(&pdev->dev, "failed to assert reset: %d\n",
+				err);
+	}
 
 	padctl->soc->ops->remove(padctl);
 
