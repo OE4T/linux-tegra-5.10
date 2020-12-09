@@ -239,10 +239,6 @@
 			status="disabled";
 		};
 
-		se@15830000 {
-			status="disabled";
-		};
-
 		se@15840000 {
 			status="disabled";
 		};
