@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,9 @@
 #define NV_PERF_PMM_FBP_ROUTER_STRIDE 0x0200U
 #define NV_PERF_PMMGPCROUTER_STRIDE	0x0200U
 #define NV_XBAR_MXBAR_PRI_GPC_GNIC_STRIDE	0x0020U
+
+/* Dummy address for ctxsw'ed pri reg checksum. */
+#define CTXSW_PRI_CHECKSUM_DUMMY_REG  0x00ffffffU
 
 int nvgpu_gr_hwpm_map_init(struct gk20a *g, struct nvgpu_gr_hwpm_map **hwpm_map,
 	u32 size)
@@ -216,6 +219,22 @@ static int add_ctxsw_buffer_map_entries_subunits(
 						(unit * stride);
 				map[cnt++].offset = off;
 				off += 4U;
+
+				/*
+				 * The ucode computes and saves the checksum of
+				 * all ctxsw'ed register values within a list.
+				 * Entries with addr=0x00ffffff are placeholder
+				 * for these checksums.
+				 *
+				 * There is only one checksum for a list
+				 * even if it contains multiple subunits. Hence,
+				 * skip iterating over all subunits for this
+				 * entry.
+				 */
+				if (regs->l[idx].addr ==
+						CTXSW_PRI_CHECKSUM_DUMMY_REG) {
+					break;
+				}
 			}
 		}
 	}
