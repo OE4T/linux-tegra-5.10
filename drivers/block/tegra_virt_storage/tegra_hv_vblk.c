@@ -629,9 +629,7 @@ static int vblk_open(struct block_device *device, fmode_t mode)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0)
 		check_disk_change(device);
 #else
-		spin_unlock(&vblkdev->lock);
-		bdev_disk_changed(device, false);
-		spin_lock(&vblkdev->lock);
+		bdev_check_media_change(device);
 #endif
 	}
 	vblkdev->users++;
