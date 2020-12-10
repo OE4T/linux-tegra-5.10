@@ -50,19 +50,22 @@
  */
 nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma);
 
+/**
+ * @addtogroup Helper Helper MACROS
+ *
+ * @brief EQOS generic helper MACROS.
+ * @{
+ */
 #define CHECK_CHAN_BOUND(chan)						\
 	{								\
 		if ((chan) >= OSI_EQOS_MAX_NUM_CHANS) {			\
 			return;						\
 		}							\
 	}								\
-/**
- * @addtogroup Helper Helper MACROS
- *
- * @brief EQOS DMA generic helper MACROS.
- * @{
- */
+
 #define BOOLEAN_FALSE		(0U != 0U)
 #define L32(data)       ((data) & 0xFFFFFFFFU)
 #define H32(data)       (((data) & 0xFFFFFFFF00000000UL) >> 32UL)
+/** @} */
+
 #endif /* INCLUDED_OSI_DMA_LOCAL_H */

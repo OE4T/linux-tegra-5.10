@@ -138,10 +138,8 @@
  *
  * @brief Flag to indicate the result from checksum offload engine
  * to SW network stack in receive path.
-#ifndef OSI_STRIPPED_LIB
  * OSI_CHECKSUM_NONE indicates that HW checksum offload
  * engine did not verify the checksum, SW network stack has to do it.
-#endif
  * OSI_CHECKSUM_UNNECESSARY indicates that HW validated the
  * checksum already, network stack can skip validation.
  * @{

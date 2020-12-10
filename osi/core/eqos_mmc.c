@@ -51,7 +51,7 @@
  * @retval 0 on success
  * @retval -1 on failure
  */
-static inline nveu64_t update_mmc_val(struct osi_core_priv_data *osi_core,
+static inline nveu64_t update_mmc_val(struct osi_core_priv_data *const osi_core,
 				      nveu64_t last_value,
 				      nveu64_t offset)
 {
@@ -89,7 +89,7 @@ static inline nveu64_t update_mmc_val(struct osi_core_priv_data *osi_core,
  * - Run time: Yes
  * - De-initialization: No
  */
-void eqos_reset_mmc(struct osi_core_priv_data *osi_core)
+void eqos_reset_mmc(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t value;
 
@@ -121,7 +121,7 @@ void eqos_reset_mmc(struct osi_core_priv_data *osi_core)
  * - Run time: Yes
  * - De-initialization: No
  */
-void eqos_read_mmc(struct osi_core_priv_data *osi_core)
+void eqos_read_mmc(struct osi_core_priv_data *const osi_core)
 {
 	struct osi_mmc_counters *mmc = &osi_core->mmc;
 

@@ -203,8 +203,6 @@ static void eqos_core_safety_init(struct osi_core_priv_data *const osi_core)
  * - De-initialization: No
  *
  * @param[in] osi_core: OSI core private data structure.
- *
- * @retval none
  */
 static void eqos_core_backup_init(struct osi_core_priv_data *const osi_core)
 {
@@ -2955,9 +2953,9 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
  * @retval -1 on failure.
  */
 static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
-				   nveu32_t sec, nveu32_t nsec,
-				   nveu32_t add_sub,
-				   nveu32_t one_nsec_accuracy)
+				   const nveu32_t sec, const nveu32_t nsec,
+				   const nveu32_t add_sub,
+				   const nveu32_t one_nsec_accuracy)
 {
 	void *addr = osi_core->base;
 	nveu32_t mac_tcr;
