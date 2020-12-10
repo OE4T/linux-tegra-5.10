@@ -42,7 +42,8 @@ struct nvgpu_ref {
  *
  * @param ref [in]	The nvgpu_ref object to initialize.
  *
- * Initializes the reference object pointed by \a ref.
+ * Initializes the reference count of the object pointed by \a ref by
+ * atomically setting it to 1.
  */
 static inline void nvgpu_ref_init(struct nvgpu_ref *ref)
 {
@@ -54,7 +55,7 @@ static inline void nvgpu_ref_init(struct nvgpu_ref *ref)
  *
  * @param ref [in]	The nvgpu_ref object.
  *
- * Increment reference count for the object
+ * Increment the reference count for the object atomically.
  */
 static inline void nvgpu_ref_get(struct nvgpu_ref *ref)
 {
@@ -100,6 +101,9 @@ static inline void nvgpu_ref_put(struct nvgpu_ref *ref,
  * not make any assumptions about the status of the object in the memory when
  * the function returns 0 and should only use it to know that there are no
  * further references to this object.
+ *
+ * @retval 1 if reference count becomes zero after decrement.
+ * @retval 0 if reference count is non-zero after decrement.
  */
 static inline int nvgpu_ref_put_return(struct nvgpu_ref *ref,
 		void (*release)(struct nvgpu_ref *r))
@@ -118,7 +122,8 @@ static inline int nvgpu_ref_put_return(struct nvgpu_ref *ref,
  *
  * @param ref [in]	The nvgpu_ref object.
  *
- * Increment the reference count of the object unless it is zero.
+ * Increment the reference count of the object pointed by \a ref unless it
+ * is zero.
  *
  * @return Return non-zero if the increment succeeds, Otherwise return 0.
  */

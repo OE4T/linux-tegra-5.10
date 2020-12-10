@@ -105,7 +105,10 @@ static inline void nvgpu_list_del(struct nvgpu_list_node *node)
  *
  * Checks if the list pointed by \a head is empty or not.
  *
- * @return return true if the list is empty, otherwise return false.
+ * @return Boolean value to indicate the status of the list.
+ *
+ * @retval TRUE if list is empty.
+ * @retval FALSE if list is not empty.
  */
 static inline bool nvgpu_list_empty(struct nvgpu_list_node *head)
 {
@@ -147,8 +150,6 @@ static inline void nvgpu_list_replace_init(struct nvgpu_list_node *old_node,
 	nvgpu_init_list_node(old_node);
 }
 
-/** @cond DOXYGEN_SHOULD_SKIP_THIS */
-
 /**
  * @brief Entry from the list
  *
@@ -175,8 +176,6 @@ static inline void nvgpu_list_replace_init(struct nvgpu_list_node *old_node,
  */
 #define nvgpu_list_next_entry(pos, type, member)	\
 	nvgpu_list_entry((pos)->member.next, type, member)
-
-/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 
 /**
  * @brief First entry from the list.

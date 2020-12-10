@@ -221,7 +221,10 @@ enum enum_enabled_flags {
  * @param g [in]	The GPU.
  * @param flag [in]	Which flag to check.
  *
- * @retrun true if the passed \a flag is true; false otherwise.
+ * @return Boolean value to indicate the status of the bit.
+ *
+ * @retval TRUE if the flag bit is enabled.
+ * @retval FALSE if the flag bit is not enabled.
  */
 bool nvgpu_is_enabled(struct gk20a *g, u32 flag);
 
@@ -248,6 +251,7 @@ void nvgpu_set_enabled(struct gk20a *g, u32 flag, bool state);
  * @param g [in]	The GPU superstructure.
  *
  * @return 0 for success, < 0 for error.
+ *
  * @retval -ENOMEM if fails to allocate the necessary memory.
  */
 int nvgpu_init_enabled_flags(struct gk20a *g);
