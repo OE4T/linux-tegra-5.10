@@ -1039,6 +1039,11 @@ static int mods_krnl_close(struct inode *ip, struct file *fp)
 		}
 	}
 
+	if (client->work_queue) {
+		destroy_workqueue(client->work_queue);
+		client->work_queue = NULL;
+	}
+
 	mods_free_client(client_id);
 
 	pr_info("mods [%d]: driver closed\n", client_id);
@@ -1618,10 +1623,17 @@ static void sysfs_write_task(struct work_struct *w)
 		task->err = PTR_ERR(f);
 	else {
 		f->f_pos = 0;
-		task->err = f->f_op->write(f,
-					   task->data,
-					   task->data_size,
-					   &f->f_pos);
+#ifdef MODS_HAS_KERNEL_WRITE
+		task->err = kernel_write(f,
+					 task->data,
+					 task->data_size,
+					 &f->f_pos);
+#else
+		task->err = vfs_write(f,
+				      (__force const char __user *)task->data,
+				      task->data_size,
+				      &f->f_pos);
+#endif
 		filp_close(f, NULL);
 	}
 
@@ -1630,23 +1642,39 @@ static void sysfs_write_task(struct work_struct *w)
 	LOG_EXT();
 }
 
+static int create_work_queue(struct mods_client *client)
+{
+	int err = 0;
+
+	if (unlikely(mutex_lock_interruptible(&client->mtx)))
+		return -EINTR;
+
+	if (!client->work_queue) {
+		client->work_queue = create_singlethread_workqueue("mods_wq");
+		if (!client->work_queue) {
+			cl_error("failed to create work queue\n");
+			err = -ENOMEM;
+		}
+	}
+
+	mutex_unlock(&client->mtx);
+
+	return err;
+}
+
 static int run_write_task(struct mods_client    *client,
 			  struct mods_file_work *task)
 {
-	struct workqueue_struct *wq;
+	int err = create_work_queue(client);
 
-	wq = create_singlethread_workqueue("mods_file_write");
-	if (!wq) {
-		cl_error("failed to create work queue\n");
-		return -ENOMEM;
-	}
+	if (err)
+		return err;
 
 	cl_info("write %.*s to %s\n", task->data_size, task->data, task->path);
 
 	INIT_WORK(&task->work, sysfs_write_task);
-	queue_work(wq, &task->work);
-	flush_workqueue(wq);
-	destroy_workqueue(wq);
+	queue_work(client->work_queue, &task->work);
+	flush_workqueue(client->work_queue);
 
 	if (task->err < 0)
 		cl_error("failed to write %.*s to %s\n",

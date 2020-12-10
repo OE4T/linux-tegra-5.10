@@ -88,31 +88,32 @@ struct irq_q_info {
  * different processes.  This structure tracks data specific to each open fd.
  */
 struct mods_client {
-	struct list_head     irq_list;
-	struct list_head     mem_alloc_list;
-	struct list_head     mem_map_list;
-	struct list_head     free_mem_list; /* list of unused UC/WC chunks */
+	struct list_head         irq_list;
+	struct list_head         mem_alloc_list;
+	struct list_head         mem_map_list;
+	struct list_head         free_mem_list; /* unused UC/WC chunks */
 #if defined(CONFIG_PPC64)
-	struct list_head     ppc_tce_bypass_list;
-	struct list_head     nvlink_sysmem_trained_list;
+	struct list_head         ppc_tce_bypass_list;
+	struct list_head         nvlink_sysmem_trained_list;
 #endif
-	wait_queue_head_t    interrupt_event;
-	struct irq_q_info    irq_queue;
-	spinlock_t           irq_lock;
-	struct en_dev_entry *enabled_devices;
-	struct mem_type      mem_type;
+	wait_queue_head_t        interrupt_event;
+	struct irq_q_info        irq_queue;
+	spinlock_t               irq_lock;
+	struct en_dev_entry     *enabled_devices;
+	struct workqueue_struct *work_queue;
+	struct mem_type          mem_type;
 #if defined(CONFIG_PCI)
-	struct pci_dev      *cached_dev;
+	struct pci_dev          *cached_dev;
 #endif
-	struct mutex         mtx;
-	int                  mods_fb_suspended[FB_MAX];
-	u32                  access_token;
-	atomic_t             num_allocs;
-	atomic_t             num_pages;
+	struct mutex             mtx;
+	int                      mods_fb_suspended[FB_MAX];
+	u32                      access_token;
+	atomic_t                 num_allocs;
+	atomic_t                 num_pages;
 #if defined(MODS_HAS_CONSOLE_LOCK)
-	atomic_t             console_is_locked;
+	atomic_t                 console_is_locked;
 #endif
-	u8                   client_id;
+	u8                       client_id;
 };
 
 /* VM private data */

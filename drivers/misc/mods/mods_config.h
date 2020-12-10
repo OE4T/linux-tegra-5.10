@@ -86,6 +86,10 @@
 #endif
 #endif
 
+#if KERNEL_VERSION(4, 14, 0) <= MODS_KERNEL_VERSION
+#       define MODS_HAS_KERNEL_WRITE
+#endif
+
 #if KERNEL_VERSION(4, 16, 0) > MODS_KERNEL_VERSION && defined(CONFIG_X86)
 #       define MODS_HAS_MAP_SG_ATTRS
 #endif
