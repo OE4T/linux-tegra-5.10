@@ -91,11 +91,10 @@ static void nvgpu_dma_buf_release(struct dma_buf *dmabuf)
 	dmabuf->ops->release(dmabuf);
 }
 
+/* This function must be called with priv->lock held */
 static int gk20a_dma_buf_set_drvdata(struct dma_buf *dmabuf, struct device *device,
 			struct gk20a_dmabuf_priv *priv)
 {
-	nvgpu_mutex_acquire(&priv->lock);
-
 	priv->dmabuf = dmabuf;
 
 	mutex_lock(&dmabuf->lock);
@@ -108,8 +107,6 @@ static int gk20a_dma_buf_set_drvdata(struct dma_buf *dmabuf, struct device *devi
 	priv->local_ops.release = nvgpu_dma_buf_release;
 	dmabuf->ops = &priv->local_ops;
 	mutex_unlock(&dmabuf->lock);
-
-	nvgpu_mutex_release(&priv->lock);
 
 	return 0;
 }
@@ -210,6 +207,10 @@ void gk20a_mm_delete_priv(struct gk20a_dmabuf_priv *priv)
 	/* Remove this entry from the global tracking list */
 	nvgpu_list_del(&priv->list);
 
+	if (priv->metadata_blob) {
+		nvgpu_kfree(g, priv->metadata_blob);
+	}
+
 	nvgpu_kfree(g, priv);
 }
 
@@ -225,46 +226,50 @@ void gk20a_dma_buf_priv_list_clear(struct nvgpu_os_linux *l)
 	nvgpu_mutex_release(&l->dmabuf_priv_list_lock);
 }
 
-int gk20a_dmabuf_alloc_drvdata(struct dma_buf *dmabuf, struct device *dev)
+int gk20a_dmabuf_alloc_or_get_drvdata(struct dma_buf *dmabuf, struct device *dev,
+				      struct gk20a_dmabuf_priv **priv_ptr)
 {
 	struct gk20a *g = gk20a_get_platform(dev)->g;
-	struct gk20a_dmabuf_priv *priv;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct gk20a_dmabuf_priv *priv;
+	int err = 0;
 
 	priv = gk20a_dma_buf_get_drvdata(dmabuf, dev);
-
-	if (likely(priv))
-		return 0;
-
-	nvgpu_mutex_acquire(&g->mm.priv_lock);
-	priv = gk20a_dma_buf_get_drvdata(dmabuf, dev);
-	if (priv)
-		goto priv_exist_or_err;
+	if (priv) {
+		nvgpu_log_info(g, "Buffer metadata already allocated");
+		*priv_ptr = priv;
+		goto out;
+	}
 
 	priv = nvgpu_kzalloc(g, sizeof(*priv));
 	if (!priv) {
-		priv = ERR_PTR(-ENOMEM);
-		goto priv_exist_or_err;
+		err = -ENOMEM;
+		nvgpu_err(g, "Buffer metadata allocation failed");
+		goto out;
 	}
 
 	nvgpu_mutex_init(&priv->lock);
-	nvgpu_init_list_node(&priv->states);
+
+	nvgpu_mutex_acquire(&priv->lock);
+
 	priv->g = g;
-	gk20a_dma_buf_set_drvdata(dmabuf, dev, priv);
 
 	nvgpu_init_list_node(&priv->list);
+	nvgpu_init_list_node(&priv->states);
+
+	gk20a_dma_buf_set_drvdata(dmabuf, dev, priv);
+
+	nvgpu_mutex_release(&priv->lock);
 
 	/* Append this priv to the global tracker */
 	nvgpu_mutex_acquire(&l->dmabuf_priv_list_lock);
 	nvgpu_list_add_tail(&l->dmabuf_priv_list, &priv->list);
 	nvgpu_mutex_release(&l->dmabuf_priv_list_lock);
 
-priv_exist_or_err:
-	nvgpu_mutex_release(&g->mm.priv_lock);
-	if (IS_ERR(priv))
-		return -ENOMEM;
+	*priv_ptr = priv;
 
-	return 0;
+out:
+	return err;
 }
 
 int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
@@ -279,10 +284,6 @@ int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
 		nvgpu_do_assert();
 		return -EINVAL;
 	}
-
-	err = gk20a_dmabuf_alloc_drvdata(dmabuf, dev);
-	if (err)
-		return err;
 
 	priv = gk20a_dma_buf_get_drvdata(dmabuf, dev);
 	if (!priv) {

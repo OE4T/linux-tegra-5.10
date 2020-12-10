@@ -1020,6 +1020,7 @@ __acquires(&l->cde_app->mutex)
 __releases(&l->cde_app->mutex)
 {
 	struct gk20a *g = &l->g;
+	struct gk20a_dmabuf_priv *priv = NULL;
 	struct gk20a_cde_ctx *cde_ctx = NULL;
 	struct nvgpu_cbc *cbc = g->cbc;
 	struct gk20a_comptags comptags;
@@ -1069,10 +1070,13 @@ __releases(&l->cde_app->mutex)
 	/* First, map the buffer to local va */
 
 	/* ensure that the compbits buffer has drvdata */
-	err = gk20a_dmabuf_alloc_drvdata(compbits_scatter_buf,
+	priv = gk20a_dma_buf_get_drvdata(compbits_scatter_buf,
 			dev_from_gk20a(g));
-	if (err)
+	if (!priv) {
+		err = -EINVAL;
+		nvgpu_err(g, "Compbits buffer has no metadata");
 		goto exit_idle;
+	}
 
 	/* compbits don't start at page aligned offset, so we need to align
 	   the region to be mapped */
@@ -1749,10 +1753,21 @@ int gk20a_prepare_compressible_read(
 	struct gk20a_buffer_state *state;
 	struct dma_buf *dmabuf;
 	u32 missing_bits;
+	struct gk20a_dmabuf_priv *priv = NULL;
 
 	dmabuf = dma_buf_get(buffer_fd);
 	if (IS_ERR(dmabuf))
 		return -EINVAL;
+
+	/* this function is nop for incompressible buffers */
+	priv = gk20a_dma_buf_get_drvdata(dmabuf, dev_from_gk20a(g));
+	if (!priv || !priv->comptags.enabled) {
+		nvgpu_log_info(g, "comptags not enabled for the buffer");
+		*valid_compbits = NVGPU_GPU_COMPBITS_NONE;
+		*zbc_color = 0;
+		dma_buf_put(dmabuf);
+		return 0;
+	}
 
 	err = gk20a_dmabuf_get_state(dmabuf, g, offset, &state);
 	if (err) {
@@ -1811,11 +1826,20 @@ int gk20a_mark_compressible_write(struct gk20a *g, u32 buffer_fd,
 	int err;
 	struct gk20a_buffer_state *state;
 	struct dma_buf *dmabuf;
+	struct gk20a_dmabuf_priv *priv = NULL;
 
 	dmabuf = dma_buf_get(buffer_fd);
 	if (IS_ERR(dmabuf)) {
 		nvgpu_err(g, "invalid dmabuf");
 		return -EINVAL;
+	}
+
+	/* this function is nop for incompressible buffers */
+	priv = gk20a_dma_buf_get_drvdata(dmabuf, dev_from_gk20a(g));
+	if (!priv || !priv->comptags.enabled) {
+		nvgpu_log_info(g, "comptags not allocated for the buffer");
+		dma_buf_put(dmabuf);
+		return 0;
 	}
 
 	err = gk20a_dmabuf_get_state(dmabuf, g, offset, &state);

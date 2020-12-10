@@ -74,9 +74,13 @@ struct gk20a_dmabuf_priv {
 	struct gk20a_comptag_allocator *comptag_allocator;
 	struct gk20a_comptags comptags;
 
-	struct nvgpu_list_node states;
+	u8 *metadata_blob;
+	u32 metadata_blob_size;
 
-	u64 buffer_id;
+	bool registered;
+	bool mutable_metadata;
+
+	struct nvgpu_list_node states;
 
 	/* Used for retrieving the associated dmabuf from the priv */
 	struct dma_buf *dmabuf;
@@ -109,7 +113,8 @@ void nvgpu_mm_unpin(struct device *dev,
 
 void gk20a_mm_delete_priv(struct gk20a_dmabuf_priv *priv);
 
-int gk20a_dmabuf_alloc_drvdata(struct dma_buf *dmabuf, struct device *dev);
+int gk20a_dmabuf_alloc_or_get_drvdata(struct dma_buf *dmabuf, struct device *dev,
+				      struct gk20a_dmabuf_priv **priv_ptr);
 
 int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
 			   u64 offset, struct gk20a_buffer_state **state);

@@ -327,8 +327,6 @@ struct mm_gk20a {
 	struct nvgpu_mutex l2_op_lock;
 	/** Lock to serialize TLB operations. */
 	struct nvgpu_mutex tlb_lock;
-	/** Lock to serialize mm internal operations. */
-	struct nvgpu_mutex priv_lock;
 
 	struct nvgpu_mem bar2_desc;
 

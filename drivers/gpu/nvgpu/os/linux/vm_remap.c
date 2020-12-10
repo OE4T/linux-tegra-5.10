@@ -68,12 +68,6 @@ int nvgpu_vm_remap_os_buf_get(struct vm_gk20a *vm,
 		goto clean_up;
 	}
 
-	err = gk20a_dmabuf_alloc_drvdata(dmabuf, dev_from_vm(vm));
-	if (err) {
-		nvgpu_warn(g, "failed to alloc drvdata");
-		goto clean_up;
-	}
-
 	if ((op->flags & NVGPU_VM_REMAP_OP_FLAGS_ACCESS_NO_WRITE) != 0) {
 		dmabuf_direction = DMA_TO_DEVICE;
 	} else {

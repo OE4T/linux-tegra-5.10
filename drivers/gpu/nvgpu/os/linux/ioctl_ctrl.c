@@ -23,6 +23,7 @@
 #include <nvgpu/pmu/clk/clk.h>
 
 #include <nvgpu/bitops.h>
+#include <nvgpu/comptags.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/bug.h>
@@ -57,6 +58,7 @@
 #include <nvgpu/user_fence.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/grmgr.h>
+#include <nvgpu/string.h>
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
@@ -65,6 +67,7 @@
 #include "ioctl_channel.h"
 #include "ioctl.h"
 
+#include "dmabuf_priv.h"
 #include "platform_gk20a.h"
 #include "os_linux.h"
 #include "channel.h"
@@ -300,6 +303,8 @@ static struct nvgpu_flags_mapping flags_mapping[] = {
 		NVGPU_L2_MAX_WAYS_EVICT_LAST_ENABLED},
 	{NVGPU_GPU_FLAGS_SUPPORT_VAB,
 		NVGPU_SUPPORT_VAB_ENABLED},
+	{NVGPU_GPU_FLAGS_SUPPORT_BUFFER_METADATA,
+		NVGPU_SUPPORT_BUFFER_METADATA},
 };
 
 static u64 nvgpu_ctrl_ioctl_gpu_characteristics_flags(struct gk20a *g)
@@ -1911,6 +1916,190 @@ out:
 }
 #endif
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+static int nvgpu_handle_comptags_control(struct gk20a *g,
+					 struct dma_buf *dmabuf,
+					 struct gk20a_dmabuf_priv *priv,
+					 u8 comptags_alloc_control)
+{
+	struct nvgpu_os_buffer os_buf = {0};
+	int err = 0;
+
+	if (comptags_alloc_control == NVGPU_GPU_COMPTAGS_ALLOC_NONE) {
+		if (priv->comptags.allocated) {
+			/*
+			 * Just mark the comptags as disabled. Comptags will be
+			 * freed on freeing the buffer.
+			 */
+			priv->comptags.enabled = false;
+			nvgpu_log_info(g, "Comptags disabled.");
+		}
+
+		return 0;
+	}
+
+	/* Allocate the comptags if requested/required. */
+	if (priv->comptags.allocated) {
+		priv->comptags.enabled = priv->comptags.lines > 0;
+		if (priv->comptags.enabled) {
+			nvgpu_log_info(g, "Comptags enabled.");
+			return 0;
+		} else {
+			if (comptags_alloc_control ==
+					NVGPU_GPU_COMPTAGS_ALLOC_REQUIRED) {
+				nvgpu_err(g,
+					"Previous allocation has failed, could not enable comptags (required)");
+				return -ENOMEM;
+			} else {
+				nvgpu_log_info(g,
+					"Previous allocation has failed, could not enable comptags (requested)");
+				return 0;
+			}
+		}
+	}
+
+	os_buf.dmabuf = dmabuf;
+	os_buf.dev = dev_from_gk20a(g);
+
+	err = gk20a_alloc_comptags(g, &os_buf, &g->cbc->comp_tags);
+	if (err != 0) {
+		if (comptags_alloc_control ==
+				NVGPU_GPU_COMPTAGS_ALLOC_REQUIRED) {
+			nvgpu_err(g, "Comptags allocation (required) failed (%d)",
+				  err);
+		} else {
+			nvgpu_err(g, "Comptags allocation (requested) failed (%d)",
+				  err);
+			err = 0;
+		}
+	}
+
+	return err;
+}
+
+static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
+		struct nvgpu_gpu_register_buffer_args *args)
+{
+	struct gk20a_dmabuf_priv *priv = NULL;
+	bool mutable_metadata = false;
+	bool modify_metadata = false;
+	struct dma_buf *dmabuf;
+	u8 *blob_copy = NULL;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_BUFFER_METADATA)) {
+		nvgpu_err(g, "Buffer metadata not supported");
+		return -EINVAL;
+	}
+
+	if (args->metadata_size > NVGPU_GPU_REGISTER_BUFFER_METADATA_MAX_SIZE) {
+		nvgpu_err(g, "Invalid metadata blob size");
+		return -EINVAL;
+	}
+
+	if (args->comptags_alloc_control > NVGPU_GPU_COMPTAGS_ALLOC_REQUIRED) {
+		nvgpu_err(g, "Invalid comptags_alloc_control");
+		return -EINVAL;
+	}
+
+	nvgpu_log_info(g, "dmabuf_fd: %d, comptags control: %u, metadata size: %u, flags: %u",
+		       args->dmabuf_fd, args->comptags_alloc_control,
+		       args->metadata_size, args->flags);
+
+	mutable_metadata = (args->flags & NVGPU_GPU_REGISTER_BUFFER_FLAGS_MUTABLE) != 0;
+	modify_metadata = (args->flags & NVGPU_GPU_REGISTER_BUFFER_FLAGS_MODIFY) != 0;
+
+	dmabuf = dma_buf_get(args->dmabuf_fd);
+	if (IS_ERR(dmabuf)) {
+		nvgpu_warn(g, "%s: fd %d is not a dmabuf",
+			   __func__, args->dmabuf_fd);
+		return PTR_ERR(dmabuf);
+	}
+
+	/*
+	 * Allocate or get the buffer metadata state.
+	 */
+	err = gk20a_dmabuf_alloc_or_get_drvdata(
+		dmabuf, dev_from_gk20a(g), &priv);
+	if (err != 0) {
+		nvgpu_err(g, "Error allocating buffer metadata %d", err);
+		goto out;
+	}
+
+	nvgpu_mutex_acquire(&priv->lock);
+
+	/* Check for valid buffer metadata re-registration */
+	if (priv->registered) {
+		if (!modify_metadata) {
+			nvgpu_err(g, "attempt to modify buffer metadata without NVGPU_GPU_REGISTER_BUFFER_FLAGS_MODIFY");
+			err = -EINVAL;
+			goto out_priv_unlock;
+		} else if (!priv->mutable_metadata) {
+			nvgpu_err(g, "attempt to redefine immutable metadata");
+			err = -EINVAL;
+			goto out_priv_unlock;
+		}
+	}
+
+	/* Allocate memory for the metadata blob */
+	blob_copy = nvgpu_kzalloc(g, args->metadata_size);
+	if (!blob_copy) {
+		nvgpu_err(g, "Error allocating memory for blob");
+		err = -ENOMEM;
+		goto out_priv_unlock;
+	}
+
+	/* Copy the metadata blob */
+	if (copy_from_user(blob_copy,
+			   (void __user *) args->metadata_addr,
+			   args->metadata_size)) {
+		err = -EFAULT;
+		nvgpu_err(g, "Error copying buffer metadata blob");
+		goto out_priv_unlock;
+	}
+
+	/* Comptags allocation */
+	err = nvgpu_handle_comptags_control(g, dmabuf, priv,
+					    args->comptags_alloc_control);
+	if (err != 0) {
+		nvgpu_err(g, "Comptags alloc control failed %d", err);
+		goto out_priv_unlock;
+	}
+
+	/* All done, update metadata blob */
+	nvgpu_kfree(g, priv->metadata_blob);
+
+	priv->metadata_blob = blob_copy;
+	priv->metadata_blob_size = args->metadata_size;
+	blob_copy = NULL;
+
+	/* Mark registered and update mutability */
+	priv->registered = true;
+	priv->mutable_metadata = mutable_metadata;
+
+	/* Output variables */
+	args->flags = 0;
+	if (priv->comptags.enabled) {
+		args->flags |=
+			NVGPU_GPU_REGISTER_BUFFER_FLAGS_COMPTAGS_ALLOCATED;
+	}
+
+	nvgpu_log_info(g, "buffer registered: mutable: %s, metadata size: %u, flags: 0x%8x",
+		       priv->mutable_metadata ? "yes" : "no", priv->metadata_blob_size,
+		       args->flags);
+
+out_priv_unlock:
+	nvgpu_mutex_release(&priv->lock);
+out:
+	dma_buf_put(dmabuf);
+	nvgpu_kfree(g, blob_copy);
+
+	return err;
+}
+#endif
+
 long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	struct gk20a_ctrl_priv *priv = filp->private_data;
@@ -2267,6 +2456,13 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		err = nvgpu_gpu_set_deterministic_opts(g,
 			(struct nvgpu_gpu_set_deterministic_opts_args *)buf);
 		break;
+
+#ifdef CONFIG_NVGPU_COMPRESSION
+	case NVGPU_GPU_IOCTL_REGISTER_BUFFER:
+		err = nvgpu_gpu_ioctl_register_buffer(g,
+			(struct nvgpu_gpu_register_buffer_args *)buf);
+		break;
+#endif
 
 	default:
 		nvgpu_log_info(g, "unrecognized gpu ioctl cmd: 0x%x", cmd);

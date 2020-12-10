@@ -1218,21 +1218,20 @@ static int nvgpu_vm_do_map(struct vm_gk20a *vm,
 		struct gk20a_comptags comptags = { 0 };
 
 		/*
-		 * Get the comptags state, alloc if necessary
+		 * Get the comptags state
 		 */
-		err = gk20a_alloc_or_get_comptags(g, os_buf,
-						  &g->cbc->comp_tags,
-						  &comptags);
-		if (err != 0) {
+		gk20a_get_comptags(os_buf, &comptags);
+
+		if (!comptags.allocated) {
+			nvgpu_log_info(g, "compr kind %d map requested without comptags allocated, allocating...",
+				       binfo_ptr->compr_kind);
+
 			/*
-			 * This is an irrecoverable failure and we need to
-			 * abort. In particular, it is not safe to proceed with
-			 * the incompressible fallback, since we cannot not mark
-			 * our alloc failure anywere. Later we would retry
-			 * allocation and break compressible map aliasing.
+			 * best effort only, we don't really care if
+			 * this fails
 			 */
-			nvgpu_err(g, "Error %d setting up comptags", err);
-			goto ret_err;
+			gk20a_alloc_or_get_comptags(
+				g, os_buf, &g->cbc->comp_tags, &comptags);
 		}
 
 		/*
@@ -1261,9 +1260,9 @@ static int nvgpu_vm_do_map(struct vm_gk20a *vm,
 		}
 
 		/*
-		 * Store the ctag offset for later use if we got the comptags
+		 * Store the ctag offset for later use if we have the comptags
 		 */
-		if (comptags.lines != 0U) {
+		if (comptags.enabled) {
 			ctag_offset = comptags.offset;
 		}
 	}

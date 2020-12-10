@@ -186,7 +186,11 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_SMPC_GLOBAL_MODE	(1ULL << 48)
 /* Retrieving contents of graphics context is supported */
 #define NVGPU_GPU_FLAGS_SUPPORT_GET_GR_CONTEXT	    (1ULL << 49)
-/* Additional buffer metadata association supported */
+/*
+ * Note: Additional buffer metadata association support. This feature is only
+ * for supporting legacy userspace APIs and for compatibility with desktop
+ * RM behavior. Usage of this feature should be avoided.
+ */
 #define NVGPU_GPU_FLAGS_SUPPORT_BUFFER_METADATA		(1ULL << 50)
 /* Flag to indicate whether configuring L2_MAXEVICTLAST_WAYS is supported */
 #define NVGPU_GPU_FLAGS_L2_MAX_WAYS_EVICT_LAST_ENABLED	(1ULL << 51)
@@ -941,6 +945,25 @@ struct nvgpu_gpu_set_deterministic_opts_args {
 };
 
 /*
+ * register buffer information ioctl.
+ *
+ * Note: Additional metadata is associated with the buffer only for supporting
+ * legacy userspace APIs and for compatibility with desktop RM. Usage of this
+ * API should be avoided.
+ *
+ * This ioctl allocates comptags for the buffer if requested/required
+ * by libnvrm_gpu and associates metadata blob sent by libnvrm_gpu
+ * with the buffer in the buffer privdata.
+ *
+ * return 0 on success, < 0 in case of failure.
+ * retval -EINVAL if the enabled flag NVGPU_SUPPORT_BUFFER_METADATA
+ *               isn't set or invalid params.
+ * retval -ENOMEM in case of sufficient memory is not available for
+ *                privdata or comptags.
+ * retval -EFAULT if the metadata blob copy fails.
+ */
+
+/*
  * NVGPU_GPU_COMPTAGS_ALLOC_NONE: Specified to not allocate comptags
  * for the buffer.
  */
@@ -967,20 +990,46 @@ struct nvgpu_gpu_set_deterministic_opts_args {
  */
 #define NVGPU_GPU_REGISTER_BUFFER_FLAGS_COMPTAGS_ALLOCATED	(1U << 0)
 
+ /*
+  * Specify buffer registration as mutable. This allows modifying the buffer
+  * attributes by calling this IOCTL again with NVGPU_GPU_REGISTER_BUFFER_FLAGS_MODIFY.
+  *
+  * Mutable registration is intended for private buffers where the physical
+  * memory allocation may be recycled. Buffers intended for interoperability
+  * should be specified without this flag.
+  */
+#define NVGPU_GPU_REGISTER_BUFFER_FLAGS_MUTABLE			(1U << 1)
+
+ /*
+  * Re-register the buffer. When this flag is set, the buffer comptags state,
+  * metadata binary blob, and other attributes are re-defined.
+  *
+  * This flag may be set only when the buffer was previously registered as
+  * mutable. This flag is ignored when the buffer is registered for the
+  * first time.
+  *
+  * If the buffer previously had comptags and the re-registration also specifies
+  * comptags, the associated comptags are not cleared.
+  *
+  */
+#define NVGPU_GPU_REGISTER_BUFFER_FLAGS_MODIFY			(1U << 2)
+
 /* Maximum size of the user supplied buffer metadata */
 #define NVGPU_GPU_REGISTER_BUFFER_METADATA_MAX_SIZE	256U
 
 /*
- * REGISTER_BUFFER ioctl is supported when the enabled flag
- * NVGPU_GPU_FLAGS_SUPPORT_BUFFER_METADATA is set. It will
- * return -EINVAL if that enabled flag isn't enabled.
+ * register buffer ioctl arguments struct.
+ *
+ * Note: Additional metadata is associated with the buffer only for supporting
+ * legacy userspace APIs and for compatibility with desktop RM. Usage of this
+ * API should be avoided.
  */
 struct nvgpu_gpu_register_buffer_args {
 	/* [in] dmabuf fd */
 	__s32 dmabuf_fd;
 
 	/*
-	 * [in]  Compression tags allocation control.
+	 * [in] Compression tags allocation control.
 	 *
 	 * Set to one of the NVGPU_GPU_COMPTAGS_ALLOC_* values. See the
 	 * description of the values for semantics of this field.
@@ -990,7 +1039,7 @@ struct nvgpu_gpu_register_buffer_args {
 	__u16 reserved1;
 
 	/*
-	 * [in]  Pointer to buffer metadata.
+	 * [in] Pointer to buffer metadata.
 	 *
 	 * This is a binary blob populated by nvrm_gpu that will be associated
 	 * with the dmabuf.
@@ -1000,9 +1049,8 @@ struct nvgpu_gpu_register_buffer_args {
 	/* [in] buffer metadata size */
 	__u32 metadata_size;
 
-
 	/*
-	 * [out] flags.
+	 * [in/out] flags.
 	 *
 	 * See description of NVGPU_GPU_REGISTER_BUFFER_FLAGS_* for semantics
 	 * of this field.

@@ -266,7 +266,6 @@ static void nvgpu_init_mm_vars(struct gk20a *g)
 			    platform->force_128K_pmu_vm);
 
 	nvgpu_mutex_init(&g->mm.tlb_lock);
-	nvgpu_mutex_init(&g->mm.priv_lock);
 }
 
 int nvgpu_probe(struct gk20a *g,

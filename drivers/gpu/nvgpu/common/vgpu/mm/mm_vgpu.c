@@ -47,7 +47,6 @@ static int vgpu_init_mm_setup_sw(struct gk20a *g)
 	}
 
 	nvgpu_mutex_init(&mm->tlb_lock);
-	nvgpu_mutex_init(&mm->priv_lock);
 
 	mm->g = g;
 

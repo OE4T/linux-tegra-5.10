@@ -174,42 +174,6 @@ nvgpu_vm_remap_mpool_find(struct nvgpu_rbtree_node *root,
 	return nvgpu_vm_remap_mpool_from_tree_entry(node);
 }
 
-#ifdef CONFIG_NVGPU_COMPRESSION
-/*
- * Ensure that compression resources are allocated to the specified
- * physical memory buffer.
- */
-static inline int nvgpu_vm_remap_ensure_comptags(struct vm_gk20a *vm,
-				struct nvgpu_vm_remap_os_buffer *remap_os_buf)
-{
-	struct gk20a *g = gk20a_from_vm(vm);
-	struct gk20a_comptags comptags = { 0 };
-	struct nvgpu_os_buffer *os_buf = &remap_os_buf->os_buf;
-	int err = 0;
-
-	err = gk20a_alloc_or_get_comptags(g, os_buf,
-					&g->cbc->comp_tags,
-					&comptags);
-	if (err != 0) {
-		nvgpu_err(g, "cannot alloc comptags: %d", err);
-		return err;
-	}
-
-	if (comptags.needs_clear) {
-		nvgpu_assert(g->ops.cbc.ctrl != NULL);
-		if (gk20a_comptags_start_clear(os_buf)) {
-			err = g->ops.cbc.ctrl(g, nvgpu_cbc_op_clear,
-					comptags.offset,
-					(comptags.offset +
-						comptags.lines - 1U));
-			gk20a_comptags_finish_clear(os_buf, err == 0);
-		}
-	}
-
-	return err;
-}
-#endif
-
 /*
  * Validate that the specified remap operation resides within the target
  * virtual memory pool.
@@ -263,9 +227,40 @@ static int nvgpu_vm_remap_validate_map(struct vm_gk20a *vm,
 
 #ifdef CONFIG_NVGPU_COMPRESSION
 	if (op->compr_kind != NVGPU_KIND_INVALID) {
-		if (nvgpu_vm_remap_ensure_comptags(vm, remap_os_buf)) {
-			/* inform caller there are no more compbits */
+
+		struct gk20a *g = gk20a_from_vm(vm);
+		struct gk20a_comptags comptags = { 0 };
+
+		/*
+		 * Note: this is best-effort only
+		 */
+		gk20a_alloc_or_get_comptags(g, &remap_os_buf->os_buf,
+			&g->cbc->comp_tags, &comptags);
+
+		if (!comptags.enabled) {
+			/* inform the caller that the buffer does not
+			 * have compbits */
 			op->compr_kind = NVGPU_KIND_INVALID;
+		}
+
+		if (comptags.needs_clear) {
+			nvgpu_assert(g->ops.cbc.ctrl != NULL);
+			if (gk20a_comptags_start_clear(&remap_os_buf->os_buf)) {
+				int err = g->ops.cbc.ctrl(
+					g, nvgpu_cbc_op_clear,
+					comptags.offset,
+					(comptags.offset +
+					 comptags.lines - 1U));
+				gk20a_comptags_finish_clear(
+					&remap_os_buf->os_buf, err == 0);
+
+				if (err) {
+					nvgpu_err(
+						g, "Comptags clear failed: %d",
+						err);
+					op->compr_kind = NVGPU_KIND_INVALID;
+				}
+			}
 		}
 	}
 #endif
