@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -61,31 +61,25 @@ struct gops_mc {
 	 *
 	 * Steps:
 	 * - Read the register mc_boot_0_r().
-	 * - If value is not #U32_MAX
-	 *   - Set in \a arch, the value obtained by mc_boot_0_architecture_v()
-	 *     of the read value shifting left by #NVGPU_GPU_ARCHITECTURE_SHIFT.
-	 *   - Set in \a impl, the value obtained by
-	 *     mc_boot_0_implementation_v() of the read value.
-	 *   - Set in \a rev, value obtained by shifting left
-	 *     mc_boot_0_major_revision_v() of the read value by 4 OR'ing with
-	 *     mc_boot_0_minor_revision_v() of the value.
-	 * - return the value of the register mc_boot_0_r read.
+	 * - Architecture ID is placed in \arch
+	 * - GPU implementation ID is placed in \a impl
+	 * - Chip revision is placed in \a rev
 	 *
-	 * @return value read from mc_boot_0_r().
+	 * @return value of mc_boot_0_r().
 	 */
 	u32 (*get_chip_details)(struct gk20a *g,
 				u32 *arch, u32 *impl, u32 *rev);
 
 	/**
-	 * @brief Read the the stalling interrupts status register.
+	 * @brief Read the stalling interrupts status register.
 	 *
 	 * @param g [in]	The GPU driver struct.
 	 *
-	 * This function is invoked to get the stalling interrupts reported
+	 * This function is invoked to get stalling interrupts reported
 	 * by the GPU before invoking the ISR.
 	 *
 	 * Steps:
-	 * - Read and return the value of the register
+	 * - Read and return the value of register
 	 *   mc_intr_r(#NVGPU_MC_INTR_STALLING).
 	 *
 	 * @return value read from mc_intr_r(#NVGPU_MC_INTR_STALLING).
@@ -164,8 +158,6 @@ struct gops_mc {
 	 *   handlers.
 	 *   - Invoke g->ops.gr.intr.nonstall_isr if GR interrupt is pending.
 	 *   - Invoke g->ops.ce.isr_nonstall if CE interrupt is pending.
-	 *   These functions return bitmask of operations that are executed on
-	 *   non-stall workqueue.
 	 *
 	 * @return bitmask of operations that are executed on non-stall
 	 * workqueue.

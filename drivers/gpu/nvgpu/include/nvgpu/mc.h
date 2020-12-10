@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -133,8 +133,8 @@ struct nvgpu_device;
  * @defgroup NVGPU_MC_UNIT_DEFINES
  *
  * Enumeration of all units intended to be used by enabling/disabling HAL
- * that requires unit as parameter. Units are added to the enumeration as
- * needed, so it is not complete.
+ * that requires unit as parameter. Units can be added to the enumeration as
+ * needed.
  */
 
 /**
@@ -171,12 +171,11 @@ struct nvgpu_device;
 
 /**
  * @ingroup NVGPU_MC_INTR_TYPE_DEFINES
- */
-/**
  * Index for accessing registers corresponding to stalling interrupts.
  */
 #define NVGPU_MC_INTR_STALLING		0U
 /**
+ * @ingroup NVGPU_MC_INTR_TYPE_DEFINES
  * Index for accessing registers corresponding to non-stalling
  * interrupts.
  */
@@ -195,26 +194,53 @@ struct nvgpu_device;
 
 /**
  * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for Bus unit.
  */
-/** MC interrupt for Bus unit. */
 #define MC_INTR_UNIT_BUS	0
-/** MC interrupt for PRIV_RING unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for PRIV_RING unit.
+ */
 #define MC_INTR_UNIT_PRIV_RING	1
-/** MC interrupt for FIFO unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for FIFO unit.
+ */
 #define MC_INTR_UNIT_FIFO	2
-/** MC interrupt for LTC unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for LTC unit.
+ */
 #define MC_INTR_UNIT_LTC	3
-/** MC interrupt for HUB unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for HUB unit.
+ */
 #define MC_INTR_UNIT_HUB	4
-/** MC interrupt for GR unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for GR unit.
+ */
 #define MC_INTR_UNIT_GR		5
-/** MC interrupt for PMU unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for PMU unit.
+ */
 #define MC_INTR_UNIT_PMU	6
-/** MC interrupt for CE unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for CE unit.
+ */
 #define MC_INTR_UNIT_CE		7
-/** MC interrupt for NVLINK unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for NVLINK unit.
+ */
 #define MC_INTR_UNIT_NVLINK	8
-/** MC interrupt for FBPA unit. */
+/**
+ * @ingroup NVGPU_MC_INTR_UNIT_DEFINES
+ * MC interrupt for FBPA unit.
+ */
 #define MC_INTR_UNIT_FBPA	9
 
 /**
@@ -240,14 +266,14 @@ struct nvgpu_device;
  * interrupt handling of the units/engines.
  */
 struct nvgpu_mc {
-	/** Lock to access the MC interrupt registers */
+	/** Lock to access the MC interrupt registers. */
 	struct nvgpu_spinlock intr_lock;
 
-	/** Lock to access the mc_enable_r */
+	/** Lock to access the MC unit registers. */
 	struct nvgpu_spinlock enable_lock;
 
 	/**
-	 * Bitmask of the stalling/non-stalling interrupts enabled.
+	 * Bitmask of the stalling/non-stalling enabled interrupts.
 	 * This is used to enable/disable the interrupts at runtime.
 	 * intr_mask_restore[2] & intr_mask_restore[3] are applicable
 	 * when GSP exists.
@@ -255,31 +281,32 @@ struct nvgpu_mc {
 	u32 intr_mask_restore[4];
 
 	/**
-	 * Below are the counters & condition varibles needed to keep track of
-	 * the deferred interrupts.
-	 */
-
-	/**
+	 * One of the condition variables needed to keep track of deferred
+	 * interrupts.
 	 * The condition variable that is signalled upon handling of the
-	 * stalling interrupt. It is wait upon by the function
-	 * #nvgpu_wait_for_deferred_interrupts.
+	 * stalling interrupt. Function #nvgpu_wait_for_deferred_interrupts
+	 * waits on this condition variable.
 	 */
 	struct nvgpu_cond sw_irq_stall_last_handled_cond;
 
 	/**
+	 * One of the counters needed to keep track of deferred interrupts.
 	 * Stalling interrupt status counter - Set to 1 on entering stalling
 	 * interrupt handler and reset to 0 on exit.
 	 */
 	nvgpu_atomic_t sw_irq_stall_pending;
 
 	/**
+	 * One of the condition variables needed to keep track of deferred
+	 * interrupts.
 	 * The condition variable that is signalled upon handling of the
-	 * non-stalling interrupt. It is wait upon by the function
-	 * #nvgpu_wait_for_deferred_interrupts.
+	 * non-stalling interrupt. Function #nvgpu_wait_for_deferred_interrupts
+	 * waits on this condition variable.
 	 */
 	struct nvgpu_cond sw_irq_nonstall_last_handled_cond;
 
 	/**
+	 * One of the counters needed to keep track of deferred interrupts.
 	 * Non-stalling interrupt status counter - Set to 1 on entering
 	 * non-stalling interrupt handler and reset to 0 on exit.
 	 */
@@ -299,8 +326,8 @@ struct nvgpu_mc {
  * @param g [in]	The GPU driver struct.
  *
  * While freeing the channel or entering SW quiesce state, nvgpu driver needs
- * to waits until all interrupt handlers that have been scheduled to run have
- * completed as those could access channel after freeing.
+ * to wait until all scheduled interrupt handlers have completed. This is
+ * because the interrupt handlers could access data structures after freeing.
  * Steps:
  * - Get the stalling and non-stalling interrupts atomic count.
  * - Wait on the condition variable #sw_irq_stall_last_handled_cond until
@@ -339,8 +366,8 @@ void nvgpu_mc_intr_enable(struct gk20a *g);
 #endif
 
 /**
- * @brief Enable the stalling interrupts for GPU unit at the master
- *        level.
+ * @brief Enable/Disable the stalling interrupts for given GPU unit at the
+ *        master level.
  *
  * @param g [in]	The GPU driver struct.
  * @param unit [in]	Value designating the GPU HW unit/engine
@@ -360,8 +387,8 @@ void nvgpu_mc_intr_enable(struct gk20a *g);
  *			  - #MC_INTR_ENABLE
  *			  - #MC_INTR_DISABLE
  *
- * This function is invoked during individual unit's init before
- * enabling that unit's interrupts.
+ * During a unit's init routine, this function is invoked to enable the
+ * unit's stall interrupts.
  *
  * Steps:
  * - Acquire the spinlock g->mc.intr_lock.
@@ -381,8 +408,8 @@ void nvgpu_mc_intr_enable(struct gk20a *g);
 void nvgpu_mc_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
 
 /**
- * @brief Enable the non-stalling interrupts for GPU unit at the master
- *        level.
+ * @brief Enable/Disable the non-stalling interrupts for given GPU unit at the
+ *        master level.
  *
  * @param g [in]	The GPU driver struct.
  * @param unit [in]	Value designating the GPU HW unit/engine
@@ -402,8 +429,8 @@ void nvgpu_mc_intr_stall_unit_config(struct gk20a *g, u32 unit, bool enable);
  *			  - #MC_INTR_ENABLE
  *			  - #MC_INTR_DISABLE
  *
- * This function is invoked during individual unit's init before
- * enabling that unit's interrupts.
+ * During a unit's init routine, this function is invoked to enable the
+ * unit's nostall interrupts.
  *
  * Steps:
  * - Acquire the spinlock g->mc.intr_lock.
@@ -448,8 +475,8 @@ void nvgpu_mc_intr_stall_pause(struct gk20a *g);
  *
  * Steps:
  * - Acquire the spinlock g->mc.intr_lock.
- * - Enable the stalling interrupts as configured during #intr_stall_unit_config
- *   Write #intr_mask_restore[#NVGPU_MC_INTR_STALLING] to the stalling
+ * - Enable stalling interrupts as configured during #intr_stall_unit_config
+ * - Write #intr_mask_restore[#NVGPU_MC_INTR_STALLING] to the stalling
  *   interrupts enable set register (mc_intr_en_set_r(#NVGPU_MC_INTR_STALLING)).
  * - Release the spinlock g->mc.intr_lock.
  */
@@ -481,9 +508,9 @@ void nvgpu_mc_intr_nonstall_pause(struct gk20a *g);
  *
  * Steps:
  * - Acquire the spinlock g->mc.intr_lock.
- * - Enable the stalling interrupts as configured during
+ * - Enable non-stalling interrupts as configured during
  *   #intr_nonstall_unit_config.
- *   Write #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING]
+ * - Write #intr_mask_restore[#NVGPU_MC_INTR_NONSTALLING]
  *   to the non-stalling interrupts enable set register
  *   (mc_intr_en_set_r(#NVGPU_MC_INTR_NONSTALLING)).
  * - Release the spinlock g->mc.intr_lock.

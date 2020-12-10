@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_setup_env
+ * Test specification for: test_mc_setup_env
  *
  * Description: Do basic setup before starting other tests.
  *
@@ -50,17 +50,17 @@ struct unit_module;
  * - UNIT_FAIL if encounters an error creating reg space
  * - UNIT_SUCCESS otherwise
  */
-int test_setup_env(struct unit_module *m,
+int test_mc_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_free_env
+ * Test specification for: test_mc_free_env
  *
  * Description: Do basic setup before starting other tests.
  *
  * Test Type: Other (setup)
  *
- * Input: test_setup_env has run.
+ * Input: test_mc_setup_env has run.
  *
  * Steps:
  * - Free reg spaces.
@@ -69,7 +69,7 @@ int test_setup_env(struct unit_module *m,
  *
  * Output: UNIT_SUCCESS always.
  */
-int test_free_env(struct unit_module *m, struct gk20a *g, void *args);
+int test_mc_free_env(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_unit_config
@@ -82,7 +82,7 @@ int test_free_env(struct unit_module *m, struct gk20a *g, void *args);
  * Targets: nvgpu_mc_intr_stall_unit_config, nvgpu_mc_intr_nonstall_unit_config,
  *          mc_gp10b_intr_stall_unit_config, mc_gp10b_intr_nonstall_unit_config
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Set each of the mock registers for enabling & disabling the stall &
@@ -114,7 +114,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_pause_resume_mask
  *
- * Description: Validate function for pausing, resuming, and masking interrupts.
+ * Description: Validate pausing, resuming and masking interrupts functionality.
  *
  * Test Type: Feature
  *
@@ -124,7 +124,7 @@ int test_unit_config(struct unit_module *m, struct gk20a *g, void *args);
  *          mc_gp10b_intr_stall_resume, mc_gp10b_intr_nonstall_pause,
  *          mc_gp10b_intr_nonstall_resume, mc_gp10b_intr_mask
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Clear each of the mock registers for enabling & disabling the stall &
@@ -151,19 +151,18 @@ int test_pause_resume_mask(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_intr_stall
  *
- * Description: Validate function mc_gp10b_intr_stall which returns the pending
- *              interrupts.
+ * Description: Validate stalling interrupt pending status check.
  *
  * Test Type: Feature
  *
  * Targets: gops_mc.intr_stall, mc_gp10b_intr_stall
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Loop through setting each bit individually in the stall interrupt pending
  *   register:
- *   - For iteration, call the HAL and verify the correct value is returned.
+ *   - For each iteration, call HAL and verify that correct value is returned.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */
@@ -172,20 +171,22 @@ int test_intr_stall(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_is_stall_and_eng_intr_pending
  *
- * Description: Validate function of HAL gv11b_mc_is_stall_and_eng_intr_pending.
+ * Description: Validate stalling or engine interrupt pending functionality.
  *
  * Test Type: Feature
  *
  * Targets: gops_mc.is_stall_and_eng_intr_pending,
  *          gv11b_mc_is_stall_and_eng_intr_pending
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Clear the stall interrupt pending register.
- * - Call the HAL API and verify it returns false since nothing is pending.
+ * - Call gops_mc.is_stall_and_eng_intr_pending and verify that return value is
+ *   false since nothing is pending.
  * - Set all interrupts pending in the stall interrupt pending register.
- * - Call the HAL API and verify it returns true and the correct pending mask.
+ * - Verify gops_mc.is_stall_and_eng_intr_pending returns true with correct
+ *   pending mask.
  *
  * Output: Returns PASS if expected result is met, FAIL otherwise.
  */
@@ -195,14 +196,14 @@ int test_is_stall_and_eng_intr_pending(struct unit_module *m, struct gk20a *g,
 /**
  * Test specification for: test_isr_stall
  *
- * Description: Validate handling of the stall interrupts by the stall interrupt
+ * Description: Validate handling of stall interrupts by the stall interrupt
  *              service routine.
  *
  * Test Type: Feature
  *
  * Targets: gops_mc.isr_stall, mc_gp10b_isr_stall
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Clear the stall interrupt pending register.
@@ -233,15 +234,15 @@ int test_isr_stall(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_isr_nonstall
  *
- * Description: Validate handling of the stall interrupts by the non-stall
- * 		interrupt service routine.
+ * Description: Validate non-stall interrupt pending status check and their
+ *              handling by the non-stall interrupt service routine.
  *
  * Test Type: Feature
  *
  * Targets: gops_mc.isr_nonstall, gm20b_mc_isr_nonstall, gops_mc.intr_nonstall,
  *          mc_gp10b_intr_nonstall
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Clear the non-stall interrupt pending register.
@@ -268,7 +269,7 @@ int test_isr_nonstall(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Targets: gops_mc.is_intr1_pending, mc_gp10b_is_intr1_pending
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Call the HAL API, requesting if the FIFO Unit is pending, passing in a
@@ -286,15 +287,14 @@ int test_is_intr1_pending(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_enable_disable_reset
  *
- * Description: Validate functionality of functions for enabling, disabling,
- *              and reseting units.
+ * Description: Validate enabling, disabling and resetting units functionality.
  *
  * Test Type: Feature
  *
  * Targets: gops_mc.enable, gops_mc.disable, gops_mc.reset, gm20b_mc_enable,
  *           gm20b_mc_disable, gm20b_mc_reset
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Call the enable HAL API to enable units.
@@ -317,7 +317,7 @@ int test_enable_disable_reset(struct unit_module *m, struct gk20a *g, void *args
  *
  * Targets: gops_mc.reset_mask, gm20b_mc_reset_mask
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Call the enable HAL API for a number of units and verify the correct
@@ -338,7 +338,7 @@ int test_reset_mask(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Targets: nvgpu_wait_for_deferred_interrupts
  *
- * Input: test_setup_env must have been run.
+ * Input: test_mc_setup_env must have been run.
  *
  * Steps:
  * - Initialize cond structures required by the API.

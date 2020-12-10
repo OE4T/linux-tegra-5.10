@@ -1226,7 +1226,6 @@ static const struct gops_mc gv11b_ops_mc = {
 #endif
 	.is_intr_hub_pending = gv11b_mc_is_intr_hub_pending,
 	.is_stall_and_eng_intr_pending = gv11b_mc_is_stall_and_eng_intr_pending,
-
 #ifdef CONFIG_NVGPU_LS_PMU
 	.is_enabled = gm20b_mc_is_enabled,
 #endif

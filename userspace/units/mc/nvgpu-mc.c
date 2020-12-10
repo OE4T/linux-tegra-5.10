@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -197,7 +197,7 @@ static void mock_priv_ring_isr(struct gk20a *g)
 	u.priv_ring_isr = true;
 }
 
-int test_setup_env(struct unit_module *m,
+int test_mc_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args)
 {
 	/* Create mc register space */
@@ -254,7 +254,7 @@ int test_setup_env(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-int test_free_env(struct unit_module *m, struct gk20a *g, void *args)
+int test_mc_free_env(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* Free mc register space */
 	nvgpu_posix_io_delete_reg_space(g, MC_ADDR_SPACE_START);
@@ -683,7 +683,7 @@ int test_wait_for_deferred_interrupts(struct unit_module *m, struct gk20a *g,
 }
 
 struct unit_module_test mc_tests[] = {
-	UNIT_TEST(mc_setup_env,			test_setup_env,				NULL, 0),
+	UNIT_TEST(mc_setup_env,			test_mc_setup_env,			NULL, 0),
 	UNIT_TEST(unit_config,			test_unit_config,			NULL, 2),
 	UNIT_TEST(pause_resume_mask,		test_pause_resume_mask,			NULL, 0),
 	UNIT_TEST(intr_stall,			test_intr_stall,			NULL, 0),
@@ -694,7 +694,7 @@ struct unit_module_test mc_tests[] = {
 	UNIT_TEST(is_intr1_pending,		test_is_intr1_pending,			NULL, 0),
 	UNIT_TEST(enable_disable_reset,		test_enable_disable_reset,		NULL, 0),
 	UNIT_TEST(wait_for_deferred_interrupts,	test_wait_for_deferred_interrupts,	NULL, 0),
-	UNIT_TEST(mc_free_env,			test_free_env,				NULL, 0),
+	UNIT_TEST(mc_free_env,			test_mc_free_env,			NULL, 0),
 };
 
 UNIT_MODULE(mc, mc_tests, UNIT_PRIO_NVGPU_TEST);
