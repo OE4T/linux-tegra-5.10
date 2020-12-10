@@ -5618,29 +5618,29 @@ static const struct pinctrl_pin_desc tegra234_pin_descs[] = {
 
 /* Reorganized HW DPD REQ registers */
 static const unsigned int tegra234_dpd_req_regs[] = {
-	[TEGRA_PMC_IO_CSI_DPD] = 0xe0d0,
-	[TEGRA_PMC_IO_DISP_DPD] = 0xe0e0,
-	[TEGRA_PMC_IO_QSPI_DPD] = 0xe07c,
-	[TEGRA_PMC_IO_UFS_DPD] = 0xe06c,
-	[TEGRA_PMC_IO_EDP_DPD] = 0xe064,
-	[TEGRA_PMC_IO_SDMMC1_HV_DPD] = 0xe05c,
+	[TEGRA_PMC_IO_CSI_DPD] = 0xe0c0,
+	[TEGRA_PMC_IO_DISP_DPD] = 0xe0d0,
+	[TEGRA_PMC_IO_QSPI_DPD] = 0xe074,
+	[TEGRA_PMC_IO_UFS_DPD] = 0xe064,
+	[TEGRA_PMC_IO_EDP_DPD] = 0xe05c,
+	[TEGRA_PMC_IO_SDMMC1_HV_DPD] = 0xe054,
 };
 
 /* Reorganized HW DPD STATUS registers */
 static const unsigned int tegra234_dpd_status_regs[] = {
-	[TEGRA_PMC_IO_CSI_DPD] = 0xe0d4,
-	[TEGRA_PMC_IO_DISP_DPD] = 0xe0e4,
-	[TEGRA_PMC_IO_QSPI_DPD] = 0xe080,
-	[TEGRA_PMC_IO_UFS_DPD] = 0xe070,
-	[TEGRA_PMC_IO_EDP_DPD] = 0xe068,
-	[TEGRA_PMC_IO_SDMMC1_HV_DPD] = 0xe060,
+	[TEGRA_PMC_IO_CSI_DPD] = 0xe0c4,
+	[TEGRA_PMC_IO_DISP_DPD] = 0xe0d4,
+	[TEGRA_PMC_IO_QSPI_DPD] = 0xe078,
+	[TEGRA_PMC_IO_UFS_DPD] = 0xe068,
+	[TEGRA_PMC_IO_EDP_DPD] = 0xe060,
+	[TEGRA_PMC_IO_SDMMC1_HV_DPD] = 0xe058,
 };
 
 static const struct tegra_pmc_regs tegra234_pmc_regs = {
 	.scratch0 = 0x2000,
 	.rst_status = 0x70,
 	.rst_source_shift = 0x2,
-	.rst_source_mask = 0x7c,
+	.rst_source_mask = 0xfc,
 	.rst_level_shift = 0x0,
 	.rst_level_mask = 0x3,
 	.fuse_ctrl = 0x10,
