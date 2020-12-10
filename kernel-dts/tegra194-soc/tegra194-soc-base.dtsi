@@ -1745,7 +1745,7 @@
 
 		sw_wake {
 			label = "sw-wake";
-			linux,code = <KEY_POWER>;
+			linux,code = <KEY_WAKEUP>;
 			wakeup-source;
 #if TEGRA_PMC_VERSION >= DT_VERSION_2
 			/* TODO: Intr binding to PMC driver */
