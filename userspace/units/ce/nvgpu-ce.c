@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -110,7 +110,7 @@ static void mock_intr_unit_config(struct gk20a *g, u32 unit, bool enable)
 	/* noop */
 }
 
-int test_setup_env(struct unit_module *m,
+int test_ce_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args)
 {
 	/* Create mc register space */
@@ -129,7 +129,7 @@ int test_setup_env(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-int test_free_env(struct unit_module *m, struct gk20a *g, void *args)
+int test_ce_free_env(struct unit_module *m, struct gk20a *g, void *args)
 {
 	/* Free mc register space */
 	nvgpu_posix_io_delete_reg_space(g, CE_ADDR_SPACE_START);
@@ -364,14 +364,14 @@ int test_init_prod_values(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 struct unit_module_test ce_tests[] = {
-	UNIT_TEST(ce_setup_env,				test_setup_env,		NULL, 0),
+	UNIT_TEST(ce_setup_env,				test_ce_setup_env,		NULL, 0),
 	UNIT_TEST(ce_init_support,			test_ce_init_support,	NULL, 0),
 	UNIT_TEST(ce_stall_isr,				test_ce_stall_isr,	NULL, 0),
 	UNIT_TEST(ce_nonstall_isr,			test_ce_nonstall_isr,	NULL, 0),
 	UNIT_TEST(mthd_buffer_fault_in_bar2_fault,	test_mthd_buffer_fault_in_bar2_fault,	NULL, 0),
 	UNIT_TEST(ce_get_num_pce,			test_get_num_pce,	NULL, 0),
 	UNIT_TEST(ce_init_prod_values,			test_init_prod_values,	NULL, 0),
-	UNIT_TEST(ce_free_env,				test_free_env,		NULL, 0),
+	UNIT_TEST(ce_free_env,				test_ce_free_env,		NULL, 0),
 };
 
 UNIT_MODULE(ce, ce_tests, UNIT_PRIO_NVGPU_TEST);

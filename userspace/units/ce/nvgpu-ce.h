@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ struct unit_module;
  */
 
 /**
- * Test specification for: test_setup_env
+ * Test specification for: test_ce_setup_env
  *
  * Description: Do basic setup before starting other tests.
  *
@@ -49,11 +49,11 @@ struct unit_module;
  * - UNIT_FAIL if encounters an error creating reg space
  * - UNIT_SUCCESS otherwise
  */
-int test_setup_env(struct unit_module *m,
+int test_ce_setup_env(struct unit_module *m,
 			  struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_free_env
+ * Test specification for: test_ce_free_env
  *
  * Description: Do basic setup before starting other tests.
  *
@@ -66,18 +66,18 @@ int test_setup_env(struct unit_module *m,
  *
  * Output: UNIT_SUCCESS always.
  */
-int test_free_env(struct unit_module *m, struct gk20a *g, void *args);
+int test_ce_free_env(struct unit_module *m, struct gk20a *g, void *args);
 
 /**
  * Test specification for: test_ce_init_support
  *
- * Description: Validate function of nvgpu_ce_init_support.
+ * Description: Validate CE init functionality.
  *
  * Test Type: Feature
  *
  * Targets: gops_ce.ce_init_support, nvgpu_ce_init_support
  *
- * Input: test_setup_env must have been run.
+ * Input: test_ce_setup_env must have been run.
  *
  * Steps:
  * - Setup necessary mock HALs to do nothing and return success as appropriate.
@@ -93,13 +93,13 @@ int test_ce_init_support(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_ce_stall_isr
  *
- * Description: Validate function of gv11b_ce_stall_isr.
+ * Description: Validate stall interrupt handler functionality.
  *
  * Test Type: Feature
  *
  * Targets: gops_ce.isr_stall, gv11b_ce_stall_isr, gp10b_ce_stall_isr
  *
- * Input: test_setup_env must have been run.
+ * Input: test_ce_setup_env must have been run.
  *
  * Steps:
  * - Set all CE interrupt sources pending in the interrupt status reg for each
@@ -118,13 +118,13 @@ int test_ce_stall_isr(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_ce_nonstall_isr
  *
- * Description: Validate function of gp10b_ce_nonstall_isr.
+ * Description: Validate nonstall interrupt handler functionality.
  *
  * Test Type: Feature
  *
  * Targets: gops_ce.isr_nonstall, gp10b_ce_nonstall_isr
  *
- * Input: test_setup_env must have been run.
+ * Input: test_ce_setup_env must have been run.
  *
  * Steps:
  * - Set all CE interrupt sources pending in the interrupt status reg for each
@@ -144,14 +144,14 @@ int test_ce_nonstall_isr(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_mthd_buffer_fault_in_bar2_fault
  *
- * Description: Validate function of gv11b_ce_mthd_buffer_fault_in_bar2_fault.
+ * Description: Validate method buffer interrupt functionality.
  *
  * Test Type: Feature
  *
  * Targets: gops_ce.mthd_buffer_fault_in_bar2_fault,
  *          gv11b_ce_mthd_buffer_fault_in_bar2_fault
  *
- * Input: test_setup_env must have been run.
+ * Input: test_ce_setup_env must have been run.
  *
  * Steps:
  * - Set all CE interrupt sources pending in the interrupt status reg for each
@@ -171,13 +171,13 @@ int test_mthd_buffer_fault_in_bar2_fault(struct unit_module *m, struct gk20a *g,
 /**
  * Test specification for: test_get_num_pce
  *
- * Description: Validate function of gops_ce.get_num_pce.
+ * Description: Validate function to get number of PCEs.
  *
  * Test Type: Feature
  *
  * Targets: gops_ce.get_num_pce, gv11b_ce_get_num_pce
  *
- * Input: test_setup_env must have been run.
+ * Input: test_ce_setup_env must have been run.
  *
  * Steps:
  * - Loop through all possible 16 bit values for the PCE Map register.
@@ -192,13 +192,13 @@ int test_get_num_pce(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_init_prod_values
  *
- * Description: Validate function of gv11b_ce_init_prod_values.
+ * Description: Validate prod value init functionality.
  *
  * Test Type: Feature
  *
  * Targets: gops_ce.init_prod_values, gv11b_ce_init_prod_values
  *
- * Input: test_setup_env must have been run.
+ * Input: test_ce_setup_env must have been run.
  *
  * Steps:
  * - Clear the LCE Options register for all instances.

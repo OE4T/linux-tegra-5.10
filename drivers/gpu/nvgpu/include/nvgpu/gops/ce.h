@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,7 @@ struct gops_ce {
 	 *   - Method buffer fault interrupt.
 	 *   - Blocking pipe interrupt.
 	 *   - Launch error interrupt.
-	 * - Clear the handled interrupts by write to ce_intr_status_r.
+	 * - Clear the handled interrupts by writing to ce_intr_status_r.
 	 */
 	void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 
@@ -73,12 +73,12 @@ struct gops_ce {
 	 * Steps:
 	 * - Read ce_intr_status_r corresponding to \a inst_id.
 	 * - If nonblocking pipe interrupt is pending,
+	 *   - Get bitmask of #NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE and
+	 *     #NVGPU_NONSTALL_OPS_POST_EVENTS operations.
 	 *   - Clear the interrupt.
-	 *   - Return bitmask #NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-	 *     #NVGPU_NONSTALL_OPS_POST_EVENTS.
 	 *
 	 * @return Bitmask of operations that will need to be executed on
-	 *         non stall workqueue.
+	 *         non-stall workqueue.
 	 */
 	u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -76,8 +76,8 @@ struct gk20a;
  * - Reset the engines at master control level through mc_enable_r.
  * - Load Second Level Clock Gating (SLCG) configuration for copy engine.
  * - Load Block Level Clock Gating (BLCG) configuration for copy engine.
- * - Initialize configuration options for LCEs. FORCE_BARRIERS_NPL is set.
- * - Enable CE engines stalling and non-stalling interrupts at MC level.
+ * - Set FORCE_BARRIERS_NPL configuration option for LCEs.
+ * - Enable CE engines' stalling and non-stalling interrupts at MC level.
  *
  * @return 0 in case of success, < 0 in case of failure.
  */

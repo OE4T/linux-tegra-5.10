@@ -181,8 +181,21 @@ struct nvgpu_device;
  */
 #define NVGPU_MC_INTR_NONSTALLING	1U
 
-/** Operations that will need to be executed on non stall workqueue. */
+/**
+ * @defgroup NVGPU_NONSTALL_OP_DEFINES
+ *
+ * Defines of all operations that are required to be executed on non stall
+ * workqueue.
+ */
+/**
+ * @ingroup NVGPU_NONSTALL_OP_DEFINES
+ * Wakeup semaphore operation.
+ */
 #define NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE	BIT32(0)
+/**
+ * @ingroup NVGPU_NONSTALL_OP_DEFINES
+ * Post events operation.
+ */
 #define NVGPU_NONSTALL_OPS_POST_EVENTS		BIT32(1)
 
 /**
