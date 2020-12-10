@@ -1907,9 +1907,16 @@
 	};
 
 	tegra_xhci_vf1: xhci@3660000 {
-		compatible = "nvidia,tegra194-xhci-vf1";
+		compatible = "nvidia,tegra194-xhci-vf1", "nvidia,tegra194-xusb-vf1";
 		reg = <0x0 0x03660000 0x0 0x40000>;
+		reg-names = "base";
+
 		interrupts = <0 21 0x4>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
@@ -1920,9 +1927,16 @@
 	};
 
 	tegra_xhci_vf2: xhci@36b0000 {
-		compatible = "nvidia,tegra194-xhci-vf2";
+		compatible = "nvidia,tegra194-xhci-vf2", "nvidia,tegra194-xusb-vf2";
 		reg = <0x0 0x036b0000 0x0 0x40000>;
+		reg-names = "base";
+
 		interrupts = <0 22 0x4>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
@@ -1933,9 +1947,16 @@
 	};
 
 	tegra_xhci_vf3: xhci@3700000 {
-		compatible = "nvidia,tegra194-xhci-vf3";
+		compatible = "nvidia,tegra194-xhci-vf3", "nvidia,tegra194-xusb-vf3";
 		reg = <0x0 0x03700000 0x0 0x40000>;
+		reg-names = "base";
+
 		interrupts = <0 23 0x4>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
@@ -1946,9 +1967,16 @@
 	};
 
 	tegra_xhci_vf4: xhci@3750000 {
-		compatible = "nvidia,tegra194-xhci-vf4";
+		compatible = "nvidia,tegra194-xhci-vf4", "nvidia,tegra194-xusb-vf4";
 		reg = <0x0 0x03750000 0x0 0x40000>;
+		reg-names = "base";
+
 		interrupts = <0 24 0x4>;
+#if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
+		interconnects = <&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTR>,
+				<&mc TEGRA194_MEMORY_CLIENT_XUSB_HOSTW>;
+		interconnect-names = "dma-mem", "dma-mem";
+#endif
 
 		nvidia,xusb-padctl = <&xusb_padctl>;
 
