@@ -4655,8 +4655,13 @@ static int ether_resume_noirq(struct device *dev)
 }
 
 static const struct dev_pm_ops ether_pm_ops = {
+#if (KERNEL_VERSION(5, 9, 0) < LINUX_VERSION_CODE)
+	.suspend = ether_suspend_noirq,
+	.resume = ether_resume_noirq,
+#else
 	.suspend_noirq = ether_suspend_noirq,
 	.resume_noirq = ether_resume_noirq,
+#endif
 };
 #endif
 
