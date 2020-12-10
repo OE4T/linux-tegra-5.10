@@ -61,8 +61,8 @@ struct nvgpu_nvhost_dev;
  * @return		0, if success.
  *			<0, for failure.
  *
- * @retval		-EINVAL, for invlaid chip id.
- * @retval		-ENOMEM, for any other reasons.
+ * @retval		-EINVAL For invalid chip id.
+ * @retval		-ENOMEM For any other reasons.
  *
  */
 int nvgpu_get_nvhost_dev(struct gk20a *g);
@@ -86,7 +86,7 @@ void nvgpu_free_nvhost_dev(struct gk20a *g);
  *
  * @return		whether syncpt access is available.
  *
- * @retval		TRUE/FALSE.
+ * @retval		TRUE For syncpoint support.
  *
  */
 bool nvgpu_has_syncpoints(struct gk20a *g);
@@ -243,8 +243,8 @@ void nvgpu_nvhost_syncpt_put_ref_ext(struct nvgpu_nvhost_dev *nvgpu_syncpt_dev,
  *
  * @return			Sync point id allocated.
  *
- * @retval			valid id, for successful allocation.
- *				NVGPU_NVSYNCPT_INVALID, for error.
+ * @retval			valid id For successful allocation.
+ * @retval			NVGPU_NVSYNCPT_INVALID For error.
  *
  */
 u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev
@@ -265,7 +265,7 @@ u32 nvgpu_nvhost_get_syncpt_client_managed(struct nvgpu_nvhost_dev
  * @return			Zero for success.
  *				<0, for failure.
  *
- * @retval			-ENOSYS, if any of the input parameters
+ * @retval			-ENOSYS For any of the input parameter
  *				is NULL.
  *
  */
