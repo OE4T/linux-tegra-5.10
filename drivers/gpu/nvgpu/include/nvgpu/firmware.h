@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,8 @@ struct nvgpu_firmware *nvgpu_request_firmware(struct gk20a *g,
 					      u32 flags);
 
 /**
- * @brief free firmware and associated nvgpu_firmware blob
+ * @brief Free the allocated memory space for firmware and associated
+ * nvgpu_firmware blob.
  *
  * @param g [in]	The GPU driver struct for device to free firmware for
  * @param fw [in]	The firmware to free. fw blob will also be freed.

@@ -152,6 +152,8 @@ void nvgpu_start_gpu_idle(struct gk20a *g);
 
 /**
  * @brief Enable interrupt handlers
+ * This API also creates stall, non-stall and priority threads to process
+ * different kind of interrupts.
  *
  * @param g [in] The GPU
  *
