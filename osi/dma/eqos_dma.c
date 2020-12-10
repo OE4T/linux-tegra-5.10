@@ -885,8 +885,6 @@ static nve32_t eqos_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
  * - Initialization: Yes
  * - Run time: Yes
  * - De-initialization: No
- *
- * @retval none
  */
 static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 			     nveu32_t chan,

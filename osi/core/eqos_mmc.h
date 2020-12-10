@@ -115,6 +115,6 @@
 #define MMC_RXICMP_ERR_OCTETS		0x00884
 /** @} */
 
-void eqos_read_mmc(struct osi_core_priv_data *osi_core);
-void eqos_reset_mmc(struct osi_core_priv_data *osi_core);
+void eqos_read_mmc(struct osi_core_priv_data *const osi_core);
+void eqos_reset_mmc(struct osi_core_priv_data *const osi_core);
 #endif /* INCLUDED_EQOS_MMC_H */
