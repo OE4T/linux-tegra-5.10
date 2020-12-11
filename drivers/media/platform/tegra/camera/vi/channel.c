@@ -2159,6 +2159,7 @@ static long tegra_channel_default_ioctl(struct file *file, void *fh,
 }
 
 #ifdef CONFIG_COMPAT
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 static long tegra_channel_compat_ioctl(struct file *filp,
 	       unsigned int cmd, unsigned long arg)
 {
@@ -2179,6 +2180,7 @@ static long tegra_channel_compat_ioctl(struct file *filp,
 
 	return ret;
 }
+#endif
 #endif
 
 static const struct v4l2_ioctl_ops tegra_channel_ioctl_ops = {
@@ -2292,7 +2294,11 @@ static const struct v4l2_file_operations tegra_channel_fops = {
 	.owner		= THIS_MODULE,
 	.unlocked_ioctl	= video_ioctl2,
 #ifdef CONFIG_COMPAT
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	.compat_ioctl32 = tegra_channel_compat_ioctl,
+#else
+	.compat_ioctl32 = video_ioctl2,
+#endif
 #endif
 	.open		= tegra_channel_open,
 	.release	= tegra_channel_close,
