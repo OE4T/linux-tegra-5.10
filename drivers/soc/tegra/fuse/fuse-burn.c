@@ -949,7 +949,8 @@ static int tegra_fuse_burn_probe(struct platform_device *pdev)
 
 	fuse_dev->pgm_clk = devm_clk_get(&pdev->dev, "clk_m");
 	if (IS_ERR(fuse_dev->pgm_clk)) {
-		dev_err(&pdev->dev, "failed to get clk_m err\n");
+		if (PTR_ERR(fuse_dev->pgm_clk) != -EPROBE_DEFER)
+			dev_err(&pdev->dev, "failed to get clk_m err\n");
 		return PTR_ERR(fuse_dev->pgm_clk);
 	}
 	fuse_dev->pgm_width = DIV_ROUND_UP(

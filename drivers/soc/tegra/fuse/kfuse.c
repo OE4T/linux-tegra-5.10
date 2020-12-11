@@ -244,7 +244,8 @@ static int tegra_kfuse_probe(struct platform_device *pdev)
 
 	if (IS_ERR(kfuse->clk)) {
 		err = PTR_ERR(kfuse->clk);
-		dev_err(&pdev->dev, "Failed to get kfuse clk: %d\n", err);
+		if (err != -EPROBE_DEFER)
+			dev_err(&pdev->dev, "Failed to get kfuse clk: %d\n", err);
 		return err;
 	}
 
