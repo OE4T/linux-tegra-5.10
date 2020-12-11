@@ -2,7 +2,7 @@
 /*
  * ADMA driver for Nvidia's Tegra210 ADMA controller.
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -13,6 +13,7 @@
 #include <linux/of_irq.h>
 #include <linux/pm_runtime.h>
 #include <linux/slab.h>
+#include <soc/tegra/fuse.h>
 
 #include "virt-dma.h"
 
@@ -125,6 +126,7 @@ struct tegra_adma_chip_data {
 	unsigned int ch_fifo_size_mask;
 	unsigned int slave_id;
 	bool has_outstanding_reqs;
+	unsigned int ch_page_size;
 	struct tegra_adma_war adma_war;
 };
 
@@ -187,6 +189,7 @@ struct tegra_adma {
 	unsigned int			nr_channels;
 	unsigned long			rx_requests_reserved;
 	unsigned long			tx_requests_reserved;
+	unsigned int			ch_base_offset;
 
 	/* Used to store global command register state when suspending */
 	unsigned int			global_cmd;
@@ -268,6 +271,13 @@ static int tegra_adma_init(struct tegra_adma *tdma)
 		   tdma->cdata->ch_base_offset + tdma->cdata->global_int_clear,
 		   0x1);
 
+	if (is_tegra_hypervisor_mode()) {
+		/* Audio Server owns ADMA GLOBAL and set registers */
+		tdma->global_cmd = 1;
+
+		return 0;
+	}
+
 	/* Assert soft reset */
 	tdma_write(tdma, ADMA_GLOBAL_SOFT_RESET, 0x1);
 
@@ -297,7 +307,7 @@ void tegra_adma_dump_ch_reg(void)
 	pm_runtime_get_sync(tdma->dev);
 	pr_info("======= ADMA Register Dump ========\n");
 	for (i = 0; i < tdma->cdata->nr_channels; i++) {
-		ch_addr = tdma->base_addr + tdma->cdata->ch_base_offset +
+		ch_addr = tdma->base_addr + tdma->ch_base_offset +
 			  (tdma->cdata->ch_reg_size * i);
 
 		pr_info("ADMA_PAGE1_CH%d_CMD_0 = %x\n",
@@ -425,6 +435,7 @@ static void tegra_adma_stop(struct tegra_adma_chan *tdc)
 
 	kfree(tdc->desc);
 	tdc->desc = NULL;
+	tdc->vc.cyclic = NULL;
 }
 
 static void adsp_shrd_sem_wait(struct tegra_adma_chan *tdc)
@@ -487,7 +498,7 @@ static void tegra_adma_start(struct tegra_adma_chan *tdc)
 	tdma_ch_write(tdc, ADMA_CH_FIFO_CTRL, ch_regs->fifo_ctrl);
 	tdma_ch_write(tdc, ADMA_CH_CONFIG, ch_regs->config);
 
-	if (adma_war->is_adma_war) {
+	if (adma_war->is_adma_war && !is_tegra_hypervisor_mode()) {
 		spin_lock(&tdc->tdma->global_lock);
 
 		/* Wait for the ADSP semaphore to be cleared */
@@ -499,7 +510,7 @@ static void tegra_adma_start(struct tegra_adma_chan *tdc)
 	/* Start ADMA */
 	tdma_ch_write(tdc, ADMA_CH_CMD, 1);
 
-	if (adma_war->is_adma_war) {
+	if (adma_war->is_adma_war && !is_tegra_hypervisor_mode()) {
 		tdma_write(tdc->tdma, ADMA_GLOBAL_CG, ADMA_GLOBAL_CG_ENABLE);
 
 		/* Clear CPU Semaphore */
@@ -895,9 +906,11 @@ static int __maybe_unused tegra_adma_runtime_suspend(struct device *dev)
 	struct tegra_adma_chan *tdc;
 	int i;
 
-	tdma->global_cmd = tdma_read(tdma, ADMA_GLOBAL_CMD);
-	if (!tdma->global_cmd)
-		goto clk_disable;
+	if (!is_tegra_hypervisor_mode()) {
+		tdma->global_cmd = tdma_read(tdma, ADMA_GLOBAL_CMD);
+		if (!tdma->global_cmd)
+			goto clk_disable;
+	}
 
 	for (i = 0; i < tdma->nr_channels; i++) {
 		tdc = &tdma->channels[i];
@@ -932,7 +945,9 @@ static int __maybe_unused tegra_adma_runtime_resume(struct device *dev)
 		dev_err(dev, "ahub clk_enable failed: %d\n", ret);
 		return ret;
 	}
-	tdma_write(tdma, ADMA_GLOBAL_CMD, tdma->global_cmd);
+
+	if (!is_tegra_hypervisor_mode())
+		tdma_write(tdma, ADMA_GLOBAL_CMD, tdma->global_cmd);
 
 	if (!tdma->global_cmd)
 		return 0;
@@ -969,6 +984,7 @@ static const struct tegra_adma_chip_data tegra210_chip_data = {
 	.nr_channels		= 22,
 	.ch_fifo_size_mask	= 0xf,
 	.slave_id		= 2,
+	.ch_page_size		= 0xc00,
 	.adma_war = {
 		.smp_sta_reg		= T210_SHRD_SMP_STA,
 		.smp_sta_set_reg	= T210_SHRD_SMP_STA_SET,
@@ -991,6 +1007,7 @@ static const struct tegra_adma_chip_data tegra186_chip_data = {
 	.nr_channels		= 32,
 	.ch_fifo_size_mask	= 0x1f,
 	.slave_id		= 4,
+	.ch_page_size		= 0x10000,
 	.adma_war = {
 		.smp_sta_reg		= T186_SHRD_SMP_STA,
 		.smp_sta_set_reg	= T186_SHRD_SMP_STA_SET,
@@ -1013,6 +1030,7 @@ static const struct tegra_adma_chip_data tegra194_chip_data = {
 	.nr_channels		= 32,
 	.ch_fifo_size_mask	= 0x1f,
 	.slave_id		= 4,
+	.ch_page_size		= 0x10000,
 };
 
 static const struct of_device_id tegra_adma_of_match[] = {
@@ -1028,6 +1046,7 @@ static int tegra_adma_probe(struct platform_device *pdev)
 	const struct tegra_adma_chip_data *cdata;
 	struct tegra_adma *tdma;
 	struct resource	*res;
+	unsigned int dma_start_index = 0;
 	int ret, i;
 
 	cdata = of_device_get_match_data(&pdev->dev);
@@ -1045,11 +1064,48 @@ static int tegra_adma_probe(struct platform_device *pdev)
 	tdma->dev = &pdev->dev;
 	dma_device = &pdev->dev;
 	tdma->cdata = cdata;
+
 #if IS_ENABLED(CONFIG_SND_SOC_TEGRA210_ADSP)
 		tdma->nr_channels = cdata->nr_channels >> 1;
 #else
 		tdma->nr_channels = cdata->nr_channels;
 #endif
+
+	tdma->nr_channels = cdata->nr_channels;
+	tdma->ch_base_offset = cdata->ch_base_offset;
+
+	if (is_tegra_hypervisor_mode()) {
+		unsigned int adma_page = 1;
+
+		of_property_read_u32(pdev->dev.of_node, "dma-channels",
+				     &tdma->nr_channels);
+		if (tdma->nr_channels > cdata->nr_channels) {
+			tdma->nr_channels = cdata->nr_channels;
+			dev_info(&pdev->dev, "Overwriting dma-channels to %d\n",
+				 cdata->nr_channels);
+		}
+
+		of_property_read_u32(pdev->dev.of_node, "dma-start-index",
+				     &dma_start_index);
+		if ((dma_start_index + tdma->nr_channels) > cdata->nr_channels) {
+			dma_start_index = cdata->nr_channels - tdma->nr_channels;
+			dev_info(&pdev->dev,
+				 "Overwriting dma-start-index to %d\n",
+				 dma_start_index);
+		}
+
+		of_property_read_u32(pdev->dev.of_node, "adma-page",
+				     &adma_page);
+		if (adma_page < 1 || adma_page > 4) {
+			adma_page = 1;
+			dev_info(&pdev->dev,
+				"Overwriting adma-page to %d\n", adma_page);
+		}
+
+		tdma->ch_base_offset = cdata->ch_base_offset +
+				       (cdata->ch_page_size * (adma_page - 1));
+	}
+
 	platform_set_drvdata(pdev, tdma);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -1075,10 +1131,10 @@ static int tegra_adma_probe(struct platform_device *pdev)
 	for (i = 0; i < tdma->nr_channels; i++) {
 		struct tegra_adma_chan *tdc = &tdma->channels[i];
 
-		tdc->chan_addr = tdma->base_addr + cdata->ch_base_offset
-				 + (cdata->ch_reg_size * i);
+		tdc->chan_addr = tdma->base_addr + tdma->ch_base_offset
+				 + (cdata->ch_reg_size * (i + dma_start_index));
 
-		tdc->irq = of_irq_get(pdev->dev.of_node, i);
+		tdc->irq = of_irq_get(pdev->dev.of_node, i + dma_start_index);
 		if (tdc->irq <= 0) {
 			ret = tdc->irq ?: -ENXIO;
 			goto irq_dispose;
