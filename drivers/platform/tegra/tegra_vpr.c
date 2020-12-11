@@ -78,7 +78,7 @@ retry:
 			err = vpr_user_module[i].do_idle(
 					vpr_user_module[i].data);
 			if (err) {
-				pr_err("%s:%d: %pF failed err:%d\n",
+				pr_err("%s:%d: %pxF failed err:%d\n",
 					 __func__, __LINE__,
 					vpr_user_module[i].do_idle, err);
 				break;
@@ -93,7 +93,7 @@ retry:
 		resize_err =
 			_tegra_set_vpr_params((void *)(uintptr_t)base, size);
 		if (resize_err)
-			pr_err("vpr resize to (%p, %zu) failed. err=%d\n",
+			pr_err("vpr resize to (%px, %zu) failed. err=%d\n",
 				(void *)(uintptr_t)base, size, resize_err);
 	}
 	if (do_idle_retries--) {
@@ -111,7 +111,7 @@ retry:
 		err = vpr_user_module[i].do_unidle(
 				vpr_user_module[i].data);
 		if (err) {
-			pr_err("%s:%d: %pF failed err:%d. Could be fatal!!\n",
+			pr_err("%s:%d: %pxF failed err:%d. Could be fatal!!\n",
 				 __func__, __LINE__,
 				vpr_user_module[i].do_unidle, err);
 		}
@@ -146,7 +146,7 @@ static int _tegra_set_vpr_params(void *vpr_base, size_t vpr_size)
 				(uintptr_t)vpr_base, vpr_size);
 
 	if (retval != 0) {
-		pr_err("%s: smc failed, base 0x%p size %zx, err (0x%x)\n",
+		pr_err("%s: smc failed, base 0x%px size %zx, err (0x%x)\n",
 			__func__, vpr_base, vpr_size, retval);
 		return -EINVAL;
 	}
@@ -192,7 +192,7 @@ unlock:
 	if (i != NUM_MODULES_IDLE_VPR_RESIZE)
 		return;
 
-	pr_err("%pF,%pF failed to register to be called before vpr resize!!\n",
+	pr_err("%pxF,%pxF failed to register to be called before vpr resize!!\n",
 		do_idle, do_unidle);
 }
 EXPORT_SYMBOL(tegra_register_idle_unidle);
