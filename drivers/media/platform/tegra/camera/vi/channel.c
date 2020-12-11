@@ -685,18 +685,18 @@ done:
 	return err;
 }
 
-static struct device *tegra_channel_get_vi_inst(struct tegra_channel *chan)
+static struct device *tegra_channel_get_vi_unit(struct tegra_channel *chan)
 {
 	struct tegra_mc_vi *vi = chan->vi;
-	struct device *vi_inst_dev;
+	struct device *vi_unit_dev;
 
-	if (vi->fops->vi_get_device_inst_handle)
-		vi->fops->vi_get_device_inst_handle(vi->ndev, chan->port[0],
-			&vi_inst_dev);
+	if (vi->fops->vi_unit_get_device_handle)
+		vi->fops->vi_unit_get_device_handle(vi->ndev, chan->port[0],
+			&vi_unit_dev);
 	else
-		vi_inst_dev = vi->dev;
+		vi_unit_dev = vi->dev;
 
-	return vi_inst_dev;
+	return vi_unit_dev;
 }
 
 /*
@@ -716,7 +716,7 @@ tegra_channel_queue_setup(struct vb2_queue *vq,
 	*nplanes = 1;
 
 	sizes[0] = chan->format.sizeimage;
-	alloc_devs[0] = tegra_channel_get_vi_inst(chan);
+	alloc_devs[0] = tegra_channel_get_vi_unit(chan);
 
 	if (vi->fops && vi->fops->vi_setup_queue)
 		return vi->fops->vi_setup_queue(chan, nbuffers);
@@ -752,14 +752,14 @@ tegra_channel_queue_setup(struct vb2_queue *vq, const void *parg,
 int tegra_channel_alloc_buffer_queue(struct tegra_channel *chan,
 	unsigned int num_buffers)
 {
-	struct device *vi_inst_dev = tegra_channel_get_vi_inst(chan);
+	struct device *vi_unit_dev = tegra_channel_get_vi_unit(chan);
 
-	chan->buffer_state = devm_kzalloc(vi_inst_dev,
+	chan->buffer_state = devm_kzalloc(vi_unit_dev,
 		(num_buffers * sizeof(*chan->buffer_state)), GFP_KERNEL);
 	if (!chan->buffer_state)
 		goto alloc_error;
 
-	chan->buffers = devm_kzalloc(vi_inst_dev,
+	chan->buffers = devm_kzalloc(vi_unit_dev,
 		(num_buffers * sizeof(*chan->buffers)), GFP_KERNEL);
 	if (!chan->buffers)
 		goto alloc_error;
@@ -780,12 +780,12 @@ alloc_error:
 
 void tegra_channel_dealloc_buffer_queue(struct tegra_channel *chan)
 {
-	struct device *vi_inst_dev = tegra_channel_get_vi_inst(chan);
+	struct device *vi_unit_dev = tegra_channel_get_vi_unit(chan);
 
 	if (chan->buffer_state)
-		devm_kfree(vi_inst_dev, chan->buffer_state);
+		devm_kfree(vi_unit_dev, chan->buffer_state);
 	if (chan->buffers)
-		devm_kfree(vi_inst_dev, chan->buffers);
+		devm_kfree(vi_unit_dev, chan->buffers);
 }
 
 static int tegra_channel_buffer_prepare(struct vb2_buffer *vb)
@@ -2415,7 +2415,7 @@ int tegra_channel_init(struct tegra_channel *chan)
 {
 	int ret;
 	struct tegra_mc_vi *vi = chan->vi;
-	struct device *vi_inst_dev = tegra_channel_get_vi_inst(chan);
+	struct device *vi_unit_dev;
 
 	ret = tegra_channel_csi_init(chan);
 	if (ret)
@@ -2426,7 +2426,7 @@ int tegra_channel_init(struct tegra_channel *chan)
 	 * has been initialized. This will make sure the TPG ports are
 	 * setup correctly
 	 */
-	vi_inst_dev = tegra_channel_get_vi_inst(chan);
+	vi_unit_dev = tegra_channel_get_vi_unit(chan);
 	chan->width_align = TEGRA_WIDTH_ALIGNMENT;
 	chan->stride_align = TEGRA_STRIDE_ALIGNMENT;
 	chan->height_align = TEGRA_HEIGHT_ALIGNMENT;
@@ -2468,7 +2468,7 @@ int tegra_channel_init(struct tegra_channel *chan)
 
 #if defined(CONFIG_VIDEOBUF2_DMA_CONTIG)
 	/* get the buffers queue... */
-	ret = tegra_vb2_dma_init(vi_inst_dev, &chan->alloc_ctx,
+	ret = tegra_vb2_dma_init(vi_unit_dev, &chan->alloc_ctx,
 			SZ_64K, &vi->vb2_dma_alloc_refcnt);
 	if (ret < 0)
 		goto vb2_init_error;
@@ -2507,7 +2507,7 @@ deskew_ctx_err:
 	devm_kfree(vi->dev, chan->deskew_ctx);
 vb2_queue_error:
 #if defined(CONFIG_VIDEOBUF2_DMA_CONTIG)
-	tegra_vb2_dma_cleanup(vi_inst_dev, chan->alloc_ctx,
+	tegra_vb2_dma_cleanup(vi_unit_dev, chan->alloc_ctx,
 		&vi->vb2_dma_alloc_refcnt);
 vb2_init_error:
 #endif
@@ -2526,11 +2526,11 @@ int tegra_channel_cleanup_video(struct tegra_channel *chan)
 
 int tegra_channel_cleanup(struct tegra_channel *chan)
 {
-	struct device *vi_inst_dev = tegra_channel_get_vi_inst(chan);
+	struct device *vi_unit_dev = tegra_channel_get_vi_unit(chan);
 
 	/* release embedded data buffer */
 	if (chan->vi->emb_buf_size > 0) {
-		dma_free_coherent(vi_inst_dev,
+		dma_free_coherent(vi_unit_dev,
 			chan->vi->emb_buf_size,
 			chan->vi->emb_buf_addr, chan->vi->emb_buf);
 		chan->vi->emb_buf_size = 0;
@@ -2542,7 +2542,7 @@ int tegra_channel_cleanup(struct tegra_channel *chan)
 	mutex_lock(&chan->video_lock);
 	vb2_queue_release(&chan->queue);
 #if defined(CONFIG_VIDEOBUF2_DMA_CONTIG)
-	tegra_vb2_dma_cleanup(vi_inst_dev, chan->alloc_ctx,
+	tegra_vb2_dma_cleanup(vi_unit_dev, chan->alloc_ctx,
 		&chan->vi->vb2_dma_alloc_refcnt);
 #endif
 	mutex_unlock(&chan->video_lock);

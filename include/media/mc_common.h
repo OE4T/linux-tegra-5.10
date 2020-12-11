@@ -429,7 +429,7 @@ struct tegra_vi_fops {
 			bool use_prio, unsigned int cmd, void *arg);
 	int (*vi_mfi_work)(struct tegra_mc_vi *vi, int port);
 	void (*vi_stride_align)(unsigned int *bpl);
-	void (*vi_get_device_inst_handle)(struct platform_device *pdev,
+	void (*vi_unit_get_device_handle)(struct platform_device *pdev,
 		uint32_t csi_steam_id, struct device **dev);
 };
 

@@ -725,7 +725,7 @@ static void vi5_channel_stop_kthreads(struct tegra_channel *chan)
 	mutex_unlock(&chan->stop_kthread_lock);
 }
 
-static void vi5_get_device_inst_handle(struct platform_device *pdev,
+static void vi5_unit_get_device_handle(struct platform_device *pdev,
 		uint32_t csi_stream_id, struct device **dev)
 {
 	if (dev)
@@ -802,17 +802,17 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 
 			/* Allocate buffer for Embedded Data if need to*/
 			if (emb_buf_size > chan->vi->emb_buf_size) {
-				struct device *vi_dev_inst;
+				struct device *vi_unit_dev;
 
-				vi5_get_device_inst_handle(chan->vi->ndev,
-					chan->port[0], &vi_dev_inst);
+				vi5_unit_get_device_handle(chan->vi->ndev,
+					chan->port[0], &vi_unit_dev);
 				/*
 				 * if old buffer is smaller than what we need,
 				 * release the old buffer and re-allocate a
 				 * bigger one below.
 				 */
 				if (chan->vi->emb_buf_size > 0) {
-					dma_free_coherent(vi_dev_inst,
+					dma_free_coherent(vi_unit_dev,
 						chan->vi->emb_buf_size,
 						chan->vi->emb_buf_addr,
 						chan->vi->emb_buf);
@@ -820,7 +820,7 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 				}
 
 				chan->vi->emb_buf_addr =
-					dma_alloc_coherent(vi_dev_inst,
+					dma_alloc_coherent(vi_unit_dev,
 						emb_buf_size,
 						&chan->vi->emb_buf, GFP_KERNEL);
 				if (!chan->vi->emb_buf_addr) {
@@ -982,5 +982,5 @@ struct tegra_vi_fops vi5_fops = {
 	.vi_error_recover = vi5_channel_error_recover,
 	.vi_add_ctrls = vi5_add_ctrls,
 	.vi_init_video_formats = vi5_init_video_formats,
-	.vi_get_device_inst_handle = vi5_get_device_inst_handle,
+	.vi_unit_get_device_handle = vi5_unit_get_device_handle,
 };
