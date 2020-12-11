@@ -1,7 +1,7 @@
 /*
  * tegra_virt_ref_alt.c - Tegra reference virtual machine driver
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -224,9 +224,9 @@ static int tegra_virt_machine_driver_probe(struct platform_device *pdev)
 	}
 
 	list_for_each_entry(rtd, &card->rtd_list, list) {
-		struct snd_soc_dai *codec_dai = rtd->codec_dai;
+		struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
 		struct snd_soc_dai_driver *codec_drv = codec_dai->driver;
-		struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+		struct snd_soc_dai *cpu_dai = asoc_rtd_to_cpu(rtd, 0);
 		struct snd_soc_dai_driver *cpu_drv = cpu_dai->driver;
 
 		cpu_drv->playback.rates = SNDRV_PCM_RATE_KNOT;
@@ -250,7 +250,7 @@ static int tegra_virt_machine_driver_probe(struct platform_device *pdev)
 	return 0;
 
 undo_register_codec:
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 undo_register_component:
 	tegra210_virt_admaif_unregister_component(pdev);
 

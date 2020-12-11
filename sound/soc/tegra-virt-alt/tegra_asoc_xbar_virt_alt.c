@@ -1,7 +1,7 @@
 /*
  * tegra_asoc_xbar_virt_alt.c - Tegra xbar dai link for machine drivers
  *
- * Copyright (c) 2017-2018 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -807,11 +807,9 @@ static struct snd_soc_dapm_route tegra186_virt_xbar_routes[] = {
 	AMX_OUT_ROUTES("AMX4")
 };
 
-static int tegra_virt_xbar_read(struct snd_soc_component *component,
-		unsigned int reg, unsigned int *val)
+static unsigned int tegra_virt_xbar_read(struct snd_soc_component *component,
+					unsigned int reg)
 {
-	*val = 0;
-
 	return 0;
 }
 
@@ -823,21 +821,17 @@ static int tegra_virt_xbar_write(struct snd_soc_component *component,
 
 static int tegra_virt_xbar_component_probe(struct snd_soc_component *component)
 {
-	component->read = tegra_virt_xbar_read;
-	component->write = tegra_virt_xbar_write;
-
 	return 0;
 }
 
-static struct snd_soc_codec_driver tegra186_virt_xbar_codec = {
-	.idle_bias_off = 1,
-	.component_driver = {
-		.probe = tegra_virt_xbar_component_probe,
-		.dapm_widgets = tegra186_virt_xbar_widgets,
-		.num_dapm_widgets = ARRAY_SIZE(tegra186_virt_xbar_widgets),
-		.dapm_routes = tegra186_virt_xbar_routes,
-		.num_dapm_routes = ARRAY_SIZE(tegra186_virt_xbar_routes),
-	},
+static struct snd_soc_component_driver tegra186_virt_xbar_codec = {
+	.probe = tegra_virt_xbar_component_probe,
+	.read = tegra_virt_xbar_read,
+	.write = tegra_virt_xbar_write,
+	.dapm_widgets = tegra186_virt_xbar_widgets,
+	.num_dapm_widgets = ARRAY_SIZE(tegra186_virt_xbar_widgets),
+	.dapm_routes = tegra186_virt_xbar_routes,
+	.num_dapm_routes = ARRAY_SIZE(tegra186_virt_xbar_routes),
 };
 
 int tegra_virt_get_route(struct snd_kcontrol *kcontrol,
@@ -934,10 +928,10 @@ int tegra_virt_xbar_register_codec(struct platform_device *pdev)
 
 	int ret;
 
-	ret = snd_soc_register_codec(&pdev->dev,
+	ret = tegra_register_component(&pdev->dev,
 			&tegra186_virt_xbar_codec,
 			tegra186_virt_xbar_dais,
-			ARRAY_SIZE(tegra186_virt_xbar_dais));
+			ARRAY_SIZE(tegra186_virt_xbar_dais), "xbar");
 
 	if (ret != 0) {
 		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);

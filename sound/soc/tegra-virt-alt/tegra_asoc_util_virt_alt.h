@@ -1,7 +1,7 @@
 /*
  * tegra_asoc_util_virt_alt.h - Tegra xbar dai link for machine drivers
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -262,6 +262,27 @@ extern const int tegra186_arad_mux_value[];
 extern const char * const tegra186_arad_mux_text[];
 extern const char * const tegra186_asrc_ratio_source_text[];
 extern const char * const tegra210_mvc_curve_type_text[];
+
+static inline int tegra_register_component(struct device *dev,
+			const struct snd_soc_component_driver *component_driver,
+			struct snd_soc_dai_driver *dai_drv,
+			int num_dai, const char *debugfs_prefix)
+{
+	struct snd_soc_component *component;
+	int ret;
+
+	component = devm_kzalloc(dev, sizeof(*component), GFP_KERNEL);
+	if (!component)
+		return -ENOMEM;
+
+	ret = snd_soc_component_initialize(component, component_driver, dev);
+	if (ret < 0)
+		return ret;
+
+	component->debugfs_prefix = debugfs_prefix;
+
+	return snd_soc_add_component(component, dai_drv, num_dai);
+}
 
 int tegra_virt_t210mixer_get_gain(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol);
