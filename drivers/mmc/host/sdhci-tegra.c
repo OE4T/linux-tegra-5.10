@@ -2565,6 +2565,13 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 				mmc_gpio_get_cd(host->mmc);
 	}
 
+	rc = mmc_regulator_get_supply(host->mmc);
+	if (rc < 0 ) {
+		if (rc != -EPROBE_DEFER)
+			dev_err(&pdev->dev, "Parsing regulators failed: %d\n", rc);
+		goto err_rst_get;
+	}
+
 	schedule_delayed_work(&tegra_host->detect_delay,
 			      msecs_to_jiffies(tegra_host->boot_detect_delay));
 
