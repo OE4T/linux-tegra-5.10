@@ -4,7 +4,12 @@
  */
 
 #include <linux/version.h>
+#include <soc/tegra/fuse.h>
 #include <soc/tegra/chip-id.h>
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
+#include "fuse.h"
+#endif
 
 #define MINOR_QT		0
 #define MINOR_FPGA		1
@@ -23,13 +28,35 @@
 #define PRE_SI_VDK		8
 #define PRE_SI_VSP		9
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
+static u8 tegra_get_pre_si_plat(void)
+{
+	u8 chip_id = tegra_get_chip_id();
+	u8 val;
+
+	switch (chip_id) {
+	case TEGRA194:
+	case TEGRA234:
+		val = (tegra_read_chipid() >> 0x14) & 0xf;
+		break;
+	default:
+		val = 0;
+		break;
+	}
+	return val;
+}
+#endif
+
 static enum tegra_platform __tegra_get_platform(void)
 {
-	u32 chipid, major, pre_si_plat;
-
-	chipid = tegra_read_chipid();
-	major = tegra_hidrev_get_majorrev(chipid);
-	pre_si_plat = tegra_hidrev_get_pre_si_plat(chipid);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+	u32 chipid = tegra_read_chipid();
+	u32 major = tegra_hidrev_get_majorrev(chipid);
+	u32 pre_si_plat = tegra_hidrev_get_pre_si_plat(chipid);
+#else
+	u32 major = tegra_get_major_rev();
+	u32 pre_si_plat = tegra_get_pre_si_plat();
+#endif
 
 	/* Having VSP defined only since K4.14 */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
@@ -40,7 +67,11 @@ static enum tegra_platform __tegra_get_platform(void)
 	if (!major) {
 		u32 minor;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 		minor = tegra_hidrev_get_minorrev(chipid);
+#else
+		minor = tegra_get_minor_rev();
+#endif
 		switch (minor) {
 		case MINOR_QT:
 			return TEGRA_PLATFORM_QT;
@@ -97,16 +128,23 @@ EXPORT_SYMBOL(tegra_get_platform);
 
 bool tegra_cpu_is_asim(void)
 {
-	u32 chipid, major, pre_si_plat;
-
-	chipid = tegra_read_chipid();
-	major = tegra_hidrev_get_majorrev(chipid);
-	pre_si_plat = tegra_hidrev_get_pre_si_plat(chipid);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+	u32 chipid = tegra_read_chipid();
+	u32 major = tegra_hidrev_get_majorrev(chipid);
+	u32 pre_si_plat = tegra_hidrev_get_pre_si_plat(chipid);
+#else
+	u32 major = tegra_get_major_rev();
+	u32 pre_si_plat = tegra_get_pre_si_plat();
+#endif
 
 	if (!major) {
 		u32 minor;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 		minor = tegra_hidrev_get_minorrev(chipid);
+#else
+		minor = tegra_get_minor_rev();
+#endif
 		switch (minor) {
 		case MINOR_QT:
 		case MINOR_FPGA:
