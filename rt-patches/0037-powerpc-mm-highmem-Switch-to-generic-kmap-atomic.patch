@@ -1,7 +1,7 @@
-From 38195a01ddb570eecac9120f082d969f65e4e174 Mon Sep 17 00:00:00 2001
+From 9473cf955849ca924151cce1103c34e4efaf9aff Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:27 +0100
-Subject: [PATCH 037/252] powerpc/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 037/259] powerpc/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 
@@ -24,10 +24,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  delete mode 100644 arch/powerpc/mm/highmem.c
 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index e9f13fe..d4cfddc 100644
+index 5181872..d4b2dfb 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
-@@ -409,6 +409,7 @@ menu "Kernel options"
+@@ -410,6 +410,7 @@ menu "Kernel options"
  config HIGHMEM
  	bool "High memory support"
  	depends on PPC32

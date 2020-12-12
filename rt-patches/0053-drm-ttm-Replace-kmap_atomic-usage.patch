@@ -1,7 +1,7 @@
-From 93f80ffd3e54451eab91ca6c6a25b8d969b653ae Mon Sep 17 00:00:00 2001
+From 0f1824eb1ec77b4368062809977b8a442d57ac60 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:43 +0100
-Subject: [PATCH 053/252] drm/ttm: Replace kmap_atomic() usage
+Subject: [PATCH 053/259] drm/ttm: Replace kmap_atomic() usage
 
 There is no reason to disable pagefaults and preemption as a side effect of
 kmap_atomic_prot().

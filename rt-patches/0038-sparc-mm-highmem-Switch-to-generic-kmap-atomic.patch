@@ -1,7 +1,7 @@
-From 8a328876d433930a4ce15782974045c58d8130d0 Mon Sep 17 00:00:00 2001
+From 24665f4897130cf596c3b204663b30eed58744a4 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:28 +0100
-Subject: [PATCH 038/252] sparc/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 038/259] sparc/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 

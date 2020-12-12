@@ -1,7 +1,7 @@
-From 69ff20e0ddf5d70de330e9253983779c9b7e2ac4 Mon Sep 17 00:00:00 2001
+From 3cfdb26759eb67dbd0ada0c12a0ae01069c214c6 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:14 +0100
-Subject: [PATCH 024/252] highmem: Remove unused functions
+Subject: [PATCH 024/259] highmem: Remove unused functions
 
 Nothing uses totalhigh_pages_dec() and totalhigh_pages_set().
 

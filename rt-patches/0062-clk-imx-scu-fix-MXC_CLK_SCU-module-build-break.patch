@@ -1,7 +1,7 @@
-From a8c47e2073513564478342acb63ed31aad3e4fd8 Mon Sep 17 00:00:00 2001
+From 5915d0de5a3320f9fd751e65269ce5b37608c123 Mon Sep 17 00:00:00 2001
 From: Dong Aisheng <aisheng.dong@nxp.com>
 Date: Wed, 25 Nov 2020 18:50:37 +0800
-Subject: [PATCH 062/252] clk: imx: scu: fix MXC_CLK_SCU module build break
+Subject: [PATCH 062/259] clk: imx: scu: fix MXC_CLK_SCU module build break
 
 This issue can be reproduced by CONFIG_IMX_MBOX=m and CONFIG_MXC_CLK_SCU=m.
 It's caused by current Makefile can't support build clk-scu.o and

@@ -1,7 +1,7 @@
-From 3f2592a28d9bd5c13ca81334b60d8dbec1fa4ee5 Mon Sep 17 00:00:00 2001
+From 0b9c85caad1621eec579710b4f20a1b0e1250418 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:22 +0100
-Subject: [PATCH 032/252] ARM: highmem: Switch to generic kmap atomic
+Subject: [PATCH 032/259] ARM: highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture.
 
@@ -22,10 +22,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  delete mode 100644 arch/arm/mm/highmem.c
 
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index fe2f17eb2..46f8900 100644
+index 002e0cf..4708ede 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
-@@ -1498,6 +1498,7 @@ config HAVE_ARCH_PFN_VALID
+@@ -1499,6 +1499,7 @@ config HAVE_ARCH_PFN_VALID
  config HIGHMEM
  	bool "High Memory Support"
  	depends on MMU
