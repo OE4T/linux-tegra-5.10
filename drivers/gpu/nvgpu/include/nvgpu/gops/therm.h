@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@ struct gops_therm {
 	 *
 	 * @param g [in]	The GPU driver struct.
 	 *
-	 * The HAL performs initialization of therm unit which includes HW
+	 * This HAL performs initialization of therm unit which includes HW
 	 * initialization and unit interface initialization.
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
@@ -56,12 +56,13 @@ struct gops_therm {
 	 *
 	 * @param g [in]	The GPU driver struct.
 	 *
-	 * The HAL performs initialization of therm HW by writing required
-	 * values to various therm registers. HAL:
-	 * - enables EXT_THERM_0/1/2
-	 * - sets slowdown factor for EXT_THERM_0/1/2
-	 * - sets up the gradual stepping tables 0 and 1
-	 * - enables gradual slowdown for clk
+	 * This HAL performs initialization of therm HW by writing required
+	 * values to various therm registers.
+	 * - enables trigger for EXT_THERM_0/1/2 events
+	 * - sets slowdown factor for EXT_THERM_0/1/2 events
+	 * - sets up the gradual stepping tables 0 and 1 for jumping
+	 *   from full speed gpu clk to requested slow down factor
+	 * - enables gradual slowdown for gpu clk
 	 * - configures gradual slowdown settings
 	 * - disables idle clock slowdown
 	 *
@@ -76,7 +77,7 @@ struct gops_therm {
 	 * @param mode [in]	ELCG mode.
 	 * @param engine [in]	Engine index for control reg.
 	 *
-	 * The HAL controls engine level clock gating (ELCG) of an engine with
+	 * This HAL controls engine level clock gating (ELCG) of an engine with
 	 * following steps:
 	 * - Skip ELCG if NVGPU_GPU_CAN_ELCG is not enabled
 	 * - Update NV_THERM_GATE_CTRL register with one of the following modes:
@@ -91,7 +92,7 @@ struct gops_therm {
 	 *
 	 * @param g [in]	The GPU driver struct.
 	 *
-	 * The HAL skips idle filter initialization for simulation
+	 * This HAL skips idle filter initialization for simulation
 	 * platform. Otherwise sets up idle filters with prod settings for:
 	 * - Active engines
 	 * - FECS
@@ -109,7 +110,7 @@ struct gops_therm {
 	 * @param mode [in]	BLCG mode.
 	 * @param engine [in]	Engine index for control reg.
 	 *
-	 * The HAL controls Block level clock gating (BLCG) of an engine with
+	 * This HAL controls Block level clock gating (BLCG) of an engine with
 	 * following steps:
 	 * - Skip BLCG if NVGPU_GPU_CAN_BLCG is not enabled
 	 * - Update NV_THERM_GATE_CTRL register with either "RUN:clk always
