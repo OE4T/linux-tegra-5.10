@@ -162,7 +162,7 @@
 
 #define OSI_EQOS_MAC_4_10       0x41U
 #define OSI_EQOS_MAC_5_00       0x50U
-#define OSI_EQOS_MAC_5_10       0x51U
+#define OSI_EQOS_MAC_5_30       0x53U
 #define OSI_MAX_VM_IRQS              5U
 
 #ifndef OSI_STRIPPED_LIB

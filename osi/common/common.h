@@ -162,7 +162,7 @@ static inline nve32_t is_valid_mac_version(nveu32_t mac_ver)
 {
 	if ((mac_ver == OSI_EQOS_MAC_4_10) ||
 	    (mac_ver == OSI_EQOS_MAC_5_00) ||
-	    (mac_ver == OSI_EQOS_MAC_5_10)) {
+	    (mac_ver == OSI_EQOS_MAC_5_30)) {
 		return 1;
 	}
 
