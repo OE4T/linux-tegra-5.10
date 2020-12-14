@@ -64,17 +64,17 @@ struct gops_bus {
 	 * This functions handles interrupts related to generic gpu bus errors.
 	 * These interrupts are reported as host errors with following
 	 * description:
-	 * Bus Error Type		|Host Error
-	 * :---------------------------:|:--------------------------:
-	 * SQUASH	 		| GPU_HOST_PBUS_SQUASH_ERROR
-	 * FECSERR	 		| GPU_HOST_PBUS_FECS_ERROR
-	 * TIMEOUT	 		| GPU_HOST_PBUS_TIMEOUT_ERROR
-	 * FB_ACK_TIMEOUT		| GPU_HOST_PBUS_TIMEOUT_ERROR
-	 * FB_ACK_EXTRA	 		| GPU_HOST_PBUS_TIMEOUT_ERROR
-	 * FB_RDATA_TIMEOUT		| GPU_HOST_PBUS_TIMEOUT_ERROR
-	 * FB_RDATA_EXTRA		| GPU_HOST_PBUS_TIMEOUT_ERROR
-	 * POSTED_DEADLOCK_TIMEOUT 	| GPU_HOST_PBUS_TIMEOUT_ERROR
-	 * ACCESS_TIMEOUT		| GPU_HOST_PBUS_TIMEOUT_ERROR
+	 * | Bus Error Type		| Host Error                   |
+	 * |:-------------------------: | :------------------------:   |
+	 * |SQUASH	 		| GPU_HOST_PBUS_SQUASH_ERROR   |
+	 * |FECSERR	 		| GPU_HOST_PBUS_FECS_ERROR     |
+	 * |TIMEOUT	 		| GPU_HOST_PBUS_TIMEOUT_ERROR  |
+	 * |FB_ACK_TIMEOUT		| GPU_HOST_PBUS_TIMEOUT_ERROR  |
+	 * |FB_ACK_EXTRA	 	| GPU_HOST_PBUS_TIMEOUT_ERROR  |
+	 * |FB_RDATA_TIMEOUT		| GPU_HOST_PBUS_TIMEOUT_ERROR  |
+	 * |FB_RDATA_EXTRA		| GPU_HOST_PBUS_TIMEOUT_ERROR  |
+	 * |POSTED_DEADLOCK_TIMEOUT 	| GPU_HOST_PBUS_TIMEOUT_ERROR  |
+	 * |ACCESS_TIMEOUT		| GPU_HOST_PBUS_TIMEOUT_ERROR  |
 	 */
 	void (*isr)(struct gk20a *g);
 
@@ -108,7 +108,7 @@ struct gops_bus {
 	 * BAR2 is virtual memory set-up done by s/w using system memory for
 	 * sharing of data between h/w and s/w, generally used for fault
 	 * buffers. As a part of bar2 binding, bar2 is mapped to the virtual
-	 * memory space ndicated by the instance block pointer and target
+	 * memory space indicated by the instance block pointer and target
 	 * memory space. After programming bar2 block register, s/w will wait
 	 * until bar2 binding is done for maximum of 1000 retires with 5 usec
 	 * delay before each retry.
