@@ -60,6 +60,7 @@
 #define nvgpu_thread_cleanup_pop_do_not_invoke() \
 			pthread_cleanup_pop((bool)0)
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 /**
  * Returns the PID of the calling process.
  */
@@ -69,6 +70,7 @@
  * Returns the Id of the calling thread.
  */
 #define nvgpu_gettid pthread_self
+#endif
 
 /**
  * Handles passing an nvgpu thread function into a posix thread.

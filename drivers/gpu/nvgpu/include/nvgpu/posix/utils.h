@@ -136,6 +136,7 @@
 /** Round up division for unsigned long long. */
 #define DIV_ROUND_UP_ULL	DIV_ROUND_UP
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 /**
  * Divide positive or negative dividend by positive or negative divisor
  * and round to closest integer.
@@ -151,6 +152,8 @@
 		(((val) - ((div) / 2)) / (div));        \
 }                                                       \
 )
+#endif
+
 /*
  * Joys of userspace: usually division just works since the compiler can link
  * against external division functions implicitly.

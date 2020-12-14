@@ -50,6 +50,7 @@
 #define WARN_ON(cond)				\
 			((void) nvgpu_posix_warn(cond, ""))
 
+#ifdef CONFIG_NVGPU_NON_FUSA
 /** Define for issuing warning once on condition with message. */
 #define WARN_ONCE(cond, msg, arg...)		\
 	({static bool warn_once_warned = false;	\
@@ -59,6 +60,7 @@
 	  }					\
 	  cond; })
 
+#endif
 
 /**
  * @brief Dumps the stack.
