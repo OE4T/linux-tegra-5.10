@@ -191,7 +191,8 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		u32 *hww_global_esr);
 
 /**
- * @brief ISR for GR engine stalling interrupts.
+ * @brief ISR to handle any pending GR engine stalling interrupts reported
+ *        by HW and to report them to qnx.sdl unit.
  *
  * @param g [in]		Pointer to GPU driver struct.
  *

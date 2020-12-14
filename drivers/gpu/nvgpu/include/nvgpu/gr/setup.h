@@ -45,6 +45,8 @@ struct nvgpu_gr_ctx;
 
 /**
  * @brief Allocate and setup object context s/w image for GPU channel.
+ *        Application requires that a channel context is created and
+ *        initialized before any work is submitted to GR HW.
  *
  * @param c [in]		Pointer to GPU channel.
  * @param class_num [in]	GPU class ID.
@@ -106,7 +108,8 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
 
 /**
- * @brief Setup preemption mode in GR engine context image.
+ * @brief Setup preemption mode in GR engine context image in case
+ *        Application optionally wants to change default preemption mode.
  *
  * @param ch [in]			Pointer to GPU channel.
  * @param graphics_preempt_mode [in]	Requested graphics preemption mode.

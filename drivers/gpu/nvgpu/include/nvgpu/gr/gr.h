@@ -120,7 +120,9 @@ struct nvgpu_gr;
 struct nvgpu_gr_config;
 
 /**
- * @brief Allocate memory for GR struct.
+ * @brief Allocate memory for GR struct and initialize the minimum SW
+ *        required to enable GR engine HW as phase 1 of GR engine
+ *        initialization.
  *
  * @param g [in]	Pointer to GPU driver struct.
  *
@@ -154,7 +156,8 @@ int nvgpu_gr_alloc(struct gk20a *g);
 void nvgpu_gr_free(struct gk20a *g);
 
 /**
- * @brief Enable GR engine h/w.
+ * @brief Reset and enable GR engine HW as phase 2 of GR engine
+ *        initialization.
  *
  * @param g [in]	Pointer to GPU driver struct.
  *
@@ -175,7 +178,9 @@ void nvgpu_gr_free(struct gk20a *g);
 int nvgpu_gr_enable_hw(struct gk20a *g);
 
 /**
- * @brief Initialize GR engine support.
+ * @brief Initialize CTXSW, GR engine HW, GR engine interrupts, and
+ *        necessary SW context support as phase 3 (final phase) of GR
+ *        engine initialization.
  *
  * @param g [in]	Pointer to GPU driver struct.
  *
