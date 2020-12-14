@@ -1,7 +1,7 @@
-From 4d971a241b03965dd5304bfc4763f6683087ca4d Mon Sep 17 00:00:00 2001
+From 65142b4f36bd258fe447a69ff3d0a78b2f01f219 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:03 +0200
-Subject: [PATCH 005/259] workqueue: Manually break affinity on hotplug
+Subject: [PATCH 005/258] workqueue: Manually break affinity on hotplug
 
 Don't rely on the scheduler to force break affinity for us -- it will
 stop doing that for per-cpu-kthreads.

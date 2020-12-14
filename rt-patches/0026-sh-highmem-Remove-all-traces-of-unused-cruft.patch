@@ -1,7 +1,7 @@
-From 4c8e1489537ffe3050df8085184ad3f381987a3e Mon Sep 17 00:00:00 2001
+From d3f2c6c8530c5580b5f5acc6080b02d621583efd Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:16 +0100
-Subject: [PATCH 026/259] sh/highmem: Remove all traces of unused cruft
+Subject: [PATCH 026/258] sh/highmem: Remove all traces of unused cruft
 
 For whatever reasons SH has highmem bits all over the place but does
 not enable it via Kconfig. Remove the bitrot.

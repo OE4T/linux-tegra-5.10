@@ -1,7 +1,7 @@
-From 0b9c85caad1621eec579710b4f20a1b0e1250418 Mon Sep 17 00:00:00 2001
+From 2dd31145009497c53e50940356371f90461a2dca Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:22 +0100
-Subject: [PATCH 032/259] ARM: highmem: Switch to generic kmap atomic
+Subject: [PATCH 032/258] ARM: highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture.
 

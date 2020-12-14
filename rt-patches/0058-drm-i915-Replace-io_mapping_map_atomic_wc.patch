@@ -1,7 +1,7 @@
-From 83e081cf05cab798833a1415e93ab52203f4d76a Mon Sep 17 00:00:00 2001
+From 7e263888f3cb25b28b737582ef90d9b696b628a7 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:48 +0100
-Subject: [PATCH 058/259] drm/i915: Replace io_mapping_map_atomic_wc()
+Subject: [PATCH 058/258] drm/i915: Replace io_mapping_map_atomic_wc()
 
 None of these mapping requires the side effect of disabling pagefaults and
 preemption.
@@ -27,7 +27,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  4 files changed, 22 insertions(+), 37 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c
-index 1904e6e..59635ff 100644
+index b07dc11..dd4c91e 100644
 --- a/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c
 +++ b/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c
 @@ -1081,7 +1081,7 @@ static void reloc_cache_reset(struct reloc_cache *cache, struct i915_execbuffer
@@ -121,7 +121,7 @@ index 5827669..88944c3 100644
  
  /**
 diff --git a/drivers/gpu/drm/i915/selftests/i915_gem.c b/drivers/gpu/drm/i915/selftests/i915_gem.c
-index 23a6132..b15eaf83 100644
+index 412e216..4324931 100644
 --- a/drivers/gpu/drm/i915/selftests/i915_gem.c
 +++ b/drivers/gpu/drm/i915/selftests/i915_gem.c
 @@ -57,12 +57,12 @@ static void trash_stolen(struct drm_i915_private *i915)

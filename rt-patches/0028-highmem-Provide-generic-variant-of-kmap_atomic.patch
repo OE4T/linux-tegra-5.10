@@ -1,7 +1,7 @@
-From e270d8020897adb5dbbc006822575223ca512530 Mon Sep 17 00:00:00 2001
+From dc8bd954f070f0e8ab6f9a04f6ae8f60135cc175 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:18 +0100
-Subject: [PATCH 028/259] highmem: Provide generic variant of kmap_atomic*
+Subject: [PATCH 028/258] highmem: Provide generic variant of kmap_atomic*
 
 The kmap_atomic* interfaces in all architectures are pretty much the same
 except for post map operations (flush) and pre- and post unmap operations.

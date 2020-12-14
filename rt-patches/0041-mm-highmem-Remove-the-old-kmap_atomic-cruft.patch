@@ -1,7 +1,7 @@
-From 223f98f18479d3b0c85d721944443993eb5a3979 Mon Sep 17 00:00:00 2001
+From a57ad005989469b0f8ba2784b16bcda11ccf02d6 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:31 +0100
-Subject: [PATCH 041/259] mm/highmem: Remove the old kmap_atomic cruft
+Subject: [PATCH 041/258] mm/highmem: Remove the old kmap_atomic cruft
 
 All users gone.
 

@@ -1,7 +1,7 @@
-From 9473cf955849ca924151cce1103c34e4efaf9aff Mon Sep 17 00:00:00 2001
+From 2f91ed60c235a19b8d15302a269d28a00bf46558 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:27 +0100
-Subject: [PATCH 037/259] powerpc/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 037/258] powerpc/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 
@@ -106,7 +106,7 @@ index c8fa182..0000000
 -#endif	/* __KERNEL__ */
 -#endif	/* _ASM_POWERPC_KMAP_TYPES_H */
 diff --git a/arch/powerpc/mm/Makefile b/arch/powerpc/mm/Makefile
-index 5e14798..1c552b5 100644
+index 55b4a8b..3b4e9e4 100644
 --- a/arch/powerpc/mm/Makefile
 +++ b/arch/powerpc/mm/Makefile
 @@ -16,7 +16,6 @@ obj-$(CONFIG_NEED_MULTIPLE_NODES) += numa.o

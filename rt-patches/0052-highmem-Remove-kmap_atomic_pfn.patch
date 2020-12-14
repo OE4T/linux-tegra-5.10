@@ -1,7 +1,7 @@
-From eed1ce056559efc7b0ffbe5a2a484089f6db31e7 Mon Sep 17 00:00:00 2001
+From 34eca83c20175f78aefcf5ac61c0aa08525027b7 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:42 +0100
-Subject: [PATCH 052/259] highmem: Remove kmap_atomic_pfn()
+Subject: [PATCH 052/258] highmem: Remove kmap_atomic_pfn()
 
 No more users.
 

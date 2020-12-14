@@ -1,7 +1,7 @@
-From 03d663f0c9d2c44ccdf2cd547a1b9a234f973d66 Mon Sep 17 00:00:00 2001
+From 4f3244a5490af1ac4514c285320751a7cd0781a0 Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Fri, 23 Oct 2020 12:12:16 +0200
-Subject: [PATCH 018/259] sched: Deny self-issued __set_cpus_allowed_ptr() when
+Subject: [PATCH 018/258] sched: Deny self-issued __set_cpus_allowed_ptr() when
  migrate_disable()
 
   migrate_disable();

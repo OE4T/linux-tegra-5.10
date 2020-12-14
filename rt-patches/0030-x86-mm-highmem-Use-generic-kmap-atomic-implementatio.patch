@@ -1,7 +1,7 @@
-From e3d1fdbbf82d47f8bba0ed4058a8cbd547f4c489 Mon Sep 17 00:00:00 2001
+From 1939ee7b7bcb31865da8bc4b8bcfc5168d493761 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:20 +0100
-Subject: [PATCH 030/259] x86/mm/highmem: Use generic kmap atomic
+Subject: [PATCH 030/258] x86/mm/highmem: Use generic kmap atomic
  implementation
 
 Convert X86 to the generic kmap atomic implementation and make the

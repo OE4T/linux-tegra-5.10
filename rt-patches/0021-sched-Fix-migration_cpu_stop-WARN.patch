@@ -1,7 +1,7 @@
-From f0120225bb6201597618e38d53d09125cf3389bf Mon Sep 17 00:00:00 2001
+From 89ffab4cd95a04c2298acbf3a6d98b0b91df002d Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Tue, 17 Nov 2020 12:14:51 +0100
-Subject: [PATCH 021/259] sched: Fix migration_cpu_stop() WARN
+Subject: [PATCH 021/258] sched: Fix migration_cpu_stop() WARN
 
 Oleksandr reported hitting the WARN in the 'task_rq(p) != rq' branch
 of migration_cpu_stop(). Valentin noted that using cpu_of(rq) in that
