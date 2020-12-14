@@ -1,7 +1,7 @@
 /*
  * NVIDIA Tegra Video Input Device
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Bryan Wu <pengw@nvidia.com>
  *
@@ -1861,6 +1861,7 @@ static void tegra_channel_populate_dev_info(struct tegra_camera_dev_info *cdev,
 	cdev->bpp = chan->fmtinfo->bpp.numerator;
 	/* BW in kBps */
 	cdev->bw = cdev->pixel_rate * cdev->bpp / 1024;
+	cdev->bw /= 8;
 }
 
 void tegra_channel_remove_subdevices(struct tegra_channel *chan)
