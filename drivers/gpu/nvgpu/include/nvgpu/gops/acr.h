@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,23 @@
 #ifndef NVGPU_GOPS_ACR_H
 #define NVGPU_GOPS_ACR_H
 
+/**
+ * @brief acr gops.
+ *
+ * The structure contains function pointers to acr init and execute operations.
+ * The details of these callbacks are described in the assigned functions to
+ * these pointers.
+ */
 struct gops_acr {
+	/**
+	 * Initializes ACR unit private data struct in the GPU driver based on
+	 * current chip.
+	 */
 	int (*acr_init)(struct gk20a *g);
+	/**
+	 * Construct blob of LS ucode's in non-wpr memory. Load and bootstrap HS
+	 * ACR ucode on specified engine Falcon.
+	 */
 	int (*acr_construct_execute)(struct gk20a *g);
 };
 

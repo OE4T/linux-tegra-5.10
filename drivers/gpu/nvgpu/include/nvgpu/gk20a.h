@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * GK20A Graphics
  *
@@ -145,6 +145,11 @@ enum nvgpu_profiler_pm_reservation_scope;
 
 #include "hal/clk/clk_gk20a.h"
 
+/**
+ * @addtogroup unit-common-nvgpu
+ * @{
+ */
+
 #ifdef CONFIG_DEBUG_FS
 struct railgate_stats {
 	unsigned long last_rail_gate_start;
@@ -157,44 +162,95 @@ struct railgate_stats {
 };
 #endif
 
+/**
+ * @defgroup NVGPU_COMMON_NVGPU_DEFINES
+ *
+ * GPU litters defines.
+ */
+
+/**
+ * @ingroup NVGPU_COMMON_NVGPU_DEFINES
+ * @{
+ */
+
+/** Number of gpcs. */
 #define GPU_LIT_NUM_GPCS	0
+/** Number of pes per gpc. */
 #define GPU_LIT_NUM_PES_PER_GPC 1
+/** Number of zcull banks. */
 #define GPU_LIT_NUM_ZCULL_BANKS 2
+/** Number of tpcs per gpc. */
 #define GPU_LIT_NUM_TPC_PER_GPC 3
+/** Number of SMs per tpc. */
 #define GPU_LIT_NUM_SM_PER_TPC  4
+/** Number of fbps. */
 #define GPU_LIT_NUM_FBPS	5
+/** Gpc base address. */
 #define GPU_LIT_GPC_BASE	6
+/** Gpc stride. */
 #define GPU_LIT_GPC_STRIDE	7
+/** Gpc shared base offset. */
 #define GPU_LIT_GPC_SHARED_BASE 8
+/** Tpc's base offset in gpc. */
 #define GPU_LIT_TPC_IN_GPC_BASE 9
+/** Tpc's stride in gpc. */
 #define GPU_LIT_TPC_IN_GPC_STRIDE 10
+/** Tpc's shared base offset in gpc. */
 #define GPU_LIT_TPC_IN_GPC_SHARED_BASE 11
+/** Ppc's base offset in gpc. */
 #define GPU_LIT_PPC_IN_GPC_BASE	12
+/** Ppc's stride in gpc. */
 #define GPU_LIT_PPC_IN_GPC_STRIDE 13
+/** Ppc's shared base offset in gpc. */
 #define GPU_LIT_PPC_IN_GPC_SHARED_BASE 14
+/** Rop base offset. */
 #define GPU_LIT_ROP_BASE	15
+/** Rop stride. */
 #define GPU_LIT_ROP_STRIDE	16
+/** Rop shared base offset. */
 #define GPU_LIT_ROP_SHARED_BASE 17
+/** Number of host engines. */
 #define GPU_LIT_HOST_NUM_ENGINES 18
+/** Number of host pbdma. */
 #define GPU_LIT_HOST_NUM_PBDMA	19
+/** LTC stride. */
 #define GPU_LIT_LTC_STRIDE	20
+/** LTS stride. */
 #define GPU_LIT_LTS_STRIDE	21
+/** Number of fbpas. */
 #define GPU_LIT_NUM_FBPAS	22
+/** Fbpa stride. */
 #define GPU_LIT_FBPA_STRIDE	23
+/** Fbpa base offset. */
 #define GPU_LIT_FBPA_BASE	24
+/** Fbpa shared base offset. */
 #define GPU_LIT_FBPA_SHARED_BASE 25
+/** Sm pri stride. */
 #define GPU_LIT_SM_PRI_STRIDE	26
+/** Smpc pri base offset. */
 #define GPU_LIT_SMPC_PRI_BASE		27
+/** Smpc pri shared base offset. */
 #define GPU_LIT_SMPC_PRI_SHARED_BASE	28
+/** Smpc pri unique base offset. */
 #define GPU_LIT_SMPC_PRI_UNIQUE_BASE	29
+/** Smpc pri stride. */
 #define GPU_LIT_SMPC_PRI_STRIDE		30
+/** Twod class. */
 #define GPU_LIT_TWOD_CLASS	31
+/** Threed class. */
 #define GPU_LIT_THREED_CLASS	32
+/** Compute class. */
 #define GPU_LIT_COMPUTE_CLASS	33
+/** Gpfifo class. */
 #define GPU_LIT_GPFIFO_CLASS	34
+/** I2m class. */
 #define GPU_LIT_I2M_CLASS	35
+/** Dma copy class. */
 #define GPU_LIT_DMA_COPY_CLASS	36
+/** Gpc priv stride. */
 #define GPU_LIT_GPC_PRIV_STRIDE	37
+/** Compute class. */
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #define GPU_LIT_PERFMON_PMMGPCTPCA_DOMAIN_START 38
 #define GPU_LIT_PERFMON_PMMGPCTPCB_DOMAIN_START 39
 #define GPU_LIT_PERFMON_PMMGPCTPC_DOMAIN_COUNT  40
@@ -207,9 +263,16 @@ struct railgate_stats {
 #define GPU_LIT_GPC_ADDR_WIDTH			47
 #define GPU_LIT_TPC_ADDR_WIDTH			48
 #define GPU_LIT_MAX_RUNLISTS_SUPPORTED		49
+/** @endcond */
 
+/** Macro to get litter values corresponding to the litter defines. */
 #define nvgpu_get_litter_value(g, v) ((g)->ops.get_litter_value((g), v))
 
+/**
+ * @}
+ */
+
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #define MAX_TPC_PG_CONFIGS      9
 
 struct nvgpu_gpfifo_userdata {
@@ -226,6 +289,7 @@ enum nvgpu_event_id_type {
 	NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN = 5,
 	NVGPU_EVENT_ID_MAX = 6,
 };
+/** @endcond */
 
 /**
  * @brief HW version info read from the HW.
@@ -241,6 +305,7 @@ struct nvgpu_gpu_params {
 	u32 sm_arch_sm_version;
 	/** sm instruction set */
 	u32 sm_arch_spa_version;
+	/** total number of physical warps possible on an SM. */
 	u32 sm_arch_warp_count;
 };
 
@@ -340,8 +405,9 @@ struct gk20a {
 	 */
 	struct nvgpu_rwsem deterministic_busy;
 #endif
-
+	/** Pointer to struct containing netlist data of ucodes. */
 	struct nvgpu_netlist_vars *netlist_vars;
+	/** Flag to indicate initialization status of netlists. */
 	bool netlist_valid;
 
 	/** Struct holding the pmu falcon software state. */
@@ -620,9 +686,9 @@ struct gk20a {
 	nvgpu_atomic_t clk_arb_global_nr;
 
 	struct nvgpu_ce_app *ce_app;
-	/** @endcond */
 
 	bool ltc_intr_en_illegal_compstat;
+	/** @endcond */
 
 	/** Are we currently running on a FUSA device configuration? */
 	bool is_fusa_sku;
@@ -672,8 +738,11 @@ struct gk20a {
 	/** @endcond */
 
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
+	/** Full syncpoint aperture base memory address. */
 	u64		syncpt_unit_base;
+	/** Full syncpoint aperture size. */
 	size_t		syncpt_unit_size;
+	/** Each syncpoint aperture size */
 	u32		syncpt_size;
 #endif
 	/** Full syncpoint aperture. */
@@ -703,7 +772,11 @@ struct gk20a {
  *
  * @param g [in]	The GPU superstucture.
  *
- * @return True if these timeouts are enabled, false otherwise.
+ * @return timeouts enablement status
+ * @retval True  always for safety or if these timeouts are actually enabled on
+ *               other builds.
+ * @retval False never for safety or if these timeouts are actually disabled on
+ *               other builds.
  */
 static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 {
@@ -725,6 +798,8 @@ static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
  * @param g [in]	The GPU superstucture.
  *
  * @return The value of the global poll timeout value in us.
+ * @retval NVGPU_DEFAULT_POLL_TIMEOUT_MS for safety as timeout is always
+ *         enabled.
  */
 static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 {

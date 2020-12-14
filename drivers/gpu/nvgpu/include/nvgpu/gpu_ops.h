@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -76,10 +76,12 @@ struct gk20a;
 struct nvgpu_debug_context;
 struct nvgpu_mem;
 
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 struct gops_debug {
 	void (*show_dump)(struct gk20a *g,
 			struct nvgpu_debug_context *o);
 };
+/** @endcond */
 
 /**
  * @addtogroup unit-common-nvgpu
@@ -96,52 +98,54 @@ struct gops_debug {
  * struct.
  */
 struct gpu_ops {
-
+	/** Acr hal ops. */
 	struct gops_acr acr;
-	struct gops_sbr sbr;
-	struct gops_func func;
+	/** Ecc hal ops. */
 	struct gops_ecc ecc;
+	/** Ltc hal ops. */
 	struct gops_ltc ltc;
 #ifdef CONFIG_NVGPU_COMPRESSION
 	struct gops_cbc cbc;
 #endif
+	/** Ce hal ops. */
 	struct gops_ce ce;
+	/** Gr hal ops. */
 	struct gops_gr gr;
+	/** Gpu class hal ops. */
 	struct gops_class gpu_class;
+	/** Fb hal ops. */
 	struct gops_fb fb;
-	struct gops_nvdec nvdec;
+	/** Clock gating hal ops. */
 	struct gops_cg cg;
+	/** Fifo hal ops. */
 	struct gops_fifo fifo;
+	/** Fuse hal ops. */
 	struct gops_fuse fuse;
-	struct gops_ramfc ramfc;
-	struct gops_ramin ramin;
+	/** Runlist hal ops. */
 	struct gops_runlist runlist;
-	struct gops_userd userd;
-	struct gops_engine engine;
-	struct gops_pbdma pbdma;
+	/** Syncpoint hal ops. */
 	struct gops_sync sync;
+	/** Channel hal ops. */
 	struct gops_channel channel;
+	/** Tsg hal ops. */
 	struct gops_tsg tsg;
+	/** Usermode hal ops. */
 	struct gops_usermode usermode;
+	/** Engine status hal ops. */
 	struct gops_engine_status engine_status;
-	struct gops_pbdma_status pbdma_status;
+	/** Netlist hal ops. */
 	struct gops_netlist netlist;
+	/** Mm hal ops. */
 	struct gops_mm mm;
-	/*
-	 * This function is called to allocate secure memory (memory
-	 * that the CPU cannot see). The function should fill the
-	 * context buffer descriptor (especially fields destroy, sgt,
-	 * size).
-	 */
-	int (*secure_alloc)(struct gk20a *g, struct nvgpu_mem *desc_mem,
-			size_t size,
-			void (**fn)(struct gk20a *g, struct nvgpu_mem *mem));
 
 #ifdef CONFIG_NVGPU_DGPU
 	struct gops_pramin pramin;
 #endif
+	/** Therm hal ops. */
 	struct gops_therm therm;
+	/** Pmu hal ops. */
 	struct gops_pmu pmu;
+	/** Clock hal ops. */
 	struct gops_clk clk;
 #ifdef CONFIG_NVGPU_DGPU
 	struct gops_clk_mon clk_mon;
@@ -149,12 +153,11 @@ struct gpu_ops {
 #ifdef CONFIG_NVGPU_CLK_ARB
 	struct gops_clk_arb clk_arb;
 #endif
-	struct gops_pmu_perf pmu_perf;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	struct gops_regops regops;
 #endif
+	/** Mc hal ops. */
 	struct gops_mc mc;
-	struct gops_debug debug;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	struct gops_debugger debugger;
 	struct gops_perf perf;
@@ -164,10 +167,14 @@ struct gpu_ops {
 	struct gops_pm_reservation pm_reservation;
 #endif
 
+	/** Ops to get litter value corresponding to litter define. */
 	u32 (*get_litter_value)(struct gk20a *g, int value);
+	/** Ops to initialize gpu characteristics. */
 	int (*chip_init_gpu_characteristics)(struct gk20a *g);
 
+	/** Bus hal ops. */
 	struct gops_bus bus;
+	/** Ptimer hal ops. */
 	struct gops_ptimer ptimer;
 	struct gops_bios bios;
 #ifdef CONFIG_NVGPU_CYCLESTATS
@@ -176,16 +183,43 @@ struct gpu_ops {
 #ifdef CONFIG_NVGPU_DGPU
 	struct gops_xve xve;
 #endif
+	/** Falcon hal ops. */
 	struct gops_falcon falcon;
+	/** Fbp hal ops. */
 	struct gops_fbp fbp;
+	/** Priv ring hal ops. */
 	struct gops_priv_ring priv_ring;
-	struct gops_nvlink nvlink;
+	/** Top hal ops. */
 	struct gops_top top;
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
+	struct gops_sbr sbr;
+	struct gops_func func;
+	struct gops_nvdec nvdec;
+	struct gops_ramfc ramfc;
+	struct gops_ramin ramin;
+	struct gops_userd userd;
+	struct gops_engine engine;
+	struct gops_pbdma pbdma;
+	struct gops_pbdma_status pbdma_status;
+	/*
+	 * This function is called to allocate secure memory (memory
+	 * that the CPU cannot see). The function should fill the
+	 * context buffer descriptor (especially fields destroy, sgt,
+	 * size).
+	 */
+	int (*secure_alloc)(struct gk20a *g, struct nvgpu_mem *desc_mem,
+			size_t size,
+			void (**fn)(struct gk20a *g, struct nvgpu_mem *mem));
+	struct gops_pmu_perf pmu_perf;
+	struct gops_debug debug;
+	struct gops_nvlink nvlink;
 	struct gops_sec2 sec2;
 	struct gops_gsp gsp;
+/** @endcond */
 #ifdef CONFIG_NVGPU_TPC_POWERGATE
 	struct gops_tpc tpc;
 #endif
+	/** Wake up all threads waiting on semaphore wait. */
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 
 	struct gops_grmgr grmgr;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,15 @@ struct gk20a;
 struct namemap_cfg;
 struct clk_gk20a;
 
+/**
+ * @brief clk gops.
+ *
+ * The structure contains function pointers to getting clock max rate. The
+ * details of these callbacks are described in the assigned function to these
+ * func pointers.
+ */
 struct gops_clk {
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	int (*init_debugfs)(struct gk20a *g);
 	int (*init_clk_support)(struct gk20a *g);
 	void (*suspend_clk_support)(struct gk20a *g);
@@ -50,7 +58,10 @@ struct gops_clk {
 	u32 (*get_ref_clock_rate)(struct gk20a *g);
 	int (*predict_mv_at_hz_cur_tfloor)(struct clk_gk20a *clk,
 		unsigned long rate);
+/** @endcond */
+	/** Get max rate of gpu clock. */
 	unsigned long (*get_maxrate)(struct gk20a *g, u32 api_domain);
+/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	int (*prepare_enable)(struct clk_gk20a *clk);
 	void (*disable_unprepare)(struct clk_gk20a *clk);
 	int (*get_voltage)(struct clk_gk20a *clk, u64 *val);
@@ -70,6 +81,7 @@ struct gops_clk {
 	int (*perf_pmu_vfe_load)(struct gk20a *g);
 	bool support_vf_point;
 	u8 lut_num_entries;
+/** @endcond */
 };
 
 struct gops_clk_mon {

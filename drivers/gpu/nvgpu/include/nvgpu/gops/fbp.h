@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,14 @@
 #ifndef NVGPU_GOPS_FBP_H
 #define NVGPU_GOPS_FBP_H
 
+/**
+ * @brief fbp gops.
+ *
+ * The structure contains function pointers to fbp initialization. The details
+ * of this callback is described in the assigned function to this func pointer.
+ */
 struct gops_fbp {
+	/** Read and initialize FBP configuration information. */
 	int (*fbp_init_support)(struct gk20a *g);
 };
 
