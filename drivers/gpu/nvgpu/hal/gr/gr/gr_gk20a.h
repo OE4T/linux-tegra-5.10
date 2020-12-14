@@ -72,6 +72,7 @@ void gk20a_gr_suspend_all_sms(struct gk20a *g,
 int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	struct nvgpu_channel *ch, u64 sms, bool enable);
 bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch);
+bool gk20a_is_tsg_ctx_resident(struct nvgpu_tsg *tsg);
 int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 u32 gpc, u32 tpc, u32 sm, u32 global_esr_mask,
 			 bool check_errors);

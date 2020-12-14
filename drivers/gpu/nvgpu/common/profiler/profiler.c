@@ -31,6 +31,7 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/perfbuf.h>
+#include <nvgpu/gr/gr.h>
 
 static nvgpu_atomic_t unique_id = NVGPU_ATOMIC_INIT(0);
 static int generate_unique_id(void)
@@ -332,6 +333,128 @@ static int nvgpu_profiler_unbind_hwpm(struct nvgpu_profiler_object *prof)
 	return err;
 }
 
+static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct nvgpu_profiler_object *prof)
+{
+	struct gk20a *g = prof->g;
+	u64 bytes_available;
+	int err = 0;
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"HWPM streamout quiesce in resident state started for handle %u",
+		prof->prof_handle);
+
+	/* Enable streamout */
+	g->ops.perf.pma_stream_enable(g, true);
+
+	/* Disable all perfmons */
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
+		g->ops.perf.disable_all_perfmons(g);
+	}
+
+	/* Disable CAUs */
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY] &&
+	    prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC] &&
+	    g->ops.gr.disable_cau != NULL) {
+		g->ops.gr.disable_cau(g);
+	}
+
+	/* Disable SMPC */
+	if (prof->reserved[NVGPU_PROFILER_PM_RESOURCE_TYPE_SMPC] &&
+	    g->ops.gr.disable_smpc != NULL) {
+		g->ops.gr.disable_smpc(g);
+	}
+
+	/* Wait for routers to idle/quiescent */
+	err = g->ops.perf.wait_for_idle_pmm_routers(g);
+	if (err != 0) {
+		goto fail;
+	}
+
+	/* Wait for PMA to idle/quiescent */
+	err = g->ops.perf.wait_for_idle_pma(g);
+	if (err != 0) {
+		goto fail;
+	}
+
+	/* Disable streamout */
+	g->ops.perf.pma_stream_enable(g, false);
+
+	/* wait for all the inflight records from fb-hub to stream out */
+	err = nvgpu_perfbuf_update_get_put(g, 0U, &bytes_available,
+		prof->pma_bytes_available_buffer_cpuva, true,
+		NULL, NULL);
+
+fail:
+	if (err != 0) {
+		nvgpu_err(g, "Failed to quiesce HWPM streamout in resident state");
+	} else {
+		nvgpu_log(g, gpu_dbg_prof,
+			"HWPM streamout quiesce in resident state successfull for handle %u",
+			prof->prof_handle);
+	}
+
+	return 0;
+}
+
+static int nvgpu_profiler_quiesce_hwpm_streamout_non_resident(struct nvgpu_profiler_object *prof)
+{
+	struct nvgpu_mem *pm_ctx_mem;
+	struct gk20a *g = prof->g;
+
+	nvgpu_log(g, gpu_dbg_prof,
+		"HWPM streamout quiesce in non-resident state started for handle %u",
+		prof->prof_handle);
+
+	if (prof->tsg == NULL || prof->tsg->gr_ctx == NULL) {
+		return -EINVAL;
+	}
+
+	pm_ctx_mem = nvgpu_gr_ctx_get_pm_ctx_mem(prof->tsg->gr_ctx);
+	if (pm_ctx_mem == NULL) {
+		nvgpu_err(g, "No PM context");
+		return -EINVAL;
+	}
+
+	nvgpu_memset(g, pm_ctx_mem, 0U, 0U, pm_ctx_mem->size);
+	nvgpu_log(g, gpu_dbg_prof,
+		"HWPM streamout quiesce in non-resident state successfull for handle %u",
+		prof->prof_handle);
+
+	return 0;
+}
+
+static int nvgpu_profiler_quiesce_hwpm_streamout(struct nvgpu_profiler_object *prof)
+{
+	struct gk20a *g = prof->g;
+	bool ctx_resident;
+	int err, ctxsw_err;
+
+	err = nvgpu_gr_disable_ctxsw(g);
+	if (err != 0) {
+		nvgpu_err(g, "unable to stop gr ctxsw");
+		return err;
+	}
+
+	ctx_resident = g->ops.gr.is_tsg_ctx_resident(prof->tsg);
+
+	if (ctx_resident) {
+		err = nvgpu_profiler_quiesce_hwpm_streamout_resident(prof);
+	} else {
+		err = nvgpu_profiler_quiesce_hwpm_streamout_non_resident(prof);
+	}
+	if (err != 0) {
+		nvgpu_err(g, "Failed to quiesce HWPM streamout");
+	}
+
+	ctxsw_err = nvgpu_gr_enable_ctxsw(g);
+	if (ctxsw_err != 0) {
+		nvgpu_err(g, "unable to restart ctxsw!");
+		err = ctxsw_err;
+	}
+
+	return err;
+}
+
 static int nvgpu_profiler_bind_hwpm_streamout(struct nvgpu_profiler_object *prof)
 {
 	struct gk20a *g = prof->g;
@@ -356,6 +479,19 @@ static int nvgpu_profiler_unbind_hwpm_streamout(struct nvgpu_profiler_object *pr
 {
 	struct gk20a *g = prof->g;
 	int err;
+
+	if (prof->scope == NVGPU_PROFILER_PM_RESERVATION_SCOPE_DEVICE) {
+		if (prof->ctxsw[NVGPU_PROFILER_PM_RESOURCE_TYPE_HWPM_LEGACY]) {
+			err = nvgpu_profiler_quiesce_hwpm_streamout(prof);
+		} else {
+			err = nvgpu_profiler_quiesce_hwpm_streamout_resident(prof);
+		}
+	} else {
+		err = nvgpu_profiler_quiesce_hwpm_streamout(prof);
+	}
+	if (err) {
+		return err;
+	}
 
 	g->ops.perf.bind_mem_bytes_buffer_addr(g, 0ULL);
 

@@ -70,6 +70,10 @@ struct gops_perf {
 	void (*set_pmm_register)(struct gk20a *g, u32 offset, u32 val,
 			 u32 num_chiplets, u32 chiplet_stride, u32 num_perfmons);
 	void (*reset_hwpm_pmm_registers)(struct gk20a *g);
+	void (*pma_stream_enable)(struct gk20a *g, bool enable);
+	void (*disable_all_perfmons)(struct gk20a *g);
+	int (*wait_for_idle_pmm_routers)(struct gk20a *g);
+	int (*wait_for_idle_pma)(struct gk20a *g);
 };
 struct gops_perfbuf {
 	int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);

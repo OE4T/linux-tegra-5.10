@@ -32,6 +32,8 @@
 
 #include <nvgpu/hw/gv11b/hw_perf_gv11b.h>
 
+#define PMM_ROUTER_OFFSET	0x200U
+
 bool gv11b_perf_get_membuf_overflow_status(struct gk20a *g)
 {
 	const u32 st = perf_pmasys_control_membuf_status_overflowed_f();
@@ -108,7 +110,9 @@ int gv11b_perf_update_get_put(struct gk20a *g, u64 bytes_consumed,
 {
 	u32 val;
 
-	nvgpu_writel(g, perf_pmasys_mem_bump_r(), bytes_consumed);
+	if (bytes_consumed != 0U) {
+		nvgpu_writel(g, perf_pmasys_mem_bump_r(), bytes_consumed);
+	}
 
 	if (update_available_bytes) {
 		val = nvgpu_readl(g, perf_pmasys_control_r());
@@ -496,4 +500,166 @@ void gv11b_perf_init_hwpm_pmm_register(struct gk20a *g)
 		nvgpu_gr_config_get_gpc_count(nvgpu_gr_get_config_ptr(g)),
 		g->ops.perf.get_pmmgpc_per_chiplet_offset(),
 		g->num_gpc_perfmon);
+}
+
+void gv11b_perf_pma_stream_enable(struct gk20a *g, bool enable)
+{
+	u32 reg_val;
+
+	reg_val = nvgpu_readl(g, perf_pmasys_control_r());
+
+	if (enable) {
+		reg_val = set_field(reg_val,
+				perf_pmasys_control_stream_m(),
+				perf_pmasys_control_stream_enable_f());
+	} else {
+		reg_val = set_field(reg_val,
+				perf_pmasys_control_stream_m(),
+				perf_pmasys_control_stream_disable_f());
+	}
+
+	nvgpu_writel(g, perf_pmasys_control_r(), reg_val);
+}
+
+void gv11b_perf_disable_all_perfmons(struct gk20a *g)
+{
+	if (g->num_sys_perfmon == 0U) {
+		g->ops.perf.get_num_hwpm_perfmon(g, &g->num_sys_perfmon,
+				&g->num_fbp_perfmon, &g->num_gpc_perfmon);
+	}
+
+	g->ops.perf.set_pmm_register(g, perf_pmmsys_control_r(0U), 0U, 1U,
+		g->ops.perf.get_pmmsys_per_chiplet_offset(),
+		g->num_sys_perfmon);
+
+	g->ops.perf.set_pmm_register(g, perf_pmmfbp_fbps_control_r(0U), 0U, 1U,
+		g->ops.perf.get_pmmfbp_per_chiplet_offset(),
+		g->num_fbp_perfmon);
+
+	g->ops.perf.set_pmm_register(g, perf_pmmgpc_gpcs_control_r(0U), 0U, 1U,
+		g->ops.perf.get_pmmgpc_per_chiplet_offset(),
+		g->num_gpc_perfmon);
+
+	if (g->ops.priv_ring.read_pri_fence != NULL) {
+		g->ops.priv_ring.read_pri_fence(g);
+	}
+}
+
+static int poll_for_pmm_router_idle(struct gk20a *g, u32 offset, u32 timeout_ms)
+{
+	struct nvgpu_timeout timeout;
+	u32 reg_val;
+	u32 status;
+	int err;
+
+	err = nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init timeout");
+		return err;
+	}
+
+	do {
+		reg_val = nvgpu_readl(g, offset);
+		status = perf_pmmsysrouter_enginestatus_status_v(reg_val);
+
+		if ((status == perf_pmmsysrouter_enginestatus_status_empty_v()) ||
+		    (status == perf_pmmsysrouter_enginestatus_status_quiescent_v())) {
+			return 0;
+		}
+
+		nvgpu_usleep_range(20, 40);
+	} while (nvgpu_timeout_expired(&timeout) == 0);
+
+	return -ETIMEDOUT;
+}
+
+int gv11b_perf_wait_for_idle_pmm_routers(struct gk20a *g)
+{
+	u32 num_gpc, num_fbp;
+	int err;
+	u32 i;
+
+	num_gpc = nvgpu_gr_config_get_gpc_count(nvgpu_gr_get_config_ptr(g));
+	num_fbp = nvgpu_fbp_get_num_fbps(g->fbp);
+
+	/* wait for all perfmons to report idle */
+	err = poll_for_pmm_router_idle(g, perf_pmmsysrouter_perfmonstatus_r(), 1);
+	if (err != 0) {
+		return err;
+	}
+
+	for (i = 0U; i < num_gpc; ++i) {
+		err = poll_for_pmm_router_idle(g,
+			perf_pmmgpcrouter_perfmonstatus_r() + (i * PMM_ROUTER_OFFSET),
+			1);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	for (i = 0U; i < num_fbp; ++i) {
+		err = poll_for_pmm_router_idle(g,
+			perf_pmmfbprouter_perfmonstatus_r() + (i * PMM_ROUTER_OFFSET),
+			1);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	/* wait for all routers to report idle */
+	err = poll_for_pmm_router_idle(g, perf_pmmsysrouter_enginestatus_r(), 1);
+	if (err != 0) {
+		return err;
+	}
+
+	for (i = 0U; i < num_gpc; ++i) {
+		err = poll_for_pmm_router_idle(g,
+			perf_pmmgpcrouter_enginestatus_r() + (i * PMM_ROUTER_OFFSET),
+			1);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	for (i = 0U; i < num_fbp; ++i) {
+		err = poll_for_pmm_router_idle(g,
+			perf_pmmfbprouter_enginestatus_r() + (i * PMM_ROUTER_OFFSET),
+			1);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	return 0;
+}
+
+int gv11b_perf_wait_for_idle_pma(struct gk20a *g)
+{
+	struct nvgpu_timeout timeout;
+	u32 status, rbufempty_status;
+	u32 timeout_ms = 1;
+	u32 reg_val;
+	int err;
+
+	err = nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init timeout");
+		return err;
+	}
+
+	do {
+		reg_val = nvgpu_readl(g, perf_pmasys_enginestatus_r());
+
+		status = perf_pmasys_enginestatus_status_v(reg_val);
+		rbufempty_status = perf_pmasys_enginestatus_rbufempty_v(reg_val);
+
+		if ((status == perf_pmasys_enginestatus_status_empty_v()) &&
+		    (rbufempty_status == perf_pmasys_enginestatus_rbufempty_empty_v())) {
+			return 0;
+		}
+
+		nvgpu_usleep_range(20, 40);
+	} while (nvgpu_timeout_expired(&timeout) == 0);
+
+	return -ETIMEDOUT;
 }

@@ -62,5 +62,11 @@ void gv11b_perf_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
 		u32 *num_fbp_perfmon, u32 *num_gpc_perfmon);
 void gv11b_perf_reset_hwpm_pmm_registers(struct gk20a *g);
 void gv11b_perf_init_hwpm_pmm_register(struct gk20a *g);
+
+void gv11b_perf_pma_stream_enable(struct gk20a *g, bool enable);
+void gv11b_perf_disable_all_perfmons(struct gk20a *g);
+int gv11b_perf_wait_for_idle_pmm_routers(struct gk20a *g);
+int gv11b_perf_wait_for_idle_pma(struct gk20a *g);
+
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif

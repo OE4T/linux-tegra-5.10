@@ -1341,7 +1341,7 @@ bool gk20a_is_channel_ctx_resident(struct nvgpu_channel *ch)
 	return ret;
 }
 
-static bool gk20a_is_tsg_ctx_resident(struct nvgpu_tsg *tsg)
+bool gk20a_is_tsg_ctx_resident(struct nvgpu_tsg *tsg)
 {
 	u32 curr_gr_tsgid;
 	struct gk20a *g = tsg->g;

@@ -1127,6 +1127,7 @@ struct gops_gr {
 			      struct nvgpu_warpstate *w_state);
 	int (*resume_from_pause)(struct gk20a *g);
 	int (*clear_sm_errors)(struct gk20a *g);
+	bool (*is_tsg_ctx_resident)(struct nvgpu_tsg *tsg);
 	bool (*sm_debugger_attached)(struct gk20a *g);
 	void (*suspend_single_sm)(struct gk20a *g,
 				  u32 gpc, u32 tpc, u32 sm,
@@ -1190,6 +1191,8 @@ struct gops_gr {
 	int (*set_boosted_ctx)(struct nvgpu_channel *ch, bool boost);
 #endif
 #endif
+	void (*disable_cau)(struct gk20a *g);
+	void (*disable_smpc)(struct gk20a *g);
 	/** @endcond */
 
 	/** This structure stores the GR ecc subunit hal pointers. */

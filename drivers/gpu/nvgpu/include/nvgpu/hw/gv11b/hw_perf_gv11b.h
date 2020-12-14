@@ -77,6 +77,9 @@
 #define perf_pmasys_control_membuf_clear_status_doit_f()                 (0x20U)
 #define perf_pmasys_control_update_bytes_m()                   (U32(0x1U) << 3U)
 #define perf_pmasys_control_update_bytes_doit_f()                         (0x8U)
+#define perf_pmasys_control_stream_m()                         (U32(0x1U) << 0U)
+#define perf_pmasys_control_stream_enable_f()                             (0x1U)
+#define perf_pmasys_control_stream_disable_f()                            (0x0U)
 #define perf_pmasys_mem_block_r()                                  (0x0024a070U)
 #define perf_pmasys_mem_block_base_f(v)            ((U32(v) & 0xfffffffU) << 0U)
 #define perf_pmasys_mem_block_target_f(v)               ((U32(v) & 0x3U) << 28U)
@@ -109,8 +112,11 @@
 #define perf_pmasys_mem_bytes_addr_ptr_b()                                  (2U)
 #define perf_pmasys_enginestatus_r()                               (0x0024a0a4U)
 #define perf_pmasys_enginestatus_rbufempty_f(v)          ((U32(v) & 0x1U) << 4U)
+#define perf_pmasys_enginestatus_rbufempty_v(r)             (((r) >> 4U) & 0x1U)
 #define perf_pmasys_enginestatus_rbufempty_empty_v()               (0x00000001U)
 #define perf_pmasys_enginestatus_rbufempty_empty_f()                     (0x10U)
+#define perf_pmasys_enginestatus_status_v(r)                (((r) >> 0U) & 0x7U)
+#define perf_pmasys_enginestatus_status_empty_v()                  (0x00000000U)
 #define perf_pmmsys_engine_sel_r(i)\
 		(nvgpu_safe_add_u32(0x0024006cU, nvgpu_safe_mult_u32((i), 512U)))
 #define perf_pmmsys_engine_sel__size_1_v()                         (0x00000020U)
@@ -120,4 +126,19 @@
 #define perf_pmmgpc_engine_sel_r(i)\
 		(nvgpu_safe_add_u32(0x0018006cU, nvgpu_safe_mult_u32((i), 512U)))
 #define perf_pmmgpc_engine_sel__size_1_v()                         (0x00000020U)
+#define perf_pmmsys_control_r(i)\
+		(nvgpu_safe_add_u32(0x0024009cU, nvgpu_safe_mult_u32((i), 512U)))
+#define perf_pmmfbp_fbps_control_r(i)\
+		(nvgpu_safe_add_u32(0x0027c09cU, nvgpu_safe_mult_u32((i), 512U)))
+#define perf_pmmgpc_gpcs_control_r(i)\
+		(nvgpu_safe_add_u32(0x0027809cU, nvgpu_safe_mult_u32((i), 512U)))
+#define perf_pmmsysrouter_perfmonstatus_r()                        (0x00248014U)
+#define perf_pmmsysrouter_enginestatus_r()                         (0x00248010U)
+#define perf_pmmsysrouter_enginestatus_status_v(r)          (((r) >> 0U) & 0x7U)
+#define perf_pmmsysrouter_enginestatus_status_empty_v()            (0x00000000U)
+#define perf_pmmsysrouter_enginestatus_status_quiescent_v()        (0x00000003U)
+#define perf_pmmgpcrouter_perfmonstatus_r()                        (0x00244014U)
+#define perf_pmmgpcrouter_enginestatus_r()                         (0x00244010U)
+#define perf_pmmfbprouter_perfmonstatus_r()                        (0x00246014U)
+#define perf_pmmfbprouter_enginestatus_r()                         (0x00246010U)
 #endif

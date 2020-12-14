@@ -660,6 +660,7 @@ static const struct gops_gr gv11b_ops_gr = {
 	.wait_for_pause = NULL,
 	.resume_from_pause = NULL,
 	.clear_sm_errors = gr_gk20a_clear_sm_errors,
+	.is_tsg_ctx_resident = gk20a_is_tsg_ctx_resident,
 	.sm_debugger_attached = gv11b_gr_sm_debugger_attached,
 	.suspend_single_sm = gv11b_gr_suspend_single_sm,
 	.suspend_all_sms = gv11b_gr_suspend_all_sms,
@@ -1238,6 +1239,10 @@ static const struct gops_perf gv11b_ops_perf = {
 	.get_num_hwpm_perfmon = gv11b_perf_get_num_hwpm_perfmon,
 	.init_hwpm_pmm_register = gv11b_perf_init_hwpm_pmm_register,
 	.reset_hwpm_pmm_registers = gv11b_perf_reset_hwpm_pmm_registers,
+	.pma_stream_enable = gv11b_perf_pma_stream_enable,
+	.disable_all_perfmons = gv11b_perf_disable_all_perfmons,
+	.wait_for_idle_pmm_routers = gv11b_perf_wait_for_idle_pmm_routers,
+	.wait_for_idle_pma = gv11b_perf_wait_for_idle_pma,
 };
 #endif
 

@@ -127,3 +127,27 @@ int tu104_gr_update_smpc_global_mode(struct gk20a *g, bool enable)
 
 	return err;
 }
+
+void tu104_gr_disable_cau(struct gk20a *g)
+{
+	u32 i;
+
+	for (i = 0U; i < gr_gpcs_tpcs_cau_control__size_1_v(); ++i) {
+		nvgpu_writel(g, gr_gpcs_tpcs_cau_control_r(i), 0U);
+	}
+
+	if (g->ops.priv_ring.read_pri_fence != NULL) {
+		g->ops.priv_ring.read_pri_fence(g);
+	}
+}
+
+void tu104_gr_disable_smpc(struct gk20a *g)
+{
+	nvgpu_writel(g, gr_egpcs_etpcs_sm_dsm_perf_counter_control_r(), 0U);
+	nvgpu_writel(g, gr_egpcs_etpcs_sm_dsm_perf_counter_control0_r(), 0U);
+	nvgpu_writel(g, gr_egpcs_etpcs_sm_dsm_perf_counter_control5_r(), 0U);
+
+	if (g->ops.priv_ring.read_pri_fence != NULL) {
+		g->ops.priv_ring.read_pri_fence(g);
+	}
+}

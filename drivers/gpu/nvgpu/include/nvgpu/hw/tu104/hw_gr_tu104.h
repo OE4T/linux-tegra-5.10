@@ -1230,4 +1230,10 @@
 #define gr_gpcs_tc_debug0_limit_coalesce_buffer_size_f(v)\
 				((U32(v) & 0x1ffU) << 0U)
 #define gr_gpcs_tc_debug0_limit_coalesce_buffer_size_m()     (U32(0x1ffU) << 0U)
+#define gr_gpcs_tpcs_cau_control_r(i)\
+		(nvgpu_safe_add_u32(0x00419980U, nvgpu_safe_mult_u32((i), 64U)))
+#define gr_gpcs_tpcs_cau_control__size_1_v()                       (0x00000002U)
+#define gr_egpcs_etpcs_sm_dsm_perf_counter_control_r()             (0x00481a48U)
+#define gr_egpcs_etpcs_sm_dsm_perf_counter_control0_r()            (0x00481a08U)
+#define gr_egpcs_etpcs_sm_dsm_perf_counter_control5_r()            (0x00481a0cU)
 #endif

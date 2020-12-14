@@ -40,5 +40,9 @@ void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	u32 *num_sm_dsm_perf_ctrl_regs, u32 **sm_dsm_perf_ctrl_regs,
 	u32 *ctrl_register_stride);
 int tu104_gr_update_smpc_global_mode(struct gk20a *g, bool enable);
+
+void tu104_gr_disable_cau(struct gk20a *g);
+void tu104_gr_disable_smpc(struct gk20a *g);
+
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GR_TU104_H */
