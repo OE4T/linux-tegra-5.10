@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,9 @@
  * Description: Test the values of various size defines.
  *
  * Test Type: Feature
+ *
+ * Targets: SZ_256, SZ_1K, SZ_4K, SZ_64K, SZ_128K, SZ_1M, SZ_16M, SZ_32M,
+ * 	    SZ_256M, SZ_512M, SZ_1G, SZ_4G.
  *
  * Inputs:
  * None
