@@ -128,7 +128,6 @@
  * @{
  */
 #define OSI_UCHAR_MAX			(0xFFU)
-#define OSI_ULLONG_MAX			(~0ULL)
 
 /* Logging defines */
 /* log levels */

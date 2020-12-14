@@ -2771,7 +2771,7 @@ static nve32_t eqos_set_systime_to_mac(
 }
 
 /**
- * @brief eqos_poll_for_tsinit_complete - Poll for addend value write complete
+ * @brief eqos_poll_for_addend_complete - Poll for addend value write complete
  *
  * @note
  * Algorithm:
@@ -3065,9 +3065,6 @@ static void eqos_config_tscr(void *addr, const nveu32_t ptp_filter)
 			break;
 		case OSI_MAC_TCR_SNAPTYPSEL_2:
 			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_2;
-			break;
-		case OSI_MAC_TCR_SNAPTYPSEL_3:
-			mac_tcr |= OSI_MAC_TCR_SNAPTYPSEL_3;
 			break;
 		case OSI_MAC_TCR_TSIPV4ENA:
 			mac_tcr |= OSI_MAC_TCR_TSIPV4ENA;
