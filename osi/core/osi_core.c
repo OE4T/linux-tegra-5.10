@@ -504,22 +504,17 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 	nve32_t ret = -1;
 	nve32_t ppb1 = ppb;
 
-	if (ppb1 < 0) {
-		neg_adj = 1U;
-		ppb1 = -ppb1;
-	}
-
 	if (osi_core == OSI_NULL) {
 		return ret;
 	}
 
 	addend = osi_core->default_addend;
-	if ((UINT_MAX - ppb1) > 0) {
+	if (ppb1 < 0) {
+		neg_adj = 1U;
+		ppb1 = -ppb1;
 		adj = (nveu64_t)addend * (nveu32_t)ppb1;
 	} else {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "ppb1 > UINT_MAX\n",
-			     0ULL);
-		return ret;
+		adj = (nveu64_t)addend * (nveu32_t)ppb1;
 	}
 
 	/*
@@ -550,8 +545,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 			addend = diff - addend;
 		} else {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				     "quotient > UINT_MAX\n", 0ULL);
-			return -1;
+				     "addend = diff\n", 0ULL);
 		}
 	}
 
@@ -584,15 +578,9 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	if (nsec_delta1 < 0) {
 		neg_adj = 1;
 		nsec_delta1 = -nsec_delta1;
-	}
-
-	if ((nsec_delta1 >= 0) &&
-	    ((OSI_ULLONG_MAX - nsec_delta1) > 0)) {
 		udelta = (nveul64_t)nsec_delta1;
 	} else {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "nsec_delta1 > OSI_ULLONG_MAX\n", 0ULL);
-		return ret;
+		udelta = (nveul64_t)nsec_delta1;
 	}
 
 	quotient = div_u64_rem(udelta, OSI_NSEC_PER_SEC, &reminder);

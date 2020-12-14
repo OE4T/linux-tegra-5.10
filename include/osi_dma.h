@@ -38,7 +38,8 @@
 
 #define OSI_INVALID_VALUE	0xFFFFFFFFU
 
-#define OSI_ONE_MEGA_HZ			1000000U
+#define OSI_ONE_MEGA_HZ		1000000U
+#define OSI_ULLONG_MAX		(~0ULL)
 
 /* Compiler hints for branch prediction */
 #define osi_likely(x)			__builtin_expect(!!(x), 1)

@@ -253,7 +253,8 @@ nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 
 nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
 {
-	if ((rx_ring->cur_rx_idx >= RX_DESC_CNT) ||
+	if ((rx_ring == OSI_NULL) ||
+	    (rx_ring->cur_rx_idx >= RX_DESC_CNT) ||
 	    (rx_ring->refill_idx >= RX_DESC_CNT)) {
 		return 0;
 	}
