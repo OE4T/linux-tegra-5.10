@@ -96,12 +96,12 @@ enum nvgpu_engine_status_ctx_status {
 struct nvgpu_engine_status_info {
 	/** Engine status h/w register's read value. */
 	u32 reg_data;
-	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	/* nvgpu next engine status additions */
 	struct nvgpu_next_engine_status_info nvgpu_next;
-#endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
+#endif
 	/** Channel or tsg id that is currently assigned to the engine. */
 	u32 ctx_id;
 	/** Ctx_status field of engine_status h/w register. */
