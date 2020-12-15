@@ -78,27 +78,27 @@ int test_sync_deinit(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_sync_create_destroy_sync
  *
- * Description: Branch coverage for nvgpu_channel_sync_{create/destroy} success
+ * Description: Branch coverage for nvgpu_channel_syncpt_sync_{create/destroy}
+ * success.
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_channel_sync_create, nvgpu_has_syncpoints,
- *	    nvgpu_channel_sync_syncpt_create,
+ * Targets: nvgpu_has_syncpoints,
  *	    nvgpu_nvhost_get_syncpt_client_managed,
  *	    gv11b_syncpt_alloc_buf,
  *	    set_syncpt_ro_map_gpu_va_locked,
- *	    nvgpu_channel_sync_destroy,
- *	    channel_sync_syncpt_destroy,
- *	    gv11b_syncpt_free_buf
+ *	    gv11b_syncpt_free_buf,
+ *	    nvgpu_channel_user_syncpt_destroy,
+ *	    nvgpu_channel_user_syncpt_create
  *
  * Input: test_sync_init run for this GPU
  *
  * Steps:
- * - Check valid cases for nvgpu_channel_sync_create:
+ * - Check valid cases for nvgpu_channel_user_syncpt_create:
  *    - Pass a valid channel to the API and pass usermanaged = true.
  *    	- vm->syncpt_ro_map_gpu_va is not already allocated.
  *      - vm->syncpt_ro_map_gpu_va is already allocated.
- * - Check valid cases for nvgpu_channel_sync_destroy:
+ * - Check valid cases for nvgpu_channel_user_syncpt_destroy:
  *    - Set set_safe_state = true.
  *    - Set set_safe_state = false.
  *
@@ -109,11 +109,13 @@ int test_sync_create_destroy_sync(struct unit_module *m, struct gk20a *g, void *
 /**
  * Test specification for: test_sync_set_safe_state
  *
- * Description: Branch coverage for nvgpu_channel_sync_set_safe_state
+ * Description: Branch coverage for nvgpu_channel_user_syncpt_set_safe_state
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_channel_sync_set_safe_state
+ * Targets: nvgpu_channel_user_syncpt_destroy,
+ * 	    nvgpu_channel_user_syncpt_set_safe_state,
+ * 	    nvgpu_channel_user_syncpt_create
  *
  * Input: test_sync_init run for this GPU
  *
@@ -131,16 +133,15 @@ int test_sync_set_safe_state(struct unit_module *m, struct gk20a *g, void *args)
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_channel_sync_to_syncpt,
- *	    nvgpu_channel_sync_get_syncpt_id,
- *	    nvgpu_channel_sync_get_syncpt_address
+ * Targets: nvgpu_channel_user_syncpt_destroy,
+ *	    nvgpu_channel_user_syncpt_get_address,
+ *	    nvgpu_channel_user_syncpt_get_id,
+ *	    nvgpu_channel_user_syncpt_create
  *
  * Input: test_sync_init run for this GPU
  *
  * Steps:
- * - Check if nvgpu_channel_sync_to_syncpt returns non-null.
- * - Call nvgpu_channel_sync_get_syncpt_id
- * - Call nvgpu_channel_sync_get_syncpt_address
+ * - Call nvgpu_channel_user_syncpt_get_address
  * - Assert the correct values for the syncpt ID and the syncpt buffer GPUVA.
  *
  * Output: Returns PASS if the above steps are successful, FAIL otherwise.
@@ -174,23 +175,20 @@ int test_sync_get_ro_map(struct unit_module *m, struct gk20a *g, void *args);
 /**
  * Test specification for: test_sync_create_fail
  *
- * Description: Branch coverage for nvgpu_channel_sync_create failure
+ * Description: Branch coverage for nvgpu_channel_user_syncpt_create failure
  *
  * Test Type: Feature
  *
- * Targets: nvgpu_channel_sync_create, nvgpu_has_syncpoints,
- *	    nvgpu_channel_sync_syncpt_create,
+ * Targets: nvgpu_has_syncpoints,
  *	    nvgpu_nvhost_get_syncpt_client_managed,
  *	    gv11b_syncpt_alloc_buf,
  *	    set_syncpt_ro_map_gpu_va_locked,
- *	    nvgpu_channel_sync_destroy,
- *	    channel_sync_syncpt_destroy,
  *	    gv11b_syncpt_free_buf
  *
  * Input: test_sync_init run for this GPU
  *
  * Steps:
- * - Check failure cases for nvgpu_channel_sync_create:
+ * - Check failure cases for nvgpu_channel_user_syncpt_create:
  *    - pass user_managed = FALSE.
  *    - allocation of memory for struct nvgpu_channel_sync_syncpt fails.
  *    - nvgpu_nvhost_get_syncpt_client_managed() returns invalid syncpoint i.e.
