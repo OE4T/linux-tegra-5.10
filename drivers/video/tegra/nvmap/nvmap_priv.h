@@ -81,13 +81,12 @@ do {                                                    \
 
 #define GFP_NVMAP       (GFP_KERNEL | __GFP_HIGHMEM | __GFP_NOWARN)
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 #define DMA_ALLOC_FREE_ATTR	(DMA_ATTR_ALLOC_EXACT_SIZE | DMA_ATTR_ALLOC_SINGLE_PAGES)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 #define ACCESS_OK(type, addr, size)	access_ok(type, addr, size)
 #define SYS_CLOSE(arg)	sys_close(arg)
 #else
-#define DMA_ALLOC_FREE_ATTR	DMA_ATTR_ALLOC_SINGLE_PAGES
-#define ACCESS_OK(type, addr, size)	access_ok(addr, size)
+#define ACCESS_OK(type, addr, size)    access_ok(addr, size)
 #define SYS_CLOSE(arg)	ksys_close(arg)
 #endif
 

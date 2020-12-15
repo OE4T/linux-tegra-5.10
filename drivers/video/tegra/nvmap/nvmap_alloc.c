@@ -27,6 +27,9 @@
 #include <soc/tegra/fuse.h>
 #endif
 #include <trace/events/nvmap.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#include <linux/dma-map-ops.h>
+#endif
 
 #include "nvmap_priv.h"
 
@@ -584,7 +587,7 @@ static struct device *nvmap_heap_pgalloc_dev(unsigned long type)
 		return ERR_PTR(-EINVAL);
 
 	dma_dev = dma_dev_from_handle(type);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+#ifdef CONFIG_TEGRA_VPR
 	if (!IS_ERR(dma_dev)) {
 		ret = dma_set_resizable_heap_floor_size(dma_dev, 0);
 		if (ret)

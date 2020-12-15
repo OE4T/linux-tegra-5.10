@@ -48,6 +48,7 @@
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
 #include <linux/syscalls.h>
+#include <linux/dma-map-ops.h>
 #endif
 
 extern struct device tegra_vpr_dev;
@@ -208,7 +209,7 @@ int nvmap_ioctl_vpr_floor_size(struct file *filp, void __user *arg)
 
 	if (copy_from_user(&floor_size, arg, sizeof(floor_size)))
 		return -EFAULT;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+#ifdef CONFIG_TEGRA_VPR
 	err = dma_set_resizable_heap_floor_size(&tegra_vpr_dev, floor_size);
 #endif
 	return err;
