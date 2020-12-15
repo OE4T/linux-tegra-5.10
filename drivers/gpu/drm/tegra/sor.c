@@ -396,7 +396,6 @@ struct tegra_sor;
 struct tegra_sor_ops {
 	const char *name;
 	int (*probe)(struct tegra_sor *sor);
-	int (*remove)(struct tegra_sor *sor);
 	void (*audio_enable)(struct tegra_sor *sor);
 	void (*audio_disable)(struct tegra_sor *sor);
 };
@@ -2938,6 +2937,24 @@ static const struct drm_encoder_helper_funcs tegra_sor_dp_helpers = {
 	.atomic_check = tegra_sor_encoder_atomic_check,
 };
 
+static void tegra_sor_disable_regulator(void *data)
+{
+	struct regulator *reg = data;
+
+	regulator_disable(reg);
+}
+
+static int tegra_sor_enable_regulator(struct tegra_sor *sor, struct regulator *reg)
+{
+	int err;
+
+	err = regulator_enable(reg);
+	if (err)
+		return err;
+
+	return devm_add_action_or_reset(sor->dev, tegra_sor_disable_regulator, reg);
+}
+
 static int tegra_sor_hdmi_probe(struct tegra_sor *sor)
 {
 	int err;
@@ -2949,7 +2966,7 @@ static int tegra_sor_hdmi_probe(struct tegra_sor *sor)
 		return PTR_ERR(sor->avdd_io_supply);
 	}
 
-	err = regulator_enable(sor->avdd_io_supply);
+	err = tegra_sor_enable_regulator(sor, sor->avdd_io_supply);
 	if (err < 0) {
 		dev_err(sor->dev, "failed to enable AVDD I/O supply: %d\n",
 			err);
@@ -2963,7 +2980,7 @@ static int tegra_sor_hdmi_probe(struct tegra_sor *sor)
 		return PTR_ERR(sor->vdd_pll_supply);
 	}
 
-	err = regulator_enable(sor->vdd_pll_supply);
+	err = tegra_sor_enable_regulator(sor, sor->vdd_pll_supply);
 	if (err < 0) {
 		dev_err(sor->dev, "failed to enable VDD PLL supply: %d\n",
 			err);
@@ -2977,7 +2994,7 @@ static int tegra_sor_hdmi_probe(struct tegra_sor *sor)
 		return PTR_ERR(sor->hdmi_supply);
 	}
 
-	err = regulator_enable(sor->hdmi_supply);
+	err = tegra_sor_enable_regulator(sor, sor->hdmi_supply);
 	if (err < 0) {
 		dev_err(sor->dev, "failed to enable HDMI supply: %d\n", err);
 		return err;
@@ -2988,19 +3005,9 @@ static int tegra_sor_hdmi_probe(struct tegra_sor *sor)
 	return 0;
 }
 
-static int tegra_sor_hdmi_remove(struct tegra_sor *sor)
-{
-	regulator_disable(sor->hdmi_supply);
-	regulator_disable(sor->vdd_pll_supply);
-	regulator_disable(sor->avdd_io_supply);
-
-	return 0;
-}
-
 static const struct tegra_sor_ops tegra_sor_hdmi_ops = {
 	.name = "HDMI",
 	.probe = tegra_sor_hdmi_probe,
-	.remove = tegra_sor_hdmi_remove,
 	.audio_enable = tegra_sor_hdmi_audio_enable,
 	.audio_disable = tegra_sor_hdmi_audio_disable,
 };
@@ -3013,7 +3020,7 @@ static int tegra_sor_dp_probe(struct tegra_sor *sor)
 	if (IS_ERR(sor->avdd_io_supply))
 		return PTR_ERR(sor->avdd_io_supply);
 
-	err = regulator_enable(sor->avdd_io_supply);
+	err = tegra_sor_enable_regulator(sor, sor->avdd_io_supply);
 	if (err < 0)
 		return err;
 
@@ -3021,17 +3028,9 @@ static int tegra_sor_dp_probe(struct tegra_sor *sor)
 	if (IS_ERR(sor->vdd_pll_supply))
 		return PTR_ERR(sor->vdd_pll_supply);
 
-	err = regulator_enable(sor->vdd_pll_supply);
+	err = tegra_sor_enable_regulator(sor, sor->vdd_pll_supply);
 	if (err < 0)
 		return err;
-
-	return 0;
-}
-
-static int tegra_sor_dp_remove(struct tegra_sor *sor)
-{
-	regulator_disable(sor->vdd_pll_supply);
-	regulator_disable(sor->avdd_io_supply);
 
 	return 0;
 }
@@ -3039,7 +3038,6 @@ static int tegra_sor_dp_remove(struct tegra_sor *sor)
 static const struct tegra_sor_ops tegra_sor_dp_ops = {
 	.name = "DP",
 	.probe = tegra_sor_dp_probe,
-	.remove = tegra_sor_dp_remove,
 };
 
 static int tegra_sor_init(struct host1x_client *client)
@@ -3141,6 +3139,7 @@ static int tegra_sor_init(struct host1x_client *client)
 		if (err < 0) {
 			dev_err(sor->dev, "failed to deassert SOR reset: %d\n",
 				err);
+			clk_disable_unprepare(sor->clk);
 			return err;
 		}
 
@@ -3148,12 +3147,17 @@ static int tegra_sor_init(struct host1x_client *client)
 	}
 
 	err = clk_prepare_enable(sor->clk_safe);
-	if (err < 0)
+	if (err < 0) {
+		clk_disable_unprepare(sor->clk);
 		return err;
+	}
 
 	err = clk_prepare_enable(sor->clk_dp);
-	if (err < 0)
+	if (err < 0) {
+		clk_disable_unprepare(sor->clk_safe);
+		clk_disable_unprepare(sor->clk);
 		return err;
+	}
 
 	return 0;
 }
@@ -3724,7 +3728,12 @@ static int tegra_sor_probe(struct platform_device *pdev)
 		if (!sor->aux)
 			return -EPROBE_DEFER;
 
-		sor->output.ddc = &sor->aux->ddc;
+		if (get_device(&sor->aux->ddc.dev)) {
+			if (try_module_get(sor->aux->ddc.owner))
+				sor->output.ddc = &sor->aux->ddc;
+			else
+				put_device(&sor->aux->ddc.dev);
+		}
 	}
 
 	if (!sor->aux) {
@@ -3755,17 +3764,16 @@ static int tegra_sor_probe(struct platform_device *pdev)
 		return err;
 
 	err = tegra_output_probe(&sor->output);
-	if (err < 0) {
-		dev_err(&pdev->dev, "failed to probe output: %d\n", err);
-		return err;
-	}
+	if (err < 0)
+		return dev_err_probe(&pdev->dev, err,
+				     "failed to probe output\n");
 
 	if (sor->ops && sor->ops->probe) {
 		err = sor->ops->probe(sor);
 		if (err < 0) {
 			dev_err(&pdev->dev, "failed to probe %s: %d\n",
 				sor->ops->name, err);
-			goto output;
+			goto remove;
 		}
 	}
 
@@ -3946,9 +3954,6 @@ unregister:
 rpm_disable:
 	pm_runtime_disable(&pdev->dev);
 remove:
-	if (sor->ops && sor->ops->remove)
-		sor->ops->remove(sor);
-output:
 	tegra_output_remove(&sor->output);
 	return err;
 }
@@ -3966,12 +3971,6 @@ static int tegra_sor_remove(struct platform_device *pdev)
 	}
 
 	pm_runtime_disable(&pdev->dev);
-
-	if (sor->ops && sor->ops->remove) {
-		err = sor->ops->remove(sor);
-		if (err < 0)
-			dev_err(&pdev->dev, "failed to remove SOR: %d\n", err);
-	}
 
 	tegra_output_remove(&sor->output);
 
