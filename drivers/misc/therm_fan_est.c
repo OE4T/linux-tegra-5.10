@@ -1,7 +1,7 @@
 /*
  * drivers/misc/therm_fan_est.c
  *
- * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -576,17 +576,11 @@ static struct sensor_device_attribute therm_fan_est_nodes[] = {
 #endif
 };
 
-
-static int fan_est_match(struct thermal_zone_device *thz, void *data)
-{
-	return (strcmp((char *)data, thz->type) == 0);
-}
-
 static int fan_est_get_temp_func(const char *data, int *temp)
 {
 	struct thermal_zone_device *thz;
 
-	thz = thermal_zone_device_find((void *)data, fan_est_match);
+	thz = thermal_zone_get_zone_by_name(data);
 
 	if (!thz || thz->ops->get_temp == NULL || thz->ops->get_temp(thz, temp))
 		*temp = 25000;
