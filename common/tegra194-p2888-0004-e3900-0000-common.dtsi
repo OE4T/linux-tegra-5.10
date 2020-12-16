@@ -39,132 +39,6 @@
 		nvidia,system-lp0-disable;
 	};
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
-
-	xusb_padctl: xusb_padctl@3520000 {
-		status = "okay";
-
-		pads {
-			usb2 {
-				lanes {
-					usb2-0 {
-						nvidia,function = "xusb";
-						status = "okay";
-					};
-					usb2-1 {
-						status = "disabled";
-					};
-					usb2-2 {
-						nvidia,function = "xusb";
-						status = "okay";
-					};
-					usb2-3 {
-						nvidia,function = "xusb";
-						status = "okay";
-					};
-				};
-			};
-			usb3 {
-				lanes {
-					usb3-0 {
-						status = "disabled";
-					};
-					usb3-1 {
-						status = "disabled";
-					};
-					usb3-2 {
-						nvidia,function = "xusb";
-						status = "okay";
-					};
-					usb3-3 {
-						nvidia,function = "xusb";
-						status = "okay";
-					};
-				};
-			};
-		};
-
-		ports {
-			usb2-0 {
-				mode = "device";
-				vbus-supply = <&e3900_atx_5v_cvb>;
-				status = "okay";
-			};
-			usb2-1 {
-				status = "disabled";
-			};
-			usb2-2 {
-				mode = "host";
-				vbus-supply = <&e3900_vbus1_cvb>;
-				status = "okay";
-			};
-			usb2-3 {
-				mode = "host";
-				vbus-supply = <&e3900_vbus2_cvb>;
-				status = "okay";
-			};
-			usb3-0 {
-				status = "disabled";
-			};
-			usb3-1 {
-				status = "disabled";
-			};
-			usb3-2 {
-				nvidia,usb2-companion = <2>;
-				/delete-property/ nvidia,usb3-gen1-only;
-				status = "okay";
-			};
-			usb3-3 {
-				nvidia,usb2-companion = <3>;
-				/delete-property/ nvidia,usb3-gen1-only;
-				status = "okay";
-			};
-		};
-	};
-#endif
-
-	external-connection {
-		vbus_extcon: extcon@1 {
-			compatible = "extcon-gpio-states";
-			reg = <0x1>;
-			extcon-gpio,name = "VBUS";
-			/delete-property/ extcon-gpio,wait-for-gpio-scan;
-			/delete-property/ extcon-gpio,cable-states;
-			/delete-property/ gpios;
-			extcon-gpio,out-cable-names = <EXTCON_USB EXTCON_NONE>;
-			cable-connected-on-boot = <0>;
-			#extcon-cells = <1>;
-			status = "okay";
-		};
-	};
-
-	tegra_xudc: xudc@3550000 {
-		extcon-cables = <&vbus_extcon 0>;
-		extcon-cable-names = "vbus";
-		#extcon-cells = <1>;
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
-		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>;
-		phy-names = "usb2";
-		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
-		nvidia,boost_cpu_freq = <1200>;
-		status = "okay";
-	};
-
-	tegra_xhci: xhci@3610000 {
-		/delete-property/ extcon-cables;
-		/delete-property/ extcon-cable-names;
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
-		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-2}>,
-			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-3}>,
-			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-2}>,
-			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-3}>;
-		phy-names = "usb2-2", "usb2-3", "usb3-2", "usb3-3";
-		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
-		status = "okay";
-	};
-
 	spi@c260000 {
 		status = "disabled";
 	};
@@ -220,8 +94,6 @@
 		};
 	};
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
-
 	xusb_padctl: xusb_padctl@3520000 {
 		status = "okay";
 
@@ -271,6 +143,19 @@
 				mode = "otg";
 				vbus-supply = <&e3900_atx_5v_cvb>;
 				status = "okay";
+#if TEGRA_XUSB_DT_VERSION >= DT_VERSION_3
+				usb-role-switch;
+				connector {
+					compatible = "usb-b-connector", "gpio-usb-b-connector";
+					label = "micro-USB";
+					type = "micro";
+					/*
+					 * FIX ME. MCCOY needs device mode always on and does not have vbus/id support.
+					 * Here, we put dummy gpio to have the function work.
+					 */
+					vbus-gpio = <&tegra_main_gpio TEGRA194_MAIN_GPIO(Z, 1) GPIO_ACTIVE_LOW>;
+				};
+#endif
 			};
 			usb2-1 {
 				mode = "host";
@@ -305,8 +190,8 @@
 			};
 		};
 	};
-#endif
 
+#if TEGRA_XUSB_DT_VERSION < DT_VERSION_3
 	external-connection {
 		vbus_extcon: extcon@1 {
 			compatible = "extcon-gpio-states";
@@ -321,25 +206,31 @@
 			status = "okay";
 		};
 	};
+#endif
 
 	tegra_xudc: xudc@3550000 {
+#if TEGRA_XUSB_DT_VERSION < DT_VERSION_3
 		extcon-cables = <&vbus_extcon 0>;
 		extcon-cable-names = "vbus";
 		#extcon-cells = <1>;
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
-		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>;
-		phy-names = "usb2";
-		nvidia,xusb-padctl = <&xusb_padctl>;
 #endif
+		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>;
+#if TEGRA_XUSB_DT_VERSION >= DT_VERSION_3
+		phy-names = "usb2-0";
+#else
+		phy-names = "usb2";
+#endif
+		nvidia,xusb-padctl = <&xusb_padctl>;
 		nvidia,boost_cpu_freq = <1200>;
 		status = "okay";
 	};
 
 	tegra_xhci: xhci@3610000 {
+#if TEGRA_XUSB_DT_VERSION < DT_VERSION_3
 		extcon-cables = <&vbus_extcon 1>;
 		extcon-cable-names = "id";
 		#extcon-cells = <1>;
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
+#endif
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-1}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-2}>,
@@ -348,7 +239,6 @@
 			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-3}>;
 		phy-names = "usb2-0", "usb2-1", "usb2-2", "usb2-3", "usb3-2", "usb3-3";
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 		status = "okay";
 	};
 
