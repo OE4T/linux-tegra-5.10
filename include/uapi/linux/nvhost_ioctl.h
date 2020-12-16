@@ -418,7 +418,7 @@ enum nvhost_module_id {
 	NVHOST_MODULE_NVCSI,
 #ifdef __KERNEL__
 #if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
-	#include "../../../../nvidia-t23x/include/uapi/linux/nvhost_ioctl_t23x.h"
+	#include "uapi/linux/nvhost_ioctl_t23x.h"
 #endif /* CONFIG_TEGRA_T23X_GRHOST */
 #endif /* __KERNEL__ */
 	NVHOST_MODULE_TSECB = (1<<16) | NVHOST_MODULE_TSEC,

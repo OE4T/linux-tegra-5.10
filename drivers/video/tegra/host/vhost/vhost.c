@@ -22,6 +22,9 @@
 
 #include "vhost.h"
 #include "../host1x/host1x.h"
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+#include "vhost/vhost_t23x.h"
+#endif
 
 static inline int vhost_comm_init(struct platform_device *pdev,
 					  bool channel_management_in_guest)
@@ -73,6 +76,14 @@ int vhost_virt_moduleid(int moduleid)
 	case NVHOST_MODULE_NVCSI:
 		return TEGRA_VHOST_MODULE_NVCSI;
 	default:
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	{
+		int ret = vhost_virt_moduleid_t23x(moduleid);
+		if (ret != -1) {
+			return ret;
+		}
+	}
+#endif
 		pr_err("module %d not virtualized\n", moduleid);
 		return -1;
 	}
@@ -102,6 +113,14 @@ int vhost_moduleid_virt_to_hw(int moduleid)
 	case TEGRA_VHOST_MODULE_NVCSI:
 		return NVHOST_MODULE_NVCSI;
 	default:
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	{
+		int ret = vhost_moduleid_virt_to_hw_t23x(moduleid);
+		if (ret != -1) {
+			return ret;
+		}
+	}
+#endif
 		pr_err("unknown virtualized module %d\n", moduleid);
 		return -1;
 
