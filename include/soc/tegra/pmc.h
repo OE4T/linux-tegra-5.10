@@ -316,4 +316,7 @@ int tegra_pmc_soft_led_blink_configure(int duty_cycle_ns, int ll_period_ns,
 				int ramp_time_ns);
 int tegra_pmc_soft_led_blink_set_ramptime(int ramp_time_ns);
 int tegra_pmc_soft_led_blink_set_short_period(int short_low_period_ns);
+
+u32 tegra_pmc_aotag_readl(unsigned long offset);
+void tegra_pmc_aotag_writel(u32 value, unsigned long offset);
 #endif /* __SOC_TEGRA_PMC_H__ */

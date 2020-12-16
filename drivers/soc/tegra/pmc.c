@@ -762,6 +762,18 @@ static void tegra_pmc_register_update(int offset,
 	tegra_pmc_writel(pmc, pmc_reg, offset);
 }
 
+u32 tegra_pmc_aotag_readl(unsigned long offset)
+{
+	return tegra_pmc_readl(pmc, offset);
+}
+EXPORT_SYMBOL(tegra_pmc_aotag_readl);
+
+void tegra_pmc_aotag_writel(u32 value, unsigned long offset)
+{
+	tegra_pmc_writel(pmc, value, offset);
+}
+EXPORT_SYMBOL(tegra_pmc_aotag_writel);
+
 static u32 tegra_pmc_scratch_readl(struct tegra_pmc *pmc, unsigned long offset)
 {
 	if (pmc->tz_only)
