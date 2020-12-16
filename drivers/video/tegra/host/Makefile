@@ -8,3 +8,7 @@ nvhost-$(CONFIG_TEGRA_GRHOST_OFA) += ofa/ofa.o
 
 obj-y += pva/
 obj-y += nvdla/
+
+ifdef CONFIG_TEGRA_T23X_GRHOST
+nvhost-$(CONFIG_TEGRA_GRHOST_VHOST) += vhost/vhost_t23x.o
+endif
