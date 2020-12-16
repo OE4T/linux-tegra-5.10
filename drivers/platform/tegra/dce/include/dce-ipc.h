@@ -178,6 +178,8 @@ uint32_t dce_ipc_get_ipc_type(struct tegra_dce *d, u32 ch_type);
 
 bool dce_ipc_channel_is_ready(struct tegra_dce *d, u32 ch_type);
 
+bool dce_ipc_channel_is_synced(struct tegra_dce *d, u32 ch_type);
+
 u32 dce_ipc_get_cur_wait_type(struct tegra_dce *d, u32 ch_type);
 
 bool dce_ipc_is_data_available(struct tegra_dce *d, u32 ch_type);

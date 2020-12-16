@@ -98,7 +98,8 @@ struct dce_ipc_channel ivc_channels[DCE_IPC_CH_KMD_TYPE_MAX] = {
 		},
 	},
 	[DCE_IPC_CH_KMD_TYPE_RM_NOTIFY] = {
-		.flags = DCE_IPC_CHANNEL_VALID,
+		.flags = DCE_IPC_CHANNEL_VALID
+			 | DCE_IPC_CHANNEL_MSG_HEADER,
 		.ch_type = DCE_IPC_CH_KMD_TYPE_RM_NOTIFY,
 		.ipc_type = DCE_IPC_TYPE_RM_NOTIFY,
 		.signal = {
@@ -434,8 +435,31 @@ bool dce_ipc_channel_is_ready(struct tegra_dce *d, u32 ch_type)
 
 	ret = (tegra_ivc_channel_notified(&ch->d_ivc) ? false : true);
 
-	if (ret)
+	if (ret == false)
 		ch->signal.notify(d, &ch->signal.to_d);
+
+	dce_mutex_unlock(&ch->lock);
+
+	return ret;
+}
+
+/**
+ * dce_ipc_channel_synced - Checks if channel is in synced state
+ *
+ * @d : Pointer to tegra_dce struct.
+ * @id : Channel Id.
+ *
+ * Return : true if channel is in synced state.
+ */
+bool dce_ipc_channel_is_synced(struct tegra_dce *d, u32 ch_type)
+{
+	bool ret;
+
+	struct dce_ipc_channel *ch = d->d_ipc.ch[ch_type];
+
+	dce_mutex_lock(&ch->lock);
+
+	ret = (ch->flags & DCE_IPC_CHANNEL_SYNCED) ? true : false;
 
 	dce_mutex_unlock(&ch->lock);
 
@@ -465,7 +489,15 @@ void dce_ipc_channel_reset(struct tegra_dce *d, u32 ch_type)
 
 	ch->signal.notify(d, &ch->signal.to_d);
 
-	_dce_ipc_wait(ch->d, DCE_IPC_WAIT_TYPE_SYNC, ch_type);
+	dce_mutex_unlock(&ch->lock);
+
+	do {
+		if (dce_ipc_channel_is_ready(d, ch_type) == true)
+			break;
+
+	} while (true);
+
+	dce_mutex_lock(&ch->lock);
 
 	ch->flags |= DCE_IPC_CHANNEL_SYNCED;
 

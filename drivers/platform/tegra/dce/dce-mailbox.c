@@ -65,9 +65,9 @@ void dce_mailbox_isr(struct tegra_dce *d)
 			 *
 			 */
 			value = dce_smb_read(d, d_mb->r_mb);
+			dce_smb_set(d, 0U, d_mb->r_mb);
 			dce_mailbox_store_interface_status(d, value, i);
 			d_mb->notify(d, d_mb->notify_data);
-			dce_smb_set(d, 0U, d_mb->r_mb);
 		}
 		i++;
 	} while (i < DCE_MAILBOX_MAX_INTERFACES);

@@ -78,12 +78,12 @@ void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type)
 	bool wakeup_cl = false;
 	bool wakeup_needed = false;
 
-	if (!(dce_ipc_channel_is_ready(d, ch_type))) {
+	if (!dce_ipc_channel_is_synced(d, ch_type)) {
 		/**
 		 * The ivc channel is not ready yet. Exit
 		 * and wait for another signal from target.
 		 */
-		goto process_wakeup;
+		return;
 	}
 
 	wakeup_needed = (DCE_IPC_WAIT_TYPE_SYNC ==
