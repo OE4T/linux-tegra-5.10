@@ -82,6 +82,23 @@ struct nvgpu_tsg_l2_max_ways_evict_last_args {
 	 * with eviction_policy=EVICT_LAST
 	 */
 	__u32 max_ways;
+	__u32 reserved;
+};
+
+/*
+ * This struct contains the parameter for configuring L2 sector promotion.
+ * It supports 3 valid options:-
+ *  - PROMOTE_NONE(1): cache-miss doens't get promoted.
+ *  - PROMOTE_64B(2): cache-miss gets promoted to 64 bytes if less than 64 bytes.
+ *  - PROMOTE_128B(4): cache-miss gets promoted to 128 bytes if less than 128 bytes.
+ */
+#define NVGPU_GPU_IOCTL_TSG_L2_SECTOR_PROMOTE_FLAG_NONE		(1U << 0U)
+#define NVGPU_GPU_IOCTL_TSG_L2_SECTOR_PROMOTE_FLAG_64B		(1U << 1U)
+#define NVGPU_GPU_IOCTL_TSG_L2_SECTOR_PROMOTE_FLAG_128B		(1U << 2U)
+struct nvgpu_tsg_set_l2_sector_promotion_args {
+	/* Valid promotion flag */
+	__u32 promotion_flag;
+	__u32 reserved;
 };
 
 #define NVGPU_TSG_IOCTL_BIND_CHANNEL \
@@ -113,11 +130,14 @@ struct nvgpu_tsg_l2_max_ways_evict_last_args {
 #define NVGPU_TSG_IOCTL_GET_L2_MAX_WAYS_EVICT_LAST \
 	_IOR(NVGPU_TSG_IOCTL_MAGIC, 14, \
 			struct nvgpu_tsg_l2_max_ways_evict_last_args)
+#define NVGPU_TSG_IOCTL_SET_L2_SECTOR_PROMOTION \
+	_IOW(NVGPU_TSG_IOCTL_MAGIC, 15, \
+			struct nvgpu_tsg_set_l2_sector_promotion_args)
 #define NVGPU_TSG_IOCTL_MAX_ARG_SIZE	\
 		sizeof(struct nvgpu_tsg_bind_channel_ex_args)
 
 #define NVGPU_TSG_IOCTL_LAST		\
-	_IOC_NR(NVGPU_TSG_IOCTL_GET_L2_MAX_WAYS_EVICT_LAST)
+	_IOC_NR(NVGPU_TSG_IOCTL_SET_L2_SECTOR_PROMOTION)
 
 /*
  * /dev/nvhost-dbg-gpu device

@@ -330,6 +330,7 @@ static const struct gops_ltc tu104_ops_ltc = {
 	.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 	.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
 	.pri_is_lts_tstg_addr = tu104_ltc_pri_is_lts_tstg_addr,
+	.set_l2_sector_promotion = tu104_set_l2_sector_promotion,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 };
 

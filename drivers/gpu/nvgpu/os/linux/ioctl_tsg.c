@@ -34,6 +34,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/grmgr.h>
+#include <nvgpu/ltc.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_tsg.h"
@@ -681,6 +682,67 @@ static int nvgpu_gpu_ioctl_get_l2_max_ways_evict_last(
 	return err;
 }
 
+static u32 nvgpu_translate_l2_sector_promotion_flag(struct gk20a *g, u32 flag)
+{
+	u32 promotion_flag = NVGPU_L2_SECTOR_PROMOTE_FLAG_INVALID;
+
+	switch (flag) {
+		case NVGPU_GPU_IOCTL_TSG_L2_SECTOR_PROMOTE_FLAG_NONE:
+			promotion_flag = NVGPU_L2_SECTOR_PROMOTE_FLAG_NONE;
+			break;
+
+		case NVGPU_GPU_IOCTL_TSG_L2_SECTOR_PROMOTE_FLAG_64B:
+			promotion_flag = NVGPU_L2_SECTOR_PROMOTE_FLAG_64B;
+			break;
+
+		case NVGPU_GPU_IOCTL_TSG_L2_SECTOR_PROMOTE_FLAG_128B:
+			promotion_flag = NVGPU_L2_SECTOR_PROMOTE_FLAG_128B;
+			break;
+
+		default:
+			nvgpu_err(g, "invalid sector promotion flag(%d)",
+					flag);
+			break;
+	}
+
+	return promotion_flag;
+}
+
+static int nvgpu_gpu_ioctl_set_l2_sector_promotion(struct gk20a *g,
+		struct nvgpu_tsg *tsg,
+		struct nvgpu_tsg_set_l2_sector_promotion_args *args)
+{
+	u32 promotion_flag = 0U;
+	int err = 0;
+
+	/*
+	 * L2 sector promotion is a perf feature so return silently without
+	 * error if not supported.
+	 */
+	if (g->ops.ltc.set_l2_sector_promotion == NULL) {
+		return 0;
+	}
+
+	promotion_flag =
+		nvgpu_translate_l2_sector_promotion_flag(g,
+				args->promotion_flag);
+	if (promotion_flag ==
+			NVGPU_L2_SECTOR_PROMOTE_FLAG_INVALID) {
+		return -EINVAL;
+	}
+
+	err = gk20a_busy(g);
+	if (err) {
+		nvgpu_err(g, "failed to power on gpu");
+		return err;
+	}
+	err = g->ops.ltc.set_l2_sector_promotion(g, tsg,
+			promotion_flag);
+	gk20a_idle(g);
+
+	return err;
+}
+
 long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 			     unsigned long arg)
 {
@@ -826,15 +888,36 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 
 	case NVGPU_TSG_IOCTL_SET_L2_MAX_WAYS_EVICT_LAST:
 		{
+		err = gk20a_busy(g);
+		if (err) {
+			nvgpu_err(g,
+			   "failed to power on gpu for ioctl cmd: 0x%x", cmd);
+			break;
+		}
 		err = nvgpu_gpu_ioctl_set_l2_max_ways_evict_last(g, tsg,
 			(struct nvgpu_tsg_l2_max_ways_evict_last_args *)buf);
+		gk20a_idle(g);
 		break;
 		}
 
 	case NVGPU_TSG_IOCTL_GET_L2_MAX_WAYS_EVICT_LAST:
 		{
+		err = gk20a_busy(g);
+		if (err) {
+			nvgpu_err(g,
+			   "failed to power on gpu for ioctl cmd: 0x%x", cmd);
+			break;
+		}
 		err = nvgpu_gpu_ioctl_get_l2_max_ways_evict_last(g, tsg,
 			(struct nvgpu_tsg_l2_max_ways_evict_last_args *)buf);
+		gk20a_idle(g);
+		break;
+		}
+
+	case NVGPU_TSG_IOCTL_SET_L2_SECTOR_PROMOTION:
+		{
+		err = nvgpu_gpu_ioctl_set_l2_sector_promotion(g, tsg,
+				(struct nvgpu_tsg_set_l2_sector_promotion_args *)buf);
 		break;
 		}
 

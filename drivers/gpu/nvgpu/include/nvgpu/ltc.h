@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,11 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
  */
 #define NVGPU_ECC_COUNTER_INIT_PER_LTS(stat) \
 	nvgpu_ecc_counter_init_per_lts(g, &g->ecc.ltc.stat, #stat)
+
+#define NVGPU_L2_SECTOR_PROMOTE_FLAG_NONE		(1U << 0U)
+#define NVGPU_L2_SECTOR_PROMOTE_FLAG_64B		(1U << 1U)
+#define NVGPU_L2_SECTOR_PROMOTE_FLAG_128B		(1U << 2U)
+#define NVGPU_L2_SECTOR_PROMOTE_FLAG_INVALID		(1U << 3U)
 
 /**
  * @brief Release all LTC ECC stats counters.

@@ -158,6 +158,8 @@ struct gops_ltc {
 	int (*get_l2_max_ways_evict_last)(struct gk20a *g, struct nvgpu_tsg *tsg,
 			u32 *num_ways);
 	u32 (*pri_is_lts_tstg_addr)(struct gk20a *g, u32 addr);
+	int (*set_l2_sector_promotion)(struct gk20a *g, struct nvgpu_tsg *tsg,
+			u32 policy);
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_gops_ltc.h"
 #endif

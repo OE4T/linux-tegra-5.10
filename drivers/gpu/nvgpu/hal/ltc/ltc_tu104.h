@@ -41,6 +41,8 @@ struct gk20a;
 void ltc_tu104_init_fs_state(struct gk20a *g);
 #ifdef CONFIG_NVGPU_DEBUGGER
 u32 tu104_ltc_pri_is_lts_tstg_addr(struct gk20a *g, u32 addr);
+int tu104_set_l2_sector_promotion(struct gk20a *g, struct nvgpu_tsg *tsg,
+		u32 policy);
 #endif
 
 #endif /* LTC_TU104_H */

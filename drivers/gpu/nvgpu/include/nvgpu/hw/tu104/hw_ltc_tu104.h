@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -231,4 +231,30 @@
 #define ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_plc_disabled_f()     (0x0U)
 #define ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_rmw_m()  (U32(0x1U) << 29U)
 #define ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_rmw_disabled_f()     (0x0U)
+#define ltc_ltcs_ltss_tstg_cfg2_r()                                (0x0017e298U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_l1_promote_f(v)  ((U32(v) & 0x3U) << 16U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_l1_promote_m()         (U32(0x3U) << 16U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_l1_promote_v(r)     (((r) >> 16U) & 0x3U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_l1_promote_none_v()         (0x00000000U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_l1_promote_64b_v()          (0x00000001U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_l1_promote_128b_v()         (0x00000002U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_t1_promote_f(v)  ((U32(v) & 0x3U) << 18U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_t1_promote_m()         (U32(0x3U) << 18U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_t1_promote_v(r)     (((r) >> 18U) & 0x3U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_t1_promote_none_v()         (0x00000000U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_t1_promote_64b_v()          (0x00000001U)
+#define ltc_ltcs_ltss_tstg_cfg2_vidmem_t1_promote_128b_v()         (0x00000002U)
+#define ltc_ltcs_ltss_tstg_cfg3_r()                                (0x0017e29cU)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_l1_promote_f(v)  ((U32(v) & 0x3U) << 16U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_l1_promote_m()         (U32(0x3U) << 16U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_l1_promote_v(r)     (((r) >> 16U) & 0x3U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_l1_promote_none_v()         (0x00000000U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_l1_promote_64b_v()          (0x00000001U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_l1_promote_128b_v()         (0x00000002U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_t1_promote_f(v)  ((U32(v) & 0x3U) << 18U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_t1_promote_m()         (U32(0x3U) << 18U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_t1_promote_v(r)     (((r) >> 18U) & 0x3U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_t1_promote_none_v()         (0x00000000U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_t1_promote_64b_v()          (0x00000001U)
+#define ltc_ltcs_ltss_tstg_cfg3_sysmem_t1_promote_128b_v()         (0x00000002U)
 #endif
