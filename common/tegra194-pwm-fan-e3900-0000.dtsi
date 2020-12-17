@@ -47,7 +47,11 @@
 			default = "cool";
 			cool {
 				state_cap = <7>;
+#if TEGRA_PWM_FAN_DT_VERSION == DT_VERSION_2
+				cooling-levels = <178 170 155 130 103 65 0 0 0 0>;
+#else
 				active_pwm = <77 85 100 125 152 190 255 255 255 255>;
+#endif
 			};
 		};
 	};
