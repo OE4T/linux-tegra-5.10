@@ -93,7 +93,9 @@ void tegra_cbberr_set_ops(struct tegra_cbberr_ops *tegra_cbb_err_ops);
 
 int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 		const struct tegra_cbb_noc_data *bdata,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 		struct serr_hook *callback,
+#endif
 		struct tegra_cbb_init_data cbb_init_data);
 
 #endif /* __TEGRA_CBBERR_H */

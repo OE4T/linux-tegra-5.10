@@ -176,9 +176,9 @@ config TEGRA_19X_RAS
 
 config TEGRA_CBB_NOC
 	tristate "Tegar19x CBB NOC Bridge Error handler"
-	depends on ARCH_TEGRA_19x_SOC
+	depends on ARCH_TEGRA_19x_SOC || ARCH_TEGRA_194_SOC
 	default y
-	select SERROR_HANDLER
+	select SERROR_HANDLER if ARCH_TEGRA_19x_SOC
 	help
 	  The Tegra Control Backbone(CBB)/Network-on-chip(NOC) error handler.
 	  This drivers handles SError from bridges due to failed transactions.

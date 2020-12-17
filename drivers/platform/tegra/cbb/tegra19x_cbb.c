@@ -18,7 +18,6 @@
  * TMO, SEC, UNS are the only codes which are supported by CBB.
  */
 
-#include <asm/traps.h>
 #include <linux/clk.h>
 #include <linux/debugfs.h>
 #include <linux/module.h>
@@ -32,9 +31,11 @@
 #include <linux/interrupt.h>
 #include <linux/ioport.h>
 #include <linux/version.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+#include <asm/traps.h>
 #include <soc/tegra/chip-id.h>
 #else
+#include <asm/cpufeature.h>
 #include <soc/tegra/fuse.h>
 #endif
 #include <linux/platform/tegra/tegra_cbb.h>
@@ -244,7 +245,9 @@ static void print_errlog3_4(struct seq_file *file, u32 errlog3, u32 errlog4,
 		struct tegra_lookup_noc_aperture *noc_aperture,
 		int max_noc_aperture)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	struct resource *res = NULL;
+#endif
 	u64 addr = 0;
 
 	addr = errlog4;
@@ -262,6 +265,7 @@ static void print_errlog3_4(struct seq_file *file, u32 errlog3, u32 errlog4,
 	addr += get_init_localaddress(noc_trans_info, noc_aperture,
 			max_noc_aperture);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	res = locate_resource(&iomem_resource, addr);
 	if (res == NULL)
 		print_cbb_err(file, "\t  Address\t\t: 0x%llx"
@@ -270,6 +274,9 @@ static void print_errlog3_4(struct seq_file *file, u32 errlog3, u32 errlog4,
 		print_cbb_err(file, "\t  Address\t\t: "
 				"0x%llx -- %s + 0x%llx\n", addr, res->name,
 				addr - res->start);
+#else
+	print_cbb_err(file, "\t  Address accessed\t: 0x%llx\n", addr);
+#endif
 }
 
 /*
@@ -434,6 +441,7 @@ static void print_errlog(struct seq_file *file,
 	print_cbb_err(file, "\t**************************************\n");
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 static int tegra194_cbb_serr_callback(struct pt_regs *regs, int reason,
 		unsigned int esr, void *priv)
 {
@@ -451,7 +459,7 @@ static int tegra194_cbb_serr_callback(struct pt_regs *regs, int reason,
 	}
 	return retval;
 }
-
+#endif
 
 #ifdef CONFIG_DEBUG_FS
 static DEFINE_MUTEX(cbb_err_mutex);
@@ -590,7 +598,9 @@ static int tegra194_cbb_remove(struct platform_device *pdev)
 	spin_lock_irqsave(&cbb_noc_lock, flags);
 	list_for_each_entry(errlog, &cbb_noc_list, node) {
 		if (errlog->start == res_base->start) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 			unregister_serr_hook(errlog->callback);
+#endif
 			list_del(&errlog->node);
 			break;
 		}
@@ -816,7 +826,9 @@ static int tegra194_cbb_get_axi2apb_data(struct platform_device *pdev,
 }
 
 static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 		struct serr_hook *callback,
+#endif
 		const struct tegra_cbb_noc_data *bdata,
 		struct tegra_cbb_init_data *cbb_init_data)
 {
@@ -870,12 +882,13 @@ static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 
 	platform_set_drvdata(pdev, errlog);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	if (callback) {
 		errlog->callback = callback;
 		callback->fn = tegra194_cbb_serr_callback;
 		callback->priv = errlog;
 	}
-
+#endif
 	spin_lock_irqsave(&cbb_noc_lock, flags);
 	list_add(&errlog->node, &cbb_noc_list);
 	spin_unlock_irqrestore(&cbb_noc_lock, flags);
@@ -886,7 +899,9 @@ static int tegra194_cbb_errlogger_init(struct platform_device *pdev,
 static int tegra194_cbb_probe(struct platform_device *pdev)
 {
 	const struct tegra_cbb_noc_data *bdata;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	struct serr_hook *callback;
+#endif
 	struct resource *res_base;
 	struct tegra_cbb_init_data cbb_init_data;
 	int err = 0;
@@ -925,6 +940,7 @@ static int tegra194_cbb_probe(struct platform_device *pdev)
 	memset(&cbb_init_data, 0, sizeof(cbb_init_data));
 	cbb_init_data.res_base = res_base;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	callback = devm_kzalloc(&pdev->dev, sizeof(*callback), GFP_KERNEL);
 	if (callback == NULL)
 		return -ENOMEM;
@@ -938,7 +954,17 @@ static int tegra194_cbb_probe(struct platform_device *pdev)
 	err = tegra_cbberr_register_hook_en(pdev, bdata, callback, cbb_init_data);
 	if(err)
 		return err;
+#else
+	err = tegra194_cbb_errlogger_init(pdev, bdata, &cbb_init_data);
+	if (err) {
+		dev_err(&pdev->dev, "cbberr init for soc failing\n");
+		return -EINVAL;
+	}
 
+	err = tegra_cbberr_register_hook_en(pdev, bdata, cbb_init_data);
+	if(err)
+		return err;
+#endif
 	if ((bdata->is_clk_rst) && (bdata->is_cluster_probed())
 			&& bdata->is_clk_enabled())
 		bdata->tegra_noc_dis_clk_rpm();

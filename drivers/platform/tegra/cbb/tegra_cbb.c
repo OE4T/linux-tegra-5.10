@@ -15,7 +15,6 @@
  * the driver prints error type and debug information about failed transaction.
  */
 
-#include <asm/traps.h>
 #include <linux/clk.h>
 #include <linux/debugfs.h>
 #include <linux/module.h>
@@ -29,9 +28,11 @@
 #include <linux/interrupt.h>
 #include <linux/ioport.h>
 #include <linux/version.h>
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+#include <asm/traps.h>
 #include <soc/tegra/chip-id.h>
 #else
+#include <asm/cpufeature.h>
 #include <soc/tegra/fuse.h>
 #endif
 #include <linux/platform/tegra/tegra_cbb.h>
@@ -209,7 +210,9 @@ int tegra_cbb_err_getirq(struct platform_device *pdev,
 
 int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 			const struct tegra_cbb_noc_data *bdata,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 			struct serr_hook *callback,
+#endif
 			struct tegra_cbb_init_data cbb_init_data)
 {
 	int ret = 0;
@@ -229,9 +232,11 @@ int tegra_cbberr_register_hook_en(struct platform_device *pdev,
 		}
 	}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	/* register SError handler for CBB errors due to CCPLEX master */
 	if (callback)
 		register_serr_hook(callback);
+#endif
 
 	/* register interrupt handler for CBB errors due to different masters.
 	 * If ERD bit is set then CBB NOC error will not generate SErrors for
