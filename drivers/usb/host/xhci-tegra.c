@@ -2919,10 +2919,12 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 	if (tegra->emc_boost_enabled)
 		tegra_xusb_boost_emc_deinit(tegra);
 
-	cancel_work_sync(&tegra->ivc_work);
-	if (tegra->soc->is_xhci_vf && (tegra->ivck != NULL)) {
-		tegra_hv_ivc_unreserve(tegra->ivck);
-		devm_free_irq(dev, tegra->ivck->irq, tegra);
+	if (tegra->soc->is_xhci_vf){
+		cancel_work_sync(&tegra->ivc_work);
+		if (tegra->ivck != NULL) {
+			tegra_hv_ivc_unreserve(tegra->ivck);
+			devm_free_irq(dev, tegra->ivck->irq, tegra);
+		}
 	}
 
 	tegra_xusb_deinit_usb_phy(tegra);
@@ -3496,7 +3498,9 @@ static int tegra_xusb_suspend(struct device *dev)
 	if (!tegra->soc->is_xhci_vf)
 		synchronize_irq(tegra->mbox_irq);
 
-	flush_work(&tegra->ivc_work);
+	if (tegra->soc->is_xhci_vf)
+		flush_work(&tegra->ivc_work);
+
 	mutex_lock(&tegra->lock);
 
 	if (pm_runtime_suspended(dev)) {
