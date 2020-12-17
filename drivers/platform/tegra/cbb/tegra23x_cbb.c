@@ -18,7 +18,6 @@
  * TMO, SEC, UNS are the only codes which are supported by CBB.
  */
 
-#include <asm/traps.h>
 #include <linux/clk.h>
 #include <linux/debugfs.h>
 #include <linux/module.h>
@@ -33,8 +32,10 @@
 #include <linux/ioport.h>
 #include <linux/version.h>
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+#include <asm/traps.h>
 #include <soc/tegra/chip-id.h>
 #else
+#include <asm/cpufeature.h>
 #include <soc/tegra/fuse.h>
 #endif
 #include <linux/platform/tegra/tegra_cbb.h>
@@ -631,7 +632,9 @@ static void tegra234_cbb_errmon_set_clk_en_ops(
 }
 
 static int tegra234_cbb_errmon_init(struct platform_device *pdev,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 		struct serr_hook *callback,
+#endif
 		const struct tegra_cbb_noc_data *bdata,
 		struct tegra_cbb_init_data *cbb_init_data)
 {
@@ -728,6 +731,7 @@ static int tegra234_cbb_probe(struct platform_device *pdev)
 	memset(&cbb_init_data, 0, sizeof(cbb_init_data));
 	cbb_init_data.res_base = res_base;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	err = tegra234_cbb_errmon_init(pdev, NULL, bdata, &cbb_init_data);
 	if (err) {
 		dev_err(&pdev->dev, "cbberr init for soc failing\n");
@@ -738,7 +742,17 @@ static int tegra234_cbb_probe(struct platform_device *pdev)
 							cbb_init_data);
 	if (err)
 		return err;
+#else
+	err = tegra234_cbb_errmon_init(pdev, bdata, &cbb_init_data);
+	if (err) {
+		dev_err(&pdev->dev, "cbberr init for soc failing\n");
+		return -EINVAL;
+	}
 
+	err = tegra_cbberr_register_hook_en(pdev, bdata, cbb_init_data);
+	if (err)
+		return err;
+#endif
 	if ((bdata->is_clk_rst) && (bdata->is_cluster_probed())
 			&& bdata->is_clk_enabled())
 		bdata->tegra_noc_dis_clk_rpm();
