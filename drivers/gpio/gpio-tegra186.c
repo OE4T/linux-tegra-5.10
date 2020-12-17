@@ -25,6 +25,22 @@
 
 #define TEGRA186_GPIO_INT_ROUTE_MAPPING(p, x) (0x14 + (p) * 0x20 + (x) * 4)
 
+#define GPIO_VM_REG				0x00
+#define GPIO_VM_RW				0x03
+#define GPIO_SCR_REG				0x04
+#define GPIO_SCR_DIFF				0x08
+#define GPIO_SCR_BASE_DIFF			0x40
+#define GPIO_SCR_SEC_WEN			BIT(28)
+#define GPIO_SCR_SEC_REN			BIT(27)
+#define GPIO_SCR_SEC_G1W			BIT(9)
+#define GPIO_SCR_SEC_G1R			BIT(1)
+#define GPIO_FULL_ACCESS			(GPIO_SCR_SEC_WEN | \
+						 GPIO_SCR_SEC_REN | \
+						 GPIO_SCR_SEC_G1R | \
+						 GPIO_SCR_SEC_G1W)
+#define GPIO_SCR_SEC_ENABLE			(GPIO_SCR_SEC_WEN | \
+						 GPIO_SCR_SEC_REN)
+
 /* control registers */
 #define TEGRA186_GPIO_ENABLE_CONFIG 0x00
 #define  TEGRA186_GPIO_ENABLE_CONFIG_ENABLE BIT(0)
@@ -180,7 +196,7 @@ struct tegra_gpio_soc {
 	unsigned int instance;
 	bool multi_ints;
 	bool is_hw_ts_sup;
-
+	bool do_vm_check;
 	const struct tegra186_pin_range *pin_ranges;
 	unsigned int num_pin_ranges;
 	const char *pinmux;
@@ -427,12 +443,52 @@ static void __iomem *tegra186_gpio_get_base(struct tegra_gpio *gpio,
 	return gpio->base + offset + pin * 0x20;
 }
 
+static void __iomem *tegra186_gpio_get_secure(struct tegra_gpio *gpio,
+					    unsigned int pin)
+{
+	const struct tegra_gpio_port *port;
+	unsigned int offset;
+
+	port = tegra186_gpio_get_port(gpio, &pin);
+	if (!port)
+		return NULL;
+	offset = port->bank * 0x1000 + port->port * GPIO_SCR_BASE_DIFF;
+
+	return gpio->secure + offset + pin * GPIO_SCR_DIFF;
+}
+
+static inline bool gpio_is_accessible(struct tegra_gpio *gpio, u32 pin)
+{
+	void __iomem *secure;
+	u32 val;
+
+	secure = tegra186_gpio_get_secure(gpio, pin);
+	if (gpio->soc->do_vm_check) {
+		val = __raw_readl(secure + GPIO_VM_REG);
+		if ((val & GPIO_VM_RW) != GPIO_VM_RW)
+			return false;
+	}
+
+	val = __raw_readl(secure + GPIO_SCR_REG);
+
+	if ((val & (GPIO_SCR_SEC_ENABLE)) == 0)
+		return true;
+
+	if ((val & (GPIO_FULL_ACCESS)) == GPIO_FULL_ACCESS)
+		return true;
+
+	return false;
+}
+
 static int tegra186_gpio_get_direction(struct gpio_chip *chip,
 				       unsigned int offset)
 {
 	struct tegra_gpio *gpio = gpiochip_get_data(chip);
 	void __iomem *base;
 	u32 value;
+
+	if (!gpio_is_accessible(gpio, offset))
+		return -EPERM;
 
 	base = tegra186_gpio_get_base(gpio, offset);
 	if (WARN_ON(base == NULL))
@@ -451,6 +507,9 @@ static int tegra186_gpio_direction_input(struct gpio_chip *chip,
 	struct tegra_gpio *gpio = gpiochip_get_data(chip);
 	void __iomem *base;
 	u32 value;
+
+	if (!gpio_is_accessible(gpio, offset))
+		return -EPERM;
 
 	base = tegra186_gpio_get_base(gpio, offset);
 	if (WARN_ON(base == NULL))
@@ -474,6 +533,9 @@ static int tegra186_gpio_direction_output(struct gpio_chip *chip,
 	struct tegra_gpio *gpio = gpiochip_get_data(chip);
 	void __iomem *base;
 	u32 value;
+
+	if (!gpio_is_accessible(gpio, offset))
+		return -EPERM;
 
 	/* configure output level first */
 	chip->set(chip, offset, level);
@@ -501,6 +563,9 @@ static int tegra_gpio_suspend_configure(struct gpio_chip *chip, unsigned offset,
 	struct tegra_gpio *gpio = gpiochip_get_data(chip);
 	struct tegra_gpio_saved_register *regs;
 	void __iomem *base;
+
+	if (!gpio_is_accessible(gpio, offset))
+		return -EPERM;
 
 	base = tegra186_gpio_get_base(gpio, offset);
 	if (WARN_ON(base == NULL))
@@ -585,6 +650,9 @@ static void tegra186_gpio_set(struct gpio_chip *chip, unsigned int offset,
 	struct tegra_gpio *gpio = gpiochip_get_data(chip);
 	void __iomem *base;
 	u32 value;
+
+	if (!gpio_is_accessible(gpio, offset))
+		return;
 
 	base = tegra186_gpio_get_base(gpio, offset);
 	if (WARN_ON(base == NULL))
@@ -1353,6 +1421,7 @@ static const struct tegra_gpio_soc tegra194_main_soc = {
 	.pin_ranges = tegra194_main_pin_ranges,
 	.pinmux = "nvidia,tegra194-pinmux",
 	.multi_ints = true,
+	.do_vm_check = true,
 };
 
 #define TEGRA194_AON_GPIO_PORT(_name, _bank, _port, _pins)	\
@@ -1380,6 +1449,7 @@ static const struct tegra_gpio_soc tegra194_aon_soc = {
 	.instance = 1,
 	.multi_ints = true,
 	.is_hw_ts_sup = true,
+	.do_vm_check = false,
 };
 
 #define TEGRA234_MAIN_GPIO_PORT(_name, _bank, _port, _pins)	\
@@ -1424,6 +1494,7 @@ static const struct tegra_gpio_soc tegra234_main_soc = {
 	.name = "tegra234-gpio",
 	.instance = 0,
 	.multi_ints = true,
+	.do_vm_check = true,
 };
 
 #define TEGRA234_AON_GPIO_PORT(_name, _bank, _port, _pins)	\
@@ -1450,6 +1521,7 @@ static const struct tegra_gpio_soc tegra234_aon_soc = {
 	.instance = 1,
 	.multi_ints = true,
 	.is_hw_ts_sup = true,
+	.do_vm_check = false,
 };
 
 static const struct of_device_id tegra186_gpio_of_match[] = {
