@@ -1193,6 +1193,8 @@ struct gops_gr {
 #endif
 	void (*disable_cau)(struct gk20a *g);
 	void (*disable_smpc)(struct gk20a *g);
+	const u32 *(*get_hwpm_cau_init_data)(u32 *count);
+	void (*init_cau)(struct gk20a *g);
 	/** @endcond */
 
 	/** This structure stores the GR ecc subunit hal pointers. */

@@ -43,6 +43,8 @@ int tu104_gr_update_smpc_global_mode(struct gk20a *g, bool enable);
 
 void tu104_gr_disable_cau(struct gk20a *g);
 void tu104_gr_disable_smpc(struct gk20a *g);
+const u32 *tu104_gr_get_hwpm_cau_init_data(u32 *count);
+void tu104_gr_init_cau(struct gk20a *g);
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GR_TU104_H */
