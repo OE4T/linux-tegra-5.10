@@ -668,15 +668,7 @@ void mmc_add_card_debugfs(struct mmc_card *card)
 
 	debugfs_create_x32("state", S_IRUSR, root, &card->state);
 
-	if (mmc_card_mmc(card) || mmc_card_sd(card))
-		if (!debugfs_create_file("status", S_IRUSR, root, card,
-					&mmc_dbg_card_status_fops))
-			goto err;
-
 	if (mmc_card_mmc(card)) {
-		if (!debugfs_create_file("ext_csd", S_IRUSR, root, card,
-					&mmc_dbg_ext_csd_fops))
-			goto err;
 		if (!debugfs_create_file("eol_status", S_IRUSR, root, card,
 					&mmc_dbg_ext_csd_eol_fops))
 			goto err;
