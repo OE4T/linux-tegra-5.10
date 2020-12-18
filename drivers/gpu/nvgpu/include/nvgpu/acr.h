@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -205,6 +205,8 @@ struct nvgpu_acr;
  * + Return 0 upon successful else error if any of above step fails.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM if memory allocation for struct #nvgpu_acr fails.
+ * @retval -EINVAL if GPU id is invalid.
  */
 int nvgpu_acr_init(struct gk20a *g);
 
@@ -329,6 +331,10 @@ int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
  *   + Return 0 upon ACR_OK status else error to exit the boot sequence.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -EINVAL if struct #nvgpu_acr is not allocated.
+ * @retval -ENOENT if GR/ACR related ucode read fails.
+ * @retval -ENOMEM if memory allocation fails for descriptor/blob.
+ * @retval -EAGAIN if HS ACR ucode bootstrap fails.
  */
 int nvgpu_acr_construct_execute(struct gk20a *g);
 
@@ -372,6 +378,8 @@ int nvgpu_acr_construct_execute(struct gk20a *g);
  *   + Return 0 upon ACR_OK status else error to exit the boot sequence.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOENT if ACR ucode read fails from file-system.
+ * @retval -EAGAIN if HS ACR ucode bootstrap fails.
  */
 int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr);
 
