@@ -2,7 +2,7 @@
 /*
  * mods_internal.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -578,6 +578,12 @@ int esc_mods_query_irq_3(struct mods_client      *client,
 			 struct MODS_QUERY_IRQ_3 *p);
 
 #ifdef CONFIG_ARCH_TEGRA
+
+/* bpmp uphy */
+int esc_mods_bpmp_set_pcie_state(struct mods_client *client,
+				  struct MODS_SET_PCIE_STATE *p);
+int esc_mods_bpmp_init_pcie_ep_pll(struct mods_client *client,
+				  struct MODS_INIT_PCIE_EP_PLL *p);
 
 /* clock */
 int esc_mods_get_clock_handle(struct mods_client           *client,

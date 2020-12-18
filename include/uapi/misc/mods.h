@@ -2,7 +2,7 @@
 /*
  * mods.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -416,6 +416,25 @@ struct MODS_FIND_PCI_DEVICE_2 {
 
 	/* OUT */
 	struct mods_pci_dev_2 pci_device;
+};
+
+/* Used by MODS_ESC_BPMP_SET_PCIE_STATE ioctl.
+ *
+ * Set PCIE state through BPMP Uphy driver
+ */
+struct MODS_SET_PCIE_STATE {
+	/* IN */
+	__u32 controller;
+	__u32 enable;
+};
+
+/* Used by MODS_ESC_BPMP_INIT_PCIE_EP_PLL ioctl.
+ *
+ * Initialize PCIE EP PLL through BPMP Uphy driver
+ */
+struct MODS_INIT_PCIE_EP_PLL {
+	/* IN */
+	__u32 ep_id;
 };
 
 /* Used by legacy MODS_ESC_FIND_PCI_DEVICE ioctl */
@@ -1958,5 +1977,7 @@ struct MODS_IOMMU_DMA_MAP_MEMORY {
 #define MODS_ESC_SYSCTL_WRITE_INT MODSIO(W, 133, MODS_SYSCTL_INT)
 #define MODS_ESC_PCI_RESET_FUNCTION MODSIO(W, 134, mods_pci_dev_2)
 #define MODS_ESC_MODS_GET_DRIVER_STATS MODSIO(R, 135, MODS_GET_DRIVER_STATS)
+#define MODS_ESC_BPMP_SET_PCIE_STATE MODSIO(W, 136, MODS_SET_PCIE_STATE)
+#define MODS_ESC_BPMP_INIT_PCIE_EP_PLL MODSIO(W, 137, MODS_INIT_PCIE_EP_PLL)
 
 #endif /* _UAPI_MODS_H_  */

@@ -2,7 +2,7 @@
 /*
  * mods_krnl.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -49,10 +49,6 @@ static int mods_krnl_close(struct inode *, struct file *);
 static unsigned int mods_krnl_poll(struct file *, poll_table *);
 static int mods_krnl_mmap(struct file *, struct vm_area_struct *);
 static long mods_krnl_ioctl(struct file *, unsigned int, unsigned long);
-
-#if defined(CONFIG_PCI) && defined(MODS_HAS_SRIOV)
-static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs);
-#endif
 
 /* character driver entry points */
 static const struct file_operations mods_fops = {
@@ -120,6 +116,10 @@ static int mods_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	return 0;
 }
 
+#if defined(CONFIG_PCI) && defined(MODS_HAS_SRIOV)
+static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs);
+#endif
+
 struct pci_driver mods_pci_driver = {
 	.name            = DEVICE_NAME,
 	.id_table        = mods_pci_table,
@@ -149,28 +149,15 @@ static u32 access_token = MODS_ACCESS_TOKEN_NONE;
 #if defined(CONFIG_PCI) && defined(MODS_HAS_SRIOV)
 static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs)
 {
-	int                  totalvfs;
-	struct en_dev_entry *dpriv;
+	int totalvfs;
+	int err = 0;
 
 	LOG_ENT();
-
-	dpriv = pci_get_drvdata(dev);
-	if (!dpriv) {
-		mods_error_printk(
-			"failed to enable sriov, dev %04x:%02x:%02x.%x was not enabled\n",
-			pci_domain_nr(dev->bus),
-			dev->bus->number,
-			PCI_SLOT(dev->devfn),
-			PCI_FUNC(dev->devfn));
-
-		LOG_EXT();
-		return -EBUSY;
-	}
 
 	totalvfs = pci_sriov_get_totalvfs(dev);
 
 	if (numvfs > 0) {
-		int err = pci_enable_sriov(dev, numvfs);
+		err = pci_enable_sriov(dev, numvfs);
 
 		if (unlikely(err)) {
 			mods_error_printk(
@@ -185,8 +172,6 @@ static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs)
 				err);
 			numvfs = err;
 		} else {
-			dpriv->num_vfs = numvfs;
-
 			mods_info_printk(
 				"enabled sriov on dev %04x:%02x:%02x.%x %s numvfs=%d (totalvfs=%d)\n",
 				pci_domain_nr(dev->bus),
@@ -200,8 +185,8 @@ static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs)
 
 	} else {
 		pci_disable_sriov(dev);
+
 		numvfs = 0;
-		dpriv->num_vfs = 0;
 
 		mods_info_printk(
 			"disabled sriov on dev %04x:%02x:%02x.%x %s (totalvfs=%d)\n",
@@ -211,6 +196,14 @@ static int mods_pci_sriov_configure(struct pci_dev *dev, int numvfs)
 			PCI_FUNC(dev->devfn),
 			dev->is_physfn ? "physfn" : "virtfn",
 			totalvfs);
+	}
+
+	/* If this function has been invoked via an ioctl, remember numvfs */
+	if (!err) {
+		struct en_dev_entry *dpriv = pci_get_drvdata(dev);
+
+		if (dpriv)
+			dpriv->num_vfs = numvfs;
 	}
 
 	LOG_EXT();
@@ -2356,6 +2349,17 @@ static long mods_krnl_ioctl(struct file  *fp,
 		break;
 #endif
 #if defined(CONFIG_ARCH_TEGRA)
+	case MODS_ESC_BPMP_SET_PCIE_STATE:
+		MODS_IOCTL(MODS_ESC_BPMP_SET_PCIE_STATE,
+			   esc_mods_bpmp_set_pcie_state,
+			   MODS_SET_PCIE_STATE);
+		break;
+
+	case MODS_ESC_BPMP_INIT_PCIE_EP_PLL:
+		MODS_IOCTL(MODS_ESC_BPMP_INIT_PCIE_EP_PLL,
+			   esc_mods_bpmp_init_pcie_ep_pll,
+			   MODS_INIT_PCIE_EP_PLL);
+		break;
 	case MODS_ESC_FLUSH_CPU_CACHE_RANGE:
 		MODS_IOCTL_NORETVAL(MODS_ESC_FLUSH_CPU_CACHE_RANGE,
 				    esc_mods_flush_cpu_cache_range,

@@ -2,7 +2,7 @@
 /*
  * mods_tegraprod.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -25,6 +25,8 @@
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/tegra_prod.h>
+#include <soc/tegra/bpmp_abi.h>
+#include <soc/tegra/tegra_bpmp.h>
 
 #define MAX_REG_INFO_ENTRY	400
 #define MAX_IO_MAP_ENTRY	200
@@ -636,3 +638,68 @@ int esc_mods_tegra_prod_set_prod_exact(
 	return ret;
 }
 
+static int bpmp_send_uphy_message_atomic(
+	struct mrq_uphy_request *req, int size,
+	struct mrq_uphy_response *reply,
+	int reply_size
+)
+{
+	unsigned long flags;
+	int err;
+
+	local_irq_save(flags);
+	err = tegra_bpmp_send_receive_atomic(MRQ_UPHY, req, size, reply,
+					     reply_size);
+	local_irq_restore(flags);
+
+	return err;
+}
+
+static int bpmp_send_uphy_message(
+	struct mrq_uphy_request *req, int size,
+	struct mrq_uphy_response *reply,
+	int reply_size
+)
+{
+	int err;
+
+	err = tegra_bpmp_send_receive(MRQ_UPHY, req, size, reply, reply_size);
+	if (err != -EAGAIN)
+		return err;
+
+	/*
+	 * in case the mail systems worker threads haven't been started yet,
+	 * use the atomic send/receive interface. This happens because the
+	 * clocks are initialized before the IPC mechanism.
+	 */
+	return bpmp_send_uphy_message_atomic(req, size, reply, reply_size);
+}
+
+int esc_mods_bpmp_set_pcie_state(
+	struct mods_client *client,
+	struct MODS_SET_PCIE_STATE *p
+)
+{
+	struct mrq_uphy_request req;
+	struct mrq_uphy_response resp;
+
+	req.cmd = CMD_UPHY_PCIE_CONTROLLER_STATE;
+	req.controller_state.pcie_controller = p->controller;
+	req.controller_state.enable = p->enable;
+
+	return bpmp_send_uphy_message(&req, sizeof(req), &resp, sizeof(resp));
+}
+
+int esc_mods_bpmp_init_pcie_ep_pll(
+	struct mods_client *client,
+	struct MODS_INIT_PCIE_EP_PLL *p
+)
+{
+	struct mrq_uphy_request req;
+	struct mrq_uphy_response resp;
+
+	req.cmd = CMD_UPHY_PCIE_EP_CONTROLLER_PLL_INIT;
+	req.ep_ctrlr_pll_init.ep_controller = p->ep_id;
+
+	return bpmp_send_uphy_message(&req, sizeof(req), &resp, sizeof(resp));
+}
