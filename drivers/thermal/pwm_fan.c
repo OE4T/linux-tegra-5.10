@@ -668,6 +668,33 @@ static ssize_t fan_profile_show(struct device *dev,
 	return ret;
 }
 
+static ssize_t fan_available_profiles_show(struct device *dev,
+				struct device_attribute *attr, char *buf)
+{
+	struct fan_dev_data *fan_data = dev_get_drvdata(dev);
+	int i;
+	ssize_t count = 0;
+
+	if (!fan_data)
+		return -EINVAL;
+	if (fan_data->num_profiles > 0) {
+		for (i = 0; i < fan_data->num_profiles; ++i) {
+			count += sprintf(&buf[count], "%s ",
+				fan_data->fan_profile_names[i]);
+		}
+
+		/* Truncate the trailing space */
+		if (count)
+			count--;
+
+		count += sprintf(&buf[count], "\n");
+	} else {
+		count = sprintf(buf, "N/A\n");
+	}
+
+	return count;
+}
+
 static ssize_t fan_profile_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
@@ -918,6 +945,9 @@ static DEVICE_ATTR(pwm_rpm_table, S_IRUGO,
 static DEVICE_ATTR(fan_profile, S_IWUSR | S_IRUGO,
 			fan_profile_show,
 			fan_profile_store);
+static DEVICE_ATTR(fan_available_profiles, S_IWUSR | S_IRUGO,
+			fan_available_profiles_show,
+			NULL);
 static DEVICE_ATTR(kickstart_params, S_IWUSR | S_IRUGO,
 			kickstart_params_show,
 			kickstart_params_store);
@@ -927,6 +957,7 @@ static DEVICE_ATTR(fan_kickstart, S_IWUSR | S_IRUGO,
 
 static struct attribute *pwm_fan_attrs[] = {
 	&dev_attr_fan_profile.attr,
+	&dev_attr_fan_available_profiles.attr,
 	&dev_attr_pwm_cap.attr,
 	&dev_attr_state_cap.attr,
 	&dev_attr_pwm_state_map.attr,
