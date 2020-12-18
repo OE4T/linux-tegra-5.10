@@ -2,7 +2,7 @@
 /*
  * drivers/i2c/busses/i2c-tegra-bpmp.c
  *
- * Copyright (c) 2016 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Shardar Shariff Md <smohammed@nvidia.com>
  */
@@ -79,6 +79,10 @@ static int tegra_bpmp_xlate_flags(u16 flags, u16 *out)
 		*out |= SERIALI2C_RECV_LEN;
 		flags &= ~I2C_M_RECV_LEN;
 	}
+
+	/* Ignore DMA safe buffer flag */
+	if (flags & I2C_M_DMA_SAFE)
+		flags &= ~I2C_M_DMA_SAFE;
 
 	return (flags != 0) ? -EINVAL : 0;
 }
