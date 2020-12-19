@@ -454,8 +454,12 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 				    APPL_INTR_STATUS_L1_8_0_BW_MGT_INT_STS,
 				    APPL_INTR_STATUS_L1_8_0);
 
+			/* Clear BW Management Status */
 			val_w = dw_pcie_readw_dbi(pci, pcie->pcie_cap_base +
 						  PCI_EXP_LNKSTA);
+			val_w |= PCI_EXP_LNKSTA_LBMS;
+			dw_pcie_writew_dbi(pci, pcie->pcie_cap_base +
+					   PCI_EXP_LNKSTA, val_w);
 			dev_dbg(pci->dev, "Link Speed : Gen-%u\n", val_w &
 				PCI_EXP_LNKSTA_CLS);
 		}
