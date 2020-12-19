@@ -939,6 +939,10 @@ static void tegra_pcie_prepare_host(struct pcie_port *pp)
 	val = dw_pcie_readl_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCAP);
 	val &= ~PCI_EXP_LNKCAP_MLW;
 	val |= (pcie->num_lanes << PCI_EXP_LNKSTA_NLW_SHIFT);
+	if (tegra_platform_is_fpga()) {
+		val &= ~PCI_EXP_LNKCAP_L1EL;
+		val |= (0x6 << 15); /* 32us to 64us */
+	}
 	dw_pcie_writel_dbi(pci, pcie->pcie_cap_base + PCI_EXP_LNKCAP, val);
 
 	if (!tegra_platform_is_fpga())
