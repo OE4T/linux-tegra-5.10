@@ -630,8 +630,8 @@ static int therm_est_get_subdev(struct device *dev,
 			return -EINVAL;
 
 		thz = thermal_zone_get_zone_by_name(thz_name);
-		if (!thz)
-			return -EINVAL;
+		if (IS_ERR(thz))
+			return PTR_ERR(thz);
 		subdevice->sub_thz[i].thz = thz;
 	}
 

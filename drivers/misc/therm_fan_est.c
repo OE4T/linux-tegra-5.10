@@ -582,7 +582,7 @@ static int fan_est_get_temp_func(const char *data, int *temp)
 
 	thz = thermal_zone_get_zone_by_name(data);
 
-	if (!thz || thz->ops->get_temp == NULL || thz->ops->get_temp(thz, temp))
+	if (IS_ERR(thz) || thz->ops->get_temp == NULL || thz->ops->get_temp(thz, temp))
 		*temp = 25000;
 
 	return 0;
