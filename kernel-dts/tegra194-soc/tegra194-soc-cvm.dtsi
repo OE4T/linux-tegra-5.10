@@ -303,9 +303,11 @@
 		status = "okay";
 	};
 
+#if TEGRA_CBB_DT_VERSION < DT_VERSION_2
 	cv-noc@14040000 {
 		status = "okay";
 	};
+#endif
 
 	axi2apb@2390000 {
 		status = "okay";
