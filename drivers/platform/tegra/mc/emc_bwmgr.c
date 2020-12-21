@@ -866,6 +866,10 @@ int __init bwmgr_init(void)
 		return -ENODEV;
 	}
 
+
+	if (tegra_get_chip_id() == TEGRA210)
+		goto bpmp_skip;
+
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	tegra_bpmp_send_receive(MRQ_EMC_DVFS_LATENCY, NULL, 0,
 			&bwmgr_emc_dvfs, sizeof(bwmgr_emc_dvfs));
@@ -893,6 +897,7 @@ int __init bwmgr_init(void)
 	tegra_bpmp_put(bpmp_dev);
 #endif
 
+bpmp_skip:
 	bwmgr.emc_clk = of_clk_get(dn, 0);
 	if (IS_ERR_OR_NULL(bwmgr.emc_clk)) {
 		pr_err("bwmgr: couldn't find emc clock.\n");
