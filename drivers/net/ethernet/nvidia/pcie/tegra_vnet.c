@@ -715,7 +715,6 @@ static int tvnet_host_poll(struct napi_struct *napi, int budget)
 	if (work_done < budget) {
 		napi_complete(napi);
 		enable_irq(pci_irq_vector(tvnet->pdev, 1));
-		mmiowb();
 	}
 
 	return work_done;
