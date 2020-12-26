@@ -189,6 +189,8 @@
 #define CFG_TIMER_CTRL_MAX_FUNC_NUM_OFF	0x718
 #define CFG_TIMER_CTRL_ACK_NAK_SHIFT	(19)
 
+#define RAS_DES_CAP_EVENT_COUNTER_CONTROL_REG	0x8
+#define RAS_DES_CAP_EVENT_COUNTER_DATA_REG	0xc
 #define EVENT_COUNTER_ALL_CLEAR		0x3
 #define EVENT_COUNTER_ENABLE_ALL	0x7
 #define EVENT_COUNTER_ENABLE_SHIFT	2
@@ -278,24 +280,6 @@ static const unsigned int pcie_gen_freq[] = {
 	GEN4_CORE_CLK_FREQ
 };
 
-static const u32 event_cntr_ctrl_offset[] = {
-	0x1d8,
-	0x1a8,
-	0x1a8,
-	0x1a8,
-	0x1c4,
-	0x1d8
-};
-
-static const u32 event_cntr_data_offset[] = {
-	0x1dc,
-	0x1ac,
-	0x1ac,
-	0x1ac,
-	0x1c8,
-	0x1dc
-};
-
 struct tegra_pcie_dw {
 	struct device *dev;
 	struct resource *appl_res;
@@ -323,6 +307,7 @@ struct tegra_pcie_dw {
 	u32 cid;
 	u32 cfg_link_cap_l1sub;
 	u32 pcie_cap_base;
+	u32 ras_des_cap;
 	u32 aspm_cmrt;
 	u32 aspm_pwr_on_t;
 	u32 aspm_l0s_enter_lat;
@@ -672,13 +657,16 @@ static inline u32 event_counter_prog(struct tegra_pcie_dw *pcie, u32 event)
 {
 	u32 val;
 
-	val = dw_pcie_readl_dbi(&pcie->pci, event_cntr_ctrl_offset[pcie->cid]);
+	val = dw_pcie_readl_dbi(&pcie->pci, pcie->ras_des_cap +
+				RAS_DES_CAP_EVENT_COUNTER_CONTROL_REG);
 	val &= ~(EVENT_COUNTER_EVENT_SEL_MASK << EVENT_COUNTER_EVENT_SEL_SHIFT);
 	val |= EVENT_COUNTER_GROUP_5 << EVENT_COUNTER_GROUP_SEL_SHIFT;
 	val |= event << EVENT_COUNTER_EVENT_SEL_SHIFT;
 	val |= EVENT_COUNTER_ENABLE_ALL << EVENT_COUNTER_ENABLE_SHIFT;
-	dw_pcie_writel_dbi(&pcie->pci, event_cntr_ctrl_offset[pcie->cid], val);
-	val = dw_pcie_readl_dbi(&pcie->pci, event_cntr_data_offset[pcie->cid]);
+	dw_pcie_writel_dbi(&pcie->pci, pcie->ras_des_cap +
+			   RAS_DES_CAP_EVENT_COUNTER_CONTROL_REG, val);
+	val = dw_pcie_readl_dbi(&pcie->pci, pcie->ras_des_cap +
+				RAS_DES_CAP_EVENT_COUNTER_DATA_REG);
 
 	return val;
 }
@@ -705,13 +693,15 @@ static int aspm_state_cnt(struct seq_file *s, void *data)
 		   event_counter_prog(pcie, EVENT_COUNTER_EVENT_L1_2));
 
 	/* Clear all counters */
-	dw_pcie_writel_dbi(&pcie->pci, event_cntr_ctrl_offset[pcie->cid],
+	dw_pcie_writel_dbi(&pcie->pci, pcie->ras_des_cap +
+			   RAS_DES_CAP_EVENT_COUNTER_CONTROL_REG,
 			   EVENT_COUNTER_ALL_CLEAR);
 
 	/* Re-enable counting */
 	val = EVENT_COUNTER_ENABLE_ALL << EVENT_COUNTER_ENABLE_SHIFT;
 	val |= EVENT_COUNTER_GROUP_5 << EVENT_COUNTER_GROUP_SEL_SHIFT;
-	dw_pcie_writel_dbi(&pcie->pci, event_cntr_ctrl_offset[pcie->cid], val);
+	dw_pcie_writel_dbi(&pcie->pci, pcie->ras_des_cap +
+			   RAS_DES_CAP_EVENT_COUNTER_CONTROL_REG, val);
 
 	return 0;
 }
@@ -727,7 +717,8 @@ static void init_host_aspm(struct tegra_pcie_dw *pcie)
 	/* Enable ASPM counters */
 	val = EVENT_COUNTER_ENABLE_ALL << EVENT_COUNTER_ENABLE_SHIFT;
 	val |= EVENT_COUNTER_GROUP_5 << EVENT_COUNTER_GROUP_SEL_SHIFT;
-	dw_pcie_writel_dbi(pci, event_cntr_ctrl_offset[pcie->cid], val);
+	dw_pcie_writel_dbi(pci, pcie->ras_des_cap +
+			   RAS_DES_CAP_EVENT_COUNTER_CONTROL_REG, val);
 
 	/* Program T_cmrt and T_pwr_on values */
 	val = dw_pcie_readl_dbi(pci, pcie->cfg_link_cap_l1sub);
@@ -1483,6 +1474,8 @@ static int tegra_pcie_config_controller(struct tegra_pcie_dw *pcie,
 
 	pcie->pcie_cap_base = dw_pcie_find_capability(&pcie->pci,
 						      PCI_CAP_ID_EXP);
+	pcie->ras_des_cap = dw_pcie_find_ext_capability(&pcie->pci,
+							PCI_EXT_CAP_ID_VNDR);
 
 	return ret;
 
