@@ -24,12 +24,20 @@
 	pcie_ep@14100000 {
 		compatible = "nvidia,tegra234-pcie-ep";
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX1A>;
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
+		       0x00 0x30040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
+		       0x20 0x80000000 0x0 0x40000000>; /* Address Space (1G)         */
+		reg-names = "appl", "atu_dma", "dbi", "addr_space";
+#else
 		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x30000000 0x0 0x02000000   /* window1 (32M)              */
 		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x30040000 0x0 0x00040000 /* iATU_DMA reg space (256K)  */
 		       0x20 0x80000000 0x0 0x40000000>; /* window2 (1G)              */
 		reg-names = "appl", "window1", "config", "atu_dma", "window2";
+#endif
 
 
 		#address-cells = <3>;
@@ -62,6 +70,7 @@
 
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x1AD4>;
+		nvidia,controller-id = <&bpmp 0x1>;
 		num-lanes = <1>;
 		nvidia,aux-clk-freq = <0x13>;
 		nvidia,disable-aspm-states = <0xf>;
@@ -72,6 +81,8 @@
 
 		num-ib-windows = <2>;
 		num-ob-windows = <8>;
+
+		nvidia,host1x = <&host1x>;
 
 		nvidia,cfg-link-cap-l1sub = <0x154>;
 		nvidia,event-cntr-ctrl = <0x168>;
@@ -91,6 +102,13 @@
 
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_1 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
+
+#if LINUX_VERSION >= 500
+		nvidia,bpmp = <&bpmp 0x1>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
+#endif
 	};
 
 	pcie@14100000 {
@@ -108,6 +126,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		num-viewport = <8>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>,
 			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1M>;
@@ -135,6 +154,7 @@
 				<0 0 0 2 &intc 0 517 0x04>,	/* INTB */
 				<0 0 0 3 &intc 0 518 0x04>,	/* INTC */
 				<0 0 0 4 &intc 0 519 0x04>;	/* INTD */
+
 
 		linux,pci-domain = <1>;
 

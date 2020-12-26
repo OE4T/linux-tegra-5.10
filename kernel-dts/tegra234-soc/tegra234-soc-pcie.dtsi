@@ -361,10 +361,20 @@
 	pcie_ep@141a0000 {
 		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX8A>;
-		reg = <0x00 0x141a0000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x3a000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x3a040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x141a0000 0x0 0x00020000     /* appl registers (128K)      */
+			0x00 0x3a040000 0x0 0x00040000    /* iATU_DMA reg space (256K)  */
+			0x00 0x3a000000 0x0 0x00040000    /* configuration space (256K) */
+			0x2a 0x80000000 0x4 0x80000000>; /* Address Space (16G)        */
+		reg-names = "appl", "atu_dma", "dbi", "addr_space";
+#else
+		reg = <0x00 0x141a0000 0x0 0x00020000    /* appl registers (128K)      */
+			0x00 0x3a000000 0x0 0x02000000   /* window1 (32M)              */
+			0x00 0x3a000000 0x0 0x00040000   /* configuration space (256K) */
+			0x00 0x3a040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+			0x2a 0x80000000 0x4 0x80000000>; /* window2 (16G)              */
+		reg-names = "appl", "window1", "config", "atu_dma", "window2";
+#endif
 
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -372,7 +382,6 @@
 		status = "disabled";
 
 		num-lanes = <8>;
-		nvidia,controller-id = <&bpmp 0x5>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>;
 #if LINUX_VERSION >= 500
@@ -400,6 +409,16 @@
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229B>;
+		nvidia,controller-id = <&bpmp 0x5>;
+		nvidia,aux-clk-freq = <0x13>;
+		nvidia,disable-aspm-states = <0xf>;
+		nvidia,aspm-cmrt = <0x3C>;
+		nvidia,aspm-pwr-on-t = <0x14>;
+		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,aspm-l1-entrance-latency = <0x5>;
+
+		num-ib-windows = <2>;
+		num-ob-windows = <8>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_PCIE5>;
@@ -421,6 +440,13 @@
 
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_5 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
+
+#if LINUX_VERSION >= 500
+		nvidia,bpmp = <&bpmp 0x5>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
+#endif
 	};
 
 
@@ -428,10 +454,20 @@
 	pcie_ep@141c0000{
 		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4A>;
-		reg = <0x00 0x141c0000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x3c000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x3c040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x141c0000 0x0 0x00020000     /* appl registers (128K)      */
+			0x00 0x3c040000 0x0 0x00040000    /* iATU_DMA reg space (256K)  */
+			0x00 0x3c000000 0x0 0x00040000    /* configuration space (256K) */
+			0x21 0x40000000 0x0 0x40000000>;  /* Address Space (1G)         */
+		reg-names = "appl", "atu_dma", "dbi", "addr_space";
+#else
+		reg = <0x00 0x141c0000 0x0 0x00020000    /* appl registers (128K)      */
+			0x00 0x3c000000 0x0 0x02000000   /* window1 (32M)              */
+			0x00 0x3c000000 0x0 0x00040000   /* configuration space (256K) */
+			0x00 0x3c040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+			0x21 0x40000000 0x0 0x40000000>; /* window2 (1G)               */
+		reg-names = "appl", "window1", "config", "atu_dma", "window2";
+#endif
 
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -439,7 +475,6 @@
 		status = "disabled";
 
 		num-lanes = <4>;
-		nvidia,controller-id = <&bpmp 0x6>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>;
 #if LINUX_VERSION >= 500
@@ -467,6 +502,16 @@
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229D>;
+		nvidia,controller-id = <&bpmp 0x6>;
+		nvidia,aux-clk-freq = <0x13>;
+		nvidia,disable-aspm-states = <0xf>;
+		nvidia,aspm-cmrt = <0x3C>;
+		nvidia,aspm-pwr-on-t = <0x14>;
+		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,aspm-l1-entrance-latency = <0x5>;
+
+		num-ib-windows = <2>;
+		num-ob-windows = <8>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_PCIE6>;
@@ -488,16 +533,33 @@
 
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_6 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
+
+#if LINUX_VERSION >= 500
+		nvidia,bpmp = <&bpmp 0x6>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
+#endif
 	};
 
 	/* C7 X8 */
 	pcie_ep@141e0000 {
 		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX8B>;
-		reg = <0x00 0x141e0000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x28000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x28040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x141e0000 0x0 0x00020000     /* appl registers (128K)      */
+			0x00 0x28040000 0x0 0x00040000    /* iATU_DMA reg space (256K)  */
+			0x00 0x28000000 0x0 0x00040000    /* configuration space (256K) */
+			0x21 0x80000000 0x0 0x40000000>;  /* Address Space (1G)         */
+		reg-names = "appl", "atu_dma", "dbi", "addr_space";
+#else
+		reg = <0x00 0x141e0000 0x0 0x00020000    /* appl registers (128K)      */
+			0x00 0x28000000 0x0 0x02000000   /* window1 (32M)              */
+			0x00 0x28000000 0x0 0x00040000   /* configuration space (256K) */
+			0x00 0x28040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+			0x21 0x80000000 0x0 0x40000000>; /* window2 (1G)               */
+		reg-names = "appl", "window1", "config", "atu_dma", "window2";
+#endif
 
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -505,7 +567,6 @@
 		status = "disabled";
 
 		num-lanes = <8>;
-		nvidia,controller-id = <&bpmp 0x7>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>;
 #if LINUX_VERSION >= 500
@@ -533,6 +594,17 @@
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229B>;
+		nvidia,controller-id = <&bpmp 0x7>;
+		nvidia,aux-clk-freq = <0x13>;
+		nvidia,disable-aspm-states = <0xf>;
+		nvidia,aspm-cmrt = <0x3C>;
+		nvidia,aspm-pwr-on-t = <0x14>;
+		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,aspm-l1-entrance-latency = <0x5>;
+
+		num-ib-windows = <2>;
+		num-ob-windows = <8>;
+
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_PCIE7>;
@@ -554,16 +626,33 @@
 
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_7 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
+
+#if LINUX_VERSION >= 500
+		nvidia,bpmp = <&bpmp 0x7>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
+#endif
 	};
 
 	/* C10 X4 */
 	pcie_ep@140e0000 {
 		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4F>;
-		reg = <0x00 0x140e0000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x2e000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x2e040000 0x0 0x00040000>; /* iATU_DMA reg space (256K)  */
-		reg-names = "appl", "config", "atu_dma";
+#if LINUX_VERSION >= 500
+		reg = <0x00 0x140e0000 0x0 0x00020000     /* appl registers (128K)      */
+			0x00 0x2e040000 0x0 0x00040000    /* iATU_DMA reg space (256K)  */
+			0x00 0x2e000000 0x0 0x00040000    /* configuration space (256K) */
+			0x22 0x40000000 0x0 0x40000000>;  /* Address Space (1G)         */
+		reg-names = "appl", "atu_dma", "dbi", "addr_space";
+#else
+		reg = <0x00 0x140e0000 0x0 0x00020000    /* appl registers (128K)      */
+			0x00 0x2e000000 0x0 0x02000000   /* window1 (32M)              */
+			0x00 0x2e000000 0x0 0x00040000   /* configuration space (256K) */
+			0x00 0x2e040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
+			0x22 0x40000000 0x0 0x40000000>; /* window2 (1G)               */
+		reg-names = "appl", "window1", "config", "atu_dma", "window2";
+#endif
 
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -571,7 +660,6 @@
 		status = "disabled";
 
 		num-lanes = <4>;
-		nvidia,controller-id = <&bpmp 0xa>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>;
 #if LINUX_VERSION >= 500
@@ -599,6 +687,17 @@
 		nvidia,max-speed = <4>;
 		nvidia,bar0-size = <0x100000>;	/* 1 MB */
 		nvidia,device-id = /bits/ 16 <0x229D>;
+		nvidia,controller-id = <&bpmp 0x10>;
+		nvidia,aux-clk-freq = <0x13>;
+		nvidia,disable-aspm-states = <0xf>;
+		nvidia,aspm-cmrt = <0x3C>;
+		nvidia,aspm-pwr-on-t = <0x14>;
+		nvidia,aspm-l0s-entrance-latency = <0x3>;
+		nvidia,aspm-l1-entrance-latency = <0x5>;
+
+		num-ib-windows = <2>;
+		num-ob-windows = <8>;
+
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_PCIE10>;
@@ -620,6 +719,13 @@
 
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_10 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
+
+#if LINUX_VERSION >= 500
+		nvidia,bpmp = <&bpmp 0x10>;
+		nvidia,aspm-cmrt-us = <60>;
+		nvidia,aspm-pwr-on-t-us = <20>;
+		nvidia,aspm-l0s-entrance-latency-us = <3>;
+#endif
 	};
 
 	/* C0 X4 */
@@ -638,6 +744,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		num-viewport = <8>;
 		linux,pci-domain = <0>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0>,
@@ -735,6 +842,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		num-viewport = <8>;
 		linux,pci-domain = <1>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>,
@@ -834,6 +942,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		num-viewport = <8>;
 		linux,pci-domain = <2>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_2>,
@@ -931,6 +1040,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <1>;
+		num-viewport = <8>;
 		linux,pci-domain = <3>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_3>,
@@ -1028,6 +1138,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		num-viewport = <8>;
 		linux,pci-domain = <4>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4>,
@@ -1124,6 +1235,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <8>;
+		num-viewport = <8>;
 		linux,pci-domain = <5>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>,
@@ -1221,6 +1333,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		num-viewport = <8>;
 		linux,pci-domain = <6>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>,
@@ -1318,6 +1431,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <8>;
+		num-viewport = <8>;
 		linux,pci-domain = <7>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>,
@@ -1415,6 +1529,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		num-viewport = <8>;
 		linux,pci-domain = <8>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_8>,
@@ -1512,6 +1627,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		num-viewport = <8>;
 		linux,pci-domain = <9>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_9>,
@@ -1609,6 +1725,7 @@
 		#size-cells = <2>;
 		device_type = "pci";
 		num-lanes = <4>;
+		num-viewport = <8>;
 		linux,pci-domain = <10>;
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>,
