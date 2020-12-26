@@ -354,6 +354,7 @@ struct tegra_pcie_dw {
 };
 
 struct tegra_pcie_of_data {
+	unsigned int version;
 	enum dw_pcie_device_mode mode;
 	/* Bug 200378817 */
 	bool msix_doorbell_access_fixup;
@@ -2636,7 +2637,7 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	pci->ops = &tegra_dw_pcie_ops;
 	pci->n_fts[0] = N_FTS_VAL;
 	pci->n_fts[1] = FTS_VAL;
-	pci->version = 0x490A;
+	pci->version = data->version;
 
 	pp = &pci->pp;
 	pcie->dev = &pdev->dev;
@@ -3034,6 +3035,7 @@ static void tegra_pcie_dw_shutdown(struct platform_device *pdev)
 }
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
+	.version = 0x490A,
 	.mode = DW_PCIE_RC_TYPE,
 	.msix_doorbell_access_fixup = true,
 	.sbr_reset_fixup = true,
@@ -3041,6 +3043,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194 = {
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
+	.version = 0x490A,
 	.mode = DW_PCIE_EP_TYPE,
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
@@ -3048,6 +3051,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t194_ep = {
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
+	.version = 0x562A,
 	.mode = DW_PCIE_RC_TYPE,
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
@@ -3055,6 +3059,7 @@ static const struct tegra_pcie_of_data tegra_pcie_of_data_t234 = {
 };
 
 static const struct tegra_pcie_of_data tegra_pcie_of_data_t234_ep = {
+	.version = 0x562A,
 	.mode = DW_PCIE_EP_TYPE,
 	.msix_doorbell_access_fixup = false,
 	.sbr_reset_fixup = false,
