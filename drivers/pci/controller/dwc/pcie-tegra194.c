@@ -1176,6 +1176,12 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 	if (pcie->mode == DW_PCIE_RC_TYPE)
 		return 0;
 
+	if (tegra_platform_is_fpga()) {
+		pcie->pex_rst_gpiod = NULL;
+		pcie->pex_refclk_sel_gpiod = NULL;
+		return 0;
+	}
+
 	/* Endpoint mode specific DT entries */
 	pcie->pex_rst_gpiod = devm_gpiod_get(pcie->dev, "reset", GPIOD_IN);
 	if (IS_ERR(pcie->pex_rst_gpiod)) {
@@ -1782,9 +1788,12 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw *pcie)
 
 	pm_runtime_put_sync(pcie->dev);
 
-	ret = tegra_pcie_bpmp_set_pll_state(pcie, false);
-	if (ret)
-		dev_err(pcie->dev, "Failed to turn off UPHY: %d\n", ret);
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_bpmp_set_pll_state(pcie, false);
+		if (ret)
+			dev_err(pcie->dev, "Failed to turn off UPHY: %d\n",
+				ret);
+	}
 
 	pcie->ep_state = EP_STATE_DISABLED;
 	dev_dbg(pcie->dev, "Uninitialization of endpoint is completed\n");
@@ -1808,10 +1817,13 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw *pcie)
 		return;
 	}
 
-	ret = tegra_pcie_bpmp_set_pll_state(pcie, true);
-	if (ret) {
-		dev_err(dev, "Failed to init UPHY for PCIe EP: %d\n", ret);
-		goto fail_pll_init;
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_bpmp_set_pll_state(pcie, true);
+		if (ret) {
+			dev_err(dev, "Failed to init UPHY for PCIe EP: %d\n",
+				ret);
+			goto fail_pll_init;
+		}
 	}
 
 	ret = clk_prepare_enable(pcie->core_clk);
@@ -2008,7 +2020,8 @@ fail_phy:
 fail_core_apb_rst:
 	clk_disable_unprepare(pcie->core_clk);
 fail_core_clk_enable:
-	tegra_pcie_bpmp_set_pll_state(pcie, false);
+	if (tegra_platform_is_silicon())
+		tegra_pcie_bpmp_set_pll_state(pcie, false);
 fail_pll_init:
 	pm_runtime_put_sync(dev);
 }
@@ -2123,40 +2136,47 @@ static int tegra_pcie_config_ep(struct tegra_pcie_dw *pcie,
 	ep->addr_size = resource_size(res);
 	ep->page_size = SZ_64K;
 
-	ret = gpiod_set_debounce(pcie->pex_rst_gpiod, PERST_DEBOUNCE_TIME);
-	if (ret < 0) {
-		dev_err(dev, "Failed to set PERST GPIO debounce time: %d\n",
-			ret);
-		return ret;
-	}
+	if (tegra_platform_is_silicon()) {
+		ret = gpiod_set_debounce(pcie->pex_rst_gpiod,
+					 PERST_DEBOUNCE_TIME);
+		if (ret < 0) {
+			dev_err(dev, "Failed to set PERST GPIO debounce time: %d\n",
+				ret);
+			return ret;
+		}
 
-	ret = gpiod_to_irq(pcie->pex_rst_gpiod);
-	if (ret < 0) {
-		dev_err(dev, "Failed to get IRQ for PERST GPIO: %d\n", ret);
-		return ret;
-	}
-	pcie->pex_rst_irq = (unsigned int)ret;
+		ret = gpiod_to_irq(pcie->pex_rst_gpiod);
+		if (ret < 0) {
+			dev_err(dev, "Failed to get IRQ for PERST GPIO: %d\n",
+				ret);
+			return ret;
+		}
+		pcie->pex_rst_irq = (unsigned int)ret;
 
-	name = devm_kasprintf(dev, GFP_KERNEL, "tegra_pcie_%u_pex_rst_irq",
-			      pcie->cid);
-	if (!name) {
-		dev_err(dev, "Failed to create PERST IRQ string\n");
-		return -ENOMEM;
-	}
+		name = devm_kasprintf(dev, GFP_KERNEL,
+				      "tegra_pcie_%u_pex_rst_irq",
+				      pcie->cid);
+		if (!name) {
+			dev_err(dev, "Failed to create PERST IRQ string\n");
+			return -ENOMEM;
+		}
 
-	irq_set_status_flags(pcie->pex_rst_irq, IRQ_NOAUTOEN);
+		irq_set_status_flags(pcie->pex_rst_irq, IRQ_NOAUTOEN);
+
+		ret = devm_request_threaded_irq(dev, pcie->pex_rst_irq, NULL,
+						tegra_pcie_ep_pex_rst_irq,
+						IRQF_TRIGGER_RISING |
+						IRQF_TRIGGER_FALLING |
+						IRQF_ONESHOT,
+						name, (void *)pcie);
+		if (ret < 0) {
+			dev_err(dev, "Failed to request IRQ for PERST: %d\n",
+				ret);
+			return ret;
+		}
+	}
 
 	pcie->ep_state = EP_STATE_DISABLED;
-
-	ret = devm_request_threaded_irq(dev, pcie->pex_rst_irq, NULL,
-					tegra_pcie_ep_pex_rst_irq,
-					IRQF_TRIGGER_RISING |
-					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-					name, (void *)pcie);
-	if (ret < 0) {
-		dev_err(dev, "Failed to request IRQ for PERST: %d\n", ret);
-		return ret;
-	}
 
 	name = devm_kasprintf(dev, GFP_KERNEL, "tegra_pcie_%u_ep_work",
 			      pcie->cid);
