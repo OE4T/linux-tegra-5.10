@@ -322,8 +322,6 @@ static struct iommu_domain *tegra_smmu_domain_alloc(unsigned type)
 
 	spin_lock_init(&as->lock);
 
-	spin_lock_init(&as->lock);
-
 	/* setup aperture */
 	as->domain.geometry.aperture_start = 0;
 	as->domain.geometry.aperture_end = 0xffffffff;
