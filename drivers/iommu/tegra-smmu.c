@@ -656,8 +656,23 @@ static void tegra_smmu_pte_get_use(struct tegra_smmu_as *as, unsigned long iova)
 static void tegra_smmu_pte_put_use(struct tegra_smmu_as *as, unsigned long iova)
 {
 	unsigned int pde = iova_pd_index(iova);
+	struct page *page = as->pts[pde];
 
-	as->count[pde]--;
+	/*
+	 * When no entries in this page table are used anymore, return the
+	 * memory page to the system.
+	 */
+	if (--as->count[pde] == 0) {
+		struct tegra_smmu *smmu = as->smmu;
+		u32 *pd = page_address(as->pd);
+		dma_addr_t pte_dma = smmu_pde_to_dma(smmu, pd[pde]);
+
+		tegra_smmu_set_pde(as, iova, 0);
+
+		dma_unmap_page(smmu->dev, pte_dma, SMMU_SIZE_PT, DMA_TO_DEVICE);
+		__free_page(page);
+		as->pts[pde] = NULL;
+	}
 }
 
 static struct page *as_get_pde_page(struct tegra_smmu_as *as,
@@ -750,8 +765,6 @@ __tegra_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 		return 0;
 
 	*pte = 0;
-
-	tegra_smmu_pte_put_use(as, iova);
 
 	iommu_iotlb_gather_add_page(domain, gather, iova, size);
 
@@ -912,10 +925,21 @@ static int tegra_smmu_of_xlate(struct device *dev,
 	return iommu_fwspec_add_ids(dev, &id, 1);
 }
 
+/*
+ * TODO move VA_LSB to memory files as it differs on older SoCs
+ *
+ * Note: Tegra210 (Tegra124 too) TRM seems to contradict itself saying that
+ * the TLB group flush matches down to VA[16] in 18.6.3.3 "Flushes and Page
+ * Table Updates" while saying that it matches dow to VA[15] in 18.8.1.10
+ * the register description of MC_SMMU_TLB_FLUSH_0. Testings show VA[15] is
+ * very likely correct, which is also theoretically safer.
+ */
+#define  SMMU_TLB_FLUSH_VA_LSB		15
+
 static void tegra_smmu_iotlb_sync(struct iommu_domain *domain,
 				  struct iommu_iotlb_gather *gather)
 {
-	unsigned long iova = gather->start, size = gather->end - gather->start;
+	unsigned long start = gather->start, size = gather->end - gather->start;
 	struct tegra_smmu_as *as = to_smmu_as(domain);
 	struct tegra_smmu *smmu = as->smmu;
 	unsigned int total = size >> SMMU_PTE_SHIFT;
@@ -924,12 +948,18 @@ static void tegra_smmu_iotlb_sync(struct iommu_domain *domain,
 
 	spin_lock_irqsave(&as->lock, flags);
 
-	for (;total; total -= len, iova += len << SMMU_PTE_SHIFT) {
-		unsigned int pt_index = iova_pt_index(iova);
-		unsigned int pd_index = iova_pd_index(iova);
+	for (; total; total -= len) {
+		const unsigned int size_per_tlb = 1 << SMMU_TLB_FLUSH_VA_LSB;
+		const unsigned int ptes_per_tlb = size_per_tlb / SMMU_SIZE_PT;
+		const unsigned int atom_size = smmu->mc->soc->atom_size;
+		const unsigned int ptes_per_ptc = atom_size / sizeof(u32);
+		unsigned int pt_index = iova_pt_index(start);
+		unsigned int num_ptcs, num_tlbs;
+		unsigned long iova = start;
 		unsigned long offset;
 		dma_addr_t pte_dma;
 		u32 *pte;
+		int i;
 
 		if (pt_index + total < SMMU_NUM_PTE)
 			len = total;
@@ -943,24 +973,25 @@ static void tegra_smmu_iotlb_sync(struct iommu_domain *domain,
 		offset = SMMU_OFFSET_IN_PAGE(pte);
 		dma_sync_single_range_for_device(smmu->dev, pte_dma, offset,
 						 sizeof(*pte) * len, DMA_TO_DEVICE);
-		smmu_flush_ptc(smmu, pte_dma, offset);
-		smmu_flush_tlb_group(smmu, as->id, iova);
+
+		/* Calculate ptcs to flush as each PTC flush covers all PTEs in one atom wide */
+		num_ptcs = ALIGN(len, ptes_per_ptc) / ptes_per_ptc;
+		for (i = 0; i < num_ptcs; i++)
+			smmu_flush_ptc(smmu, pte_dma, offset + i * atom_size);
+
+		/* Calculate tlbs to flush as each TLB flush covers all PTEs in one TLB line */
+		num_tlbs = ALIGN(len, ptes_per_tlb) / ptes_per_tlb;
+		for (i = 0; i < num_tlbs; i++)
+			smmu_flush_tlb_group(smmu, as->id, iova + i * size_per_tlb);
+
 		smmu_flush(smmu);
 
-		/*
-		 * When no entries in this page table are used anymore, return the
-		 * memory page to the system.
-		 */
-		if (as->count[pd_index] == 0 && as->pts[pd_index]) {
-			struct page *page = as->pts[pd_index];
-			u32 *pd = page_address(as->pd);
-			dma_addr_t pte_dma = smmu_pde_to_dma(smmu, pd[pd_index]);
-
-			tegra_smmu_set_pde(as, iova, 0);
-
-			dma_unmap_page(smmu->dev, pte_dma, SMMU_SIZE_PT, DMA_TO_DEVICE);
-			__free_page(page);
-			as->pts[pd_index] = NULL;
+		/* Put unmmaped ptes and move forward the starting address of iova */
+		for (i = 0; i < len; i++) {
+			if (*pte == 0)
+				tegra_smmu_pte_put_use(as, start);
+			pte += iova_pt_index(SMMU_SIZE_PT);
+			start += SMMU_SIZE_PT;
 		}
 	}
 
