@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,7 @@ struct gops_pmu {
 	 * for PMU unit.
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ENOMEM if memory allocation for ecc stats fails.
 	 */
 	int (*ecc_init)(struct gk20a *g);
 
@@ -147,6 +148,7 @@ struct gops_pmu {
 	 * and interrupts if interrupt support is enabled.
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ETIMEDOUT if PMU engine reset times out.
 	 */
 	int (*pmu_reset)(struct gk20a *g);
 
@@ -206,6 +208,7 @@ struct gops_pmu {
 	 * @return Chip specific PMU Engine Falcon base address.
 	 *         For GV11B, GV11B PMU Engine Falcon base address will be
 	 *         returned.
+	 * @retval Chip specific PMU Engine Falcon base address.
 	 */
 	u32 (*falcon_base_addr)(void);
 
@@ -290,6 +293,7 @@ struct gops_pmu {
 	 *    transaction error caused by falcon2csb request.
 	 *
 	 * @return 0 in case of success, -EIO in case of failure.
+	 * @retval -EIO in case of BAR0 error
 	 */
 	int (*bar0_error_status)(struct gk20a *g, u32 *bar0_status,
 		u32 *etype);
@@ -302,7 +306,7 @@ struct gops_pmu {
 	 * Validate IMEM/DMEM memory integrity by checking ECC status
 	 * followed IMEM/DEME error correction status check.
 	 *
-	 *	return True if corrected else False.
+	 * @return True if corrected else False.
 	 */
 	bool (*validate_mem_integrity)(struct gk20a *g);
 

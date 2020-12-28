@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -494,6 +494,7 @@ void nvgpu_pmu_enable_irq(struct gk20a *g, bool enable);
  * enabled.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ETIMEDOUT if PMU engine reset times out.
  */
 int nvgpu_pmu_reset(struct gk20a *g);
 
@@ -512,6 +513,7 @@ int nvgpu_pmu_reset(struct gk20a *g);
  * unit. Initializes the isr_mutex.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM if memory allocation for struct #nvgpu_pmu fails.
  */
 int nvgpu_pmu_early_init(struct gk20a *g);
 
