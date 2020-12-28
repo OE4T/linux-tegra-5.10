@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -393,6 +393,8 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn);
  * - Release DMEM copy lock.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -EINVAL if #nvgpu_falcon is invalid.
+ * @retval -EIO if data write fails to DMEM.
  */
 int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port);
@@ -435,6 +437,7 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
  * - Release IMEM copy lock.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -EINVAL if #nvgpu_falcon is invalid.
  */
 int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port, bool sec, u32 tag);
@@ -458,6 +461,8 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
  *   \a flcn.
  *
  * @return register data in case of success, 0 in case of failure.
+ * @retval 0 if #nvgpu_falcon is invalid.
+ * @retval 0 if mailbox index is wrong.
  */
 u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index);
 
@@ -507,6 +512,8 @@ void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
  * - Bootstrap the falcon. If failed, return the error.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -EINVAL if #nvgpu_falcon is invalid.
+ * @retval -ETIMEDOUT if engine reset times out.
  */
 int nvgpu_falcon_hs_ucode_load_bootstrap(struct nvgpu_falcon *flcn, u32 *ucode,
 	u32 *ucode_header);
@@ -523,6 +530,7 @@ int nvgpu_falcon_hs_ucode_load_bootstrap(struct nvgpu_falcon *flcn, u32 *ucode,
  * - Return the falcon ID of the falcon \a flcn.
  *
  * @return the falcon ID of \a flcn.
+ * @retval Falcon ID of a flcn.
  */
 u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
 
@@ -549,6 +557,7 @@ u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
  * - For invalid falcon ID, return NULL.
  *
  * @return the falcon struct of \a g corresponding to \a flcn_id.
+ * @retval falcon struct of \a g corresponding to \a flcn_id.
  */
 struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id);
 
@@ -572,6 +581,8 @@ struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id);
  *   applicable.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENODEV if falcon ID is invalid.
+ * @retval -EINVAL if GPU ID is invalid.
  */
 int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);
 
