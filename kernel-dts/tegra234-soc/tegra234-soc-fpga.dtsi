@@ -249,6 +249,7 @@
 		interrupts = <0 416 4
 			      0 419 4
 			      0  61 4>;
+		nvidia,bpmp = <&bpmp>;
 		clocks = <&bpmp_clks TEGRA234_CLK_NVDISPLAYHUB>,
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_DISP>,
 			 <&bpmp_clks TEGRA234_CLK_NVDISPLAY_P0>,
