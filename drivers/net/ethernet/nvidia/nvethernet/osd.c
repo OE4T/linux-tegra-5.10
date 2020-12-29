@@ -132,10 +132,11 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 				  unsigned int dma_rx_buf_len,
 				  unsigned int chan)
 {
+#ifndef ETHER_PAGE_POOL
 	struct sk_buff *skb = NULL;
 	dma_addr_t dma_addr;
+#endif
 	unsigned long val;
-
 	if ((rx_swcx->flags & OSI_RX_SWCX_REUSE) == OSI_RX_SWCX_REUSE) {
 		/* Skip buffer allocation and DMA mapping since
 		 * PTP software context will have valid buffer and
@@ -145,6 +146,7 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 		return 0;
 	}
 
+#ifndef ETHER_PAGE_POOL
 	skb = netdev_alloc_skb_ip_align(pdata->ndev, dma_rx_buf_len);
 
 	if (unlikely(skb == NULL)) {
@@ -166,8 +168,26 @@ static inline int ether_alloc_skb(struct ether_priv_data *pdata,
 		return -ENOMEM;
 	}
 
+#else
+	rx_swcx->buf_virt_addr = page_pool_dev_alloc_pages(pdata->page_pool);
+	if (!rx_swcx->buf_virt_addr) {
+		dev_err(pdata->dev,
+			"page pool allocation failed using resv_buf\n");
+		rx_swcx->buf_virt_addr = pdata->osi_dma->resv_buf_virt_addr;
+		rx_swcx->buf_phy_addr = pdata->osi_dma->resv_buf_phy_addr;
+		rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
+		val = pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan];
+		pdata->osi_core->xstats.re_alloc_rxbuf_failed[chan] =
+			osi_update_stats_counter(val, 1UL);
+		return 0;
+	}
+
+	rx_swcx->buf_phy_addr = page_pool_get_dma_addr(rx_swcx->buf_virt_addr);
+#endif
+#ifndef ETHER_PAGE_POOL
 	rx_swcx->buf_virt_addr = skb;
 	rx_swcx->buf_phy_addr = dma_addr;
+#endif
 	rx_swcx->flags |= OSI_RX_SWCX_BUF_VALID;
 
 	return 0;
@@ -259,20 +279,45 @@ void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct ether_rx_napi *rx_napi = pdata->rx_napi[chan];
+#ifdef ETHER_PAGE_POOL
+	struct page *page = (struct page *)rx_swcx->buf_virt_addr;
+	struct sk_buff *skb = NULL;
+#else
 	struct sk_buff *skb = (struct sk_buff *)rx_swcx->buf_virt_addr;
+#endif
 	dma_addr_t dma_addr = (dma_addr_t)rx_swcx->buf_phy_addr;
 	struct net_device *ndev = pdata->ndev;
 	struct osi_pkt_err_stats *pkt_err_stat = &pdata->osi_dma->pkt_err_stats;
 	struct skb_shared_hwtstamps *shhwtstamp;
 	unsigned long val;
 
+#ifndef ETHER_PAGE_POOL
 	dma_unmap_single(pdata->dev, dma_addr, dma_buf_len, DMA_FROM_DEVICE);
-
+#endif
 	/* Process only the Valid packets */
 	if (likely((rx_pkt_cx->flags & OSI_PKT_CX_VALID) ==
 		   OSI_PKT_CX_VALID)) {
-		skb_put(skb, rx_pkt_cx->pkt_len);
+#ifdef ETHER_PAGE_POOL
+		skb = netdev_alloc_skb_ip_align(pdata->ndev,
+						rx_pkt_cx->pkt_len);
+		if (unlikely(!skb)) {
+			pdata->ndev->stats.rx_dropped++;
+			dev_err(pdata->dev,
+				"%s(): Error in allocating the skb\n",
+			        __func__);
+			page_pool_recycle_direct(pdata->page_pool, page);
+			return;
+		}
 
+		dma_sync_single_for_cpu(pdata->dev, dma_addr,
+					rx_pkt_cx->pkt_len, DMA_FROM_DEVICE);
+		skb_copy_to_linear_data(skb, page_address(page),
+					rx_pkt_cx->pkt_len);
+		skb_put(skb, rx_pkt_cx->pkt_len);
+		page_pool_recycle_direct(pdata->page_pool, page);
+#else
+		skb_put(skb, rx_pkt_cx->pkt_len);
+#endif
 		if (likely((rx_pkt_cx->rxcsum & OSI_CHECKSUM_UNNECESSARY) ==
 			 OSI_CHECKSUM_UNNECESSARY)) {
 			skb->ip_summed = CHECKSUM_UNNECESSARY;
@@ -315,6 +360,9 @@ void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
 		ndev->stats.rx_frame_errors = pkt_err_stat->rx_frame_error;
 		ndev->stats.rx_fifo_errors = osi_core->mmc.mmc_rx_fifo_overflow;
 		ndev->stats.rx_errors++;
+#ifdef ETHER_PAGE_POOL
+		page_pool_recycle_direct(pdata->page_pool, page);
+#endif
 		dev_kfree_skb_any(skb);
 	}
 
