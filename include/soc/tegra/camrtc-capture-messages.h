@@ -100,6 +100,11 @@ struct CAPTURE_MSG_HEADER {
  */
 #define CAPTURE_MSG_ID_INVALID			MK_U32(0xFFFFFFFF)
 
+/**
+ * @brief Invalid channel id. Used when channel is not specified.
+ */
+#define CAPTURE_CHANNEL_ID_INVALID		MK_U32(0xFFFFFFFF)
+
 typedef uint32_t capture_result;
 
 /**

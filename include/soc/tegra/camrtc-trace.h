@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -386,16 +386,12 @@ struct camrtc_event_struct {
 #define camrtc_trace_vinotify_id(_subid) \
 		CAMRTC_EVENT_MAKE_ID(CAMRTC_EVENT_TYPE_ARRAY, \
 			CAMRTC_EVENT_MODULE_VINOTIFY, (_subid))
-#define camrtc_trace_vinotify_handle_msg \
-	camrtc_trace_vinotify_id(1)
 #define camrtc_trace_vinotify_event_ts64 \
-	camrtc_trace_vinotify_id(2)
-#define camrtc_trace_vinotify_error_ts64 \
-	camrtc_trace_vinotify_id(3)
+	camrtc_trace_vinotify_id(1)
 #define camrtc_trace_vinotify_event \
-	camrtc_trace_vinotify_id(4)
+	camrtc_trace_vinotify_id(2)
 #define camrtc_trace_vinotify_error \
-	camrtc_trace_vinotify_id(5)
+	camrtc_trace_vinotify_id(3)
 
 // camrtc_trace_vi_ids
 #define camrtc_trace_vi_id(_subid) \
