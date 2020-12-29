@@ -1348,11 +1348,14 @@ static void ether_napi_enable(struct ether_priv_data *pdata)
  * @brief Free receive skbs
  *
  * @param[in] rx_swcx: Rx pkt SW context
- * @param[in] dev: device instance associated with driver.
+ * @param[in] pdata: Ethernet private data
  * @param[in] rx_buf_len: Receive buffer length
+ * @param[in] resv_buf_virt_addr: Reservered virtual buffer
  */
-static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
-			       unsigned int rx_buf_len, void *resv_buf_virt_addr)
+static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx,
+			       struct ether_priv_data *pdata,
+			       unsigned int rx_buf_len,
+			       void *resv_buf_virt_addr)
 {
 	struct osi_rx_swcx *prx_swcx = NULL;
 	unsigned int i;
@@ -1362,9 +1365,16 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
 
 		if (prx_swcx->buf_virt_addr != NULL) {
 			if (resv_buf_virt_addr != prx_swcx->buf_virt_addr) {
-				dma_unmap_single(dev, prx_swcx->buf_phy_addr,
+#ifdef ETHER_PAGE_POOL
+				page_pool_put_full_page(pdata->page_pool,
+							prx_swcx->buf_virt_addr,
+							false);
+#else
+				dma_unmap_single(pdata->dev,
+						 prx_swcx->buf_phy_addr,
 						 rx_buf_len, DMA_FROM_DEVICE);
 				dev_kfree_skb_any(prx_swcx->buf_virt_addr);
+#endif
 			}
 			prx_swcx->buf_virt_addr = NULL;
 			prx_swcx->buf_phy_addr = 0;
@@ -1378,10 +1388,10 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
  *	allocated_rx_dma_ring() API.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
- * @param[in] dev: device instance associated with driver.
+ * @param[in] pdata: Ethernet private data.
  */
 static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
-				  struct device *dev)
+				  struct ether_priv_data *pdata)
 {
 	unsigned long rx_desc_size = sizeof(struct osi_rx_desc) * RX_DESC_CNT;
 	struct osi_rx_ring *rx_ring = NULL;
@@ -1392,14 +1402,14 @@ static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 
 		if (rx_ring != NULL) {
 			if (rx_ring->rx_swcx != NULL) {
-				ether_free_rx_skbs(rx_ring->rx_swcx, dev,
+				ether_free_rx_skbs(rx_ring->rx_swcx, pdata,
 						   osi_dma->rx_buf_len,
 						   osi_dma->resv_buf_virt_addr);
 				kfree(rx_ring->rx_swcx);
 			}
 
 			if (rx_ring->rx_desc != NULL) {
-				dma_free_coherent(dev, rx_desc_size,
+				dma_free_coherent(pdata->dev, rx_desc_size,
 						  rx_ring->rx_desc,
 						  rx_ring->rx_desc_phy_addr);
 			}
@@ -1408,6 +1418,12 @@ static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 			rx_ring = NULL;
 		}
 	}
+#ifdef ETHER_PAGE_POOL
+	if (pdata->page_pool) {
+		page_pool_destroy(pdata->page_pool);
+		pdata->page_pool = NULL;
+	}
+#endif
 }
 
 /**
@@ -1486,16 +1502,33 @@ err_rx_desc:
 static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 				     struct osi_rx_ring *rx_ring)
 {
+#ifndef ETHER_PAGE_POOL
 	unsigned int rx_buf_len = pdata->osi_dma->rx_buf_len;
+#endif
 	struct osi_rx_swcx *rx_swcx = NULL;
 	unsigned int i = 0;
 
 	for (i = 0; i < RX_DESC_CNT; i++) {
+#ifndef ETHER_PAGE_POOL
 		struct sk_buff *skb = NULL;
+#else
+		struct page *page = NULL;
+#endif
 		dma_addr_t dma_addr = 0;
 
 		rx_swcx = rx_ring->rx_swcx + i;
 
+#ifdef ETHER_PAGE_POOL
+		page = page_pool_dev_alloc_pages(pdata->page_pool);
+		if (!page) {
+			dev_err(pdata->dev,
+				"failed to allocate page pool buffer");
+			return -ENOMEM;
+		}
+
+		dma_addr = page_pool_get_dma_addr(page);
+		rx_swcx->buf_virt_addr = page;
+#else
 		skb = __netdev_alloc_skb_ip_align(pdata->ndev, rx_buf_len,
 						  GFP_KERNEL);
 		if (unlikely(skb == NULL)) {
@@ -1512,11 +1545,49 @@ static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 		}
 
 		rx_swcx->buf_virt_addr = skb;
+#endif
 		rx_swcx->buf_phy_addr = dma_addr;
 	}
 
 	return 0;
 }
+
+#ifdef ETHER_PAGE_POOL
+/**
+ * @brief Create Rx buffer page pool
+ *
+ * Algorithm: Invokes page pool API to create Rx buffer pool.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_page_pool_create(struct ether_priv_data *pdata)
+{
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct page_pool_params pp_params = { 0 };
+	unsigned int num_pages;
+	int ret = 0;
+
+	pp_params.flags = PP_FLAG_DMA_MAP;
+	pp_params.pool_size = osi_dma->rx_buf_len;
+	num_pages = DIV_ROUND_UP(osi_dma->rx_buf_len, PAGE_SIZE);
+	pp_params.order = ilog2(roundup_pow_of_two(num_pages));
+	pp_params.nid = dev_to_node(pdata->dev);
+	pp_params.dev = pdata->dev;
+	pp_params.dma_dir = DMA_FROM_DEVICE;
+
+	pdata->page_pool = page_pool_create(&pp_params);
+	if (IS_ERR(pdata->page_pool)) {
+		ret = PTR_ERR(pdata->page_pool);
+		pdata->page_pool = NULL;
+		return ret;
+	}
+
+	return ret;
+}
+#endif
 
 /**
  * @brief Allocate Receive DMA channel ring resources.
@@ -1543,6 +1614,14 @@ static int ether_allocate_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 		chan = osi_dma->dma_chans[i];
 
 		if (chan != OSI_INVALID_CHAN_NUM) {
+#ifdef ETHER_PAGE_POOL
+			ret = ether_page_pool_create(pdata);
+			if (ret < 0) {
+				pr_err("%s(): failed to create page pool\n",
+				       __func__);
+				goto exit;
+			}
+#endif
 			ret = allocate_rx_dma_resource(osi_dma, pdata->dev,
 						       chan);
 			if (ret != 0) {
@@ -1559,7 +1638,7 @@ static int ether_allocate_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 
 	return 0;
 exit:
-	free_rx_dma_resources(osi_dma, pdata->dev);
+	free_rx_dma_resources(osi_dma, pdata);
 	return ret;
 }
 
@@ -1744,7 +1823,7 @@ void free_dma_resources(struct ether_priv_data *pdata)
 	struct device *dev = pdata->dev;
 
 	free_tx_dma_resources(osi_dma, dev);
-	free_rx_dma_resources(osi_dma, dev);
+	free_rx_dma_resources(osi_dma, pdata);
 
 	/* unmap reserved DMA*/
 	if (osi_dma->resv_buf_phy_addr) {

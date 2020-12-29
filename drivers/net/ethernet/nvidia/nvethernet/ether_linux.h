@@ -49,6 +49,12 @@
 #else
 #include <soc/tegra/fuse.h>
 #endif
+#if IS_ENABLED(CONFIG_PAGE_POOL)
+#if (KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE)
+#include <net/page_pool.h>
+#define ETHER_PAGE_POOL
+#endif
+#endif
 #include <osi_core.h>
 #include <osi_dma.h>
 #include <mmc.h>
@@ -446,6 +452,10 @@ struct ether_priv_data {
 	struct ether_ivc_ctxt ictxt;
 	/** VM channel info data associated with VM IRQ */
 	struct ether_vm_irq_data *vm_irq_data;
+#ifdef ETHER_PAGE_POOL
+	/** Pointer to page pool */
+	struct page_pool *page_pool;
+#endif
 #ifdef CONFIG_DEBUG_FS
 	/** Debug fs directory pointer */
 	struct dentry *dbgfs_dir;
