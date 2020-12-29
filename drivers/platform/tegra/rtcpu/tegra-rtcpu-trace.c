@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -687,19 +687,8 @@ const unsigned int g_trace_vinotify_tag_str_count =
 static void rtcpu_trace_vinotify_event(struct camrtc_event_struct *event)
 {
 	switch (event->header.id) {
-	case camrtc_trace_vinotify_handle_msg:
-		trace_rtcpu_vinotify_handle_msg(event->header.tstamp,
-		(event->data.data32[0] >> 1) & 0x7f, event->data.data32[0],
-		event->data.data32[1], event->data.data32[2]);
-		break;
 	case camrtc_trace_vinotify_event_ts64:
 		trace_rtcpu_vinotify_event_ts64(event->header.tstamp,
-		(event->data.data32[0] >> 1) & 0x7f, event->data.data32[0],
-		((u64)event->data.data32[3] << 32) | event->data.data32[1],
-		event->data.data32[2]);
-		break;
-	case camrtc_trace_vinotify_error_ts64:
-		trace_rtcpu_vinotify_error_ts64(event->header.tstamp,
 		(event->data.data32[0] >> 1) & 0x7f, event->data.data32[0],
 		((u64)event->data.data32[3] << 32) | event->data.data32[1],
 		event->data.data32[2]);
@@ -708,13 +697,15 @@ static void rtcpu_trace_vinotify_event(struct camrtc_event_struct *event)
 		trace_rtcpu_vinotify_event(event->header.tstamp,
 		event->data.data32[0], event->data.data32[1],
 		event->data.data32[2], event->data.data32[3],
-		event->data.data32[4]);
+		event->data.data32[4], event->data.data32[5],
+		event->data.data32[6]);
 		break;
 	case camrtc_trace_vinotify_error:
 		trace_rtcpu_vinotify_error(event->header.tstamp,
 		event->data.data32[0], event->data.data32[1],
 		event->data.data32[2], event->data.data32[3],
-		event->data.data32[4]);
+		event->data.data32[4], event->data.data32[5],
+		event->data.data32[6]);
 		break;
 	default:
 		trace_rtcpu_unknown(event->header.tstamp,
