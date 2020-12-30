@@ -6,7 +6,7 @@
  * Author:
  *	Erik Gilling <konkers@google.com>
  *
- * Copyright (c) 2010-2020, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2021, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -688,6 +688,7 @@ struct tegra_dc_out {
 	int	(*disable)(struct device *);
 
 	int	(*hotplug_init)(struct device *);
+	void	(*hotplug_deinit)(struct device *);
 	int	(*postsuspend)(void);
 	void	(*hotplug_report)(bool);
 };

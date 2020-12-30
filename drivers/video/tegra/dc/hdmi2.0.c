@@ -1,7 +1,7 @@
 /*
  * hdmi2.0.c: hdmi2.0 driver.
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION, All rights reserved.
  * Author: Animesh Kishore <ankishore@nvidia.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -36,6 +36,8 @@
 #include <linux/of_gpio.h>
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/tegra_powergate.h>
+#else
+#include <linux/device/driver.h>
 #endif
 
 #include "dc.h"
@@ -248,7 +250,11 @@ static int tegra_hdmi_ddc_init(struct tegra_hdmi *hdmi)
 		dev_err(&dc->ndev->dev,
 			"hdmi: can't get adpater for ddc bus %d\n",
 			dc->out->ddc_bus);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		err = -EBUSY;
+#else
+		err = driver_deferred_probe_check_state(&dc->ndev->dev);
+#endif
 		goto fail_edid_free;
 	}
 
@@ -286,7 +292,11 @@ static int tegra_hdmi_scdc_init(struct tegra_hdmi *hdmi)
 		dev_err(&dc->ndev->dev,
 			"hdmi: can't get adpater for scdc bus %d\n",
 			dc->out->ddc_bus);
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		err = -EBUSY;
+#else
+		err = driver_deferred_probe_check_state(&dc->ndev->dev);
+#endif
 		goto fail;
 	}
 
@@ -1620,7 +1630,7 @@ static int tegra_dc_hdmi_init(struct tegra_dc *dc)
 	hdmi->sor = tegra_dc_sor_init(dc, NULL);
 	if (IS_ERR_OR_NULL(hdmi->sor)) {
 		err = PTR_ERR(hdmi->sor);
-		goto fail_audio_switch;
+		goto fail_dpaux_init;
 	}
 
 	hdmi->pdata = dc->pdata->default_out->hdmi_out;
@@ -1665,9 +1675,13 @@ static int tegra_dc_hdmi_init(struct tegra_dc *dc)
 		}
 	}
 
-	tegra_hdmi_ddc_init(hdmi);
+	err = tegra_hdmi_ddc_init(hdmi);
+	if (err != 0)
+		goto fail_nvhdcp;
 
-	tegra_hdmi_scdc_init(hdmi);
+	err = tegra_hdmi_scdc_init(hdmi);
+	if (err != 0)
+		goto fail_ddc_init;
 
 	err = tegra_hdmi_vrr_init(hdmi);
 	if (err && err != -ENODEV)
@@ -1732,6 +1746,24 @@ static int tegra_dc_hdmi_init(struct tegra_dc *dc)
 	hdmi_instance++;
 	return 0;
 
+fail_ddc_init:
+	if (hdmi->edid != NULL) {
+		tegra_edid_destroy(hdmi->edid);
+		hdmi->edid = NULL;
+		dc->edid = NULL;
+	}
+fail_nvhdcp:
+	if (!IS_ERR(hdmi->nvhdcp))
+		tegra_nvhdcp_destroy(hdmi->nvhdcp);
+	if (!IS_ERR_OR_NULL(hdmi->sor)) {
+		tegra_dc_sor_destroy(hdmi->sor);
+		hdmi->sor = NULL;
+	}
+fail_dpaux_init:
+	if (!IS_ERR_OR_NULL(hdmi->dpaux)) {
+		tegra_dpaux_destroy_data(hdmi->dpaux);
+		hdmi->dpaux = NULL;
+	}
 fail_audio_switch:
 	devm_kfree(&dc->ndev->dev, hdmi->audio_switch_name);
 fail_hpd_switch:

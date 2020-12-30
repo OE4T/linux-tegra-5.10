@@ -1,7 +1,7 @@
 /*
  * of_dc.c: tegra dc of interface.
  *
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -2247,6 +2247,15 @@ fail:
 	return err;
 }
 
+static void dc_dp_out_hotplug_deinit(struct device *dev)
+{
+	if (of_dp_hdmi_5v0 != NULL) {
+		regulator_disable(of_dp_hdmi_5v0);
+		devm_regulator_put(of_dp_hdmi_5v0);
+		of_dp_hdmi_5v0 = NULL;
+	}
+}
+
 static int dc_dp_out_postsuspend(void)
 {
 	if (of_dp_hdmi_5v0) {
@@ -2347,6 +2356,15 @@ static int dc_hdmi_hotplug_init(struct device *dev)
 	}
 dc_hdmi_hotplug_init_fail:
 	return err;
+}
+
+static void dc_hdmi_hotplug_deinit(struct device *dev)
+{
+	if (of_hdmi_vddio != NULL) {
+		regulator_disable(of_hdmi_vddio);
+		devm_regulator_put(of_hdmi_vddio);
+		of_hdmi_vddio = NULL;
+	}
 }
 
 static int dc_hdmi_postsuspend(void)
@@ -3076,6 +3094,7 @@ struct tegra_dc_platform_data *of_dc_parse_platform_data(
 			def_out->enable		= dc_dp_out_enable;
 			def_out->disable	= dc_dp_out_disable;
 			def_out->hotplug_init	= dc_dp_out_hotplug_init;
+			def_out->hotplug_deinit	= dc_dp_out_hotplug_deinit;
 			def_out->postsuspend	= dc_dp_out_postsuspend;
 		}
 	} else if (def_out->type == TEGRA_DC_OUT_HDMI) {
@@ -3128,6 +3147,7 @@ struct tegra_dc_platform_data *of_dc_parse_platform_data(
 			def_out->enable		= dc_hdmi_out_enable;
 			def_out->disable	= dc_hdmi_out_disable;
 			def_out->hotplug_init	= dc_hdmi_hotplug_init;
+			def_out->hotplug_deinit	= dc_hdmi_hotplug_deinit;
 			def_out->postsuspend	= dc_hdmi_postsuspend;
 		}
 	} else if (def_out->type == TEGRA_DC_OUT_LVDS) {

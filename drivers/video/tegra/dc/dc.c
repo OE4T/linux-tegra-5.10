@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2010-2020, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2021, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -6958,6 +6958,8 @@ err_disable_dc:
 	if (!tegra_dc_is_nvdisplay())
 		tegra_bwmgr_unregister(dc->emc_la_handle);
 err_put_clk:
+	if (dc->pdata->default_out->hotplug_deinit)
+		dc->pdata->default_out->hotplug_deinit(&dc->ndev->dev);
 #ifdef CONFIG_SWITCH
 	if (dc->switchdev_registered)
 		switch_dev_unregister(&dc->modeset_switch);

@@ -1,7 +1,7 @@
 /*
  * dp.c: tegra dp driver.
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -2090,21 +2090,21 @@ static int tegra_dc_dp_init(struct tegra_dc *dc)
 	if (!irq) {
 		dev_err(&dc->ndev->dev, "%s: error getting irq\n", __func__);
 		err = -ENOENT;
-		goto err_audio_switch;
+		goto err_dpaux_init;
 	}
 
 	parent_clk = tegra_disp_of_clk_get_by_name(sor_np, "pll_dp");
 	if (IS_ERR_OR_NULL(parent_clk)) {
 		dev_err(&dc->ndev->dev, "dp: clock pll_dp unavailable\n");
 		err = -EFAULT;
-		goto err_audio_switch;
+		goto err_dpaux_init;
 	}
 	if (request_threaded_irq(irq, NULL, tegra_dp_irq,
 				IRQF_ONESHOT, "tegra_dp", dp)) {
 		dev_err(&dc->ndev->dev,
 			"dp: request_irq %u failed\n", irq);
 		err = -EBUSY;
-		goto err_audio_switch;
+		goto err_dpaux_init;
 	}
 
 	if (dc->out->type != TEGRA_DC_OUT_FAKE_DP)
@@ -2117,7 +2117,7 @@ static int tegra_dc_dp_init(struct tegra_dc *dc)
 	err = tegra_dp_register_typec_ecable(dp);
 	if (err) {
 		dev_err(&dc->ndev->dev, "dp: typec ecable register failed\n");
-		goto err_audio_switch;
+		goto err_dpaux_init;
 	}
 
 	if (dp_instance) {
@@ -2156,7 +2156,7 @@ static int tegra_dc_dp_init(struct tegra_dc *dc)
 		dp->sor = NULL;
 		dev_err(&dc->ndev->dev, "%s: error getting sor,%d\n",
 				__func__, err);
-		goto err_audio_switch;
+		goto err_dpaux_init;
 	}
 
 #ifdef CONFIG_DPHDCP
@@ -2254,6 +2254,11 @@ static int tegra_dc_dp_init(struct tegra_dc *dc)
 
 	return 0;
 
+err_dpaux_init:
+	if (!IS_ERR_OR_NULL(dp->dpaux)) {
+		tegra_dpaux_destroy_data(dp->dpaux);
+		dp->dpaux = NULL;
+	}
 err_audio_switch:
 	devm_kfree(&dc->ndev->dev, dp->audio_switch_name);
 err_hpd_switch:
