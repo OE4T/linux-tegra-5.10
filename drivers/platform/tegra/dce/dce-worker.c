@@ -175,7 +175,6 @@ static void dce_handle_dce_error(struct tegra_dce *d)
 	 */
 }
 
-
 /**
  * dce_worker - dce worker main function to manage dce thread states.
  *
@@ -211,15 +210,15 @@ static int dce_worker(void *arg)
 		dce_info(d, "DCE_BOOT_DONE");
 	}
 
-	dce_worker_thread_wait(d, EVENT_ID_DCE_BOOT_COMPLETE);
+	do {
+		dce_worker_thread_wait(d, EVENT_ID_DCE_BOOT_COMPLETE);
 
-	while ((w->c_state != STATE_DCE_WORKER_ABORTED) ||
-		(!dce_thread_should_stop(&w->wrk_thread))) {
 		if (w->c_state == STATE_DCE_WORKER_HANDLE_DCE_ERROR) {
 			dce_handle_dce_error(d);
 			d->boot_status |= DCE_STATUS_FAILED;
 		}
-	}
+	} while ((w->c_state != STATE_DCE_WORKER_ABORTED) ||
+		(!dce_thread_should_stop(&w->wrk_thread)));
 
 worker_exit:
 	if (w->c_state == STATE_DCE_WORKER_ABORTED)

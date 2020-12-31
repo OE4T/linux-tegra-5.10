@@ -134,6 +134,11 @@ struct dce_firmware {
 	u64 dma_handle;
 };
 
+struct admin_rpc_post_boot_info {
+	atomic_t complete;
+	struct dce_cond recv_wait;
+};
+
 /**
  * struct tegra_dce - Primary OS independent tegra dce structure to hold dce
  * cluster's and it's element's runtime info.
@@ -143,6 +148,10 @@ struct tegra_dce {
 	 * @irq - Array of irqs to be handled by cpu from dce cluster.
 	 */
 	u32 irq[DCE_MAX_CPU_IRQS];
+	/**
+	 * @rpc_info - Data Structure to manage Admin RPC calls post boot.
+	 */
+	struct admin_rpc_post_boot_info admin_rpc;
 	/**
 	 * @wrk_info - Data Structure to manage dce worker thread states.
 	 */
@@ -159,6 +168,7 @@ struct tegra_dce {
 	 * @d_clients - Stores all dce clients data.
 	 */
 	struct tegra_dce_client_ipc *d_clients[DCE_CLIENT_IPC_TYPE_MAX];
+
 	/**
 	 * @d_async_ipc_info - stores data to handle async events
 	 */
@@ -269,6 +279,18 @@ static inline struct dce_platform_data *pdata_from_dce(struct tegra_dce *d)
 static inline void dce_set_boot_complete(struct tegra_dce *d, bool val)
 {
 	d->boot_complete = val;
+}
+
+/**
+ * dce_is_bootstrap_done - check if dce bootstrap is done.
+ *
+ * @d : Pointer to tegra_dce struct.
+ *
+ * Return : true if bootstrap done else false
+ */
+static inline bool dce_is_bootstrap_done(struct tegra_dce *d)
+{
+	return (d->boot_status & DCE_FW_BOOT_DONE) ? true : false;
 }
 
 /**

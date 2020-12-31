@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -67,6 +67,22 @@ static void dce_admin_wakeup_ipc(struct tegra_dce *d)
 }
 
 /**
+ * dce_admin_wakeup_rpc_post_boot - Wakeup process waiting for response
+ *				    from DCE for Admin rpc interface.
+ *
+ * @d :  Pointer to tegra_de struct.
+ *
+ * Return : Void
+ */
+static void dce_admin_ipc_post_boot_wakeup(struct tegra_dce *d)
+{
+	struct admin_rpc_post_boot_info *admin_rpc = &d->admin_rpc;
+
+	atomic_set(&admin_rpc->complete, 1);
+	dce_cond_signal_interruptible(&admin_rpc->recv_wait);
+}
+
+/**
  * dce_admin_ipc_handle_signal - Isr for the CCPLEX<->DCE admin interface
  *
  * @d :  Pointer to tegra_de struct.
@@ -75,7 +91,6 @@ static void dce_admin_wakeup_ipc(struct tegra_dce *d)
  */
 void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type)
 {
-	bool wakeup_cl = false;
 	bool wakeup_needed = false;
 
 	if (!dce_ipc_channel_is_synced(d, ch_type)) {
@@ -86,36 +101,26 @@ void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type)
 		return;
 	}
 
-	wakeup_needed = (DCE_IPC_WAIT_TYPE_SYNC ==
-			 dce_ipc_get_cur_wait_type(d, ch_type));
-	if (wakeup_needed) {
-		/**
-		 * Handshake successful, wake up the
-		 * dce worker thread since it's waiting
-		 * for the synchronization to complete.
-		 */
-		goto process_wakeup;
-	}
-
 	/**
 	 * Channel already in sync with remote. Check if data
 	 * is available to read.
 	 */
 	wakeup_needed = dce_ipc_is_data_available(d, ch_type);
-	if (wakeup_needed)
-		wakeup_cl = (ch_type != DCE_IPC_CH_KMD_TYPE_ADMIN);
 
-
-process_wakeup:
 	if (!wakeup_needed) {
 		dce_info(d, "Spurious signal on channel: [%d]. Ignored...",
 			 ch_type);
 		return;
 	}
-	if (!wakeup_cl)
-		dce_admin_wakeup_ipc(d);
-	else
+
+	if (ch_type == DCE_IPC_CH_KMD_TYPE_ADMIN) {
+		if (dce_is_bootstrap_done(d))
+			dce_admin_ipc_post_boot_wakeup(d);
+		else
+			dce_admin_wakeup_ipc(d);
+	} else {
 		dce_client_ipc_wakeup(d, ch_type);
+	}
 }
 
 /**
@@ -183,6 +188,7 @@ out:
 int dce_admin_init(struct tegra_dce *d)
 {
 	int ret = 0;
+	struct admin_rpc_post_boot_info *admin_rpc = &d->admin_rpc;
 
 	d->boot_status |= DCE_EARLY_INIT_START;
 	ret = dce_ipc_allocate_region(d);
@@ -197,9 +203,18 @@ int dce_admin_init(struct tegra_dce *d)
 		goto err_channel_init;
 	}
 
+	ret = dce_cond_init(&admin_rpc->recv_wait);
+	if (ret) {
+		dce_err(d, "Admin post-bootstrap RPC cond init failed");
+		goto err_admin_postboot_rpc_init;
+	}
+	atomic_set(&admin_rpc->complete, 0);
+
 	d->boot_status |= DCE_EARLY_INIT_DONE;
 	return 0;
 
+err_admin_postboot_rpc_init:
+	dce_cond_destroy(&admin_rpc->recv_wait);
 err_channel_init:
 	dce_ipc_free_region(d);
 err_ipc_reg_alloc:
@@ -217,6 +232,11 @@ err_ipc_reg_alloc:
  */
 void dce_admin_deinit(struct tegra_dce *d)
 {
+	struct admin_rpc_post_boot_info *admin_rpc = &d->admin_rpc;
+
+	atomic_set(&admin_rpc->complete, 0);
+	dce_cond_destroy(&admin_rpc->recv_wait);
+
 	dce_admin_channel_deinit(d);
 
 	dce_ipc_free_region(d);
@@ -288,11 +308,13 @@ void dce_admin_free_message(struct tegra_dce *d,
 }
 
 /**
- * dce_admin_send_cmd_version_cmd - Sends DCE_ADMIN_CMD_VERSION cmd.
+ * dce_admin_send_msg - Sends messages on Admin Channel
+ *				synchronously and waits for an ack.
  *
- * @d - Pointer to tegra_dce struct.
+ * @d : Pointer to tegra_dce struct.
+ * @msg : Pointer to allocated message.
  *
- * Return - 0 if successful
+ * Return : 0 if successful
  */
 int dce_admin_send_msg(struct tegra_dce *d, struct dce_ipc_message *msg)
 {
@@ -325,6 +347,14 @@ int dce_admin_get_ipc_channel_info(struct tegra_dce *d,
 	return ret;
 }
 
+/**
+ * dce_admin_send_cmd_ver - Sends DCE_ADMIN_CMD_VERSION cmd.
+ *
+ * @d - Pointer to tegra_dce struct.
+ * @msg - Pointer to dce_ipc_msg struct.
+ *
+ * Return - 0 if successful
+ */
 static int dce_admin_send_cmd_ver(struct tegra_dce *d,
 		struct dce_ipc_message *msg)
 {
