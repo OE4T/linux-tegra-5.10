@@ -366,6 +366,8 @@ int dce_admin_send_msg(struct tegra_dce *d,
 void dce_admin_ivc_channel_reset(struct tegra_dce *d);
 int dce_admin_get_ipc_channel_info(struct tegra_dce *d,
 					struct dce_ipc_queue_info *q_info);
+int dce_admin_send_cmd_echo(struct tegra_dce *d,
+			    struct dce_ipc_message *msg);
 int dce_admin_ipc_wait(struct tegra_dce *d, u32 w_type);
 void dce_admin_ipc_handle_signal(struct tegra_dce *d, u32 ch_type);
 

@@ -30,6 +30,7 @@ int dce_admin_ipc_wait(struct tegra_dce *d, u32 w_type)
 {
 	int ret = 0;
 	enum dce_worker_event_id_type event;
+	struct admin_rpc_post_boot_info *admin_rpc = &d->admin_rpc;
 
 	switch (w_type) {
 	case DCE_IPC_WAIT_TYPE_SYNC:
@@ -43,7 +44,14 @@ int dce_admin_ipc_wait(struct tegra_dce *d, u32 w_type)
 		break;
 	}
 
-	dce_worker_thread_wait(d, event);
+	if (dce_is_bootstrap_done(d)) {
+		DCE_COND_WAIT_INTERRUPTIBLE(&admin_rpc->recv_wait,
+			atomic_read(&admin_rpc->complete) == 1,
+			0);
+		atomic_set(&admin_rpc->complete, 0);
+	} else {
+		dce_worker_thread_wait(d, event);
+	}
 
 	if (dce_worker_get_state(d)
 			== STATE_DCE_WORKER_ABORTED)
@@ -344,6 +352,45 @@ int dce_admin_get_ipc_channel_info(struct tegra_dce *d,
 
 	ret = dce_ipc_get_channel_info(d, q_info, channel_id);
 
+	return ret;
+}
+
+/**
+ * dce_admin_send_cmd_echo - Sends DCE_ADMIN_CMD_ECHO cmd.
+ *
+ * @d - Pointer to tegra_dce struct.
+ * @msg - Pointer to dce_ipc_msg struct.
+ *
+ * Return - 0 if successful
+ */
+int dce_admin_send_cmd_echo(struct tegra_dce *d,
+			    struct dce_ipc_message *msg)
+{
+	int ret = -1;
+	struct dce_admin_ipc_cmd *req_msg;
+	struct dce_admin_ipc_resp *resp_msg;
+
+	if (!msg || !msg->tx.data || !msg->rx.data)
+		goto out;
+
+	/* return if dce bootstrap not completed */
+	if (!dce_is_bootstrap_done(d)) {
+		dce_err(d, "Admin Bootstrap not yet done");
+		goto out;
+	}
+
+	req_msg = (struct dce_admin_ipc_cmd *)(msg->tx.data);
+	resp_msg = (struct dce_admin_ipc_resp *) (msg->rx.data);
+
+	req_msg->cmd = (uint32_t)DCE_ADMIN_CMD_ECHO;
+
+	ret = dce_admin_send_msg(d, msg);
+	if (ret) {
+		dce_err(d, "Error sending echo msg : [%d]", ret);
+		goto out;
+	}
+
+out:
 	return ret;
 }
 

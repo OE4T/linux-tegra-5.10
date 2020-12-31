@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -240,6 +240,69 @@ static const struct file_operations reset_dce_fops = {
 	.open =		simple_open,
 	.read =		dbg_dce_reset_dce_fops_read,
 	.write =	dbg_dce_reset_dce_fops_write,
+};
+
+static ssize_t dbg_dce_admin_echo_fops_write(struct file *file,
+			const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	int ret = 0;
+	char buf[32];
+	int buf_size;
+	u32 i, echo_count;
+	struct dce_ipc_message *msg = NULL;
+	struct dce_admin_ipc_cmd *req_msg;
+	struct dce_admin_ipc_resp *resp_msg;
+	struct tegra_dce *d = file->private_data;
+
+	buf_size = min(count, (sizeof(buf)-1));
+	ret = kstrtou32_from_user(user_buf, buf_size, 10, &echo_count);
+	if (ret) {
+		dce_err(d, "Admin msg count out of range");
+		goto out;
+	}
+
+	msg = dce_admin_allocate_message(d);
+	if (!msg) {
+		dce_err(d, "IPC msg allocation failed");
+		goto out;
+	}
+
+	req_msg = (struct dce_admin_ipc_cmd *)(msg->tx.data);
+	resp_msg = (struct dce_admin_ipc_resp *) (msg->rx.data);
+
+	dce_info(d, "Requested %u echo messages", echo_count);
+
+	for (i = 0; i < echo_count; i++) {
+		u32 resp;
+
+		req_msg->args.echo.data = i;
+		ret = dce_admin_send_cmd_echo(d, msg);
+		if (ret) {
+			dce_err(d, "Admin msg failed for seq No : %u", i);
+			goto out;
+		}
+
+		resp = resp_msg->args.echo.data;
+
+		if (i == resp) {
+			dce_info(d, "Received Response:%u for request:%u",
+				 resp, i);
+		} else {
+			dce_err(d, "Invalid response, expected:%u received:%u",
+				i, resp);
+		}
+	}
+
+out:
+	if (msg)
+		dce_admin_free_message(d, msg);
+
+	return count;
+}
+
+static const struct file_operations admin_echo_fops = {
+	.open =		simple_open,
+	.write =	dbg_dce_admin_echo_fops_write,
 };
 
 static ssize_t dbg_dce_boot_dce_fops_read(struct file *file,
@@ -519,6 +582,11 @@ void dce_init_debug(struct tegra_dce *d)
 
 	retval = debugfs_create_file("boot", 0444,
 				     d_dev->debugfs, d, &boot_dce_fops);
+	if (!retval)
+		goto err_handle;
+
+	retval = debugfs_create_file("admin_echo", 0444,
+				     d_dev->debugfs, d, &admin_echo_fops);
 	if (!retval)
 		goto err_handle;
 
