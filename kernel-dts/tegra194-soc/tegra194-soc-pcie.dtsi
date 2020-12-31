@@ -752,7 +752,6 @@
 		device_type = "pci";
 		num-lanes = <8>;
 		num-viewport = <8>;
-		supports-clkreq;
 		linux,pci-domain = <0>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_0>,
@@ -842,7 +841,6 @@
 		device_type = "pci";
 		num-lanes = <1>;
 		num-viewport = <8>;
-		supports-clkreq;
 		linux,pci-domain = <1>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_1>,
@@ -934,7 +932,6 @@
 		device_type = "pci";
 		num-lanes = <1>;
 		num-viewport = <8>;
-		supports-clkreq;
 		linux,pci-domain = <2>;
 
 
@@ -1026,7 +1023,6 @@
 		device_type = "pci";
 		num-lanes = <1>;
 		num-viewport = <8>;
-		supports-clkreq;
 		linux,pci-domain = <3>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_3>,
@@ -1117,7 +1113,6 @@
 		device_type = "pci";
 		num-lanes = <4>;
 		num-viewport = <8>;
-		supports-clkreq;
 		linux,pci-domain = <4>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_4>,
@@ -1208,7 +1203,6 @@
 		device_type = "pci";
 		num-lanes = <8>;
 		num-viewport = <8>;
-		supports-clkreq;
 		linux,pci-domain = <5>;
 
 		clocks = <&bpmp_clks TEGRA194_CLK_PEX1_CORE_5>,
