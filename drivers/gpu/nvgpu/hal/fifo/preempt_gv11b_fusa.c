@@ -322,7 +322,7 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	u32 tsgid;
 
 	if (id_type == ID_TYPE_TSG) {
-		rl = f->runlists[f->tsg[id].runlist_id];
+		rl = f->tsg[id].runlist;
 		tsgid = id;
 	} else {
 		rl = f->channel[id].runlist;

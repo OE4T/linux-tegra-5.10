@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
 
 #include <nvgpu/channel.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/dma.h>
@@ -88,12 +89,14 @@ void gv11b_tsg_bind_channel_eng_method_buffers(struct nvgpu_tsg *tsg,
 	struct gk20a *g = tsg->g;
 	u64 gpu_va;
 
+	nvgpu_assert(tsg->runlist != NULL);
+
 	if (tsg->eng_method_buffers == NULL) {
 		nvgpu_log_info(g, "eng method buffer NULL");
 		return;
 	}
 
-	if (tsg->runlist_id == nvgpu_engine_get_fast_ce_runlist_id(g)) {
+	if (tsg->runlist->runlist_id == nvgpu_engine_get_fast_ce_runlist_id(g)) {
 		gpu_va = tsg->eng_method_buffers[ASYNC_CE_RUNQUE].gpu_va;
 	} else {
 		gpu_va = tsg->eng_method_buffers[GR_RUNQUE].gpu_va;

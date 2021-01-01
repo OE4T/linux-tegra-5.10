@@ -24,6 +24,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/runlist.h>
 
 #include "hal/fifo/tsg_gk20a.h"
 
@@ -32,7 +33,16 @@ void gk20a_tsg_enable(struct nvgpu_tsg *tsg)
 	struct gk20a *g = tsg->g;
 	struct nvgpu_channel *ch;
 
-	nvgpu_tsg_disable_sched(g, tsg);
+	if (tsg->runlist == NULL) {
+		/*
+		 * Enabling a TSG that has no runlist (implies no channels)
+		 * is just a noop.
+		 */
+		return;
+	}
+
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->runlist_id),
+				RUNLIST_DISABLED);
 
 	/*
 	 * Due to h/w bug that exists in Maxwell and Pascal,
@@ -63,5 +73,6 @@ void gk20a_tsg_enable(struct nvgpu_tsg *tsg)
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
-	nvgpu_tsg_enable_sched(g, tsg);
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->runlist_id),
+				RUNLIST_ENABLED);
 }

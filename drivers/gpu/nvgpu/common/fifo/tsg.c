@@ -113,14 +113,17 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 		ch->runqueue_sel = 1;
 	}
 
-	/* all the channel part of TSG should need to be same runlist_id */
-	if (tsg->runlist_id == NVGPU_INVALID_TSG_ID) {
-		tsg->runlist_id = ch->runlist->runlist_id;
+	/*
+	 * All the channels in a TSG must share the same runlist.
+	 */
+	if (tsg->runlist == NULL) {
+		tsg->runlist = ch->runlist;
 	} else {
-		if (tsg->runlist_id != ch->runlist->runlist_id) {
+		if (tsg->runlist != ch->runlist) {
 			nvgpu_err(tsg->g,
-				"runlist_id mismatch ch[%d] tsg[%d]",
-				ch->runlist->runlist_id, tsg->runlist_id);
+				  "runlist_id mismatch ch[%d] tsg[%d]",
+				  ch->runlist->runlist_id,
+				  tsg->runlist->runlist_id);
 			return -EINVAL;
 		}
 	}
@@ -673,11 +676,11 @@ int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level)
 	tsg->interleave_level = level;
 
 	/* TSG may not be bound yet */
-	if (tsg->runlist_id == NVGPU_INVALID_RUNLIST_ID) {
+	if (tsg->runlist == NULL) {
 		return 0;
 	}
 
-	return g->ops.runlist.reload(g, g->fifo.runlists[tsg->runlist_id], true, true);
+	return g->ops.runlist.reload(g, tsg->runlist, true, true);
 }
 
 int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
@@ -695,11 +698,11 @@ int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
 	tsg->timeslice_us = timeslice_us;
 
 	/* TSG may not be bound yet */
-	if (tsg->runlist_id == NVGPU_INVALID_RUNLIST_ID) {
+	if (tsg->runlist == NULL) {
 		return 0;
 	}
 
-	return g->ops.runlist.reload(g, g->fifo.runlists[tsg->runlist_id], true, true);
+	return g->ops.runlist.reload(g, tsg->runlist, true, true);
 }
 
 u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg)
@@ -711,19 +714,6 @@ u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg)
 u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g)
 {
 	return NVGPU_TSG_TIMESLICE_DEFAULT_US;
-}
-
-void nvgpu_tsg_enable_sched(struct gk20a *g, struct nvgpu_tsg *tsg)
-{
-	nvgpu_runlist_set_state(g, BIT32(tsg->runlist_id),
-			RUNLIST_ENABLED);
-
-}
-
-void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg)
-{
-	nvgpu_runlist_set_state(g, BIT32(tsg->runlist_id),
-			RUNLIST_DISABLED);
 }
 
 static void nvgpu_tsg_release_used_tsg(struct nvgpu_fifo *f,
@@ -778,7 +768,7 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid)
 	tsg->vm = NULL;
 	tsg->interleave_level = NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW;
 	tsg->timeslice_us = g->ops.tsg.default_timeslice_us(g);
-	tsg->runlist_id = NVGPU_INVALID_TSG_ID;
+	tsg->runlist = NULL;
 #ifdef CONFIG_NVGPU_DEBUGGER
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 #endif

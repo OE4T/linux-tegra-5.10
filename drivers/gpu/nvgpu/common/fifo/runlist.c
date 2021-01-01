@@ -876,9 +876,16 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 
 	if (id_type != ID_TYPE_UNKNOWN) {
 		if (id_type == ID_TYPE_TSG) {
-			runlists_mask |= BIT32(f->tsg[id].runlist_id);
+			runlist = f->tsg[id].runlist;
 		} else {
-			runlists_mask |= BIT32(f->channel[id].runlist->runlist_id);
+			runlist = f->channel[id].runlist;
+		}
+
+		if (runlist == NULL) {
+			/* Warning on Linux, real assert on QNX. */
+			nvgpu_assert(runlist != NULL);
+		} else {
+			runlists_mask |= BIT32(runlist->runlist_id);
 		}
 	} else {
 		if (bitmask_disabled) {

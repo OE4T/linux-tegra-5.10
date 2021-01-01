@@ -53,6 +53,7 @@ struct nvgpu_channel;
 struct nvgpu_gr_ctx;
 struct nvgpu_channel_hw_state;
 struct nvgpu_profiler_object;
+struct nvgpu_runlist;
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 enum nvgpu_event_id_type;
@@ -148,13 +149,10 @@ struct nvgpu_tsg {
 	u32 tsgid;
 
 	/**
-	 * There is maximum number of runlists defined by the h/w. Usually it
-	 * is one runlist per engine (graphics and grcopy share a runlist).
-	 * The runlist_id specifies the h/w runlist to which a runlist in
-	 * memory is being submitted. Each runlist serves a specific set of
-	 * engines. Refer to device.h.
+	 * Runlist this TSG will be assigned to.
 	 */
-	u32 runlist_id;
+	struct nvgpu_runlist *runlist;
+
 	/** tgid (OS specific) of the process that openend the TSG. */
 	pid_t tgid;
 	/**
@@ -527,28 +525,6 @@ int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level);
  * @return S/w defined default TSG timeslice value in us.
  */
 u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g);
-
-/**
- * @brief Enable h/w runlist scheduler corresponding to the runlist_id
- *        of the TSG.
- *
- * @param g [in]		The GPU driver struct.
- * @param tsg [in]		Pointer to the TSG struct.
- *
- * Enable h/w runlist scheduler for #nvgpu_tsg.runlist_id.
- */
-void nvgpu_tsg_enable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
-
-/**
- * @brief Disable h/w runlist scheduler corresponding to the runlist_id
- *        of the TSG.
- *
- * @param g [in]		The GPU driver struct.
- * @param tsg [in]		Pointer to the TSG struct.
- *
- * Disable h/w runlist scheduler for #nvgpu_tsg.runlist_id.
- */
-void nvgpu_tsg_disable_sched(struct gk20a *g, struct nvgpu_tsg *tsg);
 
 /**
  * @brief Allocate zero initialized memory to store SM errors.

@@ -40,25 +40,22 @@ u32 nvgpu_preempt_get_timeout(struct gk20a *g)
 
 int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
-	struct nvgpu_fifo *f = &g->fifo;
 	int ret = 0;
 #ifdef CONFIG_NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
 #endif
-	u32 runlist_id;
 
 	nvgpu_log_fn(g, "tsgid: %d", tsg->tsgid);
 
-	runlist_id = tsg->runlist_id;
-	if (runlist_id == NVGPU_INVALID_RUNLIST_ID) {
+	if (tsg->runlist == NULL) {
 		return 0;
 	}
 
-	nvgpu_mutex_acquire(&f->runlists[runlist_id]->runlist_lock);
+	nvgpu_mutex_acquire(&tsg->runlist->runlist_lock);
 
-	/* WAR for Bug 2065990 */
-	nvgpu_tsg_disable_sched(g, tsg);
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->runlist_id),
+				RUNLIST_DISABLED);
 #ifdef CONFIG_NVGPU_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 						PMU_MUTEX_ID_FIFO, &token);
@@ -80,10 +77,10 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 		}
 	}
 #endif
-	/* WAR for Bug 2065990 */
-	nvgpu_tsg_enable_sched(g, tsg);
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->runlist_id),
+				RUNLIST_ENABLED);
 
-	nvgpu_mutex_release(&f->runlists[runlist_id]->runlist_lock);
+	nvgpu_mutex_release(&tsg->runlist->runlist_lock);
 
 	if (ret != 0) {
 		if (nvgpu_platform_is_silicon(g)) {
@@ -115,8 +112,6 @@ int nvgpu_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch)
 int nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 		struct nvgpu_tsg *tsg)
 {
-	struct nvgpu_fifo *f = &g->fifo;
-	u32 runlist_id;
 	unsigned long runlist_served_pbdmas;
 	unsigned long pbdma_id_bit;
 	u32 tsgid, pbdma_id;
@@ -126,8 +121,7 @@ int nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 	}
 
 	tsgid = tsg->tsgid;
-	runlist_id = tsg->runlist_id;
-	runlist_served_pbdmas = f->runlists[runlist_id]->pbdma_bitmask;
+	runlist_served_pbdmas = tsg->runlist->pbdma_bitmask;
 
 	for_each_set_bit(pbdma_id_bit, &runlist_served_pbdmas,
 			 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA)) {
