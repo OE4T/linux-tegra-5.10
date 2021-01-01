@@ -54,7 +54,7 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 
 	nvgpu_mutex_acquire(&tsg->runlist->runlist_lock);
 
-	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->runlist_id),
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
 				RUNLIST_DISABLED);
 #ifdef CONFIG_NVGPU_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
@@ -77,7 +77,7 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 		}
 	}
 #endif
-	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->runlist_id),
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
 				RUNLIST_ENABLED);
 
 	nvgpu_mutex_release(&tsg->runlist->runlist_lock);
@@ -164,11 +164,11 @@ void nvgpu_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_bitmask)
 
 		runlist = &f->active_runlists[i];
 
-		if ((BIT32(runlist->runlist_id) & runlists_bitmask) == 0U) {
+		if ((BIT32(runlist->id) & runlists_bitmask) == 0U) {
 			continue;
 		}
 		/* issue runlist preempt */
-		g->ops.fifo.preempt_trigger(g, runlist->runlist_id,
+		g->ops.fifo.preempt_trigger(g, runlist->id,
 					ID_TYPE_RUNLIST);
 #ifdef CONFIG_NVGPU_RECOVERY
 		/*

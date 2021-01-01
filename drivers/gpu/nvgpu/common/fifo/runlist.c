@@ -481,7 +481,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 #endif
 
 	g->ops.runlist.hw_submit(
-		g, runlist->runlist_id, runlist->count, runlist->cur_buffer);
+		g, runlist->id, runlist->count, runlist->cur_buffer);
 
 	if (preempt_next) {
 		if (g->ops.runlist.reschedule_preempt_next_locked(ch,
@@ -490,9 +490,9 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 		}
 	}
 
-	if (g->ops.runlist.wait_pending(g, runlist->runlist_id) != 0) {
+	if (g->ops.runlist.wait_pending(g, runlist->id) != 0) {
 		nvgpu_err(g, "wait pending failed for runlist %u",
-				runlist->runlist_id);
+				runlist->id);
 	}
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
@@ -529,7 +529,7 @@ static int nvgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 #endif
-	ret = nvgpu_runlist_update_locked(g, rl->runlist_id, ch, add,
+	ret = nvgpu_runlist_update_locked(g, rl->id, ch, add,
 					       wait_for_finish);
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
@@ -542,7 +542,7 @@ static int nvgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
 	nvgpu_mutex_release(&rl->runlist_lock);
 
 	if (ret == -ETIMEDOUT) {
-		nvgpu_rc_runlist_update(g, rl->runlist_id);
+		nvgpu_rc_runlist_update(g, rl->id);
 	}
 
 	return ret;
@@ -666,7 +666,7 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g)
 		runlist->active_tsgs = NULL;
 
 		nvgpu_mutex_destroy(&runlist->runlist_lock);
-		f->runlists[runlist->runlist_id] = NULL;
+		f->runlists[runlist->id] = NULL;
 	}
 
 	nvgpu_kfree(g, f->active_runlists);
@@ -693,20 +693,20 @@ void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f)
 		runlist = &f->active_runlists[i];
 
 		(void) g->ops.fifo.find_pbdma_for_runlist(g,
-						runlist->runlist_id,
+						runlist->id,
 						&runlist->pbdma_bitmask);
 		nvgpu_log(g, gpu_dbg_info, "runlist %d: pbdma bitmask 0x%x",
-				 runlist->runlist_id, runlist->pbdma_bitmask);
+				 runlist->id, runlist->pbdma_bitmask);
 
 		for (j = 0; j < f->num_engines; j++) {
 			dev = f->active_engines[j];
 
-			if (dev->runlist_id == runlist->runlist_id) {
+			if (dev->runlist_id == runlist->id) {
 				runlist->eng_bitmask |= BIT32(dev->engine_id);
 			}
 		}
 		nvgpu_log(g, gpu_dbg_info, "runlist %d: act eng bitmask 0x%x",
-				 runlist->runlist_id, runlist->eng_bitmask);
+				 runlist->id, runlist->eng_bitmask);
 	}
 
 	nvgpu_log_fn(g, "done");
@@ -740,7 +740,7 @@ static int nvgpu_init_active_runlist_mapping(struct gk20a *g)
 		rl_dbg(g, "  SW runlist index to HW: %u -> %u", i, runlist_id);
 
 		runlist = &f->active_runlists[i];
-		runlist->runlist_id = runlist_id;
+		runlist->id = runlist_id;
 		f->runlists[runlist_id] = runlist;
 		i = nvgpu_safe_add_u32(i, 1U);
 
@@ -865,11 +865,11 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 			runlist = &f->active_runlists[i];
 
 			if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
-				runlists_mask |= BIT32(runlist->runlist_id);
+				runlists_mask |= BIT32(runlist->id);
 			}
 
 			if ((runlist->pbdma_bitmask & pbdma_bitmask) != 0U) {
-				runlists_mask |= BIT32(runlist->runlist_id);
+				runlists_mask |= BIT32(runlist->id);
 			}
 		}
 	}
@@ -885,7 +885,7 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 			/* Warning on Linux, real assert on QNX. */
 			nvgpu_assert(runlist != NULL);
 		} else {
-			runlists_mask |= BIT32(runlist->runlist_id);
+			runlists_mask |= BIT32(runlist->id);
 		}
 	} else {
 		if (bitmask_disabled) {
@@ -895,7 +895,7 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 			for (i = 0U; i < f->num_runlists; i++) {
 				runlist = &f->active_runlists[i];
 
-				runlists_mask |= BIT32(runlist->runlist_id);
+				runlists_mask |= BIT32(runlist->id);
 			}
 		} else {
 			nvgpu_log(g, gpu_dbg_info, "id_type_unknown, engine "

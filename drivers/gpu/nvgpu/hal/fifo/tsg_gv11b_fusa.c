@@ -96,7 +96,7 @@ void gv11b_tsg_bind_channel_eng_method_buffers(struct nvgpu_tsg *tsg,
 		return;
 	}
 
-	if (tsg->runlist->runlist_id == nvgpu_engine_get_fast_ce_runlist_id(g)) {
+	if (tsg->runlist->id == nvgpu_engine_get_fast_ce_runlist_id(g)) {
 		gpu_va = tsg->eng_method_buffers[ASYNC_CE_RUNQUE].gpu_va;
 	} else {
 		gpu_va = tsg->eng_method_buffers[GR_RUNQUE].gpu_va;

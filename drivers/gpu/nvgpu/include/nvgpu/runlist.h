@@ -81,7 +81,7 @@ struct nvgpu_channel;
 
 struct nvgpu_runlist {
 	/** Runlist identifier. */
-	u32 runlist_id;
+	u32 id;
 	/** Bitmap of active channels in the runlist. One bit per chid. */
 	unsigned long *active_channels;
 	/** Bitmap of active TSGs in the runlist. One bit per tsgid. */

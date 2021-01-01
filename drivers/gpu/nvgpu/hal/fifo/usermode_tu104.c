@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,13 +60,13 @@ u32 tu104_usermode_doorbell_token(struct nvgpu_channel *ch)
 	u32 hw_chid = f->channel_base + ch->chid;
 
 	return ctrl_doorbell_vector_f(hw_chid) |
-			ctrl_doorbell_runlist_id_f(ch->runlist->runlist_id);
+			ctrl_doorbell_runlist_id_f(ch->runlist->id);
 }
 
 void tu104_usermode_ring_doorbell(struct nvgpu_channel *ch)
 {
 	nvgpu_log_info(ch->g, "channel ring door bell %d, runlist %d",
-			ch->chid, ch->runlist->runlist_id);
+			ch->chid, ch->runlist->id);
 
 	nvgpu_usermode_writel(ch->g, func_doorbell_r(),
 				ch->g->ops.usermode.doorbell_token(ch));

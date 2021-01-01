@@ -1902,7 +1902,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 
 			channels_in_use = true;
 
-			active_runlist_ids |=  BIT32(ch->runlist->runlist_id);
+			active_runlist_ids |=  BIT32(ch->runlist->id);
 		}
 
 		nvgpu_channel_put(ch);
@@ -1939,7 +1939,7 @@ int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 			nvgpu_log_info(g, "resume channel %d", chid);
 			g->ops.channel.bind(ch);
 			channels_in_use = true;
-			active_runlist_ids |= BIT32(ch->runlist->runlist_id);
+			active_runlist_ids |= BIT32(ch->runlist->id);
 		}
 		nvgpu_channel_put(ch);
 	}

@@ -122,8 +122,8 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 		if (tsg->runlist != ch->runlist) {
 			nvgpu_err(tsg->g,
 				  "runlist_id mismatch ch[%d] tsg[%d]",
-				  ch->runlist->runlist_id,
-				  tsg->runlist->runlist_id);
+				  ch->runlist->id,
+				  tsg->runlist->id);
 			return -EINVAL;
 		}
 	}

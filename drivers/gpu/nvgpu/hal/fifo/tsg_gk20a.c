@@ -41,7 +41,7 @@ void gk20a_tsg_enable(struct nvgpu_tsg *tsg)
 		return;
 	}
 
-	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->runlist_id),
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
 				RUNLIST_DISABLED);
 
 	/*
@@ -73,6 +73,6 @@ void gk20a_tsg_enable(struct nvgpu_tsg *tsg)
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
-	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->runlist_id),
+	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
 				RUNLIST_ENABLED);
 }

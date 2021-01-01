@@ -173,7 +173,7 @@ static int vgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
 
 	nvgpu_mutex_acquire(&rl->runlist_lock);
 
-	ret = vgpu_runlist_update_locked(g, rl->runlist_id, ch, add,
+	ret = vgpu_runlist_update_locked(g, rl->id, ch, add,
 					wait_for_finish);
 
 	nvgpu_mutex_release(&rl->runlist_lock);

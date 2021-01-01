@@ -74,11 +74,11 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 	for (i = 0U; i < f->num_runlists; i++) {
 		runlist = &f->active_runlists[i];
 
-		if ((runlists_mask & BIT32(runlist->runlist_id)) == 0U) {
+		if ((runlists_mask & BIT32(runlist->id)) == 0U) {
 			continue;
 		}
 		nvgpu_log(g, gpu_dbg_info, "abort runlist id %d",
-				runlist->runlist_id);
+				runlist->id);
 
 		for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
 			tsg = &g->fifo.tsg[tsgid];
@@ -118,10 +118,10 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			 * the update to finish on hw.
 			 */
 			err = nvgpu_runlist_update_locked(g,
-				runlist->runlist_id, NULL, false, false);
+				runlist->id, NULL, false, false);
 			if (err != 0) {
 				nvgpu_err(g, "runlist id %d is not cleaned up",
-					runlist->runlist_id);
+					runlist->id);
 			}
 
 			nvgpu_tsg_abort(g, tsg, false);
@@ -322,14 +322,14 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	for (i = 0U; i < f->num_runlists; i++) {
 		runlist = &f->active_runlists[i];
 
-		if (((runlists_mask & BIT32(runlist->runlist_id)) == 0U) ||
+		if (((runlists_mask & BIT32(runlist->id)) == 0U) ||
 		    (runlist->reset_eng_bitmask == 0U)) {
 			continue;
 		}
 
 		bitmask = runlist->reset_eng_bitmask;
 		rec_dbg(g, "  Engine bitmask for RL %u: 0x%lx",
-		       runlist->runlist_id, bitmask);
+		       runlist->id, bitmask);
 
 		for_each_set_bit(bit, &bitmask, f->max_engines) {
 
