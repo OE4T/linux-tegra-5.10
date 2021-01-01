@@ -471,7 +471,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 #endif
 	int ret = 0;
 
-	runlist = g->fifo.runlists[ch->runlist_id];
+	runlist = ch->runlist;
 	if (nvgpu_mutex_tryacquire(&runlist->runlist_lock) == 0) {
 		return -EBUSY;
 	}
@@ -481,7 +481,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 #endif
 
 	g->ops.runlist.hw_submit(
-		g, ch->runlist_id, runlist->count, runlist->cur_buffer);
+		g, runlist->runlist_id, runlist->count, runlist->cur_buffer);
 
 	if (preempt_next) {
 		if (g->ops.runlist.reschedule_preempt_next_locked(ch,
@@ -490,9 +490,9 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
 		}
 	}
 
-	if (g->ops.runlist.wait_pending(g, ch->runlist_id) != 0) {
+	if (g->ops.runlist.wait_pending(g, runlist->runlist_id) != 0) {
 		nvgpu_err(g, "wait pending failed for runlist %u",
-				ch->runlist_id);
+				runlist->runlist_id);
 	}
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
@@ -512,12 +512,10 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
    special cases below: runlist->active_channels will NOT be changed.
    (ch == NULL && !add) means remove all active channels from runlist.
    (ch == NULL &&  add) means restore all active channels on runlist. */
-static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
-			      struct nvgpu_channel *ch,
-			      bool add, bool wait_for_finish)
+static int nvgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
+				   struct nvgpu_channel *ch,
+				   bool add, bool wait_for_finish)
 {
-	struct nvgpu_runlist *runlist = NULL;
-	struct nvgpu_fifo *f = &g->fifo;
 #ifdef CONFIG_NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
@@ -526,14 +524,12 @@ static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 
 	nvgpu_log_fn(g, " ");
 
-	runlist = f->runlists[runlist_id];
-
-	nvgpu_mutex_acquire(&runlist->runlist_lock);
+	nvgpu_mutex_acquire(&rl->runlist_lock);
 #ifdef CONFIG_NVGPU_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 #endif
-	ret = nvgpu_runlist_update_locked(g, runlist_id, ch, add,
+	ret = nvgpu_runlist_update_locked(g, rl->runlist_id, ch, add,
 					       wait_for_finish);
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
@@ -543,32 +539,33 @@ static int nvgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 		}
 	}
 #endif
-	nvgpu_mutex_release(&runlist->runlist_lock);
+	nvgpu_mutex_release(&rl->runlist_lock);
 
 	if (ret == -ETIMEDOUT) {
-		nvgpu_rc_runlist_update(g, runlist_id);
+		nvgpu_rc_runlist_update(g, rl->runlist_id);
 	}
 
 	return ret;
 }
 
-int nvgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-			      struct nvgpu_channel *ch,
-			      bool add, bool wait_for_finish)
+int nvgpu_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,
+			 struct nvgpu_channel *ch,
+			 bool add, bool wait_for_finish)
 {
 	nvgpu_assert(ch != NULL);
 
-	return nvgpu_runlist_update(g, runlist_id, ch, add, wait_for_finish);
+	return nvgpu_runlist_do_update(g, rl, ch, add, wait_for_finish);
 }
 
-int nvgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
+int nvgpu_runlist_reload(struct gk20a *g, struct nvgpu_runlist *rl,
 			      bool add, bool wait_for_finish)
 {
-	return nvgpu_runlist_update(g, runlist_id, NULL, add, wait_for_finish);
+	return nvgpu_runlist_do_update(g, rl, NULL, add, wait_for_finish);
 }
 
 int nvgpu_runlist_reload_ids(struct gk20a *g, u32 runlist_ids, bool add)
 {
+	struct nvgpu_fifo *f = &g->fifo;
 	int ret = -EINVAL;
 	unsigned long runlist_id = 0;
 	int errcode;
@@ -581,7 +578,8 @@ int nvgpu_runlist_reload_ids(struct gk20a *g, u32 runlist_ids, bool add)
 	ret = 0;
 	for_each_set_bit(runlist_id, &ulong_runlist_ids, 32U) {
 		/* Capture the last failure error code */
-		errcode = g->ops.runlist.reload(g, (u32)runlist_id, add, true);
+		errcode = g->ops.runlist.reload(g,
+						f->runlists[runlist_id], add, true);
 		if (errcode != 0) {
 			nvgpu_err(g,
 				"failed to update_runlist %lu %d",
@@ -880,7 +878,7 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 		if (id_type == ID_TYPE_TSG) {
 			runlists_mask |= BIT32(f->tsg[id].runlist_id);
 		} else {
-			runlists_mask |= BIT32(f->channel[id].runlist_id);
+			runlists_mask |= BIT32(f->channel[id].runlist->runlist_id);
 		}
 	} else {
 		if (bitmask_disabled) {

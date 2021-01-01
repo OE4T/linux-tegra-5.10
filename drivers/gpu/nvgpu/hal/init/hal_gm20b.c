@@ -684,7 +684,7 @@ static const struct gops_ramin gm20b_ops_ramin = {
 };
 
 static const struct gops_runlist gm20b_ops_runlist = {
-	.update_for_channel = nvgpu_runlist_update_for_channel,
+	.update = nvgpu_runlist_update,
 	.reload = nvgpu_runlist_reload,
 	.count_max = gk20a_runlist_count_max,
 	.entry_size = gk20a_runlist_entry_size,

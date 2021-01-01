@@ -158,8 +158,7 @@ void nvgpu_channel_commit_va(struct nvgpu_channel *c)
 
 int nvgpu_channel_update_runlist(struct nvgpu_channel *c, bool add)
 {
-	return c->g->ops.runlist.update_for_channel(c->g, c->runlist_id,
-			c, add, true);
+	return c->g->ops.runlist.update(c->g, c->runlist, c, add, true);
 }
 
 int nvgpu_channel_enable_tsg(struct gk20a *g, struct nvgpu_channel *ch)
@@ -1249,7 +1248,7 @@ NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
 	ch->g = g;
 
 	/* Runlist for the channel */
-	ch->runlist_id = runlist_id;
+	ch->runlist = f->runlists[runlist_id];
 
 	/* Channel privilege level */
 	ch->is_privileged_channel = is_privileged_channel;
@@ -1903,7 +1902,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 
 			channels_in_use = true;
 
-			active_runlist_ids |=  BIT32(ch->runlist_id);
+			active_runlist_ids |=  BIT32(ch->runlist->runlist_id);
 		}
 
 		nvgpu_channel_put(ch);
@@ -1940,7 +1939,7 @@ int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 			nvgpu_log_info(g, "resume channel %d", chid);
 			g->ops.channel.bind(ch);
 			channels_in_use = true;
-			active_runlist_ids |= BIT32(ch->runlist_id);
+			active_runlist_ids |= BIT32(ch->runlist->runlist_id);
 		}
 		nvgpu_channel_put(ch);
 	}

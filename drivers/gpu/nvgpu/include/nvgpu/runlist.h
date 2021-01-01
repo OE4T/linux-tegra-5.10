@@ -142,7 +142,7 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
  *
  * When #ch is NULL, this function has same behavior as #nvgpu_runlist_reload.
  * When #ch is non NULL, this function has same behavior as
- * #nvgpu_runlist_update_for_channel.
+ * #nvgpu_runlist_update.
  *
  * The only difference with #nvgpu_runlist_reload is that the caller already
  * holds the runlist_lock before calling this function.
@@ -185,7 +185,7 @@ int nvgpu_runlist_reschedule(struct nvgpu_channel *ch, bool preempt_next,
  * @retval -E2BIG in case there are not enough entries in runlist buffer to
  *         accommodate all active channels/TSGs.
  */
-int nvgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
+int nvgpu_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,
 		struct nvgpu_channel *ch, bool add, bool wait_for_finish);
 
 /**
@@ -211,7 +211,7 @@ int nvgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
  * @retval -E2BIG in case there are not enough entries in the runlist buffer
  *         to accommodate all active channels/TSGs.
  */
-int nvgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
+int nvgpu_runlist_reload(struct gk20a *g, struct nvgpu_runlist *rl,
 		bool add, bool wait_for_finish);
 
 /**

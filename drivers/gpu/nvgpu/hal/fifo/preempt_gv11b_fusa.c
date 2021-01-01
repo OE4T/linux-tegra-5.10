@@ -312,27 +312,27 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		 unsigned int id_type)
 {
 	struct nvgpu_fifo *f = &g->fifo;
+	struct nvgpu_runlist *rl;
 	unsigned long runlist_served_pbdmas;
 	unsigned long runlist_served_engines;
 	unsigned long bit;
 	u32 pbdma_id;
 	u32 engine_id;
-	u32 runlist_id;
 	int err, ret = 0;
 	u32 tsgid;
 
 	if (id_type == ID_TYPE_TSG) {
-		runlist_id = f->tsg[id].runlist_id;
+		rl = f->runlists[f->tsg[id].runlist_id];
 		tsgid = id;
 	} else {
-		runlist_id = f->channel[id].runlist_id;
+		rl = f->channel[id].runlist;
 		tsgid = f->channel[id].tsgid;
 	}
 
 	nvgpu_log_info(g, "Check preempt pending for tsgid = %u", tsgid);
 
-	runlist_served_pbdmas = f->runlists[runlist_id]->pbdma_bitmask;
-	runlist_served_engines = f->runlists[runlist_id]->eng_bitmask;
+	runlist_served_pbdmas = rl->pbdma_bitmask;
+	runlist_served_engines = rl->eng_bitmask;
 
 	for_each_set_bit(bit, &runlist_served_pbdmas,
 			 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA)) {
@@ -344,13 +344,13 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		}
 	}
 
-	f->runlists[runlist_id]->reset_eng_bitmask = 0U;
+	rl->reset_eng_bitmask = 0U;
 
 	for_each_set_bit(bit, &runlist_served_engines, f->max_engines) {
 		engine_id = U32(bit);
 		err = gv11b_fifo_preempt_poll_eng(g,
 			tsgid, engine_id,
-			&f->runlists[runlist_id]->reset_eng_bitmask);
+			&rl->reset_eng_bitmask);
 		if ((err != 0) && (ret == 0)) {
 			ret = err;
 		}

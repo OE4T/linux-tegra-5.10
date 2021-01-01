@@ -994,7 +994,7 @@ static const struct gops_ramin tu104_ops_ramin = {
 };
 
 static const struct gops_runlist tu104_ops_runlist = {
-	.update_for_channel = nvgpu_runlist_update_for_channel,
+	.update = nvgpu_runlist_update,
 	.reload = nvgpu_runlist_reload,
 	.count_max = tu104_runlist_count_max,
 	.entry_size = tu104_runlist_entry_size,

@@ -44,6 +44,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 #include <nvgpu/preempt.h>
+#include <nvgpu/runlist.h>
 
 #include "gr_gk20a.h"
 #include "gr_gp10b.h"
@@ -402,7 +403,7 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct nvgpu_channel
 		return ret;
 	}
 
-	ret = g->ops.runlist.reload(g, fault_ch->runlist_id, true, false);
+	ret = g->ops.runlist.reload(g, fault_ch->runlist, true, false);
 	if (ret != 0) {
 		nvgpu_err(g, "CILP: failed to restart runlist 0!");
 		return ret;

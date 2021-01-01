@@ -546,7 +546,7 @@ static const struct gops_ramin vgpu_gp10b_ops_ramin = {
 
 static const struct gops_runlist vgpu_gp10b_ops_runlist = {
 	.reschedule = NULL,
-	.update_for_channel = vgpu_runlist_update_for_channel,
+	.update = vgpu_runlist_update,
 	.reload = vgpu_runlist_reload,
 	.count_max = gk20a_runlist_count_max,
 	.entry_size = vgpu_runlist_entry_size,

@@ -52,8 +52,7 @@ int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 		bool wait_preempt)
 {
 	struct gk20a *g = ch->g;
-	struct nvgpu_runlist *runlist =
-		g->fifo.runlists[ch->runlist_id];
+	struct nvgpu_runlist *runlist = ch->runlist;
 	int ret = 0;
 	u32 fecsstat0 = 0, fecsstat1 = 0;
 	u32 preempt_id;

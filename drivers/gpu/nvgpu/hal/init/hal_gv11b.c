@@ -943,7 +943,7 @@ static const struct gops_runlist gv11b_ops_runlist = {
 	.reschedule = gv11b_runlist_reschedule,
 	.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
 #endif
-	.update_for_channel = nvgpu_runlist_update_for_channel,
+	.update = nvgpu_runlist_update,
 	.reload = nvgpu_runlist_reload,
 	.count_max = gv11b_runlist_count_max,
 	.entry_size = gv11b_runlist_entry_size,

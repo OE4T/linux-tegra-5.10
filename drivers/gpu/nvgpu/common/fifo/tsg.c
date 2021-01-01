@@ -115,12 +115,12 @@ int nvgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 
 	/* all the channel part of TSG should need to be same runlist_id */
 	if (tsg->runlist_id == NVGPU_INVALID_TSG_ID) {
-		tsg->runlist_id = ch->runlist_id;
+		tsg->runlist_id = ch->runlist->runlist_id;
 	} else {
-		if (tsg->runlist_id != ch->runlist_id) {
+		if (tsg->runlist_id != ch->runlist->runlist_id) {
 			nvgpu_err(tsg->g,
 				"runlist_id mismatch ch[%d] tsg[%d]",
-				ch->runlist_id, tsg->runlist_id);
+				ch->runlist->runlist_id, tsg->runlist_id);
 			return -EINVAL;
 		}
 	}
@@ -677,7 +677,7 @@ int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level)
 		return 0;
 	}
 
-	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
+	return g->ops.runlist.reload(g, g->fifo.runlists[tsg->runlist_id], true, true);
 }
 
 int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
@@ -699,7 +699,7 @@ int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
 		return 0;
 	}
 
-	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
+	return g->ops.runlist.reload(g, g->fifo.runlists[tsg->runlist_id], true, true);
 }
 
 u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg)

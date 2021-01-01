@@ -65,12 +65,12 @@ struct gops_runlist {
 	 * @retval -E2BIG in case there are not enough entries in the runlist
 	 *         buffer to accommodate all active channels/TSGs.
 	 */
-	int (*reload)(struct gk20a *g, u32 runlist_id,
+	int (*reload)(struct gk20a *g, struct nvgpu_runlist *rl,
 			bool add, bool wait_for_finish);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
-	int (*update_for_channel)(struct gk20a *g, u32 runlist_id,
+	int (*update)(struct gk20a *g, struct nvgpu_runlist *rl,
 			struct nvgpu_channel *ch, bool add,
 			bool wait_for_finish);
 	u32 (*count_max)(struct gk20a *g);

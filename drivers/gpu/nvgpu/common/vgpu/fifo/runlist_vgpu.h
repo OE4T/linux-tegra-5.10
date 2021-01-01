@@ -24,11 +24,12 @@
 
 struct gk20a;
 struct nvgpu_channel;
+struct nvgpu_runlist;
 
-int vgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-					struct nvgpu_channel *ch,
-					bool add, bool wait_for_finish);
-int vgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
+int vgpu_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,
+			struct nvgpu_channel *ch,
+			bool add, bool wait_for_finish);
+int vgpu_runlist_reload(struct gk20a *g, struct nvgpu_runlist *rl,
 				bool add, bool wait_for_finish);
 u32 vgpu_runlist_length_max(struct gk20a *g);
 u32 vgpu_runlist_entry_size(struct gk20a *g);

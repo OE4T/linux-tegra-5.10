@@ -50,6 +50,7 @@ struct priv_cmd_queue;
 struct priv_cmd_entry;
 struct nvgpu_channel_wdt;
 struct nvgpu_user_fence;
+struct nvgpu_runlist;
 
 /**
  * S/W defined invalid channel identifier.
@@ -488,8 +489,8 @@ struct nvgpu_channel {
 	 */
 	u32 runqueue_sel;
 
-	/** Identifer of the runlist the channel will run on */
-	u32 runlist_id;
+	/** Runlist the channel will run on. */
+	struct nvgpu_runlist *runlist;
 
 	/**
 	 * Recovery path can be entered twice for the same error in

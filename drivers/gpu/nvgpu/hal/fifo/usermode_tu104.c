@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/io_usermode.h>
+#include <nvgpu/runlist.h>
 
 #include "usermode_tu104.h"
 
@@ -59,13 +60,13 @@ u32 tu104_usermode_doorbell_token(struct nvgpu_channel *ch)
 	u32 hw_chid = f->channel_base + ch->chid;
 
 	return ctrl_doorbell_vector_f(hw_chid) |
-			ctrl_doorbell_runlist_id_f(ch->runlist_id);
+			ctrl_doorbell_runlist_id_f(ch->runlist->runlist_id);
 }
 
 void tu104_usermode_ring_doorbell(struct nvgpu_channel *ch)
 {
 	nvgpu_log_info(ch->g, "channel ring door bell %d, runlist %d",
-			ch->chid, ch->runlist_id);
+			ch->chid, ch->runlist->runlist_id);
 
 	nvgpu_usermode_writel(ch->g, func_doorbell_r(),
 				ch->g->ops.usermode.doorbell_token(ch));
