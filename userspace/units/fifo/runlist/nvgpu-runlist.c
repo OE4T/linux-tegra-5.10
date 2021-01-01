@@ -152,11 +152,11 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 		unsigned long *ch_map, struct nvgpu_tsg *tsgs,
 		struct nvgpu_channel *chs, unsigned int num_tsgs,
 		unsigned int num_channels,
-		struct nvgpu_runlist_info **runlists, u32 *rl_data,
+		struct nvgpu_runlist **runlists, u32 *rl_data,
 		bool interleave)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info *runlist = runlists[0];
+	struct nvgpu_runlist *runlist = runlists[0];
 
 	/* we only use the runlist 0 here */
 	runlist->mem[0].aperture = APERTURE_SYSMEM;
@@ -178,7 +178,7 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	f->tsg = tsgs;
 	f->channel = chs;
 	f->num_channels = num_channels;
-	f->runlist_info = runlists;
+	f->runlists = runlists;
 
 	/*
 	 * For testing the runlist entry order format, these simpler dual-u32
@@ -241,7 +241,7 @@ static int run_format_test(struct unit_module *m, struct nvgpu_fifo *f,
 	setup_tsg_multich(tsg, chs, 0, prio, 5, n_ch);
 
 	/* entry capacity: tsg header and some channels */
-	n = nvgpu_runlist_construct_locked(f, f->runlist_info[0], 0, 1 + n_ch);
+	n = nvgpu_runlist_construct_locked(f, f->runlists[0], 0, 1 + n_ch);
 
 	if (n != 1 + n_ch) {
 		return -1;
@@ -308,8 +308,8 @@ static const char *f_runlist_format[] = {
 int test_tsg_format_gen(struct unit_module *m, struct gk20a *g, void *args)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info runlist;
-	struct nvgpu_runlist_info *runlists = &runlist;
+	struct nvgpu_runlist runlist;
+	struct nvgpu_runlist *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
 	struct nvgpu_tsg tsgs[1] = {{0}};
@@ -412,8 +412,8 @@ static int test_common_gen(struct unit_module *m, struct gk20a *g,
 	u32 *expected, u32 expect_count)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info runlist;
-	struct nvgpu_runlist_info *runlists = &runlist;
+	struct nvgpu_runlist runlist;
+	struct nvgpu_runlist *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
 	struct nvgpu_tsg tsgs[6] = {{0}};
@@ -978,8 +978,8 @@ done:
 #define F_RUNLIST_SETUP_LAST				BIT(6)
 
 static const char *f_runlist_setup[] = {
-	"alloc_runlist_info_fail",
-	"alloc_active_runlist_info_fail",
+	"alloc_runlists_fail",
+	"alloc_active_runlists_fail",
 	"alloc_active_channels_fail",
 	"alloc_active_tsgs_fail",
 	"alloc_dma_flags_sys_fail",

@@ -1,7 +1,7 @@
 /*
  * FIFO common definitions.
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -131,7 +131,7 @@
  *
  *       TODO
  *
- *   + struct nvgpu_runlist_info
+ *   + struct nvgpu_runlist
  *
  *       TODO
  *
@@ -225,7 +225,7 @@
 #define CHANNEL_INFO_VEID0		0U
 
 struct gk20a;
-struct nvgpu_runlist_info;
+struct nvgpu_runlist;
 struct nvgpu_channel;
 struct nvgpu_tsg;
 struct nvgpu_swprofiler;
@@ -277,15 +277,15 @@ struct nvgpu_fifo {
 
 	/**
 	 * Pointers to runlists, indexed by real hw runlist_id.
-	 * If a runlist is active, then runlist_info[runlist_id] points
+	 * If a runlist is active, then runlists[runlist_id] points
 	 * to one entry in active_runlist_info. Otherwise, it is NULL.
 	 */
-	struct nvgpu_runlist_info **runlist_info;
+	struct nvgpu_runlist **runlists;
 	/** Number of runlists supported by the h/w. */
 	u32 max_runlists;
 
-	/** Array of runlists that are actually in use. */
-	struct nvgpu_runlist_info *active_runlist_info;
+	/** Array of actual HW runlists that are present on the GPU. */
+	struct nvgpu_runlist *active_runlists;
 	/** Number of active runlists. */
 	u32 num_runlists;
 

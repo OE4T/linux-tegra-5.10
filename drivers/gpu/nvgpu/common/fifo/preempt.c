@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,7 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 		return 0;
 	}
 
-	nvgpu_mutex_acquire(&f->runlist_info[runlist_id]->runlist_lock);
+	nvgpu_mutex_acquire(&f->runlists[runlist_id]->runlist_lock);
 
 	/* WAR for Bug 2065990 */
 	nvgpu_tsg_disable_sched(g, tsg);
@@ -83,7 +83,7 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 	/* WAR for Bug 2065990 */
 	nvgpu_tsg_enable_sched(g, tsg);
 
-	nvgpu_mutex_release(&f->runlist_info[runlist_id]->runlist_lock);
+	nvgpu_mutex_release(&f->runlists[runlist_id]->runlist_lock);
 
 	if (ret != 0) {
 		if (nvgpu_platform_is_silicon(g)) {
@@ -127,7 +127,7 @@ int nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
 
 	tsgid = tsg->tsgid;
 	runlist_id = tsg->runlist_id;
-	runlist_served_pbdmas = f->runlist_info[runlist_id]->pbdma_bitmask;
+	runlist_served_pbdmas = f->runlists[runlist_id]->pbdma_bitmask;
 
 	for_each_set_bit(pbdma_id_bit, &runlist_served_pbdmas,
 			 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA)) {
@@ -166,9 +166,9 @@ void nvgpu_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_bitmask)
 #endif
 
 	for (i = 0U; i < f->num_runlists; i++) {
-		struct nvgpu_runlist_info *runlist;
+		struct nvgpu_runlist *runlist;
 
-		runlist = &f->active_runlist_info[i];
+		runlist = &f->active_runlists[i];
 
 		if ((BIT32(runlist->runlist_id) & runlists_bitmask) == 0U) {
 			continue;

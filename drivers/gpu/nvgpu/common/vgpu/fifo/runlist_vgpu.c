@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU Runlist
  *
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -77,9 +77,9 @@ static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 					    struct nvgpu_channel *ch, bool add)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info *runlist;
+	struct nvgpu_runlist *runlist;
 
-	runlist = f->runlist_info[runlist_id];
+	runlist = f->runlists[runlist_id];
 
 	if (add) {
 		if (nvgpu_test_and_set_bit(ch->chid,
@@ -102,9 +102,9 @@ static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 				     bool add_entries)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info *runlist;
+	struct nvgpu_runlist *runlist;
 
-	runlist = f->runlist_info[runlist_id];
+	runlist = f->runlists[runlist_id];
 
 	if (add_entries) {
 		u16 *runlist_entry;
@@ -132,7 +132,7 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 					bool wait_for_finish)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info *runlist;
+	struct nvgpu_runlist *runlist;
 	bool add_entries;
 
 	nvgpu_log_fn(g, " ");
@@ -151,7 +151,7 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 		add_entries = add;
 	}
 
-	runlist = f->runlist_info[runlist_id];
+	runlist = f->runlists[runlist_id];
 
 	vgpu_runlist_reconstruct_locked(g, runlist_id, add_entries);
 
@@ -167,13 +167,13 @@ static int vgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 				struct nvgpu_channel *ch,
 				bool add, bool wait_for_finish)
 {
-	struct nvgpu_runlist_info *runlist = NULL;
+	struct nvgpu_runlist *runlist = NULL;
 	struct nvgpu_fifo *f = &g->fifo;
 	u32 ret = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	runlist = f->runlist_info[runlist_id];
+	runlist = f->runlists[runlist_id];
 
 	nvgpu_mutex_acquire(&runlist->runlist_lock);
 

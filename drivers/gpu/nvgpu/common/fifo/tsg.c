@@ -73,11 +73,11 @@ static bool nvgpu_tsg_is_channel_active(struct gk20a *g,
 		struct nvgpu_channel *ch)
 {
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist_info *runlist;
+	struct nvgpu_runlist *runlist;
 	unsigned int i;
 
 	for (i = 0; i < f->num_runlists; ++i) {
-		runlist = &f->active_runlist_info[i];
+		runlist = &f->active_runlists[i];
 		if (nvgpu_test_bit(ch->chid, runlist->active_channels)) {
 			return true;
 		}

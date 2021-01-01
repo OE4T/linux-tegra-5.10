@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -239,7 +239,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	nvgpu_runlist_set_state(g, BIT32(dev->runlist_id),
 			RUNLIST_DISABLED);
 
-	runlist_served_pbdmas = f->runlist_info[dev->runlist_id]->pbdma_bitmask;
+	runlist_served_pbdmas = f->runlists[dev->runlist_id]->pbdma_bitmask;
 
 	for_each_set_bit(bit, &runlist_served_pbdmas,
 			 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA)) {

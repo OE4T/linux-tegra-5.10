@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,8 +52,8 @@ int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 		bool wait_preempt)
 {
 	struct gk20a *g = ch->g;
-	struct nvgpu_runlist_info *runlist =
-		g->fifo.runlist_info[ch->runlist_id];
+	struct nvgpu_runlist *runlist =
+		g->fifo.runlists[ch->runlist_id];
 	int ret = 0;
 	u32 fecsstat0 = 0, fecsstat1 = 0;
 	u32 preempt_id;

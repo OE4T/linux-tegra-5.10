@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -64,7 +64,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 	struct nvgpu_tsg *tsg = NULL;
 
 	const struct nvgpu_device *dev;
-	struct nvgpu_runlist_info *runlist;
+	struct nvgpu_runlist *runlist;
 	u32 runlist_id;
 	int ret = SEQ_SKIP;
 
@@ -72,7 +72,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 	nvgpu_assert(dev != NULL);
 
 	runlist_id = dev->runlist_id;
-	runlist = f->runlist_info[runlist_id];
+	runlist = f->runlists[runlist_id];
 
 	if (ch == f->channel) {
 		seq_puts(s, "chid     tsgid    pid      timeslice  timeout  interleave graphics_preempt compute_preempt\n");

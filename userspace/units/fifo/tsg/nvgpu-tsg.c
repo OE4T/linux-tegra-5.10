@@ -293,7 +293,7 @@ int test_tsg_bind_channel(struct unit_module *m,
 	struct nvgpu_channel *chA = NULL;
 	struct nvgpu_channel *chB = NULL;
 	struct nvgpu_channel *ch = NULL;
-	struct nvgpu_runlist_info *runlist = NULL;
+	struct nvgpu_runlist *runlist = NULL;
 	u32 branches = 0U;
 	int ret = UNIT_FAIL;
 	int err;
@@ -344,7 +344,7 @@ int test_tsg_bind_channel(struct unit_module *m,
 			ch->runlist_id + 1 : tsg_save.runlist_id;
 
 		/* ch already already active */
-		runlist = &f->active_runlist_info[tsg->runlist_id];
+		runlist = &f->active_runlists[tsg->runlist_id];
 		if (branches & F_TSG_BIND_CHANNEL_ACTIVE) {
 			nvgpu_set_bit(ch->chid, runlist->active_channels);
 		} else {

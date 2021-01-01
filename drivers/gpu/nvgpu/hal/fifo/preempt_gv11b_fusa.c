@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -331,8 +331,8 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 
 	nvgpu_log_info(g, "Check preempt pending for tsgid = %u", tsgid);
 
-	runlist_served_pbdmas = f->runlist_info[runlist_id]->pbdma_bitmask;
-	runlist_served_engines = f->runlist_info[runlist_id]->eng_bitmask;
+	runlist_served_pbdmas = f->runlists[runlist_id]->pbdma_bitmask;
+	runlist_served_engines = f->runlists[runlist_id]->eng_bitmask;
 
 	for_each_set_bit(bit, &runlist_served_pbdmas,
 			 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA)) {
@@ -344,13 +344,13 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		}
 	}
 
-	f->runlist_info[runlist_id]->reset_eng_bitmask = 0U;
+	f->runlists[runlist_id]->reset_eng_bitmask = 0U;
 
 	for_each_set_bit(bit, &runlist_served_engines, f->max_engines) {
 		engine_id = U32(bit);
 		err = gv11b_fifo_preempt_poll_eng(g,
 			tsgid, engine_id,
-			&f->runlist_info[runlist_id]->reset_eng_bitmask);
+			&f->runlists[runlist_id]->reset_eng_bitmask);
 		if ((err != 0) && (ret == 0)) {
 			ret = err;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -223,12 +223,12 @@ int test_preempt_poll_tsg_on_pbdma(struct unit_module *m, struct gk20a *g,
 
 		if (branches & F_PREEMPT_POLL_PBDMA_BUSY) {
 			unit_assert(stub[0].pbdma_id !=
-				nvgpu_ffs(f->runlist_info[0]->pbdma_bitmask),
+				nvgpu_ffs(f->runlists[0]->pbdma_bitmask),
 				goto done);
 		} else if (!(branches & F_PREEMPT_POLL_PBDMA_NULL)) {
 			unit_assert(stub[0].tsgid == 0, goto done);
 			unit_assert(stub[0].pbdma_id ==
-				nvgpu_ffs(f->runlist_info[0]->pbdma_bitmask),
+				nvgpu_ffs(f->runlists[0]->pbdma_bitmask),
 				goto done);
 		}
 	}

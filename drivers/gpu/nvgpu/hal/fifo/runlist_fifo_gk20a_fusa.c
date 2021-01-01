@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,10 +41,10 @@ u32 gk20a_runlist_length_max(struct gk20a *g)
 void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
        u32 count, u32 buffer_index)
 {
-	struct nvgpu_runlist_info *runlist = NULL;
+	struct nvgpu_runlist *runlist = NULL;
 	u64 runlist_iova;
 
-       runlist = g->fifo.runlist_info[runlist_id];
+       runlist = g->fifo.runlists[runlist_id];
        runlist_iova = nvgpu_mem_get_addr(g, &runlist->mem[buffer_index]);
 
        nvgpu_spinlock_acquire(&g->fifo.runlist_submit_lock);

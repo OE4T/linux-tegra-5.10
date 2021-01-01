@@ -369,7 +369,7 @@ int test_gv11b_fifo_is_preempt_pending(struct unit_module *m, struct gk20a *g,
 	u32 ctx_stat = 0U;
 	u32 id = 0U, next_id = 0U;
 	/* Assuming runlist_id is 0 */
-	u32 runlist_served_pbdmas = g->fifo.runlist_info[0U]->pbdma_bitmask;
+	u32 runlist_served_pbdmas = g->fifo.runlists[0U]->pbdma_bitmask;
 
 	timers_fi = nvgpu_timers_get_fault_injection();
 

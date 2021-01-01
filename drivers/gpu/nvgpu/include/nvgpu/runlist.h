@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ struct nvgpu_channel;
 /** Runlist identifier is invalid. */
 #define NVGPU_INVALID_RUNLIST_ID		U32_MAX
 
-struct nvgpu_runlist_info {
+struct nvgpu_runlist {
 	/** Runlist identifier. */
 	u32 runlist_id;
 	/** Bitmap of active channels in the runlist. One bit per chid. */
@@ -104,7 +104,7 @@ struct nvgpu_runlist_info {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(CONFIG_NVGPU_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	/* nvgpu next runlist info additions */
-	struct nvgpu_next_runlist_info nvgpu_next;
+	struct nvgpu_next_runlist nvgpu_next;
 #endif
 	/** @endcond DOXYGEN_SHOULD_SKIP_THIS */
 };
@@ -128,7 +128,7 @@ struct nvgpu_runlist_info {
  * runlist buffer to describe all active channels and TSGs.
  */
 u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
-		struct nvgpu_runlist_info *runlist,
+		struct nvgpu_runlist *runlist,
 		u32 buf_id, u32 max_entries);
 
 /**
@@ -365,4 +365,8 @@ u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
  */
 void nvgpu_runlist_init_enginfo(struct gk20a *g, struct nvgpu_fifo *f);
 /** @endcond DOXYGEN_SHOULD_SKIP_THIS */
+
+#define rl_dbg(g, fmt, arg...)			\
+	nvgpu_log(g, gpu_dbg_runlists, "RL | " fmt, ##arg)
+
 #endif /* NVGPU_RUNLIST_H */
