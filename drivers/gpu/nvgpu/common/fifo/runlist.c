@@ -303,8 +303,6 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 {
 	u32 *runlist_entry_base = runlist->mem[buf_id].cpu_va;
 
-	nvgpu_log_fn(f->g, " ");
-
 	/*
 	 * The entry pointer and capacity counter that live on the stack here
 	 * keep track of the current position and the remaining space when tsg
@@ -319,14 +317,12 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
 	}
 }
 
-static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
-					    struct nvgpu_channel *ch, bool add)
+static bool nvgpu_runlist_modify_active_locked(struct gk20a *g,
+					       struct nvgpu_runlist *runlist,
+					       struct nvgpu_channel *ch, bool add)
 {
-	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist *runlist = NULL;
 	struct nvgpu_tsg *tsg = NULL;
 
-	runlist = f->runlists[runlist_id];
 	tsg = nvgpu_tsg_from_ch(ch);
 
 	if (tsg == NULL) {
@@ -368,53 +364,48 @@ static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 	return true;
 }
 
-static int gk20a_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
-				     u32 buf_id, bool add_entries)
+static int nvgpu_runlist_reconstruct_locked(struct gk20a *g,
+					    struct nvgpu_runlist *runlist,
+					    u32 buf_id, bool add_entries)
 {
+	u32 num_entries;
 	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist *runlist = NULL;
 
-	runlist = f->runlists[runlist_id];
+	rl_dbg(g, "[%u] switch to new buffer 0x%16llx",
+		runlist->id, (u64)nvgpu_mem_get_addr(g, &runlist->mem[buf_id]));
 
-	nvgpu_log_info(g, "runlist_id : %d, switch to new buffer 0x%16llx",
-		runlist_id, (u64)nvgpu_mem_get_addr(g, &runlist->mem[buf_id]));
+	if (!add_entries) {
+		runlist->count = 0;
+		return 0;
+	}
 
-	if (add_entries) {
-		u32 num_entries = nvgpu_runlist_construct_locked(f,
-						runlist,
-						buf_id,
+	num_entries = nvgpu_runlist_construct_locked(f, runlist, buf_id,
 						f->num_runlist_entries);
-		if (num_entries == RUNLIST_APPEND_FAILURE) {
-			return -E2BIG;
-		}
-		runlist->count = num_entries;
+	if (num_entries == RUNLIST_APPEND_FAILURE) {
+		return -E2BIG;
+	}
+	runlist->count = num_entries;
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 10_3), "Bug 2277532")
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")
-		WARN_ON(runlist->count > f->num_runlist_entries);
+	WARN_ON(runlist->count > f->num_runlist_entries);
 NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
 NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 14_4))
 NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 15_6))
-	} else {
-		runlist->count = 0;
-	}
 
 	return 0;
 }
 
-int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
-					    struct nvgpu_channel *ch, bool add,
-					    bool wait_for_finish)
+int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
+				struct nvgpu_channel *ch, bool add,
+				bool wait_for_finish)
 {
 	int ret = 0;
-	struct nvgpu_fifo *f = &g->fifo;
-	struct nvgpu_runlist *runlist = NULL;
 	u32 buf_id;
 	bool add_entries;
 
 	if (ch != NULL) {
-		bool update = gk20a_runlist_modify_active_locked(g, runlist_id,
-				ch, add);
+		bool update = nvgpu_runlist_modify_active_locked(g, rl, ch, add);
 		if (!update) {
 			/* no change in runlist contents */
 			return 0;
@@ -426,23 +417,21 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 		add_entries = add;
 	}
 
-	runlist = f->runlists[runlist_id];
 	/* double buffering, swap to next */
-	buf_id = (runlist->cur_buffer == 0U) ? 1U : 0U;
+	buf_id = (rl->cur_buffer == 0U) ? 1U : 0U;
 
-	ret = gk20a_runlist_reconstruct_locked(g, runlist_id, buf_id,
-			add_entries);
+	ret = nvgpu_runlist_reconstruct_locked(g, rl, buf_id, add_entries);
 	if (ret != 0) {
 		return ret;
 	}
 
-	g->ops.runlist.hw_submit(g, runlist_id, runlist->count, buf_id);
+	g->ops.runlist.hw_submit(g, rl->id, rl->count, buf_id);
 
 	if (wait_for_finish) {
-		ret = g->ops.runlist.wait_pending(g, runlist_id);
+		ret = g->ops.runlist.wait_pending(g, rl->id);
 
 		if (ret == -ETIMEDOUT) {
-			nvgpu_err(g, "runlist %d update timeout", runlist_id);
+			nvgpu_err(g, "runlist %d update timeout", rl->id);
 			/* trigger runlist update timeout recovery */
 			return ret;
 
@@ -453,7 +442,7 @@ int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 		}
 	}
 
-	runlist->cur_buffer = buf_id;
+	rl->cur_buffer = buf_id;
 
 	return ret;
 }
@@ -529,8 +518,7 @@ static int nvgpu_runlist_do_update(struct gk20a *g, struct nvgpu_runlist *rl,
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 		PMU_MUTEX_ID_FIFO, &token);
 #endif
-	ret = nvgpu_runlist_update_locked(g, rl->id, ch, add,
-					       wait_for_finish);
+	ret = nvgpu_runlist_update_locked(g, rl, ch, add, wait_for_finish);
 #ifdef CONFIG_NVGPU_LS_PMU
 	if (mutex_ret == 0) {
 		if (nvgpu_pmu_lock_release(g, g->pmu,

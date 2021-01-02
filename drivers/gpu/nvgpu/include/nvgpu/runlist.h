@@ -135,8 +135,8 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
  * @brief Add/remove channel to/from runlist (locked)
  *
  * @param g [in]		The GPU driver struct owning this runlist.
- * @param runlist_id [in]	Runlist identifier.
- * @param ch [in]		Channel to be added/removed or NULL.
+ * @param runlist [in]		Runlist object to be modified.
+ * @param ch [in]		Channel to be added/removed or NULL to update all.
  * @param add [in]		True to add a channel, false to remove it.
  * @param wait_for_finish [in]	True to wait for runlist update completion.
  *
@@ -151,7 +151,7 @@ u32 nvgpu_runlist_construct_locked(struct nvgpu_fifo *f,
  * @retval -E2BIG in case there are not enough entries in runlist buffer to
  *          describe all active channels and TSGs.
  */
-int nvgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
+int nvgpu_runlist_update_locked(struct gk20a *g, struct nvgpu_runlist *rl,
 		struct nvgpu_channel *ch, bool add, bool wait_for_finish);
 
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
