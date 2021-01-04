@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Unit clock scaling
  *
- * Copyright (c) 2010-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -33,7 +33,9 @@
 #include <soc/tegra/tegra-dvfs.h>
 #include <linux/clk-provider.h>
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 #include <governor.h>
+#endif
 
 #include "dev.h"
 #include "debug.h"
