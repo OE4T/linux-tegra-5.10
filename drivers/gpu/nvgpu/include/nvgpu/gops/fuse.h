@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -217,6 +217,11 @@ struct gops_fuse {
 
 	int (*read_ucode_version)(struct gk20a *g, u32 falcon_id,
 			u32 *ucode_version);
+
+#if defined(CONFIG_NVGPU_NEXT)
+	int (*fetch_falcon_fuse_settings)(struct gk20a *g, u32 falcon_id,
+			unsigned long *fuse_settings);
+#endif
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_gops_fuse.h"

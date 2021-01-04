@@ -175,6 +175,25 @@
 #define APP_0_CODE_OFFSET 0x5U
 #define APP_0_CODE_SIZE   0x6U
 
+/**
+ * Falcon/Falcon2 fuse settings bit
+ */
+#if defined(CONFIG_NVGPU_NEXT)
+#define FALCON_DISABLE                         (0U)
+#define FALCON_FORCE_ENCRYPTION_EN             (1U)
+#define NVRISCV_BR_ERROR_INFO_EN               (2U)
+#define NVRISCV_DEV_DIS                        (3U)
+#define NVRISCV_PL3_DISABLE                    (4U)
+#define DEFAULT_CORE_SELECT                    (5U)
+#define NVRISCV_DCLS_EN                        (6U)
+#define NVRISCV_DCLS_SECURITY_ACTION_ASSERT    (7U)
+#define NVRISCV_DCLS_SECURITY_ACTION_HALT      (8U)
+#define NVRISCV_DCLS_SECURITY_ACTION_INTERRUPT (9U)
+#define SECURE_DEBUG_DISABLE                   (10U)
+#define AES_ALGO_DISABLE                       (11U)
+#define PKC_ALGO_DISABLE                       (12U)
+#endif
+
 struct gk20a;
 struct nvgpu_falcon;
 
@@ -224,6 +243,10 @@ struct nvgpu_falcon {
 	bool is_falcon2_enabled;
 	/** Indicates if the falcon interrupts are enabled. */
 	bool is_interrupt_enabled;
+#if defined(CONFIG_NVGPU_NEXT)
+	/** Fuse settings */
+	unsigned long fuse_settings;
+#endif
 	/** Lock to access the falcon's IMEM. */
 	struct nvgpu_mutex imem_lock;
 	/** Lock to access the falcon's DMEM. */
@@ -632,6 +655,10 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);
  */
 void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest);
+
+bool nvgpu_falcon_is_falcon2_enabled(struct nvgpu_falcon *flcn);
+bool nvgpu_falcon_is_feature_supported(struct nvgpu_falcon *flcn,
+		u32 feature);
 
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,

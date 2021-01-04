@@ -182,6 +182,12 @@ int nvgpu_pmu_early_init(struct gk20a *g)
 	pmu->g = g;
 	pmu->flcn = &g->pmu_flcn;
 
+#if defined(CONFIG_NVGPU_NEXT)
+	if (nvgpu_falcon_is_falcon2_enabled(&g->pmu_flcn)) {
+		nvgpu_set_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED, true);
+	}
+#endif
+
 	if ((g->ops.pmu.ecc_init != NULL) && !g->ecc.initialized) {
 		err = g->ops.pmu.ecc_init(g);
 		if (err != 0) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -400,6 +400,19 @@ u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn)
 {
 	return flcn->flcn_id;
 }
+
+#if defined(CONFIG_NVGPU_NEXT)
+bool nvgpu_falcon_is_falcon2_enabled(struct nvgpu_falcon *flcn)
+{
+	return flcn->is_falcon2_enabled ? true : false;
+}
+
+bool nvgpu_falcon_is_feature_supported(struct nvgpu_falcon *flcn,
+		u32 feature)
+{
+	return nvgpu_test_bit(feature, (void *)&flcn->fuse_settings);
+}
+#endif
 
 struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 {
