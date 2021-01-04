@@ -7,6 +7,7 @@ ccflags-y += -I$(srctree.nvgpu)/include/uapi
 
 ccflags-y += -I$(srctree)/drivers/devfreq
 
+ccflags-y += -Wframe-larger-than=2048
 ccflags-y += -Wno-multichar
 ccflags-y += -Werror
 ccflags-y += -Wno-error=cpp
