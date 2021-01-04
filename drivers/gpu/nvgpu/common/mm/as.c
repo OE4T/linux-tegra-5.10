@@ -1,7 +1,7 @@
 /*
  * GK20A Address Spaces
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/nvgpu_init.h>
+
+#define VM_NAME_PREFIX	"as_"
 
 /* dumb allocator... */
 static int generate_as_share_id(struct gk20a_as *as)
@@ -58,7 +60,7 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	struct gk20a *g = gk20a_from_as(as);
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm;
-	char name[NVGPU_VM_NAME_LEN];
+	char name[NVGPU_VM_NAME_LEN] = VM_NAME_PREFIX;
 	char *p;
 	u64 user_size;
 	u64 kernel_size = mm->channel.kernel_size;
@@ -128,9 +130,9 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 		"vm: low_hole=0x%llx, user_size=0x%llx, kernel_size=0x%llx",
 		va_range_start, user_size, kernel_size);
 
-	p = strncpy(name, "as_", sizeof("as_"));
+	p = name + strlen(name);
 	(void) nvgpu_strnadd_u32(p, nvgpu_safe_cast_s32_to_u32(as_share->id),
-					sizeof(name) - sizeof("as_"), 10U);
+				 sizeof(name) - sizeof(VM_NAME_PREFIX), 10U);
 
 	vm = nvgpu_vm_init(g, big_page_size,
 			   va_range_start,
