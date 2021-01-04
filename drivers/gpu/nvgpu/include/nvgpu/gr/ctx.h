@@ -169,7 +169,8 @@ void nvgpu_gr_ctx_desc_free(struct gk20a *g,
  * @param size [in]		Size of buffer to be set.
  *
  * This function sets size of GR context buffer with given buffer
- * index.
+ * index. \a index must be less than NVGPU_GR_CTX_COUNT otherwise
+ * an assert is raised.
  */
 void nvgpu_gr_ctx_set_size(struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	u32 index, u32 size);
@@ -256,7 +257,7 @@ void nvgpu_gr_ctx_free_patch_ctx(struct gk20a *g, struct vm_gk20a *vm,
  * #nvgpu_gr_ctx struct.
  *
  * @return 0 in case of success, < 0 in case of failure.
- * @retval -ENOMEM if memory mapping fails.
+ * @retval -ENOMEM if memory mapping fails for any context buffer.
  */
 int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
@@ -418,6 +419,9 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
  *
  * This function will set given compute preemption mode into #nvgpu_gr_ctx
  * structure.
+ *
+ * @see nvgpu_gr_ctx_check_valid_preemption_mode for valid compute preemption
+ *      modes.
  */
 void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 compute_preempt_mode);
@@ -445,8 +449,10 @@ u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx);
  * This function checks if requested graphics/compute preemption modes are
  * valid or not.
  *
- * Requesting any graphics preemption mode or requesting CILP compute
- * preemption mode is not allowed in safety build.
+ * The function supports NVGPU_PREEMTION_MODE_GRAPHICS_WFI graphics
+ * preemption mode and NVGPU_PREEMTION_MODE_COMPUTE_WFI,
+ * NVGPU_PREEMTION_MODE_COMPUTE_CTA compute preemption modes as
+ * valid preemption modes. Any other preemption mode is invalid.
  *
  * Requesting both CILP compute and GFxP graphics preemption modes at
  * the same time is not allowed.

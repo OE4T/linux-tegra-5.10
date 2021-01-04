@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,8 @@ void nvgpu_gr_global_ctx_desc_free(struct gk20a *g,
  * @param size [in]	Size of buffer to be set.
  *
  * This function sets size of global context buffer with given buffer
- * index.
+ * index. \a index must be less than NVGPU_GR_GLOBAL_CTX_COUNT
+ * otherwise an assert is raised.
  */
 void nvgpu_gr_global_ctx_set_size(struct nvgpu_gr_global_ctx_buffer_desc *desc,
 	u32 index, size_t size);

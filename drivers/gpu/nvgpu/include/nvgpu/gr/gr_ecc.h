@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@ struct nvgpu_ecc_stat;
  * tpcs, which is then added to the stats_list in struct nvgpu_ecc.
  *
  * @return 0 in case of success, less than 0 for failure.
+ * @retval -ENOMEM if memory allocation fails for any counter.
  */
 int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 		struct nvgpu_ecc_stat ***stat, const char *name);
@@ -71,6 +72,7 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
  * then added to the stats_list in struct nvgpu_ecc.
  *
  * @return 0 in case of success, less than 0 for failure.
+ * @retval -ENOMEM if memory allocation fails for any counter.
  */
 int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 		struct nvgpu_ecc_stat **stat, const char *name);

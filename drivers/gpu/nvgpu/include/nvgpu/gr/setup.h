@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -61,6 +61,7 @@ struct nvgpu_gr_ctx;
  * - Allocating patch context image.
  * - Creating Golden context imaage upon first request to allocate
  *   object context.
+ * - Capturing golden context image twice and ensuring contents match.
  * - Initializating context preemption mode.
  * - Initializing various other fields in context image.
  * - Mapping global context buffers into context image.
@@ -70,16 +71,15 @@ struct nvgpu_gr_ctx;
  * function will not do anything but just return success. All graphics classes
  * are treated as invalid classes in safety.
  *
- * @see gops_class for list of valid classes.
- *
- * Only below classes are supported.
- * 1. VOLTA_COMPUTE_A
- * 2. VOLTA_DMA_COPY_A
- * 3. VOLTA_CHANNEL_GPFIFO_A
- *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ENOMEM if memory allocation fails for any context image.
+ * @retval -ENOMEM if contents from two golden image captures do not match.
+ * @retval -ETIMEDOUT if GR engine idle times out.
  * @retval -EINVAL if invalid GPU class ID is provided.
+ *
+ * @see gops_class for list of valid classes.
+ * @see nvgpu_gr_obj_ctx_alloc.
+ * @see nvgpu_gr_obj_ctx_alloc_golden_ctx_image.
  */
 int nvgpu_gr_setup_alloc_obj_ctx(struct nvgpu_channel *c, u32 class_num,
 		u32 flags);
@@ -132,6 +132,10 @@ void nvgpu_gr_setup_free_subctx(struct nvgpu_channel *c);
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -EINVAL if invalid preemption modes are provided.
  * @retval -EINVAL if invalid GPU channel pointer is provided.
+ *
+ * @see nvgpu_gr_ctx_check_valid_preemption_mode.
+ * @see nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode.
+ * @see nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode.
  */
 int nvgpu_gr_setup_set_preemption_mode(struct nvgpu_channel *ch,
 		u32 graphics_preempt_mode, u32 compute_preempt_mode,

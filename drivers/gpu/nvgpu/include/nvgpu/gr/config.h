@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -165,9 +165,11 @@ u32 nvgpu_gr_config_get_sm_count_per_tpc(struct nvgpu_gr_config *config);
  * @brief Get PPC count for given GPC.
  *
  * @param config [in]		Pointer to GR configuration struct.
- * @param gpc_index [in]	Index of GPC.
+ * @param gpc_index [in]	Valid GPC index.
  *
  * This function returns number of PPCs for given GPC index.
+ * GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_gpc_count(), otherwise an assert is raised.
  *
  * @return number of PPCs for given GPC.
  */
@@ -190,11 +192,13 @@ u32 *nvgpu_gr_config_get_gpc_tpc_count_base(struct nvgpu_gr_config *config);
  * @brief Get TPC count for given GPC.
  *
  * @param config [in]		Pointer to GR configuration struct.
- * @param gpc_index [in]	Index of GPC.
+ * @param gpc_index [in]	Valid GPC index.
  *
  * This function returns number of TPCs for given GPC index.
+ * GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_gpc_count(), otherwise value of 0 is returned.
  *
- * @return number of TPCs for given GPC.
+ * @return number of TPCs for given GPC for valid GPC index.
  */
 u32 nvgpu_gr_config_get_gpc_tpc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index);
@@ -203,13 +207,18 @@ u32 nvgpu_gr_config_get_gpc_tpc_count(struct nvgpu_gr_config *config,
  * @brief Get TPC count for given PES/GPC.
  *
  * @param config [in]		Pointer to GR configuration struct.
- * @param gpc_index [in]	Index of GPC.
- * @param pes_index [in]	Index of PES.
+ * @param gpc_index [in]	Valid GPC index.
+ * @param pes_index [in]	Valid PES index.
  *
  * A GPC includes multiple TPC and PES units. A PES unit has multiple
  * TPC units connected to it within same GPC.
  * This function returns number of TPCs attached to PES with index
  * pes_index in a GPC with index gpc_index.
+ *
+ * GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_gpc_count() and PES index must be less than value
+ * returned by #nvgpu_gr_config_get_pe_count_per_gpc(),
+ * otherwise an assert is raised.
  *
  * @return number of TPCs for given PES/GPC.
  */
@@ -232,11 +241,13 @@ u32 *nvgpu_gr_config_get_gpc_tpc_mask_base(struct nvgpu_gr_config *config);
  * @brief Get TPC mask for given GPC.
  *
  * @param config [in]		Pointer to GR configuration struct.
- * @param gpc_index [in]	Index of GPC.
+ * @param gpc_index [in]	Valid GPC index.
  *
  * This function returns mask of TPCs for given GPC index.
  * Each set bit indicates TPC with that index is available, otherwise
  * the TPC is considered floorswept.
+ * GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_gpc_count(), otherwise an assert is raised.
  *
  * @return mask of TPCs for given GPC.
  */
@@ -247,11 +258,13 @@ u32 nvgpu_gr_config_get_gpc_tpc_mask(struct nvgpu_gr_config *config,
  * @brief Set TPC mask for given GPC.
  *
  * @param config [in]		Pointer to GR configuration struct.
- * @param gpc_index [in]	Index of GPC.
+ * @param gpc_index [in]	Valid GPC index.
  * @param val [in]		Mask value to be set.
  *
  * This function sets the TPC mask in #nvgpu_gr_config struct
  * for given GPC index.
+ * GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_gpc_count(), otherwise an assert is raised.
  */
 void nvgpu_gr_config_set_gpc_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 val);
@@ -260,11 +273,13 @@ void nvgpu_gr_config_set_gpc_tpc_mask(struct nvgpu_gr_config *config,
  * @brief Get TPC skip mask for given GPC.
  *
  * @param config [in]		Pointer to GR configuration struct.
- * @param gpc_index [in]	Index of GPC.
+ * @param gpc_index [in]	Valid GPC index.
  *
  * This function returns skip mask of TPCs for given GPC index.
  * This mask will be used to skip certain TPC during load balancing
  * if any of the PES is overloaded.
+ * GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_gpc_count(), otherwise value of 0 is returned.
  *
  * @return skip mask of TPCs for given GPC.
  */
@@ -275,13 +290,18 @@ u32 nvgpu_gr_config_get_gpc_skip_mask(struct nvgpu_gr_config *config,
  * @brief Get TPC mask for given PES/GPC.
  *
  * @param config [in]		Pointer to GR configuration struct.
- * @param gpc_index [in]	Index of GPC.
- * @param pes_index [in]	Index of PES.
+ * @param gpc_index [in]	Valid GPC index.
+ * @param pes_index [in]	Valid PES index.
  *
  * A GPC includes multiple TPC and PES units. A PES unit has multiple
  * TPC units connected to it within same GPC.
  * This function returns mask of TPCs attached to PES with index
  * pes_index in a GPC with index gpc_index
+ *
+ * GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_gpc_count() and PES index must be less than value
+ * returned by #nvgpu_gr_config_get_pe_count_per_gpc(),
+ * otherwise an assert is raised.
  *
  * @return mask of TPCs for given PES/GPC.
  */
@@ -326,7 +346,7 @@ void nvgpu_gr_config_set_no_of_sm(struct nvgpu_gr_config *config, u32 no_of_sm);
  * @brief Get information of given SM.
  *
  * @param config [in]		Pointer to GR configuration struct.
- * @param sm_id [in]		SM index.
+ * @param sm_id [in]		Valid SM index.
  *
  * common.gr unit stores information of each SM into an array of struct
  * #nvgpu_sm_info. This information includes GPC/TPC indexes for
@@ -335,7 +355,7 @@ void nvgpu_gr_config_set_no_of_sm(struct nvgpu_gr_config *config, u32 no_of_sm);
  * This function will return pointer to #nvgpu_sm_info struct for SM with
  * requested index.
  *
- * @return pointer to struct #nvgpu_sm_info
+ * @return pointer to struct #nvgpu_sm_info corresponding to requested sm_id.
  */
 struct nvgpu_sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config,
 	u32 sm_id);

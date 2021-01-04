@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,7 @@
  *
  * common.gr unit has below responsibilities to manage GR engine h/w:
  *
- * - Enable GR engine h/w.
+ * - Reset and enable GR engine h/w.
  * - Allocate all necessary s/w data structures to hold GR engine
  *   configuration.
  * - Configure GR engine h/w to a known good state.
@@ -268,10 +268,11 @@ void nvgpu_gr_remove_support(struct gk20a *g);
  * @brief Get base register offset of a given GPC.
  *
  * @param g [in]	Pointer to GPU driver struct.
- * @param gpc [in]	GPC index.
+ * @param gpc [in]	Valid GPC index.
  *
  * This function calculates and returns base register offset of a given
- * GPC.
+ * GPC. GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_gpc_count(), otherwise an assert is raised.
  *
  * @return base register offset of a given GPC.
  */
@@ -281,10 +282,12 @@ u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc);
  * @brief Get base register offset of a given TPC in a GPC.
  *
  * @param g [in]	Pointer to GPU driver struct.
- * @param tpc [in]	TPC index.
+ * @param tpc [in]	Valid TPC index.
  *
  * This function calculates and returns base register offset of a given
- * TPC within a GPC.
+ * TPC within a GPC. TPC index must be less than value returned by
+ * #nvgpu_gr_config_get_max_tpc_per_gpc_count(), otherwise an assert
+ * is raised.
  *
  * @return base register offset of a given TPC.
  */
@@ -294,10 +297,12 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc);
  * @brief Get base register offset of a given SM in a GPC/TPC.
  *
  * @param g [in]	Pointer to GPU driver struct.
- * @param sm [in]	SM index.
+ * @param sm [in]	Valid SM index.
  *
  * This function calculates and returns base register offset of a given
- * SM within a GPC/TPC pair.
+ * SM within a GPC/TPC pair. SM index must be less than value returned by
+ * #nvgpu_gr_config_get_sm_count_per_tpc(), otherwise an assert
+ * is raised.
  *
  * @return base register offset of a given SM.
  */

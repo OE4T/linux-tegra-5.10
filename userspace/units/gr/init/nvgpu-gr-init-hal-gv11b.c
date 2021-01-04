@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -596,14 +596,16 @@ static int test_gr_init_hal_pd_skip_table_gpc(struct gk20a *g)
 	 * value is reflected in each loop
 	 */
 	for (i = 0; i < gr_pd_dist_skip_table__size_1_v(); i++) {
-		config->gpc_skip_mask[i] = 0x1;
+		if (i < nvgpu_gr_config_get_gpc_count(config)) {
+			config->gpc_skip_mask[i] = 0x1;
 
-		g->ops.gr.init.pd_skip_table_gpc(g, config);
-		if (nvgpu_readl(g, gr_pd_dist_skip_table_r(i / 4)) == 0x0) {
-			return UNIT_FAIL;
+			g->ops.gr.init.pd_skip_table_gpc(g, config);
+			if (nvgpu_readl(g, gr_pd_dist_skip_table_r(i / 4)) == 0x0) {
+				return UNIT_FAIL;
+			}
+
+			config->gpc_skip_mask[i] = 0x0;
 		}
-
-		config->gpc_skip_mask[i] = 0x0;
 	}
 
 	/* All skip_masks are unset in above loop already */

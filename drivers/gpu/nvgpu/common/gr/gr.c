@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -145,6 +145,8 @@ u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc)
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 gpc_offset = nvgpu_safe_mult_u32(gpc_stride , gpc);
 
+	nvgpu_assert(gpc < nvgpu_gr_config_get_gpc_count(nvgpu_gr_get_config_ptr(g)));
+
 	return gpc_offset;
 }
 
@@ -154,6 +156,8 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc)
 					GPU_LIT_TPC_IN_GPC_STRIDE);
 	u32 tpc_offset = nvgpu_safe_mult_u32(tpc_in_gpc_stride, tpc);
 
+	nvgpu_assert(tpc < nvgpu_gr_config_get_max_tpc_per_gpc_count(nvgpu_gr_get_config_ptr(g)));
+
 	return tpc_offset;
 }
 
@@ -161,6 +165,8 @@ u32 nvgpu_gr_sm_offset(struct gk20a *g, u32 sm)
 {
 	u32 sm_pri_stride = nvgpu_get_litter_value(g, GPU_LIT_SM_PRI_STRIDE);
 	u32 sm_offset = nvgpu_safe_mult_u32(sm_pri_stride, sm);
+
+	nvgpu_assert(sm < nvgpu_gr_config_get_sm_count_per_tpc(nvgpu_gr_get_config_ptr(g)));
 
 	return sm_offset;
 }

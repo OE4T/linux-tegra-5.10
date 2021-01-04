@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -222,7 +222,7 @@ int test_gr_init_hal_ecc_scrub_reg(struct unit_module *m,
  *   size of alpha_cb and attrib_cb. Then call g->ops.gr.init.get_attrib_cb_size
  *   and g->ops.gr.init.get_alpha_cb_size and verify if expected size is
  *   returned in response.
- * - Set gpc_skip_masks for all the GPCs and call g->ops.gr.init.pd_skip_table_gpc.
+ * - Set gpc_skip_masks for available GPCs and call g->ops.gr.init.pd_skip_table_gpc.
  *   Ensure that skip mask is reflected in h/w register.
  *   Unset all the gpc_skip_masks and ensure skip mask is unset in h/w register.
  *   Skip mask should be zero in h/w register only if all the skip masks are zero.

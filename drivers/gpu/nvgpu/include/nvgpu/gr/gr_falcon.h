@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -209,6 +209,7 @@ void nvgpu_gr_falcon_remove_support(struct gk20a *g,
  * #nvgpu_gr_falcon_load_secure_ctxsw_ucode() to boot ucodes.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ETIMEDOUT if communication with falcon timed out.
  */
 int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g, struct nvgpu_gr_falcon *falcon);
 
@@ -222,6 +223,7 @@ int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g, struct nvgpu_gr_falcon *falcon);
  * microcontroller.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ETIMEDOUT if communication with falcon timed out.
  */
 int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g,
 		struct nvgpu_gr_falcon *falcon);

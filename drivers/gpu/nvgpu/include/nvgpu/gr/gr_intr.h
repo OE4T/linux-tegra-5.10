@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -217,6 +217,14 @@ int nvgpu_gr_intr_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
  * quiesce state in case of uncorrected errors.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ *
+ * @see nvgpu_gr_intr_handle_fecs_error
+ * @see nvgpu_gr_intr_handle_gpc_exception
+ * @see nvgpu_gr_intr_handle_notify_pending
+ * @see nvgpu_gr_intr_handle_semaphore_pending
+ * @see nvgpu_gr_intr_handle_sm_exception
+ * @see nvgpu_gr_intr_report_exception
+ * @see nvgpu_gr_intr_set_error_notifier
  */
 int nvgpu_gr_intr_stall_isr(struct gk20a *g);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -315,6 +315,36 @@ struct gops_gr_falcon {
 	int (*ctrl_ctxsw)(struct gk20a *g, u32 fecs_method,
 			  u32 fecs_data, u32 *ret_val);
 
+	/**
+	 * @brief Wait for FECS/GPCCS IMEM/DMEM scrubbing to complete with
+	 *        timeout of CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * Wait for scrubbing of IMEM and DMEM of FECS and GPCCS falcons
+	 * to complete with a timeout of \a CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ETIMEDOUT if falcon scrubbing timed out.
+	 */
+	int (*wait_mem_scrubbing)(struct gk20a *g);
+
+	/**
+	 * @brief Wait for CTXSW falcon to get ready.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * Wait for CTXSW falcon to get ready by waiting for upto
+	 * \a NVGPU_DEFAULT_POLL_TIMEOUT_MS to get correct response
+	 * codes in falcon mailboxes.
+	 * Configure CTXSW watchdog timeout with value of
+	 * \a CTXSW_WDT_DEFAULT_VALUE.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ETIMEDOUT if communication with falcon timed out.
+	 */
+	int (*wait_ctxsw_ready)(struct gk20a *g);
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	void (*handle_fecs_ecc_error)(struct gk20a *g,
 		struct nvgpu_fecs_ecc_status *fecs_ecc_status);
@@ -331,8 +361,6 @@ struct gops_gr_falcon {
 	u32 (*get_gpccs_start_reg_offset)(void);
 	int (*load_ctxsw_ucode)(struct gk20a *g,
 				struct nvgpu_gr_falcon *falcon);
-	int (*wait_mem_scrubbing)(struct gk20a *g);
-	int (*wait_ctxsw_ready)(struct gk20a *g);
 	u32 (*get_current_ctx)(struct gk20a *g);
 	u32 (*get_ctx_ptr)(u32 ctx);
 	u32 (*get_fecs_current_ctx_data)(struct gk20a *g,
@@ -644,6 +672,53 @@ struct gops_gr_init {
 				u32 *default_graphics_preempt_mode,
 				u32 *default_compute_preempt_mode);
 
+	/**
+	 * @brief Wait for graphics engine to idle with timeout of
+	 *        NVGPU_DEFAULT_POLL_TIMEOUT_MS.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * Wait for graphics engine to idle with timeout of
+	 * \a NVGPU_DEFAULT_POLL_TIMEOUT_MS.
+	 * During graphics engine programming it is necessary to ensure
+	 * engine is idle at various steps.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -EAGAIN if graphics engine is busy and cannot idle.
+	 */
+	int (*wait_idle)(struct gk20a *g);
+
+	/**
+	 * @brief Wait for FE method pipeline to idle with timeout of
+	 *        NVGPU_DEFAULT_POLL_TIMEOUT_MS.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * Wait for FE unit's method pipeline to idle with timeout of
+	 * \a NVGPU_DEFAULT_POLL_TIMEOUT_MS.
+	 * During graphics engine programming it is necessary to ensure
+	 * FE method pipeline is idle at various steps.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -EAGAIN if FE method pipeline is busy and cannot idle.
+	 */
+	int (*wait_fe_idle)(struct gk20a *g);
+
+	/**
+	 * @brief Force FE power mode to always on.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param force_on [in]		Boolean flag to enable/disable power mode.
+	 *
+	 * Enable or disable force power on mode for graphics engine based
+	 * on \a force_on parameter. Wait for upto 2000 uS to ensure power mode
+	 * is correctly set.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 * @retval -ETIMEDOUT if power mode was not updated correctly within timeout.
+	 */
+	int (*fe_pwr_mode_force_on)(struct gk20a *g, bool force_on);
+
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	int (*ecc_scrub_reg)(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config);
@@ -671,9 +746,6 @@ struct gops_gr_init {
 	void (*cwd_gpcs_tpcs_num)(struct gk20a *g,
 				  u32 gpc_count, u32 tpc_count);
 	int (*wait_empty)(struct gk20a *g);
-	int (*wait_idle)(struct gk20a *g);
-	int (*wait_fe_idle)(struct gk20a *g);
-	int (*fe_pwr_mode_force_on)(struct gk20a *g, bool force_on);
 	void (*override_context_reset)(struct gk20a *g);
 	int (*preemption_state)(struct gk20a *g);
 	void (*fe_go_idle_timeout)(struct gk20a *g, bool enable);

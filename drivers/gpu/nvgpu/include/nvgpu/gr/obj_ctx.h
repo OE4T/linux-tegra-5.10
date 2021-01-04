@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -106,6 +106,8 @@ void nvgpu_gr_obj_ctx_commit_inst(struct gk20a *g, struct nvgpu_mem *inst_block,
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -EINVAL if invalid class is provided.
  * @retval -EINVAL if invalid preemption modes are provided.
+ *
+ * @see nvgpu_gr_setup_set_preemption_mode.
  */
 int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx_desc *gr_ctx_desc,
@@ -126,6 +128,8 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
  * Preemption modes should be already initialized in #nvgpu_gr_ctx
  * struct by calling #nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode()
  * before calling this function.
+ *
+ * @see nvgpu_gr_setup_set_preemption_mode.
  */
 void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_config *config,
@@ -181,6 +185,8 @@ void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
  * @retval -ENOMEM if local golden context memory allocation fails.
  * @retval -ENOMEM if contents from two golden image captures do not
  *         match.
+ *
+ * @see nvgpu_gr_setup_alloc_obj_ctx.
  */
 int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
@@ -226,7 +232,11 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ENOMEM if memory allocation fails during any step.
+ * @retval -ENOMEM if contents from two golden image captures do not match.
  * @retval -ETIMEDOUT if GR engine idle times out.
+ * @retval -EINVAL if invalid GPU class ID is provided.
+ *
+ * @see nvgpu_gr_setup_alloc_obj_ctx.
  */
 int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -727,6 +727,7 @@ u32 nvgpu_gr_config_get_sm_count_per_tpc(struct nvgpu_gr_config *config)
 u32 nvgpu_gr_config_get_gpc_ppc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index)
 {
+	nvgpu_assert(gpc_index < nvgpu_gr_config_get_gpc_count(config));
 	return config->gpc_ppc_count[gpc_index];
 }
 
@@ -747,6 +748,8 @@ u32 nvgpu_gr_config_get_gpc_tpc_count(struct nvgpu_gr_config *config,
 u32 nvgpu_gr_config_get_pes_tpc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index)
 {
+	nvgpu_assert(gpc_index < nvgpu_gr_config_get_gpc_count(config));
+	nvgpu_assert(pes_index < nvgpu_gr_config_get_pe_count_per_gpc(config));
 	return config->pes_tpc_count[pes_index][gpc_index];
 }
 
@@ -758,12 +761,14 @@ u32 *nvgpu_gr_config_get_gpc_tpc_mask_base(struct nvgpu_gr_config *config)
 u32 nvgpu_gr_config_get_gpc_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index)
 {
+	nvgpu_assert(gpc_index < nvgpu_gr_config_get_gpc_count(config));
 	return config->gpc_tpc_mask[gpc_index];
 }
 
 void nvgpu_gr_config_set_gpc_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 val)
 {
+	nvgpu_assert(gpc_index < nvgpu_gr_config_get_gpc_count(config));
 	config->gpc_tpc_mask[gpc_index] = val;
 }
 
@@ -779,6 +784,8 @@ u32 nvgpu_gr_config_get_gpc_skip_mask(struct nvgpu_gr_config *config,
 u32 nvgpu_gr_config_get_pes_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index)
 {
+	nvgpu_assert(gpc_index < nvgpu_gr_config_get_gpc_count(config));
+	nvgpu_assert(pes_index < nvgpu_gr_config_get_pe_count_per_gpc(config));
 	return config->pes_tpc_mask[pes_index][gpc_index];
 }
 
