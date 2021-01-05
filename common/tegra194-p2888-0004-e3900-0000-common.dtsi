@@ -15,6 +15,7 @@
 
 #include <dt-bindings/extcon-ids.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
+#include <dt-bindings/usb/role.h>
 #include <galen/kernel-dts/common/tegra194-p2888-0000-a00.dtsi>
 #include <t19x-common-platforms/tegra194-platforms-eqos.dtsi>
 #include "tegra194-e3900-0000.dtsi"
@@ -149,11 +150,7 @@
 					compatible = "usb-b-connector", "gpio-usb-b-connector";
 					label = "micro-USB";
 					type = "micro";
-					/*
-					 * FIX ME. MCCOY needs device mode always on and does not have vbus/id support.
-					 * Here, we put dummy gpio to have the function work.
-					 */
-					vbus-gpio = <&tegra_main_gpio TEGRA194_MAIN_GPIO(Z, 1) GPIO_ACTIVE_LOW>;
+					cable-connected-on-boot = <USB_ROLE_DEVICE>;
 				};
 #endif
 			};
