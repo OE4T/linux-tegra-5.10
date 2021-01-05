@@ -3,6 +3,7 @@
  * USB GPIO Based Connection Detection Driver
  *
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Chunfeng Yun <chunfeng.yun@mediatek.com>
  *
@@ -31,6 +32,7 @@ struct usb_conn_info {
 	struct device *dev;
 	struct usb_role_switch *role_sw;
 	enum usb_role last_role;
+	enum usb_role init_role;
 	struct regulator *vbus;
 	struct delayed_work dw_det;
 	unsigned long debounce_jiffies;
@@ -174,8 +176,11 @@ static int usb_conn_probe(struct platform_device *pdev)
 		return PTR_ERR(info->vbus_gpiod);
 
 	if (!info->id_gpiod && !info->vbus_gpiod) {
-		dev_err(dev, "failed to get gpios\n");
-		return -ENODEV;
+		if (of_property_read_u32(dev->of_node, "cable-connected-on-boot",
+			&(info->init_role))) {
+			dev_err(dev, "failed to get gpios\n");
+			return -ENODEV;
+		}
 	}
 
 	if (info->id_gpiod)
@@ -269,7 +274,15 @@ static int usb_conn_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, info);
 
 	/* Perform initial detection */
-	usb_conn_queue_dwork(info, 0);
+	if (info->id_gpiod || info->vbus_gpiod) {
+		usb_conn_queue_dwork(info, 0);
+	} else {
+		dev_info(dev, "Cable %d connected on boot\n",
+				info->init_role);
+		ret = usb_role_switch_set_role(info->role_sw, info->init_role);
+		if (ret)
+			dev_err(info->dev, "failed to set role: %d\n", ret);
+	}
 
 	return 0;
 
@@ -309,6 +322,7 @@ static int __maybe_unused usb_conn_suspend(struct device *dev)
 static int __maybe_unused usb_conn_resume(struct device *dev)
 {
 	struct usb_conn_info *info = dev_get_drvdata(dev);
+	int ret = 0;
 
 	pinctrl_pm_select_default_state(dev);
 
@@ -317,7 +331,15 @@ static int __maybe_unused usb_conn_resume(struct device *dev)
 	if (info->vbus_gpiod)
 		enable_irq(info->vbus_irq);
 
-	usb_conn_queue_dwork(info, 0);
+	if (info->id_gpiod || info->vbus_gpiod) {
+		usb_conn_queue_dwork(info, 0);
+	} else {
+		dev_info(dev, "Cable %d connected on boot\n",
+				info->init_role);
+		ret = usb_role_switch_set_role(info->role_sw, info->init_role);
+		if (ret)
+			dev_err(info->dev, "failed to set role: %d\n", ret);
+	}
 
 	return 0;
 }
