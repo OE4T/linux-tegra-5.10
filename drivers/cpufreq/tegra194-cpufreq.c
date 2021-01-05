@@ -19,6 +19,8 @@
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
 #include <soc/tegra/cpufreq_cpu_emc_table.h>
+#include <soc/tegra/chip-id.h>
+#include <soc/tegra/virt/syscalls.h>
 
 #define KHZ                     1000
 #define REF_CLK_MHZ             408 /* 408 MHz */
@@ -72,6 +74,7 @@ struct tegra_bwmgr_client {
 };
 
 static struct cpu_emc_mapping *cpu_emc_map_ptr;
+static bool tegra_hypervisor_mode;
 
 static void get_cpu_cluster(void *cluster)
 {
@@ -93,7 +96,12 @@ static u64 read_freq_feedback(void)
 {
 	u64 val = 0;
 
-	asm volatile("mrs %0, s3_0_c15_c0_5" : "=r" (val) : );
+	if (tegra_hypervisor_mode) {
+		if (!hyp_read_freq_feedback(&val))
+			pr_err("%s:failed\n", __func__);
+	} else {
+		asm volatile("mrs %0, s3_0_c15_c0_5" : "=r" (val) : );
+	}
 
 	return val;
 }
@@ -238,7 +246,12 @@ static void set_cpu_ndiv(void *data)
 	struct cpufreq_frequency_table *tbl = data;
 	u64 ndiv_val = (u64)tbl->driver_data;
 
-	asm volatile("msr s3_0_c15_c0_4, %0" : : "r" (ndiv_val));
+	if (tegra_hypervisor_mode) {
+		if (!hyp_write_freq_request(ndiv_val))
+			pr_info("%s: Write didn't succeed\n", __func__);
+	} else {
+		asm volatile("msr s3_0_c15_c0_4, %0" : : "r" (ndiv_val));
+	}
 }
 
 /* Set emc clock by referring cpu_to_emc freq mapping */
@@ -400,6 +413,8 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 				   GFP_KERNEL);
 	if (!data->bwmgr)
 		return -ENOMEM;
+
+	tegra_hypervisor_mode = is_tegra_hypervisor_mode();
 
 	platform_set_drvdata(pdev, data);
 
