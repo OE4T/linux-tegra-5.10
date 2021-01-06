@@ -1119,11 +1119,22 @@ static int nvhdcp_poll(struct tegra_nvhdcp *nvhdcp, int timeout, int status)
 #else
 	struct timespec64 tm;
 #endif
+
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	ktime_get_ts(&tm);
 	start_time = timespec_to_ns(&tm);
+#else
+	ktime_get_ts64(&tm);
+	start_time = timespec64_to_ns(&tm);
+#endif
 	while (1) {
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 		ktime_get_ts(&tm);
 		end_time = timespec_to_ns(&tm);
+#else
+		ktime_get_ts64(&tm);
+		end_time = timespec64_to_ns(&tm);
+#endif
 		if ((end_time - start_time)/1000 >= (s64)timeout*1000)
 			return -ETIMEDOUT;
 		else {
@@ -2551,7 +2562,7 @@ struct tegra_nvhdcp *tegra_nvhdcp_create(struct tegra_hdmi *hdmi,
 free_workqueue:
 	destroy_workqueue(nvhdcp->downstream_wq);
 	destroy_workqueue(nvhdcp->fallback_wq);
-	i2c_release_client(nvhdcp->client);
+	i2c_unregister_device(nvhdcp->client);
 free_nvhdcp:
 	kfree(nvhdcp);
 	nvhdcp_err("unable to create device.\n");

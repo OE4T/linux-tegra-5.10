@@ -1661,8 +1661,13 @@ static int dphdcp_poll(struct tegra_dc_dp_data *dp, int timeout, int status)
 	u8 val;
 	u32 aux_stat;
 
+#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	ktime_get_ts(&tm);
 	start_time = timespec_to_ns(&tm);
+#else
+	ktime_get_ts64(&tm);
+	start_time = timespec64_to_ns(&tm);
+#endif
 
 	while (1) {
 		ktime_get_ts(&tm);

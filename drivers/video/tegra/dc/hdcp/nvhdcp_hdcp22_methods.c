@@ -505,7 +505,7 @@ int tsec_hdcp_srm_read(struct hdcp_context_t *hdcp_context,
 		return -ENOENT;
 	}
 	seg = get_fs();
-	set_fs(get_ds());
+	set_fs(KERNEL_DS);
 	/* copy SRM to buffer */
 	vfs_read(fp, (u8 *)hdcp_context->cpuvaddr_srm,
 		HDCP_SRM_SIZE, &fp->f_pos);
