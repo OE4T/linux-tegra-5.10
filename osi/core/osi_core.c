@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -688,9 +688,11 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 					osi_core->default_addend);
 
 		/* Set current time */
-		ret = osi_core->ops->set_systime_to_mac(osi_core,
+		if (ret == 0) {
+			ret = osi_core->ops->set_systime_to_mac(osi_core,
 						osi_core->ptp_config.sec,
 						osi_core->ptp_config.nsec);
+		}
 	}
 
 	return ret;
