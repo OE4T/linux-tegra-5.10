@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1414,8 +1414,8 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 		tx_ring->slot_number = 0U;
 		tx_ring->slot_check = OSI_DISABLE;
 
-		if (osi_likely((ops->set_tx_ring_len != OSI_NULL) ||
-			       ops->set_tx_ring_start_addr != OSI_NULL)) {
+		if (osi_likely((ops->set_tx_ring_len != OSI_NULL) &&
+			       (ops->set_tx_ring_start_addr != OSI_NULL))) {
 			ops->set_tx_ring_len(osi_dma, chan,
 					     (TX_DESC_CNT - 1U));
 			ops->set_tx_ring_start_addr(osi_dma->base, chan,

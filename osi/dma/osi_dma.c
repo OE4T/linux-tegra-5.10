@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -82,7 +82,7 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 			return ret;
 		}
 	} else {
-		return -1;
+		return ret;
 	}
 
 	ret = dma_desc_init(osi_dma);
