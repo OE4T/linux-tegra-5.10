@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,6 +91,11 @@ int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
 
 	if (nvgpu_sgt_get_dma(sgt, sgt->sgl) != dma_addr) {
 		unit_err(m, "%s: bad dma address returned\n", __func__);
+		ret = UNIT_FAIL;
+	}
+
+	if (nvgpu_sgt_get_length(sgt, sgt->sgl) != SZ_1M) {
+		unit_err(m, "%s: nvgpu_sgt_get_length incorrect\n", __func__);
 		ret = UNIT_FAIL;
 	}
 

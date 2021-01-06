@@ -1,4 +1,4 @@
-# Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
 
 bitmap_find_next_zero_area
 fb_gv11b_write_mmu_fault_buffer_get
@@ -716,6 +716,7 @@ nvgpu_sgt_get_gpu_addr
 nvgpu_sgt_get_ipa
 nvgpu_sgt_get_next
 nvgpu_sgt_get_phys
+nvgpu_sgt_get_length
 nvgpu_sgt_iommuable
 nvgpu_sgt_ipa_to_pa
 nvgpu_spinlock_acquire

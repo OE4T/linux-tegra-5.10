@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,8 @@ struct unit_module;
  *
  * Targets: nvgpu_mem_posix_create_from_list, nvgpu_sgt_create_from_mem,
  * nvgpu_sgt_get_phys, nvgpu_sgt_get_dma, nvgpu_sgt_iommuable,
- * nvgpu_sgt_get_gpu_addr, nvgpu_sgt_get_ipa, nvgpu_sgt_ipa_to_pa
+ * nvgpu_sgt_get_gpu_addr, nvgpu_sgt_get_ipa, nvgpu_sgt_get_length,
+ * nvgpu_sgt_ipa_to_pa
  *
  * Input: None
  *
@@ -55,6 +56,8 @@ struct unit_module;
  *   set to the VA set in the nvgpu_mem.
  * - Test nvgpu_sgt_get_dma by passing in the sgl from sgt above, and verify
  *   correct DMA address is returned.
+ * - Test nvgpu_sgt_get_length by passing in the sgl from sgt above, and verify
+ *   correct sgl length is returned.
  * - Test nvgpu_sgt_iommuable.
  *   - Call nvgpu_sgt_iommuable() and verify returned value maches what is set
  *     posix struct member mm_sgt_is_iommuable.
