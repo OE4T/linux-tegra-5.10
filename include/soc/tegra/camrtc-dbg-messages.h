@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -56,8 +56,8 @@
 #define CAMRTC_STATUS_NOT_IMPLEMENTED	MK_U32(3) /* Request not implemented */
 #define CAMRTC_STATUS_INVALID_PARAM	MK_U32(4) /* Invalid parameter */
 
-#define CAMRTC_DBG_FRAME_SIZE		MK_U32(384)
-#define CAMRTC_DBG_MAX_DATA		MK_U32(376)
+#define CAMRTC_DBG_FRAME_SIZE		MK_U32(448)
+#define CAMRTC_DBG_MAX_DATA		MK_U32(440)
 #define CAMRTC_DBG_TASK_STAT_MAX	MK_U32(16)
 
 /*
@@ -186,7 +186,9 @@ struct camrtc_dbg_run_test_data {
 	- (sizeof(struct camrtc_dbg_test_mem) * CAMRTC_DBG_NUM_MEM_TEST_MEM))
 
 struct camrtc_dbg_test_mem {
-	uint64_t size;
+	uint32_t size;
+	uint32_t page_size;
+	uint64_t phys_addr;
 	uint64_t rtcpu_iova;
 	uint64_t vi_iova;
 	uint64_t vi2_iova;
@@ -198,7 +200,6 @@ struct camrtc_dbg_streamids {
 	uint8_t vi;
 	uint8_t vi2;
 	uint8_t isp;
-	uint8_t _pad;
 };
 
 /* This structure is used pass memory areas and textual input data to
