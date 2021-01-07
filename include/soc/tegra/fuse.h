@@ -136,6 +136,9 @@ struct device *tegra_soc_device_register(void);
  * begin block - downstream declarations
  */
 
+#define FUSE_CP_REV			0x90
+#define TEGRA_FUSE_CP_REV_0_3		(3)
+
 #define TEGRA_FUSE_HAS_PLATFORM_APIS
 
 enum tegra_platform {
