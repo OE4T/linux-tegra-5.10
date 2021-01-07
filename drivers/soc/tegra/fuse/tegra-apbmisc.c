@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -80,6 +80,24 @@ u8 tegra_get_chip_id(void)
 	return (tegra_read_chipid() >> 8) & 0xff;
 }
 EXPORT_SYMBOL(tegra_get_chip_id);
+
+static u8 tegra_get_pre_si_plat(void)
+{
+	u8 val;
+	u8 chip_id;
+
+	chip_id = tegra_get_chip_id();
+	switch (chip_id) {
+	case TEGRA194:
+	case TEGRA234:
+		val = (tegra_read_chipid() >> 0x14) & 0xf;
+		break;
+	default:
+		val = 0;
+		break;
+	}
+	return val;
+}
 
 u8 tegra_get_major_rev(void)
 {
@@ -284,3 +302,105 @@ bool is_t210b01_sku(void)
 }
 EXPORT_SYMBOL(is_t210b01_sku);
 
+/*
+ * platform query functions begin
+ */
+static enum tegra_platform __tegra_get_platform(void)
+{
+	u32 major, pre_si_plat;
+
+	major = tegra_get_major_rev();
+	pre_si_plat = tegra_get_pre_si_plat();
+
+	if (pre_si_plat == PRE_SI_VSP)
+		return TEGRA_PLATFORM_VSP;
+
+	if (!major) {
+		u32 minor;
+
+		minor = tegra_get_minor_rev();
+		switch (minor) {
+		case MINOR_QT:
+			return TEGRA_PLATFORM_QT;
+		case MINOR_FPGA:
+			return TEGRA_PLATFORM_FPGA;
+		case MINOR_ASIM_QT:
+			return TEGRA_PLATFORM_QT;
+		case MINOR_ASIM_LINSIM:
+			return TEGRA_PLATFORM_LINSIM;
+		case MINOR_VDK:
+			return TEGRA_PLATFORM_VDK;
+		}
+	} else if (pre_si_plat) {
+		switch (pre_si_plat) {
+		case PRE_SI_QT:
+			return TEGRA_PLATFORM_QT;
+		case PRE_SI_FPGA:
+			return TEGRA_PLATFORM_FPGA;
+		case PRE_SI_UNIT_FPGA:
+			return TEGRA_PLATFORM_UNIT_FPGA;
+		case PRE_SI_ASIM_QT:
+			return TEGRA_PLATFORM_QT;
+		case PRE_SI_ASIM_LINSIM:
+			return TEGRA_PLATFORM_LINSIM;
+		case PRE_SI_VDK:
+			return TEGRA_PLATFORM_VDK;
+		case PRE_SI_VSP:
+			return TEGRA_PLATFORM_VSP;
+		}
+	}
+
+	return TEGRA_PLATFORM_SILICON;
+}
+
+static enum tegra_platform tegra_platform_id = TEGRA_PLATFORM_MAX;
+
+enum tegra_platform tegra_get_platform(void)
+{
+	if (unlikely(tegra_platform_id == TEGRA_PLATFORM_MAX))
+		tegra_platform_id = __tegra_get_platform();
+
+	return tegra_platform_id;
+}
+EXPORT_SYMBOL(tegra_get_platform);
+
+bool tegra_cpu_is_asim(void)
+{
+	u32 major, pre_si_plat;
+
+	major = tegra_get_major_rev();
+	pre_si_plat = tegra_get_pre_si_plat();
+
+	if (!major) {
+		u32 minor;
+
+		minor = tegra_get_minor_rev();
+		switch (minor) {
+		case MINOR_QT:
+		case MINOR_FPGA:
+			return false;
+		case MINOR_ASIM_QT:
+		case MINOR_ASIM_LINSIM:
+		case MINOR_VDK:
+			return true;
+		}
+	} else if (pre_si_plat) {
+		switch (pre_si_plat) {
+		case PRE_SI_QT:
+		case PRE_SI_FPGA:
+			return false;
+		case PRE_SI_UNIT_FPGA:
+		case PRE_SI_ASIM_QT:
+		case PRE_SI_ASIM_LINSIM:
+		case PRE_SI_VDK:
+			return true;
+		}
+	}
+
+	return false;
+}
+EXPORT_SYMBOL_GPL(tegra_cpu_is_asim);
+
+/*
+ * platform query functions end
+ */
