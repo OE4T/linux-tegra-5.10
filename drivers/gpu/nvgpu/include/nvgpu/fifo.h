@@ -358,14 +358,14 @@ struct nvgpu_fifo {
 	bool sw_ready;
 
 	/** FIFO interrupt related fields. */
-	struct {
-		/** Share info between isrs and non-isr code. */
-		struct {
-			/** Lock for bottom half of isr. */
+	struct nvgpu_fifo_intr {
+		/** Share info between isr and non-isr code. */
+		struct nvgpu_fifo_intr_isr {
+			/** Lock for fifo isr. */
 			struct nvgpu_mutex mutex;
 		} isr;
 		/** PBDMA interrupt specific data. */
-		struct {
+		struct nvgpu_fifo_intr_pbdma {
 			/** H/w specific unrecoverable PBDMA interrupts. */
 			u32 device_fatal_0;
 			/**
