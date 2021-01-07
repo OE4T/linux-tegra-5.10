@@ -7,7 +7,7 @@
  * Copyright (c) 2007 Nokia Siemens Networks
  * Copyright (c) 2008 Herbert Xu <herbert@gondor.apana.org.au>
  * Copyright (c) 2019 Google LLC
- * Copyright (c) 2016-2020, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation. All Rights Reserved.
  *
  * Updated RFC4106 AES-GCM testing.
  *    Authors: Aidan O'Mahony (aidan.o.mahony@intel.com)
@@ -1804,6 +1804,7 @@ static int __alg_test_hash(const struct hash_testvec *vecs,
 	unsigned int statesize;
 	unsigned int i;
 	int err;
+	const char *driver_name;
 
 	/*
 	 * Always test the ahash API.  This works regardless of whether the
@@ -1824,6 +1825,7 @@ static int __alg_test_hash(const struct hash_testvec *vecs,
 		err = -ENOMEM;
 		goto out;
 	}
+	driver_name = crypto_tfm_alg_driver_name(crypto_ahash_tfm(atfm));
 
 	/*
 	 * If available also test the shash API, to cover corner cases that may
@@ -3132,6 +3134,7 @@ static int alg_test_skcipher(const struct alg_test_desc *desc,
 	struct crypto_skcipher *tfm;
 	struct skcipher_request *req = NULL;
 	struct cipher_test_sglists *tsgls = NULL;
+	const char *driver_name;
 	int err;
 
 	if (suite->count <= 0) {
@@ -3145,6 +3148,7 @@ static int alg_test_skcipher(const struct alg_test_desc *desc,
 		       driver, PTR_ERR(tfm));
 		return PTR_ERR(tfm);
 	}
+	driver_name = crypto_tfm_alg_driver_name(crypto_skcipher_tfm(tfm));
 
 	req = skcipher_request_alloc(tfm, GFP_KERNEL);
 	if (!req) {
@@ -5529,12 +5533,6 @@ static const struct alg_test_desc alg_test_descs[] = {
 			.kpp = __VECS(ecdh_tv_template)
 		}
 	}, {
-		.alg = "ecrdsa",
-		.test = alg_test_akcipher,
-		.suite = {
-			.akcipher = __VECS(ecrdsa_tv_template)
-		}
-	}, {
 		.alg = "ecdsa",
 		.test = alg_test_akcipher,
 		.fips_allowed = 1,
@@ -5543,6 +5541,12 @@ static const struct alg_test_desc alg_test_descs[] = {
 				.vecs = ecdsa_tv_template,
 				.count = ECDSA_TEST_VECTORS
 			}
+		}
+	}, {
+		.alg = "ecrdsa",
+		.test = alg_test_akcipher,
+		.suite = {
+			.akcipher = __VECS(ecrdsa_tv_template)
 		}
 	}, {
 		.alg = "eddsa",
