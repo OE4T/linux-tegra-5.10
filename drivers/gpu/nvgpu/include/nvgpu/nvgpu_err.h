@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
  *
  * Define indices for HW units and errors. Define structures used to carry error
  * information. Declare prototype for APIs that are used to report GPU HW errors
- * to the 3LSS framework.
+ * to the Safety_Services framework.
  */
 
 #include <nvgpu/types.h>
@@ -348,8 +348,11 @@ struct nvgpu_hw_err_inject_info_desc {
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
  *   #MAX_ERR_MSG_SIZE.
- * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
+ *   error message queue. In case of any failure during this enqueue operation,
+ *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
+ * - The error packet will be dequeued from the error message queue and reported
+ *   to Safety_Services by #nvgpu_sdl_worker thread.
  *
  * @return	None
  */
@@ -388,8 +391,11 @@ void nvgpu_report_host_err(struct gk20a *g, u32 hw_unit,
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
  *   #MAX_ERR_MSG_SIZE.
- * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
+ *   error message queue. In case of any failure during this enqueue operation,
+ *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
+ * - The error packet will be dequeued from the error message queue and reported
+ *   to Safety_Services by #nvgpu_sdl_worker thread.
  *
  * @return	None
  */
@@ -460,8 +466,11 @@ void nvgpu_report_ce_err(struct gk20a *g, u32 hw_unit,
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
  *   #MAX_ERR_MSG_SIZE.
- * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
+ *   error message queue. In case of any failure during this enqueue operation,
+ *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
+ * - The error packet will be dequeued from the error message queue and reported
+ *   to Safety_Services by #nvgpu_sdl_worker thread.
  *
  * @return	None
  */
@@ -519,8 +528,11 @@ static inline void nvgpu_report_fb_ecc_err(struct gk20a *g, u32 err_id, u64 err_
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
  *   #MAX_ERR_MSG_SIZE.
- * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
+ *   error message queue. In case of any failure during this enqueue operation,
+ *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
+ * - The error packet will be dequeued from the error message queue and reported
+ *   to Safety_Services by #nvgpu_sdl_worker thread.
  *
  * @return	None
  */
@@ -570,8 +582,11 @@ void nvgpu_report_ctxsw_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
  *   #MAX_ERR_MSG_SIZE.
- * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
+ *   error message queue. In case of any failure during this enqueue operation,
+ *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
+ * - The error packet will be dequeued from the error message queue and reported
+ *   to Safety_Services by #nvgpu_sdl_worker thread.
  *
  * @return	None
  */
@@ -606,8 +621,11 @@ void nvgpu_report_gr_err(struct gk20a *g, u32 hw_unit, u32 inst,
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
  *   #MAX_ERR_MSG_SIZE.
- * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
+ *   error message queue. In case of any failure during this enqueue operation,
+ *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
+ * - The error packet will be dequeued from the error message queue and reported
+ *   to Safety_Services by #nvgpu_sdl_worker thread.
  *
  * @return	None
  */
@@ -649,8 +667,11 @@ void nvgpu_report_pmu_err(struct gk20a *g, u32 hw_unit, u32 err_id,
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
  *   #MAX_ERR_MSG_SIZE.
- * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
+ *   error message queue. In case of any failure during this enqueue operation,
+ *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
+ * - The error packet will be dequeued from the error message queue and reported
+ *   to Safety_Services by #nvgpu_sdl_worker thread.
  *
  * @return	None
  */
@@ -687,8 +708,11 @@ void nvgpu_report_pri_err(struct gk20a *g, u32 hw_unit, u32 inst,
  * - Performs compile-time assert check to ensure that the size of the error
  *   packet does not exceed the maximum allowable size specified in
  *   #MAX_ERR_MSG_SIZE.
- * - Sends the error packet to report the error to the 3LSS framework. In case
- *   of a failure, invokes #nvgpu_sdl_handle_report_failure() api.
+ * - Invokes #nvgpu_sdl_report_error_rmos() to enqueue the error packet into
+ *   error message queue. In case of any failure during this enqueue operation,
+ *   #nvgpu_sdl_handle_report_failure() api is invoked to handle the failure.
+ * - The error packet will be dequeued from the error message queue and reported
+ *   to Safety_Services by #nvgpu_sdl_worker thread.
  *
  * @return	None
  */
