@@ -317,7 +317,7 @@ struct nvgpu_fifo {
 	struct nvgpu_list_node free_chs;
 	/**
 	 * Lock used to read and update #free_chs list. Channel entry is
-	 * removed when a channel is openend and added back to the #free_ch list
+	 * removed when a channel is opened and added back to the #free_ch list
 	 * when channel is closed by userspace.
 	 * This lock is also used to protect #used_channels.
 	 */
@@ -337,7 +337,7 @@ struct nvgpu_fifo {
 	struct nvgpu_tsg *tsg;
 	/**
 	 * Lock used to read and update #nvgpu_tsg.in_use. TSG entry is
-	 * in use when a TSG is openend and not in use when TSG is closed
+	 * in use when a TSG is opened and not in use when TSG is closed
 	 * by userspace. Refer #nvgpu_tsg.in_use in tsg.h.
 	 */
 	struct nvgpu_mutex tsg_inuse_mutex;
@@ -377,13 +377,6 @@ struct nvgpu_fifo {
 			/** H/w specific recoverable PBDMA interrupts. */
 			u32 restartable_0;
 		} pbdma;
-
-		/** Engine interrupt specific data. */
-		struct {
-
-		} engine;
-
-
 	} intr;
 
 #ifdef CONFIG_NVGPU_DEBUGGER
@@ -454,7 +447,6 @@ int nvgpu_fifo_setup_sw(struct gk20a *g);
  *
  * @param g [in]	The GPU driver struct.
  *
- * Initialize FIFO software context:
  * - Init mutexes needed by FIFO module. Refer #nvgpu_fifo struct.
  * - Do #nvgpu_channel_setup_sw.
  * - Do #nvgpu_tsg_setup_sw.
@@ -485,7 +477,6 @@ void nvgpu_fifo_cleanup_sw(struct gk20a *g);
  *
  * @param g [in]	The GPU driver struct.
  *
- * Clean up FIFO software context and related resources:
  * - Do userd.cleanup_sw.
  * - Do #nvgpu_channel_cleanup_sw.
  * - Do #nvgpu_tsg_cleanup_sw.

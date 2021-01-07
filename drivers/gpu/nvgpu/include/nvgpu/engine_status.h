@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,7 +68,9 @@
 #define ENGINE_STATUS_CTX_NEXT_ID_INVALID ENGINE_STATUS_CTX_ID_INVALID
 
 enum nvgpu_engine_status_ctx_status {
-	/** Context is not loaded on engine. Both id and next_id are invalid. */
+	/**
+	 * Context is not loaded on engine. Both id and next_id are invalid.
+	 */
 	NVGPU_CTX_STATUS_INVALID,
 	/**
 	 * Context is loaded on the engine. id field of engine_status
@@ -106,20 +108,20 @@ struct nvgpu_engine_status_info {
 	u32 ctx_id;
 	/** Ctx_status field of engine_status h/w register. */
 	u32 ctxsw_state;
-	/** Specifies whether ctx_id is of channel or tsg type. */
+	/** Specifies whether #ctx_id is of channel or tsg type. */
 	u32 ctx_id_type;
 	/** Channel or tsg id that will be assigned to the engine. */
 	u32 ctx_next_id;
-	/** Specifies whether ctx_next_id is of channel or tsg type. */
+	/** Specifies whether #ctx_next_id is of channel or tsg type. */
 	u32 ctx_next_id_type;
 	/**
-	 * Field, is_faulted is applicable for ce engine only and should be
+	 * Field #is_faulted is applicable for ce engine only and should be
 	 * ignored for other types of engines. This is set when host
 	 * receives a fault message from ce engine.
 	 */
 	bool is_faulted;
 	/**
-	 * Field, is_busy is set if engine is not idle. Host will report
+	 * Field #is_busy is set if engine is not idle. Host will report
 	 * non-idle if Host is about to send methods as well as when a context
 	 * request is outstanding to the engine, even when the engine itself is
 	 * idle.

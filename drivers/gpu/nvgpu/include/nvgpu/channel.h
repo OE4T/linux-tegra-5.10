@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -323,7 +323,7 @@ struct nvgpu_channel {
 #if GK20A_CHANNEL_REFCOUNT_TRACKING
 	/**
 	 * Ring buffer for most recent refcount gets and puts. Protected by
-	 * ref_actions_lock when getting or putting refs (i.e., adding
+	 * #ref_actions_lock when getting or putting refs (i.e., adding
 	 * entries), and when reading entries.
 	 */
 	struct nvgpu_channel_ref_action ref_actions[
@@ -383,6 +383,7 @@ struct nvgpu_channel {
 	struct nvgpu_mem usermode_userd;
 	/** GPFIFO memory for usermode submit. */
 	struct nvgpu_mem usermode_gpfifo;
+	/** Channel instance block memory. */
 	struct nvgpu_mem inst_block;
 
 	/**
@@ -523,7 +524,7 @@ struct nvgpu_channel {
 	/**
 	 * If enabled, USERD and GPFIFO buffers are handled in userspace.
 	 * Userspace writes a submit token to the doorbell register in the
-	 * usermode region to notify the GPU for new work on this channel.
+	 * usermode region to notify the GPU of new work on this channel.
 	 * Usermode and kernelmode submit modes are mutually exclusive.
 	 * On usermode submit channels, the caller must keep track of GPFIFO
 	 * usage. The recommended way for the current hardware (Maxwell..Turing)
@@ -966,8 +967,8 @@ int nvgpu_channel_setup_bind(struct nvgpu_channel *c,
  * @param ch [in]	Channel pointer (must be non-NULL).
  * @param add [in]	True to add a channel, false to remove it.
  *
- * When #add is true, adds #ch to runlist.
- * When #add is false, removes #ch from runlist.
+ * When \a add is true, adds \a c to runlist.
+ * When \a add is false, removes \a c from runlist.
  *
  * Function waits until H/W is done transitionning to the new runlist.
  *

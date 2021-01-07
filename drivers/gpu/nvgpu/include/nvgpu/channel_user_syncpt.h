@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,10 +35,10 @@ struct nvgpu_channel_user_syncpt;
  *
  * @param c [in]		Pointer to Channel.
  *
- * Construct a nvgpu_channel_user_syncpt that represents a syncpoint allocation
+ * Construct a #nvgpu_channel_user_syncpt that represents a syncpoint allocation
  * to be managed by userspace in conjunction with usermode submits.
  *
- * @return Pointer to nvgpu_channel_user_syncpt in case of success, or NULL in
+ * @return Pointer to #nvgpu_channel_user_syncpt in case of success, or NULL in
  * case of failure.
  */
 struct nvgpu_channel_user_syncpt *
@@ -58,8 +58,8 @@ u32 nvgpu_channel_user_syncpt_get_id(struct nvgpu_channel_user_syncpt *s);
  *
  * @param s [in]	User syncpoint pointer.
  *
- * Get syncpoint GPU VA. This address can be used in push buffer entries
- * for acquire/release operations.
+ * This function returns syncpoint GPU VA. This address can be used in push
+ * buffer entries for acquire/release operations.
  *
  * @return Syncpoint address (GPU VA) of syncpoint or 0 if not supported
  */
@@ -80,7 +80,7 @@ void nvgpu_channel_user_syncpt_set_safe_state(struct nvgpu_channel_user_syncpt *
  *
  * @param s [in]	User syncpoint pointer.
  *
- * Free the resources allocated by nvgpu_channel_user_syncpt_create.
+ * Free the resources allocated by #nvgpu_channel_user_syncpt_create.
  */
 void nvgpu_channel_user_syncpt_destroy(struct nvgpu_channel_user_syncpt *s);
 

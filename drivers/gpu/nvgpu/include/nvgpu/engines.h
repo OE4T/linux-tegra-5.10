@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,7 @@ struct nvgpu_device;
 enum nvgpu_fifo_engine {
 	/** GR engine enum */
 	NVGPU_ENGINE_GR        = 0U,
-	/** GR ce engine enum */
+	/** GR CE engine enum */
 	NVGPU_ENGINE_GRCE      = 1U,
 	/** Async CE engine enum */
 	NVGPU_ENGINE_ASYNC_CE  = 2U,

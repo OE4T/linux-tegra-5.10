@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ struct gops_fifo {
  	 * @param g [in]	Pointer to GPU driver struct.
  	 *
 	 * This HAL is used to initialize FIFO software context,
-	 * then do GPU h/w initializations. It always maps to
+	 * then perform GPU h/w initializations. It always maps to
 	 * #nvpgu_fifo_init_support, except for vgpu case.
 	 *
  	 * @return 0 in case of success, < 0 in case of failure.
@@ -71,7 +71,6 @@ struct gops_fifo {
  	 * @param g [in]	Pointer to GPU driver struct.
 	 * @param tsg [in]	Pointer to TSG struct.
  	 *
-	 * Preempt TSG:
 	 * - Acquire lock for active runlist.
 	 * - Write h/w register to trigger TSG preempt for \a tsg.
 	 * - Preemption mode (e.g. CTA or WFI) depends on the preemption
@@ -83,7 +82,7 @@ struct gops_fifo {
 	 * On some chips, it is also needed to disable scheduling
 	 * before preempting TSG.
 	 *
-	 * @see nvgpu_preempt_get_timeout
+	 * @see #nvgpu_preempt_get_timeout
 	 * @see nvgpu_gr_ctx::compute_preempt_mode
 	 *
  	 * @return 0 in case preemption succeeded, < 0 in case of failure.
@@ -97,7 +96,7 @@ struct gops_fifo {
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
-	 * Enable and configure h/w settings for FIFO:
+	 * Reset FIFO unit and configure FIFO h/w settings.
 	 * - Enable PMC FIFO.
 	 * - Configure clock gating:
 	 *   - Set SLCG settings for CE2 and FIFO.

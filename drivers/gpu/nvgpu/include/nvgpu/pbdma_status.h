@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@
 #define PBDMA_STATUS_NEXT_ID_INVALID PBDMA_STATUS_ID_INVALID
 
 enum nvgpu_pbdma_status_chsw_status {
-	/** Channel is not loaded on pbdma. Both id and next_id are invalid */
+	/** Channel is not loaded on pbdma. Both id and next_id are invalid. */
 	NVGPU_PBDMA_CHSW_STATUS_INVALID,
 	/**
 	 * Channel is loaded on the pbdma. id field of pbdma_status
@@ -96,11 +96,11 @@ struct nvgpu_pbdma_status_info {
 	u32 pbdma_channel_status;
 	/** Channel or tsg id of the context currently loaded on the pbdma. */
 	u32 id;
-	/** Specifies whether id is of channel or tsg type. */
+	/** Specifies whether #id is of channel or tsg type. */
 	u32 id_type;
 	/** Channel or tsg id of the next context to be loaded on the pbdma. */
 	u32 next_id;
-	/** Specifies whether next id is of channel or tsg type. */
+	/** Specifies whether #next_id is of channel or tsg type. */
 	u32 next_id_type;
 	/** Enum for chan_status field of pbdma_status h/w register. */
 	enum nvgpu_pbdma_status_chsw_status chsw_status;

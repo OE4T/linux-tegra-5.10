@@ -89,8 +89,10 @@ struct nvgpu_tsg {
 	 */
 	struct nvgpu_mem *eng_method_buffers;
 
-
-	/** Allocated during TSG open and freed during TSG release */
+	/**
+	 * Pointer to graphics context buffer for this TSG. Allocated during
+	 * TSG open and freed during TSG release.
+	 */
 	struct nvgpu_gr_ctx *gr_ctx;
 	/**
 	 * This ref is initialized during tsg setup s/w.
@@ -99,7 +101,7 @@ struct nvgpu_tsg {
 	 */
 	struct nvgpu_ref refcount;
 
-	/** List of channels bound to a tsgid */
+	/** List of channels bound to this TSG. */
 	struct nvgpu_list_node ch_list;
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_CONTROL
 	/**
@@ -141,11 +143,12 @@ struct nvgpu_tsg {
 	unsigned int timeslice_us;
 
 	/**
-	 * See include/nvgpu/runlist.h and
-	 * refer #NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW.
+	 * Interleave level decides the number of entries of this TSG in the
+	 * runlist.
+	 * Refer #NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW.
 	 */
 	u32 interleave_level;
-	/** This ranges from 0 to #nvgpu_fifo.num_channels. */
+	/** TSG identifier, ranges from 0 to #nvgpu_fifo.num_channels. */
 	u32 tsgid;
 
 	/**
@@ -154,6 +157,11 @@ struct nvgpu_tsg {
 	struct nvgpu_runlist *runlist;
 
 	/** tgid (OS specific) of the process that openend the TSG. */
+
+	/**
+	 * Thread Group identifier (OS specific) of the process that openend
+	 * the TSG.
+	 */
 	pid_t tgid;
 	/**
 	 * Number of active TPCs as requested by userspace.
@@ -171,10 +179,13 @@ struct nvgpu_tsg {
 	/**
 	 * Set to true if tsgid is acquired else set to false.
 	 * This is protected by #nvgpu_fifo.tsg_inuse_mutex. Acquire/Release
-	 * to check if tsgid is already acquired or not.
+	 * the mutex to check if tsgid is already acquired or not.
 	 */
 	bool in_use;
-	/** Non abortable TSG is for vidmem clear */
+	/**
+	 * This will indicate if TSG can be aborted. Non abortable TSG is for
+	 * vidmem clear.
+	 */
 	bool abortable;
 
 	/** MMU debug mode enabled if mmu_debug_mode_refcnt > 0 */
@@ -257,14 +268,13 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref);
  *
  * @param g [in]		The GPU driver struct.
  *
- * Initialize s/w context for TSGs:
  * - Allocate zero initialized kernel memory area for #nvgpu_fifo.num_channels
  *     number of #nvgpu_fifo.tsg struct. This area of memory is indexed by
  *     tsgid starting from 0 to #nvgpu_fifo.num_channels.
  * - Upon successful allocation of memory, initialize memory area assigned to
  *     each TSG with s/w defaults.
  *
- * @return 0 for successful init.
+ * @return 0 for successful init, < 0 for failure.
  * @retval -ENOMEM if kernel memory could not be allocated to support TSG
  *         s/w context.
  */
@@ -275,7 +285,6 @@ int nvgpu_tsg_setup_sw(struct gk20a *g);
  *
  * @param g [in]		The GPU driver struct.
  *
- * De-initialize s/w context for TSGs:
  * - Destroy s/w context for all tsgid starting from 0 to
  *     #nvgpu_fifo.num_channels.
  * - De-allocate kernel memory area allocated to support s/w context of
@@ -292,9 +301,9 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g);
  * #NVGPU_INVALID_TSG_ID, get pointer to area of memory, reserved for s/w
  * context of TSG and indexed by tsgid.
  *
+ * @note   This does not check if tsgid is < num_channels.
  * @return Pointer to #nvgpu_tsg struct.
  * @retval NULL if tsgid of the given channel is #NVGPU_INVALID_TSG_ID.
- * @note   This does not check if tsgid is < num_channels.
  */
 struct nvgpu_tsg *nvgpu_tsg_from_ch(struct nvgpu_channel *ch);
 
@@ -328,7 +337,7 @@ void nvgpu_tsg_disable(struct nvgpu_tsg *tsg);
  * - Get #nvgpu_tsg.refcount to prevent TSG from being freed till channel/s are
  *   bound to this TSG.
  *
- * @return 0 for successful bind
+ * @return 0 for successful bind, < 0 for failure.
  * @retval -EINVAL if channel is already bound to a TSG.
  * @retval -EINVAL if channel is already active. This is done by checking if
  *          bit corresponding to chid is set in the
@@ -519,7 +528,7 @@ int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level);
  *
  * @param g [in]		The GPU driver struct.
  *
- * Get TSG timeslice value in microseconds. This is the default timeslice
+ * This function returns TSG timeslice value. This is the default timeslice
  * value in us as defined by s/w.
  *
  * @return S/w defined default TSG timeslice value in us.
@@ -533,8 +542,8 @@ u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g);
  * @param tsg [in]		Pointer to the TSG struct.
  * @param num_sm [in]		Total number of SMs supported by h/w.
  *
- * Allocate zero initialized memory to store SM errors for all the SMs
- * supported by h/w.
+ * Allocate zero initialized memory to #nvgpu_tsg_sm_error_state, which stores
+ * SM errors for all the SMs supported by h/w.
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -EINVAL if memory is already allocated to store
@@ -623,7 +632,7 @@ gk20a_event_id_data_from_event_id_node(struct nvgpu_list_node *node)
  * @param tsg [in]		Pointer to TSG struct.
  * @param error_notifier [in]	Error notifier defined by s/w.
  *
- * Set error notifier for all the channels bound to the tsg.
+ * For each channel bound to given TSG, set given error notifier.
  * See include/nvgpu/error_notifier.h.
  */
 void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct nvgpu_tsg *tsg,

@@ -263,11 +263,10 @@ void nvgpu_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 		 u32 runlist_state);
 
 /**
- * @brief Initialize runlist context
+ * @brief Initialize runlist context for current GPU
  *
  * @param g [in]		The GPU driver struct owning the runlists.
  *
- * Initializes runlist context for current GPU:
  * - Determine number of runlists and max entries per runlists.
  * - Determine active runlists, i.e. runlists that are mapped to one engine.
  * - For each active runlist,
