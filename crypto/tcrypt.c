@@ -8,7 +8,7 @@
  * Copyright (c) 2002 James Morris <jmorris@intercode.com.au>
  * Copyright (c) 2002 Jean-Francois Dive <jef@linuxbe.org>
  * Copyright (c) 2007 Nokia Siemens Networks
- * Copyright (c) 2016-2020, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation. All Rights Reserved.
  *
  * Updated RFC4106 AES-GCM testing.
  *    Authors: Aidan O'Mahony (aidan.o.mahony@intel.com)
@@ -984,7 +984,6 @@ static int test_ahash_jiffies(struct ahash_request *req, int blen,
 static int test_ahash_perf(struct ahash_request *req, unsigned long dsize)
 {
 	int ret, i;
-	struct timespec before, after;
 	unsigned long before_t, after_t;
 	unsigned long tot_time = 0;
 	unsigned long long bps = 0;
@@ -997,18 +996,13 @@ static int test_ahash_perf(struct ahash_request *req, unsigned long dsize)
 	}
 	/* The real thing. */
 	for (i = 0; i < 10; i++) {
-		getnstimeofday(&before);
+		before_t = ktime_get_real_fast_ns();
 
 		ret = do_one_ahash_op(req, crypto_ahash_digest(req));
 		if (ret)
 			return ret;
 
-		getnstimeofday(&after);
-
-		before_t = before.tv_nsec;
-		after_t = ((after.tv_sec - before.tv_sec) * 1000000000) +
-				after.tv_nsec;
-
+		after_t = ktime_get_real_fast_ns();
 		tot_time += (after_t - before_t);
 	}
 
@@ -1641,7 +1635,6 @@ static unsigned int acipher_speed(const char *algo, int enc,
 			 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa,
 		0xb, 0xc, 0xd, 0xe, 0xf, 0xf, 0xe, 0xd, 0xc, 0xb, 0xa, 0x9, 0x8,
 		0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0 };
-	struct timespec before, after;
 	unsigned long before_a, after_a, diff_in_ms;
 	unsigned long blocks_to_test =
 		CUSTOMIZED_ACIPHER_SPEED_TEST_BLOCK_AMOUNT * bcnt;
@@ -1701,7 +1694,7 @@ static unsigned int acipher_speed(const char *algo, int enc,
 	}
 
 	atomic_set(&atomic_counter, 0);
-	getnstimeofday(&before);
+	before_a = ktime_get_real_fast_ns();
 
 	for (k = 0; k < blocks_to_test; k++) {
 		struct skcipher_request *req;
@@ -1790,12 +1783,10 @@ static unsigned int acipher_speed(const char *algo, int enc,
 	while (val < blocks_to_test)
 		val = atomic_read(&atomic_counter);
 
-	getnstimeofday(&after);
+	after_a = ktime_get_real_fast_ns();
 
 	free_pages(pages, MAX_PAGE_ORDER);
 
-	before_a = before.tv_nsec;
-	after_a = ((after.tv_sec - before.tv_sec) * 1000000000) + after.tv_nsec;
 	diff_in_ms = (after_a - before_a) / 1000000;
 
 	pr_info("difference: %ld(ms)\n", diff_in_ms);
@@ -3446,24 +3437,6 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 	case 559:
 		if (customized_test_acipher_speed("gcm(aes)", bsize, bcnt,
 			enc_target, dec_target))
-			return -EIO;
-		break;
-
-	case 557:
-		if (customized_test_acipher_speed("ctr(aes)", bsize, bcnt,
-		    enc_target, dec_target))
-			return -EIO;
-		break;
-
-	case 558:
-		if (customized_test_acipher_speed("ecb(aes)", bsize, bcnt,
-		    enc_target, dec_target))
-			return -EIO;
-		break;
-
-	case 559:
-		if (customized_test_acipher_speed("gcm(aes)", bsize, bcnt,
-		    enc_target, dec_target))
 			return -EIO;
 		break;
 
