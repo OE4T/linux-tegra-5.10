@@ -28,6 +28,14 @@
 #define TEGRA_SID_INVALID		0x0
 #define TEGRA_SID_PASSTHROUGH		0x7f
 
+/*
+ * Set IOMMU DT version to DT_VERSION_2 for QNX
+ */
+#if defined (__QNX__)
+#undef  TEGRA_IOMMU_DT_VERSION
+#define TEGRA_IOMMU_DT_VERSION			DT_VERSION_2
+#endif
+
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 
 /*
