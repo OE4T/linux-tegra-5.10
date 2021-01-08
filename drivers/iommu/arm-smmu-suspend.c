@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2018-2020 NVIDIA Corporation.  All rights reserved.
  *
  * NVIDIA Corporation and its licensors retain all intellectual property
  * and proprietary rights in and to this software and related documentation
@@ -17,6 +17,7 @@
 #include <linux/syscore_ops.h>
 #include <linux/version.h>
 #include <linux/types.h>
+#include <linux/slab.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
 #include "arm/arm-smmu/arm-smmu.h"
 #include "arm-smmu-suspend-regs.h"
@@ -196,7 +197,7 @@ int arm_smmu_suspend_init(void __iomem **smmu_base, u32 *smmu_base_pa,
 				int num_smmus, unsigned long smmu_size,
 				unsigned long smmu_pgshift, u32 scratch_reg_pa)
 {
-	int ret = 0;
+	int ret = 0, i;
 
 	arm_smmu_ctx.reg_list_table_size =
 		(SMMU_REG_TABLE_START_SIZE + SMMU_REG_TABLE_END_SIZE
@@ -233,7 +234,16 @@ int arm_smmu_suspend_init(void __iomem **smmu_base, u32 *smmu_base_pa,
 	writel(arm_smmu_ctx.reg_list_pa >> 12, arm_smmu_ctx.scratch_va);
 
 	arm_smmu_ctx.smmu_base_pa = smmu_base_pa;
-	arm_smmu_ctx.smmu_base = smmu_base;
+
+	arm_smmu_ctx.smmu_base = (void __iomem **)
+				kzalloc(num_smmus * sizeof(void *), GFP_KERNEL);
+	if (arm_smmu_ctx.smmu_base == NULL) {
+		pr_err("Failed to allocate memory for base\n");
+		goto unmap_reg_list;
+	}
+	for (i = 0; i < num_smmus; i++) {
+		arm_smmu_ctx.smmu_base[i] = smmu_base[i];
+	}
 	arm_smmu_ctx.smmu_size = smmu_size;
 	arm_smmu_ctx.smmu_pgshift = smmu_pgshift;
 	arm_smmu_ctx.num_smmus = num_smmus;
