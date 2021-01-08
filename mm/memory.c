@@ -4380,8 +4380,6 @@ static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
 	if (!pte_present(vmf->orig_pte))
 		return do_swap_page(vmf);
 
-	if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
-		return do_numa_page(vmf);
 
 	entry = vmf->orig_pte;
 	if (vmf->vma->vm_ops && vmf->vma->vm_ops->fixup_prot &&
@@ -4395,6 +4393,9 @@ static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
 			return VM_FAULT_SIGSEGV; /* access not granted */
 		fix_prot = true;
 	}
+
+	if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
+		return do_numa_page(vmf);
 
 	vmf->ptl = pte_lockptr(vmf->vma->vm_mm, vmf->pmd);
 	spin_lock(vmf->ptl);
