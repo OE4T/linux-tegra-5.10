@@ -70,7 +70,6 @@
 #include "module.h"
 
 #include "module_usermode.h"
-#include "intr.h"
 #include "ioctl.h"
 #include "ioctl_ctrl.h"
 
@@ -436,13 +435,6 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 		goto done;
 
 	nvgpu_restore_usermode_for_poweron(g);
-
-	/* Enable interrupt workqueue */
-	if (!l->nonstall_work_queue) {
-		l->nonstall_work_queue = alloc_workqueue("%s",
-						WQ_HIGHPRI, 1, "mc_nonstall");
-		INIT_WORK(&l->nonstall_fn_work, nvgpu_intr_nonstall_cb);
-	}
 
 	err = nvgpu_detect_chip(g);
 	if (err)
@@ -931,22 +923,33 @@ u64 nvgpu_resource_addr(struct platform_device *dev, int i)
 static irqreturn_t gk20a_intr_isr_stall(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
+	u32 err = nvgpu_intr_stall_isr(g);
 
-	return nvgpu_intr_stall(g);
+	return err == NVGPU_INTR_HANDLE ? IRQ_WAKE_THREAD : IRQ_NONE;
+}
+
+static irqreturn_t gk20a_intr_thread_isr_stall(int irq, void *dev_id)
+{
+	struct gk20a *g = dev_id;
+
+	nvgpu_intr_stall_handle(g);
+	return IRQ_HANDLED;
 }
 
 static irqreturn_t gk20a_intr_isr_nonstall(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
+	u32 err = nvgpu_intr_nonstall_isr(g);
 
-	return nvgpu_intr_nonstall(g);
+	return err == NVGPU_INTR_HANDLE ? IRQ_WAKE_THREAD : IRQ_NONE;
 }
 
-static irqreturn_t gk20a_intr_thread_stall(int irq, void *dev_id)
+static irqreturn_t gk20a_intr_thread_isr_nonstall(int irq, void *dev_id)
 {
 	struct gk20a *g = dev_id;
 
-	return nvgpu_intr_thread_stall(g);
+	nvgpu_intr_nonstall_handle(g);
+	return IRQ_HANDLED;
 }
 
 void gk20a_remove_support(struct gk20a *g)
@@ -1495,8 +1498,6 @@ out:
  */
 void gk20a_driver_start_unload(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
 	nvgpu_log(g, gpu_dbg_shutdown, "Driver is now going down!\n");
 
 	nvgpu_start_gpu_idle(g);
@@ -1507,12 +1508,6 @@ void gk20a_driver_start_unload(struct gk20a *g)
 	nvgpu_wait_for_idle(g);
 
 	nvgpu_wait_for_deferred_interrupts(g);
-
-	if (l->nonstall_work_queue) {
-		cancel_work_sync(&l->nonstall_fn_work);
-		destroy_workqueue(l->nonstall_work_queue);
-		l->nonstall_work_queue = NULL;
-	}
 }
 
 static inline void set_gk20a(struct platform_device *pdev, struct gk20a *gk20a)
@@ -1660,7 +1655,7 @@ static int gk20a_probe(struct platform_device *dev)
 		err = devm_request_threaded_irq(&dev->dev,
 			l->interrupts.stall_lines[i],
 			gk20a_intr_isr_stall,
-			gk20a_intr_thread_stall,
+			gk20a_intr_thread_isr_stall,
 			0, "gk20a_stall", gk20a);
 		if (err) {
 			dev_err(&dev->dev,
@@ -1671,9 +1666,10 @@ static int gk20a_probe(struct platform_device *dev)
 		}
 	}
 	if (l->interrupts.nonstall_size > 0) {
-		err = devm_request_irq(&dev->dev,
-				l->interrupts.nonstall_line,
-				gk20a_intr_isr_nonstall,
+		err = devm_request_threaded_irq(&dev->dev,
+			l->interrupts.nonstall_line,
+			gk20a_intr_isr_nonstall,
+			gk20a_intr_thread_isr_nonstall,
 				0, "gk20a_nonstall", gk20a);
 		if (err) {
 			dev_err(&dev->dev,

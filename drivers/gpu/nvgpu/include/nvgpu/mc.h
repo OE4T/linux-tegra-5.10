@@ -164,6 +164,34 @@ struct nvgpu_device;
 #define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
 
 /**
+ * @defgroup NVGPU_MC_INTR_PENDING_DEFINES
+ *
+ * Defines of all MC unit interrupt pending scenarios.
+ */
+
+/**
+ * @ingroup NVGPU_MC_INTR_PENDING_DEFINES
+ * Indicates that pending interrupts should be handled in the ISR thread.
+ */
+#define NVGPU_INTR_HANDLE		0U
+/**
+ * @ingroup NVGPU_MC_INTR_PENDING_DEFINES
+ * Indicates that pending interrupts are erroneous and should be cleared.
+ */
+#define NVGPU_INTR_UNMASK		BIT32(0)
+/**
+ * @ingroup NVGPU_MC_INTR_PENDING_DEFINES
+ * Indicates that there are no pending interrupts.
+ */
+#define NVGPU_INTR_NONE			BIT32(1)
+/**
+ * @ingroup NVGPU_MC_INTR_PENDING_DEFINES
+ * Indicates that quiesce state is pending. This basically means there is no
+ * need to handle interrupts (if any) as driver will enter quiesce state.
+ */
+#define NVGPU_INTR_QUIESCE_PENDING	BIT32(2)
+
+/**
  * @defgroup NVGPU_MC_INTR_TYPE_DEFINES
  *
  * Defines of all MC unit interrupt types.
@@ -589,5 +617,58 @@ int nvgpu_mc_reset_dev(struct gk20a *g, const struct nvgpu_device *dev);
  * @return -EINVAL if register write fails, else 0.
  */
 int nvgpu_mc_reset_devtype(struct gk20a *g, u32 devtype);
+
+/**
+ * @brief Top half of stall interrupt ISR.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is invoked by stall interrupt ISR to check if there are
+ * any pending stall interrupts. The function will return the action to
+ * be taken based on stall interrupt, gpu and quiesce status.
+ *
+ * @retval NVGPU_INTR_HANDLE if stall interrupts are pending.
+ * @retval NVGPU_INTR_UNMASK if GPU is powered off.
+ * @retval NVGPU_INTR_NONE if none of the stall interrupts are pending.
+ * @retval NVGPU_INTR_QUIESCE_PENDING if quiesce is pending.
+ */
+u32 nvgpu_intr_stall_isr(struct gk20a *g);
+
+/**
+ * @brief Bottom half of stall interrupt ISR.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is called to take action based on pending stall interrupts.
+ * The unit ISR functions are invoked based on triggered stall interrupts.
+ */
+void nvgpu_intr_stall_handle(struct gk20a *g);
+
+/**
+ * @brief Top half of nonstall interrupt ISR.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is invoked by nonstall interrupt ISR to check if there are
+ * any pending nonstall interrupts. The function will return the action to
+ * be taken based on nonstall interrupt, gpu and quiesce status.
+ *
+ * @retval NVGPU_INTR_HANDLE if nonstall interrupts are pending.
+ * @retval NVGPU_INTR_UNMASK if GPU is powered off.
+ * @retval NVGPU_INTR_NONE if none of the nonstall interrupts are pending.
+ * @retval NVGPU_INTR_QUIESCE_PENDING if quiesce is pending.
+ */
+u32 nvgpu_intr_nonstall_isr(struct gk20a *g);
+
+/**
+ * @brief Bottom half of nonstall interrupt ISR.
+ *
+ * @param g [in]	The GPU driver struct.
+ *
+ * This function is called to take action based on pending nonstall interrupts.
+ * Based on triggered nonstall interrupts, this function will invoke
+ * nonstall operations.
+ */
+void nvgpu_intr_nonstall_handle(struct gk20a *g);
 
 #endif
