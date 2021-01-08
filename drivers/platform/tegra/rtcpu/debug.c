@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -61,6 +61,8 @@ struct camrtc_test_mem {
 	size_t size;
 	/* CPU address */
 	void *ptr;
+	/* Physical base address, offsets valid for first page only */
+	phys_addr_t phys_addr;
 	/* base iova for device used for allocation */
 	dma_addr_t iova;
 	/* device index */
@@ -667,6 +669,7 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 	struct camrtc_debug *crd = container_of(
 		mem, struct camrtc_debug, mem[mem->index]);
 	struct device *mem_dev = camrtc_dbgfs_memory_dev(crd);
+	struct iommu_domain *domain = iommu_get_domain_for_dev(mem_dev);
 	ssize_t ret;
 
 	if ((*f_pos + count) > mem->size) {
@@ -712,6 +715,12 @@ static ssize_t camrtc_dbgfs_write_test_mem(struct file *file,
 			mem->size = size;
 			mem->iova = iova;
 		}
+
+		/* If mem_dev is not connected to SMMU, the iova is physical */
+		if (domain)
+			mem->phys_addr = iommu_iova_to_phys(domain, mem->iova);
+		else
+			mem->phys_addr = mem->iova;
 	}
 
 	ret = simple_write_to_buffer(mem->ptr, mem->size, f_pos, buf, count);
@@ -929,6 +938,7 @@ static int camrtc_run_mem_test(struct seq_file *file,
 		const size_t size = 6U << 20U; /* 6 MB */
 		dma_addr_t iova;
 		void *ptr;
+		struct iommu_domain *domain = iommu_get_domain_for_dev(mem_dev);
 
 		if (mem0->ptr) {
 			if (_camdbg_rmem.enabled)
@@ -966,6 +976,13 @@ static int camrtc_run_mem_test(struct seq_file *file,
 
 		mem0->ptr = ptr;
 		mem0->size = size;
+
+		/* If mem_dev is not connected to SMMU, the iova is physical */
+		if (domain)
+			mem0->phys_addr = iommu_iova_to_phys(domain, iova);
+		else
+			mem0->phys_addr = iova;
+
 		mem0->iova = iova;
 		mem0->used = size;
 	}
@@ -979,6 +996,8 @@ static int camrtc_run_mem_test(struct seq_file *file,
 		testmem = &req->data.run_mem_test_data.mem[i];
 
 		testmem->size = mem->used;
+		testmem->page_size = PAGE_SIZE;
+		testmem->phys_addr = mem->phys_addr;
 
 		ret = camrtc_run_mem_map(ch, mem_dev, rce_dev, &rce_sgt[i], mem,
 			&testmem->rtcpu_iova);
