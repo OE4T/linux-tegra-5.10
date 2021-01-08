@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved
  */
 
 #include <linux/cpu.h>
@@ -19,7 +19,7 @@
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
 #include <soc/tegra/cpufreq_cpu_emc_table.h>
-#include <soc/tegra/chip-id.h>
+#include <soc/tegra/fuse.h>
 #include <soc/tegra/virt/syscalls.h>
 
 #define KHZ                     1000
