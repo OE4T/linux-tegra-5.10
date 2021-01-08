@@ -2,7 +2,7 @@
 
 /*
  *
- * Copyright (c) 2019-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA Corporation. All rights reserved.
  *
  * Tegra 23x mcerr driver.
  */
@@ -11,7 +11,6 @@
 
 #include <linux/bitops.h>
 #include <linux/of.h>
-#include <linux/platform/tegra/mc-regs-t19x.h>
 #include <linux/platform/tegra/mc-regs-t23x.h>
 #include <linux/platform/tegra/mcerr.h>
 #include <dt-bindings/memory/tegra-swgroup.h>
