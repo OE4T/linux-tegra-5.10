@@ -1208,9 +1208,9 @@ struct nvgpu_as_bind_channel_args {
  *
  * @buffer_offset  [IN]
  *
- *   Specify an offset into the physical buffer to being the mapping at. For
- *   example imagine a DMA buffer 32KB long. However, you wish to only  this
- *   buffer starting at 8KB. In such a case you would pass 8KB as the
+ *   Specify an offset into the physical buffer to begin the mapping at. For
+ *   example imagine a DMA buffer 32KB long. However, you wish to only map
+ *   this buffer starting at 8KB. In such a case you would pass 8KB as the
  *   @buffer_offset. This is only available with fixed address mappings. All
  *   regular (non-fixed) mappings require this field to be set to 0. This field
  *   is in bytes.
@@ -1397,6 +1397,53 @@ struct nvgpu_as_get_sync_ro_map_args {
 	__u32 padding;
 };
 
+/*
+ * VM mapping modify IOCTL
+ *
+ * This ioctl changes the kind of an existing mapped buffer region.
+ *
+ * Usage of this API is as follows.
+ *
+ * @compr_kind  [IN]
+ *
+ *   Specify the new compressed kind to be used for the mapping.  This
+ *   parameter is only valid if compression resources are allocated to the
+ *   underlying physical buffer. If NV_KIND_INVALID is specified then the
+ *   fallback incompr_kind parameter is used.
+ *
+ * @incompr_kind  [IN]
+ *
+ *   Specify the new kind to be used for the mapping if compression is not
+ *   to be used.  If NV_KIND_INVALID is specified then incompressible fallback
+ *   is not allowed.
+ *
+ * @buffer_offset  [IN]
+ *
+ *   Specifies the beginning offset of the region within the existing buffer
+ *   for which the kind should be modified.  This field is in bytes.
+ *
+ * @buffer_size  [IN]
+ *
+ *   Specifies the size of the region within the existing buffer for which the
+ *   kind should be updated.  This field is in bytes.  Note that the region
+ *   described by <buffer_offset, buffer_offset + buffer_size> must reside
+ *   entirely within the existing buffer.
+ *
+ * @map_address  [IN]
+ *
+ *   The address of the existing buffer in the GPU virtual address space
+ *   specified in bytes.
+ */
+struct nvgpu_as_mapping_modify_args {
+	__s16 compr_kind;       /* in */
+	__s16 incompr_kind;     /* in */
+
+	__u64 buffer_offset;	/* in, offset of mapped buffer region */
+	__u64 buffer_size;	/* in, size of mapped buffer region */
+
+	__u64 map_address;	/* in, base virtual address of mapped buffer */
+};
+
 #define NVGPU_AS_IOCTL_BIND_CHANNEL \
 	_IOWR(NVGPU_AS_IOCTL_MAGIC, 1, struct nvgpu_as_bind_channel_args)
 #define NVGPU32_AS_IOCTL_ALLOC_SPACE \
@@ -1419,9 +1466,11 @@ struct nvgpu_as_get_sync_ro_map_args {
 	_IOWR(NVGPU_AS_IOCTL_MAGIC, 11, struct nvgpu_as_map_buffer_batch_args)
 #define NVGPU_AS_IOCTL_GET_SYNC_RO_MAP	\
 	_IOR(NVGPU_AS_IOCTL_MAGIC,  12, struct nvgpu_as_get_sync_ro_map_args)
+#define NVGPU_AS_IOCTL_MAPPING_MODIFY	\
+	_IOWR(NVGPU_AS_IOCTL_MAGIC,  13, struct nvgpu_as_mapping_modify_args)
 
-#define NVGPU_AS_IOCTL_LAST            \
-	_IOC_NR(NVGPU_AS_IOCTL_GET_SYNC_RO_MAP)
+#define NVGPU_AS_IOCTL_LAST		\
+	_IOC_NR(NVGPU_AS_IOCTL_MAPPING_MODIFY)
 #define NVGPU_AS_IOCTL_MAX_ARG_SIZE	\
 	sizeof(struct nvgpu_as_map_buffer_ex_args)
 

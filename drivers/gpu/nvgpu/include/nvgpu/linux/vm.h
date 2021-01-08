@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -85,6 +85,11 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 int nvgpu_vm_find_buf(struct vm_gk20a *vm, u64 gpu_va,
 		      struct dma_buf **dmabuf,
 		      u64 *offset);
+
+/* modify existing mapping attributes (i.e. kind) */
+int nvgpu_vm_mapping_modify(struct vm_gk20a *vm,
+			s16 compr_kind, s16 incompr_kind,
+			u64 map_address, u64 buffer_offset, u64 buffer_size);
 
 enum nvgpu_aperture gk20a_dmabuf_aperture(struct gk20a *g,
 					  struct dma_buf *dmabuf);

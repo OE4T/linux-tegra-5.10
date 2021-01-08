@@ -183,6 +183,19 @@ struct nvgpu_mapped_buf {
 	 */
 	bool va_allocated;
 	/**
+	 * Offset into compression tags pool if compression enabled.
+	 */
+	u32 ctag_offset;
+	/**
+	 * GMMU read/write flags specified when mapping was created.
+	 */
+	enum gk20a_mem_rw_flag rw_flag;
+	/**
+	 * Aperture specified when mapping was created
+	 */
+	enum nvgpu_aperture aperture;
+
+	/**
 	 * Os specific buffer structure.
 	 * Separate from the nvgpu_os_buffer struct to clearly distinguish
 	 * lifetime. A nvgpu_mapped_buf_priv will _always_ be wrapped by a

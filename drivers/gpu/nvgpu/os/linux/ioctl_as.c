@@ -1,7 +1,7 @@
 /*
  * GK20A Address Spaces
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -302,6 +302,22 @@ static int nvgpu_as_ioctl_get_sync_ro_map(
 #endif
 }
 
+static int nvgpu_as_ioctl_mapping_modify(
+		struct gk20a_as_share *as_share,
+		struct nvgpu_as_mapping_modify_args *args)
+{
+	struct gk20a *g = gk20a_from_vm(as_share->vm);
+
+	nvgpu_log_fn(g, " ");
+
+	return nvgpu_vm_mapping_modify(as_share->vm,
+				args->compr_kind,
+				args->incompr_kind,
+				args->map_address,
+				args->buffer_offset,
+				args->buffer_size);
+}
+
 int gk20a_as_dev_open(struct inode *inode, struct file *filp)
 {
 	struct gk20a_as_share *as_share;
@@ -438,6 +454,10 @@ long gk20a_as_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case NVGPU_AS_IOCTL_GET_SYNC_RO_MAP:
 		err = nvgpu_as_ioctl_get_sync_ro_map(as_share,
 			(struct nvgpu_as_get_sync_ro_map_args *)buf);
+		break;
+	case NVGPU_AS_IOCTL_MAPPING_MODIFY:
+		err = nvgpu_as_ioctl_mapping_modify(as_share,
+			(struct nvgpu_as_mapping_modify_args *)buf);
 		break;
 	default:
 		err = -ENOTTY;

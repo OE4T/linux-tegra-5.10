@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -348,6 +348,113 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 		dma_buf_put(dmabuf);
 
 	return err;
+}
+
+int nvgpu_vm_mapping_modify(struct vm_gk20a *vm,
+			s16 compr_kind,
+			s16 incompr_kind,
+			u64 map_address,
+			u64 buffer_offset,
+			u64 buffer_size)
+{
+	struct gk20a *g = gk20a_from_vm(vm);
+	int ret = -EINVAL;
+	struct nvgpu_mapped_buf *mapped_buffer;
+	struct nvgpu_sgt *nvgpu_sgt = NULL;
+	u32 pgsz_idx;
+	u32 page_size;
+	u64 ctag_offset;
+	s16 kind = NV_KIND_INVALID;
+
+	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
+
+	mapped_buffer = nvgpu_vm_find_mapped_buf(vm, map_address);
+	if (mapped_buffer == NULL) {
+		nvgpu_err(g, "no buffer at map_address 0x%llx", map_address);
+		goto out;
+	}
+
+	nvgpu_assert(mapped_buffer->addr == map_address);
+
+	pgsz_idx = mapped_buffer->pgsz_idx;
+	page_size = vm->gmmu_page_sizes[pgsz_idx];
+
+	if (buffer_offset & (page_size - 1)) {
+		nvgpu_err(g, "buffer_offset 0x%llx not page aligned",
+			buffer_offset);
+		goto out;
+	}
+
+	if (buffer_size & (page_size - 1)) {
+		nvgpu_err(g, "buffer_size 0x%llx not page aligned",
+			buffer_size);
+		goto out;
+	}
+
+	if (buffer_offset >= mapped_buffer->size) {
+		nvgpu_err(g, "buffer_offset 0x%llx exceeds buffer size 0x%llx",
+			buffer_size, mapped_buffer->size);
+		goto out;
+	}
+
+	if (buffer_offset + buffer_size > mapped_buffer->size) {
+		nvgpu_err(g, "buffer end 0x%llx exceeds buffer size 0x%llx",
+			buffer_offset + buffer_size, mapped_buffer->size);
+		goto out;
+	}
+
+	if (compr_kind == NV_KIND_INVALID && incompr_kind == NV_KIND_INVALID) {
+		nvgpu_err(g, "both compr_kind and incompr_kind are invalid\n");
+		goto out;
+	}
+
+	if (mapped_buffer->ctag_offset != 0) {
+		if (compr_kind == NV_KIND_INVALID) {
+			kind = incompr_kind;
+		} else {
+			kind = compr_kind;
+		}
+	} else {
+		if (incompr_kind == NV_KIND_INVALID) {
+			nvgpu_err(g, "invalid incompr_kind specified");
+			goto out;
+		}
+		kind = incompr_kind;
+	}
+
+	nvgpu_sgt = nvgpu_linux_sgt_create(g, mapped_buffer->os_priv.sgt);
+	if (!nvgpu_sgt) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	ctag_offset = mapped_buffer->ctag_offset;
+	ctag_offset += (u32)(buffer_offset >>
+			ilog2(g->ops.fb.compression_page_size(g)));
+
+	if (g->ops.mm.gmmu.map(vm,
+				map_address + buffer_offset,
+				nvgpu_sgt,
+				buffer_offset,
+				buffer_size,
+				pgsz_idx,
+				kind,
+				ctag_offset,
+				mapped_buffer->flags,
+				mapped_buffer->rw_flag,
+				false /* not clear_ctags */,
+				false /* not sparse */,
+				false /* not priv */,
+				NULL /* no mapping_batch handle */,
+				mapped_buffer->aperture) != 0ULL) {
+		ret = 0;
+	}
+
+	nvgpu_sgt_free(g, nvgpu_sgt);
+
+out:
+	nvgpu_mutex_release(&vm->update_gmmu_lock);
+	return ret;
 }
 
 /*

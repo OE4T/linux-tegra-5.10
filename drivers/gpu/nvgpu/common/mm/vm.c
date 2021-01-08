@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@ struct nvgpu_ctag_buffer_info {
 #endif
 	s16			incompr_kind;
 
-	u32			ctag_lines;
+	u32			ctag_offset;
 };
 
 #ifdef CONFIG_NVGPU_COMPRESSION
@@ -1292,6 +1292,7 @@ static int nvgpu_vm_do_map(struct vm_gk20a *vm,
 		nvgpu_assert((binfo_ptr->compr_kind >= 0) &&
 			     (binfo_ptr->compr_kind <= (s16)U8_MAX));
 		pte_kind = (u8)binfo_ptr->compr_kind;
+		binfo_ptr->ctag_offset = ctag_offset;
 	} else
 #endif
 	if (binfo_ptr->incompr_kind != NVGPU_KIND_INVALID) {
@@ -1540,6 +1541,9 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 	mapped_buffer->kind         = map_key_kind;
 	mapped_buffer->va_allocated = va_allocated;
 	mapped_buffer->vm_area      = vm_area;
+	mapped_buffer->ctag_offset  = binfo.ctag_offset;
+	mapped_buffer->rw_flag      = rw;
+	mapped_buffer->aperture     = aperture;
 
 	nvgpu_insert_mapped_buf(vm, mapped_buffer);
 
