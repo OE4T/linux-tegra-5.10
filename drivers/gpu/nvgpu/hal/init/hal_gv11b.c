@@ -1,7 +1,7 @@
 /*
  * GV11B Tegra HAL interface
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -114,6 +114,7 @@
 #include "hal/fifo/runlist_ram_gv11b.h"
 #include "hal/fifo/runlist_fifo_gk20a.h"
 #include "hal/fifo/runlist_fifo_gv11b.h"
+#include "hal/fifo/tsg_gk20a.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
@@ -995,6 +996,7 @@ static const struct gops_tsg gv11b_ops_tsg = {
 	.bind_channel_eng_method_buffers = gv11b_tsg_bind_channel_eng_method_buffers,
 	.unbind_channel = NULL,
 	.unbind_channel_check_hw_state = nvgpu_tsg_unbind_channel_check_hw_state,
+	.unbind_channel_check_hw_next = gk20a_tsg_unbind_channel_check_hw_next,
 	.unbind_channel_check_ctx_reload = nvgpu_tsg_unbind_channel_check_ctx_reload,
 	.unbind_channel_check_eng_faulted = gv11b_tsg_unbind_channel_check_eng_faulted,
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -193,6 +193,10 @@ static int nvgpu_tsg_unbind_channel_common(struct nvgpu_tsg *tsg,
 	if (nvgpu_tsg_is_multi_channel(tsg) && !tsg_timedout &&
 	    (g->ops.tsg.unbind_channel_check_hw_state != NULL)) {
 		err = g->ops.tsg.unbind_channel_check_hw_state(tsg, ch);
+		if (err == -EAGAIN) {
+			goto fail_enable_tsg;
+		}
+
 		if (err != 0) {
 			nvgpu_err(g, "invalid hw_state for ch %u", ch->chid);
 			goto fail_enable_tsg;
@@ -257,7 +261,8 @@ fail_enable_tsg:
 }
 
 /* The caller must ensure that channel belongs to a tsg */
-int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
+int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch,
+			     bool force)
 {
 	struct gk20a *g = ch->g;
 	int err;
@@ -265,6 +270,10 @@ int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 	nvgpu_log_fn(g, "unbind tsg:%u ch:%u\n", tsg->tsgid, ch->chid);
 
 	err = nvgpu_tsg_unbind_channel_common(tsg, ch);
+	if (!force && err == -EAGAIN) {
+		return err;
+	}
+
 	if (err != 0) {
 		nvgpu_err(g, "unbind common failed, err=%d", err);
 		goto fail_common;
@@ -315,26 +324,27 @@ fail:
 
 }
 
+int nvgpu_tsg_force_unbind_channel(struct nvgpu_tsg *tsg,
+				   struct nvgpu_channel *ch)
+{
+	return nvgpu_tsg_unbind_channel(tsg, ch, true);
+}
+
 int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
 		struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	struct nvgpu_channel_hw_state hw_state;
+	int err;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	g->ops.channel.read_state(g, ch, &hw_state);
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
-	if (hw_state.next) {
-		if (g->ops.channel.clear != NULL) {
-			nvgpu_log_info(g, "Channel %d to be removed "
-				"from TSG %d has NEXT set!",
-				ch->chid, ch->tsgid);
-		} else {
-			nvgpu_err(g, "Channel %d to be removed "
-				"from TSG %d has NEXT set!",
-				ch->chid, ch->tsgid);
-			return -EINVAL;
+	if (g->ops.tsg.unbind_channel_check_hw_next != NULL) {
+		err = g->ops.tsg.unbind_channel_check_hw_next(ch, &hw_state);
+		if (err != 0) {
+			return err;
 		}
 	}
 

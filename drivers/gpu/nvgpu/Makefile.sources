@@ -214,6 +214,7 @@ srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/fifo/runlist_fifo_gk20a_fusa.c \
 	hal/fifo/runlist_fifo_gv11b_fusa.c \
 	hal/fifo/runlist_ram_gv11b_fusa.c \
+	hal/fifo/tsg_gk20a_fusa.c \
 	hal/fifo/tsg_gv11b_fusa.c \
 	hal/fifo/usermode_gv11b_fusa.c \
 	hal/fuse/fuse_gm20b_fusa.c \

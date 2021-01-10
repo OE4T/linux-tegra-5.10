@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -174,7 +174,10 @@ static int nvgpu_tsg_unbind_channel_fd(struct nvgpu_tsg *tsg, int ch_fd)
 		goto out;
 	}
 
-	err = nvgpu_tsg_unbind_channel(tsg, ch);
+	err = nvgpu_tsg_unbind_channel(tsg, ch, false);
+	if (err == -EAGAIN) {
+		goto out;
+	}
 
 	/*
 	 * Mark the channel unserviceable since channel unbound from TSG

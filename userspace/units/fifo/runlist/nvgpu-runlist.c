@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1274,7 +1274,7 @@ int test_runlist_update_locked(struct unit_module *m, struct gk20a *g,
 							0U, chA, false, false);
 			unit_assert(err == 0, goto done);
 
-			err = nvgpu_tsg_unbind_channel(tsg, chA);
+			err = nvgpu_tsg_force_unbind_channel(tsg, chA);
 			if (err != 0) {
 				unit_err(m, "Cannot unbind channel A\n");
 			}
@@ -1307,7 +1307,7 @@ done:
 		branches_str(branches, f_runlist_update));
 	}
 
-	err = nvgpu_tsg_unbind_channel(tsg, ch);
+	err = nvgpu_tsg_force_unbind_channel(tsg, ch);
 	if (err != 0) {
 		unit_err(m, "Cannot unbind channel\n");
 	}
@@ -1355,7 +1355,7 @@ done:
 		unit_err(m, "%s failed\n", __func__);
 	}
 
-	err = nvgpu_tsg_unbind_channel(tsg, ch);
+	err = nvgpu_tsg_force_unbind_channel(tsg, ch);
 	if (err != 0) {
 		unit_err(m, "Cannot unbind channel\n");
 	}

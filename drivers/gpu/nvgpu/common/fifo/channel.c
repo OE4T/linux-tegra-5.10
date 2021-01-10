@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics channel
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -790,7 +790,7 @@ static void channel_free_invoke_unbind(struct nvgpu_channel *ch)
 			 * have an open channel fd anymore to use for the unbind
 			 * ioctl.
 			 */
-			err = nvgpu_tsg_unbind_channel(tsg, ch);
+			err = nvgpu_tsg_force_unbind_channel(tsg, ch);
 			if (err != 0) {
 				nvgpu_err(g,
 					"failed to unbind channel %d from TSG",
@@ -944,10 +944,11 @@ static void channel_free(struct nvgpu_channel *ch, bool force)
 
 	/*
 	 * OS channel close may require that syncpoint should be set to some
-	 * safe value before it is called. nvgpu_tsg_unbind_channel(above) is
-	 * internally doing that by calling nvgpu_nvhost_syncpt_set_safe_state
-	 * deep down in the stack. Otherwise os_channel close may block if the
-	 * app is killed abruptly (which was going to do the syncpoint signal).
+	 * safe value before it is called. nvgpu_tsg_force_unbind_channel(above)
+	 * is internally doing that by calling nvgpu_nvhost_syncpt_set_safe_-
+	 * state deep down in the stack. Otherwise os_channel close may block if
+	 * the app is killed abruptly (which was going to do the syncpoint
+	 * signal).
 	 */
 	if (g->os_channel.close != NULL) {
 		g->os_channel.close(ch, force);

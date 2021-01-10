@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,19 +20,32 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_TSG_GK20A_H
-#define NVGPU_TSG_GK20A_H
+#include <nvgpu/log.h>
+#include <nvgpu/channel.h>
 
-struct nvgpu_channel;
-struct nvgpu_channel_hw_state;
-
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
-struct nvgpu_tsg;
-
-void gk20a_tsg_enable(struct nvgpu_tsg *tsg);
-#endif
+#include "hal/fifo/tsg_gk20a.h"
 
 int gk20a_tsg_unbind_channel_check_hw_next(struct nvgpu_channel *ch,
-		struct nvgpu_channel_hw_state *hw_state);
+		struct nvgpu_channel_hw_state *hw_state)
+{
+	if (hw_state->next) {
+		/*
+		 * There is a possibility that the user sees the channel
+		 * has finished all the work and invokes channel removal
+		 * before the scheduler marks it idle (clears NEXT bit).
+		 * Scheduler can miss marking the channel idle if the
+		 * timeslice expires just after the work finishes.
+		 *
+		 * nvgpu will then see NEXT bit set even though the
+		 * channel has no work left. To catch this case,
+		 * reenable the tsg and check the hw state again
+		 * to see if the channel is truly idle.
+		 */
+		nvgpu_log_info(ch->g, "Channel %d to be removed "
+			"from TSG %d has NEXT set!",
+			ch->chid, ch->tsgid);
+		return -EAGAIN;
+	}
 
-#endif /* NVGPU_TSG_GK20A_H */
+	return 0;
+}

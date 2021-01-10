@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -373,12 +373,18 @@ struct nvgpu_tsg *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid);
  *
  * @param tsg [in]			Pointer to TSG struct.
  * @param ch [in]			Pointer to Channel struct.
+ * @param force [in]			If set, unbind proceeds if the channel
+ *					is busy.
  *
  * Unbind channel from TSG:
  *  - Check if channel being unbound has become unserviceable.
  *  - Disable TSG.
  *  - Preempt TSG.
  *  - Check hw state of the channel.
+ *  - If NEXT bit is set and force is set to true, perform error
+ *    handling steps given next.
+ *  - If NEXT bit is set and force is set to false, caller will
+ *    have to retry unbind.
  *  - Remove channel from its runlist.
  *  - Remove channel from TSG's channel list.
  *  - Set tsgid of the channel to #NVGPU_INVALID_TSG_ID.
@@ -402,7 +408,23 @@ struct nvgpu_tsg *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid);
  * @note Caller of this function must make sure that channel requested to be
  *       unbound from the TSG is bound to the TSG.
  */
-int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch);
+int nvgpu_tsg_unbind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch,
+			     bool force);
+
+
+/**
+ * @brief Unbind a channel from the TSG it is bound to.
+ *
+ * @param tsg [in]			Pointer to TSG struct.
+ * @param ch [in]			Pointer to Channel struct.
+ *
+ * Call #nvgpu_tsg_unbind_channel with argument force set. Thus, if the
+ * channel has work, it still gets unbound.
+ *
+ * @return return value by #nvgpu_tsg_unbind_channel
+ */
+int nvgpu_tsg_force_unbind_channel(struct nvgpu_tsg *tsg,
+				   struct nvgpu_channel *ch);
 
 /**
  * @brief Check h/w channel status before unbinding Channel.

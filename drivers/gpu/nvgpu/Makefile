@@ -673,6 +673,7 @@ nvgpu-y += \
 	hal/fifo/runlist_fifo_gk20a_fusa.o \
 	hal/fifo/runlist_fifo_gv11b_fusa.o \
 	hal/fifo/runlist_ram_gv11b_fusa.o \
+	hal/fifo/tsg_gk20a_fusa.o \
 	hal/fifo/tsg_gv11b_fusa.o \
 	hal/fifo/usermode_gv11b_fusa.o \
 	hal/fuse/fuse_gm20b_fusa.o \

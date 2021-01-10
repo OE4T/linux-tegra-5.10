@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # HAL units. These are the units that have access to HW.
 #
@@ -240,13 +240,14 @@ fifo:
                  hal/fifo/channel_gv100.h ]
     tsg_fusa:
       safe: yes
-      sources: [ hal/fifo/tsg_gv11b.h,
+      sources: [ hal/fifo/tsg_gk20a.h,
+                 hal/fifo/tsg_gk20a_fusa.c,
+                 hal/fifo/tsg_gv11b.h,
                  hal/fifo/tsg_gv11b_fusa.c ]
 
     tsg:
       safe: no
-      sources: [ hal/fifo/tsg_gk20a.h,
-                 hal/fifo/tsg_gk20a.c ]
+      sources: [ hal/fifo/tsg_gk20a.c ]
 
     fifo_fusa:
      safe: yes
