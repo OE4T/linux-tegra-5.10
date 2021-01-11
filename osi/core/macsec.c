@@ -399,58 +399,22 @@ int macsec_dbg_events_config(
 }
 
 /**
- * @brief macsec_reset_mmc - To reset macsec statistics registers and
- *	structure variable
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @note
- *	1) MAC/MACSEC should be init and started.
- */
-void macsec_reset_mmc(struct osi_core_priv_data *osi_core)
-{
-	unsigned int value;
-	signed short retry = 1000;
-
-	value = osi_readl((unsigned char *)osi_core->macsec_base +
-			  STATS_CONTROL_0);
-	/* reset statitics counters */
-	value |= STATS_CONTROL0_CNT_CLR;
-	osi_writel(value, (unsigned char *)osi_core->base + STATS_CONTROL_0);
-	osi_memset(&osi_core->macsec_mmc, 0U,
-			   sizeof(struct osi_macsec_mmc_counters));
-	/* wait for stats to be cleared */
-	while (retry > 0) {
-		value = osi_readl((unsigned char *)osi_core->macsec_base
-				  + STATS_CONTROL_0);
-		if ((value & STATS_CONTROL0_CNT_CLR) !=
-		    STATS_CONTROL0_CNT_CLR) {
-			break;
-		}
-		osi_core->osd_ops.udelay(10U);
-		retry--;
-	}
-}
-
-/**
  * @brief update_macsec_mmc_val - function to read register and return value
  *				 to callee
  * Algorithm: Read the registers, check for boundary, if more, reset
  *	  counters else return same to caller.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] last_value: previous value of stats variable.
  * @param[in] offset: HW register offset
  *
  * @note
  *	1) MAC/MACSEC should be init and started.
  *
- * @retval 0 on MMC counters overflow
  * @retval value on current MMC counter value.
  */
 static inline unsigned long long update_macsec_mmc_val(
 			struct osi_core_priv_data *osi_core,
-			unsigned long long last_value, unsigned long offset)
+			unsigned long offset)
 {
 
 	unsigned long long temp;
@@ -459,16 +423,9 @@ static inline unsigned long long update_macsec_mmc_val(
 	value_lo = osi_readl((unsigned char *)osi_core->macsec_base + offset);
 	value_hi = osi_readl((unsigned char *)osi_core->macsec_base +
 						 (offset + 4U));
+	temp = (value_lo | value_hi << 31);
 
-	temp = last_value + (value_lo | value_hi << 31);
-	if (temp < last_value) {
-		pr_err("Value overflow resetting  all statitics counters\n");
-		macsec_reset_mmc(osi_core);
-	} else {
-		return temp;
-	}
-
-	return 0;
+	return temp;
 }
 
 
@@ -490,53 +447,41 @@ void macsec_read_mmc(struct osi_core_priv_data *const osi_core)
 	unsigned short i;
 
 	mmc->tx_pkts_untaged =
-	update_macsec_mmc_val(osi_core, mmc->tx_pkts_untaged,
-			      TX_PKTS_UNTG_LO_0);
+		update_macsec_mmc_val(osi_core, TX_PKTS_UNTG_LO_0);
 	mmc->tx_pkts_too_long =
-	update_macsec_mmc_val(osi_core, mmc->tx_pkts_too_long,
-			      TX_PKTS_TOO_LONG_LO_0);
+		update_macsec_mmc_val(osi_core, TX_PKTS_TOO_LONG_LO_0);
 	mmc->tx_octets_protected =
-	update_macsec_mmc_val(osi_core, mmc->tx_octets_protected,
-			      TX_OCTETS_PRTCTD_LO_0);
+		update_macsec_mmc_val(osi_core, TX_OCTETS_PRTCTD_LO_0);
 	mmc->rx_pkts_no_tag =
-		update_macsec_mmc_val(osi_core, mmc->rx_pkts_no_tag,
-				      RX_PKTS_NOTG_LO_0);
+		update_macsec_mmc_val(osi_core, RX_PKTS_NOTG_LO_0);
 	mmc->rx_pkts_untagged =
-		update_macsec_mmc_val(osi_core, mmc->rx_pkts_untagged,
-				      RX_PKTS_UNTG_LO_0);
+		update_macsec_mmc_val(osi_core, RX_PKTS_UNTG_LO_0);
 	mmc->rx_pkts_bad_tag =
-		update_macsec_mmc_val(osi_core, mmc->rx_pkts_bad_tag,
-				      RX_PKTS_BADTAG_LO_0);
+		update_macsec_mmc_val(osi_core, RX_PKTS_BADTAG_LO_0);
 	mmc->rx_pkts_no_sa_err =
-		update_macsec_mmc_val(osi_core, mmc->rx_pkts_no_sa_err,
-				      RX_PKTS_NOSAERROR_LO_0);
+		update_macsec_mmc_val(osi_core, RX_PKTS_NOSAERROR_LO_0);
 	mmc->rx_pkts_no_sa =
-		update_macsec_mmc_val(osi_core, mmc->rx_pkts_no_sa,
-				      RX_PKTS_NOSA_LO_0);
+		update_macsec_mmc_val(osi_core, RX_PKTS_NOSA_LO_0);
 	mmc->rx_pkts_overrun =
-		update_macsec_mmc_val(osi_core, mmc->rx_pkts_overrun,
-				      RX_PKTS_OVRRUN_LO_0);
+		update_macsec_mmc_val(osi_core, RX_PKTS_OVRRUN_LO_0);
 	mmc->rx_octets_validated =
-		update_macsec_mmc_val(osi_core, mmc->rx_octets_validated,
-				      RX_OCTETS_VLDTD_LO_0);
+		update_macsec_mmc_val(osi_core, RX_OCTETS_VLDTD_LO_0);
 
 	for (i = 0; i <= SC_INDEX_MAX; i++) {
 		mmc->tx_pkts_protected[i] =
 			update_macsec_mmc_val(osi_core,
-					      mmc->tx_pkts_protected[i],
 					      TX_PKTS_PROTECTED_SCx_LO_0(i));
 		mmc->rx_pkts_late[i] =
-			update_macsec_mmc_val(osi_core, mmc->rx_pkts_late[i],
+			update_macsec_mmc_val(osi_core,
 					      RX_PKTS_LATE_SCx_LO_0(i));
 		mmc->rx_pkts_delayed[i] = mmc->rx_pkts_late[i];
 		mmc->rx_pkts_not_valid[i] =
 			update_macsec_mmc_val(osi_core,
-					      mmc->rx_pkts_not_valid[i],
 					      RX_PKTS_NOTVALID_SCx_LO_0(i));
 		mmc->in_pkts_invalid[i] = mmc->rx_pkts_not_valid[i];
 		mmc->rx_pkts_unchecked[i] = mmc->rx_pkts_not_valid[i];
 		mmc->rx_pkts_ok[i] =
-			update_macsec_mmc_val(osi_core, mmc->rx_pkts_ok[i],
+			update_macsec_mmc_val(osi_core,
 					      RX_PKTS_OK_SCx_LO_0(i));
 	}
 }
