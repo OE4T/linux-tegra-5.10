@@ -1744,6 +1744,17 @@ static int ether_open(struct net_device *dev)
 		goto err_alloc;
 	}
 
+#ifdef MACSEC_SUPPORT
+		/* Macsec is initialized, reduce MTU
+		 * TODO: MTU_ADDONS also to be reduced ?
+		 */
+		osi_core->mtu -= MACSEC_TAG_ICV_LEN;
+		pdata->osi_dma->mtu = osi_core->mtu;
+		pdata->ndev->mtu = osi_core->mtu;
+		dev_info(&dev->dev, "Macsec: Reduced MTU: %d Max: %d\n",
+			 pdata->ndev->mtu, pdata->ndev->max_mtu);
+#endif /*  MACSEC_SUPPORT */
+
 #ifdef THERMAL_CAL
 	atomic_set(&pdata->therm_state, 0);
 	ret = ether_therm_init(pdata);
@@ -4671,17 +4682,6 @@ static int ether_probe(struct platform_device *pdev)
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to setup macsec\n");
 		goto err_macsec;
-	} else if (ret == 0) {
-		/* Macsec is initialized, reduce MTU
-		 * TODO: MTU_ADDONS also to be reduced ?
-		 */
-		pdata->max_platform_mtu -= MACSEC_TAG_ICV_LEN;
-		ndev->max_mtu = pdata->max_platform_mtu;
-		osi_core->mtu -= MACSEC_TAG_ICV_LEN;
-		osi_dma->mtu = osi_core->mtu;
-		ndev->mtu = osi_core->mtu;
-		dev_info(&pdev->dev, "Macsec: Reduced MTU: %d Max: %d\n",
-			 ndev->mtu, ndev->max_mtu);
 	} else {
 		; //Nothing to do, macsec is not supported
 		dev_info(&pdev->dev, "Macsec not enabled - ignore\n");
