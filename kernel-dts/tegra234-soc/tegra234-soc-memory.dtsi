@@ -55,6 +55,14 @@
 			no-map;
 		};
 
+		fsi_reserved: fsi-carveout {
+			compatible = "nvidia,fsi-carveout";
+			size = <0 2000000>;
+			alignment = <0 1000>;
+			no-map;
+			alloc-ranges = <0x0 0x0 0x1 0x0>;
+			status = "okay";
+                };
 	};
 
 	tegra-carveouts {
@@ -65,7 +73,7 @@
 		 * once it finds Zero size "memory-region". Hence keep non zero sized
 		 * "memory-region" before the zero sized ones.
 		 */
-		memory-region = <&generic_reserved &gos_reserved>;
+		memory-region = <&fsi_reserved &generic_reserved &gos_reserved>;
 		status = "okay";
 	};
 
