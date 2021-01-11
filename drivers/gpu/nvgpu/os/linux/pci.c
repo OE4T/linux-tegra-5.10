@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -310,7 +310,13 @@ static struct pci_device_id nvgpu_pci_table[] = {
 		.class_mask = 0xff << 16,
 		.driver_data = 3,
 	},
-
+	{
+		/* PG199 SKU*/
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x20bb),
+		.class = PCI_BASE_CLASS_DISPLAY << 16,
+		.class_mask = 0xff << 16,
+		.driver_data = 3,
+	},
 	{}
 };
 
