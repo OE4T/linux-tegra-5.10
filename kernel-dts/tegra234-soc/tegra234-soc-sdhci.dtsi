@@ -72,6 +72,11 @@
 		nvidia,default-tap = <0x8>;
 		nvidia,default-trim = <0x14>;
 		nvidia,dqs-trim = <40>;
+		assigned-clocks = <&bpmp TEGRA194_CLK_SDMMC4>,
+				  <&bpmp_clks TEGRA234_CLK_PLLC4>;
+		assigned-clock-parents =
+				  <&bpmp_clks TEGRA234_CLK_PLLC4>;
+
 #endif
 		resets = <&bpmp_resets TEGRA194_RESET_SDMMC4>;
 		reset-names = "sdhci";
@@ -130,6 +135,10 @@
 		pinctrl-names = "sdmmc-3v3", "sdmmc-1v8";
 		pinctrl-0 = <&sdmmc1_3v3>;
 		pinctrl-1 = <&sdmmc1_1v8>;
+		assigned-clocks = <&bpmp TEGRA194_CLK_SDMMC1>,
+				  <&bpmp TEGRA194_CLK_PLLC4_MUXED>;
+		assigned-clock-parents =
+				  <&bpmp TEGRA194_CLK_PLLC4_MUXED>;
 #else
 
 		pinctrl-names = "sdmmc_e_33v_enable", "sdmmc_e_33v_disable";

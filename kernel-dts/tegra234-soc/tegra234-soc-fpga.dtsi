@@ -483,6 +483,8 @@
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		supports-cqe;
 #endif
+		no-sd;
+		no-sdio;
 		status = "okay";
 	};
 
@@ -492,6 +494,8 @@
 		/delete-property/ pinctrl-1;
 		nvidia,voltage-switch-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(G, 6) 0>;
 		cd-gpios = <&tegra_main_gpio TEGRA234_MAIN_GPIO(G, 7) 0>;
+		no-mmc;
+		no-sdio;
 		status = "okay";
 	 };
 
