@@ -512,8 +512,8 @@
 /** @} */
 
 #define MTU_LENGTH_MASK			0xFFFF
-/* MACsec sectag + ICV adds upto 32B */
-#define MACSEC_TAG_ICV_LEN		32
+/* MACsec sectag + ICV + 2B ethertype adds upto 34B */
+#define MACSEC_TAG_ICV_LEN		34
 /* Add 8B for double VLAN tags (4B each),
  * 14B for L2 SA/DA/ethertype, TODO - as per IAS SA/DA is ignored from length
  * 4B for FCS
