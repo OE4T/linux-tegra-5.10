@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -110,11 +110,13 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.disable_dynamic_dma_map = true,
 		.no_cpu_access = true,
 	},
-	/* Need uninitialized entries for IVM carveouts */
 	[3] = {
-		.name		= NULL,
-		.usage_mask	= NVMAP_HEAP_CARVEOUT_IVM,
+		.name		= "fsi",
+		.usage_mask	= NVMAP_HEAP_CARVEOUT_FSI,
+		.base		= 0,
+		.size		= 0,
 	},
+	/* Need uninitialized entries for IVM carveouts */
 	[4] = {
 		.name		= NULL,
 		.usage_mask	= NVMAP_HEAP_CARVEOUT_IVM,
@@ -127,11 +129,15 @@ static struct nvmap_platform_carveout nvmap_carveouts[] = {
 		.name		= NULL,
 		.usage_mask	= NVMAP_HEAP_CARVEOUT_IVM,
 	},
+	[7] = {
+		.name		= NULL,
+		.usage_mask	= NVMAP_HEAP_CARVEOUT_IVM,
+	},
 };
 
 static struct nvmap_platform_data nvmap_data = {
 	.carveouts	= nvmap_carveouts,
-	.nr_carveouts	= 3,
+	.nr_carveouts	= 4,
 };
 
 static struct nvmap_platform_carveout *nvmap_get_carveout_pdata(const char *name)
@@ -419,6 +425,7 @@ EXPORT_SYMBOL(nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_co, "nvidia,generic_carveout", nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_ivm_co, "nvidia,ivm_carveout", nvmap_co_setup);
 RESERVEDMEM_OF_DECLARE(nvmap_vpr_co, "nvidia,vpr-carveout", nvmap_co_setup);
+RESERVEDMEM_OF_DECLARE(nvmap_fsi_co, "nvidia,fsi-carveout", nvmap_co_setup);
 
 /*
  * This requires proper kernel arguments to have been passed.
