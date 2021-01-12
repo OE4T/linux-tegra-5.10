@@ -159,9 +159,11 @@ struct nvgpu_acr;
 #define	ACR_BOOT_FAILED			12U
 
 /**
- * @brief ACR initialization to allocate memory for ACR unit & set static
- *        properties and ops for LS ucode blob construction as well as for
- *        ACR HS ucode bootstrap.
+ * @brief The ACR is responsible for GPU secure boot. For this, it needs
+ *        to allocate memory and set static properties and ops for LS
+ *        ucode blob construction as well as for ACR HS ucode bootstrap.
+ *        This function allocates the needed memory and sets the static
+ *        properties and ops.
  *
  * @param g   [in] The GPU driver struct.
  *
@@ -216,8 +218,12 @@ int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
 #endif
 
 /**
- * @brief Construct blob of LS ucode's in non-wpr memory. Load and bootstrap HS
- *        ACR ucode on specified engine Falcon
+ * @brief After ACR init which allocates and sets required properties of ACR,
+ *        blob of LS ucode(s) are to be constructed in non-wpr memory. After
+ *        blob construction HS ACR ucode is to be loaded and then bootstrapped
+ *        on specified engine Falcon for GPU secure boot. This function is
+ *        responsible for blob construct and loading and bootstrapping ACR
+ *        ucode.
  *
  * @param g   [in] The GPU driver struct.
  *
@@ -339,7 +345,11 @@ int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
 int nvgpu_acr_construct_execute(struct gk20a *g);
 
 /**
- * @brief Read, Load and Bootstrap HS ACR ucode on Engine's Falcon.
+ * @brief After LS ucode blob is created, HS ACR ucode needs to be
+ *        loaded and bootstrapped on Engine's Falcon.
+ *        This function reads HS ACR ucode from filesystem and patches
+ *        required HS signature to load on to specified engine falcon
+ *        to bootstrap the HS ACR ucode.
  *
  * @param g   [in] The GPU driver struct.
  * @param acr [in] The ACR private data struct
@@ -384,8 +394,12 @@ int nvgpu_acr_construct_execute(struct gk20a *g);
 int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr);
 
 /**
- * @brief Check if ls-Falcon lazy-bootstrap status to load & bootstrap from
- *        LS-RTOS or not
+ * @brief During ACR initialization lsf_enable_mask is set for supported
+ *        LS Falcon and it is used during blob creation to add LS Falcon
+ *        ucode details to blob. It has details like falcon id, dma id
+ *        and lazy bootstrap status.
+ *        This function checks if ls-Falcon lazy-bootstrap status to
+ *        load & bootstrap from LS-RTOS or not.
  *
  * @param g   [in] The GPU driver struct.
  * @param acr [in] The ACR private data struct
