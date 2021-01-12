@@ -22,4 +22,7 @@ host1x-next-y = \
 	hw/host1x06.o \
 	hw/host1x07.o
 
+host1x-next-$(CONFIG_IOMMU_API) += \
+	context.o
+
 obj-m := host1x-next.o
