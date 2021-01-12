@@ -29,6 +29,16 @@
 #define TEGRA_SID_PASSTHROUGH		0x7f
 
 /*
+ * Set IOMMU DT version to DT_VERSION_2 for HYPERVISOR/Server VM dtb
+ */
+#if defined (T23x_WORK_AROUND)
+#undef  DT_VERSION_2
+#define  DT_VERSION_2           2
+#undef  TEGRA_IOMMU_DT_VERSION
+#define TEGRA_IOMMU_DT_VERSION  DT_VERSION_2
+#endif
+
+/*
  * Set IOMMU DT version to DT_VERSION_2 for QNX
  */
 #if defined (__QNX__)
@@ -182,6 +192,8 @@
 #define TEGRA_SID_NISO1_SE_VM0		0x45U
 #define TEGRA_SID_NISO1_SE_VM1		0x46U
 #define TEGRA_SID_NISO1_SE_VM2		0x47U
+
+#define TEGRA_SID_NISO1_SMMU_TEST	0x48U
 
 #else
 
