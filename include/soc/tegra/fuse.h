@@ -136,6 +136,8 @@ struct device *tegra_soc_device_register(void);
  * begin block - downstream declarations
  */
 
+#define FUSE_OPT_FT_REV_0              0x28
+
 #define FUSE_CP_REV			0x90
 #define TEGRA_FUSE_CP_REV_0_3		(3)
 
