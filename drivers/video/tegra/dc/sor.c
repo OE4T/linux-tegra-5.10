@@ -1031,6 +1031,9 @@ bypass_pads:
 		sor->hdcp_support = sor_cap[sor->ctrl_num].hdcp_supported;
 	}
 
+	if (of_property_read_bool(sor_np, "nvidia,sor-hdcp-not-supported"))
+		sor->hdcp_support = false;
+
 	if (tegra_dc_is_nvdisplay()) {
 		sor->win_state_arr = devm_kzalloc(&dc->ndev->dev,
 					tegra_dc_get_numof_dispwindows() *

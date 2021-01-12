@@ -27,6 +27,7 @@ Required properties:
   See ../reset/reset.txt for details.
 - hdmi-display: Information if this SOR can support hdmi display.
 - dp-display: Information if this SOR can support dp display.
+- nvidia,sor-hdcp-not-supported: With enabled, do not initialize HDCP driver.
 
 Example:
 =======
