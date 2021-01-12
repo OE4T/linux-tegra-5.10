@@ -80,11 +80,7 @@ static int tegra_bpmp_xlate_flags(u16 flags, u16 *out)
 		flags &= ~I2C_M_RECV_LEN;
 	}
 
-	/* Ignore DMA safe buffer flag */
-	if (flags & I2C_M_DMA_SAFE)
-		flags &= ~I2C_M_DMA_SAFE;
-
-	return (flags != 0) ? -EINVAL : 0;
+	return 0;
 }
 
 /**
