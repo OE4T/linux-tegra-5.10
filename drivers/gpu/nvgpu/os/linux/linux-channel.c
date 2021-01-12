@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -655,6 +655,9 @@ static void trace_write_pushbuffer(struct nvgpu_channel *c,
 	unsigned int words;
 	u64 offset;
 	struct dma_buf *dmabuf = NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+	struct dma_buf_map map;
+#endif
 
 	if (gk20a_debug_trace_cmdbuf) {
 		u64 gpu_va = (u64)g->entry0 |
@@ -663,8 +666,14 @@ static void trace_write_pushbuffer(struct nvgpu_channel *c,
 
 		words = pbdma_gp_entry1_length_v(g->entry1);
 		err = nvgpu_vm_find_buf(c->vm, gpu_va, &dmabuf, &offset);
-		if (!err)
+		if (!err) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+			err = dma_buf_vmap(dmabuf, &map);
+			mem = err ? NULL : map.vaddr;
+#else
 			mem = dma_buf_vmap(dmabuf);
+#endif
+		}
 	}
 
 	if (mem) {
@@ -683,7 +692,11 @@ static void trace_write_pushbuffer(struct nvgpu_channel *c,
 				mem);
 		}
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+		dma_buf_vunmap(dmabuf, &map);
+#else
 		dma_buf_vunmap(dmabuf, mem);
+#endif
 	}
 }
 

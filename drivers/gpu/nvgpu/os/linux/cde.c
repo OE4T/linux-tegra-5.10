@@ -1,7 +1,7 @@
 /*
  * Color decompression engine support
  *
- * Copyright (c) 2014-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1042,6 +1042,9 @@ __releases(&l->cde_app->mutex)
 	const s16 compbits_kind = 0;
 	u32 submit_op;
 	struct dma_buf_attachment *attachment;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+	struct dma_buf_map map;
+#endif
 
 	nvgpu_log(g, gpu_dbg_cde, "compbits_byte_offset=%llu scatterbuffer_byte_offset=%llu",
 		  compbits_byte_offset, scatterbuffer_byte_offset);
@@ -1128,10 +1131,14 @@ __releases(&l->cde_app->mutex)
 		struct sg_table *sgt;
 		void *scatter_buffer;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+		err = dma_buf_vmap(compbits_scatter_buf, &map);
+		surface = err ? NULL : map.vaddr;
+#else
 		surface = dma_buf_vmap(compbits_scatter_buf);
-		if (IS_ERR(surface)) {
-			nvgpu_warn(g,
-				   "dma_buf_vmap failed");
+#endif
+		if (!surface) {
+			nvgpu_warn(g, "dma_buf_vmap failed");
 			err = -EINVAL;
 			goto exit_unmap_vaddr;
 		}
@@ -1178,7 +1185,11 @@ __releases(&l->cde_app->mutex)
 				goto exit_unmap_surface;
 		}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+		dma_buf_vunmap(compbits_scatter_buf, &map);
+#else
 		dma_buf_vunmap(compbits_scatter_buf, surface);
+#endif
 		surface = NULL;
 	}
 
@@ -1268,7 +1279,11 @@ __releases(&l->cde_app->mutex)
 
 exit_unmap_surface:
 	if (surface) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+		dma_buf_vunmap(compbits_scatter_buf, &map);
+#else
 		dma_buf_vunmap(compbits_scatter_buf, surface);
+#endif
 	}
 exit_unmap_vaddr:
 	nvgpu_vm_unmap(cde_ctx->vm, map_vaddr, NULL);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -351,6 +351,9 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 	struct mm_gk20a *mm = &g->mm;
 	u64 pma_bytes_available_buffer_offset;
 	struct dma_buf *dmabuf;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+	struct dma_buf_map map;
+#endif
 	void *cpuva;
 	u32 pma_buffer_size;
 	int err;
@@ -405,7 +408,12 @@ static int nvgpu_prof_ioctl_alloc_pma_stream(struct nvgpu_profiler_object_priv *
 		goto err_unmap_pma;
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+	err = dma_buf_vmap(dmabuf, &map);
+	cpuva = err ? NULL : map.vaddr;
+#else
 	cpuva = dma_buf_vmap(dmabuf);
+#endif
 	if (cpuva == NULL) {
 		err = -ENOMEM;
 		nvgpu_err(g, "failed to vmap available bytes buffer FD");
@@ -444,6 +452,9 @@ static void nvgpu_prof_free_pma_stream_priv_data(struct nvgpu_profiler_object_pr
 	struct nvgpu_profiler_object *prof = priv->prof;
 	struct gk20a *g = prof->g;
 	struct mm_gk20a *mm = &g->mm;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+	struct dma_buf_map map;
+#endif
 
 	if (priv->pma_bytes_available_buffer_dmabuf == NULL) {
 		return;
@@ -456,8 +467,13 @@ static void nvgpu_prof_free_pma_stream_priv_data(struct nvgpu_profiler_object_pr
 	prof->pma_buffer_va = 0U;
 	prof->pma_buffer_size = 0U;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+	dma_buf_map_set_vaddr(&map, prof->pma_bytes_available_buffer_cpuva);
+	dma_buf_vunmap(priv->pma_bytes_available_buffer_dmabuf, &map);
+#else
 	dma_buf_vunmap(priv->pma_bytes_available_buffer_dmabuf,
 		prof->pma_bytes_available_buffer_cpuva);
+#endif
 	dma_buf_put(priv->pma_bytes_available_buffer_dmabuf);
 	priv->pma_bytes_available_buffer_dmabuf = NULL;
 	prof->pma_bytes_available_buffer_cpuva = NULL;
