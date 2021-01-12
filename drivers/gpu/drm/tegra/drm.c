@@ -325,9 +325,6 @@ int tegra_drm_submit(struct tegra_drm_context *context,
 	args->fence = job->syncpt_end;
 
 fail:
-	if (sp)
-		host1x_syncpt_put(sp);
-
 	while (num_refs--)
 		drm_gem_object_put(refs[num_refs]);
 
@@ -731,6 +728,7 @@ static int tegra_gem_get_flags(struct drm_device *drm, void *data,
 #endif
 
 static const struct drm_ioctl_desc tegra_drm_ioctls[] = {
+#ifdef CONFIG_DRM_TEGRA_STAGING
 	DRM_IOCTL_DEF_DRV(TEGRA_CHANNEL_OPEN, tegra_drm_ioctl_channel_open,
 			  DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(TEGRA_CHANNEL_CLOSE, tegra_drm_ioctl_channel_close,
@@ -745,7 +743,6 @@ static const struct drm_ioctl_desc tegra_drm_ioctls[] = {
 			  DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(TEGRA_GEM_MMAP, tegra_drm_ioctl_gem_mmap,
 			  DRM_RENDER_ALLOW),
-#ifdef CONFIG_DRM_TEGRA_STAGING
 
 	DRM_IOCTL_DEF_DRV(TEGRA_GEM_CREATE_LEGACY, tegra_gem_create, DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(TEGRA_GEM_MMAP_LEGACY, tegra_gem_mmap, DRM_RENDER_ALLOW),

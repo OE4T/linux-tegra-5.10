@@ -12,6 +12,7 @@ struct tegra_drm_firewall {
 	u32 *data;
 	u32 pos;
 	u32 end;
+	u32 class;
 };
 
 static int fw_next(struct tegra_drm_firewall *fw, u32 *word)
@@ -51,8 +52,8 @@ static int fw_check_reg(struct tegra_drm_firewall *fw, u32 offset)
 	if (!fw->client->ops->is_addr_reg)
 		return 0;
 
-	is_addr = fw->client->ops->is_addr_reg(
-		fw->client->base.dev, fw->client->base.class, offset);
+	is_addr = fw->client->ops->is_addr_reg(fw->client->base.dev, fw->class,
+					       offset);
 
 	if (!is_addr)
 		return 0;
@@ -97,9 +98,20 @@ static int fw_check_regs_imm(struct tegra_drm_firewall *fw, u32 offset)
 {
 	bool is_addr;
 
-	is_addr = fw->client->ops->is_addr_reg(fw->client->base.dev,
-					       fw->client->base.class, offset);
+	is_addr = fw->client->ops->is_addr_reg(fw->client->base.dev, fw->class,
+					       offset);
 	if (is_addr)
+		return -EINVAL;
+
+	return 0;
+}
+
+static int fw_check_class(struct tegra_drm_firewall *fw, u32 class)
+{
+	if (!fw->client->ops->is_valid_class)
+		return -EINVAL;
+
+	if (!fw->client->ops->is_valid_class(class))
 		return -EINVAL;
 
 	return 0;
@@ -124,7 +136,8 @@ enum {
 };
 
 int tegra_drm_fw_validate(struct tegra_drm_client *client, u32 *data, u32 start,
-			  u32 words, struct tegra_drm_submit_data *submit)
+			  u32 words, struct tegra_drm_submit_data *submit,
+			  u32 *job_class)
 {
 	struct tegra_drm_firewall fw = {
 		.submit = submit,
@@ -132,13 +145,14 @@ int tegra_drm_fw_validate(struct tegra_drm_client *client, u32 *data, u32 start,
 		.data = data,
 		.pos = start,
 		.end = start+words,
+		.class = *job_class,
 	};
 	bool payload_valid = false;
 	u32 payload;
 	int err;
 
 	while (fw.pos != fw.end) {
-		u32 word, opcode, offset, count, mask;
+		u32 word, opcode, offset, count, mask, class;
 
 		err = fw_next(&fw, &word);
 		if (err)
@@ -147,6 +161,16 @@ int tegra_drm_fw_validate(struct tegra_drm_client *client, u32 *data, u32 start,
 		opcode = (word & 0xf0000000) >> 28;
 
 		switch (opcode) {
+		case HOST1X_OPCODE_SETCLASS:
+			offset = word >> 16 & 0xfff;
+			mask = word & 0x3f;
+			class = (word >> 6) & 0x3ff;
+			err = fw_check_class(&fw, class);
+			fw.class = class;
+			*job_class = class;
+			if (!err)
+				err = fw_check_regs_mask(&fw, offset, mask);
+			break;
 		case HOST1X_OPCODE_INCR:
 			offset = (word >> 16) & 0xfff;
 			count = word & 0xffff;
