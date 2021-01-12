@@ -114,7 +114,7 @@ void host1x_fence_signal(struct host1x_syncpt_fence *f)
 	 */
 	cancel_delayed_work_sync(&f->timeout_work);
 
-	host1x_intr_put_ref(f->sp->host, f->sp->id, f->waiter_ref);
+	host1x_intr_put_ref(f->sp->host, f->sp->id, f->waiter_ref, false);
 
 	dma_fence_signal(&f->base);
 	dma_fence_put(&f->base);
@@ -133,7 +133,7 @@ static void do_fence_timeout(struct work_struct *work)
 	 * Cancel pending timeout work - if it races, it will
 	 * not get 'f->signaling' and return.
 	 */
-	host1x_intr_put_ref(f->sp->host, f->sp->id, f->waiter_ref);
+	host1x_intr_put_ref(f->sp->host, f->sp->id, f->waiter_ref, true);
 
 	dma_fence_set_error(&f->base, -ETIMEDOUT);
 	dma_fence_signal(&f->base);

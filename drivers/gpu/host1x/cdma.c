@@ -453,7 +453,7 @@ syncpt_incr:
 				u32 *mapped = cdma->push_buffer.mapped;
 
 				/*
-				 * Overwrite opcodes with 0 word writes to
+				 * Overwrite opcodes with 0 word writes
 				 * to offset 0xbad. This does nothing but
 				 * has a easily detected signature in debug
 				 * traces.

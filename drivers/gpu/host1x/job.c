@@ -84,7 +84,7 @@ static void job_free(struct kref *ref)
 
 	if (job->waiter)
 		host1x_intr_put_ref(job->syncpt->host, job->syncpt->id,
-				    job->waiter);
+				    job->waiter, false);
 
 	if (job->syncpt)
 		host1x_syncpt_put(job->syncpt);

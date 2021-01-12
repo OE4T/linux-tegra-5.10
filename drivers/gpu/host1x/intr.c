@@ -251,7 +251,8 @@ int host1x_intr_add_action(struct host1x *host, struct host1x_syncpt *syncpt,
 	return 0;
 }
 
-void host1x_intr_put_ref(struct host1x *host, unsigned int id, void *ref)
+void host1x_intr_put_ref(struct host1x *host, unsigned int id, void *ref,
+			 bool flush)
 {
 	struct host1x_waitlist *waiter = ref;
 	struct host1x_syncpt *syncpt;
@@ -267,6 +268,12 @@ void host1x_intr_put_ref(struct host1x *host, unsigned int id, void *ref)
 		kref_put(&waiter->refcount, waiter_release);
 	}
 	spin_unlock(&syncpt->intr.lock);
+
+	if (flush) {
+		/* Wait until any concurrently executing handler has finished. */
+		while (atomic_read(&waiter->state) != WLS_HANDLED)
+			cpu_relax();
+	}
 
 	kref_put(&waiter->refcount, waiter_release);
 }
