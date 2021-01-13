@@ -1,7 +1,7 @@
-From 88f5d7126bf213ce5d1a0ca5cad702c339a8df75 Mon Sep 17 00:00:00 2001
+From 716fecfa48410d48c95f3c542a2d588a49dfe6d0 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 9 Nov 2020 21:30:41 +0100
-Subject: [PATCH 070/258] kthread: Move prio/affinite change into the newly
+Subject: [PATCH 070/268] kthread: Move prio/affinite change into the newly
  created thread
 
 With enabled threaded interrupts the nouveau driver reported the
