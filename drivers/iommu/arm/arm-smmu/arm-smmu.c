@@ -3,7 +3,7 @@
  * IOMMU API for ARM architected SMMU implementations.
  *
  * Copyright (C) 2013 ARM Limited
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Will Deacon <will.deacon@arm.com>
  *
@@ -669,7 +669,7 @@ void arm_smmu_write_context_bank(struct arm_smmu_device *smmu, int idx)
 
 	/* SCTLR */
 	reg = ARM_SMMU_SCTLR_CFIE | ARM_SMMU_SCTLR_CFRE | ARM_SMMU_SCTLR_AFE |
-	      ARM_SMMU_SCTLR_TRE | ARM_SMMU_SCTLR_M;
+	      ARM_SMMU_SCTLR_TRE | ARM_SMMU_SCTLR_M | ARM_SMMU_SCTLR_HUPCF;
 	if (stage1)
 		reg |= ARM_SMMU_SCTLR_S1_ASIDPNE;
 	if (IS_ENABLED(CONFIG_CPU_BIG_ENDIAN))
