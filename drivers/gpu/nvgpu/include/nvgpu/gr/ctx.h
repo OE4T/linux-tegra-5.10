@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_INCLUDE_GR_CTX_H
-#define NVGPU_INCLUDE_GR_CTX_H
+#ifndef NVGPU_GR_CTX_H
+#define NVGPU_GR_CTX_H
 
 #include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
@@ -612,4 +612,4 @@ bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
 #endif
 
-#endif /* NVGPU_INCLUDE_GR_CTX_H */
+#endif /* NVGPU_GR_CTX_H */

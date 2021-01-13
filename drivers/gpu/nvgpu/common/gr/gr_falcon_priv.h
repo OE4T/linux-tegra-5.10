@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef GR_FALCON_PRIV_H
-#define GR_FALCON_PRIV_H
+#ifndef NVGPU_GR_FALCON_PRIV_H
+#define NVGPU_GR_FALCON_PRIV_H
 
 #include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
@@ -209,4 +209,4 @@ struct nvgpu_gr_falcon {
 	struct nvgpu_gr_falcon_query_sizes sizes;
 };
 
-#endif /* GR_FALCON_PRIV_H */
+#endif /* NVGPU_GR_FALCON_PRIV_H */

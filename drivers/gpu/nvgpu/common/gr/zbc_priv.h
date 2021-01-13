@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef GR_ZBC_H
-#define GR_ZBC_H
+#ifndef NVGPU_GR_ZBC_PRIV_H
+#define NVGPU_GR_ZBC_PRIV_H
 
 #include <nvgpu/gr/zbc.h>
 
@@ -85,5 +85,5 @@ struct nvgpu_gr_zbc {
 	u32 max_used_stencil_index; /* Max used stencil table index */
 };
 
-#endif /* GR_ZBC_H */
+#endif /* NVGPU_GR_ZBC_PRIV_H */
 
