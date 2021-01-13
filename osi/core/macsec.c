@@ -2457,7 +2457,7 @@ static int del_upd_sc(struct osi_core_priv_data *const osi_core,
 	if (existing_sc->curr_an == sc->curr_an) {
 		/* 1. SCI LUT */
 		lut_config.lut_sel = LUT_SEL_SCI;
-		table_config->index = sc->sc_idx_start;
+		table_config->index = existing_sc->sc_idx_start;
 		ret = macsec_lut_config(osi_core, &lut_config);
 		if (ret < 0) {
 			pr_err("%s: Failed to del SCI LUT", __func__);
@@ -2484,7 +2484,8 @@ static int del_upd_sc(struct osi_core_priv_data *const osi_core,
 
 	/* 4. SA State LUT */
 	lut_config.lut_sel = LUT_SEL_SA_STATE;
-	table_config->index = (sc->sc_idx_start * MAX_NUM_SA) + sc->curr_an;
+	table_config->index = (existing_sc->sc_idx_start * MAX_NUM_SA) +
+			       sc->curr_an;
 	ret = macsec_lut_config(osi_core, &lut_config);
 	if (ret < 0) {
 		pr_err("%s: Failed to del SA state", __func__);
@@ -2496,7 +2497,8 @@ static int del_upd_sc(struct osi_core_priv_data *const osi_core,
 	table_config->ctlr_sel = ctlr;
 	table_config->rw = LUT_WRITE;
 	/* Each SC has MAX_NUM_SA's supported in HW */
-	table_config->index = (sc->sc_idx_start * MAX_NUM_SA) + sc->curr_an;
+	table_config->index = (existing_sc->sc_idx_start * MAX_NUM_SA) +
+			       sc->curr_an;
 	ret = macsec_kt_config(osi_core, &kt_config);
 	if (ret < 0) {
 		pr_err("%s: Failed to del SAK", __func__);
