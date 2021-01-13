@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -495,7 +495,7 @@ static nve32_t eqos_poll_for_swr(struct osi_core_priv_data *const osi_core)
 
 	if (pre_si == OSI_ENABLE) {
 		osi_writela(osi_core, 0x1U,
-			    (nveu32_t *)addr + EQOS_DMA_BMR);
+			    (nveu8_t *)addr + EQOS_DMA_BMR);
 	}
 	/* add delay of 10 usec */
 	osi_core->osd_ops.usleep_range(9, 11);
@@ -1272,7 +1272,7 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 
 	/* Enable Multicast and Broadcast Queue, default is Q0 */
 	value = osi_readla(osi_core,
-			   (nveu32_t *)osi_core->base + EQOS_MAC_RQC1R);
+			   (nveu8_t *)osi_core->base + EQOS_MAC_RQC1R);
 	value |= EQOS_MAC_RQC1R_MCBCQEN;
 	/* Routing Multicast and Broadcast to Q1 */
 	value |= EQOS_MAC_RQC1R_MCBCQ1;
@@ -4301,11 +4301,11 @@ static nve32_t eqos_config_mac_loopback(
 	}
 
 	/* Read MAC Configuration Register */
-	mcr_val = osi_readla(osi_core, (nveu32_t *)addr + EQOS_MAC_MCR);
+	mcr_val = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
 
 	/* Read EQOS wrapper clock control 0 register */
 	clk_ctrl_val = osi_readla(osi_core,
-				  (nveu32_t *)addr + EQOS_CLOCK_CTRL_0);
+				  (nveu8_t *)addr + EQOS_CLOCK_CTRL_0);
 
 	if (lb_mode == OSI_ENABLE) {
 		/* Enable Loopback Mode */
