@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@ int test_env_init_flush_gk20a_fusa(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_cache.fb_flush, gk20a_mm_fb_flush,
+ * Targets: gops_mm_cache.fb_flush, gk20a_mm_fb_flush,
  * gops_mm.get_flush_retries
  *
  * Input: test_env_init, args (value can be F_GK20A_FB_FLUSH_DEFAULT_INPUT,
@@ -86,7 +86,7 @@ int test_gk20a_mm_fb_flush(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_cache.l2_flush, gk20a_mm_l2_flush,
+ * Targets: gops_mm_cache.l2_flush, gk20a_mm_l2_flush,
  * gk20a_mm_l2_invalidate_locked
  *
  * Input: test_env_init, args (value can be F_GK20A_L2_FLUSH_DEFAULT_INPUT,
@@ -112,7 +112,7 @@ int test_gk20a_mm_l2_flush(struct unit_module *m, struct gk20a *g, void *args);
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_cache.l2_invalidate, gk20a_mm_l2_invalidate,
+ * Targets: gops_mm_cache.l2_invalidate, gk20a_mm_l2_invalidate,
  * gk20a_mm_l2_invalidate_locked
  *
  * Input: test_env_init, args (value can be F_GK20A_L2_INVALIDATE_DEFAULT_INPUT,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@ int test_env_init_flush_gv11b_fusa(struct unit_module *m, struct gk20a *g,
  *
  * Test Type: Feature
  *
- * Targets: gops_mm.gops_mm_cache.l2_flush, gv11b_mm_l2_flush
+ * Targets: gops_mm_cache.l2_flush, gv11b_mm_l2_flush
  *
  * Input: test_env_init, args (value can be
  *        F_GV11B_L2_FLUSH_PASS_BAR1_BIND_NOT_NULL,
