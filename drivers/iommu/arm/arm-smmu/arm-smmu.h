@@ -441,6 +441,7 @@ struct arm_smmu_impl {
 				  struct arm_smmu_device *smmu,
 				  struct device *dev, int start);
 	void (*write_sctlr)(struct arm_smmu_device *smmu, int idx, u32 reg);
+	void (*write_s2cr)(struct arm_smmu_device *smmu, int idx);
 };
 
 #define INVALID_SMENDX			-1
