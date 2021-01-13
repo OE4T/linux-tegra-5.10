@@ -142,7 +142,7 @@
  * Magic number expected to be written to mailbox0 after
  * interuppt handling is complete
  */
-#define DLA_MSG_INTERRUPT_HANDLING_COMPLETE 0xD1A0CAFE
+#define DLA_MSG_INTERRUPT_HANDLING_COMPLETE 0xD1A0CAFEU
 
 /**
  * Task descriptor for DLA_CMD_SUBMIT_TASK
