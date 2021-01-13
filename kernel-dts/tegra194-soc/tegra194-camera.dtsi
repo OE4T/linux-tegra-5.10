@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -135,7 +135,7 @@
 			nvidia,version = <0>;
 			nvidia,group = <1>;
 			nvidia,frame-count = <1>;
-			nvidia,frame-size = <384>;
+			nvidia,frame-size = <448>;
 		};
 		dbg@2 {
 			/* This is exposed in debugfs */
