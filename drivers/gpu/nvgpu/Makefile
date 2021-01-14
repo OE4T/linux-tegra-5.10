@@ -1,5 +1,12 @@
 GCOV_PROFILE := y
 
+# When building NVGPU as an external module, srctree.nvgpu is not
+# defined. Given that NVGPU knows where its header files are located
+# relatively, we can use the path information of this Makefile to
+# set srctree.nvgpu if it is not already defined. Please note that
+# 'lastword $(MAKEFILE_LIST)' refers to this Makefile.
+srctree.nvgpu ?= $(abspath $(shell dirname $(lastword $(MAKEFILE_LIST)))/../../..)
+
 ccflags-y += -I$(srctree.nvgpu)/drivers/gpu/nvgpu/include
 ccflags-y += -I$(srctree.nvgpu)/drivers/gpu/nvgpu
 ccflags-y += -I$(srctree.nvgpu)/include
@@ -22,6 +29,13 @@ ifneq ($(srctree.nvgpu),)
 include $(srctree.nvgpu)/drivers/gpu/nvgpu/Makefile.linux.configs
 else
 include Makefile.linux.configs
+endif
+
+# When using the upstream host1x driver, the Makefile must define the
+# srctree.host1x path in order to find the necessary header files for
+# the upstream host1x driver.
+ifeq ($(CONFIG_TEGRA_GK20A_NVHOST_HOST1X),y)
+ccflags-y += -I$(srctree.host1x)/include
 endif
 
 ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
