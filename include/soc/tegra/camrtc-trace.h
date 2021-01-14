@@ -177,8 +177,8 @@ struct camrtc_trace_armv7_exception {
 	(((id) & CAMRTC_EVENT_SUBID_MASK) >> CAMRTC_EVENT_SUBID_OFFSET)
 
 #define CAMRTC_EVENT_MAKE_ID(type, module, subid) \
-	(((type) << CAMRTC_EVENT_TYPE_OFFSET) | \
-	((module) << CAMRTC_EVENT_MODULE_OFFSET) | (uint32_t)(subid))
+	(((uint32_t)(type) << CAMRTC_EVENT_TYPE_OFFSET) | \
+	((uint32_t)(module) << CAMRTC_EVENT_MODULE_OFFSET) | (uint32_t)(subid))
 
 struct camrtc_event_header {
 	uint32_t len;		/* Size in bytes including this field */
