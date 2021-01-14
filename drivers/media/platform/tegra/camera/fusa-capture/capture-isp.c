@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -287,10 +287,9 @@ static int isp_capture_populate_fence_info(
 	struct tegra_isp_channel *chan,
 	int fence_offset,
 	uint32_t gos_relative,
-	uint32_t sp_relative)
+	uint32_t sp_relative,
+	void *reloc_page_addr)
 {
-	struct isp_capture *capture = chan->capture_data;
-	void *reloc_page_addr = NULL;
 	int err = 0;
 	uint64_t sp_raw;
 	uint32_t sp_id;
@@ -298,11 +297,12 @@ static int isp_capture_populate_fence_info(
 	uint32_t gos_index;
 	uint32_t gos_offset;
 	uint64_t gos_info = 0;
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	struct isp_capture *capture = chan->capture_data;
 	reloc_page_addr = dma_buf_kmap(capture->capture_desc_ctx.requests.buf,
 				fence_offset >> PAGE_SHIFT);
 #else
-	reloc_page_addr = dma_buf_vmap(capture->capture_desc_ctx.requests.buf);
+	reloc_page_addr += fence_offset & PAGE_MASK;
 #endif
 
 	if (unlikely(reloc_page_addr == NULL)) {
@@ -333,11 +333,9 @@ static int isp_capture_populate_fence_info(
 			((fence_offset + sp_relative) & ~PAGE_MASK)));
 
 ret:
-#if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	dma_buf_kunmap(capture->capture_desc_ctx.requests.buf,
 			fence_offset >> PAGE_SHIFT, reloc_page_addr);
-#else
-	dma_buf_vunmap(capture->capture_desc_ctx.requests.buf, reloc_page_addr);
 #endif
 	return err;
 }
@@ -361,6 +359,11 @@ static int isp_capture_setup_inputfences(
 	uint32_t __user *inpfences_reloc_user;
 	uint32_t *inpfences_relocs = NULL;
 	uint32_t inputfences_offset = 0;
+	void *reloc_page_addr  = NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	struct isp_capture *capture = chan->capture_data;
+	void *vmap_base = NULL;
+#endif
 	int i = 0;
 	int err = 0;
 
@@ -387,11 +390,21 @@ static int isp_capture_setup_inputfences(
 		goto fail;
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	vmap_base = dma_buf_vmap(capture->capture_desc_ctx.requests.buf);
+	if (!vmap_base) {
+		pr_err("%s: Cannot map capture descriptor request\n", __func__);
+		err = -ENOMEM;
+		goto fail;
+	}
+	reloc_page_addr = vmap_base;
+#endif
+
 	for (i = 0; i < req->inputfences_relocs.num_relocs; i++) {
 		inputfences_offset = request_offset +
 					inpfences_relocs[i];
 		err = isp_capture_populate_fence_info(chan, inputfences_offset,
-				req->gos_relative, req->sp_relative);
+				req->gos_relative, req->sp_relative, reloc_page_addr);
 		if (err < 0) {
 			dev_err(chan->isp_dev,
 				"Populate inputfences info failed\n");
@@ -401,6 +414,11 @@ static int isp_capture_setup_inputfences(
 	speculation_barrier();
 
 fail:
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	if (vmap_base != NULL)
+		dma_buf_vunmap(capture->capture_desc_ctx.requests.buf,
+			vmap_base);
+#endif
 	kfree(inpfences_relocs);
 	return err;
 }
@@ -426,6 +444,11 @@ static int isp_capture_setup_prefences(
 	uint32_t prefence_offset = 0;
 	int i = 0;
 	int err = 0;
+	void *reloc_page_addr = NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	struct isp_capture *capture = chan->capture_data;
+	void *vmap_base = NULL;
+#endif
 
 	/* It is valid not to have prefences for given frame capture */
 	if (!req->prefences_relocs.num_relocs)
@@ -450,11 +473,22 @@ static int isp_capture_setup_prefences(
 		goto fail;
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	vmap_base = dma_buf_vmap(capture->capture_desc_ctx.requests.buf);
+	if (!vmap_base) {
+		pr_err("%s: Cannot map capture descriptor request\n", __func__);
+		err = -ENOMEM;
+		goto fail;
+	}
+	reloc_page_addr = vmap_base;
+#endif
+
+
 	for (i = 0; i < req->prefences_relocs.num_relocs; i++) {
 		prefence_offset = request_offset +
 					prefence_relocs[i];
 		err = isp_capture_populate_fence_info(chan, prefence_offset,
-				req->gos_relative, req->sp_relative);
+				req->gos_relative, req->sp_relative, reloc_page_addr);
 		if (err < 0) {
 			dev_err(chan->isp_dev, "Populate prefences info failed\n");
 			goto fail;
@@ -463,6 +497,11 @@ static int isp_capture_setup_prefences(
 	speculation_barrier();
 
 fail:
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	if (vmap_base != NULL)
+		dma_buf_vunmap(capture->capture_desc_ctx.requests.buf,
+			vmap_base);
+#endif
 	kfree(prefence_relocs);
 	return err;
 }

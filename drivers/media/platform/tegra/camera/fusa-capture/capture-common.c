@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -584,6 +584,9 @@ int capture_common_request_pin_and_reloc(
 	uint32_t *reloc_relatives;
 	void *reloc_page_addr = NULL;
 	int last_page = -1;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	void *vmap_base = NULL;
+#endif
 	int i;
 	int err = 0;
 
@@ -623,6 +626,15 @@ int capture_common_request_pin_and_reloc(
 	dev_dbg(req->dev, "%s: relocating %u addresses", __func__,
 			req->num_relocs);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	vmap_base = dma_buf_vmap(req->requests->buf);
+	if (!vmap_base) {
+		pr_err("%s: Cannot map request buffer\n", __func__);
+		err = -ENOMEM;
+		goto reloc_fail;
+	}
+#endif
+
 	for (i = 0; i < req->num_relocs; i++) {
 		uint32_t reloc_relative = reloc_relatives[i];
 		uint32_t reloc_offset = req->request_offset + reloc_relative;
@@ -637,22 +649,16 @@ int capture_common_request_pin_and_reloc(
 
 		/* locate page of request in capture desc reloc is on */
 		if (last_page != reloc_offset >> PAGE_SHIFT) {
-		/**
-		 * TODO: BUG: http://nvbugs/200666399
-		 * Use vmap and vunmap across all kernel versions.
-		 */
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 			if (reloc_page_addr != NULL)
 				dma_buf_kunmap(req->requests->buf,
-					last_page, reloc_page_addr);
+						last_page, reloc_page_addr);
 
 			reloc_page_addr = dma_buf_kmap(req->requests->buf,
 						reloc_offset >> PAGE_SHIFT);
 #else
-			if (reloc_page_addr != NULL)
-				dma_buf_vunmap(req->requests->buf, reloc_page_addr);
-
-			reloc_page_addr = dma_buf_vmap(req->requests->buf);
+			reloc_page_addr = vmap_base + (reloc_offset & PAGE_MASK);
 #endif
 			last_page = reloc_offset >> PAGE_SHIFT;
 
@@ -723,14 +729,15 @@ reloc_fail:
 	if (err)
 		kfree(req->unpins);
 
-	if (reloc_page_addr != NULL)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	if (reloc_page_addr != NULL)
 		dma_buf_kunmap(req->requests->buf, last_page,
 			reloc_page_addr);
 #else
-		dma_buf_vunmap(req->requests->buf, reloc_page_addr);
+	if (vmap_base != NULL)
+		dma_buf_vunmap(req->requests->buf,
+			vmap_base);
 #endif
-
 
 	kfree(reloc_relatives);
 
