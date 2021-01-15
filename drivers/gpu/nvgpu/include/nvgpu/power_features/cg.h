@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -178,7 +178,9 @@
 struct gk20a;
 
 /**
- * @brief Load register configuration for ELCG and BLCG for GR related units.
+ * @brief During nvgpu power-on, this function is called as part of GR
+ *        HW initialization to load register configuration for ELCG and
+ *        BLCG for GR related units.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -197,7 +199,9 @@ struct gk20a;
 void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g);
 
 /**
- * @brief Enable ELCG for engines without waiting for GR init to complete.
+ * @brief By default, ELCG will be off. During GR initialization,
+ *        this function is called to enable ELCG for engines. It
+ *        will enable ELCG without waiting for GR init to complete.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -216,7 +220,10 @@ void nvgpu_cg_init_gr_load_gating_prod(struct gk20a *g);
 void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g);
 
 /**
- * @brief Disable ELCG for engines without waiting for GR init to complete.
+ * @brief During nvgpu power-on, as part of GR HW initialization,
+ *        ELCG for engines is disabled without waiting for GR init to
+ *        complete. This function is called to disable ELCG until it
+ *        is enabled later.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -236,7 +243,9 @@ void nvgpu_cg_elcg_enable_no_wait(struct gk20a *g);
 void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g);
 
 /**
- * @brief Load register configuration for BLCG for FB and LTC.
+ * @brief During nvgpu power-on, as part of MM initialization,
+ *        this function is called to load register configuration
+ *        for BLCG for FB and LTC.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -253,7 +262,9 @@ void nvgpu_cg_elcg_disable_no_wait(struct gk20a *g);
 void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for BLCG for FIFO.
+ * @brief During nvgpu power-on, while enabling FIFO, hardware
+ *        settings for FIFO must be configured. This function
+ *        is called to load register configuration for BLCG for FIFO.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -270,7 +281,8 @@ void nvgpu_cg_blcg_fb_ltc_load_enable(struct gk20a *g);
 void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for BLCG for PMU.
+ * @brief During PMU reset this function is called to load
+ *        register configuration for BLCG for PMU.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -287,7 +299,9 @@ void nvgpu_cg_blcg_fifo_load_enable(struct gk20a *g);
 void nvgpu_cg_blcg_pmu_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for BLCG for CE.
+ * @brief During nvgpu power-on, as part of CE initialization,
+ *        this function is called to load register configuration
+ *        for BLCG for CE.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -304,7 +318,8 @@ void nvgpu_cg_blcg_pmu_load_enable(struct gk20a *g);
 void nvgpu_cg_blcg_ce_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for BLCG for GR.
+ * @brief During object context setup for a GPU channel this function
+ *        is called to load register configuration for BLCG for GR.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -321,7 +336,9 @@ void nvgpu_cg_blcg_ce_load_enable(struct gk20a *g);
 void nvgpu_cg_blcg_gr_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for SLCG for FB and LTC.
+ * @brief During nvgpu power-on, as part of MM initialization,
+ *        this function is called to load register configuration
+ *        for SLCG for FB and LTC.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -338,7 +355,9 @@ void nvgpu_cg_blcg_gr_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for SLCG for PRIV RING.
+ * @brief To enable privilege ring (PRI) to access h/w functionality,
+ *        this function is called to load register configuration
+ *        for SLCG for PRIV RING.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -355,7 +374,9 @@ void nvgpu_cg_slcg_fb_ltc_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for SLCG for FIFO.
+ * @brief During nvgpu power-on, while enabling FIFO, hardware
+ *        settings for FIFO must be configured. This function
+ *        is called to load register configuration for SLCG for FIFO.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -372,7 +393,8 @@ void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for SLCG for PMU.
+ * @brief During PMU reset this function is called to load
+ *        register configuration for SLCG for PMU.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -389,7 +411,8 @@ void nvgpu_cg_slcg_fifo_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_pmu_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for SLCG for therm.
+ * @brief As part of initialization of therm unit this function
+ *        is called to load register configuration for SLCG for therm.
  *
  * @param g [in] The GPU driver struct.
  *
@@ -406,7 +429,9 @@ void nvgpu_cg_slcg_pmu_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_therm_load_enable(struct gk20a *g);
 
 /**
- * @brief Load register configuration for SLCG for CE2.
+ * @brief During nvgpu power-on, as part of CE initialization,
+ *        this function is called to load register configuration
+ *        for SLCG for CE2.
  *
  * @param g [in] The GPU driver struct.
  *
