@@ -194,9 +194,10 @@ u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 engine_id);
  *   #nvgpu_fifo.num_engines that is used to count total number of valid h/w
  *   engine ids read from device info h/w registers.
  *
- * @return 0 upon success.
- * @retval Valid error codes upon failure to allocate memory or
- *         failure to get engine info from device info h/w registers.
+ * @return 0 upon success, < 0 otherwise.
+ * @retval -ENOMEM upon failure to allocate memory for engine structure.
+ * @retval -EINVAL upon failure to get engine info from device info h/w
+ *         registers.
  */
 int nvgpu_engine_setup_sw(struct gk20a *g);
 /**

@@ -920,7 +920,7 @@ struct nvgpu_channel *nvgpu_channel_from_id__func(
  * a gpfifo and userd to submit some work. It will also need to be
  * bound to a TSG, since standalone channels are not supported.
  *
- * @return ch if channel could be opened, NULL otherwise.
+ * @return channel pointer if channel could be opened, NULL otherwise.
  * @retval NULL if there is not enough resources to allocate and
  *         initialize the channel.
  */
