@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,12 +47,32 @@ static u32 gp10b_acr_lsf_gpccs(struct gk20a *g,
 	return BIT32(lsf->falcon_id);
 }
 
+static void gp10b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
+{
+	nvgpu_log_fn(g, " ");
+
+	/* ACR HS ucode type & f/w name*/
+	hs_acr->acr_type = ACR_DEFAULT;
+
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		hs_acr->acr_fw_name = HSBIN_ACR_PROD_UCODE;
+	} else {
+		hs_acr->acr_fw_name = HSBIN_ACR_DBG_UCODE;
+	}
+
+	/* set on which falcon ACR need to execute*/
+	hs_acr->acr_flcn = g->pmu->flcn;
+	hs_acr->acr_engine_bus_err_status =
+		g->ops.pmu.bar0_error_status;
+}
+
 void nvgpu_gp10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	nvgpu_log_fn(g, " ");
 
 	/* inherit the gm20b config data */
 	nvgpu_gm20b_acr_sw_init(g, acr);
+	gp10b_acr_default_sw_init(g, &acr->acr);
 
 	/* gp10b supports LSF gpccs bootstrap */
 	acr->lsf_enable_mask |= gp10b_acr_lsf_gpccs(g,
