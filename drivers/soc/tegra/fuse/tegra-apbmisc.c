@@ -10,6 +10,7 @@
 
 #include <soc/tegra/fuse.h>
 #include <soc/tegra/common.h>
+#include <soc/tegra/padctrl.h>
 
 #include "fuse.h"
 
@@ -256,7 +257,8 @@ void __init tegra_init_apbmisc(void)
 		pr_err("failed to map APBMISC registers\n");
 	} else {
 		chipid = readl_relaxed(apbmisc_base + 4);
-		if (!of_machine_is_compatible("nvidia,tegra194")) {
+		if (!of_machine_is_compatible("nvidia,tegra194") &&
+			!of_machine_is_compatible("nvidia,tegra234")) {
 			iounmap(apbmisc_base);
 		}
 	}
@@ -401,6 +403,18 @@ bool tegra_cpu_is_asim(void)
 }
 EXPORT_SYMBOL_GPL(tegra_cpu_is_asim);
 
+void tegra_misc_sd_exp_mux_select(bool sd_exp_en)
+{
+	u32 value, reg;
+
+	reg = readl_relaxed(apbmisc_base + TEGRA_APBMISC_SDMMC1_EXPRESS_MODE);
+	value = sd_exp_en ? TEGRA_APBMISC_SDMMC1_EXPRESS_MODE_SDEXP
+			: TEGRA_APBMISC_SDMMC1_EXPRESS_MODE_SDLEGACY;
+
+	if (reg != value)
+		writel_relaxed(value, apbmisc_base + TEGRA_APBMISC_SDMMC1_EXPRESS_MODE);
+}
+EXPORT_SYMBOL_GPL(tegra_misc_sd_exp_mux_select);
 /*
  * platform query functions end
  */
