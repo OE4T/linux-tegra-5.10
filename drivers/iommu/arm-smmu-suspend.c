@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2018-2021 NVIDIA Corporation.  All rights reserved.
  *
  * NVIDIA Corporation and its licensors retain all intellectual property
  * and proprietary rights in and to this software and related documentation
@@ -268,6 +268,9 @@ void arm_smmu_suspend_exit(void)
 
 	if (arm_smmu_ctx.reg_list_pa)
 		arm_smmu_free_reg_list();
+
+	if (arm_smmu_ctx.smmu_base)
+		kfree(arm_smmu_ctx.smmu_base);
 }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
@@ -325,6 +328,8 @@ static int arm_smmu_suspend_probe(struct platform_device *pdev)
 
 static int arm_smmu_suspend_remove(struct platform_device *pdev)
 {
+	arm_smmu_suspend_exit();
+
 	return 0;
 }
 
