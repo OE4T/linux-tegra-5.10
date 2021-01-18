@@ -322,6 +322,9 @@ struct nvgpu_gpu_characteristics {
 	/** Max gpfifo entries allowed by nvgpu-rm. */
 	__u32 max_gpfifo_entries;
 
+	__u32 max_dbg_tsg_timeslice;
+	__u32 reserved5;
+
 	/* Notes:
 	   - This struct can be safely appended with new fields. However, always
 	     keep the structure size multiple of 8 and make sure that the binary

@@ -43,6 +43,7 @@
 #define NVGPU_TSG_TIMESLICE_HIGH_PRIORITY_US	5200U
 #define NVGPU_TSG_TIMESLICE_MIN_US		1000U
 #define NVGPU_TSG_TIMESLICE_MAX_US		50000U
+#define NVGPU_TSG_DBG_TIMESLICE_MAX_US_DEFAULT	4000000U
 /**
  * Default TSG timeslice value in microseconds. Currently it is 1024 us.
  */
@@ -532,6 +533,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct nvgpu_tsg *tsg,
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 int nvgpu_tsg_set_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us);
 u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg);
+int nvgpu_tsg_set_long_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us);
 int nvgpu_tsg_set_priority(struct gk20a *g, struct nvgpu_tsg *tsg,
 				u32 priority);
 int nvgpu_tsg_set_interleave(struct nvgpu_tsg *tsg, u32 level);

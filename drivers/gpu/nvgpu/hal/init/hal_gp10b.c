@@ -780,6 +780,7 @@ static const struct gops_runlist gp10b_ops_runlist = {
 	.wait_pending = gk20a_runlist_wait_pending,
 	.write_state = gk20a_runlist_write_state,
 	.init_enginfo = nvgpu_runlist_init_enginfo,
+	.get_tsg_max_timeslice = gk20a_runlist_max_timeslice,
 };
 
 static const struct gops_userd gp10b_ops_userd = {
@@ -833,6 +834,7 @@ static const struct gops_tsg gp10b_ops_tsg = {
 #endif
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 	.set_timeslice = nvgpu_tsg_set_timeslice,
+	.set_long_timeslice = nvgpu_tsg_set_long_timeslice,
 #endif
 	.default_timeslice_us = nvgpu_tsg_default_timeslice_us,
 };

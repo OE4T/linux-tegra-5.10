@@ -457,6 +457,7 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.ctxsw_ioctl_nr_last = NVGPU_CTXSW_IOCTL_LAST;
 	gpu.prof_ioctl_nr_last = NVGPU_PROFILER_IOCTL_LAST;
 	gpu.gpu_va_bit_count = 40;
+	gpu.max_dbg_tsg_timeslice = g->tsg_dbg_timeslice_max_us;
 
 	strlcpy(gpu.chipname, g->name, sizeof(gpu.chipname));
 	gpu.max_fbps_count = nvgpu_fbp_get_max_fbps_count(g->fbp);

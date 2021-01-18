@@ -151,6 +151,7 @@ static void nvgpu_init_timeslice(struct gk20a *g)
 
 	g->tsg_timeslice_min_us = NVGPU_TSG_TIMESLICE_MIN_US;
 	g->tsg_timeslice_max_us = NVGPU_TSG_TIMESLICE_MAX_US;
+	g->tsg_dbg_timeslice_max_us = NVGPU_TSG_DBG_TIMESLICE_MAX_US_DEFAULT;
 }
 
 static void nvgpu_init_pm_vars(struct gk20a *g)

@@ -502,8 +502,16 @@ struct nvgpu_dbg_gpu_get_gr_context_args {
 	_IOW(NVGPU_DBG_GPU_IOCTL_MAGIC, 28, \
 	struct nvgpu_dbg_gpu_get_gr_context_args)
 
+#define NVGPU_DBG_GPU_IOCTL_TSG_SET_TIMESLICE \
+	_IOW(NVGPU_DBG_GPU_IOCTL_MAGIC, 29, \
+	struct nvgpu_timeslice_args)
+
+#define NVGPU_DBG_GPU_IOCTL_TSG_GET_TIMESLICE \
+	_IOR(NVGPU_DBG_GPU_IOCTL_MAGIC, 30, \
+	struct nvgpu_timeslice_args)
+
 #define NVGPU_DBG_GPU_IOCTL_LAST		\
-	_IOC_NR(NVGPU_DBG_GPU_IOCTL_GET_GR_CONTEXT)
+	_IOC_NR(NVGPU_DBG_GPU_IOCTL_TSG_GET_TIMESLICE)
 
 #define NVGPU_DBG_GPU_IOCTL_MAX_ARG_SIZE		\
 	sizeof(struct nvgpu_dbg_gpu_access_fb_memory_args)

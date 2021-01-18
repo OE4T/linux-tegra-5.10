@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -114,5 +114,29 @@ int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s,
 	p->mode = mode;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
+	return err;
+}
+
+int vgpu_tsg_set_long_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
+{
+	struct tegra_vgpu_cmd_msg msg = {0};
+	struct tegra_vgpu_tsg_timeslice_params *p =
+				&msg.params.tsg_timeslice;
+	int err;
+	struct gk20a *g = tsg->g;
+
+	nvgpu_log_fn(g, " ");
+
+	msg.cmd = TEGRA_VGPU_CMD_TSG_SET_LONG_TIMESLICE;
+	msg.handle = vgpu_get_handle(g);
+	p->tsg_id = tsg->tsgid;
+	p->timeslice_us = timeslice_us;
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	err = err ? err : msg.ret;
+	WARN_ON(err);
+	if (!err) {
+		tsg->timeslice_us = timeslice_us;
+	}
+
 	return err;
 }

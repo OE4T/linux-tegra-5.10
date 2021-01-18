@@ -709,6 +709,28 @@ u32 nvgpu_tsg_get_timeslice(struct nvgpu_tsg *tsg)
 {
 	return tsg->timeslice_us;
 }
+
+int nvgpu_tsg_set_long_timeslice(struct nvgpu_tsg *tsg, u32 timeslice_us)
+{
+	struct gk20a *g = tsg->g;
+
+	nvgpu_log(g, gpu_dbg_sched, "tsgid=%u timeslice=%u us",
+			tsg->tsgid, timeslice_us);
+
+	if (timeslice_us < g->tsg_timeslice_min_us ||
+			timeslice_us > g->tsg_dbg_timeslice_max_us) {
+		return -EINVAL;
+	}
+
+	tsg->timeslice_us = timeslice_us;
+
+	/* TSG may not be bound yet */
+	if (tsg->runlist == NULL) {
+		return 0;
+	}
+
+	return g->ops.runlist.reload(g, tsg->runlist, true, true);
+}
 #endif
 
 u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g)

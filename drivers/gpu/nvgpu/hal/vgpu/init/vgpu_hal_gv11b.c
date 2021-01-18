@@ -659,6 +659,7 @@ static const struct gops_runlist vgpu_gv11b_ops_runlist = {
 	.hw_submit = NULL,
 	.wait_pending = NULL,
 	.init_enginfo = nvgpu_runlist_init_enginfo,
+	.get_tsg_max_timeslice = gv11b_runlist_max_timeslice,
 };
 
 static const struct gops_userd vgpu_gv11b_ops_userd = {
@@ -708,6 +709,7 @@ static const struct gops_tsg vgpu_gv11b_ops_tsg = {
 	.set_timeslice = vgpu_tsg_set_timeslice,
 	.default_timeslice_us = vgpu_tsg_default_timeslice_us,
 	.set_interleave = vgpu_tsg_set_interleave,
+	.set_long_timeslice = vgpu_tsg_set_long_timeslice,
 };
 
 static const struct gops_usermode vgpu_gv11b_ops_usermode = {

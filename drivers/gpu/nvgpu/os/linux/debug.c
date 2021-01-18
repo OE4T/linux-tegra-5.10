@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/tsg.h>
 
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>
@@ -338,6 +339,49 @@ static const struct file_operations timeouts_enabled_fops = {
 	.write =	timeouts_enabled_write,
 };
 
+static ssize_t dbg_tsg_timeslice_max_read(struct file *file,
+					char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[10];
+	struct gk20a *g = file->private_data;
+	unsigned int val = g->tsg_dbg_timeslice_max_us;
+
+	memcpy(buf, (char*)&val, sizeof(unsigned int));
+	return simple_read_from_buffer(user_buf, count, ppos, buf, 2);
+}
+
+static ssize_t dbg_tsg_timeslice_max_write(struct file *file,
+					const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[10];
+	int buf_size;
+	unsigned int val = 0;
+	struct gk20a *g = file->private_data;
+	unsigned int max_hw_timeslice_us = g->ops.runlist.get_tsg_max_timeslice();
+
+	(void) memset(buf, 0, sizeof(buf));
+	buf_size = min(count, (sizeof(buf)-1));
+	if (copy_from_user(buf, user_buf, buf_size))
+		return -EFAULT;
+
+	if (kstrtouint(buf, 10, &val) < 0)
+		return -EINVAL;
+
+	if (val < NVGPU_TSG_TIMESLICE_MIN_US ||
+			val > max_hw_timeslice_us)
+		return -EINVAL;
+
+	g->tsg_dbg_timeslice_max_us = val;
+
+	return count;
+}
+
+static const struct file_operations dbg_tsg_timeslice_max_fops = {
+		.open =         simple_open,
+		.read =      	dbg_tsg_timeslice_max_read,
+		.write =        dbg_tsg_timeslice_max_write,
+};
+
 void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
@@ -404,6 +448,12 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 
 	debugfs_create_u32("tsg_timeslice_high_priority_us", S_IRUGO|S_IWUSR,
 				l->debugfs, &g->tsg_timeslice_high_priority_us);
+
+	l->debugfs_dbg_tsg_timeslice_max_us =
+                        debugfs_create_file("max_dbg_tsg_timeslice_us",
+                                        S_IRUGO|S_IWUSR,
+                                        l->debugfs, g,
+                                        &dbg_tsg_timeslice_max_fops);
 
 	l->debugfs_runlist_interleave =
 			debugfs_create_bool("runlist_interleave",

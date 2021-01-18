@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,11 @@
 u32 gk20a_runlist_entry_size(struct gk20a *g)
 {
 	return ram_rl_entry_size_v();
+}
+
+u32 gk20a_runlist_max_timeslice(void)
+{
+	return ((RL_MAX_TIMESLICE_TIMEOUT << RL_MAX_TIMESLICE_SCALE) / 1000) * 1024;
 }
 
 void gk20a_runlist_get_tsg_entry(struct nvgpu_tsg *tsg,

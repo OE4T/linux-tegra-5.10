@@ -76,6 +76,7 @@ struct gops_tsg {
 			struct nvgpu_channel *ch,
 			struct nvgpu_channel_hw_state *state);
 	int (*set_timeslice)(struct nvgpu_tsg *tsg, u32 timeslice_us);
+	int (*set_long_timeslice)(struct nvgpu_tsg *tsg, u32 timeslice_us);
 	u32 (*default_timeslice_us)(struct gk20a *g);
 	int (*set_interleave)(struct nvgpu_tsg *tsg, u32 new_level);
 

@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU for Linux
  *
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -39,6 +39,7 @@
 #include <nvgpu/defaults.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/tsg.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gr/gr.h>
@@ -454,6 +455,7 @@ int vgpu_probe(struct platform_device *pdev)
 	gk20a->poll_timeout_default = NVGPU_DEFAULT_POLL_TIMEOUT_MS;
 	gk20a->timeouts_disabled_by_user = false;
 	nvgpu_atomic_set(&gk20a->timeouts_disabled_refcount, 0);
+	gk20a->tsg_dbg_timeslice_max_us = NVGPU_TSG_DBG_TIMESLICE_MAX_US_DEFAULT;
 
 	vgpu_create_sysfs(dev);
 

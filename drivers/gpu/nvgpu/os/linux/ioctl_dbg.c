@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger/Profiler Driver
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -571,6 +571,68 @@ static int dbg_unbind_all_channels_gk20a(struct dbg_session_gk20a *dbg_s)
 	nvgpu_mutex_release(&dbg_s->ch_list_lock);
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
+	return 0;
+}
+
+static int nvgpu_dbg_gpu_ioctl_tsg_set_timeslice(struct dbg_session_gk20a *dbg_s,
+			struct nvgpu_timeslice_args *arg)
+{
+	struct nvgpu_tsg *tsg;
+	struct nvgpu_channel *ch;
+	struct gk20a *g = dbg_s->g;
+	struct nvgpu_sched_ctrl *sched = &g->sched_ctrl;
+	int err;
+
+	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	if (ch == NULL) {
+		return -EINVAL;
+	}
+
+	tsg = nvgpu_tsg_from_ch(ch);
+	if (tsg == NULL) {
+		nvgpu_err(g, "no valid tsg from ch");
+		return -EINVAL;
+	}
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_sched, "tsgid=%u timeslice=%u",
+				tsg->tsgid, arg->timeslice_us);
+
+	nvgpu_mutex_acquire(&sched->control_lock);
+	if (sched->control_locked) {
+		err = -EPERM;
+		goto done;
+	}
+	err = gk20a_busy(g);
+	if (err) {
+		nvgpu_err(g, "failed to power on gpu");
+		goto done;
+	}
+	err = g->ops.tsg.set_long_timeslice(tsg, arg->timeslice_us);
+	gk20a_idle(g);
+done:
+	nvgpu_mutex_release(&sched->control_lock);
+	return err;
+}
+
+static int nvgpu_dbg_gpu_ioctl_tsg_get_timeslice(struct dbg_session_gk20a *dbg_s,
+			struct nvgpu_timeslice_args *arg)
+{
+	struct nvgpu_tsg *tsg;
+	struct nvgpu_channel *ch;
+	struct gk20a *g = dbg_s->g;
+
+	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	if (ch == NULL) {
+		return -EINVAL;
+	}
+
+	tsg = nvgpu_tsg_from_ch(ch);
+	if (tsg == NULL) {
+		nvgpu_err(g, "no valid tsg from ch");
+		return -EINVAL;
+	}
+
+	arg->timeslice_us = nvgpu_tsg_get_timeslice(tsg);
 	return 0;
 }
 
@@ -2375,6 +2437,16 @@ long gk20a_dbg_gpu_dev_ioctl(struct file *filp, unsigned int cmd,
 	case NVGPU_DBG_GPU_IOCTL_SET_CTX_MMU_DEBUG_MODE:
 		err = nvgpu_dbg_gpu_ioctl_set_mmu_debug_mode(dbg_s,
 		   (struct nvgpu_dbg_gpu_set_ctx_mmu_debug_mode_args *)buf);
+		break;
+
+	case NVGPU_DBG_GPU_IOCTL_TSG_SET_TIMESLICE:
+		err = nvgpu_dbg_gpu_ioctl_tsg_set_timeslice(dbg_s,
+		   (struct nvgpu_timeslice_args *)buf);
+		break;
+
+	case NVGPU_DBG_GPU_IOCTL_TSG_GET_TIMESLICE:
+		err = nvgpu_dbg_gpu_ioctl_tsg_get_timeslice(dbg_s,
+		   (struct nvgpu_timeslice_args *)buf);
 		break;
 
 	default:

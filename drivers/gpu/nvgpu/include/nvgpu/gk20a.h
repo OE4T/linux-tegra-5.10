@@ -488,6 +488,7 @@ struct gk20a {
 	u32 tsg_timeslice_high_priority_us;
 	u32 tsg_timeslice_min_us;
 	u32 tsg_timeslice_max_us;
+	u32 tsg_dbg_timeslice_max_us;
 	bool runlist_interleave;
 	/** @endcond */
 
