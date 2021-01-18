@@ -24,6 +24,7 @@ dtb-$(BUILD_19x_ENABLE) += tegra194-p2888-as-0006-p2822-0000.dtb
 dtb-$(BUILD_19x_ENABLE) += tegra194-p2888-as-p3668-p2822-0000.dtb
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0001-p2822-0000-hdr40.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0001-p2822-0000-adafruit-sph0645lm4h.dtbo
+dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0001-p2822-0000-adafruit-uda1334a.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0001-p2822-0000-fe-pi-audio.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0001-p2822-0000-respeaker-4-mic-array.dtbo
 dtbo-$(BUILD_19x_ENABLE) += tegra194-p2888-0001-p2822-0000-m2ke.dtbo
