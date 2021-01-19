@@ -159,19 +159,19 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	bool deferred_reset_pending = false;
 #endif
 
-	dbg_rec(g, "Recovery starting");
-	dbg_rec(g, "  ID      = %u", id);
-	dbg_rec(g, "  id_type = %s", nvgpu_id_type_to_str(id_type));
-	dbg_rec(g, "  rc_type = %s", nvgpu_rc_type_to_str(rc_type));
-	dbg_rec(g, "  Engine bitmask: 0x%x", act_eng_bitmask);
+	rec_dbg(g, "Recovery starting");
+	rec_dbg(g, "  ID      = %u", id);
+	rec_dbg(g, "  id_type = %s", nvgpu_id_type_to_str(id_type));
+	rec_dbg(g, "  rc_type = %s", nvgpu_rc_type_to_str(rc_type));
+	rec_dbg(g, "  Engine bitmask: 0x%x", act_eng_bitmask);
 
 	nvgpu_swprofile_begin_sample(prof);
 
-	dbg_rec(g, "Acquiring engines_reset_mutex");
+	rec_dbg(g, "Acquiring engines_reset_mutex");
 	nvgpu_mutex_acquire(&f->engines_reset_mutex);
 
 	/* acquire runlist_lock for num_runlists */
-	dbg_rec(g, "Acquiring runlist_lock for active runlists");
+	rec_dbg(g, "Acquiring runlist_lock for active runlists");
 	nvgpu_runlist_lock_active_runlists(g);
 
 	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_ACQ_ACTIVE_RL);
@@ -182,12 +182,12 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	if (id != INVAL_ID && id_type == ID_TYPE_TSG) {
 		struct nvgpu_channel *c;
 		tsg = &g->fifo.tsg[id];
-		dbg_rec(g, "Channels bound to this TSG:");
+		rec_dbg(g, "Channels bound to this TSG:");
 
 		i = 0U;
 		nvgpu_list_for_each_entry(c, &tsg->ch_list,
 					  nvgpu_channel, ch_entry) {
-			dbg_rec(g, " %2u | chid %u", i++, c->chid);
+			rec_dbg(g, " %2u | chid %u", i++, c->chid);
 		}
 	}
 
@@ -219,13 +219,13 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		}
 	}
 
-	dbg_rec(g, "PBDMA   Bitmask: 0x%x", pbdma_bitmask);
+	rec_dbg(g, "PBDMA   Bitmask: 0x%x", pbdma_bitmask);
 
 	/* get runlists mask */
 	runlists_mask = nvgpu_runlist_get_runlists_mask(g, id, id_type,
 				act_eng_bitmask, pbdma_bitmask);
 
-	dbg_rec(g, "Runlist Bitmask: 0x%x", runlists_mask);
+	rec_dbg(g, "Runlist Bitmask: 0x%x", runlists_mask);
 
 	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_GET_RL_MASK);
 
@@ -237,13 +237,13 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 
 
 	/* Disable runlist scheduler */
-	dbg_rec(g, "Disabling RL scheduler now");
+	rec_dbg(g, "Disabling RL scheduler now");
 	nvgpu_runlist_set_state(g, runlists_mask, RUNLIST_DISABLED);
 
 	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_DISABLE_RL);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-	dbg_rec(g, "Disabling CG/PG now");
+	rec_dbg(g, "Disabling CG/PG now");
 	if (nvgpu_cg_pg_disable(g) != 0) {
 		nvgpu_warn(g, "fail to disable power mgmt");
 	}
@@ -256,12 +256,12 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 #ifdef CONFIG_NVGPU_DEBUGGER
 		client_type = mmufault->client_type;
 #endif
-		dbg_rec(g, "Clearing PBDMA_FAULTED, ENG_FAULTED in CCSR register");
+		rec_dbg(g, "Clearing PBDMA_FAULTED, ENG_FAULTED in CCSR register");
 		nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
 	}
 
 	if (tsg != NULL) {
-		dbg_rec(g, "Disabling TSG");
+		rec_dbg(g, "Disabling TSG");
 		g->ops.tsg.disable(tsg);
 	}
 
@@ -276,7 +276,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	 * that all PBDMAs serving the engine are not loaded when engine is
 	 * reset.
 	 */
-	dbg_rec(g, "Preempting runlists for RC");
+	rec_dbg(g, "Preempting runlists for RC");
 	nvgpu_fifo_preempt_runlists_for_rc(g, runlists_mask);
 
 	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_PREEMPT_RL);
@@ -285,7 +285,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	 * For each PBDMA which serves the runlist, poll to verify the TSG is no
 	 * longer on the PBDMA and the engine phase of the preempt has started.
 	 */
-	dbg_rec(g, "Polling for TSG to be off PBDMA");
+	rec_dbg(g, "Polling for TSG to be off PBDMA");
 	if (tsg != NULL && (nvgpu_preempt_poll_tsg_on_pbdma(g, tsg) != 0)) {
 		nvgpu_err(g, "TSG preemption on PBDMA failed; "
 			"PBDMA seems stuck; cannot recover stuck PBDMA.");
@@ -293,7 +293,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		nvgpu_sw_quiesce(g);
 		return;
 	}
-	dbg_rec(g, "  Done!");
+	rec_dbg(g, "  Done!");
 
 	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_POLL_TSG_ON_PBDMA);
 
@@ -303,7 +303,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	nvgpu_mutex_release(&f->deferred_reset_mutex);
 #endif
 
-	dbg_rec(g, "Resetting relevant engines");
+	rec_dbg(g, "Resetting relevant engines");
 	/* check if engine reset should be deferred */
 	for (i = 0U; i < f->num_runlists; i++) {
 		runlist = &f->active_runlists[i];
@@ -314,19 +314,19 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		}
 
 		bitmask = runlist->reset_eng_bitmask;
-		dbg_rec(g, "  Engine bitmask for RL %u: 0x%lx",
+		rec_dbg(g, "  Engine bitmask for RL %u: 0x%lx",
 		       runlist->runlist_id, bitmask);
 
 		for_each_set_bit(bit, &bitmask, f->max_engines) {
 
 			engine_id = U32(bit);
-			dbg_rec(g, "  > Restting engine: ID=%u", engine_id);
+			rec_dbg(g, "  > Restting engine: ID=%u", engine_id);
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 			if ((tsg != NULL) &&
 			    nvgpu_engine_should_defer_reset(g, engine_id,
 							    client_type, false)) {
-				dbg_rec(g, "    (deferred)");
+				rec_dbg(g, "    (deferred)");
 
 				f->deferred_fault_engines |= BIT64(engine_id);
 
@@ -344,7 +344,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 #endif
 #ifdef CONFIG_NVGPU_ENGINE_RESET
 				nvgpu_engine_reset(g, engine_id);
-				dbg_rec(g, "    Done!");
+				rec_dbg(g, "    Done!");
 #endif
 #ifdef CONFIG_NVGPU_DEBUGGER
 			}
@@ -374,13 +374,13 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 			runlists_mask);
 	}
 
-	dbg_rec(g, "Re-enabling runlists");
+	rec_dbg(g, "Re-enabling runlists");
 	nvgpu_runlist_set_state(g, runlists_mask, RUNLIST_ENABLED);
 
 	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_ENABLE_RL);
 
 #ifdef CONFIG_NVGPU_NON_FUSA
-	dbg_rec(g, "Re-enabling CG/PG");
+	rec_dbg(g, "Re-enabling CG/PG");
 	if (nvgpu_cg_pg_enable(g) != 0) {
 		nvgpu_warn(g, "fail to enable power mgmt");
 	}
@@ -391,7 +391,7 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 	/* release runlist_lock for the recovered runlists */
 	nvgpu_runlist_unlock_runlists(g, runlists_mask);
 
-	dbg_rec(g, "Releasing engines reset mutex");
+	rec_dbg(g, "Releasing engines reset mutex");
 	nvgpu_mutex_release(&f->engines_reset_mutex);
 
 	nvgpu_swprofile_snapshot(prof, PROF_RECOVERY_DONE);

@@ -90,7 +90,7 @@
  * Requires a string literal for the format - notice the string
  * concatination.
  */
-#define dbg_rec(g, fmt, args...)					\
+#define rec_dbg(g, fmt, args...)					\
 	nvgpu_log((g), gpu_dbg_rec, "REC | " fmt, ##args)
 
 struct gk20a;
