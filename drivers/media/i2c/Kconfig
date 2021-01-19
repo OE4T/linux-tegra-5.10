@@ -22,7 +22,7 @@ config VIDEO_IMX477
 	  To compile this driver as a module, choose M here: the module
 	  will be called imx477.
 
-config VIDEO_IMX219
+config NV_VIDEO_IMX219
         tristate "IMX219 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -41,7 +41,7 @@ config VIDEO_IMX268
 	  To compile this driver as a module, choose M here: the module
 	  will be called imx268.
 
-config VIDEO_IMX274
+config NV_VIDEO_IMX274
 	tristate "IMX274 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -61,7 +61,7 @@ config VIDEO_IMX318
 	  To compile this driver as a module, choose M here: the module
 	  will be called imx318.
 
-config VIDEO_LC898212
+config NV_VIDEO_LC898212
 	tristate "LC898212 focuser support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -70,7 +70,7 @@ config VIDEO_LC898212
 	  To compile this driver as a module, choose M here: the module
 	  will be called lc898212.
 
-config VIDEO_OV5693
+config NV_VIDEO_OV5693
 	tristate "OV5693 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help

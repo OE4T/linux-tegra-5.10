@@ -54,8 +54,8 @@
 #define LC898212_RAM_ACCESS	0x2
 
 #define AF_MIN 0
-#define AF_MAX 1023
-#define AF_RANGE (AF_MAX - AF_MIN + 1)
+#define NV_AF_MAX 1023
+#define AF_RANGE (NV_AF_MAX - AF_MIN + 1)
 
 #define LC898212_RZ			0x04
 #define LC898212_ADOFFSET	0x3C
