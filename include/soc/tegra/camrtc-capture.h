@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -329,7 +329,7 @@ typedef struct syncpoint_info {
 #define CAPTURE_CHANNEL_ERROR_STALE_FRAME		MK_BIT32(19)
 /** A start-of-frame matches a channel that is already in frame */
 #define CAPTURE_CHANNEL_ERROR_COLLISION			MK_BIT32(18)
-/** Pixels stopped, an FE was forced due to a latent LOAD event */
+/** Frame end was forced by channel reset */
 #define CAPTURE_CHANNEL_ERROR_FORCE_FE			MK_BIT32(17)
 /** A LOAD command is received for a channel while that channel is currently in a frame.*/
 #define CAPTURE_CHANNEL_ERROR_LOAD_FRAMED		MK_BIT32(16)
@@ -958,53 +958,66 @@ struct capture_status {
 
 	/**
 	 * @defgroup ViNotifyErrorTag
-	 * VI notify error bitmask
+	 * Error bit definitions for the @ref notify_bits field
 	 */
 	/** @{ */
-	/** CSIMUX Frame (tag 0x2) notifications */
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESEVED_0			MK_BIT64(1)
+	/** Frame start fault */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FS_FAULT				MK_BIT64(2)
+	/** Frame end forced by CSIMUX stream reset or stream timeout */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FORCE_FE_FAULT			MK_BIT64(3)
+	/** Frame ID fault in frame end packet */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FE_FRAME_ID_FAULT		MK_BIT64(4)
+	/** Pixel enable fault in pixel packet header */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_PXL_ENABLE_FAULT			MK_BIT64(5)
 
-	/** Reserved for deinterleaved CSI streams on request from nvmedia team */
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_1			MK_BIT64(6)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_2			MK_BIT64(7)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_3			MK_BIT64(8)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_4			MK_BIT64(9)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_5			MK_BIT64(10)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_6			MK_BIT64(11)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_7			MK_BIT64(12)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_8			MK_BIT64(13)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_9			MK_BIT64(14)
 
-	/** CSI Faults. These errors report corresponding NVCSI errors */
+	/** CSI pixel parser finite state machine timeout */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PPFSM_TIMEOUT		MK_BIT64(15)
+	/** CSI single bit error corrected in packet header by ECC */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PH_ECC_SINGLE_BIT_ERR	MK_BIT64(16)
+	/** CSI CRC Error in payload data */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PD_CRC_ERR		MK_BIT64(17)
+	/** CSI payload data word count short error */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PD_WC_SHORT_ERR	MK_BIT64(18)
+	/** CSI packet header single CRC error */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PH_SINGLE_CRC_ERR	MK_BIT64(19)
+	/** CSI embedded data line CRC error */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_EMBEDDED_LINE_CRC_ERR	MK_BIT64(20)
 
 	/**
-	 * CSIMUX Stream (tag 0x3) notifications
-	 */
-	/**
-	 * Spurious data was received before frame start.
-	 * Can be badly corrupted frame or some random bits.
-	 * This error doesn't have effect on captured frame
+	 * Spurious data detected between valid frames or before first frame.
+	 * This can be a badly corrupted frame or some random bits.
+	 * This error doesn't have an effect on the captured frame.
 	 */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_SPURIOUS_DATA			MK_BIT64(21)
-
-	/** Uncorrectable FIFO errors */
+	/** Stream FIFO overflow. This error is unrecoverable. */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_OVERFLOW			MK_BIT64(22)
+	/** Stream loss of frame error. This error is unrecoverable. */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_LOF			MK_BIT64(23)
-
 	/**
 	 * Illegal data packet was encountered and dropped by CSIMUX.
-	 * This error may have no effect on capture result or trigger other error if
-	 * frame got corrupted.
+	 * This error may have no effect on capture result or trigger
+	 * other errors if frame got corrupted.
 	 */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_BADPKT			MK_BIT64(24)
 
@@ -1020,65 +1033,68 @@ struct capture_status {
 	 */
 	#define CAPTURE_STATUS_NOTIFY_BIT_FRAME_COMPLETION_TIMEOUT		MK_BIT64(26)
 
-	/**
-	 * CHANSEL FAULT (TAG 0x9) Notifications
-	 */
+	/** Missing line end packet in pixel data line */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_MISSING_LE		MK_BIT64(30)
+	/** Frame has too many lines */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_RUNAWAY			MK_BIT64(31)
+	/** Pixel data received without line start packet */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_SPURIOUS		MK_BIT64(32)
+	/** Pixel data line is too long */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_LONG_LINE		MK_BIT64(33)
+	/** Pixel data line is too short */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_SHORT_LINE		MK_BIT64(34)
+	/** Missing line end packet in embedded data line */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_MISSING_LE		MK_BIT64(35)
+	/** Frame has too many lines of embedded data */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_RUNAWAY			MK_BIT64(36)
+	/** Embedded data received without line start packet */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_SPURIOUS		MK_BIT64(37)
+	/** Embedded data line is too long */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_LONG_LINE		MK_BIT64(38)
+	/** Embedded data received when not expected */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_INFRINGE		MK_BIT64(39)
+	/** Invalid pixel data type in pixel packet or line start packet */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_DTYPE_MISMATCH		MK_BIT64(40)
+	/** Reserved */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_RESERVED_0			MK_BIT64(41)
 
-	/**
-	 * CHANSEL PIX_SHORT (TAG 0xD) Notifications
-	 */
+	/** Frame to short - too few pixel data lines */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIX_SHORT			MK_BIT64(42)
 
-	/**
-	 * CHANSEL EMB_SHORT (TAG 0xD) Notification.
-	 */
+	/** Frame to short - too few embedded data lines */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMB_SHORT			MK_BIT64(43)
 
-	/** Permanent Fault Software Diagnostics (PFSD) */
+	/** VI hardware failure detected by Permanent Fault Software Diagnostics (PFSD) */
 	#define CAPTURE_STATUS_NOTIFY_BIT_PFSD_FAULT				MK_BIT64(44)
 
-	/**
-	 * CHANSEL FAULT_FE (TAG 0xA) Notification
-	 */
+	/** Frame end forced by channel reset */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_FAULT_FE			MK_BIT64(45)
 
 	/**
-	 * CHANSEL NOMATCH (TAG 0xB) Notification
-	 * One or more frames from CSI could not be matched with capture descriptors enqueued in VI.
-	 * This error is usually caused by missing capture descriptor.
-	 * This error doesn't have effect on next captured frame
+	 * Incoming frame not matched by any VI channel.
+	 * This error is usually caused by not having a pending
+	 * capture request ready to catch the incoming frame.
+	 * The frame will be dropped.
 	 */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_NO_MATCH			MK_BIT64(46)
 
 	/**
-	 * CHANSEL COLLISION (TAG 0xC) Notification
+	 * More than one VI channel match the same incoming frame.
+	 * Two or more channels have been configured for the same
+	 * sensor. Only one of the channels will capture the frame.
 	 */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_COLLISION			MK_BIT64(47)
 
-	/**
-	 * CHANSEL LOAD_FRAMED (TAG 0xE) Notification
-	 */
+	/** Channel reconfigured while in frame */
 	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_LOAD_FRAMED			MK_BIT64(48)
 
-	/** ATOMP_PACKER_OVERFLOW   (TAG 0xf) */
+	/** Internal overflow in ATOMP packer. Should not happen. */
 	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_PACKER_OVERFLOW			MK_BIT64(49)
 
-	/** ATOMP_FRAME_TRUNCATED   (TAG 0x15) Frame not finished */
+	/** Frame truncated while writing to system memory. Indicates memory back-pressure. */
 	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TRUNCATED			MK_BIT64(50)
 
-	/** ATOMP_FRAME_TOSSED   (TAG 0x16) Frame data not written */
+	/** Frame dropped while writing to system memory. Indicates memory back-pressure. */
 	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TOSSED			MK_BIT64(51)
 
 	/** Non-classified error */
