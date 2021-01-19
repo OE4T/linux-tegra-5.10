@@ -787,11 +787,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE0 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 512 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 513 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 514 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 515 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 72 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
 				    204000000 204000000 408000000  800000000
@@ -886,11 +883,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE1 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 516 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 517 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 518 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 519 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 45 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 408000000 800000000  1333000000
 				    0         0         0          0
@@ -985,11 +979,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE2 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 520 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 521 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 522 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 523 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 47 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 408000000 800000000  1333000000
 				    0         0         0          0
@@ -1082,12 +1073,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE3 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 524 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 525 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 526 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 527 0x04>;	/* INTD */
-
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 49 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 408000000 800000000  1333000000
 				    0         0         0          0
@@ -1180,11 +1167,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE4 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 528 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 529 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 530 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 531 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 51 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
 				    204000000 204000000 408000000  800000000
@@ -1277,11 +1261,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE5 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 532 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 533 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 534 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 535 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 53 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
 				    204000000 204000000 408000000  666000000
@@ -1375,11 +1356,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE6 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 536 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 537 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 538 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 539 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 352 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
 				    204000000 204000000 408000000  800000000
@@ -1473,11 +1451,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE7 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 540 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 541 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 542 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 543 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 354 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
 				    204000000 204000000 408000000  666000000
@@ -1571,11 +1546,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE8 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 428 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 429 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 430 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 431 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 356 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
 				    204000000 204000000 408000000  800000000
@@ -1669,11 +1641,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE9 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 440 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 441 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 442 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 443 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 358 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
 				    204000000 204000000 408000000  800000000
@@ -1767,11 +1736,8 @@
 		msi-map = <0x0 &gic_v2m TEGRA_SID_PCIE10 0x1000>;
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 444 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 445 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 446 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 447 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 360 0x04>;
 
 		nvidia,dvfs-tbl = < 204000000 204000000 204000000  408000000
 				    204000000 204000000 408000000  800000000

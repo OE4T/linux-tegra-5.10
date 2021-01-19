@@ -149,11 +149,8 @@
 		interrupt-names = "intr", "msi";
 
 		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 7>;
-		interrupt-map = <0 0 0 1 &intc 0 516 0x04>,	/* INTA */
-				<0 0 0 2 &intc 0 517 0x04>,	/* INTB */
-				<0 0 0 3 &intc 0 518 0x04>,	/* INTC */
-				<0 0 0 4 &intc 0 519 0x04>;	/* INTD */
+		interrupt-map-mask = <0 0 0 0>;
+		interrupt-map = <0 0 0 0 &intc 0 45 0x04>;
 
 
 		linux,pci-domain = <1>;
