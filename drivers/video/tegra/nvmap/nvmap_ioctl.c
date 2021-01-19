@@ -48,7 +48,9 @@
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
 #include <linux/syscalls.h>
+#ifndef NVMAP_LOADABLE_MODULE
 #include <linux/dma-map-ops.h>
+#endif /* !NVMAP_LOADABLE_MODULE */
 #endif
 
 extern struct device tegra_vpr_dev;

@@ -43,6 +43,10 @@
 #define NVMAP_DMABUF_ATTACH  __nvmap_dmabuf_attach
 #endif
 
+#ifdef NVMAP_LOADABLE_MODULE
+#define CONFIG_NVMAP_FD_START 0x400
+#endif /* NVMAP_LOADABLE_MODULE */
+
 /**
  * List node for maps of nvmap handles via the dma_buf API. These store the
  * necessary info for stashing mappings.
@@ -681,8 +685,10 @@ static struct dma_buf *__dma_buf_export(struct nvmap_handle_info *info,
 		exp_info.flags = O_RDWR;
 	}
 
+#ifndef NVMAP_LOADABLE_MODULE
 	exp_info.exp_flags = DMABUF_CAN_DEFER_UNMAP |
 				DMABUF_SKIP_CACHE_SYNC;
+#endif /* !NVMAP_LOADABLE_MODULE */
 	exp_info.exp_name = dmabuf_name;
 
 	return dma_buf_export(&exp_info);

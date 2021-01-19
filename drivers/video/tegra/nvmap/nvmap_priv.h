@@ -54,6 +54,25 @@
 
 #define DMA_ERROR_CODE	(~(dma_addr_t)0)
 
+#ifdef NVMAP_LOADABLE_MODULE
+#define __DMA_ATTR(attrs) attrs
+#define DEFINE_DMA_ATTRS(attrs) unsigned long attrs = 0
+
+/**
+ * dma_set_attr - set a specific attribute
+ * @attr: attribute to set
+ * @attrs: struct dma_attrs (may be NULL)
+ */
+#define dma_set_attr(attr, attrs) (attrs |= attr)
+
+/**
+ * dma_get_attr - check for a specific attribute
+ * @attr: attribute to set
+ * @attrs: struct dma_attrs (may be NULL)
+ */
+#define dma_get_attr(attr, attrs) (attrs & attr)
+#endif /* NVMAP_LOADABLE_MODULE */
+
 #define NVMAP_TAG_LABEL_MAXLEN	(63 - sizeof(struct nvmap_tag_entry))
 
 #define NVMAP_TP_ARGS_H(handle)					      	      \
@@ -82,6 +101,36 @@ do {                                                    \
 } while (0)
 
 #define GFP_NVMAP       (GFP_KERNEL | __GFP_HIGHMEM | __GFP_NOWARN)
+
+#ifdef NVMAP_LOADABLE_MODULE
+/*
+ * DMA_ATTR_SKIP_IOVA_GAP: This tells the DMA-mapping
+ * subsystem to skip gap pages
+ */
+#define DMA_ATTR_SKIP_IOVA_GAP		(DMA_ATTR_PRIVILEGED << 1)
+
+/*
+ * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping
+ * subsystem to allocate the exact number of pages
+ */
+#define DMA_ATTR_ALLOC_EXACT_SIZE	(DMA_ATTR_PRIVILEGED << 2)
+
+/*
+ * DMA_ATTR_READ_ONLY: for DMA memory allocations, attempt to map
+ * memory as read-only for the device. CPU access will still be
+ * read-write. This corresponds to the direction being DMA_TO_DEVICE
+ * instead of DMA_BIDIRECTIONAL.
+ */
+#define DMA_ATTR_READ_ONLY	(DMA_ATTR_PRIVILEGED << 12)
+
+/* DMA_ATTR_WRITE_ONLY: This tells the DMA-mapping subsystem
+ * to map as write-only
+ */
+#define DMA_ATTR_WRITE_ONLY	(DMA_ATTR_PRIVILEGED << 13)
+
+#define DMA_MEMORY_EXCLUSIVE		0x01
+#define DMA_MEMORY_NOMAP		0x02
+#endif /* NVMAP_LOADABLE_MODULE */
 
 #define DMA_ALLOC_FREE_ATTR	(DMA_ATTR_ALLOC_EXACT_SIZE | DMA_ATTR_ALLOC_SINGLE_PAGES)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
@@ -226,7 +275,7 @@ struct nvmap_handle_ref {
 	atomic_t	dupes;	/* number of times to free on file close */
 };
 
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#if defined(CONFIG_NVMAP_PAGE_POOLS) || defined(NVMAP_LOADABLE_MODULE)
 /*
  * This is the default ratio defining pool size. It can be thought of as pool
  * size in either MB per GB or KB per MB. That means the max this number can
@@ -300,7 +349,7 @@ struct nvmap_device {
 	struct nvmap_carveout_node *heaps;
 	int nr_heaps;
 	int nr_carveouts;
-#ifdef CONFIG_NVMAP_PAGE_POOLS
+#if defined(CONFIG_NVMAP_PAGE_POOLS) || defined(NVMAP_LOADABLE_MODULE)
 	struct nvmap_page_pool pool;
 #endif
 	struct list_head clients;
