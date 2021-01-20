@@ -97,7 +97,8 @@ static void gv11b_gr_intr_handle_fecs_ecc_error(struct gk20a *g)
 		nvgpu_log(g, gpu_dbg_intr, "imem ecc error uncorrected");
 	}
 	if (fecs_ecc_status.dmem_corrected_err) {
-		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
+		nvgpu_log(g, gpu_dbg_intr,
+			"unexpected dmem ecc error corrected");
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -289,25 +290,11 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 	if ((gcc_l15_corrected_err_count_delta > 0U) ||
 	    is_gcc_l15_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
-			"corrected error (SBE) detected in GCC L1.5!"
+			"unexpected corrected error (SBE) detected in GCC L1.5!"
 			"err_mask [%08x] is_overf [%d]",
 			gcc_l15_ecc_corrected_err_status,
 			is_gcc_l15_ecc_corrected_total_err_overflow);
 
-		/* HW uses 16-bits counter */
-		if (is_gcc_l15_ecc_corrected_total_err_overflow) {
-			gcc_l15_corrected_err_count_delta =
-			   nvgpu_safe_add_u32(
-				gcc_l15_corrected_err_count_delta,
-			 BIT32(
-			  gr_pri_gpc0_gcc_l15_ecc_corrected_err_count_total_s()
-			 ));
-		}
-		*corrected_err = nvgpu_safe_add_u32(
-					*corrected_err,
-					gcc_l15_corrected_err_count_delta);
-		nvgpu_writel(g, nvgpu_safe_add_u32(
-		 gr_pri_gpc0_gcc_l15_ecc_corrected_err_count_r(), offset), 0);
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -352,7 +339,8 @@ static void gv11b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_sa_data_m()) !=
 									0U) {
-		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
+		nvgpu_log(g, gpu_dbg_intr,
+			"unexpected corrected ecc sa data error");
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -369,7 +357,8 @@ static void gv11b_gr_intr_report_gpcmmu_ecc_err(struct gk20a *g,
 	if ((ecc_status &
 	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_fa_data_m()) !=
 									0U) {
-		nvgpu_log(g, gpu_dbg_intr, "corrected ecc fa data error");
+		nvgpu_log(g, gpu_dbg_intr,
+			"unexpected corrected ecc fa data error");
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -492,7 +481,8 @@ static void gv11b_gr_intr_report_gpccs_ecc_err(struct gk20a *g,
 	}
 	if ((ecc_status &
 	     gr_gpc0_gpccs_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
-		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
+		nvgpu_log(g, gpu_dbg_intr,
+			"unexpected dmem ecc error corrected");
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -1217,25 +1207,14 @@ static void gv11b_gr_intr_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc
 	 */
 	tpc = tpc & U8_MAX;
 
-	if ((lrf_corrected_err_count_delta > 0U) || is_lrf_ecc_corrected_total_err_overflow) {
+	if ((lrf_corrected_err_count_delta > 0U) ||
+			is_lrf_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
-			"corrected error (SBE) detected in SM LRF! err_mask [%08x] is_overf [%d]",
-			ecc_status.corrected_err_status, is_lrf_ecc_corrected_total_err_overflow);
+			"unexpected corrected error (SBE) detected in SM LRF!"
+			" err_mask [%08x] is_overf [%d]",
+			ecc_status.corrected_err_status,
+			is_lrf_ecc_corrected_total_err_overflow);
 
-		/* HW uses 16-bits counter */
-		if (is_lrf_ecc_corrected_total_err_overflow) {
-			lrf_corrected_err_count_delta =
-			   nvgpu_safe_add_u32(
-				lrf_corrected_err_count_delta,
-				BIT32(gr_pri_gpc0_tpc0_sm_lrf_ecc_corrected_err_count_total_s()));
-		}
-		g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter =
-		   nvgpu_safe_add_u32(
-			g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter,
-			lrf_corrected_err_count_delta);
-		nvgpu_writel(g, nvgpu_safe_add_u32(
-			gr_pri_gpc0_tpc0_sm_lrf_ecc_corrected_err_count_r(), offset),
-			0U);
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -1363,24 +1342,14 @@ static void gv11b_gr_intr_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc
 	 */
 	tpc = tpc & U8_MAX;
 
-	if ((cbu_corrected_err_count_delta > 0U) || is_cbu_ecc_corrected_total_err_overflow) {
+	if ((cbu_corrected_err_count_delta > 0U) ||
+		is_cbu_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
-			"corrected error (SBE) detected in SM CBU! err_mask [%08x] is_overf [%d]",
-			ecc_status.corrected_err_status, is_cbu_ecc_corrected_total_err_overflow);
+			"unexpected corrected error (SBE) detected in SM CBU!"
+			" err_mask [%08x] is_overf [%d]",
+			ecc_status.corrected_err_status,
+			is_cbu_ecc_corrected_total_err_overflow);
 
-		/* HW uses 16-bits counter */
-		if (is_cbu_ecc_corrected_total_err_overflow) {
-			cbu_corrected_err_count_delta =
-			   nvgpu_safe_add_u32(cbu_corrected_err_count_delta,
-				BIT32(gr_pri_gpc0_tpc0_sm_cbu_ecc_corrected_err_count_total_s()));
-		}
-		g->ecc.gr.sm_cbu_ecc_corrected_err_count[gpc][tpc].counter =
-		  nvgpu_safe_add_u32(
-			g->ecc.gr.sm_cbu_ecc_corrected_err_count[gpc][tpc].counter,
-			cbu_corrected_err_count_delta);
-		nvgpu_writel(g, nvgpu_safe_add_u32(
-			gr_pri_gpc0_tpc0_sm_cbu_ecc_corrected_err_count_r(), offset),
-			0U);
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
@@ -1502,25 +1471,14 @@ static void gv11b_gr_intr_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32
 	 */
 	tpc = tpc & U8_MAX;
 
-	if ((l1_data_corrected_err_count_delta > 0U) || is_l1_data_ecc_corrected_total_err_overflow) {
+	if ((l1_data_corrected_err_count_delta > 0U) ||
+		is_l1_data_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
-			"corrected error (SBE) detected in SM L1 data! err_mask [%08x] is_overf [%d]",
-			ecc_status.corrected_err_status, is_l1_data_ecc_corrected_total_err_overflow);
+			"unexpected corrected error (SBE) detected in SM L1 data!"
+			" err_mask [%08x] is_overf [%d]",
+			ecc_status.corrected_err_status,
+			is_l1_data_ecc_corrected_total_err_overflow);
 
-		/* HW uses 16-bits counter */
-		if (is_l1_data_ecc_corrected_total_err_overflow) {
-			l1_data_corrected_err_count_delta =
-			   nvgpu_safe_add_u32(
-				l1_data_corrected_err_count_delta,
-				BIT32(gr_pri_gpc0_tpc0_sm_l1_data_ecc_corrected_err_count_total_s()));
-		}
-		g->ecc.gr.sm_l1_data_ecc_corrected_err_count[gpc][tpc].counter =
-		   nvgpu_safe_add_u32(
-			g->ecc.gr.sm_l1_data_ecc_corrected_err_count[gpc][tpc].counter,
-			l1_data_corrected_err_count_delta);
-		nvgpu_writel(g, nvgpu_safe_add_u32(
-			gr_pri_gpc0_tpc0_sm_l1_data_ecc_corrected_err_count_r(), offset),
-			0U);
 		/* This error is not expected to occur in gv11b and hence,
 		 * this scenario is considered as a fatal error.
 		 */
