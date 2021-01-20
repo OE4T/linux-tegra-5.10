@@ -54,12 +54,6 @@ static struct nvhost_gating_register __attribute__((__unused__))
 	{ .addr = 0x00000088, .prod = 0x00000000, .disable = 0x000000ff },
 	/* NV_PSEC_THI_SLCG_OVERRIDE_LOW_A */
 	{ .addr = 0x0000008c, .prod = 0x00000000, .disable = 0xffffffff },
-	/* NV_PSEC_FALCON_CGCTL */
-	{ .addr = 0x000010a0, .prod = 0x00000000, .disable = 0x00000001 },
-	/* NV_PSEC_TFBIF_MCCIF_FIFOCTRL */
-	{ .addr = 0x00001604, .prod = 0x00000000, .disable = 0x00000000 },
-	/* NV_PSEC_FALCON_CG1_SLCG */
-	{ .addr = 0x0000117c, .prod = 0x00000000, .disable = 0x00000003 },
 	{}
 };
 
