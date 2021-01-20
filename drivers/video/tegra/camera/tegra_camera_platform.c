@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/camera/tegra_camera_platform.c
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -678,25 +678,23 @@ static const struct file_operations tegra_camera_ops = {
 static int tegra_camera_probe(struct platform_device *pdev)
 {
 	int ret;
-	static bool misc_registered = false;
 	struct tegra_camera_info *info;
 
 	dev_dbg(&pdev->dev, "%s:camera_platform_driver probe\n", __func__);
+	/* Defer the probe till isomgr is initialized */
+	if (!tegra_isomgr_init_status())
+		return -EPROBE_DEFER;
 
 	tegra_camera_misc.minor = MISC_DYNAMIC_MINOR;
 	tegra_camera_misc.name = CAMDEV_NAME;
 	tegra_camera_misc.fops = &tegra_camera_ops;
 	tegra_camera_misc.parent = &pdev->dev;
 
-	if (!misc_registered) {
-		ret = misc_register(&tegra_camera_misc);
-		if (ret) {
-			dev_err(tegra_camera_misc.this_device,
-				"register failed for %s\n",
-				tegra_camera_misc.name);
-			return ret;
-		}
-		misc_registered = true;
+	ret = misc_register(&tegra_camera_misc);
+	if (ret) {
+		dev_err(tegra_camera_misc.this_device,
+			"register failed for %s\n", tegra_camera_misc.name);
+		return ret;
 	}
 
 	info = devm_kzalloc(tegra_camera_misc.this_device,
@@ -728,8 +726,6 @@ static int tegra_camera_probe(struct platform_device *pdev)
 	/* Register Camera as isomgr client. */
 	ret = tegra_camera_isomgr_register(info, &pdev->dev);
 	if (ret) {
-		if (ret == -EPROBE_DEFER)
-			return ret;
 		dev_err(info->dev,
 		"%s: failed to register CAMERA as isomgr client\n",
 		__func__);

@@ -1,7 +1,7 @@
 /*
  * arch/arm/mach-tegra/isomgr.c
  *
- * Copyright (c) 2012-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2012-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -441,6 +441,17 @@ tegra_isomgr_handle tegra_isomgr_register(enum tegra_iso_client client,
 	return __tegra_isomgr_register(client, udedi_bw, renegotiate, priv);
 }
 EXPORT_SYMBOL(tegra_isomgr_register);
+
+/**
+ * tegra_isomgr_init_status - Return the initialization status of isomgr
+ *
+ * @retval	returns true if isomgr is initialized else returns false
+ */
+bool tegra_isomgr_init_status(void)
+{
+	return is_isomgr_up;
+}
+EXPORT_SYMBOL(tegra_isomgr_init_status);
 
 static void __tegra_isomgr_unregister(tegra_isomgr_handle handle)
 {
