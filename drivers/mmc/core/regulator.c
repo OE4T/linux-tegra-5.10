@@ -254,6 +254,11 @@ int mmc_regulator_get_supply(struct mmc_host *mmc)
 	mmc->supply.vmmc = devm_regulator_get_optional(dev, "vmmc");
 	mmc->supply.vqmmc = devm_regulator_get_optional(dev, "vqmmc");
 
+	if (mmc->caps2 & MMC_CAP2_SD_EXPRESS_SUPPORT) {
+		mmc->supply.vdd2 = devm_regulator_get_optional(dev, "vdd2");
+		mmc->supply.vdd3 = devm_regulator_get_optional(dev, "vdd3");
+	}
+
 	if (IS_ERR(mmc->supply.vmmc)) {
 		if (PTR_ERR(mmc->supply.vmmc) == -EPROBE_DEFER)
 			return -EPROBE_DEFER;

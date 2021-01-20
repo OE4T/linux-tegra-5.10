@@ -313,6 +313,8 @@ int mmc_of_parse(struct mmc_host *host)
 		host->caps2 |= MMC_CAP2_NO_MMC;
 	if (device_property_read_bool(dev, "only-1-8-v"))
 		host->caps2 |= MMC_CAP2_ONLY_1V8_SIGNAL_VOLTAGE;
+	if (device_property_read_bool(dev, "supports-sdexp"))
+		host->caps2 |= MMC_CAP2_SD_EXPRESS_SUPPORT;
 
 	/* Must be after "non-removable" check */
 	if (device_property_read_u32(dev, "fixed-emmc-driver-type", &drv_type) == 0) {

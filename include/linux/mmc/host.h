@@ -176,6 +176,7 @@ struct mmc_host_ops {
 				  unsigned int direction, int blk_size);
 	void	(*voltage_switch_req)(struct mmc_host *host, bool req);
 	void	(*skip_host_clkgate)(struct mmc_host *host, bool req);
+	int	(*pre_card_init)(struct mmc_host *host, int val, unsigned int mask);
 };
 
 struct mmc_cqe_ops {
@@ -273,6 +274,8 @@ struct mmc_pwrseq;
 struct mmc_supply {
 	struct regulator *vmmc;		/* Card power supply */
 	struct regulator *vqmmc;	/* Optional Vccq supply */
+	struct regulator *vdd2;		/* VDD2 supply for SD Express mode */
+	struct regulator *vdd3;		/* VDD3 supply for SD Express mode */
 };
 
 struct mmc_ctx {
@@ -392,6 +395,7 @@ struct mmc_host {
 #define MMC_CAP2_FORCE_RESCAN	(1 << 28) /* Force rescan requests for the device if this cap is set */
 #define MMC_CAP2_PERIODIC_CACHE_FLUSH	(1 << 29) /* Periodic cache flush support */
 #define MMC_CAP2_BROKEN_CARD_BUSY_DETECT (1 << 30) /* Broken card busy status detection */
+#define MMC_CAP2_SD_EXPRESS_SUPPORT (1 << 31)    /* Can support for SD express mode */
 
 	int			fixed_drv_type;	/* fixed driver type for non-removable media */
 
@@ -437,6 +441,7 @@ struct mmc_host {
 	bool			rem_card_present;	/* Removable card status */
 	bool			cd_cap_invert;		/* invert capability status */
 
+	bool			is_card_sd_express;	/* Card is in SD express mode */
 	struct mmc_card		*card;		/* device attached to this host */
 
 	wait_queue_head_t	wq;

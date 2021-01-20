@@ -1381,6 +1381,9 @@ int mmc_attach_sd(struct mmc_host *host)
 
 	WARN_ON(!host->claimed);
 
+	if (host->is_card_sd_express)
+		return 0;
+
 	err = mmc_send_app_op_cond(host, 0, &ocr);
 	if (err)
 		return err;

@@ -668,6 +668,8 @@ struct sdhci_ops {
 	void	(*request_done)(struct sdhci_host *host,
 				struct mmc_request *mrq);
 	void    (*dump_vendor_regs)(struct sdhci_host *host);
+	int	(*pre_card_init)(struct sdhci_host *host, int val,
+				 unsigned int mask);
 };
 
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS

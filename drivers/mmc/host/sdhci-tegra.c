@@ -32,7 +32,9 @@
 #include <linux/mmc/card.h>
 #include <linux/mmc/host.h>
 #include <linux/mmc/mmc.h>
+#include <linux/mmc/sd.h>
 #include <linux/mmc/slot-gpio.h>
+#include <linux/mmc/sdhci-tegra-notify.h>
 #include <linux/gpio/consumer.h>
 #include <linux/ktime.h>
 #include <linux/tegra_prod.h>
@@ -44,6 +46,7 @@
 #include <linux/uaccess.h>
 #include <linux/fs.h>
 #include <soc/tegra/fuse.h>
+#include <soc/tegra/padctrl.h>
 #include <linux/pm_runtime.h>
 
 #include "sdhci-pltfm.h"
@@ -237,6 +240,10 @@ struct sdhci_tegra_autocal_offsets {
 };
 
 static void tegra_sdhci_set_dqs_trim(struct sdhci_host *host, u8 trim);
+static int unregister_notifier_to_sd(struct sdhci_host *host);
+static int tegra_sdhci_pre_sd_exp_card_init(struct sdhci_host *host,
+					    int val, unsigned int mask);
+static int notifier_from_sd_call_chain(struct sdhci_host *host, int value);
 
 struct sdhci_tegra {
 	const struct sdhci_tegra_soc_data *soc_data;
@@ -284,6 +291,12 @@ struct sdhci_tegra {
 	unsigned long max_ddr_clk_limit;
 	unsigned int instance;
 	bool skip_clk_rst;
+	int mux_sel_gpio;
+	struct blocking_notifier_head notifier_from_sd;
+	struct blocking_notifier_head notifier_to_sd;
+	struct notifier_block notifier;
+	bool sd_exp_support;
+	bool is_probe_done;
 };
 
 static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
@@ -987,6 +1000,34 @@ static int tegra_sdhci_set_padctrl(struct sdhci_host *host, int voltage,
 	}
 
 	return ret;
+}
+
+static void tegra_sdhci_card_event(struct sdhci_host *host)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	int err = 0;
+
+	if (!host->mmc->rem_card_present) {
+		if (host->mmc->is_card_sd_express) {
+			err = notifier_from_sd_call_chain(host, CARD_REMOVED);
+			if (err != NOTIFY_OK) {
+				pr_err("%s: SD express card removal failed\n",
+				       mmc_hostname(host->mmc));
+			}
+			err = tegra_sdhci_pre_sd_exp_card_init(host, CARD_REMOVED, 0);
+			if (err) {
+				WARN_ON("Switch to default SD mode failed\r\n");
+			} else {
+				err = unregister_notifier_to_sd(host);
+				if (!err)
+					pr_info("%s: SD Express card removed successfully\n",
+						mmc_hostname(host->mmc));
+			}
+		}
+		if (tegra_host->sd_exp_support)
+			host->mmc->caps2 |= MMC_CAP2_SD_EXPRESS_SUPPORT;
+	}
 }
 
 static void tegra_sdhci_pad_autocalib(struct sdhci_host *host)
@@ -2092,6 +2133,266 @@ static void tegra_sdhci_skip_host_clkgate(struct sdhci_host *host, bool req)
 		host->mmc->skip_host_clkgate = false;
 }
 
+static void sdhci_tegra_sd_express_mode_select(struct sdhci_host *host, bool req)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+
+	if (gpio_is_valid(tegra_host->mux_sel_gpio)) {
+		if (req == false) {
+			gpio_set_value_cansleep(tegra_host->mux_sel_gpio, 0);
+			dev_info(mmc_dev(host->mmc),
+				 "SD mode set by mux selection gpio\n");
+		} else {
+			gpio_set_value_cansleep(tegra_host->mux_sel_gpio, 1);
+			dev_info(mmc_dev(host->mmc),
+				 "SD express mode set by mux selection gpio\n");
+		}
+	} else {
+		tegra_misc_sd_exp_mux_select(req);
+	}
+}
+
+int register_notifier_from_sd(struct device *dev,
+			      struct notifier_block *nb)
+{
+	struct sdhci_host *host = dev_get_drvdata(dev);
+	struct sdhci_pltfm_host *pltfm_host;
+	struct sdhci_tegra *tegra_host;
+
+	if (host == NULL)
+		return -EPROBE_DEFER;
+
+	pltfm_host = sdhci_priv(host);
+	tegra_host = sdhci_pltfm_priv(pltfm_host);
+
+	if (!tegra_host->is_probe_done)
+		return -EPROBE_DEFER;
+
+	return blocking_notifier_chain_register(&tegra_host->notifier_from_sd, nb);
+}
+EXPORT_SYMBOL_GPL(register_notifier_from_sd);
+
+int unregister_notifier_from_sd(struct device *dev,
+				struct notifier_block *nb)
+{
+	struct sdhci_host *host = dev_get_drvdata(dev);
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+
+	return blocking_notifier_chain_unregister(&tegra_host->notifier_from_sd, nb);
+}
+
+struct device *get_sdhci_device_handle(struct device *dev)
+{
+	struct device_node *sd_node = NULL;
+	struct platform_device *sd_pltfm_device = NULL;
+
+	sd_node = of_parse_phandle(dev->of_node, "nvidia,sdmmc-instance", 0);
+	if (!sd_node) {
+		dev_dbg(dev, "Looking up %s property in node %pOF failed\n",
+			"sdmmc-instance", dev->of_node);
+		return NULL;
+	}
+
+	sd_pltfm_device = of_find_device_by_node(sd_node);
+	if (!sd_pltfm_device) {
+		dev_dbg(dev, "Finding platform device in node %pOF failed\n",
+			sd_node);
+	}
+	return &sd_pltfm_device->dev;
+}
+EXPORT_SYMBOL_GPL(get_sdhci_device_handle);
+
+static int notifier_from_sd_call_chain(struct sdhci_host *host, int value)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+
+	return blocking_notifier_call_chain(&tegra_host->notifier_from_sd,
+					    value, NULL);
+}
+
+int sdhci_tegra_notifier_handle(struct notifier_block *self,
+				unsigned long event, void *data)
+{
+	struct sdhci_tegra *tegra_host =
+		container_of(self, struct sdhci_tegra, notifier);
+	struct sdhci_host *host = tegra_host->host;
+	int err = NOTIFY_OK;
+
+	switch (event) {
+	case CARD_IS_SD_ONLY:
+		/* Handle SD card only event only for unexpected PCIe link failure */
+		if (!host->mmc->rem_card_present) {
+			err = NOTIFY_OK;
+			goto out;
+		}
+		err = tegra_sdhci_pre_sd_exp_card_init(host, CARD_IS_SD_ONLY, 0);
+		if (err)
+			err = NOTIFY_BAD;
+		else
+			err = NOTIFY_OK;
+
+		host->mmc->caps2 &= ~MMC_CAP2_SD_EXPRESS_SUPPORT;
+		mmc_detect_change(host->mmc, 0);
+		err = unregister_notifier_to_sd(host);
+		break;
+	case SD_EXP_SUSPEND_COMPLETE:
+		/* Turn off regulators */
+		if (!IS_ERR(host->mmc->supply.vdd2) &&
+		    regulator_is_enabled(host->mmc->supply.vdd2))
+			regulator_disable(host->mmc->supply.vdd2);
+		if (!IS_ERR(host->mmc->supply.vdd3) &&
+		    regulator_is_enabled(host->mmc->supply.vdd3))
+			regulator_disable(host->mmc->supply.vdd3);
+		/* Set pinmux to SD */
+		sdhci_tegra_sd_express_mode_select(host, false);
+		sdhci_set_power(host, MMC_POWER_OFF, 0);
+		err = unregister_notifier_to_sd(host);
+		if (!err)
+			err = NOTIFY_OK;
+		else
+			err = NOTIFY_BAD;
+		break;
+	default:
+		err = NOTIFY_BAD;
+		break;
+	}
+out:
+	return err;
+}
+
+static int register_notifier_to_sd(struct sdhci_host *host)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+
+	tegra_host->notifier.notifier_call = &sdhci_tegra_notifier_handle;
+	return blocking_notifier_chain_register(&tegra_host->notifier_to_sd,
+							&tegra_host->notifier);
+}
+
+static int unregister_notifier_to_sd(struct sdhci_host *host)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+
+	return blocking_notifier_chain_unregister(&tegra_host->notifier_to_sd,
+							&tegra_host->notifier);
+}
+
+int notifier_to_sd_call_chain(struct device *dev, int value)
+{
+	struct sdhci_host *host = dev_get_drvdata(dev);
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+
+	return blocking_notifier_call_chain(&tegra_host->notifier_to_sd,
+						value, NULL);
+}
+EXPORT_SYMBOL_GPL(notifier_to_sd_call_chain);
+
+static int tegra_sdhci_pre_sd_exp_card_init(struct sdhci_host *host,
+					    int val, unsigned int mask)
+{
+	int err = 0;
+
+	switch (val) {
+	case CARD_INSERTED:
+		err = notifier_from_sd_call_chain(host, val);
+		if (err == NOTIFY_OK)
+			err = 0;
+		else
+			err = -EIO;
+		break;
+	case CARD_IS_SD_EXPRESS:
+		/* Turn off card clock */
+		sdhci_set_card_clock(host, false);
+		/* Set pinmux to PCIe */
+		sdhci_tegra_sd_express_mode_select(host, true);
+		/* Notify PCIe layer */
+		if ((mask & SD_EXP_1V2_MASK) != 0U) {
+			pr_info("%s: Trying link setup with VDD3\n",
+				mmc_hostname(host->mmc));
+			/* Enable VDD3 regulator */
+			if (!IS_ERR(host->mmc->supply.vdd3)) {
+				err = regulator_enable(host->mmc->supply.vdd3);
+				if (err) {
+					pr_err("%s: Failed to enable VDD3 regulator: %d\n",
+					       mmc_hostname(host->mmc), err);
+					host->mmc->supply.vdd3 =
+						ERR_PTR(-EINVAL);
+					err = 0;
+					goto enable_vdd2;
+				}
+			}
+			err = notifier_from_sd_call_chain(host, val);
+			if (err != NOTIFY_OK) {
+				pr_info("%s: Link setup fail with VDD3 err=%d\n",
+					mmc_hostname(host->mmc), err);
+				/* Disable VDD3 regulator */
+				if (!IS_ERR(host->mmc->supply.vdd3))
+					regulator_disable(host->mmc->supply.vdd3);
+				if (err == NOTIFY_BAD)
+					err = -EIO;
+				else
+					err = 0;
+			}
+		}
+enable_vdd2:
+		if ((err == 0) && ((mask & SD_EXP_1V8_MASK) != 0U)) {
+			pr_info("%s: Trying link setup with VDD2\n",
+				mmc_hostname(host->mmc));
+			/* Enable VDD2 regulator */
+			if (!IS_ERR(host->mmc->supply.vdd2)) {
+				err = regulator_enable(host->mmc->supply.vdd2);
+				if (err) {
+					pr_err("%s: Failed to enable vdd2 regulator: %d\n",
+					       mmc_hostname(host->mmc), err);
+					host->mmc->supply.vdd2 =
+						ERR_PTR(-EINVAL);
+					err = -EIO;
+				} else {
+					err = notifier_from_sd_call_chain(host,
+									  val);
+					if (err != NOTIFY_OK) {
+						pr_err("%s: Link setup failed with VDD2 err=%d\n",
+						       mmc_hostname(host->mmc),
+							err);
+						err = -EIO;
+					}
+				}
+			}
+		}
+		if (err == NOTIFY_OK) {
+			pr_info("%s: PCIe Link setup success\n",
+				mmc_hostname(host->mmc));
+			err = register_notifier_to_sd(host);
+		}
+		break;
+	case CARD_REMOVED:
+	case CARD_IS_SD_ONLY:
+		/* Turn off VDD2/VDD3 */
+		if (!IS_ERR(host->mmc->supply.vdd2) &&
+		    regulator_is_enabled(host->mmc->supply.vdd2))
+			regulator_disable(host->mmc->supply.vdd2);
+		if (!IS_ERR(host->mmc->supply.vdd3) &&
+		    regulator_is_enabled(host->mmc->supply.vdd3))
+			regulator_disable(host->mmc->supply.vdd3);
+		/* Set pinmux to SD */
+		sdhci_tegra_sd_express_mode_select(host, false);
+		/* Turn on card clock */
+		sdhci_set_card_clock(host, true);
+		err = 0;
+		break;
+	default:
+		err = -EINVAL;
+		break;
+	}
+	return err;
+}
+
 static const struct sdhci_ops tegra_sdhci_ops = {
 	.get_ro     = tegra_sdhci_get_ro,
 	.read_w     = tegra_sdhci_readw,
@@ -2112,6 +2413,8 @@ static const struct sdhci_ops tegra_sdhci_ops = {
 	.get_sw_timeout = tegra_sdhci_get_sw_timeout_value,
 	.voltage_switch_req	= tegra_sdhci_voltage_switch_req,
 	.skip_host_clkgate	= tegra_sdhci_skip_host_clkgate,
+	.pre_card_init = tegra_sdhci_pre_sd_exp_card_init,
+	.card_event = tegra_sdhci_card_event,
 };
 
 static const struct sdhci_pltfm_data sdhci_tegra20_pdata = {
@@ -2453,6 +2756,7 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	tegra_host->ddr_signaling = false;
 	tegra_host->pad_calib_required = false;
 	tegra_host->pad_control_available = false;
+	tegra_host->is_probe_done = false;
 	tegra_host->soc_data = soc_data;
 	tegra_host->host = host;
 
@@ -2589,6 +2893,9 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 
 	tegra_host->volt_switch_gpio = of_get_named_gpio(np,
 			"nvidia,voltage-switch-gpio", 0);
+	tegra_host->mux_sel_gpio = of_get_named_gpio(np,
+						     "nvidia,sdexp-sel-gpio",
+						     0);
 	if (gpio_is_valid(tegra_host->volt_switch_gpio)) {
 		rc = gpio_request(tegra_host->volt_switch_gpio, "sdhci_power");
 		if (rc)
@@ -2618,6 +2925,12 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 		}
 	}
 
+	if (host->mmc->caps2 & MMC_CAP2_SD_EXPRESS_SUPPORT) {
+		BLOCKING_INIT_NOTIFIER_HEAD(&tegra_host->notifier_from_sd);
+		BLOCKING_INIT_NOTIFIER_HEAD(&tegra_host->notifier_to_sd);
+		tegra_host->sd_exp_support = true;
+	}
+
 	if (tegra_platform_is_vsp()) {
 		host->quirks2 |= SDHCI_QUIRK2_BROKEN_64_BIT_DMA;
 		host->mmc->caps2 |= MMC_CAP2_BROKEN_CARD_BUSY_DETECT;
@@ -2644,6 +2957,23 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 			dev_err(&pdev->dev, "Parsing regulators failed: %d\n", rc);
 		goto err_rst_get;
 	}
+
+	if (gpio_is_valid(tegra_host->mux_sel_gpio)) {
+		rc = gpio_request(tegra_host->mux_sel_gpio, "sdexp_select");
+		if (rc) {
+			dev_err(mmc_dev(host->mmc),
+				"failed to allocate gpio for mux selection err: %d\n",
+				rc);
+			host->mmc->caps2 &= ~MMC_CAP2_SD_EXPRESS_SUPPORT;
+		} else {
+			gpio_direction_output(tegra_host->mux_sel_gpio, 1);
+			gpio_set_value_cansleep(tegra_host->mux_sel_gpio, 0);
+			dev_info(mmc_dev(host->mmc),
+				 "SD mode initially set by mux selection GPIO\n");
+		}
+	}
+
+	tegra_host->is_probe_done = true;
 
 	schedule_delayed_work(&tegra_host->detect_delay,
 			      msecs_to_jiffies(tegra_host->boot_detect_delay));

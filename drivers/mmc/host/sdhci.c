@@ -2305,10 +2305,12 @@ void sdhci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	}
 	if (mmc->skip_host_clkgate)
 		return;
-	if (host->ops->set_power)
-		host->ops->set_power(host, ios->power_mode, ios->vdd);
-	else
-		sdhci_set_power(host, ios->power_mode, ios->vdd);
+	if (!host->mmc->is_card_sd_express || ios->vdd) {
+		if (host->ops->set_power)
+			host->ops->set_power(host, ios->power_mode, ios->vdd);
+		else
+			sdhci_set_power(host, ios->power_mode, ios->vdd);
+	}
 
 	if (host->ops->platform_send_init_74_clocks)
 		host->ops->platform_send_init_74_clocks(host, ios->power_mode);
@@ -3049,6 +3051,17 @@ static void sdhci_skip_host_clkgate(struct mmc_host *mmc, bool req)
 		host->ops->skip_host_clkgate(host, req);
 }
 
+static int sdhci_card_pre_init(struct mmc_host *mmc, int val,
+			       unsigned int mask)
+{
+	struct sdhci_host *host = mmc_priv(mmc);
+
+	if (host->ops->pre_card_init)
+		return host->ops->pre_card_init(host, val, mask);
+	else
+		return -EINVAL;
+}
+
 static const struct mmc_host_ops sdhci_ops = {
 	.request	= sdhci_request,
 	.post_req	= sdhci_post_req,
@@ -3067,6 +3080,7 @@ static const struct mmc_host_ops sdhci_ops = {
 	.hs400_enhanced_strobe = sdhci_hs400_enhanced_strobe,
 	.voltage_switch_req		= sdhci_voltage_switch_req,
 	.skip_host_clkgate		= sdhci_skip_host_clkgate,
+	.pre_card_init		        = sdhci_card_pre_init,
 };
 
 /*****************************************************************************\

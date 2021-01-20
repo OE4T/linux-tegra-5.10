@@ -14,6 +14,7 @@
 #include <linux/mmc/card.h>
 #include <linux/mmc/mmc.h>
 #include <linux/mmc/sd.h>
+#include <linux/mmc/sdhci-tegra-notify.h>
 
 #include "core.h"
 #include "sd_ops.h"
@@ -164,6 +165,7 @@ int mmc_send_if_cond(struct mmc_host *host, u32 ocr)
 	int err;
 	static const u8 test_pattern = 0xAA;
 	u8 result_pattern;
+	unsigned long sd_exp_support = SD_EXP_AVAIL_MASK << SD_EXP_SHIFT;
 
 	/*
 	 * To support SD 2.0 cards, we must always invoke SD_SEND_IF_COND
@@ -172,6 +174,8 @@ int mmc_send_if_cond(struct mmc_host *host, u32 ocr)
 	 */
 	cmd.opcode = SD_SEND_IF_COND;
 	cmd.arg = ((ocr & 0xFF8000) != 0) << 8 | test_pattern;
+	if (host->caps2 & MMC_CAP2_SD_EXPRESS_SUPPORT)
+		cmd.arg |= sd_exp_support;
 	cmd.flags = MMC_RSP_SPI_R7 | MMC_RSP_R7 | MMC_CMD_BCR;
 
 	err = mmc_wait_for_cmd(host, &cmd, 0);
@@ -186,7 +190,26 @@ int mmc_send_if_cond(struct mmc_host *host, u32 ocr)
 	if (result_pattern != test_pattern)
 		return -EIO;
 
-	return 0;
+	if ((cmd.resp[0] & sd_exp_support) != 0U) {
+		/* Turn off SD card clock */
+		/* Set pinmux to PCIe mode */
+		/* Set notification to PCIe */
+		if (host->ops->pre_card_init) {
+			err = host->ops->pre_card_init(host, CARD_IS_SD_EXPRESS,
+				(cmd.resp[0] & sd_exp_support) >> SD_EXP_SHIFT);
+			if (err) {
+				/* Set pinmux back to SD mode */
+				/* Turn on card clock */
+				err = host->ops->pre_card_init(host, CARD_IS_SD_ONLY, 0U);
+				pr_info("%s: Card in SD ONLY MODE\n", mmc_hostname(host));
+			} else {
+				host->is_card_sd_express = true;
+				pr_info("%s: Card in SD EXPRESS MODE\n", mmc_hostname(host));
+			}
+		}
+	}
+
+	return err;
 }
 
 int mmc_send_relative_addr(struct mmc_host *host, unsigned int *rca)
