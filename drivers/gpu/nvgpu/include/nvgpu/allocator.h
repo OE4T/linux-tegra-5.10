@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -399,10 +399,33 @@ static inline void alloc_unlock(struct nvgpu_allocator *a)
  * @param[in] blk_size	Block size of buddy allocator.
  * @param[in] max_order	Maximum allowed buddy order.
  * @param[in] flags	Flags indicating buddy allocator conditions.
+ *			Valid flags are
+ *			- GPU_ALLOC_GVA_SPACE
+ *			- GPU_ALLOC_NO_ALLOC_PAGE
+ *			- GPU_ALLOC_4K_VIDMEM_PAGES
+ *			- GPU_ALLOC_FORCE_CONTIG
+ *			- GPU_ALLOC_NO_SCATTER_GATHER
  *
- * @return 0 in case of success, < 0 otherwise.
- * @retval -EINVAL in case of incorrect input value.
- * @retval -ENOMEM in case there is not enough memory for allocation.
+ * Construct a buddy allocator in \a na. A buddy allocator manages memory by
+ * splitting all memory into "buddies" - pairs of adjacent blocks of memory.
+ * Each buddy can be further subdivided into buddies, again, allowing for
+ * arbitrary power-of-two sized blocks to be allocated.
+ *
+ * Call nvgpu_buddy_check_argument_limits() to check the validity of the
+ *  inputs. This function verifies that the input arguments are valid for a
+ *  buddy allocator. Specifically the #block_size of a buddy allocator must be
+ *  a power-of-two, #max_order must be less than #GPU_BALLOC_MAX_ORDER,
+ *  and size must be non-zero.
+ * Call nvgpu_alloc_common_init() to initialize the basic operations like
+ *  allocation, free and query opearions for the respective allocator.
+ * Initialize some lists and locks to maintain the allocator objects.
+ *
+ * @return	0 in case of success, < 0 otherwise.
+ * @retval 	-EINVAL in case of incorrect input value.
+ * 		- When \a length is zero.
+ * 		- \a blk_size is not a power of two.
+ * 		- \a base and \a length is not aligned with \a blk_size.
+ * @retval 	-ENOMEM in case there is no enough memory for allocation.
  */
 int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 			       struct vm_gk20a *vm, const char *name,
@@ -419,10 +442,26 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
  * @param[in] length	Size of bitmap allocator.
  * @param[in] blk_size	Block size of bitmap allocator.
  * @param[in] flags	Flags indicating bitmap allocator conditions.
+ *			Valid flags are
+ *			- GPU_ALLOC_GVA_SPACE
+ *			- GPU_ALLOC_NO_ALLOC_PAGE
+ *			- GPU_ALLOC_FORCE_CONTIG
+ *			- GPU_ALLOC_NO_SCATTER_GATHER
  *
- * @return 0 in case of success, < 0 otherwise.
- * @retval -EINVAL in case of incorrect input value.
- * @retval -ENOMEM in case there is not enough memory for allocation.
+ * Call nvgpu_bitmap_check_argument_limits() to check the validity
+ *  of input paramemeters. This function verifies the input parameters
+ *  are valid specifically the #block_size of a bitmap allocator must be
+ *  a power-of-two, #base and #length must be aligned with #blk_size.
+ * Call nvgpu_alloc_common_init() to initialize the basic operations like
+ *  allocation, free and query opearions for the respective allocator.
+ * Initialize some lists and locks to maintain the allocator objects.
+ *
+ * @return	0 in case of success, < 0 otherwise.
+ * @retval	-EINVAL in case of incorrect input value.
+ * 		- When \a length is zero.
+ * 		- \a blk_size is not a power of two.
+ * 		- \a base and \a length is not aligned with \a blk_size.
+ * @retval	-ENOMEM in case there is no enough memory for allocation.
  */
 int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 				const char *name, u64 base, u64 length,
@@ -439,11 +478,16 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
  * @param[in] base	Base address of page allocator.
  * @param[in] length	Size of page allocator.
  * @param[in] blk_size	Block size of page allocator.
- * @param[in] flags	Flags indicating page allocator conditions.
- *
- * @return 0 in case of success, < 0 otherwise.
- * @retval -EINVAL in case of incorrect input value.
- * @retval -ENOMEM in case there is not enough memory for allocation.
+ * @param[in] flags	Flags indicating page allocator conditions. Valid
+ *			flags are
+ *			- GPU_ALLOC_GVA_SPACE
+ *			- GPU_ALLOC_NO_ALLOC_PAGE
+ * 			- GPU_ALLOC_4K_VIDMEM_PAGES
+ *			- GPU_ALLOC_FORCE_CONTIG
+ *			- GPU_ALLOC_NO_SCATTER_GATHER
+ * @return	0 in case of success, < 0 otherwise.
+ * @retval	-EINVAL in case of incorrect input value.
+ * @retval	-ENOMEM in case there is no enough memory for allocation.
  */
 int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 			      const char *name, u64 base, u64 length,
@@ -464,14 +508,52 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
  * @param[in] max_order		Max order of resource slices that can be
  *				allocated. Applicable to buddy allocator only.
  * @param[in] flags		Flags indicating additional conditions.
- * @param[in] alloc_type	Allocator type.
-
- * Returns 0 in case of success, < 0 otherwise.
+ *				Valid flags are
+ *				- GPU_ALLOC_GVA_SPACE
+ *				- GPU_ALLOC_NO_ALLOC_PAGE
+ *				- GPU_ALLOC_4K_VIDMEM_PAGES
+ *				- GPU_ALLOC_FORCE_CONTIG
+ *				- GPU_ALLOC_NO_SCATTER_GATHER
+ * @param[in] alloc_type	Allocator type. Valid types are
+ *				- BUDDY_ALLOCATOR
+ *				- PAGE_ALLOCATOR
+ *				- BITMAP_ALLOCATOR
+ *
+ * Call *allocator_init() to initialize the respective allocators.
+ *
+ * @return	0 in case of success, < 0 otherwise.
+ * @retval	-EINVAL in allocator type is not valid.
+ * @retval	-EINVAL in case of incorrect input value.
+ * 		- When \a length is zero.
+ * 		- \a blk_size is not a power of two.
+ * 		- \a base and \a length is not aligned with \a blk_size.
+ * @retval	-ENOMEM in case there is no enough memory for allocation.
  */
 int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 			      struct vm_gk20a *vm, const char *name,
 			      u64 base, u64 length, u64 blk_size, u64 max_order,
 			      u64 flags, enum nvgpu_allocator_type alloc_type);
+
+#ifdef CONFIG_NVGPU_FENCE
+/**
+ * @brief Initialize lockless allocator.
+ *
+ * @param[in] g		Pointer to GPU structure.
+ * @param[in] na	Pointer to allocator structure.
+ * @param[in] name	Name of lockless allocator.
+ * @param[in] base	Base address of lockless allocator.
+ * @param[in] length	Size of lockless allocator.
+ * @param[in] blk_size	Block size of lockless allocator.
+ * @param[in] flags	Flags indicating lockless allocator conditions.
+ *
+ * @return 0 in case of success, < 0 otherwise.
+ * @retval -EINVAL in case of incorrect input value.
+ * @retval -ENOMEM in case there is no enough memory for allocation.
+ */
+int nvgpu_lockless_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
+				  const char *name, u64 base, u64 length,
+				  u64 blk_size, u64 flags);
+#endif
 
 /**
  * Largest block of resources that fits in address space.
@@ -484,7 +566,16 @@ int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
  * @param[in] a		Pointer to nvgpu allocator.
  * @param[in] len	Size of allocation.
  *
- * @return Address of allocation in case of success, 0 otherwise.
+ * Invoke the underlying allocator's implementation of the alloc
+ * operation.
+ *
+ * @return	Address of allocation in case of success,
+ * 		0 otherwise.
+ * @retval	0 For the failure and reasons can be one of the following
+ * 		- input parameters are not valid.
+ * 		- There is no free space available in the allocator.
+ * 		- zalloc failure for no memory conditions.
+ *
  */
 u64  nvgpu_alloc(struct nvgpu_allocator *a, u64 len);
 
@@ -495,7 +586,14 @@ u64  nvgpu_alloc(struct nvgpu_allocator *a, u64 len);
  * @param[in] len	Size of allocation.
  * @param[in] page_size	Page size of resource.
  *
- * @return Address of allocation in case of success, 0 otherwise.
+ *
+ * Invoke the underlying allocator's implementation of the alloc_pte
+ * operation.
+ *
+ * @return 	Address of allocation in case of success, 0 otherwise.
+ * @retval	0 For the failure and reasons can be one of the following
+ * 		- input parameters are not valid.
+ * 		- There is no free space available in the allocator.
  */
 u64  nvgpu_alloc_pte(struct nvgpu_allocator *a, u64 len, u32 page_size);
 
@@ -504,6 +602,11 @@ u64  nvgpu_alloc_pte(struct nvgpu_allocator *a, u64 len, u32 page_size);
  *
  * @param[in] a		Pointer to nvgpu allocator.
  * @param[in] addr	Base address of allocation.
+ *
+ * Invoke the underlying allocator's implementation of the free
+ * operation.
+ *
+ * @return	None
  */
 void nvgpu_free(struct nvgpu_allocator *a, u64 addr);
 
@@ -515,7 +618,13 @@ void nvgpu_free(struct nvgpu_allocator *a, u64 addr);
  * @param[in] len	Size of allocation.
  * @param[in] page_size	Page size of resource.
  *
- * @return Address of allocation in case of success, 0 otherwise.
+ * Invoke the underlying allocator's implementation of the alloc_fixed
+ * operation.
+ *
+ * @return	Address of allocation in case of success.
+ * @retval	0 For failure, in any of the reasons below
+ *		 invalid inputs.
+ *		 space unavailability to satisfy the requirement.
  */
 u64  nvgpu_alloc_fixed(struct nvgpu_allocator *a, u64 base, u64 len,
 		       u32 page_size);
@@ -526,6 +635,11 @@ u64  nvgpu_alloc_fixed(struct nvgpu_allocator *a, u64 base, u64 len,
  * @param[in] a		Pointer to nvgpu allocator.
  * @param[in] base	Start address of resource.
  * @param[in] len	Size of allocation.
+ *
+ * Invoke the underlying allocator's implementation of the free_fixed
+ * operation.
+ *
+ * @return	None.
  */
 void nvgpu_free_fixed(struct nvgpu_allocator *a, u64 base, u64 len);
 
@@ -535,7 +649,15 @@ void nvgpu_free_fixed(struct nvgpu_allocator *a, u64 base, u64 len);
  * @param[in] a		Pointer to nvgpu allocator.
  * @param[in] co	Pointer to carveout structure.
  *
- * @return 0 in case of success, < 0 in case of failure.
+ * Invoke the underlying allocator's implementation of the
+ * alloc_reserve_carveout operation.
+ *
+ * @return	0 in case of success, < 0 in case of failure.
+ * @retval	-EINVAL For invalid input parameters.
+ * @retval	-EBUSY For the unavailability of the base of the
+ * 		the carveout.
+ * @retval	-ENOMEM For unavailability of the object.
+ *
  */
 int  nvgpu_alloc_reserve_carveout(struct nvgpu_allocator *a,
 				  struct nvgpu_alloc_carveout *co);
@@ -545,6 +667,11 @@ int  nvgpu_alloc_reserve_carveout(struct nvgpu_allocator *a,
  *
  * @param a		Pointer to nvgpu allocator.
  * @param co		Pointer to carveout structure.
+ *
+ * Invoke the underlying allocator's implementation of the release_carveout
+ * operation.
+ *
+ * @return	None.
  */
 void nvgpu_alloc_release_carveout(struct nvgpu_allocator *a,
 				  struct nvgpu_alloc_carveout *co);
@@ -554,7 +681,9 @@ void nvgpu_alloc_release_carveout(struct nvgpu_allocator *a,
  *
  * @param[in] a		Pointer to nvgpu allocator.
  *
- * @return Allocator start address.
+ * Invoke the underlying allocator's implementation of the base operation.
+ *
+ * @return	Allocator start address.
  */
 u64  nvgpu_alloc_base(struct nvgpu_allocator *a);
 
@@ -563,7 +692,10 @@ u64  nvgpu_alloc_base(struct nvgpu_allocator *a);
  *
  * @param a		Pointer to nvgpu allocator.
  *
- * @return Allocator length address.
+ * Invoke the underlying allocator's implementation of the length
+ * operation.
+ *
+ * @return	Allocator length.
  */
 u64  nvgpu_alloc_length(struct nvgpu_allocator *a);
 
@@ -572,7 +704,9 @@ u64  nvgpu_alloc_length(struct nvgpu_allocator *a);
  *
  * @param[in] a		Pointer to nvgpu allocator.
  *
- * @return Allocator end address.
+ * Invoke the underlying allocator's implementation of the end operation.
+ *
+ * @return	Allocator end address.
  */
 u64  nvgpu_alloc_end(struct nvgpu_allocator *a);
 
@@ -581,7 +715,8 @@ u64  nvgpu_alloc_end(struct nvgpu_allocator *a);
  *
  * @param a		Pointer to nvgpu allocator.
  *
- * @return True if allocator is initialized, false otherwise.
+ *
+ * @return	True if allocator is initialized, false otherwise.
  */
 bool nvgpu_alloc_initialized(struct nvgpu_allocator *a);
 
@@ -590,7 +725,11 @@ bool nvgpu_alloc_initialized(struct nvgpu_allocator *a);
  *
  * @param[in] a		Pointer to nvgpu allocator.
  *
- * @return Available allocator space.
+ * Invoke the underlying allocator's implementation of the space
+ * operation.
+ *
+ * @return	Available allocator space.
+ *
  */
 u64  nvgpu_alloc_space(struct nvgpu_allocator *a);
 
@@ -598,6 +737,12 @@ u64  nvgpu_alloc_space(struct nvgpu_allocator *a);
  * @brief Interface to destroy allocator.
  *
  * @param[in] a		Pointer to nvgpu allocator.
+ *
+ * Invoke the underlying allocator's implementation of the destroy
+ * operation.
+ *
+ * @return	None.
+ *
  */
 void nvgpu_alloc_destroy(struct nvgpu_allocator *a);
 
@@ -619,7 +764,7 @@ void nvgpu_alloc_print_stats(struct nvgpu_allocator *a,
  *
  * @param[in] a		Pointer to nvgpu allocator.
  *
- * @return GPU pointer.
+ * @return	GPU pointer.
  */
 static inline struct gk20a *nvgpu_alloc_to_gpu(struct nvgpu_allocator *a)
 {
@@ -656,7 +801,9 @@ void nvgpu_fini_alloc_debug(struct nvgpu_allocator *a);
  * @param[in] dbg	Debug flag.
  * @param[in] ops	Pointer to allocator operations.
  *
- * @return 0 in case of success, < 0 in case of failure.
+ * @return	0 in case of success, < 0 in case of failure.
+ * @retval	-EINVAL For any of the inputs is NULL.
+ *
  */
 int  nvgpu_alloc_common_init(struct nvgpu_allocator *a, struct gk20a *g,
 			     const char *name, void *priv, bool dbg,

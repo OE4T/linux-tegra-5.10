@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -287,6 +287,10 @@ cleanup:
 
 /*
  * Clean up and destroy the passed allocator.
+ * Walk the allocator for any pending allocations.
+ * Free up all pending allocations.
+ * Free any memory allocated a allocator init time.
+ * Destroy the lock and bzero the allocator completely.
  */
 static void nvgpu_buddy_allocator_destroy(struct nvgpu_allocator *na)
 {
@@ -903,6 +907,14 @@ static void balloc_do_free_fixed(struct nvgpu_buddy_allocator *a,
 
 /*
  * Allocate memory from the passed allocator.
+ * Acquire the allocator lock.
+ * Compute the order by calling balloc_get_order().
+ * Compute the pte size supported for this allocation by calling
+ *  nvgpu_balloc_page_size_to_pte_size().
+ * If we could not satisfy the required size buddy then call
+ *  balloc_split_buddy() to get the requiredsize by dividing the large size buddy.
+ * Free the remaining buddy to the respective list.
+ * Release the alloc_lock.
  */
 static u64 nvgpu_buddy_balloc_pte(struct nvgpu_allocator *na, u64 len,
 				  u32 page_size)
@@ -959,7 +971,15 @@ static u64 nvgpu_buddy_balloc(struct nvgpu_allocator *na, u64 len)
 }
 
 /*
- * Requires @na to be locked.
+ * Check the input parameter validity.
+ * Acquire the alloc_lock.
+ * Compute the order with respective to the input size.
+ * Compute the pte_size for the given page size and return error for
+ *  invalid pte size.
+ * Call balloc_is_range_free() to get the free range with the address given.
+ * Call balloc_make_fixed_buddy() to generate the list of buddies.
+ * Make the book keeping of allocated objects to the respective lists.
+ * Release the alloc_lock.
  */
 static u64 nvgpu_balloc_fixed_buddy_locked(struct nvgpu_allocator *na,
 					   u64 base, u64 len, u32 page_size)
@@ -1144,6 +1164,12 @@ static bool nvgpu_buddy_reserve_is_possible(struct nvgpu_buddy_allocator *a,
 /*
  * Carveouts can only be reserved before any regular allocations have been
  * made.
+ * - Check the validity of input paramemters.
+ * - Acquire the allocator lock.
+ * - Call nvgpu_balloc_fixed_buddy_locked() to reserve the object
+ *   with \a co.base and \a co.length.
+ * - Add the allocated object to the book keeping list.
+ * - Release the allocator lock.
  */
 static int nvgpu_buddy_reserve_co(struct nvgpu_allocator *na,
 				  struct nvgpu_alloc_carveout *co)
@@ -1189,6 +1215,15 @@ done:
 
 /*
  * Carveouts can be release at any time.
+ * - Acquire the allocator lock.
+ * - Remove the carve out from the allocator list.
+ * - Call nvgpu_buddy_bfree_locked() to free the carve out
+ *   - nvgpu_buddy_bfree_locked() will first check the address is fixed
+ *     or not by calling balloc_free_fixed().
+ *   - If the address is fixed then free it by calling balloc_do_free_fixed().
+ *   - Else free it through balloc_free_buddy().
+ *   - Recompute the size of the allocator and coalesce the objects.
+ * - Release the lock.
  */
 static void nvgpu_buddy_release_co(struct nvgpu_allocator *na,
 				   struct nvgpu_alloc_carveout *co)
@@ -1230,7 +1265,12 @@ static u64 nvgpu_buddy_alloc_end(struct nvgpu_allocator *a)
 
 	return ba->end;
 }
-
+/*
+ * - Acquire the allocator lock.
+ * - Check the availability of space between start and end of
+ *   the allocator.
+ * - Release the allocator lock.
+ */
 static u64 nvgpu_buddy_alloc_space(struct nvgpu_allocator *a)
 {
 	struct nvgpu_buddy_allocator *ba = buddy_allocator(a);

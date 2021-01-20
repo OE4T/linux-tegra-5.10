@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -87,7 +87,18 @@ bool nvgpu_iommuable(struct gk20a *g);
  * Allocate memory suitable for doing DMA. Store the allocation info in #mem.
  * Returns 0 on success and a suitable error code when there's an error. This
  * memory can be either placed in VIDMEM or SYSMEM, which ever is more
- * convenient for the driver.
+ * convenient for the driver. The final memory allocation is done by OS specific
+ * allocation routine.
+ *
+ * @note As linux is a kernel space driver, it will use dma_alloc_attr() linux
+ *       API to allocate dmaable memory.
+ *       Qnx will use memory service module to acheive the same.
+ * @note the parameter flags is always zero for nvgpu_dma_alloc_flags().
+ *
+ * @return	0 For success, < 0 for failure.
+ * @retval	-ENOMEM For failure in handle creation or mapping operation.
+ * @retval	-EINVAL For failure in handle query.
+ *
  */
 int nvgpu_dma_alloc(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
 
@@ -96,6 +107,9 @@ int nvgpu_dma_alloc(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  *
  * @param g     - The GPU.
  * @param flags - Flags modifying the operation of the DMA allocation.
+ *                The following flags are accepted:
+ *                - %NVGPU_DMA_NO_KERNEL_MAPPING
+ *                - %NVGPU_DMA_READ_ONLY
  * @param size  - Size of the allocation in bytes.
  * @param mem   - Struct for storing the allocation information.
  *
@@ -104,10 +118,9 @@ int nvgpu_dma_alloc(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  * memory can be either placed in VIDMEM or SYSMEM, which ever is more
  * convenient for the driver.
  *
- * The following flags are accepted:
- *
- *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_READ_ONLY
+ * @return	0 For success, < 0 for failure.
+ * @retval	-ENOMEM For failure in handle creation or mapping operation.
+ * @retval	-EINVAL For failure in handle query.
  */
 int nvgpu_dma_alloc_flags(struct gk20a *g, unsigned long flags, size_t size,
 		struct nvgpu_mem *mem);
@@ -122,6 +135,10 @@ int nvgpu_dma_alloc_flags(struct gk20a *g, unsigned long flags, size_t size,
  * Allocate memory suitable for doing DMA. Store the allocation info in #mem.
  * Returns 0 on success and a suitable error code when there's an error. This
  * allocates memory specifically in SYSMEM.
+ *
+ * @return	0 For success, < 0 for failure.
+ * @retval	-ENOMEM For failure in handle creation or mapping operation.
+ * @retval	-EINVAL For failure in handle query.
  */
 int nvgpu_dma_alloc_sys(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
 
@@ -130,6 +147,9 @@ int nvgpu_dma_alloc_sys(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  *
  * @param g     - The GPU.
  * @param flags - Flags modifying the operation of the DMA allocation.
+ *                The following flags are accepted:
+ *                - %NVGPU_DMA_NO_KERNEL_MAPPING
+ *                - %NVGPU_DMA_READ_ONLY
  * @param size  - Size of the allocation in bytes.
  * @param mem   - Struct for storing the allocation information.
  *
@@ -137,10 +157,9 @@ int nvgpu_dma_alloc_sys(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  * Returns 0 on success and a suitable error code when there's an error. This
  * allocates memory specifically in SYSMEM.
  *
- * The following flags are accepted:
- *
- *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_READ_ONLY
+ * @return	0 For success, < 0 for failure.
+ * @retval	-ENOMEM For failure in handle creation or mapping operation.
+ * @retval	-EINVAL For failure in handle query.
  */
 int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem);
@@ -164,16 +183,13 @@ int nvgpu_dma_alloc_vid(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  *
  * @param g     - The GPU.
  * @param flags - Flags modifying the operation of the DMA allocation.
+ *                - %NVGPU_DMA_NO_KERNEL_MAPPING is the only accepted flag.
  * @param size  - Size of the allocation in bytes.
  * @param mem   - Struct for storing the allocation information.
  *
  * Allocate memory suitable for doing DMA. Store the allocation info in #mem.
  * Returns 0 on success and a suitable error code when there's an error. This
  * allocates memory specifically in VIDMEM.
- *
- * Only the following flags are accepted:
- *
- *   %NVGPU_DMA_NO_KERNEL_MAPPING
  *
  */
 int nvgpu_dma_alloc_flags_vid(struct gk20a *g, unsigned long flags,
@@ -202,6 +218,8 @@ int nvgpu_dma_alloc_vid_at(struct gk20a *g,
  *
  * @param g     - The GPU.
  * @param flags - Flags modifying the operation of the DMA allocation.
+ *                Only the following flags are accepted:
+ *                - %NVGPU_DMA_NO_KERNEL_MAPPING
  * @param size  - Size of the allocation in bytes.
  * @param mem   - Struct for storing the allocation information.
  * @param at    - A specific location to attempt to allocate memory from or 0 if
@@ -211,9 +229,6 @@ int nvgpu_dma_alloc_vid_at(struct gk20a *g,
  * Returns 0 on success and a suitable error code when there's an error. This
  * allocates memory specifically in VIDMEM.
  *
- * Only the following flags are accepted:
- *
- *   %NVGPU_DMA_NO_KERNEL_MAPPING
  */
 int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem, u64 at);
@@ -234,6 +249,8 @@ int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
  *   nvgpu_dma_alloc_vid()
  *   nvgpu_dma_alloc_flags_vid()
  *   nvgpu_dma_alloc_flags_vid_at()
+ *
+ * @return	None
  */
 void nvgpu_dma_free(struct gk20a *g, struct nvgpu_mem *mem);
 
@@ -253,6 +270,11 @@ void nvgpu_dma_free(struct gk20a *g, struct nvgpu_mem *mem);
  * cannot use nvgpu_gmmu_map() on said buffer - it will overwrite the necessary
  * information for the DMA unmap routines to actually unmap the buffer. You
  * will either leak mappings or see GMMU faults.
+ *
+ * @return	0 For success, <0 for failure.
+ * @retval	-ENOMEM For failure in handle creation or mapping operation.
+ * @retval	-EINVAL For failure in handle query.
+ * @retval	-ENOMEM For failure in gpu mapping.
  */
 int nvgpu_dma_alloc_map(struct vm_gk20a *vm, size_t size,
 		struct nvgpu_mem *mem);
@@ -262,6 +284,9 @@ int nvgpu_dma_alloc_map(struct vm_gk20a *vm, size_t size,
  *
  * @param vm    - VM context for GMMU mapping.
  * @param flags - Flags modifying the operation of the DMA allocation.
+ *                Accepted flags are
+ *                - %NVGPU_DMA_NO_KERNEL_MAPPING
+ *                - %NVGPU_DMA_READ_ONLY
  * @param size  - Size of the allocation in bytes.
  * @param mem   - Struct for storing the allocation information.
  *
@@ -270,11 +295,10 @@ int nvgpu_dma_alloc_map(struct vm_gk20a *vm, size_t size,
  * either placed in VIDMEM or SYSMEM, which ever is more convenient for the
  * driver.
  *
- * This version passes #flags on to the underlying DMA allocation. The accepted
- * flags are:
- *
- *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_READ_ONLY
+ * @return	0 For success, <0 for failure.
+ * @retval	-ENOMEM For failure in handle creation or mapping operation.
+ * @retval	-EINVAL For failure in handle query.
+ * @retval	-ENOMEM For failure in gpu mapping.
  */
 int nvgpu_dma_alloc_map_flags(struct vm_gk20a *vm, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem);
@@ -288,6 +312,11 @@ int nvgpu_dma_alloc_map_flags(struct vm_gk20a *vm, unsigned long flags,
  *
  * Allocate memory suitable for doing DMA and map that memory into the GMMU.
  * This memory will be placed in SYSMEM.
+ *
+ * @return	0 For success, <0 for failure.
+ * @retval	-ENOMEM For failure in handle creation or mapping operation.
+ * @retval	-EINVAL For failure in handle query.
+ * @retval	-ENOMEM For failure in gpu mapping.
  */
 int nvgpu_dma_alloc_map_sys(struct vm_gk20a *vm, size_t size,
 		struct nvgpu_mem *mem);
@@ -297,17 +326,19 @@ int nvgpu_dma_alloc_map_sys(struct vm_gk20a *vm, size_t size,
  *
  * @param vm    - VM context for GMMU mapping.
  * @param flags - Flags modifying the operation of the DMA allocation.
+ *                Accepted flags are:
+ *                - %NVGPU_DMA_NO_KERNEL_MAPPING
+ *                - %NVGPU_DMA_READ_ONLY
  * @param size  - Size of the allocation in bytes.
  * @param mem   - Struct for storing the allocation information.
  *
  * Allocate memory suitable for doing DMA and map that memory into the GMMU.
  * This memory will be placed in SYSMEM.
  *
- * This version passes #flags on to the underlying DMA allocation. The accepted
- * flags are:
- *
- *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_READ_ONLY
+ * @return	0 For success, <0 for failure.
+ * @retval	-ENOMEM For failure in handle creation or mapping operation.
+ * @retval	-EINVAL For failure in handle query.
+ * @retval	-ENOMEM For failure in gpu mapping.
  */
 int nvgpu_dma_alloc_map_flags_sys(struct vm_gk20a *vm, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem);
@@ -331,24 +362,22 @@ int nvgpu_dma_alloc_map_vid(struct vm_gk20a *vm, size_t size,
  *
  * @param vm    - VM context for GMMU mapping.
  * @param flags - Flags modifying the operation of the DMA allocation.
+ *                Accepted flags are:
+ *                - %NVGPU_DMA_NO_KERNEL_MAPPING
+ *                - %NVGPU_DMA_READ_ONLY
  * @param size  - Size of the allocation in bytes.
  * @param mem   - Struct for storing the allocation information.
  *
  * Allocate memory suitable for doing DMA and map that memory into the GMMU.
  * This memory will be placed in VIDMEM.
  *
- * This version passes #flags on to the underlying DMA allocation. The accepted
- * flags are:
- *
- *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_READ_ONLY
  */
 int nvgpu_dma_alloc_map_flags_vid(struct vm_gk20a *vm, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem);
 #endif /* CONFIG_NVGPU_DGPU */
 
 /**
- * nvgpu_dma_unmap_free - Free a DMA allocation
+ * nvgpu_dma_unmap_free - Free a DMA allocation and unmap the GPUVA.
  *
  * @param g   - The GPU.
  * @param mem - An allocation to free.
@@ -361,6 +390,9 @@ int nvgpu_dma_alloc_map_flags_vid(struct vm_gk20a *vm, unsigned long flags,
  *   nvgpu_dma_alloc_map_flags_sys()
  *   nvgpu_dma_alloc_map_vid()
  *   nvgpu_dma_alloc_map_flags_vid()
+ *
+ * @return	None
+ *
  */
 void nvgpu_dma_unmap_free(struct vm_gk20a *vm, struct nvgpu_mem *mem);
 

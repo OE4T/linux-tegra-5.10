@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -206,6 +206,14 @@ static int nvgpu_bitmap_store_alloc(struct nvgpu_bitmap_allocator *a,
 /*
  * @len is in bytes. This routine will figure out the right number of bits to
  * actually allocate. The return is the address in bytes as well.
+ *
+ * This is a find-first-fit allocator.
+ * Check the input parameter validity.
+ * Acquire the alloc_lock.
+ * Searche a bitmap for the first space that is large enough to satisfy the
+ *  requested size of bits by walking the next available free blocks by
+ *  bitmap_find_next_zero_area().
+ * Release the alloc_lock.
  */
 static u64 nvgpu_bitmap_balloc(struct nvgpu_allocator *na, u64 len)
 {
