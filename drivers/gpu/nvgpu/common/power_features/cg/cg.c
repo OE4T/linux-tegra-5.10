@@ -450,7 +450,7 @@ void nvgpu_cg_elcg_set_elcg_enabled(struct gk20a *g, bool enable)
 
 	g->ops.gr.init.wait_initialized(g);
 
-	nvgpu_mutex_release(&g->cg_pg_lock);
+	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (enable) {
 		if (!g->elcg_enabled) {
 			g->elcg_enabled = true;
