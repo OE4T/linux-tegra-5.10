@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -813,7 +813,7 @@ nve32_t osi_common_isr(struct osi_core_priv_data *const osi_core);
  *  - Takes care of  setting HD or FD mode accordingly as per the MAC IP
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] mode: Operating mode.
+ * @param[in] mode: Operating mode. (OSI_FULL_DUPLEX/OSI_HALF_DUPLEX)
  *
  * @pre MAC should be init and started. see osi_start_mac()
  *
@@ -921,8 +921,9 @@ nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core);
  *  - Configure MAC to enable/disable forwarding of error packets.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] qinx: Q index
- * @param[in] fw_err: Enable or disable forwarding of error packets
+ * @param[in] qinx: Q index. Max OSI_EQOS_MAX_NUM_QUEUES.
+ * @param[in] fw_err: Enable or disable forwarding of error packets.
+ *            0: Disable 1: Enable
  *
  * @pre MAC should be init and started. see osi_start_mac()
  *
@@ -957,7 +958,7 @@ nve32_t osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
  *  - Invokes EQOS config RX checksum offload routine.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] enable: Enable/disable flag.
+ * @param[in] enable: Enable/disable flag. 0: Disable 1: Enable
  *
  * @pre MAC should be init and started. see osi_start_mac()
  *
@@ -1359,7 +1360,8 @@ void *eqos_get_core_safety_config(void);
  * @param[in] type: L3 filter (ipv4(0) or ipv6(1))
  *            or L4 filter (tcp(0) or udp(1))
  * @param[in] dma_routing_enable: filter based dma routing enable(1)
- * @param[in] dma_chan: dma channel for routing based on filter
+ * @param[in] dma_chan: dma channel for routing based on filter.
+ *            Max OSI_EQOS_MAX_NUM_CHANS.
  * @param[in] is_l4_filter: API call for L3 filter(0) or L4 filter(1)
  *
  * @pre

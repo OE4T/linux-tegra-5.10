@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -557,7 +557,7 @@ struct osi_dma_priv_data {
  *  - Disables Tx interrupts at wrapper level.
  *
  * @param[in] osi_dma: OSI DMA private data.
- * @param[in] chan: DMA Tx channel number.
+ * @param[in] chan: DMA Tx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -596,7 +596,7 @@ nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *  - Enables Tx interrupts at wrapper level.
  *
  * @param[in] osi_dma: OSI DMA private data.
- * @param[in] chan: DMA Tx channel number.
+ * @param[in] chan: DMA Tx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -635,7 +635,7 @@ nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *  - Disables Rx interrupts at wrapper level.
  *
  * @param[in] osi_dma: OSI DMA private data.
- * @param[in] chan: DMA rx channel number.
+ * @param[in] chan: DMA Rx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -674,7 +674,7 @@ nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *  - Enables Rx interrupts at wrapper level.
  *
  * @param[in] osi_dma: OSI DMA private data.
- * @param[in] chan: DMA rx channel number.
+ * @param[in] chan: DMA Rx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -767,7 +767,7 @@ nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
  *  - Start the DMA for specific MAC
  *
  * @param[in] osi_dma: OSI DMA private data.
- * @param[in] chan: DMA Tx/Rx channel number
+ * @param[in] chan: DMA Tx/Rx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -803,7 +803,7 @@ nve32_t osi_start_dma(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *  - Stop the DMA for specific MAC
  *
  * @param[in] osi_dma: OSI DMA private data.
- * @param[in] chan: DMA Tx/Rx channel number
+ * @param[in] chan: DMA Tx/Rx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -871,7 +871,7 @@ nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
  *
  * @param[in] osi_dma: OSI DMA private data structure.
  * @param[in, out] rx_ring: HW ring corresponding to Rx DMA channel.
- * @param[in] chan: Rx DMA channel number
+ * @param[in] chan: Rx DMA channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -943,7 +943,7 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
  *    Tx ring base address in Tx DMA registers.
  *
  * @param[in, out] osi_dma: OSI DMA private data.
- * @param[in] chan: DMA Tx channel number.
+ * @param[in] chan: DMA Tx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  *
  * @pre
  *  - MAC needs to be out of reset and proper clocks need to be configured.
@@ -994,6 +994,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
  *
  * @param[in, out] osi_dma: OSI dma private data structure.
  * @param[in] chan: Channel number on which Tx complete need to be done.
+ *            Max OSI_EQOS_MAX_NUM_CHANS.
  * @param[in] budget: Threshold for reading the packets at a time.
  *
  * @pre
@@ -1039,7 +1040,7 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  *      handover to DMA.
  *
  * @param[in, out] osi_dma: OSI DMA private data structure.
- * @param[in] chan: Rx DMA channel number
+ * @param[in] chan: Rx DMA channel number. Max OSI_EQOS_MAX_NUM_CHANS.
  * @param[in] budget: Threshold for reading the packets at a time.
  * @param[out] more_data_avail: Pointer to more data available flag. OSI fills
  *         this flag if more rx packets available to read(1) or not(0).
