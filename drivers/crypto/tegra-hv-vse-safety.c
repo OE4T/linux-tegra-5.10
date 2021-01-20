@@ -37,6 +37,7 @@
 #include <crypto/scatterwalk.h>
 #include <crypto/algapi.h>
 #include <crypto/skcipher.h>
+#include <crypto/internal/rng.h>
 #include <crypto/internal/hash.h>
 #include <crypto/internal/skcipher.h>
 #include <crypto/sha.h>
@@ -68,6 +69,7 @@
 #define TEGRA_VIRTUAL_SE_CMD_AES_DECRYPT			0x22
 #define TEGRA_VIRTUAL_SE_CMD_AES_CMAC				0x23
 #define TEGRA_VIRTUAL_SE_CMD_AES_CMAC_GEN_SUBKEY		0x24
+#define VIRTUAL_SE_CMD_AES_RNG_DBRG				0x25
 
 #define TEGRA_VIRTUAL_SE_CMD_SHA_HASH				16
 #define TEGRA_VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT		(512 / 8)
@@ -98,6 +100,14 @@
 
 #define TEGRA_VIRTUAL_SE_AES_CMAC_CONFIG_NONLASTBLK		0x00
 #define TEGRA_VIRTUAL_SE_AES_CMAC_CONFIG_LASTBLK		0x01
+
+#define TEGRA_VIRTUAL_SE_RNG_IV_SIZE	16
+#define TEGRA_VIRTUAL_SE_RNG_DT_SIZE	16
+#define TEGRA_VIRTUAL_SE_RNG_KEY_SIZE	16
+#define TEGRA_VIRTUAL_SE_RNG_SEED_SIZE (TEGRA_VIRTUAL_SE_RNG_IV_SIZE + \
+					TEGRA_VIRTUAL_SE_RNG_KEY_SIZE + \
+					TEGRA_VIRTUAL_SE_RNG_DT_SIZE)
+
 
 static struct task_struct *tegra_vse_task;
 static bool vse_thread_start;
@@ -207,6 +217,9 @@ union tegra_virtual_se_aes_args {
 		struct tegra_virtual_se_addr src_addr;
 		u32 key_length;
 	} op_cmac_s;
+	struct aes_rng {
+		struct tegra_virtual_se_addr dst_addr;
+	} op_rng;
 } __attribute__((__packed__));
 
 union tegra_virtual_se_sha_args {
@@ -351,6 +364,16 @@ struct tegra_virtual_se_req_context {
 	bool is_first;			/* Represents first block */
 	bool req_context_initialized;	/* Mark initialization status */
 	bool force_align;		/* Enforce buffer alignment */
+};
+
+/* Security Engine random number generator context */
+struct tegra_virtual_se_rng_context {
+	/* Security Engine device */
+	struct tegra_virtual_se_dev *se_dev;
+	/* RNG buffer pointer */
+	u32 *rng_buf;
+	/* RNG buffer dma address */
+	dma_addr_t rng_buf_adr;
 };
 
 /* Security Engine AES CMAC context */
@@ -2412,7 +2435,163 @@ static int tegra_hv_vse_safety_aes_setkey(struct crypto_skcipher *tfm,
 	return 0;
 }
 
+static int tegra_hv_vse_safety_rng_drbg_init(struct crypto_tfm *tfm)
+{
+	struct tegra_virtual_se_rng_context *rng_ctx = crypto_tfm_ctx(tfm);
+	struct tegra_virtual_se_dev *se_dev = g_virtual_se_dev[VIRTUAL_SE_AES0];
+
+	/* Return error if engine is in suspended state */
+	if (atomic_read(&se_dev->se_suspended))
+		return -ENODEV;
+
+	rng_ctx->se_dev = se_dev;
+	rng_ctx->rng_buf =
+		dma_alloc_coherent(rng_ctx->se_dev->dev,
+				TEGRA_VIRTUAL_SE_RNG_DT_SIZE,
+		&rng_ctx->rng_buf_adr, GFP_KERNEL);
+	if (!rng_ctx->rng_buf) {
+		dev_err(se_dev->dev, "can not allocate rng dma buffer");
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+static void tegra_hv_vse_safety_rng_drbg_exit(struct crypto_tfm *tfm)
+{
+	struct tegra_virtual_se_rng_context *rng_ctx = crypto_tfm_ctx(tfm);
+
+	if (rng_ctx->rng_buf) {
+		dma_free_coherent(rng_ctx->se_dev->dev,
+			TEGRA_VIRTUAL_SE_RNG_DT_SIZE, rng_ctx->rng_buf,
+			rng_ctx->rng_buf_adr);
+	}
+	rng_ctx->se_dev = NULL;
+}
+
+static int tegra_hv_vse_safety_rng_drbg_get_random(struct crypto_rng *tfm,
+	const u8 *src, unsigned int slen, u8 *rdata, unsigned int dlen)
+{
+	struct tegra_virtual_se_rng_context *rng_ctx = crypto_rng_ctx(tfm);
+	struct tegra_virtual_se_dev *se_dev = rng_ctx->se_dev;
+	u8 *rdata_addr;
+	int err = 0, j, num_blocks, data_len = 0;
+	struct tegra_virtual_se_ivc_tx_msg_t *ivc_tx;
+	struct tegra_hv_ivc_cookie *pivck = g_ivck;
+	struct tegra_virtual_se_ivc_msg_t *ivc_req_msg;
+	struct tegra_virtual_se_ivc_hdr_t *ivc_hdr = NULL;
+	struct tegra_vse_priv_data *priv = NULL;
+	struct tegra_vse_tag *priv_data_ptr;
+	int time_left;
+
+	if (dlen == 0) {
+		return -EINVAL;
+	}
+
+	num_blocks = (dlen / TEGRA_VIRTUAL_SE_RNG_DT_SIZE);
+	data_len = (dlen % TEGRA_VIRTUAL_SE_RNG_DT_SIZE);
+	if (data_len == 0)
+		num_blocks = num_blocks - 1;
+
+	ivc_req_msg = devm_kzalloc(se_dev->dev,
+				sizeof(*ivc_req_msg),
+				GFP_KERNEL);
+	if (!ivc_req_msg)
+		return -ENOMEM;
+
+	priv = devm_kzalloc(se_dev->dev, sizeof(*priv), GFP_KERNEL);
+	if (!priv) {
+		dev_err(se_dev->dev, "Priv Data allocation failed\n");
+		devm_kfree(se_dev->dev, ivc_req_msg);
+		return 0;
+	}
+
+	ivc_tx = &ivc_req_msg->tx[0];
+	ivc_hdr = &ivc_req_msg->ivc_hdr;
+	ivc_hdr->num_reqs = 1;
+	ivc_hdr->header_magic[0] = 'N';
+	ivc_hdr->header_magic[1] = 'V';
+	ivc_hdr->header_magic[2] = 'D';
+	ivc_hdr->header_magic[3] = 'A';
+	ivc_hdr->engine = VIRTUAL_SE_AES0;
+	priv_data_ptr = (struct tegra_vse_tag *)ivc_hdr->tag;
+	priv_data_ptr->priv_data = (unsigned int *)priv;
+	priv->cmd = VIRTUAL_SE_PROCESS;
+	priv->se_dev = se_dev;
+
+	ivc_tx->cmd = VIRTUAL_SE_CMD_AES_RNG_DBRG;
+
+	for (j = 0; j <= num_blocks; j++) {
+		ivc_tx->aes.op_rng.dst_addr.lo = rng_ctx->rng_buf_adr & 0xFFFFFFFF;
+		ivc_tx->aes.op_rng.dst_addr.hi = (rng_ctx->rng_buf_adr >> 32)
+				| TEGRA_VIRTUAL_SE_RNG_DT_SIZE;
+		init_completion(&priv->alg_complete);
+		vse_thread_start = true;
+
+		mutex_lock(&se_dev->server_lock);
+		/* Return error if engine is in suspended state */
+		if (atomic_read(&se_dev->se_suspended)) {
+			mutex_unlock(&se_dev->server_lock);
+			dlen = 0;
+			goto exit;
+		}
+		err = tegra_hv_vse_safety_send_ivc(se_dev, pivck, ivc_req_msg,
+				sizeof(struct tegra_virtual_se_ivc_msg_t));
+		if (err) {
+			mutex_unlock(&se_dev->server_lock);
+			dlen = 0;
+			goto exit;
+		}
+
+		time_left = wait_for_completion_timeout(&priv->alg_complete,
+				TEGRA_HV_VSE_TIMEOUT);
+		mutex_unlock(&se_dev->server_lock);
+		if (time_left == 0) {
+			dev_err(se_dev->dev, "%s timeout\n", __func__);
+			dlen = 0;
+			goto exit;
+		}
+
+		rdata_addr =
+			(rdata + (j * TEGRA_VIRTUAL_SE_RNG_DT_SIZE));
+		if (data_len && num_blocks == j) {
+			memcpy(rdata_addr, rng_ctx->rng_buf, data_len);
+		} else {
+			memcpy(rdata_addr,
+				rng_ctx->rng_buf,
+				TEGRA_VIRTUAL_SE_RNG_DT_SIZE);
+		}
+	}
+exit:
+	devm_kfree(se_dev->dev, priv);
+	devm_kfree(se_dev->dev, ivc_req_msg);
+	return dlen;
+}
+
+static int tegra_hv_vse_safety_rng_drbg_reset(struct crypto_rng *tfm,
+	const u8 *seed, unsigned int slen)
+{
+	return 0;
+}
+
+
 #define HV_SAFETY_AES_CTX_SIZE sizeof(struct tegra_virtual_se_aes_context)
+
+static struct rng_alg rng_alg = {
+	.generate = tegra_hv_vse_safety_rng_drbg_get_random,
+	.seed = tegra_hv_vse_safety_rng_drbg_reset,
+	.seedsize = TEGRA_VIRTUAL_SE_RNG_SEED_SIZE,
+	.base = {
+		.cra_name = "rng_drbg",
+		.cra_driver_name = "rng_drbg-aes-tegra",
+		.cra_priority = 100,
+		.cra_flags = CRYPTO_ALG_TYPE_RNG,
+		.cra_ctxsize = sizeof(struct tegra_virtual_se_rng_context),
+		.cra_module = THIS_MODULE,
+		.cra_init = tegra_hv_vse_safety_rng_drbg_init,
+		.cra_exit = tegra_hv_vse_safety_rng_drbg_exit,
+	}
+};
 
 static struct skcipher_alg aes_algs[] = {
 	{
@@ -2926,6 +3105,14 @@ static int tegra_hv_vse_safety_probe(struct platform_device *pdev)
 				"cmac alg register failed. Err %d\n", err);
 			goto exit;
 		}
+
+		err = crypto_register_rng(&rng_alg);
+		if (err) {
+			dev_err(&pdev->dev,
+				"rng alg register failed. Err %d\n", err);
+			goto exit;
+		}
+
 	}
 
 	if (engine_id == VIRTUAL_SE_AES1) {
