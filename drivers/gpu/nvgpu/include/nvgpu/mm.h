@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -563,6 +563,7 @@ int nvgpu_init_mm_support(struct gk20a *g);
  *
  * @return 0 on success and a suitable error code when there's an error. This
  * allocates memory specifically in SYSMEM or VIDMEM.
+ * @retval -ENOMEM in case of sufficient memory is not available.
  */
 int nvgpu_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block);
 
@@ -577,6 +578,7 @@ int nvgpu_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block);
  * - #nvgpu_mem can either point to SYSMEM or VIDMEM.
  *
  * @return valid physical address in case of valid #inst_block.
+ * @retval 0 in case of invalid physical address.
  */
 u64 nvgpu_inst_block_addr(struct gk20a *g, struct nvgpu_mem *inst_block);
 
@@ -591,6 +593,7 @@ u64 nvgpu_inst_block_addr(struct gk20a *g, struct nvgpu_mem *inst_block);
  * - #nvgpu_mem can either point to SYSMEM or VIDMEM.
  *
  * @return valid physical address in case of valid #inst_block.
+ * @retval 0 in case of invalid physical address.
  */
 u32 nvgpu_inst_block_ptr(struct gk20a *g, struct nvgpu_mem *inst_block);
 

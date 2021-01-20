@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -519,6 +519,8 @@ void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
  * @param map_addr [in]		Address where it is mapped. It is valid for
  *				fixed mappings.
  * @param flags [in]		Flags describes the properties of the mapping.
+ *                              - Min: NVGPU_VM_MAP_FIXED_OFFSET
+ *                              - Max: NVGPU_VM_MAP_PLATFORM_ATOMIC
  * @param kind [in]		Kind parameter.
  *
  * - Acquire the vm.update_gmmu_lock.
@@ -527,7 +529,8 @@ void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
  * - Release the lock held.
  *
  * @return			#nvgpu_mapped_buf struct, if it finds.
- *				NULL, If it does not find.
+ * @retval NULL if #nvgpu_mapped_buf struct is not found.
+ * @retval NULL in case of invalid #flags.
  */
 struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 					       struct nvgpu_os_buffer *os_buf,
@@ -548,12 +551,18 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
  * @param map_size [in]			Size of the mapping.
  * @param phys_offset [in]		Offset of the mapping to start.
  * @param rw [in]			Describes the mapping(READ/WRITE).
+ *                                     - Min: gk20a_mem_flag_none
+ *                                     - Max: gk20a_mem_flag_write_only
  * @param flags [in]			Mapping is fixed or not.
+ *                                     - Min: NVGPU_VM_MAP_FIXED_OFFSET
+ *                                     - Max: NVGPU_VM_MAP_PLATFORM_ATOMIC
  * @param compr_kind [in]		Default map caching key.
  * @param incompr_kind [in]		Map caching key.
  * @param batch [in]			Describes TLB invalidation and cache
  *					flushing.
  * @param aperture [in]			System memory or VIDMEM.
+ *                                      - Min: APERTURE_SYSMEM
+ *                                      - Max: APERTURE_VIDMEM
  * @param mapped_buffer_arg [in/out]	Mapped buffer.
  *
  * - Validate the inputs.
@@ -571,6 +580,9 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
  *
  * @return			Zero, for successful mapping.
  *				Suitable errors, for failures.
+ * @retval -EINVAL in case of invalid #rw.
+ * @retval -EINVAL in case of invalid #flags.
+ * @retval -EINVAL in case of invalid #aperture.
  */
 int nvgpu_vm_map(struct vm_gk20a *vm,
 		 struct nvgpu_os_buffer *os_buf,
@@ -757,6 +769,8 @@ void nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
  *
  * @return			Zero, for success.
  *				Suitable errors for failures.
+ * @retval -ENOMEM if overlap between user and kernel spaces.
+ * @retval -EINVAL if #kernel_reserved is 0.
  */
 
 int nvgpu_vm_do_init(struct mm_gk20a *mm,
@@ -817,7 +831,7 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
  * - Call #nvgpu_vm_do_init() to initialise the address space.
  *
  * @return		Pointer to struct #vm_gk20a, if success.
- *			NULL, if it fails.
+ * @retval NULL insufficient system resources to create vm.
  */
 struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u32 big_page_size,

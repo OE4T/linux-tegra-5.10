@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -147,7 +147,7 @@ int nvgpu_vm_area_free(struct vm_gk20a *vm, u64 addr);
  *   #nvgpu_vm_area struct.
  *
  * @return		#nvgpu_vm_area struct, for success.
- *			NULL, if it fails to fine the vm_area.
+ *			NULL, if it fails to find the vm_area.
  */
 struct nvgpu_vm_area *nvgpu_vm_area_find(struct vm_gk20a *vm, u64 addr);
 
@@ -159,6 +159,8 @@ struct nvgpu_vm_area *nvgpu_vm_area_find(struct vm_gk20a *vm, u64 addr);
  * @param addr [in]		Address of the mapped buffer.
  * @param map_size [in] 	Size of the mapping.
  * @param pgsz_idx [in]		Page size index used for mapping.
+ *                              - Min: GMMU_PAGE_SIZE_SMALL
+ *                              - Max: GMMU_PAGE_SIZE_KERNEL
  * @param pvm_area [out]	#nvgpu_vm_area struct.
  *
  * - Find the vm_area from the vm context.
@@ -166,7 +168,9 @@ struct nvgpu_vm_area *nvgpu_vm_area_find(struct vm_gk20a *vm, u64 addr);
  *   mappings in the vm_area.
  *
  * @return			#nvgpu_vm_area struct, for success.
- *				Suitable error code for failures.
+ * @retval -EINVAL in case of invalid #map_size.
+ * @retval -EINVAL in case of #map_addr is not page size aligned.
+ * @retval -EINVAL if it fails to find the vm_area.
  */
 int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 				  u64 map_addr, u64 map_size, u32 pgsz_idx,

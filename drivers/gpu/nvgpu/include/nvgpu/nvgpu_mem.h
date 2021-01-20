@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -361,6 +361,7 @@ void nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem);
  * @param[in] w		Word index.
  *
  * @return Data word read from memory.
+ * @retval 0 in case of invalid #mem.
  */
 u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u64 w);
 
@@ -373,6 +374,7 @@ u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u64 w);
  * @param[in] hi	High word index.
  *
  * @return Double data word read from memory.
+ * @retval 0 in case of invalid #mem.
  */
 u64 nvgpu_mem_rd32_pair(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 lo, u32 hi);
@@ -385,6 +387,7 @@ u64 nvgpu_mem_rd32_pair(struct gk20a *g, struct nvgpu_mem *mem,
  * @param[in] offset	Byte offset (32b-aligned).
  *
  * @return Data word read from memory.
+ * @retval 0 in case of invalid #mem.
  */
 u32 nvgpu_mem_rd(struct gk20a *g, struct nvgpu_mem *mem, u64 offset);
 
@@ -451,6 +454,7 @@ void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u64 offset,
  * @param[in] mem	Pointer to nvgpu_mem structure.
  *
  * @return sysmem address.
+ * @retval 0 in case of invalid #mem.
  */
 u64 nvgpu_mem_get_addr(struct gk20a *g, struct nvgpu_mem *mem);
 
@@ -461,6 +465,7 @@ u64 nvgpu_mem_get_addr(struct gk20a *g, struct nvgpu_mem *mem);
  * @param[in] mem	Pointer to nvgpu_mem structure.
  *
  * @return Sysmem address.
+ * @retval 0 in case of invalid #mem.
  */
 u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem);
 
@@ -469,11 +474,14 @@ u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem);
  *
  * @param[in] g			Pointer to GPU structure.
  * @param[in] aperture		Aperture value.
+ *                              - Min: APERTURE_SYSMEM
+ *                              - Max: APERTURE_VIDMEM
  * @param[in] sysmem_mask	Mask for sysmem memory.
  * @param[in] sysmem_coh_mask	Mask for coherent sysmem memory.
  * @param[in] vidmem_mask	Mask for vidmem memory.
  *
- * @return Raw aperture mask value in case of success, 0 in case of failure.
+ * @return Raw aperture mask value in case of success.
+ * @retval 0 in case of invalid #aperture.
  */
 u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
 		u32 sysmem_mask, u32 sysmem_coh_mask, u32 vidmem_mask);
@@ -490,7 +498,8 @@ u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
  * Right coherency aperture should be used.
  * This function doesn'y add any checks.
  *
- * @return Aperture mask value in case of success, 0 in case of failure.
+ * @return Aperture mask value in case of success.
+ * @retval 0 in case of invalid #mem.
  */
 u32 nvgpu_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 sysmem_mask, u32 sysmem_coh_mask, u32 vidmem_mask);
