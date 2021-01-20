@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -534,14 +534,19 @@
 #define gr_pipe_bundle_config_r()                                  (0x00400208U)
 #define gr_pipe_bundle_config_override_pipe_mode_disabled_f()             (0x0U)
 #define gr_pipe_bundle_config_override_pipe_mode_enabled_f()       (0x80000000U)
-#define gr_prop_hww_esr_r()                                        (0x00500420U)
-#define gr_prop_hww_esr_reset_active_f()                           (0x40000000U)
-#define gr_zcull_hww_esr_r()                                       (0x00500900U)
-#define gr_zcull_hww_esr_reset_active_f()                          (0x40000000U)
-#define gr_setup_hww_esr_r()                                       (0x00500824U)
-#define gr_setup_hww_esr_reset_active_f()                          (0x40000000U)
-#define gr_pes_hww_esr_r()                                         (0x00503038U)
-#define gr_pes_hww_esr_reset_task_f()                              (0x40000000U)
+#define gr_gpc0_prop_hww_esr_r()                                   (0x00500420U)
+#define gr_gpc0_prop_hww_esr_reset_active_f()                      (0x40000000U)
+#define gr_gpc0_prop_hww_esr_coord_r()                             (0x00500434U)
+#define gr_gpc0_prop_hww_esr_format_r()                            (0x00500438U)
+#define gr_gpc0_prop_hww_esr_state_r()                             (0x0050043cU)
+#define gr_gpc0_prop_hww_esr_state2_r()                            (0x00500440U)
+#define gr_gpc0_prop_hww_esr_offset_r()                            (0x00500444U)
+#define gr_gpc0_zcull_hww_esr_r()                                  (0x00500900U)
+#define gr_gpc0_zcull_hww_esr_reset_active_f()                     (0x40000000U)
+#define gr_gpc0_setup_hww_esr_r()                                  (0x00500824U)
+#define gr_gpc0_setup_hww_esr_reset_active_f()                     (0x40000000U)
+#define gr_gpc0_ppc0_pes_hww_esr_r()                               (0x00503038U)
+#define gr_gpc0_ppc0_pes_hww_esr_reset_task_f()                    (0x40000000U)
 #define gr_fe_hww_esr_r()                                          (0x00404000U)
 #define gr_fe_hww_esr_reset_active_f()                             (0x40000000U)
 #define gr_fe_hww_esr_en_enable_f()                                (0x80000000U)
