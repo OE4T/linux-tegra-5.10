@@ -1,7 +1,7 @@
-From ed00e546fbd8ac1470a932ea2d50f50807c1ae28 Mon Sep 17 00:00:00 2001
+From a6e496b61399ba88c39948303792e67ac6bfb815 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:25 +0100
-Subject: [PATCH 036/268] mips/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 036/270] mips/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 
@@ -82,7 +82,7 @@ index f1f788b..19edf8e 100644
  
 diff --git a/arch/mips/include/asm/kmap_types.h b/arch/mips/include/asm/kmap_types.h
 deleted file mode 100644
-index 16665dc2..0000000
+index 16665dc2..00000000
 --- a/arch/mips/include/asm/kmap_types.h
 +++ /dev/null
 @@ -1,13 +0,0 @@

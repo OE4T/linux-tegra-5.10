@@ -1,7 +1,7 @@
-From 0b5cb3291344ccc2f5178a00d9c6ec2b62d2dc59 Mon Sep 17 00:00:00 2001
+From 10b662789976986b13278ee89bb57b88039a4ced Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:28 +0100
-Subject: [PATCH 039/268] sparc/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 039/270] sparc/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 
@@ -68,7 +68,7 @@ index 6c35f0d..8751162 100644
  #endif /* _ASM_HIGHMEM_H */
 diff --git a/arch/sparc/include/asm/kmap_types.h b/arch/sparc/include/asm/kmap_types.h
 deleted file mode 100644
-index 55a99b6b..0000000
+index 55a99b6b..00000000
 --- a/arch/sparc/include/asm/kmap_types.h
 +++ /dev/null
 @@ -1,11 +0,0 @@
@@ -116,7 +116,7 @@ index b078205..68db1f8 100644
 -obj-$(CONFIG_HIGHMEM)   += highmem.o
 diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
 deleted file mode 100644
-index 8f2a2af..0000000
+index 8f2a2af..00000000
 --- a/arch/sparc/mm/highmem.c
 +++ /dev/null
 @@ -1,115 +0,0 @@

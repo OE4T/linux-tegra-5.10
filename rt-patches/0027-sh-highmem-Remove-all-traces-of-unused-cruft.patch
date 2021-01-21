@@ -1,7 +1,7 @@
-From 5b4d3cc2e30346b42deffd3ff361c753d5ea88d7 Mon Sep 17 00:00:00 2001
+From ac1e59509b95fe43f90c9583f26a4df9b357482c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:16 +0100
-Subject: [PATCH 027/268] sh/highmem: Remove all traces of unused cruft
+Subject: [PATCH 027/270] sh/highmem: Remove all traces of unused cruft
 
 For whatever reasons SH has highmem bits all over the place but does
 not enable it via Kconfig. Remove the bitrot.
@@ -43,7 +43,7 @@ index f38adc1..b07fbc7 100644
  	 * FIX_IOREMAP entries are useful for mapping physical address
 diff --git a/arch/sh/include/asm/kmap_types.h b/arch/sh/include/asm/kmap_types.h
 deleted file mode 100644
-index b78107f..0000000
+index b78107f..00000000
 --- a/arch/sh/include/asm/kmap_types.h
 +++ /dev/null
 @@ -1,15 +0,0 @@

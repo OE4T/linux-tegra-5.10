@@ -1,7 +1,7 @@
-From 135d48ed6bd593e71bbcc882c0b98d48ee968be3 Mon Sep 17 00:00:00 2001
+From 430424c0829baed2dd4e32c41abee6ca9b81b6fa Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:17 +0100
-Subject: [PATCH 028/268] asm-generic: Provide kmap_size.h
+Subject: [PATCH 028/270] asm-generic: Provide kmap_size.h
 
 kmap_types.h is a misnomer because the old atomic MAP based array does not
 exist anymore and the whole indirection of architectures including
@@ -35,7 +35,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  create mode 100644 include/asm-generic/kmap_size.h
 
 diff --git a/include/asm-generic/Kbuild b/include/asm-generic/Kbuild
-index e78bbb9..ed62d38 100644
+index d1300c6..3114a6d 100644
 --- a/include/asm-generic/Kbuild
 +++ b/include/asm-generic/Kbuild
 @@ -31,6 +31,7 @@ mandatory-y += irq_regs.h
@@ -48,7 +48,7 @@ index e78bbb9..ed62d38 100644
  mandatory-y += local.h
 diff --git a/include/asm-generic/kmap_size.h b/include/asm-generic/kmap_size.h
 new file mode 100644
-index 0000000..9d6c778
+index 00000000..9d6c778
 --- /dev/null
 +++ b/include/asm-generic/kmap_size.h
 @@ -0,0 +1,12 @@

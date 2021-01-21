@@ -1,7 +1,7 @@
-From 7691de38ab669607b1f4e843f375600bbb649eb7 Mon Sep 17 00:00:00 2001
+From 35b5988d52f6d85af01aeeb4a766d75d2eaf897f Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 15 Dec 2020 15:16:49 +0100
-Subject: [PATCH 077/268] doc: Use CONFIG_PREEMPTION
+Subject: [PATCH 077/270] doc: Use CONFIG_PREEMPTION
 
 CONFIG_PREEMPTION is selected by CONFIG_PREEMPT and by CONFIG_PREEMPT_RT.
 Both PREEMPT and PREEMPT_RT require the same functionality which today

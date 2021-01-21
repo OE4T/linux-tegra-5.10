@@ -1,7 +1,7 @@
-From d64e50365a2695cc11035dfcd3fd38b4edf5a1da Mon Sep 17 00:00:00 2001
+From d3f2a7a7c94c966f570f41bfc3b95274f642d519 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:21 +0100
-Subject: [PATCH 032/268] arc/mm/highmem: Use generic kmap atomic
+Subject: [PATCH 032/270] arc/mm/highmem: Use generic kmap atomic
  implementation
 
 Adopt the map ordering to match the other architectures and the generic
@@ -109,7 +109,7 @@ index 6e5eafb..a6b8e2c 100644
  #endif
 diff --git a/arch/arc/include/asm/kmap_types.h b/arch/arc/include/asm/kmap_types.h
 deleted file mode 100644
-index fecf785..0000000
+index fecf785..00000000
 --- a/arch/arc/include/asm/kmap_types.h
 +++ /dev/null
 @@ -1,14 +0,0 @@

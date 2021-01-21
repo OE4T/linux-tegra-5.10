@@ -1,7 +1,7 @@
-From 6623dc726b371cad586bc0e463906a15981c5119 Mon Sep 17 00:00:00 2001
+From 5c556c649065ad889f8cddc8caa9786ed7ef875c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:40 +0100
-Subject: [PATCH 051/268] mips/crashdump: Simplify copy_oldmem_page()
+Subject: [PATCH 051/270] mips/crashdump: Simplify copy_oldmem_page()
 
 Replace kmap_atomic_pfn() with kmap_local_pfn() which is preemptible and
 can take page faults.

@@ -1,7 +1,7 @@
-From b2beb78b31db8770ac50aab28cbf8ac4f5a9028a Mon Sep 17 00:00:00 2001
+From d9fc92d577af46d7585374fc849a5bdf9845a4b8 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:01 +0200
-Subject: [PATCH 004/268] sched/hotplug: Ensure only per-cpu kthreads run
+Subject: [PATCH 004/270] sched/hotplug: Ensure only per-cpu kthreads run
  during hotplug
 
 In preparation for migrate_disable(), make sure only per-cpu kthreads

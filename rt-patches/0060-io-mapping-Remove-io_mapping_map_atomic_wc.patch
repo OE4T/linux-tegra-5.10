@@ -1,7 +1,7 @@
-From 2f85cae2494591d61565b692971e42758763bce2 Mon Sep 17 00:00:00 2001
+From c2abc920f645b33a4bf1c41dbc2bd5e10a386d68 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:49 +0100
-Subject: [PATCH 060/268] io-mapping: Remove io_mapping_map_atomic_wc()
+Subject: [PATCH 060/270] io-mapping: Remove io_mapping_map_atomic_wc()
 
 No more users. Get rid of it and remove the traces in documentation.
 

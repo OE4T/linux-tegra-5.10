@@ -1,7 +1,7 @@
-From 4d2756fd56409832c49013e54befb828f21c01c5 Mon Sep 17 00:00:00 2001
+From 3dbae07773dfbf03c1b2948113a9fd89eb68f170 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:39 +0100
-Subject: [PATCH 050/268] x86/crashdump/32: Simplify copy_oldmem_page()
+Subject: [PATCH 050/270] x86/crashdump/32: Simplify copy_oldmem_page()
 
 Replace kmap_atomic_pfn() with kmap_local_pfn() which is preemptible and
 can take page faults.

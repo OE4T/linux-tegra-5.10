@@ -1,7 +1,7 @@
-From 90048dca4556234df95a4fa2a0e6a6ac6153915e Mon Sep 17 00:00:00 2001
+From f9ab782e284e454f33a7db4a3ac0dd947a39b836 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:27 +0100
-Subject: [PATCH 038/268] powerpc/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 038/270] powerpc/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 
@@ -88,7 +88,7 @@ index 104026f..80a5ae7 100644
  #endif /* _ASM_HIGHMEM_H */
 diff --git a/arch/powerpc/include/asm/kmap_types.h b/arch/powerpc/include/asm/kmap_types.h
 deleted file mode 100644
-index c8fa182..0000000
+index c8fa182..00000000
 --- a/arch/powerpc/include/asm/kmap_types.h
 +++ /dev/null
 @@ -1,13 +0,0 @@
@@ -119,7 +119,7 @@ index 55b4a8b..3b4e9e4 100644
  obj-$(CONFIG_KASAN)		+= kasan/
 diff --git a/arch/powerpc/mm/highmem.c b/arch/powerpc/mm/highmem.c
 deleted file mode 100644
-index 624b443..0000000
+index 624b443..00000000
 --- a/arch/powerpc/mm/highmem.c
 +++ /dev/null
 @@ -1,67 +0,0 @@

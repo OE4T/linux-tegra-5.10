@@ -1,7 +1,7 @@
-From 7f9f338f281838a4a2a21ef10aa11673bfc788c7 Mon Sep 17 00:00:00 2001
+From c593c3612c46a3745bc21aa189e67b2aa1bb3e61 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:07 +0200
-Subject: [PATCH 010/268] sched: Add migrate_disable()
+Subject: [PATCH 010/270] sched: Add migrate_disable()
 
 Add the base migrate_disable() support (under protest).
 

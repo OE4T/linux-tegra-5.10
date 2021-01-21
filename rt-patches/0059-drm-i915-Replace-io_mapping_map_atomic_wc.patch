@@ -1,7 +1,7 @@
-From 33f5bdc30bc91e763abd2ae365c9127fcf10351d Mon Sep 17 00:00:00 2001
+From 1ac6de72a7718451c3364b490834d2f0c9e0e632 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:48 +0100
-Subject: [PATCH 059/268] drm/i915: Replace io_mapping_map_atomic_wc()
+Subject: [PATCH 059/270] drm/i915: Replace io_mapping_map_atomic_wc()
 
 None of these mapping requires the side effect of disabling pagefaults and
 preemption.
@@ -27,7 +27,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  4 files changed, 22 insertions(+), 37 deletions(-)
 
 diff --git a/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c
-index bcc80f4..f05e700 100644
+index bd3046e..1850f13 100644
 --- a/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c
 +++ b/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c
 @@ -1081,7 +1081,7 @@ static void reloc_cache_reset(struct reloc_cache *cache, struct i915_execbuffer

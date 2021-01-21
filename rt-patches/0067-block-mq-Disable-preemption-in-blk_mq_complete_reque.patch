@@ -1,7 +1,7 @@
-From 7df51a92eadb56bd0a144ea183a551cfafcdcc3d Mon Sep 17 00:00:00 2001
+From f57fce38380980df17ce03cf37ef34500372112c Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 30 Oct 2020 19:23:14 +0100
-Subject: [PATCH 067/268] block-mq: Disable preemption in
+Subject: [PATCH 067/270] block-mq: Disable preemption in
  blk_mq_complete_request_remote()
 
 There callers of blk_mq_complete_request() which invoke it in
@@ -16,7 +16,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 3 insertions(+)
 
 diff --git a/block/blk-mq.c b/block/blk-mq.c
-index 64e56f0..a13edc7 100644
+index 5ae0867..776e637 100644
 --- a/block/blk-mq.c
 +++ b/block/blk-mq.c
 @@ -644,9 +644,12 @@ bool blk_mq_complete_request_remote(struct request *rq)

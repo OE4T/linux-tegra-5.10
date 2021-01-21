@@ -1,7 +1,7 @@
-From 9afa37e2ac371b061d963b7b99eeba38d7b18692 Mon Sep 17 00:00:00 2001
+From 6a707240d588870b27b2f216dd7a8bf86d0a00fd Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:29 +0100
-Subject: [PATCH 040/268] xtensa/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 040/270] xtensa/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 

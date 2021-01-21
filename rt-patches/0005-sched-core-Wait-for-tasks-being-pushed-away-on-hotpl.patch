@@ -1,7 +1,7 @@
-From 009a295d64b212de76db1bf264aa4b71950f4d5c Mon Sep 17 00:00:00 2001
+From 80151f8804aeb7f71da04d66577bdd212b3ce007 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:02 +0200
-Subject: [PATCH 005/268] sched/core: Wait for tasks being pushed away on
+Subject: [PATCH 005/270] sched/core: Wait for tasks being pushed away on
  hotplug
 
 RT kernels need to ensure that all tasks which are not per CPU kthreads

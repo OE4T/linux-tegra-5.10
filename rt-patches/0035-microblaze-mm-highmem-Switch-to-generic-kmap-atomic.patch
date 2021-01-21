@@ -1,7 +1,7 @@
-From 2ae4b6cd4da2ea702aacdfaf2003ec60c860d4aa Mon Sep 17 00:00:00 2001
+From a6eaf63b2490d6106c509ab4bd45158bebaaa875 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:24 +0100
-Subject: [PATCH 035/268] microblaze/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 035/270] microblaze/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture.
 
@@ -87,7 +87,7 @@ index 1b16875..8ced711 100644
 -obj-$(CONFIG_HIGHMEM) += highmem.o
 diff --git a/arch/microblaze/mm/highmem.c b/arch/microblaze/mm/highmem.c
 deleted file mode 100644
-index 92e0890..0000000
+index 92e0890..00000000
 --- a/arch/microblaze/mm/highmem.c
 +++ /dev/null
 @@ -1,78 +0,0 @@

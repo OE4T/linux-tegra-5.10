@@ -1,7 +1,7 @@
-From e7adbd03306ecd4bffacbebce4e1bfa72795a4c6 Mon Sep 17 00:00:00 2001
+From 79e9ed812874b6d5a941e021147dde0b0c0056a5 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:34 +0100
-Subject: [PATCH 045/268] highmem: High implementation details and document API
+Subject: [PATCH 045/270] highmem: High implementation details and document API
 
 Move the gory details of kmap & al into a private header and only document
 the interfaces which are usable by drivers.
@@ -17,7 +17,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
 diff --git a/include/linux/highmem-internal.h b/include/linux/highmem-internal.h
 new file mode 100644
-index 0000000..6ceed90
+index 00000000..6ceed90
 --- /dev/null
 +++ b/include/linux/highmem-internal.h
 @@ -0,0 +1,174 @@
