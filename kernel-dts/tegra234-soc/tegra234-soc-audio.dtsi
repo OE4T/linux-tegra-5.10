@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -721,7 +721,7 @@
 	};
 
 	hda@3510000 {
-		compatible = "nvidia,tegra23x-hda", "nvidia,tegra30-hda";
+		compatible = "nvidia,tegra23x-hda";
 		hda,card-name = "tegra-hda-t23x";
 
 		/* Used for kernel v5.9 onward */
