@@ -496,7 +496,7 @@ u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
  * @param[in] vidmem_mask	Mask for vidmem memory.
  *
  * Right coherency aperture should be used.
- * This function doesn'y add any checks.
+ * This function doesn't add any checks.
  *
  * @return Aperture mask value in case of success.
  * @retval 0 in case of invalid #mem.
