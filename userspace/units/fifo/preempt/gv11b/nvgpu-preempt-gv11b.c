@@ -527,7 +527,7 @@ struct unit_module_test nvgpu_preempt_gv11b_tests[] = {
 	UNIT_TEST(preempt_runlists_for_rc, test_gv11b_fifo_preempt_runlists_for_rc, NULL, 0),
 	UNIT_TEST(preempt_channel, test_gv11b_fifo_preempt_channel, NULL, 0),
 	UNIT_TEST(preempt_tsg, test_gv11b_fifo_preempt_tsg, NULL, 0),
-	UNIT_TEST(is_preempt_pending, test_gv11b_fifo_is_preempt_pending, NULL, 0),
+	UNIT_TEST(is_preempt_pending, test_gv11b_fifo_is_preempt_pending, NULL, 2),
 	UNIT_TEST(remove_support, test_fifo_remove_support, &unit_ctx, 0),
 };
 

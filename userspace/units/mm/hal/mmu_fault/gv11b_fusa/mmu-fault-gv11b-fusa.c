@@ -522,9 +522,10 @@ static u32 stub_top_get_num_lce(struct gk20a *g)
 	return ret_num_lce;
 }
 
-static int stub_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-			      struct nvgpu_channel *ch,
-			      bool add, bool wait_for_finish)
+static int stub_runlist_update(struct gk20a *g,
+			       struct nvgpu_runlist *rl,
+			       struct nvgpu_channel *ch,
+			       bool add, bool wait_for_finish)
 {
 	return 0;
 }
@@ -644,8 +645,7 @@ int test_handle_mmu_fault_common(struct unit_module *m,
 	} else if (branch & F_TSG_VALID) {
 		/* Init TSG and chB */
 		g->ops.gr.init.get_no_of_sm = stub_gr_init_get_no_of_sm;
-		g->ops.runlist.update_for_channel =
-						stub_runlist_update_for_channel;
+		g->ops.runlist.update =	stub_runlist_update;
 		g->ops.tsg.default_timeslice_us =
 						nvgpu_tsg_default_timeslice_us;
 		g->ops.channel.alloc_inst = nvgpu_channel_alloc_inst;

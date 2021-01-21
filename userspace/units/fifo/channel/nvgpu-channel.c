@@ -677,16 +677,17 @@ static int stub_os_channel_alloc_usermode_buffers_ENOMEM(
 	return -ENOMEM;
 }
 
-static int stub_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
+static int stub_runlist_update(struct gk20a *g, struct nvgpu_runlist *rl,
 		struct nvgpu_channel *ch, bool add, bool wait_for_finish)
 {
 	stub[1].chid = ch->chid;
 	return 0;
 }
 
-static int stub_runlist_update_for_channel_ETIMEDOUT(struct gk20a *g,
-		u32 runlist_id, struct nvgpu_channel *ch, bool add,
-		bool wait_for_finish)
+static int stub_runlist_update_ETIMEDOUT(struct gk20a *g,
+					 struct nvgpu_runlist *rl,
+					 struct nvgpu_channel *ch, bool add,
+					 bool wait_for_finish)
 {
 	return -ETIMEDOUT;
 }
@@ -835,10 +836,10 @@ int test_channel_setup_bind(struct unit_module *m, struct gk20a *g, void *vargs)
 			F_CHANNEL_SETUP_BIND_USERMODE_TSGID_INVALID ?
 				NVGPU_INVALID_TSG_ID : tsgid_orig;
 
-		g->ops.runlist.update_for_channel = branches &
+		g->ops.runlist.update = branches &
 			F_CHANNEL_SETUP_BIND_USERMODE_UPDATE_RL_FAIL ?
-				stub_runlist_update_for_channel_ETIMEDOUT :
-				stub_runlist_update_for_channel;
+				stub_runlist_update_ETIMEDOUT :
+				stub_runlist_update;
 
 		g->ops.ramfc.setup = branches &
 			F_CHANNEL_SETUP_BIND_USERMODE_SETUP_RAMFC_FAIL ?
@@ -1338,7 +1339,7 @@ int test_channel_deterministic_idle_unidle(struct unit_module *m,
 	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;	/* bug 2621189 */
 	g->os_channel.alloc_usermode_buffers =
 					stub_os_channel_alloc_usermode_buffers;
-	g->ops.runlist.update_for_channel = stub_runlist_update_for_channel;
+	g->ops.runlist.update = stub_runlist_update;
 
 	(void)memset(&bind_args, 0, sizeof(bind_args));
 	bind_args.num_gpfifo_entries = 32;
@@ -1701,7 +1702,7 @@ int test_channel_semaphore_wakeup(struct unit_module *m,
 	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;	/* bug 2621189 */
 	g->os_channel.alloc_usermode_buffers =
 					stub_os_channel_alloc_usermode_buffers;
-	g->ops.runlist.update_for_channel = stub_runlist_update_for_channel;
+	g->ops.runlist.update = stub_runlist_update;
 	g->ops.mm.cache.fb_flush = stub_mm_fb_flush;
 
 	memset(&bind_args, 0, sizeof(bind_args));

@@ -341,7 +341,7 @@ int test_tsg_bind_channel(struct unit_module *m,
 		/* runlist id mismatch */
 		tsg->runlist_id =
 			branches & F_TSG_BIND_CHANNEL_RL_MISMATCH ?
-			ch->runlist_id + 1 : tsg_save.runlist_id;
+			0xffffffff : tsg_save.runlist_id;
 
 		/* ch already already active */
 		runlist = &f->active_runlists[tsg->runlist_id];
@@ -443,8 +443,8 @@ static int stub_tsg_unbind_channel(struct nvgpu_tsg *tsg,
 	return 0;
 }
 
-static int stub_runlist_update_for_channel_EINVAL(
-		struct gk20a *g, u32 runlist_id,
+static int stub_runlist_update_EINVAL(
+		struct gk20a *g, struct nvgpu_runlist *rl,
 		struct nvgpu_channel *ch, bool add, bool wait_for_finish)
 {
 	stub[0].count++;
@@ -542,15 +542,15 @@ int test_tsg_unbind_channel(struct unit_module *m,
 			g->ops.tsg.unbind_channel_check_hw_state = NULL;
 		}
 
-		g->ops.runlist.update_for_channel =
+		g->ops.runlist.update =
 			branches & F_TSG_UNBIND_CHANNEL_RUNLIST_UPDATE_FAIL ?
-			stub_runlist_update_for_channel_EINVAL :
-			gops.runlist.update_for_channel;
+			stub_runlist_update_EINVAL :
+			gops.runlist.update;
 
 		if (branches & F_TSG_UNBIND_CHANNEL_RUNLIST_UPDATE_FAIL ||
 		    branches & F_TSG_UNBIND_CHANNEL_ABORT_RUNLIST_UPDATE_FAIL) {
-			g->ops.runlist.update_for_channel =
-				stub_runlist_update_for_channel_EINVAL;
+			g->ops.runlist.update =
+				stub_runlist_update_EINVAL;
 		}
 
 		if ((branches & F_TSG_UNBIND_CHANNEL_UNBIND_HAL) ||
@@ -1539,7 +1539,7 @@ struct unit_module_test nvgpu_tsg_tests[] = {
 	UNIT_TEST(open, test_tsg_open, &unit_ctx, 0),
 	UNIT_TEST(release, test_tsg_release, &unit_ctx, 0),
 	UNIT_TEST(get_from_id, test_tsg_check_and_get_from_id, &unit_ctx, 0),
-	UNIT_TEST(bind_channel, test_tsg_bind_channel, &unit_ctx, 0),
+	UNIT_TEST(bind_channel, test_tsg_bind_channel, &unit_ctx, 2),
 	UNIT_TEST(unbind_channel, test_tsg_unbind_channel, &unit_ctx, 0),
 	UNIT_TEST(unbind_channel_check_hw_state,
 		test_tsg_unbind_channel_check_hw_state, &unit_ctx, 0),

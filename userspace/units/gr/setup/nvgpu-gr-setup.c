@@ -70,9 +70,10 @@ static u32 stub_channel_count(struct gk20a *g)
 	return 4;
 }
 
-static int stub_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-					   struct nvgpu_channel *ch,
-					   bool add, bool wait_for_finish)
+static int stub_runlist_update(struct gk20a *g,
+			       struct nvgpu_runlist *rl,
+			       struct nvgpu_channel *ch,
+			       bool add, bool wait_for_finish)
 {
 	return 0;
 }
@@ -642,7 +643,7 @@ int test_gr_setup_alloc_obj_ctx(struct unit_module *m,
 							tsgid);
 
 	g->ops.channel.count = stub_channel_count;
-	g->ops.runlist.update_for_channel = stub_runlist_update_for_channel;
+	g->ops.runlist.update = stub_runlist_update;
 
 	/* Save valid gops */
 	gr_setup_save_valid_ops(g);

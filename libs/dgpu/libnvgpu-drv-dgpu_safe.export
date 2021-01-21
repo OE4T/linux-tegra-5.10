@@ -672,7 +672,7 @@ nvgpu_runlist_set_state
 nvgpu_runlist_setup_sw
 nvgpu_runlist_unlock_active_runlists
 nvgpu_runlist_unlock_runlists
-nvgpu_runlist_update_for_channel
+nvgpu_runlist_update
 nvgpu_runlist_update_locked
 nvgpu_rwsem_init
 nvgpu_rwsem_down_read
