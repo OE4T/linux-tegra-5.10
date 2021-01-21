@@ -59,10 +59,10 @@ struct nvgpu_gr_ctx;
  * - Allocating GR engine context image.
  * - Allocating subcontext image.
  * - Allocating patch context image.
- * - Creating Golden context imaage upon first request to allocate
+ * - Creating Golden context image upon first request to allocate
  *   object context.
  * - Capturing golden context image twice and ensuring contents match.
- * - Initializating context preemption mode.
+ * - Initializing context preemption mode.
  * - Initializing various other fields in context image.
  * - Mapping global context buffers into context image.
  * - Committing the context image into channel instance block.
