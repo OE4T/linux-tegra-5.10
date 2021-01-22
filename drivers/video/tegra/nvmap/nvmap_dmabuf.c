@@ -1,7 +1,7 @@
 /*
  * dma_buf exporter for nvmap
  *
- * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -421,10 +421,9 @@ static int __nvmap_dmabuf_end_cpu_access(struct dma_buf *dmabuf,
 	struct nvmap_handle_info *info = dmabuf->priv;
 
 	trace_nvmap_dmabuf_end_cpu_access(dmabuf, 0, dmabuf->size);
-	__nvmap_do_cache_maint(NULL, info->handle,
+	return __nvmap_do_cache_maint(NULL, info->handle,
 				   0, dmabuf->size,
 				   NVMAP_CACHE_OP_WB, false);
-	return 0;
 }
 
 static int __nvmap_dmabuf_begin_cpu_access(struct dma_buf *dmabuf,
@@ -433,9 +432,8 @@ static int __nvmap_dmabuf_begin_cpu_access(struct dma_buf *dmabuf,
 	struct nvmap_handle_info *info = dmabuf->priv;
 
 	trace_nvmap_dmabuf_begin_cpu_access(dmabuf, 0, dmabuf->size);
-	__nvmap_do_cache_maint(NULL, info->handle, 0, dmabuf->size,
+	return __nvmap_do_cache_maint(NULL, info->handle, 0, dmabuf->size,
 				      NVMAP_CACHE_OP_WB_INV, false);
-	return 0;
 }
 #define NVMAP_DMABUF_BEGIN_CPU_ACCESS           __nvmap_dmabuf_begin_cpu_access
 #define NVMAP_DMABUF_END_CPU_ACCESS 		__nvmap_dmabuf_end_cpu_access
