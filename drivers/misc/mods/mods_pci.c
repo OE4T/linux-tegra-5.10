@@ -367,6 +367,7 @@ int esc_mods_pci_read_2(struct mods_client *client, struct MODS_PCI_READ_2 *p)
 {
 	struct pci_dev *dev;
 	int err;
+	int dbdf;
 
 	LOG_ENT();
 
@@ -410,19 +411,27 @@ int esc_mods_pci_read_2(struct mods_client *client, struct MODS_PCI_READ_2 *p)
 		 p->data_size,
 		 p->data);
 
+	dbdf = (int)(((u32)p->pci_device.domain << 16) |
+		     ((u32)(p->pci_device.bus & 0xFFU) << 8) |
+		     (u32)(p->pci_device.device & 0xFFU));
+
 	/* Usually one of the first reads from PCI config space occurs
 	 * at address 0 and or 2 to read PCI device vendor/id.
 	 * If this reads all Fs, the device probably fell off the bus.
 	 */
-	if (p->address <= 4 && (p->data == ~0U || p->data == 0xFFFFU))
-		cl_warn("pci read dev %04x:%02x:%02x.%x, addr 0x%04x, size %u, data 0x%x\n",
-			p->pci_device.domain,
-			p->pci_device.bus,
-			p->pci_device.device,
-			p->pci_device.function,
-			p->address,
-			p->data_size,
-			p->data);
+	if (p->address <= 4 && (p->data == ~0U || p->data == 0xFFFFU)) {
+		if (dbdf != atomic_read(&client->last_bad_dbdf))
+			cl_warn("pci read dev %04x:%02x:%02x.%x, addr 0x%04x, size %u, data 0x%x\n",
+				p->pci_device.domain,
+				p->pci_device.bus,
+				p->pci_device.device,
+				p->pci_device.function,
+				p->address,
+				p->data_size,
+				p->data);
+		atomic_set(&client->last_bad_dbdf, dbdf);
+	} else if (dbdf == atomic_read(&client->last_bad_dbdf))
+		atomic_set(&client->last_bad_dbdf, -1);
 
 	pci_dev_put(dev);
 	LOG_EXT();

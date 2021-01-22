@@ -25,7 +25,7 @@
 
 /* Driver version */
 #define MODS_DRIVER_VERSION_MAJOR 4
-#define MODS_DRIVER_VERSION_MINOR 1
+#define MODS_DRIVER_VERSION_MINOR 2
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR / 10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR % 10))
@@ -1386,6 +1386,20 @@ struct MODS_SYSCTL_INT {
 	__s64 value;
 };
 
+#define MODS_DRIVER_STATS_VERSION 1
+
+/* Used by MODS_ESC_MODS_GET_DRIVER_STATS ioctl.
+ *
+ * Returns driver operation statistics.
+ */
+struct MODS_GET_DRIVER_STATS {
+	/* OUT */
+	__u64 version;
+	__u64 num_allocs;
+	__u64 num_pages;
+	__u64 reserved[13];
+};
+
 #define MAX_CLOCK_HANDLE_NAME 64
 
 /* Used by MODS_ESC_GET_CLOCK_HANDLE ioctl.
@@ -1943,5 +1957,6 @@ struct MODS_IOMMU_DMA_MAP_MEMORY {
 #define MODS_ESC_GET_RESET_HANDLE MODSIO(WR, 132, MODS_GET_RESET_HANDLE)
 #define MODS_ESC_SYSCTL_WRITE_INT MODSIO(W, 133, MODS_SYSCTL_INT)
 #define MODS_ESC_PCI_RESET_FUNCTION MODSIO(W, 134, mods_pci_dev_2)
+#define MODS_ESC_MODS_GET_DRIVER_STATS MODSIO(R, 135, MODS_GET_DRIVER_STATS)
 
 #endif /* _UAPI_MODS_H_  */

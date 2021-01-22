@@ -1609,19 +1609,19 @@ static void sysfs_write_task(struct work_struct *w)
 						   struct mods_file_work,
 						   work);
 	struct file *f;
-	mm_segment_t old_fs;
 
 	LOG_ENT();
 
 	task->err = -EINVAL;
 
-	old_fs = get_fs();
-	set_fs(KERNEL_DS);
-
 	f = filp_open(task->path, O_WRONLY, 0);
 	if (IS_ERR(f))
 		task->err = PTR_ERR(f);
 	else {
+#ifndef MODS_HAS_KERNEL_WRITE
+		mm_segment_t old_fs = get_fs();
+#endif
+
 		f->f_pos = 0;
 #ifdef MODS_HAS_KERNEL_WRITE
 		task->err = kernel_write(f,
@@ -1629,15 +1629,17 @@ static void sysfs_write_task(struct work_struct *w)
 					 task->data_size,
 					 &f->f_pos);
 #else
+		set_fs(KERNEL_DS);
+
 		task->err = vfs_write(f,
 				      (__force const char __user *)task->data,
 				      task->data_size,
 				      &f->f_pos);
+
+		set_fs(old_fs);
 #endif
 		filp_close(f, NULL);
 	}
-
-	set_fs(old_fs);
 
 	LOG_EXT();
 }
@@ -1768,6 +1770,20 @@ static int esc_mods_write_msr(struct mods_client *client, struct MODS_MSR *p)
 	return err;
 }
 #endif
+
+static int esc_mods_get_driver_stats(struct mods_client *client,
+				     struct MODS_GET_DRIVER_STATS *p)
+{
+	LOG_ENT();
+
+	memset(p, 0, sizeof(*p));
+	p->version = MODS_DRIVER_STATS_VERSION;
+	p->num_allocs = atomic_read(&client->num_allocs);
+	p->num_pages = atomic_read(&client->num_pages);
+
+	LOG_EXT();
+	return 0;
+}
 
 /**************
  * IO control *
@@ -2584,6 +2600,11 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   esc_mods_write_msr, MODS_MSR);
 		break;
 #endif
+
+	case MODS_ESC_MODS_GET_DRIVER_STATS:
+		MODS_IOCTL(MODS_ESC_MODS_GET_DRIVER_STATS,
+			   esc_mods_get_driver_stats, MODS_GET_DRIVER_STATS);
+		break;
 
 	default:
 		cl_error(

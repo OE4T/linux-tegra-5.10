@@ -667,6 +667,7 @@ struct mods_client *mods_alloc_client(void)
 			memset(client, 0, sizeof(*client));
 			client->client_id    = idx;
 			client->access_token = MODS_ACCESS_TOKEN_NONE;
+			atomic_set(&client->last_bad_dbdf, -1);
 
 			cl_debug(DEBUG_IOCTL,
 				 "open client (bit mask 0x%lx)\n",

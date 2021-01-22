@@ -113,6 +113,7 @@ struct mods_client {
 #if defined(MODS_HAS_CONSOLE_LOCK)
 	atomic_t                 console_is_locked;
 #endif
+	atomic_t                 last_bad_dbdf;
 	u8                       client_id;
 };
 
