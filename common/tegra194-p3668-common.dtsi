@@ -46,7 +46,15 @@
 			    <1574400 665000>,
 			    <1267200 408000>;
 	};
-
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+	ccplex {
+		compatible = "nvidia,tegra194-ccplex";
+		cpu_emc_map = <1907200 1600000>,
+			    <1881600 800000>,
+			    <1574400 665000>,
+			    <1267200 408000>;
+	};
+#endif
 	pmc@c370000 {
 		nvidia,invert-interrupt;
 	};
