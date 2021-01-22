@@ -1,7 +1,7 @@
 /*
  * PVA abort handler
  *
- * Copyright (c) 2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,24 +27,32 @@ static void pva_abort_handler(struct work_struct *work)
 	struct pva *pva = container_of(work, struct pva,
 				       pva_abort_handler_work);
 	struct platform_device *pdev = pva->pdev;
+	int i;
 
 	/* Dump nvhost state to show the pending jobs */
 	nvhost_debug_dump_device(pdev);
 
-	/* First, lock mailbox mutex to avoid synchronous communication. */
-	do {
-		if (pva->cmd_status[PVA_MAILBOX_INDEX] == PVA_CMD_STATUS_WFI) {
-			pva->cmd_status[PVA_MAILBOX_INDEX] =
-						PVA_CMD_STATUS_ABORTED;
-			wake_up(&pva->cmd_waitqueue[PVA_MAILBOX_INDEX]);
+
+	/*wake up sync cmd waiters*/
+        for (i = 0; i < pva->version_config->irq_count; i++) {
+		if (pva->cmd_status[i] == PVA_CMD_STATUS_WFI) {
+			pva->cmd_status[i] = PVA_CMD_STATUS_ABORTED;
+			wake_up(&pva->cmd_waitqueue[i]);
 			schedule();
 		}
+	}
+
+	/* lock mailbox mutex to avoid synchronous communication. */
+	do {
+		schedule();
 	} while (mutex_trylock(&pva->mailbox_mutex) == false);
 
-	/* There is no ongoing activity anymore. Update mailbox status */
-	pva->cmd_status[PVA_MAILBOX_INDEX] = PVA_CMD_STATUS_INVALID;
+        /* There is no ongoing activity anymore. Update mailbox status */
+        for (i = 0; i < pva->version_config->irq_count; i++) {
+            pva->cmd_status[i] = PVA_CMD_STATUS_INVALID;
+        }
 
-	/* Lock CCQ mutex to avoid asynchornous communication */
+        /* Lock CCQ mutex to avoid asynchornous communication */
 	mutex_lock(&pva->ccq_mutex);
 
 	/*
