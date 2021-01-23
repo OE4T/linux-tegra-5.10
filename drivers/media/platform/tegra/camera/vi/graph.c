@@ -1,7 +1,7 @@
 /*
  * NVIDIA Media controller graph management
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Bryan Wu <pengw@nvidia.com>
  *
@@ -863,7 +863,8 @@ int tegra_vi_graph_init(struct tegra_mc_vi *vi)
 		chan->notifier.complete = tegra_vi_graph_notify_complete;
 #else
 		v4l2_async_notifier_init(&chan->notifier);
-		v4l2_async_notifier_add_subdev(&chan->notifier, &entity->asd);
+		list_for_each_entry(entity, &chan->entities, list)
+			v4l2_async_notifier_add_subdev(&chan->notifier, &entity->asd);
 #endif
 
 		chan->link_status = 0;

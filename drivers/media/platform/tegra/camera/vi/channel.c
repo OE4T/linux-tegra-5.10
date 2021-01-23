@@ -299,11 +299,14 @@ static void tegra_channel_fmts_bitmap_init(struct tegra_channel *chan)
 {
 	int ret, pixel_format_index = 0, init_code = 0;
 	struct v4l2_subdev *subdev = chan->subdev_on_csi;
-	struct v4l2_subdev_format fmt = {};
+	struct v4l2_subdev_format fmt = {
+		.pad = 0,
+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+	};
 	struct v4l2_subdev_mbus_code_enum code = {
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
-
+	struct v4l2_subdev_pad_config cfg = {};
 	bitmap_zero(chan->fmts_bitmap, MAX_FORMAT_NUM);
 
 	/*
@@ -315,7 +318,7 @@ static void tegra_channel_fmts_bitmap_init(struct tegra_channel *chan)
 	 */
 	while (1) {
 		ret = v4l2_subdev_call(subdev, pad, enum_mbus_code,
-				       NULL, &code);
+				       &cfg, &code);
 		if (ret < 0)
 			/* no more formats */
 			break;
@@ -344,7 +347,7 @@ static void tegra_channel_fmts_bitmap_init(struct tegra_channel *chan)
 		}
 	}
 		/* Get the format based on active code of the sub-device */
-	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
+	ret = v4l2_subdev_call(subdev, pad, get_fmt, &cfg, &fmt);
 	if (ret)
 		return;
 
@@ -1085,6 +1088,7 @@ tegra_channel_enum_framesizes(struct file *file, void *fh,
 	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
 	struct v4l2_subdev_frame_size_enum fse;
+	struct v4l2_subdev_pad_config cfg = {};
 	int ret = 0;
 
 	/* Convert v4l2 pixel format (fourcc) into media bus format code */
@@ -1092,8 +1096,10 @@ tegra_channel_enum_framesizes(struct file *file, void *fh,
 	if (fse.code < 0)
 		return -EINVAL;
 	fse.index = sizes->index;
+	fse.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+	fse.pad = 0;
 
-	ret = v4l2_subdev_call(sd, pad, enum_frame_size, NULL, &fse);
+	ret = v4l2_subdev_call(sd, pad, enum_frame_size, &cfg, &fse);
 
 	if (!ret) {
 		sizes->type = V4L2_FRMSIZE_TYPE_DISCRETE;
@@ -1111,6 +1117,7 @@ tegra_channel_enum_frameintervals(struct file *file, void *fh,
 	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
 	struct v4l2_subdev_frame_interval_enum fie;
+	struct v4l2_subdev_pad_config cfg = {};
 	int ret = 0;
 
 	/* Convert v4l2 pixel format (fourcc) into media bus format code */
@@ -1121,8 +1128,10 @@ tegra_channel_enum_frameintervals(struct file *file, void *fh,
 	fie.index = intervals->index;
 	fie.width = intervals->width;
 	fie.height = intervals->height;
+	fie.pad  = 0;
+	fie.which = V4L2_SUBDEV_FORMAT_TRY;
 
-	ret = v4l2_subdev_call(sd, pad, enum_frame_interval, NULL, &fie);
+	ret = v4l2_subdev_call(sd, pad, enum_frame_interval, &cfg, &fie);
 
 	if (!ret) {
 		intervals->type = V4L2_FRMIVAL_TYPE_DISCRETE;
@@ -2019,6 +2028,7 @@ __tegra_channel_try_format(struct tegra_channel *chan,
 	const struct tegra_video_format *vfmt;
 	struct v4l2_subdev_format fmt;
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
+	struct v4l2_subdev_pad_config cfg = {};
 	int ret = 0;
 
 	/* Use the channel format if pixformat is not supported */
@@ -2032,7 +2042,7 @@ __tegra_channel_try_format(struct tegra_channel *chan,
 	fmt.pad = 0;
 	v4l2_fill_mbus_format(&fmt.format, pix, vfmt->code);
 
-	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
+	ret = v4l2_subdev_call(sd, pad, set_fmt, &cfg, &fmt);
 	if (ret == -ENOIOCTLCMD)
 		return -ENOTTY;
 
@@ -2064,6 +2074,7 @@ __tegra_channel_set_format(struct tegra_channel *chan,
 	const struct tegra_video_format *vfmt;
 	struct v4l2_subdev_format fmt;
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
+	struct v4l2_subdev_pad_config cfg = {};
 	int ret = 0;
 
 	vfmt = tegra_core_get_format_by_fourcc(chan, pix->pixelformat);
@@ -2072,7 +2083,7 @@ __tegra_channel_set_format(struct tegra_channel *chan,
 	fmt.pad = 0;
 	v4l2_fill_mbus_format(&fmt.format, pix, vfmt->code);
 
-	ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &fmt);
+	ret = v4l2_subdev_call(sd, pad, set_fmt, &cfg, &fmt);
 	if (ret == -ENOIOCTLCMD)
 		return -ENOTTY;
 
