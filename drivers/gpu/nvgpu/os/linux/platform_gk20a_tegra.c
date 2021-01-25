@@ -1,7 +1,7 @@
 /*
  * GK20A Tegra Platform Interface
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -981,7 +981,7 @@ struct gk20a_platform gm20b_tegra_platform = {
 	.enable_perfmon         = true,
 	.ptimer_src_freq	= 19200000,
 
-	.ch_wdt_init_limit_ms = 5000,
+	.ch_wdt_init_limit_ms = 7000,
 
 	.probe = gk20a_tegra_probe,
 	.late_probe = gk20a_tegra_late_probe,
