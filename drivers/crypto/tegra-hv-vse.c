@@ -4,7 +4,7 @@
  *
  * Support for Tegra Virtual Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 #include <linux/completion.h>
 #include <linux/interrupt.h>
 #include <linux/kthread.h>
+#include <linux/version.h>
 
 #define TEGRA_HV_VSE_SHA_MAX_LL_NUM 26
 #define TEGRA_HV_VSE_SHA_MAX_LL_NUM_1 24
@@ -534,7 +535,11 @@ static struct completion tegra_vse_complete;
 static inline int tegra_hv_get_hwid(struct platform_device *pdev, unsigned id)
 {
 	struct device *dev = &pdev->dev;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+#else
+	struct iommu_fwspec *fwspec = dev_iommu_fwspec_get(dev);
+#endif
 
 	if(!fwspec)
 		return -EINVAL;
@@ -634,7 +639,11 @@ static int tegra_hv_vse_prepare_ivc_linked_list(
 			goto exit;
 		}
 		sg_count++;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 		len = min(src_sg->length, (size_t)total_len);
+#else
+		len = min(src_sg->length, total_len);
+#endif
 		addr = sg_dma_address(src_sg);
 		addr_offset = 0;
 		while (len >= TEGRA_VIRTUAL_SE_MAX_BUFFER_SIZE) {

@@ -460,7 +460,11 @@ static int tegra_hv_vse_safety_prepare_ivc_linked_list(
 			goto exit;
 		}
 		sg_count++;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
 		len = min(src_sg->length, (size_t)total_len);
+#else
+		len = min(src_sg->length, total_len);
+#endif
 		addr = sg_dma_address(src_sg);
 		addr_offset = 0;
 		while (len >= TEGRA_VIRTUAL_SE_MAX_BUFFER_SIZE) {
