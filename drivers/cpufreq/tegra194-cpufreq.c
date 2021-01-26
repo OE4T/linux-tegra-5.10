@@ -287,7 +287,7 @@ static int tegra194_cpufreq_set_target(struct cpufreq_policy *policy,
 	on_each_cpu_mask(policy->cpus, set_cpu_ndiv, tbl, true);
 
 	if (cpu_emc_map_ptr) {
-		get_cpu_cluster(&cl);
+		smp_call_function_single(policy->cpu, get_cpu_cluster, &cl, true);
 		set_cpufreq_to_emcfreq(cl, tbl->frequency);
 	}
 
