@@ -102,10 +102,18 @@
 
 /**
  * @ingroup MRQ_Format
- * Ring the sender's doorbell when responding.
+ * Ring the sender's doorbell when responding. This should be set unless
+ * the sender wants to poll the underlying communications layer directly.
+ *
  * An optional direction that can be specified in mrq_request::flags.
  */
 #define BPMP_MAIL_RING_DB	(1U << 1U)
+
+/**
+ * @ingroup MRQ_Format
+ * CRC present
+ */
+#define BPMP_MAIL_CRC_PRESENT	(1U << 2U)
 
 /**
  * @ingroup MRQ_Format
@@ -120,10 +128,99 @@ struct mrq_request {
 	uint32_t mrq;
 
 	/**
-	 * @brief Flags providing follow up directions to the receiver
+	 * @brief 32bit word containing a number of fields as follows:
 	 *
-	 * A combination of #BPMP_MAIL_DO_ACK and #BPMP_MAIL_RING_DB.
-	 * #BPMP_MAIL_DO_ACK must be always set for requests targeting BPMP.
+	 * 	struct {
+	 * 		uint8_t options:4;
+	 * 		uint8_t xid:4;
+	 * 		uint8_t payload_length;
+	 * 		uint16_t crc16;
+	 * 	};
+	 *
+	 * **options** directions to the receiver and indicates CRC presence.
+	 *
+	 * #BPMP_MAIL_DO_ACK and  #BPMP_MAIL_RING_DB see documentation of respective options.
+	 * #BPMP_MAIL_CRC_PRESENT is supported on T234 and later platforms. It indicates the
+	 * crc16, xid and length fields are present when set.
+	 * Some platform configurations, especially when targeted to applications requiring
+	 * functional safety, mandate this option being set or otherwise will respond with
+	 * -BPMP_EBADMSG and ignore the request.
+	 *
+	 * **xid** is a transaction ID.
+	 *
+	 * Only used when #BPMP_MAIL_CRC_PRESENT is set.
+	 *
+	 * **payload_length** of the message expressed in bytes without the size of this header.
+	 * See table below for minimum accepted payload lengths for each MRQ.
+	 * Note: For DMCE communication, this field expresses the length as a multiple of 4 bytes
+	 * rather than bytes.
+	 *
+	 * Only used when #BPMP_MAIL_CRC_PRESENT is set.
+	 *
+	 * **crc16**
+	 *
+	 * CRC16 using polynomial x^16 + x^14 + x^12 + x^11 + x^8 + x^5 + x^4 + x^2 + 1
+	 * and initialization value 0x4657. The CRC is calculated over all bytes of the message
+	 * including this header. However the crc16 field is considered to be set to 0 when
+	 * calculating the CRC. Only used when #BPMP_MAIL_CRC_PRESENT is set. If
+	 * #BPMP_MAIL_CRC_PRESENT is set and this field does not match the CRC as
+	 * calculated by BPMP, -BPMP_EBADMSG will be returned and the request will
+	 * be ignored.
+	 *
+	 * | MRQ                  | CMD                                  | minimum payload length
+	 * | -------------------- | ------------------------------------ | ------------------------------------------ |
+	 * | MRQ_PING             |                                      | 4                                          |
+	 * | MRQ_THREADED_PING    |                                      | 4                                          |
+	 * | MRQ_RESET            | any                                  | 8                                          |
+	 * | MRQ_I2C              |                                      | 12 + cmd_i2c_xfer_request.data_size        |
+	 * | MRQ_CLK              | CMD_CLK_GET_RATE                     | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_SET_RATE                     | 16                                         |
+	 * | MRQ_CLK              | CMD_CLK_ROUND_RATE                   | 16                                         |
+	 * | MRQ_CLK              | CMD_CLK_GET_PARENT                   | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_SET_PARENT                   | 8                                          |
+	 * | MRQ_CLK              | CMD_CLK_ENABLE                       | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_DISABLE                      | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_IS_ENABLED                   | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_GET_ALL_INFO                 | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_GET_MAX_CLK_ID               | 4                                          |
+	 * | MRQ_CLK              | CMD_CLK_GET_FMAX_AT_VMIN             | 4                                          |
+	 * | MRQ_QUERY_ABI        |                                      | 4                                          |
+	 * | MRQ_PG               | CMD_PG_QUERY_ABI                     | 12                                         |
+	 * | MRQ_PG               | CMD_PG_SET_STATE                     | 12                                         |
+	 * | MRQ_PG               | CMD_PG_GET_STATE                     | 8                                          |
+	 * | MRQ_PG               | CMD_PG_GET_NAME                      | 8                                          |
+	 * | MRQ_PG               | CMD_PG_GET_MAX_ID                    | 8                                          |
+	 * | MRQ_THERMAL          | CMD_THERMAL_QUERY_ABI                | 8                                          |
+	 * | MRQ_THERMAL          | CMD_THERMAL_GET_TEMP                 | 8                                          |
+	 * | MRQ_THERMAL          | CMD_THERMAL_SET_TRIP                 | 20                                         |
+	 * | MRQ_THERMAL          | CMD_THERMAL_GET_NUM_ZONES            | 4                                          |
+	 * | MRQ_THERMAL          | CMD_THERMAL_GET_THERMTRIP            | 8                                          |
+	 * | MRQ_CPU_VHINT        |                                      | 8                                          |
+	 * | MRQ_ABI_RATCHET      |                                      | 2                                          |
+	 * | MRQ_EMC_DVFS_LATENCY |                                      | 8                                          |
+	 * | MRQ_EMC_DVFS_EMCHUB  |                                      | 8                                          |
+	 * | MRQ_CPU_NDIV_LIMITS  |                                      | 4                                          |
+	 * | MRQ_CPU_AUTO_CC3     |                                      | 4                                          |
+	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_QUERY_ABI        | 8                                          |
+	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_READ             | 5                                          |
+	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_WRITE            | 5 + cmd_ringbuf_console_write_req.len      |
+	 * | MRQ_RINGBUF_CONSOLE  | CMD_RINGBUF_CONSOLE_GET_FIFO         | 4                                          |
+	 * | MRQ_STRAP            | STRAP_SET                            | 12                                         |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_LANE_MARGIN_CONTROL    | 24                                         |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_LANE_MARGIN_STATUS     | 4                                          |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_EP_CONTROLLER_PLL_INIT | 5                                          |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_CONTROLLER_STATE       | 6                                          |
+	 * | MRQ_UPHY             | CMD_UPHY_PCIE_EP_CONTROLLER_PLL_OFF  | 5                                          |
+	 * | MRQ_FMON             | CMD_FMON_GEAR_CLAMP                  | 16                                         |
+	 * | MRQ_FMON             | CMD_FMON_GEAR_FREE                   | 4                                          |
+	 * | MRQ_FMON             | CMD_FMON_GEAR_GET                    | 4                                          |
+	 * | MRQ_EC               | CMD_EC_STATUS_EX_GET                 | 12                                         |
+	 * | MRQ_QUERY_FW_TAG     |                                      | 0                                          |
+	 * | MRQ_DEBUG            | CMD_DEBUG_OPEN_RO                    | 4 + length of cmd_debug_fopen_request.name |
+	 * | MRQ_DEBUG            | CMD_DEBUG_OPEN_WO                    | 4 + length of cmd_debug_fopen_request.name |
+	 * | MRQ_DEBUG            | CMD_DEBUG_READ                       | 8                                          |
+	 * | MRQ_DEBUG            | CMD_DEBUG_WRITE                      | 12 + cmd_debug_fwrite_request.datalen      |
+	 * | MRQ_DEBUG            | CMD_DEBUG_CLOSE                      | 8                                          |
 	 */
 	uint32_t flags;
 } BPMP_ABI_PACKED;
@@ -140,7 +237,35 @@ struct mrq_request {
 struct mrq_response {
 	/** @brief Error code for the MRQ request itself */
 	int32_t err;
-	/** @brief Reserved for future use */
+
+	/**
+	 * @brief 32bit word containing a number of fields as follows:
+	 *
+	 * 	struct {
+	 * 		uint8_t options:4;
+	 * 		uint8_t xid:4;
+	 * 		uint8_t payload_length;
+	 * 		uint16_t crc16;
+	 * 	};
+	 *
+	 * **options** indicates CRC presence.
+	 *
+	 * #BPMP_MAIL_CRC_PRESENT is supported on T234 and later platforms and
+	 * indicates the crc16 related fields are present when set.
+	 *
+	 * **xid** is the transaction ID as sent by the requestor.
+	 *
+	 * **length** of the message expressed in bytes without the size of this header.
+	 * Note: For DMCE communication, this field expresses the length as a multiple of 4 bytes
+	 * rather than bytes.
+	 *
+	 * **crc16**
+	 *
+	 * CRC16 using polynomial x^16 + x^14 + x^12 + x^11 + x^8 + x^5 + x^4 + x^2 + 1
+	 * and initialization value 0x4657. The CRC is calculated over all bytes of the message
+	 * including this header. However the crc16 field is considered to be set to 0 when
+	 * calculating the CRC. Only used when #BPMP_MAIL_CRC_PRESENT is set.
+	 */
 	uint32_t flags;
 } BPMP_ABI_PACKED;
 
@@ -3121,6 +3246,8 @@ struct mrq_ec_response {
 #define BPMP_ENOSYS	38
 /** @brief Invalid slot */
 #define BPMP_EBADSLT	57
+/** @brief Invalid message */
+#define BPMP_EBADMSG	77
 /** @brief Not supported */
 #define BPMP_ENOTSUP	134
 /** @brief No such device or address */
