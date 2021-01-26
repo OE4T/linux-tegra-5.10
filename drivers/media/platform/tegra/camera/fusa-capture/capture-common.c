@@ -434,6 +434,50 @@ void put_mapping(
 	}
 }
 
+int capture_common_pin_and_get_iova(struct capture_buffer_table *buf_ctx,
+		uint32_t mem_handle, uint64_t mem_offset,
+		uint64_t *meminfo_base_address, uint64_t *meminfo_size,
+		struct capture_common_unpins *unpins)
+{
+	struct capture_mapping *map;
+	struct dma_buf *buf;
+	uint64_t size;
+	uint64_t iova;
+
+	/* NULL is a valid unput indicating unused data field */
+	if (!mem_handle) {
+		return 0;
+	}
+
+	if (unpins->num_unpins >= MAX_PIN_BUFFER_PER_REQUEST) {
+		pr_err("%s: too many buffers per request\n", __func__);
+			return -ENOMEM;
+	}
+
+	map = get_mapping(buf_ctx, mem_handle, BUFFER_RDWR);
+
+	if (!map) {
+		pr_err("%s: cannot get mapping\n", __func__);
+		return -EINVAL;
+	}
+
+	buf = mapping_buf(map);
+	size = buf->size;
+	iova = mapping_iova(map);
+
+	if (mem_offset >= size) {
+		pr_err("%s: offset is out of bounds\n", __func__);
+		return -EINVAL;
+	}
+
+	*meminfo_base_address = iova + mem_offset;
+	*meminfo_size = size - mem_offset;
+
+	unpins->data[unpins->num_unpins] = map;
+	unpins->num_unpins++;
+	return 0;
+}
+
 int capture_common_setup_progress_status_notifier(
 	struct capture_common_status_notifier *status_notifier,
 	uint32_t mem,
@@ -549,6 +593,13 @@ int capture_common_pin_memory(
 	if (sg_dma_address(sgt->sgl) == 0)
 		sg_dma_address(sgt->sgl) = sg_phys(sgt->sgl);
 
+	unpin_data->va = dma_buf_vmap(buf);
+
+	if (unpin_data->va == NULL) {
+		pr_err("%s: failed to map pinned memory\n", __func__);
+		goto fail;
+	}
+
 	unpin_data->iova = sg_dma_address(sgt->sgl);
 	unpin_data->buf = buf;
 	unpin_data->attach = attach;
@@ -564,6 +615,9 @@ fail:
 void capture_common_unpin_memory(
 	struct capture_common_buf *unpin_data)
 {
+	if (unpin_data->va)
+		dma_buf_vunmap(unpin_data->buf, unpin_data->va);
+
 	if (unpin_data->sgt != NULL)
 		dma_buf_unmap_attachment(unpin_data->attach, unpin_data->sgt,
 				DMA_BIDIRECTIONAL);
@@ -576,6 +630,7 @@ void capture_common_unpin_memory(
 	unpin_data->attach = NULL;
 	unpin_data->buf = NULL;
 	unpin_data->iova = 0;
+	unpin_data->va = NULL;
 }
 
 int capture_common_request_pin_and_reloc(
@@ -595,17 +650,9 @@ int capture_common_request_pin_and_reloc(
 		return -EINVAL;
 	}
 
-	if (req->unpins) {
+	if (req->unpins->num_unpins != 0U) {
 		dev_err(req->dev, "%s: request unpins already exist", __func__);
 		return -EEXIST;
-	}
-
-	req->unpins = kzalloc(sizeof(struct capture_common_unpins) +
-		(sizeof(req->unpins->data[0]) * req->num_relocs),
-		GFP_KERNEL);
-	if (unlikely(req->unpins == NULL)) {
-		dev_err(req->dev, "failed to allocate request unpins\n");
-		return -ENOMEM;
 	}
 
 	reloc_relatives = kcalloc(req->num_relocs, sizeof(uint32_t),
@@ -646,6 +693,12 @@ int capture_common_request_pin_and_reloc(
 		dev_dbg(req->dev,
 			"%s: idx:%i reloc:%u reloc_offset:%u", __func__,
 			i, reloc_relative, reloc_offset);
+
+		if (req->unpins->num_unpins >= MAX_PIN_BUFFER_PER_REQUEST) {
+			dev_err(req->dev, "%s: too many buffers\n", __func__);
+			err = -ENOMEM;
+			goto pin_fail;
+		}
 
 		/* locate page of request in capture desc reloc is on */
 		if (last_page != reloc_offset >> PAGE_SHIFT) {
@@ -723,11 +776,10 @@ pin_fail:
 	if (err) {
 		for (i = 0; i < req->unpins->num_unpins; i++)
 			put_mapping(req->table, req->unpins->data[i]);
+		(void)memset(req->unpins, 0U,sizeof(*req->unpins));
 	}
 
 reloc_fail:
-	if (err)
-		kfree(req->unpins);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	if (reloc_page_addr != NULL)

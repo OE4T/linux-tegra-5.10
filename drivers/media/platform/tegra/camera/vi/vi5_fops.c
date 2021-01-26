@@ -317,8 +317,12 @@ static void vi5_setup_surface(struct tegra_channel *chan,
 	u32 data_type = chan->fmtinfo->img_dt;
 	u32 csi_port = chan->port[0];
 	struct capture_descriptor *desc = &chan->request[descr_index];
+	struct capture_descriptor_memoryinfo *desc_memoryinfo =
+		&chan->tegra_vi_channel->
+		capture_data->requests_memoryinfo[descr_index];
 
 	memcpy(desc, &capture_template, sizeof(capture_template));
+	memset(desc_memoryinfo, 0, sizeof(*desc_memoryinfo));
 
 	desc->sequence = chan->capture_descr_sequence;
 	desc->ch_cfg.match.stream = (1u << csi_port); /* one-hot bit encoding */
@@ -330,18 +334,20 @@ static void vi5_setup_surface(struct tegra_channel *chan,
 	desc->ch_cfg.pixfmt_enable = 1;
 	desc->ch_cfg.pixfmt.format = format;
 
-	desc->ch_cfg.atomp.surface[0].offset = (u32)offset;
-	desc->ch_cfg.atomp.surface[0].offset_hi = (u32)(offset >> 32U);
+	desc_memoryinfo->surface[0].base_address = offset;
+	desc_memoryinfo->surface[0].size = chan->format.bytesperline * height;
 	desc->ch_cfg.atomp.surface_stride[0] = chan->format.bytesperline;
 
 	if (chan->embedded_data_height > 0) {
 		desc->ch_cfg.embdata_enable = 1;
 		desc->ch_cfg.frame.embed_x = chan->embedded_data_width * BPP_MEM;
 		desc->ch_cfg.frame.embed_y = chan->embedded_data_height;
-		desc->ch_cfg.atomp.surface[VI_ATOMP_SURFACE_EMBEDDED].offset
-			= (u32)chan->vi->emb_buf;
-		desc->ch_cfg.atomp.surface[VI_ATOMP_SURFACE_EMBEDDED].offset_hi
-			= (u32)(chan->vi->emb_buf >> 32U);
+
+		desc_memoryinfo->surface[VI_ATOMP_SURFACE_EMBEDDED].base_address
+			= chan->vi->emb_buf;
+		desc_memoryinfo->surface[VI_ATOMP_SURFACE_EMBEDDED].size
+			= desc->ch_cfg.frame.embed_x * desc->ch_cfg.frame.embed_y;
+
 		desc->ch_cfg.atomp.surface_stride[VI_ATOMP_SURFACE_EMBEDDED]
 			= chan->embedded_data_width * BPP_MEM;
 	}

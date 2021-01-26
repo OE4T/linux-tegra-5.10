@@ -46,6 +46,10 @@ struct vi_capture {
 	struct capture_buffer_table *buf_ctx;
 		/**< Surface buffer management table */
 	struct capture_common_buf requests; /**< Capture descriptors queue */
+	struct capture_descriptor_memoryinfo *requests_memoryinfo;
+		/**< memory info ringbuffer handle*/
+	uint64_t requests_memoryinfo_iova;
+		/**< memory info ringbuffer rtcpu iova */
 	size_t request_buf_size;
 		/**< Size of capture descriptor queue [byte] */
 	uint32_t queue_depth; /**< No. of capture descriptors in queue */
@@ -87,7 +91,7 @@ struct vi_capture {
 	struct mutex reset_lock;
 		/**< Channel lock for reset/abort support (via RCE) */
 	struct mutex unpins_list_lock; /**< Lock for unpins_list */
-	struct capture_common_unpins **unpins_list;
+	struct capture_common_unpins *unpins_list;
 		/**< List of capture request buffer unpins */
 
 	uint64_t vi_channel_mask;

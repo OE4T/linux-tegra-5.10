@@ -67,6 +67,11 @@ struct capture_mapping;
 
 /** @} */
 
+/** @brief  max pin count per request. Used to preallocate unpin list */
+#define MAX_PIN_BUFFER_PER_REQUEST 	(U32_C(24))
+
+
+
 /**
  * @brief Initialize the capture surface management table for SLAB allocations.
  *
@@ -130,6 +135,7 @@ struct capture_common_buf {
 	struct dma_buf_attachment *attach; /**< dma_buf attachment context */
 	struct sg_table *sgt; /**< scatterlist table */
 	dma_addr_t iova; /**< dma address */
+	void *va; /**< virtual address for kernel access */
 };
 
 /**
@@ -137,7 +143,7 @@ struct capture_common_buf {
  */
 struct capture_common_unpins {
 	uint32_t num_unpins; /**< No. of entries in data[] */
-	struct capture_mapping *data[]; /**< Surface buffers to unpin */
+	struct capture_mapping *data[MAX_PIN_BUFFER_PER_REQUEST]; /**< Surface buffers to unpin */
 };
 
 /**
@@ -247,5 +253,26 @@ void capture_common_unpin_memory(
  */
 int capture_common_request_pin_and_reloc(
 	struct capture_common_pin_req *req);
+
+/**
+ * @brief Pins (maps) the physical address for provided capture surface address
+ * and updates the iova pointer.
+ *
+ * @param[in,out] 	buf_ctx			Surface buffer management table
+ * @param[in] 		mem_handle		Memory handle (descriptor). Can be NULL,
+ *						in this case function will do nothing and
+ *						and return 0. This is to simplify handling of
+ *						capture descriptors data fields, NULL indicates
+ *						unused memory surface.
+ * @param[in] 		mem_offset		Offset inside memory buffer
+ * @param[out] 		meminfo_base_address 	Surface iova address, including offset
+ * @param[out] 		meminfo_size 		Size of iova range, excluding offset
+ * @param[in,out]	unpins			Unpin data used to unref/unmap buffer
+ * 						after capture
+ */
+int capture_common_pin_and_get_iova(struct capture_buffer_table *buf_ctx,
+		uint32_t mem_handle, uint64_t mem_offset,
+		uint64_t *meminfo_base_address, uint64_t *meminfo_size,
+		struct capture_common_unpins *unpins);
 
 #endif /* __FUSA_CAPTURE_COMMON_H__*/

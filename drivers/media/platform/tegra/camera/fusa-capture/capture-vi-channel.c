@@ -28,6 +28,8 @@
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <linux/dma-buf.h>
+#include <linux/dma-mapping.h>
 
 #include "nvhost_acm.h"
 #include <media/fusa-capture/capture-vi.h>
@@ -205,12 +207,12 @@ void vi_capture_request_unpin(
 	int i = 0;
 
 	mutex_lock(&capture->unpins_list_lock);
-	unpins = capture->unpins_list[buffer_index];
-	if (unpins != NULL) {
+	unpins = &capture->unpins_list[buffer_index];
+
+	if (unpins->num_unpins != 0) {
 		for (i = 0; i < unpins->num_unpins; i++)
 			put_mapping(capture->buf_ctx, unpins->data[i]);
-		capture->unpins_list[buffer_index] = NULL;
-		kfree(unpins);
+		(void)memset(unpins, 0U,sizeof(*unpins));
 	}
 	mutex_unlock(&capture->unpins_list_lock);
 }
@@ -346,6 +348,57 @@ static int vi_channel_release(
 }
 
 /**
+ * Pin/map buffers and save iova boundaries into corresponding
+ * memoryinfo struct.
+ */
+int pin_vi_capture_request_buffers_locked(struct tegra_vi_channel *chan,
+		struct vi_capture_req *req,
+		struct capture_common_unpins *request_unpins)
+{
+	struct vi_capture *capture = chan->capture_data;
+	struct capture_descriptor* desc = (struct capture_descriptor*)
+		(capture->requests.va +
+				req->buffer_index * capture->request_size);
+
+	struct capture_descriptor_memoryinfo* desc_mem =
+			&capture->requests_memoryinfo[req->buffer_index];
+	int i;
+	int err = 0;
+
+	/* Buffer count: ATOMP surfaces + engine_surface */
+	BUG_ON(VI_NUM_ATOMP_SURFACES + 1U >= MAX_PIN_BUFFER_PER_REQUEST);
+
+	for (i = 0; i < VI_NUM_ATOMP_SURFACES; i++) {
+		err = capture_common_pin_and_get_iova(capture->buf_ctx,
+			desc->ch_cfg.atomp.surface[i].offset_hi,
+			desc->ch_cfg.atomp.surface[i].offset,
+			&desc_mem->surface[i].base_address, &desc_mem->surface[i].size,
+			request_unpins);
+
+		if (err) {
+			dev_err(chan->dev, "%s: get atomp iova failed\n", __func__);
+			goto fail;
+		}
+	}
+
+	err = capture_common_pin_and_get_iova(capture->buf_ctx,
+		desc->engine_status.offset_hi,
+		desc->engine_status.offset,
+		&desc_mem->engine_status_surface_base_address,
+		&desc_mem->engine_status_surface_size,
+		request_unpins);
+
+	if (err) {
+		dev_err(chan->dev, "%s: get engine surf iova failed\n", __func__);
+		goto fail;
+	}
+
+fail:
+	/* Unpin cleanup is done in vi_capture_request_unpin() */
+	return err;
+}
+
+/**
  * @brief Process an IOCTL call on a VI channel character device.
  *
  * Depending on the specific IOCTL, the argument (@a arg) may be a pointer to a
@@ -388,6 +441,13 @@ static long vi_channel_ioctl(
 			}
 		}
 
+
+		if (setup.request_size < sizeof(struct capture_descriptor)) {
+			dev_err(chan->dev,
+				"request size is too small to fit capture descriptor\n");
+			return -EINVAL;
+		}
+
 		capture->buf_ctx = create_buffer_table(chan->dev);
 		if (capture->buf_ctx == NULL) {
 			dev_err(chan->dev, "vi buffer setup failed");
@@ -404,12 +464,12 @@ static long vi_channel_ioctl(
 			return -EFAULT;
 		}
 
-		/* allocate for unpin list based on queue depth */
-		capture->unpins_list = kcalloc(setup.queue_depth,
-				sizeof(struct capture_common_unpins *),
-				GFP_KERNEL);
-		if (unlikely(capture->unpins_list == NULL)) {
-			dev_err(chan->dev, "failed to allocate unpins array\n");
+		/* Check that buffer size matches queue depth */
+		if ((capture->requests.buf->size / setup.request_size) <
+				setup.queue_depth) {
+			dev_err(chan->dev,
+				"%s: descriptor buffer is too small for given queue depth\n",
+				__func__);
 			capture_common_unpin_memory(&capture->requests);
 			destroy_buffer_table(capture->buf_ctx);
 			return -ENOMEM;
@@ -419,7 +479,6 @@ static long vi_channel_ioctl(
 		err = vi_capture_setup(chan, &setup);
 		if (err < 0) {
 			dev_err(chan->dev, "vi capture setup failed\n");
-			kfree(capture->unpins_list);
 			capture_common_unpin_memory(&capture->requests);
 			destroy_buffer_table(capture->buf_ctx);
 			return err;
@@ -441,6 +500,7 @@ static long vi_channel_ioctl(
 			for (i = 0; i < capture->queue_depth; i++)
 				vi_capture_request_unpin(chan, i);
 		}
+
 		break;
 	}
 
@@ -458,9 +518,11 @@ static long vi_channel_ioctl(
 			for (i = 0; i < capture->queue_depth; i++)
 				vi_capture_request_unpin(chan, i);
 			capture_common_unpin_memory(&capture->requests);
-			kfree(capture->unpins_list);
 			destroy_buffer_table(capture->buf_ctx);
+			vfree(capture->unpins_list);
+			capture->unpins_list = NULL;
 		}
+
 		break;
 	}
 
@@ -488,7 +550,7 @@ static long vi_channel_ioctl(
 
 	case _IOC_NR(VI_CAPTURE_REQUEST): {
 		struct vi_capture_req req;
-		struct capture_common_pin_req cap_common_req;
+		struct capture_common_unpins *request_unpins;
 
 		if (copy_from_user(&req, ptr, sizeof(req)))
 			break;
@@ -498,31 +560,39 @@ static long vi_channel_ioctl(
 			return -EINVAL;
 		}
 
-		/* pin and reloc */
-		memset(&cap_common_req, 0, sizeof(cap_common_req));
-		cap_common_req.table = capture->buf_ctx;
-		cap_common_req.dev = chan->dev;
-		cap_common_req.rtcpu_dev = capture->rtcpu_dev;
-		cap_common_req.unpins = NULL;
-		cap_common_req.requests = &capture->requests;
-		cap_common_req.request_size = capture->request_size;
-		cap_common_req.request_offset = req.buffer_index *
-				capture->request_size;
-		cap_common_req.num_relocs = req.num_relocs;
-		cap_common_req.reloc_user = (uint32_t __user *)
-				(uintptr_t)req.reloc_relatives;
-
-		err = capture_common_request_pin_and_reloc(&cap_common_req);
-		if (err < 0) {
-			dev_err(chan->dev, "request relocation failed\n");
-			return err;
+		if (req.buffer_index >= capture->queue_depth) {
+			dev_err(chan->dev, "buffer index is out of bound\n");
+			return -EINVAL;
 		}
 
-		/* assign the unpins list to the capture to be unpinned and */
-		/* freed at capture completion (vi_capture_request_unpin) */
+		/* Don't let to speculate with invalid buffer_index value */
+		speculation_barrier();
+
+		if (capture->unpins_list == NULL) {
+			dev_err(chan->dev, "Channel setup incomplete\n");
+			return -EINVAL;
+		}
+
 		mutex_lock(&capture->unpins_list_lock);
-		capture->unpins_list[req.buffer_index] = cap_common_req.unpins;
+
+		request_unpins = &capture->unpins_list[req.buffer_index];
+
+		if (request_unpins->num_unpins != 0U) {
+			dev_err(chan->dev, "Descriptor is still in use by rtcpu\n");
+			mutex_unlock(&capture->unpins_list_lock);
+			return -EBUSY;
+		}
+		err = pin_vi_capture_request_buffers_locked(chan, &req,
+				request_unpins);
+
 		mutex_unlock(&capture->unpins_list_lock);
+
+		if (err < 0) {
+			dev_err(chan->dev,
+				"pin request failed\n");
+			vi_capture_request_unpin(chan, req.buffer_index);
+			break;
+		}
 
 		err = vi_capture_request(chan, &req);
 		if (err < 0) {
@@ -530,6 +600,7 @@ static long vi_channel_ioctl(
 				"vi capture request submit failed\n");
 			vi_capture_request_unpin(chan, req.buffer_index);
 		}
+
 		break;
 	}
 

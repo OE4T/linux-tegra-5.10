@@ -61,7 +61,7 @@ struct isp_desc_rec {
 		/**< No. of process descriptors. */
 
 	struct mutex unpins_list_lock; /**< Lock for unpins_list */
-	struct capture_common_unpins **unpins_list;
+	struct capture_common_unpins *unpins_list;
 		/**< List of process request buffer unpins */
 };
 
@@ -522,12 +522,11 @@ static void isp_capture_request_unpin(
 	int i = 0;
 
 	mutex_lock(&capture->capture_desc_ctx.unpins_list_lock);
-	unpins = capture->capture_desc_ctx.unpins_list[buffer_index];
-	if (unpins != NULL) {
+	unpins = &capture->capture_desc_ctx.unpins_list[buffer_index];
+	if (unpins->num_unpins != 0U) {
 		for (i = 0; i < unpins->num_unpins; i++)
 			put_mapping(capture->buffer_ctx, unpins->data[i]);
-		kfree(unpins);
-		capture->capture_desc_ctx.unpins_list[buffer_index] = NULL;
+		(void)memset(unpins, 0U, sizeof(*unpins));
 	}
 	mutex_unlock(&capture->capture_desc_ctx.unpins_list_lock);
 }
@@ -548,12 +547,11 @@ static void isp_capture_program_request_unpin(
 	int i = 0;
 
 	mutex_lock(&capture->program_desc_ctx.unpins_list_lock);
-	unpins = capture->program_desc_ctx.unpins_list[buffer_index];
-	if (unpins != NULL) {
+	unpins = &capture->program_desc_ctx.unpins_list[buffer_index];
+	if (unpins->num_unpins != 0U) {
 		for (i = 0; i < unpins->num_unpins; i++)
 			put_mapping(capture->buffer_ctx, unpins->data[i]);
-		kfree(unpins);
-		capture->program_desc_ctx.unpins_list[buffer_index] = NULL;
+		(void)memset(unpins, 0U, sizeof(*unpins));
 	}
 	mutex_unlock(&capture->program_desc_ctx.unpins_list_lock);
 }
@@ -612,7 +610,8 @@ static int isp_capture_program_prepare(
 	cap_common_req.table = capture->buffer_ctx;
 	cap_common_req.dev = chan->isp_dev;
 	cap_common_req.rtcpu_dev = capture->rtcpu_dev;
-	cap_common_req.unpins = NULL;
+	cap_common_req.unpins =
+		&capture->program_desc_ctx.unpins_list[req->buffer_index];
 	cap_common_req.requests = &capture->program_desc_ctx.requests;
 	cap_common_req.request_size = capture->program_desc_ctx.request_size;
 	cap_common_req.request_offset = req->buffer_index *
@@ -627,12 +626,6 @@ static int isp_capture_program_prepare(
 		dev_err(chan->isp_dev, "request pin and reloc failed\n");
 		goto fail;
 	}
-
-	/* add pinned memory ctx to unpins_list */
-	mutex_lock(&capture->program_desc_ctx.unpins_list_lock);
-	capture->program_desc_ctx.unpins_list[req->buffer_index] =
-		cap_common_req.unpins;
-	mutex_unlock(&capture->program_desc_ctx.unpins_list_lock);
 
 fail:
 	mutex_unlock(&capture->reset_lock);
@@ -1052,10 +1045,9 @@ int isp_capture_setup(
 							setup->queue_depth;
 
 	/* allocate isp capture desc unpin list based on queue depth */
-	capture->capture_desc_ctx.unpins_list = kcalloc(
-				capture->capture_desc_ctx.queue_depth,
-				sizeof(struct capture_common_unpins *),
-				GFP_KERNEL);
+	capture->capture_desc_ctx.unpins_list = vzalloc(
+		capture->capture_desc_ctx.queue_depth *
+			sizeof(struct capture_common_unpins *));
 	if (unlikely(capture->capture_desc_ctx.unpins_list == NULL)) {
 		dev_err(chan->isp_dev, "failed to allocate unpins array\n");
 		goto unpins_list_fail;
@@ -1090,10 +1082,9 @@ int isp_capture_setup(
 						setup->isp_program_queue_depth;
 
 	/* allocate isp program unpin list based on queue depth */
-	capture->program_desc_ctx.unpins_list = kcalloc(
-				capture->program_desc_ctx.queue_depth,
-				sizeof(struct capture_common_unpins *),
-				GFP_KERNEL);
+	capture->program_desc_ctx.unpins_list = vzalloc(
+			capture->program_desc_ctx.queue_depth *
+				sizeof(struct capture_common_unpins *));
 	if (unlikely(capture->program_desc_ctx.unpins_list == NULL)) {
 		dev_err(chan->isp_dev,
 			"failed to allocate isp program unpins array\n");
@@ -1185,11 +1176,11 @@ submit_fail:
 control_cb_fail:
 	isp_capture_release_syncpts(chan);
 syncpt_fail:
-	kfree(capture->program_desc_ctx.unpins_list);
+	vfree(capture->program_desc_ctx.unpins_list);
 prog_unpins_list_fail:
 	capture_common_unpin_memory(&capture->program_desc_ctx.requests);
 prog_pin_fail:
-	kfree(capture->capture_desc_ctx.unpins_list);
+	vfree(capture->capture_desc_ctx.unpins_list);
 unpins_list_fail:
 	capture_common_unpin_memory(&capture->capture_desc_ctx.requests);
 pin_fail:
@@ -1278,8 +1269,10 @@ int isp_capture_release(
 
 	capture_common_unpin_memory(&capture->capture_desc_ctx.requests);
 
-	kfree(capture->program_desc_ctx.unpins_list);
-	kfree(capture->capture_desc_ctx.unpins_list);
+	vfree(capture->program_desc_ctx.unpins_list);
+	capture->program_desc_ctx.unpins_list = NULL;
+	vfree(capture->capture_desc_ctx.unpins_list);
+	capture->capture_desc_ctx.unpins_list = NULL;
 
 	if (capture->is_progress_status_notifier_set)
 		capture_common_release_progress_status_notifier(
@@ -1512,7 +1505,8 @@ int isp_capture_request(
 	cap_common_req.table = capture->buffer_ctx;
 	cap_common_req.dev = chan->isp_dev;
 	cap_common_req.rtcpu_dev = capture->rtcpu_dev;
-	cap_common_req.unpins = NULL;
+	cap_common_req.unpins =
+		&capture->capture_desc_ctx.unpins_list[req->buffer_index];
 	cap_common_req.requests = &capture->capture_desc_ctx.requests;
 	cap_common_req.request_size = capture->capture_desc_ctx.request_size;
 	cap_common_req.request_offset = request_offset;
@@ -1526,12 +1520,6 @@ int isp_capture_request(
 		dev_err(chan->isp_dev, "request pin and reloc failed\n");
 		goto fail;
 	}
-
-	/* add pinned memory ctx to unpins_list */
-	mutex_lock(&capture->capture_desc_ctx.unpins_list_lock);
-	capture->capture_desc_ctx.unpins_list[req->buffer_index] =
-		cap_common_req.unpins;
-	mutex_unlock(&capture->capture_desc_ctx.unpins_list_lock);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	nv_camera_log_submit(

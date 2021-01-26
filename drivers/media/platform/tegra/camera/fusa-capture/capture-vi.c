@@ -23,6 +23,7 @@
 #include <linux/printk.h>
 #include <linux/slab.h>
 #include <linux/tegra-capture-ivc.h>
+#include <linux/tegra-camera-rtcpu.h>
 
 #include <asm/arch_timer.h>
 #include <uapi/linux/nvhost_events.h>
@@ -586,10 +587,10 @@ void vi_capture_shutdown(
 			for (i = 0; i < capture->queue_depth; i++)
 				vi_capture_request_unpin(chan, i);
 		}
-
 		capture_common_unpin_memory(&capture->requests);
 		destroy_buffer_table(capture->buf_ctx);
-		kfree(capture->unpins_list);
+		vfree(capture->unpins_list);
+		capture->unpins_list = NULL;
 	}
 	kfree(capture);
 	chan->capture_data = NULL;
@@ -689,6 +690,12 @@ int vi_capture_setup(
 		return -EEXIST;
 	}
 
+	if (setup->csi_stream_id >= MAX_NVCSI_STREAM_IDS ||
+		setup->virtual_channel_id >= MAX_VIRTUAL_CHANNEL_PER_STREAM) {
+		dev_err(chan->dev, "Invalid stream id or virtual channel id\n");
+		return -EINVAL;
+	}
+
 	dev_dbg(chan->dev, "chan flags %u\n", setup->channel_flags);
 	dev_dbg(chan->dev, "chan mask %llx\n", setup->vi_channel_mask);
 	dev_dbg(chan->dev, "queue depth %u\n", setup->queue_depth);
@@ -730,6 +737,32 @@ int vi_capture_setup(
 	memset(&control_desc, 0, sizeof(control_desc));
 	control_desc.header.msg_id = CAPTURE_CHANNEL_SETUP_REQ;
 	control_desc.header.transaction = transaction;
+
+	/* Allocate memoryinfo ringbuffer */
+	capture->requests_memoryinfo = dma_alloc_coherent(capture->rtcpu_dev,
+		setup->queue_depth * sizeof(*capture->requests_memoryinfo),
+		&capture->requests_memoryinfo_iova, GFP_KERNEL);
+
+	if (!capture->requests_memoryinfo) {
+		dev_err(chan->dev,
+			"%s: memoryinfo ringbuffer alloc failed\n", __func__);
+		goto memoryinfo_alloc_fail;
+	}
+
+	WARN_ON(capture->unpins_list != NULL);
+
+	capture->unpins_list =
+		vzalloc(setup->queue_depth * sizeof(*capture->unpins_list));
+
+	if (!capture->unpins_list) {
+		dev_err(chan->dev,
+			"%s: channel_unpins alloc failed\n", __func__);
+		goto unpin_alloc_fail;
+	}
+
+	config->requests_memoryinfo = capture->requests_memoryinfo_iova;
+	config->request_memoryinfo_size =
+			sizeof(struct capture_descriptor_memoryinfo);
 
 	config->channel_flags = setup->channel_flags;
 	config->vi_channel_mask = setup->vi_channel_mask;
@@ -802,20 +835,24 @@ int vi_capture_setup(
 		goto cb_fail;
 	}
 
-	if (setup->csi_stream_id >= MAX_NVCSI_STREAM_IDS ||
-		setup->virtual_channel_id >= MAX_VIRTUAL_CHANNEL_PER_STREAM) {
-		dev_err(chan->dev, "Invalid stream id or virtual channel id\n");
-		err = -EINVAL;
-		goto cb_fail;
-	}
 	channels[setup->csi_stream_id][setup->virtual_channel_id] = chan;
 
 	return 0;
 
 cb_fail:
-	vi_capture_release(chan, CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE);
 resp_fail:
 submit_fail:
+	vfree(capture->unpins_list);
+	capture->unpins_list = NULL;
+unpin_alloc_fail:
+	/* Release memoryinfo ringbuffer */
+	dma_free_coherent(capture->rtcpu_dev,
+		capture->queue_depth *
+		sizeof(struct capture_descriptor_memoryinfo),
+		capture->requests_memoryinfo,
+		capture->requests_memoryinfo_iova);
+	capture->requests_memoryinfo = NULL;
+memoryinfo_alloc_fail:
 	tegra_capture_ivc_unregister_control_cb(transaction);
 control_cb_fail:
 	vi_capture_release_syncpts(chan);
@@ -941,6 +978,7 @@ int vi_capture_release(
 		dev_err(chan->dev,
 			"%s: setup channel first\n", __func__);
 		return -ENODEV;
+
 	}
 
 	memset(&control_desc, 0, sizeof(control_desc));
@@ -950,13 +988,26 @@ int vi_capture_release(
 
 	err = vi_capture_ivc_send_control(chan, &control_desc,
 			sizeof(control_desc), CAPTURE_CHANNEL_RELEASE_RESP);
-	if (err < 0)
-		goto submit_fail;
+	if (err < 0) {
+		dev_err(chan->dev,
+				"%s: release channel IVC failed\n", __func__);
+		WARN_ON("RTCPU is in a bad state. Reboot to recover");
 
-	if (resp_msg->channel_release_resp.result != CAPTURE_OK) {
+		tegra_camrtc_reboot(chan->rtcpu_dev);
+
+		err = -EIO;
+	} else if (resp_msg->channel_release_resp.result != CAPTURE_OK) {
 		dev_err(chan->dev, "%s: control failed, errno %d", __func__,
 			resp_msg->channel_release_resp.result);
-		err = -EINVAL;
+		err = -EIO;
+	}
+
+	if (capture->requests_memoryinfo) {
+		/* Release memoryinfo ringbuffer */
+		dma_free_coherent(capture->rtcpu_dev,
+			capture->queue_depth * sizeof(struct capture_descriptor_memoryinfo),
+			capture->requests_memoryinfo, capture->requests_memoryinfo_iova);
+		capture->requests_memoryinfo = NULL;
 	}
 
 	ret = tegra_capture_ivc_unregister_capture_cb(capture->channel_id);
@@ -992,9 +1043,6 @@ int vi_capture_release(
 		capture_common_release_progress_status_notifier(
 			&capture->progress_status_notifier);
 
-	return 0;
-
-submit_fail:
 	return err;
 }
 
