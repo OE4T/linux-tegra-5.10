@@ -75,7 +75,6 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 			osi_core->safety_config =
 					(void *)eqos_get_core_safety_config();
 		} else {
-#ifdef LINUX_IVC
 			/* Get IVC HW ops */
 			osi_core->ops = ivc_get_hw_core_ops();
 			/* Explicitly set osi_core->safety_config = OSI_NULL if
@@ -84,7 +83,6 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 			 */
 			osi_core->safety_config =
 					(void *)ivc_get_core_safety_config();
-#endif
 		}
 		return 0;
 	}

@@ -34,6 +34,7 @@ NV_COMPONENT_SOURCES           := \
 	eqos_core.c \
 	eqos_mmc.c \
 	osi_core.c \
+	ivc_core.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c
 
