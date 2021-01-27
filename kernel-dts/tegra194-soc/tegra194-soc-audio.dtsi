@@ -765,6 +765,13 @@
 		};
 	};
 
+	tegra_acsl_audio: acsl_audio {
+		compatible = "nvidia,tegra23x-acsl-audio";
+		iommus = <&smmu TEGRA_SID_APE>;
+		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
+		status = "disabled";
+	};
+
 	hda@3510000 {
 		compatible = "nvidia,tegra194-hda", "nvidia,tegra30-hda";
 
