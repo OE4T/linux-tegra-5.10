@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -250,31 +250,38 @@ static bool complete_bio_req(struct vblk_dev *vblkdev)
 	size_t total_size = 0;
 	struct vsc_request *vsc_req = NULL;
 	struct vs_request *vs_req;
-	struct vs_request *req_resp;
+	struct vs_request req_resp;
 	struct request *bio_req;
 	void *buffer;
 
-	if (!tegra_hv_ivc_can_read(vblkdev->ivck))
-		goto no_valid_io;
-
-	req_resp = (struct vs_request *)
-		tegra_hv_ivc_read_get_next_frame(vblkdev->ivck);
-	if (IS_ERR_OR_NULL(req_resp)) {
-		dev_err(vblkdev->device, "ivc read failed\n");
+	mutex_lock(&vblkdev->ivc_lock);
+	/* First check if ivc read queue is empty */
+	if (!tegra_hv_ivc_can_read(vblkdev->ivck)) {
+		mutex_unlock(&vblkdev->ivc_lock);
 		goto no_valid_io;
 	}
 
-	status = req_resp->status;
+	/* Copy the data and advance to next frame */
+	if ((tegra_hv_ivc_read(vblkdev->ivck, &req_resp,
+				sizeof(struct vs_request)) <= 0)) {
+		dev_err(vblkdev->device,
+				"Couldn't increment read frame pointer!\n");
+		mutex_unlock(&vblkdev->ivc_lock);
+		goto no_valid_io;
+	}
+	mutex_unlock(&vblkdev->ivc_lock);
+
+	status = req_resp.status;
 	if (status != 0) {
 		dev_err(vblkdev->device, "IO request error = %d\n",
 				status);
 	}
 
-	vsc_req = vblk_get_req_by_sr_num(vblkdev, req_resp->req_id);
+	vsc_req = vblk_get_req_by_sr_num(vblkdev, req_resp.req_id);
 	if (vsc_req == NULL) {
 		dev_err(vblkdev->device, "serial_number mismatch num %d!\n",
-				req_resp->req_id);
-		goto advance_frame;
+				req_resp.req_id);
+		goto complete_bio_exit;
 	}
 
 	bio_req = vsc_req->req;
@@ -287,7 +294,7 @@ static bool complete_bio_req(struct vblk_dev *vblkdev)
 		if (bio_req->cmd_type == REQ_TYPE_DRV_PRIV) {
 #endif
 			vblk_complete_ioctl_req(vblkdev, vsc_req,
-					req_resp->blkdev_resp.
+					req_resp.blkdev_resp.
 					ioctl_resp.status);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
 				blk_mq_end_request(bio_req, BLK_STS_OK);
@@ -298,14 +305,14 @@ static bool complete_bio_req(struct vblk_dev *vblkdev)
 				}
 #endif
 		} else {
-			if (req_resp->blkdev_resp.blk_resp.status != 0) {
+			if (req_resp.blkdev_resp.blk_resp.status != 0) {
 				req_error_handler(vblkdev, bio_req);
 				goto put_req;
 			}
 
 			if (req_op(bio_req) != REQ_OP_FLUSH) {
 				if (vs_req->blkdev_req.blk_req.num_blks !=
-						req_resp->blkdev_resp.blk_resp.num_blks) {
+				    req_resp.blkdev_resp.blk_resp.num_blks) {
 					req_error_handler(vblkdev, bio_req);
 					goto put_req;
 				}
@@ -362,12 +369,7 @@ static bool complete_bio_req(struct vblk_dev *vblkdev)
 put_req:
 	vblk_put_req(vsc_req);
 
-advance_frame:
-	if (tegra_hv_ivc_read_advance(vblkdev->ivck)) {
-		dev_err(vblkdev->device,
-			"Couldn't increment read frame pointer!\n");
-	}
-
+complete_bio_exit:
 	return true;
 
 no_valid_io:
@@ -430,8 +432,13 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 	struct req_entry *entry = NULL;
 #endif
 
-	if (!tegra_hv_ivc_can_write(vblkdev->ivck))
+	mutex_lock(&vblkdev->ivc_lock);
+	/* Check if ivc queue is full */
+	if (!tegra_hv_ivc_can_write(vblkdev->ivck)) {
+		mutex_unlock(&vblkdev->ivc_lock);
 		goto bio_exit;
+	}
+	mutex_unlock(&vblkdev->ivc_lock);
 
 	if (vblkdev->queue == NULL)
 		goto bio_exit;
@@ -541,13 +548,16 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 		}
 	}
 
+	mutex_lock(&vblkdev->ivc_lock);
 	if (!tegra_hv_ivc_write(vblkdev->ivck, vs_req,
 				sizeof(struct vs_request))) {
 		dev_err(vblkdev->device,
 			"Request Id %d IVC write failed!\n",
 				vsc_req->id);
+		mutex_unlock(&vblkdev->ivc_lock);
 		goto bio_exit;
 	}
+	mutex_unlock(&vblkdev->ivc_lock);
 
 	return true;
 
@@ -570,8 +580,12 @@ static void vblk_request_work(struct work_struct *ws)
 		container_of(ws, struct vblk_dev, work);
 	bool req_submitted, req_completed;
 
-	if (tegra_hv_ivc_channel_notified(vblkdev->ivck) != 0)
+	mutex_lock(&vblkdev->ivc_lock);
+	if (tegra_hv_ivc_channel_notified(vblkdev->ivck) != 0) {
+		mutex_unlock(&vblkdev->ivc_lock);
 		return;
+	}
+	mutex_unlock(&vblkdev->ivc_lock);
 
 	req_submitted = true;
 	req_completed = true;
@@ -774,6 +788,7 @@ static void setup_device(struct vblk_dev *vblkdev)
 	spin_lock_init(&vblkdev->lock);
 	spin_lock_init(&vblkdev->queue_lock);
 	mutex_init(&vblkdev->ioctl_lock);
+	mutex_init(&vblkdev->ivc_lock);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
 	vblkdev->queue = blk_mq_init_sq_queue(&vblkdev->tag_set, &vblk_mq_ops, 16,
@@ -834,15 +849,41 @@ static void setup_device(struct vblk_dev *vblkdev)
 			MAX_VSC_REQS);
 	}
 
+	/* if the number of ivc frames is lesser than th  maximum requests that
+	 * can be supported(calculated based on mempool size above), treat this
+	 * as critical error and panic.
+	 *
+	 *if (num_of_ivc_frames < max_supported_requests)
+	 *   PANIC
+	 * Ideally, these 2 should be equal for below reasons
+	 *   1. Each ivc frame is a request should have a backing data memory
+	 *      for transfers. So, number of requests supported by message
+	 *      request memory should be <= number of frames in
+	 *      IVC queue. The read/write logic depends on this.
+	 *   2. If number of requests supported by message request memory is
+	 *	more than IVC frame count, then thats a wastage of memory space
+	 *      and it introduces a race condition in submit_bio_req().
+	 *      The race condition happens when there is only one empty slot in
+	 *      IVC write queue and 2 threads enter submit_bio_req(). Both will
+	 *      compete for IVC write(After calling ivc_can_write) and one of
+	 *      the write will fail. But with vblk_get_req() this race can be
+	 *      avoided if num_of_ivc_frames >= max_supported_requests
+	 *      holds true.
+	 *
+	 *  In short, the optimal setting is when both of these are equal
+	 */
 	if (vblkdev->ivck->nframes < max_requests) {
-		/* Warn if the virtual storage device supports
-		 * normal read write operations */
+		/* Error if the virtual storage device supports
+		 * read, write and ioctl operations
+		 */
 		if (vblkdev->config.blk_config.req_ops_supported &
 				(VS_BLK_READ_OP_F |
-				 VS_BLK_WRITE_OP_F)) {
-			dev_warn(vblkdev->device,
-				"IVC frames %d less than possible max requests %d!\n",
-				vblkdev->ivck->nframes, max_requests);
+				 VS_BLK_WRITE_OP_F |
+				 VS_BLK_IOCTL_OP_F)) {
+			panic("hv_vblk: IVC Channel:%u IVC frames %d less than possible max requests %d!\n",
+				vblkdev->ivc_id, vblkdev->ivck->nframes,
+				max_requests);
+			return;
 		}
 	}
 

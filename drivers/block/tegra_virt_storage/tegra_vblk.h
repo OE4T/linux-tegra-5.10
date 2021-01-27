@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -108,6 +108,7 @@ struct vblk_dev {
 	uint32_t inflight_reqs;
 	uint32_t max_requests;
 	struct mutex req_lock;
+	struct mutex ivc_lock;
 	enum vblk_queue_state queue_state;
 	struct completion req_queue_empty;
 };
