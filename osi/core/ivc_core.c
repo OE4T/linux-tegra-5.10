@@ -192,38 +192,6 @@ static nve32_t ivc_pad_calibrate(struct osi_core_priv_data *const osi_core)
 }
 
 /**
- * @brief ivc_flush_mtl_tx_queue - Flush MTL Tx queue
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] qinx: MTL queue index.
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static nve32_t ivc_flush_mtl_tx_queue(
-				struct osi_core_priv_data *const osi_core,
-				const nveu32_t qinx)
-{
-	ivc_msg_common msg_common;
-	nve32_t index = 0;
-
-	osi_memset(&msg_common, 0, sizeof(msg_common));
-
-	msg_common.cmd = flush_mtl_tx_queue;
-	msg_common.data.args.arguments[index++] = qinx;
-	msg_common.data.args.count = index;
-
-	return osi_core->osd_ops.ivc_send(osi_core, &msg_common,
-					  sizeof(msg_common));
-}
-
-/**
  * @brief ivc_config_rxcsum_offload - Enable/Disale rx checksum offload in HW
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -871,7 +839,7 @@ static void ivc_config_ssir(struct osi_core_priv_data *const osi_core)
  *	1) MAC should be init and started. see osi_start_mac()
  *	2) osi_core->osd should be populated
  */
-void ivc_read_mmc(struct osi_core_priv_data *osi_core)
+static void ivc_read_mmc(struct osi_core_priv_data *osi_core)
 {
 	ivc_msg_common msg_common;
 
@@ -883,29 +851,6 @@ void ivc_read_mmc(struct osi_core_priv_data *osi_core)
 				   sizeof(msg_common));
 
 }
-
-/**
- * @brief ivc_reset_mmc - To reset MMC registers and ether_mmc_counter
- *	structure variable
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- * @note
- *	1) MAC should be init and started. see osi_start_mac()
- *	2) osi_core->osd should be populated
- */
-void ivc_reset_mmc(struct osi_core_priv_data *osi_core)
-{
-	ivc_msg_common msg_common;
-
-	osi_memset(&msg_common, 0, sizeof(msg_common));
-
-	msg_common.cmd = reset_mmc;
-
-	osi_core->osd_ops.ivc_send(osi_core, &msg_common,
-				   sizeof(msg_common));
-}
-
 
 /**
  * @brief ivc_core_deinit - EQOS MAC core deinitialization
@@ -1116,6 +1061,38 @@ static nve32_t ivc_config_rx_crc_check(
 }
 
 /**
+ * @brief ivc_flush_mtl_tx_queue - Flush MTL Tx queue
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] qinx: MTL queue index.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t ivc_flush_mtl_tx_queue(
+				struct osi_core_priv_data *const osi_core,
+				const nveu32_t qinx)
+{
+	ivc_msg_common msg_common;
+	nve32_t index = 0;
+
+	osi_memset(&msg_common, 0, sizeof(msg_common));
+
+	msg_common.cmd = flush_mtl_tx_queue;
+	msg_common.data.args.arguments[index++] = qinx;
+	msg_common.data.args.count = index;
+
+	return osi_core->osd_ops.ivc_send(osi_core, &msg_common,
+					  sizeof(msg_common));
+}
+
+/**
  * @brief ivc_config_tx_status - Configure MAC to forward the tx pkt status
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -1292,6 +1269,28 @@ static inline nve32_t ivc_update_vlan_id(
 
 	return osi_core->osd_ops.ivc_send(osi_core, &msg_common,
 					  sizeof(msg_common));
+}
+
+/**
+ * @brief ivc_reset_mmc - To reset MMC registers and ether_mmc_counter
+ *	structure variable
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ *	1) MAC should be init and started. see osi_start_mac()
+ *	2) osi_core->osd should be populated
+ */
+static void ivc_reset_mmc(struct osi_core_priv_data *osi_core)
+{
+	ivc_msg_common msg_common;
+
+	osi_memset(&msg_common, 0, sizeof(msg_common));
+
+	msg_common.cmd = reset_mmc;
+
+	osi_core->osd_ops.ivc_send(osi_core, &msg_common,
+				   sizeof(msg_common));
 }
 
 /**
