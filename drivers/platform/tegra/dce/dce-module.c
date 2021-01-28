@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,8 +20,12 @@
 #include <linux/of_address.h>
 #include <linux/of_platform.h>
 
+/**
+ * The following platform info is needed for backdoor
+ * booting of dce.
+ */
 static const struct dce_platform_data t234_dce_platform_data = {
-	.dce_stream_id = 0x05,
+	.dce_stream_id = 0x08,
 	.phys_stream_id = 0x7f,
 	.fw_carveout_id = 9,
 	.fw_vmindex = 0,
