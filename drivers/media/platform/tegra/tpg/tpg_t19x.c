@@ -79,9 +79,10 @@ MODULE_PARM_DESC(pattern, "Supported TPG patterns, PATCH, SINE. Default is PATCH
  *
  */
 const struct tpg_frmfmt tegra19x_csi_tpg_frmfmt[] = {
+	{{320, 240}, V4L2_PIX_FMT_SRGGB10, 30, 0, 0},
 	{{1280, 720}, V4L2_PIX_FMT_SRGGB10, 30, 0, 0},
 	{{1920, 1080}, V4L2_PIX_FMT_SRGGB10, 30, 0, 0},
-	{{3840, 2160}, V4L2_PIX_FMT_SRGGB10, 30,  0, 0},
+	{{3840, 2160}, V4L2_PIX_FMT_SRGGB10, 30, 0, 0},
 	{{1280, 720}, V4L2_PIX_FMT_RGB32, 30, 0, 0},
 	{{1920, 1080}, V4L2_PIX_FMT_RGB32, 30, 0, 0},
 	{{3840, 2160}, V4L2_PIX_FMT_RGB32, 30, 0, 0},

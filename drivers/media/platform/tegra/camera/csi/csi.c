@@ -475,6 +475,7 @@ static struct v4l2_mbus_framefmt tegra_csi_tpg_fmts[] = {
 };
 
 static struct v4l2_frmsize_discrete tegra_csi_tpg_sizes[] = {
+	{320, 240},
 	{1280, 720},
 	{1920, 1080},
 	{3840, 2160}
