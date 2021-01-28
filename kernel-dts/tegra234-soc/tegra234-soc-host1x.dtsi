@@ -538,6 +538,7 @@
 		se@15810000 {
 			compatible = "nvidia,tegra234-se1-nvhost";
 			reg = <0x0 0x15810000 0x0 0x10000>;
+			supported-algos = "drbg";
 			nvidia,io-coherent;
 			opcode_addr = <0x1004>;
 			resets = <&bpmp_resets TEGRA234_RESET_SE>;
