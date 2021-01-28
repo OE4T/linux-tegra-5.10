@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -12,6 +12,7 @@
  */
 
 #include <linux/types.h>
+#include <linux/atomic.h>
 #include <linux/mutex.h>
 #include <linux/err.h>
 #include <linux/slab.h>
@@ -47,6 +48,7 @@ int bwmgr_iso_bw_percentage;
 enum bwmgr_dram_types bwmgr_dram_type;
 int emc_to_dram_freq_factor;
 static bool bwmgr_disable = false;
+static atomic_t bwmgr_probed = ATOMIC_INIT(0);
 struct mrq_emc_dvfs_latency_response bwmgr_emc_dvfs;
 
 #define IS_HANDLE_VALID(x) ((x >= bwmgr.bwmgr_client) && \
@@ -319,6 +321,10 @@ static int bwmgr_update_clk(void)
 struct tegra_bwmgr_client *tegra_bwmgr_register(
 		enum tegra_bwmgr_client_id client)
 {
+	/* return EAGAIN if any client calls register before bwmgr_init() */
+	if (!atomic_read(&bwmgr_probed))
+		return ERR_PTR(-EAGAIN);
+
 	IS_BWMGR_SUPPORTED(bwmgr_disable, ERR_PTR(-EINVAL));
 
 	if (!bwmgr_dram_config_supported) {
@@ -856,10 +862,12 @@ int __init bwmgr_init(void)
 	else {
 		/* T234 and beyond use ICC */
 		bwmgr_disable = true;
+		atomic_inc(&bwmgr_probed);
 		mutex_destroy(&bwmgr.lock);
 		return 0;
 	}
 
+	atomic_inc(&bwmgr_probed);
 	dn = of_find_compatible_node(NULL, NULL, "nvidia,bwmgr");
 	if (dn == NULL) {
 		pr_err("bwmgr: dt node not found.\n");
