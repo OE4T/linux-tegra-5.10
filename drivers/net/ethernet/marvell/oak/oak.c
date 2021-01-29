@@ -61,8 +61,8 @@ static struct net_device_ops oak_netdev_ops = {
     .ndo_change_mtu = oak_net_esu_set_mtu,
 };
 int debug = 0;
-int txs = 1024;
-int rxs = 1024;
+int txs = 2048;
+int rxs = 2048;
 int chan = MAX_NUM_OF_CHANNELS;
 int rto = 100;
 int mhdr = 0;
@@ -562,12 +562,15 @@ int oak_init_software(struct pci_dev* pdev)
             oak_set_mtu_config(netdev);
             spin_lock_init(&oak->lock);
             /* UserCode{38D79BE3-9956-4d88-8279-6757E485A1FE} */
+	    /* Assign random MAC address */
+	    eth_hw_addr_random(netdev);
         }
     }
     else
     {
         return_2 = err = -ENOMEM;
     }
+
     /* UserCode{5AF52ED9-43FE-475f-84BF-964C2C4928A9}:mlR93Mg2NF */
     oakdbg(debug, PROBE, "pdev=%p ndev=%p err=%d", pdev, pci_get_drvdata(pdev), err);
     /* UserCode{5AF52ED9-43FE-475f-84BF-964C2C4928A9} */

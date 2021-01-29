@@ -673,9 +673,7 @@ void oak_net_del_napi(struct net_device* netdev)
  *  */
 int oak_net_set_mac_addr(struct net_device* dev, void* p_addr)
 {
-    oak_t* np = netdev_priv(dev);
     struct sockaddr* addr = p_addr;
-    uint32_t channel = 0;
     int rc; /* automatically added for object flow handling */
     int rc_5 = 0; /* start of activity code */
     /* UserCode{F1BF70DD-8AC8-414d-80D2-48036958B5CB}:1Tac9pwSTt */
@@ -698,23 +696,9 @@ int oak_net_set_mac_addr(struct net_device* dev, void* p_addr)
         rc = netif_running(dev);
         /* UserCode{AAE718E4-036C-42d7-80F8-C10F2F6FC3A8} */
 
-        if (rc == 0)
-        {
-        }
-        else
-        {
-            while (channel < np->num_rx_chan)
-            {
-                oak_unimac_set_rx_da(np, channel, dev->dev_addr, 1);
-                /* UserCode{1B788173-FE20-42e2-8D16-77CB42C58AB4}:1QQ5edl4ij */
-                ++channel;
-                /* UserCode{1B788173-FE20-42e2-8D16-77CB42C58AB4} */
-            }
-
-            /* UserCode{65B334FB-7563-408c-9714-8200141DC3C3}:r8srRGlzXT */
-            rc = 0;
-            /* UserCode{65B334FB-7563-408c-9714-8200141DC3C3} */
-        }
+        /* UserCode{65B334FB-7563-408c-9714-8200141DC3C3}:r8srRGlzXT */
+        rc = 0;
+        /* UserCode{65B334FB-7563-408c-9714-8200141DC3C3} */
     }
     rc_5 = rc;
     /* UserCode{AB2EB8C5-351C-4c07-8774-80E6D2C1BA89}:7hXZ86VX4h */
