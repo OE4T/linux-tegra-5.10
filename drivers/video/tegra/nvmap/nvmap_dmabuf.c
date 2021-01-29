@@ -659,10 +659,8 @@ static struct dma_buf *__dma_buf_export(struct nvmap_handle_info *info,
 		exp_info.flags = O_RDWR;
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	exp_info.exp_flags = DMABUF_CAN_DEFER_UNMAP |
 				DMABUF_SKIP_CACHE_SYNC;
-#endif
 	exp_info.exp_name = dmabuf_name;
 
 	return dma_buf_export(&exp_info);
