@@ -27,6 +27,8 @@
 #include <soc/tegra/fuse.h>
 #endif
 
+#include <linux/sys_soc.h>
+
 #include <trace/events/nvmap.h>
 
 #include "nvmap_priv.h"
@@ -409,26 +411,32 @@ static int __nvmap_do_cache_maint_list(struct nvmap_handle **handles,
 	return 0;
 }
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 9, 0))
+static const struct soc_device_attribute tegra194_soc = {
+	.soc_id = "TEGRA194",
+};
+
+static const struct soc_device_attribute tegra234_soc = {
+	.soc_id = "TEGRA234",
+};
+#endif
 inline int nvmap_do_cache_maint_list(struct nvmap_handle **handles,
 				u64 *offsets, u64 *sizes, int op, int nr,
 				bool is_32)
 {
-	int ret = 0;
-
-	switch (tegra_get_chip_id()) {
-	case TEGRA194:
-		/*
-		 * As io-coherency is enabled by default from T194 onwards,
-		 * Don't do cache maint from CPU side. The HW, SCF will do.
-		 */
-		break;
-	default:
-		ret = __nvmap_do_cache_maint_list(handles,
-					offsets, sizes, op, nr, is_32);
-		break;
-	}
-
-	return ret;
+	/*
+	 * As io-coherency is enabled by default from T194 onwards,
+	 * Don't do cache maint from CPU side. The HW, SCF will do.
+	 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0))
+	if (!(tegra_get_chip_id() == TEGRA194))
+#else
+	if (!soc_device_match(&tegra194_soc) &&
+		!soc_device_match(&tegra234_soc))
+#endif
+		return __nvmap_do_cache_maint_list(handles,
+				offsets, sizes, op, nr, is_32);
+	return 0;
 }
 
 int nvmap_cache_debugfs_init(struct dentry *nvmap_root)
