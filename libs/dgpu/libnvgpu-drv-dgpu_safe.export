@@ -689,8 +689,6 @@ nvgpu_tsg_check_and_get_from_id
 nvgpu_tsg_cleanup_sw
 nvgpu_tsg_default_timeslice_us
 nvgpu_tsg_disable
-nvgpu_tsg_disable_sched
-nvgpu_tsg_enable_sched
 nvgpu_tsg_from_ch
 nvgpu_tsg_get_from_id
 nvgpu_tsg_mark_error

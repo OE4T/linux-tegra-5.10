@@ -261,8 +261,8 @@ int test_gv11b_fifo_preempt_tsg(struct unit_module *m, struct gk20a *g,
 		unit_verbose(m, "%s branches=%s\n",
 			__func__, branches_str(branches, f_preempt_tsg));
 
-		tsg->runlist_id = branches & F_PREEMPT_TSG_RUNLIST_ID_INVALID ?
-				NVGPU_INVALID_RUNLIST_ID : 0U;
+		tsg->runlist = branches & F_PREEMPT_TSG_RUNLIST_ID_INVALID ?
+				NULL : &g->fifo.active_runlists[0];
 
 		g->ops.fifo.is_preempt_pending =
 			branches & F_PREEMPT_TSG_PREEMPT_LOCKED_FAIL ?

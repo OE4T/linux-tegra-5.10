@@ -276,31 +276,6 @@ int test_tsg_enable(struct unit_module *m,
 		struct gk20a *g, void *args);
 
 /**
- * Test specification for: test_tsg_enable_sched
- *
- * Description: Enable/disable TSG scheduling
- *
- * Test Type: Feature
- *
- * Targets: nvgpu_tsg_enable_sched, nvgpu_tsg_disable_sched
- *
- * Input: test_fifo_init_support() run for this GPU
- *
- * Steps:
- * - Create a TSG with a bound channel.
- * - Use stub for g->ops.runlist.write_state to store runlist_mask
- *   and runlist_state.
- * - Call nvgpu_tsg_enable_sched and check that runlist_mask matches
- *   TSG's runlist_id and runlist_state is RUNLIST_ENABLED.
- * - Call nvgpu_tsg_diable_sched and check that runlist_mask matches
- *   TSG's runlist_id and runlist_state is RUNLIST_DISABLED.
- *
- * Output: Returns PASS if all branches gave expected results. FAIL otherwise.
- */
-int test_tsg_enable_sched(struct unit_module *m,
-		struct gk20a *g, void *args);
-
-/**
  * Test specification for: test_tsg_check_and_get_from_id
  *
  * Description: Get TSG context from id

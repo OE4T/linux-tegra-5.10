@@ -199,7 +199,7 @@ int test_preempt_poll_tsg_on_pbdma(struct unit_module *m, struct gk20a *g,
 
 	tsg = nvgpu_tsg_open(g, getpid());
 	unit_assert(tsg != NULL, goto done);
-	tsg->runlist_id = 0;
+	tsg->runlist = &f->active_runlists[0];
 
 	for (branches = 0U; branches < F_PREEMPT_POLL_LAST;
 		branches++) {

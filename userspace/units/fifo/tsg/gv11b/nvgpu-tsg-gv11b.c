@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -297,10 +297,12 @@ int test_gv11b_tsg_bind_channel_eng_method_buffers(struct unit_module *m,
 			NULL : eng_method_buffers;
 
 		if (branches & F_TSG_BIND_BUF_FAST_CE_RUNLIST_ID) {
-			tsg->runlist_id = nvgpu_engine_get_fast_ce_runlist_id(g);
+			tsg->runlist = g->fifo.runlists[
+				nvgpu_engine_get_fast_ce_runlist_id(g)];
 			gpu_va = eng_method_buffers[ASYNC_CE_RUNQUE].gpu_va;
 		} else {
-			tsg->runlist_id = nvgpu_engine_get_gr_runlist_id(g);
+			tsg->runlist = g->fifo.runlists[
+				nvgpu_engine_get_gr_runlist_id(g)];
 			gpu_va = eng_method_buffers[GR_RUNQUE].gpu_va;
 		}
 
