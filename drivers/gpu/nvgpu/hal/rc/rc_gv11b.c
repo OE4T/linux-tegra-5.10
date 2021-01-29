@@ -208,7 +208,21 @@ void gv11b_fifo_recover(struct gk20a *g, u32 act_eng_bitmask,
 		 * userspace that channel is no longer usable.
 		 */
 		if (rc_type == RC_TYPE_MMU_FAULT) {
-			nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+		/*
+		 * If a debugger is attached and debugging is enabled,
+		 * then do not set error notifier as it will cause the
+		 * application to teardown the channels and debugger will
+		 * not be able to collect any data.
+		 */
+#ifdef CONFIG_NVGPU_DEBUGGER
+			if (!nvgpu_engine_should_defer_reset(g,
+						mmufault->faulted_engine,
+						mmufault->client_type, false)) {
+#endif
+				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+#ifdef CONFIG_NVGPU_DEBUGGER
+			}
+#endif
 		}
 		nvgpu_tsg_set_unserviceable(g, tsg);
 	}
