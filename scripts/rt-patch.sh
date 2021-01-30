@@ -14,6 +14,12 @@ apply_rt_patches()
 	if [ -f $PWD/../arch/arm64/configs/.orig.defconfig ] && [ -f $PWD/../arch/arm64/configs/.orig.early_defconfig ]; then
 		echo "The PREEMPT RT patches are already applied to the kernel!"
 	else
+		#make temporary copy of the defconfig file
+		cp $PWD/../arch/arm64/configs/defconfig\
+			$PWD/../arch/arm64/configs/.orig.defconfig
+		cp $PWD/../arch/arm64/configs/tegra_early_boot_defconfig\
+			$PWD/../arch/arm64/configs/.orig.early_defconfig
+
 		file_list=`find $PWD/../rt-patches -name \*.patch -type f | sort`
 		for p in $file_list; do
 			# set flag in case of failure and continue
@@ -57,7 +63,7 @@ apply_rt_patches()
 
 revert_rt_patches()
 {
-	if [ -f $PWD/../arch/arm64/configs/.orig.defconfig ]; then
+	if [ -f $PWD/../arch/arm64/configs/.orig.defconfig ] && [ -f $PWD/../arch/arm64/configs/.orig.early_defconfig ]; then
 		file_list=`find $PWD/../rt-patches -name \*.patch -type f | sort -r`
 		for p in $file_list; do
 			# set flag in case of failure and continue
@@ -66,13 +72,18 @@ revert_rt_patches()
 
 		rm "$PWD/../arch/arm64/configs/defconfig"
 		rm "$PWD/../arch/arm64/configs/tegra_defconfig"
+		rm "$PWD/../arch/arm64/configs/tegra_early_boot_defconfig"
 		cp $PWD/../arch/arm64/configs/.orig.defconfig\
 			$PWD/../arch/arm64/configs/defconfig
-		ln -s "$PWD/../arch/arm64/configs/defconfig"\
+		ln -s "defconfig"\
 			"$PWD/../arch/arm64/configs/tegra_defconfig"
+		cp $PWD/../arch/arm64/configs/.orig.early_defconfig\
+			$PWD/../arch/arm64/configs/tegra_early_boot_defconfig
 
 		rm -rf $PWD/../arch/arm64/configs/.orig.defconfig
 		rm -rf $PWD/../arch/arm64/configs/.updated.defconfig
+		rm -rf $PWD/../arch/arm64/configs/.orig.early_defconfig
+		rm -rf $PWD/../arch/arm64/configs/.updated.early_defconfig
 		echo "The PREEMPT RT patches have been successfully reverted!"
 	else
 		echo "The PREEMPT RT patches are not applied to the kernel!"
