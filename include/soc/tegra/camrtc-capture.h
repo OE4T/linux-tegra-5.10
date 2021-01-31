@@ -454,6 +454,14 @@ struct capture_channel_config {
 	 * The size of the buffer is queue_depth * request_size
 	 */
 	iova_t requests;
+
+	/**
+	 * Base address of a memory mapped ring buffer containing capture requests buffer
+	 * information.
+	 * The size of the buffer is queue_depth * request_memoryinfo_size
+	 */
+	iova_t requests_memoryinfo;
+
 	/**
 	 * Maximum number of capture requests in the requests queue.
 	 * Determines the size of the ring buffer.
@@ -461,6 +469,12 @@ struct capture_channel_config {
 	uint32_t queue_depth;
 	/** Size of the buffer reserved for each capture request. */
 	uint32_t request_size;
+
+	/** Size of the memoryinfo buffer reserved for each capture request. */
+	uint32_t request_memoryinfo_size;
+
+	/** Reserved */
+	uint32_t reserved2;
 
 	/** SLVS-EC main stream */
 	uint8_t slvsec_stream_main;
@@ -697,9 +711,9 @@ struct vi_channel_config {
 	/* Atom packer */
 	struct atomp_rec {
 		struct surface_rec {
-			/** Lower 32-bits of the surface base address */
+			/** Offset within memory buffer */
 			uint32_t offset;
-			/** Lower 8-bits of the surface base address */
+			/** Memory handle of the buffer. Must be valid handle or 0 */
 			uint32_t offset_hi;
 		} surface[VI_NUM_ATOMP_SURFACES];
 		/** Line stride of the surface in bytes */
@@ -717,9 +731,9 @@ struct vi_channel_config {
  * @brief Engine status buffer base address.
  */
 struct engine_status_surface {
-	/** Lower 32-bits of the surface base address */
+	/** Offset within memory buffer */
 	uint32_t offset;
-	/** Upper 8-bits of the surface base address */
+	/** Memory handle of the buffer. Must be valid handle or 0 */
 	uint32_t offset_hi;
 } CAPTURE_IVC_ALIGN;
 
@@ -1346,6 +1360,29 @@ struct vi_pfsd_config {
 /** Enables error reporting for the channel */
 #define CAPTURE_FLAG_ERROR_REPORT_ENABLE	MK_BIT32(1)
 /** @} */
+
+/**
+ * @brief VI capture descriptor memory information
+ *
+ * VI capture descriptor memory information shared between
+ * KMD and RCE only. This information cannot be part of
+ * capture descriptor since descriptor is shared with usermode
+ * application.
+ */
+struct capture_descriptor_memoryinfo {
+	struct {
+		/** Surface base address */
+		uint64_t base_address;
+		/** Surface size */
+		uint64_t size;
+	} surface[VI_NUM_ATOMP_SURFACES];
+	/** Base address of engine status surface */
+	uint64_t engine_status_surface_base_address;
+	/** Size of engine status surface */
+	uint64_t engine_status_surface_size;
+	/** pad for alignment */
+	uint32_t reserved32[12];
+} CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
  * @brief VI frame capture context.
