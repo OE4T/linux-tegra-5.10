@@ -634,6 +634,10 @@ static struct dma_buf_ops nvmap_dma_buf_ops = {
 	.mmap		= nvmap_dmabuf_mmap,
 	.vmap		= nvmap_dmabuf_vmap,
 	.vunmap		= nvmap_dmabuf_vunmap,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 4, 0)
+	.cache_sgt_mapping = true,
+#endif
+
 };
 
 static char dmabuf_name[] = "nvmap_dmabuf";
