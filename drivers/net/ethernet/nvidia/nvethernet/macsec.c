@@ -196,7 +196,8 @@ int macsec_close(struct macsec_priv_data *macsec_pdata)
 	return ret;
 }
 
-int macsec_open(struct macsec_priv_data *macsec_pdata)
+int macsec_open(struct macsec_priv_data *macsec_pdata,
+		void *const genl_info)
 {
 	struct ether_priv_data *pdata = macsec_pdata->ether_pdata;
 	struct device *dev = pdata->dev;
@@ -238,7 +239,7 @@ int macsec_open(struct macsec_priv_data *macsec_pdata)
 #endif
 
 	/* 3. invoke OSI HW initialization, initialize standard BYP entries */
-	ret = osi_macsec_init(pdata->osi_core);
+	ret = osi_macsec_init(pdata->osi_core, genl_info);
 	if (ret < 0) {
 		dev_err(dev, "osi_macsec_init failed, %d\n", ret);
 		goto err_osi_init;
@@ -520,7 +521,7 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef TEST
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_DISABLE,
-				CTLR_SEL_RX);
+				CTLR_SEL_RX, info);
 	if (ret < 0) {
 		pr_err("%s: failed to disable Rx SA", __func__);
 	}
@@ -574,7 +575,7 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef TEST
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_ENABLE,
-				CTLR_SEL_RX);
+				CTLR_SEL_RX, info);
 	if (ret < 0) {
 		pr_err("%s: failed to enable Rx SA", __func__);
 	}
@@ -628,7 +629,7 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef TEST
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_DISABLE,
-				CTLR_SEL_TX);
+				CTLR_SEL_TX, info);
 	if (ret < 0) {
 		pr_err("%s: failed to disable Tx SA", __func__);
 	}
@@ -682,7 +683,7 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef TEST
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_ENABLE,
-				CTLR_SEL_TX);
+				CTLR_SEL_TX, info);
 	if (ret < 0) {
 		pr_err("%s: failed to enable Tx SA", __func__);
 	}
@@ -740,7 +741,7 @@ static int macsec_init(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
-	ret = macsec_open(macsec_pdata);
+	ret = macsec_open(macsec_pdata, info);
 	//TODO - check why needs -EOPNOTSUPP, why not pass ret val
 	if (ret < 0) {
 		ret = -EOPNOTSUPP;
@@ -919,6 +920,7 @@ int macsec_probe(struct ether_priv_data *pdata)
 	}
 	macsec_pdata->ether_pdata = pdata;
 	pdata->macsec_pdata = macsec_pdata;
+	osi_core->osd_ops.macsec_tz_kt_config = macsec_tz_kt_config;
 
 	/* 3. Get OSI MACsec ops */
 	if (osi_init_macsec_ops(osi_core) != 0) {
@@ -953,5 +955,89 @@ int macsec_probe(struct ether_priv_data *pdata)
 
 exit:
 	PRINT_EXIT();
+	return ret;
+}
+
+int macsec_tz_kt_config(void *priv, unsigned char cmd,
+			void *const config, void *const genl_info)
+{
+	struct genl_info *info = (struct genl_info *)genl_info;
+	struct osi_macsec_kt_config *kt_config = NULL;
+	struct sk_buff *msg;
+	struct nlattr *nest;
+	void *msg_head;
+	int ret = 0;
+
+	if (genl_info == OSI_NULL) {
+		pr_err("Can not config key through TZ, genl_info NULL\n");
+		/* return success, as KT LUT can be programmed manually
+		 * through sysfs
+		 */
+		return ret;
+	}
+
+	/* remap osi tz cmd to netlink cmd */
+	if (cmd == MACSEC_CMD_TZ_CONFIG) {
+		cmd = NV_MACSEC_CMD_TZ_CONFIG;
+	} else if (cmd == MACSEC_CMD_TZ_KT_RESET) {
+		cmd = NV_MACSEC_CMD_TZ_KT_RESET;
+	} else {
+		pr_err("%s: Wrong TZ cmd %d\n", __func__, cmd);
+		ret = -1;
+		goto fail;
+	}
+
+	msg = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
+	if (msg == NULL) {
+		pr_err("Unable to alloc genl reply\n");
+		ret = -ENOMEM;
+		goto fail;
+	}
+
+	msg_head = genlmsg_put_reply(msg, info, &nv_macsec_fam, 0, cmd);
+	if (msg_head == NULL) {
+		pr_err("unable to get replyhead\n");
+		ret = -EINVAL;
+		goto failure;
+	}
+
+	if (cmd == NV_MACSEC_CMD_TZ_CONFIG && config != NULL) {
+		kt_config = (struct osi_macsec_kt_config *)config;
+		/* pr_err("%s: ctrl: %hu rw: %hu idx: %hu flags: %#x\n"
+		 *	  __func__,
+		 *	 kt_config->table_config.ctlr_sel,
+		 *	 kt_config->table_config.rw,
+		 *	 kt_config->table_config.index,
+		 *	 kt_config->flags);
+		 */
+
+		nest = nla_nest_start(msg, NV_MACSEC_ATTR_TZ_CONFIG);
+		if (!nest) {
+			ret = EINVAL;
+			goto failure;
+		}
+		nla_put_u8(msg, NV_MACSEC_TZ_ATTR_CTRL,
+			   kt_config->table_config.ctlr_sel);
+		nla_put_u8(msg, NV_MACSEC_TZ_ATTR_RW,
+			   kt_config->table_config.rw);
+		nla_put_u8(msg, NV_MACSEC_TZ_ATTR_INDEX,
+			   kt_config->table_config.index);
+		nla_put(msg, NV_MACSEC_TZ_ATTR_KEY, KEY_LEN_256,
+			kt_config->entry.sak);
+		nla_put(msg, NV_MACSEC_TZ_ATTR_HKEY, KEY_LEN_128,
+			kt_config->entry.h);
+		nla_put_u32(msg, NV_MACSEC_TZ_ATTR_FLAG, kt_config->flags);
+		nla_nest_end(msg, nest);
+	}
+	genlmsg_end(msg, msg_head);
+	ret = genlmsg_reply(msg, info);
+	if (ret != 0) {
+		pr_err("Unable to send reply\n");
+	}
+
+	return ret;
+failure:
+	nlmsg_free(msg);
+fail:
 	return ret;
 }
