@@ -580,6 +580,7 @@ struct osi_xtra_stat_counters {
 	nveu64_t link_disconnect_count;
 };
 
+#ifdef MACSEC_SUPPORT
 /**
  * @brief The structure hold macsec statistics counters
  */
@@ -624,5 +625,5 @@ struct osi_macsec_mmc_counters {
 	/** This counter provides the number of out octets protected */
 	unsigned long long tx_octets_protected;
 };
-
-#endif
+#endif /* MACSEC_SUPPORT */
+#endif /* INCLUDED_MMC_H */

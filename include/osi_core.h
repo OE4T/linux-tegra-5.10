@@ -953,6 +953,12 @@ struct osd_core_ops {
 	void (*msleep)(nveu32_t msec);
 	/** ivcsend callback*/
 	nve32_t (*ivc_send)(void *priv, void *data, nveu32_t len);
+#ifdef MACSEC_SUPPORT
+	/** Program macsec key table through Trust Zone callback */
+	int (*macsec_tz_kt_config)(void *priv, unsigned char cmd,
+				   void *const kt_config,
+				   void *const genl_info);
+#endif /* MACSEC_SUPPORT */
 };
 
 #ifdef MACSEC_SUPPORT
