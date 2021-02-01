@@ -20,7 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef MACSEC_KEY_PROGRAM
 #include <linux/crypto.h>
+#endif
 #include <osi_macsec.h>
 #include <linux/printk.h>
 #include "macsec.h"
@@ -539,6 +541,7 @@ int macsec_enable(struct osi_core_priv_data *osi_core, unsigned int enable)
 	return 0;
 }
 
+#ifdef MACSEC_KEY_PROGRAM
 /**
  * @brief poll_for_kt_update - Query the status of a KT update.
  *
@@ -656,7 +659,8 @@ static int kt_key_write(struct osi_core_priv_data *const osi_core,
 }
 
 static int macsec_kt_config(struct osi_core_priv_data *const osi_core,
-			    struct osi_macsec_kt_config *const kt_config)
+			    struct osi_macsec_kt_config *const kt_config,
+			    void *const genl_info)
 {
 	int ret = 0;
 	unsigned int kt_config_reg = 0;
@@ -719,6 +723,16 @@ static int macsec_kt_config(struct osi_core_priv_data *const osi_core,
 	}
 	return ret;
 }
+
+#else
+static int macsec_kt_config(struct osi_core_priv_data *const osi_core,
+			    struct osi_macsec_kt_config *const kt_config,
+			    void *const genl_info)
+{
+	return osi_core->osd_ops.macsec_tz_kt_config(osi_core,
+			MACSEC_CMD_TZ_CONFIG, kt_config, genl_info);
+}
+#endif /* MACSEC_KEY_PROGRAM */
 
 /**
  * @brief poll_for_lut_update - Query the status of a LUT update.
@@ -2191,7 +2205,9 @@ static int macsec_loopback_config(struct osi_core_priv_data *const osi_core,
 static int clear_lut(struct osi_core_priv_data *const osi_core)
 {
 	struct osi_macsec_lut_config lut_config = {0};
+#ifdef MACSEC_KEY_PROGRAM
 	struct osi_macsec_kt_config kt_config = {0};
+#endif
 	struct macsec_table_config *table_config = &lut_config.table_config;
 	int i, j;
 	int ret = 0;
@@ -2285,6 +2301,7 @@ static int clear_lut(struct osi_core_priv_data *const osi_core)
 		}
 	}
 
+#ifdef MACSEC_KEY_PROGRAM
 	/* Key table */
 	table_config = &kt_config.table_config;
 	table_config->rw = LUT_WRITE;
@@ -2292,7 +2309,7 @@ static int clear_lut(struct osi_core_priv_data *const osi_core)
 		table_config->ctlr_sel = i;
 		for (j = 0; j <= TABLE_INDEX_MAX; j++) {
 			table_config->index = j;
-			ret = macsec_kt_config(osi_core, &kt_config);
+			ret = macsec_kt_config(osi_core, &kt_config, OSI_NULL);
 			if (ret < 0) {
 				pr_err("Error clearing KT CTLR:INDEX: %d:%d\n",
 					i, j);
@@ -2300,6 +2317,7 @@ static int clear_lut(struct osi_core_priv_data *const osi_core)
 			}
 		}
 	}
+#endif /* MACSEC_KEY_PROGRAM */
 
 	return ret;
 }
@@ -2315,10 +2333,14 @@ static int macsec_deinit(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
-static int macsec_init(struct osi_core_priv_data *const osi_core)
+static int macsec_init(struct osi_core_priv_data *const osi_core,
+			void *const genl_info)
 {
 	unsigned int val = 0;
 	struct osi_macsec_lut_config lut_config = {0};
+#ifndef MACSEC_KEY_PROGRAM
+	struct osd_core_ops *osd_ops = &osi_core->osd_ops;
+#endif
 	struct macsec_table_config *table_config = &lut_config.table_config;
 	/* Store MAC address in reverse, per HW design */
 	unsigned char mac_da_mkpdu[OSI_ETH_ALEN] = {0x3, 0x0, 0x0,
@@ -2408,25 +2430,28 @@ static int macsec_init(struct osi_core_priv_data *const osi_core)
 	pr_err("Write COMMON_IMR: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + COMMON_IMR);
 
-	/* 4. TODO - Route safety intr to LIC */
-	val = osi_readla(osi_core, addr + INTERRUPT_MASK1_0);
-	pr_err("Read INTERRUPT_MASK1_0: 0x%x\n", val);
-	val |= SFTY_ERR_UNCORR_INT_EN;
-	pr_err("Write INTERRUPT_MASK1_0: 0x%x\n", val);
-	osi_writela(osi_core, val, addr + INTERRUPT_MASK1_0);
-
-	/* 5. Set AES mode
+	/* 4. Set AES mode
 	 * Default power on reset is AES-GCM128, leave it.
 	 */
 
-	/* 6. Invalidate LUT entries */
+	/* 5. Invalidate LUT entries */
 	ret = clear_lut(osi_core);
 	if (ret < 0) {
 		pr_err("Invalidating all LUT's failed\n");
 		return ret;
 	}
+#ifndef MACSEC_KEY_PROGRAM
+	/* clear KT entries */
+	ret = osd_ops->macsec_tz_kt_config(osi_core,
+					   MACSEC_CMD_TZ_KT_RESET,
+					   OSI_NULL, genl_info);
+	if (ret < 0) {
+		pr_err("TZ key config failed %d\n", ret);
+		goto exit;
+	}
+#endif /* !MACSEC_KEY_PROGRAM */
 
-	/* 7. Set default BYP for MKPDU/BC packets */
+	/* 6. Set default BYP for MKPDU/BC packets */
 	table_config->rw = LUT_WRITE;
 	lut_config.lut_sel = LUT_SEL_BYPASS;
 	lut_config.flags |= (LUT_FLAGS_DA_VALID |
@@ -2491,7 +2516,7 @@ static struct osi_macsec_sc_info *find_existing_sc(
 static int del_upd_sc(struct osi_core_priv_data *const osi_core,
 		      struct osi_macsec_sc_info *existing_sc,
 		      struct osi_macsec_sc_info *const sc,
-		      unsigned short ctlr)
+		      unsigned short ctlr, void *const genl_info)
 {
 	struct osi_macsec_lut_config lut_config = {0};
 	struct osi_macsec_kt_config kt_config = {0};
@@ -2554,7 +2579,7 @@ static int del_upd_sc(struct osi_core_priv_data *const osi_core,
 	/* Each SC has MAX_NUM_SA's supported in HW */
 	table_config->index = (existing_sc->sc_idx_start * MAX_NUM_SA) +
 			       sc->curr_an;
-	ret = macsec_kt_config(osi_core, &kt_config);
+	ret = macsec_kt_config(osi_core, &kt_config, genl_info);
 	if (ret < 0) {
 		pr_err("%s: Failed to del SAK", __func__);
 		goto err_kt;
@@ -2578,13 +2603,15 @@ err_sci:
 
 static int add_upd_sc(struct osi_core_priv_data *const osi_core,
 		      struct osi_macsec_sc_info *const sc,
-		      unsigned short ctlr)
+		      unsigned short ctlr, void *const genl_info)
 {
 	struct osi_macsec_lut_config lut_config = {0};
 	struct osi_macsec_kt_config kt_config = {0};
 	struct macsec_table_config *table_config;
 	int ret, i;
-#if 1 /* HKEY GENERATION */
+
+#ifdef MACSEC_KEY_PROGRAM
+	 /* HKEY GENERATION */
 	/* TODO - Move this to OSD */
 	struct crypto_cipher *tfm;
 	unsigned char hkey[KEY_LEN_128];
@@ -2603,7 +2630,7 @@ static int add_upd_sc(struct osi_core_priv_data *const osi_core,
 	}
 	pr_err("\n");
 	crypto_free_cipher(tfm);
-#endif /* HKEY GENERATION */
+#endif /* MACSEC_KEY_PROGRAM */
 
 	/* 1. Key LUT */
 	table_config = &kt_config.table_config;
@@ -2613,12 +2640,19 @@ static int add_upd_sc(struct osi_core_priv_data *const osi_core,
 	table_config->index = (sc->sc_idx_start * MAX_NUM_SA) + sc->curr_an;
 	kt_config.flags |= LUT_FLAGS_ENTRY_VALID;
 
+#ifdef MACSEC_KEY_PROGRAM
 	/* Program in reverse order as per HW design */
 	for (i = 0; i < KEY_LEN_128; i++) {
 		kt_config.entry.sak[i] = sc->sak[KEY_LEN_128 - 1 - i];
 		kt_config.entry.h[i] = hkey[KEY_LEN_128 - 1 - i];
 	}
-	ret = macsec_kt_config(osi_core, &kt_config);
+#else
+	for (i = 0; i < KEY_LEN_128; i++) {
+		kt_config.entry.sak[i] = sc->sak[i];
+	}
+#endif /* MACSEC_KEY_PROGRAM */
+
+	ret = macsec_kt_config(osi_core, &kt_config, genl_info);
 	if (ret < 0) {
 		pr_err("%s: Failed to set SAK", __func__);
 		return -1;
@@ -2711,7 +2745,8 @@ err_sa_state:
 
 static int macsec_config(struct osi_core_priv_data *const osi_core,
 			 struct osi_macsec_sc_info *const sc,
-			 unsigned int enable, unsigned short ctlr)
+			 unsigned int enable, unsigned short ctlr,
+			 void *const genl_info)
 {
 	struct osi_macsec_sc_info *existing_sc = OSI_NULL, *new_sc = OSI_NULL;
 	struct osi_macsec_sc_info tmp_sc;
@@ -2773,7 +2808,7 @@ static int macsec_config(struct osi_core_priv_data *const osi_core,
 			}
 			pr_err("");
 
-			if (add_upd_sc(osi_core, new_sc, ctlr) != OSI_NONE) {
+			if (add_upd_sc(osi_core, new_sc, ctlr, genl_info) != OSI_NONE) {
 				pr_err("%s: failed to add new SC", __func__);
 				/* TODO - remove new_sc from lut_status[] ?
 				 * not needed for now, as next_sc_idx is not
@@ -2794,7 +2829,7 @@ static int macsec_config(struct osi_core_priv_data *const osi_core,
 		pr_err("%s: Updating existing SC", __func__);
 		if (enable == OSI_DISABLE) {
 			pr_err("%s: Deleting existing SA", __func__);
-			if (del_upd_sc(osi_core, existing_sc, sc, ctlr) !=
+			if (del_upd_sc(osi_core, existing_sc, sc, ctlr, genl_info) !=
 			    OSI_NONE) {
 				pr_err("%s: failed to del SA", __func__);
 				return -1;
@@ -2837,7 +2872,8 @@ static int macsec_config(struct osi_core_priv_data *const osi_core,
 			}
 			pr_err("");
 
-			if (add_upd_sc(osi_core, tmp_sc_p, ctlr) != OSI_NONE) {
+			if (add_upd_sc(osi_core, tmp_sc_p, ctlr, genl_info) !=
+				       OSI_NONE) {
 				pr_err("%s: failed to add new SA", __func__);
 				/* TODO - remove new_sc from lut_status[] ?
 				 * not needed for now, as next_sc_idx is not
@@ -2845,10 +2881,10 @@ static int macsec_config(struct osi_core_priv_data *const osi_core,
 				 */
 				return -1;
 			} else {
-				/* Update lut status */
-				lut_status->next_sc_idx++;
-				pr_err("%s: Added new SA ctlr: %u",
-				       __func__, ctlr);
+				pr_err("%s: Updated new SC ctlr: %u "
+				       "nxt_sc_idx: %u",
+				       __func__, ctlr,
+				       lut_status->next_sc_idx);
 				/* Now commit the changes */
 				*existing_sc = *tmp_sc_p;
 				return 0;
@@ -2877,7 +2913,8 @@ static struct osi_macsec_lut_status lut_status[NUM_CTLR];
 
 int osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 {
-	if (osi_core->macsec_base == OSI_NULL) {
+	if (osi_core->macsec_base == OSI_NULL ||
+	    osi_core->osd_ops.macsec_tz_kt_config == OSI_NULL) {
 		return -1;
 	} else {
 		osi_core->macsec_ops = &macsec_ops;
@@ -2886,11 +2923,12 @@ int osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 	}
 }
 
-int osi_macsec_init(struct osi_core_priv_data *const osi_core)
+int osi_macsec_init(struct osi_core_priv_data *const osi_core,
+						   void *const genl_info)
 {
 	if (osi_core != OSI_NULL && osi_core->macsec_ops != OSI_NULL &&
 	    osi_core->macsec_ops->init != OSI_NULL) {
-		return osi_core->macsec_ops->init(osi_core);
+		return osi_core->macsec_ops->init(osi_core, genl_info);
 	}
 
 	return -1;
@@ -2933,12 +2971,14 @@ int osi_macsec_lut_config(struct osi_core_priv_data *const osi_core,
 }
 
 int osi_macsec_kt_config(struct osi_core_priv_data *const osi_core,
-			 struct osi_macsec_kt_config *const kt_config)
+			 struct osi_macsec_kt_config *const kt_config,
+			 void *const genl_info)
 {
 	if (osi_core != OSI_NULL && osi_core->macsec_ops != OSI_NULL &&
 	    osi_core->macsec_ops->kt_config != OSI_NULL &&
 	    kt_config != OSI_NULL) {
-		return osi_core->macsec_ops->kt_config(osi_core, kt_config);
+		return osi_core->macsec_ops->kt_config(osi_core, kt_config,
+						       genl_info);
 	}
 
 	return -1;
@@ -2975,7 +3015,8 @@ int osi_macsec_en(struct osi_core_priv_data *const osi_core,
 
 int osi_macsec_config(struct osi_core_priv_data *const osi_core,
 		      struct osi_macsec_sc_info *const sc,
-		      unsigned int enable, unsigned short ctlr)
+		      unsigned int enable, unsigned short ctlr,
+		      void *const genl_info)
 {
 	if ((enable != OSI_ENABLE && enable != OSI_DISABLE) ||
 	    (ctlr != CTLR_SEL_TX && ctlr != CTLR_SEL_RX)) {
@@ -2985,7 +3026,7 @@ int osi_macsec_config(struct osi_core_priv_data *const osi_core,
 	if (osi_core != OSI_NULL && osi_core->macsec_ops != OSI_NULL &&
 	    osi_core->macsec_ops->config != OSI_NULL && sc != OSI_NULL) {
 		return osi_core->macsec_ops->config(osi_core, sc,
-						    enable, ctlr);
+						    enable, ctlr, genl_info);
 	}
 
 	return -1;

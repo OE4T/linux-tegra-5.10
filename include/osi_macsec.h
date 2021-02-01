@@ -162,7 +162,9 @@
  * 4B for FCS
  */
 
+/* macsec tz key config cmd */
 #define MACSEC_CMD_TZ_CONFIG		0x1
+/* macsec tz key table entries reset cmd */
 #define MACSEC_CMD_TZ_KT_RESET		0x2
 
 /**
@@ -356,7 +358,8 @@ struct osi_macsec_dbg_buf_config {
  */
 struct macsec_core_ops {
 	/** macsec init */
-	int (*init)(struct osi_core_priv_data *const osi_core);
+	int (*init)(struct osi_core_priv_data *const osi_core,
+		    void *const genl_info);
 	/** macsec de-init */
 	int (*deinit)(struct osi_core_priv_data *const osi_core);
 	/** NS irq handler */
@@ -368,7 +371,8 @@ struct macsec_core_ops {
 			  struct osi_macsec_lut_config *const lut_config);
 	/** macsec kt config */
 	int (*kt_config)(struct osi_core_priv_data *const osi_core,
-			 struct osi_macsec_kt_config *const kt_config);
+			 struct osi_macsec_kt_config *const kt_config,
+			 void *const genl_info);
 	/** macsec cipher config */
 	int (*cipher_config)(struct osi_core_priv_data *const osi_core,
 			     unsigned int cipher);
@@ -381,7 +385,8 @@ struct macsec_core_ops {
 	/** macsec config SA in HW LUT */
 	int (*config)(struct osi_core_priv_data *const osi_core,
 		      struct osi_macsec_sc_info *const sc,
-		      unsigned int enable, unsigned short ctlr);
+		      unsigned int enable, unsigned short ctlr,
+		      void *const genl_info);
 	/** macsec read mmc counters */
 	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
 	/** macsec debug buffer config */
@@ -440,6 +445,7 @@ int osi_init_macsec_ops(struct osi_core_priv_data *const osi_core);
  *    set BYP LUT entries for MKPDU and BC packets
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] genl_info: Pointer to netlink genl_info data structure.
  *
  * @pre
  * - MACSEC should be out of reset and clocks are enabled
@@ -464,7 +470,9 @@ int osi_init_macsec_ops(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure
  */
-int osi_macsec_init(struct osi_core_priv_data *const osi_core);
+int osi_macsec_init(struct osi_core_priv_data *const osi_core,
+		    void *const genl_info);
+
 
 /**
  * @brief De-initialize the macsec controller
@@ -511,12 +519,14 @@ int osi_macsec_lut_config(struct osi_core_priv_data *const osi_core,
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] kt_config: OSI macsec KT config data structure.
+ * @param[in] genl_info: Pointer to netlink genl_info data structure.
  *
  * @retval 0 on success
  * @retval -1 on failure
  */
 int osi_macsec_kt_config(struct osi_core_priv_data *const osi_core,
-			 struct osi_macsec_kt_config *const kt_config);
+			 struct osi_macsec_kt_config *const kt_config,
+			 void *const genl_info);
 
 /**
  * @brief MACsec Loopback config
@@ -546,16 +556,17 @@ int osi_macsec_en(struct osi_core_priv_data *const osi_core,
  * @brief MACsec update secure channel/association in controller
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] tx_sa: Pointer to osi_macsec_sc_info struct for the tx SA.
+ * @param[in] sc: Pointer to osi_macsec_sc_info struct for the tx SA.
  * @param[in] enable: flag to indicate enable/disable for the Tx SA.
- * @param[in] enable: Pointer to netlink message.
+ * @param[in] genl_info: Pointer to netlink genl_info data structure.
  *
  * @retval 0 on success
  * @retval -1 on failure
  */
 int osi_macsec_config(struct osi_core_priv_data *const osi_core,
 		      struct osi_macsec_sc_info *const sc,
-		      unsigned int enable, unsigned short ctlr);
+		      unsigned int enable, unsigned short ctlr,
+		      void *const genl_info);
 
 /**
  * @brief MACsec read statistics counters
