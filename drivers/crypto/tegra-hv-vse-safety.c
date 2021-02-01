@@ -899,9 +899,7 @@ static int tegra_hv_vse_safety_sha_slow_path(struct ahash_request *req,
 			offset = 0;
 		}
 
-		/* left_bytes <= req_ctx->blk_size */
-		if ((req_ctx->residual_bytes + req->nbytes) >=
-						req_ctx->blk_size) {
+		if (left_bytes != req->nbytes) {
 			/* Processed in while() loop */
 			sg_pcopy_to_buffer(req->src, sg_nents(req->src),
 					req_ctx->sha_buf, left_bytes, skip);
@@ -1031,7 +1029,7 @@ static int tegra_hv_vse_safety_sha_op(struct ahash_request *req, bool is_last,
 
 			if (req_ctx->residual_bytes > 0) { /*final() */
 				ret = tegra_hv_vse_safety_sha_send_one(req,
-					req_ctx->residual_bytes, true);
+					req_ctx->residual_bytes, is_last);
 				if (ret) {
 					dev_err(se_dev->dev,
 					"%s: failed to send last data %u\n",
@@ -1041,12 +1039,15 @@ static int tegra_hv_vse_safety_sha_op(struct ahash_request *req, bool is_last,
 				req_ctx->residual_bytes = 0;
 			}
 
-			if (req->result) {
-				memcpy(req->result, req_ctx->hash_result,
-					req_ctx->digest_size);
-			} else {
-				dev_err(se_dev->dev,
-					"Invalid clinet result buffer\n");
+			if (is_last) {
+				if (req->result) {
+					memcpy(req->result,
+						req_ctx->hash_result,
+						req_ctx->digest_size);
+				} else {
+					dev_err(se_dev->dev,
+						"Invalid clinet result buffer\n");
+				}
 			}
 
 			return 0;
@@ -1055,18 +1056,22 @@ static int tegra_hv_vse_safety_sha_op(struct ahash_request *req, bool is_last,
 		if (req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE128 ||
 				req_ctx->mode == VIRTUAL_SE_OP_MODE_SHAKE256) {
 			ret = tegra_hv_vse_safety_sha_send_one(req,
-					0, true);
+					0, is_last);
 			if (ret) {
 				dev_err(se_dev->dev, "%s: failed to send last data\n",
 						__func__);
 				return ret;
 			}
 
-			if (req->result) {
-				memcpy(req->result, req_ctx->hash_result,
-					req_ctx->digest_size);
-			} else {
-				dev_err(se_dev->dev, "Invalid clinet result buffer\n");
+			if (is_last) {
+				if (req->result) {
+					memcpy(req->result,
+						req_ctx->hash_result,
+						req_ctx->digest_size);
+				} else {
+					dev_err(se_dev->dev,
+						"Invalid clinet result buffer\n");
+				}
 			}
 
 			return 0;
@@ -1081,16 +1086,24 @@ static int tegra_hv_vse_safety_sha_op(struct ahash_request *req, bool is_last,
 		else
 			mode = req_ctx->mode - VIRTUAL_SE_OP_MODE_SHA224 - 1;
 
-		if (req->result) {
-			memcpy(req->result,
-				zero_vec[mode].digest, zero_vec[mode].size);
-		} else {
-			dev_err(se_dev->dev, "Invalid clinet result buffer\n");
+		if (is_last) {
+			if (req->result) {
+				memcpy(req->result,
+					zero_vec[mode].digest,
+					zero_vec[mode].size);
+			} else {
+				dev_err(se_dev->dev,
+					"Invalid clinet result buffer\n");
+			}
 		}
+
 		return 0;
 	}
 
 	num_blks = req->nbytes / req_ctx->blk_size;
+
+	if (sg_nents(req->src) > 1)
+		req_ctx->force_align = true;
 
 	if (req_ctx->force_align == false && num_blks > 0)
 		ret = tegra_hv_vse_safety_sha_fast_path(req, is_last, process_cur_req);
