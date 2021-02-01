@@ -1372,6 +1372,17 @@ static const struct v4l2_ctrl_config common_custom_ctrls[] = {
 	},
 	{
 		.ops = &channel_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_GAIN_TPG_EMB_DATA_CFG,
+		.name = "TPG embedded data config",
+		.type = V4L2_CTRL_TYPE_BOOLEAN,
+		.flags = V4L2_CTRL_FLAG_READ_ONLY,
+		.min = 0,
+		.max = 1,
+		.step = 1,
+		.def = 0,
+	},
+	{
+		.ops = &channel_ctrl_ops,
 		.id = TEGRA_CAMERA_CID_VI_BYPASS_MODE,
 		.name = "Bypass Mode",
 		.type = V4L2_CTRL_TYPE_INTEGER_MENU,
@@ -1619,19 +1630,31 @@ static int tegra_channel_setup_controls(struct tegra_channel *chan)
 
 	/* Add new custom controls */
 	for (i = 0; i < ARRAY_SIZE(common_custom_ctrls); i++) {
-		/* don't create override control for pg mode */
-		if (common_custom_ctrls[i].id ==
-			TEGRA_CAMERA_CID_OVERRIDE_ENABLE && chan->pg_mode)
-			continue;
-		/* Create gain control only if hw supports */
-		if (common_custom_ctrls[i].id == TEGRA_CAMERA_CID_GAIN_TPG) {
-			/* Skip the custom control for sensor and
-			 * for TPG which doesn't support gain control
-			 */
-			if ((vi->csi == NULL) ||
-				(chan->pg_mode && !vi->csi->tpg_gain_ctrl))
-				continue;
-
+		switch (common_custom_ctrls[i].id) {
+			case TEGRA_CAMERA_CID_OVERRIDE_ENABLE:
+				/* don't create override control for pg mode */
+				if (chan->pg_mode)
+					continue;
+				break;
+			case TEGRA_CAMERA_CID_GAIN_TPG:
+				/* Skip the custom control for sensor and
+				 * for TPG which doesn't support gain control
+				 */
+				if ((vi->csi == NULL) || (chan->pg_mode &&
+					 !vi->csi->tpg_gain_ctrl))
+					continue;
+				break;
+			case TEGRA_CAMERA_CID_GAIN_TPG_EMB_DATA_CFG:
+				/* Skip the custom control for sensor and
+				 * for TPG which doesn't support embedded
+				 * data with TPG config data.
+				 */
+				if ((vi->csi == NULL) || (chan->pg_mode &&
+					!vi->csi->tpg_emb_data_config))
+					continue;
+				break;
+			default:
+				break;
 		}
 		ctrl = v4l2_ctrl_new_custom(&chan->ctrl_handler,
 			&common_custom_ctrls[i], NULL);

@@ -87,6 +87,7 @@ struct tegra_csi_device {
 	const struct tpg_frmfmt *tpg_frmfmt_table;
 	unsigned int tpg_frmfmt_table_size;
 	bool tpg_gain_ctrl;
+	bool tpg_emb_data_config;
 	int (*get_tpg_settings)(struct tegra_csi_port *port,
 			union nvcsi_tpg_config *const tpg_config);
 	atomic_t power_ref;

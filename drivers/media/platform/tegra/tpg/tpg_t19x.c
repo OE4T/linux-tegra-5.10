@@ -260,6 +260,20 @@ static int get_tpg_settings_t23x(struct tegra_csi_port *port,
 	tpg_config->tpg_ng.brightness_gain_ratio =
 		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_NONE;
 
+	tpg_config->tpg_ng.embedded_lines_top = 0;
+	tpg_config->tpg_ng.embedded_line_width = 0;
+	tpg_config->tpg_ng.embedded_lines_bottom = 0;
+	if (emb_data) {
+		tpg_config->tpg_ng.embedded_lines_top = 1;
+		tpg_config->tpg_ng.embedded_line_width = 32;
+		tpg_config->tpg_ng.embedded_lines_bottom = 0;
+		/* Least significant 8 bits of flags */
+		tpg_config->tpg_ng.emb_data_spare_0 = (uint8_t)(flags & 0xFF);
+		/* Most significant 8 bits of flags */
+		tpg_config->tpg_ng.emb_data_spare_1 =
+			(uint8_t)((flags >> 8) & 0xFF);
+	}
+
 	return 0;
 }
 
@@ -278,9 +292,11 @@ static int __init tpg_probe_t19x(void)
 	if (chip_id == TEGRA194) {
 		mc_csi->get_tpg_settings = get_tpg_settings_t19x;
 		mc_csi->tpg_gain_ctrl = false;
+		mc_csi->tpg_emb_data_config = false;
 	} else if (chip_id == TEGRA234) {
 		mc_csi->get_tpg_settings = get_tpg_settings_t23x;
 		mc_csi->tpg_gain_ctrl = true;
+		mc_csi->tpg_emb_data_config = emb_data;
 	} else {
 		dev_err(mc_csi->dev, "%s invalid chip-id : %d\n",
 				__func__, chip_id);
