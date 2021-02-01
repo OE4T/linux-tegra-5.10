@@ -1,7 +1,7 @@
 /*
  * GV11b GPU GR
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1260,7 +1260,7 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 		"GPC%d TPC%d: locking down SM%d", gpc, tpc, sm);
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, g->poll_timeout_default,
 			   NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		nvgpu_err(g, "timeout_init failed: %d", err);
