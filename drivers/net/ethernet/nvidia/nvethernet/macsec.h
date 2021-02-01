@@ -35,10 +35,11 @@
  */
 #define MACSEC_IRQ_NAME_SZ		32
 
-//TODO - include name of driver interface as well
+/* TODO - include name of driver interface as well */
 #define NV_MACSEC_GENL_NAME	"nv_macsec"
 #define NV_MACSEC_GENL_VERSION	1
 
+/* keep the same enum definition in nv macsec supplicant driver */
 enum nv_macsec_sa_attrs {
 	NV_MACSEC_SA_ATTR_UNSPEC,
 	NV_MACSEC_SA_ATTR_SCI,
@@ -48,6 +49,19 @@ enum nv_macsec_sa_attrs {
 	__NV_MACSEC_SA_ATTR_END,
 	NUM_NV_MACSEC_SA_ATTR = __NV_MACSEC_SA_ATTR_END,
 	NV_MACSEC_SA_ATTR_MAX = __NV_MACSEC_SA_ATTR_END - 1,
+};
+
+enum nv_macsec_tz_attrs {
+	NV_MACSEC_TZ_ATTR_UNSPEC,
+	NV_MACSEC_TZ_ATTR_CTRL,
+	NV_MACSEC_TZ_ATTR_RW,
+	NV_MACSEC_TZ_ATTR_INDEX,
+	NV_MACSEC_TZ_ATTR_KEY,
+	NV_MACSEC_TZ_ATTR_HKEY,
+	NV_MACSEC_TZ_ATTR_FLAG,
+	__NV_MACSEC_TZ_ATTR_END,
+	NUM_NV_MACSEC_TZ_ATTR = __NV_MACSEC_TZ_ATTR_END,
+	NV_MACSEC_TZ_ATTR_MAX = __NV_MACSEC_TZ_ATTR_END - 1,
 };
 
 enum nv_macsec_attrs {
@@ -60,6 +74,7 @@ enum nv_macsec_attrs {
 	NV_MACSEC_ATTR_CIPHER_SUITE,
 	NV_MACSEC_ATTR_CTRL_PORT_EN,
 	NV_MACSEC_ATTR_SA_CONFIG, /* Nested SA config */
+	NV_MACSEC_ATTR_TZ_CONFIG, /* Nested TZ config */
 	__NV_MACSEC_ATTR_END,
 	NUM_NV_MACSEC_ATTR = __NV_MACSEC_ATTR_END,
 	NV_MACSEC_ATTR_MAX = __NV_MACSEC_ATTR_END - 1,
@@ -74,12 +89,24 @@ static const struct nla_policy nv_macsec_sa_genl_policy[NUM_NV_MACSEC_SA_ATTR] =
 				    .len = KEY_LEN_128,},
 };
 
+static const struct nla_policy nv_macsec_tz_genl_policy[NUM_NV_MACSEC_TZ_ATTR] = {
+	[NV_MACSEC_TZ_ATTR_CTRL] = { .type = NLA_U8 }, /* controller Tx or Rx */
+	[NV_MACSEC_TZ_ATTR_RW] = { .type = NLA_U8 },
+	[NV_MACSEC_TZ_ATTR_INDEX] = { .type = NLA_U8 },
+	[NV_MACSEC_TZ_ATTR_KEY] = { .type = NLA_BINARY,
+				    .len = KEY_LEN_256 },
+	[NV_MACSEC_TZ_ATTR_HKEY] = { .type = NLA_BINARY,
+				     .len = KEY_LEN_128 },
+	[NV_MACSEC_TZ_ATTR_FLAG] = { .type = NLA_U32 },
+};
+
 static const struct nla_policy nv_macsec_genl_policy[NUM_NV_MACSEC_ATTR] = {
 	[NV_MACSEC_ATTR_IFNAME] = { .type = NLA_STRING },
 	[NV_MACSEC_ATTR_TXSC_PORT] = { .type = NLA_U16 },
 	[NV_MACSEC_ATTR_REPLAY_PROT_EN] = { .type = NLA_U32 },
 	[NV_MACSEC_ATTR_REPLAY_WINDOW] = { .type = NLA_U32 },
 	[NV_MACSEC_ATTR_SA_CONFIG] = { .type = NLA_NESTED },
+	[NV_MACSEC_ATTR_TZ_CONFIG] = { .type = NLA_NESTED },
 };
 
 enum nv_macsec_nl_commands {
@@ -93,6 +120,8 @@ enum nv_macsec_nl_commands {
 	NV_MACSEC_CMD_DIS_TX_SA,
 	NV_MACSEC_CMD_EN_RX_SA,
 	NV_MACSEC_CMD_DIS_RX_SA,
+	NV_MACSEC_CMD_TZ_CONFIG,
+	NV_MACSEC_CMD_TZ_KT_RESET,
 	NV_MACSEC_CMD_DEINIT,
 };
 
@@ -128,8 +157,26 @@ struct macsec_priv_data {
 
 int macsec_probe(struct ether_priv_data *pdata);
 void macsec_remove(struct ether_priv_data *pdata);
-int macsec_open(struct macsec_priv_data *macsec_pdata);
+int macsec_open(struct macsec_priv_data *macsec_pdata,
+		void *const genl_info);
 int macsec_close(struct macsec_priv_data *macsec_pdata);
+
+/**
+ * @brief macsec_tz_kt_config - Program macsec key table entry.
+ *
+ * @param[in] priv: OSD private data structure.
+ * @param[in] cmd: macsec TZ config cmd
+ * @param[in] kt_config: Pointer to osi_macsec_kt_config structure
+ * @param[in] genl_info: Pointer to netlink msg structure
+ *
+ * @retval 0 on success
+ * @retval negative value on failure.
+ */
+int macsec_tz_kt_config(void *priv,
+			unsigned char cmd,
+			void *const kt_config,
+			void *const genl_info);
+
 #ifdef TEST
 int macsec_genl_register(void);
 void macsec_genl_unregister(void);

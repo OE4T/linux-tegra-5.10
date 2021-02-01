@@ -143,7 +143,8 @@ static ssize_t macsec_enable_show(struct device *dev,
 			 "None");
 }
 
-extern int macsec_open(struct macsec_priv_data *macsec_pdata);
+extern int macsec_open(struct macsec_priv_data *macsec_pdata,
+		       void *const genl_info);
 extern int macsec_close(struct macsec_priv_data *macsec_pdata);
 
 /**
@@ -177,10 +178,10 @@ static ssize_t macsec_enable_store(struct device *dev,
 	if (strncmp(buf, "0", 1) == OSI_NONE) {
 		ret = macsec_close(macsec_pdata);
 	} else if (strncmp(buf, "txrx", 4) == OSI_NONE) {
-		ret = macsec_open(macsec_pdata);
+		ret = macsec_open(macsec_pdata, OSI_NULL);
 	} else if (strncmp(buf, "tx", 2) == OSI_NONE) {
 		if (macsec_pdata->enabled == OSI_NONE) {
-			ret = macsec_open(macsec_pdata);
+			ret = macsec_open(macsec_pdata, OSI_NONE);
 		}
 		enable |= (OSI_MACSEC_TX_EN);
 		ret = osi_macsec_en(osi_core, enable);
@@ -191,7 +192,7 @@ static ssize_t macsec_enable_store(struct device *dev,
 		macsec_pdata->enabled = OSI_MACSEC_TX_EN;
 	} else if (strncmp(buf, "rx", 2) == OSI_NONE) {
 		if (macsec_pdata->enabled == OSI_NONE) {
-			ret = macsec_open(macsec_pdata);
+			ret = macsec_open(macsec_pdata, OSI_NONE);
 		}
 		enable |= (OSI_MACSEC_RX_EN);
 		ret = osi_macsec_en(osi_core, enable);
@@ -1121,6 +1122,7 @@ static DEVICE_ATTR(macsec_sci_lut, (S_IRUGO | S_IWUSR),
 		   macsec_sci_lut_show,
 		   macsec_sci_lut_store);
 
+#ifdef MACSEC_KEY_PROGRAM
 static void dump_kt(char **buf_p, unsigned short ctlr_sel,
 		    struct osi_core_priv_data *osi_core)
 {
@@ -1133,7 +1135,7 @@ static void dump_kt(char **buf_p, unsigned short ctlr_sel,
 		kt_config.table_config.ctlr_sel = ctlr_sel;
 		kt_config.table_config.rw = LUT_READ;
 		kt_config.table_config.index = i;
-		if (osi_macsec_kt_config(osi_core, &kt_config) < 0) {
+		if (osi_macsec_kt_config(osi_core, &kt_config, OSI_NULL) < 0) {
 			pr_err("%s: Failed to read KT\n", __func__);
 			*buf_p = buf;
 			return;
@@ -1234,11 +1236,9 @@ static ssize_t macsec_kt_store(struct device *dev,
 	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-#if 1 /* HKEY GENERATION */
 	struct crypto_cipher *tfm;
 	unsigned char hkey[KEY_LEN_128];
 	unsigned char zeros[KEY_LEN_128] = {0};
-#endif
 	struct osi_macsec_kt_config kt_config = {0};
 	int temp[KEY_LEN_256] = {0};
 	unsigned char sak[KEY_LEN_256] = {0};
@@ -1286,8 +1286,7 @@ static ssize_t macsec_kt_store(struct device *dev,
 	kt_config.table_config.rw = LUT_WRITE;
 	kt_config.table_config.index = index;
 
-#if 1 /* HKEY GENERATION */
-	//TODO - move to OSD and use ether_linux.h/macsec.c for this
+	/* HKEY GENERATION */
 	tfm = crypto_alloc_cipher("aes", 0, CRYPTO_ALG_ASYNC);
 	if (crypto_cipher_setkey(tfm, sak, KEY_LEN_128)) {
 		pr_err("%s: Failed to set cipher key for H generation",
@@ -1296,7 +1295,6 @@ static ssize_t macsec_kt_store(struct device *dev,
 	}
 	crypto_cipher_encrypt_one(tfm, hkey, zeros);
 	crypto_free_cipher(tfm);
-#endif /* HKEY GENERATION */
 
 	for (i = 0; i < KEY_LEN_128; i++) {
 		sak[i] = (unsigned char)temp[i];
@@ -1325,7 +1323,7 @@ static ssize_t macsec_kt_store(struct device *dev,
 		kt_config.flags |= LUT_FLAGS_ENTRY_VALID;
 	}
 
-	ret = osi_macsec_kt_config(osi_core, &kt_config);
+	ret = osi_macsec_kt_config(osi_core, &kt_config, OSI_NULL);
 	if (ret < 0) {
 		pr_err("%s: Failed to set SAK", __func__);
 		goto exit;
@@ -1358,6 +1356,7 @@ static DEVICE_ATTR(macsec_tx_kt, (S_IRUGO | S_IWUSR),
 static DEVICE_ATTR(macsec_rx_kt, (S_IRUGO | S_IWUSR),
 		   macsec_rx_kt_show,
 		   NULL);
+#endif /* MACSEC_KEY_PROGRAM */
 
 static void dump_sc_state_lut(char **buf_p, unsigned short ctlr_sel,
 			      struct osi_core_priv_data *osi_core)
@@ -2068,9 +2067,11 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_macsec_irq_stats.attr,
 	&dev_attr_macsec_byp_lut.attr,
 	&dev_attr_macsec_sci_lut.attr,
+#ifdef MACSEC_KEY_PROGRAM
 	&dev_attr_macsec_kt.attr,
 	&dev_attr_macsec_tx_kt.attr,
 	&dev_attr_macsec_rx_kt.attr,
+#endif /* MACSEC_KEY_PROGRAM */
 	&dev_attr_macsec_sc_state_lut.attr,
 	&dev_attr_macsec_sa_state_lut.attr,
 	&dev_attr_macsec_sc_param_lut.attr,
