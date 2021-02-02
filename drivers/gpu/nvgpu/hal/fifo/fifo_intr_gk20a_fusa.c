@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,17 +52,16 @@ void gk20a_fifo_intr_1_enable(struct gk20a *g, bool enable)
 u32 gk20a_fifo_intr_1_isr(struct gk20a *g)
 {
 	u32 fifo_intr = nvgpu_readl(g, fifo_intr_0_r());
-	u32 clear_intr = 0U;
 
-	nvgpu_log(g, gpu_dbg_intr, "fifo nonstall isr %08x\n", fifo_intr);
+	nvgpu_log(g, gpu_dbg_intr, "fifo nonstall isr 0x%08x", fifo_intr);
 
 	if ((fifo_intr & fifo_intr_0_channel_intr_pending_f()) != 0U) {
-		clear_intr = fifo_intr_0_channel_intr_pending_f();
+		nvgpu_writel(g, fifo_intr_0_r(),
+			fifo_intr_0_channel_intr_pending_f());
+		return NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE;
 	}
 
-	nvgpu_writel(g, fifo_intr_0_r(), clear_intr);
-
-	return NVGPU_NONSTALL_OPS_WAKEUP_SEMAPHORE;
+	return 0U;
 }
 
 void gk20a_fifo_intr_handle_chsw_error(struct gk20a *g)

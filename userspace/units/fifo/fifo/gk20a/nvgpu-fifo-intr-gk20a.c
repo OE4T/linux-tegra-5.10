@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -92,7 +92,8 @@ int test_gk20a_fifo_intr_1_isr(struct unit_module *m,
 	/* no channel intr pending */
 	nvgpu_writel(g, fifo_intr_0_r(), ~fifo_intr_0_channel_intr_pending_f());
 	gk20a_fifo_intr_1_isr(g);
-	unit_assert(nvgpu_readl(g, fifo_intr_0_r()) == 0, goto done);
+	unit_assert(nvgpu_readl(g, fifo_intr_0_r()) ==
+		~fifo_intr_0_channel_intr_pending_f(), goto done);
 
 	/* channel intr pending */
 	nvgpu_writel(g, fifo_intr_0_r(), U32_MAX);
