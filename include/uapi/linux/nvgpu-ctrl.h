@@ -504,17 +504,51 @@ struct nvgpu_gpu_vsms_mapping {
 };
 
 /*
+ * get buffer information ioctl.
+ *
+ * Note: Additional metadata is available with the buffer only for supporting
+ * legacy userspace APIs and for compatibility with desktop RM. Usage of this
+ * API should be avoided.
+ *
+ * This ioctl returns information about buffer to libnvrm_gpu. This information
+ * includes buffer registration status, comptags allocation status, size of the
+ * buffer, copy of the metadata blob associated with the buffer during
+ * registration based on input size and size of the metadata blob
+ * registered.
+ *
+ * return 0 on success, < 0 in case of failure. Note that If the buffer
+ *         has no privdata allocated or if it is not registered, this
+ *         devctl returns 0 with only size.
+ * retval -EINVAL if the enabled flag NVGPU_SUPPORT_BUFFER_METADATA isn't
+ *                set or invalid params.
+ * retval -EFAULT if the metadata blob copy fails.
+ */
+
+/*
  * If the buffer registration is done, this flag is set in the output flags in
  * the buffer info query ioctl.
  */
 #define NVGPU_GPU_BUFFER_INFO_FLAGS_METADATA_REGISTERED		(1ULL << 0)
 
 /*
- * If the comptags are allocated for the buffer, this flag is set in the output
- * flags in the buffer info query ioctl.
+ * If the comptags are allocated and enabled for the buffer, this flag is set
+ * in the output flags in the buffer info query ioctl.
  */
 #define NVGPU_GPU_BUFFER_INFO_FLAGS_COMPTAGS_ALLOCATED		(1ULL << 1)
 
+/*
+ * If the metadata state (blob and comptags) of the buffer can be redefined,
+ * this flag is set in the output flags in the buffer info query ioctl.
+ */
+#define NVGPU_GPU_BUFFER_INFO_FLAGS_MUTABLE_METADATA		(1ULL << 2)
+
+/*
+ * get buffer info ioctl arguments struct.
+ *
+ * Note: Additional metadata is available with the buffer only for supporting
+ * legacy userspace APIs and for compatibility with desktop RM. Usage of this
+ * API should be avoided.
+ */
 struct nvgpu_gpu_get_buffer_info_args {
 	union {
 		struct {

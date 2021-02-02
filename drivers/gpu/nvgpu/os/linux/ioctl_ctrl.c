@@ -1917,6 +1917,89 @@ out:
 #endif
 
 #ifdef CONFIG_NVGPU_COMPRESSION
+static int nvgpu_gpu_ioctl_get_buffer_info(struct gk20a *g,
+				struct nvgpu_gpu_get_buffer_info_args *args)
+{
+	u64 user_metadata_addr = args->in.metadata_addr;
+	u32 in_metadata_size = args->in.metadata_size;
+	struct gk20a_dmabuf_priv *priv = NULL;
+	s32 dmabuf_fd = args->in.dmabuf_fd;
+	struct dma_buf *dmabuf;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_BUFFER_METADATA)) {
+		nvgpu_err(g, "Buffer metadata not supported");
+		return -EINVAL;
+	}
+
+	args->out.metadata_size = 0;
+	args->out.flags = 0;
+	args->out.size = 0;
+
+	dmabuf = dma_buf_get(dmabuf_fd);
+	if (IS_ERR(dmabuf)) {
+		nvgpu_warn(g, "%s: fd %d is not a dmabuf",
+			   __func__, dmabuf_fd);
+		return PTR_ERR(dmabuf);
+	}
+
+	args->out.size = dmabuf->size;
+
+	priv = gk20a_dma_buf_get_drvdata(dmabuf, dev_from_gk20a(g));
+	if (!priv) {
+		nvgpu_log_info(g, "Buffer metadata not allocated");
+		goto out;
+	}
+
+	nvgpu_mutex_acquire(&priv->lock);
+
+	if (in_metadata_size > 0) {
+		size_t write_size = priv->metadata_blob_size;
+
+		nvgpu_speculation_barrier();
+
+		if (write_size > in_metadata_size) {
+			write_size = in_metadata_size;
+		}
+
+		if (copy_to_user((void __user *)(uintptr_t)
+				 user_metadata_addr,
+				 priv->metadata_blob, write_size)) {
+			nvgpu_err(g, "metadata blob copy failed");
+			err = -EFAULT;
+			goto out_priv_unlock;
+		}
+	}
+
+	args->out.metadata_size = priv->metadata_blob_size;
+
+	if (priv->registered) {
+		args->out.flags |=
+			NVGPU_GPU_BUFFER_INFO_FLAGS_METADATA_REGISTERED;
+	}
+
+	if (priv->comptags.enabled) {
+		args->out.flags |=
+			NVGPU_GPU_BUFFER_INFO_FLAGS_COMPTAGS_ALLOCATED;
+	}
+
+	if (priv->mutable_metadata) {
+		args->out.flags |=
+			NVGPU_GPU_BUFFER_INFO_FLAGS_MUTABLE_METADATA;
+	}
+
+	nvgpu_log_info(g, "buffer info: fd: %d, flags %llx, size %llu",
+		       dmabuf_fd, args->out.flags, args->out.size);
+
+out_priv_unlock:
+	nvgpu_mutex_release(&priv->lock);
+out:
+	dma_buf_put(dmabuf);
+	return err;
+}
+
 static int nvgpu_handle_comptags_control(struct gk20a *g,
 					 struct dma_buf *dmabuf,
 					 struct gk20a_dmabuf_priv *priv,
@@ -2461,6 +2544,11 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_REGISTER_BUFFER:
 		err = nvgpu_gpu_ioctl_register_buffer(g,
 			(struct nvgpu_gpu_register_buffer_args *)buf);
+		break;
+
+	case NVGPU_GPU_IOCTL_GET_BUFFER_INFO:
+		err = nvgpu_gpu_ioctl_get_buffer_info(g,
+			(struct nvgpu_gpu_get_buffer_info_args *)buf);
 		break;
 #endif
 
