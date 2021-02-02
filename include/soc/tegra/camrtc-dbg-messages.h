@@ -38,6 +38,10 @@
 #define CAMRTC_REQ_GET_COVERAGE_SUPPORT MK_U32(0x13)
 #define CAMRTC_REQUEST_TYPE_MAX         MK_U32(0x14)
 
+/* MODS test cases */
+#define CAMRTC_MODS_TEST_BASIC		MK_U32(0x00) /* Basic MODS tests */
+#define CAMRTC_MODS_TEST_DMA		MK_U32(0x01) /* MODS DMA test */
+
 /* Deprecated */
 #define CAMRTC_RESP_PONG                CAMRTC_REQ_PING
 #define CAMRTC_RESP_PM_SLEEP            CAMRTC_REQ_PM_SLEEP
@@ -75,7 +79,9 @@ struct camrtc_pm_data {
  * mods_loops:	number of times mods test should be run
  */
 struct camrtc_mods_data {
+	uint32_t mods_case;
 	uint32_t mods_loops;
+	uint32_t mods_dma_channels;
 } CAMRTC_PACKED;
 
 /* This struct is used to extract the firmware version of the RTCPU.
