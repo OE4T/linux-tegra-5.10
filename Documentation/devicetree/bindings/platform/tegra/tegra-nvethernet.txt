@@ -99,9 +99,6 @@ Required properties:
 				describe the IOMMU master interfaces of the
 				device. IOMMU specifier points stream ID used
 				for IP which can be used for address translation
-- iommu-group-id:		These are unique id's that the IOMMU uses to
-				put different devices into the same IOMMU group
-				and shared address space
 - dma-coherent:			Present if dma operations are coherent
 - nvidia,ptp_ref_clock_speed: 	This is reference for PTP clock frequency and
 				the value set for tegra is 312.5MHz.
@@ -264,7 +261,6 @@ Example:
 		iommus = <&smmu TEGRA_SID_EQOS>;
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0
 				      0x60000000 0xffffffff 0xffffffff>;
-		iommu-group-id = <TEGRA_IOMMU_GROUP_APE>;
 		dma-coherent;
 		/* usec value for Rx watchdog interrupt */
 		nvidia,rx_riwt = <124>;
