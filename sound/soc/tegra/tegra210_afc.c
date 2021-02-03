@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_afc.c - Tegra210 AFC driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_afc.c - Tegra210 AFC driver
+//
+// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,13 +17,10 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
-#include "tegra210_ahub.h"
 #include "tegra210_afc.h"
+#include "tegra210_ahub.h"
 #include "tegra_cif.h"
-
-#define DRV_NAME "tegra210-afc"
 
 static const struct reg_default tegra210_afc_reg_defaults[] = {
 	{ TEGRA210_AFC_AXBAR_RX_CIF_CTRL, 0x00007700},
@@ -488,6 +484,7 @@ static const struct of_device_id tegra210_afc_of_match[] = {
 	{ .compatible = "nvidia,tegra186-afc", .data = &soc_data_tegra186 },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra210_afc_of_match);
 
 static int tegra210_afc_platform_probe(struct platform_device *pdev)
 {
@@ -562,8 +559,7 @@ static const struct dev_pm_ops tegra210_afc_pm_ops = {
 
 static struct platform_driver tegra210_afc_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra210-afc",
 		.of_match_table = tegra210_afc_of_match,
 		.pm = &tegra210_afc_pm_ops,
 	},
@@ -575,5 +571,3 @@ module_platform_driver(tegra210_afc_driver)
 MODULE_AUTHOR("Arun Shamanna Lakshmi <aruns@nvidia.com>");
 MODULE_DESCRIPTION("Tegra210 AFC ASoC driver");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra210_afc_of_match);

@@ -1,33 +1,30 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra186_asrc.c - Tegra186 ASRC driver
- *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra186_asrc.c - Tegra186 ASRC driver
+//
+// Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
+#include <linux/delay.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
+#include <linux/tegra186_ahc.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/delay.h>
-#include <linux/of_device.h>
-#include <linux/tegra186_ahc.h>
 
-#include "tegra210_ahub.h"
-#include "tegra186_asrc.h"
 #include "tegra186_arad.h"
+#include "tegra186_asrc.h"
+#include "tegra210_ahub.h"
 #include "tegra_cif.h"
 
-#define DRV_NAME "tegra186-asrc"
 #define ASRC_ARAM_START_ADDR 0x3F800000
 #define RATIO_ARAD	0
 #define RATIO_SW	1
@@ -1070,6 +1067,8 @@ static const struct of_device_id tegra186_asrc_of_match[] = {
 	{ .compatible = "nvidia,tegra194-asrc" },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra186_asrc_of_match);
+
 static int tegra186_asrc_platform_probe(struct platform_device *pdev)
 {
 	struct tegra186_asrc *asrc;
@@ -1158,8 +1157,7 @@ static const struct dev_pm_ops tegra186_asrc_pm_ops = {
 
 static struct platform_driver tegra186_asrc_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra186-asrc",
 		.of_match_table = tegra186_asrc_of_match,
 		.pm = &tegra186_asrc_pm_ops,
 	},
@@ -1171,5 +1169,3 @@ module_platform_driver(tegra186_asrc_driver)
 MODULE_AUTHOR("Junghyun Kim <juskim@nvidia.com>");
 MODULE_DESCRIPTION("Tegra186 ASRC ASoC driver");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra186_asrc_of_match);

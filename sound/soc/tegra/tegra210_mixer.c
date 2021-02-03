@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_mixer.c - Tegra210 MIXER driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_mixer.c - Tegra210 MIXER driver
+//
+// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,13 +17,10 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_mixer.h"
 #include "tegra_cif.h"
-
-#define DRV_NAME "tegra210_mixer"
 
 #define MIXER_RX_REG(reg, id) (reg + (id * TEGRA210_MIXER_AXBAR_RX_STRIDE))
 #define MIXER_TX_REG(reg, id) (reg + (id * TEGRA210_MIXER_AXBAR_TX_STRIDE))
@@ -661,6 +657,7 @@ static const struct of_device_id tegra210_mixer_of_match[] = {
 	{ .compatible = "nvidia,tegra210-amixer" },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra210_mixer_of_match);
 
 static int tegra210_mixer_platform_probe(struct platform_device *pdev)
 {
@@ -744,8 +741,7 @@ static const struct dev_pm_ops tegra210_mixer_pm_ops = {
 
 static struct platform_driver tegra210_mixer_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra210_mixer",
 		.of_match_table = tegra210_mixer_of_match,
 		.pm = &tegra210_mixer_pm_ops,
 	},
@@ -757,5 +753,3 @@ module_platform_driver(tegra210_mixer_driver);
 MODULE_AUTHOR("Arun Shamanna Lakshmi <aruns@nvidia.com>");
 MODULE_DESCRIPTION("Tegra210 MIXER ASoC driver");
 MODULE_LICENSE("GPL v2");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra210_mixer_of_match);

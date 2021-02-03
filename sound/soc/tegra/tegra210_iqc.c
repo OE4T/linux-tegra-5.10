@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_iqc.c - Tegra210 IQC driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_iqc.c - Tegra210 IQC driver
+//
+// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,13 +17,10 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_iqc.h"
 #include "tegra_cif.h"
-
-#define DRV_NAME "tegra210-iqc"
 
 static const struct reg_default tegra210_iqc_reg_defaults[] = {
 	{ TEGRA210_IQC_AXBAR_TX_INT_MASK, 0x0000000f},
@@ -273,6 +269,7 @@ static const struct of_device_id tegra210_iqc_of_match[] = {
 	{ .compatible = "nvidia,tegra210-iqc" },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra210_iqc_of_match);
 
 static int tegra210_iqc_platform_probe(struct platform_device *pdev)
 {
@@ -361,8 +358,7 @@ static const struct dev_pm_ops tegra210_iqc_pm_ops = {
 
 static struct platform_driver tegra210_iqc_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra210-iqc",
 		.of_match_table = tegra210_iqc_of_match,
 		.pm = &tegra210_iqc_pm_ops,
 	},
@@ -374,5 +370,3 @@ module_platform_driver(tegra210_iqc_driver)
 MODULE_AUTHOR("Arun S L <aruns@nvidia.com>");
 MODULE_DESCRIPTION("Tegra210 IQC ASoC driver");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra210_iqc_of_match);

@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_mbdrc.c - Tegra210 MBDRC driver
- *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_mbdrc.c - Tegra210 MBDRC driver
+//
+// Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/device.h>
 #include <linux/io.h>
@@ -15,8 +13,8 @@
 #include <sound/soc.h>
 
 #include "tegra210_ahub.h"
-#include "tegra210_ope.h"
 #include "tegra210_mbdrc.h"
+#include "tegra210_ope.h"
 
 #define MBDRC_FILTER_REG(reg, id) \
 	(reg + (id * TEGRA210_MBDRC_FILTER_PARAM_STRIDE))

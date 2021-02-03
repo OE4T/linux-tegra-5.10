@@ -1,32 +1,28 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra186_arad.c - Tegra186 ARAD driver
- *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra186_arad.c - Tegra186 ARAD driver
+//
+// Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
 
-#include <linux/delay.h>
 #include <linux/clk.h>
+#include <linux/delay.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
+#include <linux/tegra186_ahc.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
-#include <linux/tegra186_ahc.h>
 
-#include "tegra186_asrc.h"
 #include "tegra186_arad.h"
+#include "tegra186_asrc.h"
 #include "tegra_cif.h"
-
-#define DRV_NAME "tegra186-arad"
 
 static struct device *arad_dev;
 
@@ -655,6 +651,7 @@ static const struct of_device_id tegra186_arad_of_match[] = {
 	{ .compatible = "nvidia,tegra186-arad" },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra186_arad_of_match);
 
 #ifdef CONFIG_SND_SOC_TEGRA186_ARAD_WAR
 static void tegra186_arad_ahc_cb(void *data)
@@ -805,8 +802,7 @@ static const struct dev_pm_ops tegra186_arad_pm_ops = {
 
 static struct platform_driver tegra186_arad_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra186-arad",
 		.of_match_table = tegra186_arad_of_match,
 		.pm = &tegra186_arad_pm_ops,
 	},
@@ -818,5 +814,3 @@ module_platform_driver(tegra186_arad_driver)
 MODULE_AUTHOR("Junghyun Kim <juskim@nvidia.com>");
 MODULE_DESCRIPTION("Tegra186 ARAD ASoC driver");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra186_arad_of_match);

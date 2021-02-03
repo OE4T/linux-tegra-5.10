@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_amx.c - Tegra210 AMX driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_amx.c - Tegra210 AMX driver
+//
+// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,13 +17,10 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_amx.h"
 #include "tegra_cif.h"
-
-#define DRV_NAME "tegra210-amx"
 
 static const struct reg_default tegra210_amx_reg_defaults[] = {
 	{ TEGRA210_AMX_AXBAR_RX_INT_MASK, 0x0000000f},
@@ -817,6 +813,7 @@ static const struct of_device_id tegra210_amx_of_match[] = {
 	{ .compatible = "nvidia,tegra194-amx", .data = &soc_data_tegra194 },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra210_amx_of_match);
 
 static int tegra210_amx_platform_probe(struct platform_device *pdev)
 {
@@ -888,8 +885,7 @@ static const struct dev_pm_ops tegra210_amx_pm_ops = {
 
 static struct platform_driver tegra210_amx_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra210-amx",
 		.of_match_table = tegra210_amx_of_match,
 		.pm = &tegra210_amx_pm_ops,
 	},
@@ -901,5 +897,3 @@ module_platform_driver(tegra210_amx_driver);
 MODULE_AUTHOR("Songhee Baek <sbaek@nvidia.com>");
 MODULE_DESCRIPTION("Tegra210 AMX ASoC driver");
 MODULE_LICENSE("GPL v2");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra210_amx_of_match);
