@@ -2,7 +2,7 @@
 //
 // tegra_audio_graph_card.c - Audio Graph based Tegra Machine Driver
 //
-// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+// Copyright (c) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/math64.h>
 #include <linux/module.h>
@@ -10,6 +10,8 @@
 #include <linux/platform_device.h>
 #include <sound/graph_card.h>
 #include <sound/pcm_params.h>
+
+#include "tegra_asoc_machine.h"
 
 #define MAX_PLLA_OUT0_DIV 128
 
@@ -192,6 +194,7 @@ static int tegra_audio_graph_probe(struct platform_device *pdev)
 	struct tegra_audio_priv *priv;
 	struct device *dev = &pdev->dev;
 	struct snd_soc_card *card;
+	int ret;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv)
@@ -206,7 +209,13 @@ static int tegra_audio_graph_probe(struct platform_device *pdev)
 	priv->simple.ops = &tegra_audio_graph_ops;
 	priv->simple.force_dpcm = 1;
 
-	return graph_parse_of(&priv->simple, dev);
+	ret = graph_parse_of(&priv->simple, dev);
+	if (ret < 0)
+		return ret;
+
+	tegra_machine_add_i2s_codec_controls(card);
+
+	return 0;
 }
 
 static const struct tegra_audio_cdata tegra210_data = {
