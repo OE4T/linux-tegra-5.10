@@ -3,7 +3,7 @@
  * tegra_asoc_utils.c - Harmony machine ASoC driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (C) 2010,2012 - NVIDIA, Inc.
+ * Copyright (c) 2010-2021 NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -296,8 +296,8 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 		return PTR_ERR(data->clk_pll_a_out0);
 	}
 
-	/* FIXME: data->clk_cdev1 = devm_clk_get(dev, "mclk"); */
-	data->clk_cdev1 = devm_clk_get(dev, "extern1");
+	/* FIXME: data->clk_cdev1 = devm_clk_get_optional(dev, "mclk"); */
+	data->clk_cdev1 = devm_clk_get_optional(dev, "extern1");
 	if (IS_ERR(data->clk_cdev1)) {
 		dev_err(data->dev, "Can't retrieve clk cdev1\n");
 		return PTR_ERR(data->clk_cdev1);
@@ -323,7 +323,7 @@ int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
 			 "Configuring clocks for a legacy device-tree\n");
 		dev_warn(data->dev,
 			 "Please update DT to use assigned-clock-parents\n");
-		clk_extern1 = devm_clk_get(dev, "extern1");
+		clk_extern1 = devm_clk_get_optional(dev, "extern1");
 		if (IS_ERR(clk_extern1)) {
 			dev_err(data->dev, "Can't retrieve clk extern1\n");
 			return PTR_ERR(clk_extern1);
