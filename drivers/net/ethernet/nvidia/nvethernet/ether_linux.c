@@ -2761,8 +2761,12 @@ static int ether_handle_tso(struct osi_tx_pkt_cx *tx_pkt_cx,
 		}
 	}
 
+#if (KERNEL_VERSION(5, 9, 0) < LINUX_VERSION_CODE)
 	/* Start filling packet details in Tx_pkt_cx */
+	if (skb_shinfo(skb)->gso_type & (SKB_GSO_UDP_L4)) {
+#else
 	if (skb_shinfo(skb)->gso_type & (SKB_GSO_UDP)) {
+#endif
 		tx_pkt_cx->tcp_udp_hdrlen = sizeof(struct udphdr);
 		tx_pkt_cx->mss = skb_shinfo(skb)->gso_size -
 			sizeof(struct udphdr);
@@ -5859,6 +5863,11 @@ static void ether_set_ndev_features(struct net_device *ndev,
 		features |= NETIF_F_TSO;
 		features |= NETIF_F_SG;
 	}
+
+#if (KERNEL_VERSION(5, 9, 0) < LINUX_VERSION_CODE)
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE)
+		features |= NETIF_F_GSO_UDP_L4;
+#endif
 
 	if (pdata->hw_feat.tx_coe_sel) {
 		features |= NETIF_F_IP_CSUM;
