@@ -81,7 +81,6 @@
 		nvidia,tx-queue-prio = <0x0 0x7 0x2 0x3>;
 		iommus = <&smmu TEGRA_SID_EQOS>;
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
-		iommu-group-id = <TEGRA_IOMMU_GROUP_APE>;
 		dma-coherent;
 		/* usec value for Rx watchdog interrupt */
 		nvidia,rx_riwt = <256>;
