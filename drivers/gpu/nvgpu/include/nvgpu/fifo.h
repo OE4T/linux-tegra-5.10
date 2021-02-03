@@ -423,7 +423,11 @@ static inline const char *nvgpu_id_type_to_str(unsigned int id_type)
  * care of h/w specific setup related to FIFO module.
  *
  * @return 0 in case of success, < 0 in case of failure.
- * @retval Error returned by setup_sw and setup_hw routines.
+ * @retval -ENOMEM in case there is not enough memory available.
+ * @retval -EINVAL in case condition variable has invalid value.
+ * @retval -EBUSY in case reference condition variable pointer isn't NULL.
+ * @retval -EFAULT in case any faults occurred while accessing condition
+ * variable or attribute.
  */
 int nvgpu_fifo_init_support(struct gk20a *g);
 
@@ -439,6 +443,11 @@ int nvgpu_fifo_init_support(struct gk20a *g);
  * Mark FIFO s/w ready by setting #nvgpu_fifo.sw_ready to true.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM in case there is not enough memory available.
+ * @retval -EINVAL in case condition variable has invalid value.
+ * @retval -EBUSY in case reference condition variable pointer isn't NULL.
+ * @retval -EFAULT in case any faults occurred while accessing condition
+ * variable or attribute.
  */
 int nvgpu_fifo_setup_sw(struct gk20a *g);
 
@@ -456,9 +465,14 @@ int nvgpu_fifo_setup_sw(struct gk20a *g);
  * - Do userd.setup_sw.
  * - Init #nvgpu_fifo.remove_support function pointer.
  *
- * @return 0 in case of success, < 0 in case of failure.
  * @note In case of failure, cleanup_sw for the blocks that are already
  *       initialized is also taken care of by this function.
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM in case there is not enough memory available.
+ * @retval -EINVAL in case condition variable has invalid value.
+ * @retval -EBUSY in case reference condition variable pointer isn't NULL.
+ * @retval -EFAULT in case any faults occurred while accessing condition
+ * variable or attribute.
  */
 int nvgpu_fifo_setup_sw_common(struct gk20a *g);
 

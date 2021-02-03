@@ -657,6 +657,11 @@ void nvgpu_channel_commit_va(struct nvgpu_channel *c);
  * This includes mutexes and list nodes initialization.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOMEM in case there is not enough memory to allocate channels.
+ * @retval -EINVAL for invalid condition variable value.
+ * @retval -EBUSY in case reference condition variable pointer isn't NULL.
+ * @retval -EFAULT in case any faults occurred while accessing condition
+ * variable or attribute.
  */
 int nvgpu_channel_init_support(struct gk20a *g, u32 chid);
 
@@ -671,6 +676,10 @@ int nvgpu_channel_init_support(struct gk20a *g, u32 chid);
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ENOMEM in case there is not enough memory to allocate channels.
+ * @retval -EINVAL for invalid condition variable value.
+ * @retval -EBUSY in case reference condition variable pointer isn't NULL.
+ * @retval -EFAULT in case any faults occurred while accessing condition
+ * variable or attribute.
  */
 int nvgpu_channel_setup_sw(struct gk20a *g);
 

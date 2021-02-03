@@ -344,11 +344,11 @@ void nvgpu_runlist_unlock_runlists(struct gk20a *g, u32 runlists_mask);
  * looks up for the runlist servicing related channel/TSG.
  *
  * @return A bitmask of runlists servicing specified engines/PBDMAs/channel/TSG.
- * @retval If both #id_type and engine/PBDMAs are known, the function returns
- *         the set of runlist servicing #id or engine/PBDMA.
- * @retval If both #id_type and engines/PBDMAs are unknown (i.e.
- *         #ID_TYPE_UNKNOWN and both #act_eng_bitmask and #pbdma_bitmask are
- *         equal to 0), the function returns a bitmask of all active runlists.
+ * @retval Runlist_mask of runlist servicing \a id or engine/PBDMA, if both
+ *         \a id_type and engine/PBDMAs are known.
+ * @retval Runlist_mask of all active runlists, if both \a id_type and
+ *         engines/PBDMAs are unknown (i.e. #ID_TYPE_UNKNOWN and both
+ *         \a act_eng_bitmask and #pbdma_bitmask are equal to 0).
  */
 u32 nvgpu_runlist_get_runlists_mask(struct gk20a *g, u32 id,
 	unsigned int id_type, u32 act_eng_bitmask, u32 pbdma_bitmask);

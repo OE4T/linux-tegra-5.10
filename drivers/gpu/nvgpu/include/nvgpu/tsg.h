@@ -210,6 +210,19 @@ struct nvgpu_tsg {
 #endif
 };
 
+/**
+ * @brief Initialize given TSG
+ *
+ * @param g [in]		The GPU driver struct.
+ * @param pid [in]		The PID of the process.
+ *
+ * - Set s/w context of the given TSG.
+ * - Update given TSG struct with init pointers.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ * @retval -EINVAL if there is no SM.
+ * @retval -ENOMEM if not enough memory is available.
+ */
 int nvgpu_tsg_open_common(struct gk20a *g, struct nvgpu_tsg *tsg, pid_t pid);
 /**
  * @brief Open and initialize unused TSG
