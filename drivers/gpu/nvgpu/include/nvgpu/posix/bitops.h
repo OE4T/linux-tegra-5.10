@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -110,7 +110,8 @@
  *
  * @param word [in]	Input of datatype long.
  *
- * Function returns the position of the first set bit in \a word.
+ * Function returns the position of the first set bit in \a word. This function
+ * internally uses the builtin function __builtin_ffsl.
  *
  * @return Returns one plus the index of the least significant 1-bit of input
  * param \a word. Returns 0 if input param is 0.
@@ -122,7 +123,8 @@ unsigned long nvgpu_posix_ffs(unsigned long word);
  *
  * @param word [in]	Input of datatype long.
  *
- * Function returns the position of the last set bit in \a word.
+ * Function returns the position of the last set bit in \a word. This function
+ * internally uses the builtin function __builtin_clzl.
  *
  * @return Returns one plus the index of the most significant 1-bit of input
  * param word. If input param is 0, returns 0.

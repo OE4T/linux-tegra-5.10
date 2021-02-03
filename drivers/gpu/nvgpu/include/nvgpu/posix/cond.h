@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,15 @@
  */
 #define NVGPU_COND_WAIT_TIMEOUT_MAX_MS	~0U
 
+/**
+ * This struct wraps all the variables used internally to support a condition
+ * variable implementation in Posix. The structure holds pthread_cond_t,
+ * pthread_condattr_t and pthread_mutex_t objects which are used to provide the
+ * desired functionality. A boolean flag to indicate the initialization status
+ * of the struct is also maintained inside this structure. An user has to make
+ * sure that the init function is invoked first for this struct before invoking
+ * any other functions provided by this unit.
+ */
 struct nvgpu_cond {
 	/**
 	 * Indicates the initialization status of the condition variable.
@@ -88,6 +97,9 @@ int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms);
  * @brief Signal a condition variable.
  *
  * @param cond [in]	Condition variable to signal.
+ * 			  - Should not be equal to NULL.
+ * 			  - Structure pointed by \a cond should be initialized
+ * 			    before invoking this function.
  *
  * Wakes up a waiter for a condition variable to check if its condition has
  * been satisfied. This API has to be used after explicitly locking the mutex
@@ -99,6 +111,8 @@ void nvgpu_cond_signal_locked(struct nvgpu_cond *cond);
  * @brief Signal all waiters of a condition variable.
  *
  * @param cond [in]	Condition variable to broadcast.
+ * 			  - Structure pointed by \a cond should be initialized
+ * 			    before invoking this function.
  *
  * Wake up all waiters for a condition variable to check if their conditions
  * have been satisfied. This API has to be used after explicitly locking the
@@ -119,7 +133,8 @@ int nvgpu_cond_broadcast_locked(struct nvgpu_cond *cond);
  * @brief Acquire the mutex associated with condition variable.
  *
  * @param cond [in]	Condition variable for which the mutex has to be
- *			acquired.
+ *			acquired. Structure pointed by \a cond has to be
+ *			initialized before invoking this function.
  *
  * Acquires the mutex associated with the condition variable referenced
  * by the param \a cond.

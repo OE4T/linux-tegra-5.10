@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -102,21 +102,26 @@ static inline void nvgpu_posix_lock_release(struct __nvgpu_posix_lock *lock)
 
 struct nvgpu_mutex {
 	/**
-	 * nvgpu lock structure used to implement mutex APIs.
+	 * nvgpu lock structure used to implement mutex APIs. This private
+	 * structure is a wrapper over pthread_mutex_t.
 	 */
 	struct __nvgpu_posix_lock lock;
 };
 
 struct nvgpu_spinlock {
 	/**
-	 * nvgpu lock structure used to implement spinlock APIs.
+	 * nvgpu lock structure used to implement spinlock APIs. This private
+	 * structure is a wrapper over pthread_mutex_t. Posix unit
+	 * implementation of spinlock uses a pthread_mutex_t underneath.
 	 */
 	struct __nvgpu_posix_lock lock;
 };
 
 struct nvgpu_raw_spinlock {
 	/**
-	 * nvgpu lock structure used to implement raw spinlock APIs.
+	 * nvgpu lock structure used to implement raw spinlock APIs. This
+	 * private structure is a wrapper over pthread_mutex_t. Posix unit
+	 * implementation of raw spinlock uses a pthread_mutex_t underneath.
 	 */
 	struct __nvgpu_posix_lock lock;
 };

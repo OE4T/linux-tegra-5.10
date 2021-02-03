@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,6 +59,9 @@ int nvgpu_cond_init(struct nvgpu_cond *cond);
  * @brief Signal a condition variable.
  *
  * @param cond [in]	The condition variable to signal.
+ * 			  - Should not to be equal to NULL.
+ * 			  - Structure pointed by \a cond should be initialized
+ * 			    before invoking this function.
  *
  * This function is used to unblock a thread blocked on a condition variable.
  * Wakes up at least one of the threads that are blocked on the specified
@@ -70,6 +73,9 @@ void nvgpu_cond_signal(struct nvgpu_cond *cond);
  * @brief Signal a condition variable.
  *
  * @param cond [in]	The condition variable to signal.
+ * 			  - Should not to be equal to NULL.
+ * 			  - Structure pointed by \a cond should be initialized
+ * 			    before invoking this function.
  *
  * Wakes up at least one of the threads that are blocked on the specified
  * condition variable \a cond. In posix implementation, the function provides
@@ -83,6 +89,9 @@ void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond);
  * @brief Signal all waiters of a condition variable.
  *
  * @param cond [in]	The condition variable to broadcast.
+ * 			  - Should not to be equal to NULL.
+ * 			  - Structure pointed by \a cond should be initialized
+ * 			    before invoking this function.
  *
  * This function is used to unblock threads blocked on a condition variable.
  * Wakes up all the threads that are blocked on the specified condition variable
@@ -102,6 +111,9 @@ int nvgpu_cond_broadcast(struct nvgpu_cond *cond);
  * @brief Signal all waiters of a condition variable.
  *
  * @param cond [in]	The condition variable to broadcast.
+ * 			  - Should not to be equal to NULL.
+ * 			  - Structure pointed by \a cond should be initialized
+ * 			    before invoking this function.
  *
  * This function is used to unblock threads blocked on a condition variable.
  * Wakes up all the threads that are blocked on the specified condition variable
@@ -123,6 +135,7 @@ int nvgpu_cond_broadcast_interruptible(struct nvgpu_cond *cond);
  * @brief Destroy a condition variable.
  *
  * @param cond [in]	The condition variable to destroy.
+ * 			  - Should not to be equal to NULL.
  *
  * Destroys the condition variable along with the associated attributes and
  * mutex.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,6 +89,15 @@ struct nvgpu_posix_thread_data {
 #endif
 };
 
+/**
+ * Structure used to implement the thread functionality in Posix unit.
+ * The structure holds the pthread_t object using which the supported
+ * functions are implemented. Running status of the thread is maintained
+ * in an atomic variable which the user can fetch to know the current status
+ * of the thread. Name provided for the thread during creation is stored
+ * inside this struct, it also holds nvgpu specific thread details like
+ * thread function and private data.
+ */
 struct nvgpu_thread {
 	/**
 	 * Atomic variable to indicate thread running status.

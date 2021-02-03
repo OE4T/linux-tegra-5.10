@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,17 @@
 struct nvgpu_posix_fault_inj;
 #endif
 
+/**
+ * This struct implements a queue data structure which can hold messages of
+ * varying length. An user has to request for the allocation of required size
+ * of memory to hold the messages before using any other public API of this
+ * unit. Requested size for allocation should be greater than zero and less
+ * than or equal to INT_MAX. The alloc function ensures that the allocated size
+ * is always a power of two, irrespective of the requested size. It does that
+ * by rounding up the requested size to nearest power of two if required. This
+ * structure holds in and out indexes used to push and pop the messages
+ * respectively. A mask value to indicate the size of the queue is also held.
+ */
 struct nvgpu_queue {
 	/**
 	 * Index where messages will be enqueued.
@@ -74,7 +85,12 @@ unsigned int nvgpu_queue_available(struct nvgpu_queue *queue);
  * @brief Allocate memory and initialize the message queue variables.
  *
  * @param queue [in]	Queue structure to use.
+ * 			  - Structure should not be equal to NULL
  * @param size [in]	Size of the queue.
+ * 			  - MIN: 1
+ * 			  - MAX: INT32_MAX, requested size which is not a
+ * 			    power of two is rounded up to the nearest power of
+ * 			    two. Hence this max size limit.
  *
  * Allocates memory for the message queue. Also initializes the message queue
  * variables "in", "out" and "mask".

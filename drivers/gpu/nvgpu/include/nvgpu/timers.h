@@ -119,7 +119,10 @@ struct nvgpu_timeout {
  * @param g [in]	GPU driver structure.
  * @param timeout [in]	Timeout object to initialize.
  * @param duration [in]	Timeout duration/count.
- * @param flags [in]	Flags for timeout object.
+ * @param flags [in]	Flags for timeout object. Valid bits are,
+ * 			  - NVGPU_TIMER_RETRY_TIMER
+ * 			  - NVGPU_TIMER_NO_PRE_SI
+ * 			  - NVGPU_TIMER_SILENT_TIMEOUT
  *
  * Initialize a timeout object referenced by \a timeout.
  *

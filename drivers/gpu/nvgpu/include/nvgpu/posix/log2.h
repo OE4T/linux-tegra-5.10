@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,8 @@
 /**
  * @brief Round up to the power of two.
  *
- * @param x [in]     Number to round up.
+ * @param x [in]	Number to round up.
+ * 			  - 0 is not a valid value.
  *
  * Rounds up the input number \a x to power of two and returns.
  *
@@ -68,7 +69,8 @@
 /**
  * @brief Round down to the power of two.
  *
- * @param x [in]     Number to round down.
+ * @param x [in]	Number to round down.
+ * 			  - 0 is not a valid value.
  *
  * Rounds down the input number \a x to power of two and returns.
  *
