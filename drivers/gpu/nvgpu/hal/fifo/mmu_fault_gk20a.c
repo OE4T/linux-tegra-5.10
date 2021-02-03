@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -356,7 +356,22 @@ void gk20a_fifo_handle_mmu_fault_locked(
 			 * userspace that channel is no longer usable.
 			 */
 			if (!fake_fault) {
-				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+				/*
+				 * If a debugger is attached and debugging is
+				 * enabled, then do not set error notifier as
+				 * it will cause the application to teardown the
+				 * channels and debugger will not be able to
+				 * collect any data.
+				 */
+#ifdef CONFIG_NVGPU_DEBUGGER
+				if (!nvgpu_engine_should_defer_reset(g,
+					mmfault_info.faulted_engine,
+					mmfault_info.client_type, false)) {
+#endif
+					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+#ifdef CONFIG_NVGPU_DEBUGGER
+				}
+#endif
 			}
 			nvgpu_tsg_set_unserviceable(g, tsg);
 		}
