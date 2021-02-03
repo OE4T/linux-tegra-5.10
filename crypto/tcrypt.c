@@ -2563,6 +2563,10 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 		ret += tcrypt_test("hmac(streebog512)");
 		break;
 
+	case 149:
+		ret += tcrypt_test("rng_drbg");
+		break;
+
 	case 150:
 		ret += tcrypt_test("ansi_cprng");
 		break;

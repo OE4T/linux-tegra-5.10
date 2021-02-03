@@ -2606,6 +2606,40 @@ out:
 	return err;
 }
 
+static int alg_test_rng_drbg(const struct alg_test_desc *desc, const char *driver,
+			u32 type, u32 mask)
+{
+	struct crypto_rng *rng;
+	unsigned char buf[32];
+	int i;
+	int err;
+
+	rng = crypto_alloc_rng(driver, type, mask);
+	if (IS_ERR(rng)) {
+		pr_err("alg: rng_drbg: Failed to load transform for ");
+		pr_err("%s: %ld\n", driver, PTR_ERR(rng));
+		return PTR_ERR(rng);
+	}
+
+	for (i = 0; i < 5; i++) {
+		memset(buf, 0, 32);
+		err = crypto_rng_get_bytes(rng, buf, 32);
+		if (err < 0) {
+			pr_err("alg: rng_drbg: Failed to obtain ");
+			pr_err("the correct amount of random data for ");
+			pr_err("rng_drng (requested 32)\n");
+			goto out;
+		}
+		hexdump(buf, 32);
+	}
+
+	crypto_free_rng(rng);
+	err = 0;
+
+out:
+	return err;
+}
+
 static int test_cipher(struct crypto_cipher *tfm, int enc,
 		       const struct cipher_testvec *template,
 		       unsigned int tcount)
@@ -5935,6 +5969,9 @@ static const struct alg_test_desc alg_test_descs[] = {
 		.suite = {
 			.hash = __VECS(rmd320_tv_template)
 		}
+	}, {
+		.alg = "rng_drbg",
+		.test = alg_test_rng_drbg,
 	}, {
 		.alg = "rsa",
 		.test = alg_test_akcipher,
