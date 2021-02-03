@@ -319,20 +319,20 @@ static int tegra210_afc_hw_params(struct snd_pcm_substream *substream,
 {
 	struct device *dev = dai->dev;
 	struct tegra210_afc *afc = snd_soc_dai_get_drvdata(dai);
-	int ret;
+	int err;
 
 	/* set RX cif and TX cif */
-	ret = tegra210_afc_set_audio_cif(afc, params,
+	err = tegra210_afc_set_audio_cif(afc, params,
 				TEGRA210_AFC_AXBAR_RX_CIF_CTRL);
-	if (ret) {
-		dev_err(dev, "Can't set AFC RX CIF: %d\n", ret);
-		return ret;
+	if (err) {
+		dev_err(dev, "Can't set AFC RX CIF: %d\n", err);
+		return err;
 	}
-	ret = tegra210_afc_set_audio_cif(afc, params,
+	err = tegra210_afc_set_audio_cif(afc, params,
 				TEGRA210_AFC_AXBAR_TX_CIF_CTRL);
-	if (ret) {
-		dev_err(dev, "Can't set AFC TX CIF: %d\n", ret);
-		return ret;
+	if (err) {
+		dev_err(dev, "Can't set AFC TX CIF: %d\n", err);
+		return err;
 	}
 
 	/* update expected ppm difference */
@@ -341,9 +341,9 @@ static int tegra210_afc_hw_params(struct snd_pcm_substream *substream,
 
 	/* program thresholds, dest module depending on the mode*/
 	if (tegra210_afc_set_thresholds(afc, dev->id) == -EINVAL)
-		dev_err(dev, "Can't set AFC threshold: %d\n", ret);
+		dev_err(dev, "Can't set AFC threshold: %d\n", err);
 
-	return ret;
+	return err;
 
 }
 
@@ -446,7 +446,7 @@ static bool tegra210_afc_wr_rd_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_afc_volatile_reg(struct device *dev, unsigned int reg)
@@ -488,64 +488,59 @@ MODULE_DEVICE_TABLE(of, tegra210_afc_of_match);
 
 static int tegra210_afc_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_afc *afc;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret = 0;
+	int err;
 	const struct of_device_id *match;
 	struct tegra210_afc_soc_data *soc_data;
 
-	match = of_match_device(tegra210_afc_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
+	match = of_match_device(tegra210_afc_of_match, dev);
+
 	soc_data = (struct tegra210_afc_soc_data *)match->data;
 
-	afc = devm_kzalloc(&pdev->dev, sizeof(*afc), GFP_KERNEL);
+	afc = devm_kzalloc(dev, sizeof(*afc), GFP_KERNEL);
 	if (!afc)
 		return -ENOMEM;
 
 	afc->soc_data = soc_data;
 	tegra210_afc_init(afc);
 
-	dev_set_drvdata(&pdev->dev, afc);
+	dev_set_drvdata(dev, afc);
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	afc->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	afc->regmap = devm_regmap_init_mmio(dev, regs,
 					    &tegra210_afc_regmap_config);
 	if (IS_ERR(afc->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(afc->regmap);
 	}
+
 	regcache_cache_only(afc->regmap, true);
 
 	/* Disable SLGC */
 	regmap_write(afc->regmap, TEGRA210_AFC_CG, 0);
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, afc->soc_data->afc_cmpnt,
-				     tegra210_afc_dais,
-				     ARRAY_SIZE(tegra210_afc_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev,
+					      afc->soc_data->afc_cmpnt,
+					      tegra210_afc_dais,
+					      ARRAY_SIZE(tegra210_afc_dais));
+	if (err) {
+		dev_err(dev, "can't register AFC component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 	return 0;
 }
 
 static int tegra210_afc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_afc_runtime_suspend(&pdev->dev);
 
 	return 0;
 }

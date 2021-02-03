@@ -66,13 +66,13 @@ static int tegra210_mvc_write_ram(struct tegra210_mvc *mvc,
 				  unsigned int addr, unsigned int coef)
 {
 	unsigned int reg, val;
-	int ret;
+	int err;
 
-	ret = regmap_read_poll_timeout(mvc->regmap,
+	err = regmap_read_poll_timeout(mvc->regmap,
 				       TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL,
 				       val, !(val & 0x80000000), 10, 10000);
-	if (ret < 0)
-		return ret;
+	if (err < 0)
+		return err;
 
 	reg = (addr << TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RAM_ADDR_SHIFT) &
 	      TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RAM_ADDR_MASK;
@@ -125,16 +125,16 @@ static int tegra210_mvc_put_vol(struct snd_kcontrol *kcontrol,
 	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 	unsigned int reg = mc->reg;
 	unsigned int value;
-	int ret = 0;
+	int err;
 	s32 val;
 
 	pm_runtime_get_sync(cmpnt->dev);
 
 	/* check if VOLUME_SWITCH is triggered */
-	ret = regmap_read_poll_timeout(mvc->regmap, TEGRA210_MVC_SWITCH,
+	err = regmap_read_poll_timeout(mvc->regmap, TEGRA210_MVC_SWITCH,
 			value, !(value & TEGRA210_MVC_VOLUME_SWITCH_MASK),
 			10, 10000);
-	if (ret < 0)
+	if (err < 0)
 		goto end;
 
 	if (reg == TEGRA210_MVC_TARGET_VOL) {
@@ -151,14 +151,14 @@ static int tegra210_mvc_put_vol(struct snd_kcontrol *kcontrol,
 			val = ucontrol->value.integer.value[0] - 12000;
 			mvc->volume = (val * (1<<8)) / 100;
 		}
-		ret = regmap_write(mvc->regmap, reg, mvc->volume);
+		err = regmap_write(mvc->regmap, reg, mvc->volume);
 	} else {
-		ret = regmap_update_bits(mvc->regmap, reg,
+		err = regmap_update_bits(mvc->regmap, reg,
 				TEGRA210_MVC_MUTE_MASK,
 				(ucontrol->value.integer.value[0] ?
 				TEGRA210_MVC_MUTE_EN : 0));
 	}
-	ret |= regmap_update_bits(mvc->regmap, TEGRA210_MVC_SWITCH,
+	err |= regmap_update_bits(mvc->regmap, TEGRA210_MVC_SWITCH,
 			TEGRA210_MVC_VOLUME_SWITCH_MASK,
 			TEGRA210_MVC_VOLUME_SWITCH_TRIGGER);
 
@@ -166,10 +166,10 @@ end:
 	pm_runtime_put(cmpnt->dev);
 
 	if (reg == TEGRA210_MVC_TARGET_VOL)
-		ret |= regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
+		err |= regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
 				TEGRA210_MVC_MUTE_MASK, 0);
 
-	return ret;
+	return err;
 }
 
 static int tegra210_mvc_get_curve_type(struct snd_kcontrol *kcontrol,
@@ -317,30 +317,30 @@ static int tegra210_mvc_hw_params(struct snd_pcm_substream *substream,
 {
 	struct device *dev = dai->dev;
 	struct tegra210_mvc *mvc = snd_soc_dai_get_drvdata(dai);
-	int i, ret, val;
+	int i, err, val;
 
 	/* SW reset */
 	regmap_write(mvc->regmap, TEGRA210_MVC_SOFT_RESET, 1);
 
-	ret = regmap_read_poll_timeout(mvc->regmap, TEGRA210_MVC_SOFT_RESET,
+	err = regmap_read_poll_timeout(mvc->regmap, TEGRA210_MVC_SOFT_RESET,
 				       val, !val, 10, 10000);
-	if (ret < 0) {
-		dev_err(dev, "SW reset failed, err = %d\n", ret);
-		return ret;
+	if (err < 0) {
+		dev_err(dev, "SW reset failed, err = %d\n", err);
+		return err;
 	}
 
 	/* set RX cif and TX cif */
-	ret = tegra210_mvc_set_audio_cif(mvc, params,
+	err = tegra210_mvc_set_audio_cif(mvc, params,
 				TEGRA210_MVC_AXBAR_RX_CIF_CTRL);
-	if (ret) {
-		dev_err(dev, "Can't set MVC RX CIF: %d\n", ret);
-		return ret;
+	if (err) {
+		dev_err(dev, "Can't set MVC RX CIF: %d\n", err);
+		return err;
 	}
-	ret = tegra210_mvc_set_audio_cif(mvc, params,
+	err = tegra210_mvc_set_audio_cif(mvc, params,
 				TEGRA210_MVC_AXBAR_TX_CIF_CTRL);
-	if (ret) {
-		dev_err(dev, "Can't set MVC TX CIF: %d\n", ret);
-		return ret;
+	if (err) {
+		dev_err(dev, "Can't set MVC TX CIF: %d\n", err);
+		return err;
 	}
 
 	/* disable per_channel_cntrl_en */
@@ -349,7 +349,7 @@ static int tegra210_mvc_hw_params(struct snd_pcm_substream *substream,
 		~(TEGRA210_MVC_PER_CHAN_CTRL_EN_MASK));
 
 	/* change curve type */
-	ret = regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
+	err = regmap_update_bits(mvc->regmap, TEGRA210_MVC_CTRL,
 			TEGRA210_MVC_CURVE_TYPE_MASK,
 			mvc->curve_type <<
 			TEGRA210_MVC_CURVE_TYPE_SHIFT);
@@ -361,11 +361,11 @@ static int tegra210_mvc_hw_params(struct snd_pcm_substream *substream,
 
 	/* program the poly coefficients */
 	for (i = 0; i < 9; i++) {
-		ret = tegra210_mvc_write_ram(mvc, i, mvc->poly_coeff[i]);
-		if (ret < 0) {
+		err = tegra210_mvc_write_ram(mvc, i, mvc->poly_coeff[i]);
+		if (err < 0) {
 			dev_err(dai->dev, "failed to write coefs, err = %d\n",
-				ret);
-			return ret;
+				err);
+			return err;
 		}
 	}
 
@@ -378,10 +378,10 @@ static int tegra210_mvc_hw_params(struct snd_pcm_substream *substream,
 	regmap_write(mvc->regmap, TEGRA210_MVC_DURATION_INV, mvc->duration_inv);
 
 	/* trigger volume switch */
-	ret |= regmap_update_bits(mvc->regmap, TEGRA210_MVC_SWITCH,
+	err |= regmap_update_bits(mvc->regmap, TEGRA210_MVC_SWITCH,
 			TEGRA210_MVC_VOLUME_SWITCH_MASK,
 			TEGRA210_MVC_VOLUME_SWITCH_TRIGGER);
-	return ret;
+	return err;
 }
 
 static struct snd_soc_dai_ops tegra210_mvc_dai_ops = {
@@ -521,7 +521,7 @@ static bool tegra210_mvc_wr_rd_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_mvc_volatile_reg(struct device *dev, unsigned int reg)
@@ -545,7 +545,7 @@ static bool tegra210_mvc_volatile_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra210_mvc_regmap_config = {
@@ -569,23 +569,16 @@ MODULE_DEVICE_TABLE(of, tegra210_mvc_of_match);
 
 static int tegra210_mvc_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_mvc *mvc;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret = 0;
-	const struct of_device_id *match;
+	int err;
 
-	match = of_match_device(tegra210_mvc_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-
-	mvc = devm_kzalloc(&pdev->dev, sizeof(*mvc), GFP_KERNEL);
+	mvc = devm_kzalloc(dev, sizeof(*mvc), GFP_KERNEL);
 	if (!mvc)
 		return -ENOMEM;
 
-	dev_set_drvdata(&pdev->dev, mvc);
+	dev_set_drvdata(dev, mvc);
 
 	mvc->poly_n1 = 16;
 	mvc->poly_n2 = 63;
@@ -603,38 +596,35 @@ static int tegra210_mvc_platform_probe(struct platform_device *pdev)
 	mvc->curve_type = CURVE_LINEAR;
 	mvc->volume = TEGRA210_MVC_INIT_VOL_DEFAULT_LINEAR;
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	mvc->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	mvc->regmap = devm_regmap_init_mmio(dev, regs,
 					    &tegra210_mvc_regmap_config);
 	if (IS_ERR(mvc->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(mvc->regmap);
 	}
+
 	regcache_cache_only(mvc->regmap, true);
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_mvc_cmpnt,
-				     tegra210_mvc_dais,
-				     ARRAY_SIZE(tegra210_mvc_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra210_mvc_cmpnt,
+					      tegra210_mvc_dais,
+					      ARRAY_SIZE(tegra210_mvc_dais));
+	if (err) {
+		dev_err(dev, "can't register MVC component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 	return 0;
 }
 
 static int tegra210_mvc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_mvc_runtime_suspend(&pdev->dev);
 
 	return 0;
 }

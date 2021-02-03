@@ -206,7 +206,7 @@ static bool tegra210_peq_wr_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_peq_rd_reg(struct device *dev, unsigned int reg)
@@ -223,7 +223,7 @@ static bool tegra210_peq_rd_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_peq_volatile_reg(struct device *dev, unsigned int reg)
@@ -238,7 +238,7 @@ static bool tegra210_peq_volatile_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_peq_precious_reg(struct device *dev, unsigned int reg)
@@ -249,7 +249,7 @@ static bool tegra210_peq_precious_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra210_peq_regmap_config = {
@@ -356,18 +356,19 @@ EXPORT_SYMBOL_GPL(tegra210_peq_codec_init);
 
 int tegra210_peq_init(struct platform_device *pdev, int id)
 {
-	struct tegra210_ope *ope = dev_get_drvdata(&pdev->dev);
+	struct device *dev = &pdev->dev;
+	struct tegra210_ope *ope = dev_get_drvdata(dev);
 	struct resource *mem;
 	void __iomem *regs;
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, id);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_ioremap_resource(dev, mem);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	ope->peq_regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+	ope->peq_regmap = devm_regmap_init_mmio(dev, regs,
 						&tegra210_peq_regmap_config);
 	if (IS_ERR(ope->peq_regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(ope->peq_regmap);
 	}
 

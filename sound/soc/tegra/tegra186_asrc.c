@@ -922,7 +922,7 @@ static bool tegra186_asrc_wr_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra186_asrc_rd_reg(struct device *dev, unsigned int reg)
@@ -981,7 +981,7 @@ static bool tegra186_asrc_rd_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra186_asrc_volatile_reg(struct device *dev, unsigned int reg)
@@ -1008,7 +1008,7 @@ static bool tegra186_asrc_volatile_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 void tegra186_asrc_handle_arad_unlock(int stream_id, int action)
@@ -1071,40 +1071,36 @@ MODULE_DEVICE_TABLE(of, tegra186_asrc_of_match);
 
 static int tegra186_asrc_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra186_asrc *asrc;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret = 0;
-	const struct of_device_id *match;
-	unsigned int i = 0;
+	int err;
+	unsigned int i;
 
-	match = of_match_device(tegra186_asrc_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-	asrc_dev = &pdev->dev;
-	asrc = devm_kzalloc(&pdev->dev, sizeof(*asrc), GFP_KERNEL);
+	asrc_dev = dev;
+
+	asrc = devm_kzalloc(dev, sizeof(*asrc), GFP_KERNEL);
 	if (!asrc)
 		return -ENOMEM;
 
-	dev_set_drvdata(&pdev->dev, asrc);
+	dev_set_drvdata(dev, asrc);
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	asrc->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	asrc->regmap = devm_regmap_init_mmio(dev, regs,
 					     &tegra186_asrc_regmap_config);
 	if (IS_ERR(asrc->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(asrc->regmap);
 	}
+
 	regcache_cache_only(asrc->regmap, true);
 
 #ifdef CONFIG_TEGRA186_AHC
 	tegra186_ahc_register_cb(tegra186_asrc_ahc_cb, TEGRA186_AHC_ASRC1_CB,
-				 &pdev->dev);
+				 dev);
 #endif
 
 	regmap_write(asrc->regmap, TEGRA186_ASRC_GLOBAL_CONFIG,
@@ -1124,26 +1120,22 @@ static int tegra186_asrc_platform_probe(struct platform_device *pdev)
 			ASRC_STREAM_REG(TEGRA186_ASRC_STREAM1_CONFIG, i), 1, 1);
 	}
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra186_asrc_cmpnt,
-				     tegra186_asrc_dais,
-				     ARRAY_SIZE(tegra186_asrc_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra186_asrc_cmpnt,
+					      tegra186_asrc_dais,
+					      ARRAY_SIZE(tegra186_asrc_dais));
+	if (err) {
+		dev_err(dev, "can't register ASRC component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 	return 0;
 }
 
 static int tegra186_asrc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra186_asrc_runtime_suspend(&pdev->dev);
 
 	return 0;
 }

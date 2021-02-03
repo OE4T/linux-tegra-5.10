@@ -567,7 +567,7 @@ static bool tegra186_arad_wr_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra186_arad_rd_reg(struct device *dev, unsigned int reg)
@@ -608,7 +608,7 @@ static bool tegra186_arad_rd_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra186_arad_volatile_reg(struct device *dev, unsigned int reg)
@@ -631,7 +631,7 @@ static bool tegra186_arad_volatile_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra186_arad_regmap_config = {
@@ -727,55 +727,48 @@ void tegra186_arad_ahc_deferred_cb(void *data)
 
 static int tegra186_arad_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra186_arad *arad;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret = 0;
-	const struct of_device_id *match;
+	int err;
 
-	match = of_match_device(tegra186_arad_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-
-	arad = devm_kzalloc(&pdev->dev, sizeof(*arad), GFP_KERNEL);
+	arad = devm_kzalloc(dev, sizeof(*arad), GFP_KERNEL);
 	if (!arad)
 		return -ENOMEM;
 
-	arad_dev = &pdev->dev;
-	dev_set_drvdata(&pdev->dev, arad);
+	arad_dev = dev;
+	dev_set_drvdata(dev, arad);
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	arad->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	arad->regmap = devm_regmap_init_mmio(dev, regs,
 					     &tegra186_arad_regmap_config);
 	if (IS_ERR(arad->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(arad->regmap);
 	}
+
 	regcache_cache_only(arad->regmap, true);
 
-	pm_runtime_enable(&pdev->dev);
-
-	ret = snd_soc_register_component(&pdev->dev, &tegra186_arad_cmpnt,
-				     tegra186_arad_dais,
-				     ARRAY_SIZE(tegra186_arad_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra186_arad_cmpnt,
+					      tegra186_arad_dais,
+					      ARRAY_SIZE(tegra186_arad_dais));
+	if (err) {
+		dev_err(dev, "can't register ARAD component, err: %d", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 #ifdef CONFIG_SND_SOC_TEGRA186_ARAD_WAR
 	spin_lock_init(&arad->status_lock);
 	tegra186_ahc_register_cb(tegra186_arad_ahc_cb,
-			TEGRA186_AHC_ARAD1_CB, &pdev->dev);
+			TEGRA186_AHC_ARAD1_CB, dev);
 #ifdef CONFIG_SND_SOC_TEGRA186_ASRC_WAR
 	tegra186_ahc_register_deferred_cb(tegra186_arad_ahc_deferred_cb,
-			TEGRA186_AHC_ARAD1_CB, &pdev->dev);
+			TEGRA186_AHC_ARAD1_CB, dev);
 #endif
 #endif
 
@@ -784,11 +777,7 @@ static int tegra186_arad_platform_probe(struct platform_device *pdev)
 
 static int tegra186_arad_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra186_arad_runtime_suspend(&pdev->dev);
 
 	return 0;
 }

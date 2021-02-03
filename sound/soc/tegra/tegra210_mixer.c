@@ -86,14 +86,14 @@ static int tegra210_mixer_write_ram(struct tegra210_mixer *mixer,
 				    unsigned int coef)
 {
 	unsigned int reg, val;
-	int ret;
+	int err;
 
 	/* check if busy */
-	ret = regmap_read_poll_timeout(mixer->regmap,
+	err = regmap_read_poll_timeout(mixer->regmap,
 			TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL,
 			val, !(val & 0x80000000), 10, 10000);
-	if (ret < 0)
-		return ret;
+	if (err < 0)
+		return err;
 
 	reg = (addr << TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL_RAM_ADDR_SHIFT) &
 			TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_CTRL_RAM_ADDR_MASK;
@@ -168,8 +168,8 @@ static int tegra210_mixer_put_gain(struct snd_kcontrol *kcontrol,
 		(struct soc_mixer_control *)kcontrol->private_value;
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
-	unsigned int reg = mc->reg;
-	unsigned int ret, i;
+	unsigned int reg = mc->reg, i;
+	int err;
 
 	pm_runtime_get_sync(cmpnt->dev);
 	/* write default gain config poly coefficients */
@@ -187,9 +187,9 @@ static int tegra210_mixer_put_gain(struct snd_kcontrol *kcontrol,
 	}
 
 	/* write new gain and trigger config */
-	ret = tegra210_mixer_write_ram(mixer, reg + 0x09,
+	err = tegra210_mixer_write_ram(mixer, reg + 0x09,
 				ucontrol->value.integer.value[0]);
-	ret |= tegra210_mixer_write_ram(mixer, reg + 0x0f,
+	err |= tegra210_mixer_write_ram(mixer, reg + 0x0f,
 				ucontrol->value.integer.value[0]);
 	pm_runtime_put(cmpnt->dev);
 
@@ -198,7 +198,7 @@ static int tegra210_mixer_put_gain(struct snd_kcontrol *kcontrol,
 		TEGRA210_MIXER_AHUBRAMCTL_GAIN_CONFIG_RAM_ADDR_STRIDE;
 	mixer->gain_value[i] = ucontrol->value.integer.value[0];
 
-	return ret;
+	return err;
 }
 
 static int tegra210_mixer_set_audio_cif(struct tegra210_mixer *mixer,
@@ -242,9 +242,9 @@ static int tegra210_mixer_in_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_soc_dai *dai)
 {
 	struct tegra210_mixer *mixer = snd_soc_dai_get_drvdata(dai);
-	int ret, i;
+	int err, i;
 
-	ret = tegra210_mixer_set_audio_cif(mixer, params,
+	err = tegra210_mixer_set_audio_cif(mixer, params,
 				TEGRA210_MIXER_AXBAR_RX1_CIF_CTRL +
 				(dai->id * TEGRA210_MIXER_AXBAR_RX_STRIDE),
 				dai->id);
@@ -257,7 +257,7 @@ static int tegra210_mixer_in_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	/* write saved gain */
-	ret = tegra210_mixer_write_ram(mixer,
+	err = tegra210_mixer_write_ram(mixer,
 			MIXER_GAIN_CONFIG_RAM_ADDR(dai->id) + 0x09,
 			mixer->gain_value[dai->id]);
 
@@ -266,7 +266,7 @@ static int tegra210_mixer_in_hw_params(struct snd_pcm_substream *substream,
 		MIXER_GAIN_CONFIG_RAM_ADDR(dai->id) + 0xf,
 		0x01);
 
-	return ret;
+	return err;
 }
 
 static int tegra210_mixer_out_hw_params(struct snd_pcm_substream *substream,
@@ -274,14 +274,14 @@ static int tegra210_mixer_out_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_soc_dai *dai)
 {
 	struct tegra210_mixer *mixer = snd_soc_dai_get_drvdata(dai);
-	int ret;
+	int err;
 
-	ret = tegra210_mixer_set_audio_cif(mixer, params,
+	err = tegra210_mixer_set_audio_cif(mixer, params,
 				TEGRA210_MIXER_AXBAR_TX1_CIF_CTRL +
 				((dai->id-10) * TEGRA210_MIXER_AXBAR_TX_STRIDE),
 				dai->id);
 
-	return ret;
+	return err;
 }
 
 static struct snd_soc_dai_ops tegra210_mixer_out_dai_ops = {
@@ -550,7 +550,7 @@ static bool tegra210_mixer_wr_reg(struct device *dev,
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_mixer_rd_reg(struct device *dev,
@@ -593,7 +593,7 @@ static bool tegra210_mixer_rd_reg(struct device *dev,
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_mixer_volatile_reg(struct device *dev,
@@ -624,7 +624,7 @@ static bool tegra210_mixer_volatile_reg(struct device *dev,
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_mixer_precious_reg(struct device *dev,
@@ -636,7 +636,7 @@ static bool tegra210_mixer_precious_reg(struct device *dev,
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra210_mixer_regmap_config = {
@@ -661,19 +661,12 @@ MODULE_DEVICE_TABLE(of, tegra210_mixer_of_match);
 
 static int tegra210_mixer_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_mixer *mixer;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret, i;
-	const struct of_device_id *match;
+	int err, i;
 
-	match = of_match_device(tegra210_mixer_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-
-	mixer = devm_kzalloc(&pdev->dev, sizeof(*mixer), GFP_KERNEL);
+	mixer = devm_kzalloc(dev, sizeof(*mixer), GFP_KERNEL);
 	if (!mixer)
 		return -ENOMEM;
 
@@ -691,43 +684,40 @@ static int tegra210_mixer_platform_probe(struct platform_device *pdev)
 	mixer->gain_coeff[11] = 0;
 	mixer->gain_coeff[12] = 0x400;
 	mixer->gain_coeff[13] = 0x8000000;
-	dev_set_drvdata(&pdev->dev, mixer);
+	dev_set_drvdata(dev, mixer);
 
 	for (i = 0; i < TEGRA210_MIXER_AXBAR_RX_MAX; i++)
 		mixer->gain_value[i] = 0x10000;
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	mixer->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	mixer->regmap = devm_regmap_init_mmio(dev, regs,
 					      &tegra210_mixer_regmap_config);
 	if (IS_ERR(mixer->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(mixer->regmap);
 	}
+
 	regcache_cache_only(mixer->regmap, true);
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_mixer_cmpnt,
-				     tegra210_mixer_dais,
-				     ARRAY_SIZE(tegra210_mixer_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra210_mixer_cmpnt,
+					      tegra210_mixer_dais,
+					      ARRAY_SIZE(tegra210_mixer_dais));
+	if (err) {
+		dev_err(dev, "can't register MIXER component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 	return 0;
 }
 
 static int tegra210_mixer_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_mixer_runtime_suspend(&pdev->dev);
 
 	return 0;
 }

@@ -3001,17 +3001,17 @@ static int tegra210_sfc_set_audio_cif(struct tegra210_sfc *sfc,
 static int tegra210_sfc_soft_reset(struct tegra210_sfc *sfc)
 {
 	u32 val;
-	int ret;
+	int err;
 
 	/* SW reset */
 	regmap_update_bits(sfc->regmap, TEGRA210_SFC_SOFT_RESET,
 			   TEGRA210_SFC_SOFT_RESET_EN, 1);
 
-	ret = regmap_read_poll_timeout(sfc->regmap, TEGRA210_SFC_SOFT_RESET,
+	err = regmap_read_poll_timeout(sfc->regmap, TEGRA210_SFC_SOFT_RESET,
 				       val, !(val & TEGRA210_SFC_SOFT_RESET_EN),
 				       10, 10000);
-	if (ret < 0)
-		return ret;
+	if (err < 0)
+		return err;
 
 	return 0;
 }
@@ -3022,39 +3022,39 @@ static int tegra210_sfc_in_hw_params(struct snd_pcm_substream *substream,
 {
 	struct device *dev = dai->dev;
 	struct tegra210_sfc *sfc = snd_soc_dai_get_drvdata(dai);
-	int ret;
+	int err;
 
 	regmap_update_bits(sfc->regmap,
 			TEGRA210_SFC_COEF_RAM,
 			TEGRA210_SFC_COEF_RAM_COEF_RAM_EN,
 			0);
 
-	ret = tegra210_sfc_soft_reset(sfc);
-	if (ret < 0) {
+	err = tegra210_sfc_soft_reset(sfc);
+	if (err < 0) {
 		dev_err(dev, "failed to reset SFC in %s, err = %d\n",
-			__func__, ret);
+			__func__, err);
 
-		return ret;
+		return err;
 	}
 
-	ret = tegra210_sfc_set_audio_cif(sfc, params,
+	err = tegra210_sfc_set_audio_cif(sfc, params,
 				TEGRA210_SFC_AXBAR_RX_CIF_CTRL);
-	if (ret) {
-		dev_err(dev, "Can't set SFC RX CIF: %d\n", ret);
-		return ret;
+	if (err) {
+		dev_err(dev, "Can't set SFC RX CIF: %d\n", err);
+		return err;
 	}
 	memcpy(&sfc->in_hw_params, params, sizeof(struct snd_pcm_hw_params));
 
 	regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_RX_FREQ, sfc->srate_in);
 
 	if (sfc->srate_in != sfc->srate_out) {
-		ret = tegra210_sfc_write_coeff_ram(sfc);
-		if (ret)
+		err = tegra210_sfc_write_coeff_ram(sfc);
+		if (err)
 			dev_err(dev, "Conversion from %d to %d is not supported\n",
 				sfc->srate_in, sfc->srate_out);
 	}
 
-	return ret;
+	return err;
 }
 
 static int tegra210_sfc_out_hw_params(struct snd_pcm_substream *substream,
@@ -3063,13 +3063,13 @@ static int tegra210_sfc_out_hw_params(struct snd_pcm_substream *substream,
 {
 	struct device *dev = dai->dev;
 	struct tegra210_sfc *sfc = snd_soc_dai_get_drvdata(dai);
-	int ret;
+	int err;
 
-	ret = tegra210_sfc_set_audio_cif(sfc, params,
+	err = tegra210_sfc_set_audio_cif(sfc, params,
 				TEGRA210_SFC_AXBAR_TX_CIF_CTRL);
-	if (ret) {
-		dev_err(dev, "Can't set SFC TX CIF: %d\n", ret);
-		return ret;
+	if (err) {
+		dev_err(dev, "Can't set SFC TX CIF: %d\n", err);
+		return err;
 	}
 	memcpy(&sfc->out_hw_params, params, sizeof(struct snd_pcm_hw_params));
 
@@ -3080,7 +3080,7 @@ static int tegra210_sfc_out_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_TX_FREQ, sfc->srate_out);
-	return ret;
+	return err;
 }
 
 static int tegra210_sfc_get_srate(struct snd_kcontrol *kcontrol,
@@ -3194,19 +3194,19 @@ static int tegra210_sfc_init_put(struct snd_kcontrol *kcontrol,
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
 	int init = ucontrol->value.enumerated.item[0];
-	int ret = 0;
+	int err;
 	int is_enabled = 0;
 
 	if (!init)
-		return ret;
+		return err;
 
 	dev_dbg(cmpnt->dev, "%s: inrate %d outrate %d\n",
 		__func__, sfc->srate_in, sfc->srate_out);
 
-	ret = pm_runtime_get_sync(cmpnt->dev->parent);
-	if (ret < 0) {
-		dev_err(cmpnt->dev, "parent get_sync failed: %d\n", ret);
-		return ret;
+	err = pm_runtime_get_sync(cmpnt->dev->parent);
+	if (err < 0) {
+		dev_err(cmpnt->dev, "parent get_sync failed: %d\n", err);
+		return err;
 	}
 
 	regmap_read(sfc->regmap, TEGRA210_SFC_ENABLE, &is_enabled);
@@ -3216,13 +3216,13 @@ static int tegra210_sfc_init_put(struct snd_kcontrol *kcontrol,
 
 		regmap_write(sfc->regmap, TEGRA210_SFC_ENABLE, 0);
 
-		ret = regmap_read_poll_timeout(sfc->regmap,
+		err = regmap_read_poll_timeout(sfc->regmap,
 					       TEGRA210_SFC_STATUS, val,
 					       !(val & 0x1), 10, 10000);
-		if (ret < 0) {
+		if (err < 0) {
 			dev_err(cmpnt->dev,
-				"failed to disable SFC, err = %d\n", ret);
-			return ret;
+				"failed to disable SFC, err = %d\n", err);
+			return err;
 		}
 
 		regmap_update_bits(sfc->regmap,
@@ -3230,25 +3230,25 @@ static int tegra210_sfc_init_put(struct snd_kcontrol *kcontrol,
 				TEGRA210_SFC_COEF_RAM_COEF_RAM_EN,
 				0);
 
-		ret = tegra210_sfc_soft_reset(sfc);
-		if (ret < 0) {
+		err = tegra210_sfc_soft_reset(sfc);
+		if (err < 0) {
 			dev_err(cmpnt->dev,
 				"failed to reset SFC in %s, err = %d\n",
-				__func__, ret);
+				__func__, err);
 			goto exit;
 		}
 
-		ret = tegra210_sfc_set_audio_cif(sfc, &sfc->in_hw_params,
+		err = tegra210_sfc_set_audio_cif(sfc, &sfc->in_hw_params,
 					TEGRA210_SFC_AXBAR_RX_CIF_CTRL);
-		if (ret) {
-			dev_err(cmpnt->dev, "Can't set SFC RX CIF: %d\n", ret);
+		if (err) {
+			dev_err(cmpnt->dev, "Can't set SFC RX CIF: %d\n", err);
 			goto exit;
 		}
 
-		ret = tegra210_sfc_set_audio_cif(sfc, &sfc->out_hw_params,
+		err = tegra210_sfc_set_audio_cif(sfc, &sfc->out_hw_params,
 						TEGRA210_SFC_AXBAR_TX_CIF_CTRL);
-		if (ret) {
-			dev_err(cmpnt->dev, "Can't set SFC TX CIF: %d\n", ret);
+		if (err) {
+			dev_err(cmpnt->dev, "Can't set SFC TX CIF: %d\n", err);
 			goto exit;
 		}
 
@@ -3256,8 +3256,8 @@ static int tegra210_sfc_init_put(struct snd_kcontrol *kcontrol,
 		regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_TX_FREQ, sfc->srate_out);
 
 		if (sfc->srate_in != sfc->srate_out) {
-			ret = tegra210_sfc_write_coeff_ram(sfc);
-			if (ret) {
+			err = tegra210_sfc_write_coeff_ram(sfc);
+			if (err) {
 				dev_err(cmpnt->dev, "Conversion from %d to %d is not supported\n",
 					sfc->srate_in, sfc->srate_out);
 				goto exit;
@@ -3269,7 +3269,7 @@ static int tegra210_sfc_init_put(struct snd_kcontrol *kcontrol,
 exit:
 	pm_runtime_put(cmpnt->dev->parent);
 
-	return ret;
+	return err;
 }
 
 static struct snd_soc_dai_ops tegra210_sfc_in_dai_ops = {
@@ -3413,7 +3413,7 @@ static bool tegra210_sfc_wr_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_sfc_rd_reg(struct device *dev, unsigned int reg)
@@ -3446,7 +3446,7 @@ static bool tegra210_sfc_rd_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_sfc_volatile_reg(struct device *dev, unsigned int reg)
@@ -3468,7 +3468,7 @@ static bool tegra210_sfc_volatile_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_sfc_precious_reg(struct device *dev, unsigned int reg)
@@ -3478,7 +3478,7 @@ static bool tegra210_sfc_precious_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra210_sfc_regmap_config = {
@@ -3503,56 +3503,46 @@ MODULE_DEVICE_TABLE(of, tegra210_sfc_of_match);
 
 static int tegra210_sfc_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_sfc *sfc;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret = 0;
-	const struct of_device_id *match;
+	int err;
 
-	match = of_match_device(tegra210_sfc_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-
-	sfc = devm_kzalloc(&pdev->dev, sizeof(*sfc), GFP_KERNEL);
+	sfc = devm_kzalloc(dev, sizeof(*sfc), GFP_KERNEL);
 	if (!sfc)
 		return -ENOMEM;
 
-	dev_set_drvdata(&pdev->dev, sfc);
+	dev_set_drvdata(dev, sfc);
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	sfc->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	sfc->regmap = devm_regmap_init_mmio(dev, regs,
 					    &tegra210_sfc_regmap_config);
 	if (IS_ERR(sfc->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(sfc->regmap);
 	}
+
 	regcache_cache_only(sfc->regmap, true);
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_sfc_cmpnt,
-				     tegra210_sfc_dais,
-				     ARRAY_SIZE(tegra210_sfc_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra210_sfc_cmpnt,
+					      tegra210_sfc_dais,
+					      ARRAY_SIZE(tegra210_sfc_dais));
+	if (err) {
+		dev_err(dev, "can't register SFC component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(&pdev->dev);
 
 	return 0;
 }
 
 static int tegra210_sfc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_sfc_runtime_suspend(&pdev->dev);
 
 	return 0;
 }

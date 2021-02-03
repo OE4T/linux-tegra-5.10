@@ -147,14 +147,14 @@ static int tegra210_adx_stop(struct snd_soc_dapm_widget *w,
 	struct device *dev = cmpnt->dev;
 	struct tegra210_adx *adx = dev_get_drvdata(dev);
 	unsigned int val;
-	int ret;
+	int err;
 
 	/* ensure if ADX status is disabled */
-	ret = regmap_read_poll_timeout_atomic(adx->regmap, TEGRA210_ADX_STATUS,
+	err = regmap_read_poll_timeout_atomic(adx->regmap, TEGRA210_ADX_STATUS,
 					      val, !(val & 0x1), 10, 10000);
-	if (ret < 0) {
-		dev_err(dev, "failed to stop ADX, err = %d\n", ret);
-		return ret;
+	if (err < 0) {
+		dev_err(dev, "failed to stop ADX, err = %d\n", err);
+		return err;
 	}
 
 	/* SW reset */
@@ -162,11 +162,11 @@ static int tegra210_adx_stop(struct snd_soc_dapm_widget *w,
 			   TEGRA210_ADX_SOFT_RESET_SOFT_RESET_MASK,
 			   TEGRA210_ADX_SOFT_RESET_SOFT_EN);
 
-	ret = regmap_read_poll_timeout(adx->regmap, TEGRA210_ADX_SOFT_RESET,
+	err = regmap_read_poll_timeout(adx->regmap, TEGRA210_ADX_SOFT_RESET,
 				       val, !(val & 0x1), 10, 10000);
-	if (ret < 0) {
-		dev_err(dev, "failed to reset ADX, err = %d\n", ret);
-		return ret;
+	if (err < 0) {
+		dev_err(dev, "failed to reset ADX, err = %d\n", err);
+		return err;
 	}
 
 	regmap_update_bits(adx->regmap, TEGRA210_ADX_SOFT_RESET,
@@ -180,7 +180,7 @@ static unsigned int __maybe_unused
 	tegra210_adx_read_map_ram(struct tegra210_adx *adx, unsigned int addr)
 {
 	unsigned int val;
-	int ret;
+	int err;
 
 	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL,
 			(addr << TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL_RAM_ADDR_SHIFT));
@@ -192,11 +192,11 @@ static unsigned int __maybe_unused
 	val &= ~(TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL_RW_WRITE);
 	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, val);
 
-	ret = regmap_read_poll_timeout(adx->regmap,
+	err = regmap_read_poll_timeout(adx->regmap,
 				       TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL,
 				       val, !(val & 0x80000000), 10, 10000);
-	if (ret < 0)
-		return ret;
+	if (err < 0)
+		return err;
 
 	regmap_read(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_DATA, &val);
 
@@ -662,7 +662,7 @@ static bool tegra210_adx_wr_reg(struct device *dev,
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_adx_rd_reg(struct device *dev,
@@ -698,7 +698,7 @@ static bool tegra210_adx_rd_reg(struct device *dev,
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_adx_volatile_reg(struct device *dev,
@@ -719,7 +719,7 @@ static bool tegra210_adx_volatile_reg(struct device *dev,
 		return true;
 	default:
 		break;
-	};
+	}
 
 	return false;
 }
@@ -745,56 +745,46 @@ MODULE_DEVICE_TABLE(of, tegra210_adx_of_match);
 
 static int tegra210_adx_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_adx *adx;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret = 0;
-	const struct of_device_id *match;
+	int err;
 
-	match = of_match_device(tegra210_adx_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-
-	adx = devm_kzalloc(&pdev->dev, sizeof(*adx), GFP_KERNEL);
+	adx = devm_kzalloc(dev, sizeof(*adx), GFP_KERNEL);
 	if (!adx)
 		return -ENOMEM;
 
-	dev_set_drvdata(&pdev->dev, adx);
+	dev_set_drvdata(dev, adx);
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	adx->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	adx->regmap = devm_regmap_init_mmio(dev, regs,
 					    &tegra210_adx_regmap_config);
 	if (IS_ERR(adx->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(adx->regmap);
 	}
+
 	regcache_cache_only(adx->regmap, true);
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_adx_cmpnt,
-				     tegra210_adx_dais,
-				     ARRAY_SIZE(tegra210_adx_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra210_adx_cmpnt,
+					      tegra210_adx_dais,
+					      ARRAY_SIZE(tegra210_adx_dais));
+	if (err) {
+		dev_err(dev, "can't register ADX component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(dev);
 
 	return 0;
 }
 
 static int tegra210_adx_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_adx_runtime_suspend(&pdev->dev);
 
 	return 0;
 }
