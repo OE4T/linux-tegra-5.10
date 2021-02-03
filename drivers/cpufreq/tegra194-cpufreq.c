@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/cpu.h>
@@ -48,6 +48,7 @@ struct tegra194_cpufreq_data {
 	size_t num_clusters;
 	struct tegra_bwmgr_client **bwmgr;
 	struct cpufreq_frequency_table **tables;
+	bool bypass_bwmgr_mode;
 };
 
 struct tegra_cpu_ctr {
@@ -260,7 +261,7 @@ static void set_cpufreq_to_emcfreq(enum cluster cl, uint32_t cluster_freq)
 	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
 	unsigned long emc_freq;
 
-	if (!data->bwmgr[cl])
+	if (!data->bwmgr[cl] || data->bypass_bwmgr_mode)
 		return;
 
 	emc_freq = tegra_cpu_to_emc_freq(cluster_freq, cpu_emc_map_ptr);
@@ -464,10 +465,33 @@ static const struct of_device_id tegra194_cpufreq_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tegra194_cpufreq_of_match);
 
+#ifdef CONFIG_PM_SLEEP
+static int tegra194_cpufreq_suspend(struct device *dev)
+{
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+
+	data->bypass_bwmgr_mode = true;
+	return 0;
+}
+
+static int tegra194_cpufreq_resume(struct device *dev)
+{
+	struct tegra194_cpufreq_data *data = cpufreq_get_driver_data();
+
+	data->bypass_bwmgr_mode = false;
+	return 0;
+}
+#endif
+
+static const struct dev_pm_ops tegra194_cpufreq_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(tegra194_cpufreq_suspend, tegra194_cpufreq_resume)
+};
+
 static struct platform_driver tegra194_ccplex_driver = {
 	.driver = {
 		.name = "tegra194-cpufreq",
 		.of_match_table = tegra194_cpufreq_of_match,
+		.pm = &tegra194_cpufreq_pm_ops,
 	},
 	.probe = tegra194_cpufreq_probe,
 	.remove = tegra194_cpufreq_remove,
