@@ -46,12 +46,11 @@ struct gops_mc {
 	 * @brief Get the GPU architecture, implementation and revision.
 	 *
 	 * @param g [in]	The GPU driver struct.
-	 * @param arch [out]	The GPU architecture level. Can be passed as
-	 *			NULL if not needed by the caller.
-	 * @param impl [out]	The implementation of the GPU architecture.
-	 *			Can be passed as NULL if not needed by the
-	 *			caller.
-	 * @param rev [out]	The revision of the chip. Can be passed as
+	 * @param arch [out]	GPU architecture level pointer. Can be
+	 *			NULL if not needed by caller.
+	 * @param impl [out]	GPU architecture pointer. Can be
+	 *			NULL if not needed by caller.
+	 * @param rev [out]	Chip revision pointer. Can be
 	 *			NULL if not needed by the caller.
 	 *
 	 * This function is invoked to get the GPU architecture, implementation
@@ -169,8 +168,10 @@ struct gops_mc {
 	 *
 	 * @param g [in]			The GPU driver struct.
 	 * @param engine_id [in]		Active engine id.
-	 * @param eng_intr_pending [out]	Indicates if engine interrupt
-	 *					is pending.
+	 *					- Min: 0
+	 *					- Max: NV_HOST_NUM_ENGINES
+	 * @param eng_intr_pending [out]	Pointer to get pending
+	 *					interrupt.
 	 *
 	 * This function is invoked while polling for preempt completion.
 	 *
