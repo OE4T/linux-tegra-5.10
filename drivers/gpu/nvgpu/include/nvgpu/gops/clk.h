@@ -59,7 +59,18 @@ struct gops_clk {
 	int (*predict_mv_at_hz_cur_tfloor)(struct clk_gk20a *clk,
 		unsigned long rate);
 /** @endcond */
-	/** Get max rate of gpu clock. */
+	/**
+	 * @brief Get max rate of gpu clock.
+	 *
+	 * @param g [in]		gpu device struct pointer
+	 * @param api_domain [in]	clock domains type
+	 *				- CTRL_CLK_DOMAIN_GPCCLK
+	 *
+	 * This routine helps to get max supported rate for given clock domain.
+	 * Currently API only supports Graphics clock domain.
+	 *
+	 * @return 0 in case of failure and > 0 in case of success
+	 */
 	unsigned long (*get_maxrate)(struct gk20a *g, u32 api_domain);
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	int (*prepare_enable)(struct clk_gk20a *clk);
