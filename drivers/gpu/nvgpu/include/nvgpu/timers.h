@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -269,6 +269,7 @@ u64 nvgpu_hr_timestamp(void);
  * @brief OS specific implementation to provide precise microsecond delay
  *
  * @param usecs [in]		Delay in microseconds.
+ *				Range: 0 - 500ms.
  *
  * - Wait using nanospin_ns until usecs expires. Log error if API returns non
  *   zero value once wait time expires.
