@@ -75,7 +75,10 @@ struct gops_therm {
 	 *
 	 * @param g [in]	The GPU driver struct.
 	 * @param mode [in]	ELCG mode.
+	 *                      Valid ELCG modes are: ELCG_RUN, ELCG_STOP
+	 *			and ELCG_AUTO.
 	 * @param engine [in]	Engine index for control reg.
+	 *			Valid engine range: 0 to NV_HOST_NUM_ENGINES - 1
 	 *
 	 * This HAL controls engine level clock gating (ELCG) of an engine with
 	 * following steps:
