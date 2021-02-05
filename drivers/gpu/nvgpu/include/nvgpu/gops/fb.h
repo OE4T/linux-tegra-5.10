@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -335,7 +335,8 @@ struct gops_fb {
 	 * @brief Check if mmu fault buffer is enabled or not
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
-	 * @param index [in]		Fault buffer index.
+	 * @param index [in]		Fault buffer index. Valid index value:
+	 *				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX
 	 *
 	 * This function checks and returns whether fault buffer is enabled
 	 * for specified index.
@@ -348,7 +349,8 @@ struct gops_fb {
 	 * @brief Setup mmu fault buffer state.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
-	 * @param index [in]		Fault buffer index.
+	 * @param index [in]		Fault buffer index. Valid index value:
+	 *				NVGPU_MMU_FAULT_NONREPLAY_REG_INDX
 	 * @param state [in]		NVGPU_MMU_FAULT_BUF_ENABLED or
 	 *				NVGPU_MMU_FAULT_BUF_DISABLED
 	 *
