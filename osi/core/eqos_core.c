@@ -4476,6 +4476,7 @@ static nve32_t eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 {
 	nveu32_t mac_gmiiar;
 	nveu32_t mac_gmiidr;
+	nveu32_t devaddr;
 	nve32_t ret = 0;
 
 	/* Wait for any previous MII read/write operation to complete */
@@ -4485,40 +4486,57 @@ static nve32_t eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 		return ret;
 	}
 
-	mac_gmiidr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			        EQOS_MAC_MDIO_DATA);
-	mac_gmiidr = ((mac_gmiidr & EQOS_MAC_GMIIDR_GD_WR_MASK) |
-		      ((phydata) & EQOS_MAC_GMIIDR_GD_MASK));
+	/* C45 register access */
+	if ((phyreg & OSI_MII_ADDR_C45) == OSI_MII_ADDR_C45) {
+		/* Write the PHY register address and data into data register */
+		mac_gmiidr = (phyreg & EQOS_MDIO_DATA_REG_PHYREG_MASK) <<
+			      EQOS_MDIO_DATA_REG_PHYREG_SHIFT;
+		mac_gmiidr |= phydata;
+		osi_writela(osi_core, mac_gmiidr, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_MDIO_DATA);
 
-	osi_writela(osi_core, mac_gmiidr, (nveu8_t *)osi_core->base +
-		    EQOS_MAC_MDIO_DATA);
+		/* Extract the device address */
+		devaddr = (phyreg >> EQOS_MDIO_DATA_REG_DEV_ADDR_SHIFT) &
+			   EQOS_MDIO_DATA_REG_DEV_ADDR_MASK;
 
-	/* initiate the MII write operation by updating desired */
-	/* phy address/id (0 - 31) */
-	/* phy register offset */
-	/* CSR Clock Range (20 - 35MHz) */
-	/* Select write operation */
-	/* set busy bit */
-	mac_gmiiar = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			        EQOS_MAC_MDIO_ADDRESS);
-	mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
-		      EQOS_MDIO_PHY_REG_C45E));
-	mac_gmiiar = (mac_gmiiar | ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
-		      ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
-		      ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
-		      (EQOS_MDIO_PHY_REG_WRITE) | EQOS_MAC_GMII_BUSY);
+		/* Initiate the clause 45 transaction with auto
+		 * generation of address packet
+		 */
+		mac_gmiiar = (EQOS_MDIO_PHY_REG_C45E |
+			     ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+			     (devaddr << EQOS_MDIO_PHY_REG_SHIFT) |
+			     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+			     (EQOS_MDIO_PHY_REG_WRITE) | (EQOS_MAC_GMII_BUSY));
+	} else {
+		mac_gmiidr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					EQOS_MAC_MDIO_DATA);
+		mac_gmiidr = ((mac_gmiidr & EQOS_MAC_GMIIDR_GD_WR_MASK) |
+			      ((phydata) & EQOS_MAC_GMIIDR_GD_MASK));
+
+		osi_writela(osi_core, mac_gmiidr, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_MDIO_DATA);
+
+		/* initiate the MII write operation by updating desired */
+		/* phy address/id (0 - 31) */
+		/* phy register offset */
+		/* CSR Clock Range (20 - 35MHz) */
+		/* Select write operation */
+		/* set busy bit */
+		mac_gmiiar = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					EQOS_MAC_MDIO_ADDRESS);
+		mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
+			      EQOS_MDIO_PHY_REG_C45E));
+		mac_gmiiar = (mac_gmiiar |
+			     ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+			     ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
+			     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+			     (EQOS_MDIO_PHY_REG_WRITE) | EQOS_MAC_GMII_BUSY);
+	}
 
 	osi_writela(osi_core, mac_gmiiar, (nveu8_t *)osi_core->base +
 		    EQOS_MAC_MDIO_ADDRESS);
-
 	/* wait for MII write operation to complete */
-	ret = poll_for_mii_idle(osi_core);
-	if (ret < 0) {
-		/* poll_for_mii_idle fail */
-		return ret;
-	}
-
-	return ret;
+	return poll_for_mii_idle(osi_core);
 }
 
 /**
@@ -4557,29 +4575,53 @@ static nve32_t eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
 	nveu32_t mac_gmiiar;
 	nveu32_t mac_gmiidr;
 	nveu32_t data;
+	nveu32_t devaddr;
 	nve32_t ret = 0;
 
-	/* wait for any previous MII read/write operation to complete */
+	/* Wait for any previous MII read/write operation to complete */
 	ret = poll_for_mii_idle(osi_core);
 	if (ret < 0) {
 		/* poll_for_mii_idle fail */
 		return ret;
 	}
+	/* C45 register access */
+	if ((phyreg & OSI_MII_ADDR_C45) == OSI_MII_ADDR_C45) {
+		/* First write the register address */
+		mac_gmiidr = (phyreg & EQOS_MDIO_DATA_REG_PHYREG_MASK) <<
+			      EQOS_MDIO_DATA_REG_PHYREG_SHIFT;
+		osi_writela(osi_core, mac_gmiidr, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_MDIO_DATA);
 
-	mac_gmiiar = osi_readla(osi_core, (nveu8_t *)osi_core->base +
-			        EQOS_MAC_MDIO_ADDRESS);
-	/* initiate the MII read operation by updating desired */
-	/* phy address/id (0 - 31) */
-	/* phy register offset */
-	/* CSR Clock Range (20 - 35MHz) */
-	/* Select read operation */
-	/* set busy bit */
-	mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
-		      EQOS_MDIO_PHY_REG_C45E));
-	mac_gmiiar = mac_gmiiar | ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
-		     ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
-		     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
-		     (EQOS_MDIO_PHY_REG_GOC_READ) | EQOS_MAC_GMII_BUSY;
+		/* Extract the device address from PHY register */
+		devaddr = (phyreg >> EQOS_MDIO_DATA_REG_DEV_ADDR_SHIFT) &
+			   EQOS_MDIO_DATA_REG_DEV_ADDR_MASK;
+
+		/* Initiate the clause 45 transaction with auto
+		 * generation of address packet.
+		 */
+		mac_gmiiar = (EQOS_MDIO_PHY_REG_C45E |
+			     ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+			     (devaddr << EQOS_MDIO_PHY_REG_SHIFT) |
+			     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+			     (EQOS_MDIO_PHY_REG_GOC_READ) | EQOS_MAC_GMII_BUSY);
+	} else {
+		mac_gmiiar = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+					EQOS_MAC_MDIO_ADDRESS);
+		/* initiate the MII read operation by updating desired */
+		/* phy address/id (0 - 31) */
+		/* phy register offset */
+		/* CSR Clock Range (20 - 35MHz) */
+		/* Select read operation */
+		/* set busy bit */
+		mac_gmiiar = (mac_gmiiar & (EQOS_MDIO_PHY_REG_SKAP |
+			      EQOS_MDIO_PHY_REG_C45E));
+		mac_gmiiar = (mac_gmiiar |
+			     ((phyaddr) << EQOS_MDIO_PHY_ADDR_SHIFT) |
+			     ((phyreg) << EQOS_MDIO_PHY_REG_SHIFT) |
+			     ((osi_core->mdc_cr) << EQOS_MDIO_PHY_REG_CR_SHIF) |
+			     (EQOS_MDIO_PHY_REG_GOC_READ) | EQOS_MAC_GMII_BUSY);
+	}
+
 	osi_writela(osi_core, mac_gmiiar, (nveu8_t *)osi_core->base +
 		    EQOS_MAC_MDIO_ADDRESS);
 
