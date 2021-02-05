@@ -1,7 +1,7 @@
 /*
  * Tegra Virtualized GPU Platform Interface
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -74,6 +74,7 @@ struct gk20a_platform vgpu_tegra_platform = {
 	.enable_blcg            = false,
 	.enable_elcg            = false,
 	.enable_elpg            = false,
+	.enable_elpg_ms		= false,
 	.enable_aelpg           = false,
 	.can_slcg               = false,
 	.can_blcg               = false,

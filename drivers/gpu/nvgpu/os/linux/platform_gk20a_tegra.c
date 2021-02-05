@@ -977,6 +977,7 @@ struct gk20a_platform gm20b_tegra_platform = {
 	.can_blcg               = true,
 	.can_elcg               = true,
 	.enable_elpg            = true,
+	.enable_elpg_ms		= false,
 	.enable_aelpg           = true,
 	.enable_perfmon         = true,
 	.ptimer_src_freq	= 19200000,

@@ -1,7 +1,7 @@
 /*
  * GV11B Tegra Platform Interface
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -270,6 +270,7 @@ struct gk20a_platform gv11b_tegra_platform = {
 
 	/* power management configuration */
 	.enable_elpg		= true,
+	.enable_elpg_ms		= false,
 	.can_elpg_init		= true,
 	.enable_aelpg           = true,
 

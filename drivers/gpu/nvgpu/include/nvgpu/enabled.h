@@ -206,7 +206,8 @@ struct gk20a;
 	DEFINE_FLAG(NVGPU_PMU_NEXT_CORE_ENABLED, "PMU NEXT CORE enabled"), \
 	DEFINE_FLAG(NVGPU_ACR_NEXT_CORE_ENABLED,                        \
 		"NEXT CORE availability for acr"),                      \
-	DEFINE_FLAG(NVGPU_L2_MAX_WAYS_EVICT_LAST_ENABLED,			\
+	DEFINE_FLAG(NVGPU_ELPG_MS_ENABLED, "ELPG_MS support"),          \
+	DEFINE_FLAG(NVGPU_L2_MAX_WAYS_EVICT_LAST_ENABLED,               \
 			"Set L2 Max Ways Evict Last support"),		\
 	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
