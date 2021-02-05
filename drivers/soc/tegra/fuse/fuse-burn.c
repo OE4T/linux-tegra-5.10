@@ -979,6 +979,35 @@ static struct tegra_fuse_hw_feature tegra234_fuse_chip_data = {
 	.has_power_switch = false,
 	.pgm_time = 5,
 	.burn_data = {
+		FUSE_BURN_DATA(reserved_odm0, 0x2, 2, 32, 0xc8, true, false),
+		FUSE_BURN_DATA(reserved_odm1, 0x4, 2, 32, 0xcc, true, false),
+		FUSE_BURN_DATA(reserved_odm2, 0x6, 2, 32, 0xd0, true, false),
+		FUSE_BURN_DATA(reserved_odm3, 0x10, 0, 32, 0xd4, true, false),
+		FUSE_BURN_DATA(reserved_odm4, 0xc, 0, 32, 0xd8, true, false),
+		FUSE_BURN_DATA(reserved_odm5, 0xe, 0, 32, 0xdc, true, false),
+		FUSE_BURN_DATA(reserved_odm6, 0xe, 2, 32, 0xe0, true, false),
+		FUSE_BURN_DATA(reserved_odm7, 0x10, 2, 32, 0xe4, true, false),
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+		FUSE_BURN_DATA(reserved_sw, 0xc6, 0, 24, 0xc0, false, false),
+#endif
+
+		FUSE_BURN_DATA(odm_lock, 0, 5, 4, 0x8, true, false),
+		FUSE_BURN_DATA(public_key, 0xbc, 21, 512, 0x64, false, true),
+		FUSE_BURN_DATA(boot_security_info, 0xc7, 0, 32, 0x168, false, false),
+		FUSE_BURN_DATA(debug_authentication, 0, 16, 5, 0x1e4, true, false),
+		FUSE_BURN_DATA(odm_info, 0xc7, 9, 16, 0x19c, false, false),
+		FUSE_BURN_DATA(pdi, 0x62, 29, 64, 0x300, false, false),
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+		FUSE_BURN_DATA(opt_customer_optin_fuse, 0xca, 7, 1, 0x4a8,
+				false, false),
+		FUSE_BURN_DATA(odmid, 0xc9, 0, 64, 0x308, false, false),
+#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+		FUSE_SYSFS_DATA(ecid, tegra_fuse_read_ecid, NULL, FPERM_R),
+#endif
+		FUSE_SYSFS_DATA(opt_tpc_disable,
+				tegra_fuse_read_opt_tpc_disable, NULL, FPERM_R),
+		{},
 	},
 };
 
