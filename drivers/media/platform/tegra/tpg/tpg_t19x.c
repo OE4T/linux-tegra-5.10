@@ -73,6 +73,10 @@ module_param(pattern, charp, 0644);
 MODULE_PARM_DESC(pattern, "Supported TPG patterns, PATCH, SINE. Default is PATCH mode");
 #define PARAM_STRING_LENGTH	10
 
+#define FREQ_RATE_RED 4
+#define FREQ_RATE_GREEN 3
+#define FREQ_RATE_BLUE 1
+
 /* PG generate 32 bit per nvcsi_clk:
  * clks_per_line = width * bits_per_pixel / 32
  * ((clks_per_line + hblank) * height + vblank) * fps * lanes = nvcsi_clk_freq
@@ -204,58 +208,104 @@ static int get_tpg_settings_t19x(struct tegra_csi_port *port,
 	return 0;
 }
 
-static int get_tpg_settings_t23x(struct tegra_csi_port *port,
+static void patch_pattern_tpg_settings(struct tegra_csi_port *port,
 				union nvcsi_tpg_config *const tpg_config)
 {
-	/* TPG native resolution */
 	const size_t px_max = 0x4000;
 	const size_t py_max = 0x2000;
 	size_t hfreq = 0;
 	size_t vfreq = 0;
+
+	hfreq = px_max / port->format.width;
+	vfreq = py_max / port->format.height;
+
+	tpg_config->tpg_ng.initial_phase_red = 0U;
+	tpg_config->tpg_ng.red_horizontal_init_freq = hfreq;
+	tpg_config->tpg_ng.red_vertical_init_freq = vfreq;
+
+	tpg_config->tpg_ng.initial_phase_green = 0U;
+	tpg_config->tpg_ng.green_horizontal_init_freq = hfreq;
+	tpg_config->tpg_ng.green_vertical_init_freq = vfreq;
+
+	tpg_config->tpg_ng.initial_phase_blue = 0U;
+	tpg_config->tpg_ng.blue_horizontal_init_freq = hfreq;
+	tpg_config->tpg_ng.blue_vertical_init_freq = vfreq;
+}
+
+#define freq(px, rate, size)	((px) - (rate * port->format.size / 2U))
+
+static void sine_pattern_tpg_settings(struct tegra_csi_port *port,
+				union nvcsi_tpg_config *const tpg_config)
+{
+	const size_t px_max = 0x4000;
+	size_t hr_freq = freq(px_max, FREQ_RATE_RED, width);
+	size_t vr_freq = freq(px_max, FREQ_RATE_RED, height);
+
+	size_t hg_freq = freq(px_max, FREQ_RATE_GREEN, width);
+	size_t vg_freq = freq(px_max, FREQ_RATE_GREEN, height);
+
+	size_t hb_freq = freq(px_max, FREQ_RATE_BLUE, width);
+	size_t vb_freq = freq(px_max, FREQ_RATE_BLUE, height);
+
+	tpg_config->tpg_ng.initial_phase_red = 0U;
+	tpg_config->tpg_ng.red_horizontal_init_freq = hr_freq;
+	tpg_config->tpg_ng.red_vertical_init_freq = vr_freq;
+	tpg_config->tpg_ng.red_horizontal_freq_rate = FREQ_RATE_RED;
+	tpg_config->tpg_ng.red_vertical_freq_rate = FREQ_RATE_RED;
+
+	tpg_config->tpg_ng.initial_phase_green = 0U;
+	tpg_config->tpg_ng.green_horizontal_init_freq = hg_freq;
+	tpg_config->tpg_ng.green_vertical_init_freq = vg_freq;
+	tpg_config->tpg_ng.green_horizontal_freq_rate = FREQ_RATE_GREEN;
+	tpg_config->tpg_ng.green_vertical_freq_rate = FREQ_RATE_GREEN;
+
+	tpg_config->tpg_ng.initial_phase_blue = 0U;
+	tpg_config->tpg_ng.blue_horizontal_init_freq = hb_freq;
+	tpg_config->tpg_ng.blue_vertical_init_freq = vb_freq;
+	tpg_config->tpg_ng.blue_horizontal_freq_rate = FREQ_RATE_BLUE;
+	tpg_config->tpg_ng.blue_vertical_freq_rate = FREQ_RATE_BLUE;
+}
+
+static int get_tpg_settings_t23x(struct tegra_csi_port *port,
+				union nvcsi_tpg_config *const tpg_config)
+{
+	/* TPG native resolution */
 	u16 flags = 0;
 	char param_name[PARAM_STRING_LENGTH];
 	char *temp = NULL;
 
 	dev_info(NULL, "pattern - %s cphy - %d ls-le - %d emb-data - %d\n",
 			pattern, phy, ls_le, emb_data);
-	hfreq = px_max / port->format.width;
-	vfreq = py_max / port->format.height;
 
 	tpg_config->tpg_ng.virtual_channel_id = port->virtual_channel_id;
 	tpg_config->tpg_ng.datatype = port->core_format->img_dt;
+	tpg_config->tpg_ng.stream_id = port->stream_id;
 
 	flags |= (ls_le == true) ? NVCSI_TPG_FLAG_ENABLE_LS_LE : 0;
 	flags |= (emb_data == true) ? NVCSI_TPG_FLAG_EMBEDDED_PATTERN_CONFIG_INFO : 0;
 	flags |= (phy == true) ? NVCSI_TPG_FLAG_PHY_MODE_CPHY : 0;
+
 	strncpy(param_name, pattern, PARAM_STRING_LENGTH);
 	param_name[PARAM_STRING_LENGTH - 1] = '\0';
 	temp = strstrip(param_name);
+
 	if (strcmp(temp, "PATCH") == 0) {
 		flags |= NVCSI_TPG_FLAG_PATCH_MODE;
+		patch_pattern_tpg_settings(port, tpg_config);
 	} else if (strcmp(temp, "SINE") == 0) {
 		flags |= NVCSI_TPG_FLAG_SINE_MODE;
+		sine_pattern_tpg_settings(port, tpg_config);
 	} else {
 		dev_err(NULL, "Error: Incorrect pattern - %s\n", pattern);
 		return -EINVAL;
 	}
+
 	tpg_config->tpg_ng.flags = flags;
 
 	tpg_config->tpg_ng.initial_frame_number = 1;
 	tpg_config->tpg_ng.maximum_frame_number = 32768;
 	tpg_config->tpg_ng.image_width = port->format.width;
 	tpg_config->tpg_ng.image_height = port->format.height;
-
-	tpg_config->tpg_ng.red_horizontal_init_freq = hfreq;
-	tpg_config->tpg_ng.red_vertical_init_freq = vfreq;
-	tpg_config->tpg_ng.initial_phase_red = 0U;
-
-	tpg_config->tpg_ng.green_horizontal_init_freq = hfreq;
-	tpg_config->tpg_ng.green_vertical_init_freq = vfreq;
-	tpg_config->tpg_ng.initial_phase_green = 0U;
-
-	tpg_config->tpg_ng.blue_horizontal_init_freq = hfreq;
-	tpg_config->tpg_ng.blue_vertical_init_freq = vfreq;
-	tpg_config->tpg_ng.initial_phase_blue = 0U;
 
 	tpg_config->tpg_ng.brightness_gain_ratio =
 		CAPTURE_CSI_STREAM_TPG_GAIN_RATIO_NONE;
