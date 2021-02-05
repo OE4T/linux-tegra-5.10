@@ -185,13 +185,23 @@
 		         <&bpmp_clks TEGRA234_CLK_CLK_M>;
 		clock-names = "fuse", "clk_m";
 		status = "disabled";
+#if LINUX_VERSION < 419
 		efuse-burn {
-			compatible = "nvidia,tegra194-efuse-burn";
+			compatible = "nvidia,tegra234-efuse-burn";
 			clocks = <&bpmp_clks TEGRA234_CLK_CLK_M>;
 			clock-names = "clk_m";
 			status = "disabled";
 		};
+#endif
 	};
+#if LINUX_VERSION >= 419
+	efuse-burn {
+		compatible = "nvidia,tegra234-efuse-burn";
+		clocks = <&bpmp_clks TEGRA234_CLK_CLK_M>;
+		clock-names = "clk_m";
+		status = "disabled";
+	};
+#endif
 
 	kfuse@3828000 {
 		compatible = "nvidia,tegra194-kfuse";
