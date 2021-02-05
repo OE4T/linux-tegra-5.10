@@ -1,7 +1,7 @@
-From f9ab782e284e454f33a7db4a3ac0dd947a39b836 Mon Sep 17 00:00:00 2001
+From 3109835535d6f886c09cab8eff52ca2652179401 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:27 +0100
-Subject: [PATCH 038/270] powerpc/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 038/281] powerpc/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 

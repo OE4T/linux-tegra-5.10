@@ -1,7 +1,7 @@
-From 7f3b3113b444750544acf4432f41bfb6897b0b55 Mon Sep 17 00:00:00 2001
+From bdcb7c5b34c86d746017217f29471cd170cfb2ec Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 15 Dec 2020 15:16:48 +0100
-Subject: [PATCH 076/270] doc: Update RCU's requirements page about the
+Subject: [PATCH 076/281] doc: Update RCU's requirements page about the
  PREEMPT_RT wiki.
 
 The PREEMPT_RT wiki moved from kernel.org to the Linux Foundation wiki.

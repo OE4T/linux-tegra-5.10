@@ -1,7 +1,7 @@
-From b72fbe134f3650fbfb5cff8070b5f29ea4b02eff Mon Sep 17 00:00:00 2001
+From 5acc2520050530fe47bb1da3f4c9a355100b3816 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 28 Oct 2020 11:07:09 +0100
-Subject: [PATCH 065/270] blk-mq: Always complete remote completions requests
+Subject: [PATCH 065/281] blk-mq: Always complete remote completions requests
  in softirq
 
 Controllers with multiple queues have their IRQ-handelers pinned to a

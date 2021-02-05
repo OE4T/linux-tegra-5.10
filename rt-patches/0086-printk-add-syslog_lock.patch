@@ -1,0 +1,140 @@
+From 6b69767da9bc25c36aac4b3a24baa70944640a48 Mon Sep 17 00:00:00 2001
+From: John Ogness <john.ogness@linutronix.de>
+Date: Thu, 10 Dec 2020 16:58:02 +0106
+Subject: [PATCH 086/281] printk: add syslog_lock
+
+The global variables @syslog_seq, @syslog_partial, @syslog_time
+and write access to @clear_seq are protected by @logbuf_lock.
+Once @logbuf_lock is removed, these variables with need their
+own synchronization method. Introduce @syslog_lock for this
+purpose.
+
+Signed-off-by: John Ogness <john.ogness@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ kernel/printk/printk.c | 32 +++++++++++++++++++++++++++++---
+ 1 file changed, 29 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
+index 678dbff..f3ca741 100644
+--- a/kernel/printk/printk.c
++++ b/kernel/printk/printk.c
+@@ -390,8 +390,12 @@ DEFINE_RAW_SPINLOCK(logbuf_lock);
+ 		printk_safe_exit_irqrestore(flags);	\
+ 	} while (0)
+ 
++/* syslog_lock protects syslog_* variables and write access to clear_seq. */
++static DEFINE_SPINLOCK(syslog_lock);
++
+ #ifdef CONFIG_PRINTK
+ DECLARE_WAIT_QUEUE_HEAD(log_wait);
++/* All 3 protected by @syslog_lock. */
+ /* the next printk record to read by syslog(READ) or /proc/kmsg */
+ static u64 syslog_seq;
+ static size_t syslog_partial;
+@@ -465,7 +469,7 @@ bool printk_percpu_data_ready(void)
+ 	return __printk_percpu_data_ready;
+ }
+ 
+-/* Must be called under logbuf_lock. */
++/* Must be called under syslog_lock. */
+ void latched_seq_write(struct latched_seq *ls, u64 val)
+ {
+ 	raw_write_seqcount_latch(&ls->latch);
+@@ -1480,7 +1484,9 @@ static int syslog_print(char __user *buf, int size)
+ 		size_t skip;
+ 
+ 		logbuf_lock_irq();
++		spin_lock(&syslog_lock);
+ 		if (!prb_read_valid(prb, syslog_seq, &r)) {
++			spin_unlock(&syslog_lock);
+ 			logbuf_unlock_irq();
+ 			break;
+ 		}
+@@ -1510,6 +1516,7 @@ static int syslog_print(char __user *buf, int size)
+ 			syslog_partial += n;
+ 		} else
+ 			n = 0;
++		spin_unlock(&syslog_lock);
+ 		logbuf_unlock_irq();
+ 
+ 		if (!n)
+@@ -1587,8 +1594,11 @@ static int syslog_print_all(char __user *buf, int size, bool clear)
+ 			break;
+ 	}
+ 
+-	if (clear)
++	if (clear) {
++		spin_lock(&syslog_lock);
+ 		latched_seq_write(&clear_seq, seq);
++		spin_unlock(&syslog_lock);
++	}
+ 	logbuf_unlock_irq();
+ 
+ 	kfree(text);
+@@ -1598,7 +1608,9 @@ static int syslog_print_all(char __user *buf, int size, bool clear)
+ static void syslog_clear(void)
+ {
+ 	logbuf_lock_irq();
++	spin_lock(&syslog_lock);
+ 	latched_seq_write(&clear_seq, prb_next_seq(prb));
++	spin_unlock(&syslog_lock);
+ 	logbuf_unlock_irq();
+ }
+ 
+@@ -1607,6 +1619,7 @@ int do_syslog(int type, char __user *buf, int len, int source)
+ 	bool clear = false;
+ 	static int saved_console_loglevel = LOGLEVEL_DEFAULT;
+ 	int error;
++	u64 seq;
+ 
+ 	error = check_syslog_permissions(type, source);
+ 	if (error)
+@@ -1624,8 +1637,14 @@ int do_syslog(int type, char __user *buf, int len, int source)
+ 			return 0;
+ 		if (!access_ok(buf, len))
+ 			return -EFAULT;
++
++		/* Get a consistent copy of @syslog_seq. */
++		spin_lock_irq(&syslog_lock);
++		seq = syslog_seq;
++		spin_unlock_irq(&syslog_lock);
++
+ 		error = wait_event_interruptible(log_wait,
+-				prb_read_valid(prb, syslog_seq, NULL));
++				prb_read_valid(prb, seq, NULL));
+ 		if (error)
+ 			return error;
+ 		error = syslog_print(buf, len);
+@@ -1674,6 +1693,7 @@ int do_syslog(int type, char __user *buf, int len, int source)
+ 	/* Number of chars in the log buffer */
+ 	case SYSLOG_ACTION_SIZE_UNREAD:
+ 		logbuf_lock_irq();
++		spin_lock(&syslog_lock);
+ 		if (syslog_seq < prb_first_valid_seq(prb)) {
+ 			/* messages are gone, move to first one */
+ 			syslog_seq = prb_first_valid_seq(prb);
+@@ -1700,6 +1720,7 @@ int do_syslog(int type, char __user *buf, int len, int source)
+ 			}
+ 			error -= syslog_partial;
+ 		}
++		spin_unlock(&syslog_lock);
+ 		logbuf_unlock_irq();
+ 		break;
+ 	/* Size of the log buffer */
+@@ -2943,7 +2964,12 @@ void register_console(struct console *newcon)
+ 		 */
+ 		exclusive_console = newcon;
+ 		exclusive_console_stop_seq = console_seq;
++
++		/* Get a consistent copy of @syslog_seq. */
++		spin_lock(&syslog_lock);
+ 		console_seq = syslog_seq;
++		spin_unlock(&syslog_lock);
++
+ 		logbuf_unlock_irqrestore(flags);
+ 	}
+ 	console_unlock();
+-- 
+2.7.4
+

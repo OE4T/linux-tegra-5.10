@@ -1,7 +1,7 @@
-From 09867e97b220ab35edce1d8869f19057d1e00802 Mon Sep 17 00:00:00 2001
+From d83d9c01cc92d0d0265ffea19b1bab69c253f906 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:36 +0100
-Subject: [PATCH 047/270] sched: highmem: Store local kmaps in task struct
+Subject: [PATCH 047/281] sched: highmem: Store local kmaps in task struct
 
 Instead of storing the map per CPU provide and use per task storage. That
 prepares for local kmaps which are preemptible.

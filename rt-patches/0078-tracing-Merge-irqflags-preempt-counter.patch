@@ -1,7 +1,7 @@
-From dc45c43b21beaa4511a0bfddb4c9145372faa817 Mon Sep 17 00:00:00 2001
+From 763f745a1acfbd54fdc753977cf9908b4c1d9600 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Date: Tue, 12 Jan 2021 15:58:53 +0100
-Subject: [PATCH 078/270] tracing: Merge irqflags + preempt counter.
+Date: Wed, 3 Feb 2021 11:05:23 -0500
+Subject: [PATCH 078/281] tracing: Merge irqflags + preempt counter.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -52,6 +52,10 @@ A build with all tracers enabled on x86-64 with and without the patch:
 
 text shrank by 379 bytes, data remained constant.
 
+Link: https://lkml.kernel.org/r/20210125194511.3924915-2-bigeasy@linutronix.de
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
  include/linux/trace_events.h         |  25 +++--
@@ -74,7 +78,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  17 files changed, 287 insertions(+), 308 deletions(-)
 
 diff --git a/include/linux/trace_events.h b/include/linux/trace_events.h
-index d321fe5..aa91238 100644
+index d321fe5..091250b0 100644
 --- a/include/linux/trace_events.h
 +++ b/include/linux/trace_events.h
 @@ -148,17 +148,29 @@ enum print_line_t {
@@ -97,9 +101,9 @@ index d321fe5..aa91238 100644
 +	entry->flags =			trace_ctx >> 16;
 +}
 +
-+unsigned int _tracing_gen_ctx_flags(unsigned long irqflags);
-+unsigned int tracing_gen_ctx_flags(void);
-+unsigned int tracing_gen_ctx_flags_dect(void);
++unsigned int tracing_gen_ctx_flags(unsigned long irqflags);
++unsigned int tracing_gen_ctx(void);
++unsigned int tracing_gen_ctx_dec(void);
 +
  struct trace_event_file;
  
@@ -123,7 +127,7 @@ index d321fe5..aa91238 100644
  };
  
 diff --git a/kernel/trace/blktrace.c b/kernel/trace/blktrace.c
-index f102294..d6e75c7 100644
+index f102294..c300ac3 100644
 --- a/kernel/trace/blktrace.c
 +++ b/kernel/trace/blktrace.c
 @@ -72,17 +72,17 @@ static void trace_note(struct blk_trace *bt, pid_t pid, int action,
@@ -139,7 +143,7 @@ index f102294..d6e75c7 100644
  	if (blk_tracer) {
  		buffer = blk_tr->array_buffer.buffer;
 -		pc = preempt_count();
-+		trace_ctx = _tracing_gen_ctx_flags(0);
++		trace_ctx = tracing_gen_ctx_flags(0);
  		event = trace_buffer_lock_reserve(buffer, TRACE_BLK,
  						  sizeof(*t) + len + cgid_len,
 -						  0, pc);
@@ -172,7 +176,7 @@ index f102294..d6e75c7 100644
  
  		buffer = blk_tr->array_buffer.buffer;
 -		pc = preempt_count();
-+		trace_ctx = _tracing_gen_ctx_flags(0);
++		trace_ctx = tracing_gen_ctx_flags(0);
  		event = trace_buffer_lock_reserve(buffer, TRACE_BLK,
  						  sizeof(*t) + pdu_len + cgid_len,
 -						  0, pc);
@@ -190,7 +194,7 @@ index f102294..d6e75c7 100644
  		}
  	}
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index bb94e70..9e390f0 100644
+index bb94e70..48f4b75 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -176,7 +176,7 @@ static union trace_eval_map_item *trace_eval_maps;
@@ -283,7 +287,7 @@ index bb94e70..9e390f0 100644
  	alloc = sizeof(*entry) + size + 2; /* possible \n added */
  
 -	local_save_flags(irq_flags);
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  	buffer = global_trace.array_buffer.buffer;
  	ring_buffer_nest_start(buffer);
 -	event = __trace_buffer_lock_reserve(buffer, TRACE_PRINT, alloc, 
@@ -321,7 +325,7 @@ index bb94e70..9e390f0 100644
  		return 0;
  
 -	local_save_flags(irq_flags);
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  	buffer = global_trace.array_buffer.buffer;
  
  	ring_buffer_nest_start(buffer);
@@ -347,7 +351,7 @@ index bb94e70..9e390f0 100644
 -void
 -tracing_generic_entry_update(struct trace_entry *entry, unsigned short type,
 -			     unsigned long flags, int pc)
-+unsigned int _tracing_gen_ctx_flags(unsigned long irqflags)
++unsigned int tracing_gen_ctx_flags(unsigned long irqflags)
  {
 -	struct task_struct *tsk = current;
 +	unsigned int trace_flags = 0;
@@ -388,7 +392,7 @@ index bb94e70..9e390f0 100644
 +	return (trace_flags << 16) | (pc & 0xff);
 +}
 +
-+unsigned int tracing_gen_ctx_flags(void)
++unsigned int tracing_gen_ctx(void)
 +{
 +	unsigned long irqflags;
 +
@@ -397,14 +401,14 @@ index bb94e70..9e390f0 100644
 +#else
 +	irqflags = 0;
 +#endif
-+	return _tracing_gen_ctx_flags(irqflags);
++	return tracing_gen_ctx_flags(irqflags);
 +}
 +
-+unsigned int tracing_gen_ctx_flags_dect(void)
++unsigned int tracing_gen_ctx_dec(void)
 +{
 +	unsigned int trace_ctx;
 +
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
 +
 +	/*
 +	 * Subtract one from the preeption counter if preemption is enabled,
@@ -592,7 +596,7 @@ index bb94e70..9e390f0 100644
  #endif
  	__ftrace_trace_stack(global_trace.array_buffer.buffer,
 -			     flags, skip, preempt_count(), NULL);
-+			     tracing_gen_ctx_flags(), skip, NULL);
++			     tracing_gen_ctx(), skip, NULL);
  }
  EXPORT_SYMBOL_GPL(trace_dump_stack);
  
@@ -640,7 +644,7 @@ index bb94e70..9e390f0 100644
  	pause_graph_tracing();
  
 -	pc = preempt_count();
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  	preempt_disable_notrace();
  
  	tbuffer = get_trace_buf();
@@ -684,7 +688,7 @@ index bb94e70..9e390f0 100644
  	pause_graph_tracing();
  
 -	pc = preempt_count();
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  	preempt_disable_notrace();
  
  
@@ -731,7 +735,7 @@ index bb94e70..9e390f0 100644
  	buffer = tr->array_buffer.buffer;
  	event = __trace_buffer_lock_reserve(buffer, TRACE_PRINT, size,
 -					    irq_flags, preempt_count());
-+					    tracing_gen_ctx_flags());
++					    tracing_gen_ctx());
  	if (unlikely(!event))
  		/* Ring buffer disabled, return as if not open for write */
  		return -EBADF;
@@ -755,7 +759,7 @@ index bb94e70..9e390f0 100644
  	buffer = tr->array_buffer.buffer;
  	event = __trace_buffer_lock_reserve(buffer, TRACE_RAW_DATA, size,
 -					    irq_flags, preempt_count());
-+					    tracing_gen_ctx_flags());
++					    tracing_gen_ctx());
  	if (!event)
  		/* Ring buffer disabled, return as if not open for write */
  		return -EBADF;
@@ -887,7 +891,7 @@ index 6784b57..b37601b 100644
  	if (tt)
  		event_triggers_post_call(file, tt);
 diff --git a/kernel/trace/trace_branch.c b/kernel/trace/trace_branch.c
-index eff0991..a95b7f1 100644
+index eff0991..e47fdb4 100644
 --- a/kernel/trace/trace_branch.c
 +++ b/kernel/trace/trace_branch.c
 @@ -37,7 +37,7 @@ probe_likely_condition(struct ftrace_likely_data *f, int val, int expect)
@@ -904,7 +908,7 @@ index eff0991..a95b7f1 100644
  		goto out;
  
 -	pc = preempt_count();
-+	trace_ctx = _tracing_gen_ctx_flags(flags);
++	trace_ctx = tracing_gen_ctx_flags(flags);
  	buffer = tr->array_buffer.buffer;
  	event = trace_buffer_lock_reserve(buffer, TRACE_BRANCH,
 -					  sizeof(*entry), flags, pc);
@@ -913,7 +917,7 @@ index eff0991..a95b7f1 100644
  		goto out;
  
 diff --git a/kernel/trace/trace_event_perf.c b/kernel/trace/trace_event_perf.c
-index 643e0b1..9409b7c 100644
+index 643e0b1..0443dd6 100644
 --- a/kernel/trace/trace_event_perf.c
 +++ b/kernel/trace/trace_event_perf.c
 @@ -421,11 +421,8 @@ NOKPROBE_SYMBOL(perf_trace_buf_alloc);
@@ -925,12 +929,12 @@ index 643e0b1..9409b7c 100644
  
 -	local_save_flags(flags);
 -	tracing_generic_entry_update(entry, type, flags, pc);
-+	tracing_generic_entry_update(entry, type, tracing_gen_ctx_flags());
++	tracing_generic_entry_update(entry, type, tracing_gen_ctx());
  }
  NOKPROBE_SYMBOL(perf_trace_buf_update);
  
 diff --git a/kernel/trace/trace_events.c b/kernel/trace/trace_events.c
-index 802f3e7..50c2e55 100644
+index 802f3e7..86679b0 100644
 --- a/kernel/trace/trace_events.c
 +++ b/kernel/trace/trace_events.c
 @@ -258,22 +258,19 @@ void *trace_event_buffer_reserve(struct trace_event_buffer *fbuffer,
@@ -947,7 +951,7 @@ index 802f3e7..50c2e55 100644
  	 */
 -	if (IS_ENABLED(CONFIG_PREEMPTION))
 -		fbuffer->pc--;
-+	fbuffer->trace_ctx = tracing_gen_ctx_flags_dect();
++	fbuffer->trace_ctx = tracing_gen_ctx_dec();
  	fbuffer->trace_file = trace_file;
  
  	fbuffer->event =
@@ -969,7 +973,7 @@ index 802f3e7..50c2e55 100644
 -	int pc;
  
 -	pc = preempt_count();
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  	preempt_disable_notrace();
  	cpu = raw_smp_processor_id();
  	disabled = atomic_inc_return(&per_cpu(ftrace_test_event_disable, cpu));
@@ -996,7 +1000,7 @@ index 802f3e7..50c2e55 100644
  	atomic_dec(&per_cpu(ftrace_test_event_disable, cpu));
  	preempt_enable_notrace();
 diff --git a/kernel/trace/trace_events_inject.c b/kernel/trace/trace_events_inject.c
-index 22bcf7c..65150c0 100644
+index 22bcf7c..c188045 100644
 --- a/kernel/trace/trace_events_inject.c
 +++ b/kernel/trace/trace_events_inject.c
 @@ -192,7 +192,6 @@ static void *trace_alloc_entry(struct trace_event_call *call, int *size)
@@ -1015,12 +1019,12 @@ index 22bcf7c..65150c0 100644
 -	tracing_generic_entry_update(entry, call->event.type, irq_flags,
 -				     preempt_count());
 +	tracing_generic_entry_update(entry, call->event.type,
-+				     tracing_gen_ctx_flags());
++				     tracing_gen_ctx());
  
  	while ((len = parse_field(str, call, &field, &val)) > 0) {
  		if (is_function_field(field))
 diff --git a/kernel/trace/trace_functions.c b/kernel/trace/trace_functions.c
-index 2c2126e..52ab6cf 100644
+index 2c2126e..9a4362c 100644
 --- a/kernel/trace/trace_functions.c
 +++ b/kernel/trace/trace_functions.c
 @@ -133,15 +133,14 @@ function_trace_call(unsigned long ip, unsigned long parent_ip,
@@ -1037,7 +1041,7 @@ index 2c2126e..52ab6cf 100644
  		return;
  
 -	pc = preempt_count();
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  	preempt_disable_notrace();
  
  	bit = trace_test_and_set_recursion(TRACE_FTRACE_START, TRACE_FTRACE_MAX);
@@ -1071,7 +1075,7 @@ index 2c2126e..52ab6cf 100644
 -		pc = preempt_count();
 -		trace_function(tr, ip, parent_ip, flags, pc);
 -		__trace_stack(tr, flags, STACK_SKIP, pc);
-+		trace_ctx = _tracing_gen_ctx_flags(flags);
++		trace_ctx = tracing_gen_ctx_flags(flags);
 +		trace_function(tr, ip, parent_ip, trace_ctx);
 +		__trace_stack(tr, trace_ctx, STACK_SKIP);
  	}
@@ -1087,7 +1091,7 @@ index 2c2126e..52ab6cf 100644
  
 -	local_save_flags(flags);
 -	pc = preempt_count();
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  
 -	__trace_stack(tr, flags, FTRACE_STACK_SKIP, pc);
 +	__trace_stack(tr, trace_ctx, FTRACE_STACK_SKIP);
@@ -1095,7 +1099,7 @@ index 2c2126e..52ab6cf 100644
  
  static void
 diff --git a/kernel/trace/trace_functions_graph.c b/kernel/trace/trace_functions_graph.c
-index 60d6627..aaa37a6 100644
+index 60d6627..b086ba8 100644
 --- a/kernel/trace/trace_functions_graph.c
 +++ b/kernel/trace/trace_functions_graph.c
 @@ -96,8 +96,7 @@ print_graph_duration(struct trace_array *tr, unsigned long long duration,
@@ -1135,7 +1139,7 @@ index 60d6627..aaa37a6 100644
  	if (likely(disabled == 1)) {
 -		pc = preempt_count();
 -		ret = __trace_graph_entry(tr, trace, flags, pc);
-+		trace_ctx = _tracing_gen_ctx_flags(flags);
++		trace_ctx = tracing_gen_ctx_flags(flags);
 +		ret = __trace_graph_entry(tr, trace, trace_ctx);
  	} else {
  		ret = 0;
@@ -1203,13 +1207,13 @@ index 60d6627..aaa37a6 100644
  	if (likely(disabled == 1)) {
 -		pc = preempt_count();
 -		__trace_graph_return(tr, trace, flags, pc);
-+		trace_ctx = _tracing_gen_ctx_flags(flags);
++		trace_ctx = tracing_gen_ctx_flags(flags);
 +		__trace_graph_return(tr, trace, trace_ctx);
  	}
  	atomic_dec(&data->disabled);
  	local_irq_restore(flags);
 diff --git a/kernel/trace/trace_hwlat.c b/kernel/trace/trace_hwlat.c
-index d071fc2..51bd4d7 100644
+index d071fc2..4c01c5d 100644
 --- a/kernel/trace/trace_hwlat.c
 +++ b/kernel/trace/trace_hwlat.c
 @@ -108,14 +108,9 @@ static void trace_hwlat_sample(struct hwlat_sample *sample)
@@ -1224,12 +1228,12 @@ index d071fc2..51bd4d7 100644
  
  	event = trace_buffer_lock_reserve(buffer, TRACE_HWLAT, sizeof(*entry),
 -					  flags, pc);
-+					  tracing_gen_ctx_flags());
++					  tracing_gen_ctx());
  	if (!event)
  		return;
  	entry	= ring_buffer_event_data(event);
 diff --git a/kernel/trace/trace_irqsoff.c b/kernel/trace/trace_irqsoff.c
-index 10bbb0f..9421973 100644
+index 10bbb0f..c463e69 100644
 --- a/kernel/trace/trace_irqsoff.c
 +++ b/kernel/trace/trace_irqsoff.c
 @@ -143,11 +143,14 @@ irqsoff_tracer_call(unsigned long ip, unsigned long parent_ip,
@@ -1242,7 +1246,7 @@ index 10bbb0f..9421973 100644
  		return;
  
 -	trace_function(tr, ip, parent_ip, flags, preempt_count());
-+	trace_ctx = _tracing_gen_ctx_flags(flags);
++	trace_ctx = tracing_gen_ctx_flags(flags);
 +
 +	trace_function(tr, ip, parent_ip, trace_ctx);
  
@@ -1264,7 +1268,7 @@ index 10bbb0f..9421973 100644
  
 -	pc = preempt_count();
 -	ret = __trace_graph_entry(tr, trace, flags, pc);
-+	trace_ctx = _tracing_gen_ctx_flags(flags);
++	trace_ctx = tracing_gen_ctx_flags(flags);
 +	ret = __trace_graph_entry(tr, trace, trace_ctx);
  	atomic_dec(&data->disabled);
  
@@ -1283,7 +1287,7 @@ index 10bbb0f..9421973 100644
  
 -	pc = preempt_count();
 -	__trace_graph_return(tr, trace, flags, pc);
-+	trace_ctx = _tracing_gen_ctx_flags(flags);
++	trace_ctx = tracing_gen_ctx_flags(flags);
 +	__trace_graph_return(tr, trace, trace_ctx);
  	atomic_dec(&data->disabled);
  }
@@ -1318,7 +1322,7 @@ index 10bbb0f..9421973 100644
 -	local_save_flags(flags);
 -
 -	pc = preempt_count();
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  
  	if (!report_latency(tr, delta))
  		goto out;
@@ -1360,7 +1364,7 @@ index 10bbb0f..9421973 100644
 -	local_save_flags(flags);
 -
 -	__trace_function(tr, ip, parent_ip, flags, pc);
-+	__trace_function(tr, ip, parent_ip, tracing_gen_ctx_flags());
++	__trace_function(tr, ip, parent_ip, tracing_gen_ctx());
  
  	per_cpu(tracing_cpu, cpu) = 1;
  
@@ -1385,7 +1389,7 @@ index 10bbb0f..9421973 100644
  
 -	local_save_flags(flags);
 -	__trace_function(tr, ip, parent_ip, flags, pc);
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
 +	__trace_function(tr, ip, parent_ip, trace_ctx);
  	check_critical_timing(tr, data, parent_ip ? : ip, cpu);
  	data->critical_start = 0;
@@ -1463,7 +1467,7 @@ index 10bbb0f..9421973 100644
  
  static int preemptoff_tracer_init(struct trace_array *tr)
 diff --git a/kernel/trace/trace_kprobe.c b/kernel/trace/trace_kprobe.c
-index b29f92c..7bf4d63 100644
+index 5fff395..2bd52edc 100644
 --- a/kernel/trace/trace_kprobe.c
 +++ b/kernel/trace/trace_kprobe.c
 @@ -1384,8 +1384,7 @@ __kprobe_trace_func(struct trace_kprobe *tk, struct pt_regs *regs,
@@ -1472,7 +1476,7 @@ index b29f92c..7bf4d63 100644
  
 -	local_save_flags(fbuffer.flags);
 -	fbuffer.pc = preempt_count();
-+	fbuffer.trace_ctx = tracing_gen_ctx_flags();
++	fbuffer.trace_ctx = tracing_gen_ctx();
  	fbuffer.trace_file = trace_file;
  
  	dsize = __get_data_size(&tk->tp, regs);
@@ -1491,7 +1495,7 @@ index b29f92c..7bf4d63 100644
  
 -	local_save_flags(fbuffer.flags);
 -	fbuffer.pc = preempt_count();
-+	fbuffer.trace_ctx = tracing_gen_ctx_flags();
++	fbuffer.trace_ctx = tracing_gen_ctx();
  	fbuffer.trace_file = trace_file;
  
  	dsize = __get_data_size(&tk->tp, regs);
@@ -1505,7 +1509,7 @@ index b29f92c..7bf4d63 100644
  		return;
  
 diff --git a/kernel/trace/trace_mmiotrace.c b/kernel/trace/trace_mmiotrace.c
-index 84582bf..5a7d37b 100644
+index 84582bf..7221ae0 100644
 --- a/kernel/trace/trace_mmiotrace.c
 +++ b/kernel/trace/trace_mmiotrace.c
 @@ -300,10 +300,11 @@ static void __trace_mmiotrace_rw(struct trace_array *tr,
@@ -1515,7 +1519,7 @@ index 84582bf..5a7d37b 100644
 -	int pc = preempt_count();
 +	unsigned int trace_ctx;
  
-+	trace_ctx = _tracing_gen_ctx_flags(0);
++	trace_ctx = tracing_gen_ctx_flags(0);
  	event = trace_buffer_lock_reserve(buffer, TRACE_MMIO_RW,
 -					  sizeof(*entry), 0, pc);
 +					  sizeof(*entry), trace_ctx);
@@ -1538,7 +1542,7 @@ index 84582bf..5a7d37b 100644
 -	int pc = preempt_count();
 +	unsigned int trace_ctx;
  
-+	trace_ctx = _tracing_gen_ctx_flags(0);
++	trace_ctx = tracing_gen_ctx_flags(0);
  	event = trace_buffer_lock_reserve(buffer, TRACE_MMIO_MAP,
 -					  sizeof(*entry), 0, pc);
 +					  sizeof(*entry), trace_ctx);
@@ -1555,7 +1559,7 @@ index 84582bf..5a7d37b 100644
  
  void mmio_trace_mapping(struct mmiotrace_map *map)
 diff --git a/kernel/trace/trace_sched_wakeup.c b/kernel/trace/trace_sched_wakeup.c
-index 97b10bb..e8bb2d8 100644
+index 97b10bb..f1c6033 100644
 --- a/kernel/trace/trace_sched_wakeup.c
 +++ b/kernel/trace/trace_sched_wakeup.c
 @@ -67,7 +67,7 @@ static bool function_enabled;
@@ -1572,7 +1576,7 @@ index 97b10bb..e8bb2d8 100644
  		return 0;
  
 -	*pc = preempt_count();
-+	*trace_ctx = tracing_gen_ctx_flags();
++	*trace_ctx = tracing_gen_ctx();
  	preempt_disable_notrace();
  
  	cpu = raw_smp_processor_id();
@@ -1729,7 +1733,7 @@ index 97b10bb..e8bb2d8 100644
  		goto out;
  
  	local_irq_save(flags);
-+	trace_ctx = _tracing_gen_ctx_flags(flags);
++	trace_ctx = tracing_gen_ctx_flags(flags);
 +
  	arch_spin_lock(&wakeup_lock);
  
@@ -1767,7 +1771,7 @@ index 97b10bb..e8bb2d8 100644
  	if (unlikely(disabled != 1))
  		goto out;
  
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
 +
  	/* interrupts should be off from try_to_wake_up */
  	arch_spin_lock(&wakeup_lock);
@@ -1796,7 +1800,7 @@ index 97b10bb..e8bb2d8 100644
  out_locked:
  	arch_spin_unlock(&wakeup_lock);
 diff --git a/kernel/trace/trace_syscalls.c b/kernel/trace/trace_syscalls.c
-index d85a2f0..71a2e70 100644
+index d85a2f0..8bfcd3b 100644
 --- a/kernel/trace/trace_syscalls.c
 +++ b/kernel/trace/trace_syscalls.c
 @@ -298,9 +298,8 @@ static void ftrace_syscall_enter(void *data, struct pt_regs *regs, long id)
@@ -1816,7 +1820,7 @@ index d85a2f0..71a2e70 100644
  
 -	local_save_flags(irq_flags);
 -	pc = preempt_count();
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  
  	buffer = tr->array_buffer.buffer;
  	event = trace_buffer_lock_reserve(buffer,
@@ -1850,7 +1854,7 @@ index d85a2f0..71a2e70 100644
  
 -	local_save_flags(irq_flags);
 -	pc = preempt_count();
-+	trace_ctx = tracing_gen_ctx_flags();
++	trace_ctx = tracing_gen_ctx();
  
  	buffer = tr->array_buffer.buffer;
  	event = trace_buffer_lock_reserve(buffer,

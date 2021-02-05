@@ -1,7 +1,7 @@
-From 08fb955a407875dbcb51a6e355fcccf82ec89221 Mon Sep 17 00:00:00 2001
+From ed7900d387cc9d2d8e0c3872e1cf158d9543065a Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:04 +0200
-Subject: [PATCH 007/270] sched/hotplug: Consolidate task migration on CPU
+Subject: [PATCH 007/281] sched/hotplug: Consolidate task migration on CPU
  unplug
 
 With the new mechanism which kicks tasks off the outgoing CPU at the end of
