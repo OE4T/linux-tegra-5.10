@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -83,7 +83,7 @@ struct gops_bus {
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 * @param bar1_inst [in]	Instance memory to be used for
-	 *				BAR1 access.
+	 *				BAR1 access. Should not be NULL.
 	 *
 	 * BAR1 is generic memory to support sharing of data between h/w and
 	 * s/w. As a part of bar1 binding, bar1 is mapped to the virtual memory
@@ -103,7 +103,7 @@ struct gops_bus {
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 * @param bar2_inst [in]	Instance memory to be used for
-	 *				BAR2 access.
+	 *				BAR2 access. Should not be NULL.
 	 *
 	 * BAR2 is virtual memory set-up done by s/w using system memory for
 	 * sharing of data between h/w and s/w, generally used for fault
