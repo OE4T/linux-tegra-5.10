@@ -89,7 +89,9 @@ struct camrtc_debug {
 	wait_queue_head_t waitq;
 	struct {
 		u32 completion_timeout;
+		u32 mods_case;
 		u32 mods_loops;
+		u32 mods_dma_channels;
 		char *test_case;
 		size_t test_case_size;
 		u32 test_timeout;
@@ -488,7 +490,9 @@ static int camrtc_show_mods_result(struct seq_file *file, void *data)
 	unsigned long timeout = crd->parameters.completion_timeout;
 	u32 loops = crd->parameters.mods_loops;
 
+	req.data.mods_data.mods_case = crd->parameters.mods_case;
 	req.data.mods_data.mods_loops = loops;
+	req.data.mods_data.mods_dma_channels = crd->parameters.mods_dma_channels;
 
 	ret = camrtc_ivc_dbg_xact(ch, &req, &resp, loops * timeout);
 	if (ret == 0)
@@ -1709,12 +1713,26 @@ static int camrtc_debug_populate(struct tegra_ivc_channel *ch)
 		goto error;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+	if (!debugfs_create_u32("case", 0644, dir,
+			&crd->parameters.mods_loops))
+		goto error;
+
 	if (!debugfs_create_u32("loops", 0644, dir,
 			&crd->parameters.mods_loops))
 		goto error;
+
+	if (!debugfs_create_x32("dma_channels", 0644, dir,
+			&crd->parameters.mods_dma_channels))
+		goto error;
 #else
+	debugfs_create_u32("case", 0644, dir,
+			&crd->parameters.mods_case);
+
 	debugfs_create_u32("loops", 0644, dir,
 			&crd->parameters.mods_loops);
+
+	debugfs_create_x32("dma_channels", 0644, dir,
+			&crd->parameters.mods_dma_channels);
 #endif
 
 	if (!debugfs_create_file("result", 0400, dir, ch,
@@ -1843,7 +1861,9 @@ static int camrtc_debug_probe(struct tegra_ivc_channel *ch)
 
 	crd->channel = ch;
 	crd->parameters.test_case = (char *)(crd + 1);
+	crd->parameters.mods_case = CAMRTC_MODS_TEST_BASIC;
 	crd->parameters.mods_loops = 20;
+	crd->parameters.mods_dma_channels = 0;
 
 	if (of_property_read_u32(dev->of_node,
 			NV(ivc-timeout),
