@@ -901,7 +901,7 @@ static inline void fill_first_desc(struct osi_tx_ring *tx_ring,
  */
 static inline void dmb_oshst(void)
 {
-	asm volatile("dmb oshst" : : : "memory");
+	__sync_synchronize();
 }
 
 /**
