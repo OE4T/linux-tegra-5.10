@@ -135,8 +135,6 @@ struct gops_ltc {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	void (*init_fs_state)(struct gk20a *g);
 	void (*set_enabled)(struct gk20a *g, bool enabled);
-	struct nvgpu_hw_err_inject_info_desc * (*get_ltc_err_desc)
-							(struct gk20a *g);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	void (*set_zbc_color_entry)(struct gk20a *g,
 					u32 *color_val_l2, u32 index);

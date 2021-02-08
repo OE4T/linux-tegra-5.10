@@ -264,9 +264,6 @@ static const struct gops_ltc gv11b_ops_ltc = {
 	.ecc_init = gv11b_lts_ecc_init,
 	.init_ltc_support = nvgpu_init_ltc_support,
 	.ltc_remove_support = nvgpu_ltc_remove_support,
-#ifdef CONFIG_NVGPU_INJECT_HWERR
-	.get_ltc_err_desc = gv11b_ltc_get_err_desc,
-#endif /* CONFIG_NVGPU_INJECT_HWERR */
 	.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
 	.init_fs_state = gv11b_ltc_init_fs_state,
 	.flush = gm20b_flush_ltc,
