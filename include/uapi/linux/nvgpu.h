@@ -694,6 +694,16 @@ struct nvgpu_alloc_gpfifo_ex_args {
  * Setup the channel and bind it (enable).
  */
 struct nvgpu_channel_setup_bind_args {
+/*
+ * Must be power of 2. Max value U32_MAX/8 (size of gpfifo entry) rounded of to
+ * nearest lower power of 2 i.e. 2^28. The lower limit is due to the fact that
+ * the last entry of gpfifo is kept empty and used to determine buffer empty or
+ * full condition. Additionally, kmd submit uses pre/post sync which needs
+ * another extra entry.
+ * Range: 2, 4, 8, ..., 2^28 when
+ *        NVGPU_CHANNEL_SETUP_BIND_FLAGS_USERMODE_SUPPORT is set.
+ * Range: 4, 8, 16, ..., 2^28 otherwise.
+ */
 	__u32 num_gpfifo_entries;
 	__u32 num_inflight_jobs;
 /* Set owner channel of this gpfifo as a vpr channel. */

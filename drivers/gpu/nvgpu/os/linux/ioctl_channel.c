@@ -1344,11 +1344,43 @@ long gk20a_channel_ioctl(struct file *filp,
 			break;
 		}
 
+		/*
+		 * This restriction is because the last entry is kept empty and used to
+		 * determine buffer empty or full condition. Additionally, kmd submit
+		 * uses pre/post sync which need another entry.
+		 */
+		if ((setup_bind_args.flags &
+			NVGPU_CHANNEL_SETUP_BIND_FLAGS_USERMODE_SUPPORT) != 0U) {
+			if (setup_bind_args.num_gpfifo_entries < 2U) {
+				err = -EINVAL;
+				gk20a_idle(ch->g);
+				break;
+			}
+		} else {
+			if (setup_bind_args.num_gpfifo_entries < 4U) {
+				err = -EINVAL;
+				gk20a_idle(ch->g);
+				break;
+			}
+		}
+
 		if (!is_power_of_2(setup_bind_args.num_gpfifo_entries)) {
 			err = -EINVAL;
 			gk20a_idle(ch->g);
 			break;
 		}
+
+		/*
+		 * setup_bind_args.num_gpfifo_entries * nvgpu_get_gpfifo_entry_size() has
+		 * to fit in u32.
+		 */
+		if (setup_bind_args.num_gpfifo_entries >
+		   (U32_MAX / nvgpu_get_gpfifo_entry_size())) {
+			err = -EINVAL;
+			gk20a_idle(ch->g);
+			break;
+		}
+
 		err = nvgpu_channel_setup_bind(ch, &setup_bind_args);
 		channel_setup_bind_args->work_submit_token =
 			setup_bind_args.work_submit_token;
@@ -1371,11 +1403,44 @@ long gk20a_channel_ioctl(struct file *filp,
 			break;
 		}
 
+		/*
+		 * This restriction is because the last entry is kept empty and used to
+		 * determine buffer empty or full condition. Additionally, kmd submit
+		 * uses pre/post sync which need another entry.
+		 */
+		if ((alloc_gpfifo_ex_args->flags &
+			NVGPU_CHANNEL_SETUP_BIND_FLAGS_USERMODE_SUPPORT) != 0U) {
+			if (alloc_gpfifo_ex_args->num_entries < 2U) {
+				err = -EINVAL;
+				gk20a_idle(ch->g);
+				break;
+			}
+		} else {
+			if (alloc_gpfifo_ex_args->num_entries < 4U) {
+				err = -EINVAL;
+				gk20a_idle(ch->g);
+				break;
+			}
+		}
+
+
 		if (!is_power_of_2(alloc_gpfifo_ex_args->num_entries)) {
 			err = -EINVAL;
 			gk20a_idle(ch->g);
 			break;
 		}
+
+		/*
+		 * alloc_gpfifo_ex_args->num_entries * nvgpu_get_gpfifo_entry_size() has
+		 * to fit in u32.
+		 */
+		if (alloc_gpfifo_ex_args->num_entries >
+		   (U32_MAX / nvgpu_get_gpfifo_entry_size())) {
+			err = -EINVAL;
+			gk20a_idle(ch->g);
+			break;
+		}
+
 		err = nvgpu_channel_setup_bind(ch, &setup_bind_args);
 		gk20a_idle(ch->g);
 		break;
