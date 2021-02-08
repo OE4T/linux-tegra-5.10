@@ -486,18 +486,41 @@ struct nvgpu_gpu_vsms_mapping {
 	__u64 vsms_map_buf_addr;
 };
 
+/*
+ * If the buffer registration is done, this flag is set in the output flags in
+ * the buffer info query ioctl.
+ */
+#define NVGPU_GPU_BUFFER_INFO_FLAGS_METADATA_REGISTERED		(1ULL << 0)
+
+/*
+ * If the comptags are allocated for the buffer, this flag is set in the output
+ * flags in the buffer info query ioctl.
+ */
+#define NVGPU_GPU_BUFFER_INFO_FLAGS_COMPTAGS_ALLOCATED		(1ULL << 1)
+
 struct nvgpu_gpu_get_buffer_info_args {
 	union {
 		struct {
-			__u32 dmabuf_fd;   /* dma-buf fd */
+			/* [in] dma-buf fd */
+			__s32 dmabuf_fd;
+			/* [in] size reserved by the user space. */
+			__u32 metadata_size;
+			/* [in]  Pointer to receive the buffer metadata. */
+			__u64 metadata_addr;
 		} in;
 		struct {
-			__u64 id;          /* Unique within live
-					    * buffers */
-			__u64 length;      /* Allocated length of the
-					    * buffer */
-			__u64 reserved0;
-			__u64 reserved1;
+			/* [out] buffer information flags. */
+			__u64 flags;
+
+			/*
+			 * [out] buffer metadata size registered.
+			 *       this is always 0 for unregistered buffers.
+			 */
+			__u32 metadata_size;
+			__u32 reserved;
+
+			/* [out] allocated size of the buffer */
+			__u64 size;
 		} out;
 	};
 };
@@ -1059,8 +1082,10 @@ struct nvgpu_gpu_register_buffer_args {
 			struct nvgpu_gpu_set_deterministic_opts_args)
 #define NVGPU_GPU_IOCTL_REGISTER_BUFFER	\
 	_IOWR(NVGPU_GPU_IOCTL_MAGIC,  41, struct nvgpu_gpu_register_buffer_args)
+#define NVGPU_GPU_IOCTL_GET_BUFFER_INFO	\
+	_IOWR(NVGPU_GPU_IOCTL_MAGIC,  42, struct nvgpu_gpu_get_buffer_info_args)
 #define NVGPU_GPU_IOCTL_LAST		\
-	_IOC_NR(NVGPU_GPU_IOCTL_REGISTER_BUFFER)
+	_IOC_NR(NVGPU_GPU_IOCTL_GET_BUFFER_INFO)
 #define NVGPU_GPU_IOCTL_MAX_ARG_SIZE	\
 	sizeof(struct nvgpu_gpu_get_cpu_time_correlation_info_args)
 
