@@ -182,6 +182,8 @@ struct nvgpu_gpu_zbc_query_table_args {
 #define NVGPU_GPU_FLAGS_SUPPORT_SMPC_GLOBAL_MODE	(1ULL << 48)
 /* Retrieving contents of graphics context is supported */
 #define NVGPU_GPU_FLAGS_SUPPORT_GET_GR_CONTEXT	    (1ULL << 49)
+/* Additional buffer metadata association supported */
+#define NVGPU_GPU_FLAGS_SUPPORT_BUFFER_METADATA		(1ULL << 50)
 /* SM LRF ECC is enabled */
 #define NVGPU_GPU_FLAGS_ECC_ENABLED_SM_LRF	(1ULL << 60)
 /* SM SHM ECC is enabled */
@@ -902,6 +904,76 @@ struct nvgpu_gpu_set_deterministic_opts_args {
 	__u64 channels; /* in */
 };
 
+/*
+ * NVGPU_GPU_COMPTAGS_ALLOC_NONE: Specified to not allocate comptags
+ * for the buffer.
+ */
+#define NVGPU_GPU_COMPTAGS_ALLOC_NONE			0U
+
+/*
+ * NVGPU_GPU_COMPTAGS_ALLOC_REQUESTED: Specified to attempt comptags
+ * allocation for the buffer. If comptags are not available, the
+ * register buffer call will not fail and userspace can fallback
+ * to no compression.
+ */
+#define NVGPU_GPU_COMPTAGS_ALLOC_REQUESTED		1U
+
+/*
+ * NVGPU_GPU_COMPTAGS_ALLOC_REQUIRED: Specified to allocate comptags
+ * for the buffer when userspace can't fallback to no compression.
+ * If comptags are not available, the register buffer call will fail.
+ */
+#define NVGPU_GPU_COMPTAGS_ALLOC_REQUIRED		2U
+
+/*
+ * If the comptags are allocated for the buffer, this flag is set in the output
+ * flags in the register buffer ioctl.
+ */
+#define NVGPU_GPU_REGISTER_BUFFER_FLAGS_COMPTAGS_ALLOCATED	(1U << 0)
+
+/* Maximum size of the user supplied buffer metadata */
+#define NVGPU_GPU_REGISTER_BUFFER_METADATA_MAX_SIZE	256U
+
+/*
+ * REGISTER_BUFFER ioctl is supported when the enabled flag
+ * NVGPU_GPU_FLAGS_SUPPORT_BUFFER_METADATA is set. It will
+ * return -EINVAL if that enabled flag isn't enabled.
+ */
+struct nvgpu_gpu_register_buffer_args {
+	/* [in] dmabuf fd */
+	__s32 dmabuf_fd;
+
+	/*
+	 * [in]  Compression tags allocation control.
+	 *
+	 * Set to one of the NVGPU_GPU_COMPTAGS_ALLOC_* values. See the
+	 * description of the values for semantics of this field.
+	 */
+	__u8 comptags_alloc_control;
+	__u8 reserved0;
+	__u16 reserved1;
+
+	/*
+	 * [in]  Pointer to buffer metadata.
+	 *
+	 * This is a binary blob populated by nvrm_gpu that will be associated
+	 * with the dmabuf.
+	 */
+	__u64 metadata_addr;
+
+	/* [in] buffer metadata size */
+	__u32 metadata_size;
+
+
+	/*
+	 * [out] flags.
+	 *
+	 * See description of NVGPU_GPU_REGISTER_BUFFER_FLAGS_* for semantics
+	 * of this field.
+	 */
+	__u32 flags;
+};
+
 #define NVGPU_GPU_IOCTL_ZCULL_GET_CTX_SIZE \
 	_IOR(NVGPU_GPU_IOCTL_MAGIC, 1, struct nvgpu_gpu_zcull_get_ctx_size_args)
 #define NVGPU_GPU_IOCTL_ZCULL_GET_INFO \
@@ -985,8 +1057,10 @@ struct nvgpu_gpu_set_deterministic_opts_args {
 #define NVGPU_GPU_IOCTL_SET_DETERMINISTIC_OPTS \
 	_IOWR(NVGPU_GPU_IOCTL_MAGIC, 40, \
 			struct nvgpu_gpu_set_deterministic_opts_args)
+#define NVGPU_GPU_IOCTL_REGISTER_BUFFER	\
+	_IOWR(NVGPU_GPU_IOCTL_MAGIC,  41, struct nvgpu_gpu_register_buffer_args)
 #define NVGPU_GPU_IOCTL_LAST		\
-	_IOC_NR(NVGPU_GPU_IOCTL_SET_DETERMINISTIC_OPTS)
+	_IOC_NR(NVGPU_GPU_IOCTL_REGISTER_BUFFER)
 #define NVGPU_GPU_IOCTL_MAX_ARG_SIZE	\
 	sizeof(struct nvgpu_gpu_get_cpu_time_correlation_info_args)
 
