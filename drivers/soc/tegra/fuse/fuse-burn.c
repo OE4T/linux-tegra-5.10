@@ -426,7 +426,7 @@ static void tegra_fuse_post_burn_process(struct tegra_fuse_burn_dev *fuse_dev)
 static int tegra_fuse_burn_fuse(struct tegra_fuse_burn_dev *fuse_dev,
 	struct fuse_burn_data *fuse_data, u32 *input_data)
 {
-	u32 reg, burn_data[9] = {0}, burn_mask[9] = {0};
+	u32 reg, burn_data[17] = {0}, burn_mask[17] = {0};
 	int fuse_addr = fuse_data->start_offset;
 	int is_redundant = fuse_data->is_redundant;
 	int i;
@@ -562,8 +562,8 @@ static ssize_t tegra_fuse_store(struct device *dev,
 	struct fuse_burn_data *fuse_data;
 	int len = count;
 	int num_nibbles;
-	u32 input_data[9] = {0};
-	u32 temp_data[9] = {0};
+	u32 input_data[17] = {0};
+	u32 temp_data[17] = {0};
 	char str[9] = {0};
 	int copy_cnt, copy_idx;
 	int burn_idx = 0, idx;
