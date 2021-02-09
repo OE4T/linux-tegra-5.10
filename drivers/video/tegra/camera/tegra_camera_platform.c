@@ -681,9 +681,14 @@ static int tegra_camera_probe(struct platform_device *pdev)
 	struct tegra_camera_info *info;
 
 	dev_dbg(&pdev->dev, "%s:camera_platform_driver probe\n", __func__);
-	/* Defer the probe till isomgr is initialized */
-	if (!tegra_isomgr_init_status())
-		return -EPROBE_DEFER;
+
+#if defined(CONFIG_TEGRA_ISOMGR)
+	if (tegra_get_chip_id() != TEGRA234) {
+		/* Defer the probe till isomgr is initialized */
+		if (!tegra_isomgr_init_status())
+			return -EPROBE_DEFER;
+	}
+#endif
 
 	tegra_camera_misc.minor = MISC_DYNAMIC_MINOR;
 	tegra_camera_misc.name = CAMDEV_NAME;
