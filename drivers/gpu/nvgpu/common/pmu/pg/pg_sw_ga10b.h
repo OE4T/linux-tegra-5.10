@@ -23,6 +23,7 @@
 #define NVGPU_PMU_PG_SW_GA10B_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/pmu/pmuif/pg.h>
 
 struct gk20a;
 
@@ -37,6 +38,7 @@ enum
 {
 	NV_PMU_LPWR_GRP_CTRL_ID_GR = 0,
 	NV_PMU_LPWR_GRP_CTRL_ID_MS,
+	NV_PMU_LPWR_GRP_CTRL_ID_EI,
 	NV_PMU_LPWR_GRP_CTRL_ID__COUNT,
 };
 
@@ -76,11 +78,23 @@ struct pmu_rpc_struct_lpwr_loading_pre_init
 */
 struct pmu_rpc_struct_lpwr_loading_post_init
 {
-	/* [IN/OUT] Must be first field in RPC structure */
+	/*
+	 * [IN/OUT] Must be first field in RPC structure
+	 */
 	struct nv_pmu_rpc_header hdr;
-	/* Must be last field in RPC structure.*/
-	u32 scratch[5];
-};
+	/*
+	 * Voltage rail data in LPWR
+	 */
+	struct pmu_pg_volt_rail pg_volt_rail[PG_VOLT_RAIL_IDX_MAX];
+	/*
+	 * [IN] Dummy array to match with pmu struct
+	 */
+	bool dummy;
+	/*
+	 * Must be last field in RPC structure.
+	 */
+	u32 scratch[1];
+ };
 
 struct pmu_rpc_struct_lpwr_loading_pg_ctrl_init
 {
