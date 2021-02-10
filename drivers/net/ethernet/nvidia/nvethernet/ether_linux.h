@@ -484,16 +484,19 @@ static inline int ether_selftest_get_count(struct ether_priv_data *pdata)
 #endif /* CONFIG_NVETHERNET_SELFTESTS */
 
 /**
- * @brief osd_realloc_buf - Allocate RX sk_buffer
+ * @brief ether_assign_osd_ops - Assigns OSD ops for OSI
  *
- * Algorithm: Call ether_realloc_rx_skb for re-allocation
+ * @param[in] osi_core: OSI CORE data structure
+ * @param[in] osi_dma: OSI DMA data structure.
  *
- * @param[in] priv: OSD private data structure.
- * @param[in] rxring: Pointer to DMA channel Rx ring.
- * @param[in] chan: DMA Rx channel number.
- *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
-void osd_realloc_buf(void *priv, void *rxring, unsigned int chan);
+void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
+			  struct osi_dma_priv_data *osi_dma);
 
 /**
  * @brief osd_send_cmd - OSD ivc send cmd

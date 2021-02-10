@@ -15,7 +15,6 @@
  */
 
 #include "ether_linux.h"
-#include <osd.h>
 #include <ivc_core.h>
 
 #define IVC_WAIT_TIMEOUT (msecs_to_jiffies(1000))
@@ -27,7 +26,7 @@
  *
  * @param[in] usec: Delay number in micro seconds.
  */
-void osd_udelay(unsigned long usec)
+static void osd_udelay(unsigned long usec)
 {
 	udelay(usec);
 }
@@ -40,7 +39,7 @@ void osd_udelay(unsigned long usec)
  * @param[in] umin: Minimum sleep required in micro seconds.
  * @param[in] umax: Maximum sleep required in micro seconds.
  */
-void osd_usleep_range(unsigned long umin, unsigned long umax)
+static void osd_usleep_range(unsigned long umin, unsigned long umax)
 {
 	usleep_range(umin, umax);
 }
@@ -52,7 +51,7 @@ void osd_usleep_range(unsigned long umin, unsigned long umax)
  *
  * @param[in] msec:  Minimum sleep required in milli seconds.
  */
-void osd_msleep(unsigned int msec)
+static void osd_msleep(unsigned int msec)
 {
 	msleep(msec);
 }
@@ -69,13 +68,13 @@ void osd_msleep(unsigned int msec)
  * @param[in] loga: error additional information
  *
  */
-void osd_log(void *priv,
-	     const char *func,
-	     unsigned int line,
-	     unsigned int level,
-	     unsigned int type,
-	     const char *err,
-	     unsigned long long loga)
+static void osd_log(void *priv,
+		    const char *func,
+		    unsigned int line,
+		    unsigned int level,
+		    unsigned int type,
+		    const char *err,
+		    unsigned long long loga)
 {
 	if (priv) {
 		switch (level) {
@@ -229,7 +228,7 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
  * @param[in] chan: DMA Rx channel number.
  *
  */
-void osd_realloc_buf(void *priv, void *rxring, unsigned int chan)
+static void osd_realloc_buf(void *priv, void *rxring, unsigned int chan)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
@@ -346,8 +345,8 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  *
  * @note Tx completion need to make sure that Tx descriptors processed properly.
  */
-void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
-			   unsigned int len, void *tx_done_pkt_cx)
+static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
+				  unsigned int len, void *tx_done_pkt_cx)
 {
 	struct osi_txdone_pkt_cx *txdone_pkt_cx = (struct osi_txdone_pkt_cx *)
 						  tx_done_pkt_cx;
@@ -400,6 +399,21 @@ void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 		ndev->stats.tx_packets++;
 		dev_consume_skb_any(skb);
 	}
+}
+
+void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
+			  struct osi_dma_priv_data *osi_dma)
+{
+	osi_core->osd_ops.ops_log = osd_log;
+	osi_core->osd_ops.udelay = osd_udelay;
+	osi_core->osd_ops.usleep_range = osd_usleep_range;
+	osi_core->osd_ops.msleep = osd_msleep;
+
+	osi_dma->osd_ops.transmit_complete = osd_transmit_complete;
+	osi_dma->osd_ops.receive_packet = osd_receive_packet;
+	osi_dma->osd_ops.realloc_buf = osd_realloc_buf;
+	osi_dma->osd_ops.ops_log = osd_log;
+	osi_dma->osd_ops.udelay = osd_udelay;
 }
 
 /**

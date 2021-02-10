@@ -4301,14 +4301,13 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_parse_dt;
 	}
 
+	ether_assign_osd_ops(osi_core, osi_dma);
+
 	/* Initialize core and DMA ops based on MAC type */
 	if (osi_init_core_ops(osi_core) != 0) {
 		dev_err(&pdev->dev, "failed to get osi_init_core_ops\n");
 		goto err_core_ops;
 	}
-
-	/* Define re-allocation routine */
-	osi_dma->osd_ops.realloc_buf = osd_realloc_buf;
 
 	if (osi_init_dma_ops(osi_dma) != 0) {
 		dev_err(&pdev->dev, "failed to get osi_init_dma_ops\n");
