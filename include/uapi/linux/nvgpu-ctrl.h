@@ -318,7 +318,9 @@ struct nvgpu_gpu_characteristics {
 	__u32 gpu_instance_id;
 
 	__u32 gr_instance_id;
-	__u32 reserved4;
+
+	/** Max gpfifo entries allowed by nvgpu-rm. */
+	__u32 max_gpfifo_entries;
 
 	/* Notes:
 	   - This struct can be safely appended with new fields. However, always

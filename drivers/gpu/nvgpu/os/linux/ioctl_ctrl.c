@@ -493,6 +493,9 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.gpu_instance_id = gpu_instance->gpu_instance_id;
 	gpu.gr_instance_id = gpu_instance->gr_syspipe.gr_syspipe_id;
 
+	gpu.max_gpfifo_entries = rounddown_pow_of_two(U32_MAX /
+					nvgpu_get_gpfifo_entry_size());
+
 	if (request->gpu_characteristics_buf_size > 0) {
 		size_t write_size = sizeof(gpu);
 
