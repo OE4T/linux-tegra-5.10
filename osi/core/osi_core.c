@@ -21,7 +21,6 @@
  */
 
 #include <osi_core.h>
-#include <osd.h>
 #include <local_common.h>
 #include <ivc_core.h>
 
@@ -52,27 +51,17 @@ nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
 
 nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
-	/*
-	 * Currently these osd_ops are optional to be filled in the OSD layer.
-	 * If OSD updates these pointers, use the same. If not, fall back to the
-	 * existing way of using osd_* API's.
-	 * TODO: Once These API's are mandatory, return errors instead of
-	 * default API usage.
-	 */
 	if (osi_core == OSI_NULL) {
 		return -1;
 	}
-	if (osi_core->osd_ops.ops_log == OSI_NULL) {
-		osi_core->osd_ops.ops_log = osd_log;
-	}
-	if (osi_core->osd_ops.udelay == OSI_NULL) {
-		osi_core->osd_ops.udelay = osd_udelay;
-	}
-	if (osi_core->osd_ops.msleep == OSI_NULL) {
-		osi_core->osd_ops.msleep = osd_msleep;
-	}
-	if (osi_core->osd_ops.usleep_range == OSI_NULL) {
-		osi_core->osd_ops.usleep_range = osd_usleep_range;
+
+	if ((osi_core->osd_ops.ops_log == OSI_NULL) ||
+	    (osi_core->osd_ops.udelay == OSI_NULL) ||
+	    (osi_core->osd_ops.msleep == OSI_NULL) ||
+	    (osi_core->osd_ops.usleep_range == OSI_NULL)) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "CORE OSD ops not assigned\n", 0ULL);
+		return -1;
 	}
 
 	if (osi_core->mac == OSI_MAC_HW_EQOS) {

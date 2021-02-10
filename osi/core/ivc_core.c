@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,6 @@
 
 #include <osi_common.h>
 #include <osi_core.h>
-#include <osd.h>
 #include <ivc_core.h>
 #include "eqos_core.h"
 #include "eqos_mmc.h"
