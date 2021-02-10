@@ -21,7 +21,6 @@
  */
 
 #include "osi_dma_local.h"
-#include <osd.h>
 #include <local_common.h>
 #include "hw_desc.h"
 
@@ -30,24 +29,14 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	if (osi_dma == OSI_NULL) {
 		return -1;
 	}
-	/*
-	 * Currently these osd_ops are optional to be filled in the OSD layer.
-	 * If OSD updates these pointers, use the same. If not, fall back to the
-	 * existing way of using osd_* API's.
-	 * TODO: Once These API's are mandatory, return errors instead of
-	 * default API usage.
-	 */
-	if (osi_dma->osd_ops.transmit_complete == OSI_NULL) {
-		osi_dma->osd_ops.transmit_complete = osd_transmit_complete;
-	}
-	if (osi_dma->osd_ops.receive_packet == OSI_NULL) {
-		osi_dma->osd_ops.receive_packet = osd_receive_packet;
-	}
-	if (osi_dma->osd_ops.ops_log == OSI_NULL) {
-		osi_dma->osd_ops.ops_log = osd_log;
-	}
-	if (osi_dma->osd_ops.udelay == OSI_NULL) {
-		osi_dma->osd_ops.udelay = osd_udelay;
+
+	if ((osi_dma->osd_ops.transmit_complete == OSI_NULL) ||
+	    (osi_dma->osd_ops.receive_packet == OSI_NULL) ||
+	    (osi_dma->osd_ops.ops_log == OSI_NULL) ||
+	    (osi_dma->osd_ops.udelay == OSI_NULL)) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "DMA OSD ops not assigned\n", 0ULL);
+		return -1;
 	}
 
 	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
