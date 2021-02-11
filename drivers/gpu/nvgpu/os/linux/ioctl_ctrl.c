@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -948,6 +948,10 @@ static int nvgpu_gpu_ioctl_has_any_exception(
 		struct nvgpu_gpu_tpc_exception_en_status_args *args)
 {
 	u64 tpc_exception_en;
+
+	if (g->ops.gr.intr.tpc_enabled_exceptions == NULL) {
+		return -ENOSYS;
+	}
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	tpc_exception_en = g->ops.gr.intr.tpc_enabled_exceptions(g);

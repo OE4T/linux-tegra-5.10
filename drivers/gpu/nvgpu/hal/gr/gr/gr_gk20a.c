@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -2108,7 +2108,17 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	int err = 0;
 	u32 gpc, tpc, sm, sm_id;
 	u32 global_mask;
-	u32 no_of_sm = g->ops.gr.init.get_no_of_sm(g);
+	u32 no_of_sm;
+
+	if((g->ops.gr.init.get_no_of_sm == NULL) ||
+			(g->ops.gr.intr.get_sm_no_lock_down_hww_global_esr_mask == NULL) ||
+			(g->ops.gr.lock_down_sm == NULL) ||
+			(g->ops.gr.bpt_reg_info == NULL) ||
+			(g->ops.gr.sm_debugger_attached == NULL)) {
+		return -EINVAL;
+	}
+
+	no_of_sm = g->ops.gr.init.get_no_of_sm(g);
 
 	if (!g->ops.gr.sm_debugger_attached(g)) {
 		nvgpu_err(g,
@@ -2176,6 +2186,11 @@ int gr_gk20a_clear_sm_errors(struct gk20a *g)
 	struct nvgpu_gr *gr = g->gr;
 	u32 global_esr;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
+
+	if ((g->ops.gr.intr.get_sm_hww_global_esr == NULL) ||
+			(g->ops.gr.intr.clear_sm_hww == NULL)) {
+		return -EINVAL;
+	}
 
 	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
 
