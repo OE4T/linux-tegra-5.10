@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -136,7 +136,7 @@ static void camrtc_hsp_rx_full_notify(mbox_client* cl, void *data)
 	group = status & CAMRTC_HSP_SS_IVC_MASK;
 
 	if (CAMRTC_HSP_MSG_ID(msg) == CAMRTC_HSP_UNKNOWN)
-		dev_err(&camhsp->dev,"request message unknown 0x%08x\n", msg);
+		dev_dbg(&camhsp->dev,"request message unknown 0x%08x\n", msg);
 
 	if (group != 0)
 		camhsp->group_notify(camhsp->dev.parent, (u16)group);
@@ -199,6 +199,7 @@ static int camrtc_hsp_vm_send(struct camrtc_hsp *camhsp,
 	unsigned long flags;
 
 	spin_lock_irqsave(&camhsp->sendlock, flags);
+	atomic_set(&camhsp->response, -1);
 	response = mbox_send_message(camhsp->tx.chan, (void*)(unsigned long) request);
 	spin_unlock_irqrestore(&camhsp->sendlock, flags);
 
