@@ -49,8 +49,8 @@
 
 		fsi_reserved: fsi-carveout {
 			compatible = "nvidia,fsi-carveout";
-			size = <0 2000000>;
-			alignment = <0 1000>;
+			size = <0 0x2000000>;
+			alignment = <0 0x1000>;
 			no-map;
 			alloc-ranges = <0x0 0x0 0x1 0x0>;
 			status = "okay";
