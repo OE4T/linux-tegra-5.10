@@ -118,7 +118,6 @@
 		mmc-ddr-1_8v;
 		mmc-hs200-1_8v;
 		nvidia,vqmmc-always-on;
-		cd-inverted;
 		pwrdet-support;
 #if TEGRA_SDMMC_VERSION >= DT_VERSION_2
 		nvidia,pad-autocal-pull-up-offset-3v3-timeout =
