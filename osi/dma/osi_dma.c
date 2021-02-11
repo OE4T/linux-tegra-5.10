@@ -392,10 +392,11 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		}
 
 		rx_desc->rdes2 = 0;
-		rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
+		rx_desc->rdes3 = (RDES3_IOC | RDES3_B1V);
 
 		/* Reset IOC bit if RWIT is enabled */
 		rx_dma_handle_ioc(osi_dma, rx_ring, rx_desc);
+		rx_desc->rdes3 |= RDES3_OWN;
 
 		INCR_RX_DESC_INDEX(rx_ring->refill_idx, 1U);
 	}
