@@ -1277,7 +1277,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 		}
 
 		rx_desc->rdes2 = 0;
-		rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
+		rx_desc->rdes3 = (RDES3_IOC | RDES3_B1V);
 		/* reconfigure INTE bit if RX watchdog timer is enabled */
 		if (osi_dma->use_riwt == OSI_ENABLE) {
 			rx_desc->rdes3 &= ~RDES3_IOC;
@@ -1291,6 +1291,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 				}
 			}
 		}
+		rx_desc->rdes3 |= RDES3_OWN;
 
 		rx_swcx->flags = 0;
 	}
