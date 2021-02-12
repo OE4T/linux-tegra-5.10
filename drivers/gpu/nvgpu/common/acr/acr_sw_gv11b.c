@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,8 +35,9 @@
 #include "acr_bootstrap.h"
 #include "acr_sw_gv11b.h"
 
-#define RECOVERY_UCODE_BLOB_SIZE         (0U)
-#define WPR_OFFSET              (0U)
+#define RECOVERY_UCODE_BLOB_SIZE	(0U)
+#define WPR_OFFSET			(0U)
+#define ACR_REGIONS			(1U)
 
 static int gv11b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr)
 {
@@ -61,6 +62,7 @@ static int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct flcn_acr_desc *acr_dmem_desc;
 	u32 *acr_ucode_header = NULL;
 	u32 *acr_ucode_data = NULL;
+	const u32 acr_desc_offset = 2U;
 
 	nvgpu_log_fn(g, " ");
 #ifdef CONFIG_NVGPU_NON_FUSA
@@ -81,7 +83,7 @@ static int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 
 		/* Patch WPR info to ucode */
 		acr_dmem_desc = (struct flcn_acr_desc *)(void *)
-			&(((u8 *)acr_ucode_data)[acr_ucode_header[2U]]);
+			&(((u8 *)acr_ucode_data)[acr_ucode_header[acr_desc_offset]]);
 
 		acr_desc->acr_dmem_desc = acr_dmem_desc;
 
@@ -90,7 +92,7 @@ static int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		nvgpu_assert(g->acr->ucode_blob.size <= U32_MAX);
 		acr_dmem_desc->nonwpr_ucode_blob_size =
 			(u32)g->acr->ucode_blob.size;
-		acr_dmem_desc->regions.no_regions = 1U;
+		acr_dmem_desc->regions.no_regions = ACR_REGIONS;
 		acr_dmem_desc->wpr_offset = WPR_OFFSET;
 	}
 

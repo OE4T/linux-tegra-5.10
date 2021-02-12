@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -355,6 +355,7 @@ struct lsf_lsb_header {
 	u32 flags;
 };
 
+#define FLCN_SIG_SIZE	(4U)
 /** @} */
 
 /**
@@ -369,12 +370,12 @@ struct lsf_lsb_header {
  */
 struct flcn_bl_dmem_desc {
 	/** Should be always first element */
-	u32 reserved[4];
+	u32 reserved[FLCN_SIG_SIZE];
 	/**
 	 * Signature should follow reserved 16B signature for secure code.
 	 * 0s if no secure code
 	 */
-	u32 signature[4];
+	u32 signature[FLCN_SIG_SIZE];
 	/**
 	 * Type of memory-aperture DMA index used by the bootloader
 	 * while loading code/data.
@@ -513,6 +514,8 @@ struct flcn_acr_regions {
 	struct flcn_acr_region_prop region_props[NVGPU_FLCN_ACR_MAX_REGIONS];
 };
 
+#define DMEM_WORD_SIZE		4U
+#define DUMMY_SPACE_SIZE	4U
 /**
  * The descriptor used by ACR HS ucode to figure out the
  * WPR & non-WPR blob details.
@@ -528,10 +531,10 @@ struct flcn_acr_desc {
 	 * NOTE: This has to be the first member always.
 	 */
 	union {
-		u32 reserved_dmem[(LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE/4)];
+		u32 reserved_dmem[(LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE/DMEM_WORD_SIZE)];
 	} ucode_reserved_space;
 	/** Signature of ACR ucode. */
-	u32 signatures[4];
+	u32 signatures[FLCN_SIG_SIZE];
 	/**
 	 * WPR Region ID holding the WPR header and its details
 	 *
@@ -564,7 +567,7 @@ struct flcn_acr_desc {
 	 */
 	u64 nonwpr_ucode_blob_start;
 	/** dummy space, not used by iGPU */
-	u32 dummy[4];
+	u32 dummy[DUMMY_SPACE_SIZE];
 };
 
 struct flcn2_acr_desc {

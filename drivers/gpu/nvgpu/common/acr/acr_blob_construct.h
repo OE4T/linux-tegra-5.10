@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@ struct ls_falcon_ucode_desc {
 	u32 app_resident_data_size;
 	u32 nb_imem_overlays;
 	u32 nb_dmem_overlays;
-	struct {u32 start; u32 size; } load_ovl[64];
+	struct {u32 start; u32 size; } load_ovl[UCODE_NB_MAX_DATE_LENGTH];
 	u32 compressed;
 };
 

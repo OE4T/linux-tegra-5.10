@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -126,6 +126,7 @@ static void acr_ucode_patch_sig(struct gk20a *g,
 	struct nvgpu_acr *acr = g->acr;
 #endif
 	unsigned int i, j, *p_sig;
+	const u32 dmem_word_size = 4U;
 	nvgpu_acr_dbg(g, " ");
 
 	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
@@ -143,11 +144,13 @@ static void acr_ucode_patch_sig(struct gk20a *g,
 #endif
 
 	/* Patching logic:*/
-	sig_size = sig_size / 4U;
-	for (i = 0U; i < (sizeof(*p_patch_loc)>>2U); i++) {
+	sig_size = sig_size / dmem_word_size;
+	for (i = 0U; i < (sizeof(*p_patch_loc) / dmem_word_size); i++) {
 		for (j = 0U; j < sig_size; j++) {
-			p_img[nvgpu_safe_add_u32((p_patch_loc[i]>>2U), j)] =
-				p_sig[nvgpu_safe_add_u32((p_patch_ind[i]<<2U), j)];
+			p_img[nvgpu_safe_add_u32(
+				(p_patch_loc[i] / dmem_word_size), j)] =
+				p_sig[nvgpu_safe_add_u32(
+					(p_patch_ind[i] * dmem_word_size), j)];
 		}
 	}
 }

@@ -683,6 +683,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 	u32 sub_wpr_header;
 #endif
 	u32 wpr_offset;
+	u32 flcn_cnt;
 
 	/*
 	 * Start with an array of WPR headers at the base of the WPR.
@@ -690,8 +691,9 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 	 * read of this array and cache it internally so it's OK to pack these.
 	 * Also, we add 1 to the falcon count to indicate the end of the array.
 	 */
+	flcn_cnt = U32(plsfm->managed_flcn_cnt);
 	wpr_offset = nvgpu_safe_mult_u32(U32(sizeof(struct lsf_wpr_header)),
-		nvgpu_safe_add_u32(U32(plsfm->managed_flcn_cnt), U32(1)));
+		nvgpu_safe_add_u32(flcn_cnt, U32(1)));
 
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
@@ -919,14 +921,13 @@ static int lsfm_init_wpr_contents(struct gk20a *g,
 {
 	struct lsfm_managed_ucode_img *pnode = plsfm->ucode_img_list;
 	struct lsf_wpr_header last_wpr_hdr;
-	u32 i;
+	u32 i = 0;
 	u64 tmp;
 	int err = 0;
 
 	/* The WPR array is at the base of the WPR */
 	pnode = plsfm->ucode_img_list;
 	(void) memset(&last_wpr_hdr, MEMSET_VALUE, sizeof(struct lsf_wpr_header));
-	i = 0;
 
 #ifdef CONFIG_NVGPU_DGPU
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
