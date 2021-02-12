@@ -167,6 +167,10 @@
 /* macsec tz key table entries reset cmd */
 #define MACSEC_CMD_TZ_KT_RESET		0x2
 
+/* AES cipthers 128 bit or 256 bit */
+#define MACSEC_CIPHER_AES128	0U
+#define MACSEC_CIPHER_AES256	1U
+
 /**
  * @brief MACsec SA State LUT entry outputs structure
  */
@@ -527,6 +531,18 @@ int osi_macsec_lut_config(struct osi_core_priv_data *const osi_core,
 int osi_macsec_kt_config(struct osi_core_priv_data *const osi_core,
 			 struct osi_macsec_kt_config *const kt_config,
 			 void *const genl_info);
+
+/**
+ * @brief MACsec cipther config
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] cipher: AES cipher to be configured to controller.
+ *
+ * @retval 0 on success
+ * @retval -1 on failure
+ */
+int osi_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
+				 unsigned int cipher);
 
 /**
  * @brief MACsec Loopback config

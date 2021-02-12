@@ -2180,6 +2180,32 @@ static void macsec_handle_s_irq(struct osi_core_priv_data *const osi_core)
 	return;
 }
 
+static int macsec_cipher_config(struct osi_core_priv_data *const osi_core,
+				 unsigned int cipher)
+{
+	unsigned char *base = (unsigned char *)osi_core->macsec_base;
+	unsigned int val;
+
+	val = osi_readla(osi_core, base + GCM_AES_CONTROL_0);
+	pr_err("Read GCM_AES_CONTROL_0: 0x%x\n", val);
+
+	val &= ~TX_AES_MODE_MASK;
+	val &= ~RX_AES_MODE_MASK;
+	if (cipher == MACSEC_CIPHER_AES128) {
+		val |= TX_AES_MODE_AES128;
+		val |= RX_AES_MODE_AES128;
+	} else if (cipher == MACSEC_CIPHER_AES256) {
+		val |= TX_AES_MODE_AES256;
+		val |= RX_AES_MODE_AES256;
+	} else {
+		return -1;
+	}
+
+	pr_err("Write GCM_AES_CONTROL_0: 0x%x\n", val);
+	osi_writela(osi_core val, base + GCM_AES_CONTROL_0);
+	return 0;
+}
+
 static int macsec_loopback_config(struct osi_core_priv_data *const osi_core,
 				  unsigned int enable)
 {
@@ -2901,6 +2927,7 @@ static struct macsec_core_ops macsec_ops = {
 	.handle_s_irq = macsec_handle_s_irq,
 	.lut_config = macsec_lut_config,
 	.kt_config = macsec_kt_config,
+	.cipher_config = macsec_cipher_config,
 	.loopback_config = macsec_loopback_config,
 	.macsec_en = macsec_enable,
 	.config = macsec_config,
@@ -2979,6 +3006,17 @@ int osi_macsec_kt_config(struct osi_core_priv_data *const osi_core,
 	    kt_config != OSI_NULL) {
 		return osi_core->macsec_ops->kt_config(osi_core, kt_config,
 						       genl_info);
+	}
+
+	return -1;
+}
+
+int osi_macsec_cipher_config(struct osi_core_priv_data *const osi_core,
+			      unsigned int cipher)
+{
+	if (osi_core != OSI_NULL && osi_core->macsec_ops != OSI_NULL &&
+	    osi_core->macsec_ops->cipher_config != OSI_NULL) {
+		return osi_core->macsec_ops->cipher_config(osi_core, cipher);
 	}
 
 	return -1;
