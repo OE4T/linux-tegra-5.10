@@ -147,6 +147,8 @@ struct macsec_priv_data {
 	char irq_name[2][MACSEC_IRQ_NAME_SZ];
 	/** loopback mode */
 	unsigned int loopback_mode;
+	/** macsec cipher, aes128 or aes256 bit */
+	unsigned int cipher;
 	/** MACsec protect frames variable */
 	unsigned int protect_frames;
 	/** MACsec enabled flags for Tx/Rx controller status */

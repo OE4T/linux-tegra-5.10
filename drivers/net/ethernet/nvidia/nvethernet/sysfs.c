@@ -218,6 +218,87 @@ static DEVICE_ATTR(macsec_enable, (S_IRUGO | S_IWUSR),
 		   macsec_enable_store);
 
 /**
+ * @brief Shows the current setting of MACsec cipther set
+ *
+ * Algorithm: Display the current MACsec cipher setting.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current MACsec cipher setting
+ */
+static ssize_t macsec_cipher_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct macsec_priv_data *macsec_pdata = pdata->macsec_pdata;
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+			 (macsec_pdata->cipher == MACSEC_CIPHER_AES128) ?
+			 "aes128" : "aes256");
+}
+
+/**
+ * @brief Set the user setting of MACsec AES cipher
+ *
+ * Algorithm: This is used to set the user mode settings of MACsec cipther.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of MACsec cipher
+ * @param[in] size: size of buffer
+ *
+ * @return size of buffer.
+ */
+static ssize_t macsec_cipher_store(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct macsec_priv_data *macsec_pdata = pdata->macsec_pdata;
+	int ret = 0;
+
+	if (!netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
+		return size;
+	}
+
+	if (strncmp(buf, "aes128", 6) == OSI_NONE) {
+		ret = osi_macsec_cipher_config(pdata->osi_core,
+					       MACSEC_CIPHER_AES128);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Failed to set macsec cipher\n");
+		} else {
+			macsec_pdata->cipher = MACSEC_CIPHER_AES128;
+			dev_info(pdata->dev, "macsec cipher aes128 enabled\n");
+		}
+	} else if (strncmp(buf, "aes256", 6) == OSI_NONE) {
+		ret = osi_macsec_cipher_config(pdata->osi_core,
+					       MACSEC_CIPHER_AES256);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Failed to set macsec cipher\n");
+		} else {
+			macsec_pdata->cipher = MACSEC_CIPHER_AES256;
+			dev_info(pdata->dev, "macsec cipher aes256 enabled\n");
+		}
+	} else {
+		dev_err(pdata->dev,
+			"Invalid entry. Valid Entries are aes128/aes256\n");
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for MACsec cipher
+ *
+ */
+static DEVICE_ATTR(macsec_cipher, (S_IRUGO | S_IWUSR),
+		   macsec_cipher_show,
+		   macsec_cipher_store);
+
+/**
  * @brief Shows the current setting of MACsec loopback
  *
  * Algorithm: Display the current MACsec loopback setting.
@@ -2075,6 +2156,7 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_macsec_sc_state_lut.attr,
 	&dev_attr_macsec_sa_state_lut.attr,
 	&dev_attr_macsec_sc_param_lut.attr,
+	&dev_attr_macsec_cipher.attr,
 	&dev_attr_macsec_loopback.attr,
 	&dev_attr_macsec_enable.attr,
 	&dev_attr_macsec_mmc_counters.attr,
