@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
-CONFIG_TEGRA_HOST1X_NEXT := m
+
+srctree.host1x := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+
 ccflags-y := -I$(srctree.host1x)/include
 
 host1x-next-y = \
@@ -21,4 +23,4 @@ host1x-next-y = \
 	hw/host1x06.o \
 	hw/host1x07.o
 
-obj-$(CONFIG_TEGRA_HOST1X_NEXT) += host1x-next.o
+obj-m := host1x-next.o
