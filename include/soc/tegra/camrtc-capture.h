@@ -1362,6 +1362,16 @@ struct vi_pfsd_config {
 /** @} */
 
 /**
+ * @brief Memory surface specs passed from KMD to RCE
+ */
+struct memoryinfo_surface {
+       /** Surface iova address */
+       uint64_t base_address;
+       /** Surface size */
+       uint64_t size;
+};
+
+/**
  * @brief VI capture descriptor memory information
  *
  * VI capture descriptor memory information shared between
@@ -1370,12 +1380,7 @@ struct vi_pfsd_config {
  * application.
  */
 struct capture_descriptor_memoryinfo {
-	struct {
-		/** Surface base address */
-		uint64_t base_address;
-		/** Surface size */
-		uint64_t size;
-	} surface[VI_NUM_ATOMP_SURFACES];
+	struct memoryinfo_surface surface[VI_NUM_ATOMP_SURFACES];
 	/** Base address of engine status surface */
 	uint64_t engine_status_surface_base_address;
 	/** Size of engine status surface */
@@ -2295,11 +2300,31 @@ struct capture_channel_isp_config {
 	/** Statistics buffer syncpoint info */
 	struct syncpoint_info stats_progress_sp;
 
+	/**
+	 * Base address of a memory mapped ring buffer containing ISP requests
+	 * buffer information.
+	 * The size of the buffer is queue_depth * request_memoryinfo_size
+	 */
+	iova_t requests_memoryinfo;
+
+	/**
+	 * Base address of a memory mapped ring buffer containing ISP program
+	 * buffer information.
+	 */
+	iova_t programs_memoryinfo;
+
+	/** Size of the memoryinfo buffer reserved for each capture request. */
+	uint32_t request_memoryinfo_size;
+
+	/** Size of the memoryinfo buffer reserved for each program request. */
+	uint32_t program_memoryinfo_size;
+
+	uint32_t reserved;
+
 #define HAVE_ISP_GOS_TABLES
 	/** Number of active ISP GOS tables in isp_gos_tables[] */
 	uint32_t num_isp_gos_tables;
-	/** Reserved */
-	uint32_t __pad_chan2;
+
 	/**
 	 * GoS tables can only be programmed when there are no
 	 * active channels. For subsequent channels we check that
@@ -2629,6 +2654,48 @@ struct isp_capture_descriptor {
 } CAPTURE_DESCRIPTOR_ALIGN;
 
 /**
+ * @brief ISP capture descriptor memory information
+ *
+ * ISP capture descriptor memory information shared between
+ * KMD and RCE only. This information cannot be part of
+ * capture descriptor since it is shared with usermode
+ * application.
+ */
+struct isp_capture_descriptor_memoryinfo {
+	struct memoryinfo_surface input_mr_surfaces[ISP_MAX_INPUT_SURFACES];	// TODO RCE
+	struct {
+		struct memoryinfo_surface surfaces[ISP_MAX_OUTPUT_SURFACES];
+	} outputs_mw[ISP_MAX_OUTPUTS];
+
+	/** Flicker band (FB) statistics buffer */
+	struct memoryinfo_surface fb_surface;
+	/** Focus metrics (FM) statistics buffer */
+	struct memoryinfo_surface fm_surface;
+	/** Auto Focus Metrics (AFM) statistics buffer */
+	struct memoryinfo_surface afm_surface; //
+	/** Local Average Clipping (LAC0) unit 0 statistics buffer */
+	struct memoryinfo_surface lac0_surface;
+	/** Local Average Clipping (LAC1) unit 1 statistics buffer */
+	struct memoryinfo_surface lac1_surface;
+	/** Histogram (H0) unit 0 statistics buffer */
+	struct memoryinfo_surface h0_surface;
+	/** Histogram (H1) unit 1 statistics buffer */
+	struct memoryinfo_surface h1_surface;
+	/** Pixel Replacement Unit (PRU) statistics buffer */
+	struct memoryinfo_surface pru_bad_surface;
+	/** Local Tone Mapping statistics buffer */
+	struct memoryinfo_surface ltm_surface;
+	/** RAW24 Histogram Unit statistics buffer */
+	struct memoryinfo_surface hist_raw24_surface;
+	/** Base address of ISP PB2 memory */
+	struct memoryinfo_surface isp_pb2_mem; 				// TODO move to programm desc meminfo
+	/** Engine result record – written by Falcon */
+	struct memoryinfo_surface engine_status;
+	/* Reserved */
+	uint64_t reserved[6];
+} CAPTURE_DESCRIPTOR_ALIGN;
+
+/**
  * @brief PB2 size (ATOM aligned).
  *
  * NvCapture UMD makes sure to place PB2 just after above capture
@@ -2647,6 +2714,11 @@ struct isp_capture_descriptor {
 * surface definitions. Final value TBD
 */
 #define NVISP5_SURFACE_PB_SIZE		MK_SIZE(512)
+
+/**
+ * @Size of engine status surface used in both VI and ISP
+ */
+#define NV_ENGINE_STATUS_SURFACE_SIZE		MK_SIZE(16)
 
 /**
  * @ brief Downscaler configuration information that is needed for building ISP config buffer.
