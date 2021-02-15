@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -147,27 +147,6 @@ struct capture_common_unpins {
 };
 
 /**
- * @brief Pin and reloc struct for a capture request.
- */
-struct capture_common_pin_req {
-	struct device *dev; /**< Originating device (vi, isp) */
-	struct device *rtcpu_dev; /**< rtcpu device */
-	struct capture_buffer_table *table; /**< Surface buffer mgmt. table */
-	struct capture_common_unpins *unpins;
-		/**< List of surface buffers to unpin */
-	struct capture_common_buf *requests; /**< Capture descriptors queue */
-	uint32_t request_size; /**< Size of single capture descriptor [byte] */
-	uint32_t request_offset; /**< Offset to the capture descriptor [byte] */
-	struct dma_buf *requests_mem; /**< Program descriptors (ISP) */
-	uint32_t num_relocs; /**< No. of surface buffers to pin/reloc */
-	uint32_t __user *reloc_user;
-		/**<
-		 * Offsets to surface buffer addresses to patch in capture
-		 * descriptor
-		 */
-};
-
-/**
  * @brief Progress status notifier handle.
  */
 struct capture_common_status_notifier {
@@ -240,19 +219,6 @@ int capture_common_pin_memory(
  */
 void capture_common_unpin_memory(
 	struct capture_common_buf *unpin_data);
-
-/**
- * @brief Pins the physical address for each provided capture surface address
- * (no. of relocs) and patches the request capture descriptor with them.
- *
- * The returned req->unpins list is allocated and populated w/ each memory
- * pinning to be released upon completion of the capture.
- *
- * @param[in,out]	req	Capture descriptor capture_common_pin_req struct
- * @returns		0 (success), neg. errno (failure)
- */
-int capture_common_request_pin_and_reloc(
-	struct capture_common_pin_req *req);
 
 /**
  * @brief Pins (maps) the physical address for provided capture surface address
