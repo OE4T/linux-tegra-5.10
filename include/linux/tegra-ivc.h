@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This header is BSD licensed so anyone can use the definitions to implement
  * compatible drivers/servers.
@@ -47,6 +47,7 @@ struct tegra_hv_ivc_cookie {
 	int peer_vmid;
 	int nframes;
 	int frame_size;
+	uint32_t *notify_va; /* address used to notify end-point */
 };
 
 struct tegra_hv_ivc_ops {
