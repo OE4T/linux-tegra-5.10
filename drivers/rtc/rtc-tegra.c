@@ -541,7 +541,7 @@ static void tegra_rtc_follow_tsc(struct device *dev)
 	writel(TEGRA_RTC_RTCRSR_USE_MTSC, info->base + TEGRA_RTC_RTCRSR);
 }
 
-static int tegra_rtc_probe(struct platform_device *pdev)
+static int __init tegra_rtc_probe(struct platform_device *pdev)
 {
 	struct tegra_rtc_info *info;
 	const struct of_device_id *match;
@@ -703,7 +703,6 @@ static void tegra_rtc_shutdown(struct platform_device *pdev)
 }
 
 static struct platform_driver tegra_rtc_driver = {
-	.probe = tegra_rtc_probe,
 	.remove = tegra_rtc_remove,
 	.shutdown = tegra_rtc_shutdown,
 	.driver = {
@@ -712,7 +711,7 @@ static struct platform_driver tegra_rtc_driver = {
 		.pm = &tegra_rtc_pm_ops,
 	},
 };
-module_platform_driver(tegra_rtc_driver);
+module_platform_driver_probe(tegra_rtc_driver, tegra_rtc_probe);
 
 MODULE_AUTHOR("Jon Mayo <jmayo@nvidia.com>");
 MODULE_DESCRIPTION("driver for Tegra internal RTC");
