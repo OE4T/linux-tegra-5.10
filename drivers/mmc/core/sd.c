@@ -1126,7 +1126,8 @@ retry:
 				goto free_card;
 		}
 		if (mmc_sd_card_using_v18(card)) {
-			if (mmc_host_set_uhs_voltage(host) ||
+			if (mmc_set_signal_voltage(host,
+						   MMC_SIGNAL_VOLTAGE_180) ||
 			    mmc_sd_init_uhs_card(card)) {
 				v18_fixup_failed = true;
 				mmc_power_cycle(host, ocr);
