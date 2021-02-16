@@ -23,40 +23,6 @@
 #include "eqos_common.h"
 #include "../osi/common/common.h"
 
-
-
-void osi_memset(void *s, nveu32_t c, nveu64_t count)
-{
-	nveu8_t *xs = OSI_NULL;
-	nveu64_t temp = count;
-
-	if (s == OSI_NULL) {
-		return;
-	}
-	xs = (nveu8_t *)s;
-	while (temp != 0UL) {
-		if (c < OSI_UCHAR_MAX) {
-			*xs = (nveu8_t)c;
-			xs++;
-		}
-		temp--;
-	}
-}
-
-void osi_memcpy(void *dest, void *src, int n)
-{
-	char *csrc = (char *)src;
-	char *cdest = (char *)dest;
-	int i = 0;
-
-	if (src == OSI_NULL || dest == OSI_NULL) {
-		return;
-	}
-	for (i = 0; i < n; i++) {
-		cdest[i] = csrc[i];
-	}
-}
-
 void common_get_systime_from_mac(void *addr, nveu32_t mac, nveu32_t *sec,
 				 nveu32_t *nsec)
 {

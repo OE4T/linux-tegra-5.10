@@ -220,6 +220,316 @@ struct osi_l3_l4_filter {
 	nveu16_t port_no;
 };
 
+/**
+ * @brief struct osi_hw_features - MAC HW supported features.
+ */
+struct osi_hw_features {
+	/** It is set to 1 when 10/100 Mbps is selected as the Mode of
+	 * Operation */
+	nveu32_t mii_sel;
+	/** It is set to 1 when the RGMII Interface option is selected */
+	nveu32_t rgmii_sel;
+	/** It is set to 1 when the RMII Interface option is selected */
+	nveu32_t rmii_sel;
+	/** It sets to 1 when 1000 Mbps is selected as the Mode of Operation */
+	nveu32_t gmii_sel;
+	/** It sets to 1 when the half-duplex mode is selected */
+	nveu32_t hd_sel;
+	/** It sets to 1 when the TBI, SGMII, or RTBI PHY interface
+	 * option is selected */
+	nveu32_t pcs_sel;
+	/** It sets to 1 when the Enable VLAN Hash Table Based Filtering
+	 * option is selected */
+	nveu32_t vlan_hash_en;
+	/** It sets to 1 when the Enable Station Management (MDIO Interface)
+	 * option is selected */
+	nveu32_t sma_sel;
+	/** It sets to 1 when the Enable Remote Wake-Up Packet Detection
+	 * option is selected */
+	nveu32_t rwk_sel;
+	/** It sets to 1 when the Enable Magic Packet Detection option is
+	 * selected */
+	nveu32_t mgk_sel;
+	/** It sets to 1 when the Enable MAC Management Counters (MMC) option
+	 * is selected */
+	nveu32_t mmc_sel;
+	/** It sets to 1 when the Enable IPv4 ARP Offload option is selected */
+	nveu32_t arp_offld_en;
+	/** It sets to 1 when the Enable IEEE 1588 Timestamp Support option
+	 * is selected */
+	nveu32_t ts_sel;
+	/** It sets to 1 when the Enable Energy Efficient Ethernet (EEE) option
+	 * is selected */
+	nveu32_t eee_sel;
+	/** It sets to 1 when the Enable Transmit TCP/IP Checksum Insertion
+	 * option is selected */
+	nveu32_t tx_coe_sel;
+	/** It sets to 1 when the Enable Receive TCP/IP Checksum Check option
+	 * is selected */
+	nveu32_t rx_coe_sel;
+	/** It sets to 1 when the Enable Additional 1-31 MAC Address Registers
+	 * option is selected */
+	nveu32_t mac_addr_sel;
+	/** It sets to 1 when the Enable Additional 32-63 MAC Address Registers
+	 * option is selected */
+	nveu32_t mac_addr32_sel;
+	/** It sets to 1 when the Enable Additional 64-127 MAC Address Registers
+	 * option is selected */
+	nveu32_t mac_addr64_sel;
+	/** It sets to 1 when the Enable IEEE 1588 Timestamp Support option
+	 * is selected */
+	nveu32_t tsstssel;
+	/** It sets to 1 when the Enable SA and VLAN Insertion on Tx option
+	 * is selected */
+	nveu32_t sa_vlan_ins;
+	/** Active PHY Selected
+	 * When you have multiple PHY interfaces in your configuration,
+	 * this field indicates the sampled value of phy_intf_sel_i during
+	 * reset de-assertion:
+	 * 000: GMII or MII
+	 * 001: RGMII
+	 * 010: SGMII
+	 * 011: TBI
+	 * 100: RMII
+	 * 101: RTBI
+	 * 110: SMII
+	 * 111: RevMII
+	 * All Others: Reserved */
+	nveu32_t act_phy_sel;
+	/** MTL Receive FIFO Size
+	 * This field contains the configured value of MTL Rx FIFO in bytes
+	 * expressed as Log to base 2 minus 7, that is, Log2(RXFIFO_SIZE) -7:
+	 * 00000: 128 bytes
+	 * 00001: 256 bytes
+	 * 00010: 512 bytes
+	 * 00011: 1,024 bytes
+	 * 00100: 2,048 bytes
+	 * 00101: 4,096 bytes
+	 * 00110: 8,192 bytes
+	 * 00111: 16,384 bytes
+	 * 01000: 32,767 bytes
+	 * 01000: 32 KB
+	 * 01001: 64 KB
+	 * 01010: 128 KB
+	 * 01011: 256 KB
+	 * 01100-11111: Reserved */
+	nveu32_t rx_fifo_size;
+	/** MTL Transmit FIFO Size.
+	 * This field contains the configured value of MTL Tx FIFO in
+	 * bytes expressed as Log to base 2 minus 7, that is,
+	 * Log2(TXFIFO_SIZE) -7:
+	 * 00000: 128 bytes
+	 * 00001: 256 bytes
+	 * 00010: 512 bytes
+	 * 00011: 1,024 bytes
+	 * 00100: 2,048 bytes
+	 * 00101: 4,096 bytes
+	 * 00110: 8,192 bytes
+	 * 00111: 16,384 bytes
+	 * 01000: 32 KB
+	 * 01001: 64 KB
+	 * 01010: 128 KB
+	 * 01011-11111: Reserved */
+	nveu32_t tx_fifo_size;
+	/** It set to 1 when Advance timestamping High Word selected */
+	nveu32_t adv_ts_hword;
+	/** Address Width.
+	 * This field indicates the configured address width:
+	 * 00: 32
+	 * 01: 40
+	 * 10: 48
+	 * 11: Reserved */
+	nveu32_t addr_64;
+	/** It sets to 1 when DCB Feature Enable */
+	nveu32_t dcb_en;
+	/** It sets to 1 when Split Header Feature Enable */
+	nveu32_t sph_en;
+	/** It sets to 1 when TCP Segmentation Offload Enable */
+	nveu32_t tso_en;
+	/** It sets to 1 when DMA debug registers are enabled */
+	nveu32_t dma_debug_gen;
+	/** It sets to 1 if AV Feature Enabled */
+	nveu32_t av_sel;
+	/** It sets to 1 if Receive side AV Feature Enabled */
+	nveu32_t rav_sel;
+	/** This field indicates the size of the hash table:
+	 * 00: No hash table
+	 * 01: 64
+	 * 10: 128
+	 * 11: 256 */
+	nveu32_t hash_tbl_sz;
+	/** This field indicates the total number of L3 or L4 filters:
+	 * 0000: No L3 or L4 Filter
+	 * 0001: 1 L3 or L4 Filter
+	 * 0010: 2 L3 or L4 Filters
+	 * ..
+	 * 1000: 8 L3 or L4 */
+	nveu32_t l3l4_filter_num;
+	/** It holds number of MTL Receive Queues */
+	nveu32_t rx_q_cnt;
+	/** It holds number of MTL Transmit Queues */
+	nveu32_t tx_q_cnt;
+	/** It holds number of DMA Receive channels */
+	nveu32_t rx_ch_cnt;
+	/** This field indicates the number of DMA Transmit channels:
+	 * 0000: 1 DMA Tx Channel
+	 * 0001: 2 DMA Tx Channels
+	 * ..
+	 * 0111: 8 DMA Tx */
+	nveu32_t tx_ch_cnt;
+	/** This field indicates the number of PPS outputs:
+	 * 000: No PPS output
+	 * 001: 1 PPS output
+	 * 010: 2 PPS outputs
+	 * 011: 3 PPS outputs
+	 * 100: 4 PPS outputs
+	 * 101-111: Reserved */
+	nveu32_t pps_out_num;
+	/** Number of Auxiliary Snapshot Inputs
+	 * This field indicates the number of auxiliary snapshot inputs:
+	 * 000: No auxiliary input
+	 * 001: 1 auxiliary input
+	 * 010: 2 auxiliary inputs
+	 * 011: 3 auxiliary inputs
+	 * 100: 4 auxiliary inputs
+	 * 101-111: Reserved */
+	nveu32_t aux_snap_num;
+	/** VxLAN/NVGRE Support */
+	nveu32_t vxn;
+	/** Enhanced DMA.
+	 * This bit is set to 1 when the "Enhanced DMA" option is
+	 * selected. */
+	nveu32_t edma;
+	/** Different Descriptor Cache
+	 * When set to 1, then EDMA mode Separate Memory is
+	 * selected for the Descriptor Cache.*/
+	nveu32_t ediffc;
+	/** PFC Enable
+	 * This bit is set to 1 when the Enable PFC Feature is selected */
+	nveu32_t pfc_en;
+	/** One-Step Timestamping Enable */
+	nveu32_t ost_en;
+	/** PTO Offload Enable */
+	nveu32_t pto_en;
+	/** Receive Side Scaling Enable */
+	nveu32_t rss_en;
+	/** Number of Traffic Classes */
+	nveu32_t num_tc;
+	/** Number of Extended VLAN Tag Filters Enabled */
+	nveu32_t num_vlan_filters;
+	/** Supported Flexible Receive Parser.
+	 * This bit is set to 1 when the Enable Flexible Programmable
+	 * Receive Parser option is selected */
+	nveu32_t frp_sel;
+	/** Queue/Channel based VLAN tag insertion on Tx Enable
+	 * This bit is set to 1 when the Enable Queue/Channel based
+	 * VLAN tag insertion on Tx Feature is selected. */
+	nveu32_t cbti_sel;
+	/** Supported Parallel Instruction Processor Engines (PIPEs)
+	 * This field indicates the maximum number of Instruction
+	 * Processors supported by flexible receive parser. */
+	nveu32_t num_frp_pipes;
+	/** One Step for PTP over UDP/IP Feature Enable
+	 * This bit is set to 1 when the Enable One step timestamp for
+	 * PTP over UDP/IP feature is selected */
+	nveu32_t ost_over_udp;
+	/** Supported Flexible Receive Parser Parsable Bytes
+	 * This field indicates the supported Max Number of bytes of the
+	 * packet data to be Parsed by Flexible Receive Parser */
+	nveu32_t max_frp_bytes;
+	/** Supported Flexible Receive Parser Instructions
+	 * This field indicates the Max Number of Parser Instructions
+	 * supported by Flexible Receive Parser */
+	nveu32_t max_frp_entries;
+	/** Double VLAN Processing Enabled
+	 * This bit is set to 1 when the Enable Double VLAN Processing
+	 * feature is selected */
+	nveu32_t double_vlan_en;
+	/** Automotive Safety Package
+	 * Following are the encoding for the different Safety features
+	 * Values:
+	 * 0x0 (NONE): No Safety features selected
+	 * 0x1 (ECC_ONLY): Only "ECC protection for external
+	 * memory" feature is selected
+	 * 0x2 (AS_NPPE): All the Automotive Safety features are
+	 * selected without the "Parity Port Enable for external interface"
+	 * feature
+	 * 0x3 (AS_PPE): All the Automotive Safety features are
+	 * selected with the "Parity Port Enable for external interface"
+	 * feature */
+	nveu32_t auto_safety_pkg;
+	/** Tx Timestamp FIFO Depth
+	 * This value indicates the depth of the Tx Timestamp FIFO
+	 * 3'b000: Reserved
+	 * 3'b001: 1
+	 * 3'b010: 2
+	 * 3'b011: 4
+	 * 3'b100: 8
+	 * 3'b101: 16
+	 * 3'b110: Reserved
+	 * 3'b111: Reserved */
+	nveu32_t tts_fifo_depth;
+	/** Enhancements to Scheduling Traffic Enable
+	 * This bit is set to 1 when the Enable Enhancements to
+	 * Scheduling Traffic feature is selected.
+	 * Values:
+	 * 0x0 (INACTIVE): Enable Enhancements to Scheduling
+	 * Traffic feature is not selected
+	 * 0x1 (ACTIVE): Enable Enhancements to Scheduling
+	 * Traffic feature is selected */
+	nveu32_t est_sel;
+	/** Depth of the Gate Control List
+	 * This field indicates the depth of Gate Control list expressed as
+	 * Log2(DWCXG_GCL_DEP)-5
+	 * Values:
+	 * 0x0 (NODEPTH): No Depth configured
+	 * 0x1 (DEPTH64): 64
+	 * 0x2 (DEPTH128): 128
+	 * 0x3 (DEPTH256): 256
+	 * 0x4 (DEPTH512): 512
+	 * 0x5 (DEPTH1024): 1024
+	 * 0x6 (RSVD): Reserved */
+	nveu32_t gcl_depth;
+	/** Width of the Time Interval field in the Gate Control List
+	 * This field indicates the width of the Configured Time Interval
+	 * Field
+	 * Values:
+	 * 0x0 (NOWIDTH): Width not configured
+	 * 0x1 (WIDTH16): 16
+	 * 0x2 (WIDTH20): 20
+	 * 0x3 (WIDTH24): 24 */
+	nveu32_t gcl_width;
+	/** Frame Preemption Enable
+	 * This bit is set to 1 when the Enable Frame preemption feature
+	 * is selected.
+	 * Values:
+	 * 0x0 (INACTIVE): Frame Preemption Enable feature is not
+	 * selected
+	 * 0x1 (ACTIVE): Frame Preemption Enable feature is
+	 * selected */
+	nveu32_t fpe_sel;
+	/** Time Based Scheduling Enable
+	 * This bit is set to 1 when the Time Based Scheduling feature is
+	 * selected.
+	 * Values:
+	 * 0x0 (INACTIVE): Time Based Scheduling Enable feature is
+	 * not selected
+	 * 0x1 (ACTIVE): Time Based Scheduling Enable feature is
+	 * selected */
+	nveu32_t tbs_sel;
+	/** The number of DMA channels enabled for TBS (starting from
+	 * the highest Tx Channel in descending order)
+	 * This field provides the number of DMA channels enabled for
+	 * TBS (starting from the highest Tx Channel in descending
+	 * order):
+	 * 0000: 1 DMA Tx Channel enabled for TBS
+	 * 0001: 2 DMA Tx Channels enabled for TBS
+	 * 0010: 3 DMA Tx Channels enabled for TBS
+	 * ...
+	 * 1111: 16 DMA Tx Channels enabled for TBS */
+	nveu32_t num_tbs_ch;
+};
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief Vlan filter Function dependent parameter
@@ -445,6 +755,9 @@ struct osi_core_ops {
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode);
 #endif /* !OSI_STRIPPED_LIB */
+	/** Called to get HW features */
+	nve32_t (*get_hw_features)(struct osi_core_priv_data *const osi_core,
+				   struct osi_hw_features *hw_feat);
 };
 
 /**
@@ -1454,9 +1767,11 @@ nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
  * - Run time: Yes
  * - De-initialization: No
  *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-void osi_get_hw_features(struct osi_core_priv_data *const osi_core,
-			 struct osi_hw_features *hw_feat);
+nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
+			    struct osi_hw_features *hw_feat);
 
 #ifndef OSI_STRIPPED_LIB
 /**

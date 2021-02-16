@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -144,63 +144,6 @@ static inline void osi_writel(nveu32_t val, void *addr)
 	*(volatile nveu32_t *)addr = val;
 }
 
-/**
- * @brief osi_read_reg - Read a MAC register.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] addr: MAC register
- *
- * @note
- * Traceability Details: TODO
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: Yes
- *
- * @retval data from MAC register on success
- * @retval -1 on failure
- */
-nveu32_t osi_read_reg(struct osi_core_priv_data *const osi_core,
-		      const nve32_t addr);
-
-/**
- * @brief osi_write_reg - Write a MAC register.
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] val: MAC register value
- * @param[in] addr: MAC register
- *
- * @note
- * Traceability Details: TODO
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval data from MAC register on success
- * @retval -1 on failure
- */
-nveu32_t osi_write_reg(struct osi_core_priv_data *const osi_core,
-		       const nveu32_t val, const nve32_t addr);
-
 #ifdef ETHERNET_SERVER
 nveu32_t osi_readla(void *priv, void *addr);
 
@@ -305,5 +248,63 @@ static inline nveu64_t osi_update_stats_counter(nveu64_t last_value,
 	}
 
 	return temp;
+}
+
+/**
+ * @brief osi_memset - osi memset
+ *
+ * @param[out] s: source that need to be set
+ * @param[in] c: value to fill in source
+ * @param[in] count: first n bytes of source
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ */
+static inline void osi_memset(void *s, nveu32_t c, nveu64_t count)
+{
+	nveu8_t *xs = OSI_NULL;
+	nveu64_t temp = count;
+
+	if (s == OSI_NULL) {
+		return;
+	}
+	xs = (nveu8_t *)s;
+	while (temp != 0UL) {
+		if (c < OSI_UCHAR_MAX) {
+			*xs = (nveu8_t)c;
+			xs++;
+		}
+		temp--;
+	}
+}
+
+/**
+ * @brief osi_memcpy - osi memcpy
+ *
+ * @param[out] dest: destination pointer
+ * @param[in] src: source pointer
+ * @param[in] n: number bytes of source
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ */
+static inline void osi_memcpy(void *dest, void *src, int n)
+{
+	char *csrc = (char *)src;
+	char *cdest = (char *)dest;
+	int i = 0;
+
+	if (src == OSI_NULL || dest == OSI_NULL) {
+		return;
+	}
+	for (i = 0; i < n; i++) {
+		cdest[i] = csrc[i];
+	}
 }
 #endif
