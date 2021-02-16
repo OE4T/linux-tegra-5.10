@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/bug.h>
 
@@ -105,6 +106,7 @@ int vgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 		msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL;
 		p->tsg_id = tsg->tsgid;
 		p->ch_handle = ch->virt_ctx;
+		p->runlist_id = ch->runlist->id;
 	} else {
 		struct tegra_vgpu_tsg_bind_channel_ex_params *p =
 				&msg.params.tsg_bind_channel_ex;
@@ -112,6 +114,7 @@ int vgpu_tsg_bind_channel(struct nvgpu_tsg *tsg, struct nvgpu_channel *ch)
 		msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL_EX;
 		p->tsg_id = tsg->tsgid;
 		p->ch_handle = ch->virt_ctx;
+		p->runlist_id = ch->runlist->id;
 		p->subctx_id = ch->subctx_id;
 		p->runqueue_sel = ch->runqueue_sel;
 	}
