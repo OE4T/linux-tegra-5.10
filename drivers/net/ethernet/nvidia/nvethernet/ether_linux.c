@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -4330,7 +4330,11 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_dma_mask;
 	}
 
-	osi_get_hw_features(osi_core, &pdata->hw_feat);
+	ret = osi_get_hw_features(osi_core, &pdata->hw_feat);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to get HW features\n");
+		goto err_dma_mask;
+	}
 
 	/* Set netdev features based on hw features */
 	ether_set_ndev_features(ndev, pdata);
