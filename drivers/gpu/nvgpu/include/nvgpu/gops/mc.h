@@ -200,7 +200,22 @@ struct gops_mc {
 	bool (*is_stall_and_eng_intr_pending)(struct gk20a *g,
 				u32 engine_id, u32 *eng_intr_pending);
 
-
+	/**
+	 * @brief Interrupt Service Routine (ISR) for handling the Level Two
+	 *        Cache (LTC) interrupts.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 *
+	 * This function is invoked to handle the LTC interrupts from
+	 * #isr_stall.
+	 *
+	 * Steps:
+	 * - Read mc_intr_ltc_r register to get the interrupts status for LTCs.
+	 * - For each ltc from index 0 to nvgpu_ltc_get_ltc_count(\a g)
+	 *   - If interrupt bitmask is set in the interrupts status register
+	 *     - Invoke g->ops.ltc.intr.isr.
+	 */
+	void (*ltc_isr)(struct gk20a *g);
 
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 
@@ -251,23 +266,6 @@ struct gops_mc {
 	bool (*is_intr_nvlink_pending)(struct gk20a *g, u32 mc_intr);
 	void (*fbpa_isr)(struct gk20a *g);
 #endif
-
-	/**
-	 * @brief Interrupt Service Routine (ISR) for handling the Level Two
-	 *        Cache (LTC) interrupts.
-	 *
-	 * @param g [in]	The GPU driver struct.
-	 *
-	 * This function is invoked to handle the LTC interrupts from
-	 * #isr_stall.
-	 *
-	 * Steps:
-	 * - Read mc_intr_ltc_r register to get the interrupts status for LTCs.
-	 * - For each ltc from index 0 to nvgpu_ltc_get_ltc_count(\a g)
-	 *   - If interrupt bitmask is set in the interrupts status register
-	 *     - Invoke g->ops.ltc.intr.isr.
-	 */
-	void (*ltc_isr)(struct gk20a *g);
 
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 #include "include/nvgpu/nvgpu_next_gops_mc.h"
