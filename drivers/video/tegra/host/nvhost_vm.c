@@ -95,6 +95,9 @@ static inline bool nvhost_vm_can_be_reused(
 	bool pdev_iommu = (iommu_get_domain_for_dev(&pdev->dev) != NULL);
 	bool vm_iommu = (iommu_get_domain_for_dev(&vm->pdev->dev) != NULL);
 
+	if (!pdata->isolate_contexts)
+		return vm->pdev == pdev;
+
 	return vm->identifier == identifier &&
 		vm->enable_hw == pdata->isolate_contexts &&
 		pdev_iommu == vm_iommu;
