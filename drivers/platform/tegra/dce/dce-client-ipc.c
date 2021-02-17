@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,6 +27,9 @@ static uint32_t dce_interface_type_map[DCE_CLIENT_IPC_TYPE_MAX] = {
 	[DCE_CLIENT_IPC_TYPE_HDCP_KMD] = DCE_IPC_TYPE_HDCP,
 	[DCE_CLIENT_IPC_TYPE_RM_EVENT] = DCE_IPC_TYPE_RM_NOTIFY,
 };
+
+static void dce_client_process_event_ipc(struct tegra_dce *d,
+					 struct tegra_dce_client_ipc *cl);
 
 static inline uint32_t dce_client_get_type(uint32_t int_type)
 {
@@ -112,6 +115,23 @@ static int dce_client_ipc_handle_free(u32 handle)
 	memset(cl, 0, sizeof(struct tegra_dce_client_ipc));
 
 	return 0;
+}
+
+static void dce_client_async_event_work(struct work_struct *data)
+{
+	struct tegra_dce_client_ipc *cl;
+	struct dce_async_work *work = container_of(data, struct dce_async_work,
+						   async_event_work);
+	struct tegra_dce *d = work->d;
+
+	cl = d->d_clients[DCE_CLIENT_IPC_TYPE_RM_EVENT];
+	if (cl == NULL) {
+		dce_err(d, "Failed to retrieve info for DCE_CLIENT_IPC_TYPE_RM_EVENT");
+		return;
+	}
+
+	dce_client_process_event_ipc(d, cl);
+	work->in_use = false;
 }
 
 int tegra_dce_register_ipc_client(u32 type,
@@ -207,6 +227,35 @@ out:
 }
 EXPORT_SYMBOL(tegra_dce_client_ipc_send_recv);
 
+int dce_client_init(struct tegra_dce *d)
+{
+	int ret = 0;
+	uint8_t i;
+	struct tegra_dce_async_ipc_info *d_aipc = &d->d_async_ipc;
+
+	d_aipc->async_event_wq =
+		create_singlethread_workqueue("dce-async-ipc-wq");
+
+	for (i = 0; i < DCE_MAX_ASYNC_WORK; i++) {
+		struct dce_async_work *d_work = &d_aipc->work[i];
+
+		INIT_WORK(&d_work->async_event_work,
+			  dce_client_async_event_work);
+		d_work->d = d;
+		d_work->in_use = false;
+	}
+
+	return ret;
+}
+
+void dce_client_deinit(struct tegra_dce *d)
+{
+	struct tegra_dce_async_ipc_info *d_aipc = &d->d_async_ipc;
+
+	flush_workqueue(d_aipc->async_event_wq);
+	destroy_workqueue(d_aipc->async_event_wq);
+}
+
 static int dce_client_ipc_wait_rpc(struct tegra_dce *d, u32 int_type)
 {
 	uint32_t type;
@@ -286,6 +335,26 @@ done:
 		dce_kfree(d, msg_data);
 }
 
+static void dce_client_schedule_event_work(struct tegra_dce *d)
+{
+	struct tegra_dce_async_ipc_info *async_work_info = &d->d_async_ipc;
+	uint8_t i;
+
+	for (i = 0; i < DCE_MAX_ASYNC_WORK; i++) {
+		struct dce_async_work *d_work = &async_work_info->work[i];
+
+		if (d_work->in_use == false) {
+			queue_work(async_work_info->async_event_wq,
+				   &d_work->async_event_work);
+			d_work->in_use = true;
+			break;
+		}
+	}
+
+	if (i == DCE_MAX_ASYNC_WORK)
+		dce_err(d, "Failed to schedule Async event Queue Full!");
+}
+
 void dce_client_ipc_wakeup(struct tegra_dce *d, u32 ch_type)
 {
 	uint32_t type;
@@ -306,7 +375,7 @@ void dce_client_ipc_wakeup(struct tegra_dce *d, u32 ch_type)
 	}
 
 	if (type == DCE_CLIENT_IPC_TYPE_RM_EVENT)
-		return dce_client_process_event_ipc(d, cl);
+		return dce_client_schedule_event_work(d);
 
 	atomic_set(&cl->complete, 1);
 	dce_cond_signal_interruptible(&cl->recv_wait);

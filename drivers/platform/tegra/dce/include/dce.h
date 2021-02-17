@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -159,6 +159,10 @@ struct tegra_dce {
 	 * @d_clients - Stores all dce clients data.
 	 */
 	struct tegra_dce_client_ipc *d_clients[DCE_CLIENT_IPC_TYPE_MAX];
+	/**
+	 * @d_async_ipc_info - stores data to handle async events
+	 */
+	struct tegra_dce_async_ipc_info d_async_ipc;
 	/**
 	 * @boot_status - u32 variable to store dce's boot status.
 	 */

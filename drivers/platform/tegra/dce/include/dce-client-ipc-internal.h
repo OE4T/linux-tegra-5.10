@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -45,8 +45,27 @@ struct tegra_dce_client_ipc {
 	tegra_dce_client_ipc_callback_t callback_fn;
 };
 
+#define DCE_MAX_ASYNC_WORK	8
+struct dce_async_work {
+	struct tegra_dce *d;
+	struct work_struct async_event_work;
+	bool in_use;
+};
+
+/**
+ * @async_event_wq - Workqueue to process async events from DCE
+ */
+struct tegra_dce_async_ipc_info {
+	struct workqueue_struct *async_event_wq;
+	struct dce_async_work work[DCE_MAX_ASYNC_WORK];
+};
+
 void dce_client_ipc_wakeup(struct tegra_dce *d,	u32 ch_type);
 
 int dce_client_ipc_wait(struct tegra_dce *d, u32 w_type, u32 ch_type);
+
+int dce_client_init(struct tegra_dce *d);
+
+void dce_client_deinit(struct tegra_dce *d);
 
 #endif
