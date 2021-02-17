@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -282,11 +282,11 @@ struct gk20a * nvgpu_get(struct gk20a *g);
 void nvgpu_put(struct gk20a *g);
 
 /**
- * @brief Check driver state and restart if the state is invalid
+ * @brief Check driver state and enter quiesce if the state is invalid
  *
  * @param g [in] The GPU
  *
- * If driver state is invalid, makes OS call to restart driver.
+ * If driver state is invalid, makes call to enter quiesce state.
  */
 void nvgpu_check_gpu_state(struct gk20a *g);
 
