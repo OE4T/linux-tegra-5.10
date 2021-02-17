@@ -135,7 +135,7 @@ ifneq ($(NV_BUILD_KERNEL_OPTIONS),)
 ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
 CONFIG_GK20A_DEVFREQ := n
 CONFIG_GK20A_PM_QOS := n
-else ifneq ($(filter 5.9 5.10,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
+else ifneq ($(filter 5.10,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
 CONFIG_GK20A_PM_QOS := n
 endif
 
