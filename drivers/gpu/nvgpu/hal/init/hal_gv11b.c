@@ -222,7 +222,9 @@ static int gv11b_init_gpu_characteristics(struct gk20a *g)
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
+#ifdef CONFIG_NVGPU_GRAPHICS
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
+#endif
 #ifdef CONFIG_NVGPU_CHANNEL_TSG_SCHEDULING
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
 #endif

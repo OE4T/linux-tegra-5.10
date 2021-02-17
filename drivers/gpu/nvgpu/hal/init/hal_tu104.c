@@ -262,6 +262,9 @@ static int tu104_init_gpu_characteristics(struct gk20a *g)
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
+#ifdef CONFIG_NVGPU_GRAPHICS
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
+#endif
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GET_TEMPERATURE, true);
 	if (nvgpu_has_syncpoints(g)) {
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
