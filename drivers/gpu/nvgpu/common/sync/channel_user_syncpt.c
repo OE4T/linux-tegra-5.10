@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,7 +68,7 @@ nvgpu_channel_user_syncpt_create(struct nvgpu_channel *ch)
 {
 	struct gk20a *g = ch->g;
 	struct nvgpu_channel_user_syncpt *s;
-	char syncpt_name[32] = {0}; /* e.g. gp10b_42_user */
+	char syncpt_name[SYNCPT_NAME_SZ] = {0}; /* e.g. gp10b_42_user */
 	int err;
 
 	s = nvgpu_kzalloc(ch->g, sizeof(*s));
@@ -80,7 +80,7 @@ nvgpu_channel_user_syncpt_create(struct nvgpu_channel *ch)
 	s->nvhost = g->nvhost;
 
 	err = user_sync_build_debug_name(ch, syncpt_name,
-			sizeof(syncpt_name) - 1UL);
+			SYNCPT_NAME_SZ - 1UL);
 	if (err < 0) {
 		goto err_free;
 	}
