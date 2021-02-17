@@ -1295,13 +1295,12 @@ static int nvgpu_vm_do_map(struct vm_gk20a *vm,
 		binfo_ptr->ctag_offset = ctag_offset;
 	} else
 #endif
-	if (binfo_ptr->incompr_kind != NVGPU_KIND_INVALID) {
+	if ((binfo_ptr->incompr_kind >= 0) &&
+			(binfo_ptr->incompr_kind <= (s16)U8_MAX)) {
 		/*
 		 * Incompressible kind, ctag offset will not be programmed
 		 */
 		ctag_offset = 0;
-		nvgpu_assert((binfo_ptr->incompr_kind >= 0) &&
-				(binfo_ptr->incompr_kind <= (s16)U8_MAX));
 		pte_kind = (u8)binfo_ptr->incompr_kind;
 	} else {
 		/*
