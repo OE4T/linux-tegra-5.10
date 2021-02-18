@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -75,12 +75,15 @@ static int ether_adjust_time(struct ptp_clock_info *ptp, s64 nsec_delta)
 						     struct ether_priv_data,
 						     ptp_clock_ops);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
 	unsigned long flags;
 	int ret = -1;
 
 	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
-	ret = osi_adjust_time(osi_core, nsec_delta);
+	ioctl_data.cmd = OSI_CMD_ADJ_TIME;
+	ioctl_data.arg8_64 = nsec_delta;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"%s:failed to adjust time with reason %d\n",
@@ -110,12 +113,15 @@ static int ether_adjust_freq(struct ptp_clock_info *ptp, s32 ppb)
 						     struct ether_priv_data,
 						     ptp_clock_ops);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
 	unsigned long flags;
 	int ret = -1;
 
 	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
-	ret = osi_adjust_freq(osi_core, ppb);
+	ioctl_data.cmd = OSI_CMD_ADJ_FREQ;
+	ioctl_data.arg6_32 = ppb;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"%s:failed to adjust frequency with reason code %d\n",
@@ -185,12 +191,16 @@ static int ether_set_time(struct ptp_clock_info *ptp,
 						     struct ether_priv_data,
 						     ptp_clock_ops);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
 	unsigned long flags;
 	int ret = -1;
 
 	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
-	ret = osi_set_systime_to_mac(osi_core, ts->tv_sec, ts->tv_nsec);
+	ioctl_data.cmd = OSI_CMD_SET_SYSTOHW_TIME;
+	ioctl_data.arg1_u32 = ts->tv_sec;
+	ioctl_data.arg2_u32 = ts->tv_nsec;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"%s:failed to set system time with reason %d\n",
@@ -270,21 +280,24 @@ static void ether_config_slot_function(struct ether_priv_data *pdata, u32 set)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned int ret, i, chan, qinx;
-	struct osi_core_avb_algorithm avb;
+	struct osi_ioctl ioctl_data = {};
 
 	/* Configure TXQ AVB mode */
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
 		if (osi_dma->slot_enabled[chan] == OSI_ENABLE) {
 			/* Set TXQ AVB info */
-			memset(&avb, 0, sizeof(struct osi_core_avb_algorithm));
+			memset(&ioctl_data.avb, 0,
+			       sizeof(struct osi_core_avb_algorithm));
 			qinx = osi_core->mtl_queues[i];
-			avb.qindex = qinx;
-			avb.algo = OSI_MTL_TXQ_AVALG_SP;
-			avb.oper_mode = (set == OSI_ENABLE) ?
-					OSI_MTL_QUEUE_AVB :
-					OSI_MTL_QUEUE_ENABLE;
-			ret = osi_set_avb(osi_core, &avb);
+			ioctl_data.avb.qindex = qinx;
+			ioctl_data.avb.algo = OSI_MTL_TXQ_AVALG_SP;
+			ioctl_data.avb.oper_mode = (set == OSI_ENABLE) ?
+						    OSI_MTL_QUEUE_AVB :
+						    OSI_MTL_QUEUE_ENABLE;
+
+			ioctl_data.cmd = OSI_CMD_SET_AVB;
+			ret = osi_handle_ioctl(osi_core, &ioctl_data);
 			if (ret != 0) {
 				dev_err(pdata->dev,
 					"Failed to set TXQ:%d AVB info\n",
@@ -302,8 +315,10 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		struct ifreq *ifr)
 {
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
 	struct hwtstamp_config config;
 	unsigned int hwts_rx_en = 1;
+	int ret;
 #if KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE
 	struct timespec now;
 #else
@@ -440,7 +455,13 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 
 	if (!pdata->hwts_tx_en && !hwts_rx_en) {
 		/* disable the PTP configuration */
-		osi_ptp_configuration(osi_core, OSI_DISABLE);
+		ioctl_data.arg1_u32 = OSI_DISABLE;
+		ioctl_data.cmd = OSI_CMD_CONFIG_PTP;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Failure to disable CONFIG_PTP\n");
+			return -EFAULT;
+		}
 		ether_config_slot_function(pdata, OSI_DISABLE);
 	} else {
 		/* Store default PTP clock frequency, so that we
@@ -458,7 +479,13 @@ int ether_handle_hwtstamp_ioctl(struct ether_priv_data *pdata,
 		/* one nsec accuracy */
 		osi_core->ptp_config.one_nsec_accuracy = OSI_ENABLE;
 		/* Enable the PTP configuration */
-		osi_ptp_configuration(osi_core, OSI_ENABLE);
+		ioctl_data.arg1_u32 = OSI_ENABLE;
+		ioctl_data.cmd = OSI_CMD_CONFIG_PTP;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		if (ret < 0) {
+			dev_err(pdata->dev, "Failure to enable CONFIG_PTP\n");
+			return -EFAULT;
+		}
 #ifdef CONFIG_TEGRA_PTP_NOTIFIER
 		/* Register broadcasting MAC timestamp to clients */
 		tegra_register_hwtime_source(ether_get_ptptime, pdata);
