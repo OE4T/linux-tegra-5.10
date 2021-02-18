@@ -93,8 +93,8 @@
  */
 #define EQOS_MAC_MCR			0x0000
 #define EQOS_MAC_EXTR			0x0004
-#define EQOS_MAC_PFR			0x0008U
-#define EQOS_MAC_WATCH			0x000CU
+#define EQOS_MAC_PFR			0x0008
+#define EQOS_MAC_WATCH			0x000C
 #define EQOS_MAC_HTR_REG(x)		((0x0004U * (x)) + 0x0010U)
 #define EQOS_MAC_VLAN_TAG		0x0050
 #define EQOS_MAC_VLANTIR		0x0060

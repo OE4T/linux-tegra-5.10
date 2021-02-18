@@ -37,7 +37,7 @@
 /**
  * @brief IVC commands between OSD & OSI.
  */
-enum ivc_cmd {
+typedef enum ivc_cmd {
 	poll_for_swr = 1,
 	core_init,
 	core_deinit,
@@ -85,7 +85,7 @@ enum ivc_cmd {
 	set_mdc_clk_rate,
 	config_mac_loopback,
 #endif /* !OSI_STRIPPED_LIB */
-};
+}ivc_cmd;
 
 /**
  * @brief IVC arguments structure.
@@ -133,11 +133,11 @@ typedef struct ivc_msg_common {
 	 * Status code returned as part of response message of IVC messages.
 	 * Status code value is "0" for success and "< 0" for failure.
 	 */
-	nveu32_t status;
+	nve32_t status;
 	/**
 	 * ID of the CMD.
 	 */
-	nveu32_t cmd;
+	ivc_cmd cmd;
 	/**
 	 * message count, used for debug
 	 */

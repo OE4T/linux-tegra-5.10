@@ -29,7 +29,7 @@
  * @brief MMC HW register offsets
  * @{
  */
-#define MMC_TXOCTETCOUNT_GB		0x00714
+#define MMC_TXOCTETCOUNT_GB		0x00714U
 #define MMC_TXPACKETCOUNT_GB		0x00718
 #define MMC_TXBROADCASTPACKETS_G	0x0071c
 #define MMC_TXMULTICASTPACKETS_G	0x00720
@@ -112,7 +112,7 @@
 #define MMC_RXTCP_GD_OCTETS		0x00878
 #define MMC_RXTCP_ERR_OCTETS		0x0087c
 #define MMC_RXICMP_GD_OCTETS		0x00880
-#define MMC_RXICMP_ERR_OCTETS		0x00884
+#define MMC_RXICMP_ERR_OCTETS		0x00884U
 /** @} */
 
 void eqos_read_mmc(struct osi_core_priv_data *const osi_core);
