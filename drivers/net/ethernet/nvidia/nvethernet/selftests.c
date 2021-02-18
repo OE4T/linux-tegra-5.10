@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -309,13 +309,15 @@ static int ether_test_phy_loopback(struct ether_priv_data *pdata)
 static int ether_test_mmc_counters(struct ether_priv_data *pdata)
 {
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
 	unsigned int mmc_tx_framecount_g = 0;
 	unsigned int mmc_rx_framecount_gb = 0;
 	unsigned int mmc_rx_ipv4_gd = 0;
 	unsigned int mmc_rx_udp_gd = 0;
 	int ret = 0;
 
-	ret = osi_read_mmc(osi_core);
+	ioctl_data.cmd = OSI_CMD_READ_MMC;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret < 0)
 		return ret;
 
@@ -327,8 +329,8 @@ static int ether_test_mmc_counters(struct ether_priv_data *pdata)
 	ret = ether_test_mac_loopback(pdata);
 	if (ret < 0)
 		return ret;
-
-	ret = osi_read_mmc(osi_core);
+	ioctl_data.cmd = OSI_CMD_READ_MMC;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret < 0)
 		return ret;
 
@@ -382,6 +384,7 @@ void ether_selftest_run(struct net_device *dev,
 			struct ethtool_test *etest, u64 *buf)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_ioctl ioctl_data = {};
 	int count = ether_selftest_get_count(pdata);
 	int carrier = netif_carrier_ok(dev);
 	int i, ret;
@@ -407,9 +410,12 @@ void ether_selftest_run(struct net_device *dev,
 				break;
 		/* Fallthrough */
 		case ETHER_LOOPBACK_MAC:
-			if (pdata->osi_core)
-				ret = osi_config_mac_loopback(pdata->osi_core,
-							      OSI_ENABLE);
+			if (pdata->osi_core) {
+				ioctl_data.cmd = OSI_CMD_MAC_LB;
+				ioctl_data.arg1_u32 = OSI_ENABLE;
+				ret = osi_handle_ioctl(pdata->osi_core,
+						       &ioctl_data);
+			}
 			break;
 		default:
 			ret = -EOPNOTSUPP;
@@ -436,9 +442,12 @@ void ether_selftest_run(struct net_device *dev,
 				break;
 		/* Fallthrough */
 		case ETHER_LOOPBACK_MAC:
-			if (pdata->osi_core)
-				ret = osi_config_mac_loopback(pdata->osi_core,
-							      OSI_DISABLE);
+			if (pdata->osi_core) {
+				ioctl_data.cmd = OSI_CMD_MAC_LB;
+				ioctl_data.arg1_u32 = OSI_DISABLE;
+				ret = osi_handle_ioctl(pdata->osi_core,
+						       &ioctl_data);
+			}
 			if (!ret)
 				break;
 		default:

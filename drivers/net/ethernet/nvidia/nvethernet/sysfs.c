@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -64,6 +64,7 @@ static ssize_t ether_mac_loopback_store(struct device *dev,
 	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
 	struct phy_device *phydev = ndev->phydev;
 	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_ioctl ioctl_data = {};
 	int ret = -1;
 
 	/* Interface is not up so LB mode can't be set */
@@ -82,7 +83,9 @@ static ssize_t ether_mac_loopback_store(struct device *dev,
 			netif_carrier_on(ndev);
 		}
 		/* Enabling the MAC Loopback Mode */
-		ret = osi_config_mac_loopback(pdata->osi_core, OSI_ENABLE);
+		ioctl_data.arg1_u32 = OSI_ENABLE;
+		ioctl_data.cmd = OSI_CMD_MAC_LB;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 		if (ret < 0) {
 			dev_err(pdata->dev, "Enabling MAC Loopback failed\n");
 		} else {
@@ -99,7 +102,9 @@ static ssize_t ether_mac_loopback_store(struct device *dev,
 			netif_carrier_off(ndev);
 		}
 		/* Disabling the MAC Loopback Mode */
-		ret = osi_config_mac_loopback(pdata->osi_core, OSI_DISABLE);
+		ioctl_data.arg1_u32 = OSI_DISABLE;
+		ioctl_data.cmd = OSI_CMD_MAC_LB;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 		if (ret < 0) {
 			dev_err(pdata->dev, "Disabling MAC Loopback failed\n");
 		} else {
