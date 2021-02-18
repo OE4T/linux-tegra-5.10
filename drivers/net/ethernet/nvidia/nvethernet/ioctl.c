@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -122,9 +122,9 @@ static int ether_set_avb_algo(struct net_device *ndev,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_core_avb_algorithm l_avb_struct;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct osi_tx_ring *tx_ring = NULL;
+	struct osi_ioctl ioctl_data = {};
 	int ret = -1;
 
 	if (ifdata->ptr == NULL) {
@@ -133,7 +133,7 @@ static int ether_set_avb_algo(struct net_device *ndev,
 		return ret;
 	}
 
-	if (copy_from_user(&l_avb_struct,
+	if (copy_from_user(&ioctl_data.avb,
 			   (struct osi_core_avb_algorithm *)ifdata->ptr,
 			   sizeof(struct osi_core_avb_algorithm)) != 0U) {
 		dev_err(pdata->dev,
@@ -142,16 +142,17 @@ static int ether_set_avb_algo(struct net_device *ndev,
 	}
 
 	/* Check AVB mode disable on slot function enable */
-	tx_ring = osi_dma->tx_ring[l_avb_struct.qindex];
+	tx_ring = osi_dma->tx_ring[ioctl_data.avb.qindex];
 	if (tx_ring && tx_ring->slot_check == OSI_ENABLE &&
-	    l_avb_struct.oper_mode == OSI_MTL_QUEUE_ENABLE) {
+	    ioctl_data.avb.oper_mode == OSI_MTL_QUEUE_ENABLE) {
 		dev_err(pdata->dev,
 			"Can't disable queue:%d AVB mode when slot is enabled",
-			l_avb_struct.qindex);
+			ioctl_data.avb.qindex);
 		return -EINVAL;
 	}
 
-	return osi_set_avb(osi_core, &l_avb_struct);
+	ioctl_data.cmd = OSI_CMD_SET_AVB;
+	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
 /**
@@ -174,7 +175,7 @@ static int ether_get_avb_algo(struct net_device *ndev,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_core_avb_algorithm avb_data;
+	struct osi_ioctl ioctl_data = {};
 	int ret;
 
 	if (ifdata->ptr == NULL) {
@@ -183,7 +184,7 @@ static int ether_get_avb_algo(struct net_device *ndev,
 		return -EINVAL;
 	}
 
-	if (copy_from_user(&avb_data,
+	if (copy_from_user(&ioctl_data.avb,
 			   (struct osi_core_avb_algorithm *)ifdata->ptr,
 			   sizeof(struct osi_core_avb_algorithm)) != 0U) {
 		dev_err(pdata->dev,
@@ -191,13 +192,14 @@ static int ether_get_avb_algo(struct net_device *ndev,
 		return -EFAULT;
 	}
 
-	ret = osi_get_avb(osi_core, &avb_data);
+	ioctl_data.cmd = OSI_CMD_GET_AVB;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret != 0) {
 		dev_err(pdata->dev,
 			"Failed to get AVB Struct info from registers\n");
 		return ret;
 	}
-	if (copy_to_user(ifdata->ptr, &avb_data,
+	if (copy_to_user(ifdata->ptr, &ioctl_data.avb,
 			 sizeof(struct osi_core_avb_algorithm)) != 0U) {
 		dev_err(pdata->dev, "%s: copy_to_user failed\n", __func__);
 		return -EFAULT;
@@ -224,7 +226,7 @@ static int ether_config_ptp_offload(struct ether_priv_data *pdata,
 	struct ptp_offload_param param;
 	unsigned int snap_type = 0x0;
 	unsigned int master = 0x0;
-	struct osi_pto_config pto_config;
+	struct osi_ioctl ioctl_data = {};
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 	struct timespec64 now;
 #else
@@ -284,16 +286,15 @@ static int ether_config_ptp_offload(struct ether_priv_data *pdata,
 		master = OSI_DISABLE;
 	}
 
-	pto_config.en_dis = param.en_dis;
-	pto_config.snap_type = snap_type;
-	pto_config.master = master;
-	pto_config.domain_num = param.domain_num;
-	pto_config.mc_uc = param.mc_uc;
+	ioctl_data.pto_config.en_dis = param.en_dis;
+	ioctl_data.pto_config.snap_type = snap_type;
+	ioctl_data.pto_config.master = master;
+	ioctl_data.pto_config.domain_num = param.domain_num;
+	ioctl_data.pto_config.mc_uc = param.mc_uc;
 	/* PTP port ID hard code to port 1 for POC */
-	pto_config.portid = 0x1U;
-
-	ret = osi_config_ptp_offload(pdata->osi_core,
-				     &pto_config);
+	ioctl_data.pto_config.portid = 0x1U;
+	ioctl_data.cmd = OSI_CMD_CONFIG_PTP_OFFLOAD;
+	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 	if (ret < 0) {
 		dev_err(pdata->dev, "%s: OSI function failed\n", __func__);
 	}
@@ -323,6 +324,8 @@ static int ether_config_arp_offload(struct ether_priv_data *pdata,
 {
 	int ret = -EINVAL;
 	struct arp_offload_param param;
+	struct osi_ioctl ioctl_data = {};
+
 	/* TODO: Need Spin lock to prevent multiple apps from
 	 * requesting same ioctls to the same MAC instance
 	 */
@@ -343,8 +346,10 @@ static int ether_config_arp_offload(struct ether_priv_data *pdata,
 		dev_err(pdata->dev, "%s: Invalid IP addr\n", __func__);
 		return ret;
 	}
-	ret = osi_config_arp_offload(pdata->osi_core, ifrd_p->if_flags,
-				     param.ip_addr);
+	ioctl_data.cmd = OSI_CMD_ARP_OFFLOAD;
+	ioctl_data.arg1_u32 = ifrd_p->if_flags;
+	ioctl_data.arg7_u8_p = param.ip_addr;
+	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
 	dev_err(pdata->dev, "ARP offload: %s : %s\n",
 		ifrd_p->if_flags ? "Enable" : "Disable",
 		ret ? "Failed" : "Success");
@@ -369,7 +374,7 @@ static int ether_config_frp_cmd(struct net_device *dev,
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_core_frp_cmd frp_cmd;
+	struct osi_ioctl ioctl_data = {};
 	int ret = -EINVAL;
 
 	if (pdata->hw_feat.frp_sel == OSI_DISABLE) {
@@ -383,14 +388,15 @@ static int ether_config_frp_cmd(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&frp_cmd,
+	if (copy_from_user(&ioctl_data.frp_cmd,
 			   (struct osi_core_frp_cmd *)ifdata->ptr,
 			   sizeof(struct osi_core_frp_cmd)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
 		return -EFAULT;
 	}
 
-	return osi_configure_frp(osi_core, &frp_cmd);
+	ioctl_data.cmd = OSI_CMD_CONFIG_FRP;
+	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
 /**
@@ -447,7 +453,7 @@ static int ether_config_ip4_filters(struct net_device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_l3_l4_filter *u_l3_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
-	struct osi_l3_l4_filter l_l3_filter;
+	struct osi_ioctl ioctl_data = {};
 	unsigned int is_l4_filter = OSI_DISABLE;
 	int ret = -EINVAL;
 
@@ -462,20 +468,26 @@ static int ether_config_ip4_filters(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&l_l3_filter, u_l3_filter,
+	if (copy_from_user(&ioctl_data.l3l4_filter, u_l3_filter,
 			   sizeof(struct osi_l3_l4_filter)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
 		return -EFAULT;
 	}
 
-	if (l_l3_filter.filter_no > (pdata->hw_feat.l3l4_filter_num - 1U)) {
+	if (ioctl_data.l3l4_filter.filter_no >
+	    (pdata->hw_feat.l3l4_filter_num - 1U)) {
 		dev_err(pdata->dev, "%d filter is not supported in the HW\n",
-			l_l3_filter.filter_no);
+			ioctl_data.l3l4_filter.filter_no);
 		return ret;
 	}
 
-	return osi_l3l4_filter(osi_core, l_l3_filter, OSI_IP4_FILTER,
-			       OSI_DISABLE, OSI_CHAN_ANY, is_l4_filter);
+	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
+	ioctl_data.arg1_u32 = OSI_IP4_FILTER;
+	ioctl_data.arg2_u32 = OSI_DISABLE;
+	ioctl_data.arg3_u32 = OSI_CHAN_ANY;
+	ioctl_data.arg4_u32 = is_l4_filter;
+
+	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
 /**
@@ -503,7 +515,7 @@ static int ether_config_ip6_filters(struct net_device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_l3_l4_filter *u_l3_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
-	struct osi_l3_l4_filter l_l3_filter;
+	struct osi_ioctl ioctl_data = {};
 	unsigned int is_l4_filter = OSI_DISABLE;
 	int ret = -EINVAL;
 
@@ -518,20 +530,26 @@ static int ether_config_ip6_filters(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&l_l3_filter, u_l3_filter,
+	if (copy_from_user(&ioctl_data.l3l4_filter, u_l3_filter,
 			   sizeof(struct osi_l3_l4_filter)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
 		return -EFAULT;
 	}
 
-	if (l_l3_filter.filter_no > (pdata->hw_feat.l3l4_filter_num - 1U)) {
+	if (ioctl_data.l3l4_filter.filter_no >
+	    (pdata->hw_feat.l3l4_filter_num - 1U)) {
 		dev_err(pdata->dev, "%d filter is not supported in the HW\n",
-			l_l3_filter.filter_no);
+			ioctl_data.l3l4_filter.filter_no);
 		return ret;
 	}
 
-	return osi_l3l4_filter(osi_core, l_l3_filter, OSI_IP6_FILTER,
-			       OSI_DISABLE, OSI_CHAN_ANY, is_l4_filter);
+	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
+	ioctl_data.arg1_u32 = OSI_IP6_FILTER;
+	ioctl_data.arg2_u32 = OSI_DISABLE;
+	ioctl_data.arg3_u32 = OSI_CHAN_ANY;
+	ioctl_data.arg4_u32 = is_l4_filter;
+
+	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
 /**
@@ -562,7 +580,7 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_l3_l4_filter *u_l4_filter =
 		(struct osi_l3_l4_filter *)ifdata->ptr;
-	struct osi_l3_l4_filter l_l4_filter;
+	struct osi_ioctl ioctl_data = {};
 	unsigned int is_l4_filter = OSI_ENABLE;
 	int ret = -EINVAL;
 
@@ -578,20 +596,26 @@ static int ether_config_tcp_udp_filters(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&l_l4_filter, u_l4_filter,
+	if (copy_from_user(&ioctl_data.l3l4_filter, u_l4_filter,
 			   sizeof(struct osi_l3_l4_filter)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed", __func__);
 		return -EFAULT;
 	}
 
-	if (l_l4_filter.filter_no > (pdata->hw_feat.l3l4_filter_num - 1U)) {
+	if (ioctl_data.l3l4_filter.filter_no >
+	    (pdata->hw_feat.l3l4_filter_num - 1U)) {
 		dev_err(pdata->dev, "%d filter is not supported in the HW\n",
-			l_l4_filter.filter_no);
+			ioctl_data.l3l4_filter.filter_no);
 		return ret;
 	}
 
-	return osi_l3l4_filter(osi_core, l_l4_filter, tcp_udp,
-			       OSI_DISABLE, OSI_CHAN_ANY, is_l4_filter);
+	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
+	ioctl_data.arg1_u32 = tcp_udp;
+	ioctl_data.arg2_u32 = OSI_DISABLE;
+	ioctl_data.arg3_u32 = OSI_CHAN_ANY;
+	ioctl_data.arg4_u32 = is_l4_filter;
+
+	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
 /**
@@ -617,7 +641,7 @@ static int ether_config_vlan_filter(struct net_device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_vlan_filter *u_vlan_filter =
 		(struct osi_vlan_filter *)ifdata->ptr;
-	struct osi_vlan_filter l_vlan_filter;
+	struct osi_ioctl ioctl_data = {};
 	int ret = -EINVAL;
 
 	if (ifdata->ptr == NULL) {
@@ -626,23 +650,23 @@ static int ether_config_vlan_filter(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&l_vlan_filter, u_vlan_filter,
+	if (copy_from_user(&ioctl_data.vlan_filter, u_vlan_filter,
 			   sizeof(struct osi_vlan_filter)) != 0U) {
 		dev_err(pdata->dev, "%s copy from user failed", __func__);
 		return -EFAULT;
 	}
 
 	/*0 - perfect and 1 - hash filtering */
-	if (l_vlan_filter.perfect_hash == OSI_HASH_FILTER_MODE) {
+	if (ioctl_data.vlan_filter.perfect_hash == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev, "VLAN HASH filtering is not supported\n");
 		return ret;
 	}
 
-	ret = osi_config_vlan_filtering(osi_core, l_vlan_filter.filter_enb_dis,
-					l_vlan_filter.perfect_hash,
-					l_vlan_filter.perfect_inverse_match);
+	ioctl_data.cmd = OSI_CMD_VLAN_FILTER;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret == 0) {
-		pdata->vlan_hash_filtering = l_vlan_filter.perfect_hash;
+		pdata->vlan_hash_filtering =
+					    ioctl_data.vlan_filter.perfect_hash;
 	}
 
 	return ret;
@@ -718,10 +742,10 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 	struct osi_l2_da_filter *u_l2_da_filter =
 		(struct osi_l2_da_filter *)ifdata->ptr;
 	struct osi_l2_da_filter l_l2_da_filter;
-	struct osi_filter filter;
+	struct osi_ioctl ioctl_data = {};
 	int ret = -EINVAL;
 
-	memset(&filter, 0x0, sizeof(struct osi_filter));
+	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
 
 	if (ifdata->ptr == NULL) {
 		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
@@ -747,12 +771,13 @@ static int ether_config_l2_da_filter(struct net_device *dev,
 
 	/* configure L2 DA perfect/inverse_matching */
 	if (l_l2_da_filter.perfect_inverse_match == OSI_ENABLE) {
-		filter.oper_mode |= OSI_OPER_EN_L2_DA_INV;
+		ioctl_data.l2_filter.oper_mode |= OSI_OPER_EN_L2_DA_INV;
 	} else {
-		filter.oper_mode |= OSI_OPER_DIS_L2_DA_INV;
+		ioctl_data.l2_filter.oper_mode |= OSI_OPER_DIS_L2_DA_INV;
 	}
 
-	ret = osi_l2_filter(osi_core, &filter);
+	ioctl_data.cmd = OSI_CMD_L2_FILTER;
+	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret != 0) {
 		dev_err(pdata->dev, "setting L2_DA_INV failed\n");
 	}
@@ -780,14 +805,17 @@ static int ether_reg_save_restore(struct net_device *ndev,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
 
 	if (flags == OSI_ENABLE) {
-		if (osi_restore_registers(osi_core)) {
+		ioctl_data.cmd = OSI_CMD_RESTORE_REGISTER;
+		if (osi_handle_ioctl(osi_core, &ioctl_data)) {
 			dev_err(pdata->dev, "Restore MAC registers fail\n");
 			return -EBUSY;
 		}
 	} else if (flags == OSI_DISABLE) {
-		if (osi_save_registers(osi_core)) {
+		ioctl_data.cmd = OSI_CMD_SAVE_REGISTER;
+		if (osi_handle_ioctl(osi_core, &ioctl_data)) {
 			dev_err(pdata->dev, "Save MAC registers fail\n");
 			return -EBUSY;
 		}
@@ -822,6 +850,7 @@ static int ether_config_loopback_mode(struct net_device *ndev,
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct phy_device *phydev = ndev->phydev;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
 	if ((flags && (pdata->mac_loopback_mode == OSI_ENABLE)) ||
@@ -839,7 +868,10 @@ static int ether_config_loopback_mode(struct net_device *ndev,
 			 */
 			netif_carrier_on(ndev);
 		}
-		ret = osi_config_mac_loopback(osi_core, OSI_ENABLE);
+
+		ioctl_data.arg1_u32 = OSI_ENABLE;
+		ioctl_data.cmd = OSI_CMD_MAC_LB;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
 		if (ret < 0) {
 			dev_err(pdata->dev,
 				"Failed to enable MAC Loopback\n");
@@ -856,7 +888,10 @@ static int ether_config_loopback_mode(struct net_device *ndev,
 			 */
 			netif_carrier_off(ndev);
 		}
-		ret = osi_config_mac_loopback(osi_core, OSI_DISABLE);
+
+		ioctl_data.arg1_u32 = OSI_DISABLE;
+		ioctl_data.cmd = OSI_CMD_MAC_LB;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
 		if (ret < 0) {
 			dev_err(pdata->dev,
 				"Failed to disable MAC Loopback\n");
@@ -889,13 +924,14 @@ static int ether_config_ptp_rxq(struct net_device *ndev,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_rxq_route rxq_route;
+	struct osi_ioctl ioctl_data = {};
 
 	/* Fill PTP RX queue route values and call osi_rxq_route */
-	rxq_route.route_type = OSI_RXQ_ROUTE_PTP;
-	rxq_route.enable = OSI_ENABLE;
-	rxq_route.idx = flags;
-	return osi_rxq_route(osi_core, &rxq_route);
+	ioctl_data.rxq_route.route_type = OSI_RXQ_ROUTE_PTP;
+	ioctl_data.rxq_route.enable = OSI_ENABLE;
+	ioctl_data.rxq_route.idx = flags;
+	ioctl_data.cmd = OSI_CMD_PTP_RXQ_ROUTE;
+	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
 /**
@@ -920,7 +956,7 @@ static int ether_config_est(struct net_device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_est_config  *u_est_cfg =
 				(struct osi_est_config *)ifdata->ptr;
-	struct osi_est_config l_est_cfg;
+	struct osi_ioctl ioctl_data = {};
 	int ret = -EINVAL;
 
 	if (ifdata->ptr == NULL) {
@@ -929,7 +965,7 @@ static int ether_config_est(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&l_est_cfg, u_est_cfg,
+	if (copy_from_user(&ioctl_data.est, u_est_cfg,
 			   sizeof(struct osi_est_config)) != 0U) {
 		return -EFAULT;
 	}
@@ -938,7 +974,8 @@ static int ether_config_est(struct net_device *dev,
 		dev_err(pdata->dev,
 			"HW doesn't support EST\n");
 	} else {
-		ret = osi_hw_config_est(osi_core, &l_est_cfg);
+		ioctl_data.cmd = OSI_CMD_CONFIG_EST;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	}
 
 	return ret;
@@ -966,7 +1003,7 @@ static int ether_config_fpe(struct net_device *dev,
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_fpe_config  *u_fpe_cfg =
 				(struct osi_fpe_config *)ifdata->ptr;
-	struct osi_fpe_config l_fpe_cfg;
+	struct osi_ioctl ioctl_data = {};
 	int ret = -EINVAL;
 
 	if (ifdata->ptr == NULL) {
@@ -975,7 +1012,7 @@ static int ether_config_fpe(struct net_device *dev,
 		return ret;
 	}
 
-	if (copy_from_user(&l_fpe_cfg, u_fpe_cfg,
+	if (copy_from_user(&ioctl_data.fpe, u_fpe_cfg,
 			   sizeof(struct osi_fpe_config)) != 0U) {
 		return -EFAULT;
 	}
@@ -984,7 +1021,8 @@ static int ether_config_fpe(struct net_device *dev,
 		dev_err(pdata->dev,
 			"HW doesn't support FPE\n");
 	} else {
-		ret = osi_hw_config_fpe(osi_core, &l_fpe_cfg);
+		ioctl_data.cmd = OSI_CMD_CONFIG_FPE;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	}
 
 	return ret;
