@@ -553,7 +553,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		} else {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 				     "addend > UINT_MAX\n", 0ULL);
-			return -1;
+			return ret;
 		}
 	} else {
 		if (addend > diff) {
@@ -713,12 +713,44 @@ nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
 }
 
 #ifndef OSI_STRIPPED_LIB
-nve32_t osi_validate_core_regs(struct osi_core_priv_data *const osi_core)
+/**
+ * @brief validate_core_regs - Read-validate HW registers for func safety.
+ *
+ * @note
+ * Algorithm:
+ *  - Reads pre-configured list of MAC/MTL configuration registers
+ *    and compares with last written value for any modifications.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @pre
+ *  - MAC has to be out of reset.
+ *  - osi_hw_core_init has to be called. Internally this would initialize
+ *    the safety_config (see osi_core_priv_data) based on MAC version and
+ *    which specific registers needs to be validated periodically.
+ *  - Invoke this call if (osi_core_priv_data->safety_config != OSI_NULL)
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t validate_core_regs(struct osi_core_priv_data *const osi_core)
 {
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
 	if (osi_core->safety_config == OSI_NULL) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "CORE: Safety config is NULL\n", 0ULL);
@@ -728,100 +760,43 @@ nve32_t osi_validate_core_regs(struct osi_core_priv_data *const osi_core)
 	return ops_p->validate_regs(osi_core);
 }
 
-nve32_t osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
-			       const nveu32_t qinx)
+/**
+ * @brief conf_eee - Configure EEE LPI in MAC.
+ *
+ * @note
+ * Algorithm:
+ *  - This routine invokes configuration of EEE LPI in the MAC.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] tx_lpi_enabled: Enable (1)/disable (0) tx lpi
+ * @param[in] tx_lpi_timer: Tx LPI entry timer in usecs upto
+ *            OSI_MAX_TX_LPI_TIMER (in steps of 8usec)
+ *
+ * @pre
+ *  - MAC and PHY should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t conf_eee(struct osi_core_priv_data *const osi_core,
+			nveu32_t tx_lpi_enabled, nveu32_t tx_lpi_timer)
 {
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	return ops_p->flush_mtl_tx_queue(osi_core, qinx);
-}
-
-nve32_t osi_set_avb(struct osi_core_priv_data *const osi_core,
-		    const struct osi_core_avb_algorithm *avb)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	return ops_p->set_avb_algorithm(osi_core, avb);
-}
-
-nve32_t osi_get_avb(struct osi_core_priv_data *const osi_core,
-		    struct osi_core_avb_algorithm *avb)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	return ops_p->get_avb_algorithm(osi_core, avb);
-}
-
-nve32_t osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
-			       const nveu32_t tx_status)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	/* Configure Drop Transmit Status */
-	return ops_p->config_tx_status(osi_core, tx_status);
-}
-
-nve32_t osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
-				const nveu32_t crc_chk)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	/* Configure CRC Checking for Received Packets */
-	return ops_p->config_rx_crc_check(osi_core, crc_chk);
-}
-
-nve32_t osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
-				  const nveu32_t filter_enb_dis,
-				  const nveu32_t perfect_hash_filtering,
-				  const nveu32_t perfect_inverse_match)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	return ops_p->config_vlan_filtering(osi_core, filter_enb_dis,
-					 perfect_hash_filtering,
-					 perfect_inverse_match);
-}
-
-nve32_t osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
-			   const nveu32_t vid)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	return ops_p->update_vlan_id(osi_core, vid);
-}
-
-nve32_t osi_reset_mmc(struct osi_core_priv_data *const osi_core)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	ops_p->reset_mmc(osi_core);
-
-	return 0;
-}
-
-nve32_t osi_configure_eee(struct osi_core_priv_data *const osi_core,
-			  nveu32_t tx_lpi_enabled, nveu32_t tx_lpi_timer)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
 	if ((tx_lpi_timer >= OSI_MAX_TX_LPI_TIMER) ||
 	    (tx_lpi_timer <= OSI_MIN_TX_LPI_TIMER) ||
 	    (tx_lpi_timer % OSI_MIN_TX_LPI_TIMER != OSI_NONE)) {
@@ -836,45 +811,44 @@ nve32_t osi_configure_eee(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
-nve32_t osi_save_registers(struct osi_core_priv_data *const osi_core)
+/**
+ * @brief config_arp_offload - Configure ARP offload in MAC.
+ *
+ * @note
+ * Algorithm:
+ *  - Invokes EQOS config ARP offload routine.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] flags: Enable/disable flag.
+ * @param[in] ip_addr: Char array representation of IP address
+ *
+ * @pre
+ *  - MAC should be init and started. see osi_start_mac()
+ *  - Valid 4 byte IP address as argument ip_addr
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t conf_arp_offload(struct osi_core_priv_data *const osi_core,
+				const nveu32_t flags,
+				const nveu8_t *ip_addr)
 {
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	/* Call MAC save registers callback and return the value */
-	return ops_p->save_registers(osi_core);
-}
-
-nve32_t osi_restore_registers(struct osi_core_priv_data *const osi_core)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	/* Call MAC restore registers callback and return the value */
-	return ops_p->restore_registers(osi_core);
-}
-
-nve32_t osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
-				   const nveu32_t flw_ctrl)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	/* Configure Flow control settings */
-	return ops_p->config_flow_control(osi_core, flw_ctrl);
-}
-
-nve32_t osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
-			       const nveu32_t flags,
-			       const nveu8_t *ip_addr)
-{
-	if ((validate_args(osi_core) < 0)) {
-		return -1;
-	}
-
 	if (ip_addr == OSI_NULL) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "CORE: ip_addr is NULL\n", 0ULL);
@@ -890,25 +864,40 @@ nve32_t osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
 	return ops_p->config_arp_offload(osi_core, flags, ip_addr);
 }
 
-nve32_t osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
-			     const nveu64_t csr_clk_rate)
+/**
+ * @brief conf_mac_loopback - Configure MAC loopback
+ *
+ * @note
+ * Algorithm:
+ *  - Configure the MAC to support the loopback.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] lb_mode: Enable or disable MAC loopback
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t conf_mac_loopback(struct osi_core_priv_data *const osi_core,
+				 const nveu32_t lb_mode)
 {
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
-	ops_p->set_mdc_clk_rate(osi_core, csr_clk_rate);
-
-	return 0;
-}
-
-nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
-				const nveu32_t lb_mode)
-{
-	if (validate_args(osi_core) < 0) {
-		return -1;
-	}
-
 	/* don't allow only if loopback mode is other than 0 or 1 */
 	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
@@ -920,6 +909,181 @@ nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 	return ops_p->config_mac_loopback(osi_core, lb_mode);
 }
 #endif /* !OSI_STRIPPED_LIB */
+
+nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
+			 struct osi_ioctl *data)
+{
+	nve32_t ret = -1;
+
+	if (validate_args(osi_core) < 0) {
+		return ret;
+	}
+
+	if (data == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "CORE: Invalid argument\n", 0ULL);
+		return ret;
+	}
+
+	switch (data->cmd) {
+#ifndef OSI_STRIPPED_LIB
+	case OSI_CMD_RESTORE_REGISTER:
+		ret = ops_p->restore_registers(osi_core);
+		break;
+
+	case OSI_CMD_L3L4_FILTER:
+		ret = osi_l3l4_filter(osi_core, data->l3l4_filter,
+				      data->arg1_u32, data->arg2_u32,
+				      data->arg3_u32, data->arg4_u32);
+		break;
+
+	case OSI_CMD_MDC_CONFIG:
+		ops_p->set_mdc_clk_rate(osi_core, data->arg5_u64);
+		ret = 0;
+		break;
+
+	case OSI_CMD_VALIDATE_CORE_REG:
+		ret = validate_core_regs(osi_core);
+		break;
+
+	case OSI_CMD_RESET_MMC:
+		ops_p->reset_mmc(osi_core);
+		ret = 0;
+		break;
+
+	case OSI_CMD_SAVE_REGISTER:
+		ret = ops_p->save_registers(osi_core);
+		break;
+
+	case OSI_CMD_MAC_LB:
+		ret = conf_mac_loopback(osi_core, data->arg1_u32);
+		break;
+
+	case OSI_CMD_FLOW_CTRL:
+		ret = ops_p->config_flow_control(osi_core, data->arg1_u32);
+		break;
+
+	case OSI_CMD_GET_AVB:
+		ret = ops_p->get_avb_algorithm(osi_core, &data->avb);
+		break;
+
+	case OSI_CMD_SET_AVB:
+		ret = ops_p->set_avb_algorithm(osi_core, &data->avb);
+		break;
+
+	case OSI_CMD_CONFIG_RX_CRC_CHECK:
+		ret = ops_p->config_rx_crc_check(osi_core, data->arg1_u32);
+		break;
+
+	case OSI_CMD_UPDATE_VLAN_ID:
+		ret = ops_p->update_vlan_id(osi_core, data->arg1_u32);
+		break;
+
+	case OSI_CMD_CONFIG_TXSTATUS:
+		ret = ops_p->config_tx_status(osi_core, data->arg1_u32);
+		break;
+
+	case OSI_CMD_CONFIG_FW_ERR:
+		ret = ops_p->config_fw_err_pkts(osi_core, data->arg1_u32,
+						data->arg2_u32);
+		break;
+
+	case OSI_CMD_ARP_OFFLOAD:
+		ret = conf_arp_offload(osi_core, data->arg1_u32,
+				       data->arg7_u8_p);
+		break;
+
+	case OSI_CMD_VLAN_FILTER:
+		ret = ops_p->config_vlan_filtering(osi_core,
+				data->vlan_filter.filter_enb_dis,
+				data->vlan_filter.perfect_hash,
+				data->vlan_filter.perfect_inverse_match);
+		break;
+
+	case OSI_CMD_CONFIG_EEE:
+		ret = conf_eee(osi_core, data->arg1_u32, data->arg2_u32);
+		break;
+
+#endif /* !OSI_STRIPPED_LIB */
+	case OSI_CMD_POLL_FOR_MAC_RST:
+		ret = ops_p->poll_for_swr(osi_core);
+		break;
+
+	case OSI_CMD_START_MAC:
+		ops_p->start_mac(osi_core);
+		ret = 0;
+		break;
+
+	case OSI_CMD_STOP_MAC:
+		ops_p->stop_mac(osi_core);
+		ret = 0;
+		break;
+
+	case OSI_CMD_COMMON_ISR:
+		ops_p->handle_common_intr(osi_core);
+		ret = 0;
+		break;
+
+	case OSI_CMD_PAD_CALIBRATION:
+		ret = ops_p->pad_calibrate(osi_core);
+		break;
+
+	case OSI_CMD_READ_MMC:
+		ops_p->read_mmc(osi_core);
+		ret = 0;
+		break;
+
+	case OSI_CMD_GET_MAC_VER:
+		ret = osi_get_mac_version(osi_core, &data->arg1_u32);
+		break;
+
+	case OSI_CMD_SET_MODE:
+		ret = ops_p->set_mode(osi_core, data->arg6_32);
+		break;
+
+	case OSI_CMD_SET_SPEED:
+		ops_p->set_speed(osi_core, data->arg6_32);
+		ret = 0;
+		break;
+
+	case OSI_CMD_L2_FILTER:
+		ret = osi_l2_filter(osi_core, &data->l2_filter);
+		break;
+
+	case OSI_CMD_RXCSUM_OFFLOAD:
+		ret = ops_p->config_rxcsum_offload(osi_core, data->arg1_u32);
+		break;
+
+	case OSI_CMD_ADJ_FREQ:
+		ret = osi_adjust_freq(osi_core, data->arg6_32);
+		break;
+
+	case OSI_CMD_ADJ_TIME:
+		ret = osi_adjust_time(osi_core, data->arg8_64);
+		break;
+
+	case OSI_CMD_CONFIG_PTP:
+		ret = osi_ptp_configuration(osi_core, data->arg1_u32);
+		break;
+
+	case OSI_CMD_GET_HW_FEAT:
+		ret = ops_p->get_hw_features(osi_core, &data->hw_feat);
+		break;
+
+	case OSI_CMD_SET_SYSTOHW_TIME:
+		ret = ops_p->set_systime_to_mac(osi_core, data->arg1_u32,
+						data->arg2_u32);
+		break;
+
+	default:
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "CORE: Incorrect command\n",
+			     (nveul64_t)data->cmd);
+		break;
+	}
+
+	return ret;
+}
 
 nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
 			    struct osi_hw_features *hw_feat)
