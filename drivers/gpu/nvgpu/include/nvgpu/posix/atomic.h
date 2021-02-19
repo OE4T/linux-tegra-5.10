@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,12 @@
  * Note: this code uses the GCC builtins to implement atomics.
  */
 
-typedef struct __nvgpu_posix_atomic {
+typedef struct nvgpu_posix_atomic {
 	/** 32 bit atomic variable. */
 	atomic_int v;
 } nvgpu_atomic_t;
 
-typedef struct __nvgpu_posix_atomic64 {
+typedef struct nvgpu_posix_atomic64 {
 	/** 64 bit atomic variable. */
 	atomic_long v;
 } nvgpu_atomic64_t;
