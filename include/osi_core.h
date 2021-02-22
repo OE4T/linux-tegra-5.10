@@ -534,8 +534,6 @@ struct osd_core_ops {
 struct osi_core_priv_data {
 	/** Memory mapped base address of MAC IP */
 	void *base;
-	/** Memory mapped base address of DMA window of MAC IP */
-	void *dma_base;
 	/** Pointer to OSD private data structure */
 	void *osd;
 	/** Address of HW Core operations structure */
@@ -1863,42 +1861,6 @@ nve32_t  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure.
  */
 nve32_t osi_reset_mmc(struct osi_core_priv_data *const osi_core);
-
-/**
- * @brief osi_get_systime_from_mac - Get system time
- *
- * @note
- * Algorithm:
- *  - Gets the current system time
- *
- * @param[in] osi_core: OSI core private data structure.
- * @param[out] sec: Value read in Seconds
- * @param[out] nsec: Value read in Nano seconds
- *
- * @pre MAC should be init and started. see osi_start_mac()
- *
- * @note
- * Traceability Details:
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-nve32_t osi_get_systime_from_mac(struct osi_core_priv_data *const osi_core,
-				 nveu32_t *sec,
-				 nveu32_t *nsec);
 
 /**
  * @brief osi_configure_eee - Configure EEE LPI in MAC.
