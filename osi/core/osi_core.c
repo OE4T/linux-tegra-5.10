@@ -948,21 +948,6 @@ nve32_t  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
 	return -1;
 }
 
-nve32_t osi_get_systime_from_mac(struct osi_core_priv_data *const osi_core,
-				 nveu32_t *sec,
-				 nveu32_t *nsec)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->dma_base != OSI_NULL)) {
-		common_get_systime_from_mac(osi_core->dma_base,
-					    osi_core->mac, sec,
-					    nsec);
-	} else {
-		return -1;
-	}
-
-	return 0;
-}
-
 nve32_t osi_reset_mmc(struct osi_core_priv_data *const osi_core)
 {
 	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
