@@ -1,7 +1,7 @@
-From ae3988b69b031cb94f942784f1499cbdb298f0fe Mon Sep 17 00:00:00 2001
+From 94d167b3023a9ec9bcd16e261eb91c1428ff63ad Mon Sep 17 00:00:00 2001
 From: Valentin Schneider <valentin.schneider@arm.com>
 Date: Fri, 23 Oct 2020 12:12:17 +0200
-Subject: [PATCH 020/281] sched: Comment affine_move_task()
+Subject: [PATCH 020/293] sched: Comment affine_move_task()
 
 Signed-off-by: Valentin Schneider <valentin.schneider@arm.com>
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>

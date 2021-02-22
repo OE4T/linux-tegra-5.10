@@ -1,7 +1,7 @@
-From 593cae5296b18e34decfbec2304acd15cb3d5191 Mon Sep 17 00:00:00 2001
+From 7d2b2db9fc72ab65dbd16faedcd5ec8bd9993bd3 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:10 +0200
-Subject: [PATCH 013/281] sched,rt: Use cpumask_any*_distribute()
+Subject: [PATCH 013/293] sched,rt: Use cpumask_any*_distribute()
 
 Replace a bunch of cpumask_any*() instances with
 cpumask_any*_distribute(), by injecting this little bit of random in
@@ -90,10 +90,10 @@ index 40a4663..2525a1b 100644
  		return cpu;
  
 diff --git a/lib/cpumask.c b/lib/cpumask.c
-index 85da6ab..3592402 100644
+index fb22fb2..c3c76b8 100644
 --- a/lib/cpumask.c
 +++ b/lib/cpumask.c
-@@ -267,3 +267,21 @@ int cpumask_any_and_distribute(const struct cpumask *src1p,
+@@ -261,3 +261,21 @@ int cpumask_any_and_distribute(const struct cpumask *src1p,
  	return next;
  }
  EXPORT_SYMBOL(cpumask_any_and_distribute);

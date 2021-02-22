@@ -1,0 +1,38 @@
+From 36d67087266f76bfd2df81c72d661ebb17566adb Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Thu, 28 Jan 2021 16:33:45 +0100
+Subject: [PATCH 151/293] ath9k: Use tasklet_disable_in_atomic().
+
+All caller of ath9k_beacon_ensure_primary_slot() are preemptible /
+acquire a mutex except for the callchain:
+
+  spin_lock_bh(&sc->sc_pcu_lock);
+  ath_complete_reset()
+  -> ath9k_calculate_summary_state()
+     -> ath9k_beacon_ensure_primary_slot()
+
+which is always invoked in atomic context due to the spin lock.
+I have no idea how to get around it so convert it to
+tasklet_disable_in_atomic().
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/net/wireless/ath/ath9k/beacon.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/beacon.c b/drivers/net/wireless/ath/ath9k/beacon.c
+index 71e2ada..72e2e71 100644
+--- a/drivers/net/wireless/ath/ath9k/beacon.c
++++ b/drivers/net/wireless/ath/ath9k/beacon.c
+@@ -251,7 +251,7 @@ void ath9k_beacon_ensure_primary_slot(struct ath_softc *sc)
+ 	int first_slot = ATH_BCBUF;
+ 	int slot;
+ 
+-	tasklet_disable(&sc->bcon_tasklet);
++	tasklet_disable_in_atomic(&sc->bcon_tasklet);
+ 
+ 	/* Find first taken slot. */
+ 	for (slot = 0; slot < ATH_BCBUF; slot++) {
+-- 
+2.7.4
+

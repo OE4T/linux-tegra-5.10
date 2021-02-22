@@ -1,7 +1,7 @@
-From ed80ab41201ad0304fa575db981ae25ad18ecd75 Mon Sep 17 00:00:00 2001
+From d8d46c9a51f383532d7002ed4b7babeccb4acd4f Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:17 +0100
-Subject: [PATCH 028/281] asm-generic: Provide kmap_size.h
+Subject: [PATCH 028/293] asm-generic: Provide kmap_size.h
 
 kmap_types.h is a misnomer because the old atomic MAP based array does not
 exist anymore and the whole indirection of architectures including

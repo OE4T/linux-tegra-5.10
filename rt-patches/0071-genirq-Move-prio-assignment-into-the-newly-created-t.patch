@@ -1,7 +1,7 @@
-From 7c7705b0c74423f44f79f94099767ff7d49ba6b9 Mon Sep 17 00:00:00 2001
+From 6385fb38224ef69c5da6d99d503744b8841ef0a9 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 9 Nov 2020 23:32:39 +0100
-Subject: [PATCH 071/281] genirq: Move prio assignment into the newly created
+Subject: [PATCH 071/293] genirq: Move prio assignment into the newly created
  thread
 
 With enabled threaded interrupts the nouveau driver reported the

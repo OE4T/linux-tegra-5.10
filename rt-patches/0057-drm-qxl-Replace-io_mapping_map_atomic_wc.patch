@@ -1,7 +1,7 @@
-From cd50b7d44e6f85cb409ecefa877bf5f02fb59da5 Mon Sep 17 00:00:00 2001
+From dfb97f9ab7a1ba953a1e5963ca306470edb182e6 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:46 +0100
-Subject: [PATCH 057/281] drm/qxl: Replace io_mapping_map_atomic_wc()
+Subject: [PATCH 057/293] drm/qxl: Replace io_mapping_map_atomic_wc()
 
 None of these mapping requires the side effect of disabling pagefaults and
 preemption.

@@ -1,7 +1,7 @@
-From f5954a8459662a726e842560d3c9859054940bd8 Mon Sep 17 00:00:00 2001
+From d32a4ef8711f5c410bf1848fe186bd14d733df5c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:48 +0100
-Subject: [PATCH 059/281] drm/i915: Replace io_mapping_map_atomic_wc()
+Subject: [PATCH 059/293] drm/i915: Replace io_mapping_map_atomic_wc()
 
 None of these mapping requires the side effect of disabling pagefaults and
 preemption.
@@ -140,7 +140,7 @@ index 412e216..4324931 100644
  
  	ggtt->vm.clear_range(&ggtt->vm, slot, PAGE_SIZE);
 diff --git a/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c b/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c
-index c53a222..53226d4 100644
+index 713770f..a68bed4 100644
 --- a/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c
 +++ b/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c
 @@ -1200,9 +1200,9 @@ static int igt_ggtt_page(void *arg)

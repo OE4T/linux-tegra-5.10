@@ -1,7 +1,7 @@
-From a966f53c4dc0031e2d2ab18289d6f37c5d2d3ccf Mon Sep 17 00:00:00 2001
+From 240a14b555cb16b0086bef39aba26e295308fd70 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 9 Nov 2020 21:30:41 +0100
-Subject: [PATCH 070/281] kthread: Move prio/affinite change into the newly
+Subject: [PATCH 070/293] kthread: Move prio/affinite change into the newly
  created thread
 
 With enabled threaded interrupts the nouveau driver reported the
@@ -33,7 +33,7 @@ Link: https://lkml.kernel.org/r/a23a826af7c108ea5651e73b8fbae5e653f16e86.camel@g
  1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/kernel/kthread.c b/kernel/kthread.c
-index 933a625..4a31127 100644
+index 5edf7e1..cdfaf642 100644
 --- a/kernel/kthread.c
 +++ b/kernel/kthread.c
 @@ -243,6 +243,7 @@ EXPORT_SYMBOL_GPL(kthread_parkme);

@@ -1,7 +1,7 @@
-From 5ba84b485e13728f416bdd825de39706ef080a80 Mon Sep 17 00:00:00 2001
+From 902a7614bda20eec3d2b072aa25cd6aacc91172a Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:00 +0200
-Subject: [PATCH 003/281] sched: Fix balance_callback()
+Subject: [PATCH 003/293] sched: Fix balance_callback()
 
 The intent of balance_callback() has always been to delay executing
 balancing operations until the end of the current rq->lock section.

@@ -1,7 +1,7 @@
-From 5a1ca4b501c48127de45673d592eb07948880a0a Mon Sep 17 00:00:00 2001
+From d218096b38b55b17e4a6583359b9104e91673ec1 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:47 +0100
-Subject: [PATCH 058/281] drm/nouveau/device: Replace
+Subject: [PATCH 058/293] drm/nouveau/device: Replace
  io_mapping_map_atomic_wc()
 
 Neither fbmem_peek() nor fbmem_poke() require to disable pagefaults and

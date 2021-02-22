@@ -1,7 +1,7 @@
-From 96bcf19a126e60dce7035f480205f03056ec92b7 Mon Sep 17 00:00:00 2001
+From fa32cb3ea00f5b7c79d8d30f0cb9091308bc5f41 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:25 -0500
-Subject: [PATCH 080/281] tracing: Use in_serving_softirq() to deduct softirq
+Subject: [PATCH 080/293] tracing: Use in_serving_softirq() to deduct softirq
  status.
 
 PREEMPT_RT does not report "serving softirq" because the tracing core
@@ -29,7 +29,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 154abf0..4e669ff 100644
+index 269c0dc..ad9b9c6 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -2589,8 +2589,7 @@ unsigned int tracing_gen_ctx_irq_test(unsigned int irqs_status)

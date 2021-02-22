@@ -1,7 +1,7 @@
-From b973f24264b1ee954f4a0d679cb22e66d7a63d4b Mon Sep 17 00:00:00 2001
+From 2a059e40e47f7399ddc0ef37c7905fdf38451e16 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:26 +0100
-Subject: [PATCH 037/281] nds32/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 037/293] nds32/mm/highmem: Switch to generic kmap atomic
 
 The mapping code is odd and looks broken. See FIXME in the comment.
 

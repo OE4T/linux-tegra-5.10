@@ -1,7 +1,7 @@
-From d69d6e8dfe208a728fe2b8eba9614e35a99919f0 Mon Sep 17 00:00:00 2001
+From 0dfd561bc609bb2881ed537bfbb0879ffbab1f79 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:35 +0100
-Subject: [PATCH 046/281] sched: Make migrate_disable/enable() independent of
+Subject: [PATCH 046/293] sched: Make migrate_disable/enable() independent of
  RT
 
 Now that the scheduler can deal with migrate disable properly, there is no
