@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,13 +50,14 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	struct gk20a *g = vm->mm->g;
 	struct nvgpu_vm_area *vm_area;
 	struct nvgpu_mapped_buf *buffer;
-	u64 map_end = nvgpu_safe_add_u64(map_addr, map_size);
+	u64 map_end;
 
 	/* can wrap around with insane map_size; zero is disallowed too */
-	if (map_end <= map_addr) {
+	if (((U64_MAX - map_size) < map_addr) || (map_size == 0ULL)) {
 		nvgpu_warn(g, "fixed offset mapping with invalid map_size");
 		return -EINVAL;
 	}
+	map_end = map_addr + map_size;
 
 	if ((map_addr &
 	     nvgpu_safe_sub_u64(U64(vm->gmmu_page_sizes[pgsz_idx]), U64(1)))
@@ -88,7 +89,7 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	 * mappings by checking the buffer with the highest GPU VA
 	 * that is less than our buffer end */
 	buffer = nvgpu_vm_find_mapped_buf_less_than(
-		vm, nvgpu_safe_add_u64(map_addr, map_size));
+		vm, map_end);
 	if (buffer != NULL) {
 		if (nvgpu_safe_add_u64(buffer->addr, buffer->size) > map_addr) {
 			nvgpu_warn(g, "overlapping buffer map requested");

@@ -1536,7 +1536,6 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 	mapped_buffer->pgsz_idx     = binfo.pgsz_idx;
 	mapped_buffer->vm           = vm;
 	mapped_buffer->flags        = binfo.flags;
-	nvgpu_assert(map_key_kind >= 0);
 	mapped_buffer->kind         = map_key_kind;
 	mapped_buffer->va_allocated = va_allocated;
 	mapped_buffer->vm_area      = vm_area;

@@ -1,7 +1,7 @@
 /*
  * gk20a allocator
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,6 +89,10 @@ void nvgpu_free(struct nvgpu_allocator *a, u64 addr)
 u64 nvgpu_alloc_fixed(struct nvgpu_allocator *a, u64 base, u64 len,
 		      u32 page_size)
 {
+	if ((U64_MAX - base) < len) {
+		return 0ULL;
+	}
+
 	if (a->ops->alloc_fixed != NULL) {
 		return a->ops->alloc_fixed(a, base, len, page_size);
 	}
