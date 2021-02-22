@@ -2609,6 +2609,7 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 			goto put_powerdomains;
 	}
 
+skip_clock_and_reg:
 	for (i = 0; i < tegra->soc->num_types; i++) {
 		if (!strncmp(tegra->soc->phy_types[i].name, "usb2", 4))
 			tegra->num_usb_phys = tegra->soc->phy_types[i].num;
@@ -2622,7 +2623,6 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 		goto put_powerdomains;
 	}
 
-skip_clock_and_reg:
 	for (i = 0, k = 0; i < tegra->soc->num_types; i++) {
 		char prop[16];
 
