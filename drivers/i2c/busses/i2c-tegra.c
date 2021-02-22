@@ -369,6 +369,9 @@ static void i2c_writel(struct tegra_i2c_dev *i2c_dev, u32 val, unsigned int reg)
 	if (i2c_dev->hw->has_reg_write_buffering) {
 		if (reg != I2C_TX_FIFO)
 			readl(i2c_dev->base + tegra_i2c_reg_addr(i2c_dev, reg));
+		else if (i2c_dev->is_vi)
+			readl_relaxed(i2c_dev->base +
+				tegra_i2c_reg_addr(i2c_dev, I2C_INT_STATUS));
 	}
 }
 
@@ -381,6 +384,21 @@ static void i2c_writesl(struct tegra_i2c_dev *i2c_dev, void *data,
 			unsigned int reg, unsigned int len)
 {
 	writesl(i2c_dev->base + tegra_i2c_reg_addr(i2c_dev, reg), data, len);
+}
+
+static void i2c_writesl_vi(struct tegra_i2c_dev *i2c_dev, void *data,
+			   unsigned int reg, unsigned int len)
+{
+	u32 *data32 = data;
+
+	/*
+	 * VI I2C controller has known hardware bug where writes get stuck
+	 * when immediate multiple writes happen to TX_FIFO register.
+	 * Recommended software work around is to read I2C register after
+	 * each write to TX_FIFO register to flush out the data.
+	 */
+	while (len--)
+		i2c_writel(i2c_dev, *data32++, reg);
 }
 
 static void i2c_readsl(struct tegra_i2c_dev *i2c_dev, void *data,
@@ -950,7 +968,10 @@ static int tegra_i2c_fill_tx_fifo(struct tegra_i2c_dev *i2c_dev)
 		i2c_dev->msg_buf_remaining = buf_remaining;
 		i2c_dev->msg_buf = buf + words_to_transfer * BYTES_PER_FIFO_WORD;
 
-		i2c_writesl(i2c_dev, buf, I2C_TX_FIFO, words_to_transfer);
+		if (i2c_dev->is_vi)
+			i2c_writesl_vi(i2c_dev, buf, I2C_TX_FIFO, words_to_transfer);
+		else
+			i2c_writesl(i2c_dev, buf, I2C_TX_FIFO, words_to_transfer);
 
 		buf += words_to_transfer * BYTES_PER_FIFO_WORD;
 	}
