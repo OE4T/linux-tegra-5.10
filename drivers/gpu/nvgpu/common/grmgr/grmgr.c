@@ -1,7 +1,7 @@
 /*
  * GR MANAGER
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -170,7 +170,7 @@ int nvgpu_grmgr_config_gr_remap_window(struct gk20a *g,
 {
 	int err = 0;
 #if defined(CONFIG_NVGPU_NEXT) && defined(CONFIG_NVGPU_MIG)
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
 		/*
 		 * GR remap window enable/disable sequence for a GR
 		 * SYSPIPE PGRAPH programming:
@@ -301,7 +301,7 @@ static inline u32 nvgpu_grmgr_get_gpu_instance_id(struct gk20a *g,
 {
 	u32 gpu_instance_id = 0U;
 
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
 		/* 0th entry is physical device gpu instance */
 		gpu_instance_id = nvgpu_safe_add_u32(gr_instance_id, 1U);
 
@@ -366,7 +366,7 @@ u32 nvgpu_grmgr_get_gr_instance_id(struct gk20a *g, u32 gpu_instance_id)
 	u32 gr_instance_id = 0U;
 
 	/* TODO : Add gr_instance_id for physical device when MIG is enabled. */
-	if ((nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) &&
+	if ((nvgpu_grmgr_is_multi_gr_enabled(g)) &&
 			(gpu_instance_id != 0U)) {
 		if (gpu_instance_id < g->mig.num_gpu_instances) {
 			/* 0th entry is physical device gpu instance */
@@ -446,7 +446,7 @@ u32 nvgpu_grmgr_get_gpu_instance_runlist_id(struct gk20a *g,
 u32 nvgpu_grmgr_get_gr_instance_id_for_syspipe(struct gk20a *g,
 		u32 gr_syspipe_id)
 {
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
 		u32 gr_instance_id = 0U;
 		u32 index;
 		/* 0th entry is physical device gpu instance. */

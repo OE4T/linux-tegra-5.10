@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #define nvgpu_gr_get_cur_instance_id(g) \
 	({ \
 		u32 current_gr_instance_id = 0U; \
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \
 			if (nvgpu_mutex_tryacquire(&g->mig.gr_syspipe_lock) == 0) { \
 				current_gr_instance_id = g->mig.cur_gr_instance; \
 			} else { \
@@ -54,7 +54,7 @@
 #ifdef CONFIG_NVGPU_MIG
 #define nvgpu_gr_exec_for_each_instance(g, func) \
 	({ \
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \
 			u32 gr_instance_id = 0U; \
 			for (; gr_instance_id < g->num_gr_instances; gr_instance_id++) { \
 				u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
@@ -75,7 +75,7 @@
 #define nvgpu_gr_exec_with_ret_for_each_instance(g, func) \
 	({ \
 		int err = 0; \
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \
 			u32 gr_instance_id = 0U; \
 			for (; gr_instance_id < g->num_gr_instances; gr_instance_id++) { \
 				u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
@@ -99,7 +99,7 @@
 #ifdef CONFIG_NVGPU_MIG
 #define nvgpu_gr_exec_for_all_instances(g, func) \
 	({ \
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \
 			nvgpu_grmgr_config_gr_remap_window(g, NVGPU_MIG_INVALID_GR_SYSPIPE_ID, false); \
 			g->mig.cur_gr_instance = 0; \
 			(func); \
@@ -115,7 +115,7 @@
 #ifdef CONFIG_NVGPU_MIG
 #define nvgpu_gr_exec_for_instance(g, gr_instance_id, func) \
 	({ \
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \
 			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, \
 				gr_instance_id); \
 			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, \
@@ -136,7 +136,7 @@
 #define nvgpu_gr_exec_with_ret_for_instance(g, gr_instance_id, func, type) \
 	({ \
 		typeof(type) ret; \
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \
 			u32 gr_syspipe_id = nvgpu_gr_get_syspipe_id(g, gr_instance_id); \
 			nvgpu_grmgr_config_gr_remap_window(g, gr_syspipe_id, true); \
 			g->mig.cur_gr_instance = gr_instance_id; \
@@ -168,7 +168,7 @@
 #define nvgpu_gr_get_gpu_instance_config_ptr(g, gpu_instance_id) \
 	({ \
 		struct nvgpu_gr_config *gr_config = NULL; \
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) { \
+		if (nvgpu_grmgr_is_multi_gr_enabled(g)) { \
 			u32 gr_instance_id = nvgpu_grmgr_get_gr_instance_id(g, \
 				gpu_instance_id); \
 			if (gr_instance_id < g->num_gr_instances) { \

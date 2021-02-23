@@ -1,7 +1,7 @@
 /*
  * GR MANAGER
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,8 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/mig.h>
+#include <nvgpu/enabled.h>
+#include <nvgpu/gk20a.h>
 
 struct gk20a;
 
@@ -55,6 +57,12 @@ static inline bool nvgpu_grmgr_is_mig_type_gpu_instance(
 		struct nvgpu_gpu_instance *gpu_instance)
 {
 	return (gpu_instance->gpu_instance_type == NVGPU_MIG_TYPE_MIG);
+}
+
+static inline bool nvgpu_grmgr_is_multi_gr_enabled(struct gk20a *g)
+{
+	return ((nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) &&
+		(g->mig.num_gpu_instances > 1U));
 }
 
 #endif /* NVGPU_GRMGR_H */
