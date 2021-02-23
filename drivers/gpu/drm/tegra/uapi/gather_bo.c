@@ -37,11 +37,6 @@ gather_bo_pin(struct device *dev, struct host1x_bo *host_bo, dma_addr_t *phys)
 	struct sg_table *sgt;
 	int err;
 
-	if (phys) {
-		*phys = virt_to_phys(bo->gather_data);
-		return NULL;
-	}
-
 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
 	if (!sgt)
 		return ERR_PTR(-ENOMEM);
