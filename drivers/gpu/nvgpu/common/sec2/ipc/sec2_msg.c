@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -148,7 +148,7 @@ static int sec2_process_init_msg(struct nvgpu_sec2 *sec2,
 		goto exit;
 	}
 
-	tail += ALIGN(U32(msg->hdr.size), PMU_DMEM_ALIGNMENT);
+	tail += NVGPU_ALIGN(U32(msg->hdr.size), PMU_DMEM_ALIGNMENT);
 	g->ops.sec2.msgq_tail(g, sec2, &tail, QUEUE_SET);
 
 	sec2_init = &msg->msg.init.sec2_init;

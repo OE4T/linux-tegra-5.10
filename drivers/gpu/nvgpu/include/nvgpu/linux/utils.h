@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,5 +22,7 @@
 
 /** User memory macro. */
 #define nvgpu_user	__user
+
+#define NVGPU_ALIGN	ALIGN
 
 #endif /* __NVGPU_UTILS_LINUX_H__ */

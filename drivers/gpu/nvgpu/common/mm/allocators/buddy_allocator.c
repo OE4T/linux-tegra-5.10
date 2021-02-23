@@ -114,7 +114,7 @@ static void balloc_compute_max_order(struct nvgpu_buddy_allocator *a)
  */
 static void balloc_allocator_align(struct nvgpu_buddy_allocator *a)
 {
-	a->start = ALIGN(a->base, a->blk_size);
+	a->start = NVGPU_ALIGN(a->base, a->blk_size);
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 10_3), "Bug 2277532")
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 14_4), "Bug 2277532")
 NVGPU_COV_WHITELIST_BLOCK_BEGIN(false_positive, 1, NVGPU_MISRA(Rule, 15_6), "Bug 2277532")

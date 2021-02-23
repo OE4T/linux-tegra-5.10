@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -423,7 +423,7 @@ int test_align_macros(struct unit_module *m,
 
 	test1 = ALIGN_TEST_VALUE;
 	result = ALIGN_WITH_VALUE;
-	test1 = ALIGN(test1, result);
+	test1 = NVGPU_ALIGN(test1, result);
 	if (test1 & (ALIGN_WITH_VALUE - 1)) {
 		unit_return_fail(m,
 			"ALIGN failure %x\n", test1);

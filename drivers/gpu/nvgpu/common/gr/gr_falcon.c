@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -244,7 +244,7 @@ static void nvgpu_gr_falcon_init_ctxsw_ucode_segment(
 	p_seg->offset = *offset;
 	p_seg->size = size;
 	ucode_offset = nvgpu_safe_add_u32(*offset, size);
-	*offset = ALIGN(ucode_offset, 256U);
+	*offset = NVGPU_ALIGN(ucode_offset, 256U);
 }
 
 static void nvgpu_gr_falcon_init_ctxsw_ucode_segments(
@@ -252,7 +252,7 @@ static void nvgpu_gr_falcon_init_ctxsw_ucode_segments(
 	struct nvgpu_ctxsw_bootloader_desc *bootdesc,
 	u32 code_size, u32 data_size)
 {
-	u32 boot_size = ALIGN(bootdesc->size, sizeof(u32));
+	u32 boot_size = NVGPU_ALIGN(bootdesc->size, sizeof(u32));
 
 	segments->boot_entry = bootdesc->entry_point;
 	segments->boot_imem_offset = bootdesc->imem_offset;

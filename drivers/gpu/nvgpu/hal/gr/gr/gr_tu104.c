@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -82,7 +82,7 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 		}
 
 		/* aligned to next 256 byte */
-		offset_in_segment = ALIGN(offset_in_segment, 256U);
+		offset_in_segment = NVGPU_ALIGN(offset_in_segment, 256U);
 
 		nvgpu_log(g, gpu_dbg_info | gpu_dbg_gpu_dbg,
 			"egpc etpc offset_in_segment 0x%#08x",

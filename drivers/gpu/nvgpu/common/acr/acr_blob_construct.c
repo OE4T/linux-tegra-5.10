@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -203,21 +203,21 @@ int nvgpu_acr_lsf_fecs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	}
 
 	p_img->desc->bootloader_start_offset = fecs->boot.offset;
-	p_img->desc->bootloader_size = ALIGN(fecs->boot.size,
+	p_img->desc->bootloader_size = NVGPU_ALIGN(fecs->boot.size,
 						LSF_DATA_SIZE_ALIGNMENT);
 	p_img->desc->bootloader_imem_offset = fecs->boot_imem_offset;
 	p_img->desc->bootloader_entry_point = fecs->boot_entry;
 
-	tmp_size = nvgpu_safe_add_u32(ALIGN(fecs->boot.size,
+	tmp_size = nvgpu_safe_add_u32(NVGPU_ALIGN(fecs->boot.size,
 						LSF_DATA_SIZE_ALIGNMENT),
-					ALIGN(fecs->code.size,
+					NVGPU_ALIGN(fecs->code.size,
 						LSF_DATA_SIZE_ALIGNMENT));
 	p_img->desc->image_size = nvgpu_safe_add_u32(tmp_size,
-						ALIGN(fecs->data.size,
+						NVGPU_ALIGN(fecs->data.size,
 						LSF_DATA_SIZE_ALIGNMENT));
-	p_img->desc->app_size = nvgpu_safe_add_u32(ALIGN(fecs->code.size,
+	p_img->desc->app_size = nvgpu_safe_add_u32(NVGPU_ALIGN(fecs->code.size,
 						LSF_DATA_SIZE_ALIGNMENT),
-						ALIGN(fecs->data.size,
+						NVGPU_ALIGN(fecs->data.size,
 						LSF_DATA_SIZE_ALIGNMENT));
 	p_img->desc->app_start_offset = fecs->code.offset;
 	p_img->desc->app_imem_offset = APP_IMEM_OFFSET;
@@ -312,42 +312,42 @@ int nvgpu_acr_lsf_gpccs_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 	}
 
 	p_img->desc->bootloader_start_offset = BL_START_OFFSET;
-	p_img->desc->bootloader_size = ALIGN(gpccs->boot.size,
+	p_img->desc->bootloader_size = NVGPU_ALIGN(gpccs->boot.size,
 						LSF_DATA_SIZE_ALIGNMENT);
 	p_img->desc->bootloader_imem_offset = gpccs->boot_imem_offset;
 	p_img->desc->bootloader_entry_point = gpccs->boot_entry;
 
-	tmp_size = nvgpu_safe_add_u32(ALIGN(gpccs->boot.size,
+	tmp_size = nvgpu_safe_add_u32(NVGPU_ALIGN(gpccs->boot.size,
 						LSF_DATA_SIZE_ALIGNMENT),
-					ALIGN(gpccs->code.size,
+					NVGPU_ALIGN(gpccs->code.size,
 						LSF_DATA_SIZE_ALIGNMENT));
 
 	p_img->desc->image_size = nvgpu_safe_add_u32(tmp_size,
-						ALIGN(gpccs->data.size,
+						NVGPU_ALIGN(gpccs->data.size,
 						LSF_DATA_SIZE_ALIGNMENT));
 	p_img->desc->app_size =
-			nvgpu_safe_add_u32(ALIGN(gpccs->code.size,
+			nvgpu_safe_add_u32(NVGPU_ALIGN(gpccs->code.size,
 						LSF_DATA_SIZE_ALIGNMENT),
-				ALIGN(gpccs->data.size,
+				NVGPU_ALIGN(gpccs->data.size,
 						LSF_DATA_SIZE_ALIGNMENT));
 	p_img->desc->app_start_offset = p_img->desc->bootloader_size;
 	p_img->desc->app_imem_offset = APP_IMEM_OFFSET;
 	p_img->desc->app_imem_entry = APP_IMEM_ENTRY;
 	p_img->desc->app_dmem_offset = APP_DMEM_OFFSET;
 	p_img->desc->app_resident_code_offset = APP_RESIDENT_CODE_OFFSET;
-	p_img->desc->app_resident_code_size = ALIGN(gpccs->code.size,
+	p_img->desc->app_resident_code_size = NVGPU_ALIGN(gpccs->code.size,
 						LSF_DATA_SIZE_ALIGNMENT);
 	p_img->desc->app_resident_data_offset =
-		nvgpu_safe_sub_u32(ALIGN(gpccs->data.offset,
+		nvgpu_safe_sub_u32(NVGPU_ALIGN(gpccs->data.offset,
 						LSF_DATA_SIZE_ALIGNMENT),
-			ALIGN(gpccs->code.offset,
+			NVGPU_ALIGN(gpccs->code.offset,
 					LSF_DATA_SIZE_ALIGNMENT));
-	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size,
+	p_img->desc->app_resident_data_size = NVGPU_ALIGN(gpccs->data.size,
 					LSF_DATA_SIZE_ALIGNMENT);
 	p_img->data = (u32 *)
 	(void *)((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon)
 				+ gpccs->boot.offset);
-	p_img->data_size = ALIGN(p_img->desc->image_size,
+	p_img->data_size = NVGPU_ALIGN(p_img->desc->image_size,
 					LSF_DATA_SIZE_ALIGNMENT);
 	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
 
@@ -480,15 +480,15 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 		 * the code following it is aligned, but the size in the image
 		 * desc is not, bloat it up to be on a 256 byte alignment.
 		 */
-		pnode->lsb_header.bl_code_size = ALIGN(
+		pnode->lsb_header.bl_code_size = NVGPU_ALIGN(
 			pnode->ucode_img.desc->bootloader_size,
 			LSF_BL_CODE_SIZE_ALIGNMENT);
 		full_app_size = nvgpu_safe_add_u32(
-				ALIGN(pnode->ucode_img.desc->app_size,
+				NVGPU_ALIGN(pnode->ucode_img.desc->app_size,
 					LSF_BL_CODE_SIZE_ALIGNMENT),
-				pnode->lsb_header.bl_code_size);
+					pnode->lsb_header.bl_code_size);
 
-		pnode->lsb_header.ucode_size = nvgpu_safe_add_u32(ALIGN(
+		pnode->lsb_header.ucode_size = nvgpu_safe_add_u32(NVGPU_ALIGN(
 				pnode->ucode_img.desc->app_resident_data_offset,
 				LSF_BL_CODE_SIZE_ALIGNMENT),
 					pnode->lsb_header.bl_code_size);
@@ -715,7 +715,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 	 */
 	while (pnode != NULL) {
 		/* Align, save off, and include an LSB header size */
-		wpr_offset = ALIGN(wpr_offset, LSF_LSB_HEADER_ALIGNMENT);
+		wpr_offset = NVGPU_ALIGN(wpr_offset, LSF_LSB_HEADER_ALIGNMENT);
 		pnode->wpr_header.lsb_offset = wpr_offset;
 		wpr_offset = nvgpu_safe_add_u32(wpr_offset,
 					(u32)sizeof(struct lsf_lsb_header));
@@ -724,7 +724,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 		 * Align, save off, and include the original (static)ucode
 		 * image size
 		 */
-		wpr_offset = ALIGN(wpr_offset, LSF_UCODE_DATA_ALIGNMENT);
+		wpr_offset = NVGPU_ALIGN(wpr_offset, LSF_UCODE_DATA_ALIGNMENT);
 		pnode->lsb_header.ucode_off = wpr_offset;
 		wpr_offset = nvgpu_safe_add_u32(wpr_offset,
 						pnode->ucode_img.data_size);
@@ -743,13 +743,13 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 		 * generic one, which is the largest it will will ever be.
 		 */
 		/* Align (size bloat) and save off generic descriptor size*/
-		pnode->lsb_header.bl_data_size = ALIGN(
+		pnode->lsb_header.bl_data_size = NVGPU_ALIGN(
 			nvgpu_safe_cast_u64_to_u32(
 					sizeof(pnode->bl_gen_desc)),
 			LSF_BL_DATA_SIZE_ALIGNMENT);
 
 		/*Align, save off, and include the additional BL data*/
-		wpr_offset = ALIGN(wpr_offset, LSF_BL_DATA_ALIGNMENT);
+		wpr_offset = NVGPU_ALIGN(wpr_offset, LSF_BL_DATA_ALIGNMENT);
 		pnode->lsb_header.bl_data_off = wpr_offset;
 		wpr_offset = nvgpu_safe_add_u32(wpr_offset,
 					pnode->lsb_header.bl_data_size);

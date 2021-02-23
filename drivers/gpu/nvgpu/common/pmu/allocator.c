@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@ void nvgpu_pmu_allocator_dmem_init(struct gk20a *g,
 	if (!nvgpu_alloc_initialized(dmem)) {
 		/* Align start and end addresses */
 		u32 start =
-			ALIGN(U32(fw_ops->get_init_msg_sw_mngd_area_off(init)),
+			NVGPU_ALIGN(U32(fw_ops->get_init_msg_sw_mngd_area_off(init)),
 			PMU_DMEM_ALLOC_ALIGNMENT);
 		u32 end = (U32(fw_ops->get_init_msg_sw_mngd_area_off(init)) +
 			U32(fw_ops->get_init_msg_sw_mngd_area_size(init))) &

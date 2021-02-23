@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 
 void gv100_gr_hwpm_map_align_regs_perf_pma(u32 *offset)
 {
-	*offset = ALIGN(*offset, 256U);
+	*offset = NVGPU_ALIGN(*offset, 256U);
 }
 
 u32 gv100_gr_hwpm_map_get_active_fbpa_mask(struct gk20a *g)

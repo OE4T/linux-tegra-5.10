@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -703,7 +703,7 @@ u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 			gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v(),
 			max_tpc)));
 
-	size = ALIGN(size, 128U);
+	size = NVGPU_ALIGN(size, 128U);
 
 	return size;
 }
@@ -915,7 +915,7 @@ u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 	/*
 	 * Align to 4K size
 	 */
-	size = ALIGN(size, slot_size);
+	size = NVGPU_ALIGN(size, slot_size);
 
 	/*
 	 * Increase the size to accommodate for additional TPC partition update

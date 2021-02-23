@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,7 +70,7 @@ static bool engine_mem_queue_has_room(struct nvgpu_engine_mem_queue *queue,
 	bool q_rewind = false;
 	int err = 0;
 
-	size = ALIGN(size, QUEUE_ALIGNMENT);
+	size = NVGPU_ALIGN(size, QUEUE_ALIGNMENT);
 
 	err = mem_queue_get_head_tail(queue, &q_head, &q_tail);
 	if (err != 0) {
@@ -117,7 +117,7 @@ static int engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 			goto exit;
 		} else {
 			queue->position += nvgpu_safe_cast_u32_to_u8(
-				ALIGN(U32(cmd.hdr.size), QUEUE_ALIGNMENT));
+				NVGPU_ALIGN(U32(cmd.hdr.size), QUEUE_ALIGNMENT));
 			nvgpu_log_info(g, "flcn-%d queue-%d, rewinded",
 			queue->flcn_id, queue->id);
 		}
@@ -207,7 +207,7 @@ int nvgpu_engine_mem_queue_push(struct nvgpu_falcon *flcn,
 		goto unlock_mutex;
 	}
 
-	queue->position += ALIGN(size, QUEUE_ALIGNMENT);
+	queue->position += NVGPU_ALIGN(size, QUEUE_ALIGNMENT);
 
 	err = queue->head(g, queue->id, queue->index,
 			  &queue->position, QUEUE_SET);
@@ -279,7 +279,7 @@ int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
 		goto unlock_mutex;
 	}
 
-	queue->position += ALIGN(size, QUEUE_ALIGNMENT);
+	queue->position += NVGPU_ALIGN(size, QUEUE_ALIGNMENT);
 
 	err = queue->tail(g, queue->id, queue->index,
 			  &queue->position, QUEUE_SET);

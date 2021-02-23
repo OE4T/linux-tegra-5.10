@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -202,7 +202,7 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 	 * PD must have mem_offs be 0 for the invalidate code to work, so we
 	 * can't use the PD cache.
 	 */
-	pdb_size = ALIGN(pd_get_size(&vm->mmu_levels[0], &attrs), NVGPU_CPU_PAGE_SIZE);
+	pdb_size = NVGPU_ALIGN(pd_get_size(&vm->mmu_levels[0], &attrs), NVGPU_CPU_PAGE_SIZE);
 
 	err = nvgpu_pd_cache_alloc_direct(vm->mm->g, &vm->pdb, pdb_size);
 	if (err != 0) {
@@ -227,7 +227,7 @@ static u64 nvgpu_align_map_length(struct vm_gk20a *vm, u64 length,
 {
 	u64 page_size = vm->gmmu_page_sizes[attrs->pgsz];
 
-	return ALIGN(length, page_size);
+	return NVGPU_ALIGN(length, page_size);
 }
 
 static u32 pd_entries(const struct gk20a_mmu_level *l,

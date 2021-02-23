@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -359,6 +359,6 @@ u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v(),
 			max_tpc));
 
-	return ALIGN(size, 128U);
+	return NVGPU_ALIGN(size, 128U);
 }
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -101,14 +101,14 @@ int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	}
 
 	p_img->desc->bootloader_start_offset = fecs->boot.offset;
-	p_img->desc->bootloader_size = ALIGN(fecs->boot.size, 256U);
+	p_img->desc->bootloader_size = NVGPU_ALIGN(fecs->boot.size, 256U);
 	p_img->desc->bootloader_imem_offset = fecs->boot_imem_offset;
 	p_img->desc->bootloader_entry_point = fecs->boot_entry;
 
-	p_img->desc->image_size = ALIGN(fecs->boot.size, 256U) +
-		ALIGN(fecs->code.size, 256U) + ALIGN(fecs->data.size, 256U);
-	p_img->desc->app_size = ALIGN(fecs->code.size, 256U) +
-					ALIGN(fecs->data.size, 256U);
+	p_img->desc->image_size = NVGPU_ALIGN(fecs->boot.size, 256U) +
+		NVGPU_ALIGN(fecs->code.size, 256U) + NVGPU_ALIGN(fecs->data.size, 256U);
+	p_img->desc->app_size = NVGPU_ALIGN(fecs->code.size, 256U) +
+					NVGPU_ALIGN(fecs->data.size, 256U);
 	p_img->desc->app_start_offset = fecs->code.offset;
 	p_img->desc->app_imem_offset = 0;
 	p_img->desc->app_imem_entry = 0;
@@ -168,28 +168,29 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 
 	p_img->desc->bootloader_start_offset =
 		0;
-	p_img->desc->bootloader_size = ALIGN(gpccs->boot.size, 256U);
+	p_img->desc->bootloader_size = NVGPU_ALIGN(gpccs->boot.size, 256U);
 	p_img->desc->bootloader_imem_offset = gpccs->boot_imem_offset;
 	p_img->desc->bootloader_entry_point = gpccs->boot_entry;
 
-	p_img->desc->image_size = ALIGN(gpccs->boot.size, 256U) +
-		ALIGN(gpccs->code.size, 256U) + ALIGN(gpccs->data.size, 256U);
-	p_img->desc->app_size =
-		ALIGN(gpccs->code.size, 256U) + ALIGN(gpccs->data.size, 256U);
+	p_img->desc->image_size = NVGPU_ALIGN(gpccs->boot.size, 256U) +
+		NVGPU_ALIGN(gpccs->code.size, 256U) +
+		NVGPU_ALIGN(gpccs->data.size, 256U);
+	p_img->desc->app_size = NVGPU_ALIGN(gpccs->code.size, 256U) +
+		NVGPU_ALIGN(gpccs->data.size, 256U);
 	p_img->desc->app_start_offset = p_img->desc->bootloader_size;
 	p_img->desc->app_imem_offset = 0;
 	p_img->desc->app_imem_entry = 0;
 	p_img->desc->app_dmem_offset = 0;
 	p_img->desc->app_resident_code_offset = 0;
-	p_img->desc->app_resident_code_size = ALIGN(gpccs->code.size, 256U);
+	p_img->desc->app_resident_code_size = NVGPU_ALIGN(gpccs->code.size, 256U);
 	p_img->desc->app_resident_data_offset =
-		ALIGN(gpccs->data.offset, 256U) -
-		ALIGN(gpccs->code.offset, 256U);
-	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size, 256U);
+		NVGPU_ALIGN(gpccs->data.offset, 256U) -
+		NVGPU_ALIGN(gpccs->code.offset, 256U);
+	p_img->desc->app_resident_data_size = NVGPU_ALIGN(gpccs->data.size, 256U);
 	p_img->data = (u32 *)
 		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(gr_falcon) +
 							gpccs->boot.offset);
-	p_img->data_size = ALIGN(p_img->desc->image_size, 256U);
+	p_img->data_size = NVGPU_ALIGN(p_img->desc->image_size, 256U);
 	p_img->lsf_desc = (struct lsf_ucode_desc_v0 *)lsf_desc;
 	nvgpu_acr_dbg(g, "gpccs fw loaded\n");
 	nvgpu_release_firmware(g, gpccs_sig);
@@ -226,13 +227,13 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	 * the code following it is aligned, but the size in the image
 	 * desc is not, bloat it up to be on a 256 byte alignment.
 	 */
-	pnode->lsb_header.bl_code_size = ALIGN(
+	pnode->lsb_header.bl_code_size = NVGPU_ALIGN(
 		pnode->ucode_img.desc->bootloader_size,
 		LSF_BL_CODE_SIZE_ALIGNMENT);
-	full_app_size = ALIGN(pnode->ucode_img.desc->app_size,
+	full_app_size = NVGPU_ALIGN(pnode->ucode_img.desc->app_size,
 		LSF_BL_CODE_SIZE_ALIGNMENT) +
 		pnode->lsb_header.bl_code_size;
-	pnode->lsb_header.ucode_size = ALIGN(
+	pnode->lsb_header.ucode_size = NVGPU_ALIGN(
 		pnode->ucode_img.desc->app_resident_data_offset,
 		LSF_BL_CODE_SIZE_ALIGNMENT) +
 		pnode->lsb_header.bl_code_size;
@@ -362,7 +363,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr_v0 *plsf
 	 */
 	while (pnode != NULL) {
 		/* Align, save off, and include an LSB header size */
-		wpr_offset = ALIGN(wpr_offset, LSF_LSB_HEADER_ALIGNMENT);
+		wpr_offset = NVGPU_ALIGN(wpr_offset, LSF_LSB_HEADER_ALIGNMENT);
 		pnode->wpr_header.lsb_offset = wpr_offset;
 		wpr_offset += (u32)sizeof(struct lsf_lsb_header_v0);
 
@@ -370,7 +371,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr_v0 *plsf
 		 * Align, save off, and include the original (static)
 		 * ucode image size
 		 */
-		wpr_offset = ALIGN(wpr_offset,
+		wpr_offset = NVGPU_ALIGN(wpr_offset,
 			LSF_UCODE_DATA_ALIGNMENT);
 		pnode->lsb_header.ucode_off = wpr_offset;
 		wpr_offset += pnode->ucode_img.data_size;
@@ -389,12 +390,12 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr_v0 *plsf
 		 * generic one, which is the largest it will will ever be.
 		 */
 		/* Align (size bloat) and save off generic descriptor size */
-		pnode->lsb_header.bl_data_size = ALIGN(
+		pnode->lsb_header.bl_data_size = NVGPU_ALIGN(
 			(u32)sizeof(pnode->bl_gen_desc),
 			LSF_BL_DATA_SIZE_ALIGNMENT);
 
 		/* Align, save off, and include the additional BL data */
-		wpr_offset = ALIGN(wpr_offset,
+		wpr_offset = NVGPU_ALIGN(wpr_offset,
 			LSF_BL_DATA_ALIGNMENT);
 		pnode->lsb_header.bl_data_off = wpr_offset;
 		wpr_offset += pnode->lsb_header.bl_data_size;

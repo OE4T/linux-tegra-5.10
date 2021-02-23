@@ -261,7 +261,7 @@ u64 nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx)
 	}
 
 	/* Be certain we round up to page_size if needed */
-	size = ALIGN(size, page_size);
+	size = NVGPU_ALIGN(size, page_size);
 
 	addr = nvgpu_alloc_pte(vma, size, page_size);
 	if (addr == 0ULL) {
@@ -1402,7 +1402,7 @@ static int nvgpu_vm_new_mapping(struct vm_gk20a *vm,
 					min_t(u64, binfo_ptr->size, align));
 	}
 	map_size = (map_size != 0ULL) ? map_size : binfo_ptr->size;
-	map_size = ALIGN(map_size, SZ_4K);
+	map_size = NVGPU_ALIGN(map_size, SZ_4K);
 
 	if ((map_size > binfo_ptr->size) ||
 	    (phys_offset > (binfo_ptr->size - map_size))) {

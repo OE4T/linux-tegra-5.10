@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -269,7 +269,7 @@
  *
  * @return Returns \a x aligned with the value mentioned in \a a.
  */
-#define ALIGN(x, a)							\
+#define NVGPU_ALIGN(x, a)							\
 	__builtin_choose_expr(						\
 		(IS_UNSIGNED_TYPE(x) && IS_UNSIGNED_TYPE(a)),		\
 		__builtin_choose_expr(					\
@@ -288,7 +288,7 @@
  *
  * @return Returns \a x aligned with the page size value.
  */
-#define PAGE_ALIGN(x)		ALIGN(x, PAGE_SIZE)
+#define PAGE_ALIGN(x)		NVGPU_ALIGN(x, PAGE_SIZE)
 
 /**
  * @brief Convert hertz to kilo hertz.

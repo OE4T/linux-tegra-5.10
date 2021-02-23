@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -389,7 +389,7 @@ static int pmu_process_init_msg_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
 		goto exit;
 	}
 
-	tail += ALIGN(U32(msg->hdr.size), PMU_DMEM_ALIGNMENT);
+	tail += NVGPU_ALIGN(U32(msg->hdr.size), PMU_DMEM_ALIGNMENT);
 	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_SET);
 
 exit:

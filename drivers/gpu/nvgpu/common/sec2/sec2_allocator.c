@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@ int nvgpu_sec2_dmem_allocator_init(struct gk20a *g,
 	int err = 0;
 	if (!nvgpu_alloc_initialized(dmem)) {
 		/* Align start and end addresses */
-		u32 start = ALIGN(sec2_init->nv_managed_area_offset,
+		u32 start = NVGPU_ALIGN(sec2_init->nv_managed_area_offset,
 			PMU_DMEM_ALLOC_ALIGNMENT);
 
 		u32 end = (sec2_init->nv_managed_area_offset +

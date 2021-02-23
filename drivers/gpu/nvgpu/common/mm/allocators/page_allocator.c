@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -664,7 +664,7 @@ static struct nvgpu_page_alloc *nvgpu_alloc_pages(
 	u64 pages;
 	u32 i = 0;
 
-	pages = ALIGN(len, a->page_size) >> a->page_shift;
+	pages = NVGPU_ALIGN(len, a->page_size) >> a->page_shift;
 
 	alloc = do_nvgpu_alloc_pages(a, pages);
 	if (alloc == NULL) {
@@ -839,7 +839,7 @@ static u64 nvgpu_page_palloc_fixed(struct nvgpu_allocator *na,
 	u64 aligned_len, pages;
 	u32 i = 0;
 
-	aligned_len = ALIGN(len, a->page_size);
+	aligned_len = NVGPU_ALIGN(len, a->page_size);
 	pages = aligned_len >> a->page_shift;
 
 	alloc_lock(na);

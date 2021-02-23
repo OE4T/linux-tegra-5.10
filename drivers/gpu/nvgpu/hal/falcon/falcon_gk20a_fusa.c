@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -203,7 +203,7 @@ NVGPU_COV_WHITELIST(deviate, NVGPU_MISRA(Rule, 11_3), "TID-415")
 		nvgpu_falcon_writel(flcn, falcon_falcon_dmemd_r(port), data);
 	}
 
-	size = ALIGN(size, 4U);
+	size = NVGPU_ALIGN(size, 4U);
 	data = nvgpu_falcon_readl(flcn, falcon_falcon_dmemc_r(port)) &
 		addr_mask;
 	if (data != (nvgpu_safe_add_u32(dst, size) & addr_mask)) {

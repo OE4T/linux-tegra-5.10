@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -320,7 +320,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 			}
 		}
 
-		*offset = ALIGN(*offset, 256U);
+		*offset = NVGPU_ALIGN(*offset, 256U);
 
 		base = (g->ops.perf.get_pmmgpc_per_chiplet_offset() * gpc_num);
 		if (add_ctxsw_buffer_map_entries(map,
@@ -329,7 +329,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		*offset = ALIGN(*offset, 256U);
+		*offset = NVGPU_ALIGN(*offset, 256U);
 	}
 	return 0;
 }
@@ -446,7 +446,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add entries from _LIST_nv_perf_sys_control_ctx_reg*/
 	if (nvgpu_netlist_get_perf_sys_control_ctxsw_regs(g)->count > 0U) {
-		offset = ALIGN(offset, 256U);
+		offset = NVGPU_ALIGN(offset, 256U);
 
 		ret = add_ctxsw_buffer_map_entries(map,
 			nvgpu_netlist_get_perf_sys_control_ctxsw_regs(g),
@@ -469,7 +469,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 		goto cleanup;
 	}
 
-	offset = ALIGN(offset, 256U);
+	offset = NVGPU_ALIGN(offset, 256U);
 
 	/* Add entries from _LIST_nv_perf_pma_control_ctx_reg*/
 	ret = add_ctxsw_buffer_map_entries(map,
@@ -479,7 +479,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 		goto cleanup;
 	}
 
-	offset = ALIGN(offset, 256U);
+	offset = NVGPU_ALIGN(offset, 256U);
 
 	/* Add entries from _LIST_nv_perf_fbp_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
@@ -529,7 +529,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 		goto cleanup;
 	}
 
-	offset = ALIGN(offset, 256U);
+	offset = NVGPU_ALIGN(offset, 256U);
 
 	/* Add entries from _LIST_nv_perf_fbp_control_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
@@ -541,7 +541,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 		goto cleanup;
 	}
 
-	offset = ALIGN(offset, 256U);
+	offset = NVGPU_ALIGN(offset, 256U);
 
 	/* Add GPC entries */
 	if (add_ctxsw_buffer_map_entries_gpcs(g, map, &count, &offset,
