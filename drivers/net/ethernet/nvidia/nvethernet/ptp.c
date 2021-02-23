@@ -33,7 +33,7 @@ static DEFINE_RAW_SPINLOCK(ether_ts_lock);
 static inline u64 ether_get_ptptime(void *data)
 {
 	struct ether_priv_data *pdata = data;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	unsigned long flags;
 	unsigned long long ns;
 	unsigned int sec, nsec;
@@ -41,7 +41,7 @@ static inline u64 ether_get_ptptime(void *data)
 
 	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
-	ret = osi_get_systime_from_mac(osi_core, &sec, &nsec);
+	ret = osi_dma_get_systime_from_mac(osi_dma, &sec, &nsec);
 	if (ret != 0) {
 		dev_err(pdata->dev, "%s: Failed to read systime from MAC %d\n",
 			__func__, ret);
@@ -144,14 +144,20 @@ static int ether_get_time(struct ptp_clock_info *ptp, struct timespec64 *ts)
 	struct ether_priv_data *pdata = container_of(ptp,
 						     struct ether_priv_data,
 						     ptp_clock_ops);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	unsigned int sec, nsec;
 	unsigned long flags;
+	int ret = 0;
 
 	raw_spin_lock_irqsave(&pdata->ptp_lock, flags);
 
-	osi_get_systime_from_mac(osi_core, &sec, &nsec);
-
+	ret = osi_dma_get_systime_from_mac(osi_dma, &sec, &nsec);
+	if (ret < 0) {
+		dev_err(pdata->dev, "%s: Failed to read systime from MAC %d\n",
+                        __func__, ret);
+		raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
+		return ret;
+	}
 	raw_spin_unlock_irqrestore(&pdata->ptp_lock, flags);
 
 	ts->tv_sec = sec;
@@ -484,7 +490,7 @@ int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 			       struct ifreq *ifr)
 {
 	struct ifr_data_timestamp_struct req;
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	unsigned long flags;
 	unsigned int sec, nsec;
 	int ret = -1;
@@ -515,7 +521,7 @@ int ether_handle_priv_ts_ioctl(struct ether_priv_data *pdata,
 		dev_err(pdata->dev, "Unsupported clockid\n");
 	}
 
-	ret = osi_get_systime_from_mac(osi_core, &sec, &nsec);
+	ret = osi_dma_get_systime_from_mac(osi_dma, &sec, &nsec);
 	if (ret != 0) {
 		dev_err(pdata->dev, "%s: Failed to read systime from MAC %d\n",
 			__func__, ret);
