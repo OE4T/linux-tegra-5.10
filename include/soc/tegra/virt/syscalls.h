@@ -97,8 +97,10 @@ struct ivc_info_page {
 			// sizeof(struct ivc_info_page ) to 64 bits
 	uint64_t trap_region_base_ipa; /**< @brief MMIO trap region start address */
 	uint64_t trap_region_size; /**< @brief MMIO trap region size */
-	uint64_t msi_region_base_ipa; /**< @brief MSI region start address */
-	uint64_t msi_region_size; /**< @brief MSI trap region size */
+	uint64_t trap_ipa_stride; /**< @brief MMIO trap IPA stride size */
+	uint64_t msi_region_base_ipa; /**< @brief MMIO msi region start address */
+	uint64_t msi_region_size; /**< @brief MMIO msi region size */
+	uint64_t msi_ipa_stride; /**< @brief MMIO msi IPA stride size */
 
 	/* The actual length of this array is nr_areas. */
 	struct ivc_shared_area areas[];
