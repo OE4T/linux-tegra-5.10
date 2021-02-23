@@ -212,6 +212,7 @@ struct sdhci_tegra_soc_data {
 	u32 nvquirks;
 	u8 min_tap_delay;
 	u8 max_tap_delay;
+	bool use_bwmgr;
 };
 
 /* Magic pull up and pull down pad calibration offsets */
@@ -2071,6 +2072,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra20 = {
 	.dma_mask = DMA_BIT_MASK(32),
 	.nvquirks = NVQUIRK_FORCE_SDHCI_SPEC_200 |
 		    NVQUIRK_ENABLE_BLOCK_GAP_DET,
+	.use_bwmgr = false,
 };
 
 static const struct sdhci_pltfm_data sdhci_tegra30_pdata = {
@@ -2100,6 +2102,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra30 = {
 		    NVQUIRK_ENABLE_SDR50 |
 		    NVQUIRK_ENABLE_SDR104 |
 		    NVQUIRK_HAS_PADCALIB,
+	.use_bwmgr = false,
 };
 
 static const struct sdhci_ops tegra114_sdhci_ops = {
@@ -2131,6 +2134,7 @@ static const struct sdhci_pltfm_data sdhci_tegra114_pdata = {
 static const struct sdhci_tegra_soc_data soc_data_tegra114 = {
 	.pdata = &sdhci_tegra114_pdata,
 	.dma_mask = DMA_BIT_MASK(32),
+	.use_bwmgr = false,
 };
 
 static const struct sdhci_pltfm_data sdhci_tegra124_pdata = {
@@ -2147,6 +2151,7 @@ static const struct sdhci_pltfm_data sdhci_tegra124_pdata = {
 static const struct sdhci_tegra_soc_data soc_data_tegra124 = {
 	.pdata = &sdhci_tegra124_pdata,
 	.dma_mask = DMA_BIT_MASK(34),
+	.use_bwmgr = false,
 };
 
 static const struct sdhci_ops tegra210_sdhci_ops = {
@@ -2193,6 +2198,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra210 = {
 		    NVQUIRK_HAS_TMCLK,
 	.min_tap_delay = 106,
 	.max_tap_delay = 185,
+	.use_bwmgr = true,
 };
 
 static const struct sdhci_ops tegra186_sdhci_ops = {
@@ -2236,6 +2242,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra186 = {
 		    NVQUIRK_CQHCI_DCMD_R1B_CMD_TIMING,
 	.min_tap_delay = 84,
 	.max_tap_delay = 136,
+	.use_bwmgr = true,
 };
 
 static const struct sdhci_tegra_soc_data soc_data_tegra194 = {
@@ -2251,6 +2258,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra194 = {
 		    NVQUIRK_HAS_TMCLK,
 	.min_tap_delay = 96,
 	.max_tap_delay = 139,
+	.use_bwmgr = true,
 };
 
 static const struct sdhci_tegra_soc_data soc_data_tegra234 = {
@@ -2264,6 +2272,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra234 = {
 		    NVQUIRK_SDMMC_CLK_OVERRIDE |
 		    NVQUIRK_ENABLE_SDR104 |
 		    NVQUIRK_HAS_TMCLK,
+	.use_bwmgr = false,
 };
 
 
@@ -2429,6 +2438,21 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 		goto err_power_req;
 	}
 
+	if (!tegra_host->skip_clk_rst && tegra_host->soc_data->use_bwmgr) {
+		tegra_host->emc_clk =
+			tegra_bwmgr_register(sdmmc_emc_client_id[tegra_host->instance]);
+
+		if (tegra_host->emc_clk == ERR_PTR(-EAGAIN)) {
+			rc = -EPROBE_DEFER;
+			goto err_power_req;
+		}
+		if (IS_ERR_OR_NULL(tegra_host->emc_clk))
+			dev_err(mmc_dev(host->mmc),
+				"BWMGR client registration for eMC failed\n");
+		else
+			dev_info(mmc_dev(host->mmc),
+				"BWMGR client registration for eMC Successful\n");
+	}
 	/*
 	 * Tegra210 has a separate SDMMC_LEGACY_TM clock used for host
 	 * timeout clock and SW can choose TMCLK or SDCLK for hardware
@@ -2475,16 +2499,6 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 		}
 		clk_prepare_enable(clk);
 		pltfm_host->clk = clk;
-
-		tegra_host->emc_clk =
-			tegra_bwmgr_register(sdmmc_emc_client_id[tegra_host->instance]);
-
-		if (IS_ERR_OR_NULL(tegra_host->emc_clk))
-			dev_err(mmc_dev(host->mmc),
-				"Client registration for eMC failed\n");
-		else
-			dev_info(mmc_dev(host->mmc),
-				"Client registration for eMC Successful\n");
 
 		tegra_host->rst = devm_reset_control_get_exclusive(&pdev->dev,
 							   "sdhci");
@@ -2633,7 +2647,8 @@ static int sdhci_tegra_runtime_suspend(struct device *dev)
 	/* Disable SDMMC internal clock */
 	sdhci_set_clock(host, 0);
 
-	if (tegra_host->emc_clk && !tegra_host->skip_clk_rst) {
+	if (tegra_host->soc_data->use_bwmgr && tegra_host->emc_clk &&
+		!tegra_host->skip_clk_rst) {
 		ret = tegra_bwmgr_set_emc(tegra_host->emc_clk, 0,
 						TEGRA_BWMGR_SET_EMC_SHARED_BW);
 		if (ret) {
@@ -2683,7 +2698,8 @@ static int sdhci_tegra_runtime_resume(struct device *dev)
 	if (host->mmc->caps2 & MMC_CAP2_CQE)
 		ret = cqhci_resume(host->mmc);
 
-	if (tegra_host->emc_clk && !tegra_host->skip_clk_rst) {
+	if (tegra_host->soc_data->use_bwmgr && tegra_host->emc_clk &&
+		!tegra_host->skip_clk_rst) {
 		ret = tegra_bwmgr_set_emc(tegra_host->emc_clk, SDMMC_EMC_MAX_FREQ,
 					TEGRA_BWMGR_SET_EMC_SHARED_BW);
 		if (ret)
