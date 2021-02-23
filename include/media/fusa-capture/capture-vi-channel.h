@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -99,6 +99,7 @@ struct tegra_vi_channel {
 	struct vi_capture *capture_data; /**< VI channel capture context */
 	const struct vi_channel_drv_ops *ops; /**< VI syncpt/gos fops */
 	struct device *rtcpu_dev; /**< rtcpu device */
+	bool is_stream_opened; /**< Whether the NVCSI stream is opened */
 };
 
 /**
