@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0
-CONFIG_DRM_TEGRA_NEXT := m
+
+srctree.tegra-drm := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+
 ccflags-$(CONFIG_DRM_TEGRA_DEBUG) += -DDEBUG
 ccflags-y += -I$(srctree.tegra-drm)/include
+ccflags-y += -I$(srctree.host1x)/include
 
 tegra-drm-next-y := \
 	drm.o \
@@ -28,4 +31,4 @@ tegra-drm-next-y := \
 	falcon.o \
 	vic.o
 
-obj-$(CONFIG_DRM_TEGRA_NEXT) += tegra-drm-next.o
+obj-m := tegra-drm-next.o
