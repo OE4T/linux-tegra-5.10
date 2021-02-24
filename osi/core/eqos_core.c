@@ -24,6 +24,7 @@
 #include <osi_core.h>
 #include "eqos_core.h"
 #include "eqos_mmc.h"
+#include "core_local.h"
 
 /**
  * @brief eqos_core_safety_config - EQOS MAC core safety configuration
@@ -3922,12 +3923,6 @@ static nve32_t eqos_config_arp_offload(
 	nve32_t mac_mcr;
 	nve32_t val;
 
-	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "arp_offload: invalid input\n", 0ULL);
-		return -1;
-	}
-
 	mac_mcr = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
 
 	if (enable == OSI_ENABLE) {
@@ -4294,11 +4289,6 @@ static nve32_t eqos_config_mac_loopback(
 	nveu32_t mcr_val;
 	void *addr = osi_core->base;
 
-	/* don't allow only if loopback mode is other than 0 or 1 */
-	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
-		return -1;
-	}
-
 	/* Read MAC Configuration Register */
 	mcr_val = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
 
@@ -4475,68 +4465,54 @@ void *eqos_get_core_safety_config(void)
 	return &eqos_core_safety_config;
 }
 
-/**
- * @brief eqos_get_hw_core_ops - EQOS MAC get core operations
- *
- * @note
- * API Group:
- * - Initialization: Yes
- * - Run time: No
- * - De-initialization: No
- */
-struct osi_core_ops *eqos_get_hw_core_ops(void)
+void eqos_init_core_ops(struct core_ops *ops)
 {
-	static struct osi_core_ops eqos_core_ops = {
-		.poll_for_swr = eqos_poll_for_swr,
-		.core_init = eqos_core_init,
-		.core_deinit = eqos_core_deinit,
-		.start_mac = eqos_start_mac,
-		.stop_mac = eqos_stop_mac,
-		.handle_common_intr = eqos_handle_common_intr,
-		.set_mode = eqos_set_mode,
-		.set_speed = eqos_set_speed,
-		.pad_calibrate = eqos_pad_calibrate,
-		.config_fw_err_pkts = eqos_config_fw_err_pkts,
-		.config_rxcsum_offload = eqos_config_rxcsum_offload,
-		.config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg,
-		.update_mac_addr_low_high_reg =
-					 eqos_update_mac_addr_low_high_reg,
-		.config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable,
-		.config_l3_filters = eqos_config_l3_filters,
-		.update_ip4_addr = eqos_update_ip4_addr,
-		.update_ip6_addr = eqos_update_ip6_addr,
-		.config_l4_filters = eqos_config_l4_filters,
-		.update_l4_port_no = eqos_update_l4_port_no,
-		.set_systime_to_mac = eqos_set_systime_to_mac,
-		.config_addend = eqos_config_addend,
-		.adjust_mactime = eqos_adjust_mactime,
-		.config_tscr = eqos_config_tscr,
-		.config_ssir = eqos_config_ssir,
-		.read_mmc = eqos_read_mmc,
-		.write_phy_reg = eqos_write_phy_reg,
-		.read_phy_reg = eqos_read_phy_reg,
-		.read_reg = eqos_read_reg,
-		.write_reg = eqos_write_reg,
-		.get_hw_features = eqos_get_hw_features,
+	ops->poll_for_swr = eqos_poll_for_swr;
+	ops->core_init = eqos_core_init;
+	ops->core_deinit = eqos_core_deinit;
+	ops->start_mac = eqos_start_mac;
+	ops->stop_mac = eqos_stop_mac;
+	ops->handle_common_intr = eqos_handle_common_intr;
+	ops->set_mode = eqos_set_mode;
+	ops->set_speed = eqos_set_speed;
+	ops->pad_calibrate = eqos_pad_calibrate;
+	ops->config_fw_err_pkts = eqos_config_fw_err_pkts;
+	ops->config_rxcsum_offload = eqos_config_rxcsum_offload;
+	ops->config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg;
+	ops->update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg;
+	ops->config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable;
+	ops->config_l3_filters = eqos_config_l3_filters;
+	ops->update_ip4_addr = eqos_update_ip4_addr;
+	ops->update_ip6_addr = eqos_update_ip6_addr;
+	ops->config_l4_filters = eqos_config_l4_filters;
+	ops->update_l4_port_no = eqos_update_l4_port_no;
+	ops->set_systime_to_mac = eqos_set_systime_to_mac;
+	ops->config_addend = eqos_config_addend;
+	ops->adjust_mactime = eqos_adjust_mactime;
+	ops->config_tscr = eqos_config_tscr;
+	ops->config_ssir = eqos_config_ssir;
+	ops->read_mmc = eqos_read_mmc;
+	ops->write_phy_reg = eqos_write_phy_reg;
+	ops->read_phy_reg = eqos_read_phy_reg;
+	ops->read_reg = eqos_read_reg;
+	ops->write_reg = eqos_write_reg;
+	ops->get_hw_features = eqos_get_hw_features;
 #ifndef OSI_STRIPPED_LIB
-		.config_tx_status = eqos_config_tx_status,
-		.config_rx_crc_check = eqos_config_rx_crc_check,
-		.config_flow_control = eqos_config_flow_control,
-		.config_arp_offload = eqos_config_arp_offload,
-		.validate_regs = eqos_validate_core_regs,
-		.flush_mtl_tx_queue = eqos_flush_mtl_tx_queue,
-		.set_avb_algorithm = eqos_set_avb_algorithm,
-		.get_avb_algorithm = eqos_get_avb_algorithm,
-		.config_vlan_filtering = eqos_config_vlan_filtering,
-		.update_vlan_id = eqos_update_vlan_id,
-		.reset_mmc = eqos_reset_mmc,
-		.configure_eee = eqos_configure_eee,
-		.save_registers = eqos_save_registers,
-		.restore_registers = eqos_restore_registers,
-		.set_mdc_clk_rate = eqos_set_mdc_clk_rate,
-		.config_mac_loopback = eqos_config_mac_loopback,
+	ops->config_tx_status = eqos_config_tx_status;
+	ops->config_rx_crc_check = eqos_config_rx_crc_check;
+	ops->config_flow_control = eqos_config_flow_control;
+	ops->config_arp_offload = eqos_config_arp_offload;
+	ops->validate_regs = eqos_validate_core_regs;
+	ops->flush_mtl_tx_queue = eqos_flush_mtl_tx_queue;
+	ops->set_avb_algorithm = eqos_set_avb_algorithm;
+	ops->get_avb_algorithm = eqos_get_avb_algorithm;
+	ops->config_vlan_filtering = eqos_config_vlan_filtering;
+	ops->update_vlan_id = eqos_update_vlan_id;
+	ops->reset_mmc = eqos_reset_mmc;
+	ops->configure_eee = eqos_configure_eee;
+	ops->save_registers = eqos_save_registers;
+	ops->restore_registers = eqos_restore_registers;
+	ops->set_mdc_clk_rate = eqos_set_mdc_clk_rate;
+	ops->config_mac_loopback = eqos_config_mac_loopback;
 #endif /* !OSI_STRIPPED_LIB */
-	};
-
-	return &eqos_core_ops;
 }

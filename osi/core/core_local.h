@@ -20,82 +20,219 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef CORE_LOCAL_INCLUDED
-#define CORE_LOCAL_INCLUDED
+#ifndef INCLUDED_CORE_LOCAL_H
+#define INCLUDED_CORE_LOCAL_H
+
 #include <osi_core.h>
 
 /**
- * @brief osi_read_reg - Read a MAC register.
+ * @brief Initialize MAC & MTL core operations.
+ */
+struct core_ops {
+	/** Called to poll for software reset bit */
+	nve32_t (*poll_for_swr)(struct osi_core_priv_data *const osi_core);
+	/** Called to initialize MAC and MTL registers */
+	nve32_t (*core_init)(struct osi_core_priv_data *const osi_core,
+			     const nveu32_t tx_fifo_size,
+			     const nveu32_t rx_fifo_size);
+	/** Called to deinitialize MAC and MTL registers */
+	void (*core_deinit)(struct osi_core_priv_data *const osi_core);
+	/**  Called to start MAC Tx and Rx engine */
+	void (*start_mac)(struct osi_core_priv_data *const osi_core);
+	/** Called to stop MAC Tx and Rx engine */
+	void (*stop_mac)(struct osi_core_priv_data *const osi_core);
+	/** Called to handle common interrupt */
+	void (*handle_common_intr)(struct osi_core_priv_data *const osi_core);
+	/** Called to set the mode at MAC (full/duplex) */
+	nve32_t (*set_mode)(struct osi_core_priv_data *const osi_core,
+			    const nve32_t mode);
+	/** Called to set the speed (10/100/1000) at MAC */
+	void (*set_speed)(struct osi_core_priv_data *const osi_core,
+			  const nve32_t speed);
+	/** Called to do pad caliberation */
+	nve32_t (*pad_calibrate)(struct osi_core_priv_data *const osi_core);
+	/** Called to configure MTL RxQ to forward the err pkt */
+	nve32_t (*config_fw_err_pkts)(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t qinx,
+				      const nveu32_t fw_err);
+	/** Called to configure Rx Checksum offload engine */
+	nve32_t (*config_rxcsum_offload)(
+				struct osi_core_priv_data *const osi_core,
+				const nveu32_t enabled);
+	/** Called to config mac packet filter */
+	nve32_t (*config_mac_pkt_filter_reg)(
+				struct osi_core_priv_data *const osi_core,
+				const struct osi_filter *filter);
+	/** Called to update MAC address 1-127 */
+	nve32_t (*update_mac_addr_low_high_reg)(
+				struct osi_core_priv_data *const osi_core,
+				const struct osi_filter *filter);
+	/** Called to configure l3/L4 filter */
+	nve32_t (*config_l3_l4_filter_enable)(
+				struct osi_core_priv_data *const osi_core,
+				const nveu32_t enable);
+	/** Called to configure L3 filter */
+	nve32_t (*config_l3_filters)(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t filter_no,
+				     const nveu32_t enb_dis,
+				     const nveu32_t ipv4_ipv6_match,
+				     const nveu32_t src_dst_addr_match,
+				     const nveu32_t perfect_inverse_match,
+				     const nveu32_t dma_routing_enable,
+				     const nveu32_t dma_chan);
+	/** Called to update ip4 src or desc address */
+	nve32_t (*update_ip4_addr)(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t filter_no,
+				   const nveu8_t addr[],
+				   const nveu32_t src_dst_addr_match);
+	/** Called to update ip6 address */
+	nve32_t (*update_ip6_addr)(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t filter_no,
+				   const nveu16_t addr[]);
+	/** Called to configure L4 filter */
+	nve32_t (*config_l4_filters)(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t filter_no,
+				     const nveu32_t enb_dis,
+				     const nveu32_t tcp_udp_match,
+				     const nveu32_t src_dst_port_match,
+				     const nveu32_t perfect_inverse_match,
+				     const nveu32_t dma_routing_enable,
+				     const nveu32_t dma_chan);
+	/** Called to update L4 Port for filter packet */
+	nve32_t (*update_l4_port_no)(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t filter_no,
+				     const nveu16_t port_no,
+				     const nveu32_t src_dst_port_match);
+	/** Called to set the addend value to adjust the time */
+	nve32_t (*config_addend)(struct osi_core_priv_data *const osi_core,
+				 const nveu32_t addend);
+	/** Called to adjust the mac time */
+	nve32_t (*adjust_mactime)(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t sec,
+				  const nveu32_t nsec,
+				  const nveu32_t neg_adj,
+				  const nveu32_t one_nsec_accuracy);
+	/** Called to set current system time to MAC */
+	nve32_t (*set_systime_to_mac)(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t sec,
+				      const nveu32_t nsec);
+	/** Called to configure the TimeStampControl register */
+	void (*config_tscr)(struct osi_core_priv_data *const osi_core,
+			    const nveu32_t ptp_filter);
+	/** Called to configure the sub second increment register */
+	void (*config_ssir)(struct osi_core_priv_data *const osi_core);
+	/** Called to update MMC counter from HW register */
+	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
+	/** Called to write into a PHY reg over MDIO bus */
+	nve32_t (*write_phy_reg)(struct osi_core_priv_data *const osi_core,
+				 const nveu32_t phyaddr,
+				 const nveu32_t phyreg,
+				 const nveu16_t phydata);
+	/** Called to read from a PHY reg over MDIO bus */
+	nve32_t (*read_phy_reg)(struct osi_core_priv_data *const osi_core,
+				const nveu32_t phyaddr,
+				const nveu32_t phyreg);
+	/** Called to read reg */
+	nveu32_t (*read_reg)(struct osi_core_priv_data *const osi_core,
+			     const nve32_t reg);
+	/** Called to write reg */
+	nveu32_t (*write_reg)(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t val,
+			      const nve32_t reg);
+#ifndef OSI_STRIPPED_LIB
+	/** Called periodically to read and validate safety critical
+	 * registers against last written value */
+	nve32_t (*validate_regs)(struct osi_core_priv_data *const osi_core);
+	/** Called to flush MTL Tx queue */
+	nve32_t (*flush_mtl_tx_queue)(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t qinx);
+	/** Called to set av parameter */
+	nve32_t (*set_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+			   const struct osi_core_avb_algorithm *const avb);
+	/** Called to get av parameter */
+	nve32_t (*get_avb_algorithm)(struct osi_core_priv_data *const osi_core,
+				     struct osi_core_avb_algorithm *const avb);
+	/** Called to configure the MTL to forward/drop tx status */
+	nve32_t (*config_tx_status)(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t tx_status);
+	/** Called to configure the MAC rx crc */
+	nve32_t (*config_rx_crc_check)(
+				     struct osi_core_priv_data *const osi_core,
+				     const nveu32_t crc_chk);
+	/** Called to configure the MAC flow control */
+	nve32_t (*config_flow_control)(
+				     struct osi_core_priv_data *const osi_core,
+				     const nveu32_t flw_ctrl);
+	/** Called to enable/disable HW ARP offload feature */
+	nve32_t (*config_arp_offload)(struct osi_core_priv_data *const osi_core,
+				      const nveu32_t enable,
+				      const nveu8_t *ip_addr);
+	/** Called to configure VLAN filtering */
+	nve32_t (*config_vlan_filtering)(
+				     struct osi_core_priv_data *const osi_core,
+				     const nveu32_t filter_enb_dis,
+				     const nveu32_t perfect_hash_filtering,
+				     const nveu32_t perfect_inverse_match);
+	/** called to update VLAN id */
+	nve32_t (*update_vlan_id)(struct osi_core_priv_data *const osi_core,
+				  const nveu32_t vid);
+	/** Called to reset MMC HW counter structure */
+	void (*reset_mmc)(struct osi_core_priv_data *const osi_core);
+	/** Called to configure EEE Tx LPI */
+	void (*configure_eee)(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t tx_lpi_enabled,
+			      const nveu32_t tx_lpi_timer);
+	/** Called to save MAC register space during SoC suspend */
+	nve32_t (*save_registers)(struct osi_core_priv_data *const osi_core);
+	/** Called to restore MAC control registers during SoC resume */
+	nve32_t (*restore_registers)(struct osi_core_priv_data *const osi_core);
+	/** Called to set MDC clock rate for MDIO operation */
+	void (*set_mdc_clk_rate)(struct osi_core_priv_data *const osi_core,
+				 const nveu64_t csr_clk_rate);
+	/** Called to configure MAC in loopback mode */
+	nve32_t (*config_mac_loopback)(
+				struct osi_core_priv_data *const osi_core,
+				const nveu32_t lb_mode);
+#endif /* !OSI_STRIPPED_LIB */
+	/** Called to get HW features */
+	nve32_t (*get_hw_features)(struct osi_core_priv_data *const osi_core,
+				   struct osi_hw_features *hw_feat);
+};
+
+
+/**
+ * @brief Core local data structure.
+ */
+struct core_local {
+	/** Core local operations variable */
+	struct core_ops ops;
+	/** Flag to represent initialization done or not */
+	unsigned int init_done;
+};
+
+/**
+ * @brief eqos_init_core_ops - Initialize EQOS core operations.
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] addr: MAC register
- *
- * @note
- * Traceability Details: TODO
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @param[in] ops: Core operations pointer.
  *
  * @note
  * API Group:
  * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: Yes
- *
- * @retval data from MAC register on success
- * @retval -1 on failure
+ * - Run time: No
+ * - De-initialization: No
  */
-static inline nveu32_t osi_read_reg(struct osi_core_priv_data *const osi_core,
-		const nve32_t addr)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->read_reg != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL)) {
-		return osi_core->ops->read_reg(osi_core, addr);
-	}
-
-	return 0;
-}
+void eqos_init_core_ops(struct core_ops *ops);
 
 /**
- * @brief osi_write_reg - Write a MAC register.
+ * @brief ivc_init_core_ops - Initialize IVC core operations.
  *
- * @param[in] osi_core: OSI core private data structure.
- * @param[in] val: MAC register value
- * @param[in] addr: MAC register
- *
- * @note
- * Traceability Details: TODO
- *
- * @note
- * Classification:
- * - Interrupt: No
- * - Signal handler: No
- * - Thread safe: No
- * - Required Privileges: None
+ * @param[in] ops: Core operations pointer.
  *
  * @note
  * API Group:
- * - Initialization: No
- * - Run time: Yes
+ * - Initialization: Yes
+ * - Run time: No
  * - De-initialization: No
- *
- * @retval data from MAC register on success
- * @retval -1 on failure
  */
-static inline nveu32_t osi_write_reg(struct osi_core_priv_data *const osi_core,
-		const nveu32_t val, const nve32_t addr)
-{
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->write_reg != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL)) {
-		return osi_core->ops->write_reg(osi_core, val, addr);
-	}
-
-	return 0;
-}
-#endif /* CORE_LOCAL_INCLUDED */
+void ivc_init_core_ops(struct core_ops *ops);
+#endif /* INCLUDED_CORE_LOCAL_H */

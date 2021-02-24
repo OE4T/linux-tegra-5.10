@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -191,14 +191,4 @@ nve32_t osd_ivc_send_cmd(void *priv, void *data, nveu32_t len);
  * - De-initialization: Yes
  */
 void *ivc_get_core_safety_config(void);
-
-/**
- * @brief ivc_get_hw_core_ops - Get hw core operations
- *
- * API Group:
- * - Initialization: Yes
- * - Run time: Yes
- * - De-initialization: Yes
- */
-struct osi_core_ops *ivc_get_hw_core_ops(void);
 #endif /* IVC_CORE_H */
