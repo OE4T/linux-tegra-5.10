@@ -188,7 +188,7 @@ void tu104_gr_init_cau(struct gk20a *g)
 	u32 i, j;
 
 	num_cau = gr_gpcs_tpcs_cau_control__size_1_v();
-	cau_stride = gr_gpcs_tpcs_cau_control_r(1) - gr_gpcs_tpcs_cau_control_r(0);
+	cau_stride = g->ops.regops.get_cau_register_stride();
 
 	data = g->ops.gr.get_hwpm_cau_init_data(&count);
 
