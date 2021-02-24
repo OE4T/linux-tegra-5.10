@@ -242,6 +242,10 @@ struct hda_codec {
 	unsigned int single_adc_amp:1; /* adc in-amp takes no index
 					* (e.g. CX20549 codec)
 					*/
+	unsigned int hdmi_intr_trig_ctrl:1; /* hdmi interrupt trigger
+					     * control bit
+					     * (e.g. Nvidia codecs)
+					     */
 	unsigned int no_sticky_stream:1; /* no sticky-PCM stream assignment */
 	unsigned int pins_shutup:1;	/* pins are shut up */
 	unsigned int no_trigger_sense:1; /* don't trigger at pin-sensing */
