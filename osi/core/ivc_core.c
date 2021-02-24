@@ -25,6 +25,7 @@
 #include <ivc_core.h>
 #include "eqos_core.h"
 #include "eqos_mmc.h"
+#include "core_local.h"
 
 /**
  * @brief ivc_safety_config - EQOS MAC core safety configuration
@@ -1420,56 +1421,64 @@ static nve32_t ivc_config_mac_loopback(
 					  sizeof(msg_common));
 }
 #endif
+
 /**
- * @brief ivc_ops - EQOS MAC core operations
+ * @brief ivc_init_core_ops - Initialize IVC core operations.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
  */
-static struct osi_core_ops ivc_ops = {
-	.poll_for_swr = ivc_poll_for_swr,
-	.core_init = ivc_core_init,
-	.core_deinit = ivc_core_deinit,
-	.start_mac = ivc_start_mac,
-	.stop_mac = ivc_stop_mac,
-	.handle_common_intr = ivc_handle_common_intr,
-	.set_mode = ivc_set_mode,
-	.set_speed = ivc_set_speed,
-	.pad_calibrate = ivc_pad_calibrate,
-	.config_fw_err_pkts = ivc_config_fw_err_pkts,
-	.config_rxcsum_offload = ivc_config_rxcsum_offload,
-	.config_mac_pkt_filter_reg = ivc_config_mac_pkt_filter_reg,
-	.update_mac_addr_low_high_reg = ivc_update_mac_addr_low_high_reg,
-	.config_l3_l4_filter_enable = ivc_config_l3_l4_filter_enable,
-	.config_l3_filters = ivc_config_l3_filters,
-	.update_ip4_addr = ivc_update_ip4_addr,
-	.update_ip6_addr = ivc_update_ip6_addr,
-	.config_l4_filters = ivc_config_l4_filters,
-	.update_l4_port_no = ivc_update_l4_port_no,
-	.set_systime_to_mac = ivc_set_systime_to_mac,
-	.config_addend = ivc_config_addend,
-	.adjust_mactime = ivc_adjust_mactime,
-	.config_tscr = ivc_config_tscr,
-	.config_ssir = ivc_config_ssir,
-	.read_mmc = ivc_read_mmc,
-	.write_phy_reg = ivc_write_phy_reg,
-	.read_phy_reg = ivc_read_phy_reg,
-	.read_reg = ivc_read_reg,
-	.write_reg = ivc_write_reg,
+void ivc_init_core_ops(struct core_ops *ops)
+{
+	ops->poll_for_swr = ivc_poll_for_swr;
+	ops->core_init = ivc_core_init;
+	ops->core_deinit = ivc_core_deinit;
+	ops->start_mac = ivc_start_mac;
+	ops->stop_mac = ivc_stop_mac;
+	ops->handle_common_intr = ivc_handle_common_intr;
+	ops->set_mode = ivc_set_mode;
+	ops->set_speed = ivc_set_speed;
+	ops->pad_calibrate = ivc_pad_calibrate;
+	ops->config_fw_err_pkts = ivc_config_fw_err_pkts;
+	ops->config_rxcsum_offload = ivc_config_rxcsum_offload;
+	ops->config_mac_pkt_filter_reg = ivc_config_mac_pkt_filter_reg;
+	ops->update_mac_addr_low_high_reg = ivc_update_mac_addr_low_high_reg;
+	ops->config_l3_l4_filter_enable = ivc_config_l3_l4_filter_enable;
+	ops->config_l3_filters = ivc_config_l3_filters;
+	ops->update_ip4_addr = ivc_update_ip4_addr;
+	ops->update_ip6_addr = ivc_update_ip6_addr;
+	ops->config_l4_filters = ivc_config_l4_filters;
+	ops->update_l4_port_no = ivc_update_l4_port_no;
+	ops->set_systime_to_mac = ivc_set_systime_to_mac;
+	ops->config_addend = ivc_config_addend;
+	ops->adjust_mactime = ivc_adjust_mactime;
+	ops->config_tscr = ivc_config_tscr;
+	ops->config_ssir = ivc_config_ssir;
+	ops->read_mmc = ivc_read_mmc;
+	ops->write_phy_reg = ivc_write_phy_reg;
+	ops->read_phy_reg = ivc_read_phy_reg;
+	ops->read_reg = ivc_read_reg;
+	ops->write_reg = ivc_write_reg;
 #ifndef OSI_STRIPPED_LIB
-	.config_tx_status = ivc_config_tx_status,
-	.config_rx_crc_check = ivc_config_rx_crc_check,
-	.config_flow_control = ivc_config_flow_control,
-	.config_arp_offload = ivc_config_arp_offload,
-	.validate_regs = ivc_validate_core_regs,
-	.flush_mtl_tx_queue = ivc_flush_mtl_tx_queue,
-	.set_avb_algorithm = ivc_set_avb_algorithm,
-	.get_avb_algorithm = ivc_get_avb_algorithm,
-	.config_vlan_filtering = ivc_config_vlan_filtering,
-	.update_vlan_id = ivc_update_vlan_id,
-	.reset_mmc = ivc_reset_mmc,
-	.configure_eee = ivc_configure_eee,
-	.save_registers = ivc_save_registers,
-	.restore_registers = ivc_restore_registers,
-	.set_mdc_clk_rate = ivc_set_mdc_clk_rate,
-	.config_mac_loopback = ivc_config_mac_loopback,
+	ops->config_tx_status = ivc_config_tx_status;
+	ops->config_rx_crc_check = ivc_config_rx_crc_check;
+	ops->config_flow_control = ivc_config_flow_control;
+	ops->config_arp_offload = ivc_config_arp_offload;
+	ops->validate_regs = ivc_validate_core_regs;
+	ops->flush_mtl_tx_queue = ivc_flush_mtl_tx_queue;
+	ops->set_avb_algorithm = ivc_set_avb_algorithm;
+	ops->get_avb_algorithm = ivc_get_avb_algorithm;
+	ops->config_vlan_filtering = ivc_config_vlan_filtering;
+	ops->update_vlan_id = ivc_update_vlan_id;
+	ops->reset_mmc = ivc_reset_mmc;
+	ops->configure_eee = ivc_configure_eee;
+	ops->save_registers = ivc_save_registers;
+	ops->restore_registers = ivc_restore_registers;
+	ops->set_mdc_clk_rate = ivc_set_mdc_clk_rate;
+	ops->config_mac_loopback = ivc_config_mac_loopback;
 #endif /* !OSI_STRIPPED_LIB */
 };
 
@@ -1479,12 +1488,4 @@ static struct osi_core_ops ivc_ops = {
 void *ivc_get_core_safety_config(void)
 {
 	return &ivc_safety_config;
-}
-
-/**
- * @brief ivc_get_hw_core_ops - EQOS MAC get core operations
- */
-struct osi_core_ops *ivc_get_hw_core_ops(void)
-{
-	return &ivc_ops;
 }

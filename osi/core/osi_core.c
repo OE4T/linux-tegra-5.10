@@ -24,29 +24,99 @@
 #include <ivc_core.h>
 #include "core_local.h"
 
+/**
+ * @brief g_core - Static core local data variable
+ */
+static struct core_local g_core = {
+	.init_done = OSI_DISABLE,
+};
+
+/**
+ * @brief ops_p - Pointer local core operations.
+ */
+static struct core_ops *ops_p = &g_core.ops;
+
+/**
+ * @brief Function to validate input arguments of API.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static inline nve32_t validate_args(struct osi_core_priv_data *const osi_core)
+{
+	if ((osi_core == OSI_NULL) || (osi_core->base == OSI_NULL) ||
+	    (g_core.init_done == OSI_DISABLE)) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Function to validate function pointers.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core)
+{
+	nveu32_t i = 0;
+#if __SIZEOF_POINTER__ == 8
+	nveu64_t *l_ops = (nveu64_t *)ops_p;
+#elif __SIZEOF_POINTER__ == 4
+	nveu32_t *l_ops = (nveu32_t *)ops_p;
+#else
+	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		     "Undefined architecture\n", 0ULL);
+	return -1;
+#endif
+
+	for (i = 0; i < (sizeof(*ops_p) / __SIZEOF_POINTER__); i++) {
+		if (*l_ops == 0) {
+			return -1;
+		}
+
+		l_ops++;
+	}
+
+	return 0;
+}
+
 nve32_t osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
 			  const nveu32_t phyaddr, const nveu32_t phyreg,
 			  const nveu16_t phydata)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->write_phy_reg != OSI_NULL)) {
-		return osi_core->ops->write_phy_reg(osi_core,
-						    phyaddr, phyreg, phydata);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
-	return -1;
+
+	return ops_p->write_phy_reg(osi_core, phyaddr, phyreg, phydata);
 }
 
 nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
 			 const nveu32_t phyaddr, const nveu32_t phyreg)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->read_phy_reg != OSI_NULL)) {
-		return osi_core->ops->read_phy_reg(osi_core, phyaddr, phyreg);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->read_phy_reg(osi_core, phyaddr, phyreg);
 }
 
 nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
@@ -64,173 +134,170 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 		return -1;
 	}
 
-	if (osi_core->mac == OSI_MAC_HW_EQOS) {
-		if (osi_core->use_virtualization == OSI_DISABLE) {
-			/* Get EQOS HW ops */
-			osi_core->ops = eqos_get_hw_core_ops();
-			/* Explicitly set osi_core->safety_config = OSI_NULL if
-			 * a particular MAC version does not need SW safety
-			 * mechanisms like periodic read-verify.
-			 */
-			osi_core->safety_config =
-					(void *)eqos_get_core_safety_config();
-		} else {
-			/* Get IVC HW ops */
-			osi_core->ops = ivc_get_hw_core_ops();
-			/* Explicitly set osi_core->safety_config = OSI_NULL if
-			 * a particular MAC version does not need SW safety
-			 * mechanisms like periodic read-verify.
-			 */
-			osi_core->safety_config =
-					(void *)ivc_get_core_safety_config();
-		}
-		return 0;
+	if (osi_core->mac != OSI_MAC_HW_EQOS) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid MAC HW type\n", 0ULL);
+		return -1;
 	}
 
-	return -1;
+	if (osi_core->use_virtualization == OSI_DISABLE) {
+		/* Get EQOS HW core ops */
+		eqos_init_core_ops(ops_p);
+		/* Explicitly set osi_core->safety_config = OSI_NULL if
+		 * a particular MAC version does not need SW safety
+		 * mechanisms like periodic read-verify.
+		 */
+		osi_core->safety_config =
+			(void *)eqos_get_core_safety_config();
+	} else {
+		/* Get IVC HW core ops */
+		ivc_init_core_ops(ops_p);
+		/* Explicitly set osi_core->safety_config = OSI_NULL if
+		 * a particular MAC version does not need SW safety
+		 * mechanisms like periodic read-verify.
+		 */
+		osi_core->safety_config =
+			(void *)ivc_get_core_safety_config();
+	}
+
+	if (validate_func_ptrs(osi_core) < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "core: function ptrs validation failed\n", 0ULL);
+		return -1;
+	}
+
+	g_core.init_done = OSI_ENABLE;
+
+	return 0;
+
 }
 
 nve32_t osi_poll_for_mac_reset_complete(
 			struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->poll_for_swr != OSI_NULL)) {
-		return osi_core->ops->poll_for_swr(osi_core);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->poll_for_swr(osi_core);
 }
 
 nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core,
 			 nveu32_t tx_fifo_size, nveu32_t rx_fifo_size)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->core_init != OSI_NULL)) {
-		return osi_core->ops->core_init(osi_core, tx_fifo_size,
-						rx_fifo_size);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->core_init(osi_core, tx_fifo_size, rx_fifo_size);
 }
 
 nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->core_deinit != OSI_NULL)) {
-		osi_core->ops->core_deinit(osi_core);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	ops_p->core_deinit(osi_core);
+
+	return 0;
 }
 
 nve32_t osi_start_mac(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->start_mac != OSI_NULL)) {
-		osi_core->ops->start_mac(osi_core);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	ops_p->start_mac(osi_core);
+
+	return 0;
 }
 
 nve32_t osi_stop_mac(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->stop_mac != OSI_NULL)) {
-		osi_core->ops->stop_mac(osi_core);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	ops_p->stop_mac(osi_core);
+
+	return 0;
 }
 
 nve32_t osi_common_isr(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->handle_common_intr != OSI_NULL)) {
-		osi_core->ops->handle_common_intr(osi_core);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	ops_p->handle_common_intr(osi_core);
+
+	return 0;
 }
 
 nve32_t osi_set_mode(struct osi_core_priv_data *const osi_core,
 		     const nve32_t mode)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->set_mode != OSI_NULL)) {
-		return osi_core->ops->set_mode(osi_core, mode);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->set_mode(osi_core, mode);
 }
 
 nve32_t osi_set_speed(struct osi_core_priv_data *const osi_core,
 		      const nve32_t speed)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->set_speed != OSI_NULL)) {
-		osi_core->ops->set_speed(osi_core, speed);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	ops_p->set_speed(osi_core, speed);
+
+	return 0;
 }
 
 nve32_t osi_pad_calibrate(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->pad_calibrate != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL)) {
-		return osi_core->ops->pad_calibrate(osi_core);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->pad_calibrate(osi_core);
 }
 
 nve32_t osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t qinx, const nveu32_t fw_err)
 {
-	/* Configure Forwarding of Error packets */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->config_fw_err_pkts != OSI_NULL)) {
-		return osi_core->ops->config_fw_err_pkts(osi_core,
-							 qinx, fw_err);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	/* Configure Forwarding of Error packets */
+	return ops_p->config_fw_err_pkts(osi_core, qinx, fw_err);
 }
 
 nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 		      const struct osi_filter *filter)
 {
-	struct osi_core_ops *op;
 	nve32_t ret = -1;
 
-	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL) ||
-	    (osi_core->base == OSI_NULL) || (filter == OSI_NULL)) {
-		return ret;
+	if ((validate_args(osi_core) < 0) || (filter == OSI_NULL)) {
+		return -1;
 	}
 
-	op = osi_core->ops;
+	if (filter == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "CORE: filter is NULL\n", 0ULL);
+		return -1;
+	}
 
-	if ((op->config_mac_pkt_filter_reg != OSI_NULL)) {
-		ret = op->config_mac_pkt_filter_reg(osi_core, filter);
-	} else {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "op->config_mac_pkt_filter_reg is null\n", 0ULL);
+	ret = ops_p->config_mac_pkt_filter_reg(osi_core, filter);
+	if (ret < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "failed to configure MAC packet filter register\n",
+			     0ULL);
 		return ret;
 	}
 
@@ -246,14 +313,7 @@ nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 			return ret;
 		}
 
-		if ((op->update_mac_addr_low_high_reg != OSI_NULL)) {
-			ret = op->update_mac_addr_low_high_reg(osi_core,
-								filter);
-		} else {
-			OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-				      "op->update_mac_addr_low_high_reg is null\n",
-				      0ULL);
-		}
+		ret = ops_p->update_mac_addr_low_high_reg(osi_core, filter);
 	}
 
 	return ret;
@@ -286,36 +346,26 @@ static inline nve32_t helper_l4_filter(
 				   nveu32_t dma_routing_enable,
 				   nveu32_t dma_chan)
 {
-	struct osi_core_ops *op = osi_core->ops;
+	nve32_t ret = 0;
 
-	if (op->config_l4_filters != OSI_NULL) {
-		if (op->config_l4_filters(osi_core,
-					  l_filter.filter_no,
-					  l_filter.filter_enb_dis,
-					  type,
-					  l_filter.src_dst_addr_match,
-					  l_filter.perfect_inverse_match,
-					  dma_routing_enable,
-					  dma_chan) < 0) {
-			return -1;
-		}
-	} else {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "op->config_l4_filters is NULL\n", 0ULL);
-		return -1;
+	ret = ops_p->config_l4_filters(osi_core,
+				    l_filter.filter_no,
+				    l_filter.filter_enb_dis,
+				    type,
+				    l_filter.src_dst_addr_match,
+				    l_filter.perfect_inverse_match,
+				    dma_routing_enable,
+				    dma_chan);
+	if (ret < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "failed to configure L4 filters\n", 0ULL);
+		return ret;
 	}
 
-	if (op->update_l4_port_no != OSI_NULL) {
-		return op->update_l4_port_no(osi_core,
-					     l_filter.filter_no,
-					     l_filter.port_no,
-					     l_filter.src_dst_addr_match);
-	} else {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "op->update_l4_port_no is NULL\n", 0ULL);
-		return -1;
-	}
-
+	return ops_p->update_l4_port_no(osi_core,
+				     l_filter.filter_no,
+				     l_filter.port_no,
+				     l_filter.src_dst_addr_match);
 }
 
 /**
@@ -345,48 +395,32 @@ static inline nve32_t helper_l3_filter(
 				   nveu32_t dma_routing_enable,
 				   nveu32_t dma_chan)
 {
-	struct osi_core_ops *op = osi_core->ops;
+	nve32_t ret = 0;
 
-	if ((op->config_l3_filters != OSI_NULL)) {
-		if (op->config_l3_filters(osi_core,
-					  l_filter.filter_no,
-					  l_filter.filter_enb_dis,
-					  type,
-					  l_filter.src_dst_addr_match,
-					  l_filter.perfect_inverse_match,
-					  dma_routing_enable,
-					  dma_chan) < 0) {
-			return -1;
-		}
-	} else {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "op->config_l3_filters is NULL\n", 0ULL);
-		return -1;
+	ret = ops_p->config_l3_filters(osi_core,
+				    l_filter.filter_no,
+				    l_filter.filter_enb_dis,
+				    type,
+				    l_filter.src_dst_addr_match,
+				    l_filter.perfect_inverse_match,
+				    dma_routing_enable,
+				    dma_chan);
+	if (ret < 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "failed to configure L3 filters\n", 0ULL);
+		return ret;
 	}
 
 	if (type == OSI_IP6_FILTER) {
-		if (op->update_ip6_addr != OSI_NULL) {
-			return op->update_ip6_addr(osi_core, l_filter.filter_no,
+		ret = ops_p->update_ip6_addr(osi_core, l_filter.filter_no,
 					  l_filter.ip6_addr);
-		} else {
-			OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-				      "op->update_ip6_addr is NULL\n", 0ULL);
-			return -1;
-		}
 	} else if (type == OSI_IP4_FILTER) {
-		if (op->update_ip4_addr != OSI_NULL) {
-			return op->update_ip4_addr(osi_core,
-						   l_filter.filter_no,
-						   l_filter.ip4_addr,
-						   l_filter.src_dst_addr_match);
-		} else {
-			OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-				      "op->update_ip4_addr is NULL\n", 0ULL);
-			return -1;
-		}
-	} else {
-		return -1;
+		ret = ops_p->update_ip4_addr(osi_core, l_filter.filter_no,
+					  l_filter.ip4_addr,
+					  l_filter.src_dst_addr_match);
 	}
+
+	return ret;
 }
 
 nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
@@ -396,9 +430,8 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 {
 	nve32_t ret = -1;
 
-	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL) ||
-	    (osi_core->base == OSI_NULL)) {
-		return ret;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
 	if ((dma_routing_enable == OSI_ENABLE) &&
@@ -423,21 +456,10 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 		return ret;
 	}
 
-	if (osi_core->ops->config_l3_l4_filter_enable != OSI_NULL) {
-		if (osi_core->l3l4_filter_bitmask != OSI_DISABLE) {
-			ret = osi_core->ops->config_l3_l4_filter_enable(
-								osi_core,
-								OSI_ENABLE);
-		} else {
-			ret = osi_core->ops->config_l3_l4_filter_enable(
-								osi_core,
-								OSI_DISABLE);
-		}
-
+	if (osi_core->l3l4_filter_bitmask != OSI_DISABLE) {
+		ret = ops_p->config_l3_l4_filter_enable(osi_core, OSI_ENABLE);
 	} else {
-		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_INVALID,
-			      "op->config_l3_l4_filter_enable is NULL\n", 0ULL);
-		ret = -1;
+		ret = ops_p->config_l3_l4_filter_enable(osi_core, OSI_DISABLE);
 	}
 
 	return ret;
@@ -446,28 +468,21 @@ nve32_t osi_l3l4_filter(struct osi_core_priv_data *const osi_core,
 nve32_t osi_config_rxcsum_offload(struct osi_core_priv_data *const osi_core,
 				  const nveu32_t enable)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->config_rxcsum_offload != OSI_NULL)) {
-		return osi_core->ops->config_rxcsum_offload(osi_core,
-							    enable);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->config_rxcsum_offload(osi_core, enable);
 }
 
 nve32_t osi_set_systime_to_mac(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t sec, const nveu32_t nsec)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->set_systime_to_mac != OSI_NULL)) {
-		return osi_core->ops->set_systime_to_mac(osi_core,
-							 sec,
-							 nsec);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->set_systime_to_mac(osi_core, sec, nsec);
 }
 
 /**
@@ -505,8 +520,8 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 	nve32_t ret = -1;
 	nve32_t ppb1 = ppb;
 
-	if (osi_core == OSI_NULL) {
-		return ret;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
 	addend = osi_core->default_addend;
@@ -550,15 +565,7 @@ nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_t ppb)
 		}
 	}
 
-	if ((osi_core->ops != OSI_NULL) && (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->config_addend != OSI_NULL)) {
-		return osi_core->ops->config_addend(osi_core, addend);
-	}
-
-	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "core: Invalid argument\n",
-		     0ULL);
-
-	return ret;
+	return ops_p->config_addend(osi_core, addend);
 }
 
 nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
@@ -572,8 +579,8 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	nve32_t ret = -1;
 	nvel64_t nsec_delta1 = nsec_delta;
 
-	if (osi_core == OSI_NULL) {
-		return ret;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
 	if (nsec_delta1 < 0) {
@@ -592,6 +599,7 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 			     "quotient > UINT_MAX\n", 0ULL);
 		return ret;
 	}
+
 	if (reminder <= UINT_MAX) {
 		nsec = (nveu32_t)reminder;
 	} else {
@@ -600,17 +608,8 @@ nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 		return ret;
 	}
 
-	if ((osi_core->ops != OSI_NULL) && (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->adjust_mactime != OSI_NULL)) {
-		return osi_core->ops->adjust_mactime(osi_core, sec, nsec,
-					neg_adj,
-					osi_core->ptp_config.one_nsec_accuracy);
-	}
-
-	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "core: Invalid argument\n",
-		     0ULL);
-
-	return ret;
+	return ops_p->adjust_mactime(osi_core, sec, nsec, neg_adj,
+				     osi_core->ptp_config.one_nsec_accuracy);
 }
 
 nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
@@ -620,26 +619,20 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 	nveu64_t temp = 0, temp1 = 0, temp2 = 0;
 	nveu64_t ssinc = 0;
 
-	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL) ||
-	    (osi_core->base == OSI_NULL) ||
-	    (osi_core->ops->config_tscr == OSI_NULL) ||
-	    (osi_core->ops->config_ssir == OSI_NULL) ||
-	    (osi_core->ops->config_addend == OSI_NULL) ||
-	    (osi_core->ops->set_systime_to_mac == OSI_NULL)) {
+	if (validate_args(osi_core) < 0) {
 		return -1;
 	}
 
 	if (enable == OSI_DISABLE) {
 		/* disable hw time stamping */
 		/* Program MAC_Timestamp_Control Register */
-		osi_core->ops->config_tscr(osi_core, OSI_DISABLE);
+		ops_p->config_tscr(osi_core, OSI_DISABLE);
 	} else {
 		/* Program MAC_Timestamp_Control Register */
-		osi_core->ops->config_tscr(osi_core,
-					   osi_core->ptp_config.ptp_filter);
+		ops_p->config_tscr(osi_core, osi_core->ptp_config.ptp_filter);
 
 		/* Program Sub Second Increment Register */
-		osi_core->ops->config_ssir(osi_core);
+		ops_p->config_ssir(osi_core);
 
 		/* formula for calculating addend value is
 		 * TSAR = (2^32 * 1000) / (ptp_ref_clk_rate in MHz * SSINC)
@@ -671,14 +664,13 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		}
 
 		/* Program addend value */
-		ret = osi_core->ops->config_addend(osi_core,
-					osi_core->default_addend);
+		ret = ops_p->config_addend(osi_core, osi_core->default_addend);
 
 		/* Set current time */
 		if (ret == 0) {
-			ret = osi_core->ops->set_systime_to_mac(osi_core,
-						osi_core->ptp_config.sec,
-						osi_core->ptp_config.nsec);
+			ret = ops_p->set_systime_to_mac(osi_core,
+						     osi_core->ptp_config.sec,
+						     osi_core->ptp_config.nsec);
 		}
 	}
 
@@ -687,16 +679,14 @@ nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 
 nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->read_mmc != OSI_NULL)) {
-		osi_core->ops->read_mmc(osi_core);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
-}
+	ops_p->read_mmc(osi_core);
 
+	return 0;
+}
 
 
 nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
@@ -704,15 +694,16 @@ nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
 {
 	nveu32_t macver;
 
-	if ((osi_core == OSI_NULL) || (osi_core->ops == OSI_NULL) ||
-	    (osi_core->ops->read_reg == OSI_NULL) ||
-	    (osi_core->base == OSI_NULL)) {
+	if (validate_args(osi_core) < 0) {
 		return -1;
 	}
-	macver = ((osi_core->ops->read_reg(osi_core, (nve32_t)MAC_VERSION)) &
+
+	macver = ((ops_p->read_reg(osi_core, (nve32_t)MAC_VERSION)) &
 		  MAC_VERSION_SNVER_MASK);
 
 	if (is_valid_mac_version(macver) == 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid MAC version\n", (nveu64_t)macver)
 		return -1;
 	}
 
@@ -723,81 +714,69 @@ nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
 #ifndef OSI_STRIPPED_LIB
 nve32_t osi_validate_core_regs(struct osi_core_priv_data *const osi_core)
 {
-	nve32_t ret = -1;
-
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->validate_regs != OSI_NULL) &&
-	    (osi_core->safety_config != OSI_NULL)) {
-		ret = osi_core->ops->validate_regs(osi_core);
-		return ret;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return ret;
+	if (osi_core->safety_config == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "CORE: Safety config is NULL\n", 0ULL);
+		return -1;
+	}
+
+	return ops_p->validate_regs(osi_core);
 }
 
 nve32_t osi_flush_mtl_tx_queue(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t qinx)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->flush_mtl_tx_queue != OSI_NULL)) {
-		return osi_core->ops->flush_mtl_tx_queue(osi_core, qinx);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->flush_mtl_tx_queue(osi_core, qinx);
 }
 
 nve32_t osi_set_avb(struct osi_core_priv_data *const osi_core,
 		    const struct osi_core_avb_algorithm *avb)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->set_avb_algorithm != OSI_NULL)) {
-		return osi_core->ops->set_avb_algorithm(osi_core, avb);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->set_avb_algorithm(osi_core, avb);
 }
 
 nve32_t osi_get_avb(struct osi_core_priv_data *const osi_core,
 		    struct osi_core_avb_algorithm *avb)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->get_avb_algorithm != OSI_NULL)) {
-		return osi_core->ops->get_avb_algorithm(osi_core, avb);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->get_avb_algorithm(osi_core, avb);
 }
 
 nve32_t osi_configure_txstatus(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t tx_status)
 {
-	/* Configure Drop Transmit Status */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->config_tx_status != OSI_NULL)) {
-		return osi_core->ops->config_tx_status(osi_core,
-						       tx_status);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	/* Configure Drop Transmit Status */
+	return ops_p->config_tx_status(osi_core, tx_status);
 }
 
 nve32_t osi_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
 				const nveu32_t crc_chk)
 {
-	/* Configure CRC Checking for Received Packets */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->config_rx_crc_check != OSI_NULL)) {
-		return osi_core->ops->config_rx_crc_check(osi_core,
-							  crc_chk);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	/* Configure CRC Checking for Received Packets */
+	return ops_p->config_rx_crc_check(osi_core, crc_chk);
 }
 
 nve32_t osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
@@ -805,145 +784,154 @@ nve32_t osi_config_vlan_filtering(struct osi_core_priv_data *const osi_core,
 				  const nveu32_t perfect_hash_filtering,
 				  const nveu32_t perfect_inverse_match)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->config_vlan_filtering != OSI_NULL)) {
-		return osi_core->ops->config_vlan_filtering(
-							osi_core,
-							filter_enb_dis,
-							perfect_hash_filtering,
-							perfect_inverse_match);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->config_vlan_filtering(osi_core, filter_enb_dis,
+					 perfect_hash_filtering,
+					 perfect_inverse_match);
 }
 
-nve32_t  osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
-			    const nveu32_t vid)
+nve32_t osi_update_vlan_id(struct osi_core_priv_data *const osi_core,
+			   const nveu32_t vid)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->update_vlan_id != OSI_NULL)) {
-		return osi_core->ops->update_vlan_id(osi_core,
-						     vid);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	return ops_p->update_vlan_id(osi_core, vid);
 }
 
 nve32_t osi_reset_mmc(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->reset_mmc != OSI_NULL)) {
-		osi_core->ops->reset_mmc(osi_core);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	ops_p->reset_mmc(osi_core);
+
+	return 0;
 }
 
 nve32_t osi_configure_eee(struct osi_core_priv_data *const osi_core,
 			  nveu32_t tx_lpi_enabled, nveu32_t tx_lpi_timer)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->configure_eee != OSI_NULL) &&
-	    (tx_lpi_timer <= OSI_MAX_TX_LPI_TIMER) &&
-	    (tx_lpi_timer >= OSI_MIN_TX_LPI_TIMER) &&
-	    (tx_lpi_timer % OSI_MIN_TX_LPI_TIMER == OSI_NONE)) {
-		osi_core->ops->configure_eee(osi_core, tx_lpi_enabled,
-					     tx_lpi_timer);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	if ((tx_lpi_timer >= OSI_MAX_TX_LPI_TIMER) ||
+	    (tx_lpi_timer <= OSI_MIN_TX_LPI_TIMER) ||
+	    (tx_lpi_timer % OSI_MIN_TX_LPI_TIMER != OSI_NONE)) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid Tx LPI timer value\n",
+			     (nveul64_t)tx_lpi_timer);
+		return -1;
+	}
+
+	ops_p->configure_eee(osi_core, tx_lpi_enabled, tx_lpi_timer);
+
+	return 0;
 }
 
 nve32_t osi_save_registers(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->save_registers != OSI_NULL)) {
-		/* Call MAC save registers callback and return the value */
-		return osi_core->ops->save_registers(osi_core);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	/* Call MAC save registers callback and return the value */
+	return ops_p->save_registers(osi_core);
 }
 
 nve32_t osi_restore_registers(struct osi_core_priv_data *const osi_core)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->restore_registers != OSI_NULL)) {
-		/* Call MAC restore registers callback and return the value */
-		return osi_core->ops->restore_registers(osi_core);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	/* Call MAC restore registers callback and return the value */
+	return ops_p->restore_registers(osi_core);
 }
 
 nve32_t osi_configure_flow_control(struct osi_core_priv_data *const osi_core,
 				   const nveu32_t flw_ctrl)
 {
-	/* Configure Flow control settings */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->base != OSI_NULL) &&
-	    (osi_core->ops->config_flow_control != OSI_NULL)) {
-		return osi_core->ops->config_flow_control(osi_core,
-							  flw_ctrl);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	/* Configure Flow control settings */
+	return ops_p->config_flow_control(osi_core, flw_ctrl);
 }
 
 nve32_t osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
 			       const nveu32_t flags,
 			       const nveu8_t *ip_addr)
 {
-	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
-	    (osi_core->base != OSI_NULL) && (ip_addr != OSI_NULL) &&
-	    (osi_core->ops->config_arp_offload != OSI_NULL)) {
-		return osi_core->ops->config_arp_offload(osi_core,
-							 flags, ip_addr);
+	if ((validate_args(osi_core) < 0)) {
+		return -1;
 	}
 
-	return -1;
+	if (ip_addr == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "CORE: ip_addr is NULL\n", 0ULL);
+		return -1;
+	}
+
+	if (flags != OSI_ENABLE && flags != OSI_DISABLE) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid ARP offload enable/disable flag\n", 0ULL);
+		return -1;
+	}
+
+	return ops_p->config_arp_offload(osi_core, flags, ip_addr);
 }
 
 nve32_t osi_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 			     const nveu64_t csr_clk_rate)
 {
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->set_mdc_clk_rate != OSI_NULL)) {
-		osi_core->ops->set_mdc_clk_rate(osi_core, csr_clk_rate);
-		return 0;
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	ops_p->set_mdc_clk_rate(osi_core, csr_clk_rate);
+
+	return 0;
 }
 
 nve32_t osi_config_mac_loopback(struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode)
 {
-	/* Configure MAC loopback */
-	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
-	    (osi_core->ops->config_mac_loopback != OSI_NULL)) {
-		return osi_core->ops->config_mac_loopback(osi_core,
-							  lb_mode);
+	if (validate_args(osi_core) < 0) {
+		return -1;
 	}
 
-	return -1;
+	/* don't allow only if loopback mode is other than 0 or 1 */
+	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid loopback mode\n", 0ULL);
+		return -1;
+	}
+
+	/* Configure MAC loopback */
+	return ops_p->config_mac_loopback(osi_core, lb_mode);
 }
 #endif /* !OSI_STRIPPED_LIB */
 
 nve32_t osi_get_hw_features(struct osi_core_priv_data *const osi_core,
 			    struct osi_hw_features *hw_feat)
 {
-	if ((hw_feat == OSI_NULL) || (osi_core == OSI_NULL) ||
-	    (osi_core->ops->get_hw_features == OSI_NULL)) {
+	if (validate_args(osi_core) < 0) {
 		return -1;
 	}
 
-	return osi_core->ops->get_hw_features(osi_core, hw_feat);
+	if (hw_feat == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "CORE: Invalid hw_feat\n", 0ULL);
+		return -1;
+	}
+
+	return ops_p->get_hw_features(osi_core, hw_feat);
 }
