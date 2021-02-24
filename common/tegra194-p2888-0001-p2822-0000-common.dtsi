@@ -405,7 +405,6 @@
 	efuse-burn {
 		nvidia,tz = <&pllx>;
 		nvidia,temp-range = <(-19000) 117000>;
-		thermal-zone = <5>;
 	};
 #endif
 
