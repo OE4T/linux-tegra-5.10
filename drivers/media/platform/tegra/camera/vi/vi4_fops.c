@@ -1,7 +1,7 @@
 /*
  * Tegra Video Input 4 device common APIs
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Frank Chen <frank@nvidia.com>
  *
@@ -253,40 +253,35 @@ static void tegra_channel_surface_setup(
 	struct tegra_channel *chan, struct tegra_channel_buffer *buf, int index)
 {
 	int vnc_id = chan->vnc_id[index];
-	unsigned int offset = chan->buffer_offset[index];
+	u64 addr = 0;
+	u32 stride = 0;
 
-	if (chan->embedded_data_height > 0)
-		vi4_channel_write(chan, vnc_id, ATOMP_EMB_SURFACE_OFFSET0,
-						  chan->vi->emb_buf);
-	else
-		vi4_channel_write(chan, vnc_id, ATOMP_EMB_SURFACE_OFFSET0, 0);
-	vi4_channel_write(chan, vnc_id, ATOMP_EMB_SURFACE_OFFSET0_H, 0x0);
-	vi4_channel_write(chan, vnc_id, ATOMP_EMB_SURFACE_STRIDE0,
-					  chan->embedded_data_width * BPP_MEM);
-	vi4_channel_write(chan, vnc_id,
-		ATOMP_SURFACE_OFFSET0, buf->addr + offset);
-	vi4_channel_write(chan, vnc_id,
-		ATOMP_SURFACE_STRIDE0,
-		chan->format.bytesperline * chan->interlace_bplfactor);
-	vi4_channel_write(chan, vnc_id,
-		ATOMP_SURFACE_OFFSET0_H, (buf->addr >> 32) & 0xFF);
+	if (chan->embedded_data_height > 0) {
+		addr = chan->vi->emb_buf;
+		stride = chan->embedded_data_width * BPP_MEM;
+	}
+
+	vi4_channel_write(chan, vnc_id, ATOMP_EMB_SURFACE_OFFSET0, addr);
+	vi4_channel_write(chan, vnc_id, ATOMP_EMB_SURFACE_OFFSET0_H, addr >> 32);
+	vi4_channel_write(chan, vnc_id, ATOMP_EMB_SURFACE_STRIDE0, stride);
+
+	addr = buf->addr + chan->buffer_offset[index];
+	stride = chan->format.bytesperline * chan->interlace_bplfactor;
+
+	vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_OFFSET0, addr);
+	vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_OFFSET0_H, addr >> 32);
+	vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_STRIDE0, stride);
 
 	if (chan->fmtinfo->fourcc == V4L2_PIX_FMT_NV16) {
-		vi4_channel_write(chan, vnc_id,
-			ATOMP_SURFACE_OFFSET1, buf->addr + offset +
-			chan->format.sizeimage / 2);
-		vi4_channel_write(chan, vnc_id,
-			ATOMP_SURFACE_OFFSET1_H, ((u64)buf->addr + offset +
-			chan->format.sizeimage / 2) >> 32);
-		vi4_channel_write(chan, vnc_id,
-			ATOMP_SURFACE_STRIDE1,
-			chan->format.bytesperline * chan->interlace_bplfactor);
-
+		addr += chan->format.sizeimage / 2;
 	} else {
-		vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_OFFSET1, 0x0);
-		vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_OFFSET1_H, 0x0);
-		vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_STRIDE1, 0x0);
+		addr = 0;
+		stride = 0;
 	}
+
+	vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_OFFSET1, addr);
+	vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_OFFSET1_H, addr >> 32);
+	vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_STRIDE1, stride);
 
 	vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_OFFSET2, 0x0);
 	vi4_channel_write(chan, vnc_id, ATOMP_SURFACE_OFFSET2_H, 0x0);
