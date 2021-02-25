@@ -1008,78 +1008,28 @@ static inline void dmb_oshst(void)
 	asm volatile("dmb oshst" : : : "memory");
 }
 
-/**
- * @brief validate_hw_transmit_arg- Validate input argument of hw_transmit
- *
- * @note
- * Algorithm:
- *  - This routine validate input arguments to osi_hw_transmit()
- *
- * @param[in] osi_dma: OSI DMA private data structure.
- * @param[in] chan: Tx DMA channel number
- * @param[out] ops: OSI DMA Channel operations
- * @param[out] tx_ring: OSI DMA channel Tx ring
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @retval 0 on success
- * @retval -1 on failure.
- */
-static inline nve32_t validate_hw_transmit_arg(
-					   struct osi_dma_priv_data *osi_dma,
-					   nveu32_t chan,
-					   struct osi_dma_chan_ops **ops,
-					   struct osi_tx_ring **tx_ring)
+nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
+		    struct osi_tx_ring *tx_ring,
+		    struct dma_chan_ops *ops,
+		    nveu32_t chan)
 {
-	if (osi_unlikely((osi_dma == OSI_NULL) ||
-			 (chan >= OSI_EQOS_MAX_NUM_CHANS))) {
-		return -1;
-	}
-
-	*tx_ring = osi_dma->tx_ring[chan];
-	*ops = osi_dma->ops;
-
-	if (osi_unlikely((*tx_ring == OSI_NULL) || (*ops == OSI_NULL))) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "validate_hw_transmit_arg: Invalid pointers\n",
-			    0ULL);
-		return -1;
-	}
-
-	return 0;
-}
-
-void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
-{
-	struct osi_tx_ring *tx_ring = OSI_NULL;
-	struct osi_dma_chan_ops *ops = OSI_NULL;
-	nveu32_t entry = 0U;
+	struct osi_tx_pkt_cx *tx_pkt_cx = OSI_NULL;
+	struct osi_tx_desc *first_desc = OSI_NULL;
+	struct osi_tx_desc *last_desc = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
-	struct osi_tx_pkt_cx *tx_pkt_cx = OSI_NULL;
-	nveu32_t desc_cnt = 0U;
-	struct osi_tx_desc *last_desc = OSI_NULL;
-	struct osi_tx_desc *first_desc = OSI_NULL;
 	struct osi_tx_desc *cx_desc = OSI_NULL;
-	nveu64_t tailptr, tmp;
 	nve32_t cntx_desc_consumed;
+	nveu32_t desc_cnt = 0U;
+	nveu64_t tailptr, tmp;
+	nveu32_t entry = 0U;
 	nveu32_t i;
-	nve32_t ret = 0;
-
-	ret = validate_hw_transmit_arg(osi_dma, chan, &ops, &tx_ring);
-	if (osi_unlikely(ret < 0)) {
-		return;
-	}
 
 	entry = tx_ring->cur_tx_idx;
 	if (entry >= TX_DESC_CNT) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "dma_txrx: Invalid pointers\n", 0ULL);
-		return;
+			    "dma_txrx: Invalid cur_tx_idx\n", 0ULL);
+		return -1;
 	}
 
 	tx_desc = tx_ring->tx_desc + entry;
@@ -1090,8 +1040,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	if (osi_unlikely(desc_cnt == 0U)) {
 		/* Will not hit this case */
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "dma_txrx: Invalid value\n", 0ULL);
-		return;
+			    "dma_txrx: Invalid desc_cnt\n", 0ULL);
+		return -1;
 	}
 	/* Context descriptor for VLAN/TSO */
 	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
@@ -1192,8 +1142,8 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	if (osi_unlikely(tailptr < tx_ring->tx_desc_phy_addr)) {
 		/* Will not hit this case */
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "dma_txrx: Invalid argument\n", 0ULL);
-		return;
+			    "dma_txrx: Invalid tx_desc_phy_addr\n", 0ULL);
+		return -1;
 	}
 
 	tx_ring->cur_tx_idx = entry;
@@ -1203,12 +1153,10 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 	 * before setting up the DMA, hence add memory write barrier here.
 	 */
 	dmb_oshst();
-	if (osi_unlikely(ops->update_tx_tailptr == OSI_NULL)) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "dma_txrx: Invalid argument\n", 0ULL);
-		return;
-	}
+
 	ops->update_tx_tailptr(osi_dma->base, chan, tailptr);
+
+	return 0;
 }
 
 /**
@@ -1222,6 +1170,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
  *
  * @param[in, out] osi_dma:	OSI private data structure.
  * @param[in] chan:	Rx channel number.
+ * @param[in] ops:	DMA channel operations.
  *
  * @note
  * API Group:
@@ -1233,12 +1182,12 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
  * @retval -1 on failure.
  */
 static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
-					  nveu32_t chan)
+					  nveu32_t chan,
+					  struct dma_chan_ops *ops)
 {
 	struct osi_rx_ring *rx_ring = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
-	struct osi_dma_chan_ops *ops = osi_dma->ops;
 	nveu64_t tailptr = 0, tmp;
 	nveu32_t i;
 	nve32_t ret = 0;
@@ -1304,13 +1253,10 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
 	tailptr = rx_ring->rx_desc_phy_addr +
 		  (sizeof(struct osi_rx_desc) * (RX_DESC_CNT));
 
-	if (osi_unlikely((tailptr < rx_ring->rx_desc_phy_addr) ||
-			 (ops->set_rx_ring_len == OSI_NULL) ||
-			 (ops->update_rx_tailptr == OSI_NULL) ||
-			 (ops->set_rx_ring_start_addr == OSI_NULL))) {
+	if (osi_unlikely((tailptr < rx_ring->rx_desc_phy_addr))) {
 		/* Will not hit this case */
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "dma_txrx: Invalid pointers\n", 0ULL);
+			    "dma_txrx: Invalid phys address\n", 0ULL);
 		return -1;
 	}
 
@@ -1332,6 +1278,7 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
  *    Tx ring base address in Tx DMA registers.
  *
  * @param[in, out] osi_dma: OSI private data structure.
+ * @param[in] ops: DMA channel operations.
  *
  * @note
  * API Group:
@@ -1342,7 +1289,8 @@ static nve32_t rx_dma_desc_initialization(struct osi_dma_priv_data *osi_dma,
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
+static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
+				struct dma_chan_ops *ops)
 {
 	nveu32_t chan = 0;
 	nveu32_t i;
@@ -1351,7 +1299,7 @@ static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
 
-		ret = rx_dma_desc_initialization(osi_dma, chan);
+		ret = rx_dma_desc_initialization(osi_dma, chan, ops);
 		if (ret != 0) {
 			return ret;
 		}
@@ -1369,6 +1317,7 @@ static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
  *    Tx ring base address in Tx DMA registers.
  *
  * @param[in, out] osi_dma: OSI DMA private data structure.
+ * @param[in] ops: DMA channel operations.
  *
  * @note
  * API Group:
@@ -1379,12 +1328,12 @@ static nve32_t rx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
  * @retval 0 on success
  * @retval -1 on failure.
  */
-static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
+static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
+				struct dma_chan_ops *ops)
 {
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
-	struct osi_dma_chan_ops *ops = osi_dma->ops;
 	nveu32_t chan = 0;
 	nveu32_t i, j;
 
@@ -1420,32 +1369,26 @@ static nve32_t tx_dma_desc_init(struct osi_dma_priv_data *osi_dma)
 		tx_ring->slot_number = 0U;
 		tx_ring->slot_check = OSI_DISABLE;
 
-		if (osi_likely((ops->set_tx_ring_len != OSI_NULL) &&
-			       (ops->set_tx_ring_start_addr != OSI_NULL))) {
-			ops->set_tx_ring_len(osi_dma, chan,
-					     (TX_DESC_CNT - 1U));
-			ops->set_tx_ring_start_addr(osi_dma->base, chan,
-						    tx_ring->tx_desc_phy_addr);
-		} else {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma_txrx: Invalid pointers\n", 0ULL);
-			return -1;
-		}
+		ops->set_tx_ring_len(osi_dma, chan,
+				     (TX_DESC_CNT - 1U));
+		ops->set_tx_ring_start_addr(osi_dma->base, chan,
+					    tx_ring->tx_desc_phy_addr);
 	}
 
 	return 0;
 }
 
-nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma)
+nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma,
+		      struct dma_chan_ops *ops)
 {
 	nve32_t ret = 0;
 
-	ret = tx_dma_desc_init(osi_dma);
+	ret = tx_dma_desc_init(osi_dma, ops);
 	if (ret != 0) {
 		return ret;
 	}
 
-	ret = rx_dma_desc_init(osi_dma);
+	ret = rx_dma_desc_init(osi_dma, ops);
 	if (ret != 0) {
 		return ret;
 	}

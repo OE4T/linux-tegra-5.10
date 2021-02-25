@@ -2071,7 +2071,7 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
  * Algorithm:
  *  - This routine to enable/disable L4/l4 filter
  *
- * @param[in] base: Base address from OSI core private data structure.
+ * @param[in] osi_core: OSI core private data.
  * @param[in] filter_enb_dis: enable/disable
  *
  * @pre MAC should be initialized and started. see osi_start_mac()

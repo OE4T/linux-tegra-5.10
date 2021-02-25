@@ -394,64 +394,6 @@ struct osi_xtra_dma_stat_counters {
 struct osi_dma_priv_data;
 
 /**
- * @brief MAC DMA Channel operations
- */
-struct osi_dma_chan_ops {
-	/** Called to set Transmit Ring length */
-	void (*set_tx_ring_len)(struct osi_dma_priv_data *osi_dma,
-				nveu32_t chan,
-				nveu32_t len);
-	/** Called to set Transmit Ring Base address */
-	void (*set_tx_ring_start_addr)(void *addr, nveu32_t chan,
-				       nveu64_t base_addr);
-	/** Called to update Tx Ring tail pointer */
-	void (*update_tx_tailptr)(void *addr, nveu32_t chan,
-				  nveu64_t tailptr);
-	/** Called to set Receive channel ring length */
-	void (*set_rx_ring_len)(struct osi_dma_priv_data *osi_dma,
-				nveu32_t chan,
-				nveu32_t len);
-	/** Called to set receive channel ring base address */
-	void (*set_rx_ring_start_addr)(void *addr, nveu32_t chan,
-				       nveu64_t base_addr);
-	/** Called to update Rx ring tail pointer */
-	void (*update_rx_tailptr)(void *addr, nveu32_t chan,
-				  nveu64_t tailptr);
-	/** Called to disable DMA Tx channel interrupts at wrapper level */
-	void (*disable_chan_tx_intr)(void *addr, nveu32_t chan);
-	/** Called to enable DMA Tx channel interrupts at wrapper level */
-	void (*enable_chan_tx_intr)(void *addr, nveu32_t chan);
-	/** Called to disable DMA Rx channel interrupts at wrapper level */
-	void (*disable_chan_rx_intr)(void *addr, nveu32_t chan);
-	/** Called to enable DMA Rx channel interrupts at wrapper level */
-	void (*enable_chan_rx_intr)(void *addr, nveu32_t chan);
-	/** Called to start the Tx/Rx DMA */
-	void (*start_dma)(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
-	/** Called to stop the Tx/Rx DMA */
-	void (*stop_dma)(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
-	/** Called to initialize the DMA channel */
-	nve32_t (*init_dma_channel)(struct osi_dma_priv_data *osi_dma);
-	/** Called to set Rx buffer length */
-	void (*set_rx_buf_len)(struct osi_dma_priv_data *osi_dma);
-#ifndef OSI_STRIPPED_LIB
-	/** Called periodically to read and validate safety critical
-	 * registers against last written value */
-	nve32_t (*validate_regs)(struct osi_dma_priv_data *osi_dma);
-	/** Called to configure the DMA channel slot function */
-	void (*config_slot)(struct osi_dma_priv_data *osi_dma,
-			    nveu32_t chan,
-			    nveu32_t set,
-			    nveu32_t interval);
-#endif /* !OSI_STRIPPED_LIB */
-	/** Called to get Global DMA status */
-	nveu32_t (*get_global_dma_status)(void *addr);
-	/** Called to clear VM Tx interrupt */
-	void (*clear_vm_tx_intr)(void *addr, nveu32_t chan);
-	/** Called to clear VM Rx interrupt */
-	void (*clear_vm_rx_intr)(void *addr, nveu32_t chan);
-};
-
-/**
  * @brief OSI VM IRQ data
  */
 struct osi_vm_irq_data {
@@ -495,8 +437,6 @@ struct osi_dma_priv_data {
 	void *base;
 	/** Pointer to OSD private data structure */
 	void *osd;
-	/** Address of HW operations structure */
-	struct osi_dma_chan_ops *ops;
 	/** MAC HW type (EQOS) */
 	nveu32_t mac;
 	/** Number of channels enabled in MAC */
@@ -711,7 +651,6 @@ nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  * Algorithm: Returns global DMA Tx/Rx interrupt status
  *
  * @param[in] osi_dma: DMA private data.
- * @param[in] chan: DMA tx channel number.
  *
  * @note
  *	Dependencies: None.
@@ -978,8 +917,10 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
  * - Run time: Yes
  * - De-initialization: No
  *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-void osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
+nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 
 /**
  * @brief osi_process_tx_completions - Process Tx complete on DMA channel ring.

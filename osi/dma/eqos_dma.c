@@ -1001,33 +1001,31 @@ void *eqos_get_dma_safety_config(void)
 }
 
 /**
- * @brief eqos_get_dma_chan_ops - EQOS get DMA channel operations
+ * @brief eqos_init_dma_chan_ops - Initialize EQOS DMA operations.
+ *
+ * @param[in] ops: DMA channel operations pointer.
  */
-struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void)
+void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
 {
-	static struct osi_dma_chan_ops eqos_dma_chan_ops = {
-		.set_tx_ring_len = eqos_set_tx_ring_len,
-		.set_rx_ring_len = eqos_set_rx_ring_len,
-		.set_tx_ring_start_addr = eqos_set_tx_ring_start_addr,
-		.set_rx_ring_start_addr = eqos_set_rx_ring_start_addr,
-		.update_tx_tailptr = eqos_update_tx_tailptr,
-		.update_rx_tailptr = eqos_update_rx_tailptr,
-		.disable_chan_tx_intr = eqos_disable_chan_tx_intr,
-		.enable_chan_tx_intr = eqos_enable_chan_tx_intr,
-		.disable_chan_rx_intr = eqos_disable_chan_rx_intr,
-		.enable_chan_rx_intr = eqos_enable_chan_rx_intr,
-		.start_dma = eqos_start_dma,
-		.stop_dma = eqos_stop_dma,
-		.init_dma_channel = eqos_init_dma_channel,
-		.set_rx_buf_len = eqos_set_rx_buf_len,
+	ops->set_tx_ring_len = eqos_set_tx_ring_len;
+	ops->set_rx_ring_len = eqos_set_rx_ring_len;
+	ops->set_tx_ring_start_addr = eqos_set_tx_ring_start_addr;
+	ops->set_rx_ring_start_addr = eqos_set_rx_ring_start_addr;
+	ops->update_tx_tailptr = eqos_update_tx_tailptr;
+	ops->update_rx_tailptr = eqos_update_rx_tailptr;
+	ops->disable_chan_tx_intr = eqos_disable_chan_tx_intr;
+	ops->enable_chan_tx_intr = eqos_enable_chan_tx_intr;
+	ops->disable_chan_rx_intr = eqos_disable_chan_rx_intr;
+	ops->enable_chan_rx_intr = eqos_enable_chan_rx_intr;
+	ops->start_dma = eqos_start_dma;
+	ops->stop_dma = eqos_stop_dma;
+	ops->init_dma_channel = eqos_init_dma_channel;
+	ops->set_rx_buf_len = eqos_set_rx_buf_len;
 #ifndef OSI_STRIPPED_LIB
-		.validate_regs = eqos_validate_dma_regs,
-		.config_slot = eqos_config_slot,
+	ops->validate_regs = eqos_validate_dma_regs;
+	ops->config_slot = eqos_config_slot;
 #endif /* !OSI_STRIPPED_LIB */
-		.get_global_dma_status = eqos_get_global_dma_status,
-		.clear_vm_tx_intr = eqos_clear_vm_tx_intr,
-		.clear_vm_rx_intr = eqos_clear_vm_rx_intr,
-	};
-
-	return &eqos_dma_chan_ops;
+	ops->get_global_dma_status = eqos_get_global_dma_status;
+	ops->clear_vm_tx_intr = eqos_clear_vm_tx_intr;
+	ops->clear_vm_rx_intr = eqos_clear_vm_rx_intr;
 }
