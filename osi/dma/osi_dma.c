@@ -24,6 +24,135 @@
 #include <local_common.h>
 #include "hw_desc.h"
 
+/**
+ * @brief g_dma - DMA local data variable
+ */
+static struct dma_local g_dma = {
+	.init_done = OSI_DISABLE,
+};
+
+/**
+ * @brief ops_p - Pointer to local DMA HW operations.
+ */
+static struct dma_chan_ops *ops_p = &g_dma.ops;
+
+/**
+ * @brief Function to validate input arguments of API.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static inline nve32_t validate_args(struct osi_dma_priv_data *osi_dma)
+{
+	if ((osi_dma == OSI_NULL) || (osi_dma->base == OSI_NULL) ||
+	    (g_dma.init_done == OSI_DISABLE)) {
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Function to validate input arguments of API.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] chan: DMA channel number.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static inline nve32_t validate_dma_chan_num(struct osi_dma_priv_data *osi_dma,
+					    unsigned int chan)
+{
+	if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "Invalid DMA channel number\n", 0ULL);
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Function to validate array of DMA channels.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static inline nve32_t validate_dma_chans(struct osi_dma_priv_data *osi_dma)
+{
+	nveu32_t i = 0;
+
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		if (validate_dma_chan_num(osi_dma,
+					  osi_dma->dma_chans[i]) < 0) {
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Function to validate function pointers.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma)
+{
+	nveu32_t i = 0;
+#if __SIZEOF_POINTER__ == 8
+	nveu64_t *l_ops = (nveu64_t *)ops_p;
+#elif __SIZEOF_POINTER__ == 4
+	nveu32_t *l_ops = (nveu32_t *)ops_p;
+#else
+	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		     "DMA: Undefined architecture\n", 0ULL);
+	return -1;
+#endif
+
+	for (i = 0; i < (sizeof(*ops_p) / __SIZEOF_POINTER__); i++) {
+		if (*l_ops == 0) {
+			return -1;
+		}
+
+		l_ops++;
+	}
+
+	return 0;
+}
+
 nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
 	if (osi_dma == OSI_NULL) {
@@ -35,24 +164,34 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	    (osi_dma->osd_ops.ops_log == OSI_NULL) ||
 	    (osi_dma->osd_ops.udelay == OSI_NULL)) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "DMA OSD ops not assigned\n", 0ULL);
+			    "DMA OSD ops not assigned\n", 0ULL);
 		return -1;
 	}
 
-	if (osi_dma->mac == OSI_MAC_HW_EQOS) {
-		/* Get EQOS HW ops */
-		osi_dma->ops = eqos_get_dma_chan_ops();
-		/* Explicitly set osi_dma->safety_config = OSI_NULL if
-		 * a particular MAC version does not need SW safety mechanisms
-		 * like periodic read-verify.
-		 */
-		osi_dma->safety_config = (void *)eqos_get_dma_safety_config();
-		return 0;
+	if (osi_dma->mac != OSI_MAC_HW_EQOS) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA: Invalid MAC HW type\n", 0ULL);
+		return -1;
 	}
 
-	OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID, "dma: Invalid argument\n",
-		    0ULL);
-	return -1;
+	/* Get EQOS HW DMA operations */
+	eqos_init_dma_chan_ops(ops_p);
+
+	/* Explicitly set osi_dma->safety_config = OSI_NULL if
+	 * a particular MAC version does not need SW safety mechanisms
+	 * like periodic read-verify.
+	 */
+	osi_dma->safety_config = (void *)eqos_get_dma_safety_config();
+
+	if (validate_func_ptrs(osi_dma) < 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA ops validation failed\n", 0ULL);
+		return -1;
+	}
+
+	g_dma.init_done = OSI_ENABLE;
+
+	return 0;
 }
 
 nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
@@ -60,21 +199,30 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	nveu32_t i, chan;
 	nve32_t ret = -1;
 
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->base != OSI_NULL) &&
-	    (osi_dma->ops->init_dma_channel != OSI_NULL) &&
-	    (osi_dma->num_dma_chans <= OSI_EQOS_MAX_NUM_CHANS)) {
-		ret = osi_dma->ops->init_dma_channel(osi_dma);
-		if (ret < 0) {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma: init dma channel failed\n", 0ULL);
-			return ret;
-		}
-	} else {
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (osi_dma->num_dma_chans > OSI_EQOS_MAX_NUM_CHANS) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "Invalid number of DMA channels\n", 0ULL);
+		return -1;
+	}
+
+	if (validate_dma_chans(osi_dma) < 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA channels validation failed\n", 0ULL);
+		return -1;
+	}
+
+	ret = ops_p->init_dma_channel(osi_dma);
+	if (ret < 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "dma: init dma channel failed\n", 0ULL);
 		return ret;
 	}
 
-	ret = dma_desc_init(osi_dma);
+	ret = dma_desc_init(osi_dma, ops_p);
 	if (ret != 0) {
 		return ret;
 	}
@@ -83,161 +231,176 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
 
-		ret = osi_enable_chan_tx_intr(osi_dma, chan);
-		if (ret != 0) {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma: enable tx intr failed\n", 0ULL);
-			return ret;
-		}
-
-		ret = osi_enable_chan_rx_intr(osi_dma, chan);
-		if (ret != 0) {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma: enable rx intr failed\n", 0ULL);
-			return ret;
-		}
-
-		ret = osi_start_dma(osi_dma, chan);
-		if (ret != 0) {
-			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-				    "dma: start dma failed\n", 0ULL);
-			return ret;
-		}
-	}
-
-	return ret;
-}
-
-nve32_t  osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
-{
-	nveu32_t i;
-	nve32_t ret = 0;
-
-	if ((osi_dma == OSI_NULL) ||
-	    (osi_dma->num_dma_chans > OSI_EQOS_MAX_NUM_CHANS)) {
-		return -1;
-	}
-
-	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		ret = osi_stop_dma(osi_dma, osi_dma->dma_chans[i]);
-		if (ret != 0) {
-			return ret;
-		}
-	}
-
-	return ret;
-}
-
-nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-				 nveu32_t chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
-	    (osi_dma->ops->disable_chan_tx_intr != OSI_NULL)) {
-		osi_dma->ops->disable_chan_tx_intr(osi_dma->base, chan);
-		return 0;
-	}
-
-	return -1;
-}
-
-nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-				nveu32_t chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
-	    (osi_dma->ops->enable_chan_tx_intr != OSI_NULL)) {
-		osi_dma->ops->enable_chan_tx_intr(osi_dma->base, chan);
-		return 0;
-	}
-
-	return -1;
-}
-
-nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-				 nveu32_t chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
-	    (osi_dma->ops->disable_chan_rx_intr != OSI_NULL)) {
-		osi_dma->ops->disable_chan_rx_intr(osi_dma->base, chan);
-		return 0;
-	}
-
-	return -1;
-}
-
-nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-				nveu32_t chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
-	    (osi_dma->ops->enable_chan_rx_intr != OSI_NULL)) {
-		osi_dma->ops->enable_chan_rx_intr(osi_dma->base, chan);
-		return 0;
-	}
-
-	return -1;
-}
-
-nve32_t osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
-			     nveu32_t chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->clear_vm_tx_intr != OSI_NULL)) {
-		osi_dma->ops->clear_vm_tx_intr(osi_dma->base, chan);
-		return 0;
-	}
-
-	return -1;
-}
-
-nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
-			     nveu32_t chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->clear_vm_rx_intr != OSI_NULL)) {
-		osi_dma->ops->clear_vm_rx_intr(osi_dma->base, chan);
-		return 0;
-	}
-
-	return -1;
-}
-
-nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->get_global_dma_status != OSI_NULL)) {
-		return osi_dma->ops->get_global_dma_status(osi_dma->base);
+		ops_p->enable_chan_tx_intr(osi_dma->base, chan);
+		ops_p->enable_chan_rx_intr(osi_dma->base, chan);
+		ops_p->start_dma(osi_dma, chan);
 	}
 
 	return 0;
 }
 
-nve32_t  osi_start_dma(struct osi_dma_priv_data *osi_dma,
-		       nveu32_t chan)
+nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 {
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
-	    (osi_dma->ops->start_dma != OSI_NULL)) {
-		osi_dma->ops->start_dma(osi_dma, chan);
+	nveu32_t i;
+
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (osi_dma->num_dma_chans > OSI_EQOS_MAX_NUM_CHANS) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "Invalid number of DMA channels\n", 0ULL);
+		return -1;
+	}
+
+	if (validate_dma_chans(osi_dma) < 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA channels validation failed\n", 0ULL);
+		return -1;
+	}
+
+	for (i = 0; i < osi_dma->num_dma_chans; i++) {
+		ops_p->stop_dma(osi_dma, osi_dma->dma_chans[i]);
+	}
+
+	return 0;
+}
+
+nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t chan)
+{
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	ops_p->disable_chan_tx_intr(osi_dma->base, chan);
+
+	return 0;
+}
+
+nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+				nveu32_t chan)
+{
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	ops_p->enable_chan_tx_intr(osi_dma->base, chan);
+
+	return 0;
+}
+
+nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+				 nveu32_t chan)
+{
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	ops_p->disable_chan_rx_intr(osi_dma->base, chan);
+
+	return 0;
+}
+
+nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+				nveu32_t chan)
+{
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	ops_p->enable_chan_rx_intr(osi_dma->base, chan);
+
+	return 0;
+}
+
+nve32_t osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
+			     nveu32_t chan)
+{
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	ops_p->clear_vm_tx_intr(osi_dma->base, chan);
+
+	return 0;
+}
+
+nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
+			     nveu32_t chan)
+{
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	ops_p->clear_vm_rx_intr(osi_dma->base, chan);
+
+	return 0;
+}
+
+nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
+{
+	if (validate_args(osi_dma) < 0) {
 		return 0;
 	}
 
-	return -1;
+	return ops_p->get_global_dma_status(osi_dma->base);
+}
+
+nve32_t osi_start_dma(struct osi_dma_priv_data *osi_dma,
+		      nveu32_t chan)
+{
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	ops_p->start_dma(osi_dma, chan);
+
+	return 0;
 }
 
 nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 		     nveu32_t chan)
 {
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->base != OSI_NULL) && (chan < OSI_EQOS_MAX_NUM_CHANS) &&
-	    (osi_dma->ops->stop_dma != OSI_NULL)) {
-		osi_dma->ops->stop_dma(osi_dma, chan);
-		return 0;
+	if (validate_args(osi_dma) < 0) {
+		return -1;
 	}
 
-	return -1;
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	ops_p->stop_dma(osi_dma, chan);
+
+	return 0;
 }
 
 nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
@@ -274,9 +437,7 @@ static inline nve32_t rx_dma_desc_validate_args(
 					    struct osi_rx_ring *rx_ring,
 					    nveu32_t chan)
 {
-	/* Validate args */
-	if (!((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	      (osi_dma->ops->update_rx_tailptr != OSI_NULL))) {
+	if (validate_args(osi_dma) < 0) {
 		return -1;
 	}
 
@@ -287,9 +448,7 @@ static inline nve32_t rx_dma_desc_validate_args(
 		return -1;
 	}
 
-	if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "dma: Invalid channel\n", 0ULL);
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
 		return -1;
 	}
 
@@ -405,19 +564,18 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	osi_dma->ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
+	ops_p->update_rx_tailptr(osi_dma->base, chan, tailptr);
 
 	return 0;
 }
 
 nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->set_rx_buf_len != OSI_NULL)) {
-		osi_dma->ops->set_rx_buf_len(osi_dma);
-	} else {
+	if (validate_args(osi_dma) < 0) {
 		return -1;
 	}
+
+	ops_p->set_rx_buf_len(osi_dma);
 
 	return 0;
 }
@@ -425,24 +583,43 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 nve32_t osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
 				     nveu32_t *sec, nveu32_t *nsec)
 {
-	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
-		common_get_systime_from_mac(osi_dma->base, osi_dma->mac, sec,
-					    nsec);
-	} else {
+	if (validate_args(osi_dma) < 0) {
 		return -1;
 	}
+
+	common_get_systime_from_mac(osi_dma->base, osi_dma->mac, sec, nsec);
 
 	return 0;
 }
 
 nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
 {
-	if ((osi_dma != OSI_NULL) && (osi_dma->base != OSI_NULL)) {
-		return common_is_mac_enabled(osi_dma->base, osi_dma->mac);
-	} else {
-		return OSI_DISABLE;
+	if (validate_args(osi_dma) < 0) {
+		return -1;
 	}
+
+	return common_is_mac_enabled(osi_dma->base, osi_dma->mac);
 }
+
+nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
+{
+	if (osi_unlikely(validate_args(osi_dma) < 0)) {
+		return -1;
+	}
+
+	if (osi_unlikely(validate_dma_chan_num(osi_dma, chan) < 0)) {
+		return -1;
+	}
+
+	if (osi_unlikely(osi_dma->tx_ring[chan] == OSI_NULL)) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "DMA: Invalid Tx ring\n", 0ULL);
+		return -1;
+	}
+
+	return hw_transmit(osi_dma, osi_dma->tx_ring[chan], ops_p, chan);
+}
+
 #ifndef OSI_STRIPPED_LIB
 
 /**
@@ -470,7 +647,7 @@ nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
 static inline nve32_t osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
 					     nveu32_t set)
 {
-	if (osi_dma == OSI_NULL) {
+	if (validate_args(osi_dma) < 0) {
 		return -1;
 	}
 
@@ -478,14 +655,6 @@ static inline nve32_t osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
 	if ((set != OSI_ENABLE) && (set != OSI_DISABLE)) {
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "dma: Invalid set argument\n", set);
-		return -1;
-	}
-
-	/* NULL check for osi_dma, osi_dma->ops and osi_dma->ops->config_slot */
-	if ((osi_dma->ops == OSI_NULL) ||
-	    (osi_dma->ops->config_slot == OSI_NULL)) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "dma: Invalid set argument\n", 0ULL);
 		return -1;
 	}
 
@@ -506,11 +675,13 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		/* Get DMA channel and validate */
 		chan = osi_dma->dma_chans[i];
+
 		if ((chan == 0x0U) ||
 		    (chan >= OSI_EQOS_MAX_NUM_CHANS)) {
 			/* Ignore 0 and invalid channels */
 			continue;
 		}
+
 		/* Check for slot enable */
 		if (osi_dma->slot_enabled[chan] == OSI_ENABLE) {
 			/* Get DMA slot interval and validate */
@@ -530,10 +701,7 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 				return -1;
 			}
 			tx_ring->slot_check = set;
-			osi_dma->ops->config_slot(osi_dma,
-						  chan,
-						  set,
-						  interval);
+			ops_p->config_slot(osi_dma, chan, set, interval);
 		}
 	}
 
@@ -542,15 +710,11 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 
 nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 {
-	nve32_t ret = -1;
-
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->validate_regs != OSI_NULL) &&
-	    (osi_dma->safety_config != OSI_NULL)) {
-		ret = osi_dma->ops->validate_regs(osi_dma);
+	if (validate_args(osi_dma) < 0) {
+		return -1;
 	}
 
-	return ret;
+	return ops_p->validate_regs(osi_dma);
 }
 
 nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
