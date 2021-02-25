@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2018-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -262,6 +262,40 @@ static const struct file_operations elpg_transitions_fops = {
 	.release	= single_release,
 };
 
+static int elpg_ms_transitions_show(struct seq_file *s, void *data)
+{
+	struct gk20a *g = s->private;
+	struct pmu_pg_stats_data pg_stat_data = { 0 };
+	u32 total_gating_cnt;
+	int err;
+
+	if (nvgpu_is_powered_on(g)) {
+		err = gk20a_busy(g);
+		if (err)
+			return err;
+
+		nvgpu_pmu_get_pg_stats(g,
+			PMU_PG_ELPG_ENGINE_ID_MS_LTC, &pg_stat_data);
+		gk20a_idle(g);
+	}
+	total_gating_cnt = g->pg_ms_gating_cnt + pg_stat_data.gating_cnt;
+
+	seq_printf(s, "%u\n", total_gating_cnt);
+	return 0;
+}
+
+static int elpg_ms_transitions_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, elpg_ms_transitions_show, inode->i_private);
+}
+
+static const struct file_operations elpg_ms_transitions_fops = {
+	.open           = elpg_ms_transitions_open,
+	.read           = seq_read,
+	.llseek         = seq_lseek,
+	.release        = single_release,
+};
+
 static int falc_trace_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
@@ -468,6 +502,10 @@ int gk20a_pmu_debugfs_init(struct gk20a *g)
 	d = debugfs_create_file(
 		"elpg_transitions", S_IRUGO, l->debugfs, g,
 						&elpg_transitions_fops);
+
+	d = debugfs_create_file(
+		"elpg_ms_transitions", S_IRUGO, l->debugfs, g,
+						&elpg_ms_transitions_fops);
 	if (!d)
 		goto err_out;
 

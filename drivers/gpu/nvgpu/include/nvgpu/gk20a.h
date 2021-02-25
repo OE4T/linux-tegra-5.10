@@ -637,6 +637,7 @@ struct gk20a {
 	u64 pg_ingating_time_us;
 	u64 pg_ungating_time_us;
 	u32 pg_gating_cnt;
+	u32 pg_ms_gating_cnt;
 	/** @endcond */
 
 	/** GPU address-space identifier. */
