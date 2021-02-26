@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * References are taken from "Bosch C_CAN controller" at
  * "drivers/net/can/c_can/c_can.c"
@@ -1763,6 +1763,7 @@ static int mttcan_probe(struct platform_device *pdev)
 	rstc = devm_reset_control_get(&pdev->dev, "can");
 	if (IS_ERR(rstc)) {
 		dev_err(&pdev->dev, "Missing controller reset\n");
+		ret = PTR_ERR(rstc);
 		goto exit_free_can;
 	}
 	reset_control_reset(rstc);
