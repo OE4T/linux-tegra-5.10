@@ -1,6 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0 */
 #ifndef _LINUX_MM_H
 #define _LINUX_MM_H
 
@@ -616,10 +614,6 @@ struct vm_operations_struct {
 	 */
 	struct page *(*find_special_page)(struct vm_area_struct *vma,
 					  unsigned long addr);
-
-	/* called when driver allows fixing ptes with none protections */
-	bool (*fixup_prot)(struct vm_area_struct *vma, unsigned long addr,
-			  pgoff_t pgoff);
 };
 
 static inline void vma_init(struct vm_area_struct *vma, struct mm_struct *mm)
