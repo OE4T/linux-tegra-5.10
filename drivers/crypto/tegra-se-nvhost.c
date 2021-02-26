@@ -4,7 +4,7 @@
  *
  * Support for Tegra Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -309,8 +309,9 @@ struct tegra_se_aes_cmac_context {
 	u32 keylen;	/* key length in bits */
 	u8 K1[TEGRA_SE_KEY_128_SIZE];	/* Key1 */
 	u8 K2[TEGRA_SE_KEY_128_SIZE];	/* Key2 */
-	dma_addr_t dma_addr;	/* DMA address of local buffer */
-	u8	*buffer;	/* local buffer pointer */
+	u8	*buf;		 /* Buffer pointer to store update request*/
+	dma_addr_t buf_dma_addr; /* DMA address of buffer */
+	u32 nbytes;		 /* Total bytes in input buffer */
 };
 
 struct tegra_se_dh_context {
@@ -3448,24 +3449,25 @@ static void tegra_se_sha_cra_exit(struct crypto_tfm *tfm)
 	mutex_unlock(&se_dev->mtx);
 }
 
-static int tegra_se_aes_cmac_init(struct ahash_request *req)
+static int tegra_se_aes_cmac_export(struct ahash_request *req, void *out)
 {
 	return 0;
 }
 
-static int tegra_se_aes_cmac_update(struct ahash_request *req)
+static int tegra_se_aes_cmac_import(struct ahash_request *req, const void *in)
 {
 	return 0;
 }
 
-static int tegra_t23x_se_aes_cmac_final(struct ahash_request *req)
+static int tegra_t23x_se_aes_cmac_op(struct ahash_request *req,
+					bool process_cur_req)
 {
 	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
 	struct tegra_se_aes_cmac_context *cmac_ctx = crypto_ahash_ctx(tfm);
 	struct tegra_se_req_context *req_ctx = ahash_request_ctx(req);
 	struct tegra_se_dev *se_dev;
-	struct scatterlist *src_sg;
-	u32 num_sgs;
+	struct tegra_se_ll *src_ll;
+	u32 num_sgs, total_bytes = 0;
 	int ret = 0;
 
 	se_dev = se_devices[SE_CMAC];
@@ -3476,26 +3478,37 @@ static int tegra_t23x_se_aes_cmac_final(struct ahash_request *req)
 	 * SE doesn't support CMAC input where message length is 0 bytes.
 	 * See Bug 200472457.
 	 */
-	if (!req->nbytes) {
+	if (!(cmac_ctx->nbytes + req->nbytes)) {
 		ret = -EINVAL;
 		goto out;
 	}
 
-	num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
-	if (num_sgs > SE_MAX_SRC_SG_COUNT) {
-		dev_err(se_dev->dev, "num of SG buffers are more\n");
-		ret = -EDOM;
-		goto out;
+	if (process_cur_req) {
+		if ((cmac_ctx->nbytes + req->nbytes)
+				> (TEGRA_SE_AES_BLOCK_SIZE * 20)) {
+			dev_err(se_dev->dev, "num of SG buffers bytes are more\n");
+			mutex_unlock(&se_dev->mtx);
+			return -EOPNOTSUPP;
+		}
+
+		num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
+		if (num_sgs > SE_MAX_SRC_SG_COUNT) {
+			dev_err(se_dev->dev, "num of SG buffers are more\n");
+			ret = -EDOM;
+			goto out;
+		}
+
+		sg_copy_to_buffer(req->src, num_sgs,
+				cmac_ctx->buf + cmac_ctx->nbytes, req->nbytes);
+		cmac_ctx->nbytes += req->nbytes;
 	}
 
-	src_sg = req->src;
 	se_dev->src_ll = (struct tegra_se_ll *)(se_dev->src_ll_buf);
-	ret = tegra_map_sg(se_dev->dev, src_sg, 1, DMA_TO_DEVICE,
-			   se_dev->src_ll, req->nbytes);
-	if (!ret) {
-		ret = -EINVAL;
-		goto out;
-	}
+	src_ll = se_dev->src_ll;
+	src_ll->addr = cmac_ctx->buf_dma_addr;
+	src_ll->data_len = cmac_ctx->nbytes;
+	src_ll++;
+	total_bytes = cmac_ctx->nbytes;
 
 	req_ctx->op_mode = SE_AES_OP_MODE_CMAC;
 	req_ctx->config = tegra_se_get_config(se_dev, req_ctx->op_mode,
@@ -3504,7 +3517,7 @@ static int tegra_t23x_se_aes_cmac_final(struct ahash_request *req)
 			se_dev, req_ctx->op_mode, true,
 			cmac_ctx->slot->slot_num, 0, true);
 
-	tegra_se_send_data(se_dev, req_ctx, NULL, req->nbytes,
+	tegra_se_send_data(se_dev, req_ctx, NULL, total_bytes,
 			   se_dev->opcode_addr,
 			   se_dev->aes_cmdbuf_cpuvaddr);
 	ret = tegra_se_channel_submit_gather(
@@ -3519,8 +3532,6 @@ static int tegra_t23x_se_aes_cmac_final(struct ahash_request *req)
 	tegra_se_clear_cmac_result(se_dev,
 				   TEGRA_SE_AES_CMAC_DIGEST_SIZE);
 
-	src_sg = req->src;
-	tegra_unmap_sg(se_dev->dev, src_sg,  DMA_TO_DEVICE, req->nbytes);
 
 out:
 	mutex_unlock(&se_dev->mtx);
@@ -3528,66 +3539,74 @@ out:
 	return ret;
 }
 
-static int tegra_se_aes_cmac_final(struct ahash_request *req)
+static int tegra_se_aes_cmac_op(struct ahash_request *req, bool process_cur_req)
 {
 	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
 	struct tegra_se_aes_cmac_context *cmac_ctx = crypto_ahash_ctx(tfm);
 	struct tegra_se_req_context *req_ctx = ahash_request_ctx(req);
 	struct tegra_se_dev *se_dev;
-	struct scatterlist *src_sg;
-	struct sg_mapping_iter miter;
-	u32 num_sgs, blocks_to_process, last_block_bytes = 0, bytes_to_copy = 0;
+	struct tegra_se_ll *src_ll;
+	u32 num_sgs, blocks_to_process, last_block_bytes = 0, offset = 0;
 	u8 piv[TEGRA_SE_AES_IV_SIZE];
 	unsigned int total;
 	int ret = 0, i = 0;
 	bool padding_needed = false;
-	unsigned long flags;
-	unsigned int sg_flags = SG_MITER_ATOMIC;
-	u8 *temp_buffer = NULL;
 	bool use_orig_iv = true;
 
 	se_dev = se_devices[SE_CMAC];
 
 	if (se_dev->chipdata->kac_type == SE_KAC_T23X)
-		return tegra_t23x_se_aes_cmac_final(req);
+		return tegra_t23x_se_aes_cmac_op(req, process_cur_req);
 
 	mutex_lock(&se_dev->mtx);
 
-	req_ctx->op_mode = SE_AES_OP_MODE_CMAC;
-	blocks_to_process = req->nbytes / TEGRA_SE_AES_BLOCK_SIZE;
-	/* num of bytes less than block size */
-	if ((req->nbytes % TEGRA_SE_AES_BLOCK_SIZE) || !blocks_to_process) {
-		padding_needed = true;
-		last_block_bytes = req->nbytes % TEGRA_SE_AES_BLOCK_SIZE;
-	} else {
-		/* decrement num of blocks */
-		blocks_to_process--;
-		if (blocks_to_process)
-			last_block_bytes = req->nbytes -
-				(blocks_to_process * TEGRA_SE_AES_BLOCK_SIZE);
-		else
-			last_block_bytes = req->nbytes;
-	}
+	if (process_cur_req) {
+		if ((cmac_ctx->nbytes + req->nbytes)
+				> (TEGRA_SE_AES_BLOCK_SIZE * 20)) {
+			dev_err(se_dev->dev, "num of SG buffers bytes are more\n");
+			mutex_unlock(&se_dev->mtx);
+			return -EOPNOTSUPP;
+		}
 
-	/* first process all blocks except last block */
-	if (blocks_to_process) {
 		num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
 		if (num_sgs > SE_MAX_SRC_SG_COUNT) {
 			dev_err(se_dev->dev, "num of SG buffers are more\n");
 			ret = -EDOM;
 			goto out;
 		}
-		se_dev->src_ll = (struct tegra_se_ll *)(se_dev->src_ll_buf);
 
-		src_sg = req->src;
+		sg_copy_to_buffer(req->src, num_sgs,
+				cmac_ctx->buf + cmac_ctx->nbytes, req->nbytes);
+		cmac_ctx->nbytes += req->nbytes;
+	}
+
+	req_ctx->op_mode = SE_AES_OP_MODE_CMAC;
+	blocks_to_process = cmac_ctx->nbytes / TEGRA_SE_AES_BLOCK_SIZE;
+	/* num of bytes less than block size */
+	if ((cmac_ctx->nbytes % TEGRA_SE_AES_BLOCK_SIZE)
+				|| !blocks_to_process) {
+		padding_needed = true;
+		last_block_bytes = cmac_ctx->nbytes % TEGRA_SE_AES_BLOCK_SIZE;
+	} else {
+		/* decrement num of blocks */
+		blocks_to_process--;
+		if (blocks_to_process)
+			last_block_bytes = cmac_ctx->nbytes -
+				(blocks_to_process * TEGRA_SE_AES_BLOCK_SIZE);
+		else
+			last_block_bytes = cmac_ctx->nbytes;
+	}
+
+	/* first process all blocks except last block */
+	if (blocks_to_process) {
 		total = blocks_to_process * TEGRA_SE_AES_BLOCK_SIZE;
 
-		ret = tegra_map_sg(se_dev->dev, src_sg, 1, DMA_TO_DEVICE,
-				   se_dev->src_ll, total);
-		if (!ret) {
-			ret = -EINVAL;
-			goto out;
-		}
+		se_dev->src_ll = (struct tegra_se_ll *)(se_dev->src_ll_buf);
+		src_ll = se_dev->src_ll;
+
+		src_ll->addr = cmac_ctx->buf_dma_addr;
+		src_ll->data_len = total;
+		src_ll++;
 
 		req_ctx->config = tegra_se_get_config(se_dev, req_ctx->op_mode,
 						      true, cmac_ctx->keylen);
@@ -3617,63 +3636,29 @@ static int tegra_se_aes_cmac_final(struct ahash_request *req)
 
 		tegra_se_read_cmac_result(se_dev, piv,
 					  TEGRA_SE_AES_CMAC_DIGEST_SIZE, false);
-		src_sg = req->src;
-		tegra_unmap_sg(se_dev->dev, src_sg,  DMA_TO_DEVICE, total);
 		use_orig_iv = false;
 	}
 
-	/* get the last block bytes from the sg_dma buffer using miter */
-	src_sg = req->src;
-	num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
-	sg_flags |= SG_MITER_FROM_SG;
-	sg_miter_start(&miter, req->src, num_sgs, sg_flags);
-	total = 0;
-	cmac_ctx->buffer = dma_alloc_coherent(se_dev->dev,
-					      TEGRA_SE_AES_BLOCK_SIZE,
-					      &cmac_ctx->dma_addr, GFP_KERNEL);
-	if (!cmac_ctx->buffer) {
-		ret = -ENOMEM;
-		goto out;
-	}
-
-	local_irq_save(flags);
-	temp_buffer = cmac_ctx->buffer;
-	while (sg_miter_next(&miter) && total < req->nbytes) {
-		unsigned int len;
-
-		len = min(miter.length, (size_t)(req->nbytes - total));
-		if ((req->nbytes - (total + len)) <= last_block_bytes) {
-			bytes_to_copy = last_block_bytes -
-				(req->nbytes - (total + len));
-			memcpy(temp_buffer, miter.addr + (len - bytes_to_copy),
-			       bytes_to_copy);
-			last_block_bytes -= bytes_to_copy;
-			temp_buffer += bytes_to_copy;
-		}
-		total += len;
-	}
-	sg_miter_stop(&miter);
-	local_irq_restore(flags);
-
 	/* process last block */
+	offset = blocks_to_process * TEGRA_SE_AES_BLOCK_SIZE;
 	if (padding_needed) {
 		/* pad with 0x80, 0, 0 ... */
-		last_block_bytes = req->nbytes % TEGRA_SE_AES_BLOCK_SIZE;
-		cmac_ctx->buffer[last_block_bytes] = 0x80;
+		last_block_bytes = cmac_ctx->nbytes % TEGRA_SE_AES_BLOCK_SIZE;
+		cmac_ctx->buf[cmac_ctx->nbytes] = 0x80;
 		for (i = last_block_bytes + 1; i < TEGRA_SE_AES_BLOCK_SIZE; i++)
-			cmac_ctx->buffer[i] = 0;
+			cmac_ctx->buf[offset + i] = 0;
 		/* XOR with K2 */
 		for (i = 0; i < TEGRA_SE_AES_BLOCK_SIZE; i++)
-			cmac_ctx->buffer[i] ^= cmac_ctx->K2[i];
+			cmac_ctx->buf[offset + i] ^= cmac_ctx->K2[i];
 	} else {
 		/* XOR with K1 */
 		for (i = 0; i < TEGRA_SE_AES_BLOCK_SIZE; i++)
-			cmac_ctx->buffer[i] ^= cmac_ctx->K1[i];
+			cmac_ctx->buf[offset + i] ^= cmac_ctx->K1[i];
 	}
 
 	se_dev->src_ll = (struct tegra_se_ll *)(se_dev->src_ll_buf);
 
-	se_dev->src_ll->addr = cmac_ctx->dma_addr;
+	se_dev->src_ll->addr = cmac_ctx->buf_dma_addr + offset;
 	se_dev->src_ll->data_len = TEGRA_SE_AES_BLOCK_SIZE;
 
 	if (use_orig_iv) {
@@ -3712,12 +3697,8 @@ static int tegra_se_aes_cmac_final(struct ahash_request *req)
 		goto out;
 	tegra_se_read_cmac_result(se_dev, req->result,
 				  TEGRA_SE_AES_CMAC_DIGEST_SIZE, false);
-
-
+	cmac_ctx->nbytes = 0;
 out:
-	if (cmac_ctx->buffer)
-		dma_free_coherent(se_dev->dev, TEGRA_SE_AES_BLOCK_SIZE,
-				  cmac_ctx->buffer, cmac_ctx->dma_addr);
 	mutex_unlock(&se_dev->mtx);
 
 	return ret;
@@ -3885,30 +3866,95 @@ free_ctx:
 	return ret;
 }
 
+static int tegra_se_aes_cmac_init(struct ahash_request *req)
+{
+	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
+	struct tegra_se_aes_cmac_context *cmac_ctx = crypto_ahash_ctx(tfm);
+
+	cmac_ctx->nbytes = 0;
+
+	return 0;
+}
+
+static int tegra_se_aes_cmac_update(struct ahash_request *req)
+{
+	struct crypto_ahash *tfm = crypto_ahash_reqtfm(req);
+	struct tegra_se_aes_cmac_context *cmac_ctx = crypto_ahash_ctx(tfm);
+	struct tegra_se_dev *se_dev;
+	u32 num_sgs;
+
+	se_dev = se_devices[SE_CMAC];
+
+	if ((cmac_ctx->nbytes + req->nbytes)
+			> (TEGRA_SE_AES_BLOCK_SIZE * 20)) {
+		dev_err(se_dev->dev, "num of SG buffers bytes are more\n");
+		return -EOPNOTSUPP;
+	}
+
+	num_sgs = tegra_se_count_sgs(req->src, req->nbytes);
+
+	sg_copy_to_buffer(req->src, num_sgs, cmac_ctx->buf + cmac_ctx->nbytes,
+				req->nbytes);
+	cmac_ctx->nbytes += req->nbytes;
+
+	return 0;
+}
+
 static int tegra_se_aes_cmac_digest(struct ahash_request *req)
 {
-	return tegra_se_aes_cmac_init(req) ?: tegra_se_aes_cmac_final(req);
+	return tegra_se_aes_cmac_init(req) ?: tegra_se_aes_cmac_op(req, true);
+}
+
+static int tegra_se_aes_cmac_final(struct ahash_request *req)
+{
+	return tegra_se_aes_cmac_op(req, false);
 }
 
 static int tegra_se_aes_cmac_finup(struct ahash_request *req)
 {
-	return tegra_se_aes_cmac_final(req);
+	return tegra_se_aes_cmac_op(req, true);
 }
 
 static int tegra_se_aes_cmac_cra_init(struct crypto_tfm *tfm)
 {
+	struct tegra_se_aes_cmac_context *cmac_ctx;
+	struct tegra_se_dev *se_dev = se_devices[SE_CMAC];
+
 	crypto_ahash_set_reqsize(__crypto_ahash_cast(tfm),
 				 sizeof(struct tegra_se_aes_cmac_context));
+	cmac_ctx = crypto_tfm_ctx(tfm);
+	if (!cmac_ctx) {
+		dev_err(se_dev->dev, "CMAC context not valid\n");
+		return -EINVAL;
+	}
+
+	mutex_lock(&se_dev->mtx);
+	cmac_ctx->buf = dma_alloc_coherent(se_dev->dev,
+				(TEGRA_SE_AES_BLOCK_SIZE * 20),
+				&cmac_ctx->buf_dma_addr, GFP_KERNEL);
+	if (!cmac_ctx->buf) {
+		dev_err(se_dev->dev, "Cannot allocate memory to buf\n");
+		mutex_unlock(&se_dev->mtx);
+		return -ENOMEM;
+	}
+	cmac_ctx->nbytes = 0;
+	mutex_unlock(&se_dev->mtx);
 
 	return 0;
 }
 
 static void tegra_se_aes_cmac_cra_exit(struct crypto_tfm *tfm)
 {
-	struct tegra_se_aes_cmac_context *ctx = crypto_tfm_ctx(tfm);
+	struct tegra_se_aes_cmac_context *cmac_ctx = crypto_tfm_ctx(tfm);
+	struct tegra_se_dev *se_dev = se_devices[SE_CMAC];
 
-	tegra_se_free_key_slot(ctx->slot);
-	ctx->slot = NULL;
+	tegra_se_free_key_slot(cmac_ctx->slot);
+	cmac_ctx->slot = NULL;
+
+	mutex_lock(&se_dev->mtx);
+	dma_free_coherent(se_dev->dev, (TEGRA_SE_AES_BLOCK_SIZE * 20),
+				cmac_ctx->buf, cmac_ctx->buf_dma_addr);
+	mutex_unlock(&se_dev->mtx);
 }
 
 static int tegra_se_sha_hmac_setkey(struct crypto_ahash *tfm, const u8 *key,
@@ -6184,6 +6230,8 @@ static struct ahash_alg hash_algs[] = {
 		.finup = tegra_se_aes_cmac_finup,
 		.digest = tegra_se_aes_cmac_digest,
 		.setkey = tegra_se_aes_cmac_setkey,
+		.export = tegra_se_aes_cmac_export,
+		.import = tegra_se_aes_cmac_import,
 		.halg.digestsize = TEGRA_SE_AES_CMAC_DIGEST_SIZE,
 		.halg.statesize = TEGRA_SE_AES_CMAC_STATE_SIZE,
 		.halg.base = {
