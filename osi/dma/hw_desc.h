@@ -58,6 +58,7 @@
 #define RDES1_IPV6		OSI_BIT(5)
 #define RDES1_IPV4		OSI_BIT(4)
 #define RDES1_IPHE		OSI_BIT(3)
+#define RDES1_PT_MASK		(OSI_BIT(2) | OSI_BIT(1) | OSI_BIT(0))
 #define RDES1_PT_TCP		OSI_BIT(1)
 #define RDES1_PT_UDP		OSI_BIT(0)
 /** @} */
