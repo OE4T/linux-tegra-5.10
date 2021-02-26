@@ -3,7 +3,7 @@
  *
  * User-space interface to nvmap
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -638,8 +638,7 @@ int nvmap_ioctl_create_from_ivc(struct file *filp, void __user *arg)
 				arg, &op, sizeof(op), 1, ref->handle->dmabuf);
 }
 
-int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg,
-				 bool is_reserve_ioctl)
+int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg)
 {
 	struct nvmap_cache_op_list op;
 	u32 *handle_ptr;
@@ -758,11 +757,7 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg,
 		}
 	}
 
-	if (is_reserve_ioctl)
-		err = nvmap_reserve_pages(refs, offset_ptr, size_ptr,
-					  op.nr, op.op, is_32);
-	else
-		err = nvmap_do_cache_maint_list(refs, offset_ptr, size_ptr,
+	err = nvmap_do_cache_maint_list(refs, offset_ptr, size_ptr,
 						op.op, op.nr, is_32);
 
 free_mem:

@@ -3,7 +3,7 @@
  *
  * structure declarations for nvmem and nvmap user-space ioctls
  *
- * Copyright (c) 2009-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -376,9 +376,6 @@ struct nvmap_query_heap_params {
 
 /* Perform cache maintenance on a list of handles. */
 #define NVMAP_IOC_CACHE_LIST _IOW(NVMAP_IOC_MAGIC, 17,	\
-				  struct nvmap_cache_op_list)
-/* Perform reserve operation on a list of handles. */
-#define NVMAP_IOC_RESERVE _IOW(NVMAP_IOC_MAGIC, 18,	\
 				  struct nvmap_cache_op_list)
 
 #define NVMAP_IOC_FROM_IVC_ID _IOWR(NVMAP_IOC_MAGIC, 19, struct nvmap_create_handle)
