@@ -209,6 +209,12 @@ int nvgpu_gr_enable_hw(struct gk20a *g);
  * @retval -ETIMEDOUT if reading golden context size times out.
  * @retval -ENOMEM if memory allocation fails for any internal data
  *         structure.
+ * @retval -ENOMEM if mapping to address space fails for any internal data
+ *         structure.
+ * @retval -ETIMEDOUT if falcon method opcode submission returns
+ *         ucode wait status of \a WAIT_UCODE_TIMEOUT.
+ * @retval -EINVAL if falcon method opcode submission returns
+ *         ucode wait status of \a WAIT_UCODE_ERROR.
  */
 int nvgpu_gr_init_support(struct gk20a *g);
 

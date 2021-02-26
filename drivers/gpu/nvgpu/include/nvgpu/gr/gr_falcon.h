@@ -209,7 +209,13 @@ void nvgpu_gr_falcon_remove_support(struct gk20a *g,
  * #nvgpu_gr_falcon_load_secure_ctxsw_ucode() to boot ucodes.
  *
  * @return 0 in case of success, < 0 in case of failure.
+ * @retval -ENOENT if ucodes cannot be found on filesystem.
+ * @retval -ENOMEM if ucode surface memory allocation fails.
  * @retval -ETIMEDOUT if communication with falcon timed out.
+ * @retval -ETIMEDOUT if method opcode submission returns
+ *         ucode wait status of \a WAIT_UCODE_TIMEOUT.
+ * @retval -EINVAL if method opcode submission returns
+ *         ucode wait status of \a WAIT_UCODE_ERROR.
  */
 int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g, struct nvgpu_gr_falcon *falcon);
 
@@ -224,6 +230,10 @@ int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g, struct nvgpu_gr_falcon *falcon);
  *
  * @return 0 in case of success, < 0 in case of failure.
  * @retval -ETIMEDOUT if communication with falcon timed out.
+ * @retval -ETIMEDOUT if method opcode submission returns
+ *         ucode wait status of \a WAIT_UCODE_TIMEOUT.
+ * @retval -EINVAL if method opcode submission returns
+ *         ucode wait status of \a WAIT_UCODE_ERROR.
  */
 int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g,
 		struct nvgpu_gr_falcon *falcon);

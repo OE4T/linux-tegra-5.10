@@ -76,8 +76,6 @@ enum nvgpu_event_id_type;
 #endif
 
 /**
- * GR engine ecc subunit hal operations.
- *
  * This structure stores the GR engine ecc subunit hal pointers.
  *
  * @see gops_gr
@@ -136,8 +134,6 @@ struct gops_gr_ecc {
 
 
 /**
- * GR engine setup subunit hal operations.
- *
  * This structure stores the GR engine setup subunit hal pointers.
  *
  * @see gops_gr
@@ -239,8 +235,6 @@ struct gops_gr_setup {
 };
 
 /**
- * GR engine falcon subunit hal operations.
- *
  * This structure stores the GR engine falcon subunit hal pointers.
  *
  * @see gops_gr
@@ -316,13 +310,11 @@ struct gops_gr_falcon {
 			  u32 fecs_data, u32 *ret_val);
 
 	/**
-	 * @brief Wait for FECS/GPCCS IMEM/DMEM scrubbing to complete with
-	 *        timeout of CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US.
+	 * @brief Wait for scrubbing of IMEM and DMEM of FECS and GPCCS
+	 *        falcons to complete with a timeout of
+	 *        \a CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US.
 	 *
 	 * @param g [in]	Pointer to GPU driver struct.
-	 *
-	 * Wait for scrubbing of IMEM and DMEM of FECS and GPCCS falcons
-	 * to complete with a timeout of \a CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US.
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 * @retval -ETIMEDOUT if falcon scrubbing timed out.
@@ -330,7 +322,8 @@ struct gops_gr_falcon {
 	int (*wait_mem_scrubbing)(struct gk20a *g);
 
 	/**
-	 * @brief Wait for CTXSW falcon to get ready.
+	 * @brief Ensure CTXSW falcon is ready and CTXSW watchdog
+	 *        timeout is configured.
 	 *
 	 * @param g [in]	Pointer to GPU driver struct.
 	 *
@@ -406,8 +399,6 @@ struct gops_gr_falcon {
 };
 
 /**
- * GR engine interrupt subunit hal operations.
- *
  * This structure stores the GR engine interrupt subunit hal pointers.
  *
  * @see gops_gr
@@ -571,8 +562,6 @@ struct gops_gr_intr {
 };
 
 /**
- * GR engine init subunit hal operations.
- *
  * This structure stores GR engine init subunit hal function pointers.
  *
  * @see gops_gr
@@ -674,12 +663,10 @@ struct gops_gr_init {
 
 	/**
 	 * @brief Wait for graphics engine to idle with timeout of
-	 *        NVGPU_DEFAULT_POLL_TIMEOUT_MS.
+	 *        \a NVGPU_DEFAULT_POLL_TIMEOUT_MS.
 	 *
 	 * @param g [in]	Pointer to GPU driver struct.
 	 *
-	 * Wait for graphics engine to idle with timeout of
-	 * \a NVGPU_DEFAULT_POLL_TIMEOUT_MS.
 	 * During graphics engine programming it is necessary to ensure
 	 * engine is idle at various steps.
 	 *
@@ -690,12 +677,10 @@ struct gops_gr_init {
 
 	/**
 	 * @brief Wait for FE method pipeline to idle with timeout of
-	 *        NVGPU_DEFAULT_POLL_TIMEOUT_MS.
+	 *        \a NVGPU_DEFAULT_POLL_TIMEOUT_MS.
 	 *
 	 * @param g [in]	Pointer to GPU driver struct.
 	 *
-	 * Wait for FE unit's method pipeline to idle with timeout of
-	 * \a NVGPU_DEFAULT_POLL_TIMEOUT_MS.
 	 * During graphics engine programming it is necessary to ensure
 	 * FE method pipeline is idle at various steps.
 	 *
@@ -1069,20 +1054,19 @@ struct gops_gr_zcull {
 /** @endcond */
 
 /**
- * GR engine HAL operations.
- *
  * This structure stores the GR engine HAL function pointers.
  *
  * @see gpu_ops
  */
 struct gops_gr {
 	/**
-	 * @brief Initialize GR engine support.
+	 * @brief Initialize all the GR engine support and functionality.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
-	 * This HAL initializes all the GR engine support and
-	 * functionality. This HAL always maps to #nvgpu_gr_init_support.
+	 * Initialize CTXSW falcon, GR engine HW, GR engine interrupts, and
+	 * necessary SW context support.
+	 * This HAL always maps to #nvgpu_gr_init_support.
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 * @retval -ENOENT if context switch ucode is not found.

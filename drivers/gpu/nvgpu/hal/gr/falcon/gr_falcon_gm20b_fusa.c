@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -386,21 +386,18 @@ static int gm20b_gr_falcon_status_check_ctx_wait_ucode(struct gk20a *g,
 			   mailbox_id, reg);
 		g->ops.gr.falcon.dump_stats(g);
 		gk20a_gr_debug_dump(g);
-		goto check_error;
+		return -ETIMEDOUT;
 	} else if (error) {
 		nvgpu_err(g,
 			   "ucode method failed on mailbox=%d value=0x%08x",
 			   mailbox_id, reg);
 		g->ops.gr.falcon.dump_stats(g);
-		goto check_error;
+		return -EINVAL;
 	} else {
 		nvgpu_log_info(g, "fecs mailbox return success");
 	}
 
 	return 0;
-
-check_error:
-	return -1;
 }
 
 static u32 gm20b_gr_falcon_delay_ctx_wait_ucode(bool sleepduringwait,
