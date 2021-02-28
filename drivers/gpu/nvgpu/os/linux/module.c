@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -314,6 +314,8 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 
 void gk20a_init_linux_characteristics(struct gk20a *g)
 {
+	struct device *dev = dev_from_gk20a(g);
+
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PARTIAL_MAPPINGS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DETERMINISTIC_OPTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERSPACE_MANAGED_AS, true);
@@ -321,6 +323,10 @@ void gk20a_init_linux_characteristics(struct gk20a *g)
 
 	if (!IS_ENABLED(CONFIG_NVGPU_SYNCFD_NONE)) {
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNC_FENCE_FDS, true);
+	}
+
+	if (!gk20a_gpu_is_virtual(dev)) {
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_MAPPING_MODIFY, true);
 	}
 }
 

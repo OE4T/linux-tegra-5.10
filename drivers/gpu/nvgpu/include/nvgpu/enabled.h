@@ -80,6 +80,8 @@ struct gk20a;
 		"Direct PTE kind control is supported (map_buffer_ex)"),\
 	DEFINE_FLAG(NVGPU_SUPPORT_MAP_BUFFER_BATCH,			\
 		"Support batch mapping"),				\
+	DEFINE_FLAG(NVGPU_SUPPORT_MAPPING_MODIFY,			\
+		"Support mapping modify"),				\
 	DEFINE_FLAG(NVGPU_USE_COHERENT_SYSMEM,				\
 		"Use coherent aperture for sysmem"),			\
 	DEFINE_FLAG(NVGPU_MM_USE_PHYSICAL_SG,				\

@@ -310,6 +310,10 @@ static int nvgpu_as_ioctl_mapping_modify(
 
 	nvgpu_log_fn(g, " ");
 
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MAPPING_MODIFY)) {
+		return -ENOTTY;
+	}
+
 	return nvgpu_vm_mapping_modify(as_share->vm,
 				args->compr_kind,
 				args->incompr_kind,
