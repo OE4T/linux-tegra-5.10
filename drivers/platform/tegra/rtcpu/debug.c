@@ -274,7 +274,11 @@ static int camrtc_ivc_dbg_full_frame_xact(
 	if (ret < 0)
 		goto unlock;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	if (WARN_ON(!tegra_ivc_channel_online_check(ch))) {
+#else
+	if ((!tegra_ivc_channel_online_check(ch))) {
+#endif
 		ret = -ECONNRESET;
 		goto out;
 	}
