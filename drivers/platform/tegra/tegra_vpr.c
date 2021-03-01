@@ -53,26 +53,11 @@ static int _tegra_set_vpr_params(void *vpr_base, size_t vpr_size);
 
 static int tegra_update_resize_cfg(phys_addr_t base , size_t size)
 {
-	int i = 0, j = 0, err = 0, resize_err = -EINVAL;
+	int i = 0, err = 0;
 #define MAX_RETRIES 6
-	int do_idle_retries = MAX_RETRIES;
+	int retries = MAX_RETRIES;
 	mutex_lock(&vpr_lock);
-
-	/* Check if any client has registered */
-	for (j = 0; j < NUM_MODULES_IDLE_VPR_RESIZE; j++) {
-		if (vpr_user_module[j].do_idle) {
-			break;
-		}
-	}
-
-	if (j == NUM_MODULES_IDLE_VPR_RESIZE) {
-		/* None of the clients are registered, just return 0 */
-		mutex_unlock(&vpr_lock);
-		return 0;
-	}
-
 retry:
-	/* Execution will reach here when at least one client has registered */
 	for (; i < NUM_MODULES_IDLE_VPR_RESIZE; i++) {
 		if (vpr_user_module[i].do_idle) {
 			err = vpr_user_module[i].do_idle(
@@ -86,40 +71,36 @@ retry:
 		}
 	}
 	if (!err) {
-		/* This means all do_idle() are successful */
-		do_idle_retries = 0;
-
 		/* Config VPR_BOM/_SIZE in MC */
-		resize_err =
-			_tegra_set_vpr_params((void *)(uintptr_t)base, size);
-		if (resize_err)
+		err = _tegra_set_vpr_params((void *)(uintptr_t)base, size);
+		if (err)
 			pr_err("vpr resize to (%px, %zu) failed. err=%d\n",
-				(void *)(uintptr_t)base, size, resize_err);
+				(void *)(uintptr_t)base, size, err);
+		else
+			retries = 0; /* finish */
 	}
-	if (do_idle_retries--) {
+	if (retries--) {
 		pr_err("%s:%d: fail retry=%d",
-			__func__, __LINE__, MAX_RETRIES - do_idle_retries);
+			__func__, __LINE__, MAX_RETRIES - retries);
 		msleep(1);
 		goto retry;
 	}
-
-	/* do_idle() were successful and we should call do_unidle() */
 	while (--i >= 0) {
 		if (!vpr_user_module[i].do_unidle)
 			continue;
 
 		err = vpr_user_module[i].do_unidle(
 				vpr_user_module[i].data);
-		if (err) {
-			pr_err("%s:%d: %pxF failed err:%d. Could be fatal!!\n",
-				 __func__, __LINE__,
-				vpr_user_module[i].do_unidle, err);
-		}
+		if (!err)
+			continue;
+		pr_err("%s:%d: %pxF failed err:%d. Could be fatal!!\n",
+			 __func__, __LINE__,
+			vpr_user_module[i].do_unidle, err);
+		/* vpr resize is success, so return 0 on unidle failure */
+		err = 0;
 	}
 	mutex_unlock(&vpr_lock);
-
-	/* Return vpr_resize function result */
-	return resize_err;
+	return err;
 }
 
 struct dma_resize_notifier_ops vpr_dev_ops = {
