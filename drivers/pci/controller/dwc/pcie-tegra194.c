@@ -2,7 +2,7 @@
 /*
  * PCIe host controller driver for Tegra194 SoC
  *
- * Copyright (C) 2019 - 2021 NVIDIA Corporation.
+ * Copyright (C) 2019-2021 NVIDIA Corporation.
  *
  * Author: Vidya Sagar <vidyas@nvidia.com>
  */
@@ -2432,8 +2432,10 @@ static int tegra_pcie_dw_suspend_late(struct device *dev)
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	u32 val;
 
-	if (pcie->mode == DW_PCIE_EP_TYPE)
-		return 0;
+	if (pcie->mode == DW_PCIE_EP_TYPE) {
+		dev_err(dev, "Tegra PCIe is in EP mode, suspend not allowed");
+		return -EPERM;
+	}
 
 	if (!pcie->link_state)
 		return 0;
@@ -2454,9 +2456,6 @@ static int tegra_pcie_dw_suspend_noirq(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 
-	if (pcie->mode == DW_PCIE_EP_TYPE)
-		return 0;
-
 	if (!pcie->link_state)
 		return 0;
 
@@ -2474,9 +2473,6 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	int ret;
-
-	if (pcie->mode == DW_PCIE_EP_TYPE)
-		return 0;
 
 	if (!pcie->link_state)
 		return 0;
@@ -2518,9 +2514,6 @@ static int tegra_pcie_dw_resume_early(struct device *dev)
 {
 	struct tegra_pcie_dw *pcie = dev_get_drvdata(dev);
 	u32 val;
-
-	if (pcie->mode == DW_PCIE_EP_TYPE)
-		return 0;
 
 	if (!pcie->link_state)
 		return 0;
