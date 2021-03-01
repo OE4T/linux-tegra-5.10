@@ -2,7 +2,7 @@
  * tegra_alt_asoc_utils.h - Definitions for MCLK and DAP Utility driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (c) 2011-2019 NVIDIA CORPORATION.	All rights reserved.
+ * Copyright (c) 2011-2021 NVIDIA CORPORATION.	All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -55,7 +55,6 @@ struct tegra_asoc_audio_clock_info {
 	struct clk *clk_pll_base;
 	struct clk *clk_pll_out;
 	struct clk *clk_aud_mclk;
-	struct reset_control *clk_cdev1_rst;
 	unsigned int *pll_base_rate;
 	u32 set_pll_base_rate;
 	u32 set_pll_out_rate;

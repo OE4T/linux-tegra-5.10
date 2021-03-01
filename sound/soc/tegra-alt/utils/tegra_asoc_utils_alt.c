@@ -2,7 +2,7 @@
  * tegra_asoc_utils_alt.c - MCLK and DAP Utility driver
  *
  * Author: Stephen Warren <swarren@nvidia.com>
- * Copyright (c) 2010-2019 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2010-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +27,6 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/clk/tegra.h>
-#include <linux/reset.h>
 #include <sound/soc.h>
 #include "tegra_asoc_utils_alt.h"
 
@@ -127,9 +126,6 @@ int tegra_alt_asoc_utils_clk_enable(struct tegra_asoc_audio_clock_info *data)
 {
 	int err;
 
-	if (data->soc == TEGRA_ASOC_UTILS_SOC_TEGRA186)
-		reset_control_reset(data->clk_cdev1_rst);
-
 	err = clk_prepare_enable(data->clk_aud_mclk);
 	if (err) {
 		dev_err(data->dev, "Can't enable cdev1: %d\n", err);
@@ -181,17 +177,6 @@ int tegra_alt_asoc_utils_init(struct tegra_asoc_audio_clock_info *data,
 	if (IS_ERR(data->clk_aud_mclk)) {
 		dev_err(data->dev, "Can't retrieve clk cdev1\n");
 		return PTR_ERR(data->clk_aud_mclk);
-	}
-
-	if (data->soc == TEGRA_ASOC_UTILS_SOC_TEGRA186) {
-		data->clk_cdev1_rst = devm_reset_control_get(dev,
-							     "extern1_rst");
-		if (IS_ERR(data->clk_cdev1_rst)) {
-			dev_err(dev, "Reset control is not found, err: %ld\n",
-				PTR_ERR(data->clk_cdev1_rst));
-			return PTR_ERR(data->clk_cdev1_rst);
-		}
-		reset_control_reset(data->clk_cdev1_rst);
 	}
 
 	if (data->soc < TEGRA_ASOC_UTILS_SOC_TEGRA186)
