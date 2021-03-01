@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "osi_dma_local.h"
+#include "dma_local.h"
 #include <osi_dma_txrx.h>
 #include "../osi/common/type.h"
 #include "hw_desc.h"

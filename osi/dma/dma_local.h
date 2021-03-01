@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,8 @@
  */
 
 
-#ifndef INCLUDED_OSI_DMA_LOCAL_H
-#define INCLUDED_OSI_DMA_LOCAL_H
+#ifndef INCLUDED_DMA_LOCAL_H
+#define INCLUDED_DMA_LOCAL_H
 
 #include <osi_dma.h>
 #include "eqos_dma.h"
@@ -68,4 +68,4 @@ nve32_t dma_desc_init(struct osi_dma_priv_data *osi_dma);
 #define H32(data)       (((data) & 0xFFFFFFFF00000000UL) >> 32UL)
 /** @} */
 
-#endif /* INCLUDED_OSI_DMA_LOCAL_H */
+#endif /* INCLUDED_DMA_LOCAL_H */
