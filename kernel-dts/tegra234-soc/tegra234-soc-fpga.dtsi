@@ -247,7 +247,7 @@
 		status = "disabled";
 	};
 
-	display@13800000 {
+	nvdisplay: display@13800000 {
 		compatible = "nvidia,tegra234-display";
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_DISP>;
 		nvidia,num-dpaux-instance = <1>;
