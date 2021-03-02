@@ -884,7 +884,7 @@ static void tegra_sdhci_configure_cal_pad(struct sdhci_host *host, bool enable)
 	sdhci_writel(host, val, SDHCI_TEGRA_SDMEM_COMP_PADCTRL);
 
 	if (enable)
-		usleep_range(1, 2);
+		udelay(2);
 }
 
 static void tegra_sdhci_set_pad_autocal_offset(struct sdhci_host *host,
@@ -1020,7 +1020,7 @@ static void tegra_sdhci_pad_autocalib(struct sdhci_host *host)
 	reg |= SDHCI_AUTO_CAL_ENABLE | SDHCI_AUTO_CAL_START;
 	sdhci_writel(host, reg, SDHCI_TEGRA_AUTO_CAL_CONFIG);
 
-	usleep_range(1, 2);
+	udelay(2);
 	/* 10 ms timeout */
 	ret = readl_poll_timeout(host->ioaddr + SDHCI_TEGRA_AUTO_CAL_STATUS,
 				 reg, !(reg & SDHCI_TEGRA_AUTO_CAL_ACTIVE),
