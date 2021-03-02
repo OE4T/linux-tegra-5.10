@@ -2311,11 +2311,13 @@ void tegra_nvhdcp_set_plug(struct tegra_nvhdcp *nvhdcp, bool hpd)
 
 	nvhdcp_debug("hdmi hotplug detected (hpd = %d)\n", hpd);
 
-	if (hpd) {
-		nvhdcp_set_plugged(nvhdcp, true);
-		tegra_nvhdcp_on(nvhdcp);
-	} else {
-		tegra_nvhdcp_off(nvhdcp);
+	if (atomic_read(&nvhdcp->policy) != TEGRA_DC_HDCP_POLICY_ALWAYS_OFF) {
+		if (hpd) {
+			nvhdcp_set_plugged(nvhdcp, true);
+			tegra_nvhdcp_on(nvhdcp);
+		} else {
+			tegra_nvhdcp_off(nvhdcp);
+		}
 	}
 }
 
