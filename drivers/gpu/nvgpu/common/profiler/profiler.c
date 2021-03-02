@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,10 @@
 #include <nvgpu/regops_allowlist.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/sort.h>
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+#include "nvgpu_next_gpuid.h"
+#endif
 
 static int nvgpu_profiler_build_regops_allowlist(struct nvgpu_profiler_object *prof);
 static void nvgpu_profiler_destroy_regops_allowlist(struct nvgpu_profiler_object *prof);
@@ -425,6 +429,10 @@ static int nvgpu_profiler_quiesce_hwpm_streamout_resident(struct nvgpu_profiler_
 	if (err != 0) {
 		goto fail;
 	}
+
+#ifdef CONFIG_NVGPU_NEXT
+	NVGPU_NEXT_PROFILER_QUIESCE(g);
+#endif
 
 	/* Disable streamout */
 	g->ops.perf.pma_stream_enable(g, false);
