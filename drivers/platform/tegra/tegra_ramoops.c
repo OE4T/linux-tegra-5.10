@@ -17,6 +17,7 @@
 #include <linux/of_reserved_mem.h>
 #include <linux/platform_device.h>
 #include <linux/pstore_ram.h>
+#include <linux/version.h>
 
 static __init int display_tegra_dt_info(void)
 {
@@ -76,8 +77,12 @@ static int __init ramoops_init(struct reserved_mem *rmem)
 #ifdef CONFIG_PSTORE_PMSG
 	ramoops_data.pmsg_size = PMSG_MEM_SIZE;
 #endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 
 	ramoops_data.dump_oops = 1;
+#else
+	ramoops_data.max_reason = 1;
+#endif
 	return 0;
 }
 RESERVEDMEM_OF_DECLARE(tegra_ramoops, "nvidia,ramoops", ramoops_init);
