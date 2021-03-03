@@ -160,7 +160,7 @@ static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
  */
 static inline nve32_t get_rx_tstamp_status(struct osi_rx_desc *context_desc)
 {
-	if (((context_desc->rdes3 & RDES3_OWN) == 0U) &&
+	if (((context_desc->rdes3 & RDES3_OWN) != RDES3_OWN) &&
 			((context_desc->rdes3 & RDES3_CTXT) == RDES3_CTXT)) {
 		if (((context_desc->rdes0 == OSI_INVALID_VALUE) &&
 		    (context_desc->rdes1 == OSI_INVALID_VALUE))) {
@@ -208,7 +208,7 @@ static nve32_t get_rx_hwstamp(struct osi_dma_priv_data *osi_dma,
 	/* Check for RS1V/TSA/TD valid */
 	if (((rx_desc->rdes3 & RDES3_RS1V) == RDES3_RS1V) &&
 	    ((rx_desc->rdes1 & RDES1_TSA) == RDES1_TSA) &&
-	    ((rx_desc->rdes1 & RDES1_TD) == 0U)) {
+	    ((rx_desc->rdes1 & RDES1_TD) != RDES1_TD)) {
 		for (retry = 0; retry < 10; retry++) {
 			ret = get_rx_tstamp_status(context_desc);
 			if (ret == 0) {
@@ -772,9 +772,9 @@ nve32_t osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 		}
 
 		if (((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) &&
-		    ((tx_desc->tdes3 & TDES3_CTXT) == 0U)) {
+		    ((tx_desc->tdes3 & TDES3_CTXT) != TDES3_CTXT)) {
 			/* check tx tstamp status */
-			if ((tx_desc->tdes3 & TDES3_TTSS) != 0U) {
+			if ((tx_desc->tdes3 & TDES3_TTSS) == TDES3_TTSS) {
 				/* tx timestamp captured for this packet */
 				ns = tx_desc->tdes0;
 				vartdes1 = tx_desc->tdes1;

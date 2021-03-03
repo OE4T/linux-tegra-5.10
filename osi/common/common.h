@@ -25,6 +25,16 @@
 #include "../osi/common/type.h"
 #include <osi_common.h>
 
+/**
+ * @addtogroup Generic helper macros
+ *
+ * @brief These are Generic helper macros used at various places.
+ * @{
+ */
+#define RETRY_COUNT	1000U
+#define COND_MET	0
+#define COND_NOT_MET	1
+/** @} */
 struct osi_core_priv_data;
 
 /**
