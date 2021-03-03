@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -179,7 +179,11 @@ static void nvgpu_usleep(unsigned int usecs)
 	rqtp.tv_sec = t_ns / NSEC_PER_SEC;
 	rqtp.tv_nsec = t_ns % NSEC_PER_SEC;
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 10_3), "SWE-NVGPU-204-SWSADR.docx")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_CERT(INT31_C), "SWE-NVGPU-209-SWSADR.docx")
 	ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &rqtp, NULL);
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(INT31_C))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
 	if (ret != 0) {
 		nvgpu_err(NULL, "Error %d return from clock_nanosleep", ret);
 	}
@@ -214,7 +218,11 @@ void nvgpu_msleep(unsigned int msecs)
 	rqtp.tv_sec = t_ns / NSEC_PER_SEC;
 	rqtp.tv_nsec = t_ns % NSEC_PER_SEC;
 
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_MISRA(Rule, 10_3), "SWE-NVGPU-204-SWSADR.docx")
+NVGPU_COV_WHITELIST_BLOCK_BEGIN(deviate, 1, NVGPU_CERT(INT31_C), "SWE-NVGPU-209-SWSADR.docx")
 	ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &rqtp, NULL);
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_MISRA(Rule, 10_3))
+NVGPU_COV_WHITELIST_BLOCK_END(NVGPU_CERT(INT31_C))
 	if (ret != 0) {
 		nvgpu_err(NULL, "Error %d return from clock_nanosleep", ret);
 	}
