@@ -337,7 +337,6 @@ put:
 }
 
 
-#ifdef CONFIG_DRM_TEGRA_STAGING
 static int tegra_gem_create(struct drm_device *drm, void *data,
 			    struct drm_file *file)
 {
@@ -726,10 +725,8 @@ static int tegra_gem_get_flags(struct drm_device *drm, void *data,
 
 	return 0;
 }
-#endif
 
 static const struct drm_ioctl_desc tegra_drm_ioctls[] = {
-#ifdef CONFIG_DRM_TEGRA_STAGING
 	DRM_IOCTL_DEF_DRV(TEGRA_CHANNEL_OPEN, tegra_drm_ioctl_channel_open,
 			  DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(TEGRA_CHANNEL_CLOSE, tegra_drm_ioctl_channel_close,
@@ -771,7 +768,6 @@ static const struct drm_ioctl_desc tegra_drm_ioctls[] = {
 			  DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(TEGRA_GEM_GET_FLAGS, tegra_gem_get_flags,
 			  DRM_RENDER_ALLOW),
-#endif
 };
 
 static const struct file_operations tegra_drm_fops = {
