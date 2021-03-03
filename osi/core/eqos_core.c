@@ -487,14 +487,14 @@ static nve32_t eqos_config_fw_err_pkts(
 static nve32_t eqos_poll_for_swr(struct osi_core_priv_data *const osi_core)
 {
 	void *addr = osi_core->base;
-	nveu32_t retry = 1000;
+	nveu32_t retry = RETRY_COUNT;
 	nveu32_t count;
 	nveu32_t dma_bmr = 0;
-	nve32_t cond = 1;
+	nve32_t cond = COND_NOT_MET;
 	nveu32_t pre_si = osi_core->pre_si;
 
 	if (pre_si == OSI_ENABLE) {
-		osi_writela(osi_core, 0x1U,
+		osi_writela(osi_core, OSI_ENABLE,
 			    (nveu8_t *)addr + EQOS_DMA_BMR);
 	}
 	/* add delay of 10 usec */
@@ -502,7 +502,7 @@ static nve32_t eqos_poll_for_swr(struct osi_core_priv_data *const osi_core)
 
 	/* Poll Until Poll Condition */
 	count = 0;
-	while (cond == 1) {
+	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 				     "poll_for_swr: timeout\n", 0ULL);
@@ -514,8 +514,8 @@ static nve32_t eqos_poll_for_swr(struct osi_core_priv_data *const osi_core)
 
 		dma_bmr = osi_readla(osi_core,
 				     (nveu8_t *)addr + EQOS_DMA_BMR);
-		if ((dma_bmr & EQOS_DMA_BMR_SWR) == 0U) {
-			cond = 0;
+		if ((dma_bmr & EQOS_DMA_BMR_SWR) != EQOS_DMA_BMR_SWR) {
+			cond = COND_MET;
 		} else {
 			osi_core->osd_ops.msleep(1U);
 		}
@@ -759,9 +759,9 @@ static nveu32_t eqos_calculate_per_queue_fifo(nveu32_t fifo_size,
 static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 {
 	void *ioaddr = osi_core->base;
-	nveu32_t retry = 1000;
+	nveu32_t retry = RETRY_COUNT;
 	nveu32_t count;
-	nve32_t cond = 1, ret = 0;
+	nve32_t cond = COND_NOT_MET, ret = 0;
 	nveu32_t value;
 
 	/* 1. Set field PAD_E_INPUT_OR_E_PWRD in
@@ -791,7 +791,7 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 
 	/* 5. Wait on AUTO_CAL_ACTIVE until it is 0. 10ms is the timeout */
 	count = 0;
-	while (cond == 1) {
+	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			ret = -1;
 			goto calibration_failed;
@@ -802,7 +802,7 @@ static nve32_t eqos_pad_calibrate(struct osi_core_priv_data *const osi_core)
 				   EQOS_PAD_AUTO_CAL_STAT);
 		/* calibration done when CAL_STAT_ACTIVE is zero */
 		if ((value & EQOS_PAD_AUTO_CAL_STAT_ACTIVE) == 0U) {
-			cond = 0;
+			cond = COND_MET;
 		}
 	}
 
@@ -841,10 +841,10 @@ static nve32_t eqos_flush_mtl_tx_queue(
 				   const nveu32_t qinx)
 {
 	void *addr = osi_core->base;
-	nveu32_t retry = 1000;
+	nveu32_t retry = RETRY_COUNT;
 	nveu32_t count;
 	nveu32_t value;
-	nve32_t cond = 1;
+	nve32_t cond = COND_NOT_MET;
 
 	if (qinx >= OSI_EQOS_MAX_NUM_QUEUES) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
@@ -862,7 +862,7 @@ static nve32_t eqos_flush_mtl_tx_queue(
 
 	/* Poll Until FTQ bit resets for Successful Tx Q flush */
 	count = 0;
-	while (cond == 1) {
+	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 				     "Poll FTQ bit timeout\n", 0ULL);
@@ -876,7 +876,7 @@ static nve32_t eqos_flush_mtl_tx_queue(
 				   EQOS_MTL_CHX_TX_OP_MODE(qinx));
 
 		if ((value & EQOS_MTL_QTOMR_FTQ_LPOS) == 0U) {
-			cond = 0;
+			cond = COND_MET;
 		}
 	}
 
@@ -1064,7 +1064,7 @@ static nve32_t eqos_configure_mtl_queue(nveu32_t qinx,
 	/* Enable Rx Queue Control */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  EQOS_MAC_RQC0R);
-	value |= ((osi_core->rxq_ctrl[qinx] & 0x3U) << (qinx * 2U));
+	value |= ((osi_core->rxq_ctrl[qinx] & EQOS_RXQ_EN_MASK) << (qinx * 2U));
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_RQC0R, EQOS_MAC_RQC0R_IDX);
 
@@ -1163,7 +1163,7 @@ static void eqos_configure_rxq_priority(
 		/* check for PSRQ field mutual exclusive for all queues */
 		if ((osi_core->rxq_prio[mtlq] <= 0xFFU) &&
 		    (osi_core->rxq_prio[mtlq] > 0x0U) &&
-		    ((pmask & osi_core->rxq_prio[mtlq]) == 0U)) {
+		    ((pmask & osi_core->rxq_prio[mtlq]) == 0)) {
 			pmask |= osi_core->rxq_prio[mtlq];
 			temp = osi_core->rxq_prio[mtlq];
 		} else {
@@ -1281,13 +1281,13 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 
 	/* Disable all MMC interrupts */
 	/* Disable all MMC Tx Interrupts */
-	osi_writela(osi_core, 0xFFFFFFFFU, (nveu8_t *)osi_core->base +
+	osi_writela(osi_core, EQOS_MMC_INTR_DISABLE, (nveu8_t *)osi_core->base +
 		   EQOS_MMC_TX_INTR_MASK);
 	/* Disable all MMC RX interrupts */
-	osi_writela(osi_core, 0xFFFFFFFFU, (nveu8_t *)osi_core->base +
+	osi_writela(osi_core, EQOS_MMC_INTR_DISABLE, (nveu8_t *)osi_core->base +
 		    EQOS_MMC_RX_INTR_MASK);
 	/* Disable MMC Rx interrupts for IPC */
-	osi_writela(osi_core, 0xFFFFFFFFU, (nveu8_t *)osi_core->base +
+	osi_writela(osi_core, EQOS_MMC_INTR_DISABLE, (nveu8_t *)osi_core->base +
 		    EQOS_MMC_IPC_RX_INTR_MASK);
 
 	/* Configure MMC counters */
@@ -1683,7 +1683,7 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 
 	//FIXME Need to check how we can get the DMA channel here instead of
 	//MTL Queues
-	if ((dma_isr & 0xFU) != 0U) {
+	if ((dma_isr & EQOS_DMA_CHAN_INTR_STATUS) != 0U) {
 		/* Handle Non-TI/RI interrupts */
 		for (i = 0; i < osi_core->num_mtl_queues; i++) {
 			qinx = osi_core->mtl_queues[i];
@@ -1889,12 +1889,12 @@ static nve32_t eqos_config_mac_pkt_filter_reg(
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_PFR, EQOS_MAC_PFR_IDX);
 
-	if ((filter->oper_mode & OSI_OPER_EN_L2_DA_INV) != 0x0U) {
+	if ((filter->oper_mode & OSI_OPER_EN_L2_DA_INV) != OSI_DISABLE) {
 		ret = eqos_config_l2_da_perfect_inverse_match(osi_core,
 							      OSI_INV_MATCH);
 	}
 
-	if ((filter->oper_mode & OSI_OPER_DIS_L2_DA_INV) != 0x0U) {
+	if ((filter->oper_mode & OSI_OPER_DIS_L2_DA_INV) != OSI_DISABLE) {
 		ret = eqos_config_l2_da_perfect_inverse_match(osi_core,
 							      OSI_PFT_MATCH);
 	}
@@ -2093,7 +2093,8 @@ static nve32_t eqos_config_l3_l4_filter_enable(
 	void *base = osi_core->base;
 	value = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_PFR);
 	value &= ~(EQOS_MAC_PFR_IPFE);
-	value |= ((filter_enb_dis << 20) & EQOS_MAC_PFR_IPFE);
+	value |= ((filter_enb_dis << EQOS_MAC_PFR_IPFE_SHIFT) &
+		   EQOS_MAC_PFR_IPFE);
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)base + EQOS_MAC_PFR,
 				EQOS_MAC_PFR_IDX);
 
@@ -2628,7 +2629,8 @@ static nve32_t eqos_config_l4_filters(
 	value = osi_readla(osi_core, (nveu8_t *)base +
 			   EQOS_MAC_L3L4_CTR(filter_no));
 	value &= ~EQOS_MAC_L3L4_CTR_L4PEN0;
-	value |= ((tcp_udp_match << 16) & EQOS_MAC_L3L4_CTR_L4PEN0);
+	value |= ((tcp_udp_match << EQOS_MAC_L3L4_CTR_L4PEN0_SHIFT)
+		 & EQOS_MAC_L3L4_CTR_L4PEN0);
 	osi_writela(osi_core, value, (nveu8_t *)base +
 		    EQOS_MAC_L3L4_CTR(filter_no));
 
@@ -2719,15 +2721,15 @@ static inline nve32_t eqos_poll_for_tsinit_complete(
 				struct osi_core_priv_data *const osi_core,
 				nveu32_t *mac_tcr)
 {
-	nveu32_t retry = 1000;
+	nveu32_t retry = RETRY_COUNT;
 	nveu32_t count;
-	nve32_t cond = 1;
+	nve32_t cond = COND_NOT_MET;
 
 	/* Wait for previous(if any) Initialize Timestamp value
 	 * update to complete
 	 */
 	count = 0;
-	while (cond == 1) {
+	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 				     "poll_for_tsinit: timeout\n", 0ULL);
@@ -2737,7 +2739,7 @@ static inline nve32_t eqos_poll_for_tsinit_complete(
 		*mac_tcr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 				      EQOS_MAC_TCR);
 		if ((*mac_tcr & EQOS_MAC_TCR_TSINIT) == 0U) {
-			cond = 0;
+			cond = COND_MET;
 		}
 		count++;
 		osi_core->osd_ops.udelay(1000U);
@@ -2832,14 +2834,14 @@ static inline nve32_t eqos_poll_for_addend_complete(
 				struct osi_core_priv_data *const osi_core,
 				nveu32_t *mac_tcr)
 {
-	nveu32_t retry = 1000;
+	nveu32_t retry = RETRY_COUNT;
 	nveu32_t count;
-	nve32_t cond = 1;
+	nve32_t cond = COND_NOT_MET;
 
 	/* Wait for previous(if any) addend value update to complete */
 	/* Poll */
 	count = 0;
-	while (cond == 1) {
+	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 				     "poll_for_addend: timeout\n", 0ULL);
@@ -2849,7 +2851,7 @@ static inline nve32_t eqos_poll_for_addend_complete(
 		*mac_tcr = osi_readla(osi_core,
 				      (nveu8_t *)osi_core->base + EQOS_MAC_TCR);
 		if ((*mac_tcr & EQOS_MAC_TCR_TSADDREG) == 0U) {
-			cond = 0;
+			cond = COND_MET;
 		}
 		count++;
 		osi_core->osd_ops.udelay(1000U);
@@ -2936,13 +2938,13 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 				struct osi_core_priv_data *const osi_core,
 				nveu32_t *mac_tcr)
 {
-	nveu32_t retry = 1000;
+	nveu32_t retry = RETRY_COUNT;
 	nveu32_t count;
-	nve32_t cond = 1;
+	nve32_t cond = COND_NOT_MET;
 
 	/* Wait for previous(if any) time stamp  value update to complete */
 	count = 0;
-	while (cond == 1) {
+	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 				     "poll_for_update_ts: timeout\n", 0ULL);
@@ -2952,7 +2954,7 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 		*mac_tcr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 				      EQOS_MAC_TCR);
 		if ((*mac_tcr & EQOS_MAC_TCR_TSUPDT) == 0U) {
-			cond = 0;
+			cond = COND_MET;
 		}
 		count++;
 		osi_core->osd_ops.udelay(1000U);
@@ -3235,13 +3237,13 @@ static void eqos_core_deinit(struct osi_core_priv_data *const osi_core)
 static inline nve32_t poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 {
 	/* half sec timeout */
-	nveu32_t retry = 50000;
+	nveu32_t retry = ((RETRY_COUNT) * 50U);
 	nveu32_t mac_gmiiar;
 	nveu32_t count;
-	nve32_t cond = 1;
+	nve32_t cond = COND_NOT_MET;
 
 	count = 0;
-	while (cond == 1) {
+	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "MII operation timed out\n", 0ULL);
@@ -3253,7 +3255,7 @@ static inline nve32_t poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 				        EQOS_MAC_MDIO_ADDRESS);
 		if ((mac_gmiiar & EQOS_MAC_GMII_BUSY) == 0U) {
 			/* exit loop */
-			cond = 0;
+			cond = COND_MET;
 		} else {
 			/* wait on GMII Busy set */
 			osi_core->osd_ops.udelay(10U);
