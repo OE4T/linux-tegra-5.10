@@ -8,3 +8,4 @@ obj-$(CONFIG_TEGRA_PSC) += psc/
 
 obj-$(CONFIG_TEGRA_CACHE) += cache/
 
+obj-$(CONFIG_HW_PERF_EVENTS) += uncore_pmu/
