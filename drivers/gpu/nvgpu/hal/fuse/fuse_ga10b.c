@@ -28,6 +28,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/soc.h>
 
 #include "fuse_ga10b.h"
 
@@ -69,7 +70,13 @@ int ga10b_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val)
 
 bool ga10b_fuse_is_opt_ecc_enable(struct gk20a *g)
 {
-	return nvgpu_readl(g, fuse_opt_ecc_en_r()) != 0U;
+	bool ecc_enable = nvgpu_readl(g, fuse_opt_ecc_en_r()) != 0U;
+
+	if (nvgpu_platform_is_silicon(g) && !ecc_enable) {
+		nvgpu_err(g, "OPT_ECC_EN fuse not set");
+	}
+
+	return ecc_enable;
 }
 
 bool ga10b_fuse_is_opt_feature_override_disable(struct gk20a *g)
