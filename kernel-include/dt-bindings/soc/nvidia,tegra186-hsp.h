@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -38,6 +38,9 @@
 #endif
 #ifndef TEGRA_HSP_MBOX_TYPE_AS
 #define TEGRA_HSP_MBOX_TYPE_AS 0x3
+#endif
+#ifndef TEGRA_HSP_MBOX_TYPE_SM_128BIT
+#define TEGRA_HSP_MBOX_TYPE_SM_128BTT 0x4
 #endif
 
 /*
