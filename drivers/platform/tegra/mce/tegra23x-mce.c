@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -222,6 +222,67 @@ static int tegra23x_mce_write_l4_cache_ways(u64 data, u64 *value)
 	return 0;
 }
 
+static int tegra23x_mce_read_uncore_perfmon(u32 req, u32 *data)
+{
+	int cpu_idx;
+	u32 out_lo, out_hi;
+	int32_t ret = 0;
+
+	if (IS_ERR_OR_NULL(data))
+		return -EINVAL;
+
+	preempt_disable();
+
+	cpu_idx = get_ari_address_index();
+	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
+			(u32)TEGRA_ARI_PERFMON, 0U, req);
+
+	if (ret)
+		return ret;
+
+	out_lo = ari_get_response_low(ari_bar_array[cpu_idx]);
+	out_hi = ari_get_response_high(ari_bar_array[cpu_idx]);
+
+	pr_debug("%s: read status = %u\n", __func__, out_hi);
+
+	if (out_hi != 0)
+		return -out_hi;
+
+	*data = out_lo;
+
+	preempt_enable();
+
+	return 0;
+}
+
+static int tegra23x_mce_write_uncore_perfmon(u32 req, u32 data)
+{
+	int cpu_idx;
+	u32 out_lo, out_hi;
+	int32_t ret = 0;
+
+	preempt_disable();
+
+	cpu_idx = get_ari_address_index();
+	ret = ari_send_request(ari_bar_array[cpu_idx], 0U,
+			(u32)TEGRA_ARI_PERFMON, data, req);
+
+	if (ret)
+		return ret;
+
+	out_lo = ari_get_response_low(ari_bar_array[cpu_idx]);
+	out_hi = ari_get_response_high(ari_bar_array[cpu_idx]);
+
+	pr_debug("%s: write status = %u\n", __func__, out_hi);
+
+	if (out_hi != 0)
+		return -out_hi;
+
+	preempt_enable();
+
+	return 0;
+}
+
 #ifdef CONFIG_DEBUG_FS
 
 static struct dentry *mce_debugfs;
@@ -321,6 +382,8 @@ static struct tegra_mce_ops t23x_mce_ops = {
 	.read_l3_cache_ways = tegra23x_mce_read_l4_cache_ways,
 	.write_l3_cache_ways = tegra23x_mce_write_l4_cache_ways,
 	.echo_data = tegra23x_mce_echo_data,
+	.read_uncore_perfmon = tegra23x_mce_read_uncore_perfmon,
+	.write_uncore_perfmon = tegra23x_mce_write_uncore_perfmon,
 };
 
 static int t23x_mce_probe(struct platform_device *pdev)
