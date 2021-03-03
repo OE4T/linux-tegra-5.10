@@ -46,7 +46,6 @@
 #include <soc/tegra/tegra-sid-override.h>
 
 #include "arm-smmu.h"
-#include "of-tegra-smmu.h"
 
 #ifdef CONFIG_ARM_SMMU_DEBUG
 #include <linux/arm-smmu-debug.h>
@@ -1594,17 +1593,6 @@ static void arm_smmu_release_device(struct device *dev)
 	iommu_fwspec_free(dev);
 }
 
-__weak struct iommu_group *tegra_smmu_of_get_group(struct device *dev)
-{
-	dev_warn(dev, "Warning: %s undefined\n", __func__);
-	return NULL;
-}
-
-__weak void tegra_smmu_remove_iommu_groups(void)
-{
-	pr_warn("Warning: %s undefined\n", __func__);
-}
-
 static struct iommu_group *arm_smmu_device_group(struct device *dev)
 {
 	struct arm_smmu_master_cfg *cfg = dev_iommu_priv_get(dev);
@@ -1612,10 +1600,6 @@ static struct iommu_group *arm_smmu_device_group(struct device *dev)
 	struct arm_smmu_device *smmu = cfg->smmu;
 	struct iommu_group *group = NULL;
 	int i, idx;
-
-	group = tegra_smmu_of_get_group(dev);
-	if (group)
-		return iommu_group_ref_get(group);
 
 	for_each_cfg_sme(cfg, fwspec, i, idx) {
 		if (group && smmu->s2crs[idx].group &&
@@ -2417,8 +2401,6 @@ static int arm_smmu_device_remove(struct platform_device *pdev)
 
 	if (!bitmap_empty(smmu->context_map, ARM_SMMU_MAX_CBS))
 		dev_notice(&pdev->dev, "disabling translation\n");
-
-	tegra_smmu_remove_iommu_groups();
 
 	arm_smmu_bus_init(NULL);
 	iommu_device_unregister(&smmu->iommu);
