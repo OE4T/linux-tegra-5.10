@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -241,7 +241,7 @@ struct ether_ivc_ctxt {
 	/** ivc cookie */
 	struct tegra_hv_ivc_cookie *ivck;
 	/** ivc lock */
-	spinlock_t ivck_lock;
+	raw_spinlock_t ivck_lock;
 	/** ivc work */
 	struct work_struct ivc_work;
 	/** wait for event */
@@ -335,7 +335,7 @@ struct ether_priv_data {
 	atomic_t therm_state;
 #endif /* THERMAL_CAL */
 	/** Spin lock for Tx/Rx interrupt enable registers */
-	spinlock_t rlock;
+	raw_spinlock_t rlock;
 	/** max address register count, 2*mac_addr64_sel */
 	int num_mac_addr_regs;
 	/** Last address reg filter index added in last call*/

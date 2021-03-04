@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -448,7 +448,7 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 	}
 
 	ivc_buf->status = -1;
-	spin_lock_irqsave(&ictxt->ivck_lock, flags);
+	raw_spin_lock_irqsave(&ictxt->ivck_lock, flags);
 	if (in_atomic()) {
 		preempt_enable();
 		is_atomic = 1;
@@ -484,7 +484,7 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 	}
 	ret = ivc_buf->status;
 fail:
-	spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
+	raw_spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
 #endif
 	return ret;
 }
