@@ -541,9 +541,9 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 	unsigned long flags;
 	unsigned long val;
 
-	spin_lock_irqsave(&pdata->rlock, flags);
+	raw_spin_lock_irqsave(&pdata->rlock, flags);
 	osi_disable_chan_tx_intr(osi_dma, chan);
-	spin_unlock_irqrestore(&pdata->rlock, flags);
+	raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 
 	val = osi_core->xstats.tx_normal_irq_n[chan];
 	osi_core->xstats.tx_normal_irq_n[chan] =
@@ -587,9 +587,9 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 	unsigned int chan = rx_napi->chan;
 	unsigned long val, flags;
 
-	spin_lock_irqsave(&pdata->rlock, flags);
+	raw_spin_lock_irqsave(&pdata->rlock, flags);
 	osi_disable_chan_rx_intr(osi_dma, chan);
-	spin_unlock_irqrestore(&pdata->rlock, flags);
+	raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 
 	val = osi_core->xstats.rx_normal_irq_n[chan];
 	osi_core->xstats.rx_normal_irq_n[chan] =
@@ -728,7 +728,7 @@ static void ether_start_ivc(struct ether_priv_data *pdata)
 		}
 		ictxt->ivc_state = 1;
 		// initialize
-		spin_lock_init(&ictxt->ivck_lock);
+		raw_spin_lock_init(&ictxt->ivck_lock);
 	}
 }
 
@@ -2828,9 +2828,9 @@ static int ether_napi_poll_rx(struct napi_struct *napi, int budget)
 					      &more_data_avail);
 	if (received < budget) {
 		napi_complete(napi);
-		spin_lock_irqsave(&pdata->rlock, flags);
+		raw_spin_lock_irqsave(&pdata->rlock, flags);
 		osi_enable_chan_rx_intr(osi_dma, chan);
-		spin_unlock_irqrestore(&pdata->rlock, flags);
+		raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 	}
 
 	return received;
@@ -2873,9 +2873,9 @@ static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 
 	if (processed < budget) {
 		napi_complete(napi);
-		spin_lock_irqsave(&pdata->rlock, flags);
+		raw_spin_lock_irqsave(&pdata->rlock, flags);
 		osi_enable_chan_tx_intr(osi_dma, chan);
-		spin_unlock_irqrestore(&pdata->rlock, flags);
+		raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 	}
 
 	return processed;
@@ -4386,7 +4386,7 @@ static int ether_probe(struct platform_device *pdev)
 	}
 
 
-	spin_lock_init(&pdata->rlock);
+	raw_spin_lock_init(&pdata->rlock);
 	init_filter_values(pdata);
 	/* Disable Clocks */
 	ether_disable_clks(pdata);
