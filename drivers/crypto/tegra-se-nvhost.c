@@ -235,6 +235,7 @@ struct tegra_se_req_context {
 	u32 config;
 	u32 crypto_config;
 	bool init;	/* For GCM */
+	u8 *hash_result; /* Hash result buffer */
 	struct tegra_se_dev *se_dev;
 };
 
@@ -291,6 +292,7 @@ struct tegra_se_sha_context {
 	u32 total_count; /* Total bytes in all the requests */
 	u32 residual_bytes; /* Residual byte count */
 	u32 blk_size; /* SHA block size */
+	bool is_final; /* To know it is final/finup request */
 
 	/* HMAC Support*/
 	struct tegra_se_slot *slot;	/* Security Engine key slot */
@@ -1040,6 +1042,10 @@ static void tegra_se_sha_complete_callback(void *priv, int nr_completed)
 	struct tegra_se_priv_data *priv_data = priv;
 	struct ahash_request *req;
 	struct tegra_se_dev *se_dev;
+	struct crypto_ahash *tfm;
+	struct tegra_se_req_context *req_ctx;
+	struct tegra_se_sha_context *sha_ctx;
+	int dst_len;
 
 	pr_debug("%s:%d sha callback", __func__, __LINE__);
 
@@ -1053,6 +1059,22 @@ static void tegra_se_sha_complete_callback(void *priv, int nr_completed)
 		return;
 	}
 
+	tfm = crypto_ahash_reqtfm(req);
+	req_ctx = ahash_request_ctx(req);
+	dst_len = crypto_ahash_digestsize(tfm);
+	sha_ctx = crypto_ahash_ctx(tfm);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	/* For SHAKE128/SHAKE256, digest size can vary */
+	if (sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE128
+			|| sha_ctx->op_mode == SE_AES_OP_MODE_SHAKE256)
+		dst_len = req->dst_size;
+#endif
+
+	/* copy result */
+	if (sha_ctx->is_final)
+		memcpy(req->result, req_ctx->hash_result, dst_len);
+
 	if (priv_data->sha_src_mapped)
 		tegra_unmap_sg(se_dev->dev, req->src, DMA_TO_DEVICE,
 			       priv_data->src_bytes_mapped);
@@ -1060,6 +1082,8 @@ static void tegra_se_sha_complete_callback(void *priv, int nr_completed)
 	if (priv_data->sha_dst_mapped)
 		tegra_unmap_sg(se_dev->dev, &priv_data->sg, DMA_FROM_DEVICE,
 			       priv_data->dst_bytes_mapped);
+
+	devm_kfree(se_dev->dev, req_ctx->hash_result);
 
 	req->base.complete(&req->base, 0);
 
@@ -2926,7 +2950,11 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 		dst_len = req->dst_size;
 #endif
 
-	sg_init_one(&se_dev->sg, req->result, dst_len);
+	req_ctx->hash_result = devm_kzalloc(se_dev->dev, dst_len, GFP_KERNEL);
+	if (!req_ctx->hash_result)
+		return -ENOMEM;
+
+	sg_init_one(&se_dev->sg, req_ctx->hash_result, dst_len);
 
 	se_dev->sha_last = is_last;
 
@@ -3216,6 +3244,10 @@ static int tegra_se_sha_op(struct ahash_request *req, bool is_last,
 			}
 		}
 	}
+
+	sha_ctx->is_final = false;
+	if (is_last)
+		sha_ctx->is_final = true;
 
 	ret = tegra_se_sha_process_buf(req, is_last, process_cur_req);
 	if (ret) {
