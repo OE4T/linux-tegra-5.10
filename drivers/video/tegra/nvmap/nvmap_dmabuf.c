@@ -548,6 +548,7 @@ static int nvmap_dmabuf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 	return __nvmap_map(info->handle, vma);
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
 static void *nvmap_dmabuf_vmap(struct dma_buf *dmabuf)
 {
 	struct nvmap_handle_info *info = dmabuf->priv;
@@ -563,6 +564,23 @@ static void nvmap_dmabuf_vunmap(struct dma_buf *dmabuf, void *vaddr)
 	trace_nvmap_dmabuf_vunmap(dmabuf);
 	__nvmap_munmap(info->handle, vaddr);
 }
+#else
+static int nvmap_dmabuf_vmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
+{
+       struct nvmap_handle_info *info = dmabuf->priv;
+
+       trace_nvmap_dmabuf_vmap(dmabuf);
+       return (long)__nvmap_mmap(info->handle);
+}
+
+static void nvmap_dmabuf_vunmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
+{
+       struct nvmap_handle_info *info = dmabuf->priv;
+
+       trace_nvmap_dmabuf_vunmap(dmabuf);
+       __nvmap_munmap(info->handle, info->handle->vaddr);
+}
+#endif
 
 int nvmap_dmabuf_set_drv_data(struct dma_buf *dmabuf,
 		struct device *dev, void *priv, void (*delete)(void *priv))
