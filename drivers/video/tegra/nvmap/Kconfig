@@ -46,14 +46,6 @@ config NVMAP_COLOR_PAGES
 	  reqeusted allcoation size to improve the probabilty of better
 	  page coloring. If unsure, say Y.
 
-config NVMAP_CACHE_MAINT_BY_SET_WAYS
-	bool "Enable cache maintenance by set/ways"
-	help
-	 Say Y here to reduce cache maintenance overhead by MVA.
-	 This helps in reducing cache maintenance overhead in the systems,
-	 where inner cache includes only L1. For the systems, where inner cache
-	 includes L1 and L2, keep this option disabled.
-
 config NVMAP_FD_START
 	hex "FD number to start allocation from"
 	default 0x400

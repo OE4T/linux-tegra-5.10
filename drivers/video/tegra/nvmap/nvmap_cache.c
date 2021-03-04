@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_cache.c
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,15 +30,6 @@
 #include <trace/events/nvmap.h>
 
 #include "nvmap_priv.h"
-
-#ifndef CONFIG_NVMAP_CACHE_MAINT_BY_SET_WAYS
-/* This is basically the L2 cache size but may be tuned as per requirement */
-size_t cache_maint_inner_threshold = SIZE_MAX;
-int nvmap_cache_maint_by_set_ways;
-#else
-int nvmap_cache_maint_by_set_ways = 1;
-size_t cache_maint_inner_threshold = 8 * SZ_2M;
-#endif
 
 static struct static_key nvmap_disable_vaddr_for_cache_maint;
 
@@ -367,9 +358,6 @@ static int __nvmap_do_cache_maint_list(struct nvmap_handle **handles,
 	WARN(!IS_ENABLED(CONFIG_ARM64),
 		"cache list operation may not function properly");
 
-	if (nvmap_cache_maint_by_set_ways)
-		thresh = cache_maint_inner_threshold;
-
 	for (i = 0; i < nr; i++) {
 		bool inner, outer;
 		u32 *sizes_32 = (u32 *)sizes;
@@ -454,54 +442,6 @@ inline int nvmap_do_cache_maint_list(struct nvmap_handle **handles,
 	return ret;
 }
 
-static int cache_inner_threshold_show(struct seq_file *m, void *v)
-{
-	if (nvmap_cache_maint_by_set_ways)
-		seq_printf(m, "%zuB\n", cache_maint_inner_threshold);
-	else
-		seq_printf(m, "%zuB\n", SIZE_MAX);
-	return 0;
-}
-
-static int cache_inner_threshold_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, cache_inner_threshold_show, inode->i_private);
-}
-
-static ssize_t cache_inner_threshold_write(struct file *file,
-					const char __user *buffer,
-					size_t count, loff_t *pos)
-{
-	int ret;
-	struct seq_file *p = file->private_data;
-	char str[] = "0123456789abcdef";
-
-	count = min_t(size_t, strlen(str), count);
-	if (copy_from_user(str, buffer, count))
-		return -EINVAL;
-
-	if (!nvmap_cache_maint_by_set_ways)
-		return -EINVAL;
-
-	mutex_lock(&p->lock);
-	ret = sscanf(str, "%16zu", &cache_maint_inner_threshold);
-	mutex_unlock(&p->lock);
-	if (ret != 1)
-		return -EINVAL;
-
-	pr_debug("nvmap:cache_maint_inner_threshold is now :%zuB\n",
-			cache_maint_inner_threshold);
-	return count;
-}
-
-static const struct file_operations cache_inner_threshold_fops = {
-	.open		= cache_inner_threshold_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-	.write		= cache_inner_threshold_write,
-};
-
 int nvmap_cache_debugfs_init(struct dentry *nvmap_root)
 {
 	struct dentry *cache_root;
@@ -512,19 +452,6 @@ int nvmap_cache_debugfs_init(struct dentry *nvmap_root)
 	cache_root = debugfs_create_dir("cache", nvmap_root);
 	if (!cache_root)
 		return -ENODEV;
-
-	if (nvmap_cache_maint_by_set_ways) {
-		debugfs_create_x32("nvmap_cache_maint_by_set_ways",
-				   S_IRUSR | S_IWUSR,
-				   cache_root,
-				   &nvmap_cache_maint_by_set_ways);
-
-	debugfs_create_file("cache_maint_inner_threshold",
-			    S_IRUSR | S_IWUSR,
-			    cache_root,
-			    NULL,
-			    &cache_inner_threshold_fops);
-	}
 
 	debugfs_create_atomic_t("nvmap_disable_vaddr_for_cache_maint",
 				S_IRUSR | S_IWUSR,
