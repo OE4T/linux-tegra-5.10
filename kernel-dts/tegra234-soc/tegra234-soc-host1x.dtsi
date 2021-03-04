@@ -578,7 +578,7 @@
 		se@15840000 {
 			compatible = "nvidia,tegra234-se4-nvhost";
 			reg = <0x0 0x15840000 0x0 0x10000>;
-			supported-algos = "sha", "sha3";
+			supported-algos = "sha", "sha3", "hmac";
 			nvidia,io-coherent;
 			opcode_addr = <0x4004>;
 			resets = <&bpmp_resets TEGRA234_RESET_SE>;
