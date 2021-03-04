@@ -50,6 +50,8 @@
 #include "nvmap_heap.h"
 #include "nvmap_stats.h"
 
+#include <linux/fdtable.h>
+
 #define DMA_ERROR_CODE	(~(dma_addr_t)0)
 
 #define NVMAP_TAG_LABEL_MAXLEN	(63 - sizeof(struct nvmap_tag_entry))
@@ -85,9 +87,12 @@ do {                                                    \
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 #define ACCESS_OK(type, addr, size)	access_ok(type, addr, size)
 #define SYS_CLOSE(arg)	sys_close(arg)
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
 #define ACCESS_OK(type, addr, size)    access_ok(addr, size)
 #define SYS_CLOSE(arg)	ksys_close(arg)
+#else
+#define ACCESS_OK(type, addr, size)    access_ok(addr, size)
+#define SYS_CLOSE(arg) close_fd(arg)
 #endif
 
 struct page;
