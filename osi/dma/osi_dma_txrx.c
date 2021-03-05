@@ -24,6 +24,7 @@
 #include <osi_dma_txrx.h>
 #include "../osi/common/type.h"
 #include "hw_desc.h"
+#include "../osi/common/common.h"
 
 /**
  * @brief get_rx_csum - Get the Rx checksum from descriptor if valid

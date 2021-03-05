@@ -23,7 +23,7 @@
 #ifndef INCLUDED_OSI_DMA_H
 #define INCLUDED_OSI_DMA_H
 
-#include "../osi/common/common.h"
+#include <osi_common.h>
 #include "osi_dma_txrx.h"
 
 /**

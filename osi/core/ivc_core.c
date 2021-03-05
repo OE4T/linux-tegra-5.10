@@ -26,6 +26,7 @@
 #include "eqos_core.h"
 #include "eqos_mmc.h"
 #include "core_local.h"
+#include "../osi/common/common.h"
 
 /**
  * @brief ivc_safety_config - EQOS MAC core safety configuration
