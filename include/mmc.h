@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,9 @@
 
 #ifndef INCLUDED_MMC_H
 #define INCLUDED_MMC_H
+
+#include "../osi/common/type.h"
+
 /**
  * @brief osi_mmc_counters - The structure to hold RMON counter values
  */

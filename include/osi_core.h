@@ -23,9 +23,8 @@
 #ifndef INCLUDED_OSI_CORE_H
 #define INCLUDED_OSI_CORE_H
 
-#include "../osi/common/common.h"
+#include <osi_common.h>
 #include "mmc.h"
-#include "../osi/common/type.h"
 
 /**
  * @addtogroup typedef related info

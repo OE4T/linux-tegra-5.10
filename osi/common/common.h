@@ -22,6 +22,7 @@
 #ifndef INCLUDED_COMMON_H
 #define INCLUDED_COMMON_H
 
+#include "../osi/common/type.h"
 #include <osi_common.h>
 
 struct osi_core_priv_data;
@@ -214,40 +215,6 @@ static inline nve32_t is_valid_mac_version(nveu32_t mac_ver)
 	}
 
 	return 0;
-}
-
-/**
- * @brief osi_update_stats_counter - update value by increment passed
- *	as parameter
- *
- * @note
- * Algorithm:
- *  - Check for boundary and return sum
- *
- * @param[in] last_value: last value of stat counter
- * @param[in] incr: increment value
- *
- * @note Input parameter should be only nveu64_t type
- *
- * @note
- * API Group:
- * - Initialization: No
- * - Run time: Yes
- * - De-initialization: No
- *
- * @return nveu64_t value
- */
-static inline nveu64_t osi_update_stats_counter(nveu64_t last_value,
-						nveu64_t incr)
-{
-	nveu64_t temp = last_value + incr;
-
-	if (temp < last_value) {
-		/* Stats overflow, so reset it to zero */
-		return 0UL;
-	}
-
-	return temp;
 }
 
 /**
