@@ -271,6 +271,7 @@ struct sdhci_tegra {
 	bool cd_wakeup_capable;
 	bool is_rail_enabled;
 	bool en_periodic_cflush;
+	bool disable_rtpm;
 	struct sdhci_host *host;
 	struct delayed_work detect_delay;
 	u32 boot_detect_delay;
@@ -1228,6 +1229,12 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 		tegra_host->enable_hwcq = true;
 	else
 		tegra_host->enable_hwcq = false;
+
+	if (device_property_read_bool(host->mmc->parent, "nvidia,disable-rtpm"))
+		tegra_host->disable_rtpm = true;
+	else
+		tegra_host->disable_rtpm = false;
+
 
 	tegra_sdhci_parse_pad_autocal_dt(host);
 	tegra_sdhci_parse_tap_and_trim(host);
@@ -2353,7 +2360,7 @@ static void sdhci_delayed_detect(struct work_struct *work)
 	/* Initialize debugfs */
 	sdhci_tegra_debugfs_init(host);
 
-	if (!tegra_host->skip_clk_rst) {
+	if (!tegra_host->skip_clk_rst && !tegra_host->disable_rtpm) {
 		pm_runtime_set_active(mmc_dev(host->mmc));
 		pm_runtime_set_autosuspend_delay(mmc_dev(host->mmc), SDHCI_TEGRA_RTPM_TIMEOUT_MS);
 		pm_runtime_use_autosuspend(mmc_dev(host->mmc));
