@@ -890,6 +890,7 @@ static int verify_link(struct tegra_nvhdcp *nvhdcp, bool wait_ri)
 	return 0;
 }
 
+#if !defined(CONFIG_TRUSTED_LITTLE_KERNEL)
 static int verify_vprime(struct tegra_nvhdcp *nvhdcp, u8 repeater)
 {
 	int i;
@@ -948,6 +949,7 @@ exit:
 	kfree(pkt);
 	return e;
 }
+#endif
 
 static int get_repeater_info(struct tegra_nvhdcp *nvhdcp)
 {
@@ -1585,8 +1587,21 @@ void nvhdcp_downstream_worker(struct work_struct *work)
 
 	nvhdcp_vdbg("read Bcaps = 0x%02x\n", b_caps);
 
+#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
+	/* differentiate between TLK and trusty */
+	if (te_is_secos_dev_enabled()) {
+		e = te_open_trusted_session_tlk(hdcp_uuid, sizeof(hdcp_uuid),
+				&session_id);
+	} else {
+		nvhdcp->ta_ctx = NULL;
+		/* Open a trusted sesion with HDCP TA */
+		e = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
+	}
+#else
 	nvhdcp->ta_ctx = NULL;
+	/* Open a trusted sesion with HDCP TA */
 	e = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
+#endif
 	if (e) {
 		nvhdcp_err("Error opening trusted session\n");
 		goto failure;
@@ -1838,6 +1853,8 @@ void nvhdcp_downstream_worker(struct work_struct *work)
 		}
 	}
 
+/* T210/T210B01 vprime verification with TLK is handled in the upstream lib */
+#if !defined(CONFIG_TRUSTED_LITTLE_KERNEL)
 	/* perform vprime verification for repeater or SRM
 	 * revocation check for receiver
 	 */
@@ -1847,6 +1864,7 @@ void nvhdcp_downstream_worker(struct work_struct *work)
 		goto failure;
 	} else
 		nvhdcp_vdbg("vprime verification passed\n");
+#endif
 
 	mutex_lock(&nvhdcp->lock);
 	nvhdcp->state = STATE_LINK_VERIFY;
@@ -1914,23 +1932,33 @@ lost_hdmi:
 	} else {
 		hdcp_ctrl_run(hdmi, 0);
 	}
-err:
 	mutex_unlock(&nvhdcp->lock);
 	kfree(pkt);
-	if (nvhdcp->ta_ctx) {
-		te_close_trusted_session(nvhdcp->ta_ctx);
-		nvhdcp->ta_ctx = NULL;
-	}
-	tegra_dc_io_end(dc);
-	return;
+
 disable:
 	nvhdcp->state = STATE_OFF;
+	nvhdcp_set_plugged(nvhdcp, false);
+err:
 	kfree(pkt);
+#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
+	if (te_is_secos_dev_enabled()) {
+		if (session_id) {
+			te_close_trusted_session_tlk(session_id, hdcp_uuid,
+			sizeof(hdcp_uuid));
+			session_id = 0;
+		}
+	} else {
+		if (nvhdcp->ta_ctx) {
+			te_close_trusted_session(nvhdcp->ta_ctx);
+			nvhdcp->ta_ctx = NULL;
+		}
+	}
+#else
 	if (nvhdcp->ta_ctx) {
 		te_close_trusted_session(nvhdcp->ta_ctx);
 		nvhdcp->ta_ctx = NULL;
 	}
-	nvhdcp_set_plugged(nvhdcp, false);
+#endif
 	mutex_unlock(&nvhdcp->lock);
 	tegra_dc_io_end(dc);
 	return;
