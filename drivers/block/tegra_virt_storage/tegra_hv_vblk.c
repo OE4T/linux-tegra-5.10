@@ -254,22 +254,17 @@ static bool complete_bio_req(struct vblk_dev *vblkdev)
 	struct request *bio_req;
 	void *buffer;
 
-	mutex_lock(&vblkdev->ivc_lock);
 	/* First check if ivc read queue is empty */
-	if (!tegra_hv_ivc_can_read(vblkdev->ivck)) {
-		mutex_unlock(&vblkdev->ivc_lock);
+	if (!tegra_hv_ivc_can_read(vblkdev->ivck))
 		goto no_valid_io;
-	}
 
 	/* Copy the data and advance to next frame */
 	if ((tegra_hv_ivc_read(vblkdev->ivck, &req_resp,
 				sizeof(struct vs_request)) <= 0)) {
 		dev_err(vblkdev->device,
 				"Couldn't increment read frame pointer!\n");
-		mutex_unlock(&vblkdev->ivc_lock);
 		goto no_valid_io;
 	}
-	mutex_unlock(&vblkdev->ivc_lock);
 
 	status = req_resp.status;
 	if (status != 0) {
@@ -432,13 +427,9 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 	struct req_entry *entry = NULL;
 #endif
 
-	mutex_lock(&vblkdev->ivc_lock);
 	/* Check if ivc queue is full */
-	if (!tegra_hv_ivc_can_write(vblkdev->ivck)) {
-		mutex_unlock(&vblkdev->ivc_lock);
+	if (!tegra_hv_ivc_can_write(vblkdev->ivck))
 		goto bio_exit;
-	}
-	mutex_unlock(&vblkdev->ivc_lock);
 
 	if (vblkdev->queue == NULL)
 		goto bio_exit;
@@ -548,16 +539,13 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 		}
 	}
 
-	mutex_lock(&vblkdev->ivc_lock);
 	if (!tegra_hv_ivc_write(vblkdev->ivck, vs_req,
 				sizeof(struct vs_request))) {
 		dev_err(vblkdev->device,
 			"Request Id %d IVC write failed!\n",
 				vsc_req->id);
-		mutex_unlock(&vblkdev->ivc_lock);
 		goto bio_exit;
 	}
-	mutex_unlock(&vblkdev->ivc_lock);
 
 	return true;
 
@@ -580,12 +568,12 @@ static void vblk_request_work(struct work_struct *ws)
 		container_of(ws, struct vblk_dev, work);
 	bool req_submitted, req_completed;
 
+	/* Taking ivc lock before performing IVC read/write */
 	mutex_lock(&vblkdev->ivc_lock);
 	if (tegra_hv_ivc_channel_notified(vblkdev->ivck) != 0) {
 		mutex_unlock(&vblkdev->ivc_lock);
 		return;
 	}
-	mutex_unlock(&vblkdev->ivc_lock);
 
 	req_submitted = true;
 	req_completed = true;
@@ -594,6 +582,7 @@ static void vblk_request_work(struct work_struct *ws)
 
 		req_submitted = submit_bio_req(vblkdev);
 	}
+	mutex_unlock(&vblkdev->ivc_lock);
 }
 
 /* The simple form of the request function. */
@@ -1201,7 +1190,9 @@ static int tegra_hv_vblk_suspend(struct device *dev)
 		flush_workqueue(vblkdev->wq);
 
 		/* Reset the channel */
+		mutex_lock(&vblkdev->ivc_lock);
 		tegra_hv_ivc_channel_reset(vblkdev->ivck);
+		mutex_unlock(&vblkdev->ivc_lock);
 	}
 
 	return 0;
