@@ -268,7 +268,7 @@ static int tegra_adma_init(struct tegra_adma *tdma)
 	 * base offset is 0.
 	 */
 	tdma_write(tdma,
-		   tdma->cdata->ch_base_offset + tdma->cdata->global_int_clear,
+		   tdma->ch_base_offset + tdma->cdata->global_int_clear,
 		   0x1);
 
 	if (is_tegra_hypervisor_mode()) {
