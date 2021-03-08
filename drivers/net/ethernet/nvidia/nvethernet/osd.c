@@ -431,7 +431,6 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 {
 	int ret = -1;
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
 	unsigned long flags = 0;
 	static int cnt  = 0;
 	struct osi_core_priv_data *core = (struct osi_core_priv_data *)priv;
@@ -485,6 +484,5 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 	ret = ivc_buf->status;
 fail:
 	raw_spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
-#endif
 	return ret;
 }

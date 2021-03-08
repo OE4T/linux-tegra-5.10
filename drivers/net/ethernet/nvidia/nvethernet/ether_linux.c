@@ -675,7 +675,6 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 	}
 }
 
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
 /**
  * @brief IVC ISR Routine
  *
@@ -802,12 +801,9 @@ static int ether_init_ivc(struct ether_priv_data *pdata)
                  id, ictxt->ivck->frame_size, ictxt->ivck->irq);
 	osi_core->osd_ops.ivc_send = osd_ivc_send_cmd;
 	init_completion(&ictxt->msg_complete);
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
 	ether_start_ivc(pdata);
-#endif
 	return 0;
 }
-#endif
 
 /**
  * @brief Register IRQs
@@ -1625,9 +1621,7 @@ static int ether_open(struct net_device *dev)
 		gpio_set_value(pdata->phy_reset, 1);
 	}
 
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
 	ether_start_ivc(pdata);
-#endif
 
 	ret = ether_enable_clks(pdata);
 	if (ret < 0) {
@@ -1870,9 +1864,7 @@ static int ether_close(struct net_device *ndev)
 	/* MAC deinit which inturn stop MAC Tx,Rx */
 	osi_hw_core_deinit(pdata->osi_core);
 
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 9, 0))
 	ether_stop_ivc(pdata);
-#endif
 
 	/* Assert MAC RST gpio */
 	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
@@ -3850,7 +3842,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		dev_err(dev, "mismatch in numbers of DMA channel and MTL Q\n");
 		return -EINVAL;
 	}
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
+
 	/* Allow to set non zero DMA channel for virtualization */
 	if (!ether_init_ivc(pdata)) {
 		osi_dma->use_virtualization = OSI_ENABLE;
@@ -3864,9 +3856,6 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		ret = -1;
 		pdata->use_stats = OSI_ENABLE;
 	}
-#else
-	ret = -1;
-#endif
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		if (osi_dma->dma_chans[i] != osi_core->mtl_queues[i]) {
@@ -4418,6 +4407,7 @@ err_init_res:
 err_parse_dt:
 err_core_ops:
 err_dma_ops:
+	ether_stop_ivc(pdata);
 	free_netdev(ndev);
 	return ret;
 }
