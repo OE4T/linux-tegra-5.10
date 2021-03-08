@@ -1,7 +1,7 @@
 /*
  * DMA driver for Nvidia's Tegra186 GPC DMA controller.
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1851,15 +1851,10 @@ static int tegra_dma_probe(struct platform_device *pdev)
 		if (ret)
 			start_chan_idx = 0;
 
-		if (of_property_read_bool(pdev->dev.of_node,
-				"nvidia,bypass-smmu")) {
-			stream_id = tegra_mc_get_smmu_bypass_sid();
-		} else {
-			ret = of_property_read_u32(pdev->dev.of_node,
-				"nvidia,stream-id", &stream_id);
-			if (ret)
-				stream_id = TEGRA_SID_GPCDMA_0;
-		}
+		ret = of_property_read_u32(pdev->dev.of_node,
+			"nvidia,stream-id", &stream_id);
+		if (ret)
+			stream_id = TEGRA_SID_GPCDMA_0;
 
 		/*
 		 * if these properties are unreadable, leave them zeroes
