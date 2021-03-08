@@ -42,8 +42,8 @@
 #include <linux/ktime.h>
 #include <linux/hrtimer.h>
 #include <linux/version.h>
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 #include <linux/tegra-ivc.h>
+#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
 #include <soc/tegra/chip-id.h>
 #else
 #include <soc/tegra/fuse.h>
