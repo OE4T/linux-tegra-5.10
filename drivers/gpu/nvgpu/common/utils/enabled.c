@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,11 +89,19 @@ void nvgpu_free_enabled_flags(struct gk20a *g)
 
 bool nvgpu_is_enabled(struct gk20a *g, u32 flag)
 {
-	return nvgpu_test_bit(flag, g->enabled_flags);
+	if (flag < NVGPU_MAX_ENABLED_BITS) {
+		return nvgpu_test_bit(flag, g->enabled_flags);
+	} else {
+		return 0;
+	}
 }
 
 void nvgpu_set_enabled(struct gk20a *g, u32 flag, bool state)
 {
+	if (flag >= NVGPU_MAX_ENABLED_BITS) {
+		return;
+	}
+
 	if (state) {
 		nvgpu_set_bit(flag, g->enabled_flags);
 	} else {

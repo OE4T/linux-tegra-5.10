@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,10 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 		return 0;
 	}
 
+	if (size > ((u64)(INT_MAX))) {
+		return 0;
+	}
+
 	/* how many digits do we need ? */
 	n = 0;
 	v = value;
@@ -56,7 +60,7 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix)
 	} while (v > 0U);
 
 	/* bail out if there is not room for '\0' */
-	if (n >= nvgpu_safe_cast_u64_to_s32(size)) {
+	if (n >= (s32)size) {
 		return 0;
 	}
 
