@@ -775,4 +775,12 @@
 		dev-names = "mods_isp";
 		status = "disabled";
 	};
+
+	mods_dma: mods_dma {
+		compatible = "nvidia,mods_smmu";
+		iommus = <&smmu TEGRA_SID_GPCDMA_0>;
+		dma-coherent;
+		dev-names = "mods_dma";
+		status = "disabled";
+	};
 };
