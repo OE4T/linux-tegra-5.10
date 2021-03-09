@@ -67,6 +67,7 @@ typedef enum ivc_cmd {
 	read_phy_reg,
 	reg_read,
 	reg_write,
+	get_hw_features,
 #ifndef OSI_STRIPPED_LIB
 	config_tx_status,
 	config_rx_crc_check,
@@ -158,6 +159,8 @@ typedef struct ivc_msg_common {
 		 * OSI filter structure
 		 */
 		struct osi_filter filter;
+		/** OSI HW features */
+		struct osi_hw_features hw_feat;
 		/**
 		 * core argument structure
 		 */
