@@ -3,7 +3,7 @@
  * Universal Flash Storage Host controller driver Core
  * Copyright (C) 2011-2013 Samsung India Software Operations
  * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -7816,6 +7816,9 @@ out_err:
 static int ufshcd_clear_ua_wluns(struct ufs_hba *hba)
 {
 	int ret = 0;
+
+	if (!(hba->quirks & UFSHCD_QUIRK_ENABLE_WLUNS))
+		return 0;
 
 	if (!hba->wlun_dev_clr_ua)
 		goto out;
