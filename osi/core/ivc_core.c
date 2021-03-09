@@ -979,6 +979,28 @@ static nveu32_t ivc_write_reg(struct osi_core_priv_data *const osi_core,
 					  sizeof(msg_common));
 }
 
+static nve32_t ivc_get_hw_features(struct osi_core_priv_data *const osi_core,
+				   struct osi_hw_features *hw_feat)
+{
+	ivc_msg_common msg_hw_feat;
+	nve32_t ret = 0;
+
+	osi_memset(&msg_hw_feat, 0, sizeof(msg_hw_feat));
+
+	msg_hw_feat.cmd = get_hw_features;
+
+	ret = osi_core->osd_ops.ivc_send(osi_core, (char *)&msg_hw_feat,
+					 sizeof(msg_hw_feat));
+	if (ret != 0) {
+		return ret;
+	}
+
+	osi_memcpy((void *)hw_feat, (void *)&msg_hw_feat.data.hw_feat,
+		   sizeof(struct osi_hw_features));
+
+	return ret;
+}
+
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief ivc_config_flow_control - Configure MAC flow control settings
@@ -1462,6 +1484,7 @@ void ivc_init_core_ops(struct core_ops *ops)
 	ops->read_phy_reg = ivc_read_phy_reg;
 	ops->read_reg = ivc_read_reg;
 	ops->write_reg = ivc_write_reg;
+	ops->get_hw_features = ivc_get_hw_features;
 #ifndef OSI_STRIPPED_LIB
 	ops->config_tx_status = ivc_config_tx_status;
 	ops->config_rx_crc_check = ivc_config_rx_crc_check;
