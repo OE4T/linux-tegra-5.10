@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -126,6 +126,9 @@ int nvgpu_cond_broadcast(struct nvgpu_cond *cond)
 	nvgpu_mutex_acquire(&cond->mutex);
 	ret = pthread_cond_broadcast(&cond->cond);
 	nvgpu_mutex_release(&cond->mutex);
+	if (ret != 0) {
+		nvgpu_info(NULL, "Cond broadcast error");
+	}
 	return ret;
 }
 
@@ -139,6 +142,9 @@ int nvgpu_cond_broadcast_interruptible(struct nvgpu_cond *cond)
 	nvgpu_mutex_acquire(&cond->mutex);
 	ret = pthread_cond_broadcast(&cond->cond);
 	nvgpu_mutex_release(&cond->mutex);
+	if (ret != 0) {
+		nvgpu_info(NULL, "Cond broadcast error");
+	}
 	return ret;
 }
 
