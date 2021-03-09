@@ -2,7 +2,7 @@
 /*
  * NVIDIA Tegra xHCI host controller driver
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION. All rights reserved.
  * Copyright (C) 2014 Google, Inc.
  */
 
@@ -2645,8 +2645,11 @@ skip_clock_and_reg:
 				goto put_powerdomains;
 			}
 
-			tegra->phys[k++] = phy;
+			if (phy)
+				tegra->phys[k++] = phy;
 		}
+		if (k < tegra->soc->phy_types[i].num)
+			k = tegra->soc->phy_types[i].num;
 	}
 
 	tegra->hcd = usb_create_hcd(&tegra_xhci_hc_driver, &pdev->dev,
@@ -3018,6 +3021,10 @@ static int tegra_xhci_hub_status_data(struct usb_hcd *hcd, char *buf)
 
 		spin_lock_irqsave(&xhci->lock, flags);
 		phy = tegra->phys[port];
+		if (!phy) {
+			spin_unlock_irqrestore(&xhci->lock, flags);
+			break;
+		}
 		if ((portsc & PORT_PLS_MASK) == XDEV_U0)
 			tegra_xusb_padctl_disable_receiver_detector(
 							tegra->padctl, phy);
@@ -3070,6 +3077,8 @@ static void tegra_xhci_endpoint_soft_retry(struct usb_hcd *hcd,
 
 	portsc = read_portsc(tegra, port);
 	phy = tegra->phys[port];
+	if (!phy)
+		return;
 
 	if (on) {
 		while ((portsc & PORT_PLS_MASK) != XDEV_U0 && delay++ < 6) {
