@@ -102,21 +102,6 @@ SYM_FUNC_START(__clean_dcache_all)
 SYM_FUNC_END(__clean_dcache_all)
 
 /*
- *	__clean_dcache_louis()
- *
- *	Clean D-cache to the level of unification inner shareable
- *
- *	Corrupted registers: x0-x7, x9-x11
- */
-SYM_FUNC_START(__clean_dcache_louis)
-	dsb	sy				// ensure ordering with previous memory accesses
-	mrs	x0, clidr_el1			// read clidr
-	and	x3, x0, #0xe00000		// extract louis from clidr
-	lsr	x3, x3, #20			// left align louis bit field
-	v8_op_dcache_all csw
-SYM_FUNC_END(__clean_dcache_louis)
-
-/*
  *	flush_cache_all()
  *
  *	Flush the entire cache system.  The data cache flush is now achieved

@@ -71,7 +71,6 @@ extern void __clean_dcache_area_pou(void *addr, size_t len);
 extern long __flush_cache_user_range(unsigned long start, unsigned long end);
 extern void sync_icache_aliases(void *kaddr, unsigned long len);
 extern void flush_cache_all(void);
-extern void __clean_dcache_louis(void *);
 extern void __flush_dcache_all(void *arg);
 extern void __clean_dcache_all(void *arg);
 
