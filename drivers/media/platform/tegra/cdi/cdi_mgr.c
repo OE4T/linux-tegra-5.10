@@ -1,7 +1,7 @@
 /*
  * cdi manager.
  *
- * Copyright (c) 2015-2020, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2015-2021, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -319,7 +319,11 @@ static int __cdi_create_dev(
 	strncpy(brd.type, "cdi-dev", sizeof(brd.type));
 	brd.addr = cdi_dev->cfg.addr;
 	brd.platform_data = &cdi_dev->pdata;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	cdi_dev->client = i2c_new_device(cdi_mgr->adap, &brd);
+#else
+	 cdi_dev->client = i2c_new_client_device(cdi_mgr->adap, &brd);
+#endif
 	if (!cdi_dev->client) {
 		dev_err(cdi_mgr->dev,
 			"%s cannot allocate client: %s bus %d, %x\n", __func__,

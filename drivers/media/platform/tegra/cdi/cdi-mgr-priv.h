@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,6 +15,7 @@
 #define __CDI_MGR_PRIV_H__
 
 #include <linux/cdev.h>
+#include <linux/version.h>
 
 struct cdi_mgr_priv {
 	struct device *pdev; /* parent device */
@@ -29,7 +30,11 @@ struct cdi_mgr_priv {
 	struct dentry *d_entry;
 	struct work_struct ins_work;
 	struct task_struct *t;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	struct siginfo sinfo;
+#else
+	struct kernel_siginfo sinfo;
+#endif
 	int sig_no; /* store signal number from user space */
 	spinlock_t spinlock;
 	atomic_t in_use;

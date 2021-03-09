@@ -1,7 +1,7 @@
 /*
  * isc manager.
  *
- * Copyright (c) 2015-2018, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2015-2021, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -319,7 +319,11 @@ static int __isc_create_dev(
 	strncpy(brd.type, "isc-dev", sizeof(brd.type));
 	brd.addr = isc_dev->cfg.addr;
 	brd.platform_data = &isc_dev->pdata;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	isc_dev->client = i2c_new_device(isc_mgr->adap, &brd);
+#else
+	isc_dev->client = i2c_new_client_device(isc_mgr->adap, &brd);
+#endif
 	if (!isc_dev->client) {
 		dev_err(isc_mgr->dev,
 			"%s cannot allocate client: %s bus %d, %x\n", __func__,
