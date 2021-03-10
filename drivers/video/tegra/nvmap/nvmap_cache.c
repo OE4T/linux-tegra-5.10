@@ -42,7 +42,7 @@ static struct static_key nvmap_disable_vaddr_for_cache_maint;
  */
 void nvmap_clean_cache_page(struct page *page)
 {
-	__clean_dcache_page(page);
+	__clean_dcache_area_poc(page_address(page), PAGE_SIZE);
 }
 
 void nvmap_clean_cache(struct page **pages, int numpages)
