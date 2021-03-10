@@ -3,7 +3,7 @@ if VIDEO_V4L2
 menu "NVIDIA overlay Encoders, decoders, sensors and other helper chips"
 	visible if !MEDIA_SUBDRV_AUTOSELECT || COMPILE_TEST
 
-config VIDEO_IMX185
+config NV_VIDEO_IMX185
 	tristate "IMX185 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -31,7 +31,7 @@ config NV_VIDEO_IMX219
 	  To compile this driver as a module, choose M here: the module
 	  will be called imx219.
 
-config VIDEO_IMX268
+config NV_VIDEO_IMX268
 	tristate "IMX268 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -51,7 +51,7 @@ config NV_VIDEO_IMX274
 	  To compile this driver as a module, choose M here: the module
 	  will be called imx274.
 
-config VIDEO_IMX318
+config NV_VIDEO_IMX318
 	tristate "IMX318 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -80,7 +80,7 @@ config NV_VIDEO_OV5693
 	  To compile this driver as a module, choose M here: the module
 	  will be called ov5693.
 
-config VIDEO_OV9281
+config NV_VIDEO_OV9281
 	tristate "OmniVision OV9281 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -90,7 +90,7 @@ config VIDEO_OV9281
 	  To compile this driver as a module, choose M here: the module
 	  will be called ov9281.
 
-config VIDEO_OV10823
+config NV_VIDEO_OV10823
 	tristate "OmniVision OV10823 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -100,7 +100,7 @@ config VIDEO_OV10823
 	  To compile this driver as a module, choose M here: the module
 	  will be called ov10823.
 
-config VIDEO_OV23850
+config NV_VIDEO_OV23850
 	tristate "OmniVision OV23850 sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	help
@@ -155,7 +155,7 @@ config I2C_IOEXPANDER_DESER_MAX9296
 	  To compile this driver as a module, choose M here: the module
 	  will be called max9296.
 
-config VIDEO_IMX390
+config NV_VIDEO_IMX390
 	tristate "IMX390 camera sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C_IOEXPANDER_SER_MAX9295 && I2C_IOEXPANDER_DESER_MAX9296
 	help

@@ -77,7 +77,12 @@ static const struct regmap_config sensor_regmap_config = {
 	.reg_bits = 16,
 	.val_bits = 8,
 	.cache_type = REGCACHE_RBTREE,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	.use_single_rw = true,
+#else
+	.use_single_read = true,
+	.use_single_write = true,
+#endif
 };
 
 static inline void imx318_get_frame_length_regs(imx318_reg *regs,
@@ -603,8 +608,13 @@ static int imx318_eeprom_device_init(struct imx318 *priv)
 		strncpy(priv->eeprom[i].brd.type, dev_name,
 				sizeof(priv->eeprom[i].brd.type));
 		priv->eeprom[i].brd.addr = IMX318_EEPROM_ADDRESS + i;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 		priv->eeprom[i].i2c_client = i2c_new_device(
 				priv->eeprom[i].adap, &priv->eeprom[i].brd);
+#else
+                priv->eeprom[i].i2c_client = i2c_new_client_device(
+                                priv->eeprom[i].adap, &priv->eeprom[i].brd);
+#endif
 
 		priv->eeprom[i].regmap = devm_regmap_init_i2c(
 			priv->eeprom[i].i2c_client, &eeprom_regmap_config);

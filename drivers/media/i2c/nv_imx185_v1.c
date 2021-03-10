@@ -83,7 +83,12 @@ static const struct regmap_config sensor_regmap_config = {
 	.reg_bits = 16,
 	.val_bits = 8,
 	.cache_type = REGCACHE_RBTREE,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	.use_single_rw = true,
+#else
+	.use_single_read = true,
+	.use_single_write = true,
+#endif
 };
 
 static int imx185_g_volatile_ctrl(struct v4l2_ctrl *ctrl);
@@ -407,7 +412,11 @@ static int imx185_s_stream(struct v4l2_subdev *sd, int enable)
 		control[1].id = TEGRA_CAMERA_CID_FRAME_RATE;
 		control[2].id = TEGRA_CAMERA_CID_EXPOSURE;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		err = v4l2_g_ext_ctrls(&priv->ctrl_handler, &ctrls);
+#else
+                err = v4l2_g_ext_ctrls(&priv->ctrl_handler, s_data->subdev.devnode, NULL, &ctrls);
+#endif
 		if (err == 0) {
 			err |= imx185_set_gain(priv, control[0].value64);
 			if (err)
