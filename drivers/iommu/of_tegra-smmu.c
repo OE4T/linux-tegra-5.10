@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,9 +24,6 @@
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 #include "of-tegra-smmu.h"
-#else
-#include "arm/arm-smmu/of-tegra-smmu.h"
-#endif
 
 #include <dt-bindings/memory/tegra-swgroup.h>
 
@@ -96,3 +93,4 @@ struct iommu_group *tegra_smmu_of_get_group(struct device *dev)
 
 	return group->group;
 }
+#endif
