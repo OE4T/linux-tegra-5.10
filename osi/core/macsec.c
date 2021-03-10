@@ -102,8 +102,9 @@ static inline void read_dbg_buf_data(
 
 	/* Read debug buffer from HW */
 	for (i = 0; i < DBG_BUF_LEN; i++) {
-		dbg_buf[i] = osi_readl(base + DEBUG_BUF_DATA_0(1));
-		pr_err("%s: dbg_buf_data[%d]: 0x%x\n", __func__, i, dbg_buf[i]);
+		dbg_buf[i] = osi_readl(base + DEBUG_BUF_DATA_0(i));
+		/* pr_err("%s: dbg_buf_data[%d]: 0x%x\n", __func__,
+			i, dbg_buf[i]); */
 	}
 }
 
@@ -163,7 +164,8 @@ static void tx_dbg_trigger_evts(
 			tx_trigger_evts &= ~TX_DBG_CAPTURE;
 		}
 
-		pr_err("%s: tx_trigger_evts 0x%x", __func__, tx_trigger_evts);
+		pr_err("%s: tx_dbg_trigger_evts 0x%x", __func__,
+			tx_trigger_evts);
 		osi_writel(tx_trigger_evts, base + TX_DEBUG_TRIGGER_EN_0);
 		if (tx_trigger_evts != OSI_NONE) {
 			/** Start the tx debug buffer capture */
@@ -174,8 +176,9 @@ static void tx_dbg_trigger_evts(
 			osi_writel(debug_ctrl_reg, base + TX_DEBUG_CONTROL_0);
 		}
 	} else {
-		tx_trigger_evts = osi_readl(base + TX_DEBUG_STATUS_0);
-		pr_err("%s: tx_trigger_evts 0x%x", __func__, tx_trigger_evts);
+		tx_trigger_evts = osi_readl(base + TX_DEBUG_TRIGGER_EN_0);
+		pr_err("%s: tx_dbg_trigger_evts 0x%x", __func__,
+			tx_trigger_evts);
 		if (tx_trigger_evts & TX_DBG_LKUP_MISS) {
 			flags |= TX_DBG_LKUP_MISS_EVT;
 		}
@@ -253,7 +256,8 @@ static void rx_dbg_trigger_evts(
 		} else {
 			rx_trigger_evts &= ~RX_DBG_CAPTURE;
 		}
-		pr_err("%s: rx_trigger_evts 0x%x", __func__, rx_trigger_evts);
+		pr_err("%s: rx_dbg_trigger_evts 0x%x", __func__,
+			rx_trigger_evts);
 		osi_writel(rx_trigger_evts, base + RX_DEBUG_TRIGGER_EN_0);
 		if (rx_trigger_evts != OSI_NONE) {
 			/** Start the tx debug buffer capture */
@@ -264,8 +268,9 @@ static void rx_dbg_trigger_evts(
 			osi_writel(debug_ctrl_reg, base + RX_DEBUG_CONTROL_0);
 		}
 	} else {
-		rx_trigger_evts = osi_readl(base + RX_DEBUG_STATUS_0);
-		pr_err("%s: rx_trigger_evts 0x%x", __func__, rx_trigger_evts);
+		rx_trigger_evts = osi_readl(base + RX_DEBUG_TRIGGER_EN_0);
+		pr_err("%s: rx_dbg_trigger_evts 0x%x", __func__,
+			rx_trigger_evts);
 		if (rx_trigger_evts & RX_DBG_LKUP_MISS) {
 			flags |= RX_DBG_LKUP_MISS_EVT;
 		}
@@ -286,7 +291,6 @@ static void rx_dbg_trigger_evts(
 		}
 		dbg_buf_config->flags = flags;
 	}
-
 }
 
 /**
@@ -303,7 +307,6 @@ static int macsec_dbg_buf_config(struct osi_core_priv_data *const osi_core,
 {
 
 	unsigned char *base = (unsigned char *)osi_core->macsec_base;
-//	unsigned int  en_flags;
 	unsigned int dbg_config_reg = 0;
 	int ret = 0;
 
@@ -322,9 +325,6 @@ static int macsec_dbg_buf_config(struct osi_core_priv_data *const osi_core,
 			dbg_buf_config->index);
 		return -1;
 	}
-	//en_flags = osi_readl(base + TX_DEBUG_TRIGGER_EN_0);
-	/** disable all trigger events */
-	//osi_writel(0, base + TX_DEBUG_TRIGGER_EN_0);
 
 	/* Wait for previous debug table update to finish */
 	ret = poll_for_dbg_buf_update(osi_core);
@@ -332,9 +332,9 @@ static int macsec_dbg_buf_config(struct osi_core_priv_data *const osi_core,
 		return ret;
 	}
 
-	pr_err("%s: ctrl: %hu rw: %hu idx: %hu flags: %#x\n", __func__,
+	/* pr_err("%s: ctrl: %hu rw: %hu idx: %hu\n", __func__,
 			dbg_buf_config->ctlr_sel, dbg_buf_config->rw,
-			dbg_buf_config->index, dbg_buf_config->flags);
+			dbg_buf_config->index); */
 
 	dbg_config_reg = osi_readl(base + DEBUG_BUF_CONFIG_0);
 
@@ -355,7 +355,6 @@ static int macsec_dbg_buf_config(struct osi_core_priv_data *const osi_core,
 	dbg_config_reg &= ~DEBUG_BUF_CONFIG_0_IDX_MASK;
 	dbg_config_reg |= dbg_buf_config->index ;
 	dbg_config_reg |= DEBUG_BUF_CONFIG_0_UPDATE;
-	pr_err("%s: dbg_config_reg 0x%x\n", __func__, dbg_config_reg);
 	osi_writel(dbg_config_reg, base + DEBUG_BUF_CONFIG_0);
 	ret = poll_for_dbg_buf_update(osi_core);
 	if (ret < 0) {
@@ -365,8 +364,6 @@ static int macsec_dbg_buf_config(struct osi_core_priv_data *const osi_core,
 	if (!dbg_buf_config->rw) {
 		read_dbg_buf_data(osi_core, dbg_buf_config->dbg_buf);
 	}
-	/** Enable Tx trigger events */
-//	osi_writel(en_flags, base + TX_DEBUG_TRIGGER_EN_0);
 	return 0;
 }
 
@@ -375,9 +372,8 @@ int macsec_dbg_events_config(
 		struct osi_core_priv_data *const osi_core,
 		struct osi_macsec_dbg_buf_config *const dbg_buf_config)
 {
-
-	int ret = 0;
-
+	unsigned int i, events = 0;
+	unsigned int flags = dbg_buf_config->flags;
 	pr_err("%s():", __func__);
 
 	/* Validate inputs */
@@ -386,6 +382,21 @@ int macsec_dbg_events_config(
 		pr_err("%s(): Params validation failed", __func__);
 		return -1;
 	}
+
+	/* Only one event allowed to configure at a time */
+	if (flags != OSI_NONE && dbg_buf_config->rw == DBG_TBL_WRITE) {
+		for (i = 0; i < 32U; i++) {
+			if (flags & (1U << i)) {
+				events++;
+			}
+		}
+		if (events > 1U) {
+			pr_err("%s(): Don't allow more than one"
+				" debug events set 0x%x\n", __func__, flags);
+			return -1;
+		}
+	}
+
 	switch (dbg_buf_config->ctlr_sel) {
 	case CTLR_SEL_TX:
 		tx_dbg_trigger_evts(osi_core, dbg_buf_config);
@@ -395,7 +406,7 @@ int macsec_dbg_events_config(
 		break;
 	}
 
-	return ret;
+	return 0;
 }
 
 /**
@@ -1929,6 +1940,30 @@ static inline void handle_tx_pn_exhausted(
 	osi_writel(clear, addr + TX_SC_PN_EXHAUSTED_STATUS1_0);
 }
 
+static inline void handle_dbg_evt_capture_done(
+			struct osi_core_priv_data *const osi_core,
+			unsigned short ctrl_sel)
+{
+	unsigned char *addr = (unsigned char *)osi_core->macsec_base;
+	unsigned int trigger_evts = 0;
+
+	if (ctrl_sel == CTLR_SEL_TX) {
+		trigger_evts = osi_readl(addr + TX_DEBUG_STATUS_0);
+		pr_err("%s: TX_DEBUG_STATUS_0 0x%x", __func__, trigger_evts);
+		osi_writel(trigger_evts, addr + TX_DEBUG_STATUS_0);
+		/* clear all trigger events */
+		trigger_evts = 0U;
+		osi_writel(trigger_evts, addr + TX_DEBUG_TRIGGER_EN_0);
+	} else if (ctrl_sel == CTLR_SEL_RX) {
+		trigger_evts = osi_readl(addr + RX_DEBUG_STATUS_0);
+		pr_err("%s: RX_DEBUG_STATUS_0 0x%x", __func__, trigger_evts);
+		osi_writel(trigger_evts, addr + RX_DEBUG_STATUS_0);
+		/* clear all trigger events */
+		trigger_evts = 0U;
+		osi_writel(trigger_evts, addr + RX_DEBUG_TRIGGER_EN_0);
+	}
+}
+
 static inline void handle_tx_irq(struct osi_core_priv_data *const osi_core)
 {
 	unsigned int tx_isr, clear = 0;
@@ -1937,6 +1972,7 @@ static inline void handle_tx_irq(struct osi_core_priv_data *const osi_core)
 	tx_isr = osi_readl(addr + TX_ISR);
 	pr_err("%s(): tx_isr 0x%x\n", __func__, tx_isr);
 	if ((tx_isr & TX_DBG_BUF_CAPTURE_DONE) == TX_DBG_BUF_CAPTURE_DONE) {
+		handle_dbg_evt_capture_done(osi_core, CTLR_SEL_TX);
 		osi_core->macsec_irq_stats.tx_dbg_capture_done++;
 		clear |= TX_DBG_BUF_CAPTURE_DONE;
 	}
@@ -1990,6 +2026,7 @@ static inline void handle_rx_irq(struct osi_core_priv_data *const osi_core)
 	pr_err("%s(): rx_isr 0x%x\n", __func__, rx_isr);
 
 	if ((rx_isr & RX_DBG_BUF_CAPTURE_DONE) == RX_DBG_BUF_CAPTURE_DONE) {
+		handle_dbg_evt_capture_done(osi_core, CTLR_SEL_RX);
 		osi_core->macsec_irq_stats.rx_dbg_capture_done++;
 		clear |= RX_DBG_BUF_CAPTURE_DONE;
 	}
