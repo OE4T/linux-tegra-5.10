@@ -93,7 +93,4 @@ void arch_invalidate_pmem(void *addr, size_t size)
 }
 EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
 #endif
-EXPORT_SYMBOL(flush_cache_all);
-EXPORT_SYMBOL(__flush_dcache_all);
-EXPORT_SYMBOL(__clean_dcache_all);
 EXPORT_SYMBOL(__clean_dcache_area_poc);
