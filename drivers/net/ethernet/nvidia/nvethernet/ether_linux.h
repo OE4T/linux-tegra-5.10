@@ -129,6 +129,23 @@
 #define ETHER_TX_MAX_FRAME_SIZE	GSO_MAX_SIZE
 
 /**
+ * @brief IVC wait timeout.
+ */
+#define IVC_WAIT_TIMEOUT		(msecs_to_jiffies(100))
+
+/**
+ * @brief IVC read timeout cnt.
+ * used as 20*IVC_WAIT_TIMEOUT hence Max is 2 sec timeout.
+ */
+#define IVC_READ_TIMEOUT_CNT		20
+
+/**
+ * @brief IVC channel timeout.
+ * Used with 1 millisec so max timeout is 50 ms.
+ */
+#define IVC_CHANNEL_TIMEOUT_CNT		50
+
+/**
  * @brief Check if Tx data buffer length is within bounds.
  *
  * Algorithm: Check the data length if it is valid.
@@ -241,7 +258,7 @@ struct ether_ivc_ctxt {
 	/** ivc cookie */
 	struct tegra_hv_ivc_cookie *ivck;
 	/** ivc lock */
-	raw_spinlock_t ivck_lock;
+	spinlock_t ivck_lock;
 	/** ivc work */
 	struct work_struct ivc_work;
 	/** wait for event */
