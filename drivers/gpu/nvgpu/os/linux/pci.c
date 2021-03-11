@@ -515,8 +515,6 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		return -ENOMEM;
 	}
 
-	hash_init(l->ecc_sysfs_stats_htable);
-
 	g = &l->g;
 
 	g->log_mask = NVGPU_DEFAULT_DBG_MASK;

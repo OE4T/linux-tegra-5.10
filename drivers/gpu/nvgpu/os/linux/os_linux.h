@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,7 +18,6 @@
 #define NVGPU_OS_LINUX_H
 
 #include <linux/iommu.h>
-#include <linux/hashtable.h>
 #include <linux/notifier.h>
 #include <linux/version.h>
 
@@ -130,7 +129,6 @@ struct nvgpu_os_linux {
 
 	struct dentry *debugfs_dump_ctxsw_stats;
 #endif
-	DECLARE_HASHTABLE(ecc_sysfs_stats_htable, 5);
 	struct dev_ext_attribute *ecc_attrs;
 
 	struct gk20a_cde_app cde_app;
