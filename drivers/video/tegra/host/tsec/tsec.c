@@ -1,7 +1,7 @@
 /*
  * Tegra TSEC Module Support
  *
- * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -91,10 +91,17 @@ static struct nvhost_channel *channel = NULL;
 int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 {
 	int err = 0;
+
+	if (!tsec) {
+		err = -EPROBE_DEFER;
+		goto exit;
+	}
+
 	if (!hdcp_context) {
 		err = -EINVAL;
 		goto exit;
 	}
+
 	hdcp_context->cpuvaddr_scratch = dma_alloc_attrs(&tsec->dev,
 					HDCP_SCRATCH_BUFFER_SIZE,
 					&hdcp_context->dma_handle_scratch,
@@ -219,6 +226,12 @@ exit:
 int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 {
 	int err = 0;
+
+	if (!tsec) {
+		err = -EPROBE_DEFER;
+		goto exit;
+	}
+
 	if (!hdcp_context) {
 		err = -EINVAL;
 		goto exit;
