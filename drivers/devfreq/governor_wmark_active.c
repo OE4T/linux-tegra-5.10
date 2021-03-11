@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -689,6 +689,6 @@ static void __exit devfreq_watermark_exit(void)
 	devfreq_remove_governor(&devfreq_watermark_active);
 }
 
-rootfs_initcall(devfreq_watermark_init);
+subsys_initcall(devfreq_watermark_init);
 module_exit(devfreq_watermark_exit);
 MODULE_LICENSE("GPL v2");

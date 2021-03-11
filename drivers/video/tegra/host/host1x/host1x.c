@@ -1537,17 +1537,32 @@ static int __init nvhost_mod_init(void)
 {
 	int ret, i;
 
-	for (i = 0; platform_drivers[i] != NULL; i++) {
-		ret = platform_driver_register(platform_drivers[i]);
-		if (ret)
-			return ret;
-	}
-
+	/*
+	 * DC may use the TSEC kernel API immediately after DC
+	 * has been initialized in module_init(). If power domains are
+	 * registered after platform_driver_register(), the devices are not
+	 * probed immediately and hence DC may use the TSEC kernel APIs before
+	 * TSEC has been initialized. DC also does not respect -EPROBE_DEFER
+	 * return code, and hence the lack of initialization cannot be
+	 * performed using only a simple check in the DC driver.
+	 *
+	 * Modify the probe order by registering power domains before
+	 * platform drivers. This should ensure that
+	 * platform_driver_register() triggers also probe of the platform
+	 * drivers thereby performing also TSEC probe as part of
+	 * rootfs_initcall().
+	 */
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_LEGACY_PD)
 	nvhost_domain_init(nvhost_flcn_domain_match);
 	nvhost_domain_init(nvhost_nvdec_domain_match);
 	nvhost_domain_init(nvhost_tsec_domain_match);
 #endif
+
+	for (i = 0; platform_drivers[i] != NULL; i++) {
+		ret = platform_driver_register(platform_drivers[i]);
+		if (ret)
+			return ret;
+	}
 
 	return 0;
 }
