@@ -760,7 +760,7 @@ static void ether_start_ivc(struct ether_priv_data *pdata)
 		}
 		ictxt->ivc_state = 1;
 		// initialize
-		raw_spin_lock_init(&ictxt->ivck_lock);
+		spin_lock_init(&ictxt->ivck_lock);
 	}
 }
 

@@ -17,8 +17,6 @@
 #include "ether_linux.h"
 #include <ivc_core.h>
 
-#define IVC_WAIT_TIMEOUT (msecs_to_jiffies(1000))
-
 /**
  * @brief Adds delay in micro seconds.
  *
@@ -439,7 +437,7 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
 	struct tegra_hv_ivc_cookie *ivck =
 				  (struct tegra_hv_ivc_cookie *) ictxt->ivck;
-	int dcnt = 50;
+	int dcnt = IVC_CHANNEL_TIMEOUT_CNT;
 	int is_atomic = 0;
 	if (len > ETHER_MAX_IVC_BUF) {
 		dev_err(pdata->dev, "Invalid IVC len\n");
@@ -447,7 +445,7 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 	}
 
 	ivc_buf->status = -1;
-	raw_spin_lock_irqsave(&ictxt->ivck_lock, flags);
+	spin_lock_irqsave(&ictxt->ivck_lock, flags);
 	if (in_atomic()) {
 		preempt_enable();
 		is_atomic = 1;
@@ -458,7 +456,7 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 		osd_msleep(1);
 		dcnt--;
 		if (!dcnt) {
-			pr_err("IVC recv timeout\n");
+			dev_err(pdata->dev, "IVC channel timeout\n");
 			goto fail;
 		}
 	}
@@ -470,19 +468,26 @@ int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
 			  len, ret, ivc_buf->cmd);
 		goto fail;
 	}
-	while (!tegra_hv_ivc_can_read(ictxt->ivck)) {
+
+	dcnt = IVC_READ_TIMEOUT_CNT;
+	while ((!tegra_hv_ivc_can_read(ictxt->ivck))) {
 		wait_for_completion_timeout(&ictxt->msg_complete, IVC_WAIT_TIMEOUT);
+		dcnt--;
+		if (!dcnt) {
+			dev_err(pdata->dev, "IVC read timeout\n");
+			break;
+		}
 	}
 
 	ret = tegra_hv_ivc_read(ivck, ivc_buf, len);
 	if (ret < 0) {
 		dev_err(pdata->dev, "IVC read failed: %d\n", ret);
 	}
+	ret = ivc_buf->status;
+fail:
 	if (is_atomic) {
 		preempt_disable();
 	}
-	ret = ivc_buf->status;
-fail:
-	raw_spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
+	spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
 	return ret;
 }
