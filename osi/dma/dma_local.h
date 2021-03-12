@@ -93,6 +93,10 @@ struct dma_local {
 	struct dma_chan_ops ops;
 	/** Flag to represent OSI DMA software init done */
 	unsigned int init_done;
+	/** Holds the MAC version of MAC controller */
+	nveu32_t mac_ver;
+	/** Represents whether DMA interrupts are VM or Non-VM */
+	nveu32_t vm_intr;
 };
 
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops);
