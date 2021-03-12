@@ -31,6 +31,8 @@ tegra-drm-next-y := \
 	gr3d.o \
 	falcon.o \
 	vic.o \
-	nvdec.o
+	nvdec.o \
+	nvenc.o \
+	nvjpg.o
 
 obj-m := tegra-drm-next.o

@@ -1363,17 +1363,23 @@ static const struct of_device_id host1x_drm_subdevs[] = {
 	{ .compatible = "nvidia,tegra210-sor1", },
 	{ .compatible = "nvidia,tegra210-vic", },
 	{ .compatible = "nvidia,tegra210-nvdec", },
+	{ .compatible = "nvidia,tegra210-nvenc", },
+	{ .compatible = "nvidia,tegra210-nvjpg", },
 	{ .compatible = "nvidia,tegra186-display", },
 	{ .compatible = "nvidia,tegra186-dc", },
 	{ .compatible = "nvidia,tegra186-sor", },
 	{ .compatible = "nvidia,tegra186-sor1", },
 	{ .compatible = "nvidia,tegra186-vic", },
 	{ .compatible = "nvidia,tegra186-nvdec", },
+	{ .compatible = "nvidia,tegra186-nvenc", },
+	{ .compatible = "nvidia,tegra186-nvjpg", },
 	{ .compatible = "nvidia,tegra194-display", },
 	{ .compatible = "nvidia,tegra194-dc", },
 	{ .compatible = "nvidia,tegra194-sor", },
 	{ .compatible = "nvidia,tegra194-vic", },
 	{ .compatible = "nvidia,tegra194-nvdec", },
+	{ .compatible = "nvidia,tegra194-nvenc", },
+	{ .compatible = "nvidia,tegra194-nvjpg", },
 	{ /* sentinel */ }
 };
 
@@ -1398,6 +1404,8 @@ static struct platform_driver * const drivers[] = {
 	&tegra_gr3d_driver,
 	&tegra_vic_driver,
 	&tegra_nvdec_driver,
+	&tegra_nvenc_driver,
+	&tegra_nvjpg_driver,
 };
 
 static int __init host1x_drm_init(void)
