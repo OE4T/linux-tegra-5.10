@@ -15,6 +15,7 @@ endif
 
 dtb-$(BUILD_19x_ENABLE) += tegra194-p2888-0008-e3366-1199.dtb
 dtb-$(BUILD_19x_ENABLE) += tegra194-p2888-0008-p2822-0000.dtb
+dtb-$(BUILD_19x_ENABLE) += tegra194-p2888-0008-p2822-0000-safejetpack.dtb
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
