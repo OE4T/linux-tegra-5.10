@@ -23,6 +23,7 @@
 #include "dma_local.h"
 #include <local_common.h>
 #include "hw_desc.h"
+#include "../osi/common/common.h"
 
 /**
  * @brief g_dma - DMA local data variable
@@ -227,6 +228,19 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		return ret;
 	}
 
+	g_dma.mac_ver = osi_readl((unsigned char *)osi_dma->base + MAC_VERSION) &
+				  MAC_VERSION_SNVER_MASK;
+	if (is_valid_mac_version(g_dma.mac_ver) == 0) {
+		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			    "Invalid MAC version\n", (nveu64_t)g_dma.mac_ver);
+		return -1;
+	}
+
+	if ((g_dma.mac_ver !=  OSI_EQOS_MAC_4_10) &&
+	    (g_dma.mac_ver != OSI_EQOS_MAC_5_00)) {
+		g_dma.vm_intr = OSI_ENABLE;
+	}
+
 	/* Enable channel interrupts at wrapper level and start DMA */
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
@@ -369,6 +383,37 @@ nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
 	}
 
 	return ops_p->get_global_dma_status(osi_dma->base);
+}
+
+nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
+			    nveu32_t chan,
+			    nveu32_t tx_rx,
+			    nveu32_t en_dis)
+{
+	typedef void (*dma_intr_fn)(void *, nveu32_t);
+	dma_intr_fn fn[2][2][2] = {
+		{ { ops_p->disable_chan_tx_intr, ops_p->enable_chan_tx_intr },
+		  { ops_p->disable_chan_rx_intr, ops_p->enable_chan_rx_intr } },
+		{ { ops_p->clear_vm_tx_intr, ops_p->enable_chan_tx_intr },
+		  { ops_p->clear_vm_rx_intr, ops_p->enable_chan_rx_intr } }
+	};
+
+	if (validate_args(osi_dma) < 0) {
+		return -1;
+	}
+
+	if (validate_dma_chan_num(osi_dma, chan) < 0) {
+		return -1;
+	}
+
+	if ((tx_rx > OSI_DMA_CH_RX_INTR) ||
+	    (en_dis > OSI_DMA_INTR_ENABLE)) {
+		return -1;
+	}
+
+	fn[g_dma.vm_intr][tx_rx][en_dis](osi_dma->base, chan);
+
+	return 0;
 }
 
 nve32_t osi_start_dma(struct osi_dma_priv_data *osi_dma,

@@ -183,6 +183,19 @@
 /** @} */
 
 /**
+ * @addtogroup OSI-INTR OSI DMA interrupt handling macros.
+ *
+ * @brief Macros to pass osi_handle_dma_intr() API to handle
+ * the interrupts between OSI and OSD.
+ * @{
+ */
+#define OSI_DMA_CH_TX_INTR	0U
+#define OSI_DMA_CH_RX_INTR	1U
+#define OSI_DMA_INTR_DISABLE	0U
+#define OSI_DMA_INTR_ENABLE	1U
+/** @} */
+
+/**
  * @brief OSI packet error stats
  */
 struct osi_pkt_err_stats {
@@ -1201,6 +1214,49 @@ nve32_t osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
  */
 nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma);
 
+/**
+ * @brief osi_handle_dma_intr - Handles DMA interrupts.
+ *
+ * @note
+ * Algorithm:
+ *  - Enables/Disables DMA CH TX/RX/VM inetrrupts.
+ *
+ * @param[in] osi_dma: OSI DMA private data.
+ * @param[in] chan: DMA Rx channel number. Max OSI_EQOS_MAX_NUM_CHANS.
+ * @param[in] tx_rx: Indicates whether DMA channel is Tx or Rx.
+ *                   OSI_DMA_CH_TX_INTR for Tx interrupt.
+ *                   OSI_DMA_CH_RX_INTR for Rx interrupt.
+ * @param[in] en_dis: Enable/Disable DMA channel interrupts.
+ *                    OSI_DMA_INTR_DISABLE for disabling the interrupt.
+ *                    OSI_DMA_INTR_ENABLE for enabling the interrupt.
+ *
+ * @pre
+ *  - MAC needs to be out of reset and proper clocks need to be configured.
+ *  - DMA HW init need to be completed successfully, see osi_hw_dma_init
+ *  - Mapping of physical IRQ line to DMA channel need to be maintained at
+ *    OS Dependent layer and pass corresponding channel number.
+ *
+ * @note
+ * Traceability Details: TBD
+ *
+ * @note
+ * Classification:
+ * - Interrupt: Yes
+ * - Signal handler: Yes
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
+			    nveu32_t chan, nveu32_t tx_rx, nveu32_t en_dis);
 #ifndef OSI_STRIPPED_LIB
 /**
  * @brief - Read-validate HW registers for func safety.
