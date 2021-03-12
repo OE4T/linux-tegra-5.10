@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,9 +27,7 @@
  */
 void nvgpu_lockout_usermode_registers(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
-	l->usermode_regs = NULL;
+	g->usermode_regs = 0U;
 }
 
 /*
@@ -37,33 +35,27 @@ void nvgpu_lockout_usermode_registers(struct gk20a *g)
  */
 void nvgpu_restore_usermode_registers(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
-	l->usermode_regs = l->usermode_regs_saved;
+	g->usermode_regs = g->usermode_regs_saved;
 }
 
 void nvgpu_remove_usermode_support(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
-	if (l->usermode_regs) {
-		l->usermode_regs = NULL;
+	if (g->usermode_regs) {
+		g->usermode_regs = 0U;
 	}
 }
 
 void nvgpu_init_usermode_support(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
 	if (g->ops.usermode.base == NULL) {
 		return;
 	}
 
-	if (l->usermode_regs == NULL) {
-		l->usermode_regs = l->regs + g->ops.usermode.bus_base(g);
-		l->usermode_regs_saved = l->usermode_regs;
+	if (g->usermode_regs == 0U) {
+		g->usermode_regs = g->regs + g->ops.usermode.bus_base(g);
+		g->usermode_regs_saved = g->usermode_regs;
 	}
 
-	l->usermode_regs_bus_addr = l->regs_bus_addr +
+	g->usermode_regs_bus_addr = g->regs_bus_addr +
 					g->ops.usermode.bus_base(g);
 }

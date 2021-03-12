@@ -96,17 +96,7 @@ struct nvgpu_os_linux {
 	struct workqueue_struct *nonstall_work_queue;
 
 	struct resource *reg_mem;
-	void __iomem *regs;
-	void __iomem *regs_saved;
-	u64 regs_bus_addr;
-
 	struct resource *bar1_mem;
-	void __iomem *bar1;
-	void __iomem *bar1_saved;
-
-	void __iomem *usermode_regs;
-	void __iomem *usermode_regs_saved;
-	u64 usermode_regs_bus_addr;
 
 	struct nvgpu_os_linux_ops ops;
 

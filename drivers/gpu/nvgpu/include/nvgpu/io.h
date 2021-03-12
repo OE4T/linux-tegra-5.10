@@ -25,6 +25,44 @@
 #include <nvgpu/types.h>
 
 /**
+ * @brief Read a value from a register.
+ *
+ * @param addr [in]		Register cpu virtual address.
+ *
+ * Read a 32-bit value from the register cpu virtuall address.
+ * OS layer much implement this function.
+ *
+ * @return Value of the given register.
+ */
+u32 nvgpu_os_readl(uintptr_t addr);
+/**
+ * @brief Write a value to a register with an ordering constraint.
+ *
+ * @param v [in]		Value to write at the offset.
+ * @param addr [in]     Register cpu virtual address.
+ *
+ * Write a 32-bit value to the register cpu virtual address with an
+ * ordering constraint on memory operations.
+ * OS layer much implement this function.
+ *
+ * @return None.
+ */
+void nvgpu_os_writel(u32 v, uintptr_t addr);
+/**
+ * @brief Write a value to a register without an ordering constraint.
+ *
+ * @param v [in]		Value to write at the offset.
+ * @param addr [in]     Register cpu virtual address.
+ *
+ * Write a 32-bit value to the register cpu virtual address without an
+ * ordering constraint on memory operations.
+ * OS layer much implement this function.
+ *
+ * @return None.
+ */
+void nvgpu_os_writel_relaxed(u32 v, uintptr_t addr);
+
+/**
  * @file
  *
  * Interface for mmio access.
@@ -65,8 +103,7 @@ void nvgpu_writel(struct gk20a *g, u32 r, u32 v);
  * @param v [in]		Value to write at the offset.
  *
  * Write a 32-bit value to register offset in GPU IO space without
- * an ordering constraint on memory operations. This function is
- * implemented by the OS layer.
+ * an ordering constraint on memory operations.
  *
  * @return None.
  */

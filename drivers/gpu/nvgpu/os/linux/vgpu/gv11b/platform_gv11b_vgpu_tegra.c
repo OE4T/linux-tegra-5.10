@@ -33,7 +33,6 @@ int gv11b_vgpu_probe(struct device *dev)
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	struct resource *r;
 	void __iomem *regs;
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(platform->g);
 	struct gk20a *g = platform->g;
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	int ret;
@@ -49,14 +48,14 @@ int gv11b_vgpu_probe(struct device *dev)
 		nvgpu_err(g, "failed to map usermode regs");
 		return PTR_ERR(regs);
 	}
-	l->usermode_regs = regs;
+	g->usermode_regs = (uintptr_t)regs;
 
-	l->usermode_regs_bus_addr = r->start;
+	g->usermode_regs_bus_addr = r->start;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	ret = nvgpu_get_nvhost_dev(g);
 	if (ret) {
-		l->usermode_regs = NULL;
+		g->usermode_regs = 0U;
 		return ret;
 	}
 

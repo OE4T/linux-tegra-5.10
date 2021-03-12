@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -75,7 +75,6 @@ void nvgpu_remove_sim_support_linux_pci(struct gk20a *g)
 
 int nvgpu_init_sim_support_linux_pci(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct sim_nvgpu_linux *sim_linux;
 	int err = -ENOMEM;
 	bool is_simulation;
@@ -91,7 +90,7 @@ int nvgpu_init_sim_support_linux_pci(struct gk20a *g)
 		return err;
 	g->sim = &sim_linux->sim;
 	g->sim->g = g;
-	sim_linux->regs = l->regs + sim_r();
+	sim_linux->regs = (void __iomem *)g->regs + sim_r();
 	sim_linux->remove_support_linux = nvgpu_remove_sim_support_linux_pci;
 
 	return 0;

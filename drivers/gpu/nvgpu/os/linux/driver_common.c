@@ -82,8 +82,8 @@ static void nvgpu_init_vars(struct gk20a *g)
 	nvgpu_mutex_init(&l->ctrl_privs_lock);
 	nvgpu_init_list_node(&l->ctrl_privs);
 
-	l->regs_saved = l->regs;
-	l->bar1_saved = l->bar1;
+	g->regs_saved = g->regs;
+	g->bar1_saved = g->bar1;
 
 	g->emc3d_ratio = EMC3D_DEFAULT_RATIO;
 

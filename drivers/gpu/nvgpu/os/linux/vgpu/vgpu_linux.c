@@ -72,15 +72,13 @@ struct vgpu_priv_data *vgpu_get_priv_data(struct gk20a *g)
 
 static void vgpu_remove_support(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
 	vgpu_remove_support_common(g);
 
 	/* free mappings to registers, etc*/
 
-	if (l->bar1) {
-		iounmap(l->bar1);
-		l->bar1 = NULL;
+	if (g->bar1) {
+		iounmap((void __iomem *)g->bar1);
+		g->bar1 = 0U;
 	}
 }
 
@@ -101,8 +99,8 @@ static void vgpu_init_vars(struct gk20a *g, struct gk20a_platform *platform)
 	nvgpu_mutex_init(&l->ctrl_privs_lock);
 	nvgpu_init_list_node(&l->ctrl_privs);
 
-	l->regs_saved = l->regs;
-	l->bar1_saved = l->bar1;
+	g->regs_saved = g->regs;
+	g->bar1_saved = g->bar1;
 
 	nvgpu_atomic_set(&g->clk_arb_global_nr, 0);
 
@@ -140,7 +138,7 @@ static int vgpu_init_support(struct platform_device *pdev)
 			err = PTR_ERR(regs);
 			goto fail;
 		}
-		l->bar1 = regs;
+		g->bar1 = (uintptr_t)regs;
 		l->bar1_mem = r;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,6 +71,18 @@ struct nvgpu_posix_io_callbacks {
 struct nvgpu_posix_io_callbacks *nvgpu_posix_register_io(
 	struct gk20a *g,
 	struct nvgpu_posix_io_callbacks *io_callbacks);
+
+/**
+ * The high 4 bits of the register mapped address are used for identify which
+ * register aperture it tries to access.
+ * In nvgpu_os_writel/readl, it uses the high 4 bits to call different
+ * callbacks, like nvgpu_readl/writel or nvgpu_bar1_readl/writel.
+ */
+#define NVGPU_POSIX_REG_SHIFT 60
+#define NVGPU_POSIX_REG_MASK 0xfULL
+#define NVGPU_POSIX_REG_BAR0 1ULL
+#define NVGPU_POSIX_REG_BAR1 2ULL
+#define NVGPU_POSIX_REG_USERMODE 3ULL
 
 struct nvgpu_posix_io_reg_space {
 	u32 base;

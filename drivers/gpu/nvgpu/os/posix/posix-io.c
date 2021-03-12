@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/posix-fault-injection.h>
+#include <nvgpu/posix/probe.h>
 
 #include "os_posix.h"
 
@@ -59,7 +60,7 @@ struct nvgpu_posix_io_callbacks *nvgpu_posix_register_io(
 	return old_io;
 }
 
-void nvgpu_writel(struct gk20a *g, u32 r, u32 v)
+static void nvgpu_posix_writel(struct gk20a *g, u32 r, u32 v)
 {
 	struct nvgpu_posix_io_callbacks *callbacks =
 		nvgpu_os_posix_from_gk20a(g)->callbacks;
@@ -76,14 +77,7 @@ void nvgpu_writel(struct gk20a *g, u32 r, u32 v)
 	callbacks->writel(g, &access);
 }
 
-#ifdef CONFIG_NVGPU_DGPU
-void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v)
-{
-	nvgpu_writel(g, r, v);
-}
-#endif
-
-u32 nvgpu_readl(struct gk20a *g, u32 r)
+static u32 nvgpu_posix_readl(struct gk20a *g, u32 r)
 {
 	struct nvgpu_posix_io_callbacks *callbacks =
 		nvgpu_os_posix_from_gk20a(g)->callbacks;
@@ -109,33 +103,7 @@ u32 nvgpu_readl(struct gk20a *g, u32 r)
 	return access.value;
 }
 
-#ifdef CONFIG_NVGPU_NON_FUSA
-void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v)
-{
-	BUG();
-}
-#endif
-
-u32 nvgpu_readl_impl(struct gk20a *g, u32 r)
-{
-	struct nvgpu_posix_io_callbacks *callbacks =
-		nvgpu_os_posix_from_gk20a(g)->callbacks;
-
-	struct nvgpu_reg_access access = {
-		.addr = r,
-		.value = 0L
-	};
-
-	if (callbacks == NULL || callbacks->__readl == NULL) {
-		BUG();
-	}
-
-	callbacks->__readl(g, &access);
-
-	return access.value;
-}
-
-void nvgpu_bar1_writel(struct gk20a *g, u32 b, u32 v)
+static void nvgpu_posix_bar1_writel(struct gk20a *g, u32 b, u32 v)
 {
 	struct nvgpu_posix_io_callbacks *callbacks =
 		nvgpu_os_posix_from_gk20a(g)->callbacks;
@@ -152,7 +120,7 @@ void nvgpu_bar1_writel(struct gk20a *g, u32 b, u32 v)
 	callbacks->bar1_writel(g, &access);
 }
 
-u32 nvgpu_bar1_readl(struct gk20a *g, u32 b)
+static u32 nvgpu_posix_bar1_readl(struct gk20a *g, u32 b)
 {
 	struct nvgpu_posix_io_callbacks *callbacks =
 		nvgpu_os_posix_from_gk20a(g)->callbacks;
@@ -188,14 +156,44 @@ void nvgpu_usermode_writel(struct gk20a *g, u32 r, u32 v)
 	callbacks->usermode_writel(g, &access);
 }
 
-bool nvgpu_io_exists(struct gk20a *g)
+u32 nvgpu_os_readl(uintptr_t addr)
 {
-	return false;
+	struct gk20a *g = nvgpu_posix_current_device();
+	u32 r, type;
+
+	r = (u32)(addr & ~(NVGPU_POSIX_REG_MASK << NVGPU_POSIX_REG_SHIFT));
+	type = (u32)(addr >> NVGPU_POSIX_REG_SHIFT);
+	switch (type) {
+	case NVGPU_POSIX_REG_BAR0:
+		return nvgpu_posix_readl(g, r);
+	case NVGPU_POSIX_REG_BAR1:
+		return nvgpu_posix_bar1_readl(g, r);
+	default:
+		BUG();
+	}
 }
 
-bool nvgpu_io_valid_reg(struct gk20a *g, u32 r)
+void nvgpu_os_writel(u32 v, uintptr_t addr)
 {
-	return false;
+	struct gk20a *g = nvgpu_posix_current_device();
+	u32 r;
+	u64 type;
+
+	r = (u32)(addr & ~(NVGPU_POSIX_REG_MASK << NVGPU_POSIX_REG_SHIFT));
+	type = addr >> NVGPU_POSIX_REG_SHIFT;
+	switch (type) {
+	case NVGPU_POSIX_REG_BAR0:
+		return nvgpu_posix_writel(g, r, v);
+	case NVGPU_POSIX_REG_BAR1:
+		return nvgpu_posix_bar1_writel(g, r, v);
+	default:
+		BUG();
+	}
+}
+
+void nvgpu_os_writel_relaxed(u32 v, uintptr_t addr)
+{
+	nvgpu_os_writel(v, addr);
 }
 
 void nvgpu_posix_io_init_reg_space(struct gk20a *g)

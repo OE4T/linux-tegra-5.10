@@ -229,10 +229,8 @@ void gk20a_idle(struct gk20a *g)
  */
 static int gk20a_restore_registers(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
-	l->regs = l->regs_saved;
-	l->bar1 = l->bar1_saved;
+	g->regs = g->regs_saved;
+	g->bar1 = g->bar1_saved;
 
 	nvgpu_restore_usermode_registers(g);
 
@@ -547,10 +545,8 @@ done:
  */
 static int gk20a_lockout_registers(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-
-	l->regs = NULL;
-	l->bar1 = NULL;
+	g->regs = 0U;
+	g->bar1 = 0U;
 
 	nvgpu_lockout_usermode_registers(g);
 
@@ -1014,37 +1010,41 @@ static int gk20a_init_support(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct gk20a *g = get_gk20a(dev);
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	void __iomem *addr;
 	int err = -ENOMEM;
 
 #ifdef CONFIG_NVGPU_VPR
 	tegra_register_idle_unidle(gk20a_do_idle, gk20a_do_unidle, g);
 #endif
 
-	l->regs = nvgpu_devm_ioremap_resource(pdev,
+	addr = nvgpu_devm_ioremap_resource(pdev,
 					      GK20A_BAR0_IORESOURCE_MEM,
 					      &l->reg_mem);
-	if (IS_ERR(l->regs)) {
+	if (IS_ERR(addr)) {
 		nvgpu_err(g, "failed to remap gk20a registers");
-		err = PTR_ERR(l->regs);
+		err = PTR_ERR(addr);
 		goto fail;
 	}
+	g->regs = (uintptr_t)addr;
+	g->regs_size = resource_size(l->reg_mem);
 
-	l->regs_bus_addr = nvgpu_resource_addr(pdev,
+	g->regs_bus_addr = nvgpu_resource_addr(pdev,
 			GK20A_BAR0_IORESOURCE_MEM);
-	if (!l->regs_bus_addr) {
+	if (!g->regs_bus_addr) {
 		nvgpu_err(g, "failed to read register bus offset");
 		err = -ENODEV;
 		goto fail;
 	}
 
-	l->bar1 = nvgpu_devm_ioremap_resource(pdev,
+	addr = nvgpu_devm_ioremap_resource(pdev,
 					      GK20A_BAR1_IORESOURCE_MEM,
 					      &l->bar1_mem);
-	if (IS_ERR(l->bar1)) {
+	if (IS_ERR(addr)) {
 		nvgpu_err(g, "failed to remap gk20a bar1");
-		err = PTR_ERR(l->bar1);
+		err = PTR_ERR(addr);
 		goto fail;
 	}
+	g->bar1 = (uintptr_t)addr;
 
 	err = nvgpu_init_sim_support_linux(g, pdev);
 	if (err)
@@ -1059,11 +1059,11 @@ static int gk20a_init_support(struct platform_device *pdev)
 fail_sim:
 	nvgpu_remove_sim_support_linux(g);
 fail:
-	if (l->regs)
-		l->regs = NULL;
+	if (g->regs)
+		g->regs = 0U;
 
-	if (l->bar1)
-		l->bar1 = NULL;
+	if (g->bar1)
+		g->bar1 = 0U;
 
 	return err;
 }

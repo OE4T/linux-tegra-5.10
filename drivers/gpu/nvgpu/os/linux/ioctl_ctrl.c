@@ -2278,7 +2278,7 @@ int gk20a_ctrl_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
 	err = io_remap_pfn_range(vma, vma->vm_start,
-			l->usermode_regs_bus_addr >> PAGE_SHIFT,
+			g->usermode_regs_bus_addr >> PAGE_SHIFT,
 			vma->vm_end - vma->vm_start, vma->vm_page_prot);
 	if (!err) {
 		priv->usermode_vma.vma = vma;
@@ -2297,7 +2297,6 @@ static void alter_usermode_mapping(struct gk20a *g,
 		struct gk20a_ctrl_priv *priv,
 		bool poweroff)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct vm_area_struct *vma = priv->usermode_vma.vma;
 	bool vma_mapped = priv->usermode_vma.vma_mapped;
 	int err;
@@ -2335,7 +2334,7 @@ static void alter_usermode_mapping(struct gk20a *g,
 	} else if (!poweroff && !vma_mapped) {
 		vma->vm_flags = priv->usermode_vma.flags;
 		err = io_remap_pfn_range(vma, vma->vm_start,
-				l->usermode_regs_bus_addr >> PAGE_SHIFT,
+				g->usermode_regs_bus_addr >> PAGE_SHIFT,
 				vma->vm_end - vma->vm_start, vma->vm_page_prot);
 		if (err != 0) {
 			nvgpu_err(g, "can't restore usermode mapping");

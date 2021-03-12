@@ -336,6 +336,22 @@ struct gk20a {
 	 */
 	void (*gfree)(struct gk20a *g);
 
+	/** Starting virtual address of mapped bar0 io region. */
+	uintptr_t regs;
+	u64 regs_size;
+	u64 regs_bus_addr;
+
+	/** Starting virtual address of mapped bar1 io region. */
+	uintptr_t bar1;
+
+	/** Starting virtual address of usermode registers io region. */
+	uintptr_t usermode_regs;
+	u64 usermode_regs_bus_addr;
+
+	uintptr_t regs_saved;
+	uintptr_t bar1_saved;
+	uintptr_t usermode_regs_saved;
+
 	/**
 	 * Handle to access nvhost APIs.
 	 */

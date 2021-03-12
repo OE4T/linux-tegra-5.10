@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -218,6 +218,12 @@ static void nvgpu_posix_load_regs(struct gk20a *g)
 	}
 }
 
+static __thread struct gk20a *g_saved;
+struct gk20a *nvgpu_posix_current_device(void)
+{
+	return g_saved;
+}
+
 /*
  * This function aims to initialize enough stuff to make unit testing worth
  * while. There are several interfaces and APIs that rely on the struct gk20a's
@@ -250,6 +256,12 @@ struct gk20a *nvgpu_posix_probe(void)
 	g = &p->g;
 	g->log_mask = NVGPU_DEFAULT_DBG_MASK;
 	g->mm.g = g;
+
+	g_saved = g;
+
+	g->regs = NVGPU_POSIX_REG_BAR0 << NVGPU_POSIX_REG_SHIFT;
+	g->bar1 = NVGPU_POSIX_REG_BAR1 << NVGPU_POSIX_REG_SHIFT;
+	g->usermode_regs = NVGPU_POSIX_REG_USERMODE << NVGPU_POSIX_REG_SHIFT;
 
 	if (nvgpu_kmem_init(g) != 0) {
 		goto fail_kmem;
