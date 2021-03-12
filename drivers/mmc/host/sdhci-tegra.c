@@ -800,11 +800,13 @@ static void tegra_sdhci_reset(struct sdhci_host *host, u8 mask)
 	if (!(mask & SDHCI_RESET_ALL))
 		return;
 
-	err = tegra_prod_set_by_name(&host->ioaddr, "prod",
-		tegra_host->prods);
-	if (err)
-		dev_err(mmc_dev(host->mmc),
-			"Failed to set prod-reset settings %d\n", err);
+	if (tegra_platform_is_silicon()) {
+		err = tegra_prod_set_by_name(&host->ioaddr, "prod",
+			tegra_host->prods);
+		if (err)
+			dev_err(mmc_dev(host->mmc),
+				"Failed to set prod-reset settings %d\n", err);
+	}
 
 	tegra_sdhci_set_tap(host, tegra_host->default_tap);
 	tegra_sdhci_set_dqs_trim(host, tegra_host->dqs_trim);
@@ -1526,6 +1528,16 @@ static void tegra_sdhci_set_uhs_signaling(struct sdhci_host *host,
 		break;
 	}
 
+	/* Set Tap delay */
+	if ((tegra_host->tuning_status == TUNING_STATUS_DONE) &&
+		tuning_mode)
+		tegra_sdhci_set_tap(host, tegra_host->tuned_tap_delay);
+	else
+		tegra_sdhci_set_tap(host, tegra_host->default_tap);
+
+	if (!tegra_platform_is_silicon() && do_hs400_dll_cal)
+		return tegra_sdhci_dll_calib(host);
+
 	/* Set trim delay */
 	if (set_trim_delay) {
 		ret = tegra_prod_set_by_name_partially(&host->ioaddr,
@@ -1538,13 +1550,6 @@ static void tegra_sdhci_set_uhs_signaling(struct sdhci_host *host,
 				"Failed to set trim value for timing %d, %d\n",
 				timing, ret);
 	}
-
-	/* Set Tap delay */
-	if ((tegra_host->tuning_status == TUNING_STATUS_DONE) &&
-		tuning_mode)
-		tegra_sdhci_set_tap(host, tegra_host->tuned_tap_delay);
-	else
-		tegra_sdhci_set_tap(host, tegra_host->default_tap);
 
 	/*set padpipe_clk_override*/
 	if (set_padpipe_clk_override) {
@@ -1646,6 +1651,9 @@ static int tegra_sdhci_get_max_tuning_loop_counter(struct sdhci_host *host)
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
 	int err = 0;
 
+	if (!tegra_platform_is_silicon())
+		return 257;
+
 	err = tegra_prod_set_by_name_partially(&host->ioaddr,
 			prod_device_states[host->mmc->ios.timing],
 			tegra_host->prods, 0, SDHCI_VNDR_TUN_CTRL0_0,
@@ -1708,14 +1716,14 @@ static int tegra_sdhci_init_pinctrl_info(struct device *dev,
 	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
 	int i, ret;
 
+	if (!tegra_platform_is_silicon())
+		return 0;
+
 	tegra_host->prods = devm_tegra_prod_get(dev);
 	if (IS_ERR_OR_NULL(tegra_host->prods)) {
 		dev_err(dev, "Prod-setting not available\n");
 		tegra_host->prods = NULL;
 	}
-
-	if (tegra_platform_is_fpga())
-		return 0;
 
 	tegra_host->pinctrl_sdmmc = devm_pinctrl_get(dev);
 	if (IS_ERR(tegra_host->pinctrl_sdmmc)) {
