@@ -3,7 +3,7 @@
  *
  * Handle allocation and freeing routines for nvmap
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -476,7 +476,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 #endif
 
 	if (!chipid) {
-#if defined(CONFIG_NVMAP_COLOR_PAGES) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
+#ifdef CONFIG_NVMAP_COLOR_PAGES
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 		chipid = tegra_hidrev_get_chipid(tegra_read_chipid());
 #else
