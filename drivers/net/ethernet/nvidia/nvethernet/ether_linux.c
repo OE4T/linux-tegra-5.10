@@ -490,20 +490,20 @@ irqreturn_t ether_vm_isr(int irq, void *data)
 		txrx = temp & 1U;
 
 		if (txrx) {
-			osi_clear_vm_rx_intr(osi_dma, chan);
-
 			rx_napi = pdata->rx_napi[chan];
 			if (likely(napi_schedule_prep(&rx_napi->napi))) {
-				osi_disable_chan_rx_intr(osi_dma, chan);
+				osi_handle_dma_intr(osi_dma, chan,
+						    OSI_DMA_CH_RX_INTR,
+						    OSI_DMA_INTR_DISABLE);
 				/* TODO: Schedule NAPI on different CPU core */
 				__napi_schedule(&rx_napi->napi);
 			}
 		} else {
-			osi_clear_vm_tx_intr(osi_dma, chan);
-
 			tx_napi = pdata->tx_napi[chan];
 			if (likely(napi_schedule_prep(&tx_napi->napi))) {
-				osi_disable_chan_tx_intr(osi_dma, chan);
+				osi_handle_dma_intr(osi_dma, chan,
+						    OSI_DMA_CH_TX_INTR,
+						    OSI_DMA_INTR_DISABLE);
 				/* TODO: Schedule NAPI on different CPU core */
 				__napi_schedule(&tx_napi->napi);
 			}
@@ -542,7 +542,9 @@ static irqreturn_t ether_tx_chan_isr(int irq, void *data)
 	unsigned long val;
 
 	raw_spin_lock_irqsave(&pdata->rlock, flags);
-	osi_disable_chan_tx_intr(osi_dma, chan);
+	osi_handle_dma_intr(osi_dma, chan,
+			    OSI_DMA_CH_TX_INTR,
+			    OSI_DMA_INTR_DISABLE);
 	raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 
 	val = osi_core->xstats.tx_normal_irq_n[chan];
@@ -588,7 +590,9 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 	unsigned long val, flags;
 
 	raw_spin_lock_irqsave(&pdata->rlock, flags);
-	osi_disable_chan_rx_intr(osi_dma, chan);
+	osi_handle_dma_intr(osi_dma, chan,
+			    OSI_DMA_CH_RX_INTR,
+			    OSI_DMA_INTR_DISABLE);
 	raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 
 	val = osi_core->xstats.rx_normal_irq_n[chan];
@@ -2821,7 +2825,9 @@ static int ether_napi_poll_rx(struct napi_struct *napi, int budget)
 	if (received < budget) {
 		napi_complete(napi);
 		raw_spin_lock_irqsave(&pdata->rlock, flags);
-		osi_enable_chan_rx_intr(osi_dma, chan);
+		osi_handle_dma_intr(osi_dma, chan,
+				    OSI_DMA_CH_RX_INTR,
+				    OSI_DMA_INTR_ENABLE);
 		raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 	}
 
@@ -2866,7 +2872,9 @@ static int ether_napi_poll_tx(struct napi_struct *napi, int budget)
 	if (processed < budget) {
 		napi_complete(napi);
 		raw_spin_lock_irqsave(&pdata->rlock, flags);
-		osi_enable_chan_tx_intr(osi_dma, chan);
+		osi_handle_dma_intr(osi_dma, chan,
+				    OSI_DMA_CH_TX_INTR,
+				    OSI_DMA_INTR_ENABLE);
 		raw_spin_unlock_irqrestore(&pdata->rlock, flags);
 	}
 
@@ -4497,8 +4505,12 @@ static int ether_suspend_noirq(struct device *dev)
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
-		osi_disable_chan_tx_intr(osi_dma, chan);
-		osi_disable_chan_rx_intr(osi_dma, chan);
+		osi_handle_dma_intr(osi_dma, chan,
+				    OSI_DMA_CH_TX_INTR,
+				    OSI_DMA_INTR_DISABLE);
+		osi_handle_dma_intr(osi_dma, chan,
+				    OSI_DMA_CH_RX_INTR,
+				    OSI_DMA_INTR_DISABLE);
 	}
 
 	free_dma_resources(pdata);
