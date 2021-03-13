@@ -808,6 +808,18 @@ static void dump_dbg_buffers(char **buf_p, unsigned short ctlr_sel,
 		}
 	}
 	*buf_p = buf;
+
+	/* reset debug buffer after buf read */
+	for (i = 0; i < idx_max; i++) {
+		memset(&dbg_buf_config, OSI_NONE, sizeof(dbg_buf_config));
+		dbg_buf_config.rw = DBG_TBL_WRITE;
+		dbg_buf_config.ctlr_sel = ctlr_sel;
+		dbg_buf_config.index = i;
+		if (osi_macsec_dbg_buf_config(osi_core, &dbg_buf_config) < 0) {
+			pr_err("%s: Failed to write debug buffers\n", __func__);
+			return;
+		}
+	}
 }
 
 /**
@@ -824,28 +836,15 @@ static ssize_t macsec_dbg_buffer_show(struct device *dev,
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	char *start = buf;
-	struct osi_macsec_dbg_buf_config dbg_buf_config = {0};
 
 	if (!netif_running(ndev)) {
 		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
 		return 0;
 	}
-
-	dbg_buf_config.ctlr_sel = CTLR_SEL_TX;
-	dbg_buf_config.rw = DBG_TBL_READ;
-	if (osi_macsec_dbg_events_config(osi_core, &dbg_buf_config) < 0) {
-		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
-	}
-
-	buf += scnprintf(buf, PAGE_SIZE, "Tx flags: 0x%x\n", dbg_buf_config.flags);
+	buf += scnprintf(buf, PAGE_SIZE, "Tx Dbg Buffers:\n");
 	dump_dbg_buffers(&buf, CTLR_SEL_TX, osi_core);
 
-	dbg_buf_config.ctlr_sel = CTLR_SEL_RX;
-	dbg_buf_config.rw = DBG_TBL_READ;
-	if (osi_macsec_dbg_events_config(osi_core, &dbg_buf_config) < 0) {
-		dev_err(pdata->dev, "Not Allowed. Ether interface is not up\n");
-	}
-	buf += scnprintf(buf, PAGE_SIZE, "Rx flags: 0x%x\n", dbg_buf_config.flags);
+	buf += scnprintf(buf, PAGE_SIZE, "Rx Dbg Buffers:\n");
 	dump_dbg_buffers(&buf, CTLR_SEL_RX, osi_core);
 
 	return (buf - start);
