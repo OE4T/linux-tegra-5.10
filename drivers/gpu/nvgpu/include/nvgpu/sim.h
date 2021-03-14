@@ -44,6 +44,7 @@
 
 struct sim_nvgpu {
 	struct gk20a *g;
+	uintptr_t regs;
 	u32 send_ring_put;
 	u32 recv_ring_get;
 	u32 recv_ring_put;

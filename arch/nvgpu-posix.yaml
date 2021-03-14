@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # POSIX elements and units in nvgpu.
 #
@@ -29,7 +29,6 @@ all:
              os/posix/posix-io.c,
              os/posix/posix-nvhost.c,
              os/posix/posix-nvlink.c,
-             os/posix/posix-sim.c,
              os/posix/posix-vgpu.c,
              os/posix/posix-vidmem.c,
              os/posix/fecs_trace_posix.c,

@@ -65,9 +65,9 @@ void nvgpu_remove_sim_support_linux_pci(struct gk20a *g)
 	}
 	sim_linux = container_of(g->sim, struct sim_nvgpu_linux, sim);
 
-	if (sim_linux->regs) {
+	if (g->sim->regs) {
 		sim_writel(g->sim, sim_config_r(), sim_config_mode_disabled_v());
-		sim_linux->regs = NULL;
+		g->sim->regs = 0U;
 	}
 	nvgpu_kfree(g, sim_linux);
 	g->sim = NULL;
@@ -90,7 +90,7 @@ int nvgpu_init_sim_support_linux_pci(struct gk20a *g)
 		return err;
 	g->sim = &sim_linux->sim;
 	g->sim->g = g;
-	sim_linux->regs = (void __iomem *)g->regs + sim_r();
+	g->sim->regs = g->regs + sim_r();
 	sim_linux->remove_support_linux = nvgpu_remove_sim_support_linux_pci;
 
 	return 0;
