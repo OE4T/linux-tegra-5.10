@@ -74,6 +74,14 @@
 		status = "disabled";
 	};
 
+	tegra_pinctrl: pinmux: pinmux@2430000 {
+		compatible = "nvidia,tegra234-pinmux";
+		reg = <0x0 0x2430000 0x0 0x19100
+			0x0 0xc300000 0x0 0x4000>;
+		#gpio-range-cells = <3>;
+		status = "disabled";
+	};
+
 	hsp_top: tegra-hsp@3c00000 {
 		compatible = "nvidia,tegra186-hsp";
 		reg = <0x0 0x03c00000 0x0 0x000a0000>;
