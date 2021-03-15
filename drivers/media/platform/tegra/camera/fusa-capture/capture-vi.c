@@ -638,8 +638,13 @@ int vi_capture_setup(
 	dev_dbg(chan->dev, "queue depth %u\n", setup->queue_depth);
 	dev_dbg(chan->dev, "request size %u\n", setup->request_size);
 	dev_dbg(chan->dev, "csi_stream_id %u\n", setup->csi_stream_id);
+	dev_dbg(chan->dev, "vi unit id %u\n", vi_inst);
+	dev_dbg(chan->dev, "vi2 chan mask %llx\n", setup->vi2_channel_mask);
 
-	if (WARN_ON(setup->vi_channel_mask == CAPTURE_CHANNEL_INVALID_MASK) ||
+	if (WARN_ON(vi_inst == VI_UNIT_VI &&
+		setup->vi_channel_mask == CAPTURE_CHANNEL_INVALID_MASK) ||
+		WARN_ON(vi_inst == VI_UNIT_VI2 &&
+		setup->vi2_channel_mask == CAPTURE_CHANNEL_INVALID_MASK) ||
 		WARN_ON(setup->channel_flags == 0) ||
 		WARN_ON(setup->queue_depth == 0) ||
 		WARN_ON(setup->request_size == 0) ||
@@ -703,6 +708,7 @@ int vi_capture_setup(
 
 	config->channel_flags = setup->channel_flags;
 	config->vi_channel_mask = setup->vi_channel_mask;
+	config->vi2_channel_mask = setup->vi2_channel_mask;
 	config->slvsec_stream_main = setup->slvsec_stream_main;
 	config->slvsec_stream_sub = setup->slvsec_stream_sub;
 
@@ -719,13 +725,6 @@ int vi_capture_setup(
 	config->error_mask_correctable = setup->error_mask_correctable;
 	config->error_mask_uncorrectable = setup->error_mask_uncorrectable;
 	config->stop_on_error_notify_bits = setup->stop_on_error_notify_bits;
-
-	/* WAR:remove when vi2_channel_mask support is added in client driver */
-	if (setup->vi2_channel_mask == CAPTURE_CHANNEL_INVALID_MASK)
-		config->vi2_channel_mask = ~(0ULL);
-
-	dev_dbg(chan->dev, "vi_unit_id %u\n", config->vi_unit_id);
-	dev_dbg(chan->dev, "vi2_chan_mask %llx\n", config->vi2_channel_mask);
 
 #ifdef HAVE_VI_GOS_TABLES
 	dev_dbg(chan->dev, "%u GoS tables configured.\n",
@@ -755,7 +754,19 @@ int vi_capture_setup(
 	}
 
 	capture->channel_id = resp_msg->channel_setup_resp.channel_id;
-	capture->vi_channel_mask = resp_msg->channel_setup_resp.vi_channel_mask;
+
+	if (vi_inst == VI_UNIT_VI)
+		capture->vi_channel_mask =
+				resp_msg->channel_setup_resp.vi_channel_mask;
+	else if (vi_inst == VI_UNIT_VI2)
+		capture->vi2_channel_mask =
+				resp_msg->channel_setup_resp.vi_channel_mask;
+	else {
+		dev_err(chan->dev, "failed response for vi:%u\n", vi_inst);
+		err = -EINVAL;
+		goto resp_fail;
+	}
+
 
 	err = tegra_capture_ivc_notify_chan_id(capture->channel_id,
 			transaction);
@@ -1348,6 +1359,7 @@ int vi_capture_get_info(
 
 	info->hw_channel_id = capture->channel_id;
 	info->vi_channel_mask = capture->vi_channel_mask;
+	info->vi2_channel_mask = capture->vi2_channel_mask;
 
 	return 0;
 }

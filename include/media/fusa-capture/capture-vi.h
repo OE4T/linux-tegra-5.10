@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021 NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -96,6 +96,8 @@ struct vi_capture {
 
 	uint64_t vi_channel_mask;
 		/**< Bitmask of RCE-assigned VI FW channel(s). */
+	uint64_t vi2_channel_mask;
+		/**< Bitmask of RCE-assigned VI FW channel(s) for 2nd VI. */
 };
 
 /**
@@ -172,6 +174,8 @@ struct vi_capture_info {
 	uint32_t __pad;
 	uint64_t vi_channel_mask;
 		/**< Bitmask of RCE-assigned VI FW channel(s) */
+	uint64_t vi2_channel_mask;
+		/**< Bitmask of RCE-assigned VI FW channel(s) for 2nd VI */
 } __VI_CAPTURE_ALIGN;
 
 /**
