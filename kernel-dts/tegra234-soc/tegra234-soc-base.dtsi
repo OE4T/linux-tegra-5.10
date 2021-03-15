@@ -1057,11 +1057,13 @@
 		resets = <&bpmp_resets TEGRA234_RESET_NVDISPLAY>,
 			 <&bpmp_resets TEGRA234_RESET_DPAUX>,
 			 <&bpmp_resets TEGRA234_RESET_HDA>,
-			 <&bpmp_resets TEGRA234_RESET_HDACODEC>;
+			 <&bpmp_resets TEGRA234_RESET_HDACODEC>,
+			 <&bpmp_resets TEGRA234_RESET_DSI_CORE>;
 		reset-names = "nvdisplay_reset",
 			      "dpaux0_reset",
 			      "hda_reset",
-			      "hdacodec_reset";
+			      "hdacodec_reset",
+			      "dsi_core_reset";
 		status = "disabled";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		interconnects = <&mc TEGRA234_MEMORY_CLIENT_NVDISPLAYR>,
