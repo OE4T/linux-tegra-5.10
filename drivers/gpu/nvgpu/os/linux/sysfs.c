@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -41,6 +41,13 @@
 #include "os_linux.h"
 #include "sysfs.h"
 #include "platform_gk20a.h"
+
+#ifdef CONFIG_NVGPU_MIG
+#include <nvgpu/enabled.h>
+#include <nvgpu/string.h>
+#include <nvgpu/engines.h>
+#include <nvgpu/device.h>
+#endif
 
 #define PTIMER_FP_FACTOR			1000000
 
@@ -1065,6 +1072,89 @@ static ssize_t comptag_mem_deduct_show(struct device *dev,
 static DEVICE_ATTR(comptag_mem_deduct, ROOTRW,
 		   comptag_mem_deduct_show, comptag_mem_deduct_store);
 
+#ifdef CONFIG_NVGPU_MIG
+static ssize_t mig_mode_config_list_show(struct device *dev,
+				       struct device_attribute *attr, char *buf)
+{
+	u32 config_id = 0;
+	int res = 0;
+	u32 num_config = 0;
+	struct gk20a *g = get_gk20a(dev);
+	const struct nvgpu_mig_gpu_instance_config *mig_gpu_instance_config;
+	char *power_on_string = "MIG list will be displayed after gpu power"
+		" on with default MIG mode \n Boot with config id zero\n"
+		" Get the available configs \n"
+		" Change the init script and reboot";
+
+	if (nvgpu_is_powered_on(g) &&
+			(g->mig.current_mig_gpu_instance_config != NULL)) {
+		mig_gpu_instance_config =
+			g->mig.current_mig_gpu_instance_config;
+	} else {
+		res += sprintf(&buf[res], "%s", power_on_string);
+		return res;
+	}
+
+	num_config = mig_gpu_instance_config->num_config_supported;
+	res += sprintf(&buf[res], "\n+++++++++ Config list Start ++++++++++\n");
+	for (config_id = 0U; config_id < num_config; config_id++) {
+		res += scnprintf(&buf[res], (PAGE_SIZE - res - 1),
+			"\n CONFIG_ID : %d for CONFIG NAME : %s\n",
+			config_id,
+			mig_gpu_instance_config->gpu_instance_config[config_id].config_name);
+	}
+
+	res += sprintf(&buf[res], "\n++++++++++ Config list End +++++++++++\n");
+	return res;
+}
+
+static DEVICE_ATTR(mig_mode_config_list, S_IRUGO,
+		   mig_mode_config_list_show, NULL);
+
+static ssize_t mig_mode_config_store(struct device *dev,
+					struct device_attribute *attr,
+					const char *buf, size_t count)
+{
+	struct gk20a *g = get_gk20a(dev);
+	unsigned long val;
+	/*currently we are supporting maximum 16 */
+	unsigned long supported_max_config = 16U;
+
+	if (kstrtoul(buf, 10, &val) < 0) {
+		return -EINVAL;
+	}
+
+	if (nvgpu_is_powered_on(g)) {
+		nvgpu_err(g, "GPU is powered on already, MIG mode"
+				"cant be changed");
+		return -EINVAL;
+	}
+
+	if (val <= supported_max_config) {
+		g->mig.current_gpu_instance_config_id = val;
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_MIG, true);
+		nvgpu_info(g, "MIG config changed successfully");
+	} else {
+		nvgpu_err(g, "Please select a supported config id < 16");
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_MIG,false);
+	}
+
+	return count;
+}
+
+static ssize_t mig_mode_config_show(struct device *dev,
+				       struct device_attribute *attr, char *buf)
+{
+	struct gk20a *g = get_gk20a(dev);
+
+	return sprintf(buf, "%x\n", g->mig.current_gpu_instance_config_id);
+}
+
+static DEVICE_ATTR(mig_mode_config, ROOTRW,
+		   mig_mode_config_show, mig_mode_config_store);
+
+#endif
+
 void nvgpu_remove_sysfs(struct device *dev)
 {
 	device_remove_file(dev, &dev_attr_elcg_enable);
@@ -1104,7 +1194,10 @@ void nvgpu_remove_sysfs(struct device *dev)
 	device_remove_file(dev, &dev_attr_gpu_powered_on);
 
 	device_remove_file(dev, &dev_attr_comptag_mem_deduct);
-
+#ifdef CONFIG_NVGPU_MIG
+	device_remove_file(dev, &dev_attr_mig_mode_config_list);
+	device_remove_file(dev, &dev_attr_mig_mode_config);
+#endif
 	if (strcmp(dev_name(dev), "gpu.0")) {
 		struct kobject *kobj = &dev->kobj;
 		struct device *parent = container_of((kobj->parent),
@@ -1163,7 +1256,10 @@ int nvgpu_create_sysfs(struct device *dev)
 	error |= device_create_file(dev, &dev_attr_gpu_powered_on);
 
 	error |= device_create_file(dev, &dev_attr_comptag_mem_deduct);
-
+#ifdef CONFIG_NVGPU_MIG
+	error |= device_create_file(dev, &dev_attr_mig_mode_config_list);
+	error |= device_create_file(dev, &dev_attr_mig_mode_config);
+#endif
 	if (strcmp(dev_name(dev), "gpu.0")) {
 		struct kobject *kobj = &dev->kobj;
 		struct device *parent = container_of((kobj->parent),

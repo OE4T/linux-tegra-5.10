@@ -384,7 +384,9 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.cbc_comptags_per_line = g->cbc->comptags_per_cacheline;
 #endif
 
-	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) || (gpu_instance_id != 0U)) {
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) ||
+			(gpu_instance_id != 0U) ||
+			(!nvgpu_grmgr_is_multi_gr_enabled(g))) {
 		gpu.flags = nvgpu_ctrl_ioctl_gpu_characteristics_flags(g);
 		nvgpu_set_preemption_mode_flags(g, &gpu);
 	} else {
@@ -2140,7 +2142,9 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		break;
 
         case NVGPU_GPU_IOCTL_GET_ENGINE_INFO:
-		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) && (gpu_instance_id != 0U)) {
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG) &&
+				((gpu_instance_id != 0U) ||
+				(!nvgpu_grmgr_is_multi_gr_enabled(g)))) {
 			err = nvgpu_gpu_get_gpu_instance_engine_info(g, gpu_instance_id,
 				(struct nvgpu_gpu_get_engine_info_args *)buf);
 		} else {

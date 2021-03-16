@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -221,6 +221,11 @@ struct nvgpu_mig {
 	struct nvgpu_mutex gr_syspipe_lock;
 	/** Gpu instance configuration id. */
 	u32 current_gpu_instance_config_id;
+	/**
+	 * current mig_instance_config.
+	 */
+	const struct nvgpu_mig_gpu_instance_config
+		*current_mig_gpu_instance_config;
 	/**
 	 * Flag to indicate whether nonGR(CE) engine is sharable
 	 * between gr syspipes or not.
