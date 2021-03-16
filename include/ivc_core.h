@@ -27,7 +27,7 @@
 /**
  * @brief Ethernet Maximum IVC BUF
  */
-#define ETHER_MAX_IVC_BUF	1024
+#define ETHER_MAX_IVC_BUF	2048
 
 /**
  * @brief IVC maximum arguments
@@ -161,6 +161,8 @@ typedef struct ivc_msg_common {
 		struct osi_filter filter;
 		/** OSI HW features */
 		struct osi_hw_features hw_feat;
+		/** MMC counters */
+		struct osi_mmc_counters mmc;
 		/**
 		 * core argument structure
 		 */

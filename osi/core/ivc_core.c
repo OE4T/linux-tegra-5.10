@@ -852,6 +852,8 @@ static void ivc_read_mmc(struct osi_core_priv_data *osi_core)
 	osi_core->osd_ops.ivc_send(osi_core, &msg_common,
 				   sizeof(msg_common));
 
+	osi_memcpy((void *)&osi_core->mmc, (void *)&msg_common.data.mmc,
+		   sizeof(struct osi_mmc_counters));
 }
 
 /**
