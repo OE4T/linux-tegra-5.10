@@ -149,6 +149,10 @@ enum nvgpu_profiler_pm_reservation_scope;
 
 #include <nvgpu/gpu_ops.h>
 
+#if defined(CONFIG_NVGPU_NEXT)
+#include "nvgpu_next_dt_bindings.h"
+#endif
+
 #include "hal/clk/clk_gk20a.h"
 
 /**
@@ -285,7 +289,19 @@ struct railgate_stats {
  */
 
 /** @cond DOXYGEN_SHOULD_SKIP_THIS */
+/* MAX_TPC_PG_CONFIGS describes the maximum number of
+ * valid confiurations we can have for the TPC mask. The valid
+ * mask is used by SW to write to NV_FUSE_OPT_CTRL_GPC_TPC
+ * register to powergate the TPC in each GPC
+ *
+ * MAX_GPC_FBP_FS_CONFIGS describes the maximum number of
+ * valid confiurations we can have for the GPC and FBP mask.
+ * The valid mask is used by SW to write to NV_FUSE_OPT_CTRL_GPC
+ * NV_FUSE_OPT_CTRL_FBP registers to powergate the GPC and
+ * floorsweep FBP
+ */
 #define MAX_TPC_PG_CONFIGS      9
+#define MAX_GPC_FBP_FS_CONFIGS	3
 
 struct nvgpu_gpfifo_userdata {
 	struct nvgpu_gpfifo_entry nvgpu_user *entries;
@@ -711,8 +727,13 @@ struct gk20a {
 	/** @cond DOXYGEN_SHOULD_SKIP_THIS */
 	u32 tpc_pg_mask;
 	bool can_tpc_powergate;
+	u32 fbp_mask;
+	bool can_fbp_fs;
+	u32 gpc_mask;
+	bool can_gpc_fs;
 
 	u32 valid_tpc_mask[MAX_TPC_PG_CONFIGS];
+	u32 valid_gpc_fbp_fs_mask[MAX_GPC_FBP_FS_CONFIGS];
 
 	struct nvgpu_bios *bios;
 	bool bios_is_init;

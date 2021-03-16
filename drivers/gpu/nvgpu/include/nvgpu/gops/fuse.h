@@ -109,6 +109,17 @@ struct gops_fuse {
 	u32 (*fuse_status_opt_fbp)(struct gk20a *g);
 
 	/**
+	 * @brief Write NV_FUSE_CTRL_OPT_FBP fuse.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 * @param val [in]	Fuse value.
+	 *
+	 * The HAL writes NV_FUSE_CTRL_OPT_FBP fuse to floorsweep FBP
+	 *
+	 */
+	void (*fuse_ctrl_opt_fbp)(struct gk20a *g, u32 val);
+
+	/**
 	 * @brief Read NV_FUSE_STATUS_OPT_ROP_L2_FBP fuse.
 	 *
 	 * @param g [in]	The GPU driver struct.
@@ -183,6 +194,18 @@ struct gops_fuse {
 	 * @return fuse value read from NV_FUSE_STATUS_OPT_GPC.
 	 */
 	u32 (*fuse_status_opt_gpc)(struct gk20a *g);
+
+	/**
+	 * @brief Write NV_FUSE_CTRL_OPT_GPC fuse.
+	 *
+	 * @param g [in]	The GPU driver struct.
+	 * @param val [in]	Fuse value.
+	 *
+	 * The HAL writes NV_FUSE_CTRL_OPT_GPC fuse to floorsweep FBP
+	 *
+	 */
+	void (*fuse_ctrl_opt_gpc)(struct gk20a *g, u32 val);
+
 
 	u32 (*fuse_opt_sec_debug_en)(struct gk20a *g);
 

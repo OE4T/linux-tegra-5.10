@@ -78,6 +78,12 @@ struct gk20a_platform {
 	bool can_tpc_powergate;
 
 	/* Should be populated at probe. */
+	bool can_fbp_fs;
+
+	/* Should be populated at probe. */
+	bool can_gpc_fs;
+
+	/* Should be populated at probe. */
 	bool can_elpg_init;
 
 	/* Should be populated at probe. */
@@ -107,6 +113,9 @@ struct gk20a_platform {
 #endif
 	/* valid TPC-MASK */
 	u32 valid_tpc_mask[MAX_TPC_PG_CONFIGS];
+
+	/* Valid GPC and FBP mask */
+	u32 valid_gpc_fbp_fs_mask[MAX_GPC_FBP_FS_CONFIGS];
 
 	/* Delay before rail gated */
 	int railgate_delay_init;
@@ -230,6 +239,12 @@ struct gk20a_platform {
 
 	/* Set TPC_PG_MASK during probe */
 	void (*set_tpc_pg_mask)(struct device *dev, u32 tpc_pg_mask);
+
+	/* Set GPC_MASK during probe */
+	void (*set_gpc_mask)(struct device *dev, u32 gpc_mask);
+
+	/* Set FBP_MASK during probe */
+	void (*set_fbp_mask)(struct device *dev, u32 fbp_mask);
 
 	/* Devfreq governor name. If scaling is enabled, we request
 	 * this governor to be used in scaling */

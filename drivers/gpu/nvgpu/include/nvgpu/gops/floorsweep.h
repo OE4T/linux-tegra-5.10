@@ -27,6 +27,17 @@ struct gops_tpc {
 	int (*init_tpc_powergate)(struct gk20a *g, u32 fuse_status);
 	void (*tpc_gr_pg)(struct gk20a *g);
 };
+
+struct gops_fbp_fs {
+	int (*init_fbp_floorsweep)(struct gk20a *g, bool *can_fbp_fs);
+	void (*fbp_static_fs)(struct gk20a *g);
+};
+
+struct gops_gpc_pg {
+	int (*init_gpc_powergate)(struct gk20a *g, bool *can_gpc_fs);
+	void (*gpc_static_pg)(struct gk20a *g);
+};
+
 #endif
 
 #endif /* NVGPU_GOPS_FLOORSWEEP_H */

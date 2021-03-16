@@ -431,15 +431,47 @@ static int nvgpu_init_fbpa_ecc(struct gk20a *g)
 static int nvgpu_init_power_gate(struct gk20a *g)
 {
 	int err;
-	u32 fuse_status;
+	u32 fuse_status = 0x0;
 
 	/*
-	 *  Power gate the chip as per the TPC PG mask
+	 *  Floorsweep the FBP as per the FBP_FS mask
+	 *  and the fuse_status register.
+	 *  If FBP_FS mask is invalid, return error.
+	 */
+
+	g->can_fbp_fs = false;
+
+	if (g->ops.fbp_fs.init_fbp_floorsweep != NULL) {
+		err = g->ops.fbp_fs.init_fbp_floorsweep(g, &g->can_fbp_fs);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	/*
+	 *  Floorsweep the GPC as per the GPC_FS mask
+	 *  and the fuse_status register.
+	 *  If GPC_FS mask is invalid halt the GPU poweron.
+	 */
+
+	g->can_gpc_fs = false;
+
+	if (g->ops.gpc_pg.init_gpc_powergate != NULL) {
+		err = g->ops.gpc_pg.init_gpc_powergate(g, &g->can_gpc_fs);
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	/*
+	 *  Powergate the chip as per the TPC PG mask
 	 *  and the fuse_status register.
 	 *  If TPC PG mask is invalid halt the GPU poweron.
 	 */
 	g->can_tpc_powergate = false;
-	fuse_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
+	if (g->ops.fuse.fuse_status_opt_tpc_gpc != NULL) {
+		fuse_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
+	}
 
 	if (g->ops.tpc.init_tpc_powergate != NULL) {
 		err = g->ops.tpc.init_tpc_powergate(g, fuse_status);
@@ -453,6 +485,17 @@ static int nvgpu_init_power_gate(struct gk20a *g)
 
 static int nvgpu_init_power_gate_gr(struct gk20a *g)
 {
+	/* Floorsweep FBP */
+	if (g->can_fbp_fs && (g->ops.fbp_fs.fbp_static_fs != NULL)) {
+		g->ops.fbp_fs.fbp_static_fs(g);
+	}
+
+	/* Floorsweep GPC */
+	if (g->can_gpc_fs && (g->ops.gpc_pg.gpc_static_pg != NULL)) {
+		g->ops.gpc_pg.gpc_static_pg(g);
+	}
+
+	/* Floorsweep TPC */
 	if (g->can_tpc_powergate && (g->ops.tpc.tpc_gr_pg != NULL)) {
 		g->ops.tpc.tpc_gr_pg(g);
 	}
@@ -632,6 +675,11 @@ static int nvgpu_early_init(struct gk20a *g)
 #endif
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_interrupt_setup, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.bus.init_hw, NO_FLAG),
+#ifdef CONFIG_NVGPU_STATIC_POWERGATE
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_static_pg_lock, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate_gr, NO_FLAG),
+#endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.priv_ring.enable_priv_ring,
 				   NO_FLAG),
 #ifdef CONFIG_NVGPU_NON_FUSA
@@ -793,11 +841,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.fifo_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.elcg_init_idle_filters,
 				       NO_FLAG),
-#ifdef CONFIG_NVGPU_STATIC_POWERGATE
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_static_pg_lock, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate_gr, NO_FLAG),
-#endif
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_netlist_init_ctx_vars, NO_FLAG),
 		/* prepare portion of sw required for enable hw */
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gr_alloc, NO_FLAG),

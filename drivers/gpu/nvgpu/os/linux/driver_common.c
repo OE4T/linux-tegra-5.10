@@ -40,6 +40,9 @@
 #include "os_linux.h"
 #include "sysfs.h"
 #include "ioctl.h"
+#if defined(CONFIG_NVGPU_NEXT)
+#include "nvgpu_next_dt_bindings.h"
+#endif
 
 #define EMC3D_DEFAULT_RATIO 750
 
@@ -189,6 +192,9 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 
 	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++)
 		g->valid_tpc_mask[i] = platform->valid_tpc_mask[i];
+
+	for (i = 0; i < MAX_GPC_FBP_FS_CONFIGS; i++)
+		g->valid_gpc_fbp_fs_mask[i] = platform->valid_gpc_fbp_fs_mask[i];
 
 	g->ldiv_slowdown_factor = platform->ldiv_slowdown_factor_init;
 	/* if default delay is not set, set default delay to 500msec */

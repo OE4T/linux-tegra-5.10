@@ -1405,8 +1405,11 @@ static const struct gops_fuse gv11b_ops_fuse = {
 	.fuse_status_opt_fbio = gm20b_fuse_status_opt_fbio,
 	.fuse_status_opt_fbp = gm20b_fuse_status_opt_fbp,
 	.fuse_status_opt_l2_fbp = gm20b_fuse_status_opt_l2_fbp,
+	.fuse_status_opt_gpc = NULL,
 	.fuse_status_opt_tpc_gpc = gm20b_fuse_status_opt_tpc_gpc,
 	.fuse_ctrl_opt_tpc_gpc = gm20b_fuse_ctrl_opt_tpc_gpc,
+	.fuse_ctrl_opt_fbp = NULL,
+	.fuse_ctrl_opt_gpc = NULL,
 	.fuse_opt_sec_debug_en = gm20b_fuse_opt_sec_debug_en,
 	.fuse_opt_priv_sec_en = gm20b_fuse_opt_priv_sec_en,
 	.read_vin_cal_fuse_rev = NULL,
@@ -1434,6 +1437,17 @@ static const struct gops_tpc gv11b_ops_tpc = {
 	.init_tpc_powergate = gv11b_tpc_powergate,
 	.tpc_gr_pg = gv11b_gr_pg_tpc,
 };
+
+static const struct gops_fbp_fs gv11b_ops_fbp_fs = {
+	.init_fbp_floorsweep = NULL,
+	.fbp_static_fs = NULL,
+};
+
+static const struct gops_gpc_pg gv11b_ops_gpc_pg = {
+	.init_gpc_powergate = NULL,
+	.gpc_static_pg = NULL,
+};
+
 #endif
 
 static const struct gops_grmgr gv11b_ops_grmgr = {
@@ -1539,6 +1553,8 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->top = gv11b_ops_top;
 #ifdef CONFIG_NVGPU_STATIC_POWERGATE
 	gops->tpc = gv11b_ops_tpc;
+	gops->fbp_fs = gv11b_ops_fbp_fs;
+	gops->gpc_pg = gv11b_ops_gpc_pg;
 #endif
 	gops->grmgr = gv11b_ops_grmgr;
 	gops->cic_mon = gv11b_ops_cic_mon;

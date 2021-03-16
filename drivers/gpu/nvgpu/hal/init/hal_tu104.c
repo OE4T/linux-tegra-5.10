@@ -1510,6 +1510,9 @@ static const struct gops_fuse tu104_ops_fuse = {
 	.fuse_status_opt_gpc = gm20b_fuse_status_opt_gpc,
 	.fuse_status_opt_tpc_gpc = gm20b_fuse_status_opt_tpc_gpc,
 	.fuse_ctrl_opt_tpc_gpc = gm20b_fuse_ctrl_opt_tpc_gpc,
+	/* Turing is multi-GPC config, static GPC PG to be taken care later */
+	.fuse_ctrl_opt_fbp = NULL,
+	.fuse_ctrl_opt_gpc = NULL,
 	.fuse_opt_sec_debug_en = gm20b_fuse_opt_sec_debug_en,
 	.fuse_opt_priv_sec_en = gm20b_fuse_opt_priv_sec_en,
 	.read_vin_cal_fuse_rev = gp106_fuse_read_vin_cal_fuse_rev,

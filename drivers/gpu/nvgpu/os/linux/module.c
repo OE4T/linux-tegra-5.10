@@ -38,6 +38,8 @@
 #include <dt-bindings/soc/gp10b-fuse.h>
 #include <dt-bindings/soc/gv11b-fuse.h>
 
+#include <dt-bindings/soc/ga10b-fuse.h>
+
 #include <soc/tegra/fuse.h>
 #endif /* CONFIG_NVGPU_TEGRA_FUSE */
 
@@ -1507,6 +1509,19 @@ static int nvgpu_read_fuse_overrides(struct gk20a *g)
 		case GV11B_FUSE_OPT_TPC_DISABLE:
 			if (platform->set_tpc_pg_mask != NULL)
 				platform->set_tpc_pg_mask(dev_from_gk20a(g),
+								value);
+			break;
+		case GA10B_FUSE_OPT_TPC_DISABLE:
+			/* TBD- JIRA NVGPU-6433 */
+			break;
+		case GA10B_FUSE_OPT_GPC_DISABLE:
+			if (platform->set_gpc_mask != NULL)
+				platform->set_gpc_mask(dev_from_gk20a(g),
+								value);
+			break;
+		case GA10B_FUSE_OPT_FBP_DISABLE:
+			if (platform->set_fbp_mask != NULL)
+				platform->set_fbp_mask(dev_from_gk20a(g),
 								value);
 			break;
 		default:
