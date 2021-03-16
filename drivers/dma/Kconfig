@@ -626,6 +626,7 @@ config TEGRA_GPC_DMA
 	bool "NVIDIA Tegra GPC DMA support"
 	depends on ARCH_TEGRA_186_SOC || ARCH_TEGRA_194_SOC || COMPILE_TEST
 	select DMA_ENGINE
+	select DMA_VIRTUAL_CHANNELS
 	help
 	  Support for the NVIDIA Tegra186 and Tegra194 GPC DMA controller
 	  driver. The DMA controller is having multiple DMA channel which
