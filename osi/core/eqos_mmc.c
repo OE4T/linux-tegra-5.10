@@ -55,8 +55,8 @@ static inline nveu64_t update_mmc_val(struct osi_core_priv_data *const osi_core,
 				      nveu64_t offset)
 {
 	nveu64_t temp;
-	nveu32_t value = osi_readl((nveu8_t *)osi_core->base +
-				       offset);
+	nveu32_t value = osi_readla(osi_core,
+				    (nveu8_t *)osi_core->base + offset);
 
 	temp = last_value + value;
 	if (temp < last_value) {
@@ -92,10 +92,12 @@ void eqos_reset_mmc(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t value;
 
-	value = osi_readl((nveu8_t *)osi_core->base + EQOS_MMC_CNTRL);
+	value = osi_readla(osi_core,
+			   (nveu8_t *)osi_core->base + EQOS_MMC_CNTRL);
 	/* self-clear bit in one clock cycle */
 	value |= EQOS_MMC_CNTRL_CNTRST;
-	osi_writel(value, (nveu8_t *)osi_core->base + EQOS_MMC_CNTRL);
+	osi_writela(osi_core, value,
+		    (nveu8_t *)osi_core->base + EQOS_MMC_CNTRL);
 	osi_memset(&osi_core->mmc, 0U, sizeof(struct osi_mmc_counters));
 }
 
