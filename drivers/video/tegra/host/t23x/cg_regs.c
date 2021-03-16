@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ static struct nvhost_gating_register __attribute__((__unused__))
 	/* NV_PNVJPG_TFBIF_MCCIF_FIFOCTRL */
 	{ .addr = 0x00001404, .prod = 0x00000000, .disable = 0x00000000 },
 	/* NV_PNVJPG_FALCON_CG2 */
-	{ .addr = 0x00001134, .prod = 0x00010004, .disable = 0x0003fffe },
+	{ .addr = 0x00001134, .prod = 0x00000140, .disable = 0x0003fffe },
 	{}
 };
 
