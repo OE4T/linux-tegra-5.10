@@ -2212,4 +2212,321 @@ nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
  * @retval NULL on failure.
  */
 struct osi_core_priv_data *osi_get_core(void);
+
+/**
+ * @brief osi_hal_handle_ioctl - HW function API to handle runtime command
+ *
+ * @note
+ * Algorithm:
+ *  - Handle runtime commands to OSI
+ *  - OSI_CMD_MDC_CONFIG
+ *	Derive MDC clock based on provided AXI_CBB clk
+ *	arg1_u32 - CSR (AXI CBB) clock rate.
+ *  - OSI_CMD_RESTORE_REGISTER
+ *	Restore backup of MAC MMIO address space
+ *  - OSI_CMD_POLL_FOR_MAC_RST
+ *	Poll Software reset bit in MAC HW
+ *  - OSI_CMD_START_MAC
+ *	Start MAC Tx/Rx engine
+ *  - OSI_CMD_STOP_MAC
+ *	Stop MAC Tx/Rx engine
+ *  - OSI_CMD_COMMON_ISR
+ *	Common ISR handler
+ *  - OSI_CMD_PAD_CALIBRATION
+ *	PAD calibration
+ *  - OSI_CMD_READ_MMC
+ *	invoke function to read actual registers and update
+ *     structure variable mmc
+ *  - OSI_CMD_GET_MAC_VER
+ *	Reading MAC version
+ *	arg1_u32 - holds mac version
+ *  - OSI_CMD_VALIDATE_CORE_REG
+ *	 Read-validate HW registers for func safety
+ *  - OSI_CMD_RESET_MMC
+ *	invoke function to reset MMC counter and data
+ *        structure
+ *  - OSI_CMD_SAVE_REGISTER
+ *	 Take backup of MAC MMIO address space
+ *  - OSI_CMD_MAC_LB
+ *	Configure MAC loopback
+ *  - OSI_CMD_FLOW_CTRL
+ *	Configure flow control settings
+ *	arg1_u32 - Enable or disable flow control settings
+ *  - OSI_CMD_SET_MODE
+ *	Set Full/Half Duplex mode.
+ *	arg1_u32 - mode
+ *  - OSI_CMD_SET_SPEED
+ *	Set Operating speed
+ *	arg1_u32 - Operating speed
+ *  - OSI_CMD_L2_FILTER
+ *	configure L2 mac filter
+ *	l2_filter_struct - OSI filter structure
+ *  - OSI_CMD_RXCSUM_OFFLOAD
+ *	Configure RX checksum offload in MAC
+ *	arg1_u32 - enable(1)/disable(0)
+ *  - OSI_CMD_ADJ_FREQ
+ *	Adjust frequency
+ *	arg6_u32 - Parts per Billion
+ *  - OSI_CMD_ADJ_TIME
+ *	Adjust MAC time with system time
+ *	arg1_u32 - Delta time in nano seconds
+ *  - OSI_CMD_CONFIG_PTP
+ *	Configure PTP
+ *	arg1_u32 - Enable(1) or disable(0) Time Stamping
+ *  - OSI_CMD_GET_AVB
+ *	Get CBS algo and parameters
+ *	avb_struct -  osi core avb data structure
+ *  - OSI_CMD_SET_AVB
+ *	Set CBS algo and parameters
+ *	avb_struct -  osi core avb data structure
+ *  - OSI_CMD_CONFIG_RX_CRC_CHECK
+ *	Configure CRC Checking for Received Packets
+ *	arg1_u32 - Enable or disable checking of CRC field in
+ *	received pkts
+ *  - OSI_CMD_UPDATE_VLAN_ID
+ *	invoke osi call to update VLAN ID
+ *	arg1_u32 - VLAN ID
+ *  - OSI_CMD_CONFIG_TXSTATUS
+ *	Configure Tx packet status reporting
+ *	Enable(1) or disable(0) tx packet status reporting
+ *  - OSI_CMD_GET_HW_FEAT
+ *	Reading MAC HW features
+ *	hw_feat_struct - holds the supported features of the hardware
+ *  - OSI_CMD_CONFIG_FW_ERR
+ *	Configure forwarding of error packets
+ *	arg1_u32 - queue index, Max OSI_EQOS_MAX_NUM_QUEUES
+ *	arg2_u32 - FWD error enable(1)/disable(0)
+ *  - OSI_CMD_ARP_OFFLOAD
+ *	Configure ARP offload in MAC
+ *	arg1_u32 - Enable/disable flag
+ *	arg7_u8_p - Char array representation of IP address
+ *  - OSI_CMD_VLAN_FILTER
+ *	OSI call for configuring VLAN filter
+ *	vlan_filter - vlan filter structure
+ *  - OSI_CMD_CONFIG_EEE
+ *	Configure EEE LPI in MAC
+ *	arg1_u32 - Enable (1)/disable (0) tx lpi
+ *	arg2_u32 - Tx LPI entry timer in usecs upto
+ *		   OSI_MAX_TX_LPI_TIMER (in steps of 8usec)
+ *  - OSI_CMD_L3L4_FILTER
+ *	invoke OSI call to add L3/L4
+ *	l3l4_filter - l3_l4 filter structure
+ *	arg1_u32 - L3 filter (ipv4(0) or ipv6(1))
+ *            or L4 filter (tcp(0) or udp(1)
+ *	arg2_u32 - filter based dma routing enable(1)
+ *	arg3_u32 - dma channel for routing based on filter.
+ *		   Max OSI_EQOS_MAX_NUM_CHANS.
+ *	arg4_u32 - API call for L3 filter(0) or L4 filter(1)
+ *  - OSI_CMD_SET_SYSTOHW_TIME
+ *	set system to MAC hardware
+ *	arg1_u32 - sec
+ *	arg1_u32 - nsec
+ *  - OSI_CMD_CONFIG_PTP_OFFLOAD
+ *	enable/disable PTP offload feature
+ *	pto_config - ptp offload structure
+ *  - OSI_CMD_PTP_RXQ_ROUTE
+ *	rxq routing to secific queue
+ *	rxq_route - rxq routing information in structure
+ *  - OSI_CMD_CONFIG_FRP
+ *	Issue FRP command to HW
+ *	frp_cmd - FRP command parameter
+ *  - OSI_CMD_CONFIG_RSS
+ *	Configure RSS
+ *  - OSI_CMD_CONFIG_EST
+ *	Configure EST registers and GCL to hw
+ *	est - EST configuration structure
+ *  - OSI_CMD_CONFIG_FPE
+ *	Configuration FPE register and preemptable queue
+ *	fpe - FPE configuration structure
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] data: void pointer pointing to osi_ioctl
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
+			     struct osi_ioctl *data);
+/**
+ * @brief osi_hal_hw_core_init - HW API for EQOS MAC, MTL and common DMA
+ * initialization.
+ *
+ * @note
+ * Algorithm:
+ *  - Invokes EQOS MAC, MTL and common DMA register init code.
+ *
+ * @param[in, out] osi_core: OSI core private data structure.
+ * @param[in] tx_fifo_size: OSI core private data structure.
+ * @param[in] rx_fifo_size: OSI core private data structure.
+ *
+ * @pre
+ * - MAC should be out of reset. See osi_poll_for_mac_reset_complete()
+ *   for details.
+ * - osi_core->base needs to be filled based on ioremap.
+ * - osi_core->num_mtl_queues needs to be filled.
+ * - osi_core->mtl_queues[qinx] need to be filled.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: ETHERNET_NVETHERNETRM_006
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core,
+			     nveu32_t tx_fifo_size, nveu32_t rx_fifo_size);
+
+/**
+ * @brief osi_hal_hw_core_deinit - HW API for MAC deinitialization.
+ *
+ * @note
+ * Algorithm:
+ *  - Stops MAC transmission and reception.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @pre MAC has to be out of reset.
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: No
+ * - De-initialization: Yes
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_hal_hw_core_deinit(struct osi_core_priv_data *const osi_core);
+
+/**
+ * @brief osi_hal_write_phy_reg - HW API to Write to a PHY register through MAC
+ * over MDIO bus.
+ *
+ * @note
+ * Algorithm:
+ * - Before proceeding for reading for PHY register check whether any MII
+ *   operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ * - Program data into MAC MDIO data register.
+ * - Populate required parameters like phy address, phy register etc,,
+ *   in MAC MDIO Address register. write and GMII busy bits needs to be set
+ *   in this operation.
+ * - Write into MAC MDIO address register poll for GMII busy for MDIO
+ *   operation to complete.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be write to PHY.
+ * @param[in] phydata: Data to write to a PHY register.
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t osi_hal_write_phy_reg(struct osi_core_priv_data *const osi_core,
+			      const nveu32_t phyaddr, const nveu32_t phyreg,
+			      const nveu16_t phydata);
+
+/**
+ * @brief osi_hal_read_phy_reg - HW API to Read from a PHY register through MAC
+ * over MDIO bus.
+ *
+ * @note
+ * Algorithm:
+ *  - Before proceeding for reading for PHY register check whether any MII
+ *    operation going on MDIO bus by polling MAC_GMII_BUSY bit.
+ *  - Populate required parameters like phy address, phy register etc,,
+ *    in program it in MAC MDIO Address register. Read and GMII busy bits
+ *    needs to be set in this operation.
+ *  - Write into MAC MDIO address register poll for GMII busy for MDIO
+ *    operation to complete. After this data will be available at MAC MDIO
+ *    data register.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] phyaddr: PHY address (PHY ID) associated with PHY
+ * @param[in] phyreg: Register which needs to be read from PHY.
+ *
+ * @pre MAC should be init and started. see osi_start_mac()
+ *
+ * @note
+ * Traceability Details:
+ * - SWUD_ID: TODO
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval data from PHY register on success
+ * @retval -1 on failure
+ */
+nve32_t osi_hal_read_phy_reg(struct osi_core_priv_data *const osi_core,
+			     const nveu32_t phyaddr, const nveu32_t phyreg);
 #endif /* INCLUDED_OSI_CORE_H */

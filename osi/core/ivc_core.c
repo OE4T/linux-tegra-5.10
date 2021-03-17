@@ -905,6 +905,35 @@ static nve32_t ivc_write_phy_reg(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief ivc_handle_ioctl - marshell input argument to handle runtime command
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] data: OSI IOCTL data structure.
+ *
+ * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval data from PHY register on success
+ * @retval -1 on failure
+ */
+static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
+				struct osi_ioctl *data)
+{
+	nve32_t ret = 0;
+	ivc_msg_common msg_common;
+
+	osi_memset(&msg_common, 0, sizeof(msg_common));
+
+	msg_common.cmd = handle_ioctl;
+	osi_memcpy((void *)&msg_common.data.ioctl_data, (void *)data,
+		   sizeof(struct osi_ioctl));
+	ret = osi_core->osd_ops.ivc_send(osi_core, &msg_common,
+					  sizeof(msg_common));
+	osi_memcpy((void *)data, (void *)&msg_common.data.ioctl_data,
+		   sizeof(struct osi_ioctl));
+	return ret;
+}
+
+/**
  * @brief ivc_read_phy_reg - Read from a PHY register through MAC over MDIO bus
  *
  * @param[in] osi_core: OSI core private data structure.
@@ -1725,4 +1754,44 @@ void ivc_init_macsec_ops(void *macsecops)
 void *ivc_get_core_safety_config(void)
 {
 	return &ivc_safety_config;
+}
+
+/**
+ * @brief vir_ivc_core_deinit - MAC core deinitialization
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note Required clks and resets has to be enabled
+ *
+ * @retval Return 0
+ */
+static nve32_t vir_ivc_core_deinit(struct osi_core_priv_data *const osi_core)
+{
+	ivc_core_deinit(osi_core);
+	return 0;
+}
+
+/**
+ * @brief vir_init_core_ops - core ops initialization
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @retval Return 0
+ */
+static nve32_t vir_ivc_init_core_ops(struct osi_core_priv_data *const osi_core)
+{
+	/* This API should not do anything as ethernet_server maintain ops
+	 * locally
+	 */
+	return 0;
+}
+
+void ivc_interface_init_core_ops(struct if_core_ops *if_ops_p)
+{
+	if_ops_p->if_core_init = ivc_core_init;
+	if_ops_p->if_core_deinit = vir_ivc_core_deinit;
+	if_ops_p->if_write_phy_reg = ivc_write_phy_reg;
+	if_ops_p->if_read_phy_reg = ivc_read_phy_reg;
+	if_ops_p->if_init_core_ops = vir_ivc_init_core_ops;
+	if_ops_p->if_handle_ioctl = ivc_handle_ioctl;
 }

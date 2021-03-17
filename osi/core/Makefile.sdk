@@ -26,6 +26,7 @@ OBJS += frp.o
 OBJS += mgbe_core.o
 OBJS += xpcs.o
 OBJS += mgbe_mmc.o
+OBJS += osi_hal.o
 OBJS += ivc_core.o
 OBJS += ./../common/osi_common.o
 OBJS += ./../common/eqos_common.o

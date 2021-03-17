@@ -34,6 +34,7 @@ NV_COMPONENT_SOURCES           := \
 	eqos_mmc.c \
 	osi_core.c \
 	vlan_filter.c \
+	osi_hal.c \
 	ivc_core.c \
 	frp.c \
 	mgbe_core.c \
