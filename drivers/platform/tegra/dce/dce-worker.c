@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -90,8 +90,6 @@ void dce_worker_thread_wait(struct tegra_dce *d,
 
 	if (new_state == STATE_DCE_WORKER_BOOT_WAIT)
 		timeout_val_ms = 1000;
-
-	dce_mutex_unlock(&w->lock);
 
 	ret = DCE_COND_WAIT_INTERRUPTIBLE(&w->cond,
 				dce_worker_wakeup_cond(d),
