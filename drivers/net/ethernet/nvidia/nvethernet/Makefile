@@ -31,6 +31,7 @@ nvethernet-objs:= ether_linux.o \
 		  ptp.o \
 		  macsec.o \
 		  $(OSI_CORE)/osi_core.o \
+		  $(OSI_CORE)/osi_hal.o \
 		  $(OSI_CORE)/macsec.o \
 		  $(OSI_COMMON)/osi_common.o \
 		  $(OSI_COMMON)/eqos_common.o \
