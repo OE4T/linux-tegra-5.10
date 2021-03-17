@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -256,18 +256,15 @@ void nvgpu_worker_init_name(struct nvgpu_worker *worker,
 	/* Terminate thread name with NULL character */
 	worker->thread_name[0] = '\0';
 
-	(void) strncat(worker->thread_name, worker_name,
-				min(num_free_chars, strlen(worker_name)));
+	(void) strncat(worker->thread_name, worker_name, num_free_chars);
 
 	num_free_chars = worker_name_size - strlen(worker->thread_name);
 
-	(void) strncat(worker->thread_name, "_",
-					min(num_free_chars, sizeof("_")));
+	(void) strncat(worker->thread_name, "_", num_free_chars);
 
 	num_free_chars = worker_name_size - strlen(worker->thread_name);
 
-	(void) strncat(worker->thread_name, gpu_name,
-				min(num_free_chars, strlen(gpu_name)));
+	(void) strncat(worker->thread_name, gpu_name, num_free_chars);
 }
 
 int nvgpu_worker_init(struct gk20a *g, struct nvgpu_worker *worker,
