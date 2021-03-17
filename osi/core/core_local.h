@@ -33,6 +33,36 @@
 #endif
 
 /**
+ * @brief Maximum number of interface operations.
+ */
+#define MAX_INTERFACE_OPS	2U
+
+/**
+ * interface core ops
+ */
+struct if_core_ops {
+	/** Interface function called to initialize MAC and MTL registers */
+	nve32_t (*if_core_init)(struct osi_core_priv_data *const osi_core,
+				nveu32_t tx_fifo_size, nveu32_t rx_fifo_size);
+	/** Interface function called to deinitialize MAC and MTL registers */
+	nve32_t (*if_core_deinit)(struct osi_core_priv_data *const osi_core);
+	/** Interface function called to write into a PHY reg over MDIO bus */
+	nve32_t (*if_write_phy_reg)(struct osi_core_priv_data *const osi_core,
+				    const nveu32_t phyaddr,
+				    const nveu32_t phyreg,
+				    const nveu16_t phydata);
+	/** Interface function called to read a PHY reg over MDIO bus */
+	nve32_t (*if_read_phy_reg)(struct osi_core_priv_data *const osi_core,
+				   const nveu32_t phyaddr,
+				   const nveu32_t phyreg);
+	/** Initialize Interface core operations */
+	nve32_t (*if_init_core_ops)(struct osi_core_priv_data *const osi_core);
+	/** Interface function called to handle runtime commands */
+	nve32_t (*if_handle_ioctl)(struct osi_core_priv_data *osi_core,
+				   struct osi_ioctl *data);
+};
+
+/**
  * @brief Initialize MAC & MTL core operations.
  */
 struct core_ops {
@@ -241,8 +271,12 @@ struct core_local {
 	struct osi_core_priv_data osi_core;
 	/** Core local operations variable */
 	struct core_ops *ops_p;
+	/** interface core local operations variable */
+	struct if_core_ops *if_ops_p;
 	/** Flag to represent initialization done or not */
 	nveu32_t init_done;
+	/** Flag to represent infterface initialization done or not */
+	nveu32_t if_init_done;
 	/** Magic number to validate osi core pointer */
 	nveu64_t magic_num;
 };
@@ -298,4 +332,31 @@ void mgbe_init_core_ops(struct core_ops *ops);
  * - De-initialization: No
  */
 void ivc_init_macsec_ops(void *macsecops);
+
+/**
+ * @brief hw_interface_init_core_ops - Initialize HW interface functions.
+ *
+ * @param[in] if_ops_p: interface core operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void hw_interface_init_core_ops(struct if_core_ops *if_ops_p);
+
+/**
+ * @brief ivc_interface_init_core_ops - Initialize IVC interface functions
+ *
+ * @param[in] if_ops_p: interface core operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void ivc_interface_init_core_ops(struct if_core_ops *if_ops_p);
+
 #endif /* INCLUDED_CORE_LOCAL_H */

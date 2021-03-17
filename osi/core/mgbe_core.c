@@ -2997,10 +2997,10 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	osi_writela(osi_core, value, (unsigned char *)osi_core->base +
 		   MGBE_MTL_RXQ_DMA_MAP2);
 
-	/* Enable XDCS in MAC_Extended_Configuration */
+	/* Enable XDCS in MAC_Extended_Configuration, enable with @rakesh CL */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  MGBE_MAC_EXT_CNF);
-	value |= MGBE_MAC_EXT_CNF_DDS;
+	//value |= MGBE_MAC_EXT_CNF_DDS;
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MAC_EXT_CNF);
 

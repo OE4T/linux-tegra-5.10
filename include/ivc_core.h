@@ -68,6 +68,7 @@ typedef enum ivc_cmd {
 	reg_read,
 	reg_write,
 	get_hw_features,
+	handle_ioctl,
 #ifndef OSI_STRIPPED_LIB
 	config_tx_status,
 	config_rx_crc_check,
@@ -179,6 +180,10 @@ typedef struct ivc_msg_common {
 		 * core argument structure
 		 */
 		ivc_core_args init_args;
+		/**
+		 * ioctl command structure
+		 */
+		struct osi_ioctl ioctl_data;
 	}data;
 } ivc_msg_common;
 

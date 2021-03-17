@@ -324,8 +324,9 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 		l_dma->ops_p->stop_dma(osi_dma, osi_dma->dma_chans[i]);
 	}
 
-	l_dma->magic_num = 0;
-	l_dma->init_done = OSI_DISABLE;
+	/* FIXME: Need to fix */
+//	l_dma->magic_num = 0;
+//	l_dma->init_done = OSI_DISABLE;
 
 	return 0;
 }
