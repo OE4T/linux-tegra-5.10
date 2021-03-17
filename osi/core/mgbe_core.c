@@ -3111,6 +3111,145 @@ static void mgbe_configure_eee(struct osi_core_priv_data *osi_core,
 	}
 }
 
+static int mgbe_get_hw_features(struct osi_core_priv_data *osi_core,
+				struct osi_hw_features *hw_feat)
+{
+	unsigned char *base = (unsigned char *)osi_core->base;
+	unsigned int mac_hfr0 = 0;
+	unsigned int mac_hfr1 = 0;
+	unsigned int mac_hfr2 = 0;
+	unsigned int mac_hfr3 = 0;
+
+	mac_hfr0 = osi_readl(base + MGBE_MAC_HFR0);
+	mac_hfr1 = osi_readl(base + MGBE_MAC_HFR1);
+	mac_hfr2 = osi_readl(base + MGBE_MAC_HFR2);
+	mac_hfr3 = osi_readl(base + MGBE_MAC_HFR3);
+
+	hw_feat->rgmii_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_RGMIISEL_SHIFT) &
+			      MGBE_MAC_HFR0_RGMIISEL_MASK);
+	hw_feat->gmii_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_GMIISEL_SHIFT) &
+			     MGBE_MAC_HFR0_GMIISEL_MASK);
+	hw_feat->rmii_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_RMIISEL_SHIFT) &
+			     MGBE_MAC_HFR0_RMIISEL_MASK);
+	hw_feat->hd_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_HDSEL_SHIFT) &
+			   MGBE_MAC_HFR0_HDSEL_MASK);
+	hw_feat->vlan_hash_en = ((mac_hfr0 >> MGBE_MAC_HFR0_VLHASH_SHIFT) &
+				 MGBE_MAC_HFR0_VLHASH_MASK);
+	hw_feat->sma_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_SMASEL_SHIFT) &
+			    MGBE_MAC_HFR0_SMASEL_MASK);
+	hw_feat->rwk_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_RWKSEL_SHIFT) &
+			    MGBE_MAC_HFR0_RWKSEL_MASK);
+	hw_feat->mgk_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_MGKSEL_SHIFT) &
+			    MGBE_MAC_HFR0_MGKSEL_MASK);
+	hw_feat->mmc_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_MMCSEL_SHIFT) &
+			    MGBE_MAC_HFR0_MMCSEL_MASK);
+	hw_feat->arp_offld_en = ((mac_hfr0 >> MGBE_MAC_HFR0_ARPOFFLDEN_SHIFT) &
+				 MGBE_MAC_HFR0_ARPOFFLDEN_MASK);
+	hw_feat->rav_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_RAVSEL_SHIFT) &
+			    MGBE_MAC_HFR0_RAVSEL_MASK);
+	hw_feat->av_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_AVSEL_SHIFT) &
+			   MGBE_MAC_HFR0_AVSEL_MASK);
+	hw_feat->ts_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_TSSSEL_SHIFT) &
+			   MGBE_MAC_HFR0_TSSSEL_MASK);
+	hw_feat->eee_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_EEESEL_SHIFT) &
+			    MGBE_MAC_HFR0_EEESEL_MASK);
+	hw_feat->tx_coe_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_TXCOESEL_SHIFT) &
+			       MGBE_MAC_HFR0_TXCOESEL_MASK);
+	hw_feat->rx_coe_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_RXCOESEL_SHIFT) &
+			       MGBE_MAC_HFR0_RXCOESEL_MASK);
+	hw_feat->mac_addr_sel =
+			((mac_hfr0 >> MGBE_MAC_HFR0_ADDMACADRSEL_SHIFT) &
+			 MGBE_MAC_HFR0_ADDMACADRSEL_MASK);
+	hw_feat->act_phy_sel = ((mac_hfr0 >> MGBE_MAC_HFR0_PHYSEL_SHIFT) &
+				MGBE_MAC_HFR0_PHYSEL_MASK);
+	hw_feat->tsstssel = ((mac_hfr0 >> MGBE_MAC_HFR0_TSSTSSEL_SHIFT) &
+			     MGBE_MAC_HFR0_TSSTSSEL_MASK);
+	hw_feat->sa_vlan_ins  = ((mac_hfr0 >> MGBE_MAC_HFR0_SAVLANINS_SHIFT) &
+				 MGBE_MAC_HFR0_SAVLANINS_SHIFT);
+	hw_feat->vxn = ((mac_hfr0 >> MGBE_MAC_HFR0_VXN_SHIFT) &
+			MGBE_MAC_HFR0_VXN_MASK);
+	hw_feat->ediffc = ((mac_hfr0 >> MGBE_MAC_HFR0_EDIFFC_SHIFT) &
+			   MGBE_MAC_HFR0_EDIFFC_MASK);
+	hw_feat->edma = ((mac_hfr0 >> MGBE_MAC_HFR0_EDMA_SHIFT) &
+			 MGBE_MAC_HFR0_EDMA_MASK);
+	hw_feat->rx_fifo_size = ((mac_hfr1 >> MGBE_MAC_HFR1_RXFIFOSIZE_SHIFT) &
+				 MGBE_MAC_HFR1_RXFIFOSIZE_MASK);
+	hw_feat->pfc_en = ((mac_hfr1 >> MGBE_MAC_HFR1_PFCEN_SHIFT) &
+			   MGBE_MAC_HFR1_PFCEN_MASK);
+	hw_feat->tx_fifo_size = ((mac_hfr1 >> MGBE_MAC_HFR1_TXFIFOSIZE_SHIFT) &
+				 MGBE_MAC_HFR1_TXFIFOSIZE_MASK);
+	hw_feat->ost_en = ((mac_hfr1 >> MGBE_MAC_HFR1_OSTEN_SHIFT) &
+			   MGBE_MAC_HFR1_OSTEN_MASK);
+	hw_feat->pto_en = ((mac_hfr1 >> MGBE_MAC_HFR1_PTOEN_SHIFT) &
+			   MGBE_MAC_HFR1_PTOEN_MASK);
+	hw_feat->adv_ts_hword = ((mac_hfr1 >> MGBE_MAC_HFR1_ADVTHWORD_SHIFT) &
+				 MGBE_MAC_HFR1_ADVTHWORD_MASK);
+	hw_feat->addr_64 = ((mac_hfr1 >> MGBE_MAC_HFR1_ADDR64_SHIFT) &
+			    MGBE_MAC_HFR1_ADDR64_MASK);
+	hw_feat->dcb_en = ((mac_hfr1 >> MGBE_MAC_HFR1_DCBEN_SHIFT) &
+			   MGBE_MAC_HFR1_DCBEN_MASK);
+	hw_feat->sph_en = ((mac_hfr1 >> MGBE_MAC_HFR1_SPHEN_SHIFT) &
+			   MGBE_MAC_HFR1_SPHEN_MASK);
+	hw_feat->tso_en = ((mac_hfr1 >> MGBE_MAC_HFR1_TSOEN_SHIFT) &
+			   MGBE_MAC_HFR1_TSOEN_MASK);
+	hw_feat->dma_debug_gen = ((mac_hfr1 >> MGBE_MAC_HFR1_DBGMEMA_SHIFT) &
+				  MGBE_MAC_HFR1_DBGMEMA_MASK);
+	hw_feat->rss_en = ((mac_hfr1 >> MGBE_MAC_HFR1_RSSEN_SHIFT) &
+			   MGBE_MAC_HFR1_RSSEN_MASK);
+	hw_feat->num_tc = ((mac_hfr1 >> MGBE_MAC_HFR1_NUMTC_SHIFT) &
+			   MGBE_MAC_HFR1_NUMTC_MASK);
+	hw_feat->hash_tbl_sz = ((mac_hfr1 >> MGBE_MAC_HFR1_HASHTBLSZ_SHIFT) &
+				MGBE_MAC_HFR1_HASHTBLSZ_MASK);
+	hw_feat->l3l4_filter_num = ((mac_hfr1 >> MGBE_MAC_HFR1_L3L4FNUM_SHIFT) &
+				    MGBE_MAC_HFR1_L3L4FNUM_MASK);
+	hw_feat->rx_q_cnt = ((mac_hfr2 >> MGBE_MAC_HFR2_RXQCNT_SHIFT) &
+			     MGBE_MAC_HFR2_RXQCNT_MASK);
+	hw_feat->tx_q_cnt = ((mac_hfr2 >> MGBE_MAC_HFR2_TXQCNT_SHIFT) &
+			     MGBE_MAC_HFR2_TXQCNT_MASK);
+	hw_feat->rx_ch_cnt = ((mac_hfr2 >> MGBE_MAC_HFR2_RXCHCNT_SHIFT) &
+			      MGBE_MAC_HFR2_RXCHCNT_MASK);
+	hw_feat->tx_ch_cnt = ((mac_hfr2 >> MGBE_MAC_HFR2_TXCHCNT_SHIFT) &
+			      MGBE_MAC_HFR2_TXCHCNT_MASK);
+	hw_feat->pps_out_num = ((mac_hfr2 >> MGBE_MAC_HFR2_PPSOUTNUM_SHIFT) &
+				MGBE_MAC_HFR2_PPSOUTNUM_MASK);
+	hw_feat->aux_snap_num = ((mac_hfr2 >> MGBE_MAC_HFR2_AUXSNAPNUM_SHIFT) &
+				 MGBE_MAC_HFR2_AUXSNAPNUM_MASK);
+	hw_feat->num_vlan_filters = ((mac_hfr3 >> MGBE_MAC_HFR3_NRVF_SHIFT) &
+				     MGBE_MAC_HFR3_NRVF_MASK);
+	hw_feat->frp_sel = ((mac_hfr3 >> MGBE_MAC_HFR3_FRPSEL_SHIFT) &
+			    MGBE_MAC_HFR3_FRPSEL_MASK);
+	hw_feat->cbti_sel = ((mac_hfr3 >> MGBE_MAC_HFR3_CBTISEL_SHIFT) &
+			    MGBE_MAC_HFR3_CBTISEL_MASK);
+	hw_feat->num_frp_pipes = ((mac_hfr3 >> MGBE_MAC_HFR3_FRPPIPE_SHIFT) &
+			    MGBE_MAC_HFR3_FRPPIPE_MASK);
+	hw_feat->ost_over_udp = ((mac_hfr3 >> MGBE_MAC_HFR3_POUOST_SHIFT) &
+				MGBE_MAC_HFR3_POUOST_MASK);
+	hw_feat->max_frp_bytes = ((mac_hfr3 >> MGBE_MAC_HFR3_FRPPB_SHIFT) &
+				MGBE_MAC_HFR3_FRPPB_MASK);
+	hw_feat->max_frp_entries = ((mac_hfr3 >> MGBE_MAC_HFR3_FRPES_SHIFT) &
+				    MGBE_MAC_HFR3_FRPES_MASK);
+	hw_feat->double_vlan_en = ((mac_hfr3 >> MGBE_MAC_HFR3_DVLAN_SHIFT) &
+				   MGBE_MAC_HFR3_DVLAN_MASK);
+	hw_feat->auto_safety_pkg = ((mac_hfr3 >> MGBE_MAC_HFR3_ASP_SHIFT) &
+				    MGBE_MAC_HFR3_ASP_MASK);
+	hw_feat->tts_fifo_depth = ((mac_hfr3 >> MGBE_MAC_HFR3_TTSFD_SHIFT) &
+				    MGBE_MAC_HFR3_TTSFD_MASK);
+	hw_feat->est_sel = ((mac_hfr3 >> MGBE_MAC_HFR3_ESTSEL_SHIFT) &
+			    MGBE_MAC_HFR3_ESTSEL_MASK);
+	hw_feat->gcl_depth = ((mac_hfr3 >> MGBE_MAC_HFR3_GCLDEP_SHIFT) &
+			      MGBE_MAC_HFR3_GCLDEP_MASK);
+	hw_feat->gcl_width = ((mac_hfr3 >> MGBE_MAC_HFR3_GCLWID_SHIFT) &
+			      MGBE_MAC_HFR3_GCLWID_MASK);
+	hw_feat->fpe_sel = ((mac_hfr3 >> MGBE_MAC_HFR3_FPESEL_SHIFT) &
+			    MGBE_MAC_HFR3_FPESEL_MASK);
+	hw_feat->tbs_sel = ((mac_hfr3 >> MGBE_MAC_HFR3_TBSSEL_SHIFT) &
+			    MGBE_MAC_HFR3_TBSSEL_MASK);
+	hw_feat->num_tbs_ch = ((mac_hfr3 >> MGBE_MAC_HFR3_TBS_CH_SHIFT) &
+			       MGBE_MAC_HFR3_TBS_CH_MASK);
+
+	return 0;
+}
+
 /**
  * @brief mgbe_init_core_ops - Initialize MGBE MAC core operations
  */
@@ -3163,4 +3302,5 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->read_mmc = mgbe_read_mmc;
 	ops->reset_mmc = mgbe_reset_mmc;
 	ops->configure_eee = mgbe_configure_eee;
+	ops->get_hw_features = mgbe_get_hw_features;
 };
