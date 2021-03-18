@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@
 #define APP_VERSION_GV11B	25005711U
 #define APP_VERSION_GV10X	25633490U
 #define APP_VERSION_GP10X	24076634U
-#define APP_VERSION_GP10B	23782727U
+#define APP_VERSION_GP10B	29594520U
 #define APP_VERSION_GM20B	20490253U
 
 /* PMU version specific functions */
@@ -1237,7 +1237,7 @@ int nvgpu_pmu_init_fw_ver_ops(struct gk20a *g,
 			pmu_set_perfmon_cntr_group_id_v2;
 		fw_ops->get_perfmon_cntr_sz = pmu_perfmon_cntr_sz_v2;
 		g->pmu_ver_cmd_id_zbc_table_update = 16;
-		nvgpu_set_enabled(g, NVGPU_PMU_ZBC_SAVE, true);
+		nvgpu_set_enabled(g, NVGPU_PMU_ZBC_SAVE, false);
 		fw_ops->get_cmd_line_args_size =
 			pmu_cmd_line_size_v4;
 		fw_ops->set_cmd_line_args_cpu_freq =
