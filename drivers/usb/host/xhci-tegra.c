@@ -308,6 +308,13 @@ struct tegra_xusb_context_soc {
 	} fpci;
 };
 
+enum tegra_xhci_phy_type {
+	USB3_PHY,
+	USB2_PHY,
+	HSIC_PHY,
+	MAX_PHY_TYPES,
+};
+
 struct tegra_xusb_soc {
 	u16 device_id;
 	const char *firmware;
@@ -424,6 +431,7 @@ struct tegra_xusb {
 
 	bool suspended;
 	struct tegra_xusb_context context;
+	u32 enable_utmi_pad_after_lp0_exit;
 
 	struct tegra_bwmgr_client *bwmgr; /* bandwidth manager handle */
 	struct work_struct boost_emcfreq_work;
@@ -3268,12 +3276,32 @@ static void tegra_xhci_enable_phy_sleepwalk_wake(struct tegra_xusb *tegra)
 static void tegra_xhci_disable_phy_wake(struct tegra_xusb *tegra)
 {
 	struct tegra_xusb_padctl *padctl = tegra->padctl;
-	unsigned int i;
+	unsigned int i, j;
+	char phy_name[5];
 
 	for (i = 0; i < tegra->num_phys; i++) {
 		if (!tegra->phys[i])
 			continue;
+		if (tegra_xusb_padctl_remote_wake_detected(padctl, tegra->phys[i])) {
+			if (i < (tegra->soc->ports.usb3.offset +
+					tegra->soc->ports.usb3.count)) {
+				j = i;
+				strcpy(phy_name, "usb3");
+			} else if (i < (tegra->soc->ports.usb2.offset +
+					tegra->soc->ports.usb2.count)) {
+				j = i - tegra->soc->ports.usb2.offset;
+				strcpy(phy_name, "usb2");
 
+				tegra_phy_xusb_utmi_pad_power_on(tegra->phys[i]);
+			} else {
+				j = i - (tegra->soc->ports.usb2.offset +
+					tegra->soc->ports.usb2.count);
+				strcpy(phy_name, "hsic");
+			}
+			dev_dbg(tegra->dev,
+				"%s port %u (0 based) remote wake detected\n", phy_name, j);
+
+		}
 		tegra_xusb_padctl_disable_phy_wake(padctl, tegra->phys[i]);
 	}
 }
@@ -3286,8 +3314,24 @@ static void tegra_xhci_disable_phy_sleepwalk(struct tegra_xusb *tegra)
 	for (i = 0; i < tegra->num_phys; i++) {
 		if (!tegra->phys[i])
 			continue;
-
 		tegra_xusb_padctl_disable_phy_sleepwalk(padctl, tegra->phys[i]);
+	}
+}
+
+static void tegra_xhci_program_utmi_power_lp0_exit(
+	struct tegra_xusb *tegra)
+{
+	unsigned int i;
+
+	for (i = 0; i < tegra->soc->ports.usb2.count; i++) {
+		if (!is_host_mode_phy(tegra, USB2_PHY, i))
+			continue;
+		if (tegra->enable_utmi_pad_after_lp0_exit & BIT(i))
+			tegra_phy_xusb_utmi_pad_power_on(
+					tegra->phys[tegra->soc->ports.usb2.offset + i]);
+		else
+			tegra_phy_xusb_utmi_pad_power_down(
+					tegra->phys[tegra->soc->ports.usb2.offset + i]);
 	}
 }
 
@@ -3299,6 +3343,7 @@ static int tegra_xusb_enter_elpg(struct tegra_xusb *tegra, bool runtime)
 	unsigned int i;
 	int err;
 	u32 usbcmd;
+	u32 portsc;
 
 	dev_dbg(dev, "entering ELPG\n");
 
@@ -3310,6 +3355,16 @@ static int tegra_xusb_enter_elpg(struct tegra_xusb *tegra, bool runtime)
 	if (err < 0) {
 		dev_err(tegra->dev, "not all ports suspended: %d\n", err);
 		goto out;
+	}
+
+	for (i = 0; i < tegra->soc->ports.usb2.count; i++) {
+		if (!xhci->usb2_rhub.ports[i])
+			continue;
+		portsc = readl(xhci->usb2_rhub.ports[i]->addr);
+		tegra->enable_utmi_pad_after_lp0_exit &= ~BIT(i);
+		if (((portsc & PORT_PLS_MASK) == XDEV_U3) ||
+			((portsc & DEV_SPEED_MASK) == XDEV_FS))
+			tegra->enable_utmi_pad_after_lp0_exit |= BIT(i);
 	}
 
 	err = xhci_suspend(xhci, wakeup);
@@ -3415,6 +3470,9 @@ skip_clock_and_powergate:
 
 		phy_power_on(tegra->phys[i]);
 	}
+
+	if (tegra->suspended)
+		tegra_xhci_program_utmi_power_lp0_exit(tegra);
 
 	if (!tegra->soc->is_xhci_vf)
 		tegra_xusb_config(tegra);
@@ -4044,10 +4102,86 @@ static irqreturn_t tegra_xhci_irq(struct usb_hcd *hcd)
 	return xhci_irq(hcd);
 }
 
+static int tegra_xhci_hub_control(struct usb_hcd *hcd, u16 type_req,
+		u16 value, u16 index, char *buf, u16 length)
+
+{
+	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
+	struct xhci_hub *rhub;
+	struct xhci_bus_state *bus_state;
+	int port = (index & 0xff) - 1;
+	int port_index;
+	struct xhci_port **ports;
+	u32 portsc;
+	int ret;
+
+	rhub = xhci_get_rhub(hcd);
+	bus_state = &rhub->bus_state;
+	if (bus_state->resuming_ports && hcd->speed == HCD_USB2) {
+		ports = rhub->ports;
+		port_index = rhub->num_ports;
+		while (port_index--) {
+			if (!test_bit(port_index, &bus_state->resuming_ports))
+				continue;
+			portsc = readl(ports[port_index]->addr);
+			if ((port_index < tegra->soc->ports.usb2.count)
+					&& ((portsc & PORT_PLS_MASK) == XDEV_RESUME))
+				tegra_phy_xusb_utmi_pad_power_on(
+					tegra->phys[tegra->soc->ports.usb2.offset + port_index]);
+		}
+	}
+
+	if (hcd->speed == HCD_USB2) {
+		if ((type_req == ClearPortFeature) &&
+				(value == USB_PORT_FEAT_SUSPEND))
+			tegra_phy_xusb_utmi_pad_power_on(
+				tegra->phys[tegra->soc->ports.usb2.offset + port]);
+	}
+
+	ret = xhci_hub_control(hcd, type_req, value, index, buf, length);
+
+	if ((hcd->speed == HCD_USB2) && (ret == 0)) {
+		if ((type_req == SetPortFeature) &&
+			(value == USB_PORT_FEAT_SUSPEND))
+			/* We dont suspend the PAD while HNP role swap happens
+			 * on the OTG port
+			 */
+			if (!((hcd->self.otg_port == (port + 1)) &&
+					hcd->self.b_hnp_enable))
+				tegra_phy_xusb_utmi_pad_power_down(
+					tegra->phys[tegra->soc->ports.usb2.offset + port]);
+
+		if ((type_req == ClearPortFeature) &&
+				(value == USB_PORT_FEAT_C_CONNECTION)) {
+			rhub = xhci_get_rhub(hcd);
+			ports = rhub->ports;
+			portsc = readl(ports[port]->addr);
+			if (portsc & PORT_CONNECT)
+				tegra_phy_xusb_utmi_pad_power_on(
+					  tegra->phys[tegra->soc->ports.usb2.offset + port]);
+			else {
+				/* We dont suspend the PAD while HNP
+				 * role swap happens on the OTG port
+				 */
+				if (!((hcd->self.otg_port == (port + 1))
+						&& hcd->self.b_hnp_enable))
+					tegra_phy_xusb_utmi_pad_power_down(
+						tegra->phys[tegra->soc->ports.usb2.offset + port]);
+			}
+		}
+		if ((type_req == SetPortFeature) &&
+		    (value == USB_PORT_FEAT_TEST))
+			tegra_phy_xusb_utmi_pad_power_on(
+				tegra->phys[tegra->soc->ports.usb2.offset + port]);
+	}
+
+	return ret;
+}
+
 static int __init tegra_xusb_init(void)
 {
 	xhci_init_driver(&tegra_xhci_hc_driver, &tegra_xhci_overrides);
-
+	tegra_xhci_hc_driver.hub_control = tegra_xhci_hub_control;
 	tegra_xhci_hc_driver.add_endpoint = tegra_xhci_add_endpoint;
 	tegra_xhci_hc_driver.enable_usb3_lpm_timeout =
 		tegra_xhci_enable_usb3_lpm_timeout;

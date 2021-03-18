@@ -712,6 +712,9 @@ static void tegra_xudc_device_mode_on(struct tegra_xudc *xudc)
 	if (xudc->soc->port_speed_quirk)
 		tegra_xudc_limit_port_speed(xudc);
 
+	if (xudc->curr_utmi_phy)
+		tegra_phy_xusb_utmi_pad_power_on(xudc->curr_utmi_phy);
+
 	err = phy_power_on(xudc->curr_utmi_phy);
 	if (err < 0)
 		dev_err(xudc->dev, "UTMI power on failed: %d\n", err);
@@ -765,6 +768,9 @@ static void tegra_xudc_device_mode_off(struct tegra_xudc *xudc)
 
 	/* Make sure interrupt handler has completed before powergating. */
 	synchronize_irq(xudc->irq);
+
+	if (xudc->curr_utmi_phy)
+		tegra_phy_xusb_utmi_pad_power_down(xudc->curr_utmi_phy);
 
 	err = phy_power_off(xudc->curr_utmi_phy);
 	if (err < 0)
