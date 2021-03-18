@@ -1109,6 +1109,14 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	g->max_sm_diversity_config_count =
 		priv->constants.max_sm_diversity_config_count;
 
+#ifdef CONFIG_NVGPU_COMPRESSION
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+#endif
+
+#ifdef CONFIG_NVGPU_RECOVERY
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
+#endif
+
 	g->name = "gv11b";
 
 	return 0;

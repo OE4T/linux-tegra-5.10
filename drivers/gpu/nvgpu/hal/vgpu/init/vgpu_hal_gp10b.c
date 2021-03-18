@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -962,6 +962,14 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 
 	g->max_sm_diversity_config_count =
 		priv->constants.max_sm_diversity_config_count;
+
+#ifdef CONFIG_NVGPU_COMPRESSION
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_COMPRESSION, true);
+#endif
+
+#ifdef CONFIG_NVGPU_RECOVERY
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
+#endif
 
 	g->name = "gp10b";
 
