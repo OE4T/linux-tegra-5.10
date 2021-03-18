@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -182,6 +182,35 @@ done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
+static void nvgpu_cg_slcg_priring_load_prod(struct gk20a *g, bool enable)
+{
+
+	if (g->ops.cg.slcg_priring_load_gating_prod != NULL) {
+		g->ops.cg.slcg_priring_load_gating_prod(g, enable);
+	}
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.cg.slcg_rs_ctrl_fbp_load_gating_prod != NULL) {
+		g->ops.cg.slcg_rs_ctrl_fbp_load_gating_prod(g, enable);
+	}
+	if (g->ops.cg.slcg_rs_ctrl_gpc_load_gating_prod != NULL) {
+		g->ops.cg.slcg_rs_ctrl_gpc_load_gating_prod(g, enable);
+	}
+	if (g->ops.cg.slcg_rs_ctrl_sys_load_gating_prod != NULL) {
+		g->ops.cg.slcg_rs_ctrl_sys_load_gating_prod(g, enable);
+	}
+	if (g->ops.cg.slcg_rs_fbp_load_gating_prod != NULL) {
+		g->ops.cg.slcg_rs_fbp_load_gating_prod(g, enable);
+	}
+	if (g->ops.cg.slcg_rs_gpc_load_gating_prod != NULL) {
+		g->ops.cg.slcg_rs_gpc_load_gating_prod(g, enable);
+	}
+	if (g->ops.cg.slcg_rs_sys_load_gating_prod != NULL) {
+		g->ops.cg.slcg_rs_sys_load_gating_prod(g, enable);
+	}
+#endif
+
+}
+
 void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
@@ -190,9 +219,8 @@ void nvgpu_cg_slcg_priring_load_enable(struct gk20a *g)
 	if (!g->slcg_enabled) {
 		goto done;
 	}
-	if (g->ops.cg.slcg_priring_load_gating_prod != NULL) {
-		g->ops.cg.slcg_priring_load_gating_prod(g, true);
-	}
+
+	nvgpu_cg_slcg_priring_load_prod(g, true);
 done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
@@ -579,10 +607,9 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 	if (g->ops.cg.slcg_perf_load_gating_prod != NULL) {
 		g->ops.cg.slcg_perf_load_gating_prod(g, enable);
 	}
-	if (g->ops.cg.slcg_priring_load_gating_prod != NULL) {
-		g->ops.cg.slcg_priring_load_gating_prod(g,
-				enable);
-	}
+
+	nvgpu_cg_slcg_priring_load_prod(g, enable);
+
 	if (g->ops.cg.slcg_pmu_load_gating_prod != NULL) {
 		g->ops.cg.slcg_pmu_load_gating_prod(g, enable);
 	}
