@@ -3094,9 +3094,9 @@ static int tegra210_sfc_init(struct snd_soc_component *cmpnt, int init)
 	dev_dbg(cmpnt->dev, "%s: inrate %d outrate %d\n",
 		__func__, sfc->srate_in, sfc->srate_out);
 
-	err = pm_runtime_get_sync(cmpnt->dev->parent);
+	err = pm_runtime_get_sync(cmpnt->dev);
 	if (err < 0) {
-		dev_err(cmpnt->dev, "parent get_sync failed: %d\n", err);
+		dev_err(cmpnt->dev, "RPM get_sync() failed: %d\n", err);
 		return err;
 	}
 
@@ -3158,7 +3158,7 @@ static int tegra210_sfc_init(struct snd_soc_component *cmpnt, int init)
 		regmap_write(sfc->regmap, TEGRA210_SFC_ENABLE, 1);
 	}
 exit:
-	pm_runtime_put(cmpnt->dev->parent);
+	pm_runtime_put(cmpnt->dev);
 
 	return err;
 }
