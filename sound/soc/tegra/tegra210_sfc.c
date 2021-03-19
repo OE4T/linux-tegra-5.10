@@ -23,12 +23,12 @@
 #include "tegra_cif.h"
 
 static const struct reg_default tegra210_sfc_reg_defaults[] = {
-	{ TEGRA210_SFC_AXBAR_RX_INT_MASK, 0x00000001},
-	{ TEGRA210_SFC_AXBAR_RX_CIF_CTRL, 0x00007700},
-	{ TEGRA210_SFC_AXBAR_TX_INT_MASK, 0x00000001},
-	{ TEGRA210_SFC_AXBAR_TX_CIF_CTRL, 0x00007700},
+	{ TEGRA210_SFC_RX_INT_MASK, 0x00000001},
+	{ TEGRA210_SFC_RX_CIF_CTRL, 0x00007700},
+	{ TEGRA210_SFC_TX_INT_MASK, 0x00000001},
+	{ TEGRA210_SFC_TX_CIF_CTRL, 0x00007700},
 	{ TEGRA210_SFC_CG, 0x1},
-	{ TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL, 0x00004000},
+	{ TEGRA210_SFC_CFG_RAM_CTRL, 0x00004000},
 };
 
 static int tegra210_sfc_rates[] = {
@@ -2930,14 +2930,14 @@ static int tegra210_sfc_write_coeff_ram(struct tegra210_sfc *sfc)
 
 	if (coeff_ram) {
 		tegra210_ahub_write_ram(sfc->regmap,
-			TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL,
-			TEGRA210_SFC_AHUBRAMCTL_SFC_DATA,
+			TEGRA210_SFC_CFG_RAM_CTRL,
+			TEGRA210_SFC_CFG_RAM_DATA,
 			0, coeff_ram, TEGRA210_SFC_COEF_RAM_DEPTH);
 
 		regmap_update_bits(sfc->regmap,
 			TEGRA210_SFC_COEF_RAM,
-			TEGRA210_SFC_COEF_RAM_COEF_RAM_EN,
-			TEGRA210_SFC_COEF_RAM_COEF_RAM_EN);
+			TEGRA210_SFC_COEF_RAM_EN,
+			TEGRA210_SFC_COEF_RAM_EN);
 	}
 
 	return 0;
@@ -2971,7 +2971,7 @@ static int tegra210_sfc_set_audio_cif(struct tegra210_sfc *sfc,
 		return -EINVAL;
 	}
 
-	path = (reg == TEGRA210_SFC_AXBAR_RX_CIF_CTRL) ?
+	path = (reg == TEGRA210_SFC_RX_CIF_CTRL) ?
 	       SFC_RX_PATH : SFC_TX_PATH;
 
 	cif_conf.audio_ch = channels;
@@ -2987,9 +2987,9 @@ static int tegra210_sfc_set_audio_cif(struct tegra210_sfc *sfc,
 	cif_conf.mono_conv = sfc->mono_to_stereo[path];
 
 	cif_conf.audio_bits = audio_bits;
-	if (sfc->format_in && (reg == TEGRA210_SFC_AXBAR_RX_CIF_CTRL))
+	if (sfc->format_in && (reg == TEGRA210_SFC_RX_CIF_CTRL))
 		cif_conf.audio_bits = tegra210_sfc_fmt_values[sfc->format_in];
-	if (sfc->format_out && (reg == TEGRA210_SFC_AXBAR_TX_CIF_CTRL))
+	if (sfc->format_out && (reg == TEGRA210_SFC_TX_CIF_CTRL))
 		cif_conf.audio_bits = tegra210_sfc_fmt_values[sfc->format_out];
 	cif_conf.client_bits = TEGRA_ACIF_BITS_32;
 
@@ -3026,7 +3026,7 @@ static int tegra210_sfc_in_hw_params(struct snd_pcm_substream *substream,
 
 	regmap_update_bits(sfc->regmap,
 			TEGRA210_SFC_COEF_RAM,
-			TEGRA210_SFC_COEF_RAM_COEF_RAM_EN,
+			TEGRA210_SFC_COEF_RAM_EN,
 			0);
 
 	err = tegra210_sfc_soft_reset(sfc);
@@ -3038,14 +3038,14 @@ static int tegra210_sfc_in_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	err = tegra210_sfc_set_audio_cif(sfc, params,
-				TEGRA210_SFC_AXBAR_RX_CIF_CTRL);
+				TEGRA210_SFC_RX_CIF_CTRL);
 	if (err) {
 		dev_err(dev, "Can't set SFC RX CIF: %d\n", err);
 		return err;
 	}
 	memcpy(&sfc->in_hw_params, params, sizeof(struct snd_pcm_hw_params));
 
-	regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_RX_FREQ, sfc->srate_in);
+	regmap_write(sfc->regmap, TEGRA210_SFC_RX_FREQ, sfc->srate_in);
 
 	if (sfc->srate_in != sfc->srate_out) {
 		err = tegra210_sfc_write_coeff_ram(sfc);
@@ -3066,7 +3066,7 @@ static int tegra210_sfc_out_hw_params(struct snd_pcm_substream *substream,
 	int err;
 
 	err = tegra210_sfc_set_audio_cif(sfc, params,
-				TEGRA210_SFC_AXBAR_TX_CIF_CTRL);
+				TEGRA210_SFC_TX_CIF_CTRL);
 	if (err) {
 		dev_err(dev, "Can't set SFC TX CIF: %d\n", err);
 		return err;
@@ -3079,7 +3079,7 @@ static int tegra210_sfc_out_hw_params(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
-	regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_TX_FREQ, sfc->srate_out);
+	regmap_write(sfc->regmap, TEGRA210_SFC_TX_FREQ, sfc->srate_out);
 	return err;
 }
 
@@ -3118,7 +3118,7 @@ static int tegra210_sfc_init(struct snd_soc_component *cmpnt, int init)
 
 		regmap_update_bits(sfc->regmap,
 				TEGRA210_SFC_COEF_RAM,
-				TEGRA210_SFC_COEF_RAM_COEF_RAM_EN,
+				TEGRA210_SFC_COEF_RAM_EN,
 				0);
 
 		err = tegra210_sfc_soft_reset(sfc);
@@ -3130,21 +3130,21 @@ static int tegra210_sfc_init(struct snd_soc_component *cmpnt, int init)
 		}
 
 		err = tegra210_sfc_set_audio_cif(sfc, &sfc->in_hw_params,
-					TEGRA210_SFC_AXBAR_RX_CIF_CTRL);
+					TEGRA210_SFC_RX_CIF_CTRL);
 		if (err) {
 			dev_err(cmpnt->dev, "Can't set SFC RX CIF: %d\n", err);
 			goto exit;
 		}
 
 		err = tegra210_sfc_set_audio_cif(sfc, &sfc->out_hw_params,
-						TEGRA210_SFC_AXBAR_TX_CIF_CTRL);
+						TEGRA210_SFC_TX_CIF_CTRL);
 		if (err) {
 			dev_err(cmpnt->dev, "Can't set SFC TX CIF: %d\n", err);
 			goto exit;
 		}
 
-		regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_RX_FREQ, sfc->srate_in);
-		regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_TX_FREQ, sfc->srate_out);
+		regmap_write(sfc->regmap, TEGRA210_SFC_RX_FREQ, sfc->srate_in);
+		regmap_write(sfc->regmap, TEGRA210_SFC_TX_FREQ, sfc->srate_out);
 
 		if (sfc->srate_in != sfc->srate_out) {
 			err = tegra210_sfc_write_coeff_ram(sfc);
@@ -3369,24 +3369,10 @@ static struct snd_soc_component_driver tegra210_sfc_cmpnt = {
 static bool tegra210_sfc_wr_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_SFC_AXBAR_RX_INT_MASK:
-	case TEGRA210_SFC_AXBAR_RX_INT_SET:
-	case TEGRA210_SFC_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_SFC_AXBAR_RX_CIF_CTRL:
-	case TEGRA210_SFC_AXBAR_RX_FREQ:
-
-	case TEGRA210_SFC_AXBAR_TX_INT_MASK:
-	case TEGRA210_SFC_AXBAR_TX_INT_SET:
-	case TEGRA210_SFC_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_SFC_AXBAR_TX_CIF_CTRL:
-	case TEGRA210_SFC_AXBAR_TX_FREQ:
-
-	case TEGRA210_SFC_ENABLE:
-	case TEGRA210_SFC_SOFT_RESET:
-	case TEGRA210_SFC_CG:
-	case TEGRA210_SFC_COEF_RAM:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_DATA:
+	case TEGRA210_SFC_RX_INT_MASK ... TEGRA210_SFC_RX_FREQ:
+	case TEGRA210_SFC_TX_INT_MASK ... TEGRA210_SFC_TX_FREQ:
+	case TEGRA210_SFC_ENABLE ... TEGRA210_SFC_CG:
+	case TEGRA210_SFC_COEF_RAM ... TEGRA210_SFC_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
@@ -3396,30 +3382,10 @@ static bool tegra210_sfc_wr_reg(struct device *dev, unsigned int reg)
 static bool tegra210_sfc_rd_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_SFC_AXBAR_RX_STATUS:
-	case TEGRA210_SFC_AXBAR_RX_INT_STATUS:
-	case TEGRA210_SFC_AXBAR_RX_INT_MASK:
-	case TEGRA210_SFC_AXBAR_RX_INT_SET:
-	case TEGRA210_SFC_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_SFC_AXBAR_RX_CIF_CTRL:
-	case TEGRA210_SFC_AXBAR_RX_FREQ:
-
-	case TEGRA210_SFC_AXBAR_TX_STATUS:
-	case TEGRA210_SFC_AXBAR_TX_INT_STATUS:
-	case TEGRA210_SFC_AXBAR_TX_INT_MASK:
-	case TEGRA210_SFC_AXBAR_TX_INT_SET:
-	case TEGRA210_SFC_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_SFC_AXBAR_TX_CIF_CTRL:
-	case TEGRA210_SFC_AXBAR_TX_FREQ:
-
-	case TEGRA210_SFC_ENABLE:
-	case TEGRA210_SFC_SOFT_RESET:
-	case TEGRA210_SFC_CG:
-	case TEGRA210_SFC_STATUS:
-	case TEGRA210_SFC_INT_STATUS:
-	case TEGRA210_SFC_COEF_RAM:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_DATA:
+	case TEGRA210_SFC_RX_STATUS ... TEGRA210_SFC_RX_FREQ:
+	case TEGRA210_SFC_TX_STATUS ... TEGRA210_SFC_TX_FREQ:
+	case TEGRA210_SFC_ENABLE ... TEGRA210_SFC_INT_STATUS:
+	case TEGRA210_SFC_COEF_RAM ... TEGRA210_SFC_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
@@ -3429,19 +3395,19 @@ static bool tegra210_sfc_rd_reg(struct device *dev, unsigned int reg)
 static bool tegra210_sfc_volatile_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_SFC_AXBAR_RX_STATUS:
-	case TEGRA210_SFC_AXBAR_RX_INT_STATUS:
-	case TEGRA210_SFC_AXBAR_RX_INT_SET:
+	case TEGRA210_SFC_RX_STATUS:
+	case TEGRA210_SFC_RX_INT_STATUS:
+	case TEGRA210_SFC_RX_INT_SET:
 
-	case TEGRA210_SFC_AXBAR_TX_STATUS:
-	case TEGRA210_SFC_AXBAR_TX_INT_STATUS:
-	case TEGRA210_SFC_AXBAR_TX_INT_SET:
+	case TEGRA210_SFC_TX_STATUS:
+	case TEGRA210_SFC_TX_INT_STATUS:
+	case TEGRA210_SFC_TX_INT_SET:
 
 	case TEGRA210_SFC_SOFT_RESET:
 	case TEGRA210_SFC_STATUS:
 	case TEGRA210_SFC_INT_STATUS:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_DATA:
+	case TEGRA210_SFC_CFG_RAM_CTRL:
+	case TEGRA210_SFC_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
@@ -3451,7 +3417,7 @@ static bool tegra210_sfc_volatile_reg(struct device *dev, unsigned int reg)
 static bool tegra210_sfc_precious_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_DATA:
+	case TEGRA210_SFC_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
@@ -3462,7 +3428,7 @@ static const struct regmap_config tegra210_sfc_regmap_config = {
 	.reg_bits = 32,
 	.reg_stride = 4,
 	.val_bits = 32,
-	.max_register = TEGRA210_SFC_AHUBRAMCTL_SFC_DATA,
+	.max_register = TEGRA210_SFC_CFG_RAM_DATA,
 	.writeable_reg = tegra210_sfc_wr_reg,
 	.readable_reg = tegra210_sfc_rd_reg,
 	.volatile_reg = tegra210_sfc_volatile_reg,
