@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T23X Architecture Chips
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -165,20 +165,9 @@ struct nvhost_device_data t23x_host1xb_info = {
 };
 
 #if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
-struct nvhost_device_data t23x_vi_thi_info = {
-	.devfs_name		= "vi-thi",
-	.exclusive		= true,
-	.class			= NV_VIDEO_STREAMING_VI_FALCON_CLASS_ID,
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_VI},
-	.keepalive		= true,
-	.autosuspend_delay      = 500,
+struct nvhost_device_data t23x_vi0_thi_info = {
+	.devfs_name		= "vi0-thi",
 	.moduleid		= NVHOST_MODULE_VI,
-	.clocks = {
-		{"vi", UINT_MAX},
-		{"vi-const", UINT_MAX},
-	},
-	.num_channels		= 1,
-	.can_powergate		= true,
 };
 
 struct nvhost_device_data t23x_vi0_info = {
@@ -191,8 +180,6 @@ struct nvhost_device_data t23x_vi0_info = {
 	.clocks = {
 		{"vi", UINT_MAX},
 		{"vi-const", UINT_MAX},
-		{"nvcsi", 400000000},
-		{"nvcsilp", 204000000},
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
@@ -202,18 +189,21 @@ struct nvhost_device_data t23x_vi0_info = {
 	.post_virt_init		= vi5_priv_late_probe,
 };
 
+struct nvhost_device_data t23x_vi1_thi_info = {
+	.devfs_name		= "vi1-thi",
+	.moduleid		= NVHOST_MODULE_VI2,
+};
+
 struct nvhost_device_data t23x_vi1_info = {
 	.devfs_name		= "vi1",
 	.class			= NV_VIDEO_STREAMING_VI_CLASS_ID,
 	.keepalive		= true,
 	.autosuspend_delay	= 500,
 	.poweron_reset		= true,
-	.moduleid		= NVHOST_MODULE_VI,
+	.moduleid		= NVHOST_MODULE_VI2,
 	.clocks = {
 		{"vi", UINT_MAX},
 		{"vi-const", UINT_MAX},
-		{"nvcsi", 400000000},
-		{"nvcsilp", 204000000},
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
@@ -229,8 +219,10 @@ struct nvhost_device_data t23x_nvcsi_info = {
 	.num_channels		= 1,
 	.moduleid		= NVHOST_MODULE_NVCSI,
 	.clocks			= {
-		{"nvcsi", 400000000},
-		{"nvcsilp", 204000000},
+		{"nvcsi", UINT_MAX},
+		{"nvcsilp", UINT_MAX},
+		{"mipi_cal", UINT_MAX},
+		{"uart_fs_mipi_cal", UINT_MAX},
 	},
 	.devfs_name		= "nvcsi",
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVCSI},
@@ -251,7 +243,6 @@ struct nvhost_device_data t23x_nvcsi_info = {
 struct nvhost_device_data t23x_isp_thi_info = {
 	.devfs_name		= "isp-thi",
 	.moduleid		= NVHOST_MODULE_ISP,
-	.can_powergate		= true,
 };
 
 struct nvhost_device_data t23x_isp5_info = {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -43,6 +43,22 @@
 #if defined(CONFIG_TEGRA_GRHOST_OFA)
         { .compatible = "nvidia,tegra234-vhost-ofa",
 		.data = (struct nvhost_device_data *)&t23x_ofa_info },
+#endif
+#if IS_ENABLED(CONFIG_VIDEO_TEGRA_VI)
+	{ .compatible = "nvidia,tegra234-vhost-vi",
+		.data = (struct nvhost_device_data *)&t23x_vi0_info,
+		.name = "vi0" },
+	{ .compatible = "nvidia,tegra234-vhost-vi",
+		.data = (struct nvhost_device_data *)&t23x_vi1_info,
+		.name = "vi1" },
+#endif
+#ifdef CONFIG_TEGRA_GRHOST_ISP
+	{ .compatible = "nvidia,tegra234-vhost-isp",
+		.data = (struct nvhost_device_data *)&t23x_isp5_info },
+#endif
+#if defined(CONFIG_TEGRA_GRHOST_NVCSI)
+	{ .compatible = "nvidia,tegra234-vhost-nvcsi",
+		.data = (struct nvhost_device_data *)&t23x_nvcsi_info },
 #endif
 
 //}
