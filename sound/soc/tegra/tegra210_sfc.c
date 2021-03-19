@@ -3312,7 +3312,7 @@ static const char * const tegra210_sfc_stereo_conv_text[] = {
 };
 
 static const char * const tegra210_sfc_mono_conv_text[] = {
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 static const struct soc_enum tegra210_sfc_format_enum =
