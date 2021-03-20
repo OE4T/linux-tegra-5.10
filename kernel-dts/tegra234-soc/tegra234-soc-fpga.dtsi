@@ -34,6 +34,7 @@
 #include "tegra234-psc.dtsi"
 #include "tegra234-soc-host1x.dtsi"
 #include "tegra234-aon.dtsi"
+#include "tegra234-soc-coresight.dtsi"
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 
 / {
