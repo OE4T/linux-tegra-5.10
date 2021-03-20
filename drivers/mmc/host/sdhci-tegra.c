@@ -999,6 +999,7 @@ static void tegra_sdhci_pad_autocalib(struct sdhci_host *host)
 	u16 pdpu;
 	u32 reg;
 	int ret;
+	unsigned int timeout = 10;
 
 	if (tegra_platform_is_vsp())
 		return;
@@ -1027,12 +1028,16 @@ static void tegra_sdhci_pad_autocalib(struct sdhci_host *host)
 	reg = sdhci_readl(host, SDHCI_TEGRA_AUTO_CAL_CONFIG);
 	reg |= SDHCI_AUTO_CAL_ENABLE | SDHCI_AUTO_CAL_START;
 	sdhci_writel(host, reg, SDHCI_TEGRA_AUTO_CAL_CONFIG);
-
 	udelay(2);
-	/* 10 ms timeout */
-	ret = readl_poll_timeout(host->ioaddr + SDHCI_TEGRA_AUTO_CAL_STATUS,
-				 reg, !(reg & SDHCI_TEGRA_AUTO_CAL_ACTIVE),
-				 1000, 10000);
+
+	/* Wait until calibration is done */
+	do {
+		if (!(sdhci_readl(host, SDHCI_TEGRA_AUTO_CAL_STATUS) &
+				SDHCI_TEGRA_AUTO_CAL_ACTIVE))
+			break;
+		mdelay(1);
+		timeout--;
+	} while (timeout);
 
 	tegra_sdhci_configure_cal_pad(host, false);
 
