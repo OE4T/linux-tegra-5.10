@@ -37,6 +37,7 @@ endif
 KASAN_SANITIZE_nvmap_kasan_wrapper.o := n
 
 ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+nvmap-y += nvmap_cache_maint.o
 ccflags-y += -DNVMAP_LOADABLE_MODULE
 obj-m +=nvmap.o
 else

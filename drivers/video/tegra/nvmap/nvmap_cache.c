@@ -28,6 +28,9 @@
 #endif
 
 #include <linux/sys_soc.h>
+#ifdef NVMAP_LOADABLE_MODULE
+__weak struct arm64_ftr_reg arm64_ftr_reg_ctrel0;
+#endif /*NVMAP_LOADABLE_MODULE */
 
 #include <trace/events/nvmap.h>
 
