@@ -3038,7 +3038,7 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* write seconds value to MAC_System_Time_Seconds_Update register */
-	osi_writela(osi_core, sec, (nveu8_t *)addr + EQOS_MAC_STSUR);
+	osi_writela(osi_core, sec1, (nveu8_t *)addr + EQOS_MAC_STSUR);
 
 	/* write nano seconds value and add_sub to
 	 * MAC_System_Time_Nanoseconds_Update register
