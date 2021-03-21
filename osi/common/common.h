@@ -35,7 +35,6 @@
 #define COND_MET	0
 #define COND_NOT_MET	1
 /** @} */
-struct osi_core_priv_data;
 
 /**
  * @brief osi_lock_init - Initialize lock to unlocked state.
@@ -271,11 +270,11 @@ static inline void osi_memset(void *s, nveu32_t c, nveu64_t count)
  * - Run time: Yes
  * - De-initialization: No
  */
-static inline void osi_memcpy(void *dest, void *src, int n)
+static inline void osi_memcpy(void *dest, void *src, nve32_t n)
 {
-	char *csrc = (char *)src;
-	char *cdest = (char *)dest;
-	int i = 0;
+	nve8_t *csrc = (nve8_t *)src;
+	nve8_t *cdest = (nve8_t *)dest;
+	nve32_t i = 0;
 
 	if ((src == OSI_NULL) || (dest == OSI_NULL)) {
 		return;
