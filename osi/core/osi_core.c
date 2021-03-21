@@ -130,8 +130,6 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	    (osi_core->osd_ops.udelay == OSI_NULL) ||
 	    (osi_core->osd_ops.msleep == OSI_NULL) ||
 	    (osi_core->osd_ops.usleep_range == OSI_NULL)) {
-		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "CORE OSD ops not assigned\n", 0ULL);
 		return -1;
 	}
 
@@ -282,7 +280,7 @@ nve32_t osi_config_fw_err_pkts(struct osi_core_priv_data *const osi_core,
 nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 		      const struct osi_filter *filter)
 {
-	nve32_t ret = -1;
+	nve32_t ret;
 
 	if ((validate_args(osi_core) < 0) || (filter == OSI_NULL)) {
 		return -1;
