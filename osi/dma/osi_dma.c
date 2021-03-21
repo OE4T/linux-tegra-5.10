@@ -164,8 +164,6 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	    (osi_dma->osd_ops.receive_packet == OSI_NULL) ||
 	    (osi_dma->osd_ops.ops_log == OSI_NULL) ||
 	    (osi_dma->osd_ops.udelay == OSI_NULL)) {
-		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "DMA OSD ops not assigned\n", 0ULL);
 		return -1;
 	}
 
@@ -198,7 +196,7 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 {
 	nveu32_t i, chan;
-	nve32_t ret = -1;
+	nve32_t ret;
 
 	if (validate_args(osi_dma) < 0) {
 		return -1;
