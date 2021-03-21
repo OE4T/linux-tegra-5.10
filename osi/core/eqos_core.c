@@ -1163,7 +1163,7 @@ static void eqos_configure_rxq_priority(
 		/* check for PSRQ field mutual exclusive for all queues */
 		if ((osi_core->rxq_prio[mtlq] <= 0xFFU) &&
 		    (osi_core->rxq_prio[mtlq] > 0x0U) &&
-		    ((pmask & osi_core->rxq_prio[mtlq]) == 0)) {
+		    ((pmask & osi_core->rxq_prio[mtlq]) == 0U)) {
 			pmask |= osi_core->rxq_prio[mtlq];
 			temp = osi_core->rxq_prio[mtlq];
 		} else {
@@ -1944,7 +1944,6 @@ static inline nve32_t eqos_update_mac_addr_helper(
 				const nveu32_t dma_chan,
 				const nveu32_t addr_mask)
 {
-	nve32_t ret = 0;
 	/* PDC bit of MAC_Ext_Configuration register is not set so binary
 	 * value representation.
 	 */
@@ -1958,8 +1957,7 @@ static inline nve32_t eqos_update_mac_addr_helper(
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
 				     "invalid dma channel\n",
 				     (nveul64_t)dma_chan);
-			ret = -1;
-			goto err_dma_chan;
+			return -1;
 		} else {
 		/* Do nothing */
 		}
@@ -1976,12 +1974,11 @@ static inline nve32_t eqos_update_mac_addr_helper(
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "invalid address index for MBC\n",
 				     0ULL);
-			ret = -1;
+			return -1;
 		}
 	}
 
-err_dma_chan:
-	return ret;
+	return 0;
 }
 
 /**
@@ -3588,7 +3585,7 @@ static nve32_t eqos_config_rx_crc_check(
 	nveu32_t val;
 
 	/* return on invalid argument */
-	if (crc_chk != OSI_ENABLE && crc_chk != OSI_DISABLE) {
+	if ((crc_chk != OSI_ENABLE) && (crc_chk != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "rx_crc: invalid input\n", 0ULL);
 		return -1;
@@ -3645,7 +3642,7 @@ static nve32_t eqos_config_tx_status(struct osi_core_priv_data *const osi_core,
 	nveu32_t val;
 
 	/* don't allow if tx_status is other than 0 or 1 */
-	if (tx_status != OSI_ENABLE && tx_status != OSI_DISABLE) {
+	if ((tx_status != OSI_ENABLE) && (tx_status != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "tx_status: invalid input\n", 0ULL);
 		return -1;
@@ -3921,9 +3918,9 @@ static nve32_t eqos_config_arp_offload(
 				const nveu8_t *ip_addr)
 {
 	void *addr = osi_core->base;
-	nve32_t mac_ver = osi_core->mac_ver;
-	nve32_t mac_mcr;
-	nve32_t val;
+	nveu32_t mac_ver = osi_core->mac_ver;
+	nveu32_t mac_mcr;
+	nveu32_t val;
 
 	mac_mcr = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_MCR);
 
@@ -3993,21 +3990,22 @@ static nve32_t eqos_config_vlan_filtering(
 	nveu32_t value;
 	void *base = osi_core->base;
 
-	if (filter_enb_dis != OSI_ENABLE && filter_enb_dis != OSI_DISABLE) {
+	if ((filter_enb_dis != OSI_ENABLE) &&
+        (filter_enb_dis != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
-	if (perfect_hash_filtering != OSI_ENABLE &&
-	    perfect_hash_filtering != OSI_DISABLE) {
+	if ((perfect_hash_filtering != OSI_ENABLE) &&
+	    (perfect_hash_filtering != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
 	}
 
-	if (perfect_inverse_match != OSI_ENABLE &&
-	    perfect_inverse_match != OSI_DISABLE) {
+	if ((perfect_inverse_match != OSI_ENABLE) &&
+	    (perfect_inverse_match != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "vlan_filter: invalid input\n", 0ULL);
 		return -1;
@@ -4049,7 +4047,7 @@ static nve32_t eqos_config_vlan_filtering(
  */
 static inline nve32_t eqos_update_vlan_id(
 				struct osi_core_priv_data *const osi_core,
-				nveu32_t vid)
+				nveu32_t const vid)
 {
 	/* Don't add VLAN ID to TR register which is eventually set TR
 	 * to 0x0 and allow all tagged packets
