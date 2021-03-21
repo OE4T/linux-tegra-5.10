@@ -630,7 +630,7 @@ static void eqos_configure_dma_channel(nveu32_t chan,
 	/* FBE - Fatal Bus Error Enable */
 	value = osi_readl((nveu8_t *)osi_dma->base +
 			  EQOS_DMA_CHX_INTR_ENA(chan));
-	if (!osi_dma->use_virtualization) {
+	if (osi_dma->use_virtualization == OSI_DISABLE) {
 		value |= EQOS_DMA_CHX_INTR_TBUE |
 			 EQOS_DMA_CHX_INTR_RBUE;
 	}
@@ -900,6 +900,7 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 			     nveu32_t interval)
 {
 	nveu32_t value;
+	nveu32_t intr;
 
 	CHECK_CHAN_BOUND(chan);
 
@@ -909,8 +910,8 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 				  EQOS_DMA_CHX_SLOT_CTRL(chan));
 		value &= ~EQOS_DMA_CHX_SLOT_SIV_MASK;
 		/* remove overflow bits of interval */
-		interval &= EQOS_DMA_CHX_SLOT_SIV_MASK;
-		value |= (interval << EQOS_DMA_CHX_SLOT_SIV_SHIFT);
+		intr = interval & EQOS_DMA_CHX_SLOT_SIV_MASK;
+		value |= (intr << EQOS_DMA_CHX_SLOT_SIV_SHIFT);
 		/* Set ESC bit */
 		value |= EQOS_DMA_CHX_SLOT_ESC;
 		osi_writel(value, (nveu8_t *)osi_dma->base +

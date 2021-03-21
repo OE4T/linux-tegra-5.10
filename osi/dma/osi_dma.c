@@ -77,7 +77,7 @@ static inline nve32_t validate_args(struct osi_dma_priv_data *osi_dma)
  * @retval -1 on Failure
  */
 static inline nve32_t validate_dma_chan_num(struct osi_dma_priv_data *osi_dma,
-					    unsigned int chan)
+					    nveu32_t chan)
 {
 	if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
@@ -133,18 +133,19 @@ static inline nve32_t validate_dma_chans(struct osi_dma_priv_data *osi_dma)
 static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma)
 {
 	nveu32_t i = 0;
+	void *temp_ops = (void *)ops_p;
 #if __SIZEOF_POINTER__ == 8
-	nveu64_t *l_ops = (nveu64_t *)ops_p;
+	nveu64_t *l_ops = (nveu64_t *)temp_ops;
 #elif __SIZEOF_POINTER__ == 4
-	nveu32_t *l_ops = (nveu32_t *)ops_p;
+	nveu32_t *l_ops = (nveu32_t *)temp_ops;
 #else
 	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 		     "DMA: Undefined architecture\n", 0ULL);
 	return -1;
 #endif
 
-	for (i = 0; i < (sizeof(*ops_p) / __SIZEOF_POINTER__); i++) {
-		if (*l_ops == 0) {
+	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
+		if (*l_ops == 0U) {
 			return -1;
 		}
 
@@ -226,7 +227,7 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		return ret;
 	}
 
-	g_dma.mac_ver = osi_readl((unsigned char *)osi_dma->base + MAC_VERSION) &
+	g_dma.mac_ver = osi_readl((nveu8_t *)osi_dma->base + MAC_VERSION) &
 				  MAC_VERSION_SNVER_MASK;
 	if (is_valid_mac_version(g_dma.mac_ver) == 0) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
@@ -388,7 +389,7 @@ nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
 			    nveu32_t tx_rx,
 			    nveu32_t en_dis)
 {
-	typedef void (*dma_intr_fn)(void *, nveu32_t);
+	typedef void (*dma_intr_fn)(void *base, nveu32_t ch);
 	dma_intr_fn fn[2][2][2] = {
 		{ { ops_p->disable_chan_tx_intr, ops_p->enable_chan_tx_intr },
 		  { ops_p->disable_chan_rx_intr, ops_p->enable_chan_rx_intr } },
@@ -638,7 +639,7 @@ nve32_t osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
 nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
 {
 	if (validate_args(osi_dma) < 0) {
-		return -1;
+		return OSI_DISABLE;
 	}
 
 	return common_is_mac_enabled(osi_dma->base, osi_dma->mac);
