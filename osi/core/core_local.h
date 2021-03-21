@@ -207,7 +207,7 @@ struct core_local {
 	/** Core local operations variable */
 	struct core_ops ops;
 	/** Flag to represent initialization done or not */
-	unsigned int init_done;
+	nveu32_t init_done;
 };
 
 /**

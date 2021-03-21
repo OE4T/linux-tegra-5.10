@@ -277,7 +277,7 @@ static inline void osi_memcpy(void *dest, void *src, int n)
 	char *cdest = (char *)dest;
 	int i = 0;
 
-	if (src == OSI_NULL || dest == OSI_NULL) {
+	if ((src == OSI_NULL) || (dest == OSI_NULL)) {
 		return;
 	}
 	for (i = 0; i < n; i++) {

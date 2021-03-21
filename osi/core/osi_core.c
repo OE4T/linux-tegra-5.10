@@ -78,18 +78,19 @@ static inline nve32_t validate_args(struct osi_core_priv_data *const osi_core)
 static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core)
 {
 	nveu32_t i = 0;
+	void *temp_ops = (void *)ops_p;
 #if __SIZEOF_POINTER__ == 8
-	nveu64_t *l_ops = (nveu64_t *)ops_p;
+	nveu64_t *l_ops = (nveu64_t *)temp_ops;
 #elif __SIZEOF_POINTER__ == 4
-	nveu32_t *l_ops = (nveu32_t *)ops_p;
+	nveu32_t *l_ops = (nveu32_t *)temp_ops;
 #else
 	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 		     "Undefined architecture\n", 0ULL);
 	return -1;
 #endif
 
-	for (i = 0; i < (sizeof(*ops_p) / __SIZEOF_POINTER__); i++) {
-		if (*l_ops == 0) {
+	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
+		if (*l_ops == 0U) {
 			return -1;
 		}
 
@@ -417,6 +418,10 @@ static inline nve32_t helper_l3_filter(
 		ret = ops_p->update_ip4_addr(osi_core, l_filter.filter_no,
 					  l_filter.ip4_addr,
 					  l_filter.src_dst_addr_match);
+	} else {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid L3 filter type\n", 0ULL);
+                return -1;
 	}
 
 	return ret;
@@ -687,26 +692,28 @@ nve32_t osi_read_mmc(struct osi_core_priv_data *const osi_core)
 	return 0;
 }
 
-
 nve32_t osi_get_mac_version(struct osi_core_priv_data *const osi_core,
 		            nveu32_t *mac_ver)
 {
-	nveu32_t macver;
-
 	if (validate_args(osi_core) < 0) {
 		return -1;
 	}
 
-	macver = ((ops_p->read_reg(osi_core, (nve32_t)MAC_VERSION)) &
-		  MAC_VERSION_SNVER_MASK);
-
-	if (is_valid_mac_version(macver) == 0) {
+	if (mac_ver == OSI_NULL) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			     "Invalid MAC version\n", (nveu64_t)macver)
+			     "mac_ver is NULL\n", 0ULL);
 		return -1;
 	}
 
-	*mac_ver = macver;
+	*mac_ver = ((ops_p->read_reg(osi_core, (nve32_t)MAC_VERSION)) &
+		    MAC_VERSION_SNVER_MASK);
+
+	if (is_valid_mac_version(*mac_ver) == 0) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+			     "Invalid MAC version\n", (nveu64_t)*mac_ver)
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -822,7 +829,7 @@ nve32_t osi_configure_eee(struct osi_core_priv_data *const osi_core,
 
 	if ((tx_lpi_timer >= OSI_MAX_TX_LPI_TIMER) ||
 	    (tx_lpi_timer <= OSI_MIN_TX_LPI_TIMER) ||
-	    (tx_lpi_timer % OSI_MIN_TX_LPI_TIMER != OSI_NONE)) {
+	    ((tx_lpi_timer % OSI_MIN_TX_LPI_TIMER) != OSI_NONE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Invalid Tx LPI timer value\n",
 			     (nveul64_t)tx_lpi_timer);
@@ -879,7 +886,7 @@ nve32_t osi_config_arp_offload(struct osi_core_priv_data *const osi_core,
 		return -1;
 	}
 
-	if (flags != OSI_ENABLE && flags != OSI_DISABLE) {
+	if ((flags != OSI_ENABLE) && (flags != OSI_DISABLE)) {
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "Invalid ARP offload enable/disable flag\n", 0ULL);
 		return -1;

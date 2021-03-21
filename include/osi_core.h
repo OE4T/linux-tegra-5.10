@@ -543,16 +543,6 @@ struct osi_vlan_filter {
 };
 
 /**
- * @brief L2 filter function dependent parameter
- */
-struct osi_l2_da_filter {
-	/** perfect(0) or hash(1) */
-	nveu32_t perfect_hash;
-	/** perfect(0) or inverse(1) */
-	nveu32_t perfect_inverse_match;
-};
-
-/**
  * @brief OSI Core avb data structure per queue.
  */
 struct  osi_core_avb_algorithm {
