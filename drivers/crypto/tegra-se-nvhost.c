@@ -2092,15 +2092,24 @@ static void tegra_se_send_gcm_data(struct tegra_se_dev *se_dev,
 	cpuvaddr[i++] = req_ctx->crypto_config;
 
 	while (total) {
-		cpuvaddr[i++] = __nvhost_opcode_incr(
-				opcode_addr + SE_AES_IN_ADDR_OFFSET, 4);
+		/* Program IN and OUT addresses */
+		if (sub_mode != SE_AES_GMAC) {
+			cpuvaddr[i++] = __nvhost_opcode_incr(
+					opcode_addr + SE_AES_IN_ADDR_OFFSET, 4);
+		} else {
+			cpuvaddr[i++] = __nvhost_opcode_incr(
+					opcode_addr + SE_AES_IN_ADDR_OFFSET, 2);
+		}
 		cpuvaddr[i++] = (u32)(src_ll->addr);
 		cpuvaddr[i++] = (u32)(SE_ADDR_HI_MSB(MSB(src_ll->addr)) |
 				SE_ADDR_HI_SZ(src_ll->data_len));
-		cpuvaddr[i++] = (u32)(dst_ll->addr);
-		cpuvaddr[i++] = (u32)(SE_ADDR_HI_MSB(MSB(dst_ll->addr)) |
-				SE_ADDR_HI_SZ(dst_ll->data_len));
+		if (sub_mode != SE_AES_GMAC) {
+			cpuvaddr[i++] = (u32)(dst_ll->addr);
+			cpuvaddr[i++] = (u32)(SE_ADDR_HI_MSB(MSB(dst_ll->addr))
+					| SE_ADDR_HI_SZ(dst_ll->data_len));
+		}
 
+		/* Program operation register */
 		if (sub_mode == SE_AES_GCM_ENC || sub_mode == SE_AES_GCM_DEC)
 			restart_op = OP_RESTART_INOUT;
 		else
@@ -5666,7 +5675,6 @@ static int tegra_se_gcm_gmac(struct aead_request *req, bool encrypt)
 			iova, 0, se_dev->cmdbuf_cnt, NONE);
 
 	/* 3 - Clean up */
-	atomic_set(&se_dev->cmdbuf_addr_list[index].free, 1);
 	tegra_unmap_sg(se_dev->dev, sg, DMA_TO_DEVICE, assoclen);
 
 	return ret;
@@ -5677,14 +5685,16 @@ static int tegra_se_gcm_op(struct aead_request *req, bool encrypt)
 	struct crypto_aead *tfm = crypto_aead_reqtfm(req);
 	struct tegra_se_aes_gcm_ctx *ctx = crypto_aead_ctx(tfm);
 	struct tegra_se_req_context *req_ctx = aead_request_ctx(req);
-	unsigned int assoclen, cryptlen;
+	unsigned int assoclen, cryptlen, mapped_cryptlen, mapped_len;
 	struct tegra_se_ll *src_ll, *dst_ll;
-	struct scatterlist *src_sg, *dst_sg;
+	struct scatterlist *src_sg, *src_sg_start;
 	struct tegra_se_dev *se_dev;
-	u32 *cpuvaddr = NULL;
+	u32 *cpuvaddr = NULL, num_sgs;
 	dma_addr_t iova = 0;
 	int ret, count, index;
 	u32 iv[4];
+	u8 *dst_buf;
+	dma_addr_t dst_buf_dma_addr;
 
 	/* 0 - Setup */
 	se_dev = ctx->se_dev;
@@ -5692,23 +5702,71 @@ static int tegra_se_gcm_op(struct aead_request *req, bool encrypt)
 	se_dev->dst_ll = (struct tegra_se_ll *)(se_dev->dst_ll_buf);
 	src_ll = se_dev->src_ll;
 	dst_ll = se_dev->dst_ll;
-	ret = 0;
+	mapped_cryptlen = 0;
+	mapped_len = 0;
+	ret = 0; index = 0;
 	assoclen = req->assoclen;
 	if (encrypt)
 		cryptlen = req->cryptlen;
 	else
 		cryptlen = req->cryptlen - ctx->authsize;
 
+	/* If destination buffer is scattered over multiple sg, destination
+	 * buffer splits need not be same as src_sg so create
+	 * separate buffer for destination. Onebyte extra to handle zero
+	 * cryptlen case.
+	 */
+	dst_buf = dma_alloc_coherent(se_dev->dev, cryptlen+1, &dst_buf_dma_addr,
+					GFP_KERNEL);
+	if (!dst_buf)
+		return -ENOMEM;
+
 	/* 1. Add plain text to src */
 	src_sg = req->src;
-	dst_sg = req->dst;
+	src_sg_start = src_sg;
 	/* 1.1 Iterative over assoclen, to skip it for encryption */
 	count = assoclen;
 	while (count) {
+		/* If a SG has both assoc data and PT/CT data */
+		if (count < src_sg->length) {
+			ret = dma_map_sg(se_dev->dev, src_sg, 1,
+						DMA_TO_DEVICE);
+			if (!ret) {
+				pr_err("%s:%d dma_map_sg error\n",
+							__func__, __LINE__);
+				goto free_dst_buf;
+			}
+
+			/* Fill PT/CT src list details from this sg */
+			src_ll->addr = sg_dma_address(src_sg) + count;
+			/* SG length can be more than cryptlen and associated
+			 * data, in this case encrypted length should be
+			 * cryptlen
+			 */
+			if (cryptlen + count <= src_sg->length)
+				src_ll->data_len = cryptlen;
+			else
+				src_ll->data_len = src_sg->length - count;
+			mapped_cryptlen = src_ll->data_len;
+			mapped_len = src_sg->length;
+
+			/* Fill dst list details */
+			dst_ll->addr = dst_buf_dma_addr;
+			dst_ll->data_len = src_ll->data_len;
+			index += src_ll->data_len;
+			dst_ll++;
+			src_ll++;
+			/* Store from where src_sg is mapped, so it can be
+			 * unmapped.
+			 */
+			src_sg_start = src_sg;
+			src_sg = sg_next(src_sg);
+			break;
+		}
+
+		/* If whole SG is associated data iterate over it */
 		count -= min_t(size_t, (size_t)src_sg->length, (size_t)count);
-		/* Note: Assuming adata and pdata are in separate sgs */
 		src_sg = sg_next(src_sg);
-		dst_sg = sg_next(dst_sg);
 	}
 
 	 /* If there is associated GMAC operation would have saved result */
@@ -5717,22 +5775,21 @@ static int tegra_se_gcm_op(struct aead_request *req, bool encrypt)
 		req_ctx->init = true;
 
 	/* 1.2 Add plain text to src_ll list */
-	if (req->src == req->dst) {
-		se_dev->dst_ll = se_dev->src_ll;
-		ret = tegra_map_sg(se_dev->dev, src_sg, 1, DMA_BIDIRECTIONAL,
-					se_dev->src_ll, cryptlen);
-		if (!ret)
-			return ret;
-	} else {
-		ret = tegra_map_sg(se_dev->dev, src_sg, 1, DMA_TO_DEVICE,
-					se_dev->src_ll, cryptlen);
-		if (!ret)
-			return ret;
+	ret = tegra_map_sg(se_dev->dev, src_sg, 1, DMA_TO_DEVICE,
+				src_ll, cryptlen - mapped_cryptlen);
+	if (ret < 0)
+		goto free_dst_buf;
 
-		ret = tegra_map_sg(se_dev->dev, dst_sg, 1, DMA_FROM_DEVICE,
-					se_dev->dst_ll, cryptlen);
-		if (!ret)
-			return ret;
+	mapped_len += (cryptlen - mapped_cryptlen);
+
+	/* 1.3 Fill dst_ll list */
+	while (src_sg && cryptlen) {
+		dst_ll->addr = dst_buf_dma_addr + index;
+		dst_ll->data_len = src_ll->data_len;
+		index += dst_ll->data_len;
+		dst_ll++;
+		src_ll++;
+		src_sg = sg_next(src_sg);
 	}
 
 	/* 2. Encrypt/Decrypt using GCTR and perform GHASH on plain text */
@@ -5750,7 +5807,7 @@ static int tegra_se_gcm_op(struct aead_request *req, bool encrypt)
 	atomic_set(&se_dev->cmdbuf_addr_list[index].free, 0);
 	se_dev->cmdbuf_list_entry = index;
 
-	/* 2.2 Prepare and program J0 (i.e. iv || 0^31 || 1 )using IV */
+	/* 2.2 Prepare and program J0 (i.e. iv || 0^31 || 1) using IV */
 	memset(iv, 0, 16);
 	memcpy(iv, req->iv, 12);
 	iv[3] = (1 << 24);
@@ -5770,16 +5827,14 @@ static int tegra_se_gcm_op(struct aead_request *req, bool encrypt)
 	ret = tegra_se_channel_submit_gather(se_dev, cpuvaddr,
 			iova, 0, se_dev->cmdbuf_cnt, NONE);
 
-	/* 3 clean up */
-	atomic_set(&se_dev->cmdbuf_addr_list[index].free, 1);
 out:
-	if (req->src == req->dst) {
-		tegra_unmap_sg(se_dev->dev, src_sg, DMA_BIDIRECTIONAL,
-						cryptlen);
-	} else {
-		tegra_unmap_sg(se_dev->dev, src_sg, DMA_TO_DEVICE, cryptlen);
-		tegra_unmap_sg(se_dev->dev, dst_sg, DMA_FROM_DEVICE, cryptlen);
-	}
+	/* 3 clean up */
+	tegra_unmap_sg(se_dev->dev, src_sg_start, DMA_TO_DEVICE, mapped_len);
+	num_sgs = tegra_se_count_sgs(req->dst, assoclen + cryptlen);
+	sg_pcopy_from_buffer(req->dst, num_sgs, dst_buf, cryptlen,
+							assoclen);
+free_dst_buf:
+	dma_free_coherent(se_dev->dev, cryptlen+1, dst_buf, dst_buf_dma_addr);
 
 	return ret;
 }
@@ -5898,8 +5953,9 @@ static int tegra_se_gcm_final(struct aead_request *req, bool encrypt)
 	ret = tegra_se_channel_submit_gather(se_dev, cpuvaddr,
 			iova, 0, se_dev->cmdbuf_cnt, NONE);
 
-	/* 6 Clean up */
-	atomic_set(&se_dev->cmdbuf_addr_list[index].free, 1);
+	/* For zero length delay is required for now bug 200713489 */
+	if (cryptlen == 0)
+		udelay(250);
 
 	return ret;
 }
@@ -5957,9 +6013,11 @@ static int tegra_se_aes_gcm_encrypt(struct aead_request *req)
 	}
 
 	/* GMAC_ENC operation */
-	ret = tegra_se_gcm_op(req, ENCRYPT);
-	if (ret)
-		goto out;
+	if (req->cryptlen) {
+		ret = tegra_se_gcm_op(req, ENCRYPT);
+		if (ret)
+			goto out;
+	}
 
 	/* GMAC_FINAL operation */
 	ret = tegra_se_gcm_final(req, ENCRYPT);
@@ -5979,13 +6037,14 @@ out:
  *
  * Input:
  * initialization vector IV (whose length is supported).
- * plaintext P (whose length is supported).
+ * ciphertext C (whose length is supported).
  * additional authenticated data A (whose length is supported).
-
- * Output:
- * ciphertext C.
  * authentication tag T.
-
+ *
+ * Output:
+ * plaintext P.
+ * verify tag.
+ *
  * Steps:
  * 1. If the bit lengths of IV, A or C are not supported, or if len(T) ≠t,
  *    then return FAIL.
@@ -6028,9 +6087,11 @@ static int tegra_se_aes_gcm_decrypt(struct aead_request *req)
 			goto out;
 	}
 
-	ret = tegra_se_gcm_op(req, DECRYPT);
-	if (ret)
-		goto out;
+	if (req->cryptlen - req->assoclen) {
+		ret = tegra_se_gcm_op(req, DECRYPT);
+		if (ret)
+			goto out;
+	}
 
 	ret = tegra_se_gcm_final(req, DECRYPT);
 	if (ret)
