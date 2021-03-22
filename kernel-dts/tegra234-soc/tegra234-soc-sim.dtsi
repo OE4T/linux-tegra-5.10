@@ -115,7 +115,11 @@
 			status = "okay";
 		};
 
-		vi-thi@15f00000 {
+		vi0-thi@15f00000 {
+			status = "okay";
+		};
+
+		vi1-thi@14f00000 {
 			status = "okay";
 		};
 

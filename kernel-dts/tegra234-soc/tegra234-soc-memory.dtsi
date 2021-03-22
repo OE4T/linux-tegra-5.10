@@ -36,7 +36,7 @@
 			alignment = <0 0x1000>;
 			no-map;
 			status = "disabled";
-			cvdevs = <&nvdla0 &nvdla1 &pva0 &vi_thi &isp_thi>;
+			cvdevs = <&nvdla0 &nvdla1 &pva0 &vi0_thi &vi1_thi &isp_thi>;
 		};
 
 		ramoops_reserved: ramoops_carveout {
