@@ -30,6 +30,11 @@ DTC_INCLUDE += $(tegra-dtstree)/soc/t23x/kernel-dts
 DTC_INCLUDE += $(tegra-dtstree)/platform/t23x/common/kernel-dts
 endif
 
+ifeq ($(CONFIG_ARCH_TEGRA_239_SOC),y)
+DTC_INCLUDE += $(tegra-dtstree)/soc/t239/kernel-include
+DTC_INCLUDE += $(tegra-dtstree)/soc/t239/kernel-dts
+endif
+
 DTB_LIST := $(dtb-y)
 DTBO_LIST := $(dtbo-y)
 dtb-y :=
