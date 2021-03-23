@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -360,7 +360,13 @@ int test_pmu_early_init(struct unit_module *m,
 		unit_return_fail(m, "support_ls_pmu failed\n");
 	}
 
+	err = g->ops.pmu.ecc_init(g);
+
 	nvgpu_pmu_remove_support(g, g->pmu);
+
+	if (err != 0) {
+		unit_return_fail(m, "pmu ecc init failed\n");
+	}
 
 	/*
 	 * case 7: Adding branch coverage
@@ -368,6 +374,7 @@ int test_pmu_early_init(struct unit_module *m,
 	 * to true
 	 */
 	g->support_ls_pmu = true;
+	g->ecc.initialized = false;
 	g->ops.pmu.is_pmu_supported = stub_gv11b_is_pmu_supported;
 	err = nvgpu_pmu_early_init(g);
 
@@ -379,6 +386,7 @@ int test_pmu_early_init(struct unit_module *m,
 	 */
 
 	g->ops.pmu.ecc_init = NULL;
+	g->ops.pmu.ecc_free = NULL;
 	err =  nvgpu_pmu_early_init(g);
 
 	nvgpu_pmu_remove_support(g, g->pmu);

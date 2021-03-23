@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -208,7 +208,7 @@ static int pmu_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu )
 	pmu->sw_ready = true;
 exit:
 	if (err != 0) {
-		remove_pmu_support(pmu);
+		nvgpu_pmu_remove_support(g, pmu);
 	}
 
 	return err;

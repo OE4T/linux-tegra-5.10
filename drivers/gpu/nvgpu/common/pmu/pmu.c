@@ -150,6 +150,9 @@ void nvgpu_pmu_remove_support(struct gk20a *g, struct nvgpu_pmu *pmu)
 		}
 #endif
 		nvgpu_mutex_destroy(&pmu->isr_mutex);
+		if (g->ops.pmu.ecc_free != NULL) {
+			g->ops.pmu.ecc_free(g);
+		}
 		nvgpu_kfree(g, g->pmu);
 		g->pmu = NULL;
 	}
