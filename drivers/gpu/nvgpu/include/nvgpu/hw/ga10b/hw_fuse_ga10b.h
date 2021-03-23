@@ -66,6 +66,8 @@
 		(nvgpu_safe_add_u32(0x00820838U, nvgpu_safe_mult_u32((i), 4U)))
 #define fuse_ctrl_opt_ltc_fbp_r(i)\
 		(nvgpu_safe_add_u32(0x00820970U, nvgpu_safe_mult_u32((i), 4U)))
+#define fuse_ctrl_opt_gpc_r()                                      (0x0082081cU)
+#define fuse_ctrl_opt_fbp_r()                                      (0x00820938U)
 #define fuse_status_opt_fbio_r()                                   (0x00820c14U)
 #define fuse_status_opt_fbp_r()                                    (0x00820d38U)
 #define fuse_opt_ecc_en_r()                                        (0x00820228U)
