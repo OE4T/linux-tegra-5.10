@@ -148,6 +148,14 @@
 #define IVC_CHANNEL_TIMEOUT_CNT		50
 
 /**
+ * @brief Broadcast and MAC address macros
+ */
+#define ETHER_MAC_ADDRESS_INDEX		1
+#define ETHER_BC_ADDRESS_INDEX		0
+#define ETHER_ADDRESS_MAC		1
+#define ETHER_ADDRESS_BC		0
+
+/**
  * @brief Check if Tx data buffer length is within bounds.
  *
  * Algorithm: Check the data length if it is valid.
