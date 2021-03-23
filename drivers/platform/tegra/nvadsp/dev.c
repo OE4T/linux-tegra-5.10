@@ -3,7 +3,7 @@
  *
  * A device driver for ADSP and APE
  *
- * Copyright (C) 2014-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -173,8 +173,10 @@ static void nvadsp_bw_register(struct nvadsp_drv_data *drv_data)
 	default:
 #if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
 		/* Interconnect Support */
+#ifdef CONFIG_ARCH_TEGRA_23x_SOC
 		drv_data->icc_path_handle = icc_get(dev, TEGRA_ICC_APE,
 							TEGRA_ICC_PRIMARY);
+#endif
 		if (IS_ERR(drv_data->icc_path_handle)) {
 			dev_err(dev,
 			"%s: Failed to register Interconnect. err=%ld\n",

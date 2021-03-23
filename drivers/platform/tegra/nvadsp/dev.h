@@ -3,7 +3,7 @@
  *
  * A header file for Host driver for ADSP and APE
  *
- * Copyright (C) 2014-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -26,8 +26,10 @@
 
 #include <linux/platform/tegra/emc_bwmgr.h>
 #if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
+#ifdef CONFIG_ARCH_TEGRA_23x_SOC
 #include <linux/platform/tegra/mc_utils.h>
 #include <dt-bindings/interconnect/tegra_icc_id.h>
+#endif
 #include <linux/interconnect.h>
 #endif
 
@@ -95,7 +97,11 @@ enum adsp_unit_fpga_reset {
 #define ADSP_ACTMON_REG_START_OFFSET	0x800
 #define ADSP_ACTMON_REG_END_OFFSET	0x828
 #if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
+#ifdef CONFIG_ARCH_TEGRA_23x_SOC
 #define FREQ2ICC(x) (Bps_to_icc(emc_freq_to_bw(x)))
+#else
+#define FREQ2ICC(x) 0UL
+#endif
 #endif
 
 enum nvadsp_virqs {
