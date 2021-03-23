@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,21 +27,6 @@
 #ifdef __NVGPU_UNIT_TEST__
 #include <setjmp.h>
 #endif
-
-/**
- * Macro to be used upon identifying a buggy behaviour in the code.
- * Implementation is specific to OS.  For QNX and Posix implementation
- * refer to nvgpu_posix_bug.
- */
-#define BUG()		nvgpu_posix_bug(__func__, __LINE__)
-
-/** Macro to handle a buggy code only upon meeting the condition. */
-#define BUG_ON(cond)				\
-	do {					\
-		if (cond) {			\
-			BUG();			\
-		}				\
-	} while (false)
 
 /** Define for issuing warning on condition with message. */
 #define WARN(cond, msg, arg...)			\
@@ -123,6 +108,23 @@ void nvgpu_bug_cb_longjmp(void *arg);
 		bug_result;					\
 	})
 #endif
+
+/**
+ * Macro to be used upon identifying a buggy behaviour in the code.
+ * Implementation is specific to OS.  For QNX and Posix implementation
+ * refer to nvgpu_posix_bug.
+ */
+#define BUG()		nvgpu_posix_bug(__func__, __LINE__)
+
+/** Define for issuing bug on condition with message. */
+#define BUG_ON(cond)	bug_on_internal(cond, __func__, __LINE__)
+
+static inline void bug_on_internal(bool cond, const char *func, int line)
+{
+	if (cond) {
+		nvgpu_posix_bug(func, line);
+	}
+}
 
 struct nvgpu_bug_cb;
 
