@@ -569,12 +569,12 @@ static int mgbe_update_mac_addr_low_high_reg(
 				const struct osi_filter *filter)
 {
 	nveu32_t idx = filter->index;
-	nveu32_t dma_routing_enable = filter->dma_routing;
 	nveu32_t dma_chan = filter->dma_chan;
 	nveu32_t addr_mask = filter->addr_mask;
 	nveu32_t src_dest = filter->src_dest;
 	const nveu8_t *addr = filter->mac_address;
 	nveu32_t dma_chansel = filter->dma_chansel;
+	nveu32_t xdcs_check;
 	nveu32_t value = 0x0U;
 	nve32_t ret = 0;
 
@@ -584,20 +584,44 @@ static int mgbe_update_mac_addr_low_high_reg(
 		return -1;
 	}
 
-	/* High address clean should happen for filter index >= 0 */
-	if (addr == OSI_NULL) {
-		osi_writela(osi_core, OSI_DISABLE,
-			    (unsigned char *)osi_core->base +
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+			   MGBE_MAC_ADDRH((idx)));
+
+	/* read current value at index preserve XDCS current value */
+	ret = mgbe_mac_indir_addr_read(osi_core,
+				       MGBE_MAC_DCHSEL,
+				       idx,
+				       &xdcs_check);
+	if (ret < 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "indirect register read failed\n", 0ULL);
+		return -1;
+	}
+
+	/* preserve last XDCS bits */
+	xdcs_check &= MGBE_MAC_XDCS_DMA_MAX;
+
+	/* High address reset DCS and AE bits  and XDCS in MAC_DChSel_IndReg */
+	if ((filter->oper_mode & OSI_OPER_ADDR_DEL) != OSI_NONE) {
+		xdcs_check &= ~OSI_BIT(dma_chan);
+		ret = mgbe_mac_indir_addr_write(osi_core, MGBE_MAC_DCHSEL,
+						idx, xdcs_check);
+		value &= ~(MGBE_MAC_ADDRH_DCS);
+
+		/* XDCS values is always maintained */
+		if (xdcs_check == OSI_DISABLE) {
+			value &= ~(MGBE_MAC_ADDRH_AE);
+		}
+
+		osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 			    MGBE_MAC_ADDRH((idx)));
 		return 0;
 	}
 
-	/* Add DMA channel to value if DCS enabled */
-	if ((dma_routing_enable == OSI_ENABLE) &&
-	    (osi_core->dcs_en == OSI_ENABLE)) {
-		value = ((dma_chan << MGBE_MAC_ADDRH_DCS_SHIFT) &
+	/* Add DMA channel to value in binary */
+	value = OSI_NONE;
+	value |= ((dma_chan << MGBE_MAC_ADDRH_DCS_SHIFT) &
 			 MGBE_MAC_ADDRH_DCS);
-	}
 
 	if (idx != 0U) {
 		/* Add Address mask */
@@ -622,14 +646,12 @@ static int mgbe_update_mac_addr_low_high_reg(
 		   (unsigned char *)osi_core->base +  MGBE_MAC_ADDRL((idx)));
 
 	/* Write XDCS configuration into MAC_DChSel_IndReg(x) */
-	if (dma_routing_enable == OSI_ENABLE) {
-		/* Append DCS DMA channel to XDCS hot bit selection */
-		dma_chansel |= (OSI_ENABLE << dma_chan);
-		ret = mgbe_mac_indir_addr_write(osi_core,
-						MGBE_MAC_DCHSEL,
-						idx,
-						dma_chansel);
-	}
+	/* Append DCS DMA channel to XDCS hot bit selection */
+	xdcs_check |= (OSI_BIT(dma_chan) | dma_chansel);
+	ret = mgbe_mac_indir_addr_write(osi_core,
+					MGBE_MAC_DCHSEL,
+					idx,
+					xdcs_check);
 
 	return ret;
 }
@@ -2505,20 +2527,6 @@ static int mgbe_configure_mac(struct osi_core_priv_data *osi_core)
 {
 	unsigned int value = 0U, max_queue = 0U, i = 0U;
 
-	/* Update MAC address 0 high */
-	value = (((nveu32_t)osi_core->mac_addr[5] << 8U) |
-		 ((nveu32_t)osi_core->mac_addr[4]));
-	osi_writela(osi_core, value,
-		    (nveu8_t *)osi_core->base + MGBE_MAC_MA0HR);
-
-	/* Update MAC address 0 Low */
-	value = (((nveu32_t)osi_core->mac_addr[3] << 24U) |
-		 ((nveu32_t)osi_core->mac_addr[2] << 16U) |
-		 ((nveu32_t)osi_core->mac_addr[1] << 8U)  |
-		 ((nveu32_t)osi_core->mac_addr[0]));
-	osi_writela(osi_core, value,
-		    (nveu8_t *)osi_core->base + MGBE_MAC_MA0LR);
-
 	/* TODO: Need to check if we need to enable anything in Tx configuration
 	 * value = osi_readla(osi_core,
 			      (nveu8_t *)osi_core->base + MGBE_MAC_TMCR);
@@ -2997,10 +3005,10 @@ static nve32_t mgbe_core_init(struct osi_core_priv_data *osi_core,
 	osi_writela(osi_core, value, (unsigned char *)osi_core->base +
 		   MGBE_MTL_RXQ_DMA_MAP2);
 
-	/* Enable XDCS in MAC_Extended_Configuration, enable with @rakesh CL */
+	/* Enable XDCS in MAC_Extended_Configuration */
 	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			  MGBE_MAC_EXT_CNF);
-	//value |= MGBE_MAC_EXT_CNF_DDS;
+	value |= MGBE_MAC_EXT_CNF_DDS;
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base +
 		   MGBE_MAC_EXT_CNF);
 

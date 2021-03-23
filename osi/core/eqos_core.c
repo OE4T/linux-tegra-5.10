@@ -1480,7 +1480,6 @@ static void eqos_configure_rxq_priority(
  * Algorithm:
  *  - This takes care of configuring the  below
  *  parameters for the MAC
- *    - Programming the MAC address
  *    - Enable required MAC control fields in MCR
  *    - Enable JE/JD/WD/GPSLCE based on the MTU size
  *    - Enable Multicast and Broadcast Queue
@@ -1499,23 +1498,8 @@ static void eqos_configure_rxq_priority(
  */
 static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 {
-	nveu32_t value, i = 0U, max_queue = 0U;
+	nveu32_t value;
 	nveu32_t mac_ext;
-
-	/* Update MAC address 0 high */
-	value = (((nveu32_t)osi_core->mac_addr[5] << 8U) |
-		 ((nveu32_t)osi_core->mac_addr[4]));
-	eqos_core_safety_writel(osi_core, value,
-				(nveu8_t *)osi_core->base +
-				EQOS_MAC_MA0HR, EQOS_MAC_MA0HR_IDX);
-
-	/* Update MAC address 0 Low */
-	value = (((nveu32_t)osi_core->mac_addr[3] << 24U) |
-		 ((nveu32_t)osi_core->mac_addr[2] << 16U) |
-		 ((nveu32_t)osi_core->mac_addr[1] << 8U)  |
-		 ((nveu32_t)osi_core->mac_addr[0]));
-	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
-				EQOS_MAC_MA0LR, EQOS_MAC_MA0LR_IDX);
 
 	/* Read MAC Configuration Register */
 	value = osi_readla(osi_core,
@@ -1551,28 +1535,27 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_MCR, EQOS_MAC_MCR_IDX);
 
-	value = osi_readla(osi_core,
-			   (unsigned char *)osi_core->base + EQOS_MAC_EXTR);
-	/* TODO: Re-enable PDC along with packet duplication */
-	/* value |= EQOS_MAC_EXTR_PDC; */
-	osi_writela(osi_core, value,
-		    (unsigned char *)osi_core->base + EQOS_MAC_EXTR);
+	/* enable Packet Duplication Control */
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
+	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_00) {
+		value |= EQOS_MAC_EXTR_PDC;
+	}
+	/* Write to MAC Extension Register */
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
 
 	/* Enable Multicast and Broadcast Queue, default is Q0 */
 	value = osi_readla(osi_core,
 			   (nveu8_t *)osi_core->base + EQOS_MAC_RQC1R);
 	value |= EQOS_MAC_RQC1R_MCBCQEN;
-	/* Set MCBCQ to highest enabled RX queue index */
-	for (i = 0; i < osi_core->num_mtl_queues; i++) {
-		if ((max_queue < osi_core->mtl_queues[i]) &&
-		    (osi_core->mtl_queues[i] < OSI_MGBE_MAX_NUM_QUEUES)) {
-			/* Update max queue number */
-			max_queue = osi_core->mtl_queues[i];
-		}
-	}
+
+	/* Routing Multicast and Broadcast depending on mac version */
 	value &= ~(EQOS_MAC_RQC1R_MCBCQ);
-	value |= (max_queue << EQOS_MAC_RQC1R_MCBCQ_SHIFT);
-	eqos_core_safety_writel(osi_core, value, (unsigned char *)osi_core->base +
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00) {
+		value |= EQOS_MAC_RQC1R_MCBCQ7 << EQOS_MAC_RQC1R_MCBCQ_SHIFT;
+	} else {
+		value |= EQOS_MAC_RQC1R_MCBCQ3 << EQOS_MAC_RQC1R_MCBCQ_SHIFT;
+	}
+	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_RQC1R, EQOS_MAC_RQC1R_IDX);
 
 	/* Disable all MMC interrupts */
@@ -2550,13 +2533,12 @@ static nve32_t eqos_config_mac_pkt_filter_reg(
  * @note
  * Algorithm:
  *  - This helper routine is to update passed parameter value
- *  based on DCS and MBC parameter. Validation of dma_chan as well as
- *  dsc_en status performed before updating DCS bits.
+ *  based on DCS and MBC parameter. Validation of dsc_en status performed
+ *  before updating DCS bits.
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[out] value: nveu32_t pointer which has value read from register.
  * @param[in] idx: filter index
- * @param[in] dma_routing_enable: dma channel routing enable(1)
  * @param[in] dma_chan: dma channel number
  * @param[in] addr_mask: filter will not consider byte in comparison
  *            Bit 5: MAC_Address${i}_High[15:8]
@@ -2564,6 +2546,7 @@ static nve32_t eqos_config_mac_pkt_filter_reg(
  *            Bit 3: MAC_Address${i}_Low[31:24]
  *            ..
  *            Bit 0: MAC_Address${i}_Low[7:0]
+ * @pram[in] src_dest: Source/Destination Address match
  *
  * @pre
  *  - MAC should be initialized and started. see osi_start_mac()
@@ -2579,30 +2562,32 @@ static nve32_t eqos_config_mac_pkt_filter_reg(
  * @retval -1 on failure.
  */
 static inline nve32_t eqos_update_mac_addr_helper(
-				struct osi_core_priv_data *const osi_core,
+				const struct osi_core_priv_data *osi_core,
 				nveu32_t *value,
 				const nveu32_t idx,
-				const nveu32_t dma_routing_enable,
 				const nveu32_t dma_chan,
-				const nveu32_t addr_mask)
+				const nveu32_t addr_mask,
+				const nveu32_t src_dest)
 {
-	/* PDC bit of MAC_Ext_Configuration register is not set so binary
-	 * value representation.
+	nveu32_t temp;
+
+	/* PDC bit of MAC_Ext_Configuration register is set so binary
+	 * value representation form index 32-127 else hot-bit
+	 * representation.
 	 */
-	if (dma_routing_enable == OSI_ENABLE) {
-		if ((dma_chan < OSI_EQOS_MAX_NUM_CHANS) &&
-		    (osi_core->dcs_en == OSI_ENABLE)) {
-			*value = ((dma_chan << EQOS_MAC_ADDRH_DCS_SHIFT) &
-				  EQOS_MAC_ADDRH_DCS);
-		} else if ((dma_chan == OSI_CHAN_ANY) ||
-			   (dma_chan > (OSI_EQOS_MAX_NUM_CHANS - 0x1U))) {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_OUTOFBOUND,
-				     "invalid dma channel\n",
-				     (nveul64_t)dma_chan);
-			return -1;
-		} else {
-		/* Do nothing */
-		}
+	if ((idx < EQOS_MAX_MAC_ADDR_REG) &&
+	    (osi_core->mac_ver >= OSI_EQOS_MAC_5_00)) {
+		*value &= EQOS_MAC_ADDRH_DCS;
+		temp = OSI_BIT(dma_chan);
+		temp = temp << EQOS_MAC_ADDRH_DCS_SHIFT;
+		temp = temp & EQOS_MAC_ADDRH_DCS;
+		*value = *value | temp;
+	} else {
+		*value = OSI_DISABLE;
+		temp = dma_chan;
+		temp = temp << EQOS_MAC_ADDRH_DCS_SHIFT;
+		temp = temp & EQOS_MAC_ADDRH_DCS;
+		*value = temp;
 	}
 
 	/* Address mask is valid for address 1 to 31 index only */
@@ -2621,6 +2606,71 @@ static inline nve32_t eqos_update_mac_addr_helper(
 	}
 
 	return 0;
+}
+
+/**
+ * @brief eqos_l2_filter_delete - Function to delete L2 filter
+ *
+ * @note
+ * Algorithm:
+ *  - This helper routine is to delete L2 filter based on DCS and MBC
+ *    parameter.
+ *  - Handling for EQOS mac version 4.10 differently.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[out] value: nveu32_t pointer which has value read from register.
+ * @param[in] idx: filter index
+ * @param[in] dma_routing_enable: dma channel routing enable(1)
+ * @param[in] dma_chan: dma channel number
+ *
+ * @pre
+ *  - MAC should be initialized and started. see osi_start_mac()
+ *  - osi_core->osd should be populated.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: No
+ */
+static void eqos_l2_filter_delete(struct osi_core_priv_data *osi_core,
+				  nveu32_t *value,
+				  const nveu32_t idx,
+				  const nveu32_t dma_routing_enable,
+				  const nveu32_t dma_chan)
+{
+	nveu32_t dcs_check = *value;
+	nveu32_t temp = OSI_DISABLE;
+
+	if (dma_routing_enable == OSI_DISABLE ||
+	    osi_core->mac_ver < OSI_EQOS_MAC_5_00) {
+		*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
+		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_ADDRH((idx)));
+		return;
+	}
+
+	dcs_check &= EQOS_MAC_ADDRH_DCS;
+	dcs_check = dcs_check >> EQOS_MAC_ADDRH_DCS_SHIFT;
+
+	if (idx >= EQOS_MAX_MAC_ADDR_REG) {
+		dcs_check = OSI_DISABLE;
+	} else {
+		temp = OSI_BIT(dma_chan);
+		dcs_check &= ~(temp);
+	}
+
+	if (dcs_check == OSI_DISABLE) {
+		*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
+		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_ADDRH((idx)));
+	} else {
+		*value |= (dcs_check << EQOS_MAC_ADDRH_DCS_SHIFT);
+		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
+			    EQOS_MAC_ADDRH((idx)));
+	}
+
+	return;
 }
 
 /**
@@ -2659,34 +2709,46 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 	nveu32_t dma_chan = filter->dma_chan;
 	nveu32_t addr_mask = filter->addr_mask;
 	nveu32_t src_dest = filter->src_dest;
-	nveu32_t value = 0x0U;
+	nveu32_t value = OSI_DISABLE;
 	nve32_t ret = 0;
 
-	if (idx > (EQOS_MAX_MAC_ADDRESS_FILTER -  0x1U)) {
+	if ((idx > (EQOS_MAX_MAC_ADDRESS_FILTER -  0x1U)) ||
+	    (dma_chan >= OSI_EQOS_MAX_NUM_CHANS)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
-			     "invalid MAC filter index\n", 0ULL);
+			     "invalid MAC filter index or channel number\n",
+			     0ULL);
 		return -1;
 	}
 
-	ret = eqos_update_mac_addr_helper(osi_core, &value, idx,
-					  dma_routing_enable, dma_chan,
-					  addr_mask);
+	/* read current value at index preserve DCS current value */
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base +
+			   EQOS_MAC_ADDRH((idx)));
+
+	/* High address reset DCS and AE bits*/
+	if ((filter->oper_mode & OSI_OPER_ADDR_DEL) != OSI_NONE) {
+		eqos_l2_filter_delete(osi_core, &value, idx, dma_routing_enable,
+				      dma_chan);
+		return 0;
+	}
+
+	ret = eqos_update_mac_addr_helper(osi_core, &value, idx, dma_chan,
+					  addr_mask, src_dest);
 	/* Check return value from helper code */
 	if (ret == -1) {
 		return ret;
-	}
-
-	/* Setting Source/Destination Address match valid for 1 to 32 index */
-	if (((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) &&
-	    ((src_dest == OSI_SA_MATCH) || (src_dest == OSI_DA_MATCH))) {
-		value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
-			EQOS_MAC_ADDRH_SA));
 	}
 
 	/* Update AE bit if OSI_OPER_ADDR_UPDATE is set */
 	if ((filter->oper_mode & OSI_OPER_ADDR_UPDATE) ==
 	     OSI_OPER_ADDR_UPDATE) {
 		value |= EQOS_MAC_ADDRH_AE;
+	}
+
+	/* Setting Source/Destination Address match valid for 1 to 32 index */
+	if (((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) &&
+	    (src_dest <= OSI_SA_MATCH)) {
+		value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
+				  EQOS_MAC_ADDRH_SA));
 	}
 
 	osi_writela(osi_core, ((nveu32_t)filter->mac_address[4] |
