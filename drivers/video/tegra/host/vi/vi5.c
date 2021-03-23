@@ -1,7 +1,7 @@
 /*
- * VI5 driver for T194
+ * VI5 driver
  *
- * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -89,7 +89,7 @@ static int vi5_alloc_syncpt(struct platform_device *pdev,
 {
 	struct host_vi5 *vi5 = nvhost_get_private_data(pdev);
 
-	return t194_capture_alloc_syncpt(vi5->vi_thi, name, syncpt_id);
+	return capture_alloc_syncpt(vi5->vi_thi, name, syncpt_id);
 }
 
 int nvhost_vi5_aggregate_constraints(struct platform_device *dev,
@@ -118,7 +118,7 @@ static void vi5_release_syncpt(struct platform_device *pdev, uint32_t id)
 {
 	struct host_vi5 *vi5 = nvhost_get_private_data(pdev);
 
-	t194_capture_release_syncpt(vi5->vi_thi, id);
+	capture_release_syncpt(vi5->vi_thi, id);
 }
 
 static void vi5_get_gos_table(struct platform_device *pdev, int *count,
@@ -126,7 +126,7 @@ static void vi5_get_gos_table(struct platform_device *pdev, int *count,
 {
 	struct host_vi5 *vi5 = nvhost_get_private_data(pdev);
 
-	t194_capture_get_gos_table(vi5->vi_thi, count, table);
+	capture_get_gos_table(vi5->vi_thi, count, table);
 }
 
 static int vi5_get_syncpt_gos_backing(struct platform_device *pdev,
@@ -137,7 +137,7 @@ static int vi5_get_syncpt_gos_backing(struct platform_device *pdev,
 {
 	struct host_vi5 *vi5 = nvhost_get_private_data(pdev);
 
-	return t194_capture_get_syncpt_gos_backing(vi5->vi_thi, id,
+	return capture_get_syncpt_gos_backing(vi5->vi_thi, id,
 				syncpt_addr, gos_index, gos_offset);
 }
 
@@ -313,16 +313,7 @@ static const struct of_device_id tegra_vi5_of_match[] = {
 		.data = &t19_vi5_info,
 	},
 #if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
-	{
-		.name = "vi0",
-		.compatible = "nvidia,tegra234-vi",
-		.data = &t23x_vi0_info,
-	},
-	{
-		.name = "vi1",
-		.compatible = "nvidia,tegra234-vi",
-		.data = &t23x_vi1_info,
-	},
+#include "vi/vi5-t23x.h"
 #endif
 	{ },
 };

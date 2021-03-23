@@ -8,3 +8,9 @@ ccflags-y += -Werror
 nvhost-capture-objs = capture-support.o
 
 obj-$(CONFIG_TEGRA_GRHOST) += nvhost-capture.o
+
+ifdef CONFIG_TEGRA_T23X_GRHOST
+
+ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
+
+endif

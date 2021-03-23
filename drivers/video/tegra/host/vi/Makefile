@@ -17,6 +17,5 @@ obj-$(CONFIG_VIDEO_TEGRA_VI) += nvhost-vi5.o
 ifdef CONFIG_TEGRA_T23X_GRHOST
 
 ccflags-y += -I$(srctree.nvidia-t23x)/drivers/video/tegra/host
-ccflags-y += -Werror
 
 endif

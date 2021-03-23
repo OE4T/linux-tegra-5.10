@@ -1,7 +1,7 @@
 /*
- * ISP5 driver for T194
+ * ISP5 driver
  *
- * Copyright (c) 2017-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -66,14 +66,14 @@ static int isp5_alloc_syncpt(struct platform_device *pdev,
 {
 	struct host_isp5 *isp5 = nvhost_get_private_data(pdev);
 
-	return t194_capture_alloc_syncpt(isp5->isp_thi, name, syncpt_id);
+	return capture_alloc_syncpt(isp5->isp_thi, name, syncpt_id);
 }
 
 static void isp5_release_syncpt(struct platform_device *pdev, uint32_t id)
 {
 	struct host_isp5 *isp5 = nvhost_get_private_data(pdev);
 
-	t194_capture_release_syncpt(isp5->isp_thi, id);
+	capture_release_syncpt(isp5->isp_thi, id);
 }
 
 static int isp5_get_syncpt_gos_backing(struct platform_device *pdev,
@@ -84,7 +84,7 @@ static int isp5_get_syncpt_gos_backing(struct platform_device *pdev,
 {
 	struct host_isp5 *isp5 = nvhost_get_private_data(pdev);
 
-	return t194_capture_get_syncpt_gos_backing(isp5->isp_thi, id,
+	return capture_get_syncpt_gos_backing(isp5->isp_thi, id,
 				syncpt_addr, gos_index, gos_offset);
 
 }
@@ -95,7 +95,7 @@ static uint32_t isp5_get_gos_table(struct platform_device *pdev,
 	struct host_isp5 *isp5 = nvhost_get_private_data(pdev);
 	uint32_t count;
 
-	t194_capture_get_gos_table(isp5->isp_thi, &count, table);
+	capture_get_gos_table(isp5->isp_thi, &count, table);
 
 	return count;
 }
