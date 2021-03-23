@@ -1700,6 +1700,74 @@ static void power_ungate(struct ether_priv_data *pdata)
 
 
 /**
+ * @brief function to set unicast/Broadcast MAC address filter
+ *
+ * Algorithm: algo to add Unicast MAC/Broadcast address in L2 filter register
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ * @param[in] ioctl_data: OSI IOCTL data structure.
+ * @param[in] en_dis: enable(1)/disable(0) L2 filter.
+ * @param[in] uc_bc: MAC address(1)/ Broadcast address(0).
+ *
+ * @note Ethernet driver probe need to be completed successfully
+ * with ethernet network device created.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_update_mac_addr_filter(struct ether_priv_data *pdata,
+					struct osi_ioctl *ioctl_data,
+					unsigned int en_dis,
+					unsigned int uc_bc)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	nveu32_t dma_channel = osi_dma->dma_chans[0];
+	unsigned char bc_addr[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+
+	if ((en_dis > OSI_ENABLE) || (uc_bc > ETHER_ADDRESS_MAC)) {
+		dev_err(pdata->dev,
+			"%s(): wrong argument en_dis=0x%01x, uc_bc=0x%01x\n",
+		       __func__, en_dis, uc_bc);
+		return -1;
+	}
+
+	memset(&ioctl_data->l2_filter, 0x0, sizeof(struct osi_filter));
+	/* Set MAC address with DCS set to route all legacy Rx
+	 * packets from RxQ0 to default DMA at index 0.
+	 */
+	ioctl_data->l2_filter.oper_mode = (OSI_OPER_EN_PERFECT |
+					   OSI_OPER_DIS_PROMISC |
+					   OSI_OPER_DIS_ALLMULTI);
+	if (en_dis == OSI_ENABLE) {
+		ioctl_data->l2_filter.oper_mode |= OSI_OPER_ADDR_UPDATE;
+	} else {
+		ioctl_data->l2_filter.oper_mode |= OSI_OPER_ADDR_DEL;
+	}
+
+	if (uc_bc == ETHER_ADDRESS_MAC) {
+		ioctl_data->l2_filter.index = ETHER_MAC_ADDRESS_INDEX;
+		memcpy(ioctl_data->l2_filter.mac_address, osi_core->mac_addr,
+		       ETH_ALEN);
+	} else {
+		if (osi_dma->num_dma_chans > 1) {
+			dma_channel = osi_dma->dma_chans[1];
+		} else {
+			dma_channel = osi_dma->dma_chans[0];
+		}
+		ioctl_data->l2_filter.index = ETHER_BC_ADDRESS_INDEX;
+		memcpy(ioctl_data->l2_filter.mac_address, bc_addr, ETH_ALEN);
+	}
+	ioctl_data->l2_filter.dma_routing = OSI_ENABLE;
+	ioctl_data->l2_filter.dma_chan = dma_channel;
+	ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
+	ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
+	ioctl_data->cmd = OSI_CMD_L2_FILTER;
+
+	return osi_handle_ioctl(osi_core, ioctl_data);
+}
+
+/**
  * @brief Call back to handle bring up of Ethernet interface
  *
  * Algorithm: This routine takes care of below
@@ -1804,6 +1872,20 @@ static int ether_open(struct net_device *dev)
 		dev_err(pdata->dev,
 			"%s: failed to initialize MAC HW core with reason %d\n",
 			__func__, ret);
+		goto err_hw_init;
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
+					   ETHER_ADDRESS_MAC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set MAC address\n");
+		goto err_hw_init;
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
+					   ETHER_ADDRESS_BC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set BC address\n");
 		goto err_hw_init;
 	}
 
@@ -1937,6 +2019,63 @@ static inline void ether_reset_stats(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief Delete L2 filters from HW register when interface is down
+ *
+ *  Algorithm: This routine takes care of below
+ *  - Remove MAC address filter
+ *  - Remove BC address filter (remove DMA channel form DCS field)
+ *  - Remove all L2 filters
+ *
+ * @param[in] pdata: Pointer to private data structure.
+ *
+ * @note  MAC Interface need to be registered.
+ */
+static inline void ether_delete_l2_filter(struct ether_priv_data *pdata)
+{
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	struct osi_ioctl ioctl_data = {};
+	int ret, i;
+
+	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
+					   ETHER_ADDRESS_MAC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "issue in deleting MAC address\n");
+	}
+
+	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
+					   ETHER_ADDRESS_BC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "issue in deleting BC address\n");
+	}
+
+	/* Loop to delete l2 address list filters */
+	for (i = ETHER_MAC_ADDRESS_INDEX + 1; i <= pdata->last_filter_index;
+	     i++) {
+		/* Reset the filter structure to avoid any old value */
+		memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+		ioctl_data.l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
+		ioctl_data.l2_filter.index = i;
+		ioctl_data.l2_filter.dma_routing = OSI_ENABLE;
+		if (osi_dma->num_dma_chans > 1) {
+			ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[1];
+		} else {
+			ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[0];
+		}
+		ioctl_data.l2_filter.addr_mask = OSI_AMASK_DISABLE;
+		ioctl_data.l2_filter.src_dest = OSI_DA_MATCH;
+		ioctl_data.cmd = OSI_CMD_L2_FILTER;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		if (ret < 0) {
+			dev_err(pdata->dev,
+				"failed to delete L2 filter index = %d\n", i);
+		}
+	}
+}
+
+/**
  * @brief Call back to handle bring down of Ethernet interface
  *
  * Algorithm: This routine takes care of below
@@ -1953,7 +2092,7 @@ static inline void ether_reset_stats(struct ether_priv_data *pdata)
 static int ether_close(struct net_device *ndev)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
-	int ret = 0, i;
+	int i;
 	unsigned int chan = 0x0;
 
 	/* Unregister broadcasting MAC timestamp to clients */
@@ -1997,6 +2136,8 @@ static int ether_close(struct net_device *ndev)
 		}
 	}
 
+	ether_delete_l2_filter(pdata);
+
 	/* DMA De init */
 	osi_hw_dma_deinit(pdata->osi_dma);
 
@@ -2037,7 +2178,7 @@ static int ether_close(struct net_device *ndev)
 	/* Reset stats since interface is going down */
 	ether_reset_stats(pdata);
 
-	return ret;
+	return 0;
 }
 
 /**
@@ -2436,8 +2577,9 @@ static int ether_prepare_mc_list(struct net_device *dev,
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct netdev_hw_addr *ha;
-	unsigned int i = 1;
+	unsigned int i = ETHER_MAC_ADDRESS_INDEX + 1;
 	int ret = -1;
 
 	if (ioctl_data == NULL) {
@@ -2484,8 +2626,14 @@ static int ether_prepare_mc_list(struct net_device *dev,
 			ioctl_data->l2_filter.index = i;
 			memcpy(ioctl_data->l2_filter.mac_address, ha->addr,
 			       ETH_ALEN);
-			ioctl_data->l2_filter.dma_routing = OSI_DISABLE;
-			ioctl_data->l2_filter.dma_chan = 0x0;
+			ioctl_data->l2_filter.dma_routing = OSI_ENABLE;
+			if (osi_dma->num_dma_chans > 1) {
+				ioctl_data->l2_filter.dma_chan =
+							  osi_dma->dma_chans[1];
+			} else {
+				ioctl_data->l2_filter.dma_chan =
+							  osi_dma->dma_chans[0];
+			}
 			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
 			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
 			ioctl_data->cmd = OSI_CMD_L2_FILTER;
@@ -2528,6 +2676,7 @@ static int ether_prepare_uc_list(struct net_device *dev,
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	/* last valid MC/MAC DA + 1 should be start of UC addresses */
 	unsigned int i = pdata->last_filter_index + 1;
 	struct netdev_hw_addr *ha;
@@ -2574,15 +2723,22 @@ static int ether_prepare_uc_list(struct net_device *dev,
 			ioctl_data->l2_filter.index = i;
 			memcpy(ioctl_data->l2_filter.mac_address, ha->addr,
 			       ETH_ALEN);
-			ioctl_data->l2_filter.dma_routing = OSI_DISABLE;
-			ioctl_data->l2_filter.dma_chan = 0x0;
+			ioctl_data->l2_filter.dma_routing = OSI_ENABLE;
+			if (osi_dma->num_dma_chans > 1) {
+				ioctl_data->l2_filter.dma_chan =
+							  osi_dma->dma_chans[1];
+			} else {
+				ioctl_data->l2_filter.dma_chan =
+							  osi_dma->dma_chans[0];
+			}
 			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
 			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
 
 			ioctl_data->cmd = OSI_CMD_L2_FILTER;
 			ret = osi_handle_ioctl(osi_core, ioctl_data);
 			if (ret < 0) {
-				dev_err(pdata->dev, "issue in creating uc list\n");
+				dev_err(pdata->dev,
+					"issue in creating uc list\n");
 				pdata->last_filter_index = i - 1;
 				return ret;
 			}
@@ -2613,6 +2769,7 @@ void ether_set_rx_mode(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	/* store last call last_uc_filter_index in temporary variable */
 	int last_index = pdata->last_filter_index;
 	struct osi_ioctl ioctl_data = {};
@@ -2657,7 +2814,8 @@ void ether_set_rx_mode(struct net_device *dev)
 			dev_err(pdata->dev, "Setting MC address failed\n");
 		}
 	} else {
-		pdata->last_filter_index = 0;
+		/* start index after MAC and BC address index */
+		pdata->last_filter_index = ETHER_MAC_ADDRESS_INDEX;
 	}
 
 	if (!netdev_uc_empty(dev)) {
@@ -2666,14 +2824,18 @@ void ether_set_rx_mode(struct net_device *dev)
 		}
 	}
 
-	/* Reset the filter structure to avoid any old value */
-	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
 	/* invalidate remaining ealier address */
 	for (i = pdata->last_filter_index + 1; i <= last_index; i++) {
+		/* Reset the filter structure to avoid any old value */
+		memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
 		ioctl_data.l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
 		ioctl_data.l2_filter.index = i;
-		ioctl_data.l2_filter.dma_routing = OSI_DISABLE;
-		ioctl_data.l2_filter.dma_chan = OSI_CHAN_ANY;
+		ioctl_data.l2_filter.dma_routing = OSI_ENABLE;
+		if (osi_dma->num_dma_chans > 1) {
+			ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[1];
+		} else {
+			ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[0];
+		}
 		ioctl_data.l2_filter.addr_mask = OSI_AMASK_DISABLE;
 		ioctl_data.l2_filter.src_dest = OSI_DA_MATCH;
 		ioctl_data.cmd = OSI_CMD_L2_FILTER;
@@ -4875,6 +5037,7 @@ static int ether_suspend_noirq(struct device *dev)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct osi_ioctl ioctl_data = {};
 	unsigned int i = 0, chan = 0;
+	int ret;
 
 	if (!netif_running(ndev))
 		return 0;
@@ -4900,6 +5063,18 @@ static int ether_suspend_noirq(struct device *dev)
 
 	netif_tx_disable(ndev);
 	ether_napi_disable(pdata);
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
+					   ETHER_ADDRESS_MAC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "issue in deleting MAC address\n");
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_DISABLE,
+					   ETHER_ADDRESS_BC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "issue in deleting BC address\n");
+	}
 
 	osi_hw_dma_deinit(osi_dma);
 	osi_hw_core_deinit(osi_core);
@@ -4982,6 +5157,20 @@ static int ether_resume(struct ether_priv_data *pdata)
 			"%s: failed to initialize mac hw core with reason %d\n",
 			__func__, ret);
 		goto err_core;
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
+					   ETHER_ADDRESS_MAC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set MAC address\n");
+		goto err_dma;
+	}
+
+	ret = ether_update_mac_addr_filter(pdata, &ioctl_data, OSI_ENABLE,
+					   ETHER_ADDRESS_BC);
+	if (ret < 0) {
+		dev_err(pdata->dev, "failed to set BC address\n");
+		goto err_dma;
 	}
 
 	/* dma init */
