@@ -5,6 +5,13 @@ config ARCH_TEGRA_23x_SOC
 	help
 	  NVIDIA Tegra Downstream options for 23x family of SoCs
 
+config ARCH_TEGRA_239_SOC
+	bool "Tegra 239 family SOC (Downstream options)"
+	select PINCTRL
+	default n
+	help
+	  NVIDIA Tegra Downstream options for 239 family of SoCs
+
 config TEGRA_PSC
 	tristate "NVIDIA Tegra Option for PSC module"
 	depends on ARCH_TEGRA_23x_SOC
