@@ -185,13 +185,13 @@ typedef struct ivc_msg_common {
 		 */
 		struct osi_ioctl ioctl_data;
 	}data;
-} ivc_msg_common;
+} ivc_msg_common_t;
 
 /**
  * @brief osd_ivc_send_cmd - OSD ivc send cmd
  *
  * @param[in] priv: OSD private data
- * @param[in] data: data
+ * @param[in] ivc_buf: ivc_msg_common structure
  * @param[in] len: length of data
  * @note
  * API Group:
@@ -202,7 +202,8 @@ typedef struct ivc_msg_common {
  * @retval ivc status
  * @retval -1 on failure
  */
-nve32_t osd_ivc_send_cmd(void *priv, void *data, nveu32_t len);
+nve32_t osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf,
+			 nveu32_t len);
 
 /**
  * @brief ivc_get_core_safety_config - Get core safety config

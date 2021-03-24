@@ -277,7 +277,7 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 	}
 
 	l_dma->mac_ver = osi_readl((nveu8_t *)osi_dma->base + MAC_VERSION) &
-				  MAC_VERSION_SNVER_MASK;
+				   MAC_VERSION_SNVER_MASK;
 	if (is_valid_mac_version(l_dma->mac_ver) == 0) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "Invalid MAC version\n", (nveu64_t)l_dma->mac_ver);
