@@ -391,15 +391,11 @@ int nvgpu_vm_mapping_modify(struct vm_gk20a *vm,
 		goto out;
 	}
 
-	if (buffer_offset >= mapped_buffer->size) {
-		nvgpu_err(g, "buffer_offset 0x%llx exceeds buffer size 0x%llx",
-			buffer_size, mapped_buffer->size);
-		goto out;
-	}
-
-	if (buffer_offset + buffer_size > mapped_buffer->size) {
-		nvgpu_err(g, "buffer end 0x%llx exceeds buffer size 0x%llx",
-			buffer_offset + buffer_size, mapped_buffer->size);
+	if ((buffer_size > mapped_buffer->size) ||
+			((mapped_buffer->size - buffer_size) < buffer_offset)) {
+		nvgpu_err(g,
+			"buffer end exceeds buffer size. 0x%llx + 0x%llx > 0x%llx",
+			buffer_offset, buffer_size, mapped_buffer->size);
 		goto out;
 	}
 
