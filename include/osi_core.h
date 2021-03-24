@@ -26,6 +26,7 @@
 #include <osi_common.h>
 #include "mmc.h"
 
+struct ivc_msg_common;
 /**
  * @addtogroup typedef related info
  *
@@ -954,7 +955,8 @@ struct osd_core_ops {
 	/** msleep callback */
 	void (*msleep)(nveu32_t msec);
 	/** ivcsend callback*/
-	nve32_t (*ivc_send)(void *priv, void *data, nveu32_t len);
+	nve32_t (*ivc_send)(void *priv, struct ivc_msg_common *ivc,
+			    nveu32_t len);
 #ifdef MACSEC_SUPPORT
 	/** Program macsec key table through Trust Zone callback */
 	int (*macsec_tz_kt_config)(void *priv, unsigned char cmd,

@@ -471,13 +471,15 @@ struct osd_dma_ops {
 	/** DMA transmit complete callback */
 	void (*transmit_complete)(void *priv, void *buffer,
 				  nveu64_t dmaaddr, nveu32_t len,
-				  void *txdone_pkt_cx);
+				  struct osi_txdone_pkt_cx *txdone_pkt_cx);
 	/** DMA receive packet callback */
-	void (*receive_packet)(void *priv, void *rxring,
+	void (*receive_packet)(void *priv, struct osi_rx_ring *rx_ring,
 			       nveu32_t chan, nveu32_t dma_buf_len,
-			       void *rxpkt_cx, void *rx_pkt_swcx);
+			       struct osi_rx_pkt_cx *rx_pkt_cx,
+			       struct osi_rx_swcx *rx_swcx);
 	/** RX buffer reallocation callback */
-	void (*realloc_buf)(void *priv, void *rxring, nveu32_t chan);
+	void (*realloc_buf)(void *priv, struct osi_rx_ring *rx_ring,
+			    nveu32_t chan);
 	/**.ops_log function callback */
 	void (*ops_log)(void *priv, const nve8_t *func, nveu32_t line,
 			nveu32_t level, nveu32_t type, const nve8_t *err,

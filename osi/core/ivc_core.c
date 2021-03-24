@@ -59,7 +59,7 @@ static nve32_t ivc_config_fw_err_pkts(
 				   const nveu32_t fw_err)
 
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -91,7 +91,7 @@ static nve32_t ivc_config_fw_err_pkts(
  */
 static nve32_t ivc_poll_for_swr(struct osi_core_priv_data *const osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -118,7 +118,7 @@ static nve32_t ivc_poll_for_swr(struct osi_core_priv_data *const osi_core)
 static int ivc_set_speed(struct osi_core_priv_data *const osi_core,
 			  const nve32_t speed)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -151,7 +151,7 @@ static int ivc_set_speed(struct osi_core_priv_data *const osi_core,
 static nve32_t ivc_set_mode(struct osi_core_priv_data *const osi_core,
 			    const nve32_t mode)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -185,7 +185,7 @@ static nve32_t ivc_set_mode(struct osi_core_priv_data *const osi_core,
  */
 static nve32_t ivc_pad_calibrate(struct osi_core_priv_data *const osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -215,7 +215,7 @@ static nve32_t ivc_config_rxcsum_offload(
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t enabled)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -243,7 +243,7 @@ static nve32_t ivc_core_init(
 			  const nveu32_t tx_fifo_size,
 			  const nveu32_t rx_fifo_size)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -285,7 +285,7 @@ static nve32_t ivc_core_init(
 static void ivc_handle_common_intr(
 			struct osi_core_priv_data *const osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -312,7 +312,7 @@ static void ivc_handle_common_intr(
  */
 static void ivc_start_mac(struct osi_core_priv_data *const osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -338,7 +338,7 @@ static void ivc_start_mac(struct osi_core_priv_data *const osi_core)
  */
 static void ivc_stop_mac(struct osi_core_priv_data *const osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -368,7 +368,7 @@ static nve32_t ivc_config_mac_pkt_filter_reg(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter)
 {
-	ivc_msg_common msg_filter;
+	ivc_msg_common_t msg_filter;
 
 	osi_memset(&msg_filter, 0, sizeof(msg_filter));
 
@@ -376,7 +376,7 @@ static nve32_t ivc_config_mac_pkt_filter_reg(
 	osi_memcpy((void *)&msg_filter.data.filter,
 		   (void *)filter, sizeof(struct osi_filter));
 
-	return osi_core->osd_ops.ivc_send(osi_core, (char *)&msg_filter,
+	return osi_core->osd_ops.ivc_send(osi_core, &msg_filter,
 					  sizeof(msg_filter));
 }
 
@@ -400,7 +400,7 @@ static nve32_t ivc_update_mac_addr_low_high_reg(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_filter *filter)
 {
-	ivc_msg_common msg_filter;
+	ivc_msg_common_t msg_filter;
 
 	osi_memset(&msg_filter, 0, sizeof(msg_filter));
 
@@ -408,7 +408,7 @@ static nve32_t ivc_update_mac_addr_low_high_reg(
 	osi_memcpy((void *) &msg_filter.data.filter,
 		   (void *) filter, sizeof(struct osi_filter));
 
-	return osi_core->osd_ops.ivc_send(osi_core, (char *)&msg_filter,
+	return osi_core->osd_ops.ivc_send(osi_core, &msg_filter,
 					  sizeof(msg_filter));
 }
 
@@ -433,7 +433,7 @@ static nve32_t ivc_config_l3_l4_filter_enable(
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t filter_enb_dis)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -471,7 +471,7 @@ static nve32_t ivc_update_ip4_addr(
 				const nveu8_t addr[],
 				const nveu32_t src_dst_addr_match)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -510,7 +510,7 @@ static nve32_t ivc_update_ip6_addr(
 				const nveu32_t filter_no,
 				const nveu16_t addr[])
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -558,7 +558,7 @@ static nve32_t ivc_update_l4_port_no(
 				  const nveu16_t port_no,
 				  const nveu32_t src_dst_port_match)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -609,7 +609,7 @@ static nve32_t ivc_config_l3_filters(
 				  const nveu32_t dma_routing_enable,
 				  const nveu32_t dma_chan)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -662,7 +662,7 @@ static nve32_t ivc_config_l4_filters(
 				  const nveu32_t dma_routing_enable,
 				  const nveu32_t dma_chan)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -704,7 +704,7 @@ static nve32_t ivc_set_systime_to_mac(
 				   const nveu32_t sec,
 				   const nveu32_t nsec)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -738,7 +738,7 @@ static nve32_t ivc_set_systime_to_mac(
 static nve32_t ivc_config_addend(struct osi_core_priv_data *const osi_core,
 				 const nveu32_t addend)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -770,7 +770,7 @@ static nve32_t ivc_adjust_mactime(struct osi_core_priv_data *const osi_core,
 				  nveu32_t sec, nveu32_t nsec,
 				  nveu32_t add_sub, nveu32_t one_nsec_accuracy)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -797,7 +797,7 @@ static nve32_t ivc_adjust_mactime(struct osi_core_priv_data *const osi_core,
 static void ivc_config_tscr(struct osi_core_priv_data *const osi_core,
 			    const nveu32_t ptp_filter)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -820,7 +820,7 @@ static void ivc_config_tscr(struct osi_core_priv_data *const osi_core,
 static void ivc_config_ssir(struct osi_core_priv_data *const osi_core,
 			    const unsigned int ptp_clock)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -845,7 +845,7 @@ static void ivc_config_ssir(struct osi_core_priv_data *const osi_core,
  */
 static void ivc_read_mmc(struct osi_core_priv_data *osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -854,7 +854,7 @@ static void ivc_read_mmc(struct osi_core_priv_data *osi_core)
 	osi_core->osd_ops.ivc_send(osi_core, &msg_common,
 				   sizeof(msg_common));
 
-	osi_memcpy((void *)&osi_core->mmc, (void *)&msg_common.data.mmc,
+	osi_memcpy((void *)&osi_core->mmc, &msg_common.data.mmc,
 		   sizeof(struct osi_mmc_counters));
 }
 
@@ -889,7 +889,7 @@ static nve32_t ivc_write_phy_reg(struct osi_core_priv_data *const osi_core,
 				 const nveu32_t phyreg,
 				 const nveu16_t phydata)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -919,7 +919,7 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
 				struct osi_ioctl *data)
 {
 	nve32_t ret = 0;
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -949,7 +949,7 @@ static nve32_t ivc_read_phy_reg(struct osi_core_priv_data *const osi_core,
 				const nveu32_t phyaddr,
 				const nveu32_t phyreg)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -974,7 +974,7 @@ static nve32_t ivc_read_phy_reg(struct osi_core_priv_data *const osi_core,
  */
 static nveu32_t ivc_read_reg(struct osi_core_priv_data *const osi_core,
 			     const nve32_t reg) {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -999,7 +999,7 @@ static nveu32_t ivc_read_reg(struct osi_core_priv_data *const osi_core,
  */
 static nveu32_t ivc_write_reg(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t val, const nve32_t reg) {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1016,14 +1016,14 @@ static nveu32_t ivc_write_reg(struct osi_core_priv_data *const osi_core,
 static nve32_t ivc_get_hw_features(struct osi_core_priv_data *const osi_core,
 				   struct osi_hw_features *hw_feat)
 {
-	ivc_msg_common msg_hw_feat;
+	ivc_msg_common_t msg_hw_feat;
 	nve32_t ret = 0;
 
 	osi_memset(&msg_hw_feat, 0, sizeof(msg_hw_feat));
 
 	msg_hw_feat.cmd = get_hw_features;
 
-	ret = osi_core->osd_ops.ivc_send(osi_core, (char *)&msg_hw_feat,
+	ret = osi_core->osd_ops.ivc_send(osi_core, &msg_hw_feat,
 					 sizeof(msg_hw_feat));
 	if (ret != 0) {
 		return ret;
@@ -1057,7 +1057,7 @@ static nve32_t ivc_config_flow_control(
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t flw_ctrl)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1080,7 +1080,7 @@ static nve32_t ivc_config_flow_control(
  */
 static nve32_t ivc_validate_core_regs(struct osi_core_priv_data *const osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -1105,7 +1105,7 @@ static nve32_t ivc_config_rx_crc_check(
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t crc_chk)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1136,7 +1136,7 @@ static nve32_t ivc_flush_mtl_tx_queue(
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t qinx)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1163,7 +1163,7 @@ static nve32_t ivc_flush_mtl_tx_queue(
 static nve32_t ivc_config_tx_status(struct osi_core_priv_data *const osi_core,
 				    const nveu32_t tx_status)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1192,7 +1192,7 @@ static nve32_t ivc_set_avb_algorithm(
 				struct osi_core_priv_data *const osi_core,
 				const struct osi_core_avb_algorithm *const avb)
 {
-	ivc_msg_common msg_avb;
+	ivc_msg_common_t msg_avb;
 
 	osi_memset(&msg_avb, 0, sizeof(msg_avb));
 
@@ -1200,7 +1200,7 @@ static nve32_t ivc_set_avb_algorithm(
 	osi_memcpy((void *)&msg_avb.data.avb_algo, (void *)avb,
 		   sizeof(struct osi_core_avb_algorithm));
 
-	return osi_core->osd_ops.ivc_send(osi_core, (char *)&msg_avb,
+	return osi_core->osd_ops.ivc_send(osi_core, &msg_avb,
 					  sizeof(msg_avb));
 }
 
@@ -1219,7 +1219,7 @@ static nve32_t ivc_set_avb_algorithm(
 static nve32_t ivc_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
 				     struct osi_core_avb_algorithm *const avb)
 {
-	ivc_msg_common msg_avb;
+	ivc_msg_common_t msg_avb;
 
 	osi_memset(&msg_avb, 0, sizeof(msg_avb));
 
@@ -1227,7 +1227,7 @@ static nve32_t ivc_get_avb_algorithm(struct osi_core_priv_data *const osi_core,
 	osi_memcpy((void *) &msg_avb.data.avb_algo,
 		   (void *)avb, sizeof(struct osi_core_avb_algorithm));
 
-	return osi_core->osd_ops.ivc_send(osi_core, (char *)&msg_avb,
+	return osi_core->osd_ops.ivc_send(osi_core, &msg_avb,
 					  sizeof(msg_avb));
 }
 
@@ -1250,7 +1250,7 @@ static nve32_t ivc_config_arp_offload(
 				const nveu32_t enable,
 				const nveu8_t *ip_addr)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1285,7 +1285,7 @@ static nve32_t ivc_config_vlan_filtering(
 				const nveu32_t perfect_hash_filtering,
 				const nveu32_t perfect_inverse_match)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1315,7 +1315,7 @@ static inline nve32_t ivc_update_vlan_id(
 	/* Don't add VLAN ID to TR register which is eventually set TR
 	 * to 0x0 and allow all tagged packets
 	 */
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1340,7 +1340,7 @@ static inline nve32_t ivc_update_vlan_id(
  */
 static void ivc_reset_mmc(struct osi_core_priv_data *osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
@@ -1366,7 +1366,7 @@ static void ivc_configure_eee(struct osi_core_priv_data *const osi_core,
 			      const nveu32_t tx_lpi_enabled,
 			      const nveu32_t tx_lpi_timer)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1390,7 +1390,7 @@ static void ivc_configure_eee(struct osi_core_priv_data *const osi_core,
 static inline nve32_t ivc_save_registers(
 				struct osi_core_priv_data *const osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1412,7 +1412,7 @@ static inline nve32_t ivc_save_registers(
 static inline nve32_t ivc_restore_registers(
 				struct osi_core_priv_data *const osi_core)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1436,7 +1436,7 @@ static inline nve32_t ivc_restore_registers(
 static void ivc_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
 				 const nveu64_t csr_clk_rate)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
@@ -1464,7 +1464,7 @@ static nve32_t ivc_config_mac_loopback(
 				struct osi_core_priv_data *const osi_core,
 				const nveu32_t lb_mode)
 {
-	ivc_msg_common msg_common;
+	ivc_msg_common_t msg_common;
 	nve32_t index = 0;
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
