@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Virtualization Host functions for HOST1X
  *
- * Copyright (c) 2014-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -55,12 +55,12 @@ int vhost_virt_moduleid(int moduleid)
 		return TEGRA_VHOST_MODULE_HOST;
 	case NVHOST_MODULE_ISP:
 		return TEGRA_VHOST_MODULE_ISP;
-	case (1 << 16) | NVHOST_MODULE_ISP:
-		return (1 << 16) | TEGRA_VHOST_MODULE_ISP;
+	case NVHOST_MODULE_ISPB:
+		return TEGRA_VHOST_MODULE_ISPB;
 	case NVHOST_MODULE_VI:
 		return TEGRA_VHOST_MODULE_VI;
-	case (1 << 16) | NVHOST_MODULE_VI:
-		return (1 << 16) | TEGRA_VHOST_MODULE_VI;
+	case NVHOST_MODULE_VI2:
+		return TEGRA_VHOST_MODULE_VI2;
 	case NVHOST_MODULE_MSENC:
 		return TEGRA_VHOST_MODULE_MSENC;
 	case NVHOST_MODULE_VIC:
@@ -96,12 +96,12 @@ int vhost_moduleid_virt_to_hw(int moduleid)
 		return NVHOST_MODULE_NONE;
 	case TEGRA_VHOST_MODULE_ISP:
 		return NVHOST_MODULE_ISP;
-	case (1 << 16) | TEGRA_VHOST_MODULE_ISP:
-		return (1 << 16) | NVHOST_MODULE_ISP;
+	case TEGRA_VHOST_MODULE_ISPB:
+		return NVHOST_MODULE_ISPB;
 	case TEGRA_VHOST_MODULE_VI:
 		return NVHOST_MODULE_VI;
-	case (1 << 16) | TEGRA_VHOST_MODULE_VI:
-		return (1 << 16) | NVHOST_MODULE_VI;
+	case TEGRA_VHOST_MODULE_VI2:
+		return NVHOST_MODULE_VI2;
 	case TEGRA_VHOST_MODULE_MSENC:
 		return NVHOST_MODULE_MSENC;
 	case TEGRA_VHOST_MODULE_VIC:

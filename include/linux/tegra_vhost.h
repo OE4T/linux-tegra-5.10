@@ -1,7 +1,7 @@
 /*
  * Tegra Host Virtualization Interfaces to Server
  *
- * Copyright (c) 2014-2019, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,7 +24,9 @@ enum {
 	TEGRA_VHOST_MODULE_HOST = 1,
 	TEGRA_VHOST_MODULE_VIC,
 	TEGRA_VHOST_MODULE_VI,
+	TEGRA_VHOST_MODULE_VI2,
 	TEGRA_VHOST_MODULE_ISP,
+	TEGRA_VHOST_MODULE_ISPB,
 	TEGRA_VHOST_MODULE_MSENC,
 	TEGRA_VHOST_MODULE_NVDEC,
 	TEGRA_VHOST_MODULE_NVJPG,
@@ -36,6 +38,7 @@ enum {
 #if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
 	#include "linux/tegra_vhost_t23x.h"
 #endif /* CONFIG_TEGRA_T23X_GRHOST */
+	TEGRA_VHOST_MODULE_NONE
 };
 
 enum {

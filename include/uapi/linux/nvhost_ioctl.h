@@ -3,7 +3,7 @@
  *
  * Tegra graphics host driver
  *
- * Copyright (c) 2009-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2009-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -404,10 +404,13 @@ enum nvhost_module_id {
 	NVHOST_MODULE_DISPLAY_A = 0,
 	NVHOST_MODULE_DISPLAY_B,
 	NVHOST_MODULE_VI,
+	NVHOST_MODULE_VI2,
 	NVHOST_MODULE_ISP,
+	NVHOST_MODULE_ISPB,
 	NVHOST_MODULE_MPE,
 	NVHOST_MODULE_MSENC,
 	NVHOST_MODULE_TSEC,
+	NVHOST_MODULE_TSECB,
 	NVHOST_MODULE_GPU,
 	NVHOST_MODULE_VIC,
 	NVHOST_MODULE_NVDEC,
@@ -421,7 +424,7 @@ enum nvhost_module_id {
 	#include "uapi/linux/nvhost_ioctl_t23x.h"
 #endif /* CONFIG_TEGRA_T23X_GRHOST */
 #endif /* __KERNEL__ */
-	NVHOST_MODULE_TSECB = (1<<16) | NVHOST_MODULE_TSEC,
+	NVHOST_MODULE_INVALID
 };
 
 struct nvhost_characteristics {

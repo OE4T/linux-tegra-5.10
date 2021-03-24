@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T210 Architecture Chips
  *
- * Copyright (c) 2011-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -109,7 +109,7 @@ struct nvhost_device_data t21_isp_info = {
 
 struct nvhost_device_data t21_ispb_info = {
 	.num_channels		= 1,
-	.moduleid		= (1 << 16) | NVHOST_MODULE_ISP,
+	.moduleid		= NVHOST_MODULE_ISPB,
 	.devfs_name		= "isp.1",
 	.class			= NV_VIDEO_STREAMING_ISPB_CLASS_ID,
 	.modulemutexes		= {NVMODMUTEX_ISP_1},
