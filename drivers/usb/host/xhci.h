@@ -4,7 +4,7 @@
  * xHCI host controller driver
  *
  * Copyright (C) 2008 Intel Corp.
- * Copyright (c) 2018-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Sarah Sharp
  * Some code borrowed from the Linux EHCI driver.
@@ -1908,6 +1908,10 @@ struct xhci_hcd {
 	u16			test_mode;
 /* Compliance Mode Timer Triggered every 2 seconds */
 #define COMP_MODE_RCVRY_MSECS 2000
+
+	struct  work_struct	tegra_xhci_reinit_work;
+	bool	recovery_in_progress;
+	struct platform_device *pdev;
 
 	struct dentry		*debugfs_root;
 	struct dentry		*debugfs_slots;

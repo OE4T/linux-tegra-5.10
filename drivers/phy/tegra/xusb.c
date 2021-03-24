@@ -1484,6 +1484,40 @@ int tegra_xusb_padctl_set_vbus_override(struct tegra_xusb_padctl *padctl,
 }
 EXPORT_SYMBOL_GPL(tegra_xusb_padctl_set_vbus_override);
 
+int tegra_xusb_padctl_vbus_power_on(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane;
+	struct tegra_xusb_padctl *padctl;
+
+	if (!phy)
+		return 0;
+
+	lane = phy_get_drvdata(phy);
+	padctl = lane->pad->padctl;
+	if (padctl->soc->ops->vbus_power_on)
+		return padctl->soc->ops->vbus_power_on(phy);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_vbus_power_on);
+
+int tegra_xusb_padctl_vbus_power_off(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane;
+	struct tegra_xusb_padctl *padctl;
+
+	if (!phy)
+		return 0;
+
+	lane = phy_get_drvdata(phy);
+	padctl = lane->pad->padctl;
+	if (padctl->soc->ops->vbus_power_off)
+		return padctl->soc->ops->vbus_power_off(phy);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_xusb_padctl_vbus_power_off);
+
 void tegra_phy_xusb_utmi_pad_power_on(struct phy *phy)
 {
 	struct tegra_xusb_lane *lane;

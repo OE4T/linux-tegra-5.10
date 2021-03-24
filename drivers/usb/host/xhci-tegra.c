@@ -43,6 +43,12 @@
 
 #include "xhci.h"
 
+static bool en_hcd_reinit;
+module_param(en_hcd_reinit, bool, 0644);
+MODULE_PARM_DESC(en_hcd_reinit, "Enable hcd reinit when hc died");
+static void xhci_reinit_work(struct work_struct *work);
+static int tegra_xhci_hcd_reinit(struct usb_hcd *hcd);
+
 static bool max_burst_war_enable = true;
 module_param(max_burst_war_enable, bool, 0644);
 MODULE_PARM_DESC(max_burst_war_enable, "Max burst WAR");
@@ -383,6 +389,8 @@ struct tegra_xusb {
 
 	void __iomem *ipfs_base;
 	void __iomem *fpci_base;
+	resource_size_t fpci_start;
+	resource_size_t fpci_len;
 
 	const struct tegra_xusb_soc *soc;
 
@@ -399,6 +407,7 @@ struct tegra_xusb {
 	struct clk *pll_u_480m;
 	struct clk *clk_m;
 	struct clk *pll_e;
+	bool clk_enabled;
 
 	struct reset_control *host_rst;
 	struct reset_control *ss_rst;
@@ -1375,8 +1384,11 @@ static irqreturn_t tegra_xusb_mbox_irq(int irq, void *data)
 	/* read again to avoid spurious ARU SMI interrupt */
 	value2 = fpci_readl(tegra, XUSB_CFG_ARU_SMI_INTR);
 
-	if (value & MBOX_SMI_INTR_FW_HANG)
+	if (value & MBOX_SMI_INTR_FW_HANG) {
 		dev_err(tegra->dev, "controller error detected\n");
+		tegra_xhci_hcd_reinit(tegra->hcd);
+		return IRQ_HANDLED;
+	}
 
 	if (value & MBOX_SMI_INTR_EN)
 		return IRQ_WAKE_THREAD;
@@ -1605,6 +1617,9 @@ static int tegra_xusb_clk_enable(struct tegra_xusb *tegra)
 {
 	int err;
 
+	if (tegra->clk_enabled)
+		return 0;
+
 	err = clk_prepare_enable(tegra->pll_e);
 	if (err < 0)
 		return err;
@@ -1634,6 +1649,7 @@ static int tegra_xusb_clk_enable(struct tegra_xusb *tegra)
 		if (err < 0)
 			goto disable_hs_src;
 	}
+	tegra->clk_enabled = true;
 
 	return 0;
 
@@ -1654,12 +1670,15 @@ disable_plle:
 
 static void tegra_xusb_clk_disable(struct tegra_xusb *tegra)
 {
-	clk_disable_unprepare(tegra->pll_e);
-	clk_disable_unprepare(tegra->host_clk);
-	clk_disable_unprepare(tegra->ss_clk);
-	clk_disable_unprepare(tegra->falcon_clk);
-	clk_disable_unprepare(tegra->fs_src_clk);
-	clk_disable_unprepare(tegra->hs_src_clk);
+	if (tegra->clk_enabled) {
+		clk_disable_unprepare(tegra->pll_e);
+		clk_disable_unprepare(tegra->host_clk);
+		clk_disable_unprepare(tegra->ss_clk);
+		clk_disable_unprepare(tegra->falcon_clk);
+		clk_disable_unprepare(tegra->fs_src_clk);
+		clk_disable_unprepare(tegra->hs_src_clk);
+		tegra->clk_enabled = false;
+	}
 }
 
 static int tegra_xusb_phy_enable(struct tegra_xusb *tegra)
@@ -2125,6 +2144,9 @@ static void tegra_xhci_id_work(struct work_struct *work)
 	u32 status;
 	int ret;
 
+	if (xhci->recovery_in_progress)
+		return;
+
 	dev_dbg(tegra->dev, "host mode %s\n", tegra->host_mode ? "on" : "off");
 
 	mutex_lock(&tegra->lock);
@@ -2434,11 +2456,31 @@ int init_ivc_communication(struct platform_device *pdev)
 	return 0;
 }
 
+static ssize_t store_reload_hcd(struct device *dev,
+	struct device_attribute *attr,
+	const char *buf, size_t count)
+{
+	struct platform_device *pdev = to_platform_device(dev);
+	struct tegra_xusb *tegra = platform_get_drvdata(pdev);
+	struct usb_hcd	*hcd = tegra->hcd;
+	int ret, reload;
+
+	ret = kstrtoint(buf, 0, &reload);
+	if (ret != 0 || reload < 0 || reload > 1)
+		return -EINVAL;
+
+	if (reload)
+		tegra_xhci_hcd_reinit(hcd);
+
+	return count;
+}
+static DEVICE_ATTR(reload_hcd, 0200, NULL, store_reload_hcd);
+
 static int tegra_xusb_probe(struct platform_device *pdev)
 {
 	struct tegra_xusb *tegra;
 	struct device_node *np;
-	struct resource *regs;
+	struct resource *res, *regs;
 	struct xhci_hcd *xhci;
 	unsigned int i, j, k;
 	struct phy *phy;
@@ -2474,6 +2516,9 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 		tegra->fpci_base = devm_platform_ioremap_resource(pdev, 1);
 		if (IS_ERR(tegra->fpci_base))
 			return PTR_ERR(tegra->fpci_base);
+		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+		tegra->fpci_start = res->start;
+		tegra->fpci_len = resource_size(res);
 	}
 
 	if (tegra->soc->has_ipfs) {
@@ -2790,13 +2835,13 @@ skip_firmware_load:
 					IRQF_ONESHOT, dev_name(&pdev->dev), tegra);
 	if (err < 0) {
 		dev_err(&pdev->dev, "failed to request padctl IRQ: %d\n", err);
-		goto remove_usb3;
+		goto remove_mbox_irq;
 	}
 
 	err = tegra_xusb_enable_firmware_messages(tegra);
 	if (err < 0) {
 		dev_err(&pdev->dev, "failed to enable messages: %d\n", err);
-		goto remove_usb3;
+		goto remove_padctl_irq;
 	}
 
 skip_mbox_and_padctl:
@@ -2809,7 +2854,7 @@ skip_mbox_and_padctl:
 		if (err < 0) {
 			dev_err(&pdev->dev,
 			"Failed to init IVC channel with xhci_server\n");
-			goto remove_usb3;
+			goto remove_padctl_irq;
 		}
 	}
 
@@ -2838,11 +2883,28 @@ skip_mbox_and_padctl:
 	pm_runtime_set_active(tegra->dev);
 	pm_runtime_enable(tegra->dev);
 
+	err = device_create_file(tegra->dev, &dev_attr_reload_hcd);
+	if (err) {
+		dev_err(tegra->dev,
+			"Can't register reload_hcd attribute\n");
+		goto ivc_unreserve;
+	}
+
+	INIT_WORK(&xhci->tegra_xhci_reinit_work, xhci_reinit_work);
+	xhci->recovery_in_progress = false;
+	xhci->pdev = pdev;
+
 	return 0;
 
 ivc_unreserve:
 	if (tegra->soc->is_xhci_vf)
 		tegra_hv_ivc_unreserve(tegra->ivck);
+remove_padctl_irq:
+	if (!tegra->soc->is_xhci_vf)
+		devm_free_irq(tegra->dev, tegra->padctl_irq, tegra);
+remove_mbox_irq:
+	if (!tegra->soc->is_xhci_vf)
+		devm_free_irq(tegra->dev, tegra->mbox_irq, tegra);
 remove_usb3:
 	usb_remove_hcd(xhci->shared_hcd);
 put_usb3:
@@ -2940,10 +3002,22 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 	tegra_xusb_deinit_usb_phy(tegra);
 
 	pm_runtime_get_sync(&pdev->dev);
+	device_remove_file(&pdev->dev, &dev_attr_reload_hcd);
 	usb_remove_hcd(xhci->shared_hcd);
 	usb_put_hcd(xhci->shared_hcd);
 	xhci->shared_hcd = NULL;
 	usb_remove_hcd(tegra->hcd);
+	disable_irq(tegra->xhci_irq);
+	disable_irq(tegra->padctl_irq);
+	if (!tegra->soc->is_xhci_vf) {
+		disable_irq(tegra->mbox_irq);
+		devm_iounmap(&pdev->dev, tegra->fpci_base);
+		devm_release_mem_region(&pdev->dev, tegra->fpci_start,
+			tegra->fpci_len);
+	}
+	devm_iounmap(&pdev->dev, tegra->hcd->regs);
+	devm_release_mem_region(&pdev->dev, tegra->hcd->rsrc_start,
+		tegra->hcd->rsrc_len);
 	usb_put_hcd(tegra->hcd);
 
 	if (tegra->soc->is_xhci_vf)
@@ -2961,8 +3035,12 @@ skip_firmware_deinit:
 	pm_runtime_disable(&pdev->dev);
 	pm_runtime_put(&pdev->dev);
 
-	if (tegra->soc->is_xhci_vf)
+	if (!tegra->soc->is_xhci_vf) {
+		devm_free_irq(&pdev->dev, tegra->padctl_irq, tegra);
+		devm_free_irq(&pdev->dev, tegra->mbox_irq, tegra);
+	} else {
 		goto skip_clock_and_powergate;
+	}
 
 	tegra_xusb_powergate_partitions(tegra);
 
@@ -3559,7 +3637,11 @@ static int tegra_xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev,
 static int tegra_xusb_suspend(struct device *dev)
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
+	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
 	int err;
+
+	if (xhci->recovery_in_progress)
+		return 0;
 
 	if (!tegra->soc->is_xhci_vf)
 		synchronize_irq(tegra->mbox_irq);
@@ -3605,7 +3687,11 @@ out:
 static int tegra_xusb_resume(struct device *dev)
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
+	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
 	int err;
+
+	if (xhci->recovery_in_progress)
+		return 0;
 
 	mutex_lock(&tegra->lock);
 
@@ -3638,7 +3724,11 @@ static int tegra_xusb_resume(struct device *dev)
 static int tegra_xusb_runtime_suspend(struct device *dev)
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
+	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
 	int ret;
+
+	if (xhci->recovery_in_progress)
+		return 0;
 
 	if (!tegra->soc->is_xhci_vf)
 		synchronize_irq(tegra->mbox_irq);
@@ -3653,7 +3743,11 @@ static int tegra_xusb_runtime_suspend(struct device *dev)
 static int tegra_xusb_runtime_resume(struct device *dev)
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
+	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
 	int err;
+
+	if (xhci->recovery_in_progress)
+		return 0;
 
 	mutex_lock(&tegra->lock);
 	err = tegra_xusb_exit_elpg(tegra, true);
@@ -4178,9 +4272,86 @@ static int tegra_xhci_hub_control(struct usb_hcd *hcd, u16 type_req,
 	return ret;
 }
 
+static void xhci_reinit_work(struct work_struct *work)
+{
+	unsigned long flags;
+	struct xhci_hcd *xhci = container_of(work,
+				struct xhci_hcd, tegra_xhci_reinit_work);
+	struct platform_device *pdev = xhci->pdev;
+	struct tegra_xusb *tegra = platform_get_drvdata(pdev);
+	struct device *dev = tegra->dev;
+	unsigned long target;
+	bool has_active_slots = true;
+	int j, ret;
+
+	/* If the controller is in ELPG during reinit, then bring it out of
+	 * elpg first before doing reinit. Otherwise we will see inconsistent
+	 * behaviour. For example phy->power_count variable will be decremented
+	 * twice. Once dring elpg and once during usb_remove. when phy_power_on
+	 * is called during probe, the phy wont actually power on.
+	 */
+	mutex_lock(&tegra->lock);
+	if (pm_runtime_suspended(dev)) {
+		ret = tegra_xusb_exit_elpg(tegra, true);
+		if (ret < 0) {
+			mutex_unlock(&tegra->lock);
+			dev_err(tegra->dev, "ELPG exit failed during reinit\n");
+			return;
+		}
+	}
+	mutex_unlock(&tegra->lock);
+
+	for (j = 0; j < tegra->soc->ports.usb2.count; j++) {
+		if (!is_host_mode_phy(tegra, USB2_PHY, j))
+			continue;
+		/* turn off VBUS to disconnect all devices */
+		tegra_xusb_padctl_vbus_power_off(
+				tegra->phys[tegra->soc->ports.usb2.offset + j]);
+	}
+
+	target = jiffies + msecs_to_jiffies(5000);
+	/* wait until all slots have been disabled. Also waiting for 5
+	 * seconds to make sure pending STOP_EP commands are completed
+	 */
+	while (has_active_slots && time_is_after_jiffies(target)) {
+		has_active_slots = false;
+		for (j = 1; j < MAX_HC_SLOTS; j++) {
+			if (xhci->devs[j])
+				has_active_slots = true;
+		}
+		msleep(300);
+	}
+
+	spin_lock_irqsave(&xhci->lock, flags);
+	/* Abort pending commands, clean up pending URBs */
+	xhci_hc_died(xhci);
+	spin_unlock_irqrestore(&xhci->lock, flags);
+	tegra_xusb_remove(pdev);
+	usleep_range(10, 20);
+
+	tegra_xusb_probe(pdev);
+	/* probe will set recovery_in_progress to false */
+}
+
+static int tegra_xhci_hcd_reinit(struct usb_hcd *hcd)
+{
+	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
+	struct tegra_xusb *tegra = hcd_to_tegra_xusb(hcd);
+
+	if (en_hcd_reinit && !xhci->recovery_in_progress) {
+		xhci->recovery_in_progress = true;
+
+		schedule_work(&xhci->tegra_xhci_reinit_work);
+	} else {
+		dev_info(tegra->dev, "hcd_reinit is disabled or in progress\n");
+	}
+	return 0;
+}
+
 static int __init tegra_xusb_init(void)
 {
 	xhci_init_driver(&tegra_xhci_hc_driver, &tegra_xhci_overrides);
+	tegra_xhci_hc_driver.hcd_reinit = tegra_xhci_hcd_reinit;
 	tegra_xhci_hc_driver.hub_control = tegra_xhci_hub_control;
 	tegra_xhci_hc_driver.add_endpoint = tegra_xhci_add_endpoint;
 	tegra_xhci_hc_driver.enable_usb3_lpm_timeout =

@@ -758,6 +758,85 @@ static int tegra186_xusb_padctl_id_override(struct tegra_xusb_padctl *padctl,
 	return 0;
 }
 
+static int tegra186_xusb_padctl_vbus_power_on(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+	struct tegra_xusb_padctl *padctl = lane->pad->padctl;
+	unsigned int index = lane->index;
+	int rc = 0;
+	int status;
+	struct tegra_xusb_usb2_port *port;
+
+	port = tegra_xusb_find_usb2_port(padctl, index);
+	if (!port) {
+		dev_err(padctl->dev, "no port found for USB2 lane %u\n", index);
+		return -ENODEV;
+	}
+
+	if (!port->supply) {
+		dev_err(padctl->dev, "no vbus-supply found for USB2-%u\n",
+			index);
+		return -ENODEV;
+	}
+
+	mutex_lock(&padctl->lock);
+
+	status = regulator_is_enabled(port->supply);
+	if (!status) {
+		rc = regulator_enable(port->supply);
+		if (rc)
+			dev_err(padctl->dev,
+				"enable usb2-%d vbus failed %d\n", index, rc);
+	}
+
+	dev_dbg(padctl->dev, "%s: usb2-%d vbus status: %d->%d\n",
+		__func__, index, status,
+		regulator_is_enabled(port->supply));
+
+	mutex_unlock(&padctl->lock);
+	return rc;
+}
+
+static int tegra186_xusb_padctl_vbus_power_off(struct phy *phy)
+{
+	struct tegra_xusb_lane *lane = phy_get_drvdata(phy);
+	struct tegra_xusb_padctl *padctl = lane->pad->padctl;
+	unsigned int index = lane->index;
+	int rc = 0;
+	int status;
+	struct tegra_xusb_usb2_port *port;
+
+	port = tegra_xusb_find_usb2_port(padctl, index);
+	if (!port) {
+		dev_err(padctl->dev, "no port found for USB2 lane %u\n", index);
+		return -ENODEV;
+	}
+
+	if (!port->supply) {
+		dev_err(padctl->dev, "no vbus-supply found for USB2-%u\n",
+			index);
+		return -ENODEV;
+	}
+
+	mutex_lock(&padctl->lock);
+
+	status = regulator_is_enabled(port->supply);
+	if (status) {
+		rc = regulator_disable(port->supply);
+		if (rc)
+			dev_err(padctl->dev,
+				"disable usb2-%d vbus failed %d\n",
+				index, rc);
+	}
+
+	dev_dbg(padctl->dev, "%s: usb2-%d vbus status: %d->%d\n",
+		__func__, index, status,
+		regulator_is_enabled(port->supply));
+
+	mutex_unlock(&padctl->lock);
+	return rc;
+}
+
 static int tegra186_utmi_phy_set_mode(struct phy *phy, enum phy_mode mode,
 				      int submode)
 {
@@ -896,7 +975,8 @@ static int tegra186_utmi_phy_init(struct phy *phy)
 	reg |= ID_OVERRIDE_FLOATING;
 	padctl_writel(padctl, reg, USB2_VBUS_ID);
 
-	if (port->supply && port->mode == USB_DR_MODE_HOST) {
+	if (port->supply && port->mode == USB_DR_MODE_HOST &&
+	    !regulator_is_enabled(port->supply)) {
 		err = regulator_enable(port->supply);
 		if (err) {
 			dev_err(dev, "failed to enable port %u VBUS: %d\n",
@@ -923,7 +1003,8 @@ static int tegra186_utmi_phy_exit(struct phy *phy)
 		return -ENODEV;
 	}
 
-	if (port->supply && port->mode == USB_DR_MODE_HOST) {
+	if (port->supply && port->mode == USB_DR_MODE_HOST &&
+	    regulator_is_enabled(port->supply)) {
 		err = regulator_disable(port->supply);
 		if (err) {
 			dev_err(dev, "failed to disable port %u VBUS: %d\n",
@@ -1520,6 +1601,8 @@ static const struct tegra_xusb_padctl_ops tegra186_xusb_padctl_ops = {
 	.suspend_noirq = tegra186_xusb_padctl_suspend_noirq,
 	.resume_noirq = tegra186_xusb_padctl_resume_noirq,
 	.vbus_override = tegra186_xusb_padctl_vbus_override,
+	.vbus_power_on = tegra186_xusb_padctl_vbus_power_on,
+	.vbus_power_off = tegra186_xusb_padctl_vbus_power_off,
 	.utmi_pad_power_on = tegra_phy_xusb_utmi_pad_power_on,
 	.utmi_pad_power_down = tegra_phy_xusb_utmi_pad_power_down,
 };
