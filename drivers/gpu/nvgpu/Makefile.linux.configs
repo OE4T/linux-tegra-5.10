@@ -42,8 +42,8 @@ ifeq ($(CONFIG_PM_DEVFREQ),y)
 # Select this entry to enable gk20a scaling
 CONFIG_GK20A_DEVFREQ := y
 
-# Enable support to pass PM_QOS constraints to devfreq based scaling.
-CONFIG_GK20A_PM_QOS := y
+# Disable support to pass PM_QOS constraints to devfreq based scaling.
+CONFIG_GK20A_PM_QOS := n
 
 endif
 endif
@@ -135,8 +135,9 @@ ifneq ($(NV_BUILD_KERNEL_OPTIONS),)
 ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
 CONFIG_GK20A_DEVFREQ := n
 CONFIG_GK20A_PM_QOS := n
-else ifneq ($(filter 5.10,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
-CONFIG_GK20A_PM_QOS := n
+else ifneq ($(filter 4.9 4.14,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
+# Enable support to pass PM_QOS constraints to devfreq based scaling.
+CONFIG_GK20A_PM_QOS := y
 endif
 
 endif
