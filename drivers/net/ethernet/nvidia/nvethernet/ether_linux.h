@@ -52,6 +52,7 @@
 #include <osi_core.h>
 #include <osi_dma.h>
 #include <mmc.h>
+#include <ivc_core.h>
 #include "ioctl.h"
 #ifdef MACSEC_SUPPORT
 #include "macsec.h"
@@ -550,14 +551,15 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
  * @brief osd_ivc_send_cmd - OSD ivc send cmd
  *
  * @param[in] priv: OSD private data
- * @param[in] func: data
- * @param[in] len: length of the data
+ * @param[in] ivc_buf: ivc_msg_common structure
+ * @param[in] len: length of data
  * @note
  * API Group:
  * - Initialization: Yes
  * - Run time: Yes
  * - De-initialization: Yes
  */
-int osd_ivc_send_cmd(void *priv, void *data, unsigned int len);
+int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf,
+		     unsigned int len);
 void ether_set_rx_mode(struct net_device *dev);
 #endif /* ETHER_LINUX_H */

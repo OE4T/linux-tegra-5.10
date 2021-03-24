@@ -15,7 +15,6 @@
  */
 
 #include "ether_linux.h"
-#include <ivc_core.h>
 
 /**
  * @brief Adds delay in micro seconds.
@@ -222,14 +221,14 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
  * Algorithm: call ether_realloc_rx_skb for re-allocation
  *
  * @param[in] priv: OSD private data structure.
- * @param[in] rxring: Pointer to DMA channel Rx ring.
+ * @param[in] rx_ring: Pointer to DMA channel Rx ring.
  * @param[in] chan: DMA Rx channel number.
  *
  */
-static void osd_realloc_buf(void *priv, void *rxring, unsigned int chan)
+static void osd_realloc_buf(void *priv, struct osi_rx_ring *rx_ring,
+			    unsigned int chan)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
-	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
 
 	ether_realloc_rx_skb(pdata, rx_ring, chan);
 }
@@ -244,24 +243,22 @@ static void osd_realloc_buf(void *priv, void *rxring, unsigned int chan)
  * 3) Refill the Rx ring based on threshold.
  *
  * @param[in] priv: OSD private data structure.
- * @param[in] rxring: Pointer to DMA channel Rx ring.
+ * @param[in] rx_ring: Pointer to DMA channel Rx ring.
  * @param[in] chan: DMA Rx channel number.
  * @param[in] dma_buf_len: Rx DMA buffer length.
- * @param[in] rxpkt_cx: Received packet context.
- * @param[in] rx_pkt_swcx: Received packet sw context.
+ * @param[in] rx_pkt_cx: Received packet context.
+ * @param[in] rx_swcx: Received packet sw context.
  *
  * @note Rx completion need to make sure that Rx descriptors processed properly.
  */
-void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
-			unsigned int dma_buf_len, void *rxpkt_cx,
-			void *rx_pkt_swcx)
+void osd_receive_packet(void *priv, struct osi_rx_ring *rx_ring,
+			unsigned int chan, unsigned int dma_buf_len,
+			struct osi_rx_pkt_cx *rx_pkt_cx,
+			struct osi_rx_swcx *rx_swcx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct ether_rx_napi *rx_napi = pdata->rx_napi[chan];
-	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
-	struct osi_rx_swcx *rx_swcx = (struct osi_rx_swcx *)rx_pkt_swcx;
-	struct osi_rx_pkt_cx *rx_pkt_cx = (struct osi_rx_pkt_cx *)rxpkt_cx;
 	struct sk_buff *skb = (struct sk_buff *)rx_swcx->buf_virt_addr;
 	dma_addr_t dma_addr = (dma_addr_t)rx_swcx->buf_phy_addr;
 	struct net_device *ndev = pdata->ndev;
@@ -343,17 +340,16 @@ void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
  * @param[in] buffer: Buffer address to free.
  * @param[in] dmaaddr: DMA address to unmap.
  * @param[in] len: Length of data.
- * @param[in] tx_done_pkt_cx: Pointer to struct which has tx done status info.
+ * @param[in] txdone_pkt_cx: Pointer to struct which has tx done status info.
  * This struct has flags to indicate tx error, whether DMA address
  * is mapped from paged/linear buffer.
  *
  * @note Tx completion need to make sure that Tx descriptors processed properly.
  */
 static void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
-				  unsigned int len, void *tx_done_pkt_cx)
+				  unsigned int len,
+				  struct osi_txdone_pkt_cx *txdone_pkt_cx)
 {
-	struct osi_txdone_pkt_cx *txdone_pkt_cx = (struct osi_txdone_pkt_cx *)
-						  tx_done_pkt_cx;
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct sk_buff *skb = (struct sk_buff *)buffer;
@@ -424,21 +420,20 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
  * @brief osd_send_cmd - OSD ivc send cmd
  *
  * @param[in] priv: OSD private data
- * @param[in] func: data
- * @param[in] line: len
+ * @param[in] ivc_buf: ivc_msg_common structure
+ * @param[in] len: length of data
  * @note
  * API Group:
  * - Initialization: Yes
  * - Run time: Yes
  * - De-initialization: Yes
  */
-int osd_ivc_send_cmd(void *priv, void *data, unsigned int len)
+int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf, unsigned int len)
 {
 	int ret = -1;
 	unsigned long flags = 0;
 	static int cnt  = 0;
 	struct osi_core_priv_data *core = (struct osi_core_priv_data *)priv;
-	ivc_msg_common *ivc_buf = (ivc_msg_common *) data;
 	struct ether_priv_data *pdata = (struct ether_priv_data *)core->osd;
 	struct ether_ivc_ctxt *ictxt = &pdata->ictxt;
 	struct tegra_hv_ivc_cookie *ivck =
