@@ -4239,8 +4239,10 @@ int sdhci_setup_host(struct sdhci_host *host)
 		ret = mmc_regulator_get_supply(mmc);
 		if (ret)
 			return ret;
-		enable_vqmmc  = true;
 	}
+
+	if (!IS_ERR_OR_NULL(mmc->supply.vqmmc))
+		enable_vqmmc = true;
 
 	DBG("Version:   0x%08x | Present:  0x%08x\n",
 	    sdhci_readw(host, SDHCI_HOST_VERSION),
