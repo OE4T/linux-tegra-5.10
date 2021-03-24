@@ -82,7 +82,8 @@ static void nvhost_dma_fence_release(struct dma_fence *fence)
 {
 	struct nvhost_dma_fence *f = to_nvhost_dma_fence(fence);
 
-	nvhost_intr_put_ref(&f->host->intr, f->id, f->waiter);
+	if (f->waiter)
+		nvhost_intr_put_ref(&f->host->intr, f->id, f->waiter);
 
 	kfree(f);
 }
@@ -168,12 +169,6 @@ static struct dma_fence *nvhost_dma_fence_create_single(
 	if (!f)
 		return ERR_PTR(-ENOMEM);
 
-	waiter = nvhost_intr_alloc_waiter();
-	if (!waiter) {
-		kfree(f);
-		return ERR_PTR(-ENOMEM);
-	}
-
 	f->host = syncpt_to_dev(syncpt);
 	f->syncpt = syncpt;
 	f->id = id;
@@ -184,13 +179,24 @@ static struct dma_fence *nvhost_dma_fence_create_single(
 	dma_fence_init(&f->base, &nvhost_dma_fence_ops, &f->lock,
 		       syncpt->syncpt_context_base + id, threshold);
 
-	err = nvhost_intr_add_action(&f->host->intr, id, threshold,
-				     NVHOST_INTR_ACTION_SIGNAL_SYNC_PT,
-				     f, waiter, &f->waiter);
-	if (err) {
-		/* f, waiter will be freed through fence refcount dropping */
-		dma_fence_put((struct dma_fence *)f);
-		return ERR_PTR(err);
+	if (nvhost_syncpt_is_expired(f->syncpt, f->id, f->threshold)) {
+		dma_fence_signal(&f->base);
+	} else {
+		waiter = nvhost_intr_alloc_waiter();
+		if (!waiter) {
+			kfree(f);
+			return ERR_PTR(-ENOMEM);
+		}
+
+		err = nvhost_intr_add_action(&f->host->intr, id, threshold,
+					     NVHOST_INTR_ACTION_SIGNAL_SYNC_PT,
+					     f, waiter, &f->waiter);
+
+		if (err) {
+			kfree(waiter);
+			dma_fence_put((struct dma_fence *)f);
+			return ERR_PTR(err);
+		}
 	}
 
 	return (struct dma_fence *)f;
