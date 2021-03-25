@@ -111,12 +111,14 @@ static int submit_write_reloc(struct gather_bo *bo,
 {
 	/* TODO check that target_offset is within bounds */
 	dma_addr_t iova = mapping->iova + buf->reloc.target_offset;
-	u32 written_ptr = (u32)(iova >> buf->reloc.shift);
+	u32 written_ptr;
 
 #ifdef CONFIG_ARM64
 	if (buf->flags & DRM_TEGRA_SUBMIT_BUF_RELOC_BLOCKLINEAR)
-		written_ptr |= BIT(39);
+		iova |= BIT(39);
 #endif
+
+	written_ptr = (u32)(iova >> buf->reloc.shift);
 
 	if (buf->reloc.gather_offset_words >= bo->gather_data_words)
 		return -EINVAL;
