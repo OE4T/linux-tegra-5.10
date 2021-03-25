@@ -207,7 +207,9 @@ static int tegra_audio_graph_probe(struct platform_device *pdev)
 	/* graph_parse_of() depends on below */
 	card->component_chaining = 1;
 	priv->simple.ops = &tegra_audio_graph_ops;
+#if IS_ENABLED(TEGRA_DPCM)
 	priv->simple.force_dpcm = 1;
+#endif
 
 	ret = graph_parse_of(&priv->simple, dev);
 	if (ret < 0)
