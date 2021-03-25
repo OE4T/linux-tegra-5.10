@@ -41,7 +41,6 @@ static int __init early_init_dt_alloc_reserved_memory_arch(phys_addr_t size,
 
 	*res_base = base;
 	if (nomap) {
-		kmemleak_no_scan(__va(base));
 		return memblock_remove(base, size);
 	}
 
