@@ -3,7 +3,7 @@
  * Universal Flash Storage Host controller driver
  * Copyright (C) 2011-2013 Samsung India Software Operations
  * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -577,6 +577,11 @@ enum ufshcd_quirks {
 	 * This quirk needs to be enabled if BKOPS feature has to be enabled
 	 */
 	UFSHCD_QUIRK_ENABLE_BKOPS			= 1 << 15,
+
+	/*
+	 * Enable this quirk to support UFS WLUNS
+	 */
+	UFSHCD_QUIRK_ENABLE_WLUNS			= 1 << 16,
 };
 
 enum ufshcd_caps {
@@ -746,11 +751,6 @@ struct ufs_hba {
 	unsigned int irq;
 	bool is_irq_enabled;
 	enum ufs_ref_clk_freq dev_ref_clk_freq;
-
-	/*
-	 * Enable this quirk to support UFS WLUNS
-	 */
-	#define UFSHCD_QUIRK_ENABLE_WLUNS			UFS_BIT(8)
 
 	unsigned int quirks;	/* Deviations from standard UFSHCI spec. */
 
