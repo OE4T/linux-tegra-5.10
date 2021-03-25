@@ -2,7 +2,7 @@
 //
 // tegra210_ahub.c - Tegra210 AHUB driver
 //
-// Copyright (c) 2020 NVIDIA CORPORATION.  All rights reserved.
+// Copyright (c) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
@@ -1254,6 +1254,7 @@ static const struct snd_soc_component_driver tegra210_ahub_component = {
 	.num_dapm_widgets	= ARRAY_SIZE(tegra210_ahub_widgets),
 	.dapm_routes		= tegra210_ahub_routes,
 	.num_dapm_routes	= ARRAY_SIZE(tegra210_ahub_routes),
+	.non_legacy_dai_naming	= 1,
 };
 
 static const struct snd_soc_component_driver tegra186_ahub_component = {
@@ -1261,6 +1262,7 @@ static const struct snd_soc_component_driver tegra186_ahub_component = {
 	.num_dapm_widgets = ARRAY_SIZE(tegra186_ahub_widgets),
 	.dapm_routes = tegra186_ahub_routes,
 	.num_dapm_routes = ARRAY_SIZE(tegra186_ahub_routes),
+	.non_legacy_dai_naming	= 1,
 };
 
 static const struct regmap_config tegra210_ahub_regmap_config = {
