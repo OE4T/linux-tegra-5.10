@@ -438,6 +438,11 @@ static int graph_dai_link_of(struct asoc_simple_priv *priv,
 		return ret;
 
 	dai_link->ops = &graph_ops;
+
+	/* Use custom snd_soc_ops callbacks if available */
+	if (priv->ops)
+		dai_link->ops = priv->ops;
+
 	dai_link->init = asoc_simple_dai_init;
 
 	asoc_simple_canonicalize_cpu(dai_link, single_cpu);
