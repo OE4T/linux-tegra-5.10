@@ -425,6 +425,7 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 				co->name, &co->base, co->size, err);
 	} else {
 #ifdef CONFIG_TEGRA_VPR
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		/*
 		 * When vpr memory is reserved, kmemleak tries to scan vpr
 		 * memory for pointers. vpr memory should not be accessed
@@ -434,6 +435,7 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 		 */
 		if (!strncmp(co->name, "vpr", 3))
 			kmemleak_no_scan(__va(co->base));
+#endif
 
 		co->dma_info->cma_dev = co->cma_dev;
 		err = dma_declare_coherent_resizable_cma_memory(
