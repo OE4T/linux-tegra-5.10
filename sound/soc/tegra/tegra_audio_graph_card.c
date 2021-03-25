@@ -139,7 +139,9 @@ static int tegra_audio_graph_hw_params(struct snd_pcm_substream *substream,
 				       struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = asoc_substream_to_rtd(substream);
-	struct snd_soc_dai *cpu_dai = asoc_rtd_to_cpu(rtd, 0);
+	struct snd_soc_card *card = rtd->card;
+	struct snd_soc_pcm_runtime *runtime;
+	struct snd_soc_pcm_stream *dai_params;
 	int err;
 
 	/*
@@ -154,11 +156,35 @@ static int tegra_audio_graph_hw_params(struct snd_pcm_substream *substream,
 	 * converter, volume gain controller etc., which don't really
 	 * depend on PLLA) we need a better way to filter here.
 	 */
+#if IS_ENABLED(TEGRA_DPCM)
+	struct snd_soc_dai *cpu_dai = asoc_rtd_to_cpu(rtd, 0);
+
 	if (cpu_dai->driver->ops && rtd->dai_link->no_pcm) {
 		err = tegra_audio_graph_update_pll(substream, params);
 		if (err)
 			return err;
 	}
+#else
+	err = tegra_audio_graph_update_pll(substream, params);
+	if (err)
+		return err;
+
+	/*
+	 * When HW accelerators and I/O components are used with codec2codec
+	 * DAPM links, machine hw_param() gets called only once and DAI
+	 * params of all active links are overridden here.
+	 */
+	list_for_each_entry(runtime, &card->rtd_list, list) {
+		if (!runtime->dai_link->params)
+			continue;
+
+		dai_params = (struct snd_soc_pcm_stream *)runtime->dai_link->params;
+		dai_params->rate_min = params_rate(params);
+		dai_params->channels_min = params_channels(params);
+		dai_params->formats = 1ULL << params_format(params);
+	}
+
+#endif
 
 	return asoc_simple_hw_params(substream, params);
 }
