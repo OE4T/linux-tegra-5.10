@@ -319,6 +319,8 @@ static void tegra194_cpufreq_free_resources(void)
 			tegra_bwmgr_unregister(data->bwmgr[cl]);
 		}
 	}
+
+	kfree(cpu_emc_map_ptr);
 }
 
 static struct cpufreq_frequency_table *
