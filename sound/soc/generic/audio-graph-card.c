@@ -429,8 +429,10 @@ static int graph_dai_link_of(struct asoc_simple_priv *priv,
 		return ret;
 
 	ret = asoc_simple_set_dailink_name(dev, dai_link,
-					   "%s-%s",
+					   "%pOFP.%s-%pOFP.%s",
+					   dai_link->cpus->of_node,
 					   dai_link->cpus->dai_name,
+					   dai_link->codecs->of_node,
 					   dai_link->codecs->dai_name);
 	if (ret < 0)
 		return ret;
