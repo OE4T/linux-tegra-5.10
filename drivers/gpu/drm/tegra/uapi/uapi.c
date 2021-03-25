@@ -191,11 +191,12 @@ int tegra_drm_ioctl_channel_map(struct drm_device *drm, void *data,
 	mapping->dev = ctx->client->base.dev;
 	mapping->bo = &container_of(gem, struct tegra_bo, gem)->base;
 
-	if (!iommu_get_domain_for_dev(mapping->dev) ||
-	    ctx->client->base.group) {
+	if (ctx->client->base.group) {
+		/* Domain managed directly */
 		host1x_bo_pin(mapping->dev, mapping->bo,
 			      &mapping->iova);
 	} else {
+		/* No IOMMU or DMA API managed domain */
 		mapping->direction = DMA_TO_DEVICE;
 		if (args->flags & DRM_TEGRA_CHANNEL_MAP_READWRITE)
 			mapping->direction = DMA_BIDIRECTIONAL;
