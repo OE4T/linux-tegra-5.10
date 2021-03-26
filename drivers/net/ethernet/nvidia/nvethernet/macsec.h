@@ -131,12 +131,12 @@ enum nv_macsec_nl_commands {
 struct macsec_priv_data {
 	/** Non secure reset */
 	struct reset_control *ns_rst;
-	/** APB interface clk - macsec_pclk */
-	struct clk *apb_pclk;
-	/** macsec Tx clock */
-	struct clk *tx_clk;
-	/** macsec Rx clock */
-	struct clk *rx_clk;
+	/** MGBE Macsec clock */
+	struct clk *mgbe_clk;
+	/** EQOS Macsec TX clock */
+	struct clk *eqos_tx_clk;
+	/** EQOS Macsec RX clock */
+	struct clk *eqos_rx_clk;
 	/** Secure irq */
 	int s_irq;
 	/** Non secure irq */
