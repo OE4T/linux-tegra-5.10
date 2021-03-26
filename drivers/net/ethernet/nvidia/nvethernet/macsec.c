@@ -16,6 +16,11 @@
 
 #include "ether_linux.h"
 
+/**
+ * @brief is_nv_macsec_fam_registered - Is nv macsec nl registered
+ */
+static int is_nv_macsec_fam_registered = OSI_DISABLE;
+
 static irqreturn_t macsec_s_isr(int irq, void *data)
 {
 	struct macsec_priv_data *macsec_pdata = (struct macsec_priv_data *)data;
@@ -45,18 +50,22 @@ static int macsec_disable_car(struct macsec_priv_data *macsec_pdata)
 
 	PRINT_ENTRY();
 	if (!pdata->osi_core->pre_si) {
-		if (macsec_pdata->ns_rst) {
-			reset_control_assert(macsec_pdata->ns_rst);
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
+				clk_disable_unprepare(macsec_pdata->mgbe_clk);
+			}
+		} else {
+			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
+				clk_disable_unprepare(macsec_pdata->eqos_tx_clk);
+			}
+
+			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
+				clk_disable_unprepare(macsec_pdata->eqos_rx_clk);
+			}
 		}
 
-		if (!IS_ERR_OR_NULL(macsec_pdata->apb_pclk)) {
-			clk_disable_unprepare(macsec_pdata->apb_pclk);
-		}
-		if (!IS_ERR_OR_NULL(macsec_pdata->tx_clk)) {
-			clk_disable_unprepare(macsec_pdata->tx_clk);
-		}
-		if (!IS_ERR_OR_NULL(macsec_pdata->rx_clk)) {
-			clk_disable_unprepare(macsec_pdata->rx_clk);
+		if (macsec_pdata->ns_rst) {
+			reset_control_assert(macsec_pdata->ns_rst);
 		}
 	} else {
 		/* For Pre-sil only, reset the MACsec controller directly.
@@ -92,27 +101,29 @@ static int macsec_enable_car(struct macsec_priv_data *macsec_pdata)
 
 	PRINT_ENTRY();
 	if (!pdata->osi_core->pre_si) {
-		if (!IS_ERR_OR_NULL(macsec_pdata->apb_pclk)) {
-			ret = clk_prepare_enable(macsec_pdata->apb_pclk);
-			if (ret < 0) {
-				dev_err(dev, "failed to enable macsec pclk\n");
-				goto exit;
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
+				ret = clk_prepare_enable(macsec_pdata->mgbe_clk);
+				if (ret < 0) {
+					dev_err(dev, "failed to enable macsec clk\n");
+					goto exit;
+				}
 			}
-		}
-		if (!IS_ERR_OR_NULL(macsec_pdata->tx_clk)) {
-			ret = clk_prepare_enable(macsec_pdata->tx_clk);
-			if (ret < 0) {
-				dev_err(dev,
-					"failed to enable macsec_tx_clk\n");
-				goto err_tx_clk;
+		} else {
+			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
+				ret = clk_prepare_enable(macsec_pdata->eqos_tx_clk);
+				if (ret < 0) {
+					dev_err(dev, "failed to enable macsec tx clk\n");
+					goto exit;
+				}
 			}
-		}
-		if (!IS_ERR_OR_NULL(macsec_pdata->rx_clk)) {
-			ret = clk_prepare_enable(macsec_pdata->rx_clk);
-			if (ret < 0) {
-				dev_err(dev,
-					"failed to enable macsec_rx_clk\n");
-				goto err_rx_clk;
+
+			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
+				ret = clk_prepare_enable(macsec_pdata->eqos_rx_clk);
+				if (ret < 0) {
+					dev_err(dev, "failed to enable macsec rx clk\n");
+					goto err_rx_clk;
+				}
 			}
 		}
 		/* TODO:
@@ -153,16 +164,18 @@ static int macsec_enable_car(struct macsec_priv_data *macsec_pdata)
 	goto exit;
 
 err_ns_rst:
-	if (!IS_ERR_OR_NULL(macsec_pdata->rx_clk)) {
-		clk_disable_unprepare(macsec_pdata->rx_clk);
-	}
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
+			clk_disable_unprepare(macsec_pdata->mgbe_clk);
+		}
+	} else {
+		if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
+			clk_disable_unprepare(macsec_pdata->eqos_rx_clk);
+		}
 err_rx_clk:
-	if (!IS_ERR_OR_NULL(macsec_pdata->tx_clk)) {
-		clk_disable_unprepare(macsec_pdata->tx_clk);
-	}
-err_tx_clk:
-	if (!IS_ERR_OR_NULL(macsec_pdata->apb_pclk)) {
-		clk_disable_unprepare(macsec_pdata->apb_pclk);
+		if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
+			clk_disable_unprepare(macsec_pdata->eqos_tx_clk);
+		}
 	}
 exit:
 	PRINT_EXIT();
@@ -281,7 +294,7 @@ static int macsec_get_platform_res(struct macsec_priv_data *macsec_pdata)
 	if (!pdata->osi_core->pre_si) {
 		/* 1. Get resets */
 		macsec_pdata->ns_rst = devm_reset_control_get(dev,
-							      "macsec_rst");
+							      "macsec_ns_rst");
 		if (IS_ERR_OR_NULL(macsec_pdata->ns_rst)) {
 			dev_err(dev, "Failed to get macsec_ns_rst\n");
 			ret = PTR_ERR(macsec_pdata->ns_rst);
@@ -289,23 +302,29 @@ static int macsec_get_platform_res(struct macsec_priv_data *macsec_pdata)
 		}
 
 		/* 2. Get clks */
-		macsec_pdata->apb_pclk = devm_clk_get(dev, "macsec_pclk");
-		if (IS_ERR(macsec_pdata->apb_pclk)) {
-			dev_err(dev, "failed to get macsec_pclk\n");
-			ret = PTR_ERR(macsec_pdata->apb_pclk);
-			goto exit;
-		}
-		macsec_pdata->tx_clk = devm_clk_get(dev, "macsec_tx_clk");
-		if (IS_ERR(macsec_pdata->tx_clk)) {
-			dev_err(dev, "failed to get macsec_tx_clk\n");
-			ret = PTR_ERR(macsec_pdata->tx_clk);
-			goto exit;
-		}
-		macsec_pdata->rx_clk = devm_clk_get(dev, "macsec_rx_clk");
-		if (IS_ERR(macsec_pdata->rx_clk)) {
-			dev_err(dev, "failed to get macsec_rx_clk\n");
-			ret = PTR_ERR(macsec_pdata->rx_clk);
-			goto exit;
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			macsec_pdata->mgbe_clk = devm_clk_get(dev,
+							"mgbe_macsec");
+			if (IS_ERR(macsec_pdata->mgbe_clk)) {
+				dev_err(dev, "failed to get macsec clk\n");
+				ret = PTR_ERR(macsec_pdata->mgbe_clk);
+				goto exit;
+			}
+		} else {
+			macsec_pdata->eqos_tx_clk = devm_clk_get(dev,
+							"eqos_macsec_tx");
+			if (IS_ERR(macsec_pdata->eqos_tx_clk)) {
+				dev_err(dev, "failed to get eqos_tx clk\n");
+				ret = PTR_ERR(macsec_pdata->eqos_tx_clk);
+				goto exit;
+			}
+			macsec_pdata->eqos_rx_clk = devm_clk_get(dev,
+							"eqos_macsec_rx");
+			if (IS_ERR(macsec_pdata->eqos_rx_clk)) {
+				dev_err(dev, "failed to get eqos_rx_clk clk\n");
+				ret = PTR_ERR(macsec_pdata->eqos_rx_clk);
+				goto exit;
+			}
 		}
 	}
 
@@ -337,14 +356,18 @@ static void macsec_release_platform_res(struct macsec_priv_data *macsec_pdata)
 
 	PRINT_ENTRY();
 	if (!pdata->osi_core->pre_si) {
-		if (!IS_ERR_OR_NULL(macsec_pdata->apb_pclk)) {
-			devm_clk_put(dev, macsec_pdata->apb_pclk);
-		}
-		if (!IS_ERR_OR_NULL(macsec_pdata->tx_clk)) {
-			devm_clk_put(dev, macsec_pdata->tx_clk);
-		}
-		if (!IS_ERR_OR_NULL(macsec_pdata->rx_clk)) {
-			devm_clk_put(dev, macsec_pdata->rx_clk);
+		if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+			if (!IS_ERR_OR_NULL(macsec_pdata->mgbe_clk)) {
+				devm_clk_put(dev, macsec_pdata->mgbe_clk);
+			}
+		} else {
+			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_tx_clk)) {
+				devm_clk_put(dev, macsec_pdata->eqos_tx_clk);
+			}
+
+			if (!IS_ERR_OR_NULL(macsec_pdata->eqos_rx_clk)) {
+				devm_clk_put(dev, macsec_pdata->eqos_rx_clk);
+			}
 		}
 	}
 	PRINT_EXIT();
@@ -847,7 +870,10 @@ void macsec_remove(struct ether_priv_data *pdata)
 
 	if (macsec_pdata) {
 		/* 1. Unregister generic netlink */
-		genl_unregister_family(&nv_macsec_fam);
+		if (is_nv_macsec_fam_registered == OSI_ENABLE) {
+			genl_unregister_family(&nv_macsec_fam);
+			is_nv_macsec_fam_registered = OSI_DISABLE;
+		}
 
 		/* 2. Release platform resources */
 		macsec_release_platform_res(macsec_pdata);
@@ -896,7 +922,6 @@ int macsec_probe(struct ether_priv_data *pdata)
 		osi_core->macsec_base = NULL;
 		osi_core->tz_base = NULL;
 		pdata->macsec_pdata = NULL;
-
 		/* Return positive value to indicate MACsec not enabled in DT */
 		ret = 1;
 		goto exit;
@@ -947,10 +972,15 @@ int macsec_probe(struct ether_priv_data *pdata)
 	/* 5. Register macsec sysfs node - done from sysfs.c */
 
 	/* 6. Register macsec generic netlink ops */
-	ret = genl_register_family(&nv_macsec_fam);
-	if (ret) {
-		dev_err(dev, "Failed to register GENL ops\n");
-		macsec_disable_car(macsec_pdata);
+	if (is_nv_macsec_fam_registered == OSI_DISABLE) {
+		ret = genl_register_family(&nv_macsec_fam);
+			if (ret) {
+				dev_err(dev, "Failed to register GENL ops %d\n",
+					ret);
+				macsec_disable_car(macsec_pdata);
+			}
+
+			is_nv_macsec_fam_registered = OSI_ENABLE;
 	}
 
 exit:
