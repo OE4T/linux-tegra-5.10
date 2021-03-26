@@ -23,6 +23,9 @@
 #include "gem.h"
 #include "hub.h"
 
+/* XXX move to include/uapi/drm/drm_fourcc.h? */
+#define DRM_FORMAT_MOD_NVIDIA_SECTOR_LAYOUT BIT(22)
+
 struct reset_control;
 
 #ifdef CONFIG_DRM_FBDEV_EMULATION
