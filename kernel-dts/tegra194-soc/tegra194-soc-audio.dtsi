@@ -23,6 +23,13 @@
 		status = "disabled";
 	};
 
+	/* generic audio-graph based sound card */
+	sound_graph {
+		iommus = <&smmu TEGRA_SID_APE>;
+		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
+		status = "disabled";
+	};
+
 	sound_ref {
 		iommus = <&smmu TEGRA_SID_APE>;
 		iommu-resv-regions = <0x0 0x0 0x0 0x40000000 0x0 0x60000000 0xffffffff 0xffffffff>;
