@@ -149,11 +149,6 @@ u32 nvgpu_ce_engine_interrupt_mask(struct gk20a *g)
 	u32 i;
 	u32 mask = 0U;
 
-	if ((g->ops.ce.isr_stall == NULL) ||
-	    (g->ops.ce.isr_nonstall == NULL)) {
-		return 0U;
-	}
-
 	/*
 	 * For old chips - pre-Pascal - we have COPY[0-2], for new chips we
 	 * have some number of LCE instances. For the purpose of this code we
