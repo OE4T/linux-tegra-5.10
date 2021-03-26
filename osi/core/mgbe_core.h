@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -424,6 +424,8 @@
 #define MGBE_MAC_RMCR_GPSLCE			OSI_BIT(6)
 #define MGBE_MAC_RMCR_WD			OSI_BIT(7)
 #define MGBE_MAC_RMCR_JE			OSI_BIT(8)
+#define MGBE_MAC_TMCR_IFP			OSI_BIT(11)
+#define MGBE_MAC_TMCR_IPG_MASK			0x700U
 #define MGBE_MAC_TMCR_JD			OSI_BIT(16)
 #define MGBE_MMC_CNTRL_CNTRST			OSI_BIT(0)
 #define MGBE_MMC_CNTRL_RSTONRD			OSI_BIT(2)
@@ -658,6 +660,7 @@
 #define MGBE_MTL_EST_ITRE_IECC			OSI_BIT(0)
 #define MGBE_MAC_SBD_INTR			OSI_BIT(2)
 #define MGBE_MAC_EXT_CNF_DDS			OSI_BIT(7)
+#define MGBE_MAC_EXT_CNF_EIPG 			0x1U
 /** @} */
 
 /**

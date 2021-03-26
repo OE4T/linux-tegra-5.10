@@ -2393,6 +2393,25 @@ static int macsec_init(struct osi_core_priv_data *const osi_core,
 	pr_err("Write RX_MTU_LEN: 0x%x\n", val);
 	osi_writela(osi_core, val, addr + RX_MTU_LEN);
 
+	/* set TX/RX SOT, as SOT value different for eqos.
+	 * default value matches for MGBE
+	 */
+	if (osi_core->mac == OSI_MAC_HW_EQOS) {
+		val = osi_readla(osi_core, addr + TX_SOT_DELAY);
+		pr_err("Read TX_SOT_DELAY: 0x%x\n", val);
+		val &= ~(SOT_LENGTH_MASK);
+		val |= (EQOS_MACSEC_SOT_DELAY & SOT_LENGTH_MASK);
+		pr_err("Write TX_SOT_DELAY: 0x%x\n", val);
+		osi_writela(osi_core, val, addr + TX_SOT_DELAY);
+
+		val = osi_readla(osi_core, addr + RX_SOT_DELAY);
+		pr_err("Read RX_SOT_DELAY: 0x%x\n", val);
+		val &= ~(SOT_LENGTH_MASK);
+		val |= (EQOS_MACSEC_SOT_DELAY & SOT_LENGTH_MASK);
+		pr_err("Write RX_SOT_DELAY: 0x%x\n", val);
+		osi_writela(osi_core, val, addr + RX_SOT_DELAY);
+	}
+
 	/* 2. Set essential MACsec control configuration */
 	val = osi_readla(osi_core, addr + MACSEC_CONTROL0);
 	pr_err("Read MACSEC_CONTROL0: 0x%x\n", val);

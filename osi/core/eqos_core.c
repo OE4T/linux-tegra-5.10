@@ -1473,6 +1473,46 @@ static void eqos_configure_rxq_priority(
 	}
 }
 
+#ifdef MACSEC_SUPPORT
+/**
+ * @brief eqos_config_macsec_ipg - Configure MAC IPG according to macsec IAS
+ *
+ * @note
+ * Algorithm:
+ *  - Increase MAC IPG value to accommodate macsec 32 byte SECTAG.
+ *
+ * @param[in] osi_core: OSI core private data.
+ *
+ * @pre
+ *     1) MAC has to be out of reset.
+ *     2) Shall not use this ipg value in half duplex mode
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+static void eqos_config_macsec_ipg(struct osi_core_priv_data *const osi_core)
+{
+	nveu32_t value;
+
+	/* Configure IPG  {EIPG,IPG} value according to macsec IAS in
+	 * MAC_Configuration and MAC_Extended_Configuration
+	 * IPG (12 B[default] + 32 B[sectag]) = 352 bits
+	 */
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_MCR);
+	value |= (EQOS_MCR_IPG << EQOS_MCR_IPG_SHIFT) & EQOS_MCR_IPG_MASK;
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_MCR);
+
+	value = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
+	value |= EQOS_MAC_EXTR_EIPGEN;
+	value |= (EQOS_MAC_EXTR_EIPG << EQOS_MAC_EXTR_EIPG_SHIFT) &
+		  EQOS_MAC_EXTR_EIPG_MASK;
+	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_EXTR);
+}
+#endif /*  MACSEC_SUPPORT */
+
 /**
  * @brief eqos_configure_mac - Configure MAC
  *
@@ -1628,6 +1668,9 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	if (osi_core->dcs_en != OSI_ENABLE) {
 		eqos_configure_rxq_priority(osi_core);
 	}
+#ifdef MACSEC_SUPPORT
+	eqos_config_macsec_ipg(osi_core);
+#endif /*  MACSEC_SUPPORT */
 }
 
 /**
