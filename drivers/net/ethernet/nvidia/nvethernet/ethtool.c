@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -313,7 +313,6 @@ static void ether_get_ethtool_stats(struct net_device *dev,
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct osi_ioctl ioctl_data = {};
 	int i, j = 0;
 	int ret;
 
@@ -323,8 +322,7 @@ static void ether_get_ethtool_stats(struct net_device *dev,
 	}
 
 	if (pdata->hw_feat.mmc_sel == 1U) {
-		ioctl_data.cmd = OSI_CMD_READ_MMC;
-		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		ret = osi_read_mmc(osi_core);
 		if (ret == -1) {
 			dev_err(pdata->dev, "Error in reading MMC counter\n");
 			return;
@@ -542,7 +540,6 @@ static int ether_set_pauseparam(struct net_device *ndev,
 				struct ethtool_pauseparam *pause)
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
-	struct osi_ioctl ioctl_data = {};
 	struct phy_device *phydev = pdata->phydev;
 	int curflow_ctrl = OSI_FLOW_CTRL_DISABLE;
 	int ret;
@@ -589,13 +586,8 @@ static int ether_set_pauseparam(struct net_device *ndev,
 	}
 
 	/* Configure current flow control settings */
-	ioctl_data.cmd = OSI_CMD_FLOW_CTRL;
-	ioctl_data.arg1_u32 = pdata->osi_core->flow_ctrl;
-	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
-	if (ret < 0) {
-		dev_err(pdata->dev, "Setting flow control failed\n");
-		return -EFAULT;
-	}
+	ret = osi_configure_flow_control(pdata->osi_core,
+					 pdata->osi_core->flow_ctrl);
 
 	return ret;
 }

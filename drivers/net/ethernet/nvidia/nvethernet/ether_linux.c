@@ -34,11 +34,9 @@ static inline void ether_stats_work_func(struct work_struct *work)
 	struct ether_priv_data *pdata = container_of(dwork,
 			struct ether_priv_data, ether_stats_work);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_ioctl ioctl_data = {};
 	int ret;
 
-	ioctl_data.cmd = OSI_CMD_READ_MMC;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	ret = osi_read_mmc(osi_core);
 	if (ret < 0) {
 		dev_err(pdata->dev, "failed to read MMC counters %s\n",
 			__func__);
@@ -242,7 +240,6 @@ int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable)
 	int ret = 0;
 	struct phy_device *phydev = pdata->phydev;
 	unsigned int enable = tx_lpi_enable;
-	struct osi_ioctl ioctl_data = {};
 
 	if (tx_lpi_enable) {
 		/* phy_init_eee() returns 0 if EEE is supported by the PHY */
@@ -256,11 +253,9 @@ int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable)
 	}
 
 	/* Enable EEE */
-	ioctl_data.cmd = OSI_CMD_CONFIG_EEE;
-	ioctl_data.arg1_u32 = enable;
-	ioctl_data.arg2_u32 = pdata->tx_lpi_timer;
-	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
-
+	ret = osi_configure_eee(pdata->osi_core,
+				enable,
+				pdata->tx_lpi_timer);
 	/* Return current status of EEE based on OSI API success/failure */
 	if (ret != 0) {
 		if (enable) {
@@ -296,7 +291,6 @@ static void ether_adjust_link(struct net_device *dev)
 	int new_state = 0, speed_changed = 0;
 	unsigned long val;
 	unsigned int eee_enable = OSI_DISABLE;
-	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
 	if (phydev == NULL) {
@@ -306,33 +300,20 @@ static void ether_adjust_link(struct net_device *dev)
 	if (phydev->link) {
 		if ((pdata->osi_core->pause_frames == OSI_PAUSE_FRAMES_ENABLE)
 		    && (phydev->pause || phydev->asym_pause)) {
-			ioctl_data.cmd = OSI_CMD_FLOW_CTRL;
-			ioctl_data.arg1_u32 = pdata->osi_core->flow_ctrl;
-			ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
-			if (ret < 0) {
-				netdev_err(dev, "Failed to set pause frame\n");
-				return;
-			}
+			osi_configure_flow_control(pdata->osi_core,
+						   pdata->osi_core->flow_ctrl);
 		}
 
 		if (phydev->duplex != pdata->oldduplex) {
 			new_state = 1;
-			ioctl_data.cmd = OSI_CMD_SET_MODE;
-			ioctl_data.arg6_32 = phydev->duplex;
-			ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
-			if (ret < 0) {
-				netdev_err(dev, "Failed to set mode\n");
-				return;
-			}
+			osi_set_mode(pdata->osi_core, phydev->duplex);
 			pdata->oldduplex = phydev->duplex;
 		}
 
 		if (phydev->speed != pdata->speed) {
 			new_state = 1;
 			speed_changed = 1;
-			ioctl_data.cmd = OSI_CMD_SET_SPEED;
-			ioctl_data.arg6_32 = phydev->speed;
-			ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+			ret = osi_set_speed(pdata->osi_core, phydev->speed);
 			if (ret < 0) {
 				netdev_err(dev, "Failed to set speed\n");
 				return;
@@ -370,12 +351,9 @@ static void ether_adjust_link(struct net_device *dev)
 			     (phydev->speed ==
 			     SPEED_100) ? 25000 * 1000 : 125000 * 1000);
 		if (phydev->speed != SPEED_10) {
-			ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
-			if (osi_handle_ioctl(pdata->osi_core, &ioctl_data) <
-					     0) {
+			if (osi_pad_calibrate(pdata->osi_core) < 0)
 				dev_err(pdata->dev,
 					"failed to do pad caliberation\n");
-			}
 		}
 	}
 
@@ -647,15 +625,8 @@ static irqreturn_t ether_rx_chan_isr(int irq, void *data)
 static irqreturn_t ether_common_isr(int irq, void *data)
 {
 	struct ether_priv_data *pdata =	(struct ether_priv_data *)data;
-	struct osi_ioctl ioctl_data = {};
-	int ret;
 
-	ioctl_data.cmd = OSI_CMD_COMMON_ISR;
-	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
-	if (ret < 0) {
-		dev_err(pdata->dev,
-			"%s() failure in handling ISR\n", __func__);
-	}
+	osi_common_isr(pdata->osi_core);
 	return IRQ_HANDLED;
 }
 
@@ -1536,8 +1507,6 @@ static int ether_set_cur_therm_state(struct thermal_cooling_device *tcd,
 {
 	struct ether_priv_data *pdata = tcd->devdata;
 	struct device *dev = pdata->dev;
-	struct osi_ioctl ioctl_data = {};
-
 
 	/* Thermal framework will take care of making sure state is within
 	 * valid bounds, based on the get_max_state callback. So no need
@@ -1548,8 +1517,7 @@ static int ether_set_cur_therm_state(struct thermal_cooling_device *tcd,
 
 	atomic_set(&pdata->therm_state, state);
 
-	ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
-	if (osi_handle_ioctl(pdata->osi_core, &ioctl_data) < 0) {
+	if (osi_pad_calibrate(pdata->osi_core) < 0) {
 		dev_err(dev, "Therm state changed, failed pad calibration\n");
 		return -1;
 	}
@@ -1648,7 +1616,6 @@ static int ether_open(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
 	/* Reset the PHY */
@@ -1674,8 +1641,7 @@ static int ether_open(struct net_device *dev)
 		}
 	}
 
-	ioctl_data.cmd = OSI_CMD_POLL_FOR_MAC_RST;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	ret = osi_poll_for_mac_reset_complete(osi_core);
 	if (ret < 0) {
 		dev_err(&dev->dev, "failed to poll MAC Software reset\n");
 		goto err_poll_swr;
@@ -1757,14 +1723,8 @@ static int ether_open(struct net_device *dev)
 	ether_init_eee_params(pdata);
 
 	/* Start the MAC */
-	ioctl_data.cmd = OSI_CMD_START_MAC;
-	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
-	if (ret < 0) {
-		dev_err(&dev->dev,
-			"%s: failed to start MAC %d\n",
-			__func__, ret);
-		goto err_r_irq;
-	}
+	osi_start_mac(pdata->osi_core);
+
 	/* start PHY */
 	phy_start(pdata->phydev);
 
@@ -2309,7 +2269,7 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
  * @retval "negative value" on failure.
  */
 static int ether_prepare_mc_list(struct net_device *dev,
-				 struct osi_ioctl *ioctl_data)
+				 struct osi_filter *filter)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -2317,56 +2277,53 @@ static int ether_prepare_mc_list(struct net_device *dev,
 	unsigned int i = 1;
 	int ret = -1;
 
-	if (ioctl_data == NULL) {
-		dev_err(pdata->dev, "ioctl_data is NULL\n");
+	if (filter == NULL) {
+		dev_err(pdata->dev, "filter is NULL\n");
 		return ret;
 	}
 
-	memset(&ioctl_data->l2_filter, 0x0, sizeof(struct osi_filter));
+	memset(filter, 0x0, sizeof(struct osi_filter));
 
 	if (pdata->l2_filtering_mode == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev,
 			"HASH FILTERING for mc addresses not Supported in SW\n");
-		ioctl_data->l2_filter.oper_mode = (OSI_OPER_EN_PERFECT |
-						   OSI_OPER_DIS_PROMISC |
-						   OSI_OPER_DIS_ALLMULTI);
-		ioctl_data->cmd = OSI_CMD_L2_FILTER;
-		return osi_handle_ioctl(osi_core, ioctl_data);
+		filter->oper_mode = (OSI_OPER_EN_PERFECT |
+				     OSI_OPER_DIS_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
+
+		return osi_l2_filter(osi_core, filter);
 	/* address 0 is used for DUT DA so compare with
 	 *  pdata->num_mac_addr_regs - 1
 	 */
 	} else if (netdev_mc_count(dev) > (pdata->num_mac_addr_regs - 1)) {
 		/* switch to PROMISCUOUS mode */
-		ioctl_data->l2_filter.oper_mode = (OSI_OPER_DIS_PERFECT |
-						   OSI_OPER_EN_PROMISC |
-						   OSI_OPER_DIS_ALLMULTI);
+		filter->oper_mode = (OSI_OPER_DIS_PERFECT |
+				     OSI_OPER_EN_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
 		dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
 
-		ioctl_data->cmd = OSI_CMD_L2_FILTER;
-		return osi_handle_ioctl(osi_core, ioctl_data);
+		return osi_l2_filter(osi_core, filter);
 	} else {
 		dev_dbg(pdata->dev,
 			"select PERFECT FILTERING for mc addresses, mc_count = %d, num_mac_addr_regs = %d\n",
 			netdev_mc_count(dev), pdata->num_mac_addr_regs);
 
-		ioctl_data->l2_filter.oper_mode = (OSI_OPER_EN_PERFECT |
-						   OSI_OPER_ADDR_UPDATE |
-						   OSI_OPER_DIS_PROMISC |
-						   OSI_OPER_DIS_ALLMULTI);
+		filter->oper_mode = (OSI_OPER_EN_PERFECT |
+				     OSI_OPER_ADDR_UPDATE |
+				     OSI_OPER_DIS_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
 		netdev_for_each_mc_addr(ha, dev) {
 			dev_dbg(pdata->dev,
 				"mc addr[%d] = %#x:%#x:%#x:%#x:%#x:%#x\n",
 				i, ha->addr[0], ha->addr[1], ha->addr[2],
 				ha->addr[3], ha->addr[4], ha->addr[5]);
-			ioctl_data->l2_filter.index = i;
-			memcpy(ioctl_data->l2_filter.mac_address, ha->addr,
-			       ETH_ALEN);
-			ioctl_data->l2_filter.dma_routing = OSI_DISABLE;
-			ioctl_data->l2_filter.dma_chan = 0x0;
-			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
-			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
-			ioctl_data->cmd = OSI_CMD_L2_FILTER;
-			ret = osi_handle_ioctl(osi_core, ioctl_data);
+			filter->index = i;
+			memcpy(filter->mac_address, ha->addr, ETH_ALEN);
+			filter->dma_routing = OSI_DISABLE;
+			filter->dma_chan = 0x0;
+			filter->addr_mask = OSI_AMASK_DISABLE;
+			filter->src_dest = OSI_DA_MATCH;
+			ret = osi_l2_filter(osi_core, filter);
 			if (ret < 0) {
 				dev_err(pdata->dev, "issue in creating mc list\n");
 				pdata->last_filter_index = i - 1;
@@ -2401,7 +2358,7 @@ static int ether_prepare_mc_list(struct net_device *dev,
  * @retval "negative value" on failure.
  */
 static int ether_prepare_uc_list(struct net_device *dev,
-				 struct osi_ioctl *ioctl_data)
+				 struct osi_filter *filter)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -2410,54 +2367,51 @@ static int ether_prepare_uc_list(struct net_device *dev,
 	struct netdev_hw_addr *ha;
 	int ret = -1;
 
-	if (ioctl_data == NULL) {
-		dev_err(pdata->dev, "ioctl_data is NULL\n");
+	if (filter == NULL) {
+		dev_err(pdata->dev, "filter is NULL\n");
 		return ret;
 	}
 
-	memset(&ioctl_data->l2_filter, 0x0, sizeof(struct osi_filter));
+	memset(filter, 0x0, sizeof(struct osi_filter));
 
 	if (pdata->l2_filtering_mode == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev,
 			"HASH FILTERING for uc addresses not Supported in SW\n");
 		/* Perfect filtering for multicast */
-		ioctl_data->l2_filter.oper_mode = (OSI_OPER_EN_PERFECT |
-						   OSI_OPER_DIS_PROMISC |
-						   OSI_OPER_DIS_ALLMULTI);
-		ioctl_data->cmd = OSI_CMD_L2_FILTER;
-		return osi_handle_ioctl(osi_core, ioctl_data);
+		filter->oper_mode = (OSI_OPER_EN_PERFECT |
+				     OSI_OPER_DIS_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
+
+		return osi_l2_filter(osi_core, filter);
 	} else if (netdev_uc_count(dev) > (pdata->num_mac_addr_regs - i)) {
 		/* switch to PROMISCUOUS mode */
-		ioctl_data->l2_filter.oper_mode = (OSI_OPER_DIS_PERFECT |
-						   OSI_OPER_EN_PROMISC |
-						   OSI_OPER_DIS_ALLMULTI);
+		filter->oper_mode = (OSI_OPER_DIS_PERFECT |
+				     OSI_OPER_EN_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
 		dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
-		ioctl_data->cmd = OSI_CMD_L2_FILTER;
-		return osi_handle_ioctl(osi_core, ioctl_data);
+
+		return osi_l2_filter(osi_core, filter);
 	} else {
 		dev_dbg(pdata->dev,
 				"select PERFECT FILTERING for uc addresses: uc_count = %d\n",
 			netdev_uc_count(dev));
 
-		ioctl_data->l2_filter.oper_mode = (OSI_OPER_EN_PERFECT |
-						   OSI_OPER_ADDR_UPDATE |
-						   OSI_OPER_DIS_PROMISC |
-						   OSI_OPER_DIS_ALLMULTI);
+		filter->oper_mode = (OSI_OPER_EN_PERFECT |
+				     OSI_OPER_ADDR_UPDATE |
+				     OSI_OPER_DIS_PROMISC |
+				     OSI_OPER_DIS_ALLMULTI);
 		netdev_for_each_uc_addr(ha, dev) {
 			dev_dbg(pdata->dev,
 				"uc addr[%d] = %#x:%#x:%#x:%#x:%#x:%#x\n",
 				i, ha->addr[0], ha->addr[1], ha->addr[2],
 				ha->addr[3], ha->addr[4], ha->addr[5]);
-			ioctl_data->l2_filter.index = i;
-			memcpy(ioctl_data->l2_filter.mac_address, ha->addr,
-			       ETH_ALEN);
-			ioctl_data->l2_filter.dma_routing = OSI_DISABLE;
-			ioctl_data->l2_filter.dma_chan = 0x0;
-			ioctl_data->l2_filter.addr_mask = OSI_AMASK_DISABLE;
-			ioctl_data->l2_filter.src_dest = OSI_DA_MATCH;
-
-			ioctl_data->cmd = OSI_CMD_L2_FILTER;
-			ret = osi_handle_ioctl(osi_core, ioctl_data);
+			filter->index = i;
+			memcpy(filter->mac_address, ha->addr, ETH_ALEN);
+			filter->dma_routing = OSI_DISABLE;
+			filter->dma_chan = 0x0;
+			filter->addr_mask = OSI_AMASK_DISABLE;
+			filter->src_dest = OSI_DA_MATCH;
+			ret = osi_l2_filter(osi_core, filter);
 			if (ret < 0) {
 				dev_err(pdata->dev, "issue in creating uc list\n");
 				pdata->last_filter_index = i - 1;
@@ -2490,23 +2444,20 @@ static void ether_set_rx_mode(struct net_device *dev)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_filter filter;
 	/* store last call last_uc_filter_index in temporary variable */
 	int last_index = pdata->last_filter_index;
-	struct osi_ioctl ioctl_data = {};
-
 	int ret = -1;
 	unsigned int i = 0;
 
-	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+	memset(&filter, 0x0, sizeof(struct osi_filter));
 	if ((dev->flags & IFF_PROMISC) == IFF_PROMISC) {
 		if (pdata->promisc_mode == OSI_ENABLE) {
-			ioctl_data.l2_filter.oper_mode =
-							(OSI_OPER_DIS_PERFECT |
-							 OSI_OPER_EN_PROMISC |
-							 OSI_OPER_DIS_ALLMULTI);
+			filter.oper_mode = (OSI_OPER_DIS_PERFECT |
+					    OSI_OPER_EN_PROMISC |
+					    OSI_OPER_DIS_ALLMULTI);
 			dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
-			ioctl_data.cmd = OSI_CMD_L2_FILTER;
-			ret = osi_handle_ioctl(osi_core, &ioctl_data);
+			ret = osi_l2_filter(osi_core, &filter);
 			if (ret < 0) {
 				dev_err(pdata->dev,
 					"Setting Promiscuous mode failed\n");
@@ -2518,19 +2469,18 @@ static void ether_set_rx_mode(struct net_device *dev)
 
 		return;
 	} else if ((dev->flags & IFF_ALLMULTI) == IFF_ALLMULTI) {
-		ioctl_data.l2_filter.oper_mode = (OSI_OPER_EN_ALLMULTI |
-						  OSI_OPER_DIS_PERFECT |
-						  OSI_OPER_DIS_PROMISC);
+		filter.oper_mode = (OSI_OPER_EN_ALLMULTI |
+				    OSI_OPER_DIS_PERFECT |
+				    OSI_OPER_DIS_PROMISC);
 		dev_dbg(pdata->dev, "pass all multicast pkt\n");
-		ioctl_data.cmd = OSI_CMD_L2_FILTER;
-		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		ret = osi_l2_filter(osi_core, &filter);
 		if (ret < 0) {
 			dev_err(pdata->dev, "Setting All Multicast allow mode failed\n");
 		}
 
 		return;
 	} else if (!netdev_mc_empty(dev)) {
-		if (ether_prepare_mc_list(dev, &ioctl_data) != 0) {
+		if (ether_prepare_mc_list(dev, &filter) != 0) {
 			dev_err(pdata->dev, "Setting MC address failed\n");
 		}
 	} else {
@@ -2538,23 +2488,22 @@ static void ether_set_rx_mode(struct net_device *dev)
 	}
 
 	if (!netdev_uc_empty(dev)) {
-		if (ether_prepare_uc_list(dev, &ioctl_data) != 0) {
+		if (ether_prepare_uc_list(dev, &filter) != 0) {
 			dev_err(pdata->dev, "Setting UC address failed\n");
 		}
 	}
 
 	/* Reset the filter structure to avoid any old value */
-	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
+	memset(&filter, 0x0, sizeof(struct osi_filter));
 	/* invalidate remaining ealier address */
 	for (i = pdata->last_filter_index + 1; i <= last_index; i++) {
-		ioctl_data.l2_filter.oper_mode = OSI_OPER_ADDR_DEL;
-		ioctl_data.l2_filter.index = i;
-		ioctl_data.l2_filter.dma_routing = OSI_DISABLE;
-		ioctl_data.l2_filter.dma_chan = OSI_CHAN_ANY;
-		ioctl_data.l2_filter.addr_mask = OSI_AMASK_DISABLE;
-		ioctl_data.l2_filter.src_dest = OSI_DA_MATCH;
-		ioctl_data.cmd = OSI_CMD_L2_FILTER;
-		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		filter.oper_mode = OSI_OPER_ADDR_UPDATE;
+		filter.index = i;
+		filter.dma_routing = OSI_DISABLE;
+		filter.dma_chan = OSI_CHAN_ANY;
+		filter.addr_mask = OSI_AMASK_DISABLE;
+		filter.src_dest = OSI_DA_MATCH;
+		ret = osi_l2_filter(osi_core, &filter);
 		if (ret < 0) {
 			dev_err(pdata->dev, "Invalidating expired L2 filter failed\n");
 			return;
@@ -2726,7 +2675,6 @@ static int ether_set_features(struct net_device *ndev, netdev_features_t feat)
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	netdev_features_t hw_feat_cur_state = pdata->hw_feat_cur_state;
-	struct osi_ioctl ioctl_data = {};
 
 	if (pdata->hw_feat.rx_coe_sel == 0U) {
 		return ret;
@@ -2734,18 +2682,16 @@ static int ether_set_features(struct net_device *ndev, netdev_features_t feat)
 
 	if ((feat & NETIF_F_RXCSUM) == NETIF_F_RXCSUM) {
 		if (!(hw_feat_cur_state & NETIF_F_RXCSUM)) {
-			ioctl_data.cmd = OSI_CMD_RXCSUM_OFFLOAD;
-			ioctl_data.arg1_u32 = OSI_ENABLE;
-			ret = osi_handle_ioctl(osi_core, &ioctl_data);
+			ret = osi_config_rxcsum_offload(osi_core,
+							OSI_ENABLE);
 			dev_info(pdata->dev, "Rx Csum offload: Enable: %s\n",
 				 ret ? "Failed" : "Success");
 			pdata->hw_feat_cur_state |= NETIF_F_RXCSUM;
 		}
 	} else {
 		if ((hw_feat_cur_state & NETIF_F_RXCSUM)) {
-			ioctl_data.cmd = OSI_CMD_RXCSUM_OFFLOAD;
-			ioctl_data.arg1_u32 = OSI_DISABLE;
-			ret = osi_handle_ioctl(osi_core, &ioctl_data);
+			ret = osi_config_rxcsum_offload(osi_core,
+							OSI_DISABLE);
 			dev_info(pdata->dev, "Rx Csum offload: Disable: %s\n",
 				 ret ? "Failed" : "Success");
 			pdata->hw_feat_cur_state &= ~NETIF_F_RXCSUM;
@@ -2779,16 +2725,13 @@ static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_ioctl ioctl_data = {};
 	int ret = -1;
 
 	if (pdata->vlan_hash_filtering == OSI_HASH_FILTER_MODE) {
 		dev_err(pdata->dev,
 			"HASH FILTERING for VLAN tag is not supported in SW\n");
 	} else {
-		ioctl_data.cmd = OSI_CMD_UPDATE_VLAN_ID;
-		ioctl_data.arg1_u32 = vid;
-		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		ret = osi_update_vlan_id(osi_core, vid);
 	}
 
 	return ret;
@@ -2818,7 +2761,6 @@ static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 {
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_ioctl ioctl_data = {};
 	int ret = -1;
 
 	if (!netif_running(ndev)) {
@@ -2829,12 +2771,10 @@ static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
 		dev_err(pdata->dev,
 			"HASH FILTERING for VLAN tag is not supported in SW\n");
 	} else {
-		ioctl_data.cmd = OSI_CMD_UPDATE_VLAN_ID;
 		/* By default, receive only VLAN pkt with VID = 1 because
 		 * writing 0 will pass all VLAN pkt
 		 */
-		ioctl_data.arg1_u32 = 0x1U;
-		ret = osi_handle_ioctl(osi_core, &ioctl_data);
+		ret = osi_update_vlan_id(osi_core, 0x1U);
 	}
 
 	return ret;
@@ -3557,7 +3497,6 @@ static int ether_configure_car(struct platform_device *pdev,
 	struct device_node *np = dev->of_node;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	unsigned long csr_clk_rate = 0;
-	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
 	if (osi_core->pre_si) {
@@ -3627,19 +3566,10 @@ static int ether_configure_car(struct platform_device *pdev,
 	}
 
 	csr_clk_rate = clk_get_rate(pdata->axi_cbb_clk);
-	ioctl_data.cmd = OSI_CMD_MDC_CONFIG;
-	ioctl_data.arg5_u64 = csr_clk_rate;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to configure MDC\n");
-		goto err_mdc;
-	}
+	osi_set_mdc_clk_rate(pdata->osi_core, csr_clk_rate);
 
 	return ret;
-err_mdc:
-	if (pdata->mac_rst) {
-		reset_control_assert(pdata->mac_rst);
-	}
+
 err_rst:
 	ether_disable_clks(pdata);
 err_enable_clks:
@@ -4314,7 +4244,6 @@ static int ether_probe(struct platform_device *pdev)
 	unsigned int num_dma_chans, mac, num_mtl_queues, chan;
 	struct osi_core_priv_data *osi_core;
 	struct osi_dma_priv_data *osi_dma;
-	struct osi_ioctl ioctl_data = {};
 	struct net_device *ndev;
 	int ret = 0, i;
 
@@ -4391,23 +4320,18 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_init_res;
 	}
 
-	ioctl_data.cmd = OSI_CMD_GET_MAC_VER;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	ret = osi_get_mac_version(osi_core, &osi_core->mac_ver);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get MAC version (%u)\n",
 			osi_core->mac_ver);
 		goto err_dma_mask;
 	}
-	osi_core->mac_ver = ioctl_data.arg1_u32;
 
-	ioctl_data.cmd = OSI_CMD_GET_HW_FEAT;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	ret = osi_get_hw_features(osi_core, &pdata->hw_feat);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get HW features\n");
 		goto err_dma_mask;
 	}
-	memcpy(&pdata->hw_feat, &ioctl_data.hw_feat,
-	       sizeof(struct osi_hw_features));
 
 	/* Set netdev features based on hw features */
 	ether_set_ndev_features(ndev, pdata);
@@ -4550,7 +4474,6 @@ static int ether_suspend_noirq(struct device *dev)
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
-	struct osi_ioctl ioctl_data = {};
 	unsigned int i = 0, chan = 0;
 
 	if (!netif_running(ndev))
@@ -4560,8 +4483,7 @@ static int ether_suspend_noirq(struct device *dev)
 	 * current configuration so that SW view of HW is maintained across
 	 * suspend/resume.
 	 */
-	ioctl_data.cmd =  OSI_CMD_SAVE_REGISTER;
-	if (osi_handle_ioctl(osi_core, &ioctl_data)) {
+	if (osi_save_registers(osi_core)) {
 		dev_err(dev, "Failed to backup MAC core registers\n");
 		return -EBUSY;
 	}
@@ -4617,7 +4539,6 @@ static int ether_resume(struct ether_priv_data *pdata)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct device *dev = pdata->dev;
 	struct net_device *ndev = pdata->ndev;
-	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
 	if (pdata->mac_rst) {
@@ -4628,15 +4549,13 @@ static int ether_resume(struct ether_priv_data *pdata)
 		}
 	}
 
-	ioctl_data.cmd = OSI_CMD_POLL_FOR_MAC_RST;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	ret = osi_poll_for_mac_reset_complete(osi_core);
 	if (ret < 0) {
 		dev_err(dev, "failed to poll mac software reset\n");
 		return ret;
 	}
 
-	ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
+	ret = osi_pad_calibrate(osi_core);
 	if (ret < 0) {
 		dev_err(dev, "failed to do pad caliberation\n");
 		return ret;
@@ -4673,14 +4592,7 @@ static int ether_resume(struct ether_priv_data *pdata)
 	/* enable NAPI */
 	ether_napi_enable(pdata);
 	/* start the mac */
-	ioctl_data.cmd = OSI_CMD_START_MAC;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
-	if (ret < 0) {
-		dev_err(dev,
-			"%s: failed to start MAC %d\n", __func__, ret);
-		goto err_start_mac;
-	}
-
+	osi_start_mac(osi_core);
 	if (pdata->phydev && !(device_may_wakeup(&ndev->dev))) {
 		/* configure phy init */
 		phy_init_hw(pdata->phydev);
@@ -4693,8 +4605,7 @@ static int ether_resume(struct ether_priv_data *pdata)
 	ether_stats_work_queue_start(pdata);
 
 	return 0;
-err_start_mac:
-	ether_napi_disable(pdata);
+
 err_dma:
 	osi_hw_core_deinit(osi_core);
 err_core:
@@ -4719,7 +4630,6 @@ static int ether_resume_noirq(struct device *dev)
 	struct net_device *ndev = dev_get_drvdata(dev);
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
 	if (!netif_running(ndev))
@@ -4745,8 +4655,7 @@ static int ether_resume_noirq(struct device *dev)
 	 * Restore the backup of the MAC configuration to maintain consistency
 	 * between SW/HW state.
 	 */
-	ioctl_data.cmd = OSI_CMD_RESTORE_REGISTER;
-	if (osi_handle_ioctl(osi_core, &ioctl_data)) {
+	if (osi_restore_registers(osi_core)) {
 		//TODO: Ideally, undo MAC init/resume & return.
 		dev_err(dev, "Failed to restore MAC core registers\n");
 		return -EIO;
