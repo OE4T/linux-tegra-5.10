@@ -1,4 +1,5 @@
 subdir-ccflags-y			+= -Werror
+KBUILD_CFLAGS += -I$(srctree)/drivers/firmware/tegra
 
 obj-$(CONFIG_NV_TEGRA_BPMP)	:= bpmp.o
 bpmp-objs := \
