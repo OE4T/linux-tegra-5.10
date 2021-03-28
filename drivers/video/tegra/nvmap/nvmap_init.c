@@ -20,6 +20,7 @@
 #include <linux/nvmap.h>
 #include <linux/version.h>
 #include <linux/kmemleak.h>
+#include <linux/io.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #include <linux/sched/clock.h>
@@ -288,6 +289,96 @@ static int __nvmap_init_dt(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+static void nvmap_dma_release_coherent_memory(struct dma_coherent_mem_replica *mem)
+{
+	if (!mem)
+		return;
+	if (!(mem->flags & DMA_MEMORY_NOMAP))
+		memunmap(mem->virt_base);
+	kfree(mem->bitmap);
+	kfree(mem);
+}
+
+static int nvmap_dma_assign_coherent_memory(struct device *dev,
+				      struct dma_coherent_mem_replica *mem)
+{
+	if (!dev)
+		return -ENODEV;
+
+	if (dev->dma_mem)
+		return -EBUSY;
+
+	dev->dma_mem = (struct dma_coherent_mem *)mem;
+	return 0;
+}
+
+static int nvmap_dma_init_coherent_memory(
+	phys_addr_t phys_addr, dma_addr_t device_addr, size_t size, int flags,
+	struct dma_coherent_mem_replica **mem)
+{
+	struct dma_coherent_mem_replica *dma_mem = NULL;
+	void __iomem *mem_base = NULL;
+	int pages = size >> PAGE_SHIFT;
+	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
+	int ret;
+
+	if (!size)
+		return -EINVAL;
+
+	if (!(flags & DMA_MEMORY_NOMAP)) {
+		mem_base = memremap(phys_addr, size, MEMREMAP_WC);
+		if (!mem_base)
+			return -EINVAL;
+	}
+
+	dma_mem = kzalloc(sizeof(struct dma_coherent_mem_replica), GFP_KERNEL);
+	if (!dma_mem) {
+		ret = -ENOMEM;
+		goto err_memunmap;
+	}
+
+	dma_mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
+	if (!dma_mem->bitmap) {
+		ret = -ENOMEM;
+		goto err_free_dma_mem;
+	}
+
+	dma_mem->virt_base = mem_base;
+	dma_mem->device_base = device_addr;
+	dma_mem->pfn_base = PFN_DOWN(phys_addr);
+	dma_mem->size = pages;
+	dma_mem->flags = flags;
+	spin_lock_init(&dma_mem->spinlock);
+
+	*mem = dma_mem;
+	return 0;
+
+err_free_dma_mem:
+	kfree(dma_mem);
+
+err_memunmap:
+	memunmap(mem_base);
+	return ret;
+}
+
+int nvmap_dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+                        dma_addr_t device_addr, size_t size, int flags)
+{
+	struct dma_coherent_mem_replica *mem;
+	int ret;
+
+	ret = nvmap_dma_init_coherent_memory(phys_addr, device_addr, size, flags, &mem);
+	if (ret)
+		return ret;
+
+	ret = nvmap_dma_assign_coherent_memory(dev, mem);
+	if (ret)
+		nvmap_dma_release_coherent_memory(mem);
+	return ret;
+}
+#endif
+
 static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 					struct device *dev)
 {
@@ -305,9 +396,15 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 		return 0;
 
 	if (!co->cma_dev) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 		err = dma_declare_coherent_memory(co->dma_dev, 0,
 				co->base, co->size,
 				DMA_MEMORY_NOMAP | DMA_MEMORY_EXCLUSIVE);
+#else
+		err = nvmap_dma_declare_coherent_memory(co->dma_dev, 0,
+				co->base, co->size,
+				DMA_MEMORY_NOMAP | DMA_MEMORY_EXCLUSIVE);
+#endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		if (!err) {
 #else

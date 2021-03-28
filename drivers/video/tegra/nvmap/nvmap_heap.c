@@ -449,8 +449,13 @@ struct nvmap_heap *nvmap_heap_create(struct device *parent,
 		int err;
 
 		/* declare Non-CMA heap */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 		err = dma_declare_coherent_memory(h->dma_dev, 0, base, len,
 				DMA_MEMORY_NOMAP | DMA_MEMORY_EXCLUSIVE);
+#else
+		err = nvmap_dma_declare_coherent_memory(h->dma_dev, 0, base, len,
+				DMA_MEMORY_NOMAP | DMA_MEMORY_EXCLUSIVE);
+#endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		if (!err) {
 #else

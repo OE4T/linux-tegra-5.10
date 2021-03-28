@@ -377,6 +377,25 @@ static inline pgprot_t nvmap_pgprot(struct nvmap_handle *h, pgprot_t prot)
 	return prot;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+struct dma_coherent_mem_replica {
+	void		*virt_base;
+	dma_addr_t	device_base;
+	unsigned long	pfn_base;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
+	size_t		size;
+#else
+	int		size;
+#endif
+	int		flags;
+	unsigned long	*bitmap;
+	spinlock_t	spinlock;
+	bool		use_dev_dma_pfn_offset;
+};
+
+int nvmap_dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+			dma_addr_t device_addr, size_t size, int flags);
+#endif
 int nvmap_probe(struct platform_device *pdev);
 int nvmap_remove(struct platform_device *pdev);
 int nvmap_init(struct platform_device *pdev);
