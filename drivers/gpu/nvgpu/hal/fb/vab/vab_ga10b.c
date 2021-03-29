@@ -99,7 +99,7 @@ static int ga10b_fb_vab_config_address_range(struct gk20a *g,
 	u32 granularity_shift_bits = 0U;
 	int err = 0U;
 
-	nvgpu_err(g, " ");
+	nvgpu_log_fn(g, " ");
 
 	g->mm.vab.user_num_range_checkers = num_range_checkers;
 	nvgpu_log(g, gpu_dbg_vab, "num_range_checkers %u", num_range_checkers);
@@ -332,7 +332,7 @@ int ga10b_fb_vab_release(struct gk20a *g)
 	u32 vab_buf_size_reg = 0U;
 	u32 vab_reg = 0U;
 
-	nvgpu_err(g, " ");
+	nvgpu_log_fn(g, " ");
 
 	vab_buf_size_reg = nvgpu_readl(g,
 		fb_mmu_vidmem_access_bit_buffer_size_r());

@@ -613,6 +613,7 @@ nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
 	common/vgpu/fbp/fbp_vgpu.o \
 	common/vgpu/fb/fb_vgpu.o \
+	common/vgpu/fb/vab_vgpu.o \
 	common/vgpu/gr/gr_vgpu.o \
 	common/vgpu/gr/ctx_vgpu.o \
 	common/vgpu/gr/subctx_vgpu.o \

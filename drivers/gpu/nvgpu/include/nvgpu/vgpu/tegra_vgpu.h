@@ -119,6 +119,9 @@ enum {
 	TEGRA_VGPU_CMD_PERF_UPDATE_GET_PUT = 95,
 	TEGRA_VGPU_CMD_ALLOC_OBJ_CTX = 96,
 	TEGRA_VGPU_CMD_SET_PREEMPTION_MODE = 97,
+	TEGRA_VGPU_CMD_FB_VAB_RESERVE = 98,
+	TEGRA_VGPU_CMD_FB_VAB_DUMP_CLEAR = 99,
+	TEGRA_VGPU_CMD_FB_VAB_RELEASE = 100,
 };
 
 struct tegra_vgpu_connect_params {
@@ -658,6 +661,15 @@ struct tegra_vgpu_preemption_mode_params {
 	u32 compute_preempt_mode;
 };
 
+struct tegra_vgpu_fb_vab_reserve_params {
+	u32 vab_mode;
+	u32 num_range_checkers;
+};
+
+struct tegra_vgpu_fb_vab_dump_and_clear_params {
+	u64 user_buf_size;
+};
+
 struct tegra_vgpu_cmd_msg {
 	u32 cmd;
 	int ret;
@@ -720,6 +732,8 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_set_sm_exception_type_mask_params set_sm_exception_mask;
 		struct tegra_vgpu_get_tpc_exception_en_status_params get_tpc_exception_status;
 		struct tegra_vgpu_fb_set_mmu_debug_mode_params fb_set_mmu_debug_mode;
+		struct tegra_vgpu_fb_vab_reserve_params fb_vab_reserve;
+		struct tegra_vgpu_fb_vab_dump_and_clear_params fb_vab_dump_and_clear;
 		struct tegra_vgpu_gr_set_mmu_debug_mode_params gr_set_mmu_debug_mode;
 		struct tegra_vgpu_perfbuf_inst_block_mgt_params perfbuf_inst_block_management;
 		struct tegra_vgpu_l2_max_ways_evict_last_params l2_max_ways_evict_last;

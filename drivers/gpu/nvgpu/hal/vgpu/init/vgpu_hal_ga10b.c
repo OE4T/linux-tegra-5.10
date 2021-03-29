@@ -134,6 +134,7 @@
 
 #include "common/vgpu/init/init_vgpu.h"
 #include "common/vgpu/fb/fb_vgpu.h"
+#include "common/vgpu/fb/vab_vgpu.h"
 #include "common/vgpu/top/top_vgpu.h"
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/fifo/channel_vgpu.h"
@@ -204,6 +205,7 @@ static int vgpu_ga10b_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PROFILER_V2_DEVICE, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PROFILER_V2_CONTEXT, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SMPC_GLOBAL_MODE, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_VAB_ENABLED, true);
 #endif
 
 	return 0;
@@ -454,6 +456,8 @@ static const struct gops_gr_intr vgpu_ga10b_ops_gr_intr = {
 static const struct gops_gr vgpu_ga10b_ops_gr = {
 	.gr_init_support = nvgpu_gr_init_support,
 	.gr_suspend = nvgpu_gr_suspend,
+	.vab_init = NULL,
+	.vab_release = NULL,
 #ifdef CONFIG_NVGPU_DEBUGGER
 	.set_alpha_circular_buffer_size = NULL,
 	.set_circular_buffer_size = NULL,
@@ -1045,6 +1049,14 @@ static const struct gops_grmgr vgpu_ga10b_ops_grmgr = {
 	.init_gr_manager = nvgpu_init_gr_manager,
 };
 
+static const struct gops_fb_vab vgpu_ga10b_ops_fb_vab = {
+	.init = NULL,
+	.reserve = vgpu_fb_vab_reserve,
+	.dump_and_clear = vgpu_fb_vab_dump_and_clear,
+	.release = vgpu_fb_vab_release,
+	.teardown = NULL,
+};
+
 int vgpu_ga10b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
@@ -1080,6 +1092,7 @@ int vgpu_ga10b_init_hal(struct gk20a *g)
 	gops->gpu_class = vgpu_ga10b_ops_gpu_class;
 	gops->fb = vgpu_ga10b_ops_fb;
 	gops->fb.intr = vgpu_ga10b_ops_fb_intr;
+	gops->fb.vab = vgpu_ga10b_ops_fb_vab;
 	gops->cg = vgpu_ga10b_ops_cg;
 	gops->fifo = vgpu_ga10b_ops_fifo;
 	gops->engine = vgpu_ga10b_ops_engine;

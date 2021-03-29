@@ -59,6 +59,8 @@ all:
              common/vgpu/fbp/fbp_vgpu.h,
              common/vgpu/fb/fb_vgpu.c,
              common/vgpu/fb/fb_vgpu.h,
+             common/vgpu/fb/vab_vgpu.c,
+             common/vgpu/fb/vab_vgpu.h,
              common/vgpu/intr/intr_vgpu.c,
              common/vgpu/intr/intr_vgpu.h,
              common/vgpu/ivc/comm_vgpu.c,
