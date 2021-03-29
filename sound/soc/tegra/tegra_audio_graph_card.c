@@ -199,6 +199,7 @@ static int tegra_audio_graph_card_probe(struct snd_soc_card *card)
 {
 	struct asoc_simple_priv *simple = snd_soc_card_get_drvdata(card);
 	struct tegra_audio_priv *priv = simple_to_tegra_priv(simple);
+	struct snd_soc_pcm_runtime *rtd;
 
 	priv->clk_plla = devm_clk_get(card->dev, "pll_a");
 	if (IS_ERR(priv->clk_plla)) {
@@ -210,6 +211,41 @@ static int tegra_audio_graph_card_probe(struct snd_soc_card *card)
 	if (IS_ERR(priv->clk_plla_out0)) {
 		dev_err(card->dev, "Can't retrieve clk plla_out0\n");
 		return PTR_ERR(priv->clk_plla_out0);
+	}
+
+	/*
+	 * ADSP component driver expose DAIs which are not only used in
+	 * FE links (for PCM or compress interface), but also used in
+	 * codec2codec links (with ADMAIF FIFO DAIs). The same is true
+	 * for ADMAIF component as well. Currently audio-graph-card
+	 * relies on "non_legacy_dai_naming" flag of components to mark
+	 * the DAI link as codec2codec. Generally codec component mark
+	 * this flag as 1. But in case of ADSP/ADMAIF it cannot be done
+	 * so. Hence there is no way to mark some of the links involving
+	 * ADSP/ADMAIF as codec2codec links automatically.
+	 *
+	 * Below is a WAR needed for ADSP use cases.
+	 */
+	for_each_card_rtds(card, rtd) {
+		/*
+		 * Following codec2codec links are used in ADSP use cases:
+		 *   1. ADSPx <--> ADMAIFx FIFO
+		 *   2. ADMAIFx CIF <--> XBAR
+		 *
+		 * Below checks if ADMAIF "CIF" or "FIFO" DAIs are involed.
+		 */
+		if (strstr(asoc_rtd_to_cpu(rtd, 0)->name, " CIF") ||
+		    strstr(asoc_rtd_to_codec(rtd, 0)->name, " FIFO")) {
+			struct snd_soc_pcm_stream *params;
+
+			params = devm_kzalloc(rtd->dev, sizeof(*params),
+					      GFP_KERNEL);
+			if (!params)
+				return -ENOMEM;
+
+			rtd->dai_link->params = params;
+			rtd->dai_link->num_params = 1;
+		}
 	}
 
 	return graph_card_probe(card);
