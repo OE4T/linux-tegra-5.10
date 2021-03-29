@@ -1,0 +1,9 @@
+append_menu "Pin controllers"
+
+config PINCTRL_TEGRA234_DPAUX
+        bool "NVIDIA Tegra234 DP AUX Pinctrl Driver"
+        depends on ARCH_TEGRA_23x_SOC || ARCH_TEGRA_234_SOC
+        select PINCONF
+        select PINMUX
+
+endmenu
