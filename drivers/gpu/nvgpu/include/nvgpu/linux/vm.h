@@ -56,6 +56,7 @@ struct nvgpu_mapped_buf_priv {
 int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 		       struct dma_buf *dmabuf,
 		       u64 map_addr,
+		       u32 map_access_requested,
 		       u32 flags,
 		       u32 page_size,
 		       s16 compr_kind,

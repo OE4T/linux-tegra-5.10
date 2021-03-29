@@ -43,6 +43,9 @@
 static u32 nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags)
 {
 	u32 core_flags = 0;
+	u32 map_access_bitmask =
+		(BIT32(NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_BITMASK_SIZE) - 1U) <<
+			NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_BITMASK_OFFSET;
 
 	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_FIXED_OFFSET)
 		core_flags |= NVGPU_VM_MAP_FIXED_OFFSET;
@@ -58,14 +61,29 @@ static u32 nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags)
 		core_flags |= NVGPU_VM_MAP_DIRECT_KIND_CTRL;
 	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC)
 		core_flags |= NVGPU_VM_MAP_PLATFORM_ATOMIC;
-	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_NO_WRITE)
-		core_flags |= NVGPU_VM_MAP_ACCESS_NO_WRITE;
+
+	/* copy the map access bitfield from flags */
+	core_flags |= (flags & map_access_bitmask);
 
 	if (flags & NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS)
 		nvgpu_warn(g, "Ignoring deprecated flag: "
 			   "NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS");
 
 	return core_flags;
+}
+
+static int nvgpu_vm_translate_map_access(struct gk20a *g, u32 flags,
+					 u32 *map_access)
+{
+	*map_access = (flags >> NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_BITMASK_OFFSET) &
+		      (BIT32(NVGPU_AS_MAP_BUFFER_FLAGS_ACCESS_BITMASK_SIZE) - 1U);
+
+	if (*map_access > NVGPU_AS_MAP_BUFFER_ACCESS_READ_WRITE) {
+		nvgpu_err(g, "Invalid map access specified %u", *map_access);
+		return -EINVAL;
+	}
+
+	return 0;
 }
 
 static struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_reverse(
@@ -183,9 +201,40 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 	return mapped_buffer;
 }
 
+static int nvgpu_convert_fmode_to_gmmu_rw_attr(struct gk20a *g, fmode_t mode,
+					       enum gk20a_mem_rw_flag *rw_attr)
+{
+	fmode_t fmode_rw_flag = mode & (FMODE_READ | FMODE_PREAD |
+					FMODE_WRITE | FMODE_PWRITE);
+	int ret = 0;
+
+	if (!fmode_rw_flag) {
+		return -EINVAL;
+	}
+
+	switch (fmode_rw_flag) {
+	case FMODE_READ:
+	case FMODE_PREAD:
+	case (FMODE_READ | FMODE_PREAD):
+		*rw_attr = gk20a_mem_flag_read_only;
+		break;
+	case FMODE_WRITE:
+	case FMODE_PWRITE:
+	case (FMODE_WRITE | FMODE_PWRITE):
+		ret = -EINVAL;
+		break;
+	default:
+		*rw_attr = gk20a_mem_flag_none;
+		break;
+	}
+
+	return ret;
+}
+
 int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 		       struct dma_buf *dmabuf,
 		       u64 map_addr,
+		       u32 map_access_requested,
 		       u32 flags,
 		       u32 page_size,
 		       s16 compr_kind,
@@ -195,7 +244,7 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 		       struct vm_gk20a_mapping_batch *batch,
 		       u64 *gpu_va)
 {
-	enum gk20a_mem_rw_flag rw_flag = gk20a_mem_flag_none;
+	enum gk20a_mem_rw_flag buffer_rw_mode = gk20a_mem_flag_none;
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct device *dev = dev_from_gk20a(g);
 	struct nvgpu_os_buffer os_buf;
@@ -208,10 +257,12 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 	nvgpu_log(g, gpu_dbg_map, "dmabuf file mode: 0x%x mapping flags: 0x%x",
 		  dmabuf->file->f_mode, flags);
 
-	if (!(dmabuf->file->f_mode & (FMODE_WRITE | FMODE_PWRITE)) &&
-	    !(flags & NVGPU_VM_MAP_ACCESS_NO_WRITE)) {
-		nvgpu_err(g, "RW access requested for RO mapped buffer");
-		return -EINVAL;
+	err = nvgpu_convert_fmode_to_gmmu_rw_attr(g, dmabuf->file->f_mode,
+						  &buffer_rw_mode);
+	if (err != 0) {
+		nvgpu_err(g, "dmabuf file mode 0x%x not supported for GMMU map",
+			  dmabuf->file->f_mode);
+		return err;
 	}
 
 	sgt = nvgpu_mm_pin(dev, dmabuf, &attachment);
@@ -234,17 +285,14 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 		goto clean_up;
 	}
 
-	if (flags & NVGPU_VM_MAP_ACCESS_NO_WRITE) {
-		rw_flag = gk20a_mem_flag_read_only;
-	}
-
 	err = nvgpu_vm_map(vm,
 			   &os_buf,
 			   nvgpu_sgt,
 			   map_addr,
 			   mapping_size,
 			   buffer_offset,
-			   rw_flag,
+			   buffer_rw_mode,
+			   map_access_requested,
 			   flags,
 			   compr_kind,
 			   incompr_kind,
@@ -284,6 +332,7 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct dma_buf *dmabuf;
+	u32 map_access;
 	u64 ret_va;
 	int err = 0;
 
@@ -333,7 +382,14 @@ int nvgpu_vm_map_buffer(struct vm_gk20a *vm,
 		return -EINVAL;
 	}
 
-	err = nvgpu_vm_map_linux(vm, dmabuf, *map_addr,
+	err = nvgpu_vm_translate_map_access(g, flags, &map_access);
+	if (err != 0) {
+		nvgpu_err(g, "map access translation failed");
+		dma_buf_put(dmabuf);
+		return -EINVAL;
+	}
+
+	err = nvgpu_vm_map_linux(vm, dmabuf, *map_addr, map_access,
 				 nvgpu_vm_translate_linux_flags(g, flags),
 				 page_size,
 				 compr_kind, incompr_kind,

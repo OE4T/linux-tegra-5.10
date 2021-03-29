@@ -1107,6 +1107,7 @@ __releases(&l->cde_app->mutex)
 	/* map the destination buffer */
 	get_dma_buf(compbits_scatter_buf); /* a ref for nvgpu_vm_map_linux */
 	err = nvgpu_vm_map_linux(cde_ctx->vm, compbits_scatter_buf, 0,
+				 NVGPU_VM_MAP_ACCESS_DEFAULT,
 				 NVGPU_VM_MAP_CACHEABLE |
 				 NVGPU_VM_MAP_DIRECT_KIND_CTRL,
 				 gk20a_cde_mapping_page_size(cde_ctx->vm,

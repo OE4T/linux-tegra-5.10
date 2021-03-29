@@ -352,7 +352,10 @@ struct vm_gk20a {
 #define NVGPU_VM_MAP_DIRECT_KIND_CTRL			BIT32(4)
 #define NVGPU_VM_MAP_L3_ALLOC				BIT32(5)
 #define NVGPU_VM_MAP_PLATFORM_ATOMIC			BIT32(6)
-#define NVGPU_VM_MAP_ACCESS_NO_WRITE			BIT32(7)
+
+#define NVGPU_VM_MAP_ACCESS_DEFAULT			0U
+#define NVGPU_VM_MAP_ACCESS_READ_ONLY			1U
+#define NVGPU_VM_MAP_ACCESS_READ_WRITE			2U
 
 #define NVGPU_KIND_INVALID				S16(-1)
 
@@ -604,6 +607,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 		 u64 map_size,
 		 u64 phys_offset,
 		 enum gk20a_mem_rw_flag rw,
+		 u32 map_access_requested,
 		 u32 flags,
 		 s16 compr_kind,
 		 s16 incompr_kind,

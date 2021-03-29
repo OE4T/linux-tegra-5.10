@@ -1462,7 +1462,8 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 		 u64 map_addr,
 		 u64 map_size,
 		 u64 phys_offset,
-		 enum gk20a_mem_rw_flag rw,
+		 enum gk20a_mem_rw_flag buffer_rw_mode,
+		 u32 map_access_requested,
 		 u32 flags,
 		 s16 compr_kind,
 		 s16 incompr_kind,
@@ -1473,6 +1474,7 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_mapped_buf *mapped_buffer = NULL;
 	struct nvgpu_ctag_buffer_info binfo = { 0 };
+	enum gk20a_mem_rw_flag rw = buffer_rw_mode;
 	struct nvgpu_vm_area *vm_area = NULL;
 	int err = 0;
 	bool va_allocated = true;
@@ -1483,6 +1485,16 @@ int nvgpu_vm_map(struct vm_gk20a *vm,
 	 * key kind is compressible but we're out of comptags.
 	 */
 	s16 map_key_kind;
+
+	if ((map_access_requested == NVGPU_VM_MAP_ACCESS_READ_WRITE) &&
+	    (buffer_rw_mode == gk20a_mem_flag_read_only)) {
+		nvgpu_err(g, "RW mapping requested for RO buffer");
+		return -EINVAL;
+	}
+
+	if (map_access_requested == NVGPU_VM_MAP_ACCESS_READ_ONLY) {
+		rw = gk20a_mem_flag_read_only;
+	}
 
 	*mapped_buffer_arg = NULL;
 
