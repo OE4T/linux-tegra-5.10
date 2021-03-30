@@ -536,6 +536,14 @@ int snd_soc_runtime_calc_hw(struct snd_soc_pcm_runtime *rtd,
 							cpu_rates);
 	}
 
+	/* Toggle stream for CODEC DAIs in codec2codec links */
+	if (rtd->dai_link->params) {
+		if (stream == SNDRV_PCM_STREAM_PLAYBACK)
+			stream = SNDRV_PCM_STREAM_CAPTURE;
+		else if (stream == SNDRV_PCM_STREAM_CAPTURE)
+			stream = SNDRV_PCM_STREAM_PLAYBACK;
+	}
+
 	/* second calculate min/max only for CODECs in the DAI link */
 	for_each_rtd_codec_dais(rtd, i, codec_dai) {
 

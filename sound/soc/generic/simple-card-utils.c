@@ -346,6 +346,13 @@ static int asoc_simple_init_dai_link_params(struct snd_soc_pcm_runtime *rtd,
 			return 0;
 	}
 
+	params = devm_kzalloc(rtd->dev, sizeof(*params), GFP_KERNEL);
+	if (!params)
+		return -ENOMEM;
+
+	dai_link->params = params;
+	dai_link->num_params = 1;
+
 	/* Assumes the capabilities are the same for all supported streams */
 	for_each_pcm_streams(stream) {
 		ret = snd_soc_runtime_calc_hw(rtd, &hw, stream);
@@ -358,19 +365,12 @@ static int asoc_simple_init_dai_link_params(struct snd_soc_pcm_runtime *rtd,
 		return ret;
 	}
 
-	params = devm_kzalloc(rtd->dev, sizeof(*params), GFP_KERNEL);
-	if (!params)
-		return -ENOMEM;
-
 	params->formats = hw.formats;
 	params->rates = hw.rates;
 	params->rate_min = hw.rate_min;
 	params->rate_max = hw.rate_max;
 	params->channels_min = hw.channels_min;
 	params->channels_max = hw.channels_max;
-
-	dai_link->params = params;
-	dai_link->num_params = 1;
 
 	return 0;
 }
