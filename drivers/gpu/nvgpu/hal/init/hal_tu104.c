@@ -781,6 +781,7 @@ static const struct gops_fb tu104_ops_fb = {
 	.fbpa_ecc_free = tu104_fbpa_ecc_free,
 	.init_hw = gv11b_fb_init_hw,
 	.init_fs_state = gp106_fb_init_fs_state,
+	.set_atomic_mode = tu104_fb_set_atomic_mode,
 	.set_mmu_page_size = NULL,
 	.mmu_ctrl = gm20b_fb_mmu_ctrl,
 	.mmu_debug_ctrl = gm20b_fb_mmu_debug_ctrl,

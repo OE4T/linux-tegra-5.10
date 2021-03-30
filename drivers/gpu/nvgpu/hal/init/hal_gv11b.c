@@ -731,6 +731,7 @@ static const struct gops_fb gv11b_ops_fb = {
 #endif /* CONFIG_NVGPU_INJECT_HWERR */
 	.init_hw = gv11b_fb_init_hw,
 	.init_fs_state = gv11b_fb_init_fs_state,
+	.set_atomic_mode = gv11b_fb_set_atomic_mode,
 	.set_mmu_page_size = NULL,
 	.mmu_ctrl = gm20b_fb_mmu_ctrl,
 	.mmu_debug_ctrl = gm20b_fb_mmu_debug_ctrl,

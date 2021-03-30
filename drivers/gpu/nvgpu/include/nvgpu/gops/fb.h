@@ -193,11 +193,7 @@ struct gops_fb {
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
-	 * This function enables platform atomic capability mode to rmw atomic
-	 * through following configuration:
-	 * NV_PFB_PRI_MMU_CTRL_ATOMIC_CAPABILITY_MODE to RMW MODE
-	 * NV_PFB_PRI_MMU_CTRL_ATOMIC_CAPABILITY_SYS_NCOH_MODE to L2
-	 * NV_PFB_HSHUB_NUM_ACTIVE_LTCS_HUB_SYS_ATOMIC_MODE to USE_RMW
+	 * This function initializes chip specific fb state.
 	 */
 	void (*init_fs_state)(struct gk20a *g);
 
@@ -363,6 +359,19 @@ struct gops_fb {
 	 *   NVGPU_MMU_FAULT_BUF_DISABLED : Clears fault buffer size.
 	 */
 	void (*fault_buf_set_state_hw)(struct gk20a *g, u32 index, u32 state);
+
+	/**
+	 * @brief Set atomic mode
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 *
+	 * This function sets platform atomic capability mode to rmw atomics
+	 * for fb_mmu, fbhub and hshub(s). Also sets platform atomic capability
+	 * non-coherent mode to l2 for fb_mmu.
+	 *
+	 * @return 0.
+	 */
+	int (*set_atomic_mode)(struct gk20a *g);
 
 	struct gops_fb_ecc ecc;
 

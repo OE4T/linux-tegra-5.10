@@ -122,6 +122,7 @@ gv11b_fb_fault_buffer_size_val
 gv11b_fb_handle_bar2_fault
 gv11b_fb_handle_mmu_fault
 gv11b_fb_init_fs_state
+gv11b_fb_set_atomic_mode
 gv11b_fb_init_hw
 gv11b_fb_intr_disable
 gv11b_fb_intr_enable

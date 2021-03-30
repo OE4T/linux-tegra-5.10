@@ -672,6 +672,14 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gr_enable_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_construct_execute,
 				       NVGPU_SEC_PRIVSECURITY),
+		/**
+		 * Set atomic mode after acr boot(See Bug 3268664 for
+		 * details). For acr to boot, nvgpu_init_fb_support
+		 * and init_mm_support is required.
+		 * So, set_atomic_mode is decoupled from nvgpu_init_fb_support
+		 * in the init sequence and called after acr boot.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.set_atomic_mode, NO_FLAG),
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_support,
 				       NVGPU_SUPPORT_SEC2_RTOS),

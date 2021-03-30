@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -284,15 +284,17 @@ size_t tu104_fb_get_vidmem_size(struct gk20a *g)
 
 int tu104_fb_enable_nvlink(struct gk20a *g)
 {
-	int ret = 0;
-	u32 data;
-
 	nvgpu_log(g, gpu_dbg_nvlink|gpu_dbg_info, "enabling nvlink");
 
-	ret = gv100_fb_enable_nvlink(g);
-	if (ret != 0) {
-		return ret;
-	}
+	return gv100_fb_enable_nvlink(g);
+
+}
+
+int tu104_fb_set_atomic_mode(struct gk20a *g)
+{
+	u32 data;
+
+	gv100_fb_set_atomic_mode(g);
 
 	/* NV_PFB_PRI_MMU_CTRL_ATOMIC_CAPABILITY_SYS_NCOH_MODE to L2 */
 	data = nvgpu_readl(g, fb_mmu_ctrl_r());
@@ -307,5 +309,5 @@ int tu104_fb_enable_nvlink(struct gk20a *g)
 		fb_fbhub_num_active_ltcs_hub_sys_ncoh_atomic_mode_use_read_f());
 	nvgpu_writel(g, fb_fbhub_num_active_ltcs_r(), data);
 
-	return ret;
+	return 0;
 }

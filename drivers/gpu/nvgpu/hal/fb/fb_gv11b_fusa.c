@@ -1,7 +1,7 @@
 /*
  * GV11B FB
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@ static void gv11b_init_nvlink_soc_credits(struct gk20a *g)
 #endif
 }
 
-static void gv11b_fb_set_atomic_mode(struct gk20a *g)
+int gv11b_fb_set_atomic_mode(struct gk20a *g)
 {
 	u32 reg_val;
 
@@ -85,6 +85,8 @@ static void gv11b_fb_set_atomic_mode(struct gk20a *g)
 
 	nvgpu_log(g,   gpu_dbg_info, "fb_hshub_num_active_ltcs_r 0x%x",
 			nvgpu_readl(g, fb_hshub_num_active_ltcs_r()));
+
+	return 0;
 }
 
 void gv11b_fb_init_hw(struct gk20a *g)
@@ -99,8 +101,6 @@ void gv11b_fb_init_fs_state(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_fn, "initialize gv11b fb");
 
 	gv11b_init_nvlink_soc_credits(g);
-
-	gv11b_fb_set_atomic_mode(g);
 
 	nvgpu_log(g, gpu_dbg_info, "fbhub active ltcs %x",
 			nvgpu_readl(g, fb_fbhub_num_active_ltcs_r()));

@@ -1,7 +1,7 @@
 /*
  * GV11B FB
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@ struct gk20a;
 
 void gv11b_fb_init_hw(struct gk20a *g);
 void gv11b_fb_init_fs_state(struct gk20a *g);
+int gv11b_fb_set_atomic_mode(struct gk20a *g);
 
 #ifdef CONFIG_NVGPU_COMPRESSION
 struct nvgpu_cbc;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,7 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.ecc.ecc_init_support = nvgpu_ecc_init_support;
 	g->ops.fb.init_hw = gv11b_fb_init_hw;
 	g->ops.fb.init_fs_state = gv11b_fb_init_fs_state;
+	g->ops.fb.set_atomic_mode = gv11b_fb_set_atomic_mode;
 	g->ops.fb.ecc.init = gv11b_fb_ecc_init;
 	g->ops.fb.ecc.free = gv11b_fb_ecc_free;
 	g->ops.fb.ecc.l2tlb_error_mask = gv11b_fb_ecc_l2tlb_error_mask;
@@ -83,6 +84,7 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args)
 	}
 
 	g->ops.fb.init_fs_state(g);
+	g->ops.fb.set_atomic_mode(g);
 	/* Ensure atomic mode was enabled */
 	if ((nvgpu_readl(g, fb_mmu_ctrl_r()) &
 		fb_mmu_ctrl_atomic_capability_mode_m()) == 0) {

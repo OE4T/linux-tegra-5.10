@@ -1,7 +1,7 @@
 /*
  * GV100 FB
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -233,6 +233,13 @@ int gv100_fb_enable_nvlink(struct gk20a *g)
 	data = set_field(data, fb_niso_cfg1_sysmem_nvlink_m(),
 		fb_niso_cfg1_sysmem_nvlink_enabled_f());
 	nvgpu_writel(g, fb_niso_cfg1_r(), data);
+
+	return 0;
+}
+
+int gv100_fb_set_atomic_mode(struct gk20a *g)
+{
+	u32 data;
 
 	/* Setup atomics */
 	data = nvgpu_readl(g, fb_mmu_ctrl_r());
