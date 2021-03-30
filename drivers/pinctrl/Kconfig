@@ -6,4 +6,11 @@ config PINCTRL_TEGRA234_DPAUX
         select PINCONF
         select PINMUX
 
+config PINCTRL_TEGRA234
+	bool "NVIDIA Tegra234 Pinmux support"
+	select PINCTRL_TEGRA
+	default y if ARCH_TEGRA_23x_SOC
+	help
+	Support for the NVIDIA Tegra234 PINCTRL controller driver.
+
 endmenu
