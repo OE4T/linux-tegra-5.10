@@ -22,6 +22,10 @@
 #include <linux/kmemleak.h>
 #include <linux/io.h>
 
+#if defined(NVMAP_LOADABLE_MODULE)
+#include <linux/nvmap_t19x.h>
+#endif
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #include <linux/sched/clock.h>
 #endif
@@ -591,7 +595,9 @@ static struct platform_driver __refdata nvmap_driver = {
 	.driver = {
 		.name	= "tegra-carveouts",
 		.owner	= THIS_MODULE,
+#ifndef NVMAP_LOADABLE_MODULE
 		.of_match_table = nvmap_of_ids,
+#endif /* !NVMAP_LOADABLE_MODULE */
 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
 		.suppress_bind_attrs = true,
 	},
@@ -600,21 +606,50 @@ static struct platform_driver __refdata nvmap_driver = {
 static int __init nvmap_init_driver(void)
 {
 	int e = 0;
+#ifdef NVMAP_LOADABLE_MODULE
+	struct platform_device *pdev;
+#endif /* NVMAP_LOADABLE_MODULE */
 
 	e = nvmap_heap_init();
 	if (e)
 		goto fail;
 
+#ifdef NVMAP_LOADABLE_MODULE
+	if (!(of_machine_is_compatible("nvidia,tegra186") || of_machine_is_compatible("nvidia,tegra194"))) {
+		nvmap_heap_deinit();
+		return -ENODEV;
+	}
+#endif /* NVMAP_LOADABLE_MODULE */
 	e = platform_driver_register(&nvmap_driver);
 	if (e) {
 		nvmap_heap_deinit();
 		goto fail;
 	}
 
+#ifdef NVMAP_LOADABLE_MODULE
+	e = nvmap_t19x_init();
+	if (e) {
+		platform_driver_unregister(&nvmap_driver);
+		nvmap_heap_deinit();
+		goto fail;
+	}
+	pdev = platform_device_register_simple("tegra-carveouts", -1, NULL, 0);
+	if (IS_ERR(pdev)) {
+		nvmap_heap_deinit();
+		platform_driver_unregister(&nvmap_driver);
+		return PTR_ERR(pdev);
+	}
+#endif /* NVMAP_LOADABLE_MODULE */
+
 fail:
 	return e;
 }
+
+#ifdef NVMAP_LOADABLE_MODULE
+module_init(nvmap_init_driver);
+#else
 fs_initcall(nvmap_init_driver);
+#endif /* NVMAP_LOADABLE_MODULE */
 
 static void __exit nvmap_exit_driver(void)
 {
@@ -623,3 +658,6 @@ static void __exit nvmap_exit_driver(void)
 	nvmap_dev = NULL;
 }
 module_exit(nvmap_exit_driver);
+MODULE_DESCRIPTION("NVMAP");
+MODULE_AUTHOR("Puneet Saxena <puneets@nvidia.com>");
+MODULE_LICENSE("GPL v2");

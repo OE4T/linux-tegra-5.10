@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_init_t19x.c
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -586,12 +586,20 @@ static struct notifier_block nvmap_gosmem_nb = {
 	.notifier_call = nvmap_gosmem_notifier,
 };
 
+#ifdef NVMAP_LOADABLE_MODULE
+int nvmap_t19x_init(void)
+{
+	return bus_register_notifier(&platform_bus_type,
+			&nvmap_gosmem_nb);
+}
+#else
 static int nvmap_t19x_init(void)
 {
 	return bus_register_notifier(&platform_bus_type,
 			&nvmap_gosmem_nb);
 }
 core_initcall(nvmap_t19x_init);
+#endif
 
 struct cv_dev_info *nvmap_fetch_cv_dev_info(struct device *dev)
 {

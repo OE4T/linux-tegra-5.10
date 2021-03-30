@@ -3,7 +3,7 @@
  *
  * structure declarations for nvmem and nvmap user-space ioctls
  *
- * Copyright (c) 2009-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -54,6 +54,10 @@ void nvmap_free_gos_slot(u32 index, u32 offset);
 struct nvmap_handle_t19x {
 	atomic_t nc_pin; /* no. of pins from non io coherent devices */
 };
+
+#if defined(NVMAP_LOADABLE_MODULE)
+int nvmap_t19x_init(void);
+#endif
 
 extern bool nvmap_version_t19x;
 
