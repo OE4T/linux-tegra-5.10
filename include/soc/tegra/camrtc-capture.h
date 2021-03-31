@@ -2033,6 +2033,7 @@ struct nvcsi_tpg_config_t186 {
 
 /**
  * @brief NvCsiTpgFlag Test pattern generator (TPG) flags for t194, tpg-ng
+ * (Non-Safety)
  * @{
  */
 #define NVCSI_TPG_FLAG_PATCH_MODE			MK_U16(1)
@@ -2058,6 +2059,13 @@ struct nvcsi_tpg_config_t186 {
  * of packet headers/payload CRC fields.
  */
 #define NVCSI_TPG_FLAG_ENABLE_CRC_ECC_OVERRIDE		MK_U16(256)
+/* Force VI error forwarding.
+ * VI error forwarding is disabled by default for DPHY mode,
+ * because CRC are not generated in this mode.
+ * Forcing VI error forwarding allow to trigger PD CRC error for
+ * tests.
+ */
+#define NVCSI_TPG_FLAG_FORCE_NVCSI2VI_ERROR_FORWARDING	MK_U16(512)
 
 /** @} */
 
