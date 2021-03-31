@@ -26,7 +26,6 @@ ifdef NV_COMPONENT_FLAG_SHARED_LIBRARY_SECTION
 include $(NV_BUILD_START_COMPONENT)
 
 NV_COMPONENT_STRICT_WARNINGS_qnx_64 := 1
-NV_COMPONENT_CFLAGS            := -DOSI_STRIPPED_LIB
 
 NV_COMPONENT_NAME              := nvethernetrm
 NV_COMPONENT_OWN_INTERFACE_DIR := .
@@ -34,9 +33,15 @@ NV_COMPONENT_SOURCES           := \
 	eqos_core.c \
 	eqos_mmc.c \
 	osi_core.c \
+	vlan_filter.c \
 	ivc_core.c \
+	frp.c \
+	mgbe_core.c \
+	xpcs.c \
+	mgbe_mmc.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c \
-	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c
+	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c \
+	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c
 
 NV_COMPONENT_INCLUDES          := \
 	$(NV_SOURCE)/nvethernetrm/include \
