@@ -22,7 +22,6 @@
 
 #include "dma_local.h"
 #include <osi_dma_txrx.h>
-#include "../osi/common/type.h"
 #include "hw_desc.h"
 #include "../osi/common/common.h"
 #include "mgbe_dma.h"

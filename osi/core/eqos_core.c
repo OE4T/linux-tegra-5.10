@@ -2183,7 +2183,6 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		return;
 	}
 
-
 	/* increase counter write 1 back will clear */
 	if ((val & EQOS_MTL_EST_STATUS_CGCE) == EQOS_MTL_EST_STATUS_CGCE) {
 		osi_core->est_ready = OSI_DISABLE;
@@ -2198,7 +2197,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->tsn_stats.head_of_line_blk_sch =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Sch_Error register and cleared */
-		sch_err = osi_readl(osi_core->base + EQOS_MTL_EST_SCH_ERR);
+		sch_err = osi_readl((nveu8_t *)osi_core->base +
+				    EQOS_MTL_EST_SCH_ERR);
 		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
 			temp = OSI_ENABLE;
 			temp = temp << i;
@@ -2209,7 +2209,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			}
 		}
 		sch_err &= 0xFFU; /* only 8 TC allowed so clearing all */
-		osi_writel(sch_err, osi_core->base + EQOS_MTL_EST_SCH_ERR);
+		osi_writel(sch_err,
+			   (nveu8_t *)osi_core->base + EQOS_MTL_EST_SCH_ERR);
 	}
 
 	if ((val & EQOS_MTL_EST_STATUS_HLBF) == EQOS_MTL_EST_STATUS_HLBF) {
@@ -2218,7 +2219,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->tsn_stats.head_of_line_blk_frm =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Frm_Size_Error register and cleared */
-		frm_err = osi_readl(osi_core->base + EQOS_MTL_EST_FRMS_ERR);
+		frm_err = osi_readl((nveu8_t *)osi_core->base +
+				    EQOS_MTL_EST_FRMS_ERR);
 		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
 			temp = OSI_ENABLE;
 			temp = temp << i;
@@ -2229,7 +2231,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			}
 		}
 		frm_err &= 0xFFU; /* 8 TC allowed so clearing all */
-		osi_writel(frm_err, osi_core->base + EQOS_MTL_EST_FRMS_ERR);
+		osi_writel(frm_err, (nveu8_t *)osi_core->base +
+			   EQOS_MTL_EST_FRMS_ERR);
 	}
 
 	if ((val & EQOS_MTL_EST_STATUS_SWLC) == EQOS_MTL_EST_STATUS_SWLC) {
@@ -2250,7 +2253,7 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->est_ready = OSI_DISABLE;
 	}
 	/* clear EST status register as interrupt is handled */
-	osi_writel(val, osi_core->base + EQOS_MTL_EST_STATUS);
+	osi_writel(val, (nveu8_t *)osi_core->base + EQOS_MTL_EST_STATUS);
 }
 
 /**
@@ -2708,7 +2711,7 @@ static int eqos_config_ptp_offload(struct osi_core_priv_data *osi_core,
 	unsigned int port_id = 0x0U;
 
 	/* Read MAC TCR */
-	value = osi_readl(addr + EQOS_MAC_TCR);
+	value = osi_readl((nveu8_t *)addr + EQOS_MAC_TCR);
 	/* clear old configuration */
 	value &= ~(EQOS_MAC_TCR_TSENMACADDR | OSI_MAC_TCR_SNAPTYPSEL_3 |
 		   OSI_MAC_TCR_TSMASTERENA | OSI_MAC_TCR_TSEVENTENA |
@@ -3923,7 +3926,7 @@ static int eqos_config_ptp_rxq(struct osi_core_priv_data *osi_core,
 	}
 
 	/* Read MAC_RxQ_Ctrl1 */
-	value = osi_readl(base + EQOS_MAC_RQC1R);
+	value = osi_readl((nveu8_t *)base + EQOS_MAC_RQC1R);
 	if (enable == OSI_DISABLE) {
 		/** Reset OMCBCQ bit to disable over-riding the MCBC Queue
 		 * priority for the PTP RX queue.
@@ -5598,7 +5601,7 @@ static nve32_t eqos_get_hw_features(struct osi_core_priv_data *const osi_core,
  *
  * @retval -1 Always
  */
-nve32_t eqos_config_rss(struct osi_core_priv_data *const osi_core)
+static nve32_t eqos_config_rss(struct osi_core_priv_data *const osi_core)
 {
 	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
 		     "RSS not supported by EQOS\n", 0ULL);

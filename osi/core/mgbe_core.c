@@ -2084,7 +2084,7 @@ static int mgbe_update_frp_nve(struct osi_core_priv_data *const osi_core,
  * @param[in] rx_fifo: Rx FIFO size.
  * @param[in] value: Stores RFD and RSA values
  */
-void update_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
+static void update_rfa_rfd(unsigned int rx_fifo, unsigned int *value)
 {
 	switch (rx_fifo) {
 		case MGBE_21K:
@@ -3379,7 +3379,7 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 	unsigned int i = 0;
 	unsigned long stat_val = 0;
 
-	val = osi_readl(osi_core->base + MGBE_MTL_EST_STATUS);
+	val = osi_readl((nveu8_t *)osi_core->base + MGBE_MTL_EST_STATUS);
 	val &= (MGBE_MTL_EST_STATUS_CGCE | MGBE_MTL_EST_STATUS_HLBS |
 		MGBE_MTL_EST_STATUS_HLBF | MGBE_MTL_EST_STATUS_BTRE |
 		MGBE_MTL_EST_STATUS_SWLC);
@@ -3403,7 +3403,8 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->tsn_stats.head_of_line_blk_sch =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Sch_Error register and cleared */
-		sch_err = osi_readl(osi_core->base + MGBE_MTL_EST_SCH_ERR);
+		sch_err = osi_readl((nveu8_t *)osi_core->base +
+				    MGBE_MTL_EST_SCH_ERR);
 		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
 			temp = OSI_ENABLE;
 			temp = temp << i;
@@ -3414,7 +3415,8 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			}
 		}
 		sch_err &= 0xFFU; //only 8 TC allowed so clearing all
-		osi_writel(sch_err, osi_core->base + MGBE_MTL_EST_SCH_ERR);
+		osi_writel(sch_err, (nveu8_t *)osi_core->base +
+			   MGBE_MTL_EST_SCH_ERR);
 	}
 
 	if ((val & MGBE_MTL_EST_STATUS_HLBF) == MGBE_MTL_EST_STATUS_HLBF) {
@@ -3423,7 +3425,8 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->tsn_stats.head_of_line_blk_frm =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Frm_Size_Error register and cleared */
-		frm_err = osi_readl(osi_core->base + MGBE_MTL_EST_FRMS_ERR);
+		frm_err = osi_readl((nveu8_t *)osi_core->base +
+				    MGBE_MTL_EST_FRMS_ERR);
 		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
 			temp = OSI_ENABLE;
 			temp = temp << i;
@@ -3434,7 +3437,8 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			}
 		}
 		frm_err &= 0xFFU; //only 8 TC allowed so clearing all
-		osi_writel(frm_err, osi_core->base + MGBE_MTL_EST_FRMS_ERR);
+		osi_writel(frm_err, (nveu8_t *)osi_core->base +
+			   MGBE_MTL_EST_FRMS_ERR);
 	}
 
 	if ((val & MGBE_MTL_EST_STATUS_SWLC) == MGBE_MTL_EST_STATUS_SWLC) {
@@ -3455,7 +3459,7 @@ static void mgbe_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->est_ready = OSI_DISABLE;
 	}
 	/* clear EST status register as interrupt is handled */
-	osi_writel(val, osi_core->base + MGBE_MTL_EST_STATUS);
+	osi_writel(val, (nveu8_t *)osi_core->base + MGBE_MTL_EST_STATUS);
 }
 
 /**
@@ -3656,12 +3660,12 @@ static void mgbe_handle_common_intr(struct osi_core_priv_data *osi_core)
 		   MGBE_WRAP_COMMON_INTR_ENABLE);
 
 	/* Clear FRP Interrupts in MTL_RXP_Interrupt_Control_Status */
-	val = osi_readl(base + MGBE_MTL_RXP_INTR_CS);
+	val = osi_readl((nveu8_t *)base + MGBE_MTL_RXP_INTR_CS);
 	val |= (MGBE_MTL_RXP_INTR_CS_NVEOVIS |
 		MGBE_MTL_RXP_INTR_CS_NPEOVIS |
 		MGBE_MTL_RXP_INTR_CS_FOOVIS |
 		MGBE_MTL_RXP_INTR_CS_PDRFIS);
-	osi_writel(val, base + MGBE_MTL_RXP_INTR_CS);
+	osi_writel(val, (nveu8_t *)base + MGBE_MTL_RXP_INTR_CS);
 }
 
 /**
