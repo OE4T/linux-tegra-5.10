@@ -553,8 +553,6 @@ struct osi_dma_priv_data {
 	 * bit 0 PTP mode master(1) slave(0)
 	 * bit 1 PTP sync method twostep(1) onestep(0) */
 	unsigned int ptp_flag;
-	/** Tegra Pre-si platform info */
-	unsigned int pre_si;
 };
 
 
@@ -1472,4 +1470,35 @@ nve32_t osi_clear_rx_pkt_err_stats(struct osi_dma_priv_data *osi_dma);
  */
 nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan);
 #endif /* !OSI_STRIPPED_LIB */
+
+/**
+ * @brief osi_get_dma - Get pointer to osi_dma data structure.
+ *
+ * @note
+ * Algorithm:
+ *  - Returns OSI DMA data structure.
+ *
+ * @pre OSD layer should use this as first API to get osi_dma pointer and
+ * use the same in remaning API invocation.
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval valid and unique osi_dma pointer on success
+ * @retval NULL on failure.
+ */
+struct osi_dma_priv_data *osi_get_dma(void);
 #endif /* INCLUDED_OSI_DMA_H */

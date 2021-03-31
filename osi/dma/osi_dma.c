@@ -26,21 +26,41 @@
 #include "../osi/common/common.h"
 
 /**
- * @brief g_dma - DMA local data variable
+ * @brief g_dma - DMA local data array.
  */
-static struct dma_local g_dma = {
-	.init_done = OSI_DISABLE,
-};
+static struct dma_local g_dma[MAX_DMA_INSTANCES];
 
 /**
- * @brief ops_p - Pointer to local DMA HW operations.
+ * @brief g_ops - local DMA HW operations array.
  */
-static struct dma_chan_ops *ops_p = &g_dma.ops;
+static struct dma_chan_ops g_ops[MAX_MAC_IP_TYPES];
+
+struct osi_dma_priv_data *osi_get_dma(void)
+{
+	nveu32_t i;
+
+	for (i = 0U; i < MAX_DMA_INSTANCES; i++) {
+		if (g_dma[i].init_done == OSI_ENABLE) {
+			continue;
+		}
+
+		break;
+	}
+
+	if (i == MAX_DMA_INSTANCES) {
+		return OSI_NULL;
+	}
+
+	g_dma[i].magic_num = (nveu64_t)&g_dma[i].osi_dma;
+
+	return &g_dma[i].osi_dma;
+}
 
 /**
  * @brief Function to validate input arguments of API.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] l_dma: Local OSI DMA data structure.
  *
  * @note
  * API Group:
@@ -51,10 +71,11 @@ static struct dma_chan_ops *ops_p = &g_dma.ops;
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static inline nve32_t validate_args(struct osi_dma_priv_data *osi_dma)
+static inline nve32_t validate_args(struct osi_dma_priv_data *osi_dma,
+				    struct dma_local *l_dma)
 {
 	if ((osi_dma == OSI_NULL) || (osi_dma->base == OSI_NULL) ||
-	    (g_dma.init_done == OSI_DISABLE)) {
+	    (l_dma->init_done == OSI_DISABLE)) {
 		return -1;
 	}
 
@@ -121,6 +142,7 @@ static inline nve32_t validate_dma_chans(struct osi_dma_priv_data *osi_dma)
  * @brief Function to validate function pointers.
  *
  * @param[in] osi_dma: OSI DMA private data structure.
+ * @param[in] ops_p: Pointer to OSI DMA channel operations.
  *
  * @note
  * API Group:
@@ -131,7 +153,8 @@ static inline nve32_t validate_dma_chans(struct osi_dma_priv_data *osi_dma)
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma)
+static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma,
+				  struct dma_chan_ops *ops_p)
 {
 	nveu32_t i = 0;
 	void *temp_ops = (void *)ops_p;
@@ -158,18 +181,24 @@ static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma)
 
 nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	typedef void (*init_ops_arr)(struct dma_chan_ops *temp);
 	typedef void *(*safety_init)(void);
 
-	init_ops_arr i_ops[2] = {
+	init_ops_arr i_ops[MAX_MAC_IP_TYPES] = {
 		eqos_init_dma_chan_ops, mgbe_init_dma_chan_ops
 	};
 
-	safety_init s_init[2] = {
+	safety_init s_init[MAX_MAC_IP_TYPES] = {
 		eqos_get_dma_safety_config, OSI_NULL
 	};
 
 	if (osi_dma == OSI_NULL) {
+		return -1;
+	}
+
+	if ((l_dma->magic_num != (nveu64_t)osi_dma) ||
+	    (l_dma->init_done == OSI_ENABLE)) {
 		return -1;
 	}
 
@@ -186,7 +215,7 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	i_ops[osi_dma->mac](ops_p);
+	i_ops[osi_dma->mac](&g_ops[osi_dma->mac]);
 
 	if (s_init[osi_dma->mac] != OSI_NULL) {
 		osi_dma->safety_config = s_init[osi_dma->mac]();
@@ -198,23 +227,25 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	if (validate_func_ptrs(osi_dma) < 0) {
+	if (validate_func_ptrs(osi_dma, &g_ops[osi_dma->mac]) < 0) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "DMA ops validation failed\n", 0ULL);
 		return -1;
 	}
 
-	g_dma.init_done = OSI_ENABLE;
+	l_dma->ops_p = &g_ops[osi_dma->mac];
+	l_dma->init_done = OSI_ENABLE;
 
 	return 0;
 }
 
 nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	nveu32_t i, chan;
 	nve32_t ret;
 
-	if (validate_args(osi_dma) < 0) {
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -230,38 +261,38 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		return -1;
 	}
 
-	ret = ops_p->init_dma_channel(osi_dma);
+	ret = l_dma->ops_p->init_dma_channel(osi_dma);
 	if (ret < 0) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			    "dma: init dma channel failed\n", 0ULL);
 		return ret;
 	}
 
-	ret = dma_desc_init(osi_dma, ops_p);
+	ret = dma_desc_init(osi_dma, l_dma->ops_p);
 	if (ret != 0) {
 		return ret;
 	}
 
-	g_dma.mac_ver = osi_readl((nveu8_t *)osi_dma->base + MAC_VERSION) &
+	l_dma->mac_ver = osi_readl((nveu8_t *)osi_dma->base + MAC_VERSION) &
 				  MAC_VERSION_SNVER_MASK;
-	if (is_valid_mac_version(g_dma.mac_ver) == 0) {
+	if (is_valid_mac_version(l_dma->mac_ver) == 0) {
 		OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-			    "Invalid MAC version\n", (nveu64_t)g_dma.mac_ver);
+			    "Invalid MAC version\n", (nveu64_t)l_dma->mac_ver);
 		return -1;
 	}
 
-	if ((g_dma.mac_ver !=  OSI_EQOS_MAC_4_10) &&
-	    (g_dma.mac_ver != OSI_EQOS_MAC_5_00)) {
-		g_dma.vm_intr = OSI_ENABLE;
+	if ((l_dma->mac_ver !=  OSI_EQOS_MAC_4_10) &&
+	    (l_dma->mac_ver != OSI_EQOS_MAC_5_00)) {
+		l_dma->vm_intr = OSI_ENABLE;
 	}
 
 	/* Enable channel interrupts at wrapper level and start DMA */
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
 
-		ops_p->enable_chan_tx_intr(osi_dma->base, chan);
-		ops_p->enable_chan_rx_intr(osi_dma->base, chan);
-		ops_p->start_dma(osi_dma, chan);
+		l_dma->ops_p->enable_chan_tx_intr(osi_dma->base, chan);
+		l_dma->ops_p->enable_chan_rx_intr(osi_dma->base, chan);
+		l_dma->ops_p->start_dma(osi_dma, chan);
 	}
 
 	return 0;
@@ -269,9 +300,10 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 
 nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	nveu32_t i;
 
-	if (validate_args(osi_dma) < 0) {
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -288,8 +320,11 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 	}
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
-		ops_p->stop_dma(osi_dma, osi_dma->dma_chans[i]);
+		l_dma->ops_p->stop_dma(osi_dma, osi_dma->dma_chans[i]);
 	}
+
+	l_dma->magic_num = 0;
+	l_dma->init_done = OSI_DISABLE;
 
 	return 0;
 }
@@ -297,7 +332,9 @@ nve32_t osi_hw_dma_deinit(struct osi_dma_priv_data *osi_dma)
 nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 				 nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -305,7 +342,7 @@ nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->disable_chan_tx_intr(osi_dma->base, chan);
+	l_dma->ops_p->disable_chan_tx_intr(osi_dma->base, chan);
 
 	return 0;
 }
@@ -313,7 +350,9 @@ nve32_t osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 				nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -321,7 +360,7 @@ nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->enable_chan_tx_intr(osi_dma->base, chan);
+	l_dma->ops_p->enable_chan_tx_intr(osi_dma->base, chan);
 
 	return 0;
 }
@@ -329,7 +368,9 @@ nve32_t osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 				 nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -337,7 +378,7 @@ nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->disable_chan_rx_intr(osi_dma->base, chan);
+	l_dma->ops_p->disable_chan_rx_intr(osi_dma->base, chan);
 
 	return 0;
 }
@@ -345,7 +386,9 @@ nve32_t osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 				nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -353,7 +396,7 @@ nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->enable_chan_rx_intr(osi_dma->base, chan);
+	l_dma->ops_p->enable_chan_rx_intr(osi_dma->base, chan);
 
 	return 0;
 }
@@ -361,7 +404,9 @@ nve32_t osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
 			     nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -369,7 +414,7 @@ nve32_t osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->clear_vm_tx_intr(osi_dma->base, chan);
+	l_dma->ops_p->clear_vm_tx_intr(osi_dma->base, chan);
 
 	return 0;
 }
@@ -377,7 +422,9 @@ nve32_t osi_clear_vm_tx_intr(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
 			     nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -385,18 +432,20 @@ nve32_t osi_clear_vm_rx_intr(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->clear_vm_rx_intr(osi_dma->base, chan);
+	l_dma->ops_p->clear_vm_rx_intr(osi_dma->base, chan);
 
 	return 0;
 }
 
 nveu32_t osi_get_global_dma_status(struct osi_dma_priv_data *osi_dma)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return 0;
 	}
 
-	return ops_p->get_global_dma_status(osi_dma->base);
+	return l_dma->ops_p->get_global_dma_status(osi_dma->base);
 }
 
 nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
@@ -404,15 +453,16 @@ nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
 			    nveu32_t tx_rx,
 			    nveu32_t en_dis)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	typedef void (*dma_intr_fn)(void *base, nveu32_t ch);
 	dma_intr_fn fn[2][2][2] = {
-		{ { ops_p->disable_chan_tx_intr, ops_p->enable_chan_tx_intr },
-		  { ops_p->disable_chan_rx_intr, ops_p->enable_chan_rx_intr } },
-		{ { ops_p->clear_vm_tx_intr, ops_p->enable_chan_tx_intr },
-		  { ops_p->clear_vm_rx_intr, ops_p->enable_chan_rx_intr } }
+		{ { l_dma->ops_p->disable_chan_tx_intr, l_dma->ops_p->enable_chan_tx_intr },
+		  { l_dma->ops_p->disable_chan_rx_intr, l_dma->ops_p->enable_chan_rx_intr } },
+		{ { l_dma->ops_p->clear_vm_tx_intr, l_dma->ops_p->enable_chan_tx_intr },
+		  { l_dma->ops_p->clear_vm_rx_intr, l_dma->ops_p->enable_chan_rx_intr } }
 	};
 
-	if (validate_args(osi_dma) < 0) {
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -425,7 +475,7 @@ nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	fn[g_dma.vm_intr][tx_rx][en_dis](osi_dma->base, chan);
+	fn[l_dma->vm_intr][tx_rx][en_dis](osi_dma->base, chan);
 
 	return 0;
 }
@@ -433,7 +483,9 @@ nve32_t osi_handle_dma_intr(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_start_dma(struct osi_dma_priv_data *osi_dma,
 		      nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -441,7 +493,7 @@ nve32_t osi_start_dma(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->start_dma(osi_dma, chan);
+	l_dma->ops_p->start_dma(osi_dma, chan);
 
 	return 0;
 }
@@ -449,7 +501,9 @@ nve32_t osi_start_dma(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 		     nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -457,7 +511,7 @@ nve32_t osi_stop_dma(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->stop_dma(osi_dma, chan);
+	l_dma->ops_p->stop_dma(osi_dma, chan);
 
 	return 0;
 }
@@ -493,10 +547,11 @@ nveu32_t osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
  */
 static inline nve32_t rx_dma_desc_validate_args(
 					    struct osi_dma_priv_data *osi_dma,
+					    struct dma_local *l_dma,
 					    struct osi_rx_ring *rx_ring,
 					    nveu32_t chan)
 {
-	if (validate_args(osi_dma) < 0) {
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -556,13 +611,14 @@ static inline void rx_dma_handle_ioc(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 			     struct osi_rx_ring *rx_ring, nveu32_t chan)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	/* for CERT-C error */
 	nveu64_t temp;
 	nveu64_t tailptr = 0;
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 
-	if (rx_dma_desc_validate_args(osi_dma, rx_ring, chan) < 0) {
+	if (rx_dma_desc_validate_args(osi_dma, l_dma, rx_ring, chan) < 0) {
 		/* Return on arguments validation failure */
 		return -1;
 	}
@@ -629,18 +685,20 @@ nve32_t osi_rx_dma_desc_init(struct osi_dma_priv_data *osi_dma,
 		return -1;
 	}
 
-	ops_p->update_rx_tailptr(osi_dma->base, chan, tailptr);
+	l_dma->ops_p->update_rx_tailptr(osi_dma->base, chan, tailptr);
 
 	return 0;
 }
 
 nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
-	ops_p->set_rx_buf_len(osi_dma);
+	l_dma->ops_p->set_rx_buf_len(osi_dma);
 
 	return 0;
 }
@@ -648,7 +706,9 @@ nve32_t osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 nve32_t osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
 				     nveu32_t *sec, nveu32_t *nsec)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -659,7 +719,9 @@ nve32_t osi_dma_get_systime_from_mac(struct osi_dma_priv_data *const osi_dma,
 
 nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return OSI_DISABLE;
 	}
 
@@ -668,7 +730,9 @@ nveu32_t osi_is_mac_enabled(struct osi_dma_priv_data *const osi_dma)
 
 nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 {
-	if (osi_unlikely(validate_args(osi_dma) < 0)) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (osi_unlikely(validate_args(osi_dma, l_dma) < 0)) {
 		return -1;
 	}
 
@@ -682,7 +746,7 @@ nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
 		return -1;
 	}
 
-	return hw_transmit(osi_dma, osi_dma->tx_ring[chan], ops_p, chan);
+	return hw_transmit(osi_dma, osi_dma->tx_ring[chan], l_dma->ops_p, chan);
 }
 
 #ifndef OSI_STRIPPED_LIB
@@ -710,9 +774,10 @@ nve32_t osi_hw_transmit(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
  * @retval -1 on failure.
  */
 static inline nve32_t osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
+					     struct dma_local *l_dma,
 					     nveu32_t set)
 {
-	if (validate_args(osi_dma) < 0) {
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
@@ -729,11 +794,12 @@ static inline nve32_t osi_slot_args_validate(struct osi_dma_priv_data *osi_dma,
 nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 				 nveu32_t set)
 {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
 	nveu32_t i = 0U, chan = 0U, interval = 0U;
 	struct osi_tx_ring *tx_ring = OSI_NULL;
 
 	/* Validate arguments */
-	if (osi_slot_args_validate(osi_dma, set) < 0) {
+	if (osi_slot_args_validate(osi_dma, l_dma, set) < 0) {
 		return -1;
 	}
 
@@ -766,7 +832,7 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 				return -1;
 			}
 			tx_ring->slot_check = set;
-			ops_p->config_slot(osi_dma, chan, set, interval);
+			l_dma->ops_p->config_slot(osi_dma, chan, set, interval);
 		}
 	}
 
@@ -775,11 +841,13 @@ nve32_t osi_config_slot_function(struct osi_dma_priv_data *osi_dma,
 
 nve32_t osi_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
 {
-	if (validate_args(osi_dma) < 0) {
+	struct dma_local *l_dma = (struct dma_local *)osi_dma;
+
+	if (validate_args(osi_dma, l_dma) < 0) {
 		return -1;
 	}
 
-	return ops_p->validate_regs(osi_dma);
+	return l_dma->ops_p->validate_regs(osi_dma);
 }
 
 nve32_t osi_txring_empty(struct osi_dma_priv_data *osi_dma, nveu32_t chan)
