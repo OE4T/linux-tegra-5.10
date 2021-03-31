@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -151,12 +151,12 @@ static inline u32 host1x_channel_mlock_timeout_r(void)
 static inline u32 host1x_channel_filter_gbuffer_r(void)
 {
 	/* arhost: hyp: HOST1X_THOST_COMMON_CH_KERNEL_FILTER_GBUFFER_0 */
-	return 0x1728;
+	return 0x1710;
 }
 static inline u32 host1x_channel_ch_vm_0_r(void)
 {
 	/* arhost: hyp: HOST1X_THOST_COMMON_CH_VM_0 */
-	return 0x7f8;
+	return 0x800;
 }
 static inline u32 host1x_channel_ch_strmid_0_offset_base_v(void)
 {

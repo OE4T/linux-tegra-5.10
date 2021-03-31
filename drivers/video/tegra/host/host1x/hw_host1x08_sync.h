@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -262,7 +262,7 @@ static inline u32 host1x_sync_syncpt_int_thresh_0_r(void)
 static inline u32 host1x_sync_syncpt_prot_en_0_r(void)
 {
 	/* arhost: hyp: HOST1X_THOST_COMMON_SYNCPT_PROT_EN_0 */
-	return 0x1734;
+	return 0x1724;
 }
 static inline u32 host1x_sync_syncpt_prot_en_0_app_en_f(u32 v)
 {
