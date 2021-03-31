@@ -1255,9 +1255,11 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 		goto rpm_put;
 	}
 
+	mutex_lock(&smmu_domain->init_mutex);
 	ret = iommu_create_device_direct_mappings(domain, dev);
 	if (ret)
 		dev_warn(dev, "Direct mappings failed\n");
+	mutex_unlock(&smmu_domain->init_mutex);
 
 	/* Looks ok, so add the device to the domain */
 	ret = arm_smmu_domain_add_master(smmu_domain, cfg, fwspec);
