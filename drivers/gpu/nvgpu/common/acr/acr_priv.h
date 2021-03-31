@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -88,6 +88,9 @@ struct wpr_carveout_info;
 
 #define GM20B_FECS_UCODE_SIG "fecs_sig.bin"
 #define T18x_GPCCS_UCODE_SIG "gpccs_sig.bin"
+
+#define GA10B_FECS_UCODE_PKC_SIG "fecs_pkc_sig.bin"
+#define GA10B_GPCCS_UCODE_PKC_SIG "gpccs_pkc_sig.bin"
 
 #define TU104_FECS_UCODE_SIG "tu104/fecs_sig.bin"
 #define TU104_GPCCS_UCODE_SIG "tu104/gpccs_sig.bin"

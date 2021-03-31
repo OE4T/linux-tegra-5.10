@@ -321,6 +321,7 @@ void nvgpu_ga10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 #ifdef CONFIG_NVGPU_NON_FUSA
 	if (nvgpu_falcon_is_falcon2_enabled(&g->gsp_flcn)) {
 		nvgpu_set_enabled(g, NVGPU_ACR_NEXT_CORE_ENABLED, true);
+		nvgpu_set_enabled(g, NVGPU_PKC_LS_SIG_ENABLED, false);
 	}
 #else
 	if (nvgpu_falcon_is_falcon2_enabled(&g->pmu_flcn)) {
@@ -329,6 +330,7 @@ void nvgpu_ga10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 		 * in ACR unit
 		 */
 		nvgpu_set_enabled(g, NVGPU_ACR_NEXT_CORE_ENABLED, true);
+		nvgpu_set_enabled(g, NVGPU_PKC_LS_SIG_ENABLED, false);
 	}
 #endif
 

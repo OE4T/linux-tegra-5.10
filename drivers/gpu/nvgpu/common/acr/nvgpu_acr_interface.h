@@ -249,6 +249,92 @@ struct lsf_ucode_desc {
 	u8  kdf[16];
 };
 
+/* PKC */
+/*
+ * Currently 2 components in ucode image have signature.
+ * One is code section and another is data section.
+ */
+#define LSF_UCODE_COMPONENT_INDEX_CODE          (0)
+#define LSF_UCODE_COMPONENT_INDEX_DATA          (1)
+#define LSF_UCODE_COMPONENT_INDEX_MAX           (2)
+
+/*
+ * For PKC operation, SE engine needs each input component size to be 512 bytes
+ * length. So even though PKC signature is 384 bytes, it needs to be padded with
+ * zeros until size is 512.
+ * Currently, for version 2, MAX LS signature size is set to be 512 as well.
+ */
+#define PKC_SIGNATURE_SIZE_BYTE               (384)
+#define PKC_SIGNATURE_PADDING_SIZE_BYTE       (128)
+#define PKC_SIGNATURE_PADDED_SIZE_BYTE		\
+		(PKC_SIGNATURE_SIZE_BYTE + PKC_SIGNATURE_PADDING_SIZE_BYTE)
+
+/* Size in bytes for RSA 3K (RSA_3K struct from bootrom_pkc_parameters.h */
+#define PKC_PK_SIZE_BYTE                      (2048)
+
+#define LSF_SIGNATURE_SIZE_PKC_BYTE		\
+		(PKC_SIGNATURE_SIZE_BYTE + PKC_SIGNATURE_PADDING_SIZE_BYTE)
+#define LSF_SIGNATURE_SIZE_MAX_BYTE              LSF_SIGNATURE_SIZE_PKC_BYTE
+#define LSF_PK_SIZE_MAX                         PKC_PK_SIZE_BYTE
+
+/* LS Encryption Defines */
+#define LS_ENCRYPTION_AES_CBC_IV_SIZE_BYTE      (16)
+
+/*!
+ * WPR generic struct header
+ * identifier - To identify type of WPR struct i.e. WPR vs SUBWPR vs LSB vs LSF_UCODE_DESC
+ * version    - To specify version of struct, for backward compatibility
+ * size       - Size of struct, include header and body
+ */
+struct wpr_generic_header {
+	u16 identifier;
+	u16 version;
+	u32 size;
+};
+
+/*
+ * Light Secure Falcon Ucode Version 2 Description Defines
+ * This stucture is prelim and may change as the ucode signing flow evolves.
+ */
+struct lsf_ucode_desc_v2 {
+	u32 falcon_id;  // lsenginedid
+	u8  b_prd_present;
+	u8  b_dbg_present;
+	u16 reserved;
+	u32 sig_size;
+	u8  prod_sig[LSF_UCODE_COMPONENT_INDEX_MAX][LSF_SIGNATURE_SIZE_PKC_BYTE];
+	u8  debug_sig[LSF_UCODE_COMPONENT_INDEX_MAX][LSF_SIGNATURE_SIZE_PKC_BYTE];
+	u16 sig_algo_ver;
+	u16 sig_algo;
+	u16 hash_algo_ver;
+	u16 hash_algo;
+	u32 sig_algo_padding_type;
+	u8  dep_map[LSF_FALCON_DEPMAP_SIZE * 8];
+	u32 dep_map_count;
+	u8  b_supports_versioning;
+	u8  pad[3];
+	u32 ls_ucode_version; // lsucodeversion
+	u32 ls_ucode_id;      // lsucodeid
+	u32 b_ucode_ls_encrypted;
+	u32 ls_encalgo_type;
+	u32 ls_enc_algo_ver;
+	u8  ls_enc_iv[LS_ENCRYPTION_AES_CBC_IV_SIZE_BYTE];
+	u8  rsvd[36];              // reserved for any future usage
+};
+
+/*
+ * The wrapper for LSF_UCODE_DESC, start support from version 2.
+ */
+struct lsf_ucode_desc_wrapper {
+	struct wpr_generic_header generic_hdr;
+
+	union {
+		struct lsf_ucode_desc_v2 lsf_ucode_desc_v2;
+	};
+};
+
+/* PKC end*/
+
 /** @} */
 
 /**
@@ -355,7 +441,94 @@ struct lsf_lsb_header {
 	u32 flags;
 };
 
+struct lsf_lsb_header_v2 {
+	/** Code/data signature details of each LS falcon */
+	struct lsf_ucode_desc_wrapper signature;
+	/**
+	 * Offset from non-WPR base where UCODE is located,
+	 * Offset = Non-WPR base + #LSF_LSB_HEADER_ALIGNMENT +
+	 *          #LSF_UCODE_DATA_ALIGNMENT + ( #LSF_BL_DATA_ALIGNMENT *
+	 *          LS Falcon index)
+	 */
+	u32 ucode_off;
+	/**
+	 * Size of LS Falcon ucode, required to perform signature verification
+	 * of LS Falcon ucode by ACR HS.
+	 */
+	u32 ucode_size;
+	/**
+	 * Size of LS Falcon ucode data, required to perform signature
+	 * verification of LS Falcon ucode data by ACR HS.
+	 */
+	u32 data_size;
+	/**
+	 * Size of bootloader that needs to be loaded by bootstrap owner.
+	 *
+	 * On GV11B, respective LS Falcon BL code size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS IMEM size  - 32k
+	 * FALCON_ID_GPCCS IMEM size - 16k
+	 */
+	u32 bl_code_size;
+	/** BL starting virtual address. Need for tagging */
+	u32 bl_imem_off;
+	/**
+	 * Offset from non-WPR base holding the BL data
+	 * Offset = (Non-WPR base + #LSF_LSB_HEADER_ALIGNMENT +
+	 *          #LSF_UCODE_DATA_ALIGNMENT + #LSF_BL_DATA_ALIGNMENT) *
+	 *          #LS Falcon index
+	 */
+	u32 bl_data_off;
+	/**
+	 * Size of BL data, BL data will be copied to LS Falcon DMEM of
+	 * bl data size
+	 *
+	 * On GV11B, respective LS Falcon BL data size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS DMEM size  - 8k
+	 * FALCON_ID_GPCCS DMEM size - 5k
+	 */
+	u32 bl_data_size;
+	/**
+	 * Offset from non-WPR base address where UCODE Application code is
+	 * located.
+	 */
+	u32 app_code_off;
+	/**
+	 * Size of UCODE Application code.
+	 *
+	 * On GV11B, FECS/GPCCS LS Falcon app code size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS IMEM size  - 32k
+	 * FALCON_ID_GPCCS IMEM size - 16k
+	 */
+	u32 app_code_size;
+	/**
+	 * Offset from non-WPR base address where UCODE Application data
+	 * is located
+	 */
+	u32 app_data_off;
+	/**
+	 * Size of UCODE Application data.
+	 *
+	 * On GV11B, respective LS Falcon app data size should not exceed
+	 * below mentioned size.
+	 * FALCON_ID_FECS DMEM size  - 8k
+	 * FALCON_ID_GPCCS DMEM size - 5k
+	 */
+	u32 app_data_size;
+	/**
+	 * NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0 - Load BL at 0th IMEM offset
+	 * NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX - This falcon requires a ctx
+	 * before issuing DMAs.
+	 * NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD - Use priv loading method
+	 * instead of bootloader/DMAs
+	 */
+	u32 flags;
+};
+
 #define FLCN_SIG_SIZE	(4U)
+
 /** @} */
 
 /**

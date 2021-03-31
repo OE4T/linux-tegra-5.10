@@ -39,6 +39,7 @@
 #define NVGPU_PMU_UCODE_SIG "pmu_sig.bin"
 #define NVGPU_PMU_UCODE_NEXT_IMAGE "gpmu_ucode_next_image.bin"
 #define NVGPU_PMU_UCODE_NEXT_DESC "gpmu_ucode_next_desc.bin"
+#define NVGPU_PMU_UCODE_NEXT_SIG "pmu_pkc_sig.bin"
 
 void nvgpu_pmu_fw_get_cmd_line_args_offset(struct gk20a *g,
 	u32 *args_offset)
@@ -303,8 +304,14 @@ int nvgpu_pmu_init_pmu_fw(struct gk20a *g, struct nvgpu_pmu *pmu,
 	*rtos_fw_p = rtos_fw;
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
-		err = pmu_fw_read(g, NVGPU_PMU_UCODE_NEXT_IMAGE,
+		if (!nvgpu_is_enabled(g, NVGPU_PKC_LS_SIG_ENABLED)) {
+			err = pmu_fw_read(g, NVGPU_PMU_UCODE_NEXT_IMAGE,
 				NVGPU_PMU_UCODE_NEXT_DESC, NVGPU_PMU_UCODE_SIG);
+                } else {
+			err = pmu_fw_read(g, NVGPU_PMU_UCODE_NEXT_IMAGE,
+				NVGPU_PMU_UCODE_NEXT_DESC,
+				NVGPU_PMU_UCODE_NEXT_SIG);
+                }
 
 	} else {
 		err = pmu_fw_read(g, NVGPU_PMU_UCODE_IMAGE,
