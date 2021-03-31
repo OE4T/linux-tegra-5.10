@@ -2593,4 +2593,35 @@ int osi_hw_config_est(struct osi_core_priv_data *osi_core,
  */
 int osi_hw_config_fpe(struct osi_core_priv_data *osi_core,
 		      struct osi_fpe_config *fpe);
+
+/**
+ * @brief osi_get_core - Get pointer to osi_core data structure.
+ *
+ * @note
+ * Algorithm:
+ *  - Returns OSI core data structure.
+ *
+ * @pre OSD layer should use this as first API to get osi_core pointer and
+ * use the same in remaning API invocation.
+ *
+ * @note
+ * Traceability Details:
+ *
+ * @note
+ * Classification:
+ * - Interrupt: No
+ * - Signal handler: No
+ * - Thread safe: No
+ * - Required Privileges: None
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ *
+ * @retval valid and unique osi_core pointer on success
+ * @retval NULL on failure.
+ */
+struct osi_core_priv_data *osi_get_core(void);
 #endif /* INCLUDED_OSI_CORE_H */

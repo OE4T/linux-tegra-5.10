@@ -5177,6 +5177,143 @@ static void mgbe_config_ssir(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief mgbe_set_mode - Setting the mode.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] mode: mode to be set.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nve32_t mgbe_set_mode(struct osi_core_priv_data *const osi_core,
+			     const nve32_t mode)
+{
+	return 0;
+}
+
+/**
+ * @brief mgbe_read_reg - Read a register
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nveu32_t mgbe_read_reg(struct osi_core_priv_data *const osi_core,
+			     const nve32_t reg)
+{
+	return osi_readla(osi_core, (nveu8_t *)osi_core->base + reg);
+}
+
+/**
+ * @brief mgbe_write_reg - Write a reg
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] val:  Value to be written.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nveu32_t mgbe_write_reg(struct osi_core_priv_data *const osi_core,
+			       const nveu32_t val,
+			       const nve32_t reg)
+{
+	osi_writela(osi_core, val, (nveu8_t *)osi_core->base + reg);
+	return 0;
+}
+
+/**
+ * @brief mgbe_validate_core_regs - Validates MGBE core registers.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nve32_t mgbe_validate_core_regs(
+				struct osi_core_priv_data *const osi_core)
+{
+	return 0;
+}
+
+/**
+ * @brief eqos_write_reg - Write a reg
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] val:  Value to be written.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nve32_t mgbe_config_tx_status(struct osi_core_priv_data *const osi_core,
+				     const nveu32_t tx_status)
+{
+	return 0;
+}
+
+/**
+ * @brief eqos_write_reg - Write a reg
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] val:  Value to be written.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static nve32_t mgbe_config_rx_crc_check(struct osi_core_priv_data *const osi_core,
+					const nveu32_t crc_chk)
+{
+	return 0;
+}
+
+/**
+ * @brief eqos_write_reg - Write a reg
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] val:  Value to be written.
+ * @param[in] reg: Register address.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: Yes
+ * - De-initialization: Yes
+ * @retval 0
+ */
+static void mgbe_set_mdc_clk_rate(struct osi_core_priv_data *const osi_core,
+				  const nveu64_t csr_clk_rate)
+{
+}
+
+/**
  * @brief mgbe_init_core_ops - Initialize MGBE MAC core operations
  */
 void mgbe_init_core_ops(struct core_ops *ops)
@@ -5184,24 +5321,23 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->poll_for_swr = mgbe_poll_for_swr;
 	ops->core_init = mgbe_core_init;
 	ops->core_deinit = mgbe_core_deinit;
-	ops->validate_regs = OSI_NULL;
+	ops->validate_regs = mgbe_validate_core_regs;
 	ops->start_mac = mgbe_start_mac;
 	ops->stop_mac = mgbe_stop_mac;
 	ops->handle_common_intr = mgbe_handle_common_intr;
 	/* only MGBE supports full duplex */
-	ops->set_mode = OSI_NULL;
+	ops->set_mode = mgbe_set_mode;
 	/* by default speed is 10G */
 	ops->set_speed = mgbe_set_speed;
 	ops->pad_calibrate = mgbe_pad_calibrate;
-	ops->set_mdc_clk_rate = OSI_NULL;
+	ops->set_mdc_clk_rate = mgbe_set_mdc_clk_rate;
 	ops->flush_mtl_tx_queue = mgbe_flush_mtl_tx_queue;
 	ops->config_mac_loopback = mgbe_config_mac_loopback;
-	ops->get_avb_algorithm = OSI_NULL;
 	ops->set_avb_algorithm = mgbe_set_avb_algorithm;
 	ops->get_avb_algorithm = mgbe_get_avb_algorithm,
 	ops->config_fw_err_pkts = mgbe_config_fw_err_pkts;
-	ops->config_tx_status = OSI_NULL;
-	ops->config_rx_crc_check = OSI_NULL;
+	ops->config_tx_status = mgbe_config_tx_status;
+	ops->config_rx_crc_check = mgbe_config_rx_crc_check;
 	ops->config_flow_control = mgbe_config_flow_control;
 	ops->config_arp_offload = mgbe_config_arp_offload;
 	ops->config_ptp_offload = mgbe_config_ptp_offload;
@@ -5236,4 +5372,6 @@ void mgbe_init_core_ops(struct core_ops *ops)
 	ops->config_frp = mgbe_config_frp;
 	ops->update_frp_entry = mgbe_update_frp_entry;
 	ops->update_frp_nve = mgbe_update_frp_nve;
+	ops->write_reg = mgbe_write_reg;
+	ops->read_reg = mgbe_read_reg;
 };

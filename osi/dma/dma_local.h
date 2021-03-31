@@ -28,6 +28,13 @@
 #include "eqos_dma.h"
 
 /**
+ * @brief Maximum number of OSI DMA instances.
+ */
+#ifndef MAX_DMA_INSTANCES
+#define MAX_DMA_INSTANCES	5U
+#endif
+
+/**
  * @brief MAC DMA Channel operations
  */
 struct dma_chan_ops {
@@ -112,14 +119,18 @@ struct desc_ops {
  * @brief OSI DMA private data.
  */
 struct dma_local {
+	/** OSI DMA data variable */
+	struct osi_dma_priv_data osi_dma;
 	/** DMA channel operations */
-	struct dma_chan_ops ops;
+	struct dma_chan_ops *ops_p;
 	/** Flag to represent OSI DMA software init done */
 	nveu32_t init_done;
 	/** Holds the MAC version of MAC controller */
 	nveu32_t mac_ver;
 	/** Represents whether DMA interrupts are VM or Non-VM */
 	nveu32_t vm_intr;
+	/** Magic number to validate osi_dma pointer */
+	nveu64_t magic_num;
 };
 
 /**

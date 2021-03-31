@@ -5590,6 +5590,23 @@ static nve32_t eqos_get_hw_features(struct osi_core_priv_data *const osi_core,
 }
 
 /**
+ * @brief eqos_config_rss - Configure RSS
+ *
+ * Algorithm: Programes RSS hash table or RSS hash key.
+ *
+ * @param[in] osi_core: OSI core private data.
+ *
+ * @retval -1 Always
+ */
+nve32_t eqos_config_rss(struct osi_core_priv_data *const osi_core)
+{
+	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+		     "RSS not supported by EQOS\n", 0ULL);
+
+	return -1;
+}
+
+/**
  * @brief eqos_get_core_safety_config - EQOS MAC safety configuration
  *
  * @note
@@ -5629,7 +5646,6 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->adjust_mactime = eqos_adjust_mactime;
 	ops->config_tscr = eqos_config_tscr;
 	ops->config_ssir = eqos_config_ssir;
-	ops->config_ptp_rxq = OSI_NULL;
 	ops->read_mmc = eqos_read_mmc;
 	ops->write_phy_reg = eqos_write_phy_reg;
 	ops->read_phy_reg = eqos_read_phy_reg;
@@ -5661,4 +5677,5 @@ void eqos_init_core_ops(struct core_ops *ops)
 	ops->config_frp = eqos_config_frp;
 	ops->update_frp_entry = eqos_update_frp_entry;
 	ops->update_frp_nve = eqos_update_frp_nve;
+	ops->config_rss = eqos_config_rss;
 }

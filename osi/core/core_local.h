@@ -26,6 +26,13 @@
 #include <osi_core.h>
 
 /**
+ * @brief Maximum number of OSI core instances.
+ */
+#ifndef MAX_CORE_INSTANCES
+#define MAX_CORE_INSTANCES	5U
+#endif
+
+/**
  * @brief Initialize MAC & MTL core operations.
  */
 struct core_ops {
@@ -230,10 +237,14 @@ struct core_ops {
  * @brief Core local data structure.
  */
 struct core_local {
+	/** OSI Core data variable */
+	struct osi_core_priv_data osi_core;
 	/** Core local operations variable */
-	struct core_ops ops;
+	struct core_ops *ops_p;
 	/** Flag to represent initialization done or not */
 	nveu32_t init_done;
+	/** Magic number to validate osi core pointer */
+	nveu64_t magic_num;
 };
 
 /**

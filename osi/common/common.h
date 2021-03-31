@@ -36,6 +36,12 @@
 #define COND_NOT_MET	1
 /** @} */
 
+
+/**
+ * @brief Maximum number of supported MAC IP types (EQOS and MGBE)
+ */
+#define MAX_MAC_IP_TYPES       2U
+
 /**
  * @brief osi_readl_poll_timeout - Periodically poll an address until
  * a condition is met or a timeout occurs
