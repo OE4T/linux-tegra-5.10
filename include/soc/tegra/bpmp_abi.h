@@ -157,16 +157,6 @@ struct mrq_request {
 	 *
 	 * Only used when #BPMP_MAIL_CRC_PRESENT is set.
 	 *
-	 * **crc16**
-	 *
-	 * CRC16 using polynomial x^16 + x^14 + x^12 + x^11 + x^8 + x^5 + x^4 + x^2 + 1
-	 * and initialization value 0x4657. The CRC is calculated over all bytes of the message
-	 * including this header. However the crc16 field is considered to be set to 0 when
-	 * calculating the CRC. Only used when #BPMP_MAIL_CRC_PRESENT is set. If
-	 * #BPMP_MAIL_CRC_PRESENT is set and this field does not match the CRC as
-	 * calculated by BPMP, -BPMP_EBADMSG will be returned and the request will
-	 * be ignored.
-	 *
 	 * | MRQ                  | CMD                                  | minimum payload length
 	 * | -------------------- | ------------------------------------ | ------------------------------------------ |
 	 * | MRQ_PING             |                                      | 4                                          |
@@ -221,6 +211,38 @@ struct mrq_request {
 	 * | MRQ_DEBUG            | CMD_DEBUG_READ                       | 8                                          |
 	 * | MRQ_DEBUG            | CMD_DEBUG_WRITE                      | 12 + cmd_debug_fwrite_request.datalen      |
 	 * | MRQ_DEBUG            | CMD_DEBUG_CLOSE                      | 8                                          |
+	 *
+	 * **crc16**
+	 *
+	 * CRC16 using polynomial x^16 + x^14 + x^12 + x^11 + x^8 + x^5 + x^4 + x^2 + 1
+	 * and initialization value 0x4657. The CRC is calculated over all bytes of the message
+	 * including this header. However the crc16 field is considered to be set to 0 when
+	 * calculating the CRC. Only used when #BPMP_MAIL_CRC_PRESENT is set. If
+	 * #BPMP_MAIL_CRC_PRESENT is set and this field does not match the CRC as
+	 * calculated by BPMP, -BPMP_EBADMSG will be returned and the request will
+	 * be ignored. See code snippet below on how to calculate the CRC.
+	 *
+	 * @code
+	 *	uint16_t calc_crc_digest(uint16_t crc, uint8_t *data, size_t size)
+	 *	{
+	 *		for (size_t i = 0; i < size; i++) {
+	 *			crc ^= data[i] << 8;
+	 *			for (size_t j = 0; j < 8; j++) {
+	 *				if ((crc & 0x8000) == 0x8000) {
+	 *					crc = (crc << 1) ^ 0xAC9A;
+	 *				} else {
+	 *					crc = (crc << 1);
+	 *				}
+	 *			}
+	 *		}
+	 *		return crc;
+	 *	}
+	 *
+	 *	uint16_t calc_crc(uint8_t *data, size_t size)
+	 *	{
+	 *		return calc_crc_digest(0x4657, data, size);
+	 *	}
+	 * @endcode
 	 */
 	uint32_t flags;
 } BPMP_ABI_PACKED;
