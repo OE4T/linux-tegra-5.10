@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This header is BSD licensed so anyone can use the definitions to implement
  * compatible drivers/servers.
@@ -41,6 +41,8 @@ struct nvipc_ivc_info {
 	uint32_t queue_size;
 	uint32_t area_size;
 	bool     rx_first;
+	uint64_t noti_ipa;
+	uint16_t noti_irq;
 };
 
 /*  IOCTL magic number */

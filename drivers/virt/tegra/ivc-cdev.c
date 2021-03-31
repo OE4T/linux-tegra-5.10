@@ -1,7 +1,7 @@
 /*
  * IVC character device driver
  *
- * Copyright (C) 2014-2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2014-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This file is licensed under the terms of the GNU General Public License
  * version 2.  This program is licensed "as is" without any warranty of any
@@ -206,11 +206,36 @@ static int ivc_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 			/* success! */
 			ret = 0;
 		}
+#ifdef SUPPORTS_TRAP_MSI_NOTIFICATION
+	} else if ((vma->vm_pgoff == (ivc_area_size >> PAGE_SHIFT)) &&
+			(map_region_sz <= PAGE_SIZE)) {
+		uint64_t noti_ipa;
+
+		if (ivcd->qd->msi_ipa != 0)
+			noti_ipa = ivcd->qd->msi_ipa;
+		else if (ivcd->qd->trap_ipa != 0)
+			noti_ipa = ivcd->qd->trap_ipa;
+
+		if (noti_ipa != 0) {
+			if (remap_pfn_range(vma, vma->vm_start,
+						noti_ipa >> PAGE_SHIFT,
+						map_region_sz,
+						vma->vm_page_prot)) {
+				ret = -EAGAIN;
+			} else {
+				/* success! */
+				ret = 0;
+			}
+		}
+#endif /* SUPPORTS_TRAP_MSI_NOTIFICATION */
 	}
 
 	return ret;
 }
 
+/* Need this temporarily to get the change merged. Will be removed later */
+#define NVIPC_IVC_IOCTL_GET_INFO_LEGACY 0xC018AA01
+#define NVIPC_IVC_IOCTL_NOTIFY_REMOTE_LEGACY 0xC018AA02
 static long ivc_dev_ioctl(struct file *filp, unsigned int cmd,
 		unsigned long arg)
 {
@@ -232,6 +257,7 @@ static long ivc_dev_ioctl(struct file *filp, unsigned int cmd,
 
 	switch (cmd) {
 	case NVIPC_IVC_IOCTL_GET_INFO:
+	case NVIPC_IVC_IOCTL_GET_INFO_LEGACY:
 		ret = tegra_hv_ivc_get_info(ivcd->ivck, &ivc_area_ipa,
 					    &ivc_area_size);
 		if (ret < 0) {
@@ -245,6 +271,14 @@ static long ivc_dev_ioctl(struct file *filp, unsigned int cmd,
 		info.queue_size = ivcd->qd->size;
 		info.queue_offset = ivcd->qd->offset;
 		info.area_size = ivc_area_size;
+#ifdef SUPPORTS_TRAP_MSI_NOTIFICATION
+		if (ivcd->qd->msi_ipa != 0)
+			info.noti_ipa = ivcd->qd->msi_ipa;
+		else
+			info.noti_ipa = ivcd->qd->trap_ipa;
+
+		info.noti_irq = ivcd->qd->raise_irq;
+#endif /* SUPPORTS_TRAP_MSI_NOTIFICATION */
 
 		if (ivcd->qd->peers[0] == ivcd->qd->peers[1]) {
 			/*
@@ -259,13 +293,22 @@ static long ivc_dev_ioctl(struct file *filp, unsigned int cmd,
 					 ivcd->qd->peers[0]);
 		}
 
-		if (copy_to_user((void __user *) arg, &info,
-					sizeof(struct nvipc_ivc_info))) {
-			ret = -EFAULT;
+		if (cmd == NVIPC_IVC_IOCTL_GET_INFO) {
+			if (copy_to_user((void __user *) arg, &info,
+				sizeof(struct nvipc_ivc_info))) {
+				ret = -EFAULT;
+			}
+		} else {
+		/* Added temporarily. will be removed */
+			if (copy_to_user((void __user *) arg, &info,
+				sizeof(struct nvipc_ivc_info) - 16)) {
+				ret = -EFAULT;
+			}
 		}
 		break;
 
 	case NVIPC_IVC_IOCTL_NOTIFY_REMOTE:
+	case NVIPC_IVC_IOCTL_NOTIFY_REMOTE_LEGACY:
 		tegra_hv_ivc_notify(ivcd->ivck);
 		break;
 

@@ -39,10 +39,6 @@
 #include "tegra_hv.h"
 #include <linux/tegra-ivc-instance.h>
 
-#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE
-#define SUPPORTS_TRAP_MSI_NOTIFICATION
-#endif
-
 #define ERR(...) pr_err("tegra_hv: " __VA_ARGS__)
 #define INFO(...) pr_info("tegra_hv: " __VA_ARGS__)
 
