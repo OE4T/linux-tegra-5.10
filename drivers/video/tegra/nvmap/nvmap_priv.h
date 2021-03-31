@@ -819,6 +819,7 @@ static inline pid_t nvmap_client_pid(struct nvmap_client *client)
 	return client->task ? client->task->pid : 0;
 }
 
+/* must be called with mmap_sem held for read or write */
 static inline int nvmap_get_user_pages(ulong vaddr,
 				size_t nr_page, struct page **pages,
 				bool is_user_flags, u32 user_foll_flags)
@@ -829,7 +830,6 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 	long user_pages = 0;
 	int ret = 0;
 
-	nvmap_acquire_mmap_read_lock(current->mm);
 	vma = find_vma(current->mm, vaddr);
 	if (vma) {
 		if (is_user_flags) {
@@ -848,7 +848,6 @@ static inline int nvmap_get_user_pages(ulong vaddr,
 		user_pages = get_user_pages(vaddr & PAGE_MASK, nr_page,
 					    foll_flags, pages, NULL);
 	}
-	nvmap_release_mmap_read_lock(current->mm);
 	if (user_pages != nr_page) {
 		ret = user_pages < 0 ? user_pages : -ENOMEM;
 		pr_err("get_user_pages requested/got: %zu/%ld]\n", nr_page,

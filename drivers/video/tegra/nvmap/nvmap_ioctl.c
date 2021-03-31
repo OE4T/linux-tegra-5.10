@@ -964,23 +964,30 @@ int nvmap_ioctl_gup_test(struct file *filp, void __user *arg)
 	size_t i;
 	size_t nr_page;
 	struct page **pages;
+	struct mm_struct *mm = current->mm;
 
 	if (copy_from_user(&op, arg, sizeof(op)))
 		return -EFAULT;
-
 	op.result = 1;
-	vma = find_vma(current->mm, op.va);
+
+	nvmap_acquire_mmap_read_lock(mm);
+	vma = find_vma(mm, op.va);
 	if (unlikely(!vma) || (unlikely(op.va < vma->vm_start )) ||
-	    unlikely(op.va >= vma->vm_end))
+		unlikely(op.va >= vma->vm_end)) {
+		nvmap_release_mmap_read_lock(mm);
 		goto exit;
+	}
 
 	handle = nvmap_handle_get_from_id(client, op.handle);
-	if (IS_ERR_OR_NULL(handle))
+	if (IS_ERR_OR_NULL(handle)) {
+		nvmap_release_mmap_read_lock(mm);
 		goto exit;
+	}
 
 	if (vma->vm_end - vma->vm_start != handle->size) {
 		pr_err("handle size(0x%zx) and vma size(0x%lx) don't match\n",
 			 handle->size, vma->vm_end - vma->vm_start);
+		nvmap_release_mmap_read_lock(mm);
 		goto put_handle;
 	}
 
@@ -989,12 +996,17 @@ int nvmap_ioctl_gup_test(struct file *filp, void __user *arg)
 	pages = nvmap_altalloc(nr_page * sizeof(*pages));
 	if (IS_ERR_OR_NULL(pages)) {
 		err = PTR_ERR(pages);
+		nvmap_release_mmap_read_lock(mm);
 		goto put_handle;
 	}
 
 	err = nvmap_get_user_pages(op.va & PAGE_MASK, nr_page, pages, false, 0);
-	if (err)
+	if (err) {
+		nvmap_release_mmap_read_lock(mm);
 		goto free_pages;
+	}
+
+	nvmap_release_mmap_read_lock(mm);
 
 	for (i = 0; i < nr_page; i++) {
 		if (handle->pgalloc.pages[i] != pages[i]) {

@@ -736,13 +736,16 @@ static int alloc_handle_from_va(struct nvmap_client *client,
 	size_t nr_page = h->size >> PAGE_SHIFT;
 	struct page **pages;
 	int ret = 0;
+	struct mm_struct *mm = current->mm;
 
 	pages = nvmap_altalloc(nr_page * sizeof(*pages));
 	if (IS_ERR_OR_NULL(pages))
 		return PTR_ERR(pages);
 
+	nvmap_acquire_mmap_read_lock(mm);
 	ret = nvmap_get_user_pages(vaddr & PAGE_MASK, nr_page, pages, true,
 				(flags & NVMAP_HANDLE_RO) ? 0 : FOLL_WRITE);
+	nvmap_release_mmap_read_lock(mm);
 	if (ret) {
 		nvmap_altfree(pages, nr_page * sizeof(*pages));
 		return ret;
