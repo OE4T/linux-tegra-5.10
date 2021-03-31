@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -165,7 +165,8 @@
 #define TEGRA234_CLK_IQC1			68U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_ISP */
 #define TEGRA234_CLK_ISP			69U
-#define TEGRA234_CLK_UNUSED_70			70U
+/** @brief Monitored branch of EQOS_RX clock */
+#define TEGRA234_CLK_EQOS_RX_M			70U
 /** @brief CLK_RST_CONTROLLER_MAUDCLK_OUT_SWITCH_DIVIDER switch divider output (maudclk) */
 #define TEGRA234_CLK_MAUD			71U
 /** @brief output of gate CLK_ENB_MIPI_CAL */
@@ -446,9 +447,8 @@
 #define TEGRA234_CLK_NAFLL_PVA0_CORE		211U
 /** @brief NAFLL clock source for PVA VPS */
 #define TEGRA234_CLK_NAFLL_PVA0_VPS		212U
-
-/* free: 213 */
-
+/** @brief CLK_RST_CONTROLLER_CLK_SOURCE_DBGAPB_0 switch divider output (dbgapb_clk) */
+#define TEGRA234_CLK_DBGAPB			213U
 /** @brief NAFLL clock source for RCE */
 #define TEGRA234_CLK_NAFLL_RCE			214U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_LA switch divider output (la_r_clk) */
