@@ -64,6 +64,9 @@ int nvhost_fence_create_fd(
 	if (!file)
 		goto put_fd;
 
+	/* sync_file_create takes an additional ref, so drop ours. */
+	dma_fence_put(f);
+
 	fd_install(err, file->file);
 	*fence_fd = err;
 
