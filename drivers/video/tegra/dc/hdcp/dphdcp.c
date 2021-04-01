@@ -2137,11 +2137,14 @@ void tegra_dphdcp_set_plug(struct tegra_dphdcp *dphdcp, bool hpd)
 	vprime_check_done = false;
 	repeater_flag = false;
 	dphdcp_debug("DP hotplug detected (hpd = %d)\n", hpd);
-	if (hpd) {
-		dphdcp_set_plugged(dphdcp, true);
-		tegra_dphdcp_on(dphdcp);
-	} else {
-		tegra_dphdcp_off(dphdcp);
+
+	if (atomic_read(&dphdcp->policy) != TEGRA_DC_HDCP_POLICY_ALWAYS_OFF) {
+		if (hpd) {
+			dphdcp_set_plugged(dphdcp, true);
+			tegra_dphdcp_on(dphdcp);
+		} else {
+			tegra_dphdcp_off(dphdcp);
+		}
 	}
 }
 
