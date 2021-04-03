@@ -6,7 +6,14 @@ EXTRAVERSION =
 NAME = Kleptomaniac Octopus
 
 ifeq ($(KERNEL_OVERLAYS),)
-KERNEL_OVERLAYS := $(addprefix $(CURDIR)/../,$(shell cat kernel-overlays.txt))
+# external build kernel overlays txt
+ifeq ($(_nv_build_configuration_is_external),1)
+CHOSEN_KERNEL_OVERLAYS_TXT := kernel-ext-overlays.txt
+else
+# internal build kernel overlays txt
+CHOSEN_KERNEL_OVERLAYS_TXT := kernel-overlays.txt
+endif
+KERNEL_OVERLAYS := $(addprefix $(CURDIR)/../,$(shell cat $(CHOSEN_KERNEL_OVERLAYS_TXT)))
 else
 override KERNEL_OVERLAYS := $(subst :, ,$(KERNEL_OVERLAYS))
 endif
