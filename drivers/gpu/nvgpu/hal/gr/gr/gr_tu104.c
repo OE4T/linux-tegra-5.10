@@ -28,6 +28,7 @@
 
 #include "gr_pri_gk20a.h"
 #include "gr_tu104.h"
+#include "hal/gr/gr/gr_gv11b.h"
 
 #include <nvgpu/hw/tu104/hw_gr_tu104.h>
 
@@ -201,4 +202,30 @@ void tu104_gr_init_cau(struct gk20a *g)
 	if (g->ops.priv_ring.read_pri_fence != NULL) {
 		g->ops.priv_ring.read_pri_fence(g);
 	}
+}
+
+/*
+ * This function will decode a priv address and return the partition
+ * type and numbers
+ */
+int gr_tu104_decode_priv_addr(struct gk20a *g, u32 addr,
+	enum ctxsw_addr_type *addr_type,
+	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,
+	u32 *broadcast_flags)
+{
+	/*
+	 * Special handling for LTS_TSTG registers.
+	 *
+	 * Unlike the other ltc registers which are stored as part of
+	 * pm_ctxsw buffer these are stored in fecs ctxsw image priv
+	 * segment regionid: NETLIST_REGIONID_CTXREG_SYS.
+	 */
+	if (g->ops.ltc.pri_is_ltc_addr(g, addr) &&
+			g->ops.ltc.pri_is_lts_tstg_addr(g, addr)) {
+		*addr_type = CTXSW_ADDR_TYPE_SYS;
+		return 0;
+	}
+
+	return gr_gv11b_decode_priv_addr(g, addr, addr_type, gpc_num,
+			tpc_num, ppc_num, be_num, broadcast_flags);
 }

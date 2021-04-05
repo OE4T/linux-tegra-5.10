@@ -329,6 +329,7 @@ static const struct gops_ltc tu104_ops_ltc = {
 	.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 	.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 	.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+	.pri_is_lts_tstg_addr = tu104_ltc_pri_is_lts_tstg_addr,
 #endif /* CONFIG_NVGPU_DEBUGGER */
 };
 
@@ -734,7 +735,7 @@ static const struct gops_gr tu104_ops_gr = {
 	.get_egpc_etpc_num = gv11b_gr_get_egpc_etpc_num,
 	.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
 	.decode_egpc_addr = gv11b_gr_decode_egpc_addr,
-	.decode_priv_addr = gr_gv11b_decode_priv_addr,
+	.decode_priv_addr = gr_tu104_decode_priv_addr,
 	.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 	.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
 	.get_offset_in_gpccs_segment = gr_tu104_get_offset_in_gpccs_segment,

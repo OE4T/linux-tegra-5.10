@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,11 @@ void tu104_gr_disable_cau(struct gk20a *g);
 void tu104_gr_disable_smpc(struct gk20a *g);
 const u32 *tu104_gr_get_hwpm_cau_init_data(u32 *count);
 void tu104_gr_init_cau(struct gk20a *g);
+
+int gr_tu104_decode_priv_addr(struct gk20a *g, u32 addr,
+	enum ctxsw_addr_type *addr_type,
+	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,
+	u32 *broadcast_flags);
 
 #endif /* CONFIG_NVGPU_DEBUGGER */
 #endif /* NVGPU_GR_TU104_H */
