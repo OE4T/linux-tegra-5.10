@@ -4543,12 +4543,12 @@ static int ether_probe(struct platform_device *pdev)
 	ether_get_num_dma_chan_mtl_q(pdev, &num_dma_chans,
 				     &mac, &num_mtl_queues);
 
-	osi_core = devm_kzalloc(&pdev->dev, sizeof(*osi_core), GFP_KERNEL);
+	osi_core = osi_get_core();
 	if (osi_core == NULL) {
 		return -ENOMEM;
 	}
 
-	osi_dma = devm_kzalloc(&pdev->dev, sizeof(*osi_dma), GFP_KERNEL);
+	osi_dma = osi_get_dma();
 	if (osi_dma == NULL) {
 		return -ENOMEM;
 	}
@@ -4594,12 +4594,14 @@ static int ether_probe(struct platform_device *pdev)
 	ether_assign_osd_ops(osi_core, osi_dma);
 
 	/* Initialize core and DMA ops based on MAC type */
-	if (osi_init_core_ops(osi_core) != 0) {
+	ret = osi_init_core_ops(osi_core);
+	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get osi_init_core_ops\n");
 		goto err_core_ops;
 	}
 
-	if (osi_init_dma_ops(osi_dma) != 0) {
+	ret = osi_init_dma_ops(osi_dma);
+	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get osi_init_dma_ops\n");
 		goto err_dma_ops;
 	}
