@@ -402,28 +402,36 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 		dev_info(&pdev->dev, "cpu_emc_map not present\n");
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data)
-		return -ENOMEM;
+	if (!data) {
+		err = -ENOMEM;
+		goto err_free_map_ptr;
+	}
 
 	data->num_clusters = MAX_CLUSTERS;
 	data->tables = devm_kcalloc(&pdev->dev, data->num_clusters,
 				    sizeof(*data->tables), GFP_KERNEL);
-	if (!data->tables)
-		return -ENOMEM;
+	if (!data->tables) {
+		err = -ENOMEM;
+		goto err_free_map_ptr;
+	}
 
 	data->bwmgr = devm_kcalloc(&pdev->dev, data->num_clusters,
 				   sizeof(struct tegra_bwmgr_client),
 				   GFP_KERNEL);
-	if (!data->bwmgr)
-		return -ENOMEM;
+	if (!data->bwmgr) {
+		err = -ENOMEM;
+		goto err_free_map_ptr;
+	}
 
 	tegra_hypervisor_mode = is_tegra_hypervisor_mode();
 
 	platform_set_drvdata(pdev, data);
 
 	bpmp = tegra_bpmp_get(&pdev->dev);
-	if (IS_ERR(bpmp))
-		return PTR_ERR(bpmp);
+	if (IS_ERR(bpmp)) {
+		err = PTR_ERR(bpmp);
+		goto err_free_map_ptr;
+	}
 
 	read_counters_wq = alloc_workqueue("read_counters_wq", __WQ_LEGACY, 1);
 	if (!read_counters_wq) {
@@ -450,6 +458,9 @@ err_free_res:
 	tegra194_cpufreq_free_resources();
 put_bpmp:
 	tegra_bpmp_put(bpmp);
+err_free_map_ptr:
+	if (cpu_emc_map_ptr)
+		kfree(cpu_emc_map_ptr);
 	return err;
 }
 
