@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,49 +40,49 @@ struct nvgpu_rwsem;
 /**
  * @brief Initialize read write lock.
  *
- * @param rwsem [in]	Read,write lock to initialize.
- *
  * Initializes the read,write lock referenced by \a rwsem.
+ *
+ * @param rwsem [in]	Read,write lock to initialize.
  */
 void nvgpu_rwsem_init(struct nvgpu_rwsem *rwsem);
 
 /**
  * @brief Acquire read lock.
  *
- * @param rwsem [in]	Read,write lock to be locked for read.
- *
  * Acquires a read lock on the read,write lock object referenced by \a rwsem.
  * The calling thread acquires a read lock if no writer is holding the lock
  * on \a rwsem.
+ *
+ * @param rwsem [in]	Read,write lock to be locked for read.
  */
 void nvgpu_rwsem_up_read(struct nvgpu_rwsem *rwsem);
 
 /**
  * @brief Release read lock.
  *
- * @param rwsem [in]	Read,write lock to be released.
- *
  * Releases the lock held on \a rwsem. To be used to release a read lock.
+ *
+ * @param rwsem [in]	Read,write lock to be released.
  */
 void nvgpu_rwsem_down_read(struct nvgpu_rwsem *rwsem);
 
 /**
  * @brief Acquire write lock.
  *
- * @param rwsem [in]	Read,write lock to be locked for write.
- *
  * Acquires the write lock on \a rwsem. The calling thread acquires write lock
  * if no other thread is holding a lock on rwsem.
+ *
+ * @param rwsem [in]	Read,write lock to be locked for write.
  */
 void nvgpu_rwsem_up_write(struct nvgpu_rwsem *rwsem);
 
 /**
  * @brief Release the write lock.
  *
- * @param rwsem [in]	Read,write lock to be released.
- *
  * Releases the write lock held on \a rwsem. To be used to release a write
  * lock.
+ *
+ * @param rwsem [in]	Read,write lock to be released.
  */
 void nvgpu_rwsem_down_write(struct nvgpu_rwsem *rwsem);
 

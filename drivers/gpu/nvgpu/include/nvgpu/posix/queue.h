@@ -61,10 +61,10 @@ struct nvgpu_queue {
 /**
  * @brief Calculate the unused message queue length.
  *
- * @param queue [in]	Queue structure to use.
- *
  * The size of all the messages currently enqueued is subtracted from the total
  * size of the queue to get the unused queue length.
+ *
+ * @param queue [in]	Queue structure to use.
  *
  * @return Return unused queue length.
  */
@@ -73,9 +73,9 @@ unsigned int nvgpu_queue_unused(struct nvgpu_queue *queue);
 /**
  * @brief Calculate the length of the message queue in use.
  *
- * @param queue [in]	Queue structure to use.
- *
  * Returns the size of all the messages currently enqueued in the queue.
+ *
+ * @param queue [in]	Queue structure to use.
  *
  * @return Return the size of all the messages currently enqueued in the queue.
  */
@@ -84,6 +84,9 @@ unsigned int nvgpu_queue_available(struct nvgpu_queue *queue);
 /**
  * @brief Allocate memory and initialize the message queue variables.
  *
+ * Allocates memory for the message queue. Also initializes the message queue
+ * variables "in", "out" and "mask".
+ *
  * @param queue [in]	Queue structure to use.
  * 			  - Structure should not be equal to NULL
  * @param size [in]	Size of the queue.
@@ -91,9 +94,6 @@ unsigned int nvgpu_queue_available(struct nvgpu_queue *queue);
  * 			  - MAX: INT32_MAX, requested size which is not a
  * 			    power of two is rounded up to the nearest power of
  * 			    two. Hence this max size limit.
- *
- * Allocates memory for the message queue. Also initializes the message queue
- * variables "in", "out" and "mask".
  *
  * @return Return 0 on success, otherwise returns error number to indicate the
  * error.
@@ -106,23 +106,23 @@ int nvgpu_queue_alloc(struct nvgpu_queue *queue, unsigned int size);
 /**
  * @brief Free the allocated memory for the message queue.
  *
- * @param queue [in]	Queue structure to use.
- *
  * Free the allocated memory for the message queue. Also resets the message
  * queue variables "in", "out" and "mask".
+ *
+ * @param queue [in]	Queue structure to use.
  */
 void nvgpu_queue_free(struct nvgpu_queue *queue);
 
 /**
  * @brief Enqueue message into message queue.
  *
- * @param queue [in]	Queue structure to use.
- * @param buf [in]	Pointer to source message buffer.
- * @param len [in]	Size of the message to be enqueued.
- *
  * Enqueues the message pointed by \a buf into the message queue and advances
  * the "in" index of the message queue by \a len which is the size of the
  * enqueued message.
+ *
+ * @param queue [in]	Queue structure to use.
+ * @param buf [in]	Pointer to source message buffer.
+ * @param len [in]	Size of the message to be enqueued.
  *
  * @return Returns \a len on success, otherwise returns error number to indicate
  * the error.
@@ -136,16 +136,16 @@ int nvgpu_queue_in(struct nvgpu_queue *queue, const void *buf,
 /**
  * @brief Enqueue message into message queue after acquiring the mutex lock.
  *
- * @param queue [in]	Queue structure to use.
- * @param buf [in]	Pointer to source message buffer.
- * @param len [in]	Size of the message to be enqueued.
- * @param lock [in]	Mutex lock for concurrency management.
- *
  * Acquires the mutex lock pointed by \a lock before enqueue operation.
  * Enqueues the message pointed by \a buf into the message queue and advances
  * the "in" index of the message queue by \a len which is the size of the
  * enqueued message once the lock is acquired. The lock is released after the
  * enqueue operation is completed.
+ *
+ * @param queue [in]	Queue structure to use.
+ * @param buf [in]	Pointer to source message buffer.
+ * @param len [in]	Size of the message to be enqueued.
+ * @param lock [in]	Mutex lock for concurrency management.
  *
  * @return Returns \a len on success, otherwise returns error number to indicate
  * the error.
@@ -159,12 +159,12 @@ int nvgpu_queue_in_locked(struct nvgpu_queue *queue, const void *buf,
 /**
  * @brief Dequeue message from message queue.
  *
+ * Dequeues the message of size \a len from the message queue and copies the
+ * same to \a buf. Also advances the "out" index of the queue by \a len.
+ *
  * @param queue [in]	Queue structure to use.
  * @param buf [in]	Pointer to destination message buffer.
  * @param len [in]	Size of the message to be dequeued.
- *
- * Dequeues the message of size \a len from the message queue and copies the
- * same to \a buf. Also advances the "out" index of the queue by \a len.
  *
  * @return Returns \a len on success, otherwise returns error number to indicate
  * the error.
@@ -178,15 +178,15 @@ int nvgpu_queue_out(struct nvgpu_queue *queue, void *buf,
 /**
  * @brief Dequeue message from message queue after acquiring the mutex lock.
  *
- * @param queue [in]	Queue structure to use.
- * @param buf [in]	Pointer to destination message buffer.
- * @param len [in]	Size of the message to be dequeued.
- * @param lock [in]	Mutex lock for concurrency management.
- *
  * Acquires the mutex lock pointed by \a lock before dequeue operation.
  * Dequeues the message of size \a len from the message queue and copies the
  * same to \a buf. Also advances the "out" index of the queue by \a len.
  * Releases the mutex after the dequeue operation is completed.
+ *
+ * @param queue [in]	Queue structure to use.
+ * @param buf [in]	Pointer to destination message buffer.
+ * @param len [in]	Size of the message to be dequeued.
+ * @param lock [in]	Mutex lock for concurrency management.
  *
  * @return Returns \a len on success, otherwise returns error number to indicate
  * the error.

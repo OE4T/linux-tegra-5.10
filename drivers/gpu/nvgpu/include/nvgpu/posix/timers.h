@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,13 +33,13 @@
 /**
  * @brief Private handler of CPU timeout, should not be used directly.
  *
+ * Posix implementation of the CPU timeout handler. Checks if the timeout
+ * duration has expired or not.
+ *
  * @param timeout [in]	Timeout object.
  * @param caller [in]	Instruction pointer of the caller.
  * @param fmt [in]	Format of the variable length argument.
  * @param arg... [in]	Variable length arguments.
- *
- * Posix implementation of the CPU timeout handler. Checks if the timeout
- * duration has expired or not.
  *
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.
@@ -63,14 +63,14 @@
 /**
  * @brief Private handler of retry timeout, should not be used directly.
  *
+ * Posix implementation of the retry timeout handler. Checks if the retry limit
+ * has reached, return an error value to indicate a timeout if the retry limit
+ * has reached else increment the retry count and return.
+ *
  * @param timeout [in]	Timeout object.
  * @param caller [in]	Instruction pointer of the caller.
  * @param fmt [in]	Format of the variable length argument.
  * @param arg... [in]	Variable length arguments.
- *
- * Posix implementation of the retry timeout handler. Checks if the retry limit
- * has reached, return an error value to indicate a timeout if the retry limit
- * has reached else increment the retry count and return.
  *
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.
@@ -96,13 +96,13 @@
 /**
  * @brief Private handler of userspace timeout, should not be used directly.
  *
+ * Posix implementation of the timeout handler. Differentiates between a CPU
+ * timer and a retry timer and handles accordingly.
+ *
  * @param timeout [in]	Timeout object.
  * @param caller [in]	Instruction pointer of the caller.
  * @param fmt [in]	Format of the variable length argument.
  * @param arg... [in]	Variable length arguments.
- *
- * Posix implementation of the timeout handler. Differentiates between a CPU
- * timer and a retry timer and handles accordingly.
  *
  * @return Shall return 0 if the timeout has not expired; otherwise, an error
  * number indicating a timeout is returned.

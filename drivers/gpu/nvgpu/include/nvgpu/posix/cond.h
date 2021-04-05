@@ -68,10 +68,10 @@ struct nvgpu_posix_fault_inj *nvgpu_cond_broadcast_get_fault_injection(void);
 /**
  * @brief Timed wait for a condition variable.
  *
+ * Waits for a condition variable for the time duration passed as param \a ms.
+ *
  * @param cond [in]	Condition variable to wait.
  * @param ms [in]	Timeout to wait.
- *
- * Waits for a condition variable for the time duration passed as param \a ms.
  *
  * @return If successful, this function returns 0. Otherwise, an error number
  * is returned to indicate the error. The error number returned are either
@@ -96,27 +96,27 @@ int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms);
 /**
  * @brief Signal a condition variable.
  *
+ * Wakes up a waiter for a condition variable to check if its condition has
+ * been satisfied. This API has to be used after explicitly locking the mutex
+ * associated with the condition variable.
+ *
  * @param cond [in]	Condition variable to signal.
  * 			  - Should not be equal to NULL.
  * 			  - Structure pointed by \a cond should be initialized
  * 			    before invoking this function.
- *
- * Wakes up a waiter for a condition variable to check if its condition has
- * been satisfied. This API has to be used after explicitly locking the mutex
- * associated with the condition variable.
  */
 void nvgpu_cond_signal_locked(struct nvgpu_cond *cond);
 
 /**
  * @brief Signal all waiters of a condition variable.
  *
- * @param cond [in]	Condition variable to broadcast.
- * 			  - Structure pointed by \a cond should be initialized
- * 			    before invoking this function.
- *
  * Wake up all waiters for a condition variable to check if their conditions
  * have been satisfied. This API has to be used after explicitly locking the
  * mutex associated with the condition variable.
+ *
+ * @param cond [in]	Condition variable to broadcast.
+ * 			  - Structure pointed by \a cond should be initialized
+ * 			    before invoking this function.
  *
  * @return If successful a value of 0 shall be returned; otherwise, an error
  * number to indicate the error is returned.
@@ -132,35 +132,35 @@ int nvgpu_cond_broadcast_locked(struct nvgpu_cond *cond);
 /**
  * @brief Acquire the mutex associated with condition variable.
  *
+ * Acquires the mutex associated with the condition variable referenced
+ * by the param \a cond.
+ *
  * @param cond [in]	Condition variable for which the mutex has to be
  *			acquired. Structure pointed by \a cond has to be
  *			initialized before invoking this function.
- *
- * Acquires the mutex associated with the condition variable referenced
- * by the param \a cond.
  */
 void nvgpu_cond_lock(struct nvgpu_cond *cond);
 
 /**
  * @brief Release the mutex associated with condition variable.
  *
- * @param cond [in]	Condition variable for which the mutex has to be
- *			released.
- *
  * Releases the mutex associated with the condition variable referenced
  * by the param \a cond.
+ *
+ * @param cond [in]	Condition variable for which the mutex has to be
+ *			released.
  */
 void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 
 /**
  * @brief Wait for a condition to be true.
  *
+ * Wait for a condition to become true. Differentiates between timed wait
+ * and infinite wait from the parameter \a timeout_ms.
+ *
  * @param cond [in]		The condition variable to sleep on.
  * @param condition [in]	The condition that needs to be checked.
  * @param timeout_ms [in]	Timeout in milliseconds or 0 for infinite wait.
- *
- * Wait for a condition to become true. Differentiates between timed wait
- * and infinite wait from the parameter \a timeout_ms.
  *
  * @return If successful, this macro returns 0. Otherwise, an error number
  * is returned to indicate the error.
@@ -191,12 +191,12 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 /**
  * @brief Initiate a wait for a condition variable.
  *
+ * Wait for a condition to become true. Acquires the mutex associated with the
+ * condition variable before attempting to wait.
+ *
  * @param cond [in]		The condition variable to sleep on.
  * @param condition [in]	The condition that needs to be true.
  * @param timeout_ms [in]	Timeout in milliseconds or 0 for infinite wait.
- *
- * Wait for a condition to become true. Acquires the mutex associated with the
- * condition variable before attempting to wait.
  *
  * @return If successful, this macro returns 0. Otherwise, an error number
  * is returned to indicate the error.
@@ -230,13 +230,13 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 /**
  * @brief Interruptible wait for a condition to be true.
  *
- * @param cond [in]		The condition variable to sleep on.
- * @param condition [in]	The condition that needs to be true.
- * @param timeout_ms [in]	Timeout in milliseconds or 0 for infinite wait.
- *
  * In posix implementation the functionality of interruptible wait is same as
  * uninterruptible wait. Macro is defined to be congruent with implementations
  * which has interruptible and uninterruptible waits.
+ *
+ * @param cond [in]		The condition variable to sleep on.
+ * @param condition [in]	The condition that needs to be true.
+ * @param timeout_ms [in]	Timeout in milliseconds or 0 for infinite wait.
  *
  * @return If successful, this macro returns 0. Otherwise, an error number
  * is returned to indicate the error.
@@ -259,13 +259,13 @@ void nvgpu_cond_unlock(struct nvgpu_cond *cond);
 /**
  * @brief Wait for a condition to be true.
  *
+ * Wait for a condition to become true. Invokes the function
+ * nvgpu_cond_timedwait internally.
+ *
  * @param cond [in]		The condition variable to sleep on.
  * @param condition [in]	The condition that needs to be true.
  * @param ret [out]		Return value.
  * @param timeout_ms [in]	Timeout in milliseconds or 0 for infinite wait.
- *
- * Wait for a condition to become true. Invokes the function
- * nvgpu_cond_timedwait internally.
  *
  * @return If successful, this macro returns 0. Otherwise, an error number
  * is returned to indicate the error.

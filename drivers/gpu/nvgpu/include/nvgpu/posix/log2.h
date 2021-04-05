@@ -28,10 +28,10 @@
 /**
  * @brief Integer logarithm for base 2.
  *
- * @param x [in]	The number to get the log for.
- *
  * Calculates the log to the base 2 of input value \a x and returns the
  * integer value of the same.
+ *
+ * @param x [in]	The number to get the log for.
  *
  * @return Integer value of log to the base 2 of input \a x.
  */
@@ -46,10 +46,10 @@
 /**
  * @brief Round up to the power of two.
  *
+ * Rounds up the input number \a x to power of two and returns.
+ *
  * @param x [in]	Number to round up.
  * 			  - 0 is not a valid value.
- *
- * Rounds up the input number \a x to power of two and returns.
  *
  * @return Input value \a x rounded up to the power of two.
  */
@@ -69,10 +69,10 @@
 /**
  * @brief Round down to the power of two.
  *
+ * Rounds down the input number \a x to power of two and returns.
+ *
  * @param x [in]	Number to round down.
  * 			  - 0 is not a valid value.
- *
- * Rounds down the input number \a x to power of two and returns.
  *
  * @return Input value \a x rounded down to the power of two.
  */
@@ -92,9 +92,9 @@
 /**
  * @brief Check for power of 2.
  *
- * @param x [in]     Number to check.
- *
  * Checks if the input value \a x is a power of two or not.
+ *
+ * @param x [in]     Number to check.
  *
  * @return True if the input \a x is a power of two, else returns false.
  */

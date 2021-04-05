@@ -116,6 +116,8 @@ struct nvgpu_timeout {
 /**
  * @brief Initialize a timeout.
  *
+ * Initialize a timeout object referenced by \a timeout.
+ *
  * @param g [in]	GPU driver structure.
  * @param timeout [in]	Timeout object to initialize.
  * @param duration [in]	Timeout duration/count.
@@ -123,8 +125,6 @@ struct nvgpu_timeout {
  * 			  - NVGPU_TIMER_RETRY_TIMER
  * 			  - NVGPU_TIMER_NO_PRE_SI
  * 			  - NVGPU_TIMER_SILENT_TIMEOUT
- *
- * Initialize a timeout object referenced by \a timeout.
  *
  * @return Shall return 0 on success; otherwise, return error number to indicate
  * the error type.
@@ -137,10 +137,10 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 /**
  * @brief Check the timeout status.
  *
- * @param timeout [in]	Timeout object to check the status.
- *
  * Checks the status of \a timeout and returns if the timeout has expired or
  * not.
+ *
+ * @param timeout [in]	Timeout object to check the status.
  *
  * @return Boolean value to indicate the status of timeout.
  *
@@ -152,14 +152,14 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
 /**
  * @brief Checks the timeout expiry according to the timer type.
  *
- * @param __timeout [in]	Timeout object to handle.
- *
  * This macro checks to see if a timeout has expired. For retry based timers,
  * a call of this macro increases the retry count by one and checks if the
  * retry count has reached maximum allowed retry limit. For CPU based timers,
  * a call of this macro checks whether the required duration has elapsed.
  * Refer to the documentation of the function #nvgpu_timeout_expired_msg_impl
  * for underlying implementation.
+ *
+ * @param __timeout [in]	Timeout object to handle.
  */
 #define nvgpu_timeout_expired(__timeout)				\
 	nvgpu_timeout_expired_msg_impl(__timeout, NVGPU_GET_IP, "")
@@ -167,13 +167,13 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
 /**
  * @brief Checks the timeout expiry and uses the input params for debug message.
  *
- * @param __timeout [in]	Timeout object to handle.
- * @param fmt [in]		Format of the variable arguments.
- * @param args... [in]		Variable arguments.
- *
  * Along with handling the timeout, this macro also takes in a variable list
  * of arguments which is used in constructing the debug message for a timeout.
  * Refer to #nvgpu_timeout_expired for further details.
+ *
+ * @param __timeout [in]	Timeout object to handle.
+ * @param fmt [in]		Format of the variable arguments.
+ * @param args... [in]		Variable arguments.
  */
 #define nvgpu_timeout_expired_msg(__timeout, fmt, args...)		\
 	nvgpu_timeout_expired_msg_impl(__timeout, NVGPU_GET_IP,	fmt, ##args)
@@ -185,34 +185,34 @@ bool nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout);
 /**
  * @brief Sleep for millisecond intervals.
  *
- * @param msecs [in]	Milliseconds to sleep.
- *
  * Function sleeps for requested millisecond duration.
+ *
+ * @param msecs [in]	Milliseconds to sleep.
  */
 void nvgpu_msleep(unsigned int msecs);
 
 /**
  * @brief Sleep for a duration in the range of input parameters.
  *
- * @param min_us [in]	Minimum duration to sleep in microseconds.
- * @param max_us [in]	Maximum duration to sleep in microseconds.
- *
  * Sleeps for a value in the range between min_us and max_us. The underlying
  * implementation is OS dependent. In nvgpu posix implementation, the sleep is
  * always for min_us duration and the function sleeps only if the input min_us
  * value is greater than or equal to 1000 microseconds, else the function just
  * delays execution for requested duration of time without sleeping.
+ *
+ * @param min_us [in]	Minimum duration to sleep in microseconds.
+ * @param max_us [in]	Maximum duration to sleep in microseconds.
  */
 void nvgpu_usleep_range(unsigned int min_us, unsigned int max_us);
 
 /**
  * @brief Delay execution.
  *
- * @param usecs [in]	Delay duration in microseconds.
- *
  * Delays the execution for requested duration of time in microseconds. In
  * posix implementation, if the requested duration is greater than or equal to
  * 1000 microseconds, the function sleeps.
+ *
+ * @param usecs [in]	Delay duration in microseconds.
  */
 void nvgpu_udelay(unsigned int usecs);
 
@@ -271,11 +271,11 @@ u64 nvgpu_hr_timestamp(void);
 /**
  * @brief OS specific implementation to provide precise microsecond delay
  *
+ * Wait using nanospin_ns until usecs expires. Log error if API returns non
+ * zero value once wait time expires.
+ *
  * @param usecs [in]		Delay in microseconds.
  *				Range: 0 - 500ms.
- *
- * - Wait using nanospin_ns until usecs expires. Log error if API returns non
- *   zero value once wait time expires.
  *
  * @return None.
  */

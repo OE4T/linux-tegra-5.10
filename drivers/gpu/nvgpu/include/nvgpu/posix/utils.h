@@ -360,9 +360,9 @@
 /**
  * @brief Endian conversion.
  *
- * @param x [in] Value to be converted.
- *
  * Converts the input value x in big endian to CPU byte order.
+ *
+ * @param x [in] Value to be converted.
  *
  * @return Endianness converted value of \a x.
  */
@@ -382,9 +382,9 @@ static inline u32 be32_to_cpu(u32 x)
 /**
  * @brief Hamming weight of 8 bit input value.
  *
- * @param x [in]	Input to find the hamming weight of.
- *
  * Returns the hamming weight(number of non zero bits) of the input param \a x.
+ *
+ * @param x [in]	Input to find the hamming weight of.
  *
  * @return Hamming weight of \a x.
  */
@@ -412,9 +412,9 @@ static inline unsigned int nvgpu_posix_hweight8(uint8_t x)
 /**
  * @brief Hamming weight of 16 bit input value.
  *
- * @param x [in]	Input to find the hamming weight of.
- *
  * Returns the hamming weight(number of non zero bits) of the input param \a x.
+ *
+ * @param x [in]	Input to find the hamming weight of.
  *
  * @return Hamming weight of \a x.
  */
@@ -433,9 +433,9 @@ static inline unsigned int nvgpu_posix_hweight16(uint16_t x)
 /**
  * @brief Hamming weight of 32 bit input value.
  *
- * @param x [in]	Input to find the hamming weight of.
- *
  * Returns the hamming weight(number of non zero bits) of the input param \a x.
+ *
+ * @param x [in]	Input to find the hamming weight of.
  *
  * @return Hamming weight of \a x.
  */
@@ -454,9 +454,9 @@ static inline unsigned int nvgpu_posix_hweight32(uint32_t x)
 /**
  * @brief Hamming weight of 64 bit input value.
  *
- * @param x [in]	Input to find the hamming weight of.
- *
  * Returns the hamming weight(number of non zero bits) of the input param \a x.
+ *
+ * @param x [in]	Input to find the hamming weight of.
  *
  * @return Hamming weight of \a x.
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,12 +28,12 @@
 /**
  * @brief Return count in buffer.
  *
+ * Calculates the number of elements present in the circular buffer and
+ * returns the value. The circular buffer should have a power of 2 size.
+ *
  * @param head [in]        Head of the buffer.
  * @param tail [in]        Tail of the buffer.
  * @param size [in]        Max number of elements in buffer.
- *
- * Calculates the number of elements present in the circular buffer and
- * returns the value.
  *
  * @return Count of elements in the buffer.
  */
@@ -42,11 +42,12 @@
 /**
  * @brief Return space in buffer.
  *
+ * Calculates the space available in the circular buffer and returns the value.
+ * The circular buffer should have a power of 2 size.
+ *
  * @param head [in]        Head of the buffer.
  * @param tail [in]        Tail of the buffer.
  * @param size [in]        Max number of elements in buffer.
- *
- * Calculates the space available in the circular buffer and returns the value.
  *
  * @return The space available in the buffer.
  */

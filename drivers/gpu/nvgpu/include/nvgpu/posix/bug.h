@@ -59,22 +59,25 @@ void dump_stack(void);
 /**
  * @brief Bug.
  *
+ * Function to be invoked upon identifying a bug in the code. This function
+ * checks for any callbacks registered by other units, and invoke them for a
+ * bug condition. If the callback list is empty, a SIGSEGV is raised to
+ * terminate the process.
+ *
  * @param msg [in]	Message to be printed in log.
  * @param line_no [in]	Line number.
- *
- * Function to be invoked upon identifying bug in the code.
  */
 void nvgpu_posix_bug(const char *msg, int line_no) __attribute__ ((noreturn));
 
 /**
  * @brief Issues Warning.
  *
+ * Used to report significant issues that needs prompt attention.
+ * Warning print is invoked if the condition is met.
+ *
  * @param cond [in]	Condition to check to issue warning.
  * @param fmt [in]	Format of variable argument list.
  * @param ... [in]	Variable length arguments.
- *
- * Used to report significant issues that needs prompt attention.
- * Warning is issued if the condition is met.
  *
  * @return Value of \a cond is returned.
  */
@@ -131,36 +134,35 @@ struct nvgpu_bug_cb;
 /**
  * @brief Exit current process
  *
- * @param status [in]	Status to return
- *
  * This function is used during BUG() handling to exit
  * current process.
+ *
+ * @param status [in]	Status to return
  */
 void nvgpu_bug_exit(int status);
 
 /**
  * @brief Register callback to be invoked on BUG()
  *
- * @param cb [in]	Pointer to callback structure
- *
  * Register a callback to be invoked on BUG().
  * The nvgpu_bug_cb structure contains a function pointer
  * and an argument to be passed to this function.
  * This mechanism can be used to perform some emergency
  * operations on a GPU before exiting the process.
- *
  * Note: callback is automatically unregistered before
  * being invoked.
+ *
+ * @param cb [in]	Pointer to callback structure
  */
 void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb);
 
 /**
  * @brief Unregister a callback for BUG()
  *
- * @param cb [in]	Pointer to callback structure
- *
  * Remove a callback from the list of callbacks to be
  * invoked on BUG().
+ *
+ * @param cb [in]	Pointer to callback structure
  */
 void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb);
 
