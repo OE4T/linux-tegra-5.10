@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,25 +34,25 @@ struct gk20a;
 /**
  * @brief Copy memory buffer
  *
+ * Copy memory from source buffer to destination buffer.
+ *
  * @param destb [out]	Buffer into which data is to be copied.
  * @param srcb [in]	Buffer from which data is to be copied.
  * @param n [in]	Number of bytes to copy from src buffer to dest buffer.
- *
- * Copy memory from source buffer to destination buffer.
  */
 void nvgpu_memcpy(u8 *destb, const u8 *srcb, size_t n);
 
 /**
  * @brief Compare memory buffers
  *
- * @param b1 [in]	First buffer to use in memory comparison.
- * @param b2 [in]	Second buffer to use in memory comparison.
- * @param n [in]	Number of bytes to compare between two buffers.
- *
  * Compare the first \a n bytes of two memory buffers.  If the contents of the
  * two buffers match then zero is returned.  If the contents of b1 are less
  * than b2 then a value less than zero is returned.  If the contents of b1
  * are greater than b2 then a value greater than zero is returned.
+ *
+ * @param b1 [in]	First buffer to use in memory comparison.
+ * @param b2 [in]	Second buffer to use in memory comparison.
+ * @param n [in]	Number of bytes to compare between two buffers.
  *
  * @return 0 if the comparison matches else a non-zero value is returned.
  *
@@ -67,12 +67,12 @@ int nvgpu_memcmp(const u8 *b1, const u8 *b2, size_t n);
 /**
  * @brief Formats u32 into null-terminated string
  *
+ * Formats the integer variable \a value into a null terminated string.
+ *
  * @param dst [in,out]	Buffer to copy the value into.
  * @param value [in]	Value to be added with the string.
  * @param size [in]	Size available in the destination buffer.
  * @param radix	[in]	Radix value to be used.
- *
- * Formats the integer variable \a value into a null terminated string.
  *
  * @return Returns number of digits added to string (not including '\0') if
  * successful, else 0.
@@ -84,10 +84,10 @@ int nvgpu_strnadd_u32(char *dst, const u32 value, size_t size, u32 radix);
 /**
  * @brief Check that memory address is word (4-byte) aligned.
  *
+ * Checks if the provided address is word aligned or not.
+ *
  * @param g [in]	struct gk20a.
  * @param addr [in]	Memory address.
- *
- * Checks if the provided address is word aligned or not.
  *
  * @return Boolean value to indicate the alignment status of the address.
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,9 +98,9 @@ void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
  * @param node [out]		Node pointer to be returned
  * @param root [in]		Pointer to root of tree
  *
- * This API will match given key against key_start of each node
- * In case of a hit, node points to a node with given key
- * In case of a miss, node is NULL
+ * This API will match given key against key_start of each node.
+ * In case of a hit, node points to a node with given key.
+ * In case of a miss, node is NULL.
  */
 void nvgpu_rbtree_search(u64 key_start, struct nvgpu_rbtree_node **node,
 			     struct nvgpu_rbtree_node *root);
@@ -113,9 +113,9 @@ void nvgpu_rbtree_search(u64 key_start, struct nvgpu_rbtree_node **node,
  * @param root [in]	Pointer to root of tree
  *
  * This API will match given key and find a node where key value
- * falls within range of {start, end} keys
- * In case of a hit, node points to a node with given key
- * In case of a miss, node is NULL
+ * falls within range of {start, end} keys.
+ * In case of a hit, node points to a node with given key.
+ * In case of a miss, node is NULL.
  */
 void nvgpu_rbtree_range_search(u64 key,
 			       struct nvgpu_rbtree_node **node,
@@ -129,9 +129,9 @@ void nvgpu_rbtree_range_search(u64 key,
  * @param root [in]		Pointer to root of tree
  *
  * This API will match given key and find a node with highest
- * key value lesser than given key
- * In case of a hit, node points to a node with given key
- * In case of a miss, node is NULL
+ * key value lesser than given key.
+ * In case of a hit, node points to a node with given key.
+ * In case of a miss, node is NULL.
  */
 void nvgpu_rbtree_less_than_search(u64 key_start,
 			       struct nvgpu_rbtree_node **node,
@@ -155,13 +155,13 @@ void nvgpu_rbtree_enum_start(u64 key_start,
 /**
  * @brief Find next node in enumeration in order by key value.
  *
- * @param node [in,out]	Pointer to current node is passed in.
- *			Poiner to next node in the tree is passed out.
- * @param root [in]	Pointer to root of tree
- *
  * To get the next node in the tree, pass in the current \a node. This API
  * returns \a node pointer pointing to next node in the rbtree in order by key
  * value.
+ *
+ * @param node [in,out]	Pointer to current node is passed in.
+ *			Pointer to next node in the tree is passed back.
+ * @param root [in]	Pointer to root of tree
  */
 void nvgpu_rbtree_enum_next(struct nvgpu_rbtree_node **node,
 		       struct nvgpu_rbtree_node *root);

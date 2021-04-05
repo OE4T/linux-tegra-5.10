@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -111,7 +111,7 @@ struct nvgpu_worker_ops {
 	/**
 	 * @brief This interface is used to pass any post processing callback
 	 * for the worker thread after wakeup. The worker thread executes this
-	 * callback everytime before sleeping again.
+	 * callback every time before sleeping again.
 	 *
 	 * Can be set to NULL if not applicable for this worker.
 	 *
@@ -141,7 +141,7 @@ struct nvgpu_worker_ops {
 	bool (*wakeup_condition)(struct nvgpu_worker *worker);
 
 	/**
-	 * @brief Used to pass any timeout condition for wakeup.
+	 * @brief Used to pass any timeout value for wakeup.
 	 *
 	 * Can be set to NULL if not applicable for this worker.
 	 *
@@ -198,11 +198,11 @@ struct nvgpu_worker {
  * @brief Generic check if the worker should stop because the thread stopped
  * running.
  *
- * @param worker [in]	The worker
+ * This function returns true if the running status of the underlying worker
+ * thread is set to zero. This indicates that the worker thread is no longer
+ * running.
  *
- * Generic function to be used for #nvgpu_worker_ops.wakeup_early_exit if there
- * are no special conditions required for the worker. This function returns
- * true if the thread should stop because it is no longer running.
+ * @param worker [in]	The worker
  *
  * @return Boolean value indicating if the thread should stop or not.
  *
@@ -214,13 +214,13 @@ bool nvgpu_worker_should_stop(struct nvgpu_worker *worker);
 /**
  * @brief Append a work item to the worker's list.
  *
- * @param worker [in]	The worker.
- * @param worker [in]	The work item for the worker to work on.
- *
  * This adds work item to the end of the list and wakes the worker
  * up immediately. If the work item already existed in the list, it's not added,
  * because in that case it has been scheduled already but has not yet been
  * processed.
+ *
+ * @param worker [in]	The worker.
+ * @param worker [in]	The work item for the worker to work on.
  *
  * @return Integer value indicating the status of enqueue operation.
  *

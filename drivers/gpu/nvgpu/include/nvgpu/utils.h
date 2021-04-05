@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -58,9 +58,9 @@
 /**
  * @brief Higher 32 bits from 64 bit.
  *
- * @param n [in]	Input value.
- *
  * Returns the most significant 32 bits of the 64 bit input value.
+ *
+ * @param n [in]	Input value.
  *
  * @return Most significant 32 bits of \a n.
  */
@@ -72,9 +72,9 @@ static inline u32 u64_hi32(u64 n)
 /**
  * @brief Lower 32 bits from 64 bit.
  *
- * @param n [in]	Input value.
- *
  * Returns the least significant 32 bits of the 64 bit input value.
+ *
+ * @param n [in]	Input value.
  *
  * @return Least significant 32 bits of \a n.
  */
@@ -86,10 +86,10 @@ static inline u32 u64_lo32(u64 n)
 /**
  * @brief 64 bit from two 32 bit values.
  *
+ * Returns a 64 bit value by combining the two 32 bit input values.
+ *
  * @param hi [in]	Higher 32 bits.
  * @param lo [in]	Lower 32 bits.
- *
- * Returns a 64 bit value by combining the two 32 bit input values.
  *
  * @return 64 bit value of which the least significant 32 bits are \a lo and
  * most significant 32 bits are \a hi.
@@ -102,12 +102,12 @@ static inline u64 hi32_lo32_to_u64(u32 hi, u32 lo)
 /**
  * @brief Sets a particular field value in input data.
  *
+ * Uses the \a mask value to clear the bits that are part of the field and
+ * sets the value mentioned in \a field in those bit positions.
+ *
  * @param val [in]	Value to set the field in.
  * @param mask [in]	Mask for the field.
  * @param field [in]	Field value.
- *
- * Uses the \a mask value to clear the bits that are part of the field and
- * sets the value mentioned in \a field in those bit positions.
  *
  * @return Returns \a val with updated field.
  */
@@ -119,10 +119,10 @@ static inline u32 set_field(u32 val, u32 mask, u32 field)
 /**
  * @brief Gets a particular field value from input data.
  *
+ * Returns the field value at mask position in reg.
+ *
  * @param reg [in]	Value to get the field from.
  * @param mask [in]	Mask for the field.
- *
- * Returns the field value at mask position in reg.
  *
  * @return Field value from \a reg according to the \a mask.
  */

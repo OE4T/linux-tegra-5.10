@@ -236,17 +236,16 @@ bool nvgpu_is_enabled(struct gk20a *g, u32 flag);
 /**
  * @brief Set the state of a flag.
  *
- * @param g [in]	The GPU.
- * @param flag [in]	Which flag to modify.
- * @param state [in]	The state to set the \a flag to.
- *
  * Set the state of the passed \a flag to \a state.
- *
  * This is generally a somewhat low level operation with lots of potential
  * side effects. Be weary about where and when you use this. Typically a bunch
  * of calls to this early in the driver boot sequence makes sense (as
  * information is determined about the GPU at run time). Calling this in steady
  * state operation is probably an incorrect thing to do.
+ *
+ * @param g [in]	The GPU.
+ * @param flag [in]	Which flag to modify.
+ * @param state [in]	The state to set the \a flag to.
  */
 void nvgpu_set_enabled(struct gk20a *g, u32 flag, bool state);
 
