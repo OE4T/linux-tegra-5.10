@@ -374,7 +374,7 @@
 
 		num-lanes = <8>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_C5_CORE>;
 		clock-names = "core";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_5_APB>,
@@ -448,7 +448,7 @@
 
 		num-lanes = <4>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_C6_CORE>;
 		clock-names = "core";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_6_APB>,
@@ -521,7 +521,7 @@
 
 		num-lanes = <8>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C7_CORE>;
 		clock-names = "core";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_7_APB>,
@@ -581,7 +581,7 @@
 	/* C10 X4 */
 	pcie_ep@140e0000 {
 		compatible = "nvidia,tegra234-pcie-ep", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4F>;
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4CC>;
 		reg = <0x00 0x140e0000 0x0 0x00020000     /* appl registers (128K)      */
 			0x00 0x2e040000 0x0 0x00040000    /* iATU_DMA reg space (256K)  */
 			0x00 0x2e000000 0x0 0x00040000    /* configuration space (256K) */
@@ -595,7 +595,7 @@
 
 		num-lanes = <4>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C10_CORE>;
 		clock-names = "core";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX2_CORE_10_APB>,
@@ -655,7 +655,7 @@
 	/* C0 X4 */
 	pcie@14180000 {
 		compatible = "nvidia,tegra234-pcie", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4B0>;
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4BA>;
 		reg = <0x00 0x14180000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x38000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x38040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
@@ -671,8 +671,8 @@
 		num-viewport = <8>;
 		linux,pci-domain = <0>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0>,
-			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_C0_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_C0_CORE_M>;
 		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_0_APB>,
@@ -759,8 +759,8 @@
 		num-viewport = <8>;
 		linux,pci-domain = <1>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>,
-			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_C1_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_C1_CORE_M>;
 		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1_APB>,
@@ -847,8 +847,8 @@
 		num-viewport = <8>;
 		linux,pci-domain = <2>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_2>,
-			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_2M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_C2_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_C2_CORE_M>;
 		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_2_APB>,
@@ -934,8 +934,8 @@
 		num-viewport = <8>;
 		linux,pci-domain = <3>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_3>,
-			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_3M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_C3_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_C3_CORE_M>;
 		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_3_APB>,
@@ -1005,7 +1005,7 @@
 	/* C4 X4 */
 	pcie@14160000 {
 		compatible = "nvidia,tegra234-pcie", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4B1>;
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4BB>;
 		reg = <0x00 0x14160000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x36000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x36040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
@@ -1021,8 +1021,8 @@
 		num-viewport = <8>;
 		linux,pci-domain = <4>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4>,
-			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_C4_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_C4_CORE_M>;
 		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_4_APB>,
@@ -1108,8 +1108,8 @@
 		num-viewport = <8>;
 		linux,pci-domain = <5>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>,
-			 <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_C5_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX1_C5_CORE_M>;
 		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX1_CORE_5_APB>,
@@ -1196,7 +1196,7 @@
 		num-viewport = <8>;
 		linux,pci-domain = <6>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_6>,
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_C6_CORE>,
 			 <&bpmp_clks TEGRA234_CLK_PEX1_C6_CORE_M>;
 		clock-names = "core", "core_m";
 
@@ -1284,7 +1284,7 @@
 		num-viewport = <8>;
 		linux,pci-domain = <7>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_7>,
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C7_CORE>,
 			 <&bpmp_clks TEGRA234_CLK_PEX2_C7_CORE_M>;
 		clock-names = "core", "core_m";
 
@@ -1356,7 +1356,7 @@
 	/* C8 X4 */
 	pcie@140a0000 {
 		compatible = "nvidia,tegra234-pcie", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4D>;
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4CA>;
 		reg = <0x00 0x140a0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x2a000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x2a040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
@@ -1372,7 +1372,7 @@
 		num-viewport = <8>;
 		linux,pci-domain = <8>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_8>,
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C8_CORE>,
 			 <&bpmp_clks TEGRA234_CLK_PEX2_C8_CORE_M>;
 		clock-names = "core", "core_m";
 
@@ -1444,7 +1444,7 @@
 	/* C9 X4 */
 	pcie@140c0000 {
 		compatible = "nvidia,tegra234-pcie", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4E>;
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4CB>;
 		reg = <0x00 0x140c0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x2c000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x2c040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
@@ -1460,7 +1460,7 @@
 		num-viewport = <8>;
 		linux,pci-domain = <9>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_9>,
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C9_CORE>,
 			 <&bpmp_clks TEGRA234_CLK_PEX2_C9_CORE_M>;
 		clock-names = "core", "core_m";
 
@@ -1532,7 +1532,7 @@
 	/* C10 X4 */
 	pcie@140e0000 {
 		compatible = "nvidia,tegra234-pcie", "snps,dw-pcie";
-		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4F>;
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX4CC>;
 		reg = <0x00 0x140e0000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x2e000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x00 0x2e040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
@@ -1548,7 +1548,7 @@
 		num-viewport = <8>;
 		linux,pci-domain = <10>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_CORE_10>,
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX2_C10_CORE>,
 			 <&bpmp_clks TEGRA234_CLK_PEX2_C10_CORE_M>;
 		clock-names = "core", "core_m";
 

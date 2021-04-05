@@ -35,7 +35,7 @@
 
 		status = "disabled";
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_C1_CORE>;
 		clock-names = "core";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1_APB>,
@@ -108,8 +108,8 @@
 		num-lanes = <1>;
 		num-viewport = <8>;
 
-		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>,
-			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_C1_CORE>,
+			 <&bpmp_clks TEGRA234_CLK_PEX0_C1_CORE_M>;
 		clock-names = "core", "core_m";
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1_APB>,
