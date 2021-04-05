@@ -24,21 +24,11 @@
 	pcie_ep@14100000 {
 		compatible = "nvidia,tegra234-pcie-ep";
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PCIEX1A>;
-#if LINUX_VERSION >= 500
 		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
 		       0x00 0x30040000 0x0 0x00040000   /* iATU_DMA reg space (256K)  */
 		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
 		       0x20 0x80000000 0x0 0x40000000>; /* Address Space (1G)         */
 		reg-names = "appl", "atu_dma", "dbi", "addr_space";
-#else
-		reg = <0x00 0x14100000 0x0 0x00020000   /* appl registers (128K)      */
-		       0x00 0x30000000 0x0 0x02000000   /* window1 (32M)              */
-		       0x00 0x30000000 0x0 0x00040000   /* configuration space (256K) */
-		       0x00 0x30040000 0x0 0x00040000 /* iATU_DMA reg space (256K)  */
-		       0x20 0x80000000 0x0 0x40000000>; /* window2 (1G)              */
-		reg-names = "appl", "window1", "config", "atu_dma", "window2";
-#endif
-
 
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -46,19 +36,11 @@
 		status = "disabled";
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>;
-#if LINUX_VERSION >= 500
 		clock-names = "core";
-#else
-		clock-names = "core_clk";
-#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1>;
-#if LINUX_VERSION >= 500
 		reset-names = "apb", "core";
-#else
-		reset-names = "core_apb_rst", "core_rst";
-#endif
 
 		interrupts = <0 45 0x04>;	/* controller interrupt */
 		interrupt-names = "intr";
@@ -103,12 +85,10 @@
 		interconnects = <&tegra_icc TEGRA_ICC_PCIE_1 &tegra_icc TEGRA_ICC_PRIMARY>;
 		interconnect-names = "icc_bwmgr";
 
-#if LINUX_VERSION >= 500
 		nvidia,bpmp = <&bpmp 0x1>;
 		nvidia,aspm-cmrt-us = <60>;
 		nvidia,aspm-pwr-on-t-us = <20>;
 		nvidia,aspm-l0s-entrance-latency-us = <3>;
-#endif
 	};
 
 	pcie@14100000 {
@@ -130,19 +110,11 @@
 
 		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>,
 			 <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1M>;
-#if LINUX_VERSION >= 500
 		clock-names = "core", "core_m";
-#else
-		clock-names = "core_clk", "core_clk_m";
-#endif
 
 		resets = <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1_APB>,
 			 <&bpmp_resets TEGRA234_RESET_PEX0_CORE_1>;
-#if LINUX_VERSION >= 500
 		reset-names = "apb", "core";
-#else
-		reset-names = "core_apb_rst", "core_rst";
-#endif
 
 		interrupts = <0 45 0x04>,	/* controller interrupt */
 			     <0 46 0x04>;	/* MSI interrupt */
