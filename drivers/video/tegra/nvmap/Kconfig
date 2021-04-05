@@ -37,6 +37,7 @@ config NVMAP_PAGE_POOL_SIZE
 
 config NVMAP_COLOR_PAGES
 	bool "Color pages allocated"
+	depends on ARM64_4K_PAGES
 	default y
 	help
 	  Say Y here to enable page coloring.
