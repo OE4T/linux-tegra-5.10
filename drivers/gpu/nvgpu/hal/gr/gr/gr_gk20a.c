@@ -1235,14 +1235,20 @@ int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 		}
 		gpc_priv_offset = g->ops.gr.ctxsw_prog.get_local_priv_register_ctl_offset(context);
 
-		err = gr_gk20a_determine_ppc_configuration(g, context,
-							   &num_ppcs, &ppc_mask,
-							   &reg_list_ppc_count);
-		if (err != 0) {
-			nvgpu_err(g, "determine ppc configuration failed");
-			return err;
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+			err = gr_gk20a_determine_ppc_configuration(g, context,
+							&num_ppcs, &ppc_mask,
+							&reg_list_ppc_count);
+			if (err != 0) {
+				nvgpu_err(g,
+					"determine ppc configuration failed");
+				return err;
+			}
+		} else {
+			num_ppcs = 0U;
+			ppc_mask = 0x0U;
+			reg_list_ppc_count = 0U;
 		}
-
 
 		num_tpcs = g->ops.gr.ctxsw_prog.get_num_tpcs(context);
 
