@@ -299,7 +299,8 @@ static int gr_config_init_mig_gpcs(struct nvgpu_gr_config *config)
 		return -EINVAL;
 	}
 
-	config->gpc_mask = nvgpu_safe_sub_u32(BIT32(config->gpc_count), 1U);
+	config->gpc_mask = nvgpu_grmgr_get_gr_physical_gpc_mask(
+		g, cur_gr_instance);
 
 	return 0;
 }
