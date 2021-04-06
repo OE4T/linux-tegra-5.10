@@ -126,6 +126,18 @@ enum nv_macsec_nl_commands {
 };
 
 /**
+ * @brief MACsec supplicant data structure
+ */
+struct macsec_supplicant_data {
+	unsigned int snd_portid;
+	unsigned short in_use;
+	/** MACsec protect frames variable */
+	unsigned int protect_frames;
+	/** MACsec enabled flags for Tx/Rx controller status */
+	unsigned int enabled;
+};
+
+/**
  * @brief MACsec private data structure
  */
 struct macsec_priv_data {
@@ -153,8 +165,14 @@ struct macsec_priv_data {
 	unsigned int protect_frames;
 	/** MACsec enabled flags for Tx/Rx controller status */
 	unsigned int enabled;
-	/** MACsec controller initialized flag */
-	unsigned int init_done;
+	/** MACsec controller init reference count */
+	atomic_t ref_count;
+	/** supplicant instance specific data */
+	struct macsec_supplicant_data supplicant[MAX_NUM_SC];
+	/** next supplicant instance index */
+	unsigned short next_supp_idx;
+	/** macsec mutex lock */
+	struct mutex lock;
 };
 
 int macsec_probe(struct ether_priv_data *pdata);
