@@ -414,10 +414,61 @@ exit:
 	return macsec_pdata;
 }
 
+static struct macsec_supplicant_data *macsec_get_supplicant(
+		struct macsec_priv_data *macsec_pdata,
+		unsigned int portid)
+{
+	struct macsec_supplicant_data *supplicant = macsec_pdata->supplicant;
+	int i;
+
+	/* check for already exist instance */
+	for (i = 0; i < MAX_NUM_SC; i++) {
+		if (supplicant[i].snd_portid == portid &&
+		    supplicant[i].in_use == OSI_ENABLE) {
+			return &supplicant[i];
+		}
+	}
+	return NULL;
+}
+
+static int update_prot_frame(
+			struct macsec_priv_data *macsec_pdata) {
+	struct macsec_supplicant_data *supplicant = macsec_pdata->supplicant;
+	int i;
+	int enable = OSI_NONE;
+
+	/* check any supplicant instance set */
+	for (i = 0; i < MAX_NUM_SC; i++) {
+		if (supplicant[i].protect_frames == OSI_ENABLE) {
+			enable = OSI_ENABLE;
+			break;
+		}
+	}
+	return enable;
+}
+
+static int update_set_controlled_port(
+			struct macsec_priv_data *macsec_pdata) {
+	struct macsec_supplicant_data *supplicant = macsec_pdata->supplicant;
+	int i;
+	int enable = OSI_NONE;
+
+	/* check any supplicant instance set */
+	for (i = 0; i < MAX_NUM_SC; i++) {
+		if (supplicant[i].enabled == OSI_ENABLE) {
+			enable = OSI_ENABLE;
+			break;
+		}
+	}
+	return enable;
+}
+
 static int macsec_set_prot_frames(struct sk_buff *skb, struct genl_info *info)
 {
 	struct nlattr **attrs = info->attrs;
+	unsigned int enable;
 	struct macsec_priv_data *macsec_pdata;
+	struct macsec_supplicant_data *supplicant;
 	int ret = 0;
 
 	PRINT_ENTRY();
@@ -433,9 +484,20 @@ static int macsec_set_prot_frames(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 
-	macsec_pdata->protect_frames =
+	mutex_lock(&macsec_pdata->lock);
+	supplicant = macsec_get_supplicant(macsec_pdata, info->snd_portid);
+	if (!supplicant) {
+		ret = -EOPNOTSUPP;
+		pr_err("%s: failed to get supplicant data", __func__);
+		goto err_unlock;
+	}
+	supplicant->protect_frames =
 		nla_get_u32(attrs[NV_MACSEC_ATTR_PROT_FRAMES_EN]);
+	enable = update_prot_frame(macsec_pdata);
+	macsec_pdata->protect_frames = enable;
 
+err_unlock:
+	mutex_unlock(&macsec_pdata->lock);
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -453,6 +515,7 @@ static int macsec_set_controlled_port(struct sk_buff *skb,
 	struct macsec_priv_data *macsec_pdata;
 	unsigned int enable = 0;
 	unsigned int macsec_en = 0;
+	struct macsec_supplicant_data *supplicant;
 	int ret = 0;
 
 	PRINT_ENTRY();
@@ -468,20 +531,34 @@ static int macsec_set_controlled_port(struct sk_buff *skb,
 		goto exit;
 	}
 
-	enable = nla_get_u32(attrs[NV_MACSEC_ATTR_CTRL_PORT_EN]);
+	mutex_lock(&macsec_pdata->lock);
+	supplicant = macsec_get_supplicant(macsec_pdata, info->snd_portid);
+	if (!supplicant) {
+		ret = -EOPNOTSUPP;
+		pr_err("%s: failed to get supplicant data", __func__);
+		goto err_unlock;
+	}
+
+	supplicant->enabled = nla_get_u32(attrs[NV_MACSEC_ATTR_CTRL_PORT_EN]);
+	enable = update_set_controlled_port(macsec_pdata);
 	if (enable) {
 		macsec_en |= OSI_MACSEC_RX_EN;
 		if (macsec_pdata->protect_frames)
 			macsec_en |= OSI_MACSEC_TX_EN;
 	}
 
-	ret = osi_macsec_en(macsec_pdata->ether_pdata->osi_core, macsec_en);
-	if (ret < 0) {
-		ret = -EOPNOTSUPP;
-		goto exit;
+	if (macsec_pdata->enabled != macsec_en) {
+		ret = osi_macsec_en(macsec_pdata->ether_pdata->osi_core,
+				    macsec_en);
+		if (ret < 0) {
+			ret = -EOPNOTSUPP;
+			goto err_unlock;
+		}
+		macsec_pdata->enabled = macsec_en;
 	}
-	macsec_pdata->enabled = macsec_en;
 
+err_unlock:
+	mutex_unlock(&macsec_pdata->lock);
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -566,13 +643,15 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	pr_err("");
 
 #ifndef TEST
+	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_DISABLE,
 				CTLR_SEL_RX, &kt_idx);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to disable Rx SA", __func__);
+		mutex_unlock(&macsec_pdata->lock);
 			goto exit;
 	}
-
+	mutex_unlock(&macsec_pdata->lock);
 #ifndef MACSEC_KEY_PROGRAM
 	table_config = &kt_config.table_config;
 	table_config->ctlr_sel = CTLR_SEL_RX;
@@ -587,7 +666,6 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		goto exit;
 	}
 #endif /* !MACSEC_KEY_PROGRAM */
-
 #endif
 exit:
 	PRINT_EXIT();
@@ -643,12 +721,15 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	pr_err("");
 
 #ifndef TEST
+	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_ENABLE,
 				CTLR_SEL_RX, &kt_idx);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to enable Rx SA", __func__);
+		mutex_unlock(&macsec_pdata->lock);
 		goto exit;
 	}
+	mutex_unlock(&macsec_pdata->lock);
 
 #ifndef MACSEC_KEY_PROGRAM
 	table_config = &kt_config.table_config;
@@ -725,12 +806,15 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	pr_err("");
 
 #ifndef TEST
+	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_DISABLE,
 				CTLR_SEL_TX, &kt_idx);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to disable Tx SA", __func__);
+		mutex_unlock(&macsec_pdata->lock);
 		goto exit;
 	}
+	mutex_unlock(&macsec_pdata->lock);
 
 #ifndef MACSEC_KEY_PROGRAM
 	table_config = &kt_config.table_config;
@@ -802,12 +886,15 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	pr_err("");
 
 #ifndef TEST
+	mutex_lock(&macsec_pdata->lock);
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_ENABLE,
 				CTLR_SEL_TX, &kt_idx);
 	if (ret < 0) {
 		dev_err(dev, "%s: failed to enable Tx SA", __func__);
+		mutex_unlock(&macsec_pdata->lock);
 		goto exit;
 	}
+	mutex_unlock(&macsec_pdata->lock);
 
 #ifndef MACSEC_KEY_PROGRAM
 	table_config = &kt_config.table_config;
@@ -838,10 +925,12 @@ exit:
 static int macsec_deinit(struct sk_buff *skb, struct genl_info *info)
 {
 	struct nlattr **attrs = info->attrs;
-	struct macsec_priv_data *macsec_pdata;
+	struct macsec_priv_data *macsec_pdata = NULL;
+	struct macsec_supplicant_data *supplicant;
 	int ret = 0;
 
 	PRINT_ENTRY();
+
 	if (!attrs[NV_MACSEC_ATTR_IFNAME]) {
 		ret = -EINVAL;
 		goto exit;
@@ -849,16 +938,41 @@ static int macsec_deinit(struct sk_buff *skb, struct genl_info *info)
 
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (!macsec_pdata) {
+		pr_err("%s: failed to get macsec_pdata", __func__);
 		ret = -EOPNOTSUPP;
 		goto exit;
+	}
+
+	mutex_lock(&macsec_pdata->lock);
+	supplicant = macsec_get_supplicant(macsec_pdata, info->snd_portid);
+	if (!supplicant) {
+		ret = -EOPNOTSUPP;
+		mutex_unlock(&macsec_pdata->lock);
+		pr_err("%s: failed to get supplicant data", __func__);
+		goto exit;
+	}
+
+	supplicant->snd_portid = OSI_NONE;
+	supplicant->in_use = OSI_NONE;
+	macsec_pdata->next_supp_idx--;
+	mutex_unlock(&macsec_pdata->lock);
+
+	/* check for reference count to zero before deinit macsec */
+	if ((atomic_read(&macsec_pdata->ref_count) - 1) > 0) {
+		ret = 0;
+		goto done;
 	}
 
 	ret = macsec_close(macsec_pdata);
 	//TODO - check why needs -EOPNOTSUPP, why not pass ret val
 	if (ret < 0) {
 		ret = -EOPNOTSUPP;
+		goto exit;
 	}
-
+done:
+	atomic_dec(&macsec_pdata->ref_count);
+	pr_err("%s: ref_count %d", __func__,
+	       atomic_read(&macsec_pdata->ref_count));
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -867,10 +981,12 @@ exit:
 static int macsec_init(struct sk_buff *skb, struct genl_info *info)
 {
 	struct nlattr **attrs = info->attrs;
-	struct macsec_priv_data *macsec_pdata;
+	struct macsec_priv_data *macsec_pdata = NULL;
+	struct macsec_supplicant_data *supplicant;
 	int ret = 0;
 
 	PRINT_ENTRY();
+
 	if (!attrs[NV_MACSEC_ATTR_IFNAME]) {
 		ret = -EINVAL;
 		goto exit;
@@ -879,15 +995,43 @@ static int macsec_init(struct sk_buff *skb, struct genl_info *info)
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (!macsec_pdata) {
 		ret = -EOPNOTSUPP;
+		pr_err("%s: failed to get macsec_pdata", __func__);
 		goto exit;
+	}
+
+	mutex_lock(&macsec_pdata->lock);
+	if (macsec_pdata->next_supp_idx >= MAX_NUM_SC) {
+		ret = -EOPNOTSUPP;
+		pr_err("%s: Reached max supported supplicants", __func__);
+		mutex_unlock(&macsec_pdata->lock);
+		goto exit;
+	}
+
+	supplicant = macsec_get_supplicant(macsec_pdata, info->snd_portid);
+	if (!supplicant) {
+		supplicant = &macsec_pdata->supplicant[macsec_pdata->next_supp_idx];
+		macsec_pdata->next_supp_idx++;
+	}
+	supplicant->snd_portid = info->snd_portid;
+	supplicant->in_use = OSI_ENABLE;
+	mutex_unlock(&macsec_pdata->lock);
+
+	/* check reference count and if macsec already init'd return success  */
+	if (atomic_read(&macsec_pdata->ref_count) > 0) {
+		ret = 0;
+		goto done;
 	}
 
 	ret = macsec_open(macsec_pdata, info);
 	//TODO - check why needs -EOPNOTSUPP, why not pass ret val
 	if (ret < 0) {
 		ret = -EOPNOTSUPP;
+		goto exit;
 	}
-
+done:
+	atomic_inc(&macsec_pdata->ref_count);
+	pr_err("%s: ref_count %d", __func__,
+	       atomic_read(&macsec_pdata->ref_count));
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -1063,6 +1207,7 @@ int macsec_probe(struct ether_priv_data *pdata)
 	}
 	macsec_pdata->ether_pdata = pdata;
 	pdata->macsec_pdata = macsec_pdata;
+	mutex_init(&pdata->macsec_pdata->lock);
 
 	/* 3. Get OSI MACsec ops */
 	if (osi_init_macsec_ops(osi_core) != 0) {
