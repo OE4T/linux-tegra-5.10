@@ -157,6 +157,43 @@ static void asoc_simple_clk_disable(struct asoc_simple_dai *dai)
 		clk_disable_unprepare(dai->clk);
 }
 
+int asoc_simple_dais_clk_enable(struct snd_soc_pcm_runtime *rtd)
+{
+	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(rtd->card);
+	struct simple_dai_props *dai_props = simple_priv_to_props(priv, rtd->num);
+	int ret;
+
+	ret = asoc_simple_clk_enable(dai_props->cpu_dai);
+	if (ret)
+		return ret;
+
+	ret = asoc_simple_clk_enable(dai_props->codec_dai);
+	if (ret)
+		asoc_simple_clk_disable(dai_props->cpu_dai);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(asoc_simple_dais_clk_enable);
+
+void asoc_simple_dais_clk_disable(struct snd_soc_pcm_runtime *rtd)
+{
+	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
+	struct snd_soc_dai *cpu_dai = asoc_rtd_to_cpu(rtd, 0);
+	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(rtd->card);
+	struct simple_dai_props *dai_props =
+		simple_priv_to_props(priv, rtd->num);
+
+	if (dai_props->mclk_fs) {
+		snd_soc_dai_set_sysclk(codec_dai, 0, 0, SND_SOC_CLOCK_IN);
+		snd_soc_dai_set_sysclk(cpu_dai, 0, 0, SND_SOC_CLOCK_OUT);
+	}
+
+	asoc_simple_clk_disable(dai_props->cpu_dai);
+
+	asoc_simple_clk_disable(dai_props->codec_dai);
+}
+EXPORT_SYMBOL_GPL(asoc_simple_dais_clk_disable);
+
 int asoc_simple_parse_clk(struct device *dev,
 			  struct device_node *node,
 			  struct asoc_simple_dai *simple_dai,
@@ -194,39 +231,16 @@ EXPORT_SYMBOL_GPL(asoc_simple_parse_clk);
 int asoc_simple_startup(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = asoc_substream_to_rtd(substream);
-	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(rtd->card);
-	struct simple_dai_props *dai_props = simple_priv_to_props(priv, rtd->num);
-	int ret;
 
-	ret = asoc_simple_clk_enable(dai_props->cpu_dai);
-	if (ret)
-		return ret;
-
-	ret = asoc_simple_clk_enable(dai_props->codec_dai);
-	if (ret)
-		asoc_simple_clk_disable(dai_props->cpu_dai);
-
-	return ret;
+	return asoc_simple_dais_clk_enable(rtd);
 }
 EXPORT_SYMBOL_GPL(asoc_simple_startup);
 
 void asoc_simple_shutdown(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = asoc_substream_to_rtd(substream);
-	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
-	struct snd_soc_dai *cpu_dai = asoc_rtd_to_cpu(rtd, 0);
-	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(rtd->card);
-	struct simple_dai_props *dai_props =
-		simple_priv_to_props(priv, rtd->num);
 
-	if (dai_props->mclk_fs) {
-		snd_soc_dai_set_sysclk(codec_dai, 0, 0, SND_SOC_CLOCK_IN);
-		snd_soc_dai_set_sysclk(cpu_dai, 0, 0, SND_SOC_CLOCK_OUT);
-	}
-
-	asoc_simple_clk_disable(dai_props->cpu_dai);
-
-	asoc_simple_clk_disable(dai_props->codec_dai);
+	asoc_simple_dais_clk_disable(rtd);
 }
 EXPORT_SYMBOL_GPL(asoc_simple_shutdown);
 

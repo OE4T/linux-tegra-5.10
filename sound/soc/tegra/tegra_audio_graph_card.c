@@ -195,6 +195,48 @@ static const struct snd_soc_ops tegra_audio_graph_ops = {
 	.hw_params	= tegra_audio_graph_hw_params,
 };
 
+
+static int tegra_audio_graph_compr_startup(struct snd_compr_stream *cstream)
+{
+	struct snd_soc_pcm_runtime *rtd = cstream->private_data;
+
+	return asoc_simple_dais_clk_enable(rtd);
+}
+
+static void tegra_audio_graph_compr_shutdown(struct snd_compr_stream *cstream)
+{
+	struct snd_soc_pcm_runtime *rtd = cstream->private_data;
+
+	asoc_simple_dais_clk_disable(rtd);
+}
+
+static int tegra_audio_graph_compr_set_params(struct snd_compr_stream *cstream)
+{
+	struct snd_soc_pcm_runtime *rtd = cstream->private_data;
+	struct snd_soc_card *card = rtd->card;
+	struct snd_codec codec_params;
+	int err;
+
+	if (cstream->ops && cstream->ops->get_params) {
+		err = cstream->ops->get_params(cstream, &codec_params);
+		if (err < 0) {
+			dev_err(card->dev, "Failed to get compr params\n");
+			return err;
+		}
+	} else {
+		dev_err(card->dev, "compr ops not set\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static const struct snd_soc_compr_ops tegra_audio_graph_compr_ops = {
+	.startup	= tegra_audio_graph_compr_startup,
+	.shutdown	= tegra_audio_graph_compr_shutdown,
+	.set_params	= tegra_audio_graph_compr_set_params,
+};
+
 static int tegra_audio_graph_card_probe(struct snd_soc_card *card)
 {
 	struct asoc_simple_priv *simple = snd_soc_card_get_drvdata(card);
@@ -245,6 +287,22 @@ static int tegra_audio_graph_card_probe(struct snd_soc_card *card)
 
 			rtd->dai_link->params = params;
 			rtd->dai_link->num_params = 1;
+		}
+	}
+
+	/*
+	 * The audio-graph-card does not have a way to identify compress
+	 * links automatically. It assumes all as PCM links. Thus below
+	 * populates compress callbacks for specific ADSP links.
+	 *
+	 * TODO: Find a better way to identify compress links.
+	 */
+	for_each_card_rtds(card, rtd) {
+		struct snd_soc_dai *cpu_dai = asoc_rtd_to_cpu(rtd, 0);
+
+		if (strstr(cpu_dai->name, "ADSP COMPR")) {
+			priv->simple.compr_ops = &tegra_audio_graph_compr_ops;
+			priv->simple.ops = NULL;
 		}
 	}
 
