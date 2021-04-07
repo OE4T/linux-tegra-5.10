@@ -711,10 +711,11 @@
 		nvidia,host1x = <&host1x>;
 		access-vpr-phys;
 		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_GPU>;
-		clocks = <&bpmp_clks TEGRA234_CLK_GPC0CLK>,
-			<&bpmp_clks TEGRA234_CLK_GPU_PWR>,
+		clocks = <&bpmp_clks TEGRA234_CLK_GPUSYS>,
+			<&bpmp_clks TEGRA234_CLK_GPC0CLK>,
+			<&bpmp_clks TEGRA234_CLK_GPC1CLK>,
 			<&bpmp_clks TEGRA234_CLK_FUSE>;
-		clock-names = "gpu", "pwr", "fuse";
+		clock-names = "sysclk", "gpc0clk", "gpc1clk", "fuse";
 		resets = <&bpmp_resets TEGRA234_RESET_GPU>;
 		dma-coherent;
 		status = "disabled";
