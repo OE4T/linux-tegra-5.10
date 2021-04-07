@@ -138,7 +138,12 @@ static void gm20b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 
 	/* ACR HS ucode type & f/w name*/
 	hs_acr->acr_type = ACR_DEFAULT;
-	hs_acr->acr_fw_name = HSBIN_ACR_UCODE_IMAGE;
+
+	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
+		hs_acr->acr_fw_name = GM20B_HSBIN_ACR_PROD_UCODE;
+	} else {
+		hs_acr->acr_fw_name = GM20B_HSBIN_ACR_DBG_UCODE;
+	}
 
 	/* set on which falcon ACR need to execute*/
 	hs_acr->acr_flcn = g->pmu->flcn;
