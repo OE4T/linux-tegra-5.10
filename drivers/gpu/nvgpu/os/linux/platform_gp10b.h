@@ -1,7 +1,7 @@
 /*
  * GP10B Platform (SoC) Interface
  *
- * Copyright (c) 2014-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -35,4 +35,7 @@ int gp10b_clk_get_freqs(struct device *dev,
 			unsigned long **freqs, int *num_freqs);
 void gp10b_tegra_prescale(struct device *dev);
 void gp10b_tegra_postscale(struct device *pdev, unsigned long freq);
+int gp10b_tegra_acquire_platform_clocks(struct device *dev,
+		struct gk20a_platform_clk *clk_entries,
+		unsigned int num_clk_entries);
 #endif

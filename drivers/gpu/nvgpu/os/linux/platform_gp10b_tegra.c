@@ -84,7 +84,7 @@ struct gk20a_platform_clk tegra_gp10b_clocks[] = {
  * the clock information to platform data.
  */
 
-static int acquire_platform_clocks(struct device *dev,
+int gp10b_tegra_acquire_platform_clocks(struct device *dev,
 		struct gk20a_platform_clk *clk_entries,
 		unsigned int num_clk_entries)
 {
@@ -155,7 +155,7 @@ err_get_clock:
 
 int gp10b_tegra_get_clocks(struct device *dev)
 {
-	return acquire_platform_clocks(dev, tegra_gp10b_clocks,
+	return gp10b_tegra_acquire_platform_clocks(dev, tegra_gp10b_clocks,
 			ARRAY_SIZE(tegra_gp10b_clocks));
 }
 
