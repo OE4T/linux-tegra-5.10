@@ -79,6 +79,6 @@ void nvmap_zap_handle(struct nvmap_handle *handle, u64 offset, u64 size)
 #else
 void nvmap_zap_handle(struct nvmap_handle *handle, u64 offset, u64 size)
 {
-	WARN(1, "%s is not supported!\n", __func__);
+	pr_debug("%s is not supported!\n", __func__);
 }
 #endif /* !NVMAP_LOADABLE_MODULE */
