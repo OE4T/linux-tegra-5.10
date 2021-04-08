@@ -21,6 +21,8 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/timers.h>
+#include <nvgpu/io.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
 #include <nvgpu/enabled.h>
@@ -50,6 +52,10 @@
 
 #ifdef CONFIG_NVGPU_DGPU
 #include <nvgpu/sec2/lsfm.h>
+#endif
+
+#if defined(CONFIG_NVGPU_NEXT)
+#define PMU_PRIV_LOCKDOWN_RELEASE_POLLING_US (1U)
 #endif
 
 /* PMU locks used to sync with PMU-RTOS */
@@ -313,6 +319,35 @@ s32 nvgpu_pmu_next_core_rtos_args_allocate(struct gk20a *g,
 exit:
 	return err;
 }
+
+static int nvgpu_pmu_wait_for_priv_lockdown_release(struct gk20a *g,
+	struct nvgpu_falcon *flcn, unsigned int timeout)
+{
+	struct nvgpu_timeout to;
+	int status;
+
+	nvgpu_log_fn(g, " ");
+
+	status = nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
+	if (status != 0) {
+		return status;
+	}
+
+	/* poll for priv lockdown release */
+	do {
+		if (!g->ops.falcon.is_priv_lockdown(flcn)) {
+			break;
+		}
+
+		nvgpu_udelay(PMU_PRIV_LOCKDOWN_RELEASE_POLLING_US);
+	} while (nvgpu_timeout_expired(&to) == 0);
+
+	if (nvgpu_timeout_peek_expired(&to)) {
+		status = -ETIMEDOUT;
+	}
+
+	return status;
+}
 #endif
 
 int nvgpu_pmu_rtos_init(struct gk20a *g)
@@ -381,6 +416,12 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 #if defined(CONFIG_NVGPU_NEXT)
 		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
 			g->ops.falcon.bootstrap(g->pmu->flcn, 0U);
+			err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
+					g->pmu->flcn, U32_MAX);
+			if(err != 0) {
+				nvgpu_err(g, "PRIV lockdown polling failed");
+				return err;
+			}
 		} else
 #endif
 		{
@@ -395,6 +436,16 @@ int nvgpu_pmu_rtos_init(struct gk20a *g)
 		if (err != 0) {
 			goto exit;
 		}
+#if defined(CONFIG_NVGPU_NEXT)
+		if (nvgpu_is_enabled(g, NVGPU_PMU_NEXT_CORE_ENABLED)) {
+			err = nvgpu_pmu_wait_for_priv_lockdown_release(g,
+					g->pmu->flcn, U32_MAX);
+			if(err != 0) {
+				nvgpu_err(g, "PRIV lockdown polling failed");
+				return err;
+			}
+		}
+#endif
 	}
 
 	nvgpu_pmu_fw_state_change(g, g->pmu, PMU_FW_STATE_STARTING, false);

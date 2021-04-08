@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,9 @@ struct gops_falcon {
 	void (*set_bcr)(struct nvgpu_falcon *flcn);
 	void (*dump_brom_stats)(struct nvgpu_falcon *flcn);
 	u32  (*get_brom_retcode)(struct nvgpu_falcon *flcn);
+#if defined(CONFIG_NVGPU_NEXT)
+	bool (*is_priv_lockdown)(struct nvgpu_falcon *flcn);
+#endif
 	u32 (*dmemc_blk_mask)(void);
 	bool (*check_brom_passed)(u32 retcode);
 	void (*brom_config)(struct nvgpu_falcon *flcn, u64 fmc_code_addr,
