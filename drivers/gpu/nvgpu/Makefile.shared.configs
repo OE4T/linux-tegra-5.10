@@ -69,6 +69,9 @@ NVGPU_COMMON_CFLAGS                  += -DCONFIG_TEGRA_GK20A_NVHOST
 CONFIG_NVGPU_SYNCFD_NONE             := 1
 NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_SYNCFD_NONE
 
+CONFIG_NVGPU_GRAPHICS                := 1
+NVGPU_COMMON_CFLAGS                  += -DCONFIG_NVGPU_GRAPHICS
+
 ifeq ($(profile),$(filter $(profile),safety_debug safety_release))
 
 # Enable golden context verification only for safety debug/release build
@@ -181,10 +184,6 @@ endif
 # Enable the usage of 3LSS error injection features.
 CONFIG_NVGPU_USE_3LSS_ERR_INJECTION := 1
 NVGPU_COMMON_CFLAGS                 += -DCONFIG_NVGPU_USE_3LSS_ERR_INJECTION
-
-# Enable Graphics support for normal build
-CONFIG_NVGPU_GRAPHICS           := 1
-NVGPU_COMMON_CFLAGS             += -DCONFIG_NVGPU_GRAPHICS
 
 # Enable nvlink support for normal build.
 CONFIG_NVGPU_NVLINK             := 1
