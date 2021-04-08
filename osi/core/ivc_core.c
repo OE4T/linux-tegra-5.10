@@ -23,10 +23,12 @@
 #include <osi_common.h>
 #include <osi_core.h>
 #include <ivc_core.h>
+#include <osi_macsec.h>
 #include "eqos_core.h"
 #include "eqos_mmc.h"
 #include "core_local.h"
 #include "../osi/common/common.h"
+#include "macsec.h"
 
 /**
  * @brief ivc_safety_config - EQOS MAC core safety configuration
@@ -1448,6 +1450,182 @@ static nve32_t ivc_config_mac_loopback(
 #endif
 
 /**
+ * @brief ivc_macsec_dbg_events_config - Configure Debug events
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] dbg_buf_config: Config Buffer
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static int ivc_macsec_dbg_events_config(
+		struct osi_core_priv_data *const osi_core,
+		struct osi_macsec_dbg_buf_config *const dbg_buf_config)
+{
+
+	return 0;
+}
+
+/**
+ * @brief macsec_dbg_buf_config - Read/Write debug buffers.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] dbg_buf_config: Pointer to debug buffer config data structure.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static int ivc_macsec_dbg_buf_config(struct osi_core_priv_data *const osi_core,
+		struct osi_macsec_dbg_buf_config *const dbg_buf_config)
+{
+	return 0;
+}
+
+/**
+ * @brief macsec_read_mmc - To read statitics registers and update structure
+ *                          variable
+ *
+ * Algorithm: Pass register offset and old value to helper function and
+ *            update structure.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note
+ * 1) MAC/MACSEC should be init and started.
+ */
+static void ivc_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
+{
+
+}
+
+/**
+ * @brief ivc_macsec_config - Mac sec config.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] sc: Secure Channel info.
+ * @param[in] enable: enable or disable.
+ * @param[in] ctlr: Controller instance.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static int ivc_macsec_config(struct osi_core_priv_data *const osi_core,
+			     struct osi_macsec_sc_info *const sc,
+			     unsigned int enable, unsigned short ctlr)
+{
+	return 0;
+}
+
+/**
+ * @brief ivc_macsec_enable - Enable or disable Macsec.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] enable: Enable or Disable Macsec.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static int ivc_macsec_enable(struct osi_core_priv_data *osi_core,
+			     unsigned int enable)
+{
+	return 0;
+}
+
+/**
+ * @brief ivc_macsec_loopback_config - Loopback configure.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] enable: Enable or disable loopback.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static int ivc_macsec_loopback_config(struct osi_core_priv_data *const osi_core,
+				      unsigned int enable)
+{
+	return 0;
+}
+
+/**
+ * @brief ivc_macsec_kt_config - MacSec KT configure.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] kt_config: KT config structure.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static int ivc_macsec_kt_config(struct osi_core_priv_data *const osi_core,
+				struct osi_macsec_kt_config *const kt_config)
+{
+	return 0;
+}
+
+/**
+ * @brief ivc_macsec_lut_config - LUT config.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] lut_config: lut data structure.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static int ivc_macsec_lut_config(struct osi_core_priv_data *const osi_core,
+				 struct osi_macsec_lut_config *const lut_config)
+{
+	return 0;
+}
+
+/**
+ * @brief ivc_macsec_handle_s_irq - handle s irq.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ *
+ */
+static void ivc_macsec_handle_s_irq(struct osi_core_priv_data *const osi_core)
+{
+
+}
+
+/**
+ * @brief ivc_macsec_handle_ns_irq - handle ns irq.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ *
+ */
+
+static void ivc_macsec_handle_ns_irq(struct osi_core_priv_data *const osi_core)
+{
+}
+
+/**
+ * @brief ivc_macsec_deinit - De Initialize.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+
+static int ivc_macsec_deinit(struct osi_core_priv_data *const osi_core)
+{
+	return 0;
+}
+
+/**
+ * @brief ivc_macsec_init -Initialize.
+ *
+ * @param[in] osi_core: OSI Core private data structure.
+ *
+ * @retval 0 on Success
+ * @retval -1 on Failure
+ */
+static int ivc_macsec_init(struct osi_core_priv_data *const osi_core)
+{
+	return 0;
+}
+
+/**
  * @brief ivc_init_core_ops - Initialize IVC core operations.
  *
  * @note
@@ -1507,6 +1685,33 @@ void ivc_init_core_ops(struct core_ops *ops)
 	ops->config_mac_loopback = ivc_config_mac_loopback;
 #endif /* !OSI_STRIPPED_LIB */
 };
+
+/**
+ * @brief ivc_init_macsec_ops - Initialize IVC core operations.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void ivc_init_macsec_ops(void *macsecops)
+{
+	struct macsec_core_ops *ops = (struct macsec_core_ops *) macsecops;
+
+	ops->init = ivc_macsec_init;
+	ops->deinit = ivc_macsec_deinit;
+	ops->handle_ns_irq = ivc_macsec_handle_ns_irq;
+	ops->handle_s_irq = ivc_macsec_handle_s_irq;
+	ops->lut_config = ivc_macsec_lut_config;
+	ops->kt_config = ivc_macsec_kt_config;
+	ops->loopback_config = ivc_macsec_loopback_config;
+	ops->macsec_en = ivc_macsec_enable;
+	ops->config = ivc_macsec_config;
+	ops->read_mmc = ivc_macsec_read_mmc;
+	ops->dbg_buf_config = ivc_macsec_dbg_buf_config;
+	ops->dbg_events_config = ivc_macsec_dbg_events_config;
+}
 
 /**
  * @brief ivc_get_core_safety_config - EQOS MAC safety configuration

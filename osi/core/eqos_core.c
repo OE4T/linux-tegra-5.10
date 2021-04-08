@@ -40,7 +40,7 @@ static struct core_func_safety eqos_core_safety_config;
  * Algorithm:
  *  - Acquire RW lock, so that eqos_validate_core_regs does not run while
  *    updating the safety critical register.
- *  - call osi_writel() to actually update the memory mapped register.
+ *  - call osi_writela() to actually update the memory mapped register.
  *  - Store the same value in eqos_core_safety_config->reg_val[idx],
  *    so that this latest value will be compared when eqos_validate_core_regs
  *    is scheduled.
@@ -1202,9 +1202,9 @@ static int eqos_config_frp(struct osi_core_priv_data *const osi_core,
 
 frp_enable_re:
 	/* Enable RE */
-	val = osi_readl(base + EQOS_MAC_MCR);
+	val = osi_readla(osi_core, base + EQOS_MAC_MCR);
 	val |= EQOS_MCR_RE;
-	osi_writel(val, base + EQOS_MAC_MCR);
+	osi_writela(osi_core, val, base + EQOS_MAC_MCR);
 
 	return ret;
 }
@@ -1237,13 +1237,13 @@ static int eqos_update_frp_nve(struct osi_core_priv_data *const osi_core,
 	}
 
 	/* Update NVE and NPE in MTL_RXP_Control_Status register */
-	val = osi_readl(base + EQOS_MTL_RXP_CS);
+	val = osi_readla(osi_core, base + EQOS_MTL_RXP_CS);
 	/* Clear old NVE and NPE */
 	val &= ~(EQOS_MTL_RXP_CS_NVE | EQOS_MTL_RXP_CS_NPE);
 	/* Add new NVE and NVE */
 	val |= (nve & EQOS_MTL_RXP_CS_NVE);
 	val |= ((nve << EQOS_MTL_RXP_CS_NPE_SHIFT) & EQOS_MTL_RXP_CS_NPE);
-	osi_writel(val, base + EQOS_MTL_RXP_CS);
+	osi_writela(osi_core, val, base + EQOS_MTL_RXP_CS);
 
 	return 0;
 }
@@ -1552,9 +1552,11 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 				EQOS_MAC_MCR, EQOS_MAC_MCR_IDX);
 
 	/* Enable PDC */
-	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_EXTR);
+	value = osi_readla(osi_core,
+			   (unsigned char *)osi_core->base + EQOS_MAC_EXTR);
 	value |= EQOS_MAC_EXTR_PDC;
-	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_EXTR);
+	osi_writela(osi_core, value,
+		    (unsigned char *)osi_core->base + EQOS_MAC_EXTR);
 
 	/* Enable Multicast and Broadcast Queue, default is Q0 */
 	value = osi_readla(osi_core,
@@ -1696,15 +1698,18 @@ static void eqos_configure_dma(struct osi_core_priv_data *const osi_core)
  *
  * Algorithm: enable MTL interrupts for EST
  *
- * @param[in] addr: MAC base IOVA address.
+ * @param[in] osi_core: OSI core private data structure.
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static inline void eqos_enable_mtl_interrupts(void *addr)
+static inline void eqos_enable_mtl_interrupts(
+				struct osi_core_priv_data *const osi_core)
 {
 	unsigned int  mtl_est_ir = OSI_DISABLE;
+	void *addr = osi_core->base;
 
-	mtl_est_ir = osi_readl((unsigned char *)addr + EQOS_MTL_EST_ITRE);
+	mtl_est_ir = osi_readla(osi_core, (unsigned char *)
+				addr + EQOS_MTL_EST_ITRE);
 	/* enable only MTL interrupt realted to
 	 * Constant Gate Control Error
 	 * Head-Of-Line Blocking due to Scheduling
@@ -1715,7 +1720,8 @@ static inline void eqos_enable_mtl_interrupts(void *addr)
 	mtl_est_ir |= (EQOS_MTL_EST_ITRE_CGCE | EQOS_MTL_EST_ITRE_IEHS |
 		       EQOS_MTL_EST_ITRE_IEHF | EQOS_MTL_EST_ITRE_IEBE |
 		       EQOS_MTL_EST_ITRE_IECC);
-	osi_writel(mtl_est_ir, (unsigned char *)addr + EQOS_MTL_EST_ITRE);
+	osi_writela(osi_core, mtl_est_ir,
+		    (unsigned char *)addr + EQOS_MTL_EST_ITRE);
 }
 
 /**
@@ -1723,19 +1729,21 @@ static inline void eqos_enable_mtl_interrupts(void *addr)
  *
  * Algorithm: enable FPE interrupts
  *
- * @param[in] addr: MAC base IOVA address.
+ * @param[in] osi_core: OSI core private data structure.
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
-static inline void eqos_enable_fpe_interrupts(void *addr)
+static inline void eqos_enable_fpe_interrupts(
+			struct osi_core_priv_data *const osi_core)
 {
 	unsigned int  value = OSI_DISABLE;
+	void *addr = osi_core->base;
 
 	/* Read MAC IER Register and enable Frame Preemption Interrupt
 	 * Enable */
-	value = osi_readl((unsigned char *)addr + EQOS_MAC_IMR);
+	value = osi_readla(osi_core, (unsigned char *)addr + EQOS_MAC_IMR);
 	value |= EQOS_IMR_FPEIE;
-	osi_writel(value, (unsigned char *)addr + EQOS_MAC_IMR);
+	osi_writela(osi_core, value, (unsigned char *)addr + EQOS_MAC_IMR);
 }
 
 /**
@@ -1762,7 +1770,7 @@ static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
 	unsigned int temp = 0U;
 
 	if (est_sel == OSI_ENABLE) {
-		val = osi_readl((unsigned char *)osi_core->base +
+		val = osi_readla(osi_core, (unsigned char *)osi_core->base +
 				EQOS_MTL_EST_CONTROL);
 
 		/*
@@ -1798,24 +1806,24 @@ static void eqos_tsn_init(struct osi_core_priv_data *osi_core,
 		val |= EQOS_MTL_EST_CONTROL_LCSE_VAL;
 		/* Drop Frames causing Scheduling Error */
 		val |= EQOS_MTL_EST_CONTROL_DFBS;
-		osi_writel(val, (nveu8_t *)osi_core->base +
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->base +
 			   EQOS_MTL_EST_CONTROL);
 
-		eqos_enable_mtl_interrupts(osi_core->base);
+		eqos_enable_mtl_interrupts(osi_core);
 	}
 
 	if (fpe_sel == OSI_ENABLE) {
-		val = osi_readl((unsigned char *)osi_core->base +
+		val = osi_readla(osi_core, (unsigned char *)osi_core->base +
 				EQOS_MAC_RQC1R);
 		val &= ~EQOS_MAC_RQC1R_FPRQ;
 		temp = osi_core->residual_queue;
 		temp = temp << EQOS_MAC_RQC1R_FPRQ_SHIFT;
 		temp = (temp & EQOS_MAC_RQC1R_FPRQ);
 		val |= temp;
-		osi_writel(val, (unsigned char *)osi_core->base +
+		osi_writela(osi_core, val, (unsigned char *)osi_core->base +
 			   EQOS_MAC_RQC1R);
 
-		eqos_enable_fpe_interrupts(osi_core->base);
+		eqos_enable_fpe_interrupts(osi_core);
 	}
 
 	/* CBS setting for TC should be by  user application/IOCTL as
@@ -1959,7 +1967,8 @@ static void eqos_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
 	unsigned int val = 0;
 
 	/* interrupt bit clear on read as CSR_SW is reset */
-	val = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
 
 	if ((val & EQOS_MAC_FPE_CTS_RVER) == EQOS_MAC_FPE_CTS_RVER) {
 		val &= ~EQOS_MAC_FPE_CTS_RVER;
@@ -1992,7 +2001,8 @@ static void eqos_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
 		val &= ~EQOS_MAC_FPE_CTS_EFPE;
 	}
 
-	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
 }
 
 /**
@@ -2046,7 +2056,8 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 		eqos_handle_mac_fpe_intrs(osi_core);
 		mac_isr &= ~EQOS_MAC_IMR_FPEIS;
 	}
-	osi_writel(mac_isr, (nveu8_t *)osi_core->base + EQOS_MAC_ISR);
+	osi_writela(osi_core, mac_isr,
+		    (nveu8_t *) osi_core->base + EQOS_MAC_ISR);
 
 	mac_pcs = osi_readla(osi_core,
 			     (nveu8_t *)osi_core->base + EQOS_MAC_PCS);
@@ -2090,7 +2101,8 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 		eqos_handle_mac_fpe_intrs(osi_core);
 		mac_isr &= ~EQOS_MAC_IMR_FPEIS;
 	}
-	osi_writel(mac_isr, (unsigned char *)osi_core->base + EQOS_MAC_ISR);
+	osi_writela(osi_core, mac_isr,
+		    (unsigned char *)osi_core->base + EQOS_MAC_ISR);
 }
 
 /**
@@ -2173,7 +2185,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 	unsigned int i = 0;
 	unsigned long stat_val = 0;
 
-	val = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_EST_STATUS);
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MTL_EST_STATUS);
 	val &= (EQOS_MTL_EST_STATUS_CGCE | EQOS_MTL_EST_STATUS_HLBS |
 		EQOS_MTL_EST_STATUS_HLBF | EQOS_MTL_EST_STATUS_BTRE |
 		EQOS_MTL_EST_STATUS_SWLC);
@@ -2197,7 +2210,7 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->tsn_stats.head_of_line_blk_sch =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Sch_Error register and cleared */
-		sch_err = osi_readl((nveu8_t *)osi_core->base +
+		sch_err = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 				    EQOS_MTL_EST_SCH_ERR);
 		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
 			temp = OSI_ENABLE;
@@ -2209,7 +2222,7 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			}
 		}
 		sch_err &= 0xFFU; /* only 8 TC allowed so clearing all */
-		osi_writel(sch_err,
+		osi_writela(osi_core, sch_err,
 			   (nveu8_t *)osi_core->base + EQOS_MTL_EST_SCH_ERR);
 	}
 
@@ -2219,7 +2232,7 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->tsn_stats.head_of_line_blk_frm =
 				osi_update_stats_counter(stat_val, 1U);
 		/* Need to read MTL_EST_Frm_Size_Error register and cleared */
-		frm_err = osi_readl((nveu8_t *)osi_core->base +
+		frm_err = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 				    EQOS_MTL_EST_FRMS_ERR);
 		for (i = 0U; i < OSI_MAX_TC_NUM; i++) {
 			temp = OSI_ENABLE;
@@ -2231,7 +2244,7 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 			}
 		}
 		frm_err &= 0xFFU; /* 8 TC allowed so clearing all */
-		osi_writel(frm_err, (nveu8_t *)osi_core->base +
+		osi_writela(osi_core, frm_err, (nveu8_t *)osi_core->base +
 			   EQOS_MTL_EST_FRMS_ERR);
 	}
 
@@ -2253,7 +2266,8 @@ static void eqos_handle_mtl_intrs(struct osi_core_priv_data *osi_core)
 		osi_core->est_ready = OSI_DISABLE;
 	}
 	/* clear EST status register as interrupt is handled */
-	osi_writel(val, (nveu8_t *)osi_core->base + EQOS_MTL_EST_STATUS);
+	osi_writela(osi_core, val,
+		    (nveu8_t *)osi_core->base + EQOS_MTL_EST_STATUS);
 }
 
 /**
@@ -2326,22 +2340,25 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 
 	eqos_handle_mac_intrs(osi_core, dma_isr);
 	/* Handle MTL inerrupts */
-	mtl_isr = osi_readl((unsigned char *)base + EQOS_MTL_INTR_STATUS);
+	mtl_isr = osi_readla(osi_core,
+			     (unsigned char *)base + EQOS_MTL_INTR_STATUS);
 	if (((mtl_isr & EQOS_MTL_IS_ESTIS) == EQOS_MTL_IS_ESTIS) &&
 	    ((dma_isr & EQOS_DMA_ISR_MTLIS) == EQOS_DMA_ISR_MTLIS)) {
 		eqos_handle_mtl_intrs(osi_core);
 		mtl_isr &= ~EQOS_MTL_IS_ESTIS;
-		osi_writel(mtl_isr, (unsigned char *)base +
+		osi_writela(osi_core, mtl_isr, (unsigned char *)base +
 			   EQOS_MTL_INTR_STATUS);
 	}
 
 	/* Clear FRP Interrupt MTL_RXP_Interrupt_Control_Status */
-	frp_isr = osi_readl((unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
+	frp_isr = osi_readla(osi_core,
+			     (unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
 	frp_isr |= (EQOS_MTL_RXP_INTR_CS_NVEOVIS |
 		    EQOS_MTL_RXP_INTR_CS_NPEOVIS |
 		    EQOS_MTL_RXP_INTR_CS_FOOVIS |
 		    EQOS_MTL_RXP_INTR_CS_PDRFIS);
-	osi_writel(frp_isr, (unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
+	osi_writela(osi_core, frp_isr,
+		    (unsigned char *)base + EQOS_MTL_RXP_INTR_CS);
 }
 
 /**
@@ -2711,7 +2728,7 @@ static int eqos_config_ptp_offload(struct osi_core_priv_data *osi_core,
 	unsigned int port_id = 0x0U;
 
 	/* Read MAC TCR */
-	value = osi_readl((nveu8_t *)addr + EQOS_MAC_TCR);
+	value = osi_readla(osi_core, (nveu8_t *)addr + EQOS_MAC_TCR);
 	/* clear old configuration */
 	value &= ~(EQOS_MAC_TCR_TSENMACADDR | OSI_MAC_TCR_SNAPTYPSEL_3 |
 		   OSI_MAC_TCR_TSMASTERENA | OSI_MAC_TCR_TSEVENTENA |
@@ -2722,12 +2739,12 @@ static int eqos_config_ptp_offload(struct osi_core_priv_data *osi_core,
 	/** Handle PTO disable */
 	if (pto_config->en_dis == OSI_DISABLE) {
 		osi_core->ptp_config.ptp_filter = value;
-		osi_writel(ptc_value, addr + EQOS_MAC_PTO_CR);
+		osi_writela(osi_core, ptc_value, addr + EQOS_MAC_PTO_CR);
 		eqos_core_safety_writel(osi_core, value, addr +
 					EQOS_MAC_TCR, EQOS_MAC_TCR_IDX);
-		osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR0);
-		osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR1);
-		osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR2);
+		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR0);
+		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR1);
+		osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR2);
 		return 0;
 	}
 
@@ -2776,14 +2793,14 @@ static int eqos_config_ptp_offload(struct osi_core_priv_data *osi_core,
 	value |= OSI_MAC_TCR_TSEVENTENA;
 	osi_core->ptp_config.ptp_filter = value;
 	/** Write PTO_CR and TCR registers */
-	osi_writel(ptc_value, addr + EQOS_MAC_PTO_CR);
+	osi_writela(osi_core, ptc_value, addr + EQOS_MAC_PTO_CR);
 	eqos_core_safety_writel(osi_core, value, addr + EQOS_MAC_TCR,
 				EQOS_MAC_TCR_IDX);
 	/* Port ID for PTP offload packet created */
 	port_id = pto_config->portid & EQOS_MAC_PIDR_PID_MASK;
-	osi_writel(port_id, addr + EQOS_MAC_PIDR0);
-	osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR1);
-	osi_writel(OSI_NONE, addr + EQOS_MAC_PIDR2);
+	osi_writela(osi_core, port_id, addr + EQOS_MAC_PIDR0);
+	osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR1);
+	osi_writela(osi_core, OSI_NONE, addr + EQOS_MAC_PIDR2);
 
 	return ret;
 }
@@ -3926,7 +3943,7 @@ static int eqos_config_ptp_rxq(struct osi_core_priv_data *osi_core,
 	}
 
 	/* Read MAC_RxQ_Ctrl1 */
-	value = osi_readl((nveu8_t *)base + EQOS_MAC_RQC1R);
+	value = osi_readla(osi_core, (nveu8_t *)base + EQOS_MAC_RQC1R);
 	if (enable == OSI_DISABLE) {
 		/** Reset OMCBCQ bit to disable over-riding the MCBC Queue
 		 * priority for the PTP RX queue.
@@ -3951,7 +3968,7 @@ static int eqos_config_ptp_rxq(struct osi_core_priv_data *osi_core,
 		value |= EQOS_MAC_RQC1R_OMCBCQ;
 	}
 	/* Write MAC_RxQ_Ctrl1 */
-	osi_writel(value, base + EQOS_MAC_RQC1R);
+	osi_writela(osi_core, value, base + EQOS_MAC_RQC1R);
 
 	return 0;
 }
@@ -4055,17 +4072,18 @@ static int eqos_hw_est_write(struct osi_core_priv_data *osi_core,
 	int retry = 1000;
 	unsigned int val = 0x0;
 
-	osi_writel(data, (unsigned char *)base + EQOS_MTL_EST_DATA);
+	osi_writela(osi_core, data, (unsigned char *)base + EQOS_MTL_EST_DATA);
 
 	val &= ~EQOS_MTL_EST_ADDR_MASK;
 	val |= (gcla == 1U) ? 0x0U : EQOS_MTL_EST_GCRR;
 	val |= EQOS_MTL_EST_SRWO;
 	val |= addr_val;
-	osi_writel(val, (unsigned char *)base + EQOS_MTL_EST_GCL_CONTROL);
+	osi_writela(osi_core, val,
+		    (unsigned char *)base + EQOS_MTL_EST_GCL_CONTROL);
 
 	while (--retry > 0) {
 		osi_core->osd_ops.udelay(OSI_DELAY_1US);
-		val = osi_readl((unsigned char *)base +
+		val = osi_readla(osi_core, (unsigned char *)base +
 				EQOS_MTL_EST_GCL_CONTROL);
 		if ((val & EQOS_MTL_EST_SRWO) == EQOS_MTL_EST_SRWO) {
 			continue;
@@ -4187,9 +4205,11 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 	}
 
 	if (est->en_dis == OSI_DISABLE) {
-		val = osi_readl((nveu8_t *)base + EQOS_MTL_EST_CONTROL);
+		val = osi_readla(osi_core,
+				 (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
 		val &= ~EQOS_MTL_EST_CONTROL_EEST;
-		osi_writel(val, (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
+		osi_writela(osi_core, val,
+			    (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
 		return 0;
 	}
 
@@ -4211,12 +4231,14 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 		return ret;
 	}
 
-	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_TER, est->ter, OSI_DISABLE);
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_TER, est->ter,
+				OSI_DISABLE);
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_LLR, est->llr, OSI_DISABLE);
+	ret = eqos_hw_est_write(osi_core, EQOS_MTL_EST_LLR, est->llr,
+				OSI_DISABLE);
 	if (ret < 0) {
 		return ret;
 	}
@@ -4226,7 +4248,8 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 		addr = i;
 		addr = addr << EQOS_MTL_EST_ADDR_SHIFT;
 		addr &= EQOS_MTL_EST_ADDR_MASK;
-		ret = eqos_hw_est_write(osi_core, addr, est->gcl[i], OSI_ENABLE);
+		ret = eqos_hw_est_write(osi_core, addr, est->gcl[i],
+					OSI_ENABLE);
 		if (ret < 0) {
 			return ret;
 		}
@@ -4250,11 +4273,12 @@ static int eqos_hw_config_est(struct osi_core_priv_data *osi_core,
 		return ret;
 	}
 
-	val = osi_readl((unsigned char *)base + EQOS_MTL_EST_CONTROL);
+	val = osi_readla(osi_core, (unsigned char *)
+			 base + EQOS_MTL_EST_CONTROL);
 	/* Store table */
 	val |= EQOS_MTL_EST_CONTROL_SSWL;
 	val |= EQOS_MTL_EST_CONTROL_EEST;
-	osi_writel(val, (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
+	osi_writela(osi_core, val, (nveu8_t *)base + EQOS_MTL_EST_CONTROL);
 
 	return ret;
 }
@@ -4292,18 +4316,19 @@ static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
 
 	osi_core->fpe_ready = OSI_DISABLE;
 
-	val = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
 
 	if (((fpe->tx_queue_preemption_enable << EQOS_MTL_FPE_CTS_PEC_SHIFT) &
 	     EQOS_MTL_FPE_CTS_PEC) == OSI_DISABLE) {
 		val &= ~EQOS_MAC_FPE_CTS_EFPE;
-		osi_writel(val, (unsigned char *)osi_core->base +
+		osi_writela(osi_core, val, (unsigned char *)osi_core->base +
 			   EQOS_MAC_FPE_CTS);
 
-		val = osi_readl((unsigned char *)osi_core->base +
+		val = osi_readla(osi_core, (unsigned char *)osi_core->base +
 				EQOS_MAC_RQC1R);
 		val &= ~EQOS_MAC_RQC1R_FPRQ;
-		osi_writel(val, (unsigned char *)osi_core->base +
+		osi_writela(osi_core, val, (unsigned char *)osi_core->base +
 			   EQOS_MAC_RQC1R);
 
 		return 0;
@@ -4327,7 +4352,8 @@ static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
 			}
 		}
 	}
-	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
 
 	/* Setting RQ as RxQ 0 is not allowed */
 	if (fpe->rq == 0x0U || fpe->rq >= OSI_EQOS_MAX_NUM_CHANS) {
@@ -4336,7 +4362,8 @@ static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
 		return -1;
 	}
 
-	val = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
 	val &= ~EQOS_MAC_RQC1R_FPRQ;
 	temp = fpe->rq;
 	temp = temp << EQOS_MAC_RQC1R_FPRQ_SHIFT;
@@ -4344,18 +4371,23 @@ static int eqos_hw_config_fpe(struct osi_core_priv_data *osi_core,
 	val |= temp;
 	/* update RQ in OSI CORE struct */
 	osi_core->residual_queue = fpe->rq;
-	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MAC_RQC1R);
 
 	/* initiate SVER for SMD-V and SMD-R */
-	val = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MTL_FPE_CTS);
 	val |= EQOS_MAC_FPE_CTS_SVER;
-	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MAC_FPE_CTS);
 
-	val = osi_readl((unsigned char *)osi_core->base + EQOS_MTL_FPE_ADV);
+	val = osi_readla(osi_core,
+			 (unsigned char *)osi_core->base + EQOS_MTL_FPE_ADV);
 	val &= ~EQOS_MTL_FPE_ADV_HADV_MASK;
 	/* (minimum_fragment_size +IPG/EIPG + Preamble) *.8 ~98ns for10G */
 	val |= EQOS_MTL_FPE_ADV_HADV_VAL;
-	osi_writel(val, (unsigned char *)osi_core->base + EQOS_MTL_FPE_ADV);
+	osi_writela(osi_core, val,
+		    (unsigned char *)osi_core->base + EQOS_MTL_FPE_ADV);
 
 	return 0;
 }

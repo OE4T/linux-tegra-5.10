@@ -285,4 +285,17 @@ void ivc_init_core_ops(struct core_ops *ops);
  * - De-initialization: No
  */
 void mgbe_init_core_ops(struct core_ops *ops);
+
+/**
+ * @brief ivc_init_macsec_ops - Initialize macsec core operations.
+ *
+ * @param[in] macsecops: Macsec operations pointer.
+ *
+ * @note
+ * API Group:
+ * - Initialization: Yes
+ * - Run time: No
+ * - De-initialization: No
+ */
+void ivc_init_macsec_ops(void *macsecops);
 #endif /* INCLUDED_CORE_LOCAL_H */
