@@ -571,10 +571,20 @@ static void nvmap_dmabuf_vunmap(struct dma_buf *dmabuf, void *vaddr)
 #else
 static int nvmap_dmabuf_vmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
 {
-       struct nvmap_handle_info *info = dmabuf->priv;
+	struct nvmap_handle_info *info = dmabuf->priv;
+	void *res;
+	int ret = 0;
 
-       trace_nvmap_dmabuf_vmap(dmabuf);
-       return (long)__nvmap_mmap(info->handle);
+	trace_nvmap_dmabuf_vmap(dmabuf);
+	res = __nvmap_mmap(info->handle);
+	if (res != NULL) {
+		map->vaddr = res;
+		map->is_iomem = false;
+	}
+	else {
+		ret = -ENOMEM;
+	}
+	return ret;
 }
 
 static void nvmap_dmabuf_vunmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
