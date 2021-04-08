@@ -154,7 +154,6 @@ u32 nvgpu_readl_impl(struct gk20a *g, u32 r);
  */
 void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v);
 
-#ifdef CONFIG_NVGPU_NON_FUSA
 /**
  * @brief Ensure write to a GPU register.
  *
@@ -168,7 +167,6 @@ void nvgpu_writel_check(struct gk20a *g, u32 r, u32 v);
  * @return None.
  */
 void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v);
-#endif
 
 /**
  * @brief Write a value to an already mapped bar1 io-region.

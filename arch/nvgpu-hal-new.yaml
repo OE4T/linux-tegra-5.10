@@ -36,7 +36,6 @@ ltc:
       sources: [ hal/ltc/ltc_gm20b.c,
                  hal/ltc/ltc_gm20b_dbg.c,
                  hal/ltc/ltc_gp10b.c,
-                 hal/ltc/ltc_gv11b.c,
                  hal/ltc/ltc_tu104.c,
                  hal/ltc/ltc_tu104.h ]
     intr_fusa:

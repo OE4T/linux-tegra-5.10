@@ -80,7 +80,6 @@ u32 nvgpu_readl_impl(struct gk20a *g, u32 r)
 	return v;
 }
 
-#ifdef CONFIG_NVGPU_NON_FUSA
 void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v)
 {
 	if (unlikely(!g->regs)) {
@@ -94,7 +93,6 @@ void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v)
 		nvgpu_log(g, gpu_dbg_reg, "r=0x%x v=0x%x", r, v);
 	}
 }
-#endif
 
 void nvgpu_bar1_writel(struct gk20a *g, u32 b, u32 v)
 {

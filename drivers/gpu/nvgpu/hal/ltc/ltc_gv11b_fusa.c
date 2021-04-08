@@ -1,7 +1,7 @@
 /*
  * GV11B LTC
  *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -78,3 +78,19 @@ done:
 
 	return err;
 }
+
+#ifdef CONFIG_NVGPU_GRAPHICS
+/*
+ * Sets the ZBC stencil for the passed index.
+ */
+void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
+					  u32 stencil_depth,
+					  u32 index)
+{
+	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
+		ltc_ltcs_ltss_dstg_zbc_index_address_f(index));
+
+	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_r(),
+			stencil_depth);
+}
+#endif /* CONFIG_NVGPU_GRAPHICS */

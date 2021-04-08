@@ -59,11 +59,11 @@ u32 valid_classes[] = {
 	0xC3C0U, /* VOLTA_COMPUTE_A */
 	0xC3B5U, /* VOLTA_DMA_COPY_A */
 	0xC36FU, /* VOLTA_CHANNEL_GPFIFO_A */
+	0xC397U, /* VOLTA_A */
 };
 
 u32 invalid_classes[] = {
 	0x1234U, /* random value */
-	0xC397U, /* VOLTA_A */
 	0xC097U, /* PASCAL_A */
 	0xC0C0U, /* PASCAL_COMPUTE_A */
 	0xB1C0U, /* MAXWELL_COMPUTE_B */

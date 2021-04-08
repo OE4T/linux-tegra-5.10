@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,18 +54,3 @@ int gm20b_gr_config_init_sm_id_table(struct gk20a *g,
 	nvgpu_gr_config_set_no_of_sm(gr_config, sm_id);
 	return 0;
 }
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-u32 gm20b_gr_config_get_zcull_count_in_gpc(struct gk20a *g,
-	struct nvgpu_gr_config *config, u32 gpc_index)
-{
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 tmp, tmp1, tmp2;
-
-	tmp1 = nvgpu_safe_mult_u32(gpc_stride, gpc_index);
-	tmp2 = nvgpu_safe_add_u32(gr_gpc0_fs_gpc_r(), tmp1);
-	tmp = nvgpu_readl(g, tmp2);
-
-	return gr_gpc0_fs_gpc_num_available_zculls_v(tmp);
-}
-#endif

@@ -346,7 +346,6 @@ nvgpu-y += \
 	hal/therm/therm_tu104.o \
 	hal/gr/falcon/gr_falcon_gm20b.o \
 	hal/ltc/ltc_gp10b.o \
-	hal/ltc/ltc_gv11b.o  \
 	hal/ltc/intr/ltc_intr_gm20b.o \
 	hal/ltc/intr/ltc_intr_gp10b.o \
 	hal/fb/fb_gm20b.o \

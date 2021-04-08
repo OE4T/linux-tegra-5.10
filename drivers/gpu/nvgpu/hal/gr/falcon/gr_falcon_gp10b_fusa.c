@@ -38,7 +38,7 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
 
 	err = gm20b_gr_falcon_init_ctx_state(g, sizes);
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if (err != 0) {
 		return err;
 	}

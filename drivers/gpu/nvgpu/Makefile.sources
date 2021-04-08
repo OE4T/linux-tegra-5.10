@@ -286,7 +286,6 @@ srcs += hal/init/hal_gp10b.c \
 	hal/therm/therm_gp10b.c \
 	hal/ltc/ltc_gm20b.c \
 	hal/ltc/ltc_gp10b.c \
-	hal/ltc/ltc_gv11b.c \
 	hal/ltc/intr/ltc_intr_gm20b.c \
 	hal/ltc/intr/ltc_intr_gp10b.c \
 	hal/fb/fb_gp10b.c \

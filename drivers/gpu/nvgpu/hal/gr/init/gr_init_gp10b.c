@@ -277,7 +277,6 @@ void gp10b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 		gr_gpcs_tpcs_tex_rm_cb_1_valid_true_f(), patch);
 }
 
-#ifdef CONFIG_NVGPU_GRAPHICS
 void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
@@ -318,13 +317,6 @@ u32 gp10b_gr_init_get_ctx_spill_size(struct gk20a *g)
 		 gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v());
 }
 
-u32 gp10b_gr_init_get_ctx_pagepool_size(struct gk20a *g)
-{
-	return nvgpu_safe_mult_u32(
-		 g->ops.gr.init.pagepool_default_size(g),
-		 gr_scc_pagepool_total_pages_byte_granularity_v());
-}
-
 u32 gp10b_gr_init_get_ctx_betacb_size(struct gk20a *g)
 {
 	return nvgpu_safe_add_u32(
@@ -351,4 +343,3 @@ void gp10b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_f(size),
 			patch);
 }
-#endif /* CONFIG_NVGPU_GRAPHICS */

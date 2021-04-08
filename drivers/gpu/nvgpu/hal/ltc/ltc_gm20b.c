@@ -1,7 +1,7 @@
 /*
  * GM20B L2
  *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -111,41 +111,6 @@ u64 gm20b_determine_L2_size_bytes(struct gk20a *g)
 
 	return cache_size;
 }
-
-#ifdef CONFIG_NVGPU_GRAPHICS
-/*
- * Sets the ZBC color for the passed index.
- */
-void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
-					  u32 *color_l2,
-					  u32 index)
-{
-	u32 i;
-
-	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
-		ltc_ltcs_ltss_dstg_zbc_index_address_f(index));
-
-	for (i = 0;
-	     i < ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v(); i++) {
-		nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(i),
-			color_l2[i]);
-	}
-}
-
-/*
- * Sets the ZBC depth for the passed index.
- */
-void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
-					  u32 depth_val,
-					  u32 index)
-{
-	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
-		ltc_ltcs_ltss_dstg_zbc_index_address_f(index));
-
-	nvgpu_writel(g, ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r(),
-		depth_val);
-}
-#endif /* CONFIG_NVGPU_GRAPHICS */
 
 void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled)
 {

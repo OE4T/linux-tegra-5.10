@@ -361,4 +361,11 @@ u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
 
 	return NVGPU_ALIGN(size, 128U);
 }
-#endif
+
+u32 gp10b_gr_init_get_ctx_pagepool_size(struct gk20a *g)
+{
+	return nvgpu_safe_mult_u32(
+		 g->ops.gr.init.pagepool_default_size(g),
+		 gr_scc_pagepool_total_pages_byte_granularity_v());
+}
+#endif /* CONFIG_NVGPU_GRAPHICS */

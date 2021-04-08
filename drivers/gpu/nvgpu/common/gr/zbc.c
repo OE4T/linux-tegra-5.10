@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -221,7 +221,7 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			    struct nvgpu_gr_zbc_entry *zbc_val)
 {
 	int added = false;
-#ifdef CONFIG_NVGPU_LS_PMU
+#if defined(CONFIG_NVGPU_LS_PMU) && defined(CONFIG_NVGPU_POWER_PG)
 	u32 entries;
 #endif
 
@@ -252,7 +252,7 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 		goto err_mutex;
 	}
 
-#ifdef CONFIG_NVGPU_LS_PMU
+#if defined(CONFIG_NVGPU_LS_PMU) && defined(CONFIG_NVGPU_POWER_PG)
 	if (added == ZBC_ENTRY_ADDED) {
 		/* update zbc for elpg only when new entry is added */
 		entries = max(

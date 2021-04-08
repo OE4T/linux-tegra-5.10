@@ -572,7 +572,7 @@ defined(CONFIG_NVGPU_CTXSW_FW_ERROR_CODE_TESTING)
 	nvgpu_log(g, gpu_dbg_gr, "PM CTXSW image size = %u", sizes->pm_ctxsw_image_size);
 #endif
 
-#ifdef CONFIG_NVGPU_GRAPHICS
+#ifdef CONFIG_NVGPU_NON_FUSA
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 		ret = g->ops.gr.falcon.ctrl_ctxsw(g,
 			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
