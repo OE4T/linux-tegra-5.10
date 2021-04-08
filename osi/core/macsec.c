@@ -40,7 +40,7 @@ static int poll_for_dbg_buf_update(struct osi_core_priv_data *const osi_core)
 	unsigned int dbg_buf_config;
 
 	while (retry > 0) {
-		dbg_buf_config = osi_readl(
+		dbg_buf_config = osi_readla(osi_core,
 			(unsigned char *)osi_core->macsec_base +
 			 DEBUG_BUF_CONFIG_0);
 		if ((dbg_buf_config & DEBUG_BUF_CONFIG_0_UPDATE) == 0U) {
@@ -80,7 +80,7 @@ static inline void write_dbg_buf_data(
 	for (i = 0; i < DBG_BUF_LEN; i++) {
 		/* pr_err("%s: dbg_buf_data[%d]: 0x%x\n", __func__,
 			 i, dbg_buf[i]); */
-		osi_writel(dbg_buf[i], base + DEBUG_BUF_DATA_0(i));
+		osi_writela(osi_core, dbg_buf[i], base + DEBUG_BUF_DATA_0(i));
 	}
 }
 
@@ -102,7 +102,7 @@ static inline void read_dbg_buf_data(
 
 	/* Read debug buffer from HW */
 	for (i = 0; i < DBG_BUF_LEN; i++) {
-		dbg_buf[i] = osi_readl(base + DEBUG_BUF_DATA_0(i));
+		dbg_buf[i] = osi_readla(osi_core, base + DEBUG_BUF_DATA_0(i));
 		/* pr_err("%s: dbg_buf_data[%d]: 0x%x\n", __func__,
 			i, dbg_buf[i]); */
 	}
@@ -127,7 +127,8 @@ static void tx_dbg_trigger_evts(
 
 	if (dbg_buf_config->rw == DBG_TBL_WRITE) {
 		flags = dbg_buf_config->flags;
-		tx_trigger_evts = osi_readl(base + TX_DEBUG_TRIGGER_EN_0);
+		tx_trigger_evts = osi_readla(osi_core,
+					     base + TX_DEBUG_TRIGGER_EN_0);
 		if (flags & TX_DBG_LKUP_MISS_EVT) {
 			tx_trigger_evts |= TX_DBG_LKUP_MISS;
 		} else {
@@ -166,17 +167,21 @@ static void tx_dbg_trigger_evts(
 
 		pr_err("%s: tx_dbg_trigger_evts 0x%x", __func__,
 			tx_trigger_evts);
-		osi_writel(tx_trigger_evts, base + TX_DEBUG_TRIGGER_EN_0);
+		osi_writela(osi_core, tx_trigger_evts,
+			    base + TX_DEBUG_TRIGGER_EN_0);
 		if (tx_trigger_evts != OSI_NONE) {
 			/** Start the tx debug buffer capture */
-			debug_ctrl_reg = osi_readl(base + TX_DEBUG_CONTROL_0);
+			debug_ctrl_reg = osi_readla(osi_core,
+						    base + TX_DEBUG_CONTROL_0);
 			debug_ctrl_reg |= TX_DEBUG_CONTROL_0_START_CAP;
 			pr_err("%s: debug_ctrl_reg 0x%x", __func__,
 			       debug_ctrl_reg);
-			osi_writel(debug_ctrl_reg, base + TX_DEBUG_CONTROL_0);
+			osi_writela(osi_core, debug_ctrl_reg,
+				    base + TX_DEBUG_CONTROL_0);
 		}
 	} else {
-		tx_trigger_evts = osi_readl(base + TX_DEBUG_TRIGGER_EN_0);
+		tx_trigger_evts = osi_readla(osi_core,
+					     base + TX_DEBUG_TRIGGER_EN_0);
 		pr_err("%s: tx_dbg_trigger_evts 0x%x", __func__,
 			tx_trigger_evts);
 		if (tx_trigger_evts & TX_DBG_LKUP_MISS) {
@@ -220,7 +225,8 @@ static void rx_dbg_trigger_evts(
 
 	if (dbg_buf_config->rw == DBG_TBL_WRITE) {
 		flags = dbg_buf_config->flags;
-		rx_trigger_evts = osi_readl(base + RX_DEBUG_TRIGGER_EN_0);
+		rx_trigger_evts = osi_readla(osi_core,
+					     base + RX_DEBUG_TRIGGER_EN_0);
 		if (flags & RX_DBG_LKUP_MISS_EVT) {
 			rx_trigger_evts |= RX_DBG_LKUP_MISS;
 		} else {
@@ -258,17 +264,21 @@ static void rx_dbg_trigger_evts(
 		}
 		pr_err("%s: rx_dbg_trigger_evts 0x%x", __func__,
 			rx_trigger_evts);
-		osi_writel(rx_trigger_evts, base + RX_DEBUG_TRIGGER_EN_0);
+		osi_writela(osi_core, rx_trigger_evts,
+			    base + RX_DEBUG_TRIGGER_EN_0);
 		if (rx_trigger_evts != OSI_NONE) {
 			/** Start the tx debug buffer capture */
-			debug_ctrl_reg = osi_readl(base + RX_DEBUG_CONTROL_0);
+			debug_ctrl_reg = osi_readla(osi_core,
+						    base + RX_DEBUG_CONTROL_0);
 			debug_ctrl_reg |= RX_DEBUG_CONTROL_0_START_CAP;
 			pr_err("%s: debug_ctrl_reg 0x%x", __func__,
 			       debug_ctrl_reg);
-			osi_writel(debug_ctrl_reg, base + RX_DEBUG_CONTROL_0);
+			osi_writela(osi_core, debug_ctrl_reg,
+				    base + RX_DEBUG_CONTROL_0);
 		}
 	} else {
-		rx_trigger_evts = osi_readl(base + RX_DEBUG_TRIGGER_EN_0);
+		rx_trigger_evts = osi_readla(osi_core,
+					     base + RX_DEBUG_TRIGGER_EN_0);
 		pr_err("%s: rx_dbg_trigger_evts 0x%x", __func__,
 			rx_trigger_evts);
 		if (rx_trigger_evts & RX_DBG_LKUP_MISS) {
@@ -336,7 +346,7 @@ static int macsec_dbg_buf_config(struct osi_core_priv_data *const osi_core,
 			dbg_buf_config->ctlr_sel, dbg_buf_config->rw,
 			dbg_buf_config->index); */
 
-	dbg_config_reg = osi_readl(base + DEBUG_BUF_CONFIG_0);
+	dbg_config_reg = osi_readla(osi_core, base + DEBUG_BUF_CONFIG_0);
 
 	if (dbg_buf_config->ctlr_sel) {
 		dbg_config_reg |= DEBUG_BUF_CONFIG_0_CTLR_SEL;
@@ -355,7 +365,7 @@ static int macsec_dbg_buf_config(struct osi_core_priv_data *const osi_core,
 	dbg_config_reg &= ~DEBUG_BUF_CONFIG_0_IDX_MASK;
 	dbg_config_reg |= dbg_buf_config->index ;
 	dbg_config_reg |= DEBUG_BUF_CONFIG_0_UPDATE;
-	osi_writel(dbg_config_reg, base + DEBUG_BUF_CONFIG_0);
+	osi_writela(osi_core, dbg_config_reg, base + DEBUG_BUF_CONFIG_0);
 	ret = poll_for_dbg_buf_update(osi_core);
 	if (ret < 0) {
 		return ret;
@@ -431,9 +441,11 @@ static inline unsigned long long update_macsec_mmc_val(
 	unsigned long long temp;
 	unsigned int value_lo, value_hi;
 
-	value_lo = osi_readl((unsigned char *)osi_core->macsec_base + offset);
-	value_hi = osi_readl((unsigned char *)osi_core->macsec_base +
-						 (offset + 4U));
+	value_lo = osi_readla(osi_core,
+			      (unsigned char *)osi_core->macsec_base + offset);
+	value_hi = osi_readla(osi_core,
+			      (unsigned char *)osi_core->macsec_base +
+			      (offset + 4U));
 	temp = (value_lo | value_hi << 31);
 
 	return temp;
@@ -502,7 +514,7 @@ int macsec_enable(struct osi_core_priv_data *osi_core, unsigned int enable)
 	unsigned int val;
 	unsigned char *base = (unsigned char *)osi_core->macsec_base;
 
-	val = osi_readl(base + MACSEC_CONTROL0);
+	val = osi_readla(osi_core, base + MACSEC_CONTROL0);
 	pr_err("Read MACSEC_CONTROL0: 0x%x\n", val);
 
 	if ((enable & OSI_MACSEC_TX_EN) == OSI_MACSEC_TX_EN) {
@@ -522,7 +534,7 @@ int macsec_enable(struct osi_core_priv_data *osi_core, unsigned int enable)
 	}
 
 	pr_err("Write MACSEC_CONTROL0: 0x%x\n", val);
-	osi_writel(val, base + MACSEC_CONTROL0);
+	osi_writela(osi_core, val, base + MACSEC_CONTROL0);
 
 	return 0;
 }
@@ -555,7 +567,8 @@ static inline int poll_for_kt_update(struct osi_core_priv_data *osi_core)
 
 		count++;
 
-		kt_config = osi_readl((unsigned char *)osi_core->tz_base +
+		kt_config = osi_readla(osi_core,
+				       (unsigned char *)osi_core->tz_base +
 				       GCM_KEYTABLE_CONFIG);
 		if ((kt_config & KT_CONFIG_UPDATE) == 0U) {
 			/* exit loop */
@@ -576,8 +589,9 @@ static int kt_key_read(struct osi_core_priv_data *const osi_core,
 	int i, j;
 
 	for (i = 0; i < MACSEC_KT_DATA_REG_CNT; i++) {
-		kt_key[i] = osi_readl((unsigned char *)osi_core->tz_base +
-				      GCM_KEYTABLE_DATA(i));
+		kt_key[i] = osi_readla(osi_core,
+				       (unsigned char *)osi_core->tz_base +
+				       GCM_KEYTABLE_DATA(i));
 	}
 
 	if ((kt_key[MACSEC_KT_DATA_REG_CNT - 1] & KT_ENTRY_VALID) ==
@@ -633,8 +647,9 @@ static int kt_key_write(struct osi_core_priv_data *const osi_core,
 
 	for (i = 0; i < MACSEC_KT_DATA_REG_CNT; i++) {
 		/* pr_err("%s: kt_key[%d]: 0x%x\n", __func__, i, kt_key[i]); */
-		osi_writel(kt_key[i], (unsigned char *)osi_core->tz_base +
-				      GCM_KEYTABLE_DATA(i));
+		osi_writela(osi_core, kt_key[i],
+			    (unsigned char *)osi_core->tz_base +
+			    GCM_KEYTABLE_DATA(i));
 	}
 
 	return 0;
@@ -666,7 +681,7 @@ static int macsec_kt_config(struct osi_core_priv_data *const osi_core,
 		kt_config->table_config.ctlr_sel,
 		kt_config->table_config.rw, kt_config->table_config.index,
 		kt_config->flags); */
-	kt_config_reg = osi_readl(base + GCM_KEYTABLE_CONFIG);
+	kt_config_reg = osi_readla(osi_core, base + GCM_KEYTABLE_CONFIG);
 	if (kt_config->table_config.ctlr_sel) {
 		kt_config_reg |= KT_CONFIG_CTLR_SEL;
 	} else {
@@ -688,7 +703,7 @@ static int macsec_kt_config(struct osi_core_priv_data *const osi_core,
 	kt_config_reg |= (kt_config->table_config.index);
 
 	kt_config_reg |= KT_CONFIG_UPDATE;
-	osi_writel(kt_config_reg, base + GCM_KEYTABLE_CONFIG);
+	osi_writela(osi_core, kt_config_reg, base + GCM_KEYTABLE_CONFIG);
 
 	/* Wait for this KT update to finish */
 	ret = poll_for_kt_update(osi_core);
@@ -733,8 +748,9 @@ static inline int poll_for_lut_update(struct osi_core_priv_data *osi_core)
 
 		count++;
 
-		lut_config = osi_readl((unsigned char *)osi_core->macsec_base +
-				       MACSEC_LUT_CONFIG);
+		lut_config = osi_readla(osi_core,
+					(unsigned char *)osi_core->macsec_base +
+					MACSEC_LUT_CONFIG);
 		if ((lut_config & LUT_CONFIG_UPDATE) == 0U) {
 			/* exit loop */
 			cond = 0;
@@ -755,7 +771,7 @@ static inline void read_lut_data(struct osi_core_priv_data *const osi_core,
 
 	/* Commit the LUT entry to HW */
 	for (i = 0; i < MACSEC_LUT_DATA_REG_CNT; i++) {
-		lut_data[i] = osi_readl(base + MACSEC_LUT_DATA(i));
+		lut_data[i] = osi_readla(osi_core, base + MACSEC_LUT_DATA(i));
 		//pr_err("%s: lut_data[%d]: 0x%x\n", __func__, i, lut_data[i]);
 	}
 }
@@ -938,7 +954,7 @@ static int byp_lut_read(struct osi_core_priv_data *const osi_core,
 		pr_err("Unknown controller select\n");
 		return -1;
 	}
-	val = osi_readl(paddr);
+	val = osi_readla(osi_core, paddr);
 	if (val & (1U << index)) {
 		flags |= LUT_FLAGS_ENTRY_VALID;
 	}
@@ -993,7 +1009,7 @@ static int sci_lut_read(struct osi_core_priv_data *const osi_core,
 				LUT_FLAGS_DVLAN_OUTER_INNER_TAG_SEL;
 		}
 
-		val = osi_readl(addr+TX_SCI_LUT_VALID);
+		val = osi_readla(osi_core, addr+TX_SCI_LUT_VALID);
 		if (val & (1U << index)) {
 			lut_config->flags |= LUT_FLAGS_ENTRY_VALID;
 		}
@@ -1018,7 +1034,7 @@ static int sci_lut_read(struct osi_core_priv_data *const osi_core,
 			}
 		}
 
-		val = osi_readl(addr+RX_SCI_LUT_VALID);
+		val = osi_readla(osi_core, addr+RX_SCI_LUT_VALID);
 		if (val & (1U << index)) {
 			lut_config->flags |= LUT_FLAGS_ENTRY_VALID;
 		}
@@ -1164,7 +1180,7 @@ static inline void commit_lut_data(struct osi_core_priv_data *const osi_core,
 	/* Commit the LUT entry to HW */
 	for (i = 0; i < MACSEC_LUT_DATA_REG_CNT; i++) {
 		//pr_err("%s: lut_data[%d]: 0x%x\n", __func__, i, lut_data[i]);
-		osi_writel(lut_data[i], base + MACSEC_LUT_DATA(i));
+		osi_writela(osi_core, lut_data[i], base + MACSEC_LUT_DATA(i));
 	}
 }
 
@@ -1589,13 +1605,13 @@ static int sci_lut_config(struct osi_core_priv_data *const osi_core,
 
 		if ((lut_config->flags & LUT_FLAGS_ENTRY_VALID) ==
 			LUT_FLAGS_ENTRY_VALID) {
-			val = osi_readl(addr+TX_SCI_LUT_VALID);
+			val = osi_readla(osi_core, addr+TX_SCI_LUT_VALID);
 			val |= (1 << index);
-			osi_writel(val, addr+TX_SCI_LUT_VALID);
+			osi_writela(osi_core, val, addr+TX_SCI_LUT_VALID);
 		} else {
-			val = osi_readl(addr+TX_SCI_LUT_VALID);
+			val = osi_readla(osi_core, addr+TX_SCI_LUT_VALID);
 			val &= ~(1 << index);
-			osi_writel(val, addr+TX_SCI_LUT_VALID);
+			osi_writela(osi_core, val, addr+TX_SCI_LUT_VALID);
 		}
 
 		break;
@@ -1608,13 +1624,13 @@ static int sci_lut_config(struct osi_core_priv_data *const osi_core,
 
 		if ((lut_config->flags & LUT_FLAGS_ENTRY_VALID) ==
 			LUT_FLAGS_ENTRY_VALID) {
-			val = osi_readl(addr+RX_SCI_LUT_VALID);
+			val = osi_readla(osi_core, addr+RX_SCI_LUT_VALID);
 			val |= (1 << index);
-			osi_writel(val, addr+RX_SCI_LUT_VALID);
+			osi_writela(osi_core, val, addr+RX_SCI_LUT_VALID);
 		} else {
-			val = osi_readl(addr+RX_SCI_LUT_VALID);
+			val = osi_readla(osi_core, addr+RX_SCI_LUT_VALID);
 			val &= ~(1 << index);
-			osi_writel(val, addr+RX_SCI_LUT_VALID);
+			osi_writela(osi_core, val, addr+RX_SCI_LUT_VALID);
 		}
 
 		break;
@@ -1660,26 +1676,26 @@ static int byp_lut_config(struct osi_core_priv_data *const osi_core,
 	case CTLR_SEL_TX:
 		if ((flags & LUT_FLAGS_ENTRY_VALID) ==
 		     LUT_FLAGS_ENTRY_VALID) {
-			val = osi_readl(addr+TX_BYP_LUT_VALID);
+			val = osi_readla(osi_core, addr+TX_BYP_LUT_VALID);
 			val |= (1 << index);
-			osi_writel(val, addr+TX_BYP_LUT_VALID);
+			osi_writela(osi_core, val, addr+TX_BYP_LUT_VALID);
 		} else {
-			val = osi_readl(addr+TX_BYP_LUT_VALID);
+			val = osi_readla(osi_core, addr+TX_BYP_LUT_VALID);
 			val &= ~(1 << index);
-			osi_writel(val, addr+TX_BYP_LUT_VALID);
+			osi_writela(osi_core, val, addr+TX_BYP_LUT_VALID);
 		}
 		break;
 
 	case CTLR_SEL_RX:
 		if ((flags & LUT_FLAGS_ENTRY_VALID) ==
 		     LUT_FLAGS_ENTRY_VALID) {
-			val = osi_readl(addr+RX_BYP_LUT_VALID);
+			val = osi_readla(osi_core, addr+RX_BYP_LUT_VALID);
 			val |= (1 << index);
-			osi_writel(val, addr+RX_BYP_LUT_VALID);
+			osi_writela(osi_core, val, addr+RX_BYP_LUT_VALID);
 		} else {
-			val = osi_readl(addr+RX_BYP_LUT_VALID);
+			val = osi_readla(osi_core, addr+RX_BYP_LUT_VALID);
 			val &= ~(1 << index);
-			osi_writel(val, addr+RX_BYP_LUT_VALID);
+			osi_writela(osi_core, val, addr+RX_BYP_LUT_VALID);
 		}
 
 		break;
@@ -1766,7 +1782,7 @@ static int macsec_lut_config(struct osi_core_priv_data *const osi_core,
 		lut_config->table_config.rw, lut_config->table_config.index,
 		lut_config->flags); */
 
-	lut_config_reg = osi_readl(base + MACSEC_LUT_CONFIG);
+	lut_config_reg = osi_readla(osi_core, base + MACSEC_LUT_CONFIG);
 	if (lut_config->table_config.ctlr_sel) {
 		lut_config_reg |= LUT_CONFIG_CTLR_SEL;
 	} else {
@@ -1791,7 +1807,7 @@ static int macsec_lut_config(struct osi_core_priv_data *const osi_core,
 	lut_config_reg |= (lut_config->table_config.index);
 
 	lut_config_reg |= LUT_CONFIG_UPDATE;
-	osi_writel(lut_config_reg, base + MACSEC_LUT_CONFIG);
+	osi_writela(osi_core, lut_config_reg, base + MACSEC_LUT_CONFIG);
 
 	/* Wait for this LUT update to finish */
 	ret = poll_for_lut_update(osi_core);
@@ -1819,11 +1835,11 @@ static inline void handle_rx_sc_invalid_key(
 
 	/** check which SC/AN had triggered and clear */
 	/* rx_sc0_7 */
-	clear = osi_readl(addr + RX_SC_KEY_INVALID_STS0_0);
-	osi_writel(clear, addr + RX_SC_KEY_INVALID_STS0_0);
+	clear = osi_readla(osi_core, addr + RX_SC_KEY_INVALID_STS0_0);
+	osi_writela(osi_core, clear, addr + RX_SC_KEY_INVALID_STS0_0);
 	/* rx_sc8_15 */
-	clear = osi_readl(addr + RX_SC_KEY_INVALID_STS1_0);
-	osi_writel(clear, addr + RX_SC_KEY_INVALID_STS1_0);
+	clear = osi_readla(osi_core, addr + RX_SC_KEY_INVALID_STS1_0);
+	osi_writela(osi_core, clear, addr + RX_SC_KEY_INVALID_STS1_0);
 }
 
 static inline void handle_tx_sc_invalid_key(
@@ -1836,11 +1852,11 @@ static inline void handle_tx_sc_invalid_key(
 
 	/** check which SC/AN had triggered and clear */
 	/* tx_sc0_7 */
-	clear = osi_readl(addr + TX_SC_KEY_INVALID_STS0_0);
-	osi_writel(clear, addr + TX_SC_KEY_INVALID_STS0_0);
+	clear = osi_readla(osi_core, addr + TX_SC_KEY_INVALID_STS0_0);
+	osi_writela(osi_core, clear, addr + TX_SC_KEY_INVALID_STS0_0);
 	/* tx_sc8_15 */
-	clear = osi_readl(addr + TX_SC_KEY_INVALID_STS1_0);
-	osi_writel(clear, addr + TX_SC_KEY_INVALID_STS1_0);
+	clear = osi_readla(osi_core, addr + TX_SC_KEY_INVALID_STS1_0);
+	osi_writela(osi_core, clear, addr + TX_SC_KEY_INVALID_STS1_0);
 }
 
 static inline void handle_safety_err_irq(
@@ -1858,11 +1874,11 @@ static inline void handle_rx_sc_replay_err(
 	/* pr_err("%s()\n", __func__); */
 
 	/* rx_sc0_7 */
-	clear = osi_readl(addr + RX_SC_REPLAY_ERROR_STATUS0_0);
-	osi_writel(clear, addr + RX_SC_REPLAY_ERROR_STATUS0_0);
+	clear = osi_readla(osi_core, addr + RX_SC_REPLAY_ERROR_STATUS0_0);
+	osi_writela(osi_core, clear, addr + RX_SC_REPLAY_ERROR_STATUS0_0);
 	/* rx_sc8_15 */
-	clear = osi_readl(addr + RX_SC_REPLAY_ERROR_STATUS1_0);
-	osi_writel(clear, addr + RX_SC_REPLAY_ERROR_STATUS1_0);
+	clear = osi_readla(osi_core, addr + RX_SC_REPLAY_ERROR_STATUS1_0);
+	osi_writela(osi_core, clear, addr + RX_SC_REPLAY_ERROR_STATUS1_0);
 }
 
 static inline void handle_rx_pn_exhausted(
@@ -1878,11 +1894,11 @@ static inline void handle_rx_pn_exhausted(
 	/* check which SC/AN had triggered and clear
 	 */
 	/* rx_sc0_7 */
-	clear = osi_readl(addr + RX_SC_PN_EXHAUSTED_STATUS0_0);
-	osi_writel(clear, addr + RX_SC_PN_EXHAUSTED_STATUS0_0);
+	clear = osi_readla(osi_core, addr + RX_SC_PN_EXHAUSTED_STATUS0_0);
+	osi_writela(osi_core, clear, addr + RX_SC_PN_EXHAUSTED_STATUS0_0);
 	/* rx_sc8_15 */
-	clear = osi_readl(addr + RX_SC_PN_EXHAUSTED_STATUS1_0);
-	osi_writel(clear, addr + RX_SC_PN_EXHAUSTED_STATUS1_0);
+	clear = osi_readla(osi_core, addr + RX_SC_PN_EXHAUSTED_STATUS1_0);
+	osi_writela(osi_core, clear, addr + RX_SC_PN_EXHAUSTED_STATUS1_0);
 }
 
 static inline void handle_tx_sc_err(struct osi_core_priv_data *const osi_core)
@@ -1894,9 +1910,9 @@ static inline void handle_tx_sc_err(struct osi_core_priv_data *const osi_core)
 
 	/* TODO: Do you need re-enable SC/AN? */
 
-	clear = osi_readl(addr + TX_SC_ERROR_INTERRUPT_STATUS_0);
+	clear = osi_readla(osi_core, addr + TX_SC_ERROR_INTERRUPT_STATUS_0);
 
-	osi_writel(clear, addr + TX_SC_ERROR_INTERRUPT_STATUS_0);
+	osi_writela(osi_core, clear, addr + TX_SC_ERROR_INTERRUPT_STATUS_0);
 
 }
 
@@ -1913,11 +1929,11 @@ static inline void handle_tx_pn_threshold(
 	/* check which SC/AN had triggered and clear
 	 */
 	/* tx_sc0_7 */
-	clear = osi_readl(addr + TX_SC_PN_THRESHOLD_STATUS0_0);
-	osi_writel(clear, addr + TX_SC_PN_THRESHOLD_STATUS0_0);
+	clear = osi_readla(osi_core, addr + TX_SC_PN_THRESHOLD_STATUS0_0);
+	osi_writela(osi_core, clear, addr + TX_SC_PN_THRESHOLD_STATUS0_0);
 	/* tx_sc8_15 */
-	clear = osi_readl(addr + TX_SC_PN_THRESHOLD_STATUS1_0);
-	osi_writel(clear, addr + TX_SC_PN_THRESHOLD_STATUS1_0);
+	clear = osi_readla(osi_core, addr + TX_SC_PN_THRESHOLD_STATUS1_0);
+	osi_writela(osi_core, clear, addr + TX_SC_PN_THRESHOLD_STATUS1_0);
 }
 
 static inline void handle_tx_pn_exhausted(
@@ -1933,11 +1949,11 @@ static inline void handle_tx_pn_exhausted(
 	/* check which SC/AN had triggered and clear
 	 */
 	/* tx_sc0_7 */
-	clear = osi_readl(addr + TX_SC_PN_EXHAUSTED_STATUS0_0);
-	osi_writel(clear, addr + TX_SC_PN_EXHAUSTED_STATUS0_0);
+	clear = osi_readla(osi_core, addr + TX_SC_PN_EXHAUSTED_STATUS0_0);
+	osi_writela(osi_core, clear, addr + TX_SC_PN_EXHAUSTED_STATUS0_0);
 	/* tx_sc8_15 */
-	clear = osi_readl(addr + TX_SC_PN_EXHAUSTED_STATUS1_0);
-	osi_writel(clear, addr + TX_SC_PN_EXHAUSTED_STATUS1_0);
+	clear = osi_readla(osi_core, addr + TX_SC_PN_EXHAUSTED_STATUS1_0);
+	osi_writela(osi_core, clear, addr + TX_SC_PN_EXHAUSTED_STATUS1_0);
 }
 
 static inline void handle_dbg_evt_capture_done(
@@ -1948,19 +1964,21 @@ static inline void handle_dbg_evt_capture_done(
 	unsigned int trigger_evts = 0;
 
 	if (ctrl_sel == CTLR_SEL_TX) {
-		trigger_evts = osi_readl(addr + TX_DEBUG_STATUS_0);
+		trigger_evts = osi_readla(osi_core, addr + TX_DEBUG_STATUS_0);
 		pr_err("%s: TX_DEBUG_STATUS_0 0x%x", __func__, trigger_evts);
-		osi_writel(trigger_evts, addr + TX_DEBUG_STATUS_0);
+		osi_writela(osi_core, trigger_evts, addr + TX_DEBUG_STATUS_0);
 		/* clear all trigger events */
 		trigger_evts = 0U;
-		osi_writel(trigger_evts, addr + TX_DEBUG_TRIGGER_EN_0);
+		osi_writela(osi_core, trigger_evts,
+			    addr + TX_DEBUG_TRIGGER_EN_0);
 	} else if (ctrl_sel == CTLR_SEL_RX) {
-		trigger_evts = osi_readl(addr + RX_DEBUG_STATUS_0);
+		trigger_evts = osi_readla(osi_core, addr + RX_DEBUG_STATUS_0);
 		pr_err("%s: RX_DEBUG_STATUS_0 0x%x", __func__, trigger_evts);
-		osi_writel(trigger_evts, addr + RX_DEBUG_STATUS_0);
+		osi_writela(osi_core, trigger_evts, addr + RX_DEBUG_STATUS_0);
 		/* clear all trigger events */
 		trigger_evts = 0U;
-		osi_writel(trigger_evts, addr + RX_DEBUG_TRIGGER_EN_0);
+		osi_writela(osi_core, trigger_evts,
+			    addr + RX_DEBUG_TRIGGER_EN_0);
 	}
 }
 
@@ -1969,7 +1987,7 @@ static inline void handle_tx_irq(struct osi_core_priv_data *const osi_core)
 	unsigned int tx_isr, clear = 0;
 	unsigned char *addr = (unsigned char *)osi_core->macsec_base;
 
-	tx_isr = osi_readl(addr + TX_ISR);
+	tx_isr = osi_readla(osi_core, addr + TX_ISR);
 	pr_err("%s(): tx_isr 0x%x\n", __func__, tx_isr);
 	if ((tx_isr & TX_DBG_BUF_CAPTURE_DONE) == TX_DBG_BUF_CAPTURE_DONE) {
 		handle_dbg_evt_capture_done(osi_core, CTLR_SEL_TX);
@@ -2013,7 +2031,7 @@ static inline void handle_tx_irq(struct osi_core_priv_data *const osi_core)
 	}
 	if (clear) {
 		pr_err("%s(): write tx_isr 0x%x\n", __func__, clear);
-		osi_writel(clear, addr + TX_ISR);
+		osi_writela(osi_core, clear, addr + TX_ISR);
 	}
 }
 
@@ -2022,7 +2040,7 @@ static inline void handle_rx_irq(struct osi_core_priv_data *const osi_core)
 	unsigned int rx_isr, clear = 0;
 	unsigned char *addr = (unsigned char *)osi_core->macsec_base;
 
-	rx_isr = osi_readl(addr + RX_ISR);
+	rx_isr = osi_readla(osi_core, addr + RX_ISR);
 	pr_err("%s(): rx_isr 0x%x\n", __func__, rx_isr);
 
 	if ((rx_isr & RX_DBG_BUF_CAPTURE_DONE) == RX_DBG_BUF_CAPTURE_DONE) {
@@ -2065,7 +2083,7 @@ static inline void handle_rx_irq(struct osi_core_priv_data *const osi_core)
 	}
 	if (clear) {
 		pr_err("%s(): write rx_isr 0x%x\n", __func__, clear);
-		osi_writel(clear, addr + RX_ISR);
+		osi_writela(osi_core, clear, addr + RX_ISR);
 	}
 }
 
@@ -2074,7 +2092,7 @@ static inline void handle_common_irq(struct osi_core_priv_data *const osi_core)
 	unsigned int common_isr, clear = 0;
 	unsigned char *addr = (unsigned char *)osi_core->macsec_base;
 
-	common_isr = osi_readl(addr + COMMON_ISR);
+	common_isr = osi_readla(osi_core, addr + COMMON_ISR);
 	pr_err("%s(): common_isr 0x%x\n", __func__, common_isr);
 
 	if ((common_isr & SECURE_REG_VIOL) == SECURE_REG_VIOL) {
@@ -2104,7 +2122,7 @@ static inline void handle_common_irq(struct osi_core_priv_data *const osi_core)
 		clear |= TX_LKUP_MISS;
 	}
 	if (clear) {
-		osi_writel(clear, addr + COMMON_ISR);
+		osi_writela(osi_core, clear, addr + COMMON_ISR);
 	}
 }
 
@@ -2113,7 +2131,7 @@ static void macsec_handle_ns_irq(struct osi_core_priv_data *const osi_core)
 	unsigned int irq_common_sr, common_isr;
 	unsigned char *addr = (unsigned char *)osi_core->macsec_base;
 
-	irq_common_sr = osi_readl(addr + INTERRUPT_COMMON_SR);
+	irq_common_sr = osi_readla(osi_core, addr + INTERRUPT_COMMON_SR);
 	pr_err("%s(): common_sr 0x%x\n", __func__, irq_common_sr);
 	if ((irq_common_sr & COMMON_SR_TX) == COMMON_SR_TX) {
 		handle_tx_irq(osi_core);
@@ -2127,7 +2145,7 @@ static void macsec_handle_ns_irq(struct osi_core_priv_data *const osi_core)
 		handle_safety_err_irq(osi_core);
 	}
 
-	common_isr = osi_readl(addr + COMMON_ISR);
+	common_isr = osi_readla(osi_core, addr + COMMON_ISR);
 	if (common_isr != OSI_NONE) {
 		handle_common_irq(osi_core);
 	}
@@ -2140,7 +2158,7 @@ static void macsec_handle_s_irq(struct osi_core_priv_data *const osi_core)
 
 	pr_err("%s()\n", __func__);
 
-	common_isr = osi_readl(addr + COMMON_ISR);
+	common_isr = osi_readla(osi_core, addr + COMMON_ISR);
 	if (common_isr != OSI_NONE) {
 		handle_common_irq(osi_core);
 	}
@@ -2154,7 +2172,7 @@ static int macsec_loopback_config(struct osi_core_priv_data *const osi_core,
 	unsigned char *base = (unsigned char *)osi_core->macsec_base;
 	unsigned int val;
 
-	val = osi_readl(base + MACSEC_CONTROL1);
+	val = osi_readla(osi_core, base + MACSEC_CONTROL1);
 	pr_err("Read MACSEC_CONTROL1: 0x%x\n", val);
 
 	if (enable == OSI_ENABLE) {
@@ -2166,7 +2184,7 @@ static int macsec_loopback_config(struct osi_core_priv_data *const osi_core,
 	}
 
 	pr_err("Write MACSEC_CONTROL1: 0x%x\n", val);
-	osi_writel(val, base + MACSEC_CONTROL1);
+	osi_writela(osi_core, val, base + MACSEC_CONTROL1);
 	return 0;
 }
 
@@ -2313,22 +2331,22 @@ static int macsec_init(struct osi_core_priv_data *const osi_core)
 	int i, j;
 
 	/* 1. Set MTU */
-	val = osi_readl(addr + TX_MTU_LEN);
+	val = osi_readla(osi_core, addr + TX_MTU_LEN);
 	pr_err("Read TX_MTU_LEN: 0x%x\n", val);
 	val &= ~(MTU_LENGTH_MASK);
 	val |= (mtu & MTU_LENGTH_MASK);
 	pr_err("Write TX_MTU_LEN: 0x%x\n", val);
-	osi_writel(val, addr + TX_MTU_LEN);
+	osi_writela(osi_core, val, addr + TX_MTU_LEN);
 
-	val = osi_readl(addr + RX_MTU_LEN);
+	val = osi_readla(osi_core, addr + RX_MTU_LEN);
 	pr_err("Read RX_MTU_LEN: 0x%x\n", val);
 	val &= ~(MTU_LENGTH_MASK);
 	val |= (mtu & MTU_LENGTH_MASK);
 	pr_err("Write RX_MTU_LEN: 0x%x\n", val);
-	osi_writel(val, addr + RX_MTU_LEN);
+	osi_writela(osi_core, val, addr + RX_MTU_LEN);
 
 	/* 2. Set essential MACsec control configuration */
-	val = osi_readl(addr + MACSEC_CONTROL0);
+	val = osi_readla(osi_core, addr + MACSEC_CONTROL0);
 	pr_err("Read MACSEC_CONTROL0: 0x%x\n", val);
 	val |= (TX_LKUP_MISS_NS_INTR | RX_LKUP_MISS_NS_INTR |
 		TX_LKUP_MISS_BYPASS | RX_LKUP_MISS_BYPASS);
@@ -2336,40 +2354,40 @@ static int macsec_init(struct osi_core_priv_data *const osi_core)
 	val |= VALIDATE_FRAMES_STRICT;
 	val |= RX_REPLAY_PROT_EN;
 	pr_err("Write MACSEC_CONTROL0: 0x%x\n", val);
-	osi_writel(val, addr + MACSEC_CONTROL0);
+	osi_writela(osi_core, val, addr + MACSEC_CONTROL0);
 
-	val = osi_readl(addr + MACSEC_CONTROL1);
+	val = osi_readla(osi_core, addr + MACSEC_CONTROL1);
 	pr_err("Read MACSEC_CONTROL1: 0x%x\n", val);
 	val |= (RX_MTU_CHECK_EN | TX_LUT_PRIO_BYP | TX_MTU_CHECK_EN);
 	pr_err("Write MACSEC_CONTROL1: 0x%x\n", val);
-	osi_writel(val, addr + MACSEC_CONTROL1);
+	osi_writela(osi_core, val, addr + MACSEC_CONTROL1);
 
 	/* set DVLAN tag ethertype */
 
 	/* val = DVLAN_TAG_ETHERTYPE;
 	pr_err("Write MACSEC_TX_DVLAN_CONTROL_0: 0x%x\n", val);
-	osi_writel(val, addr + MACSEC_TX_DVLAN_CONTROL_0);
+	osi_writela(osi_core, val, addr + MACSEC_TX_DVLAN_CONTROL_0);
 	pr_err("Write MACSEC_RX_DVLAN_CONTROL_0: 0x%x\n", val);
-	osi_writel(val, addr + MACSEC_RX_DVLAN_CONTROL_0); */
+	osi_writela(osi_core, val, addr + MACSEC_RX_DVLAN_CONTROL_0); */
 
-	val = osi_readl(addr + STATS_CONTROL_0);
+	val = osi_readla(osi_core, addr + STATS_CONTROL_0);
 	pr_err("Read STATS_CONTROL_0: 0x%x\n", val);
 	/* set STATS rollover bit */
 	val |= STATS_CONTROL0_CNT_RL_OVR_CPY;
 	pr_err("Write STATS_CONTROL_0: 0x%x\n", val);
-	osi_writel(val, addr + STATS_CONTROL_0);
+	osi_writela(osi_core, val, addr + STATS_CONTROL_0);
 
 	/* 3. Enable default interrupts needed */
-	val = osi_readl(addr + TX_IMR);
+	val = osi_readla(osi_core, addr + TX_IMR);
 	pr_err("Read TX_IMR: 0x%x\n", val);
 	val |= (TX_DBG_BUF_CAPTURE_DONE_INT_EN |
 		TX_MTU_CHECK_FAIL_INT_EN | TX_MAC_CRC_ERROR_INT_EN |
 		TX_SC_AN_NOT_VALID_INT_EN | TX_AES_GCM_BUF_OVF_INT_EN |
 		TX_PN_EXHAUSTED_INT_EN | TX_PN_THRSHLD_RCHD_INT_EN);
 	pr_err("Write TX_IMR: 0x%x\n", val);
-	osi_writel(val, addr + TX_IMR);
+	osi_writela(osi_core, val, addr + TX_IMR);
 
-	val = osi_readl(addr + RX_IMR);
+	val = osi_readla(osi_core, addr + RX_IMR);
 	pr_err("Read RX_IMR: 0x%x\n", val);
 
 	val |= (RX_DBG_BUF_CAPTURE_DONE_INT_EN |
@@ -2379,23 +2397,23 @@ static int macsec_init(struct osi_core_priv_data *const osi_core)
 		RX_PN_EXHAUSTED_INT_EN
 		);
 	pr_err("Write RX_IMR: 0x%x\n", val);
-	osi_writel(val, addr + RX_IMR);
+	osi_writela(osi_core, val, addr + RX_IMR);
 
-	val = osi_readl(addr + COMMON_IMR);
+	val = osi_readla(osi_core, addr + COMMON_IMR);
 	pr_err("Read COMMON_IMR: 0x%x\n", val);
 
 	val |= (SECURE_REG_VIOL_INT_EN | RX_UNINIT_KEY_SLOT_INT_EN |
 		RX_LKUP_MISS_INT_EN | TX_UNINIT_KEY_SLOT_INT_EN |
 		TX_LKUP_MISS_INT_EN);
 	pr_err("Write COMMON_IMR: 0x%x\n", val);
-	osi_writel(val, addr + COMMON_IMR);
+	osi_writela(osi_core, val, addr + COMMON_IMR);
 
 	/* 4. TODO - Route safety intr to LIC */
-	val = osi_readl(addr + INTERRUPT_MASK1_0);
+	val = osi_readla(osi_core, addr + INTERRUPT_MASK1_0);
 	pr_err("Read INTERRUPT_MASK1_0: 0x%x\n", val);
 	val |= SFTY_ERR_UNCORR_INT_EN;
 	pr_err("Write INTERRUPT_MASK1_0: 0x%x\n", val);
-	osi_writel(val, addr + INTERRUPT_MASK1_0);
+	osi_writela(osi_core, val, addr + INTERRUPT_MASK1_0);
 
 	/* 5. Set AES mode
 	 * Default power on reset is AES-GCM128, leave it.

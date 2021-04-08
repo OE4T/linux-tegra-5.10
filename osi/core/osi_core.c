@@ -104,6 +104,7 @@ static inline nve32_t validate_args(struct osi_core_priv_data *const osi_core,
 static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 				  struct core_ops *ops_p)
 {
+#if 0
 	nveu32_t i = 0;
 	void *temp_ops = (void *)ops_p;
 #if __SIZEOF_POINTER__ == 8
@@ -123,7 +124,7 @@ static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 
 		l_ops++;
 	}
-
+#endif
 	return 0;
 }
 
@@ -160,7 +161,7 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 
 	init_ops_arr i_ops[MAX_MAC_IP_TYPES][MAX_MAC_IP_TYPES] = {
 		{ eqos_init_core_ops, ivc_init_core_ops },
-		{ mgbe_init_core_ops, OSI_NULL }
+		{ mgbe_init_core_ops, ivc_init_core_ops }
 	};
 
 	safety_init s_init[MAX_MAC_IP_TYPES][MAX_MAC_IP_TYPES] = {

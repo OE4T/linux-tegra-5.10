@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -205,6 +205,9 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 	unsigned int ctrl = 0;
 	int cond = 1;
 
+	if (osi_core->xpcs_base == OSI_NULL)
+		return -1;
+
 	/* Switching to USXGMII Mode based on
 	 * XPCS programming guideline 7.6
 	 */
@@ -289,6 +292,9 @@ int xpcs_eee(void *xpcs_base, unsigned int en_dis)
 	if (en_dis != OSI_ENABLE && en_dis != OSI_DISABLE) {
 		return  -1;
 	}
+
+	if (xpcs_base == OSI_NULL)
+		return -1;
 
 	if (en_dis == OSI_DISABLE) {
 		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0);

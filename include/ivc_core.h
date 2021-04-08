@@ -86,6 +86,18 @@ typedef enum ivc_cmd {
 	set_mdc_clk_rate,
 	config_mac_loopback,
 #endif /* !OSI_STRIPPED_LIB */
+	init_macsec,
+	deinit_macsec,
+	handle_ns_irq_macsec,
+	handle_s_irq_macsec,
+	lut_config_macsec,
+	kt_config_macsec,
+	loopback_config_macsec,
+	en_macsec,
+	config_macsec,
+	read_mmc_macsec,
+	dbg_buf_config_macsec,
+	dbg_events_config_macsec,
 }ivc_cmd;
 
 /**
