@@ -447,6 +447,25 @@ void nvgpu_cg_slcg_therm_load_enable(struct gk20a *g);
  */
 void nvgpu_cg_slcg_ce2_load_enable(struct gk20a *g);
 
+/**
+ * @brief During nvgpu power-on, as part of CE initialization,
+ *        this function is called to load register configuration
+ *        for ELCG for CE.
+ *
+ * @param g [in] The GPU driver struct.
+ *
+ * Checks the platform software capability elcg_enabled and programs registers
+ * for configuring production gating values for ELCG for CE. This is called
+ * in #nvgpu_ce_init_support.
+ *
+ * Steps:
+ * - Acquire the mutex #cg_pg_lock.
+ * - Check if #elcg_enabled is set, else skip ELCG programming.
+ * - Load ELCG prod settings for CE.
+ * - Release the mutex #cg_pg_lock.
+ */
+void nvgpu_cg_elcg_ce_load_enable(struct gk20a *g);
+
 #ifdef CONFIG_NVGPU_NON_FUSA
 
 void nvgpu_cg_elcg_enable(struct gk20a *g);

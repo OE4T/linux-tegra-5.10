@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,10 @@ int nvgpu_ce_init_support(struct gk20a *g)
 	nvgpu_cg_slcg_ce2_load_enable(g);
 
 	nvgpu_cg_blcg_ce_load_enable(g);
+
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	nvgpu_cg_elcg_ce_load_enable(g);
+#endif
 
 	if (g->ops.ce.init_prod_values != NULL) {
 		g->ops.ce.init_prod_values(g);

@@ -490,6 +490,11 @@ void nvgpu_cg_elcg_set_elcg_enabled(struct gk20a *g, bool enable)
 			nvgpu_cg_set_mode(g, ELCG_MODE, ELCG_RUN);
 		}
 	}
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.cg.elcg_ce_load_gating_prod != NULL) {
+		g->ops.cg.elcg_ce_load_gating_prod(g, g->elcg_enabled);
+	}
+#endif
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
@@ -620,6 +625,23 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 		g->ops.cg.slcg_hshub_load_gating_prod(g, enable);
 	}
 
+done:
+	nvgpu_mutex_release(&g->cg_pg_lock);
+}
+
+void nvgpu_cg_elcg_ce_load_enable(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&g->cg_pg_lock);
+	if (!g->elcg_enabled) {
+		goto done;
+	}
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+	if (g->ops.cg.elcg_ce_load_gating_prod != NULL) {
+		g->ops.cg.elcg_ce_load_gating_prod(g, true);
+	}
+#endif
 done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
