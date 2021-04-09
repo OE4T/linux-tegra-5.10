@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ struct nvgpu_bug_desc {
 	struct nvgpu_list_node head;
 };
 
-struct nvgpu_bug_desc bug = {
+static struct nvgpu_bug_desc bug_desc = {
 	.once = PTHREAD_ONCE_INIT
 };
 
@@ -86,9 +86,9 @@ void dump_stack(void)
 
 static void nvgpu_bug_init(void)
 {
-	nvgpu_spinlock_init(&bug.lock);
-	nvgpu_init_list_node(&bug.head);
-	bug.in_use = true;
+	nvgpu_spinlock_init(&bug_desc.lock);
+	nvgpu_init_list_node(&bug_desc.head);
+	bug_desc.in_use = true;
 }
 
 void nvgpu_bug_exit(int status)
@@ -103,24 +103,24 @@ void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb)
 {
 	int err;
 
-	err = pthread_once(&bug.once, nvgpu_bug_init);
+	err = pthread_once(&bug_desc.once, nvgpu_bug_init);
 	nvgpu_assert(err == 0);
 
-	nvgpu_spinlock_acquire(&bug.lock);
-	nvgpu_list_add_tail(&cb->node, &bug.head);
-	nvgpu_spinlock_release(&bug.lock);
+	nvgpu_spinlock_acquire(&bug_desc.lock);
+	nvgpu_list_add_tail(&cb->node, &bug_desc.head);
+	nvgpu_spinlock_release(&bug_desc.lock);
 }
 
 void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb)
 {
 	int err;
 
-	err = pthread_once(&bug.once, nvgpu_bug_init);
+	err = pthread_once(&bug_desc.once, nvgpu_bug_init);
 	nvgpu_assert(err == 0);
 
-	nvgpu_spinlock_acquire(&bug.lock);
+	nvgpu_spinlock_acquire(&bug_desc.lock);
 	nvgpu_list_del(&cb->node);
-	nvgpu_spinlock_release(&bug.lock);
+	nvgpu_spinlock_release(&bug_desc.lock);
 }
 
 /*
@@ -136,17 +136,17 @@ void nvgpu_posix_bug(const char *msg, int line_no)
 	dump_stack();
 #endif
 
-	if (!bug.in_use) {
+	if (!bug_desc.in_use) {
 		goto done;
 	}
 
-	nvgpu_spinlock_acquire(&bug.lock);
-	while (!nvgpu_list_empty(&bug.head)) {
+	nvgpu_spinlock_acquire(&bug_desc.lock);
+	while (!nvgpu_list_empty(&bug_desc.head)) {
 		/*
 		 * Always process first entry, in -unlikely- where a
 		 * callback would unregister another one.
 		 */
-		cb = nvgpu_list_first_entry(&bug.head,
+		cb = nvgpu_list_first_entry(&bug_desc.head,
 			nvgpu_bug_cb, node);
 		/* Remove callback from list */
 		nvgpu_list_del(&cb->node);
@@ -157,11 +157,11 @@ void nvgpu_posix_bug(const char *msg, int line_no)
 		 * This allows using a longjmp in a callback
 		 * for unit testing.
 		 */
-		nvgpu_spinlock_release(&bug.lock);
+		nvgpu_spinlock_release(&bug_desc.lock);
 		cb->cb(cb->arg);
-		nvgpu_spinlock_acquire(&bug.lock);
+		nvgpu_spinlock_acquire(&bug_desc.lock);
 	}
-	nvgpu_spinlock_release(&bug.lock);
+	nvgpu_spinlock_release(&bug_desc.lock);
 
 done:
 #ifdef __NVGPU_UNIT_TEST__
