@@ -1103,7 +1103,11 @@ static int isc_mgr_probe(struct platform_device *pdev)
 		}
 	}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	isc_mgr->err_irq = platform_get_irq(pdev, 0);
+#else
+	isc_mgr->err_irq = platform_get_irq_optional(pdev, 0);
+#endif
 	if (isc_mgr->err_irq > 0) {
 		err = devm_request_irq(&pdev->dev,
 				isc_mgr->err_irq,

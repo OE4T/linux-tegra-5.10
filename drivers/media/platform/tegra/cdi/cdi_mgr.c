@@ -52,8 +52,13 @@
 #define PW_ON(flag)	((flag) ? 0 : 1)
 #define PW_OFF(flag)	((flag) ? 1 : 0)
 
+/* i2c payload size is only 12 bit */
+#define MAX_MSG_SIZE	(0xFFF - 1)
+
 /* minor number range would be 0 to 127 */
 #define CDI_DEV_MAX	128
+
+#define TIMEOUT_US 2000000 /* 2 seconds */
 
 /* CDI Dev Debugfs functions
  *
@@ -156,6 +161,218 @@ static int pwr_off_set(void *data, u64 val)
 }
 
 DEFINE_SIMPLE_ATTRIBUTE(pwr_off_fops, pwr_off_get, pwr_off_set, "0x%02llx\n");
+
+static int max20087_raw_wr(
+	struct cdi_mgr_priv *info, unsigned int offset, u8 val)
+{
+	int ret = -ENODEV;
+	u8 *buf_start = NULL;
+	struct i2c_msg *i2cmsg;
+	unsigned int num_msgs = 0, total_size, i;
+	u8 data[3];
+	size_t size = 1;
+
+	dev_dbg(info->dev, "%s\n", __func__);
+	mutex_lock(&info->mutex);
+
+	if (info->max20087.reg_len == 2) {
+		data[0] = (u8)((offset >> 8) & 0xff);
+		data[1] = (u8)(offset & 0xff);
+		data[2] = val;
+		size += 2;
+	} else if (info->max20087.reg_len == 1) {
+		data[0] = (u8)(offset & 0xff);
+		data[1] = val;
+		size += 1;
+	} else if ((info->max20087.reg_len == 0) ||
+		(info->max20087.reg_len > 3)) {
+		mutex_unlock(&info->mutex);
+		return 0;
+	}
+
+	num_msgs = size / MAX_MSG_SIZE;
+	num_msgs += (size % MAX_MSG_SIZE) ? 1 : 0;
+
+	i2cmsg = kzalloc((sizeof(struct i2c_msg)*num_msgs), GFP_KERNEL);
+	if (!i2cmsg) {
+		mutex_unlock(&info->mutex);
+		return -ENOMEM;
+	}
+
+	buf_start = data;
+	total_size = size;
+
+	dev_dbg(info->dev, "%s: num_msgs: %d\n", __func__, num_msgs);
+	for (i = 0; i < num_msgs; i++) {
+		i2cmsg[i].addr = info->max20087.addr;
+		i2cmsg[i].buf = (__u8 *)buf_start;
+
+		if (i > 0)
+			i2cmsg[i].flags = I2C_M_NOSTART;
+		else
+			i2cmsg[i].flags = 0;
+
+		if (total_size > MAX_MSG_SIZE) {
+			i2cmsg[i].len = MAX_MSG_SIZE;
+			buf_start += MAX_MSG_SIZE;
+			total_size -= MAX_MSG_SIZE;
+		} else {
+			i2cmsg[i].len = total_size;
+		}
+		dev_dbg(info->dev, "%s: addr:%x buf:%p, flags:%u len:%u\n",
+			__func__, i2cmsg[i].addr, (void *)i2cmsg[i].buf,
+			i2cmsg[i].flags, i2cmsg[i].len);
+	}
+
+	ret = i2c_transfer(info->max20087.adap, i2cmsg, num_msgs);
+	if (ret > 0)
+		ret = 0;
+
+	kfree(i2cmsg);
+	mutex_unlock(&info->mutex);
+	return ret;
+}
+
+int max20087_raw_rd(
+	struct cdi_mgr_priv *info, unsigned int offset, u8 *val)
+{
+	int ret = -ENODEV;
+	u8 data[2];
+	size_t size = 1;
+	struct i2c_msg i2cmsg[2];
+
+	dev_dbg(info->dev, "%s\n", __func__);
+	mutex_lock(&info->mutex);
+
+	if (info->max20087.reg_len == 2) {
+		data[0] = (u8)((offset >> 8) & 0xff);
+		data[1] = (u8)(offset & 0xff);
+	} else if (info->max20087.reg_len == 1)
+		data[0] = (u8)(offset & 0xff);
+
+	i2cmsg[0].addr = info->max20087.addr;
+	i2cmsg[0].len = info->max20087.reg_len;
+	i2cmsg[0].buf = (__u8 *)data;
+	i2cmsg[0].flags = I2C_M_NOSTART;
+
+	i2cmsg[1].addr = info->max20087.addr;
+	i2cmsg[1].flags = I2C_M_RD;
+	i2cmsg[1].len = size;
+	i2cmsg[1].buf = (__u8 *)val;
+
+	ret = i2c_transfer(info->max20087.adap, i2cmsg, 2);
+	if (ret > 0)
+		ret = 0;
+	mutex_unlock(&info->mutex);
+
+	return ret;
+}
+
+static int tca9539_raw_wr(
+	struct cdi_mgr_priv *info, unsigned int offset, u8 val)
+{
+	int ret = -ENODEV;
+	u8 *buf_start = NULL;
+	struct i2c_msg *i2cmsg;
+	unsigned int num_msgs = 0, total_size, i;
+	u8 data[3];
+	size_t size = 1;
+
+	dev_dbg(info->dev, "%s\n", __func__);
+	mutex_lock(&info->mutex);
+
+	if (info->tca9539.reg_len == 2) {
+		data[0] = (u8)((offset >> 8) & 0xff);
+		data[1] = (u8)(offset & 0xff);
+		data[2] = val;
+		size += 2;
+	} else if (info->tca9539.reg_len == 1) {
+		data[0] = (u8)(offset & 0xff);
+		data[1] = val;
+		size += 1;
+	} else if ((info->tca9539.reg_len == 0) ||
+			(info->tca9539.reg_len > 3)) {
+		mutex_unlock(&info->mutex);
+		return 0;
+	}
+
+	num_msgs = size / MAX_MSG_SIZE;
+	num_msgs += (size % MAX_MSG_SIZE) ? 1 : 0;
+
+	i2cmsg = kzalloc((sizeof(struct i2c_msg)*num_msgs), GFP_KERNEL);
+	if (!i2cmsg) {
+		mutex_unlock(&info->mutex);
+		return -ENOMEM;
+	}
+
+	buf_start = data;
+	total_size = size;
+
+	dev_dbg(info->dev, "%s: num_msgs: %d\n", __func__, num_msgs);
+	for (i = 0; i < num_msgs; i++) {
+		i2cmsg[i].addr = info->tca9539.addr;
+		i2cmsg[i].buf = (__u8 *)buf_start;
+
+		if (i > 0)
+			i2cmsg[i].flags = I2C_M_NOSTART;
+		else
+			i2cmsg[i].flags = 0;
+
+		if (total_size > MAX_MSG_SIZE) {
+			i2cmsg[i].len = MAX_MSG_SIZE;
+			buf_start += MAX_MSG_SIZE;
+			total_size -= MAX_MSG_SIZE;
+		} else {
+			i2cmsg[i].len = total_size;
+		}
+		dev_dbg(info->dev, "%s: addr:%x buf:%p, flags:%u len:%u\n",
+			__func__, i2cmsg[i].addr, (void *)i2cmsg[i].buf,
+			i2cmsg[i].flags, i2cmsg[i].len);
+	}
+
+	ret = i2c_transfer(info->tca9539.adap, i2cmsg, num_msgs);
+	if (ret > 0)
+		ret = 0;
+
+	kfree(i2cmsg);
+	mutex_unlock(&info->mutex);
+	return ret;
+}
+
+int tca9539_raw_rd(
+	struct cdi_mgr_priv *info, unsigned int offset, u8 *val)
+{
+	int ret = -ENODEV;
+	u8 data[2];
+	size_t size = 1;
+	struct i2c_msg i2cmsg[2];
+
+	dev_dbg(info->dev, "%s\n", __func__);
+	mutex_lock(&info->mutex);
+
+	if (info->tca9539.reg_len == 2) {
+		data[0] = (u8)((offset >> 8) & 0xff);
+		data[1] = (u8)(offset & 0xff);
+	} else if (info->tca9539.reg_len == 1)
+		data[0] = (u8)(offset & 0xff);
+
+	i2cmsg[0].addr = info->tca9539.addr;
+	i2cmsg[0].len = info->tca9539.reg_len;
+	i2cmsg[0].buf = (__u8 *)data;
+	i2cmsg[0].flags = I2C_M_NOSTART;
+
+	i2cmsg[1].addr = info->tca9539.addr;
+	i2cmsg[1].flags = I2C_M_RD;
+	i2cmsg[1].len = size;
+	i2cmsg[1].buf = (__u8 *)val;
+
+	ret = i2c_transfer(info->tca9539.adap, i2cmsg, 2);
+	if (ret > 0)
+		ret = 0;
+	mutex_unlock(&info->mutex);
+
+	return ret;
+}
 
 int cdi_mgr_debugfs_init(struct cdi_mgr_priv *cdi_mgr)
 {
@@ -602,12 +819,36 @@ static int cdi_mgr_pwm_config(
 	return err;
 }
 
+static int cdi_mgr_wait_err(
+	struct cdi_mgr_priv *cdi_mgr)
+{
+	int err = 0, i = 0;
+
+	if (!atomic_xchg(&cdi_mgr->irq_in_use, 1)) {
+		for (i = 0; i < MAX_IRQ_GPIO; i++) {
+			if (cdi_mgr->err_irq[i]) {
+				enable_irq(cdi_mgr->err_irq[i]);
+				cdi_mgr->err_irq_recvd = false;
+			} else
+				break;
+		}
+	}
+
+	do {
+		err = wait_event_interruptible(cdi_mgr->err_queue,
+			cdi_mgr->err_irq_recvd);
+		cdi_mgr->err_irq_recvd = false;
+	} while (cdi_mgr->err_irq_reported == false);
+
+	return err;
+}
+
 static long cdi_mgr_ioctl(
 	struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct cdi_mgr_priv *cdi_mgr = file->private_data;
-	struct cdi_mgr_platform_data *pd = cdi_mgr->pdata;
-	int err = 0;
+	int err = 0, i = 0;
+	u8 val;
 	unsigned long flags;
 
 	/* command distributor */
@@ -628,8 +869,14 @@ static long cdi_mgr_ioctl(
 		/* first enable irq to clear pending interrupt
 		 * and then register PID
 		 */
-		if (cdi_mgr->err_irq && !atomic_xchg(&cdi_mgr->irq_in_use, 1))
-			enable_irq(cdi_mgr->err_irq);
+		if (!atomic_xchg(&cdi_mgr->irq_in_use, 1)) {
+			for (i = 0; i < MAX_IRQ_GPIO; i++) {
+				if (cdi_mgr->err_irq[i])
+					enable_irq(cdi_mgr->err_irq[i]);
+				else
+					break;
+			}
+		}
 
 		err = cdi_mgr_write_pid(file, (const void __user *)arg);
 		break;
@@ -665,27 +912,44 @@ static long cdi_mgr_ioctl(
 		err = cdi_mgr_pwm_config(cdi_mgr, (const void __user *)arg);
 		break;
 	case CDI_MGR_IOCTL_WAIT_ERR:
-		if (cdi_mgr->err_irq && !atomic_xchg(&cdi_mgr->irq_in_use, 1)) {
-			enable_irq(cdi_mgr->err_irq);
-			cdi_mgr->err_irq_recvd = false;
-		}
-
-		err = wait_event_interruptible(cdi_mgr->err_queue,
-			cdi_mgr->err_irq_recvd);
-		cdi_mgr->err_irq_recvd = false;
+		err = cdi_mgr_wait_err(cdi_mgr);
 		break;
 	case CDI_MGR_IOCTL_ABORT_WAIT_ERR:
 		cdi_mgr->err_irq_recvd = true;
 		wake_up_interruptible(&cdi_mgr->err_queue);
 		break;
-	case CDI_MGR_IOCTL_GET_EXT_PWR_CTRL:
-		if (copy_to_user((void __user *)arg,
-				&pd->ext_pwr_ctrl,
-				sizeof(u8))) {
-			dev_err(cdi_mgr->pdev, "%s: failed to copy to user\n",
+	case CDI_MGR_IOCTL_SET_CAM_PWR_ON:
+		if (down_timeout(&cdi_mgr->max20087.sem,
+			usecs_to_jiffies(TIMEOUT_US)) != 0)
+			dev_err(cdi_mgr->dev,
+				"%s: failed to wait for the semaphore\n",
 				__func__);
-			return -EFAULT;
+		if (cdi_mgr->max20087.enable) {
+			if (max20087_raw_rd(cdi_mgr, 0x01, &val) != 0)
+				return -EFAULT;
+			val |= (1 << arg);
+			if (max20087_raw_wr(cdi_mgr, 0x01, val) != 0)
+				return -EFAULT;
 		}
+		up(&cdi_mgr->max20087.sem);
+		break;
+	case CDI_MGR_IOCTL_SET_CAM_PWR_OFF:
+		if (down_timeout(&cdi_mgr->max20087.sem,
+			usecs_to_jiffies(TIMEOUT_US)) != 0)
+			dev_err(cdi_mgr->dev,
+				"%s: failed to wait for the semaphore\n",
+				__func__);
+		if (cdi_mgr->max20087.enable) {
+			if (max20087_raw_rd(cdi_mgr, 0x01, &val) != 0)
+				return -EFAULT;
+			val &= ~(1 << arg);
+			if (max20087_raw_wr(cdi_mgr, 0x01, val) != 0)
+				return -EFAULT;
+		}
+		up(&cdi_mgr->max20087.sem);
+		break;
+	case CDI_MGR_IOCTL_ENABLE_ERROR_REPORT:
+		cdi_mgr->err_irq_reported = true;
 		break;
 	default:
 		dev_err(cdi_mgr->pdev, "%s unsupported ioctl: %x\n",
@@ -701,9 +965,11 @@ static long cdi_mgr_ioctl(
 
 static int cdi_mgr_open(struct inode *inode, struct file *file)
 {
+	u8 val;
 	struct cdi_mgr_priv *cdi_mgr = container_of(inode->i_cdev,
 					struct cdi_mgr_priv, cdev);
 
+	cdi_mgr->err_irq_reported = false;
 	/* only one application can open one cdi_mgr device */
 	if (atomic_xchg(&cdi_mgr->in_use, 1))
 		return -EBUSY;
@@ -716,22 +982,67 @@ static int cdi_mgr_open(struct inode *inode, struct file *file)
 		cdi_mgr_power_up(cdi_mgr, 0xffffffff);
 
 	cdi_mgr_mcdi_ctrl(cdi_mgr, true);
+
+	if (cdi_mgr->tca9539.enable) {
+		if (down_timeout(&tca9539_sem,
+			usecs_to_jiffies(TIMEOUT_US)) != 0)
+			dev_err(cdi_mgr->dev,
+				"%s: failed to wait for the semaphore\n",
+				__func__);
+		if (tca9539_raw_rd(cdi_mgr, 0x02, &val) != 0)
+			return -EFAULT;
+		val |= (0x10 << cdi_mgr->tca9539.power_port);
+		if (tca9539_raw_wr(cdi_mgr, 0x02, val) != 0)
+			return -EFAULT;
+		up(&tca9539_sem);
+	}
+
 	return 0;
 }
 
 static int cdi_mgr_release(struct inode *inode, struct file *file)
 {
+	u8 val;
+	int i = 0;
 	struct cdi_mgr_priv *cdi_mgr = file->private_data;
+
+	cdi_mgr->err_irq_reported = true;
+	if (cdi_mgr->tca9539.enable) {
+		if (down_timeout(&tca9539_sem,
+			usecs_to_jiffies(TIMEOUT_US)) != 0)
+			dev_err(cdi_mgr->dev,
+				"%s: failed to wait for the semaphore\n",
+				__func__);
+		if (tca9539_raw_rd(cdi_mgr, 0x02, &val) != 0)
+			return -EFAULT;
+		val &= ~(0x10 << cdi_mgr->tca9539.power_port);
+		if (tca9539_raw_wr(cdi_mgr, 0x02, val) != 0)
+			return -EFAULT;
+		up(&tca9539_sem);
+	}
 
 	if (cdi_mgr->pwm)
 		if (pwm_is_enabled(cdi_mgr->pwm))
 			pwm_disable(cdi_mgr->pwm);
 
 	cdi_mgr_mcdi_ctrl(cdi_mgr, false);
-
+		if (!atomic_xchg(&cdi_mgr->irq_in_use, 1)) {
+			for (i = 0; i < MAX_IRQ_GPIO; i++) {
+				if (cdi_mgr->err_irq[i]) {
+					enable_irq(cdi_mgr->err_irq[i]);
+					cdi_mgr->err_irq_recvd = false;
+				} else
+					break;
+			}
+		}
 	/* disable irq if irq is in use, when device is closed */
 	if (atomic_xchg(&cdi_mgr->irq_in_use, 0)) {
-		disable_irq(cdi_mgr->err_irq);
+		for (i = 0; i < MAX_IRQ_GPIO; i++) {
+			if (cdi_mgr->err_irq[i])
+				disable_irq(cdi_mgr->err_irq[i]);
+			else
+				break;
+		}
 		cdi_mgr->err_irq_recvd = true;
 		wake_up_interruptible(&cdi_mgr->err_queue);
 	}
@@ -748,6 +1059,10 @@ static int cdi_mgr_release(struct inode *inode, struct file *file)
 #endif
 	cdi_mgr->t = NULL;
 	WARN_ON(!atomic_xchg(&cdi_mgr->in_use, 0));
+
+	/* turn camera module power off */
+	if (cdi_mgr->max20087.enable)
+		max20087_raw_wr(cdi_mgr, 0x01, 0x10);
 
 	return 0;
 }
@@ -783,6 +1098,10 @@ static void cdi_mgr_del(struct cdi_mgr_priv *cdi_mgr)
 			gpio_direction_output(
 				pd->pwr_gpios[i], PW_OFF(pd->pwr_flags[i]));
 
+	if (cdi_mgr->max20087.enable)
+		i2c_put_adapter(cdi_mgr->max20087.adap);
+	if (cdi_mgr->tca9539.enable)
+		i2c_put_adapter(cdi_mgr->tca9539.adap);
 	i2c_put_adapter(cdi_mgr->adap);
 }
 
@@ -1032,6 +1351,7 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 	struct cdi_mgr_priv *cdi_mgr;
 	struct cdi_mgr_platform_data *pd;
 	unsigned int i;
+	struct device_node *child = NULL;
 
 	dev_info(&pdev->dev, "%sing...\n", __func__);
 
@@ -1049,6 +1369,7 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 	mutex_init(&cdi_mgr->mutex);
 	init_waitqueue_head(&cdi_mgr->err_queue);
 	cdi_mgr->err_irq_recvd = false;
+	cdi_mgr->err_irq_reported = false;
 	cdi_mgr->pwm = NULL;
 
 	if (pdev->dev.of_node) {
@@ -1113,19 +1434,28 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 		}
 	}
 
-	cdi_mgr->err_irq = platform_get_irq(pdev, 0);
-	if (cdi_mgr->err_irq > 0) {
-		err = devm_request_irq(&pdev->dev,
-				cdi_mgr->err_irq,
-				cdi_mgr_isr, 0, pdev->name, cdi_mgr);
-		if (err) {
-			dev_err(&pdev->dev,
-				"request_irq failed with err %d\n", err);
-			cdi_mgr->err_irq = 0;
-			goto err_probe;
-		}
-		disable_irq(cdi_mgr->err_irq);
-		atomic_set(&cdi_mgr->irq_in_use, 0);
+	memset(&cdi_mgr->err_irq, 0, sizeof(int) * MAX_IRQ_GPIO);
+	for (i = 0; i < MAX_IRQ_GPIO; i++) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+		cdi_mgr->err_irq[i] = platform_get_irq(pdev, i);
+#else
+		cdi_mgr->err_irq[i] = platform_get_irq_optional(pdev, i);
+#endif
+		if (cdi_mgr->err_irq[i] > 0) {
+			err = devm_request_irq(&pdev->dev,
+					cdi_mgr->err_irq[i],
+					cdi_mgr_isr, 0, pdev->name, cdi_mgr);
+			if (err) {
+				dev_err(&pdev->dev,
+					"request_irq failed with err %d\n",
+					err);
+				cdi_mgr->err_irq[i] = 0;
+				goto err_probe;
+			}
+			disable_irq(cdi_mgr->err_irq[i]);
+			atomic_set(&cdi_mgr->irq_in_use, 0);
+		} else
+			break;
 	}
 
 	cdi_mgr->pdev = &pdev->dev;
@@ -1180,6 +1510,124 @@ static int cdi_mgr_probe(struct platform_device *pdev)
 		cdi_mgr->dev = NULL;
 		dev_err(&pdev->dev, "failed to create device %d\n", err);
 		goto err_probe;
+	}
+
+	/* get the max20087 information */
+	child = of_get_child_by_name(pdev->dev.of_node, "pwr_ctrl");
+	if (child != NULL) {
+		child = of_get_child_by_name(child, "max20087");
+		if (child != NULL) {
+			err = of_property_read_u32(child, "i2c-bus",
+					&cdi_mgr->max20087.bus);
+			if (err)
+				cdi_mgr->max20087.bus = pd->bus;
+			err = of_property_read_u32(child, "addr",
+				&cdi_mgr->max20087.addr);
+			if (err || !cdi_mgr->max20087.addr) {
+				dev_err(&pdev->dev, "%s: ERROR %d addr = %d\n",
+					__func__, err,
+					cdi_mgr->max20087.addr);
+				goto err_probe;
+			}
+			err = of_property_read_u32(child, "reg_len",
+				&cdi_mgr->max20087.reg_len);
+			if (err || !cdi_mgr->max20087.reg_len) {
+				dev_err(&pdev->dev, "%s: ERROR %d reg_len = %d\n",
+					__func__, err,
+					cdi_mgr->max20087.reg_len);
+				goto err_probe;
+			}
+			err = of_property_read_u32(child, "dat_len",
+				&cdi_mgr->max20087.dat_len);
+			if (err || !cdi_mgr->max20087.dat_len) {
+				dev_err(&pdev->dev, "%s: ERROR %d dat_len = %d\n",
+					__func__, err,
+					cdi_mgr->max20087.dat_len);
+				goto err_probe;
+			}
+
+			sema_init(&cdi_mgr->max20087.sem, 1);
+
+			cdi_mgr->max20087.reg_len /= 8;
+			cdi_mgr->max20087.dat_len /= 8;
+			cdi_mgr->max20087.enable = 1;
+			cdi_mgr->max20087.adap =
+				i2c_get_adapter(cdi_mgr->max20087.bus);
+			if (!cdi_mgr->max20087.adap) {
+				dev_err(&pdev->dev, "%s no such i2c bus %d\n",
+					__func__, cdi_mgr->max20087.bus);
+				goto err_probe;
+			}
+		}
+	}
+
+	/* get the io expander information */
+	child = of_get_child_by_name(pdev->dev.of_node, "pwr_ctrl");
+	if (child != NULL) {
+		child = of_get_child_by_name(child, "tca9539");
+		if (child != NULL) {
+			err = of_property_read_u32(child, "i2c-bus",
+					&cdi_mgr->tca9539.bus);
+			if (err)
+				cdi_mgr->tca9539.bus = pd->bus;
+			err = of_property_read_u32(child, "addr",
+				&cdi_mgr->tca9539.addr);
+			if (err || !cdi_mgr->tca9539.addr) {
+				dev_err(&pdev->dev, "%s: ERROR %d addr = %d\n",
+					__func__, err,
+					cdi_mgr->tca9539.addr);
+				goto err_probe;
+			}
+			err = of_property_read_u32(child, "reg_len",
+				&cdi_mgr->tca9539.reg_len);
+			if (err || !cdi_mgr->tca9539.reg_len) {
+				dev_err(&pdev->dev, "%s: ERROR %d reg_len = %d\n",
+					__func__, err,
+					cdi_mgr->tca9539.reg_len);
+				goto err_probe;
+			}
+			err = of_property_read_u32(child, "dat_len",
+				&cdi_mgr->tca9539.dat_len);
+			if (err || !cdi_mgr->tca9539.dat_len) {
+				dev_err(&pdev->dev, "%s: ERROR %d dat_len = %d\n",
+					__func__, err,
+					cdi_mgr->tca9539.dat_len);
+				goto err_probe;
+			}
+			err = of_property_read_u32(child->parent, "power_port",
+						&cdi_mgr->tca9539.power_port);
+			if (err) {
+				dev_err(&pdev->dev, "%s: ERROR %d power_port = %d\n",
+					__func__, err,
+					cdi_mgr->tca9539.power_port);
+				goto err_probe;
+			}
+
+			cdi_mgr->tca9539.reg_len /= 8;
+			cdi_mgr->tca9539.dat_len /= 8;
+			cdi_mgr->tca9539.enable = 1;
+			cdi_mgr->tca9539.adap = i2c_get_adapter(cdi_mgr->tca9539.bus);
+			if (!cdi_mgr->tca9539.adap) {
+				dev_err(&pdev->dev, "%s no such i2c bus %d\n",
+					__func__, cdi_mgr->tca9539.bus);
+				goto err_probe;
+			}
+
+			sema_init(&tca9539_sem, 1);
+
+			/* Set the init values */
+			/* TODO : read the array to initialize */
+			/* the registers in TCA9539 */
+            /* Use the IO expander to control PWDN signals */
+			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0E) != 0)
+				return -EFAULT;
+			/* Output mode for AGGA/B/C/D_PWRDN */
+			if (tca9539_raw_wr(cdi_mgr, 0x6, 0x0F) != 0)
+				return -EFAULT;
+			/* Output low for AGGA/B/C/D_PWRDN */
+			if (tca9539_raw_wr(cdi_mgr, 0x2, 0x0F) != 0)
+				return -EFAULT;
+		}
 	}
 
 	cdi_mgr_debugfs_init(cdi_mgr);

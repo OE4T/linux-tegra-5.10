@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -45,6 +45,7 @@ struct cdi_mgr_platform_data {
 	bool runtime_pwrctrl_off;
 	char *drv_name;
 	u8 ext_pwr_ctrl; /* bit 0 - des, bit 1 - sensor */
+	bool max20087_pwrctl;
 };
 
 int cdi_delete_lst(struct device *dev, struct i2c_client *client);

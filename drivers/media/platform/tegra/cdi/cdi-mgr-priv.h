@@ -16,6 +16,30 @@
 
 #include <linux/cdev.h>
 #include <linux/version.h>
+#include <linux/semaphore.h>
+
+#define MAX_IRQ_GPIO 10
+
+struct max20087_priv {
+	struct i2c_adapter *adap;
+	int bus;
+	u32 addr;
+	u32 reg_len;
+	u32 dat_len;
+	bool enable;
+	struct semaphore sem;
+};
+
+struct tca9539_priv {
+	struct i2c_adapter *adap;
+	int bus;
+	u32 addr;
+	u32 reg_len;
+	u32 dat_len;
+	u8 init_val[12];
+	u32 power_port;
+	bool enable;
+};
 
 struct cdi_mgr_priv {
 	struct device *pdev; /* parent device */
@@ -38,13 +62,16 @@ struct cdi_mgr_priv {
 	int sig_no; /* store signal number from user space */
 	spinlock_t spinlock;
 	atomic_t in_use;
-	int err_irq;
+	int err_irq[MAX_IRQ_GPIO];
 	char devname[32];
 	u32 pwr_state;
 	atomic_t irq_in_use;
 	struct pwm_device *pwm;
 	wait_queue_head_t err_queue;
 	bool err_irq_recvd;
+	bool err_irq_reported;
+	struct max20087_priv max20087;
+	struct tca9539_priv tca9539;
 };
 
 int cdi_mgr_power_up(struct cdi_mgr_priv *cdi_mgr, unsigned long arg);
@@ -52,5 +79,7 @@ int cdi_mgr_power_down(struct cdi_mgr_priv *cdi_mgr, unsigned long arg);
 
 int cdi_mgr_debugfs_init(struct cdi_mgr_priv *cdi_mgr);
 int cdi_mgr_debugfs_remove(struct cdi_mgr_priv *cdi_mgr);
+
+struct semaphore tca9539_sem;
 
 #endif  /* __CDI_MGR_PRIV_H__ */
