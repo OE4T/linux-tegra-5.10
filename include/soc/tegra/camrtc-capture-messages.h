@@ -521,8 +521,8 @@ struct CAPTURE_CSI_STREAM_TPG_START_RATE_REQ_MSG {
 	uint32_t virtual_channel_id;
 	/** TPG frame rate in Hz */
 	uint32_t frame_rate;
-	/** CSI clock rate in kHz */
-	uint32_t csi_clk_rate;
+	/** Reserved */
+	uint32_t __pad32;
 } CAPTURE_IVC_ALIGN;
 
 /**

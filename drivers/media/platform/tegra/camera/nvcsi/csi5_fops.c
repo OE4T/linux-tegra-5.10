@@ -288,7 +288,6 @@ static int csi5_stream_tpg_start(struct tegra_csi_channel *chan, u32 stream_id,
 	int err = 0;
 	struct tegra_csi_device *csi = chan->csi;
 	struct tegra_csi_port *port = &chan->ports[0];
-	unsigned long csi_rate = 0;
 	struct tegra_channel *tegra_chan =
 		v4l2_get_subdev_hostdata(&chan->subdev);
 
@@ -316,14 +315,9 @@ static int csi5_stream_tpg_start(struct tegra_csi_channel *chan, u32 stream_id,
 	memset(&msg, 0, sizeof(msg));
 	msg.header.msg_id = CAPTURE_CSI_STREAM_TPG_START_RATE_REQ;
 
-	msg.csi_stream_tpg_start_req.stream_id = stream_id;
-	msg.csi_stream_tpg_start_req.virtual_channel_id = virtual_channel_id;
+	msg.csi_stream_tpg_start_rate_req.stream_id = stream_id;
+	msg.csi_stream_tpg_start_rate_req.virtual_channel_id = virtual_channel_id;
 	msg.csi_stream_tpg_start_rate_req.frame_rate = port->framerate;
-	err = nvhost_module_get_rate(csi->pdev, &csi_rate, 0);
-	if (err)
-		return err;
-
-	msg.csi_stream_tpg_start_rate_req.csi_clk_rate = csi_rate / 1000;
 
 	err = csi5_send_control_message(tegra_chan->tegra_vi_channel, &msg,
 			&msg.csi_stream_tpg_start_resp.result);
