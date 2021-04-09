@@ -438,6 +438,18 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	if (err)
 		goto done;
 
+	/**
+	 * TODO: Need to add nvgpu_early_poweron() sequence before
+	 * creating device nodes.
+	 */
+	if (!l->dev_nodes_created) {
+		err = gk20a_user_init(dev);
+		if (err) {
+			goto done;
+		}
+		l->dev_nodes_created = true;
+	}
+
 	if (g->sim) {
 		if (g->sim->sim_init_late)
 			err = g->sim->sim_init_late(g);
@@ -530,6 +542,9 @@ done:
 	if (err != 0) {
 		nvgpu_disable_irqs(g);
 		nvgpu_remove_sim_support_linux(g);
+		if (l->dev_nodes_created) {
+			gk20a_user_deinit(dev);
+		}
 	}
 
 	nvgpu_mutex_release(&g->power_lock);

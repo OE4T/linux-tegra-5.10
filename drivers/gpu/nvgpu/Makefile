@@ -419,7 +419,8 @@ nvgpu-y += \
 	os/linux/ecc_sysfs.o \
 	os/linux/bsearch.o \
 	os/linux/sdl/sdl_stub.o \
-	os/linux/dmabuf_priv.o
+	os/linux/dmabuf_priv.o \
+	os/linux/power_ops.o
 
 nvgpu-$(CONFIG_NVGPU_VPR) += os/linux/vpr.o
 

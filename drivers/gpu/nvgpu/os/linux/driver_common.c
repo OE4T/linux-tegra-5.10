@@ -268,6 +268,7 @@ int nvgpu_probe(struct gk20a *g,
 {
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	int err = 0;
 
 	nvgpu_init_vars(g);
@@ -294,11 +295,22 @@ int nvgpu_probe(struct gk20a *g,
 	}
 
 	nvgpu_init_mm_vars(g);
-
-	/* platform probe can defer do user init only if probe succeeds */
-	err = gk20a_user_init(dev);
-	if (err)
+	err = gk20a_power_node_init(dev);
+	if (err) {
+		nvgpu_err(g, "power_node creation failed");
 		return err;
+	}
+
+	/*
+	* TODO: While removing the legacy nodes the following condition
+	* need to be removed.
+	*/
+	if (platform->platform_chip_id == TEGRA_210) {
+		err = gk20a_user_init(dev);
+		if (err)
+			return err;
+		l->dev_nodes_created = true;
+	}
 
 	/*
 	 * Note that for runtime suspend to work the clocks have to be setup

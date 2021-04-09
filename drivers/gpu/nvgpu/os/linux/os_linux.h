@@ -78,6 +78,8 @@ struct nvgpu_os_linux {
 	struct nvgpu_list_node class_list_head;
 	struct nvgpu_list_node cdev_list_head;
 	u32 num_cdevs;
+	bool dev_nodes_created;
+	bool cdev_list_init_done;
 
 	dev_t cdev_region;
 

@@ -120,7 +120,9 @@ ioctl:
              os/linux/ioctl_prof.c,
              os/linux/ioctl_prof.h,
              os/linux/ioctl_tsg.c,
-             os/linux/ioctl_tsg.h ]
+             os/linux/ioctl_tsg.h,
+             os/linux/power_ops.c,
+             os/linux/power_ops.h ]
 
 kmem:
   sources: [ os/linux/kmem.c, os/linux/kmem_priv.h ]

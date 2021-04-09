@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -50,6 +50,7 @@ struct nvgpu_class {
 	struct nvgpu_cdev_class_priv_data *priv_data;
 
 	enum nvgpu_mig_gpu_instance_type instance_type;
+	bool power_node;
 };
 
 static inline struct nvgpu_class *
@@ -60,6 +61,7 @@ nvgpu_class_from_list_entry(struct nvgpu_list_node *node)
 };
 
 int gk20a_user_init(struct device *dev);
+int gk20a_power_node_init(struct device *dev);
 void gk20a_user_deinit(struct device *dev);
 
 struct gk20a *nvgpu_get_gk20a_from_cdev(struct nvgpu_cdev *cdev);

@@ -1,7 +1,7 @@
 /*
  * NVGPU IOCTLs
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,11 +30,20 @@
 #include "ioctl_tsg.h"
 #include "ioctl_dbg.h"
 #include "ioctl_prof.h"
+#include "power_ops.h"
 #include "ioctl.h"
 #include "module.h"
 #include "os_linux.h"
 #include "fecs_trace_linux.h"
 #include "platform_gk20a.h"
+
+const struct file_operations gk20a_power_node_ops = {
+	.owner = THIS_MODULE,
+	.release = gk20a_power_release,
+	.open = gk20a_power_open,
+	.read = gk20a_power_read,
+	.write = gk20a_power_write,
+};
 
 const struct file_operations gk20a_channel_ops = {
 	.owner = THIS_MODULE,
@@ -161,6 +170,7 @@ struct nvgpu_dev_node {
 };
 
 static const struct nvgpu_dev_node dev_node_list[] = {
+	{"power",	&gk20a_power_node_ops,	false   },
 	{"as",		&gk20a_as_ops,		false	},
 	{"channel",	&gk20a_channel_ops,	false	},
 	{"ctrl",	&gk20a_ctrl_ops,	true	},
@@ -332,6 +342,8 @@ void gk20a_user_deinit(struct device *dev)
 		class_destroy(class->class);
 		nvgpu_kfree(g, class);
 	}
+
+	l->dev_nodes_created = false;
 }
 
 static struct nvgpu_class *nvgpu_create_class(struct gk20a *g, const char *class_name)
@@ -463,25 +475,40 @@ static int nvgpu_prepare_mig_dev_node_class_list(struct gk20a *g, u32 *num_class
 	return 0;
 }
 
-static int nvgpu_prepare_default_dev_node_class_list(struct gk20a *g, u32 *num_classes)
+static int nvgpu_prepare_default_dev_node_class_list(struct gk20a *g,
+		u32 *num_classes, bool power_node)
 {
 	struct nvgpu_class *class;
 	u32 count = 0U;
 
 	if (g->pci_class != 0U) {
-		class = nvgpu_create_class(g, "nvidia-pci-gpu");
+		if (power_node) {
+			class = nvgpu_create_class(g, "nvidia-pci-gpu-power");
+		} else {
+			class = nvgpu_create_class(g, "nvidia-pci-gpu");
+		}
+
 		if (class == NULL) {
 			return -ENOMEM;
 		}
 		class->class->devnode = nvgpu_pci_devnode;
 		count++;
 	} else {
-		class = nvgpu_create_class(g, "nvidia-gpu");
+		if (power_node) {
+			class = nvgpu_create_class(g, "nvidia-gpu-power");
+		} else {
+			class = nvgpu_create_class(g, "nvidia-gpu");
+		}
+
 		if (class == NULL) {
 			return -ENOMEM;
 		}
 		class->class->devnode = NULL;
 		count++;
+	}
+
+	if (power_node) {
+		class->power_node = true;
 	}
 
 	/*
@@ -490,14 +517,24 @@ static int nvgpu_prepare_default_dev_node_class_list(struct gk20a *g, u32 *num_c
 	 * Both legacy and V2 device node hierarchies will co-exist until then.
 	 */
 	if (g->pci_class != 0U) {
-		class = nvgpu_create_class(g, "nvidia-pci-gpu-v2");
+		if (power_node) {
+			class = nvgpu_create_class(g, "nvidia-pci-gpu-v2-power");
+		} else {
+			class = nvgpu_create_class(g, "nvidia-pci-gpu-v2");
+		}
+
 		if (class == NULL) {
 			return -ENOMEM;
 		}
 		class->class->devnode = nvgpu_pci_devnode_v2;
 		count++;
 	} else {
-		class = nvgpu_create_class(g, "nvidia-gpu-v2");
+		if (power_node) {
+			class = nvgpu_create_class(g, "nvidia-gpu-v2-power");
+		} else {
+			class = nvgpu_create_class(g, "nvidia-gpu-v2");
+		}
+
 		if (class == NULL) {
 			return -ENOMEM;
 		}
@@ -505,18 +542,23 @@ static int nvgpu_prepare_default_dev_node_class_list(struct gk20a *g, u32 *num_c
 		count++;
 	}
 
+	if (power_node) {
+		class->power_node = true;
+	}
+
 	*num_classes = count;
 	return 0;
 }
 
-static int nvgpu_prepare_dev_node_class_list(struct gk20a *g, u32 *num_classes)
+static int nvgpu_prepare_dev_node_class_list(struct gk20a *g, u32 *num_classes,
+		bool power_node)
 {
 	int err;
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 		err = nvgpu_prepare_mig_dev_node_class_list(g, num_classes);
 	} else {
-		err = nvgpu_prepare_default_dev_node_class_list(g, num_classes);
+		err = nvgpu_prepare_default_dev_node_class_list(g, num_classes, power_node);
 	}
 
 	return err;
@@ -537,13 +579,81 @@ static bool check_valid_dev_node(struct gk20a *g, struct nvgpu_class *class,
 
 static bool check_valid_class(struct gk20a *g, struct nvgpu_class *class)
 {
+	if (class->power_node) {
+		return false;
+	}
+
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
-		if (class->instance_type == NVGPU_MIG_TYPE_PHYSICAL) {
+		if ((class->instance_type == NVGPU_MIG_TYPE_PHYSICAL)) {
 			return false;
 		}
 	}
 
 	return true;
+}
+
+int gk20a_power_node_init(struct device *dev)
+{
+	int err;
+	dev_t devno;
+	struct gk20a *g = gk20a_from_dev(dev);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct nvgpu_class *class;
+	u32 total_cdevs;
+	u32 num_classes;
+	struct nvgpu_cdev *cdev;
+
+	if (!l->cdev_list_init_done) {
+		nvgpu_init_list_node(&l->cdev_list_head);
+		nvgpu_init_list_node(&l->class_list_head);
+		l->cdev_list_init_done = true;
+	}
+
+	err = nvgpu_prepare_dev_node_class_list(g, &num_classes, true);
+	if (err != 0) {
+		return err;
+	}
+
+	total_cdevs = num_classes;
+	err = alloc_chrdev_region(&devno, 0, total_cdevs, dev_name(dev));
+
+	if (err) {
+		dev_err(dev, "failed to allocate devno\n");
+		goto fail;
+	}
+
+	l->cdev_region = devno;
+	nvgpu_list_for_each_entry(class, &l->class_list_head, nvgpu_class, list_entry) {
+		cdev = nvgpu_kzalloc(g, sizeof(*cdev));
+		if (cdev == NULL) {
+			dev_err(dev, "failed to allocate cdev\n");
+			goto fail;
+		}
+
+		/*
+		 * dev_node_list[0] is the power node to issue
+		 * power-on to the GPU.
+		 */
+		err = gk20a_create_device(dev, devno++,
+			dev_node_list[0].name,
+			&cdev->cdev, &cdev->node,
+			dev_node_list[0].fops,
+			class);
+		if (err) {
+			goto fail;
+		}
+
+		cdev->class = class->class;
+		nvgpu_init_list_node(&cdev->list_entry);
+		nvgpu_list_add(&cdev->list_entry, &l->cdev_list_head);
+	}
+
+	l->num_cdevs = total_cdevs;
+	return 0;
+fail:
+	gk20a_user_deinit(dev);
+	return err;
+
 }
 
 int gk20a_user_init(struct device *dev)
@@ -558,10 +668,13 @@ int gk20a_user_init(struct device *dev)
 	struct nvgpu_cdev *cdev;
 	u32 cdev_index;
 
-	nvgpu_init_list_node(&l->cdev_list_head);
-	nvgpu_init_list_node(&l->class_list_head);
+	if (!l->cdev_list_init_done) {
+		nvgpu_init_list_node(&l->cdev_list_head);
+		nvgpu_init_list_node(&l->class_list_head);
+		l->cdev_list_init_done = true;
+	}
 
-	err = nvgpu_prepare_dev_node_class_list(g, &num_classes);
+	err = nvgpu_prepare_dev_node_class_list(g, &num_classes, false);
 	if (err != 0) {
 		return err;
 	}
@@ -581,7 +694,11 @@ int gk20a_user_init(struct device *dev)
 			continue;
 		}
 
-		for (cdev_index = 0; cdev_index < num_cdevs; cdev_index++) {
+		/*
+		 * As we created the power node with power class already, the
+		 * index is starting from one.
+		 */
+		for (cdev_index = 1; cdev_index < num_cdevs; cdev_index++) {
 			if (!check_valid_dev_node(g, class, &dev_node_list[cdev_index])) {
 				continue;
 			}
@@ -607,7 +724,7 @@ int gk20a_user_init(struct device *dev)
 		}
 	}
 
-	l->num_cdevs = total_cdevs;
+	l->num_cdevs += total_cdevs;
 
 	return 0;
 fail:
