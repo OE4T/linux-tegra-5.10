@@ -156,8 +156,7 @@ static int mv88q2112_phy_config_intr(struct phy_device *phydev)
 
 static int mv88q2112_phy_ack_interrupt(struct phy_device *phydev)
 {
-	int rc = MDIO_READ(phydev, MDIO_MMD_PCS, MDIO_INT_STAT);
-	return rc;
+	return 0;
 }
 
 static int mv88q2112_config_aneg(struct phy_device *phydev)
@@ -311,7 +310,7 @@ static struct phy_driver mv88q2112_driver[] = {
 	 .probe = &mv88q2112_probe,
 	 .remove = &mv88q2112_remove,
 	 .features = PHY_GBIT_FEATURES,
-	 .flags = PHY_HAS_INTERRUPT,
+	 .flags = PHY_POLL,
 	 .config_init = &mv88q2112_config_init,
 	 //.soft_reset = &mv88q2112_soft_reset,
 	 .read_status = &mv88q2112_read_status,
