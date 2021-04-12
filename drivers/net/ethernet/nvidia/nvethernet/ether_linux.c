@@ -60,12 +60,10 @@ static inline void ether_stats_work_func(struct work_struct *work)
  */
 static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
 {
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
 	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
-	    pdata->use_stats == OSI_ENABLE) {
-#else
-	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
-#endif
+	    osi_core->use_virtualization == OSI_DISABLE) {
 		schedule_delayed_work(&pdata->ether_stats_work,
 				      msecs_to_jiffies(ETHER_STATS_TIMER *
 						       1000));
@@ -82,12 +80,10 @@ static inline void ether_stats_work_queue_start(struct ether_priv_data *pdata)
  */
 static inline void ether_stats_work_queue_stop(struct ether_priv_data *pdata)
 {
-#if (KERNEL_VERSION(5, 4, 0) > LINUX_VERSION_CODE)
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
 	if (pdata->hw_feat.mmc_sel == OSI_ENABLE &&
-	    pdata->use_stats == OSI_ENABLE) {
-#else
-	if (pdata->hw_feat.mmc_sel == OSI_ENABLE) {
-#endif
+	    osi_core->use_virtualization == OSI_DISABLE) {
 		cancel_delayed_work_sync(&pdata->ether_stats_work);
 	}
 }
@@ -1751,7 +1747,8 @@ static int ether_open(struct net_device *dev)
 		}
 	}
 
-	if (osi_core->mac == OSI_MAC_HW_MGBE) {
+	if (osi_core->mac == OSI_MAC_HW_MGBE &&
+	    osi_core->use_virtualization != OSI_ENABLE) {
 		power_ungate(pdata);
 	}
 
@@ -4133,14 +4130,9 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	if (!ether_init_ivc(pdata)) {
 		osi_dma->use_virtualization = OSI_ENABLE;
 		osi_core->use_virtualization = OSI_ENABLE;
-		/* read mac management flag and set use_stats */
-		of_property_read_u32(np, "nvidia,mmc_daemon",
-				     &pdata->use_stats);
-		dev_info(dev, "Virtualization is enabled & stats flag is %d\n",
-			 pdata->use_stats);
+		dev_info(dev, "Virtualization is enabled\n");
 	} else {
 		ret = -1;
-		pdata->use_stats = OSI_ENABLE;
 	}
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
@@ -4681,7 +4673,8 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_init_res;
 	}
 
-	if (mac == OSI_MAC_HW_MGBE) {
+	if (mac == OSI_MAC_HW_MGBE &&
+	    osi_core->use_virtualization != OSI_ENABLE) {
 		power_ungate(pdata);
 	}
 
