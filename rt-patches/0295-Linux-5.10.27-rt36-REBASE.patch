@@ -1,0 +1,19 @@
+From 1a4ba6035915c7f2aa6e38c0c21bf344868e5c88 Mon Sep 17 00:00:00 2001
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Wed, 24 Mar 2021 12:38:00 -0400
+Subject: [PATCH 295/295] Linux 5.10.27-rt36 REBASE
+
+---
+ localversion-rt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/localversion-rt b/localversion-rt
+index 21988f9..2294034 100644
+--- a/localversion-rt
++++ b/localversion-rt
+@@ -1 +1 @@
+--rt34
++-rt36
+-- 
+2.7.4
+

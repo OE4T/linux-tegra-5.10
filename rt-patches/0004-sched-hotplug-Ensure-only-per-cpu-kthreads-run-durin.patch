@@ -1,7 +1,7 @@
-From f5c68b35a686a1170796f2cf21e303cbd3923804 Mon Sep 17 00:00:00 2001
+From 44a79bacfa2a989e0cf58f5206d66055d7a5ff72 Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:01 +0200
-Subject: [PATCH 004/293] sched/hotplug: Ensure only per-cpu kthreads run
+Subject: [PATCH 004/295] sched/hotplug: Ensure only per-cpu kthreads run
  during hotplug
 
 In preparation for migrate_disable(), make sure only per-cpu kthreads
@@ -27,10 +27,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  2 files changed, 118 insertions(+), 3 deletions(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 3a3f29b..5072732 100644
+index 483f8de..67aeaa4 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -3514,8 +3514,10 @@ static inline struct callback_head *splice_balance_callbacks(struct rq *rq)
+@@ -3511,8 +3511,10 @@ static inline struct callback_head *splice_balance_callbacks(struct rq *rq)
  	struct callback_head *head = rq->balance_callback;
  
  	lockdep_assert_held(&rq->lock);
@@ -42,7 +42,7 @@ index 3a3f29b..5072732 100644
  
  	return head;
  }
-@@ -3536,6 +3538,21 @@ static inline void balance_callbacks(struct rq *rq, struct callback_head *head)
+@@ -3533,6 +3535,21 @@ static inline void balance_callbacks(struct rq *rq, struct callback_head *head)
  	}
  }
  
@@ -64,7 +64,7 @@ index 3a3f29b..5072732 100644
  #else
  
  static inline void __balance_callbacks(struct rq *rq)
-@@ -3551,6 +3568,10 @@ static inline void balance_callbacks(struct rq *rq, struct callback_head *head)
+@@ -3548,6 +3565,10 @@ static inline void balance_callbacks(struct rq *rq, struct callback_head *head)
  {
  }
  
@@ -75,7 +75,7 @@ index 3a3f29b..5072732 100644
  #endif
  
  static inline void
-@@ -3578,7 +3599,7 @@ static inline void finish_lock_switch(struct rq *rq)
+@@ -3575,7 +3596,7 @@ static inline void finish_lock_switch(struct rq *rq)
  	 * prev into current:
  	 */
  	spin_acquire(&rq->lock.dep_map, 0, 0, _THIS_IP_);
@@ -84,7 +84,7 @@ index 3a3f29b..5072732 100644
  	raw_spin_unlock_irq(&rq->lock);
  }
  
-@@ -6836,6 +6857,90 @@ static void migrate_tasks(struct rq *dead_rq, struct rq_flags *rf)
+@@ -6833,6 +6854,90 @@ static void migrate_tasks(struct rq *dead_rq, struct rq_flags *rf)
  
  	rq->stop = stop;
  }
@@ -175,7 +175,7 @@ index 3a3f29b..5072732 100644
  #endif /* CONFIG_HOTPLUG_CPU */
  
  void set_rq_online(struct rq *rq)
-@@ -6921,6 +7026,8 @@ int sched_cpu_activate(unsigned int cpu)
+@@ -6918,6 +7023,8 @@ int sched_cpu_activate(unsigned int cpu)
  	struct rq *rq = cpu_rq(cpu);
  	struct rq_flags rf;
  
@@ -184,7 +184,7 @@ index 3a3f29b..5072732 100644
  #ifdef CONFIG_SCHED_SMT
  	/*
  	 * When going up, increment the number of cores with SMT present.
-@@ -6968,6 +7075,8 @@ int sched_cpu_deactivate(unsigned int cpu)
+@@ -6965,6 +7072,8 @@ int sched_cpu_deactivate(unsigned int cpu)
  	 */
  	synchronize_rcu();
  
@@ -193,7 +193,7 @@ index 3a3f29b..5072732 100644
  #ifdef CONFIG_SCHED_SMT
  	/*
  	 * When going down, decrement the number of cores with SMT present.
-@@ -6981,6 +7090,7 @@ int sched_cpu_deactivate(unsigned int cpu)
+@@ -6978,6 +7087,7 @@ int sched_cpu_deactivate(unsigned int cpu)
  
  	ret = cpuset_cpu_inactive(cpu);
  	if (ret) {
@@ -202,7 +202,7 @@ index 3a3f29b..5072732 100644
  		return ret;
  	}
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 31fce5c..5881082 100644
+index a5b0d36..59f5e8b 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -968,6 +968,7 @@ struct rq {
@@ -213,7 +213,7 @@ index 31fce5c..5881082 100644
  
  	unsigned char		nohz_idle_balance;
  	unsigned char		idle_balance;
-@@ -1380,6 +1381,9 @@ init_numa_balancing(unsigned long clone_flags, struct task_struct *p)
+@@ -1381,6 +1382,9 @@ init_numa_balancing(unsigned long clone_flags, struct task_struct *p)
  
  #ifdef CONFIG_SMP
  
@@ -223,7 +223,7 @@ index 31fce5c..5881082 100644
  static inline void
  queue_balance_callback(struct rq *rq,
  		       struct callback_head *head,
-@@ -1387,12 +1391,13 @@ queue_balance_callback(struct rq *rq,
+@@ -1388,12 +1392,13 @@ queue_balance_callback(struct rq *rq,
  {
  	lockdep_assert_held(&rq->lock);
  

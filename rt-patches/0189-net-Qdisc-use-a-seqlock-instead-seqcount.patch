@@ -1,7 +1,7 @@
-From 34348b237160158ef4877c140713274974007f0b Mon Sep 17 00:00:00 2001
+From 8a478d57c22cb32ecebabd37290fd570c3cb32a2 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 14 Sep 2016 17:36:35 +0200
-Subject: [PATCH 189/293] net/Qdisc: use a seqlock instead seqcount
+Subject: [PATCH 189/295] net/Qdisc: use a seqlock instead seqcount
 
 The seqcount disables preemption on -RT while it is held which can't
 remove. Also we don't want the reader to spin for ages if the writer is
@@ -249,7 +249,7 @@ index e491b08..ef432ce 100644
  			 struct gnet_stats_basic_cpu __percpu *cpu,
  			 struct gnet_stats_basic_packed *b)
 diff --git a/net/sched/sch_api.c b/net/sched/sch_api.c
-index 5e8e49c..c3163d6 100644
+index 54a8c36..e6e00f8 100644
 --- a/net/sched/sch_api.c
 +++ b/net/sched/sch_api.c
 @@ -1258,7 +1258,7 @@ static struct Qdisc *qdisc_create(struct net_device *dev,

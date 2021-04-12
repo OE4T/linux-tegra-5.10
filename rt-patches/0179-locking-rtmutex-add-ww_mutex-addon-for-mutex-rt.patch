@@ -1,7 +1,7 @@
-From 94750ce5931db05f20206030a67c7adceb5867f1 Mon Sep 17 00:00:00 2001
+From 0cb93c4daeee9876376844f3889aaaed7322e942 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 12 Oct 2017 17:34:38 +0200
-Subject: [PATCH 179/293] locking/rtmutex: add ww_mutex addon for mutex-rt
+Subject: [PATCH 179/295] locking/rtmutex: add ww_mutex addon for mutex-rt
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
@@ -13,7 +13,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  5 files changed, 262 insertions(+), 20 deletions(-)
 
 diff --git a/include/linux/mutex.h b/include/linux/mutex.h
-index a0e9735..90f090e 100644
+index e45774a..90923d3 100644
 --- a/include/linux/mutex.h
 +++ b/include/linux/mutex.h
 @@ -82,14 +82,6 @@ struct mutex {

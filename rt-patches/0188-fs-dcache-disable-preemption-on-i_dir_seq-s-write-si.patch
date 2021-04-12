@@ -1,7 +1,7 @@
-From 2829a88b5beb818d017aca6020e8cd261cb3a127 Mon Sep 17 00:00:00 2001
+From a0cda19558e66a22382f02d18f3e8c2bf11099dc Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Fri, 20 Oct 2017 11:29:53 +0200
-Subject: [PATCH 188/293] fs/dcache: disable preemption on i_dir_seq's write
+Subject: [PATCH 188/295] fs/dcache: disable preemption on i_dir_seq's write
  side
 
 i_dir_seq is an opencoded seqcounter. Based on the code it looks like we

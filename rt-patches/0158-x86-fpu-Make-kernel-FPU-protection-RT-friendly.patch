@@ -1,7 +1,7 @@
-From da54d66f1596f7a3fb1ed918126789a9d1588fc5 Mon Sep 17 00:00:00 2001
+From 5a44d9aba2a509c8b0c198b0fd5289e5adf2e01c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 27 Oct 2020 11:09:51 +0100
-Subject: [PATCH 158/293] x86/fpu: Make kernel FPU protection RT friendly
+Subject: [PATCH 158/295] x86/fpu: Make kernel FPU protection RT friendly
 
 Non RT kernels need to protect FPU against preemption and bottom half
 processing. This is achieved by disabling bottom halfs via

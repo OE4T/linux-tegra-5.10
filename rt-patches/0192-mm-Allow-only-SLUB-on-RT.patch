@@ -1,7 +1,7 @@
-From 68411dd6fc70f4a9cc09625f19960ba03375326e Mon Sep 17 00:00:00 2001
+From 667229312de9f8cabfed83cfa7ade95d4219b305 Mon Sep 17 00:00:00 2001
 From: Ingo Molnar <mingo@elte.hu>
 Date: Fri, 3 Jul 2009 08:44:03 -0500
-Subject: [PATCH 192/293] mm: Allow only SLUB on RT
+Subject: [PATCH 192/295] mm: Allow only SLUB on RT
 
 Memory allocation disables interrupts as part of the allocation and freeing
 process. For -RT it is important that this section remain short and don't
@@ -22,10 +22,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 2 insertions(+)
 
 diff --git a/init/Kconfig b/init/Kconfig
-index 0872a5a..dac4e99 100644
+index d559abf..87f95c3 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -1885,6 +1885,7 @@ choice
+@@ -1896,6 +1896,7 @@ choice
  
  config SLAB
  	bool "SLAB"
@@ -33,7 +33,7 @@ index 0872a5a..dac4e99 100644
  	select HAVE_HARDENED_USERCOPY_ALLOCATOR
  	help
  	  The regular slab allocator that is established and known to work
-@@ -1905,6 +1906,7 @@ config SLUB
+@@ -1916,6 +1917,7 @@ config SLUB
  config SLOB
  	depends on EXPERT
  	bool "SLOB (Simple Allocator)"

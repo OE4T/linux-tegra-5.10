@@ -1,7 +1,7 @@
-From c332f5219f95d489238e0d4edc24670fd1e4f262 Mon Sep 17 00:00:00 2001
+From e1d187dcc4a22bac79f3c8a745a84273ce79bc67 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:36 +0100
-Subject: [PATCH 047/293] sched: highmem: Store local kmaps in task struct
+Subject: [PATCH 047/295] sched: highmem: Store local kmaps in task struct
 
 Instead of storing the map per CPU provide and use per task storage. That
 prepares for local kmaps which are preemptible.
@@ -85,7 +85,7 @@ index 942b87f..6e324d4 100644
  	unsigned long			task_state_change;
  #endif
 diff --git a/kernel/entry/common.c b/kernel/entry/common.c
-index e9e2df3..4e67c16 100644
+index e289e67..59c666d 100644
 --- a/kernel/entry/common.c
 +++ b/kernel/entry/common.c
 @@ -2,6 +2,7 @@
@@ -105,7 +105,7 @@ index e9e2df3..4e67c16 100644
  	lockdep_sys_exit();
  }
 diff --git a/kernel/fork.c b/kernel/fork.c
-index 00d30a8..dc0860f 100644
+index dc5c98b..d70cf79 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -931,6 +931,7 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
@@ -117,10 +117,10 @@ index 00d30a8..dc0860f 100644
  #ifdef CONFIG_FAULT_INJECTION
  	tsk->fail_nth = 0;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index b6beb63..5a1f4a0 100644
+index 972bae4..d62a774 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -4071,6 +4071,22 @@ static inline void finish_lock_switch(struct rq *rq)
+@@ -4068,6 +4068,22 @@ static inline void finish_lock_switch(struct rq *rq)
  # define finish_arch_post_lock_switch()	do { } while (0)
  #endif
  
@@ -143,7 +143,7 @@ index b6beb63..5a1f4a0 100644
  /**
   * prepare_task_switch - prepare to switch tasks
   * @rq: the runqueue preparing to switch
-@@ -4094,6 +4110,7 @@ prepare_task_switch(struct rq *rq, struct task_struct *prev,
+@@ -4091,6 +4107,7 @@ prepare_task_switch(struct rq *rq, struct task_struct *prev,
  	quadd_task_sched_out(prev, next);
  	rseq_preempt(prev);
  	fire_sched_out_preempt_notifiers(prev, next);
@@ -151,7 +151,7 @@ index b6beb63..5a1f4a0 100644
  	prepare_task(next);
  	prepare_arch_switch(next);
  }
-@@ -4161,6 +4178,7 @@ static struct rq *finish_task_switch(struct task_struct *prev)
+@@ -4158,6 +4175,7 @@ static struct rq *finish_task_switch(struct task_struct *prev)
  	finish_lock_switch(rq);
  	finish_arch_post_lock_switch();
  	kcov_finish_switch(current);

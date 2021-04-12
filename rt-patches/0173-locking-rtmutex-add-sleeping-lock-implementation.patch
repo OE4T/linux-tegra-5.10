@@ -1,7 +1,7 @@
-From 187a573bfbb76546fdcd562b4a3aed36fef49c41 Mon Sep 17 00:00:00 2001
+From 470e998c8a757b9123307caf8a1c5f05e13239b4 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:11:19 +0200
-Subject: [PATCH 173/293] locking/rtmutex: add sleeping lock implementation
+Subject: [PATCH 173/295] locking/rtmutex: add sleeping lock implementation
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -368,7 +368,7 @@ index 00000000..446da78
 +
 +#endif
 diff --git a/kernel/fork.c b/kernel/fork.c
-index dc0860f..2ebc683 100644
+index d70cf79..d022c00 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -927,6 +927,7 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
@@ -380,7 +380,7 @@ index dc0860f..2ebc683 100644
  	account_kernel_stack(tsk, 1);
  
 diff --git a/kernel/futex.c b/kernel/futex.c
-index 657be23..a23437a 100644
+index 6d7aaa8..90785b5 100644
 --- a/kernel/futex.c
 +++ b/kernel/futex.c
 @@ -1499,6 +1499,7 @@ static int wake_futex_pi(u32 __user *uaddr, u32 uval, struct futex_pi_state *pi_
@@ -409,7 +409,7 @@ index 657be23..a23437a 100644
  
  	return ret;
  }
-@@ -2859,7 +2861,7 @@ static int futex_lock_pi(u32 __user *uaddr, unsigned int flags,
+@@ -2858,7 +2860,7 @@ static int futex_lock_pi(u32 __user *uaddr, unsigned int flags,
  		goto no_block;
  	}
  
@@ -418,7 +418,7 @@ index 657be23..a23437a 100644
  
  	/*
  	 * On PREEMPT_RT_FULL, when hb->lock becomes an rt_mutex, we must not
-@@ -3205,7 +3207,7 @@ static int futex_wait_requeue_pi(u32 __user *uaddr, unsigned int flags,
+@@ -3204,7 +3206,7 @@ static int futex_wait_requeue_pi(u32 __user *uaddr, unsigned int flags,
  	 * The waiter is allocated on our stack, manipulated by the requeue
  	 * code while we sleep on uaddr.
  	 */
@@ -1139,10 +1139,10 @@ index 9d1e974..c1a2801 100644
  #ifdef CONFIG_DEBUG_RT_MUTEXES
  # include "rtmutex-debug.h"
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index d2ef32a..55567ae 100644
+index 0d7d0e6..ef7a7be 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -512,9 +512,15 @@ static bool set_nr_if_polling(struct task_struct *p)
+@@ -510,9 +510,15 @@ static bool set_nr_if_polling(struct task_struct *p)
  #endif
  #endif
  
@@ -1160,7 +1160,7 @@ index d2ef32a..55567ae 100644
  
  	/*
  	 * Atomically grab the task, if ->wake_q is !nil already it means
-@@ -550,7 +556,13 @@ static bool __wake_q_add(struct wake_q_head *head, struct task_struct *task)
+@@ -548,7 +554,13 @@ static bool __wake_q_add(struct wake_q_head *head, struct task_struct *task)
   */
  void wake_q_add(struct wake_q_head *head, struct task_struct *task)
  {
@@ -1175,7 +1175,7 @@ index d2ef32a..55567ae 100644
  		get_task_struct(task);
  }
  
-@@ -573,28 +585,39 @@ void wake_q_add(struct wake_q_head *head, struct task_struct *task)
+@@ -571,28 +583,39 @@ void wake_q_add(struct wake_q_head *head, struct task_struct *task)
   */
  void wake_q_add_safe(struct wake_q_head *head, struct task_struct *task)
  {

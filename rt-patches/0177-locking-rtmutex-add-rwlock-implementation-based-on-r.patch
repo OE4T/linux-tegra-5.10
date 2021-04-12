@@ -1,7 +1,7 @@
-From c48dd6c9783d27d4081f9be4fbf7e20d487ceec0 Mon Sep 17 00:00:00 2001
+From f22c4e458eff143799d2f4dce3f5f9d58dc2811c Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:18:06 +0200
-Subject: [PATCH 177/293] locking/rtmutex: add rwlock implementation based on
+Subject: [PATCH 177/295] locking/rtmutex: add rwlock implementation based on
  rtmutex
 
 The implementation is bias-based, similar to the rwsem implementation.

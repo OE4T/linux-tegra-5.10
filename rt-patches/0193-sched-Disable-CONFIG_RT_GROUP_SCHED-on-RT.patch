@@ -1,7 +1,7 @@
-From ccba528dbc911022b138ce17301c95116d5a0a87 Mon Sep 17 00:00:00 2001
+From 2730ac5aa0b9ffec81df042776922feb688eaa19 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 18 Jul 2011 17:03:52 +0200
-Subject: [PATCH 193/293] sched: Disable CONFIG_RT_GROUP_SCHED on RT
+Subject: [PATCH 193/295] sched: Disable CONFIG_RT_GROUP_SCHED on RT
 
 Carsten reported problems when running:
 
@@ -18,7 +18,7 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  1 file changed, 1 insertion(+)
 
 diff --git a/init/Kconfig b/init/Kconfig
-index dac4e99..d70dabf 100644
+index 87f95c3..ace3755 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -969,6 +969,7 @@ config CFS_BANDWIDTH

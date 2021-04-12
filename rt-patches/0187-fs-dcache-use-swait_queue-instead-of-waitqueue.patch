@@ -1,7 +1,7 @@
-From 3261d014fb7b6140ff17170ef2a7e575545d00d4 Mon Sep 17 00:00:00 2001
+From e4d2ed821347536d0615e106f461a5dcc5d28e1d Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 14 Sep 2016 14:35:49 +0200
-Subject: [PATCH 187/293] fs/dcache: use swait_queue instead of waitqueue
+Subject: [PATCH 187/295] fs/dcache: use swait_queue instead of waitqueue
 
 __d_lookup_done() invokes wake_up_all() while holding a hlist_bl_lock()
 which disables preemption. As a workaround convert it to swait.
@@ -111,7 +111,7 @@ index 3441ffa..2fcae5c 100644
  	if (!o->nodeid) {
  		/*
 diff --git a/fs/namei.c b/fs/namei.c
-index d4a6dd7..b6cb6fb 100644
+index 7af66d5..b3f51ef 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
 @@ -1520,7 +1520,7 @@ static struct dentry *__lookup_slow(const struct qstr *name,
@@ -123,7 +123,7 @@ index d4a6dd7..b6cb6fb 100644
  
  	/* Don't go there if it's already dead */
  	if (unlikely(IS_DEADDIR(inode)))
-@@ -3019,7 +3019,7 @@ static struct dentry *lookup_open(struct nameidata *nd, struct file *file,
+@@ -3014,7 +3014,7 @@ static struct dentry *lookup_open(struct nameidata *nd, struct file *file,
  	struct dentry *dentry;
  	int error, create_error = 0;
  	umode_t mode = op->mode;
@@ -133,7 +133,7 @@ index d4a6dd7..b6cb6fb 100644
  	if (unlikely(IS_DEADDIR(dir_inode)))
  		return ERR_PTR(-ENOENT);
 diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
-index 4e011ad..7ac3375 100644
+index c837675..a615b39 100644
 --- a/fs/nfs/dir.c
 +++ b/fs/nfs/dir.c
 @@ -484,7 +484,7 @@ void nfs_prime_dcache(struct dentry *parent, struct nfs_entry *entry,
@@ -145,7 +145,7 @@ index 4e011ad..7ac3375 100644
  	struct dentry *dentry;
  	struct dentry *alias;
  	struct inode *inode;
-@@ -1660,7 +1660,7 @@ int nfs_atomic_open(struct inode *dir, struct dentry *dentry,
+@@ -1671,7 +1671,7 @@ int nfs_atomic_open(struct inode *dir, struct dentry *dentry,
  		    struct file *file, unsigned open_flags,
  		    umode_t mode)
  {
@@ -198,7 +198,7 @@ index f4c3c4f..28fdd49 100644
  		if (IS_ERR(child))
  			goto end_instantiate;
 diff --git a/fs/proc/proc_sysctl.c b/fs/proc/proc_sysctl.c
-index d2018f7..59d715b 100644
+index 070d2df..a1a964b 100644
 --- a/fs/proc/proc_sysctl.c
 +++ b/fs/proc/proc_sysctl.c
 @@ -683,7 +683,7 @@ static bool proc_sys_fill_cache(struct file *file,

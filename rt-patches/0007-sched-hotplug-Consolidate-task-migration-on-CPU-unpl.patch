@@ -1,7 +1,7 @@
-From 222b89ef55bade1054616f02159c1fbd135a534a Mon Sep 17 00:00:00 2001
+From 331e1fb17c82ab15f8b588221b5b38a67df690f3 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 23 Oct 2020 12:12:04 +0200
-Subject: [PATCH 007/293] sched/hotplug: Consolidate task migration on CPU
+Subject: [PATCH 007/295] sched/hotplug: Consolidate task migration on CPU
  unplug
 
 With the new mechanism which kicks tasks off the outgoing CPU at the end of
@@ -92,10 +92,10 @@ index 2b8d7a5..4e11e91 100644
  	[CPUHP_AP_SMPBOOT_THREADS] = {
  		.name			= "smpboot/threads:online",
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index acfd2e6..7daeba2 100644
+index 825eafb..c9e2565 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -6744,120 +6744,6 @@ void idle_task_exit(void)
+@@ -6741,120 +6741,6 @@ void idle_task_exit(void)
  	/* finish_cpu(), as ran on the BP, will clean up the active_mm state */
  }
  
@@ -216,7 +216,7 @@ index acfd2e6..7daeba2 100644
  static int __balance_push_cpu_stop(void *arg)
  {
  	struct task_struct *p = arg;
-@@ -7126,10 +7012,6 @@ int sched_cpu_deactivate(unsigned int cpu)
+@@ -7123,10 +7009,6 @@ int sched_cpu_deactivate(unsigned int cpu)
  		return ret;
  	}
  	sched_domains_numa_masks_clear(cpu);
@@ -227,7 +227,7 @@ index acfd2e6..7daeba2 100644
  	return 0;
  }
  
-@@ -7149,6 +7031,41 @@ int sched_cpu_starting(unsigned int cpu)
+@@ -7146,6 +7028,41 @@ int sched_cpu_starting(unsigned int cpu)
  }
  
  #ifdef CONFIG_HOTPLUG_CPU
@@ -269,7 +269,7 @@ index acfd2e6..7daeba2 100644
  int sched_cpu_dying(unsigned int cpu)
  {
  	struct rq *rq = cpu_rq(cpu);
-@@ -7162,7 +7079,6 @@ int sched_cpu_dying(unsigned int cpu)
+@@ -7159,7 +7076,6 @@ int sched_cpu_dying(unsigned int cpu)
  		BUG_ON(!cpumask_test_cpu(cpu, rq->rd->span));
  		set_rq_offline(rq);
  	}

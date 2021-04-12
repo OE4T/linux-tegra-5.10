@@ -1,7 +1,7 @@
-From 4f14582e42e3d9b891a2beddc3fb7f7bcdf6aaf6 Mon Sep 17 00:00:00 2001
+From 7113446af6f7ba30af1fff83a3229bfaafdb2e68 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 29 Sep 2020 16:05:11 +0200
-Subject: [PATCH 160/293] locking/rtmutex: Remove output from deadlock
+Subject: [PATCH 160/295] locking/rtmutex: Remove output from deadlock
  detector.
 
 In commit

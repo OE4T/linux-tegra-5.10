@@ -1,7 +1,7 @@
-From da6f28d3e1f7c5fe3efaf1a62d168007ded5e193 Mon Sep 17 00:00:00 2001
+From 187e707dba8fa47aa02db1a718783d084b074629 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:31:14 +0200
-Subject: [PATCH 178/293] locking/rtmutex: wire up RT's locking
+Subject: [PATCH 178/295] locking/rtmutex: wire up RT's locking
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -20,7 +20,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  11 files changed, 77 insertions(+), 19 deletions(-)
 
 diff --git a/include/linux/mutex.h b/include/linux/mutex.h
-index dcd185c..a0e9735 100644
+index 4d671fb..e45774a 100644
 --- a/include/linux/mutex.h
 +++ b/include/linux/mutex.h
 @@ -22,6 +22,20 @@
