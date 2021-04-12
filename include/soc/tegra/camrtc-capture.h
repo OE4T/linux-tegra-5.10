@@ -565,12 +565,10 @@ struct vi_channel_config {
 	unsigned ispbufa_enable:1;
 	/** ISPB buffer enabled. Not valid for T186 & T194 */
 	unsigned ispbufb_enable:1;
-	/** FM lite unit enable flag */
-	unsigned fmlite_enable:1;
 	/** VI Companding module enable flag */
 	unsigned compand_enable:1;
 	/** Reserved bits */
-	unsigned __pad_flags:18;
+	unsigned __pad_flags:19;
 
 	/* VI channel selector */
 	struct match_rec {
@@ -1150,100 +1148,6 @@ struct vi_compand_config {
 	uint32_t offset[VI_NUM_COMPAND_KNEEPTS];
 } CAPTURE_IVC_ALIGN;
 
-/** FM-Lite unit, PDAF, Syncgen units are currently not used in T194 */
-#define VI_AFM_NUM_ROI			MK_SIZE(8)
-#define VI_AFM_NUM_TRANSFER_KNOTS	MK_SIZE(11)
-
-/**
- * @brief Focus Metrics lite (FMLite) unit configuration (Non-Safety)
- */
-struct vi_fmlite_config {
-	/** Atomically load the FM configuration from shadow registers to active registers */
-	uint32_t vfm_prog;
-	/** Control register */
-	uint32_t vfm_ctrl;
-	/** Black level for long and short exposure */
-	uint32_t vfm_black_level;
-	/** HDR sample map for long and short exposure */
-	uint32_t vfm_hdr_sample_map;
-	/** HDR scale for long and short exposure */
-	uint32_t vfm_hdr_scale;
-	/** Saturation for long and short exposure */
-	uint32_t vfm_hdr_sat;
-	/** Horizontal Increment value. Defined as (2^20 * SOURCE_WIDTH) / DEST_WIDTH */
-	uint32_t vfm_h_pi;
-	/** Vertical Phase Increment_value. Defined as (2^20 * SOURCE_HEIGHT) / DEST_HEIGHT */
-	uint32_t vfm_v_pi;
-	/** Horizontal down-scaling cropping parameter */
-	uint32_t vfm_offset;
-	/** Destination image framing */
-	uint32_t vfm_size;
-	/** Horizontal Scaler filter C0 & C1 coefficient */
-	uint32_t vfm_hf_c0;
-	/** Horizontal Scaler filter C2 coefficient */
-	uint32_t vfm_hf_c1;
-	/** Horizontal Scaler filter b0, b1, & b2 coefficient */
-	uint32_t vfm_hf_c2;
-	/** Verical Scaler filter a0 & a1 mantissa and exponent */
-	uint32_t vfm_vf_c0;
-	/** Verical Scaler filter a2 mantissa and exponent */
-	uint32_t vfm_vf_c1;
-	/** Verical Scaler filter b0, b1, & b2 coefficient */
-	uint32_t vfm_vf_c2;
-	/** Verical Scaler filter b0(minus), b1(minus), & b2(minus) coefficient */
-	uint32_t vfm_vf_c3;
-	/** Verical Scaler filter b0(plus), b1(plus), & b2(plus) coefficient */
-	uint32_t vfm_vf_c4;
-	/** Control register */
-	uint32_t ctrl;
-	/** Color register */
-	uint32_t color;
-	/** Transfer slope */
-	uint32_t transfer_slope;
-	/** Horizontal scale & placement of the spline interpolation */
-	uint32_t transfer_x;
-	/** Vertical scale & placement of the spline interpolation */
-	uint32_t transfer_y;
-	/** Enables cubic spline for low and high inputs */
-	uint32_t transfer_cubic_ctrl;
-	/** Transfer knots values, maximum +1.0 */
-	uint32_t transfer_knots[VI_AFM_NUM_TRANSFER_KNOTS];
-	/** 8 ROI region */
-	uint32_t roi_pos[VI_AFM_NUM_ROI];
-	/** 8 ROI region size */
-	uint32_t roi_size[VI_AFM_NUM_ROI];
-	/** Trapezoid envelope function enable for each ROI */
-	uint32_t trap_en;
-	/** Trapezoid horizontal down counter origin for each ROI */
-	uint32_t hstart[VI_AFM_NUM_ROI];
-	/** Trapezoid vertical down counter origin for each ROI */
-	uint32_t vstart[VI_AFM_NUM_ROI];
-	/** Trapezoid slope for each ROI */
-	uint32_t slope[VI_AFM_NUM_ROI];
-	/** Convolution matrix coefficients 0 and 1 */
-	uint32_t coeff01;
-	/** Convolution matrix coefficients 2 and 3 */
-	uint32_t coeff23;
-	/** Convolution matrix coefficients 4 and 5 */
-	uint32_t coeff45;
-	/** FMLite error status */
-	uint32_t error;
-} CAPTURE_IVC_ALIGN;
-
-/**
- * @brief Focus Metrics lite (FMLite) unit result
- *
- * Total size is 72 bytes
- */
-struct vi_fmlite_result {
-	/** Error status */
-	uint32_t error;
-	/** Reserved */
-	uint32_t __pad;
-	/** 8 ROI region */
-	uint64_t roi[VI_AFM_NUM_ROI];
-} CAPTURE_IVC_ALIGN;
-
 /*
  * @brief VI Phase Detection Auto Focus (PDAF) configuration
  *
@@ -1411,22 +1315,18 @@ struct capture_descriptor {
 
 	/** VI Channel configuration */
 	struct vi_channel_config ch_cfg;
-	/** Focus Metrics lite (FMLite) unit configuration */
-	struct vi_fmlite_config fm_cfg;
+
 	/** VI PFSD Configuration */
 	struct vi_pfsd_config pfsd_cfg;
 
 	/** Engine result record – written by Falcon */
 	struct engine_status_surface engine_status;
 
-	/** FMLITE result – written by RCE */
-	struct vi_fmlite_result fm_result;
-
 	/** Capture result record – written by RCE */
 	struct capture_status status;
 
 	/** Reserved */
-	uint32_t __pad32[12];
+	uint32_t __pad32[14];
 
 } CAPTURE_DESCRIPTOR_ALIGN;
 
