@@ -391,8 +391,6 @@ struct ether_priv_data {
 	unsigned int tx_lpi_enabled;
 	/** Time (usec) MAC waits to enter LPI after Tx complete */
 	unsigned int tx_lpi_timer;
-	/** Flag which decides stats is enabled(1) or disabled(0) */
-	unsigned int use_stats;
 	/** ivc context */
 	struct ether_ivc_ctxt ictxt;
 	/** VM channel info data associated with VM IRQ */
