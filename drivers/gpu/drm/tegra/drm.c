@@ -1151,7 +1151,9 @@ static int host1x_drm_probe(struct host1x_device *dev)
 	drm->mode_config.max_width = 0;
 	drm->mode_config.max_height = 0;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 14, 0)
 	drm->mode_config.allow_fb_modifiers = true;
+#endif
 
 	drm->mode_config.normalize_zpos = true;
 
