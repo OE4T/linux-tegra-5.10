@@ -75,5 +75,6 @@
 		nvidia,vm-irq-config = <&mgbe_vm_irq_config>;
 		nvidia,tx-queue-prio = <0 1 2 3 4 5 6 7 0 0>;
 		status = "disabled";
+		nvidia,dcs-enable = <0x1>;
 	};
 };

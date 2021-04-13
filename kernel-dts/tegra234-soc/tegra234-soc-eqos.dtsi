@@ -64,5 +64,6 @@
 		nvidia,rxq_enable_ctrl = <2 2 2 2 2 2 2 2>;
 		nvidia,vm-irq-config = <&eqos_vm_irq_config>;
 		status = "disabled";
+		nvidia,dcs-enable = <0x1>;
 	};
 };
