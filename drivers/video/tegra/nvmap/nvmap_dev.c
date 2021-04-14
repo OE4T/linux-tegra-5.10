@@ -1293,7 +1293,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 		goto finish;
 	}
 
-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
 	if (!dev) {
 		dev_err(&pdev->dev, "out of memory for device\n");
 		e = -ENOMEM;
@@ -1306,7 +1306,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 	if (!plat) {
 		dev_err(&pdev->dev, "no platform data?\n");
 		e = -ENODEV;
-		goto free_dev;
+		goto finish;
 	}
 #endif /* !NVMAP_LOADABLE_MODULE */
 	nvmap_dev = dev;
@@ -1416,10 +1416,6 @@ fail:
 	if (dev->dev_user.minor != MISC_DYNAMIC_MINOR)
 		misc_deregister(&dev->dev_user);
 	nvmap_dev = NULL;
-#ifndef NVMAP_LOADABLE_MODULE
-free_dev:
-	kfree(dev);
-#endif /* !NVMAP_LOADABLE_MODULE */
 finish:
 	nvmap_init_time += sched_clock() - start_time;
 	return e;
@@ -1448,7 +1444,6 @@ int nvmap_remove(struct platform_device *pdev)
 	}
 	kfree(dev->heaps);
 
-	kfree(dev);
 	nvmap_dev = NULL;
 	return 0;
 }
