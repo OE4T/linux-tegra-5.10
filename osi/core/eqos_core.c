@@ -1551,10 +1551,10 @@ static void eqos_configure_mac(struct osi_core_priv_data *const osi_core)
 	eqos_core_safety_writel(osi_core, value, (nveu8_t *)osi_core->base +
 				EQOS_MAC_MCR, EQOS_MAC_MCR_IDX);
 
-	/* Enable PDC */
 	value = osi_readla(osi_core,
 			   (unsigned char *)osi_core->base + EQOS_MAC_EXTR);
-	value |= EQOS_MAC_EXTR_PDC;
+	/* TODO: Re-enable PDC along with packet duplication */
+	/* value |= EQOS_MAC_EXTR_PDC; */
 	osi_writela(osi_core, value,
 		    (unsigned char *)osi_core->base + EQOS_MAC_EXTR);
 
@@ -3488,7 +3488,7 @@ static inline nve32_t eqos_poll_for_tsinit_complete(
 		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
-	return -1;
+	return 0;
 }
 
 /**
@@ -3602,7 +3602,7 @@ static inline nve32_t eqos_poll_for_addend_complete(
 		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
-	return -1;
+	return 0;
 }
 
 /**
@@ -3916,7 +3916,7 @@ static int eqos_config_ptp_rxq(struct osi_core_priv_data *osi_core,
 	/* Check MAC version */
 	if (osi_core->mac_ver <= OSI_EQOS_MAC_5_00) {
 		/* MAC 4_10 and 5 doesn't have PTP RX Queue route support */
-		return -1;
+		return 0;
 	}
 
 	/* Validate enable argument */
