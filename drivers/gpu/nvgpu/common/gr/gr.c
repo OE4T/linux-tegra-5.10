@@ -232,7 +232,9 @@ static int gr_init_setup_hw(struct gk20a *g, struct nvgpu_gr *gr)
 
 	g->ops.gr.init.gpc_mmu(g);
 
-	g->ops.gr.init.pes_vsc_stream(g);
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		g->ops.gr.init.pes_vsc_stream(g);
+	}
 
 	if (g->ops.priv_ring.set_ppriv_timeout_settings != NULL) {
 		g->ops.priv_ring.set_ppriv_timeout_settings(g);
