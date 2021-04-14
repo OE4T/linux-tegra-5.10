@@ -2682,12 +2682,11 @@ static int sdhci_tegra_runtime_suspend(struct device *dev)
 	struct sdhci_host *host = dev_get_drvdata(dev);
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	struct mmc_host *mmc = host->mmc;
 	int ret, rc;
 
 	if (host->mmc->caps2 & MMC_CAP2_CQE) {
-		ret = cqhci_suspend(host->mmc);
-		if (ret)
-			return ret;
+		mmc->cqe_ops->cqe_off(mmc);
 	}
 
 	ret = sdhci_runtime_suspend_host(host);
