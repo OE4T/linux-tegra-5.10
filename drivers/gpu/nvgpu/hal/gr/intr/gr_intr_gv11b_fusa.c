@@ -779,9 +779,11 @@ void gv11b_gr_intr_enable_hww_exceptions(struct gk20a *g)
 	nvgpu_writel(g, gr_ds_hww_esr_r(),
 		     gr_ds_hww_esr_en_enabled_f() |
 		     gr_ds_hww_esr_reset_task_f());
-	nvgpu_writel(g, gr_ssync_hww_esr_r(),
-		     gr_ssync_hww_esr_en_enable_f() |
-		     gr_ssync_hww_esr_reset_active_f());
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		nvgpu_writel(g, gr_ssync_hww_esr_r(),
+		        gr_ssync_hww_esr_en_enable_f() |
+		        gr_ssync_hww_esr_reset_active_f());
+	}
 	nvgpu_writel(g, gr_mme_hww_esr_r(),
 		     gr_mme_hww_esr_en_enable_f() |
 		     gr_mme_hww_esr_reset_active_f());
