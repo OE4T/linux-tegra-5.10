@@ -19,6 +19,7 @@
 #include <linux/fb.h>
 #include <linux/version.h>
 
+#include <nvgpu/errata.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/ptimer.h>
@@ -491,6 +492,10 @@ static ssize_t ldiv_slowdown_factor_store(struct device *dev,
 	struct nvgpu_pmu *pmu = g->pmu;
 	unsigned long val = 0;
 	int err;
+
+	if (!nvgpu_is_errata_present(g, NVGPU_ERRATA_200391931)) {
+		return 0;
+	}
 
 	if (kstrtoul(buf, 10, &val) < 0) {
 		nvgpu_err(g, "parse error for input SLOWDOWN factor\n");

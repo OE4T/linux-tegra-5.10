@@ -25,6 +25,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/nvlink_probe.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/sim.h>
@@ -542,9 +543,14 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 
 	pci_set_drvdata(pdev, platform);
 
-	err = nvgpu_init_enabled_flags(g);
+	err = nvgpu_init_errata_flags(g);
 	if (err)
 		goto err_free_platform;
+
+	err = nvgpu_init_enabled_flags(g);
+	if (err) {
+		goto err_free_errata;
+	}
 
 	platform->g = g;
 	l->dev = &pdev->dev;
@@ -690,6 +696,9 @@ err_disable_msi:
 	if (g->msi_enabled)
 		pci_disable_msi(pdev);
 #endif
+	nvgpu_free_enabled_flags(g);
+err_free_errata:
+	nvgpu_free_errata_flags(g);
 err_free_platform:
 	nvgpu_kfree(g, platform);
 err_free_l:

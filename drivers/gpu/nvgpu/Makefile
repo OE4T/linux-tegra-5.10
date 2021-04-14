@@ -200,6 +200,7 @@ nvgpu-y += \
 nvgpu-y += \
 	common/device.o \
 	common/utils/enabled.o \
+	common/utils/errata.o \
 	common/utils/rbtree.o \
 	common/utils/string.o \
 	common/utils/worker.o \

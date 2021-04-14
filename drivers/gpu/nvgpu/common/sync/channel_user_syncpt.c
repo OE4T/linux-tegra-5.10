@@ -27,6 +27,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_user_syncpt.h>
 #include <nvgpu/string.h>
+#include <nvgpu/errata.h>
 #include "channel_user_syncpt_priv.h"
 
 static int user_sync_build_debug_name(struct nvgpu_channel *ch,
@@ -93,8 +94,12 @@ nvgpu_channel_user_syncpt_create(struct nvgpu_channel *ch)
 	 * Once nvhost update the return value as NVGPU_INVALID_SYNCPT_ID,
 	 * we can remove the zero check.
 	 */
-	if ((s->syncpt_id == 0U) ||
-			(s->syncpt_id == NVGPU_INVALID_SYNCPT_ID)) {
+	if ((nvgpu_is_errata_present(g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0)) &&
+		(s->syncpt_id == 0U)) {
+		nvgpu_err(g, "failed to get free syncpt");
+		goto err_free;
+	}
+	if (s->syncpt_id == NVGPU_INVALID_SYNCPT_ID) {
 		nvgpu_err(g, "failed to get free syncpt");
 		goto err_free;
 	}

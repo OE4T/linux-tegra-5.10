@@ -47,6 +47,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/fbp.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/sim.h>
@@ -1009,6 +1010,7 @@ void gk20a_remove_support(struct gk20a *g)
 	nvgpu_remove_usermode_support(g);
 
 	nvgpu_free_enabled_flags(g);
+	nvgpu_free_errata_flags(g);
 
 	gk20a_lockout_registers(g);
 }
@@ -1616,9 +1618,13 @@ static int gk20a_probe(struct platform_device *dev)
 
 	nvgpu_kmem_init(gk20a);
 
+	err = nvgpu_init_errata_flags(gk20a);
+	if (err)
+		goto return_err_platform;
+
 	err = nvgpu_init_enabled_flags(gk20a);
 	if (err)
-		goto return_err;
+		goto return_err_errata;
 
 	np = nvgpu_get_node(gk20a);
 	if (of_dma_is_coherent(np)) {
@@ -1730,6 +1736,9 @@ static int gk20a_probe(struct platform_device *dev)
 
 return_err:
 	nvgpu_free_enabled_flags(gk20a);
+return_err_errata:
+	nvgpu_free_errata_flags(gk20a);
+return_err_platform:
 
 	/*
 	 * Last since the above allocs may use data structures in here.

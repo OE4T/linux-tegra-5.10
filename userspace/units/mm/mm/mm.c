@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
 #include <unit/io.h>
 #include <unit/unit.h>
 #include <unit/core.h>
+#include <nvgpu/errata.h>
 
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/posix/io.h>
@@ -125,7 +126,7 @@ static void init_platform(struct unit_module *m, struct gk20a *g, bool is_iGPU)
 	/* Enable extra features to increase line coverage */
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
-	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_MM_FORCE_128K_PMU_VM, true);
 }
 
 /*
@@ -289,7 +290,7 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 	 */
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, false);
-	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM, false);
+	nvgpu_set_errata(g, NVGPU_ERRATA_MM_FORCE_128K_PMU_VM, false);
 	g->has_cde = false;
 
 	errors += nvgpu_init_mm_support_inject_error(m, g, ERROR_TYPE_HAL, 1,
@@ -297,7 +298,7 @@ int test_nvgpu_init_mm(struct unit_module *m, struct gk20a *g, void *args)
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
-	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_MM_FORCE_128K_PMU_VM, true);
 	g->has_cde = true;
 
 	/*

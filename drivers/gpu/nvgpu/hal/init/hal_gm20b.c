@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/ptimer.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/debugger.h>
@@ -1167,6 +1168,10 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->chip_init_gpu_characteristics = nvgpu_init_gpu_characteristics;
 	gops->get_litter_value = gm20b_get_litter_value;
 	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;
+
+	nvgpu_set_errata(g, NVGPU_ERRATA_1547668, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_MM_FORCE_128K_PMU_VM, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0, true);
 
 	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 #ifdef CONFIG_NVGPU_FECS_TRACE

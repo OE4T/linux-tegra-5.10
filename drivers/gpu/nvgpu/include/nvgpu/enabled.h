@@ -86,7 +86,6 @@ struct gk20a;
 		"Use coherent aperture for sysmem"),			\
 	DEFINE_FLAG(NVGPU_MM_USE_PHYSICAL_SG,				\
 		"Use physical scatter tables instead of IOMMU"),	\
-	DEFINE_FLAG(NVGPU_MM_FORCE_128K_PMU_VM, "WAR for gm20b chips"),	\
 	DEFINE_FLAG(NVGPU_MM_BYPASSES_IOMMU,				\
 		"Some chips (using nvlink) bypass the IOMMU on tegra"),	\
 	/* Host Flags */						\

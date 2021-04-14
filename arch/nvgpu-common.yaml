@@ -237,15 +237,17 @@ sim:
 
 utils:
   safe: yes
-  owner: Terje B
+  owner: Alex W
   sources: [ include/nvgpu/utils.h,
              include/nvgpu/worker.h,
              include/nvgpu/rbtree.h,
              include/nvgpu/enabled.h,
+             include/nvgpu/errata.h,
              common/utils/string.c,
              common/utils/worker.c,
              common/utils/rbtree.c,
-             common/utils/enabled.c ]
+             common/utils/enabled.c,
+             common/utils/errata.c ]
 
 ##
 ## Common elements.

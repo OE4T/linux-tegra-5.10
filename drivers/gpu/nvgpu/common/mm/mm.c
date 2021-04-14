@@ -30,6 +30,7 @@
 #include <nvgpu/semaphore.h>
 #include <nvgpu/pramin.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/ce_app.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
@@ -177,7 +178,7 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 #ifdef CONFIG_NVGPU_DGPU
 	nvgpu_vidmem_destroy(g);
 
-	if (g->ops.ramin.deinit_pdb_cache_war != NULL) {
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_INIT_PDB_CACHE)) {
 		g->ops.ramin.deinit_pdb_cache_war(g);
 	}
 #endif
@@ -197,7 +198,7 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 	 * For some reason the maxwell PMU code is dependent on the large page
 	 * size. No reason AFAICT for this. Probably a bug somewhere.
 	 */
-	if (nvgpu_is_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM)) {
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_MM_FORCE_128K_PMU_VM)) {
 		big_page_size = nvgpu_safe_cast_u64_to_u32(SZ_128K);
 	}
 
@@ -587,14 +588,14 @@ static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
 {
 	int err;
 
-	if (g->ops.ramin.init_pdb_cache_war != NULL) {
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_INIT_PDB_CACHE)) {
 		err = g->ops.ramin.init_pdb_cache_war(g);
 		if (err != 0) {
 			return err;
 		}
 	}
 
-	if (g->ops.fb.apply_pdb_cache_war != NULL) {
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_FB_PDB_CACHE)) {
 		err = g->ops.fb.apply_pdb_cache_war(g);
 		if (err != 0) {
 			return err;

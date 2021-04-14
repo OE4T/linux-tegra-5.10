@@ -61,6 +61,7 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/linux/dma.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/errata.h>
 
 #include "hal/clk/clk_gm20b.h"
 
@@ -864,7 +865,7 @@ static int gk20a_tegra_probe(struct device *dev)
 	}
 
 	platform->g->clk.gpc_pll.id = GK20A_GPC_PLL;
-	if (platform->platform_chip_id == TEGRA_210) {
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_1547668)) {
 		/* WAR for bug 1547668: Disable railgating and scaling
 		   irrespective of platform data if the rework was not made. */
 		np = of_find_node_by_path("/gpu-dvfs-rework");

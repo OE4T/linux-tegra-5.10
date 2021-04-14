@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/preempt.h>
+#include <nvgpu/errata.h>
 
 #include "hal/mm/mm_gm20b.h"
 #include "hal/mm/mm_gp10b.h"
@@ -1722,6 +1723,12 @@ int tu104_init_hal(struct gk20a *g)
 	gops->chip_init_gpu_characteristics = tu104_init_gpu_characteristics;
 	gops->get_litter_value = tu104_get_litter_value;
 	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;
+
+	nvgpu_set_errata(g, NVGPU_ERRATA_INIT_PDB_CACHE, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_FB_PDB_CACHE, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_VBIOS_NVLINK_MASK, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_200391931, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0, true);
 
 	nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
 	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);

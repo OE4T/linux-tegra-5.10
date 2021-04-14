@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/gk20a.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/ce.h>
 #include <nvgpu/ce_app.h>
@@ -1518,6 +1519,10 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->chip_init_gpu_characteristics = gv11b_init_gpu_characteristics;
 	gops->get_litter_value = gv11b_get_litter_value;
 	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;
+
+	nvgpu_set_errata(g, NVGPU_ERRATA_2016608, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_200391931, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0, true);
 
 	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, false);
 

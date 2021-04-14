@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/class.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/static_analysis.h>
 
@@ -173,11 +174,14 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Single bit error detected in SM LRF!");
 
-		gr_gp10b_sm_lrf_ecc_overcount_war(true,
-						lrf_ecc_sed_status,
-						lrf_ecc_ded_status,
-						&lrf_single_count_delta,
-						lrf_double_count_delta);
+		if (nvgpu_is_errata_present(g,
+				NVGPU_ERRATA_LRF_ECC_OVERCOUNT)) {
+			gr_gp10b_sm_lrf_ecc_overcount_war(true,
+							lrf_ecc_sed_status,
+							lrf_ecc_ded_status,
+							&lrf_single_count_delta,
+							lrf_double_count_delta);
+		}
 		g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter =
 			   nvgpu_safe_add_u32(
 				g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter,
@@ -187,11 +191,14 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Double bit error detected in SM LRF!");
 
-		gr_gp10b_sm_lrf_ecc_overcount_war(false,
-						lrf_ecc_sed_status,
-						lrf_ecc_ded_status,
-						&lrf_double_count_delta,
-						lrf_single_count_delta);
+		if (nvgpu_is_errata_present(g,
+				NVGPU_ERRATA_LRF_ECC_OVERCOUNT)) {
+			gr_gp10b_sm_lrf_ecc_overcount_war(false,
+							lrf_ecc_sed_status,
+							lrf_ecc_ded_status,
+							&lrf_double_count_delta,
+							lrf_single_count_delta);
+		}
 		g->ecc.gr.sm_lrf_ecc_double_err_count[gpc][tpc].counter =
 			   nvgpu_safe_add_u32(
 				g->ecc.gr.sm_lrf_ecc_double_err_count[gpc][tpc].counter,

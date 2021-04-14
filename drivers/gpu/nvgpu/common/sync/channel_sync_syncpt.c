@@ -1,7 +1,7 @@
 /*
  * GK20A Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/list.h>
@@ -378,8 +379,12 @@ nvgpu_channel_sync_syncpt_create(struct nvgpu_channel *c)
 	 * Once nvhost update the return value as NVGPU_INVALID_SYNCPT_ID,
 	 * we can remove the zero check.
 	 */
-	if ((sp->id == 0U) ||
-		(sp->id == NVGPU_INVALID_SYNCPT_ID)) {
+	if ((nvgpu_is_errata_present(c->g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0)) &&
+		(sp->id == 0U)) {
+		nvgpu_err(c->g, "failed to get free syncpt");
+		goto err_free;
+	}
+	if (sp->id == NVGPU_INVALID_SYNCPT_ID) {
 		nvgpu_err(c->g, "failed to get free syncpt");
 		goto err_free;
 	}

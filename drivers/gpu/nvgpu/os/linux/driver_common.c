@@ -15,6 +15,7 @@
  */
 
 #include <linux/reboot.h>
+#include <nvgpu/errata.h>
 #include <linux/dma-mapping.h>
 #include <linux/mm.h>
 #include <linux/slab.h>
@@ -256,7 +257,7 @@ static void nvgpu_init_mm_vars(struct gk20a *g)
 			    platform->unified_memory);
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES,
 			    platform->unify_address_spaces);
-	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM,
+	nvgpu_set_errata(g, NVGPU_ERRATA_MM_FORCE_128K_PMU_VM,
 			    platform->force_128K_pmu_vm);
 
 	nvgpu_mutex_init(&g->mm.tlb_lock);

@@ -92,6 +92,7 @@ endif
 
 srcs +=	common/device.c \
 	common/utils/enabled.c \
+	common/utils/errata.c \
 	common/utils/rbtree.c \
 	common/utils/string.c \
 	common/utils/worker.c \

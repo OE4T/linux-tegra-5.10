@@ -33,6 +33,7 @@
 #include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/errata.h>
 
 #include <nvgpu/posix/probe.h>
 #include <nvgpu/posix/mock-regs.h>
@@ -267,6 +268,10 @@ struct gk20a *nvgpu_posix_probe(void)
 		goto fail_kmem;
 	}
 
+	if (nvgpu_init_errata_flags(g) != 0) {
+		goto fail_errata_flags;
+	}
+
 	if (nvgpu_init_enabled_flags(g) != 0) {
 		goto fail_enabled_flags;
 	}
@@ -297,6 +302,8 @@ struct gk20a *nvgpu_posix_probe(void)
 	return g;
 
 fail_enabled_flags:
+	nvgpu_free_errata_flags(g);
+fail_errata_flags:
 	nvgpu_kmem_fini(g, 0);
 fail_kmem:
 	free(p);

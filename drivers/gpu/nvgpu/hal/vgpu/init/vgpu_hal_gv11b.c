@@ -92,6 +92,7 @@
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/vgpu/vgpu.h>
@@ -1062,6 +1063,10 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->fuse = vgpu_gv11b_ops_fuse;
 	gops->top = vgpu_gv11b_ops_top;
 	gops->grmgr = vgpu_gv11b_ops_grmgr;
+
+	nvgpu_set_errata(g, NVGPU_ERRATA_2016608, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_200391931, true);
+	nvgpu_set_errata(g, NVGPU_ERRATA_SYNCPT_INVALID_ID_0, true);
 
 #ifdef CONFIG_NVGPU_FECS_TRACE
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);

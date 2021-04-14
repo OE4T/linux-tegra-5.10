@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/device.h>
 #include <nvgpu/nvlink_bios.h>
 #include <nvgpu/device.h>
+#include <nvgpu/errata.h>
 
 #ifdef CONFIG_NVGPU_NVLINK
 
@@ -104,7 +105,7 @@ static int nvgpu_nvlink_enable_links_post_top(struct gk20a *g,
 
 	for_each_set_bit(bit, &enabled_links, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		if (g->ops.nvlink.set_sw_war != NULL) {
+		if (nvgpu_is_errata_present(g, NVGPU_ERRATA_1888034)) {
 			g->ops.nvlink.set_sw_war(g, link_id);
 		}
 		g->ops.nvlink.intr.init_link_err_intr(g, link_id);
@@ -264,7 +265,10 @@ int nvgpu_nvlink_early_init(struct gk20a *g)
 	 * on the GPU. This is temporary WAR while we get the VBIOS updated with
 	 * correct mask.
 	 */
-	g->ops.nvlink.get_connected_link_mask(&(g->nvlink.connected_links));
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_VBIOS_NVLINK_MASK)) {
+		g->ops.nvlink.get_connected_link_mask(
+			&(g->nvlink.connected_links));
+	}
 
 	nvgpu_log(g, gpu_dbg_nvlink, "connected_links = 0x%08x",
 						g->nvlink.connected_links);

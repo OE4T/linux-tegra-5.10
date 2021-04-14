@@ -515,6 +515,7 @@ nvgpu_gr_suspend
 nvgpu_gr_sw_ready
 nvgpu_has_syncpoints
 nvgpu_init_enabled_flags
+nvgpu_init_errata_flags
 nvgpu_init_fb_support
 nvgpu_init_hal
 nvgpu_init_ltc_support
@@ -526,6 +527,7 @@ nvgpu_iommuable
 nvgpu_free_inst_block
 nvgpu_inst_block_ptr
 nvgpu_is_enabled
+nvgpu_is_errata_present
 nvgpu_kcalloc_impl
 nvgpu_kfree_impl
 nvgpu_kmalloc_impl
@@ -719,6 +721,7 @@ nvgpu_tsg_unbind_channel_check_hw_state
 nvgpu_tsg_unbind_channel_check_ctx_reload
 nvgpu_set_bit
 nvgpu_set_enabled
+nvgpu_set_errata
 nvgpu_set_power_state
 nvgpu_set_pte
 nvgpu_sgt_alignment

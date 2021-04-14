@@ -358,6 +358,11 @@ struct gk20a {
 	struct nvgpu_nvhost_dev *nvhost;
 
 	/**
+	 * Used by <nvgpu/errata.h>. Do not access directly!
+	 */
+	unsigned long *errata_flags;
+
+	/**
 	 * Used by <nvgpu/enabled.h>. Do not access directly!
 	 */
 	unsigned long *enabled_flags;

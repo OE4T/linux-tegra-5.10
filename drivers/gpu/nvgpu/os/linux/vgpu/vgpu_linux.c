@@ -34,6 +34,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/defaults.h>
@@ -341,8 +342,15 @@ int vgpu_probe(struct platform_device *pdev)
 
 	nvgpu_kmem_init(gk20a);
 
+	err = nvgpu_init_errata_flags(gk20a);
+	if (err) {
+		kfree(gk20a);
+		return err;
+	}
+
 	err = nvgpu_init_enabled_flags(gk20a);
 	if (err) {
+		nvgpu_free_errata_flags(gk20a);
 		kfree(gk20a);
 		return err;
 	}

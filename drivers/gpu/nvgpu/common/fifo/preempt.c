@@ -22,6 +22,7 @@
 
 #include <nvgpu/soc.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/errata.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/types.h>
 #include <nvgpu/channel.h>
@@ -54,8 +55,11 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 
 	nvgpu_mutex_acquire(&tsg->runlist->runlist_lock);
 
-	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
-				RUNLIST_DISABLED);
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_2016608)) {
+		nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
+					RUNLIST_DISABLED);
+	}
+
 #ifdef CONFIG_NVGPU_LS_PMU
 	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
 						PMU_MUTEX_ID_FIFO, &token);
@@ -77,8 +81,10 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 		}
 	}
 #endif
-	nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
-				RUNLIST_ENABLED);
+	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_2016608)) {
+		nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
+					RUNLIST_ENABLED);
+	}
 
 	nvgpu_mutex_release(&tsg->runlist->runlist_lock);
 
