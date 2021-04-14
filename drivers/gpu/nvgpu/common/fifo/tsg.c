@@ -338,7 +338,7 @@ int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
 {
 	struct gk20a *g = ch->g;
 	struct nvgpu_channel_hw_state hw_state;
-	int err;
+	int err = 0;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	g->ops.channel.read_state(g, ch, &hw_state);
@@ -346,9 +346,6 @@ int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
 
 	if (g->ops.tsg.unbind_channel_check_hw_next != NULL) {
 		err = g->ops.tsg.unbind_channel_check_hw_next(ch, &hw_state);
-		if (err != 0) {
-			return err;
-		}
 	}
 
 	if (g->ops.tsg.unbind_channel_check_ctx_reload != NULL) {
@@ -360,7 +357,7 @@ int nvgpu_tsg_unbind_channel_check_hw_state(struct nvgpu_tsg *tsg,
 				&hw_state);
 	}
 
-	return 0;
+	return err;
 }
 
 void nvgpu_tsg_unbind_channel_check_ctx_reload(struct nvgpu_tsg *tsg,
