@@ -4237,7 +4237,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 					 osi_core->num_mtl_queues);
 	for (i = 0; i < osi_core->num_mtl_queues; i++) {
 		if (ret < 0) {
-			dev_err(dev, "set default TXQ to TC mapping\n");
+			dev_info(dev, "set default TXQ to TC mapping\n");
 			osi_core->tc[osi_core->mtl_queues[i]] =
 				(osi_core->mtl_queues[i] %
 				 OSI_MAX_TC_NUM);
@@ -4253,7 +4253,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	ret = of_property_read_u32(np, "nvidia,ptp-rx-queue",
 				   &osi_core->ptp_config.ptp_rx_queue);
 	if (ret != 0) {
-		dev_warn(dev, "Setting default PTP RX queue\n");
+		dev_info(dev, "Setting default PTP RX queue\n");
 		osi_core->ptp_config.ptp_rx_queue = osi_core->mtl_queues[0];
 	} else {
 		/* Validate PTP Rx queue index */
