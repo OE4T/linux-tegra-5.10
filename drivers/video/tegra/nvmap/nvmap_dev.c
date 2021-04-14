@@ -1277,9 +1277,7 @@ static void nvmap_iovmm_debugfs_init(void)
 
 int __init nvmap_probe(struct platform_device *pdev)
 {
-#ifndef NVMAP_LOADABLE_MODULE
 	struct nvmap_platform_data *plat;
-#endif /* !NVMAP_LOADABLE_MODULE */
 	struct nvmap_device *dev;
 	struct dentry *nvmap_debug_root;
 	unsigned int i;
@@ -1301,18 +1299,19 @@ int __init nvmap_probe(struct platform_device *pdev)
 	}
 
 	nvmap_init(pdev);
-#ifndef NVMAP_LOADABLE_MODULE
+
 	plat = pdev->dev.platform_data;
+#ifndef NVMAP_LOADABLE_MODULE
 	if (!plat) {
 		dev_err(&pdev->dev, "no platform data?\n");
 		e = -ENODEV;
 		goto finish;
 	}
 #endif /* !NVMAP_LOADABLE_MODULE */
+
 	nvmap_dev = dev;
-#ifndef NVMAP_LOADABLE_MODULE
 	nvmap_dev->plat = plat;
-#endif /* !NVMAP_LOADABLE_MODULE */
+
 	/*
 	 * dma_parms need to be set with desired max_segment_size to avoid
 	 * DMA map API returning multiple IOVA's for the buffer size > 64KB.
@@ -1357,10 +1356,9 @@ int __init nvmap_probe(struct platform_device *pdev)
 
 	nvmap_dev->dynamic_dma_map_mask = ~0;
 	nvmap_dev->cpu_access_mask = ~0;
-#ifndef NVMAP_LOADABLE_MODULE
-	for (i = 0; i < plat->nr_carveouts; i++)
-		(void)nvmap_create_carveout(&plat->carveouts[i]);
-#endif /* !NVMAP_LOADABLE_MODULE */
+	if (plat)
+		for (i = 0; i < plat->nr_carveouts; i++)
+			nvmap_create_carveout(&plat->carveouts[i]);
 	nvmap_iovmm_debugfs_init();
 #ifdef CONFIG_NVMAP_PAGE_POOLS
 	nvmap_page_pool_debugfs_init(nvmap_dev->debug_root);
