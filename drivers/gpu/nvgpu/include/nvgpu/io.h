@@ -88,7 +88,9 @@ struct gk20a;
  * @param v [in]		Value to write at the offset.
  *
  * Write a 32-bit value to register offset in GPU IO space with an
- * ordering constraint on memory operations.
+ * ordering constraint on memory operations. API supports write from offset 0 to
+ * TEGRA_GK20A_BAR0_SIZE but check for this range is not imposed as this is
+ * called frequently.
  *
  * @return None.
  */
@@ -102,8 +104,8 @@ void nvgpu_writel(struct gk20a *g, u32 r, u32 v);
  * @param r [in]		Register offset in GPU IO space.
  * @param v [in]		Value to write at the offset.
  *
- * Write a 32-bit value to register offset in GPU IO space without
- * an ordering constraint on memory operations.
+ * Write a 32-bit value to register offset in GPU IO space without an ordering
+ * constraint on memory operations. This function is implemented by the OS layer.
  *
  * @return None.
  */
@@ -117,9 +119,11 @@ void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v);
  * @param r [in]		Register offset in GPU IO space.
  *				Range: 0 - TEGRA_GK20A_BAR0_SIZE.
  *
- * Read a 32-bit value from register offset in GPU IO space. If all
- * the bits are set in the value read then check for gpu state validity.
- * Refer #nvgpu_check_gpu_state() for gpu state validity check.
+ * Read a 32-bit value from register offset in GPU IO space. If all the bits are
+ * set in the value read then check for gpu state validity. Refer
+ * #nvgpu_check_gpu_state() for gpu state validity check. API supports read
+ * from offset 0 to TEGRA_GK20A_BAR0_SIZE but check for this range is not imposed
+ * as this is called frequently.
  *
  * @return Value at the given register offset in GPU IO space.
  */
@@ -132,8 +136,10 @@ u32 nvgpu_readl(struct gk20a *g, u32 r);
  * @param r [in]		Register offset in GPU IO space.
  *				Range: 0 - TEGRA_GK20A_BAR0_SIZE.
  *
- * Read a 32-bit to register offset from a GPU IO space. nvgpu_readl() is
- * called from this function. This function is implemented by the OS layer.
+ * Read a 32-bit value from register offset in GPU IO space. If all the bits are
+ * set in the value read then check for gpu state validity. API supports read
+ * from offset 0 to TEGRA_GK20A_BAR0_SIZE but check for this range is not imposed
+ * as this is called frequently.
  *
  * @return Value at the given register offset in GPU IO space.
  */

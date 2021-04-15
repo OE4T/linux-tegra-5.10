@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -55,9 +55,9 @@ struct nvgpu_firmware {
  * 			(These flags are inconsequential in case of rmos.)
  *
  * - nvgpu_request_firmware() will load firmware from:
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *   <system firmware load path>/<GPU name>/<fw_name>
- *   If that fails and NO_SOC is not enabled, it'll try next from:
- *   <system firmware load path>/<SOC name>/<fw_name>
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * - It'll allocate a nvgpu_firmware structure and initializes it and returns
  *   it to caller.
  * - nvgpu_firmware will have pointer to fw data which will be filled with the
