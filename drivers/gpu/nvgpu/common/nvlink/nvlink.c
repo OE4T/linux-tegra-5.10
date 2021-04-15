@@ -106,7 +106,7 @@ static int nvgpu_nvlink_enable_links_post_top(struct gk20a *g,
 	for_each_set_bit(bit, &enabled_links, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
 		if (nvgpu_is_errata_present(g, NVGPU_ERRATA_1888034)) {
-			g->ops.nvlink.set_sw_war(g, link_id);
+			g->ops.nvlink.set_sw_errata(g, link_id);
 		}
 		g->ops.nvlink.intr.init_link_err_intr(g, link_id);
 		g->ops.nvlink.intr.enable_link_err_intr(g, link_id, true);
@@ -262,7 +262,7 @@ int nvgpu_nvlink_early_init(struct gk20a *g)
 	 * node where we hardcode the link_id. DT method is not scalable as same
 	 * DT node is used for different dGPUs connected over PCIE.
 	 * Remove the DT parsing of link id and use HAL to get link_mask based
-	 * on the GPU. This is temporary WAR while we get the VBIOS updated with
+	 * on the GPU. This is temporary fix while we get the VBIOS updated with
 	 * correct mask.
 	 */
 	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_VBIOS_NVLINK_MASK)) {

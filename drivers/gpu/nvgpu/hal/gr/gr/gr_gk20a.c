@@ -1581,7 +1581,7 @@ static int gr_exec_ctx_ops(struct nvgpu_tsg *tsg,
 
 					if (current_mem == nvgpu_gr_ctx_get_ctx_mem(gr_ctx) &&
 							g->ops.gr.ctx_patch_smpc != NULL) {
-						/* check to see if we need to add a special WAR
+						/* check to see if we need to add a special fix
 						   for some of the SMPC perf regs */
 						g->ops.gr.ctx_patch_smpc(g,
 							offset_addrs[j],

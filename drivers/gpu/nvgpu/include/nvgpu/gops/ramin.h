@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -144,7 +144,7 @@ struct gops_ramin {
 
 #ifdef CONFIG_NVGPU_DGPU
 	/**
-	 * @brief Init WAR for PDB cache.
+	 * @brief Init fix for PDB cache.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
@@ -153,17 +153,17 @@ struct gops_ramin {
 	 *
 	 * @return 0 in case of success, < 0 in case of failure.
 	 */
-	int (*init_pdb_cache_war)(struct gk20a *g);
+	int (*init_pdb_cache_errata)(struct gk20a *g);
 
 	/**
-	 * @brief Deinit WAR for PDB cache.
+	 * @brief Deinit fix for PDB cache.
 	 *
 	 * @param g [in]		Pointer to GPU driver struct.
 	 *
 	 * This HAL allows implementing chip specific de-initialization
 	 * related to PDB cache.
 	 */
-	void (*deinit_pdb_cache_war)(struct gk20a *g);
+	void (*deinit_pdb_cache_errata)(struct gk20a *g);
 #endif
 
 	void (*set_adr_limit)(struct gk20a *g,

@@ -778,7 +778,7 @@ struct gk20a {
 	struct nvgpu_list_node boardobj_head;
 	struct nvgpu_list_node boardobjgrp_head;
 
-	struct nvgpu_mem pdb_cache_war_mem;
+	struct nvgpu_mem pdb_cache_errata_mem;
 	/** @endcond */
 
 #ifdef CONFIG_NVGPU_DGPU

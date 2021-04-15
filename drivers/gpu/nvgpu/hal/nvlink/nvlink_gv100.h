@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@ u32 gv100_nvlink_get_link_reset_mask(struct gk20a *g);
 int gv100_nvlink_discover_link(struct gk20a *g);
 int gv100_nvlink_init(struct gk20a *g);
 void gv100_nvlink_get_connected_link_mask(u32 *link_mask);
-void gv100_nvlink_set_sw_war(struct gk20a *g, u32 link_id);
+void gv100_nvlink_set_sw_errata(struct gk20a *g, u32 link_id);
 int gv100_nvlink_configure_ac_coupling(struct gk20a *g,
 				unsigned long mask, bool sync);
 void gv100_nvlink_prog_alt_clk(struct gk20a *g);

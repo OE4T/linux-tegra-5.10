@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 
 struct gk20a;
 
-int tu104_ramin_init_pdb_cache_war(struct gk20a *g);
-void tu104_ramin_deinit_pdb_cache_war(struct gk20a *g);
+int tu104_ramin_init_pdb_cache_errata(struct gk20a *g);
+void tu104_ramin_deinit_pdb_cache_errata(struct gk20a *g);
 
 #endif /* NVGPU_RAMIN_TU104_H */

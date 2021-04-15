@@ -831,7 +831,7 @@ static const struct gops_fb tu104_ops_fb = {
 #ifdef CONFIG_NVGPU_DGPU
 	.get_vidmem_size = tu104_fb_get_vidmem_size,
 #endif
-	.apply_pdb_cache_war = tu104_fb_apply_pdb_cache_war,
+	.apply_pdb_cache_errata = tu104_fb_apply_pdb_cache_errata,
 };
 
 static const struct gops_nvdec tu104_ops_nvdec = {
@@ -996,8 +996,8 @@ static const struct gops_ramin tu104_ops_ramin = {
 	.base_shift = gk20a_ramin_base_shift,
 	.alloc_size = gk20a_ramin_alloc_size,
 	.set_eng_method_buffer = gv11b_ramin_set_eng_method_buffer,
-	.init_pdb_cache_war = tu104_ramin_init_pdb_cache_war,
-	.deinit_pdb_cache_war = tu104_ramin_deinit_pdb_cache_war,
+	.init_pdb_cache_errata = tu104_ramin_init_pdb_cache_errata,
+	.deinit_pdb_cache_errata = tu104_ramin_deinit_pdb_cache_errata,
 };
 
 static const struct gops_runlist tu104_ops_runlist = {
@@ -1548,7 +1548,7 @@ static const struct gops_nvlink tu104_ops_nvlink = {
 	.discover_link = gv100_nvlink_discover_link,
 	.rxdet = tu104_nvlink_rxdet,
 	.get_connected_link_mask = tu104_nvlink_get_connected_link_mask,
-	.set_sw_war = NULL,
+	.set_sw_errata = NULL,
 	.configure_ac_coupling = gv100_nvlink_configure_ac_coupling,
 	.prog_alt_clk = gv100_nvlink_prog_alt_clk,
 	.clear_link_reset = gv100_nvlink_clear_link_reset,

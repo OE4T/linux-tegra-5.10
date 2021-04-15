@@ -90,7 +90,7 @@ nvgpu_channel_user_syncpt_create(struct nvgpu_channel *ch)
 					syncpt_name);
 
 	/**
-	 * This is a WAR to handle invalid value of a syncpt.
+	 * This is a fix to handle invalid value of a syncpt.
 	 * Once nvhost update the return value as NVGPU_INVALID_SYNCPT_ID,
 	 * we can remove the zero check.
 	 */

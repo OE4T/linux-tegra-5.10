@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@ struct gops_class {
 	 *
 	 * List of valid class numbers:
 	 *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	 * 1. Graphics classes: (WAR: Lot of qnx safety tests are still using
+	 * 1. Graphics classes: (Fix: Lot of qnx safety tests are still using
 	 *			 graphics 3d class. Until these tests get fixed,
 	 *			 allowing 3d graphics class as valid class for
 	 *			 safety build.)

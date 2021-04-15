@@ -470,7 +470,7 @@ struct gops_fb {
 	int (*init_nvlink)(struct gk20a *g);
 	int (*enable_nvlink)(struct gk20a *g);
 	size_t (*get_vidmem_size)(struct gk20a *g);
-	int (*apply_pdb_cache_war)(struct gk20a *g);
+	int (*apply_pdb_cache_errata)(struct gk20a *g);
 	int (*init_fbpa)(struct gk20a *g);
 	void (*handle_fbpa_intr)(struct gk20a *g, u32 fbpa_id);
 #endif

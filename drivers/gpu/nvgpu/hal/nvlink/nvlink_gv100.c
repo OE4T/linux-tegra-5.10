@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -537,11 +537,10 @@ void gv100_nvlink_enable_link_an0(struct gk20a *g, u32 link_id)
 }
 
 
-void gv100_nvlink_set_sw_war(struct gk20a *g, u32 link_id)
+void gv100_nvlink_set_sw_errata(struct gk20a *g, u32 link_id)
 {
 	u32 reg;
 
-	/* WAR for HW bug 1888034 */
 	reg = DLPL_REG_RD32(g, link_id, nvl_sl0_safe_ctrl2_tx_r());
 	reg = set_field(reg, nvl_sl0_safe_ctrl2_tx_ctr_init_m(),
 		nvl_sl0_safe_ctrl2_tx_ctr_init_init_f());

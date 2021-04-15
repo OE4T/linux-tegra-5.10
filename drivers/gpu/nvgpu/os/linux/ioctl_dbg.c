@@ -1161,7 +1161,7 @@ static int nvgpu_dbg_gpu_ioctl_hwpm_ctxsw_mode(struct dbg_session_gk20a *dbg_s,
 	if (err)
 		nvgpu_err(g,
 			"error (%d) during pm ctxsw mode update", err);
-	/* gk20a would require a WAR to set the core PM_ENABLE bit, not
+	/* gk20a would require a fix to set the core PM_ENABLE bit, not
 	 * added here with gk20a being deprecated
 	 */
  clean_up:

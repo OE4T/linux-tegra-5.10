@@ -179,7 +179,7 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	nvgpu_vidmem_destroy(g);
 
 	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_INIT_PDB_CACHE)) {
-		g->ops.ramin.deinit_pdb_cache_war(g);
+		g->ops.ramin.deinit_pdb_cache_errata(g);
 	}
 #endif
 	nvgpu_pd_cache_fini(g);
@@ -584,19 +584,19 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 }
 
 #ifdef CONFIG_NVGPU_DGPU
-static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
+static int nvgpu_init_mm_pdb_cache_errata(struct gk20a *g)
 {
 	int err;
 
 	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_INIT_PDB_CACHE)) {
-		err = g->ops.ramin.init_pdb_cache_war(g);
+		err = g->ops.ramin.init_pdb_cache_errata(g);
 		if (err != 0) {
 			return err;
 		}
 	}
 
 	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_FB_PDB_CACHE)) {
-		err = g->ops.fb.apply_pdb_cache_war(g);
+		err = g->ops.fb.apply_pdb_cache_errata(g);
 		if (err != 0) {
 			return err;
 		}
@@ -662,7 +662,7 @@ int nvgpu_init_mm_support(struct gk20a *g)
 	int err;
 
 #ifdef CONFIG_NVGPU_DGPU
-	err = nvgpu_init_mm_pdb_cache_war(g);
+	err = nvgpu_init_mm_pdb_cache_errata(g);
 	if (err != 0) {
 		return err;
 	}

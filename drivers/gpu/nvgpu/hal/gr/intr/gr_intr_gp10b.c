@@ -91,7 +91,7 @@ int gp10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 	return -EINVAL;
 }
 
-static void gr_gp10b_sm_lrf_ecc_overcount_war(bool single_err,
+static void gr_gp10b_sm_lrf_ecc_overcount_errata(bool single_err,
 						u32 sed_status,
 						u32 ded_status,
 						u32 *count_to_adjust,
@@ -176,7 +176,7 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 
 		if (nvgpu_is_errata_present(g,
 				NVGPU_ERRATA_LRF_ECC_OVERCOUNT)) {
-			gr_gp10b_sm_lrf_ecc_overcount_war(true,
+			gr_gp10b_sm_lrf_ecc_overcount_errata(true,
 							lrf_ecc_sed_status,
 							lrf_ecc_ded_status,
 							&lrf_single_count_delta,
@@ -193,7 +193,7 @@ int gp10b_gr_intr_handle_sm_exception(struct gk20a *g,
 
 		if (nvgpu_is_errata_present(g,
 				NVGPU_ERRATA_LRF_ECC_OVERCOUNT)) {
-			gr_gp10b_sm_lrf_ecc_overcount_war(false,
+			gr_gp10b_sm_lrf_ecc_overcount_errata(false,
 							lrf_ecc_sed_status,
 							lrf_ecc_ded_status,
 							&lrf_double_count_delta,

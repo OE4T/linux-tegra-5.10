@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,22 +73,22 @@ struct gops_nvlink_intr {
 };
 
 struct gops_nvlink {
-        int (*init)(struct gk20a *g);
-        u32 (*get_link_reset_mask)(struct gk20a *g);
-        int (*discover_link)(struct gk20a *g);
-        int (*rxdet)(struct gk20a *g, u32 link_id);
-        void (*get_connected_link_mask)(u32 *link_mask);
-        void (*set_sw_war)(struct gk20a *g, u32 link_id);
-        int (*configure_ac_coupling)(struct gk20a *g,
-                        unsigned long mask, bool sync);
-        void (*prog_alt_clk)(struct gk20a *g);
-        void (*clear_link_reset)(struct gk20a *g, u32 link_id);
-        void (*enable_link_an0)(struct gk20a *g, u32 link_id);
-        /* API */
-		struct gops_nvlink_link_mode_transitions link_mode_transitions;
-        int (*reg_init)(struct gk20a *g);
-        struct gops_nvlink_minion minion;
-        struct gops_nvlink_intr intr;
+	int (*init)(struct gk20a *g);
+	u32 (*get_link_reset_mask)(struct gk20a *g);
+	int (*discover_link)(struct gk20a *g);
+	int (*rxdet)(struct gk20a *g, u32 link_id);
+	void (*get_connected_link_mask)(u32 *link_mask);
+	void (*set_sw_errata)(struct gk20a *g, u32 link_id);
+	int (*configure_ac_coupling)(struct gk20a *g,
+		unsigned long mask, bool sync);
+	void (*prog_alt_clk)(struct gk20a *g);
+	void (*clear_link_reset)(struct gk20a *g, u32 link_id);
+	void (*enable_link_an0)(struct gk20a *g, u32 link_id);
+	/* API */
+	struct gops_nvlink_link_mode_transitions link_mode_transitions;
+	int (*reg_init)(struct gk20a *g);
+	struct gops_nvlink_minion minion;
+	struct gops_nvlink_intr intr;
 };
 
 #endif /* NVGPU_GOPS_NVLINK_H */

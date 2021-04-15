@@ -175,18 +175,18 @@ static int tu104_fb_wait_mmu_bind(struct gk20a *g)
 	return -ETIMEDOUT;
 }
 
-int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
+int tu104_fb_apply_pdb_cache_errata(struct gk20a *g)
 {
 	u64 inst_blk_base_addr;
 	u32 inst_blk_addr;
 	u32 i;
 	int err;
 
-	if (!nvgpu_mem_is_valid(&g->pdb_cache_war_mem)) {
+	if (!nvgpu_mem_is_valid(&g->pdb_cache_errata_mem)) {
 		return -EINVAL;
 	}
 
-	inst_blk_base_addr = nvgpu_mem_get_addr(g, &g->pdb_cache_war_mem);
+	inst_blk_base_addr = nvgpu_mem_get_addr(g, &g->pdb_cache_errata_mem);
 
 	/* Bind 256 instance blocks to unused engine ID 0x0 */
 	for (i = 0U; i < 256U; i++) {
@@ -196,7 +196,7 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 
 		nvgpu_writel(g, fb_mmu_bind_imb_r(),
 			fb_mmu_bind_imb_addr_f(inst_blk_addr) |
-			nvgpu_aperture_mask(g, &g->pdb_cache_war_mem,
+			nvgpu_aperture_mask(g, &g->pdb_cache_errata_mem,
 				fb_mmu_bind_imb_aperture_sys_mem_nc_f(),
 				fb_mmu_bind_imb_aperture_sys_mem_c_f(),
 				fb_mmu_bind_imb_aperture_vid_mem_f()));
@@ -241,7 +241,7 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 
 	nvgpu_writel(g, fb_mmu_bind_imb_r(),
 		fb_mmu_bind_imb_addr_f(inst_blk_addr) |
-		nvgpu_aperture_mask(g, &g->pdb_cache_war_mem,
+		nvgpu_aperture_mask(g, &g->pdb_cache_errata_mem,
 			fb_mmu_bind_imb_aperture_sys_mem_nc_f(),
 			fb_mmu_bind_imb_aperture_sys_mem_c_f(),
 			fb_mmu_bind_imb_aperture_vid_mem_f()));

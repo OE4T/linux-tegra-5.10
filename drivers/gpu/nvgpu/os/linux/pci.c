@@ -104,7 +104,8 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 		.clk_round_rate = nvgpu_pci_clk_round_rate,
 
 		/*
-		 * WAR: PCIE X1 is very slow, set to very high value till nvlink is up
+		 * Fix: PCIE X1 is very slow, set to very high value till
+		 * nvlink is up
 		 */
 		.ch_wdt_init_limit_ms = 30000,
 
