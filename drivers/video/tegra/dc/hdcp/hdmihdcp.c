@@ -322,6 +322,56 @@ static int nvhdcp_i2c_write64(struct tegra_nvhdcp *nvhdcp, u8 reg, u64 val)
 	return nvhdcp_i2c_write(nvhdcp, reg, sizeof(buf), buf);
 }
 
+static int nvhdcp_te_init(struct tegra_nvhdcp *nvhdcp)
+{
+	int status = -ENODEV;
+
+#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
+	/* differentiate between TLK and trusty */
+	if (te_is_secos_dev_enabled()) {
+		status = te_open_trusted_session_tlk(hdcp_uuid,
+				sizeof(hdcp_uuid), &session_id);
+	} else {
+		nvhdcp->ta_ctx = NULL;
+		/* Open a trusted sesion with HDCP TA */
+		status = te_open_trusted_session(HDCP_PORT_NAME,
+				&nvhdcp->ta_ctx);
+	}
+#else
+	nvhdcp->ta_ctx = NULL;
+	/* Open a trusted sesion with HDCP TA */
+	status = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
+#endif
+
+	if (status)
+		nvhdcp_err("Failed to open session, err = %d\n", status);
+
+	return status;
+}
+
+static void nvhdcp_te_deinit(struct tegra_nvhdcp *nvhdcp)
+{
+#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
+	if (te_is_secos_dev_enabled()) {
+		if (session_id) {
+			te_close_trusted_session_tlk(session_id, hdcp_uuid,
+			sizeof(hdcp_uuid));
+			session_id = 0;
+		}
+	} else {
+		if (nvhdcp->ta_ctx) {
+			te_close_trusted_session(nvhdcp->ta_ctx);
+			nvhdcp->ta_ctx = NULL;
+		}
+	}
+#else
+	if (nvhdcp->ta_ctx) {
+		te_close_trusted_session(nvhdcp->ta_ctx);
+		nvhdcp->ta_ctx = NULL;
+	}
+#endif
+}
+
 /* 64-bit link encryption session random number */
 static inline u64 __maybe_unused get_an(struct tegra_hdmi *hdmi)
 {
@@ -890,7 +940,6 @@ static int verify_link(struct tegra_nvhdcp *nvhdcp, bool wait_ri)
 	return 0;
 }
 
-#if !defined(CONFIG_TRUSTED_LITTLE_KERNEL)
 static int verify_vprime(struct tegra_nvhdcp *nvhdcp, u8 repeater)
 {
 	int i;
@@ -949,7 +998,6 @@ exit:
 	kfree(pkt);
 	return e;
 }
-#endif
 
 static int get_repeater_info(struct tegra_nvhdcp *nvhdcp)
 {
@@ -1279,23 +1327,7 @@ static int tsec_hdcp_authentication(struct tegra_nvhdcp *nvhdcp,
 		&hdcp_context->msg.rxcaps_capmask);
 	if (err)
 		goto exit;
-
-#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
-	/* differentiate between TLK and trusty */
-	if (te_is_secos_dev_enabled()) {
-		err = te_open_trusted_session_tlk(hdcp_uuid, sizeof(hdcp_uuid),
-					&session_id);
-	} else {
-		nvhdcp->ta_ctx = NULL;
-		/* Open a trusted sesion with HDCP TA */
-		err = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
-	}
-#else
-	nvhdcp->ta_ctx = NULL;
-	/* Open a trusted sesion with HDCP TA */
-	err = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
-#endif
-
+	err = nvhdcp_te_init(nvhdcp);
 	if (err) {
 		nvhdcp_err("Error opening trusted session\n");
 		goto exit;
@@ -1470,27 +1502,7 @@ exit:
 	if (err)
 		nvhdcp_err("HDCP authentication failed with err %d\n", err);
 	kfree(pkt);
-
-#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
-	if (te_is_secos_dev_enabled()) {
-		if (session_id) {
-			te_close_trusted_session_tlk(session_id, hdcp_uuid,
-			sizeof(hdcp_uuid));
-			session_id = 0;
-		}
-	} else {
-		if (nvhdcp->ta_ctx) {
-			te_close_trusted_session(nvhdcp->ta_ctx);
-			nvhdcp->ta_ctx = NULL;
-		}
-	}
-#else
-	if (nvhdcp->ta_ctx) {
-		te_close_trusted_session(nvhdcp->ta_ctx);
-		nvhdcp->ta_ctx = NULL;
-	}
-#endif
-
+	nvhdcp_te_deinit(nvhdcp);
 	return err;
 }
 
@@ -1584,24 +1596,9 @@ void nvhdcp1_downstream_worker(struct work_struct *work)
 		nvhdcp_err("Bcaps read failure\n");
 		goto failure;
 	}
-
 	nvhdcp_vdbg("read Bcaps = 0x%02x\n", b_caps);
 
-#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
-	/* differentiate between TLK and trusty */
-	if (te_is_secos_dev_enabled()) {
-		e = te_open_trusted_session_tlk(hdcp_uuid, sizeof(hdcp_uuid),
-				&session_id);
-	} else {
-		nvhdcp->ta_ctx = NULL;
-		/* Open a trusted sesion with HDCP TA */
-		e = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
-	}
-#else
-	nvhdcp->ta_ctx = NULL;
-	/* Open a trusted sesion with HDCP TA */
-	e = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
-#endif
+	e = nvhdcp_te_init(nvhdcp);
 	if (e) {
 		nvhdcp_err("Error opening trusted session\n");
 		goto failure;
@@ -1853,8 +1850,6 @@ void nvhdcp1_downstream_worker(struct work_struct *work)
 		}
 	}
 
-/* T210/T210B01 vprime verification with TLK is handled in the upstream lib */
-#if !defined(CONFIG_TRUSTED_LITTLE_KERNEL)
 	/* perform vprime verification for repeater or SRM
 	 * revocation check for receiver
 	 */
@@ -1864,7 +1859,6 @@ void nvhdcp1_downstream_worker(struct work_struct *work)
 		goto failure;
 	} else
 		nvhdcp_vdbg("vprime verification passed\n");
-#endif
 
 	mutex_lock(&nvhdcp->lock);
 	nvhdcp->state = STATE_LINK_VERIFY;
@@ -1932,33 +1926,18 @@ lost_hdmi:
 	} else {
 		hdcp_ctrl_run(hdmi, 0);
 	}
+err:
 	mutex_unlock(&nvhdcp->lock);
 	kfree(pkt);
 
+	nvhdcp_te_deinit(nvhdcp);
+	tegra_dc_io_end(dc);
+	return;
 disable:
 	nvhdcp->state = STATE_OFF;
-	nvhdcp_set_plugged(nvhdcp, false);
-err:
 	kfree(pkt);
-#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
-	if (te_is_secos_dev_enabled()) {
-		if (session_id) {
-			te_close_trusted_session_tlk(session_id, hdcp_uuid,
-			sizeof(hdcp_uuid));
-			session_id = 0;
-		}
-	} else {
-		if (nvhdcp->ta_ctx) {
-			te_close_trusted_session(nvhdcp->ta_ctx);
-			nvhdcp->ta_ctx = NULL;
-		}
-	}
-#else
-	if (nvhdcp->ta_ctx) {
-		te_close_trusted_session(nvhdcp->ta_ctx);
-		nvhdcp->ta_ctx = NULL;
-	}
-#endif
+	nvhdcp_te_deinit(nvhdcp);
+	nvhdcp_set_plugged(nvhdcp, false);
 	mutex_unlock(&nvhdcp->lock);
 	tegra_dc_io_end(dc);
 	return;
@@ -2002,21 +1981,7 @@ static int link_integrity_check(struct tegra_nvhdcp *nvhdcp,
 							msecs_to_jiffies(10));
 			goto exit;
 		}
-#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
-		/* differentiate between TLK and trusty */
-		if (te_is_secos_dev_enabled()) {
-			err = te_open_trusted_session_tlk(hdcp_uuid, sizeof(hdcp_uuid),
-					&session_id);
-		} else {
-			nvhdcp->ta_ctx = NULL;
-			/* Open a trusted sesion with HDCP TA */
-			err = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
-		}
-#else
-		nvhdcp->ta_ctx = NULL;
-		/* Open a trusted sesion with HDCP TA */
-		err = te_open_trusted_session(HDCP_PORT_NAME, &nvhdcp->ta_ctx);
-#endif
+		err = nvhdcp_te_init(nvhdcp);
 		if (err) {
 			nvhdcp_err("Error opening trusted session\n");
 			goto exit;
