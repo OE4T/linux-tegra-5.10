@@ -358,6 +358,15 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 		return -EPERM;
 	}
 
+	/*
+	 * If Buffer is RO and write operation is asked from the buffer,
+	 * return error.
+	 */
+	if (h->is_ro && !is_read) {
+		nvmap_handle_put(h);
+		return -EPERM;
+	}
+
 	nvmap_kmaps_inc(h);
 	trace_nvmap_ioctl_rw_handle(client, h, is_read, offset,
 				    addr, hmem_stride,
