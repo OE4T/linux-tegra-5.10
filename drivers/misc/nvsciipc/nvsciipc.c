@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -26,6 +26,7 @@
 #include <linux/slab.h>
 #include <linux/file.h>
 #include <linux/mod_devicetable.h>
+#include <linux/mutex.h>
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
 #include <soc/tegra/virt/syscalls.h>
@@ -41,6 +42,8 @@
 #define NVSCIIPC_VUID_VMID_MASK  ((1<<8)-1)
 #define NVSCIIPC_VUID_SOCID_SHIFT 28
 #define NVSCIIPC_VUID_SOCID_MASK ((1<<4)-1)
+
+DEFINE_MUTEX(nvsciipc_mutex);
 
 struct nvsciipc *ctx;
 
@@ -64,8 +67,8 @@ NvSciError NvSciIpcEndpointValidateAuthTokenLinuxCurrent(
 {
 	struct fd f;
 	struct file *filp;
-	int i;
-	char node[NVSCIIPC_MAX_EP_NAME+4];
+	int i, ret;
+	char node[NVSCIIPC_MAX_EP_NAME+11];
 
 	f = fdget((int)authToken);
 	if (!f.file) {
@@ -74,18 +77,36 @@ NvSciError NvSciIpcEndpointValidateAuthTokenLinuxCurrent(
 	}
 	filp = f.file;
 
+	mutex_lock(&nvsciipc_mutex);
+	if (ctx == NULL) {
+		mutex_unlock(&nvsciipc_mutex);
+		fdput(f);
+		ERR("not initialized\n");
+		return NvSciError_NotInitialized;
+	}
+
 	for (i = 0; i < ctx->num_eps; i++) {
-		sprintf(node, "%s%d", ctx->db[i]->dev_name, ctx->db[i]->id);
-		if (!strcmp(filp->f_path.dentry->d_name.name, node)) {
+		ret = snprintf(node, sizeof(node), "%s%d",
+			ctx->db[i]->dev_name, ctx->db[i]->id);
+
+		if ((ret < 0) || (ret >= sizeof(node)))
+			continue;
+
+		if (!strncmp(filp->f_path.dentry->d_name.name, node,
+			sizeof(node))) {
 			*localUserVuid = ctx->db[i]->vuid;
 			break;
 		}
 	}
 
 	if (i == ctx->num_eps) {
+		mutex_unlock(&nvsciipc_mutex);
+		fdput(f);
 		ERR("wrong auth token passed\n");
 		return NvSciError_BadParameter;
 	}
+	mutex_unlock(&nvsciipc_mutex);
+
 	fdput(f);
 
 	return NvSciError_Success;
@@ -97,15 +118,26 @@ NvSciError NvSciIpcEndpointMapVuid(NvSciIpcEndpointVuid localUserVuid,
 {
 	int i;
 
+	mutex_lock(&nvsciipc_mutex);
+	if (ctx == NULL) {
+		mutex_unlock(&nvsciipc_mutex);
+		ERR("not initialized\n");
+		return NvSciError_NotInitialized;
+	}
+
+
 	for (i = 0; i < ctx->num_eps; i++) {
 		if (ctx->db[i]->vuid == localUserVuid)
 			break;
 	}
 
 	if (i == ctx->num_eps) {
+		mutex_unlock(&nvsciipc_mutex);
 		ERR("wrong localUserVuid passed\n");
 		return NvSciError_BadParameter;
 	}
+
+	mutex_unlock(&nvsciipc_mutex);
 
 	*peerUserVuid = (localUserVuid ^ 1);
 	peerTopoId->VmId = ((localUserVuid >> NVSCIIPC_VUID_VMID_SHIFT)
@@ -137,6 +169,8 @@ static void nvsciipc_free_db(struct nvsciipc *ctx)
 
 		kfree(ctx->db);
 	}
+
+	ctx->num_eps = 0;
 }
 
 static int nvsciipc_dev_release(struct inode *inode, struct file *filp)
@@ -163,7 +197,8 @@ static int nvsciipc_ioctl_get_vuid(struct nvsciipc *ctx, unsigned int cmd,
 	}
 
 	for (i = 0; i < ctx->num_eps; i++) {
-		if (!strcmp(get_vuid.ep_name, ctx->db[i]->ep_name)) {
+		if (!strncmp(get_vuid.ep_name, ctx->db[i]->ep_name,
+			NVSCIIPC_MAX_EP_NAME)) {
 			get_vuid.vuid = ctx->db[i]->vuid;
 			break;
 		}
@@ -213,7 +248,6 @@ static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
 		ret = -EFAULT;
 		goto ptr_error;
 	}
-
 
 	ctx->db = (struct nvsciipc_config_entry **)
 		kzalloc(ctx->num_eps * sizeof(struct nvsciipc_config_entry *),
@@ -276,10 +310,14 @@ static long nvsciipc_dev_ioctl(struct file *filp, unsigned int cmd,
 
 	switch (cmd) {
 	case NVSCIIPC_IOCTL_SET_DB:
+		mutex_lock(&nvsciipc_mutex);
 		ret = nvsciipc_ioctl_set_db(ctx, cmd, arg);
+		mutex_unlock(&nvsciipc_mutex);
 		break;
 	case NVSCIIPC_IOCTL_GET_VUID:
+		mutex_lock(&nvsciipc_mutex);
 		ret = nvsciipc_ioctl_get_vuid(ctx, cmd, arg);
+		mutex_unlock(&nvsciipc_mutex);
 		break;
 	default:
 		ERR("unrecognised ioctl cmd: 0x%x\n", cmd);
@@ -303,7 +341,7 @@ static int nvsciipc_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	if (pdev == NULL) {
-		ERR("nvalid platform device\n");
+		ERR("invalid platform device\n");
 		ret = -EINVAL;
 		goto error;
 	}
@@ -367,7 +405,9 @@ static void nvsciipc_cleanup(struct nvsciipc *ctx)
 	if (ctx == NULL)
 		return;
 
+	mutex_lock(&nvsciipc_mutex);
 	nvsciipc_free_db(ctx);
+	mutex_unlock(&nvsciipc_mutex);
 
 	if (ctx->device != NULL) {
 		cdev_del(&ctx->cdev);
