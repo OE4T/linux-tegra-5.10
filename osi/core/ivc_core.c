@@ -1505,13 +1505,15 @@ static void ivc_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
  * @param[in] sc: Secure Channel info.
  * @param[in] enable: enable or disable.
  * @param[in] ctlr: Controller instance.
+ * @param[in] genl_info: Generic netlink information structure.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
  */
 static int ivc_macsec_config(struct osi_core_priv_data *const osi_core,
 			     struct osi_macsec_sc_info *const sc,
-			     unsigned int enable, unsigned short ctlr)
+			     unsigned int enable, unsigned short ctlr,
+			     void *const genl_info)
 {
 	return 0;
 }
@@ -1551,12 +1553,14 @@ static int ivc_macsec_loopback_config(struct osi_core_priv_data *const osi_core,
  *
  * @param[in] osi_core: OSI Core private data structure.
  * @param[in] kt_config: KT config structure.
+ * @param[in] genl_info: Generic netlink information structure.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
  */
 static int ivc_macsec_kt_config(struct osi_core_priv_data *const osi_core,
-				struct osi_macsec_kt_config *const kt_config)
+				struct osi_macsec_kt_config *const kt_config,
+				void *const genl_info)
 {
 	return 0;
 }
@@ -1616,11 +1620,13 @@ static int ivc_macsec_deinit(struct osi_core_priv_data *const osi_core)
  * @brief ivc_macsec_init -Initialize.
  *
  * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] genl_info: Generic netlink information structure.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_init(struct osi_core_priv_data *const osi_core)
+static int ivc_macsec_init(struct osi_core_priv_data *const osi_core,
+			   void *const genl_info)
 {
 	return 0;
 }
