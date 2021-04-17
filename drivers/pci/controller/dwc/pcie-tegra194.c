@@ -323,12 +323,18 @@ struct tegra_pcie_dw {
 
 	struct dentry *debugfs;
 
+	wait_queue_head_t config_rp_waitq;
+	bool config_rp_done;
+
 	/* Endpoint mode specific */
 	struct task_struct *pcie_ep_task;
 	wait_queue_head_t wq;
 	struct gpio_desc *pex_rst_gpiod;
 	struct gpio_desc *pex_refclk_sel_gpiod;
+	struct gpio_desc *pex_prsnt_gpiod;
 	unsigned int pex_rst_irq;
+	unsigned int prsnt_irq;
+	bool perst_irq_enabled;
 	int ep_state;
 	DECLARE_KFIFO(event_fifo, u32, EVENT_QUEUE_LEN);
 };
@@ -1062,7 +1068,13 @@ static int tegra_pcie_dw_start_link(struct dw_pcie *pci)
 {
 	struct tegra_pcie_dw *pcie = to_tegra_pcie(pci);
 
-	enable_irq(pcie->pex_rst_irq);
+	if (!pcie->perst_irq_enabled) {
+		enable_irq(pcie->pex_rst_irq);
+		pcie->perst_irq_enabled = true;
+	}
+
+	if (pcie->pex_prsnt_gpiod)
+		gpiod_set_value_cansleep(pcie->pex_prsnt_gpiod, 0);
 
 	return 0;
 }
@@ -1071,7 +1083,8 @@ static void tegra_pcie_dw_stop_link(struct dw_pcie *pci)
 {
 	struct tegra_pcie_dw *pcie = to_tegra_pcie(pci);
 
-	disable_irq(pcie->pex_rst_irq);
+	if (pcie->pex_prsnt_gpiod)
+		gpiod_set_value_cansleep(pcie->pex_prsnt_gpiod, 1);
 }
 
 static const struct dw_pcie_ops tegra_dw_pcie_ops = {
@@ -1126,6 +1139,7 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 {
 	struct device_node *np = pcie->dev->of_node;
 	int ret;
+	enum gpiod_flags flags;
 
 	ret = of_property_read_u32(np, "nvidia,aspm-cmrt-us", &pcie->aspm_cmrt);
 	if (ret < 0) {
@@ -1177,6 +1191,23 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		of_property_read_bool(np, "snps,enable-cdm-check");
 
 	pcie->enable_srns = of_property_read_bool(np, "nvidia,enable-srns");
+
+	if (pcie->mode == DW_PCIE_RC_TYPE)
+		flags = GPIOD_IN;
+	else
+		flags = GPIOD_OUT_HIGH;
+
+	pcie->pex_prsnt_gpiod = devm_gpiod_get(pcie->dev, "nvidia,pex-prsnt",
+					       flags);
+	if (IS_ERR(pcie->pex_prsnt_gpiod)) {
+		int err = PTR_ERR(pcie->pex_prsnt_gpiod);
+
+		if (err == -EPROBE_DEFER)
+			return err;
+
+		dev_dbg(pcie->dev, "Failed to get PCIe PRSNT GPIO: %d\n", err);
+		pcie->pex_prsnt_gpiod = NULL;
+	}
 
 	if (pcie->mode == DW_PCIE_RC_TYPE)
 		return 0;
@@ -1704,6 +1735,7 @@ static void tegra_pcie_dw_pme_turnoff(struct tegra_pcie_dw *pcie)
 
 static void tegra_pcie_deinit_controller(struct tegra_pcie_dw *pcie)
 {
+	pcie->link_state = false;
 	tegra_pcie_downstream_dev_to_D0(pcie);
 	dw_pcie_host_deinit(&pcie->pci.pp);
 	tegra_pcie_dw_pme_turnoff(pcie);
@@ -1712,18 +1744,9 @@ static void tegra_pcie_deinit_controller(struct tegra_pcie_dw *pcie)
 
 static int tegra_pcie_config_rp(struct tegra_pcie_dw *pcie)
 {
-	struct pcie_port *pp = &pcie->pci.pp;
 	struct device *dev = pcie->dev;
 	char *name;
 	int ret;
-
-	if (IS_ENABLED(CONFIG_PCI_MSI)) {
-		pp->msi_irq = of_irq_get_byname(dev->of_node, "msi");
-		if (!pp->msi_irq) {
-			dev_err(dev, "Failed to get MSI interrupt\n");
-			return -ENODEV;
-		}
-	}
 
 	pm_runtime_enable(dev);
 
@@ -2035,6 +2058,34 @@ fail_pll_init:
 	pm_runtime_put_sync(dev);
 }
 
+static irqreturn_t tegra_pcie_prsnt_irq(int irq, void *arg)
+{
+	struct tegra_pcie_dw *pcie = arg;
+	int ret;
+
+	wait_event(pcie->config_rp_waitq, pcie->config_rp_done);
+
+	if (gpiod_get_value(pcie->pex_prsnt_gpiod)) {
+		if (!pcie->link_state)
+			return IRQ_HANDLED;
+
+		debugfs_remove_recursive(pcie->debugfs);
+		tegra_pcie_deinit_controller(pcie);
+		pm_runtime_put_sync(pcie->dev);
+		pm_runtime_disable(pcie->dev);
+	} else {
+		if (pcie->link_state)
+			return IRQ_HANDLED;
+
+		ret = tegra_pcie_config_rp(pcie);
+		if (ret < 0)
+			dev_err(pcie->dev, "Failed to link up during PCIe hotplug: %d\n",
+				ret);
+	}
+
+	return IRQ_HANDLED;
+}
+
 static irqreturn_t tegra_pcie_ep_pex_rst_irq(int irq, void *arg)
 {
 	struct tegra_pcie_dw *pcie = arg;
@@ -2170,6 +2221,7 @@ static int tegra_pcie_config_ep(struct tegra_pcie_dw *pcie,
 			return -ENOMEM;
 		}
 
+		pcie->perst_irq_enabled = false;
 		irq_set_status_flags(pcie->pex_rst_irq, IRQ_NOAUTOEN);
 
 		ret = devm_request_threaded_irq(dev, pcie->pex_rst_irq, NULL,
@@ -2387,11 +2439,57 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 			goto fail;
 		}
 
+		if (IS_ENABLED(CONFIG_PCI_MSI)) {
+			pp->msi_irq = of_irq_get_byname(dev->of_node, "msi");
+			if (!pp->msi_irq) {
+				dev_err(dev, "Failed to get MSI interrupt\n");
+				goto fail;
+			}
+		}
+
+		init_waitqueue_head(&pcie->config_rp_waitq);
+		pcie->config_rp_done = false;
+
+		if (pcie->pex_prsnt_gpiod) {
+			ret = gpiod_to_irq(pcie->pex_prsnt_gpiod);
+			if (ret < 0) {
+				dev_err(dev, "Failed to get PRSNT IRQ: %d\n",
+					ret);
+				goto fail;
+			}
+			pcie->prsnt_irq = (unsigned int)ret;
+
+			name = devm_kasprintf(dev, GFP_KERNEL,
+					      "tegra_pcie_%u_prsnt_irq",
+					      pcie->cid);
+			if (!name) {
+				dev_err(dev, "Failed to create PRSNT IRQ string\n");
+				goto fail;
+			}
+
+			ret = devm_request_threaded_irq(dev,
+							pcie->prsnt_irq,
+							NULL,
+							tegra_pcie_prsnt_irq,
+							IRQF_TRIGGER_RISING |
+							IRQF_TRIGGER_FALLING |
+							IRQF_ONESHOT,
+							name, (void *)pcie);
+			if (ret < 0) {
+				dev_err(dev, "Failed to request IRQ for PRSNT: %d\n",
+					ret);
+				goto fail;
+			}
+		}
+
 		ret = tegra_pcie_config_rp(pcie);
+		/* Now PRST# IRQ thread is ready to execute */
+		pcie->config_rp_done = true;
+		wake_up(&pcie->config_rp_waitq);
 		if (ret && ret != -ENOMEDIUM)
 			goto fail;
 		else
-			return 0;
+			ret = 0;
 		break;
 
 	case DW_PCIE_EP_TYPE:
@@ -2414,6 +2512,8 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 	default:
 		dev_err(dev, "Invalid PCIe device type %d\n", pcie->mode);
 	}
+
+	return ret;
 
 fail:
 	tegra_bpmp_put(pcie->bpmp);
