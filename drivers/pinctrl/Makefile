@@ -7,7 +7,11 @@ ccflags-y += -I$(srctree)/drivers/video/tegra/host
 ccflags-y += -I$(srctree.nvidia)/drivers/video/tegra/host
 ccflags-y += -I$(srctree.nvidia)/include
 
+ifdef CONFIG_ARCH_TEGRA_18x_SOC
+
 obj-$(CONFIG_PINCTRL_TEGRA186)  += pinctrl-tegra186.o
+
+endif
 obj-$(CONFIG_PINCTRL_TEGRA186_PADCTL) += pinctrl-tegra186-padctl.o
 obj-$(CONFIG_PINCTRL_TEGRA186_DPAUX)  += pinctrl-tegra186-dpaux.o
 
