@@ -95,6 +95,7 @@ config ARCH_TEGRA_210_SOC
 
 config ARCH_TEGRA_186_SOC
 	bool "NVIDIA Tegra186 SoC"
+	select PINCTRL_TEGRA186
 	select MAILBOX
 	select TEGRA_BPMP
 	select TEGRA_HSP_MBOX
