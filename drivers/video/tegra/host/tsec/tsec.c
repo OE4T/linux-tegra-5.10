@@ -395,12 +395,14 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 			return;
 		}
 
-		id = nvhost_get_syncpt_host_managed(tsec, 0, "tsec_hdcp");
 		if (!id) {
-			nvhost_err(&tsec->dev, "failed to get sync point\n");
-			nvhost_putchannel(channel, 1);
-			mutex_unlock(&tegra_tsec_lock);
-			return;
+			id = nvhost_get_syncpt_host_managed(tsec, 0, "tsec_hdcp");
+			if (!id) {
+				nvhost_err(&tsec->dev, "failed to get sync point\n");
+				nvhost_putchannel(channel, 1);
+				mutex_unlock(&tegra_tsec_lock);
+				return;
+			}
 		}
 	}
 
