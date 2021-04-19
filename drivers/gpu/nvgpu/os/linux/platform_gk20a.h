@@ -61,7 +61,6 @@ enum tegra_chip_id {
 	TEGRA_186,
 	TEGRA_194,
 	TEGRA_194_VGPU,
-	TEGRA_186_VGPU,
 	TEGRA_234,
 };
 
@@ -321,7 +320,6 @@ extern struct gk20a_platform gm20b_tegra_platform;
 extern struct gk20a_platform gp10b_tegra_platform;
 extern struct gk20a_platform gv11b_tegra_platform;
 #ifdef CONFIG_NVGPU_GR_VIRTUALIZATION
-extern struct gk20a_platform vgpu_tegra_platform;
 extern struct gk20a_platform gv11b_vgpu_tegra_platform;
 #endif
 #endif

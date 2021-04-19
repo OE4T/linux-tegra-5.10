@@ -769,6 +769,5 @@ nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 
 ifeq ($(CONFIG_NVGPU_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
-	hal/vgpu/init/vgpu_hal_gp10b.o \
 	hal/vgpu/init/vgpu_hal_gv11b.o
 endif

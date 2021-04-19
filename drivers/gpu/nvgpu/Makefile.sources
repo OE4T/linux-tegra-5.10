@@ -575,7 +575,6 @@ srcs += common/vgpu/init/init_vgpu.c \
 	common/vgpu/ce_vgpu.c \
 	hal/vgpu/init/init_hal_vgpu.c \
 	hal/vgpu/init/vgpu_hal_gv11b.c \
-	hal/vgpu/init/vgpu_hal_gp10b.c \
 	hal/vgpu/fifo/fifo_gv11b_vgpu.c \
 	hal/vgpu/sync/syncpt_cmdbuf_gv11b_vgpu.c
 

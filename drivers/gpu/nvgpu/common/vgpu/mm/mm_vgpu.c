@@ -109,29 +109,6 @@ void vgpu_locked_gmmu_unmap(struct vm_gk20a *vm,
 	/* TLB invalidate handled on server side */
 }
 
-u64 vgpu_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
-{
-	u64 addr = nvgpu_mem_get_addr(g, mem);
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_as_map_params *p = &msg.params.as_map;
-	int err;
-
-	msg.cmd = TEGRA_VGPU_CMD_MAP_BAR1;
-	msg.handle = vgpu_get_handle(g);
-	p->addr = addr;
-	p->size = mem->size;
-	p->iova = 0;
-	p->offset = offset; /* offset from start of BAR1 */
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	if (err || msg.ret) {
-		addr = 0;
-	} else {
-		addr = p->gpu_va;
-	}
-
-	return addr;
-}
-
 int vgpu_vm_bind_channel(struct vm_gk20a *vm,
 				struct nvgpu_channel *ch)
 {

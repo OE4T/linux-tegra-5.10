@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,6 +65,5 @@ u64 vgpu_locked_gmmu_map(struct vm_gk20a *vm,
 				struct vm_gk20a_mapping_batch *batch,
 				enum nvgpu_aperture aperture);
 int vgpu_init_mm_support(struct gk20a *g);
-u64 vgpu_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 
 #endif /* NVGPU_MM_VGPU_H */

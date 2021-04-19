@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU Fifo
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,72 +98,10 @@ int vgpu_fifo_setup_sw(struct gk20a *g)
 
 #ifdef CONFIG_NVGPU_KERNEL_MODE_SUBMIT
 clean_up:
-	/* FIXME: unmap from bar1 */
 	nvgpu_fifo_cleanup_sw_common(g);
 #endif
 
 	return err;
-}
-
-int vgpu_init_fifo_setup_hw(struct gk20a *g)
-{
-#ifdef CONFIG_NVGPU_USERD
-	struct nvgpu_fifo *f = &g->fifo;
-	u32 v, v1 = 0x33, v2 = 0x55;
-	struct nvgpu_mem *mem = &f->userd_slabs[0];
-	u32 bar1_vaddr;
-	volatile u32 *cpu_vaddr;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	/* allocate and map first userd slab for bar1 test. */
-	err = nvgpu_dma_alloc_sys(g, NVGPU_CPU_PAGE_SIZE, mem);
-	if (err != 0) {
-		nvgpu_err(g, "userd allocation failed, err=%d", err);
-		return err;
-	}
-	mem->gpu_va = g->ops.mm.bar1_map_userd(g, mem, 0);
-	f->userd_gpu_va = mem->gpu_va;
-
-	/* test write, read through bar1 @ userd region before
-	 * turning on the snooping */
-
-	cpu_vaddr = mem->cpu_va;
-	bar1_vaddr = mem->gpu_va;
-
-	nvgpu_log_info(g, "test bar1 @ vaddr 0x%x",
-		   bar1_vaddr);
-
-	v = gk20a_bar1_readl(g, bar1_vaddr);
-
-	*cpu_vaddr = v1;
-	nvgpu_mb();
-
-	if (v1 != gk20a_bar1_readl(g, bar1_vaddr)) {
-		nvgpu_err(g, "bar1 broken @ gk20a!");
-		return -EINVAL;
-	}
-
-	gk20a_bar1_writel(g, bar1_vaddr, v2);
-
-	if (v2 != gk20a_bar1_readl(g, bar1_vaddr)) {
-		nvgpu_err(g, "bar1 broken @ gk20a!");
-		return -EINVAL;
-	}
-
-	/* is it visible to the cpu? */
-	if (*cpu_vaddr != v2) {
-		nvgpu_err(g, "cpu didn't see bar1 write @ %p!",
-			cpu_vaddr);
-	}
-
-	/* put it back */
-	gk20a_bar1_writel(g, bar1_vaddr, v);
-
-	nvgpu_log_fn(g, "done");
-#endif
-	return 0;
 }
 
 int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)

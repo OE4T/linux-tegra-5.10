@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,6 @@
 #endif
 
 #include "init_hal_vgpu.h"
-#include "vgpu_hal_gp10b.h"
 #include "vgpu_hal_gv11b.h"
 
 int vgpu_init_hal(struct gk20a *g)
@@ -41,10 +40,6 @@ int vgpu_init_hal(struct gk20a *g)
 
 	switch (ver) {
 #ifdef CONFIG_NVGPU_HAL_NON_FUSA
-	case NVGPU_GPUID_GP10B:
-		nvgpu_log_info(g, "gp10b detected");
-		err = vgpu_gp10b_init_hal(g);
-		break;
 	case NVGPU_GPUID_GV11B:
 		err = vgpu_gv11b_init_hal(g);
 		break;
