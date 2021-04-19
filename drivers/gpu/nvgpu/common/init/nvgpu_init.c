@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -840,7 +840,8 @@ int nvgpu_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG, true);
 
 #ifdef CONFIG_NVGPU_CLK_ARB
-	if (g->ops.clk_arb.check_clk_arb_support != NULL) {
+	if ((g->ops.clk_arb.check_clk_arb_support != NULL) &&
+			(nvgpu_is_enabled(g, NVGPU_CLK_ARB_ENABLED))){
 		if (g->ops.clk_arb.check_clk_arb_support(g)) {
 			nvgpu_set_enabled(g, NVGPU_SUPPORT_CLOCK_CONTROLS,
 					true);

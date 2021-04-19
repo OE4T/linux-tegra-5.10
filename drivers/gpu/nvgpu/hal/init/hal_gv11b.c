@@ -1606,6 +1606,9 @@ int gv11b_init_hal(struct gk20a *g)
 	g->max_sm_diversity_config_count =
 		NVGPU_DEFAULT_SM_DIVERSITY_CONFIG_COUNT;
 #endif
+#ifdef CONFIG_NVGPU_CLK_ARB
+		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, true);
+#endif
 	g->name = "gv11b";
 
 	return 0;

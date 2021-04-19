@@ -1838,13 +1838,16 @@ int tu104_init_hal(struct gk20a *g)
 		/* Disable clock support */
 #ifdef CONFIG_NVGPU_CLK_ARB
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
+		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, false);
 #endif
 	} else
 #endif
 	{
 		nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	}
-
+#ifdef CONFIG_NVGPU_CLK_ARB
+	nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, false);
+#endif
 	g->name = "tu10x";
 
 	return 0;

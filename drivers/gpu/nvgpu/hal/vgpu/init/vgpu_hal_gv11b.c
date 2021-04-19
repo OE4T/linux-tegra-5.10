@@ -1074,6 +1074,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 
 	if (!priv->constants.can_set_clkrate) {
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
+		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, false);
 	}
 
 #ifdef CONFIG_NVGPU_SM_DIVERSITY
@@ -1118,6 +1119,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_RECOVERY
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
 #endif
+	nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, true);
 
 	g->name = "gv11b";
 

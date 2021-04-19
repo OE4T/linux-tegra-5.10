@@ -209,6 +209,7 @@ struct gk20a;
 	DEFINE_FLAG(NVGPU_ELPG_MS_ENABLED, "ELPG_MS support"),          \
 	DEFINE_FLAG(NVGPU_L2_MAX_WAYS_EVICT_LAST_ENABLED,               \
 			"Set L2 Max Ways Evict Last support"),		\
+	DEFINE_FLAG(NVGPU_CLK_ARB_ENABLED, "CLK_ARB support"),          \
 	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
 /**

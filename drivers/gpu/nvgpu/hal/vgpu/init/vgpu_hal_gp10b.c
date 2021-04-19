@@ -960,6 +960,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 
 	if (!priv->constants.can_set_clkrate) {
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
+		nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, false);
 	}
 
 	g->max_sm_diversity_config_count =
@@ -972,6 +973,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 #ifdef CONFIG_NVGPU_RECOVERY
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FAULT_RECOVERY, true);
 #endif
+	nvgpu_set_enabled(g, NVGPU_CLK_ARB_ENABLED, true);
 
 	g->name = "gp10b";
 
