@@ -41,7 +41,6 @@
 #include <soc/tegra/fuse.h>
 #endif /* CONFIG_NVGPU_TEGRA_FUSE */
 
-#include <nvgpu/hal_init.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvgpu_common.h>
@@ -434,14 +433,12 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 
 	nvgpu_restore_usermode_for_poweron(g);
 
-	err = nvgpu_detect_chip(g);
-	if (err)
+	err = nvgpu_early_poweron(g);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_early_poweron failed[%d]", err);
 		goto done;
+	}
 
-	/**
-	 * TODO: Need to add nvgpu_early_poweron() sequence before
-	 * creating device nodes.
-	 */
 	if (!l->dev_nodes_created) {
 		err = gk20a_user_init(dev);
 		if (err) {

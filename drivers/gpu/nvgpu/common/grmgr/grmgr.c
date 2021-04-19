@@ -88,7 +88,18 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 		}
 		nvgpu_assert(local_gpc_mask == 0U);
 	}
-	gr_syspipe->max_veid_count_per_tsg = g->fifo.max_subctx_count;
+
+	if (g->ops.gr.init.get_max_subctx_count != NULL) {
+		gr_syspipe->max_veid_count_per_tsg =
+			g->ops.gr.init.get_max_subctx_count();
+	} else {
+		/*
+		 * For vgpu, NvGpu has to rely on chip constant
+		 * queried from nvgpu server.
+		 * For legacy chips, g->fifo.max_subctx_count should be 0U.
+		 */
+		gr_syspipe->max_veid_count_per_tsg = g->fifo.max_subctx_count;
+	}
 	gr_syspipe->veid_start_offset = 0U;
 
 	gpu_instance->num_lce = nvgpu_device_get_copies(g, gpu_instance->lce_devs,

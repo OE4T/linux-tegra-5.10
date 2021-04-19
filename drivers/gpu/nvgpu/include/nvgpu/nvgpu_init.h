@@ -80,6 +80,20 @@ struct nvgpu_ref;
  */
 
 /**
+ * @brief Initial driver initialization
+ *
+ * @param g [in] The GPU
+ *
+ * Initializes device and grmgr subunits in the early stage of
+ * GPU power on sequence. This separate routine is required to create
+ * the GPU dev node in the early stage of GPU power on sequence.
+ * Each sub-unit is responsible for HW initialization.
+ *
+ * @return 0 in case of success, < 0 in case of failure.
+ */
+int nvgpu_early_poweron(struct gk20a *g);
+
+/**
  * @brief Final driver initialization
  *
  * @param g [in] The GPU

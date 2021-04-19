@@ -42,6 +42,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/hal_init.h>
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -585,6 +586,38 @@ static bool needs_init(struct gk20a *g, nvgpu_init_func_t func, u32 enable_flag)
 		nvgpu_is_enabled(g, enable_flag)) && (func != NULL);
 }
 
+int nvgpu_early_poweron(struct gk20a *g)
+{
+	int err = 0;
+
+	err = nvgpu_detect_chip(g);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_detect_chip failed[%d]", err);
+		goto done;
+	}
+
+	/*
+	 * Initialize the GPU's device list. Needed before NVLINK
+	 * init since the NVLINK IOCTRL block is enumerated in the
+	 * device list.
+	 */
+	err = nvgpu_device_init(g);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_device_init failed[%d]", err);
+		goto done;
+	}
+
+	err = g->ops.grmgr.init_gr_manager(g);
+	if (err != 0) {
+		nvgpu_device_cleanup(g);
+		nvgpu_err(g, "g->ops.grmgr.init_gr_manager failed[%d]", err);
+		goto done;
+	}
+
+done:
+	return err;
+}
+
 int nvgpu_finalize_poweron(struct gk20a *g)
 {
 	int err = 0;
@@ -610,12 +643,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_falcons_sw_init, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.pmu.pmu_early_init, NO_FLAG),
 
-		/*
-		 * Initialize the GPU's device list. Needed before NVLINK
-		 * init since the NVLINK IOCTRL block is enumerated in the
-		 * device list.
-		 */
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_device_init, NO_FLAG),
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_setup_sw,
 				       NVGPU_SUPPORT_SEC2_RTOS),
@@ -665,7 +692,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_acquire_tpc_pg_lock, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_power_gate_gr, NO_FLAG),
 #endif
-		NVGPU_INIT_TABLE_ENTRY(g->ops.grmgr.init_gr_manager, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_netlist_init_ctx_vars, NO_FLAG),
 		/* prepare portion of sw required for enable hw */
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gr_alloc, NO_FLAG),
