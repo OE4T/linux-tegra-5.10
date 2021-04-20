@@ -77,7 +77,6 @@ static inline nve32_t validate_args(struct osi_core_priv_data *const osi_core,
 static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 				  struct core_ops *ops_p)
 {
-#if 0
 	nveu32_t i = 0;
 	void *temp_ops = (void *)ops_p;
 #if __SIZEOF_POINTER__ == 8
@@ -92,12 +91,15 @@ static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 
 	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
 		if (*l_ops == 0U) {
+			OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				     "core: fn ptr validation failed at\n",
+				     (nveu64_t)i);
 			return -1;
 		}
 
 		l_ops++;
 	}
-#endif
+
 	return 0;
 }
 

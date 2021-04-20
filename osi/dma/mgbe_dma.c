@@ -624,6 +624,38 @@ static void mgbe_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
 }
 
 /**
+ * @brief Read-validate HW registers for functional safety.
+ *
+ * @note
+ * Algorithm:
+ *  - Reads pre-configured list of MAC/MTL configuration registers
+ *    and compares with last written value for any modifications.
+ *
+ * @param[in] osi_dma: OSI DMA private data structure.
+ *
+ * @pre
+ *  - MAC has to be out of reset.
+ *  - osi_hw_dma_init has to be called. Internally this would initialize
+ *    the safety_config (see osi_dma_priv_data) based on MAC version and
+ *    which specific registers needs to be validated periodically.
+ *  - Invoke this call if (osi_dma_priv_data->safety_config != OSI_NULL)
+ *
+ * @note
+ * API Group:
+ * - Initialization: No
+ * - Run time: Yes
+ * - De-initialization: No
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+static nve32_t mgbe_validate_dma_regs(struct osi_dma_priv_data *osi_dma)
+{
+	/* TODO: for mgbe */
+	return 0;
+}
+
+/**
  * @brief mgbe_get_global_dma_status - Gets DMA status.
  *
  * Algorithm: Returns global DMA Tx/Rx interrupt status
@@ -729,7 +761,7 @@ void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
 	ops->stop_dma = mgbe_stop_dma;
 	ops->init_dma_channel = mgbe_init_dma_channel;
 	ops->set_rx_buf_len = mgbe_set_rx_buf_len;
-	ops->validate_regs = OSI_NULL;
+	ops->validate_regs = mgbe_validate_dma_regs;
 	ops->get_global_dma_status = mgbe_get_global_dma_status;
 	ops->clear_vm_tx_intr = mgbe_clear_vm_tx_intr;
 	ops->clear_vm_rx_intr = mgbe_clear_vm_rx_intr;
