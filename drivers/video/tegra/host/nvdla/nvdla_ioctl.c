@@ -697,10 +697,10 @@ static int nvdla_val_task_submit_input(struct nvdla_ioctl_submit_task *in_task)
 				in_task->num_addresses);
 		return -EINVAL;
 	}
-	if (in_task->num_addresses > NVDLA_MAX_BUFFERS_PER_TASK) {
+	if (in_task->num_addresses > MAX_NVDLA_BUFFERS_PER_TASK) {
 		pr_err("num addresses[%u] crossing expected[%d]\n",
 			in_task->num_addresses,
-			NVDLA_MAX_BUFFERS_PER_TASK);
+			MAX_NVDLA_BUFFERS_PER_TASK);
 		return -EINVAL;
 	}
 

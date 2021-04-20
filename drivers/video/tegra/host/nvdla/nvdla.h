@@ -277,7 +277,7 @@ struct nvdla_task {
 	struct nvdla_status_notify eof_task_status[MAX_NUM_NVDLA_OUT_TASK_STATUS];
 	struct nvdla_mem_handle sof_timestamps[MAX_NUM_NVDLA_OUT_TIMESTAMP];
 	struct nvdla_mem_handle eof_timestamps[MAX_NUM_NVDLA_OUT_TIMESTAMP];
-	struct nvdla_mem_handle memory_handles[NVDLA_MAX_BUFFERS_PER_TASK];
+	struct nvdla_mem_handle memory_handles[MAX_NVDLA_BUFFERS_PER_TASK];
 	u8 num_prefences;
 	u8 num_postfences;
 	u8 num_in_task_status;
@@ -296,7 +296,7 @@ struct nvdla_task {
 	int timeout;
 	int pool_index;
 
-	struct dma_buf *memory_dmabuf[NVDLA_MAX_BUFFERS_PER_TASK];
+	struct dma_buf *memory_dmabuf[MAX_NVDLA_BUFFERS_PER_TASK];
 	struct dma_buf *prefences_sem_dmabuf[MAX_NUM_NVDLA_PREFENCES];
 	struct dma_buf *in_task_status_dmabuf[MAX_NUM_NVDLA_IN_TASK_STATUS];
 	struct dma_buf *postfences_sem_dmabuf[MAX_NUM_NVDLA_POSTFENCES];
