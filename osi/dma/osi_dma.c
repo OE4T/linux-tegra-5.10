@@ -156,7 +156,6 @@ static inline nve32_t validate_dma_chans(struct osi_dma_priv_data *osi_dma)
 static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma,
 				  struct dma_chan_ops *ops_p)
 {
-#if 0
 	nveu32_t i = 0;
 	void *temp_ops = (void *)ops_p;
 #if __SIZEOF_POINTER__ == 8
@@ -164,19 +163,22 @@ static nve32_t validate_func_ptrs(struct osi_dma_priv_data *osi_dma,
 #elif __SIZEOF_POINTER__ == 4
 	nveu32_t *l_ops = (nveu32_t *)temp_ops;
 #else
-	OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
-		     "DMA: Undefined architecture\n", 0ULL);
+	OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+		    "DMA: Undefined architecture\n", 0ULL);
 	return -1;
 #endif
 
 	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
 		if (*l_ops == 0U) {
+			OSI_DMA_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
+				    "dma: fn ptr validation failed at\n",
+				    (nveu64_t)i);
 			return -1;
 		}
 
 		l_ops++;
 	}
-#endif
+
 	return 0;
 }
 
