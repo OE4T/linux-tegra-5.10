@@ -170,8 +170,6 @@ void snd_hdac_stream_reset(struct hdac_stream *azx_dev)
 		udelay(azx_dev->bus->dma_stop_delay);
 
 	val &= ~SD_CTL_STREAM_RESET;
-	/* WAR: Delay added to avoid mcerr */
-	udelay(100);
 	snd_hdac_stream_writeb(azx_dev, SD_CTL, val);
 	udelay(3);
 
