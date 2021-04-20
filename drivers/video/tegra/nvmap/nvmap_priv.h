@@ -573,9 +573,6 @@ int nvmap_dmabuf_stash_init(void);
 void *nvmap_altalloc(size_t len);
 void nvmap_altfree(void *ptr, size_t len);
 
-void do_set_pte(struct vm_area_struct *vma, unsigned long address,
-		struct page *page, pte_t *pte, bool write, bool anon);
-
 static inline struct page *nvmap_to_page(struct page *page)
 {
 	return (struct page *)((unsigned long)page & ~3UL);
