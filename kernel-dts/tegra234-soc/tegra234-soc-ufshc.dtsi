@@ -72,14 +72,14 @@
 				"mphy_l0_rx_ls_bit", "mphy_l1_rx_ana",
 				"ufshc", "ufsdev_ref", "pll_p", "clk_m",
 				"mphy_force_ls_mode", "uphy_pll3";
-		resets = <&bpmp_resets TEGRA194_RESET_MPHY_L0_RX>,
-				<&bpmp_resets TEGRA194_RESET_MPHY_L0_TX>,
-				<&bpmp_resets TEGRA194_RESET_MPHY_L1_RX>,
-				<&bpmp_resets TEGRA194_RESET_MPHY_L1_TX>,
-				<&bpmp_resets TEGRA194_RESET_MPHY_CLK_CTL>,
-				<&bpmp_resets TEGRA194_RESET_UFSHC>,
-				<&bpmp_resets TEGRA194_RESET_UFSHC_AXI_M>,
-				<&bpmp_resets TEGRA194_RESET_UFSHC_LP_SEQ>;
+		resets = <&bpmp_resets TEGRA234_RESET_MPHY_L0_RX>,
+				<&bpmp_resets TEGRA234_RESET_MPHY_L0_TX>,
+				<&bpmp_resets TEGRA234_RESET_MPHY_L1_RX>,
+				<&bpmp_resets TEGRA234_RESET_MPHY_L1_TX>,
+				<&bpmp_resets TEGRA234_RESET_MPHY_CLK_CTL>,
+				<&bpmp_resets TEGRA234_RESET_UFSHC>,
+				<&bpmp_resets TEGRA234_RESET_UFSHC_AXI_M>,
+				<&bpmp_resets TEGRA234_RESET_UFSHC_LP_SEQ>;
 		reset-names = "mphy-l0-rx-rst", "mphy-l0-tx-rst", "mphy-l1-rx-rst",
 				"mphy-l1-tx-rst", "mphy-clk-ctl-rst", "ufs-rst",
 				"ufs-axi-m-rst", "ufshc-lp-rst";

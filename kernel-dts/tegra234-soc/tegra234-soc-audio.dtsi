@@ -39,7 +39,7 @@
 		compatible = "nvidia,tegra210-aconnect";
 		clocks = <&bpmp_clks TEGRA234_CLK_APE>,
 			 <&bpmp_clks TEGRA234_CLK_APB2APE>;
-		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_AUD>;
+		power-domains = <&bpmp TEGRA234_POWER_DOMAIN_AUD>;
 		clock-names = "ape", "apb2ape";
 		#address-cells = <2>;
 		#size-cells = <2>;
@@ -131,7 +131,7 @@
 				<&bpmp_clks TEGRA234_CLK_ACLK>;
 			clock-names = "adsp.ape", "adsp.apb2ape", "adspneon",
 					"adsp", "aclk";
-			resets = <&bpmp_resets TEGRA194_RESET_ADSP_ALL>;
+			resets = <&bpmp_resets TEGRA234_RESET_ADSP_ALL>;
 			reset-names = "adspall";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 			iommus = <&smmu_niso0 TEGRA_SID_NISO0_APE>;

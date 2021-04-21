@@ -43,7 +43,7 @@
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
 			<&bpmp_clks TEGRA234_CLK_CLK_M>;
 		clock-names = "spi", "pll_p", "clk_m";
-		resets = <&bpmp_resets TEGRA194_RESET_SPI1>;
+		resets = <&bpmp_resets TEGRA234_RESET_SPI1>;
 		reset-names = "spi";
 		status = "disabled";
 	};
@@ -68,7 +68,7 @@
 			<&bpmp_clks TEGRA234_CLK_PLLAON>,
 			<&bpmp_clks TEGRA234_CLK_OSC>;
 		clock-names = "spi", "pll_p", "osc";
-		resets = <&bpmp_resets TEGRA194_RESET_SPI2>;
+		resets = <&bpmp_resets TEGRA234_RESET_SPI2>;
 		reset-names = "spi";
 		status = "disabled";
 	};
@@ -93,7 +93,7 @@
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
 			<&bpmp_clks TEGRA234_CLK_CLK_M>;
 		clock-names = "spi", "pll_p", "clk_m";
-		resets = <&bpmp_resets TEGRA194_RESET_SPI3>;
+		resets = <&bpmp_resets TEGRA234_RESET_SPI3>;
 		reset-names = "spi";
 		status = "disabled";
 	};
@@ -118,7 +118,7 @@
 			 <&bpmp_clks TEGRA234_CLK_PLLC>,
 			 <&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "qspi", "qspi_out", "pllc", "pll_p";
-		resets = <&bpmp_resets TEGRA194_RESET_QSPI0>;
+		resets = <&bpmp_resets TEGRA234_RESET_QSPI0>;
 		reset-names = "qspi";
 		status = "disabled";
 	};
@@ -143,7 +143,7 @@
 			 <&bpmp_clks TEGRA234_CLK_PLLC>,
 			 <&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "qspi", "qspi_out", "pllc", "pll_p";
-		resets = <&bpmp_resets TEGRA194_RESET_QSPI1>;
+		resets = <&bpmp_resets TEGRA234_RESET_QSPI1>;
 		reset-names = "qspi";
 		status = "disabled";
 	};

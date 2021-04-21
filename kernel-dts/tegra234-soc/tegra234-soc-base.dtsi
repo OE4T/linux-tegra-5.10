@@ -16,24 +16,19 @@
 
 /* FIXME: remove all the tegra194-*** headers */
 #include <dt-bindings/version.h>
-#include <dt-bindings/clock/tegra194-clock.h>
 #include <dt-bindings/clock/tegra234-clock.h>
-#include <dt-bindings/reset/tegra194-reset.h>
 #include <dt-bindings/reset/tegra234-reset.h>
 #include "dt-bindings/interrupt/tegra194-irq.h"
 #include "dt-bindings/interrupt-controller/arm-gic.h"
-#include "dt-bindings/soc/tegra194-powergate.h"
 #include "dt-bindings/soc/tegra234-powergate.h"
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
-#include "dt-bindings/soc/tegra194-powergate.h"
 #include <dt-bindings/pinctrl/pinctrl-tegra.h>
 #include <dt-bindings/mailbox/tegra186-hsp.h>
 /* Minimal.dtsi is to be included first as subsequent headers can
  *override the nodes.
  */
 #include "tegra234-soc/tegra234-soc-minimal.dtsi"
-#include "tegra234-soc/tegra234-soc-power-domain.dtsi"
 #include "tegra234-soc-memory.dtsi"
 #include "tegra234-trusty.dtsi"
 #include "tegra234-soc-cbb.dtsi"
@@ -472,9 +467,9 @@
 		compatible = "nvidia,pwm-tegra194-tachometer";
 		reg = <0x0 0x039c0000 0x0 0x10>;
 		#pwm-cells = <2>;
-		clocks = <&bpmp_clks TEGRA234_CLK_TACH>;
+		clocks = <&bpmp_clks TEGRA234_CLK_TACH0>;
 		clock-names = "tach";
-		resets = <&bpmp_resets TEGRA194_RESET_TACH>;
+		resets = <&bpmp_resets TEGRA234_RESET_TACH0>;
 		reset-names = "tach";
 		pulse-per-rev = <2>;
 		capture-window-length = <2>;
@@ -494,7 +489,7 @@
 			<0x0 0x03540000 0x0 0x1000>;
 		reg-names = "padctl", "ao";
 		interrupts = <0 167 0x4>;
-		resets = <&bpmp_resets TEGRA194_RESET_XUSB_PADCTL>;
+		resets = <&bpmp_resets TEGRA234_RESET_XUSB_PADCTL>;
 		reset-names = "padctl";
 		status = "disabled";
 
@@ -830,7 +825,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_MIPI_CAL>,
 			<&bpmp_clks TEGRA234_CLK_UART_FST_MIPI_CAL>;
 		clock-names = "mipi_cal", "uart_fs_mipi_cal";
-		resets = <&bpmp_resets TEGRA194_RESET_MIPI_CAL>;
+		resets = <&bpmp_resets TEGRA234_RESET_MIPI_CAL>;
 		reset-names = "mipi_cal";
 		status = "disabled";
 	};
@@ -852,19 +847,18 @@
 				<&bpmp_clks TEGRA234_CLK_NVLINK_PLL_TXCLK>,
 				<&bpmp_clks TEGRA234_CLK_NVLINK_TX>;
 		clock-names = "nvhs_pll0_mgmt", "pllrefe_vcoout_gated", "nvlink_sys", "pllnvhs", "clk_m", "nvlink_pll_txclk", "nvlink_tx";
-		resets = <&bpmp_resets TEGRA194_RESET_MSSNVL>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_PM>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_PLL0>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_L0>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_L1>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_L2>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_L3>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_L4>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_L5>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_L6>,
-				<&bpmp_resets TEGRA194_RESET_NVHS_UPHY_L7>;
-		reset-names = "mssnvl", "nvhs_uphy_pm", "nvhs_uphy", "nvhs_uphy_pll0",
+		resets = <&bpmp_resets TEGRA234_RESET_NVHS_UPHY_PM>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_PLL0>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_L0>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_L1>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_L2>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_L3>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_L4>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_L5>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_L6>,
+				<&bpmp_resets TEGRA234_RESET_NVHS_UPHY_L7>;
+		reset-names = "nvhs_uphy_pm", "nvhs_uphy", "nvhs_uphy_pll0",
 				"nvhs_uphy_l0", "nvhs_uphy_l1", "nvhs_uphy_l2",
 				"nvhs_uphy_l3",	"nvhs_uphy_l4",	"nvhs_uphy_l5",
 				"nvhs_uphy_l6",	"nvhs_uphy_l7";

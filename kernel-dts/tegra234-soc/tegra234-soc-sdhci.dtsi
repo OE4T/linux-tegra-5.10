@@ -16,7 +16,7 @@
 
 #include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/memory/tegra234-mc.h>
-#include <dt-bindings/reset/tegra194-reset.h>
+#include <dt-bindings/reset/tegra234-reset.h>
 #include <dt-bindings/interrupt/tegra194-irq.h>
 #include "tegra234-pin-drive-sdmmc-common.dtsi"
 
@@ -72,13 +72,13 @@
 		nvidia,default-tap = <0x8>;
 		nvidia,default-trim = <0x14>;
 		nvidia,dqs-trim = <40>;
-		assigned-clocks = <&bpmp TEGRA194_CLK_SDMMC4>,
+		assigned-clocks = <&bpmp TEGRA234_CLK_SDMMC4>,
 				  <&bpmp_clks TEGRA234_CLK_PLLC4>;
 		assigned-clock-parents =
 				  <&bpmp_clks TEGRA234_CLK_PLLC4>;
 
 #endif
-		resets = <&bpmp_resets TEGRA194_RESET_SDMMC4>;
+		resets = <&bpmp_resets TEGRA234_RESET_SDMMC4>;
 		reset-names = "sdhci";
 		pll_source = "pll_p", "pll_c4_out0_lj";
 		nvidia,set-parent-clk;
@@ -134,10 +134,10 @@
 		pinctrl-names = "sdmmc-3v3", "sdmmc-1v8";
 		pinctrl-0 = <&sdmmc1_3v3>;
 		pinctrl-1 = <&sdmmc1_1v8>;
-		assigned-clocks = <&bpmp TEGRA194_CLK_SDMMC1>,
-				  <&bpmp TEGRA194_CLK_PLLC4_MUXED>;
+		assigned-clocks = <&bpmp TEGRA234_CLK_SDMMC1>,
+				  <&bpmp TEGRA234_CLK_PLLC4_MUXED>;
 		assigned-clock-parents =
-				  <&bpmp TEGRA194_CLK_PLLC4_MUXED>;
+				  <&bpmp TEGRA234_CLK_PLLC4_MUXED>;
 #else
 
 		pinctrl-names = "sdmmc_e_33v_enable", "sdmmc_e_33v_disable";
@@ -145,7 +145,7 @@
 		pinctrl-1 = <&sdmmc1_e_33V_disable>;
 #endif
 		ignore-pm-notify;
-		resets = <&bpmp_resets TEGRA194_RESET_SDMMC1>;
+		resets = <&bpmp_resets TEGRA234_RESET_SDMMC1>;
 		reset-names = "sdhci";
 		pll_source = "pll_p", "pll_c4_muxed";
 		nvidia,set-parent-clk;

@@ -46,7 +46,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_UARTA>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_UARTA>;
+		resets = <&bpmp_resets TEGRA234_RESET_UARTA>;
 		reset-names = "serial";
 		status = "disabled";
 	};
@@ -68,7 +68,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_UARTB>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_UARTB>;
+		resets = <&bpmp_resets TEGRA234_RESET_UARTB>;
 		reset-names = "serial";
 		status = "disabled";
 	};
@@ -90,7 +90,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_UARTC>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_UARTC>;
+		resets = <&bpmp_resets TEGRA234_RESET_UARTC>;
 		reset-names = "serial";
 		status = "disabled";
 	};
@@ -112,7 +112,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_UARTD>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_UARTD>;
+		resets = <&bpmp_resets TEGRA234_RESET_UARTD>;
 		reset-names = "serial";
 		status = "disabled";
 	};
@@ -134,7 +134,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_UARTE>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_UARTE>;
+		resets = <&bpmp_resets TEGRA234_RESET_UARTE>;
 		reset-names = "serial";
 		status = "disabled";
 	};
@@ -156,7 +156,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_UARTF>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_UARTF>;
+		resets = <&bpmp_resets TEGRA234_RESET_UARTF>;
 		reset-names = "serial";
 		status = "disabled";
 	};
@@ -178,7 +178,7 @@
 		clocks = <&bpmp_clks TEGRA234_CLK_UARTH>,
 			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
-		resets = <&bpmp_resets TEGRA194_RESET_UARTH>;
+		resets = <&bpmp_resets TEGRA234_RESET_UARTH>;
 		reset-names = "serial";
 		status = "disabled";
 	};

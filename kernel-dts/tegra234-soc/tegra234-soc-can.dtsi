@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,7 +15,7 @@
  */
 
 #include <dt-bindings/clock/tegra234-clock.h>
-#include <dt-bindings/reset/tegra194-reset.h>
+#include <dt-bindings/reset/tegra234-reset.h>
 
 / {
 	mttcan0: mttcan@c310000 {
@@ -31,7 +31,7 @@
 			<&bpmp_clks TEGRA234_CLK_CAN1>,
 			<&bpmp_clks TEGRA234_CLK_PLLAON>;
 		 clock-names = "can_core", "can_host","can","pllaon";
-		 resets = <&bpmp_resets TEGRA194_RESET_CAN1>;
+		 resets = <&bpmp_resets TEGRA234_RESET_CAN1>;
 		 reset-names = "can";
 		 mram-params = <0 16 16 32 0 0 16 16 16>;
 		 tx-config = <0 16 0 64>;
@@ -61,7 +61,7 @@
 			<&bpmp_clks TEGRA234_CLK_CAN2>,
 			<&bpmp_clks TEGRA234_CLK_PLLAON>;
 		 clock-names = "can_core", "can_host","can","pllaon";
-		 resets = <&bpmp_resets TEGRA194_RESET_CAN2>;
+		 resets = <&bpmp_resets TEGRA234_RESET_CAN2>;
 		 reset-names = "can";
 		 mram-params = <0 16 16 32 0 0 16 16 16>;
 		 tx-config = <0 16 0 64>;
