@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -541,8 +541,10 @@ static int nvgpu_gr_obj_ctx_commit_hw_state(struct gk20a *g,
 	nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, global_ctx_buffer,
 		config, gr_ctx, false);
 
-	/* override a few ctx state registers */
-	g->ops.gr.init.commit_global_timeslice(g);
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		/* override a few ctx state registers */
+		g->ops.gr.init.commit_global_timeslice(g);
+	}
 
 	/* floorsweep anything left */
 	err = nvgpu_gr_fs_state_init(g, config);
