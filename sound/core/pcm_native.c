@@ -1691,13 +1691,10 @@ int snd_pcm_suspend_all(struct snd_pcm *pcm)
 			err = snd_pcm_suspend(substream);
 			if (err < 0 && err != -EBUSY)
 				return err;
+
+			snd_pcm_sync_stop(substream, true);
 		}
 	}
-
-	for (stream = 0; stream < 2; stream++)
-		for (substream = pcm->streams[stream].substream;
-		     substream; substream = substream->next)
-			snd_pcm_sync_stop(substream, false);
 
 	return 0;
 }
