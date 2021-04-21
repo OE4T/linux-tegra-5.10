@@ -629,10 +629,20 @@ unlock:
 void *nvmap_dmabuf_get_drv_data(struct dma_buf *dmabuf,
 		struct device *dev)
 {
-	void *priv = NULL;
-	struct nvmap_handle_info *info = dmabuf->priv;
-	struct nvmap_handle *handle = info->handle;
 	struct nvmap_handle_dmabuf_priv *curr = NULL;
+	struct nvmap_handle_info *info;
+	struct nvmap_handle *handle;
+	void *priv = NULL;
+
+	if (dmabuf && dmabuf->priv)
+		info = dmabuf->priv;
+	else
+		return NULL;
+
+	if (info && info->handle)
+		handle = info->handle;
+	else
+		return NULL;
 
 	mutex_lock(&handle->lock);
 	list_for_each_entry(curr, &handle->dmabuf_priv, list) {
