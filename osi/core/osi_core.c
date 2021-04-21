@@ -109,7 +109,7 @@ struct osi_core_priv_data *osi_get_core(void)
 	nveu32_t i;
 
 	for (i = 0U; i < MAX_CORE_INSTANCES; i++) {
-		if (g_core[i].init_done == OSI_ENABLE) {
+		if (g_core[i].if_init_done == OSI_ENABLE) {
 			continue;
 		}
 
@@ -136,6 +136,11 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 
 	if (osi_core->use_virtualization > OSI_ENABLE) {
 		return ret;
+	}
+
+	if ((l_core->magic_num != (nveu64_t)osi_core) ||
+	    (l_core->if_init_done == OSI_ENABLE)) {
+		return -1;
 	}
 
 	l_core->if_ops_p = &if_ops[osi_core->use_virtualization];
