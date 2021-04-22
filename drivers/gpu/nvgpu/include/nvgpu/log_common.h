@@ -76,5 +76,6 @@ enum nvgpu_log_type {
 #define gpu_dbg_zbc		BIT(35) /* Gr ZBC */
 #define gpu_dbg_vab		BIT(36) /* VAB */
 #define gpu_dbg_runlists	BIT(38) /* Runlist related debugging. */
+#define gpu_dbg_cic		BIT(39) /* Interrupt Handling debugging. */
 
 #endif

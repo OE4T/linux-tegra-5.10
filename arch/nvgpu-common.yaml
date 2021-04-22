@@ -1051,6 +1051,11 @@ grmgr:
              include/nvgpu/mig.h,
              include/nvgpu/gops/grmgr.h ]
 
+cic:
+  owner: Tejal K
+  safe: yes
+  sources: [ include/nvgpu/nvgpu_cic.h ]
+
 ##
 ## HAL units. Currently they are under common but this needs to change.
 ## We are moving these to a top level directory.
