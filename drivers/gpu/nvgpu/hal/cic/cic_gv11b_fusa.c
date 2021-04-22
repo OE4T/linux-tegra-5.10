@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,37 +20,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * Here lie OS stubs that do not have an implementation yet nor has any plans
- * for an implementation.
- */
+#include <nvgpu/log.h>
 
-#include <nvgpu/ecc.h>
-#include <nvgpu/debugger.h>
-#include <nvgpu/cic.h>
-#include <nvgpu/types.h>
+#include "common/cic/cic_priv.h"
+#include "cic_gv11b.h"
 
-struct gk20a;
-
-#ifdef CONFIG_NVGPU_DEBUGGER
-void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s)
+int gv11b_cic_init(struct gk20a *g, struct nvgpu_cic *cic)
 {
-}
-#endif
+	if (cic == NULL) {
+		nvgpu_err(g, "Invalid CIC reference pointer.");
+		return -EINVAL;
+	}
 
-#ifdef CONFIG_NVGPU_SYSFS
-int nvgpu_ecc_sysfs_init(struct gk20a *g)
-{
-	return 0;
-}
-
-void nvgpu_ecc_sysfs_remove(struct gk20a *g)
-{
-}
-#endif
-
-int nvgpu_cic_report_err_safety_services(struct gk20a *g,
-		void *err_info, size_t err_size, bool is_critical)
-{
+	cic->err_lut = gv11b_err_lut;
+	cic->num_hw_modules = size_of_gv11b_lut;
 	return 0;
 }

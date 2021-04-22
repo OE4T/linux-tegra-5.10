@@ -795,3 +795,10 @@ nvgpu_init_pramin
 gk20a_bus_set_bar0_window
 nvgpu_pramin_ops_init
 nvgpu_dma_alloc_vid_at
+nvgpu_cic_init_common
+nvgpu_cic_deinit_common
+nvgpu_cic_check_hw_unit_id
+nvgpu_cic_check_err_id
+nvgpu_cic_get_err_desc
+nvgpu_cic_report_err_safety_services
+nvgpu_cic_get_num_hw_modules

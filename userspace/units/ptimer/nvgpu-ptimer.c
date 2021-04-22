@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,9 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/ptimer.h>
+#include <nvgpu/cic.h>
 #include <hal/ptimer/ptimer_gk20a.h>
+#include <hal/cic/cic_gv11b.h>
 #include <nvgpu/hw/gk20a/hw_timer_gk20a.h>
 
 #include "nvgpu-ptimer.h"
@@ -88,6 +90,9 @@ int test_setup_env(struct unit_module *m,
 	g->ops.ptimer.read_ptimer = gk20a_read_ptimer;
 	g->ops.ptimer.isr = gk20a_ptimer_isr;
 
+	g->ops.cic.init = gv11b_cic_init;
+	g->ops.cic.report_err = nvgpu_cic_report_err_safety_services;
+
 	/* Create ptimer register space */
 	if (nvgpu_posix_io_add_reg_space(g, PTIMER_REG_SPACE_START,
 					 PTIMER_REG_SPACE_SIZE) != 0) {
@@ -96,6 +101,12 @@ int test_setup_env(struct unit_module *m,
 		return UNIT_FAIL;
 	}
 	(void)nvgpu_posix_register_io(g, &test_reg_callbacks);
+
+	if (nvgpu_cic_init_common(g) != 0) {
+		unit_err(m, "%s: failed to initialize CIC\n",
+				__func__);
+		return UNIT_FAIL;
+	}
 
 	return UNIT_SUCCESS;
 }

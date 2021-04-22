@@ -827,3 +827,10 @@ tpc:
   owner: Divya S
   sources: [ hal/tpc/tpc_gv11b.c,
              hal/tpc/tpc_gv11b.h ]
+
+cic:
+  safe: yes
+  owner: Tejal K
+  sources: [ hal/cic/cic_gv11b_fusa.c,
+             hal/cic/cic_lut_gv11b_fusa.c,
+             hal/cic/cic_gv11b.h ]

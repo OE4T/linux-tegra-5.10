@@ -46,6 +46,7 @@
 #ifdef CONFIG_NVGPU_NON_FUSA
 #include <nvgpu/ptimer.h>
 #endif
+#include <nvgpu/cic.h>
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -356,6 +357,12 @@ int nvgpu_prepare_poweroff(struct gk20a *g)
 	}
 #endif
 	gk20a_mask_interrupts(g);
+
+	/* Disable CIC after the interrupts are masked;
+	 * This will ensure that CIC will not get probed
+	 * after it's deinit.
+	 */
+	nvgpu_cic_deinit_common(g);
 
 	return ret;
 }
@@ -716,6 +723,14 @@ int nvgpu_early_poweron(struct gk20a *g)
 		goto done;
 	}
 
+	/* Initialize CIC early on before the interrupts are
+	 * enabled.
+	 */
+	err = nvgpu_cic_init_common(g);
+	if (err != 0) {
+		nvgpu_err(g, "CIC Initialization failed[%d]", err);
+		goto done;
+	}
 done:
 	return err;
 }

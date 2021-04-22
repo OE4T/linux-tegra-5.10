@@ -20,23 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_CIC_H
-#define NVGPU_CIC_H
+#ifndef CIC_GV11B_H
+#define CIC_GV11B_H
 
-#include <nvgpu/log.h>
+#include <nvgpu/nvgpu_err_info.h>
 
-/**
- * @file
- *
- * Public structs and APIs exposed by Central Interrupt Controller
- * (CIC) unit.
- */
+struct gk20a;
+struct nvgpu_cic;
 
-/*
- * Requires a string literal for the format - notice the string
- * concatination.
- */
-#define cic_dbg(g, fmt, args...)					\
-	nvgpu_log((g), gpu_dbg_cic, "CIC | " fmt, ##args)
+extern struct nvgpu_err_hw_module gv11b_err_lut[];
+extern u32 size_of_gv11b_lut;
 
-#endif /* NVGPU_CIC_H */
+int gv11b_cic_init(struct gk20a *g, struct nvgpu_cic *cic);
+
+#endif /* CIC_GV11B_H */

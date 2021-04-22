@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,10 +33,12 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/cic.h>
 
 #include "common/gr/gr_falcon_priv.h"
 
 #include "hal/init/hal_gv11b.h"
+#include "hal/cic/cic_gv11b.h"
 
 #include "nvgpu-gr.h"
 #include "nvgpu-gr-gv11b.h"
@@ -161,6 +163,14 @@ int test_gr_init_setup_ready(struct unit_module *m,
 	g->fifo.g = g;
 	nvgpu_device_init(g);
 	nvgpu_fifo_setup_sw(g);
+
+	g->ops.cic.init = gv11b_cic_init;
+	g->ops.cic.report_err = nvgpu_cic_report_err_safety_services;
+
+	err = nvgpu_cic_init_common(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC init failed\n");
+	}
 
 	/* Allocate and Initialize GR */
 	err = test_gr_init_setup(m, g, args);

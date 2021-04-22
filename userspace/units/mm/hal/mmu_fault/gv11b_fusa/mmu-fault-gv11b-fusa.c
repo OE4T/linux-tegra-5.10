@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/preempt.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
@@ -60,6 +61,7 @@
 #include "hal/mm/gmmu/gmmu_gv11b.h"
 #include "hal/mm/mm_gp10b.h"
 #include "hal/mm/mm_gv11b.h"
+#include "hal/cic/cic_gv11b.h"
 
 #include "hal/mm/mmu_fault/mmu_fault_gv11b.h"
 #include "mmu-fault-gv11b-fusa.h"
@@ -218,6 +220,13 @@ int test_env_init_mm_mmu_fault_gv11b_fusa(struct unit_module *m,
 
 	if (init_mm(m, g) != 0) {
 		unit_return_fail(m, "nvgpu_init_mm_support failed\n");
+	}
+
+	g->ops.cic.init = gv11b_cic_init;
+	g->ops.cic.report_err = nvgpu_cic_report_err_safety_services;
+
+	if (nvgpu_cic_init_common(g) != 0) {
+		unit_return_fail(m, "Failed to initialize CIC\n");
 	}
 
 	return UNIT_SUCCESS;

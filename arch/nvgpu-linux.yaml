@@ -227,8 +227,8 @@ vgpu:
 vm:
   sources: [ os/linux/vm.c ]
 
-sdl:
-  sources: [ os/linux/sdl/sdl_stub.c ]
+cic:
+  sources: [ os/linux/cic/cic_stub.c ]
 
 # Group all the Linux headers for now.
 headers:

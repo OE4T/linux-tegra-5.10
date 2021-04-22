@@ -27,8 +27,10 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/device.h>
 #include <nvgpu/ce.h>
+#include <nvgpu/cic.h>
 #include <hal/ce/ce_gp10b.h>
 #include <hal/ce/ce_gv11b.h>
+#include <hal/cic/cic_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ce_gv11b.h>
 
 #include "nvgpu-ce.h"
@@ -125,6 +127,15 @@ int test_ce_setup_env(struct unit_module *m,
 	nvgpu_mutex_init(&g->cg_pg_lock);
 	g->blcg_enabled = false;
 	nvgpu_spinlock_init(&g->mc.intr_lock);
+
+	g->ops.cic.init = gv11b_cic_init;
+	g->ops.cic.report_err = nvgpu_cic_report_err_safety_services;
+
+	if (nvgpu_cic_init_common(g) != 0) {
+		unit_err(m, "%s: failed to initialize CIC\n",
+			 __func__);
+		return UNIT_FAIL;
+	}
 
 	return UNIT_SUCCESS;
 }

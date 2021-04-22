@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,38 +19,49 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_GOPS_CIC_H
+#define NVGPU_GOPS_CIC_H
 
-/**
- * Here lie OS stubs that do not have an implementation yet nor has any plans
- * for an implementation.
- */
-
-#include <nvgpu/ecc.h>
-#include <nvgpu/debugger.h>
-#include <nvgpu/cic.h>
 #include <nvgpu/types.h>
 
+/**
+ * @file
+ *
+ * Central Interrupt Controller unit HAL interface
+ *
+ */
 struct gk20a;
+struct nvgpu_cic;
 
-#ifdef CONFIG_NVGPU_DEBUGGER
-void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s)
-{
-}
-#endif
+/**
+ * CIC unit HAL operations
+ *
+ * @see gpu_ops
+ */
+struct gops_cic {
+	/**
+	 * @brief Chip specific CIC unit initialization.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param cic [in] 		Pointer to CIC private struct.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*init)(struct gk20a *g, struct nvgpu_cic *cic);
 
-#ifdef CONFIG_NVGPU_SYSFS
-int nvgpu_ecc_sysfs_init(struct gk20a *g)
-{
-	return 0;
-}
+	/**
+	 * @brief Report error to safety services.
+	 *
+	 * @param g [in]		Pointer to GPU driver struct.
+	 * @param err_pkt [in]		Pointer to struct holding err details.
+	 * @param err_size [in]         Size of err_pkt.
+	 * @param is_critical [in]      Flag indicating criticality of error.
+	 *
+	 * @return 0 in case of success, < 0 in case of failure.
+	 */
+	int (*report_err)(struct gk20a *g,
+			void *err_pkt, size_t err_size,
+			bool is_critical);
+};
 
-void nvgpu_ecc_sysfs_remove(struct gk20a *g)
-{
-}
-#endif
-
-int nvgpu_cic_report_err_safety_services(struct gk20a *g,
-		void *err_info, size_t err_size, bool is_critical)
-{
-	return 0;
-}
+#endif/*NVGPU_GOPS_CIC_H*/

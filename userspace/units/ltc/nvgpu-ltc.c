@@ -37,6 +37,7 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/ecc.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/gr/gr.h>
 #include <hal/ltc/intr/ltc_intr_gv11b.h>
 #include <nvgpu/vm.h>
@@ -134,6 +135,11 @@ int test_ltc_init_support(struct unit_module *m,
 	err = nvgpu_init_hal(g);
 	if (err != 0) {
 		unit_return_fail(m, "nvgpu_init_hal failed\n");
+	}
+
+	err = nvgpu_cic_init_common(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC init failed\n");
 	}
 
 	/*

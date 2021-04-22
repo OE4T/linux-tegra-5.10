@@ -1612,6 +1612,11 @@ static const struct gops_grmgr tu104_ops_grmgr = {
 };
 #endif
 
+static const struct gops_cic tu104_ops_cic = {
+	.init = NULL,
+	.report_err = NULL,
+};
+
 int tu104_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
@@ -1720,6 +1725,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->gsp = tu104_ops_gsp;
 	gops->top = tu104_ops_top;
 	gops->grmgr = tu104_ops_grmgr;
+	gops->cic = tu104_ops_cic;
 	gops->chip_init_gpu_characteristics = tu104_init_gpu_characteristics;
 	gops->get_litter_value = tu104_get_litter_value;
 	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;

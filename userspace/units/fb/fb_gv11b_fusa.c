@@ -27,6 +27,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/cic.h>
 #include <nvgpu/nvgpu_init.h>
 #include "hal/mc/mc_gp10b.h"
 #include "hal/fb/fb_gm20b.h"
@@ -34,6 +35,7 @@
 #include "hal/fb/ecc/fb_ecc_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"
 #include "hal/fb/intr/fb_intr_ecc_gv11b.h"
+#include "hal/cic/cic_gv11b.h"
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 
 #include "fb_fusa.h"
@@ -62,6 +64,8 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args)
 	g->ops.mc.intr_nonstall_unit_config =
 		mc_gp10b_intr_nonstall_unit_config;
 	g->ops.fb.intr.enable = gv11b_fb_intr_enable;
+	g->ops.cic.init = gv11b_cic_init;
+	g->ops.cic.report_err = nvgpu_cic_report_err_safety_services;
 
 	/*
 	 * Define some arbitrary addresses for test purposes.
@@ -73,6 +77,10 @@ int fb_gv11b_init_test(struct unit_module *m, struct gk20a *g, void *args)
 	g->mm.mmu_wr_mem.aperture = APERTURE_SYSMEM;
 	g->mm.mmu_rd_mem.cpu_va = (void *) 0x30000000;
 	g->mm.mmu_rd_mem.aperture = APERTURE_SYSMEM;
+
+	if (nvgpu_cic_init_common(g) != 0) {
+		unit_return_fail(m, "CIC init failed\n");
+	}
 
 	g->ops.ecc.ecc_init_support(g);
 

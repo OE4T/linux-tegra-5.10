@@ -1060,6 +1060,11 @@ static const struct gops_grmgr gm20b_ops_grmgr = {
 	.init_gr_manager = nvgpu_init_gr_manager,
 };
 
+static const struct gops_cic gm20b_ops_cic = {
+	.init = NULL,
+	.report_err = NULL,
+};
+
 int gm20b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
@@ -1165,6 +1170,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->tpc = gm20b_ops_tpc;
 #endif
 	gops->grmgr = gm20b_ops_grmgr;
+	gops->cic = gm20b_ops_cic;
 	gops->chip_init_gpu_characteristics = nvgpu_init_gpu_characteristics;
 	gops->get_litter_value = gm20b_get_litter_value;
 	gops->semaphore_wakeup = nvgpu_channel_semaphore_wakeup;

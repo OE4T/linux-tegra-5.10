@@ -308,6 +308,16 @@ nvgpu-y += \
 	common/clk_arb/clk_arb_gp10b.o \
 	common/rc/rc.o \
 	common/grmgr/grmgr.o \
+	common/cic/cic.o \
+	common/cic/ce_cic.o \
+	common/cic/ctxsw_cic.o \
+	common/cic/ecc_cic.o \
+	common/cic/host_cic.o \
+	common/cic/gr_cic.o \
+	common/cic/pri_cic.o \
+	common/cic/pmu_cic.o \
+	common/cic/mmu_cic.o \
+	common/cic/msg_cic.o \
 	hal/bus/bus_gk20a.o \
 	hal/class/class_gm20b.o \
 	hal/class/class_gp10b.o \
@@ -380,7 +390,9 @@ nvgpu-y += \
 	hal/top/top_gp106.o \
 	hal/top/top_gp10b.o \
 	hal/tpc/tpc_gv11b.o \
-	hal/priv_ring/priv_ring_gv11b.o
+	hal/priv_ring/priv_ring_gv11b.o \
+	hal/cic/cic_gv11b_fusa.o \
+	hal/cic/cic_lut_gv11b_fusa.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -418,7 +430,7 @@ nvgpu-y += \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
 	os/linux/bsearch.o \
-	os/linux/sdl/sdl_stub.o \
+	os/linux/cic/cic_stub.o \
 	os/linux/dmabuf_priv.o \
 	os/linux/power_ops.o
 

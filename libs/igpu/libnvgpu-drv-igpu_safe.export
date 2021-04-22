@@ -248,6 +248,7 @@ gv11b_blcg_hshub_get_gating_prod
 gv11b_netlist_is_firmware_defined
 gv11b_top_get_num_lce
 gv11b_bus_configure_debug_bus
+gv11b_cic_init
 mc_gp10b_intr_stall_unit_config
 mc_gp10b_intr_nonstall_unit_config
 nvgpu_acr_bootstrap_hs_acr
@@ -809,3 +810,10 @@ nvgpu_rc_tsg_and_related_engines
 nvgpu_rc_mmu_fault
 gp10b_priv_ring_isr_handle_0
 gp10b_priv_ring_isr_handle_1
+nvgpu_cic_init_common
+nvgpu_cic_deinit_common
+nvgpu_cic_check_hw_unit_id
+nvgpu_cic_check_err_id
+nvgpu_cic_get_err_desc
+nvgpu_cic_report_err_safety_services
+nvgpu_cic_get_num_hw_modules

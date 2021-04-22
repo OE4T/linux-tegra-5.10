@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/fuse.h>
+#include <nvgpu/cic.h>
 
 #include <nvgpu/gr/gr.h>
 
@@ -213,6 +214,11 @@ static int init_acr_falcon_test_env(struct unit_module *m, struct gk20a *g)
 	err = nvgpu_init_hal(g);
 	if (err != 0) {
 		return -ENODEV;
+	}
+
+	err = nvgpu_cic_init_common(g);
+	if (err != 0) {
+		unit_return_fail(m, "CIC init failed\n");
 	}
 
 	/*
