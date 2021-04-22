@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -43,6 +43,7 @@
 
 #define get_mstr_id(userbits) get_em_el_subfield(errmon->user_bits, 29, 24)
 
+#define DONOT_CLR_TIMEDOUT_SLAVE_BIT
 #define MAX_TMO_CLR_RETRY 2
 
 static LIST_HEAD(cbb_errmon_list);
@@ -80,15 +81,20 @@ static unsigned int tegra234_cbb_get_tmo_slv(void __iomem *addr)
 	return timeout_status;
 }
 
+#ifndef DONOT_CLR_TIMEDOUT_SLAVE_BIT
 static void tegra234_cbb_reset_slv(void __iomem *addr, u32 val)
 {
 	writel(val, addr);
 	dsb(sy);
 }
+#endif
 
 static void tegra234_cbb_reset_tmo_slv(struct seq_file *file, char *slv_name,
 				       void __iomem *addr, u32 tmo_status)
 {
+#ifdef DONOT_CLR_TIMEDOUT_SLAVE_BIT
+	print_cbb_err(file, "\t  %s : 0x%x\n", slv_name, tmo_status);
+#else
 	int i = 0;
 
 	while (tmo_status && (i < MAX_TMO_CLR_RETRY)) {
@@ -102,10 +108,12 @@ static void tegra234_cbb_reset_tmo_slv(struct seq_file *file, char *slv_name,
 			      tmo_status);
 		i++;
 	}
+
 	if (tmo_status && (i == MAX_TMO_CLR_RETRY)) {
 		print_cbb_err(file, "\t  Timeout flag didn't reset twice.\n");
 		BUG();
 	}
+#endif
 }
 
 static void tegra234_cbb_lookup_apbslv
