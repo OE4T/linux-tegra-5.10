@@ -367,6 +367,9 @@
 
 #define PMC_LED_SOFT_BLINK_1CYCLE_NS	32000000
 
+#define WAKE_NR_EVENTS	96
+#define WAKE_NR_VECTORS	(WAKE_NR_EVENTS / 32)
+
 struct pmc_clk {
 	struct clk_hw	hw;
 	unsigned long	offs;
@@ -601,6 +604,7 @@ struct tegra_pmc_soc {
 	bool skip_fuse_mirroring_logic;
 	bool has_reorg_hw_dpd_reg_impl;
 	bool has_usb_sleepwalk;
+	bool soc_is_tegra210_n_before;
 };
 
 struct tegra_io_pad_regulator {
@@ -4537,22 +4541,65 @@ cleanup_sysfs:
 	return err;
 }
 
-#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_ARM)
+#if defined(CONFIG_PM_SLEEP) && (defined(CONFIG_ARM) || defined(CONFIG_ARM64))
 static int tegra_pmc_suspend(struct device *dev)
 {
-	struct tegra_pmc *pmc = dev_get_drvdata(dev);
+	if (pmc->soc->soc_is_tegra210_n_before) {
+		struct tegra_pmc *pmc = dev_get_drvdata(dev);
 
-	tegra_pmc_writel(pmc, virt_to_phys(tegra_resume), PMC_SCRATCH41);
-
+		tegra_pmc_writel(pmc, virt_to_phys(tegra_resume), PMC_SCRATCH41);
+	}
 	return 0;
+}
+
+static void process_wake_event(int index, u32 status, struct tegra_pmc *pmc)
+{
+	int irq;
+	irq_hw_number_t hwirq;
+	int wake;
+	unsigned long flags;
+	struct irq_desc *desc;
+	unsigned long ulong_status = (unsigned long)status;
+
+	pr_info("Wake[%d:%d]  status=0x%x\n",
+		(index + 1) * 32, index * 32, status);
+	for_each_set_bit(wake, &ulong_status, 32) {
+		hwirq = wake + 32 * index;
+
+#ifdef CONFIG_IRQ_DOMAIN_HIERARCHY
+		irq = irq_find_mapping(pmc->domain, hwirq);
+#else
+		irq = hwirq;
+#endif
+		desc = irq_to_desc(irq);
+		if (!desc || !desc->action || !desc->action->name) {
+			pr_info("Resume caused by WAKE%d, irq %d\n",
+				(wake + 32 * index), irq);
+			continue;
+		}
+		pr_info("Resume caused by WAKE%d, %s\n", (wake + 32 * index),
+				desc->action->name);
+		local_irq_save(flags);
+		generic_handle_irq(irq);
+		local_irq_restore(flags);
+	}
 }
 
 static int tegra_pmc_resume(struct device *dev)
 {
 	struct tegra_pmc *pmc = dev_get_drvdata(dev);
+	int i;
+	u32 status;
 
-	tegra_pmc_writel(pmc, 0x0, PMC_SCRATCH41);
-
+	if (pmc->soc->soc_is_tegra210_n_before) {
+		tegra_pmc_writel(pmc, 0x0, PMC_SCRATCH41);
+	} else {
+		for (i = 0; i < WAKE_NR_VECTORS; i++) {
+			status = readl(pmc->wake + WAKE_AOWAKE_STATUS_R(i));
+			status = status & readl(pmc->wake + WAKE_AOWAKE_TIER2_ROUTING(i));
+			process_wake_event(i, status, pmc);
+		}
+	}
 	return 0;
 }
 
@@ -4671,6 +4718,7 @@ static const struct tegra_pmc_soc tegra20_pmc_soc = {
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = false,
+	.soc_is_tegra210_n_before = true,
 };
 
 static const char * const tegra30_powergates[] = {
@@ -4733,6 +4781,7 @@ static const struct tegra_pmc_soc tegra30_pmc_soc = {
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = false,
+	.soc_is_tegra210_n_before = true,
 };
 
 static const char * const tegra114_powergates[] = {
@@ -4791,6 +4840,7 @@ static const struct tegra_pmc_soc tegra114_pmc_soc = {
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = false,
+	.soc_is_tegra210_n_before = true,
 };
 
 static const char * const tegra124_powergates[] = {
@@ -4911,6 +4961,7 @@ static const struct tegra_pmc_soc tegra124_pmc_soc = {
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = true,
+	.soc_is_tegra210_n_before = true,
 };
 
 static const char * const tegra210_powergates[] = {
@@ -5051,6 +5102,7 @@ static const struct tegra_pmc_soc tegra210_pmc_soc = {
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = true,
+	.soc_is_tegra210_n_before = true,
 };
 
 #define TEGRA210B01_IO_PAD(_id, _dpd, _voltage, _name, _iopower, _bds)	\
@@ -5195,6 +5247,7 @@ static const struct tegra_pmc_soc tegra210b01_pmc_soc = {
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = true,
+	.soc_is_tegra210_n_before = true,
 };
 
 #define TEGRA186_IO_PAD(_id, _dpd, _voltage, _v_reg,  _name, _iopower, _bds) \
@@ -5423,6 +5476,7 @@ static const struct tegra_pmc_soc tegra186_pmc_soc = {
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = false,
+	.soc_is_tegra210_n_before = false,
 };
 
 #define TEGRA194_IO_PAD(_id, _dpd, _voltage, _v_reg, _name)     \
@@ -5588,6 +5642,7 @@ static const struct tegra_pmc_soc tegra194_pmc_soc = {
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = false,
+	.soc_is_tegra210_n_before = false,
 };
 
 #define TEGRA234_IO_PAD(_id, _dpd, _voltage, _name, _dpd_reg_index)	\
@@ -5749,6 +5804,7 @@ static const struct tegra_pmc_soc tegra234_pmc_soc = {
 	.skip_fuse_mirroring_logic = true,
 	.has_reorg_hw_dpd_reg_impl = true,
 	.has_usb_sleepwalk = false,
+	.soc_is_tegra210_n_before = false,
 };
 
 static const struct of_device_id tegra_pmc_match[] = {
@@ -5773,7 +5829,7 @@ static struct platform_driver tegra_pmc_driver = {
 		.name = "tegra-pmc",
 		.suppress_bind_attrs = true,
 		.of_match_table = tegra_pmc_match,
-#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_ARM)
+#if defined(CONFIG_PM_SLEEP) && (defined(CONFIG_ARM) || defined(CONFIG_ARM64))
 		.pm = &tegra_pmc_pm_ops,
 #endif
 	},
