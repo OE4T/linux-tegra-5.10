@@ -298,6 +298,14 @@ nve32_t osi_hw_dma_init(struct osi_dma_priv_data *osi_dma)
 		l_dma->ops_p->start_dma(osi_dma, chan);
 	}
 
+	/**
+	 * OSD will update this if PTP needs to be run in diffrent modes.
+	 * Default configuration is PTP sync in two step sync with slave mode.
+	 */
+	if (osi_dma->ptp_flag == 0U) {
+		osi_dma->ptp_flag = (OSI_PTP_SYNC_SLAVE | OSI_PTP_SYNC_TWOSTEP);
+	}
+
 	return 0;
 }
 
