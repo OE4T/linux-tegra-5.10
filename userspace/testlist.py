@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 #
-# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
