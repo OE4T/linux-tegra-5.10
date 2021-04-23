@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0
 append_menu "Pin controllers"
 
 config PINCTRL_TEGRA234_DPAUX

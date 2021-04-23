@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0
 ccflags-y += -Werror
 ccflags-y += -I$(srctree.nvidia-t23x)/drivers/pinctrl
 
