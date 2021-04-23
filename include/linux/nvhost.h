@@ -3,7 +3,7 @@
  *
  * Tegra graphics host driver
  *
- * Copyright (c) 2009-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2009-2021, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -408,6 +408,9 @@ struct nvhost_device_data {
 	/* deliver task timestamps for falcon */
 	void (*enable_timestamps)(struct platform_device *pdev,
 			struct nvhost_cdma *cdma, dma_addr_t timestamp_addr);
+#if IS_ENABLED(CONFIG_TEGRA_T23X_GRHOST)
+	#include "linux/nvhost_device_data_t23x.h"
+#endif /* CONFIG_TEGRA_T23X_GRHOST */
 };
 
 
