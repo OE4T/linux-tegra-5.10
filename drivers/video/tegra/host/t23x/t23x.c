@@ -47,6 +47,7 @@
 #endif
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_TSEC)
 #include "tsec/tsec.h"
+#include "tsec/tsec_t23x.h"
 #endif
 #include "flcn/flcn.h"
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
@@ -447,8 +448,8 @@ struct nvhost_device_data t23x_tsec_info = {
 	.keepalive		= true,
 	.moduleid		= NVHOST_MODULE_TSEC,
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_tsec_finalize_poweron_t186,
-	.prepare_poweroff	= nvhost_tsec_prepare_poweroff,
+	.finalize_poweron	= nvhost_tsec_finalize_poweron_t23x,
+	.prepare_poweroff	= nvhost_tsec_prepare_poweroff_t23x,
 	.serialize		= true,
 	.push_work_done		= true,
 	.resource_policy	= RESOURCE_PER_CHANNEL_INSTANCE,
@@ -460,6 +461,9 @@ struct nvhost_device_data t23x_tsec_info = {
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
+	.enable_riscv_boot	= true,
+	.riscv_desc_bin		= "nvhost_tsec_desc.fw",
+	.riscv_image_bin	= "nvhost_tsec_riscv.fw",
 };
 #endif
 
