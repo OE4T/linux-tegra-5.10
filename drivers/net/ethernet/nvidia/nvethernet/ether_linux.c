@@ -1118,7 +1118,7 @@ static void ether_start_ivc(struct ether_priv_data *pdata)
 		}
 		ictxt->ivc_state = 1;
 		// initialize
-		spin_lock_init(&ictxt->ivck_lock);
+		mutex_init(&ictxt->ivck_lock);
 	}
 }
 
@@ -2532,6 +2532,8 @@ static int ether_close(struct net_device *ndev)
 	/* MAC deinit which inturn stop MAC Tx,Rx */
 	osi_hw_core_deinit(pdata->osi_core);
 
+	cancel_work_sync(&pdata->set_rx_mode_work);
+
 	ether_stop_ivc(pdata);
 
 	if (pdata->xpcs_rst) {
@@ -3136,23 +3138,23 @@ static int ether_prepare_uc_list(struct net_device *dev,
 }
 
 /**
- * @brief This function is used to set RX mode.
+ * @brief Work Queue function to call rx mode.
  *
- * Algorithm: Based on Network interface flag, MAC registers are programmed to
- * set mode.
- *
- * @param[in] dev - pointer to net_device structure.
+ * @param[in] work: work structure
  *
  * @note MAC and PHY need to be initialized.
  */
-void ether_set_rx_mode(struct net_device *dev)
+static inline void set_rx_mode_work_func(struct work_struct *work)
 {
-	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct ether_priv_data *pdata = container_of(work,
+			struct ether_priv_data, set_rx_mode_work);
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	/* store last call last_uc_filter_index in temporary variable */
 	struct osi_ioctl ioctl_data = {};
+	struct net_device *dev = pdata->ndev;
 	int ret = -1;
 
+	mutex_lock(&pdata->rx_mode_lock);
 	memset(&ioctl_data.l2_filter, 0x0, sizeof(struct osi_filter));
 	if ((dev->flags & IFF_PROMISC) == IFF_PROMISC) {
 		if (pdata->promisc_mode == OSI_ENABLE) {
@@ -3172,6 +3174,7 @@ void ether_set_rx_mode(struct net_device *dev)
 				 "Promiscuous mode not supported\n");
 		}
 
+		mutex_unlock(&pdata->rx_mode_lock);
 		return;
 	} else if ((dev->flags & IFF_ALLMULTI) == IFF_ALLMULTI) {
 		ioctl_data.l2_filter.oper_mode = (OSI_OPER_EN_ALLMULTI |
@@ -3184,6 +3187,7 @@ void ether_set_rx_mode(struct net_device *dev)
 			dev_err(pdata->dev, "Setting All Multicast allow mode failed\n");
 		}
 
+		mutex_unlock(&pdata->rx_mode_lock);
 		return;
 	} else if (!netdev_mc_empty(dev)) {
 		/*MC list will be always there, invalidate list only once*/
@@ -3206,6 +3210,7 @@ void ether_set_rx_mode(struct net_device *dev)
 	if (ret < 0) {
 		dev_err(pdata->dev,
 			"Invalidating expired L2 filter failed\n");
+		mutex_unlock(&pdata->rx_mode_lock);
 		return;
 	}
 
@@ -3223,7 +3228,25 @@ void ether_set_rx_mode(struct net_device *dev)
 		dev_err(pdata->dev, "failed to set operation mode\n");
 	}
 
+	mutex_unlock(&pdata->rx_mode_lock);
 	return;
+}
+
+/**
+ * @brief This function is used to set RX mode.
+ *
+ * Algorithm: Based on Network interface flag, MAC registers are programmed to
+ * set mode.
+ *
+ * @param[in] dev - pointer to net_device structure.
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+void ether_set_rx_mode(struct net_device *dev)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+
+	schedule_work(&pdata->set_rx_mode_work);
 }
 
 /**
@@ -5582,6 +5605,9 @@ static int ether_probe(struct platform_device *pdev)
 	/* Initialization of delayed workqueue */
 	INIT_DELAYED_WORK(&pdata->ether_stats_work, ether_stats_work_func);
 
+	mutex_init(&pdata->rx_mode_lock);
+	/* Initialization of delayed workqueue */
+	INIT_WORK(&pdata->set_rx_mode_work, set_rx_mode_work_func);
 	osi_core->hw_feature = &pdata->hw_feat;
 	INIT_LIST_HEAD(&pdata->mac_addr_list_head);
 

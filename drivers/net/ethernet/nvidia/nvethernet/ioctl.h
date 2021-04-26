@@ -68,6 +68,8 @@
 /* FRP Command */
 #define ETHER_CONFIG_FRP_CMD		51
 #define ETHER_MC_DMA_ROUTE		52
+#define ETHER_READ_REG			53
+#define ETHER_WRITE_REG			54
 /** @} */
 
 /**

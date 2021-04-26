@@ -2709,6 +2709,8 @@ static int ether_register_dump_read(struct seq_file *seq, void *v)
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int max_address = 0x0;
 	int start_addr = 0x0;
+	struct osi_ioctl ioctl_data;
+	int ret = 0;
 
 	max_address = EOQS_MAX_REGISTER_ADDRESS;
 
@@ -2719,10 +2721,13 @@ static int ether_register_dump_read(struct seq_file *seq, void *v)
 	}
 
 	while (1) {
+		ioctl_data.cmd = OSI_CMD_READ_REG;
+		ioctl_data.arg1_u32 = start_addr;
+		ret = osi_handle_ioctl(osi_core, &ioctl_data);
 		seq_printf(seq,
-			   "\t Register offset 0x%x value 0x%x\n",
+			   "\t Register offset %x value 0x%x\n",
 			   start_addr,
-			   ioread32((void *)osi_core->base + start_addr));
+			   ret);
 		start_addr += 4;
 
 		if (start_addr > max_address)
