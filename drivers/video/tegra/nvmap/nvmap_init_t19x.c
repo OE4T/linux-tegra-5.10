@@ -28,7 +28,6 @@
 #include "nvmap_priv.h"
 
 bool nvmap_version_t19x;
-extern struct static_key nvmap_updated_cache_config;
 
 #define GOS_STR			"tegra_gos"
 struct gos_sysfs {
@@ -542,7 +541,6 @@ static int nvmap_gosmem_notifier(struct notifier_block *nb,
 		if (of_match_node((struct of_device_id *)&nvmap_t19x_of_ids,
 				dev->of_node))
 			nvmap_version_t19x = 1;
-		static_key_slow_inc(&nvmap_updated_cache_config);
 		return NOTIFY_DONE;
 	}
 

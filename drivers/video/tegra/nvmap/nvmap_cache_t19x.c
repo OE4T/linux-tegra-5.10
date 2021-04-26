@@ -21,16 +21,11 @@
 
 #include "nvmap_priv.h"
 
-struct static_key nvmap_updated_cache_config;
-
 void nvmap_handle_get_cacheability(struct nvmap_handle *h,
 		bool *inner, bool *outer)
 {
 	struct nvmap_handle_t19x *handle_t19x;
 	struct device *dev = nvmap_dev->dev_user.parent;
-
-	if (static_key_true(&nvmap_updated_cache_config))
-		static_key_slow_dec(&nvmap_updated_cache_config);
 
 	handle_t19x = nvmap_dmabuf_get_drv_data(h->dmabuf, dev);
 	if (handle_t19x && atomic_read(&handle_t19x->nc_pin)) {
