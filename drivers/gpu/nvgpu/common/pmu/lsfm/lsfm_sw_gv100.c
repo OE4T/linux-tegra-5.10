@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,7 @@ static int gv100_pmu_lsfm_init_acr_wpr_region(struct gk20a *g,
 		sizeof(struct nv_pmu_rpc_struct_acr_init_wpr_region));
 	rpc.wpr_regionId = 0x1U;
 	rpc.wpr_offset = 0x0U;
+	nvgpu_pmu_dbg(g, "Post NV_PMU_RPC_ID_ACR_INIT_WPR_REGION");
 	PMU_RPC_EXECUTE(status, pmu, ACR, INIT_WPR_REGION, &rpc, 0);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x",
@@ -85,6 +86,7 @@ static int gv100_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
 		sizeof(struct nv_pmu_rpc_struct_acr_bootstrap_gr_falcons));
 	rpc.falcon_id_mask = falcon_id_mask;
 	rpc.flags = flags;
+	nvgpu_pmu_dbg(g, "Post NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS");
 	PMU_RPC_EXECUTE(status, pmu, ACR, BOOTSTRAP_GR_FALCONS, &rpc, 0);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
