@@ -142,28 +142,30 @@ static int macsec_enable_car(struct macsec_priv_data *macsec_pdata)
 			}
 		}
 	} else {
-		/* For Pre-sil only, reset the MACsec controller directly.
-		 * clk ungate first, followed by disabling reset
-		 * Bit 8 in CLK_RST_CONTROLLER_RST_DEV_MGBE_0 register.
-		 */
-		addr = devm_ioremap(dev, 0x21460080, 0x4);
-		if (addr) {
-			val = readl(addr);
-			val |= BIT(2);
-			writel(val, addr);
-			devm_iounmap(dev, addr);
-		}
+			if (pdata->osi_core->use_virtualization != OSI_ENABLE) {
+				/* For Pre-sil only, reset the MACsec controller directly.
+				 * clk ungate first, followed by disabling reset
+				 * Bit 8 in CLK_RST_CONTROLLER_RST_DEV_MGBE_0 register.
+				 */
+				addr = devm_ioremap(dev, 0x21460080, 0x4);
+				if (addr) {
+					val = readl(addr);
+					val |= BIT(2);
+					writel(val, addr);
+					devm_iounmap(dev, addr);
+				}
 
-		/* Followed by disabling reset - Bit 8 in
-		 * CLK_RST_CONTROLLER_RST_DEV_MGBE_0 register.
-		 */
-		addr = devm_ioremap(dev, 0x21460018, 0x4);
-		if (addr) {
-			val = readl(addr);
-			val &= ~BIT(8);
-			writel(val, addr);
-			devm_iounmap(dev, addr);
-		}
+				/* Followed by disabling reset - Bit 8 in
+				 * CLK_RST_CONTROLLER_RST_DEV_MGBE_0 register.
+				 */
+				addr = devm_ioremap(dev, 0x21460018, 0x4);
+				if (addr) {
+					val = readl(addr);
+					val &= ~BIT(8);
+					writel(val, addr);
+					devm_iounmap(dev, addr);
+				}
+			}
 	}
 
 	goto exit;

@@ -281,7 +281,7 @@ struct ether_ivc_ctxt {
 	/** ivc cookie */
 	struct tegra_hv_ivc_cookie *ivck;
 	/** ivc lock */
-	spinlock_t ivck_lock;
+	struct mutex ivck_lock;
 	/** ivc work */
 	struct work_struct ivc_work;
 	/** wait for event */
@@ -440,6 +440,10 @@ struct ether_priv_data {
 	unsigned int promisc_mode;
 	/** Delayed work queue to read RMON counters periodically */
 	struct delayed_work ether_stats_work;
+	/** process rx work */
+	struct work_struct set_rx_mode_work;
+	/** rx lock */
+	struct mutex rx_mode_lock;
 	/** Flag to check if EEE LPI is enabled for the MAC */
 	unsigned int eee_enabled;
 	/** Flag to check if EEE LPI is active currently */

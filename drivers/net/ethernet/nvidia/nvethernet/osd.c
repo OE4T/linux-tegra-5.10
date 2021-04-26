@@ -479,7 +479,6 @@ void ether_assign_osd_ops(struct osi_core_priv_data *osi_core,
 int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf, unsigned int len)
 {
 	int ret = -1;
-	unsigned long flags = 0;
 	static int cnt  = 0;
 	struct osi_core_priv_data *core = (struct osi_core_priv_data *)priv;
 	struct ether_priv_data *pdata = (struct ether_priv_data *)core->osd;
@@ -494,11 +493,12 @@ int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf, unsigned int len)
 	}
 
 	ivc_buf->status = -1;
-	spin_lock_irqsave(&ictxt->ivck_lock, flags);
 	if (in_atomic()) {
 		preempt_enable();
 		is_atomic = 1;
 	}
+
+	mutex_lock(&ictxt->ivck_lock);
 	ivc_buf->count = cnt++;
 	/* Waiting for the channel to be ready */
 	while (tegra_hv_ivc_channel_notified(ivck) != 0){
@@ -534,9 +534,9 @@ int osd_ivc_send_cmd(void *priv, ivc_msg_common_t *ivc_buf, unsigned int len)
 	}
 	ret = ivc_buf->status;
 fail:
+	mutex_unlock(&ictxt->ivck_lock);
 	if (is_atomic) {
 		preempt_disable();
 	}
-	spin_unlock_irqrestore(&ictxt->ivck_lock, flags);
 	return ret;
 }

@@ -1052,6 +1052,7 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	struct ether_ifr_data ifdata;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
 	int ret = -EOPNOTSUPP;
+	struct osi_ioctl ioctl_data = {};
 
 	if (copy_from_user(&ifdata, ifr->ifr_data, sizeof(ifdata)) != 0U) {
 		dev_err(pdata->dev, "%s(): copy_from_user failed %d\n"
@@ -1176,6 +1177,19 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case ETHER_CONFIG_FPE:
 		ret = ether_config_fpe(ndev, &ifdata);
+		break;
+	case ETHER_READ_REG:
+		ioctl_data.cmd = OSI_CMD_READ_REG;
+		ioctl_data.arg1_u32 = ifdata.if_flags;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+		ifdata.qinx = ret;
+		break;
+	case ETHER_WRITE_REG:
+		ioctl_data.cmd = OSI_CMD_WRITE_REG;
+		ioctl_data.arg1_u32 = ifdata.qinx;
+		ioctl_data.arg2_u32 = ifdata.if_flags;
+		ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
+		ifdata.qinx = ret;
 		break;
 	default:
 		break;
