@@ -18,6 +18,8 @@ dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-adafruit-uda1334a.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-fe-pi-audio.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-respeaker-4-mic-array.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-csi.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-dual-imx274.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p2888-0004-e3900-0000-imx274.dtbo
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
