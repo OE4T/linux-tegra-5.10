@@ -155,7 +155,9 @@ int nvgpu_dma_alloc_sys(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  *
  * Allocate memory suitable for doing DMA. Store the allocation info in #mem.
  * Returns 0 on success and a suitable error code when there's an error. This
- * allocates memory specifically in SYSMEM.
+ * allocates memory specifically in SYSMEM. If the #mem already holds the physical
+ * memory information, then the API just create the import id associated with
+ * the #mem.
  *
  * @return	0 For success, < 0 for failure.
  * @retval	-ENOMEM For failure in handle creation or mapping operation.

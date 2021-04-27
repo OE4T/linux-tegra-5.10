@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,8 +44,6 @@ struct nvgpu_nvhost_dev;
  * @param g [in]	The GPU super structure.
  *
  * - Allocate memory for g.nvhost_dev.
- * - Get the type of the hardware(t186/t194) by calling
- *   #NvTegraSysGetChipId().
  * - Initialize the number of synpoints according to the
  *   associated hardware.
  * - Allocate and initialize different fields associated with
