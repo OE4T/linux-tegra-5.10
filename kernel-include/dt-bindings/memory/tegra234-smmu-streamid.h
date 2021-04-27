@@ -188,6 +188,7 @@
 #define TEGRA_SID_NISO1_XUSB_HOST	0xEU
 #define TEGRA_SID_NISO1_XUSB_DEV	0xFU
 #define TEGRA_SID_NISO1_BPMP		0x10U
+#define TEGRA_SID_NISO1_FSI		0x11U
 
 /* PVA virtualization clients. */
 #define TEGRA_SID_NISO1_PVA0_VM0	0x12U
