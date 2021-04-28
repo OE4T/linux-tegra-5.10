@@ -22,6 +22,7 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/mig.h>
+#include <nvgpu/grmgr.h>
 #include <nvgpu/nvgpu_init.h>
 
 #include "ioctl_channel.h"
@@ -555,7 +556,7 @@ static int nvgpu_prepare_dev_node_class_list(struct gk20a *g, u32 *num_classes,
 {
 	int err;
 
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+	if ((!power_node) && nvgpu_grmgr_is_multi_gr_enabled(g)) {
 		err = nvgpu_prepare_mig_dev_node_class_list(g, num_classes);
 	} else {
 		err = nvgpu_prepare_default_dev_node_class_list(g, num_classes, power_node);
