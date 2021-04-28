@@ -6,6 +6,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <linux/delay.h>
 
 #include <soc/tegra/bpmp.h>
 #include <soc/tegra/bpmp-abi.h>
@@ -381,6 +382,7 @@ static int bpmp_populate_debugfs_inband(struct tegra_bpmp *bpmp,
 	char *buf, *pathbuf;
 	const char *name;
 	int err = 0;
+	int retry_count = 25;
 
 	if (!bpmp || !parent || !ppath)
 		return -EINVAL;
@@ -395,9 +397,15 @@ static int bpmp_populate_debugfs_inband(struct tegra_bpmp *bpmp,
 		return -ENOMEM;
 	}
 
+retry:
 	err = mrq_debug_read(bpmp, ppath, buf, bufsize, &dsize);
-	if (err)
-		goto out;
+	if (err) {
+		if (err == -BPMP_EBUSY && retry_count-- > 0) {
+			msleep(20);
+			goto retry;
+		} else
+			goto out;
+	}
 
 	seqbuf_init(&seqbuf, buf, dsize);
 
