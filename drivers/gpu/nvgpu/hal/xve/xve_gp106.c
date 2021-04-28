@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,8 +72,14 @@ void xve_reset_gpu_gp106(struct gk20a *g)
 
 	/*
 	 * Don't access GPU until _after_ it's back out of reset!
+	 *
+	 * TODO: Need to identify the maximum xve_reset SW timeout value.
+	 * 100ms is not sufficient enough in all worst case scenario.
+	 * Need to replace Function Level Reset(FLR) to reset as much of
+	 * the chip as possible.
+	 * If FLR is not supported use the XVE sw reset logic.
 	 */
-	nvgpu_msleep(100);
+	nvgpu_msleep(200);
 	g->ops.xve.xve_writel(g, xve_reset_r(), 0);
 }
 

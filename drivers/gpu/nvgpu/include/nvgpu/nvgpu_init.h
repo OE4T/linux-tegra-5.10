@@ -89,6 +89,24 @@ struct nvgpu_ref;
  * the GPU dev node in the early stage of GPU power on sequence.
  * Each sub-unit is responsible for HW initialization.
  *
+ * nvgpu poweron sequence split into two stages:
+ * - nvgpu_early_init() - Initializes the sub units
+ *   which are required to be initialized before the grgmr init.
+ *   For creating dev node, grmgr init and its dependency unit
+ *   needs to move to early stage of GPU power on.
+ *   After successful nvgpu_early_init() sequence,
+ *   NvGpu can indetify the number of MIG instance required
+ *   for each physical GPU.
+ * - nvgpu_finalize_poweron() - Initializes the sub units which
+ *   can be initialized at the later stage of GPU power on sequence.
+ *
+ * grmgr init depends on the following HAL sub units,
+ * device - To get the device caps.
+ * priv_ring - To get the gpc count and other MIG config programming.
+ * fb - MIG config programming.
+ * ltc - MIG config programming.
+ * bios, bus, ecc and clk - dependent module of priv_ring/fb/ltc.
+ *
  * @return 0 in case of success, < 0 in case of failure.
  */
 int nvgpu_early_poweron(struct gk20a *g);

@@ -40,6 +40,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 
 	/* Number of gpu instance is 1 for legacy mode */
 	g->mig.gpc_count = g->ops.priv_ring.get_gpc_count(g);
+	nvgpu_assert(g->mig.gpc_count > 0U);
 	g->mig.num_gpu_instances = 1U;
 	g->mig.current_gpu_instance_config_id = 0U;
 	g->mig.is_nongr_engine_sharable = false;
@@ -57,6 +58,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	g->mig.gpcgrp_gpc_count[0] = gr_syspipe->num_gpc;
 	if (g->ops.gr.config.get_gpc_mask != NULL) {
 		gr_syspipe->gpc_mask = g->ops.gr.config.get_gpc_mask(g);
+		nvgpu_assert(gr_syspipe->gpc_mask != 0U);
 	} else {
 		gr_syspipe->gpc_mask = nvgpu_safe_sub_u32(
 			BIT32(gr_syspipe->num_gpc),
@@ -92,6 +94,7 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	if (g->ops.gr.init.get_max_subctx_count != NULL) {
 		gr_syspipe->max_veid_count_per_tsg =
 			g->ops.gr.init.get_max_subctx_count();
+		nvgpu_assert(gr_syspipe->max_veid_count_per_tsg > 0U);
 	} else {
 		/*
 		 * For vgpu, NvGpu has to rely on chip constant

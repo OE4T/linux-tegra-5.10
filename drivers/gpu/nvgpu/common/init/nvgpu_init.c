@@ -586,6 +586,75 @@ static bool needs_init(struct gk20a *g, nvgpu_init_func_t func, u32 enable_flag)
 		nvgpu_is_enabled(g, enable_flag)) && (func != NULL);
 }
 
+static int nvgpu_early_init(struct gk20a *g)
+{
+	int err = 0;
+	size_t i;
+
+	/*
+	 * This cannot be static because we use the func ptrs as initializers
+	 * and static variables require constant literals for initializers.
+	 */
+	const struct nvgpu_init_table_t nvgpu_early_init_table[] = {
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_slcg_acb_load_gating_prod,
+					NO_FLAG),
+		/*
+		 * ECC support initialization is split into generic init
+		 * followed by per unit initialization and ends with sysfs
+		 * support init. This is done to setup ECC data structures
+		 * prior to enabling interrupts for corresponding units.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ecc.ecc_init_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_device_init, NO_FLAG),
+#ifdef CONFIG_NVGPU_DGPU
+		NVGPU_INIT_TABLE_ENTRY(g->ops.bios.bios_sw_init, NO_FLAG),
+#endif
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_interrupt_setup, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.bus.init_hw, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.priv_ring.enable_priv_ring,
+				   NO_FLAG),
+		/* TBD: move this after graphics init in which blcg/slcg is
+		 * enabled. This function removes SlowdownOnBoot which applies
+		 * 32x divider on gpcpll bypass path. The purpose of slowdown is
+		 * to save power during boot but it also significantly slows
+		 * down gk20a init on simulation and emulation. We should remove
+		 * SOB after graphics power saving features (blcg/slcg) are
+		 * enabled. For now, do it here.
+		 */
+		NVGPU_INIT_TABLE_ENTRY(g->ops.clk.init_clk_support, NO_FLAG),
+#ifdef CONFIG_NVGPU_DGPU
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fbpa_ecc, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.init_fbpa, NO_FLAG),
+#endif
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fb_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.ltc.init_ltc_support, NO_FLAG),
+		NVGPU_INIT_TABLE_ENTRY(g->ops.grmgr.init_gr_manager, NO_FLAG),
+	};
+
+	for (i = 0; i < ARRAY_SIZE(nvgpu_early_init_table); i++) {
+		if (!needs_init(g, nvgpu_early_init_table[i].func,
+				nvgpu_early_init_table[i].enable_flag)) {
+			nvgpu_log_info(g,
+				"Skipping initializing %s (enable_flag=%u func=%p)",
+				   nvgpu_early_init_table[i].name,
+				   nvgpu_early_init_table[i].enable_flag,
+				   nvgpu_early_init_table[i].func);
+		} else {
+			nvgpu_log_info(g, "Initializing %s",
+					   nvgpu_early_init_table[i].name);
+			err = nvgpu_early_init_table[i].func(g);
+			if (err != 0) {
+				nvgpu_err(g, "Failed initialization for: %s",
+					  nvgpu_early_init_table[i].name);
+				goto done;
+			}
+		}
+	}
+
+done:
+	return err;
+}
+
 int nvgpu_early_poweron(struct gk20a *g)
 {
 	int err = 0;
@@ -596,21 +665,40 @@ int nvgpu_early_poweron(struct gk20a *g)
 		goto done;
 	}
 
+#ifdef CONFIG_NVGPU_DGPU
 	/*
-	 * Initialize the GPU's device list. Needed before NVLINK
-	 * init since the NVLINK IOCTRL block is enumerated in the
-	 * device list.
+	 * Before probing the GPU make sure the GPU's state is cleared. This is
+	 * relevant for rebind operations.
 	 */
-	err = nvgpu_device_init(g);
-	if (err != 0) {
-		nvgpu_err(g, "nvgpu_device_init failed[%d]", err);
-		goto done;
+	if ((g->ops.xve.reset_gpu != NULL) && !g->gpu_reset_done) {
+		g->ops.xve.reset_gpu(g);
+		g->gpu_reset_done = true;
 	}
+#endif
 
-	err = g->ops.grmgr.init_gr_manager(g);
+	/*
+	 * nvgpu poweron sequence split into two stages:
+	 * - nvgpu_early_init() - Initializes the sub units
+	 *   which are required to be initialized before the grgmr init.
+	 *   For creating dev node, grmgr init and its dependency unit
+	 *   needs to move to early stage of GPU power on.
+	 *   After successful nvgpu_early_init() sequence,
+	 *   NvGpu can indetify the number of MIG instance required
+	 *   for each physical GPU.
+	 * - nvgpu_finalize_poweron() - Initializes the sub units which
+	 *   can be initialized at the later stage of GPU power on sequence.
+	 *
+	 * grmgr init depends on the following HAL sub units,
+	 * device - To get the device caps.
+	 * priv_ring - To get the gpc count and other MIG config programming.
+	 * fb - MIG config programming.
+	 * ltc - MIG config programming.
+	 * bios, bus, ecc and clk - dependent module of priv_ring/fb/ltc.
+	 *
+	 */
+	err = nvgpu_early_init(g);
 	if (err != 0) {
-		nvgpu_device_cleanup(g);
-		nvgpu_err(g, "g->ops.grmgr.init_gr_manager failed[%d]", err);
+		nvgpu_err(g, "nvgpu_early_init failed[%d]", err);
 		goto done;
 	}
 
@@ -626,15 +714,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	 * and static variables require constant literals for initializers.
 	 */
 	const struct nvgpu_init_table_t nvgpu_init_table[] = {
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_slcg_acb_load_gating_prod,
-					NO_FLAG),
-		/*
-		 * ECC support initialization is split into generic init
-		 * followed by per unit initialization and ends with sysfs
-		 * support init. This is done to setup ECC data structures
-		 * prior to enabling interrupts for corresponding units.
-		 */
-		NVGPU_INIT_TABLE_ENTRY(g->ops.ecc.ecc_init_support, NO_FLAG),
 		/*
 		 * Do this early so any early VMs that get made are capable of
 		 * mapping buffers.
@@ -650,39 +729,19 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_init,
 				       NVGPU_SEC_PRIVSECURITY),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_sw_quiesce_init_support, NO_FLAG),
-#ifdef CONFIG_NVGPU_DGPU
-		NVGPU_INIT_TABLE_ENTRY(g->ops.bios.bios_sw_init, NO_FLAG),
-#endif
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_interrupt_setup, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(g->ops.bus.init_hw, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(g->ops.priv_ring.enable_priv_ring,
-				       NO_FLAG),
-		/* TBD: move this after graphics init in which blcg/slcg is
-		 * enabled. This function removes SlowdownOnBoot which applies
-		 * 32x divider on gpcpll bypass path. The purpose of slowdown is
-		 * to save power during boot but it also significantly slows
-		 * down gk20a init on simulation and emulation. We should remove
-		 * SOB after graphics power saving features (blcg/slcg) are
-		 * enabled. For now, do it here.
-		 */
-		NVGPU_INIT_TABLE_ENTRY(g->ops.clk.init_clk_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.nvlink.init,
 				       NVGPU_SUPPORT_NVLINK),
-#ifdef CONFIG_NVGPU_DGPU
-		NVGPU_INIT_TABLE_ENTRY(nvgpu_init_fbpa_ecc, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.init_fbpa, NO_FLAG),
-#endif
 
 #ifdef CONFIG_NVGPU_DEBUGGER
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ptimer.config_gr_tick_freq,
 				       NO_FLAG),
 #endif
+
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fb_mem_unlock, NO_FLAG),
 #endif
+
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.reset_enable_hw, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fb_support, NO_FLAG),
-		NVGPU_INIT_TABLE_ENTRY(g->ops.ltc.init_ltc_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.mm.init_mm_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.fifo_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.elcg_init_idle_filters,
@@ -757,17 +816,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 	size_t i;
 
 	nvgpu_log_fn(g, " ");
-
-#ifdef CONFIG_NVGPU_DGPU
-	/*
-	 * Before probing the GPU make sure the GPU's state is cleared. This is
-	 * relevant for rebind operations.
-	 */
-	if ((g->ops.xve.reset_gpu != NULL) && !g->gpu_reset_done) {
-		g->ops.xve.reset_gpu(g);
-		g->gpu_reset_done = true;
-	}
-#endif
 
 	for (i = 0; i < ARRAY_SIZE(nvgpu_init_table); i++) {
 		if (!needs_init(g, nvgpu_init_table[i].func,
