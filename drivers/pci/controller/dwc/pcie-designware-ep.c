@@ -639,13 +639,11 @@ int dw_pcie_ep_init_complete(struct dw_pcie_ep *ep)
 	struct dw_pcie_ep_func *ep_func;
 	struct pci_epc *epc = ep->epc;
 	struct device *dev = pci->dev;
-	struct device_node *np = dev->of_node;
 	unsigned int offset;
 	unsigned int nbars;
 	u8 hdr_type;
 	u8 func_no;
 	u32 reg;
-	int ret;
 	int i;
 
 	hdr_type = dw_pcie_readb_dbi(pci, PCI_HEADER_TYPE) &
@@ -656,10 +654,6 @@ int dw_pcie_ep_init_complete(struct dw_pcie_ep *ep)
 			hdr_type);
 		return -EIO;
 	}
-
-	ret = of_property_read_u8(np, "max-functions", &epc->max_functions);
-	if (ret < 0)
-		epc->max_functions = 1;
 
 	for (func_no = 0; func_no < epc->max_functions; func_no++) {
 		ep_func = devm_kzalloc(dev, sizeof(*ep_func), GFP_KERNEL);
@@ -763,6 +757,10 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
 
 	ep->epc = epc;
 	epc_set_drvdata(epc, ep);
+
+	ret = of_property_read_u8(np, "max-functions", &epc->max_functions);
+	if (ret < 0)
+		epc->max_functions = 1;
 
 	if (ep->ops->ep_init)
 		ep->ops->ep_init(ep);
