@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -143,7 +143,9 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 					       config, NULL, false);
 	}
 
-	g->ops.gr.init.pd_tpc_per_gpc(g, config);
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+		g->ops.gr.init.pd_tpc_per_gpc(g, config);
+	}
 
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
