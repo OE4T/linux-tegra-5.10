@@ -84,7 +84,7 @@ struct gk20a;
  *
  * @param g [in]		GPU super structure.
  * @param r [in]		Register offset in GPU IO space.
- *				Range: 0 - TEGRA_GK20A_BAR0_SIZE.
+ *				Range: 0 to (TEGRA_GK20A_BAR0_SIZE - 4).
  * @param v [in]		Value to write at the offset.
  *
  * Write a 32-bit value to register offset in GPU IO space with an
@@ -117,7 +117,7 @@ void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v);
  *
  * @param g [in]		GPU super structure.
  * @param r [in]		Register offset in GPU IO space.
- *				Range: 0 - TEGRA_GK20A_BAR0_SIZE.
+ *				Range: 0 to (TEGRA_GK20A_BAR0_SIZE - 4).
  *
  * Read a 32-bit value from register offset in GPU IO space. If all the bits are
  * set in the value read then check for gpu state validity. Refer
@@ -134,7 +134,7 @@ u32 nvgpu_readl(struct gk20a *g, u32 r);
  *
  * @param g [in]		GPU super structure.
  * @param r [in]		Register offset in GPU IO space.
- *				Range: 0 - TEGRA_GK20A_BAR0_SIZE.
+ *				Range: 0 to (TEGRA_GK20A_BAR0_SIZE - 4).
  *
  * Read a 32-bit value from register offset in GPU IO space. If all the bits are
  * set in the value read then check for gpu state validity. API supports read
@@ -150,6 +150,7 @@ u32 nvgpu_readl_impl(struct gk20a *g, u32 r);
  *
  * @param g [in]		GPU super structure.
  * @param r [in]		Register offset in GPU IO space.
+ *				Range: 0 to (TEGRA_GK20A_BAR0_SIZE - 4).
  * @param v [in]		Value to write at the offset.
  *
  * Write a 32-bit value to register offset in GPU IO space and reads it
@@ -179,7 +180,7 @@ void nvgpu_writel_loop(struct gk20a *g, u32 r, u32 v);
  *
  * @param g [in]		GPU super structure.
  * @param r [in]		Register offset in io-region.
- *				Range: 0 - TEGRA_GK20A_BAR1_SIZE.
+ *				Range: 0 to (TEGRA_GK20A_BAR1_SIZE - 4).
  * @param v [in]		Value to write at the offset.
  *
  * - Write a 32-bit value to register offset of region bar1.
@@ -193,7 +194,7 @@ void nvgpu_bar1_writel(struct gk20a *g, u32 b, u32 v);
  *
  * @param g [in]		GPU super structure.
  * @param b [in]		Register offset in io-region.
- *				Range: 0 - TEGRA_GK20A_BAR1_SIZE.
+ *				Range: 0 to (TEGRA_GK20A_BAR1_SIZE - 4).
  *
  * - Read a 32-bit value from a region bar1.
  *
@@ -217,7 +218,7 @@ bool nvgpu_io_exists(struct gk20a *g);
  *
  * @param g [in]		GPU super structure.
  * @param r [in]		Register offset in io-region.
- *				Range: 0 - TEGRA_GK20A_BAR0_SIZE.
+ *				Range: 0 to (TEGRA_GK20A_BAR0_SIZE - 4).
  *
  * - BAR0 Offset is valid if it falls into BAR0 range.
  *
