@@ -28,17 +28,35 @@
 #include <nvgpu/nvgpu_init.h>
 #include <nvgpu/trace.h>
 
-void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
+int nvgpu_wait_for_stall_interrupts(struct gk20a *g, u32 timeout)
 {
 	/* wait until all stalling irqs are handled */
-	NVGPU_COND_WAIT(&g->mc.sw_irq_stall_last_handled_cond,
+	return NVGPU_COND_WAIT(&g->mc.sw_irq_stall_last_handled_cond,
 			nvgpu_atomic_read(&g->mc.sw_irq_stall_pending) == 0,
-			0U);
+			timeout);
+}
 
+int nvgpu_wait_for_nonstall_interrupts(struct gk20a *g, u32 timeout)
+{
 	/* wait until all non-stalling irqs are handled */
-	NVGPU_COND_WAIT(&g->mc.sw_irq_nonstall_last_handled_cond,
+	return NVGPU_COND_WAIT(&g->mc.sw_irq_nonstall_last_handled_cond,
 			nvgpu_atomic_read(&g->mc.sw_irq_nonstall_pending) == 0,
-			0U);
+			timeout);
+}
+
+void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
+{
+	int ret;
+
+	ret = nvgpu_wait_for_stall_interrupts(g, 0U);
+	if (ret != 0) {
+		nvgpu_err(g, "wait for stall interrupts failed %d", ret);
+	}
+
+	ret = nvgpu_wait_for_nonstall_interrupts(g, 0U);
+	if (ret != 0) {
+		nvgpu_err(g, "wait for nonstall interrupts failed %d", ret);
+	}
 }
 
 void nvgpu_mc_intr_mask(struct gk20a *g)

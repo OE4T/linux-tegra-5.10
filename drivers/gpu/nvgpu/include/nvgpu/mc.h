@@ -325,7 +325,7 @@ struct nvgpu_mc {
 	 * One of the condition variables needed to keep track of deferred
 	 * interrupts.
 	 * The condition variable that is signalled upon handling of the
-	 * stalling interrupt. Function #nvgpu_wait_for_deferred_interrupts
+	 * stalling interrupt. Function #nvgpu_wait_for_stall_interrupts
 	 * waits on this condition variable.
 	 */
 	struct nvgpu_cond sw_irq_stall_last_handled_cond;
@@ -341,7 +341,7 @@ struct nvgpu_mc {
 	 * One of the condition variables needed to keep track of deferred
 	 * interrupts.
 	 * The condition variable that is signalled upon handling of the
-	 * non-stalling interrupt. Function #nvgpu_wait_for_deferred_interrupts
+	 * non-stalling interrupt. Function #nvgpu_wait_for_nonstall_interrupts
 	 * waits on this condition variable.
 	 */
 	struct nvgpu_cond sw_irq_nonstall_last_handled_cond;
@@ -362,6 +362,45 @@ struct nvgpu_mc {
 };
 
 /**
+ * @brief Wait for the stalling interrupts to complete.
+ *
+ * @param g [in]	The GPU driver struct.
+ * @param timeout [in]  Timeout
+ *
+ * Steps:
+ * - Get the stalling interrupts atomic count.
+ * - Wait for #timeout duration on the condition variable
+ *   #sw_irq_stall_last_handled_cond until #sw_irq_stall_last_handled
+ *   becomes greater than or equal to previously read stalling
+ *   interrupt atomic count.
+ *
+ * @retval 0 if wait completes successfully.
+ * @retval -ETIMEDOUT if wait completes without stalling interrupts
+ * completing.
+ */
+int nvgpu_wait_for_stall_interrupts(struct gk20a *g, u32 timeout);
+
+
+/**
+ * @brief Wait for the non-stalling interrupts to complete.
+ *
+ * @param g [in]	The GPU driver struct.
+ * @param timeout [in]  Timeout
+ *
+ * Steps:
+ * - Get the non-stalling interrupts atomic count.
+ * - Wait for #timeout duration on the condition variable
+ *   #sw_irq_nonstall_last_handled_cond until #sw_irq_nonstall_last_handled
+ *   becomes greater than or equal to previously read non-stalling
+ *   interrupt atomic count.
+ *
+ * @retval 0 if wait completes successfully.
+ * @retval -ETIMEDOUT if wait completes without nonstalling interrupts
+ * completing.
+ */
+int  nvgpu_wait_for_nonstall_interrupts(struct gk20a *g, u32 timeout);
+
+/**
  * @brief Wait for the interrupts to complete.
  *
  * @param g [in]	The GPU driver struct.
@@ -370,13 +409,8 @@ struct nvgpu_mc {
  * to wait until all scheduled interrupt handlers have completed. This is
  * because the interrupt handlers could access data structures after freeing.
  * Steps:
- * - Get the stalling and non-stalling interrupts atomic count.
- * - Wait on the condition variable #sw_irq_stall_last_handled_cond until
- *   #sw_irq_stall_last_handled becomes greater than or equal to previously
- *   read stalling interrupt atomic count.
- * - Wait on the condition variable #sw_irq_nonstall_last_handled_cond until
- *   #sw_irq_nonstall_last_handled becomes greater than or equal to previously
- *   read non-stalling interrupt atomic count.
+ * - Wait for stalling interrupts to complete with timeout disabled.
+ * - Wait for non-stalling interrupts to complete with timeout disabled.
  */
 void nvgpu_wait_for_deferred_interrupts(struct gk20a *g);
 
