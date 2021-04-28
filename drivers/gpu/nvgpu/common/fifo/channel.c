@@ -2267,6 +2267,7 @@ int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
 		engines = nvgpu_engine_get_mask_on_id(g, tsg->tsgid, true);
 	} else {
 		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
+		engines = g->fifo.deferred_fault_engines;
 	}
 
 	if (engines == 0U) {
