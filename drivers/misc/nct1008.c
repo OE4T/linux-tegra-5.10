@@ -3,7 +3,7 @@
  *
  * Driver for NCT1008, temperature monitoring device from ON Semiconductors
  *
- * Copyright (c) 2010-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2010-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1620,6 +1620,7 @@ static const struct of_device_id nct1008_of_match[] = {
 	{.compatible = "maxim,max6649", },
 	{ }
 };
+MODULE_DEVICE_TABLE(of, nct1008_of_match);
 
 static struct i2c_driver nct1008_driver = {
 	.driver = {
