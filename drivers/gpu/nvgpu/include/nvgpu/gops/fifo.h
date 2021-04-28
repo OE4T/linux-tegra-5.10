@@ -177,7 +177,7 @@ struct gops_fifo {
 	int (*preempt_poll_pbdma)(struct gk20a *g, u32 tsgid,
 			 u32 pbdma_id);
 	int (*is_preempt_pending)(struct gk20a *g, u32 id,
-		unsigned int id_type);
+		unsigned int id_type, bool preempt_retries_left);
 	void (*intr_set_recover_mask)(struct gk20a *g);
 	void (*intr_unset_recover_mask)(struct gk20a *g);
 	void (*intr_top_enable)(struct gk20a *g, bool enable);

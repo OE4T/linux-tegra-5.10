@@ -205,13 +205,15 @@ static void stub_fifo_preempt_trigger(struct gk20a *g, u32 id,
 }
 
 static int stub_fifo_is_preempt_pending_ebusy(struct gk20a *g, u32 id,
-							unsigned int id_type)
+						unsigned int id_type,
+						bool preempt_retries_left)
 {
 	return -EBUSY;
 }
 
 static int stub_fifo_is_preempt_pending_pass(struct gk20a *g, u32 id,
-							unsigned int id_type)
+						unsigned int id_type,
+						bool preempt_retries_left)
 {
 	return 0;
 }
@@ -463,7 +465,7 @@ int test_gv11b_fifo_is_preempt_pending(struct unit_module *m, struct gk20a *g,
 		/* Modify eng_stat for engine 0 */
 		nvgpu_writel(g, fifo_engine_status_r(0U), stub.eng_stat);
 
-		err = gv11b_fifo_is_preempt_pending(g, 0U, id_type);
+		err = gv11b_fifo_is_preempt_pending(g, 0U, id_type, false);
 
 		if (branches & F_PREEMPT_PENDING_POLL_PBDMA_FAIL) {
 			unit_assert(err == -ETIMEDOUT, goto done);

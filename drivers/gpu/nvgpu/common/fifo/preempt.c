@@ -42,6 +42,9 @@ u32 nvgpu_preempt_get_timeout(struct gk20a *g)
 int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 {
 	int ret = 0;
+	u32 preempt_retry_count = 10U;
+	u32 preempt_retry_timeout =
+			nvgpu_preempt_get_timeout(g) / preempt_retry_count;
 #ifdef CONFIG_NVGPU_LS_PMU
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = 0;
@@ -53,40 +56,57 @@ int nvgpu_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg)
 		return 0;
 	}
 
-	nvgpu_mutex_acquire(&tsg->runlist->runlist_lock);
+	do {
+		nvgpu_mutex_acquire(&tsg->runlist->runlist_lock);
 
-	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_2016608)) {
-		nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
-					RUNLIST_DISABLED);
-	}
-
-#ifdef CONFIG_NVGPU_LS_PMU
-	mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-#endif
-	nvgpu_log_fn(g, "preempt id: %d", tsg->tsgid);
-
-	g->ops.fifo.preempt_trigger(g, tsg->tsgid, ID_TYPE_TSG);
-
-	/* poll for preempt done */
-	ret = g->ops.fifo.is_preempt_pending(g, tsg->tsgid, ID_TYPE_TSG);
-
-#ifdef CONFIG_NVGPU_LS_PMU
-	if (mutex_ret == 0) {
-		int err = nvgpu_pmu_lock_release(g, g->pmu, PMU_MUTEX_ID_FIFO,
-				&token);
-		if (err != 0) {
-			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
-					err);
+		if (nvgpu_is_errata_present(g, NVGPU_ERRATA_2016608)) {
+			nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
+						RUNLIST_DISABLED);
 		}
-	}
-#endif
-	if (nvgpu_is_errata_present(g, NVGPU_ERRATA_2016608)) {
-		nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
-					RUNLIST_ENABLED);
-	}
 
-	nvgpu_mutex_release(&tsg->runlist->runlist_lock);
+#ifdef CONFIG_NVGPU_LS_PMU
+		mutex_ret = nvgpu_pmu_lock_acquire(g, g->pmu,
+						   PMU_MUTEX_ID_FIFO, &token);
+#endif
+		g->ops.fifo.preempt_trigger(g, tsg->tsgid, ID_TYPE_TSG);
+
+		/*
+		 * Poll for preempt done. if stalling interrupts are pending
+		 * while preempt is in progress we poll for stalling interrupts
+		 * to finish based on return value from this function and
+		 * retry preempt again.
+		 * If HW is hung, on the last retry instance we try to identify
+		 * the engines hung and set the runlist reset_eng_bitmask
+		 * and mark preemption completion.
+		 */
+		ret = g->ops.fifo.is_preempt_pending(g, tsg->tsgid,
+					ID_TYPE_TSG, preempt_retry_count > 1U);
+
+#ifdef CONFIG_NVGPU_LS_PMU
+		if (mutex_ret == 0) {
+			int err = nvgpu_pmu_lock_release(g, g->pmu,
+						PMU_MUTEX_ID_FIFO, &token);
+			if (err != 0) {
+				nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d", err);
+			}
+		}
+#endif
+		if (nvgpu_is_errata_present(g, NVGPU_ERRATA_2016608)) {
+			nvgpu_runlist_set_state(g, BIT32(tsg->runlist->id),
+						RUNLIST_ENABLED);
+		}
+
+		nvgpu_mutex_release(&tsg->runlist->runlist_lock);
+
+		if (ret != -EAGAIN) {
+			break;
+		}
+
+		ret = nvgpu_wait_for_stall_interrupts(g, preempt_retry_timeout);
+		if (ret != 0) {
+			nvgpu_log_info(g, "wait for stall interrupts failed %d", ret);
+		}
+	} while (--preempt_retry_count != 0U);
 
 	if (ret != 0) {
 		if (nvgpu_platform_is_silicon(g)) {

@@ -109,7 +109,7 @@ int gk20a_fifo_reschedule_preempt_next(struct nvgpu_channel *ch,
 #endif
 	if (wait_preempt) {
 		if (g->ops.fifo.is_preempt_pending(g, preempt_id,
-			preempt_type) != 0) {
+			preempt_type, false) != 0) {
 			nvgpu_err(g, "fifo preempt timed out");
 			/*
 			 * This function does not care if preempt

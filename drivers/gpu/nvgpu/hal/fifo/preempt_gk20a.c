@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -62,11 +62,11 @@ static int gk20a_fifo_preempt_locked(struct gk20a *g, u32 id,
 	g->ops.fifo.preempt_trigger(g, id, id_type);
 
 	/* wait for preempt */
-	return g->ops.fifo.is_preempt_pending(g, id, id_type);
+	return g->ops.fifo.is_preempt_pending(g, id, id_type, false);
 }
 
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
-		unsigned int id_type)
+		unsigned int id_type, bool preempt_retries_left)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;

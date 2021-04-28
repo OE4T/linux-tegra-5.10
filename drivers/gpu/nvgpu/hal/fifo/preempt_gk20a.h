@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,6 @@ void gk20a_fifo_preempt_trigger(struct gk20a *g, u32 id, unsigned int id_type);
 int  gk20a_fifo_preempt_channel(struct gk20a *g, struct nvgpu_channel *ch);
 int  gk20a_fifo_preempt_tsg(struct gk20a *g, struct nvgpu_tsg *tsg);
 int  gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
-			unsigned int id_type);
+			unsigned int id_type, bool preempt_retries_left);
 
 #endif /* FIFO_PREEMPT_GK20A_H */
