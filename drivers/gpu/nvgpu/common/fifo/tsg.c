@@ -311,10 +311,26 @@ fail:
 		ch->chid, tsg->tsgid);
 
 	nvgpu_tsg_abort(g, tsg, true);
+
+	if (g->ops.channel.clear != NULL) {
+		g->ops.channel.clear(ch);
+	}
+
 	/* If channel unbind fails, channel is still part of runlist */
 	if (nvgpu_channel_update_runlist(ch, false) != 0) {
 		nvgpu_err(g, "remove ch %u from runlist failed", ch->chid);
 	}
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+	while (ch->mmu_debug_mode_refcnt > 0U) {
+		err = nvgpu_tsg_set_mmu_debug_mode(ch, false);
+		if (err != 0) {
+			nvgpu_err(g, "disable mmu debug mode failed ch:%u",
+				ch->chid);
+			break;
+		}
+	}
+#endif
 
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
 	nvgpu_list_del(&ch->ch_entry);
