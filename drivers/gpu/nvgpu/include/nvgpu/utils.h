@@ -36,7 +36,9 @@
  * PAGE_SIZE is OS specific and can vary across OSes. Depending on the OS it maybe
  * defined to 4K or 64K.
  */
-#define NVGPU_CPU_PAGE_SIZE	PAGE_SIZE
+#define NVGPU_CPU_PAGE_SIZE		PAGE_SIZE
+
+#define NVGPU_CPU_SMALL_PAGE_SIZE	4096U
 
 /**
  * @file
