@@ -315,6 +315,8 @@ struct ether_priv_data {
 	struct device *dev;
 	/** Reset for the MAC */
 	struct reset_control *mac_rst;
+	/** Reset for the XPCS */
+	struct reset_control *xpcs_rst;
 	/** PLLREFE clock */
 	struct clk *pllrefe_clk;
 	/** Clock from AXI */

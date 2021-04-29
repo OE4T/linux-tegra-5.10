@@ -1950,6 +1950,14 @@ static int ether_open(struct net_device *dev)
 		}
 	}
 
+	if (pdata->xpcs_rst && !osi_core->pre_si) {
+		ret = reset_control_reset(pdata->xpcs_rst);
+		if (ret < 0) {
+			dev_err(&dev->dev, "failed to reset XPCS HW\n");
+			goto err_xpcs_rst;
+		}
+	}
+
 	if (osi_core->mac == OSI_MAC_HW_MGBE &&
 	    osi_core->use_virtualization != OSI_ENABLE) {
 		power_ungate(pdata);
@@ -2115,6 +2123,10 @@ err_alloc:
 	}
 err_phy_init:
 err_poll_swr:
+	if (!osi_core->pre_si && pdata->xpcs_rst) {
+		reset_control_assert(pdata->xpcs_rst);
+	}
+err_xpcs_rst:
 	if (!osi_core->pre_si && pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
@@ -2306,6 +2318,10 @@ static int ether_close(struct net_device *ndev)
 	osi_hw_core_deinit(pdata->osi_core);
 
 	ether_stop_ivc(pdata);
+
+	if (!pdata->osi_core->pre_si && pdata->xpcs_rst) {
+		reset_control_assert(pdata->xpcs_rst);
+	}
 
 	/* Assert MAC RST gpio */
 	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
@@ -4005,6 +4021,12 @@ static int ether_configure_car(struct platform_device *pdev,
 		return PTR_ERR(pdata->mac_rst);
 	}
 
+	pdata->xpcs_rst = devm_reset_control_get(&pdev->dev, "xpcs_rst");
+	if (IS_ERR_OR_NULL(pdata->xpcs_rst)) {
+		dev_info(&pdev->dev, "failed to get XPCS reset\n");
+		pdata->xpcs_rst = NULL;
+	}
+
 	/* get PHY reset */
 	pdata->phy_reset = of_get_named_gpio(np, "nvidia,phy-reset-gpio", 0);
 	if (pdata->phy_reset < 0) {
@@ -5158,6 +5180,11 @@ static int ether_remove(struct platform_device *pdev)
 	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
+
+	if (!pdata->osi_core->pre_si && pdata->xpcs_rst) {
+		reset_control_assert(pdata->xpcs_rst);
+	}
+
 	free_netdev(ndev);
 
 	return 0;
@@ -5278,6 +5305,14 @@ static int ether_resume(struct ether_priv_data *pdata)
 	if (ret < 0) {
 		dev_err(dev, "failed to poll mac software reset\n");
 		return ret;
+	}
+
+	if (pdata->xpcs_rst) {
+		ret = reset_control_reset(pdata->xpcs_rst);
+		if (ret < 0) {
+			dev_err(dev, "failed to reset XPCS hw\n");
+			return ret;
+		}
 	}
 
 	ioctl_data.cmd = OSI_CMD_PAD_CALIBRATION;
