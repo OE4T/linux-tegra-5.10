@@ -62,6 +62,14 @@
 					status = "disabled";
 				};
 			};
+			override@1 {
+#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
+				target = <&{/aliases}>;
+				_overlay_ {
+					delete-target-property = "mmc0";
+				};
+#endif
+			};
 		};
 
 		fragement-tegra-pcie-c5-num-lanes {
