@@ -62,6 +62,20 @@
 		resets = <&bpmp_resets TEGRA234_RESET_MGBE0_MAC>,
 			 <&bpmp_resets TEGRA234_RESET_MGBE0_PCS>;
 		reset-names = "mac_rst", "xpcs_rst";
+		clocks = <&bpmp_clks TEGRA234_CLK_MGBE0_RX_INPUT_M>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_RX_PCS_M>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_RX_PCS_INPUT>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_RX_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_TX>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_TX_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_MAC_DIVIDER>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_MAC>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_EEE_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_APP>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE0_PTP_REF>;
+		clock-names = "rx_input_m", "rx_pcs_m", "rx_pcs_input",
+			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
+			      "mac", "eee_pcs", "app", "ptp_ref";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -100,6 +114,20 @@
 		resets = <&bpmp_resets TEGRA234_RESET_MGBE1_MAC>,
 			 <&bpmp_resets TEGRA234_RESET_MGBE1_PCS>;
 		reset-names = "mac_rst", "xpcs_rst";
+		clocks = <&bpmp_clks TEGRA234_CLK_MGBE1_RX_INPUT_M>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_RX_PCS_M>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_RX_PCS_INPUT>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_RX_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_TX>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_TX_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_MAC_DIVIDER>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_MAC>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_EEE_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_APP>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE1_PTP_REF>;
+		clock-names = "rx_input_m", "rx_pcs_m", "rx_pcs_input",
+			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
+			      "mac", "eee_pcs", "app", "ptp_ref";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -137,6 +165,20 @@
 		resets = <&bpmp_resets TEGRA234_RESET_MGBE2_MAC>,
 			 <&bpmp_resets TEGRA234_RESET_MGBE2_PCS>;
 		reset-names = "mac_rst", "xpcs_rst";
+		clocks = <&bpmp_clks TEGRA234_CLK_MGBE2_RX_INPUT_M>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_RX_PCS_M>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_RX_PCS_INPUT>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_RX_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_TX>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_TX_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_MAC_DIVIDER>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_MAC>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_EEE_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_APP>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE2_PTP_REF>;
+		clock-names = "rx_input_m", "rx_pcs_m", "rx_pcs_input",
+			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
+			      "mac", "eee_pcs", "app", "ptp_ref";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -174,6 +216,20 @@
 		resets = <&bpmp_resets TEGRA234_RESET_MGBE3_MAC>,
 			 <&bpmp_resets TEGRA234_RESET_MGBE3_PCS>;
 		reset-names = "mac_rst", "xpcs_rst";
+		clocks = <&bpmp_clks TEGRA234_CLK_MGBE3_RX_INPUT_M>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_RX_PCS_M>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_RX_PCS_INPUT>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_RX_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_TX>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_TX_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_MAC_DIVIDER>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_MAC>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_EEE_PCS>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_APP>,
+			 <&bpmp_clks TEGRA234_CLK_MGBE3_PTP_REF>;
+		clock-names = "rx_input_m", "rx_pcs_m", "rx_pcs_input",
+			      "rx_pcs", "tx", "tx_pcs", "mac_divider",
+			      "mac", "eee_pcs", "app", "ptp_ref";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
