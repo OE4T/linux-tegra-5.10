@@ -224,18 +224,72 @@ static inline void ether_stats_work_queue_stop(struct ether_priv_data *pdata)
 }
 
 /**
- * @brief Disable all MAC related clks
+ * @brief Disable all MAC MGBE related clks
  *
  * Algorithm: Release the reference counter for the clks by using
  * clock subsystem provided API's
  *
  * @param[in] pdata: OSD private data.
  */
-static void ether_disable_clks(struct ether_priv_data *pdata)
+static void ether_disable_mgbe_clks(struct ether_priv_data *pdata)
 {
-	if (pdata->osi_core->pre_si)
-		goto exit;
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		clk_disable_unprepare(pdata->ptp_ref_clk);
+	}
 
+	if (!IS_ERR_OR_NULL(pdata->app_clk)) {
+		clk_disable_unprepare(pdata->app_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->eee_pcs_clk)) {
+		clk_disable_unprepare(pdata->eee_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_clk)) {
+		clk_disable_unprepare(pdata->mac_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_div_clk)) {
+		clk_disable_unprepare(pdata->mac_div_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		clk_disable_unprepare(pdata->tx_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		clk_disable_unprepare(pdata->tx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_input_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_m_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		clk_disable_unprepare(pdata->rx_m_clk);
+	}
+
+	pdata->clks_enable = false;
+}
+
+/**
+ * @brief Disable all MAC EQOS related clks
+ *
+ * Algorithm: Release the reference counter for the clks by using
+ * clock subsystem provided API's
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static void ether_disable_eqos_clks(struct ether_priv_data *pdata)
+{
 	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
 		clk_disable_unprepare(pdata->axi_cbb_clk);
 	}
@@ -259,12 +313,29 @@ static void ether_disable_clks(struct ether_priv_data *pdata)
 	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
 		clk_disable_unprepare(pdata->pllrefe_clk);
 	}
-exit:
+
 	pdata->clks_enable = false;
 }
 
 /**
- * @brief Enable all MAC related clks.
+ * @brief Disable all MAC related clks
+ *
+ * Algorithm: Release the reference counter for the clks by using
+ * clock subsystem provided API's
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static void ether_disable_clks(struct ether_priv_data *pdata)
+{
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		ether_disable_mgbe_clks(pdata);
+	} else {
+		ether_disable_eqos_clks(pdata);
+	}
+}
+
+/**
+ * @brief Enable all MAC MGBE related clks.
  *
  * Algorithm: Enables the clks by using clock subsystem provided API's.
  *
@@ -273,12 +344,148 @@ exit:
  * @retval 0 on success
  * @retval "negative value" on failure.
  */
-static int ether_enable_clks(struct ether_priv_data *pdata)
+static int ether_enable_mgbe_clks(struct ether_priv_data *pdata)
 {
 	int ret;
 
-	if (pdata->osi_core->pre_si)
-		goto exit;
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		ret = clk_prepare_enable(pdata->rx_m_clk);
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		ret = clk_prepare_enable(pdata->rx_pcs_m_clk);
+		if (ret < 0) {
+			goto err_rx_pcs_m;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
+		ret = clk_prepare_enable(pdata->rx_pcs_input_clk);
+		if (ret < 0) {
+			goto err_rx_pcs_input;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_clk)) {
+		ret = clk_prepare_enable(pdata->rx_pcs_clk);
+		if (ret < 0) {
+			goto err_rx_pcs;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		ret = clk_prepare_enable(pdata->tx_clk);
+		if (ret < 0) {
+			goto err_tx;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		ret = clk_prepare_enable(pdata->tx_pcs_clk);
+		if (ret < 0) {
+			goto err_tx_pcs;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_div_clk)) {
+		ret = clk_prepare_enable(pdata->mac_div_clk);
+		if (ret < 0) {
+			goto err_mac_div;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_clk)) {
+		ret = clk_prepare_enable(pdata->mac_clk);
+		if (ret < 0) {
+			goto err_mac;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->eee_pcs_clk)) {
+		ret = clk_prepare_enable(pdata->eee_pcs_clk);
+		if (ret < 0) {
+			goto err_eee_pcs;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->app_clk)) {
+		ret = clk_prepare_enable(pdata->app_clk);
+		if (ret < 0) {
+			goto err_app;
+		}
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		ret = clk_prepare_enable(pdata->ptp_ref_clk);
+		if (ret < 0) {
+			goto err_ptp_ref;
+		}
+	}
+
+	pdata->clks_enable = true;
+
+	return 0;
+
+err_ptp_ref:
+	if (!IS_ERR_OR_NULL(pdata->app_clk)) {
+		clk_disable_unprepare(pdata->app_clk);
+	}
+err_app:
+	if (!IS_ERR_OR_NULL(pdata->eee_pcs_clk)) {
+		clk_disable_unprepare(pdata->eee_pcs_clk);
+	}
+err_eee_pcs:
+	if (!IS_ERR_OR_NULL(pdata->mac_clk)) {
+		clk_disable_unprepare(pdata->mac_clk);
+	}
+err_mac:
+	if (!IS_ERR_OR_NULL(pdata->mac_div_clk)) {
+		clk_disable_unprepare(pdata->mac_div_clk);
+	}
+err_mac_div:
+	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		clk_disable_unprepare(pdata->tx_pcs_clk);
+	}
+err_tx_pcs:
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		clk_disable_unprepare(pdata->tx_clk);
+	}
+err_tx:
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_clk);
+	}
+err_rx_pcs:
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_input_clk);
+	}
+err_rx_pcs_input:
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		clk_disable_unprepare(pdata->rx_pcs_m_clk);
+	}
+err_rx_pcs_m:
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		clk_disable_unprepare(pdata->rx_m_clk);
+	}
+
+	return ret;
+}
+
+/**
+ * @brief Enable all MAC EQOS related clks.
+ *
+ * Algorithm: Enables the clks by using clock subsystem provided API's.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_enable_eqos_clks(struct ether_priv_data *pdata)
+{
+	int ret;
 
 	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
 		ret = clk_prepare_enable(pdata->pllrefe_clk);
@@ -322,7 +529,6 @@ static int ether_enable_clks(struct ether_priv_data *pdata)
 		}
 	}
 
-exit:
 	pdata->clks_enable = true;
 
 	return 0;
@@ -349,6 +555,25 @@ err_axi_cbb:
 	}
 
 	return ret;
+}
+
+/**
+ * @brief Enable all MAC related clks.
+ *
+ * Algorithm: Enables the clks by using clock subsystem provided API's.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_enable_clks(struct ether_priv_data *pdata)
+{
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		return ether_enable_mgbe_clks(pdata);
+	}
+
+	return ether_enable_eqos_clks(pdata);
 }
 
 /**
@@ -3875,6 +4100,98 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 }
 
 /**
+ * @brief Put back MAC MGBE related clocks.
+ *
+ * Algorithm: Put back or release the MAC related clocks.
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static void ether_put_mgbe_clks(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		devm_clk_put(dev, pdata->ptp_ref_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->app_clk)) {
+		devm_clk_put(dev, pdata->app_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->eee_pcs_clk)) {
+		devm_clk_put(dev, pdata->eee_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_clk)) {
+		devm_clk_put(dev, pdata->mac_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->mac_div_clk)) {
+		devm_clk_put(dev, pdata->mac_div_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_pcs_clk)) {
+		devm_clk_put(dev, pdata->tx_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		devm_clk_put(dev, pdata->tx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_clk)) {
+		devm_clk_put(dev, pdata->rx_pcs_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_input_clk)) {
+		devm_clk_put(dev, pdata->rx_pcs_input_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_pcs_m_clk)) {
+		devm_clk_put(dev, pdata->rx_pcs_m_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		devm_clk_put(dev, pdata->rx_m_clk);
+	}
+}
+
+/**
+ * @brief Put back MAC EQOS related clocks.
+ *
+ * Algorithm: Put back or release the MAC related clocks.
+ *
+ * @param[in] pdata: OSD private data.
+ */
+static void ether_put_eqos_clks(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		devm_clk_put(dev, pdata->tx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
+		devm_clk_put(dev, pdata->ptp_ref_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
+		devm_clk_put(dev, pdata->rx_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
+		devm_clk_put(dev, pdata->axi_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
+		devm_clk_put(dev, pdata->axi_cbb_clk);
+	}
+
+	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
+		devm_clk_put(dev, pdata->pllrefe_clk);
+	}
+}
+
+/**
  * @brief Put back MAC related clocks.
  *
  * Algorithm: Put back or release the MAC related clocks.
@@ -3883,34 +4200,15 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
  */
 static inline void ether_put_clks(struct ether_priv_data *pdata)
 {
-	struct device *dev = pdata->dev;
-
-	if (pdata->osi_core->pre_si) {
-		return;
-	}
-
-	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
-		devm_clk_put(dev, pdata->tx_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
-		devm_clk_put(dev, pdata->ptp_ref_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->rx_clk)) {
-		devm_clk_put(dev, pdata->rx_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->axi_clk)) {
-		devm_clk_put(dev, pdata->axi_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->axi_cbb_clk)) {
-		devm_clk_put(dev, pdata->axi_cbb_clk);
-	}
-	if (!IS_ERR_OR_NULL(pdata->pllrefe_clk)) {
-		devm_clk_put(dev, pdata->pllrefe_clk);
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		ether_put_mgbe_clks(pdata);
+	} else {
+		ether_put_eqos_clks(pdata);
 	}
 }
 
 /**
- * @brief Get MAC related clocks.
+ * @brief Get MAC MGBE related clocks.
  *
  * Algorithm: Get the clocks from DT and stores in OSD private data.
  *
@@ -3919,7 +4217,125 @@ static inline void ether_put_clks(struct ether_priv_data *pdata)
  * @retval 0 on success
  * @retval "negative value" on failure.
  */
-static int ether_get_clks(struct ether_priv_data *pdata)
+static int ether_get_mgbe_clks(struct ether_priv_data *pdata)
+{
+	struct device *dev = pdata->dev;
+	int ret;
+
+	pdata->rx_m_clk = devm_clk_get(dev, "rx_input_m");
+	if (IS_ERR(pdata->rx_m_clk)) {
+		ret = PTR_ERR(pdata->rx_m_clk);
+		dev_err(dev, "failed to get rx_input_m\n");
+		goto err_rx_m;
+	}
+
+	pdata->rx_pcs_m_clk = devm_clk_get(dev, "rx_pcs_m");
+	if (IS_ERR(pdata->rx_pcs_m_clk)) {
+		ret = PTR_ERR(pdata->rx_pcs_m_clk);
+		dev_err(dev, "failed to get rx_pcs_m clk\n");
+		goto err_rx_pcs_m;
+	}
+
+	pdata->rx_pcs_input_clk = devm_clk_get(dev, "rx_pcs_input");
+	if (IS_ERR(pdata->rx_pcs_input_clk)) {
+		ret = PTR_ERR(pdata->rx_pcs_input_clk);
+		dev_err(dev, "failed to get rx_pcs_input clk\n");
+		goto err_rx_pcs_input;
+	}
+
+	pdata->rx_pcs_clk = devm_clk_get(dev, "rx_pcs");
+	if (IS_ERR(pdata->rx_pcs_clk)) {
+		ret = PTR_ERR(pdata->rx_pcs_clk);
+		dev_err(dev, "failed to get rx_pcs clk\n");
+		goto err_rx_pcs;
+	}
+
+	pdata->tx_clk = devm_clk_get(dev, "tx");
+	if (IS_ERR(pdata->tx_clk)) {
+		ret = PTR_ERR(pdata->tx_clk);
+		dev_err(dev, "failed to get tx clk\n");
+		goto err_tx;
+	}
+
+	pdata->tx_pcs_clk = devm_clk_get(dev, "tx_pcs");
+	if (IS_ERR(pdata->tx_pcs_clk)) {
+		ret = PTR_ERR(pdata->tx_pcs_clk);
+		dev_err(dev, "failed to get tx_pcs clk\n");
+		goto err_tx_pcs;
+	}
+
+	pdata->mac_div_clk = devm_clk_get(dev, "mac_divider");
+	if (IS_ERR(pdata->mac_div_clk)) {
+		ret = PTR_ERR(pdata->mac_div_clk);
+		dev_err(dev, "failed to get mac_divider clk\n");
+		goto err_mac_div;
+	}
+
+	pdata->mac_clk = devm_clk_get(dev, "mac");
+	if (IS_ERR(pdata->mac_clk)) {
+		ret = PTR_ERR(pdata->mac_clk);
+		dev_err(dev, "failed to get mac clk\n");
+		goto err_mac;
+	}
+
+	pdata->eee_pcs_clk = devm_clk_get(dev, "eee_pcs");
+	if (IS_ERR(pdata->eee_pcs_clk)) {
+		ret = PTR_ERR(pdata->eee_pcs_clk);
+		dev_err(dev, "failed to get eee_pcs clk\n");
+		goto err_eee_pcs;
+	}
+
+	pdata->app_clk = devm_clk_get(dev, "app");
+	if (IS_ERR(pdata->app_clk)) {
+		ret = PTR_ERR(pdata->app_clk);
+		dev_err(dev, "failed to get app clk\n");
+		goto err_app;
+	}
+
+	pdata->ptp_ref_clk = devm_clk_get(dev, "ptp_ref");
+	if (IS_ERR(pdata->ptp_ref_clk)) {
+		ret = PTR_ERR(pdata->ptp_ref_clk);
+		dev_err(dev, "failed to get ptp_ref clk\n");
+		goto err_ptp_ref;
+	}
+
+	return 0;
+
+err_ptp_ref:
+	devm_clk_put(dev, pdata->app_clk);
+err_app:
+	devm_clk_put(dev, pdata->eee_pcs_clk);
+err_eee_pcs:
+	devm_clk_put(dev, pdata->mac_clk);
+err_mac:
+	devm_clk_put(dev, pdata->mac_div_clk);
+err_mac_div:
+	devm_clk_put(dev, pdata->tx_pcs_clk);
+err_tx_pcs:
+	devm_clk_put(dev, pdata->tx_clk);
+err_tx:
+	devm_clk_put(dev, pdata->rx_pcs_clk);
+err_rx_pcs:
+	devm_clk_put(dev, pdata->rx_pcs_input_clk);
+err_rx_pcs_input:
+	devm_clk_put(dev, pdata->rx_pcs_m_clk);
+err_rx_pcs_m:
+	devm_clk_put(dev, pdata->rx_m_clk);
+err_rx_m:
+	return ret;
+}
+
+/**
+ * @brief Get EQOS MAC related clocks.
+ *
+ * Algorithm: Get the clocks from DT and stores in OSD private data.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_get_eqos_clks(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
 	struct osi_core_priv_data *osi_core = pdata->osi_core;
@@ -3983,6 +4399,25 @@ err_axi_cbb:
 	devm_clk_put(dev, pdata->pllrefe_clk);
 
 	return ret;
+}
+
+/**
+ * @brief Get MAC related clocks.
+ *
+ * Algorithm: Get the clocks from DT and stores in OSD private data.
+ *
+ * @param[in] pdata: OSD private data.
+ *
+ * @retval 0 on success
+ * @retval "negative value" on failure.
+ */
+static int ether_get_clks(struct ether_priv_data *pdata)
+{
+	if (pdata->osi_core->mac == OSI_MAC_HW_MGBE) {
+		return ether_get_mgbe_clks(pdata);
+	}
+
+	return ether_get_eqos_clks(pdata);
 }
 
 /**

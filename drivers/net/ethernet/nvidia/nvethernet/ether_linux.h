@@ -329,6 +329,24 @@ struct ether_priv_data {
 	struct clk *ptp_ref_clk;
 	/** Transmit clock */
 	struct clk *tx_clk;
+	/** Receive Monitoring clock */
+	struct clk *rx_m_clk;
+	/** RX PCS monitoring clock */
+	struct clk *rx_pcs_m_clk;
+	/** RX PCS input clock */
+	struct clk *rx_pcs_input_clk;
+	/** RX PCS clock */
+	struct clk *rx_pcs_clk;
+	/** TX PCS clock */
+	struct clk *tx_pcs_clk;
+	/** MAC DIV clock */
+	struct clk *mac_div_clk;
+	/** MAC clock */
+	struct clk *mac_clk;
+	/** EEE PCS clock */
+	struct clk *eee_pcs_clk;
+	/** APP clock */
+	struct clk *app_clk;
 	/** Pointer to PHY device tree node */
 	struct device_node *phy_node;
 	/** Pointer to MDIO device tree node */
