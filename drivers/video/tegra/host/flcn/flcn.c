@@ -623,12 +623,6 @@ int nvhost_vic_finalize_poweron(struct platform_device *pdev)
 int nvhost_vic_init_context(struct platform_device *pdev,
 			    struct nvhost_cdma *cdma)
 {
-	int err;
-
-	err = nvhost_flcn_init_sw(pdev);
-	if (err)
-		return err;
-
 	/* load application id */
 	nvhost_cdma_push(cdma,
 		nvhost_opcode_setclass(NV_GRAPHICS_VIC_CLASS_ID,
