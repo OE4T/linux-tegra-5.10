@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2017, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION, All rights reserved.
  *
  * Simple PWM based backlight control, board code has to setup
  * 1) pin configuration so PWM waveforms can output
@@ -22,7 +22,7 @@
 #include <linux/pwm_backlight.h>
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
-#include "../../../../nvidia/drivers/video/tegra/dc/panel/board-panel.h"
+#include "board-panel.h"
 
 static void pwm_backlight_power_on(struct pwm_bl_data *pb)
 {
