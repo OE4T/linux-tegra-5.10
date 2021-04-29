@@ -54,6 +54,10 @@
 #endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
+#if defined(CONFIG_NVGPU_NEXT)
+#define PMU_NVRISCV_WPR_RSVD_BYTES	(0x8000)
+#endif
+
 int nvgpu_acr_lsf_pmu_ucode_details(struct gk20a *g, void *lsf_ucode_img)
 {
 	struct lsf_ucode_desc *lsf_desc;
@@ -771,7 +775,17 @@ static int lsf_gen_wpr_requirements(struct gk20a *g,
 			pnode->lsb_header.app_data_size =
 				pnode->lsb_header.data_size;
 		}
-
+#if defined(CONFIG_NVGPU_NEXT)
+		/* Falcon image is cleanly partitioned between a code and
+		 * data section where we don't need extra reserved space.
+		 * NVRISCV image has no clear partition for code and data
+		 * section, so need to reserve wpr space.
+		 */
+		if (pnode->wpr_header.falcon_id == FALCON_ID_PMU_NEXT_CORE) {
+			wpr_offset = nvgpu_safe_add_u32(wpr_offset,
+				(u32)PMU_NVRISCV_WPR_RSVD_BYTES);
+		}
+#endif
 		pnode = pnode->next;
 	}
 
