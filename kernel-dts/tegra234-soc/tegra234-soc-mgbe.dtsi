@@ -59,6 +59,9 @@
 				<0 391 0x4>;	/* MACsec secure intr */
 		interrupt-names = "common", "vm0", "vm1", "vm2", "vm3", "vm4",
 				  "macsec-ns-irq", "macsec-s-irq";
+		resets = <&bpmp_resets TEGRA234_RESET_MGBE0_MAC>,
+			 <&bpmp_resets TEGRA234_RESET_MGBE0_PCS>;
+		reset-names = "mac_rst", "xpcs_rst";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -94,6 +97,9 @@
 				<0 399 0x4>;	/* MACsec secure intr */
 		interrupt-names = "common", "vm0", "vm1", "vm2", "vm3", "vm4",
 				  "macsec-ns-irq", "macsec-s-irq";
+		resets = <&bpmp_resets TEGRA234_RESET_MGBE1_MAC>,
+			 <&bpmp_resets TEGRA234_RESET_MGBE1_PCS>;
+		reset-names = "mac_rst", "xpcs_rst";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -128,6 +134,9 @@
 				<0 407 0x4>;	/* MACsec secure intr */
 		interrupt-names = "common", "vm0", "vm1", "vm2", "vm3", "vm4",
 				  "macsec-ns-irq", "macsec-s-irq";
+		resets = <&bpmp_resets TEGRA234_RESET_MGBE2_MAC>,
+			 <&bpmp_resets TEGRA234_RESET_MGBE2_PCS>;
+		reset-names = "mac_rst", "xpcs_rst";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
@@ -162,6 +171,9 @@
 				<0 415 0x4>;	/* MACsec secure intr */
 		interrupt-names = "common", "vm0", "vm1", "vm2", "vm3", "vm4",
 				  "macsec-ns-irq", "macsec-s-irq";
+		resets = <&bpmp_resets TEGRA234_RESET_MGBE3_MAC>,
+			 <&bpmp_resets TEGRA234_RESET_MGBE3_PCS>;
+		reset-names = "mac_rst", "xpcs_rst";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_MGBE>;
 #else
