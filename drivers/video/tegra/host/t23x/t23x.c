@@ -481,7 +481,6 @@ struct nvhost_device_data t23x_vic_info = {
 	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.prepare_poweroff	= nvhost_flcn_prepare_poweroff,
 	.flcn_isr		= nvhost_flcn_common_isr,
-	.init_class_context	= nvhost_vic_init_context,
 	.firmware_name		= "nvhost_vic042.fw",
 	.firmware_not_in_subdir = true,
 	.serialize		= true,
