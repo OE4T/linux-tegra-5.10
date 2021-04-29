@@ -1,7 +1,7 @@
 /*
  * QSPI driver for NVIDIA's Tegra210 QUAD SPI Controller.
  *
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1483,14 +1483,14 @@ static struct tegra_qspi_device_controller_data *tegra_qspi_get_cdata_dt(
 	if (!of_property_read_u32(data_np, "nvidia,x1-bus-speed", &pval))
 		cdata->x1_bus_speed = pval;
 
-	if (!of_property_read_u32(data_np, "nvidia,x1-dymmy-cycle", &pval))
-		cdata->x1_dymmy_cycle = pval;
+	if (!of_property_read_u32(data_np, "nvidia,x1-dummy-cycle", &pval))
+		cdata->x1_dummy_cycle = pval;
 
 	if (!of_property_read_u32(data_np, "nvidia,x4-bus-speed", &pval))
 		cdata->x4_bus_speed = pval;
 
-	if (!of_property_read_u32(data_np, "nvidia,x4-dymmy-cycle", &pval))
-		cdata->x4_dymmy_cycle = pval;
+	if (!of_property_read_u32(data_np, "nvidia,x4-dummy-cycle", &pval))
+		cdata->x4_dummy_cycle = pval;
 
 	if (!of_property_read_u32(data_np, "nvidia,x4-is-ddr", &pval))
 		cdata->x4_is_ddr = pval;
