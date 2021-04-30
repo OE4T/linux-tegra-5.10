@@ -407,7 +407,6 @@ static void cpufreq_notify_post_transition(struct cpufreq_policy *policy,
 void cpufreq_freq_transition_begin(struct cpufreq_policy *policy,
 		struct cpufreq_freqs *freqs)
 {
-	unsigned long cur;
 
 	/*
 	 * Catch double invocations of _begin() which lead to self-deadlock.
@@ -434,9 +433,6 @@ wait:
 	policy->transition_task = current;
 
 	spin_unlock(&policy->transition_lock);
-
-	cur = freqs ? freqs->new : policy->cur;
-	arch_set_freq_scale (policy->cpus, cur, policy->max);
 
 	cpufreq_notify_transition(policy, freqs, CPUFREQ_PRECHANGE);
 }
