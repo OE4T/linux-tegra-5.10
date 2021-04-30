@@ -38,3 +38,4 @@ osi_dma_get_systime_from_mac
 osi_is_mac_enabled
 osi_get_dma
 osi_handle_dma_intr
+osi_get_global_dma_status
