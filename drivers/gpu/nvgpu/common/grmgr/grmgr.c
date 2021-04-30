@@ -42,7 +42,6 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	g->mig.gpc_count = g->ops.priv_ring.get_gpc_count(g);
 	nvgpu_assert(g->mig.gpc_count > 0U);
 	g->mig.num_gpu_instances = 1U;
-	g->mig.current_gpu_instance_config_id = 0U;
 	g->mig.is_nongr_engine_sharable = false;
 
 	gpu_instance->gpu_instance_id = 0U;

@@ -231,24 +231,6 @@ static char *nvgpu_pci_devnode_v2(struct device *dev, umode_t *mode)
 			dev_name(dev));
 }
 
-static char *nvgpu_mig_phys_devnode(struct device *dev, umode_t *mode)
-{
-	struct nvgpu_cdev_class_priv_data *priv_data;
-
-	if (mode) {
-		*mode = S_IRUSR | S_IWUSR;
-	}
-
-	priv_data = dev_get_drvdata(dev);
-
-	if (priv_data->pci) {
-		return kasprintf(GFP_KERNEL, "nvgpu/dgpu-%s/%s",
-				dev_name(dev->parent), dev_name(dev));
-	}
-
-	return kasprintf(GFP_KERNEL, "nvgpu/igpu0/%s", dev_name(dev));
-}
-
 static char *nvgpu_mig_fgpu_devnode(struct device *dev, umode_t *mode)
 {
 	struct nvgpu_cdev_class_priv_data *priv_data;
@@ -388,60 +370,19 @@ struct nvgpu_mig_static_info {
 	u32 minor_instance_id;
 };
 
-static const struct nvgpu_mig_static_info nvgpu_default_mig_static_info[] =
-{
-	{
-		.instance_type = NVGPU_MIG_TYPE_PHYSICAL,
-	},
-	{
-		.instance_type = NVGPU_MIG_TYPE_MIG,
-		.major_instance_id = 0,
-		.minor_instance_id = 0,
-	},
-	{
-		.instance_type = NVGPU_MIG_TYPE_MIG,
-		.major_instance_id = 0,
-		.minor_instance_id = 1,
-	},
-};
-
-static const struct nvgpu_mig_static_info nvgpu_default_pci_mig_static_info[] =
-{
-	{
-		.instance_type = NVGPU_MIG_TYPE_PHYSICAL,
-	},
-	{
-		.instance_type = NVGPU_MIG_TYPE_MIG,
-		.major_instance_id = 1,
-		.minor_instance_id = 0,
-	},
-	{
-		.instance_type = NVGPU_MIG_TYPE_MIG,
-		.major_instance_id = 2,
-		.minor_instance_id = 4,
-	},
-};
-
 static int nvgpu_prepare_mig_dev_node_class_list(struct gk20a *g, u32 *num_classes)
 {
 	u32 class_count = 0U;
-	const struct nvgpu_mig_static_info *info;
 	struct nvgpu_class *class;
 	u32 i;
 	u32 num_instances;
 	struct nvgpu_cdev_class_priv_data *priv_data;
 
-	if (g->pci_class != 0U) {
-		info = &nvgpu_default_pci_mig_static_info[0];
-		num_instances = sizeof(nvgpu_default_pci_mig_static_info) /
-				sizeof(nvgpu_default_pci_mig_static_info[0]);
-	} else {
-		info = &nvgpu_default_mig_static_info[0];
-		num_instances = sizeof(nvgpu_default_mig_static_info) /
-				sizeof(nvgpu_default_mig_static_info[0]);
-	}
-
-	for (i = 0U; i < num_instances; i++) {
+	num_instances = g->mig.num_gpu_instances;
+	/*
+	 * TODO: i=0 need to be added after ctrl node fixup.
+	 */
+	for (i = 1U; i < num_instances; i++) {
 		priv_data = nvgpu_kzalloc(g, sizeof(*priv_data));
 		if (priv_data == NULL) {
 			return -ENOMEM;
@@ -456,20 +397,16 @@ static int nvgpu_prepare_mig_dev_node_class_list(struct gk20a *g, u32 *num_class
 			kfree(priv_data);
 			return -ENOMEM;
 		}
+
 		class_count++;
+		class->class->devnode = nvgpu_mig_fgpu_devnode;
+		priv_data->major_instance_id = g->mig.gpu_instance[i].gpu_instance_id;
+		priv_data->minor_instance_id = g->mig.gpu_instance[i].gr_syspipe.gr_syspipe_id;
+		class->instance_type = NVGPU_MIG_TYPE_MIG;
 
-		if (info[i].instance_type == NVGPU_MIG_TYPE_PHYSICAL) {
-			class->class->devnode = nvgpu_mig_phys_devnode;
-		} else {
-			class->class->devnode = nvgpu_mig_fgpu_devnode;
-		}
-
-		priv_data->local_instance_id = i;
-		priv_data->major_instance_id = info[i].major_instance_id;
-		priv_data->minor_instance_id = info[i].minor_instance_id;
-		priv_data->pci = (g->pci_class != 0U);
 		class->priv_data = priv_data;
-		class->instance_type = info[i].instance_type;
+		priv_data->local_instance_id = i;
+		priv_data->pci = (g->pci_class != 0U);
 	}
 
 	*num_classes = class_count;
@@ -568,7 +505,7 @@ static int nvgpu_prepare_dev_node_class_list(struct gk20a *g, u32 *num_classes,
 static bool check_valid_dev_node(struct gk20a *g, struct nvgpu_class *class,
 		const struct nvgpu_dev_node *node)
 {
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
 		if ((class->instance_type == NVGPU_MIG_TYPE_PHYSICAL) &&
 		    !node->mig_physical_node) {
 			return false;
@@ -584,7 +521,7 @@ static bool check_valid_class(struct gk20a *g, struct nvgpu_class *class)
 		return false;
 	}
 
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
 		if ((class->instance_type == NVGPU_MIG_TYPE_PHYSICAL)) {
 			return false;
 		}
@@ -681,7 +618,19 @@ int gk20a_user_init(struct device *dev)
 	}
 
 	num_cdevs = sizeof(dev_node_list) / sizeof(dev_node_list[0]);
-	total_cdevs = num_cdevs * num_classes;
+	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
+		/**
+		  * As mig physical node needs the ctrl node only.
+		  * We need to add total_cdevs + 1 when we enable ctrl node.
+		  */
+		total_cdevs = (num_cdevs - 1) * (num_classes - 1);
+	} else {
+		/*
+		 * As the power node is already created, we need to
+		 * reduced devs by by one.
+		 */
+		total_cdevs = (num_cdevs - 1) * num_classes;
+	}
 
 	err = alloc_chrdev_region(&devno, 0, total_cdevs, dev_name(dev));
 	if (err) {
@@ -742,7 +691,7 @@ u32 nvgpu_get_gpu_instance_id_from_cdev(struct gk20a *g, struct nvgpu_cdev *cdev
 {
 	struct nvgpu_cdev_class_priv_data *priv_data;
 
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+	if (nvgpu_grmgr_is_multi_gr_enabled(g)) {
 		priv_data = dev_get_drvdata(cdev->node);
 		return priv_data->local_instance_id;
 	}

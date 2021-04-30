@@ -1086,15 +1086,20 @@ static ssize_t mig_mode_config_list_show(struct device *dev,
 	u32 num_config = 0;
 	struct gk20a *g = get_gk20a(dev);
 	const struct nvgpu_mig_gpu_instance_config *mig_gpu_instance_config;
-	char *power_on_string = "MIG list will be displayed after gpu power"
+	const char *power_on_string = "MIG list will be displayed after gpu power"
 		" on with default MIG mode \n Boot with config id zero\n"
 		" Get the available configs \n"
 		" Change the init script and reboot";
+	const char *error_on_nullconfig = "MIG list can't be displayed";
 
-	if (nvgpu_is_powered_on(g) &&
-			(g->mig.current_mig_gpu_instance_config != NULL)) {
+	if (nvgpu_is_powered_on(g)) {
 		mig_gpu_instance_config =
-			g->mig.current_mig_gpu_instance_config;
+			(g->ops.grmgr.get_mig_config_ptr != NULL) ?
+			g->ops.grmgr.get_mig_config_ptr(g) : NULL;
+		if (mig_gpu_instance_config == NULL) {
+			res += sprintf(&buf[res], "%s", error_on_nullconfig);
+			return res;
+		}
 	} else {
 		res += sprintf(&buf[res], "%s", power_on_string);
 		return res;

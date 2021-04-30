@@ -222,11 +222,6 @@ struct nvgpu_mig {
 	/** Gpu instance configuration id. */
 	u32 current_gpu_instance_config_id;
 	/**
-	 * current mig_instance_config.
-	 */
-	const struct nvgpu_mig_gpu_instance_config
-		*current_mig_gpu_instance_config;
-	/**
 	 * Flag to indicate whether nonGR(CE) engine is sharable
 	 * between gr syspipes or not.
 	 */
