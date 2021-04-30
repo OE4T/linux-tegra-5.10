@@ -95,7 +95,7 @@ struct hda_pcm_devices {
 struct hda_tegra {
 	struct azx chip;
 	struct device *dev;
-	struct clk_bulk_data clocks[3];
+	struct clk_bulk_data *clocks;
 	unsigned int nclocks;
 	void __iomem *regs;
 	void __iomem *regs_fpci;
@@ -490,13 +490,32 @@ static int hda_tegra_probe(struct platform_device *pdev)
 	struct snd_card *card;
 	struct azx *chip;
 	struct hda_tegra *hda;
-	int err;
+	struct device_node *np;
+	struct property *prop;
+	const char *name;
+	int err, num, i = 0;
 
 	hda = devm_kzalloc(&pdev->dev, sizeof(*hda), GFP_KERNEL);
 	if (!hda)
 		return -ENOMEM;
 	hda->dev = &pdev->dev;
 	chip = &hda->chip;
+	np = hda->dev->of_node;
+
+	num = of_property_count_strings(np, "clock-names");
+	if (num < 0) {
+		dev_err(&pdev->dev, "No hda clocks specified\n");
+		return -EINVAL;
+	}
+	hda->nclocks = num;
+	hda->clocks = devm_kzalloc(&pdev->dev,
+				num * sizeof(struct clk_bulk_data *),
+				GFP_KERNEL);
+	if (!hda->clocks)
+		return -ENOMEM;
+
+	of_property_for_each_string(np, "clock-names", prop, name)
+		hda->clocks[i++].id = name;
 
 	err = snd_card_new(&pdev->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
 			   THIS_MODULE, 0, &card);
@@ -504,10 +523,6 @@ static int hda_tegra_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Error creating card!\n");
 		return err;
 	}
-
-	hda->clocks[hda->nclocks++].id = "hda";
-	hda->clocks[hda->nclocks++].id = "hda2hdmi";
-	hda->clocks[hda->nclocks++].id = "hda2codec_2x";
 
 	err = devm_clk_bulk_get(&pdev->dev, hda->nclocks, hda->clocks);
 	if (err < 0)
