@@ -419,10 +419,9 @@
                 iommus = <&smmu TEGRA_SID_HDA>;
 #endif
                 reg = <0x0 0x3510000 0x0 0x10000>;
-                clocks = <&bpmp_clks TEGRA234_CLK_HDA>,
-                         <&bpmp_clks TEGRA234_CLK_HDA2CODEC_2X>,
-                         <&bpmp_clks TEGRA234_CLK_HDA2HDMICODEC>;
-                clock-names = "hda", "hda2codec_2x", "hda2hdmi";
+                clocks = <&bpmp_clks TEGRA234_CLK_AZA_2XBIT>,
+                         <&bpmp_clks TEGRA234_CLK_AZA_BIT>;
+		clock-names = "hda", "hda2codec_2x";
                 interrupts = <0 60 0x04>;
                 status = "okay";
         };
