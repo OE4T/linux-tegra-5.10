@@ -741,7 +741,11 @@ static int cdi_mgr_release(struct inode *inode, struct file *file)
 		cdi_mgr_power_down(cdi_mgr, 0xffffffff);
 
 	/* clear sinfo to prevent report error after handler is closed */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	memset(&cdi_mgr->sinfo, 0, sizeof(struct siginfo));
+#else
+	memset(&cdi_mgr->sinfo, 0, sizeof(struct kernel_siginfo));
+#endif
 	cdi_mgr->t = NULL;
 	WARN_ON(!atomic_xchg(&cdi_mgr->in_use, 0));
 

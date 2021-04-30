@@ -741,7 +741,11 @@ static int isc_mgr_release(struct inode *inode, struct file *file)
 		isc_mgr_power_down(isc_mgr, 0xffffffff);
 
 	/* clear sinfo to prevent report error after handler is closed */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	memset(&isc_mgr->sinfo, 0, sizeof(struct siginfo));
+#else
+	memset(&isc_mgr->sinfo, 0, sizeof(struct kernel_siginfo));
+#endif
 	isc_mgr->t = NULL;
 	WARN_ON(!atomic_xchg(&isc_mgr->in_use, 0));
 
