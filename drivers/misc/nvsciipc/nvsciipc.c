@@ -223,7 +223,6 @@ static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
 	struct nvsciipc_config_entry **entry_ptr;
 	int vmid = 0;
 	int ret = 0;
-	int err_count = 0;
 	int i;
 
 	if (ctx->num_eps != 0) {
@@ -236,11 +235,23 @@ static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
 		return -EFAULT;
 	}
 
+	if (user_db.num_eps <= 0) {
+		INFO("invalid value passed for num_eps\n");
+		return -EINVAL;
+	}
+
 	ctx->num_eps = user_db.num_eps;
 
 	entry_ptr = (struct nvsciipc_config_entry **)
 		kzalloc(ctx->num_eps * sizeof(struct nvsciipc_config_entry *),
 			GFP_KERNEL);
+
+	if (entry_ptr == NULL) {
+		ERR("memory allocation for entry_ptr failed\n");
+		ret = -EFAULT;
+		goto ptr_error;
+	}
+
 	ret = copy_from_user(entry_ptr, (void __user *)user_db.entry,
 			ctx->num_eps * sizeof(struct nvsciipc_config_entry *));
 	if (ret < 0) {
@@ -252,18 +263,30 @@ static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
 	ctx->db = (struct nvsciipc_config_entry **)
 		kzalloc(ctx->num_eps * sizeof(struct nvsciipc_config_entry *),
 			GFP_KERNEL);
+
+	if (ctx->db == NULL) {
+		ERR("memory allocation for ctx->db failed\n");
+		ret = -EFAULT;
+		goto ptr_error;
+	}
+
 	for (i = 0; i < ctx->num_eps; i++) {
 		ctx->db[i] = (struct nvsciipc_config_entry *)
 			kzalloc(sizeof(struct nvsciipc_config_entry),
 				GFP_KERNEL);
+
+		if (ctx->db[i] == NULL) {
+			ERR("memory allocation for ctx->db[%d] failed\n", i);
+			ret = -EFAULT;
+			goto ptr_error;
+		}
 
 		ret = copy_from_user(ctx->db[i], (void __user *)entry_ptr[i],
 				sizeof(struct nvsciipc_config_entry));
 		if (ret < 0) {
 			ERR("copying config entry failed\n");
 			ret = -EFAULT;
-			err_count = i;
-			goto entry_error;
+			goto ptr_error;
 		}
 	}
 
@@ -280,14 +303,22 @@ static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
 	return ret;
 
 ptr_error:
+	if (ctx->db != NULL) {
+		for (i = 0; i < ctx->num_eps; i++) {
+			if (ctx->db[i] != NULL) {
+				memset(ctx->db[i], 0, sizeof(struct nvsciipc_config_entry));
+				kfree(ctx->db[i]);
+			}
+		}
+
+		kfree(ctx->db);
+		ctx->db = NULL;
+	}
+
 	if (entry_ptr != NULL)
 		kfree(entry_ptr);
 
-entry_error:
-	for (i = 0; i < err_count; i++)
-		kfree(ctx->db[i]);
-
-	kfree(ctx->db);
+	ctx->num_eps = 0;
 
 	return ret;
 }
