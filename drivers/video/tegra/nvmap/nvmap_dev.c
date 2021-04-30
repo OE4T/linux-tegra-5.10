@@ -1281,14 +1281,17 @@ static bool nvmap_is_iommu_present(void)
 	struct property *prop;
 
 	np = of_find_node_by_name(NULL, "iommu");
-	if (!np)
-		return false;
+	while (np) {
+		prop = of_find_property(np, "status", NULL);
+		if (prop && !strcmp(prop->value, "okay")) {
+			of_node_put(np);
+			return true;
+		}
+		of_node_put(np);
+		np = of_find_node_by_name(np, "iommu");
+	}
 
-	prop = of_find_property(np, "status", NULL);
-	if (!prop || strcmp(prop->value, "okay"))
-		return false;
-
-	return true;
+	return false;
 }
 
 int __init nvmap_probe(struct platform_device *pdev)
