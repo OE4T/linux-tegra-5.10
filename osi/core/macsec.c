@@ -2202,7 +2202,7 @@ static int macsec_cipher_config(struct osi_core_priv_data *const osi_core,
 	}
 
 	pr_err("Write GCM_AES_CONTROL_0: 0x%x\n", val);
-	osi_writela(osi_core val, base + GCM_AES_CONTROL_0);
+	osi_writela(osi_core, val, base + GCM_AES_CONTROL_0);
 	return 0;
 }
 
