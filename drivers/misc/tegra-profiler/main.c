@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/main.c
  *
- * Copyright (c) 2013-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -37,7 +37,7 @@
 #include "eh_unwind.h"
 #include "uncore_events.h"
 
-#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+#if defined(CONFIG_ARCH_TEGRA_19x_SOC) || defined(CONFIG_ARCH_TEGRA_194_SOC)
 #include "carmel_pmu.h"
 #endif
 
@@ -275,7 +275,7 @@ set_parameters(struct quadd_parameters *p)
 	struct task_struct *task = NULL;
 	u64 *low_addr_p;
 	u32 extra, uncore_freq;
-#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+#if defined(CONFIG_ARCH_TEGRA_19x_SOC) || defined(CONFIG_ARCH_TEGRA_194_SOC)
 	int nr;
 #endif
 
@@ -376,7 +376,7 @@ set_parameters(struct quadd_parameters *p)
 			goto out_put_task;
 	}
 
-#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+#if defined(CONFIG_ARCH_TEGRA_19x_SOC) || defined(CONFIG_ARCH_TEGRA_194_SOC)
 	nr = p->nr_events;
 
 	if (nr > QUADD_MAX_COUNTERS) {
@@ -693,7 +693,7 @@ int quadd_late_init(void)
 				 quadd_get_hw_event_str(events[i].id));
 	}
 
-#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+#if defined(CONFIG_ARCH_TEGRA_19x_SOC) || defined(CONFIG_ARCH_TEGRA_194_SOC)
 	ctx.carmel_pmu = quadd_carmel_uncore_pmu_init();
 	if (IS_ERR(ctx.carmel_pmu)) {
 		pr_err("Carmel Uncore PMU init failed\n");
@@ -757,7 +757,7 @@ out_err_uncore:
 out_err_hrt:
 	quadd_hrt_deinit();
 out_err_carmel_pmu:
-#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+#if defined(CONFIG_ARCH_TEGRA_19x_SOC) || defined(CONFIG_ARCH_TEGRA_194_SOC)
 	quadd_carmel_uncore_pmu_deinit();
 out_err_pmu:
 #endif
@@ -828,7 +828,7 @@ static void deinit(void)
 		quadd_power_clk_deinit();
 		quadd_uncore_deinit();
 		quadd_hrt_deinit();
-#ifdef CONFIG_ARCH_TEGRA_19x_SOC
+#if defined(CONFIG_ARCH_TEGRA_19x_SOC) || defined(CONFIG_ARCH_TEGRA_194_SOC)
 		quadd_carmel_uncore_pmu_deinit();
 #endif
 		pmu_deinit();

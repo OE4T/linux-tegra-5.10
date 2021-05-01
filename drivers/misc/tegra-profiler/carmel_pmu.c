@@ -1,7 +1,7 @@
 /*
  * drivers/misc/tegra-profiler/carmel_pmu.c
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,8 +21,13 @@
 #include <linux/bitmap.h>
 #include <linux/errno.h>
 #include <linux/topology.h>
+#include <linux/version.h>
 
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
+#else
+#include <soc/tegra/fuse.h>
+#endif
 
 #include <asm/sysreg.h>
 
@@ -453,7 +458,11 @@ static bool is_cluster_available(int cluster_id)
 	int cpu;
 
 	for_each_possible_cpu(cpu)
+#if KERNEL_VERSION(4, 18, 0) > LINUX_VERSION_CODE
 		if (cpu_topology[cpu].cluster_id == cluster_id)
+#else
+		if (cpu_topology[cpu].package_id == cluster_id)
+#endif
 			return true;
 
 	return false;
@@ -516,7 +525,11 @@ quadd_carmel_uncore_pmu_init(void)
 	int i;
 	struct carmel_unit *unit;
 
+#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if (tegra_get_chipid() != TEGRA_CHIPID_TEGRA19)
+#else
+	if (tegra_get_chip_id() != TEGRA194)
+#endif
 		return NULL;
 
 	INIT_LIST_HEAD(&ctx.units);
