@@ -2,7 +2,7 @@
 # Tegra platform Support
 snd-soc-tegra-pcm-objs := tegra_pcm.o
 snd-soc-tegra-utils-objs += tegra_asoc_utils.o tegra_asoc_machine.o \
-			    tegra_isomgr_bw.o
+			    tegra_isomgr_bw.o tegra_codecs.o
 snd-soc-tegra20-ac97-objs := tegra20_ac97.o
 snd-soc-tegra20-das-objs := tegra20_das.o
 snd-soc-tegra20-i2s-objs := tegra20_i2s.o

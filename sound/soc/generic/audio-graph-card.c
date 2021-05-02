@@ -369,6 +369,25 @@ out_put_node:
 	return ret;
 }
 
+static int graph_parse_dailink_name(struct device *dev,
+				    struct snd_soc_dai_link *dai_link,
+				    struct device_node *codec_ep,
+				    char *prop)
+{
+	if (codec_ep &&
+	    !of_property_read_string(codec_ep, prop, &dai_link->name)) {
+		dev_dbg(dev, "Custom link name = %s\n", dai_link->name);
+		return 0;
+	}
+
+	return asoc_simple_set_dailink_name(dev, dai_link,
+					    "%pOFP.%s-%pOFP.%s",
+					    dai_link->cpus->of_node,
+					    dai_link->cpus->dai_name,
+					    dai_link->codecs->of_node,
+					    dai_link->codecs->dai_name);
+}
+
 static int graph_dai_link_of(struct asoc_simple_priv *priv,
 			     struct device_node *cpu_ep,
 			     struct device_node *codec_ep,
@@ -428,12 +447,7 @@ static int graph_dai_link_of(struct asoc_simple_priv *priv,
 	if (ret < 0)
 		return ret;
 
-	ret = asoc_simple_set_dailink_name(dev, dai_link,
-					   "%pOFP.%s-%pOFP.%s",
-					   dai_link->cpus->of_node,
-					   dai_link->cpus->dai_name,
-					   dai_link->codecs->of_node,
-					   dai_link->codecs->dai_name);
+	ret = graph_parse_dailink_name(dev, dai_link, codec_ep, "link-name");
 	if (ret < 0)
 		return ret;
 

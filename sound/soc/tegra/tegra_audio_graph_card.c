@@ -12,6 +12,7 @@
 #include <sound/pcm_params.h>
 
 #include "tegra_asoc_machine.h"
+#include "tegra_codecs.h"
 
 #define MAX_PLLA_OUT0_DIV 128
 
@@ -139,6 +140,9 @@ static int tegra_audio_graph_hw_params(struct snd_pcm_substream *substream,
 				       struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = asoc_substream_to_rtd(substream);
+	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(rtd->card);
+	struct simple_dai_props *dai_props =
+		simple_priv_to_props(priv, rtd->num);
 	struct snd_soc_card *card = rtd->card;
 	struct snd_soc_pcm_runtime *runtime;
 	struct snd_soc_pcm_stream *dai_params;
@@ -183,6 +187,12 @@ static int tegra_audio_graph_hw_params(struct snd_pcm_substream *substream,
 		dai_params->channels_min = params_channels(params);
 		dai_params->formats = 1ULL << params_format(params);
 	}
+
+	err = tegra_codecs_runtime_setup(card, params_rate(params),
+			params_channels(params),
+			dai_props->mclk_fs * params_rate(params));
+	if (err < 0)
+		return err;
 
 #endif
 
@@ -242,6 +252,7 @@ static int tegra_audio_graph_card_probe(struct snd_soc_card *card)
 	struct asoc_simple_priv *simple = snd_soc_card_get_drvdata(card);
 	struct tegra_audio_priv *priv = simple_to_tegra_priv(simple);
 	struct snd_soc_pcm_runtime *rtd;
+	int err;
 
 	priv->clk_plla = devm_clk_get(card->dev, "pll_a");
 	if (IS_ERR(priv->clk_plla)) {
@@ -306,6 +317,11 @@ static int tegra_audio_graph_card_probe(struct snd_soc_card *card)
 		}
 	}
 
+	/* Codec specific initialization */
+	err = tegra_codecs_init(card);
+	if (err < 0)
+		return err;
+
 	return graph_card_probe(card);
 }
 
@@ -336,6 +352,8 @@ static int tegra_audio_graph_probe(struct platform_device *pdev)
 		return ret;
 
 	tegra_machine_add_i2s_codec_controls(card);
+
+	dev_info(dev, "Registered audio-graph based sound card\n");
 
 	return 0;
 }
