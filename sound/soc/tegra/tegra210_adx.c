@@ -23,15 +23,15 @@
 #include "tegra_cif.h"
 
 static const struct reg_default tegra210_adx_reg_defaults[] = {
-	{ TEGRA210_ADX_AXBAR_RX_INT_MASK, 0x00000001},
-	{ TEGRA210_ADX_AXBAR_RX_CIF_CTRL, 0x00007000},
-	{ TEGRA210_ADX_AXBAR_TX_INT_MASK, 0x0000000f },
-	{ TEGRA210_ADX_AXBAR_TX1_CIF_CTRL, 0x00007000},
-	{ TEGRA210_ADX_AXBAR_TX2_CIF_CTRL, 0x00007000},
-	{ TEGRA210_ADX_AXBAR_TX3_CIF_CTRL, 0x00007000},
-	{ TEGRA210_ADX_AXBAR_TX4_CIF_CTRL, 0x00007000},
+	{ TEGRA210_ADX_RX_INT_MASK, 0x00000001},
+	{ TEGRA210_ADX_RX_CIF_CTRL, 0x00007000},
+	{ TEGRA210_ADX_TX_INT_MASK, 0x0000000f },
+	{ TEGRA210_ADX_TX1_CIF_CTRL, 0x00007000},
+	{ TEGRA210_ADX_TX2_CIF_CTRL, 0x00007000},
+	{ TEGRA210_ADX_TX3_CIF_CTRL, 0x00007000},
+	{ TEGRA210_ADX_TX4_CIF_CTRL, 0x00007000},
 	{ TEGRA210_ADX_CG, 0x1},
-	{ TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, 0x00004000},
+	{ TEGRA210_ADX_CFG_RAM_CTRL, 0x00004000},
 };
 
 /**
@@ -116,20 +116,20 @@ static void tegra210_adx_write_map_ram(struct tegra210_adx *adx,
 {
 	unsigned int reg;
 
-	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL,
-		 (addr << TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL_RAM_ADDR_SHIFT));
+	regmap_write(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL,
+		 (addr << TEGRA210_ADX_CFG_RAM_CTRL_RAM_ADDR_SHIFT));
 
-	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_DATA, val);
+	regmap_write(adx->regmap, TEGRA210_ADX_CFG_RAM_DATA, val);
 
-	regmap_read(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, &reg);
-	reg |= TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL_ADDR_INIT_EN;
+	regmap_read(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL, &reg);
+	reg |= TEGRA210_ADX_CFG_RAM_CTRL_ADDR_INIT_EN;
 
-	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, reg);
+	regmap_write(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL, reg);
 
-	regmap_read(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, &reg);
-	reg |= TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL_RW_WRITE;
+	regmap_read(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL, &reg);
+	reg |= TEGRA210_ADX_CFG_RAM_CTRL_RW_WRITE;
 
-	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, reg);
+	regmap_write(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL, reg);
 }
 
 static void tegra210_adx_update_map_ram(struct tegra210_adx *adx)
@@ -182,23 +182,23 @@ static unsigned int __maybe_unused
 	unsigned int val;
 	int err;
 
-	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL,
-			(addr << TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL_RAM_ADDR_SHIFT));
+	regmap_write(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL,
+			(addr << TEGRA210_ADX_CFG_RAM_CTRL_RAM_ADDR_SHIFT));
 
-	regmap_read(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, &val);
-	val |= TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL_ADDR_INIT_EN;
-	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, val);
-	regmap_read(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, &val);
-	val &= ~(TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL_RW_WRITE);
-	regmap_write(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL, val);
+	regmap_read(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL, &val);
+	val |= TEGRA210_ADX_CFG_RAM_CTRL_ADDR_INIT_EN;
+	regmap_write(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL, val);
+	regmap_read(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL, &val);
+	val &= ~(TEGRA210_ADX_CFG_RAM_CTRL_RW_WRITE);
+	regmap_write(adx->regmap, TEGRA210_ADX_CFG_RAM_CTRL, val);
 
 	err = regmap_read_poll_timeout(adx->regmap,
-				       TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL,
+				       TEGRA210_ADX_CFG_RAM_CTRL,
 				       val, !(val & 0x80000000), 10, 10000);
 	if (err < 0)
 		return err;
 
-	regmap_read(adx->regmap, TEGRA210_ADX_AHUBRAMCTL_ADX_DATA, &val);
+	regmap_read(adx->regmap, TEGRA210_ADX_CFG_RAM_DATA, &val);
 
 	return val;
 }
@@ -279,7 +279,7 @@ static int tegra210_adx_out_hw_params(struct snd_pcm_substream *substream,
 		channels = params_channels(params);
 
 	return tegra210_adx_set_audio_cif(dai, channels, params_format(params),
-			TEGRA210_ADX_AXBAR_TX1_CIF_CTRL +
+			TEGRA210_ADX_TX1_CIF_CTRL +
 			(dai->id * TEGRA210_ADX_AUDIOCIF_CH_STRIDE));
 }
 
@@ -320,7 +320,7 @@ static int tegra210_adx_in_hw_params(struct snd_pcm_substream *substream,
 		channels = params_channels(params);
 
 	return tegra210_adx_set_audio_cif(dai, channels, params_format(params),
-					  TEGRA210_ADX_AXBAR_RX_CIF_CTRL);
+					  TEGRA210_ADX_RX_CIF_CTRL);
 }
 
 static int tegra210_adx_set_channel_map(struct snd_soc_dai *dai,
@@ -639,26 +639,11 @@ static bool tegra210_adx_wr_reg(struct device *dev,
 				unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_ADX_AXBAR_TX_INT_MASK:
-	case TEGRA210_ADX_AXBAR_TX_INT_SET:
-	case TEGRA210_ADX_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_ADX_AXBAR_TX1_CIF_CTRL:
-	case TEGRA210_ADX_AXBAR_TX2_CIF_CTRL:
-	case TEGRA210_ADX_AXBAR_TX3_CIF_CTRL:
-	case TEGRA210_ADX_AXBAR_TX4_CIF_CTRL:
-	case TEGRA210_ADX_AXBAR_RX_INT_MASK:
-	case TEGRA210_ADX_AXBAR_RX_INT_SET:
-	case TEGRA210_ADX_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_ADX_AXBAR_RX_CIF_CTRL:
-	case TEGRA210_ADX_ENABLE:
-	case TEGRA210_ADX_SOFT_RESET:
-	case TEGRA210_ADX_CG:
-	case TEGRA210_ADX_CTRL:
-	case TEGRA210_ADX_IN_BYTE_EN0:
-	case TEGRA210_ADX_IN_BYTE_EN1:
-	case TEGRA210_ADX_CYA:
-	case TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL:
-	case TEGRA210_ADX_AHUBRAMCTL_ADX_DATA:
+	case TEGRA210_ADX_TX_INT_MASK ... TEGRA210_ADX_TX4_CIF_CTRL:
+	case TEGRA210_ADX_RX_INT_MASK ... TEGRA210_ADX_RX_CIF_CTRL:
+	case TEGRA210_ADX_ENABLE ... TEGRA210_ADX_CG:
+	case TEGRA210_ADX_CTRL ... TEGRA210_ADX_CYA:
+	case TEGRA210_ADX_CFG_RAM_CTRL ... TEGRA210_ADX_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
@@ -669,32 +654,7 @@ static bool tegra210_adx_rd_reg(struct device *dev,
 				unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_ADX_AXBAR_RX_STATUS:
-	case TEGRA210_ADX_AXBAR_RX_INT_STATUS:
-	case TEGRA210_ADX_AXBAR_RX_INT_MASK:
-	case TEGRA210_ADX_AXBAR_RX_INT_SET:
-	case TEGRA210_ADX_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_ADX_AXBAR_RX_CIF_CTRL:
-	case TEGRA210_ADX_AXBAR_TX_STATUS:
-	case TEGRA210_ADX_AXBAR_TX_INT_STATUS:
-	case TEGRA210_ADX_AXBAR_TX_INT_MASK:
-	case TEGRA210_ADX_AXBAR_TX_INT_SET:
-	case TEGRA210_ADX_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_ADX_AXBAR_TX1_CIF_CTRL:
-	case TEGRA210_ADX_AXBAR_TX2_CIF_CTRL:
-	case TEGRA210_ADX_AXBAR_TX3_CIF_CTRL:
-	case TEGRA210_ADX_AXBAR_TX4_CIF_CTRL:
-	case TEGRA210_ADX_ENABLE:
-	case TEGRA210_ADX_SOFT_RESET:
-	case TEGRA210_ADX_CG:
-	case TEGRA210_ADX_STATUS:
-	case TEGRA210_ADX_INT_STATUS:
-	case TEGRA210_ADX_CTRL:
-	case TEGRA210_ADX_IN_BYTE_EN0:
-	case TEGRA210_ADX_IN_BYTE_EN1:
-	case TEGRA210_ADX_CYA:
-	case TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL:
-	case TEGRA210_ADX_AHUBRAMCTL_ADX_DATA:
+	case TEGRA210_ADX_RX_STATUS ... TEGRA210_ADX_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
@@ -705,17 +665,17 @@ static bool tegra210_adx_volatile_reg(struct device *dev,
 				unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_ADX_AXBAR_RX_STATUS:
-	case TEGRA210_ADX_AXBAR_RX_INT_STATUS:
-	case TEGRA210_ADX_AXBAR_RX_INT_SET:
-	case TEGRA210_ADX_AXBAR_TX_STATUS:
-	case TEGRA210_ADX_AXBAR_TX_INT_STATUS:
-	case TEGRA210_ADX_AXBAR_TX_INT_SET:
+	case TEGRA210_ADX_RX_STATUS:
+	case TEGRA210_ADX_RX_INT_STATUS:
+	case TEGRA210_ADX_RX_INT_SET:
+	case TEGRA210_ADX_TX_STATUS:
+	case TEGRA210_ADX_TX_INT_STATUS:
+	case TEGRA210_ADX_TX_INT_SET:
 	case TEGRA210_ADX_SOFT_RESET:
 	case TEGRA210_ADX_STATUS:
 	case TEGRA210_ADX_INT_STATUS:
-	case TEGRA210_ADX_AHUBRAMCTL_ADX_CTRL:
-	case TEGRA210_ADX_AHUBRAMCTL_ADX_DATA:
+	case TEGRA210_ADX_CFG_RAM_CTRL:
+	case TEGRA210_ADX_CFG_RAM_DATA:
 		return true;
 	default:
 		break;
@@ -728,7 +688,7 @@ static const struct regmap_config tegra210_adx_regmap_config = {
 	.reg_bits = 32,
 	.reg_stride = 4,
 	.val_bits = 32,
-	.max_register = TEGRA210_ADX_AHUBRAMCTL_ADX_DATA,
+	.max_register = TEGRA210_ADX_CFG_RAM_DATA,
 	.writeable_reg = tegra210_adx_wr_reg,
 	.readable_reg = tegra210_adx_rd_reg,
 	.volatile_reg = tegra210_adx_volatile_reg,
