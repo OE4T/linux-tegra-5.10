@@ -237,9 +237,9 @@ static int tegra210_mvc_get_format(struct snd_kcontrol *kcontrol,
 	struct tegra210_mvc *mvc = snd_soc_component_get_drvdata(cmpnt);
 
 	/* get the format control flag */
-	if (strstr(kcontrol->id.name, "input bit format"))
+	if (strstr(kcontrol->id.name, "Audio Bit Format"))
 		ucontrol->value.integer.value[0] = mvc->format_in;
-	else if (strstr(kcontrol->id.name, "Channels"))
+	else if (strstr(kcontrol->id.name, "Audio Channels"))
 		ucontrol->value.integer.value[0] = mvc->cif_channels;
 
 	return 0;
@@ -253,9 +253,9 @@ static int tegra210_mvc_put_format(struct snd_kcontrol *kcontrol,
 	unsigned int value = ucontrol->value.integer.value[0];
 
 	/* set the format control flag */
-	if (strstr(kcontrol->id.name, "input bit format"))
+	if (strstr(kcontrol->id.name, "Audio Bit Format"))
 		mvc->format_in = value;
-	else if (strstr(kcontrol->id.name, "Channels"))
+	else if (strstr(kcontrol->id.name, "Audio Channels"))
 		mvc->cif_channels = value;
 
 	return 0;
@@ -411,7 +411,7 @@ static const struct soc_enum tegra210_mvc_format_enum =
 		tegra210_mvc_format_text);
 
 static const struct snd_kcontrol_new tegra210_mvc_vol_ctrl[] = {
-	SOC_SINGLE_EXT("Vol", TEGRA210_MVC_TARGET_VOL, 0, 16000, 0,
+	SOC_SINGLE_EXT("Volume", TEGRA210_MVC_TARGET_VOL, 0, 16000, 0,
 		tegra210_mvc_get_vol, tegra210_mvc_put_vol),
 	SOC_SINGLE_EXT("Mute", TEGRA210_MVC_CTRL, 0, 1, 0,
 		tegra210_mvc_get_vol, tegra210_mvc_put_vol),
@@ -419,9 +419,9 @@ static const struct snd_kcontrol_new tegra210_mvc_vol_ctrl[] = {
 		tegra210_mvc_get_curve_type, tegra210_mvc_put_curve_type),
 	SOC_SINGLE_EXT("Bits", 0, 0, 32, 0,
 		tegra210_mvc_get_audio_bits, tegra210_mvc_put_audio_bits),
-	SOC_SINGLE_EXT("Channels", 0, 0, 8, 0,
+	SOC_SINGLE_EXT("Audio Channels", 0, 0, 8, 0,
 		tegra210_mvc_get_format, tegra210_mvc_put_format),
-	SOC_ENUM_EXT("input bit format", tegra210_mvc_format_enum,
+	SOC_ENUM_EXT("Audio Bit Format", tegra210_mvc_format_enum,
 		tegra210_mvc_get_format, tegra210_mvc_put_format),
 };
 
