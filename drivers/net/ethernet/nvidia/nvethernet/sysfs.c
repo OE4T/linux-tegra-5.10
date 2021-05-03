@@ -1939,6 +1939,76 @@ static DEVICE_ATTR(macsec_irq_stats, (S_IRUGO | S_IWUSR),
 #endif /* MACSEC_SUPPORT */
 
 /**
+ * @brief Shows the current driver setting for UPHY GBE mocd
+ *
+ * Algorithm: Display the current PTP mode setting.
+ *
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer to store the current PTP mode
+ *
+ * @note MAC and PHY need to be initialized.
+ */
+static ssize_t ether_uphy_gbe_mode_show(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+			(osi_core->uphy_gbe_mode == OSI_ENABLE) ?
+			"10G" : "5G");
+}
+
+/**
+ * @brief Set the user setting of UPHY GBE mode.
+ *
+ * Algorithm: This is used to set the user mode settings of UPHY GBE mode
+ * @param[in] dev: Device data.
+ * @param[in] attr: Device attribute
+ * @param[in] buf: Buffer which contains the user settings of UPHY GBE mode
+ * @param[in] size: size of buffer
+ *
+ * @note MAC and PHY need to be initialized.
+ *
+ * @return size of buffer.
+ */
+static ssize_t ether_uphy_gbe_mode_store(struct device *dev,
+					 struct device_attribute *attr,
+					 const char *buf, size_t size)
+{
+	struct net_device *ndev = (struct net_device *)dev_get_drvdata(dev);
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+
+	if (netif_running(ndev)) {
+		dev_err(pdata->dev, "Not Allowed. Ether interface is up\n");
+		return size;
+	}
+
+	if (strncmp(buf, "10G", 3) == 0U) {
+		osi_core->uphy_gbe_mode = OSI_ENABLE;
+	} else if (strncmp(buf, "5G", 2) == 0U) {
+		osi_core->uphy_gbe_mode = OSI_DISABLE;
+	} else {
+		dev_err(pdata->dev,
+			"Invalid value passed. Valid values are 10G or 5G\n");
+	}
+
+	return size;
+}
+
+/**
+ * @brief Sysfs attribute for UPHY GBE Mode
+ *
+ */
+static DEVICE_ATTR(uphy_gbe_mode, (S_IRUGO | S_IWUSR),
+		   ether_uphy_gbe_mode_show,
+		   ether_uphy_gbe_mode_store);
+
+/**
  * @brief Sysfs attribute for MAC loopback
  *
  */
@@ -2163,6 +2233,7 @@ static struct attribute *ether_sysfs_attrs[] = {
 	&dev_attr_macsec_dbg_buffers.attr,
 	&dev_attr_macsec_dbg_events.attr,
 #endif /* MACSEC_SUPPORT */
+	&dev_attr_uphy_gbe_mode.attr,
 	NULL
 };
 
