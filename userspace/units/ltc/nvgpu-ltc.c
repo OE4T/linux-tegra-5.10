@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr.h>
 #include <hal/ltc/intr/ltc_intr_gv11b.h>
+#include <nvgpu/vm.h>
 
 #include "nvgpu-ltc.h"
 
@@ -100,6 +101,8 @@ int test_ltc_init_support(struct unit_module *m,
 	struct nvgpu_ltc *save_ptr;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 			nvgpu_kmem_get_fault_injection();
+	struct mm_gk20a *mm = &g->mm;
+	u64 low_hole;
 
 	if (nvgpu_posix_io_add_reg_space(g, mc_boot_0_r(), 0xfff) != 0) {
 		unit_err(m, "%s: failed to create register space\n", __func__);
@@ -237,6 +240,20 @@ int test_ltc_init_support(struct unit_module *m,
 	err = g->ops.ltc.init_ltc_support(g);
 	if (err != 0) {
 		unit_return_fail(m, "g->ops.ltc.init_ltc_support failed\n");
+	}
+
+	low_hole = SZ_4K * 16UL;
+	mm->bar1.aperture_size = 16 << 20;
+	mm->bar1.vm = nvgpu_vm_init(g,
+			g->ops.mm.gmmu.get_default_big_page_size(),
+			low_hole,
+			0ULL,
+			nvgpu_safe_sub_u64(mm->bar1.aperture_size, low_hole),
+			0ULL,
+			true, false, false,
+			"bar1");
+	if (mm->bar1.vm == NULL) {
+		unit_return_fail(m, "nvgpu_vm_init failed\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -396,6 +413,7 @@ int test_ltc_remove_support(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	g->ops.ltc.ltc_remove_support(g);
+	nvgpu_vm_put(g->mm.bar1.vm);
 
 	return UNIT_SUCCESS;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -337,8 +337,7 @@ int test_gk20a_mm_l2_flush(struct unit_module *m, struct gk20a *g, void *args)
 	err = gk20a_mm_l2_flush(g, invalidate);
 
 	if ((branch == F_GK20A_L2_FLUSH_PENDING_TRUE) ||
-		(branch == F_GK20A_L2_FLUSH_OUTSTANDING_TRUE) ||
-		(branch == F_GK20A_L2_FLUSH_NVGPU_POWERED_OFF)) {
+		(branch == F_GK20A_L2_FLUSH_OUTSTANDING_TRUE)) {
 		unit_assert(err != 0, goto done);
 	} else {
 		unit_assert(err == 0, goto done);

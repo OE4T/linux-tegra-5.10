@@ -516,9 +516,19 @@ int test_mm_init_hal(struct unit_module *m, struct gk20a *g, void *args)
 	return UNIT_SUCCESS;
 }
 
+static int stub_mm_l2_flush(struct gk20a *g, bool invalidate)
+{
+	return -ETIMEDOUT;
+}
+
 int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int err;
+	int (*save_func)(struct gk20a *g, bool inv);
+
+	/* Allow l2_flush failure by stubbing the call. */
+	save_func = g->ops.mm.cache.l2_flush;
+	g->ops.mm.cache.l2_flush = stub_mm_l2_flush;
 
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_OFF);
 	err = nvgpu_mm_suspend(g);
@@ -526,6 +536,9 @@ int test_mm_suspend(struct unit_module *m, struct gk20a *g, void *args)
 		unit_return_fail(m, "suspend did not fail as expected err=%d\n",
 				err);
 	}
+
+	/* restore original l2_flush method */
+	g->ops.mm.cache.l2_flush = save_func;
 
 	nvgpu_set_power_state(g, NVGPU_STATE_POWERED_ON);
 	err = nvgpu_mm_suspend(g);

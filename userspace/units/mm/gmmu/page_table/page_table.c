@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -350,6 +350,19 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.get_default_va_sizes(NULL, &mm->channel.user_size,
 		&mm->channel.kernel_size);
 
+	mm->bar1.aperture_size = bar1_aperture_size_mb_gk20a() << 20;
+	mm->bar1.vm = nvgpu_vm_init(g,
+			g->ops.mm.gmmu.get_default_big_page_size(),
+			low_hole,
+			0ULL,
+			nvgpu_safe_sub_u64(mm->bar1.aperture_size, low_hole),
+			0ULL,
+			true, false, false,
+			"bar1");
+	if (mm->bar1.vm == NULL) {
+		unit_return_fail(m, "nvgpu_vm_init failed\n");
+	}
+
 	mm->pmu.vm = nvgpu_vm_init(g,
 				   g->ops.mm.gmmu.get_default_big_page_size(),
 				   low_hole,
@@ -399,6 +412,7 @@ int test_nvgpu_gmmu_clean(struct unit_module *m, struct gk20a *g, void *args)
 {
 	g->log_mask = 0;
 	nvgpu_vm_put(g->mm.pmu.vm);
+	nvgpu_vm_put(g->mm.bar1.vm);
 
 	return UNIT_SUCCESS;
 }

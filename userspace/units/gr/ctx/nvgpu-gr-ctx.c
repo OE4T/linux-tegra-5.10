@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,7 @@ int test_gr_ctx_error_injection(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
 	int err;
+	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm;
 	struct nvgpu_gr_ctx_desc *desc;
 	struct nvgpu_gr_global_ctx_buffer_desc *global_desc;
@@ -55,6 +56,7 @@ int test_gr_ctx_error_injection(struct unit_module *m,
 		nvgpu_dma_alloc_get_fault_injection();
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
+	u64 low_hole = SZ_4K * 16UL;
 
 	desc = nvgpu_gr_ctx_desc_alloc(g);
 	if (!desc) {
@@ -67,6 +69,19 @@ int test_gr_ctx_error_injection(struct unit_module *m,
 		false, false, false, "dummy");
 	if (!vm) {
 		unit_return_fail(m, "failed to allocate VM");
+	}
+
+	mm->bar1.aperture_size = 16 << 20;
+	mm->bar1.vm = nvgpu_vm_init(g,
+			g->ops.mm.gmmu.get_default_big_page_size(),
+			low_hole,
+			0ULL,
+			nvgpu_safe_sub_u64(mm->bar1.aperture_size, low_hole),
+			0ULL,
+			true, false, false,
+			"bar1");
+	if (mm->bar1.vm == NULL) {
+		unit_return_fail(m, "nvgpu_vm_init failed\n");
 	}
 
 	/* Try to free gr_ctx before it is allocated. */
@@ -215,6 +230,7 @@ int test_gr_ctx_error_injection(struct unit_module *m,
 	nvgpu_free_gr_ctx_struct(g, gr_ctx);
 	nvgpu_gr_ctx_desc_free(g, desc);
 	nvgpu_vm_put(vm);
+	nvgpu_vm_put(g->mm.bar1.vm);
 
 	return UNIT_SUCCESS;
 }

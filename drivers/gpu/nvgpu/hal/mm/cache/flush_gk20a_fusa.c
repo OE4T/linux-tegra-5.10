@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -174,7 +174,8 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 
 	gk20a_busy_noresume(g);
 	if (nvgpu_is_powered_off(g)) {
-		goto hw_was_off;
+		gk20a_idle_nosuspend(g);
+		return 0;
 	}
 
 	if (g->ops.mm.get_flush_retries != NULL) {
@@ -220,8 +221,6 @@ int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 	}
 
 	nvgpu_mutex_release(&mm->l2_op_lock);
-
-hw_was_off:
 	gk20a_idle_nosuspend(g);
 
 	return err;

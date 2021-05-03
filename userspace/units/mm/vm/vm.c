@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -197,6 +197,7 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.init_inst_block = hal_mm_init_inst_block;
 	g->ops.mm.vm_as_free_share = hal_vm_as_free_share;
 	g->ops.mm.vm_bind_channel = nvgpu_vm_bind_channel;
+	g->ops.bus.bar1_bind = NULL;
 
 	if (nvgpu_pd_cache_init(g) != 0) {
 		unit_return_fail(m, "PD cache init failed.\n");
