@@ -218,7 +218,17 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 	xpcs_write(xpcs_base, XPCS_SR_XS_PCS_CTRL2, ctrl);
 
 	/* 2. enable USXGMII Mode inside DWC_xpcs */
+
 	/* 3.  USXG_MODE = 10G - default it will be 10G mode */
+	ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_KR_CTRL);
+	ctrl &= ~(XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_MASK);
+
+	if (osi_core->uphy_gbe_mode == OSI_DISABLE) {
+		ctrl |= XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_5G;
+	}
+
+	xpcs_write(xpcs_base, XPCS_VR_XS_PCS_KR_CTRL, ctrl);
+
 	/* 4. Program PHY to operate at 10Gbps/5Gbps/2Gbps
          * this step not required since PHY speed programming
          * already done as part of phy INIT

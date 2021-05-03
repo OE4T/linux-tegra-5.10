@@ -39,6 +39,7 @@
 #define XPCS_SR_XS_PCS_EEE_ABL			0xC0050
 #define XPCS_SR_XS_PCS_EEE_ABL2			0xC0054
 #define XPCS_VR_XS_PCS_DIG_CTRL1		0xE0000
+#define XPCS_VR_XS_PCS_KR_CTRL			0xE001C
 #define XPCS_SR_AN_CTRL				0x1C0000
 #define XPCS_SR_MII_CTRL			0x7C0000
 #define XPCS_VR_MII_AN_INTR_STS			0x7E0008
@@ -74,6 +75,10 @@
 #define XPCS_REG_ADDR_SHIFT			10U
 #define XPCS_REG_ADDR_MASK			0x1FFFU
 #define XPCS_REG_VALUE_MASK			0xFFU
+#define XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_MASK	(OSI_BIT(12) | \
+						 OSI_BIT(11) | \
+						 OSI_BIT(10))
+#define XPCS_VR_XS_PCS_KR_CTRL_USXG_MODE_5G	OSI_BIT(10)
 /** @} */
 
 int xpcs_init(struct osi_core_priv_data *osi_core);
