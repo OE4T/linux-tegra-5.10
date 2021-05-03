@@ -25,6 +25,16 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_init.h>
+#include <nvgpu/power_features/cg.h>
+
+int nvgpu_ptimer_init(struct gk20a *g)
+{
+#if defined(CONFIG_NVGPU_NEXT)
+	nvgpu_cg_slcg_timer_load_enable(g);
+#endif
+
+	return 0;
+}
 
 int nvgpu_get_timestamps_zipper(struct gk20a *g,
 		u32 source_id, u32 count,

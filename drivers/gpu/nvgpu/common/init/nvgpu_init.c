@@ -43,6 +43,9 @@
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/hal_init.h>
+#ifdef CONFIG_NVGPU_NON_FUSA
+#include <nvgpu/ptimer.h>
+#endif
 
 #ifdef CONFIG_NVGPU_LS_PMU
 #include <nvgpu/pmu/pmu_pstate.h>
@@ -614,6 +617,9 @@ static int nvgpu_early_init(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(g->ops.bus.init_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.priv_ring.enable_priv_ring,
 				   NO_FLAG),
+#ifdef CONFIG_NVGPU_NON_FUSA
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_ptimer_init, NO_FLAG),
+#endif
 		/* TBD: move this after graphics init in which blcg/slcg is
 		 * enabled. This function removes SlowdownOnBoot which applies
 		 * 32x divider on gpcpll bypass path. The purpose of slowdown is

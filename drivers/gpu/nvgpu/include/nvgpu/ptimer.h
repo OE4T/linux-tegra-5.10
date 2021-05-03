@@ -120,5 +120,6 @@ static inline u32 scale_ptimer(u32 timeout , u32 scale10x)
 int nvgpu_get_timestamps_zipper(struct gk20a *g,
 		u32 source_id, u32 count,
 		struct nvgpu_cpu_time_correlation_sample *samples);
+int nvgpu_ptimer_init(struct gk20a *g);
 #endif /* CONFIG_NVGPU_IOCTL_NON_FUSA */
 #endif

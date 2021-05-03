@@ -479,7 +479,9 @@ void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable);
 void nvgpu_cg_slcg_gr_perf_ltc_load_enable(struct gk20a *g);
 void nvgpu_cg_slcg_gr_perf_ltc_load_disable(struct gk20a *g);
 void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable);
-
+#if defined(CONFIG_NVGPU_NEXT)
+void nvgpu_cg_slcg_timer_load_enable(struct gk20a *g);
+#endif
 #endif
 
 #ifdef CONFIG_NVGPU_PROFILER

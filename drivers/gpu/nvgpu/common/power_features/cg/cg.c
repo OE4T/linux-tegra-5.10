@@ -290,6 +290,23 @@ done:
 	nvgpu_mutex_release(&g->cg_pg_lock);
 }
 
+#if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
+void nvgpu_cg_slcg_timer_load_enable(struct gk20a *g)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_mutex_acquire(&g->cg_pg_lock);
+	if (!g->slcg_enabled) {
+		goto done;
+	}
+	if (g->ops.cg.slcg_timer_load_gating_prod != NULL) {
+		g->ops.cg.slcg_timer_load_gating_prod(g, true);
+	}
+done:
+	nvgpu_mutex_release(&g->cg_pg_lock);
+}
+#endif
+
 #ifdef CONFIG_NVGPU_PROFILER
 void nvgpu_cg_slcg_perf_load_enable(struct gk20a *g, bool enable)
 {
@@ -601,6 +618,9 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 #if defined(CONFIG_NVGPU_HAL_NON_FUSA) && defined(CONFIG_NVGPU_NEXT)
 	if (g->ops.cg.slcg_runlist_load_gating_prod != NULL) {
 		g->ops.cg.slcg_runlist_load_gating_prod(g, enable);
+	}
+	if (g->ops.cg.slcg_timer_load_gating_prod != NULL) {
+		g->ops.cg.slcg_timer_load_gating_prod(g, enable);
 	}
 #endif
 	if (g->ops.cg.slcg_gr_load_gating_prod != NULL) {
