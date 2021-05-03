@@ -1144,4 +1144,13 @@
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_DCE>;
 		status = "disabled";
 	};
+
+	tegra_cec: tegra_cec {
+		compatible = "nvidia,tegra234-cec";
+		reg = <0x0 0x0c3e0000 0x0 0x00001000>;
+		interrupts = <0 279 0x04>;
+		resets = <&bpmp_resets TEGRA234_RESET_CEC>;
+		reset-names = "cec";
+		status = "disabled";
+	};
 };
