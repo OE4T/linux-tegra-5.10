@@ -23,10 +23,10 @@
 #include "tegra_cif.h"
 
 static const struct reg_default tegra210_mvc_reg_defaults[] = {
-	{ TEGRA210_MVC_AXBAR_RX_INT_MASK, 0x00000001},
-	{ TEGRA210_MVC_AXBAR_RX_CIF_CTRL, 0x00007700},
-	{ TEGRA210_MVC_AXBAR_TX_INT_MASK, 0x00000001},
-	{ TEGRA210_MVC_AXBAR_TX_CIF_CTRL, 0x00007700},
+	{ TEGRA210_MVC_RX_INT_MASK, 0x00000001},
+	{ TEGRA210_MVC_RX_CIF_CTRL, 0x00007700},
+	{ TEGRA210_MVC_TX_INT_MASK, 0x00000001},
+	{ TEGRA210_MVC_TX_CIF_CTRL, 0x00007700},
 	{ TEGRA210_MVC_CG, 0x1},
 	{ TEGRA210_MVC_CTRL, 0x40000001},
 	{ TEGRA210_MVC_INIT_VOL, 0x00800000},
@@ -36,7 +36,7 @@ static const struct reg_default tegra210_mvc_reg_defaults[] = {
 	{ TEGRA210_MVC_POLY_N1, 0x0000007d},
 	{ TEGRA210_MVC_POLY_N2, 0x00000271},
 	{ TEGRA210_MVC_PEAK_CTRL, 0x000012c0},
-	{ TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL, 0x00004000},
+	{ TEGRA210_MVC_CFG_RAM_CTRL, 0x00004000},
 };
 
 static int tegra210_mvc_runtime_suspend(struct device *dev)
@@ -69,19 +69,19 @@ static int tegra210_mvc_write_ram(struct tegra210_mvc *mvc,
 	int err;
 
 	err = regmap_read_poll_timeout(mvc->regmap,
-				       TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL,
+				       TEGRA210_MVC_CFG_RAM_CTRL,
 				       val, !(val & 0x80000000), 10, 10000);
 	if (err < 0)
 		return err;
 
-	reg = (addr << TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RAM_ADDR_SHIFT) &
-	      TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RAM_ADDR_MASK;
-	reg |= TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_ADDR_INIT_EN;
-	reg |= TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_RW_WRITE;
-	reg |= TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL_SEQ_ACCESS_EN;
+	reg = (addr << TEGRA210_MVC_CFG_RAM_CTRL_ADDR_SHIFT) &
+	      TEGRA210_MVC_CFG_RAM_CTRL_ADDR_MASK;
+	reg |= TEGRA210_MVC_CFG_RAM_CTRL_ADDR_INIT_EN;
+	reg |= TEGRA210_MVC_CFG_RAM_CTRL_RW_WRITE;
+	reg |= TEGRA210_MVC_CFG_RAM_CTRL_SEQ_ACCESS_EN;
 
-	regmap_write(mvc->regmap, TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL, reg);
-	regmap_write(mvc->regmap, TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_DATA,
+	regmap_write(mvc->regmap, TEGRA210_MVC_CFG_RAM_CTRL, reg);
+	regmap_write(mvc->regmap, TEGRA210_MVC_CFG_RAM_DATA,
 		     coef);
 
 	return 0;
@@ -303,7 +303,7 @@ static int tegra210_mvc_set_audio_cif(struct tegra210_mvc *mvc,
 	cif_conf.client_bits = audio_bits;
 
 	/* Override input format to MVC, if set */
-	if (mvc->format_in && (reg == TEGRA210_MVC_AXBAR_RX_CIF_CTRL))
+	if (mvc->format_in && (reg == TEGRA210_MVC_RX_CIF_CTRL))
 		cif_conf.audio_bits = tegra210_mvc_fmt_values[mvc->format_in];
 
 	tegra_set_cif(mvc->regmap, reg, &cif_conf);
@@ -330,14 +330,12 @@ static int tegra210_mvc_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	/* set RX cif and TX cif */
-	err = tegra210_mvc_set_audio_cif(mvc, params,
-				TEGRA210_MVC_AXBAR_RX_CIF_CTRL);
+	err = tegra210_mvc_set_audio_cif(mvc, params, TEGRA210_MVC_RX_CIF_CTRL);
 	if (err) {
 		dev_err(dev, "Can't set MVC RX CIF: %d\n", err);
 		return err;
 	}
-	err = tegra210_mvc_set_audio_cif(mvc, params,
-				TEGRA210_MVC_AXBAR_TX_CIF_CTRL);
+	err = tegra210_mvc_set_audio_cif(mvc, params, TEGRA210_MVC_TX_CIF_CTRL);
 	if (err) {
 		dev_err(dev, "Can't set MVC TX CIF: %d\n", err);
 		return err;
@@ -479,45 +477,24 @@ static struct snd_soc_component_driver tegra210_mvc_cmpnt = {
 	.num_controls = ARRAY_SIZE(tegra210_mvc_vol_ctrl),
 };
 
-static bool tegra210_mvc_wr_rd_reg(struct device *dev, unsigned int reg)
+static bool tegra210_mvc_rd_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_MVC_AXBAR_RX_STATUS:
-	case TEGRA210_MVC_AXBAR_RX_INT_STATUS:
-	case TEGRA210_MVC_AXBAR_RX_INT_MASK:
-	case TEGRA210_MVC_AXBAR_RX_INT_SET:
-	case TEGRA210_MVC_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_MVC_AXBAR_RX_CIF_CTRL:
-	case TEGRA210_MVC_AXBAR_RX_CYA:
-	case TEGRA210_MVC_AXBAR_RX_DBG:
-	case TEGRA210_MVC_AXBAR_TX_STATUS:
-	case TEGRA210_MVC_AXBAR_TX_INT_STATUS:
-	case TEGRA210_MVC_AXBAR_TX_INT_MASK:
-	case TEGRA210_MVC_AXBAR_TX_INT_SET:
-	case TEGRA210_MVC_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_MVC_AXBAR_TX_CIF_CTRL:
-	case TEGRA210_MVC_AXBAR_TX_CYA:
-	case TEGRA210_MVC_AXBAR_TX_DBG:
-	case TEGRA210_MVC_ENABLE:
-	case TEGRA210_MVC_SOFT_RESET:
-	case TEGRA210_MVC_CG:
-	case TEGRA210_MVC_STATUS:
-	case TEGRA210_MVC_INT_STATUS:
-	case TEGRA210_MVC_CTRL:
-	case TEGRA210_MVC_SWITCH:
-	case TEGRA210_MVC_INIT_VOL:
-	case TEGRA210_MVC_TARGET_VOL:
-	case TEGRA210_MVC_DURATION:
-	case TEGRA210_MVC_DURATION_INV:
-	case TEGRA210_MVC_POLY_N1:
-	case TEGRA210_MVC_POLY_N2:
-	case TEGRA210_MVC_PEAK_CTRL:
-	case TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL:
-	case TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_DATA:
-	case TEGRA210_MVC_PEAK_VALUE:
-	case TEGRA210_MVC_CONFIG_ERR_TYPE:
+	case TEGRA210_MVC_RX_STATUS ... TEGRA210_MVC_DBG:
+		return true;
+	default:
+		return false;
+	};
+}
+
+static bool tegra210_mvc_wr_reg(struct device *dev, unsigned int reg)
+{
+	switch (reg) {
+	case TEGRA210_MVC_RX_INT_MASK ... TEGRA210_MVC_RX_CYA:
+	case TEGRA210_MVC_TX_INT_MASK ... TEGRA210_MVC_TX_CYA:
+	case TEGRA210_MVC_ENABLE ... TEGRA210_MVC_CG:
+	case TEGRA210_MVC_CTRL ... TEGRA210_MVC_CFG_RAM_DATA:
 	case TEGRA210_MVC_CYA:
-	case TEGRA210_MVC_DBG:
 		return true;
 	default:
 		return false;
@@ -527,20 +504,20 @@ static bool tegra210_mvc_wr_rd_reg(struct device *dev, unsigned int reg)
 static bool tegra210_mvc_volatile_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_MVC_AXBAR_RX_STATUS:
-	case TEGRA210_MVC_AXBAR_RX_INT_STATUS:
-	case TEGRA210_MVC_AXBAR_RX_INT_SET:
+	case TEGRA210_MVC_RX_STATUS:
+	case TEGRA210_MVC_RX_INT_STATUS:
+	case TEGRA210_MVC_RX_INT_SET:
 
-	case TEGRA210_MVC_AXBAR_TX_STATUS:
-	case TEGRA210_MVC_AXBAR_TX_INT_STATUS:
-	case TEGRA210_MVC_AXBAR_TX_INT_SET:
+	case TEGRA210_MVC_TX_STATUS:
+	case TEGRA210_MVC_TX_INT_STATUS:
+	case TEGRA210_MVC_TX_INT_SET:
 
 	case TEGRA210_MVC_SOFT_RESET:
 	case TEGRA210_MVC_STATUS:
 	case TEGRA210_MVC_INT_STATUS:
 	case TEGRA210_MVC_SWITCH:
-	case TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_CTRL:
-	case TEGRA210_MVC_AHUBRAMCTL_CONFIG_RAM_DATA:
+	case TEGRA210_MVC_CFG_RAM_CTRL:
+	case TEGRA210_MVC_CFG_RAM_DATA:
 	case TEGRA210_MVC_PEAK_VALUE:
 		return true;
 	default:
@@ -553,8 +530,8 @@ static const struct regmap_config tegra210_mvc_regmap_config = {
 	.reg_stride = 4,
 	.val_bits = 32,
 	.max_register = TEGRA210_MVC_CYA,
-	.writeable_reg = tegra210_mvc_wr_rd_reg,
-	.readable_reg = tegra210_mvc_wr_rd_reg,
+	.writeable_reg = tegra210_mvc_wr_reg,
+	.readable_reg = tegra210_mvc_rd_reg,
 	.volatile_reg = tegra210_mvc_volatile_reg,
 	.reg_defaults = tegra210_mvc_reg_defaults,
 	.num_reg_defaults = ARRAY_SIZE(tegra210_mvc_reg_defaults),
