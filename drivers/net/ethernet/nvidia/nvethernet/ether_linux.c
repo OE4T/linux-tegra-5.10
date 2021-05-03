@@ -5028,6 +5028,14 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		return -EINVAL;
 	}
 
+	ret = of_property_read_u32(np, "nvidia,uphy-gbe-mode",
+				   &osi_core->uphy_gbe_mode);
+	if (ret < 0) {
+		dev_info(dev,
+			 "failed to read UPHY GBE mode - default to 10G\n");
+		osi_core->uphy_gbe_mode = OSI_ENABLE;
+	}
+
 	/* Enable VLAN strip by default */
 	osi_core->strip_vlan_tag = OSI_ENABLE;
 
