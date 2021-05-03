@@ -54,6 +54,12 @@ void *__nvmap_kmap(struct nvmap_handle *h, unsigned int pagenum)
 	h = nvmap_handle_get(h);
 	if (!h)
 		return NULL;
+	/*
+	 * If the handle is RO and virtual mapping is requested in
+	 * kernel address space, return error.
+	 */
+	if (h->from_va && h->is_ro)
+		goto put_handle;
 
 	if (!h->alloc)
 		goto put_handle;
@@ -135,6 +141,13 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 	h = nvmap_handle_get(h);
 	if (!h)
 		return NULL;
+	/*
+	 * If the handle is RO and virtual mapping is requested in
+	 * kernel address space, return error.
+	 */
+	if (h->from_va && h->is_ro)
+		goto put_handle;
+
 
 	if (!h->alloc)
 		goto put_handle;
