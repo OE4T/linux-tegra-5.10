@@ -1166,6 +1166,8 @@ struct osi_core_priv_data {
 	struct osi_tsn_stats tsn_stats;
 	/** MC packets Multiple DMA channel selection flags */
 	nveu32_t mc_dmasel;
+	/** UPHY GBE mode (1 for 10G, 0 for 5G) */
+	nveu32_t uphy_gbe_mode;
 };
 
 /**
