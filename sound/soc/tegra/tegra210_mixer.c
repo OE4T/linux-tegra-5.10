@@ -120,7 +120,7 @@ static int tegra210_mixer_put_format(struct snd_kcontrol *kcontrol,
 	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
 	int value = ucontrol->value.integer.value[0];
 
-	if (strstr(kcontrol->id.name, "Channels")) {
+	if (strstr(kcontrol->id.name, "Audio Channels")) {
 		if (value >= 0 && value <= 8)
 			mixer->channels_via_control[mc->reg - 1] = value;
 		else
@@ -138,7 +138,7 @@ static int tegra210_mixer_get_format(struct snd_kcontrol *kcontrol,
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_mixer *mixer = snd_soc_component_get_drvdata(cmpnt);
 
-	if (strstr(kcontrol->id.name, "Channels"))
+	if (strstr(kcontrol->id.name, "Audio Channels"))
 		ucontrol->value.integer.value[0] =
 			mixer->channels_via_control[mc->reg - 1];
 
@@ -403,35 +403,35 @@ static const struct snd_kcontrol_new tegra210_mixer_gain_ctls[] = {	\
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
 	SOC_SINGLE_EXT("RX10 Gain Instant", MIXER_GAIN_CFG_RAM_ADDR(9), 0,
 		0x20000, 0, tegra210_mixer_get_gain, tegra210_mixer_put_gain),
-	SOC_SINGLE_EXT("RX1 Channels", 1, 0, 8, 0,
+	SOC_SINGLE_EXT("RX1 Audio Channels", 1, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX2 Channels", 2, 0, 8, 0,
+	SOC_SINGLE_EXT("RX2 Audio Channels", 2, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX3 Channels", 3, 0, 8, 0,
+	SOC_SINGLE_EXT("RX3 Audio Channels", 3, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX4 Channels", 4, 0, 8, 0,
+	SOC_SINGLE_EXT("RX4 Audio Channels", 4, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX5 Channels", 5, 0, 8, 0,
+	SOC_SINGLE_EXT("RX5 Audio Channels", 5, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX6 Channels", 6, 0, 8, 0,
+	SOC_SINGLE_EXT("RX6 Audio Channels", 6, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX7 Channels", 7, 0, 8, 0,
+	SOC_SINGLE_EXT("RX7 Audio Channels", 7, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX8 Channels", 8, 0, 8, 0,
+	SOC_SINGLE_EXT("RX8 Audio Channels", 8, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX9 Channels", 9, 0, 8, 0,
+	SOC_SINGLE_EXT("RX9 Audio Channels", 9, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("RX10 Channels", 10, 0, 8, 0,
+	SOC_SINGLE_EXT("RX10 Audio Channels", 10, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX1 Channels", 11, 0, 8, 0,
+	SOC_SINGLE_EXT("TX1 Audio Channels", 11, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX2 Channels", 12, 0, 8, 0,
+	SOC_SINGLE_EXT("TX2 Audio Channels", 12, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX3 Channels", 13, 0, 8, 0,
+	SOC_SINGLE_EXT("TX3 Audio Channels", 13, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX4 Channels", 14, 0, 8, 0,
+	SOC_SINGLE_EXT("TX4 Audio Channels", 14, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
-	SOC_SINGLE_EXT("TX5 Channels", 15, 0, 8, 0,
+	SOC_SINGLE_EXT("TX5 Audio Channels", 15, 0, 8, 0,
 		tegra210_mixer_get_format, tegra210_mixer_put_format),
 	SOC_SINGLE("Mixer Enable", TEGRA210_MIXER_ENABLE, 0, 1, 0),
 };
