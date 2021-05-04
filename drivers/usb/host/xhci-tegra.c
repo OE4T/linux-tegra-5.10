@@ -4230,6 +4230,14 @@ static int tegra_xhci_hub_control(struct usb_hcd *hcd, u16 type_req,
 				(value == USB_PORT_FEAT_SUSPEND))
 			tegra_phy_xusb_utmi_pad_power_on(
 				tegra->phys[tegra->soc->ports.usb2.offset + port]);
+		if ((type_req == SetPortFeature) &&
+		    (value == USB_PORT_FEAT_RESET)) {
+			ports = rhub->ports;
+			portsc = readl(ports[port]->addr);
+			if (portsc & PORT_CONNECT)
+				tegra_phy_xusb_utmi_pad_power_on(
+					  tegra->phys[tegra->soc->ports.usb2.offset + port]);
+		}
 	}
 
 	ret = xhci_hub_control(hcd, type_req, value, index, buf, length);
@@ -4247,13 +4255,9 @@ static int tegra_xhci_hub_control(struct usb_hcd *hcd, u16 type_req,
 
 		if ((type_req == ClearPortFeature) &&
 				(value == USB_PORT_FEAT_C_CONNECTION)) {
-			rhub = xhci_get_rhub(hcd);
 			ports = rhub->ports;
 			portsc = readl(ports[port]->addr);
-			if (portsc & PORT_CONNECT)
-				tegra_phy_xusb_utmi_pad_power_on(
-					  tegra->phys[tegra->soc->ports.usb2.offset + port]);
-			else {
+			if (!(portsc & PORT_CONNECT)) {
 				/* We dont suspend the PAD while HNP
 				 * role swap happens on the OTG port
 				 */
