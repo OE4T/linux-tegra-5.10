@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,9 +20,6 @@
 #define SCEW_STREAMID_WRITE_ACCESS_DISABLED	BIT(16)
 #define SCEW_STREAMID_OVERRIDE			BIT(8)
 #define SCEW_NS					BIT(0)
-
-#define MC_SMMU_BYPASS_CONFIG_0			0x1820
-#define TBU_BYPASS_SID				2
 
 #define DEFREG(__name, __offset)		\
 	[__name] = {				\
@@ -67,11 +64,6 @@ int tegra_mc_sid_probe(struct platform_device *pdev,
 int tegra_mc_sid_remove(struct platform_device *pdev);
 int tegra_mc_sid_resume_early(struct device *dev);
 
-#ifdef CONFIG_NV_TEGRA_MC
-u32 tegra_mc_get_smmu_bypass_sid(void);
-#else
-static inline u32 tegra_mc_get_smmu_bypass_sid(void) { return 0x7f; }
-#endif
 const char *tegra_mc_get_sid_name(int sid);
 
 #endif

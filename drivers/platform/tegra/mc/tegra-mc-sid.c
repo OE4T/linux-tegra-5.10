@@ -1,7 +1,7 @@
 /*
  * MC StreamID configuration
  *
- * Copyright (c) 2015-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -40,8 +40,6 @@
 
 #define TO_MC_SID_STREAMID_SECURITY_CONFIG(addr)	(addr + sizeof(u32))
 
-#define SMMU_BYPASS_SID		0x7f
-
 static LIST_HEAD(sid_override_list);
 
 struct tegra_mc_sid_override {
@@ -55,23 +53,10 @@ struct tegra_mc_sid {
 	void __iomem *base;
 	void __iomem *sid_base;
 	const struct tegra_mc_sid_soc_data *soc_data;
-	u32 smmu_bypass_sid;
 	struct dentry *debugfs_root;
 };
 
 static struct tegra_mc_sid *mc_sid;
-
-/*
- * Return the by-pass-smmu StreamID.
- */
-u32 tegra_mc_get_smmu_bypass_sid(void)
-{
-	if (!mc_sid)
-		return SMMU_BYPASS_SID;
-
-	return mc_sid->smmu_bypass_sid;
-}
-EXPORT_SYMBOL(tegra_mc_get_smmu_bypass_sid);
 
 /*
  * Return a string with the name associated with the passed StreamID.
@@ -255,12 +240,6 @@ int tegra_mc_sid_probe(struct platform_device *pdev,
 		return PTR_ERR(addr);
 
 	mc_sid->sid_base = addr;
-
-	/* Read the bypass streamid. If not found, assign default value. */
-	if (of_property_read_u32(pdev->dev.of_node,
-				"nvidia,by-pass-smmu-streamid",
-				&mc_sid->smmu_bypass_sid))
-		mc_sid->smmu_bypass_sid = SMMU_BYPASS_SID;
 
 	tegra_mc_sid_create_debugfs();
 
