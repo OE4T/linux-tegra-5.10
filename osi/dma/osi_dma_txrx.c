@@ -26,7 +26,7 @@
 #include "../osi/common/common.h"
 #include "mgbe_dma.h"
 
-static struct desc_ops d_ops;
+static struct desc_ops d_ops[MAX_MAC_IP_TYPES];
 
 /**
  * @brief get_rx_err_stats - Detect Errors from Rx Descriptor
@@ -131,6 +131,7 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 	struct osi_rx_swcx *rx_swcx = OSI_NULL;
 	struct osi_rx_swcx *ptp_rx_swcx = OSI_NULL;
 	struct osi_rx_desc *context_desc = OSI_NULL;
+	nveu32_t ip_type = osi_dma->mac;
 	nve32_t received = 0;
 	nve32_t received_resv = 0;
 	nve32_t ret = 0;
@@ -214,22 +215,22 @@ nve32_t osi_process_rx_completions(struct osi_dma_priv_data *osi_dma,
 				 * are set
 				 */
 				rx_pkt_cx->flags &= ~OSI_PKT_CX_VALID;
-				d_ops.update_rx_err_stats(rx_desc,
+				d_ops[ip_type].update_rx_err_stats(rx_desc,
 						osi_dma->pkt_err_stats);
 			}
 
 			/* Check if COE Rx checksum is valid */
-			d_ops.get_rx_csum(rx_desc, rx_pkt_cx);
+			d_ops[ip_type].get_rx_csum(rx_desc, rx_pkt_cx);
 
 			/* Get Rx VLAN from descriptor */
-			d_ops.get_rx_vlan(rx_desc, rx_pkt_cx);
+			d_ops[ip_type].get_rx_vlan(rx_desc, rx_pkt_cx);
 
 			/* get_rx_hash for RSS */
-			d_ops.get_rx_hash(rx_desc, rx_pkt_cx);
+			d_ops[ip_type].get_rx_hash(rx_desc, rx_pkt_cx);
 
 			context_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 			/* Get rx time stamp */
-			ret =d_ops.get_rx_hwstamp(osi_dma, rx_desc,
+			ret = d_ops[ip_type].get_rx_hwstamp(osi_dma, rx_desc,
 						  context_desc, rx_pkt_cx);
 			if (ret == 0) {
 				ptp_rx_swcx = rx_ring->rx_swcx +
@@ -1383,7 +1384,7 @@ nve32_t init_desc_ops(struct osi_dma_priv_data *osi_dma)
 		eqos_init_desc_ops, mgbe_init_desc_ops
 	};
 
-	desc_ops[osi_dma->mac](&d_ops);
+	desc_ops[osi_dma->mac](&d_ops[osi_dma->mac]);
 
 	/* TODO: validate function pointers */
 	return 0;
