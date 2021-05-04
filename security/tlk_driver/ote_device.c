@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2013-2021 NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ static int te_create_free_cmd_list(struct tlk_device *dev)
 	 * only needs to send the offsets within each (with cache coherency
 	 * being maintained by HW through an NS mapping).
 	 */
-	req_buf_size = (4 * PAGE_SIZE);
+	req_buf_size = (TE_TOTAL_PAGE_COUNT * PAGE_SIZE);
 	req_buf = kmalloc(req_buf_size, GFP_KERNEL);
 	if (!req_buf) {
 		pr_err("%s: Failed to allocate param buffer!\n", __func__);
