@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,16 +68,16 @@
 #define fb_fbhub_num_active_ltcs_use_nvlink_peer_m(i)\
 		(U32(0x1U) << (16U + (i)*1U))
 #define fb_fbhub_num_active_ltcs_use_nvlink_peer_v(r, i)\
-		(((r) >> (16U + i*1U)) & 0x1U)
+		(((r) >> (16U + (i)*1U)) & 0x1U)
 #define fb_fbhub_num_active_ltcs_use_nvlink_peer___size_1_v()      (0x00000008U)
 #define fb_fbhub_num_active_ltcs_use_nvlink_peer___size_1_f(i)\
-		((0x0U << (32U +((i)*1U))))
+		((U32(0x0U) << (16U + ((i)*1U))))
 #define fb_fbhub_num_active_ltcs_use_nvlink_peer_enabled_v()       (0x00000001U)
 #define fb_fbhub_num_active_ltcs_use_nvlink_peer_enabled_f(i)\
-		((0x1U << (32U +((i)*1U))))
+		((U32(0x1U) << (16U + ((i)*1U))))
 #define fb_fbhub_num_active_ltcs_use_nvlink_peer_disabled_v()      (0x00000000U)
 #define fb_fbhub_num_active_ltcs_use_nvlink_peer_disabled_f(i)\
-		((0x0U << (32U +((i)*1U))))
+		((U32(0x0U) << (16U + ((i)*1U))))
 #define fb_fbhub_num_active_ltcs_hub_sys_atomic_mode_f(v)\
 				((U32(v) & 0x1U) << 25U)
 #define fb_fbhub_num_active_ltcs_hub_sys_atomic_mode_m()      (U32(0x1U) << 25U)
@@ -137,16 +137,16 @@
 #define fb_hshub_num_active_ltcs_use_nvlink_peer_m(i)\
 		(U32(0x1U) << (16U + (i)*1U))
 #define fb_hshub_num_active_ltcs_use_nvlink_peer_v(r, i)\
-		(((r) >> (16U + i*1U)) & 0x1U)
+		(((r) >> (16U + (i)*1U)) & 0x1U)
 #define fb_hshub_num_active_ltcs_use_nvlink_peer___size_1_v()      (0x00000008U)
 #define fb_hshub_num_active_ltcs_use_nvlink_peer___size_1_f(i)\
-		((0x0U << (32U +((i)*1U))))
+		((U32(0x0U) << (16U + ((i)*1U))))
 #define fb_hshub_num_active_ltcs_use_nvlink_peer_enabled_v()       (0x00000001U)
 #define fb_hshub_num_active_ltcs_use_nvlink_peer_enabled_f(i)\
-		((0x1U << (32U +((i)*1U))))
+		((U32(0x1U) << (16U + ((i)*1U))))
 #define fb_hshub_num_active_ltcs_use_nvlink_peer_disabled_v()      (0x00000000U)
 #define fb_hshub_num_active_ltcs_use_nvlink_peer_disabled_f(i)\
-		((0x0U << (32U +((i)*1U))))
+		((U32(0x0U) << (16U + ((i)*1U))))
 #define fb_hshub_num_active_ltcs_hub_sys_atomic_mode_f(v)\
 				((U32(v) & 0x1U) << 25U)
 #define fb_hshub_num_active_ltcs_hub_sys_atomic_mode_m()      (U32(0x1U) << 25U)

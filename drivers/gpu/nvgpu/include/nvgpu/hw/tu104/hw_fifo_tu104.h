@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -112,7 +112,7 @@
 #define fifo_intr_pbdma_id_status_f(v, i)\
 		((U32(v) & 0x1U) << (0U + (i)*1U))
 #define fifo_intr_pbdma_id_status_v(r, i)\
-		(((r) >> (0U + i*1U)) & 0x1U)
+		(((r) >> (0U + (i)*1U)) & 0x1U)
 #define fifo_intr_pbdma_id_status__size_1_v()                      (0x0000000cU)
 #define fifo_intr_runlist_r()                                      (0x00002a00U)
 #define fifo_fb_timeout_r()                                        (0x00002a04U)

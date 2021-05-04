@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -122,7 +122,7 @@
 #define fifo_intr_ctxsw_timeout_engine__size_1_v()                 (0x00000020U)
 #define fifo_intr_ctxsw_timeout_engine_pending_v()                 (0x00000001U)
 #define fifo_intr_ctxsw_timeout_engine_pending_f(i)\
-		((U32(0x1U) << (0U +((i)*1U))))
+		((U32(0x1U) << (0U + ((i)*1U))))
 #define fifo_intr_ctxsw_timeout_info_r(i)\
 		(nvgpu_safe_add_u32(0x00003200U, nvgpu_safe_mult_u32((i), 4U)))
 #define fifo_intr_ctxsw_timeout_info__size_1_v()                   (0x00000004U)
