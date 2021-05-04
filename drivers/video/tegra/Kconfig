@@ -370,6 +370,5 @@ config TEGRA_DC_TRACE_PRINTK
 
 source "drivers/misc/tegra-cec/Kconfig"
 source "drivers/video/tegra/host/Kconfig"
-source "drivers/video/tegra/nvmap/Kconfig"
 
 endif

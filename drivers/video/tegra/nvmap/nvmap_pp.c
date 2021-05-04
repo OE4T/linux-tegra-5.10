@@ -40,10 +40,6 @@
 #define NVMAP_TEST_PAGE_POOL_SHRINKER     1
 #define PENDING_PAGES_SIZE                (SZ_1M / PAGE_SIZE)
 
-#ifdef NVMAP_LOADABLE_MODULE
-#define CONFIG_NVMAP_PAGE_POOL_SIZE 0
-#endif /* NVMAP_LOADABLE_MODULE */
-
 static bool enable_pp = 1;
 static u32 pool_size;
 

@@ -1,14 +1,13 @@
 GCOV_PROFILE := y
 
-
 subdir-ccflags-y := -Werror
 
-ifeq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
-ccflags-y += -DNVMAP_PROCRANK
-endif
+include $(srctree.nvidia)/drivers/video/tegra/nvmap/Makefile.memory.configs
 
 ccflags-y += -I$(srctree.nvidia)/include/
 
+ifeq ($(CONFIG_TEGRA_NVMAP), y)
+# Build NvMap only when CONFIG_TEGRA_NVMAP is set to y
 nvmap-y := nvmap_core.o \
 	nvmap_alloc.o \
 	nvmap_cache.o \
@@ -28,22 +27,22 @@ nvmap-$(CONFIG_NVMAP_SCIIPC) += nvmap_sci_ipc.o
 
 ifeq ($(CONFIG_NVMAP_PAGE_POOLS), y)
 nvmap-y += nvmap_pp.o
-endif
+endif #CONFIG_NVMAP_PAGE_POOLS
 
 ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
 nvmap-y += nvmap_init_t19x.o
 nvmap-y += nvmap_dmabuf_t19x.o
 nvmap-y += nvmap_cache_t19x.o
-endif
+endif #CONFIG_ARCH_TEGRA_19x_SOC or CONFIG_ARCH_TEGRA_194_SOC
 
 KASAN_SANITIZE_nvmap_kasan_wrapper.o := n
 
 ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
+# Kernel is kstable
 nvmap-y += nvmap_cache_maint.o
-nvmap-y += nvmap_pp.o
-ccflags-y += -DNVMAP_LOADABLE_MODULE
-ccflags-y += -DCONFIG_NVMAP_PAGE_POOLS
-obj-m +=nvmap.o
+obj-m += nvmap.o
 else
-obj-y +=nvmap.o
-endif
+# Kernel is not kstable
+obj-y += nvmap.o
+endif #stable
+endif #CONFIG_TEGRA_NVMAP

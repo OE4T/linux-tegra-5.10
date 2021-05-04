@@ -42,10 +42,6 @@
 #define NVMAP_DMABUF_ATTACH  __nvmap_dmabuf_attach
 #endif
 
-#ifdef NVMAP_LOADABLE_MODULE
-#define CONFIG_NVMAP_FD_START 0x400
-#endif /* NVMAP_LOADABLE_MODULE */
-
 static int __nvmap_dmabuf_attach(struct dma_buf *dmabuf, struct device *dev,
 			       struct dma_buf_attachment *attach)
 {

@@ -1102,7 +1102,7 @@ static int nvmap_debug_lru_allocations_show(struct seq_file *s, void *unused)
 
 DEBUGFS_OPEN_FOPS(lru_allocations);
 
-#ifdef NVMAP_PROCRANK
+#ifdef CONFIG_NVMAP_PROCRANK
 struct procrank_stats {
 	struct vm_area_struct *vma;
 	u64 pss;
@@ -1274,7 +1274,7 @@ static int nvmap_debug_iovmm_procrank_show(struct seq_file *s, void *unused)
 }
 
 DEBUGFS_OPEN_FOPS(iovmm_procrank);
-#endif /* NVMAP_PROCRANK */
+#endif /* CONFIG_NVMAP_PROCRANK */
 
 ulong nvmap_iovmm_get_used_pages(void)
 {
@@ -1305,7 +1305,7 @@ static void nvmap_iovmm_debugfs_init(void)
 			debugfs_create_file("maps", S_IRUGO, iovmm_root,
 				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_maps_fops);
-#ifdef NVMAP_PROCRANK
+#ifdef CONFIG_NVMAP_PROCRANK
 			debugfs_create_file("procrank", S_IRUGO, iovmm_root,
 				nvmap_dev, &debug_iovmm_procrank_fops);
 #endif
@@ -1481,14 +1481,15 @@ int nvmap_remove(struct platform_device *pdev)
 	struct nvmap_handle *h;
 	int i;
 
+#ifdef CONFIG_NVMAP_SCIIPC
 	nvmap_sci_ipc_exit();
+#endif
 	debugfs_remove_recursive(dev->debug_root);
 	misc_deregister(&dev->dev_user);
 #ifdef CONFIG_NVMAP_PAGE_POOLS
 	nvmap_page_pool_clear();
 	nvmap_page_pool_fini(nvmap_dev);
 #endif
-
 	while ((n = rb_first(&dev->handles))) {
 		h = rb_entry(n, struct nvmap_handle, node);
 		rb_erase(&h->node, &dev->handles);

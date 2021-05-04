@@ -826,6 +826,7 @@ extern struct of_device_id __nvmapcache_of_table;
 #define NVMAP_CACHE_OF_DECLARE(compat, fn) \
 	_OF_DECLARE(nvmapcache, nvmapcache_of, compat, fn, \
 			nvmap_setup_chip_cache_fn)
+
 #ifdef CONFIG_NVMAP_SCIIPC
 int nvmap_sci_ipc_init(void);
 void nvmap_sci_ipc_exit(void);
