@@ -786,3 +786,157 @@ ifeq ($(CONFIG_NVGPU_GR_VIRTUALIZATION),y)
 nvgpu-$(CONFIG_NVGPU_HAL_NON_FUSA) += \
 	hal/vgpu/init/vgpu_hal_gv11b.o
 endif
+
+
+ifeq ($(CONFIG_ARCH_TEGRA_23x_SOC),y)
+CONFIG_NVGPU_NEXT := y
+ccflags-y += -DCONFIG_NVGPU_NEXT
+# Multi Instance GPU support
+CONFIG_NVGPU_MIG := y
+endif
+
+ifeq ($(CONFIG_NVGPU_NEXT),y)
+ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),y)
+nvgpu-y += \
+	common/fifo/nvgpu_next_engines.o \
+	common/fifo/nvgpu_next_runlist.o \
+	common/acr/nvgpu_next_acr_bootstrap.o \
+	common/falcon/falcon_sw_ga10b.o \
+	common/fb/nvgpu_next_fb.o \
+	common/riscv/riscv.o \
+	common/acr/acr_sw_ga10b.o \
+	common/acr/acr_sw_ga100.o \
+	common/sim/nvgpu_next_sim.o \
+	common/gr/nvgpu_next_gr.o \
+	common/gr/nvgpu_next_fs_state.o \
+	common/netlist/nvgpu_next_netlist.o \
+	common/sim/nvgpu_next_sim_netlist.o \
+	common/pmu/perfmon/pmu_perfmon_sw_ga10b.o \
+	common/cic/nvgpu_next_cic.o \
+	common/pmu/pg/pg_sw_ga10b.o \
+	common/profiler/nvgpu_next_profiler.o
+
+nvgpu-y += \
+	hal/init/hal_ga10b.o \
+	hal/init/hal_ga10b_litter.o \
+	hal/gr/zbc/zbc_ga10b.o \
+	hal/class/class_ga10b.o \
+	hal/class/class_ga100.o \
+	hal/mc/mc_ga10b_fusa.o \
+	hal/mc/mc_intr_ga10b_fusa.o \
+	hal/mm/mmu_fault/mmu_fault_ga10b_fusa.o \
+	hal/mm/gmmu/gmmu_ga10b_fusa.o \
+	hal/func/func_ga10b.o \
+	hal/fuse/fuse_ga10b.o \
+	hal/falcon/falcon_ga10b_fusa.o \
+	hal/fifo/usermode_ga10b_fusa.o \
+	hal/fifo/fifo_intr_ga10b_fusa.o \
+	hal/fifo/ctxsw_timeout_ga10b_fusa.o \
+	hal/fifo/fifo_ga10b_fusa.o \
+	hal/fifo/pbdma_ga10b_fusa.o \
+	hal/fifo/pbdma_ga10b.o \
+	hal/fifo/usermode_ga10b_fusa.o \
+	hal/fifo/fifo_utils_ga10b_fusa.o \
+	hal/fifo/engine_status_ga10b_fusa.o \
+	hal/fifo/pbdma_status_ga10b_fusa.o \
+	hal/fifo/preempt_ga10b_fusa.o \
+	hal/fifo/runlist_fifo_ga10b_fusa.o \
+	hal/fifo/runlist_fifo_ga10b.o \
+	hal/fifo/tsg_ga10b.o \
+	hal/fifo/userd_ga10b.o \
+	hal/fifo/ramin_ga10b_fusa.o \
+	hal/fifo/ramfc_ga10b_fusa.o \
+	hal/fifo/runlist_ga10b_fusa.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_ga10b.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_ga10b_dbg.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_ga10b_fusa.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_ga100.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_ga100_dbg.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_ga100_fusa.o \
+	hal/gr/gr/gr_ga10b.o \
+	hal/gr/init/gr_init_ga10b.o \
+	hal/gr/init/gr_init_ga10b_fusa.o \
+	hal/gr/intr/gr_intr_ga10b_fusa.o \
+	hal/gr/falcon/gr_falcon_ga10b_fusa.o \
+	hal/gr/falcon/gr_falcon_ga10b.o \
+	hal/gr/ecc/ecc_ga10b.o \
+	hal/gr/ecc/ecc_ga10b_fusa.o \
+	hal/netlist/netlist_ga10b_fusa.o \
+	hal/fifo/channel_ga10b_fusa.o \
+	hal/ltc/ltc_ga10b_fusa.o \
+	hal/ltc/ltc_ga10b.o \
+	hal/ltc/intr/ltc_intr_ga10b_fusa.o \
+	hal/top/top_ga10b_fusa.o \
+	hal/bus/bus_ga10b.o \
+	hal/pmu/pmu_ga10b.o \
+	hal/gsp/gsp_ga10b.o \
+	hal/fb/fb_ga100.o \
+	hal/fb/fb_ga10b.o \
+	hal/fb/fb_ga10b_fusa.o \
+	hal/fb/fb_mmu_fault_ga10b_fusa.o \
+	hal/fb/ecc/fb_ecc_ga10b_fusa.o \
+	hal/fb/intr/fb_intr_ga10b_fusa.o \
+	hal/fb/intr/fb_intr_ecc_ga10b_fusa.o \
+	hal/fb/vab/vab_ga10b.o \
+	hal/priv_ring/priv_ring_ga10b_fusa.o \
+	hal/ptimer/ptimer_ga10b_fusa.o \
+	hal/perf/perf_ga10b.o \
+	hal/regops/regops_ga10b.o \
+	hal/regops/allowlist_ga10b.o \
+	hal/power_features/cg/ga10b_gating_reglist.o \
+	hal/therm/therm_ga10b_fusa.o \
+	hal/ce/ce_ga10b_fusa.o \
+	hal/grmgr/grmgr_ga10b.o
+
+ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
+nvgpu-y += \
+	hal/cbc/cbc_ga100.o \
+	hal/cbc/cbc_ga10b.o
+endif
+
+nvgpu-$(CONFIG_NVGPU_GR_VIRTUALIZATION) += \
+	hal/vgpu/init/vgpu_hal_ga10b.o \
+	os/linux/vgpu/ga10b/platform_ga10b_vgpu_tegra.o
+
+endif
+
+ifeq ($(CONFIG_NVGPU_DGPU),y)
+nvgpu-y += \
+	hal/init/hal_ga100.o \
+	hal/init/hal_ga100_litter.o \
+	hal/gr/gr/gr_ga100.o \
+	hal/bus/bus_ga100.o \
+	hal/fuse/fuse_ga100.o \
+	hal/gr/intr/gr_intr_ga100_fusa.o \
+	hal/gr/init/gr_init_ga100_fusa.o \
+	hal/gr/init/gr_init_ga100.o \
+	hal/gr/falcon/gr_falcon_ga100.o \
+	hal/clk/clk_ga100.o \
+	hal/nvdec/nvdec_ga100.o \
+	hal/pmu/pmu_ga100.o \
+	hal/perf/perf_ga100.o \
+	hal/fb/fb_ga100.o \
+	hal/fifo/channel_ga100_fusa.o \
+	hal/fifo/pbdma_ga100_fusa.o \
+	hal/fifo/runlist_fifo_ga100_fusa.o \
+	hal/netlist/netlist_ga100.o \
+	common/vbios/bios_sw_ga100.o \
+	hal/power_features/cg/ga100_gating_reglist.o \
+	hal/priv_ring/priv_ring_ga100_fusa.o \
+	hal/regops/regops_ga100.o \
+	hal/regops/allowlist_ga100.o
+endif
+
+ifeq ($(CONFIG_NVGPU_MIG),y)
+ccflags-y += -DCONFIG_NVGPU_MIG
+ifeq ($(CONFIG_NVGPU_DGPU),y)
+nvgpu-y += \
+	hal/grmgr/grmgr_ga100.o
+endif
+endif
+
+nvgpu-y += \
+	os/linux/platform_ga10b_tegra.o \
+	os/linux/nvgpu_next_ioctl_prof.o \
+	os/linux/nvlink/hal/ga10b_mssnvlink.o
+endif

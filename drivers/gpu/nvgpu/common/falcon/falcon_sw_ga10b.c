@@ -1,0 +1,158 @@
+/*
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+#include <nvgpu/gk20a.h>
+#include <nvgpu/falcon.h>
+
+#include "common/falcon/falcon_sw_gk20a.h"
+#include "common/falcon/falcon_sw_ga10b.h"
+
+static void check_and_enable_falcon2(struct nvgpu_falcon *flcn,
+		unsigned long *fuse_settings)
+{
+	struct gk20a *g = flcn->g;
+	bool is_falcon_enabled = false;
+	bool is_falcon2_enabled = false;
+	int err = 0;
+
+	nvgpu_info(g, "Fetch FUSE settings for FALCON - %d *", flcn->flcn_id);
+
+	err = g->ops.fuse.fetch_falcon_fuse_settings(g, flcn->flcn_id,
+			fuse_settings);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to fetch fuse settings for Falcon %d",
+				flcn->flcn_id);
+		/*  setting default to FALCON until bring-up */
+		nvgpu_err(g, " setting default to Falcon");
+		flcn->is_falcon2_enabled = false;
+		return;
+	}
+
+	nvgpu_info(g, "fuse_settings -  %lx", *fuse_settings);
+
+	is_falcon_enabled =
+		(!(nvgpu_falcon_is_feature_supported(flcn, FCD)) &&
+		!nvgpu_falcon_is_feature_supported(flcn, DCS));
+
+	is_falcon2_enabled = !is_falcon_enabled &&
+		nvgpu_falcon_is_feature_supported(flcn, DCS);
+
+	/* select the FALCON/RISCV core based on fuse */
+	if (!is_falcon_enabled && !is_falcon2_enabled) {
+		nvgpu_err(g, "Invalid fuse combination, both core disabled");
+		nvgpu_err(g, "Further execution will try on FALCON core");
+		flcn->is_falcon2_enabled = false;
+	} else if (is_falcon_enabled && !is_falcon2_enabled) {
+		nvgpu_info(g, "FALCON is enabled");
+		/* FALCON is enabled*/
+		flcn->is_falcon2_enabled = false;
+	} else {
+		nvgpu_info(g, "FALCON/RISCV can be enabled, default RISCV is enabled");
+		flcn->is_falcon2_enabled = true;
+	}
+
+	if (flcn->is_falcon2_enabled) {
+		if (nvgpu_falcon_is_feature_supported(flcn,
+				NVRISCV_BRE_EN)) {
+			nvgpu_info(g, "BRE info enabled");
+		} else {
+			nvgpu_info(g, "BRE info not enabled");
+		}
+
+		if (nvgpu_falcon_is_feature_supported(flcn, NVRISCV_DEVD)) {
+			nvgpu_info(g, "DevD");
+		} else {
+			nvgpu_info(g, "DevE");
+		}
+
+		if (nvgpu_falcon_is_feature_supported(flcn,
+			NVRISCV_PLD)) {
+			nvgpu_info(g, "PL request disabled");
+		} else {
+			nvgpu_info(g, "PL request enabled");
+		}
+
+		if (nvgpu_falcon_is_feature_supported(flcn, NVRISCV_SEN)) {
+			nvgpu_info(g, "S enabled");
+
+			if (nvgpu_falcon_is_feature_supported(flcn,
+				NVRISCV_SA)) {
+				nvgpu_info(g, "assert enabled");
+			} else {
+				nvgpu_info(g, "assert disabled");
+			}
+
+			if (nvgpu_falcon_is_feature_supported(flcn,
+				NVRISCV_SH)) {
+				nvgpu_info(g, "HALT enabled");
+			} else {
+				nvgpu_info(g, "HALT disabled");
+			}
+
+			if (nvgpu_falcon_is_feature_supported(flcn,
+				NVRISCV_SI)) {
+				nvgpu_info(g, "interrupt enabled");
+			} else {
+				nvgpu_info(g, "interrupt disabled");
+			}
+		} else {
+			nvgpu_info(g, "S not enabled");
+		}
+	}
+}
+
+extern void nvgpu_next_falcon_sw_init(struct nvgpu_falcon *flcn)
+{
+	struct gk20a *g = flcn->g;
+
+	switch (flcn->flcn_id) {
+	case FALCON_ID_PMU:
+		flcn->flcn_base = g->ops.pmu.falcon_base_addr();
+		flcn->flcn2_base = g->ops.pmu.falcon2_base_addr();
+		flcn->is_falcon_supported = true;
+		flcn->is_interrupt_enabled = true;
+
+		check_and_enable_falcon2(flcn, &flcn->fuse_settings);
+		break;
+	case FALCON_ID_GSPLITE:
+		flcn->flcn_base = g->ops.gsp.falcon_base_addr();
+		flcn->flcn2_base = g->ops.gsp.falcon2_base_addr();
+		flcn->is_falcon_supported = true;
+		flcn->is_interrupt_enabled = false;
+
+		check_and_enable_falcon2(flcn, &flcn->fuse_settings);
+		break;
+	default:
+		/*
+		 * set false to inherit falcon support
+		 * from previous chips HAL
+		 */
+		flcn->is_falcon_supported = false;
+		break;
+	}
+
+	if (flcn->is_falcon_supported) {
+		gk20a_falcon_engine_dependency_ops(flcn);
+	} else {
+		gk20a_falcon_sw_init(flcn);
+	}
+
+}
