@@ -1279,7 +1279,8 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 	pm_runtime_use_autosuspend(smmu->dev);
 
 #ifdef CONFIG_ARM_SMMU_DEBUG
-	arm_smmu_debugfs_add_master(dev, &smmu_domain->cfg.cbndx, cfg->smendx);
+	arm_smmu_debugfs_add_master(dev, smmu->debug_info,
+				    &smmu_domain->cfg.cbndx, cfg->smendx);
 #endif
 
 rpm_put:
@@ -1583,7 +1584,7 @@ static void arm_smmu_release_device(struct device *dev)
 		return;
 
 #ifdef CONFIG_DEBUG_FS
-	arm_smmu_debugfs_remove_master(dev);
+	arm_smmu_debugfs_remove_master(dev, smmu->debug_info);
 #endif
 
 	arm_smmu_master_free_smes(cfg, fwspec);
