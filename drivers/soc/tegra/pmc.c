@@ -3489,13 +3489,15 @@ static ssize_t reset_reason_show(struct device *dev,
 	value &= pmc->soc->regs->rst_source_mask;
 	value >>= pmc->soc->regs->rst_source_shift;
 
-	/* In case of PMIC watchdog, Reset is Power On Reset.
-	* PMIC status register is saved in SRATCH203 register.
-	* PMC driver checks watchdog status bit to identify
-	* POR is because of watchdog timer reset */
-	if (tegra_pmc_readl(pmc, PMC_SCRATCH203) &
-	    PMIC_WATCHDOG_RESET)
-		value = pmc->soc->num_reset_sources - 1;
+	if (pmc->soc->soc_is_tegra210_n_before) {
+		/* In case of PMIC watchdog, Reset is Power On Reset.
+		* PMIC status register is saved in SRATCH203 register.
+		* PMC driver checks watchdog status bit to identify
+		* POR is because of watchdog timer reset */
+		if (tegra_pmc_readl(pmc, PMC_SCRATCH203) &
+			PMIC_WATCHDOG_RESET)
+			value = pmc->soc->num_reset_sources - 1;
+	}
 
 	if (WARN_ON(value >= pmc->soc->num_reset_sources))
 		return sprintf(buf, "%s\n", "UNKNOWN");
