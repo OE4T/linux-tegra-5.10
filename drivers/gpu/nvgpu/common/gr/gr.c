@@ -100,7 +100,7 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g, struct nvgpu_gr *gr)
 			NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
 #endif
 
-#ifdef CONFIG_NVGPU_DGPU
+#ifdef CONFIG_NVGPU_GRAPHICS
 		if (g->ops.gr.init.get_rtv_cb_size != NULL) {
 			size = g->ops.gr.init.get_rtv_cb_size(g);
 			nvgpu_log(g, gpu_dbg_info | gpu_dbg_gr,

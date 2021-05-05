@@ -289,7 +289,7 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 	}
 #endif
 
-#ifdef CONFIG_NVGPU_DGPU
+#ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 		if (desc[NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER].size != 0U) {
 			err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,

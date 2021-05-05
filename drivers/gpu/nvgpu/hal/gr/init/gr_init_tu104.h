@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,12 +29,6 @@ struct gk20a;
 struct nvgpu_gr_ctx;
 struct netlist_av64_list;
 
-#ifdef CONFIG_NVGPU_DGPU
-u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g);
-void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
-	struct nvgpu_gr_ctx *gr_ctx, bool patch);
-#endif
-
 u32 tu104_gr_init_get_bundle_cb_default_size(struct gk20a *g);
 u32 tu104_gr_init_get_min_gpm_fifo_depth(struct gk20a *g);
 u32 tu104_gr_init_get_bundle_cb_token_limit(struct gk20a *g);
@@ -45,6 +39,10 @@ int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 		struct netlist_av64_list *sw_bundle64_init);
 
 #ifdef CONFIG_NVGPU_GRAPHICS
+u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g);
+void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch);
+
 void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,45 +31,6 @@
 #include "gr_init_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_gr_tu104.h>
-
-#ifdef CONFIG_NVGPU_DGPU
-u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g)
-{
-	return nvgpu_safe_mult_u32(
-		nvgpu_safe_add_u32(
-			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
-			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()),
-		gr_scc_bundle_cb_size_div_256b_byte_granularity_v());
-}
-
-static void tu104_gr_init_patch_rtv_cb(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx,
-	u32 addr, u32 size, u32 gfxpAddSize, bool patch)
-{
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_base_r(),
-		gr_scc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_size_r(),
-		gr_scc_rm_rtv_cb_size_div_256b_f(size), patch);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_rm_rtv_cb_base_r(),
-		gr_gpcs_gcc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_gfxp_reserve_r(),
-		gr_scc_rm_gfxp_reserve_rtv_cb_size_div_256b_f(gfxpAddSize),
-		patch);
-}
-
-void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
-	struct nvgpu_gr_ctx *gr_ctx, bool patch)
-{
-	u32 size = nvgpu_safe_add_u32(
-			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
-			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f());
-
-	addr = addr >> gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f();
-
-	nvgpu_assert(u64_hi32(addr) == 0U);
-	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr, size, 0, patch);
-}
-#endif
 
 u32 tu104_gr_init_get_bundle_cb_default_size(struct gk20a *g)
 {
@@ -187,6 +148,43 @@ int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 }
 
 #ifdef CONFIG_NVGPU_GRAPHICS
+u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g)
+{
+	return nvgpu_safe_mult_u32(
+		nvgpu_safe_add_u32(
+			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
+			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()),
+		gr_scc_bundle_cb_size_div_256b_byte_granularity_v());
+}
+
+static void tu104_gr_init_patch_rtv_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	u32 addr, u32 size, u32 gfxpAddSize, bool patch)
+{
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_base_r(),
+		gr_scc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_size_r(),
+		gr_scc_rm_rtv_cb_size_div_256b_f(size), patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_rm_rtv_cb_base_r(),
+		gr_gpcs_gcc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_gfxp_reserve_r(),
+		gr_scc_rm_gfxp_reserve_rtv_cb_size_div_256b_f(gfxpAddSize),
+		patch);
+}
+
+void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u32 size = nvgpu_safe_add_u32(
+			gr_scc_rm_rtv_cb_size_div_256b_default_f(),
+			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f());
+
+	addr = addr >> gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f();
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	tu104_gr_init_patch_rtv_cb(g, gr_ctx, (u32)addr, size, 0, patch);
+}
+
 void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {

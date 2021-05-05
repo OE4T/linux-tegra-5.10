@@ -385,7 +385,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 			nvgpu_err(g, "cannot map ctx pagepool buffer");
 			goto fail;
 		}
-#ifdef CONFIG_NVGPU_DGPU
+#ifdef CONFIG_NVGPU_GRAPHICS
 		/* RTV circular buffer */
 		if (nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
 				NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER)) {

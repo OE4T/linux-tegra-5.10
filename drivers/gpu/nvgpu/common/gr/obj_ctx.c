@@ -372,7 +372,7 @@ void nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 		g->ops.gr.init.commit_global_cb_manager(g, config, gr_ctx,
 			patch);
 
-#ifdef CONFIG_NVGPU_DGPU
+#ifdef CONFIG_NVGPU_GRAPHICS
 		if (g->ops.gr.init.commit_rtv_cb != NULL) {
 			/* RTV circular buffer */
 			addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,

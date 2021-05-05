@@ -533,7 +533,7 @@ static const struct gops_gr_init tu104_ops_gr_init = {
 	.fe_go_idle_timeout = gv11b_gr_init_fe_go_idle_timeout,
 	.load_method_init = gm20b_gr_init_load_method_init,
 	.commit_global_timeslice = gv11b_gr_init_commit_global_timeslice,
-#ifdef CONFIG_NVGPU_DGPU
+#ifdef CONFIG_NVGPU_GRAPHICS
 	.get_rtv_cb_size = tu104_gr_init_get_rtv_cb_size,
 	.commit_rtv_cb = tu104_gr_init_commit_rtv_cb,
 #endif
