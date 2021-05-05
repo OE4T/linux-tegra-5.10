@@ -359,12 +359,8 @@
 
 		vi0: vi0@15c00000 {
 			compatible = "nvidia,tegra234-vi";
-			resets = <&bpmp_resets TEGRA234_RESET_VI>;
-			reset-names = "vi";
-			clocks = <&bpmp_clks TEGRA234_CLK_VI>,
-				 <&bpmp_clks TEGRA234_CLK_VI_CONST>;
-			clock-names = "vi", "vi-const";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
+			clocks = <&bpmp_clks TEGRA234_CLK_VI>;
+			clock-names = "vi";
 			nvidia,vi-falcon-device = <&vi0_thi>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
@@ -384,12 +380,8 @@
 
 		vi1: vi1@14c00000 {
 			compatible = "nvidia,tegra234-vi";
-			resets = <&bpmp_resets TEGRA234_RESET_VI2>;
-			reset-names = "vi";
-			clocks = <&bpmp_clks TEGRA234_CLK_VI>,
-				 <&bpmp_clks TEGRA234_CLK_VI_CONST>;
-			clock-names = "vi", "vi-const";
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
+			clocks = <&bpmp_clks TEGRA234_CLK_VI>;
+			clock-names = "vi";
 			nvidia,vi-falcon-device = <&vi1_thi>;
 
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
@@ -434,16 +426,7 @@
 
 		nvcsi: nvcsi@15a00000 {
 			compatible = "nvidia,tegra194-nvcsi";
-			reg = <0x0 0x15a00000 0x0 0x00050000>;
-			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
-			resets = <&bpmp_resets TEGRA234_RESET_NVCSI>,
-				 <&bpmp_resets TEGRA234_RESET_MIPI_CAL>;
-			clocks = <&bpmp_clks TEGRA234_CLK_NVCSI>,
-				 <&bpmp_clks TEGRA234_CLK_NVCSILP>,
-				 <&bpmp_clks TEGRA234_CLK_MIPI_CAL>,
-				 <&bpmp_clks TEGRA234_CLK_UART_FST_MIPI_CAL>;
-			interrupts = <0 119 0x04>;
-			num-ports = <6>;
+			clocks = <&bpmp_clks TEGRA234_CLK_NVCSI>;
 			status = "disabled";
 		};
 

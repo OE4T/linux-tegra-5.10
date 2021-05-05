@@ -55,9 +55,6 @@
 		interrupts = <0 TEGRA194_IRQ_RCE_WDT_REMOTE 0x4>;
 		interrupt-names = "wdt-remote";
 
-		nvidia,camera-devices = <&isp &vi0 &vi1 &nvcsi>;
-		nvidia,camera-device-names = "isp", "vi0", "vi1", "nvcsi";
-
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso0 TEGRA_SID_NISO0_RCE>;
 #else
