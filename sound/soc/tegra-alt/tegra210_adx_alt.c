@@ -1,7 +1,7 @@
 /*
  * tegra210_adx_alt.c - Tegra210 ADX driver
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -566,12 +566,12 @@ static const struct snd_soc_dapm_route tegra210_adx_routes[] = {
 		       tegra210_adx_put_byte_map)
 
 #define TEGRA210_ADX_OUTPUT_CHANNELS_CTRL(reg) \
-	SOC_SINGLE_EXT("Output" #reg " Channels", reg, 0, 16, 0, \
+	SOC_SINGLE_EXT("Output" #reg " Audio Channels", reg, 0, 16, 0, \
 		       tegra210_adx_get_out_channels, \
 		       tegra210_adx_put_out_channels)
 
 #define TEGRA210_ADX_INPUT_CHANNELS_CTRL(reg) \
-	SOC_SINGLE_EXT("Input Channels", reg, 0, 16, 0, \
+	SOC_SINGLE_EXT("Input Audio Channels", reg, 0, 16, 0, \
 		       tegra210_adx_get_in_channels, \
 		       tegra210_adx_put_in_channels)
 

@@ -1,7 +1,7 @@
 /*
  * tegra210_sfc_alt.c - Tegra210 SFC driver
  *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -3101,10 +3101,10 @@ static int tegra210_sfc_get_srate(struct snd_kcontrol *kcontrol,
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct tegra210_sfc *sfc = snd_soc_codec_get_drvdata(codec);
 
-	/* get the sfc output rate */
-	if (strstr(kcontrol->id.name, "input"))
+	/* get the sfc input/output rate */
+	if (strstr(kcontrol->id.name, "Input Sample Rate"))
 		ucontrol->value.integer.value[0] = tegra210_sfc_rates[sfc->srate_in];
-	else if (strstr(kcontrol->id.name, "output"))
+	else if (strstr(kcontrol->id.name, "Output Sample Rate"))
 		ucontrol->value.integer.value[0] = tegra210_sfc_rates[sfc->srate_out];
 
 	return 0;
@@ -3121,9 +3121,9 @@ static int tegra210_sfc_put_srate(struct snd_kcontrol *kcontrol,
 		return -EINVAL;
 
 	/* Update the SFC input/output rate */
-	if (strstr(kcontrol->id.name, "input"))
+	if (strstr(kcontrol->id.name, "Input Sample Rate"))
 		sfc->srate_in = srate;
-	else if (strstr(kcontrol->id.name, "output"))
+	else if (strstr(kcontrol->id.name, "Output Sample Rate"))
 		sfc->srate_out = srate;
 
 	return 0;
@@ -3136,9 +3136,9 @@ static int tegra210_sfc_get_format(struct snd_kcontrol *kcontrol,
 	struct tegra210_sfc *sfc = snd_soc_codec_get_drvdata(codec);
 
 	/* get the format control flag */
-	if (strstr(kcontrol->id.name, "input"))
+	if (strstr(kcontrol->id.name, "Input Audio Bit Format"))
 		ucontrol->value.integer.value[0] = sfc->format_in;
-	else if (strstr(kcontrol->id.name, "output"))
+	else if (strstr(kcontrol->id.name, "Output Audio Bit Format"))
 		ucontrol->value.integer.value[0] = sfc->format_out;
 	else if (strstr(kcontrol->id.name, "Input Audio Channels"))
 		ucontrol->value.integer.value[0] =
@@ -3172,9 +3172,9 @@ static int tegra210_sfc_put_format(struct snd_kcontrol *kcontrol,
 	int value = ucontrol->value.integer.value[0];
 
 	/* set the format control flag */
-	if (strstr(kcontrol->id.name, "input"))
+	if (strstr(kcontrol->id.name, "Input Audio Bit Format"))
 		sfc->format_in = value;
-	else if (strstr(kcontrol->id.name, "output"))
+	else if (strstr(kcontrol->id.name, "Output Audio Bit Format"))
 		sfc->format_out = value;
 	else if (strstr(kcontrol->id.name, "Input Audio Channels"))
 		sfc->audio_ch_override[SFC_RX_PATH] = value;
@@ -3364,13 +3364,13 @@ static const struct soc_enum tegra210_sfc_mono_conv_enum =
 		tegra210_sfc_mono_conv_text);
 
 static const struct snd_kcontrol_new tegra210_sfc_controls[] = {
-	SOC_SINGLE_EXT("input rate", 0, 0, 192000, 0,
+	SOC_SINGLE_EXT("Input Sample Rate", 0, 0, 192000, 0,
 		tegra210_sfc_get_srate, tegra210_sfc_put_srate),
-	SOC_SINGLE_EXT("output rate", 0, 0, 192000, 0,
+	SOC_SINGLE_EXT("Output Sample Rate", 0, 0, 192000, 0,
 		tegra210_sfc_get_srate, tegra210_sfc_put_srate),
-	SOC_ENUM_EXT("input bit format", tegra210_sfc_format_enum,
+	SOC_ENUM_EXT("Input Audio Bit Format", tegra210_sfc_format_enum,
 		tegra210_sfc_get_format, tegra210_sfc_put_format),
-	SOC_ENUM_EXT("output bit format", tegra210_sfc_format_enum,
+	SOC_ENUM_EXT("Output Audio Bit Format", tegra210_sfc_format_enum,
 		tegra210_sfc_get_format, tegra210_sfc_put_format),
 	SOC_SINGLE_EXT("Input Audio Channels", 0, 0, 2, 0,
 		tegra210_sfc_get_format, tegra210_sfc_put_format),
@@ -3378,7 +3378,7 @@ static const struct snd_kcontrol_new tegra210_sfc_controls[] = {
 		tegra210_sfc_get_format, tegra210_sfc_put_format),
 	SOC_SINGLE_EXT("Client Channels", 0, 0, 2, 0,
 		tegra210_sfc_get_format, tegra210_sfc_put_format),
-	SOC_SINGLE_EXT("init", 0, 0, 1, 0,
+	SOC_SINGLE_EXT("Init", 0, 0, 1, 0,
 		tegra210_sfc_init_get, tegra210_sfc_init_put),
 	SOC_ENUM_EXT("Input Stereo To Mono", tegra210_sfc_stereo_conv_enum,
 		tegra210_sfc_get_format, tegra210_sfc_put_format),

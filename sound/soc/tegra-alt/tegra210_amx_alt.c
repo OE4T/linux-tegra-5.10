@@ -1,7 +1,7 @@
 /*
  * tegra210_amx_alt.c - Tegra210 AMX driver
  *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -505,10 +505,10 @@ static int tegra210_amx_get_channels(struct snd_kcontrol *kcontrol,
 	int reg = mc->reg;
 	char buf[50];
 
-	snprintf(buf, 50, "Input%d Channels", reg);
+	snprintf(buf, 50, "Input%d Audio Channels", reg);
 	if (strstr(kcontrol->id.name, buf))
 		ucontrol->value.integer.value[0] = amx->input_channels[reg - 1];
-	else if (strstr(kcontrol->id.name, "Output Channels"))
+	else if (strstr(kcontrol->id.name, "Output Audio Channels"))
 		ucontrol->value.integer.value[0] = amx->output_channels;
 
 	return 0;
@@ -525,13 +525,13 @@ static int tegra210_amx_put_channels(struct snd_kcontrol *kcontrol,
 	int value = ucontrol->value.integer.value[0];
 	char buf[50];
 
-	snprintf(buf, 50, "Input%d Channels", reg);
+	snprintf(buf, 50, "Input%d Audio Channels", reg);
 	if (strstr(kcontrol->id.name, buf)) {
 		if (value >= 0 && value <= 16)
 			amx->input_channels[reg - 1] = value;
 		else
 			return -EINVAL;
-	} else if (strstr(kcontrol->id.name, "Output Channels")) {
+	} else if (strstr(kcontrol->id.name, "Output Audio Channels")) {
 		if (value >= 0 && value <= 16)
 			amx->output_channels = value;
 		else
@@ -611,12 +611,12 @@ static const struct snd_soc_dapm_route tegra210_amx_routes[] = {
 		tegra210_amx_get_byte_map, tegra210_amx_put_byte_map)
 
 #define TEGRA210_AMX_OUTPUT_CHANNELS_CTRL(reg) \
-	SOC_SINGLE_EXT("Output Channels", reg, 0, 16, 0, \
+	SOC_SINGLE_EXT("Output Audio Channels", reg, 0, 16, 0, \
 		tegra210_amx_get_channels, \
 		tegra210_amx_put_channels)
 
 #define TEGRA210_AMX_INPUT_CHANNELS_CTRL(reg) \
-	SOC_SINGLE_EXT("Input" #reg " Channels", reg, 0, 16, 0, \
+	SOC_SINGLE_EXT("Input" #reg " Audio Channels", reg, 0, 16, 0, \
 		tegra210_amx_get_channels, \
 		tegra210_amx_put_channels)
 
