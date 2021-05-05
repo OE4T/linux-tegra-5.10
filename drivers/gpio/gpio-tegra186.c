@@ -1193,7 +1193,7 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	irq->parents = gpio->irq;
 
 	np = of_find_matching_node(NULL, tegra186_pmc_of_match);
-	if (np) {
+	if (of_device_is_available(np)) {
 		irq->parent_domain = irq_find_host(np);
 		of_node_put(np);
 
