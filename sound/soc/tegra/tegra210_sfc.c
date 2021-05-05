@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_sfc.c - Tegra210 SFC driver
- *
- * Copyright (c) 2014-2020 NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_sfc.c - Tegra210 SFC driver
+//
+// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,21 +17,18 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_sfc.h"
 #include "tegra_cif.h"
 
-#define DRV_NAME "tegra210-sfc"
-
 static const struct reg_default tegra210_sfc_reg_defaults[] = {
-	{ TEGRA210_SFC_AXBAR_RX_INT_MASK, 0x00000001},
-	{ TEGRA210_SFC_AXBAR_RX_CIF_CTRL, 0x00007700},
-	{ TEGRA210_SFC_AXBAR_TX_INT_MASK, 0x00000001},
-	{ TEGRA210_SFC_AXBAR_TX_CIF_CTRL, 0x00007700},
+	{ TEGRA210_SFC_RX_INT_MASK, 0x00000001},
+	{ TEGRA210_SFC_RX_CIF_CTRL, 0x00007700},
+	{ TEGRA210_SFC_TX_INT_MASK, 0x00000001},
+	{ TEGRA210_SFC_TX_CIF_CTRL, 0x00007700},
 	{ TEGRA210_SFC_CG, 0x1},
-	{ TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL, 0x00004000},
+	{ TEGRA210_SFC_CFG_RAM_CTRL, 0x00004000},
 };
 
 static int tegra210_sfc_rates[] = {
@@ -2934,14 +2930,14 @@ static int tegra210_sfc_write_coeff_ram(struct tegra210_sfc *sfc)
 
 	if (coeff_ram) {
 		tegra210_ahub_write_ram(sfc->regmap,
-			TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL,
-			TEGRA210_SFC_AHUBRAMCTL_SFC_DATA,
+			TEGRA210_SFC_CFG_RAM_CTRL,
+			TEGRA210_SFC_CFG_RAM_DATA,
 			0, coeff_ram, TEGRA210_SFC_COEF_RAM_DEPTH);
 
 		regmap_update_bits(sfc->regmap,
 			TEGRA210_SFC_COEF_RAM,
-			TEGRA210_SFC_COEF_RAM_COEF_RAM_EN,
-			TEGRA210_SFC_COEF_RAM_COEF_RAM_EN);
+			TEGRA210_SFC_COEF_RAM_EN,
+			TEGRA210_SFC_COEF_RAM_EN);
 	}
 
 	return 0;
@@ -2975,7 +2971,7 @@ static int tegra210_sfc_set_audio_cif(struct tegra210_sfc *sfc,
 		return -EINVAL;
 	}
 
-	path = (reg == TEGRA210_SFC_AXBAR_RX_CIF_CTRL) ?
+	path = (reg == TEGRA210_SFC_RX_CIF_CTRL) ?
 	       SFC_RX_PATH : SFC_TX_PATH;
 
 	cif_conf.audio_ch = channels;
@@ -2991,9 +2987,9 @@ static int tegra210_sfc_set_audio_cif(struct tegra210_sfc *sfc,
 	cif_conf.mono_conv = sfc->mono_to_stereo[path];
 
 	cif_conf.audio_bits = audio_bits;
-	if (sfc->format_in && (reg == TEGRA210_SFC_AXBAR_RX_CIF_CTRL))
+	if (sfc->format_in && (reg == TEGRA210_SFC_RX_CIF_CTRL))
 		cif_conf.audio_bits = tegra210_sfc_fmt_values[sfc->format_in];
-	if (sfc->format_out && (reg == TEGRA210_SFC_AXBAR_TX_CIF_CTRL))
+	if (sfc->format_out && (reg == TEGRA210_SFC_TX_CIF_CTRL))
 		cif_conf.audio_bits = tegra210_sfc_fmt_values[sfc->format_out];
 	cif_conf.client_bits = TEGRA_ACIF_BITS_32;
 
@@ -3005,17 +3001,17 @@ static int tegra210_sfc_set_audio_cif(struct tegra210_sfc *sfc,
 static int tegra210_sfc_soft_reset(struct tegra210_sfc *sfc)
 {
 	u32 val;
-	int ret;
+	int err;
 
 	/* SW reset */
 	regmap_update_bits(sfc->regmap, TEGRA210_SFC_SOFT_RESET,
 			   TEGRA210_SFC_SOFT_RESET_EN, 1);
 
-	ret = regmap_read_poll_timeout(sfc->regmap, TEGRA210_SFC_SOFT_RESET,
+	err = regmap_read_poll_timeout(sfc->regmap, TEGRA210_SFC_SOFT_RESET,
 				       val, !(val & TEGRA210_SFC_SOFT_RESET_EN),
 				       10, 10000);
-	if (ret < 0)
-		return ret;
+	if (err < 0)
+		return err;
 
 	return 0;
 }
@@ -3026,39 +3022,39 @@ static int tegra210_sfc_in_hw_params(struct snd_pcm_substream *substream,
 {
 	struct device *dev = dai->dev;
 	struct tegra210_sfc *sfc = snd_soc_dai_get_drvdata(dai);
-	int ret;
+	int err;
 
 	regmap_update_bits(sfc->regmap,
 			TEGRA210_SFC_COEF_RAM,
-			TEGRA210_SFC_COEF_RAM_COEF_RAM_EN,
+			TEGRA210_SFC_COEF_RAM_EN,
 			0);
 
-	ret = tegra210_sfc_soft_reset(sfc);
-	if (ret < 0) {
+	err = tegra210_sfc_soft_reset(sfc);
+	if (err < 0) {
 		dev_err(dev, "failed to reset SFC in %s, err = %d\n",
-			__func__, ret);
+			__func__, err);
 
-		return ret;
+		return err;
 	}
 
-	ret = tegra210_sfc_set_audio_cif(sfc, params,
-				TEGRA210_SFC_AXBAR_RX_CIF_CTRL);
-	if (ret) {
-		dev_err(dev, "Can't set SFC RX CIF: %d\n", ret);
-		return ret;
+	err = tegra210_sfc_set_audio_cif(sfc, params,
+				TEGRA210_SFC_RX_CIF_CTRL);
+	if (err) {
+		dev_err(dev, "Can't set SFC RX CIF: %d\n", err);
+		return err;
 	}
 	memcpy(&sfc->in_hw_params, params, sizeof(struct snd_pcm_hw_params));
 
-	regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_RX_FREQ, sfc->srate_in);
+	regmap_write(sfc->regmap, TEGRA210_SFC_RX_FREQ, sfc->srate_in);
 
 	if (sfc->srate_in != sfc->srate_out) {
-		ret = tegra210_sfc_write_coeff_ram(sfc);
-		if (ret)
+		err = tegra210_sfc_write_coeff_ram(sfc);
+		if (err)
 			dev_err(dev, "Conversion from %d to %d is not supported\n",
 				sfc->srate_in, sfc->srate_out);
 	}
 
-	return ret;
+	return err;
 }
 
 static int tegra210_sfc_out_hw_params(struct snd_pcm_substream *substream,
@@ -3067,13 +3063,13 @@ static int tegra210_sfc_out_hw_params(struct snd_pcm_substream *substream,
 {
 	struct device *dev = dai->dev;
 	struct tegra210_sfc *sfc = snd_soc_dai_get_drvdata(dai);
-	int ret;
+	int err;
 
-	ret = tegra210_sfc_set_audio_cif(sfc, params,
-				TEGRA210_SFC_AXBAR_TX_CIF_CTRL);
-	if (ret) {
-		dev_err(dev, "Can't set SFC TX CIF: %d\n", ret);
-		return ret;
+	err = tegra210_sfc_set_audio_cif(sfc, params,
+				TEGRA210_SFC_TX_CIF_CTRL);
+	if (err) {
+		dev_err(dev, "Can't set SFC TX CIF: %d\n", err);
+		return err;
 	}
 	memcpy(&sfc->out_hw_params, params, sizeof(struct snd_pcm_hw_params));
 
@@ -3083,54 +3079,105 @@ static int tegra210_sfc_out_hw_params(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
-	regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_TX_FREQ, sfc->srate_out);
-	return ret;
+	regmap_write(sfc->regmap, TEGRA210_SFC_TX_FREQ, sfc->srate_out);
+	return err;
 }
 
-static int tegra210_sfc_get_srate(struct snd_kcontrol *kcontrol,
+static int tegra210_sfc_init(struct snd_soc_component *cmpnt, int init)
+{
+	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
+	int is_enabled, err;
+
+	if (!init)
+		return 0;
+
+	dev_dbg(cmpnt->dev, "%s: inrate %d outrate %d\n",
+		__func__, sfc->srate_in, sfc->srate_out);
+
+	err = pm_runtime_get_sync(cmpnt->dev);
+	if (err < 0) {
+		dev_err(cmpnt->dev, "RPM get_sync() failed: %d\n", err);
+		return err;
+	}
+
+	regmap_read(sfc->regmap, TEGRA210_SFC_ENABLE, &is_enabled);
+
+	if (is_enabled) {
+		u32 val;
+
+		regmap_write(sfc->regmap, TEGRA210_SFC_ENABLE, 0);
+
+		err = regmap_read_poll_timeout(sfc->regmap,
+					       TEGRA210_SFC_STATUS, val,
+					       !(val & 0x1), 10, 10000);
+		if (err < 0) {
+			dev_err(cmpnt->dev,
+				"failed to disable SFC, err = %d\n", err);
+			return err;
+		}
+
+		regmap_update_bits(sfc->regmap,
+				TEGRA210_SFC_COEF_RAM,
+				TEGRA210_SFC_COEF_RAM_EN,
+				0);
+
+		err = tegra210_sfc_soft_reset(sfc);
+		if (err < 0) {
+			dev_err(cmpnt->dev,
+				"failed to reset SFC in %s, err = %d\n",
+				__func__, err);
+			goto exit;
+		}
+
+		err = tegra210_sfc_set_audio_cif(sfc, &sfc->in_hw_params,
+					TEGRA210_SFC_RX_CIF_CTRL);
+		if (err) {
+			dev_err(cmpnt->dev, "Can't set SFC RX CIF: %d\n", err);
+			goto exit;
+		}
+
+		err = tegra210_sfc_set_audio_cif(sfc, &sfc->out_hw_params,
+						TEGRA210_SFC_TX_CIF_CTRL);
+		if (err) {
+			dev_err(cmpnt->dev, "Can't set SFC TX CIF: %d\n", err);
+			goto exit;
+		}
+
+		regmap_write(sfc->regmap, TEGRA210_SFC_RX_FREQ, sfc->srate_in);
+		regmap_write(sfc->regmap, TEGRA210_SFC_TX_FREQ, sfc->srate_out);
+
+		if (sfc->srate_in != sfc->srate_out) {
+			err = tegra210_sfc_write_coeff_ram(sfc);
+			if (err) {
+				dev_err(cmpnt->dev, "Conversion from %d to %d is not supported\n",
+					sfc->srate_in, sfc->srate_out);
+				goto exit;
+			}
+		}
+
+		regmap_write(sfc->regmap, TEGRA210_SFC_ENABLE, 1);
+	}
+exit:
+	pm_runtime_put(cmpnt->dev);
+
+	return err;
+}
+
+static int tegra210_sfc_get_control(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
 
-	/* get the sfc output rate */
-	if (strstr(kcontrol->id.name, "input"))
-		ucontrol->value.integer.value[0] = tegra210_sfc_rates[sfc->srate_in];
-	else if (strstr(kcontrol->id.name, "output"))
-		ucontrol->value.integer.value[0] = tegra210_sfc_rates[sfc->srate_out];
-
-	return 0;
-}
-
-static int tegra210_sfc_put_srate(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
-	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
-	int srate = tegra210_sfc_rate_to_index(ucontrol->value.integer.value[0]);
-
-	if (srate < 0)
-		return -EINVAL;
-
-	/* Update the SFC input/output rate */
-	if (strstr(kcontrol->id.name, "input"))
-		sfc->srate_in = srate;
-	else if (strstr(kcontrol->id.name, "output"))
-		sfc->srate_out = srate;
-
-	return 0;
-}
-
-static int tegra210_sfc_get_format(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
-	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
-
-	/* get the format control flag */
-	if (strstr(kcontrol->id.name, "input"))
+	if (strstr(kcontrol->id.name, "Input Sample Rate"))
+		ucontrol->value.integer.value[0] =
+			tegra210_sfc_rates[sfc->srate_in];
+	else if (strstr(kcontrol->id.name, "Output Sample Rate"))
+		ucontrol->value.integer.value[0] =
+			tegra210_sfc_rates[sfc->srate_out];
+	else if (strstr(kcontrol->id.name, "Input Audio Bit Format"))
 		ucontrol->value.integer.value[0] = sfc->format_in;
-	else if (strstr(kcontrol->id.name, "output"))
+	else if (strstr(kcontrol->id.name, "Output Audio Bit Format"))
 		ucontrol->value.integer.value[0] = sfc->format_out;
 	else if (strstr(kcontrol->id.name, "Input Audio Channels"))
 		ucontrol->value.integer.value[0] =
@@ -3156,124 +3203,50 @@ static int tegra210_sfc_get_format(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int tegra210_sfc_put_format(struct snd_kcontrol *kcontrol,
+static int tegra210_sfc_put_control(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
 	int value = ucontrol->value.integer.value[0];
 
-	/* set the format control flag */
-	if (strstr(kcontrol->id.name, "input"))
+	if (strstr(kcontrol->id.name, "Input Sample Rate")) {
+		int srate = tegra210_sfc_rate_to_index(value);
+
+		if (srate < 0)
+			return -EINVAL;
+
+		sfc->srate_in = srate;
+	} else if (strstr(kcontrol->id.name, "Output Sample Rate")) {
+		int srate = tegra210_sfc_rate_to_index(value);
+
+		if (srate < 0)
+			return -EINVAL;
+
+		sfc->srate_out = srate;
+	} else if (strstr(kcontrol->id.name, "Init")) {
+		return tegra210_sfc_init(cmpnt, value);
+	} else if (strstr(kcontrol->id.name, "Input Audio Bit Format")) {
 		sfc->format_in = value;
-	else if (strstr(kcontrol->id.name, "output"))
+	} else if (strstr(kcontrol->id.name, "Output Audio Bit Format")) {
 		sfc->format_out = value;
-	else if (strstr(kcontrol->id.name, "Input Audio Channels"))
+	} else if (strstr(kcontrol->id.name, "Input Audio Channels")) {
 		sfc->audio_ch_override[SFC_RX_PATH] = value;
-	else if (strstr(kcontrol->id.name, "Output Audio Channels"))
+	} else if (strstr(kcontrol->id.name, "Output Audio Channels")) {
 		sfc->audio_ch_override[SFC_TX_PATH] = value;
-	else if (strstr(kcontrol->id.name, "Client Channels"))
+	} else if (strstr(kcontrol->id.name, "Client Channels")) {
 		sfc->client_ch_override = value;
-	else if (strstr(kcontrol->id.name, "Input Stereo To Mono"))
+	} else if (strstr(kcontrol->id.name, "Input Stereo To Mono")) {
 		sfc->stereo_to_mono[SFC_RX_PATH] = value;
-	else if (strstr(kcontrol->id.name, "Input Mono To Stereo"))
+	} else if (strstr(kcontrol->id.name, "Input Mono To Stereo")) {
 		sfc->mono_to_stereo[SFC_RX_PATH] = value;
-	else if (strstr(kcontrol->id.name, "Output Stereo To Mono"))
+	} else if (strstr(kcontrol->id.name, "Output Stereo To Mono")) {
 		sfc->stereo_to_mono[SFC_TX_PATH] = value;
-	else if (strstr(kcontrol->id.name, "Output Mono To Stereo"))
+	} else if (strstr(kcontrol->id.name, "Output Mono To Stereo")) {
 		sfc->mono_to_stereo[SFC_TX_PATH] = value;
-
-	return 0;
-}
-
-static int tegra210_sfc_init_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
-{
-	return 0;
-}
-
-static int tegra210_sfc_init_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
-	struct tegra210_sfc *sfc = snd_soc_component_get_drvdata(cmpnt);
-	int init = ucontrol->value.enumerated.item[0];
-	int ret = 0;
-	int is_enabled = 0;
-
-	if (!init)
-		return ret;
-
-	dev_dbg(cmpnt->dev, "%s: inrate %d outrate %d\n",
-		__func__, sfc->srate_in, sfc->srate_out);
-
-	ret = pm_runtime_get_sync(cmpnt->dev->parent);
-	if (ret < 0) {
-		dev_err(cmpnt->dev, "parent get_sync failed: %d\n", ret);
-		return ret;
 	}
 
-	regmap_read(sfc->regmap, TEGRA210_SFC_ENABLE, &is_enabled);
-
-	if (is_enabled) {
-		u32 val;
-
-		regmap_write(sfc->regmap, TEGRA210_SFC_ENABLE, 0);
-
-		ret = regmap_read_poll_timeout(sfc->regmap,
-					       TEGRA210_SFC_STATUS, val,
-					       !(val & 0x1), 10, 10000);
-		if (ret < 0) {
-			dev_err(cmpnt->dev,
-				"failed to disable SFC, err = %d\n", ret);
-			return ret;
-		}
-
-		regmap_update_bits(sfc->regmap,
-				TEGRA210_SFC_COEF_RAM,
-				TEGRA210_SFC_COEF_RAM_COEF_RAM_EN,
-				0);
-
-		ret = tegra210_sfc_soft_reset(sfc);
-		if (ret < 0) {
-			dev_err(cmpnt->dev,
-				"failed to reset SFC in %s, err = %d\n",
-				__func__, ret);
-			goto exit;
-		}
-
-		ret = tegra210_sfc_set_audio_cif(sfc, &sfc->in_hw_params,
-					TEGRA210_SFC_AXBAR_RX_CIF_CTRL);
-		if (ret) {
-			dev_err(cmpnt->dev, "Can't set SFC RX CIF: %d\n", ret);
-			goto exit;
-		}
-
-		ret = tegra210_sfc_set_audio_cif(sfc, &sfc->out_hw_params,
-						TEGRA210_SFC_AXBAR_TX_CIF_CTRL);
-		if (ret) {
-			dev_err(cmpnt->dev, "Can't set SFC TX CIF: %d\n", ret);
-			goto exit;
-		}
-
-		regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_RX_FREQ, sfc->srate_in);
-		regmap_write(sfc->regmap, TEGRA210_SFC_AXBAR_TX_FREQ, sfc->srate_out);
-
-		if (sfc->srate_in != sfc->srate_out) {
-			ret = tegra210_sfc_write_coeff_ram(sfc);
-			if (ret) {
-				dev_err(cmpnt->dev, "Conversion from %d to %d is not supported\n",
-					sfc->srate_in, sfc->srate_out);
-				goto exit;
-			}
-		}
-
-		regmap_write(sfc->regmap, TEGRA210_SFC_ENABLE, 1);
-	}
-exit:
-	pm_runtime_put(cmpnt->dev->parent);
-
-	return ret;
+	return 0;
 }
 
 static struct snd_soc_dai_ops tegra210_sfc_in_dai_ops = {
@@ -3339,7 +3312,7 @@ static const char * const tegra210_sfc_stereo_conv_text[] = {
 };
 
 static const char * const tegra210_sfc_mono_conv_text[] = {
-	"ZERO", "COPY",
+	"Zero", "Copy",
 };
 
 static const struct soc_enum tegra210_sfc_format_enum =
@@ -3358,30 +3331,30 @@ static const struct soc_enum tegra210_sfc_mono_conv_enum =
 		tegra210_sfc_mono_conv_text);
 
 static const struct snd_kcontrol_new tegra210_sfc_controls[] = {
-	SOC_SINGLE_EXT("input rate", 0, 0, 192000, 0,
-		tegra210_sfc_get_srate, tegra210_sfc_put_srate),
-	SOC_SINGLE_EXT("output rate", 0, 0, 192000, 0,
-		tegra210_sfc_get_srate, tegra210_sfc_put_srate),
-	SOC_ENUM_EXT("input bit format", tegra210_sfc_format_enum,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
-	SOC_ENUM_EXT("output bit format", tegra210_sfc_format_enum,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
+	SOC_SINGLE_EXT("Input Sample Rate", 0, 0, 192000, 0,
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
+	SOC_SINGLE_EXT("Output Sample Rate", 0, 0, 192000, 0,
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
+	SOC_ENUM_EXT("Input Audio Bit Format", tegra210_sfc_format_enum,
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
+	SOC_ENUM_EXT("Output Audio Bit Format", tegra210_sfc_format_enum,
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
 	SOC_SINGLE_EXT("Input Audio Channels", 0, 0, 2, 0,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
 	SOC_SINGLE_EXT("Output Audio Channels", 0, 0, 2, 0,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
 	SOC_SINGLE_EXT("Client Channels", 0, 0, 2, 0,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
-	SOC_SINGLE_EXT("init", 0, 0, 1, 0,
-		tegra210_sfc_init_get, tegra210_sfc_init_put),
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
+	SOC_SINGLE_EXT("Init", 0, 0, 1, 0,
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
 	SOC_ENUM_EXT("Input Stereo To Mono", tegra210_sfc_stereo_conv_enum,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
 	SOC_ENUM_EXT("Input Mono To Stereo", tegra210_sfc_mono_conv_enum,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
 	SOC_ENUM_EXT("Output Stereo To Mono", tegra210_sfc_stereo_conv_enum,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
 	SOC_ENUM_EXT("Output Mono To Stereo", tegra210_sfc_mono_conv_enum,
-		tegra210_sfc_get_format, tegra210_sfc_put_format),
+		tegra210_sfc_get_control, tegra210_sfc_put_control),
 };
 
 static struct snd_soc_component_driver tegra210_sfc_cmpnt = {
@@ -3396,100 +3369,66 @@ static struct snd_soc_component_driver tegra210_sfc_cmpnt = {
 static bool tegra210_sfc_wr_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_SFC_AXBAR_RX_INT_MASK:
-	case TEGRA210_SFC_AXBAR_RX_INT_SET:
-	case TEGRA210_SFC_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_SFC_AXBAR_RX_CIF_CTRL:
-	case TEGRA210_SFC_AXBAR_RX_FREQ:
-
-	case TEGRA210_SFC_AXBAR_TX_INT_MASK:
-	case TEGRA210_SFC_AXBAR_TX_INT_SET:
-	case TEGRA210_SFC_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_SFC_AXBAR_TX_CIF_CTRL:
-	case TEGRA210_SFC_AXBAR_TX_FREQ:
-
-	case TEGRA210_SFC_ENABLE:
-	case TEGRA210_SFC_SOFT_RESET:
-	case TEGRA210_SFC_CG:
-	case TEGRA210_SFC_COEF_RAM:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_DATA:
+	case TEGRA210_SFC_RX_INT_MASK ... TEGRA210_SFC_RX_FREQ:
+	case TEGRA210_SFC_TX_INT_MASK ... TEGRA210_SFC_TX_FREQ:
+	case TEGRA210_SFC_ENABLE ... TEGRA210_SFC_CG:
+	case TEGRA210_SFC_COEF_RAM ... TEGRA210_SFC_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_sfc_rd_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_SFC_AXBAR_RX_STATUS:
-	case TEGRA210_SFC_AXBAR_RX_INT_STATUS:
-	case TEGRA210_SFC_AXBAR_RX_INT_MASK:
-	case TEGRA210_SFC_AXBAR_RX_INT_SET:
-	case TEGRA210_SFC_AXBAR_RX_INT_CLEAR:
-	case TEGRA210_SFC_AXBAR_RX_CIF_CTRL:
-	case TEGRA210_SFC_AXBAR_RX_FREQ:
-
-	case TEGRA210_SFC_AXBAR_TX_STATUS:
-	case TEGRA210_SFC_AXBAR_TX_INT_STATUS:
-	case TEGRA210_SFC_AXBAR_TX_INT_MASK:
-	case TEGRA210_SFC_AXBAR_TX_INT_SET:
-	case TEGRA210_SFC_AXBAR_TX_INT_CLEAR:
-	case TEGRA210_SFC_AXBAR_TX_CIF_CTRL:
-	case TEGRA210_SFC_AXBAR_TX_FREQ:
-
-	case TEGRA210_SFC_ENABLE:
-	case TEGRA210_SFC_SOFT_RESET:
-	case TEGRA210_SFC_CG:
-	case TEGRA210_SFC_STATUS:
-	case TEGRA210_SFC_INT_STATUS:
-	case TEGRA210_SFC_COEF_RAM:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_DATA:
+	case TEGRA210_SFC_RX_STATUS ... TEGRA210_SFC_RX_FREQ:
+	case TEGRA210_SFC_TX_STATUS ... TEGRA210_SFC_TX_FREQ:
+	case TEGRA210_SFC_ENABLE ... TEGRA210_SFC_INT_STATUS:
+	case TEGRA210_SFC_COEF_RAM ... TEGRA210_SFC_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_sfc_volatile_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_SFC_AXBAR_RX_STATUS:
-	case TEGRA210_SFC_AXBAR_RX_INT_STATUS:
-	case TEGRA210_SFC_AXBAR_RX_INT_SET:
+	case TEGRA210_SFC_RX_STATUS:
+	case TEGRA210_SFC_RX_INT_STATUS:
+	case TEGRA210_SFC_RX_INT_SET:
 
-	case TEGRA210_SFC_AXBAR_TX_STATUS:
-	case TEGRA210_SFC_AXBAR_TX_INT_STATUS:
-	case TEGRA210_SFC_AXBAR_TX_INT_SET:
+	case TEGRA210_SFC_TX_STATUS:
+	case TEGRA210_SFC_TX_INT_STATUS:
+	case TEGRA210_SFC_TX_INT_SET:
 
 	case TEGRA210_SFC_SOFT_RESET:
 	case TEGRA210_SFC_STATUS:
 	case TEGRA210_SFC_INT_STATUS:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_CTRL:
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_DATA:
+	case TEGRA210_SFC_CFG_RAM_CTRL:
+	case TEGRA210_SFC_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_sfc_precious_reg(struct device *dev, unsigned int reg)
 {
 	switch (reg) {
-	case TEGRA210_SFC_AHUBRAMCTL_SFC_DATA:
+	case TEGRA210_SFC_CFG_RAM_DATA:
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra210_sfc_regmap_config = {
 	.reg_bits = 32,
 	.reg_stride = 4,
 	.val_bits = 32,
-	.max_register = TEGRA210_SFC_AHUBRAMCTL_SFC_DATA,
+	.max_register = TEGRA210_SFC_CFG_RAM_DATA,
 	.writeable_reg = tegra210_sfc_wr_reg,
 	.readable_reg = tegra210_sfc_rd_reg,
 	.volatile_reg = tegra210_sfc_volatile_reg,
@@ -3503,59 +3442,50 @@ static const struct of_device_id tegra210_sfc_of_match[] = {
 	{ .compatible = "nvidia,tegra210-sfc" },
 	{},
 };
+MODULE_DEVICE_TABLE(of, tegra210_sfc_of_match);
 
 static int tegra210_sfc_platform_probe(struct platform_device *pdev)
 {
+	struct device *dev = &pdev->dev;
 	struct tegra210_sfc *sfc;
-	struct resource *mem;
 	void __iomem *regs;
-	int ret = 0;
-	const struct of_device_id *match;
+	int err;
 
-	match = of_match_device(tegra210_sfc_of_match, &pdev->dev);
-	if (!match) {
-		dev_err(&pdev->dev, "Error: No device match found\n");
-		return -ENODEV;
-	}
-
-	sfc = devm_kzalloc(&pdev->dev, sizeof(*sfc), GFP_KERNEL);
+	sfc = devm_kzalloc(dev, sizeof(*sfc), GFP_KERNEL);
 	if (!sfc)
 		return -ENOMEM;
 
-	dev_set_drvdata(&pdev->dev, sfc);
+	dev_set_drvdata(dev, sfc);
 
-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	sfc->regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+
+	sfc->regmap = devm_regmap_init_mmio(dev, regs,
 					    &tegra210_sfc_regmap_config);
 	if (IS_ERR(sfc->regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(sfc->regmap);
 	}
+
 	regcache_cache_only(sfc->regmap, true);
 
-	pm_runtime_enable(&pdev->dev);
-	ret = snd_soc_register_component(&pdev->dev, &tegra210_sfc_cmpnt,
-				     tegra210_sfc_dais,
-				     ARRAY_SIZE(tegra210_sfc_dais));
-	if (ret != 0) {
-		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
-		pm_runtime_disable(&pdev->dev);
-		return ret;
+	err = devm_snd_soc_register_component(dev, &tegra210_sfc_cmpnt,
+					      tegra210_sfc_dais,
+					      ARRAY_SIZE(tegra210_sfc_dais));
+	if (err) {
+		dev_err(dev, "can't register SFC component, err: %d\n", err);
+		return err;
 	}
+
+	pm_runtime_enable(&pdev->dev);
 
 	return 0;
 }
 
 static int tegra210_sfc_platform_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_component(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
-	if (!pm_runtime_status_suspended(&pdev->dev))
-		tegra210_sfc_runtime_suspend(&pdev->dev);
 
 	return 0;
 }
@@ -3569,8 +3499,7 @@ static const struct dev_pm_ops tegra210_sfc_pm_ops = {
 
 static struct platform_driver tegra210_sfc_driver = {
 	.driver = {
-		.name = DRV_NAME,
-		.owner = THIS_MODULE,
+		.name = "tegra210-sfc",
 		.of_match_table = tegra210_sfc_of_match,
 		.pm = &tegra210_sfc_pm_ops,
 	},
@@ -3582,5 +3511,3 @@ module_platform_driver(tegra210_sfc_driver)
 MODULE_AUTHOR("Arun Shamanna Lakshmi <aruns@nvidia.com>");
 MODULE_DESCRIPTION("Tegra210 SFC ASoC driver");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("platform:" DRV_NAME);
-MODULE_DEVICE_TABLE(of, tegra210_sfc_of_match);

@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/*
- * tegra210_peq.c - Tegra210 PEQ driver
- *
- * Copyright (c) 2014-2020, NVIDIA CORPORATION.  All rights reserved.
- *
- */
+//
+// tegra210_peq.c - Tegra210 PEQ driver
+//
+// Copyright (c) 2014-2021, NVIDIA CORPORATION.  All rights reserved.
 
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
@@ -18,7 +17,6 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
-#include <linux/of_device.h>
 
 #include "tegra210_ahub.h"
 #include "tegra210_ope.h"
@@ -208,7 +206,7 @@ static bool tegra210_peq_wr_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_peq_rd_reg(struct device *dev, unsigned int reg)
@@ -225,7 +223,7 @@ static bool tegra210_peq_rd_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_peq_volatile_reg(struct device *dev, unsigned int reg)
@@ -240,7 +238,7 @@ static bool tegra210_peq_volatile_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static bool tegra210_peq_precious_reg(struct device *dev, unsigned int reg)
@@ -251,7 +249,7 @@ static bool tegra210_peq_precious_reg(struct device *dev, unsigned int reg)
 		return true;
 	default:
 		return false;
-	};
+	}
 }
 
 static const struct regmap_config tegra210_peq_regmap_config = {
@@ -358,18 +356,19 @@ EXPORT_SYMBOL_GPL(tegra210_peq_codec_init);
 
 int tegra210_peq_init(struct platform_device *pdev, int id)
 {
-	struct tegra210_ope *ope = dev_get_drvdata(&pdev->dev);
+	struct device *dev = &pdev->dev;
+	struct tegra210_ope *ope = dev_get_drvdata(dev);
 	struct resource *mem;
 	void __iomem *regs;
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, id);
-	regs = devm_ioremap_resource(&pdev->dev, mem);
+	regs = devm_ioremap_resource(dev, mem);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-	ope->peq_regmap = devm_regmap_init_mmio(&pdev->dev, regs,
+	ope->peq_regmap = devm_regmap_init_mmio(dev, regs,
 						&tegra210_peq_regmap_config);
 	if (IS_ERR(ope->peq_regmap)) {
-		dev_err(&pdev->dev, "regmap init failed\n");
+		dev_err(dev, "regmap init failed\n");
 		return PTR_ERR(ope->peq_regmap);
 	}
 
