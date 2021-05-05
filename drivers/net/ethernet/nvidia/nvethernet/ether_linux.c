@@ -3988,23 +3988,65 @@ static int ether_get_mac_address(struct ether_priv_data *pdata)
 	struct device_node *np = dev->of_node;
 	const char *eth_mac_addr = NULL;
 	unsigned char mac_addr[ETH_ALEN] = {0};
+	/* Default choesn node property name for MAC address */
+	char str_mac_address[ETH_MAC_STR_LEN] = "nvidia,ether-mac";
+	unsigned int offset = 0;
+	unsigned int mac_addr_idx = 0x0;
 	int ret = 0;
 
 	if (!osi_core->pre_si) {
-		/* read MAC address */
-		eth_mac_addr = of_get_mac_address(np);
-		if (IS_ERR_OR_NULL(eth_mac_addr)) {
-			ret = ether_get_mac_address_dtb("/chosen",
-							"nvidia,ether-mac",
-							mac_addr);
-			if (ret < 0)
-				return ret;
-			eth_mac_addr = mac_addr;
-		} else {
-			if (!(is_valid_ether_addr(eth_mac_addr))) {
-				dev_err(dev, "Bad mac address exiting\n");
-				return -EINVAL;
+		/** For all new Platforms, ethernet DT node must have
+		 * "nvidia,mac-addr-idx" property which give MAC address
+		 * index of ethernet controller.
+		 *
+		 * - Algorithm: MAC address index for a functional driver is
+		 *   known from platform dts file.
+		 *
+		 *   For example:
+		 *     if there is MGBE controller DT node with index 8 MGBE,
+		 *     MAC address is at /chosen/nvidia,ether-mac8
+		 */
+		if ((pdata->osi_core->mac_ver > OSI_EQOS_MAC_5_10) ||
+		    (pdata->osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+			ret = of_property_read_u32(np,
+						   "nvidia,mac-addr-idx",
+						   &mac_addr_idx);
+			if (ret < 0) {
+				dev_err(dev,
+					"Ethernet MAC index missing\n");
+				/* TODO Must return error if index is not
+				 * present in ethernet dt node
+				 * which is having status "okay".
+				 */
 			}
+
+			offset = mac_addr_idx;
+			sprintf(str_mac_address, "nvidia,ether-mac%d", offset);
+		}
+
+		ret = ether_get_mac_address_dtb("/chosen", str_mac_address,
+						mac_addr);
+		/* If return value is valid update eth_mac_addr */
+		if (ret == 0) {
+			eth_mac_addr = mac_addr;
+		}
+
+		/* if chosen nodes are not present for platform */
+		if (IS_ERR_OR_NULL(eth_mac_addr)) {
+			/* Read MAC address using default ethernet property
+			 * upstream driver should have only this call to get
+			 * MAC address
+			 */
+			eth_mac_addr = of_get_mac_address(np);
+		}
+
+		/* If neither chosen node nor kernel supported dt strings are
+		 * present in platform device tree.
+		 */
+		if (!(is_valid_ether_addr(eth_mac_addr)) ||
+		    IS_ERR_OR_NULL(eth_mac_addr)) {
+			dev_err(dev, "Bad mac address exiting\n");
+			return -EINVAL;
 		}
 	} else {
 		ndev->addr_assign_type = NET_ADDR_RANDOM;
@@ -4514,28 +4556,8 @@ static int ether_init_plat_resources(struct platform_device *pdev,
 	ret = ether_configure_car(pdev, pdata);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get clks/reset");
-		goto rst_clk_fail;
 	}
 
-	/*FIXME Need to program different MAC address for other FDs into
-	 * different MAC address registers. Need to add DA based filtering
-	 * support. Get MAC address from DT
-	 */
-	ret = ether_get_mac_address(pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to get MAC address");
-		goto mac_addr_fail;
-	}
-
-	return 0;
-
-mac_addr_fail:
-	ether_disable_clks(pdata);
-	ether_put_clks(pdata);
-	if (gpio_is_valid(pdata->phy_reset)) {
-		gpio_set_value(pdata->phy_reset, OSI_DISABLE);
-	}
-rst_clk_fail:
 	return ret;
 }
 
@@ -5371,6 +5393,12 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_dma_mask;
 	}
 	osi_core->mac_ver = ioctl_data.arg1_u32;
+
+	ret = ether_get_mac_address(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to get MAC address\n");
+		goto err_dma_mask;
+	}
 
 	ioctl_data.cmd = OSI_CMD_GET_HW_FEAT;
 	ret = osi_handle_ioctl(osi_core, &ioctl_data);

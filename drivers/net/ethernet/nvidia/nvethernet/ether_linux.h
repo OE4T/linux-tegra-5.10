@@ -71,6 +71,11 @@
 #define ETHER_IRQ_NAME_SZ		32
 
 /**
+ * @addtogroup MAC address DT string
+ */
+#define ETH_MAC_STR_LEN			20
+
+/**
  * @addtogroup Ethernet Transmit Queue Priority
  *
  * @brief Macros to define the default, maximum and invalid range of Transmit
