@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (C) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -64,6 +64,7 @@ struct smmu_debugfs_master {
 	s16		*smendx;
 	struct dentry	*dent;
 	struct list_head node;
+	u16 streamid_mask;
 };
 
 struct smmu_debugfs_info {
@@ -83,12 +84,17 @@ struct smmu_debugfs_info {
 	u16		streamid_mask;
 	struct debugfs_regset32 *regset;
 	struct debugfs_regset32 *perf_regset;
+	struct debugfs_reg32 *reg;
+	u8 debug_smmu_id;
 };
 
 void arm_smmu_debugfs_setup_bases(struct arm_smmu_device *smmu, u32 num_smmus,
 				  void __iomem *bases[]);
 void arm_smmu_debugfs_setup_cfg(struct arm_smmu_device *smmu);
-void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[]);
-void arm_smmu_debugfs_remove_master(struct device *dev);
+void arm_smmu_debugfs_add_master(struct device *dev,
+				 struct smmu_debugfs_info *smmu_dfs,
+				 u8 *cbndx, u16 smendx[]);
+void arm_smmu_debugfs_remove_master(struct device *dev,
+				    struct smmu_debugfs_info *smmu_dfs);
 
 #endif /* _ARM_SMMU_DEBUG_H */

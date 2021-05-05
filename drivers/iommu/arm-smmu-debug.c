@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (C) 2020-2021 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -21,9 +21,6 @@
 #include "arm-smmu.h"
 #endif
 #include <linux/arm-smmu-debug.h>
-
-static struct smmu_debugfs_info *smmu_handle;
-static u8 debug_smmu_id;
 
 #define defreg(_name)				\
 	{					\
@@ -89,12 +86,12 @@ static ssize_t smmu_context_filter_write(struct file *file,
 	bool first_times = 1;
 	ssize_t ret = count;
 	struct seq_file *seqf = file->private_data;
-	struct smmu_debugfs_info *info = seqf->private;
-	unsigned long *bitmap = info->context_filter;
+	struct smmu_debugfs_info *smmu_dfs = seqf->private;
+	unsigned long *bitmap = smmu_dfs->context_filter;
 
 	/* Clear bitmap in case of user buf empty */
 	if (count == 1 && *user_buf == '\n') {
-		bitmap_zero(bitmap, info->num_context_banks);
+		bitmap_zero(bitmap, smmu_dfs->num_context_banks);
 		return ret;
 	}
 
@@ -122,19 +119,21 @@ static ssize_t smmu_context_filter_write(struct file *file,
 
 			/* Reset bitmap in case of negative index */
 			if (cbndx < 0) {
-				bitmap_fill(bitmap, info->num_context_banks);
+				bitmap_fill(bitmap,
+					    smmu_dfs->num_context_banks);
 				goto end;
 			}
 
-			if (cbndx >= info->num_context_banks) {
-				dev_err(info->dev,
+			if (cbndx >= smmu_dfs->num_context_banks) {
+				dev_err(smmu_dfs->dev,
 					"context filter index out of range\n");
 				ret = -EINVAL;
 				goto end;
 			}
 
 			if (first_times) {
-				bitmap_zero(bitmap, info->num_context_banks);
+				bitmap_zero(bitmap,
+					    smmu_dfs->num_context_banks);
 				first_times = 0;
 			}
 
@@ -149,13 +148,13 @@ end:
 
 static int smmu_context_filter_show(struct seq_file *s, void *unused)
 {
-	struct smmu_debugfs_info *info = s->private;
-	unsigned long *bitmap = info->context_filter;
+	struct smmu_debugfs_info *smmu_dfs = s->private;
+	unsigned long *bitmap = smmu_dfs->context_filter;
 	int idx = 0;
 
 	while (1) {
-		idx = find_next_bit(bitmap, info->max_cbs, idx);
-		if (idx >= info->num_context_banks)
+		idx = find_next_bit(bitmap, smmu_dfs->max_cbs, idx);
+		if (idx >= smmu_dfs->num_context_banks)
 			break;
 		seq_printf(s, "%d,", idx);
 		idx++;
@@ -177,38 +176,48 @@ static const struct file_operations smmu_context_filter_fops = {
 	.release	= single_release,
 };
 
-static void debugfs_create_smmu_cb(struct smmu_debugfs_info *smmu, u8 cbndx)
+static void debugfs_create_smmu_cb(struct smmu_debugfs_info *smmu_dfs, u8 cbndx)
 {
 	struct dentry *dent;
 	char name[] = "cb000";
 	struct debugfs_regset32 *cb;
 
 	sprintf(name, "cb%03d", cbndx);
-	dent = debugfs_create_dir(name, smmu->debugfs_root);
+	dent = debugfs_create_dir(name, smmu_dfs->debugfs_root);
 	if (!dent)
 		return;
 
-	cb = smmu->regset + 1 + cbndx;
+	cb = smmu_dfs->regset + 1 + cbndx;
 	cb->regs = arm_smmu_cb_regs;
 	cb->nregs = ARRAY_SIZE(arm_smmu_cb_regs);
-	cb->base = smmu->bases[0] + (smmu->size >> 1) +
-		cbndx * (1 << smmu->pgshift);
+	cb->base = smmu_dfs->bases[0] + (smmu_dfs->size >> 1) +
+		cbndx * (1 << smmu_dfs->pgshift);
 	debugfs_create_regset32("regdump", S_IRUGO, dent, cb);
 }
 
 static int smmu_reg32_debugfs_set(void *data, u64 val)
 {
-	struct debugfs_reg32 *regs = (struct debugfs_reg32 *)data;
+	struct smmu_debugfs_info *smmu_dfs = (struct smmu_debugfs_info *)data;
 
-	writel(val, (smmu_handle->bases[debug_smmu_id] + regs->offset));
+	if (smmu_dfs == NULL) {
+		pr_err("SMMU debugfs setup not complete\n");
+		return -EINVAL;
+	}
+	writel(val, (smmu_dfs->bases[smmu_dfs->debug_smmu_id] +
+			smmu_dfs->reg->offset));
 	return 0;
 }
 
 static int smmu_reg32_debugfs_get(void *data, u64 *val)
 {
-	struct debugfs_reg32 *regs = (struct debugfs_reg32 *)data;
+	struct smmu_debugfs_info *smmu_dfs = (struct smmu_debugfs_info *)data;
 
-	*val = readl(smmu_handle->bases[debug_smmu_id] + regs->offset);
+	if (smmu_dfs == NULL) {
+		pr_err("SMMU debugfs setup not complete\n");
+		return -EINVAL;
+	}
+	*val = readl(smmu_dfs->bases[smmu_dfs->debug_smmu_id] +
+			smmu_dfs->reg->offset);
 	return 0;
 }
 
@@ -218,68 +227,79 @@ DEFINE_SIMPLE_ATTRIBUTE(smmu_reg32_debugfs_fops,
 
 static int smmu_perf_regset_debugfs_set(void *data, u64 val)
 {
-	struct debugfs_reg32 *regs = (struct debugfs_reg32 *)data;
+	struct smmu_debugfs_info *smmu_dfs = (struct smmu_debugfs_info *)data;
 
-	writel(val, (smmu_handle->perf_regset->base + regs->offset));
+	if (smmu_dfs == NULL) {
+		pr_err("SMMU debugfs setup not complete\n");
+		return -EINVAL;
+	}
+	writel(val, (smmu_dfs->perf_regset->base + smmu_dfs->reg->offset));
 	return 0;
 }
 
 static int smmu_perf_regset_debugfs_get(void *data, u64 *val)
 {
-	struct debugfs_reg32 *regs = (struct debugfs_reg32 *)data;
+	struct smmu_debugfs_info *smmu_dfs = (struct smmu_debugfs_info *)data;
 
-	*val = readl(smmu_handle->perf_regset->base + regs->offset);
+	if (smmu_dfs == NULL) {
+		pr_err("SMMU debugfs setup not complete\n");
+		return -EINVAL;
+	}
+	*val = readl(smmu_dfs->perf_regset->base + smmu_dfs->reg->offset);
 	return 0;
 }
 DEFINE_SIMPLE_ATTRIBUTE(smmu_perf_regset_debugfs_fops,
 			smmu_perf_regset_debugfs_get,
 			smmu_perf_regset_debugfs_set, "%08llx\n");
 
-void arm_smmu_regs_debugfs_delete(struct smmu_debugfs_info *smmu)
+void arm_smmu_regs_debugfs_delete(struct smmu_debugfs_info *smmu_dfs)
 {
 	int i;
 
-	if (smmu->regset) {
-		const struct debugfs_reg32 *regs = smmu->regset->regs;
+	if (smmu_dfs->regset) {
+		const struct debugfs_reg32 *regs = smmu_dfs->regset->regs;
 
 		regs += ARRAY_SIZE(arm_smmu_gr0_regs);
-		for (i = 0; i < 4 * smmu->num_context_banks; i++)
+		for (i = 0; i < 4 * smmu_dfs->num_context_banks; i++)
 			kfree(regs[i].name);
 
-		kfree(smmu->regset);
-		smmu->regset = NULL;
+		kfree(smmu_dfs->regset);
+		smmu_dfs->regset = NULL;
 	}
 
-	if (smmu->perf_regset) {
-		const struct debugfs_reg32 *regs = smmu->perf_regset->regs;
+	if (smmu_dfs->perf_regset) {
+		const struct debugfs_reg32 *regs = smmu_dfs->perf_regset->regs;
 
 		i = ARRAY_SIZE(arm_smmu_gnsr0_regs);
-		for (; i < smmu->perf_regset->nregs ; i++)
+		for (; i < smmu_dfs->perf_regset->nregs ; i++)
 			kfree(regs[i].name);
 
-		kfree(smmu->perf_regset);
-		smmu->perf_regset = NULL;
+		kfree(smmu_dfs->perf_regset);
+		smmu_dfs->perf_regset = NULL;
 	}
 
-	debugfs_remove_recursive(smmu->debugfs_root);
+	debugfs_remove_recursive(smmu_dfs->debugfs_root);
 }
 
 static int debug_smmu_id_debugfs_set(void *data, u64 val)
 {
-	struct smmu_debugfs_info *smmu = (struct smmu_debugfs_info *)data;
+	struct smmu_debugfs_info *smmu_dfs = (struct smmu_debugfs_info *)data;
 
-	if (val < 0 || val >= smmu->num_smmus)
+	if (val < 0 || val >= smmu_dfs->num_smmus)
 		return -EINVAL;
 
-	debug_smmu_id = (u8)val;
-	smmu->regset->base = smmu->bases[debug_smmu_id];
-	smmu->perf_regset->base = smmu->regset->base + 3 * (1 << smmu->pgshift);
+	smmu_dfs->debug_smmu_id = (u8)val;
+	smmu_dfs->regset->base = smmu_dfs->bases[smmu_dfs->debug_smmu_id];
+	smmu_dfs->perf_regset->base = smmu_dfs->regset->base +
+					3 * (1 << smmu_dfs->pgshift);
 	return 0;
 }
 
 static int debug_smmu_id_debugfs_get(void *data, u64 *val)
 {
-	*val = debug_smmu_id;
+	struct smmu_debugfs_info *smmu_dfs = (struct smmu_debugfs_info *)data;
+
+	*val = smmu_dfs->debug_smmu_id;
 	return 0;
 }
 
@@ -294,8 +314,8 @@ static int num_smmus_debugfs_set(void *data, u64 val)
 
 static int num_smmus_debugfs_get(void *data, u64 *val)
 {
-	struct smmu_debugfs_info *smmu = (struct smmu_debugfs_info *)data;
-	*val = smmu->num_smmus;
+	struct smmu_debugfs_info *smmu_dfs = (struct smmu_debugfs_info *)data;
+	*val = smmu_dfs->num_smmus;
 	return 0;
 }
 
@@ -303,60 +323,61 @@ DEFINE_SIMPLE_ATTRIBUTE(num_smmus_debugfs_fops,
 			num_smmus_debugfs_get,
 			num_smmus_debugfs_set, "%08llx\n");
 
-static int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu)
+static int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu_dfs)
 {
 	int i;
 	struct debugfs_reg32 *regs;
 	size_t bytes;
 	struct dentry *dent_gr, *dent_gnsr;
 
-	smmu_handle = smmu;
-
-	if (!smmu->debugfs_root)
+	if (!smmu_dfs->debugfs_root)
 		return -1;
 
 	debugfs_create_file("debug_smmu_id", S_IRUGO | S_IWUSR,
-			smmu->debugfs_root, smmu, &debug_smmu_id_debugfs_fops);
+			smmu_dfs->debugfs_root, smmu_dfs,
+			&debug_smmu_id_debugfs_fops);
 
-	debugfs_create_file("num_smmus", S_IRUSR, smmu->debugfs_root,
-					 smmu, &num_smmus_debugfs_fops);
+	debugfs_create_file("num_smmus", S_IRUSR, smmu_dfs->debugfs_root,
+					 smmu_dfs, &num_smmus_debugfs_fops);
 
-	dent_gr = debugfs_create_dir("gr", smmu->debugfs_root);
+	dent_gr = debugfs_create_dir("gr", smmu_dfs->debugfs_root);
 	if (!dent_gr)
 		goto err_out;
 
-	dent_gnsr = debugfs_create_dir("gnsr", smmu->debugfs_root);
+	dent_gnsr = debugfs_create_dir("gnsr", smmu_dfs->debugfs_root);
 	if (!dent_gnsr)
 		goto err_out;
 
-	smmu->masters_root = debugfs_create_dir("masters", smmu->debugfs_root);
-	if (!smmu->masters_root)
+	smmu_dfs->masters_root = debugfs_create_dir("masters",
+						    smmu_dfs->debugfs_root);
+	if (!smmu_dfs->masters_root)
 		goto err_out;
 
-	smmu->cb_root = debugfs_create_dir("context_banks", smmu->debugfs_root);
-	if (!smmu->cb_root)
+	smmu_dfs->cb_root = debugfs_create_dir("context_banks",
+						smmu_dfs->debugfs_root);
+	if (!smmu_dfs->cb_root)
 		goto err_out;
 
-	bytes = (smmu->num_context_banks + 1) * sizeof(*smmu->regset);
+	bytes = (smmu_dfs->num_context_banks + 1) * sizeof(*smmu_dfs->regset);
 	bytes += ARRAY_SIZE(arm_smmu_gr0_regs) * sizeof(*regs);
-	bytes += 4 * smmu->num_context_banks * sizeof(*regs);
-	smmu->regset = kzalloc(bytes, GFP_KERNEL);
-	if (!smmu->regset)
+	bytes += 4 * smmu_dfs->num_context_banks * sizeof(*regs);
+	smmu_dfs->regset = kzalloc(bytes, GFP_KERNEL);
+	if (!smmu_dfs->regset)
 		goto err_out;
 
-	smmu->regset->base = smmu->bases[0];
-	smmu->regset->nregs = ARRAY_SIZE(arm_smmu_gr0_regs) +
-		4 * smmu->num_context_banks;
-	smmu->regset->regs = (struct debugfs_reg32 *)(smmu->regset +
-						smmu->num_context_banks + 1);
-	regs = (struct debugfs_reg32 *)smmu->regset->regs;
+	smmu_dfs->regset->base = smmu_dfs->bases[0];
+	smmu_dfs->regset->nregs = ARRAY_SIZE(arm_smmu_gr0_regs) +
+		4 * smmu_dfs->num_context_banks;
+	smmu_dfs->regset->regs = (struct debugfs_reg32 *)(smmu_dfs->regset +
+					smmu_dfs->num_context_banks + 1);
+	regs = (struct debugfs_reg32 *)smmu_dfs->regset->regs;
 	for (i = 0; i < ARRAY_SIZE(arm_smmu_gr0_regs); i++) {
 		regs->name = arm_smmu_gr0_regs[i].name;
 		regs->offset = arm_smmu_gr0_regs[i].offset;
 		regs++;
 	}
 
-	for (i = 0; i < smmu->num_context_banks; i++) {
+	for (i = 0; i < smmu_dfs->num_context_banks; i++) {
 		regs->name = kasprintf(GFP_KERNEL, "GR0_SMR%03d", i);
 		if (!regs->name)
 			goto err_out;
@@ -372,27 +393,28 @@ static int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu)
 		regs->name = kasprintf(GFP_KERNEL, "GR1_CBAR%03d", i);
 		if (!regs->name)
 			goto err_out;
-		regs->offset = (1 << smmu->pgshift) + ARM_SMMU_GR1_CBAR(i);
+		regs->offset = (1 << smmu_dfs->pgshift) + ARM_SMMU_GR1_CBAR(i);
 		regs++;
 
 		regs->name = kasprintf(GFP_KERNEL, "GR1_CBA2R%03d", i);
 		if (!regs->name)
 			goto err_out;
-		regs->offset = (1 << smmu->pgshift) + ARM_SMMU_GR1_CBA2R(i);
+		regs->offset = (1 << smmu_dfs->pgshift) + ARM_SMMU_GR1_CBA2R(i);
 		regs++;
 	}
 
-	regs = (struct debugfs_reg32 *)smmu->regset->regs;
-	for (i = 0; i < smmu->regset->nregs; i++) {
+	regs = (struct debugfs_reg32 *)smmu_dfs->regset->regs;
+	for (i = 0; i < smmu_dfs->regset->nregs; i++) {
+		smmu_dfs->reg = regs;
 		debugfs_create_file(regs->name, S_IRUGO | S_IWUSR,
-				dent_gr, regs, &smmu_reg32_debugfs_fops);
+				dent_gr, smmu_dfs, &smmu_reg32_debugfs_fops);
 		regs++;
 	}
 
-	debugfs_create_regset32("regdump", S_IRUGO, smmu->debugfs_root,
-				smmu->regset);
+	debugfs_create_regset32("regdump", S_IRUGO, smmu_dfs->debugfs_root,
+				smmu_dfs->regset);
 
-	bytes = sizeof(*smmu->perf_regset);
+	bytes = sizeof(*smmu_dfs->perf_regset);
 	bytes += ARRAY_SIZE(arm_smmu_gnsr0_regs) * sizeof(*regs);
 	/*
 	 * Account the number of bytes for two sets of
@@ -406,21 +428,22 @@ static int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu)
 	bytes += 2 * PMEV_SIZE * sizeof(*regs);
 
 	/* Allocate memory for Perf Monitor registers */
-	smmu->perf_regset =  kzalloc(bytes, GFP_KERNEL);
-	if (!smmu->perf_regset)
+	smmu_dfs->perf_regset =  kzalloc(bytes, GFP_KERNEL);
+	if (!smmu_dfs->perf_regset)
 		goto err_out;
 
 	/*
 	 * perf_regset base address is placed at offset (3 * smmu_pagesize)
 	 * from smmu->base address
 	 */
-	smmu->perf_regset->base = smmu->bases[0] + 3 * (1 << smmu->pgshift);
-	smmu->perf_regset->nregs = ARRAY_SIZE(arm_smmu_gnsr0_regs) +
+	smmu_dfs->perf_regset->base = smmu_dfs->bases[0] +
+					3 * (1 << smmu_dfs->pgshift);
+	smmu_dfs->perf_regset->nregs = ARRAY_SIZE(arm_smmu_gnsr0_regs) +
 		2 * PMCG_SIZE + 2 * PMEV_SIZE;
-	smmu->perf_regset->regs =
-		(struct debugfs_reg32 *)(smmu->perf_regset + 1);
+	smmu_dfs->perf_regset->regs =
+		(struct debugfs_reg32 *)(smmu_dfs->perf_regset + 1);
 
-	regs = (struct debugfs_reg32 *)smmu->perf_regset->regs;
+	regs = (struct debugfs_reg32 *)smmu_dfs->perf_regset->regs;
 
 	for (i = 0; i < ARRAY_SIZE(arm_smmu_gnsr0_regs); i++) {
 		regs->name = arm_smmu_gnsr0_regs[i].name;
@@ -456,89 +479,91 @@ static int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu)
 		regs++;
 	}
 
-	regs = (struct debugfs_reg32 *)smmu->perf_regset->regs;
-	for (i = 0; i < smmu->perf_regset->nregs; i++) {
+	regs = (struct debugfs_reg32 *)smmu_dfs->perf_regset->regs;
+	for (i = 0; i < smmu_dfs->perf_regset->nregs; i++) {
+		smmu_dfs->reg = regs;
 		debugfs_create_file(regs->name, S_IRUGO | S_IWUSR,
-			dent_gnsr, regs, &smmu_perf_regset_debugfs_fops);
+			dent_gnsr, smmu_dfs, &smmu_perf_regset_debugfs_fops);
 		regs++;
 	}
 
-	for (i = 0; i < smmu->num_context_banks; i++)
-		debugfs_create_smmu_cb(smmu, i);
+	for (i = 0; i < smmu_dfs->num_context_banks; i++)
+		debugfs_create_smmu_cb(smmu_dfs, i);
 
-	INIT_LIST_HEAD(&smmu_handle->masters_list);
+	INIT_LIST_HEAD(&smmu_dfs->masters_list);
 
 	return 0;
 
 err_out:
-	arm_smmu_regs_debugfs_delete(smmu);
+	arm_smmu_regs_debugfs_delete(smmu_dfs);
 	return -1;
 }
 
-static void arm_smmu_debugfs_create(struct smmu_debugfs_info *info)
+static void arm_smmu_debugfs_create(struct smmu_debugfs_info *smmu_dfs)
 {
 	struct dentry *d;
 
-	d = debugfs_create_dir(dev_name(info->dev), NULL);
+	d = debugfs_create_dir(dev_name(smmu_dfs->dev), NULL);
 	if (!d)
 		return;
 
-	info->debugfs_root = d;
+	smmu_dfs->debugfs_root = d;
 
 	d = debugfs_create_file("context_filter", S_IRUGO | S_IWUSR,
-			    d, info,
+			    d, smmu_dfs,
 			    &smmu_context_filter_fops);
 	if (!d) {
 		pr_warn("Making context filter failed\n");
 		return;
 	}
 
-	arm_smmu_regs_debugfs_create(info);
+	arm_smmu_regs_debugfs_create(smmu_dfs);
 }
 
 void arm_smmu_debugfs_setup_bases(struct arm_smmu_device *smmu, u32 num_smmus,
 			    void __iomem *bases[])
 {
-	struct smmu_debugfs_info *info;
+	struct smmu_debugfs_info *smmu_dfs;
 	int i;
 
-	info = devm_kmalloc(smmu->dev, sizeof(struct smmu_debugfs_info),
+	smmu_dfs = devm_kmalloc(smmu->dev, sizeof(struct smmu_debugfs_info),
 			    GFP_KERNEL);
-	if (info == NULL) {
+	if (smmu_dfs == NULL) {
 		dev_err(smmu->dev, "Out of memoryn\n");
 		return;
 	}
 	for (i = 1; i < num_smmus; i++)
-		info->bases[i] = bases[i];
-	info->num_smmus = num_smmus;
+		smmu_dfs->bases[i] = bases[i];
+	smmu_dfs->num_smmus = num_smmus;
 
-	smmu->debug_info = info;
+	smmu->debug_info = smmu_dfs;
 }
 
 void arm_smmu_debugfs_setup_cfg(struct arm_smmu_device *smmu)
 {
-	struct smmu_debugfs_info *info = smmu->debug_info;
+	struct smmu_debugfs_info *smmu_dfs = smmu->debug_info;
 
-	if (info == NULL) {
-		info = devm_kmalloc(smmu->dev, sizeof(struct smmu_debugfs_info),
-				    GFP_KERNEL);
-		if (info == NULL) {
+	if (smmu_dfs == NULL) {
+		smmu_dfs = devm_kmalloc(smmu->dev,
+				sizeof(struct smmu_debugfs_info), GFP_KERNEL);
+		if (smmu_dfs == NULL) {
 			dev_err(smmu->dev, "Out of memoryn\n");
 			return;
 		}
-		info->num_smmus = 1;
-		smmu->debug_info = info;
+		smmu_dfs->num_smmus = 1;
+		smmu->debug_info = smmu_dfs;
 	}
-	info->base = smmu->base;
-	info->bases[0] = smmu->base;
-	info->dev = smmu->dev;
-	info->size = smmu->numpage;
-	info->num_context_banks = smmu->num_context_banks;
-	info->pgshift = smmu->pgshift;
-	info->streamid_mask = smmu->streamid_mask;
-	info->max_cbs = ARM_SMMU_MAX_CBS;
+	smmu_dfs->base = smmu->base;
+	smmu_dfs->bases[0] = smmu->base;
+	smmu_dfs->dev = smmu->dev;
+	smmu_dfs->size = smmu->numpage;
+	smmu_dfs->num_context_banks = smmu->num_context_banks;
+	smmu_dfs->pgshift = smmu->pgshift;
+	smmu_dfs->max_cbs = ARM_SMMU_MAX_CBS;
+	smmu_dfs->streamid_mask = smmu->streamid_mask;
+	smmu_dfs->debug_smmu_id = 0;
 
-	arm_smmu_debugfs_create(info);
+	arm_smmu_debugfs_create(smmu_dfs);
 }
 
 static int smmu_master_show(struct seq_file *s, void *unused)
@@ -549,7 +574,7 @@ static int smmu_master_show(struct seq_file *s, void *unused)
 
 	for (i = 0; i < fwspec->num_ids; i++) {
 		seq_printf(s, "streamids: % 3d ",
-				fwspec->ids[i] & smmu_handle->streamid_mask);
+				fwspec->ids[i] & master->streamid_mask);
 	}
 	seq_printf(s, "\n");
 	for (i = 0; i < fwspec->num_ids; i++) {
@@ -572,23 +597,25 @@ static const struct file_operations smmu_master_fops = {
 	.release        = single_release,
 };
 
-void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[])
+void arm_smmu_debugfs_add_master(struct device *dev,
+				 struct smmu_debugfs_info *smmu_dfs,
+				 u8 *cbndx, u16 smendx[])
 {
 	struct smmu_debugfs_master *master;
 	struct dentry *dent = NULL;
 	char name[] = "cb000";
 	char target[] = "../../cb000";
 
-	if (smmu_handle == NULL) {
+	if (smmu_dfs == NULL) {
 		pr_warn("Debugfs setup not complete\n");
 		return;
 	}
 
-	dent = debugfs_lookup(dev_name(dev), smmu_handle->masters_root);
+	dent = debugfs_lookup(dev_name(dev), smmu_dfs->masters_root);
 	if (dent)
 		return;
 
-	dent = debugfs_create_dir(dev_name(dev), smmu_handle->masters_root);
+	dent = debugfs_create_dir(dev_name(dev), smmu_dfs->masters_root);
 	if (!dent) {
 		return;
 	}
@@ -601,6 +628,7 @@ void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[])
 	master->dev = dev;
 	master->smendx = smendx;
 	master->dent = dent;
+	master->streamid_mask = smmu_dfs->streamid_mask;
 
 	// TODO create the streamids file
 	debugfs_create_file("streamids", 0444, dent, master,
@@ -610,19 +638,20 @@ void arm_smmu_debugfs_add_master(struct device *dev, u8 *cbndx, u16 smendx[])
 	sprintf(target, "../../cb%03d", *cbndx);
 	debugfs_create_symlink(name, dent, target);
 
-	list_add_tail(&master->node, &smmu_handle->masters_list);
+	list_add_tail(&master->node, &smmu_dfs->masters_list);
 }
 
-void arm_smmu_debugfs_remove_master(struct device *dev)
+void arm_smmu_debugfs_remove_master(struct device *dev,
+				    struct smmu_debugfs_info *smmu_dfs)
 {
 	struct smmu_debugfs_master *master = NULL;
 
-	if (smmu_handle == NULL) {
-		pr_warn("Debugfs setup not complete\n");
+	if (smmu_dfs == NULL) {
+		pr_warn("%s: Debugfs setup not complete\n", __func__);
 		return;
 	}
 
-	list_for_each_entry(master, &smmu_handle->masters_list, node) {
+	list_for_each_entry(master, &smmu_dfs->masters_list, node) {
 		if (master->dev == dev)
 			break;
 	}
