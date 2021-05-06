@@ -1746,10 +1746,6 @@ static int tegra_dma_probe(struct platform_device *pdev)
 		if (ret)
 			start_chan_idx = 0;
 
-		/*
-		 * "nvidia,bypass-smmu" is not supported due to mc sid does not
-		 * exist to reference tegra_mc_get_smmu_bypass_sid
-		 */
 		ret = of_property_read_u32(pdev->dev.of_node,
 				"nvidia,stream-id", &stream_id);
 		if (ret)
