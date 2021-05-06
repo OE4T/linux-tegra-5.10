@@ -3366,8 +3366,8 @@ dhd_watchdog_thread(void *data)
 					    jiffies +
 					    msecs_to_jiffies(dhd_watchdog_ms) -
 					    min(msecs_to_jiffies(dhd_watchdog_ms), time_lapse));
-					DHD_GENERAL_UNLOCK(&dhd->pub, flags);
-				}
+				DHD_GENERAL_UNLOCK(&dhd->pub, flags);
+			}
 		} else {
 			break;
 	}
