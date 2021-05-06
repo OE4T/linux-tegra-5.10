@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -182,7 +182,7 @@ void kmem_print_mem_alloc(struct gk20a *g,
 			 struct nvgpu_mem_alloc *alloc,
 			 struct seq_file *s)
 {
-#ifdef __NVGPU_SAVE_KALLOC_STACK_TRACES
+#ifdef NVGPU_SAVE_KALLOC_STACK_TRACES
 	int i;
 
 	__pstat(s, "nvgpu-alloc: addr=0x%llx size=%ld\n",
@@ -231,7 +231,7 @@ static int __nvgpu_save_kmem_alloc(struct nvgpu_mem_alloc_tracker *tracker,
 {
 	int ret;
 	struct nvgpu_mem_alloc *alloc;
-#ifdef __NVGPU_SAVE_KALLOC_STACK_TRACES
+#ifdef NVGPU_SAVE_KALLOC_STACK_TRACES
 	struct stack_trace stack_trace;
 #endif
 
@@ -245,7 +245,7 @@ static int __nvgpu_save_kmem_alloc(struct nvgpu_mem_alloc_tracker *tracker,
 	alloc->addr = addr;
 	alloc->ip = ip;
 
-#ifdef __NVGPU_SAVE_KALLOC_STACK_TRACES
+#ifdef NVGPU_SAVE_KALLOC_STACK_TRACES
 	stack_trace.max_entries = MAX_STACK_TRACE;
 	stack_trace.nr_entries = 0;
 	stack_trace.entries = alloc->stack;

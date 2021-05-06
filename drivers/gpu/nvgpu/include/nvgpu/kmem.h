@@ -64,7 +64,7 @@ struct nvgpu_kmem_cache;
  */
 
 #if 0
-#define __NVGPU_SAVE_KALLOC_STACK_TRACES
+#define NVGPU_SAVE_KALLOC_STACK_TRACES
 #endif
 
 /**
