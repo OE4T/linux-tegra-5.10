@@ -3769,7 +3769,7 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
 
-	return -1;
+	return 0;
 
 }
 
