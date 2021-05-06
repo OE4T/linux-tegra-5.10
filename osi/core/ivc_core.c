@@ -923,6 +923,13 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 	osi_memset(&msg_common, 0, sizeof(msg_common));
 
+
+	if (data->cmd ==  OSI_CMD_CONFIG_PTP) {
+		osi_memcpy((void *)&data->ptp_config,
+			   (void *)&osi_core->ptp_config,
+			   sizeof(struct osi_ptp_config));
+	}
+
 	msg_common.cmd = handle_ioctl;
 	osi_memcpy((void *)&msg_common.data.ioctl_data, (void *)data,
 		   sizeof(struct osi_ioctl));

@@ -1055,6 +1055,8 @@ struct osi_ioctl {
 	struct osi_est_config est;
 	/* FRP structure */
 	struct osi_fpe_config fpe;
+	/** PTP configuration settings */
+	struct osi_ptp_config ptp_config;
 };
 
 /**
