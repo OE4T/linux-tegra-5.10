@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -253,10 +253,9 @@ static long nvgpu_clk_arb_ioctl_event_dev(struct file *filp, unsigned int cmd,
 	nvgpu_log(g, gpu_dbg_fn, "nr=%d", _IOC_NR(cmd));
 
 	if ((_IOC_TYPE(cmd) != NVGPU_EVENT_IOCTL_MAGIC) || (_IOC_NR(cmd) == 0)
-		|| (_IOC_NR(cmd) > NVGPU_EVENT_IOCTL_LAST))
+		|| (_IOC_NR(cmd) > NVGPU_EVENT_IOCTL_LAST)
+		|| (_IOC_SIZE(cmd) > NVGPU_EVENT_IOCTL_MAX_ARG_SIZE))
 		return -EINVAL;
-
-	BUG_ON(_IOC_SIZE(cmd) > NVGPU_EVENT_IOCTL_MAX_ARG_SIZE);
 
 	(void) memset(buf, 0, sizeof(buf));
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {

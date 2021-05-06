@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -435,7 +435,7 @@ long gk20a_sched_dev_ioctl(struct file *filp, unsigned int cmd,
 	unsigned long arg)
 {
 	struct gk20a *g = filp->private_data;
-	u8 buf[NVGPU_CTXSW_IOCTL_MAX_ARG_SIZE];
+	u8 buf[NVGPU_SCHED_IOCTL_MAX_ARG_SIZE];
 	int err = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_sched, "nr=%d", _IOC_NR(cmd));
