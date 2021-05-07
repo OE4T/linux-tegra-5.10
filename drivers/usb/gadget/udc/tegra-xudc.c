@@ -4091,7 +4091,8 @@ static int __maybe_unused tegra_xudc_resume(struct device *dev)
 	xudc->suspended = false;
 	spin_unlock_irqrestore(&xudc->lock, flags);
 
-	schedule_work(&xudc->usb_role_sw_work);
+	if (xudc->device_mode)
+		schedule_work(&xudc->usb_role_sw_work);
 
 	pm_runtime_enable(dev);
 
