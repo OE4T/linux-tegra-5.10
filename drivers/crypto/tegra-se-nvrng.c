@@ -3,7 +3,7 @@
  *
  * Support for Tegra NVRNG Engine Error Handling.
  *
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -23,11 +23,30 @@
 #include <linux/irqreturn.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/iopoll.h>
 #include <linux/platform_device.h>
 
+/* RNG1 offsets */
 #define NV_NVRNG_R_IE_0		0x80
 #define NV_NVRNG_R_ISTAT_0	0x84
+#define NV_NVRNG_R_CTRL0_0	0x90
+#define		SW_ENGINE_ENABLED	(1 << 2)
 #define NV_NVRNG_R_CTRL1_0	0x90
+
+/* SAP offsets */
+#define SE0_INT_ENABLE_0			0x88
+#define		SC7_CTX_INTEGRITY_ERROR		(1 << 7)
+#define		SC7_CTX_START_ERROR		(1 << 6)
+#define SE0_INT_STATUS_0			0x8c
+#define SE0_SC7_CTRL_0				0xbc
+#define		SC7_CTX_SAVE			0
+#define		SC7_CTX_RESTORE			1
+#define SE0_SC7_STATUS_0			0xc0
+#define		IDLE				0
+#define		BUSY				1
+
+#define	SC7_IDLE_TIMEOUT_2000MS	2000000 /* 2sec */
+#define	SC7_IDLE_TIMEOUT_200MS	200000 /* 2sec */
 
 #define HALTED			0x4
 #define STARTUP_DONE		0x2
@@ -39,7 +58,8 @@
 #define CLK_RATE		38400
 
 struct tegra_se_nvrng_dev {
-	void __iomem	*base;
+	void __iomem	*rng1_base;
+	void __iomem	*sap_base;
 	int		irq;
 	struct clk	*clk;
 };
@@ -47,13 +67,25 @@ struct tegra_se_nvrng_dev {
 static unsigned int tegra_se_nvrng_readl(struct tegra_se_nvrng_dev *nvrng_dev,
 				 unsigned int offset)
 {
-	return readl(nvrng_dev->base + offset);
+	return readl(nvrng_dev->rng1_base + offset);
 }
 
 static void tegra_se_nvrng_writel(struct tegra_se_nvrng_dev *nvrng_dev,
 				  unsigned int offset, unsigned int value)
 {
-	writel(value, nvrng_dev->base + offset);
+	writel(value, nvrng_dev->rng1_base + offset);
+}
+
+static unsigned int tegra_se_sap_readl(struct tegra_se_nvrng_dev *nvrng_dev,
+				 unsigned int offset)
+{
+	return readl(nvrng_dev->sap_base + offset);
+}
+
+static void tegra_se_sap_writel(struct tegra_se_nvrng_dev *nvrng_dev,
+				  unsigned int offset, unsigned int value)
+{
+	writel(value, nvrng_dev->sap_base + offset);
 }
 
 static irqreturn_t tegra_se_nvrng_isr(int irq, void *dev_id)
@@ -112,14 +144,13 @@ static int tegra_se_nvrng_request_irq(struct tegra_se_nvrng_dev *nvrng_dev)
 	 */
 	mask = tegra_se_nvrng_readl(nvrng_dev, NV_NVRNG_R_IE_0);
 	tegra_se_nvrng_writel(nvrng_dev, NV_NVRNG_R_IE_0,
-			      mask & ERROR);
+			      mask | ERROR);
 
 	return ret;
 }
 
 static int tegra_se_nvrng_probe(struct platform_device *pdev)
 {
-	struct resource *res;
 	struct tegra_se_nvrng_dev *nvrng_dev;
 
 	nvrng_dev = devm_kzalloc(&pdev->dev, sizeof(struct tegra_se_nvrng_dev),
@@ -127,10 +158,15 @@ static int tegra_se_nvrng_probe(struct platform_device *pdev)
 	if (!nvrng_dev)
 		return -ENOMEM;
 
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	nvrng_dev->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(nvrng_dev->base))
-		return PTR_ERR(nvrng_dev->base);
+	nvrng_dev->rng1_base = devm_platform_ioremap_resource_byname(pdev,
+								"rng1");
+	if (IS_ERR(nvrng_dev->rng1_base))
+		return PTR_ERR(nvrng_dev->rng1_base);
+
+	nvrng_dev->sap_base = devm_platform_ioremap_resource_byname(pdev,
+								"sap");
+	if (IS_ERR(nvrng_dev->sap_base))
+		return PTR_ERR(nvrng_dev->sap_base);
 
 	nvrng_dev->irq = platform_get_irq(pdev, 0);
 	if (nvrng_dev->irq < 0) {
@@ -163,6 +199,119 @@ static int tegra_se_nvrng_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_PM_SLEEP
+static int tegra_se_sc7_check_idle(struct tegra_se_nvrng_dev *nvrng_dev,
+				u32 timeout_us)
+{
+	u32 val;
+
+	return readl_poll_timeout(nvrng_dev->sap_base + SE0_SC7_STATUS_0, val,
+				(val & 0x5f) == 0x5f, 10, timeout_us);
+}
+
+static int tegra_se_sc7_check_error(struct tegra_se_nvrng_dev *nvrng_dev)
+{
+	u32 val;
+	int ret;
+
+	ret = tegra_se_sc7_check_idle(nvrng_dev, SC7_IDLE_TIMEOUT_200MS);
+	if (ret == -ETIMEDOUT) {
+		pr_err("%s:%d SE HW is not idle, timeout\n",
+					__func__, __LINE__);
+		return ret;
+	}
+
+	val = tegra_se_sap_readl(nvrng_dev, SE0_INT_STATUS_0);
+	if (val & SC7_CTX_START_ERROR) {
+		/* Write 1 to clear */
+		tegra_se_sap_writel(nvrng_dev, SE0_INT_STATUS_0,
+					SC7_CTX_START_ERROR);
+		pr_err("%s:%d SC7 start error\n", __func__, __LINE__);
+		ret = -EIO;
+	}
+
+	if (val & SC7_CTX_INTEGRITY_ERROR) {
+		pr_err("%s:%d SC7 integrity error SE engine is disabled\n",
+						__func__, __LINE__);
+		ret = -EACCES;
+	}
+
+	return ret;
+}
+
+static int tegra_se_nvrng_suspend(struct device *dev)
+{
+	struct tegra_se_nvrng_dev *nvrng_dev = dev_get_drvdata(dev);
+	int ret = 0;
+
+	/* 1. Enable clock */
+	clk_prepare_enable(nvrng_dev->clk);
+
+	/* 2. Program NV_NVRNG_R_CTRL0_0.SW_ENGINE_ENABLED to true */
+	tegra_se_nvrng_writel(nvrng_dev, NV_NVRNG_R_CTRL0_0, SW_ENGINE_ENABLED);
+
+	/* 3. Check SE0_SC7_STATUS_0 is 0x5f for HW to be IDLE */
+	ret = tegra_se_sc7_check_idle(nvrng_dev, SC7_IDLE_TIMEOUT_2000MS);
+	if (ret == -ETIMEDOUT) {
+		pr_err("%s:%d SE HW is not idle couldn't suspend\n",
+					__func__, __LINE__);
+		clk_disable_unprepare(nvrng_dev->clk);
+		return ret;
+	}
+
+	/* 4. Trigger SC7 context save */
+	tegra_se_sap_writel(nvrng_dev, SE0_SC7_CTRL_0, SC7_CTX_SAVE);
+
+	/* 5. Check for SC7 start errors */
+	ret = tegra_se_sc7_check_error(nvrng_dev);
+
+	/* 6. Disable clock */
+	clk_disable_unprepare(nvrng_dev->clk);
+
+	pr_debug("%s:%d resume complete\n", __func__, __LINE__);
+
+	return ret;
+}
+
+static int tegra_se_nvrng_resume(struct device *dev)
+{
+	struct tegra_se_nvrng_dev *nvrng_dev = dev_get_drvdata(dev);
+	int ret = 0;
+
+	/* 1. Enable clock */
+	clk_prepare_enable(nvrng_dev->clk);
+
+	/* 2. Program NV_NVRNG_R_CTRL0_0.SW_ENGINE_ENABLED to true */
+	tegra_se_nvrng_writel(nvrng_dev, NV_NVRNG_R_CTRL0_0, SW_ENGINE_ENABLED);
+
+	/* 3. Check SE0_SC7_STATUS_0 is 0x5f for HW to be IDLE */
+	ret = tegra_se_sc7_check_idle(nvrng_dev, SC7_IDLE_TIMEOUT_2000MS);
+	if (ret == -ETIMEDOUT) {
+		pr_err("%s:%d SE HW is not idle couldn't resume\n",
+					__func__, __LINE__);
+		clk_disable_unprepare(nvrng_dev->clk);
+		return ret;
+	}
+
+	/* 4. Trigger SC7 context restore */
+	tegra_se_sap_writel(nvrng_dev, SE0_SC7_CTRL_0, SC7_CTX_RESTORE);
+
+	/* 5. Check for SC7 start errors */
+	ret = tegra_se_sc7_check_error(nvrng_dev);
+
+	/* 6. Disable clock */
+	clk_disable_unprepare(nvrng_dev->clk);
+
+	pr_debug("%s:%d resume complete\n", __func__, __LINE__);
+
+	return ret;
+}
+#endif
+
+static const struct dev_pm_ops tegra_se_nvrng_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(tegra_se_nvrng_suspend, tegra_se_nvrng_resume)
+};
+
 #ifdef CONFIG_ACPI
 static const struct acpi_device_id tegra_se_nvrng_acpi_match[] = {
 	{}
@@ -183,6 +332,7 @@ static struct platform_driver tegra_se_nvrng_driver = {
 		.name = "tegra-se-nvrng",
 		.owner = THIS_MODULE,
 		.of_match_table = of_match_ptr(tegra_se_nvrng_of_match),
+		.pm = &tegra_se_nvrng_pm_ops,
 #ifdef CONFIG_ACPI
 		.acpi_match_table = ACPI_PTR(tegra_se_nvrng_acpi_match),
 #endif /* CONFIG_ACPI */
