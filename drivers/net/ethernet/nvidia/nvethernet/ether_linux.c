@@ -1986,79 +1986,6 @@ static inline void ether_init_eee_params(struct ether_priv_data *pdata)
 	pdata->tx_lpi_timer = OSI_DEFAULT_TX_LPI_TIMER;
 }
 
-static void ether_reset(struct ether_priv_data *pdata)
-{
-	unsigned int val;
-	void __iomem *addr = devm_ioremap(pdata->dev, 0x21460018, 0x4);
-
-#if 1 /* Rakesh WAR for AN 0 issue */
-	/* power ungate and ether_reset will be moved to bpmp fw so reset()
-	 * api should be called. TODO HACK by writing oxffff to
-	 * CLK_RST_CONTROLLER_RST_DEV_MGBE_0
-	 */
-	writel(0xffff, addr);
-#endif
-
-	val = readl(addr);
-	val &= ~BIT(0);
-	writel(val, addr);
-
-	val = readl(addr);
-	val &= ~BIT(4);
-	writel(val, addr);
-
-	val = readl(addr);
-	val &= ~BIT(8);
-	writel(val, addr);
-
-#if 1
-	/* NET30 enables secure reset, WAR to reset macsec secure RST, this
-	 * should be moved to bbmp fw
-	 */
-	val = readl(addr);
-	val &= ~BIT(12);
-	writel(val, addr);
-#endif
-}
-
-static void power_ungate(struct ether_priv_data *pdata)
-{
-	unsigned int val;
-	void __iomem *pmc_base;
-	void __iomem *hy_mac_base;
-
-	pmc_base = devm_ioremap(pdata->dev, 0xC360000, 0x10000);
-	hy_mac_base = devm_ioremap(pdata->dev, 0x8608400, 0x20);
-
-	val = readl(pmc_base + 0x568);
-	val &= ~BIT(2);
-	val &= ~BIT(1);
-	val &= ~BIT(0);
-	val |= BIT(8);
-	val |= BIT(31);
-	writel(val, pmc_base +  0x568);
-
-	do {
-		val = readl(pmc_base + 0x568);
-		val = (val & BIT(8));
-	} while (val);
-
-	val = readl(pmc_base + 0x56C);
-	if (val != 0) {
-		pr_err("%s(): ERROR - PMC_IMPL_PART_MGBEBA_POWER_GATE_STATUS_0 is not zero\n", __func__);
-	}
-
-	ether_reset(pdata);
-
-	writel(0, pmc_base + 0x570);
-
-	writel(0, pmc_base + 0x6A4);
-	do {
-		val = readl(pmc_base + 0x6A8);
-	} while (val);
-}
-
-
 /**
  * @brief function to set unicast/Broadcast MAC address filter
  *
@@ -2167,7 +2094,7 @@ static int ether_open(struct net_device *dev)
 		return ret;
 	}
 
-	if (pdata->mac_rst && !osi_core->pre_si) {
+	if (pdata->mac_rst) {
 		ret = reset_control_reset(pdata->mac_rst);
 		if (ret < 0) {
 			dev_err(&dev->dev, "failed to reset MAC HW\n");
@@ -2175,17 +2102,12 @@ static int ether_open(struct net_device *dev)
 		}
 	}
 
-	if (pdata->xpcs_rst && !osi_core->pre_si) {
+	if (pdata->xpcs_rst) {
 		ret = reset_control_reset(pdata->xpcs_rst);
 		if (ret < 0) {
 			dev_err(&dev->dev, "failed to reset XPCS HW\n");
 			goto err_xpcs_rst;
 		}
-	}
-
-	if (osi_core->mac == OSI_MAC_HW_MGBE &&
-	    osi_core->use_virtualization != OSI_ENABLE) {
-		power_ungate(pdata);
 	}
 
 	ioctl_data.cmd = OSI_CMD_POLL_FOR_MAC_RST;
@@ -2348,11 +2270,11 @@ err_alloc:
 	}
 err_phy_init:
 err_poll_swr:
-	if (!osi_core->pre_si && pdata->xpcs_rst) {
+	if (pdata->xpcs_rst) {
 		reset_control_assert(pdata->xpcs_rst);
 	}
 err_xpcs_rst:
-	if (!osi_core->pre_si && pdata->mac_rst) {
+	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
 err_mac_rst:
@@ -2544,12 +2466,12 @@ static int ether_close(struct net_device *ndev)
 
 	ether_stop_ivc(pdata);
 
-	if (!pdata->osi_core->pre_si && pdata->xpcs_rst) {
+	if (pdata->xpcs_rst) {
 		reset_control_assert(pdata->xpcs_rst);
 	}
 
 	/* Assert MAC RST gpio */
-	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
+	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
 
@@ -4443,11 +4365,6 @@ static int ether_configure_car(struct platform_device *pdev,
 	struct osi_ioctl ioctl_data = {};
 	int ret = 0;
 
-	if (osi_core->pre_si) {
-		/* Enabling clks to set so that MDIO read/write will happen */
-		pdata->clks_enable = true;
-		return 0;
-	}
 
 	/* get MAC reset */
 	pdata->mac_rst = devm_reset_control_get(&pdev->dev, "mac_rst");
@@ -5438,11 +5355,6 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_init_res;
 	}
 
-	if (mac == OSI_MAC_HW_MGBE &&
-	    osi_core->use_virtualization != OSI_ENABLE) {
-		power_ungate(pdata);
-	}
-
 	ioctl_data.cmd = OSI_CMD_GET_MAC_VER;
 	ret = osi_handle_ioctl(osi_core, &ioctl_data);
 	if (ret < 0) {
@@ -5612,11 +5524,11 @@ static int ether_remove(struct platform_device *pdev)
 	ether_put_clks(pdata);
 
 	/* Assert MAC RST gpio */
-	if (!pdata->osi_core->pre_si && pdata->mac_rst) {
+	if (pdata->mac_rst) {
 		reset_control_assert(pdata->mac_rst);
 	}
 
-	if (!pdata->osi_core->pre_si && pdata->xpcs_rst) {
+	if (pdata->xpcs_rst) {
 		reset_control_assert(pdata->xpcs_rst);
 	}
 
