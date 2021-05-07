@@ -231,7 +231,6 @@ void nvhost_job_set_notifier(struct nvhost_job *job, u32 error)
 	/* map handle and clear error notifier struct */
 	va = dma_buf_vmap(job->error_notifier_ref);
 	if (!va) {
-		dma_buf_put(job->error_notifier_ref);
 		dev_err(&job->ch->dev->dev, "Cannot map notifier handle\n");
 		return;
 	}
