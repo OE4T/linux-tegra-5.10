@@ -169,19 +169,12 @@ struct nvhost_device_data t23x_vi0_thi_info = {
 
 struct nvhost_device_data t23x_vi0_info = {
 	.devfs_name		= "vi0",
-	.class			= NV_VIDEO_STREAMING_VI_CLASS_ID,
-	.keepalive		= true,
-	.autosuspend_delay	= 500,
-	.poweron_reset		= true,
 	.moduleid		= NVHOST_MODULE_VI,
 	.clocks = {
 		{"vi", UINT_MAX},
-		{"vi-const", UINT_MAX},
 	},
-	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
 	.aggregate_constraints	= nvhost_vi5_aggregate_constraints,
-	.can_powergate		= true,
 	.pre_virt_init		= vi5_priv_early_probe,
 	.post_virt_init		= vi5_priv_late_probe,
 };
@@ -193,19 +186,12 @@ struct nvhost_device_data t23x_vi1_thi_info = {
 
 struct nvhost_device_data t23x_vi1_info = {
 	.devfs_name		= "vi1",
-	.class			= NV_VIDEO_STREAMING_VI_CLASS_ID,
-	.keepalive		= true,
-	.autosuspend_delay	= 500,
-	.poweron_reset		= true,
 	.moduleid		= NVHOST_MODULE_VI2,
 	.clocks = {
 		{"vi", UINT_MAX},
-		{"vi-const", UINT_MAX},
 	},
-	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
 	.aggregate_constraints	= nvhost_vi5_aggregate_constraints,
-	.can_powergate		= true,
 	.pre_virt_init		= vi5_priv_early_probe,
 	.post_virt_init		= vi5_priv_late_probe,
 };
@@ -213,24 +199,11 @@ struct nvhost_device_data t23x_vi1_info = {
 
 #if IS_ENABLED(CONFIG_TEGRA_GRHOST_NVCSI)
 struct nvhost_device_data t23x_nvcsi_info = {
-	.num_channels		= 1,
 	.moduleid		= NVHOST_MODULE_NVCSI,
 	.clocks			= {
 		{"nvcsi", UINT_MAX},
-		{"nvcsilp", UINT_MAX},
-		{"mipi_cal", UINT_MAX},
-		{"uart_fs_mipi_cal", UINT_MAX},
 	},
 	.devfs_name		= "nvcsi",
-	.modulemutexes		= {NV_HOST1X_MLOCK_ID_NVCSI},
-	.class			= NV_VIDEO_STREAMING_NVCSI_CLASS_ID,
-	.ctrl_ops		= &tegra194_nvcsi_ctrl_ops,
-	.autosuspend_delay      = 500,
-	.poweron_reset		= true,
-	.keepalive		= true,
-	.serialize		= 1,
-	.push_work_done		= 1,
-	.can_powergate		= true,
 	.pre_virt_init		= t194_nvcsi_early_probe,
 	.post_virt_init		= t194_nvcsi_late_probe,
 };
@@ -244,17 +217,10 @@ struct nvhost_device_data t23x_isp_thi_info = {
 
 struct nvhost_device_data t23x_isp5_info = {
 	.devfs_name		= "isp",
-	.class			= NV_VIDEO_STREAMING_ISP_CLASS_ID,
-	.keepalive		= true,
-	.autosuspend_delay      = 500,
-	.poweron_reset		= true,
 	.moduleid		= NVHOST_MODULE_ISP,
 	.clocks			= {
 		{"isp", UINT_MAX},
 	},
-	.ctrl_ops		= &tegra194_isp5_ctrl_ops,
-	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
-	.can_powergate		= true,
 	.pre_virt_init		= isp5_priv_early_probe,
 	.post_virt_init		= isp5_priv_late_probe,
 };
