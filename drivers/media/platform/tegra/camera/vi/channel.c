@@ -380,16 +380,10 @@ void set_timestamp(struct tegra_channel_buffer *buf,
 			const struct timespec64 *ts)
 #endif
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	/* update time stamp of the buffer */
-	buf->buf.timestamp.tv_sec = ts->tv_sec;
-	buf->buf.timestamp.tv_usec = ts->tv_nsec / NSEC_PER_USEC;
-#else
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
 	buf->buf.vb2_buf.timestamp = (u64)timespec_to_ns(ts);
 #else
 	buf->buf.vb2_buf.timestamp = (u64)timespec64_to_ns(ts);
-#endif
 #endif
 }
 
@@ -601,14 +595,8 @@ void tegra_channel_ring_buffer(struct tegra_channel *chan,
 		tegra_channel_init_ring_buffer(chan);
 		return;
 	} else {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		/* update time stamp of the buffer */
-		vb->timestamp.tv_sec = ts->tv_sec;
-		vb->timestamp.tv_usec = ts->tv_nsec / NSEC_PER_USEC;
-#else
 		/* TODO: granular time code information */
 		vb->timecode.seconds = ts->tv_sec;
-#endif
 	}
 
 	/* release buffer N at N+2 frame start event */
@@ -707,7 +695,6 @@ static struct device *tegra_channel_get_vi_unit(struct tegra_channel *chan)
  * videobuf2 queue operations
  * -----------------------------------------------------------------------------
  */
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 9, 0)
 static int
 tegra_channel_queue_setup(struct vb2_queue *vq,
 		     unsigned int *nbuffers, unsigned int *nplanes,
@@ -726,31 +713,6 @@ tegra_channel_queue_setup(struct vb2_queue *vq,
 	else
 		return -EINVAL;
 }
-#else
-static int
-tegra_channel_queue_setup(struct vb2_queue *vq, const void *parg,
-		     unsigned int *nbuffers, unsigned int *nplanes,
-		     unsigned int sizes[], void *alloc_ctxs[])
-{
-	const struct v4l2_format *fmt = parg;
-	struct tegra_channel *chan = vb2_get_drv_priv(vq);
-	struct tegra_mc_vi *vi = chan->vi;
-
-	/* Make sure the image size is large enough. */
-	if (fmt && fmt->fmt.pix.sizeimage < chan->format.sizeimage)
-		return -EINVAL;
-
-	*nplanes = 1;
-
-	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : chan->format.sizeimage;
-	alloc_ctxs[0] = chan->alloc_ctx;
-
-	if (vi->fops && vi->fops->vi_setup_queue)
-		return vi->fops->vi_setup_queue(chan, nbuffers);
-	else
-		return -EINVAL;
-}
-#endif
 
 int tegra_channel_alloc_buffer_queue(struct tegra_channel *chan,
 	unsigned int num_buffers)

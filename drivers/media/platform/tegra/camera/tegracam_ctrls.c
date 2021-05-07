@@ -1,7 +1,7 @@
 /*
  * tegracam_ctrls - control framework for tegra camera drivers
  *
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -443,11 +443,7 @@ int tegracam_ctrl_set_overrides(struct tegracam_ctrl_handler *hdl)
 	 * overrides are non-fatal
 	 */
 	memset(&ctrls, 0, sizeof(ctrls));
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 9, 0)
 	ctrls.which = V4L2_CTRL_ID2WHICH(TEGRA_CAMERA_CID_BASE);
-#else
-	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(TEGRA_CAMERA_CID_BASE);
-#endif
 	ctrls.count = 1;
 	ctrls.controls = &control;
 

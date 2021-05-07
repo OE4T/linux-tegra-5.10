@@ -1003,11 +1003,6 @@ static void tegra_channel_stop_kthreads(struct tegra_channel *chan)
 static int vi4_channel_start_streaming(struct vb2_queue *vq, u32 count)
 {
 	struct tegra_channel *chan = vb2_get_drv_priv(vq);
-	/* WAR: With newer version pipe init has some race condition */
-	/* TODO: resolve this issue to block userspace not to cleanup media */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	struct media_pipeline *pipe = chan->video->entity.pipe;
-#endif
 	int ret = 0, i, chan_idx;
 	unsigned long flags;
 	struct v4l2_subdev *sd;
@@ -1015,12 +1010,6 @@ static int vi4_channel_start_streaming(struct vb2_queue *vq, u32 count)
 	struct sensor_mode_properties *sensor_mode;
 	struct camera_common_data *s_data;
 	unsigned int emb_buf_size = 0;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	ret = media_entity_pipeline_start(&chan->video->entity, pipe);
-	if (ret < 0)
-		goto error_pipeline_start;
-#endif
 
 	if (chan->bypass) {
 		ret = tegra_channel_set_stream(chan, true);
@@ -1148,10 +1137,6 @@ error_capture_setup:
 		tegra_channel_write_blobs(chan);
 	}
 error_set_stream:
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	media_entity_pipeline_stop(&chan->video->entity);
-error_pipeline_start:
-#endif
 	vq->start_streaming_called = 0;
 	tegra_channel_queued_buf_done(chan, VB2_BUF_STATE_QUEUED,
 		chan->low_latency);
@@ -1200,10 +1185,6 @@ static int vi4_channel_stop_streaming(struct vb2_queue *vq)
 	err = tegra_channel_write_blobs(chan);
 	if (err < 0)
 		return err;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	media_entity_pipeline_stop(&chan->video->entity);
-#endif
 
 	return 0;
 }

@@ -1,7 +1,7 @@
 /*
  * Tegra Video Input 5 device common APIs
  *
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Frank Chen <frank@nvidia.com>
  *
@@ -475,13 +475,7 @@ static void vi5_capture_dequeue(struct tegra_channel *chan,
 	ts = ns_to_timespec64((s64)descr->status.sof_timestamp);
 #endif
 	trace_tegra_channel_capture_frame("sof", ts);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	/* update time stamp of the buffer */
-	vb->timestamp.tv_sec = ts.tv_sec;
-	vb->timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
-#else
 	vb->vb2_buf.timestamp = descr->status.sof_timestamp;
-#endif
 
 	/* Read EOF from capture descriptor */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
@@ -745,9 +739,6 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 	struct tegra_channel *chan = vb2_get_drv_priv(vq);
 	/* WAR: With newer version pipe init has some race condition */
 	/* TODO: resolve this issue to block userspace not to cleanup media */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	struct media_pipeline *pipe = chan->video->entity.pipe;
-#endif
 	int ret = 0;
 	unsigned long flags;
 	struct v4l2_subdev *sd;
@@ -755,12 +746,6 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 	struct sensor_mode_properties *sensor_mode;
 	struct camera_common_data *s_data;
 	unsigned int emb_buf_size = 0;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	ret = media_entity_pipeline_start(&chan->video->entity, pipe);
-	if (ret < 0)
-		goto err_pipeline_start;
-#endif
 
 	/* Skip in bypass mode */
 	if (!chan->bypass) {
@@ -879,11 +864,6 @@ err_setup:
 		vi_channel_close_ex(chan->id, chan->tegra_vi_channel);
 
 err_open_ex:
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	media_entity_pipeline_stop(&chan->video->entity);
-
-err_pipeline_start:
-#endif
 	vq->start_streaming_called = 0;
 	tegra_channel_queued_buf_done(chan, VB2_BUF_STATE_QUEUED, false);
 
@@ -913,10 +893,6 @@ static int vi5_channel_stop_streaming(struct vb2_queue *vq)
 		/* release all remaining buffers to v4l2 */
 		tegra_channel_queued_buf_done(chan, VB2_BUF_STATE_ERROR, false);
 	}
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	media_entity_pipeline_stop(&chan->video->entity);
-#endif
 
 	return 0;
 }

@@ -1056,11 +1056,6 @@ void tpg_csi_media_controller_cleanup(struct tegra_csi_device *csi)
 		if (!item->pg_mode)
 			continue;
 		sd = &item->subdev;
-		/* decrement media device entity count */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		if (sd->entity.parent)
-			sd->entity.parent->entity_id--;
-#endif
 		v4l2_device_unregister_subdev(sd);
 		media_entity_cleanup(&sd->entity);
 		list_del(&item->list);
