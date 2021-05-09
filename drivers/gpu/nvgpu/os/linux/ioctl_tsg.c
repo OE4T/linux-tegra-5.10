@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
 #include <nvgpu/gr/gr_utils.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
@@ -594,6 +595,7 @@ static int gk20a_tsg_ioctl_get_timeslice(struct gk20a *g,
 }
 
 static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
+		u32 gpu_instance_id,
 		struct nvgpu_tsg *tsg,
 		struct nvgpu_tsg_read_single_sm_error_state_args *args)
 {
@@ -601,9 +603,11 @@ static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
 	struct nvgpu_tsg_sm_error_state_record sm_error_state_record;
 	u32 sm_id;
 	int err = 0;
+	struct nvgpu_gr_config *gr_config;
 
+	gr_config = nvgpu_gr_get_gpu_instance_config_ptr(g, gpu_instance_id);
 	sm_id = args->sm_id;
-	if (sm_id >= g->ops.gr.init.get_no_of_sm(g)) {
+	if (sm_id >= nvgpu_gr_config_get_no_of_sm(gr_config)) {
 		return -EINVAL;
 	}
 
@@ -750,6 +754,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 	struct gk20a *g = tsg->g;
 	u8 __maybe_unused buf[NVGPU_TSG_IOCTL_MAX_ARG_SIZE];
 	int err = 0;
+	u32 gpu_instance_id, gr_instance_id;
 
 	nvgpu_log_fn(g, "start %d", _IOC_NR(cmd));
 
@@ -772,6 +777,11 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 
 		gk20a_idle(g);
 	}
+
+	gpu_instance_id = nvgpu_get_gpu_instance_id_from_cdev(g, priv->cdev);
+	nvgpu_assert(gpu_instance_id < g->mig.num_gpu_instances);
+	gr_instance_id = nvgpu_grmgr_get_gr_instance_id(g, gpu_instance_id);
+	nvgpu_assert(gr_instance_id < g->num_gr_instances);
 
 	switch (cmd) {
 	case NVGPU_TSG_IOCTL_BIND_CHANNEL:
@@ -880,7 +890,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 
 	case NVGPU_TSG_IOCTL_READ_SINGLE_SM_ERROR_STATE:
 		{
-		err = gk20a_tsg_ioctl_read_single_sm_error_state(g, tsg,
+		err = gk20a_tsg_ioctl_read_single_sm_error_state(g, gpu_instance_id, tsg,
 			(struct nvgpu_tsg_read_single_sm_error_state_args *)buf);
 		break;
 		}
