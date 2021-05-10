@@ -163,8 +163,8 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
  * @param error_notifier [in]	Error notifier type to be set.
  * @param pbdma_status [in]	Pointer to PBDMA status info.
  *
- * Do PBDMA fault recovery. For safety, just set error notifier as per
- * \a error_notifier and print warning if quiesce is not triggered already.
+ * Do PBDMA fault recovery. Set error notifier as per \a error_notifier and call
+ * \a nvgpu_rc_tsg_and_related_engines to do the recovery.
  */
 void nvgpu_rc_pbdma_fault(struct gk20a *g, u32 pbdma_id, u32 error_notifier,
 			struct nvgpu_pbdma_status_info *pbdma_status);

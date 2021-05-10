@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,17 +23,18 @@
 #include <nvgpu/log.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fifo.h>
+#ifdef CONFIG_NVGPU_RECOVERY
 #include <nvgpu/engines.h>
 #include <nvgpu/debug.h>
+#include <nvgpu/nvgpu_err.h>
+#include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_instances.h>
+#endif
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/error_notifier.h>
-#include <nvgpu/nvgpu_err.h>
 #include <nvgpu/pbdma_status.h>
-#include <nvgpu/debug.h>
 #include <nvgpu/rc.h>
-#include <nvgpu/gr/gr.h>
-#include <nvgpu/gr/gr_instances.h>
 
 void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
 			u32 hw_id, bool id_is_tsg,
