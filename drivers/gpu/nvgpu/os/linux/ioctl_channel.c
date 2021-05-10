@@ -179,8 +179,10 @@ int gk20a_channel_cycle_stats(struct nvgpu_channel *ch, int dmabuf_fd)
 #else
 		virtual_address = dma_buf_vmap(dmabuf);
 #endif
-		if (!virtual_address)
+		if (!virtual_address) {
+			dma_buf_put(dmabuf);
 			return -ENOMEM;
+		}
 
 		priv->cyclestate_buffer_handler = dmabuf;
 		ch->cyclestate.cyclestate_buffer = virtual_address;
