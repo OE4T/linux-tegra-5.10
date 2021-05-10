@@ -99,7 +99,7 @@ void nvgpu_bug_cb_longjmp(void *arg);
 	({							\
 		jmp_buf handler;				\
 		volatile bool bug_result = true;		\
-		struct nvgpu_bug_cb callback;			\
+		struct nvgpu_bug_cb callback = {0};		\
 		callback.cb = nvgpu_bug_cb_longjmp;		\
 		callback.arg = &handler;			\
 		nvgpu_bug_register_cb(&callback);		\

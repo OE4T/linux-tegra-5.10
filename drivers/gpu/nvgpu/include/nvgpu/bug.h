@@ -92,6 +92,7 @@ struct nvgpu_bug_cb
 	void (*cb)(void *arg);
 	void *arg;
 	struct nvgpu_list_node node;
+	bool sw_quiesce_data;
 };
 
 static inline struct nvgpu_bug_cb *

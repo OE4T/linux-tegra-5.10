@@ -40,14 +40,20 @@
 #endif
 
 struct nvgpu_bug_desc {
+#ifdef __NVGPU_UNIT_TEST__
 	bool in_use;
 	pthread_once_t once;
 	struct nvgpu_spinlock lock;
 	struct nvgpu_list_node head;
+#endif
+	void (*quiesce_cb)(void *arg);
+	void *quiesce_arg;
 };
 
 static struct nvgpu_bug_desc bug_desc = {
+#ifdef __NVGPU_UNIT_TEST__
 	.once = PTHREAD_ONCE_INIT
+#endif
 };
 
 #ifdef __NVGPU_UNIT_TEST__
@@ -84,12 +90,14 @@ void dump_stack(void)
 	nvgpu_posix_dump_stack(frames);
 }
 
+#ifdef __NVGPU_UNIT_TEST__
 static void nvgpu_bug_init(void)
 {
 	nvgpu_spinlock_init(&bug_desc.lock);
 	nvgpu_init_list_node(&bug_desc.head);
 	bug_desc.in_use = true;
 }
+#endif
 
 void nvgpu_bug_exit(int status)
 {
@@ -101,26 +109,39 @@ void nvgpu_bug_exit(int status)
 
 void nvgpu_bug_register_cb(struct nvgpu_bug_cb *cb)
 {
+#ifdef __NVGPU_UNIT_TEST__
 	int err;
+#endif
 
-	err = pthread_once(&bug_desc.once, nvgpu_bug_init);
-	nvgpu_assert(err == 0);
+	if (cb->sw_quiesce_data) {
+		bug_desc.quiesce_cb = cb->cb;
+		bug_desc.quiesce_arg = cb->arg;
+	} else {
+#ifdef __NVGPU_UNIT_TEST__
+		err = pthread_once(&bug_desc.once, nvgpu_bug_init);
+		nvgpu_assert(err == 0);
 
-	nvgpu_spinlock_acquire(&bug_desc.lock);
-	nvgpu_list_add_tail(&cb->node, &bug_desc.head);
-	nvgpu_spinlock_release(&bug_desc.lock);
+		nvgpu_spinlock_acquire(&bug_desc.lock);
+		nvgpu_list_add_tail(&cb->node, &bug_desc.head);
+		nvgpu_spinlock_release(&bug_desc.lock);
+#endif
+	}
 }
 
 void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb)
 {
-	int err;
-
-	err = pthread_once(&bug_desc.once, nvgpu_bug_init);
-	nvgpu_assert(err == 0);
-
-	nvgpu_spinlock_acquire(&bug_desc.lock);
-	nvgpu_list_del(&cb->node);
-	nvgpu_spinlock_release(&bug_desc.lock);
+	if (cb->sw_quiesce_data) {
+		bug_desc.quiesce_cb = NULL;
+		bug_desc.quiesce_arg = NULL;
+	} else {
+#ifdef __NVGPU_UNIT_TEST__
+		if (bug_desc.in_use) {
+			nvgpu_spinlock_acquire(&bug_desc.lock);
+			nvgpu_list_del(&cb->node);
+			nvgpu_spinlock_release(&bug_desc.lock);
+		}
+#endif
+	}
 }
 
 /*
@@ -129,13 +150,21 @@ void nvgpu_bug_unregister_cb(struct nvgpu_bug_cb *cb)
 void nvgpu_posix_bug(const char *msg, int line_no)
 {
 	int err;
+#ifdef __NVGPU_UNIT_TEST__
 	struct nvgpu_bug_cb *cb;
+#endif
 
 	nvgpu_err(NULL, "%s:%d BUG detected!", msg, line_no);
+
 #ifndef __NVGPU_UNIT_TEST__
 	dump_stack();
 #endif
 
+	if (bug_desc.quiesce_cb != NULL) {
+		bug_desc.quiesce_cb(bug_desc.quiesce_arg);
+	}
+
+#ifdef __NVGPU_UNIT_TEST__
 	if (!bug_desc.in_use) {
 		goto done;
 	}
@@ -164,6 +193,8 @@ void nvgpu_posix_bug(const char *msg, int line_no)
 	nvgpu_spinlock_release(&bug_desc.lock);
 
 done:
+#endif
+
 #ifdef __NVGPU_UNIT_TEST__
 	dump_stack();
 #endif

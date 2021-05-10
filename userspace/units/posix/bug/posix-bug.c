@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -117,8 +117,8 @@ static void other_bug_cb(void *arg)
 int test_bug_cb(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	struct nvgpu_bug_cb callback;
-	struct nvgpu_bug_cb other_callback;
+	struct nvgpu_bug_cb callback = {0};
+	struct nvgpu_bug_cb other_callback = {0};
 	jmp_buf handler;
 
 

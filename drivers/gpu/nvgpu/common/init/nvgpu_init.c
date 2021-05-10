@@ -163,6 +163,7 @@ static int nvgpu_sw_quiesce_init_support(struct gk20a *g)
 	/* register callback to SW quiesce GPU in case of BUG() */
 	g->sw_quiesce_bug_cb.cb = nvgpu_sw_quiesce_bug_cb;
 	g->sw_quiesce_bug_cb.arg = g;
+	g->sw_quiesce_bug_cb.sw_quiesce_data = true;
 	nvgpu_bug_register_cb(&g->sw_quiesce_bug_cb);
 
 #ifdef CONFIG_NVGPU_RECOVERY
