@@ -937,6 +937,32 @@ void gv11b_gr_init_detect_sm_arch(struct gk20a *g)
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
 }
 
+#ifndef CONFIG_NVGPU_NON_FUSA
+void gv11b_gr_init_set_default_compute_regs(struct gk20a *g,
+		struct nvgpu_gr_ctx *gr_ctx)
+{
+	u32 reg_val;
+
+	nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
+
+	reg_val = nvgpu_readl(g, gr_sked_hww_esr_en_r());
+	reg_val = set_field(reg_val,
+		gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_m(),
+		gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_disabled_f());
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_sked_hww_esr_en_r(),
+		reg_val, true);
+
+	reg_val = nvgpu_readl(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r());
+	reg_val = set_field(reg_val,
+		gr_gpcs_tpcs_sm_l1tag_ctrl_always_cut_collector_m(),
+		gr_gpcs_tpcs_sm_l1tag_ctrl_always_cut_collector_enable_f());
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_sm_l1tag_ctrl_r(),
+		reg_val, true);
+
+	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
+}
+#endif
+
 #ifdef CONFIG_NVGPU_GR_GOLDEN_CTX_VERIFICATION
 int gv11b_gr_init_load_sw_bundle_init(struct gk20a *g,
 		struct netlist_av_list *sw_bundle_init)

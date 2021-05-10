@@ -65,7 +65,9 @@ struct unit_module;
  *          gp10b_gr_init_get_ctx_attrib_cb_size,
  *          gops_gr_falcon.ctrl_ctxsw,
  *          gp10b_gr_falcon_ctrl_ctxsw,
- *          gm20b_gr_falcon_ctrl_ctxsw
+ *          gm20b_gr_falcon_ctrl_ctxsw,
+ *          gops_gr_init.set_default_compute_regs,
+ *          gv11b_gr_init_set_default_compute_regs
  *
  * Input: gr_obj_ctx_setup must have been executed successfully.
  *

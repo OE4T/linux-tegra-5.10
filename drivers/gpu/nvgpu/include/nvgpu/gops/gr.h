@@ -655,6 +655,24 @@ struct gops_gr_init {
 	 */
 	void (*detect_sm_arch)(struct gk20a *g);
 
+#ifndef CONFIG_NVGPU_NON_FUSA
+	/**
+	 * @brief Set compute specific register values.
+	 *
+	 * @param g [in]	Pointer to GPU driver struct.
+	 * @param gr_ctx [in]	Pointer to GR engine context image.
+	 *
+	 * This function sets below compute specific bits in given registers
+	 * using patch context in safety build :
+	 * Register : gr_sked_hww_esr_en_r()
+	 * Value : gr_sked_hww_esr_en_skedcheck18_l1_config_too_small_disabled_f()
+	 *
+	 * Register : gr_gpcs_tpcs_sm_l1tag_ctrl_r()
+	 * Value : gr_gpcs_tpcs_sm_l1tag_ctrl_always_cut_collector_enable_f()
+	 */
+	void (*set_default_compute_regs)(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
+#endif
+
 	/**
 	 * @brief Get supported preemption mode flags.
 	 *

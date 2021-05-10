@@ -97,13 +97,12 @@ int ga10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	if (class_num == AMPERE_COMPUTE_B) {
 		switch (offset << left_shift_by_2) {
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		case NVC7C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
 			return 0;
-#endif
 		case NVC7C0_SET_CB_BASE:
 			/*
 			 * This method is only implemented for gm107 in resman
@@ -123,6 +122,7 @@ int ga10b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			return 0;
 		}
 	}
+#endif
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == AMPERE_B) {

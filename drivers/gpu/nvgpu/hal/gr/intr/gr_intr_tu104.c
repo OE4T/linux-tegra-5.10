@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@
 
 #include <nvgpu/hw/tu104/hw_gr_tu104.h>
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 static void gr_tu104_set_sm_disp_ctrl(struct gk20a *g, u32 data)
 {
 	u32 reg_val;
@@ -59,19 +60,19 @@ static void gr_tu104_set_sm_disp_ctrl(struct gk20a *g, u32 data)
 
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), reg_val);
 }
+#endif
 
 int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			      u32 class_num, u32 offset, u32 data)
 {
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	if (class_num == TURING_COMPUTE_A) {
 		switch (offset << 2) {
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		case NVC5C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
 			return 0;
-#endif
 		case NVC5C0_SET_SKEDCHECK:
 			gv11b_gr_intr_set_skedcheck(g, data);
 			return 0;
@@ -83,7 +84,7 @@ int tu104_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			return 0;
 		}
 	}
-
+#endif
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == TURING_A) {

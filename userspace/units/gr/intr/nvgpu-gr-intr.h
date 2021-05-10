@@ -124,8 +124,6 @@ int test_gr_intr_setup_channel(struct unit_module *m,
  * Test specification for: test_gr_intr_sw_exceptions.
  *
  * Description: Helps to verify pending interrupts for illegal method.
- *              Helps to verify exceptions for SET_SHADER_EXCEPTIONS,
- *              SET_SKEDCHECK and SET_SHADER_CUT_COLLECTOR.
  *
  * Test Type: Feature, Error guessing
  *
@@ -133,8 +131,6 @@ int test_gr_intr_setup_channel(struct unit_module *m,
  *          gops_gr_intr.flush_channel_tlb, nvgpu_gr_intr_flush_channel_tlb,
  *          gops_gr_intr.handle_sw_method,
  *          gv11b_gr_intr_handle_sw_method,
- *          gv11b_gr_intr_set_skedcheck,
- *          gv11b_gr_intr_set_shader_cut_collector,
  *          gops_gr_intr.trapped_method_info,
  *          gm20b_gr_intr_get_trapped_method_info,
  *          nvgpu_gr_intr_set_error_notifier,

@@ -526,6 +526,9 @@ static const struct gops_gr_init gv11b_ops_gr_init = {
 	.get_max_subctx_count = gv11b_gr_init_get_max_subctx_count,
 	.get_patch_slots = gv11b_gr_init_get_patch_slots,
 	.detect_sm_arch = gv11b_gr_init_detect_sm_arch,
+#ifndef CONFIG_NVGPU_NON_FUSA
+	.set_default_compute_regs = gv11b_gr_init_set_default_compute_regs,
+#endif
 	.get_supported__preemption_modes = gp10b_gr_init_get_supported_preemption_modes,
 	.get_default_preemption_modes = gp10b_gr_init_get_default_preemption_modes,
 	.is_allowed_sw_bundle = gm20b_gr_init_is_allowed_sw_bundle,

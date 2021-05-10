@@ -906,6 +906,10 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, config, gr_ctx,
 		subctx);
 
+#ifndef CONFIG_NVGPU_NON_FUSA
+	g->ops.gr.init.set_default_compute_regs(g, gr_ctx);
+#endif
+
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gr, "done");
 	return 0;
 out:

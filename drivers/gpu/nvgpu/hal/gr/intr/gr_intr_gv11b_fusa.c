@@ -128,6 +128,7 @@ int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
 	return gp10b_gr_intr_handle_fecs_error(g, ch_ptr, isr_data);
 }
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gv11b_gr_intr_set_skedcheck(struct gk20a *g, u32 data)
 {
 	u32 reg_val;
@@ -172,6 +173,7 @@ void gv11b_gr_intr_set_shader_cut_collector(struct gk20a *g, u32 data)
 	}
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r(), val);
 }
+#endif
 
 int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data)
@@ -180,14 +182,13 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	if (class_num == VOLTA_COMPUTE_A) {
 		switch (offset << 2) {
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		case NVC0C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
 			err = 0;
 			break;
-#endif
 		case NVC3C0_SET_SKEDCHECK:
 			gv11b_gr_intr_set_skedcheck(g, data);
 			err = 0;
@@ -201,6 +202,7 @@ int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			break;
 		}
 	}
+#endif
 
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == VOLTA_A) {

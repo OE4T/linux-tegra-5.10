@@ -571,13 +571,6 @@ int test_gr_intr_sw_exceptions(struct unit_module *m,
 		unit_return_fail(m, "sw_method passed for invalid class\n");
 	}
 
-	/* Fault injection - sw_method with null data */
-	err = g->ops.gr.intr.handle_sw_method(g, 0, VOLTA_COMPUTE_A,
-				(NVC3C0_SET_SKEDCHECK >> 2), 0);
-	if (err != 0) {
-		unit_return_fail(m, "sw_method failed for invalid data\n");
-	}
-
 	return UNIT_SUCCESS;
 }
 

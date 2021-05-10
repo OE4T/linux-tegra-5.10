@@ -93,8 +93,10 @@ struct nvgpu_gr_sm_ecc_status {
 int gv11b_gr_intr_handle_fecs_error(struct gk20a *g,
 				struct nvgpu_channel *ch_ptr,
 				struct nvgpu_gr_isr_data *isr_data);
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 void gv11b_gr_intr_set_shader_cut_collector(struct gk20a *g, u32 data);
 void gv11b_gr_intr_set_skedcheck(struct gk20a *g, u32 data);
+#endif
 int gv11b_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
 void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,

@@ -118,16 +118,15 @@ int ga100_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 {
 	nvgpu_log_fn(g, " ");
 
+#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 	if (class_num == AMPERE_COMPUTE_A) {
 		switch (offset << NVGPU_GA100_SW_METHOD_SHIFT) {
 		case NVC6C0_SET_BES_CROP_DEBUG4:
 			g->ops.gr.set_bes_crop_debug4(g, data);
 			return 0;
-#ifdef CONFIG_NVGPU_HAL_NON_FUSA
 		case NVC6C0_SET_SHADER_EXCEPTIONS:
 			g->ops.gr.intr.set_shader_exceptions(g, data);
 			return 0;
-#endif
 		case NVC6C0_SET_TEX_IN_DBG:
 			gv11b_gr_intr_set_tex_in_dbg(g, data);
 			return 0;
@@ -136,6 +135,8 @@ int ga100_gr_intr_handle_sw_method(struct gk20a *g, u32 addr,
 			return 0;
 		}
 	}
+#endif
+
 #if defined(CONFIG_NVGPU_DEBUGGER) && defined(CONFIG_NVGPU_GRAPHICS)
 	if (class_num == AMPERE_A) {
 		switch (offset << NVGPU_GA100_SW_METHOD_SHIFT) {
