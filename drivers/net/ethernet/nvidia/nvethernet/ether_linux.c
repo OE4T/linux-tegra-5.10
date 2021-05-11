@@ -75,7 +75,7 @@ static int ether_update_mac_addr(struct ether_priv_data *pdata,
 		}
 	}
 
-	pnode = kmalloc(sizeof(*pnode), GFP_ATOMIC);
+	pnode = kmalloc(sizeof(*pnode), GFP_KERNEL);
 	if (!pnode) {
 		dev_err(pdata->dev, "kmalloc failed %s()\n", __func__);
 		return -1;
