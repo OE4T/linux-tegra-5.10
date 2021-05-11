@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,9 +59,8 @@
 #include <nvgpu/types.h>
 #include <nvgpu/static_analysis.h>
 
-#define pri_ringstation_sys_decode_config_r()                      (0x00122204U)
-#define pri_ringstation_sys_decode_config_ring_m()             (U32(0x7U) << 0U)
-#define pri_ringstation_sys_decode_config_ring_drop_on_ring_not_started_f()\
+#define pri_ringstation_sys_master_ring_start_results_r()          (0x00120050U)
+#define pri_ringstation_sys_master_ring_start_results_connectivity_pass_f()\
 				(0x1U)
 #define pri_ringstation_sys_priv_error_adr_r()                     (0x00122120U)
 #define pri_ringstation_sys_priv_error_wrdat_r()                   (0x00122124U)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -66,6 +66,7 @@
 #define pri_ringmaster_command_cmd_start_ring_f()                         (0x1U)
 #define pri_ringmaster_command_cmd_ack_interrupt_f()                      (0x2U)
 #define pri_ringmaster_command_cmd_enumerate_stations_f()                 (0x3U)
+#define pri_ringmaster_command_cmd_enumerate_and_start_ring_f()           (0x4U)
 #define pri_ringmaster_command_cmd_enumerate_stations_bc_grp_all_f()      (0x0U)
 #define pri_ringmaster_command_data_r()                            (0x00120048U)
 #define pri_ringmaster_start_results_r()                           (0x00120050U)
