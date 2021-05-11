@@ -1,0 +1,201 @@
+/*
+ * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * T234 P3701-0000 common DTSI file.
+ */
+
+#include <dt-bindings/types.h>
+#include <tegra234-soc/tegra234-soc-base.dtsi>
+#include "tegra234-p3701-fixed-regulator.dtsi"
+#include "tegra234-p3701-power-tree.dtsi"
+#include "tegra234-p3701-thermal.dtsi"
+#include "tegra234-p3701-powermon.dtsi"
+
+/ {
+	model = "Jetson-AGX";
+	compatible = "nvidia,tegra234";
+
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	chosen {
+		bootargs ="console=ttyTCU0,115200";
+		board-has-eeprom;
+		nvidia,tegra-joint_xpu_rail;
+	};
+
+	cpufreq {
+		compatible = "nvidia,t234-cpufreq";
+		status = "okay";
+		cpu_emc_map = <1907200 1600000>,
+			    <1881600 800000>,
+			    <1574400 665000>,
+			    <1267200 408000>;
+	};
+#if defined(LINUX_VERSION) && LINUX_VERSION > 414
+	ccplex {
+		compatible = "nvidia,t234-ccplex";
+		cpu_emc_map = <1907200 1600000>,
+			    <1881600 800000>,
+			    <1574400 665000>,
+			    <1267200 408000>;
+	};
+#endif
+	pmc@c370000 {
+		nvidia,invert-interrupt;
+	};
+
+	arm-pmu {
+		status = "okay";
+	};
+
+	power-domain {
+		status = "okay";
+	};
+
+	interrupt-controller {
+		status = "okay";
+	};
+
+	cpuidle {
+		compatible = "nvidia,tegra19x-cpuidle";
+		status = "okay";
+	};
+
+	thermal-zones {
+		status = "disabled";
+	};
+
+	reserved-memory {
+		ramoops_carveout {
+			status = "okay";
+		};
+	};
+
+	serial@3100000 {
+		compatible = "nvidia,tegra186-hsuart";
+		status = "okay";
+	};
+
+	serial@3140000 {
+		compatible = "nvidia,tegra186-hsuart";
+		status = "okay";
+	};
+
+	combined-uart {
+		console-port;
+		combined-uart;
+		status = "okay";
+	};
+
+	pwm@c340000 {
+		status = "disabled";
+	};
+
+	sdhci_emmc: sdhci@3460000 {
+		uhs-mask = <0x0>;
+#if TEGRA_SDMMC_VERSION >= DT_VERSION_2
+		supports-cqe;
+#else
+		nvidia,enable-hwcq;
+#endif
+		status = "okay";
+	};
+
+	sdhci_sd: sdhci@3400000 {
+		mmc-ocr-mask = <0x0>;
+		cd-inverted;
+		cd-gpios = <&tegra_main_gpio TEGRA234_MAIN_GPIO(G, 7) 0>;
+		nvidia,cd-wakeup-capable;
+		mmc-ocr-mask = <0>;
+		cd-inverted;
+		vmmc-supply = <&p3737_vdd_3v3_sd>;
+		status = "okay";
+	};
+
+	rtcpu@bc00000 {
+		status = "disabled";
+		nvidia,cmd-timeout = <2000>;
+	};
+
+	eeprom-manager {
+		data-size = <0x100>;
+		bus@0 {
+			i2c-bus = <&gen1_i2c>;
+			eeprom@0 {
+				slave-address = <0x50>;
+				label = "cvm";
+			};
+		};
+	};
+
+	soctherm-oc-event {
+		status = "disabled";
+	};
+
+	/* QSPI flash MX25U51279 is controlled by qspi0 */
+	spi@3270000 {
+		spi-max-frequency = <136000000>;
+		status = "okay";
+		prod-settings {
+			#prod-cells = <3>;
+			prod {
+				prod = <0x04 0x000000ff 0x10>;
+			};
+		};
+		/* QSPI NOR */
+		spiflash@0 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "MX25U51279";
+			reg = <0>;
+			spi-max-frequency = <136000000>;
+			partition@0 {
+				label = "Whole_flash0";
+				reg = <0x00000000 0x4000000>;	/* size of QSPI-NOR 64MB == 512Mb */
+			};
+			controller-data {
+				nvidia,x1-len-limit = <16>;
+				nvidia,x1-bus-speed = <136000000>; /* In Mhz */
+				nvidia,x1-dymmy-cycle = <8>;
+				nvidia,x4-bus-speed = <136000000>;
+				nvidia,x4-dymmy-cycle = <8>;
+				nvidia,x4-is-ddr=<0>;
+				nvidia,ctrl-bus-clk-ratio = <1>;
+			};
+		};
+	};
+
+	pmc@c360000 {
+#if TEGRA_PMC_VERSION >= DT_VERSION_2
+		nvidia,invert-interrupt;
+#endif
+		iopad-defaults {
+			sdmmc-io-pads {
+				pins = "sdmmc1-hv", "sdmmc3-hv";
+				nvidia,enable-voltage-switching;
+			};
+		};
+	};
+
+#if TEGRA_PMC_VERSION < DT_VERSION_2
+	pmc@c370000 {
+		nvidia,invert-interrupt;
+	};
+#endif
+
+};
