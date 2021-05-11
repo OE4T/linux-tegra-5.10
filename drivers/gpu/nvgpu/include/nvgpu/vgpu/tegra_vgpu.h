@@ -119,6 +119,8 @@ enum {
 	TEGRA_VGPU_CMD_GR_SET_MMU_DEBUG_MODE = 89,
 	TEGRA_VGPU_CMD_PERFBUF_INST_BLOCK_MGT = 90,
 	TEGRA_VGPU_CMD_TSG_SET_LONG_TIMESLICE = 91,
+	TEGRA_VGPU_CMD_TSG_GET_L2_MAX_WAYS_EVICT_LAST = 92,
+	TEGRA_VGPU_CMD_TSG_SET_L2_MAX_WAYS_EVICT_LAST = 93,
 };
 
 struct tegra_vgpu_connect_params {
@@ -651,6 +653,11 @@ struct tegra_vgpu_gr_set_mmu_debug_mode_params {
 	u8 enable;
 };
 
+struct tegra_vgpu_l2_max_ways_evict_last_params {
+	u32 tsg_id;
+	u32 num_ways;
+};
+
 struct tegra_vgpu_cmd_msg {
 	u32 cmd;
 	int ret;
@@ -717,6 +724,7 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_fb_set_mmu_debug_mode_params fb_set_mmu_debug_mode;
 		struct tegra_vgpu_gr_set_mmu_debug_mode_params gr_set_mmu_debug_mode;
 		struct tegra_vgpu_perfbuf_inst_block_mgt_params perfbuf_inst_block_management;
+		struct tegra_vgpu_l2_max_ways_evict_last_params l2_max_ways_evict_last;
 		char padding[184];
 	} params;
 };

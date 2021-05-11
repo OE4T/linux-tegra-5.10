@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,5 +28,12 @@ struct gr_gk20a;
 
 u64 vgpu_determine_L2_size_bytes(struct gk20a *g);
 void vgpu_ltc_init_fs_state(struct gk20a *g);
+
+#ifdef CONFIG_NVGPU_DEBUGGER
+int vgpu_ltc_get_max_ways_evict_last(struct gk20a *g, struct nvgpu_tsg *tsg,
+		u32 *num_ways);
+int vgpu_ltc_set_max_ways_evict_last(struct gk20a *g, struct nvgpu_tsg *tsg,
+		u32 num_ways);
+#endif
 
 #endif /* NVGPU_LTC_VGPU_H */
