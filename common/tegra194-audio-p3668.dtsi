@@ -30,14 +30,15 @@
 	};
 
 	hda@3510000 {
-		hda,card-name = "tegra-hda-xnx";
 		status = "okay";
+
+		nvidia,model = "NVIDIA Jetson Xavier NX HDA";
 	};
 
 	tegra_sound: sound {
 		status = "okay";
-		compatible = "nvidia,tegra-audio-t186ref-mobile-rt565x";
-		nvidia-audio-card,name = "jetson-xaviernx-ape";
+		compatible = "nvidia,tegra186-ape";
+		nvidia-audio-card,name = "NVIDIA Jetson Xavier NX APE";
 		clocks = <&bpmp_clks TEGRA194_CLK_PLLA>,
 			 <&bpmp_clks TEGRA194_CLK_PLLA_OUT0>,
 			 <&bpmp_clks TEGRA194_CLK_AUD_MCLK>;
