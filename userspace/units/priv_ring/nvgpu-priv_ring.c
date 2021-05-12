@@ -186,26 +186,65 @@ int test_priv_ring_free_reg_space(struct unit_module *m, struct gk20a *g,
 int test_enable_priv_ring(struct unit_module *m, struct gk20a *g, void *args)
 {
 	int ret = UNIT_SUCCESS;
-	u32 val_cmd;
-	u32 val_sys_decode_config;
+	int err = 0;
 
-	/* Call enable_priv_ring HAL. */
-	ret = g->ops.priv_ring.enable_priv_ring(g);
+	/*
+	 * Case 1: enable_priv_ring passes
+	 *
+	 * 1) Configure "read_cmd_reg"=1U, this ensures that ring enumerations
+	 *    completes before max_retry attempts.
+	 * 2) Write pri_ringmaster_start_results_r=0x1
+	 * 3) Call g->ops.priv_ring.enable_priv_ring(g)
+	 */
+	read_cmd_reg = 1U;
+	nvgpu_posix_io_writel_reg_space(g,
+			pri_ringmaster_start_results_r(), 0x1);
+	err = g->ops.priv_ring.enable_priv_ring(g);
 
-	/* Read back the registers to make sure intended values are written. */
-	if (ret == 0U) {
-		val_cmd = nvgpu_posix_io_readl_reg_space(g,
-					pri_ringmaster_command_r());
-		val_sys_decode_config = nvgpu_posix_io_readl_reg_space(g,
-					pri_ringstation_sys_decode_config_r());
-		if ((val_cmd != 0x4) || (val_sys_decode_config != 0x2)) {
-			unit_err(m, "Priv_ring enable failed.\n");
-			ret = UNIT_FAIL;
-		}
-	} else {
+	if (err != 0) {
 		unit_err(m, "priv_ring.enable_priv_ring HAL failed.\n");
 		ret = UNIT_FAIL;
+		goto end;
 	}
+
+	/*
+	 * Case 2: enable_priv_ring times out.
+	 *
+	 * 1) Configure "read_cmd_reg"=U32_MAX, this ensures that
+	 *    ring enumerations times out after max_retry attempts.
+	 * 2) Call g->ops.priv_ring.enable_priv_ring(g)
+	 */
+	read_cmd_reg = U32_MAX;
+	err = g->ops.priv_ring.enable_priv_ring(g);
+
+	if (err != -ETIMEDOUT) {
+		unit_err(m, "priv_ring.enable_priv_ring HAL timeout failed.\n");
+		ret = UNIT_FAIL;
+		goto end;
+	}
+
+	/*
+	 * Case 3: enable_priv_ring enumeration fails
+	 *
+	 * 1) Configure "read_cmd_reg"=1U, this ensures that ring enumerations
+	 *    completes before max_retry attempts.
+	 * 3) Write pri_ringmaster_start_results_r=0x0
+	 * 2) Call g->ops.priv_ring.enable_priv_ring(g)
+	 */
+	read_cmd_reg = 1U;
+	nvgpu_posix_io_writel_reg_space(g,
+			pri_ringmaster_start_results_r(), 0x0);
+	err = g->ops.priv_ring.enable_priv_ring(g);
+
+	if (err != -1) {
+		unit_err(m, "priv_ring.enable_priv_ring HAL failed"
+				" to detect enumeration fault.\n");
+		ret = UNIT_FAIL;
+		goto end;
+	}
+
+end:
+	read_cmd_reg = 3U; // Restore to default
 
 	return ret;
 }
