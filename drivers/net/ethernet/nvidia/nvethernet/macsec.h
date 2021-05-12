@@ -163,22 +163,6 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 		void *const genl_info);
 int macsec_close(struct macsec_priv_data *macsec_pdata);
 
-/**
- * @brief macsec_tz_kt_config - Program macsec key table entry.
- *
- * @param[in] priv: OSD private data structure.
- * @param[in] cmd: macsec TZ config cmd
- * @param[in] kt_config: Pointer to osi_macsec_kt_config structure
- * @param[in] genl_info: Pointer to netlink msg structure
- *
- * @retval 0 on success
- * @retval negative value on failure.
- */
-int macsec_tz_kt_config(void *priv,
-			unsigned char cmd,
-			void *const kt_config,
-			void *const genl_info);
-
 #ifdef TEST
 int macsec_genl_register(void);
 void macsec_genl_unregister(void);
