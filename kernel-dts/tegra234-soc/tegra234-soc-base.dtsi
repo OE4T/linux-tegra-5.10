@@ -329,18 +329,11 @@
 	};
 #endif
 
-	se: se_ahb@3ac0000 {
-		compatible = "nvidia,tegra234-se-ahb";
-		reg = <0x0 0x03ac0000 0x0 0x10000>;
-		interrupts = <0 281 0x04>;
-		clocks = <&bpmp_clks TEGRA234_CLK_SE>;
-		clock-names = "se";
-		status = "disabled";
-	};
-
 	nvrng@3ae0000 {
 		compatible = "nvidia,tegra234-se-nvrng";
-		reg = <0x0 0x3ae0000 0x0 0x10000>;
+		reg-names = "rng1", "sap";
+		reg = <0x0 0x3ae0000 0x0 0x10000>,
+		      <0x0 0x3ac0000 0x0 0x10000>;
 		interrupts = <0x0 284 0x4>;
 		clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 		clock-names = "se";
