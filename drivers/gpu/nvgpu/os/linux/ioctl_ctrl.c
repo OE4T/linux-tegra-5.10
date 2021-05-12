@@ -152,7 +152,9 @@ int gk20a_ctrl_dev_open(struct inode *inode, struct file *filp)
 		gk20a_idle(g);
 	}
 
-	err = nvgpu_clk_arb_init_session(g, &priv->clk_session);
+	if (nvgpu_is_enabled(g, NVGPU_CLK_ARB_ENABLED)) {
+		err = nvgpu_clk_arb_init_session(g, &priv->clk_session);
+	}
 free_ref:
 	if (err != 0) {
 		nvgpu_put(g);
