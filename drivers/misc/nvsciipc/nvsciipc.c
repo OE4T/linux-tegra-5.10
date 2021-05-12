@@ -27,6 +27,7 @@
 #include <linux/file.h>
 #include <linux/mod_devicetable.h>
 #include <linux/mutex.h>
+#include <linux/cred.h>
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
 #include <soc/tegra/virt/syscalls.h>
@@ -225,9 +226,14 @@ static int nvsciipc_ioctl_set_db(struct nvsciipc *ctx, unsigned int cmd,
 	int ret = 0;
 	int i;
 
+	if (current_cred()->uid.val != 0) {
+		ERR("no permission to set db\n");
+		return -EPERM;
+	}
+
 	if (ctx->num_eps != 0) {
-		INFO("nvsciipc db is set again\n");
-		nvsciipc_free_db(ctx);
+		INFO("nvsciipc db is set already\n");
+		return -EINVAL;
 	}
 
 	if (copy_from_user(&user_db, (void __user *)arg, _IOC_SIZE(cmd))) {
