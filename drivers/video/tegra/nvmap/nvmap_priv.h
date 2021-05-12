@@ -336,6 +336,12 @@ int nvmap_page_pool_debugfs_init(struct dentry *nvmap_root);
 
 #define NVMAP_IVM_INVALID_PEER		(-1)
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
+#ifndef NVMAP_CONFIG_HANDLE_AS_ID
+struct xarray {};
+#endif /* !NVMAP_CONFIG_HANDLE_AS_ID */
+#endif /* KERNEL_VERSION < 5.10 */
+
 struct nvmap_client {
 	const char			*name;
 	struct rb_root			handle_refs;
@@ -348,6 +354,8 @@ struct nvmap_client {
 	u32				next_fd;
 	int				warned;
 	int				tag_warned;
+	struct xarray			id_array;
+	struct xarray			*ida;
 };
 
 struct nvmap_vma_priv {
@@ -515,8 +523,7 @@ struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
 
 bool is_nvmap_dmabuf_fd_ro(int fd);
 
-int is_nvmap_handle_fd_ro(struct nvmap_client *client, struct nvmap_handle *h,
-			  bool *is_ro);
+bool is_nvmap_id_ro(struct nvmap_client *client, int id);
 
 struct nvmap_handle_ref *nvmap_duplicate_handle(struct nvmap_client *client,
 					struct nvmap_handle *h, bool skip_val,
@@ -526,8 +533,8 @@ struct nvmap_handle_ref *nvmap_try_duplicate_by_ivmid(
 			struct nvmap_client *client, u64 ivm_id,
 			struct nvmap_heap_block **block);
 
-struct nvmap_handle_ref *nvmap_create_handle_from_fd(
-			struct nvmap_client *client, int fd);
+struct nvmap_handle_ref *nvmap_create_handle_from_id(
+			struct nvmap_client *client, int id);
 
 void nvmap_handle_get_cacheability(struct nvmap_handle *h,
 		bool *inner, bool *outer);
@@ -546,7 +553,7 @@ int nvmap_alloc_handle_from_va(struct nvmap_client *client,
 
 void nvmap_free_handle(struct nvmap_client *c, struct nvmap_handle *h, bool is_ro);
 
-void nvmap_free_handle_fd(struct nvmap_client *c, int fd);
+void nvmap_free_handle_from_fd(struct nvmap_client *c, int fd);
 
 int nvmap_handle_remove(struct nvmap_device *dev, struct nvmap_handle *h);
 
@@ -866,6 +873,38 @@ __weak void nvmap_sci_ipc_exit(void)
 }
 #endif
 
+#ifdef NVMAP_CONFIG_HANDLE_AS_ID
+void nvmap_id_array_init(struct xarray *xarr);
+void nvmap_id_array_exit(struct xarray *xarr);
+struct dma_buf *nvmap_id_array_get_dmabuf_from_id(struct xarray *xarr, int id);
+int nvmap_id_array_id_alloc(struct xarray *xarr, int *id, struct dma_buf *dmabuf);
+struct dma_buf *nvmap_id_array_id_release(struct xarray *xarr, int id);
+#else
+static inline void nvmap_id_array_init(struct xarray *xarr)
+{
+
+}
+
+static inline void nvmap_id_array_exit(struct xarray *xarr)
+{
+
+}
+
+static inline struct dma_buf *nvmap_id_array_get_dmabuf_from_id(struct xarray *xarr, int id)
+{
+	return NULL;
+}
+
+static inline int nvmap_id_array_id_alloc(struct xarray *xarr, int *id, struct dma_buf *dmabuf)
+{
+	return 0;
+}
+
+static inline struct dma_buf *nvmap_id_array_id_release(struct xarray *xarr, int id)
+{
+	return NULL;
+}
+#endif
 int nvmap_dmabuf_set_drv_data(struct dma_buf *dmabuf,
 		struct device *dev, void *priv, void (*delete)(void *priv));
 void *nvmap_dmabuf_get_drv_data(struct dma_buf *dmabuf,
@@ -886,4 +925,7 @@ void *nvmap_dma_alloc_attrs(struct device *dev, size_t size,
 void nvmap_dma_free_attrs(struct device *dev, size_t size, void *cpu_addr,
 			  dma_addr_t dma_handle, unsigned long attrs);
 #endif /* NVMAP_LOADABLE_MODULE */
+bool dmabuf_is_nvmap(struct dma_buf *dmabuf);
+struct nvmap_handle *nvmap_handle_get_from_id(struct nvmap_client *client,
+		int id);
 #endif /* __VIDEO_TEGRA_NVMAP_NVMAP_H */

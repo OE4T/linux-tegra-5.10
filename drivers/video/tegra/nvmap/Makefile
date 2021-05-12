@@ -23,6 +23,8 @@ nvmap-y := nvmap_core.o \
 	nvmap_stats.o \
 	nvmap_carveout.o \
 	nvmap_kasan_wrapper.o
+nvmap-$(NVMAP_CONFIG_HANDLE_AS_ID) += nvmap_id_array.o
+
 nvmap-$(NVMAP_CONFIG_SCIIPC) += nvmap_sci_ipc.o
 
 ifeq ($(NVMAP_CONFIG_PAGE_POOLS), y)
