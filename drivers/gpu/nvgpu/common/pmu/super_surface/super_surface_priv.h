@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/pmu/pmuif/cmn.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <common/pmu/boardobj/ucode_boardobj_inf.h>
+#include <nvgpu/pmu/super_surface.h>
 
 struct nvgpu_mem;
 
@@ -103,10 +104,10 @@ struct nvgpu_pmu_super_surface {
 	struct nvgpu_mem super_surface_buf;
 
 	struct super_surface_member_descriptor
-		ssmd_set[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
+		ssmd_set[NV_PMU_SUPER_SURFACE_MEMBER_COUNT];
 
 	struct super_surface_member_descriptor
-		ssmd_get_status[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
+		ssmd_get_status[NV_PMU_SUPER_SURFACE_MEMBER_COUNT];
 };
 
 #endif /* SUPER_SURFACE_PRIV_H */

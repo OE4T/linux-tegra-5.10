@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -76,18 +76,20 @@ struct nvgpu_mem *nvgpu_pmu_super_surface_mem(struct gk20a *g,
  * table, i.e one table is for SET ID TYPE & second table for
  * GET_STATUS ID_TYPE.
  */
-void nvgpu_pmu_ss_create_ssmd_lookup_table(struct gk20a *g,
+int nvgpu_pmu_ss_create_ssmd_lookup_table(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_pmu_super_surface *ss)
 {
 	struct super_surface_member_descriptor ssmd;
 	u32 ssmd_size = (u32)
 		sizeof(struct super_surface_member_descriptor);
 	u32 idx = 0U;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	if (ss == NULL) {
-		return;
+		nvgpu_err(g, "SS not allocated");
+		return -ENOMEM;
 	}
 
 	for (idx = 0U; idx < NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT;
@@ -109,6 +111,12 @@ void nvgpu_pmu_ss_create_ssmd_lookup_table(struct gk20a *g,
 			 * during member info fetch.
 			 */
 			ssmd.id &= 0xFFFFU;
+			if (ssmd.id >= NV_PMU_SUPER_SURFACE_MEMBER_COUNT) {
+				nvgpu_err(g, "incorrect ssmd id %d", ssmd.id);
+				nvgpu_err(g, "Failed to create SSMD table");
+				err = -EINVAL;
+				break;
+			}
 			/*use member ID as index for lookup table too*/
 			(void) memcpy(&ss->ssmd_set[ssmd.id], &ssmd,
 				ssmd_size);
@@ -121,6 +129,12 @@ void nvgpu_pmu_ss_create_ssmd_lookup_table(struct gk20a *g,
 			 * during member info fetch.
 			 */
 			ssmd.id &= 0xFFFFU;
+			if (ssmd.id >= NV_PMU_SUPER_SURFACE_MEMBER_COUNT) {
+				nvgpu_err(g, "incorrect ssmd id %d", ssmd.id);
+				nvgpu_err(g, "failed to create SSMD table");
+				err = -EINVAL;
+				break;
+			}
 			/*use member ID as index for lookup table too*/
 			(void) memcpy(&ss->ssmd_get_status[ssmd.id], &ssmd,
 				ssmd_size);
@@ -128,6 +142,8 @@ void nvgpu_pmu_ss_create_ssmd_lookup_table(struct gk20a *g,
 			continue;
 		}
 	}
+
+	return err;
 }
 
 u32 nvgpu_pmu_get_ss_member_set_offset(struct gk20a *g,

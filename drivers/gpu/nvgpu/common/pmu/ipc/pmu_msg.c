@@ -475,8 +475,11 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	nvgpu_pmu_allocator_dmem_init(g, pmu, &pmu->dmem, init);
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
-		nvgpu_pmu_ss_create_ssmd_lookup_table(g,
+		err = nvgpu_pmu_ss_create_ssmd_lookup_table(g,
 			pmu, pmu->super_surface);
+		if (err != 0) {
+			goto exit;
+		}
 	}
 
 	nvgpu_pmu_set_fw_ready(g, pmu, true);
