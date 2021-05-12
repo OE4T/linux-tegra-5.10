@@ -626,6 +626,7 @@ static int nvgpu_early_init(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fbpa_ecc, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fb.init_fbpa, NO_FLAG),
 #endif
+		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.reset_enable_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fb_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.ltc.init_ltc_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.grmgr.init_gr_manager, NO_FLAG),
@@ -691,6 +692,12 @@ int nvgpu_early_poweron(struct gk20a *g)
 	 * grmgr init depends on the following HAL sub units,
 	 * device - To get the device caps.
 	 * priv_ring - To get the gpc count and other MIG config programming.
+	 * fifo_reset_hw - In simulation/emulation/GPU standalone platform,
+	 *                 XBAR, L2 and HUB are enabled during
+	 *                 g->ops.fifo.reset_enable_hw(). This introduces a
+	 *                 dependency to get the MIG map conf information.
+	 *                 (if nvgpu_is_bpmp_running() == false treated as
+	 *                 simulation/emulation/GPU standalone platform).
 	 * fb - MIG config programming.
 	 * ltc - MIG config programming.
 	 * bios, bus, ecc and clk - dependent module of priv_ring/fb/ltc.
@@ -741,7 +748,6 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 		NVGPU_INIT_TABLE_ENTRY(&nvgpu_init_fb_mem_unlock, NO_FLAG),
 #endif
 
-		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.reset_enable_hw, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.mm.init_mm_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.fifo.fifo_init_support, NO_FLAG),
 		NVGPU_INIT_TABLE_ENTRY(g->ops.therm.elcg_init_idle_filters,

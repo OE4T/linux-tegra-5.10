@@ -38,6 +38,12 @@ int nvgpu_init_gr_manager(struct gk20a *g)
 	u32 local_gpc_mask;
 	u32 ffs_bit = 0U;
 
+#ifdef CONFIG_NVGPU_NEXT
+	if (g->ops.grmgr.load_timestamp_prod != NULL) {
+		g->ops.grmgr.load_timestamp_prod(g);
+	}
+#endif
+
 	/* Number of gpu instance is 1 for legacy mode */
 	g->mig.gpc_count = g->ops.priv_ring.get_gpc_count(g);
 	nvgpu_assert(g->mig.gpc_count > 0U);
