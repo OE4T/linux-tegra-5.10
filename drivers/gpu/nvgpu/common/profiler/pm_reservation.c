@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,15 @@ static void prepare_resource_reservation(struct gk20a *g,
 				nvgpu_err(g, "Failed to reset PERFMON unit");
 			}
 			nvgpu_cg_slcg_perf_load_enable(g, false);
+#ifdef CONFIG_NVGPU_NEXT
+			/*
+			 * By default, disable the PMASYS legacy mode for
+			 * NVGPU_NEXT.
+			 */
+			if (g->ops.perf.enable_pmasys_legacy_mode != NULL) {
+				g->ops.perf.enable_pmasys_legacy_mode(g, false);
+			}
+#endif
 		}
 	} else {
 		nvgpu_atomic_dec(&g->hwpm_refcount);
