@@ -656,9 +656,11 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);
 void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest);
 
+#if defined(CONFIG_NVGPU_NEXT)
 bool nvgpu_falcon_is_falcon2_enabled(struct nvgpu_falcon *flcn);
 bool nvgpu_falcon_is_feature_supported(struct nvgpu_falcon *flcn,
 		u32 feature);
+#endif
 
 #ifdef CONFIG_NVGPU_DGPU
 int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
