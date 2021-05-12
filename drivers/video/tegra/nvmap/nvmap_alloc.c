@@ -227,8 +227,7 @@ static u32 addr_to_color_t19x(uintptr_t phys)
 	return color;
 }
 
-static struct color_list *init_color_list(struct nvmap_page_pool *pool,
-					  struct nvmap_alloc_state *state,
+static struct color_list *init_color_list(struct nvmap_alloc_state *state,
 					  u32 nr_pages)
 {
 	struct color_list *list;
@@ -241,7 +240,7 @@ static struct color_list *init_color_list(struct nvmap_page_pool *pool,
 
 #ifdef CONFIG_NVMAP_PAGE_POOLS
 	/* Allocated page from nvmap page pool if possible */
-	page_index = nvmap_page_pool_alloc_lots(pool, list->pages, nr_pages);
+	page_index = nvmap_page_pool_alloc_lots(&nvmap_dev->pool, list->pages, nr_pages);
 #endif
 	/* Fall back to general page allocator */
 	for (i = page_index; i < nr_pages; i++) {
@@ -375,7 +374,7 @@ static void add_imperfect(struct nvmap_alloc_state *state, u32 nr_pages,
 	}
 }
 
-static int alloc_colored(struct nvmap_page_pool *pool, u32 nr_pages,
+static int alloc_colored(u32 nr_pages,
 			 struct page **out_pages, u32 chipid)
 {
 	struct nvmap_alloc_state state;
@@ -394,7 +393,7 @@ static int alloc_colored(struct nvmap_page_pool *pool, u32 nr_pages,
 	nr_alloc += nr_alloc >> 4;
 
 	/* Create lists of each page color */
-	state.list = init_color_list(pool, &state, nr_alloc);
+	state.list = init_color_list(&state, nr_alloc);
 	if (!state.list)
 		return -ENOMEM;
 
@@ -471,7 +470,11 @@ static int handle_page_alloc(struct nvmap_client *client,
 	int i = 0, page_index = 0;
 	struct page **pages;
 	gfp_t gfp = GFP_NVMAP | __GFP_ZERO;
+#ifdef CONFIG_NVMAP_PAGE_POOLS
 	int pages_per_big_pg = NVMAP_PP_BIG_PAGE_SIZE >> PAGE_SHIFT;
+#else
+	int pages_per_big_pg = 0;
+#endif
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	static u32 chipid;
 #else
@@ -548,8 +551,7 @@ static int handle_page_alloc(struct nvmap_client *client,
 					goto fail;
 			}
 		} else if (page_index < nr_page) {
-			if (alloc_colored(&nvmap_dev->pool,
-			     nr_page - page_index, &pages[page_index], chipid))
+			if (alloc_colored(nr_page - page_index, &pages[page_index], chipid))
 				goto fail;
 			page_index = nr_page;
 		}
