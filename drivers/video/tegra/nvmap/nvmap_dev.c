@@ -287,6 +287,14 @@ static int nvmap_open(struct inode *inode, struct file *filp)
 
 	priv->kernel_client = false;
 
+	nvmap_id_array_init(&priv->id_array);
+
+#ifdef NVMAP_CONFIG_HANDLE_AS_ID
+	priv->ida = &priv->id_array;
+#else
+	priv->ida = NULL;
+#endif
+
 	filp->private_data = priv;
 	return 0;
 }
@@ -297,6 +305,12 @@ static int nvmap_release(struct inode *inode, struct file *filp)
 
 	if(!priv)
 		return 0;
+
+	nvmap_id_array_exit(&priv->id_array);
+
+#ifdef NVMAP_CONFIG_HANDLE_AS_ID
+	priv->ida = NULL;
+#endif
 
 	trace_nvmap_release(priv, priv->name);
 

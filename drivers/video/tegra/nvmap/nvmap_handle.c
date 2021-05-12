@@ -405,20 +405,27 @@ out:
 	return ref;
 }
 
-struct nvmap_handle_ref *nvmap_create_handle_from_fd(
-			struct nvmap_client *client, int fd)
+struct nvmap_handle_ref *nvmap_create_handle_from_id(
+			struct nvmap_client *client, int id)
 {
 	struct nvmap_handle *handle;
 	struct nvmap_handle_ref *ref;
 
-	BUG_ON(!client);
+	if (WARN_ON(!client))
+		return ERR_PTR(-EINVAL);
 
-	if (is_nvmap_dmabuf_fd_ro(fd))
-		return nvmap_dup_handle_ro(client, fd);
+	if (is_nvmap_id_ro(client, id))
+		return nvmap_dup_handle_ro(client, id);
 
-	handle = nvmap_handle_get_from_dmabuf_fd(client, fd);
-	if (IS_ERR(handle))
-		return ERR_CAST(handle);
+	handle = nvmap_handle_get_from_id(client, id);
+	if (IS_ERR_OR_NULL(handle)) {
+		/* fd might be dmabuf fd received from parent process.
+		 * Its entry is not made in id_array.
+		 */
+		handle = nvmap_handle_get_from_dmabuf_fd(client, id);
+		if (IS_ERR(handle))
+			return ERR_CAST(handle);
+	}
 
 	ref = nvmap_duplicate_handle(client, handle, false, false);
 	nvmap_handle_put(handle);
@@ -426,7 +433,7 @@ struct nvmap_handle_ref *nvmap_create_handle_from_fd(
 }
 
 struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
-					     int fd)
+					     int id)
 {
 	struct nvmap_handle *h;
 	struct nvmap_handle_ref *ref = NULL;
@@ -434,9 +441,15 @@ struct nvmap_handle_ref *nvmap_dup_handle_ro(struct nvmap_client *client,
 	if (!client)
 		return ERR_PTR(-EINVAL);
 
-	h = nvmap_handle_get_from_dmabuf_fd(client, fd);
-	if (IS_ERR(h))
-		return ERR_CAST(h);
+	h = nvmap_handle_get_from_id(client, id);
+	if (IS_ERR_OR_NULL(h)) {
+		/* fd might be dmabuf fd received from parent process.
+		 * Its entry is not made in id_array.
+		 */
+		h = nvmap_handle_get_from_dmabuf_fd(client, id);
+		if (IS_ERR(h))
+			return ERR_CAST(h);
+	}
 
 	BUG_ON(!h->owner);
 

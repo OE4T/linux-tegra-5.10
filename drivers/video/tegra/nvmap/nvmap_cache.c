@@ -287,8 +287,8 @@ int __nvmap_cache_maint(struct nvmap_client *client,
 	    op->op > NVMAP_CACHE_OP_WB_INV)
 		return -EINVAL;
 
-	handle = nvmap_handle_get_from_fd(op->handle);
-	if (!handle)
+	handle = nvmap_handle_get_from_id(client, op->handle);
+	if (IS_ERR_OR_NULL(handle))
 		return -EINVAL;
 
 	nvmap_acquire_mmap_read_lock(current->mm);

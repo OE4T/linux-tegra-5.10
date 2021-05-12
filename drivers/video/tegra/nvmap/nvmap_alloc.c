@@ -1073,14 +1073,43 @@ out:
 }
 EXPORT_SYMBOL(nvmap_free_handle);
 
-void nvmap_free_handle_fd(struct nvmap_client *client,
-			       int fd)
+bool is_nvmap_id_ro(struct nvmap_client *client, int id)
 {
-	struct nvmap_handle *handle = nvmap_handle_get_from_fd(fd);
-	bool is_ro = is_nvmap_dmabuf_fd_ro(fd);
+	struct nvmap_handle_info *info = NULL;
+	struct dma_buf *dmabuf = NULL;
 
-	if (handle) {
-		nvmap_free_handle(client, handle, is_ro);
-		nvmap_handle_put(handle);
-	}
+	if (WARN_ON(!client))
+		return ERR_PTR(-EINVAL);
+
+	if (client->ida)
+		dmabuf = nvmap_id_array_get_dmabuf_from_id(client->ida,
+				id);
+	else
+		dmabuf = dma_buf_get(id);
+
+	if (IS_ERR_OR_NULL(dmabuf))
+		return false;
+
+	if (dmabuf_is_nvmap(dmabuf))
+		info = dmabuf->priv;
+	dma_buf_put(dmabuf);
+
+	return (info != NULL) ? info->is_ro : false;
+
+}
+void nvmap_free_handle_from_fd(struct nvmap_client *client,
+			       int id)
+{
+	bool is_ro = is_nvmap_id_ro(client, id);
+	struct nvmap_handle *handle;
+
+	handle = nvmap_handle_get_from_id(client, id);
+	if (IS_ERR_OR_NULL(handle))
+		return;
+
+	if (client->ida)
+		nvmap_id_array_id_release(client->ida, id);
+
+	nvmap_free_handle(client, handle, is_ro);
+	nvmap_handle_put(handle);
 }
