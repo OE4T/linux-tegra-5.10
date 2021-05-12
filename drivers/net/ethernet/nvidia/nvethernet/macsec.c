@@ -21,6 +21,11 @@
  */
 static int is_nv_macsec_fam_registered = OSI_DISABLE;
 
+static int macsec_tz_kt_config(struct ether_priv_data *pdata,
+			unsigned char cmd,
+			struct osi_macsec_kt_config *const kt_config,
+			struct genl_info *const info);
+
 static irqreturn_t macsec_s_isr(int irq, void *data)
 {
 	struct macsec_priv_data *macsec_pdata = (struct macsec_priv_data *)data;
@@ -252,11 +257,21 @@ int macsec_open(struct macsec_priv_data *macsec_pdata,
 #endif
 
 	/* 3. invoke OSI HW initialization, initialize standard BYP entries */
-	ret = osi_macsec_init(pdata->osi_core, genl_info);
+	ret = osi_macsec_init(pdata->osi_core);
 	if (ret < 0) {
 		dev_err(dev, "osi_macsec_init failed, %d\n", ret);
 		goto err_osi_init;
 	}
+
+#ifndef MACSEC_KEY_PROGRAM
+	/*3.1. clear KT entries */
+	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_KT_RESET, OSI_NULL,
+				  genl_info);
+	if (ret < 0) {
+		dev_err(dev, "TZ key config failed %d\n", ret);
+		goto err_osi_init;
+	}
+#endif /* !MACSEC_KEY_PROGRAM */
 
 	/* 4. Enable the macsec controller */
 	ret = osi_macsec_en(pdata->osi_core,
@@ -509,14 +524,14 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct osi_macsec_sc_info rx_sa;
 	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
 	int ret = 0, i = 0;
+	unsigned short kt_idx;
+	struct device *dev = NULL;
+#ifndef MACSEC_KEY_PROGRAM
+	struct osi_macsec_kt_config kt_config = {0};
+	struct macsec_table_config *table_config;
+#endif /* !MACSEC_KEY_PROGRAM */
 
 	PRINT_ENTRY();
-	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
-	    parse_sa_config(attrs, tb_sa, &rx_sa)) {
-		pr_err("%s: failed to parse nlattrs", __func__);
-		ret = -EINVAL;
-		goto exit;
-	}
 
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (macsec_pdata) {
@@ -526,6 +541,14 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		ret = -EOPNOTSUPP;
 		goto exit;
 #endif
+	}
+	dev = pdata->dev;
+
+	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
+	    parse_sa_config(attrs, tb_sa, &rx_sa)) {
+		dev_err(dev, "%s: failed to parse nlattrs", __func__);
+		ret = -EINVAL;
+		goto exit;
 	}
 
 	pr_err("%s:\n"
@@ -544,12 +567,28 @@ static int macsec_dis_rx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef TEST
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_DISABLE,
-				CTLR_SEL_RX, info);
+				CTLR_SEL_RX, &kt_idx);
 	if (ret < 0) {
-		pr_err("%s: failed to disable Rx SA", __func__);
+		dev_err(dev, "%s: failed to disable Rx SA", __func__);
+			goto exit;
 	}
-#endif
 
+#ifndef MACSEC_KEY_PROGRAM
+	table_config = &kt_config.table_config;
+	table_config->ctlr_sel = CTLR_SEL_RX;
+	table_config->rw = LUT_WRITE;
+	table_config->index = kt_idx;
+
+	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_CONFIG, &kt_config,
+				  info);
+	if (ret < 0) {
+		dev_err(dev, "%s: failed to program SAK through TZ %d",
+			__func__, ret);
+		goto exit;
+	}
+#endif /* !MACSEC_KEY_PROGRAM */
+
+#endif
 exit:
 	PRINT_EXIT();
 	return ret;
@@ -563,15 +602,14 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct osi_macsec_sc_info rx_sa;
 	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
 	int ret = 0, i = 0;
+	unsigned short kt_idx;
+	struct device *dev = NULL;
+#ifndef MACSEC_KEY_PROGRAM
+	struct osi_macsec_kt_config kt_config = {0};
+	struct macsec_table_config *table_config;
+#endif /* !MACSEC_KEY_PROGRAM */
 
 	PRINT_ENTRY();
-	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
-	    parse_sa_config(attrs, tb_sa, &rx_sa)) {
-		pr_err("%s: failed to parse nlattrs", __func__);
-		ret = -EINVAL;
-		goto exit;
-	}
-
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (macsec_pdata) {
 		pdata = macsec_pdata->ether_pdata;
@@ -580,6 +618,14 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 		ret = -EOPNOTSUPP;
 		goto exit;
 #endif
+	}
+	dev = pdata->dev;
+
+	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
+	    parse_sa_config(attrs, tb_sa, &rx_sa)) {
+		dev_err(dev, "%s: failed to parse nlattrs", __func__);
+		ret = -EINVAL;
+		goto exit;
 	}
 
 	pr_err("%s:\n"
@@ -598,10 +644,31 @@ static int macsec_en_rx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef TEST
 	ret = osi_macsec_config(pdata->osi_core, &rx_sa, OSI_ENABLE,
-				CTLR_SEL_RX, info);
+				CTLR_SEL_RX, &kt_idx);
 	if (ret < 0) {
-		pr_err("%s: failed to enable Rx SA", __func__);
+		dev_err(dev, "%s: failed to enable Rx SA", __func__);
+		goto exit;
 	}
+
+#ifndef MACSEC_KEY_PROGRAM
+	table_config = &kt_config.table_config;
+	table_config->ctlr_sel = CTLR_SEL_RX;
+	table_config->rw = LUT_WRITE;
+	table_config->index = kt_idx;
+	kt_config.flags |= LUT_FLAGS_ENTRY_VALID;
+
+	for (i = 0; i < KEY_LEN_128; i++) {
+		kt_config.entry.sak[i] = rx_sa.sak[i];
+	}
+
+	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_CONFIG, &kt_config,
+				  info);
+	if (ret < 0) {
+		dev_err(dev, "%s: failed to program SAK through TZ %d",
+			__func__, ret);
+		goto exit;
+	}
+#endif /* !MACSEC_KEY_PROGRAM */
 #endif
 
 exit:
@@ -617,15 +684,14 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct osi_macsec_sc_info tx_sa;
 	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
 	int ret = 0, i = 0;
+	unsigned short kt_idx;
+	struct device *dev = NULL;
+#ifndef MACSEC_KEY_PROGRAM
+	struct osi_macsec_kt_config kt_config = {0};
+	struct macsec_table_config *table_config;
+#endif /* !MACSEC_KEY_PROGRAM */
 
 	PRINT_ENTRY();
-	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
-	    parse_sa_config(attrs, tb_sa, &tx_sa)) {
-		pr_err("%s: failed to parse nlattrs", __func__);
-		ret = -EINVAL;
-		goto exit;
-	}
-
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (macsec_pdata) {
 		pdata = macsec_pdata->ether_pdata;
@@ -634,6 +700,14 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		ret = -EOPNOTSUPP;
 		goto exit;
 #endif
+	}
+	dev = pdata->dev;
+
+	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
+	    parse_sa_config(attrs, tb_sa, &tx_sa)) {
+		dev_err(dev, "%s: failed to parse nlattrs", __func__);
+		ret = -EINVAL;
+		goto exit;
 	}
 
 	pr_err("%s:\n"
@@ -652,10 +726,26 @@ static int macsec_dis_tx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef TEST
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_DISABLE,
-				CTLR_SEL_TX, info);
+				CTLR_SEL_TX, &kt_idx);
 	if (ret < 0) {
-		pr_err("%s: failed to disable Tx SA", __func__);
+		dev_err(dev, "%s: failed to disable Tx SA", __func__);
+		goto exit;
 	}
+
+#ifndef MACSEC_KEY_PROGRAM
+	table_config = &kt_config.table_config;
+	table_config->ctlr_sel = CTLR_SEL_TX;
+	table_config->rw = LUT_WRITE;
+	table_config->index = kt_idx;
+
+	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_CONFIG, &kt_config,
+				  info);
+	if (ret < 0) {
+		dev_err(dev, "%s: failed to program SAK through TZ %d",
+			__func__, ret);
+		goto exit;
+	}
+#endif /* !MACSEC_KEY_PROGRAM */
 #endif
 
 exit:
@@ -671,15 +761,14 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 	struct osi_macsec_sc_info tx_sa;
 	struct nlattr *tb_sa[NUM_NV_MACSEC_SA_ATTR];
 	int ret = 0, i = 0;
+	unsigned short kt_idx;
+	struct device *dev = NULL;
+#ifndef MACSEC_KEY_PROGRAM
+	struct osi_macsec_kt_config kt_config = {0};
+	struct macsec_table_config *table_config;
+#endif /* !MACSEC_KEY_PROGRAM */
 
 	PRINT_ENTRY();
-	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
-	    parse_sa_config(attrs, tb_sa, &tx_sa)) {
-		pr_err("%s: failed to parse nlattrs", __func__);
-		ret = -EINVAL;
-		goto exit;
-	}
-
 	macsec_pdata = genl_to_macsec_pdata(info);
 	if (macsec_pdata) {
 		pdata = macsec_pdata->ether_pdata;
@@ -688,6 +777,14 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 		ret = -EOPNOTSUPP;
 		goto exit;
 #endif
+	}
+	dev = pdata->dev;
+
+	if (!attrs[NV_MACSEC_ATTR_IFNAME] ||
+	    parse_sa_config(attrs, tb_sa, &tx_sa)) {
+		dev_err(dev, "%s: failed to parse nlattrs", __func__);
+		ret = -EINVAL;
+		goto exit;
 	}
 
 	pr_err("%s:\n"
@@ -706,10 +803,31 @@ static int macsec_en_tx_sa(struct sk_buff *skb, struct genl_info *info)
 
 #ifndef TEST
 	ret = osi_macsec_config(pdata->osi_core, &tx_sa, OSI_ENABLE,
-				CTLR_SEL_TX, info);
+				CTLR_SEL_TX, &kt_idx);
 	if (ret < 0) {
-		pr_err("%s: failed to enable Tx SA", __func__);
+		dev_err(dev, "%s: failed to enable Tx SA", __func__);
+		goto exit;
 	}
+
+#ifndef MACSEC_KEY_PROGRAM
+	table_config = &kt_config.table_config;
+	table_config->ctlr_sel = CTLR_SEL_TX;
+	table_config->rw = LUT_WRITE;
+	table_config->index = kt_idx;
+	kt_config.flags |= LUT_FLAGS_ENTRY_VALID;
+
+	for (i = 0; i < KEY_LEN_128; i++) {
+		kt_config.entry.sak[i] = tx_sa.sak[i];
+	}
+
+	ret = macsec_tz_kt_config(pdata, MACSEC_CMD_TZ_CONFIG, &kt_config,
+				  info);
+	if (ret < 0) {
+		dev_err(dev, "%s: failed to program SAK through TZ %d",
+			__func__, ret);
+		goto exit;
+	}
+#endif /* !MACSEC_KEY_PROGRAM */
 #endif
 
 exit:
@@ -945,7 +1063,6 @@ int macsec_probe(struct ether_priv_data *pdata)
 	}
 	macsec_pdata->ether_pdata = pdata;
 	pdata->macsec_pdata = macsec_pdata;
-	osi_core->osd_ops.macsec_tz_kt_config = macsec_tz_kt_config;
 
 	/* 3. Get OSI MACsec ops */
 	if (osi_init_macsec_ops(osi_core) != 0) {
@@ -988,20 +1105,33 @@ exit:
 	return ret;
 }
 
-int macsec_tz_kt_config(void *priv, unsigned char cmd,
-			void *const config, void *const genl_info)
+/**
+ * @brief macsec_tz_kt_config - Program macsec key table entry.
+ *
+ * @param[in] priv: OSD private data structure.
+ * @param[in] cmd: macsec TZ config cmd
+ * @param[in] kt_config: Pointer to osi_macsec_kt_config structure
+ * @param[in] info: Pointer to netlink msg structure
+ *
+ * @retval 0 on success
+ * @retval negative value on failure.
+ */
+static int macsec_tz_kt_config(struct ether_priv_data *pdata,
+			unsigned char cmd,
+			struct osi_macsec_kt_config *const kt_config,
+			struct genl_info *const info)
 {
-	struct genl_info *info = (struct genl_info *)genl_info;
-	struct osi_macsec_kt_config *kt_config = NULL;
 	struct sk_buff *msg;
 	struct nlattr *nest;
 	void *msg_head;
 	int ret = 0;
+	struct device *dev = pdata->dev;
 
-	if (genl_info == OSI_NULL) {
-		pr_err("Can not config key through TZ, genl_info NULL\n");
-		/* return success, as KT LUT can be programmed manually
-		 * through sysfs
+	PRINT_ENTRY();
+	if (info == OSI_NULL) {
+		dev_info(dev,"Can not config key through TZ, genl_info NULL\n");
+		/* return success, as info can be NULL if called from
+		 * sysfs calls
 		 */
 		return ret;
 	}
@@ -1012,27 +1142,26 @@ int macsec_tz_kt_config(void *priv, unsigned char cmd,
 	} else if (cmd == MACSEC_CMD_TZ_KT_RESET) {
 		cmd = NV_MACSEC_CMD_TZ_KT_RESET;
 	} else {
-		pr_err("%s: Wrong TZ cmd %d\n", __func__, cmd);
+		dev_err(dev, "%s: Wrong TZ cmd %d\n", __func__, cmd);
 		ret = -1;
 		goto fail;
 	}
 
 	msg = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
 	if (msg == NULL) {
-		pr_err("Unable to alloc genl reply\n");
+		dev_err(dev, "Unable to alloc genl reply\n");
 		ret = -ENOMEM;
 		goto fail;
 	}
 
 	msg_head = genlmsg_put_reply(msg, info, &nv_macsec_fam, 0, cmd);
 	if (msg_head == NULL) {
-		pr_err("unable to get replyhead\n");
+		dev_err(dev, "unable to get replyhead\n");
 		ret = -EINVAL;
 		goto failure;
 	}
 
-	if (cmd == NV_MACSEC_CMD_TZ_CONFIG && config != NULL) {
-		kt_config = (struct osi_macsec_kt_config *)config;
+	if (cmd == NV_MACSEC_CMD_TZ_CONFIG && kt_config != NULL) {
 		/* pr_err("%s: ctrl: %hu rw: %hu idx: %hu flags: %#x\n"
 		 *	  __func__,
 		 *	 kt_config->table_config.ctlr_sel,
@@ -1062,12 +1191,14 @@ int macsec_tz_kt_config(void *priv, unsigned char cmd,
 	genlmsg_end(msg, msg_head);
 	ret = genlmsg_reply(msg, info);
 	if (ret != 0) {
-		pr_err("Unable to send reply\n");
+		dev_err(dev, "Unable to send reply\n");
 	}
 
+	PRINT_EXIT();
 	return ret;
 failure:
 	nlmsg_free(msg);
 fail:
+	PRINT_EXIT();
 	return ret;
 }
