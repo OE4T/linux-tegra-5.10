@@ -1541,7 +1541,7 @@ static void ivc_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
  * @param[in] sc: Secure Channel info.
  * @param[in] enable: enable or disable.
  * @param[in] ctlr: Controller instance.
- * @param[in] genl_info: Generic netlink information structure.
+ * @param[[out] kt_idx: Key table index to program SAK.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
@@ -1549,7 +1549,7 @@ static void ivc_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
 static int ivc_macsec_config(struct osi_core_priv_data *const osi_core,
 			     struct osi_macsec_sc_info *const sc,
 			     unsigned int enable, unsigned short ctlr,
-			     void *const genl_info)
+			     unsigned short *kt_idx)
 {
 	return 0;
 }
@@ -1584,22 +1584,22 @@ static int ivc_macsec_loopback_config(struct osi_core_priv_data *const osi_core,
 	return 0;
 }
 
+#ifdef MACSEC_KEY_PROGRAM
 /**
  * @brief ivc_macsec_kt_config - MacSec KT configure.
  *
  * @param[in] osi_core: OSI Core private data structure.
  * @param[in] kt_config: KT config structure.
- * @param[in] genl_info: Generic netlink information structure.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
  */
 static int ivc_macsec_kt_config(struct osi_core_priv_data *const osi_core,
-				struct osi_macsec_kt_config *const kt_config,
-				void *const genl_info)
+				struct osi_macsec_kt_config *const kt_config)
 {
 	return 0;
 }
+#endif /* MACSEC_KEY_PROGRAM */
 
 /**
  * @brief ivc_macsec_lut_config - LUT config.
@@ -1661,8 +1661,7 @@ static int ivc_macsec_deinit(struct osi_core_priv_data *const osi_core)
  * @retval 0 on Success
  * @retval -1 on Failure
  */
-static int ivc_macsec_init(struct osi_core_priv_data *const osi_core,
-			   void *const genl_info)
+static int ivc_macsec_init(struct osi_core_priv_data *const osi_core)
 {
 	return 0;
 }
@@ -1746,7 +1745,9 @@ void ivc_init_macsec_ops(void *macsecops)
 	ops->handle_ns_irq = ivc_macsec_handle_ns_irq;
 	ops->handle_s_irq = ivc_macsec_handle_s_irq;
 	ops->lut_config = ivc_macsec_lut_config;
+#ifdef MACSEC_KEY_PROGRAM
 	ops->kt_config = ivc_macsec_kt_config;
+#endif /* MACSEC_KEY_PROGRAM */
 	ops->loopback_config = ivc_macsec_loopback_config;
 	ops->macsec_en = ivc_macsec_enable;
 	ops->config = ivc_macsec_config;

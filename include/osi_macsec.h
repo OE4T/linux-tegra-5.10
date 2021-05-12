@@ -362,8 +362,7 @@ struct osi_macsec_dbg_buf_config {
  */
 struct macsec_core_ops {
 	/** macsec init */
-	int (*init)(struct osi_core_priv_data *const osi_core,
-		    void *const genl_info);
+	int (*init)(struct osi_core_priv_data *const osi_core);
 	/** macsec de-init */
 	int (*deinit)(struct osi_core_priv_data *const osi_core);
 	/** NS irq handler */
@@ -373,10 +372,11 @@ struct macsec_core_ops {
 	/** macsec lut config */
 	int (*lut_config)(struct osi_core_priv_data *const osi_core,
 			  struct osi_macsec_lut_config *const lut_config);
+#ifdef MACSEC_KEY_PROGRAM
 	/** macsec kt config */
 	int (*kt_config)(struct osi_core_priv_data *const osi_core,
-			 struct osi_macsec_kt_config *const kt_config,
-			 void *const genl_info);
+			 struct osi_macsec_kt_config *const kt_config);
+#endif /* MACSEC_KEY_PROGRAM */
 	/** macsec cipher config */
 	int (*cipher_config)(struct osi_core_priv_data *const osi_core,
 			     unsigned int cipher);
@@ -390,7 +390,7 @@ struct macsec_core_ops {
 	int (*config)(struct osi_core_priv_data *const osi_core,
 		      struct osi_macsec_sc_info *const sc,
 		      unsigned int enable, unsigned short ctlr,
-		      void *const genl_info);
+		      unsigned short *kt_idx);
 	/** macsec read mmc counters */
 	void (*read_mmc)(struct osi_core_priv_data *const osi_core);
 	/** macsec debug buffer config */
@@ -449,7 +449,6 @@ int osi_init_macsec_ops(struct osi_core_priv_data *const osi_core);
  *    set BYP LUT entries for MKPDU and BC packets
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] genl_info: Pointer to netlink genl_info data structure.
  *
  * @pre
  * - MACSEC should be out of reset and clocks are enabled
@@ -474,8 +473,7 @@ int osi_init_macsec_ops(struct osi_core_priv_data *const osi_core);
  * @retval 0 on success
  * @retval -1 on failure
  */
-int osi_macsec_init(struct osi_core_priv_data *const osi_core,
-		    void *const genl_info);
+int osi_macsec_init(struct osi_core_priv_data *const osi_core);
 
 
 /**
@@ -523,14 +521,12 @@ int osi_macsec_lut_config(struct osi_core_priv_data *const osi_core,
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] kt_config: OSI macsec KT config data structure.
- * @param[in] genl_info: Pointer to netlink genl_info data structure.
  *
  * @retval 0 on success
  * @retval -1 on failure
  */
 int osi_macsec_kt_config(struct osi_core_priv_data *const osi_core,
-			 struct osi_macsec_kt_config *const kt_config,
-			 void *const genl_info);
+			 struct osi_macsec_kt_config *const kt_config);
 
 /**
  * @brief MACsec cipther config
@@ -574,7 +570,7 @@ int osi_macsec_en(struct osi_core_priv_data *const osi_core,
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] sc: Pointer to osi_macsec_sc_info struct for the tx SA.
  * @param[in] enable: flag to indicate enable/disable for the Tx SA.
- * @param[in] genl_info: Pointer to netlink genl_info data structure.
+ * @param[out] kt_idx: Key table index to program SAK.
  *
  * @retval 0 on success
  * @retval -1 on failure
@@ -582,7 +578,7 @@ int osi_macsec_en(struct osi_core_priv_data *const osi_core,
 int osi_macsec_config(struct osi_core_priv_data *const osi_core,
 		      struct osi_macsec_sc_info *const sc,
 		      unsigned int enable, unsigned short ctlr,
-		      void *const genl_info);
+		      unsigned short *kt_idx);
 
 /**
  * @brief MACsec read statistics counters
