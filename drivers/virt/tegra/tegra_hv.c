@@ -442,7 +442,7 @@ static int __init tegra_hv_setup(struct tegra_hv_data *hvd)
 	}
 
 	hvd->info = (struct ivc_info_page *)ioremap_cache(info_page,
-			PAGE_SIZE);
+			IVC_INFO_PAGE_SIZE);
 	if (hvd->info == NULL) {
 		ERR("failed to map IVC info page (%llx)\n", info_page);
 		return -ENOMEM;
