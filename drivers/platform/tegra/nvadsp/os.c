@@ -5,7 +5,7 @@
  * Copyright (C) 2011 Texas Instruments, Inc.
  * Copyright (C) 2011 Google, Inc.
  *
- * Copyright (C) 2014-2020, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2021, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -765,6 +765,9 @@ static void nvadsp_set_shared_mem(struct platform_device *pdev,
 
 	chip_id = tegra_get_chip_id();
 	os_args = &shared_mem->os_args;
+	/* Chip id info is communicated twice to ADSP
+	 * TODO::clean up the redundant comm.
+	 */
 	os_args->chip_id = chip_id;
 
 	drv_data->shared_adsp_os_data = shared_mem;
@@ -1683,6 +1686,7 @@ int nvadsp_os_start(void)
 	struct device *dev;
 	int ret = 0;
 	static int cold_start = 1;
+	u8 chip_id;
 
 	if (!priv.pdev) {
 		pr_err("ADSP Driver is not initialized\n");
@@ -1719,6 +1723,25 @@ int nvadsp_os_start(void)
 				drv_data->chip_data->adsp_shared_mem_hwmbox);
 		/* Write ACSR base address only once */
 		cold_start = 0;
+	}
+
+	if (drv_data->chip_data->hwmb.hwmbox1_reg != 0) {
+		chip_id = tegra_get_chip_id();
+		/* Write chip id info to HWMBOX1 to enable ast config
+		 * later for t186/t196
+		 */
+		if (chip_id != 0) {
+			hwmbox_writel((uint32_t)chip_id,
+				drv_data->chip_data->hwmb.hwmbox1_reg);
+		} else {
+			dev_err(dev, "chip id is NULL\n");
+			ret = -EINVAL;
+			free_interrupts(&priv);
+#ifdef CONFIG_PM
+			pm_runtime_put_sync(&priv.pdev->dev);
+#endif
+			goto unlock;
+		}
 	}
 
 	ret = __nvadsp_os_start();
