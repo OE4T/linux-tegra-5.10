@@ -210,6 +210,7 @@ struct gk20a;
 			"Set L2 Max Ways Evict Last support"),		\
 	DEFINE_FLAG(NVGPU_CLK_ARB_ENABLED, "CLK_ARB support"),          \
 	DEFINE_FLAG(NVGPU_SUPPORT_VAB_ENABLED, "VAB feature supported"), \
+	DEFINE_FLAG(NVGPU_SUPPORT_ROP_IN_GPC, "ROP is part of GPC"), \
 	DEFINE_FLAG(NVGPU_MAX_ENABLED_BITS, "Marks max number of flags"),
 
 /**
