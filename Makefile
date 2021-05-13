@@ -18,6 +18,9 @@ dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-fe-pi-audio.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-respeaker-4-mic-array.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-respeaker-4-mic-lin-array.dtbo
 dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-m2ke.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-camera-imx477-imx219.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-camera-imx477-dual.dtbo
+dtbo-$(BUILD_ENABLE) += tegra194-p3668-all-p3509-0000-camera-imx219-dual.dtbo
 
 ifneq ($(dtb-y),)
 dtb-y := $(addprefix $(makefile-path)/,$(dtb-y))
