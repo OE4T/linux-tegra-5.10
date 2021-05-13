@@ -460,6 +460,8 @@ struct osi_dma_priv_data;
 struct osi_vm_irq_data {
 	/** Number of VM channels per VM IRQ */
 	nveu32_t num_vm_chans;
+	/** VM/OS number to be used */
+	nveu32_t vm_num;
 	/** Array of VM channel list */
 	nveu32_t vm_chans[OSI_MGBE_MAX_NUM_CHANS];
 };

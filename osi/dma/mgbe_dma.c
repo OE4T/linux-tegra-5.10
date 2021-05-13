@@ -548,7 +548,7 @@ static void mgbe_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
 				continue;
 			}
 
-			osi_writel(OSI_BIT(i),
+			osi_writel(OSI_BIT(irq_data->vm_num),
 				   (nveu8_t *)osi_dma->base +
 				   MGBE_VIRT_INTR_APB_CHX_CNTRL(chan));
 		}
