@@ -3,7 +3,7 @@
  *
  * Manage page pools to speed up page allocation.
  *
- * Copyright (c) 2009-2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -39,6 +39,10 @@
 
 #define NVMAP_TEST_PAGE_POOL_SHRINKER     1
 #define PENDING_PAGES_SIZE                (SZ_1M / PAGE_SIZE)
+
+#ifdef NVMAP_LOADABLE_MODULE
+#define CONFIG_NVMAP_PAGE_POOL_SIZE 0
+#endif /* NVMAP_LOADABLE_MODULE */
 
 static bool enable_pp = 1;
 static u32 pool_size;
@@ -175,12 +179,18 @@ static void nvmap_pp_do_background_zero_pages(struct nvmap_page_pool *pool)
 static int nvmap_background_zero_thread(void *arg)
 {
 	struct nvmap_page_pool *pool = &nvmap_dev->pool;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	struct sched_param param = { .sched_priority = 0 };
+#endif
 
 	pr_info("PP zeroing thread starting.\n");
 
 	set_freezable();
-	sched_setscheduler(current, SCHED_IDLE, &param);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
+	sched_setscheduler(current, SCHED_NORMAL, &param);
+#else
+	sched_set_normal(current, MAX_NICE);
+#endif
 
 	while (!kthread_should_stop()) {
 		while (nvmap_bg_should_run(pool))

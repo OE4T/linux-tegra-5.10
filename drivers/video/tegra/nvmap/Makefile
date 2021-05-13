@@ -26,7 +26,9 @@ nvmap-y := nvmap_core.o \
 	nvmap_kasan_wrapper.o
 nvmap-$(CONFIG_NVMAP_SCIIPC) += nvmap_sci_ipc.o
 
-obj-$(CONFIG_NVMAP_PAGE_POOLS) += nvmap_pp.o
+ifeq ($(CONFIG_NVMAP_PAGE_POOLS), y)
+nvmap-y += nvmap_pp.o
+endif
 
 ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_19x_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
 nvmap-y += nvmap_init_t19x.o
@@ -38,7 +40,9 @@ KASAN_SANITIZE_nvmap_kasan_wrapper.o := n
 
 ifneq ($(findstring stable,$(NV_BUILD_KERNEL_OPTIONS)),)
 nvmap-y += nvmap_cache_maint.o
+nvmap-y += nvmap_pp.o
 ccflags-y += -DNVMAP_LOADABLE_MODULE
+ccflags-y += -DCONFIG_NVMAP_PAGE_POOLS
 obj-m +=nvmap.o
 else
 obj-y +=nvmap.o
