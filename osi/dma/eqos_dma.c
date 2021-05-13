@@ -736,7 +736,7 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_dma_priv_data *osi_dma)
 			if (chan >= OSI_EQOS_MAX_NUM_CHANS) {
 				continue;
 			}
-			osi_writel(OSI_BIT(i),
+			osi_writel(OSI_BIT(irq_data->vm_num),
 				   (nveu8_t *)osi_dma->base +
 				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
 		}
