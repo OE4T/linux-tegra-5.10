@@ -23,7 +23,8 @@
 #ifndef IVC_CORE_H
 #define IVC_CORE_H
 
-#include "osi_core.h"
+#include <osi_macsec.h>
+
 /**
  * @brief Ethernet Maximum IVC BUF
  */
@@ -38,61 +39,18 @@
  * @brief IVC commands between OSD & OSI.
  */
 typedef enum ivc_cmd {
-	poll_for_swr = 1,
-	core_init,
+	core_init = 1,
 	core_deinit,
-	start_mac,
-	stop_mac,
-	handle_common_intr,
-	set_mode,
-	set_speed,
-	pad_calibrate,
-	config_fw_err_pkts,
-	config_rxcsum_offload,
-	config_mac_pkt_filter_reg,
-	update_mac_addr_low_high_reg,
-	config_l3_l4_filter_enable,
-	config_l3_filters,
-	update_ip4_addr,
-	update_ip6_addr,
-	config_l4_filters,
-	update_l4_port_no,
-	set_systime_to_mac,
-	config_addend,
-	adjust_mactime,
-	config_tscr,
-	config_ssir,
-	read_mmc,
 	write_phy_reg,
 	read_phy_reg,
-	reg_read,
-	reg_write,
-	get_hw_features,
 	handle_ioctl,
-#ifndef OSI_STRIPPED_LIB
-	config_tx_status,
-	config_rx_crc_check,
-	config_flow_control,
-	config_arp_offload,
-	validate_regs,
-	flush_mtl_tx_queue,
-	set_avb_algorithm,
-	get_avb_algorithm,
-	config_vlan_filtering,
-	i_update_vlan_id,
-	reset_mmc,
-	configure_eee,
-	save_registers,
-	restore_registers,
-	set_mdc_clk_rate,
-	config_mac_loopback,
-#endif /* !OSI_STRIPPED_LIB */
 	init_macsec,
 	deinit_macsec,
 	handle_ns_irq_macsec,
 	handle_s_irq_macsec,
 	lut_config_macsec,
 	kt_config_macsec,
+	cipher_config,
 	loopback_config_macsec,
 	en_macsec,
 	config_macsec,
@@ -140,6 +98,22 @@ typedef struct ivc_core_args {
 } ivc_core_args;
 
 /**
+ * @brief macsec config structure.
+ */
+#ifdef MACSEC_SUPPORT
+typedef struct macsec_config {
+	/** MACsec secure channel basic information */
+	struct osi_macsec_sc_info sc_info;
+	/** MACsec enable or disable */
+	unsigned int enable;
+	/** MACsec controller */
+	unsigned short ctlr;
+	/** MACsec KT index */
+	unsigned short kt_idx;
+} macsec_config;
+#endif
+
+/**
  * @brief IVC message structure.
  */
 typedef struct ivc_msg_common {
@@ -148,42 +122,42 @@ typedef struct ivc_msg_common {
 	 * Status code value is "0" for success and "< 0" for failure.
 	 */
 	nve32_t status;
-	/**
-	 * ID of the CMD.
-	 */
+	/** ID of the CMD. */
 	ivc_cmd cmd;
-	/**
-	 * message count, used for debug
-	 */
+	/** message count, used for debug */
 	nveu32_t count;
 
 	union {
-		/**
-		 * IVC argument structure
-		 */
+		/** IVC argument structure */
 		ivc_args args;
 #ifndef OSI_STRIPPED_LIB
-		/**
-		 * avb algorithm structure
-		 */
+		/** avb algorithm structure */
 		struct osi_core_avb_algorithm avb_algo;
 #endif
-		/**
-		 * OSI filter structure
-		 */
+		/** OSI filter structure */
 		struct osi_filter filter;
 		/** OSI HW features */
 		struct osi_hw_features hw_feat;
 		/** MMC counters */
 		struct osi_mmc_counters mmc;
-		/**
-		 * core argument structure
-		 */
+		/** core argument structure */
 		ivc_core_args init_args;
-		/**
-		 * ioctl command structure
-		 */
+		/** ioctl command structure */
 		struct osi_ioctl ioctl_data;
+#ifdef MACSEC_SUPPORT
+		/** lut config */
+		struct osi_macsec_lut_config lut_config;
+#ifdef MACSEC_KEY_PROGRAM
+		/** kt config */
+		struct osi_macsec_kt_config kt_config;
+#endif
+		/** MACsec Debug buffer data structure */
+		struct osi_macsec_dbg_buf_config dbg_buf_config;
+		/** MACsec config */
+		macsec_config macsec_cfg;
+		/** macsec mmc counters */
+		struct osi_macsec_mmc_counters macsec_mmc;
+#endif
 	}data;
 } ivc_msg_common_t;
 

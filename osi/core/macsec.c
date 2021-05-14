@@ -24,9 +24,15 @@
 #include <linux/crypto.h>
 #endif
 #include <osi_macsec.h>
-#include <linux/printk.h>
 #include "macsec.h"
 #include "../osi/common/common.h"
+#include "core_local.h"
+#ifdef LINUX_IVC
+#include <linux/printk.h>
+#else
+#define pr_cont(args...)
+#define pr_err(args...)
+#endif
 
 /**
  * @brief poll_for_dbg_buf_update - Query the status of a debug buffer update.
@@ -2942,6 +2948,12 @@ static struct macsec_core_ops macsec_ops = {
 	.dbg_events_config = macsec_dbg_events_config,
 };
 
+/**
+ * @brief if_ops - Static core interface operations for virtual
+ * case
+ */
+static struct macsec_core_ops virt_macsec_ops;
+
 static struct osi_macsec_lut_status lut_status[NUM_CTLR];
 
 int osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
@@ -2949,7 +2961,12 @@ int osi_init_macsec_ops(struct osi_core_priv_data *const osi_core)
 	if (osi_core->macsec_base == OSI_NULL) {
 		return -1;
 	} else {
-		osi_core->macsec_ops = &macsec_ops;
+		if (osi_core->use_virtualization == OSI_ENABLE) {
+			osi_core->macsec_ops = &virt_macsec_ops;
+			ivc_init_macsec_ops(osi_core->macsec_ops);
+		} else {
+			osi_core->macsec_ops = &macsec_ops;
+		}
 		osi_core->macsec_lut_status = lut_status;
 		return 0;
 	}

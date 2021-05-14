@@ -1553,6 +1553,14 @@ nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = config_fpe(osi_core, &data->fpe);
 		break;
 
+	case OSI_CMD_READ_REG:
+		ret = ops_p->read_reg(osi_core, (nve32_t) data->arg1_u32);
+		break;
+
+	case OSI_CMD_WRITE_REG:
+		ret = ops_p->write_reg(osi_core, (nve32_t) data->arg1_u32,
+				       (nve32_t) data->arg2_u32);
+		break;
 	default:
 		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_INVALID,
 			     "CORE: Incorrect command\n",
