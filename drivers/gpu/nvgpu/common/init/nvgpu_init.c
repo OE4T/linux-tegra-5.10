@@ -40,6 +40,7 @@
 #include <nvgpu/fb.h>
 #include <nvgpu/device.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gsp.h>
 #include <nvgpu/pm_reservation.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/hal_init.h>
@@ -770,6 +771,10 @@ int nvgpu_finalize_poweron(struct gk20a *g)
 #ifdef CONFIG_NVGPU_DGPU
 		NVGPU_INIT_TABLE_ENTRY(g->ops.sec2.init_sec2_setup_sw,
 				       NVGPU_SUPPORT_SEC2_RTOS),
+#endif
+#ifdef CONFIG_NVGPU_GSP_SCHEDULER
+		/* Init gsp ops */
+		NVGPU_INIT_TABLE_ENTRY(&nvgpu_gsp_sw_init, NO_FLAG),
 #endif
 		NVGPU_INIT_TABLE_ENTRY(g->ops.acr.acr_init,
 				       NVGPU_SEC_PRIVSECURITY),

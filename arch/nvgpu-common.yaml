@@ -301,6 +301,16 @@ sbr:
              include/nvgpu/sbr.h,
              include/nvgpu/gops/sbr.h ]
 
+gsp:
+  safe: no
+  owner: Ramesh M
+  gpu: igpu
+  sources: [ common/gsp/gsp_init.c,
+             common/gsp/gsp_priv.h,
+             common/gsp/gsp_bootstrap.c,
+             common/gsp/gsp_bootstrap.h,
+             include/nvgpu/gsp.h ]
+
 engine_queues:
   owner: Sagar K
   children:

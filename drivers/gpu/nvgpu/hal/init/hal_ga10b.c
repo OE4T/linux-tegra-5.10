@@ -1243,6 +1243,7 @@ static const struct gops_therm ga10b_ops_therm = {
 static const struct gops_gsp ga10b_ops_gsp = {
 	.falcon_base_addr = ga10b_gsp_falcon_base_addr,
 	.falcon2_base_addr = ga10b_gsp_falcon2_base_addr,
+	.gsp_reset = ga10b_gsp_engine_reset,
 };
 
 static const struct gops_pmu ga10b_ops_pmu = {

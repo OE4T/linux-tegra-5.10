@@ -176,6 +176,11 @@ srcs +=	common/device.c \
 	hal/fifo/userd_gk20a.c \
 	hal/sync/syncpt_cmdbuf_gv11b.c
 
+ifeq ($(CONFIG_NVGPU_GSP_SCHEDULER),1)
+srcs += common/gsp/gsp_init.c \
+	common/gsp/gsp_bootstrap.c
+endif
+
 # Source files below are functionaly safe (FuSa) and must always be included.
 srcs += hal/mm/mm_gv11b_fusa.c \
 	hal/mm/mm_gp10b_fusa.c \
