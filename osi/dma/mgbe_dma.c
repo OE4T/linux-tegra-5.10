@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -484,6 +484,12 @@ static void mgbe_configure_dma_channel(nveu32_t chan,
 	 * For value 0x1 in watchdog timer,device would wait for 256 clk cycles,
 	 * ie, (16ns x 256) => 4.096us (rounding off to 4us)
 	 * So formula with above values is,ret = usec/4
+	 */
+	/* NOTE: Bug 3287883: If RWTU value programmed then driver needs
+	 * to follow below order -
+	 * 1. First write RWT field with non-zero value.
+	 * 2. Program RWTU field of register
+	 * DMA_CH(#i)_Rx_Interrupt_Watchdog_Time.
 	 */
 	if ((osi_dma->use_riwt == OSI_ENABLE) &&
 	    (osi_dma->rx_riwt < UINT_MAX)) {
