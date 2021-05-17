@@ -12,6 +12,7 @@
  *
  */
 
+
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
@@ -27,6 +28,7 @@
 #include <asm/arch_timer.h>
 #include <linux/platform/tegra/ptp-notifier.h>
 #include <linux/time.h>
+#include <linux/version.h>
 #include <uapi/linux/nvpps_ioctl.h>
 
 
@@ -114,7 +116,7 @@ struct nvpps_file_data {
 #endif /* NVPPS_MAP_EQOS_REGS */
 
 
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0)
 static inline u64 __arch_counter_get_cntvct(void)
 {
 	u64 cval;
@@ -123,6 +125,7 @@ static inline u64 __arch_counter_get_cntvct(void)
 
 	return cval;
 }
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0) */
 
 
 #ifdef NVPPS_MAP_EQOS_REGS
@@ -277,11 +280,15 @@ static irqreturn_t nvpps_gpio_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0)
 static void nvpps_timer_callback(unsigned long data)
 {
-	struct nvpps_device_data	*pdev_data = (struct nvpps_device_data *)data;
-
+	struct nvpps_device_data        *pdev_data = (struct nvpps_device_data *)data;
+#else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0) */
+static void nvpps_timer_callback(struct timer_list *t)
+{
+        struct nvpps_device_data        *pdev_data = (struct nvpps_device_data *)from_timer(pdev_data, t, timer);
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0) */
 	/* get timestamps for this event */
 	nvpps_get_ts(pdev_data, false);
 
@@ -324,7 +331,15 @@ static int set_mode(struct nvpps_device_data *pdev_data, u32 mode)
 					dev_info(pdev_data->dev, "removed IRQ %d for nvpps\n", pdev_data->irq);
 				}
 				if (!pdev_data->timer_inited) {
-					setup_timer(&pdev_data->timer, nvpps_timer_callback, (unsigned long)pdev_data);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+					setup_timer(&pdev_data->timer,
+							nvpps_timer_callback,
+							(unsigned long)pdev_data);
+#else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0) */
+					timer_setup(&pdev_data->timer,
+							nvpps_timer_callback,
+							0);
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0) */
 					pdev_data->timer_inited = true;
 					/* setup timer interval to 1000 msecs */
 					mod_timer(&pdev_data->timer, jiffies + msecs_to_jiffies(1000));
@@ -469,11 +484,19 @@ static long nvpps_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			mutex_lock(&pdev_data->ts_lock);
 			switch (time_stamp.clockid) {
 			case CLOCK_REALTIME:
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 				ktime_get_real_ts(&time_stamp.kernel_ts);
+#else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0) */
+				ktime_get_real_ts64(&time_stamp.kernel_ts);
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0) */
 				break;
 
 			case CLOCK_MONOTONIC:
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 				ktime_get_ts(&time_stamp.kernel_ts);
+#else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0) */
+				ktime_get_ts64(&time_stamp.kernel_ts);
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0) */
 				break;
 
 			default:

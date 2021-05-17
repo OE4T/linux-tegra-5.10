@@ -32,9 +32,13 @@ struct nvpps_version {
 };
 
 #define NVPPS_VERSION_MAJOR	0
-#define NVPPS_VERSION_MINOR	1
+#define NVPPS_VERSION_MINOR	2
 #define NVPPS_API_MAJOR		0
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #define NVPPS_API_MINOR		2
+#else
+#define NVPPS_API_MINOR         3
+#endif
 
 struct nvpps_params {
 	__u32	evt_mode;
@@ -65,8 +69,13 @@ struct nvpps_timeevent {
 
 struct nvpps_timestamp_struct {
 	clockid_t	clockid;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	struct timespec	kernel_ts;
 	struct timespec	hw_ptp_ts;
+#else
+	struct timespec64 kernel_ts;
+        struct timespec64 hw_ptp_ts;
+#endif
 	__u64		extra[2];
 };
 
