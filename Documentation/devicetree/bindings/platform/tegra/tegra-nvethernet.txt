@@ -214,6 +214,18 @@ Required properties:
 				Transmit queue to a traffic class. Default
 				mapping is 1:1 between TxQ and TC class. Valid
 				property for IP with more number queue than TC.
+- nvidia,mac-addr-idx:		Chosen node inside DT will updated with list of
+				MAC addresses in increasing order upto the
+				maximum MAC addresses based on platform
+				configuration.
+				This DT property holds the value (index)
+				to fetch from the MAC address list inside
+				chosen node. This is read only property for
+				a given platform.
+				ex: If there is Ethernet controller DT node
+				with index 8, the controller MAC address
+				is at /chosen/nvidia,ether-mac8
+
 MDIO node
 - mdio:				Child of Ethernet controller which holds the PHY
 				devices connected via MDIO bus
@@ -279,6 +291,7 @@ Example:
 		/* usec value for Rx watchdog interrupt */
 		nvidia,rx_riwt = <124>;
 		nvidia,max-platform-mtu= <9000>;
+		nvidia,mac-addr-idx = <0>;
 		eqos_cool_dev: eqos-cool-dev {
 				cooling-min-state = <0>;
 				cooling-max-state = <5>;
