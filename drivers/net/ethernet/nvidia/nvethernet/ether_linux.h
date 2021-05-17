@@ -100,6 +100,11 @@
 #define ETHER_DFLT_PTP_CLK		312500000U
 
 /**
+ * @brief Ethernet default Rx Input clock frequency
+ */
+#define ETHER_RX_INPUT_CLK_RATE		125000000U
+
+/**
  * @addtogroup CONFIG Ethernet configuration error codes
  *
  * @brief Error codes for fail/success.
@@ -358,6 +363,8 @@ struct ether_priv_data {
 	struct clk *eee_pcs_clk;
 	/** APP clock */
 	struct clk *app_clk;
+	/** MAC Rx input clk */
+	struct clk *rx_input_clk;
 	/** Pointer to PHY device tree node */
 	struct device_node *phy_node;
 	/** Pointer to MDIO device tree node */

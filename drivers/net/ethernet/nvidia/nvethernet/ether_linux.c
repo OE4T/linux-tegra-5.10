@@ -314,6 +314,10 @@ static void ether_disable_eqos_clks(struct ether_priv_data *pdata)
 		clk_disable_unprepare(pdata->pllrefe_clk);
 	}
 
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		clk_disable_unprepare(pdata->rx_m_clk);
+	}
+
 	pdata->clks_enable = false;
 }
 
@@ -529,10 +533,21 @@ static int ether_enable_eqos_clks(struct ether_priv_data *pdata)
 		}
 	}
 
+	if (!IS_ERR_OR_NULL(pdata->rx_m_clk)) {
+		ret = clk_prepare_enable(pdata->rx_m_clk);
+		if (ret < 0) {
+			goto err_rx_m;
+		}
+	}
+
 	pdata->clks_enable = true;
 
 	return 0;
 
+err_rx_m:
+	if (!IS_ERR_OR_NULL(pdata->tx_clk)) {
+		clk_disable_unprepare(pdata->tx_clk);
+	}
 err_tx:
 	if (!IS_ERR_OR_NULL(pdata->ptp_ref_clk)) {
 		clk_disable_unprepare(pdata->ptp_ref_clk);
@@ -4456,8 +4471,37 @@ static int ether_get_eqos_clks(struct ether_priv_data *pdata)
 		goto err_tx;
 	}
 
+	if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+		pdata->rx_m_clk = devm_clk_get(dev, "eqos_rx_m");
+		if (IS_ERR(pdata->rx_m_clk)) {
+			ret =  PTR_ERR(pdata->rx_m_clk);
+			dev_err(dev, "failed to get eqos_rx_m clk\n");
+			goto err_rx_m;
+		}
+
+		pdata->rx_input_clk = devm_clk_get(dev, "eqos_rx_input");
+		if (IS_ERR(pdata->rx_input_clk)) {
+			ret = PTR_ERR(pdata->rx_input_clk);
+			dev_err(dev, "failed to get eqos_rx_input clk\n");
+			goto err_rx_input;
+		}
+
+		/* Set default rate to 1G */
+		clk_set_rate(pdata->rx_input_clk,
+			     ETHER_RX_INPUT_CLK_RATE);
+	} else {
+		pdata->rx_m_clk = NULL;
+		pdata->rx_input_clk = NULL;
+	}
+
 	return 0;
 
+err_rx_input:
+	if (osi_core->mac_ver == OSI_EQOS_MAC_5_30) {
+		devm_clk_put(dev, pdata->rx_m_clk);
+err_rx_m:
+		devm_clk_put(dev, pdata->tx_clk);
+	}
 err_tx:
 	devm_clk_put(dev, pdata->ptp_ref_clk);
 err_ptp_ref:
