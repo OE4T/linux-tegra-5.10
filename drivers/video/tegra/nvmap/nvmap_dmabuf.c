@@ -306,6 +306,15 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 
 	trace_nvmap_dmabuf_map_dma_buf(attach->dmabuf, attach->dev);
 
+	/*
+	 * If the exported buffer is foreign buffer(alloc_from_va) and
+	 * has RO access, don't map it in device space.
+	 * Return error as no access.
+	 */
+	if (info->handle->from_va && info->handle->is_ro &&
+		(dir != DMA_TO_DEVICE))
+		return ERR_PTR(-EACCES);
+
 	nvmap_lru_reset(info->handle);
 	mutex_lock(&info->maps_lock);
 
