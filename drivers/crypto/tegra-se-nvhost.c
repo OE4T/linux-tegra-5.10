@@ -1485,7 +1485,8 @@ static int tegra_se_aes_ins_op(struct tegra_se_dev *se_dev, u8 *pdata,
 	cpuvaddr[i++] = __nvhost_opcode_incr_w(
 			opcode_addr + OFFSETS.OPERATION);
 	cpuvaddr[i++] = SE_OPERATION_WRSTALL(WRSTALL_TRUE) |
-				SE_OPERATION_OP(OP_START);
+				SE_OPERATION_OP(OP_START) |
+				SE_OPERATION_LASTBUF(LASTBUF_TRUE);
 
 	cmdbuf_num_words = i;
 	se_dev->cmdbuf_cnt = i;
@@ -5945,6 +5946,7 @@ static int tegra_se_gcm_final(struct aead_request *req, bool encrypt)
 		val |= SE_OPERATION_INIT(INIT_TRUE);
 	val |= SE_OPERATION_FINAL(FINAL_TRUE);
 	val |= SE_OPERATION_OP(OP_START);
+	val |= SE_OPERATION_LASTBUF(LASTBUF_TRUE);
 
 	cpuvaddr[i++] = val;
 	se_dev->cmdbuf_cnt = i;
@@ -6087,7 +6089,7 @@ static int tegra_se_aes_gcm_decrypt(struct aead_request *req)
 			goto out;
 	}
 
-	if (req->cryptlen - req->assoclen) {
+	if (req->cryptlen - req->assoclen - ctx->authsize) {
 		ret = tegra_se_gcm_op(req, DECRYPT);
 		if (ret)
 			goto out;
