@@ -241,6 +241,7 @@ static bool gr_config_alloc_struct_mem(struct gk20a *g,
 	max_gpc_cnt = nvgpu_safe_mult_u64((size_t)config->max_gpc_count, sizeof(u32));
 	config->gpc_tpc_count = nvgpu_kzalloc(g, gpc_size);
 	config->gpc_tpc_mask = nvgpu_kzalloc(g, max_gpc_cnt);
+	config->gpc_tpc_mask_physical = nvgpu_kzalloc(g, max_gpc_cnt);
 #ifdef CONFIG_NVGPU_GRAPHICS
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
 		config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
@@ -327,6 +328,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	u32 cur_gr_instance = nvgpu_gr_get_cur_instance_id(g);
 	u32 gpc_index;
 	u32 gpc_phys_id;
+	u32 gpc_id;
 	int err;
 
 	config = nvgpu_kzalloc(g, sizeof(*config));
@@ -385,7 +387,20 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		 */
 		gpc_phys_id = nvgpu_grmgr_get_gr_gpc_phys_id(g,
 				cur_gr_instance, gpc_index);
+
+		/*
+		 * The gpc_tpc_mask_physical masks are ordered by gpc_id.
+		 * Where gpc_id = gpc_logical_id when MIG=true, else
+		 *                gpc_physical_id.
+		 */
+		gpc_id = gpc_phys_id;
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MIG)) {
+			gpc_id = nvgpu_grmgr_get_gr_gpc_logical_id(g,
+					cur_gr_instance, gpc_index);
+		}
 		config->gpc_tpc_mask[gpc_index] =
+		     g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
+		config->gpc_tpc_mask_physical[gpc_id] =
 		     g->ops.gr.config.get_gpc_tpc_mask(g, config, gpc_phys_id);
 	}
 
@@ -759,11 +774,23 @@ u32 *nvgpu_gr_config_get_base_mask_gpc_tpc(struct nvgpu_gr_config *config)
 	return config->gpc_tpc_mask;
 }
 
+u32 *nvgpu_gr_config_get_gpc_tpc_mask_physical_base(struct nvgpu_gr_config *config)
+{
+	return config->gpc_tpc_mask_physical;
+}
+
 u32 nvgpu_gr_config_get_gpc_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index)
 {
-	nvgpu_assert(gpc_index < nvgpu_gr_config_get_gpc_count(config));
+	nvgpu_assert(gpc_index < nvgpu_gr_config_get_max_gpc_count(config));
 	return config->gpc_tpc_mask[gpc_index];
+}
+
+u32 nvgpu_gr_config_get_gpc_tpc_mask_physical(struct nvgpu_gr_config *config,
+	u32 gpc_index)
+{
+	nvgpu_assert(gpc_index < nvgpu_gr_config_get_max_gpc_count(config));
+	return config->gpc_tpc_mask_physical[gpc_index];
 }
 
 void nvgpu_gr_config_set_gpc_tpc_mask(struct nvgpu_gr_config *config,

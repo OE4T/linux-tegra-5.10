@@ -259,8 +259,11 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct nvgpu_gr *gr)
 		goto cleanup;
 	}
 
-	config->gpc_tpc_mask = nvgpu_kzalloc(g, config->gpc_count * sizeof(u32));
-	if (!config->gpc_tpc_mask) {
+	config->gpc_tpc_mask = nvgpu_kzalloc(g,
+			config->max_gpc_count * sizeof(u32));
+	config->gpc_tpc_mask_physical = nvgpu_kzalloc(g,
+			config->max_gpc_count * sizeof(u32));
+	if (!config->gpc_tpc_mask || !config->gpc_tpc_mask_physical) {
 		goto cleanup;
 	}
 
@@ -288,7 +291,7 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct nvgpu_gr *gr)
 #endif
 
 	config->tpc_count = 0;
-	for (gpc_index = 0; gpc_index < config->gpc_count; gpc_index++) {
+	for (gpc_index = 0; gpc_index < config->max_gpc_count; gpc_index++) {
 		config->gpc_tpc_count[gpc_index] =
 			priv->constants.gpc_tpc_count[gpc_index];
 
@@ -298,6 +301,8 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct nvgpu_gr *gr)
 			gr->config->gpc_tpc_mask[gpc_index] =
 				g->ops.gr.config.get_gpc_tpc_mask(g,
 					g->gr->config, gpc_index);
+			gr->config->gpc_tpc_mask_physical[gpc_index] =
+				priv->constants.gpc_tpc_mask_physical[gpc_index];
 		}
 	}
 

@@ -238,7 +238,21 @@ u32 nvgpu_gr_config_get_pes_tpc_count(struct nvgpu_gr_config *config,
 u32 *nvgpu_gr_config_get_base_mask_gpc_tpc(struct nvgpu_gr_config *config);
 
 /**
- * @brief Get TPC mask for given GPC.
+ * @brief Get base address of array that stores mask of TPCs in GPC.
+ *
+ * @param config [in]		Pointer to GR configuration struct.
+ *
+ * Get base address of array that stores mask of TPCs in GPC, ordered
+ * in physical-id when in non-MIG(legacy) mode and by logical-id when in
+ * MIG mode.
+ *
+ * @return base address of array that stores mask of TPCs in GPC.
+ */
+u32 *nvgpu_gr_config_get_gpc_tpc_mask_physical_base(
+		struct nvgpu_gr_config *config);
+
+/**
+ * @brief Get TPC mask for given logical GPC index.
  *
  * @param config [in]		Pointer to GR configuration struct.
  * @param gpc_index [in]	Valid GPC index.
@@ -247,11 +261,29 @@ u32 *nvgpu_gr_config_get_base_mask_gpc_tpc(struct nvgpu_gr_config *config);
  * Each set bit indicates TPC with that index is available, otherwise
  * the TPC is considered floorswept.
  * GPC index must be less than value returned by
- * #nvgpu_gr_config_get_gpc_count(), otherwise an assert is raised.
+ * #nvgpu_gr_config_get_max_gpc_count(), otherwise an assert is raised.
  *
  * @return mask of TPCs for given GPC.
  */
 u32 nvgpu_gr_config_get_gpc_tpc_mask(struct nvgpu_gr_config *config,
+	u32 gpc_index);
+
+/**
+ * @brief Get TPC mask for given physical GPC index.
+ *
+ * @param config [in]		Pointer to GR configuration struct.
+ * @param gpc_index [in]	Valid GPC physical id.
+ *
+ * This function returns mask of TPCs for given GPC index, which will be
+ * the physical-id in non-MIG(legacy) mode and logical-id in MIG mode.
+ * Each set bit indicates TPC with that index is available, otherwise
+ * the TPC is considered floorswept.
+ * GPC index must be less than value returned by
+ * #nvgpu_gr_config_get_max_gpc_count(), otherwise an assert is raised.
+ *
+ * @return mask of TPCs for given GPC.
+ */
+u32 nvgpu_gr_config_get_gpc_tpc_mask_physical(struct nvgpu_gr_config *config,
 	u32 gpc_index);
 
 /**

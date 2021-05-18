@@ -483,6 +483,7 @@ struct tegra_vgpu_constants_params {
 	 * TEGRA_VGPU_MAX_TPC_COUNT_PER_GPC
 	 */
 	u16 gpc_tpc_mask[TEGRA_VGPU_MAX_GPC_COUNT];
+	u16 gpc_tpc_mask_physical[TEGRA_VGPU_MAX_GPC_COUNT];
 	u16 gpc_ppc_count[TEGRA_VGPU_MAX_GPC_COUNT];
 	u32 pes_tpc_count[TEGRA_VGPU_MAX_PES_COUNT_PER_GPC
 			* TEGRA_VGPU_MAX_GPC_COUNT];
