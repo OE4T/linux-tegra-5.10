@@ -712,6 +712,14 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
 
 		if (osi_likely(osi_dma->osd_ops.transmit_complete !=
 			       OSI_NULL)) {
+			/* if tx_swcx->len == -1 means this is context
+			 * descriptor for PTP and TSO. Here length will be reset
+			 * so that for PTP/TSO context descriptors length will
+			 * not be added to tx_bytes
+			 */
+			if (tx_swcx->len == OSI_INVALID_VALUE) {
+				tx_swcx->len = 0;
+			}
 			osi_dma->osd_ops.transmit_complete(osi_dma->osd,
 						       tx_swcx->buf_virt_addr,
 						       tx_swcx->buf_phy_addr,
@@ -756,6 +764,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  *    with other context information in the transmit descriptor.
  *
  * @param[in, out] tx_pkt_cx: Pointer to transmit packet context structure
+ * @param[in, out] tx_swcx: Pointer to transmit sw packet context structure
  * @param[in, out] tx_desc: Pointer to transmit descriptor to be filled.
  * @param[in] sync_mode: PTP sync mode to indetify.
  * @param[in] mac: HW MAC ver
@@ -771,6 +780,7 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi_dma,
  */
 
 static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
+				 struct osi_tx_swcx *tx_swcx,
 				 struct osi_tx_desc *tx_desc,
 				 unsigned int ptp_sync_flag,
 				 unsigned int mac)
@@ -790,6 +800,10 @@ static inline nve32_t need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
 			tx_desc->tdes3 |= tx_pkt_cx->vtag_id;
 			/* Set VLAN TAG Valid */
 			tx_desc->tdes3 |= TDES3_VLTV;
+
+			if (tx_swcx->len == OSI_INVALID_VALUE) {
+				tx_swcx->len = NV_VLAN_HLEN;
+			}
 			ret = 1;
 		}
 
@@ -1022,8 +1036,8 @@ nve32_t hw_transmit(struct osi_dma_priv_data *osi_dma,
 						 1UL);
 	}
 
-	cntx_desc_consumed = need_cntx_desc(tx_pkt_cx, tx_desc, osi_dma->ptp_flag,
-					    osi_dma->mac);
+	cntx_desc_consumed = need_cntx_desc(tx_pkt_cx, tx_swcx, tx_desc,
+					    osi_dma->ptp_flag, osi_dma->mac);
 	if (cntx_desc_consumed == 1) {
 		if (((tx_pkt_cx->flags & OSI_PKT_CX_PTP) == OSI_PKT_CX_PTP) &&
 		    (osi_dma->mac == OSI_MAC_HW_MGBE)) {
