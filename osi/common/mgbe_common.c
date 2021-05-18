@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2021, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,4 +69,17 @@ nveul64_t mgbe_get_systime_from_mac(void *addr)
 	}
 
 	return ns;
+}
+
+nveu32_t mgbe_is_mac_enabled(void *addr)
+{
+	nveu32_t enable = OSI_DISABLE;
+	nveu32_t reg;
+
+	reg = osi_readl((nveu8_t *)addr + MGBE_MAC_TX);
+	if ((reg & (MGBE_MCR_TE)) == MGBE_MCR_TE) {
+		enable = OSI_ENABLE;
+	}
+
+	return enable;
 }

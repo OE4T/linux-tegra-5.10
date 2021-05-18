@@ -59,6 +59,15 @@
 /** @} */
 
 /**
+ * @addtogroup Channel Mask
+ * @brief Chanel mask for Tx and Rx interrupts
+ * @{
+ */
+#define OSI_VM_IRQ_TX_CHAN_MASK(x)	OSI_BIT((x) * 2U)
+#define OSI_VM_IRQ_RX_CHAN_MASK(x)	OSI_BIT(((x) * 2U) + 1U)
+/** @} */
+
+/**
  * OSI error macro definition,
  * @param[in] priv: OSD private data OR NULL
  * @param[in] type: error type
