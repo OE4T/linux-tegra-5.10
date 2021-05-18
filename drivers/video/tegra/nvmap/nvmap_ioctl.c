@@ -691,32 +691,37 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg)
 
 	if (!op.handles || !op.offsets || !op.sizes) {
 		pr_err("pointers are invalid\n");
-		return -EINVAL;
+		err = -EINVAL;
+		goto free_mem;
 	}
 
 	if (!IS_ALIGNED((ulong)offset_ptr, elem_size) ||
 	    !IS_ALIGNED((ulong)size_ptr, elem_size) ||
 	    !IS_ALIGNED((ulong)handle_ptr, sizeof(u32))) {
 		pr_err("pointers are not properly aligned!!\n");
-		return -EINVAL;
+		err = -EINVAL;
+		goto free_mem;
 	}
 
 	if (copy_from_user(handle_ptr, (void *)op.handles,
 		op.nr * sizeof(u32))) {
 		pr_err("Can't copy from user pointer op.handles\n");
-		return -EFAULT;
+		err = -EFAULT;
+		goto free_mem;
 	}
 
 	if (copy_from_user(offset_ptr, (void *)op.offsets,
 		op.nr * elem_size)) {
 		pr_err("Can't copy from user pointer op.offsets\n");
-		return -EFAULT;
+		err = -EFAULT;
+		goto free_mem;
 	}
 
 	if (copy_from_user(size_ptr, (void *)op.sizes,
 		op.nr * elem_size)) {
 		pr_err("Can't copy from user pointer op.sizes\n");
-		return -EFAULT;
+		err = -EFAULT;
+		goto free_mem;
 	}
 
 	for (i = 0; i < op.nr; i++) {
