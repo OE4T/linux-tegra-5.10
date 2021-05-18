@@ -135,6 +135,13 @@ int xpcs_start(struct osi_core_priv_data *osi_core)
 	int ret = 0;
 	int cond = 1;
 
+	if (osi_core->xpcs_base == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "XPCS base is NULL", 0ULL);
+		/* TODO: Remove this once silicon arrives */
+		return 0;
+	}
+
 	ctrl = xpcs_read(xpcs_base, XPCS_SR_MII_CTRL);
 	ctrl |= XPCS_SR_MII_CTRL_AN_ENABLE;
 	xpcs_write(xpcs_base, XPCS_SR_MII_CTRL, ctrl);
@@ -205,8 +212,12 @@ int xpcs_init(struct osi_core_priv_data *osi_core)
 	unsigned int ctrl = 0;
 	int cond = 1;
 
-	if (osi_core->xpcs_base == OSI_NULL)
-		return -1;
+	if (osi_core->xpcs_base == OSI_NULL) {
+		OSI_CORE_ERR(OSI_NULL, OSI_LOG_ARG_HW_FAIL,
+			     "XPCS base is NULL", 0ULL);
+		/* TODO: Remove this once silicon arrives */
+		return 0;
+	}
 
 	/* Switching to USXGMII Mode based on
 	 * XPCS programming guideline 7.6
