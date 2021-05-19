@@ -48,6 +48,19 @@
 			     <0 187 0x4>, /* vm1 */
 			     <0 188 0x4>, /* vm2 */
 			     <0 189 0x4>; /* vm3 */
+		resets = <&bpmp_resets TEGRA234_RESET_EQOS>;
+		reset-names = "mac_rst";
+		clocks = <&bpmp_clks TEGRA234_CLK_PLLREFE_VCOOUT>,
+			 <&bpmp_clks TEGRA234_CLK_EQOS_AXI>,
+			 <&bpmp_clks TEGRA234_CLK_EQOS_RX>,
+			 <&bpmp_clks TEGRA234_CLK_EQOS_PTP_REF>,
+			 <&bpmp_clks TEGRA234_CLK_EQOS_TX>,
+			 <&bpmp_clks TEGRA234_CLK_AXI_CBB>,
+			 <&bpmp_clks TEGRA234_CLK_EQOS_RX_M>,
+			 <&bpmp_clks TEGRA234_CLK_EQOS_RX_INPUT>;
+		clock-names = "pllrefe_vcoout", "eqos_axi", "eqos_rx",
+			      "eqos_ptp_ref", "eqos_tx", "axi_cbb",
+			      "eqos_rx_m", "eqos_rx_input";
 #if TEGRA_IOMMU_DT_VERSION >= DT_VERSION_2
 		iommus = <&smmu_niso1 TEGRA_SID_NISO1_EQOS>;
 #else
