@@ -2,7 +2,7 @@
 /*
  * Driver for the NVIDIA Tegra pinmux
  *
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
  * Derived from code:
  * Copyright (C) 2010 Google, Inc.
@@ -352,7 +352,9 @@ static int tegra_pinctrl_gpio_request_enable(struct pinctrl_dev *pctldev,
 					     unsigned int offset)
 {
 	struct tegra_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
-	const struct tegra_pingroup *group;
+	const struct tegra_pingroup *g;
+	unsigned int group, num_pins;
+	const unsigned int *pins;
 	u32 value;
 	int ret;
 
@@ -363,14 +365,23 @@ static int tegra_pinctrl_gpio_request_enable(struct pinctrl_dev *pctldev,
 	if (!pmx->soc->sfsel_in_mux)
 		return 0;
 
-	group = &pmx->soc->groups[offset];
+	for (group = 0; group < pmx->soc->ngroups; ++group) {
+		ret = tegra_pinctrl_get_group_pins(pctldev, group, &pins,
+						   &num_pins);
+		if (ret < 0 || num_pins != 1)
+			continue;
+		if (offset == pins[0])
+			break;
+	}
 
-	if (group->mux_reg < 0 || group->sfsel_bit < 0)
+	g = &pmx->soc->groups[group];
+
+	if (g->mux_reg < 0 || g->sfsel_bit < 0)
 		return -EINVAL;
 
-	value = pmx_readl(pmx, group->mux_bank, group->mux_reg);
-	value &= ~BIT(group->sfsel_bit);
-	pmx_writel(pmx, value, group->mux_bank, group->mux_reg);
+	value = pmx_readl(pmx, g->mux_bank, g->mux_reg);
+	value &= ~BIT(g->sfsel_bit);
+	pmx_writel(pmx, value, g->mux_bank, g->mux_reg);
 
 	return 0;
 }
