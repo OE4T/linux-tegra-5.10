@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/list.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/gmmu.h>
 
 #ifdef __KERNEL__
 #include <nvgpu/linux/nvgpu_mem.h>
@@ -46,34 +47,6 @@ struct nvgpu_allocator;
 struct nvgpu_gmmu_attrs;
 struct nvgpu_page_alloc;
 struct nvgpu_sgt;
-
-/**
- * This flag variable designates where the memory actually was allocated from.
- */
-enum nvgpu_aperture {
-	/**
-	 * Unallocated or invalid memory structure.
-	 */
-	APERTURE_INVALID = 0,
-	/**
-	 * This memory is located in SYSMEM.
-	 */
-	APERTURE_SYSMEM,
-	/**
-	 * This coherent memory is located in SYSMEM. Note: This type is used
-	 * internally. Use APERTURE_SYSMEM.
-	 */
-	APERTURE_SYSMEM_COH,
-	/**
-	 * This memory is located in VIDMEM.
-	 */
-	APERTURE_VIDMEM,
-	/**
-	 * This gives maximum type of memory locations. Note: This should always
-	 * be defined last.
-	 */
-	APERTURE_MAX_ENUM
-};
 
 /**
  * The nvgpu_mem structure defines abstracted GPU accessible memory regions.

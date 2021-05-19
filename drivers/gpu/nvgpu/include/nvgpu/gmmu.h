@@ -30,7 +30,6 @@
  */
 
 #include <nvgpu/types.h>
-#include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/list.h>
 #include <nvgpu/rbtree.h>
 #include <nvgpu/lock.h>
@@ -44,6 +43,7 @@
 struct gk20a;
 struct vm_gk20a;
 struct nvgpu_mem;
+struct nvgpu_sgt;
 struct nvgpu_gmmu_pd;
 struct vm_gk20a_mapping_batch;
 
@@ -66,6 +66,34 @@ struct vm_gk20a_mapping_batch;
  * Maximum number of page size index in the page size table
  */
 #define GMMU_NR_PAGE_SIZES	3U
+
+/**
+ * This flag variable designates where the memory actually was allocated from.
+ */
+enum nvgpu_aperture {
+	/**
+	 * Unallocated or invalid memory structure.
+	 */
+	APERTURE_INVALID = 0,
+	/**
+	 * This memory is located in SYSMEM.
+	 */
+	APERTURE_SYSMEM,
+	/**
+	 * This coherent memory is located in SYSMEM. Note: This type is used
+	 * internally. Use APERTURE_SYSMEM.
+	 */
+	APERTURE_SYSMEM_COH,
+	/**
+	 * This memory is located in VIDMEM.
+	 */
+	APERTURE_VIDMEM,
+	/**
+	 * This gives maximum type of memory locations. Note: This should always
+	 * be defined last.
+	 */
+	APERTURE_MAX_ENUM
+};
 
 /**
  * This flag designates the requested GMMU mapping.
