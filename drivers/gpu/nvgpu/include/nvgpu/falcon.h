@@ -179,19 +179,19 @@
  * Falcon/Falcon2 fuse settings bit
  */
 #if defined(CONFIG_NVGPU_NEXT)
-#define FALCON_DISABLE                         (0U)
-#define FALCON_FORCE_ENCRYPTION_EN             (1U)
-#define NVRISCV_BR_ERROR_INFO_EN               (2U)
-#define NVRISCV_DEV_DIS                        (3U)
-#define NVRISCV_PL3_DISABLE                    (4U)
-#define DEFAULT_CORE_SELECT                    (5U)
-#define NVRISCV_DCLS_EN                        (6U)
-#define NVRISCV_DCLS_SECURITY_ACTION_ASSERT    (7U)
-#define NVRISCV_DCLS_SECURITY_ACTION_HALT      (8U)
-#define NVRISCV_DCLS_SECURITY_ACTION_INTERRUPT (9U)
-#define SECURE_DEBUG_DISABLE                   (10U)
-#define AES_ALGO_DISABLE                       (11U)
-#define PKC_ALGO_DISABLE                       (12U)
+#define FCD            (0U)
+#define FENEN          (1U)
+#define NVRISCV_BRE_EN (2U)
+#define NVRISCV_DEVD   (3U)
+#define NVRISCV_PLD    (4U)
+#define DCS            (5U)
+#define NVRISCV_SEN    (6U)
+#define NVRISCV_SA     (7U)
+#define NVRISCV_SH     (8U)
+#define NVRISCV_SI     (9U)
+#define SECURE_DBGD    (10U)
+#define AES_ALGO_DIS   (11U)
+#define PKC_ALGO_DIS   (12U)
 #endif
 
 struct gk20a;
