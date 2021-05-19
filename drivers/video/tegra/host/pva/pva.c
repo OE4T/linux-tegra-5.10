@@ -1,7 +1,7 @@
 /*
  * PVA driver for T194
  *
- * Copyright (c) 2016-2020, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2021, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -833,14 +833,12 @@ static int pva_probe(struct platform_device *pdev)
 	pva->vpu_perf_counters_enable = false;
 
 #ifdef __linux__
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 	if (tegra_chip_get_revision() != TEGRA194_REVISION_A01)
 #else
 	if (tegra_get_chip_id() != TEGRA194)
 #endif
 		pva->vmem_war_disable = 1;
-#endif
 #endif
 
 	/* Map MMIO range to kernel space */
